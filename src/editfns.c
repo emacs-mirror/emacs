@@ -73,7 +73,7 @@ static int tm_diff P_ ((struct tm *, struct tm *));
 static void find_field P_ ((Lisp_Object, Lisp_Object, Lisp_Object, int *, Lisp_Object, int *));
 static void update_buffer_properties P_ ((int, int));
 static Lisp_Object region_limit P_ ((int));
-static int lisp_time_argument P_ ((Lisp_Object, time_t *, int *));
+int lisp_time_argument P_ ((Lisp_Object, time_t *, int *));
 static size_t emacs_memftimeu P_ ((char *, size_t, const char *,
 				   size_t, const struct tm *, int));
 static void general_insert_function P_ ((void (*) (const unsigned char *, int),
@@ -1377,7 +1377,7 @@ resolution finer than a second.  */)
 }
 
 
-static int
+int
 lisp_time_argument (specified_time, result, usec)
      Lisp_Object specified_time;
      time_t *result;

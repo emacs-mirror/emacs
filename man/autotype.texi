@@ -196,7 +196,7 @@ define an abbreviation (@pxref{(emacs)Defining Abbrevs}) that will expand
 
   Say you want @samp{ifst} to be an abbreviation for the C language if
 statement.  You will tell Emacs that @samp{ifst} expands to the empty string
-and then calls the skeleton command.  In Emacs-lisp you can say something like
+and then calls the skeleton command.  In Emacs Lisp you can say something like
 @code{(define-abbrev c-mode-abbrev-table "ifst" "" 'c-if)}.  Or you can edit
 the output from @kbd{M-x list-abbrevs} to make it look like this:
 
@@ -263,7 +263,7 @@ copy of this variable.
 @item @code{v1}, @code{v2}
 Skeleton-local user variables.
 @item @code{'@var{expression}}
-Evaluate following lisp expression for its side-effect, but prevent it from
+Evaluate following Lisp expression for its side-effect, but prevent it from
 being interpreted as a skeleton element.
 @item @var{skeleton}
 Subskeletons are inserted recursively, not once, but as often as the user
@@ -605,9 +605,9 @@ formatting or define special points of interest in the inserted text.
 @kbd{M-x tempo-backward-mark} and @kbd{M-x tempo-forward-mark} can be
 used to jump between such points.
 
-More flexible templates can be created by including lisp symbols, which
+More flexible templates can be created by including Lisp symbols, which
 will be evaluated as variables, or lists, which will be evaluated
-as lisp expressions.  Automatic completion of specified tags to expanded
+as Lisp expressions.  Automatic completion of specified tags to expanded
 templates can be provided.
 
 @findex tempo-define-template

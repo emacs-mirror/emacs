@@ -341,6 +341,7 @@ Interface}).
   (make-local-variable 'widget-example-repeat)
   (let ((inhibit-read-only t))
     (erase-buffer))
+  (remove-overlays)
   (widget-insert "Here is some documentation.\n\nName: ")
   (widget-create 'editable-field
 		 :size 13

@@ -4,6 +4,8 @@ See the end for copying conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
 For older news, see the file ONEWS
+You can narrow news to the specific version by calling
+`view-emacs-news' with a prefix argument or by typing C-u C-h C-n.
 
 Temporary note:
  +++ indicates that the appropriate manual has already been updated.
@@ -1739,6 +1741,9 @@ to view diffs or log entries directly from vc-annotate-mode:
 
 * New modes and packages in Emacs 21.4
 
+** The wdired.el package allows you to use normal editing commands on dired
+buffers to change filenames, permissions, etc...
+
 ** The new python.el package is used to edit Python and Jython programs.
 
 ** The URL package (which had been part of W3) is now part of Emacs.
@@ -1973,6 +1978,11 @@ and partial visiblity state of the corresponding row, if the PARTIALLY
 arg is non-nil.
 
 ** The function `eql' is now available without requiring the CL package.
+
++++
+** The new primitive `set-file-times' sets a file's access and
+modification times.  Magic file name handlers can handle this
+operation.
 
 ** The display space :width and :align-to text properties are now
 supported on text terminals.
@@ -3405,6 +3415,9 @@ using the text properties (esp. the face) of the prompt string.
 
 ** New function x-send-client-message sends a client message when
 running under X.
+
+** Arguments for remove-overlays are now optional, so that you can remove
+all overlays in the buffer by just calling (remove-overlay). 
 
 ** New packages:
 

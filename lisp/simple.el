@@ -2148,7 +2148,7 @@ visual feedback indicating the extent of the region being copied."
 	      ;; Swap point and mark.
 	      (set-marker (mark-marker) (point) (current-buffer))
 	      (goto-char other-end)
-	      (sit-for 1)
+	      (sit-for blink-matching-delay)
 	      ;; Swap back.
 	      (set-marker (mark-marker) other-end (current-buffer))
 	      (goto-char opoint)
@@ -4258,7 +4258,10 @@ The completion list buffer is available as the value of `standard-output'.")
 
 (defface completions-common-part
   '((t (:inherit default)))
-  "Face put on the common prefix substring in completions in *Completions* buffer."
+  "Face put on the common prefix substring in completions in *Completions* buffer.
+The idea of `completions-common-part' is that you can use it to
+make the common parts less visible than normal, so that the rest
+of the differing parts is, by contrast, slightly highlighted."
   :group 'completion)
 
 (defun completion-setup-function ()

@@ -1,6 +1,6 @@
 ;;; em-unix.el --- UNIX command aliases
 
-;; Copyright (C) 1999, 2000, 2001 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -24,6 +24,7 @@
 (provide 'em-unix)
 
 (eval-when-compile (require 'esh-maint))
+(require 'eshell)
 
 (defgroup eshell-unix nil
   "This module defines many of the more common UNIX utilities as

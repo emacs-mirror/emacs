@@ -1,6 +1,6 @@
 ;;; em-dirs.el --- directory navigation commands
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2004 Free Software Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -24,6 +24,7 @@
 (provide 'em-dirs)
 
 (eval-when-compile (require 'esh-maint))
+(require 'eshell)
 
 (defgroup eshell-dirs nil
   "Directory navigation involves changing directories, examining the

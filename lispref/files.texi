@@ -1445,6 +1445,14 @@ the default file protection has no effect.
 This function returns the current default protection value.
 @end defun
 
+@defun set-file-times filename &optional time
+This function sets the access and modification times of @var{filename}
+to @var{time}.  The return value is @code{t} if the times are successfully
+set, otherwise it is @code{nil}.  @var{time} defaults to the current
+time and must be in the format returned by @code{current-time}
+(@pxref{Time of Day}).
+@end defun
+
 @cindex MS-DOS and file modes
 @cindex file modes and MS-DOS
   On MS-DOS, there is no such thing as an ``executable'' file mode bit.
@@ -2503,7 +2511,7 @@ Here are the operations that a magic file name handler gets to handle:
 @code{load}, @code{make-directory},
 @code{make-directory-internal},
 @code{make-symbolic-link},@*
-@code{rename-file}, @code{set-file-modes},
+@code{rename-file}, @code{set-file-modes}, @code{set-file-times},
 @code{set-visited-file-modtime}, @code{shell-command},
 @code{substitute-in-file-name},@*
 @code{unhandled-file-name-directory},

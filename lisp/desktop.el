@@ -810,8 +810,8 @@ directory DIRNAME."
 	nil)))
 
 ;; ----------------------------------------------------------------------------
-;; Create a buffer, load its file, set is mode, ...;  called from Desktop file
-;; only.
+;; Create a buffer, load its file, set its mode, ...;
+;; called from Desktop file only.
 
 (eval-when-compile ; Just to silence the byte compiler
    (defvar desktop-first-buffer) ;; Dynamically bound in `desktop-read'

@@ -1,3 +1,12 @@
+2004-04-28  Masatake YAMATO  <jet@gyve.org>
+
+	* widget.texi (Programming Example): Remove
+	overlays.
+
+2004-04-27  Jesper Harder  <harder@ifa.au.dk>
+
+	* faq.texi, viper.texi, dired-x.texi, autotype.texi: lisp -> Lisp.
+
 2004-04-23  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in: Add "-*- makefile -*-" mode tag.

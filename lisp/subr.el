@@ -1463,9 +1463,11 @@ menu bar menus and the frame title."
 
 (defun momentary-string-display (string pos &optional exit-char message)
   "Momentarily display STRING in the buffer at POS.
-Display remains until next character is typed.
-If the char is EXIT-CHAR (optional third arg, default is SPC) it is swallowed;
-otherwise it is then available as input (as a command if nothing else).
+Display remains until next event is input.
+Optional third arg EXIT-CHAR can be a character, event or event
+description list.  EXIT-CHAR defaults to SPC.  If the input is
+EXIT-CHAR it is swallowed; otherwise it is then available as
+input (as a command if nothing else).
 Display MESSAGE (optional fourth arg) in the echo area.
 If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
   (or exit-char (setq exit-char ?\ ))
@@ -1495,9 +1497,23 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 		  (recenter 0))))
 	  (message (or message "Type %s to continue editing.")
 		   (single-key-description exit-char))
-	  (let ((char (read-event)))
-	    (or (eq char exit-char)
-		(setq unread-command-events (list char)))))
+	  (let (char)
+	    (if (integerp exit-char)
+		(condition-case nil
+		    (progn
+		      (setq char (read-char))
+		      (or (eq char exit-char)
+			  (setq unread-command-events (list char))))
+		  (error
+		   ;; `exit-char' is a character, hence it differs
+		   ;; from char, which is an event.
+		   (setq unread-command-events (list char))))
+	      ;; `exit-char' can be an event, or an event description
+	      ;; list.
+	      (setq char (read-event))
+	      (or (eq char exit-char)
+		  (eq char (event-convert-list exit-char))
+		  (setq unread-command-events (list char))))))
       (if insert-end
 	  (save-excursion
 	    (delete-region pos insert-end)))
@@ -1518,9 +1534,13 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
       (overlay-put o1 (pop props) (pop props)))
     o1))
 
-(defun remove-overlays (beg end name val)
+(defun remove-overlays (&optional beg end name val)
   "Clear BEG and END of overlays whose property NAME has value VAL.
-Overlays might be moved and or split."
+Overlays might be moved and or split.
+If BEG is nil, `(point-min)' is used. If END is nil, `(point-max)' 
+is used."
+  (unless beg (setq beg (point-min)))
+  (unless end (setq end (point-max)))
   (if (< end beg)
       (setq beg (prog1 end (setq end beg))))
   (save-excursion

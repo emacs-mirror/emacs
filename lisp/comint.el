@@ -171,6 +171,14 @@ Good choices:
 
 This is a good thing to set in mode hooks.")
 
+(defcustom comint-prompt-read-only nil
+  "If non-nil, the comint prompt is read only.
+This does not affect existing prompts.
+Certain derived modes may override this option."
+  :type 'boolean
+  :group 'comint
+  :version "21.4")
+
 (defvar comint-delimiter-argument-list ()
   "List of characters to recognise as separate arguments in input.
 Strings comprising a character in this list will separate the arguments
@@ -1687,16 +1695,25 @@ Make backspaces delete the previous character."
               (let ((inhibit-read-only t))
                 (add-text-properties comint-last-output-start (point)
                                      '(rear-nonsticky t
-                                       field output
-                                       inhibit-line-move-field-capture t))))
+				       field output
+				       inhibit-line-move-field-capture t))))
 
 	    ;; Highlight the prompt, where we define `prompt' to mean
 	    ;; the most recent output that doesn't end with a newline.
-	    (unless (and (bolp) (null comint-last-prompt-overlay))
-	      ;; Need to create or move the prompt overlay (in the case
-	      ;; where there is no prompt ((bolp) == t), we still do
-	      ;; this if there's already an existing overlay).
-	      (let ((prompt-start (save-excursion (forward-line 0) (point))))
+	    (let ((prompt-start (save-excursion (forward-line 0) (point)))
+		  (inhibit-read-only t))
+	      (when comint-prompt-read-only
+		(or (= (point-min) prompt-start)
+		    (get-text-property (1- prompt-start) 'read-only)
+		    (put-text-property
+		     (1- prompt-start) prompt-start 'read-only 'fence))
+		(add-text-properties
+		 prompt-start (point)
+		 '(read-only t rear-non-sticky t front-sticky (read-only))))
+	      (unless (and (bolp) (null comint-last-prompt-overlay))
+		;; Need to create or move the prompt overlay (in the case
+		;; where there is no prompt ((bolp) == t), we still do
+		;; this if there's already an existing overlay).
 		(if comint-last-prompt-overlay
 		    ;; Just move an existing overlay
 		    (move-overlay comint-last-prompt-overlay

@@ -24,6 +24,7 @@
 (provide 'em-hist)
 
 (eval-when-compile (require 'esh-maint))
+(require 'eshell)
 
 (defgroup eshell-hist nil
   "This module provides command history management."

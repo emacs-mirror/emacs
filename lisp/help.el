@@ -1,6 +1,6 @@
 ;;; help.el --- help commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002
+;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -313,19 +313,61 @@ of the key sequence that ran this command."
 
 (defun view-emacs-news (&optional arg)
   "Display info on recent changes to Emacs.
-With numeric argument, display information on correspondingly older changes."
+With argument, display info only for the selected version."
   (interactive "P")
-  (let* ((arg (if arg (prefix-numeric-value arg) 0))
-	 (file (cond ((eq arg 0) "NEWS")
-		     ((eq arg 1) "ONEWS")
-		     (t
-		      (nth (- arg 2)
-			   (nreverse (directory-files data-directory
-						      nil "^ONEWS\\.[0-9]+$"
-						      nil)))))))
-    (if file
-	(view-file (expand-file-name file data-directory))
-      (error "No such old news"))))
+  (if (not arg)
+      (view-file (expand-file-name "NEWS" data-directory))
+    (let* ((map (sort
+                 (delete-dups
+                  (apply
+                   'nconc
+                   (mapcar
+                    (lambda (file)
+                      (with-temp-buffer
+                        (insert-file-contents
+                         (expand-file-name file data-directory))
+                        (let (res)
+                          (while (re-search-forward
+                                  (if (string-match "^ONEWS\\.[0-9]+$" file)
+                                      "Changes in \\(?:Emacs\\|version\\)?[ \t]*\\([0-9]+\\(?:\\.[0-9]+\\)?\\)"
+                                    "^\* [^0-9\n]*\\([0-9]+\\.[0-9]+\\)") nil t)
+                            (setq res (cons (list (match-string-no-properties 1)
+                                                  file) res)))
+                          res)))
+                    (append '("NEWS" "ONEWS")
+                            (directory-files data-directory nil
+                                             "^ONEWS\\.[0-9]+$" nil)))))
+                 (lambda (a b)
+                   (string< (car b) (car a)))))
+           (current (caar map))
+           (version (completing-read
+                     (format "Read NEWS for the version (default %s): " current)
+                     (mapcar 'car map) nil nil nil nil current))
+           (file (cadr (assoc version map)))
+           res)
+      (if (not file)
+          (error "No news is good news")
+        (view-file (expand-file-name file data-directory))
+        (widen)
+        (goto-char (point-min))
+        (when (re-search-forward
+               (concat (if (string-match "^ONEWS\\.[0-9]+$" file)
+                           "Changes in \\(?:Emacs\\|version\\)?[ \t]*"
+                         "^\* [^0-9\n]*") version)
+               nil t)
+          (beginning-of-line)
+          (narrow-to-region
+           (point)
+           (save-excursion
+             (while (and (setq res
+                               (re-search-forward
+                                (if (string-match "^ONEWS\\.[0-9]+$" file)
+                                    "Changes in \\(?:Emacs\\|version\\)?[ \t]*\\([0-9]+\\(?:\\.[0-9]+\\)?\\)"
+                                  "^\* [^0-9\n]*\\([0-9]+\\.[0-9]+\\)") nil t))
+                         (equal (match-string-no-properties 1) version)))
+             (or res (goto-char (point-max)))
+             (beginning-of-line)
+             (point))))))))
 
 (defun view-todo (&optional arg)
   "Display the Emacs TODO list."

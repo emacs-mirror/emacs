@@ -799,6 +799,9 @@ int help_echo_pos;
 
 Lisp_Object previous_help_echo_string;
 
+/* Null glyph slice */
+
+static struct glyph_slice null_glyph_slice = { 0, 0, 0, 0 };
 
 
 /* Function prototypes.  */
@@ -18092,6 +18095,7 @@ append_glyph (it)
       glyph->glyph_not_available_p = it->glyph_not_available_p;
       glyph->face_id = it->face_id;
       glyph->u.ch = it->char_to_display;
+      glyph->slice = null_glyph_slice;
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
     }
@@ -18128,6 +18132,7 @@ append_composite_glyph (it)
       glyph->glyph_not_available_p = 0;
       glyph->face_id = it->face_id;
       glyph->u.cmp_id = it->cmp_id;
+      glyph->slice = null_glyph_slice;
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
     }
@@ -18339,6 +18344,7 @@ append_stretch_glyph (it, object, width, height, ascent)
       glyph->face_id = it->face_id;
       glyph->u.stretch.ascent = ascent;
       glyph->u.stretch.height = height;
+      glyph->slice = null_glyph_slice;
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
     }
@@ -18708,7 +18714,8 @@ x_produce_glyphs (it)
 	  it->pixel_width = 0;
 	  it->nglyphs = 0;
 
-	  lh = Fget_text_property (IT_CHARPOS (*it), Qline_height, it->w->buffer);
+	  lh = Fget_text_property (make_number (IT_CHARPOS (*it)),
+				   Qline_height, it->object);
 
 	  if (EQ (lh, Qt))
 	    {
@@ -18754,17 +18761,20 @@ x_produce_glyphs (it)
 	      if (INTEGERP (lh))
 		explicit_height = XINT (lh);
 	      else if (FLOATP (lh))
-		explicit_height = (it->phys_ascent + it->phys_descent) * XFLOAT_DATA (lh);
+		explicit_height = (it->phys_ascent + it->phys_descent)
+		  * XFLOAT_DATA (lh);
 
 	      if (explicit_height > it->ascent + it->descent)
 		it->ascent = explicit_height - it->descent;
 	    }
 
-	  lsp = Fget_text_property (IT_CHARPOS (*it), Qline_spacing, it->w->buffer);
+	  lsp = Fget_text_property (make_number (IT_CHARPOS (*it)),
+				    Qline_spacing, it->object);
 	  if (INTEGERP (lsp))
 	    extra_line_spacing = XINT (lsp);
 	  else if (FLOATP (lsp))
-	    extra_line_spacing = (it->phys_ascent + it->phys_descent) * XFLOAT_DATA (lsp);
+	    extra_line_spacing = (it->phys_ascent + it->phys_descent)
+	      * XFLOAT_DATA (lsp);
 	}
       else if (it->char_to_display == '\t')
 	{
@@ -20437,8 +20447,8 @@ on_hot_spot_p (hot_spot, x, y)
 	  return inside;
 	}
     }
-  else
-    return 0;
+  /* If we don't understand the format, pretend we're not in the hot-spot.  */
+  return 0;
 }
 
 Lisp_Object
@@ -20473,7 +20483,6 @@ Returns the alist element for the first matching AREA in MAP.  */)
      Lisp_Object map;
      Lisp_Object x, y;
 {
-  int ix, iy;
   if (NILP (map))
     return Qnil;
 
@@ -20539,7 +20548,7 @@ note_mode_line_or_margin_highlight (w, x, y, area)
   Lisp_Object pointer = Qnil;
   int charpos, dx, dy, width, height;
   Lisp_Object string, object = Qnil;
-  Lisp_Object pos, help, image;
+  Lisp_Object pos, help;
 
   if (area == ON_MODE_LINE || area == ON_HEADER_LINE)
     string = mode_line_string (w, area, &x, &y, &charpos,

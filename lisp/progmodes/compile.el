@@ -1472,7 +1472,7 @@ region and the first line of the next region."
       (setcdr loc (list line file marker)))
     loc))
 
-(defcustom compilation-context-lines next-screen-context-lines
+(defcustom compilation-context-lines 0
   "*Display this many lines of leading context before message."
   :type 'integer
   :group 'compilation

@@ -382,6 +382,7 @@ new value.")
       (setq help-echo 'widget-mouse-help))
     (overlay-put overlay 'button widget)
     (overlay-put overlay 'keymap (widget-get widget :keymap))
+    (overlay-put overlay 'evaporate t)
     ;; We want to avoid the face with image buttons.
     (unless (widget-get widget :suppress-face)
       (overlay-put overlay 'face (widget-apply widget :button-face-get))
@@ -401,6 +402,7 @@ new value.")
   "Specify sample for WIDGET between FROM and TO."
   (let ((overlay (make-overlay from to nil t nil)))
     (overlay-put overlay 'face (widget-apply widget :sample-face-get))
+    (overlay-put overlay 'evaporate t)
     (widget-put widget :sample-overlay overlay)))
 
 (defun widget-specify-doc (widget from to)
@@ -408,6 +410,7 @@ new value.")
   (let ((overlay (make-overlay from to nil t nil)))
     (overlay-put overlay 'widget-doc widget)
     (overlay-put overlay 'face widget-documentation-face)
+    (overlay-put overlay 'evaporate t)
     (widget-put widget :doc-overlay overlay)))
 
 (defmacro widget-specify-insert (&rest form)

@@ -67,7 +67,36 @@
 	(Fdocumentation, store_function_docstring): Handle interpreted
 	closures.
 
+2004-04-29  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (null_glyph_slice): New var.
+	(append_glyph, append_composite_glyph, append_stretch_glyph):
+	Use it to initialize glyph slice.
+
+2004-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (x_produce_glyphs): Fix the proverbial int/Lisp_Object mixup.
+	(on_hot_spot_p): Make sure we always return a value.
+	(Flookup_image_map): Remove unused var ix and iy.
+	(note_mode_line_or_margin_highlight): Remove unused var `image'.
+
+2004-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (init_environment): If one of the TMP... environment
+	variables is set to a drive letter without a trailing slash,
+	append a slash.
+
+2004-04-27  Matthew Mundell  <matt@mundell.ukfsn.org>
+
+	* editfns.c (lisp_time_argument): Provide externally.
+
+	* fileio.c (Fset_file_times): New function.
+	(syms_of_fileio): Intern and staticpro it.
+
 2004-04-27  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (x_produce_glyphs): Fix last change; handle newline in
+	header line strings.
 
 	* dispextern.h (struct it): New member use_default_face.
 
