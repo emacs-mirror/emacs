@@ -1,3 +1,8 @@
+2002-07-15  Juanma Barranquero  <lektu@terra.es>
+
+	* help-fns.el (describe-variable): Show documentation for aliased
+	variable if alias does not have its own.
+
 2002-07-15  Mike Williams  <mdub@bigfoot.com>
 
 	* mouse-sel.el (mouse-sel-bindings): Save/restore interprogram
@@ -45,7 +50,7 @@
 	* calendar/timeclock.el (timeclock-in): Handle the case where no
 	log file exists (ie the very first call).
 
-2002-07-13  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-07-13  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/ange-ftp.el: Do not hook into file-name-handler-alist, this
 	is done by Tramp.
