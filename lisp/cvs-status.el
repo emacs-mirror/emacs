@@ -1,9 +1,9 @@
-;;; cvs-status.el --- Major mode for browsing `cvs status' output
+;;; cvs-status.el --- major mode for browsing `cvs status' output
 
 ;; Copyright (C) 1999, 2000  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
-;; Keywords: pcl-cvs cvs status tree
+;; Keywords: pcl-cvs cvs status tree tools
 
 ;; This file is part of GNU Emacs.
 
