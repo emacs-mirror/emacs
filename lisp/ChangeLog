@@ -1,3 +1,17 @@
+2004-01-03  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/tex-mode.el (latex-find-indent): Avoid error at end of buf.
+
+	* emacs-lisp/lisp-mnt.el (lm-section-end): require outline.
+
+	* progmodes/grep.el (grep-mode-map):
+	Don't remap next-line, previous-line.
+
+2004-01-03  Eric M. Ludlam  <eric@siege-engine.com>
+
+	* speedbar.el (speedbar-edit-line): Change regexp to position
+	the cursor on the first character of this line's button.
+
 2004-01-03  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* subr.el (functionp): Doc fix.
@@ -72,6 +86,9 @@
 	clashes on 8+3 DOS filesystems.
 
 2003-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/mail-utils.el (mail-unquote-printable-hexdigit):
+	Upcase the character.
 
 	* textmodes/flyspell.el (mail-mode-flyspell-verify):
 	Search for header separator alone on a line, literally,
