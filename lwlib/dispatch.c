@@ -30,20 +30,15 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <X11/Xatom.h>
 #include "dispatch.h"
 
-#ifdef THIS_IS_X11R4
+#include <X11/Xlib.h>
+#include <X11/cursorfont.h>
+#include <X11/Xutil.h>
 
-#ifdef THIS_IS_X11R5
-ERROR!! only one of THIS_IS_X11R4 or THIS_IS_X11R5 must be defined.
+#ifdef XlibSpecificationRelease
+#if XlibSpecificationRelease >= 5
+#define HAVE_X11R5
 #endif
-
-#else /* ! THIS_IS_X11R4 */
-
-#ifndef THIS_IS_X11R5
-ERROR!! one of THIS_IS_X11R4 or THIS_IS_X11R5 must be defined.
 #endif
-
-#endif /* ! THIS_IS_X11R4 */
-
 
 /* ##  All of the code on this page was copied from the X11R5 lib/Xt/Event.c,
    ##  but is compatible with X11R4; the code in Event.c is different, but
@@ -114,7 +109,7 @@ static EventMask Const masks[] = {
 	NonMaskableMask		    /* MappingNotify		*/
 };
 
-#ifdef THIS_IS_X11R4
+#ifndef HAVE_X11R5
 
 static /* in R5, this is not static, so we don't need to define it at all */
 EventMask _XtConvertTypeToMask (eventType)
@@ -127,7 +122,7 @@ EventMask _XtConvertTypeToMask (eventType)
 	return 0;
 }
 
-#endif /* R4 */
+#endif /* not HAVE_X11R5 */
 
 /* -- _XtOnGrabList() omitted -- */
 
@@ -174,7 +169,7 @@ static Boolean WouldDispatchEvent(event, widget, mask, pd)
   
   for (p=widget->core.event_table; p != NULL; p = p->next) 
     if ((mask & p->mask) != 0
-#ifdef THIS_IS_X11R4
+#ifndef HAVE_X11R5
 	|| (mask == 0 && p->non_filter)
 #endif
 	)
