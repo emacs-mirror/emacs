@@ -523,6 +523,10 @@ file_name_completion (file, dirname, all_flag, ver_flag)
       if (!d)
 	report_file_error ("Opening directory", Fcons (dirname, Qnil));
 
+      record_unwind_protect (directory_files_internal_unwind,
+                             Fcons (make_number (((unsigned long) d) >> 16),
+                                    make_number (((unsigned long) d) & 0xffff)));
+
       /* Loop reading blocks */
       /* (att3b compiler bug requires do a null comparison this way) */
       while (1)
@@ -716,10 +720,11 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 	    }
 	}
       closedir (d);
+      /* Discard the unwind protect.  */
+      specpdl_ptr = specpdl + count;
     }
 
   UNGCPRO;
-  bestmatch = unbind_to (count, bestmatch);
 
   if (all_flag || NILP (bestmatch))
     {
@@ -738,6 +743,8 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 
  quit:
   if (d) closedir (d);
+  /* Discard the unwind protect.  */
+  specpdl_ptr = specpdl + count;
   Vquit_flag = Qnil;
   return Fsignal (Qquit, Qnil);
 }
