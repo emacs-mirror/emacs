@@ -311,19 +311,25 @@ composed.")
 ;;;###autoload
 (defun reporter-submit-bug-report
   (address pkgname varlist &optional pre-hooks post-hooks salutation)
-  ;; Submit a bug report via mail.
+"Begin submitting a bug report via email.
 
-  ;; ADDRESS is the email address for the package's maintainer. PKGNAME is
-  ;; the name of the mode (you must explicitly concat any version numbers).
-  ;; VARLIST is the list of variables to dump (see `reporter-dump-state'
-  ;; for details). Optional PRE-HOOKS and POST-HOOKS are passed to
-  ;; `reporter-dump-state'. Optional SALUTATION is inserted at the top of the
-  ;; mail buffer, and point is left after the salutation.
+ADDRESS is the email address for the package's maintainer.  PKGNAME is
+the name of the package (if you want to include version numbers,
+you must put them into PKGNAME before calling this function).
 
-  ;; This function will prompt for a summary if
-  ;; reporter-prompt-for-summary-p is non-nil.
+VARLIST is the list of variables to dump (see `reporter-dump-state'
+for details).  The optional argument PRE-HOOKS and POST-HOOKS are
+passed to `reporter-dump-state'.  Optional argument SALUTATION is text
+to be inserted at the top of the mail buffer; in that case, point is
+left after that text.
 
-  ;; The mailer used is described in by the variable `mail-user-agent'.
+This function prompts for a summary if `reporter-prompt-for-summary-p'
+is non-nil.
+
+This function does not send a message; it uses the given information
+to initialize a a messagem, which the user can then edit and finally send
+(or decline to send).  The variable `mail-user-agent' controls which
+mail-sending package is used for editing and sending the message."
   (let ((reporter-eval-buffer (current-buffer))
 	final-resting-place
 	after-sep-pos
