@@ -249,73 +249,7 @@ if not "(%usercflags%)" == "()" echo #define USER_CFLAGS " %usercflags%">>..\src
 if not "(%userldflags%)" == "()" echo #define USER_LDFLAGS " %userldflags%">>..\src\config.h
 copy paths.h ..\src\epaths.h
 
-rem   gmake doesn't support "cd foo" in commands (except as part of a
-rem   compound statement which command.com doesn't support), but nmake
-rem   doesn't support the -C dir command line switch, so generate the
-rem   necessary makefile fragment for targets that involve changing dir.
-rem 
-if %MAKECMD% == nmake goto gen1
-
-echo. > make-frag
-echo all-other-dirs: >> make-frag
-echo.	$(MAKE) -C ../lib-src all >> make-frag
-echo.	$(MAKE) -C ../src all >> make-frag
-echo.	$(MAKE) -C ../lisp all >> make-frag
-echo.	$(MAKE) -C ../leim all >> make-frag
-echo. >> make-frag
-echo clean-other-dirs: >> make-frag
-echo.	$(MAKE) -C ../lib-src clean >> make-frag
-echo.	$(MAKE) -C ../src clean >> make-frag
-echo.	$(MAKE) -C ../lisp clean >> make-frag
-echo.	$(MAKE) -C ../leim clean >> make-frag
-echo. >> make-frag
-echo install-other-dirs: >> make-frag
-echo.	$(MAKE) -C ../lib-src install >> make-frag
-echo.	$(MAKE) -C ../src install >> make-frag
-echo.	$(MAKE) -C ../lisp install >> make-frag
-echo.	$(MAKE) -C ../leim install >> make-frag
-echo. >> make-frag
-goto gen2
-
-:gen1
-echo. > make-frag
-echo all-other-dirs: >> make-frag
-echo.	cd ..\lib-src >> make-frag
-echo.	$(MAKE) all >> make-frag
-echo.	cd ..\src >> make-frag
-echo.	$(MAKE) all >> make-frag
-echo.	cd ..\lisp >> make-frag
-echo.	$(MAKE) all >> make-frag
-echo.	cd ..\leim >> make-frag
-echo.	$(MAKE) all >> make-frag
-echo.	cd ..\nt >> make-frag
-echo. >> make-frag
-echo clean-other-dirs: >> make-frag
-echo.	cd ..\lib-src >> make-frag
-echo.	$(MAKE) clean >> make-frag
-echo.	cd ..\src >> make-frag
-echo.	$(MAKE) clean >> make-frag
-echo.	cd ..\lisp >> make-frag
-echo.	$(MAKE) clean >> make-frag
-echo.	cd ..\leim >> make-frag
-echo.	$(MAKE) clean >> make-frag
-echo.	cd ..\nt >> make-frag
-echo. >> make-frag
-echo install-other-dirs: >> make-frag
-echo.	cd ..\lib-src >> make-frag
-echo.	$(MAKE) install >> make-frag
-echo.	cd ..\src >> make-frag
-echo.	$(MAKE) install >> make-frag
-echo.	cd ..\lisp >> make-frag
-echo.	$(MAKE) install >> make-frag
-echo.	cd ..\leim >> make-frag
-echo.	$(MAKE) install >> make-frag
-echo.	cd ..\nt >> make-frag
-echo. >> make-frag
-
-:gen2
-copy /b config.settings+%MAKECMD%.defs+make-frag+..\nt\makefile.w32-in ..\nt\makefile
-del make-frag
+copy /b config.settings+%MAKECMD%.defs+..\nt\makefile.w32-in ..\nt\makefile
 copy /b config.settings+%MAKECMD%.defs+..\lib-src\makefile.w32-in ..\lib-src\makefile
 copy /b config.settings+%MAKECMD%.defs+..\src\makefile.w32-in ..\src\makefile
 if not exist ..\lisp\Makefile.unix rename ..\lisp\Makefile Makefile.unix
