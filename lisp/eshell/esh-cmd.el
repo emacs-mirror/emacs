@@ -1293,8 +1293,10 @@ COMMAND may result in an alias being executed, or a plain command."
 	       (intern (file-name-sans-extension
 			(file-name-nondirectory
 			 (concat "eshell-" (match-string 2 file)))))))
-	  (if (and (eshell-using-module module-sym)
-		   (memq module-sym (eshell-subgroups 'eshell)))
+	  (if (and (functionp sym)
+		   (or (null module-sym)
+		       (eshell-using-module module-sym)
+		       (memq module-sym (eshell-subgroups 'eshell))))
 	      sym))
       ;; Otherwise, if it's bound, return it.
       (if (functionp sym)
