@@ -185,7 +185,8 @@ the regexp in `generic-find-file-regexp'.  If the value is nil,
 ;;;###autoload
 (defmacro define-generic-mode (mode comment-list keyword-list
 				    font-lock-list auto-mode-list
-				    function-list &optional docstring)
+				    function-list &optional docstring
+				    &rest custom-keyword-args)
   "Create a new generic mode MODE.
 
 MODE is the name of the command for the generic mode; it need not
@@ -216,6 +217,11 @@ as soon as `define-generic-mode' is called.
 FUNCTION-LIST is a list of functions to call to do some
 additional setup.
 
+The optional CUSTOM-KEYWORD-ARGS are pairs of keywords and
+values.  They will be passed to the generated `defcustom' form of
+the mode hook variable MODE-hook.  You can specify keyword
+arguments without specifying a docstring.
+
 See the file generic-x.el for some examples of `define-generic-mode'."
   (declare (debug (sexp def-form def-form def-form form def-form
 			&optional stringp))
@@ -224,10 +230,24 @@ See the file generic-x.el for some examples of `define-generic-mode'."
   ;; Backward compatibility.
   (when (eq (car-safe mode) 'quote)
     (setq mode (eval mode)))
+
+  (when (and docstring (not (stringp docstring)))
+    ;; DOCSTRING is not a string so we assume that it's actually the
+    ;; first keyword of CUSTOM-KEYWORD-ARGS.
+    (push docstring custom-keyword-args)
+    (setq docstring nil))
+
   (let* ((mode-name (symbol-name mode))
 	 (pretty-name (capitalize (replace-regexp-in-string
 				   "-mode\\'" "" mode-name)))
 	 (mode-hook (intern (concat mode-name "-hook"))))
+
+    (unless (plist-get custom-keyword-args :group)
+      (setq custom-keyword-args
+	    (plist-put custom-keyword-args 
+		       :group `(or (custom-current-group)
+				   ',(intern (replace-regexp-in-string
+					      "-mode\\'" "" mode-name))))))
 
     `(progn
        ;; Add a new entry.
@@ -240,9 +260,7 @@ See the file generic-x.el for some examples of `define-generic-mode'."
        (defcustom ,mode-hook nil
 	 ,(concat "Hook run when entering " pretty-name " mode.")
 	 :type 'hook
-	 :group (or (custom-current-group)
-		    ',(intern (replace-regexp-in-string
-			       "-mode\\'" "" mode-name))))
+	 ,@custom-keyword-args)
 
        (defun ,mode ()
 	 ,(or docstring
@@ -373,7 +391,7 @@ Some generic modes are defined in `generic-x.el'."
         imenu-case-fold-search t))
 
 ;; This generic mode is always defined
-(define-generic-mode default-generic-mode (list ?#) nil nil nil nil)
+(define-generic-mode default-generic-mode (list ?#) nil nil nil nil :group 'generic)
 
 ;; A more general solution would allow us to enter generic-mode for
 ;; *any* comment character, but would require us to synthesize a new
