@@ -218,7 +218,7 @@ Entering Texinfo mode calls the value of text-mode-hook, and then the
 value of texinfo-mode-hook."
   (interactive)
   (text-mode)
-  (setq mode-name "texinfo")
+  (setq mode-name "Texinfo")
   (setq major-mode 'texinfo-mode)
   (use-local-map texinfo-mode-map)
   (set-syntax-table texinfo-mode-syntax-table)
