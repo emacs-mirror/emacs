@@ -874,7 +874,6 @@ then prompt for the MODE to customize."
     (if (string-equal "" group)
 	(setq group 'emacs)
       (setq group (intern group))))
-  (custom-load-symbol group)
   (let ((name (format "*Customize Group: %s*"
 		      (custom-unlispify-tag-name group))))
     (if (get-buffer name)
@@ -898,7 +897,6 @@ then prompt for the MODE to customize."
     (if (string-equal "" group)
 	(setq group 'emacs)
       (setq group (intern group))))
-  (custom-load-symbol group)
   (let ((name (format "*Customize Group: %s*"
 		      (custom-unlispify-tag-name group))))
     (if (get-buffer name)
@@ -3301,6 +3299,8 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 
 (defun custom-group-value-create (widget)
   "Insert a customize group for WIDGET in the current buffer."
+  (unless (eq (widget-get widget :custom-state) 'hidden)
+      (custom-load-widget widget))
   (let* ((state (widget-get widget :custom-state))
 	 (level (widget-get widget :custom-level))
 	 ;; (indent (widget-get widget :indent))
@@ -3340,7 +3340,6 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 	   (widget-put widget :buttons buttons))
 	  ((eq custom-buffer-style 'tree)
 	   (custom-browse-insert-prefix prefix)
-	   (custom-load-widget widget)
 	   (if (zerop (length members))
 	       (progn
 		 (custom-browse-insert-prefix prefix)
@@ -3481,7 +3480,6 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 					     ?\ ))
 	   ;; Members.
 	   (message "Creating group...")
-	   (custom-load-widget widget)
 	   (let* ((members (custom-sort-items members
 					      custom-buffer-sort-alphabetically
 					      custom-buffer-order-groups))
@@ -3953,13 +3951,14 @@ The menu is in a format applicable to `easy-menu-define'."
 		       t)))
     (if (and (or (not (boundp 'custom-menu-nesting))
 		 (>= custom-menu-nesting 0))
-	     (< (length (get symbol 'custom-group)) widget-menu-max-size))
+	     (progn
+	       (custom-load-symbol symbol)
+	       (< (length (get symbol 'custom-group)) widget-menu-max-size)))
 	(let ((custom-prefix-list (custom-prefix-add symbol
 						     custom-prefix-list))
 	      (members (custom-sort-items (get symbol 'custom-group)
 					  custom-menu-sort-alphabetically
 					  custom-menu-order-groups)))
-	  (custom-load-symbol symbol)
 	  `(,(custom-unlispify-menu-entry symbol t)
 	    ,item
 	    "--"
