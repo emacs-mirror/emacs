@@ -717,6 +717,31 @@ This discards the buffer's undo information."
 	(error "Hex number out of range")
       (hexl-insert-char num arg))))
 
+(defun hexl-insert-hex-string (str arg)
+  "Insert hexadecimal string STR at point ARG times.
+Embedded whitespace, dashes, and periods in the string are ignored."
+  (interactive "sHex string: \np")
+  (setq str (replace-regexp-in-string "[- \t.]" "" str))
+  (let ((chars '()))
+    (let ((len (length str))
+	  (idx 0))
+      (if (eq (logand len 1) 1)
+	  (let ((num (hexl-hex-string-to-integer (substring str 0 1))))
+	    (setq chars (cons num chars))
+	    (setq idx 1)))
+      (while (< idx len)
+	(let* ((nidx (+ idx 2))
+	       (num (hexl-hex-string-to-integer (substring str idx nidx))))
+	  (setq chars (cons num chars))
+	  (setq idx nidx))))
+    (setq chars (nreverse chars))
+    (while (> arg 0)
+      (let ((chars chars))
+	(while chars
+	  (hexl-insert-char (car chars) 1)
+	  (setq chars (cdr chars))))
+      (setq arg (- arg 1)))))
+
 (defun hexl-insert-decimal-char (arg)
   "Insert a ASCII char ARG times at point for a given decimal number."
   (interactive "p")
