@@ -1,4 +1,4 @@
-/* Define screen-object for GNU Emacs.
+/* Define frame-object for GNU Emacs.
    Copyright (C) 1988, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -18,132 +18,132 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
-/* The structure representing a screen.
+/* The structure representing a frame.
 
-   We declare this even if MULTI_SCREEN is not defined, because when
-   we lack multi-screen support, we use one instance of this structure
-   to represent the one screen we support.  This is cleaner than
+   We declare this even if MULTI_FRAME is not defined, because when
+   we lack multi-frame support, we use one instance of this structure
+   to represent the one frame we support.  This is cleaner than
    having miscellaneous random variables scattered about.  */
 
 enum output_method
 { output_termcap, output_x_window };
 
-struct screen
+struct frame
 {
   int size;
   struct Lisp_Vector *next;
 
-  /* glyphs as they appear on the screen */
-  struct screen_glyphs *current_glyphs;
+  /* glyphs as they appear on the frame */
+  struct frame_glyphs *current_glyphs;
 
-  /* glyphs we'd like to appear on the screen */
-  struct screen_glyphs *desired_glyphs;
+  /* glyphs we'd like to appear on the frame */
+  struct frame_glyphs *desired_glyphs;
 
   /* See do_line_insertion_deletion_costs for info on these arrays. */
-  /* Cost of inserting 1 line on this screen */
+  /* Cost of inserting 1 line on this frame */
   int *insert_line_cost;
-  /* Cost of deleting 1 line on this screen */
+  /* Cost of deleting 1 line on this frame */
   int *delete_line_cost;
-  /* Cost of inserting n lines on this screen */
+  /* Cost of inserting n lines on this frame */
   int *insert_n_lines_cost;
-  /* Cost of deleting n lines on this screen */
+  /* Cost of deleting n lines on this frame */
   int *delete_n_lines_cost;
 
   /* glyphs for the mode line */
-  struct screen_glyphs *temp_glyphs;
+  struct frame_glyphs *temp_glyphs;
 
-  /* Intended cursor position of this screen.
+  /* Intended cursor position of this frame.
      Measured in characters, counting from upper left corner
-     within the screen.  */
+     within the frame.  */
   int cursor_x;
   int cursor_y;
 
-  /* Actual cursor position of this screen, and the character under it.
-     (Not used for terminal screens.)  */
+  /* Actual cursor position of this frame, and the character under it.
+     (Not used for terminal frames.)  */
   int phys_cursor_x;
   int phys_cursor_y;
   /* This is handy for undrawing the cursor, because current_glyphs is
      not always accurate when in do_scrolling.  */
   GLYPH phys_cursor_glyph;
 
-  /* Size of this screen, in units of characters.  */
+  /* Size of this frame, in units of characters.  */
   int height;
   int width;
 
   /* New height and width for pending size change.  0 if no change pending.  */
   int new_height, new_width;
 
-  /* Name of this screen: a Lisp string.  */
+  /* Name of this frame: a Lisp string.  */
   Lisp_Object name;
 
-  /* The screen which should recieve keystrokes that occur in this
-     screen.  This is usually the screen itself, but if the screen is
-     minibufferless, this points to the minibuffer screen when it is
+  /* The frame which should recieve keystrokes that occur in this
+     frame.  This is usually the frame itself, but if the frame is
+     minibufferless, this points to the minibuffer frame when it is
      active.  */
-  Lisp_Object focus_screen;
+  Lisp_Object focus_frame;
 
-  /* This screen's root window.  Every screen has one.
-     If the screen has only a minibuffer window, this is it.
-     Otherwise, if the screen has a minibuffer window, this is its sibling.  */
+  /* This frame's root window.  Every frame has one.
+     If the frame has only a minibuffer window, this is it.
+     Otherwise, if the frame has a minibuffer window, this is its sibling.  */
   Lisp_Object root_window;
 
-  /* This screen's selected window.
-     Each screen has its own window hierarchy
-     and one of the windows in it is selected within the screen.
-     The selected window of the selected screen is Emacs's selected window.  */
+  /* This frame's selected window.
+     Each frame has its own window hierarchy
+     and one of the windows in it is selected within the frame.
+     The selected window of the selected frame is Emacs's selected window.  */
   Lisp_Object selected_window;
 
-  /* This screen's minibuffer window.
-     Most screens have their own minibuffer windows,
-     but only the selected screen's minibuffer window
+  /* This frame's minibuffer window.
+     Most frames have their own minibuffer windows,
+     but only the selected frame's minibuffer window
      can actually appear to exist.  */
   Lisp_Object minibuffer_window;
 
-  /* Parameter alist of this screen.
-     These are the parameters specified when creating the screen
-     or modified with modify-screen-parameters.  */
+  /* Parameter alist of this frame.
+     These are the parameters specified when creating the frame
+     or modified with modify-frame-parameters.  */
   Lisp_Object param_alist;
 
-  /* The output method says how the contents of this screen
+  /* The output method says how the contents of this frame
      are displayed.  It could be using termcap, or using an X window.  */
   enum output_method output_method;
 
   /* A structure of auxiliary data used for displaying the contents.
-     struct x_display is used for X window screens;
+     struct x_display is used for X window frames;
      it is defined in xterm.h.  */
   union display { struct x_display *x; int nothing; } display;
 
-  /* Nonzero if last attempt at redisplay on this screen was preempted.  */
+  /* Nonzero if last attempt at redisplay on this frame was preempted.  */
   char display_preempted;
 
-  /* Nonzero if screen is currently displayed.  */
+  /* Nonzero if frame is currently displayed.  */
   char visible;
 
   /* Nonzero if window is currently iconified.
      This and visible are mutually exclusive.  */
   char iconified;
 
-  /* Nonzero if this screen should be redrawn.  */
+  /* Nonzero if this frame should be redrawn.  */
   char garbaged;
 
-  /* True if screen actually has a minibuffer window on it.
-     0 if using a minibuffer window that isn't on this screen.  */
+  /* True if frame actually has a minibuffer window on it.
+     0 if using a minibuffer window that isn't on this frame.  */
   char has_minibuffer;
      
-  /* 0 means, if this screen has just one window,
+  /* 0 means, if this frame has just one window,
      show no modeline for that window.  */
   char wants_modeline;
 
-  /* Non-0 means raise this screen to the top of the heap when selected.  */
+  /* Non-0 means raise this frame to the top of the heap when selected.  */
   char auto_raise;
 
-  /* Non-0 means lower this screen to the bottom of the stack when left.  */
+  /* Non-0 means lower this frame to the bottom of the stack when left.  */
   char auto_lower;
 
-  /* True if screen's root window can't be split.  */
+  /* True if frame's root window can't be split.  */
   char no_split;
 
-  /* Storage for messages to this screen. */
+  /* Storage for messages to this frame. */
   char *message_buf;
 
   /* Nonnegative if current redisplay should not do scroll computation
@@ -151,162 +151,162 @@ struct screen
   int scroll_bottom_vpos;
 };
 
-#ifdef MULTI_SCREEN
+#ifdef MULTI_FRAME
 
-typedef struct screen *SCREEN_PTR;
+typedef struct frame *FRAME_PTR;
 
-#define XSCREEN(p) ((struct screen *) XPNTR (p))
-#define XSETSCREEN(p, v) ((struct screen *) XSETPNTR (p, v))
+#define XFRAME(p) ((struct frame *) XPNTR (p))
+#define XSETFRAME(p, v) ((struct frame *) XSETPNTR (p, v))
 
-#define WINDOW_SCREEN(w) (w)->screen
+#define WINDOW_FRAME(w) (w)->frame
 
-#define SCREENP(s) (XTYPE(s) == Lisp_Screen)
-#define SCREEN_LIVE_P(s) ((s)->display.nothing != 0)
-#define SCREEN_IS_TERMCAP(s) ((s)->output_method == output_termcap)
-#define SCREEN_IS_X(s) ((s)->output_method == output_x_window)
-#define SCREEN_MINIBUF_ONLY_P(s) \
-  EQ (SCREEN_ROOT_WINDOW (s), SCREEN_MINIBUF_WINDOW (s))
-#define SCREEN_HAS_MINIBUF(s) ((s)->has_minibuffer)
-#define SCREEN_CURRENT_GLYPHS(s) (s)->current_glyphs
-#define SCREEN_DESIRED_GLYPHS(s) (s)->desired_glyphs
-#define SCREEN_TEMP_GLYPHS(s) (s)->temp_glyphs
-#define SCREEN_HEIGHT(s) (s)->height
-#define SCREEN_WIDTH(s) (s)->width
-#define SCREEN_NEW_HEIGHT(s) (s)->new_height
-#define SCREEN_NEW_WIDTH(s) (s)->new_width
-#define SCREEN_CURSOR_X(s) (s)->cursor_x
-#define SCREEN_CURSOR_Y(s) (s)->cursor_y
-#define SCREEN_VISIBLE_P(s) (s)->visible
-#define SET_SCREEN_GARBAGED(s) (screen_garbaged = 1, s->garbaged = 1)
-#define SCREEN_GARBAGED_P(s) (s)->garbaged
-#define SCREEN_NO_SPLIT_P(s) (s)->no_split
-#define SCREEN_WANTS_MODELINE_P(s) (s)->wants_modeline
-#define SCREEN_ICONIFIED_P(s) (s)->iconified
-#define SCREEN_MINIBUF_WINDOW(s) (s)->minibuffer_window
-#define SCREEN_ROOT_WINDOW(s) (s)->root_window
-#define SCREEN_SELECTED_WINDOW(s) (s)->selected_window
-#define SET_GLYPHS_SCREEN(glyphs,screen) ((glyphs)->screen = (screen))
-#define SCREEN_INSERT_COST(s) (s)->insert_line_cost    
-#define SCREEN_DELETE_COST(s) (s)->delete_line_cost    
-#define SCREEN_INSERTN_COST(s) (s)->insert_n_lines_cost
-#define SCREEN_DELETEN_COST(s) (s)->delete_n_lines_cost
-#define SCREEN_MESSAGE_BUF(s) (s)->message_buf
-#define SCREEN_SCROLL_BOTTOM_VPOS(s) (s)->scroll_bottom_vpos
-#define SCREEN_FOCUS_SCREEN(s) (s)->focus_screen
+#define FRAMEP(f) (XTYPE(f) == Lisp_Frame)
+#define FRAME_LIVE_P(f) ((f)->display.nothing != 0)
+#define FRAME_IS_TERMCAP(f) ((f)->output_method == output_termcap)
+#define FRAME_IS_X(f) ((f)->output_method == output_x_window)
+#define FRAME_MINIBUF_ONLY_P(f) \
+  EQ (FRAME_ROOT_WINDOW (f), FRAME_MINIBUF_WINDOW (f))
+#define FRAME_HAS_MINIBUF(f) ((f)->has_minibuffer)
+#define FRAME_CURRENT_GLYPHS(f) (f)->current_glyphs
+#define FRAME_DESIRED_GLYPHS(f) (f)->desired_glyphs
+#define FRAME_TEMP_GLYPHS(f) (f)->temp_glyphs
+#define FRAME_HEIGHT(f) (f)->height
+#define FRAME_WIDTH(f) (f)->width
+#define FRAME_NEW_HEIGHT(f) (f)->new_height
+#define FRAME_NEW_WIDTH(f) (f)->new_width
+#define FRAME_CURSOR_X(f) (f)->cursor_x
+#define FRAME_CURSOR_Y(f) (f)->cursor_y
+#define FRAME_VISIBLE_P(f) (f)->visible
+#define SET_FRAME_GARBAGED(f) (frame_garbaged = 1, f->garbaged = 1)
+#define FRAME_GARBAGED_P(f) (f)->garbaged
+#define FRAME_NO_SPLIT_P(f) (f)->no_split
+#define FRAME_WANTS_MODELINE_P(f) (f)->wants_modeline
+#define FRAME_ICONIFIED_P(f) (f)->iconified
+#define FRAME_MINIBUF_WINDOW(f) (f)->minibuffer_window
+#define FRAME_ROOT_WINDOW(f) (f)->root_window
+#define FRAME_SELECTED_WINDOW(f) (f)->selected_window
+#define SET_GLYPHS_FRAME(glyphs,frame) ((glyphs)->frame = (frame))
+#define FRAME_INSERT_COST(f) (f)->insert_line_cost    
+#define FRAME_DELETE_COST(f) (f)->delete_line_cost    
+#define FRAME_INSERTN_COST(f) (f)->insert_n_lines_cost
+#define FRAME_DELETEN_COST(f) (f)->delete_n_lines_cost
+#define FRAME_MESSAGE_BUF(f) (f)->message_buf
+#define FRAME_SCROLL_BOTTOM_VPOS(f) (f)->scroll_bottom_vpos
+#define FRAME_FOCUS_FRAME(f) (f)->focus_frame
 
-#define CHECK_SCREEN(x, i)				\
+#define CHECK_FRAME(x, i)				\
   {							\
-    if (! SCREENP (x))					\
-      x = wrong_type_argument (Qscreenp, (x));		\
+    if (! FRAMEP (x))					\
+      x = wrong_type_argument (Qframep, (x));		\
   }
 
-#define CHECK_LIVE_SCREEN(x, i)				\
+#define CHECK_LIVE_FRAME(x, i)				\
   {							\
-    if (! SCREENP (x)					\
-	|| ! SCREEN_LIVE_P (XSCREEN (x)))		\
-      x = wrong_type_argument (Qlive_screen_p, (x));	\
+    if (! FRAMEP (x)					\
+	|| ! FRAME_LIVE_P (XFRAME (x)))		\
+      x = wrong_type_argument (Qlive_frame_p, (x));	\
   }
 
-/* FOR_EACH_SCREEN (LIST_VAR, SCREEN_VAR) followed by a statement is a
-   `for' loop which iterates over the elements of Vscreen_list.  The
-   loop will set SCREEN_VAR, a SCREEN_PTR, to each screen in
-   Vscreen_list in succession and execute the statement.  LIST_VAR
+/* FOR_EACH_FRAME (LIST_VAR, FRAME_VAR) followed by a statement is a
+   `for' loop which iterates over the elements of Vframe_list.  The
+   loop will set FRAME_VAR, a FRAME_PTR, to each frame in
+   Vframe_list in succession and execute the statement.  LIST_VAR
    should be a Lisp_Object; it is used to iterate through the
-   Vscreen_list.  
+   Vframe_list.  
 
-   If MULTI_SCREEN isn't defined, then this loop expands to something which 
+   If MULTI_FRAME isn't defined, then this loop expands to something which 
    executes the statement once.  */
-#define FOR_EACH_SCREEN(list_var, screen_var)			\
-  for ((list_var) = Vscreen_list;				\
+#define FOR_EACH_FRAME(list_var, frame_var)			\
+  for ((list_var) = Vframe_list;				\
        (CONSP (list_var)					\
-	&& (screen_var = XSCREEN (XCONS (list_var)->car), 1));	\
+	&& (frame_var = XFRAME (XCONS (list_var)->car), 1));	\
        list_var = XCONS (list_var)->cdr)
 
 
-extern Lisp_Object Qscreenp, Qlive_screen_p;
+extern Lisp_Object Qframep, Qlive_frame_p;
 
-extern struct screen *selected_screen;
-extern struct screen *last_nonminibuf_screen;
+extern struct frame *selected_frame;
+extern struct frame *last_nonminibuf_frame;
 
-extern struct screen *make_terminal_screen ();
-extern struct screen *make_screen ();
-extern struct screen *make_minibuffer_screen ();
-extern struct screen *make_screen_without_minibuffer ();
+extern struct frame *make_terminal_frame ();
+extern struct frame *make_frame ();
+extern struct frame *make_minibuffer_frame ();
+extern struct frame *make_frame_without_minibuffer ();
 
-/* Nonzero means SCREEN_MESSAGE_BUF (selected_screen) is being used by
+/* Nonzero means FRAME_MESSAGE_BUF (selected_frame) is being used by
    print.  */
 extern int message_buf_print;
 
-extern Lisp_Object Vscreen_list;
-extern Lisp_Object Vdefault_screen_alist;
+extern Lisp_Object Vframe_list;
+extern Lisp_Object Vdefault_frame_alist;
 
-extern Lisp_Object Vterminal_screen;
+extern Lisp_Object Vterminal_frame;
 
-#else /* not MULTI_SCREEN */
+#else /* not MULTI_FRAME */
 
-/* These definitions are used in a single-screen version of Emacs.  */
+/* These definitions are used in a single-frame version of Emacs.  */
 
-#define SCREEN_PTR int
+#define FRAME_PTR int
 
-extern struct screen the_only_screen;
+extern struct frame the_only_frame;
 
-extern int selected_screen;
-extern int last_nonminibuf_screen;
+extern int selected_frame;
+extern int last_nonminibuf_frame;
 
-/* Nonzero means SCREEN_MESSAGE_BUF (selected_screen) is being used by
+/* Nonzero means FRAME_MESSAGE_BUF (selected_frame) is being used by
    print.  */
 extern int message_buf_print;
 
-#define XSCREEN(s) selected_screen
-#define WINDOW_SCREEN(w) selected_screen
+#define XFRAME(f) selected_frame
+#define WINDOW_FRAME(w) selected_frame
 
-#define SCREENP(s) (XTYPE(s) == Lisp_Screen)
-#define SCREEN_LIVE_P(s) 1
-#define SCREEN_IS_TERMCAP(s) 1
-#define SCREEN_IS_X(s) 0
-#define SCREEN_MINIBUF_ONLY_P(s) 0
-#define SCREEN_HAS_MINIBUF(s) 1
-#define SCREEN_CURRENT_GLYPHS(s) the_only_screen.current_glyphs
-#define SCREEN_DESIRED_GLYPHS(s) the_only_screen.desired_glyphs
-#define SCREEN_TEMP_GLYPHS(s) the_only_screen.temp_glyphs
-#define SCREEN_HEIGHT(s) the_only_screen.height
-#define SCREEN_WIDTH(s) the_only_screen.width
-#define SCREEN_NEW_HEIGHT(s) the_only_screen.new_height
-#define SCREEN_NEW_WIDTH(s) the_only_screen.new_width
-#define SCREEN_CURSOR_X(s) the_only_screen.cursor_x
-#define SCREEN_CURSOR_Y(s) the_only_screen.cursor_y
-#define SCREEN_VISIBLE_P(s) 1
-#define SET_SCREEN_GARBAGED(s) (screen_garbaged = 1)
-#define SCREEN_GARBAGED_P(s) screen_garbaged
-#define SCREEN_NO_SPLIT_P(s) 0
-#define SCREEN_WANTS_MODELINE_P(s) 1
-#define SCREEN_ICONIFIED_P(s) 0
-#define SCREEN_MINIBUF_WINDOW(s) minibuf_window
-#define SCREEN_ROOT_WINDOW(s) the_only_screen.root_window
-#define SCREEN_SELECTED_WINDOW(s) selected_window
-#define SET_GLYPHS_SCREEN(glyphs,screen)
-#define SCREEN_INSERT_COST(screen)  the_only_screen.insert_line_cost    
-#define SCREEN_DELETE_COST(screen)  the_only_screen.delete_line_cost    
-#define SCREEN_INSERTN_COST(screen) the_only_screen.insert_n_lines_cost
-#define SCREEN_DELETEN_COST(screen) the_only_screen.delete_n_lines_cost
-#define SCREEN_MESSAGE_BUF(s) the_only_screen.message_buf
-#define SCREEN_SCROLL_BOTTOM_VPOS(s) the_only_screen.scroll_bottom_vpos
-#define SCREEN_FOCUS_SCREEN(s) 0
+#define FRAMEP(f) (XTYPE(f) == Lisp_Frame)
+#define FRAME_LIVE_P(f) 1
+#define FRAME_IS_TERMCAP(f) 1
+#define FRAME_IS_X(f) 0
+#define FRAME_MINIBUF_ONLY_P(f) 0
+#define FRAME_HAS_MINIBUF(f) 1
+#define FRAME_CURRENT_GLYPHS(f) the_only_frame.current_glyphs
+#define FRAME_DESIRED_GLYPHS(f) the_only_frame.desired_glyphs
+#define FRAME_TEMP_GLYPHS(f) the_only_frame.temp_glyphs
+#define FRAME_HEIGHT(f) the_only_frame.height
+#define FRAME_WIDTH(f) the_only_frame.width
+#define FRAME_NEW_HEIGHT(f) the_only_frame.new_height
+#define FRAME_NEW_WIDTH(f) the_only_frame.new_width
+#define FRAME_CURSOR_X(f) the_only_frame.cursor_x
+#define FRAME_CURSOR_Y(f) the_only_frame.cursor_y
+#define FRAME_VISIBLE_P(f) 1
+#define SET_FRAME_GARBAGED(f) (frame_garbaged = 1)
+#define FRAME_GARBAGED_P(f) frame_garbaged
+#define FRAME_NO_SPLIT_P(f) 0
+#define FRAME_WANTS_MODELINE_P(f) 1
+#define FRAME_ICONIFIED_P(f) 0
+#define FRAME_MINIBUF_WINDOW(f) minibuf_window
+#define FRAME_ROOT_WINDOW(f) the_only_frame.root_window
+#define FRAME_SELECTED_WINDOW(f) selected_window
+#define SET_GLYPHS_FRAME(glyphs,frame)
+#define FRAME_INSERT_COST(frame)  the_only_frame.insert_line_cost    
+#define FRAME_DELETE_COST(frame)  the_only_frame.delete_line_cost    
+#define FRAME_INSERTN_COST(frame) the_only_frame.insert_n_lines_cost
+#define FRAME_DELETEN_COST(frame) the_only_frame.delete_n_lines_cost
+#define FRAME_MESSAGE_BUF(f) the_only_frame.message_buf
+#define FRAME_SCROLL_BOTTOM_VPOS(f) the_only_frame.scroll_bottom_vpos
+#define FRAME_FOCUS_FRAME(f) 0
 
-#define CHECK_SCREEN(x, i) { ; }
-#define CHECK_LIVE_SCREEN(x, y) { ; }
+#define CHECK_FRAME(x, i) { ; }
+#define CHECK_LIVE_FRAME(x, y) { ; }
 
-/* FOR_EACH_SCREEN (LIST_VAR, SCREEN_VAR) followed by a statement is a
-   `for' loop which iterates over the elements of Vscreen_list.  The
-   loop will set SCREEN_VAR, a SCREEN_PTR, to each screen in
-   Vscreen_list in succession and execute the statement.  LIST_VAR
+/* FOR_EACH_FRAME (LIST_VAR, FRAME_VAR) followed by a statement is a
+   `for' loop which iterates over the elements of Vframe_list.  The
+   loop will set FRAME_VAR, a FRAME_PTR, to each frame in
+   Vframe_list in succession and execute the statement.  LIST_VAR
    should be a Lisp_Object; it is used to iterate through the
-   Vscreen_list.  
+   Vframe_list.  
 
-   If MULTI_SCREEN _is_ defined, then this loop expands to a real
-   `for' loop which traverses Vscreen_list using LIST_VAR and
-   SCREEN_VAR.  */
-#define FOR_EACH_SCREEN(list_var, screen_var)			\
-  for (screen_var = (SCREEN_PTR) 1; screen_var; screen_var = (SCREEN_PTR) 0)
+   If MULTI_FRAME _is_ defined, then this loop expands to a real
+   `for' loop which traverses Vframe_list using LIST_VAR and
+   FRAME_VAR.  */
+#define FOR_EACH_FRAME(list_var, frame_var)			\
+  for (frame_var = (FRAME_PTR) 1; frame_var; frame_var = (FRAME_PTR) 0)
 
-#endif /* not MULTI_SCREEN */
+#endif /* not MULTI_FRAME */

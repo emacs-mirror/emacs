@@ -26,7 +26,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "cm.h"
 #undef NULL
 #include "lisp.h"
-#include "screen.h"
+#include "frame.h"
 #include "disptab.h"
 #include "termhooks.h"
 #include "keyboard.h"
@@ -34,10 +34,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
-#define OUTPUT(a) tputs (a, SCREEN_HEIGHT (selected_screen) - curY, cmputc)
+#define OUTPUT(a) tputs (a, FRAME_HEIGHT (selected_frame) - curY, cmputc)
 #define OUTPUT1(a) tputs (a, 1, cmputc)
 #define OUTPUTL(a, lines) tputs (a, lines, cmputc)
-#define OUTPUT_IF(a) { if (a) tputs (a, SCREEN_HEIGHT (selected_screen) - curY, cmputc); }
+#define OUTPUT_IF(a) { if (a) tputs (a, FRAME_HEIGHT (selected_frame) - curY, cmputc); }
 #define OUTPUT1_IF(a) { if (a) tputs (a, 1, cmputc); }
 
 /* Terminal charateristics that higher levels want to look at.
@@ -52,14 +52,14 @@ int line_ins_del_ok;		/* Terminal can insert and delete lines */
 int char_ins_del_ok;		/* Terminal can insert and delete chars */
 int scroll_region_ok;		/* Terminal supports setting the
 				   scroll window */
-int memory_below_screen;	/* Terminal remembers lines
+int memory_below_frame;		/* Terminal remembers lines
 				   scrolled off bottom */
 int fast_clear_end_of_line;	/* Terminal has a `ce' string */
 
 int dont_calculate_costs;	/* Nonzero means don't bother computing */
 				/* various cost tables; we won't use them.  */
 
-/* Nonzero means no need to redraw the entire screen on resuming
+/* Nonzero means no need to redraw the entire frame on resuming
    a suspended Emacs.  This is useful on terminals with multiple pages,
    where one page is used for Emacs and another for all else. */
 int no_redraw_on_reenter;
@@ -71,7 +71,7 @@ int (*cursor_to_hook) ();
 int (*raw_cursor_to_hook) ();
 
 int (*clear_to_end_hook) ();
-int (*clear_screen_hook) ();
+int (*clear_frame_hook) ();
 int (*clear_end_of_line_hook) ();
 
 int (*ins_del_lines_hook) ();
@@ -95,17 +95,17 @@ int (*read_socket_hook) ();
 
 /* Return the current position of the mouse.  This should clear
    mouse_moved until the next motion event arrives.  */
-void (*mouse_position_hook) ( /* SCREEN_PTR *s,
+void (*mouse_position_hook) ( /* FRAME_PTR *f,
 					Lisp_Object *x,
 					Lisp_Object *y,
 					unsigned long *time */ );
 
-/* When reading from a minibuffer in a different screen, Emacs wants
-   to shift the highlight from the selected screen to the minibuffer's
-   screen; under X, this means it lies about where the focus is.
+/* When reading from a minibuffer in a different frame, Emacs wants
+   to shift the highlight from the selected frame to the minibuffer's
+   frame; under X, this means it lies about where the focus is.
    This hook tells the window system code to re-decide where to put
    the highlight.  */
-void (*screen_rehighlight_hook) ( /* SCREEN_PTR s */ );
+void (*frame_rehighlight_hook) ( /* FRAME_PTR f */ );
 
 /* Strings, numbers and flags taken from the termcap entry.  */
 
@@ -114,7 +114,7 @@ char *TS_ins_multi_lines;	/* "AL" (one parameter, # lines to insert) */
 char *TS_bell;			/* "bl" */
 char *TS_clr_to_bottom;		/* "cd" */
 char *TS_clr_line;		/* "ce", clear to end of line */
-char *TS_clr_screen;		/* "cl" */
+char *TS_clr_frame;		/* "cl" */
 char *TS_set_scroll_region;	/* "cs" (2 params, first line and last line) */
 char *TS_set_scroll_region_1;   /* "cS" (4 params: total lines,
 				   lines above scroll region, lines below it,
@@ -186,24 +186,24 @@ int insert_mode;			/* Nonzero when in insert mode.  */
 int standout_mode;			/* Nonzero when in standout mode.  */
 
 /* Size of window specified by higher levels.
-   This is the number of lines, from the top of screen downwards,
+   This is the number of lines, from the top of frame downwards,
    which can participate in insert-line/delete-line operations.
 
-   Effectively it excludes the bottom screen_height - specified_window_size
+   Effectively it excludes the bottom frame_height - specified_window_size
    lines from those operations.  */
 
 int specified_window;
 
-/* Screen currently being redisplayed; 0 if not currently redisplaying.
+/* Frame currently being redisplayed; 0 if not currently redisplaying.
    (Direct output does not count).  */
 
-SCREEN_PTR updating_screen;
+FRAME_PTR updating_frame;
 
 char *tparam ();
 
 ring_bell ()
 {
-  if (! SCREEN_IS_TERMCAP (selected_screen))
+  if (! FRAME_IS_TERMCAP (selected_frame))
     {
       (*ring_bell_hook) ();
       return;
@@ -213,7 +213,7 @@ ring_bell ()
 
 set_terminal_modes ()
 {
-  if (! SCREEN_IS_TERMCAP (selected_screen))
+  if (! FRAME_IS_TERMCAP (selected_frame))
     {
       (*set_terminal_modes_hook) ();
       return;
@@ -226,7 +226,7 @@ set_terminal_modes ()
 
 reset_terminal_modes ()
 {
-  if (! SCREEN_IS_TERMCAP (selected_screen))
+  if (! FRAME_IS_TERMCAP (selected_frame))
     {
       (*reset_terminal_modes_hook) ();
       return;
@@ -239,44 +239,44 @@ reset_terminal_modes ()
   OUTPUT_IF (TS_end_termcap_modes);
   /* Output raw CR so kernel can track the cursor hpos.  */
   /* But on magic-cookie terminals this can erase an end-standout marker and
-     cause the rest of the screen to be in standout, so move down first.  */
+     cause the rest of the frame to be in standout, so move down first.  */
   if (TN_standout_width >= 0)
     cmputc ('\n');
   cmputc ('\r');
 }
 
-update_begin (s)
-     SCREEN_PTR s;
+update_begin (f)
+     FRAME_PTR f;
 {
-  updating_screen = s;
-  if (! SCREEN_IS_TERMCAP (updating_screen))
-    (*update_begin_hook) (s);
+  updating_frame = f;
+  if (! FRAME_IS_TERMCAP (updating_frame))
+    (*update_begin_hook) (f);
 }
 
-update_end (s)
-     SCREEN_PTR s;
+update_end (f)
+     FRAME_PTR f;
 {
-  if (! SCREEN_IS_TERMCAP (updating_screen))
+  if (! FRAME_IS_TERMCAP (updating_frame))
     {
-      (*update_end_hook) (s);
-      updating_screen = 0;
+      (*update_end_hook) (f);
+      updating_frame = 0;
       return;
     }
   turn_off_insert ();
   background_highlight ();
   standout_requested = 0;
-  updating_screen = 0;
+  updating_frame = 0;
 }
 
 set_terminal_window (size)
      int size;
 {
-  if (! SCREEN_IS_TERMCAP (updating_screen))
+  if (! FRAME_IS_TERMCAP (updating_frame))
     {
       (*set_terminal_window_hook) (size);
       return;
     }
-  specified_window = size ? size : SCREEN_HEIGHT (selected_screen);
+  specified_window = size ? size : FRAME_HEIGHT (selected_frame);
   if (!scroll_region_ok)
     return;
   set_scroll_region (0, specified_window);
@@ -293,13 +293,13 @@ set_scroll_region (start, stop)
   else if (TS_set_scroll_region_1)
     {
       buf = tparam (TS_set_scroll_region_1, 0, 0,
-		    SCREEN_HEIGHT (selected_screen), start,
-		    SCREEN_HEIGHT (selected_screen) - stop,
-		    SCREEN_HEIGHT (selected_screen));
+		    FRAME_HEIGHT (selected_frame), start,
+		    FRAME_HEIGHT (selected_frame) - stop,
+		    FRAME_HEIGHT (selected_frame));
     }
   else
     {
-      buf = tparam (TS_set_window, 0, 0, start, 0, stop, SCREEN_WIDTH (selected_screen));
+      buf = tparam (TS_set_window, 0, 0, start, 0, stop, FRAME_WIDTH (selected_frame));
     }
   OUTPUT (buf);
   free (buf);
@@ -376,7 +376,7 @@ highlight_if_desired ()
 
 /* Handle standout mode for terminals in which TN_standout_width >= 0.
    On these terminals, standout is controlled by markers that
-   live inside the screen memory.  TN_standout_width is the width
+   live inside the terminal's memory.  TN_standout_width is the width
    that the marker occupies in memory.  Standout runs from the marker
    to the end of the line on some terminals, or to the next
    turn-off-standout marker (TS_end_standout_mode) string
@@ -406,7 +406,7 @@ reassert_line_highlight (highlight, vpos)
      int highlight;
      int vpos;
 {
-  if (! SCREEN_IS_TERMCAP ((updating_screen ? updating_screen : selected_screen)))
+  if (! FRAME_IS_TERMCAP ((updating_frame ? updating_frame : selected_frame)))
     {
       (*reassert_line_highlight_hook) (highlight, vpos);
       return;
@@ -427,7 +427,7 @@ change_line_highlight (new_highlight, vpos, first_unused_hpos)
      int new_highlight, vpos, first_unused_hpos;
 {
   standout_requested = new_highlight;
-  if (! SCREEN_IS_TERMCAP (updating_screen))
+  if (! FRAME_IS_TERMCAP (updating_frame))
     {
       (*change_line_highlight_hook) (new_highlight, vpos, first_unused_hpos);
       return;
@@ -444,7 +444,7 @@ change_line_highlight (new_highlight, vpos, first_unused_hpos)
       /* On Teleray, make sure to erase the SO marker.  */
       if (TF_teleray)
 	{
-	  cmgoto (curY - 1, SCREEN_WIDTH (selected_screen) - 4);
+	  cmgoto (curY - 1, FRAME_WIDTH (selected_frame) - 4);
 	  OUTPUT ("\033S");
 	  curY++;		/* ESC S moves to next line where the TS_standout_mode was */
 	  curX = 0;
@@ -462,9 +462,9 @@ change_line_highlight (new_highlight, vpos, first_unused_hpos)
 cursor_to (row, col)
      int row, col;
 {
-  if (! SCREEN_IS_TERMCAP ((updating_screen
-			    ? updating_screen
-			    : selected_screen))
+  if (! FRAME_IS_TERMCAP ((updating_frame
+			    ? updating_frame
+			    : selected_frame))
       && cursor_to_hook)
     {
       (*cursor_to_hook) (row, col);
@@ -486,7 +486,7 @@ cursor_to (row, col)
 raw_cursor_to (row, col)
      int row, col;
 {
-  if (! SCREEN_IS_TERMCAP ((updating_screen ? updating_screen : selected_screen)))
+  if (! FRAME_IS_TERMCAP ((updating_frame ? updating_frame : selected_frame)))
     {
       (*raw_cursor_to_hook) (row, col);
       return;
@@ -502,12 +502,12 @@ raw_cursor_to (row, col)
 
 /* Erase operations */
 
-/* clear from cursor to end of screen */
+/* clear from cursor to end of frame */
 clear_to_end ()
 {
   register int i;
 
-  if (clear_to_end_hook && SCREEN_IS_TERMCAP (updating_screen))
+  if (clear_to_end_hook && FRAME_IS_TERMCAP (updating_frame))
     {
       (*clear_to_end_hook) ();
       return;
@@ -516,33 +516,33 @@ clear_to_end ()
     {
       background_highlight ();
       OUTPUT (TS_clr_to_bottom);
-      bzero (chars_wasted + curY, SCREEN_HEIGHT (selected_screen) - curY);
+      bzero (chars_wasted + curY, FRAME_HEIGHT (selected_frame) - curY);
     }
   else
     {
-      for (i = curY; i < SCREEN_HEIGHT (selected_screen); i++)
+      for (i = curY; i < FRAME_HEIGHT (selected_frame); i++)
 	{
 	  cursor_to (i, 0);
-	  clear_end_of_line_raw (SCREEN_WIDTH (selected_screen));
+	  clear_end_of_line_raw (FRAME_WIDTH (selected_frame));
 	}
     }
 }
 
-/* Clear entire screen */
+/* Clear entire frame */
 
-clear_screen ()
+clear_frame ()
 {
-  if (clear_screen_hook
-      && ! SCREEN_IS_TERMCAP ((updating_screen ? updating_screen : selected_screen)))
+  if (clear_frame_hook
+      && ! FRAME_IS_TERMCAP ((updating_frame ? updating_frame : selected_frame)))
     {
-      (*clear_screen_hook) ();
+      (*clear_frame_hook) ();
       return;
     }
-  if (TS_clr_screen)
+  if (TS_clr_frame)
     {
       background_highlight ();
-      OUTPUT (TS_clr_screen);
-      bzero (chars_wasted, SCREEN_HEIGHT (selected_screen));
+      OUTPUT (TS_clr_frame);
+      bzero (chars_wasted, FRAME_HEIGHT (selected_frame));
       cmat (0, 0);
     }
   else
@@ -563,7 +563,7 @@ clear_end_of_line (first_unused_hpos)
      int first_unused_hpos;
 {
   static GLYPH buf[1] = {SPACEGLYPH};
-  if (SCREEN_IS_TERMCAP (selected_screen)
+  if (FRAME_IS_TERMCAP (selected_frame)
       && TN_standout_width == 0 && curX == 0 && chars_wasted[curY] != 0)
     write_glyphs (buf, 1);
   clear_end_of_line_raw (first_unused_hpos);
@@ -581,9 +581,9 @@ clear_end_of_line_raw (first_unused_hpos)
   register int i;
 
   if (clear_end_of_line_hook
-      && ! SCREEN_IS_TERMCAP ((updating_screen
-			       ? updating_screen
-			       : selected_screen)))
+      && ! FRAME_IS_TERMCAP ((updating_frame
+			       ? updating_frame
+			       : selected_frame)))
     {
       (*clear_end_of_line_hook) (first_unused_hpos);
       return;
@@ -605,8 +605,8 @@ clear_end_of_line_raw (first_unused_hpos)
       turn_off_insert ();
 
       /* Do not write in last row last col with Autowrap on. */
-      if (AutoWrap && curY == SCREEN_HEIGHT (selected_screen) - 1
-	  && first_unused_hpos == SCREEN_WIDTH (selected_screen))
+      if (AutoWrap && curY == FRAME_HEIGHT (selected_frame) - 1
+	  && first_unused_hpos == FRAME_WIDTH (selected_frame))
 	first_unused_hpos--;
 
       for (i = curX; i < first_unused_hpos; i++)
@@ -629,7 +629,7 @@ write_glyphs (string, len)
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
 
   if (write_glyphs_hook
-      && ! SCREEN_IS_TERMCAP ((updating_screen ? updating_screen : selected_screen)))
+      && ! FRAME_IS_TERMCAP ((updating_frame ? updating_frame : selected_frame)))
     {
       (*write_glyphs_hook) (string, len);
       return;
@@ -639,12 +639,12 @@ write_glyphs (string, len)
   turn_off_insert ();
 
   /* Don't dare write in last column of bottom line, if AutoWrap,
-     since that would scroll the whole screen on some terminals.  */
+     since that would scroll the whole frame on some terminals.  */
 
   if (AutoWrap
-      && curY + 1 == SCREEN_HEIGHT (selected_screen)
+      && curY + 1 == FRAME_HEIGHT (selected_frame)
       && (curX + len - (chars_wasted[curY] & 077)
-	  == SCREEN_WIDTH (selected_screen)))
+	  == FRAME_WIDTH (selected_frame)))
     len --;
 
   cmplus (len);
@@ -696,7 +696,7 @@ insert_glyphs (start, len)
   register int tlen = GLYPH_TABLE_LENGTH;
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
 
-  if (insert_glyphs_hook && ! SCREEN_IS_TERMCAP (updating_screen))
+  if (insert_glyphs_hook && ! FRAME_IS_TERMCAP (updating_frame))
     {
       (*insert_glyphs_hook) (start, len);
       return;
@@ -751,7 +751,7 @@ delete_glyphs (n)
   char *buf;
   register int i;
 
-  if (delete_glyphs_hook && ! SCREEN_IS_TERMCAP (updating_screen))
+  if (delete_glyphs_hook && ! FRAME_IS_TERMCAP (updating_frame))
     {
       (*delete_glyphs_hook) (n);
       return;
@@ -792,7 +792,7 @@ ins_del_lines (vpos, n)
   register int i = n > 0 ? n : -n;
   register char *buf;
 
-  if (ins_del_lines_hook && ! SCREEN_IS_TERMCAP (updating_screen))
+  if (ins_del_lines_hook && ! FRAME_IS_TERMCAP (updating_frame))
     {
       (*ins_del_lines_hook) (vpos, n);
       return;
@@ -807,7 +807,7 @@ ins_del_lines (vpos, n)
      as there will be a matching inslines later that will flush them. */
   if (scroll_region_ok && vpos + i >= specified_window)
     return;
-  if (!memory_below_screen && vpos + i >= SCREEN_HEIGHT (selected_screen))
+  if (!memory_below_frame && vpos + i >= FRAME_HEIGHT (selected_frame))
     return;
 
   if (multi)
@@ -845,7 +845,7 @@ ins_del_lines (vpos, n)
       register lower_limit
 	= (scroll_region_ok
 	   ? specified_window
-	   : SCREEN_HEIGHT (selected_screen));
+	   : FRAME_HEIGHT (selected_frame));
 
       if (n < 0)
 	{
@@ -861,9 +861,9 @@ ins_del_lines (vpos, n)
 	  bzero (&chars_wasted[vpos], n);
 	}
     }
-  if (!scroll_region_ok && memory_below_screen && n < 0)
+  if (!scroll_region_ok && memory_below_frame && n < 0)
     {
-      cursor_to (SCREEN_HEIGHT (selected_screen) + n, 0);
+      cursor_to (FRAME_HEIGHT (selected_frame) + n, 0);
       clear_to_end ();
     }
 }
@@ -916,13 +916,13 @@ per_line_cost (str)
 
 int *char_ins_del_vector;
 
-#define char_ins_del_cost(s) (&char_ins_del_vector[SCREEN_WIDTH ((s))])
+#define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_WIDTH ((f))])
 #endif
 
 /* ARGSUSED */
 static void
-calculate_ins_del_char_costs (screen)
-     SCREEN_PTR screen;
+calculate_ins_del_char_costs (frame)
+     FRAME_PTR frame;
 {
   int ins_startup_cost, del_startup_cost;
   int ins_cost_per_char, del_cost_per_char;
@@ -968,27 +968,27 @@ calculate_ins_del_char_costs (screen)
     }
 
   /* Delete costs are at negative offsets */
-  p = &char_ins_del_cost (screen)[0];
-  for (i = SCREEN_WIDTH (selected_screen); --i >= 0;)
+  p = &char_ins_del_cost (frame)[0];
+  for (i = FRAME_WIDTH (selected_frame); --i >= 0;)
     *--p = (del_startup_cost += del_cost_per_char);
 
   /* Doing nothing is free */
-  p = &char_ins_del_cost (screen)[0];
+  p = &char_ins_del_cost (frame)[0];
   *p++ = 0;
 
   /* Insert costs are at positive offsets */
-  for (i = SCREEN_WIDTH (screen); --i >= 0;)
+  for (i = FRAME_WIDTH (frame); --i >= 0;)
     *p++ = (ins_startup_cost += ins_cost_per_char);
 }
 
 #ifdef HAVE_X_WINDOWS
-extern int x_screen_planes;
+extern int x_frame_planes;
 #endif
 
-calculate_costs (screen)
-     SCREEN_PTR screen;
+calculate_costs (frame)
+     FRAME_PTR frame;
 {
-  register char *s = TS_set_scroll_region ?
+  register char *f = TS_set_scroll_region ?
                        TS_set_scroll_region
 		     : TS_set_scroll_region_1;
 
@@ -996,16 +996,16 @@ calculate_costs (screen)
     return;
 
 #ifdef HAVE_X_WINDOWS
-  if (SCREEN_IS_X (screen))
+  if (FRAME_IS_X (frame))
     {
-      do_line_insertion_deletion_costs (screen, 0, ".5*", 0, ".5*",
-					0, 0, x_screen_planes);
+      do_line_insertion_deletion_costs (frame, 0, ".5*", 0, ".5*",
+					0, 0, x_frame_planes);
       return;
     }
 #endif
 
   /* These variables are only used for terminal stuff.  They are allocated
-     once for the terminal screen of X-windows emacs, but not used afterwards.
+     once for the terminal frame of X-windows emacs, but not used afterwards.
 
      char_ins_del_vector (i.e., char_ins_del_cost) isn't used because
      X turns off char_ins_del_ok.
@@ -1014,48 +1014,48 @@ calculate_costs (screen)
      the term hook isn't called. */
 
   if (chars_wasted != 0)
-    chars_wasted = (char *) xrealloc (chars_wasted, SCREEN_HEIGHT (screen));
+    chars_wasted = (char *) xrealloc (chars_wasted, FRAME_HEIGHT (frame));
   else
-    chars_wasted = (char *) xmalloc (SCREEN_HEIGHT (screen));
+    chars_wasted = (char *) xmalloc (FRAME_HEIGHT (frame));
 
   if (copybuf != 0)
-    copybuf = (char *) xrealloc (copybuf, SCREEN_HEIGHT (screen));
+    copybuf = (char *) xrealloc (copybuf, FRAME_HEIGHT (frame));
   else
-    copybuf = (char *) xmalloc (SCREEN_HEIGHT (screen));
+    copybuf = (char *) xmalloc (FRAME_HEIGHT (frame));
 
   if (char_ins_del_vector != 0)
     char_ins_del_vector
       = (int *) xrealloc (char_ins_del_vector,
 			  (sizeof (int)
-			   + 2 * SCREEN_WIDTH (screen) * sizeof (int)));
+			   + 2 * FRAME_WIDTH (frame) * sizeof (int)));
   else
     char_ins_del_vector
       = (int *) xmalloc (sizeof (int)
-			 + 2 * SCREEN_WIDTH (screen) * sizeof (int));
+			 + 2 * FRAME_WIDTH (frame) * sizeof (int));
 
-  bzero (chars_wasted, SCREEN_HEIGHT (screen));
-  bzero (copybuf, SCREEN_HEIGHT (screen));
+  bzero (chars_wasted, FRAME_HEIGHT (frame));
+  bzero (copybuf, FRAME_HEIGHT (frame));
   bzero (char_ins_del_vector, (sizeof (int)
-			       + 2 * SCREEN_WIDTH (screen) * sizeof (int)));
+			       + 2 * FRAME_WIDTH (frame) * sizeof (int)));
 
-  if (s && (!TS_ins_line && !TS_del_line))
-    do_line_insertion_deletion_costs (screen,
+  if (f && (!TS_ins_line && !TS_del_line))
+    do_line_insertion_deletion_costs (frame,
 				      TS_rev_scroll, TS_ins_multi_lines,
 				      TS_fwd_scroll, TS_del_multi_lines,
-				      s, s, 1);
+				      f, f, 1);
   else
-    do_line_insertion_deletion_costs (screen,
+    do_line_insertion_deletion_costs (frame,
 				      TS_ins_line, TS_ins_multi_lines,
 				      TS_del_line, TS_del_multi_lines,
 				      0, 0, 1);
 
-  calculate_ins_del_char_costs (screen);
+  calculate_ins_del_char_costs (frame);
 
   /* Don't use TS_repeat if its padding is worse than sending the chars */
   if (TS_repeat && per_line_cost (TS_repeat) * baud_rate < 9000)
     RPov = string_cost (TS_repeat);
   else
-    RPov = SCREEN_WIDTH (screen) * 2;
+    RPov = FRAME_WIDTH (frame) * 2;
 
   cmcostinit ();		/* set up cursor motion costs */
 }
@@ -1151,7 +1151,7 @@ term_init (terminal_type)
   BackTab = tgetstr ("bt", address);
   TS_clr_to_bottom = tgetstr ("cd", address);
   TS_clr_line = tgetstr ("ce", address);
-  TS_clr_screen = tgetstr ("cl", address);
+  TS_clr_frame = tgetstr ("cl", address);
   ColPosition = tgetstr ("ch", address);
   AbsPosition = tgetstr ("cm", address);
   CR = tgetstr ("cr", address);
@@ -1209,7 +1209,7 @@ term_init (terminal_type)
   MultiRight = tgetstr ("RI", address);
 
   AutoWrap = tgetflag ("am");
-  memory_below_screen = tgetflag ("db");
+  memory_below_frame = tgetflag ("db");
   TF_hazeltine = tgetflag ("hz");
   must_write_spaces = tgetflag ("in");
   meta_key = tgetflag ("km") || tgetflag ("MT");
@@ -1222,13 +1222,13 @@ term_init (terminal_type)
 
   term_get_fkeys (address);
 
-  /* Get screen size from system, or else from termcap.  */
-  get_screen_size (&SCREEN_WIDTH (selected_screen),
-		   &SCREEN_HEIGHT (selected_screen));
-  if (SCREEN_WIDTH (selected_screen) <= 0)
-    SCREEN_WIDTH (selected_screen) = tgetnum ("co");
-  if (SCREEN_HEIGHT (selected_screen) <= 0)
-    SCREEN_HEIGHT (selected_screen) = tgetnum ("li");
+  /* Get frame size from system, or else from termcap.  */
+  get_frame_size (&FRAME_WIDTH (selected_frame),
+		   &FRAME_HEIGHT (selected_frame));
+  if (FRAME_WIDTH (selected_frame) <= 0)
+    FRAME_WIDTH (selected_frame) = tgetnum ("co");
+  if (FRAME_HEIGHT (selected_frame) <= 0)
+    FRAME_HEIGHT (selected_frame) = tgetnum ("li");
 
   min_padding_speed = tgetnum ("pb");
   TN_standout_width = tgetnum ("sg");
@@ -1285,7 +1285,7 @@ term_init (terminal_type)
 
   if (!strcmp (terminal_type, "supdup"))
     {
-      memory_below_screen = 1;
+      memory_below_frame = 1;
       Wcm.cm_losewrap = 1;
     }
   if (!strncmp (terminal_type, "c10", 3)
@@ -1296,7 +1296,7 @@ term_init (terminal_type)
 	 for windows starting at the upper left corner;
 	 but that is all Emacs uses.
 
-	 This string works only if the screen is using
+	 This string works only if the frame is using
 	 the top of the video memory, because addressing is memory-relative.
 	 So first check the :ti string to see if that is true.
 
@@ -1330,9 +1330,9 @@ term_init (terminal_type)
 	}
     }
 
-  ScreenRows = SCREEN_HEIGHT (selected_screen);
-  ScreenCols = SCREEN_WIDTH (selected_screen);
-  specified_window = SCREEN_HEIGHT (selected_screen);
+  FrameRows = FRAME_HEIGHT (selected_frame);
+  FrameCols = FRAME_WIDTH (selected_frame);
+  specified_window = FRAME_HEIGHT (selected_frame);
 
   if (Wcm_init () == -1)	/* can't do cursor motion */
 #ifdef VMS
@@ -1350,9 +1350,9 @@ use the C-shell command `setenv TERM ...' to specify the correct type.\n\
 It may be necessary to do `unsetenv TERMCAP' as well.\n",
 	   terminal_type);
 #endif
-  if (SCREEN_HEIGHT (selected_screen) <= 0
-      || SCREEN_WIDTH (selected_screen) <= 0)
-    fatal ("The screen size has not been specified.");
+  if (FRAME_HEIGHT (selected_frame) <= 0
+      || FRAME_WIDTH (selected_frame) <= 0)
+    fatal ("The frame size has not been specified.");
 
   delete_in_insert_mode
     = TS_delete_mode && TS_insert_mode
@@ -1364,7 +1364,7 @@ It may be necessary to do `unsetenv TERMCAP' as well.\n",
 
   /* Remove width of standout marker from usable width of line */
   if (TN_standout_width > 0)
-    SCREEN_WIDTH (selected_screen) -= TN_standout_width;
+    FRAME_WIDTH (selected_frame) -= TN_standout_width;
 
   UseTabs = tabs_safe_p () && TabWidth == 8;
 

@@ -86,9 +86,9 @@ enum Lisp_Type
        XOBJFWD(obj) points to the Lisp_Object variable. */
     Lisp_Objfwd,
 
-    /* Pointer to a vector-like object describing a display screen
+    /* Pointer to a vector-like object describing a display frame
        on which Emacs can display a window hierarchy.  */
-    Lisp_Screen,
+    Lisp_Frame,
 
     /* Used when a FILE * value needs to be passed
        in an argument of type Lisp_Object.
@@ -840,7 +840,7 @@ extern Lisp_Object Qcdr;
 extern Lisp_Object Qfloatp, Qinteger_or_floatp, Qinteger_or_float_or_marker_p;
 #endif /* LISP_FLOAT_TYPE */
 
-extern Lisp_Object Qscreenp;
+extern Lisp_Object Qframep;
 
 extern Lisp_Object Feq (), Fnull (), Flistp (), Fconsp (), Fatom (), Fnlistp ();
 extern Lisp_Object Fintegerp (), Fnatnump (), Fsymbolp ();
@@ -1040,35 +1040,35 @@ extern Lisp_Object Fset_window_configuration (), Fcurrent_window_configuration (
 extern Lisp_Object Fcoordinates_in_window_p ();
 extern Lisp_Object Fwindow_at ();
 
-/* defined in screen.c */
-extern Lisp_Object Fscreenp ();
-extern Lisp_Object Fselect_screen ();
-extern Lisp_Object Ffocus_screen ();
-extern Lisp_Object Funfocus_screen ();
-extern Lisp_Object Fselected_screen ();
-extern Lisp_Object Fwindow_screen ();
-extern Lisp_Object Fscreen_root_window ();
-extern Lisp_Object Fscreen_selected_window ();
-extern Lisp_Object Fscreen_list ();
-extern Lisp_Object Fnext_screen ();
-extern Lisp_Object Fdelete_screen ();
+/* defined in frame.c */
+extern Lisp_Object Fframep ();
+extern Lisp_Object Fselect_frame ();
+extern Lisp_Object Ffocus_frame ();
+extern Lisp_Object Funfocus_frame ();
+extern Lisp_Object Fselected_frame ();
+extern Lisp_Object Fwindow_frame ();
+extern Lisp_Object Fframe_root_window ();
+extern Lisp_Object Fframe_selected_window ();
+extern Lisp_Object Fframe_list ();
+extern Lisp_Object Fnext_frame ();
+extern Lisp_Object Fdelete_frame ();
 extern Lisp_Object Fread_mouse_position ();
 extern Lisp_Object Fset_mouse_position ();
-extern Lisp_Object Fmake_screen_visible ();
-extern Lisp_Object Fmake_screen_invisible ();
-extern Lisp_Object Ficonify_screen ();
-extern Lisp_Object Fdeiconify_screen ();
-extern Lisp_Object Fscreen_visible_p ();
-extern Lisp_Object Fvisible_screen_list ();
-extern Lisp_Object Fscreen_parameters ();
-extern Lisp_Object Fmodify_screen_parameters ();
-extern Lisp_Object Fscreen_pixel_size ();
-extern Lisp_Object Fscreen_height ();
-extern Lisp_Object Fscreen_width ();
-extern Lisp_Object Fset_screen_height ();
-extern Lisp_Object Fset_screen_width ();
-extern Lisp_Object Fset_screen_size ();
-extern Lisp_Object Fset_screen_position ();
+extern Lisp_Object Fmake_frame_visible ();
+extern Lisp_Object Fmake_frame_invisible ();
+extern Lisp_Object Ficonify_frame ();
+extern Lisp_Object Fdeiconify_frame ();
+extern Lisp_Object Fframe_visible_p ();
+extern Lisp_Object Fvisible_frame_list ();
+extern Lisp_Object Fframe_parameters ();
+extern Lisp_Object Fmodify_frame_parameters ();
+extern Lisp_Object Fframe_pixel_size ();
+extern Lisp_Object Fframe_height ();
+extern Lisp_Object Fframe_width ();
+extern Lisp_Object Fset_frame_height ();
+extern Lisp_Object Fset_frame_width ();
+extern Lisp_Object Fset_frame_size ();
+extern Lisp_Object Fset_frame_position ();
 #ifndef HAVE_X11
 extern Lisp_Object Frubber_band_rectangle ();
 #endif	/* HAVE_X11 */

@@ -1723,11 +1723,11 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (! XINT (read_kbd))
 	FD_CLR (0, &Available);
 
-      /* If screen size has changed or the window is newly mapped,
+      /* If frame size has changed or the window is newly mapped,
 	 redisplay now, before we start to wait.  There is a race
 	 condition here; if a SIGIO arrives between now and the select
-	 and indicates that a screen is trashed, we lose.  */
-      if (screen_garbaged)
+	 and indicates that a frame is trashed, we lose.  */
+      if (frame_garbaged)
 	redisplay_preserve_echo_area ();
 
       if (XINT (read_kbd) && detect_input_pending ())
@@ -2898,7 +2898,7 @@ effect when `start-process' is called.");
 #include "systime.h"
 #include "termopts.h"
 
-extern int screen_garbaged;
+extern int frame_garbaged;
 
 
 /* As described above, except assuming that there are no subprocesses:
@@ -2981,9 +2981,9 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (XINT (read_kbd) < 0)
 	set_waiting_for_input (&timeout);
 
-      /* If a screen has been newly mapped and needs updating,
+      /* If a frame has been newly mapped and needs updating,
 	 reprocess its display stuff.  */
-      if (screen_garbaged)
+      if (frame_garbaged)
 	redisplay_preserve_echo_area ();
 
       if (XINT (read_kbd) && detect_input_pending ())

@@ -23,7 +23,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "commands.h"
 #include "buffer.h"
 #include "dispextern.h"
-#include "screen.h"
+#include "frame.h"
 #include "window.h"
 #include "syntax.h"
 
@@ -91,7 +91,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag)
 {
   register Lisp_Object val;
   int count = specpdl_ptr - specpdl;
-  Lisp_Object mini_screen = WINDOW_SCREEN (XWINDOW (minibuf_window));
+  Lisp_Object mini_frame = WINDOW_FRAME (XWINDOW (minibuf_window));
   struct gcpro gcpro1, gcpro2;
 
   if (XTYPE (prompt) != Lisp_String)
@@ -105,7 +105,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag)
       && minibuf_level > 0
       && (EQ (selected_window, minibuf_window)))
 #if 0
-	  || selected_screen != XSCREEN (WINDOW_SCREEN (XWINDOW (minibuf_window)))
+	  || selected_frame != XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)))
 #endif
     error ("Command attempted to use minibuffer while in minibuffer");
 
@@ -127,12 +127,12 @@ read_minibuf (map, initial, prompt, backup_n, expflag)
   record_unwind_protect (Fset_window_configuration,
 			 Fcurrent_window_configuration (Qnil));
 
-  /* If the minibuffer window is on a different screen, save that
-     screen's configuration too.  */
-  if (XSCREEN (mini_screen) != selected_screen)
+  /* If the minibuffer window is on a different frame, save that
+     frame's configuration too.  */
+  if (XFRAME (mini_frame) != selected_frame)
     {
       record_unwind_protect (Fset_window_configuration,
-			     Fcurrent_window_configuration (mini_screen));
+			     Fcurrent_window_configuration (mini_frame));
     }
 
   val = current_buffer->directory;
@@ -141,17 +141,17 @@ read_minibuf (map, initial, prompt, backup_n, expflag)
   Fmake_local_variable (Qprint_escape_newlines);
   print_escape_newlines = 1;
 
-#ifdef MULTI_SCREEN
-  /* If the minibuffer window is on another screen, shift this screen's
+#ifdef MULTI_FRAME
+  /* If the minibuffer window is on another frame, shift this frame's
      focus to that window, and arrange to put it back later.  */
-  if (XSCREEN (WINDOW_SCREEN (XWINDOW (minibuf_window)))
-      != selected_screen)
+  if (XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)))
+      != selected_frame)
     {
       record_unwind_protect (read_minibuf_unwind,
-			     Fcons (Fselected_screen (),
-				    SCREEN_FOCUS_SCREEN (selected_screen)));
+			     Fcons (Fselected_frame (),
+				    FRAME_FOCUS_FRAME (selected_frame)));
 
-      Fredirect_screen_focus (Fselected_screen (), mini_screen);
+      Fredirect_frame_focus (Fselected_frame (), mini_frame);
     }
   else
     record_unwind_protect (read_minibuf_unwind, Qnil);
@@ -186,18 +186,18 @@ read_minibuf (map, initial, prompt, backup_n, expflag)
 
   /* If cursor is on the minibuffer line,
      show the user we have exited by putting it in column 0.  */
-  if ((SCREEN_CURSOR_Y (selected_screen)
+  if ((FRAME_CURSOR_Y (selected_frame)
        >= XFASTINT (XWINDOW (minibuf_window)->top))
       && !noninteractive)
     {
-      SCREEN_CURSOR_X (selected_screen) = 0;
-      update_screen (selected_screen, 1, 1);
+      FRAME_CURSOR_X (selected_frame) = 0;
+      update_frame (selected_frame, 1, 1);
     }
 
   /* Make minibuffer contents into a string */
   val = make_buffer_string (1, Z);
   bcopy (GAP_END_ADDR, XSTRING (val)->data + GPT - BEG, Z - GPT);
-  unbind_to (count, Qnil);	/* The appropriate screen will get selected
+  unbind_to (count, Qnil);	/* The appropriate frame will get selected
 				   in set-window-configuration.  */
 
   UNGCPRO;
@@ -271,10 +271,10 @@ read_minibuf_unwind (data)
   Vhelp_form = minibuf_save_vector[minibuf_level].help_form;
   Vcurrent_prefix_arg = minibuf_save_vector[minibuf_level].current_prefix_arg;
 
-#ifdef MULTI_SCREEN
-  /* Redirect the focus of the screen that called the minibuffer.  */
+#ifdef MULTI_FRAME
+  /* Redirect the focus of the frame that called the minibuffer.  */
   if (CONSP (data))
-    Fredirect_screen_focus (XCONS (data)->car, XCONS (data)->cdr);
+    Fredirect_frame_focus (XCONS (data)->car, XCONS (data)->cdr);
 #endif
 }
 

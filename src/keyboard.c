@@ -28,7 +28,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "lisp.h"
 #include "termhooks.h"
 #include "macros.h"
-#include "screen.h"
+#include "frame.h"
 #include "window.h"
 #include "commands.h"
 #include "buffer.h"
@@ -191,24 +191,24 @@ extern Lisp_Object Vmouse_event;
 /* Hook to call on each mouse event after running its definition.  */
 Lisp_Object Vmouse_event_function;
 
-/* Hook to call when mouse leaves screen.  */
+/* Hook to call when mouse leaves frame.  */
 Lisp_Object Vmouse_left_hook;
 
-/* Hook to call when a screen is mapped.  */
-Lisp_Object Vmap_screen_hook;
+/* Hook to call when a frame is mapped.  */
+Lisp_Object Vmap_frame_hook;
 
-/* Hook to call when a screen is unmapped.  */
-Lisp_Object Vunmap_screen_hook;
+/* Hook to call when a frame is unmapped.  */
+Lisp_Object Vunmap_frame_hook;
 
 /* Handler for non-grabbed (no keys depressed) mouse motion.  */
 Lisp_Object Vmouse_motion_handler;
 
-/* The screen in which the last input event occurred.
-   command_loop_1 will select this screen before running the
+/* The frame in which the last input event occurred.
+   command_loop_1 will select this frame before running the
    command bound to an event sequence, and read_key_sequence will
    toss the existing prefix if the user starts typing at a
-   new screen.  */
-Lisp_Object Vlast_event_screen;
+   new frame.  */
+Lisp_Object Vlast_event_frame;
 
 /* The timestamp of the last input event we received from the X server.
    X Windows wants this for selection ownership.  */
@@ -494,7 +494,7 @@ echo_length ()
 
 /* Truncate the current echo message to its first LEN chars.
    This and echo_char get used by read_key_sequence when the user
-   switches screens while entering a key sequence.  */
+   switches frames while entering a key sequence.  */
 
 static void
 echo_truncate (len)
@@ -600,10 +600,10 @@ cmd_error (data)
   Vexecuting_macro = Qnil;
   echo_area_glyphs = 0;
 
-  /* If the window system or terminal screen hasn't been initialized
+  /* If the window system or terminal frame hasn't been initialized
      yet, or we're not interactive, it's best to dump this message out
      to stderr and exit.  */
-  if (! SCREEN_MESSAGE_BUF (selected_screen)
+  if (! FRAME_MESSAGE_BUF (selected_frame)
       || noninteractive)
     stream = Qexternal_debugging_output;
   else
@@ -657,9 +657,9 @@ cmd_error (data)
     }
   UNGCPRO;
 
-  /* If the window system or terminal screen hasn't been initialized
+  /* If the window system or terminal frame hasn't been initialized
      yet, or we're in -batch mode, this error should cause Emacs to exit.  */
-  if (! SCREEN_MESSAGE_BUF (selected_screen)
+  if (! FRAME_MESSAGE_BUF (selected_frame)
       || noninteractive)
     {
       Fterpri (stream);
@@ -836,11 +836,11 @@ command_loop_1 ()
 
       ++num_input_keys;
 
-#ifdef MULTI_SCREEN
-      /* Select the screen that the key sequence came from.  */
-      if (XTYPE (Vlast_event_screen) == Lisp_Screen
-	  && XSCREEN (Vlast_event_screen) != selected_screen)
-	Fselect_screen (Vlast_event_screen, Qnil);
+#ifdef MULTI_FRAME
+      /* Select the frame that the key sequence came from.  */
+      if (XTYPE (Vlast_event_frame) == Lisp_Frame
+	  && XFRAME (Vlast_event_frame) != selected_frame)
+	Fselect_frame (Vlast_event_frame, Qnil);
 #endif
 
       /* Now we have read a key sequence of length I,
@@ -851,7 +851,7 @@ command_loop_1 ()
 
 #if 0
 #ifdef HAVE_X_WINDOWS
-      if (SCREEN_IS_X (selected_screen))
+      if (FRAME_IS_X (selected_frame))
 	{
 	  if (i == -1)		/* Mouse event */
 	    {
@@ -1159,8 +1159,8 @@ read_char (commandflag)
   if (_setjmp (getcjmp))
     {
       XSET (c, Lisp_Int, quit_char);
-#ifdef MULTI_SCREEN
-      XSET (Vlast_event_screen, Lisp_Screen, selected_screen);
+#ifdef MULTI_FRAME
+      XSET (Vlast_event_frame, Lisp_Frame, selected_frame);
 #endif
 
       goto non_reread;
@@ -1345,7 +1345,7 @@ read_char (commandflag)
 
       cancel_echoing ();
       c = read_char (0);
-      /* Remove the help from the screen */
+      /* Remove the help from the frame */
       unbind_to (count, Qnil);
       redisplay ();
       if (EQ (c, make_number (040)))
@@ -1393,7 +1393,7 @@ restore_getcjmp (temp)
 /* Set this for debugging, to have a way to get out */
 int stop_character;
 
-extern int screen_garbaged;
+extern int frame_garbaged;
 
 /* Return true iff there are any events in the queue that read-char
    would return.  If this returns false, a read-char would block.  */
@@ -1487,11 +1487,11 @@ kbd_buffer_store_event (event)
 	  || ((c == (0200 | quit_char)) && !meta_key))
 	{
 	  /* If this results in a quit_char being returned to Emacs as
-	     input, set last-event-screen properly.  If this doesn't
+	     input, set last-event-frame properly.  If this doesn't
 	     get returned to Emacs as an event, the next event read
-	     will set Vlast_event_screen again, so this is safe to do.  */
+	     will set Vlast_event_frame again, so this is safe to do.  */
 	  extern SIGTYPE interrupt_signal ();
-	  Vlast_event_screen = SCREEN_FOCUS_SCREEN (event->screen);
+	  Vlast_event_frame = FRAME_FOCUS_FRAME (event->frame);
 	  last_event_timestamp = event->timestamp;
 	  interrupt_signal ();
 	  return;
@@ -1518,7 +1518,7 @@ kbd_buffer_store_event (event)
       kbd_store_ptr->kind = event->kind;
       kbd_store_ptr->code = event->code;
       kbd_store_ptr->part = event->part;
-      kbd_store_ptr->screen = event->screen;
+      kbd_store_ptr->frame = event->frame;
       kbd_store_ptr->modifiers = event->modifiers;
       kbd_store_ptr->x = event->x;
       kbd_store_ptr->y = event->y;
@@ -1610,11 +1610,11 @@ kbd_buffer_get_event ()
     {
       if (kbd_fetch_ptr == kbd_buffer + KBD_BUFFER_SIZE)
 	kbd_fetch_ptr = kbd_buffer;
-      /* Do the redirection specified by the focus_screen
+      /* Do the redirection specified by the focus_frame
 	 member now, before we return this event.  */
-      kbd_fetch_ptr->screen =
-	XSCREEN (SCREEN_FOCUS_SCREEN (kbd_fetch_ptr->screen));
-      XSET (Vlast_event_screen, Lisp_Screen, kbd_fetch_ptr->screen);
+      kbd_fetch_ptr->frame =
+	XFRAME (FRAME_FOCUS_FRAME (kbd_fetch_ptr->frame));
+      XSET (Vlast_event_frame, Lisp_Frame, kbd_fetch_ptr->frame);
       last_event_timestamp = kbd_fetch_ptr->timestamp;
       obj = make_lispy_event (kbd_fetch_ptr);
       kbd_fetch_ptr->kind = no_event;
@@ -1624,14 +1624,14 @@ kbd_buffer_get_event ()
     }
   else if (do_mouse_tracking && mouse_moved)
     {
-      SCREEN_PTR screen;
+      FRAME_PTR frame;
       Lisp_Object x, y;
       unsigned long time;
 
-      (*mouse_position_hook) (&screen, &x, &y, &time);
-      XSET (Vlast_event_screen, Lisp_Screen, screen);
+      (*mouse_position_hook) (&frame, &x, &y, &time);
+      XSET (Vlast_event_frame, Lisp_Frame, frame);
 
-      obj = make_lispy_movement (screen, x, y, time);
+      obj = make_lispy_movement (frame, x, y, time);
     }
   else
     /* We were promised by the above while loop that there was
@@ -1763,7 +1763,7 @@ make_lispy_event (event)
       {
 	int part;
 	Lisp_Object window =
-	  window_from_coordinates (event->screen,
+	  window_from_coordinates (event->frame,
 				   XINT (event->x), XINT (event->y),
 				   &part);
 	Lisp_Object posn;
@@ -1814,7 +1814,7 @@ make_lispy_event (event)
 				 (sizeof (lispy_mouse_names)
 				  / sizeof (lispy_mouse_names[0])));
 	return Fcons (event->part,
-		      Fcons (SCREEN_SELECTED_WINDOW (event->screen),
+		      Fcons (FRAME_SELECTED_WINDOW (event->frame),
 			     Fcons (button,
 				    Fcons (Fcons (event->x, event->y),
 					   Fcons (make_number
@@ -1829,8 +1829,8 @@ make_lispy_event (event)
 }
 
 static Lisp_Object
-make_lispy_movement (screen, x, y, time)
-     SCREEN_PTR screen;
+make_lispy_movement (frame, x, y, time)
+     FRAME_PTR frame;
      Lisp_Object x, y;
      unsigned long time;
 {
@@ -1841,8 +1841,8 @@ make_lispy_movement (screen, x, y, time)
 
   ix = XINT (x);
   iy = XINT (y);
-  window = (screen
-	    ? window_from_coordinates (screen, ix, iy, &part)
+  window = (frame
+	    ? window_from_coordinates (frame, ix, iy, &part)
 	    : Qnil);
   if (XTYPE (window) != Lisp_Window)
     posn = Qnil;
@@ -2207,7 +2207,7 @@ read_avail_input (expected)
 	{
 	  buf[i].kind = ascii_keystroke;
 	  XSET (buf[i].code, Lisp_Int, cbuf[i]);
-	  buf[i].screen = selected_screen;
+	  buf[i].frame = selected_frame;
 	}
     }
 
@@ -2309,7 +2309,7 @@ read_char_menu_prompt (prompt, local, global)
   register Lisp_Object rest, name;
   Lisp_Object hmap;
   int nlength;
-  int width = SCREEN_WIDTH (selected_screen) - 4;
+  int width = FRAME_WIDTH (selected_frame) - 4;
   char *menu = (char *) alloca (width);
 
   /* Use local over global Menu maps */
@@ -2515,7 +2515,7 @@ follow_key (key, nmaps, current, defs, next)
    with PROMPT.  Echo starting immediately unless `prompt' is 0.
    Return the length of the key sequence stored.
 
-   If the user switches screens in the midst of a key sequence, we
+   If the user switches frames in the midst of a key sequence, we
    throw away any prefix we have read so far, and start afresh.  For
    mouse clicks, we look up the click in the keymap of the buffer
    clicked on, throwing away any prefix if it is not the same buffer
@@ -2532,7 +2532,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 
   /* The buffer that the most recently read event was typed at.  This
      helps us read mouse clicks according to the buffer clicked in,
-     and notice when the mouse has moved from one screen to another.  */
+     and notice when the mouse has moved from one frame to another.  */
   struct buffer *last_event_buffer = current_buffer;
 
   /* The length of the echo buffer when we started reading, and
@@ -2639,13 +2639,13 @@ read_key_sequence (keybuf, bufsize, prompt)
 	  
 	  Vquit_flag = Qnil;
 
-#ifdef MULTI_SCREEN
+#ifdef MULTI_FRAME
 	  /* What buffer was this event typed/moused at?  */
 	  if (XTYPE (key) == Lisp_Int || XTYPE (key) == Lisp_Symbol)
 	    buf = (XBUFFER
 		   (XWINDOW
-		    (SCREEN_SELECTED_WINDOW
-		     (XSCREEN (Vlast_event_screen)))->buffer));
+		    (FRAME_SELECTED_WINDOW
+		     (XFRAME (Vlast_event_frame)))->buffer));
 	  else if (EVENT_HAS_PARAMETERS (key))
 	    {
 	      Lisp_Object window = EVENT_WINDOW (key);
@@ -2664,7 +2664,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	  if (buf != last_event_buffer)
 	    {
 	      last_event_buffer = buf;
-	      Fselect_screen (Vlast_event_screen, Qnil);
+	      Fselect_frame (Vlast_event_frame, Qnil);
 
 	      /* Arrange to read key as the next event.  */
 	      keybuf[0] = key;
@@ -2753,7 +2753,7 @@ First arg PROMPT is a prompt string.  If nil, do not prompt specially.\n\
 Second (optional) arg CONTINUE-ECHO, if non-nil, means this key echos\n\
 as a continuation of the previous key.\n\
 \n\
-If Emacs is running on multiple screens, switching between screens in\n\
+If Emacs is running on multiple frames, switching between frames in\n\
 the midst of a keystroke will toss any prefix typed so far.  A C-g\n\
 typed while in this function is treated like any other character, and\n\
 `quit-flag' is not set.")
@@ -2864,7 +2864,7 @@ with EVENT as arg.")
 {
   Lisp_Object tem;
   Lisp_Object mouse_cmd;
-  Lisp_Object keyseq, window, screen_part, pos, time;
+  Lisp_Object keyseq, window, frame_part, pos, time;
 
 #ifndef HAVE_X11
   Vmouse_event = event;
@@ -2879,7 +2879,7 @@ with EVENT as arg.")
   CHECK_CONS (event, 0);
   pos = Fcar (event);
   window = Fcar (Fcdr (event));
-  screen_part = Fcar (Fcdr (Fcdr (event)));
+  frame_part = Fcar (Fcdr (Fcdr (event)));
   keyseq = Fcar (Fcdr (Fcdr (Fcdr (event))));
   time = Fcar (Fcdr (Fcdr (Fcdr (Fcdr (event)))));
   CHECK_STRING (keyseq, 0);
@@ -2921,14 +2921,14 @@ with EVENT as arg.")
     }
   else
     {
-      SCREEN_PTR s = XSCREEN (WINDOW_SCREEN (XWINDOW (window)));
+      FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
 
 #ifndef HAVE_X11
-      Vmouse_window = s->selected_window;
+      Vmouse_window = f->selected_window;
 #endif	/* HAVE_X11 */
       /* It's defined; call the definition.  */
       Vprefix_arg = Qnil;
-      if (!NILP (screen_part))
+      if (!NILP (frame_part))
 	{
 	  /* For a scroll-bar click, set the prefix arg
 	     to the number of lines down from the top the click was.
@@ -2943,7 +2943,7 @@ with EVENT as arg.")
 
 	  if (XINT (length) != 0)
 	    XSET (Vprefix_arg, Lisp_Int,
-		  (SCREEN_HEIGHT (s) * (XINT (position) + XINT (offset))
+		  (FRAME_HEIGHT (f) * (XINT (position) + XINT (offset))
 		   / (XINT (length) + 2 * XINT (offset))));
 	}
       Fcommand_execute (mouse_cmd, Qnil);
@@ -3167,7 +3167,7 @@ On such systems, Emacs will start a subshell and wait for it to exit.")
       if (!EQ (tem, Qnil)) return Qnil;
     }
 
-  get_screen_size (&old_width, &old_height);
+  get_frame_size (&old_width, &old_height);
   reset_sys_modes ();
   /* sys_suspend can get an error if it tries to fork a subshell
      and the system resources aren't available for that.  */
@@ -3179,9 +3179,9 @@ On such systems, Emacs will start a subshell and wait for it to exit.")
   /* Check if terminal/window size has changed.
      Note that this is not useful when we are running directly
      with a window system; but suspend should be disabled in that case.  */
-  get_screen_size (&width, &height);
+  get_frame_size (&width, &height);
   if (width != old_width || height != old_height)
-    change_screen_size (height, width, 0);
+    change_frame_size (height, width, 0);
 
   /* Call value of suspend-resume-hook
      if it is bound and value is non-nil.  */
@@ -3284,7 +3284,7 @@ interrupt_signal ()
 
   cancel_echoing ();
 
-  if (!NILP (Vquit_flag) && SCREEN_IS_TERMCAP (selected_screen))
+  if (!NILP (Vquit_flag) && FRAME_IS_TERMCAP (selected_frame))
     {
       fflush (stdout);
       reset_sys_modes ();
@@ -3618,9 +3618,9 @@ Polling is automatically disabled in all other cases.");
     "*Number of complete keys read from the keyboard so far.");
   num_input_keys = 0;
 
-  DEFVAR_LISP ("last-event-screen", &Vlast_event_screen,
-    "*The screen in which the most recently read event occurred.");
-  Vlast_event_screen = Qnil;
+  DEFVAR_LISP ("last-event-frame", &Vlast_event_frame,
+    "*The frame in which the most recently read event occurred.");
+  Vlast_event_frame = Qnil;
 
   DEFVAR_LISP ("help-char", &help_char,
     "Character to recognize as meaning Help.\n\
@@ -3656,13 +3656,13 @@ See the variable `mouse-event' for the format of this list.");
 	       "Function to call when mouse leaves window.  No arguments.");
   Vmouse_left_hook = Qnil;
 
-  DEFVAR_LISP ("map-screen-hook", &Vmap_screen_hook,
-	       "Function to call when screen is mapped.  No arguments.");
-  Vmap_screen_hook = Qnil;
+  DEFVAR_LISP ("map-frame-hook", &Vmap_frame_hook,
+	       "Function to call when frame is mapped.  No arguments.");
+  Vmap_frame_hook = Qnil;
 
-  DEFVAR_LISP ("unmap-screen-hook", &Vunmap_screen_hook,
-	       "Function to call when screen is unmapped.  No arguments.");
-  Vunmap_screen_hook = Qnil;
+  DEFVAR_LISP ("unmap-frame-hook", &Vunmap_frame_hook,
+	       "Function to call when frame is unmapped.  No arguments.");
+  Vunmap_frame_hook = Qnil;
 
   DEFVAR_LISP ("mouse-motion-handler", &Vmouse_motion_handler,
 	       "Handler for motion events.  No arguments.");
