@@ -48,7 +48,7 @@
   '(
     (abbrev	. "abbreviation handling, typing shortcuts, macros")
     (bib	. "code related to the `bib' bibliography processor")
-    (c		. "C and C++ language support")
+    (c		. "support for the C language and related languages")
     (calendar	. "calendar and time management support")
     (comm	. "communications, networking, remote access to files")
     (data	. "support editing files of data")
