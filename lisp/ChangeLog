@@ -1,3 +1,8 @@
+2002-05-09  Markus Rost  <rost@math.ohio-state.edu>
+
+	* woman.el (woman-menu):  Move symbol before the comment so that
+	find-function-search-for-symbol finds it.
+
 2002-05-10  Miles Bader  <miles@gnu.org>
 
 	* facemenu.el (list-colors-display): Don't use
