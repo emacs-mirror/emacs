@@ -787,11 +787,16 @@ the modes of the new file to agree with the old modes."
 			       (let ((attr (file-attributes real-file-name)))
 				 (or (nth 9 attr)
 				     (/= (nth 2 attr) (user-uid))))))
-		      (copy-file real-file-name backupname t t)
-; rename-file should delete old backup.
-;		    (condition-case ()
-;			(delete-file backupname)
-;		      (file-error nil))
+		      (condition-case ()
+			  (copy-file real-file-name backupname t t)
+			(file-error
+			 ;; If copying fails because file BACKUPNAME
+			 ;; is not writable, delete that file and try again.
+			 (if (and (file-exists-p backupname)
+				  (not (file-writable-p backupname)))
+			     (delete-file backupname))
+			 (copy-file real-file-name backupname t t)))
+		    ;; rename-file should delete old backup.
 		    (rename-file real-file-name backupname t)
 		    (setq setmodes (file-modes backupname)))
 		(file-error
@@ -799,7 +804,15 @@ the modes of the new file to agree with the old modes."
 		 (setq backupname (expand-file-name "~/%backup%~"))
 		 (message "Cannot write backup file; backing up in ~/%%backup%%~")
 		 (sleep-for 1)
-		 (copy-file real-file-name backupname t t)))
+		 (condition-case ()
+		     (copy-file real-file-name backupname t t)
+		   (file-error
+		    ;; If copying fails because file BACKUPNAME
+		    ;; is not writable, delete that file and try again.
+		    (if (and (file-exists-p backupname)
+			     (not (file-writable-p backupname)))
+			(delete-file backupname))
+		    (copy-file real-file-name backupname t t)))))
 	      (setq buffer-backed-up t)
 	      ;; Now delete the old versions, if desired.
 	      (if delete-old-versions
