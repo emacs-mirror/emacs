@@ -1738,6 +1738,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 
 DEFUN ("apply", Fapply, Sapply, 2, MANY, 0,
   "Call FUNCTION with our remaining args, using our last arg as list of args.\n\
+Then return the value FUNCTION returns.\n\
 Thus, (apply '+ 1 2 '(3 4)) returns 10.")
   (nargs, args)
      int nargs;
@@ -1994,6 +1995,7 @@ call6 (fn, arg1, arg2, arg3, arg4, arg5, arg6)
 
 DEFUN ("funcall", Ffuncall, Sfuncall, 1, MANY, 0,
   "Call first argument as a function, passing remaining arguments to it.\n\
+Return the value that function returns.\n\
 Thus, (funcall 'cons 'x 'y) returns (x . y).")
   (nargs, args)
      int nargs;
