@@ -1079,6 +1079,12 @@ minibuffer arguments, @var{directory} and @var{find-args}; it runs
 @code{find} what condition to test.  To use this command, you need to
 know how to use @code{find}.
 
+@vindex find-ls-option
+  The format of listing produced by these commands is controlled by the
+variable @code{find-ls-option}, whose default value specifies using
+options @samp{-ld} for @code{ls}.  If your listings are corrupted, you
+may need to change the value of this variable.
+
 @findex locate
 @findex locate-with-filter
 @cindex file database (locate)
@@ -1086,12 +1092,6 @@ know how to use @code{find}.
   @kbd{M-x locate} provides a similar interface to the @code{locate}
 program.  @kbd{M-x locate-with-filter} is similar, but keeps only lines
 matching a given regular expression.
-
-@vindex find-ls-option
-  The format of listing produced by these commands is controlled by the
-variable @code{find-ls-option}, whose default value specifies using
-options @samp{-ld} for @code{ls}.  If your listings are corrupted, you
-may need to change the value of this variable.
 
 @node Misc Dired Commands
 @section Other Dired Commands
