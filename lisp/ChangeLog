@@ -1,3 +1,14 @@
+2003-01-10  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-parse-tag, xml-parse-attlist, xml-skip-dtd)
+	(xml-parse-dtd, xml-parse-elem-type): Be more flexible in recognizing
+	empty elements.
+
+2003-01-10  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* progmodes/sh-script.el (sh-set-shell): Make sh-shell-file the default
+	shell.
+
 2003-01-09  John Wiegley  <johnw@gnu.org>
 
 	* pcomplete.el (pcomplete-termination-string): Added a variable
@@ -6,7 +17,7 @@
 
 2003-01-09  Karl Berry  <karl@gnu.org>
 
-	* sort.el (sort-regexp-fields): pass noerror to re-search-forward,
+	* sort.el (sort-regexp-fields): Pass noerror to re-search-forward,
 	so that we don't fail if no records match record-regexp.
 
 2003-01-09  Markus Rost  <rost@math.ohio-state.edu>
@@ -35,7 +46,7 @@
 
 	* mail/mh-alias.el, mail/mh-customize.el, mail/mh-identity.el,
 	mail/mh-loaddefs.el, toolbar/alias.pbm, toolbar/alias.xpm: Added.
-	
+
 	* mail/mh-comp.el, mail/mh-e.el, mail/mh-funcs.el,
 	mail/mh-index.el, mail/mh-mime.el, mail/mh-pick.el,
 	mail/mh-seq.el, mail/mh-speed.el, mail/mh-utils.el,
