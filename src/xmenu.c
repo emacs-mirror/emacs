@@ -2559,7 +2559,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 		  j++;
 		  continue;
 		}
-	      width = XSTRING (item)->size;
+	      width = XSTRING (item)->size_byte;
 	      if (width > maxwidth)
 		maxwidth = width;
 
@@ -2582,7 +2582,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	    = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_EQUIV_KEY];
 	  if (!NILP (descrip))
 	    {
-	      int gap = maxwidth - XSTRING (item_name)->size;
+	      int gap = maxwidth - XSTRING (item_name)->size_byte;
 #ifdef C_ALLOCA
 	      Lisp_Object spacer;
 	      spacer = Fmake_string (make_number (gap), make_number (' '));
@@ -2594,14 +2594,14 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 		 to reduce gc needs.  */
 	      item_data
 		= (unsigned char *) alloca (maxwidth
-					    + XSTRING (descrip)->size + 1);
+					    + XSTRING (descrip)->size_byte + 1);
 	      bcopy (XSTRING (item_name)->data, item_data,
-		     XSTRING (item_name)->size);
+		     XSTRING (item_name)->size_byte);
 	      for (j = XSTRING (item_name)->size; j < maxwidth; j++)
 		item_data[j] = ' ';
 	      bcopy (XSTRING (descrip)->data, item_data + j,
-		     XSTRING (descrip)->size);
-	      item_data[j + XSTRING (descrip)->size] = 0;
+		     XSTRING (descrip)->size_byte);
+	      item_data[j + XSTRING (descrip)->size_byte] = 0;
 #endif
 	    }
 	  else
