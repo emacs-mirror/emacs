@@ -1,3 +1,8 @@
+2004-10-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* atimer.c (alarm_signal_handler): Do not call set_alarm if
+	pending_atmers is non-zero.
+
 2004-10-31  Kim F. Storm  <storm@cua.dk>
 
 	* dispnew.c (margin_glyphs_to_reserve): Don't use ncols_scale_factor.
