@@ -109,8 +109,8 @@ DEFUN ("length", Flength, Slength, 1, 1, 0,
   "Return the length of vector, list or string SEQUENCE.\n\
 A byte-code function object is also allowed.\n\
 If the string contains multibyte characters, this is not the necessarily\n\
-the number of characters in the string; it is the number of bytes.\n\
-To get the number of characters, use `chars-in-string'")
+the number of bytes in the string; it is the number of characters.\n\
+To get the number of bytes, use `string-bytes'")
   (sequence)
      register Lisp_Object sequence;
 {
