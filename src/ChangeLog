@@ -1,5 +1,8 @@
 2000-11-20  Kenichi Handa  <handa@etl.go.jp>
 
+	* charset.c (get_new_private_charset_id): Don't limit CHARSET_ID
+	by WIDTH.
+
 	* alloc.c (make_string): Fix previous change.  Be sure to make
 	unibyte string correctly.
 
