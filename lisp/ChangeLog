@@ -1,3 +1,8 @@
+1999-12-04  Dave Love  <fx@gnu.org>
+
+	* delsel.el: Revert previous change -- region is significant to
+	skeleton.
+
 1999-12-04  Michael Kifer  <kifer@cs.sunysb.edu>
 
 	* viper-cmd.el (viper-change-state): Use

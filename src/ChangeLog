@@ -1,3 +1,7 @@
+1999-12-04  Dave Love  <d.love@dl.ac.uk>
+
+	* m/arm.h: New file.
+
 1999-12-03  Dave Love  <fx@gnu.org>
 
 	* editfns.c (Fmessage_or_box): Use use_dialog_box.
