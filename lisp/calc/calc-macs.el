@@ -51,7 +51,7 @@
   `(if (eq calc-display-working-message 'lots)
        (math-do-working ,msg ,arg)))
 
-(defmacro calc-with-default-simplification (body)
+(defmacro calc-with-default-simplification (&rest body)
   `(let ((calc-simplify-mode (and (not (memq calc-simplify-mode '(none num)))
 				  calc-simplify-mode)))
      ,@body))
