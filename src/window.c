@@ -1516,7 +1516,7 @@ DEFUN ("window-list", Fwindow_list, Swindow_list, 0, 3, 0,
   "Return a list of windows in canonical ordering.\n\
 Arguments are like for `next-window'.")
   (window, minibuf, all_frames)
-     Lisp_Object minibuf, all_frames;
+     Lisp_Object window, minibuf, all_frames;
 {
   Lisp_Object tail, list;
 
