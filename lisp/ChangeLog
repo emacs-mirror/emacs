@@ -1,3 +1,12 @@
+2004-05-09  Jason Rumney  <jasonr@gnu.org>
+
+	* international/mule-cmds.el (set-locale-environment): On
+	MS-Windows use ansi code-page for default coding-systems.
+	Set up paper sizes for Windows 3 letter languages.
+
+	* international/code-pages.el (cp932, cp936, cp949, cp950): Add
+	aliases.  Also add cp125* if not already defined.
+
 2004-05-09  Juanma Barranquero  <lektu@terra.es>
 
 	* net/quickurl.el (quickurl, quickurl-browse-url, quickurl-read):
