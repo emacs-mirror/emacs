@@ -40,27 +40,40 @@
 ;; Originally based on the 19 Dec 88 version of
 ;;   date.el by John Sturdy <mcvax!harlqn.co.uk!jcgs@uunet.uu.net>
 ;; Version 2, January 1995: replaced functions with %-escapes
-;; $Id: time-stamp.el,v 1.23 1996/12/17 00:19:01 rms Exp rms $
+;; $Id: time-stamp.el,v 1.24 1996/12/18 02:45:09 rms Exp rms $
 
 ;;; Code:
 
-(defvar time-stamp-active t
+(defgroup time-stamp nil
+  "Maintain last change time stamps in files edited by Emacs."
+  :group 'data
+  :group 'extensions)
+
+(defcustom time-stamp-active t
   "*Non-nil to enable time-stamping of buffers by \\[time-stamp].
 Can be toggled by \\[time-stamp-toggle-active].
-See also the variable `time-stamp-warn-inactive'.")
+See also the variable `time-stamp-warn-inactive'."
+  :type 'boolean
+  :group 'time-stamp)
 
-(defvar time-stamp-warn-inactive t
+(defcustom time-stamp-warn-inactive t
   "Non-nil to have \\[time-stamp] warn if a buffer did not get time-stamped.
 A warning is printed if `time-stamp-active' is nil and the buffer contains
-a time stamp template that would otherwise have been updated.")
+a time stamp template that would otherwise have been updated."
+  :type 'boolean
+  :group 'time-stamp)
 
-(defvar time-stamp-old-format-warn 'ask
+(defcustom time-stamp-old-format-warn 'ask
   "Action to take if `time-stamp-format' is an old-style list.
 If `error', the format is not used.  If `ask', the user is queried about
 using the time-stamp-format.  If `warn', a warning is displayed.
-If nil, no notification is given.")
+If nil, no notification is given."
+  :type '(choice (const :tag "No modification" nil)
+                 (const :tag "Don't use the format" error)
+                 (const ask) (const warn))
+  :group 'time-stamp)
 
-(defvar time-stamp-format "%Y-%m-%d %H:%M:%S %u"
+(defcustom time-stamp-format "%02y/%02m/%02d %02H:%02M:%02S %u"
   "*Format of the string inserted by \\[time-stamp].
 The value may be a string or a list.  Lists are supported only for
 backward compatibility; see variable `time-stamp-old-format-warn'.
@@ -76,7 +89,9 @@ you can use the following %-constructs:
 %F  full file name
 %h  mail host name
 %s  system name
-%u  user's login name")
+%u  user's login name"
+  :type 'string
+  :group 'time-stamp)
 
 ;;; Do not change time-stamp-line-limit, time-stamp-start, or
 ;;; time-stamp-end in your .emacs or you will be incompatible
