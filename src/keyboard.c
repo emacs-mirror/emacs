@@ -2492,9 +2492,7 @@ make_lispy_event (event)
 	  {
 	    int part;
 	    FRAME_PTR f = XFRAME (event->frame_or_window);
-	    Lisp_Object window
-	      = window_from_coordinates (f, XINT (event->x), XINT (event->y),
-					 &part);
+	    Lisp_Object window;
 	    Lisp_Object posn;
 
 #ifdef USE_X_TOOLKIT
@@ -2503,14 +2501,22 @@ make_lispy_event (event)
 	    if (XINT (event->y) < FRAME_MENU_BAR_LINES (f))
 #endif
 	      {
+		Lisp_Object items;
+
 #ifdef USE_X_TOOLKIT
 		/* The click happened in the menubar.
 		   Look for the menu item selected.  */
-		Lisp_Object items = map_event_to_object (event, f);
+		int row, column;
+
+		items = map_event_to_object (event, f);
+
+		pixel_to_glyph_coords (f, XINT (event->x), XINT (event->y),
+				       &column, &row, 0, 0);
+		XFASTINT (event->x) = column;
 		XFASTINT (event->y) = 1;
 #else /* not USE_X_TOOLKIT  */
 		int hpos;
-		Lisp_Object items;
+
 		items = FRAME_MENU_BAR_ITEMS (f);
 		for (; CONSP (items); items = XCONS (items)->cdr)
 		  {
@@ -2535,7 +2541,11 @@ make_lispy_event (event)
 		else
 		  return Fcons (Qnil, Fcons (position, Qnil));
 	      }
-	    else if (XTYPE (window) != Lisp_Window)
+
+	    window = window_from_coordinates (f, XINT (event->x),
+					      XINT (event->y), &part);
+
+	    if (XTYPE (window) != Lisp_Window)
 	      posn = Qnil;
 	    else
 	      {
