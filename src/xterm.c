@@ -3480,11 +3480,43 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  break;
 
 	case ConfigureNotify:
+          f = x_any_window_to_frame (event.xconfigure.window);
 #ifdef USE_X_TOOLKIT
-	      /* process done in widget.c */
-	  goto OTHER;
+          if (f
+              && ! event.xconfigure.send_event
+              && (event.xconfigure.window == XtWindow (f->display.x->widget)))
+            {
+              Window win, child;
+              int win_x, win_y;
+
+              /* Find the position of the outside upper-left corner of
+                 the window, in the root coordinate system.  Don't
+                 refer to the parent window here; we may be processing
+                 this event after the window manager has changed our
+                 parent, but before we have reached the ReparentNotify.  */
+              XTranslateCoordinates (x_current_display,
+
+                                     /* From-window, to-window.  */
+                                     XtWindow (f->display.x->widget),
+                                     ROOT_WINDOW,
+
+                                     /* From-position, to-position.  */
+                                     -event.xconfigure.border_width,
+                                     -event.xconfigure.border_width,
+                                     &win_x, &win_y,
+
+                                     /* Child of win.  */
+                                     &child);
+              event.xconfigure.x = win_x;
+              event.xconfigure.y = win_y;
+
+              f->display.x->pixel_width = event.xconfigure.width;
+              f->display.x->pixel_height = event.xconfigure.height;
+              f->display.x->left_pos = event.xconfigure.x;
+              f->display.x->top_pos = event.xconfigure.y;
+            }
+          goto OTHER;
 #else /* not USE_X_TOOLKIT */
-	  f = x_window_to_frame (event.xconfigure.window);
 	  if (f)
 	    {
 	      int rows = PIXEL_TO_CHAR_HEIGHT (f, event.xconfigure.height);
