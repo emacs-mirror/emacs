@@ -318,16 +318,31 @@ new value.")
 	  (widget-field-add-space
 	   (insert-and-inherit " ")))
     (setq to (point)))
-  (let ((overlay (make-overlay from to nil
-			       nil (or (not widget-field-add-space)
-				       (widget-get widget :size)))))
-    (widget-put widget :field-overlay overlay)
-    ;;(overlay-put overlay 'detachable nil)
-    (overlay-put overlay 'field widget)
-    (overlay-put overlay 'keymap (widget-get widget :keymap))
-    (overlay-put overlay 'face (or (widget-get widget :value-face)
-				   'widget-field-face))
-    (overlay-put overlay 'help-echo (widget-get widget :help-echo)))
+  (let ((keymap (widget-get widget :keymap))
+	(face (or (widget-get widget :value-face) 'widget-field-face))
+	(help-echo (widget-get widget :help-echo))
+	(rear-sticky
+	 (or (not widget-field-add-space) (widget-get widget :size))))
+    (when (= (char-before to) ?\n)
+      ;; When the last character in the field is a newline, we want to
+      ;; give it a `field' char-property of `boundary', which helps the
+      ;; C-n/C-p act more naturally when entering/leaving the field.  We
+     ;; do this by making a small secondary overlay to contain just that
+      ;; one character.
+      (let ((overlay (make-overlay (1- to) to nil t nil)))
+	(overlay-put overlay 'field 'boundary)
+	(overlay-put overlay 'keymap keymap)
+	(overlay-put overlay 'face face)
+	(overlay-put overlay 'help-echo help-echo))
+      (setq to (1- to))
+      (setq rear-sticky t))
+    (let ((overlay (make-overlay from to nil nil rear-sticky)))
+      (widget-put widget :field-overlay overlay)
+      ;;(overlay-put overlay 'detachable nil)
+      (overlay-put overlay 'field widget)
+      (overlay-put overlay 'keymap keymap)
+      (overlay-put overlay 'face face)
+      (overlay-put overlay 'help-echo help-echo)))
   (widget-specify-secret widget))
 
 (defun widget-specify-secret (field)
@@ -808,7 +823,7 @@ Recommended as a parent keymap for modes using widgets.")
 (defun widget-field-activate (pos &optional event)
   "Invoke the ediable field at point."
   (interactive "@d")
-  (let ((field (get-char-property pos 'field)))
+  (let ((field (widget-field-at pos)))
     (if field
 	(widget-apply-action field event)
       (call-interactively
@@ -903,10 +918,7 @@ Recommended as a parent keymap for modes using widgets.")
 (defun widget-tabable-at (&optional pos)
   "Return the tabable widget at POS, or nil.
 POS defaults to the value of (point)."
-  (unless pos
-    (setq pos (point)))
-  (let ((widget (or (get-char-property pos 'button)
-		    (get-char-property pos 'field))))
+  (let ((widget (widget-at pos)))
     (if widget
 	(let ((order (widget-get widget :tab-order)))
 	  (if order
@@ -1017,6 +1029,11 @@ When not inside a field, move to the previous button or field."
 ;; List of all editable fields in the buffer.
 (make-variable-buffer-local 'widget-field-list)
 
+(defun widget-at (&optional pos)
+  "The button or field at POS (default, point)."
+  (or (get-char-property (or pos (point)) 'button)
+      (widget-field-at pos)))
+
 (defun widget-setup ()
   "Setup current buffer so editing string widgets works."
   (let ((inhibit-read-only t)
@@ -1043,6 +1060,13 @@ When not inside a field, move to the previous button or field."
 ;; The widget data before the change.
 (make-variable-buffer-local 'widget-field-was)
 
+(defun widget-field-at (pos)
+  "Return the widget field at POS, or nil if none."
+  (let ((field (get-char-property (or pos (point)) 'field)))
+    (if (eq field 'boundary)
+	nil
+      field)))
+
 (defun widget-field-buffer (widget)
   "Return the start of WIDGET's editing field."
   (let ((overlay (widget-get widget :field-overlay)))
@@ -1056,9 +1080,14 @@ When not inside a field, move to the previous button or field."
 (defun widget-field-end (widget)
   "Return the end of WIDGET's editing field."
   (let ((overlay (widget-get widget :field-overlay)))
-    ;; Don't subtract one if local-map works at the end of the overlay.
-    (and overlay (if (or widget-field-add-space
-			 (null (widget-get widget :size)))
+    ;; Don't subtract one if local-map works at the end of the overlay,
+    ;; or if a special `boundary' field has been added after the widget
+    ;; field.
+    (and overlay (if (and (not (eq (get-char-property (overlay-end overlay)
+						      'field)
+				   'boundary))
+			  (or widget-field-add-space
+			      (null (widget-get widget :size))))
 		     (1- (overlay-end overlay))
 		   (overlay-end overlay)))))
 
@@ -3350,13 +3379,6 @@ To use this type, you must define :match or :match-alternatives."
   (widget-default-notify widget child event))
 
 ;;; The Help Echo
-
-(defun widget-at (&optional pos)
-  "The button or field at POS (default, point)."
-  (unless pos
-    (setq pos (point)))
-  (or (get-char-property pos 'button)
-      (get-char-property pos 'field)))
 
 (defun widget-echo-help (pos)
   "Display the help echo for widget at POS."
