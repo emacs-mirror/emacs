@@ -835,18 +835,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
       ;; We do this regardles of whether the terminal supports colors
       ;; or not, since they can switch that support on or off in
       ;; mid-session by setting the tty-color-mode frame parameter.
-      (let* ((colors (cond ((eq window-system 'pc)
-                            msdos-color-values)
-                           ((eq system-type 'windows-nt)
-                            w32-tty-standard-colors)
-                           (t tty-standard-colors)))
-	     (color (car colors)))
-	(while colors
-	  (tty-color-define (car color) (cadr color) (cddr color))
-	  (setq colors (cdr colors) color (car colors)))
-	;; Modifying color mappings means realized faces don't
-	;; use the right colors, so clear them.
-	(clear-face-cache)))
+      (tty-register-default-colors))
 
   ;; Record whether the tool-bar is present before the user and site
   ;; init files are processed.  frame-notice-user-settings uses this
