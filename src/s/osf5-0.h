@@ -8,7 +8,9 @@
 #define WAIT_USE_INT
 #define SYS_SIGLIST_DECLARED
 #define sys_siglist __sys_siglist
+#ifndef NSIG			/* _OSF_SOURCE seems to get us this */
 #define NSIG __sys_nsig
+#endif
 
 /* We have missing/inconsistent prototypes on 5.0, at least.  */
 #define INHIBIT_X11R6_XIM
