@@ -213,6 +213,10 @@ int echo_area_glyphs_length;
    same window currently active as a minibuffer.  */
 Lisp_Object echo_area_window;
 
+/* Nonzero means multibyte characters were enabled when the echo area
+   message was specified.  */
+int message_enable_multibyte;
+
 /* true iff we should redraw the mode lines on the next redisplay */
 int update_mode_lines;
 
@@ -418,6 +422,9 @@ message2_nolog (m, len)
      char *m;
      int len;
 {
+  message_enable_multibyte
+    = ! NILP (current_buffer->enable_multibyte_characters);
+
   if (noninteractive)
     {
       if (noninteractive_need_newline)
@@ -636,7 +643,8 @@ echo_area_display ()
 		      echo_area_glyphs ? echo_area_glyphs_length : -1,
 		      FRAME_LEFT_SCROLL_BAR_WIDTH (f),
 		      0, 0, 0,
-		      FRAME_WIDTH (f) + FRAME_LEFT_SCROLL_BAR_WIDTH (f));
+		      FRAME_WIDTH (f) + FRAME_LEFT_SCROLL_BAR_WIDTH (f),
+		      message_enable_multibyte);
 
 #if 0 /* This just gets in the way.  update_frame does the job.  */
       /* If desired cursor location is on this line, put it at end of text */
@@ -660,7 +668,8 @@ echo_area_display ()
 	    display_string (XWINDOW (mini_window), i,
 			    "", 0, 
                             0, 0, 0,
-                            0, FRAME_WIDTH (f) + FRAME_SCROLL_BAR_WIDTH (f));
+                            0, FRAME_WIDTH (f) + FRAME_SCROLL_BAR_WIDTH (f),
+			    0);
 	  }
       }
     }
@@ -1630,7 +1639,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	      get_display_line (f, vpos + i, 0);
 	      display_string (w, vpos + i, "", 0, 
 			      FRAME_LEFT_SCROLL_BAR_WIDTH (f),
-			      0, 1, 0, width);
+			      0, 1, 0, width, 0);
 	    }
 	  
 	  goto finish_scroll_bars;
@@ -2979,7 +2988,8 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 				  margin, so user input can at least start
 				  on the first line.  */
 			       (XFASTINT (w->width) > 10
-				? XFASTINT (w->width) - 4 : -1))
+				? XFASTINT (w->width) - 4 : -1),
+			       -1)
 	       - hpos - WINDOW_LEFT_MARGIN (w));
 	  hpos += minibuf_prompt_width;
 	  taboffset -= minibuf_prompt_width - old_width;
@@ -3750,7 +3760,7 @@ display_menu_bar (w)
   Lisp_Object items, tail;
   register int vpos = 0;
   register FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
-  int maxendcol = FRAME_WIDTH (f);
+  int maxendcol = FRAME_WIDTH (f) + WINDOW_LEFT_MARGIN (w);
   int hpos = 0;
   int i;
 
@@ -3780,13 +3790,13 @@ display_menu_bar (w)
 	hpos = display_string (w, vpos,
 			       XSTRING (string)->data,
 			       XSTRING (string)->size,
-			       hpos, 0, 0, hpos, maxendcol);
+			       hpos, 0, 0, hpos, maxendcol, -1);
       /* Put a space between items.  */
       if (hpos < maxendcol)
 	{
 	  int hpos1 = hpos + 1;
 	  hpos = display_string (w, vpos, "", 0, hpos, 0, 0,
-				 min (hpos1, maxendcol), maxendcol);
+				 min (hpos1, maxendcol), maxendcol, 0);
 	}
     }
 
@@ -3795,7 +3805,7 @@ display_menu_bar (w)
 
   /* Fill out the line with spaces.  */
   if (maxendcol > hpos)
-    hpos = display_string (w, vpos, "", 0, hpos, 0, 0, maxendcol, maxendcol);
+    hpos = display_string (w, vpos, "", 0, hpos, 0, 0, maxendcol, maxendcol, 0);
 
   /* Clear the rest of the lines allocated to the menu bar.  */
   vpos++;
@@ -3920,7 +3930,7 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 		  hpos = store_frame_title (last, hpos, min (lim, maxendcol));
 		else
 		  hpos = display_string (w, vpos, last, -1, hpos, 0, 1,
-					 hpos, min (lim, maxendcol));
+					 hpos, min (lim, maxendcol), -1);
 	      }
 	    else /* c == '%' */
 	      {
@@ -3957,7 +3967,7 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 		    else
 		      hpos = display_string (w, vpos, spec, -1,
 					     hpos, 0, 1,
-					     minendcol, maxendcol);
+					     minendcol, maxendcol, -1);
 		  }
 	      }
 	  }
@@ -3985,7 +3995,7 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 		else
 		  hpos = display_string (w, vpos, XSTRING (tem)->data,
 					 XSTRING (tem)->size,
-					 hpos, 0, 1, minendcol, maxendcol);
+					 hpos, 0, 1, minendcol, maxendcol, -1);
 	      }
 	    /* Give up right away for nil or t.  */
 	    else if (!EQ (tem, elt))
@@ -4079,7 +4089,7 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 	hpos = store_frame_title ("*invalid*", minendcol, maxendcol);
       else
 	hpos = display_string (w, vpos, "*invalid*", -1, hpos, 0, 1,
-			       minendcol, maxendcol);
+			       minendcol, maxendcol, 0);
       return hpos;
     }
 
@@ -4087,7 +4097,8 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
     if (frame_title_ptr)
       hpos = store_frame_title ("", minendcol, maxendcol);
     else
-      hpos = display_string (w, vpos, "", 0, hpos, 0, 1, minendcol, maxendcol);
+      hpos = display_string (w, vpos, "", 0, hpos,
+			     0, 1, minendcol, maxendcol, 0);
   return hpos;
 }
 
@@ -4697,11 +4708,15 @@ display_count_lines (from, limit, n, pos_ptr)
   and not display anything beyond there.  Otherwise, only MAXCOL
   controls where to stop output.
 
+  MULTIBYTE can be 0 meaning do not display multibyte chars,
+  1 meaning do display them, or -1 meaning obey the current buffer's
+  value of enable_multibyte_characters.
+
   Returns ending hpos.  */
 
 static int
 display_string (w, vpos, string, length, hpos, truncate,
-		obey_window_width, mincol, maxcol)
+		obey_window_width, mincol, maxcol, multibyte)
      struct window *w;
      unsigned char *string;
      int length;
@@ -4709,6 +4724,7 @@ display_string (w, vpos, string, length, hpos, truncate,
      GLYPH truncate;
      int obey_window_width;
      int mincol, maxcol;
+     int multibyte;
 {
   register int c;
   int truncated;
@@ -4721,13 +4737,15 @@ display_string (w, vpos, string, length, hpos, truncate,
   struct frame_glyphs *desired_glyphs = FRAME_DESIRED_GLYPHS (f);
   GLYPH *p1start = desired_glyphs->glyphs[vpos] + hpos;
   int window_width = XFASTINT (w->width);
-  /* If 1, we must display multibyte characters.  */
-  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
 
   /* Use the standard display table, not the window's display table.
      We don't want the mode line in rot13.  */
   register struct Lisp_Char_Table *dp = 0;
   int i;
+
+  if (multibyte == -1)
+    multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  /* Now multibyte is 1 if we should display multibyte characters.  */
 
   if (DISP_TABLE_P (Vstandard_display_table))
     dp = XCHAR_TABLE (Vstandard_display_table);
