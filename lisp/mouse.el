@@ -524,7 +524,7 @@ remains active.  Otherwise, it remains until the next input event."
 	      nil
 	    (setq end (event-end event)
 		  end-point (posn-point end))
-	    (if end-point
+	    (if (numberp end-point)
 		(setq last-end-point end-point))
 
 	    (cond
@@ -574,7 +574,10 @@ remains active.  Otherwise, it remains until the next input event."
 			(cons event unread-command-events)))
 	      (if (not (= (overlay-start mouse-drag-overlay)
 			  (overlay-end mouse-drag-overlay)))
-		  (let* ((stop-point (or (posn-point (event-end event)) last-end-point))
+		  (let* ((stop-point
+			  (if (numberp (posn-point (event-end event)))
+			      (posn-point (event-end event))
+			    last-end-point))
 			 ;; The end that comes from where we ended the drag.
 			 ;; Point goes here.
 			 (region-termination
