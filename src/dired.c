@@ -914,7 +914,13 @@ Elements of the attribute list are:
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (filename, Qfile_attributes);
   if (!NILP (handler))
-    return call3 (handler, Qfile_attributes, filename, id_format);
+    { /* Only pass the extra arg if it is used to help backward compatibility
+	 with old file handlers which do not implement the new arg.  --Stef  */
+      if (NILP (id_format))
+	return call2 (handler, Qfile_attributes, filename);
+      else
+	return call3 (handler, Qfile_attributes, filename, id_format);
+    }
 
   encoded = ENCODE_FILE (filename);
 
