@@ -7,6 +7,9 @@
 	* dired.el (dired-mode-map): Bind `y' to dired-show-file-type
 	instead of `w' which is already in use.
 
+	* gs.el (gs-load-image): Use sleep-for.
+	From David.Kastrup@neuroinformatik.ruhr-uni-bochum.de.
+
 2001-08-28  Miles Bader  <miles@gnu.org>
 
 	* replace.el (query-replace-regexp-eval): Return args from

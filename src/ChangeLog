@@ -7,7 +7,7 @@
 	glyphs.
 
 	* dispnew.c (direct_output_for_insert): Set updated_area
-	before insering/writing glyphs.
+	before inserting/writing glyphs.
 
 	* xdisp.c (display_mode_element): Use string_byte_to_char to
 	determine character positions in strings, use chars_in_text
