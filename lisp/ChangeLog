@@ -1,3 +1,8 @@
+2004-02-16  TAKAI Kousuke  <tak@kmc.gr.jp>  (tiny change)
+
+	* international/ccl.el (ccl-compile-write): Pass `left' to
+	ccl-embed-code to generate correct code of write-expr-register.
+
 2004-02-15  Dan Nicolaescu  <dann@ics.uci.edu>  (tiny change)
 
 	* progmodes/grep.el (grep-compute-defaults): Fix typos.
