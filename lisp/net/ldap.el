@@ -152,12 +152,8 @@ Valid properties include:
   :type '(string :tag "`ldapsearch' Program")
   :group 'ldap)
 
-(defcustom ldap-ldapsearch-args '("-B")
-  "*A list of additional arguments to pass to `ldapsearch'.
-It is recommended to use the `-T' switch with Netscape's
-implementation to avoid line wrapping.
-The `-B' switch should be used to enable the retrieval of
-binary values."
+(defcustom ldap-ldapsearch-args '("-LL" "-tt" "-x")
+  "*A list of additional arguments to pass to `ldapsearch'."
   :type '(repeat :tag "`ldapsearch' Arguments"
 		 (string :tag "Argument"))
   :group 'ldap)
@@ -561,7 +557,6 @@ an alist of attribute/value pairs."
 			   buf
 			   nil
 			   ,@arglist
-			   "-t"		; Write values to temp files
 			   ,@ldap-ldapsearch-args
 			   ,@filter))
       (insert "\n")
