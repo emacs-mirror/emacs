@@ -566,7 +566,7 @@ The order of bindings in a keymap matters when it is used as a menu."
 (defmacro kbd (keys)
   "Convert KEYS to the internal Emacs key representation.
 KEYS should be a string constant in the format used for
-saving keyboard macros (see `insert-kbd-macro')."
+saving keyboard macros (see `edmacro-mode')."
   (read-kbd-macro keys))
 
 (put 'keyboard-translate-table 'char-table-extra-slots 0)
