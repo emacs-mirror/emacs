@@ -1,3 +1,8 @@
+2002-06-12  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-file-or-variation-thereof): Restore
+	vc-backend check, thanks to Robert Thorpe for noticing.
+
 2002-06-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* textmodes/bibtex.el: Change the maintainer to "none".

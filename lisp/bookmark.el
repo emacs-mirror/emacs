@@ -1072,19 +1072,25 @@ of the old one in the permanent bookmark record."
 
 
 (defun bookmark-file-or-variation-thereof (file)
-  "Return FILE (a string) or a reasonable variation that exists, else nil.
-Reasonable variations of the name are made by appending suffixes defined
-in `Info-suffix-list'."
+  "Return FILE (a string) if it exists, or return a reasonable
+variation of FILE if that exists.  Reasonable variations are checked
+by appending suffixes defined in `Info-suffix-list'.  If cannot find FILE
+nor a reasonable variation thereof, then still return FILE if it can
+be retrieved from a VC backend, else return nil."
   (if (file-exists-p file)
       file
-    (require 'info)  ; ensure Info-suffix-list is bound
-    (catch 'found
-      (mapc (lambda (elt)
-              (let ((suffixed-file (concat file (car elt))))
-                (if (file-exists-p suffixed-file)
-                    (throw 'found suffixed-file))))
-            Info-suffix-list)
-      nil)))
+    (or
+     (progn (require 'info)  ; ensure Info-suffix-list is bound
+            (catch 'found
+              (mapc (lambda (elt)
+                      (let ((suffixed-file (concat file (car elt))))
+                        (if (file-exists-p suffixed-file)
+                            (throw 'found suffixed-file))))
+                    Info-suffix-list)
+              nil))
+     ;; Last possibility: try VC
+     (if (vc-backend file) file))))
+
 
 (defun bookmark-jump-noselect (str)
   ;; a leetle helper for bookmark-jump :-)
