@@ -501,9 +501,10 @@ its mode hook."
     (set (make-local-variable 'font-lock-mode) on-p)
     ;; Turn on Font Lock mode.
     (when on-p
-      (make-local-hook 'after-change-functions)
-      (add-hook 'after-change-functions 'font-lock-after-change-function nil t)
       (font-lock-set-defaults)
+      (unless (eq font-lock-fontify-region-function 'ignore)
+	(make-local-hook 'after-change-functions)
+	(add-hook 'after-change-functions 'font-lock-after-change-function nil t))
       (font-lock-turn-on-thing-lock)
       (run-hooks 'font-lock-mode-hook)
       ;; Fontify the buffer if we have to.
@@ -598,6 +599,9 @@ begins with `not'.  For example:
  (c-mode c++-mode)
 means that Font Lock mode is turned on for buffers in C and C++ modes only.")
 
+(defvar font-lock-inhibit-modes '(lisp-interaction-mode)
+  "Major modes for which Global Font Lock mode should not apply.")
+
 ;;;###autoload
 (defun global-font-lock-mode (&optional arg message)
   "Toggle Global Font Lock mode.
@@ -643,6 +647,7 @@ turned on in a buffer if its major mode is one of `font-lock-global-modes'."
 	  (set-buffer (car font-lock-buffers))
 	  (if (and (or font-lock-defaults
 		       (assq major-mode font-lock-defaults-alist))
+		   (not (memq major-mode font-lock-inhibit-modes))
 		   (or (eq font-lock-global-modes t)
 		       (if (eq (car-safe font-lock-global-modes) 'not)
 			   (not (memq major-mode (cdr font-lock-global-modes)))
