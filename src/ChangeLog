@@ -1,3 +1,11 @@
+2002-02-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* keyboard.c (command_loop_1) [HAVE_X_WINDOWS]: Call
+	cancel_hourglass unconditionally.
+
+	* eval.c (Fsignal): Remove duplicated declaration of
+	the variable `display_hourglass_p'.
+
 2002-01-31  Richard M. Stallman  <rms@gnu.org>
 
 	* editfns.c (region_limit): Nicer error message.
