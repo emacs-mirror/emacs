@@ -2,7 +2,7 @@
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Header: /home/fsf/rms/e19/lisp/RCS/gnus.el,v 1.30 1993/11/17 13:41:50 rms Exp $
+;; Version: $Header: /home/fsf/rms/e19/lisp/RCS/gnus.el,v 1.31 1993/12/23 04:58:26 rms Exp rms $
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -1561,7 +1561,9 @@ New newsgroup is added to .newsrc automatically."
 (defun gnus-group-list-all-groups ()
   "List all of newsgroups in the Newsgroup buffer."
   (interactive)
-  (gnus-group-list-groups t))
+  (message "Listing all groups...")
+  (gnus-group-list-groups t)
+  (message "Listing all groups...done"))
 
 (defun gnus-group-get-new-news ()
   "Get newly arrived articles. In fact, read the active file again."
