@@ -380,6 +380,13 @@ struct w32_output
   /* Width of bar cursor (if we are using that).  */
   int cursor_width;
 
+  /* What kind of text cursor should we draw when the cursor blinks off?
+     This can be filled_box_cursor or bar_cursor or no_cursor.  */
+  enum text_cursor_kinds blink_off_cursor;
+
+  /* Width of bar cursor (if we are using that) for blink-off state.  */
+  int blink_off_cursor_width;
+
   DWORD dwStyle;
 
   /* The size of the extra width currently allotted for vertical
@@ -482,6 +489,9 @@ enum
 #define PIXEL_HEIGHT(f) ((f)->output_data.w32->pixel_height)
 
 #define FRAME_DESIRED_CURSOR(f) ((f)->output_data.w32->desired_cursor)
+#define FRAME_BLINK_OFF_CURSOR(f) ((f)->output_data.w32->blink_off_cursor)
+#define FRAME_CURSOR_WIDTH(f) ((f)->output_data.w32->cursor_width)
+#define FRAME_BLINK_OFF_CURSOR_WIDTH(f) ((f)->output_data.w32->blink_off_cursor_width)
 
 /* Value is the smallest width of any character in any font on frame F.  */
 
