@@ -91,7 +91,9 @@ System V rel 4 (-opsystem=usg5-4)
 
   In this context, GSV4 and GSV4i are alternate names for X11R4.
   OL2.* is X11R3 based.  OL3 is in between X11R3 and X11R4, and may or
-  may not work, depending on who made the Unix system.
+  may not work, depending on who made the Unix system.  If the library
+  libXol is part of the X distribution, then you have X11R3 and Emacs
+  won't work with X.
 
   Most versions of V.4 support sockets.  If `/usr/lib/libsocket.so'
   exists, your system supports them.  If yours does not, you must add
