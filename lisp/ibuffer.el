@@ -826,8 +826,11 @@ width and the longest string in LIST."
   (when (or (eobp)
 	    (get-text-property (point) 'ibuffer-summary))
     (goto-char (point-min)))
-  (while (get-text-property (point) 'ibuffer-title)
-    (forward-line 1))
+  (when (get-text-property (point) 'ibuffer-title)
+    (if (> arg 0)
+	(decf arg))
+    (while (get-text-property (point) 'ibuffer-title)
+      (forward-line 1)))
   (if (< arg 0)
       (ibuffer-backward-line (- arg))
     (while (> arg 0)
@@ -1006,7 +1009,7 @@ a new window in the current frame, splitting vertically."
 (defun ibuffer-buffer-names-with-mark (mark)
   (let ((ibuffer-buffer-names-with-mark-result nil))
     (ibuffer-map-lines-nomodify
-     #'(lambda (buf mk beg end)
+     #'(lambda (buf mk) 
 	 (when (char-equal mark mk)
 	   (push (buffer-name buf)
 		 ibuffer-buffer-names-with-mark-result))))
@@ -1021,15 +1024,15 @@ a new window in the current frame, splitting vertically."
 (defun ibuffer-count-marked-lines (&optional all)
   (if all
       (ibuffer-map-lines-nomodify
-       #'(lambda (buf mark beg end)
+       #'(lambda (buf mark)
 	   (not (char-equal mark ? ))))
     (ibuffer-map-lines-nomodify
-     #'(lambda (buf mark beg end)
+     #'(lambda (buf mark)
 	 (char-equal mark ibuffer-marked-char)))))
 
 (defsubst ibuffer-count-deletion-lines ()
   (ibuffer-map-lines-nomodify
-   #'(lambda (buf mark beg end)
+   #'(lambda (buf mark)
        (char-equal mark ibuffer-deletion-char))))
 
 (defsubst ibuffer-map-deletion-lines (func)
@@ -1095,17 +1098,17 @@ a new window in the current frame, splitting vertically."
     (cond
      ((char-equal mark ibuffer-marked-char)
       (ibuffer-map-marked-lines
-       #'(lambda (buf mark beg end)
+       #'(lambda (buf mark)
 	   (ibuffer-set-mark-1 ? )
 	   t)))
      ((char-equal mark ibuffer-deletion-char)
       (ibuffer-map-deletion-lines
-       #'(lambda (buf mark beg end)
+       #'(lambda (buf mark)
 	   (ibuffer-set-mark-1 ? )
 	   t)))
      (t
       (ibuffer-map-lines
-       #'(lambda (buf mark beg end)
+       #'(lambda (buf mark)
 	   (when (not (char-equal mark ? ))
 	     (ibuffer-set-mark-1 ? ))
 	   t)))))
@@ -1118,7 +1121,7 @@ become unmarked."
   (interactive)
   (let ((count
 	 (ibuffer-map-lines
-	  #'(lambda (buf mark beg end)
+	  #'(lambda (buf mark)
 	      (cond ((eq mark ibuffer-marked-char)
 		     (ibuffer-set-mark-1 ? )
 		     nil)
@@ -1596,9 +1599,9 @@ become unmarked."
    
 (defun ibuffer-map-on-mark (mark func)
   (ibuffer-map-lines
-   #'(lambda (buf mk beg end)
+   #'(lambda (buf mk)
        (if (char-equal mark mk)
-	   (funcall func buf mark beg end)
+	   (funcall func buf mark)
 	 nil))))
 
 (defun ibuffer-map-lines (function &optional nomodify)
@@ -1608,51 +1611,54 @@ Don't set the ibuffer modification flag iff NOMODIFY is non-nil.
  FUNCTION is called with four arguments: the buffer object itself, the
 current mark symbol, and the beginning and ending line positions."
   (assert (eq major-mode 'ibuffer-mode))
-  (let ((curline (count-lines (point-min)
-			      (line-beginning-position)))
-	(deleted-lines-count 0)
+  (let ((orig-target-line (count-lines (point-min)
+				       (line-beginning-position)))
+	(target-buf-count 0)
 	(ibuffer-map-lines-total 0)
         (ibuffer-map-lines-count 0))
     (unwind-protect
-         (progn
-           (setq buffer-read-only nil)
-           (goto-char (point-min))
-           (while (and (get-text-property (point) 'ibuffer-title)
-                       (not (eobp)))
-             (forward-line 1))
-           (while (and (not (eobp))
-		       (not (get-text-property (point) 'ibuffer-summary)))
-             (let ((result
-                    (if (buffer-live-p (ibuffer-current-buffer))
-                        (save-excursion
-                          (funcall function
-                                   (ibuffer-current-buffer)
-                                   (ibuffer-current-mark)
-                                   (line-beginning-position)
-                                   (1+ (line-end-position))))
-                      ;; Kill the line if the buffer is dead
-                      'kill)))
-               ;; A given mapping function should return:
-               ;; `nil' if it chose not to affect the buffer
-               ;; `kill' means the remove line from the buffer list
-               ;; `t' otherwise
-	       (incf ibuffer-map-lines-total)
-               (cond ((null result)
-                      (forward-line 1))
-                     ((eq result 'kill)
-                      (delete-region (line-beginning-position)
-                                     (1+ (line-end-position)))
-		      (incf deleted-lines-count)
-                      (incf ibuffer-map-lines-count))
-                     (t
-                      (incf ibuffer-map-lines-count)
-                      (forward-line 1)))))
-           ibuffer-map-lines-count)
+	(progn
+	  (setq buffer-read-only nil)
+	  (goto-char (point-min))
+	  (ibuffer-forward-line 0)
+	  (setq orig-target-line (1+ (- orig-target-line
+					(count-lines (point-min) (point))))
+		target-buf-count orig-target-line)
+	  (while (and (not (eobp))
+		      (not (get-text-property (point) 'ibuffer-summary)))
+	    (let ((result
+		   (if (buffer-live-p (ibuffer-current-buffer))
+		       (save-excursion
+			 (funcall function
+				  (ibuffer-current-buffer)
+				  (ibuffer-current-mark)))
+		     ;; Kill the line if the buffer is dead
+		     'kill)))
+	      ;; A given mapping function should return:
+	      ;; `nil' if it chose not to affect the buffer
+	      ;; `kill' means the remove line from the buffer list
+	      ;; `t' otherwise
+	      (incf ibuffer-map-lines-total)
+	      (cond ((null result)
+		     (forward-line 1))
+		    ((eq result 'kill)
+		     (delete-region (line-beginning-position)
+				    (1+ (line-end-position)))
+		     (incf ibuffer-map-lines-count)
+		     (when (< ibuffer-map-lines-total
+			       orig-target-line)
+		       (decf target-buf-count)))
+		    (t
+		     (incf ibuffer-map-lines-count)
+		     (forward-line 1)))))
+	  ibuffer-map-lines-count)
       (progn
 	(setq buffer-read-only t)
 	(unless nomodify
 	  (set-buffer-modified-p nil))
-	(goto-line (- (1+ curline) deleted-lines-count))))))
+	(goto-char (point-min))
+	(ibuffer-forward-line 0)
+	(ibuffer-forward-line (1- target-buf-count))))))
 
 (defun ibuffer-get-marked-buffers ()
   "Return a list of buffer objects currently marked."
@@ -1662,21 +1668,15 @@ current mark symbol, and the beginning and ending line positions."
 		      (car e)))
 		(ibuffer-current-state-list))))
 
-(defun ibuffer-current-state-list (&optional include-lines)
-  "Return a list like (BUF . MARK) of all buffers in an ibuffer.
-If optional argument INCLUDE-LINES is non-nil, return a list like
- (BUF MARK BEGPOS)."
+(defun ibuffer-current-state-list ()
+  "Return a list like (BUF . MARK) of all buffers in an ibuffer."
   (let ((ibuffer-current-state-list-tmp '()))
     ;; ah, if only we had closures.  I bet this will mysteriously
     ;; break later.  Don't blame me.
     (ibuffer-map-lines-nomodify
-     (if include-lines
-	 #'(lambda (buf mark beg end)
-	     (when (buffer-live-p buf)
-	       (push (list buf mark beg) ibuffer-current-state-list-tmp)))
-       #'(lambda (buf mark beg end)
-	   (when (buffer-live-p buf)
-	     (push (cons buf mark) ibuffer-current-state-list-tmp)))))
+     #'(lambda (buf mark)
+	 (when (buffer-live-p buf)
+	   (push (cons buf mark) ibuffer-current-state-list-tmp))))
     (nreverse ibuffer-current-state-list-tmp)))
 
 (defun ibuffer-current-buffers-with-marks (curbufs)
@@ -1867,6 +1867,7 @@ This does not show new buffers; use `ibuffer-update' for that.
 
 If SILENT is non-`nil', do not generate progress messages."
   (interactive)
+  (ibuffer-forward-line 0)
   (unless silent
     (message "Redisplaying current buffer list..."))
   (let ((blist (ibuffer-current-state-list)))
@@ -1878,7 +1879,8 @@ If SILENT is non-`nil', do not generate progress messages."
     (ibuffer-insert-buffers-and-marks blist t)
     (ibuffer-update-mode-name)
     (unless silent
-      (message "Redisplaying current buffer list...done"))))
+      (message "Redisplaying current buffer list...done"))
+    (ibuffer-forward-line 0)))
 
 (defun ibuffer-update (arg &optional silent)
   "Regenerate the list of all buffers.
@@ -1888,6 +1890,7 @@ iff arg ARG is non-nil.
 
 Do not display messages if SILENT is non-nil."
   (interactive "P")
+  (ibuffer-forward-line 0)
   (let* ((bufs (buffer-list))
 	 (blist (ibuffer-filter-buffers
 		(current-buffer)
