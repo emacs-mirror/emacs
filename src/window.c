@@ -279,6 +279,7 @@ make_window ()
   p->fringes_outside_margins = Qnil;
   p->scroll_bar_width = Qnil;
   p->vertical_scroll_bar_type = Qt;
+  p->overlay_arrow_bitmap = 0;
 
   Vwindow_list = Qnil;
   return val;
