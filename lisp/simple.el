@@ -2772,8 +2772,10 @@ not end the comment.  Blank lines do not get comments."
   (save-excursion
     (save-restriction
       (let ((cs comment-start) (ce comment-end)
+	    (cp (when comment-padding
+		  (make-string comment-padding ? )))
 	    numarg)
-        (if (consp arg) (setq numarg t)
+	(if (consp arg) (setq numarg t)
 	  (setq numarg (prefix-numeric-value arg))
 	  ;; For positive arg > 1, replicate the comment delims now,
 	  ;; then insert the replicated strings just once.
@@ -2781,13 +2783,11 @@ not end the comment.  Blank lines do not get comments."
 	    (setq cs (concat cs comment-start)
 		  ce (concat ce comment-end))
 	    (setq numarg (1- numarg))))
-	(when comment-padding
-	  (setq cs (concat cs (make-string comment-padding ? ))))
 	;; Loop over all lines from BEG to END.
-        (narrow-to-region beg end)
-        (goto-char beg)
-        (while (not (eobp))
-          (if (or (eq numarg t) (< numarg 0))
+	(narrow-to-region beg end)
+	(goto-char beg)
+	(if (or (eq numarg t) (< numarg 0))
+	    (while (not (eobp))
 	      (progn
 		;; Delete comment start from beginning of line.
 		(if (eq numarg t)
@@ -2797,8 +2797,11 @@ not end the comment.  Blank lines do not get comments."
 		    (while (and (> 1 (setq count (1+ count)))
 				(looking-at (regexp-quote cs)))
 		      (delete-char (length cs)))))
+		;; Delete comment padding from beginning of line
+		(when (and comment-padding (looking-at (regexp-quote cp)))
+		    (delete-char comment-padding))
 		;; Delete comment end from end of line.
-                (if (string= "" ce)
+		(if (string= "" ce)
 		    nil
 		  (if (eq numarg t)
 		      (progn
@@ -2823,14 +2826,18 @@ not end the comment.  Blank lines do not get comments."
 			      (backward-char (length ce))
 			      (if (looking-at (regexp-quote ce))
 				  (delete-char (length ce)))))))))
-		(forward-line 1))
+		(forward-line 1)))
+
+	  (when comment-padding
+	    (setq cs (concat cs cp)))
+	  (while (not (eobp))
 	    ;; Insert at beginning and at end.
-            (if (looking-at "[ \t]*$") ()
-              (insert cs)
-              (if (string= "" ce) ()
-                (end-of-line)
-                (insert ce)))
-            (search-forward "\n" nil 'move)))))))
+	    (if (looking-at "[ \t]*$") ()
+	      (insert cs)
+	      (if (string= "" ce) ()
+		(end-of-line)
+		(insert ce)))
+	    (search-forward "\n" nil 'move)))))))
 
 (defun backward-word (arg)
   "Move backward until encountering the end of a word.
