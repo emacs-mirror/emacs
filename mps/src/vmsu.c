@@ -1,6 +1,6 @@
 /* impl.c.vmsu: VIRTUAL MEMORY MAPPING FOR SUNOS 4
  *
- * $HopeName: MMsrc!vmsu.c(MMdevel_restr.4) $
+ * $HopeName: MMsrc!vmsu.c(trunk.10) $
  * Copyright (C) 1995 Harlequin Group, all rights reserved
  *
  * Design: design.mps.vm
@@ -44,7 +44,7 @@
 #include <errno.h>
 #include <sys/errno.h>
 
-SRCID(vmsu, "$HopeName: MMsrc!vmsu.c(MMdevel_restr.4) $");
+SRCID(vmsu, "$HopeName: MMsrc!vmsu.c(trunk.10) $");
 
 
 /* Fix up unprototyped system calls.  */
@@ -85,7 +85,7 @@ Bool VMCheck(VM vm)
 }
 
 
-Res VMCreate(Space *spaceReturn, Size size)
+Res VMCreate(Space *spaceReturn, Size size, Addr base)
 {
   caddr_t addr;
   Align align;
@@ -100,6 +100,7 @@ Res VMCreate(Space *spaceReturn, Size size)
   AVER(SizeIsAligned(size, align));
   AVER(size != 0);
   AVER(size <= INT_MAX); /* see .assume.size */
+  AVER(base == NULL);
 
   zero_fd = open("/dev/zero", O_RDONLY);
   if(zero_fd == -1)

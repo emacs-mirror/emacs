@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.5) $
+ * $HopeName: MMsrc!mpm.h(trunk.6) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  */
 
@@ -253,7 +253,7 @@ extern Res TraceScanAreaTagged(ScanState ss, Addr *base, Addr *limit);
 
 /* Space Interface -- see impl.c.space */
 
-extern Res SpaceCreate(Space *spaceReturn);
+extern Res SpaceCreate(Space *spaceReturn, Addr base, Size size);
 extern void SpaceDestroy(Space space);
 extern Bool SpaceCheck(Space space);
 extern Res SpaceDescribe(Space space, Lib_FILE *stream);
@@ -273,7 +273,7 @@ extern void SpaceFree(Space space, Addr base, Size size);
 
 /* Arena Interface -- see impl.c.arena* */
 
-extern Res ArenaCreate(Space *spaceReturn, Size size);
+extern Res ArenaCreate(Space *spaceReturn, Size size, Addr base);
 extern void ArenaDestroy(Space space);
 extern Bool ArenaCheck(Arena arena);
 extern Align ArenaAlign(Space space);
@@ -407,7 +407,7 @@ extern Space RootSpace(Root root);
 
 extern Align VMAlign(void);
 extern Bool VMCheck(VM vm);
-extern Res VMCreate(Space *spaceReturn, Size size);
+extern Res VMCreate(Space *spaceReturn, Size size, Addr base);
 extern void VMDestroy(Space space);
 extern Addr VMBase(Space space);
 extern Addr VMLimit(Space space);

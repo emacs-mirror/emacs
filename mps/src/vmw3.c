@@ -2,7 +2,7 @@
  *
  *                 VIRTUAL MEMORY MAPPING FOR WIN32
  *
- *  $HopeName: MMsrc!vmnt.c(trunk.11) $
+ *  $HopeName: MMsrc!vmnt.c(trunk.12) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -55,7 +55,7 @@
 
 #include <windows.h>
 
-SRCID(vmnt, "$HopeName: MMsrc!vmnt.c(trunk.11) $");
+SRCID(vmnt, "$HopeName: MMsrc!vmnt.c(trunk.12) $");
 
 
 #define SpaceVM(space)  (&(space)->arenaStruct.vmStruct)
@@ -89,9 +89,9 @@ Bool VMCheck(VM vm)
 }
 
 
-Res VMCreate(Space *spaceReturn, Size size)
+Res VMCreate(Space *spaceReturn, Size size, Addr base)
 {
-  LPVOID base;
+  LPVOID vbase;
   Align align;
   VM vm;
   Space space;
@@ -106,26 +106,27 @@ Res VMCreate(Space *spaceReturn, Size size)
   AVER(SizeIsP2(align));    /* see .assume.sysalign */
 
   AVER(SizeIsAligned(size, align));
+  AVER(base == NULL);
 
   /* Allocate some store for the space descriptor.
    * This is likely to be wasteful see issue.vmnt.waste */
-  base = VirtualAlloc(NULL, SizeAlignUp(sizeof(SpaceStruct), align),
+  vbase = VirtualAlloc(NULL, SizeAlignUp(sizeof(SpaceStruct), align),
           MEM_COMMIT, PAGE_READWRITE);
-  if(base == NULL)
+  if(vbase == NULL)
     return ResMEMORY;
-  space = (Space)base;
+  space = (Space)vbase;
   vm = SpaceVM(space);
 
   /* Allocate the address space. */
-  base = VirtualAlloc(NULL, size, MEM_RESERVE, PAGE_NOACCESS);
-  if(base == NULL)
+  vbase = VirtualAlloc(NULL, size, MEM_RESERVE, PAGE_NOACCESS);
+  if(vbase == NULL)
     return ResRESOURCE;
 
-  AVER(AddrIsAligned(base, align));
+  AVER(AddrIsAligned(vbase, align));
 
   vm->align = align;
-  vm->base = (Addr)base;
-  vm->limit = AddrAdd(base, size);
+  vm->base = (Addr)vbase;
+  vm->limit = AddrAdd(vbase, size);
   vm->reserved = size;
   vm->mapped = 0;
   AVER(vm->base < vm->limit);  /* .assume.not-last */

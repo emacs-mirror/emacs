@@ -2,7 +2,7 @@
  *
  *           HARLEQUIN MEMORY POOL SYSTEM INTERFACE
  *
- *  $HopeName: MMsrc!mps.h(trunk.8) $
+ *  $HopeName: MMsrc!mps.h(trunk.9) $
  *
  *  Copyright (C) 1996 Harlequin Group, all rights reserved
  */
@@ -225,6 +225,8 @@ extern mps_assert_t mps_assert_default(void);
 
 /* Spaces */
 
+extern mps_res_t mps_space_create_wmem(mps_space_t *mps_space_o,
+				       mps_addr_t base, size_t size);
 extern mps_res_t mps_space_create(mps_space_t *mps_space_o);
 extern void mps_space_destroy(mps_space_t mps_space);
 

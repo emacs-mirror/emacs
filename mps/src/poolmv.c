@@ -1,6 +1,6 @@
 /* impl.c.poolmv: MANUAL VARIABLE POOL
  *
- * $HopeName: MMsrc!poolmv.c(MMdevel_restr2.6) $
+ * $HopeName: MMsrc!poolmv.c(trunk.13) $
  * Copyright (C) 1994, 1995 Harlequin Group, all rights reserved
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
@@ -37,7 +37,7 @@
 #include "poolmfs.h"
 #include "mpscmv.h"
 
-SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(MMdevel_restr2.6) $");
+SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.13) $");
 
 
 #define BLOCKPOOL(mv)   (MFSPool(&(mv)->blockPoolStruct))
@@ -95,7 +95,7 @@ static Bool MVBlockCheck(MVBlock block)
 
 typedef struct MVSpanStruct *MVSpan;
 typedef struct MVSpanStruct {
-  MVSpan next;                  /* link to next span */
+  RingStruct spans;		/* all the spans */ 
   MV mv;                        /* owning MV pool */
   Seg seg;                      /* segment underlying the span */
   MVBlockStruct base;           /* sentinel at base of span */
@@ -119,6 +119,7 @@ static Bool MVSpanCheck(MVSpan span)
 {
   CHECKL(span != NULL);
   CHECKU(MV, span->mv);
+  CHECKL(RingCheck(&span->spans));
   CHECKL(MVBlockCheck(&span->base));
   CHECKL(MVBlockCheck(&span->limit));
   /* The block chain starts with the base sentinel. */
@@ -181,7 +182,7 @@ static Res MVInit(Pool pool, va_list arg)
   mv->extendBy = extendBy;
   mv->avgSize  = avgSize;
   mv->maxSize  = maxSize;
-  mv->spans = NULL;
+  RingInit(&mv->spans);
   mv->space = 0;
   mv->lost = 0;
   mv->sig = MVSig;
@@ -195,6 +196,7 @@ static Res MVInit(Pool pool, va_list arg)
 static void MVFinish(Pool pool)
 {
   MV mv;
+  Ring spans, node = NULL; /* gcc whinge stop */
   MVSpan span;
 
   AVERT(Pool, pool);
@@ -202,11 +204,11 @@ static void MVFinish(Pool pool)
   AVERT(MV, mv);
 
   /* Destroy all the segments attached to the pool. */
-  span = mv->spans;
-  while(span != NULL) {
+  spans = &mv->spans;
+  RING_FOR(node, spans) {
+    span = RING_ELT(MVSpan, spans, node);
     AVERT(MVSpan, span);
     PoolSegFree(pool, span->seg);
-    span = span->next;
   }
 
   mv->sig = SigInvalid;
@@ -366,6 +368,7 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size)
   Space space;
   MV mv;
   Size segSize;
+  Ring spans, node = NULL; /* gcc whinge stop */
 
   AVERT(Pool, pool);
   mv = PoolPoolMV(pool);
@@ -377,9 +380,9 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size)
   size = SizeAlignUp(size, pool->alignment);
 
   if(size <= mv->space) {
-    span = mv->spans;
-
-    while(span != NULL) {
+    spans = &mv->spans;
+    RING_FOR(node, spans) {
+      span = RING_ELT(MVSpan, spans, node);
       if(size <= span->space) {
         Addr new;
 
@@ -390,8 +393,6 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size)
           return ResOK;
         }
       }
-
-      span = span->next;
     }
   }
 
@@ -419,7 +420,7 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size)
 
   span->mv = mv;
   span->seg->p = (void *)span;
-  span->next = mv->spans;
+  RingInit(&span->spans);
   span->base.base = span->base.limit = SegBase(space, span->seg);
   span->limit.base = span->limit.limit = SegLimit(space, span->seg);
   span->space = AddrOffset(span->base.limit, span->limit.base);
@@ -434,7 +435,7 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size)
   AVERT(MVSpan, span);
 
   mv->space += span->space;
-  mv->spans = span;
+  RingAppend(&mv->spans, &span->spans);
 
   *pReturn = span->base.base;
   return ResOK;
@@ -478,6 +479,18 @@ static void MVFree(Pool pool, Addr old, Size size)
     mv->lost += size;
   else
     mv->space += size;
+  
+  /* free space should be less than total space */
+  AVER(AddrAdd(span->base.base, span->space) <= span->limit.limit);
+  if(AddrAdd(span->base.base, span->space) == span->limit.limit) {
+    AVER(span->blockCount == 2);
+    /* both blocks are the trivial sentinel blocks */
+    AVER(span->base.limit == span->base.base);
+    AVER(span->limit.limit == span->limit.base);
+    PoolSegFree(pool, span->seg);
+    RingRemove(&span->spans);
+    PoolFree(SPANPOOL(mv), (Addr)span, sizeof(MVSpanStruct));
+  }
 
   return;                   /* should free spans.  See note 4. */
 }
@@ -489,6 +502,7 @@ static Res MVDescribe(Pool pool, Lib_FILE *stream)
   MVSpan span;
   Align step;
   Size length;
+  Ring spans, node = NULL; /* gcc whinge stop */
 
   AVERT(Pool, pool);
   mv = PoolPoolMV(pool);
@@ -511,16 +525,15 @@ static Res MVDescribe(Pool pool, Lib_FILE *stream)
   Lib_fprintf(stream,
               "  Spans\n"
               "      desc      seg    space blockCount\n");
-  span = mv->spans;
-  while(span != NULL) {
+  spans = &mv->spans;
+  RING_FOR(node, spans) {
+    span = RING_ELT(MVSpan, spans, node);
     AVERT(MVSpan, span);
 
     Lib_fprintf(stream, "  %8lX %8lX %8lX %d\n",
                 (unsigned long)span,
                 (unsigned long)span->seg,
                 span->space, span->blockCount);
-
-    span = span->next;
   }
 
   Lib_fprintf(stream, "  Span allocation maps\n");
@@ -528,10 +541,11 @@ static Res MVDescribe(Pool pool, Lib_FILE *stream)
   step = pool->alignment;
   length = 0x40 * step;
 
-  span = mv->spans;
-  while(span != NULL) {
+  spans = &mv->spans;
+  RING_FOR(node, spans) {
     Addr i, j;
     MVBlock block;
+    span = RING_ELT(MVSpan, spans, node);
     Lib_fprintf(stream, "    MVSpan %8lX\n", (unsigned long)span);
 
     block = span->blocks;
@@ -540,7 +554,8 @@ static Res MVDescribe(Pool pool, Lib_FILE *stream)
     for(i = span->base.base; i < span->limit.limit; i = AddrAdd(i, length)) {
       Lib_fprintf(stream, "    %8lX ", (unsigned long)i);
 
-      for(j = i; j < AddrAdd(i, length) && j < span->limit.limit; j = AddrAdd(j, step)) {
+      for(j = i; j < AddrAdd(i, length) && j < span->limit.limit;
+		 j = AddrAdd(j, step)) {
         if(j == block->base) {
           if(AddrAdd(j, step) == block->limit)
             Lib_fputc('@', stream);
@@ -560,8 +575,6 @@ static Res MVDescribe(Pool pool, Lib_FILE *stream)
       }
       Lib_fputc('\n', stream);
     }
-
-    span = span->next;
   }
 
   return ResOK;
@@ -606,6 +619,61 @@ mps_class_t mps_class_mv(void)
 {
   return (mps_class_t)(PoolClassMV());
 }
+
+/* Free bytes */
+
+size_t mps_mv_free_size(mps_pool_t mps_pool)
+{
+  Pool pool;
+  MV mv;
+  MVSpan span;
+  Size f = 0;
+  Ring spans, node = NULL; /* gcc whinge stop */
+
+  pool = (Pool)mps_pool;
+
+  AVERT(Pool, pool);
+  mv = PoolPoolMV(pool);
+  AVERT(MV, mv);
+
+  spans = &mv->spans;
+  RING_FOR(node, spans) {
+  span = RING_ELT(MVSpan, spans, node);
+    AVERT(MVSpan, span);
+    f += span->space;
+  }
+
+  return (size_t)f;
+}
+
+size_t mps_mv_size(mps_pool_t mps_pool)
+{
+  Pool pool;
+  MV mv;
+  MVSpan span;
+  Space space;
+  Size f = 0;
+  Ring spans, node = NULL; /* gcc whinge stop */
+
+  pool = (Pool)mps_pool;
+
+  AVERT(Pool, pool);
+  mv = PoolPoolMV(pool);
+  AVERT(MV, mv);
+  space = PoolSpace(pool);
+
+  spans = &mv->spans;
+  RING_FOR(node, spans) {
+  span = RING_ELT(MVSpan, spans, node);
+    AVERT(MVSpan, span);
+    f += SegSize(space, span->seg);
+  }
+
+  return (size_t)f;
+} 
+
+
+
 
 
 /* MVCheck -- check the consistency of an MV structure */

@@ -1,6 +1,6 @@
 /* impl.c.vman: ANSI VM: MALLOC-BASED PSUEDO MEMORY MAPPING
  *
- * $HopeName: MMsrc!vman.c(MMdevel_restr.4) $
+ * $HopeName: MMsrc!vman.c(trunk.9) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  */
 
@@ -8,7 +8,7 @@
 #include <stdlib.h>     /* for malloc and free */
 #include <string.h>     /* for memset */
 
-SRCID(vman, "$HopeName: MMsrc!vman.c(MMdevel_restr.4) $");
+SRCID(vman, "$HopeName: MMsrc!vman.c(trunk.9) $");
 
 #define SpaceVM(_space) (&(_space)->arenaStruct.vmStruct)
 
@@ -31,18 +31,15 @@ Align VMAlign()
   return VMAN_ALIGN;
 }
 
-Res VMCreate(Space *spaceReturn, Size size)
+
+Res VMCreate(Space *spaceReturn, Size size, Addr base)
 {
   Space space;
   VM vm;
 
-  AVER(size > 0);
-  AVER(SizeIsAligned(size, VMAN_ALIGN));
-  
-  space = (Space)malloc(sizeof(SpaceStruct));
-  if(space == NULL)
-    return ResMEMORY;
-  vm = SpaceVM(space);
+  AVER(spaceReturn != NULL);
+  AVER(size != 0);
+  AVER(base == NULL);
 
   /* Note that because we add VMAN_ALIGN rather than */
   /* VMAN_ALIGN-1 we are not in danger of overflowing */

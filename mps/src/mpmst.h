@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.5) $
+ * $HopeName: MMsrc!mpmst.h(trunk.6) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .rationale: Almost all MPM data structures are defined in this
@@ -154,7 +154,7 @@ typedef struct MVStruct {
   Size maxSize;                 /* client estimate of maximum size */
   Size space;                   /* total free space in pool */
   Size lost;                    /* lost because free couldn't allocate(!) */
-  struct MVSpanStruct *spans;   /* span chain */
+  RingStruct spans;             /* span chain */
   Sig sig;                      /* impl.h.misc.sig */
 } MVStruct;
 
@@ -169,7 +169,17 @@ typedef struct MVStruct {
 
 #define VMSig   ((Sig)0x519FEE33)
 
-#if defined(MPS_OS_W3)
+#ifdef TARGET_VM_RM
+
+typedef struct VMStruct {	/* Real Memory fake VM; impl.c.vmrm */
+  Sig sig;			/* impl.h.misc.sig */
+  Align align;			/* made-up alignment */
+  Addr base, limit;             /* boundaries of reserved space */
+  Size reserved;                /* total reserved address space */
+  Size mapped;                  /* total mapped memory */
+} VMStruct;
+
+#elif defined(MPS_OS_W3)
 
 typedef struct VMStruct {       /* Win32 VM structure; impl.c.vmnt */
   Sig sig;                      /* impl.h.misc.sig */
