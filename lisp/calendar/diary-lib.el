@@ -638,7 +638,7 @@ to run it every morning at 1am."
     (insert diary-mail-addr)
     (mail-subject)
     (insert "Diary entries generated ")
-    (insert (format-time-string "%a %d %b %y" (current-time)))
+    (insert (format-time-string "%a %d %b %Y" (current-time)))
     (mail-text)
     (insert text)
     (mail-send-and-exit nil)))
