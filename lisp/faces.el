@@ -137,7 +137,14 @@ in that frame; otherwise change each frame."
 	   (not (x-display-color-p frame))
 	   (not (x-display-grayscale-p frame)))
       (set-face-stipple face color frame)
-    (internal-set-face-1 face 'background color 5 frame)))
+    (if (null frame)
+	(let ((frames (frame-list)))
+	  (while frames
+	    (set-face-background (face-name face) color (car frames))
+	    (setq frames (cdr frames)))
+	  (set-face-background face color t)
+	  color)
+      (internal-set-face-1 face 'background color 5 frame))))
 
 (defun set-face-stipple (face name &optional frame)
   "Change the stipple pixmap of face FACE to PIXMAP.
