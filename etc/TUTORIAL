@@ -205,17 +205,16 @@ a command that you don't want to finish.
    If you have typed an <ESC> by mistake, you can get rid of it
    with a C-g.
 
-If you type <ESC> <ESC>, you get a new window appearing on
-the screen, telling you that M-ESC is a "disabled command"
-and asking whether you really want to execute it.  The command
-M-ESC is marked as disabled because you probably don't want to
-use it until you know more about Emacs, and we expect it would
-confuse you if it were allowed to go ahead and run.  If you really
-want to try the M-ESC command, you could type a Space in answer
-to the question and M-ESC would go ahead.  Normally, if you do
-not want to execute M-ESC, you would type "n" to answer the question.
+If you type <ESC> : then you get a new window appearing on the screen,
+telling you that M-: is a "disabled command" and asking whether you
+really want to execute it.  The command M-: is marked as disabled
+because we expect it would confuse beginners and you probably don't
+want to use it until you know more about Emacs.  If you really want to
+try the M-: command, you could type a Space in answer to the question,
+and M-: would go ahead.  Normally, if you do not want to execute M-:,
+you would type "n" to answer the question.
 
->> Type <ESC> <ESC>, then type n.
+>> Type <ESC> :, then type n.
 
 
 * WINDOWS
