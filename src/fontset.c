@@ -972,6 +972,8 @@ DEFUN ("set-fontset-font", Fset_fontset_font, Sset_fontset_font, 3, 4, 0,
 CHARACTER may be a cons; (FROM . TO), where FROM and TO are\n\
 non-generic characters.  In that case, use FONTNAME\n\
 for all characters in the range FROM and TO (inclusive).\n\
+CHARACTER may be a charset.   In that case, use FONTNAME\n\
+for all character in the charsets.\n\
 \n\
 FONTNAME may be a cons; (FAMILY . REGISTRY), where FAMILY is a family\n\
 name of a font, REGSITRY is a registry name of a font.")
@@ -999,6 +1001,14 @@ name of a font, REGSITRY is a registry name of a font.")
       if (!NILP (name)
 	  && (SINGLE_BYTE_CHAR_P (from) || SINGLE_BYTE_CHAR_P (to)))
 	error ("Can't change font for a single byte character");
+    }
+  else if (SYMBOLP (character))
+    {
+      elt = Fget (character, Qcharset);
+      if (!VECTORP (elt) || ASIZE (elt) < 1 || !NATNUMP (AREF (elt, 0)))
+	error ("Invalid charset: %s", (XSYMBOL (character)->name)->data);
+      from = MAKE_CHAR (XINT (AREF (elt, 0)), 0, 0);
+      to = from;
     }
   else
     {
