@@ -2819,7 +2819,7 @@ sigchld_handler (signo)
 	    synch_process_retcode = WRETCODE (w);
 	  else if (WIFSIGNALED (w))
 #ifndef VMS
-	    synch_process_death = sys_siglist[WTERMSIG (w)];
+	    synch_process_death = (char *) sys_siglist[WTERMSIG (w)];
 #else
 	    synch_process_death = sys_errlist[WTERMSIG (w)];
 #endif
