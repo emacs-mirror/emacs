@@ -904,7 +904,7 @@ void GC_print_block_list()
  * Clear *flp.
  * This must be done before dropping a list of free gcj-style objects,
  * since may otherwise end up with dangling "descriptor" pointers.
- * It may help for other pointer-containg objects.
+ * It may help for other pointer-containing objects.
  */
 void GC_clear_fl_links(flp)
 ptr_t *flp;

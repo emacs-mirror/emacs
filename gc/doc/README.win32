@@ -161,7 +161,7 @@ To compile the collector and testing programs use the command:
 All programs using gc should be compiled with 4-byte alignment.
 For further explanations on this see comments about Borland.
 
-If gc compiled as dll, the macro ``GC_DLL'' should be defined before
+If the gc is compiled as dll, the macro ``GC_DLL'' should be defined before
 including "gc.h" (for example, with -DGC_DLL compiler option). It's
 important, otherwise resulting programs will not run.
 

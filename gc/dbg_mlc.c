@@ -924,9 +924,11 @@ void GC_print_all_smashed_proc ()
 void GC_check_heap_proc()
 {
 #   ifndef SMALL_CONFIG
-	if (sizeof(oh) & (2 * sizeof(word) - 1) != 0) {
-	    ABORT("Alignment problem: object header has inappropriate size\n");
-	}
+#     ifdef ALIGN_DOUBLE
+        GC_STATIC_ASSERT((sizeof(oh) & (2 * sizeof(word) - 1)) == 0);
+#     else
+        GC_STATIC_ASSERT((sizeof(oh) & (sizeof(word) - 1)) == 0);
+#     endif
 #   endif
     GC_apply_to_all_blocks(GC_check_heap_block, (word)0);
 }

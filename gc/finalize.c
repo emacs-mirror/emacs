@@ -768,7 +768,6 @@ int GC_invoke_finalizers()
     struct finalizable_object * curr_fo;
     int count = 0;
     word mem_freed_before;
-    GC_bool first_time = TRUE;
     DCL_LOCK_STATE;
     
     while (GC_finalize_now != 0) {
@@ -776,9 +775,8 @@ int GC_invoke_finalizers()
 	    DISABLE_SIGNALS();
 	    LOCK();
 #	endif
-	if (first_time) {
+	if (count == 0) {
 	    mem_freed_before = GC_mem_freed;
-	    first_time = FALSE;
 	}
     	curr_fo = GC_finalize_now;
 #	ifdef THREADS
@@ -801,7 +799,7 @@ int GC_invoke_finalizers()
     	    GC_free((GC_PTR)curr_fo);
 #	endif
     }
-    if (mem_freed_before != GC_mem_freed) {
+    if (count != 0 && mem_freed_before != GC_mem_freed) {
         LOCK();
 	GC_finalizer_mem_freed += (GC_mem_freed - mem_freed_before);
 	UNLOCK();

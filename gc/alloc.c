@@ -72,6 +72,13 @@ int GC_full_freq = 19;	   /* Every 20th collection is a full	*/
 GC_bool GC_need_full_gc = FALSE;
 			   /* Need full GC do to heap growth.	*/
 
+#ifdef THREADS
+  GC_bool GC_world_stopped = FALSE;
+# define IF_THREADS(x) x
+#else
+# define IF_THREADS(x)
+#endif
+
 word GC_used_heap_size_after_full = 0;
 
 char * GC_copyright[] =
@@ -488,6 +495,7 @@ GC_stop_func stop_func;
         GC_cond_register_dynamic_libraries();
 #   endif
     STOP_WORLD();
+    IF_THREADS(GC_world_stopped = TRUE);
 #   ifdef CONDPRINT
       if (GC_print_stats) {
 	GC_printf1("--> Marking for collection %lu ",
@@ -518,6 +526,7 @@ GC_stop_func stop_func;
 		      }
 #		    endif
 		    GC_deficit = i; /* Give the mutator a chance. */
+                    IF_THREADS(GC_world_stopped = FALSE);
 	            START_WORLD();
 	            return(FALSE);
 	    }
@@ -551,6 +560,7 @@ GC_stop_func stop_func;
             (*GC_check_heap)();
         }
     
+    IF_THREADS(GC_world_stopped = FALSE);
     START_WORLD();
 #   ifdef PRINTTIMES
 	GET_TIME(current_time);

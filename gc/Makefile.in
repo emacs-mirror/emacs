@@ -111,6 +111,7 @@ STRIP = @STRIP@
 THREADLIBS = @THREADLIBS@
 VERSION = @VERSION@
 addincludes = @addincludes@
+addlibs = @addlibs@
 addobjs = @addobjs@
 addtests = @addtests@
 am__include = @am__include@
@@ -161,7 +162,9 @@ cord/cordbscs.c cord/cordtest.c cord/de.c cord/de_win.c \
     cord/de_win.h cord/de_win.RC\
 libtool.m4
 
-lib_LTLIBRARIES = libgc.la
+@CPLUSPLUS_TRUE@extra = libgccpp.la
+@CPLUSPLUS_FALSE@extra = 
+lib_LTLIBRARIES = libgc.la $(extra) 
 
 include_HEADERS = include/gc.h include/gc_local_alloc.h \
 include/gc_pthread_redirects.h include/gc_config_macros.h \
@@ -170,12 +173,17 @@ include/leak_detector.h include/gc_typed.h @addincludes@
 
 EXTRA_HEADERS = include/gc_cpp.h include/gc_allocator.h
 
+@POWERPC_DARWIN_TRUE@asm_libgc_sources = powerpc_darwin_mach_dep.s
+@POWERPC_DARWIN_FALSE@asm_libgc_sources = 
+
 libgc_la_SOURCES = allchblk.c alloc.c blacklst.c checksums.c dbg_mlc.c \
-dyn_load.c finalize.c gc_dlopen.c gcj_mlc.c headers.c irix_threads.c \
-linux_threads.c malloc.c mallocx.c mark.c mark_rts.c misc.c new_hblk.c \
+dyn_load.c finalize.c gc_dlopen.c gcj_mlc.c headers.c aix_irix_threads.c \
+malloc.c mallocx.c mark.c mark_rts.c misc.c new_hblk.c \
 obj_map.c os_dep.c pcr_interface.c ptr_chck.c real_malloc.c reclaim.c \
 solaris_pthreads.c solaris_threads.c specific.c stubborn.c typd_mlc.c \
-backgraph.c win32_threads.c
+backgraph.c win32_threads.c \
+pthread_support.c pthread_stop_world.c darwin_stop_world.c \
+$(asm_libgc_sources)
 
 
 # Include THREADLIBS here to ensure that the correct versions of
@@ -185,24 +193,30 @@ libgc_la_DEPENDENCIES = @addobjs@
 libgc_la_LDFLAGS = -version-info 1:2:0
 
 EXTRA_libgc_la_SOURCES = alpha_mach_dep.S \
-    mips_sgi_mach_dep.S mips_ultrix_mach_dep.s powerpc_macosx_mach_dep.s \
+    mips_sgi_mach_dep.S mips_ultrix_mach_dep.s powerpc_darwin_mach_dep.s \
     rs6000_mach_dep.s sparc_mach_dep.S sparc_netbsd_mach_dep.s \
-    sparc_sunos4_mach_dep.s ia64_save_regs_in_stack.s gc_cpp.cc
+    sparc_sunos4_mach_dep.s ia64_save_regs_in_stack.s
 
+
+libgccpp_la_SOURCES = gc_cpp.cc
+libgccpp_la_LIBADD = $(THREADLIBS)
+libgccpp_la_LDFLAGS = -version-info 1:2:0
 
 AM_CXXFLAGS = @GC_CFLAGS@
 AM_CFLAGS = @GC_CFLAGS@
 
-check_PROGRAMS = gctest @addtests@
-EXTRA_PROGRAMS = test_cpp
+@CPLUSPLUS_TRUE@extra_checks = test_cpp
+@CPLUSPLUS_FALSE@extra_checks = 
+
+check_PROGRAMS = gctest $(extra_checks)
 
 # gctest_OBJECTS = test.o
 gctest_SOURCES = tests/test.c
 gctest_LDADD = ./libgc.la $(THREADLIBS) $(EXTRA_TEST_LIBS)
 test_cpp_SOURCES = tests/test_cpp.cc
-test_cpp_LDADD = ./libgc.la $(THREADLIBS) $(EXTRA_TEST_LIBS)
-TESTS_ENVIRONMENT = LD_LIBRARY_PATH=../../gcc
-TESTS = gctest @addtests@
+test_cpp_LDADD = ./libgc.la ./libgccpp.la $(THREADLIBS) $(EXTRA_TEST_LIBS)
+
+TESTS = gctest $(extra_checks)
 
 all_objs = @addobjs@ $(libgc_la_OBJECTS)
 
@@ -230,23 +244,29 @@ mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
+@POWERPC_DARWIN_TRUE@am__objects_1 = powerpc_darwin_mach_dep.lo
+@POWERPC_DARWIN_FALSE@am__objects_1 =
 am_libgc_la_OBJECTS = allchblk.lo alloc.lo blacklst.lo checksums.lo \
 	dbg_mlc.lo dyn_load.lo finalize.lo gc_dlopen.lo gcj_mlc.lo \
-	headers.lo irix_threads.lo linux_threads.lo malloc.lo \
-	mallocx.lo mark.lo mark_rts.lo misc.lo new_hblk.lo obj_map.lo \
-	os_dep.lo pcr_interface.lo ptr_chck.lo real_malloc.lo \
-	reclaim.lo solaris_pthreads.lo solaris_threads.lo specific.lo \
-	stubborn.lo typd_mlc.lo backgraph.lo win32_threads.lo
+	headers.lo aix_irix_threads.lo malloc.lo mallocx.lo mark.lo \
+	mark_rts.lo misc.lo new_hblk.lo obj_map.lo os_dep.lo \
+	pcr_interface.lo ptr_chck.lo real_malloc.lo reclaim.lo \
+	solaris_pthreads.lo solaris_threads.lo specific.lo stubborn.lo \
+	typd_mlc.lo backgraph.lo win32_threads.lo pthread_support.lo \
+	pthread_stop_world.lo darwin_stop_world.lo $(am__objects_1)
 libgc_la_OBJECTS = $(am_libgc_la_OBJECTS)
-EXTRA_PROGRAMS = test_cpp$(EXEEXT)
-check_PROGRAMS = gctest$(EXEEXT) @addtests@
+libgccpp_la_DEPENDENCIES =
+am_libgccpp_la_OBJECTS = gc_cpp.lo
+libgccpp_la_OBJECTS = $(am_libgccpp_la_OBJECTS)
+@CPLUSPLUS_TRUE@check_PROGRAMS = gctest$(EXEEXT) test_cpp$(EXEEXT)
+@CPLUSPLUS_FALSE@check_PROGRAMS = gctest$(EXEEXT)
 am_gctest_OBJECTS = test.$(OBJEXT)
 gctest_OBJECTS = $(am_gctest_OBJECTS)
 gctest_DEPENDENCIES = ./libgc.la
 gctest_LDFLAGS =
 am_test_cpp_OBJECTS = test_cpp.$(OBJEXT)
 test_cpp_OBJECTS = $(am_test_cpp_OBJECTS)
-test_cpp_DEPENDENCIES = ./libgc.la
+test_cpp_DEPENDENCIES = ./libgc.la ./libgccpp.la
 test_cpp_LDFLAGS =
 SCRIPTS = $(dist_noinst_SCRIPTS)
 
@@ -258,19 +278,22 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/allchblk.Plo ./$(DEPDIR)/alloc.Plo \
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/aix_irix_threads.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/allchblk.Plo ./$(DEPDIR)/alloc.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/backgraph.Plo ./$(DEPDIR)/blacklst.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/checksums.Plo ./$(DEPDIR)/dbg_mlc.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/dyn_load.Plo ./$(DEPDIR)/finalize.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/gc_cpp.Plo ./$(DEPDIR)/gc_dlopen.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/gcj_mlc.Plo ./$(DEPDIR)/headers.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/irix_threads.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/linux_threads.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/malloc.Plo ./$(DEPDIR)/mallocx.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/mark.Plo ./$(DEPDIR)/mark_rts.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/misc.Plo ./$(DEPDIR)/new_hblk.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/obj_map.Plo ./$(DEPDIR)/os_dep.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/checksums.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/darwin_stop_world.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/dbg_mlc.Plo ./$(DEPDIR)/dyn_load.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/finalize.Plo ./$(DEPDIR)/gc_cpp.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/gc_dlopen.Plo ./$(DEPDIR)/gcj_mlc.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/headers.Plo ./$(DEPDIR)/malloc.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/mallocx.Plo ./$(DEPDIR)/mark.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/mark_rts.Plo ./$(DEPDIR)/misc.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/new_hblk.Plo ./$(DEPDIR)/obj_map.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/os_dep.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/pcr_interface.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/pthread_stop_world.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/pthread_support.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/ptr_chck.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/real_malloc.Plo ./$(DEPDIR)/reclaim.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/solaris_pthreads.Plo \
@@ -294,7 +317,7 @@ CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 DIST_SOURCES = $(libgc_la_SOURCES) $(EXTRA_libgc_la_SOURCES) \
-	$(gctest_SOURCES) $(test_cpp_SOURCES)
+	$(libgccpp_la_SOURCES) $(gctest_SOURCES) $(test_cpp_SOURCES)
 HEADERS = $(dist_noinst_HEADERS) $(include_HEADERS)
 
 
@@ -307,7 +330,7 @@ DIST_COMMON = $(dist_noinst_HEADERS) $(dist_noinst_SCRIPTS) \
 	aclocal.m4 config.guess config.sub configure configure.in \
 	depcomp install-sh ltconfig ltmain.sh missing mkinstalldirs
 DIST_SUBDIRS = $(SUBDIRS)
-SOURCES = $(libgc_la_SOURCES) $(EXTRA_libgc_la_SOURCES) $(gctest_SOURCES) $(test_cpp_SOURCES)
+SOURCES = $(libgc_la_SOURCES) $(EXTRA_libgc_la_SOURCES) $(libgccpp_la_SOURCES) $(gctest_SOURCES) $(test_cpp_SOURCES)
 
 all: all-recursive
 
@@ -358,7 +381,9 @@ clean-libLTLIBRARIES:
 	  rm -f "$${dir}/so_locations"; \
 	done
 libgc.la: $(libgc_la_OBJECTS) $(libgc_la_DEPENDENCIES) 
-	$(CXXLINK) -rpath $(libdir) $(libgc_la_LDFLAGS) $(libgc_la_OBJECTS) $(libgc_la_LIBADD) $(LIBS)
+	$(LINK) -rpath $(libdir) $(libgc_la_LDFLAGS) $(libgc_la_OBJECTS) $(libgc_la_LIBADD) $(LIBS)
+libgccpp.la: $(libgccpp_la_OBJECTS) $(libgccpp_la_DEPENDENCIES) 
+	$(CXXLINK) -rpath $(libdir) $(libgccpp_la_LDFLAGS) $(libgccpp_la_OBJECTS) $(libgccpp_la_LIBADD) $(LIBS)
 
 clean-checkPROGRAMS:
 	@list='$(check_PROGRAMS)'; for p in $$list; do \
@@ -381,11 +406,13 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/aix_irix_threads.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/allchblk.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alloc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/backgraph.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/blacklst.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/checksums.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/darwin_stop_world.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dbg_mlc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dyn_load.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/finalize.Plo@am__quote@
@@ -393,8 +420,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gc_dlopen.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gcj_mlc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/headers.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/irix_threads.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/linux_threads.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/malloc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mallocx.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mark.Plo@am__quote@
@@ -404,6 +429,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/obj_map.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/os_dep.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pcr_interface.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pthread_stop_world.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pthread_support.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ptr_chck.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/real_malloc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/reclaim.Plo@am__quote@
