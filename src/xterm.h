@@ -611,6 +611,7 @@ struct x_output
 
 /* This is the `Screen *' which frame F is on.  */
 #define FRAME_X_SCREEN(f) (FRAME_X_DISPLAY_INFO (f)->screen)
+#define FRAME_X_SCREEN_NUMBER(f) XScreenNumberOfScreen (FRAME_X_SCREEN (f))
 
 /* This is the Visual which frame F is on.  */
 #define FRAME_X_VISUAL(f) FRAME_X_DISPLAY_INFO (f)->visual
