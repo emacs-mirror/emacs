@@ -888,8 +888,8 @@ Return the modified list with the last element prepended to it."
 				       iswitchb-buflist)
 				     :help-string "iswitchb "
 				   :activate-callback 
-				   '(lambda (x y z) 
-				      (message "doesn't work yet, sorry!")))
+				   (lambda (x y z) 
+				     (message "doesn't work yet, sorry!")))
 	  ;; else running Emacs
 	  (display-completion-list (if iswitchb-matches
 				     iswitchb-matches
