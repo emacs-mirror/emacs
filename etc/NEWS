@@ -13,6 +13,13 @@ the --without-pop configure option, should that be necessary.
 
 * Changes in Emacs 21.1
 
+** Emacs can now support 'wheeled' mice (such as the MS IntelliMouse)
+under XFree86.  To enable this, simply put (mwheel-install) in your
+.emacs file.
+
+The variables `mwheel-follow-mouse' and `mwheel-scroll-amount'
+determine where and by how much buffers are scrolled.
+
 ** Listing buffers with M-x list-buffers (C-x C-b) now shows
 abbreviated file names.  Abbreviations can be customized by changing
 `directory-abbrev-alist'.
