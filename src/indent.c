@@ -414,7 +414,7 @@ struct position val_compute_motion;
 	  window_internal_width (w) - 1
 
    The `-1' accounts for the continuation-line backslashes; the rest
-   accounts for window borders if the window is split vertically, and
+   accounts for window borders if the window is split horizontally, and
    the scroll bars if the frame supports them.  */
 
 struct position *
@@ -507,7 +507,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 		  while (++pos < to && FETCH_CHAR (pos) != '\n');
 		}
 	      while (pos < to && position_indentation (pos + 1) >= selective);
-	      pos--;
+	      pos--;		/* Reread the newline on the next pass.  */
 	      /* Allow for the " ..." that is displayed for them. */
 	      if (selective_rlen)
 		{
@@ -523,7 +523,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 	      vpos++;
 	      hpos = 0;
 	      hpos -= hscroll;
-	      if (hscroll > 0) hpos++; /* Count the ! on column 0 */
+	      if (hscroll > 0) hpos++; /* Count the $ on column 0 */
 	      tab_offset = 0;
 	    }
 	}
