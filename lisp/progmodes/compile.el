@@ -1114,10 +1114,8 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 	     
 	     ;; Extract the file name and line number from the error message.
 	     (let ((beginning-of-match (match-beginning 0)) ;looking-at nukes
-		   (filename
-		    (cons default-directory
-			  (buffer-substring (match-beginning (nth 1 alist))
-					    (match-end (nth 1 alist)))))
+		   (filename (buffer-substring (match-beginning (nth 1 alist))
+					       (match-end (nth 1 alist))))
 		   (linenum (save-restriction
 			      (narrow-to-region
 			       (match-beginning (nth 2 alist))
@@ -1125,6 +1123,17 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 			      (goto-char (point-min))
 			      (if (looking-at "[0-9]")
 				  (read (current-buffer))))))
+	       ;; Check for a comint-file-name-prefix and prepend it if
+	       ;; appropriate.  (This is very useful for
+	       ;; compilation-minor-mode in an rlogin-mode buffer.)
+	       (and (boundp 'comint-file-name-prefix)
+		    ;; If the file name is relative, default-directory will
+		    ;; already contain the comint-file-name-prefix (done by
+		    ;; compile-abbreviate-directory).
+		    (file-name-absolute-p filename)
+		    (setq filename (concat comint-file-name-prefix filename)))
+	       (setq filename (cons default-directory filename))
+
 	       ;; Locate the erring file and line.
 	       ;; Cons a new elt onto compilation-error-list,
 	       ;; giving a marker for the current compilation buffer
@@ -1191,6 +1200,12 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 ;; Those two args could be computed here, but we run faster by
 ;; having the caller compute them just once.
 (defun compile-abbreviate-directory (dir orig orig-expanded parent-expanded)
+  ;; Check for a comint-file-name-prefix and prepend it if appropriate.
+  ;; (This is very useful for compilation-minor-mode in an rlogin-mode
+  ;; buffer.)
+  (if (boundp 'comint-file-name-prefix)
+      (setq dir (concat comint-file-name-prefix dir)))
+
   (if (and (> (length dir) (length orig-expanded))
 	   (string= orig-expanded
 		    (substring dir 0 (length orig-expanded))))
