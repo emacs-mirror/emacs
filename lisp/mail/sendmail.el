@@ -476,7 +476,7 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
   (setq mode-name "Mail")
   (setq buffer-offer-save t)
   (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(mail-font-lock-keywords t))
+  (setq font-lock-defaults '(mail-font-lock-keywords t t))
   (make-local-variable 'paragraph-separate)
   (make-local-variable 'paragraph-start)
   (make-local-variable 'normal-auto-fill-function)
