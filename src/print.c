@@ -727,6 +727,15 @@ DEFUN ("error-message-string", Ferror_message_string, Serror_message_string,
   Lisp_Object original, printcharfun, value;
   struct gcpro gcpro1;
 
+  /* If OBJ is (error STRING), just return STRING.
+     That is not only faster, it also avoids the need to allocate
+     space here when the error is due to memory full.  */
+  if (CONSP (obj) && EQ (XCONS (obj)->car, Qerror)
+      && CONSP (XCONS (obj)->cdr)
+      && STRINGP (XCONS (XCONS (obj)->cdr)->car)
+      && NILP (XCONS (XCONS (obj)->cdr)->cdr))
+    return XCONS (XCONS (obj)->cdr)->car;
+
   print_error_message (obj, Vprin1_to_string_buffer, NULL);
 
   set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
