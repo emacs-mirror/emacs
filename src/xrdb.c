@@ -17,6 +17,19 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Written by jla, 4/90 */
 
+#ifdef emacs
+#include "config.h"
+#endif
+
+#if 1 /* I'd really appreciate it if this code could go away...  -JimB */
+/* this avoids lossage in the `dual-universe' headers on AT&T SysV X11 */
+#ifdef USG5
+#define SYSV
+#include <unistd.h>
+#endif /* USG5 */
+
+#endif /* 1 */
+ 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <X11/Xos.h>
@@ -30,14 +43,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <pwd.h>
 #endif
 #include <sys/stat.h>
-#include <sys/types.h>
 
-#ifdef emacs
-#include "config.h"
+#ifndef MAXPATHLEN
+#define MAXPATHLEN	256
 #endif
 
 extern char *getenv ();
-extern uid_t getuid ();
+extern int getuid ();
 extern struct passwd *getpwuid ();
 extern struct passwd *getpwnam ();
 
@@ -267,7 +279,9 @@ get_user_db (display)
   XrmDatabase db;
   char *xdefs;
 
-  xdefs = XResourceManagerString (display);
+  /* Yes, I know we should probably get this using XResourceManagerString.
+     Who cares.  */
+  xdefs = display->xdefaults;
   if (xdefs != NULL)
     db = XrmGetStringDatabase (xdefs);
   else
