@@ -5122,8 +5122,8 @@ foreach_window_1 (w, fn, user_data)
  	cont = foreach_window_1 (XWINDOW (w->hchild), fn, user_data);
       else if (!NILP (w->vchild))
  	cont = foreach_window_1 (XWINDOW (w->vchild), fn, user_data);
-      else if (fn (w, user_data))
-	cont = 0;
+      else 
+	cont = fn (w, user_data);
       
       w = NILP (w->next) ? 0 : XWINDOW (w->next);
     }
