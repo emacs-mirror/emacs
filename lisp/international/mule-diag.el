@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, charset, coding system, fontset, diagnosis, i18n
 
@@ -66,19 +66,19 @@
 (defun list-character-sets (arg)
   "Display a list of all character sets.
 
-The ID-NUM column contains a charset identification number
-  for internal Emacs use.
+The ID-NUM column contains a charset identification number for
+internal Emacs use.
 
-The MULTIBYTE-FORM column contains a format of multibyte sequence
-  of characters in the charset for buffer and string
-  by one to four hexadecimal digits.
+The MULTIBYTE-FORM column contains the format of the buffer and string
+multibyte sequence of characters in the charset using one to four
+hexadecimal digits.
   `xx' stands for any byte in the range 0..127.
   `XX' stands for any byte in the range 160..255.
 
-The D column contains a dimension of this character set.
-The CH column contains a number of characters in a block of this character set.
-The FINAL-CHAR column contains an ISO-2022's <final-char> to use for
-  designating this character set in ISO-2022-based coding systems.
+The D column contains the dimension of this character set.  The CH
+column contains the number of characters in a block of this character
+set.  The FINAL-CHAR column contains an ISO-2022 <final-char> to use
+for designating this character set in ISO-2022-based coding systems.
 
 With prefix arg, the output format gets more cryptic,
 but still shows the full information."
@@ -118,9 +118,6 @@ but still shows the full information."
 
 	;; Insert body sorted by charset IDs.
 	(list-character-sets-1 'id)))))
-
-
-;; Sort character set list by SORT-KEY.
 
 (defun sort-listed-character-sets (sort-key)
   (if sort-key
@@ -252,7 +249,11 @@ but still shows the full information."
 		     (charset-description charset))))))
 
 (defvar non-iso-charset-alist
-  `((viscii
+  `((mac-roman
+     nil
+     mac-roman-decoder
+     ((0 255)))
+    (viscii
      (ascii vietnamese-viscii-lower vietnamese-viscii-upper)
      viet-viscii-nonascii-translation-table
      ((0 255)))
@@ -274,25 +275,27 @@ but still shows the full information."
      decode-sjis-char
      ((32 127 ?\xA1 ?\xDF)
       ((?\x81 ?\x9F ?\xE0 ?\xEF) . (?\x40 ?\x7E ?\x80 ?\xFC)))))
-  "Alist of non-ISO charset names vs the corresponding information.
-
-Non-ISO charsets are what Emacs can read (or write) by mapping to (or
-from) some Emacs' charsets that correspond to ISO charsets.
+  "Alist of charset names vs the corresponding information.
+This is mis-named for historical reasons.  The charsets are actually
+non-built-in ones.  They correspond to Emacs coding systems, not Emacs
+charsets, i.e. what Emacs can read (or write) by mapping to (or
+from) Emacs internal charsets that typically correspond to a limited
+set of ISO charsets.
 
 Each element has the following format:
-  (NON-ISO-CHARSET CHARSET-LIST TRANSLATION-METHOD [ CODE-RANGE ])
+  (CHARSET CHARSET-LIST TRANSLATION-METHOD [ CODE-RANGE ])
 
-NON-ISO-CHARSET is a name (symbol) of the non-ISO charset.
+CHARSET is the name (symbol) of the charset.
 
-CHARSET-LIST is a list of Emacs' charsets into which characters of
-NON-ISO-CHARSET are mapped.
+CHARSET-LIST is a list of Emacs charsets into which characters of
+CHARSET are mapped.
 
 TRANSLATION-METHOD is a translation table (symbol) to translate a
-character code of NON-ISO-CHARSET to the corresponding Emacs character
+character code of CHARSET to the corresponding Emacs character
 code.  It can also be a function to call with one argument, a
-character code in NON-ISO-CHARSET.
+character code in CHARSET.
 
-CODE-RANGE specifies the valid code ranges of NON-ISO-CHARSET.
+CODE-RANGE specifies the valid code ranges of CHARSET.
 It is a list of RANGEs, where each RANGE is of the form:
   (FROM1 TO1 FROM2 TO2 ...)
 or
@@ -303,11 +306,10 @@ The second form is used for 2-byte codes.  The car part is the ranges
 of the first byte, and the cdr part is the ranges of the second byte.")
 
 
-;; Decode a character that has code CODE in CODEPAGE.  Value is a
-;; string of decoded character.
-
 (defun decode-codepage-char (codepage code)
-  ;; Each CODEPAGE corresponds to a coding system cpCODEPAGE.
+  "Decode a character that has code CODE in CODEPAGE.
+Return a decoded character string.  Each CODEPAGE corresponds to a
+coding system cpCODEPAGE."
   (let ((coding-system (intern (format "cp%d" codepage))))
     (or (coding-system-p coding-system)
 	(codepage-setup codepage))
@@ -324,14 +326,15 @@ of the first byte, and the cdr part is the ranges of the second byte.")
     ;; Now ELT is (CODEPAGE . CHARSET), where CODEPAGE is a string
     ;; (e.g. "850"), CHARSET is a charset that characters in CODEPAGE
     ;; are mapped to.
-    (setq non-iso-charset-alist
-	  (cons (list (intern (concat "cp" (car elt)))
-		      (list 'ascii (cdr elt))
-		      `(lambda (code)
-			 (decode-codepage-char ,(string-to-int (car elt))
-					       code))
-		      (list (list 0 255)))
-		non-iso-charset-alist))))
+    (unless (assq (intern (concat "cp" (car elt))) non-iso-charset-alist)
+      (setq non-iso-charset-alist
+	    (cons (list (intern (concat "cp" (car elt)))
+			(list 'ascii (cdr elt))
+			`(lambda (code)
+			   (decode-codepage-char ,(string-to-int (car elt))
+						 code))
+			(list (list 0 255)))
+		  non-iso-charset-alist)))))
 
 
 ;; A variable to hold charset input history.
@@ -341,7 +344,7 @@ of the first byte, and the cdr part is the ranges of the second byte.")
 ;;;###autoload
 (defun read-charset (prompt &optional default-value initial-input)
   "Read a character set from the minibuffer, prompting with string PROMPT.
-It reads an Emacs' character set listed in the variable `charset-list'
+It must be an Emacs character set listed in the variable `charset-list'
 or a non-ISO character set listed in the variable
 `non-iso-charset-alist'.
 
@@ -395,20 +398,25 @@ detailed meanings of these arguments."
 	       (or (< ch 32) (and (>= ch 127) (<= ch 255))))
 	  ;; Don't insert a control code.
 	  (setq ch 32))
+      (unless ch (setq ch 32))
+      (if (eq ch ?\t)
+	  ;; Make it visible.
+	  (setq ch (propertize "\t" 'display "^I")))
+      ;; This doesn't DTRT.  Maybe it's better to insert "^J" and not
+      ;; worry about the buffer contents not being correct.
+;;;       (if (eq ch ?\n)
+;;; 	(setq ch (propertize "\n" 'display "^J")))
       (indent-to (+ (* (% i 16) 3) 6))
       (insert ch)
       (setq i (1+ i))))
   (insert "\n"))
-
-
-;; List all characters in ISO charset CHARSET.
 
 (defun list-iso-charset-chars (charset)
   (let ((dim (charset-dimension charset))
 	(chars (charset-chars charset))
 	(plane (charset-iso-graphic-plane charset))
 	min max)
-    (insert (format "Characters in the charset %s.\n" charset))
+    (insert (format "Characters in the coded character set %s.\n" charset))
 
     (cond ((eq charset 'eight-bit-control)
 	   (setq min 128 max 159))
@@ -428,29 +436,36 @@ detailed meanings of these arguments."
 	  (list-block-of-chars charset i min max)
 	  (setq i (1+ i)))))))
 
-
-;; List all characters in non-ISO charset CHARSET.
-
 (defun list-non-iso-charset-chars (charset)
+  "List all characters in non-built-in coded character set CHARSET."
   (let* ((slot (assq charset non-iso-charset-alist))
 	 (charsets (nth 1 slot))
 	 (translate-method (nth 2 slot))
 	 (ranges (nth 3 slot))
 	 range)
     (or slot
-	(error "Unknown external charset: %s" charset))
-    (insert (format "Characters in non-ISO charset %s.\n" charset))
-    (insert "They are mapped to: "
-	    (mapconcat #'symbol-name charsets ", ")
-	    "\n")
+	(error "Unknown character set: %s" charset))
+    (insert (format "Characters in the coded character set %s.\n" charset))
+    (if charsets
+	(insert "They are mapped to: "
+		(mapconcat #'symbol-name charsets ", ")
+		"\n"))
     (while ranges
-      (setq range (car ranges) ranges (cdr ranges))
+      (setq range (pop ranges))
       (if (integerp (car range))
 	  ;; The form of RANGES is (FROM1 TO1 FROM2 TO2 ...).
-	  (while range
-	    (list-block-of-chars translate-method
-				 0 (car range) (nth 1 range))
-	    (setq range (nthcdr 2 range)))
+	  (if (and (not (functionp translate-method))
+		   (< (car (last range)) 256))
+	      ;; Do it all in one block to avoid the listing being
+	      ;; broken up at gaps in the range.  Don't do that for
+	      ;; function translate-method, since not all codes in
+	      ;; that range may be valid.
+	      (list-block-of-chars translate-method
+				   0 (car range) (car (last range)))
+	    (while range
+	      (list-block-of-chars translate-method
+				   0 (car range) (nth 1 range))
+	      (setq range (nthcdr 2 range))))
 	;; The form of RANGES is ((FROM1-1 TO1-1 ...) . (FROM2-1 TO2-1 ...)).
 	(let ((row-range (car range))
 	      row row-max
@@ -469,22 +484,26 @@ detailed meanings of these arguments."
 
 ;;;###autoload
 (defun list-charset-chars (charset)
-  "Display a list of characters in the specified character set."
+  "Display a list of characters in the specified character set.
+This can list both Emacs `official' (ISO standard) charsets and the
+characters encoded by various Emacs coding systems which correspond to
+PC `codepages' and other coded character sets.  See `non-iso-charset-alist'."
   (interactive (list (read-charset "Character set: ")))
   (with-output-to-temp-buffer "*Help*"
     (with-current-buffer standard-output
+      (setq indent-tabs-mode nil)
       (set-buffer-multibyte t)
       (cond ((charsetp charset)
 	     (list-iso-charset-chars charset))
 	    ((assq charset non-iso-charset-alist)
 	     (list-non-iso-charset-chars charset))
 	    (t
-	     (error "Invalid charset %s" charset))))))
+	     (error "Invalid character set %s" charset))))))
 
 
 ;;;###autoload
 (defun describe-character-set (charset)
-  "Display information about character set CHARSET."
+  "Display information about built-in character set CHARSET."
   (interactive (list (let ((non-iso-charset-alist nil))
 		       (read-charset "Charset: "))))
   (or (charsetp charset)
@@ -496,21 +515,21 @@ detailed meanings of these arguments."
 	(insert "Character set: " (symbol-name charset)
 		(format " (ID:%d)\n\n" (aref info 0)))
 	(insert (aref info 13) "\n\n")	; description
-	(insert "number of contained characters: "
+	(insert "Number of contained characters: "
 		(if (= (aref info 2) 1)
 		    (format "%d\n" (aref info 3))
 		  (format "%dx%d\n" (aref info 3) (aref info 3))))
-	(insert "the final char of ISO2022's designation sequence: ")
+	(insert "Final char of ISO2022 designation sequence: ")
 	(if (>= (aref info 8) 0)
 	    (insert (format "`%c'\n" (aref info 8)))
 	  (insert "not assigned\n"))
-	(insert (format "width (how many columns on screen): %d\n"
+	(insert (format "Width (how many columns on screen): %d\n"
 			(aref info 4)))
-	(insert (format "internal multibyte sequence: %s\n"
+	(insert (format "Internal multibyte sequence: %s\n"
 			(charset-multibyte-form-string charset)))
 	(let ((coding (plist-get (aref info 14) 'preferred-coding-system)))
 	  (when coding
-	    (insert (format "preferred coding system: %s\n" coding))
+	    (insert (format "Preferred coding system: %s\n" coding))
 	    (search-backward (symbol-name coding))
 	    (help-xref-button 0 'help-coding-system coding)))))))
 
@@ -557,10 +576,17 @@ which font is being used for displaying the character."
 		      (format "%d" (nth 1 split))
 		    (format "%d %d" (nth 1 split) (nth 2 split)))))
 	      ("syntax"
-	       ,(let ((syntax (aref (syntax-table) char)))
-		  (with-temp-buffer
-		    (internal-describe-syntax-value syntax)
-		    (buffer-string))))
+ 	       ,(let* ((old-table (syntax-table))
+ 		       (table (get-char-property (point) 'syntax-table)))
+ 		  (if (consp table)
+ 		      (nth 1 (assq (car table)
+ 				   (mapcar #'cdr syntax-code-table)))
+ 		    (unwind-protect
+ 			(progn
+ 			  (if (syntax-table-p table)
+ 			      (set-syntax-table table))
+ 			  (nth 2 (assq (char-syntax char) syntax-code-table)))
+ 		      (set-syntax-table old-table)))))
 	      ("category"
 	       ,@(let ((category-set (char-category-set char)))
 		   (if (not category-set)
@@ -568,6 +594,13 @@ which font is being used for displaying the character."
 		     (mapcar #'(lambda (x) (format "%c:%s  "
 						   x (category-docstring x)))
 			     (category-set-mnemonics category-set)))))
+	      ,@(let ((props (aref char-code-property-table char))
+		      ps)
+		  (when props
+		    (while props
+		      (push (format "%s:" (pop props)) ps)
+		      (push (format "%s;" (pop props)) ps))
+		    (list (cons "Properties" (nreverse ps)))))
 	      ("buffer code"
 	       ,(encoded-string-description
 		 (string-as-unibyte (char-to-string char)) nil))
@@ -579,6 +612,15 @@ which font is being used for displaying the character."
 			     (format "(encoded by coding system %S)" coding))
 		     (list "not encodable by coding system"
 			   (symbol-name coding)))))
+	      ,@(if (or (memq 'mule-utf-8
+			  (find-coding-systems-region (point) (1+ (point))))
+			(get-char-property (point) 'untranslated-utf-8))
+		    (let ((uc (or (get-char-property (point)
+						     'untranslated-utf-8)
+				  (encode-char (char-after) 'ucs))))
+		      (if uc
+			  (list (list "Unicode"
+				      (format "%04X" uc))))))
 	      ,(if (display-graphic-p (selected-frame))
 		   (list "font" (or (internal-char-font (point))
 				    "-- none --"))
@@ -620,7 +662,8 @@ which font is being used for displaying the character."
 			       (nth 2 composition)
 			       " ")
 		    ").\n"
-		    "See the variable `reference-point-alist' for the meaning of the rule.\n")))
+		    "See the variable `reference-point-alist' for "
+		    "the meaning of the rule.\n")))
 	(if props
 	    (insert "\nText properties\n"))
 	(while props
@@ -768,7 +811,7 @@ eight-bit-control and eight-bit-graphic.\n")
 
 The format is \"F[..],K[..],T[..],P>[..],P<[..], default F[..],P<[..],P<[..]\",
 where mnemonics of the following coding systems come in this order
-at the place of `..':
+in place of `..':
   `buffer-file-coding-system' (of the current buffer)
   eol-type of `buffer-file-coding-system' (of the current buffer)
   Value returned by `keyboard-coding-system'
@@ -857,7 +900,8 @@ at the place of `..':
 
     (with-current-buffer standard-output
 
-      (princ "\nPriority order for recognizing coding systems when reading files:\n")
+      (princ "
+Priority order for recognizing coding systems when reading files:\n")
       (let ((l coding-category-list)
 	    (i 1)
 	    (coding-list nil)
@@ -898,7 +942,9 @@ at the place of `..':
 	  (if codings
 	      (let ((max-col (frame-width))
 		    pos)
-		(princ (format "  The followings are decoded correctly but recognized as %s:\n   " coding-system))
+		(princ (format "\
+  The following are decoded correctly but recognized as %s:\n   "
+			       coding-system))
 		(while codings
 		  (setq pos (point))
 		  (insert (format " %s" (car codings)))
@@ -1094,10 +1140,11 @@ but still contains full information about each coding system."
       (with-output-to-temp-buffer "*Help*"
 	(describe-font-internal font-info 'verbose)))))
 
-;; Print information of FONTSET.  If optional arg PRINT-FONTS is
-;; non-nil, print also names of all opened fonts for FONTSET.  This
-;; function actually INSERT such information in the current buffer.
 (defun print-fontset (fontset &optional print-fonts)
+  "Print information about FONTSET.
+If optional arg PRINT-FONTS is non-nil, also print names of all opened
+fonts for FONTSET.  This function actually inserts the information in
+the current buffer."
   (let ((tail (aref (fontset-info fontset) 2))
 	elt chars font-spec opened prev-charset charset from to)
     (beginning-of-line)
@@ -1163,7 +1210,7 @@ but still contains full information about each coding system."
 
 ;;;###autoload
 (defun describe-fontset (fontset)
-  "Display information of FONTSET.
+  "Display information about FONTSET.
 This shows which font is used for which character(s)."
   (interactive
    (if (not (and window-system (fboundp 'fontset-list)))
@@ -1189,7 +1236,7 @@ This shows which font is used for which character(s)."
 (defun list-fontsets (arg)
   "Display a list of all fontsets.
 This shows the name, size, and style of each fontset.
-With prefix arg, it also list the fonts contained in each fontset;
+With prefix arg, also list the fonts contained in each fontset;
 see the function `describe-fontset' for the format of the list."
   (interactive "P")
   (if (not (and window-system (fboundp 'fontset-list)))
@@ -1214,14 +1261,23 @@ see the function `describe-fontset' for the format of the list."
   "Display information about all input methods."
   (interactive)
   (with-output-to-temp-buffer "*Help*"
-    (list-input-methods-1)))
+    (list-input-methods-1)
+    (with-current-buffer standard-output
+      (save-excursion
+	(goto-char (point-min))
+	(while (re-search-forward
+		"^  \\([^ ]+\\) (`.*' in mode line)$" nil t)
+	  (help-xref-button 1 #'describe-input-method
+				(match-string 1)
+				"mouse-2: describe this method")))
+      (help-setup-xref '(list-input-methods) (interactive-p)))))
 
 (defun list-input-methods-1 ()
   (if (not input-method-alist)
       (progn
 	(princ "
 No input method is available, perhaps because you have not yet
-installed LEIM (Libraries of Emacs Input Method).
+installed LEIM (Libraries of Emacs Input Methods).
 
 LEIM is available from the same ftp directory as Emacs.  For instance,
 if there exists an archive file `emacs-M.N.tar.gz', there should also
@@ -1343,54 +1399,5 @@ system which uses fontsets)."
 	    (print-fontset (car fontsets) t)
 	    (setq fontsets (cdr fontsets)))))
       (print-help-return-message))))
-
-
-;;; DUMP DATA FILE
-
-;;;###autoload
-(defun dump-charsets ()
-  "Dump information about all charsets into the file `CHARSETS'.
-The file is saved in the directory `data-directory'."
-  (let ((file (expand-file-name "CHARSETS" data-directory))
-	buf)
-    (or (file-writable-p file)
-	(error "Can't write to file %s" file))
-    (setq buf (find-file-noselect file))
-    (save-window-excursion
-      (with-current-buffer buf
-	(setq buffer-read-only nil)
-	(erase-buffer)
-	(list-character-sets-2)
-	(insert-buffer-substring "*Help*")
-	(let (make-backup-files
-	      coding-system-for-write)
-	  (save-buffer))))
-    (kill-buffer buf))
-  (if noninteractive
-      (kill-emacs)))
-
-;;;###autoload
-(defun dump-codings ()
-  "Dump information about all coding systems into the file `CODINGS'.
-The file is saved in the directory `data-directory'."
-  (let ((file (expand-file-name "CODINGS" data-directory))
-	buf)
-    (or (file-writable-p file)
-	(error "Can't write to file %s" file))
-    (setq buf (find-file-noselect file))
-    (save-window-excursion
-      (with-current-buffer buf
-	(setq buffer-read-only nil)
-	(erase-buffer)
-	(list-coding-systems t)
-	(insert-buffer-substring "*Help*")
-	(list-coding-categories)
-	(insert-buffer-substring "*Help*")
-	(let (make-backup-files
-	      coding-system-for-write)
-	  (save-buffer))))
-    (kill-buffer buf))
-  (if noninteractive
-      (kill-emacs)))
 
 ;;; mule-diag.el ends here
