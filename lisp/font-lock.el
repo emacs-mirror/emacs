@@ -85,8 +85,6 @@
 (defvar font-lock-no-comments nil
   "Non-nil means Font Lock should not fontify comments or strings.")
 
-(make-obsolete-variable 'font-lock-doc-string-face 'font-lock-string-face)
-
 (make-variable-buffer-local 'font-lock-keywords)
 (defvar font-lock-keywords nil
   "*The keywords to highlight.
@@ -462,12 +460,12 @@ the face is also set; its value is the face name."
 		;; Make sure PREV is non-nil after the loop
 		;; only if it was set on the very last iteration.
 		(setq prev nil)))
-	  (set-syntax-table old-syntax))
-	(and prev
-	     (remove-text-properties prev end '(face nil)))
-	(and (buffer-modified-p)
-	     (not modified)
-	     (set-buffer-modified-p nil))))))
+	  (set-syntax-table old-syntax)
+	  (and prev
+	       (remove-text-properties prev end '(face nil)))
+	  (and (buffer-modified-p)
+	       (not modified)
+	       (set-buffer-modified-p nil)))))))
 	  
 
 (defun font-lock-unfontify-region (beg end)
@@ -582,10 +580,10 @@ the face is also set; its value is the face name."
 	      (mapcar 'font-lock-apply-highlight highlights))
 	    (if loudly (message "Fontifying %s... (regexps...%s)" bufname
 				(make-string (setq count (1+ count)) ?.)))))
-      (set-syntax-table old-syntax))
-    (and (buffer-modified-p)
-	 (not modified)
-	 (set-buffer-modified-p nil))))
+      (set-syntax-table old-syntax)
+      (and (buffer-modified-p)
+	   (not modified)
+	   (set-buffer-modified-p nil)))))
 
 ;; The user level functions
 
@@ -666,10 +664,10 @@ size, you can use \\[font-lock-fontify-buffer]."
   "Unconditionally turn on Font Lock mode."
   (font-lock-mode 1))
 
-;; Turn off other related packages if they're on.  I prefer a hook.
+;; Turn off other related packages if they're on.  I prefer a hook. --sm.
 ;; These explicit calls are easier to understand
 ;; because people know what they will do.
-;; A hook is a mystery because it might do anything whatever. -- rms.
+;; A hook is a mystery because it might do anything whatever. --rms.
 (defun font-lock-thing-lock-cleanup ()
   (cond ((and (boundp 'fast-lock-mode) fast-lock-mode)
 	 (fast-lock-mode -1))
@@ -743,27 +741,21 @@ size, you can use \\[font-lock-fontify-buffer]."
    (let ((word-char "[-+a-zA-Z0-9_:*]"))
      (list
       ;;
-      ;; Control structures.
-      ;; ELisp:
+      ;; Control structures.  ELisp and CLisp combined.
 ;    ("cond" "if" "while" "let\\*?" "prog[nv12*]?" "catch" "throw"
 ;     "save-restriction" "save-excursion" "save-window-excursion"
 ;     "save-selected-window" "save-match-data" "unwind-protect"
-;     "condition-case" "track-mouse")
+;     "condition-case" "track-mouse"
+;     "when" "unless" "do" "flet" "labels" "return" "return-from")
       (cons
        (concat
 	"(\\("
-	"c\\(atch\\|ond\\(\\|ition-case\\)\\)\\|if\\|let\\*?\\|prog[nv12*]?\\|"
+	"c\\(atch\\|ond\\(\\|ition-case\\)\\)\\|do\\|flet\\|if\\|"
+	"l\\(abels\\|et\\*?\\)\\|prog[nv12*]?\\|return\\(\\|-from\\)\\|"
 	"save-\\(excursion\\|match-data\\|restriction\\|"
-	"selected-window\\|window-excursion\\)\\|"
-	"t\\(hrow\\|rack-mouse\\)\\|unwind-protect\\|while"
+	"selected-window\\|window-excursion\\)\\|t\\(hrow\\|rack-mouse\\)\\|"
+	"un\\(less\\|wind-protect\\)\\|wh\\(en\\|ile\\)"
 	"\\)\\>") 1)
-      ;; CLisp:
-;    ("when" "unless" "do" "flet" "labels" "return" "return-from")
-      '("(\\(do\\|flet\\|labels\\|return\\(\\|-from\\)\\|unless\\|when\\)\\>"
-	. 1)
-      ;;
-      ;; Fontify CLisp keywords.
-      (concat "\\<:" word-char "+\\>")
       ;;
       ;; Function names in emacs-lisp docstrings (in the syntax that
       ;; `substitute-command-keys' understands).
@@ -774,7 +766,10 @@ size, you can use \\[font-lock-fontify-buffer]."
       (list (concat "`\\(" word-char word-char "+\\)'")
 	    1 'font-lock-reference-face t)
       ;;
-      ;; & keywords as types
+      ;; CLisp `:' keywords as references.
+      (list (concat "\\<:" word-char "+\\>") 0 font-lock-reference-face t)
+      ;;
+      ;; ELisp and CLisp `&' keywords as types.
       '("\\&\\(optional\\|rest\\|whole\\)\\>" . font-lock-type-face)
       )))
   "Gaudy level highlighting for Lisp modes.")
@@ -933,14 +928,14 @@ size, you can use \\[font-lock-fontify-buffer]."
 (defun font-lock-choose-keywords (keywords level)
   ;; Return evaled LEVELth element of KEYWORDS.  A LEVEL of nil is equal to a
   ;; LEVEL of 0, a LEVEL of t is equal to (1- (length KEYWORDS)).
-  (eval (cond ((symbolp keywords)
-	       keywords)
-	      ((numberp level)
-	       (or (nth level keywords) (car (reverse keywords))))
-	      ((eq level t)
-	       (car (reverse keywords)))
-	      (t
-	       (car keywords)))))
+  (cond ((symbolp keywords)
+	 keywords)
+	((numberp level)
+	 (or (nth level keywords) (car (reverse keywords))))
+	((eq level t)
+	 (car (reverse keywords)))
+	(t
+	 (car keywords))))
 
 (defun font-lock-set-defaults ()
   "Set fontification defaults appropriately for this mode.
@@ -954,8 +949,10 @@ nil, using `font-lock-defaults-alist') and `font-lock-maximum-decoration'."
       (let ((defaults (or font-lock-defaults
 			  (cdr (assq major-mode font-lock-defaults-alist)))))
 	;; Keywords?
-	(setq font-lock-keywords (font-lock-choose-keywords (nth 0 defaults)
-				  font-lock-maximum-decoration))
+	(setq font-lock-keywords
+	      (font-lock-compile-keywords
+	       (eval (font-lock-choose-keywords (nth 0 defaults)
+		      font-lock-maximum-decoration))))
 	;; Syntactic?
 	(if (nth 1 defaults)
 	    (set (make-local-variable 'font-lock-no-comments) t))
