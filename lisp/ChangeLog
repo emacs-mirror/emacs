@@ -1,3 +1,22 @@
+2002-03-07  Colin Walters  <walters@verbum.org>
+
+	* ibuf-macs.el (define-ibuffer-column): Add :summarizer property.
+
+	* ibuffer.el (ibuffer-update-mode-name): Substitute "view time"
+	instead of "recency" for clarity.
+	(ibuffer-compile-format): Document more.  Handle new "summarizer"
+	columns.
+	(ibuffer-fontify-region-function): Ditto.
+	(ibuffer-insert-buffer-line): Ditto.
+	(ibuffer-map-lines): Ditto.
+	(ibuffer-insert-buffers-and-marks): Ditto.
+	(ibuffer-update-title-and-summary): Renamed from
+	`ibuffer-update-title'.  Handle "summarizer" columns.
+	(ibuffer-clear-summary-columns): New function.
+
+	* ibuf-ext.el (ibuffer-filter-format-alist): Add type and group.
+	(ibuffer-toggle-sorting-mode): Ditto.
+	
 2002-03-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/ebrowse.el (ebrowse-view/find-file-and-search-pattern): 
