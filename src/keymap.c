@@ -1248,8 +1248,8 @@ silly_event_symbol_error (c)
 /* We can't put these variables inside current_minor_maps, since under
    some systems, static gets macro-defined to be the empty string.
    Ickypoo.  */
-static Lisp_Object *cmm_modes, *cmm_maps;
-static int cmm_size;
+static Lisp_Object *cmm_modes = NULL, *cmm_maps = NULL;
+static int cmm_size = 0;
 
 /* Error handler used in current_minor_maps.  */
 static Lisp_Object
@@ -1321,40 +1321,41 @@ current_minor_maps (modeptr, mapptr)
 
 	    if (i >= cmm_size)
 	      {
+		int newsize, allocsize;
 		Lisp_Object *newmodes, *newmaps;
 
-		/* Use malloc/realloc here.  See the comment above
-		   this function.  */
-		if (cmm_maps)
+		newsize = cmm_size == 0 ? 30 : cmm_size * 2;
+		allocsize = newsize * sizeof *newmodes;
+
+		/* Use malloc here.  See the comment above this function. 
+		   Avoid realloc here; it causes spurious traps on GNU/Linux [KFS] */
+		BLOCK_INPUT;
+		newmodes = (Lisp_Object *) malloc (allocsize);
+		if (newmodes)
 		  {
-		    BLOCK_INPUT;
-		    cmm_size *= 2;
-		    newmodes
-		      = (Lisp_Object *) realloc (cmm_modes,
-						 cmm_size * sizeof *newmodes);
-		    newmaps
-		      = (Lisp_Object *) realloc (cmm_maps,
-						 cmm_size * sizeof *newmaps);
-		    UNBLOCK_INPUT;
-		  }
-		else
-		  {
-		    BLOCK_INPUT;
-		    cmm_size = 30;
-		    newmodes
-		      = (Lisp_Object *) malloc (cmm_size * sizeof *newmodes);
-		    newmaps
-		      = (Lisp_Object *) malloc (cmm_size * sizeof *newmaps);
-		    UNBLOCK_INPUT;
+		    if (cmm_modes)
+		      {
+			bcopy (cmm_modes, newmodes, cmm_size * sizeof cmm_modes[0]);
+			free (cmm_modes);
+		      }
+		    cmm_modes = newmodes;
 		  }
 
-		if (newmodes)
-		  cmm_modes = newmodes;
+		newmaps = (Lisp_Object *) malloc (allocsize);
 		if (newmaps)
-		  cmm_maps = newmaps;
+		  {
+		    if (cmm_maps)
+		      {
+			bcopy (cmm_maps, newmaps, cmm_size * sizeof cmm_maps[0]);
+			free (cmm_maps);
+		      }
+		    cmm_maps = newmaps;
+		  }
+		UNBLOCK_INPUT;
 	      
 		if (newmodes == NULL || newmaps == NULL)
 		  break;
+		cmm_size = newsize;
 	      }
 
 	    /* Get the keymap definition--or nil if it is not defined.  */
