@@ -71,16 +71,16 @@ in the file it applies to.")
   (define-key outline-mode-map "\C-c\C-e" 'show-entry)
   (define-key outline-mode-map "\C-c\C-l" 'hide-leaves)
   (define-key outline-mode-map "\C-c\C-k" 'show-branches)
-  (define-key outline-mode-map "\C-c\C-q" 'outline-hide-sublevels)
-  (define-key outline-mode-map "\C-c\C-o" 'outline-hide-other)
+  (define-key outline-mode-map "\C-c\C-q" 'hide-sublevels)
+  (define-key outline-mode-map "\C-c\C-o" 'hide-other)
 
   (define-key outline-mode-map [menu-bar hide]
     (cons "Hide" (make-sparse-keymap "Hide")))
 
-  (define-key outline-mode-map [menu-bar hide outline-hide-other]
-    '("Hide Other" . outline-hide-other))
-  (define-key outline-mode-map [menu-bar hide outline-hide-sublevels]
-    '("Hide Sublevels" . outline-hide-sublevels))
+  (define-key outline-mode-map [menu-bar hide hide-other]
+    '("Hide Other" . hide-other))
+  (define-key outline-mode-map [menu-bar hide hide-sublevels]
+    '("Hide Sublevels" . hide-sublevels))
   (define-key outline-mode-map [menu-bar hide hide-subtree]
     '("Hide Subtree" . hide-subtree))
   (define-key outline-mode-map [menu-bar hide hide-entry]
@@ -364,7 +364,7 @@ while if FLAG is `\\^M' (control-M) the text is hidden."
   (interactive)
   (outline-flag-subtree ?\n))
 
-(defun outline-hide-sublevels (levels)
+(defun hide-sublevels (levels)
   "Hide everything except the top LEVELS levels of headers."
   (interactive "p")
   (if (< levels 1)
@@ -382,10 +382,10 @@ while if FLAG is `\\^M' (control-M) the text is hidden."
 	(show-children levels))
       (error nil))))
 
-(defun outline-hide-other ()
+(defun hide-other ()
   "Hide everything except for the current body and the parent headings."
   (interactive)
-  (outline-hide-sublevels 1)
+  (hide-sublevels 1)
   (let ((last (point))
 	(pos (point)))
     (while (save-excursion
