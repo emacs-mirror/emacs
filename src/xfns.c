@@ -3936,20 +3936,20 @@ x_make_gc (f)
   gc_values.foreground = f->output_data.x->foreground_pixel;
   gc_values.background = f->output_data.x->background_pixel;
   gc_values.line_width = 0;	/* Means 1 using fast algorithm.  */
-  f->output_data.x->normal_gc = XCreateGC (FRAME_X_DISPLAY (f),
-				       FRAME_X_WINDOW (f),
-				       GCLineWidth | GCFont
-				       | GCForeground | GCBackground,
-				       &gc_values);
+  f->output_data.x->normal_gc
+    = XCreateGC (FRAME_X_DISPLAY (f),
+		 FRAME_X_WINDOW (f),
+		 GCLineWidth | GCFont | GCForeground | GCBackground,
+		 &gc_values);
 
   /* Reverse video style.  */
   gc_values.foreground = f->output_data.x->background_pixel;
   gc_values.background = f->output_data.x->foreground_pixel;
-  f->output_data.x->reverse_gc = XCreateGC (FRAME_X_DISPLAY (f),
-					FRAME_X_WINDOW (f),
-					GCFont | GCForeground | GCBackground
-					| GCLineWidth,
-					&gc_values);
+  f->output_data.x->reverse_gc
+    = XCreateGC (FRAME_X_DISPLAY (f),
+		 FRAME_X_WINDOW (f),
+		 GCFont | GCForeground | GCBackground | GCLineWidth,
+		 &gc_values);
 
   /* Cursor has cursor-color background, background-color foreground.  */
   gc_values.foreground = f->output_data.x->background_pixel;
@@ -3983,6 +3983,45 @@ x_make_gc (f)
 
   UNBLOCK_INPUT;
 }
+
+
+/* Free what was was allocated in x_make_gc.  */
+
+void
+x_free_gcs (f)
+     struct frame *f;
+{
+  Display *dpy = FRAME_X_DISPLAY (f);
+
+  BLOCK_INPUT;
+  
+  if (f->output_data.x->normal_gc)
+    {
+      XFreeGC (dpy, f->output_data.x->normal_gc);
+      f->output_data.x->normal_gc = 0;
+    }
+
+  if (f->output_data.x->reverse_gc)
+    {
+      XFreeGC (dpy, f->output_data.x->reverse_gc);
+      f->output_data.x->reverse_gc = 0;
+    }
+  
+  if (f->output_data.x->cursor_gc)
+    {
+      XFreeGC (dpy, f->output_data.x->cursor_gc);
+      f->output_data.x->cursor_gc = 0;
+    }
+
+  if (f->output_data.x->border_tile)
+    {
+      XFreePixmap (dpy, f->output_data.x->border_tile);
+      f->output_data.x->border_tile = 0;
+    }
+
+  UNBLOCK_INPUT;
+}
+
 
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
