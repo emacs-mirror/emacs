@@ -5,6 +5,8 @@
 
 2000-09-28  Dave Love  <fx@gnu.org>
 
+	* s/osf5-0.h: Define USE_MMAP_FOR_BUFFERS, not REL_ALLOC_MMAP.
+
 	* m/alpha.h (XUINT) [REL_ALLOC && _MALLOC_INTERNAL]: Don't declare
 	r_alloc, r_alloc_free.
 
