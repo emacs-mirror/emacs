@@ -3050,10 +3050,10 @@ setup_coding_system (coding_system, coding)
 	if (CONSP  (val)
 	    && SYMBOLP (XCONS (val)->car)
 	    && !NILP (decoder = Fget (XCONS (val)->car, Qccl_program_idx))
-	    && (decoder = Fcdr (Faref (Vccl_program_table, decoder)))
+	    && !NILP (decoder = Fcdr (Faref (Vccl_program_table, decoder)))
 	    && SYMBOLP (XCONS (val)->cdr)
 	    && !NILP (encoder = Fget (XCONS (val)->cdr, Qccl_program_idx))
-	    && (encoder = Fcdr (Faref (Vccl_program_table, encoder))))
+	    && !NILP (encoder = Fcdr (Faref (Vccl_program_table, encoder))))
 	  {
 	    setup_ccl_program (&(coding->spec.ccl.decoder), decoder);
 	    setup_ccl_program (&(coding->spec.ccl.encoder), encoder);
