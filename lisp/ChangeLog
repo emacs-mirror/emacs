@@ -1,3 +1,8 @@
+2002-07-18  Dave Love  <fx@gnu.org>
+
+	* startup.el (fancy-splash-head): Warn about status.
+	(fancy-splash-tail): Copyright up-date.
+
 2002-07-17  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-util.el (detect-coding-with-priority): Fix
