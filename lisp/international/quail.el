@@ -532,7 +532,7 @@ While this input method is active, the variable
 	    (setq describe-current-input-method-function nil)
 	    (run-hooks 'quail-inactivate-hook))
 	(kill-local-variable 'input-method-function))
-    ;; Let's active Quail input method.
+    ;; Let's activate Quail input method.
     (if (null quail-current-package)
 	;; Quail package is not yet selected.  Select one now.
 	(let (name)
@@ -1912,14 +1912,10 @@ or in a newly created frame (if the selected frame has no other windows)."
 		;; Here, `split-window' returns a lower window
 		;; which is what we wanted.
 		(setq win (split-window win (- height 2))))
-	      ;; This makes sure that there's really enougth room
-	      ;; for 1 line of text, even if the mode-line is
-	      ;; taller than one line (and so the total
-	      ;; window-height of two wouldn't be enough).
-	      (set-window-text-height win 1)
 	      (set-window-buffer win quail-guidance-buf)
-	      ;;(set-window-dedicated-p win t)
-	      ))
+	      (save-excursion
+		(set-buffer quail-guidance-buf)
+		(fit-window-to-buffer win nil (window-height win)))))
 	(set-window-buffer win quail-guidance-buf)
 	(set-minibuffer-window win))
       (setq quail-guidance-win win)))
@@ -1956,7 +1952,7 @@ or in a newly created frame (if the selected frame has no other windows)."
       (let ((guidance (quail-guidance)))
 	(unless (and (eq (selected-frame) (window-frame (minibuffer-window)))
 		     (eq (selected-frame) (window-frame quail-guidance-win)))
-	  ;; The guidance window is not show in this frame, show it
+	  ;; The guidance window is not shown in this frame, show it.
 	  (quail-show-guidance-buf))
 	(cond ((or (eq guidance t)
 		   (consp guidance))
@@ -1979,7 +1975,8 @@ or in a newly created frame (if the selected frame has no other windows)."
 	;; this automatic expansion doesn't happen until then, and we
 	;; want to see the window sizes after the expansion.
 	(sit-for 0)
-	(fit-window-to-buffer quail-guidance-win nil 1)))
+	(fit-window-to-buffer quail-guidance-win nil
+			      (window-height quail-guidance-win))))
 
   ;; Update completion buffer if displayed now.  We highlight the
   ;; selected candidate string in *Completion* buffer if any.
