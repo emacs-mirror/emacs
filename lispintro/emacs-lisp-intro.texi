@@ -22,8 +22,8 @@
 
 @comment %**end of header
 
-@set edition-number 2.13
-@set update-date 2004 Oct  5
+@set edition-number 2.14
+@set update-date 2004 Oct 12
 
 @ignore
  ## Summary of shell commands to create various output formats:
