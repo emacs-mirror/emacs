@@ -1,5 +1,8 @@
 2000-07-21  Dave Love  <fx@gnu.org>
 
+	* ediff-init.el (ediff-region-help-echo): Modify to use overlay
+	now passed to the function.  It now works properly.
+
 	* smerge-mode.el (smerge-mode-menu): Fill it out.
 
 2000-07-20  Gerd Moellmann  <gerd@gnu.org>
