@@ -1,3 +1,8 @@
+2001-02-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* window.el (fit-window-to-buffer, window-safely-shrinkable-p)
+	(shrink-window-if-larger-than-buffer): Doc fix.
+
 2001-02-23  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* hi-lock.el (hi-lock-unface-buffer): Use nil rather than t for
