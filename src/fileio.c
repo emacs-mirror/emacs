@@ -18,6 +18,8 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
+#define _GNU_SOURCE		/* for euidaccess */
+
 #include <config.h>
 
 #if defined (USG5) || defined (BSD_SYSTEM) || defined (LINUX)
@@ -3519,7 +3521,7 @@ actually used.")
 		 We assume that the 1K-byte and 3K-byte for heading
 		 and tailing respectively are sufficient for this
 		 purpose.  */
-	      int how_many, nread;
+	      int nread;
 
 	      if (st.st_size <= (1024 * 4))
 		nread = emacs_read (fd, read_buf, 1024 * 4);
@@ -3540,7 +3542,6 @@ actually used.")
 		       XSTRING (orig_filename)->data, emacs_strerror (errno));
 	      else if (nread > 0)
 		{
-		  int count = specpdl_ptr - specpdl;
 		  struct buffer *prev = current_buffer;
 
 		  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
@@ -4655,8 +4656,6 @@ This does code conversion according to the value of\n\
     }
   else if (XINT (start) != XINT (end))
     {
-      register int end1 = CHAR_TO_BYTE (XINT (end));
-
       tem = CHAR_TO_BYTE (XINT (start));
 
       if (XINT (start) < GPT)
@@ -4945,7 +4944,6 @@ e_write (desc, string, start, end, coding)
   register char *addr;
   register int nbytes;
   char buf[WRITE_BUF_SIZE];
-  int composing = coding->composing;
   int return_val = 0;
 
   if (start >= end)
@@ -5127,7 +5125,6 @@ auto_save_error ()
 Lisp_Object
 auto_save_1 ()
 {
-  unsigned char *fn;
   struct stat st;
 
   /* Get visited file's mode to become the auto save file's mode.  */
@@ -5183,7 +5180,6 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
   FILE *stream;
   Lisp_Object lispstream;
   int count = specpdl_ptr - specpdl;
-  int *ptr;
   int orig_minibuffer_auto_raise = minibuffer_auto_raise;
   int message_p = push_message ();
   
@@ -5933,3 +5929,4 @@ a non-nil value.");
   defsubr (&Sunix_sync);
 #endif
 }
+(_GNU_SOURCE): 
