@@ -869,8 +869,8 @@ If STRING is multibyte, the result is STRING itself.")
 {
   if (! STRING_MULTIBYTE (string))
     {
-      int newlen = chars_in_text (XSTRING (string)->data,
-				  XSTRING (string)->size_byte);
+      int newlen = multibyte_chars_in_text (XSTRING (string)->data,
+					    XSTRING (string)->size_byte);
       /* If all the chars are ASCII, STRING is already suitable.  */
       if (newlen != XSTRING (string)->size_byte)
 	{
