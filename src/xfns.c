@@ -5778,29 +5778,29 @@ four_corners_best (ximg, width, height)
      XImage *ximg;
      unsigned long width, height;
 {
-      unsigned long corners[4], best;
-      int i, best_count;
+  unsigned long corners[4], best;
+  int i, best_count;
 
-      /* Get the colors at the corners of ximg.  */
-      corners[0] = XGetPixel (ximg, 0, 0);
-      corners[1] = XGetPixel (ximg, width - 1, 0);
-      corners[2] = XGetPixel (ximg, width - 1, height - 1);
-      corners[3] = XGetPixel (ximg, 0, height - 1);
+  /* Get the colors at the corners of ximg.  */
+  corners[0] = XGetPixel (ximg, 0, 0);
+  corners[1] = XGetPixel (ximg, width - 1, 0);
+  corners[2] = XGetPixel (ximg, width - 1, height - 1);
+  corners[3] = XGetPixel (ximg, 0, height - 1);
 
-      /* Choose the most frequently found color as background.  */
-      for (i = best_count = 0; i < 4; ++i)
-	{
-	  int j, n;
+  /* Choose the most frequently found color as background.  */
+  for (i = best_count = 0; i < 4; ++i)
+    {
+      int j, n;
 	  
-	  for (j = n = 0; j < 4; ++j)
-	    if (corners[i] == corners[j])
-	      ++n;
+      for (j = n = 0; j < 4; ++j)
+	if (corners[i] == corners[j])
+	  ++n;
 
-	  if (n > best_count)
-	    best = corners[i], best_count = n;
-	}
+      if (n > best_count)
+	best = corners[i], best_count = n;
+    }
 
-      return best;
+  return best;
 }
 
 /* Return the `background' field of IMG.  If IMG doesn't have one yet,
