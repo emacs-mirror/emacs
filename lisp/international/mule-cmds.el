@@ -543,7 +543,7 @@ function `select-safe-coding-system' (which see).  This variable
 overrides that argument.")
 
 (defun select-safe-coding-system (from to &optional default-coding-system
-				       accept-default-p)
+				       accept-default-p file)
   "Ask a user to select a safe coding system from candidates.
 The candidates of coding systems which can safely encode a text
 between FROM and TO are shown in a popup window.  Among them, the most
@@ -563,6 +563,10 @@ Optional 4th arg ACCEPT-DEFAULT-P, if non-nil, is a function to
 determine the acceptability of the silently selected coding system.
 It is called with that coding system, and should return nil if it
 should not be silently selected and thus user interaction is required.
+
+Optional 5th arg FILE is the file name to use for this purpose.
+That is different from `buffer-file-name' when handling `write-region'
+\(for example).
 
 The variable `select-safe-coding-system-accept-default-p', if
 non-nil, overrides ACCEPT-DEFAULT-P.
@@ -718,11 +722,12 @@ and TO is ignored."
     ;; Check we're not inconsistent with what `coding:' spec &c would
     ;; give when file is re-read.
     (unless (stringp from)
-      (let ((auto-cs (save-restriction
-		       (widen)
-		       (save-excursion
+      (let ((auto-cs (save-excursion
+		       (save-restriction
+			 (widen)
+			 (narrow-to-region from to)
 			 (goto-char (point-min))
-			 (set-auto-coding (or buffer-file-name "")
+			 (set-auto-coding (or file buffer-file-name "")
 					  (buffer-size))))))
 	(if (and auto-cs
 		 (not (coding-system-equal (coding-system-base coding-system)
