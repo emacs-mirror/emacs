@@ -1,3 +1,8 @@
+2001-11-25  Miles Bader  <miles@gnu.org>
+
+	* text.texi (Fields): Describe new `limit' arg in
+	field-beginning/field-end.
+
 2001-11-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* permute-index: Don't depend on csh-specific features.  Replace
