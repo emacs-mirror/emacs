@@ -1461,19 +1461,8 @@ of buffer-file-coding-system set by this function."
 
 ;;; Locales.
 
-(defvar locale-translation-file-name
-  (let ((files '("/usr/lib/X11/locale/locale.alias" ; e.g. X11R6.4
-		 "/usr/X11R6/lib/X11/locale/locale.alias" ; e.g. RedHat 4.2
-		 "/usr/openwin/lib/locale/locale.alias" ; e.g. Solaris 2.6
-		 ;;
-		 ;; The following name appears after the X-related names above,
-		 ;; since the X-related names are what X actually uses.
-		 "/usr/share/locale/locale.alias" ; GNU/Linux sans X
-		 )))
-    (while (and files (not (file-exists-p (car files))))
-      (setq files (cdr files)))
-    (car files))
-  "*File name for the system's file of locale-name aliases, or nil if none.")
+(defvar locale-translation-file-name nil
+  "File name for the system's file of locale-name aliases, or nil if none.")
 
 (defvar locale-language-names
   '(
@@ -1704,6 +1693,22 @@ If LOCALE-NAME is nil, its value is taken from the environment.
 
 The locale names supported by your system can typically be found in a
 directory named `/usr/share/locale' or `/usr/lib/locale'."
+
+  ;; Do this at runtime for the sake of binaries possibly transported
+  ;; to a system without X.
+  (setq locale-translation-file-name
+	(let ((files
+	       '("/usr/lib/X11/locale/locale.alias" ; e.g. X11R6.4
+		 "/usr/X11R6/lib/X11/locale/locale.alias" ; e.g. RedHat 4.2
+		 "/usr/openwin/lib/locale/locale.alias" ; e.g. Solaris 2.6
+		 ;;
+		 ;; The following name appears after the X-related names above,
+		 ;; since the X-related names are what X actually uses.
+		 "/usr/share/locale/locale.alias" ; GNU/Linux sans X
+		 )))
+	  (while (and files (not (file-exists-p (car files))))
+	    (setq files (cdr files)))
+	  (car files)))
 
   (unless locale-name
     ;; Use the first of these three environment variables
