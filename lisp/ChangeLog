@@ -12,14 +12,19 @@
 
 2002-01-23  Richard M. Stallman  <rms@gnu.org>
 
-        * play/tetris.el: (tetris): New defgroup.
-        (tetris-use-glyphs, tetris-use-color, tetris-draw-border-with-glyphs)
-        (tetris-default-tick-period): Convert to defcustom.
+	* play/tetris.el: (tetris): New defgroup.
+	(tetris-use-glyphs, tetris-use-color, tetris-draw-border-with-glyphs)
+	(tetris-default-tick-period): Convert to defcustom.
 	Added * in docstring to indicate user variable.
-        (tetris-update-speed-function, tetris-mode-hook, tetris-tty-colors)
-        (tetris-x-colors, tetris-buffer-name, tetris-buffer-width)
-        (tetris-buffer-height, tetris-width, tetris-height)
-        (tetris-top-left-x, tetris-top-left-y): Convert to defcustom.
+	(tetris-update-speed-function, tetris-mode-hook, tetris-tty-colors)
+	(tetris-x-colors, tetris-buffer-name, tetris-buffer-width)
+	(tetris-buffer-height, tetris-width, tetris-height)
+	(tetris-top-left-x, tetris-top-left-y): Convert to defcustom.
+
+2002-01-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* mail/sendmail.el (mail-mode): ">" is not a supercite-style prefix
+	and is already matched by adaptive-fill-regexp.
 
 2002-01-22  Richard M. Stallman  <rms@gnu.org>
 
