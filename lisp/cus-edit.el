@@ -1006,7 +1006,7 @@ This button will have a menu with all three reset operations."
   (message "Creating customization buffer...")
   (custom-mode)
   (widget-insert "This is a customization buffer.
-Square brackets show active fields; type RET or click mouse-2
+Square brackets show active fields; type RET or click mouse-1
 on an active field to invoke its action.  Invoke ")
   (widget-create 'info-link 
 		 :tag "Help"
@@ -1016,26 +1016,28 @@ on an active field to invoke its action.  Invoke ")
   (message "Creating customization buttons...")
   (widget-insert "Operate on everything in this buffer:\n ")
   (widget-create 'push-button
-		 :tag "Set"
+		 :tag "Set for Current Session"
 		 :help-echo "\
 Make your editing in this buffer take effect for this session."
 		 :action (lambda (widget &optional event)
 			   (Custom-set)))
   (widget-insert " ")
   (widget-create 'push-button
-		 :tag "Save"
+		 :tag "Save for Future Sessions"
 		 :help-echo "\
 Make your editing in this buffer take effect for future Emacs sessions."
 		 :action (lambda (widget &optional event)
 			   (Custom-save)))
-  (widget-insert " ")
   (if custom-reset-button-menu
-      (widget-create 'push-button
-		     :tag "Reset"
-		     :help-echo "Show a menu with reset operations."
-		     :mouse-down-action (lambda (&rest junk) t)
-		     :action (lambda (widget &optional event)
-			       (custom-reset event)))
+      (progn
+	(widget-insert " ")
+	(widget-create 'push-button
+		       :tag "Reset"
+		       :help-echo "Show a menu with reset operations."
+		       :mouse-down-action (lambda (&rest junk) t)
+		       :action (lambda (widget &optional event)
+				 (custom-reset event))))
+    (widget-insert "\n ")
     (widget-create 'push-button
 		   :tag "Reset"
 		   :help-echo "\
@@ -1856,10 +1858,10 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
     (widget-put widget :custom-state state)))
 
 (defvar custom-variable-menu 
-  '(("Set" custom-variable-set
+  '(("Set for Current Session" custom-variable-set
      (lambda (widget)
        (eq (widget-get widget :custom-state) 'modified)))
-    ("Save" custom-variable-save
+    ("Save for Future Sessions" custom-variable-save
      (lambda (widget)
        (memq (widget-get widget :custom-state) '(modified set changed rogue))))
     ("Reset to Current" custom-redraw
@@ -3075,7 +3077,18 @@ The format is suitable for use with `easy-menu-define'."
   (define-key custom-mode-map " " 'scroll-up)
   (define-key custom-mode-map "\177" 'scroll-down)
   (define-key custom-mode-map "q" 'bury-buffer)
-  (define-key custom-mode-map "u" 'Custom-goto-parent))
+  (define-key custom-mode-map "u" 'Custom-goto-parent)
+  (define-key custom-mode-map [mouse-1] 'Custom-move-and-invoke))
+
+(defun Custom-move-and-invoke (event)
+  "Move to where you click, and if it is an active field, invoke it."
+  (interactive "e")
+  (mouse-set-point event)
+  (if (widget-event-point event)
+      (let* ((pos (widget-event-point event))
+	     (button (get-char-property pos 'button)))
+	(if button
+	    (widget-button-click event)))))
 
 (easy-menu-define Custom-mode-menu 
     custom-mode-map
@@ -3116,7 +3129,7 @@ The following commands are available:
 
 Move to next button or editable field.     \\[widget-forward]
 Move to previous button or editable field. \\[widget-backward]
-Invoke button under the mouse pointer.     \\[widget-button-click]
+Invoke button under the mouse pointer.     \\[Custom-move-and-invoke]
 Invoke button under point.		   \\[widget-button-press]
 Set all modifications.			   \\[Custom-set]
 Make all modifications default.		   \\[Custom-save]
