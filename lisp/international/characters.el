@@ -574,7 +574,7 @@
 
 
 ;; For each character set, put the information of the most proper
-;; coding system to encode it by `prefered-coding-system' property.
+;; coding system to encode it by `preferred-coding-system' property.
 
 (let ((l '((latin-iso8859-1	. iso-latin-1)
 	   (latin-iso8859-2	. iso-latin-2)
@@ -618,7 +618,7 @@
 	   (indian-2-column	. devanagari)
 	   (tibetan		. tibetan))))
   (while l
-    (put-charset-property (car (car l)) 'prefered-coding-system (cdr (car l)))
+    (put-charset-property (car (car l)) 'preferred-coding-system (cdr (car l)))
     (setq l (cdr l))))
 
 
