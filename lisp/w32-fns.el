@@ -146,11 +146,9 @@ against the file name, and TYPE is nil for text, t for binary.")
   (if flag
       (progn
 	(add-hook 'write-file-hooks 'save-to-unix-hook)
-	(add-hook 'write-contents-hooks 'save-to-unix-hook)
 	(add-hook 'after-save-hook 'revert-from-unix-hook))
     (progn
       (remove-hook 'write-file-hooks 'save-to-unix-hook)
-      (remove-hook 'write-contents-hooks 'save-to-unix-hook)
       (remove-hook 'after-save-hook 'revert-from-unix-hook))))
 
 ;;; Fix interface to (X-specific) mouse.el
