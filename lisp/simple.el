@@ -3925,6 +3925,7 @@ Setting this variable automatically makes it local to the current buffer.")
   "The function to use for `auto-fill-function' if Auto Fill mode is turned on.
 Some major modes set this.")
 
+(put 'auto-fill-function :minor-mode-function 'auto-fill-mode)
 ;; FIXME: turn into a proper minor mode.
 ;; Add a global minor mode version of it.
 (defun auto-fill-mode (&optional arg)
