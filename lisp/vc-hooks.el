@@ -6,7 +6,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.155 2003/07/26 15:54:53 rost Exp $
+;; $Id: vc-hooks.el,v 1.156 2003/07/26 16:07:25 rost Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -40,9 +40,15 @@
 ;; Customization Variables (the rest is in vc.el)
 
 (defvar vc-ignore-vc-files nil)
-(make-obsolete-variable 'vc-ignore-vc-files 'vc-handled-backends)
+(make-obsolete-variable 'vc-ignore-vc-files
+                        "set vc-handled-backends to nil to disable VC.")
+
 (defvar vc-master-templates ())
-(make-obsolete-variable 'vc-master-templates 'vc-BACKEND-master-templates)
+(make-obsolete-variable 'vc-master-templates 
+ "to define master templates for a given BACKEND, use 
+vc-BACKEND-master-templates.  To enable or disable VC for a given
+BACKEND, use vc-handled-backends.")
+
 (defvar vc-header-alist ())
 (make-obsolete-variable 'vc-header-alist 'vc-BACKEND-header)
 
