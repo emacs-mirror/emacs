@@ -927,7 +927,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 Special value `always' suppresses confirmation."
   :type '(choice (const :tag "off" nil)
 		 (const :tag "suppress" always)
-		 (sexp :tag "ask" :format "%t\n" t))
+		 (other :tag "ask" t))
   :group 'dired)
 
 (defvar dired-overwrite-confirmed)
