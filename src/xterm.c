@@ -1522,7 +1522,7 @@ x_find_modifier_meanings ()
 /* Convert a set of X modifier bits to the proper form for a
    struct input_event modifiers value.  */
 
-static Lisp_Object
+static unsigned int
 x_convert_modifiers (state)
      unsigned int state;
 {
@@ -1575,16 +1575,16 @@ construct_mouse_click (result, event, f, part, prefix)
 	Vmouse_depressed = Qnil;
     }
 
-  if (part)			/* Scrollbar event */
+  if (! NILP (part))		/* Scrollbar event */
     {
       int pos, len;
 
       pos = event->y - (f->display.x->v_scrollbar_width - 2);
-      XSET (x_mouse_x, Lisp_Int, pos);
+      x_mouse_x = pos;
       len = ((FONT_HEIGHT (f->display.x->font) * f->height)
 	     + f->display.x->internal_border_width
 	     - (2 * (f->display.x->v_scrollbar_width - 2)));
-      XSET (x_mouse_y, Lisp_Int, len);
+      x_mouse_y = len;
 
       result->kind = scrollbar_click;
       result->part = part;
@@ -1598,8 +1598,8 @@ construct_mouse_click (result, event, f, part, prefix)
 
       pixel_to_glyph_coords (f, event->x, event->y, &column, &row, NULL);
       result->kind = mouse_click;
-      result->x = column;
-      result->y = row;
+      XFASTINT (result->x) = column;
+      XFASTINT (result->y) = row;
       result->frame = f;
     }
 }
@@ -1789,7 +1789,7 @@ Atom Xatom_wm_window_moved;	  /* When the WM moves us. */
    WAITP is nonzero if we should block until input arrives.
    EXPECTED is nonzero if the caller knows input is available.  */
 
-Lisp_Object
+int
 XTread_socket (sd, bufp, numchars, waitp, expected)
      register int sd;
      register struct input_event *bufp;
@@ -2341,7 +2341,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    if (f)
 	      if (!x_focus_frame || (f == x_focus_frame))
 		construct_mouse_click (&emacs_event,
-				       &event, f, 0, 0);
+				       &event, f, Qnil, 0);
 	      else
 		continue;
 	    else
@@ -3177,11 +3177,11 @@ x_calc_absolute_position (f)
 #ifdef HAVE_X11
   if (f->display.x->left_pos < 0)
     f->display.x->left_pos
-      = XINT (x_screen_width) - PIXEL_WIDTH (f) + f->display.x->left_pos;
+      = x_screen_width - PIXEL_WIDTH (f) + f->display.x->left_pos;
 
   if (f->display.x->top_pos < 0)
     f->display.x->top_pos
-      = XINT (x_screen_height) - PIXEL_HEIGHT (f) + f->display.x->top_pos;
+      = x_screen_height - PIXEL_HEIGHT (f) + f->display.x->top_pos;
 #else /* ! defined (HAVE_X11) */
   WINDOWINFO_TYPE parentinfo;
 
