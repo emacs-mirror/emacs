@@ -1212,6 +1212,9 @@ satisfying one of a list of specifications.
 
 ** The obsolete variables before-change-function and
 after-change-function are no longer acted upon and have been removed.
+
+** The function `apropos-mode' runs the hook `apropos-mode-hook'.
+
 
 * Lisp changes in Emacs 21.1 (see following page for display-related features)
 

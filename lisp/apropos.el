@@ -112,6 +112,8 @@ for the regexp; the part that matches gets displayed in this font."
     map)
   "Keymap used in Apropos mode.")
 
+(defvar apropos-mode-hook nil
+  "*Hook run when mode is turned on.")
 
 (defvar apropos-regexp nil
   "Regexp used in current apropos run.")
@@ -134,7 +136,8 @@ for the regexp; the part that matches gets displayed in this font."
   (kill-all-local-variables)
   (use-local-map apropos-mode-map)
   (setq major-mode 'apropos-mode
-	mode-name "Apropos"))
+	mode-name "Apropos")
+  (run-hooks 'apropos-mode-hook))
 
 ;;;###autoload
 (defun apropos-variable (regexp &optional do-all)

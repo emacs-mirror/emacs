@@ -1,3 +1,22 @@
+2000-06-07  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-prin0.ps: Insert a version number comment (5.2.2).
+	Indentation fix.
+
+	* ps-prin1.ps: Insert a version number comment (5.2.2).  Can
+	select page size with/without giving an error if PostScript
+	printer doesn't have this kind of page size.  Zebra Stripe
+	continues or restarts on next page.  Indentation fix.
+	(BeginSheet): If necessary, rescale n-up to fit on the sheet of
+	paper.
+	(BeginDoc, doColumnZebra, HeaderText): Code fix.
+	(SetPageSize): New proc.
+
+	* ps-prin2.ps: Insert a version number comment (5.2.2).
+
+	* ps-prin3.ps: Insert a version number comment (5.2.2).
+	Indentation fix.
+
 2000-05-18  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-prin1.ps: PostScript code compatibility with other utilities

@@ -1,3 +1,51 @@
+2000-06-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* align.el: Update from author.
+
+2000-06-07  Jari Aalto  <jari.aalto@poboxes.com>
+
+	* apropos.el (apropos-mode-hook): New user variable.
+	(apropos-mode): Run apropos-mode-hook.
+	
+2000-06-07  David Ponce  <david@dponce.com>
+
+	* recentf.el: Fixed recentf-edit-list and recentf-open-more-files
+	commands.  Require `wid-edit' at run-time.
+
+2000-06-07  David Ponce  <david@dponce.com>
+
+	* recentf.el: Added some "Commentary".
+	(recentf-open-more-files, recentf-edit-list): Minor changes to
+	move the point at the top of the file list.  This behaviour is
+	consistent with the menu one when the list contains a lot of
+	files.
+	(recentf-cleanup): Now displays the number of items removed from
+	the list.
+	(recentf-relative-filter) New menu filter to show filenames
+	relative to `default-directory'.
+	
+2000-06-07  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: XEmacs compatibility.  Doc fix.  Can select page size
+	with/without giving an error if PostScript printer doesn't have this
+	kind of page size.  Zebra Stripe continues or restarts on next page.
+	Manual/automatic paper feeding.  Switch or not the header.
+	(ps-print-version): New version number (5.2.2).
+	(ps-windows-system): Include emx as a Windows system.
+	(ps-setup, ps-begin-file, ps-color-values, ps-screen-to-bit-face)
+	(ps-generate-postscript-with-faces, ps-generate-postscript-with-faces)
+	(ps-background-text): Code fix.
+	(ps-error-handler-message, ps-user-defined-prologue)
+	(ps-print-prologue-header, ps-printer-name)
+	(ps-print-control-characters, ps-n-up-filling, ps-zebra-color)
+	(ps-line-number-step, ps-spool-config, ps-default-fg, ps-default-bg)
+	(ps-use-face-background): Customization fix.
+	(ps-n-up-database): Data fix.
+	(ps-warn-paper-type, ps-zebra-stripe-follow, ps-manual-feed)
+	(ps-switch-header): New vars.
+	(ps-xemacs-color-name, ps-face-foreground-name)
+	(ps-face-background-name, ps-boolean-constant): New funs.
+
 2000-06-07  Dave Love  <fx@gnu.org>
 
 	* allout.el: New version from Manheimer.
