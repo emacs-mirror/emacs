@@ -1,3 +1,7 @@
+2000-11-28  Miles Bader  <miles@gnu.org>
+
+	* simple.el (delete-horizontal-space): Handle fields more generally.
+
 2000-11-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* simple.el (delete-horizontal-space): Handle minibuffer prompt.
