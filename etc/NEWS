@@ -27,7 +27,9 @@ Unix-98-style support for large files if that is available.
 
 ** You can build a 64-bit Emacs for SPARC/Solaris systems which
 support 64-bit executables and also on Irix 6.5.  This increases the
-maximum buffer size.  See etc/MACHINES for instructions.
+maximum buffer size.  See etc/MACHINES for instructions.  Changes to
+build on other 64-bit systems should be straightforward modulo any
+necessary changes to unexec.
 
 ** Note that the MS-Windows port does not yet implement various of the
 new display features described below.
@@ -612,8 +614,9 @@ customized.
 Emacs supports a tool bar at the top of a frame under X.  For details
 of how to define a tool bar, see the page describing Lisp-level
 changes.  Tool-bar global minor mode controls whether or not it is
-displayed.  To make the tool bar more useful, we need contributions of
-extra icons for specific modes (with copyright assignments).
+displayed and is on by default.  To make the tool bar more useful, we
+need contributions of extra icons for specific modes (with copyright
+assignments).
 
 +++
 ** Mouse-sensitive mode line.
@@ -3716,6 +3719,10 @@ The function `toolbar-add-item' is a convenience function for adding
 toolbar items generally, and `tool-bar-add-item-from-menu' can be used
 to define a toolbar item with a binding copied from an item on the
 menu bar.
+
+The default bindings use a menu-item :filter to derive the tool-bar
+dynamically from variable `tool-bar-map' which may be set
+buffer-locally to override the global map.
 
 *** Tool-bar-related variables.
 

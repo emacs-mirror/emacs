@@ -1,3 +1,15 @@
+2000-11-14  Dave Love  <fx@gnu.org>
+
+	* cmuscheme.el: Doc fixes.
+	(cmuscheme) <defgroup>: Use `scheme' as parent.
+	(cmuscheme-program-name): Remove.  Change uses to
+	scheme-program-name.
+
+	* xscheme.el (scheme-program-name): Don't define here.
+
+	* progmodes/scheme.el (scheme-program-name): New variable
+	(originally in cmuscheme).
+
 2000-11-14  Miles Bader  <miles@gnu.org>
 
 	* window.el (fit-window-to-buffer): Handle windows without mode-lines.
