@@ -84,7 +84,7 @@ EBROWSEOBJ    = $(BLD)/ebrowse.$(O) \
                 $(BLD)/ntlib.$(O)
 
 $(BLD)/ebrowse.exe:     $(EBROWSEOBJ)
-                $(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(EBROWSEOBJ) $(LIBS)
+		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(EBROWSEOBJ) $(LIBS)
 
 $(BLD)/regex.$(O): ../src/regex.c ../src/regex.h ../src/config.h
 		$(CC)  $(CFLAGS) -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER \
@@ -226,7 +226,7 @@ INSTALL_FILES = $(ALL)
 install:	$(INSTALL_FILES)
 		- mkdir "$(INSTALL_DIR)/bin"
 		$(CP) $(BLD)/etags.exe $(INSTALL_DIR)/bin
-                $(CP) $(BLD)/ebrowse.exe $(INSTALL_DIR)/bin
+		$(CP) $(BLD)/ebrowse.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/ctags.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/hexl.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/movemail.exe $(INSTALL_DIR)/bin
