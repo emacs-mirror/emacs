@@ -1,6 +1,6 @@
 ;;; startup.el --- process Emacs shell arguments
 
-;; Copyright (C) 1985, 86, 92, 94, 95, 96, 97, 1998, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 92, 94, 95, 96, 97, 98, 99, 2000 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -873,22 +873,21 @@ Each element in the list should be a list of strings or pairs
 `:face FACE', like `fancy-splash-insert' accepts them.")
 
 
-(defgroup 'fancy-splash-screen
+(defgroup fancy-splash-screen ()
   "Fancy splash screen when Emacs starts."
+  :version "21.1"
   :group 'initialization)
 
 
 (defcustom fancy-splash-delay 5
   "Delay in seconds between splash screens."
   :group 'fancy-splash-screen
-  :version "21.1"
   :type 'integer)
 
 
 (defcustom fancy-splash-image "splash.xpm"
   "The image to show in the splash screens."
   :group 'fancy-splash-screen
-  :version "21.1"
   :type 'file)
 
 
