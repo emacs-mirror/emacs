@@ -2037,14 +2037,12 @@ NON-BLOCKING is optional arg requesting an non-blocking connect.
 
 	 This used to be conditioned by HAVE_GETADDRINFO.  Why?  */
 
-      if (!is_non_blocking)
-	turn_on_atimers (0);
+      turn_on_atimers (0);
 
       ret = connect (s, lres->ai_addr, lres->ai_addrlen);
       xerrno = errno;
 
-      if (!is_non_blocking)
-	turn_on_atimers (1);
+      turn_on_atimers (1);
 
       if (ret == 0 || xerrno == EISCONN)
 	{
