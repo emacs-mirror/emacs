@@ -269,8 +269,12 @@ struct glyph
      padding. */
   unsigned padding_p : 1;
 
+  /* 1 means the actual glyph is not available in the current
+     system.  */
+  unsigned glyph_not_available_p : 1;
+
   /* Face of the glyph.  */
-  unsigned face_id : 23;
+  unsigned face_id : 22;
 
   /* A union of sub-structures for different glyph types.  */
   union
@@ -1089,6 +1093,7 @@ enum lface_attribute_index
   LFACE_OVERLINE_INDEX,
   LFACE_STRIKE_THROUGH_INDEX,
   LFACE_BOX_INDEX,
+  LFACE_FONT_INDEX,
   LFACE_VECTOR_SIZE
 };
 
@@ -1165,9 +1170,6 @@ struct face
   /* The font's name.  This points to a `name' of a font_info, and it
      must not be freed.  */
   char *font_name;
-
-  /* The X font registry and encoding of font_name.  */
-  Lisp_Object registry;
 
   /* Font info ID for this face's font.  An ID is stored here because
      pointers to font_info structures may change.  The reason is that
@@ -1249,6 +1251,10 @@ struct face
 
   /* Next and previous face in hash collision list of face cache.  */
   struct face *next, *prev;
+
+  /* If this face is for ASCII characters, this points this face
+     itself.  Otherwise, this points a face for ASCII characters.  */
+  struct face *ascii_face;
 };
 
 
@@ -1324,29 +1330,21 @@ struct face_cache
       ? FRAME_FACE_CACHE (F)->faces_by_id[ID]		\
       : NULL)
 
-/* Non-zero if FACE is suitable for displaying characters of CHARSET.
-   CHARSET < 0 means unibyte text.  */
+/* Non-zero if FACE is suitable for displaying character CHAR.  */
 
-#define FACE_SUITABLE_FOR_CHARSET_P(FACE, CHARSET)			\
-     (((CHARSET) < 0							\
-       ? (EQ ((FACE)->registry, Vface_default_registry)			\
-	  || !NILP (Fequal ((FACE)->registry, Vface_default_registry)))	\
-       : ((FACE)->charset == (CHARSET)					\
-	  || ((FACE)->charset == CHARSET_ASCII				\
-	      && (CHARSET) == charset_latin_iso8859_1			\
-	      && face_suitable_for_iso8859_1_p ((FACE)))		\
-	  || ((FACE)->charset == charset_latin_iso8859_1		\
-	      && (CHARSET) == CHARSET_ASCII))))
-     
+#define FACE_SUITABLE_FOR_CHAR_P(FACE, CHAR)	\
+  (SINGLE_BYTE_CHAR_P (CHAR)			\
+   ? (FACE) == (FACE)->ascii_face		\
+   : face_suitable_for_char_p ((FACE), (CHAR)))
+
 /* Return the id of the realized face on frame F that is like the face
-   with id ID but is suitable for displaying characters of CHARSET.
-   This macro is only meaningful for CHARSET >= 0, i.e. multibyte
-   text.  */
+   with id ID but is suitable for displaying character CHAR.
+   This macro is only meaningful for multibyte character CHAR.  */
    
-#define FACE_FOR_CHARSET(F, ID, CHARSET)				\
-     (FACE_SUITABLE_FOR_CHARSET_P (FACE_FROM_ID ((F), (ID)), (CHARSET))	\
-      ? (ID)								\
-      : lookup_face ((F), FACE_FROM_ID ((F), (ID))->lface, (CHARSET)))
+#define FACE_FOR_CHAR(F, FACE, CHAR)	\
+  (SINGLE_BYTE_CHAR_P (CHAR)		\
+   ? (FACE)->ascii_face->id		\
+   : face_for_char ((F), (FACE), (CHAR)))
 
 /* The default registry and encoding to use.  */
 
@@ -1601,6 +1599,10 @@ struct it
   /* 1 means overlay strings at end_charpos have been processed.  */
   unsigned overlay_strings_at_end_processed_p : 1;
 
+  /* 1 means the actual glyph is not available in the current
+     system.  */
+  unsigned glyph_not_available_p : 1; 
+
   /* The ID of the default face to use.  One of DEFAULT_FACE_ID,
      MODE_LINE_FACE_ID, or TOOL_BAR_FACE_ID, depending on what we
      are displaying.  */
@@ -1623,10 +1625,6 @@ struct it
      if unibyte_display_via_language_environment is set.  This
      is set after x_produce_glyphs has been called.  */
   int char_to_display;
-
-  /* Charset for which face_id was computed.  This is the charset
-     of char_to_display after x_produce_glyphs has been called.  */
-  int charset;
 
   /* If what == IT_IMAGE, the id of the image to display.  */
   int image_id;
@@ -2118,7 +2116,6 @@ void x_free_colors P_ ((struct frame *, unsigned long *, int));
 
 void update_face_from_frame_parameter P_ ((struct frame *, Lisp_Object,
 					   Lisp_Object));
-char *x_charset_registry P_ ((int));
 Lisp_Object tty_color_name P_ ((struct frame *, int));
 void clear_face_cache P_ ((int));
 unsigned long load_color P_ ((struct frame *, struct face *, Lisp_Object,
@@ -2127,10 +2124,8 @@ void unload_color P_ ((struct frame *, unsigned long));
 int frame_update_line_height P_ ((struct frame *));
 int ascii_face_of_lisp_face P_ ((struct frame *, int));
 void prepare_face_for_display P_ ((struct frame *, struct face *));
-int face_suitable_for_iso8859_1_p P_ ((struct face *));
 int xstricmp P_ ((unsigned char *, unsigned char *));
-int lookup_face P_ ((struct frame *, Lisp_Object *, int));
-int face_suitable_for_charset_p P_ ((struct face *, int));
+int lookup_face P_ ((struct frame *, Lisp_Object *, int, struct face *));
 int lookup_named_face P_ ((struct frame *, Lisp_Object, int));
 int smaller_face P_ ((struct frame *, int, int));
 int face_with_height P_ ((struct frame *, int, int));
@@ -2145,6 +2140,7 @@ int face_at_string_position P_ ((struct window *, Lisp_Object,
 int compute_char_face P_ ((struct frame *, int, Lisp_Object));
 void free_all_realized_faces P_ ((Lisp_Object));
 extern Lisp_Object Qforeground_color, Qbackground_color;
+void free_realized_multibyte_face P_ ((struct frame *, int));
 
 /* Defined in xfns.c  */
 
