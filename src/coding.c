@@ -2026,7 +2026,6 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
       DECODE_CHARACTER_DIMENSION1 (charset_alt, c1);			\
     else								\
       DECODE_CHARACTER_DIMENSION2 (charset_alt, c1, c2);		\
-    coding->produced_char++;						\
   } while (0)
 
 #define ENCODE_SJIS_BIG5_CHARACTER(charset, c1, c2)			  \
@@ -3838,7 +3837,7 @@ code_convert_region (from, to, coding, encodep, adjust)
       to = from + len;
     }
   from_byte = CHAR_TO_BYTE (from); to_byte = CHAR_TO_BYTE (to);
-  len_byte = from_byte - to_byte;
+  len_byte = to_byte - from_byte;
 
   if (! encodep && CODING_REQUIRE_DETECTION (coding))
     {
