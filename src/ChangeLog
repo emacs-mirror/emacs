@@ -1,5 +1,19 @@
 2004-06-22  Kim F. Storm  <storm@cua.dk>
 
+	* lisp.h (struct Lisp_Save_Value): New member dogc.
+	(SAFE_ALLOCA_LISP): Change second arg to number of elements.
+	Set dogc member in Lisp_Save_Value object so it will be GC'ed.
+	(SAFE_FREE_LISP): New macro.
+
+	* alloc.c (safe_alloca_unwind): Clear dogc and pointer members.
+	(make_save_value): Init new dogc member.
+	(mark_object): Mark Lisp_Save_Value pointer array if dogc is set.
+
+	* fns.c (Fmapconcat, Fmapcar): Use new SAFE_ALLOCA_LISP and
+	SAFE_FREE_LISP macros.
+
+2004-06-22  Kim F. Storm  <storm@cua.dk>
+
 	* lisp.h (SAFE_ALLOCA_LISP): New macro to allocate Lisp_Objects.
 	Temporarily inhibits GC if memory is xmalloc'ed, as the Lisp_Objects
 	in that memory area are unknown to GC.  Add comments.
