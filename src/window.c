@@ -124,6 +124,11 @@ Lisp_Object Vother_window_scroll_buffer;
 
 Lisp_Object Vtemp_buffer_show_function;
 
+/* Non-zero means line and page scrolling on tall lines (with images)
+   does partial scrolling by modifying window-vscroll.  */
+
+int auto_window_vscroll_p;
+
 /* Non-zero means to use mode-line-inactive face in all windows but the
    selected-window and the minibuffer-scroll-window when the
    minibuffer is active.  */
@@ -328,9 +333,11 @@ If POS is only out of view because of horizontal scrolling, return non-nil.
 POS defaults to point in WINDOW; WINDOW defaults to the selected window.
 
 If POS is visible, return t if PARTIALLY is nil; if PARTIALLY is non-nil,
-return value is a list (X Y FULLY) where X and Y are the pixel coordinates
-relative to the top left corner of the window, and FULLY is t if the
-character after POS is fully visible and nil otherwise.  */)
+return value is a list (X Y FULLY [RTOP RBOT]) where X and Y are the pixel
+coordinates relative to the top left corner of the window, and FULLY is t if the
+character after POS is fully visible and nil otherwise.  If FULLY is nil,
+RTOP and RBOT are the number of pixels invisible at the top and bottom row
+of the window.  */)
      (pos, window, partially)
      Lisp_Object pos, window, partially;
 {
@@ -339,7 +346,7 @@ character after POS is fully visible and nil otherwise.  */)
   register struct buffer *buf;
   struct text_pos top;
   Lisp_Object in_window = Qnil;
-  int fully_p = 1;
+  int rtop, rbot, fully_p = 1;
   int x, y;
 
   w = decode_window (window);
@@ -362,14 +369,19 @@ character after POS is fully visible and nil otherwise.  */)
       && posint <= BUF_ZV (buf)
       && CHARPOS (top) >= BUF_BEGV (buf)
       && CHARPOS (top) <= BUF_ZV (buf)
-      && pos_visible_p (w, posint, &fully_p, &x, &y, NILP (partially))
-      && (!NILP (partially) || fully_p))
+      && pos_visible_p (w, posint, &x, &y, &rtop, &rbot, NILP (partially))
+      && (fully_p = !rtop && !rbot, (!NILP (partially) || fully_p)))
     in_window = Qt;
 
   if (!NILP (in_window) && !NILP (partially))
     in_window = Fcons (make_number (x),
 		       Fcons (make_number (y),
-			      Fcons (fully_p ? Qt : Qnil, Qnil)));
+			      Fcons (fully_p ? Qt : Qnil,
+				     (fully_p
+				      ? Qnil
+				      : Fcons (make_number (rtop),
+					       Fcons (make_number (rbot),
+						      Qnil))))));
   return in_window;
 }
 
@@ -4564,6 +4576,31 @@ window_scroll_pixel_based (window, n, whole, noerror)
 
       start = it.current.pos;
     }
+  else if (auto_window_vscroll_p)
+    {
+      if (NILP (XCAR (XCDR (XCDR (tem)))))
+	{
+	  int px;
+	  int dy = WINDOW_FRAME_LINE_HEIGHT (w);
+	  if (whole)
+	    dy = window_box_height (w) - next_screen_context_lines * dy;
+	  dy *= n;
+
+	  if (n < 0 && (px = XINT (Fnth (make_number (3), tem))) > 0)
+	    {
+	      px = max (0, -w->vscroll - min (px, -dy));
+	      Fset_window_vscroll (window, make_number (px), Qt);
+	      return;
+	    }
+	  if (n > 0 && (px = XINT (Fnth (make_number (4), tem))) > 0)
+	    {
+	      px = max (0, -w->vscroll + min (px, dy));
+	      Fset_window_vscroll (window, make_number (px), Qt);
+	      return;
+	    }
+	}
+      Fset_window_vscroll (window, make_number (0), Qt);
+    }
 
   /* If scroll_preserve_screen_position is non-nil, we try to set
      point in the same window line as it is now, so get that line.  */
@@ -6335,13 +6372,16 @@ If PIXELS-P is non-nil, the return value is VSCROLL.  */)
 		      : XFLOATINT (vscroll));
       w->vscroll = min (w->vscroll, 0);
 
-      /* Adjust glyph matrix of the frame if the virtual display
-	 area becomes larger than before.  */
-      if (w->vscroll < 0 && w->vscroll < old_dy)
-	adjust_glyphs (f);
+      if (w->vscroll != old_dy)
+	{
+	  /* Adjust glyph matrix of the frame if the virtual display
+	     area becomes larger than before.  */
+	  if (w->vscroll < 0 && w->vscroll < old_dy)
+	    adjust_glyphs (f);
 
-      /* Prevent redisplay shortcuts.  */
-      XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
+	  /* Prevent redisplay shortcuts.  */
+	  XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
+	}
     }
 
   return Fwindow_vscroll (window, pixels_p);
@@ -6652,6 +6692,10 @@ is displayed in the `mode-line' face.  */);
   DEFVAR_BOOL ("pop-up-frames", &pop_up_frames,
 	       doc: /* *Non-nil means `display-buffer' should make a separate frame.  */);
   pop_up_frames = 0;
+
+  DEFVAR_BOOL ("auto-window-vscroll", &auto_window_vscroll_p,
+	       doc: /* *Non-nil means to automatically adjust `window-vscroll' to view tall lines.  */);
+  auto_window_vscroll_p = 1;
 
   DEFVAR_BOOL ("display-buffer-reuse-frames", &display_buffer_reuse_frames,
 	       doc: /* *Non-nil means `display-buffer' should reuse frames.
