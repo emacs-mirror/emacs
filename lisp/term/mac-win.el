@@ -197,6 +197,8 @@ Switch to a buffer editing the last file dropped."
 
 (if (fboundp 'new-fontset)
     (progn
+      (require 'fontset)
+      (setup-default-fontset)
       (create-fontset-from-fontset-spec
        "-etl-fixed-medium-r-normal-*-16-*-*-*-*-*-fontset-mac,
 ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
