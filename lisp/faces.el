@@ -200,7 +200,7 @@ If NAME is already a face, it is simply returned.
 
 This function is defined for compatibility with Emacs 20.2.  It
 should not be used anymore."
-  (or (internal-find-face name frame)
+  (or (facep name)
       (check-face name)))
 (make-obsolete 'internal-get-face "See `facep' and `check-face'." "21.1")
 
@@ -1950,47 +1950,52 @@ also the same size as FACE on FRAME, or fail."
 		   (substring font (match-end 1)))))))
 (make-obsolete 'x-frob-font-slant 'make-face-... "21.1")
 
+;; These aliases are here so that we don't get warnings about obsolete
+;; functions from the byte compiler.
+(defalias 'internal-frob-font-weight 'x-frob-font-weight)
+(defalias 'internal-frob-font-slant 'x-frob-font-slant)
+
 (defun x-make-font-bold (font)
   "Given an X font specification, make a bold version of it.
 If that can't be done, return nil."
-  (x-frob-font-weight font "bold"))
+  (internal-frob-font-weight font "bold"))
 (make-obsolete 'x-make-font-bold 'make-face-bold "21.1")
 
 (defun x-make-font-demibold (font)
   "Given an X font specification, make a demibold version of it.
 If that can't be done, return nil."
-  (x-frob-font-weight font "demibold"))
+  (internal-frob-font-weight font "demibold"))
 (make-obsolete 'x-make-font-demibold 'make-face-bold "21.1")
 
 (defun x-make-font-unbold (font)
   "Given an X font specification, make a non-bold version of it.
 If that can't be done, return nil."
-  (x-frob-font-weight font "medium"))
+  (internal-frob-font-weight font "medium"))
 (make-obsolete 'x-make-font-unbold 'make-face-unbold "21.1")
 
 (defun x-make-font-italic (font)
   "Given an X font specification, make an italic version of it.
 If that can't be done, return nil."
-  (x-frob-font-slant font "i"))
+  (internal-frob-font-slant font "i"))
 (make-obsolete 'x-make-font-italic 'make-face-italic "21.1")
 
 (defun x-make-font-oblique (font) ; you say tomayto...
   "Given an X font specification, make an oblique version of it.
 If that can't be done, return nil."
-  (x-frob-font-slant font "o"))
+  (internal-frob-font-slant font "o"))
 (make-obsolete 'x-make-font-oblique 'make-face-italic "21.1")
 
 (defun x-make-font-unitalic (font)
   "Given an X font specification, make a non-italic version of it.
 If that can't be done, return nil."
-  (x-frob-font-slant font "r"))
+  (internal-frob-font-slant font "r"))
 (make-obsolete 'x-make-font-unitalic 'make-face-unitalic "21.1")
 
 (defun x-make-font-bold-italic (font)
   "Given an X font specification, make a bold and italic version of it.
 If that can't be done, return nil."
-  (and (setq font (x-make-font-bold font))
-       (x-make-font-italic font)))
+  (and (setq font (internal-frob-font-weight font "bold"))
+       (internal-frob-font-slant font "i")))
 (make-obsolete 'x-make-font-bold-italic 'make-face-bold-italic "21.1")
 
 (provide 'faces)
