@@ -37,15 +37,28 @@
   "Keymap used in Icon mode.")
 (if icon-mode-map
     ()
-  (setq icon-mode-map (make-sparse-keymap))
-  (define-key icon-mode-map "{" 'electric-icon-brace)
-  (define-key icon-mode-map "}" 'electric-icon-brace)
-  (define-key icon-mode-map "\e\C-h" 'mark-icon-function)
-  (define-key icon-mode-map "\e\C-a" 'beginning-of-icon-defun)
-  (define-key icon-mode-map "\e\C-e" 'end-of-icon-defun)
-  (define-key icon-mode-map "\e\C-q" 'indent-icon-exp)
-  (define-key icon-mode-map "\177" 'backward-delete-char-untabify)
-  (define-key icon-mode-map "\t" 'icon-indent-command))
+  (let ((map (make-sparse-keymap "Icon")))
+    (setq icon-mode-map (make-sparse-keymap))
+    (define-key icon-mode-map "{" 'electric-icon-brace)
+    (define-key icon-mode-map "}" 'electric-icon-brace)
+    (define-key icon-mode-map "\e\C-h" 'mark-icon-function)
+    (define-key icon-mode-map "\e\C-a" 'beginning-of-icon-defun)
+    (define-key icon-mode-map "\e\C-e" 'end-of-icon-defun)
+    (define-key icon-mode-map "\e\C-q" 'indent-icon-exp)
+    (define-key icon-mode-map "\177" 'backward-delete-char-untabify)
+    (define-key icon-mode-map "\t" 'icon-indent-command)
+  
+    (define-key icon-mode-map [menu-bar] (make-sparse-keymap))
+    (define-key icon-mode-map [menu-bar icon]
+      (cons "Icon" map))
+    (define-key map [beginning-of-icon-defun] '("Beginning of function" . beginning-of-icon-defun))
+    (define-key map [end-of-icon-defun] '("End of function" . end-of-icon-defun))
+    (define-key map [comment-region] '("Comment Out Region" . comment-region))
+    (define-key map [indent-region] '("Indent Region" . indent-region))
+    (define-key map [indent-line] '("Indent Line" . icon-indent-command))
+    (put 'eval-region 'menu-enable 'mark-active)
+    (put 'comment-region 'menu-enable 'mark-active)
+    (put 'indent-region 'menu-enable 'mark-active)))
 
 (defvar icon-mode-syntax-table nil
   "Syntax table in use in Icon-mode buffers.")
@@ -88,6 +101,12 @@ inserted in Icon code.")
 (defvar icon-tab-always-indent t
   "*Non-nil means TAB in Icon mode should always reindent the current line,
 regardless of where in the line point is when the TAB command is used.")
+
+(defvar icon-imenu-generic-expression
+      '((nil "^[ \t]*procedure[ \t]*\\(\\sw+\\)[ \t]*("  1))
+  "Imenu expression for Icon-mode.  See `imenu-generic-expression'.")
+
+
 
 ;;;###autoload
 (defun icon-mode ()
@@ -147,6 +166,23 @@ with no args, if that value is non-nil."
   (setq comment-start-skip "# *")
   (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'icon-comment-indent)
+  ;; font-lock support
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults  
+	'((icon-font-lock-keywords
+	   icon-font-lock-keywords-1 
+	   icon-font-lock-keywords-2
+	   )
+	  nil nil ((?_ . "w")) beginning-of-defun
+	  (font-lock-comment-start-regexp . "#")
+	  (font-lock-mark-block-function . mark-defun)))
+  ;; imenu support
+  (make-local-variable 'imenu-generic-expression)
+  (setq imenu-generic-expression icon-imenu-generic-expression)
+  ;; hideshow support
+  ;; we start from the assertion that `hs-special-modes-alist' is autoloaded.
+  (pushnew '(icon-mode  "procedure" "end" icon-forward-sexp-function)
+	   hs-special-modes-alist :test 'equal)
   (run-hooks 'icon-mode-hook))
 
 ;; This is used by indent-for-comment to decide how much to
@@ -553,4 +589,57 @@ Returns nil if line starts inside a string, t if in a comment."
 		(if (re-search-forward comment-start-skip (save-excursion (end-of-line) (point)) t)
 		    (progn (indent-for-comment) (beginning-of-line))))))))))
 
+(defconst icon-font-lock-keywords-1
+  (eval-when-compile
+    (list
+     ;; Fontify procedure name definitions.
+     '("^[ \t]*\\(procedure\\)[ \t]*\\(\\sw+\\)[ \t]*("
+       (1 font-lock-builtin-face) (2 font-lock-function-name-face nil t))))
+  "Subdued level highlighting for `icon-mode'.")
+
+(defconst icon-font-lock-keywords-2
+  (append 
+   icon-font-lock-keywords-1
+   (eval-when-compile
+     (list
+      ;; Fontify all type specifiers.
+      ;;"null" "string" "co-expression" "table" "integer" "cset"  "set" "real" "file" "list"
+      (cons "\\<\\(c\\(o-expression\\|set\\)\\|file\\|integer\\|list\\|null\\|real\\|s\\(et\\|tring\\)\\|table\\)\\>"'font-lock-type-face)
+      ;; Fontify all keywords.
+      ;;"break" "do" "next" "repeat" "to" "by" "else" "if" "not" "return" "until" "case" "of" "while" "create" "every" "suspend" "default" "fail" "record" "then"
+      (cons "\\<\\(b\\(reak\\|y\\)\\|c\\(ase\\|reate\\)\\|d\\(efault\\|o\\)\\|e\\(lse\\|very\\)\\|fail\\|if\\|n\\(ext\\|ot\\)\\|of\\|re\\(cord\\|peat\\|turn\\)\\|suspend\\|t\\(hen\\|o\\)\\|until\\|while\\)\\>" 'font-lock-keyword-face)
+      ;; "end" "initial" 
+      (cons (concat "\\<\\(end\\|initial\\)\\>") 'font-lock-builtin-face)
+      ;; Fontify all system variables.
+      ;;"&allocated" "&ascii" "&clock" "&col" "&collections" "&column" "&control" "&cset" "&current" "&date" "&dateline" "&digits" "&dump" "&error" "&errornumber" "&errortext" "&errorvalue" "&errout" "&eventcode" "&eventsource" "&eventvalue" "&fail" "&features" "&file" "&host" "&input" "&interval" "&lcase" "&ldrag" "&letters" "&level" "&line" "&lpress" "&lrelease" "&main" "&mdrag" "&meta" "&mpress" "&mrelease" "&null" "&output" "&phi" "&pi" "&pos" "&progname" "&random" "&rdrag" "&regions" "&resize" "&row" "&rpress" "&rrelease" "&shift" "&source" "&storage" "&subject" "&time" "&trace" "&ucase" "&version" "&window" "&x" "&y"
+      (cons (concat "\\(&\\(a\\(llocated\\|scii\\)\\|c\\(lock\\|o\\(l\\(\\|lections\\|umn\\)\\|ntrol\\)\\|set\\|urrent\\)\\|d\\(ate\\(\\|line\\)\\|igits\\|ump\\)\\|e\\(rro\\(r\\(\\|number\\|text\\|value\\)\\|ut\\)\\|vent\\(code\\|source\\|value\\)\\)\\|f\\(ail\\|eatures\\|ile\\)\\|host\\|in\\(put\\|terval\\)\\|l\\(case\\|drag\\|e\\(tters\\|vel\\)\\|ine\\|press\\|release\\)\\|m\\(ain\\|drag\\|eta\\|press\\|release\\)\\|null\\|output\\|p\\(hi\\|i\\|os\\|rogname\\)\\|r\\(andom\\|drag\\|e\\(gions\\|size\\)\\|ow\\|press\\|release\\)\\|s\\(hift\\|ource\\|torage\\|ubject\\)\\|t\\(ime\\|race\\)\\|ucase\\|version\\|window\\|[exy]\\)\\)") 'font-lock-reference-face)
+      ;; global local static declarations and link files
+      (cons  "^[ \t]*\\(global\\|link\\|local\\|static\\)\\(\\sw+\\>\\)*"
+	     '((1 font-lock-builtin-face)
+	       (font-lock-match-c-style-declaration-item-and-skip-to-next
+		(goto-char (or (match-beginning 2) (match-end 1))) nil
+		(1 (if (match-beginning 2)
+		       font-lock-function-name-face
+		     font-lock-variable-name-face)))))
+      ;; $define $elif $ifdef $ifdef $ifndef
+      (cons "^\\(\\$\\(define\\|elif\\|if\\(\\|def\\|ndef\\)\\|undef\\)\\)[ \t]+\\([^ \t\n]+\\)" 
+	    '((1 font-lock-builtin-face) (4 font-lock-variable-name-face nil t)))
+      ;; $dump $endif $else $include 
+      (cons "^\\(\\$\\(dump\\|e\\(lse\\|ndif\\)\\|include\\)\\)\\>" 'font-lock-builtin-face)
+      ;; $warning $error
+      (cons "^\\(\\$\\(warning\\|error\\)\\)[ \t]+\\([^\n]+\\)" 
+	    '((1 font-lock-builtin-face) (3 font-lock-warning-face nil t)))
+      )))
+    "Gaudy level highlighting for `icon-mode'.")
+
+(defvar icon-font-lock-keywords icon-font-lock-keywords-1
+  "Default expressions to highlight in `icon-mode'.")
+
+;;;used by hs-minor-mode
+(defun icon-forward-sexp-function (arg)
+  (if (> arg 0)
+      (re-search-forward "^[ \t]*end")
+    (re-search-backward "^[ \t]procedure")))
+
+(provide 'icon-mode)
 ;;; icon.el ends here
