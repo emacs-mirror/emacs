@@ -81,7 +81,7 @@ before that one is accessible as `<this key> 2'.
 The notation for these keys is borrowed from XEmacs. Basically,
 a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 `(meta control f1)'."
-  :type 'key
+  :type 'sexp
   :group 'viper)
 
 
