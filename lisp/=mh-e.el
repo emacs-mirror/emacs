@@ -1,15 +1,13 @@
 ;;; mh-e.el --- GNU Emacs interface to the MH mailer
 
-;;; (Version: 3.7 for GNU Emacs Version 18 and MH.5 and MH.6)
+;; Author: James Larus <larus@ginger.berkeley.edu>
+;; Version: 3.7
 
 (defvar mh-e-RCS-id)
 (setq mh-e-RCS-id "$Header: /var/home/larus/lib/emacs/RCS/mh-e.el,v 3.1 90/09/28 15:47:58 larus Exp Locker: larus $")
-;;;  Copyright (C) 1985-89 Free Software Foundation
-;;;     Author:  James Larus (larus@ginger.Berkeley.EDU or ucbvax!larus)
-;;;	Please send suggestions and corrections to the above address.
-;;;
-;;;  This file contains mh-e, a GNU Emacs front end to the MH mail system.
 
+;;;  Copyright (C) 1985-89 Free Software Foundation
+;;;
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but without any warranty.  No author or distributor
@@ -25,16 +23,21 @@
 ;; It should be in a file named COPYING.  Among other things, the
 ;; copyright notice and this notice must be preserved on all copies.
 
+;;; Commentary:
+
+;;;  This file contains mh-e, a GNU Emacs front end to the MH mail system
+;;;  (specifically, for use with MH.5 and MH.6).
 
 ;;;  Original version for Gosling emacs by Brian Reid, Stanford, 1982.
 ;;;  Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;;;  Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;;;  Modified by Stephen Gildea 1988.  gildea@bbn.com
 
-
 ;;;  NB.  MH must have been compiled with the MHE compiler flag or several
 ;;;  features necessary mh-e will be missing from MH commands, specifically
 ;;;  the -build switch to repl and forw.
+
+;;; Code:
 
 
 

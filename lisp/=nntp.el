@@ -1,8 +1,12 @@
 ;;; nntp.el --- NNTP (RFC977) Interface for GNU Emacs
 
+;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
+;; Last-Modified: 16 Mar 1992
+
+;; $Header: nntp.el,v 3.10 90/03/23 13:25:27 umerin Locked $
+
 ;; Copyright (C) 1987, 1988, 1989 Fujitsu Laboratories LTD.
 ;; Copyright (C) 1987, 1988, 1989, 1990 Masanobu UMEDA
-;; $Header: nntp.el,v 3.10 90/03/23 13:25:27 umerin Locked $
 
 ;; This file is part of GNU Emacs.
 
@@ -20,6 +24,8 @@
 ;; can know your rights and responsibilities.  It should be in a
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
+
+;;; Commentary:
 
 ;; This implementation is tested on both 1.2a and 1.5 version of the
 ;; NNTP package.
@@ -42,6 +48,8 @@
 ;;  emulation program of the stream. If you modified `tcp.c' for your
 ;;  system, please send me the diffs. I'll include some of them in the
 ;;  future releases.
+
+;;; Code:
 
 (defvar nntp-server-hook nil
   "*Hooks for the NNTP server.

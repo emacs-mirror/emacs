@@ -1,8 +1,12 @@
 ;;; nnspool.el --- spool access using NNTP for GNU Emacs
 
+;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
+;; Last-Modified: 16 Mar 1992
+
+;; $Header: nnspool.el,v 1.10 90/03/23 13:25:25 umerin Locked $
+
 ;; Copyright (C) 1988, 1989 Fujitsu Laboratories LTD.
 ;; Copyright (C) 1988, 1989, 1990 Masanobu UMEDA
-;; $Header: nnspool.el,v 1.10 90/03/23 13:25:25 umerin Locked $
 
 ;; This file is part of GNU Emacs.
 
@@ -20,6 +24,8 @@
 ;; can know your rights and responsibilities.  It should be in a
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
+
+;;; Code:
 
 (require 'nntp)
 
