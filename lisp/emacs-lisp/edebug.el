@@ -684,7 +684,7 @@ or if an error occurs, leave point after it with mark at the original point."
 (defconst edebug-read-syntax-table
   ;; Lookup table for significant characters indicating the class of the
   ;; token that follows.  This is not a \"real\" syntax table.
-  (let ((table (make-vector 256 'symbol))
+  (let ((table (make-char-table 'syntax-table 'symbol))
 	(i 0))
     (while (< i ?!)
       (aset table i 'space)

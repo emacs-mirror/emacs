@@ -1,3 +1,8 @@
+2002-08-16  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/edebug.el (edebug-read-syntax-table): Use a char
+	table to account for non-ASCII characters.
+
 2002-08-15  Richard M. Stallman  <rms@gnu.org>
 
 	* loadup.el: Load international/ucs-tables.elc.
