@@ -2357,7 +2357,7 @@ static char *lispy_function_keys[] =
     "help",
     "break",			/* 0xff6b */
 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, "backtab", 0,
     0,				/* 0xff76 */
     0, 0, 0, 0, 0, 0, 0, 0, "kp-numlock",	/* 0xff7f */
     "kp-space",			/* 0xff80 */	/* IsKeypadKey */
@@ -3973,7 +3973,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
   int width = FRAME_WIDTH (selected_frame) - 4;
   char *menu = (char *) alloca (width + 4);
   int idx = -1;
-  int nobindings ;
+  int nobindings = 1;
   Lisp_Object rest, vector;
 
   if (! menu_prompting)
