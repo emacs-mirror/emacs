@@ -668,6 +668,7 @@ lisp= \
 	${lispsource}buff-menu.elc \
 	${lispsource}button.elc \
 	${lispsource}byte-run.elc \
+	${lispsource}cus-face.elc \
 	${lispsource}cus-start.elc \
 	${lispsource}custom.elc \
 	${lispsource}emacs-lisp/backquote.elc \
@@ -732,10 +733,12 @@ lisp= \
 	${lispsource}startup.elc \
 	${lispsource}subr.elc \
 	${lispsource}term/tty-colors.elc \
+	${lispsource}font-core.elc \
 	${lispsource}textmodes/fill.elc \
 	${lispsource}textmodes/page.elc \
 	${lispsource}textmodes/paragraphs.elc \
 	${lispsource}textmodes/text-mode.elc \
+	${lispsource}timer.elc \
 	${lispsource}vc-hooks.elc \
 	${lispsource}ediff-hook.elc \
 	VMS_SUPPORT \
@@ -754,6 +757,7 @@ shortlisp= \
 	../lisp/buff-menu.elc \
 	../lisp/button.elc \
 	../lisp/byte-run.elc \
+	../lisp/cus-face.elc \
 	../lisp/cus-start.elc \
 	../lisp/custom.elc \
 	../lisp/emacs-lisp/backquote.elc \
@@ -822,6 +826,7 @@ shortlisp= \
 	../lisp/textmodes/page.elc \
 	../lisp/textmodes/paragraphs.elc \
 	../lisp/textmodes/text-mode.elc \
+	../lisp/timer.elc \
 	../lisp/vc-hooks.elc \
 	../lisp/ediff-hook.elc \
 	../lisp/widget.elc \
