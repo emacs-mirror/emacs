@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.32) $
+ * $HopeName: MMsrc!poolawl.c(trunk.33) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.32) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.33) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -592,6 +592,13 @@ static Res AWLScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   /* summary of the unscanned objects must be added into the scan */
   /* state summary, so that it's a valid summary of the entire */
   /* segment on return. */
+
+  /* This pool assumes disjoint white sets and maintains mark and */
+  /* scanned tables (effectively non-white and black tables) with */
+  /* respect to the trace with respect to which the segment is */
+  /* white.  For any other trace, we cannot tell which objects */
+  /* are grey and must therefore scan them all. */
+
   scanAllObjects =
     (TraceSetDiff(ss->traces, SegWhite(seg)) != TraceSetEMPTY);
 
@@ -803,6 +810,7 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
     if(BTGet(group->mark, i) && BTGet(group->scanned, i)) {
       (*f)(object, awl->format, pool, p, s);
     }
+    object = next;
   }
 }
 
