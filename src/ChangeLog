@@ -1,3 +1,7 @@
+1999-10-07  Jeffrey C Honig <jch@bsdi.com>
+
+	* bsdos4.h [HAVE_LIBNCURSES]: Define TERMINFO and LIBS_TERMCAP.
+
 1999-10-07  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* process.c (wait_reading_process_input): When trying to suck
