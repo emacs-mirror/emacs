@@ -1,3 +1,12 @@
+2000-08-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* regex.c (PUSH_FAILURE_COUNT): New macro.
+	(POP_FAILURE_REG_OR_COUNT): Renamed from POP_FAILURE_REG.
+	Handle popping of a register's or a counter's data.
+	(POP_FAILURE_POINT): Use the new name.
+	(re_match_2_internal): Push counter data on the stack for succeed_n,
+	jump_n and set_number_at and remove misleading dead code in succeed_n.
+
 2000-08-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (redisplay_internal): If considering all windows on all

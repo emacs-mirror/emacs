@@ -21,7 +21,10 @@
 
 /* TODO:
    - structure the opcode space into opcode+flag.
-   - merge with glibc's regex.[ch]
+   - merge with glibc's regex.[ch].
+   - replace succeed_n + jump_n with a combined operation so that the counter
+     can simply be decremented when popping the failure_point without having
+     to stack up failure_count entries.
  */
 
 /* AIX requires this to be the first thing in the file. */
@@ -1416,14 +1419,37 @@ do {									\
   PUSH_FAILURE_INT (num);						\
 } while (0)
 
+#define PUSH_FAILURE_COUNT(ptr)						\
+do {									\
+  char *destination;							\
+  int c;								\
+  ENSURE_FAIL_STACK(3);							\
+  EXTRACT_NUMBER (c, ptr);						\
+  DEBUG_PRINT3 ("    Push counter %p = %d\n", ptr, c);			\
+  PUSH_FAILURE_INT (c);							\
+  PUSH_FAILURE_POINTER (ptr);						\
+  PUSH_FAILURE_INT (-1);						\
+} while (0)
+
 /* Pop a saved register off the stack.  */
-#define POP_FAILURE_REG()						\
+#define POP_FAILURE_REG_OR_COUNT()					\
 do {									\
   int reg = POP_FAILURE_INT ();						\
-  regend[reg] = POP_FAILURE_POINTER ();					\
-  regstart[reg] = POP_FAILURE_POINTER ();				\
-  DEBUG_PRINT4 ("     Pop reg %d (spanning %p -> %p)\n",		\
-		reg, regstart[reg], regend[reg]);			\
+  if (reg == -1)							\
+    {									\
+      /* It's a counter.  */						\
+      unsigned char *ptr = (unsigned char*) POP_FAILURE_POINTER ();	\
+      reg = POP_FAILURE_INT ();						\
+      STORE_NUMBER (ptr, reg);						\
+      DEBUG_PRINT3 ("     Pop counter %p = %d\n", ptr, reg);		\
+    }									\
+  else									\
+    {									\
+      regend[reg] = POP_FAILURE_POINTER ();				\
+      regstart[reg] = POP_FAILURE_POINTER ();				\
+      DEBUG_PRINT4 ("     Pop reg %d (spanning %p -> %p)\n",		\
+		    reg, regstart[reg], regend[reg]);			\
+    }									\
 } while (0)
 
 /* Check that we are not stuck in an infinite loop.  */
@@ -1517,7 +1543,7 @@ do {									\
 									\
   /* Pop the saved registers.  */					\
   while (fail_stack.frame < fail_stack.avail)				\
-    POP_FAILURE_REG ();							\
+    POP_FAILURE_REG_OR_COUNT ();					\
 									\
   pat = (unsigned char *) POP_FAILURE_POINTER ();			\
   DEBUG_PRINT2 ("  Popping pattern %p: ", pat);				\
@@ -5217,22 +5243,18 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	  EXTRACT_NUMBER (mcnt, p + 2);
 	  DEBUG_PRINT2 ("EXECUTING succeed_n %d.\n", mcnt);
 
-	  assert (mcnt >= 0);
-	  /* Originally, this is how many times we HAVE to succeed.  */
-	  if (mcnt > 0)
+	  /* Originally, mcnt is how many times we HAVE to succeed.  */
+	  if (mcnt != 0)
 	    {
-	       mcnt--;
-	       p += 2;
-	       STORE_NUMBER_AND_INCR (p, mcnt);
-	       DEBUG_PRINT3 ("	Setting %p to %d.\n", p, mcnt);
+	      mcnt--;
+	      p += 2;
+	      PUSH_FAILURE_COUNT (p);
+	      STORE_NUMBER_AND_INCR (p, mcnt);
+	      DEBUG_PRINT3 ("	Setting %p to %d.\n", p, mcnt);
 	    }
-	  else if (mcnt == 0)
-	    {
-	      DEBUG_PRINT2 ("  Setting two bytes from %p to no_op.\n", p+2);
-	      p[2] = (unsigned char) no_op;
-	      p[3] = (unsigned char) no_op;
-	      goto on_failure;
-	    }
+	  else
+	    /* The two bytes encoding mcnt == 0 are two no_op opcodes.  */
+	    goto on_failure;
 	  break;
 
 	case jump_n:
@@ -5240,11 +5262,12 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	  DEBUG_PRINT2 ("EXECUTING jump_n %d.\n", mcnt);
 
 	  /* Originally, this is how many times we CAN jump.  */
-	  if (mcnt)
+	  if (mcnt != 0)
 	    {
-	       mcnt--;
-	       STORE_NUMBER (p + 2, mcnt);
-	       goto unconditional_jump;
+	      mcnt--;
+	      PUSH_FAILURE_COUNT (p + 2);
+	      STORE_NUMBER (p + 2, mcnt);
+	      goto unconditional_jump;
 	    }
 	  /* If don't have to jump any more, skip over the rest of command.  */
 	  else
@@ -5259,6 +5282,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	    p1 = p + mcnt;
 	    EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	    DEBUG_PRINT3 ("  Setting %p to %d.\n", p1, mcnt);
+	    PUSH_FAILURE_COUNT (p1);
 	    STORE_NUMBER (p1, mcnt);
 	    break;
 	  }
