@@ -790,6 +790,9 @@ Alist of filename patterns vs corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION).
 Visiting a file whose name matches REGEXP causes FUNCTION to be called.")
 
+(defconst inhibit-local-variables-regexps '("\\.tar$")
+  "List of regexps; if one matches a file name, don't look for local vars.")
+
 (defun set-auto-mode ()
   "Select major mode appropriate for current buffer.
 This checks for a -*- mode tag in the buffer's text, or
@@ -805,6 +808,14 @@ If `enable-local-variables' is nil, this function does not check for a
       (goto-char (point-min))
       (skip-chars-forward " \t\n")
       (if (and enable-local-variables
+	       ;; Don't look for -*- if this file name matches any
+	       ;; of the regexps in inhibit-local-variables-regexps.
+	       (not (let ((temp inhibit-local-variables-regexps))
+		      (while (and temp
+				  (not (string-match (car temp)
+						     buffer-file-name)))
+			(setq temp (cdr temp)))
+		      (not temp)))
 	       (search-forward "-*-" (save-excursion
 				       ;; If the file begins with "#!"
 				       ;; (exec interpreter magic), look
