@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.27) $
+ * $HopeName: MMsrc!arena.c(trunk.28) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.27) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.28) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -540,7 +540,6 @@ void (ArenaPoll)(Arena arena)
 void ArenaPoll(Arena arena)
 {
   Size size;
-  Res res;
   Count i;
 
   AVERT(Arena, arena);
@@ -564,9 +563,8 @@ void ArenaPoll(Arena arena)
     Trace trace = ArenaTrace(arena, (TraceId)0);
     AVER(arena->busyTraces == TraceSetSingle((TraceId)0));
     i = trace->rate;
-    while(i > 0 && arena->busyTraces != TraceSetEMPTY) {
-      res = TracePoll(trace);
-      AVER(res == ResOK); /* @@@@ */
+    while(i > 0 && TraceSetIsMember(arena->busyTraces, trace->ti)) {
+      TracePoll(trace);
       if(trace->state == TraceFINISHED) {
         /* @@@@ Pick up results and use for prediction. */
         TraceDestroy(trace);
@@ -598,7 +596,6 @@ void ArenaRelease(Arena arena)
 void ArenaPark(Arena arena)
 {
   TraceId ti;
-  Res res;
  
   AVERT(Arena, arena);
  
@@ -610,8 +607,7 @@ void ArenaPark(Arena arena)
       if(TraceSetIsMember(arena->busyTraces, ti)) {
         Trace trace = ArenaTrace(arena, ti);
  
-        res = TracePoll(trace);
-        AVER(res == ResOK); /* @@@@ */
+        TracePoll(trace);
  
         /* @@@@ Pick up results and use for prediction. */
         if(trace->state == TraceFINISHED)

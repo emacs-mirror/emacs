@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.41) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.42) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -99,6 +99,12 @@ typedef unsigned MessageType;           /* design.mps.message */
 typedef struct MessageStruct *Message;  /* design.mps.message */
 typedef struct MessageClassStruct *MessageClass; /* design.mps.message */
 
+
+/* TraceFixMethod */
+
+typedef Res (*TraceFixMethod)(ScanState ss, Ref *refIO);
+
+
 /* Heap Walker */
 
 /* This type is used by the PoolClass method Walk */
@@ -123,9 +129,12 @@ typedef Res (*PoolTraceBeginMethod)(Pool pool, Trace trace);
 typedef Res (*PoolWhitenMethod)(Pool pool, Trace trace, Seg seg);
 typedef void (*PoolGreyMethod)(Pool pool, Trace trace, Seg seg);
 typedef void (*PoolBlackenMethod)(Pool pool, TraceSet traceSet, Seg seg);
-typedef Res (*PoolScanMethod)(ScanState ss, Pool pool, Seg seg);
+typedef Res (*PoolScanMethod)(Bool *totalReturn, ScanState ss,
+                              Pool pool, Seg seg);
 typedef Res (*PoolFixMethod)(Pool pool, ScanState ss, Seg seg,
                              Ref *refIO);
+typedef Res (*PoolFixEmergencyMethod)(Pool pool, ScanState ss,
+                                      Seg seg, Ref *refIO);
 typedef void (*PoolReclaimMethod)(Pool pool, Trace trace, Seg seg);
 typedef double (*PoolBenefitMethod)(Pool pool, Action action);
 typedef Res (*PoolActMethod)(Pool pool, Action action);

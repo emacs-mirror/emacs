@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.71) $
+ * $HopeName: MMsrc!mpm.h(trunk.72) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -281,10 +281,11 @@ extern Res PoolTraceBegin(Pool pool, Trace trace);
 extern Res PoolWhiten(Pool pool, Trace trace, Seg seg);
 extern void PoolGrey(Pool pool, Trace trace, Seg seg);
 extern void PoolBlacken(Pool pool, TraceSet traceSet, Seg seg);
-extern Res PoolScan(ScanState ss, Pool pool, Seg seg);
+extern Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
 extern Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 #define PoolFix(pool, ss, seg, refIO) \
   ((*(pool)->class->fix)((pool), (ss), (seg), (refIO)))
+extern void PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 extern void PoolReclaim(Pool pool, Trace trace, Seg seg);
 extern double PoolBenefit(Pool pool, Action action);
 extern Res PoolAct(Pool pool, Action action);
@@ -317,7 +318,7 @@ extern void PoolNoGrey(Pool pool, Trace trace, Seg seg);
 extern void PoolTrivGrey(Pool pool, Trace trace, Seg seg);
 extern void PoolNoBlacken(Pool pool, TraceSet traceSet, Seg seg);
 extern void PoolTrivBlacken(Pool pool, TraceSet traceSet, Seg seg);
-extern Res PoolNoScan(ScanState ss, Pool pool, Seg seg);
+extern Res PoolNoScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
 extern Res PoolNoFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 extern void PoolNoReclaim(Pool pool, Trace trace, Seg seg);
 extern double PoolNoBenefit(Pool pool, Action action);
@@ -386,11 +387,12 @@ extern Res TraceAddWhite(Trace trace, Seg seg);
 extern Res TraceStart(Trace trace);
 extern Res TraceFlip(Trace trace);
 extern void TraceDestroy(Trace trace);
-extern Res TracePoll(Trace trace);
+extern Res TraceStep(Trace trace);
+extern void TracePoll(Trace trace);
 extern void TraceAccess(Arena arena, Seg seg, AccessSet mode);
 
 extern Res TraceFix(ScanState ss, Ref *refIO);
-extern void TraceSegGreyen(Arena arena, Seg seg, TraceSet ts);
+extern Res TraceFixEmergency(ScanState ss, Ref *refIO);
 extern Size TraceGreyEstimate(Arena arena, RefSet refSet);
 
 /* Equivalent to impl.h.mps MPS_SCAN_BEGIN */
