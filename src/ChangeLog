@@ -1,3 +1,10 @@
+1999-10-09  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* print.c (print): When removing objects from Vprint_number_table,
+	only scan the newly added objects.
+	(print_preprocess): If OBJ is a gensym, and print-continuous-numbering,
+	unconditionally force it to stay in the table.
+
 1999-10-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (prepare_image_for_display): Don't try to load image if
