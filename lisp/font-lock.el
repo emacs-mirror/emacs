@@ -49,7 +49,56 @@
 ;; it takes to fontify.  See the variable `font-lock-maximum-decoration', and
 ;; also the variable `font-lock-maximum-size'.  Support modes for Font Lock
 ;; mode can be used to speed up Font Lock mode.  See `font-lock-support-mode'.
+
+;; Constructing patterns:
+;;
+;; See the documentation for the variable `font-lock-keywords'.
+;;
+;; Nasty regexps of the form "bar\\(\\|lo\\)\\|f\\(oo\\|u\\(\\|bar\\)\\)\\|lo"
+;; are made thusly: (make-regexp '("foo" "fu" "fubar" "bar" "barlo" "lo")) for
+;; efficiency.  See /pub/gnu/emacs/elisp-archive/functions/make-regexp.el.Z on
+;; archive.cis.ohio-state.edu for this and other functions.
 
+;; Adding patterns for modes that already support Font Lock:
+;;
+;; Font Lock mode uses the buffer local variable `font-lock-keywords' for the
+;; highlighting patterns.  This variable is set by Font Lock mode from (a) the
+;; buffer local variable `font-lock-defaults', if non-nil, or (b) the global
+;; variable `font-lock-defaults-alist', if the major mode has an entry. 
+;; Font Lock mode is set up via (a) where a mode's patterns are distributed
+;; with the mode's package library, (b) where a mode's patterns are distributed
+;; with font-lock.el itself.  An example of (a) is Pascal mode, an example of
+;; (b) is C/C++ modes.  (Normally, the mechanism is (a); (b) is used where it
+;; is not clear which package library should contain the pattern definitions.)
+;;
+;; If, for a particular mode, mechanism (a) is used, you need to add your
+;; patterns after that package library has loaded, e.g.:
+;;
+;;  (eval-after-load "pascal" '(add-to-list 'pascal-font-lock-keywords ...))
+;;
+;; (Note that only one pattern can be added with `add-to-list'.  For multiple
+;; patterns, use one `eval-after-load' form with one `setq' and `append' form,
+;; or multiple `eval-after-load' forms each with one `add-to-list' form.)
+;; If mechanism (b) is used, you need to add your patterns after font-lock.el
+;; itself has loaded, e.g.:
+;;
+;;  (eval-after-load "font-lock" '(add-to-list 'c-font-lock-keywords ...))
+;;
+;; Which variable you should add to depends on what level of fontification you
+;; choose and what level is supported.  If you choose the maximum level, by
+;; setting the variable `font-lock-maximum-decoration', you change a different
+;; variable.  Maximum level patterns for C are `c-font-lock-keywords-3', so:
+;;
+;;  (setq font-lock-maximum-decoration t)
+;;  (eval-after-load "font-lock"
+;;   '(add-to-list 'c-font-lock-keywords-3
+;;		   '("\\<FILE\\>" . font-lock-type-face)))
+;;
+;; To see which variable to set, see the buffer's value of `font-lock-defaults'
+;; or the mode's entry in the global value of `font-lock-defaults-alist'.
+
+;; Adding patterns for modes that do not support Font Lock:
+;;
 ;; If you add patterns for a new mode, say foo.el's `foo-mode', say in which
 ;; you don't want syntactic fontification to occur, you can make Font Lock mode
 ;; use your regexps when turning on Font Lock by adding to `foo-mode-hook':
@@ -57,12 +106,7 @@
 ;;  (add-hook 'foo-mode-hook
 ;;   '(lambda () (make-local-variable 'font-lock-defaults)
 ;;               (setq font-lock-defaults '(foo-font-lock-keywords t))))
-;;
-;; Nasty regexps of the form "bar\\(\\|lo\\)\\|f\\(oo\\|u\\(\\|bar\\)\\)\\|lo"
-;; are made thusly: (make-regexp '("foo" "fu" "fubar" "bar" "barlo" "lo")) for
-;; efficiency.  See /pub/gnu/emacs/elisp-archive/functions/make-regexp.el.Z on
-;; archive.cis.ohio-state.edu for this and other functions.
-
+
 ;; What is fontification for?  You might say, "It's to make my code look nice."
 ;; I think it should be for adding information in the form of cues.  These cues
 ;; should provide you with enough information to both (a) distinguish between
@@ -238,31 +282,36 @@ The value should be like the `cdr' of an item in `font-lock-defaults-alist'.")
 	 '((c-font-lock-keywords c-font-lock-keywords-1
 	    c-font-lock-keywords-2 c-font-lock-keywords-3)
 	   nil nil ((?_ . "w")) beginning-of-defun
+	   (font-lock-comment-start-regexp . "/[*/]")
 	   (font-lock-mark-block-function . mark-defun)))
 	(c++-mode-defaults
 	 '((c++-font-lock-keywords c++-font-lock-keywords-1 
 	    c++-font-lock-keywords-2 c++-font-lock-keywords-3)
 	   nil nil ((?_ . "w") (?~ . "w")) beginning-of-defun
+	   (font-lock-comment-start-regexp . "/[*/]")
 	   (font-lock-mark-block-function . mark-defun)))
 	(lisp-mode-defaults
 	 '((lisp-font-lock-keywords
 	    lisp-font-lock-keywords-1 lisp-font-lock-keywords-2)
 	   nil nil (("+-*/.<>=!?$%_&~^:" . "w")) beginning-of-defun
+	   (font-lock-comment-start-regexp . ";")
 	   (font-lock-mark-block-function . mark-defun)))
 	(scheme-mode-defaults
 	 '(scheme-font-lock-keywords
 	   nil t (("+-*/.<>=!?$%_&~^:" . "w")) beginning-of-defun
+	   (font-lock-comment-start-regexp . ";")
 	   (font-lock-mark-block-function . mark-defun)))
 	;; For TeX modes we could use `backward-paragraph' for the same reason.
 	;; But we don't, because paragraph breaks are arguably likely enough to
 	;; occur within a genuine syntactic block to make it too risky.
 	;; However, we do specify a MARK-BLOCK function as that cannot result
 	;; in a mis-fontification even if it might not fontify enough.  --sm.
-	(tex-mode-defaults '(tex-font-lock-keywords nil nil ((?$ . "\"")) nil
-			     (font-lock-mark-block-function . mark-paragraph)))
+	(tex-mode-defaults
+	 '(tex-font-lock-keywords nil nil ((?$ . "\"")) nil
+	   (font-lock-comment-start-regexp . "%")
+	   (font-lock-mark-block-function . mark-paragraph)))
 	)
     (list
-     (cons 'bibtex-mode			tex-mode-defaults)
      (cons 'c++-c-mode			c-mode-defaults)
      (cons 'c++-mode			c++-mode-defaults)
      (cons 'c-mode			c-mode-defaults)
@@ -317,7 +366,8 @@ around a text block relevant to that mode).
 Other variables include those for buffer-specialised fontification functions,
 `font-lock-fontify-buffer-function', `font-lock-unfontify-buffer-function',
 `font-lock-fontify-region-function', `font-lock-unfontify-region-function',
-`font-lock-maximum-size' and `font-lock-inhibit-thing-lock'.")
+`font-lock-comment-start-regexp', `font-lock-inhibit-thing-lock' and
+`font-lock-maximum-size'.")
 
 (defvar font-lock-keywords-only nil
   "*Non-nil means Font Lock should not fontify comments or strings.
@@ -345,6 +395,13 @@ This is normally set via `font-lock-defaults'.")
   "*Non-nil means use this function to mark a block of text.
 When called with no args it should leave point at the beginning of any
 enclosing textual block and mark at the end.
+This is normally set via `font-lock-defaults'.")
+
+(defvar font-lock-comment-start-regexp nil
+  "*Regexp to match the start of a comment.
+This need not discriminate between genuine comments and quoted comment
+characters or comment characters within strings.
+If nil, `comment-start-skip' is used instead; see that variable for more info.
 This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-fontify-buffer-function 'font-lock-default-fontify-buffer
@@ -783,12 +840,18 @@ delimit the region to fontify."
 (defun font-lock-fontify-syntactically-region (start end &optional loudly)
   "Put proper face on each string and comment between START and END.
 START should be at the beginning of a line."
-  (let ((synstart (if comment-start-skip
-		      (concat "\\s\"\\|" comment-start-skip)
-		    "\\s\""))
-	(comstart (if comment-start-skip
-		      (concat "\\s<\\|" comment-start-skip)
-		    "\\s<"))
+  (let ((synstart (cond (font-lock-comment-start-regexp
+			 (concat "\\s\"\\|" font-lock-comment-start-regexp))
+			(comment-start-skip
+			 (concat "\\s\"\\|" comment-start-skip))
+			(t
+			 "\\s\"")))
+	(comstart (cond (font-lock-comment-start-regexp
+			 font-lock-comment-start-regexp)
+			(comment-start-skip
+			 (concat "\\s<\\|" comment-start-skip))
+			(t
+			 "\\s<")))
 	state prev prevstate)
     (if loudly (message "Fontifying %s... (syntactically...)" (buffer-name)))
     (goto-char start)
@@ -852,7 +915,7 @@ START should be at the beginning of a line."
 	(if (or (nth 4 state) (nth 7 state))
 	    ;;
 	    ;; We found a real comment start.
-	    (let ((beg (match-beginning 0)))
+	    (let ((beg (or (match-end 1) (match-beginning 0))))
 	      (goto-char beg)
 	      (save-restriction
 		(narrow-to-region (point-min) end)
@@ -868,7 +931,7 @@ START should be at the beginning of a line."
 	  (if (nth 3 state)
 	      ;;
 	      ;; We found a real string start.
-	      (let ((beg (match-beginning 0)))
+	      (let ((beg (or (match-end 1) (match-beginning 0))))
 		(while (and (re-search-forward "\\s\"" end 'move)
 			    (nth 3 (parse-partial-sexp here (point)
 						       nil nil state))))
@@ -1488,7 +1551,15 @@ the face is also set; its value is the face name."
   ;; The expect syntax of an item is "word" or "word::word", possibly ending
   ;; with optional whitespace and a "(".  Everything following the item (but
   ;; belonging to it) is expected to by skip-able by `forward-sexp', and items
-  ;; are expected to be separated with a "," or ";".
+  ;; are expected to be separated with a ",".
+  ;;
+  ;; The regexp matches:	word::word (
+  ;;				^^^^  ^^^^ ^
+  ;; Match subexps are:		  1     3  4
+  ;;
+  ;; So, the item is delimited by (match-beginning 1) and (match-end 1).
+  ;; If (match-beginning 3) is non-nil, that part of the item follows a ":".
+  ;; If (match-beginning 4) is non-nil, the item is followed by a "(".
   (if (looking-at "[ \t*&]*\\(\\sw+\\)\\(::\\(\\sw+\\)\\)?[ \t]*\\((\\)?")
       (save-match-data
 	(condition-case nil
@@ -1497,7 +1568,7 @@ the face is also set; its value is the face name."
 	      (narrow-to-region (point-min) limit)
 	      (goto-char (match-end 1))
 	      ;; Move over any item value, etc., to the next item.
-	      (while (not (looking-at "[ \t]*\\([,;]\\|$\\)"))
+	      (while (not (looking-at "[ \t]*\\(,\\|$\\)"))
 		(goto-char (or (scan-sexps (point) 1) (point-max))))
 	      (goto-char (match-end 0)))
 	  (error t)))))
