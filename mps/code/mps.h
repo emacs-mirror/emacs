@@ -273,7 +273,10 @@ extern mps_bool_t mps_arena_has_addr(mps_arena_t, mps_addr_t);
 
 /* Client memory arenas */
 extern mps_res_t mps_arena_extend(mps_arena_t, mps_addr_t, size_t);
+#if 0
+/* There's no implementation for this function. */
 extern mps_res_t mps_arena_retract(mps_arena_t, mps_addr_t, size_t);
+#endif
 
 
 /* Object Formats */

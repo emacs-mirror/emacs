@@ -268,11 +268,6 @@
 #elif defined(CONFIG_PROD_DYLAN)
 #define MPS_PROD_STRING         "dylan"
 #define MPS_PROD_DYLAN
-/* .prod.arena-size: ARENA_SIZE is currently set larger for the
- * MM/Dylan product as an interim solution.
- * See request.dylan.170170.sol.patch and change.dylan.buffalo.170170.
- */
-#define ARENA_SIZE              ((Size)1<<30)
 #define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
 #define THREAD_MULTI
 #define PROTECTION
@@ -291,6 +286,14 @@
 #else
 #error "No target product configured."
 #endif
+
+/* .prod.arena-size: ARENA_SIZE is currently set larger for the
+ * MM/Dylan product as an interim solution.
+ * See request.dylan.170170.sol.patch and change.dylan.buffalo.170170.
+ * Note that this define is only used by the implementation of the
+ * deprecated mps_space_create interface.
+ */
+#define ARENA_SIZE              ((Size)1<<30)
 
 /* if CHECK_DEFAULT hasn't been defined already (e.g. by a variety, or
  * in a makefile), take the value from the product. */
