@@ -3286,8 +3286,9 @@ before making `inhibit-quit' nil.  */);
   staticpro (&Qand_optional);
 
   DEFVAR_LISP ("stack-trace-on-error", &Vstack_trace_on_error,
-	       doc: /* *Non-nil means automatically display a backtrace buffer
-after any error that is handled by the editor command loop.
+	       doc: /* *Non-nil means errors display a backtrace buffer.
+More precisely, this happens for any error that is handled
+by the editor command loop.
 If the value is a list, an error only means to display a backtrace
 if one of its condition symbols appears in the list.  */);
   Vstack_trace_on_error = Qnil;
