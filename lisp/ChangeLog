@@ -1,16 +1,39 @@
+2003-08-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* bookmark.el (bookmark-completing-read):
+	Return a string, instead of a list of one string.
+	Use a popup menu if activated from the mouse.
+	(bookmark-edit-annotation): Remove unused vars.
+	(bookmark-jump, bookmark-relocate, bookmark-insert-location)
+	(bookmark-rename, bookmark-insert, bookmark-delete): Adjust calls
+	to bookmark-completing-read.
+	(bookmark-bmenu-show-filenames, bookmark-bmenu-hide-filenames)
+	(bookmark-bmenu-mark, bookmark-bmenu-select, bookmark-bmenu-unmark)
+	(bookmark-bmenu-delete, bookmark-bmenu-list): Use inhibit-read-only
+	and erase-buffer.
+	(bookmark-menu-delete, bookmark-menu-rename, bookmark-menu-locate)
+	(bookmark-menu-jump, bookmark-menu-insert)
+	(bookmark-popup-menu-and-apply-function)
+	(bookmark-menu-popup-paned-bookmark-menu): Remove.
+	(bookmark-menu-build-paned-menu): Remove by folding it into
+	bookmark-menu-popup-paned-menu.
+	(menu-bar-bookmark-map): Move the define-key statements here.
+	Use the "non-menu" commands since they now pop up a menu if needed.
+	(bookmark-exit-hook-internal): Simplify.
+
 2003-08-11  Carsten Dominik  <dominik@sand.science.uva.nl>
 
 	* textmodes/reftex.el: Updated to version 4.21
-	* reftex-auc.el: likewise
-	* reftex-cite.el: likewise
-	* reftex-dcr.el: likewise
-	* reftex-global.el: likewise
-	* reftex-index.el: likewise
-	* reftex-parse.el: likewise
-	* reftex-ref.el: likewise
-	* reftex-sel.el: likewise
-	* reftex-toc.el: likewise
-	* reftex-vars.el: likewise
+	* reftex-auc.el: likewise.
+	* reftex-cite.el: likewise.
+	* reftex-dcr.el: likewise.
+	* reftex-global.el: likewise.
+	* reftex-index.el: likewise.
+	* reftex-parse.el: likewise.
+	* reftex-ref.el: likewise.
+	* reftex-sel.el: likewise.
+	* reftex-toc.el: likewise.
+	* reftex-vars.el: likewise.
 
 2003-08-08  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
@@ -21,13 +44,12 @@
 
 	* progmodes/ebnf2ps.el (ebnf-begin-job): Code fix.
 
-
 2003-08-06  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/calendar.el (list-diary-entries-hook)
 	(diary-display-hook, nongregorian-diary-listing-hook)
-	(mark-diary-entries-hook, nongregorian-diary-marking-hook): Add
-	some customize options for these hooks.
+	(mark-diary-entries-hook, nongregorian-diary-marking-hook):
+	Add some customize options for these hooks.
 	(calendar-abbrev-construct): Don't try to take a substring longer
 	than the original string.
 
@@ -37,13 +59,13 @@
 	(testcover-reinstrument-clauses): Doc fix.
 
 	* emacs-lisp/warnings.el: Doc fixes, args renamed.
-	(warning-type-format): Renamed from warning-group-format.
+	(warning-type-format): Rename from warning-group-format.
 
 	* emacs-lisp/bytecomp.el (byte-compile-not-obsolete-var): New var.
 	(byte-compile-variable-ref): Handle byte-compile-not-obsolete-var.
 	(byte-compile-defvar): Bind byte-compile-not-obsolete-var
 	to prevent warnings about defvar for an obsolete variable.
-	
+
 	* emacs-lisp/bytecomp.el (byte-compile-log-warning):
 	warning-group-format renamed to warning-type-format.
 
@@ -64,8 +86,8 @@
 
 	* international/code-pages.el: Don't require mule-diag.
 
-	* international/mule-diag.el (non-iso-charset-alist): Add
-	autoload cookie.
+	* international/mule-diag.el (non-iso-charset-alist):
+	Add autoload cookie.
 
 	* language/devan-util.el (dev-glyph-order): Add an entry for the
 	glyph code #xC4.
@@ -87,8 +109,7 @@
 	`calendar-day-name' and `calendar-month-name' functions.
 
 	* calendar/diary-lib.el (list-diary-entries): Adapt for new
-	behaviour of `calendar-day-name' and `calendar-month-name'
-	functions.
+	behaviour of `calendar-day-name' and `calendar-month-name' functions.
 	(diary-name-pattern): Use abbrev arrays, rather than fixing
 	abbrevs at three chars.  Calling syntax change.
 	(mark-diary-entries):  Adapt for new behaviours of
@@ -109,8 +130,8 @@
 	(mark-hebrew-diary-entries): Adapt for new behaviours of
 	`diary-name-pattern' and `calendar-make-alist' functions.
 
-	* calendar/cal-islam.el (calendar-islamic-month-name-array): Add
-	doc string.
+	* calendar/cal-islam.el (calendar-islamic-month-name-array):
+	Add doc string.
 	(list-islamic-diary-entries): Adapt for new behaviours of
 	`calendar-day-name' and `add-to-diary-list' functions.
 	(mark-islamic-diary-entries): Adapt for new behaviours of
@@ -153,8 +174,8 @@
 	(c-search-decl-header-end): Don't trip up on operator identifiers
 	in C++ and operators like == in all languages.
 
-	* progmodes/cc-engine.el (c-backward-to-decl-anchor): Detect
-	leading labels correctly.
+	* progmodes/cc-engine.el (c-backward-to-decl-anchor):
+	Detect leading labels correctly.
 
 2003-08-02  Andreas Schwab  <schwab@suse.de>
 
@@ -180,8 +201,8 @@
 
 2003-07-30  Kenichi Handa  <handa@m17n.org>
 
-	* international/fontset.el (setup-default-fontset): Change
-	registry names of Akurti fonts.
+	* international/fontset.el (setup-default-fontset):
+	Change registry names of Akurti fonts.
 
 2003-07-29  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
 
@@ -194,8 +215,8 @@
 
 2003-07-28  Nick Roberts  <nick@nick.uklinux.net>
 
-	* gdb-ui.el (gdb-setup-windows, gdb-restore-windows): Restore
-	assembler in source window if that is what has been selected.
+	* gdb-ui.el (gdb-setup-windows, gdb-restore-windows):
+	Restore assembler in source window if that is what has been selected.
 	(menu): Add gdb-restore-windows to menu.  Make gdba
 	specific menus only visible from gdba.
 
@@ -228,8 +249,7 @@
 
 2003-07-26  Markus Rost  <rost@math.ohio-state.edu>
 
-	* international/quail.el (quail-translate-key): Fix previous
-	change.
+	* international/quail.el (quail-translate-key): Fix previous change.
 
 2003-07-25  John Paul Wallington  <jpw@gnu.org>
 
