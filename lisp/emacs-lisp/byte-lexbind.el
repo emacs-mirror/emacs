@@ -3,7 +3,7 @@
 ;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
-;; Keywords: lisp
+;; Keywords: lisp, compiler, lexical binding
 
 ;; This file is part of GNU Emacs.
 
