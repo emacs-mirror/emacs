@@ -186,7 +186,7 @@ DEFUN ("update-display", Fupdate_display, Supdate_display, 0, 0, 0,
        "Perform redisplay.")
      ()
 {
-  DoDsp(1);
+  redisplay_preserving_echo_area ();
   return(Qt);
 }
 
