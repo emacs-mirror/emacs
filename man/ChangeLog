@@ -1,3 +1,8 @@
+2001-02-10  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* ack.texi (Acknowledgments): Make up-to-date for Emacs 21.  Add
+	criteria for inclusion in this chapter.
+
 2001-01-25  John Wiegley  <johnw@gnu.org>
 
 	* eshell.texi: Editing and completion of first chapter (Overview),
