@@ -1273,19 +1273,72 @@ There is now code to support an abstraction called `fields' in emacs
 buffers.  A field is a contiguous region of text with the same `field'
 text-property.
 
-Certain functions, such as forward-word, forward-sentence,
+Many emacs functions, such as forward-word, forward-sentence,
 forward-paragraph, beginning-of-line, etc., stop moving when they come
-to the boundary between fields (beginning-of-line and end-of-line will
+to the boundary between fields; beginning-of-line and end-of-line will
 not let the point move past the field boundary, but other movement
-commands continue into the next field if repeated).
-
-The new function constrain-to-field may be used to achieve similar
-behavior; other new field functions include field-beginning, field-end,
-erase-field, and field-string.
+commands continue into the next field if repeated.
 
 Now that the minibuffer prompt is inserted into the minibuffer, it is in
-a separate field from the user-input part of the buffer, so that many
+a separate field from the user-input part of the buffer, so that common
 editing commands treat the user's text separately from the prompt.
+
+The following functions are defined for operating on fields:
+
+- Function: constrain-to-field NEW-POS OLD-POS &optional ESCAPE-FROM-EDGE ONLY-IN-LINE
+
+Return the position closest to NEW-POS that is in the same field as OLD-POS.
+A field is a region of text with the same `field' property.
+If NEW-POS is nil, then the current point is used instead, and set to the
+constrained position if that is is different.
+
+If OLD-POS is at the boundary of two fields, then the allowable
+positions for NEW-POS depends on the value of the optional argument
+ESCAPE-FROM-EDGE: If ESCAPE-FROM-EDGE is nil, then NEW-POS is
+constrained to the field that has the same `field' text-property
+as any new characters inserted at OLD-POS, whereas if ESCAPE-FROM-EDGE
+is non-nil, NEW-POS is constrained to the union of the two adjacent
+fields.
+
+If the optional argument ONLY-IN-LINE is non-nil and constraining
+NEW-POS would move it to a different line, NEW-POS is returned
+unconstrained.  This useful for commands that move by line, like
+C-n or C-a, which should generally respect field boundaries
+only in the case where they can still move to the right line.
+
+- Function: erase-field &optional POS
+
+Erases the field surrounding POS.
+A field is a region of text with the same `field' property.
+If POS is nil, the position of the current buffer's point is used.
+
+- Function: field-beginning &optional POS ESCAPE-FROM-EDGE
+
+Return the beginning of the field surrounding POS.
+A field is a region of text with the same `field' property.
+If POS is nil, the position of the current buffer's point is used.
+If ESCAPE-FROM-EDGE is non-nil and POS is already at beginning of an
+field, then the beginning of the *previous* field is returned.
+
+- Function: field-end &optional POS ESCAPE-FROM-EDGE
+
+Return the end of the field surrounding POS.
+A field is a region of text with the same `field' property.
+If POS is nil, the position of the current buffer's point is used.
+If ESCAPE-FROM-EDGE is non-nil and POS is already at end of a field,
+then the end of the *following* field is returned.
+
+- Function: field-string &optional POS
+
+Return the contents of the field surrounding POS as a string.
+A field is a region of text with the same `field' property.
+If POS is nil, the position of the current buffer's point is used.
+
+- Function: field-string-no-properties &optional POS
+
+Return the contents of the field around POS, without text-properties.
+A field is a region of text with the same `field' property.
+If POS is nil, the position of the current buffer's point is used.
 
 +++
 ** Image support.
