@@ -295,7 +295,7 @@ space does not end a sentence, so don't break a line there."
       (goto-char beg)
       (while (re-search-forward "[.?!][])\"']*\n" nil t)
 	(forward-char -1)
-	(insert ? ))
+	(insert-and-inherit ? ))
       (goto-char (point-max))
       ;; Note that the buffer bounds start after the indentation,
       ;; so the columns counted by INDENT don't appear in (current-column).
@@ -310,10 +310,11 @@ space does not end a sentence, so don't break a line there."
 		     (search-backward " ")))
 		(skip-chars-backward " ")
 		(setq nmove (1- nmove))))
-	    (insert " ")
+	    (insert-and-inherit " ")
 	    (skip-chars-backward " ")
 	    (setq ncols (1- ncols)))))))
   nil)
+
 
 (defun fill-nonuniform-paragraphs (min max &optional justifyp mailp)
   "Fill paragraphs within the region, allowing varying indentation within each.
