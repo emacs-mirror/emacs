@@ -1079,7 +1079,7 @@ character of the buffer counts as 1.)
 @var{replacement}.
 
 @cindex case in replacements
-@defun replace-match replacement &optional fixedcase literal string
+@defun replace-match replacement &optional fixedcase literal string subexp
 This function replaces the text in the buffer (or in @var{string}) that
 was matched by the last search.  It replaces that text with
 @var{replacement}.
@@ -1127,6 +1127,12 @@ Subexpressions are those expressions grouped inside @samp{\(@dots{}\)}.
 @cindex @samp{\} in replacement
 @samp{\\} stands for a single @samp{\} in the replacement text.
 @end table
+
+If @var{subexp} is non-@code{nil}, that says to replace just
+subexpression number @var{subexp} of the regexp that was matched, not
+the entire match.  For example, after matching @samp{foo \(ba*r\)},
+calling @code{replace-match} with 1 as @var{subexp} means to replace
+just the text that matched @samp{\(ba*r\)}.
 @end defun
 
 @node Entire Match Data
