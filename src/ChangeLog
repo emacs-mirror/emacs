@@ -1,3 +1,7 @@
+2001-11-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* window.c (grow_mini_window): Fix typo in comment.
+
 2001-11-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_scroll_bar_create): Check for width and height > 0.
