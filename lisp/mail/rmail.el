@@ -1742,13 +1742,14 @@ It returns t if it got any new messages."
 			  (goto-char (+ header-end size))
 			(message "Ignoring invalid Content-Length field")
 			(sit-for 1 0 t)))
-		 (if (re-search-forward
-		      (concat "^[\^_]?\\("
-			      rmail-unix-mail-delimiter
-			      "\\|"
-			      rmail-mmdf-delim1 "\\|"
-			      "^BABYL OPTIONS:\\|"
-			      "\^L\n[01],\\)") nil t)
+		 (if (let ((case-fold-search nil))
+		       (re-search-forward
+			(concat "^[\^_]?\\("
+				rmail-unix-mail-delimiter
+				"\\|"
+				rmail-mmdf-delim1 "\\|"
+				"^BABYL OPTIONS:\\|"
+				"\^L\n[01],\\)") nil t))
 		     (goto-char (match-beginning 1))
 		   (goto-char (point-max)))
 		 (setq count (1+ count))
