@@ -332,8 +332,8 @@ Any number of SPACE, TAB, and NEWLINE can be put before and after commas.
 If optional argument STYLE is specified, create a fontset of STYLE
 by modifying FONTSET-SPEC appropriately.  STYLE can be one of `bold',
 `italic', and `bold-italic'.
-If this function attemps to create already existing fontset, error is
-signaled unlress the optional 3rd argument NOERROR is non-nil."
+If this function attempts to create already existing fontset, error is
+signaled unless the optional 3rd argument NOERROR is non-nil."
   (if (not (string-match "^[^,]+" fontset-spec))
       (error "Invalid fontset spec: %s" fontset-spec))
   (let ((idx (match-end 0))
