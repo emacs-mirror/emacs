@@ -1519,7 +1519,7 @@ It may not be a list of functions.");
 Each buffer has its own value of this variable.");
 
   DEFVAR_PER_BUFFER ("buffer-auto-save-file-name",
-		    &current_buffer->auto_save_file_name,
+		     &current_buffer->auto_save_file_name,
 		     make_number (Lisp_String),
     "Name of file for auto-saving current buffer,\n\
 or nil if buffer should not be auto-saved.\n\
@@ -1578,8 +1578,7 @@ The remaining five elements are ropes that control the display of\n\
 If this variable is nil, the value of `standard-display-table' is used.\n\
 Each window can have its own, overriding display table.");
 
-  DEFVAR_PER_BUFFER ("buffer-field-list", &current_buffer->fieldlist,
-		     Qnil,
+  DEFVAR_PER_BUFFER ("buffer-field-list", &current_buffer->fieldlist, Qnil,
     "List of fields in the current buffer.  See `add-field'.");
 
   DEFVAR_BOOL ("check-protected-fields", check_protected_fields,
@@ -1620,8 +1619,7 @@ cause calls to any `before-change-function' or `after-change-function'.");
 The function is called, with no arguments, if it is non-nil.");
   Vfirst_change_function = Qnil;
 
-  DEFVAR_PER_BUFFER ("buffer-undo-list", &current_buffer->undo_list,
-		     Qnil,
+  DEFVAR_PER_BUFFER ("buffer-undo-list", &current_buffer->undo_list, Qnil,
     "List of undo entries in current buffer.\n\
 Recent changes come first; older changes follow newer.\n\
 \n\
