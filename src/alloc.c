@@ -1460,6 +1460,11 @@ mark_object (objptr)
 {
   register Lisp_Object obj;
 
+#ifdef DEBUG_MOLE
+  if (*(int *) ((char *)__builtin_frame_address (0) - 16) == 0)
+    abort ();
+#endif
+
   obj = *objptr;
   XUNMARK (obj);
 
