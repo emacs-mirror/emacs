@@ -1,3 +1,9 @@
+1999-12-28  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.h (struct display_info): New.
+	(struct x_output): Add the display_info member.
+	(FRAME_X_DISPLAY_INFO): New macro.
+
 1999-12-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (try_window_id): Compute BEG_UNCHANGED and END_UNCHANGED
