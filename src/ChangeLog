@@ -1,5 +1,17 @@
 2001-04-10  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (window_scroll): Change the meaning of N to mean
+	N screen-fulls or N lines.
+	(window_scroll_pixel_based, window_scroll_line_based)
+	(scroll_command, Fscroll_other_window): Change accordingly.
+
+	* window.c (window_scroll_pixel_based, Frecenter): Call
+	window_box_height instead of using it.last_visible_y for the
+	height of the window.
+
+	* xdisp.c (redisplay_window) <recenter>: Call window_box_height
+	instead of using it.last_visible_y for the height of the window.
+	
 	* w32proc.c (sys_spawnve): Quote more chars for Cygwin.
 
 	* w32.c (sys_open): Try to open file without _O_CREAT first, to be

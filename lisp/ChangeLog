@@ -1,5 +1,8 @@
 2001-04-10  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/advice.el (ad-make-advised-definition): Construct
+	advice for subrs differently.
+
 	* textmodes/paragraphs.el (forward-sentence): Put the sentence-end
 	regexp in parentheses when building the regexp for searching
 	backwards.
