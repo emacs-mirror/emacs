@@ -7,7 +7,7 @@ AC_INIT(src/lisp.h)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 
 lispdir='${datadir}/emacs/${version}/lisp'
-locallisppath='${datadir}/emacs/site-lisp'
+locallisppath='${datadir}/emacs/site-lisp:${datadir}/emacs/${version}/site-lisp"
 lisppath='${locallisppath}:${lispdir}'
 etcdir='${datadir}/emacs/${version}/etc'
 lockdir='${sharedstatedir}/emacs/lock'
