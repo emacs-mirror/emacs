@@ -2552,7 +2552,8 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 	      (not (file-writable-p to-name)))
 	 (delete-file to-name))
      (copy-file from-name to-name t t)))
-  (set-file-modes to-name (logand modes #o1777)))
+  (and modes
+       (set-file-modes to-name (logand modes #o1777))))
 
 (defun file-name-sans-versions (name &optional keep-backup-version)
   "Return file NAME sans backup versions or strings.
