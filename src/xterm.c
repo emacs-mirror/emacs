@@ -6958,7 +6958,6 @@ x_term_init (display_name, xrm_option, resource_name)
   setlocale (LC_ALL, "");
   /* In case we just overrode what init_lread did, redo it.  */
   setlocale (LC_NUMERIC, "C");
-  setlocale (LC_TIME, "C");
 #endif
 
 #ifdef USE_X_TOOLKIT
@@ -6990,7 +6989,6 @@ x_term_init (display_name, xrm_option, resource_name)
 #ifdef HAVE_X11XTR6
     /* I think this is to compensate for XtSetLanguageProc.  */
     setlocale (LC_NUMERIC, "C");
-    setlocale (LC_TIME, "C");
 #endif
   }
 
