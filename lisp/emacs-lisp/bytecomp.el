@@ -1681,7 +1681,6 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 		  (byte-compile-warn "malformed interactive spec: %s"
 				     (prin1-to-string int))))))
     (let ((compiled (byte-compile-top-level (cons 'progn body) nil 'lambda)))
-      (setq foo compiled)
       (if (and (eq 'byte-code (car-safe compiled))
 	       (not (byte-compile-version-cond
 		     byte-compile-compatibility)))
