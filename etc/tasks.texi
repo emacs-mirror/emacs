@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 08 November 1994
+@set lastupdate 10 November 1994
 @c %**end of header
 
 @setchapternewpage off
@@ -16,16 +16,16 @@
 
 @ifinfo
 @node Top, Documentation, (dir), (dir)
-@top GNU Task list
+@top GNU Task List
 
 This file is updated automatically from @file{tasks.texi}, which was
 last updated on @value{lastupdate}.
 @end ifinfo
 
-Check with gnu@@prep.ai.mit.edu, for a possibly more current copy.
+Check with @code{gnu@@prep.ai.mit.edu}, for a possibly more current copy.
 This task list is not exclusive; any other useful program might be a
 good project---but it might instead be something we already have, so
-check with gnu@@prep before you start writing it.
+check with @code{gnu@@prep} before you start writing it.
 
 @menu
 * Documentation::               
@@ -38,9 +38,9 @@ check with gnu@@prep before you start writing it.
 * Games and Recreations::       
 @end menu
 
-If you start working steadily on a project, please let gnu@@prep know.
-We might have information that could help you; we'd also like to send
-you the GNU coding standards.
+If you start working steadily on a project, please let @code{gnu@@prep}
+know.  We might have information that could help you; we'd also like to
+send you the GNU coding standards.
 
 Because of the natural tendency for most volunteers to write
 programming tools or programming languages, we have a comparative
@@ -67,16 +67,17 @@ start with).
 
 @item
 A manual for Ghostscript.
-
-@item
-A manual for CSH.
+@c
+@c @item
+@c A manual for CSH.
+@c Ick, do we want to encourage using THAT?  -djm
 
 @item
 A manual for PIC (the graphics formatting language).
 
 @item
-A manual for Perl.  (The manual that exists is not free, and
-is thus not available to be part of the GNU system.)
+A manual for Perl.  (The books that exist are not free, and
+thus not available to be part of the GNU system.)
 
 @item
 A manual for Oleo.
@@ -97,17 +98,13 @@ Compiler, Make, Texinfo, Termcap and maybe the C Library.
 
 @item
 Many utilities need documentation, including @code{grep}, @code{cpio},
-@code{find}, 
-@c @code{less}, 
-and the other small utilities.
-
+and other small utilities.
 @end itemize
 
 @node Unix-Related Projects
-@chapter Unix-Related projects
+@chapter Unix-Related Projects
 
-@itemize
-
+@itemize @bullet
 @item
 We could use an emulation of Unix @code{spell}, which would run by
 invoking @code{ispell}.
@@ -117,8 +114,8 @@ Less urgent: @code{diction}, @code{explain}, @code{style}.
 
 @item
 An improved version of the POSIX utility @code{pax}.  There is one on
-the usenet, but it is said to be poorly written.  Talk with
-mib@@gnu.ai.mit.edu about this project.
+the Usenet, but it is said to be poorly written.  Talk with
+@code{mib@@gnu.ai.mit.edu} about this project.
 
 @ignore
 @item
@@ -134,13 +131,12 @@ Various other libraries.
 
 @item
 An emulation of SCCS that works using RCS.
-
 @end itemize
 
 @node Kernel Projects
-@chapter Kernel-Related projects
+@chapter Kernel-Related Projects
 
-@itemize
+@itemize @bullet
 @item
 An over-the-ethernet debugger stub that will allow the kernel to be
 debugged from GDB running on another machine.
@@ -159,16 +155,15 @@ need some changes.
 @item
 A shared memory X11 server to run under MACH is very desirable.  The
 machine specific parts should be kept well separated.
-
 @end itemize
 
 @node Extensions
-@chapter Extensions to existing GNU software
+@chapter Extensions to Existing GNU Software
 
-@itemize
-
+@itemize @bullet
 @item
-Enhance GCC.  See files PROJECTS and PROBLEMS in the GCC distribution.
+Enhance GCC.  See files @file{PROJECTS} and @file{PROBLEMS} in the GCC
+distribution.
 
 @item
 GNU @code{sed} probably needs to be rewritten completely just to make it
@@ -184,16 +179,13 @@ Add a few features to GNU @code{diff}, such as handling large input
 files without reading entire files into core.
 
 @item
-Extend GDB with an X-based graphical interface better than @code{xxgdb}.
-
-@item
 An @code{nroff} macro package to simplify @code{texi2roff}.
 
 @item
 A queueing system for the mailer Smail that groups pending work by
 destination rather than by original message.  This makes it possible
 to schedule retries coherently for each destination.  Talk to
-tron@@veritas.com about this.
+@code{tron@@veritas.com} about this.
 
 Smail also needs a new chief maintainer.
 
@@ -204,16 +196,11 @@ about the level of @code{cxref}.)  We also could use something like
 @end itemize
 
 @node X Windows Projects
-@chapter X windows projects
+@chapter X Windows Projects
 
-@itemize
-
+@itemize @bullet
 @item
 An emulator for Macintosh graphics calls on top of X Windows.
-
-@item
-An emulator for Microsoft windows calls on top of X Windows.  (A
-commercial program to do this took just three months to write.)
 
 @item
 A music playing and editing system.
@@ -244,17 +231,15 @@ A desktop program with icons and such, for X-windows.
 A paint program, supporting both bitmap-oriented operations and
 component-oriented operations.  @code{xpaint} exists, but isn't very
 usable.
-
 @end itemize
 
 @node Other Projects
 @chapter Other Projects
 
 If you think of others that should be added, please
-send them to gnu@@prep.ai.mit.edu.
+send them to @code{gnu@@prep.ai.mit.edu}.
 
-@itemize
-
+@itemize @bullet
 @item
 [This seems to be being done:]
 A program to convert Postscript to plain ASCII text.  Ghostscript will
@@ -294,7 +279,8 @@ programs are similar but different in peculiar details is a great source
 of confusion.  We are stuck with maintaining compatibility with Unix in
 our shell, @code{awk}, and @code{bc}, but nothing prevents us from
 having alternative programs using our new, uniform language.  This would
-make GNU far better for new users.
+make GNU far better for new users.  Talk with @code{lord@@cygnus.com} if
+you are interested in this project.
 
 @item
 A program to typeset C code for printing.
@@ -369,22 +355,20 @@ Software for displaying molecules.
 @item
 Software for comparing DNA sequences, and finding matches and
 alignments.
-
 @end itemize
 
 @node Compilers
 @chapter Compilers for Other Batch Languages
 
-Volunteers are needed to write parsers/front ends for languages such
-as Algol 60, Algol 68, PL/I, or whatever, to be used with the
-code generation phases of the GNU C compiler.  (C++ is done, and
-Ada, Fortran, Pascal and Modula are being worked on.)
+Volunteers are needed to write parsers/front ends for languages such as
+Algol 60, Algol 68, PL/I, or whatever, to be used with the code
+generation phases of the GNU C compiler.  (C++ and Objective C are done,
+and Ada, Fortran, Pascal and Modula are being worked on.)
 
 @node Games and Recreations
 @chapter Games and Recreations
 
-@itemize
-
+@itemize @bullet
 @item
 Video-oriented games should work with the X window system.
 
@@ -394,7 +378,7 @@ Empire (there is a free version but it needs upgrading)
 @item
 Imitations of popular video games:
 
-@itemize
+@itemize -
 @item
 Space war, Asteroids, Pong, Columns.
 @item
@@ -418,7 +402,6 @@ A program to display effects of moving at relativistic speeds.
 Intriguing screen-saver programs to make interesting pictures.
 Other such programs that are simply entertaining to watch.
 For example, an aquarium.
-
 @end itemize
 
 We do not need @code{rogue}, as we have @code{hack}.
