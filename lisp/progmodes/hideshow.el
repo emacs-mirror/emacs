@@ -1,11 +1,11 @@
-;;; hideshow.el --- minor mode cmds to selectively display blocks of code
+;;; hideshow.el --- minor mode cmds to selectively display code/comment blocks
 
 ;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01 Free Software Foundation
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;;      Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: C C++ java lisp tools editing comments blocks hiding outlines
-;; Maintainer-Version: 5.26
+;; Maintainer-Version: 5.31
 ;; Time-of-Day-Author-Most-Likely-to-be-Recalcitrant: early morning
 
 ;; This file is part of GNU Emacs.
@@ -39,7 +39,7 @@
 ;;   hs-show-all                        C-c @ C-M-s
 ;;   hs-hide-level                      C-c @ C-l
 ;;   hs-toggle-hiding                   C-c @ C-c
-;;   hs-mouse-toggle-hiding             [(shift button-2)]
+;;   hs-mouse-toggle-hiding             [(shift mouse-2)]
 ;;   hs-hide-initial-comment-block
 ;;
 ;; Blocks are defined per mode.  In c-mode, c++-mode and java-mode, they
@@ -49,6 +49,37 @@
 ;;
 ;; The command `M-x hs-minor-mode' toggles the minor mode or sets it
 ;; (similar to other minor modes).
+
+;; * Suggested usage
+;;
+;; First make sure hideshow.el is in a directory in your `load-path'.
+;; You can optionally byte-compile it using `M-x byte-compile-file'.
+;; Then, add the following to your ~/.emacs:
+;;
+;; (load-library "hideshow")
+;; (add-hook 'X-mode-hook               ; other modes similarly
+;;           '(lambda () (hs-minor-mode 1)))
+;;
+;; where X = {emacs-lisp,c,c++,perl,...}.  You can also manually toggle
+;; hideshow minor mode by typing `M-x hs-minor-mode'.  After hideshow is
+;; activated or deactivated, `hs-minor-mode-hook' is run w/ `run-hooks'.
+;;
+;; Additionally, Joseph Eydelnant writes:
+;;   I enjoy your package hideshow.el Ver. 5.24 2001/02/13
+;;   a lot and I've been looking for the following functionality:
+;;   toggle hide/show all with a single key.
+;;   Here are a few lines of code that lets me do just that.
+;;
+;;   (defvar my-hs-hide nil "Current state of hideshow for toggling all.")
+;;   ;;;###autoload
+;;   (defun my-toggle-hideshow-all () "Toggle hideshow all."
+;;     (interactive)
+;;     (setq my-hs-hide (not my-hs-hide))
+;;     (if my-hs-hide
+;;         (hs-hide-all)
+;;       (hs-show-all)))
+;;
+;; [Your hideshow hacks here!]
 
 ;; * Customization
 ;;
@@ -111,20 +142,6 @@
 ;; submitting it for inclusion in hideshow.el.  See docstring for
 ;; `hs-special-modes-alist' for more info on the entry format.
 
-;; * Suggested usage
-;;
-;; First make sure hideshow.el is in a directory in your `load-path'.
-;; You can optionally byte-compile it using `M-x byte-compile-file'.
-;; Then, add the following to your ~/.emacs:
-;;
-;; (load-library "hideshow")
-;; (add-hook 'X-mode-hook               ; other modes similarly
-;;           '(lambda () (hs-minor-mode 1)))
-;;
-;; where X = {emacs-lisp,c,c++,perl,...}.  You can also manually toggle
-;; hideshow minor mode by typing `M-x hs-minor-mode'.  After hideshow is
-;; activated or deactivated, `hs-minor-mode-hook' is run w/ `run-hooks'.
-
 ;; * Bugs
 ;;
 ;; (1) Hideshow does not work w/ emacs 18 because emacs 18 lacks the
@@ -132,10 +149,10 @@
 ;;     writes this, please send me a copy.
 ;;
 ;; (2) Sometimes `hs-headline' can become out of sync.  To reset, type
-;;     `M-x hs-minor-mode' twice (that is, deactivate then activate
+;;     `M-x hs-minor-mode' twice (that is, deactivate then re-activate
 ;;     hideshow).
 ;;
-;; (3) Hideshow 5.x is developed and tested on GNU Emacs 20.4.
+;; (3) Hideshow 5.x is developed and tested on GNU Emacs 20.7.
 ;;     XEmacs compatibility may have bitrotted since 4.29.
 ;;
 ;; (4) Some buffers can't be `byte-compile-file'd properly.  This is because
@@ -152,7 +169,26 @@
 ;;                                   act)
 ;;       (let ((hs-minor-mode-hook nil))
 ;;         ad-do-it))
+;;
+;; (5) Hideshow interacts badly with Ediff and `vc-diff'.  At the moment, the
+;;     suggested workaround is to turn off hideshow entirely, for example:
+;;
+;;     (defun turn-off-hideshow () (hs-minor-mode -1))
+;;     (add-hook 'ediff-prepare-buffer-hook 'turn-off-hideshow)
+;;     (add-hook 'vc-before-checkin-hook 'turn-off-hideshow)
+;;
+;;     In the case of `vc-diff', here is a less invasive workaround:
+;;
+;;     (add-hook 'vc-before-checkin-hook
+;;               '(lambda ()
+;;                  (goto-char (point-min))
+;;                  (hs-show-block)))
+;;
+;;     Unfortunately, these workarounds do not restore hideshow state.
+;;     If someone figures out a better way, please let me know.
 
+;; * Correspondance
+;;
 ;; Correspondance welcome; please indicate version number.  Send bug
 ;; reports and inquiries to <ttn@gnu.org>.
 
@@ -164,7 +200,8 @@
 ;;     Dean Andrews, Alf-Ivar Holm, Holger Bauer, Christoph Conrad, Dave
 ;;     Love, Dirk Herrmann, Gael Marziou, Jan Djarv, Guillaume Leray,
 ;;     Moody Ahmad, Preston F. Crow, Lars Lindberg, Reto Zimmermann,
-;;     Keith Sheffield, Chew Meng Kuan, Tony Lam, Pete Ware, François Pinard
+;;     Keith Sheffield, Chew Meng Kuan, Tony Lam, Pete Ware, François
+;;     Pinard, Stefan Monnier, Joseph Eydelnant
 ;;
 ;; Special thanks go to Dan Nicolaescu, who reimplemented hideshow using
 ;; overlays (rather than selective display), added isearch magic, folded
@@ -207,19 +244,19 @@
   :group 'hideshow
   :version "21.1")
 
-(defcustom hs-isearch-open 'block
+(defcustom hs-isearch-open 'code
   "*What kind of hidden blocks to open when doing `isearch'.
 One of the following symbols:
 
-  block   -- open only blocks
-  comment -- open only comments
-  t       -- open both blocks and comments
-  nil     -- open neither blocks nor comments
+  code    -- open only code blocks
+  comment -- open only comment blocks
+  t       -- open both code and comment blocks
+  nil     -- open neither code nor comment blocks
 
 This has effect iff `search-invisible' is set to `open'."
-  :type '(choice (const :tag "open only blocks" block)
-                 (const :tag "open only comments" comment)
-                 (const :tag "open both blocks and comments" t)
+  :type '(choice (const :tag "open only code blocks" code)
+                 (const :tag "open only comment blocks" comment)
+                 (const :tag "open both code and comment blocks" t)
                  (const :tag "don't open any of them" nil))
   :group 'hideshow)
 
@@ -411,8 +448,8 @@ property of an overlay."
 (defun hs-flag-region (from to flag)
   "Hide or show lines from FROM to TO, according to FLAG.
 If FLAG is nil then text is shown, while if FLAG is non-nil the text is
-hidden.  Actually flag is really either `comment' or `block' depending
-on what kind of block it is supposed to hide."
+hidden.  FLAG must be one of the symbols `code' or `comment', depending
+on what kind of block is to be hidden."
   (save-excursion
     ;; first clear it all out
     (hs-discard-overlays from to)
@@ -421,7 +458,11 @@ on what kind of block it is supposed to hide."
       (let ((overlay (make-overlay from to)))
         (overlay-put overlay 'invisible 'hs)
         (overlay-put overlay 'hs flag)
-        (when (or (eq hs-isearch-open t) (eq hs-isearch-open flag))
+        (when (or (eq hs-isearch-open t)
+                  (eq hs-isearch-open flag)
+                  ;; deprecated backward compatibility -- `block'<=>`code'
+                  (and (eq 'block hs-isearch-open)
+                       (eq 'code  flag)))
 	  (overlay-put overlay 'isearch-open-invisible 'hs-isearch-show)
 	  (overlay-put overlay
 		       'isearch-open-invisible-temporary
@@ -474,7 +515,7 @@ and then further adjusted to be at the end of the line."
                        (end-of-line)
                        (point))))
           (if (and (< p (point)) (> (count-lines p q) 1))
-              (overlay-put (hs-flag-region p q 'block)
+              (overlay-put (hs-flag-region p q 'code)
                            'hs-ofs
                            (- pure-p p)))
           (goto-char (if end q (min p pure-p)))))))
