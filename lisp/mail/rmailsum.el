@@ -378,6 +378,17 @@ nil for FUNCTION means all messages."
 						     (- len 25))
 						    (t (- mch 14))))
 				     (min len (+ lo 25))))))))
+	  (save-excursion
+	    (save-restriction
+	      (widen)
+	      (let
+		  ((lines (count-lines (rmail-msgbeg msgnum) (rmail-msgend msgnum))))
+		(format (cond
+			 ((<= lines     9) "   [%d]")
+			 ((<= lines    99) "  [%d]")
+			 ((<= lines   999) " [%3d]")
+			 (t		    "[%d]"))
+			lines))))
 	  "  #"
 	  (if (re-search-forward "^Subject:" nil t)
 	      (progn (skip-chars-forward " \t")
@@ -530,6 +541,7 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
   (rmail-summary-delete-forward t))
 
 (defun rmail-summary-mark-deleted (&optional n undel)
+  ;; Since third arg is t, this only alters the summary, not the Rmail buf.
   (and n (rmail-summary-goto-msg n t t))
   (or (eobp)
       (not (overlay-get rmail-summary-overlay 'face))
@@ -877,6 +889,14 @@ Commands for sorting the summary:
 (defvar rmail-summary-overlay nil)
 (put 'rmail-summary-overlay 'permanent-local t)
 
+;; Go to message N in the summary buffer which is current,
+;; and in the corresponding Rmail buffer.
+;; If N is nil, use the message corresponding to point in the summary
+;; and move to that message in the Rmail buffer.
+
+;; If NOWARN, don't say anything if N is out of range.
+;; If SKIP-RMAIL, don't do anything to the Rmail buffer.
+
 (defun rmail-summary-goto-msg (&optional n nowarn skip-rmail)
   (interactive "P")
   (if (consp n) (setq n (prefix-numeric-value n)))
@@ -902,7 +922,7 @@ Commands for sorting the summary:
       (if (> n total)
 	  (progn (message "No following message")
 		 (goto-char (point-max))
-		 (rmail-summary-goto-msg)))
+		 (rmail-summary-goto-msg nil nowarn skip-rmail)))
       (goto-char (point-min))
       (if (not (re-search-forward (format "^%4d[^0-9]" n) nil t))
 	  (progn (or nowarn (message "Message %d not found" n))
