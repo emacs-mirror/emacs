@@ -1340,9 +1340,10 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	}
 
       XtDispatchEvent (&event);
-      if (XtWindowToWidget(event.xany.window) != menu)
+      if (XtWindowToWidget(XDISPLAY event.xany.window) != menu)
 	{
-	  queue_tmp = (struct event_queue *) malloc (sizeof (struct event_queue));
+	  queue_tmp
+	    = (struct event_queue *) malloc (sizeof (struct event_queue));
 
 	  if (queue_tmp != NULL) 
 	    {
