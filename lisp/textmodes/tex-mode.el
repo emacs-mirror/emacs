@@ -2,6 +2,7 @@
 
 ;; Maintainer: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Last-Modified: 04 July 1992
+;; Keywords: tex
 
 ;; Contributions over the years by William F. Schelter, Dick King,
 ;; Stephen Gildea, Michael Prange, and Edward M. Reingold.

@@ -2,6 +2,7 @@
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Last-Modified: 16 Mar 1992
+;; Keywords: news
 
 ;; $Header: nntp.el,v 3.10 90/03/23 13:25:27 umerin Locked $
 

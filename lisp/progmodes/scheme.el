@@ -2,6 +2,7 @@
 
 ;; Author: Bill Rozas <jinz@prep.ai.mit.edu>
 ;; Last-Modified: 16 Mar 1992
+;; Keywords: languages, lisp
 
 ;;; $Header: scheme.el,v 1.7 88/07/15 20:20:00 GMT cph Exp $
 

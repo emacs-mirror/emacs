@@ -3,6 +3,7 @@
 ;; Author: Jeff Peck
 ;; Maintainer: FSF
 ;; Last-Modified: 14 Jul 1992
+;; Keywords: hardware
 
 ;; Copyright (C) 1987 Free Software Foundation, Inc.
 

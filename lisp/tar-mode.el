@@ -4,6 +4,7 @@
 ;; Created: 04 Apr 1990
 ;; Version: 1.21
 ;; Last-Modified: 10 Mar 1991
+;; Keywords: unix
 
 ;;; Copyright (C) 1990, 1991 Free Software Foundation, Inc.
 ;;;

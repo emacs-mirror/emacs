@@ -2,6 +2,7 @@
 
 ;; Maintainer: FSF
 ;; Last-Modified: 14 Dec 1985
+;; Keywords: emulations
 
 ;;; Commentary:
 

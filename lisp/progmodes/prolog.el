@@ -2,6 +2,7 @@
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Last-Modified: 08 May 1989
+;; Keywords: languages
 
 ;; Copyright (C) 1986, 1987 Free Software Foundation, Inc.
 

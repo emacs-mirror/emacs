@@ -5,6 +5,7 @@
 ;; Last-Modified: 07 Feb 1992
 ;; Version: 1.0
 ;; Adapted-By: ESR
+;; Keywords: lisp, tools
 
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 

@@ -4,6 +4,7 @@
 ;; Maintainer: FSF
 ;; Created: 21 Nov 1986
 ;; Last-Modified: 16 Mar 1992
+;; Keywords: hardware
 
 ;;     (from code originally written by John Robinson@bbn for the bitgraph)
 

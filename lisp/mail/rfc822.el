@@ -3,6 +3,7 @@
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
 ;; Maintainer: FSF
 ;; Last-Modified: 26 Nov 1990
+;; Keywords: mail
 
 ;; Copyright (C) 1986, 87, 1990 Free Software Foundation, Inc.
 

@@ -3,6 +3,7 @@
 ;; Author: Bob Chassell <bob@gnu.ai.mit.edu>
 ;; Version: 2.00
 ;; Last-Modified: 14 Dec 1990
+;; Keywords: maint, tex, doc, wp
 
 ;; Copyright (C) 1985, 1988, 1989, 1990 Free Software Foundation, Inc.
 

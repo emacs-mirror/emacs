@@ -3,6 +3,7 @@
 ;; Author: Robert J. Chassell <bob@gnu.ai.mit.edu>
 ;; Version: 2.00
 ;; Last-Modified: 14 Dec 1990
+;; Keywords: tex, help
 
 ;; Copyright (C) 1985, 1986, 1988, 1990 Free Software Foundation, Inc.
 

@@ -1,6 +1,7 @@
 ;;; studly.el --- StudlyCaps (tm)(r)(c)(xxx)
 
 ;; Maintainer: FSF
+;; Keywords: games
 
 ;;; This is in the public domain, since it was distributed
 ;;; by its author without a copyright notice in 1986.

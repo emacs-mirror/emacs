@@ -2,6 +2,7 @@
 
 ;; Author: Scott Draves <spot@cs.cmu.edu>
 ;; Adapted-By: ESR
+;; Keywords: extensions
 
 ;; Commentary:
  

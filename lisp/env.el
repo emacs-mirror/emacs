@@ -2,6 +2,7 @@
 
 ;; Maintainer: FSF
 ;; Last-Modified: 16 Mar 1992
+;; Keywords: extensions
 
 ;;; Copyright Free Software Foundation 1991
 

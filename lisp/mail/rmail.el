@@ -2,6 +2,7 @@
 
 ;; Maintainer: FSF
 ;; Last-Modified: 24 Apr 1992
+;; Keywords: mail
 
 ;; Copyright (C) 1985, 1986, 1987, 1988, 1991, 1992 Free Software Foundation, Inc.
 

@@ -3,6 +3,7 @@
 ;; Author: Joe Wells <jbw@bucsf.bu.edu>
 ;; Last-Modified: Tue Jun 13 1989
 ;; Adapted-By: ESR
+;; Keywords: processes
 
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 

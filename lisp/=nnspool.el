@@ -2,6 +2,7 @@
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Last-Modified: 16 Mar 1992
+;; Keywords: news
 
 ;; $Header: nnspool.el,v 1.10 90/03/23 13:25:25 umerin Locked $
 

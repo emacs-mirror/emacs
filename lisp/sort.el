@@ -3,6 +3,7 @@
 ;; Author: Howie Kaye
 ;; Maintainer: FSF
 ;; Last-Modified: 28 Aug 1990
+;; Keywords: unix
 
 ;; Copyright (C) 1986, 1987 Free Software Foundation, Inc.
 

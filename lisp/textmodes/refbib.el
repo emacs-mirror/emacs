@@ -2,6 +2,7 @@
 
 ;; Maintainer: FSF
 ;; Last-Modified: 16 Mar 1992
+;; Keywords: bib
 
 ;; Copyright (C) 1989 Free Software Foundation, Inc.
 

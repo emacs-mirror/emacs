@@ -2,6 +2,7 @@
 
 ;; Author: Jeff Peck <peck@sun.com>
 ;; Last-Modified: 14 Aug 1987
+;; Keywords: hardware
 
 ;; Copyright (C) 1987 Free Software Foundation, Inc.
 

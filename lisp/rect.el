@@ -2,6 +2,7 @@
 
 ;; Maintainer: FSF
 ;; Last-Modified: 09 May 1991
+;; Keywords: internal
 
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 

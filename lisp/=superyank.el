@@ -4,6 +4,7 @@
 ;; Version: 1.1
 ;; Last-Modified: 15 Jul 1992
 ;; Adapted-By: ESR
+;; Keywords: news
 
 ;;; Commentary:
 

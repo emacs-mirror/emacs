@@ -2,6 +2,7 @@
 
 ;; Maintainer: FSF
 ;; Last-Modified: 16 Mar 1992
+;; Keywords: mail
 
 ;; Copyright (C) 1990 Free Software Foundation, Inc.
 ;; This file is part of GNU Emacs.

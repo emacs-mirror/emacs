@@ -2,6 +2,7 @@
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
 ;; Last-Modified: 05 Dec 1991
+;; Keywords: processes
 
 ;; Changes by peck@sun.com and by rms.
 

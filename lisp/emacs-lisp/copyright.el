@@ -2,6 +2,7 @@
 
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
 ;; Last-Modified: 03 Jun 1991
+;; Keywords: maint
 
 ;;; Copyright (C) 1991, 1992 Free Software Foundation, Inc.
 ;;;

@@ -4,6 +4,7 @@
 ;; Maintainer: FSF
 ;; Last-Modified: 21 Dec 1991
 ;; Adapted-By: ESR
+;; Keywords: languages
 
 ;;   Copyright (C) 1990  William F. Mann
 ;; Adapted from C code editing commands 'c-mode.el', Copyright 1987 by the

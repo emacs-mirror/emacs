@@ -2,6 +2,7 @@
 
 ;; Author: Ian G. Batten <batten@uk.ac.bham.multics>
 ;; Last-Modified: 30 May 1992
+;; Keywords: terminals
 
 ;;; Copyright (C) 1986 Free Software Foundation, Inc.
 ;;; 

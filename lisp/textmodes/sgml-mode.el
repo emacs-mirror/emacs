@@ -3,6 +3,7 @@
 ;; Maintainer: FSF
 ;; Last-Modified: 14 Jul 1992
 ;; Adapted-By: ESR
+;; Keywords: wp
 
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
