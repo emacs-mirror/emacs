@@ -1,3 +1,8 @@
+2001-06-15  Miles Bader  <miles@gnu.org>
+
+	* textmodes/texinfmt.el (texinfo-format-syntax-table): Revert
+	previous change.
+
 2001-06-14  Richard M. Stallman  <rms@gnu.org>
 
 	* replace.el (keep-lines-read-args): Return just a regexp.
