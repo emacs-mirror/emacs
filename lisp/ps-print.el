@@ -392,7 +392,7 @@ Please send all bug fixes and enhancements to
 ;; the variable `ps-zebra-stripe-height', which is 3 by default.
 ;; The distance between stripes equals the height of a stripe.
 ;; 
-;; The variable `ps-zebra-stripe' controls whether to print zebra stripes.
+;; The variable `ps-zebra-stripes' controls whether to print zebra stripes.
 ;; Non-nil means yes, nil means no.  The default is nil.
 ;;
 ;; See also section How Ps-Print Has A Text And/Or Image On Background.
@@ -1427,13 +1427,13 @@ using the current ps-print setup."
       ps-lpr-command    \"%s\"
       ps-lpr-switches   %s
 
-      ps-paper-type        '%s
-      ps-landscape-mode    %s
-      ps-number-of-columns %s
+      ps-paper-type         '%s
+      ps-landscape-mode     %s
+      ps-number-of-columns  %s
 
-      ps-zebra-stripe    %s
-      ps-number-of-zebra %s
-      ps-line-number     %s
+      ps-zebra-stripes      %s
+      ps-zebra-stripe-height %s
+      ps-line-number        %s
 
       ps-print-background-image %s
 
@@ -1464,8 +1464,8 @@ using the current ps-print setup."
    ps-paper-type
    ps-landscape-mode
    ps-number-of-columns
-   ps-zebra-stripe
-   ps-number-of-zebra
+   ps-zebra-stripes
+   ps-zebra-stripe-height
    ps-line-number
    ps-print-background-image
    ps-print-background-text
