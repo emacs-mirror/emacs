@@ -93,6 +93,8 @@ If `mm-use-ultra-safe-encoding' is set, fold lines unconditionally and
 encode lines starting with \"From\"."
   (interactive "r")
   (save-excursion
+    (goto-char from)
+    ;; Fixme: This doesn't get eight-bit characters in multibyte buffers.
     (if (re-search-forward "[^\x0-\xff]" to t)
       (error "Multibyte character in QP encoding region")))
   (unless class
@@ -108,7 +110,8 @@ encode lines starting with \"From\"."
 		  (not (eobp)))
 	(insert
 	 (prog1
-	     (format "=%02X" (char-after))
+	     ;; To unibyte in case of eight-bit-{control,graphics}
+	     (format "=%02X" (multibyte-char-to-unibyte (char-after)))
 	   (delete-char 1))))
       ;; Encode white space at the end of lines.
       (goto-char (point-min))
