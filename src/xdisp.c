@@ -1848,12 +1848,10 @@ display_menu_bar (w)
 
   get_display_line (f, vpos, 0);
 
-  items = menu_bar_items ();
-  FRAME_MENU_BAR_ITEMS (f) = items;
-
-  for (tail = items; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = FRAME_MENU_BAR_ITEMS (f); CONSP (tail); tail = XCONS (tail)->cdr)
     {
       Lisp_Object string;
+
       string = XCONS (XCONS (XCONS (tail)->car)->cdr)->car;
 
       /* Record in each item its hpos.  */
@@ -1862,11 +1860,22 @@ display_menu_bar (w)
       if (hpos < maxendcol)
 	hpos = display_string (XWINDOW (FRAME_ROOT_WINDOW (f)), vpos,
 			       XSTRING (string)->data,
-			       hpos, 0, hpos, maxendcol) + 3;
+			       hpos, 0, hpos, maxendcol);
+      /* Put a gap of 3 spaces between items.  */
+      if (hpos < maxendcol)
+	{
+	  int hpos1 = hpos + 3;
+	  hpos = display_string (w, vpos, "", hpos, 0,
+				 min (hpos1, maxendcol), maxendcol);
+	}
     }
 
   FRAME_DESIRED_GLYPHS (f)->bufp[vpos] = 0;
   FRAME_DESIRED_GLYPHS (f)->highlight[vpos] = mode_line_inverse_video;
+
+  /* Fill out the line with spaces.  */
+  if (maxendcol > hpos)
+    hpos = display_string (w, vpos, "", hpos, 0, maxendcol, -1);
 }
 
 /* Display the mode line for window w */
