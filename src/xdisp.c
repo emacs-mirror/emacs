@@ -3517,7 +3517,9 @@ forward_to_next_line_start (it, skipped_p)
 
   /* If already on a newline, just consume it to avoid unintended
      skipping over invisible text below.  */
-  if (it->what == IT_CHARACTER && it->c == '\n')
+  if (it->what == IT_CHARACTER
+      && it->c == '\n'
+      && CHARPOS (it->position) == IT_CHARPOS (*it))
     {
       set_iterator_to_next (it, 0);
       it->c = 0;
