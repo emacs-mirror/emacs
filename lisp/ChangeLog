@@ -1,3 +1,13 @@
+2004-06-29  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/gdb-ui.el (breakpoint-enabled-bitmap-face)
+	(breakpoint-disabled-bitmap-face): Add :group 'gud.
+
+	* progmodes/ada-xref.el (ada-tight-gvd-integration):
+	Add :group 'ada.
+
+	* vc-arch.el (vc-arch-mode-line-rewrite): Add :group 'vc.
+
 2004-06-29  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (query-replace-read-args): Swallow a space after
@@ -25,7 +35,7 @@
 
 2004-06-26  Nick Roberts  <nickrob@gnu.org>
 
-	* progmodes/gdb-ui.el (gdb-toggle-breakpoint) 
+	* progmodes/gdb-ui.el (gdb-toggle-breakpoint)
 	(gdb-goto-breakpoint): Fix breakage.
 
 2004-06-26  Eli Zaretskii  <eliz@gnu.org>
