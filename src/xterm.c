@@ -2306,7 +2306,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 	       never use them in that case.)  */
 
 	    /* Is win one of our frames?  */
-	    f1 = x_any_window_to_frame (win);
+	    f1 = x_any_window_to_frame (FRAME_X_DISPLAY_INFO (*fp), win);
 	  }
 
 	/* If not, is it one of our scroll bars?  */
@@ -3022,7 +3022,7 @@ x_scroll_bar_clear (f)
 }
 
 /* This processes Expose events from the menubar specific X event
-   loop in menubar.c.  This allows to redisplay the frame if necessary
+   loop in xmenu.c.  This allows to redisplay the frame if necessary
    when handling menubar or popup items.  */
 
 void
@@ -3030,10 +3030,12 @@ process_expose_from_menu (event)
      XEvent event;
 {
   FRAME_PTR f;
+  struct x_display_info *dpyinfo;
 
   BLOCK_INPUT;
 
-  f = x_window_to_frame (event.xexpose.window);
+  dpyinfo = x_display_info_for_display (event.xexpose.display);
+  f = x_window_to_frame (dpyinfo, event.xexpose.window);
   if (f)
     {
       if (f->async_visible == 0)
@@ -3044,7 +3046,7 @@ process_expose_from_menu (event)
 	}
       else
 	{
-	  dumprectangle (x_window_to_frame (event.xexpose.window),
+	  dumprectangle (x_window_to_frame (dpyinfo, event.xexpose.window),
 			 event.xexpose.x, event.xexpose.y,
 			 event.xexpose.width, event.xexpose.height);
 	}
@@ -3252,7 +3254,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    if (event.xclient.data.l[0]
 			== dpyinfo->Xatom_wm_take_focus)
 		      {
-			f = x_window_to_frame (event.xclient.window);
+			f = x_window_to_frame (dpyinfo, event.xclient.window);
 			/* Since we set WM_TAKE_FOCUS, we must call
 			   XSetInputFocus explicitly.  But not if f is null,
 			   since that might be an event for a deleted frame.  */
@@ -3273,7 +3275,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			   a keyboard or mouse event arrives. */
 			if (numchars > 0)
 			  {
-			    f = x_top_window_to_frame (event.xclient.window);
+			    f = x_top_window_to_frame (dpyinfo,
+						       event.xclient.window);
 
 			    /* This is just so we only give real data once
 			       for a single Emacs process.  */
@@ -3290,7 +3293,9 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    else if (event.xclient.data.l[0]
 			     == dpyinfo->Xatom_wm_delete_window)
 		      {
-			struct frame *f = x_any_window_to_frame (event.xclient.window);
+			struct frame *f
+			  = x_any_window_to_frame (dpyinfo,
+						   event.xclient.window);
 
 			if (f)
 			  {
@@ -3314,7 +3319,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			 == dpyinfo->Xatom_wm_window_moved)
 		  {
 		    int new_x, new_y;
-		    struct frame *f = x_window_to_frame (event.xclient.window);
+		    struct frame *f
+		      = x_window_to_frame (dpyinfo, event.xclient.window);
 
 		    new_x = event.xclient.data.s[0];
 		    new_y = event.xclient.data.s[1];
@@ -3329,8 +3335,10 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		else if (event.xclient.message_type
 			 == dpyinfo->Xatom_editres)
 		  {
-		    struct frame *f = x_any_window_to_frame (event.xclient.window);
-		    _XEditResCheckMessages (f->display.x->widget, NULL, &event, NULL);
+		    struct frame *f
+		      = x_any_window_to_frame (dpyinfo, event.xclient.window);
+		    _XEditResCheckMessages (f->display.x->widget, NULL,
+					    &event, NULL);
 		  }
 #endif /* USE_X_TOOLKIT and HAVE_X11R5 */
 	      }
@@ -3338,7 +3346,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 	    case SelectionNotify:
 #ifdef USE_X_TOOLKIT
-	      if (! x_window_to_frame (event.xselection.requestor))
+	      if (! x_window_to_frame (dpyinfo, event.xselection.requestor))
 		goto OTHER;
 #endif /* not USE_X_TOOLKIT */
 	      x_handle_selection_notify (&event);
@@ -3346,7 +3354,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 	    case SelectionClear:	/* Someone has grabbed ownership. */
 #ifdef USE_X_TOOLKIT
-	      if (! x_window_to_frame (event.xselectionclear.window))
+	      if (! x_window_to_frame (dpyinfo, event.xselectionclear.window))
 		goto OTHER;
 #endif /* USE_X_TOOLKIT */
 	      {
@@ -3368,11 +3376,11 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 	    case SelectionRequest:	/* Someone wants our selection. */
 #ifdef USE_X_TOOLKIT
-	      if (!x_window_to_frame (event.xselectionrequest.owner))
+	      if (!x_window_to_frame (dpyinfo, event.xselectionrequest.owner))
 		goto OTHER;
 #endif /* USE_X_TOOLKIT */
 	      if (x_queue_selection_requests)
-		x_queue_event (x_window_to_frame (event.xselectionrequest.owner),
+		x_queue_event (x_window_to_frame (dpyinfo, event.xselectionrequest.owner),
 			       &event);
 	      else
 		{
@@ -3397,14 +3405,14 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 	    case PropertyNotify:
 #ifdef USE_X_TOOLKIT
-	      if (!x_any_window_to_frame (event.xproperty.window))
+	      if (!x_any_window_to_frame (dpyinfo, event.xproperty.window))
 		goto OTHER;
 #endif /* not USE_X_TOOLKIT */
 	      x_handle_property_notify (&event);
 	      break;
 
 	    case ReparentNotify:
-	      f = x_top_window_to_frame (event.xreparent.window);
+	      f = x_top_window_to_frame (dpyinfo, event.xreparent.window);
 	      if (f)
 		{
 		  int x, y;
@@ -3416,7 +3424,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      break;
 
 	    case Expose:
-	      f = x_window_to_frame (event.xexpose.window);
+	      f = x_window_to_frame (dpyinfo, event.xexpose.window);
 	      if (f)
 		{
 		  if (f->async_visible == 0)
@@ -3426,7 +3434,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		      SET_FRAME_GARBAGED (f);
 		    }
 		  else
-		    dumprectangle (x_window_to_frame (event.xexpose.window),
+		    dumprectangle (x_window_to_frame (dpyinfo,
+						      event.xexpose.window),
 				   event.xexpose.x, event.xexpose.y,
 				   event.xexpose.width, event.xexpose.height);
 		}
@@ -3447,7 +3456,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    case GraphicsExpose:	/* This occurs when an XCopyArea's
 				      source area was obscured or not
 				      available.*/
-	      f = x_window_to_frame (event.xgraphicsexpose.drawable);
+	      f = x_window_to_frame (dpyinfo, event.xgraphicsexpose.drawable);
 	      if (f)
 		{
 		  dumprectangle (f,
@@ -3467,7 +3476,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      break;
 
 	    case UnmapNotify:
-	      f = x_any_window_to_frame (event.xunmap.window);
+	      f = x_any_window_to_frame (dpyinfo, event.xunmap.window);
 	      if (f)		/* F may no longer exist if
 				       the frame was deleted.  */
 		{
@@ -3496,7 +3505,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    case MapNotify:
 	      /* We use x_top_window_to_frame because map events can come
 		 for subwindows and they don't mean that the frame is visible.  */
-	      f = x_top_window_to_frame (event.xmap.window);
+	      f = x_top_window_to_frame (dpyinfo, event.xmap.window);
 	      if (f)
 		{
 		  f->async_visible = 1;
@@ -3522,7 +3531,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      break;
 
 	    case KeyPress:
-	      f = x_any_window_to_frame (event.xkey.window);
+	      f = x_any_window_to_frame (dpyinfo, event.xkey.window);
 
 	      if (f != 0)
 		{
@@ -3666,7 +3675,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		 then a mere LeaveNotify is enough to free you.  */
 
 	    case EnterNotify:
-	      f = x_any_window_to_frame (event.xcrossing.window);
+	      f = x_any_window_to_frame (dpyinfo, event.xcrossing.window);
 
 	      if (event.xcrossing.focus)		/* Entered Window */
 		{
@@ -3691,7 +3700,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      break;
 
 	    case FocusIn:
-	      f = x_any_window_to_frame (event.xfocus.window);
+	      f = x_any_window_to_frame (dpyinfo, event.xfocus.window);
 	      if (event.xfocus.detail != NotifyPointer)
 		x_focus_event_frame = f;
 	      if (f)
@@ -3703,7 +3712,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 
 	    case LeaveNotify:
-	      f = x_top_window_to_frame (event.xcrossing.window);
+	      f = x_top_window_to_frame (dpyinfo, event.xcrossing.window);
 	      if (f)
 		{
 		  if (f == dpyinfo->mouse_face_mouse_frame)
@@ -3727,7 +3736,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      break;
 
 	    case FocusOut:
-	      f = x_any_window_to_frame (event.xfocus.window);
+	      f = x_any_window_to_frame (dpyinfo, event.xfocus.window);
 	      if (event.xfocus.detail != NotifyPointer
 		  && f == x_focus_event_frame)
 		x_focus_event_frame = 0;
@@ -3744,7 +3753,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    && FRAME_LIVE_P (last_mouse_frame))
 		  f = last_mouse_frame;
 		else
-		  f = x_window_to_frame (event.xmotion.window);
+		  f = x_window_to_frame (dpyinfo, event.xmotion.window);
 		if (f)
 		  note_mouse_movement (f, &event.xmotion);
 		else
@@ -3771,7 +3780,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      break;
 
 	    case ConfigureNotify:
-	      f = x_any_window_to_frame (event.xconfigure.window);
+	      f = x_any_window_to_frame (dpyinfo, event.xconfigure.window);
 #ifdef USE_X_TOOLKIT
 	      if (f
 #if 0
@@ -3901,7 +3910,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    && FRAME_LIVE_P (last_mouse_frame))
 		  f = last_mouse_frame;
 		else
-		  f = x_window_to_frame (event.xmotion.window);
+		  f = x_window_to_frame (dpyinfo, event.xmotion.window);
 
 		if (f)
 		  {

@@ -560,7 +560,7 @@ x_reply_selection_request (event, format, data, size, type)
 				 frame);
 	}
 
-      if (x_window_to_frame (window)) /* #### debug */
+      if (x_window_to_frame (dpyinfo, window)) /* #### debug */
 	error ("attempt to transfer an INCR to ourself!");
 #if 0
       fprintf (stderr, "\nINCR %d\n", bytes_remaining);
