@@ -79,6 +79,16 @@ in @code{exec-path}, but environment variable substitutions
 @code{substitute-in-file-name} to perform them (@pxref{File Name
 Expansion}).
 
+  Executing a program can also try adding suffixes to the specified
+name:
+
+@defvar exec-suffixes
+This variable is a list of suffixes (strings) to try adding to the
+specified program file name.  The list should include @code{""} if you
+want the name to be tried exactly as specified.  The default value is
+system-dependent.
+@end defvar
+
   Each of the subprocess-creating functions has a @var{buffer-or-name}
 argument which specifies where the standard output from the program will
 go.  It should be a buffer or a buffer name; if it is a buffer name,
