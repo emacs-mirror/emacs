@@ -63,6 +63,10 @@ Boston, MA 02111-1307, USA.
 
 #include <pwd.h>
 
+#ifdef __GNUC__
+#define _ANONYMOUS_UNION
+#define _ANONYMOUS_STRUCT
+#endif
 #include <windows.h>
 
 #ifdef HAVE_SOCKETS	/* TCP connection support, if kernel can do it */
