@@ -85,15 +85,6 @@ static int delete_exited_processes;
 #include <sys/stat.h>
 #include <errno.h>
 
-/* Get _POSIX_VDISABLE, if it is available.  */
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-
 #ifdef HAVE_SETPGID
 #if !defined (USG) || defined (BSD_PGRPS)
 #undef setpgrp
@@ -2845,7 +2836,7 @@ sys_sigsetmask (sigset_t new_mask)
 
 #endif /* POSIX_SIGNALS */
 
-#if !defined HAVE_STRSIGNAL && !defined SYS_SIGLIST_DECLARED
+#if !defined HAVE_STRSIGNAL && !HAVE_DECL_SYS_SIGLIST
 static char *my_sys_siglist[NSIG];
 # ifdef sys_siglist
 #  undef sys_siglist
@@ -2861,7 +2852,7 @@ init_signals ()
   sigfillset (&full_mask);
 #endif
 
-#if !defined HAVE_STRSIGNAL && !defined SYS_SIGLIST_DECLARED
+#if !defined HAVE_STRSIGNAL && !HAVE_DECL_SYS_SIGLIST
   if (! initialized)
     {
 # ifdef SIGABRT
@@ -3021,7 +3012,7 @@ init_signals ()
       sys_siglist[SIGXFSZ] = "File size limit exceeded";
 # endif
     }
-#endif /* !defined HAVE_STRSIGNAL && !defined SYS_SIGLIST_DECLARED */
+#endif /* !defined HAVE_STRSIGNAL && !defined HAVE_DECL_SYS_SIGLIST */
 }
 
 #ifndef HAVE_RANDOM
