@@ -2342,12 +2342,25 @@ A prefix arg makes KEEP-TIME non-nil.")
   else if (NILP (keep_time))
     {
       EMACS_TIME now;
+      DWORD attributes;
+      char * filename;
+
       EMACS_GET_TIME (now);
-      if (set_file_times (XSTRING (encoded_newname)->data,
-			  now, now))
-	Fsignal (Qfile_date_error,
-		 Fcons (build_string ("Cannot set file date"),
-			Fcons (newname, Qnil)));
+      filename = XSTRING (encoded_newname)->data;
+
+      /* Ensure file is writable while its modified time is set.  */
+      attributes = GetFileAttributes (filename);
+      SetFileAttributes (filename, attributes ^ FILE_ATTRIBUTE_READONLY);
+      if (set_file_times (filename, now, now))
+	{
+	  /* Restore original attributes.  */
+	  SetFileAttributes (filename, attributes);
+	  Fsignal (Qfile_date_error,
+		   Fcons (build_string ("Cannot set file date"),
+			  Fcons (newname, Qnil)));
+	}
+      /* Restore original attributes.  */
+      SetFileAttributes (filename, attributes);
     }
 #else /* not WINDOWSNT */
   ifd = emacs_open (XSTRING (encoded_file)->data, O_RDONLY, 0);
