@@ -815,7 +815,7 @@ update_window_fringes (w, force_p)
 
   if (!NILP (ind))
     {
-      int do_eob = 1, do_bob = 1;
+      int done_top = 0, done_bot = 0;
 
       for (y = 0, rn = 0;
 	   y < yb && rn < nrows;
@@ -836,19 +836,25 @@ update_window_fringes (w, force_p)
 	  row->indicate_bob_p = row->indicate_top_line_p = 0;
 	  row->indicate_eob_p = row->indicate_bottom_line_p = 0;
 
-	  if (!NILP (boundary_top)
-	      && MATRIX_ROW_START_CHARPOS (row) <= BUF_BEGV (XBUFFER (w->buffer)))
-	    row->indicate_bob_p = do_bob, do_bob = 0;
-	  else if (!NILP (arrow_top)
-		   && (WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0) == rn)
-	    row->indicate_top_line_p = 1;
+	  if (!row->mode_line_p)
+	    {
+	      if (!done_top)
+		{
+		  if (MATRIX_ROW_START_CHARPOS (row) <= BUF_BEGV (XBUFFER (w->buffer)))
+		    row->indicate_bob_p = !NILP (boundary_top);
+		  else
+		    row->indicate_top_line_p = !NILP (arrow_top);
+		  done_top = 1;
+		}
 
-	  if (!NILP (boundary_bot)
-	      && MATRIX_ROW_END_CHARPOS (row) >= BUF_ZV (XBUFFER (w->buffer)))
-	    row->indicate_eob_p = do_eob, do_eob = 0;
-	  else if (!NILP (arrow_bot)
-		   && y + row->height >= yb)
-	    row->indicate_bottom_line_p = 1;
+	      if (!done_bot)
+		{
+		  if (MATRIX_ROW_END_CHARPOS (row) >= BUF_ZV (XBUFFER (w->buffer)))
+		    row->indicate_eob_p = !NILP (boundary_bot), done_bot = 1;
+		  else if (y + row->height >= yb)
+		    row->indicate_bottom_line_p = !NILP (arrow_bot), done_bot = 1;
+		}
+	    }
 
 	  if (indicate_bob_p != row->indicate_bob_p
 	      || indicate_top_line_p != row->indicate_top_line_p
@@ -1347,7 +1353,7 @@ If FACE is nil, reset face to default fringe face.  */)
 
   if (!NILP (face))
     {
-      face_id = lookup_named_face (SELECTED_FRAME (), face, 'A');
+      face_id = lookup_named_face (SELECTED_FRAME (), face, 'A', 1);
       if (face_id < 0)
 	error ("No such face");
     }
