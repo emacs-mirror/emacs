@@ -1,5 +1,5 @@
 /* Makefile for GNU Emacs.
-   Copyright (C) 1985, 1987, 1988, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1987, 1988, 1993, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -486,6 +486,12 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
 #define FRAME_SUPPORT
 #endif
 
+#ifdef HAVE_X_WINDOWS
+#define X_WINDOWS_SUPPORT ${lispdir}term/x-win.elc
+#else
+#define X_WINDOWS_SUPPORT
+#endif
+
 #ifdef VMS
 #define VMS_SUPPORT ${lispdir}vmsproc.elc ${lispdir}vms-patch
 #else
@@ -498,11 +504,7 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
 
    Note that this list should not include lisp files which might not
    be present, like site-load.el and site-init.el; this makefile
-   expects them all to be either present or buildable.
-
-   It should not include version.el.  That file is often changed by
-   the build process itself, but most of the files which want to
-   depend on lisp.h don't care about those changes.  */
+   expects them all to be either present or buildable.  */
 lisp= \
 	${lispdir}abbrev.elc \
 	${lispdir}buff-menu.elc \
@@ -512,6 +514,7 @@ lisp= \
 	${lispdir}fill.elc \
 	FLOAT_SUPPORT \
 	FRAME_SUPPORT \
+	X_WINDOWS_SUPPORT \
 	${lispdir}help.elc \
 	${lispdir}indent.elc \
 	${lispdir}isearch.elc \
@@ -530,7 +533,8 @@ lisp= \
 	${lispdir}text-mode.elc \
 	${lispdir}vc-hooks.elc \
 	VMS_SUPPORT \
-	${lispdir}window.elc
+	${lispdir}window.elc \
+	${lispdir}version.elc
 
 /* Construct full set of libraries to be linked.
    Note that SunOS needs -lm to come before -lc; otherwise, you get
