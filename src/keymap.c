@@ -1438,7 +1438,7 @@ DEFUN ("current-minor-mode-maps", Fcurrent_minor_mode_maps, Scurrent_minor_mode_
 
 /* Help functions for describing and documenting keymaps.		*/
 
-static void accessible_keymaps_char_table ();
+static void accessible_keymaps_char_table P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 
 /* This function cannot GC.  */
 
@@ -1537,7 +1537,8 @@ then the value includes only maps for prefixes that start with PREFIX.")
 	      Lisp_Object indices[3];
 
 	      map_char_table (accessible_keymaps_char_table, Qnil,
-			      elt, Fcons (maps, Fcons (tail, thisseq)),
+			      elt, Fcons (Fcons (maps, is_metized),
+					  Fcons (tail, thisseq)),
 			      0, indices);
 	    }
 	  else if (VECTORP (elt))
@@ -1668,12 +1669,14 @@ accessible_keymaps_char_table (args, index, cmd)
      Lisp_Object args, index, cmd;
 {
   Lisp_Object tem;
-  Lisp_Object maps, tail, thisseq;
+  Lisp_Object maps, tail, thisseq, is_metized;
 
+  cmd = get_keyelt (cmd, 0);
   if (NILP (cmd))
     return;
 
-  maps = XCAR (args);
+  maps = XCAR (XCAR (args));
+  is_metized = XCDR (XCAR (args));
   tail = XCAR (XCDR (args));
   thisseq = XCDR (XCDR (args));
 
@@ -1685,8 +1688,30 @@ accessible_keymaps_char_table (args, index, cmd)
       tem = Frassq (cmd, maps);
       if (NILP (tem))
 	{
-	  tem = append_key (thisseq, index);
-	  nconc2 (tail, Fcons (Fcons (tem, cmd), Qnil));
+	  /* If the last key in thisseq is meta-prefix-char,
+	     turn it into a meta-ized keystroke.  We know
+	     that the event we're about to append is an
+	     ascii keystroke since we're processing a
+	     keymap table.  */
+	  if (is_metized)
+	    {
+	      int meta_bit = meta_modifier;
+	      Lisp_Object last = make_number (XINT (Flength (thisseq)) - 1);
+	      tem = Fcopy_sequence (thisseq);
+	      
+	      Faset (tem, last, make_number (XINT (index) | meta_bit));
+	      
+	      /* This new sequence is the same length as
+		 thisseq, so stick it in the list right
+		 after this one.  */
+	      XCDR (tail)
+		= Fcons (Fcons (tem, cmd), XCDR (tail));
+	    }
+	  else
+	    {
+	      tem = append_key (thisseq, index);
+	      nconc2 (tail, Fcons (Fcons (tem, cmd), Qnil));
+	    }
 	}
     }
 }
@@ -2103,7 +2128,8 @@ where_is_internal (definition, keymaps, firstonly, noindirect)
 		      && EQ (Faref (this, last), meta_prefix_char));
 
       /* if (nomenus && !ascii_sequence_p (this)) */
-      if (nomenus && XINT (last) >= 0 && !INTEGERP (Faref (this, 0)))
+      if (nomenus && XINT (last) >= 0
+	  && !INTEGERP (Faref (this, make_number (0))))
 	/* If no menu entries should be returned, skip over the
 	   keymaps bound to `menu-bar' and `tool-bar' and other
 	   non-ascii prefixes like `C-down-mouse-2'.  */
@@ -2294,7 +2320,7 @@ indirect definition itself.")
 	 Instead of consing, copy definitions to a vector and step
 	 over that vector.  */
       sequences = Fgethash (definition, where_is_cache, Qnil);
-      n = Flength (sequences);
+      n = XINT (Flength (sequences));
       defns = (Lisp_Object *) alloca (n * sizeof *defns);
       for (i = 0; CONSP (sequences); sequences = XCDR (sequences))
 	defns[i++] = XCAR (sequences);

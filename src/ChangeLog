@@ -1,3 +1,11 @@
+2001-02-26  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keymap.c (Faccessible_keymaps): Pass `is_metized' to
+	accessible_keymaps_char_table.
+	(accessible_keymaps_char_table): Obey `is_metized'.
+	(where_is_internal, Fwhere_is_internal): Don't confuse int and
+	Lisp_Object.
+
 2001-02-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispnew.c: Check HAVE_TERM_H before including term.h.
