@@ -77,7 +77,8 @@
 	   (let ((v (intern (nth 1 action))))
 	     (calc-record-undo (list 'store (nth 1 action)
 				     (and (boundp v) (symbol-value v))))
-	     (if (y-or-n-p (format "Un-store variable %s? " (nth 1 action)))
+	     (if (y-or-n-p (format "Un-store variable %s? " 
+                                   (calc-var-name (nth 1 action))))
 		 (progn
 		   (if (nth 2 action)
 		       (set v (nth 2 action))
