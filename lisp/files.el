@@ -2200,7 +2200,8 @@ previous sessions that you could recover from.
 To choose one, move point to the proper line and then type C-c C-c.
 Then you'll be asked about a number of files to recover."
   (interactive)
-  (dired (concat auto-save-list-file-prefix "*"))
+  (let ((ls-lisp-support-shell-wildcards t))
+    (dired (concat auto-save-list-file-prefix "*")))
   (goto-char (point-min))
   (or (looking-at "Move to the session you want to recover,")
       (let ((inhibit-read-only t))
@@ -2372,6 +2373,73 @@ See also `auto-save-file-name-p'."
   "Return non-nil if FILENAME can be yielded by `make-auto-save-file-name'.
 FILENAME should lack slashes.  You can redefine this for customization."
   (string-match "^#.*#$" filename))
+
+(defun wildcard-to-regexp (wildcard)
+  "Given a shell file name pattern WILDCARD, return an equivalent regexp.
+The generated regexp will match a filename iff the filename
+matches that wildcard according to shell rules.  Only wildcards known
+by `sh' are supported."
+  (let* ((i (string-match "[[.*+\\^$?]" wildcard))
+	 ;; Copy the initial run of non-special characters.
+	 (result (substring wildcard 0 i))
+	 (len (length wildcard)))
+    ;; If no special characters, we're almost done.
+    (if i
+	(while (< i len)
+	  (let ((ch (aref wildcard i))
+		j)
+	    (setq
+	     result
+	     (concat result
+		     (cond
+		      ((eq ch ?\[)	; [...] maps to regexp char class
+		       (progn
+			 (setq i (1+ i))
+			 (concat
+			  (cond
+			   ((eq (aref wildcard i) ?!) ; [!...] -> [^...]
+			    (progn
+			      (setq i (1+ i))
+			      (if (eq (aref wildcard i) ?\])
+				  (progn
+				    (setq i (1+ i))
+				    "[^]")
+				"[^")))
+			   ((eq (aref wildcard i) ?^)
+			    ;; Found "[^".  Insert a `\0' character
+			    ;; (which cannot happen in a filename)
+			    ;; into the character class, so that `^'
+			    ;; is not the first character after `[',
+			    ;; and thus non-special in a regexp.
+			    (progn
+			      (setq i (1+ i))
+			      "[\000^"))
+			   ((eq (aref wildcard i) ?\])
+			    ;; I don't think `]' can appear in a
+			    ;; character class in a wildcard, but
+			    ;; let's be general here.
+			    (progn
+			      (setq i (1+ i))
+			      "[]"))
+			   (t "["))
+			  (prog1	; copy everything upto next `]'.
+			      (substring wildcard
+					 i
+					 (setq j (string-match
+						  "]" wildcard i)))
+			    (setq i (if j (1- j) (1- len)))))))
+		      ((eq ch ?.)  "\\.")
+		      ((eq ch ?*)  "[^\000]*")
+		      ((eq ch ?+)  "\\+")
+		      ((eq ch ?^)  "\\^")
+		      ((eq ch ?$)  "\\$")
+		      ((eq ch ?\\) "\\\\") ; probably cannot happen...
+		      ((eq ch ??)  "[^\000]")
+		      (t (char-to-string ch)))))
+	    (setq i (1+ i)))))
+    ;; Shell wildcards should match the entire filename,
+    ;; not its part.  Make the regexp say so.
+    (concat "\\`" result "\\'")))
 
 (defconst list-directory-brief-switches
   (if (eq system-type 'vax-vms) "" "-CF")
