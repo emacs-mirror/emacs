@@ -1,3 +1,7 @@
+2003-03-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.h (XSync): Define as gdk_window_process_all_updates for GTK.
+
 2003-02-25  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (redisplay_window): Fix infinite loop in redisplay.

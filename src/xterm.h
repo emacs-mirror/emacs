@@ -44,8 +44,10 @@ typedef Widget xt_or_gtk_widget;
 /* Some definitions to reduce conditionals.  */
 typedef GtkWidget *xt_or_gtk_widget;
 #define XtParent(x) (gtk_widget_get_parent (x))
+#undef XSync
+#define XSync(d, b) gdk_window_process_all_updates ()
 
-#endif
+#endif /* USE_GTK */
 
 /* The class of this X application.  */
 #define EMACS_CLASS "Emacs"
