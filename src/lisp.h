@@ -178,18 +178,13 @@ union Lisp_Object
     struct
       {
 	EMACS_INT val  : VALBITS;
-	EMACS_UINT type : GCTYPEBITS;
+	enum Lisp_Type type : GCTYPEBITS;
       } s;
     struct
       {
 	EMACS_UINT val : VALBITS;
-	EMACS_UINT type : GCTYPEBITS;
+	enum Lisp_Type type : GCTYPEBITS;
       } u;
-    struct
-      {
-	EMACS_UINT val		: VALBITS;
-	enum Lisp_Type type	: GCTYPEBITS;
-      } gu;
   }
 Lisp_Object;
 
@@ -204,19 +199,14 @@ union Lisp_Object
 
     struct
       {
-	EMACS_UINT type : GCTYPEBITS;
+	enum Lisp_Type type : GCTYPEBITS;
 	EMACS_INT val  : VALBITS;
       } s;
     struct
       {
-	EMACS_UINT type : GCTYPEBITS;
+	enum Lisp_Type type : GCTYPEBITS;
 	EMACS_UINT val : VALBITS;
       } u;
-    struct
-      {
-	enum Lisp_Type type	: GCTYPEBITS;
-	EMACS_UINT val		: VALBITS;
-      } gu;
   }
 Lisp_Object;
 

@@ -4051,9 +4051,9 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	 If there is no valid info, it does not store anything
 	 so x remains nil.  */
       x = Qnil;
-      
+
       /* XXX Can f or mouse_position_hook be NULL here? */
-      if (f && FRAME_DISPLAY (f)->mouse_position_hook) 
+      if (f && FRAME_DISPLAY (f)->mouse_position_hook)
         (*FRAME_DISPLAY (f)->mouse_position_hook) (&f, 0, &bar_window,
                                                    &part, &x, &y, &time);
 
@@ -4986,7 +4986,7 @@ make_lispy_position (f, x, y, time)
 	{
 	  Lisp_Object string;
 	  int charpos;
-	  
+
 	  posn = (part == ON_LEFT_MARGIN) ? Qleft_margin : Qright_margin;
 	  rx = wx, ry = wy;
 	  string = marginal_area_string (w, part, &rx, &ry, &charpos,
@@ -5469,7 +5469,7 @@ make_lispy_event (event)
       {
 	Lisp_Object position;
 	Lisp_Object head;
-	
+
 	/* Build the position as appropriate for this mouse click.  */
 	struct frame *f = XFRAME (event->frame_or_window);
 
@@ -6457,7 +6457,7 @@ get_filtered_input_pending (addr, do_timers_now, filter_events)
   /* If input is being read as it arrives, and we have none, there is none.  */
   if (*addr > 0 || (interrupt_input && ! interrupts_deferred))
     return;
-  
+
   /* Try to read some input and see how much we get.  */
   gobble_input (0);
   *addr = (!NILP (Vquit_flag)
@@ -6560,14 +6560,6 @@ record_asynch_buffer_change ()
 
 #ifndef VMS
 
-/* We make the read_avail_input buffer static to avoid zeroing out the
-   whole struct input_event buf on every call.  */
-static struct input_event read_avail_input_buf[KBD_BUFFER_SIZE];
-
-/* I don't know whether it is necessary, but make read_avail_input 
-   re-entrant.  */
-static int in_read_avail_input = 0;
-
 /* Read any terminal input already buffered up by the system
    into the kbd_buffer, but do not wait.
 
@@ -6578,74 +6570,88 @@ static int in_read_avail_input = 0;
    only when SIGIO is blocked.
 
    Returns the number of keyboard chars read, or -1 meaning
-   this is a bad time to try to read input.  */
+   this is a bad time to try to read input.
+
+   Typically, there are just a few available input events to be read
+   here, so we really don't need to allocate and initialize a big
+   buffer of input_events as we used to do.  Instead, we just allocate
+   a small buffer of input events -- and then poll for more input if we
+   read a full buffer of input events.  */
+
+#define NREAD_INPUT_EVENTS 8
 
 static int
 read_avail_input (expected)
      int expected;
 {
-  struct input_event *buf = read_avail_input_buf;
-  struct input_event tmp_buf[KBD_BUFFER_SIZE];
   register int i;
   int nread = 0;
   struct display *d;
-  
-  /* Trivial hack to make read_avail_input re-entrant.  */
-  if (in_read_avail_input++)
-    {
-      buf = tmp_buf;
-      for (i = 0; i < KBD_BUFFER_SIZE; i++)
-	EVENT_INIT (buf[i]);
-    }
 
   /* Loop through the available displays, and call their input hooks. */
   d = display_list;
   while (d)
     {
       struct display *next = d->next_display;
-      
+
       if (d->read_socket_hook)
-        /* No need for FIONREAD or fcntl; just say don't wait.  */
-        nread = (*d->read_socket_hook) (d, buf, KBD_BUFFER_SIZE, expected);
-
-      if (nread == -2)          /* -2 means non-transient error */
         {
-          /* The display device terminated; it should be closed. */
+          int discard = 0;
+          int nr;
 
-          /* Kill Emacs if this was our last display. */
-          if (! display_list->next_display)
-            kill (getpid (), SIGHUP);
+          do {
+            struct input_event buf[NREAD_INPUT_EVENTS];
 
-          /* XXX Is calling delete_display safe here?  It calls Fdelete_frame. */
-          if (d->delete_display_hook)
-            (*d->delete_display_hook) (d);
-          else
-            delete_display (d);
-        }
-      else if (nread > 0)
-        {
-          /* We've got input. */
-          break;
+            for (i = 0; i < NREAD_INPUT_EVENTS; i++)
+              EVENT_INIT (buf[i]);
+
+            /* No need for FIONREAD or fcntl; just say don't wait.  */
+            nr = (*d->read_socket_hook) (d, buf, NREAD_INPUT_EVENTS, expected);
+
+            if (nr > 0)
+              {
+                /* We've got input. */
+                nread += nr;
+                expected = 0;
+
+                /* Scan the chars for C-g and store them in kbd_buffer.  */
+                for (i = 0; !discard && i < nr; i++)
+                  {
+                    kbd_buffer_store_event (&buf[i]);
+                    /* Don't look at input that follows a C-g too closely.
+                       This reduces lossage due to autorepeat on C-g.  */
+                    if (buf[i].kind == ASCII_KEYSTROKE_EVENT
+                        && buf[i].code == quit_char)
+                      discard = 1;
+                  }
+              }
+            else if (nr == -2)          /* Non-transient error. */
+              {
+                /* The display device terminated; it should be closed. */
+
+                /* Kill Emacs if this was our last display. */
+                if (! display_list->next_display)
+                  /* Formerly simply reported no input, but that
+                     sometimes led to a failure of Emacs to terminate.
+                     SIGHUP seems appropriate if we can't reach the
+                     terminal.  */
+                  /* ??? Is it really right to send the signal just to
+                     this process rather than to the whole process
+                     group?  Perhaps on systems with FIONREAD Emacs is
+                     alone in its group.  */
+                  kill (getpid (), SIGHUP);
+
+                /* XXX Is calling delete_display safe here?  It calls Fdelete_frame. */
+                if (d->delete_display_hook)
+                  (*d->delete_display_hook) (d);
+                else
+                  delete_display (d);
+              }
+          } while (nr == NREAD_INPUT_EVENTS);
         }
 
       d = next;
     }
-
-  /* Scan the chars for C-g and store them in kbd_buffer.  */
-  for (i = 0; i < nread; i++)
-    {
-      kbd_buffer_store_event (&buf[i]);
-      /* Don't look at input that follows a C-g too closely.
-	 This reduces lossage due to autorepeat on C-g.  */
-      if (buf[i].kind == ASCII_KEYSTROKE_EVENT
-	  && buf[i].code == quit_char)
-	break;
-    }
-
-  /* Clear used events */
-  if (--in_read_avail_input == 0)
-    for (i = 0; i < nread; i++)
-      EVENT_INIT (buf[i]);
 
   return nread;
 }
@@ -6668,10 +6674,10 @@ tty_read_avail_input (struct display *display,
   int n_to_read, i;
   struct tty_display_info *tty = display->display_info.tty;
   int nread = 0;
-  
+
   if (display->type != output_termcap)
     abort ();
-  
+
   /* XXX I think the following code should be moved to separate hook
      functions in system-dependent files. */
 #ifdef WINDOWSNT
@@ -6681,15 +6687,15 @@ tty_read_avail_input (struct display *display,
   n_to_read = dos_keysns ();
   if (n_to_read == 0)
     return 0;
-  
+
   cbuf[0] = dos_keyread ();
   nread = 1;
-  
+
 #else /* not MSDOS */
 
   if (! tty->term_initted)      /* In case we get called during bootstrap. */
     return 0;
-        
+
   /* Determine how many characters we should *try* to read.  */
 #ifdef FIONREAD
   /* Find out how much input is available.  */
@@ -6713,7 +6719,7 @@ tty_read_avail_input (struct display *display,
   you lose;
 #endif
 #endif
-  
+
   /* Now read; for one reason or another, this will not block.
      NREAD is set to the number of chars read.  */
   do
@@ -6753,19 +6759,19 @@ tty_read_avail_input (struct display *display,
          0
 #endif
          );
-  
+
 #ifndef FIONREAD
 #if defined (USG) || defined (DGUX) || defined (CYGWIN)
   fcntl (fileno (TTY_INPUT (tty)), F_SETFL, 0);
 #endif /* USG or DGUX or CYGWIN */
 #endif /* no FIONREAD */
-  
+
   if (nread <= 0)
     return nread;
-  
+
 #endif /* not MSDOS */
 #endif /* not WINDOWSNT */
-  
+
   for (i = 0; i < nread; i++)
     {
       buf[i].kind = ASCII_KEYSTROKE_EVENT;
@@ -6774,7 +6780,7 @@ tty_read_avail_input (struct display *display,
         buf[i].modifiers = meta_modifier;
       if (tty->meta_key != 2)
         cbuf[i] &= ~0x80;
-      
+
       buf[i].code = cbuf[i];
       /* Set the frame corresponding to the active tty.  Note that the
          value of selected_frame is not reliable here, redisplay tends
@@ -6785,7 +6791,6 @@ tty_read_avail_input (struct display *display,
 
   return nread;
 }
-
 #endif /* not VMS */
 
 void
@@ -8316,7 +8321,7 @@ access_keymap_keyremap (map, key, prompt, do_funcall)
      int do_funcall;
 {
   Lisp_Object next;
-  
+
   next = access_keymap (map, key, 1, 0, 1);
 
   /* Handle symbol with autoload definition.  */
@@ -8331,7 +8336,7 @@ access_keymap_keyremap (map, key, prompt, do_funcall)
       && (!NILP (Farrayp (XSYMBOL (next)->function))
 	  || KEYMAPP (XSYMBOL (next)->function)))
     next = XSYMBOL (next)->function;
-	    
+
   /* If the keymap gives a function, not an
      array, then call the function with one arg and use
      its value instead.  */
@@ -9345,7 +9350,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      /* Adjust the function-key-map counters.  */
 	      fkey.end += diff;
 	      fkey.start += diff;
-	      
+
 	      goto replay_sequence;
 	    }
 	}
@@ -10146,7 +10151,7 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
 
   if (tty_list && tty_list->next)
     error ("Suspend is not supported with multiple ttys");
-  
+
   if (!NILP (stuffstring))
     CHECK_STRING (stuffstring);
 
@@ -10280,7 +10285,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
   else
     {
       /* Otherwise, the SIGINT was probably generated by C-g.  */
-      
+
       /* Set internal_last_event_frame to the top frame of the
          controlling tty, if we have a frame there.  We disable the
          interrupt key on secondary ttys, so the SIGINT must have come
@@ -10294,7 +10299,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
 }
 
 /* This routine is called at interrupt level in response to C-g.
-   
+
    It is called from the SIGINT handler or kbd_buffer_store_event.
 
    If `waiting_for_input' is non zero, then unless `echoing' is
@@ -10307,7 +10312,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
 static void
 handle_interrupt ()
 {
-  char c; 
+  char c;
   struct frame *sf = SELECTED_FRAME ();
 
   cancel_echoing ();
@@ -10480,7 +10485,7 @@ See also `current-input-mode'.  */)
      Currently it compiles fine, but its semantics are wrong.  It sets
      global parameters (e.g. interrupt_input) based on only the
      current frame's device. */
-  
+
   if (!NILP (quit)
       && (!INTEGERP (quit) || XINT (quit) < 0 || XINT (quit) > 0400))
     error ("set-input-mode: QUIT must be an ASCII character");
@@ -10528,7 +10533,7 @@ See also `current-input-mode'.  */)
       else
         tty->meta_key = 2;
     }
-  
+
   if (!NILP (quit))
     /* Don't let this value be out of range.  */
     quit_char = XINT (quit) & (NILP (meta) ? 0177 : 0377);
@@ -10562,7 +10567,7 @@ The elements of this list correspond to the arguments of
 {
   Lisp_Object val[4];
   struct frame *sf = XFRAME (selected_frame);
-  
+
   val[0] = interrupt_input ? Qt : Qnil;
   if (FRAME_TERMCAP_P (sf))
     {
@@ -10671,13 +10676,6 @@ init_keyboard ()
   do_mouse_tracking = Qnil;
 #endif
   input_pending = 0;
-#ifndef VMS
-  {
-    int i;
-    for (i = 0; i < KBD_BUFFER_SIZE; i++)
-      EVENT_INIT (read_avail_input_buf[i]);
-  }
-#endif
 
   /* This means that command_loop_1 won't try to select anything the first
      time through.  */
@@ -11423,7 +11421,7 @@ keys_of_keyboard ()
   /* Handling it at such a low-level causes read_key_sequence to get
    * confused because it doesn't realize that the current_buffer was
    * changed by read_char.
-   * 
+   *
    * initial_define_lispy_key (Vspecial_event_map, "select-window",
    * 			    "handle-select-window"); */
   initial_define_lispy_key (Vspecial_event_map, "save-session",

@@ -1192,9 +1192,9 @@ Return new bitmap number, or nil of no more free bitmap slots.  */)
 
   fb.dynamic = 1;
 
-  xfb = (struct fringe_bitmap *)xmalloc (sizeof fb
-					 + fb.height * BYTES_PER_BITMAP_ROW);
-  fb.bits = b = (unsigned short *)(xfb+1);
+  xfb = (struct fringe_bitmap *) xmalloc (sizeof fb
+					  + fb.height * BYTES_PER_BITMAP_ROW);
+  fb.bits = b = (unsigned short *) (xfb + 1);
   bzero (b, fb.height);
 
   j = 0;

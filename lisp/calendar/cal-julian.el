@@ -115,12 +115,12 @@ Driven by the variable `calendar-date-display-form'."
                      today))))))
           (month-array calendar-month-name-array)
           (completion-ignore-case t)
-          (month (cdr (assoc-ignore-case
+          (month (cdr (assoc-string
                         (completing-read
                          "Julian calendar month name: "
                          (mapcar 'list (append month-array nil))
                          nil t)
-                       (calendar-make-alist month-array 1))))
+                       (calendar-make-alist month-array 1) t)))
           (last
            (if (and (zerop (% year 4)) (= month 2))
                29

@@ -154,12 +154,12 @@ Driven by the variable `calendar-date-display-form'."
                     (calendar-absolute-from-gregorian today))))))
           (month-array calendar-islamic-month-name-array)
           (completion-ignore-case t)
-          (month (cdr (assoc-ignore-case
+          (month (cdr (assoc-string
                         (completing-read
                          "Islamic calendar month name: "
                          (mapcar 'list (append month-array nil))
                          nil t)
-                       (calendar-make-alist month-array 1))))
+                       (calendar-make-alist month-array 1) t)))
           (last (islamic-calendar-last-day-of-month month year))
           (day (calendar-read
                 (format "Islamic calendar day (1-%d): " last)
@@ -372,16 +372,16 @@ provided for use as part of the nongregorian-diary-marking-hook."
                          (string-to-int y-str)))))
             (if dd-name
                 (mark-calendar-days-named
-                 (cdr (assoc-ignore-case dd-name
+                 (cdr (assoc-string dd-name
                                          (calendar-make-alist
                                           calendar-day-name-array
-                                          0 nil calendar-day-abbrev-array))))
+                                          0 nil calendar-day-abbrev-array) t)))
               (if mm-name
                   (setq mm (if (string-equal mm-name "*") 0
-                             (cdr (assoc-ignore-case
+                             (cdr (assoc-string
                                    mm-name
                                    (calendar-make-alist
-                                    calendar-islamic-month-name-array))))))
+                                    calendar-islamic-month-name-array) t)))))
               (mark-islamic-calendar-date-pattern mm dd yy)))))
       (setq d (cdr d)))))
 

@@ -43,7 +43,7 @@
 ;;; documentation of the function `appt-check' is required.
 ;;; Relevant customizable variables are also listed in the
 ;;; documentation of that function.
-;;; 
+;;;
 ;;; Today's appointment list is initialized from the diary when this
 ;;; package is activated. Additionally, the appointments list is
 ;;; recreated automatically at 12:01am for those who do not logout
@@ -121,15 +121,16 @@ If non-nil, this variable overrides `appt-visible'."
 (make-obsolete-variable 'appt-msg-window 'appt-display-format "21.4")
 
 ;; TODO - add popup.
-(defcustom appt-display-format (cond (appt-msg-window 'window)
-                                     (appt-visible 'echo)
-                                     (t nil))
+(defcustom appt-display-format 'ignore
   "How appointment reminders should be displayed.
 The options are:
    window - use a separate window
    echo   - use the echo area
    nil    - no visible reminder.
-See also `appt-audible' and `appt-display-mode-line'."
+See also `appt-audible' and `appt-display-mode-line'.
+
+The default value is 'ignore, which means to fall back on the value
+of the (obsolete) variables `appt-msg-window' and `appt-visible'."
   :type '(choice
           (const :tag "Separate window" window)
           (const :tag "Echo-area" echo)
@@ -222,17 +223,24 @@ If this is non-nil, appointment checking is active.")
 The string STRING describes the appointment, due in integer MINS minutes.
 The format of the visible reminder is controlled by `appt-display-format'.
 The variable `appt-audible' controls the audible reminder."
-  (cond ((eq appt-display-format 'window)
-         (funcall appt-disp-window-function
-                  (number-to-string mins)
-                  (format-time-string "%a %b %e " (current-time))
-                  string)
-         (run-at-time (format "%d sec" appt-display-duration)
-                      nil
-                      appt-delete-window-function))
-        ((eq appt-display-format 'echo)
-         (message "%s" string)))
-  (if appt-audible (beep 1)))
+  ;; let binding for backwards compatability. Remove when obsolete
+  ;; vars appt-msg-window and appt-visible are dropped.
+  (let ((appt-display-format
+         (if (eq appt-display-format 'ignore)
+             (cond (appt-msg-window 'window)
+                   (appt-visible 'echo))
+           appt-display-format)))
+    (cond ((eq appt-display-format 'window)
+           (funcall appt-disp-window-function
+                    (number-to-string mins)
+                    (format-time-string "%a %b %e " (current-time))
+                    string)
+           (run-at-time (format "%d sec" appt-display-duration)
+                        nil
+                        appt-delete-window-function))
+          ((eq appt-display-format 'echo)
+           (message "%s" string)))
+    (if appt-audible (beep 1))))
 
 
 (defun appt-check (&optional force)
@@ -648,9 +656,9 @@ ARG is positive, otherwise off."
     (remove-hook 'write-file-functions 'appt-update-list)
     (or global-mode-string (setq global-mode-string '("")))
     (delq 'appt-mode-string global-mode-string)
-    (and appt-timer
-         (cancel-timer appt-timer)
-         (setq appt-timer nil))
+    (when appt-timer
+      (cancel-timer appt-timer)
+      (setq appt-timer nil))
     (when appt-active
       (add-hook 'write-file-functions 'appt-update-list)
       (setq appt-timer (run-at-time t 60 'appt-check)

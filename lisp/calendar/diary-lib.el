@@ -906,19 +906,19 @@ After the entries are marked, the hooks `nongregorian-diary-marking-hook' and
                              marks (nth 1 temp))))
                 (if dd-name
                     (mark-calendar-days-named
-                     (cdr (assoc-ignore-case
+                     (cdr (assoc-string
                            dd-name
                            (calendar-make-alist
                             calendar-day-name-array
-                            0 nil calendar-day-abbrev-array))) marks)
+                            0 nil calendar-day-abbrev-array) t)) marks)
                   (if mm-name
                       (setq mm
                             (if (string-equal mm-name "*") 0
-                              (cdr (assoc-ignore-case
+                              (cdr (assoc-string
                                     mm-name
                                     (calendar-make-alist
                                      calendar-month-name-array
-                                     1 nil calendar-month-abbrev-array))))))
+                                     1 nil calendar-month-abbrev-array) t)))))
                   (mark-calendar-date-pattern mm dd yy marks))))
             (setq d (cdr d))))
         (mark-sexp-diary-entries)
