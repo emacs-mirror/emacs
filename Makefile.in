@@ -282,6 +282,7 @@ src/Makefile: ${srcdir}/src/Makefile.in Makefile
 	  -e 's|^CPP *=.*$$|CPP=${CPP}|'				\
 	  -e 's|^LN_S *=.*$$|LN_S=${LN_S}|'				\
 	  -e 's|^CFLAGS *=.*$$|CFLAGS=${CFLAGS}|' 			\
+	  -e 's|^\(C_SWITCH_SYSTEM *=\).*$$|\1'"${C_SWITCH_SYSTEM}"'|'	\
 	  -e 's|^\(LD_SWITCH_X_SITE *=\).*$$|\1${LD_SWITCH_X_SITE}|'	\
 	  -e '/^# DIST: /d') > src/Makefile.tmp
 	@${srcdir}/move-if-change src/Makefile.tmp src/Makefile
