@@ -141,6 +141,9 @@ higher incidence of change, don't make sense to load into emacs'
 dumped image.  Thus, the run-time load order is: 1. file described in
 this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 
+(defvar user-mail-address nil
+  "Full mailing address of this user.")
+
 (defvar init-file-debug nil)
 
 (defvar init-file-had-error nil)
@@ -165,6 +168,7 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 			   (delete (concat "PWD=" pwd)
 				   process-environment)))))))
     (setq default-directory (abbreviate-file-name default-directory))
+    (setq user-mail-address (concat (user-login-name) "@" (system-name)))
     (let ((menubar-bindings-done nil))
       (unwind-protect
 	  (command-line)
