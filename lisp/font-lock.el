@@ -1,6 +1,7 @@
 ;;; font-lock.el --- Electric font lock mode
 
-;; Copyright (C) 1992-1999 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 93, 94, 95, 96, 97, 98, 1999
+;;  Free Software Foundation, Inc.
 
 ;; Author: jwz, then rms, then sm <simon@gnu.org>
 ;; Maintainer: FSF
@@ -729,7 +730,7 @@ buffer local value for `font-lock-defaults', via its mode hook."
 (defun turn-on-font-lock ()
   "Turn on Font Lock mode conditionally.
 Turn on only if the terminal can display it."
-  (when (and (not font-lock-mode) (or window-system (tty-display-color-p)))
+  (unless font-lock-mode
     (font-lock-mode)))
 
 ;;;###autoload
