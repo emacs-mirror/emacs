@@ -973,7 +973,7 @@ check_fontset_name (name)
   return FONTSET_FROM_ID (id);
 }
 
-DEFUN ("set-fontset-font", Fset_fontset_font Sset_fontset_font, 3, 4, 0,
+DEFUN ("set-fontset-font", Fset_fontset_font, Sset_fontset_font, 3, 4, 0,
        doc: /* Modify fontset NAME to use FONTNAME for CHARACTER.
 
 If NAME is nil, modify the default fontset.
