@@ -1,3 +1,9 @@
+2000-11-03  Miles Bader  <miles@gnu.org>
+
+	* wid-edit.el (widget-end-of-line): Reinstate, with a new
+	definition, so that trailing spaces are handled properly.
+	(widget-field-keymap, widget-text-keymap): Likewise C-e binding.
+
 2000-11-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (fancy-splash-text, fancy-splash-text): Use a single
