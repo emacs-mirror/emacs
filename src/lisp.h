@@ -1803,6 +1803,10 @@ extern void init_system_name ();
    in addition to a device separator.  Default the path separator
    to '/', and don't test for a device separator in IS_ANY_SEP.  */
 
+#ifdef WINDOWSNT
+extern Lisp_Object Vdirectory_sep_char;
+#endif
+
 #ifndef DIRECTORY_SEP
 #define DIRECTORY_SEP '/'
 #endif
