@@ -46,3 +46,5 @@
   the main thread, and not return from that message until the main
   thread has processed the menu_bar_activate_event and regenerated
   the whole menu bar.  In the mean time, it should process other messages.
+
+* Make Emacs work as a Java Bean.

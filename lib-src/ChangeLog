@@ -1,3 +1,7 @@
+2000-03-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* etags.c (lisp_suffixes)  Add `LSP'.
+
 2000-02-10  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (iswhite): Redefined not to consider '\0' as white

@@ -1,3 +1,13 @@
+2000-03-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* frame.el (blink-cursor-mode): Switch cursor on when turning
+	the mode off.
+
+	* add-log.el (add-log-current-defun): Add support for
+	Autoconf mode.
+
+	* mail/rmail.el (rmail-quit-hook): New variable.
+
 2000-03-01  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (lisp-mode-syntax-table): Fix syntax of |.
