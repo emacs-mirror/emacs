@@ -19,7 +19,7 @@ avoids the complexity of display layout in Emacs 21.  To wit:
 @item
 Variable-size characters are not supported in Emacs 20.  You cannot use
 fonts which contain oversized characters, and using italics fonts can
-results in illegible display.  However, text which uses variable-size
+result in illegible display.  However, text which uses variable-size
 fonts is unreadable anyway.  With all characters in a frame layed out on
 a regular grid, each character having the same height and width, text is
 much easier to read.
@@ -40,7 +40,7 @@ Several face appearance attributes such as 3D appearence,
 strike-through, and overline, have been eliminated.
 
 @item
-Emacs now provides its own ``lean and mean'' scroll bars instead using
+Emacs now provides its own ``lean and mean'' scroll bars instead of using
 those from the X toolkit.  Toggle buttons and radio buttons in menus now
 look just like any other menu item, which simplifies them, and prevents
 them from standing out and distracting your attention from the other
@@ -181,7 +181,7 @@ so we are planning to remove it altogether in an earlier version.)
 when the menu bar is not displayed.
 
 @item
-For uniformity, @key{delete} function key in Emacs 20 works exactly like
+For uniformity, the @key{delete} function key in Emacs 20 works exactly like
 the @key{DEL} key, on both text-only terminals and window systems---it
 always deletes backward.  This eliminates the inconsistency of Emacs 21,
 where the key labeled @key{delete} deletes forward when you are using a
@@ -208,7 +208,7 @@ all the frames but the current one, delete them one by one instead.
 CC Mode now enforces identical values for some customizable options,
 such as indentation style, for better consistency.  In particular, if
 you select an indentation style for Java, the same style is used
-for C and C@t{++} buffer as well.
+for C and C@t{++} buffers as well.
 
 @item
 Isearch does not highlight other possible matches; it shows only the
