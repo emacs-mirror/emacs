@@ -235,7 +235,7 @@ extern char syntax_code_spec[16];
    If it is t, ignore properties altogether. */
 
 #define SETUP_SYNTAX_TABLE_FOR_OBJECT(object, from, count)		\
-  if (BUFFERP (object))							\
+  if (BUFFERP (object) || NILP (object))				\
     {									\
       gl_state.b_property = BEGV - 1;					\
       gl_state.e_property = ZV;						\
