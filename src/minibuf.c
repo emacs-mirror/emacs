@@ -635,6 +635,11 @@ read_minibuf_unwind (data)
     unbind_to (count, Qnil);
   }
 
+  /* When we get to the outmost level, make sure we resize the
+     mini-window back to its normal size.  */
+  if (minibuf_level == 0)
+    resize_mini_window (XWINDOW (window));
+
   /* Make sure minibuffer window is erased, not ignored.  */
   windows_or_buffers_changed++;
   XSETFASTINT (XWINDOW (window)->last_modified, 0);
