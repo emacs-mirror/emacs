@@ -202,12 +202,8 @@ Lisp_Object Vw32_charset_info_alist;
 #define VIETNAMESE_CHARSET 163
 #endif
 
-/* How to blink the cursor off.  */
-Lisp_Object Vblink_cursor_alist;
-
 Lisp_Object Qauto_raise;
 Lisp_Object Qauto_lower;
-Lisp_Object Qbar, Qhbar, Qbox, Qhollow;
 Lisp_Object Qborder_color;
 Lisp_Object Qborder_width;
 Lisp_Object Qbox;
@@ -2350,90 +2346,17 @@ x_set_border_color (f, arg, oldval)
   update_face_from_frame_parameter (f, Qborder_color, arg);
 }
 
-/* Value is the internal representation of the specified cursor type
-   ARG.  If type is BAR_CURSOR, return in *WIDTH the specified width
-   of the bar cursor.  */
-
-enum text_cursor_kinds
-x_specified_cursor_type (arg, width)
-     Lisp_Object arg;
-     int *width;
-{
-  enum text_cursor_kinds type;
-  
-  if (EQ (arg, Qbar))
-    {
-      type = BAR_CURSOR;
-      *width = 2;
-    }
-  else if (CONSP (arg)
-	   && EQ (XCAR (arg), Qbar)
-	   && INTEGERP (XCDR (arg))
-	   && XINT (XCDR (arg)) >= 0)
-    {
-      type = BAR_CURSOR;
-      *width = XINT (XCDR (arg));
-    }
-  else if (EQ (arg, Qhbar))
-    {
-      type = HBAR_CURSOR;
-      *width = 2;
-    }
-  else if (CONSP (arg)
-	   && EQ (XCAR (arg), Qhbar)
-	   && INTEGERP (XCDR (arg))
-	   && XINT (XCDR (arg)) >= 0)
-    {
-      type = HBAR_CURSOR;
-      *width = XINT (XCDR (arg));
-    }
-  else if (NILP (arg))
-    type = NO_CURSOR;
-  else if (EQ (arg, Qbox))
-    type = FILLED_BOX_CURSOR;
-  else
-    /* Treat anything unknown as "hollow box cursor".
-       It was bad to signal an error; people have trouble fixing
-       .Xdefaults with Emacs, when it has something bad in it.  */
-    type = HOLLOW_BOX_CURSOR;
-
-  return type;
-}
 
 void
 x_set_cursor_type (f, arg, oldval)
      FRAME_PTR f;
      Lisp_Object arg, oldval;
 {
-  int width;
-  Lisp_Object tem;
-
-  FRAME_DESIRED_CURSOR (f) = x_specified_cursor_type (arg, &width);
-  f->output_data.w32->cursor_width = width;
+  set_frame_cursor_types (f, arg);
 
   /* Make sure the cursor gets redrawn.  This is overkill, but how
      often do people change cursor types?  */
   update_mode_lines++;
-
-  /* By default, set up the blink-off state depending on the on-state.  */
-
-  if (FRAME_DESIRED_CURSOR (f) == FILLED_BOX_CURSOR)
-    FRAME_BLINK_OFF_CURSOR (f) = HOLLOW_BOX_CURSOR;
-  else if (FRAME_DESIRED_CURSOR (f) == BAR_CURSOR && FRAME_CURSOR_WIDTH (f) > 1)
-    {
-      FRAME_BLINK_OFF_CURSOR (f) = BAR_CURSOR;
-      FRAME_BLINK_OFF_CURSOR_WIDTH (f) = 1;
-    }
-  else
-    FRAME_BLINK_OFF_CURSOR (f) = NO_CURSOR;
-
-  tem = Fassoc (arg, Vblink_cursor_alist);
-  if (!NILP (tem))
-    {
-      FRAME_BLINK_OFF_CURSOR (f)
-	= x_specified_cursor_type (XCDR (tem), &width);
-      f->output_data.w32->blink_off_cursor_width = width;
-    }
 }
 
 void
@@ -14892,14 +14815,6 @@ syms_of_w32fns ()
   staticpro (&Qauto_raise);
   Qauto_lower = intern ("auto-lower");
   staticpro (&Qauto_lower);
-  Qbar = intern ("bar");
-  staticpro (&Qbar);
-  Qhbar = intern ("hbar");
-  staticpro (&Qhbar);
-  Qbox = intern ("box");
-  staticpro (&Qbox);
-  Qhollow = intern ("hollow");
-  staticpro (&Qhollow);
   Qborder_color = intern ("border-color");
   staticpro (&Qborder_color);
   Qborder_width = intern ("border-width");
@@ -15139,14 +15054,6 @@ system to handle them.  */);
   w32_pass_extra_mouse_buttons_to_system = 0;
 
   init_x_parm_symbols ();
-
-  DEFVAR_LISP ("blink-cursor-alist", &Vblink_cursor_alist,
-    doc: /* Alist specifying how to blink the cursor off.
-Each element has the form (ON-STATE . OFF-STATE).  Whenever the
-`cursor-type' frame-parameter or variable equals ON-STATE,
-comparing using `equal', Emacs uses OFF-STATE to specify
-how to blink it off.  */);
-  Vblink_cursor_alist = Qnil;
 
   DEFVAR_LISP ("x-bitmap-file-path", &Vx_bitmap_file_path,
 	       doc: /* List of directories to search for bitmap files for w32.  */);
