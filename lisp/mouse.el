@@ -42,11 +42,11 @@
 
 ;; Provide a mode-specific menu on a mouse button.
 
-(defun mouse-major-mode-menu (event)
+(defun mouse-major-mode-menu (event prefix)
   "Pop up a mode-specific menu of mouse commands."
   ;; Switch to the window clicked on, because otherwise
   ;; the mode's commands may not make sense.
-  (interactive "@e")
+  (interactive "@e\nP")
   (let (;; This is where mouse-major-mode-menu-prefix
 	;; returns the prefix we should use (after menu-bar).
 	;; It is either nil or (SOME-SYMBOL).
@@ -66,8 +66,12 @@
 			(apply 'vector (append '(menu-bar)
 					       mouse-major-mode-menu-prefix
 					       result)))))
+	  ;; Clear out echoing, which perhaps shows a prefix arg.
+	  (message "")
 	  (if command
-	      (command-execute command))))))
+	      (progn
+		(setq prefix-arg prefix)
+		(command-execute command)))))))
 
 ;; Compute and cache the equivalent keys in MENU and all its submenus.
 ;;;(defun mouse-major-mode-menu-compute-equiv-keys (menu)
