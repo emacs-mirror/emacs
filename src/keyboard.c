@@ -1967,6 +1967,52 @@ kbd_buffer_get_event ()
   return (obj);
 }
 
+/* Process any events that are not user-visible.  */
+
+void
+swallow_events ()
+{
+  while (kbd_fetch_ptr != kbd_store_ptr)
+    {
+      struct input_event *event;
+
+      event = ((kbd_fetch_ptr < kbd_buffer + KBD_BUFFER_SIZE)
+	       ? kbd_fetch_ptr
+	       : kbd_buffer);
+
+      last_event_timestamp = event->timestamp;
+
+      /* These two kinds of events get special handling
+	 and don't actually appear to the command loop.  */
+      if (event->kind == selection_request_event)
+	{
+#ifdef HAVE_X11
+	  x_handle_selection_request (event);
+	  kbd_fetch_ptr = event + 1;
+#else
+	  /* We're getting selection request events, but we don't have
+             a window system.  */
+	  abort ();
+#endif
+	}
+
+      else if (event->kind == selection_clear_event)
+	{
+#ifdef HAVE_X11
+	  x_handle_selection_clear (event);
+	  kbd_fetch_ptr = event + 1;
+#else
+	  /* We're getting selection request events, but we don't have
+             a window system.  */
+	  abort ();
+#endif
+	}
+      else
+	break;
+    }
+
+  get_input_pending (&input_pending);
+}
 
 /* Caches for modify_event_symbol.  */
 static Lisp_Object func_key_syms;
