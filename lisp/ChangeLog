@@ -1,3 +1,8 @@
+2004-06-12  J,Ai(Br,At(Bme Marant  <jerome@marant.org>  (tiny change)
+
+	* bindings.el (completion-ignored-extensions): Add file extensions
+	of Python byte-compiled files.
+
 2004-06-12  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-goto-node): Add autoload.
