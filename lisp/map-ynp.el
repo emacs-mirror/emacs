@@ -149,7 +149,11 @@ Returns the number of actions taken."
 				(key-description (vector help-char)))
 		       (if minibuffer-auto-raise
 			   (raise-frame (window-frame (minibuffer-window))))
-		       (setq char (read-event))
+		       (while (progn
+				(setq char (read-event))
+				;; If we get -1, from end of keyboard
+				;; macro, try again.
+				(not (equal char -1))))
 		       ;; Show the answer to the question.
 		       (message "%s(y, n, !, ., q, %sor %s) %s"
 				prompt user-keys
