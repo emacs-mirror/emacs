@@ -5,6 +5,10 @@
 
 2001-10-10  Gerd Moellmann  <gerd@gnu.org>
 
+	* international/iso-transl.el (iso-transl-e-caret)
+	(iso-transl-i-caret, iso-transl-o-caret, iso-transl-u-caret):
+	Fix duplicates.  From Dave Love <d.love@dl.ac.uk>.
+
 	* simple.el (end-of-buffer): Fix code scrolling specially
 	for the buffer end.
 
