@@ -19,10 +19,11 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/*
- * Structure records pertinent information about open channels.
- * There is one channel associated with each process.
- */
+/* This structure records information about a subprocess
+   or network connection.
+
+   Every field in this structure except for the first two
+   must be a Lisp_Object, for GC's sake.  */
 
 struct Lisp_Process
   {
@@ -89,8 +90,11 @@ struct Lisp_Process
     Lisp_Object encoding_carryover;
     /* Flag to set coding-system of the process buffer from the
        coding_system used to decode process output.  */
-    int inherit_coding_system_flag;
+    Lisp_Object inherit_coding_system_flag;
 };
+
+/* Every field in the preceding structure except for the first two
+   must be a Lisp_Object, for GC's sake.  */
 
 #define ChannelMask(n) (1<<(n))
 
