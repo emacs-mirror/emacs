@@ -167,7 +167,8 @@ new mode line."
   (let ((old-w (selected-window))
 	(old-point (point))
 	(size (and arg (prefix-numeric-value arg)))
-	new-w bottom switch)
+        (window-full-p nil)
+	new-w bottom switch moved)
     (and size (< size 0) (setq size (+ (window-height) size)))
     (setq new-w (split-window nil size))
     (or split-window-keep-point
@@ -175,18 +176,23 @@ new mode line."
 	  (save-excursion
 	    (set-buffer (window-buffer))
 	    (goto-char (window-start))
-	    (vertical-motion (window-height))
+            (setq moved (vertical-motion (window-height)))
 	    (set-window-start new-w (point))
 	    (if (> (point) (window-point new-w))
 		(set-window-point new-w (point)))
-	    (vertical-motion -1)
-	    (setq bottom (point)))
-	  (if (<= bottom (point))
-	      (set-window-point old-w (1- bottom)))
-	  (if (< (window-start new-w) old-point)
-	      (progn
-		(set-window-point new-w old-point)
-		(select-window new-w)))))
+            (and (= moved (window-height))
+                 (progn
+                   (setq window-full-p t)
+                   (vertical-motion -1)))
+            (setq bottom (point)))
+          (and window-full-p
+               (<= bottom (point))
+               (set-window-point old-w (1- bottom)))
+	  (and window-full-p
+               (<= (window-start new-w) old-point)
+               (progn
+                 (set-window-point new-w old-point)
+                 (select-window new-w)))))
     new-w))
 
 (defun split-window-horizontally (&optional arg)
