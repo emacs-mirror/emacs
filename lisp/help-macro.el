@@ -153,7 +153,7 @@ and then returns."
 					  (format "Type one of the options listed%s: "
 						  (if (pos-visible-in-window-p
 						       (point-max))
-						      "" " or Space to scroll")))
+						      "" ", or SPACE or DEL to scroll")))
 				     char (aref key 0)))
 
 			     ;; If this is a scroll bar command, just run it.
