@@ -1,6 +1,7 @@
 This file contains the list of translators of the tutorial.
 
 TUTORIAL.bg: Ognyan Kulev <ogi@fmi.uni-sofia.bg>
+TUTORIAL.cn: Chao-Hong Liu <chliu@gnu.org>
 TUTORIAL.cs: Milan Zamazal <pdm@zamazal.org>
              Pavel Janík <Pavel@Janik.cz>
 TUTORIAL.de: Werner Lemberg <wl@gnu.org>
@@ -20,6 +21,7 @@ TUTORIAL.sk: Miroslav Vaško <vasko@debian.cz>
              Pavel Janík <Pavel@Janik.cz>
 TUTORIAL.sl: Primož Peterlin <primoz.peterlin@biofiz.mf.uni-lj.si>
 TUTORIAL.th: Virach Sornlertlamvanich <virach@nectec.or.th>
+TUTORIAL.zh: Chao-Hong Liu <chliu@gnu.org>
 
 ;;; Local Variables:
 ;;; coding: utf-8
