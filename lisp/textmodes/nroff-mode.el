@@ -65,7 +65,7 @@ closing requests for requests that are used in matched pairs."
   (make-local-variable 'outline-regexp)
   (setq outline-regexp "\\.H[ ]+[1-7]+ ")
   (make-local-variable 'outline-level)
-  (setq outline-level 'nroff-outline-level)o
+  (setq outline-level 'nroff-outline-level)
   ;; now define a bunch of variables for use by commands in this mode
   (make-local-variable 'page-delimiter)
   (setq page-delimiter "^\\.\\(bp\\|SK\\|OP\\)")
