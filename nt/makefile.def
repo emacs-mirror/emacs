@@ -126,7 +126,7 @@ BASE_LIBS	= $(libc) $(baselibs)
 !if "$(LINK)" == "link32"
 SYS_LDFLAGS	= 
 !else
-SYS_LDFLAGS	= -pdb:none -release -incremental:no
+SYS_LDFLAGS	= -pdb:none -release -incremental:no -version:3.10
 !endif
 
 INC             = -I.
@@ -149,8 +149,14 @@ $(BLD):         $(OBJDIR)
 CP		= copy
 CP_DIR		= xcopy /f/r/i/e/d
 
+!if "$(OS_TYPE)" == "win95"
+DEL		= deltree /y
+DEL_TREE	= deltree /y
+!else
+DEL		= del
 # This is completely braindamaged, but it's the only routine known to be there
 DEL_TREE	= echo y | rmdir /s
+!endif
 
 # The location of the icon file
 EMACS_ICON_PATH = ..\nt\emacs.ico
