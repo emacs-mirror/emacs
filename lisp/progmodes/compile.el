@@ -269,7 +269,8 @@ strings to write into the compilation buffer, and to put in its mode line.")
 (defvar grep-history nil)
 
 (defvar compilation-mode-font-lock-keywords
-  '(("^\\([^\n:]*:\\([0-9]+:\\)+\\)\\(.*\\)$" 1 font-lock-function-name-face))
+  ;; This regexp needs a bit of rewriting.  What is the third grouping for?
+  '(("^\\([^ \n:]*:\\([0-9]+:\\)+\\)\\(.*\\)$" 1 font-lock-function-name-face))
 ;;;  ("^\\([^\n:]*:\\([0-9]+:\\)+\\)\\(.*\\)$" 0 font-lock-keyword-face keep)
   "Additional expressions to highlight in Compilation mode.")
 
