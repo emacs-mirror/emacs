@@ -680,7 +680,7 @@ FUNCTION is added at the end.
 
 The optional fourth argument, LOCAL, if non-nil, says to modify
 the hook's buffer-local value rather than its default value.
-This makes no difference if the hook is not buffer-local.
+This makes the hook buffer-local if needed.
 To make a hook variable buffer-local, always use
 `make-local-hook', not `make-local-variable'.
 
@@ -689,32 +689,23 @@ HOOK is void, it is first set to nil.  If HOOK's value is a single
 function, it is changed to a list of functions."
   (or (boundp hook) (set hook nil))
   (or (default-boundp hook) (set-default hook nil))
-  ;; If the hook value is a single function, turn it into a list.
-  (let ((old (symbol-value hook)))
-    (if (or (not (listp old)) (eq (car old) 'lambda))
-	(set hook (list old))))
-  (if (or local
-	  ;; Detect the case where make-local-variable was used on a hook
-	  ;; and do what we used to do.
-	  (and (local-variable-if-set-p hook)
-	       (not (memq t (symbol-value hook)))))
-      ;; Alter the local value only.
-      (or (if (or (consp function) (byte-code-function-p function))
-	      (member function (symbol-value hook))
-	    (memq function (symbol-value hook)))
-	  (set hook 
-	       (if append
-		   (append (symbol-value hook) (list function))
-		 (cons function (symbol-value hook)))))
-    ;; Alter the global value (which is also the only value,
-    ;; if the hook doesn't have a local value).
-    (or (if (or (consp function) (byte-code-function-p function))
-	    (member function (default-value hook))
-	  (memq function (default-value hook)))
-	(set-default hook 
-		     (if append
-			 (append (default-value hook) (list function))
-		       (cons function (default-value hook)))))))
+  (if local (make-local-hook hook)
+    ;; Detect the case where make-local-variable was used on a hook
+    ;; and do what we used to do.
+    (unless (and (consp (symbol-value hook)) (memq t (symbol-value hook)))
+      (setq local t)))
+  (let ((hook-value (if local (symbol-value hook) (default-value hook))))
+    ;; If the hook value is a single function, turn it into a list.
+    (when (or (not (listp hook-value)) (eq (car hook-value) 'lambda))
+      (set hook-value (list hook-value)))
+    ;; Do the actual addition if necessary
+    (unless (member function hook-value)
+      (setq hook-value
+	    (if append
+		(append hook-value (list function))
+	      (cons function hook-value))))
+    ;; Set the actual variable
+    (if local (set hook hook-value) (set-default hook hook-value))))
 
 (defun remove-hook (hook function &optional local)
   "Remove from the value of HOOK the function FUNCTION.
@@ -724,34 +715,28 @@ list of hooks to run in HOOK, then nothing is done.  See `add-hook'.
 
 The optional third argument, LOCAL, if non-nil, says to modify
 the hook's buffer-local value rather than its default value.
-This makes no difference if the hook is not buffer-local.
+This makes the hook buffer-local if needed.
 To make a hook variable buffer-local, always use
 `make-local-hook', not `make-local-variable'."
-  (if (or (not (boundp hook))		;unbound symbol, or
-	  (not (default-boundp hook))
-	  (null (symbol-value hook))	;value is nil, or
-	  (null function))		;function is nil, then
-      nil				;Do nothing.
-    (if (or local
-	    ;; Detect the case where make-local-variable was used on a hook
-	    ;; and do what we used to do.
-	    (and (local-variable-p hook)
-		  (consp (symbol-value hook))
-		  (not (memq t (symbol-value hook)))))
-	(let ((hook-value (symbol-value hook)))
-	  (if (consp hook-value)
-	      (if (member function hook-value)
-		  (setq hook-value (delete function (copy-sequence hook-value))))
-	    (if (equal hook-value function)
-		(setq hook-value nil)))
-	  (set hook hook-value))
-      (let ((hook-value (default-value hook)))
-	(if (and (consp hook-value) (not (functionp hook-value)))
-	    (if (member function hook-value)
-		(setq hook-value (delete function (copy-sequence hook-value))))
-	  (if (equal hook-value function)
-	      (setq hook-value nil)))
-	(set-default hook hook-value)))))
+  (or (boundp hook) (set hook nil))
+  (or (default-boundp hook) (set-default hook nil))
+  (if local (make-local-hook hook)
+    ;; Detect the case where make-local-variable was used on a hook
+    ;; and do what we used to do.
+    (unless (and (consp (symbol-value hook)) (memq t (symbol-value hook)))
+      (setq local t)))
+  (let ((hook-value (if local (symbol-value hook) (default-value hook))))
+    ;; If the hook value is a single function, turn it into a list.
+    (when (or (not (listp hook-value)) (eq (car hook-value) 'lambda))
+      (set hook-value (list hook-value)))
+    ;; Do the actual removal if necessary
+    (setq hook-value (delete function (copy-sequence hook-value)))
+    ;; If the function is on the global hook, we need to shadow it locally
+    ;;(when (and local (member function (default-value hook))
+    ;;	       (not (member (cons 'not function) hook-value)))
+    ;;  (push (cons 'not function) hook-value))
+    ;; Set the actual variable
+    (if local (set hook hook-value) (set-default hook hook-value))))
 
 (defun add-to-list (list-var element)
   "Add to the value of LIST-VAR the element ELEMENT if it isn't there yet.
@@ -1503,9 +1488,9 @@ Optional AFTER specifies that TOGGLE should be added after AFTER
 in `minor-mode-alist'.
 
 Optional TOGGLE-FUN is there for compatiblity with other Emacsen.
-It is currently not used."
-  (make-local-variable toggle)
-  
+It is currently not used.
+
+In most cases, `define-minor-mode' should be used instead."
   (when name
     (let ((existing (assq toggle minor-mode-alist))
 	  (name (if (symbolp name) (symbol-value name) name)))
