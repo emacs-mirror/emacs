@@ -134,17 +134,17 @@ update_syntax_table (charpos, count, init, object)
 
   if (init)
     {
+      gl_state.old_prop = Qnil;
       gl_state.start = gl_state.b_property;
       gl_state.stop = gl_state.e_property;
-      gl_state.forward_i = interval_of (charpos, object);
-      i = gl_state.backward_i = gl_state.forward_i;
-      gl_state.left_ok = gl_state.right_ok = 1;
+      i = interval_of (charpos, object);
+      gl_state.backward_i = gl_state.forward_i = i;
       invalidate = 0;
       if (NULL_INTERVAL_P (i))
 	return;
       /* interval_of updates only ->position of the return value, so
 	 update the parents manually to speed up update_interval.  */
-      while (!NULL_PARENT (i)) 
+      while (!NULL_PARENT (i))
 	{
 	  if (AM_RIGHT_CHILD (i))
 	    INTERVAL_PARENT (i)->position = i->position
@@ -157,7 +157,7 @@ update_syntax_table (charpos, count, init, object)
 	  i = INTERVAL_PARENT (i);
 	}
       i = gl_state.forward_i;
-      gl_state.b_property = i->position - 1 - gl_state.offset;
+      gl_state.b_property = i->position - gl_state.offset;
       gl_state.e_property = INTERVAL_LAST_POS (i) - gl_state.offset;
       goto update;
     }
@@ -173,10 +173,9 @@ update_syntax_table (charpos, count, init, object)
 	error ("Error in syntax_table logic for intervals <-");
       /* Update the interval.  */
       i = update_interval (i, charpos);
-      if (!gl_state.left_ok || oldi->position != INTERVAL_LAST_POS (i))
+      if (INTERVAL_LAST_POS (i) != gl_state.b_property)
 	{
 	  invalidate = 0;
-	  gl_state.right_ok = 1;	/* Invalidate the other end.  */
 	  gl_state.forward_i = i;
 	  gl_state.e_property = INTERVAL_LAST_POS (i) - gl_state.offset;
 	}
@@ -187,18 +186,12 @@ update_syntax_table (charpos, count, init, object)
 	error ("Error in syntax_table logic for intervals ->");
       /* Update the interval.  */
       i = update_interval (i, charpos);
-      if (!gl_state.right_ok || i->position != INTERVAL_LAST_POS (oldi))
+      if (i->position != gl_state.e_property)
 	{
 	  invalidate = 0;
-	  gl_state.left_ok = 1;		/* Invalidate the other end.  */
 	  gl_state.backward_i = i;
-	  gl_state.b_property = i->position - 1 - gl_state.offset;
+	  gl_state.b_property = i->position - gl_state.offset;
 	}
-    }
-  else if (count > 0 ? gl_state.right_ok : gl_state.left_ok)
-    {
-      /* We do not need to recalculate tmp_table.  */
-      tmp_table = gl_state.old_prop;
     }
 
   update:
@@ -213,32 +206,33 @@ update_syntax_table (charpos, count, init, object)
       if (count > 0)
 	{
 	  gl_state.backward_i = i;
-	  gl_state.left_ok = 1;		/* Invalidate the other end.  */
-	  gl_state.b_property = i->position - 1 - gl_state.offset;
-	} 
-      else 
+	  gl_state.b_property = i->position - gl_state.offset;
+	}
+      else
 	{
-	  gl_state.forward_i = i;	
-	  gl_state.right_ok = 1;	/* Invalidate the other end.  */
+	  gl_state.forward_i = i;
 	  gl_state.e_property = INTERVAL_LAST_POS (i) - gl_state.offset;
 	}
     }
 
-  gl_state.current_syntax_table = tmp_table;
-  gl_state.old_prop = tmp_table;
-  if (EQ (Fsyntax_table_p (tmp_table), Qt))
+  if (!EQ (tmp_table, gl_state.old_prop))
     {
-      gl_state.use_global = 0;
-    } 
-  else if (CONSP (tmp_table))
-    {
-      gl_state.use_global = 1;
-      gl_state.global_code = tmp_table;
-    }
-  else 
-    {
-      gl_state.use_global = 0;
-      gl_state.current_syntax_table = current_buffer->syntax_table;
+      gl_state.current_syntax_table = tmp_table;
+      gl_state.old_prop = tmp_table;
+      if (EQ (Fsyntax_table_p (tmp_table), Qt))
+	{
+	  gl_state.use_global = 0;
+	} 
+      else if (CONSP (tmp_table))
+	{
+	  gl_state.use_global = 1;
+	  gl_state.global_code = tmp_table;
+	}
+      else 
+	{
+	  gl_state.use_global = 0;
+	  gl_state.current_syntax_table = current_buffer->syntax_table;
+	}
     }
 
   while (!NULL_INTERVAL_P (i))
@@ -246,42 +240,39 @@ update_syntax_table (charpos, count, init, object)
       if (cnt && !EQ (tmp_table, textget (i->plist, Qsyntax_table)))
 	{
 	  if (count > 0)
-	    gl_state.right_ok = 0;
-	  else 
-	    gl_state.left_ok = 0;
-	  break;	  
+	    {
+	      gl_state.e_property = i->position - gl_state.offset;
+	      gl_state.forward_i = i;
+	    }
+	  else
+	    {
+	      gl_state.b_property = i->position + LENGTH (i) - gl_state.offset;
+	      gl_state.backward_i = i;
+	    }
+	  return;
 	}
       else if (cnt == INTERVALS_AT_ONCE) 
 	{
 	  if (count > 0)
-	    gl_state.right_ok = 1;
-	  else 
-	    gl_state.left_ok = 1;
-	  break;
+	    {
+	      gl_state.e_property = i->position + LENGTH (i) - gl_state.offset;
+	      gl_state.forward_i = i;
+	    }
+	  else
+	    {
+	      gl_state.b_property = i->position - gl_state.offset;
+	      gl_state.backward_i = i;
+	    }
+	  return;
 	}
       cnt++;
       i = count > 0 ? next_interval (i) : previous_interval (i);
     }
-  if (NULL_INTERVAL_P (i)) 
-    {					/* This property goes to the end.  */
-      if (count > 0)
-	gl_state.e_property = gl_state.stop;
-      else
-	gl_state.b_property = gl_state.start;
-    } 
-  else 
-    {
-      if (count > 0) 
-	{
-	  gl_state.e_property = i->position - gl_state.offset;
-	  gl_state.forward_i = i;
-	}
-      else 
-	{
-	  gl_state.b_property = i->position + LENGTH (i) - 1 - gl_state.offset;
-	  gl_state.backward_i = i;
-	}
-    }    
+  eassert (NULL_INTERVAL_P (i)); /* This property goes to the end.  */
+  if (count > 0)
+    gl_state.e_property = gl_state.stop;
+  else
+    gl_state.b_property = gl_state.start;
 }
 
 /* Returns TRUE if char at CHARPOS is quoted.
@@ -1929,11 +1920,6 @@ between them, return t; otherwise return nil.")
 	  DEC_BOTH (from, from_byte);
 	  /* char_quoted does UPDATE_SYNTAX_TABLE_BACKWARD (from).  */
 	  quoted = char_quoted (from, from_byte);
-	  if (quoted)
-	    {
-	      DEC_BOTH (from, from_byte);
-	      goto leave;
-	    }
 	  c = FETCH_CHAR (from_byte);
 	  code = SYNTAX (c);
 	  comstyle = 0;
@@ -2010,7 +1996,7 @@ between them, return t; otherwise return nil.")
 		  break;
 		}
 	    }
-	  else if (code != Swhitespace)
+	  else if (code != Swhitespace || quoted)
 	    {
 	    leave:
 	      immediate_quit = 0;
@@ -3031,11 +3017,10 @@ syms_of_syntax ()
     "Non-nil means `forward-sexp', etc., should treat comments as whitespace.");
 
   DEFVAR_BOOL ("parse-sexp-lookup-properties", &parse_sexp_lookup_properties,
-    "Non-nil means `forward-sexp', etc., grant `syntax-table' property.\n\
-The value of this property should be either a syntax table, or a cons\n\
-of the form (SYNTAXCODE . MATCHCHAR), SYNTAXCODE being the numeric\n\
-syntax code, MATCHCHAR being nil or the character to match (which is\n\
-relevant only for open/close type.");
+    "Non-nil means `forward-sexp', etc., obey `syntax-table' property.\n\
+Otherwise, that text property is simply ignored.\n\
+See the info node `(elisp)Syntax Properties' for a description of the\n\
+`syntax-table' property.");
 
   words_include_escapes = 0;
   DEFVAR_BOOL ("words-include-escapes", &words_include_escapes,
