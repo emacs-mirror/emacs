@@ -1,13 +1,12 @@
 ;;; follow.el --- Minor mode, Synchronize windows showing the same buffer.
 
-;; Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1999 Free Software Foundation, Inc.
 
-;; Author: Anders Lindgren <andersl@csd.uu.se>
-;; Maintainer: Anders Lindgren <andersl@csd.uu.se>
-;; Created: 25 May 1995
-;; Version: 1.7
+;; Author: Anders Lindgren <andersl@andersl.com>
+;; Maintainer: Anders Lindgren <andersl@andersl.com>
+;; Created: 1995-05-25
 ;; Keywords: display, window, minor-mode, convenience
-;; Date: 4 Jun 1997
+;; Last Changed: 1999-11-17
 
 ;; This file is part of GNU Emacs.
 
@@ -51,12 +50,6 @@
 ;; one. Imagine yourself editing a large function, or section of text,
 ;; and being able to use 144 lines instead of the normal 72... (your
 ;; mileage may vary).
-
-
-;; The latest version, and a demonstration, are avaiable at:
-;;
-;;	http://www.csd.uu.se/~andersl/emacs.shtml
-
 
 ;; To test this package, make sure `follow' is loaded, or will be
 ;; autoloaded when activated (see below). Then do the following:
@@ -392,12 +385,12 @@ Used by `follow-window-size-change'.")
 (eval-when-compile (require 'reporter))
 
 (defun follow-submit-feedback ()
-  "Submit feedback on Follow mode to the author: andersl@csd.uu.se"
+  "Submit feedback on Follow mode to the author: andersl@andersl.com"
   (interactive)
   (require 'reporter)
   (and (y-or-n-p "Do you really want to submit a report on Follow mode? ")
        (reporter-submit-bug-report
-	"Anders Lindgren <andersl@csd.uu.se>"
+	"Anders Lindgren <andersl@andersl.com>"
 	"follow.el"
 	'(post-command-hook
 	  post-command-idle-hook
@@ -1775,12 +1768,12 @@ non-first windows in Follow Mode."
 		     scroll-bar-set-window-start)))
 	 (while cmds
 	   (eval
-	    (` (defadvice (, (intern (symbol-name (car cmds))))
+	    `(defadvice ,(intern (symbol-name (car cmds)))
 		 (after
-		  (, (intern (concat "follow-" (symbol-name (car cmds)))))
+		  ,(intern (concat "follow-" (symbol-name (car cmds))))
 		  activate)
 		 "Adviced by Follow Mode."
-		 (follow-redraw-after-event (ad-get-arg 0)))))
+		 (follow-redraw-after-event (ad-get-arg 0))))
 	   (setq cmds (cdr cmds))))
 
 
@@ -1825,12 +1818,12 @@ non-first windows in Follow Mode."
 
 	(while cmds
 	  (eval
-	   (` (defadvice (, (intern (symbol-name (car cmds))))
+	   `(defadvice ,(intern (symbol-name (car cmds)))
 		(after
-		 (, (intern (concat "follow-" (symbol-name (car cmds)))))
+		 ,(intern (concat "follow-" (symbol-name (car cmds))))
 		 activate)
 		"Adviced by `follow-mode'."
-		(follow-xemacs-scrollbar-support (ad-get-arg 0)))))
+		(follow-xemacs-scrollbar-support (ad-get-arg 0))))
 	  (setq cmds (cdr cmds))))
 
 
