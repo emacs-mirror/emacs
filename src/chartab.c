@@ -707,9 +707,9 @@ DEFUN ("optimize-char-table", Foptimize_char_table, Soptimize_char_table,
 
 
 static Lisp_Object
-map_sub_char_table (c_function, function, table, arg, val, range)
+map_sub_char_table (c_function, function, table, arg, val, range, default_val)
      void (*c_function) P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
-     Lisp_Object function, table, arg, val, range;
+     Lisp_Object function, table, arg, val, range, default_val;
 {
   struct Lisp_Sub_Char_Table *tbl = XSUB_CHAR_TABLE (table);
   int depth = XINT (tbl->depth);
@@ -722,30 +722,36 @@ map_sub_char_table (c_function, function, table, arg, val, range)
 
       this = tbl->contents[i];
       if (SUB_CHAR_TABLE_P (this))
-	val = map_sub_char_table (c_function, function, this, arg, val, range);
-      else if (NILP (Fequal (val, this)))
+	val = map_sub_char_table (c_function, function, this, arg, val, range,
+				  default_val);
+      else
 	{
-	  if (! NILP (val))
+	  if (NILP (this))
+	    this = default_val;
+	  if (NILP (Fequal (val, this)))
 	    {
-	      XCDR (range) = make_number (c - 1);
-	      if (depth == 3
-		  && EQ (XCAR (range), XCDR (range)))
+	      if (! NILP (val))
 		{
-		  if (c_function)
-		    (*c_function) (arg, XCAR (range), val);
+		  XCDR (range) = make_number (c - 1);
+		  if (depth == 3
+		      && EQ (XCAR (range), XCDR (range)))
+		    {
+		      if (c_function)
+			(*c_function) (arg, XCAR (range), val);
+		      else
+			call2 (function, XCAR (range), val);
+		    }
 		  else
-		    call2 (function, XCAR (range), val);
+		    {
+		      if (c_function)
+			(*c_function) (arg, range, val);
+		      else
+			call2 (function, range, val);
+		    }
 		}
-	      else
-		{
-		  if (c_function)
-		    (*c_function) (arg, range, val);
-		  else
-		    call2 (function, range, val);
-		}
+	      val = this;
+	      XCAR (range) = make_number (c);
 	    }
-	  val = this;
-	  XCAR (range) = make_number (c);
 	}
     }
   return val;
@@ -770,7 +776,9 @@ map_char_table (c_function, function, table, arg, depth, indices)
   int c, i;
 
   range = Fcons (make_number (0), Qnil);
-  val = char_table_ref (table, 0);
+  val = XCHAR_TABLE (table)->ascii;
+  if (SUB_CHAR_TABLE_P (val))
+    val = XSUB_CHAR_TABLE (val)->contents[0];
 
   for (i = 0, c = 0; i < chartab_size[0]; i++, c += chartab_chars[0])
     {
@@ -778,20 +786,35 @@ map_char_table (c_function, function, table, arg, depth, indices)
 
       this = XCHAR_TABLE (table)->contents[i];
       if (SUB_CHAR_TABLE_P (this))
-	val = map_sub_char_table (c_function, function, this, arg, val, range);
-      else if (NILP (Fequal (val, this)))
+	val = map_sub_char_table (c_function, function, this, arg, val, range,
+				  XCHAR_TABLE (table)->defalt);
+      else
 	{
-	  if (! NILP (val))
+	  if (NILP (this))
+	    this = XCHAR_TABLE (table)->defalt;
+	  if (NILP (Fequal (val, this)))
 	    {
-	      XCDR (range) = make_number (c - 1);
-	      if (c_function)
-		(*c_function) (arg, range, val);
-	      else
-		call2 (function, range, val);
+	      if (! NILP (val))
+		{
+		  XCDR (range) = make_number (c - 1);
+		  if (c_function)
+		    (*c_function) (arg, range, val);
+		  else
+		    call2 (function, range, val);
+		}
+	      val = this;
+	      XCAR (range) = make_number (c);
 	    }
-	  val = this;
-	  XCAR (range) = make_number (c);
 	}
+    }
+
+  if (! NILP (val))
+    {
+      XCDR (range) = make_number (c - 1);
+      if (c_function)
+	(*c_function) (arg, range, val);
+      else
+	call2 (function, range, val);
     }
 }
 
@@ -800,7 +823,8 @@ DEFUN ("map-char-table", Fmap_char_table, Smap_char_table,
        doc: /*
 Call FUNCTION for each character in CHAR-TABLE.
 FUNCTION is called with two arguments--a key and a value.
-The key is always a possible IDX argument to `aref'.  */)
+The key is a character code or a cons of character codes specifying a
+range of characters that have the same value.  */)
      (function, char_table)
      Lisp_Object function, char_table;
 {
