@@ -1,9 +1,14 @@
+/* Must define frame->faces, frame->n_faces,
+   FRAME_NORMAL_FACE, FRAME_MODELINE_FACE.  */
+
 /* "Face" primitives
+   Copyright (C) 1992, 1993 Free Software Foundation.
+
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -15,6 +20,19 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+struct face
+{
+  unsigned char underline;
+  unsigned char hilited;
+  unsigned char modif;
+  GC 		facegc;
+  XFontStruct *	font;
+  unsigned long	foreground;
+  unsigned long	background;
+  Pixmap	back_pixmap;
+  unsigned int	pixmap_w, pixmap_h /* , pixmap_depth */;
+};
+
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -23,8 +41,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "xterm.h"
 #include "buffer.h"
-#include "extents.h"
-#include "screen.h"
+#include "frame.h"
 #include "window.h"
 #include "indent.h"
 
@@ -34,6 +51,24 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <X11/Xmu/Drawing.h>
 #include <X11/Xos.h>
 
+/* We use face structures in two ways:
+   At the frame level, each frame has a vector of faces.  (f->faces).
+   Face number 0 is the normal face (for normal text).
+   Face number 1 is the mode line face.
+   Higher face numbers have no built-in meaning.
+   The faces in these vectors are called "frame faces".
+
+   Faces number 0 and 1 have graphics contexts.
+   They can be user in the redisplay code directly.
+   Higher numbered frame faces do not have graphics contexts.
+
+   There are also "cached faces".  They have graphics contexts.
+   They are kept in a C vector called face_vector.
+
+   A "display face" is a face with a graphics context.
+   It is either a frame face number 0 or 1,
+   or a cached face.  */
+   
 /* A table of display faces.  */
 struct face **face_vector;
 /* The length in use of the table.  */
@@ -43,6 +78,8 @@ int nfaces_allocated;
 
 /* The number of face-id's in use (same for all frames).  */
 int next_face_id;
+
+#define FACE_DEFAULT (~0)
 
 static struct face *allocate_face ();
 static void build_face ();
@@ -81,7 +118,7 @@ face_eql (face1, face2)
    put it in.  */
 
 static struct face *
-get_vector_face (f, face)
+get_cached_face (f, face)
      struct frame *f;
      struct face *face;
 {
@@ -170,6 +207,131 @@ build_face (f, face)
   face->facegc = gc;
 }
 
+/* Modify face TO by copying from FROM all properties which have
+   nondefault settings.  */
+
+static void 
+merge_faces (from, to)
+     struct face *from, *to;
+{
+  if (from->font != (XFontStruct *)FACE_DEFAULT)
+    {
+      to->font = from->font;
+    }
+  if (from->foreground != FACE_DEFAULT)
+    to->foreground = from->foreground;
+  if (from->background != FACE_DEFAULT)
+    to->background = from->background;
+  if (from->back_pixmap != FACE_DEFAULT)
+    to->back_pixmap = from->back_pixmap;
+  if (from->underline)
+    to->underline = from->underline;
+}
+
+/* Return the display face associated with a buffer position POS.
+   Store into *ENDPTR the position at which a different face is needed.
+   This does not take account of glyphs that specify their own face codes.
+   F is the frame in use for display.  */
+
+struct face *
+compute_char_face (f, pos, endptr)
+     struct frame *f;
+     int pos;
+     int *endptr;
+{
+  struct face face;
+  Lisp_Object prop, position, length;
+  Lisp_Object overlay, start, end;
+  int i, j, noverlays;
+  int facecode;
+  int endpos;
+  Lisp_Object *overlay_vec;
+  int len;
+
+  XFASTINT (position) = pos;
+  prop = Fget_text_property (position, Qface);
+
+  len = 10;
+  overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
+  noverlays = overlays_at (pos, &overlay_vec, &len, &endpos);
+
+  /* Optimize the default case.  */
+  if (noverlays == 0 && NILP (prop))
+    return FRAME_NORMAL_FACE (f);
+
+  bcopy (FRAME_NORMAL_FACE (f), &face, sizeof (struct face));
+
+  if (!NILP (prop))
+    {
+      facecode = Fface_name_id_number (prop);
+      if (facecode >= 0 && facecode < f->n_faces && f->faces[facecode] != 0)
+	merge_faces (f->faces[facecode], &face);
+    }
+
+  /* Discard invalid overlays from the vector.  */
+  for (i = 0, j = 0; i < noverlays; i++)
+    {
+      overlay = overlay_vec[i];
+
+      if (OVERLAY_VALID (overlay)
+	  && OVERLAY_POSITION (OVERLAY_START (overlay)) > 0
+	  && OVERLAY_POSITION (OVERLAY_END (overlay)) > 0)
+	overlay_vec[j++] = overlay;
+    }
+  noverlays = j;
+
+  /* Sort the overlays into the proper order.  */
+
+  /* Now merge the overlay data in that order.  */
+
+  for (i = 0; i < noverlays; i++)
+    {
+      prop = Foverlay_get (overlay_vec[i], Qface);
+      if (!NILP (prop))
+	{
+	  Lisp_Object oend;
+	  int oendpos;
+
+	  facecode = Fface_name_id_number (prop);
+	  if (facecode >= 0 && facecode < f->n_faces
+	      && f->faces[facecode] != 0)
+	    merge_faces (f->faces[facecode], &face);
+
+	  oend = OVERLAY_END (overlay_vec[i]);
+	  oendpos = OVERLAY_POSITION (oend);
+	  if (oendpos > endpos)
+	    endpos = oendpos;
+	}
+    }
+
+  xfree (overlay_vec);
+
+  *endptr = endpos;
+
+  return get_display_face (f, &face);
+}
+
+/* Return the display face to use to display a special glyph
+   which selects FACE_CODE as the face ID,
+   assuming that ordinarily the face would be BASIC_FACE.
+   F is the frame.  */
+
+struct face *
+compute_glyph_face (f, basic_face, face_code)
+     struct frame *f;
+     struct face *basic_face;
+     int face_code;
+{
+  struct face face;
+
+  bcopy (basic_face, &face, sizeof (struct face));
+
+  if (face_code >= 0 && face_code < f->n_faces && f->faces[face_code] != 0)
+    merge_faces (f->faces[face_code], &face);
+
+  return get_display_face (f, &face);
+}
+
 /* Given a frame face, return an equivalent display face
    (one which has a graphics context).  */
 
@@ -219,6 +381,10 @@ allocate_face ()
 {
   struct face *result = (struct face *) xmalloc (sizeof (struct face));
   bzero (result, sizeof (struct face));
+  result->font = (XFontStruct *) FACE_DEFAULT;
+  result->foreground = FACE_DEFAULT;
+  result->background = FACE_DEFAULT;
+  result->back_pixmap = FACE_DEFAULT;
   return result;
 }
 
@@ -256,6 +422,9 @@ load_font (f, name)
 {
   XFontStruct *font;
 
+  if (NILP (name))
+    return (XFontStruct *) FACE_DEFAULT;
+
   CHECK_STRING (name, 0);
   BLOCK_INPUT;
   font = XLoadQueryFont (x_current_display, (char *) XSTRING (name)->data);
@@ -286,6 +455,9 @@ load_color (f, name)
   Colormap cmap;
   XColor color;
   int result;
+
+  if (NILP (name))
+    return FACE_DEFAULT;
 
   cmap = DefaultColormapOfScreen (x_screen);
 
