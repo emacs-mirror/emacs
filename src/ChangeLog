@@ -1,3 +1,12 @@
+1999-11-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (Fx_show_busy_cursor): Doc-fix.
+	(Fx_hide_busy_cursor): Ditto.
+
+1999-11-17  Marco Walther <walther@siemens-pyramid.com>
+
+	* unexsni.c (unexec): Handle .rel.dyn section.
+
 1999-11-16  Dave Love  <fx@gnu.org>
 
 	* doc.c (Fdocumentation): Remove gcpro here too.
