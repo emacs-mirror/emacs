@@ -194,9 +194,11 @@ and selects that window."
 ;;;	       (or (buffer-file-name) ""))))))
 
 ;; Give all existing frames a menu bar.
+;; (Except for minibuffer-only frames.)
 (let ((frames (frame-list)))
   (while frames
-    (modify-frame-parameters (car frames) '((menu-bar-lines . 1)))
+    (or (eq 'only (cdr (assq 'minibuffer (frame-parameters (car frames)))))
+	(modify-frame-parameters (car frames) '((menu-bar-lines . 1))))
     (setq frames (cdr frames))))
 
 ;; Make frames created from now on have a menu bar.
