@@ -2,7 +2,7 @@
  *
  *           Leaf Object Pool Class Coverage Test
  *
- * $HopeName: MMsrc!locv.c(trunk.8) $
+ * $HopeName: MMsrc!locv.c(trunk.10) $
  *
  * Copyright (C) 1996,1997 Harlequin Group, all rights reserved
  *
@@ -98,8 +98,8 @@ static
 mps_res_t
 scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 {
-  assert(0);
-  return ResFAIL;
+  die(MPS_RES_FAIL, "Error in Test, scan called unexpectedly");
+  return MPS_RES_FAIL;
 }
 
 static
