@@ -1,5 +1,10 @@
 2004-10-04  Kim F. Storm  <storm@cua.dk>
 
+	* window.c (coordinates_in_window): Relax check for cursor
+	on vertial border between mode lines.
+	(Fset_window_fringes): Do not allow negative widths.
+	(Fset_window_scroll_bars): Likewise.
+
 	* .gdbinit (pp): Shorthand for p ARG + pr.
 	(ff): New command: flush frame updates (X only).
 
