@@ -201,19 +201,6 @@
   :prefix "msb-"
   :group 'mouse)
 
-;;;###autoload
-(defcustom msb-mode nil
-  "Toggle msb-mode.
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `msb-mode'."
-  :set (lambda (symbol value)
-	 (msb-mode (or value 0)))
-  :initialize 'custom-initialize-default
-  :version "20.4"
-  :type    'boolean
-  :group   'msb
-  :require 'msb)
-
 (defun msb-custom-set (symbol value)
   "Set the value of custom variables for msb."
   (set symbol value)
@@ -1151,15 +1138,12 @@ variable `msb-menu-cond'."
     map))
 
 ;;;###autoload
-(defun msb-mode (&optional arg)
+(define-minor-mode msb-mode
   "Toggle Msb mode.
 With arg, turn Msb mode on if and only if arg is positive.
 This mode overrides the binding(s) of `mouse-buffer-menu' to provide a
 different buffer menu using the function `msb'."
-  (interactive "P")
-  (setq msb-mode (if arg
-		     (> (prefix-numeric-value arg) 0)
-		   (not msb-mode)))
+  nil nil nil :global t
   (if msb-mode
       (progn
 	(add-hook 'menu-bar-update-hook 'msb-menu-bar-update-buffers)
@@ -1170,8 +1154,6 @@ different buffer menu using the function `msb'."
 
 (defun msb-unload-hook ()
   (msb-mode 0))
-
-(add-to-list 'minor-mode-map-alist (cons 'msb-mode msb-mode-map))
 
 (provide 'msb)
 (eval-after-load 'msb (run-hooks 'msb-after-load-hooks))
