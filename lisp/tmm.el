@@ -44,7 +44,7 @@
 (defvar tmm-km-list)
 (defvar tmm-table-undef)
 
-;;;###autoload (define-key global-map "\M-`" tmm-menubar)
+;;;###autoload (define-key global-map "\M-`" 'tmm-menubar)
 
 ;;;###autoload
 (defun tmm-menubar ()
