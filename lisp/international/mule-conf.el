@@ -337,6 +337,7 @@
       coding-category-iso-8-2		'japanese-iso-8bit
       coding-category-iso-7-else	'iso-2022-7bit-lock
       coding-category-iso-8-else	'iso-2022-8bit-ss2
+      coding-category-ccl		nil
       coding-category-big5		'chinese-big5
       coding-category-raw-text		'raw-text
       coding-category-binary		'no-conversion)
@@ -352,6 +353,7 @@
    coding-category-raw-text
    coding-category-sjis 
    coding-category-big5
+   coding-category-ccl
    coding-category-binary))
 
 
