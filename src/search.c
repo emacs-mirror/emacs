@@ -493,6 +493,27 @@ fast_c_string_match_ignore_case (regexp, string)
   immediate_quit = 0;
   return val;
 }
+
+/* Like fast_string_match but ignore case.  */
+
+int
+fast_string_match_ignore_case (regexp, string)
+     Lisp_Object regexp, string;
+{
+  int val;
+  struct re_pattern_buffer *bufp;
+
+  bufp = compile_pattern (regexp, 0, Vascii_downcase_table,
+			  0, STRING_MULTIBYTE (string));
+  immediate_quit = 1;
+  re_match_object = string;
+
+  val = re_search (bufp, (char *) SDATA (string),
+		   SBYTES (string), 0,
+		   SBYTES (string), 0);
+  immediate_quit = 0;
+  return val;
+}
 
 /* The newline cache: remembering which sections of text have no newlines.  */
 
