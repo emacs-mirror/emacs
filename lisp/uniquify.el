@@ -223,9 +223,8 @@ file name elements.  Arguments cause only a subset of buffers to be renamed."
 	(setq buffers (cdr buffers))))
     ;; selects buffers whose names may need changing, and others that
     ;; may conflict.
-    (setq fix-list (sort
-		    (sort fix-list 'string-lessp) ;do a quick pre-ordering
-		    'uniquify-fix-item-filename-lessp))
+    (setq fix-list
+	  (sort fix-list 'uniquify-fix-item-filename-lessp))
     ;; bringing conflicting names together
     (uniquify-rationalize-a-list fix-list uniquify-min-dir-content)
     (mapcar 'uniquify-fix-item-unrationalized-buffer fix-list)))
