@@ -87,16 +87,6 @@
 ;;             Each member header points to the next.  The archive is
 ;;             terminated by a bogus header with a zero next link.
 ;; -------------------------------------
-;; SETUP: .emacs fodder:
-;;
-;; (setq auto-mode-alist
-;;       (cons '("\\.\\(arc\\|zip\\|lzh\\|zoo\\)\\'" . archive-mode)
-;;             auto-mode-alist))
-;; (autoload 'archive-mode "arc-mode" "Major mode for editing archives." t)
-;;
-;; Furthermore, for msdog, you need to make sure that the archives are loaded
-;; as binary files.  For arc/zip/pak/lzh/zoo this is the default.
-;; -------------------------------------
 ;; HOOKS: `foo' means one the the supported archive types.
 ;;
 ;; archive-mode-hook
@@ -405,6 +395,7 @@ if optional second argument NOERROR is non-nil."
 ;; -------------------------------------------------------------------------
 ;; Section: the mode definition
 
+;;;###autoload
 (defun archive-mode (&optional force)
   "Major mode for viewing an archive file as a dired-like listing of its
 contents.  You can move around using the usual cursor motion commands.
