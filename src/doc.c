@@ -83,15 +83,17 @@ static int get_doc_string_buffer_size;
    (A negative integer is used for user variables, so we can distinguish
    them without actually fetching the doc string.)
 
+   If UNIBYTE is nonzero, always make a unibyte string.
+
    If DEFINITION is nonzero, assume this is for reading
    a dynamic function definition; convert the bytestring
    and the constants vector with appropriate byte handling,
    and return a cons cell.  */
 
 Lisp_Object
-get_doc_string (filepos, definition)
+get_doc_string (filepos, unibyte, definition)
      Lisp_Object filepos;
-     int definition;
+     int unibyte, definition;
 {
   char *from, *to;
   register int fd;
@@ -276,8 +278,12 @@ get_doc_string (filepos, definition)
       return Fcons (bytestring, vector);
     }
 
-  return make_string (get_doc_string_buffer + offset,
-		      to - (get_doc_string_buffer + offset));
+  if (unibyte)
+    return make_unibyte_string (get_doc_string_buffer + offset,
+				to - (get_doc_string_buffer + offset));
+  else
+    return make_string (get_doc_string_buffer + offset,
+			to - (get_doc_string_buffer + offset));
 }
 
 /* Get a string from position FILEPOS and pass it through the Lisp reader.
@@ -288,7 +294,7 @@ Lisp_Object
 read_doc_string (filepos)
      Lisp_Object filepos;
 {
-  return get_doc_string (filepos, 1);
+  return get_doc_string (filepos, 0, 1);
 }
 
 DEFUN ("documentation", Fdocumentation, Sdocumentation, 1, 2, 0,
@@ -310,7 +316,8 @@ string is passed through `substitute-command-keys'.")
       if ((EMACS_INT) XSUBR (fun)->doc >= 0)
 	doc = build_string (XSUBR (fun)->doc);
       else
-	doc = get_doc_string (make_number (- (EMACS_INT) XSUBR (fun)->doc), 0);
+	doc = get_doc_string (make_number (- (EMACS_INT) XSUBR (fun)->doc),
+			      0, 0);
     }
   else if (COMPILEDP (fun))
     {
@@ -320,7 +327,7 @@ string is passed through `substitute-command-keys'.")
       if (STRINGP (tem))
 	doc = tem;
       else if (NATNUMP (tem) || CONSP (tem))
-	doc = get_doc_string (tem, 1);
+	doc = get_doc_string (tem, 1, 0);
       else
 	return Qnil;
     }
@@ -348,7 +355,7 @@ subcommands.)");
 	     in the function body, so reject them if they are last.  */
 	  else if ((NATNUMP (tem) || CONSP (tem))
 		   && ! NILP (XCONS (tem1)->cdr))
-	    doc = get_doc_string (tem, 1);
+	    doc = get_doc_string (tem, 1, 0);
 	  else
 	    return Qnil;
 	}
@@ -389,9 +396,9 @@ translation.")
 
   tem = Fget (symbol, prop);
   if (INTEGERP (tem))
-    tem = get_doc_string (XINT (tem) > 0 ? tem : make_number (- XINT (tem)), 0);
+    tem = get_doc_string (XINT (tem) > 0 ? tem : make_number (- XINT (tem)), 0, 0);
   else if (CONSP (tem))
-    tem = get_doc_string (tem, 0);
+    tem = get_doc_string (tem, 0, 0);
   if (NILP (raw) && STRINGP (tem))
     return Fsubstitute_command_keys (tem);
   return tem;
