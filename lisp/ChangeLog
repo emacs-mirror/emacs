@@ -3,6 +3,7 @@
 	* international/quail.el (quail-start-translation): Bind locally
 	last-command-event, last-command, and this-command.
 	(quail-start-conversion): Likewise.
+	(quail-self-insert-command): Fix docstring.
 
 2000-08-29  Gerd Moellmann  <gerd@gnu.org>
 
