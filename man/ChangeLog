@@ -1,3 +1,8 @@
+2004-09-28  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Display Custom) <indicate-buffer-boundaries>:
+	Align with new functionality.
+
 2004-09-26  Jesper Harder  <harder@ifa.au.dk>
 
 	* sieve.texi (Manage Sieve API): nil -> @code{nil}.
@@ -37,7 +42,7 @@
 	(SpamOracle): Fixed typo.
 
 	* gnus-faq.texi: Untabify.
-	([6.3]): nnir.el is in contrib directory.  
+	([6.3]): nnir.el is in contrib directory.
 
 	* message.texi (News Headers): Clarify how a unique ID is created.
 
