@@ -173,7 +173,7 @@ we're in the GUD buffer)."
 (defvar gud-gdb-history nil)
 
 (defun gud-gdb-massage-args (file args)
-  (cons "-fullname" (cons file args)))
+  (cons "-fullname" args))
 
 ;; There's no guarantee that Emacs will hand the filter the entire
 ;; marker at once; it could be broken up across several strings.  We
@@ -395,8 +395,7 @@ available with older versions of GDB."
 
 (defvar gud-sdb-lastfile nil)
 
-(defun gud-sdb-massage-args (file args)
-  (cons file args))
+(defun gud-sdb-massage-args (file args) args)
 
 (defun gud-sdb-marker-filter (string)
   (setq gud-marker-acc
@@ -507,8 +506,7 @@ and source-file directory for your debugger."
 ;;; History of argument lists passed to dbx.
 (defvar gud-dbx-history nil)
 
-(defun gud-dbx-massage-args (file args)
-  (cons file args))
+(defun gud-dbx-massage-args (file args) args)
 
 (defun gud-dbx-marker-filter (string)
   (setq gud-marker-acc (if gud-marker-acc (concat gud-marker-acc string) string))
@@ -553,7 +551,7 @@ and source-file directory for your debugger."
   "Non-nil to assume the MIPS/OSF dbx conventions (argument `-emacs').")
 
 (defun gud-mipsdbx-massage-args (file args)
-  (cons "-emacs" (cons file args)))
+  (cons "-emacs" args))
 
 ;; This is just like the gdb one except for the regexps since we need to cope
 ;; with an optional breakpoint number in [] before the ^Z^Z
@@ -781,7 +779,7 @@ containing the executable being debugged.")
 	   (while directories
 	     (setq result (cons (car directories) (cons "-d" result)))
 	     (setq directories (cdr directories)))
-	   (nreverse (cons file result)))
+	   (nreverse result))
 	 args))
 
 (defun gud-xdb-file-name (f)
@@ -883,7 +881,7 @@ directories if your program contains sources from more than one directory."
 (defvar gud-perldb-history nil)
 
 (defun gud-perldb-massage-args (file args)
-  (cons "-d" (cons file (cons "-emacs" args))))
+  (cons "-d" (cons "-emacs" args)))
 
 ;; There's no guarantee that Emacs will hand the filter the entire
 ;; marker at once; it could be broken up across several strings.  We
@@ -1119,13 +1117,17 @@ comint mode, which see."
 (defun gud-common-init (command-line massage-args marker-filter find-file)
   (let* ((words (gud-chop-words command-line))
 	 (program (car words))
+	 ;; Extract the file name from WORDS
+	 ;; and put t in its place.
+	 ;; Later on we will put the modified file name arg back there.
 	 (file-word (let ((w (cdr words)))
 		      (while (and w (= ?- (aref (car w) 0)))
 			(setq w (cdr w)))
-		      (car w)))
+		      (prog1 (car w)
+			(setcar w t))))
 	 (file-subst
 	  (and file-word (substitute-in-file-name file-word)))
-	 (args (delq file-word (cdr words)))
+	 (args (cdr words))
 	 ;; If a directory was specified, expand the file name.
 	 ;; Otherwise, don't expand it, so GDB can use the PATH.
 	 ;; A file name without directory is literally valid
@@ -1148,8 +1150,13 @@ comint mode, which see."
 	 (setq default-directory (file-name-directory file)))
     (or (bolp) (newline))
     (insert "Current directory is " default-directory "\n")
+    ;; Put the substituted and expanded file name back in its place.
+    (let ((w args))
+      (while (and w (not (eq (car w) t)))
+	(setq w (cdr w)))
+      (setcar w file))
     (apply 'make-comint (concat "gud-" filepart) program nil
-	   (if file-word (funcall massage-args file args))))
+	   (if file-word (funcall massage-args file args) args)))
   ;; Since comint clobbered the mode, we don't set it until now.
   (gud-mode)
   (make-local-variable 'gud-massage-args)
