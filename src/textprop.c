@@ -790,7 +790,8 @@ back past position LIMIT; return LIMIT if nothing is found before LIMIT.")
       else
 	{
 	  Lisp_Object initial_value =
-	    Fget_char_property (position - 1, prop, object);
+	    Fget_char_property (make_number (XFASTINT (position) - 1),
+				prop, object);
       
 	  for (;;)
 	    {
@@ -804,7 +805,8 @@ back past position LIMIT; return LIMIT if nothing is found before LIMIT.")
 	      else
 		{
 		  Lisp_Object value =
-		    Fget_char_property (position - 1, prop, object);
+		    Fget_char_property (make_number (XFASTINT (position) - 1),
+					prop, object);
 
 		  if (!EQ (value, initial_value))
 		    break;
