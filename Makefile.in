@@ -509,7 +509,7 @@ uninstall:
 	(cd ${archlibdir} && rm -f fns-*)
 	-rm -rf ${libexecdir}/emacs/${version}
 	(cd ${infodir} && rm -f cl* ada-mode* autotype* ccmode* ebrowse* efaq* elisp* eshell* eudc* idlwave* message* pcl-cvs* reftex* speedbar* widget* woman* dired-x* ediff* emacs* forms* gnus* info* mh-e* sc* vip*)
-	(cd ${man1dir}  && rm -f emacs.1 etags.1 ctags.1)
+	(cd ${man1dir}  && rm -f emacs.1 etags.1 ctags.1 gfdl.1)
 	(cd ${bindir}  && rm -f emacs-${version} $(EMACS))
 
 
