@@ -398,6 +398,7 @@ for language-specific arguments."
 
 
 ;; Define definitions here only for personal dictionaries.
+;;;###autoload
 (defcustom ispell-local-dictionary-alist nil
   "*Contains local or customized dictionary definitions.
 See `ispell-dictionary-alist'."
