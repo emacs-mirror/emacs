@@ -821,7 +821,7 @@ If OFFSET is one of the symbols `+', `-', `++', `--', `*', or `/', a
 positive or negative multiple of `c-basic-offset' is added; 1, -1, 2,
 -2, 0.5, and -0.5, respectively.
 
-If OFFSET is a vector, it's first element, which must be an integer,
+If OFFSET is a vector, its first element, which must be an integer,
 is used as an absolute indentation column.  This overrides all
 relative offsets.  If there are several syntactic elements which
 evaluates to absolute indentation columns, the first one takes
