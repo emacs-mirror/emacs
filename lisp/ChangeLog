@@ -1,7 +1,34 @@
+2004-07-05  Stefan  <monnier@iro.umontreal.ca>
+
+	* replace.el (query-replace-descr): New fun.
+	(query-replace-read-from, query-replace-read-args): Default to the
+	previous from&to.
+	(query-replace-read-to): Quote the `from' string when displaying it.
+	(query-replace-regexp-eval): Immediately check read-only status.
+	Use query-replace-read-from to get the \n checking.
+	Quote the `from' string when displaying it.
+	(map-query-replace-regexp, occur-read-primary-args):
+	Quote the `from' string when displaying it.
+
+	* isearch.el (isearch-query-replace): Pass the regexp-ness and
+	delimited-ness of the search to query-replace.
+
+	* replace.el (query-replace-read-from, query-replace-read-to):
+	New funs extracted from query-replace-read-args.
+	(query-replace-read-args): Use them.
+
+	* replace.el (query-replace-interactive, query-replace-read-args):
+	Remove the `initial' special value.
+	(query-replace-regexp-eval, map-query-replace-regexp): Simplify.
+	(occur-engine): Remove unused var `matchend'.
+
+	* isearch.el (isearch-query-replace, isearch-query-replace-regexp):
+	Use the search string without prompting.
+
 2004-07-05  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule.el (decode-coding-inserted-region): Set
-	last-coding-system-used only when coding is nil.
+	* international/mule.el (decode-coding-inserted-region):
+	Set last-coding-system-used only when coding is nil.
 
 2004-07-03  Eli Zaretskii  <eliz@gnu.org>
 
@@ -14,8 +41,7 @@
 
 2004-07-03  KOSEKI Yoshinori  <kose@meadowy.org>
 
-	* iimage.el (turn-on-iimage-mode, iimage-mode): Add autoload
-	cookies.
+	* iimage.el (turn-on-iimage-mode, iimage-mode): Add autoload cookies.
 	(iimage-mode-image-search-path): New user option to search the
 	image file.
 	(iimage-locate-file): New funcion.  Emacs21.3 or earlier does not
