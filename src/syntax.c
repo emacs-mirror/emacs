@@ -199,7 +199,7 @@ update_syntax_table (charpos, count, init, object)
 
   if (invalidate)
     invalidate = !EQ (tmp_table, gl_state.old_prop); /* Need to invalidate? */
-      
+
   if (invalidate)		/* Did not get to adjacent interval.  */
     {				/* with the same table => */
 				/* invalidate the old range.  */
@@ -222,13 +222,13 @@ update_syntax_table (charpos, count, init, object)
       if (EQ (Fsyntax_table_p (tmp_table), Qt))
 	{
 	  gl_state.use_global = 0;
-	} 
+	}
       else if (CONSP (tmp_table))
 	{
 	  gl_state.use_global = 1;
 	  gl_state.global_code = tmp_table;
 	}
-      else 
+      else
 	{
 	  gl_state.use_global = 0;
 	  gl_state.current_syntax_table = current_buffer->syntax_table;
@@ -251,7 +251,7 @@ update_syntax_table (charpos, count, init, object)
 	    }
 	  return;
 	}
-      else if (cnt == INTERVALS_AT_ONCE) 
+      else if (cnt == INTERVALS_AT_ONCE)
 	{
 	  if (count > 0)
 	    {
@@ -428,7 +428,7 @@ prev_char_comend_first (pos, pos_byte)
  *      int pos, pos_byte;
  * {
  *   int c, val;
- * 
+ *
  *   DEC_BOTH (pos, pos_byte);
  *   UPDATE_SYNTAX_TABLE_BACKWARD (pos);
  *   c = FETCH_CHAR (pos_byte);
@@ -468,7 +468,7 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
   int string_style = -1;	/* Presumed outside of any string. */
   int string_lossage = 0;
   /* Not a real lossage: indicates that we have passed a matching comment
-     starter plus an non-matching comment-ender, meaning that any matching
+     starter plus a non-matching comment-ender, meaning that any matching
      comment-starter we might see later could be a false positive (hidden
      inside another comment).
      Test case:  { a (* b } c (* d *) */
@@ -584,7 +584,7 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
 	       There's no way to grok this scanning backwards.  */
 	    string_lossage = 1;
 	  break;
-	  
+
 	case Scomment:
 	  /* We've already checked that it is the relevant comstyle.  */
 	  if (string_style != -1 || comment_lossage || string_lossage)
@@ -705,7 +705,7 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
       from_byte = CHAR_TO_BYTE (from);
       UPDATE_SYNTAX_TABLE_FORWARD (from - 1);
     }
-    
+
  done:
   *charpos_ptr = from;
   *bytepos_ptr = from_byte;
@@ -732,7 +732,7 @@ check_syntax_table (obj)
   if (!(CHAR_TABLE_P (obj)
 	&& EQ (XCHAR_TABLE (obj)->purpose, Qsyntax_table)))
     wrong_type_argument (Qsyntax_table_p, obj);
-}   
+}
 
 DEFUN ("syntax-table", Fsyntax_table, Ssyntax_table, 0, 0, 0,
        doc: /* Return the current syntax table.
@@ -961,7 +961,7 @@ text property.  */)
 	val |= 1 << 22;
 	break;
       }
-	
+
   if (val < XVECTOR (Vsyntax_code_object)->size && NILP (match))
     return XVECTOR (Vsyntax_code_object)->contents[val];
   else
@@ -971,7 +971,7 @@ text property.  */)
 
 /* I really don't know why this is interactive
    help-form should at least be made useful whilst reading the second arg.  */
-DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3, 
+DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
   "cSet syntax for character: \nsSet syntax for %s to: ",
        doc: /* Set syntax for character CHAR according to string NEWENTRY.
 The syntax is changed only for table SYNTAX_TABLE, which defaults to
@@ -1293,7 +1293,7 @@ and the function returns nil.  Field boundaries are not noticed if
   /* Avoid jumping out of an input field.  */
   val = XFASTINT (Fconstrain_to_field (make_number (val), make_number (PT),
 				       Qt, Qnil, Qnil));
-  
+
   SET_PT (val);
   return val == orig_val ? Qt : Qnil;
 }
@@ -1729,7 +1729,7 @@ forw_comment (from, from_byte, stop, nesting, style, prev_syntax,
 	nesting++;
       INC_BOTH (from, from_byte);
       UPDATE_SYNTAX_TABLE_FORWARD (from);
-      
+
     forw_incomment:
       if (from < stop && SYNTAX_FLAGS_COMEND_FIRST (syntax)
 	  && SYNTAX_FLAGS_COMMENT_STYLE (syntax) == style
@@ -1826,7 +1826,7 @@ between them, return t; otherwise return nil.  */)
 	      && (c1 = FETCH_CHAR (from_byte),
 		  SYNTAX_COMSTART_SECOND (c1)))
 	    {
-	      /* We have encountered a comment start sequence and we 
+	      /* We have encountered a comment start sequence and we
 		 are ignoring all text inside comments.  We must record
 		 the comment style this sequence begins so that later,
 		 only a comment end of the same style actually ends
@@ -1907,7 +1907,7 @@ between them, return t; otherwise return nil.  */)
 	    {
 	      /* Skip until first preceding unquoted comment_fence.  */
 	      int found = 0, ini = from, ini_byte = from_byte;
-	      
+
 	      while (1)
 		{
 		  DEC_BOTH (from, from_byte);
@@ -1916,9 +1916,9 @@ between them, return t; otherwise return nil.  */)
 		  UPDATE_SYNTAX_TABLE_BACKWARD (from);
 		  c = FETCH_CHAR (from_byte);
 		  if (SYNTAX (c) == Scomment_fence
-		      && !char_quoted (from, from_byte)) 
+		      && !char_quoted (from, from_byte))
 		    {
-		      found = 1; 
+		      found = 1;
 		      break;
 		    }
 		}
@@ -2036,7 +2036,7 @@ scan_lists (from, count, depth, sexpflag)
 	      && SYNTAX_COMSTART_SECOND (FETCH_CHAR (from_byte))
 	      && parse_sexp_ignore_comments)
 	    {
-	      /* we have encountered a comment start sequence and we 
+	      /* we have encountered a comment start sequence and we
 		 are ignoring all text inside comments.  We must record
 		 the comment style this sequence begins so that later,
 		 only a comment end of the same style actually ends
@@ -2048,7 +2048,7 @@ scan_lists (from, count, depth, sexpflag)
 	      INC_BOTH (from, from_byte);
 	      UPDATE_SYNTAX_TABLE_FORWARD (from);
 	    }
-	  
+
 	  if (prefix)
 	    continue;
 
@@ -2209,7 +2209,7 @@ scan_lists (from, count, depth, sexpflag)
 	      comstyle = SYNTAX_COMMENT_STYLE (c1);
 	      comnested = comnested || SYNTAX_COMMENT_NESTED (c1);
 	    }
-	  
+
 	  /* Quoting turns anything except a comment-ender
 	     into a word character.  Note that this cannot be true
 	     if we decremented FROM in the if-statement above.  */
@@ -2310,14 +2310,14 @@ scan_lists (from, count, depth, sexpflag)
 		  DEC_BOTH (from, from_byte);
 		  if (from == stop) goto lose;
 		  UPDATE_SYNTAX_TABLE_BACKWARD (from);
-		  if (!char_quoted (from, from_byte) 
+		  if (!char_quoted (from, from_byte)
 		      && (c = FETCH_CHAR (from_byte),
 			  SYNTAX_WITH_MULTIBYTE_CHECK (c) == code))
 		    break;
 		}
 	      if (code == Sstring_fence && !depth && sexpflag) goto done2;
 	      break;
-	      
+
 	    case Sstring:
 	      stringterm = FETCH_CHAR (from_byte);
 	      while (1)
@@ -2425,7 +2425,7 @@ This includes chars with "quote" or "prefix" syntax (' or p).  */)
   int pos_byte = PT_BYTE;
   int c;
 
-  if (pos <= beg) 
+  if (pos <= beg)
     {
       SET_PT_BOTH (opoint, opoint_byte);
 
@@ -2533,8 +2533,8 @@ do { prev_from = from;				\
       oldstate = Fcdr (oldstate);
       tem = Fcar (oldstate);
       /* Check whether we are inside string_fence-style string: */
-      state.instring = (!NILP (tem) 
-			? (INTEGERP (tem) ? XINT (tem) : ST_STRING_STYLE) 
+      state.instring = (!NILP (tem)
+			? (INTEGERP (tem) ? XINT (tem) : ST_STRING_STYLE)
 			: -1);
 
       oldstate = Fcdr (oldstate);
@@ -2552,7 +2552,7 @@ do { prev_from = from;				\
       oldstate = Fcdr (oldstate);
       oldstate = Fcdr (oldstate);
       tem = Fcar (oldstate);
-      state.comstyle = NILP (tem) ? 0 : (EQ (tem, Qsyntax_table) 
+      state.comstyle = NILP (tem) ? 0 : (EQ (tem, Qsyntax_table)
 					 ? ST_COMMENT_STYLE : 1);
 
       oldstate = Fcdr (oldstate);
@@ -2735,14 +2735,14 @@ do { prev_from = from;				\
 	  state.comstr_start = from - 1;
 	  if (stopbefore) goto stop;  /* this arg means stop at sexp start */
 	  curlevel->last = prev_from;
-	  state.instring = (code == Sstring 
+	  state.instring = (code == Sstring
 			    ? (FETCH_CHAR (prev_from_byte))
 			    : ST_STRING_STYLE);
 	  if (boundary_stop) goto done;
 	startinstring:
 	  {
 	    nofence = state.instring != ST_STRING_STYLE;
-	    
+
 	    while (1)
 	      {
 		int c;
@@ -2824,7 +2824,7 @@ Value is a list of ten elements describing final state of parsing:
  3. non-nil if inside a string.
     (it is the character that will terminate the string,
      or t if the string should be terminated by a generic string delimiter.)
- 4. nil if outside a comment, t if inside a non-nestable comment, 
+ 4. nil if outside a comment, t if inside a non-nestable comment,
     else an integer (the current comment nesting).
  5. t if following a quote character.
  6. the minimum paren-depth encountered during this scan.
@@ -2860,23 +2860,23 @@ Sixth arg COMMENTSTOP non-nil means stop at the start of a comment.
   scan_sexps_forward (&state, XINT (from), CHAR_TO_BYTE (XINT (from)),
 		      XINT (to),
 		      target, !NILP (stopbefore), oldstate,
-		      (NILP (commentstop) 
+		      (NILP (commentstop)
 		       ? 0 : (EQ (commentstop, Qsyntax_table) ? -1 : 1)));
 
   SET_PT (state.location);
-  
+
   return Fcons (make_number (state.depth),
 	   Fcons (state.prevlevelstart < 0 ? Qnil : make_number (state.prevlevelstart),
 	     Fcons (state.thislevelstart < 0 ? Qnil : make_number (state.thislevelstart),
-	       Fcons (state.instring >= 0 
-		      ? (state.instring == ST_STRING_STYLE 
+	       Fcons (state.instring >= 0
+		      ? (state.instring == ST_STRING_STYLE
 			 ? Qt : make_number (state.instring)) : Qnil,
 		 Fcons (state.incomment < 0 ? Qt :
 			(state.incomment == 0 ? Qnil :
 			 make_number (state.incomment)),
 		   Fcons (state.quoted ? Qt : Qnil,
 		     Fcons (make_number (state.mindepth),
-		       Fcons ((state.comstyle 
+		       Fcons ((state.comstyle
 			       ? (state.comstyle == ST_COMMENT_STYLE
 				  ? Qsyntax_table : Qt) :
 			       Qnil),

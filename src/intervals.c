@@ -347,10 +347,10 @@ rotate_right (interval)
 
 /* Assuming that a right child exists, perform the following operation:
 
-    A               B   
-   / \	           / \  
+    A               B
+   / \	           / \
       B	   =>     A
-     / \         / \    
+     / \         / \
     c               c
 */
 
@@ -524,7 +524,7 @@ split_interval_right (interval, offset)
       new->total_length = new_length + new->right->total_length;
       balance_an_interval (new);
     }
-  
+
   balance_possible_root_interval (interval);
 
   return new;
@@ -569,7 +569,7 @@ split_interval_left (interval, offset)
       new->total_length = new_length + new->left->total_length;
       balance_an_interval (new);
     }
-  
+
   balance_possible_root_interval (interval);
 
   return new;
@@ -754,39 +754,39 @@ update_interval (i, pos)
   if (NULL_INTERVAL_P (i))
     return NULL_INTERVAL;
 
-  while (1) 
+  while (1)
     {
-      if (pos < i->position) 
+      if (pos < i->position)
 	{
 	  /* Move left. */
-	  if (pos >= i->position - TOTAL_LENGTH (i->left)) 
+	  if (pos >= i->position - TOTAL_LENGTH (i->left))
 	    {
 	      i->left->position = i->position - TOTAL_LENGTH (i->left)
 		+ LEFT_TOTAL_LENGTH (i->left);
 	      i = i->left;		/* Move to the left child */
 	    }
-	  else if (NULL_PARENT (i)) 
+	  else if (NULL_PARENT (i))
 	    error ("Point before start of properties");
-	  else  
+	  else
 	      i = INTERVAL_PARENT (i);
 	  continue;
 	}
       else if (pos >= INTERVAL_LAST_POS (i))
 	{
 	  /* Move right. */
-	  if (pos < INTERVAL_LAST_POS (i) + TOTAL_LENGTH (i->right)) 
+	  if (pos < INTERVAL_LAST_POS (i) + TOTAL_LENGTH (i->right))
 	    {
 	      i->right->position = INTERVAL_LAST_POS (i) +
 		LEFT_TOTAL_LENGTH (i->right);
 	      i = i->right;		/* Move to the right child */
 	    }
-	  else if (NULL_PARENT (i)) 
+	  else if (NULL_PARENT (i))
 	    error ("Point after end of properties");
-	  else 
+	  else
 	      i = INTERVAL_PARENT (i);
 	  continue;
 	}
-      else 
+      else
 	return i;
     }
 }
@@ -874,7 +874,7 @@ adjust_intervals_for_insertion (tree, position, length)
   int eobp = 0;
   Lisp_Object parent;
   int offset;
-  
+
   if (TOTAL_LENGTH (tree) == 0)	/* Paranoia */
     abort ();
 
@@ -989,7 +989,7 @@ adjust_intervals_for_insertion (tree, position, length)
 	  temp->total_length += length;
 	  temp = balance_possible_root_interval (temp);
 	}
-      
+
       /* If at least one interval has sticky properties,
 	 we check the stickiness property by property.
 
@@ -1046,7 +1046,7 @@ adjust_intervals_for_insertion (tree, position, length)
 	  temp = balance_possible_root_interval (temp);
 	}
     }
-      
+
   return tree;
 }
 
@@ -1212,7 +1212,7 @@ merge_properties_sticky (pleft, pright)
 
   cat = textget (props, Qcategory);
   if (! NILP (front)
-      && 
+      &&
       /* If we have inherited a front-stick category property that is t,
 	 we don't need to set up a detailed one.  */
       ! (! NILP (cat) && SYMBOLP (cat)
@@ -1222,7 +1222,7 @@ merge_properties_sticky (pleft, pright)
 }
 
 
-/* Delete an node I from its interval tree by merging its subtrees
+/* Delete a node I from its interval tree by merging its subtrees
    into one subtree which is then returned.  Caller is responsible for
    storing the resulting subtree into its parent.  */
 
@@ -1351,7 +1351,7 @@ interval_deletion_adjustment (tree, from, amount)
   else
     {
       /* How much can we delete from this interval?  */
-      int my_amount = ((tree->total_length 
+      int my_amount = ((tree->total_length
 			- RIGHT_TOTAL_LENGTH (tree))
 		       - relative_position);
 
@@ -1361,7 +1361,7 @@ interval_deletion_adjustment (tree, from, amount)
       tree->total_length -= amount;
       if (LENGTH (tree) == 0)
 	delete_interval (tree);
-      
+
       return amount;
     }
 
@@ -1780,7 +1780,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
      The properties of under are the result of
      adjust_intervals_for_insertion, so stickiness has
      already been taken care of.  */
-     
+
   while (! NULL_INTERVAL_P (over))
     {
       if (LENGTH (over) < LENGTH (under))
@@ -1805,7 +1805,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 
 /* Get the value of property PROP from PLIST,
    which is the plist of an interval.
-   We check for direct properties, for categories with property PROP, 
+   We check for direct properties, for categories with property PROP,
    and for PROP appearing on the default-text-properties list.  */
 
 Lisp_Object
@@ -1887,7 +1887,7 @@ temp_set_point_both (buffer, charpos, bytepos)
   BUF_PT (buffer) = charpos;
 }
 
-/* Set point in BUFFER to CHARPOS.  If the target position is 
+/* Set point in BUFFER to CHARPOS.  If the target position is
    before an intangible character, move to an ok place.  */
 
 void
@@ -1907,7 +1907,7 @@ set_point (buffer, charpos)
    TEST_OFFS should be either 0 or -1, and ADJ should be either 1 or -1.
 
    Note that `stickiness' is determined by overlay marker insertion types,
-   if the invisible property comes from an overlay.  */   
+   if the invisible property comes from an overlay.  */
 
 static int
 adjust_for_invis_intang (pos, test_offs, adj, test_intang)
@@ -1945,7 +1945,7 @@ adjust_for_invis_intang (pos, test_offs, adj, test_intang)
 }
 
 /* Set point in BUFFER to CHARPOS, which corresponds to byte
-   position BYTEPOS.  If the target position is 
+   position BYTEPOS.  If the target position is
    before an intangible character, move to an ok place.  */
 
 void
@@ -2218,7 +2218,7 @@ move_if_not_intangible (position)
 
     }
 
-  /* If the whole stretch between PT and POSITION isn't intangible, 
+  /* If the whole stretch between PT and POSITION isn't intangible,
      try moving to POSITION (which means we actually move farther
      if POSITION is inside of intangible text).  */
 
@@ -2265,7 +2265,7 @@ get_property_and_range (pos, prop, val, start, end, object)
   *start = i->position;
 
   next = next_interval (i);
-  while (! NULL_INTERVAL_P (next) 
+  while (! NULL_INTERVAL_P (next)
 	 && EQ (*val, textget (next->plist, prop)))
     i = next, next = next_interval (next);
   *end = i->position + LENGTH (i);

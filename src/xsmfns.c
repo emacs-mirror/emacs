@@ -98,7 +98,7 @@ Lisp_Object Vx_session_previous_id;
    open to a session manager, just return 0.
    Otherwise returns the number of events stored in buffer BUFP,
    which can hold up to *NUMCHARS characters.  At most one event is
-   stored, an SAVE_SESSION_EVENT. */
+   stored, a SAVE_SESSION_EVENT. */
 int
 x_session_check_input (bufp, numchars)
      struct input_event *bufp;
@@ -106,15 +106,15 @@ x_session_check_input (bufp, numchars)
 {
   SELECT_TYPE read_fds;
   EMACS_TIME tmout;
-  
+
   if (ice_fd == -1) return 0;
-  
+
   FD_ZERO (&read_fds);
   FD_SET (ice_fd, &read_fds);
-      
+
   tmout.tv_sec = 0;
   tmout.tv_usec = 0;
-  
+
   /* Reset this so wo can check kind after callbacks have been called by
      IceProcessMessages.  The smc_interact_CB sets the kind to
      SAVE_SESSION_EVENT, but we don't know beforehand if that callback
@@ -127,13 +127,13 @@ x_session_check_input (bufp, numchars)
       ice_fd = -1;
       return 0;
     }
-  
+
 
   if (FD_ISSET (ice_fd, &read_fds))
     IceProcessMessages (SmcGetIceConnection (smc_conn),
                         (IceReplyWaitInfo *)0, (Bool *)0);
 
-  
+
   /* Check if smc_interact_CB was called and we shall generate a
      SAVE_SESSION_EVENT. */
   if (*numchars > 0 && emacs_event.kind != NO_EVENT)
@@ -189,14 +189,14 @@ smc_save_yourself_CB (smcConn,
      Bool fast;
 {
 #define NR_PROPS 5
-  
+
   SmProp *props[NR_PROPS];
   SmProp prop_ptr[NR_PROPS];
-  
+
   SmPropValue values[20];
   int val_idx = 0;
   int props_idx = 0;
-  
+
   char cwd[MAXPATHLEN+1];
   char *smid_opt;
 
@@ -219,7 +219,7 @@ smc_save_yourself_CB (smcConn,
   props[props_idx]->vals[0].length = strlen (SDATA (Vinvocation_name));
   props[props_idx]->vals[0].value = SDATA (Vinvocation_name);
   ++props_idx;
-  
+
   /* How to restart Emacs (i.e.: /path/to/emacs --smid=xxxx). */
   props[props_idx] = &prop_ptr[props_idx];
   props[props_idx]->name = SmRestartCommand;
@@ -232,7 +232,7 @@ smc_save_yourself_CB (smcConn,
   smid_opt = xmalloc (strlen (SMID_OPT) + strlen (client_id) + 1);
   strcpy (smid_opt, SMID_OPT);
   strcat (smid_opt, client_id);
-  
+
   props[props_idx]->vals[1].length = strlen (smid_opt);
   props[props_idx]->vals[1].value = smid_opt;
   val_idx += 2;
@@ -264,8 +264,8 @@ smc_save_yourself_CB (smcConn,
       props[props_idx]->vals[0].value = cwd;
       ++props_idx;
     }
-  
-  
+
+
   SmcSetProperties (smcConn, props_idx, props);
 
   xfree (smid_opt);
@@ -375,7 +375,7 @@ ice_conn_watch_CB (iceConn, clientData, opening, watchData)
       ice_fd = -1;
       return;
     }
-  
+
   ice_fd = IceConnectionNumber (iceConn);
 #ifndef F_SETOWN_BUG
 #ifdef F_SETOWN
@@ -403,7 +403,7 @@ x_session_initialize ()
   char* previous_id = NULL;
   SmcCallbacks callbacks;
   int  name_len = 0;
-  
+
   /* Check if we where started by the session manager.  If so, we will
      have a previous id. */
   if (! EQ (Vx_session_previous_id, Qnil) && STRINGP (Vx_session_previous_id))
@@ -422,7 +422,7 @@ x_session_initialize ()
   if (! EQ (Vinvocation_directory, Qnil))
     strcpy (emacs_program, SDATA (Vinvocation_directory));
   strcat (emacs_program, SDATA (Vinvocation_name));
-  
+
   /* The SM protocol says all callbacks are mandatory, so set up all
      here and in the mask passed to SmcOpenConnection */
   callbacks.save_yourself.callback = smc_save_yourself_CB;
@@ -464,7 +464,7 @@ x_session_initialize ()
 DEFUN ("handle-save-session", Fhandle_save_session,
        Shandle_save_session, 1, 1, "e",
        doc: /* Handle the save_yourself event from a session manager.
-A session manager can tell Emacs that the window system is shutting down 
+A session manager can tell Emacs that the window system is shutting down
 by sending Emacs a save_yourself message.  Emacs executes this function when
 such an event occurs.  This function then executes `emacs-session-save'.
 After that, this function informs the session manager that it can continue
@@ -510,27 +510,27 @@ See also `x-session-previous-id', `emacs-save-session-functions',
 
   DEFVAR_LISP ("x-session-previous-id", &Vx_session_previous_id,
     doc: /* The previous session id Emacs got from session manager.
-If Emacs is running on a window system that has a session manager, the 
-session manager gives Emacs a session id.  It is feasible for Emacs lisp 
-code to use the session id to save configuration in, for example, a file 
-with a file name based on the session id.  If Emacs is running when the 
-window system is shut down, the session manager remembers that Emacs was 
+If Emacs is running on a window system that has a session manager, the
+session manager gives Emacs a session id.  It is feasible for Emacs lisp
+code to use the session id to save configuration in, for example, a file
+with a file name based on the session id.  If Emacs is running when the
+window system is shut down, the session manager remembers that Emacs was
 running and saves the session id Emacs had.
 
-When the window system is started again, the session manager restarts 
-Emacs and hands Emacs the session id it had the last time it was 
-running.  This is now the previous session id and the value of this 
-variable.  If configuration was saved in a file as stated above, the 
+When the window system is started again, the session manager restarts
+Emacs and hands Emacs the session id it had the last time it was
+running.  This is now the previous session id and the value of this
+variable.  If configuration was saved in a file as stated above, the
 previous session id shall be used to reconstruct the file name.
 
-The session id Emacs has while it is running is in the variable 
+The session id Emacs has while it is running is in the variable
 `x-session-id'.  The value of this variable and `x-session-id' may be the
 same, depending on how the session manager works.
 
 See also `emacs-save-session-functions', `emacs-session-save' and
 `emacs-session-restore'." */);
   Vx_session_previous_id = Qnil;
-  
+
   defsubr (&Shandle_save_session);
 }
 

@@ -1531,7 +1531,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
 
   /* If face attributes have been changed since the last redisplay,
      free realized faces now because they depend on face definitions
-     that might have changed.  Don't free faces while there might be 
+     that might have changed.  Don't free faces while there might be
      desired matrices pending which reference these faces.  */
   if (face_change_count && !inhibit_free_realized_faces)
     {
@@ -4215,7 +4215,7 @@ int
 get_next_display_element (it)
      struct it *it;
 {
-  /* Non-zero means that we found an display element.  Zero means that
+  /* Non-zero means that we found a display element.  Zero means that
      we hit the end of what we iterate over.  Performance note: the
      function pointer `method' used here turns out to be faster than
      using a sequence of if-statements.  */
@@ -9033,7 +9033,7 @@ redisplay_internal (preserve_echo_area)
 				 redisplay_window_error);
 
       /* Compare desired and current matrices, perform output.  */
-      
+
     update:
       /* If fonts changed, display again.  */
       if (fonts_changed_p)
@@ -13751,7 +13751,7 @@ static Lisp_Object mode_line_string_face_prop;
 
    PROPS is a property list to add to any string we encounter.
 
-   If RISKY is nonzero, remove (disregard) any properties in any string 
+   If RISKY is nonzero, remove (disregard) any properties in any string
    we encounter, and ignore :eval and :propertize.
 
    If the global variable `frame_title_ptr' is non-NULL, then the output
@@ -14165,7 +14165,7 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
    If COPY_STRING is non-zero, make a copy of LISP_STRING before adding
    properties to the string.
 
-   PROPS are the properties to add to the string.  
+   PROPS are the properties to add to the string.
    The mode_line_string_face face property is always added to the string.
  */
 
@@ -14201,7 +14201,7 @@ static int store_mode_line_string (string, lisp_string, copy_string, field_width
       Fadd_text_properties (make_number (0), make_number (len),
 			    props, lisp_string);
     }
-  else 
+  else
     {
       len = XFASTINT (Flength (lisp_string));
       if (precision > 0 && len > precision)
@@ -14232,7 +14232,7 @@ static int store_mode_line_string (string, lisp_string, copy_string, field_width
   if (len > 0)
     {
       mode_line_string_list = Fcons (lisp_string, mode_line_string_list);
-      n += len; 
+      n += len;
     }
 
   if (field_width > len)
@@ -14243,7 +14243,7 @@ static int store_mode_line_string (string, lisp_string, copy_string, field_width
 	Fadd_text_properties (make_number (0), make_number (field_width),
 			      props, lisp_string);
       mode_line_string_list = Fcons (lisp_string, mode_line_string_list);
-      n += field_width; 
+      n += field_width;
     }
 
   return n;
@@ -14305,7 +14305,7 @@ If third optional arg NO-PROPS is non-nil, string is not propertized.  */)
       /* We need a dummy last element in mode_line_string_list to
 	 indicate we are building the propertized mode-line string.
 	 Using mode_line_string_face_prop here GC protects it.  */
-      mode_line_string_list = 
+      mode_line_string_list =
 	Fcons (mode_line_string_face_prop, Qnil);
       frame_title_ptr = NULL;
     }
@@ -15214,7 +15214,7 @@ get_specified_cursor_type (arg, width)
      int *width;
 {
   enum text_cursor_kinds type;
-  
+
   if (NILP (arg))
     return NO_CURSOR;
 
@@ -15369,8 +15369,8 @@ get_window_cursor_type (w, width)
       *width = FRAME_BLINK_OFF_CURSOR_WIDTH (f);
       return FRAME_BLINK_OFF_CURSOR (f);
     }
-  
-  /* Finally perform built-in cursor blinking: 
+
+  /* Finally perform built-in cursor blinking:
        filled box      <->   hollow box
        wide [h]bar     <->   narrow [h]bar
        narrow [h]bar   <->   no cursor

@@ -158,7 +158,7 @@ Lisp_Object Vprevious_system_messages_locale;
 Lisp_Object Vsystem_time_locale;
 Lisp_Object Vprevious_system_time_locale;
 
-/* If non-zero, emacs should not attempt to use an window-specific code,
+/* If non-zero, emacs should not attempt to use a window-specific code,
    but instead should use the virtual terminal under which it was started.  */
 int inhibit_window_system;
 

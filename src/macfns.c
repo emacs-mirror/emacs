@@ -326,7 +326,7 @@ check_x_frame (frame)
   return f;
 }
 
-/* Let the user specify an display with a frame.
+/* Let the user specify a display with a frame.
    nil stands for the selected frame--or, if that is not a mac frame,
    the first display on the list.  */
 
@@ -363,7 +363,7 @@ check_x_display_info (frame)
     }
 }
 
-/* Return the Emacs frame-object corresponding to an mac window.
+/* Return the Emacs frame-object corresponding to a mac window.
    It could be the frame's main window or an icon window.  */
 
 /* This function can be called during GC, so use GC_xxx type test macros.  */
@@ -1969,7 +1969,7 @@ x_to_mac_color (colorname)
 	  if (value < 0.0 || value > 1.0)
 	    break;
 	  val = (unsigned long)(0x100 * value);
-	  /* We used 0x100 instead of 0xFF to give an continuous
+	  /* We used 0x100 instead of 0xFF to give a continuous
              range between 0.0 and 1.0 inclusive.  The next statement
              fixes the 1.0 case.  */
 	  if (val == 0x100)
@@ -2355,7 +2355,7 @@ x_set_cursor_color (f, arg, oldval)
 
 /* Set the border-color of frame F to pixel value PIX.
    Note that this does not fully take effect if done before
-   F has an window.  */
+   F has a window.  */
 void
 x_set_border_pixel (f, pix)
      struct frame *f;
@@ -3011,7 +3011,7 @@ x_set_scroll_bar_width (f, arg, oldval)
   XWINDOW (FRAME_SELECTED_WINDOW (f))->cursor.x = 0;
 }
 
-/* Subroutines of creating an frame.  */
+/* Subroutines of creating a frame.  */
 
 /* Make sure that Vx_resource_name is set to a reasonable value.
    Fix it up, or set it to `emacs' if it is too hopeless.  */
@@ -9471,7 +9471,7 @@ x_create_tip_frame (dpyinfo, parms)
   f->height = 0;
   SET_FRAME_WIDTH (f, 0);
   change_frame_size (f, height, width, 1, 0, 0);
-  
+
   /* Add `tooltip' frame parameter's default value. */
   if (NILP (Fframe_parameter (frame, intern ("tooltip"))))
     Fmodify_frame_parameters (frame, Fcons (Fcons (intern ("tooltip"), Qt),

@@ -6313,7 +6313,7 @@ highest priority.  */)
      the detecting source.  Then code detectors can handle the tailing
      byte sequence more accurately.
 
-     Fix me: This is not an perfect solution.  It is better that we
+     Fix me: This is not a perfect solution.  It is better that we
      add one more argument, say LAST_BLOCK, to all detect_coding_XXX.
   */
   if (to == Z || (to == GPT && GAP_SIZE > 0))
@@ -6538,7 +6538,7 @@ unencodable_char_position (safe_chars, pos, p, pend, n)
     {
       int len;
       int c = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, len);
-      
+
       if (c >= 128
 	  && (CHAR_TABLE_P (safe_chars)
 	      ? NILP (CHAR_TABLE_REF (safe_chars, c))
