@@ -1,6 +1,6 @@
-/* $HopeName: MMQA_test_function!207.c(trunk.2) $
+/* $HopeName: MMQA_test_function!136.c(trunk.1) $
 TEST_HEADER
- summary = MVFF low-memory test; reusing space in other pool
+ summary = MVFF low-memory test; reusing arena in other pool
  language = c
  link = testlib.o
 END_HEADER
@@ -11,7 +11,7 @@ END_HEADER
  * interaction between MVFF and CBS, whereby MVFF can't return
  * segments to the arena when CBS can't allocate control blocks.
  *
- * This problem is believed to occur in release.epcore.minnow.1.
+ * This problem is believed to occur in release.epcore.anchovy.1.
  *
  *
  * Strategy:
@@ -25,7 +25,6 @@ END_HEADER
  *   - Allocate in another pool.
  */ 
 
-#include <time.h>
 #include "testlib.h"
 #include "mpscmvff.h"
 #include "mpscmv.h"
@@ -33,13 +32,9 @@ END_HEADER
 
 #define MAXSMALLOBJECTS 100000
 #define MAXLARGEOBJECTS 100000
-#define SMALLOBJECTSIZE 8
-#define LARGEOBJECTSIZE 65536
 
 void *stackpointer;
-mps_space_t space;
-
-int comments = 0;
+mps_arena_t arena;
 
 static mps_addr_t
   largeObjects[MAXLARGEOBJECTS],
@@ -59,12 +54,12 @@ static void do_test(size_t extendBy, size_t avgSize, size_t align,
   smallObjectSize = align;
 
   die(
-  mps_pool_create(&pool, space, mps_class_mvff(),
+  mps_pool_create(&pool, arena, mps_class_mvff(),
                   extendBy, avgSize, align, slotHigh, arenaHigh, firstFit),
   "create MVFF pool");
 
   die(
-  mps_pool_create(&pool2, space, mps_class_mv(),
+  mps_pool_create(&pool2, arena, mps_class_mv(),
                   extendBy, avgSize, /* maxSize */ extendBy),
   "create MV pool");
 
@@ -76,10 +71,11 @@ static void do_test(size_t extendBy, size_t avgSize, size_t align,
     largeObjects[nLargeObjects] = p;
     ++nLargeObjects;
   }
-  asserts(res != MPS_RES_OK, "Suceeded in creating %lu objects of size %lu",
-    (unsigned long)MAXLARGEOBJECTS, (unsigned long)largeObjectSize);
+  asserts(res != MPS_RES_OK, 
+          "Unexpectedly managed to create %lu objects of size %lu",
+          (unsigned long)MAXLARGEOBJECTS, (unsigned long)largeObjectSize);
   asserts(nLargeObjects > 0, "Couldn't create even one object of size %lu",
-    (unsigned long)largeObjectSize);
+          (unsigned long)largeObjectSize);
 
   /* Then we free one to make sure we can allocate some small objects */
   mps_free(pool, largeObjects[nLargeObjects - 1], largeObjectSize);
@@ -96,8 +92,9 @@ static void do_test(size_t extendBy, size_t avgSize, size_t align,
     smallObjects[nSmallObjects] = p;
     ++nSmallObjects;
   }
-  asserts(res != MPS_RES_OK, "Suceeded in creating %lu objects of size %lu",
-    (unsigned long)MAXSMALLOBJECTS, (unsigned long)smallObjectSize);
+  asserts(res != MPS_RES_OK, 
+          "Unexpectedly managed to create %lu objects of size %lu",
+          (unsigned long)MAXSMALLOBJECTS, (unsigned long)smallObjectSize);
 
   comment("Allocated %lu objects of size %lu",
     (unsigned long)nSmallObjects, (unsigned long)smallObjectSize);
@@ -133,11 +130,11 @@ static void test(void)
   size_t comlimit;
   mps_bool_t slotHigh, arenaHigh, firstFit;
 
- cdie(mps_arena_create(&space, mps_arena_class_vm(), (size_t) (1024*1024*50)), "create space");
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*50)), "create arena");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
  for (comlimit = 512 *1024; comlimit >= 64 * 1024; comlimit -= 4*1024) {
-  mps_arena_commit_limit_set(space, comlimit);
+  mps_arena_commit_limit_set(arena, comlimit);
   report("limit", "%x", comlimit);
   symm = ranint(8);
   slotHigh = (symm >> 2) & 1;
@@ -148,7 +145,7 @@ static void test(void)
  }
 
  mps_thread_dereg(thread);
- mps_arena_destroy(space);
+ mps_arena_destroy(arena);
 }
 
 int main(void)
