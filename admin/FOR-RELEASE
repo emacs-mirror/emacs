@@ -221,7 +221,7 @@ lispref/frames.texi      "Luc Teirlinck"   Chong Yidong
 lispref/functions.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/hash.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/help.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/hooks.texi
+lispref/hooks.texi	 Lute Kamstra
 lispref/internals.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/intro.texi	 "Luc Teirlinck"
 lispref/keymaps.texi	 "Luc Teirlinck"   Chong Yidong
@@ -273,7 +273,7 @@ etc/TUTORIAL.fr
 etc/TUTORIAL.it
 etc/TUTORIAL.ja
 etc/TUTORIAL.ko
-etc/TUTORIAL.nl
+etc/TUTORIAL.nl		 Lute Kamstra
 etc/TUTORIAL.pl
 etc/TUTORIAL.pt_BR
 etc/TUTORIAL.ro
