@@ -1,3 +1,13 @@
+2004-07-03  KOSEKI Yoshinori  <kose@meadowy.org>
+
+	* iimage.el (turn-on-iimage-mode, iimage-mode): Add autoload
+	cookies.
+	(iimage-mode-image-search-path): New user option to search the
+	image file.
+	(iimage-locate-file): New funcion.  Emacs21.3 or earlier does not
+	have locate-file.
+	(iimage-mode-buffer): Use it.
+
 2004-07-03  Nick Roberts  <nickrob@gnu.org>
 
 	* progmodes/gdb-ui.el (gdb-goto-breakpoint): String match more
