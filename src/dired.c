@@ -47,19 +47,31 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <dirent.h>
 #define DIRENTRY struct dirent
 
-#else
+#else /* not SYSV_SYSTEM_DIR */
 
 #ifdef NONSYSTEM_DIR_LIBRARY
 #include "ndir.h"
 #else /* not NONSYSTEM_DIR_LIBRARY */
+#ifdef MSDOS
+#include <dirent.h>
+#else
 #include <sys/dir.h>
+#endif
 #endif /* not NONSYSTEM_DIR_LIBRARY */
 
+#ifndef MSDOS
 #define DIRENTRY struct direct
 
 extern DIR *opendir ();
 extern struct direct *readdir ();
 
+#endif /* not MSDOS */
+#endif /* not SYSV_SYSTEM_DIR */
+
+#ifdef MSDOS
+#define DIRENTRY_NONEMPTY(p) ((p)->d_name[0] != 0)
+#else
+#define DIRENTRY_NONEMPTY(p) ((p)->d_ino)
 #endif
 
 #include "lisp.h"
@@ -173,7 +185,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 
       if (!dp) break;
       len = NAMLEN (dp);
-      if (dp->d_ino)
+      if (DIRENTRY_NONEMPTY (dp))
 	{
 	  if (NILP (match)
 	      || (0 <= re_search (&searchbuf, dp->d_name, len, 0, len, 0)))
@@ -290,6 +302,9 @@ file_name_completion (file, dirname, all_flag, ver_flag)
   CHECK_STRING (file, 0);
 #endif /* not VMS */
 
+#ifdef FILE_SYSTEM_CASE
+  file = FILE_SYSTEM_CASE (file);
+#endif
   dirname = Fexpand_file_name (dirname, Qnil);
   bestmatch = Qnil;
 
@@ -324,7 +339,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 
 	  if (!NILP (Vquit_flag) && NILP (Vinhibit_quit))
 	    goto quit;
-	  if (!dp->d_ino
+	  if (! DIRENTRY_NONEMPTY (dp)
 	      || len < XSTRING (file)->size
 	      || 0 <= scmp (dp->d_name, XSTRING (file)->data,
 			    XSTRING (file)->size))
@@ -562,6 +577,22 @@ If file does not exist, returns nil.")
 
   if (lstat (XSTRING (filename)->data, &s) < 0)
     return Qnil;
+
+#ifdef MSDOS
+  {
+    char *tmpnam = XSTRING (Ffile_name_nondirectory (filename))->data;
+    int l = strlen (tmpnam);
+
+    if (l >= 5 
+	&& S_ISREG (s.st_mode)
+	&& (stricmp (&tmpnam[l - 4], ".com") == 0
+	    || stricmp (&tmpnam[l - 4], ".exe") == 0
+	    || stricmp (&tmpnam[l - 4], ".bat") == 0))
+      {
+	s.st_mode |= S_IEXEC;
+      }
+  }
+#endif /* MSDOS */
 
   switch (s.st_mode & S_IFMT)
     {
