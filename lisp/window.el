@@ -143,6 +143,7 @@ ARG columns.  No arg means split equally."
   "Shrink the WINDOW to be as small as possible to display its contents.
 Do nothing if the buffer contains more lines than the present window height,
 or if some of the window's contents are scrolled out of view,
+or if the window is not the full width of the frame,
 or if the window is the only window of its frame."
   (interactive)
   (save-excursion
@@ -163,6 +164,7 @@ or if the window is the only window of its frame."
 	  (mini (cdr (assq 'minibuffer (frame-parameters))))
 	  (edges (window-edges (selected-window))))
       (if (and (< 1 (count-windows))
+	       (= (window-width) (screen-width))
 	       (pos-visible-in-window-p (point-min) window)
 	       (or (not mini)
 		   (< (nth 3 edges)
