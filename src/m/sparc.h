@@ -26,10 +26,6 @@ Use -opsystem=sunos4 for operating system version 4, and
 -opsystem=bsd4-2 for earlier versions.
 NOTE-END  */
 
-/* This defines the FSCALE constant, which this file uses in the LOAD_AVE_CVT
-   macro.  */
-#include <sys/param.h>
-
 /* The following three symbols give information on
  the size of various data types.  */
 
