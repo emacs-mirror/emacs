@@ -1,6 +1,10 @@
 /* This file permits building Emacs with a shared libc on Sunos 4.
    To make this work, you must completely replace your C shared library
-   using one of the SunOS 4.1.x jumbo replacement patches from Sun.  */
+   using one of the SunOS 4.1.x jumbo replacement patches from Sun.
+   Here are the patch numbers for Sunos 4.1.3:
+   100890-10   SunOS 4.1.3: domestic libc jumbo patch
+   100891-10   SunOS 4.1.3: international libc jumbo patch  */
+
 
 #include "sunos4-1.h"
 
