@@ -93,6 +93,11 @@ int charset_8_bit_graphic;
 int charset_iso_8859_1;
 int charset_unicode;
 
+/* The other special charsets.  */
+int charset_jisx0201_roman;
+int charset_jisx0208_1978;
+int charset_jisx0208;
+
 /* Value of charset attribute `charset-iso-plane'.  */
 Lisp_Object Qgl, Qgr;
 
@@ -965,6 +970,12 @@ usage: (define-charset-internal ...)  */)
       if (new_definition_p)
 	Viso_2022_charset_list = nconc2 (Viso_2022_charset_list,
 					 Fcons (make_number (id), Qnil));
+      if (ISO_CHARSET_TABLE (1, 0, 'J') == id)
+	charset_jisx0201_roman = id;
+      else if (ISO_CHARSET_TABLE (2, 0, '@') == id)
+	charset_jisx0208_1978 = id;
+      else if (ISO_CHARSET_TABLE (2, 0, 'B') == id)
+	charset_jisx0208 = id;
     }
 	
   if (charset.emacs_mule_id >= 0)
@@ -1816,6 +1827,10 @@ init_charset_once ()
 
   for (i = 0; i < 255; i++)
     emacs_mule_charset[i] = NULL;
+
+  charset_jisx0201_roman = -1;
+  charset_jisx0208_1978 = -1;
+  charset_jisx0208 = -1;
 
 #if 0
   Vchar_charset_set = Fmake_char_table (Qnil, Qnil);
