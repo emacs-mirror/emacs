@@ -1,5 +1,9 @@
 2000-12-23  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (echo_prompt): Always set current_kboard->echoptr to
+	the end of the prompt.  Set echo_after_prompt to the offset
+	of echoptr in echobuf.
+
 	* xdisp.c (init_from_display_pos): Pop until the iterator's
 	stack is empty; there may be frames for stretch or images
 	on the stack.
