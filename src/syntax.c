@@ -407,9 +407,15 @@ back_comment (from, from_byte, stop, comstyle, charpos_ptr, bytepos_ptr)
   int comment_end = from;
   int comment_end_byte = from_byte;
   int comstart_pos = 0;
-  int comstart_parity = 0;
   int comstart_byte;
+  /* Value that PARITY had, when we reached the position
+     in COMSTART_POS.  */
+  int comstart_parity = 0;
   int scanstart = from - 1;
+  /* Place where the containing defun starts,
+     or 0 if we didn't come across it yet.  */
+  int defun_start = 0;
+  int defun_start_byte = 0;
   register enum syntaxcode code;
   int c;
 
@@ -497,7 +503,11 @@ back_comment (from, from_byte, stop, comstyle, charpos_ptr, bytepos_ptr)
 	  && (from == stop
 	      || (temp_byte = dec_bytepos (from_byte),
 		  FETCH_CHAR (temp_byte) == '\n')))
-	break;
+	{
+	  defun_start = from;
+	  defun_start_byte = from_byte;
+	  break;
+	}
     }
 
   if (comstart_pos == 0)
@@ -525,9 +535,14 @@ back_comment (from, from_byte, stop, comstyle, charpos_ptr, bytepos_ptr)
 	 to the one in question; this records where we
 	 last passed a comment starter.  */
       struct lisp_parse_state state;
+      /* If we did not already find the defun start, find it now.  */
+      if (defun_start == 0)
+	{
+	  defun_start = find_defun_start (comment_end, comment_end_byte);
+	  defun_start_byte = find_start_value_byte;
+	}
       scan_sexps_forward (&state,
-			  find_defun_start (comment_end, comment_end_byte),
-			  find_start_value_byte,
+			  defun_start, defun_start_byte,
 			  comment_end - 1, -10000, 0, Qnil, 0);
       if (state.incomment)
 	{
