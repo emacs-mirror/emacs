@@ -606,6 +606,9 @@ value shortly after the function call which stores the value you are
 interested in.
 @end defvar
 
+  The variable @code{selection-coding-system} specifies how to encode
+selections for the window system.  @xref{Window System Selections}.
+
 @node Lisp and Coding Systems
 @subsection Coding Systems in Lisp
 
@@ -985,8 +988,10 @@ decoded text.  To make explicit decoding useful, the contents of
 @subsection Terminal I/O Encoding
 
   Emacs can decode keyboard input using a coding system, and encode
-terminal output.  This kind of decoding and encoding does not set
-@code{last-coding-system-used}.
+terminal output.  This is useful for terminals that transmit or display
+text using a particular encoding such as Latin-1.  Emacs does not set
+@code{last-coding-system-used} for encoding or decoding for the
+terminal.
 
 @defun keyboard-coding-system
 @tindex keyboard-coding-system
@@ -1144,4 +1149,5 @@ told, the arguments to @var{activate-func} are @var{input-method} and
 the @var{args}.
 @end defvar
 
-
+  The fundamental interface to input methods is through the
+variable @code{input-method-function}.  @xref{Reading One Event}.

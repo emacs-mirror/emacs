@@ -713,7 +713,6 @@ On-line Help, Printed Manuals, Other Sources of Help
   distribution, and also the latest versions are available individually via
   anonymous FTP (prep.ai.mit.edu:pub/gnu/GNUinfo/):
 
-    APPLE -- Why the FSF doesn't support GNU Emacs on Apple computers
     DISTRIB -- GNU Emacs Availability Information,
       including the popular "Free Software Foundation Order Form"
     FTP -- How to get GNU Software by Internet FTP or by UUCP
@@ -922,31 +921,9 @@ Common Things People Want To Do
   Use "C-h v" (M-x describe-variable) to check the value of variables which
   you are trying to set or use.
 
-28:  How do I make Emacs display the current line (or column) number?
+28:  How do I make Emacs display the current column number?
 
-  To find out what line of the buffer you are on right now, do "M-x
-  what-line".  Use "M-x goto-line" to go to a specific line.  To find the
-  current column number, type "M-ESC (current-column)".
-
-  If you use these commands often, you might want to bind them to a key.
-  See question 104 for instructions on how to do that.
-
-  Typing "C-x l" (or M-x count-lines-page) will also tell you what line you
-  are on, provided the buffer isn't separated into "pages" with C-l
-  characters.  In that case, it will only tell you what line of the current
-  "page" you are on.
-
-  To have Emacs automatically display the current line number of the point
-  in the mode line, do "M-x line-number-mode".  You can also put the form
-
-    (setq line-number-mode t) 
-
-  in your .emacs file to achieve this whenever you start Emacs.  Note that
-  Emacs will not display the line number if the buffer is larger than the
-  value of the variable line-number-display-limit.
-
-  None of the vi emulation modes provide the `set number' capability of vi
-  (as far as we know).
+  Do M-x column-number-mode.
 
 29:  How do I turn on abbrevs by default just in mode XXX?
 
@@ -971,7 +948,7 @@ Common Things People Want To Do
 
   If you want auto-fill mode on in all major modes, do this:
 
-    (setq-default auto-fill-hook 'do-auto-fill)
+    (setq-default auto-fill-function 'do-auto-fill)
 
 31:  How do I make Emacs use a certain major mode for certain files?
 
@@ -1340,7 +1317,7 @@ Common Things People Want To Do
   * Typing "C-x C-e" in any buffer evaluates the Lisp form immediately
     before point and prints its value in the echo area.
 
-  * Typing M-ESC or M-x eval-expression allows you to type a Lisp form in
+  * Typing M-: or M-x eval-expression allows you to type a Lisp form in
     the minibuffer which will be evaluated.
 
   * You can use M-x load-file to have Emacs evaluate all the Lisp forms in
@@ -2058,12 +2035,24 @@ Finding/Getting Emacs and Related Packages
 
 88:  Where can I get Emacs for my Apple computer?
 
-  The FSF is a participant in a boycott of Apple because of Apple's "look
-  and feel" copyright suits.  See the file etc/APPLE for more details.
-  Because of this boycott, the FSF doesn't include support in GNU software
-  for Apple computers such as the Macintosh.
+  There used to be a boycott of Apple because of its "look and feel"
+  lawsuit.  The lawsuit failed, and the boycott is over.
+  Currently the GNU project treats Apple like other computer companies.
 
-  Please don't help people port or develop software for Apple computers.
+  Since the Mac operating system is very different from Unix and GNU,
+  support for it would be a big job.  And this job would be tangential
+  to the GNU project's goals.  Meanwhile, we don't have the resources
+  to do all we want to do on supporting Emacs for GNU-like systems.
+  So if we had to do work on support for the Macintosh, that would
+  directly harm the GNU project.
+
+  Of course, the same is true for MSDOS and Windows NT.  We decided to
+  incorporate support for those systems because the code was very modular,
+  because volunteers not only wrote all the code but also investigate
+  all the bugs reported on those systems, and because we hoped that we
+  will be able to raise funds for GNU using these versions, and in this
+  way these ports will make up for the effort that they took.  (We still
+  hope so, but it has not happened yet.)
 
 89:  Where do I get Emacs that runs on VMS under DECwindows?
 
@@ -2918,7 +2907,7 @@ Mail and News
 
   * Emacs normally only reads the `.mailrc' file once per session, when you
     start to compose your first mail message.  If you edit .mailrc, you can
-    type "M-ESC (build-mail-aliases) RET" to make Emacs reread .mailrc.
+    type "M-: (build-mail-aliases) RET" to make Emacs reread .mailrc.
     (You have to include the parentheses where they are shown!)
 
   * Emacs does not interpret vendor-specific additions to the format of the
