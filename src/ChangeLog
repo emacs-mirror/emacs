@@ -15,6 +15,13 @@
 
 	* search.c (compile_pattern): Use NILP when checking for nil.
 
+	* lisp.h (make_number) [!NO_UNION_TYPE && __GNUC__ >= 2 &&
+	__OPTIMIZE__]: Provide a GNU C macro version that handles
+	lisp-object unions.
+	(XSET) [!NO_UNION_TYPE]: Set the value field first, then the type
+	field, to better cope with ENABLE_CHECKING and calls that modify a
+	Lisp_Object using its old value.
+
 2000-04-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (compare_window_configurations): Signal an error

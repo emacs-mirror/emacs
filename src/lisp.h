@@ -424,9 +424,14 @@ extern int pure_size;
 #define XPNTR(a) ((a).u.val)
 
 #define XSET(var, vartype, ptr) \
-   (((var).s.type = ((char) (vartype))), ((var).s.val = ((int) (ptr))))
+   (((var).s.val = ((int) (ptr))), ((var).s.type = ((char) (vartype))))
 
+#if __GNUC__ >= 2 && defined (__OPTIMIZE__)
+#define make_number(N) \
+  (__extension__ ({ Lisp_Object _l; _l.s.val = (N); _l.s.type = Lisp_Int; _l; }))
+#else
 extern Lisp_Object make_number ();
+#endif
 
 /* During garbage collection, XGCTYPE must be used for extracting types
  so that the mark bit is ignored.  XMARKBIT access the markbit.
