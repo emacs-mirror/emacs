@@ -1,5 +1,8 @@
 2004-01-15  Kenichi Handa  <handa@m17n.org>
 
+	* fontset.c (new_fontset_from_font_name): Use the specified font
+	for all characters in the new fontset.
+
 	* macterm.c (x_set_mouse_face_gc): Call FACE_FOR_CHAR with POS and
 	OBJECT args.
 
