@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1995-10-06
 
-;; $Id: eldoc.el,v 1.23 2003/01/03 11:53:46 jpw Exp $
+;; $Id: eldoc.el,v 1.24 2003/02/11 00:11:55 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -81,11 +81,11 @@ returns another string is acceptable."
 
 (defcustom eldoc-echo-area-use-multiline-p 'truncate-sym-name-if-fit
   "*Allow long eldoc messages to resize echo area display.
-If value is `t', never attempt to truncate messages; complete symbol name
+If value is t, never attempt to truncate messages; complete symbol name
 and function arglist or 1-line variable documentation will be displayed
 even if echo area must be resized to fit.
 
-If value is any non-nil value other than `t', symbol name may be truncated
+If value is any non-nil value other than t, symbol name may be truncated
 if it will enable the function arglist or documentation string to fit on a
 single line without resizing window.  Otherwise, behavior is just like
 former case.
@@ -180,7 +180,7 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
 
 (defun eldoc-message (&rest args)
   (let ((omessage eldoc-last-message))
-    (setq eldoc-last-message 
+    (setq eldoc-last-message
 	  (cond ((eq (car args) eldoc-last-message) eldoc-last-message)
 		((null (car args)) nil)
 		;; If only one arg, no formatting to do, so put it in
