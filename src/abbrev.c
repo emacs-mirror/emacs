@@ -308,10 +308,16 @@ Returns t if expansion took place.")
   else if (uccount)
     {
       /* Abbrev included some caps.  Cap first initial of expansion */
-      idx = point;
+      int old_zv = ZV;
+      int old_pt = point;
+
+      /* Don't let Fcapitalize_word operate on text after point.  */
+      ZV = point;
       SET_PT (wordstart);
       Fcapitalize_word (make_number (1));
-      SET_PT (idx);
+
+      SET_PT (old_pt);
+      ZV = old_zv;
     }
 
   hook = XSYMBOL (sym)->function;
