@@ -66,7 +66,10 @@
 
 ;; Special alist for `$(7"A(B'.  It must be treated as a subjoined
 ;; consonant if it follows a consonant.
-(defconst tibetan-wylie-quote-alist '(("'" . ?$(7"A(B)))
+;; * Removed by Tomabechi 2000/06/10 *
+;; 'a chung must be explicitly typed as a vowel ("fa")
+;; $(7"A(B is now treated as normal base consonants
+;; (defconst tibetan-wylie-quote-alist '(("'" . ?$(7"A(B)))
 
 ;; Special alist to avoid default stacking.
 (defconst tibetan-wylie-non-stacking-alist
@@ -77,16 +80,16 @@
 
 (defconst tibetan-wylie-punctuation-alist
    '(("."  . " ")
-     (":"  . "$(8"`(B")
-     (" "  . "$(8!;(B")
-     ("/"  . "$(8!=(B")
+     (":"  . "$(7"`(B")
+     (" "  . "$(7!;(B")
+     ("/"  . "$(7!=(B")
      ("//" . "$(7!>(B")
      ("////" . ["$(7!>(B $(7!>(B"])
-     ("$"  . "$(8!?(B")
-     ("/\"" . "$(8!@(B")			; Not defined in Ext. Wylie.
-     ("&"  . "$(8!@(B")
-     (";"  . "$(8!A(B")
-     ("%"  . "$(8!D(B")
+     ("$"  . "$(7!?(B")
+     ("/\"" . "$(7!@(B")			; Not defined in Ext. Wylie.
+     ("&"  . "$(7!@(B")
+     (";"  . "$(7!A(B")
+     ("%"  . "$(7!D(B")
      ("!"  . "$(7!8(B")
      ("<"  . "$(7!l(B")
      (">"  . "$(7!m(B")
@@ -114,27 +117,27 @@
      ("-7" . "$(7!`(B")
      ("-8" . "$(7!a(B")
      ("-9" . "$(7!b(B")
-     ("|"  . "$(7!1!2!3!9!:!B!C!E!F!G!H!I!J!K!L!M!N!O!d!f!h!j!k!n!o(B")))
+     ("|"  . "$(7!0!1!2!3!7!9!:!B!C!E!F!G!H!I!J!K!L!M!N!O!d!f!h!j!k!n!o#O#P#Q#R#S#T#U#V#W#X#Y#Z#[#\#]#`(B")))
 
 (quail-define-package "tibetan-wylie" "Tibetan" "TIBw" t
 "Tibetan character input by Extended Wylie key assignment.
 
     +-------------------------------------+
-    |$(7"!$(8!;(B k |$(7""$(8!;(B kh |$(7"#$(8!;(B g  |$(7"$$(8!;(B gh |$(7"%$(8!;(B ng|   $(7"S(B i          $(8!=(B        /
-    |$(7"&$(8!;(B c |$(7"'$(8!;(B ch |$(7"($(8!;(B j  |       |$(7"*$(8!;(B ny|   $(7"U(B u          $(7!>(B       //
-    |$(7"+$(8!;(B T |$(7",$(8!;(B TH |$(7"-$(8!;(B D  |$(7".$(8!;(B DH |$(7"/$(8!;(B N |   $(7"[(B e          $(7!>(B $(7!>(B    ////
-    |$(7"0$(8!;(B t |$(7"1$(8!;(B th |$(7"2$(8!;(B d  |$(7"3$(8!;(B dh |$(7"4$(8!;(B n |   $(7"](B o          $(7!A(B       ;
-    |$(7"5$(8!;(B p |$(7"6$(8!;(B ph |$(7"7$(8!;(B b  |$(7"8$(8!;(B bh |$(7"9$(8!;(B m |   $(7"\(B ai (ee, E) $(8!?(B        $
-    |$(7":$(8!;(B ts|$(7";$(8!;(B tsh|$(7"<$(8!;(B dz |$(7"=$(8!;(B dzh|$(7">$(8!;(B w |   $(7"^(B au (oo, O) $(8!@(B        &
-    |$(7"?$(8!;(B zh|$(7"@$(8!;(B z  |$(7"A$(8!;(B '  |       |$(7"B$(8!;(B y |   $(7"a(B I          $(7#R#S#S(B   *
-    |$(7"C$(8!;(B r |$(7"D$(8!;(B l  |$(7"E$(8!;(B sh |$(7"F$(8!;(B SH |$(7"G$(8!;(B s |   $(7"`(B :          $(7#R#S#S#S(B #
-    |$(7"H$(8!;(B h |$(7"I$(8!;(B A  |$(7"J$(8!;(B kSH|       |      |   $(7"_(B M           $(7!l(B $(7!m(B   < >
-    +-------------------------------------+   $(8!D(B  %
-    (The consonant $(7"I$(8!;(B must be typed explicitly.)
+    |$(7"!!;(B k |$(7""!;(B kh |$(7"#!;(B g  |$(7"$!;(B gh |$(7"%!;(B ng|   $(7"S(B i          $(7!=(B        /
+    |$(7"&!;(B c |$(7"'!;(B ch |$(7"(!;(B j  |       |$(7"*!;(B ny|   $(7"U(B u          $(7!>(B       //
+    |$(7"+!;(B T |$(7",!;(B TH |$(7"-!;(B D  |$(7".!;(B DH |$(7"/!;(B N |   $(7"[(B e          $(7!>(B $(7!>(B    ////
+    |$(7"0!;(B t |$(7"1!;(B th |$(7"2!;(B d  |$(7"3!;(B dh |$(7"4!;(B n |   $(7"](B o          $(7!A(B       ;
+    |$(7"5!;(B p |$(7"6!;(B ph |$(7"7!;(B b  |$(7"8!;(B bh |$(7"9!;(B m |   $(7"\(B ai (ee, E) $(7!?(B        $
+    |$(7":!;(B ts|$(7";!;(B tsh|$(7"<!;(B dz |$(7"=!;(B dzh|$(7">!;(B w |   $(7"^(B au (oo, O) $(7!@(B        &
+    |$(7"?!;(B zh|$(7"@!;(B z  |$(7"A!;(B '  |       |$(7"B!;(B y |   $(7"a(B I          $(7!4!5(B   *
+    |$(7"C!;(B r |$(7"D!;(B l  |$(7"E!;(B sh |$(7"F!;(B SH |$(7"G!;(B s |   $(7"`(B :         $(7!4!5!5(B  #
+    |$(7"H!;(B h |$(7"I!;(B A  |$(7"J!;(B kSH|       |      |   $(7"_(B M           $(7!l(B $(7!m(B   < >
+    +-------------------------------------+   $(7!D(B  %
+    (The consonant $(7"I!;(B must be typed explicitly.)
 
   NOT SPECIFIED IN EXT. WYLIE:
     +--------------------------------------------------------+
-    |$(7"c(B = ~ |$(7"d(B = ` |$(7"e(B = , |$(7"f(B = @ |$(7!g(B = _o|$(7!e(B = _O|$(7#R#S!I(B = ^|
+    |$(7"c(B = ~ |$(7"d(B = ` |$(7"e(B = , |$(7"f(B = @ |$(7!g(B = _o|$(7!e(B = _O|$(7!6(B = ^|
     +--------------------------------------------------------+
     |$(7"i(B = x |$(7"j(B = X |$(7"g(B = v |$(7"h(B = V |$(7"k(B = q |$(7"l(B = Q |
     +-----------------------------------------------+
@@ -162,20 +165,26 @@
 ;; V:vowel, M:vowel modifier, S:suffix, s:post suffix.
 ;; In this pattern, the part indicated by "^^^" can be one composition.
 
+;;; modified by Tomabechi 1999/12/10
+;;; modified by Tomabechi 2000/06/08
+;;;             Allows infinite addition of vowels/modifiers
+;;;             as specified in Unicode v.3
 (quail-install-map
  (quail-map-from-table
-  '((base-state (tibetan-consonant-transcription-alist . sq-state)
-		(tibetan-precomposed-transcription-alist . s-state)
-		(tibetan-wylie-non-stacking-alist . sq-state)
+  '((base-state (tibetan-consonant-transcription-alist . svm-state)
+		(tibetan-precomposed-transcription-alist . svm-state)
+		(tibetan-wylie-non-stacking-alist . svm-state)
 		tibetan-subjoined-transcription-alist
 		tibetan-vowel-transcription-alist
 		tibetan-modifier-transcription-alist
 		tibetan-wylie-punctuation-alist)
-    (sq-state (tibetan-wylie-quote-alist . s-state)
-	      (tibetan-subjoined-transcription-alist . s-state))
-    (s-state (tibetan-subjoined-transcription-alist . s-state)
-	     (tibetan-vowel-transcription-alist . m-state))
-    (m-state tibetan-modifier-transcription-alist))))
+    (svm-state ;;(tibetan-wylie-quote-alist . vm-state)
+		(tibetan-vowel-transcription-alist . vm-state)
+		(tibetan-subjoined-transcription-alist . svm-state)
+		(tibetan-modifier-transcription-alist . m-state))
+    (vm-state (tibetan-vowel-transcription-alist . vm-state)
+	      (tibetan-modifier-transcription-alist . m-state))
+    (m-state (tibetan-modifier-transcription-alist . m-state)))))
 
 ;;;
 ;;; TibKey key alignment based input method
@@ -306,15 +315,15 @@
 
 (defconst tibetan-punctuation-tibkey-alist
   '(("1" . "$(7!Q(B")
-    ("!" . ["$(7#R#S#S#S(B"])		; nyi zla long
+    ("!" . "$(7!4(B")		; nyi zla long
     ("2" . "$(7!R(B")
-    ("@" . "$(7#S(B")			; nyi zla simple
+    ("@" . "$(7!5(B")			; nyi zla simple
     ("3" . "$(7!S(B")
 ;;; ("#" )
     ("4" . "$(7!T(B")
 ;;; ("$" )
     ("5" . "$(7!U(B")
-    ("%" . "$(8!D(B")
+    ("%" . "$(7!D(B")
     ("6" . "$(7!V(B")
     ("^" . "$(7!1(B")
     ("7" . "$(7!W(B")
@@ -327,17 +336,17 @@
 ;;; ("-" ) ; enphatic, not yet supported 
 ;;; ("_" ) ; id.
 ;;; ("=" ) ; special sign, not yet supported
-    ("+" . "$(8!A(B")
-    ("\\" . "$(8!?(B")
+    ("+" . "$(7!A(B")
+    ("\\" . "$(7!?(B")
     ("|" . "$(7!8(B")
     ("I" . "$(7"f(B")				; avagraha
-    (":" . "$(8"`(B")
-;;; (">" ?$(8!;(B) ; to be assigned to SPC
+    (":" . "$(7"`(B")
+;;; (">" ?$(7!;(B) ; to be assigned to SPC
     (">" . " ")
-    ("?" . "$(8!=(B")
+    ("?" . "$(7!=(B")
     ("??" . "$(7!>(B")
     ("????" . ["$(7!>(B $(7!>(B"])
-    (" " . "$(8!;(B")
+    (" " . "$(7!;(B")
     ))
 
 ;; Convert TibKey string to Tibetan-Roman transcription string.
@@ -401,13 +410,13 @@
   [SHIFTED]
 
   +----------------------------------------------------------+
-  |~$(7"c(B|!$(7#R#S(B|@$(7#S(B|#  |$  |%$(8!D(B |^$(7!1(B|&  |*  |($(7!l(B|)$(7!m(B|_  |+$(7!A(B| |$(7!8(B|
+  |~$(7"c(B|!$(7!4(B|@$(7!5(B|#  |$  |%$(7!D(B |^$(7!1(B|&  |*  |($(7!l(B|)$(7!m(B|_  |+$(7!A(B| |$(7!8(B|
   +----------------------------------------------------------+
-     |Q$(7"J(B|W$(7#T(B|E  |R  |T$(7"a(B|Y  |U  |I$(7"f(B|O$(7"+(B|P$(7",(B|{$(7"-(B|}$(7"/(B|
+     |Q$(7"J(B|W  |E  |R  |T$(7"a(B|Y  |U  |I$(7"f(B|O$(7"+(B|P$(7",(B|{$(7"-(B|}$(7"/(B|
      +-----------------------------------------------+
       |A  |S  |D  |F$(7"_(B|G$(7"S(B|H$(7"e(B|J$(7"[(B|K  |L  |:$(7"`(B|\"$(7#>(B|
       +-------------------------------------------+
-         |Z  |X  |C$(7#A(B|V$(7#B(B|B$(7#C(B|N$(7#D(B|M$(7"F(B|<  |>  |?$(8!=(B |
+         |Z  |X  |C$(7"R(B|V$(7#B(B|B$(7#C(B|N$(7#D(B|M$(7"F(B|<  |>  |?$(7!=(B |
          +---------------------------------------+        
 
   DIFFERENCE FROM THE ORIGINAL TIBKEY:
