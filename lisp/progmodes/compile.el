@@ -1,6 +1,6 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages.
 
-;; Copyright (C) 1985, 86, 87, 92 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 93 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@prep.ai.mit.edu>
 ;; Maintainer: FSF
@@ -130,7 +130,7 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; prefixes entire sections rather than being on each line.
 
     ;; MIPS RISC CC - the one distributed with Ultrix.
-    (": \\([^,]+\\), line \\([0-9]+\\):" 1 2)
+    ("^[^,\n]+: \\([^,\n]+\\), line \\([0-9]+\\):" 1 2)
     )
   "Alist that specifies how to match errors in compiler output.
 Each element has the form (REGEXP FILE-IDX LINE-IDX).
