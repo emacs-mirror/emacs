@@ -2,11 +2,11 @@
 
 ;; Copyright (C) 1994, 1998, 1999, 2000, 2001, 2002  Free Software Foundation, Inc.
 
-;; Maintainer: Tom Tromey <tromey@redhat.com>
+;; Maintainer: FSF
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.67 $
+;; Version: $Revision: 1.68 $
 
 ;; This file is part of GNU Emacs.
 
@@ -60,15 +60,16 @@
 ;; Jesper Pedersen <blackie@imada.ou.dk>
 ;; dfarmer@evolving.com (Doug Farmer)
 ;; "Chris Alfeld" <calfeld@math.utah.edu>
-;; Ben Wing <wing@666.com>
+;; Ben Wing <ben@xemacs.org>
 
 ;; KNOWN BUGS:
-;; * In Tcl "#" is not always a comment character.  This can confuse
-;;   tcl.el in certain circumstances.  For now the only workaround is
-;;   to enclose offending hash characters in quotes or precede it with
-;;   a backslash.  Note that using braces won't work -- quotes change
-;;   the syntax class of characters between them, while braces do not.
-;;   The electric-# mode helps alleviate this problem somewhat.
+;; * In Tcl "#" is not always a comment character.  This can confuse tcl.el
+;;   in certain circumstances.  For now the only workaround is to use
+;;   font-lock which will mark the # chars accordingly or enclose offending
+;;   hash characters in quotes or precede them with a backslash.  Note that
+;;   using braces won't work -- quotes change the syntax class of characters
+;;   between them, while braces do not.  If you don't use font-lock, the
+;;   electric-# mode helps alleviate this problem somewhat.
 ;; * indent-tcl-exp is untested.
 
 ;; TODO:
@@ -154,14 +155,14 @@ to take place:
 		 (const :tag "Maybe move or make or delete comment" 'tcl)))
 
 
-(defcustom tcl-electric-hash-style 'smart
+(defcustom tcl-electric-hash-style nil ;; 'smart
   "*Style of electric hash insertion to use.
 Possible values are `backslash', meaning that `\\' quoting should be
 done; `quote', meaning that `\"' quoting should be done; `smart',
 meaning that the choice between `backslash' and `quote' should be
 made depending on the number of hashes inserted; or nil, meaning that
 no quoting should be done.  Any other value for this variable is
-taken to mean `smart'.  The default is `smart'."
+taken to mean `smart'.  The default is nil."
   :group 'tcl
   :type '(choice (const backslash) (const quote) (const smart) (const nil)))
 
@@ -508,7 +509,7 @@ Uses variables `tcl-proc-regexp' and `tcl-keyword-list'."
 
 
 (defvar tcl-imenu-generic-expression
-  '((nil "^proc[ \t]+\\([-A-Za-z0-9_:+*]+\\)" 1))
+  `((nil ,(concat tcl-proc-regexp "\\([-A-Za-z0-9_:+*]+\\)") 2))
   "Imenu generic expression for `tcl-mode'.  See `imenu-generic-expression'.")
 
 
@@ -538,8 +539,6 @@ documentation for details):
   `tcl-auto-newline'
     Non-nil means automatically newline before and after braces, brackets,
     and semicolons inserted in Tcl code.
-  `tcl-electric-hash-style'
-    Controls action of `#' key.
   `tcl-use-smart-word-finder'
     If not nil, use a smarter, Tcl-specific way to find the current
     word when looking up help on a Tcl command.
@@ -1276,23 +1275,6 @@ simpler version that is often right, and works in Emacs 18."
 	     (fill-paragraph ignore)))))
   t)
 
-(defun tcl-do-auto-fill ()
-  "Auto-fill function for Tcl mode.  Only auto-fills in a comment."
-  (if (> (current-column) fill-column)
-      (let ((fill-prefix "# ")
-	    in-comment col)
-	(save-excursion
-	  (setq in-comment (tcl-in-comment))
-	  (if in-comment
-	      (setq col (1- (current-column)))))
-	(if in-comment
-	    (progn
-	      (do-auto-fill)
-	      (save-excursion
-		(back-to-indentation)
-		(delete-region (point) (line-beginning-position))
-		(indent-to-column col)))))))
-
 
 
 ;;
@@ -1468,17 +1450,12 @@ Prefix argument means switch to the Tcl buffer afterwards."
 	(if and-go (switch-to-tcl t)))))))
 
 (defun tcl-auto-fill-mode (&optional arg)
-  "Like `auto-fill-mode', but controls filling of Tcl comments."
+  "Like `auto-fill-mode', but sets `comment-auto-fill-only-comments'."
   (interactive "P")
-  ;; Following code taken from "auto-fill-mode" (simple.el).
-  (prog1
-      (setq auto-fill-function
-	    (if (if (null arg)
-		    (not auto-fill-function)
-		  (> (prefix-numeric-value arg) 0))
-		'tcl-do-auto-fill
-	      nil))
-    (force-mode-line-update)))
+  (auto-fill-mode arg)
+  (if auto-fill-function
+      (set (make-local-variable 'comment-auto-fill-only-comments) t)
+    (kill-local-variable 'comment-auto-fill-only-comments)))
 
 (defun tcl-electric-hash (&optional count)
   "Insert a `#' and quote if it does not start a real comment.
