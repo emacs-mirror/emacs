@@ -98,7 +98,10 @@ even if it is active."
 (defun balance-windows ()
   "Makes all visible windows the same height (approximately)."
   (interactive)
-  (let ((count -1) levels newsizes size)
+  (let ((count -1) levels newsizes size
+	;; Don't count the lines that are above the uppermost windows.
+	;; (These are the menu bar lines, if any.)
+	(mbl (nth 1 (window-edges (frame-first-window (selected-frame))))))
     ;; Find all the different vpos's at which windows start,
     ;; then count them.  But ignore levels that differ by only 1.
     (save-window-excursion
@@ -116,7 +119,7 @@ even if it is active."
 	  (setq tops (cdr tops)))
 	(setq count (1+ count))))
     ;; Subdivide the frame into that many vertical levels.
-    (setq size (/ (frame-height) count))
+    (setq size (/ (- (frame-height) mbl) count))
     (walk-windows (function
 		   (lambda (w)
 		     (select-window w)
