@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 2000, 2001, 2004
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001, 2004
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Search, Fixit, Display, Top
@@ -743,10 +743,11 @@ determines which characters these are.  @xref{Syntax}.
 matches any character that is not a word-constituent.
 
 @item \_<
-matches the empty string, but only at the beginning of a symbol.  A
-symbol is a sequence of one or more word or symbol constituent
-characters.  @samp{\_<} matches at the beginning of the buffer only if
-a symbol-constituent character follows.
+matches the empty string, but only at the beginning of a symbol.
+A symbol is a sequence of one or more symbol-constituent characters.
+A symbol-constituent character is a character whose syntax is either
+@vsamp{w} or @samp{_}.  @samp{\_<} matches at the beginning of the
+buffer only if a symbol-constituent character follows.
 
 @item \_>
 matches the empty string, but only at the end of a symbol.  @samp{\_>}

@@ -1,3 +1,8 @@
+2004-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-sum.el (gnus-summary-exit): Remove redundant and harmful
+	pop-to-buffer, covered by the subsequent gnus-configure-windows.
+
 2004-11-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* nnfolder.el (nnfolder-save-marks): Add missing format field in
@@ -56,8 +61,8 @@
 	(mm-coding-system-priorities): Use shift_jis and iso-8859-1
 	instead of japanese-shift-jis and iso-latin-1 respectively in
 	order to share the default value with both Emacs and XEmacs-mule.
-	(mm-mule-charset-to-mime-charset): Make
-	mm-coding-system-priorities effective.
+	(mm-mule-charset-to-mime-charset):
+	Make mm-coding-system-priorities effective.
 	(mm-sort-coding-systems-predicate): Canonicalize coding-systems
 	while predicating of candidates upon the priorities.
 
@@ -76,8 +81,8 @@
 
 	* sieve.el (sieve): Add :version.
 
-	* sha1.el (sha1): Added :version.
-	(sha1-use-external): Removed redundant version.
+	* sha1.el (sha1): Add :version.
+	(sha1-use-external): Remove redundant version.
 
 	* nnmail.el (nnmail-split-fancy-with-parent-ignore-groups)
 	(nnmail-cache-ignore-groups, nnmail-spool-hook)
@@ -89,8 +94,8 @@
 	* mml2015.el (mml2015-unabbrev-trust-alist): Add :version.
 
 	* mml-sec.el (mml-default-sign-method)
-	(mml-default-encrypt-method, mml-signencrypt-style-alist): Add
-	:version.
+	(mml-default-encrypt-method, mml-signencrypt-style-alist):
+	Add :version.
 
 	* mm-uu.el (mm-uu-diff-groups-regexp): Add :version.
 
@@ -151,8 +156,8 @@
 	* html2text.el: Beautify code.  Improve doc strings.  Some checkdoc
 	cleanup.
 	(html2text-get-attr, html2text-fix-paragraph): Simplify code.
-	(html2text-format-tag-list): Added "strong" and "em".  From
-	"Alfred M. Szmidt" <ams@kemisten.nu> (tiny change).
+	(html2text-format-tag-list): Add "strong" and "em".
+	From "Alfred M. Szmidt" <ams@kemisten.nu> (tiny change).
 
 2004-10-29  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -161,8 +166,8 @@
 	<srivasta@golden-gryphon.com>.
 
 	* mm-util.el (mm-coding-system-priorities): Prefer iso-8859-1 than
-	iso-2022-jp even in the Japanese language environment.  Suggested
-	by Jason Rumney <jasonr@gnu.org>.
+	iso-2022-jp even in the Japanese language environment.
+	Suggested by Jason Rumney <jasonr@gnu.org>.
 
 2004-10-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -186,12 +191,12 @@
 
 2004-10-25  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* html2text.el (html2text-buffer-head): Removed.  Use `goto-char'
+	* html2text.el (html2text-buffer-head): Remove.  Use `goto-char'
 	instead.
 
 2004-10-24  Kevin Greiner  <kevin.greiner@compsol.cc>
 
-	* gnus-start.el (gnus-convert-old-newsrc): Fixed numeric
+	* gnus-start.el (gnus-convert-old-newsrc): Fix numeric
 	comparison on string.
 
 2004-10-21  Katsumi Yamaoka  <yamaoka@jpl.org>
@@ -218,17 +223,17 @@
 
 2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
 
-	* gnus-agent.el (gnus-agent-synchronize-group-flags): When
-	necessary, pass full group name to gnus-request-set-marks.
-	(gnus-agent-synchronize-group-flags): Added support for sync'ing
+	* gnus-agent.el (gnus-agent-synchronize-group-flags):
+	When necessary, pass full group name to gnus-request-set-marks.
+	(gnus-agent-synchronize-group-flags): Add support for sync'ing
 	tick marks.
-        (gnus-agent-synchronize-flags-server): Be silent when writing file.
+	(gnus-agent-synchronize-flags-server): Be silent when writing file.
 
 2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
 
-	* gnus-agent.el (gnus-agent-synchronize-group-flags): Replaced
-	gnus-request-update-info with explicit code to sync the in-memory
-	info read flags with the marks being sync'd to the backend.
+	* gnus-agent.el (gnus-agent-synchronize-group-flags):
+	Replace gnus-request-update-info with explicit code to sync the
+	in-memory info read flags with the marks being sync'd to the backend.
 
 2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
 
@@ -237,19 +242,18 @@
 	first ask if you want to open a server and then, even when you
 	responded with no, asking if you want to synchronize the server's
 	flags.
-	(gnus-agent-synchronize-flags-server): Rewrote read loop to handle
+	(gnus-agent-synchronize-flags-server): Rewrite read loop to handle
 	multi-line expressions.
 	(gnus-agent-synchronize-group-flags): New internal function.
-	Updates marks in memory (in the info structure) AND in the
-	backend.
-	(gnus-agent-check-overview-buffer): Fixed range of
+	Updates marks in memory (in the info structure) AND in the backend.
+	(gnus-agent-check-overview-buffer): Fix range of
 	deletion to remove entire duplicate line.  Fixes merged article
 	number bug.
 
-	* gnus-util.el (gnus-remassoc): Fixed typo in documentation.
-	
-	* nnagent.el (nnagent-request-set-mark): Use
-	gnus-agent-synchronize-group-flags, not backend's request-set-mark
+	* gnus-util.el (gnus-remassoc): Fix typo in documentation.
+
+	* nnagent.el (nnagent-request-set-mark):
+	Use gnus-agent-synchronize-group-flags, not backend's request-set-mark
 	method, to ensure that synchronization updates marks in the
 	backend and in the info (in memory) structure.
 
@@ -260,6 +264,7 @@
 	an error.
 
 2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc> for Reiner Steib  <Reiner.Steib@gmx.de>
+
 	* gnus-agent.el (gnus-agent-fetched-hook): Add :version.
 	(gnus-agent-go-online): Change :version.
 	(gnus-agent-expire-unagentized-dirs)
@@ -267,37 +272,38 @@
 
 2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
 
-	* legacy-gnus-agent.el (gnus-agent-convert-to-compressed-agentview-prompt):
+	* legacy-gnus-agent.el
+	(gnus-agent-convert-to-compressed-agentview-prompt):
 	New function. Used internally to only display 'gnus converting
 	files' message when actually necessary.
 
-	* gnus-sum.el (): Removed (require 'gnus-agent) as required
+	* gnus-sum.el: Remove (require 'gnus-agent) as required
 	methods now autoloaded.
 
-	* gnus-int.el (gnus-request-move-article): Use
-	gnus-agent-unfetch-articles in place of gnus-agent-expire to
+	* gnus-int.el (gnus-request-move-article):
+	Use gnus-agent-unfetch-articles in place of gnus-agent-expire to
 	improve performance.
 
 2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
 
-	* gnus-agent.el (gnus-agent-cat-groups): rewrote avoiding defsetf
+	* gnus-agent.el (gnus-agent-cat-groups): Rewrite avoiding defsetf
 	to avoid run-time CL dependencies.
 	(gnus-agent-unfetch-articles): New function.
 	(gnus-agent-fetch-headers): Use gnus-agent-braid-nov to validate
 	article numbers even when local .overview file is missing.
 	(gnus-agent-read-article-number): New function. Only accepts
 	27-bit article numbers.
-	(gnus-agent-copy-nov-line, gnus-agent-uncached-articles): Use
-	gnus-agent-read-article-number.
+	(gnus-agent-copy-nov-line, gnus-agent-uncached-articles):
+	Use gnus-agent-read-article-number.
 	(gnus-agent-braid-nov): Rewrote to validate article numbers coming
 	from backend while recognizing that article numbers in .overview
 	must be valid.
 
-	* gnus-start.el (gnus-convert-old-newsrc): Changed message text as
+	* gnus-start.el (gnus-convert-old-newsrc): Change message text as
 	some users confused by references to .newsrc when they only have a
 	.newsrc.eld file.
-	(gnus-convert-mark-converter-prompt,
-	gnus-convert-converter-needs-prompt): Fixed use of property list.
+	(gnus-convert-mark-converter-prompt)
+	(gnus-convert-converter-needs-prompt): Fix use of property list.
 
 2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc> for Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -310,18 +316,18 @@
 
 2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc> for Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* gnus-agent.el (gnus-agent-synchronize-flags): Default to nil. 
-	(gnus-agent-regenerate-group): Using nil messages aren't valid. 
+	* gnus-agent.el (gnus-agent-synchronize-flags): Default to nil.
+	(gnus-agent-regenerate-group): Using nil messages aren't valid.
 
 2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc> for Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* gnus-agent.el (gnus-agent-read-agentview): Inline
-	gnus-uncompress-range.
+	* gnus-agent.el (gnus-agent-read-agentview):
+	Inline gnus-uncompress-range.
 
 2004-10-18  Kevin Greiner  <kgreiner@xpediantsolutions.com>
-		
+
 	* legacy-gnus-agent.el
-	(gnus-agent-convert-to-compressed-agentview): Fixed typos with
+	(gnus-agent-convert-to-compressed-agentview): Fix typos with
 	help from Florian Weimer <fw@deneb.enyo.de>
 
 	* gnus-agent.el (gnus-agentize):
@@ -345,25 +351,25 @@
 	`method' parameter is nil.  Don't write nil entries into the
 	active file.
 	(gnus-agent-get-group-info): New function.
-	(gnus-agent-get-local): Added optional parameters to avoid calling
+	(gnus-agent-get-local): Add optional parameters to avoid calling
 	gnus-group-real-name and gnus-find-method-for-group.
 	(gnus-agent-set-local): Delete stored entry if either min, or max,
 	are nil.
-	(gnus-agent-fetch-session): Reworded error/quit messages.  On
-	quit, use gnus-agent-regenerate-group to record existance of any
+	(gnus-agent-fetch-session): Reword error/quit messages.
+	On quit, use gnus-agent-regenerate-group to record existance of any
 	articles fetched to disk before the quit occurred.
 
-	* gnus-int.el (gnus-request-delete-group): Use
-	gnus-cache-delete-group and gnus-agent-delete-group to keep the
+	* gnus-int.el (gnus-request-delete-group):
+	Use gnus-cache-delete-group and gnus-agent-delete-group to keep the
 	local disk in sync with the server.
-	 (gnus-request-rename-group): Use
-	gnus-cache-rename-group and gnus-agent-rename-group to keep the
+	 (gnus-request-rename-group):
+	Use gnus-cache-rename-group and gnus-agent-rename-group to keep the
 	local disk in sync with the server.
 
-	* gnus-start.el (gnus-get-unread-articles): Cosmetic
-	simplification to logic.
+	* gnus-start.el (gnus-get-unread-articles):
+	Cosmetic simplification to logic.
 
-	* gnus-group.el (): (gnus-group-delete-group): No longer update
+	* gnus-group.el (gnus-group-delete-group): No longer update
 	gnus-cache-active-altered as gnus-request-delete-group now keeps
 	the cache in sync.
 	(gnus-group-list-active): Let the agent store a server's active
@@ -389,8 +395,8 @@
 
 2004-10-18  Kevin Greiner <kevin.greiner@compsol.cc>
 
-	* gnus-agent.el (gnus-agent-read-local): Bind
-	nnheader-file-coding-system to gnus-agent-file-coding-system to
+	* gnus-agent.el (gnus-agent-read-local):
+	Bind nnheader-file-coding-system to gnus-agent-file-coding-system to
 	avoid the implicit assumption that they will always be equal.
 	(gnus-agent-save-local): Bind buffer-file-coding-system, not
 	coding-system-for-write, as the with-temp-file macro first prints
@@ -401,12 +407,12 @@
 	* legacy-gnus-agent.el (): New. Provides converters that are only
 	loaded when gnus-convert-old-newsrc needs to call them.
 
-	* gnus-agent.el (gnus-agent-read-agentview): Removed support for
+	* gnus-agent.el (gnus-agent-read-agentview): Remove support for
 	old file versions.
-	(gnus-group-prepare-hook): Removed function that converted list
+	(gnus-group-prepare-hook): Remove function that converted list
 	form of gnus-agent-expire-days to group properties.
 
-	* gnus-start.el (gnus-convert-old-newsrc): Registered new
+	* gnus-start.el (gnus-convert-old-newsrc): Register new
 	converters to handle old agent file formats.  Added logic for a
 	"backup before upgrading warning".
 	(gnus-convert-mark-converter-prompt): Developers can mark
@@ -422,10 +428,9 @@
 	articles are being added to a group.
 	(gnus-request-replace-article): Inform the agent that articles
 	need to be uncached as the cached contents are no longer valid.
-	
-        * gnus-agent.el (gnus-agent-file-header-cache): Removed.
-	(gnus-agent-possibly-alter-active): Avoid null in numeric
-	comparison.
+
+	* gnus-agent.el (gnus-agent-file-header-cache): Remove.
+	(gnus-agent-possibly-alter-active): Avoid null in numeric comparison.
 	(gnus-agent-set-local): Refuse to save null in local object table.
 	(gnus-agent-regenerate-group): The REREAD parameter can now be a
 	list of articles that will be marked as unread.
@@ -456,8 +461,8 @@
 2004-10-18  Kevin Greiner <kevin.greiner@compsol.cc>
 
 	* gnus-draft.el (gnus-group-send-queue): Pass the group name
-	"nndraft:queue" along to gnus-draft-send.  Use
-	gnus-agent-prompt-send-queue.
+	"nndraft:queue" along to gnus-draft-send.
+	Use gnus-agent-prompt-send-queue.
 	(gnus-draft-send): Rebind gnus-agent-queue-mail to nil when group
 	is "nndraft:queue".  Suggested by Gaute Strokkenes
 	<gs234@srcf.ucam.org>
@@ -467,9 +472,8 @@
 	gnus-list-of-unread-articles, to avoid exhausting memory with huge
 	numbers of articles.  Use gnus-range-map to avoid having to
 	uncompress the unread list.
-	(gnus-group-archive-directory,
-	gnus-group-recent-archive-directory): Fixed invalid ange-ftp
-	reference.
+	(gnus-group-archive-directory)
+	(gnus-group-recent-archive-directory): Fix invalid ange-ftp reference.
 
 	* gnus-range.el (gnus-range-map): Iterate over list or sequence.
 	(gnus-sorted-range-intersection): Intersection of two ranges
@@ -480,11 +484,11 @@
 	and agentized articles.
 	(gnus-convert-old-newsrc): Rewrote in anticipation of having
 	multiple version-dependent converters.
-	(gnus-groups-to-gnus-format): Replaced gnus-agent-save-groups with
+	(gnus-groups-to-gnus-format): Replace gnus-agent-save-groups with
 	gnus-agent-save-active.
 	(gnus-save-newsrc-file): Save dirty agent range limits.
 
-	* gnus-sum.el (gnus-select-newgroup): Replaced inline code with
+	* gnus-sum.el (gnus-select-newgroup): Replace inline code with
 	gnus-agent-possibly-alter-active.
 	(gnus-adjust-marked-articles): Faster handling of simple lists
 
@@ -502,15 +506,14 @@
 
 	* gnus-sum.el (gnus-summary-make-menu-bar): Add help texts.
 
-	* gnus-art.el (gnus-button-alist): Improve
-	`gnus-button-handle-library' entry.
+	* gnus-art.el (gnus-button-alist):
+	Improve `gnus-button-handle-library' entry.
 
-	* gnus-art.el (gnus-button-alist): Fixed regexp for manual links.
+	* gnus-art.el (gnus-button-alist): Fix regexp for manual links.
 
-	* gnus-group.el (gnus-group-get-new-news-this-group): Added
-	doc-string.
+	* gnus-group.el (gnus-group-get-new-news-this-group): Add doc-string.
 
-	* gnus-start.el (gnus-activate-group): Added doc-string.
+	* gnus-start.el (gnus-activate-group): Add doc-string.
 
 	* gnus-art.el (gnus-button-handle-man, gnus-button-alist): Try to
 	handle manual section.
@@ -519,8 +522,8 @@
 	(imap-interactive-login): Use it.
 	Suggested by Mark Plaksin <happy@mcplaksin.org>.
 
-	* gnus-art.el (gnus-button-alist, gnus-header-button-alist): Allow
-	/ in mailto URLs.
+	* gnus-art.el (gnus-button-alist, gnus-header-button-alist):
+	Allow / in mailto URLs.
 
 	* spam.el (spam-directory): Derive from `gnus-directory'.
 
@@ -528,7 +531,7 @@
 
 2004-10-17  Richard M. Stallman  <rms@gnu.org>
 
-	* gnus-registry.el (gnus-registry-unload-hook): 
+	* gnus-registry.el (gnus-registry-unload-hook):
 	Set as a variable with add-hook.
 
 	* nnspool.el (nnspool-spool-directory): Use news-directory instead
@@ -638,15 +641,14 @@
 
 	* gnus-diary.el (gnus-diary-header-schedule): caddr -> car (cddr
 
-	* gnus-art.el (gnus-article-edit-mode): Define before first
-	reference.
+	* gnus-art.el (gnus-article-edit-mode): Define before first reference.
 
 	* gnus.el (gnus-method-to-server): Move defsubst before first use.
 
-	* spam.el (spam-check-spamoracle, spam-spamoracle-learn): Fix
-	format string mismatch.
-	* nnml.el (nnml-request-set-mark, nnml-save-marks): do.	
-	* nnfolder.el (nnfolder-request-set-mark, nnfolder-save-marks): do.
+	* spam.el (spam-check-spamoracle, spam-spamoracle-learn):
+	Fix format string mismatch.
+	* nnml.el (nnml-request-set-mark, nnml-save-marks): Do.
+	* nnfolder.el (nnfolder-request-set-mark, nnfolder-save-marks): Do.
 
 2004-09-27  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -663,18 +665,18 @@
 
 	* mm-util.el (mm-charset-synonym-alist): Remove obsolete entries
 	for big5 and gb2312.
-	
+
 	* rfc2047.el (rfc2047-pad-base64): Deal with more cases of invalid
 	padding.
 
-	* mm-bodies.el (mm-7bit-chars): Don't include \r.	
+	* mm-bodies.el (mm-7bit-chars): Don't include \r.
 
 	* mml.el (mml-compute-boundary-1): Don't uncompress files.
 
 	* rfc2047.el (rfc2047-qp-or-base64): New function to reduce
 	dependencies.
 	(rfc2047-encode): Use it.
-	
+
 	* flow-fill.el: Typo.
 
 	* mml.el (mml-generate-mime-1): Don't use format=flowed with
@@ -1010,13 +1012,12 @@
 	* starttls.el: Merge with my GNUTLS based starttls.el.
 	(starttls-gnutls-program, starttls-use-gnutls)
 	(starttls-extra-arguments, starttls-process-connection-type)
-	(starttls-connect, starttls-failure, starttls-success): New
-	variables.
+	(starttls-connect, starttls-failure, starttls-success): New variables.
 	(starttls-program, starttls-extra-args): Doc fix.
-	(starttls-negotiate-gnutls, starttls-open-stream-gnutls): New
-	functions.
-	(starttls-negotiate, starttls-open-stream): Check
-	`starttls-use-gnutls' and pass on to corresponding *-gnutls
+	(starttls-negotiate-gnutls, starttls-open-stream-gnutls):
+	New functions.
+	(starttls-negotiate, starttls-open-stream):
+	Check `starttls-use-gnutls' and pass on to corresponding *-gnutls
 	function if it is set.
 
 2004-08-31  Simon Josefsson  <jas@extundo.com>
@@ -1025,8 +1026,8 @@
 	?* and ?\; (tiny patch).  From Andreas Schwab <schwab@suse.de>.
 
 	* ietf-drums.el (ietf-drums-syntax-table): Set syntax of ?* ?\;
-	and ?\' to symbol instead of whitespace (tiny patch).  From
-	Andreas Schwab <schwab@suse.de>.
+	and ?\' to symbol instead of whitespace (tiny patch).
+	From Andreas Schwab <schwab@suse.de>.
 
 2004-08-31  Jesper Harder  <harder@ifa.au.dk>
 
@@ -1048,7 +1049,7 @@
 
 2004-08-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* message.el (message-idna-inside-rhs-p): Removed.
+	* message.el (message-idna-inside-rhs-p): Remove.
 	(message-idna-to-ascii-rhs-1): Use proper address parsing.
 
 2004-08-31  Katsumi Yamaoka  <yamaoka@jpl.org>
@@ -1075,8 +1076,8 @@
 	Karl Chen <quarl@nospam.quarl.org> and Reiner Steib
 	<Reiner.Steib@gmx.de>.
 
-	* gnus-cus.el (gnus-agent-cat-prepare-category-field): Replace
-	pp-to-string with gnus-pp-to-string.
+	* gnus-cus.el (gnus-agent-cat-prepare-category-field):
+	Replace pp-to-string with gnus-pp-to-string.
 
 	* gnus-eform.el (gnus-edit-form): Replace pp with gnus-pp.
 
@@ -1085,8 +1086,8 @@
 
 	* gnus-msg.el (gnus-setup-message): Ignore an article copy while
 	parsing gnus-posting-styles when the message is not for replying.
-	(gnus-summary-resend-message-edit): Call mime-to-mml.  Suggested
-	by Hiroshi Fujishima <pooh@nature.tsukuba.ac.jp>.
+	(gnus-summary-resend-message-edit): Call mime-to-mml.
+	Suggested by Hiroshi Fujishima <pooh@nature.tsukuba.ac.jp>.
 	(gnus-debug): Replace pp with gnus-pp.
 
 	* gnus-score.el (gnus-score-save): Replace pp with gnus-pp.
@@ -1095,8 +1096,8 @@
 	gnus-pp-to-string.
 
 	* gnus-sum.el (gnus-read-header): Don't remove a header for the
-	parent article of a sparse article in the thread hashtb.  From
-	Stefan Wiens <s.wi@gmx.net>.
+	parent article of a sparse article in the thread hashtb.
+	From Stefan Wiens <s.wi@gmx.net>.
 
 	* gnus-util.el (gnus-bind-print-variables): New macro.
 	(gnus-prin1): Use it.
@@ -1120,8 +1121,8 @@
 	t while entering a file name using the mm-with-multibyte macro.
 	Suggested by Hiroshi Fujishima <pooh@nature.tsukuba.ac.jp>.
 
-	* mm-encode.el (mm-content-transfer-encoding-defaults): Use
-	qp-or-base64 for the application/* types.
+	* mm-encode.el (mm-content-transfer-encoding-defaults):
+	Use qp-or-base64 for the application/* types.
 	(mm-safer-encoding): Consider 7bit is safe.
 
 	* mm-util.el (mm-with-multibyte-buffer): New macro.
@@ -1146,9 +1147,9 @@
 
 	* webmail.el (webmail-debug): Replace pp with gnus-pp.
 
-	* gnus-art.el (gnus-article-wash-html-with-w3m): Bind
-	w3m-safe-url-regexp as the value for mm-w3m-safe-url-regexp; use
-	w3m-minor-mode-map instead of mm-w3m-local-map-property.
+	* gnus-art.el (gnus-article-wash-html-with-w3m):
+	Bind w3m-safe-url-regexp as the value for mm-w3m-safe-url-regexp;
+	use w3m-minor-mode-map instead of mm-w3m-local-map-property.
 	(gnus-mime-save-part-and-strip): Use mm-complicated-handles
 	instead of mm-multiple-handles.
 	(gnus-mime-delete-part): Ditto.
@@ -1193,12 +1194,12 @@
 	* mm-decode.el (mime-display, mime-security): Fix custom-manual
 	entries.
 
-	* gnus-art.el (gnus-article): Ditto.  
+	* gnus-art.el (gnus-article): Ditto.
 
 2004-08-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus-art.el (article-hide-list-identifiers): Bind
-	inhibit-read-only as t.
+	* gnus-art.el (article-hide-list-identifiers):
+	Bind inhibit-read-only as t.
 
 2004-08-22  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -1233,8 +1234,8 @@
 
 	* mailcap.el (mailcap-mime-data): Mark as risky.
 
-	* gnus.el (gnus-group, gnus-summary, gnus-summary-sort): Fix
-	custom-manual entries.
+	* gnus.el (gnus-group, gnus-summary, gnus-summary-sort):
+	Fix custom-manual entries.
 
 	* time-date.el: Removed.  Merged into ../calendar/time-date.el.
 
@@ -1256,8 +1257,8 @@
 
 2004-05-19  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus-msg.el (gnus-summary-followup-with-original): Document
-	yanking of region when active.
+	* gnus-msg.el (gnus-summary-followup-with-original):
+	Document yanking of region when active.
 
 2004-04-13 Kevin Greiner <kgreiner@xpediantsolutions.com>
 

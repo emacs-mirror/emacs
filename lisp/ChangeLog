@@ -3,10 +3,17 @@
 	* progmodes/gdb-ui.el (gdb-flush-pending-output): New variable.
 	(gdb-send-item, gdb-resync, gud-gdba-marker-filter): Use it.
 
+2004-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buff-menu.el (list-buffers-noselect): Re-add the leading space in the
+	header-line when needed.
+	Use fixed-pitch only in the header-line.
+	Build the underline automatically.  Use emdash if available.
+
 2004-11-22  Richard M. Stallman  <rms@gnu.org>
 
-	* dired.el (dired-recursive-copies): Moved from dired-aux.el.
-	* dired-aux.el (dired-recursive-copies): Moved to dired.el.
+	* dired.el (dired-recursive-copies): Move from dired-aux.el.
+	* dired-aux.el (dired-recursive-copies): Move to dired.el.
 
 2004-11-22  Nick Roberts  <nickrob@snap.net.nz>
 
