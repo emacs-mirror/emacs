@@ -375,30 +375,6 @@ extern Lisp_Object minibuf_prompt;
 
 extern int minibuf_prompt_width;
 
-/* Message to display instead of minibuffer contents.  This is what
-   the functions error and message make, and command echoing uses it
-   as well. It overrides the minibuf_prompt as well as the buffer.  */
-
-extern char *echo_area_glyphs;
-
-/* A Lisp string to display instead of mini-buffer contents, analogous
-   to echo_area_glyphs.  If this is a string, display that string.
-   Otherwise, if echo_area_glyphs is non-null, display that.  */
-
-extern Lisp_Object echo_area_message;
-
-/* This is the length of the message in echo_area_glyphs.  */
-
-extern int echo_area_glyphs_length;
-
-/* Value of echo_area_glyphs when it was last acted on.  If this is
-  nonzero, there is a message on the frame in the minibuffer and it
-  should be erased as soon as it is no longer requested to appear. */
-
-extern char *previous_echo_glyphs;
-
-extern Lisp_Object previous_echo_area_message;
-
 /* This is the window where the echo area message was displayed.  It
    is always a minibuffer window, but it may not be the same window
    currently active as a minibuffer.  */
