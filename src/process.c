@@ -868,7 +868,7 @@ for the process which will run.")
      register Lisp_Object process, flag;
 {
   CHECK_PROCESS (process, 0);
-  XPROCESS (process)->inherit_coding_system_flag = !Fnull (flag);
+  XPROCESS (process)->inherit_coding_system_flag = !NILP (flag);
   return flag;
 }
 
