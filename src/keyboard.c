@@ -169,13 +169,6 @@ int this_single_command_key_start;
    before this command was read.  */
 static int before_command_key_count;
 static int before_command_echo_length;
-/* Values of before_command_key_count and before_command_echo_length
-   saved by reset-this-command-lengths.  */
-static int before_command_key_count_1;
-static int before_command_echo_length_1;
-/* Flag set by reset-this-command-lengths,
-   saying to reset the lengths when add_command_key is called.  */
-static int before_command_restore_flag;
 
 extern int minbuf_level;
 
@@ -603,6 +596,7 @@ extern Lisp_Object Vhistory_length, Vtranslation_table_for_input;
 extern char *x_get_keysym_name ();
 
 static void record_menu_key ();
+static int echo_length ();
 
 Lisp_Object Qpolling_period;
 
@@ -847,11 +841,26 @@ echo_now ()
       for (i = 0; i < this_command_key_count; i++)
 	{
 	  Lisp_Object c;
+
+	  /* Set before_command_echo_length to the value that would
+	     have been saved before the start of this subcommand in
+	     command_loop_1, if we had already been echoing then.  */
+	  if (i == this_single_command_key_start)
+	    before_command_echo_length = echo_length ();
+
 	  c = XVECTOR (this_command_keys)->contents[i];
 	  if (! (EVENT_HAS_PARAMETERS (c)
 		 && EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_movement)))
 	    echo_char (c);
 	}
+
+      /* Set before_command_echo_length to the value that would
+	 have been saved before the start of this subcommand in
+	 command_loop_1, if we had already been echoing then.  */
+      if (this_command_key_count == this_single_command_key_start)
+	before_command_echo_length = echo_length ();
+
+      /* Put a dash at the end to invite the user to type more.  */
       echo_dash ();
     }
 
@@ -913,6 +922,8 @@ static void
 add_command_key (key)
      Lisp_Object key;
 {
+#if 0 /* Not needed after we made Freset_this_command_lengths
+	 do the job immediately.  */
   /* If reset-this-command-length was called recently, obey it now.
      See the doc string of that function for an explanation of why.  */
   if (before_command_restore_flag)
@@ -923,6 +934,7 @@ add_command_key (key)
       echo_truncate (before_command_echo_length_1);
       before_command_restore_flag = 0;
     }
+#endif
 
   if (this_command_key_count >= ASIZE (this_command_keys))
     this_command_keys = larger_vector (this_command_keys,
@@ -1587,7 +1599,11 @@ command_loop_1 ()
 		    /* Put this before calling adjust_point_for_property
 		       so it will only get called once in any case.  */
 		    goto directly_done;
-		  adjust_point_for_property (last_point_position, 0);
+		  if (current_buffer == prev_buffer
+		      && last_point_position != PT
+		      && NILP (Vdisable_point_adjustment)
+		      && NILP (Vglobal_disable_point_adjustment))
+		    adjust_point_for_property (last_point_position, 0);
 		  already_adjusted = 1;
 		  if (PT == last_point_position + 1
 		      && (dp
@@ -1621,7 +1637,11 @@ command_loop_1 ()
 		  lose = FETCH_CHAR (PT_BYTE);
 		  if (! NILP (Vpost_command_hook))
 		    goto directly_done;
-		  adjust_point_for_property (last_point_position, 0);
+		  if (current_buffer == prev_buffer
+		      && last_point_position != PT
+		      && NILP (Vdisable_point_adjustment)
+		      && NILP (Vglobal_disable_point_adjustment))
+		    adjust_point_for_property (last_point_position, 0);
 		  already_adjusted = 1;
 		  if (PT == last_point_position - 1
 		      && (dp
@@ -2289,8 +2309,10 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   also_record = Qnil;
 
+#if 0  /* This was commented out as part of fixing echo for C-u left.  */
   before_command_key_count = this_command_key_count;
   before_command_echo_length = echo_length ();
+#endif
   c = Qnil;
   previous_echo_area_message = Qnil;
 
@@ -2361,10 +2383,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       reread = 1;
       goto reread_for_input_method;
     }
-
-  /* If there is no function key translated before
-     reset-this-command-lengths takes effect, forget about it.  */
-  before_command_restore_flag = 0;
 
   if (!NILP (Vexecuting_macro))
     {
@@ -2940,6 +2958,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       struct kboard *saved_ok_to_echo = ok_to_echo_at_next_pause;
       int saved_echo_after_prompt = current_kboard->echo_after_prompt;
 
+#if 0
       if (before_command_restore_flag)
 	{
 	  this_command_key_count = before_command_key_count_1;
@@ -2948,6 +2967,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  echo_truncate (before_command_echo_length_1);
 	  before_command_restore_flag = 0;
 	}
+#endif
 
       /* Save the this_command_keys status.  */
       key_count = this_command_key_count;
@@ -3033,8 +3053,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   if (this_command_key_count == 0 || ! reread)
     {
-      before_command_key_count = this_command_key_count;
-      before_command_echo_length = echo_length ();
 
       /* Don't echo mouse motion events.  */
       if ((FLOATP (Vecho_keystrokes) || INTEGERP (Vecho_keystrokes))
@@ -3106,8 +3124,10 @@ record_menu_key (c)
 
   record_char (c);
 
+#if 0
   before_command_key_count = this_command_key_count;
   before_command_echo_length = echo_length ();
+#endif
 
   /* Don't echo mouse motion events.  */
   if ((FLOATP (Vecho_keystrokes) || INTEGERP (Vecho_keystrokes))
@@ -9884,9 +9904,11 @@ the original event, so that only one version of the event actually
 appears in the echo area and in the value of `this-command-keys'.  */)
      ()
 {
-  before_command_restore_flag = 1;
-  before_command_key_count_1 = before_command_key_count;
-  before_command_echo_length_1 = before_command_echo_length;
+  this_command_key_count = before_command_key_count;
+  if (this_command_key_count < this_single_command_key_start)
+    this_single_command_key_start = this_command_key_count;
+  echo_truncate (before_command_echo_length);
+
   return Qnil;
 }
 
