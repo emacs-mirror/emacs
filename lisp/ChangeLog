@@ -1,3 +1,7 @@
+2002-10-28  Dave Love  <fx@gnu.org>
+
+	* term/x-win.el: Fix typo in loop setting x-keysym-table.
+
 2002-10-27  Dave Love  <fx@gnu.org>
 
 	* international/mule-conf.el (utf-8-emacs): Delete :mime-charset.
