@@ -3133,6 +3133,18 @@ w32_get_glyph_string_clip_rect (s, r)
 
   r->top = WINDOW_TO_FRAME_PIXEL_Y (s->w, r->top);
 
+  /* If drawing the cursor, don't let glyph draw outside its
+     advertised boundaries. Cleartype does this under some circumstances.  */
+  if (s->hl == DRAW_CURSOR)
+    {
+      if (s->x > r->left)
+	{
+	  r_width -= s->x - r->left;
+	  r->left = s->x;
+	}
+      r_width = min (r_width, s->first_glyph->pixel_width);
+    }
+
   r->bottom = r->top + r_height;
   r->right = r->left + r_width;
 }
