@@ -21,7 +21,6 @@
 
 /* TODO:
    - use analyze_first to optimize non-empty loops
-   - optimize succeed_n and jump_n away when possible
    - clean up multibyte issues
    - structure the opcode space into opcode+flag.
    - merge with glic's regex.[ch]
@@ -411,7 +410,7 @@ char *alloca ();
 #define REGEX_REALLOCATE_STACK(source, osize, nsize)			\
    REGEX_REALLOCATE (source, osize, nsize)
 /* No need to explicitly free anything.	 */
-#define REGEX_FREE_STACK(arg)
+#define REGEX_FREE_STACK(arg) ((void)0)
 
 #endif /* not REGEX_MALLOC */
 #endif /* not using relocating allocator */
@@ -546,7 +545,9 @@ typedef enum
   on_failure_jump_smart,
 
 	/* Followed by two-byte relative address and two-byte number n.
-	   After matching N times, jump to the address upon failure.  */
+	   After matching N times, jump to the address upon failure.
+	   Does not work if N starts at 0: use on_failure_jump_loop
+	   instead.  */
   succeed_n,
 
 	/* Followed by two-byte relative address, and two-byte number n.
@@ -1289,7 +1290,7 @@ typedef struct
     fail_stack.frame = 0;						\
   } while (0)
 
-#define RESET_FAIL_STACK()
+#define RESET_FAIL_STACK() ((void)0)
 #endif
 
 
@@ -1546,13 +1547,11 @@ static unsigned char *skip_one_char _RE_ARGS((unsigned char *p));
    if necessary.  Also cast from a signed character in the constant
    string passed to us by the user to an unsigned char that we can use
    as an array index (in, e.g., `translate').  */
-#ifndef PATFETCH
 #define PATFETCH(c)							\
   do {									\
     PATFETCH_RAW (c);							\
     if (RE_TRANSLATE_P (translate)) c = RE_TRANSLATE (translate, c);	\
   } while (0)
-#endif
 
 /* Fetch the next character in the uncompiled pattern, with no
    translation.	 */
@@ -2103,35 +2102,24 @@ regex_compile (pattern, size, syntax, bufp)
 
 		if (p == pend)
 		  break;
-
-		PATFETCH (c);
-
-		if (c == '*'
-		    || (!(syntax & RE_BK_PLUS_QM) && (c == '+' || c == '?')))
+		else if (*p == '*'
+			 || (!(syntax & RE_BK_PLUS_QM)
+			     && (*p == '+' || *p == '?')))
 		  ;
-
-		else if (syntax & RE_BK_PLUS_QM	 &&  c == '\\')
+		else if (syntax & RE_BK_PLUS_QM	 && *p == '\\')
 		  {
-		    if (p == pend) FREE_STACK_RETURN (REG_EESCAPE);
-
-		    PATFETCH (c1);
-		    if (!(c1 == '+' || c1 == '?'))
-		      {
-			PATUNFETCH;
-			PATUNFETCH;
-			break;
-		      }
-
-		    c = c1;
+		    if (p+1 == pend)
+		      FREE_STACK_RETURN (REG_EESCAPE);
+		    if (p[1] == '+' || p[1] == '?')
+		      PATFETCH (c); /* Gobble up the backslash.  */
+		    else
+		      break;
 		  }
 		else
-		  {
-		    PATUNFETCH;
-		    break;
-		  }
-
+		  break;
 		/* If we get here, we found another repeat character.  */
-	      }
+		PATFETCH (c);
+	       }
 
 	    /* Star, etc. applied to an empty pattern is equivalent
 	       to an empty pattern.  */
@@ -2306,9 +2294,11 @@ regex_compile (pattern, size, syntax, bufp)
 		  {
 		    /* Leave room for the null.	 */
 		    char str[CHAR_CLASS_MAX_LENGTH + 1];
+		    const unsigned char *class_beg;
 
 		    PATFETCH (c);
 		    c1 = 0;
+		    class_beg = p;
 
 		    /* If pattern is `[[:'.  */
 		    if (p == pend) FREE_STACK_RETURN (REG_EBRACK);
@@ -2421,9 +2411,8 @@ regex_compile (pattern, size, syntax, bufp)
 		      }
 		    else
 		      {
-			c1++;
-			while (c1--)
-			  PATUNFETCH;
+			/* Go back to right after the "[:".  */
+			p = class_beg;
 			SET_LIST_BIT ('[');
 
 			/* Because the `:' may starts the range, we
@@ -2584,9 +2573,9 @@ regex_compile (pattern, size, syntax, bufp)
 		if (p+1 < pend)
 		  {
 		    /* Look for a special (?...) construct */
-		    PATFETCH (c);
-		    if ((syntax & RE_SHY_GROUPS) && c == '?')
+		    if ((syntax & RE_SHY_GROUPS) && *p == '?')
 		      {
+			PATFETCH (c); /* Gobble up the '?'.  */
 			PATFETCH (c);
 			switch (c)
 			  {
@@ -2596,7 +2585,6 @@ regex_compile (pattern, size, syntax, bufp)
 			    FREE_STACK_RETURN (REG_BADPAT);
 			  }
 		      }
-		    else PATUNFETCH;
 		  }
 
 		if (!shy)
@@ -2744,8 +2732,9 @@ regex_compile (pattern, size, syntax, bufp)
 	      if (!(syntax & RE_INTERVALS)
 		     /* If we're at `\{' and it's not the open-interval
 			operator.  */
-		  || ((syntax & RE_INTERVALS) && (syntax & RE_NO_BK_BRACES))
-		  || (p - 2 == pattern	&&  p == pend))
+		  || (syntax & RE_NO_BK_BRACES)
+		  /* What is that? -sm  */
+		  /* || (p - 2 == pattern && p == pend) */)
 		goto normal_backslash;
 
 	    handle_interval:
@@ -2755,7 +2744,7 @@ regex_compile (pattern, size, syntax, bufp)
 		/* At least (most) this many matches must be made.  */
 		int lower_bound = 0, upper_bound = -1;
 
-		beg_interval = p - 1;
+		beg_interval = p;
 
 		if (p == pend)
 		  {
@@ -2768,16 +2757,13 @@ regex_compile (pattern, size, syntax, bufp)
 		GET_UNSIGNED_NUMBER (lower_bound);
 
 		if (c == ',')
-		  {
-		    GET_UNSIGNED_NUMBER (upper_bound);
-		    if (upper_bound < 0) upper_bound = RE_DUP_MAX;
-		  }
+		  GET_UNSIGNED_NUMBER (upper_bound);
 		else
 		  /* Interval such as `{1}' => match exactly once. */
 		  upper_bound = lower_bound;
 
 		if (lower_bound < 0 || upper_bound > RE_DUP_MAX
-		    || lower_bound > upper_bound)
+		    || (upper_bound >= 0 && lower_bound > upper_bound))
 		  {
 		    if (syntax & RE_NO_BK_BRACES)
 		      goto unfetch_interval;
@@ -2813,15 +2799,13 @@ regex_compile (pattern, size, syntax, bufp)
 		      goto unfetch_interval;
 		  }
 
-		/* If the upper bound is zero, don't want to succeed at
-		   all; jump from `laststart' to `b + 3', which will be
-		   the end of the buffer after we insert the jump.  */
 		 if (upper_bound == 0)
-		   {
-		     GET_BUFFER_SPACE (3);
-		     INSERT_JUMP (jump, laststart, b + 3);
-		     b += 3;
-		   }
+		   /* If the upper bound is zero, just drop the sub pattern
+		      altogether.  */
+		   b = laststart;
+		 else if (lower_bound == 1 && upper_bound == 1)
+		   /* Just match it once: nothing to do here.  */
+		   ;
 
 		 /* Otherwise, we have a nontrivial interval.  When
 		    we're all done, the pattern will look like:
@@ -2835,28 +2819,49 @@ regex_compile (pattern, size, syntax, bufp)
 		 else
 		   { /* If the upper bound is > 1, we need to insert
 			more at the end of the loop.  */
-		     unsigned nbytes = 10 + (upper_bound > 1) * 10;
+		     unsigned int nbytes = (upper_bound < 0 ? 3
+					    : upper_bound > 1 ? 5 : 0);
+		     unsigned int startoffset = 0;
 
-		     GET_BUFFER_SPACE (nbytes);
+		     GET_BUFFER_SPACE (20); /* We might use less.  */
 
-		     /* Initialize lower bound of the `succeed_n', even
-			though it will be set during matching by its
-			attendant `set_number_at' (inserted next),
-			because `re_compile_fastmap' needs to know.
-			Jump to the `jump_n' we might insert below.  */
-		     INSERT_JUMP2 (succeed_n, laststart,
-				   b + 5 + (upper_bound > 1) * 5,
-				   lower_bound);
-		     b += 5;
+		     if (lower_bound == 0)
+		       {
+			 /* A succeed_n that starts with 0 is really a
+			    a simple on_failure_jump_loop.  */
+			 INSERT_JUMP (on_failure_jump_loop, laststart,
+				      b + 3 + nbytes);
+			 b += 3;
+		       }
+		     else
+		       {
+			 /* Initialize lower bound of the `succeed_n', even
+			    though it will be set during matching by its
+			    attendant `set_number_at' (inserted next),
+			    because `re_compile_fastmap' needs to know.
+			    Jump to the `jump_n' we might insert below.  */
+			 INSERT_JUMP2 (succeed_n, laststart,
+				       b + 5 + nbytes,
+				       lower_bound);
+			 b += 5;
 
-		     /* Code to initialize the lower bound.  Insert
-			before the `succeed_n'.	 The `5' is the last two
-			bytes of this `set_number_at', plus 3 bytes of
-			the following `succeed_n'.  */
-		     insert_op2 (set_number_at, laststart, 5, lower_bound, b);
-		     b += 5;
+			 /* Code to initialize the lower bound.  Insert
+			    before the `succeed_n'.	 The `5' is the last two
+			    bytes of this `set_number_at', plus 3 bytes of
+			    the following `succeed_n'.  */
+			 insert_op2 (set_number_at, laststart, 5, lower_bound, b);
+			 b += 5;
+			 startoffset += 5;
+		       }
 
-		     if (upper_bound > 1)
+		     if (upper_bound < 0)
+		       {
+			 /* A negative upper bound stands for infinity,
+			    in which case it degenerates to a plain jump.  */
+			 STORE_JUMP (jump, b, laststart + startoffset);
+			 b += 3;
+		       }
+		     else if (upper_bound > 1)
 		       { /* More than one repetition is allowed, so
 			    append a backward jump to the `succeed_n'
 			    that starts this interval.
@@ -2864,7 +2869,7 @@ regex_compile (pattern, size, syntax, bufp)
 			    When we've reached this during matching,
 			    we'll have matched the interval once, so
 			    jump back only `upper_bound - 1' times.  */
-			 STORE_JUMP2 (jump_n, b, laststart + 5,
+			 STORE_JUMP2 (jump_n, b, laststart + startoffset,
 				      upper_bound - 1);
 			 b += 5;
 
@@ -2899,14 +2904,15 @@ regex_compile (pattern, size, syntax, bufp)
 	       beg_interval = NULL;
 
 	       /* normal_char and normal_backslash need `c'.  */
-	       PATFETCH (c);
+	       c = '{';
 
 	       if (!(syntax & RE_NO_BK_BRACES))
 		 {
-		   if (p > pattern  &&	p[-1] == '\\')
-		     goto normal_backslash;
+		   assert (p > pattern && p[-1] == '\\');
+		   goto normal_backslash;
 		 }
-	       goto normal_char;
+	       else
+		 goto normal_char;
 
 #ifdef emacs
 	    /* There is no way to specify the before_dot and after_dot
@@ -3311,9 +3317,6 @@ re_compile_fastmap (bufp)
      match the empty string.  */
   boolean path_can_be_null = true;
 
-  /* We aren't doing a `succeed_n' to begin with.  */
-  boolean succeed_n_p = false;
-
   /* If all elements for base leading-codes in fastmap is set, this
      flag is set true.	*/
   boolean match_any_multibyte_characters = false;
@@ -3353,7 +3356,7 @@ re_compile_fastmap (bufp)
 	 as used for the *? operator.  */
       unsigned char *p1 = p;
 
-      if (p == pend || *p == succeed)
+      if (p >= pend || *p == succeed)
 	{
 	  /* We have reached the (effective) end of pattern.  */
 	  if (!PATTERN_STACK_EMPTY ())
@@ -3510,7 +3513,6 @@ re_compile_fastmap (bufp)
 	  continue;
 
 
-	case jump_n:
 	case jump:
 	  EXTRACT_NUMBER_AND_INCR (j, p);
 	  if (j < 0)
@@ -3539,51 +3541,30 @@ re_compile_fastmap (bufp)
 	case on_failure_jump_nastyloop:
 	case on_failure_jump_loop:
 	case on_failure_jump_smart:
-	handle_on_failure_jump:
 	  EXTRACT_NUMBER_AND_INCR (j, p);
-
-	  /* For some patterns, e.g., `(a?)?', `p+j' here points to the
-	     end of the pattern.  We don't want to push such a point,
-	     since when we restore it above, entering the switch will
-	     increment `p' past the end of the pattern.	 We don't need
-	     to push such a point since we obviously won't find any more
-	     fastmap entries beyond `pend'.  Such a pattern can match
-	     the null string, though.  */
 	  if (p + j <= p1)
-	    /* Backward jump to be ignored.  */
-	    ;
-	  else if (p + j < pend)
-	    {
-	      if (!PUSH_PATTERN_OP (p + j, fail_stack))
-		{
-		  RESET_FAIL_STACK ();
-		  return -2;
-		}
-	    }
-	  else
-	    bufp->can_be_null = 1;
-
-	  if (succeed_n_p)
-	    {
-	      EXTRACT_NUMBER_AND_INCR (k, p);	/* Skip the n.	*/
-	      succeed_n_p = false;
-	    }
-
+	    ; /* Backward jump to be ignored.  */
+	  else if (!PUSH_PATTERN_OP (p + j, fail_stack))
+	    return (RESET_FAIL_STACK (), -2);
 	  continue;
 
 
+	case jump_n:
+	  /* This code simply does not properly handle forward jump_n.  */
+	  DEBUG_STATEMENT (EXTRACT_NUMBER (j, p); assert (j < 0));
+	  p += 4;
+	  /* jump_n can either jump or fall through.  The (backward) jump
+	     case has already been handled, so we only need to look at the
+	     fallthrough case.  */
+	  continue;
+	  
 	case succeed_n:
-	  /* Get to the number of times to succeed.  */
-	  p += 2;
-
-	  /* Increment p past the n for when k != 0.  */
-	  EXTRACT_NUMBER_AND_INCR (k, p);
-	  if (k == 0)
-	    {
-	      p -= 4;
-	      succeed_n_p = true;  /* Spaghetti code alert.  */
-	      goto handle_on_failure_jump;
-	    }
+	  /* If N == 0, it should be an on_failure_jump_loop instead.  */
+	  DEBUG_STATEMENT (EXTRACT_NUMBER (j, p + 2); assert (j > 0));
+	  p += 4;
+	  /* We only care about one iteration of the loop, so we don't
+	     need to consider the case where this behaves like an
+	     on_failure_jump.  */
 	  continue;
 
 
