@@ -1811,8 +1811,7 @@ may access and use elements from the kill-ring directly, the STRING
 argument should still be a \"useful\" string for such uses."
   (if (> (length string) 0)
       (if yank-handler
-	  (put-text-property 0 1 'yank-handler yank-handler string)
-	(remove-list-of-text-properties 0 1 '(yank-handler) string))
+	  (put-text-property 0 1 'yank-handler yank-handler string))
     (if yank-handler
 	(signal 'args-out-of-range
 		(list string "yank-handler specified for empty string"))))
@@ -4481,9 +4480,7 @@ wait this many seconds after Emacs becomes idle before doing an update."
   :group 'display
   :version "21.4")
 
-(make-variable-buffer-local 'saved-buffer-invisibility-spec)
-
-(defvar saved-buffer-invisibility-spec nil
+(defvar vis-mode-saved-buffer-invisibility-spec nil
   "Saved value of buffer-invisibility-spec when `vis-mode' is on.")
 
 (define-minor-mode vis-mode
@@ -4498,12 +4495,13 @@ the buffer visible.
 Disabling vis-mode restores the saved value of
 `buffer-invisibility-spec'."
   :lighter " Vis"
-  (if vis-mode
-      (progn
-	(setq saved-buffer-invisibility-spec buffer-invisibility-spec
-	      buffer-invisibility-spec nil))
-    (setq buffer-invisibility-spec saved-buffer-invisibility-spec
-	  saved-buffer-invisibility-spec nil)))
+  (when (local-variable-p 'vis-mode-saved-buffer-invisibility-spec)
+    (setq buffer-invisibility-spec vis-mode-saved-buffer-invisibility-spec)
+    (kill-local-variable 'vis-mode-saved-buffer-invisibility-spec))
+  (when vis-mode
+    (set (make-local-variable 'vis-mode-saved-buffer-invisibility-spec)
+	 buffer-invisibility-spec)
+    (setq buffer-invisibility-spec nil)))
 
 ;; Minibuffer prompt stuff.
 
