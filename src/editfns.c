@@ -532,8 +532,7 @@ resolution finer than a second.")
 DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string, 0, 0, 0,
   "Return the current time, as a human-readable string.\n\
 Programs can use it too, since the number of columns in each field is fixed.\n\
-The format is `Sun Sep 16 01:03:52 1973'.\n\
-In a future Emacs version, the time zone may be added at the end.")
+The format is `Sun Sep 16 01:03:52 1973'.")
   ()
 {
   long current_time = time ((long *) 0);
@@ -551,7 +550,7 @@ DEFUN ("current-time-zone", Fcurrent_time_zone, Scurrent_time_zone, 0, 0, 0,
 This returns a list of the form (OFFSET SAVINGS-FLAG STANDARD SAVINGS).\n\
 OFFSET is an integer specifying how many minutes east of Greenwich the\n\
     current time zone is located.  A negative value means west of\n\
-    Greenwich. Note that this describes the standard time; If daylight\n\
+    Greenwich.  Note that this describes the standard time; if daylight\n\
     savings time is in effect, it does not affect this value.\n\
 SAVINGS-FLAG is non-nil iff daylight savings time or some other sort\n\
     of seasonal time adjustment is in effect.\n\
@@ -560,8 +559,7 @@ STANDARD is a string giving the name of the time zone when no seasonal\n\
 SAVINGS is a string giving the name of the time zone when there is a\n\
     seasonal time adjustment in effect.\n\
 If the local area does not use a seasonal time adjustment,\n\
-SAVINGS-FLAG will always be nil, and STANDARD and SAVINGS will be the\n\
-same.")
+SAVINGS-FLAG is always nil, and STANDARD and SAVINGS are equal.")
   ()
 {
 #ifdef EMACS_CURRENT_TIME_ZONE
