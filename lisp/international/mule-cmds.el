@@ -1981,6 +1981,13 @@ of `buffer-file-coding-system' set by this function."
     ;; http://www.din.de/gremien/nas/nabd/iso3166ma/codlstp1/en_listp1.html.
     ;; CODESET and MODIFIER are implementation-dependent.
 
+     ;; jasonr comments: MS Windows uses three letter codes for
+     ;; languages instead of the two letter ISO codes that POSIX
+     ;; uses. In most cases the first two letters are the same, so
+     ;; most of the regexps in locale-language-names work. Japanese
+     ;; and Chinese are exceptions, which are listed in the
+     ;; non-standard section at the bottom of locale-language-names.
+
     ; aa Afar
     ; ab Abkhazian
     ("af" . "Latin-1") ; Afrikaans
@@ -2235,7 +2242,7 @@ is returned.  Thus, for instance, if charset \"ISO8859-2\",
 	  (if (locale-charset-match-p charset (caar cs))
 	      (setq c (intern (caar cs)))
 	    (pop cs)))
-	(coding-system-base c))))
+	(if c (coding-system-base c)))))
 
 ;; Fixme: This ought to deal with the territory part of the locale
 ;; too, for setting things such as calendar holidays, ps-print paper
