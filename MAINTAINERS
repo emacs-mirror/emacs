@@ -1,12 +1,16 @@
-This file contains a description of who is responsible for maintaining what.
-The areas can be defined "arbitrarily" but should provide fairly
-well defined boundaries so that there are not too many ambiguities.
+			  Emacs Maintainers
 
-The list decomposed into 3 parts.  First the list of areas that someone
-wants to be maintaining (i.e. has a particularly keen interest for it);
-then the list of areas that someone is willing to maintain, although
-he would not necessarily mind if someone else was the official maintainer;
-and finally the list of areas for which no maintainer has been found so far.
+This file contains a description of who is responsible for maintaining
+what parts of the Emacs distribution.  The areas can be defined
+"arbitrarily", but should provide fairly well-defined boundaries so
+that there are not too many ambiguities.
+
+The list below decomposed into 3 parts.  First the list of areas that
+someone wants to be maintaining (i.e. has a particularly keen interest
+for it); then the list of areas that someone is willing to maintain,
+although he would not necessarily mind if someone else was the
+official maintainer; and finally the list of areas for which no
+maintainer has been found so far.
 
 ==============================================================================
 1.
@@ -22,7 +26,24 @@ Jason Rumney
 	W32
 
 Eli Zaretskii
-	MS-DOS
+	The MS-DOS (a.k.a. DJGPP) port:
+	    config.bat
+	    msdos/*
+	    src/msdos.[ch]
+	    src/dosfns.[ch]
+	    src/w16select.c
+	    src/s/msdos.h
+	    lisp/term/internal.el
+	    lisp/term/pc-win.el
+	    lisp/dos-fns.el
+	    lisp/dos-w32.el
+	    lisp/dos-vars.el
+
+	lisp/term/tty-colors.el
+	lisp/international/codepage.el
+
+	man/faq.texi
+	man/msdog.texi
 
 Kenichi Handa
 	Mule
@@ -43,6 +64,23 @@ Miles Bader
 ==============================================================================
 2.
 ==============================================================================
+
+Eli Zaretskii
+    	man/*
+	lispref/*
+	info/dir
+
+	src/xfaces.c
+	src/term.c
+	src/frame.c
+	src/dired.c
+
+	lisp/arc-mode.el
+	lisp/menu-bar.el
+	lisp/hexl.el
+	lisp/info.el
+	lisp/ls-lisp.el
+	lisp/startup.el
 
 Stefan Monnier
 	src/intervals.c
@@ -65,7 +103,6 @@ src/alloca.s
 src/atimer.c
 src/bitmaps/
 src/buffer.c
-src/buffer.c.orig
 src/bytecode.c
 src/callint.c
 src/callproc.c
@@ -81,11 +118,9 @@ src/composite.c
 src/config.in
 src/cxux-crt0.s
 src/data.c
-src/dired.c
 src/dispnew.c
 src/doc.c
 src/doprnt.c
-src/dosfns.c
 src/ecrt0.c
 src/editfns.c
 src/emacs.c
@@ -98,7 +133,6 @@ src/firstfile.c
 src/floatfns.c
 src/fns.c
 src/fontset.c
-src/frame.c
 src/getloadavg.c
 src/gmalloc.c
 src/hftctl.c
@@ -116,7 +150,6 @@ src/md5.c
 src/minibuf.c
 src/mktime.c
 src/mocklisp.c
-src/msdos.c
 src/pre-crt0.c
 src/prefix-args.c
 src/print.c
@@ -130,7 +163,6 @@ src/sound.c
 src/strftime.c
 src/sunfns.c
 src/sysdep.c
-src/term.c
 src/termcap.c
 src/terminfo.c
 src/textprop.c
@@ -151,7 +183,6 @@ src/unexsni.c
 src/unexsunos4.c
 src/unexw32.c
 src/vm-limit.c
-src/w16select.c
 src/w32.c
 src/w32bdf.c
 src/w32console.c
@@ -167,7 +198,6 @@ src/w32xfns.c
 src/widget.c
 src/window.c
 src/xdisp.c
-src/xfaces.c
 src/xfns.c
 src/xmenu.c
 src/xrdb.c
