@@ -4,6 +4,41 @@
 	either a character representation of an event or an event
 	description list.
 
+	* type-break.el: Capitalise Emacs and Lisp.
+	(type-break-good-break-interval, type-break-demo-boring-stats)
+	(type-break-terse-messages, type-break-file-name): New defcustoms.
+	(type-break-post-command-hook)
+	(type-break-warning-countdown-string): Quote variable names in
+	doc.
+	(type-break-interval-start, type-break-auto-save-file-name): New
+	defvars.
+	(type-break-mode): Document type-break-good-break-interval and the
+	"session" file.  Schedule break according to the session file.
+	Kill session file buffer on exit.  Organise for save-some-buffers
+	to always save the session file.
+	(type-break-mode-line-message-mode, type-break-query-mode):
+	Uppercase arguments.
+	(type-break-file-time, type-break-file-keystroke-count, timep)
+	(type-break-choose-file, type-break-get-previous-time)
+	(type-break-get-previous-count): New defuns.
+	(type-break): Avoid break querying after a completed break in the
+	case where the query was initiated during user invocation of the
+	break.  Optional terse messages.  Use
+	type-break-good-break-interval if type-break-good-rest-interval is
+	nil.  File the break time.
+	(type-break-schedule): New optional args for overriding the use of
+	the current time.
+	(type-break-cancel-time-warning-schedule): Avoid leftover warnings
+	after a break.
+	(type-break-check): File the keystroke count.
+	(type-break-do-query): Prevent a second query when the break is
+	interrupted.  Optional terse message.
+	(type-break-keystroke-reset): Record the start of a typing
+	interval.
+	(type-break-demo-boring): Optional terse messages.  Display word
+	per minute and keystroke counts according to
+	type-break-demo-boring-stats.
+
 2004-04-27  Daniel M Coffman  <coffmand@us.ibm.com>  (tiny change)
 
 	* arc-mode.el (archive-maybe-copy): If ARCHIVE includes leading
