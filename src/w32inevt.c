@@ -29,7 +29,12 @@ Boston, MA 02111-1307, USA.
 #include <stdio.h>
 #include <windows.h>
 
+#ifndef MOUSE_MOVED
+#define MOUSE_MOVED   1
+#endif
+
 #include "lisp.h"
+#include "keyboard.h"
 #include "frame.h"
 #include "blockinput.h"
 #include "termhooks.h"
