@@ -23,7 +23,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;; $Id: rlogin.el,v 1.34 1996/06/20 17:30:41 friedman Exp friedman $
+;; $Id: rlogin.el,v 1.35 1996/06/23 04:31:17 friedman Exp rms $
 
 ;;; Commentary:
 
@@ -42,24 +42,39 @@
 (require 'comint)
 (require 'shell)
 
-(defvar rlogin-program "rlogin"
-  "*Name of program to invoke rlogin")
+(defgroup rlogin nil
+  "Remote login interface"
+  :group 'processes
+  :group 'unix)
 
-(defvar rlogin-explicit-args nil
-  "*List of arguments to pass to rlogin on the command line.")
 
-(defvar rlogin-mode-hook nil
-  "*Hooks to run after setting current buffer to rlogin-mode.")
+(defcustom rlogin-program "rlogin"
+  "*Name of program to invoke rlogin"
+  :type 'string
+  :group 'rlogin)
 
-(defvar rlogin-process-connection-type nil
+(defcustom rlogin-explicit-args nil
+  "*List of arguments to pass to rlogin on the command line."
+  :type '(repeat (string :tag "Argument"))
+  :group 'rlogin)
+
+(defcustom rlogin-mode-hook nil
+  "*Hooks to run after setting current buffer to rlogin-mode."
+  :type 'hook
+  :group 'rlogin)
+
+(defcustom rlogin-process-connection-type nil
   "*If non-`nil', use a pty for the local rlogin process.
 If `nil', use a pipe (if pipes are supported on the local system).
 
 Generally it is better not to waste ptys on systems which have a static
 number of them.  On the other hand, some implementations of `rlogin' assume
-a pty is being used, and errors will result from using a pipe instead.")
+a pty is being used, and errors will result from using a pipe instead."
+  :type '(choice (const :tag "ptys" t)
+		 (const :tag "pipes" nil))
+  :group 'rlogin)
 
-(defvar rlogin-directory-tracking-mode 'local
+(defcustom rlogin-directory-tracking-mode 'local
   "*Control whether and how to do directory tracking in an rlogin buffer.
 
 nil means don't do directory tracking.
@@ -75,18 +90,26 @@ This variable becomes local to a buffer when set in any fashion for it.
 It is better to use the function of the same name to change the behavior of
 directory tracking in an rlogin session once it has begun, rather than
 simply setting this variable, since the function does the necessary
-re-synching of directories.")
+re-synching of directories."
+  :type '(choice (const :tag "off" nil)
+		 (const :tag "ftp" t)
+		 (const :tag "local" local))
+  :group 'rlogin)
 
 (make-variable-buffer-local 'rlogin-directory-tracking-mode)
 
-(defvar rlogin-host nil
-  "*The name of the remote host.  This variable is buffer-local.")
+(defcustom rlogin-host nil
+  "*The name of the remote host.  This variable is buffer-local."
+  :type '(choice (const nil) string)
+  :group 'rlogin)
 
-(defvar rlogin-remote-user nil
+(defcustom rlogin-remote-user nil
   "*The username used on the remote host.
 This variable is buffer-local and defaults to your local user name.
 If rlogin is invoked with the `-l' option to specify the remote username,
-this variable is set from that.")
+this variable is set from that."
+  :type '(choice (const nil) string)
+  :group 'rlogin)
 
 ;; Initialize rlogin mode map.
 (defvar rlogin-mode-map '())
