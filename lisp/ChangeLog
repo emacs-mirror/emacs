@@ -1,3 +1,9 @@
+2005-02-18  Kenichi Handa  <handa@m17n.org>
+
+	* ps-print.el (ps-font-info-database): New entry
+	ZapfChancery-MediumItalic with correct font name.  Fix font name
+	of the entry Zapf-Chancery-MediumItalic.
+
 2005-02-16  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* autorevert.el (auto-revert-stop-on-user-input): Further doc fix.
