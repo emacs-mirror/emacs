@@ -1932,6 +1932,7 @@ Goes backward if ARG is negative; error if CHAR not found."
   "Kill the rest of the current line; if no nonblanks there, kill thru newline.
 With prefix argument, kill that many lines from point.
 Negative arguments kill lines backward.
+With zero argument, kills the text before point on the current line.
 
 When calling from a program, nil means \"no arg\",
 a number counts as a prefix arg.
