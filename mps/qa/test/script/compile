@@ -14,20 +14,36 @@
 $plat_link{"sol2.4_sparc"} = "-lm";
 
 sub compiler_settings {
- $cc_command = "gcc";
- $cc_opts = "-ansi -pedantic -Wall -Wstrict-prototypes \\
-  -Winline -Waggregate-return -Wnested-externs -Wcast-qual \\
-  -Wshadow -Wmissing-prototypes -Wredundant-decls -Wcast-align \\
-  -O -g -ggdb3 -DMMQA_VERS_$INTERFACE_VERSION";
- $cc_link = "$obj_dir/platform.o $plat_link{$PLATFORM}";
- $cc_include = "-I$testlib_dir -I$MPS_INCLUDE_DIR";
+ if ($platform_class =~ "^nt_") {
+  $cc_command = "cl";
+  $cc_opts = "/DWIN32 /D_WINDOWS /W3 /Z7 /DMMQA_VERS_$INTERFACE_VERSION";
+  $cc_link = "$obj_dir/platform.o $plat_link{$PLATFORM}";
+  $cc_include = "/I$testlib_dir /I$MPS_INCLUDE_DIR";
+  $cc_conly = "/c";
+  $cc_obj = "/Fo";
+  $cc_exe = "/Fe";
+  $run_command = "";
+ } else {
+  $cc_command = "gcc";
+  $cc_opts = "-ansi -pedantic -Wall -Wstrict-prototypes ".
+   "-Winline -Waggregate-return -Wnested-externs -Wcast-qual ".
+   "-Wshadow -Wmissing-prototypes -Wredundant-decls -Wcast-align ".
+   "-O -g -ggdb3 -DMMQA_VERS_$INTERFACE_VERSION";
+  $cc_link = "$obj_dir/platform.o $plat_link{$PLATFORM}";
+  $cc_include = "-I$testlib_dir -I$MPS_INCLUDE_DIR";
+  $cc_conly = "-c";
+  $cc_obj = "-o ";
+  $cc_exe = "-o ";
+  $run_command = "sh -c ";
+ }
 }
 
 sub compile {
  local($srcfile, $objfile) = @_;
  
  &compiler_settings;
- $command = "$cc_command -c $cc_opts -o $objfile $srcfile $cc_include";
+ $command = "$cc_command $cc_conly $cc_opts $cc_obj$objfile ".
+  "$srcfile $cc_include";
 
  if (system($command)) {
   return 0;
@@ -40,13 +56,19 @@ sub compile_and_link {
  local($srcfile, $exefile, $linkfiles) = @_;
 
  &compiler_settings;
- $command = "$cc_command $cc_opts -o $exefile $srcfile \\
-  $linkfiles $MPS_LINK_OBJ $cc_link $cc_include";
+ $command = "$cc_command $cc_opts $cc_exe$exefile $srcfile ".
+  "$linkfiles $MPS_LINK_OBJ $cc_link $cc_include";
 
  if (system($command)) {
   return 0;
  } else {
   return 1;
  }
+}
+
+sub try_test {
+ local ($exefile) = @_;
+
+ system($run_command.$exefile);
 }
 
