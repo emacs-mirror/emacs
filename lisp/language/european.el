@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995, 1997, 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, European
 
@@ -68,7 +68,7 @@ Indonesian/Malay, Tagalog (Philippines), Swahili and Afrikaans."))
   :coding-type 'charset
   :mnemonic ?2
   :charset-list '(iso-8859-2)
-  :plist '(mime-charset iso-8859-2))
+  :mime-charset 'iso-8859-2)
 
 (define-coding-system-alias 'iso-8859-2 'iso-latin-2)
 (define-coding-system-alias 'latin-2 'iso-latin-2)
@@ -101,7 +101,7 @@ We also have specific language environments for the following languages:
   :coding-type 'charset
   :mnemonic ?3
   :charset-list '(iso-8859-3)
-  :plist '(mime-charset iso-8859-3))
+  :mime-charset 'iso-8859-3)
 
 (define-coding-system-alias 'iso-8859-3 'iso-latin-3)
 (define-coding-system-alias 'latin-3 'iso-latin-3)
@@ -128,7 +128,7 @@ These languages are supported with the Latin-3 (ISO-8859-3) character set:
   :coding-type 'charset
   :mnemonic ?4
   :charset-list '(iso-8859-4)
-  :plist '(mime-charset iso-8859-4))
+  :mime-charset 'iso-8859-4)
 
 (define-coding-system-alias 'iso-8859-4 'iso-latin-4)
 (define-coding-system-alias 'latin-4 'iso-latin-4)
@@ -155,7 +155,7 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
   :coding-type 'charset
   :mnemonic ?9
   :charset-list '(iso-8859-9)
-  :plist '(mime-charset iso-8859-9))
+  :mime-charset 'iso-8859-9)
 
 (define-coding-system-alias 'iso-8859-9 'iso-latin-5)
 (define-coding-system-alias 'latin-5 'iso-latin-5)
@@ -180,7 +180,7 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
   ;; `W' for `Welsh', since `C' for `Celtic' is taken.
   :mnemonic ?W				
   :charset-list '(iso-8859-14)
-  :plist '(mime-charset iso-8859-14))
+  :mime-charset 'iso-8859-14)
 
 (define-coding-system-alias 'iso-8859-14 'iso-latin-8)
 (define-coding-system-alias 'latin-8 'iso-latin-8)
@@ -210,7 +210,7 @@ covered by other ISO-8859 character sets:
   ;; `0' for `Latin-0'
   :mnemonic ?0
   :charset-list '(iso-8859-15)
-  :plist '(mime-charset iso-8859-15))
+  :mime-charset 'iso-8859-15)
 
 (define-coding-system-alias 'iso-8859-15 'iso-latin-9)
 (define-coding-system-alias 'latin-9 'iso-latin-9)
@@ -225,7 +225,7 @@ covered by other ISO-8859 character sets:
 	     (unibyte-display . iso-latin-9)
 	     (input-method . "latin-9-prefix")
 	     (sample-text
-	      . "AVE. ,b&(48<=>(B ,b$(B")
+	      . "AVE. ,B)9.>,b<=,_/(B ,b$(B")
 	     (documentation . "\
 This language environment is a generic one for the Latin-9 (ISO-8859-15)
 character set which supports the same languages as Latin-1 with the
@@ -322,7 +322,7 @@ but it selects the Dutch tutorial."))
 	     (unibyte-syntax . "latin-5")
 	     (unibyte-display . iso-latin-5)
 	     (input-method . "turkish-postfix")
-	     (sample-text . "Turkish (T,M|(Brk,Mg(Be)	Merhaba")
+	     (sample-text . "Turkish (T,A|(Brk,Ag(Be)	Merhaba")
 	     (documentation . t)))
 
 ;; Polish ISO 8859-2 environment.
@@ -338,7 +338,7 @@ but it selects the Dutch tutorial."))
 	   (unibyte-syntax . "latin-2")
 	   (unibyte-display . iso-8859-2)
 	   (tutorial . "TUTORIAL.pl")
-	   (sample-text . "P,Bs(Bjd,B<(B, ki,Bq(B-,B?(Be t,Bj(B chmurno,B6f(B w g,B31(Bb flaszy")
+	   (sample-text . "P,As(Bjd,B<(B, ki,Bq(B-,B?(Be t,Bj(B chmurno,B6f(B w g,B31(Bb flaszy")
 	   (documentation . t))
  '("European"))
 
