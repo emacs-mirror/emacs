@@ -33,8 +33,8 @@
 (defun setup-slovak-environment ()
   "Setup multilingual environment (MULE) for Slovak."
   (interactive)
-  (setup-8-bit-environment "Slovak" 'latin-iso8859-2 "slovak")
-  (load "latin-2"))
+  (funcall (get-language-info "Latin-2" 'setup-function))
+  (setq default-input-method "slovak"))
 
 (set-language-info-alist
  "Slovak" '((setup-function . setup-slovak-environment)
