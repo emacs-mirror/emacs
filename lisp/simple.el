@@ -980,7 +980,9 @@ Digits or minus sign following \\[universal-argument] make up the numeric argume
 \\[universal-argument] following the digits or minus sign ends the argument.
 \\[universal-argument] without digits or minus sign provides 4 as argument.
 Repeating \\[universal-argument] without digits or minus sign
- multiplies the argument by 4 each time."
+ multiplies the argument by 4 each time.
+For some commands, just \\[universal-argument] by itself serves as a flag
+which is different in effect from any particular numeric argument."
   (interactive)
   (setq prefix-arg (list 4))
   (setq universal-argument-num-events (length (this-command-keys)))
@@ -1789,7 +1791,8 @@ Outline mode sets this.")
 		    (goto-char (previous-single-property-change (point) 'invisible))
 		  (goto-char (previous-overlay-change (point)))))
 	      (setq arg (1+ arg))))
-	  (move-to-column (or goal-column temporary-goal-column)))
+	  (let ((buffer-invisibility-spec nil))
+	    (move-to-column (or goal-column temporary-goal-column))))
       ;; Remember where we moved to, go back home,
       ;; then do the motion over again
       ;; in just one step, with intangibility and point-motion hooks
