@@ -1,3 +1,18 @@
+2004-03-01  Juanma Barranquero  <lektu@terra.es>
+
+	* desktop.el (desktop-file-version)
+	(desktop-after-read-hook): Fix typos.
+	(desktop-clear-preserve-buffers): Remove redundant info in
+	docstring already shown by the obsolescence message.
+	(desktop-truncate, desktop-internal-v2s)
+	(desktop-value-to-string): Change argument name to match
+	docstring.
+
+	* emulation/tpu-edt.el (tpu-set-mark): Fix typo in docstring.
+
+	* eshell/em-smart.el (eshell-smart-maybe-jump-to-end): Fix typo in
+	docstring.
+
 2004-02-29  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
 	Version 2.0.39 of Tramp released.
