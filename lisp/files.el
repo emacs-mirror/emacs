@@ -657,7 +657,28 @@ If there is no such live buffer, return nil."
 		 (setq list (cdr list))))
 	  found))))
 
-(defun find-file-noselect (filename &optional nowarn)
+(defun insert-file-contents-literally (filename &optional visit beg end replace)
+  "Like `insert-file-contents', q.v., but only reads in the file.
+A buffer may be modified in several ways after reading into the buffer due
+to advanced Emacs features, such as file-name-handlers, format decoding,
+find-file-hooks, etc.
+  This function ensures that none of these modifications will take place."
+  (let ((file-name-handler-alist nil)
+	(format-alist nil)
+	(after-insert-file-functions nil)
+	(find-buffer-file-type-function 
+	 (if (fboundp 'find-buffer-file-type)
+	     (symbol-function 'find-buffer-file-type)
+	   nil)))
+    (unwind-protect
+	(progn
+	  (fset 'find-buffer-file-type (lambda (filename) t))
+	  (insert-file-contents filename visit beg end replace))
+      (if find-buffer-file-type-function
+	  (fset 'find-buffer-file-type find-buffer-file-type-function)
+	(fmakunbound 'find-buffer-file-type)))))
+
+(defun find-file-noselect (filename &optional nowarn rawfile)
   "Read file FILENAME into a buffer and return the buffer.
 If a buffer exists visiting FILENAME, return that one, but
 verify that the file has not changed since visited or saved.
@@ -719,13 +740,19 @@ The buffer is not selected, just returned to the caller."
 	  (set-buffer-major-mode buf)
 	  (set-buffer buf)
 	  (erase-buffer)
-	  (condition-case ()
-	      (insert-file-contents filename t)
-	    (file-error
-	     ;; Run find-file-not-found-hooks until one returns non-nil.
-	     (or (run-hook-with-args-until-success 'find-file-not-found-hooks)
-		 ;; If they fail too, set error.
-		 (setq error t))))
+	  (if rawfile
+	      (condition-case ()
+		  (insert-file-contents-literally filename t)
+		(file-error
+		 ;; Unconditionally set error
+		 (setq error t)))
+	    (condition-case ()
+		(insert-file-contents filename t)
+	      (file-error
+	       ;; Run find-file-not-found-hooks until one returns non-nil.
+	       (or (run-hook-with-args-until-success 'find-file-not-found-hooks)
+		   ;; If they fail too, set error.
+		   (setq error t)))))
 	  ;; Find the file's truename, and maybe use that as visited name.
 	  (setq buffer-file-truename truename)
 	  (setq buffer-file-number number)
@@ -750,7 +777,9 @@ The buffer is not selected, just returned to the caller."
 	       (progn
 		 (make-local-variable 'backup-inhibited)
 		 (setq backup-inhibited t)))
-	  (after-find-file error (not nowarn))))
+	  (if rawfile
+	      nil
+	    (after-find-file error (not nowarn)))))
       buf)))
 
 (defvar after-find-file-from-revert-buffer nil)
