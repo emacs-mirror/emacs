@@ -941,8 +941,7 @@ selected frame."
   ;; Read this frame's geometry resource, if it has an explicit name,
   ;; and put the specs into PARAMETERS.
   (let* ((name (or (cdr (assq 'name parameters))
-		   (cdr (assq 'name default-frame-alist))
-		   (cdr (assq 'name initial-frame-alist))))
+		   (cdr (assq 'name default-frame-alist))))
 	 (x-resource-name name)
 	 (res-geometry (if name (x-get-resource "geometry" "Geometry")))
 	 parsed)
@@ -954,8 +953,11 @@ selected frame."
 	  (if (or (assq 'top parsed) (assq 'left parsed))
 	      (setq parsed (cons '(user-position . t)
 				 (cons '(user-size . t) parsed))))
-	  ;; All geometry parms apply to the initial frame.
-	  (setq parameters (append parameters parsed)))))
+	  ;; Put the geometry parameters at the end.
+	  ;; Copy default-frame-alist so that they go after it.
+	  (setq parameters (append parameters
+				   default-frame-alist
+				   parsed)))))
   (if (null global-face-data)
       (x-create-frame parameters)
     (let* ((visibility-spec (assq 'visibility parameters))
