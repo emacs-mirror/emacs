@@ -254,8 +254,12 @@ the associated section number."
   "Regular expression describing a manpage section within parentheses.")
 
 (defvar Man-page-header-regexp
-  (concat "^[ \t]*\\(" Man-name-regexp
-	  "(\\(" Man-section-regexp "\\))\\).*\\1")
+  (if (and (string-match "-solaris2\\." system-configuration)
+	   (not (string-match "-solaris2\\.[123435]$" system-configuration)))
+      (concat "^[-A-Za-z0-9_].*[ \t]\\(" Man-name-regexp
+	      "(\\(" Man-section-regexp "\\))\\)$")
+    (concat "^[ \t]*\\(" Man-name-regexp
+	    "(\\(" Man-section-regexp "\\))\\).*\\1"))
   "Regular expression describing the heading of a page.")
 
 (defvar Man-heading-regexp "^\\([A-Z][A-Z ]+\\)$"
