@@ -994,8 +994,8 @@ highlighting as well.  @xref{Faces}, for how to do this.
 
 @findex goto-addr
 URLs in messages may be highlighted and activated for following with the
-mouse or keyboard by using the Goto-address package.  Customize the hook
-@code{rmail-show-message-hook} to add @code{goto-addr}.
+mouse or keyboard by customizing the hook @code{rmail-show-message-hook}
+to add @code{goto-addr}.
 
 @node Rmail Editing
 @section Editing Within a Message

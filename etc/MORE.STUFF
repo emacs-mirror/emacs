@@ -57,7 +57,7 @@ You might find bug-fixes or enhancements in these places.
 
  * Ada: <URL:http://ada.eu.org/ada-mode/>
 
- * Autorevert and Follow:
+ * Autorevert, CWarn and Follow:
    <URL:http://www.andersl.com/emacs/>
 
  * Battery and Info Look: <URL:ftp://ftp.ul.bawue.de/pub/purple/emacs>
@@ -66,6 +66,8 @@ You might find bug-fixes or enhancements in these places.
    <URL:http://www.ida.ing.tu-bs.de/people/dirk/bibtex/index.html>
 
  * BS: <URL:http://home.netsurf.de/olaf.sylvester/emacs>
+
+ * Calculator: <URL:http://www.cs.cornell.edu/eli/misc/calculator.el>
 
  * CC mode: <URL:http://cc-mode.sourceforge.net/>
 
@@ -103,6 +105,8 @@ You might find bug-fixes or enhancements in these places.
 
  * PC Selection: <URL:ftp://ftp.thp.uni-duisburg.de/pub/source/elisp/>
 
+ * PCL-CVS: <URL:ftp://rum.cs.yale.edu/pub/monnier/pcl-cvs>
+
  * PS mode: <URL:http://odur.let.rug.nl/~kleiweg/postscript/>
 
  * PS-print: <URL:ftp://ftp.cpqd.com.br/pub/users/vinicius/>
@@ -118,6 +122,8 @@ You might find bug-fixes or enhancements in these places.
  * Sregex: <URL:http://www.zanshin.com/%7Ebobg/sregex.html>
 
  * Webjump: <URL:http://nwv.www.media.mit.edu/people/nwv/projects/webjump>
+
+ * Whitespace; <URL:http://www.dsmit.com/lisp/>
 
 * Auxilliary files
 
@@ -206,9 +212,6 @@ the future.
    PGP and GPG support.  PGP isn't free software, but GPG, the GNU
    Privacy Guard, is under development as a free replacement
    <URL:http://www.gnupg.org/>.
-
- * PCL-CVS: <URL:ftp://rum.cs.yale.edu/pub/monnier/pcl-cvs>
-   Interface to CVS providing extended `vc-dired'-style functionality.
 
  * Pointers to MIME packages:
    <URL:http://bmrc.berkeley.edu/%7Etrey/emacs/mime.html>

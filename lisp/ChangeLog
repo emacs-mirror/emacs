@@ -1,3 +1,26 @@
+2000-08-15  Dave Love  <fx@gnu.org>
+
+	* net/browse-url.el (browse-url-filename-alist): Add a clause for
+	Doze and Dog.
+	(browse-url): Use dolist, not mapcar.
+	(browse-url-at-point): Check for null url.
+	(browse-url-event-buffer, browse-url-event-point): Functions
+	deleted.
+	(browse-url-at-mouse, browse-url-netscape): Simplify.
+
+	* msb.el (msb--few-menus, msb--very-many-menus): Use current Gnus
+	modes.
+	(msb--init-file-alist, msb--aggregate-alist, msb--add-separators):
+	Fix previous change to mapcan.
+	(msb--init-file-alist, msb--add-separators)
+	(msb--make-keymap-menu): Simplify.
+	(msb--choose-file-menu): Use copy-sequence.
+	(msb-mode-map): Add title to keymap.
+	(msb-unload-hook): New function.
+
+	* bs.el: Fix indentation.
+	(bs) <defgroup>: Add :links.
+
 2000-08-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* calendar/timeclock.el (timeclock-file): Run .timelog through
