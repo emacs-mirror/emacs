@@ -2278,8 +2278,8 @@ This is what happens in interactive use with M-x.\n\
 Fourth arg KEEP-TIME non-nil means give the new file the same\n\
 last-modified time as the old one.  (This works on only some systems.)\n\
 A prefix arg makes KEEP-TIME non-nil.")
-  (file, newname, ok_if_already_exists, keep_date)
-     Lisp_Object file, newname, ok_if_already_exists, keep_date;
+  (file, newname, ok_if_already_exists, keep_time)
+     Lisp_Object file, newname, ok_if_already_exists, keep_time;
 {
   int ifd, ofd, n;
   char buf[16 * 1024];
@@ -2306,7 +2306,7 @@ A prefix arg makes KEEP-TIME non-nil.")
     handler = Ffind_file_name_handler (newname, Qcopy_file);
   if (!NILP (handler))
     RETURN_UNGCPRO (call5 (handler, Qcopy_file, file, newname,
-			   ok_if_already_exists, keep_date));
+			   ok_if_already_exists, keep_time));
 
   encoded_file = ENCODE_FILE (file);
   encoded_newname = ENCODE_FILE (newname);
@@ -2381,7 +2381,7 @@ A prefix arg makes KEEP-TIME non-nil.")
 
   if (input_file_statable_p)
     {
-      if (!NILP (keep_date))
+      if (!NILP (keep_time))
 	{
 	  EMACS_TIME atime, mtime;
 	  EMACS_SET_SECS_USECS (atime, st.st_atime, 0);
