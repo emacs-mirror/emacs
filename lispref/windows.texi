@@ -590,10 +590,11 @@ omitted, the selected window is used instead.
 The value of @var{minibuf} determines if the minibuffer window will be
 included in the result list.  If @var{minibuf} is @code{t}, the
 minibuffer window will be included, even if it isn't active.  If
-@var[minibuf} is @code{nil} or omitted, the minibuffer window will
+@var{minibuf} is @code{nil} or omitted, the minibuffer window will
 only be included in the list if it is active.  If @var{minibuf} is
 neither @code{nil} nor @code{t}, the minibuffer window is not
 included, whether or not it is active.
+@end defun
 
 @node Buffers and Windows
 @section Buffers and Windows
