@@ -1,3 +1,8 @@
+2004-12-17  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-default-update-changelog): Use insert-file-contents,
+	rather than insert-file.
+
 2004-12-16  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-comb.el (var-RandSeed): Don't initially bind it.
