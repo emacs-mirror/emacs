@@ -1334,7 +1334,7 @@ typedef enum
   fstartlist,			/* just after open parenthesis */
   finlist,			/* in parameter list */
   flistseen,			/* after parameter list */
-  fignore,			/* before open brace */
+  fignore			/* before open brace */
 } FUNCST;
 FUNCST funcdef;
 
@@ -1347,7 +1347,7 @@ typedef enum
   tnone,			/* nothing seen */
   ttypedseen,			/* typedef keyword seen */
   tinbody,			/* inside typedef body */
-  tend,				/* just before typedef tag */
+  tend				/* just before typedef tag */
 } TYPEDST;
 TYPEDST typdef;
 
@@ -1364,7 +1364,7 @@ typedef enum
   skeyseen,			/* struct-like keyword seen */
   stagseen,			/* struct-like tag seen */
   scolonseen,			/* colon seen after struct-like tag */
-  sinbody,			/* in struct body: recognize member func defs*/
+  sinbody			/* in struct body: recognize member func defs*/
 } STRUCTST;
 STRUCTST structdef;
 /*
@@ -1382,7 +1382,7 @@ typedef enum
   dnone,			/* nothing seen */
   dsharpseen,			/* '#' seen as first char on line */
   ddefineseen,			/* '#' and 'define' seen */
-  dignorerest,			/* ignore rest of line */
+  dignorerest			/* ignore rest of line */
 } DEFINEST;
 DEFINEST definedef;
 
