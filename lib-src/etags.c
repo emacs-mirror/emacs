@@ -1103,13 +1103,16 @@ free_tree (node)
  *	add_node is the only function allowed to add nodes, so it can
  *	maintain state.
  */
+/* Must avoid static vars within functions since some systems
+   #define static as nothing.  */
+static NODE *last_node = NULL;
+
 void
 add_node (node, cur_node_p)
      NODE *node, **cur_node_p;
 {
   register int dif;
   register NODE *cur_node = *cur_node_p;
-  static NODE *last_node = NULL;/* careful */
 
   if (cur_node == NULL)
     {
