@@ -1951,7 +1951,14 @@ See also `auto-save-file-name-p'."
 	      (file-name-nondirectory buffer-file-name)
 	      "#")
     ;; For non-file bfr, use bfr name and Emacs pid.
-    (expand-file-name (format "#%s#%s#" (buffer-name) (make-temp-name "")))))
+    ;; Don't allow slashes, though; auto-save would try to interpret it
+    ;; as a pathname, and it might not exist.
+    (let ((buffer-name (buffer-name))
+	  (save-match-data (match-data)))
+      (while (string-match "/" buffer-name)
+	(aset buffer-name (match-beginning 0) ?-))
+      (store-match-data save-match-data)
+      (expand-file-name (format "#%s#%s#" buffer-name (make-temp-name ""))))))
 
 (defun auto-save-file-name-p (filename)
   "Return non-nil if FILENAME can be yielded by `make-auto-save-file-name'.
