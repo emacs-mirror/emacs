@@ -1,3 +1,12 @@
+2002-12-17  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (universal-coding-system-argument):
+	Bind coding-system-require-warning to t.
+	(select-safe-coding-system): Handle t in the arg
+	DEFAULT-CODING-SYSTEM specially.  Use read-coding-system to read a
+	coding-system to allow users to specify unsafe coding system on
+	their risk.
+
 2002-12-16  Francesco Potorti`  <pot@gnu.org>
 
 	* mail/undigest.el (rmail-digest-methods)
