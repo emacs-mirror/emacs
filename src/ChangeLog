@@ -1,3 +1,8 @@
+2000-08-26  Kenichi Handa  <handa@etl.go.jp>
+
+	* cmds.c (internal_self_insert): Delete '#ifdef HAVE_FACES' and
+	the corresponding '#endif'.
+
 2000-08-26  Miles Bader  <miles@gnu.org>
 
 	* dispextern.h (enum lface_attribute_index): Add LFACE_INHERIT_INDEX.
