@@ -1479,9 +1479,6 @@ struct it
   /* 1 means multibyte characters are enabled.  */
   unsigned multibyte_p : 1;
 
-  /* 1 means highlight trailing whitespace.  */
-  unsigned show_trailing_whitespace_p : 1;
-
   /* 1 means window has a mode line at its top.  */
   unsigned top_line_p : 1;
 
@@ -2068,6 +2065,7 @@ int frame_mode_line_height P_ ((struct frame *));
 void highlight_trailing_whitespace P_ ((struct frame *, struct glyph_row *));
 int toolbar_item_info P_ ((struct frame *, struct glyph *, int *));
 extern Lisp_Object Qtoolbar;
+extern Lisp_Object Vshow_trailing_whitespace;
 extern int redisplaying_p;
 
 /* Defined in sysdep.c */
