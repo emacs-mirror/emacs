@@ -4206,7 +4206,7 @@ See also `normal-erase-is-backspace'."
 
 ;;; make-network-process wrappers
 
-(if (fboundp 'make-network-process)
+(if (featurep 'make-network-process)
     (progn
 
 (defun open-network-stream (name buffer host service)
@@ -4271,7 +4271,7 @@ does not use these function."
       (make-network-process :name name :buffer buffer
 			    :service service :server t :noquery t)))
 
-))  ;; (fboundp 'make-network-process)
+))  ;; (featurep 'make-network-process)
 
 
 ;; compatibility
