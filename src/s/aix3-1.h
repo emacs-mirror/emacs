@@ -227,3 +227,7 @@ Boston, MA 02111-1307, USA.  */
 
 /* AIX 3.1 has the HFT features.  */
 #define AIXHFT
+
+/* For unexaix.c. */
+#define ALIGN_DATA_RELOC
+
