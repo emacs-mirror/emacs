@@ -247,6 +247,8 @@ if that value is non-nil."
   (setq comment-start-skip "/\\*+ *")
   (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'c-comment-indent)
+  (make-local-variable 'comment-multi-line)
+  (setq comment-multi-line t)
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
   (run-hooks 'c-mode-hook))
