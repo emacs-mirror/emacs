@@ -712,6 +712,8 @@ is not copied.")
 	    = (Lisp_Object *) alloca (3 * sizeof (Lisp_Object));
 
 	  elt = Fcopy_sequence (elt);
+	  XCONS (tail)->car = elt;
+
 	  map_char_table (copy_keymap_1, Qnil, elt, elt, 0, indices);
 	}
       else if (VECTORP (elt))
