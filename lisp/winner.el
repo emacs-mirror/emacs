@@ -70,10 +70,12 @@
 
 (require 'ring)
 
-(when (fboundp 'defgroup)
-  (defgroup winner nil
-    "Restoring window configurations."
-    :group 'windows))
+(unless (fboundp 'defgroup)
+  (defmacro defgroup (&rest rest)))
+
+(defgroup winner nil
+  "Restoring window configurations."
+  :group 'windows)
 
 (unless (fboundp 'defcustom)
   (defmacro defcustom (symbol &optional initvalue docs &rest rest)
