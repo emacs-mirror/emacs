@@ -1289,11 +1289,13 @@ skip_chars (forwardp, syntaxp, string, lim)
   int negate = 0;
   register int i, i_byte;
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
-  int string_multibyte = STRING_MULTIBYTE (string);
-  int size_byte = STRING_BYTES (XSTRING (string));
+  int string_multibyte;
+  int size_byte;
 
   CHECK_STRING (string, 0);
   char_ranges = (int *) alloca (XSTRING (string)->size * (sizeof (int)) * 2);
+  string_multibyte = STRING_MULTIBYTE (string);
+  size_byte = STRING_BYTES (XSTRING (string));
 
   if (NILP (lim))
     XSETINT (lim, forwardp ? ZV : BEGV);
@@ -2021,7 +2023,7 @@ scan_lists (from, count, depth, sexpflag)
 	  if (code == Sendcomment)
 	    comstyle = SYNTAX_COMMENT_STYLE (c);
 	  if (from > stop && SYNTAX_COMEND_SECOND (c)
-	      && prev_char_comstart_first (from, from_byte)
+	      && prev_char_comend_first (from, from_byte)
 	      && parse_sexp_ignore_comments)
 	    {
 	      /* We must record the comment style encountered so that
