@@ -5258,15 +5258,12 @@ x_set_resize_hint (f)
 
 /* Mouse warping, focus shifting, raising and lowering.  */
 
+void
 x_set_mouse_position (f, x, y)
      struct frame *f;
      int x, y;
 {
   int pix_x, pix_y;
-
-#if 0 /* Let the user ask for this if he wants it.  */
-  x_raise_frame (f);
-#endif
 
   pix_x = CHAR_TO_PIXEL_COL (f, x) + FONT_WIDTH  (f->display.x->font) / 2;
   pix_y = CHAR_TO_PIXEL_ROW (f, y) + f->display.x->line_height / 2;
@@ -5277,6 +5274,19 @@ x_set_mouse_position (f, x, y)
   if (pix_y < 0) pix_y = 0;
   if (pix_y > PIXEL_HEIGHT (f)) pix_y = PIXEL_HEIGHT (f);
 
+  BLOCK_INPUT;
+
+  XWarpMousePointer (FRAME_X_WINDOW (f), pix_x, pix_y);
+  UNBLOCK_INPUT;
+}
+
+/* Move the mouse to position pixel PIX_X, PIX_Y relative to frame F.  */
+
+void
+x_set_mouse_pixel_position (f, pix_x, pix_y)
+     struct frame *f;
+     int pix_x, pix_y;
+{
   BLOCK_INPUT;
 
   XWarpMousePointer (FRAME_X_WINDOW (f), pix_x, pix_y);
