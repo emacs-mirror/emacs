@@ -4,7 +4,7 @@
 
 ;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.31 1997/10/28 22:16:24 os10000 Exp os10000 $
+;; Version: $Id: todo-mode.el,v 1.32 1997/12/03 12:18:20 os10000 Exp os10000 $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -96,7 +96,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.31 1997/10/28 22:16:24 os10000 Exp os10000 $
+;;      $Id: todo-mode.el,v 1.32 1997/12/03 12:18:20 os10000 Exp os10000 $
 ;;
 ;;  Pre-Requisites
 ;;
@@ -267,6 +267,9 @@
 ;;; Change Log:
 
 ;; $Log: todo-mode.el,v $
+;; Revision 1.32  1997/12/03  12:18:20  os10000
+;; Added category patch by Michael R Cook <mcook@cognex.com>.
+;;
 ;; Revision 1.31  1997/10/28  22:16:24  os10000
 ;; Three insertion options:
 ;; i without prefix: ask for category, do binary insertion
@@ -883,33 +886,35 @@ category."
     (error "No TODO list entry to lower")))
 (defalias 'todo-cmd-lowr 'todo-lower-item)
 
-(defun todo-file-item () "File the current TODO list entry away."
-  (interactive)
-  (if (> (count-lines (point-min) (point-max)) 0)
-      (let ((comment (read-from-minibuffer "Comment: "))
-            (time-stamp-format todo-time-string-format))
-        (if (> (length comment) 0)
-            (progn
-              (goto-char (todo-item-end))
-              (insert
-	       (if (save-excursion (beginning-of-line)
-				   (looking-at (regexp-quote todo-prefix)))
-		   " "
-		 "\n\t")
-	       "(" (nth todo-category-number todo-categories) ": "
-	       comment ")")))
-        (goto-char (todo-item-start))
-        (let ((temp-point (point)))
-          (if (looking-at (regexp-quote todo-prefix))
-              (replace-match (time-stamp-string))
-	    ;; Standard prefix -> timestamp
-            ;; Else prefix non-standard item start with timestamp
-            (insert (time-stamp-string)))
-          (append-to-file temp-point (1+ (todo-item-end)) todo-file-done)
-          (delete-region temp-point (1+ (todo-item-end))))
-        (todo-backward-item)
-        (message ""))
-    (error "No TODO list entry to file away")))
+(defun todo-file-item (&optional comment)
+  "File the current TODO list entry away,
+annotated with an optional COMMENT."
+  (interactive "sComment: ")
+  (or (> (count-lines (point-min) (point-max)) 0)
+      (error "No TODO list entry to file away"))
+  (let ((time-stamp-format todo-time-string-format))
+    (if (and comment (> (length comment) 0))
+	(progn
+	  (goto-char (todo-item-end))
+	  (insert
+	   (if (save-excursion (beginning-of-line)
+			       (looking-at (regexp-quote todo-prefix)))
+	       " "
+	     "\n\t")
+	   "(" comment ")")))
+    (goto-char (todo-item-end))
+    (insert " [" (nth todo-category-number todo-categories) "]")
+    (goto-char (todo-item-start))
+    (let ((temp-point (point)))
+      (if (looking-at (regexp-quote todo-prefix))
+	  (replace-match (time-stamp-string))
+	;; Standard prefix -> timestamp
+	;; Else prefix non-standard item start with timestamp
+	(insert (time-stamp-string)))
+      (append-to-file temp-point (1+ (todo-item-end)) todo-file-done)
+      (delete-region temp-point (1+ (todo-item-end))))
+    (todo-backward-item)
+    (message "")))
 
 ;; ---------------------------------------------------------------------------
 
