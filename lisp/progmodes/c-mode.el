@@ -386,6 +386,11 @@ preserving the comment indentation or line-starting decorations."
 				     (point))))
 			      (beginning-of-line)
 			      (skip-chars-forward " \t*" max-prefix-end)
+			      ;; Don't include part of comment terminator
+			      ;; in the fill-prefix.
+			      (and (eq (following-char) ?/)
+				   (eq (preceding-char) ?*)
+				   (backward-char 1))
 			      (point)))
 
 			 ;; If the comment is only one line followed by a blank
