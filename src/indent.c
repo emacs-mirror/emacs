@@ -760,7 +760,8 @@ vmotion (from, vtarget, width, hscroll, window)
     = XTYPE (current_buffer->selective_display) == Lisp_Int
       ? XINT (current_buffer->selective_display)
 	: !NILP (current_buffer->selective_display) ? -1 : 0;
-  int start_hpos = (EQ (window, minibuf_window) ? minibuf_prompt_width : 0);
+  int start_hpos = (EQ (window, minibuf_window) && XWINDOW (window)->start == 1
+		    ? minibuf_prompt_width : 0);
 
  retry:
   if (vtarget > vpos)
