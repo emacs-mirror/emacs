@@ -1,5 +1,9 @@
 2002-12-07  Andreas Schwab  <schwab@suse.de>
 
+	* faces.el (face-font-selection-order)
+	(face-font-family-alternatives, face-font-registry-alternatives):
+	Remove period from :tag value.
+
 	* cus-edit.el (custom-face-edit-fix-value): Change :reverse-video
 	to :inverse-video.
 
