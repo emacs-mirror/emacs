@@ -2290,10 +2290,12 @@ init_system_name ()
 	  }
       }
 #endif /* HAVE_SOCKETS */
-  /* We used to try using getdomainname as an alternative
-     to sysinfo, here, but NIIBE Yutaka <gniibe@etl.go.jp> says that
+  /* We used to try using getdomainname here,
+     but NIIBE Yutaka <gniibe@etl.go.jp> says that
      getdomainname gets the NIS/YP domain which often is not the same
      as in Internet domain name.  */
+#if 0 /* Turned off because sysinfo is not really likely to return the
+	 correct Internet domain.  */
 #if (HAVE_SYSINFO && defined (SI_SRPC_DOMAIN))
   if (! index (hostname, '.'))
     {
@@ -2327,6 +2329,7 @@ init_system_name ()
 	}
     }
 #endif /* HAVE_SYSINFO && defined (SI_SRPC_DOMAIN) */
+#endif /* 0 */
   Vsystem_name = build_string (hostname);
 #endif /* HAVE_GETHOSTNAME */
 #endif /* VMS */
