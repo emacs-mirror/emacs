@@ -18,6 +18,23 @@
 	(syms_of_xfns): Rename use-old-gtk-file-dialog to x-...  Move it
 	outside ifdef USE_GTK.
 
+2004-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* coding.h (ENCODE_FILE, DECODE_FILE, ENCODE_SYSTEM, DECODE_SYSTEM):
+	Don't use XFASTINT blindly.
+
+	* config.in (RE_TRANSLATE_P): Don't use XFASTINT blindly.
+
+	* indent.c (skip_invisible): Avoid non-idempotent side-effects
+	in macro arguments.
+
+	* keymap.c (Flookup_key): Check INTEGERP before XINT.
+
+	* lread.c (oblookup): Don't use XFASTINT blindly.
+
+	* window.c (Fset_window_scroll_bars): Don't use XINT if it isn't int.
+	(decode_next_window_args, window_loop): Don't use XFASTINT blindly.
+
 2004-11-23  Kim F. Storm  <storm@cua.dk>
 
 	* dispextern.h (MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P)
@@ -6398,7 +6415,7 @@
 
 2003-06-01  David Ponce  <david@dponce.com>
 
-	* termhooks.h (enum event_kind): Added new WHEEL_EVENT event.
+	* termhooks.h (enum event_kind): Add new WHEEL_EVENT event.
 	Declare MOUSE_WHEEL_EVENT only if MAC_OSX defined.
 
 	* keyboard.c (Qmouse_wheel): Declare only if MAC_OSX defined.
@@ -6406,8 +6423,7 @@
 	(discard_mouse_events): Discard WHEEL_EVENT events too.
 	(lispy_wheel_names, wheel_syms): New.
 	(syms_of_keyboard): Init and staticpro `wheel_syms'.  Init and
-	staticpro `Qmouse_wheel' and `mouse_wheel_syms' only if MAC_OSX
-	defined.
+	staticpro `Qmouse_wheel' and `mouse_wheel_syms' only if MAC_OSX defined.
 	(make_lispy_event): Add WHEEL_EVENT handler.
 
 	* w32term.c (construct_mouse_wheel): Construct WHEEL_EVENT.
@@ -6449,8 +6465,7 @@
 
 	* ccl.h (struct ccl_program) <eight_bit_control>: Comment fixed.
 
-	* ccl.c (CCL_WRITE_CHAR): Increment extra_bytes only when it is
-	nonzero.
+	* ccl.c (CCL_WRITE_CHAR): Increment extra_bytes only when it is nonzero.
 	(ccl_driver): Initialize extra_bytes to ccl->eight_bit_control.
 	(setup_ccl_program): Initialize ccl->eight_bit_control to zero.
 
@@ -6466,19 +6481,18 @@
 
 2003-05-28  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (ENCODE_UNSAFE_CHARACTER): Adjusted for the name change
+	* coding.c (ENCODE_UNSAFE_CHARACTER): Adjust for the name change
 	of CODING_REPLACEMENT_CHARACTER.
 	(decode_coding_iso2022): If CODING_FLAG_ISO_SAFE, set
 	CODING_MODE_INHIBIT_UNENCODABLE_CHAR flag in coding->mode, and
 	check this flag on encoding.
-	(encode_coding_sjis_big5): Check
-	CODING_MODE_INHIBIT_UNENCODABLE_CHAR flag of coding->mode.
-	(Fset_terminal_coding_system_internal): Set
-	CODING_MODE_INHIBIT_UNENCODABLE_CHAR flag in terminal_coding.mode
-	instead of setting CODING_FLAG_ISO_SAFE flag in
-	terminal_coding.flags.
+	(encode_coding_sjis_big5):
+	Check CODING_MODE_INHIBIT_UNENCODABLE_CHAR flag of coding->mode.
+	(Fset_terminal_coding_system_internal):
+	Set CODING_MODE_INHIBIT_UNENCODABLE_CHAR flag in terminal_coding.mode
+	instead of setting CODING_FLAG_ISO_SAFE flag in terminal_coding.flags.
 
-	* coding.h (CODING_REPLACEMENT_CHARACTER): Renamed from
+	* coding.h (CODING_REPLACEMENT_CHARACTER): Rename from
 	CODING_INHIBIT_CHARACTER_SUBSTITUTION.
 	(CODING_MODE_INHIBIT_UNENCODABLE_CHAR): New macro.
 
@@ -6620,65 +6634,65 @@
 	(struct frame): New member scroll_bar_actual_width which
 	consolidates and renames the vertical_scroll_bar_extra member of
 	x_output, w32_output, and mac_output structures.  All uses changed.
-	(FRAME_PIXEL_HEIGHT): Renamed from PIXEL_HEIGHT and moved
+	(FRAME_PIXEL_HEIGHT): Rename from PIXEL_HEIGHT and moved
 	from x/w32/macterm.h files.  All uses changed.  Also change code
 	which referred to f->output_data...->pixel_height.
-	(FRAME_PIXEL_WIDTH): Renamed from PIXEL_WIDTH and moved
+	(FRAME_PIXEL_WIDTH): Rename from PIXEL_WIDTH and moved
 	from x/w32/macterm.h files.  All uses changed.  Also change code
 	which referred to f->output_data...->pixel_width.
-	(FRAME_LINES): Renamed from FRAME_HEIGHT.  All uses changed.
+	(FRAME_LINES): Rename from FRAME_HEIGHT.  All uses changed.
 	Also change code which referred to f->height.
-	(FRAME_COLS): Renamed from FRAME_WIDTH.  All uses changed.
+	(FRAME_COLS): Rename from FRAME_WIDTH.  All uses changed.
 	Also change code which referred to f->width.
 	(FRAME_NEW_HEIGHT, FRAME_NEW_WIDTH): Remove macros; change uses
 	to update new_text_lines and new_text_cols members directly.
-	(FRAME_CONFIG_SCROLL_BAR_WIDTH): Renamed from
+	(FRAME_CONFIG_SCROLL_BAR_WIDTH): Rename from
 	FRAME_SCROLL_BAR_PIXEL_WIDTH.  All uses changed.
-	(FRAME_CONFIG_SCROLL_BAR_COLS): Renamed from
+	(FRAME_CONFIG_SCROLL_BAR_COLS): Rename from
 	FRAME_SCROLL_BAR_COLS.  All uses changed.
 	(FRAME_LEFT_SCROLL_BAR_COLS, FRAME_RIGHT_SCROLL_BAR_COLS):
-	Renamed from FRAME_LEFT_SCROLL_BAR_WIDTH and
+	Rename from FRAME_LEFT_SCROLL_BAR_WIDTH and
 	FRAME_RIGHT_SCROLL_BAR_WIDTH, resp.  All uses changed.
 	(FRAME_SCROLL_BAR_AREA_WIDTH, FRAME_LEFT_SCROLL_BAR_AREA_WIDTH)
 	(FRAME_RIGHT_SCROLL_BAR_AREA_WIDTH): New macros.
-	(FRAME_TOTAL_COLS): Renamed from FRAME_WINDOW_WIDTH.
-	(SET_FRAME_COLS): Renamed from SET_FRAME_WIDTH.
-	(FRAME_TOTAL_COLS_ARG): Renamed from FRAME_WINDOW_WIDTH_ARG.
+	(FRAME_TOTAL_COLS): Rename from FRAME_WINDOW_WIDTH.
+	(SET_FRAME_COLS): Rename from SET_FRAME_WIDTH.
+	(FRAME_TOTAL_COLS_ARG): Rename from FRAME_WINDOW_WIDTH_ARG.
 	(WINDOW_VERTICAL_SCROLL_BAR_COLUMN): Remove unused macro.
 	(WINDOW_VERTICAL_SCROLL_BAR_HEIGHT): Remove unused macro.
-	(FRAME_LINE_HEIGHT): Renamed from CANON_Y_UNIT.  Unconditionally
-	return line_height member (it now has proper value also for
-	non-window frames).
-	(FRAME_COLUMN_WIDTH): Renamed from CANON_X_UNIT.  Unconditionally
+	(FRAME_LINE_HEIGHT): Rename from CANON_Y_UNIT.
+	Unconditionally return line_height member (it now has proper value
+	also for non-window frames).
+	(FRAME_COLUMN_WIDTH): Rename from CANON_X_UNIT.  Unconditionally
 	return new column_width member (rather than the default font width).
 	(FRAME_FRINGE_COLS, FRAME_LEFT_FRINGE_WIDTH)
-	(FRAME_RIGHT_FRINGE_WIDTH): Renamed from FRAME_X_... and moved
+	(FRAME_RIGHT_FRINGE_WIDTH): Rename from FRAME_X_... and moved
 	from x/w32/macterm.h files.  Unconditionally return corresponding
 	member of frame structure (they now have proper values also for
 	non-window frames).
-	(FRAME_TOTAL_FRINGE_WIDTH): Renamed from FRAME_FRINGE_WIDTH.
+	(FRAME_TOTAL_FRINGE_WIDTH): Rename from FRAME_FRINGE_WIDTH.
 	Calculate return value from left and right widths.
 	(FRAME_INTERNAL_BORDER_WIDTH): Unconditionally return
 	internal_border_width member (has proper value for non-window frame).
-	(FRAME_PIXEL_X_FROM_CANON_X): Renamed from PIXEL_X_FROM_CANON_X.
-	(FRAME_PIXEL_Y_FROM_CANON_Y): Renamed from PIXEL_Y_FROM_CANON_Y.
-	(FRAME_CANON_X_FROM_PIXEL_X): Renamed from CANON_X_FROM_PIXEL_X.
-	(FRAME_CANON_Y_FROM_PIXEL_Y): Renamed from CANON_Y_FROM_PIXEL_Y.
-	(FRAME_LINE_TO_PIXEL_Y): Renamed from CHAR_TO_PIXEL_ROW,
+	(FRAME_PIXEL_X_FROM_CANON_X): Rename from PIXEL_X_FROM_CANON_X.
+	(FRAME_PIXEL_Y_FROM_CANON_Y): Rename from PIXEL_Y_FROM_CANON_Y.
+	(FRAME_CANON_X_FROM_PIXEL_X): Rename from CANON_X_FROM_PIXEL_X.
+	(FRAME_CANON_Y_FROM_PIXEL_Y): Rename from CANON_Y_FROM_PIXEL_Y.
+	(FRAME_LINE_TO_PIXEL_Y): Rename from CHAR_TO_PIXEL_ROW,
 	consolidated from xterm.h, macterm.h, and w32term.h.
-	(FRAME_COL_TO_PIXEL_X): Renamed from CHAR_TO_PIXEL_COL,
+	(FRAME_COL_TO_PIXEL_X): Rename from CHAR_TO_PIXEL_COL,
 	consolidated from xterm.h, macterm.h, and w32term.h.
-	(FRAME_TEXT_COLS_TO_PIXEL_WIDTH): Renamed from
+	(FRAME_TEXT_COLS_TO_PIXEL_WIDTH): Rename from
 	CHAR_TO_PIXEL_WIDTH consolidated from x/mac/w32term.h.
-	(FRAME_TEXT_LINES_TO_PIXEL_HEIGHT): Renamed from
+	(FRAME_TEXT_LINES_TO_PIXEL_HEIGHT): Rename from
 	CHAR_TO_PIXEL_HEIGHT consolidated from x/mac/w32term.h.
-	(FRAME_PIXEL_Y_TO_LINE): Renamed from PIXEL_TO_CHAR_ROW
+	(FRAME_PIXEL_Y_TO_LINE): Rename from PIXEL_TO_CHAR_ROW
 	consolidated from x/mac/w32term.h.
-	(FRAME_PIXEL_X_TO_COL): Renamed from PIXEL_TO_CHAR_COL
+	(FRAME_PIXEL_X_TO_COL): Rename from PIXEL_TO_CHAR_COL
 	consolidated from x/mac/w32term.h.
-	(FRAME_PIXEL_WIDTH_TO_TEXT_COLS): Renamed from
+	(FRAME_PIXEL_WIDTH_TO_TEXT_COLS): Rename from
 	PIXEL_TO_CHAR_WIDTH consolidated from x/mac/w32term.h.
-	(FRAME_PIXEL_HEIGHT_TO_TEXT_LINES): Renamed from
+	(FRAME_PIXEL_HEIGHT_TO_TEXT_LINES): Rename from
 	PIXEL_TO_CHAR_HEIGHT consolidated from x/mac/w32term.h.
 
 	* window.h (struct window): Rename members left to left_col,
@@ -6700,7 +6714,7 @@
 	referred to XINT (w->height) * canon_y_unit.
 	(WINDOW_LEFT_EDGE_COL): New macro.  Change relevant code that
 	referred to XINT (w->left).
-	(WINDOW_RIGHT_EDGE_COL): Renamed from WINDOW_RIGHT_EDGE.  Change
+	(WINDOW_RIGHT_EDGE_COL): Rename from WINDOW_RIGHT_EDGE.  Change
 	all uses and code that referred to XINT (w->left) + XINT (w->width).
 	(WINDOW_TOP_EDGE_LINE): New macro.  Change relevant code that
 	referred to XINT (w->top).
@@ -6715,14 +6729,14 @@
 	(WINDOW_BOTTOM_EDGE_Y): New macro.  Change relevant code that
 	referred to (XINT (w->top) + XINT (w->height)) * canon_y_unit.
 	(WINDOW_LEFTMOST_P): New macro.
-	(WINDOW_BOX_LEFT_EDGE_COL): Renamed from WINDOW_LEFT_MARGIN.
+	(WINDOW_BOX_LEFT_EDGE_COL): Rename from WINDOW_LEFT_MARGIN.
 	All uses changed.
-	(WINDOW_BOX_RIGHT_EDGE_COL): Renamed from WINDOW_RIGHT_MARGIN.
+	(WINDOW_BOX_RIGHT_EDGE_COL): Rename from WINDOW_RIGHT_MARGIN.
 	All uses changed.
-	(WINDOW_BOX_LEFT_EDGE_X): Renamed from
+	(WINDOW_BOX_LEFT_EDGE_X): Rename from
 	WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X, moved from dispextern.h.
 	Do not exclude left fringe width.
-	(WINDOW_BOX_RIGHT_EDGE_X): Renamed from
+	(WINDOW_BOX_RIGHT_EDGE_X): Rename from
 	WINDOW_DISPLAY_RIGHT_EDGE_PIXEL_X, moved from dispextern.h.
 	Do not exclude fringe widths.
 	(WINDOW_LEFT_FRINGE_WIDTH, WINDOW_RIGHT_FRINGE_WIDTH)
@@ -6749,18 +6763,18 @@
 	FRAME_SCROLL_BAR_WIDTH.
 	(WINDOW_SCROLL_BAR_COLS, WINDOW_SCROLL_BAR_AREA_WIDTH)
 	(WINDOW_SCROLL_BAR_AREA_X): New macros.
-	(WINDOW_HEADER_LINE_HEIGHT): Renamed from
+	(WINDOW_HEADER_LINE_HEIGHT): Rename from
 	WINDOW_DISPLAY_HEADER_LINE_HEIGHT, moved from dispextern.h.
-	(WINDOW_BOX_HEIGHT_NO_MODE_LINE): Renamed from
+	(WINDOW_BOX_HEIGHT_NO_MODE_LINE): Rename from
 	WINDOW_DISPLAY_HEIGHT_NO_MODE_LINE, moved from dispextern.h.
-	(WINDOW_BOX_TEXT_HEIGHT): Renamed from
+	(WINDOW_BOX_TEXT_HEIGHT): Rename from
 	WINDOW_DISPLAY_PIXEL_WIDTH, moved from dispextern.h.
 	(WINDOW_TO_FRAME_PIXEL_X, WINDOW_TO_FRAME_PIXEL_Y)
 	(FRAME_TO_WINDOW_PIXEL_X, FRAME_TO_WINDOW_PIXEL_Y)
-	(WINDOW_TEXT_TO_FRAME_PIXEL_X): Moved here from dispextern.h.
-	(WINDOW_LEFT_MARGIN_WIDTH): Renamed from
+	(WINDOW_TEXT_TO_FRAME_PIXEL_X): Move here from dispextern.h.
+	(WINDOW_LEFT_MARGIN_WIDTH): Rename from
 	WINDOW_DISPLAY_LEFT_AREA_PIXEL_WIDTH, moved from dispextern.h.
-	(WINDOW_RIGHT_MARGIN_WIDTH): Renamed from
+	(WINDOW_RIGHT_MARGIN_WIDTH): Rename from
 	WINDOW_DISPLAY_RIGHT_AREA_PIXEL_WIDTH, moved from dispextern.h.
 	(window_from_coordinates): Update prototype.
 	(Fset_window_buffer): Update EXFUN.
@@ -6854,7 +6868,7 @@
 	left_margin_cols, right_margin_cols, left_fringe_width,
 	right_fringe_width, fringes_outside_margins, scroll_bar_width,
 	and vertical_scroll_bar_type.
-	(coordinates_in_window): Adapted to new fringe/margin positions
+	(coordinates_in_window): Adapt to new fringe/margin positions
 	and per-window fringes and scroll-bars.
 	Fix bug related to incorrectly adjusting coordinates by
 	frame's internal_border_width (the effect normally negible since
@@ -6889,7 +6903,7 @@
 	narrow.  This fixes a bug which could cause Emacs to trap if the
 	width of the split window was less than the width of the display
 	margins.
-	(window_box_text_cols): Renamed from window_internal_width.
+	(window_box_text_cols): Rename from window_internal_width.
 	All uses changed.  Adapt to per-window fringes and scroll bars.
 	Fix bug that caused vertical separator to be subtracted also on
 	window frames.  Fix another bug that did not reduce the returned
@@ -6921,8 +6935,7 @@
 	the width of the window.
 	(Fset_window_fringes): New defun to allow user to specifically set
 	this window's fringe widths and position vs. display margins.
-	(Fwindow_fringes): New defun to return window's actual fringe
-	settings.
+	(Fwindow_fringes): New defun to return window's actual fringe settings.
 	(Fset_window_scroll_bars): New defun to allow user to specifically
 	set this window's scroll bar width and position.
 	(Fwindow_scroll_bars): New defun to return window's actual scroll
@@ -6989,17 +7002,16 @@
 	(FRAME_DEFAULT_FONT_WIDTH): Remove macro.
 	(PIXEL_WIDTH, PIXEL_HEIGHT)
 	(FRAME_X_FRINGE_COLS, FRAME_X_FRINGE_WIDTH)
-	(FRAME_X_LEFT_FRINGE_WIDTH, FRAME_X_RIGHT_FRINGE_WIDTH): Moved to
+	(FRAME_X_LEFT_FRINGE_WIDTH, FRAME_X_RIGHT_FRINGE_WIDTH): Move to
 	frame.h and renamed [see frame.h changes].
 	(CHAR_TO_PIXEL_ROW, CHAR_TO_PIXEL_COL, CHAR_TO_PIXEL_WIDTH)
 	(CHAR_TO_PIXEL_HEIGHT, PIXEL_TO_CHAR_ROW, PIXEL_TO_CHAR_COL)
-	(PIXEL_TO_CHAR_WIDTH, PIXEL_TO_CHAR_HEIGHT): Moved to frame.h
+	(PIXEL_TO_CHAR_WIDTH, PIXEL_TO_CHAR_HEIGHT): Move to frame.h
 	and renamed [see frame.h changes].
 
 	* xterm.c: Make (several) trivial substitutions for renamed and
 	new macros in dispextern.h, frame.h and window.h.
-	(x_draw_glyph_string_box): Adapt to per-window fringes and
-	scroll-bars.
+	(x_draw_glyph_string_box): Adapt to per-window fringes and scroll-bars.
 	(scroll_run): Adapt to new fringe position.
 	(glyph_rect): Use window coordinates returned from
 	window_from_coordinates rather than frame_to_window_pixel_xy.
@@ -7023,17 +7035,16 @@
 	(FRAME_DEFAULT_FONT_WIDTH): Remove macro.
 	(PIXEL_WIDTH, PIXEL_HEIGHT)
 	(FRAME_X_FRINGE_COLS, FRAME_X_FRINGE_WIDTH)
-	(FRAME_X_LEFT_FRINGE_WIDTH, FRAME_X_RIGHT_FRINGE_WIDTH): Moved to
+	(FRAME_X_LEFT_FRINGE_WIDTH, FRAME_X_RIGHT_FRINGE_WIDTH): Move to
 	frame.h and renamed [see frame.h changes].
 	(CHAR_TO_PIXEL_ROW, CHAR_TO_PIXEL_COL, CHAR_TO_PIXEL_WIDTH)
 	(CHAR_TO_PIXEL_HEIGHT, PIXEL_TO_CHAR_ROW, PIXEL_TO_CHAR_COL)
-	(PIXEL_TO_CHAR_WIDTH, PIXEL_TO_CHAR_HEIGHT): Moved to frame.h
+	(PIXEL_TO_CHAR_WIDTH, PIXEL_TO_CHAR_HEIGHT): Move to frame.h
 	and renamed [see frame.h changes].
 
 	* w32term.c: Make (several) trivial substitutions for renamed and
 	new macros in dispextern.h, frame.h and window.h.
-	(x_draw_glyph_string_box): Adapt to per-window fringes and
-	scroll-bars.
+	(x_draw_glyph_string_box): Adapt to per-window fringes and scroll-bars.
 	(glyph_rect): Use window coordinates returned from
 	window_from_coordinates rather than frame_to_window_pixel_xy.
 	(XTset_vertical_scroll_bar): Adapt to per-window fringes and
@@ -7064,17 +7075,16 @@
 	(FRAME_DEFAULT_FONT_WIDTH): Remove macro.
 	(PIXEL_WIDTH, PIXEL_HEIGHT)
 	(FRAME_X_FRINGE_COLS, FRAME_X_FRINGE_WIDTH)
-	(FRAME_X_LEFT_FRINGE_WIDTH, FRAME_X_RIGHT_FRINGE_WIDTH): Moved to
+	(FRAME_X_LEFT_FRINGE_WIDTH, FRAME_X_RIGHT_FRINGE_WIDTH): Move to
 	frame.h and renamed [see frame.h changes].
 	(CHAR_TO_PIXEL_ROW, CHAR_TO_PIXEL_COL, CHAR_TO_PIXEL_WIDTH)
 	(CHAR_TO_PIXEL_HEIGHT, PIXEL_TO_CHAR_ROW, PIXEL_TO_CHAR_COL)
-	(PIXEL_TO_CHAR_WIDTH, PIXEL_TO_CHAR_HEIGHT): Moved to frame.h
+	(PIXEL_TO_CHAR_WIDTH, PIXEL_TO_CHAR_HEIGHT): Move to frame.h
 	and renamed [see frame.h changes].
 
 	* macterm.c: Make (several) trivial substitutions for renamed and
 	new macros in dispextern.h, frame.h and window.h.
-	(x_draw_glyph_string_box): Adapt to per-window fringes and
-	scroll-bars.
+	(x_draw_glyph_string_box): Adapt to per-window fringes and scroll-bars.
 	(glyph_rect): Use window coordinates returned from
 	window_from_coordinates rather than frame_to_window_pixel_xy.
 	(XTset_vertical_scroll_bar): Adapt to per-window fringes and
