@@ -1,5 +1,7 @@
 2000-01-30  Dave Love  <fx@gnu.org>
 
+	* jka-compr.el (jka-compr-load): Fix up load-history.
+
 	* emacs-lisp/cl.el: Replace autoloads for dolist, dotimes.
 
 	* emacs-lisp/cl-macs.el: Revert previous change.
