@@ -1,3 +1,7 @@
+2002-02-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* floatfns.c (Fround): Doc fix.
+
 2002-02-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* sysdep.c (init_system_name): Put unused variable `p' in #if 0.
