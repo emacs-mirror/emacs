@@ -1469,7 +1469,11 @@ init_sys_modes ()
 #else
   setbuf (stdout, _sobuf);
 #endif
+#ifdef HAVE_X_WINDOWS
+  /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
+     needs the initialization code below.  */
   if (! read_socket_hook && EQ (Vwindow_system, Qnil))
+#endif
     set_terminal_modes ();
 
   if (term_initted && no_redraw_on_reenter)
@@ -1615,19 +1619,6 @@ reset_sys_modes ()
     return;
 #endif
   cursor_to (FRAME_HEIGHT (selected_frame) - 1, 0);
-#ifdef MSDOS
-  if (!EQ (Vwindow_system, Qnil))
-    {
-      char *colors = getenv("EMACSCOLORS");
-      int color = 0x07;      /* Change to white on black  */
-      if (colors && strlen (colors) >= 5 && colors[2] == ';')
-	color = ((colors[4] & 0x07) << 4) || (colors[3] & 0x07);
-      if ((stdout)->_cnt < 3) fflush(stdout); /* avoid call to _flsbuf */
-      putchar ('\e');
-      putchar ('A');
-      putchar (color);
-    }
-#endif
   clear_end_of_line (FRAME_WIDTH (selected_frame));
   /* clear_end_of_line may move the cursor */
   cursor_to (FRAME_HEIGHT (selected_frame) - 1, 0);
