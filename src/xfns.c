@@ -5441,7 +5441,7 @@ Lisp_Object Qxbm;
 Lisp_Object QCtype, QCdata, QCascent, QCmargin, QCrelief;
 extern Lisp_Object QCwidth, QCheight, QCforeground, QCbackground, QCfile;
 Lisp_Object QCalgorithm, QCcolor_symbols, QCheuristic_mask;
-Lisp_Object QCindex, QCuser_data;
+Lisp_Object QCindex;
 
 /* Other symbols.  */
 
@@ -5576,10 +5576,8 @@ struct image_keyword
 };
 
 
-static int parse_image_spec P_ ((Lisp_Object spec,
-				 struct image_keyword *keywords,
-				 int nkeywords, Lisp_Object type,
-				 int allow_other_keys_p));
+static int parse_image_spec P_ ((Lisp_Object, struct image_keyword *,
+				 int, Lisp_Object));
 static Lisp_Object image_spec_value P_ ((Lisp_Object, Lisp_Object, int *));
 
 
@@ -5587,17 +5585,14 @@ static Lisp_Object image_spec_value P_ ((Lisp_Object, Lisp_Object, int *));
    has the format (image KEYWORD VALUE ...).  One of the keyword/
    value pairs must be `:type TYPE'.  KEYWORDS is a vector of
    image_keywords structures of size NKEYWORDS describing other
-   allowed keyword/value pairs.  ALLOW_OTHER_KEYS_P non-zero means
-   allow KEYWORD/VALUE pairs other than those described by KEYWORDS
-   without checking them.  Value is non-zero if SPEC is valid.  */
+   allowed keyword/value pairs.  Value is non-zero if SPEC is valid.  */
 
 static int
-parse_image_spec (spec, keywords, nkeywords, type, allow_other_keys_p)
+parse_image_spec (spec, keywords, nkeywords, type)
      Lisp_Object spec;
      struct image_keyword *keywords;
      int nkeywords;
      Lisp_Object type;
-     int allow_other_keys_p;
 {
   int i;
   Lisp_Object plist;
@@ -5622,21 +5617,13 @@ parse_image_spec (spec, keywords, nkeywords, type, allow_other_keys_p)
       value = XCAR (plist);
       plist = XCDR (plist);
 
-      /* Always ignore :user-data DATA.  */
-      if (EQ (key, QCuser_data))
-	continue;
-
       /* Find key in KEYWORDS.  Error if not found.  */
       for (i = 0; i < nkeywords; ++i)
 	if (strcmp (keywords[i].name, XSYMBOL (key)->name->data) == 0)
 	  break;
 
       if (i == nkeywords)
-	{
-	  if (!allow_other_keys_p)
-	    return 0;
-	  continue;
-	}
+	continue;
 
       /* Record that we recognized the keyword.  If a keywords
 	 was found more than once, it's an error.  */
@@ -6430,7 +6417,7 @@ xbm_image_p (object)
   struct image_keyword kw[XBM_LAST];
   
   bcopy (xbm_format, kw, sizeof kw);
-  if (!parse_image_spec (object, kw, XBM_LAST, Qxbm, 0))
+  if (!parse_image_spec (object, kw, XBM_LAST, Qxbm))
     return 0;
 
   xassert (EQ (kw[XBM_TYPE].value, Qxbm));
@@ -6846,7 +6833,7 @@ xbm_load (f, img)
 
       /* Parse the list specification.  */
       bcopy (xbm_format, fmt, sizeof fmt);
-      parsed_p = parse_image_spec (img->spec, fmt, XBM_LAST, Qxbm, 0);
+      parsed_p = parse_image_spec (img->spec, fmt, XBM_LAST, Qxbm);
       xassert (parsed_p);
 
       /* Get specified width, and height.  */
@@ -7005,7 +6992,7 @@ xpm_image_p (object)
 {
   struct image_keyword fmt[XPM_LAST];
   bcopy (xpm_format, fmt, sizeof fmt);
-  return (parse_image_spec (object, fmt, XPM_LAST, Qxpm, 0)
+  return (parse_image_spec (object, fmt, XPM_LAST, Qxpm)
 	  /* Either `:file' or `:data' must be present.  */
 	  && fmt[XPM_FILE].count + fmt[XPM_DATA].count == 1
 	  /* Either no `:color-symbols' or it's a list of conses
@@ -7675,7 +7662,7 @@ pbm_image_p (object)
   
   bcopy (pbm_format, fmt, sizeof fmt);
   
-  if (!parse_image_spec (object, fmt, PBM_LAST, Qpbm, 0)
+  if (!parse_image_spec (object, fmt, PBM_LAST, Qpbm)
       || (fmt[PBM_ASCENT].count 
 	  && XFASTINT (fmt[PBM_ASCENT].value) > 100))
     return 0;
@@ -7989,7 +7976,7 @@ png_image_p (object)
   struct image_keyword fmt[PNG_LAST];
   bcopy (png_format, fmt, sizeof fmt);
   
-  if (!parse_image_spec (object, fmt, PNG_LAST, Qpng, 1)
+  if (!parse_image_spec (object, fmt, PNG_LAST, Qpng)
       || (fmt[PNG_ASCENT].count 
 	  && XFASTINT (fmt[PNG_ASCENT].value) > 100))
     return 0;
@@ -8410,7 +8397,7 @@ jpeg_image_p (object)
   
   bcopy (jpeg_format, fmt, sizeof fmt);
   
-  if (!parse_image_spec (object, fmt, JPEG_LAST, Qjpeg, 0)
+  if (!parse_image_spec (object, fmt, JPEG_LAST, Qjpeg)
       || (fmt[JPEG_ASCENT].count 
 	  && XFASTINT (fmt[JPEG_ASCENT].value) > 100))
     return 0;
@@ -8657,7 +8644,7 @@ tiff_image_p (object)
   struct image_keyword fmt[TIFF_LAST];
   bcopy (tiff_format, fmt, sizeof fmt);
   
-  if (!parse_image_spec (object, fmt, TIFF_LAST, Qtiff, 1)
+  if (!parse_image_spec (object, fmt, TIFF_LAST, Qtiff)
       || (fmt[TIFF_ASCENT].count 
 	  && XFASTINT (fmt[TIFF_ASCENT].value) > 100))
     return 0;
@@ -8833,7 +8820,7 @@ gif_image_p (object)
   struct image_keyword fmt[GIF_LAST];
   bcopy (gif_format, fmt, sizeof fmt);
   
-  if (!parse_image_spec (object, fmt, GIF_LAST, Qgif, 1)
+  if (!parse_image_spec (object, fmt, GIF_LAST, Qgif)
       || (fmt[GIF_ASCENT].count 
 	  && XFASTINT (fmt[GIF_ASCENT].value) > 100))
     return 0;
@@ -9102,7 +9089,7 @@ gs_image_p (object)
   
   bcopy (gs_format, fmt, sizeof fmt);
   
-  if (!parse_image_spec (object, fmt, GS_LAST, Qpostscript, 1)
+  if (!parse_image_spec (object, fmt, GS_LAST, Qpostscript)
       || (fmt[GS_ASCENT].count 
 	  && XFASTINT (fmt[GS_ASCENT].value) > 100))
     return 0;
@@ -10428,8 +10415,6 @@ Each element of the list is a symbol for a supported image type.");
   staticpro (&QCpt_height);
   QCindex = intern (":index");
   staticpro (&QCindex);
-  QCuser_data = intern (":user-data");
-  staticpro (&QCuser_data);
   Qpbm = intern ("pbm");
   staticpro (&Qpbm);
 
