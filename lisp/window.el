@@ -151,31 +151,37 @@ or if some of the window's contents are scrolled out of view,
 or if the window is not the full width of the frame,
 or if the window is the only window of its frame."
   (interactive)
+  (or window (setq window (selected-window)))
   (save-excursion
     (set-buffer (window-buffer window))
-    (let ((w (selected-window)) ;save-window-excursion can't win
-	  (buffer-file-name buffer-file-name)
-	  (p (point))
-	  (n 0)
-	  (ignore-final-newline
-	   ;; If buffer ends with a newline, ignore it when counting height
-	   ;; unless point is after it.
-	   (and (not (eobp))
-		(eq ?\n (char-after (1- (point-max))))))
-	  (buffer-read-only nil)
-	  (modified (buffer-modified-p))
-	  (buffer (current-buffer))
-	  (mini (cdr (assq 'minibuffer (frame-parameters))))
-	  (edges (window-edges (selected-window))))
-      (if (and (< 1 (count-windows))
-	       (= (window-width) (frame-width))
+    (let* ((w (selected-window))	;save-window-excursion can't win
+	   (buffer-file-name buffer-file-name)
+	   (p (point))
+	   (n 0)
+	   (ignore-final-newline
+	    ;; If buffer ends with a newline, ignore it when counting height
+	    ;; unless point is after it.
+	    (and (not (eobp))
+		 (eq ?\n (char-after (1- (point-max))))))
+	   (buffer-read-only nil)
+	   (modified (buffer-modified-p))
+	   (buffer (current-buffer))
+	   (params (frame-parameters (window-frame window)))
+	   (mini (cdr (assq 'minibuffer params)))
+	   (edges (window-edges (selected-window))))
+      (if (and (< 1 (let ((frame (selected-frame)))
+		      (select-frame (window-frame window))
+		      (unwind-protect
+			  (count-windows)
+			(select-frame frame))))
+	       (= (window-width window) (frame-width (window-frame window)))
 	       (pos-visible-in-window-p (point-min) window)
 	       (not (eq mini 'only))
 	       (or (not mini)
 		   (< (nth 3 edges)
 		      (nth 1 (window-edges mini)))
 		   (> (nth 1 edges)
-		      (cdr (assq 'menu-bar-lines (frame-parameters))))))
+		      (cdr (assq 'menu-bar-lines params)))))
 	  (unwind-protect
 	      (progn
 		(select-window (or window w))
