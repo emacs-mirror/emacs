@@ -1,10 +1,10 @@
 /*  impl.c.thlii3: Threads Manager for Intel x86 systems with LinuxThreads
  *
- *  $HopeName: MMsrc!thlii3.c(trunk.1) $
- *  Copyright (C) 2000 Harlequin Ltd, all rights reserved
+ *  $HopeName: MMsrc!thlii4.c(trunk.2) $
+ *  Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is a pthreads implementation of the threads manager.
- * This supports the impl.h.th
+ * This implements impl.h.th.
  *
  * .design: See design.mps.thread-manager.
  *
@@ -31,23 +31,22 @@
  * but don't assume that the stack pointer is necessarily 
  * word-aligned at the time of reading the context of another thread.
  *
- * .i3: assumes MPS_ARCH_I3
- * .i3.sp: The sp in the context is Esp
- * .context.regroots: the root regs are Edi, Esi, Ebx, Edx, Ecx, Eax are
- * assumed to be recorded in the context at pointer-aligned boundaries
+ * .sp: The stack pointer in the context is ESP.
+ * .context.regroots: The root regs are EDI, ESI, EBX, EDX, ECX, EAX are
+ * assumed to be recorded in the context at pointer-aligned boundaries.
  */
 
 #include "prmcli.h"
 #include "mpm.h"
 
-#if !defined(MPS_OS_LI) || !defined(MPS_ARCH_I3) 
-#error "Compiling thlii3 when MPS_OS_LI or MPS_ARCH_I3 not defined."
+#if !defined(MPS_OS_LI) || !defined(MPS_ARCH_I4)
+#error "Compiling thlii4 when MPS_OS_LI or MPS_ARCH_I4 not defined."
 #endif
 
 #include <pthread.h>
 #include "pthrdext.h"
 
-SRCID(thlii3, "$HopeName: MMsrc!thlii3.c(trunk.1) $");
+SRCID(thlii4, "$HopeName: MMsrc!thlii4.c(trunk.2) $");
 
 
 /* ThreadStruct -- thread desriptor */
@@ -283,6 +282,8 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
   return ResOK;
 }
 
+
+/* ThreadDescribe -- describe a thread */
 
 Res ThreadDescribe(Thread thread, mps_lib_FILE *stream)
 {
