@@ -1172,16 +1172,18 @@ This function should be a pre-command hook."
 	     (scroll comint-scroll-to-bottom-on-input))
 	(if (and process (< (point) (process-mark process))
 		 scroll (not (window-minibuffer-p selected)))
-	    (walk-windows
-	     (function (lambda (window)
-	       (if (and (eq (window-buffer window) current)
-			(or (eq scroll t) (eq scroll 'all)
-			    (and (eq scroll 'this) (eq selected window))))
-		   (progn
-		     (select-window window)
-		     (goto-char (point-max))
-		     (select-window selected)))))
-	     'not-minibuf t)))))
+	    (if (eq scroll 'this)
+		(goto-char (point-max))
+	      (walk-windows
+	       (function (lambda (window)
+		 (if (and (eq (window-buffer window) current)
+			  (or (eq scroll t) (eq scroll 'all)
+			      (and (eq scroll 'this) (eq selected window))))
+		     (progn
+		       (select-window window)
+		       (goto-char (point-max))
+		       (select-window selected)))))
+	       'not-minibuf t))))))
 
 (defun comint-postoutput-scroll-to-bottom (string)
   "Go to the end of buffer in all windows showing it.
