@@ -568,6 +568,7 @@ the matching is case-sensitive."
 		     (prefix-numeric-value nlines)
 		   list-matching-lines-default-context-lines))
 	 (current-tab-width tab-width)
+	 (inhibit-read-only t)
 	 ;; Minimum width of line number plus trailing colon.
 	 (min-line-number-width 6)
 	 ;; Width of line number prefix without the colon.  Choose a
