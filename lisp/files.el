@@ -1913,7 +1913,7 @@ This undoes all changes since the file was visited or saved.
 With a prefix argument, offer to revert from latest auto-save file, if
 that is more recent than the visited file.
 
-When called from lisp, The first argument is IGNORE-AUTO; only offer
+When called from Lisp, the first argument is IGNORE-AUTO; only offer
 to revert from the auto-save file when this is nil.  Note that the
 sense of this argument is the reverse of the prefix argument, for the
 sake of backward compatibility.  IGNORE-AUTO is optional, defaulting
