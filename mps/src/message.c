@@ -1,6 +1,6 @@
 /* impl.c.message: MPS / CLIENT MESSAGES
  *
- * $HopeName: MMsrc!message.c(trunk.6) $
+ * $HopeName: MMsrc!message.c(trunk.8) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All Rights Reserved.
  *
  * READERSHIP
@@ -20,7 +20,7 @@
 
 #include "mpm.h"
 
-SRCID(message, "$HopeName: MMsrc!message.c(trunk.6) $");
+SRCID(message, "$HopeName: MMsrc!message.c(trunk.8) $");
 
 
 /* Maps from a Ring pointer to the message */
@@ -349,28 +349,28 @@ void MessageFinalizationRef(Ref *refReturn, Arena arena,
   return;
 }
 
-Size MessageCollectionStatsLiveSize(Message message)
+Size MessageGCLiveSize(Message message)
 {
   AVERT(Message, message);
-  AVER(message->type == MessageTypeCollectionStats);
+  AVER(message->type == MessageTypeGC);
 
-  return (*message->class->collectionStatsLiveSize)(message);
+  return (*message->class->gcLiveSize)(message);
 }
 
-Size MessageCollectionStatsCondemnedSize(Message message)
+Size MessageGCCondemnedSize(Message message)
 {
   AVERT(Message, message);
-  AVER(message->type == MessageTypeCollectionStats);
+  AVER(message->type == MessageTypeGC);
 
-  return (*message->class->collectionStatsCondemnedSize)(message);
+  return (*message->class->gcCondemnedSize)(message);
 }
 
-Size MessageCollectionStatsNotCondemnedSize(Message message)
+Size MessageGCNotCondemnedSize(Message message)
 {
   AVERT(Message, message);
-  AVER(message->type == MessageTypeCollectionStats);
+  AVER(message->type == MessageTypeGC);
 
-  return (*message->class->collectionStatsNotCondemnedSize)(message);
+  return (*message->class->gcNotCondemnedSize)(message);
 }
 
 
@@ -386,7 +386,7 @@ void MessageNoFinalizationRef(Ref *refReturn, Arena arena,
   NOTREACHED;
 }
 
-Size MessageNoCollectionStatsLiveSize(Message message)
+Size MessageNoGCLiveSize(Message message)
 {
   AVERT(Message, message);
   UNUSED(message);
@@ -396,7 +396,7 @@ Size MessageNoCollectionStatsLiveSize(Message message)
   return (Size)0;
 }
 
-Size MessageNoCollectionStatsCondemnedSize(Message message)
+Size MessageNoGCCondemnedSize(Message message)
 {
   AVERT(Message, message);
   UNUSED(message);
@@ -406,7 +406,7 @@ Size MessageNoCollectionStatsCondemnedSize(Message message)
   return (Size)0;
 }
 
-Size MessageNoCollectionStatsNotCondemnedSize(Message message)
+Size MessageNoGCNotCondemnedSize(Message message)
 {
   AVERT(Message, message);
   UNUSED(message);
