@@ -118,31 +118,22 @@ ${archlibdir}: all
 	if [ `(cd ${archlibdir} && /bin/pwd)` != `/bin/pwd` ]; then \
 	  for file in ${UTILITIES}; do \
 	    $(INSTALL_PROGRAM) $$file ${archlibdir}/$$file ; \
-	    chmod 755 ${archlibdir}/$$file ; \
 	  done ; \
 	  for file in ${SCRIPTS}; do \
 	    $(INSTALL_PROGRAM) ${srcdir}/$$file ${archlibdir}/$$file ; \
-	    chmod 755 ${archlibdir}/$$file ; \
 	  done ; \
 	fi
 
 # We don't need to install `wakeup' explicitly, because it will be copied when
 # this whole directory is copied.
-# We use .n, not .new as before, to avoid exceeding the 14-character limit.
 install: ${archlibdir}
 	@echo
 	@echo "Installing utilities for users to run."
 	for file in ${INSTALLABLES} ; do \
-	  cp $${file} ${bindir}/$${file}.n ; \
-	  chmod 755 ${bindir}/$${file}.n ; \
+	  $(INSTALL_PROGRAM) $${file} ${bindir}/$${file} ; \
 	done
 	for file in ${INSTALLABLE_SCRIPTS} ; do \
-	  cp ${srcdir}/$${file} ${bindir}/$${file}.n ; \
-	  chmod 755 ${bindir}/$${file}.n ; \
-	done
-	-for file in ${INSTALLABLES}  ${INSTALLABLE_SCRIPTS} ; do \
-	  rm -f ${bindir}/$${file} ; \
-	  mv ${bindir}/$${file}.n ${bindir}/$${file} ; \
+	  $(INSTALL_PROGRAM) ${srcdir}/$${file} ${bindir}/$${file} ; \
 	done
 
 uninstall:
