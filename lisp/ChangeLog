@@ -1,3 +1,9 @@
+2005-01-19  Steven Tamm  <steventamm@mac.com>
+
+	* term/mac-win.el (process-connection-type): Use new
+	operating-system-release variable to use ptys on Darwin 7 (OSX
+	10.3) when using carbon build.
+
 2005-01-19  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-ext.el (calc-fancy-prefix-other-key): Don't clear

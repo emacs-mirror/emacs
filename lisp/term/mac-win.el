@@ -1696,8 +1696,9 @@ Switch to a buffer editing the last file dropped."
 
 ;; Tell Emacs to use pipes instead of pty's for processes because the
 ;; latter sometimes lose characters.  Pty support is compiled in since
-;; ange-ftp will not work without it.
-(setq process-connection-type nil)
+;; ange-ftp will not work without it.  Fixed with darwin 7 (OS X 10.3).
+(setq process-connection-type 
+      (not (string-match "^[0-6]\\." operating-system-release)))
 
 ;; Assume that fonts are always scalable on the Mac.  This sometimes
 ;; results in characters with jagged edges.  However, without it,
