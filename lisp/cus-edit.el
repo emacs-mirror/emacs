@@ -3133,6 +3133,8 @@ The format is suitable for use with `easy-menu-define'."
   (define-key custom-mode-map "\177" 'scroll-down)
   (define-key custom-mode-map "q" 'bury-buffer)
   (define-key custom-mode-map "u" 'Custom-goto-parent)
+  (define-key custom-mode-map "n" 'widget-forward)
+  (define-key custom-mode-map "p" 'widget-backward)
   (define-key custom-mode-map [mouse-1] 'Custom-move-and-invoke))
 
 (defun Custom-move-and-invoke (event)
