@@ -23,7 +23,8 @@
 (define-key function-key-map "\e[20~" [f9])
 (define-key function-key-map "\e[21~" [f10])
 ;; Customarily F11 is used as the ESC key.
-(define-key function-key-map "\e[23~" [?\e])
+;; The file that includes this one, takes care of that.
+(define-key function-key-map "\e[23~" [f11])
 (define-key function-key-map "\e[24~" [f12])
 (define-key function-key-map "\e[25~" [f13])
 (define-key function-key-map "\e[26~" [f14])
