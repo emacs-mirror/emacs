@@ -604,10 +604,11 @@ Elements which compare `equal' are modified to share the same list."
        ;; reduced to ~1k.  (`optimize-char-table' might win if
        ;; permutations were eliminated, but that's probably a small
        ;; effect and not easy to test.)
-       (let ((existing (car (member v cache))))
-	 (if existing
-	     (aset char-coding-system-table k existing)
-	   (push v cache))))
+       (if v
+	   (let ((existing (car (member v cache))))
+	     (if existing
+		 (aset char-coding-system-table k existing)
+	       (push v cache)))))
      char-coding-system-table))
   (optimize-char-table char-coding-system-table))
 
