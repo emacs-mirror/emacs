@@ -413,7 +413,10 @@ If argument is nil or an empty string, cancel for all functions."
 	  (if (nthcdr 5 contents)
 	      (setq body (cons (list 'interactive (nth 5 contents)) body)))
 	  (if (nth 4 contents)
-	      (setq body (cons (nth 4 contents) body)))
+	      ;; Use `documentation' here, to get the actual string,
+	      ;; in case the compiled function has a reference
+	      ;; to the .elc file.
+	      (setq body (cons (documentation function) body)))
 	  (fset function (cons 'lambda (cons (car contents) body)))))))
 
 (defun debug-on-entry-1 (function defn flag)
