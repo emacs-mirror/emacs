@@ -48,7 +48,7 @@
 
 (defgroup hl-line nil
   "Highliight the current line."
-  :version "20.5"
+  :version "21.1"
   :group 'editing)
 
 ;;;###autoload
