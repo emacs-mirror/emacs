@@ -1106,7 +1106,8 @@ this form:
 
 @example
 (@var{event-type}
- (@var{window} @var{buffer-pos} (@var{x} . @var{y}) @var{timestamp})
+ (@var{window} @var{buffer-pos} (@var{x} . @var{y})
+  @var{timestamp})
  @var{click-count})
 @end example
 
