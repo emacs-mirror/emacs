@@ -510,7 +510,7 @@ Do the same for the keys of the same name."
 (define-key menu-bar-custom-menu [customize-apropos]
   '(menu-item "Settings Matching Regexp..." customize-apropos
 	      :help "Browse customizable settings whose names match regexp"))
-(define-key menu-bar-custom-menu [separator-2]
+(define-key menu-bar-custom-menu [separator-1]
   '("--"))
 (define-key menu-bar-custom-menu [customize-group]
   '(menu-item "Specific Group..." customize-group
@@ -520,10 +520,15 @@ Do the same for the keys of the same name."
 	      :help "Customize attributes of specific face"))
 (define-key menu-bar-custom-menu [customize-option]
   '(menu-item "Specific Option..." customize-option
-	      :help "Change value of specific option"))
+	      :help "Customize value of specific option"))
+(define-key menu-bar-custom-menu [separator-2]
+  '("--"))
 (define-key menu-bar-custom-menu [customize-changed-options]
-  '(menu-item "Recently Changed Options..." customize-changed-options
-	      :help "Customize options changed in recent versions"))
+  '(menu-item "New Options..." customize-changed-options
+	      :help "Options added or changed in recent Emacs versions"))
+(define-key menu-bar-custom-menu [customize-saved]
+  '(menu-item "Saved Options" customize-saved
+	      :help "Customize previously saved options"))
 (define-key menu-bar-custom-menu [separator-3]
   '("--"))
 (define-key menu-bar-custom-menu [customize-browse]
