@@ -353,6 +353,7 @@ Accept any number of arguments, but ignore them."
 (fset 'backward-delete-char 'delete-backward-char)
 (fset 'search-forward-regexp (symbol-function 're-search-forward))
 (fset 'search-backward-regexp (symbol-function 're-search-backward))
+(fset 'int-to-string 'number-to-string)
 
 ;;; Should this be an obsolete name?  If you decide it should, you get
 ;;; to go through all the sources and change them.
