@@ -1,5 +1,7 @@
 2004-09-14  Kim F. Storm  <storm@cua.dk>
 
+	* puresize.h (PURESIZE_RATIO): Define based on BITS_PER_EMACS_INT.
+
 	* xfaces.c (Qface_no_inherit): New var.
 	(syms_of_xfaces): Intern and staticpro it.
 	(Finternal_make_lisp_face, Finternal_set_lisp_face_attribute)
