@@ -269,9 +269,10 @@ POS defaults to point; WINDOW, to the selected window.")
      Lisp_Object pos, window;
 {
   register struct window *w;
-  struct text_pos top;
   register int posint;
   register struct buffer *buf;
+  struct text_pos top;
+  Lisp_Object in_window;
 
   if (NILP (pos))
     posint = PT;
@@ -282,39 +283,35 @@ POS defaults to point; WINDOW, to the selected window.")
     }
 
   w = decode_window (window);
+  buf = XBUFFER (w->buffer);
   SET_TEXT_POS_FROM_MARKER (top, w->start);
 
   /* If position above window, it's not visible.  */
   if (posint < CHARPOS (top))
-    return Qnil;
-
-  buf = XBUFFER (w->buffer);
-  if (XFASTINT (w->last_modified) >= BUF_MODIFF (buf)
-      && XFASTINT (w->last_overlay_modified) >= BUF_OVERLAY_MODIFF (buf))
-    {
-      /* If frame is up to date,
-	 use the info recorded about how much text fit on it.  */
-      if (posint < BUF_Z (buf) - XFASTINT (w->window_end_pos))
-	return Qt;
-      return Qnil;
-    }
+    in_window = Qnil;
+  else if (XFASTINT (w->last_modified) >= BUF_MODIFF (buf)
+      && XFASTINT (w->last_overlay_modified) >= BUF_OVERLAY_MODIFF (buf)
+      && posint < BUF_Z (buf) - XFASTINT (w->window_end_pos))
+    /* If frame is up to date, and POSINT is < window end pos, use
+       that info.  This doesn't work for POSINT == end pos, because
+       the window end pos is actually the position _after_ the last
+       char in the window.  */
+    in_window = Qt;
+  else if (posint > BUF_ZV (buf))
+    in_window = Qnil;
+  else if (CHARPOS (top) < BUF_BEGV (buf) || CHARPOS (top) > BUF_ZV (buf))
+    /* If window start is out of range, do something reasonable.  */
+    in_window = Qnil;
   else
     {
       struct it it;
-
-      if (posint > BUF_ZV (buf))
-	return Qnil;
-
-      /* w->start can be out of range.  If it is, do something reasonable.  */
-      if (CHARPOS (top) < BUF_BEGV (buf)
-	  || CHARPOS (top) > BUF_ZV (buf))
-	return Qnil;
-
       start_display (&it, w, top);
       move_it_to (&it, posint, 0, it.last_visible_y, -1,
-		  MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
-      return IT_CHARPOS (it) == posint ? Qt : Qnil;
+ 		  MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
+      in_window = IT_CHARPOS (it) == posint ? Qt : Qnil;
     }
+
+  return in_window;
 }
 
 static struct window *
