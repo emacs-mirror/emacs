@@ -1864,8 +1864,8 @@ Dead accent is right to ,Af(B." nil t t t t nil nil nil nil nil t)
 
 ;;
 (quail-define-package
- "finish-keyboard" "Latin-1" "FI@" t
- "Finish input method simulating SUN Finnish/Swedish keyboard"
+ "finnish-keyboard" "Latin-1" "FI@" t
+ "Finnish input method simulating SUN Finnish/Swedish keyboard"
  nil t t t t nil nil nil nil nil t)
 
 ;; 1!  2"  3#  4,A$(B  5%  6&  7/  8(  9)  0=  +?  ,A'=(B  ~^
