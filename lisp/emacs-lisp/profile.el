@@ -1,4 +1,4 @@
-;;; profile.el --- generate run time measurements of Emacs Lisp functions
+;;; profile.el --- Emacs profiler (OBSOLETE; use elp.el instead)
 
 ;; Copyright (C) 1992, 1994, 1998 Free Software Foundation, Inc.
 
