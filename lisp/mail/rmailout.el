@@ -333,12 +333,18 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 FILE-NAME defaults, interactively, from the Subject field of the message."
   (interactive
    (let ((default-file
-	   (mail-fetch-field "Subject")))
-     (list (read-file-name
-	    "Output message body to file: "
-	    (file-name-directory default-file)
-	    default-file
-	    nil default-file))))
+	   (or (mail-fetch-field "Subject")
+	       rmail-default-body-file)))
+     (list (setq rmail-default-body-file
+		 (read-file-name
+		  "Output message body to file: "
+		  (and default-file (file-name-directory default-file))
+		  default-file
+		  nil default-file)))))
+  (setq file-name
+	(expand-file-name file-name
+			  (and rmail-default-body-file
+			       (file-name-directory rmail-default-body-file))))
   (save-excursion
     (goto-char (point-min))
     (search-forward "\n\n")
