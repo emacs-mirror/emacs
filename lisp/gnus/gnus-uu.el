@@ -59,8 +59,8 @@
   '(("\\.te?xt$\\|\\.doc$\\|read.*me\\|\\.c?$\\|\\.h$\\|\\.bat$\\|\\.asm$\\|makefile" "cat %s | sed 's/\r$//'")
     ("\\.pas$" "cat %s | sed 's/\r$//'")
     ("\\.[1-9]$" "groff -mandoc -Tascii %s | sed s/\b.//g")
-    ("\\.\\(jpe?g\\|gif\\|tiff?\\|p[pgb]m\\|xwd\\|xbm\\|pcx\\)$" "xv")
-    ("\\.tga$" "tgatoppm %s | xv -")
+    ("\\.\\(jpe?g\\|gif\\|tiff?\\|p[pgb]m\\|xwd\\|xbm\\|pcx\\)$" "display")
+    ("\\.tga$" "tgatoppm %s | ee -")
     ("\\.\\(wav\\|aiff\\|hcom\\|u[blw]\\|s[bfw]\\|voc\\|smp\\)$"
      "sox -v .5 %s -t .au -u - > /dev/audio")
     ("\\.au$" "cat %s > /dev/audio")
