@@ -8,3 +8,6 @@
 
 /* Resolve BSD string functions in X Window library from libucb.a.  */
 #define BSTRING
+
+/* kelsey@mdd.comm.mot.com says this makes X windows work.  */
+#define BROKEN_FIONREAD
