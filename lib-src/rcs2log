@@ -29,9 +29,9 @@ Options:
 
 Report bugs to <bug-gnu-emacs@gnu.org>.'
 
-Id='$Id: rcs2log,v 1.47 2001/07/20 09:05:26 gerd Exp eggert $'
+Id='$Id: rcs2log,v 1.48 2001/09/05 23:07:46 eggert Exp $'
 
-# Copyright 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2001
+# Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2001, 2002
 #  Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
@@ -49,7 +49,7 @@ Id='$Id: rcs2log,v 1.47 2001/07/20 09:05:26 gerd Exp eggert $'
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
-Copyright='Copyright 2001 Free Software Foundation, Inc.
+Copyright='Copyright (C) 2002 Free Software Foundation, Inc.
 This program comes with NO WARRANTY, to the extent permitted by law.
 You may redistribute copies of this program
 under the terms of the GNU General Public License.
@@ -79,8 +79,8 @@ nl='
 # Parse options.
 
 # defaults
-: ${AWK=awk}
-: ${TMPDIR=/tmp}
+AWK=${AWK-awk}
+TMPDIR=${TMPDIR-/tmp}
 changelog=ChangeLog # change log file name
 datearg= # rlog date option
 hostname= # name of local host (if empty, will deduce it later)
@@ -354,6 +354,12 @@ case $rlogfile in
 esac
 
 
+# Prefer the POSIX-style -k options, since POSIX 1003.1-2001 prohibits
+# support for the traditional-style +M -N options.
+SORT_K_OPTIONS='-k 3,4r -k 5 -k 1'
+sort $SORT_K_OPTIONS </dev/null 2>/dev/null || SORT_K_OPTIONS='+2 -4r +4 +0'
+
+
 # Get the full name of each author the logs mention, and set initialize_fullname
 # to awk code that initializes the `fullname' awk associative array.
 # Warning: foreign authors (i.e. not known in the passwd file) are mishandled;
@@ -615,7 +621,7 @@ $AWK '
 # Sort the log entries, first by date+time (in reverse order),
 # then by author, then by log entry, and finally by file name and revision
 # (just in case).
-sort -t"$SOH" +2 -4r +4 +0 |
+sort -t"$SOH" $SORT_K_OPTIONS |
 
 # Finally, reformat the sorted log entries.
 $AWK -F"$SOH" '
