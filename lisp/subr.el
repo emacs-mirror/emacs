@@ -24,7 +24,7 @@
   "Record `defcustom' calls made before `custom.el' is loaded to handle them.
 Each element of this list holds the arguments to one call to `defcustom'.")
 
-;; Use this rather that defcustom, in subr.el and other files loaded
+;; Use this, rather than defcustom, in subr.el and other files loaded
 ;; before custom.el.
 (defun custom-declare-variable-early (&rest arguments)
   (setq custom-declare-variable-list
