@@ -2529,8 +2529,7 @@ Outline mode sets this."
 	new line-end line-beg)
     (unwind-protect
 	(progn
-	  (if (not (or (eq last-command 'next-line)
-		       (eq last-command 'previous-line)))
+	  (if (not (memq last-command '(next-line previous-line)))
 	      (setq temporary-goal-column
 		    (if (and track-eol (eolp)
 			     ;; Don't count beg of empty line as end of line
@@ -2743,6 +2742,7 @@ With prefix arg ARG, effect is to take word before or around point
 and drag it forward past ARG other words (backward if ARG negative).
 If ARG is zero, the words around or after point and around or after mark
 are interchanged."
+  ;; FIXME: `foo a!nd bar' should transpose into `bar and foo'.
   (interactive "*p")
   (transpose-subr 'forward-word arg))
 
@@ -2751,7 +2751,35 @@ are interchanged."
 Does not work on a sexp that point is in the middle of
 if it is a list or string."
   (interactive "*p")
-  (transpose-subr 'forward-sexp arg))
+  (transpose-subr
+   (lambda (arg)
+     ;; Here we should try to simulate the behavior of
+     ;; (cons (progn (forward-sexp x) (point))
+     ;;       (progn (forward-sexp (- x)) (point)))
+     ;; Except that we don't want to rely on the second forward-sexp
+     ;; putting us back to where we want to be, since forward-sexp-function
+     ;; might do funny things like infix-precedence.
+     (if (if (> arg 0)
+	     (looking-at "\\sw\\|\\s_")
+	   (and (not (bobp))
+		(save-excursion (forward-char -1) (looking-at "\\sw\\|\\s_"))))
+	 ;; Jumping over a symbol.  We might be inside it, mind you.
+	 (progn (funcall (if (> arg 0)
+			     'skip-syntax-backward 'skip-syntax-forward)
+			 "w_")
+		(cons (save-excursion (forward-sexp arg) (point)) (point)))
+       ;; Otherwise, we're between sexps.  Take a step back before jumping
+       ;; to make sure we'll obey the same precedence no matter which direction
+       ;; we're going.
+       (funcall (if (> arg 0) 'skip-syntax-backward 'skip-syntax-forward) " .")
+       (cons (save-excursion (forward-sexp arg) (point))
+	     (progn (while (or (forward-comment (if (> arg 0) 1 -1))
+			       (not (zerop (funcall (if (> arg 0)
+							'skip-syntax-forward
+						      'skip-syntax-backward)
+						    ".")))))
+		    (point)))))
+   arg 'special))
 
 (defun transpose-lines (arg)
   "Exchange current line and previous line, leaving point after both.
@@ -2940,9 +2968,7 @@ Setting this variable automatically makes it local to the current buffer.")
 	;; Determine where to split the line.
 	(let* (after-prefix
 	       (fill-point
-		(let ((opoint (point))
-		      bounce
-		      (first t))
+		(let ((opoint (point)))
 		  (save-excursion
 		    (beginning-of-line)
 		    (setq after-prefix (point))
@@ -2950,87 +2976,50 @@ Setting this variable automatically makes it local to the current buffer.")
 			 (looking-at (regexp-quote fill-prefix))
 			 (setq after-prefix (match-end 0)))
 		    (move-to-column (1+ fc))
-		    ;; Move back to the point where we can break the line.
-		    ;; We break the line between word or
-		    ;; after/before the character which has character
-		    ;; category `|'.  We search space, \c| followed by
-		    ;; a character, or \c| following a character.  If
-		    ;; not found, place the point at beginning of line.
-		    (while (or first
-			       (and (not (bobp))
-				    (not bounce)
-				    (fill-nobreak-p)))
-		      (setq first nil)
-		      (re-search-backward "[ \t]\\|\\c|.\\|.\\c|\\|^")
-		      ;; If we find nowhere on the line to break it,
-		      ;; break after one word.  Set bounce to t
-		      ;; so we will not keep going in this while loop.
-		      (if (<= (point) after-prefix)
-			  (progn
-			    (goto-char after-prefix)
-			    (re-search-forward "[ \t]" opoint t)
-			    (setq bounce t))
-			(if (looking-at "[ \t]")
-			    ;; Break the line at word boundary.
-			    (skip-chars-backward " \t")
-			  ;; Break the line after/before \c|.
-			  (forward-char 1))))
-		    (if enable-multibyte-characters
-			;; If we are going to break the line after or
-			;; before a non-ascii character, we may have
-			;; to run a special function for the charset
-			;; of the character to find the correct break
-			;; point.
-			(if (not (and (eq (charset-after (1- (point))) 'ascii)
-				      (eq (charset-after (point)) 'ascii)))
-			    (fill-find-break-point after-prefix)))
-
-		    ;; Let fill-point be set to the place where we end up.
-		    ;; But move back before any whitespace here.
-		    (skip-chars-backward " \t")
+		    (fill-move-to-break-point after-prefix)
 		    (point)))))
 
 	  ;; See whether the place we found is any good.
 	  (if (save-excursion
 		(goto-char fill-point)
-		(and (not (bolp))
-		     ;; There is no use breaking at end of line.
-		     (not (save-excursion (skip-chars-forward " ") (eolp)))
-		     ;; It is futile to split at the end of the prefix
-		     ;; since we would just insert the prefix again.
-		     (not (and after-prefix (<= (point) after-prefix)))
-		     ;; Don't split right after a comment starter
-		     ;; since we would just make another comment starter.
-		     (not (and comment-start-skip
-			       (let ((limit (point)))
-				 (beginning-of-line)
-				 (and (re-search-forward comment-start-skip
-							 limit t)
-				      (eq (point) limit)))))))
-	      ;; Ok, we have a useful place to break the line.  Do it.
-	      (let ((prev-column (current-column)))
-		;; If point is at the fill-point, do not `save-excursion'.
-		;; Otherwise, if a comment prefix or fill-prefix is inserted,
-		;; point will end up before it rather than after it.
-		(if (save-excursion
-		      (skip-chars-backward " \t")
-		      (= (point) fill-point))
-		    (funcall comment-line-break-function t)
+		(or (bolp)
+		    ;; There is no use breaking at end of line.
+		    (save-excursion (skip-chars-forward " ") (eolp))
+		    ;; It is futile to split at the end of the prefix
+		    ;; since we would just insert the prefix again.
+		    (and after-prefix (<= (point) after-prefix))
+		    ;; Don't split right after a comment starter
+		    ;; since we would just make another comment starter.
+		    (and comment-start-skip
+			 (let ((limit (point)))
+			   (beginning-of-line)
+			   (and (re-search-forward comment-start-skip
+						   limit t)
+				(eq (point) limit))))))
+	      ;; No good place to break => stop trying.
+	      (setq give-up t)
+	    ;; Ok, we have a useful place to break the line.  Do it.
+	    (let ((prev-column (current-column)))
+	      ;; If point is at the fill-point, do not `save-excursion'.
+	      ;; Otherwise, if a comment prefix or fill-prefix is inserted,
+	      ;; point will end up before it rather than after it.
+	      (if (save-excursion
+		    (skip-chars-backward " \t")
+		    (= (point) fill-point))
+		  (funcall comment-line-break-function t)
+		(save-excursion
+		  (goto-char fill-point)
+		  (funcall comment-line-break-function t)))
+	      ;; Now do justification, if required
+	      (if (not (eq justify 'left))
 		  (save-excursion
-		    (goto-char fill-point)
-		    (funcall comment-line-break-function t)))
-		;; Now do justification, if required
-		(if (not (eq justify 'left))
-		    (save-excursion
 		    (end-of-line 0)
 		    (justify-current-line justify nil t)))
-		;; If making the new line didn't reduce the hpos of
-		;; the end of the line, then give up now;
-		;; trying again will not help.
-		(if (>= (current-column) prev-column)
-		    (setq give-up t)))
-	    ;; No good place to break => stop trying.
-	    (setq give-up t))))
+	      ;; If making the new line didn't reduce the hpos of
+	      ;; the end of the line, then give up now;
+	      ;; trying again will not help.
+	      (if (>= (current-column) prev-column)
+		  (setq give-up t))))))
       ;; Justify last line.
       (justify-current-line justify t t)
       t)))
@@ -4077,34 +4066,6 @@ the front of the list of recently selected ones."
     (clone-indirect-buffer nil t norecord)))
 
 (define-key ctl-x-4-map "c" 'clone-indirect-buffer-other-window)
-
-
-;;; Syntax stuff.
-
-(defconst syntax-code-table
-    '((?\ 0 "whitespace")
-      (?- 0 "whitespace")
-      (?. 1 "punctuation")
-      (?w 2 "word")
-      (?_ 3 "symbol")
-      (?\( 4 "open parenthesis")
-      (?\) 5 "close parenthesis")
-      (?\' 6 "expression prefix")
-      (?\" 7 "string quote")
-      (?$ 8 "paired delimiter")
-      (?\\ 9 "escape")
-      (?/ 10 "character quote")
-      (?< 11 "comment start")
-      (?> 12 "comment end")
-      (?@ 13 "inherit")
-      (nil 14 "comment fence")
-      (nil 15 "string fence"))
-    "Alist of forms (CHAR CODE DESCRIPTION) mapping characters to syntax info.
-CHAR is a character that is allowed as first char in the string
-specifying the syntax when calling `modify-syntax-entry'.  CODE is the
-corresponing syntax code as it is stored in a syntax cell, and
-can be used as value of a `syntax-table' property.
-DESCRIPTION is the descriptive string for the syntax.")
 
 
 ;;; Handling of Backspace and Delete keys.
