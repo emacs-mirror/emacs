@@ -1,3 +1,24 @@
+2001-11-24  Jason Rumney  <jasonr@gnu.org>
+
+	* xfns.c (compute_tip_xy): Initialize root_x and root_y from
+	mouse position if either left or top is not specified.
+
+	* w32fns.c (w32_wnd_proc) <WM_MENUSELECT>: Revert last change.
+	<WM_WINDOWPOSCHANGING>: Let tip frames resize without restriction.
+	(my_create_tip_window, Fx_show_tip): Adjust size for external border.
+	(my_create_tip_window): Assign tip_window.
+	(x_create_tip_frame): Use same defaults as X.
+	(compute_tip_xy): Remove unused variable.  Use full screen width.
+	(Fx_show_tip): Do not double height. Call ShowWindow directly.
+
+	* w32term.c (x_after_update_window_line): Doc fix.
+	(w32_read_socket): Doc fix.  Avoid SET_FRAME_GARBAGED for tip
+	frames.
+	<WM_SHOWWINDOW>: Redo mouse highlight when hiding tip frame.
+
+	* xdisp.c (prepare_menu_bars) [HAVE_WINDOW_SYSTEM]: Use tip_frame
+	for all Windowed systems.
+
 2001-11-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (IT_clear_screen): If the frame's faces are not yet
