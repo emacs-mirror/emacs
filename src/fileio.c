@@ -4260,7 +4260,7 @@ actually used.  */)
       if (how_much < 0)
 	{
 	  xfree (conversion_buffer);
-
+	  coding_free_composition_data (&coding);
 	  if (how_much == -1)
 	    error ("IO error reading %s: %s",
 		   SDATA (orig_filename), emacs_strerror (errno));
@@ -4282,6 +4282,7 @@ actually used.  */)
       if (bufpos == inserted)
 	{
 	  xfree (conversion_buffer);
+	  coding_free_composition_data (&coding);
 	  emacs_close (fd);
 	  specpdl_ptr--;
 	  /* Truncate the buffer to the size of the file.  */
