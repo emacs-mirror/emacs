@@ -1,3 +1,9 @@
+2001-05-17  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* files.el (switch-to-buffer-other-window)
+	(switch-to-buffer-other-frame): Add an xref to display-buffer in
+	the doc string.
+
 2001-05-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* language/slovak.el, language/czech.el: New maintainer.
