@@ -1,6 +1,6 @@
 ;;; sendmail.el --- mail sending commands for Emacs.  -*- byte-compile-dynamic: t -*-
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 98, 2000, 2001
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 98, 2000, 2001, 2002
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -300,6 +300,16 @@ Including non-ASCII characters in a mail message can be problematical
 for the recipient, who may not know how to decode them properly."
   :type '(choice (const t) (const nil) (const query) (const mime))
   :group 'sendmail)
+
+(defcustom mail-use-dsn nil
+  "*Ask MTA for notification of failed, delayed or successful delivery.
+Note that only some MTAs (currently only recent versions of Sendmail)
+support Delivery Status Notification."
+  :group 'sendmail
+  :type '(repeat (radio (const :tag "Failure" failure)
+			(const :tag "Delay" delay)
+			(const :tag "Success" success)))
+  :version "21.3")
 
 ;; Note: could use /usr/ucb/mail instead of sendmail;
 ;; options -t, and -v if not interactive.
@@ -991,6 +1001,9 @@ external program defined by `sendmail-program'."
 ;;;			      (or resend-to-addresses
 				  '("-t")
 ;;;				  )
+			      (if mail-use-dsn
+				  (list "-N" (mapconcat 'symbol-name
+							mail-use-dsn ",")))
 			      )
 		      )
 		     (exit-value (apply 'call-process-region args)))
