@@ -1850,9 +1850,9 @@ of the function `insert-file-contents'."
 	    (setq coding (funcall set-auto-coding-function
 				  filename (- (point-max) (point-min)))))
 	(or coding
-	    (setq coding (find-operation-coding-system
-			  'insert-file-contents
-			  filename visit beg end replace)))
+	    (setq coding (car (find-operation-coding-system
+			       'insert-file-contents
+			       filename visit beg end replace))))
 	(if (coding-system-p coding)
 	    (or enable-multibyte-characters
 		(setq coding
