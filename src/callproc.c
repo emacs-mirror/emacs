@@ -633,6 +633,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   struct gcpro gcpro1;
   Lisp_Object filename_string;
   register Lisp_Object start, end;
+  int count = specpdl_ptr - specpdl;
 #ifdef DOS_NT
   char *tempfile;
   char *outf = '\0';
