@@ -1499,7 +1499,7 @@ selection_data_to_lisp_data (display, data, size, type, format)
 	  buf = (unsigned char *) xmalloc (bufsize);
 	  size = decode_coding (&coding, data, buf, size, bufsize, &dummy);
 	  str = make_string ((char *) buf, size);
-	  xfree (buf);
+	  free (buf);
 	}
       return str;
     }
