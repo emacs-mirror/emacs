@@ -473,6 +473,8 @@ M-x customize-group RET recentf RET.
 
 *** mldrag.el has been removed.  mouse.el provides the same
 functionality with aliases for the mldrag functions.
+
+*** eval-reg.el has been obsoleted by changes to edebug.el.
 
 * Lisp changes in Emacs 21.1 (see following page for display-related features)
 
