@@ -46,9 +46,9 @@
 ;; browse-url-mmm        MMM         ?
 ;; browse-url-generic    arbitrary
 
-;; [The Netscape browser is now free software
+;; [A version of the Netscape browser is now free software
 ;; <URL:http://www.mozilla.org/>, albeit not GPLed, so it is
-;; reasonable to keep it as the default.]
+;; reasonable to have that as the default.]
 
 ;; Note that versions of Netscape before 1.1b1 did not have remote
 ;; control.  <URL:http://www.netscape.com/newsref/std/x-remote.html>.
