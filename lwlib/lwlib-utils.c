@@ -33,6 +33,7 @@ Boston, MA 02111-1307, USA.  */
 #include <X11/IntrinsicP.h>
 #include <X11/ObjectP.h>
 #include "lwlib-utils.h"
+#include "lwlib.h"
 
 /* Redisplay the contents of the widget, without first clearing it. */
 void
