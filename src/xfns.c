@@ -196,7 +196,7 @@ Lisp_Object Qdisplay;
 
 /* The below are defined in frame.c.  */
 extern Lisp_Object Qheight, Qminibuffer, Qname, Qonly, Qwidth;
-extern Lisp_Object Qunsplittable, Qmenu_bar_lines, Qbuffer_predicate;
+extern Lisp_Object Qunsplittable, Qmenu_bar_lines, Qbuffer_predicate, Qtitle;
 
 extern Lisp_Object Vwindow_system_version;
 
@@ -2939,7 +2939,7 @@ This function is an internal primitive--use `make-frame' instead.")
   kb = &the_only_kboard;
 #endif
 
-  name = x_get_arg (parms, Qname, "title", "Title", string);
+  name = x_get_arg (parms, Qname, "name", "Name", string);
   if (!STRINGP (name)
       && ! EQ (name, Qunbound)
       && ! NILP (name))
@@ -3094,6 +3094,8 @@ This function is an internal primitive--use `make-frame' instead.")
 		       "scrollBarWidth", "ScrollBarWidth", number);
   x_default_parameter (f, parms, Qbuffer_predicate, Qnil,
 		       "bufferPredicate", "BufferPredicate", symbol);
+  x_default_parameter (f, parms, Qtitle, Qnil,
+		       "title", "Title", symbol);
 
   f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
   window_prompting = x_figure_window_size (f, parms);
