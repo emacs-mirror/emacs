@@ -28,8 +28,8 @@
 
 ;; Obsolete.
 ;; Use the `derived-major-mode' provided by easy-mmode.el instead.
-;; It is only kept for backward compatibility with byte-compiled files
-;; which refer to `derived-mode-init-mode-variables' and other functions.
+;; It is only kept for backward compatibility with Emacs-20 byte-compiled
+;; files that refer to `derived-mode-init-mode-variables' and other functions.
 
 
 
@@ -104,6 +104,8 @@
 ;; PUBLIC: define a new major mode which inherits from an existing one.
 
 ;; ;;;###autoload
+;; Don't override the definition provided by easy-mmode.el
+(unless (fboundp 'define-derived-mode)
 (defmacro define-derived-mode (child parent name &optional docstring &rest body)
   "Create a new mode as a variant of an existing mode.
 
@@ -168,7 +170,7 @@ been generated automatically, with a reference to the keymap."
 ;;;					; obsolete.
 ;;;	 (derived-mode-run-setup-function (quote ,child))
 					; Run the hooks, if any.
-       (derived-mode-run-hooks (quote ,child)))))
+       (derived-mode-run-hooks (quote ,child))))))
 
 
 ;; PUBLIC: find the ultimate class of a derived mode.
