@@ -44,9 +44,13 @@ extern int command_loop_level;
 
 extern Lisp_Object Qface;
 
-/* Nonzero means print newline before next minibuffer message.  */
+/* Nonzero means print newline to stdout before next minibuffer message.  */
 
 int noninteractive_need_newline;
+
+/* Nonzero means print newline to message log before next message.  */
+
+int message_log_need_newline;
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
@@ -211,17 +215,14 @@ int line_number_display_limit;
    t means infinite.  nil means don't log at all.  */
 Lisp_Object Vmessage_log_max;
 
-/* Display an echo area message M with a specified length of LEN chars.
-   The string may include null characters.  If m is 0, clear out any
-   existing message, and let the minibuffer text show through.
-   Do not pass text that is stored in a Lisp string.  */
+/* Add a string to the message log, optionally terminated with a newline.  */
 
 void
-message2 (m, len)
+message_dolog (m, len, nlflag)
      char *m;
-     int len;
+     int len, nlflag;
 {
-  if (m && !NILP (Vmessage_log_max))
+  if (!NILP (Vmessage_log_max))
     {
       struct buffer *oldbuf;
       int oldpoint, oldbegv, oldzv;
@@ -232,12 +233,14 @@ message2 (m, len)
       oldbegv = BEGV;
       oldzv = ZV;
       if (oldpoint == Z)
-	oldpoint += len + 1;
+	oldpoint += len + nlflag;
       if (oldzv == Z)
-	oldzv += len + 1;
+	oldzv += len + nlflag;
       TEMP_SET_PT (Z);
-      insert_1 (m, len, 1, 0);
-      insert_1 ("\n", 1, 1, 0);
+      if (len)
+	insert_1 (m, len, 1, 0);
+      if (nlflag)
+	insert_1 ("\n", 1, 1, 0);
       if (NATNUMP (Vmessage_log_max))
 	{
 	  Lisp_Object n;
@@ -253,6 +256,25 @@ message2 (m, len)
       TEMP_SET_PT (oldpoint);
       set_buffer_internal (oldbuf);
     }
+}
+
+
+/* Display an echo area message M with a specified length of LEN chars.
+   The string may include null characters.  If m is 0, clear out any
+   existing message, and let the minibuffer text show through.
+   Do not pass text that is stored in a Lisp string.  */
+
+void
+message2 (m, len)
+     char *m;
+     int len;
+{
+  /* First flush out any partial line written with print.  */
+  if (message_log_need_newline)
+    message_dolog ("", 0, 1);
+  message_log_need_newline = 0;
+  if (m)
+    message_dolog (m, len, 1);
   message2_nolog (m, len);
 }
 
