@@ -9,6 +9,9 @@
 	* ibuf-ext.el (ibuffer-toggle-sorting-mode): Make it work.  Patch
 	from John Paul Wallington <jpw@shootybangbang.com>.
 
+	* ibuffer.el (ibuffer-truncate-lines): New option.
+	  (ibuffer-mode):  Use it.
+
 2002-02-17  Kim F. Storm  <storm@cua.dk>
 
 	* cus-start.el: Add mouse-highlight.
