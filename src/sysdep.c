@@ -2701,13 +2701,6 @@ bcmp (b1, b2, length)	/* This could be a macro! */
 #ifndef HAVE_RANDOM
 #ifndef random 
 
-/*
- *	The BSD random returns numbers in the range of
- *	0 to 2e31 - 1.  The USG rand returns numbers in the
- *	range of 0 to 2e15 - 1.  This is probably not significant
- *	in this usage.
- */
-  
 long
 random ()
 {
