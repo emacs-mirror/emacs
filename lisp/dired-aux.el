@@ -400,7 +400,13 @@ output files usually are created there instead of in a subdir."
 (defun dired-call-process (program discard &rest arguments)
 ;  "Run PROGRAM with output to current buffer unless DISCARD is t.
 ;Remaining arguments are strings passed as command arguments to PROGRAM."
-  (apply 'call-process program nil (not discard) nil arguments))
+  ;; Look for a handler for default-directory in case it is a remote file name.
+  (let ((handler
+	 (find-file-name-handler (directory-file-name default-directory)
+				 'dired-call-process)))
+    (if handler (apply handler 'dired-call-process
+		       program discard arguments)
+      (apply 'call-process program nil (not discard) nil arguments))))
 
 (defun dired-check-process (msg program &rest arguments)
 ;  "Display MSG while running PROGRAM, and check for output.
