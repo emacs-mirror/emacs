@@ -130,7 +130,7 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; Unknown who does this:
     ;;  Line 45 of "foo.c": bloofel undefined
     ("\n\\(Error on \\)?[Ll]ine[ \t]+\\([0-9]+\\)[ \t]+\
-of[ \t]+\"?\\([^\"\n]+\\)\"?:" 3 2)
+of[ \t]+\"?\\([^\":\n]+\\)\"?:" 3 2)
 
     ;; Apollo cc, 4.3BSD fc:
     ;;	"foo.f", line 3: Error: syntax error near end of statement
