@@ -1,6 +1,6 @@
 ;;; paragraphs.el --- paragraph and sentence parsing.
 
-;; Copyright (C) 1985, 86, 87, 91, 94, 95, 96, 1997, 1999
+;; Copyright (C) 1985, 86, 87, 91, 94, 95, 96, 1997, 1999, 2000, 2001
 ;;    Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -369,7 +369,8 @@ sentences.  Also, every paragraph boundary terminates sentences as well."
   (let ((opoint (point)))
     (while (< arg 0)
       (let ((par-beg (save-excursion (start-of-paragraph-text) (point))))
-       (if (re-search-backward (concat sentence-end "[^ \t\n]") par-beg t)
+       (if (re-search-backward (concat "\\(" sentence-end "\\)[^ \t\n]")
+			       par-beg t)
 	   (goto-char (1- (match-end 0)))
 	 (goto-char par-beg)))
       (setq arg (1+ arg)))
