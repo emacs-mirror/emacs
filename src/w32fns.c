@@ -6899,12 +6899,6 @@ displayed according to the current fontset.");
 #undef abort
 
 void 
-/* For convenience when debugging.  */
-int
-w32_last_error()
-{
-  return GetLastError ();
-}
 w32_abort()
 {
   int button;
@@ -6928,3 +6922,9 @@ w32_abort()
     }
 }
 
+/* For convenience when debugging.  */
+int
+w32_last_error()
+{
+  return GetLastError ();
+}
