@@ -460,6 +460,8 @@ concat (nargs, args, target_type, last_special)
 		if (this_len_byte > 1)
 		  some_multibyte = 1;
 	      }
+	  else if (BOOL_VECTOR_P (this) && XBOOL_VECTOR (this)->size > 0)
+	    wrong_type_argument (Qintegerp, Faref (this, make_number (0)));
 	  else if (CONSP (this))
 	    for (; CONSP (this); this = XCONS (this)->cdr)
 	      {
@@ -786,6 +788,11 @@ string_make_multibyte (string)
 
   nbytes = count_size_as_multibyte (XSTRING (string)->data,
 				    XSTRING (string)->size);
+  /* If all the chars are ASCII, they won't need any more bytes
+     once converted.  In that case, we can return STRING itself.  */
+  if (nbytes == XSTRING (string)->size_byte)
+    return string;
+
   buf = (unsigned char *) alloca (nbytes);
   copy_text (XSTRING (string)->data, buf, XSTRING (string)->size_byte,
 	     0, 1);
@@ -828,6 +835,42 @@ DEFUN ("string-make-unibyte", Fstring_make_unibyte, Sstring_make_unibyte,
      Lisp_Object string;
 {
   return string_make_unibyte (string);
+}
+
+DEFUN ("string-as-unibyte", Fstring_as_unibyte, Sstring_as_unibyte,
+       1, 1, 0,
+  "Return a unibyte string with the same individual bytes as STRING.\n\
+If STRING is unibyte, the result is STRING itself.")
+  (string)
+     Lisp_Object string;
+{
+  if (STRING_MULTIBYTE (string))
+    {
+      string = Fcopy_sequence (string);
+      XSTRING (string)->size = XSTRING (string)->size_byte;
+    }
+  return string;
+}
+
+DEFUN ("string-as-multibyte", Fstring_as_multibyte, Sstring_as_multibyte,
+       1, 1, 0,
+  "Return a multibyte string with the same individual bytes as STRING.\n\
+If STRING is multibyte, the result is STRING itself.")
+  (string)
+     Lisp_Object string;
+{
+  if (! STRING_MULTIBYTE (string))
+    {
+      int newlen = chars_in_text (XSTRING (string)->data,
+				  XSTRING (string)->size_byte);
+      /* If all the chars are ASCII, STRING is already suitable.  */
+      if (newlen != XSTRING (string)->size_byte)
+	{
+	  string = Fcopy_sequence (string);
+	  XSTRING (string)->size = newlen;
+	}
+    }
+  return string;
 }
 
 DEFUN ("copy-alist", Fcopy_alist, Scopy_alist, 1, 1, 0,
@@ -1683,9 +1726,9 @@ DEFUN ("set-char-table-extra-slot", Fset_char_table_extra_slot,
 DEFUN ("char-table-range", Fchar_table_range, Schar_table_range,
        2, 2, 0,
   "Return the value in CHAR-TABLE for a range of characters RANGE.\n\
-RANGE should be t (for all characters), nil (for the default value)\n\
+RANGE should be nil (for the default value)\n\
 a vector which identifies a character set or a row of a character set,\n\
-or a character code.")
+a character set name, or a character code.")
   (char_table, range)
      Lisp_Object char_table, range;
 {
@@ -1697,10 +1740,19 @@ or a character code.")
     return XCHAR_TABLE (char_table)->defalt;
   else if (INTEGERP (range))
     return Faref (char_table, range);
+  else if (SYMBOLP (range))
+    {
+      Lisp_Object charset_info;
+
+      charset_info = Fget (range, Qcharset);
+      CHECK_VECTOR (charset_info, 0);
+
+      return Faref (char_table, XVECTOR (charset_info)->contents[0] + 128);
+    }
   else if (VECTORP (range))
     {
       if (XVECTOR (range)->size == 1)
-	return Faref (char_table, XVECTOR (range)->contents[0]);
+	return Faref (char_table, XVECTOR (range)->contents[0] + 128);
       else
 	{
 	  int size = XVECTOR (range)->size;
@@ -1720,7 +1772,7 @@ DEFUN ("set-char-table-range", Fset_char_table_range, Sset_char_table_range,
   "Set the value in CHAR-TABLE for a range of characters RANGE to VALUE.\n\
 RANGE should be t (for all characters), nil (for the default value)\n\
 a vector which identifies a character set or a row of a character set,\n\
-or a character code.")
+a coding system, or a character code.")
   (char_table, range, value)
      Lisp_Object char_table, range, value;
 {
@@ -1733,12 +1785,22 @@ or a character code.")
       XCHAR_TABLE (char_table)->contents[i] = value;
   else if (EQ (range, Qnil))
     XCHAR_TABLE (char_table)->defalt = value;
+  else if (SYMBOLP (range))
+    {
+      Lisp_Object charset_info;
+
+      charset_info = Fget (range, Qcharset);
+      CHECK_VECTOR (charset_info, 0);
+
+      return Faset (char_table, XVECTOR (charset_info)->contents[0] + 128,
+		    value);
+    }
   else if (INTEGERP (range))
     Faset (char_table, range, value);
   else if (VECTORP (range))
     {
       if (XVECTOR (range)->size == 1)
-	return Faset (char_table, XVECTOR (range)->contents[0], value);
+	return Faset (char_table, XVECTOR (range)->contents[0] + 128, value);
       else
 	{
 	  int size = XVECTOR (range)->size;
@@ -2483,6 +2545,8 @@ invoked by mouse clicks and mouse menu items.");
   defsubr (&Scopy_sequence);
   defsubr (&Sstring_make_multibyte);
   defsubr (&Sstring_make_unibyte);
+  defsubr (&Sstring_as_multibyte);
+  defsubr (&Sstring_as_unibyte);
   defsubr (&Scopy_alist);
   defsubr (&Ssubstring);
   defsubr (&Snthcdr);
