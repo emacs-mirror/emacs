@@ -1,4 +1,8 @@
-2001-01-16  Richard M. Stallman  <rms@gnu.org>
+2002-01-16  Richard M. Stallman  <rms@gnu.org>
+
+	* net/net-utils.el (network-connection-service-abbrev-alist):
+	New variable.
+	(network-connection-mode-setup): Use it.
 
 	* delsel.el (delete-selection-pre-hook): Handle and resignal
 	file-supersession errors to interact properly with userlock.el.
