@@ -308,6 +308,10 @@ if necessary to make a unique buffer name.  It does most of this work by
 calling @code{set-visited-file-name} and @code{save-buffer}.
 @end deffn
 
+  Saving a buffer runs several hooks.  It also performs format
+conversion (@pxref{Format Conversion}), and may save text properties in
+``annotations'' (@pxref{Saving Properties}).
+
 @defvar write-file-hooks
 The value of this variable is a list of functions to be called before
 writing out a buffer to its visited file.  If one of them returns
