@@ -46,6 +46,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  * New routines in movemail.c:
  *	get_errmsg - return pointer to system error message
  *
+ * Modified August, 1993 by Jonathan Kamens (OpenVision Technologies)
+ *
+ * Move all of the POP code into a separate file, "pop.c".
+ * Use strerror instead of get_errmsg.
+ *
  */
 
 #define NO_SHORTNAMES   /* Tell config not to load remap.h */
@@ -55,6 +60,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/file.h>
 #include <errno.h>
 #include <../src/syswait.h>
+#ifdef MAIL_USE_POP
+#include "pop.h"
+#endif
 
 #ifdef MSDOS
 #undef access
@@ -445,346 +453,194 @@ xmalloc (size)
 char *progname;
 FILE *sfi;
 FILE *sfo;
+char ibuffer[BUFSIZ];
+char obuffer[BUFSIZ];
 char Errmsg[80];
-
-static int debug = 0;
-
-char *get_errmsg ();
-char *getenv ();
-int mbx_write ();
 
 popmail (user, outfile)
      char *user;
      char *outfile;
 {
-  char *host;
   int nmsgs, nbytes;
-  char response[128];
   register int i;
   int mbfi;
   FILE *mbf;
-  struct passwd *pw = (struct passwd *) getpwuid (getuid ());
-  if (pw == NULL)
-    fatal ("cannot determine user name");
+  char *getenv ();
+  int mbx_write ();
+  PopServer server;
+  extern char *strerror ();
 
-  host = getenv ("MAILHOST");
-  if (host == NULL)
+  server = pop_open (0, user, 0, POP_NO_GETPASS);
+  if (! server)
     {
-      fatal ("no MAILHOST defined");
+      error (pop_error);
+      return (1);
     }
 
-  if (pop_init (host) == NOTOK)
+  if (pop_stat (server, &nmsgs, &nbytes))
     {
-      fatal (Errmsg);
-    }
-
-  if (getline (response, sizeof response, sfi) != OK)
-    {
-      fatal (response);
-    }
-
-  if (pop_command ("USER %s", user) == NOTOK
-      || pop_command ("RPOP %s", pw->pw_name) == NOTOK)
-    {
-      pop_command ("QUIT");
-      fatal (Errmsg);
-    }
-
-  if (pop_stat (&nmsgs, &nbytes) == NOTOK)
-    {
-      pop_command ("QUIT");
-      fatal (Errmsg);
+      error (pop_error);
+      return (1);
     }
 
   if (!nmsgs)
     {
-      pop_command ("QUIT");
-      return 0;
+      pop_close (server);
+      return (0);
     }
 
   mbfi = open (outfile, O_WRONLY | O_CREAT | O_EXCL, 0666);
   if (mbfi < 0)
     {
-      pop_command ("QUIT");
-      pfatal_and_delete (outfile);
+      pop_close (server);
+      error ("Error in open: %s, %s", strerror (errno), outfile);
+      return (1);
     }
   fchown (mbfi, getuid (), -1);
 
   if ((mbf = fdopen (mbfi, "w")) == NULL)
     {
-      pop_command ("QUIT");
-      pfatal_and_delete (outfile);
+      pop_close (server);
+      error ("Error in fdopen: %s", strerror (errno));
+      close (mbfi);
+      unlink (outfile);
+      return (1);
     }
 
   for (i = 1; i <= nmsgs; i++)
     {
       mbx_delimit_begin (mbf);
-      if (pop_retr (i, mbx_write, mbf) != OK)
+      if (pop_retr (server, i, mbx_write, mbf) != OK)
 	{
-	  pop_command ("QUIT");
+	  error (Errmsg);
 	  close (mbfi);
-	  unlink (outfile);
-	  fatal (Errmsg);
+	  return (1);
 	}
       mbx_delimit_end (mbf);
       fflush (mbf);
+      if (ferror (mbf))
+	{
+	  error ("Error in fflush: %s", strerror (errno));
+	  pop_close (server);
+	  close (mbfi);
+	  return (1);
+	}
     }
+
+  /* On AFS, a call to write only modifies the file in the local
+   *     workstation's AFS cache.  The changes are not written to the server
+   *      until a call to fsync or close is made.  Users with AFS home
+   *      directories have lost mail when over quota because these checks were
+   *      not made in previous versions of movemail. */
 
   if (fsync (mbfi) < 0)
     {
-      pop_command ("QUIT");
-      pfatal_and_delete (outfile);
+      error ("Error in fsync: %s", strerror (errno));
+      return (1);
     }
 
   if (close (mbfi) == -1)
     {
-      pop_command ("QUIT");
-      pfatal_and_delete (outfile);
+      error ("Error in close: %s", strerror (errno));
+      return (1);
     }
 
   for (i = 1; i <= nmsgs; i++)
     {
-      if (pop_command ("DELE %d", i) == NOTOK)
+      if (pop_delete (server, i))
 	{
-	  /* Better to ignore this failure.  */
+	  error (pop_error);
+	  pop_close (server);
+	  return (1);
 	}
     }
 
-  pop_command ("QUIT");
+  if (pop_quit (server))
+    {
+      error (pop_error);
+      return (1);
+    }
+    
   return (0);
 }
 
-pop_init (host)
-     char *host;
-{
-  register struct hostent *hp;
-  register struct servent *sp;
-  int lport = IPPORT_RESERVED - 1;
-  struct sockaddr_in sin;
-  register int s;
-
-  hp = gethostbyname (host);
-  if (hp == NULL)
-    {
-      sprintf (Errmsg, "MAILHOST unknown: %s", host);
-      return NOTOK;
-    }
-
-  sp = getservbyname ("pop", "tcp");
-  if (sp == 0)
-    {
-      strcpy (Errmsg, "tcp/pop: unknown service");
-      return NOTOK;
-    }
-
-  sin.sin_family = hp->h_addrtype;
-  bcopy (hp->h_addr, (char *)&sin.sin_addr, hp->h_length);
-  sin.sin_port = sp->s_port;
-  s = rresvport (&lport);
-  if (s < 0)
-    {
-      sprintf (Errmsg, "error creating socket: %s", get_errmsg ());
-      return NOTOK;
-    }
-
-  if (connect (s, (char *)&sin, sizeof sin) < 0)
-    {
-      sprintf (Errmsg, "error during connect: %s", get_errmsg ());
-      close (s);
-      return NOTOK;
-    }
-
-  sfi = fdopen (s, "r");
-  sfo = fdopen (s, "w");
-  if (sfi == NULL || sfo == NULL)
-    {
-      sprintf (Errmsg, "error in fdopen: %s", get_errmsg ());
-      close (s);
-      return NOTOK;
-    }
-
-  return OK;
-}
-
-pop_command (fmt, a, b, c, d)
-     char *fmt;
-{
-  char buf[128];
-  char errmsg[64];
-
-  sprintf (buf, fmt, a, b, c, d);
-
-  if (debug) fprintf (stderr, "---> %s\n", buf);
-  if (putline (buf, Errmsg, sfo) == NOTOK) return NOTOK;
-
-  if (getline (buf, sizeof buf, sfi) != OK)
-    {
-      strcpy (Errmsg, buf);
-      return NOTOK;
-    }
-
-  if (debug)
-    fprintf (stderr, "<--- %s\n", buf);
-  if (*buf != '+')
-    {
-      strcpy (Errmsg, buf);
-      return NOTOK;
-    }
-  else
-    {
-      return OK;
-    }
-}
-
-    
-pop_stat (nmsgs, nbytes)
-     int *nmsgs, *nbytes;
-{
-  char buf[128];
-
-  if (debug)
-    fprintf (stderr, "---> STAT\n");
-  if (putline ("STAT", Errmsg, sfo) == NOTOK)
-    return NOTOK;
-
-  if (getline (buf, sizeof buf, sfi) != OK)
-    {
-      strcpy (Errmsg, buf);
-      return NOTOK;
-    }
-
-  if (debug) fprintf (stderr, "<--- %s\n", buf);
-  if (*buf != '+')
-    {
-      strcpy (Errmsg, buf);
-      return NOTOK;
-    }
-  else
-    {
-      sscanf (buf, "+OK %d %d", nmsgs, nbytes);
-      return OK;
-    }
-}
-
-pop_retr (msgno, action, arg)
+pop_retr (server, msgno, action, arg)
+     PopServer server;
      int (*action)();
 {
-  char buf[128];
+  extern char *strerror ();
+  char *line;
+  int ret;
 
-  sprintf (buf, "RETR %d", msgno);
-  if (debug) fprintf (stderr, "%s\n", buf);
-  if (putline (buf, Errmsg, sfo) == NOTOK) return NOTOK;
-
-  if (getline (buf, sizeof buf, sfi) != OK)
+  if (pop_retrieve_first (server, msgno, &line))
     {
-      strcpy (Errmsg, buf);
-      return NOTOK;
+      strncpy (Errmsg, pop_error, sizeof (Errmsg));
+      Errmsg[sizeof (Errmsg)-1] = '\0';
+      return (NOTOK);
     }
 
-  while (1)
+  while (! (ret = pop_retrieve_next (server, &line)))
     {
-      switch (multiline (buf, sizeof buf, sfi))
+      if (! line)
+	break;
+
+      if ((*action)(line, arg) != OK)
 	{
-	case OK:
-	  (*action)(buf, arg);
-	  break;
-	case DONE:
-	  return OK;
-	case NOTOK:
-	  strcpy (Errmsg, buf);
-	  return NOTOK;
+	  strcpy (Errmsg, strerror (errno));
+	  pop_close (server);
+	  return (NOTOK);
 	}
     }
-}
 
-getline (buf, n, f)
-     char *buf;
-     register int n;
-     FILE *f;
-{
-  register char *p;
-  int c;
-
-  p = buf;
-  while (--n > 0 && (c = fgetc (f)) != EOF)
-    if ((*p++ = c) == '\n') break;
-
-  if (ferror (f))
+  if (ret)
     {
-      strcpy (buf, "error on connection");
-      return NOTOK;
+      strncpy (Errmsg, pop_error, sizeof (Errmsg));
+      Errmsg[sizeof (Errmsg)-1] = '\0';
+      return (NOTOK);
     }
 
-  if (c == EOF && p == buf)
-    {
-      strcpy (buf, "connection closed by foreign host");
-      return DONE;
-    }
-
-  *p = NULL;
-  if (*--p == '\n') *p = NULL;
-  if (*--p == '\r') *p = NULL;
-  return OK;
+  return (OK);
 }
 
-multiline (buf, n, f)
-     char *buf;
-     register int n;
-     FILE *f;
-{
-  if (getline (buf, n, f) != OK)
-    return NOTOK;
-  if (*buf == '.')
-    {
-      if (*(buf+1) == NULL)
-	return DONE;
-      else
-	strcpy (buf, buf+1);
-    }
-  return OK;
-}
+/* Do this as a macro instead of using strcmp to save on execution time. */
+#define IS_FROM_LINE(a) ((a[0] == 'F') \
+			 && (a[1] == 'r') \
+			 && (a[2] == 'o') \
+			 && (a[3] == 'm') \
+			 && (a[4] == ' '))
 
-char *
-get_errmsg ()
-{
-  extern int errno;
-  extern char *strerror ();
-  return strerror (errno);
-}
-
-putline (buf, err, f)
-     char *buf;
-     char *err;
-     FILE *f;
-{
-  fprintf (f, "%s\r\n", buf);
-  fflush (f);
-  if (ferror (f))
-    {
-      strcpy (err, "lost connection");
-      return NOTOK;
-    }
-  return OK;
-}
-
+int
 mbx_write (line, mbf)
      char *line;
      FILE *mbf;
 {
-  fputs (line, mbf);
-  fputc (0x0a, mbf);
+  if (IS_FROM_LINE (line))
+    {
+      if (fputc ('>', mbf) == EOF)
+	return (NOTOK);
+    }
+  if (fputs (line, mbf) == EOF) 
+    return (NOTOK);
+  if (fputc (0x0a, mbf) == EOF)
+    return (NOTOK);
+  return (OK);
 }
 
+int
 mbx_delimit_begin (mbf)
      FILE *mbf;
 {
-  fputs ("\f\n0, unseen,,\n", mbf);
+  if (fputs ("\f\n0, unseen,,\n", mbf) == EOF)
+    return (NOTOK);
+  return (OK);
 }
 
 mbx_delimit_end (mbf)
      FILE *mbf;
 {
-  putc ('\037', mbf);
+  if (putc ('\037', mbf) == EOF)
+    return (NOTOK);
+  return (OK);
 }
 
 #endif /* MAIL_USE_POP */
