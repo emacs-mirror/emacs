@@ -7808,7 +7808,9 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 
 
 /* Run window scroll functions, if any, for WINDOW with new window
-   start STARTP.  Sets the window start of WINDOW to that position.  */
+   start STARTP.  Sets the window start of WINDOW to that position.
+
+   We assume that the window's buffer is really current.  */
 
 static INLINE struct text_pos
 run_window_scroll_functions (window, startp)
@@ -7817,12 +7819,18 @@ run_window_scroll_functions (window, startp)
 {
   struct window *w = XWINDOW (window);
   SET_MARKER_FROM_TEXT_POS (w->start, startp);
-  
+
+  if (current_buffer != XBUFFER (w->buffer))
+    abort ();
+
   if (!NILP (Vwindow_scroll_functions))
     {
       run_hook_with_args_2 (Qwindow_scroll_functions, window, 
 			    make_number (CHARPOS (startp)));
       SET_TEXT_POS_FROM_MARKER (startp, w->start);
+      /* In case the hook functions switch buffers.  */
+      if (current_buffer != XBUFFER (w->buffer))
+	set_buffer_internal_1 (XBUFFER (w->buffer));
     }
 
   return startp;
