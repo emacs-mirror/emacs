@@ -650,8 +650,11 @@ Return nil if there is nothing appropriate in the buffer near point."
  :mode 'makefile-mode
  :regexp "\\$[^({]\\|\\.[_A-Z]*\\|[_a-zA-Z][_a-zA-Z0-9-]*"
  :doc-spec '(("(make)Name Index" nil
+	      "^[ \t]*`" "'")
+	     ("(automake)Macro and Variable Index" nil
 	      "^[ \t]*`" "'"))
- :parse-rule "\\$[^({]\\|\\.[_A-Z]*\\|[_a-zA-Z0-9-]+")
+ :parse-rule "\\$[^({]\\|\\.[_A-Z]*\\|[_a-zA-Z0-9-]+"
+ :other-modes '(automake-mode))
 
 (info-lookup-maybe-add-help
  :mode 'texinfo-mode
@@ -674,7 +677,7 @@ Return nil if there is nothing appropriate in the buffer near point."
  :regexp "A[CM]_[_A-Z0-9]+"
  :doc-spec '(("(autoconf)Macro Index" "AC_"
 	      "^[ \t]+- \\(Macro\\|Variable\\): .*\\<" "\\>")
-	     ("(automake)Index" nil
+	     ("(automake)Macro and Variable Index" nil
 	      "^[ \t]*`" "'"))
  ;; Autoconf symbols are M4 macros.  Thus use M4's parser.
  :parse-rule 'ignore
