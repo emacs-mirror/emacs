@@ -373,6 +373,9 @@ struct frame
      SCREEN_GAMMA) where viewing_gamma is 0.4545 and SCREEN_GAMMA is a
      frame parameter.  0 means don't do gamma correction.  */
   double gamma;
+
+  /* Additional space to put between text lines on this frame.  */
+  int extra_line_spacing;
 };
 
 #ifdef MULTI_KBOARD
