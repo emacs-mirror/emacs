@@ -1247,6 +1247,11 @@ The following sound properties are supported:
 FILE is a file name.  If FILE isn't an absolute name, it will be
 searched relative to `data-directory'.
 
+- `:data DATA'
+
+DATA is a string containing sound data.  Either :file or :data
+may be present, but not both.
+
 - `:volume VOLUME'
 
 VOLUME must be an integer in the range 0..100 or a float in the range
