@@ -63,6 +63,10 @@ Lisp_Object Vbuffer_access_fontified_property;
 
 Lisp_Object Fuser_full_name ();
 
+/* Non-nil means don't stop at field boundary in text motion commands.  */
+
+Lisp_Object Vinhibit_field_text_motion;
+
 /* Some static data, and a function to initialize it for each run */
 
 Lisp_Object Vsystem_name;
@@ -597,9 +601,11 @@ This function does not move point.")
   SET_PT_BOTH (orig, orig_byte);
 
   /* Return END constrained to the current input field.  */
-  return Fconstrain_to_field (make_number (end), make_number (orig),
-			      XINT (n) != 1 ? Qt : Qnil,
-			      Qt);
+  if (NILP (Vinhibit_field_text_motion))
+    end = Fconstrain_to_field (make_number (end), make_number (orig),
+				XINT (n) != 1 ? Qt : Qnil,
+				Qt);
+  return end;
 }
 
 DEFUN ("line-end-position", Fline_end_position, Sline_end_position,
@@ -622,8 +628,10 @@ This function does not move point.")
   end_pos = find_before_next_newline (orig, 0, XINT (n) - (XINT (n) <= 0));
 
   /* Return END_POS constrained to the current input field.  */
-  return
-    Fconstrain_to_field (make_number (end_pos), make_number (orig), Qnil, Qt);
+  if (NILP (Vinhibit_field_text_motion))
+    end_pos = Fconstrain_to_field (make_number (end_pos), make_number (orig),
+				   Qnil, Qt);
+  return end_pos;
 }
 
 Lisp_Object
@@ -3667,6 +3675,10 @@ syms_of_editfns ()
   Qbuffer_access_fontify_functions
     = intern ("buffer-access-fontify-functions");
   staticpro (&Qbuffer_access_fontify_functions);
+
+  DEFVAR_LISP ("inhibit-field-text-motion", &Vinhibit_field_text_motion,
+    "Non-nil means.text motion commands don't notice fields.");
+  Vinhibit_field_text_motion = Qnil;
 
   DEFVAR_LISP ("buffer-access-fontify-functions",
 	       &Vbuffer_access_fontify_functions,
