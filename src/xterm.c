@@ -9434,7 +9434,10 @@ XTread_socket (sd, bufp, numchars, expected)
 		      if (status_return == XLookupNone)
 			break;
 		      else if (status_return == XLookupChars)
-			keysym = NoSymbol;
+			{
+			  keysym = NoSymbol;
+			  modifiers = 0;
+			}
 		      else if (status_return != XLookupKeySym
 			       && status_return != XLookupBoth)
 			abort ();
