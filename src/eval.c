@@ -664,7 +664,7 @@ The elements can look like this:
 
   (edebug DEBUG)
 	Set NAME's `edebug-form-spec' property to DEBUG.  (This is
-	equivalent to writing a `def-edebug-spec' for the macro.
+	equivalent to writing a `def-edebug-spec' for the macro.)
 usage: (defmacro NAME ARGLIST [DOCSTRING] [DECL] BODY...)  */)
      (args)
      Lisp_Object args;
