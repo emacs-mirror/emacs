@@ -183,7 +183,8 @@ is okay.  See `mode-line-format'.")
 
 	;; imenu
 	"^No items suitable for an index found in this buffer\\.$"
-	"^The mode \".*\" does not take full advantage of imenu\\.el yet\\.$"
+	"^This buffer cannot use `imenu-default-create-index-function'$"
+	"^The mode `.*' does not support Imenu$"
 
 	;; ispell
 	"^No word found to check!$"
