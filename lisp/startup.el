@@ -275,9 +275,6 @@ this prefix to create a unique file name.")
 			   (delete (concat "PWD=" pwd)
 				   process-environment)))))))
     (setq default-directory (abbreviate-file-name default-directory))
-    (setq user-mail-address (concat (user-login-name) "@"
-				    (or mail-host-address
-					(system-name))))
     ;; Specify the file for recording all the auto save files of this session.
     ;; This is used by recover-session.
     (setq auto-save-list-file-name
@@ -524,6 +521,12 @@ this prefix to create a unique file name.")
 		debug-on-error-from-init-file debug-on-error)))
     (if debug-on-error-should-be-set
 	(setq debug-on-error debug-on-error-from-init-file)))
+
+  ;; Do this here in case the init file sets mail-host-address.
+  (or user-mail-address
+      (setq user-mail-address (concat (user-login-name) "@"
+				      (or mail-host-address
+					  (system-name)))))
 
   (run-hooks 'after-init-hook)
 
