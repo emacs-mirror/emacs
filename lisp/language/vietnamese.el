@@ -310,10 +310,10 @@
 		(features viet-util)
 		(sample-text . "Vietnamese (Ti,1*(Bng Vi,1.(Bt)	Ch,1`(Bo b,1U(Bn")
 		(documentation . "\
-For Vietnamese, Emacs uses special charasets internally.
+For Vietnamese, Emacs uses special charsets internally.
 They can be decoded from and encoded to VISCII, VSCII, TCVN-5712, and
 VIQR.  VSCII is deprecated in favour of TCVN-5712.  Current setting
-put higher priority to the coding system VISCII than TCVN-5712.  If
+puts higher priority to the coding system VISCII than TCVN-5712.  If
 you prefer TCVN-5712, please do: (prefer-coding-system 'vietnamese-tcvn).
 There are two Vietnamese input methods: VIQR and Telex, VIQR is the
 default setting.")
