@@ -1,7 +1,7 @@
 ;;; grep.el --- run compiler as inferior of Emacs, parse error messages
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 1999, 2001, 02, 2004
-;;  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+;;   2001, 2002, 2004  Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: FSF
@@ -252,21 +252,12 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 \\(?:-\\(?:\\([0-9]+\\)\\3\\)?\\.?\\([0-9]+\\)?\\)?[:) \t]" 1 (2 . 5) (4 . 6))
     ("^\\(.+?\\)[:(]+\\([0-9]+\\)\\([:)]\\).*?\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\)"
      1 2
+     ;; Calculate column positions (beg . end) of first grep match on a line
      ((lambda ()
         (setq compilation-error-screen-columns nil)
         (- (match-beginning 5) (match-end 3) 8))
       .
-      (lambda () (- (match-end 5) (match-end 3) 8)))
-     nil nil
-     (4 (list 'face nil 'invisible t 'intangible t))
-     (5 (list 'face compilation-column-face))
-     (6 (list 'face nil 'invisible t 'intangible t))
-     ;; highlight other matches on the same line
-     ("\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\)"
-      nil nil
-      (1 (list 'face nil 'invisible t 'intangible t))
-      (2 (list 'face compilation-column-face) t)
-      (3 (list 'face nil 'invisible t 'intangible t))))
+      (lambda () (- (match-end 5) (match-end 3) 8))))
     ("^Binary file \\(.+\\) matches$" 1 nil nil 1))
   "Regexp used to match grep hits.  See `compilation-error-regexp-alist'.")
 
@@ -294,7 +285,16 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
      ("^Grep \\(exited abnormally\\) with code \\([0-9]+\\).*"
       (0 '(face nil message nil help-echo nil mouse-face nil) t)
       (1 compilation-warning-face)
-      (2 compilation-line-face)))
+      (2 compilation-line-face))
+     ;; Highlight grep matches and delete markers
+     ("\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\)"
+      (2 compilation-column-face)
+      ((lambda (p))
+       (progn
+	 ;; Delete markers with `replace-match' because it updates
+	 ;; the match-data, whereas `delete-region' would render it obsolete.
+	 (replace-match "" t t nil 3)
+	 (replace-match "" t t nil 1)))))
    "Additional things to highlight in grep output.
 This gets tacked on the end of the generated expressions.")
 
