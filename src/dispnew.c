@@ -878,7 +878,7 @@ direct_output_for_insert (g)
   {
 #ifdef HAVE_X_WINDOWS
     int dummy;
-    int face = compute_char_face (frame, w, point, &dummy);
+    int face = compute_char_face (frame, w, point, -1, -1, &dummy);
 #else
     int face = 0;
 #endif
@@ -918,6 +918,10 @@ direct_output_forward_char (n)
       || (n > 0
 	  && (FRAME_CURSOR_X (frame) + 1 >= window_internal_width (w) - 1))
       || cursor_in_echo_area)
+    return 0;
+
+  /* Can't use direct output if highlighting a region.  */
+  if (!NILP (Vtransient_mark_mode) && !NILP (current_buffer->mark_active))
     return 0;
 
   FRAME_CURSOR_X (frame) += n;
