@@ -6433,7 +6433,7 @@ setup_echo_area_for_printing (multibyte_p)
       /* Set up the buffer for the multibyteness we need.  */
       if (multibyte_p
 	  != !NILP (current_buffer->enable_multibyte_characters))
-	Fset_buffer_multibyte (multibyte_p ? Qt : Qnil);
+	Fset_buffer_multibyte (multibyte_p ? Qt : Qnil, Qnil);
 
       /* Raise the frame containing the echo area.  */
       if (minibuffer_auto_raise)
@@ -6911,7 +6911,7 @@ set_message_1 (a1, a2, nbytes, multibyte_p)
   /* Change multibyteness of the echo buffer appropriately.  */
   if (message_enable_multibyte
       != !NILP (current_buffer->enable_multibyte_characters))
-    Fset_buffer_multibyte (message_enable_multibyte ? Qt : Qnil);
+    Fset_buffer_multibyte (message_enable_multibyte ? Qt : Qnil, Qnil);
 
   current_buffer->truncate_lines = message_truncate_lines ? Qt : Qnil;
   
