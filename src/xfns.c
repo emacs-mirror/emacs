@@ -644,27 +644,7 @@ x_destroy_all_bitmaps (dpyinfo)
 
    The name of a parameter, as a Lisp symbol,
    has an `x-frame-parameter' property which is an integer in Lisp
-   but can be interpreted as an `enum x_frame_parm' in C.  */
-
-enum x_frame_parm
-{
-  X_PARM_FOREGROUND_COLOR,
-  X_PARM_BACKGROUND_COLOR,
-  X_PARM_MOUSE_COLOR,
-  X_PARM_CURSOR_COLOR,
-  X_PARM_BORDER_COLOR,
-  X_PARM_ICON_TYPE,
-  X_PARM_FONT,
-  X_PARM_BORDER_WIDTH,
-  X_PARM_INTERNAL_BORDER_WIDTH,
-  X_PARM_NAME,
-  X_PARM_AUTORAISE,
-  X_PARM_AUTOLOWER,
-  X_PARM_VERT_SCROLL_BAR,
-  X_PARM_VISIBILITY,
-  X_PARM_MENU_BAR_LINES
-};
-
+   that is an index in this table.  */
 
 struct x_frame_parm_table
 {
@@ -694,25 +674,25 @@ void x_set_unsplittable ();
 
 static struct x_frame_parm_table x_frame_parms[] =
 {
-  "foreground-color", x_set_foreground_color,
-  "background-color", x_set_background_color,
-  "mouse-color", x_set_mouse_color,
-  "cursor-color", x_set_cursor_color,
-  "border-color", x_set_border_color,
-  "cursor-type", x_set_cursor_type,
-  "icon-type", x_set_icon_type,
-  "icon-name", x_set_icon_name,
-  "font", x_set_font,
-  "border-width", x_set_border_width,
-  "internal-border-width", x_set_internal_border_width,
-  "name", x_explicitly_set_name,
   "auto-raise", x_set_autoraise,
   "auto-lower", x_set_autolower,
-  "vertical-scroll-bars", x_set_vertical_scroll_bars,
-  "visibility", x_set_visibility,
+  "background-color", x_set_background_color,
+  "border-color", x_set_border_color,
+  "border-width", x_set_border_width,
+  "cursor-color", x_set_cursor_color,
+  "cursor-type", x_set_cursor_type,
+  "font", x_set_font,
+  "foreground-color", x_set_foreground_color,
+  "icon-name", x_set_icon_name,
+  "icon-type", x_set_icon_type,
+  "internal-border-width", x_set_internal_border_width,
   "menu-bar-lines", x_set_menu_bar_lines,
+  "mouse-color", x_set_mouse_color,
+  "name", x_explicitly_set_name,
   "scroll-bar-width", x_set_scroll_bar_width,
   "unsplittable", x_set_unsplittable,
+  "vertical-scroll-bars", x_set_vertical_scroll_bars,
+  "visibility", x_set_visibility,
 };
 
 /* Attach the `x-frame-parameter' properties to
