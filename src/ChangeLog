@@ -1,5 +1,11 @@
 2000-10-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (pos_visible_p): Change current buffer if necessary.
+	Handle obscured lines at the top of the window.
+
+	* frame.c (Fdelete_frame): Doc fix.  Move running the hook
+	down after the last error condition check.
+
 	* frame.c (Fdelete_frame): Run delete-frame-hook.
 
 2000-10-26  Kenichi Handa  <handa@etl.go.jp>

@@ -1797,6 +1797,10 @@ functionality with aliases for the mldrag functions.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
+** Function `delete-frame' runs `delete-frame-hook' before actually
+deleting the frame.  The hook is called with one arg, the frame
+being deleted.
+
 ** `add-hook' now makes the hook local if called with a non-nil LOCAL arg.
 
 +++
