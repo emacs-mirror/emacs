@@ -239,13 +239,21 @@ end
 define xchartable
 print (struct Lisp_Char_Table *) (($ & $valmask) | gdb_data_seg_bits)
 printf "Purpose: "
-output (char*)&((struct Lisp_Symbol *) ((((int) $->purpose) & $valmask) | gdb_data_seg_bits))->name->data
-printf "  %d extra slots", ($->size & 0x1ff) - 388
+output (char*)((struct Lisp_Symbol *) ((((int) $->purpose) & $valmask) | gdb_data_seg_bits))->name->data
+printf "  %d extra slots", ($->size & 0x1ff) - 68
 echo \n
 end
 document xchartable
 Print the address of the char-table $, and its purpose.
 This command assumes that $ is an Emacs Lisp char-table value.
+end
+
+define xsubchartable
+print (struct Lisp_Sub_Char_Table *) (($ & $valmask) | gdb_data_seg_bits)
+end
+document xsubchartable
+Print the address of the sub-char-table $.
+This command assumes that $ is an Emacs Lisp sub-char-table value.
 end
 
 define xboolvector
@@ -330,6 +338,48 @@ define xprintsym
 end
 document xprintsym
   Print argument as a symbol.
+end
+
+define xcoding
+  set $tmp = (struct Lisp_Hash_Table *) ((Vcoding_system_hash_table & $valmask) | gdb_data_seg_bits)
+  set $tmp = (struct Lisp_Vector *) (($tmp->key_and_value & $valmask) | gdb_data_seg_bits)
+  set $name = $tmp->contents[$arg0 * 2]
+  print $name
+  pr
+  print $tmp->contents[$arg0 * 2 + 1]
+  pr
+end
+document xcoding
+  Print a coding system whose id is the argument.
+end
+
+define xcharset
+  set $tmp = (struct Lisp_Hash_Table *) ((Vcharset_hash_table & $valmask) | gdb_data_seg_bits)
+  set $tmp = (struct Lisp_Vector *) (($tmp->key_and_value & $valmask) | gdb_data_seg_bits)
+  p $tmp->contents[$arg0->hash_index * 2]
+  pr
+end
+document xcharset
+  Print a charset name whose id is the argument.
+end
+
+define xcurbuf
+  echo GAPSIZE:
+  output current_buffer->text->gap_size
+  echo \nGPT:
+  output current_buffer->text->gpt
+  echo /
+  output current_buffer->text->gpt_byte
+  echo \nZ:
+  output current_buffer->text->z
+  echo /
+  output current_buffer->text->z_byte
+  echo \nTEXT:
+  if current_buffer->text->gpt > 1
+    print current_buffer->text->beg[0]@80
+  else
+    print current_buffer->text->beg[current_buffer->text->gpt_byte-1]@80
+  end
 end
 
 define xbacktrace
