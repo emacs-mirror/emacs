@@ -310,6 +310,8 @@ Returns the compilation buffer created."
     (define-key map "\^?" 'scroll-down)
     (define-key map "\M-n" 'compilation-next-error)
     (define-key map "\M-p" 'compilation-previous-error)
+    (define-key map "\C-x[" 'compilation-previous-file)
+    (define-key map "\C-x]" 'compilation-next-file)
     map)
   "Keymap for compilation log buffers.")
 
@@ -382,6 +384,15 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
 	  ))))
 
 
+;; Return the cdr of compilation-old-error-list for the error containing point.
+(defun compile-error-at-point ()
+  (compile-reinitialize-errors nil (point))
+  (let ((errors compilation-old-error-list))
+    (while (and errors
+		(> (point) (car (car errors))))
+      (setq errors (cdr errors)))
+    errors))
+
 (defun compilation-next-error (n)
   "Move point to the next error in the compilation buffer.
 Does NOT find the source line like \\[next-error]."
@@ -389,57 +400,96 @@ Does NOT find the source line like \\[next-error]."
   (or (compilation-buffer-p (current-buffer))
       (error "Not in a compilation buffer."))
   (setq compilation-last-buffer (current-buffer))
-  (let ((p (point))
-	(errors nil)
-	(first t))
 
-    (save-excursion			;save point in case of later error
-      (while (and (if (< n 0)
-		      (null errors)
-		    (< (length errors) n))
-		  (or first (< compilation-parsing-end (point-max))))
-	(setq first nil)
+  (let ((errors (compile-error-at-point)))
 
-	(if (< compilation-parsing-end (point-max))
-	    (progn
-	      ;; Move forward a bit and parse.
-	      ;; Hopefully we will parse enough to find the one we want.
-	      (forward-line n)
-	      (compile-reinitialize-errors nil (point))))
-	(setq errors compilation-old-error-list)
-
-	;; Look for the error containing P (the original point).
-	(if (< n 0)
-	    (while (and errors
-			(> p (car (car errors))))
-	      (setq errors (cdr errors)))
-	  (while (and errors
-		      (>= p (car (car errors))))
-	    (setq errors (cdr errors))))
-	(ignore))
-
-      ;; Move to the error after the one containing point.
-      (setq p (car (if (< n 0)
-			  (let ((i 0)
-				(e compilation-old-error-list))
-			    ;; See how many cdrs away ERRORS is from the start.
-			    (while (not (eq e errors))
-			      (setq i (1+ i)
-				    e (cdr e)))
-			    (if (> (- n) i)
-				(error "Moved back past first error")
-			      (nth (+ i n) compilation-old-error-list)))
-			(if errors
-			    (nth (1- n) errors)
-			  (error "Moved past last error"))))))
-
-    (goto-char p)))
+    ;; Move to the error after the one containing point.
+    (goto-char (car (if (< n 0)
+			(let ((i 0)
+			      (e compilation-old-error-list))
+			  ;; See how many cdrs away ERRORS is from the start.
+			  (while (not (eq e errors))
+			    (setq i (1+ i)
+				  e (cdr e)))
+			  (if (> (- n) i)
+			      (error "Moved back past first error")
+			    (nth (+ i n) compilation-old-error-list)))
+		      (let ((compilation-error-list (cdr errors)))
+			(compile-reinitialize-errors nil nil n)
+			(if compilation-error-list
+			    (nth (1- n) compilation-error-list)
+			  (error "Moved past last error"))))))))
 
 (defun compilation-previous-error (n)
   "Move point to the previous error in the compilation buffer.
 Does NOT find the source line like \\[next-error]."
   (interactive "p")
   (compilation-next-error (- n)))
+
+
+(defun compile-file-of-error (data)
+  (setq data (cdr data))
+  (if (markerp data)
+      (buffer-file-name (marker-buffer data))
+    (setq data (car data))
+    (expand-file-name (cdr data) (car data))))
+
+(defun compilation-next-file (n)
+  "Move point to the next error for a different file than the current one."
+  (interactive "p")
+  (or (compilation-buffer-p (current-buffer))
+      (error "Not in a compilation buffer."))
+  (setq compilation-last-buffer (current-buffer))
+
+  (let ((reversed (< n 0))
+	errors file)
+
+    (if (not reversed)
+	(setq errors (or (compile-error-at-point)
+			 (error "Moved past last error")))
+
+      ;; Get a reversed list of the errors up through the one containing point.
+      (compile-reinitialize-errors nil (point))
+      (setq errors (reverse compilation-old-error-list)
+	    n (- n))
+
+      ;; Ignore errors after point.  (car ERRORS) will be the error
+      ;; containing point, (cadr ERRORS) the one before it.
+      (while (and errors
+		  (< (point) (car (car errors))))
+	(setq errors (cdr errors))))
+
+    (while (> n 0)
+      (setq file (compile-file-of-error (car errors)))
+
+      ;; Skip past the other errors for this file.
+      (while (string= file
+		      (compile-file-of-error
+		       (car (or errors
+				(if reversed
+				    (error "This is the first erring file")
+				  (let ((compilation-error-list nil))
+				    ;; Parse some more.
+				    (compile-reinitialize-errors nil nil 2)
+				    (setq errors compilation-error-list)))
+				(error "This is the last erring file")))))
+	(setq errors (cdr errors)))
+
+      (setq n (1- n)))
+
+    ;; Move to the following error.
+    (goto-char (car (car (or errors
+			     (if reversed
+				 (error "This is the first erring file")
+			       (let ((compilation-error-list nil))
+				 ;; Parse the last one.
+				 (compile-reinitialize-errors nil nil 1)
+				 compilation-error-list))))))))
+
+(defun compilation-previous-file (n)
+  "Move point to the previous error for a different file than the current one."
+  (interactive "p")
+  (compilation-next-file (- n)))
 
 
 (defun kill-compilation ()
@@ -463,7 +513,8 @@ Does NOT find the source line like \\[next-error]."
 	(progn (compilation-forget-errors)
 	       (setq compilation-parsing-end 1)))
     (if (and compilation-error-list
-	     (not limit-search)
+	     (or (not limit-search)
+		 (> compilation-parsing-end limit-search))
 	     (or (not find-at-least)
 		 (> (length compilation-error-list) find-at-least)))
 	;; Since compilation-error-list is non-nil, it points to a specific
@@ -471,14 +522,17 @@ Does NOT find the source line like \\[next-error]."
 	nil
       (switch-to-buffer compilation-last-buffer)
       (set-buffer-modified-p nil)
-      (let ((at-start (= compilation-parsing-end 1)))
-	(funcall compilation-parse-errors-function limit-search find-at-least)
-	;; Remember the entire list for compilation-forget-errors.
-	;; If this is an incremental parse, append to previous list.
-	(if at-start
-	    (setq compilation-old-error-list compilation-error-list)
-	  (setq compilation-old-error-list
-		(nconc compilation-old-error-list compilation-error-list)))))))
+      (if (< compilation-parsing-end (point-max))
+	  (let ((at-start (= compilation-parsing-end 1)))
+	    (funcall compilation-parse-errors-function
+		     limit-search find-at-least)
+	    ;; Remember the entire list for compilation-forget-errors.
+	    ;; If this is an incremental parse, append to previous list.
+	    (if at-start
+		(setq compilation-old-error-list compilation-error-list)
+	      (setq compilation-old-error-list
+		    (nconc compilation-old-error-list compilation-error-list)))
+	    )))))
 
 (defun compile-goto-error (&optional argp)
   "Visit the source for the error message point is on.
@@ -565,7 +619,7 @@ See variables `compilation-parse-errors-function' and
 \`compilation-error-regexp-alist' for customization ideas."
   (interactive "P")
   (setq compilation-last-buffer (compilation-find-buffer))
-  (compile-reinitialize-errors argp nil (prefix-numeric-value argp))
+  (compile-reinitialize-errors argp nil (1- (prefix-numeric-value argp)))
   ;; Make ARGP nil if the prefix arg was just C-u,
   ;; since that means to reparse the errors, which the
   ;; compile-reinitialize-errors call just did.
