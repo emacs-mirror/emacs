@@ -769,6 +769,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (define-key map "#" 'dired-flag-auto-save-files)
     (define-key map "." 'dired-clean-directory)
     (define-key map "~" 'dired-flag-backup-files)
+    (define-key map "&" 'dired-flag-garbage-files)
     ;; Upper case keys (except !) for operating on the marked files
     (define-key map "A" 'dired-do-search)
     (define-key map "C" 'dired-do-copy)
@@ -958,6 +959,8 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
       '("Mark Old Backups" . dired-clean-directory))
     (define-key map [menu-bar mark executables]
       '("Mark Executables" . dired-mark-executables))
+    (define-key map [menu-bar mark garbage-files]
+      '("Flag Garbage Files" . dired-flag-garbage-files))
     (define-key map [menu-bar mark backup-files]
       '("Flag Backup Files" . dired-flag-backup-files))
     (define-key map [menu-bar mark auto-save-files]
@@ -2067,6 +2070,15 @@ A prefix argument says to unflag those files instead."
 	    (if fn (auto-save-file-name-p
 		    (file-name-nondirectory fn)))))
      "auto save file")))
+
+(defvar dired-garbage-files-regexp
+  "\\.log$\\|\\.toc$\\|.dvi$|\\.bak$\\|\\.orig$\\|\\.rej$" 
+  "*Regular expression to match \"garbage\" files for `dired-flag-garbage-files'.")
+
+(defun dired-flag-garbage-files ()
+  (interactive)
+  "Flag for deletion all files that match `dired-garbage-files-regexp'."
+  (dired-flag-files-regexp dired-garbage-files-regexp))
 
 (defun dired-flag-backup-files (&optional unflag-p)
   "Flag all backup files (names ending with `~') for deletion.
