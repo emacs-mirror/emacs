@@ -1993,13 +1993,16 @@ fi
 AC_CHECK_FUNCS(touchlock)
 AC_CHECK_HEADERS(maillock.h)
 
-AC_CHECK_FUNCS(gethostname getdomainname getpeername dup2 \
+AC_CHECK_FUNCS(gethostname getdomainname dup2 \
 rename closedir mkdir rmdir sysinfo \
 random lrand48 bcopy bcmp logb frexp fmod rint cbrt ftime res_init setsid \
 strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
 utimes setrlimit setpgid getcwd getwd shutdown strftime getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
+sendto recvfrom getsockopt setsockopt getsockname getpeername \
 gai_strerror mkstemp)
+
+AC_CHECK_HEADERS(sys/un.h)
 
 AC_FUNC_MKTIME
 if test "$ac_cv_func_working_mktime" = no; then
