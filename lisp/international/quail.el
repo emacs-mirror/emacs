@@ -272,13 +272,34 @@ Only a few especially complex input methods use this map;
 most use `quail-simple-translation-keymap' instead.
 This map is activated while translation region is active.")
 
-;; Hide some verbose commands to make the output of quail-help
-;; concise.
-(let ((l '(quail-other-command
-	   quail-self-insert-command
-	   quail-delete-last-char)))
+(defvar quail-translation-docstring
+  "When you type keys, the echo area shows the possible characters
+which correspond to that key sequence, each preceded by a digit.  You
+can select one of the characters shown by typing the corresponding
+digit.  Alternatively, you can use C-f and C-b to move through the
+line to select the character you want, then type a letter to begin
+entering another Chinese character or type a space or punctuation
+character.
+
+If there are more than ten possible characters for the given spelling,
+the echo area shows ten characters at a time; you can use C-n to move
+to the next group of ten, and C-p to move back to the previous group
+of ten.")
+
+;; Categorize each Quail commands to make the output of quail-help
+;; concise.  This is done by putting `quail-help' property.  The value
+;; is:
+;;	hide -- never show this command
+;;	non-deterministic -- show only for non-deterministic input method
+(let ((l '((quail-other-command . hide)
+	   (quail-self-insert-command . hide)
+	   (quail-delete-last-char . hide)
+	   (quail-next-translation . non-deterministic)
+	   (quail-prev-translation . non-deterministic)
+	   (quail-next-translation-block . non-deterministic)
+	   (quail-prev-translation-block . non-deterministic))))
   (while l
-    (put (car l) 'quail-help-hide t)
+    (put (car (car l)) 'quail-help (cdr (car l)))
     (setq l (cdr l))))
 
 (defvar quail-simple-translation-keymap
@@ -358,7 +379,12 @@ If it is an alist, the element has the form (CHAR . STRING).  Each character
  shown.
 If it is nil, the current key is shown.
 
-DOCSTRING is the documentation string of this package.
+DOCSTRING is the documentation string of this package.  The command
+`describe-input-method' shows this string while replacing the form
+\\<VAR> in the string by the value of VAR.  That value should be a
+string.  For instance, the form \\<quail-translation-docstring> is
+replaced by a description about how to select a translation from a
+list of candidates.
 
 TRANSLATION-KEYS specifies additional key bindings used while translation
 region is active.  It is an alist of single key character vs. corresponding
@@ -815,7 +841,10 @@ you type is correctly handled."
 
 ;;;###autoload
 (defun quail-show-keyboard-layout (&optional keyboard-type)
-  "Show keyboard layout."
+  "Show the physical layout of the keyboard type KEYBOARD-TYPE.
+
+The variable `quail-keyboard-layout-type' holds the currently selected
+keyboard type."
   (interactive
    (list (completing-read "Keyboard type (default, current choise): "
 			  quail-keyboard-layout-alist
@@ -1411,7 +1440,7 @@ The returned value is a Quail map specific to KEY."
 	(erase-buffer))))
 
 (defun quail-select-current ()
-  "Select the current text shown in Quail translation region."
+  "Accept the currently selected translation."
   (interactive)
   (quail-terminate-translation))
 
@@ -2194,10 +2223,22 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 	       (select-window (active-minibuffer-window))
 	     (exit-minibuffer))))))
 
-(defun quail-build-decode-map (map key decode-map num &optional maxnum ignores)
-  (let ((translation (quail-get-translation (car map) key (length key)))
-	elt)
+;; Accumulate in the cdr part of DECODE-MAP all pairs of key sequences
+;; vs the corresponding translations defined in the Quail map
+;; specified by the first element MAP-LIST.  Each pair has the form
+;; (KEYSEQ . TRANSLATION).  DECODE-MAP should have the form
+;; (decode-map . ALIST), where ALIST is an alist of length NUM.  KEY
+;; is a key sequence to reach MAP.
+;; Optional 5th arg MAXNUM limits the number of accumulated pairs.
+;; Optional 6th arg IGNORES is a list of translations to ignore.
+
+(defun quail-build-decode-map (map-list key decode-map num
+					&optional maxnum ignores)
+  (let* ((map (car map-list))
+	 (translation (quail-get-translation (car map) key (length key)))
+	 elt)
     (cond ((integerp translation)
+	   ;; Accept only non-ASCII chars not listed in IGNORES.
 	   (when (and (> translation 255) (not (memq translation ignores)))
 	     (setcdr decode-map
 		     (cons (cons key translation) (cdr decode-map)))
@@ -2206,6 +2247,8 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 	   (setq translation (cdr translation))
 	   (let ((multibyte nil))
 	     (mapc (function (lambda (x)
+			       ;; Accept only non-ASCII chars not
+			       ;; listed in IGNORES.
 			       (if (and (if (integerp x) (> x 255)
 					  (> (string-bytes x) (length x)))
 					(not (member x ignores)))
@@ -2218,13 +2261,19 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
     (if (and maxnum (> num maxnum))
 	(- num)
       (setq map (cdr map))
+      ;; Recursively check the deeper map.
       (while (and map (>= num 0))
 	(setq elt (car map) map (cdr map))
-	(when (and (integerp (car elt)) (consp (cdr elt)))
-	  (setq num (quail-build-decode-map (cdr elt)
+	(when (and (integerp (car elt)) (consp (cdr elt))
+		   (not (memq (cdr elt) map-list)))
+	  (setq num (quail-build-decode-map (cons (cdr elt) map-list)
 					    (format "%s%c" key (car elt))
 					    decode-map num maxnum ignores))))
       num)))
+
+;; Insert the pairs of key sequences vs the corresponding translations
+;; stored in DECODE-MAP by the concise format.  DECODE-MAP should be
+;; made by `quail-build-decode-map' (which see).
 
 (defun quail-insert-decode-map (decode-map)
   (setq decode-map
@@ -2235,38 +2284,40 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 			      (and (= (length x) (length y))
 				   (not (string< x y))))))))
   (let ((frame-width (frame-width))
-	(short-key-width 3)
-	(short-trans-width 4)
-	(long-key-width 3)
-	(short-list nil)
-	(long-list nil)
+	(single-key-width 3)
+	(single-trans-width 4)
+	(multiple-key-width 3)
+	(single-list nil)
+	(multiple-list nil)
 	elt trans width pos cols rows col row str col-width)
-    ;; Divide the decoding map into shorter one and longer one.
+    ;; Divide the elements of decoding map into single ones (i.e. the
+    ;; one that has single translation) and multibyte ones (i.e. the
+    ;; one that has multiple translations).
     (while decode-map
       (setq elt (car decode-map) decode-map (cdr decode-map)
 	    trans (cdr elt))
       (if (and (vectorp trans) (= (length trans) 1))
 	  (setq trans (aref trans 0)))
       (if (vectorp trans)
-	  (setq long-list (cons elt long-list))
-	(setq short-list (cons (cons (car elt) trans) short-list)
+	  (setq multiple-list (cons elt multiple-list))
+	(setq single-list (cons (cons (car elt) trans) single-list)
 	      width (if (stringp trans) (string-width trans)
 		      (char-width trans)))
-	(if (> width short-trans-width)
-	    (setq short-trans-width width)))
+	(if (> width single-trans-width)
+	    (setq single-trans-width width)))
       (setq width (length (car elt)))
-      (if (> width short-key-width)
-	  (setq short-key-width width))
-      (if (> width long-key-width)
-	  (setq long-key-width width)))
-    (when short-list
-      (setq col-width (+ short-key-width 1 short-trans-width 1)
+      (if (> width single-key-width)
+	  (setq single-key-width width))
+      (if (> width multiple-key-width)
+	  (setq multiple-key-width width)))
+    (when single-list
+      (setq col-width (+ single-key-width 1 single-trans-width 1)
 	    cols (/ frame-width col-width)
-	    rows (/ (length short-list) cols))
-      (if (> (% (length short-list) cols) 0)
+	    rows (/ (length single-list) cols))
+      (if (> (% (length single-list) cols) 0)
 	  (setq rows (1+ rows)))
       (insert "key")
-      (indent-to (1+ short-key-width))
+      (indent-to (1+ single-key-width))
       (insert "char")
       (indent-to (1+ col-width))
       (insert "[type a key sequence to insert the corresponding character]\n")
@@ -2274,34 +2325,34 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
       (insert-char ?\n (+ rows 2))
       (goto-char pos)
       (setq col (- col-width) row 0)
-      (while short-list
-	(setq elt (car short-list) short-list (cdr short-list))
+      (while single-list
+	(setq elt (car single-list) single-list (cdr single-list))
 	(when (= (% row rows) 0)
 	  (goto-char pos)
 	  (setq col (+ col col-width))
 	  (move-to-column col t)
-	  (insert-char ?- short-key-width)
+	  (insert-char ?- single-key-width)
 	  (insert ? )
-	  (insert-char ?- short-trans-width)
+	  (insert-char ?- single-trans-width)
 	  (forward-line 1))
 	(move-to-column col t)
 	(insert (car elt))
-	(indent-to (+ col short-key-width 1))
+	(indent-to (+ col single-key-width 1))
 	(insert (cdr elt))
 	(forward-line 1)
 	(setq row (1+ row)))
       (goto-char (point-max)))
 
-    (when long-list
+    (when multiple-list
       (insert "key")
-      (indent-to (1+ long-key-width))
+      (indent-to (1+ multiple-key-width))
       (insert "character(s)  [type a key (sequence) and select one from the list]\n")
-      (insert-char ?- long-key-width)
+      (insert-char ?- multiple-key-width)
       (insert " ------------\n")
-      (while long-list
-	(setq elt (car long-list) long-list (cdr long-list))
+      (while multiple-list
+	(setq elt (car multiple-list) multiple-list (cdr multiple-list))
 	(insert (car elt))
-	(indent-to long-key-width)
+	(indent-to multiple-key-width)
 	(if (vectorp (cdr elt))
 	    (mapc (function
 		   (lambda (x)
@@ -2309,7 +2360,7 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 				    (string-width x))))
 		       (when (> (+ (current-column) 1 width) frame-width)
 			 (insert "\n")
-			 (indent-to long-key-width))			 
+			 (indent-to multiple-key-width))
 		       (insert " " x))))
 		  (cdr elt))
 	  (insert " " (cdr elt)))
@@ -2318,7 +2369,8 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 
 (defun quail-help (&optional package)
   "Show brief description of the current Quail package.
-Optional 2nd arg PACKAGE specifies the alternative Quail package to describe."
+Optional 2nd arg PACKAGE specifies the name of alternative Quail
+package to describe."
   (interactive)
   (if package
       (setq package (assoc package quail-package-alist))
@@ -2331,8 +2383,20 @@ Optional 2nd arg PACKAGE specifies the alternative Quail package to describe."
 	(insert "Input method: " (quail-name)
 		" (mode line indicator:"
 		(quail-title)
-		")\n\n"
-		(quail-docstring))
+		")\n\n")
+	(save-restriction
+	  (narrow-to-region (point) (point))
+	  (insert (quail-docstring))
+	  (goto-char (point-min))
+	  (with-syntax-table emacs-lisp-mode-syntax-table
+	    (while (re-search-forward "\\\\<\\sw\\(\\sw\\|\\s_\\)+>" nil t)
+	      (let ((sym (intern-soft
+			  (buffer-substring (+ (match-beginning 0) 2)
+					    (1- (point))))))
+		(if (and (boundp sym)
+			 (stringp (symbol-value sym)))
+		    (replace-match (symbol-value sym) t t)))))
+	  (goto-char (point-max)))
 	(or (bolp)
 	    (insert "\n"))
 	(insert "\n")
@@ -2340,8 +2404,10 @@ Optional 2nd arg PACKAGE specifies the alternative Quail package to describe."
 	(let ((done-list nil))
 	  ;; Show keyboard layout if the current package requests it..
 	  (when (quail-show-layout)
-	    (insert
-"Physical key layout for this input method is as below.
+	    (insert "
+KEYBOARD LAYOUT
+---------------
+Physical key layout for this input method is as below.
 You can input a character in the table by typing a key
 at the same location on your keyboard.\n")
 	    (setq done-list
@@ -2364,10 +2430,13 @@ adjust the variable `quail-keyboard-layout-type' ")
 	  ;; Show key sequences.
 	  (let ((decode-map (list 'decode-map))
 		elt pos num)
-	    (setq num (quail-build-decode-map (quail-map) "" decode-map
+	    (setq num (quail-build-decode-map (list (quail-map)) "" decode-map
 					      0 512 done-list))
 	    (when (> num 0)
-	      (insert ?\n)
+	      (insert "
+KEY SEQUENCE
+-----------
+")
 	      (if (quail-show-layout)
 		  (insert "You can also input more characters")
 		(insert "You can input characters"))
@@ -2376,12 +2445,16 @@ adjust the variable `quail-keyboard-layout-type' ")
 
 	(quail-help-insert-keymap-description
 	 (quail-translation-keymap)
-	 "--- key bindings for selecting a character ---\n")
+	 "\
+KEY BINDINGS FOR TRANSLATION
+----------------------------\n")
 	(insert ?\n)
 	(if (quail-conversion-keymap)
 	    (quail-help-insert-keymap-description
 	     (quail-conversion-keymap)
-	     "--- Key bindings for converting a character (sequence) ---\n"))
+	     "\
+KEY BINDINGS FOR CONVERSION
+---------------------------\n"))
 	(help-setup-xref (list #'quail-help (quail-name))
 			 (interactive-p))
 	(setq quail-current-package nil)))))
@@ -2391,9 +2464,9 @@ adjust the variable `quail-keyboard-layout-type' ")
     (setq pos1 (point))
     (if header
 	(insert header))
-    (insert (substitute-command-keys "\\{keymap}"))
-    (goto-char pos1)
-    ;; Skip headers "--- key bindings ---", etc.
+    (save-excursion
+      (insert (substitute-command-keys "\\{keymap}")))
+    ;; Skip headers "key bindings", etc.
     (forward-line 3)
     (setq pos2 (point))
     (with-syntax-table emacs-lisp-mode-syntax-table
@@ -2401,7 +2474,9 @@ adjust the variable `quail-keyboard-layout-type' ")
 	(let ((sym (intern-soft (buffer-substring (match-beginning 0)
 						  (point)))))
 	  (if (and sym (fboundp sym)
-		   (get sym 'quail-help-hide))
+		   (or (eq (get sym 'quail-help) 'hide)
+		       (and (quail-deterministic)
+			    (eq (get sym 'quail-help) 'non-deterministic))))
 	      (delete-region (line-beginning-position)
 			     (1+ (line-end-position)))))))
     (goto-char pos2)
