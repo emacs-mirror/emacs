@@ -520,10 +520,12 @@ It returns a name of the created fontset."
 	      (or (rassoc alias fontset-alias-alist)
 		  (setq fontset-alias-alist
 			(cons (cons name alias) fontset-alias-alist)))))
-	(setq fontset-alias-alist
-	      (cons (cons name resolved-ascii-font)
-		    fontset-alias-alist))
+	(or (rassoc resolved-ascii-font fontset-alias-alist)
+	    (setq fontset-alias-alist
+		  (cons (cons name resolved-ascii-font)
+			fontset-alias-alist)))
 	(or (equal ascii-font resolved-ascii-font)
+	    (rassoc ascii-font fontset-alias-alist)
 	    (setq fontset-alias-alist
 		  (cons (cons name ascii-font)
 			fontset-alias-alist)))
@@ -563,9 +565,10 @@ It returns a name of the created fontset."
 				    (cons (cons 'ascii new-ascii-font)
 					  nonascii-fontlist))
 			      uninstantiated-fontset-alist))
-		  (setq fontset-alias-alist
-			(cons (cons new-name new-ascii-font)
-			      fontset-alias-alist)))
+		  (or (rassoc new-ascii-font fontset-alias-alist)
+		      (setq fontset-alias-alist
+			    (cons (cons new-name new-ascii-font)
+				  fontset-alias-alist))))
 		(setq style-variant (cdr style-variant)))))))
     name))
 
