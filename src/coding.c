@@ -1537,13 +1537,6 @@ encode_coding_utf_16 (coding)
 
 char emacs_mule_bytes[256];
 
-/* Leading-code followed by extended leading-code.  */
-#define LEADING_CODE_PRIVATE_11	0x9A /* for private DIMENSION1 of 1-column */
-#define LEADING_CODE_PRIVATE_12	0x9B /* for private DIMENSION1 of 2-column */
-#define LEADING_CODE_PRIVATE_21	0x9C /* for private DIMENSION2 of 1-column */
-#define LEADING_CODE_PRIVATE_22	0x9D /* for private DIMENSION2 of 2-column */
-
-
 int
 emacs_mule_char (coding, src, nbytes, nchars)
      struct coding_system *coding;
@@ -1569,8 +1562,8 @@ emacs_mule_char (coding, src, nbytes, nchars)
       break;
 
     case 3:
-      if (c == LEADING_CODE_PRIVATE_11
-	  || c == LEADING_CODE_PRIVATE_12)
+      if (c == EMACS_MULE_LEADING_CODE_PRIVATE_11
+	  || c == EMACS_MULE_LEADING_CODE_PRIVATE_12)
 	{
 	  ONE_MORE_BYTE (c);
 	  if (! (charset = emacs_mule_charset[c]))
@@ -4102,7 +4095,7 @@ static void
 decode_coding_ccl (coding)
      struct coding_system *coding;
 {
-  unsigned char *src = coding->source + coding->consumed;
+  const unsigned char *src = coding->source + coding->consumed;
   unsigned char *src_end = coding->source + coding->src_bytes;
   int *charbuf = coding->charbuf;
   int *charbuf_end = charbuf + coding->charbuf_size;
@@ -4116,7 +4109,7 @@ decode_coding_ccl (coding)
 
   while (src < src_end)
     {
-      unsigned char *p = src;
+      const unsigned char *p = src;
       int *source, *source_end;
       int i = 0;
 
@@ -5619,7 +5612,7 @@ consume_chars (coding)
   int *buf = coding->charbuf;
   /* -1 is to compensate for CRLF.  */
   int *buf_end = coding->charbuf + coding->charbuf_size - 1;
-  unsigned char *src = coding->source + coding->consumed;
+  const unsigned char *src = coding->source + coding->consumed;
   int pos = coding->src_pos + coding->consumed_char;
   int end_pos = coding->src_pos + coding->src_chars;
   int multibytep = coding->src_multibyte;
@@ -6457,7 +6450,7 @@ DEFUN ("find-coding-systems-region-internal",
 {
   Lisp_Object coding_attrs_list, safe_codings;
   EMACS_INT start_byte, end_byte;
-  unsigned char *p, *pbeg, *pend;
+  const unsigned char *p, *pbeg, *pend;
   int c;
   Lisp_Object tail, elt;
 
@@ -6587,7 +6580,7 @@ buffer positions.  END is ignored.  */)
   Lisp_Object list;
   EMACS_INT start_byte, end_byte;
   int pos;
-  unsigned char *p, *pbeg, *pend;
+  const unsigned char *p, *pbeg, *pend;
   int c;
   Lisp_Object tail, elt;
 
@@ -7890,10 +7883,10 @@ init_coding_once ()
     {
       emacs_mule_bytes[i] = 1;
     }
-  emacs_mule_bytes[LEADING_CODE_PRIVATE_11] = 3;
-  emacs_mule_bytes[LEADING_CODE_PRIVATE_12] = 3;
-  emacs_mule_bytes[LEADING_CODE_PRIVATE_21] = 4;
-  emacs_mule_bytes[LEADING_CODE_PRIVATE_22] = 4;
+  emacs_mule_bytes[EMACS_MULE_LEADING_CODE_PRIVATE_11] = 3;
+  emacs_mule_bytes[EMACS_MULE_LEADING_CODE_PRIVATE_12] = 3;
+  emacs_mule_bytes[EMACS_MULE_LEADING_CODE_PRIVATE_21] = 4;
+  emacs_mule_bytes[EMACS_MULE_LEADING_CODE_PRIVATE_22] = 4;
 }
 
 #ifdef emacs
