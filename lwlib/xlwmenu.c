@@ -139,6 +139,8 @@ xlwMenuResources[] =
      offset(menu.font),XtRString, "XtDefaultFont"},
   {XtNforeground, XtCForeground, XtRPixel, sizeof(Pixel),
      offset(menu.foreground), XtRString, "XtDefaultForeground"},
+  {XtNdisabledForeground, XtCDisabledForeground, XtRPixel, sizeof(Pixel),
+   offset(menu.disabled_foreground), XtRString, (XtPointer)NULL},
   {XtNbuttonForeground, XtCButtonForeground, XtRPixel, sizeof(Pixel),
      offset(menu.button_foreground), XtRString, "XtDefaultForeground"},
   {XtNmargin, XtCMargin, XtRDimension,  sizeof(Dimension),
@@ -997,7 +999,7 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
       if (val->enabled)
 	text_gc = mw->menu.foreground_gc;
       else
-	text_gc = mw->menu.inactive_gc;
+	text_gc = mw->menu.disabled_gc;
       deco_gc = mw->menu.foreground_gc;
 
       if (separator_p)
@@ -1453,6 +1455,8 @@ make_drawing_gcs (mw)
      XlwMenuWidget mw;
 {
   XGCValues xgcv;
+  XColor temp;
+  int delta;
 
   xgcv.font = mw->menu.font->fid;
   xgcv.foreground = mw->menu.foreground;
@@ -1469,13 +1473,47 @@ make_drawing_gcs (mw)
 				&xgcv);
 
   xgcv.font = mw->menu.font->fid;
-  xgcv.foreground = mw->menu.foreground;
   xgcv.background = mw->core.background_pixel;
-  xgcv.fill_style = FillStippled;
-  xgcv.stipple = mw->menu.gray_pixmap;
-  mw->menu.inactive_gc = XtGetGC ((Widget)mw,
-				  (GCFont | GCForeground | GCBackground
-				   | GCFillStyle | GCStipple), &xgcv);
+
+#define BRIGHTNESS(color) (((color) & 0xff) + (((color) >> 8) & 0xff) + (((color) >> 16) & 0xff))
+
+  /* Allocate color for disabled menu-items.  */
+  if (BRIGHTNESS(mw->menu.foreground) < BRIGHTNESS(mw->core.background_pixel))
+    {
+      delta = 2.3;
+      temp.pixel = mw->menu.foreground;
+    }
+  else
+    {
+      delta = 1.2;
+      temp.pixel = mw->core.background_pixel;
+    }
+
+  x_alloc_lighter_color_for_widget ((Widget) mw, XtDisplay ((Widget) mw),
+				    mw->core.colormap,
+				    &temp.pixel,
+				    delta,
+				    0x8000);
+  mw->menu.disabled_foreground = temp.pixel;
+
+  if (mw->menu.foreground == mw->menu.disabled_foreground
+      || mw->core.background_pixel == mw->menu.disabled_foreground)
+    {
+      /* Too few colors, use stipple.  */
+      xgcv.foreground = mw->menu.foreground;
+      xgcv.fill_style = FillStippled;
+      xgcv.stipple = mw->menu.gray_pixmap;
+      mw->menu.disabled_gc = XtGetGC ((Widget)mw,
+				      (GCFont | GCForeground | GCBackground
+				       | GCFillStyle | GCStipple), &xgcv);
+    }
+  else
+    {
+      /* Many colors available, use disabled pixel.  */
+      xgcv.foreground = mw->menu.disabled_foreground;
+      mw->menu.disabled_gc = XtGetGC ((Widget)mw,
+				      (GCFont | GCForeground | GCBackground), &xgcv);
+    }
 
   xgcv.font = mw->menu.font->fid;
   xgcv.foreground = mw->menu.button_foreground;
@@ -1500,13 +1538,13 @@ release_drawing_gcs (mw)
 {
   XtReleaseGC ((Widget) mw, mw->menu.foreground_gc);
   XtReleaseGC ((Widget) mw, mw->menu.button_gc);
-  XtReleaseGC ((Widget) mw, mw->menu.inactive_gc);
+  XtReleaseGC ((Widget) mw, mw->menu.disabled_gc);
   XtReleaseGC ((Widget) mw, mw->menu.inactive_button_gc);
   XtReleaseGC ((Widget) mw, mw->menu.background_gc);
   /* let's get some segvs if we try to use these... */
   mw->menu.foreground_gc = (GC) -1;
   mw->menu.button_gc = (GC) -1;
-  mw->menu.inactive_gc = (GC) -1;
+  mw->menu.disabled_gc = (GC) -1;
   mw->menu.inactive_button_gc = (GC) -1;
   mw->menu.background_gc = (GC) -1;
 }
@@ -2050,6 +2088,8 @@ find_next_selectable (mw, item)
 
   if (current == item)
     {
+      if (mw->menu.old_depth < 2)
+	return current;
       current = mw->menu.old_stack [mw->menu.old_depth - 2]->contents;
 
       while (lw_separator_p (current->name, &separator, 0) || !current->enabled)
