@@ -1,6 +1,6 @@
 ;;; macroexp.el --- Additional macro-expansion support
 ;;
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: lisp
@@ -159,5 +159,3 @@ definitions to shadow the loaded ones for use in file byte-compilation."
 (provide 'macroexp)
 
 ;;; macroexp.el ends here
-
-

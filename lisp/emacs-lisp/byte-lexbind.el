@@ -670,5 +670,3 @@ binding slots have been popped."
 (provide 'byte-lexbind)
 
 ;;; byte-lexbind.el ends here
-
-
