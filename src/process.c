@@ -1447,7 +1447,7 @@ create_process (process, new_argv, current_dir)
 	setup_raw_text_coding_system (proc_decode_coding_system[inchannel]);
       if (NILP (Vcoding_system_for_write)
 	  && !NILP (XPROCESS (process)->encode_coding_system))
-	setup_raw_text_coding_system (proc_decode_coding_system[outchannel]);
+	setup_raw_text_coding_system (proc_encode_coding_system[outchannel]);
     }
 
   if (CODING_REQUIRE_ENCODING (proc_encode_coding_system[outchannel]))
