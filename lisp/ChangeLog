@@ -1,3 +1,10 @@
+1999-12-01  Anders Lindgren  <andersl@andersl.com>
+
+	* autorevert.el (auto-revert-buffers): Auto-revert mode was turned
+	off when reverting buffers that contained mode specifiers.
+	`revert-buffer' is now called with non-nil PRESERVE-MODES
+	argument.
+
 1999-12-01  Dave Love  <fx@gnu.org>
 
 	* delsel.el: Grok skeleton-pair-insert-maybe.
