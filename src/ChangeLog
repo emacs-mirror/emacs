@@ -5,6 +5,10 @@
 
 2004-10-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* fns.c (map_char_table): Add missing gcpros.
+
+2004-10-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* keymap.c (get_keymap): An autoload form is not a keymap.
 
 	* textprop.c (syms_of_textprop): Make `syntax-table' nonsticky.
