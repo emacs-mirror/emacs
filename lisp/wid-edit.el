@@ -3128,7 +3128,6 @@ It will read a directory name from the minibuffer when invoked."
     (widget-value-set widget answer)
     (widget-apply widget :notify widget event)
     (widget-setup)))
-  )
 
 (define-widget 'sexp 'editable-field
   "An arbitrary Lisp expression."
