@@ -1712,6 +1712,12 @@ extern EMACS_INT max_specpdl_size;
 struct handler
   {
     /* The handler clauses and variable from the condition-case form.  */
+    /* For a handler set up in Lisp code, this is always a list.
+       For an internal handler set up by internal_condition_case*,
+       this can instead be the symbol t or `error'.
+       t: handle all conditions.
+       error: handle all conditions, and errors can run the debugger
+              or display a backtrace.  */
     Lisp_Object handler;
     Lisp_Object var;
     /* Fsignal stores here the condition-case clause that applies,
