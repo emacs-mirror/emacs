@@ -350,18 +350,6 @@ extern int pure_size;
 #endif /* not HAVE_SHM */
 #endif /* no XPNTR */
 
-#ifndef XSETINT
-#define XSETINT(a, b)  ((a) = ((a) & ~VALMASK) |  ((b) & VALMASK))
-#endif
-
-#ifndef XSETUINT
-#define XSETUINT(a, b) XSETINT (a, b)
-#endif
-
-#ifndef XSETPNTR
-#define XSETPNTR(a, b) XSETINT (a, b)
-#endif
-
 #ifndef XSET
 #define XSET(var, type, ptr) \
    ((var) = ((EMACS_INT)(type) << VALBITS) + ((EMACS_INT) (ptr) & VALMASK))
@@ -420,9 +408,6 @@ extern int pure_size;
 
 #define XUINT(a) ((a).u.val)
 #define XPNTR(a) ((a).u.val)
-#define XSETINT(a, b) ((a).s.val = (int) (b))
-#define XSETUINT(a, b) ((a).s.val = (int) (b))
-#define XSETPNTR(a, b) ((a).s.val = (int) (b))
 
 #define XSET(var, vartype, ptr) \
    (((var).s.type = ((char) (vartype))), ((var).s.val = ((int) (ptr))))
@@ -448,7 +433,6 @@ extern int pure_size;
 #define XSUBR(a) ((struct Lisp_Subr *) XPNTR(a))
 #define XSTRING(a) ((struct Lisp_String *) XPNTR(a))
 #define XSYMBOL(a) ((struct Lisp_Symbol *) XPNTR(a))
-#define XFUNCTION(a) ((Lisp_Object (*)()) XPNTR(a))
 #define XMARKER(a) ((struct Lisp_Marker *) XPNTR(a))
 #define XOBJFWD(a) ((Lisp_Object *) XPNTR(a))
 #define XINTPTR(a) ((int *) XPNTR(a))
@@ -456,19 +440,24 @@ extern int pure_size;
 #define XPROCESS(a) ((struct Lisp_Process *) XPNTR(a))
 #define XFLOAT(a) ((struct Lisp_Float *) XPNTR(a))
 
-#define XSETCONS(a, b) XSETPNTR(a, (EMACS_INT) (b))
-#define XSETBUFFER(a, b) XSETPNTR(a, (EMACS_INT) (b))
-#define XSETVECTOR(a, b) XSETPNTR(a, (EMACS_INT) (b))
-#define XSETSUBR(a, b) XSETPNTR(a, (EMACS_INT) (b))
-#define XSETSTRING(a, b) XSETPNTR(a, (EMACS_INT) (b))
-#define XSETSYMBOL(a, b) XSETPNTR(a, (EMACS_INT) (b))
-#define XSETFUNCTION(a, b) XSETPNTR(a, (EMACS_INT) (b))
-#define XSETMARKER(a, b) XSETPNTR(a, (EMACS_INT) (b))
-#define XSETOBJFWD(a, b) XSETPNTR(a, (EMACS_INT) (b))
-#define XSETINTPTR(a, b) XSETPNTR(a, (EMACS_INT) (b))
-#define XSETWINDOW(a, b) XSETPNTR(a, (EMACS_INT) (b))
-#define XSETPROCESS(a, b) XSETPNTR(a, (EMACS_INT) (b))
-#define XSETFLOAT(a, b) XSETPNTR(a, (EMACS_INT) (b))
+#define XSETINT(a, b) XSET (a, Lisp_Int, b)
+#define XSETCONS(a, b) XSET (a, Lisp_Cons, b)
+#define XSETBUFFER(a, b) XSET (a, Lisp_Buffer, b)
+#define XSETVECTOR(a, b) XSET (a, Lisp_Vector, b)
+#define XSETSUBR(a, b) XSET (a, Lisp_Subr, b)
+#define XSETSTRING(a, b) XSET (a, Lisp_String, b)
+#define XSETSYMBOL(a, b) XSET (a, Lisp_Symbol, b)
+#define XSETMARKER(a, b) XSET (a, Lisp_Marker, b)
+#define XSETOBJFWD(a, b) XSET (a, Lisp_Objfwd, b)
+#define XSETWINDOW(a, b) XSET (a, Lisp_Window, b)
+#define XSETPROCESS(a, b) XSET (a, Lisp_Process, b)
+#define XSETFLOAT(a, b) XSET (a, Lisp_Float, b)
+#define XSETBOOLFWD(a, b) XSET (a, Lisp_Boolfwd, b)
+#define XSETBUFFER_OBJFWD(a, b) XSET (a, Lisp_Buffer_Objfwd, b)
+#define XSETWINDOW_CONFIGURATION(a, b) XSET (a, Lisp_Window_Configuration, b)
+#define XSETINTERNAL_STREAM(a, b) XSET (a, Lisp_Internal_Stream, b)
+#define XSETINTFWD(a, b) XSET (a, Lisp_Intfwd, b)
+#define XSETINTERNAL(a, b) XSET (a, Lisp_Internal, b)
 
 #ifdef USE_TEXT_PROPERTIES
 /* Basic data type for use of intervals.  See the macros in intervals.h */
