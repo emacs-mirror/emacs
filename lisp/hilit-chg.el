@@ -589,7 +589,6 @@ This allows you to manually remove highlighting from uninteresting changes."
     (or buffer-read-only
 	(hilit-chg-hide-changes)))
   (force-mode-line-update)
-  (make-local-hook 'after-change-functions)
   (add-hook 'after-change-functions 'hilit-chg-set-face-on-change nil t))
 
 (defun hilit-chg-clear ()
