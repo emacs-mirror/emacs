@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.355 2003/05/31 16:47:57 monnier Exp $
+;; $Id: vc.el,v 1.356 2003/06/20 13:21:24 teirllm Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2360,7 +2360,8 @@ allowed and simply skipped)."
         (set-buffer-modified-p nil)))))
 
 (defun vc-default-show-log-entry (backend rev)
-  (log-view-goto-rev rev))
+  (with-no-warnings
+   (log-view-goto-rev rev)))
 
 (defun vc-default-comment-history (backend file)
   "Return a string with all log entries stored in BACKEND for FILE."
