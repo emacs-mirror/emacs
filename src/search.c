@@ -121,7 +121,7 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
      int posix;
      int multibyte;
 {
-  CONST char *val;
+  char *val;
   reg_syntax_t old;
 
   cp->regexp = Qnil;
@@ -131,8 +131,8 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
   BLOCK_INPUT;
   old = re_set_syntax (RE_SYNTAX_EMACS
 		       | (posix ? 0 : RE_NO_POSIX_BACKTRACKING));
-  val = (CONST char *) re_compile_pattern ((char *) XSTRING (pattern)->data,
-					   XSTRING (pattern)->size, &cp->buf);
+  val = (char *) re_compile_pattern ((char *) XSTRING (pattern)->data,
+				     XSTRING (pattern)->size, &cp->buf);
   re_set_syntax (old);
   UNBLOCK_INPUT;
   if (val)
