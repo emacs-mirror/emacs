@@ -1,3 +1,9 @@
+2001-02-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* frame.el (frame-notice-user-settings): When resizing the initial
+	frame because the tool bar is off, also change the frame's top
+	position if a negative top position was specified.
+
 2001-02-02  Miles Bader  <miles@gnu.org>
 
 	* image-file.el (insert-image-file): When visiting an image,

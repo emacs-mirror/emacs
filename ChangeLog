@@ -1,5 +1,7 @@
 2001-02-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* mkinstalldirs (errstatus): Chmod a+rx directories we create.
+
 	* Makefile.in (uninstall): Ignore exit code of `rm'.
 	
 	* Makefile.in (uninstall): Remove more info files.  Remove
