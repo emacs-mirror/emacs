@@ -49,13 +49,13 @@ enum syntaxcode
   };
 
 #define SYNTAX(c) \
-  ((enum syntaxcode) (XINT (XVECTOR (current_buffer->syntax_table)->contents[c]) & 0377))
+  ((enum syntaxcode) (XINT (XVECTOR (current_buffer->syntax_table)->contents[(unsigned char) (c)]) & 0377))
 
 /* The next 8 bits of the number is a character,
  the matching delimiter in the case of Sopen or Sclose. */
 
 #define SYNTAX_MATCH(c) \
-  ((XINT (XVECTOR (current_buffer->syntax_table)->contents[c]) >> 8) & 0377)
+  ((XINT (XVECTOR (current_buffer->syntax_table)->contents[(unsigned char) (c)]) >> 8) & 0377)
 
 /* Then there are five single-bit flags that have the following meanings:
   1. This character is the first of a two-character comment-start sequence.
@@ -67,19 +67,19 @@ enum syntaxcode
   and whose second character has flag 2 will be interpreted as a comment start. */
 
 #define SYNTAX_COMSTART_FIRST(c) \
-  ((XINT (XVECTOR (current_buffer->syntax_table)->contents[c]) >> 16) & 1)
+  ((XINT (XVECTOR (current_buffer->syntax_table)->contents[(unsigned char) (c)]) >> 16) & 1)
 
 #define SYNTAX_COMSTART_SECOND(c) \
-  ((XINT (XVECTOR (current_buffer->syntax_table)->contents[c]) >> 17) & 1)
+  ((XINT (XVECTOR (current_buffer->syntax_table)->contents[(unsigned char) (c)]) >> 17) & 1)
 
 #define SYNTAX_COMEND_FIRST(c) \
-  ((XINT (XVECTOR (current_buffer->syntax_table)->contents[c]) >> 18) & 1)
+  ((XINT (XVECTOR (current_buffer->syntax_table)->contents[(unsigned char) (c)]) >> 18) & 1)
 
 #define SYNTAX_COMEND_SECOND(c) \
-  ((XINT (XVECTOR (current_buffer->syntax_table)->contents[c]) >> 19) & 1)
+  ((XINT (XVECTOR (current_buffer->syntax_table)->contents[(unsigned char) (c)]) >> 19) & 1)
 
 #define SYNTAX_PREFIX(c) \
-  ((XINT (XVECTOR (current_buffer->syntax_table)->contents[c]) >> 20) & 1)
+  ((XINT (XVECTOR (current_buffer->syntax_table)->contents[(unsigned char) (c)]) >> 20) & 1)
 
 /* This array, indexed by a character, contains the syntax code which that
  character signifies (as a char).  For example,
