@@ -1,3 +1,7 @@
+2000-01-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* minibuf.c (Fcompleting_read): Doc fix.
+
 2000-01-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* s/freebsd.h (C_SWITCH_SYSTEM): Add -I /usr/local/include and
