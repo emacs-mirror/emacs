@@ -1575,24 +1575,6 @@ fi
 
 X_TOOLKIT_TYPE=$USE_X_TOOLKIT
 
-dnl Use toolkit scroll bars if configured for X toolkit and either
-dnl using Motif or Xaw3d is available, and unless
-dnl --with-toolkit-scroll-bars=no was specified.
-
-USE_TOOLKIT_SCROLL_BARS=no
-if test "${with_toolkit_scroll_bars}" != "no"; then
-  if test "${USE_X_TOOLKIT}" != "none"; then
-    if test "${USE_X_TOOLKIT}" = "MOTIF"; then
-      AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
-      HAVE_XAW3D=no
-      USE_TOOLKIT_SCROLL_BARS=yes
-    elif test "${HAVE_XAW3D}" = "yes"; then
-      AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
-      USE_TOOLKIT_SCROLL_BARS=yes
-    fi
-  fi
-fi
-
 if test "${USE_X_TOOLKIT}" != "none"; then
   AC_MSG_CHECKING(X11 toolkit version)
   AC_CACHE_VAL(emacs_cv_x11_toolkit_version_6,
@@ -1653,6 +1635,24 @@ if test "${HAVE_X11}" = "yes"; then
   fi
 fi
   
+dnl Use toolkit scroll bars if configured for X toolkit and either
+dnl using Motif or Xaw3d is available, and unless
+dnl --with-toolkit-scroll-bars=no was specified.
+
+USE_TOOLKIT_SCROLL_BARS=no
+if test "${with_toolkit_scroll_bars}" != "no"; then
+  if test "${USE_X_TOOLKIT}" != "none"; then
+    if test "${USE_X_TOOLKIT}" = "MOTIF"; then
+      AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
+      HAVE_XAW3D=no
+      USE_TOOLKIT_SCROLL_BARS=yes
+    elif test "${HAVE_XAW3D}" = "yes"; then
+      AC_DEFINE(USE_TOOLKIT_SCROLL_BARS)
+      USE_TOOLKIT_SCROLL_BARS=yes
+    fi
+  fi
+fi
+
 ### Use -lXpm if available, unless `--with-xpm=no'.
 HAVE_XPM=no
 if test "${HAVE_X11}" = "yes"; then
@@ -1707,7 +1707,7 @@ if test "${HAVE_X11}" = "yes"; then
     old_c_flags="${CFLAGS}"
     CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
     AC_CHECK_HEADER(tiffio.h,
-      AC_CHECK_LIB(tiff, TIFFGetVersion, HAVE_TIFF=yes, , -lX11))
+      AC_CHECK_LIB(tiff, TIFFGetVersion, HAVE_TIFF=yes, , -lX11 -lm))
     CFLAGS="${old_c_flags}"
   fi
 
