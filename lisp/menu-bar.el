@@ -679,6 +679,10 @@ Do the same for the keys of the same name."
   (interactive)
   (customize-set-variable 'fringe-mode nil))
 
+;; The real definition is in fringe.el.
+;; This is to prevent errors in the :radio conditions below.
+(setq fringe-mode nil)
+
 (define-key menu-bar-showhide-fringe-menu [default]
   '(menu-item "Default" menu-bar-showhide-fringe-menu-customize-reset
 	      :help "Default width fringe on both left and right side"
