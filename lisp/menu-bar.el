@@ -549,7 +549,7 @@ Do the same for the keys of the same name."
 		 case-fold-search truncate-lines show-paren-mode
 		 transient-mark-mode global-font-lock-mode
 		 current-language-environment default-input-method
-		 default-frame-alist))
+		 default-frame-alist display-time-mode))
     (if (default-value elt)
 	(customize-save-variable elt (default-value elt))))
   (if (memq 'turn-on-auto-fill text-mode-hook)
@@ -571,6 +571,22 @@ Do the same for the keys of the same name."
 ;; The "Show/Hide" submenu of menu "Options"
 
 (defvar menu-bar-showhide-menu (make-sparse-keymap "Show/Hide"))
+
+(defun showhide-date-time ()
+  "Toggle whether to show date and time in the mode-line."
+  (interactive)
+  (if (display-time-mode)
+      (message "Display-time mode enabled.")
+    (message "Display-time mode disabled.")))
+
+(define-key menu-bar-showhide-menu [showhide-date-time]
+  '(menu-item "Date and time" showhide-date-time
+	      :help "Display date and time in the mode-line"
+	      :button (:toggle . display-time-mode)))
+
+(define-key menu-bar-showhide-menu [datetime-separator]
+  '("--"))
+
 (defvar menu-bar-showhide-scroll-bar-menu (make-sparse-keymap "Scroll-bar"))
 
 (defun menu-bar-scroll-bar-right ()
@@ -1043,7 +1059,7 @@ key (or menu-item)"))
 	      :help "Where to find some extra packages and possible updates"))
 (define-key menu-bar-help-menu [about]
   '(menu-item "About Emacs" display-splash-screen
-	      :help "Display splash screen, version, and instructions"))
+	      :help "Display version number, copyright info, and basic help"))
 (define-key menu-bar-help-menu [sep2]
   '("--"))
 (define-key menu-bar-help-menu [finder-by-keyword]
