@@ -2424,15 +2424,6 @@ Start discarding off end if gets this big."
   :type 'integer
   :group 'editing-basics)
 
-(defcustom pop-global-mark-quick-repeat nil
-  "*When non-nil, `pop-global-mark' can be repeated without the prefix key.
-E.g. \\[pop-global-mark] \\[set-mark-command] \\[set-mark-command] \
-pops to the third mark off the global mark ring.
-To cycle through the marks in the target buffer, \
-use \\[universal-argument] \\[set-mark-command] \\[set-mark-command]..."
-  :type 'boolean
-  :group 'editing-basics)
-
 (defun pop-to-mark-command ()
   "Jump to mark, and pop a new position for mark off the ring
 \(does not affect global mark ring\)."
@@ -2467,9 +2458,8 @@ for mark off the local mark ring \(this does not affect the global
 mark ring\).  Use \\[pop-global-mark] to jump to a mark off the global
 mark ring \(see `pop-global-mark'\).
 
-Repeating the \\[set-mark-command] command without the prefix jumps to the next
-position off the local mark ring.  See `pop-global-mark-quick-repeat' if you
-want the same effect for \\[pop-global-mark].
+Repeating the \\[set-mark-command] command without the prefix jumps to
+the next position off the local (or global) mark ring.
 
 With a double \\[universal-argument] prefix argument, e.g. \\[universal-argument] \
 \\[universal-argument] \\[set-mark-command], unconditionally
@@ -2490,8 +2480,7 @@ purposes.  See the documentation of `set-mark' for more information."
    ((eq last-command 'pop-to-mark-command)
     (setq this-command 'pop-to-mark-command)
     (pop-to-mark-command))
-   ((and pop-global-mark-quick-repeat
-	 (eq last-command 'pop-global-mark) (not arg))
+   ((and (eq last-command 'pop-global-mark) (not arg))
     (setq this-command 'pop-global-mark)
     (pop-global-mark))
    (arg
