@@ -99,9 +99,6 @@ against the file name, and TYPE is nil for text, t for binary.")
 ;;; To set the default file type on new files.
 (add-hook 'find-file-not-found-hooks 'find-file-not-found-set-buffer-file-type)
 
-;;; We use the Emacs directory, not /usr/local
-(setq Info-default-directory-list (list "c:/emacs/info"))
-
 (defvar msdos-shells '("command.com" "4dos.com" "ndos.com")
   "*List of shells that use `/c' instead of `-c' and a backslashed command.")
 
