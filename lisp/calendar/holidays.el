@@ -101,6 +101,7 @@ This function is suitable for execution in a .emacs file."
            (displayed-year (extract-calendar-year date)))
       (list-calendar-holidays))))
 
+;;;###autoload
 (defun list-holidays (y1 y2 &optional l label)
   "Display holidays for years Y1 to Y2 (inclusive).
 
