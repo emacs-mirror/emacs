@@ -3,7 +3,7 @@
 ;; Copyright (C) 1988, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
-;; Maintainer: Simon Marshall <s.marshall@dcs.hull.ac.uk>
+;; Maintainer: Simon Marshall <simon@gnu.ai.mit.edu>
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
@@ -27,7 +27,7 @@
 ;;; Please send me bug reports, bug fixes, and extensions, so that I can
 ;;; merge them into the master source.
 ;;;     - Olin Shivers (shivers@cs.cmu.edu)
-;;;     - Simon Marshall (s.marshall@dcs.hull.ac.uk)
+;;;     - Simon Marshall (simon@gnu.ai.mit.edu)
 
 ;;; This file defines a a shell-in-a-buffer package (shell mode) built
 ;;; on top of comint mode.  This is actually cmushell with things
@@ -257,18 +257,21 @@ Return after the end of the process' output sends the text from the
     end of process to the end of the current line.
 Return before end of process output copies the current line (except
     for the prompt) to the end of the buffer and sends it.
-M-x send-invisible reads a line of text without echoing it, and sends it to
+\\[send-invisible] reads a line of text without echoing it, and sends it to
     the shell.  This is useful for entering passwords.  Or, add the function
     `comint-watch-for-password-prompt' to `comint-output-filter-functions'.
+
+If you want to make multiple shell buffers, rename the `*shell*' buffer
+using \\[rename-buffer] or \\[rename-uniquely] and start a new shell.
 
 If you accidentally suspend your process, use \\[comint-continue-subjob]
 to continue it.
 
-cd, pushd and popd commands given to the shell are watched by Emacs to keep
-this buffer's default directory the same as the shell's working directory.
-M-x dirs queries the shell and resyncs Emacs' idea of what the current 
+`cd', `pushd' and `popd' commands given to the shell are watched by Emacs to
+keep this buffer's default directory the same as the shell's working directory.
+\\[dirs] queries the shell and resyncs Emacs' idea of what the current 
     directory stack is.
-M-x dirtrack-toggle turns directory tracking on and off.
+\\[dirtrack-toggle] turns directory tracking on and off.
 
 \\{shell-mode-map}
 Customization: Entry to this mode runs the hooks on `comint-mode-hook' and
