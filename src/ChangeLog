@@ -1,3 +1,7 @@
+2005-02-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* keyboard.c: If HAVE_FCNTL_H include fcntl.h.
+
 2005-02-12  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (expose_window): Don't fix overlaps for mode lines.
