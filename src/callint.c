@@ -121,7 +121,8 @@ If the string begins with `@', then Emacs searches the key sequence
  which invoked the command for its first mouse click (or any other
  event which specifies a window), and selects that window before
  reading any arguments.  You may use both `@' and `*'; they are
- processed in the order that they appear.  */)
+ processed in the order that they appear.
+usage: (interactive ARGS)  */)
      (args)
      Lisp_Object args;
 {
