@@ -83,6 +83,12 @@ Boston, MA 02111-1307, USA.  */
 #define gethostbyname  sys_gethostbyname
 #define getservbyname  sys_getservbyname
 #define shutdown       sys_shutdown
+#define setsockopt     sys_setsockopt
+#define listen         sys_listen
+#define getsockname    sys_getsockname
+#define accept         sys_accept
+#define recvfrom       sys_recvfrom
+#define sendto         sys_sendto
 
 int sys_socket(int af, int type, int protocol);
 int sys_bind (int s, const struct sockaddr *addr, int namelen);
@@ -94,6 +100,14 @@ int sys_gethostname (char * name, int namelen);
 struct hostent * sys_gethostbyname(const char * name);
 struct servent * sys_getservbyname(const char * name, const char * proto);
 int sys_shutdown (int socket, int how);
+int sys_setsockopt (int s, int level, int oname, const char * oval, int olen);
+int sys_listen (int s, int backlog);
+int sys_getsockname (int s, struct sockaddr * name, int * namelen);
+int sys_accept (int s, struct sockaddr *addr, int *addrlen);
+int sys_recvfrom (int s, char *buf, int len, int flags,
+		  struct sockaddr *from, int * fromlen);
+int sys_sendto (int s, const char * buf, int len, int flags,
+		const struct sockaddr *to, int tolen);
 
 /* we are providing a real h_errno variable */
 #undef h_errno
