@@ -1,4 +1,8 @@
-2003-01-29   Taro Kawagishi  <tarok@transpulse.org>
+2003-01-29  Juanma Barranquero  <lektu@terra.es>
+
+	* composite.el (decompose-composite-char): Fix docstring.
+
+2003-01-29  Taro Kawagishi  <tarok@transpulse.org>
 
 	* arc-mode.el (archive-lzh-summarize): Fix previous change.
 
