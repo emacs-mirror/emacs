@@ -96,6 +96,8 @@ static Lisp_Object Qsubrp, Qmany, Qunevalled;
 
 static Lisp_Object swap_in_symval_forwarding P_ ((Lisp_Object, Lisp_Object));
 
+int most_positive_fixnum, most_negative_fixnum;
+
 Lisp_Object
 wrong_type_argument (predicate, value)
      register Lisp_Object predicate, value;
@@ -3166,6 +3168,14 @@ syms_of_data ()
   defsubr (&Ssubr_arity);
 
   XSYMBOL (Qwholenump)->function = XSYMBOL (Qnatnump)->function;
+
+  DEFVAR_INT ("most-positive-fixnum", &most_positive_fixnum,
+    "The largest value that is representable in a Lisp integer.");
+  most_positive_fixnum = MOST_POSITIVE_FIXNUM;
+  
+  DEFVAR_INT ("most-negative-fixnum", &most_negative_fixnum,
+    "The smallest value that is representable in a Lisp integer.");
+  most_negative_fixnum = MOST_NEGATIVE_FIXNUM;
 }
 
 SIGTYPE
