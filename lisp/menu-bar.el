@@ -21,6 +21,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;; Avishai Yacobi suggested some menu rearrangements.
+
 ;;; Code:
 
 ;; Don't clobber an existing menu-bar keymap, to preserve any menu-bar key
@@ -302,9 +304,12 @@ Do the same for the keys of the same name."
   '("Show Version" . emacs-version))
 (define-key menu-bar-help-menu [report-emacs-bug]
   '("Send Bug Report..." . report-emacs-bug))
+(define-key menu-bar-help-menu [finder-by-keyword]
+  '("Find Lisp Packages..." . finder-by-keyword))
 (define-key menu-bar-help-menu [emacs-tutorial]
   '("Emacs Tutorial" . help-with-tutorial))
-(define-key menu-bar-help-menu [man] '("Man..." . manual-entry))
+(define-key menu-bar-help-menu [man]
+  '("Man..." . manual-entry))
 (define-key menu-bar-help-menu [describe-variable]
   '("Describe Variable..." . describe-variable))
 (define-key menu-bar-help-menu [describe-function]
