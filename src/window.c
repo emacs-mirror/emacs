@@ -4980,7 +4980,12 @@ the return value is nil.  Otherwise the value is t.  */)
   if (NILP (XBUFFER (new_current_buffer)->name))
     new_current_buffer = Qnil;
   else
-    old_point = BUF_PT (XBUFFER (new_current_buffer));
+    {
+      if (XBUFFER (new_current_buffer) == current_buffer)
+	old_point = PT;
+      else
+	old_point = BUF_PT (XBUFFER (new_current_buffer));
+    }
 
   frame = XWINDOW (SAVED_WINDOW_N (saved_windows, 0)->window)->frame;
   f = XFRAME (frame);
