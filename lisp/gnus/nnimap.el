@@ -1,5 +1,6 @@
 ;;; nnimap.el --- imap backend for Gnus
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+
+;; Copyright (C) 1998,1999,2000,01,02,2004  Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
 ;;         Jim Radford <radford@robby.caltech.edu>
@@ -671,9 +672,12 @@ function is generally only called when Gnus is shutting down."
     (nnoo-status-message 'nnimap server)))
 
 (defun nnimap-demule (string)
-  (funcall (if (and (fboundp 'string-as-multibyte)
-		    (subrp (symbol-function 'string-as-multibyte)))
-	       'string-as-multibyte
+  ;; BEWARE: we used to use string-as-multibyte here which is braindead
+  ;; because it will turn accidental emacs-mule-valid byte sequences
+  ;; into multibyte chars.  --Stef
+  (funcall (if (and (fboundp 'string-to-multibyte)
+		    (subrp (symbol-function 'string-to-multibyte)))
+	       'string-to-multibyte
 	     'identity)
 	   (or string "")))
 
@@ -1383,5 +1387,5 @@ sure of changing the value of `foo'."
 
 (provide 'nnimap)
 
-;;; arch-tag: 2b001f20-3ff9-4094-a0ad-46807c1ba70b
+;; arch-tag: 2b001f20-3ff9-4094-a0ad-46807c1ba70b
 ;;; nnimap.el ends here
