@@ -208,7 +208,7 @@ accessible."
 	;; annotation which we could use as a hint of the locale in use
 	;; at the remote site.  Not sure how/if that should be done.  --Stef
 	(decode-coding-inserted-region
-	 start (point) buffer-file-name visit beg end replace)))
+	 start (point) url visit beg end replace)))
     (list url (length data))))
 
 (defun url-file-name-completion (url directory)
