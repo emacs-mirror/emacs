@@ -1,3 +1,8 @@
+2002-04-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* update-game-score.c: Move config.h before the other headers, to
+	avoid compiler warnings.
+
 2002-04-16  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (find_entries): Bug fix in list management.
