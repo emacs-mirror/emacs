@@ -1,3 +1,8 @@
+2004-10-18  David Ponce  <david@dponce.com>
+
+	* mouse.el (mouse-drag-move-window-top): New function.
+	(mouse-drag-mode-line-1): Use it.
+
 2004-10-18  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* info.el (Info-fontify-node): For multiline refs,
