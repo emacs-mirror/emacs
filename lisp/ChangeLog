@@ -1,10 +1,17 @@
+2004-04-21  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (WINS): Add url/ directory.
+
+	* font-lock.el (font-lock-preprocessor-face): Remove spurious quote.
+	(font-lock-warning-face): Fix spacing.
+
 2004-04-21  Lars Hansen  <larsh@math.ku.dk>
-	
-	* desktop.el (desktop-buffer-mode-handlers): New variabel. Alist
+
+	* desktop.el (desktop-buffer-mode-handlers): New variable.  Alist
 	of major mode specific functions to restore a desktop buffer.
-	(desktop-buffer-handlers): Make variabel obsolete.
-	(desktop-create-buffer): Use desktop-buffer-mode-handlers. Catch
-	errors signaled in handlers. Update buffer count. Evaluate
+	(desktop-buffer-handlers): Make variable obsolete.
+	(desktop-create-buffer): Use desktop-buffer-mode-handlers.  Catch
+	errors signaled in handlers.  Update buffer count.  Evaluate
 	desktop-buffer-point.
 	(desktop-buffer-dired): Rename to dired-restore-desktop-buffer and
 	move to dired.el.
@@ -14,11 +21,11 @@
 	move to mail/rmail.el.
 	(desktop-buffer-mh): Rename to mh-restore-desktop-buffer and move
 	to mh-e/mh-e.el.
-	(desktop-buffer-file): Rename to desktop-restore-file-buffer. An
-	fail, print message (to message buffer) even if
+	(desktop-buffer-file): Rename to desktop-restore-file-buffer.
+	On fail, print message (to message buffer) even if
 	desktop-missing-file-warning is nil.
-	(desktop-buffer-misc-data-function): New buffer local
-	variable. Function returning major mode specific data.
+	(desktop-buffer-misc-data-function): New buffer local variable.
+	Function returning major mode specific data.
 	(desktop-buffer-misc-functions): Make variable obsolete.
 	(desktop-save): Use desktop-buffer-misc-data-function.
 	(desktop-buffer-dired-misc-data): Rename to
@@ -27,18 +34,17 @@
 	Info-desktop-buffer-misc-data and move to info.el.
 	(desktop-read): Add message about number of buffers
 	restored/failed.
-	* dired.el (dired-restore-desktop-buffer) Move from
-	desktop.el. Add parameters. Pause to display error only when
+	* dired.el (dired-restore-desktop-buffer) Move from desktop.el.
+	Add parameters.  Pause to display error only when
 	desktop-missing-file-warning is non-nil.
-	(dired-desktop-buffer-misc-data): Move from desktop.el. Add
-	parameter.
-	* info.el (Info-restore-desktop-buffer): Move from
-	desktop.el. Add Parameters.
-	(Info-desktop-buffer-misc-data): Move from desktop.el. Add parameter.
-	* mail/rmail.el (rmail-restore-desktop-buffer): Move from
-	desktop.el. Add Parameters.
-	* mh-e/mh-e.el (mh-restore-desktop-buffer): Move from
-	desktop.el. Add Parameters.
+	(dired-desktop-buffer-misc-data): Move from desktop.el.  Add parameter.
+	* info.el (Info-restore-desktop-buffer): Move from desktop.el.
+	Add Parameters.
+	(Info-desktop-buffer-misc-data): Move from desktop.el.  Add parameter.
+	* mail/rmail.el (rmail-restore-desktop-buffer): Move from desktop.el.
+	Add Parameters.
+	* mh-e/mh-e.el (mh-restore-desktop-buffer): Move from desktop.el.
+	Add Parameters.
 
 2003-04-21  Paul Pogonyshev  <pogonyshev@gmx.net>
 
@@ -51,9 +57,9 @@
 	* progmodes/cperl-mode.el (cperl-putback-char):
 	Delete Emacs 18 definition.
 
-	* international/mule.el (ctext-post-read-conversion): 
+	* international/mule.el (ctext-post-read-conversion):
 	Use assoc-string, not assoc-ignore-case.
-	
+
 	* international/mule-cmds.el: Use assoc-string, not assoc-ignore-case.
 
 	* emacs-lisp/easymenu.el (easy-menu-add):
@@ -88,7 +94,7 @@
 	* progmodes/compile.el (compilation-error-properties):
 	Split into two.
 	(compilation-internal-error-properties): New one.
-	(compilation-compat-error-properties): Use it. Fix the non-marker case.
+	(compilation-compat-error-properties): Use it.  Fix the non-marker case.
 
 2004-04-20  Richard M. Stallman  <rms@gnu.org>
 
@@ -300,7 +306,7 @@
 2004-04-16  Masatake YAMATO  <jet@gyve.org>
 
 	* simple.el (completion-setup-function): Set an initial value
-	to `element-common-end' before entering loop. Set a value
+	to `element-common-end' before entering loop.  Set a value
 	to `element-common-end' at the end of loop.
 	The bug is reported by Juri Linkov <juri@jurta.org> in emacs-devel list.
 	(completions-common-part): Rename from completion-de-emphasis.
@@ -657,7 +663,8 @@
 	Use Info-search-whitespace-regexp.  Set Info-search-case-fold.
 	(Info-search-case-sensitively, Info-search-next): New fun.
 	(Info-up): Move point to the menu item of the current node.
-	(Info-history): New fun. Add *info-history* to same-window-buffer-names.
+	(Info-history): New fun.  Add *info-history* to
+	same-window-buffer-names.
 	(Info-toc): New fun.  Add *info-toc* to same-window-buffer-names.
 	(Info-insert-toc): New fun.
 	(Info-build-toc): New fun.
@@ -1907,7 +1914,7 @@
 	(top-level): Require password.el if visible.  Should be mandatory
 	once No Gnus has found its way into (X)Emacs.
 	(tramp-read-passwd): Invoke `password-read' if available,
-	`read-passwd' otherwise. `ange-ftp-read-passwd' isn't used as
+	`read-passwd' otherwise.  `ange-ftp-read-passwd' isn't used as
 	fallback any longer.
 	(tramp-clear-passwd): New function.
 	(tramp-process-actions, tramp-process-multi-actions):
@@ -3329,7 +3336,7 @@
 
 	* gdb-ui.el (gdb-prompt): Change filter for level 3 annotations,
 	if necessary.
-	(gdb-ann3): New function. Initialise M-x gdb as for M-x gdba if
+	(gdb-ann3): New function.  Initialise M-x gdb as for M-x gdba if
 	annotations are detected.
 	(gud-gdba-marker-filter): Use global variable gud-marker-acc
 	instead of a local one to allow transition from
@@ -3423,7 +3430,7 @@
 	* gdb-ui.el (gdba, gdb-assembler-mode): Call the mode "Machine" as
 	a mode called "Assembler" already exists.
 	(gdb-use-colon-colon-notation, gdb-show-changed-values): New options.
-	(gud-watch): Use format option. Remove font properties from string.
+	(gud-watch): Use format option.  Remove font properties from string.
 	(gdb-var-create-handler, gdb-var-list-children-handler):
 	Don't bother about properties as there are none.
 	(gdb-var-create-handler, gdb-var-list-children-handler)
@@ -3516,7 +3523,7 @@
 	(tramp-handle-file-attributes): Replace proprietary optional
 	parameter NONNUMERIC by the recently (Emacs 21.4) introduced ID-FORMAT.
 	(tramp-handle-file-attributes-with-perl): Handle parameter
-	NONNUMERIC if set. This wasn't done in the past.
+	NONNUMERIC if set.  This wasn't done in the past.
 	(tramp-post-connection): Apply second parameter "$2" if
 	`tramp-remote-perl' is called.
 
@@ -4290,7 +4297,7 @@
 	* progmodes/gud.el (gud-menu-map, gud-tool-bar-map):
 	Replace gud-display with gud-watch.
 	(gud-speedbar-buttons): Add stuff for watching expressions
-	in the speedbar when using M-x gdba. Use dolist on old part
+	in the speedbar when using M-x gdba.  Use dolist on old part
 	of this function.
 
 	* gdb-ui.el (gdb-var-list, gdb-var-changed, gdb-update-flag)
@@ -4525,7 +4532,7 @@
 	* ffap.el (ffap-shell-prompt-regexp): Add regexp to identify
 	common shell prompts that are not common filename or URL characters.
 	(ffap-file-at-point): Use the new regexp to strip the prompts from
-	the file names. This is an issue mostly for user prompts that
+	the file names.  This is an issue mostly for user prompts that
 	don't have a trailing space and find-file-at-point is invoked from
 	within a shell inside emacs.
 
@@ -4742,7 +4749,7 @@
 
 	* gdb-ui.el (gud-display1): Use gud-call to prevent extra prompt
 	being displayed in GUD buffer.
-	(gdb-idle-input-queue): Remove var. Use just one queue.
+	(gdb-idle-input-queue): Remove var.  Use just one queue.
 	(gdb-enqueue-idle-input,gdb-dequeue-idle-input):
 	Remove functions.  Use just one queue.
 	(gdb-prompt, gdb-subprompt, def-gdb-auto-update-trigger)
@@ -4926,7 +4933,7 @@
 2003-08-24  Nick Roberts  <nick@nick.uklinux.net>
 
 	* progmodes/gud.el (gud-display-line): Don't set window-point if
-	source buffer is not visible. (Only happens with M-x gdba).
+	source buffer is not visible.  (Only happens with M-x gdba.)
 
 	* gdb-ui.el (gdba): Remove gdb-quit (previously removed) from
 	documentation.
@@ -5965,33 +5972,33 @@
 	(bibtex-autokey-get-names): Fiddle with regexps.
 	(bibtex-generate-autokey): Use identity.
 	(bibtex-parse-keys): Use simplified parsing algorithm if
-	bibtex-parse-keys-fast is non-nil. Simplify. Change order of
-	arguments. Return alist of keys.
-	(bibtex-parse-strings): Simplify. Return alist of strings.
+	bibtex-parse-keys-fast is non-nil.  Simplify.  Change order of
+	arguments.  Return alist of keys.
+	(bibtex-parse-strings): Simplify.  Return alist of strings.
 	(bibtex-complete-string-cleanup): Fix docstring.
 	(bibtex-read-key): New function.
-	(bibtex-mode): Fix docstring. Do not parse for keys and
-	strings when the mode is entered. Set fill-paragraph-function to
-	bibtex-fill-field. Setup font-lock-mark-block-function the way
+	(bibtex-mode): Fix docstring.  Do not parse for keys and
+	strings when the mode is entered.  Set fill-paragraph-function to
+	bibtex-fill-field.  Setup font-lock-mark-block-function the way
 	font-lock intended.
-	(bibtex-entry): Use bibtex-read-key. Obey bibtex-autofill-types.
+	(bibtex-entry): Use bibtex-read-key.  Obey bibtex-autofill-types.
 	(bibtex-parse-entry, bibtex-autofill-entry): New functions.
 	(bibtex-print-help-message, bibtex-remove-OPT-or-ALT)
 	(bibtex-Preamble): Avoid hard coded constants.
-	(bibtex-make-field): Fix docstring. Simplify.
+	(bibtex-make-field): Fix docstring.  Simplify.
 	(bibtex-beginning-of-entry): Always return new position of point.
 	(bibtex-end-of-entry): Rearrange cond clauses.
 	(bibtex-count-entries, bibtex-validate, bibtex-reformat):
 	Update for changes of bibtex-map-entries.
 	(bibtex-ispell-abstract): Do not move point.
-	(bibtex-entry-index): Use downcase. Simplify.
+	(bibtex-entry-index): Use downcase.  Simplify.
 	(bibtex-lessp): Handle catch-all.
 	(bibtex-find-crossref): Turn into a command.
-	(bibtex-find-entry): Simplify. Use bibtex-read-key. Fix regexp.
-	(bibtex-clean-entry): Use bibtex-read-key. Handle string and
+	(bibtex-find-entry): Simplify.  Use bibtex-read-key.  Fix regexp.
+	(bibtex-clean-entry): Use bibtex-read-key.  Handle string and
 	preamble entries.
 	(bibtex-fill-field-bounds): New function.
-	(bibtex-fill-field): New command. Bound to fill-paragraph-function.
+	(bibtex-fill-field): New command.  Bound to fill-paragraph-function.
 	(bibtex-fill-entry): Use bibtex-fill-field-bounds
 	(bibtex-String): Use bibtex-strings.  Always obey
 	bibtex-sort-ignore-string-entries.
