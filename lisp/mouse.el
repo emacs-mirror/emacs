@@ -167,8 +167,9 @@ This must be bound to a mouse click."
   (let ((point-save (point)))
     (unwind-protect
 	(progn (mouse-set-point click)
-	       (push-mark nil t)
-	       (sit-for 1))
+	       (push-mark nil t t)
+	       (or transient-mark-mode
+		   (sit-for 1)))
       (goto-char point-save))))
 
 (defun mouse-kill (click)
@@ -192,7 +193,7 @@ Prefix arguments are interpreted as with \\[yank]."
 This does not delete the region; it acts like \\[kill-ring-save]."
   (interactive "e")
   (mouse-set-mark click)
-  (call-interactively 'kill-ring-save))
+  (kill-ring-save (point) (mark t)))
 
 ;;; This function used to delete the text between point and the mouse
 ;;; whenever it was equal to the front of the kill ring, but some
@@ -225,7 +226,7 @@ which prepares for a second click to delete the text."
 		    (cons (cons (car kill-ring) (point)) buffer-undo-list))))
       ;; Otherwise, save this region.
       (mouse-set-mark click)
-      (call-interactively 'kill-ring-save)
+      (kill-ring-save (point) (mark t))
       (setq mouse-save-then-kill-posn
 	    (list (car kill-ring) (point) click-posn)))))
 
