@@ -5115,6 +5115,7 @@ make_lispy_event (event)
 	    Lisp_Object posn;
 	    Lisp_Object string_info = Qnil;
 	    int row, column;
+	    int wx, wy;
 
 	    /* Ignore mouse events that were made on frame that
 	       have been deleted.  */
@@ -5186,7 +5187,8 @@ make_lispy_event (event)
 	    /* Set `window' to the window under frame pixel coordinates
 	       event->x/event->y.  */
 	    window = window_from_coordinates (f, XINT (event->x),
-					      XINT (event->y), &part, 0);
+					      XINT (event->y),
+					      &part, &wx, &wy, 0);
 
 	    if (!WINDOWP (window))
 	      {
@@ -5198,11 +5200,6 @@ make_lispy_event (event)
 		/* It's a click in window window at frame coordinates
 		   event->x/ event->y.  */
 		struct window *w = XWINDOW (window);
-
-		/* Get window relative coordinates.  Original code
-		   `rounded' this to glyph boundaries.  */
-		int wx = FRAME_TO_WINDOW_PIXEL_X (w, XINT (event->x));
-		int wy = FRAME_TO_WINDOW_PIXEL_Y (w, XINT (event->y));
 
 		/* Set event coordinates to window-relative coordinates
 		   for constructing the Lisp event below.  */
@@ -5534,7 +5531,8 @@ make_lispy_event (event)
 	pixel_to_glyph_coords (f, XINT (event->x), XINT (event->y),
 			       &column, &row, NULL, 1);
 	window = window_from_coordinates (f, XINT (event->x),
-                                          XINT (event->y), &part, 0);
+                                          XINT (event->y),
+					  &part, 0, 0, 0);
 
 	if (!WINDOWP (window))
 	  {
@@ -5544,8 +5542,8 @@ make_lispy_event (event)
 	else
 	  {
 	    int pixcolumn, pixrow;
-	    column -= XINT (XWINDOW (window)->left);
-	    row -= XINT (XWINDOW (window)->top);
+	    column -= WINDOW_LEFT_EDGE_COL (XWINDOW (window));
+	    row -= WINDOW_TOP_EDGE_LINE (XWINDOW (window));
 	    glyph_to_pixel_coords (XWINDOW(window), column, row,
                                    &pixcolumn, &pixrow);
 	    XSETINT (event->x, pixcolumn);
@@ -5598,6 +5596,7 @@ make_lispy_event (event)
 	Lisp_Object window;
 	Lisp_Object posn;
 	Lisp_Object files;
+	int wx, wy;
 
 	/* The frame_or_window field should be a cons of the frame in
 	   which the event occurred and a list of the filenames
@@ -5614,7 +5613,8 @@ make_lispy_event (event)
 	  return Qnil;
 
 	window = window_from_coordinates (f, XINT (event->x),
-                                          XINT (event->y), &part, 0);
+                                          XINT (event->y),
+					  &part, &wx, &wy, 0);
 
 	if (!WINDOWP (window))
 	  {
@@ -5626,10 +5626,6 @@ make_lispy_event (event)
 	    /* It's an event in window `window' at frame coordinates
 	       event->x/ event->y.  */
 	    struct window *w = XWINDOW (window);
-
-	    /* Get window relative coordinates.  */
-	    int wx = FRAME_TO_WINDOW_PIXEL_X (w, XINT (event->x));
-	    int wy = FRAME_TO_WINDOW_PIXEL_Y (w, XINT (event->y));
 
 	    /* Set event coordinates to window-relative coordinates
 	       for constructing the Lisp event below.  */
@@ -5745,21 +5741,20 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
       enum window_part area;
       Lisp_Object window;
       Lisp_Object posn;
+      int wx, wy;
 
       if (frame)
 	/* It's in a frame; which window on that frame?  */
-	window = window_from_coordinates (frame, XINT (x), XINT (y), &area, 0);
+	window = window_from_coordinates (frame, XINT (x), XINT (y),
+					  &area, &wx, &wy, 0);
       else
 	window = Qnil;
 
       if (WINDOWP (window))
 	{
 	  struct window *w = XWINDOW (window);
-	  int wx, wy;
 
-	  /* Get window relative coordinates.  */
-	  wx = FRAME_TO_WINDOW_PIXEL_X (w, XINT (x));
-	  wy = FRAME_TO_WINDOW_PIXEL_Y (w, XINT (y));
+	  /* Set window relative coordinates.  */
 	  XSETINT (x, wx);
 	  XSETINT (y, wy);
 
@@ -7929,7 +7924,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
   register Lisp_Object name;
   int nlength;
   /* FIXME: Use the minibuffer's frame width.  */
-  int width = FRAME_WIDTH (SELECTED_FRAME ()) - 4;
+  int width = FRAME_COLS (SELECTED_FRAME ()) - 4;
   int idx = -1;
   int nobindings = 1;
   Lisp_Object rest, vector;
