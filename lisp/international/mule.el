@@ -110,7 +110,7 @@ Return t if file exists."
 	      (< (aref vector 0) 160)))))
 
 (defsubst charsetp (object)
-  "T is OBJECT is a charset."
+  "T if OBJECT is a charset."
   (and (symbolp object) (vectorp (get object 'charset))))
 
 (defsubst charset-info (charset)
