@@ -946,7 +946,7 @@ echo '
 #endif
 #ifndef C_SWITCH_SYSTEM
 #define C_SWITCH_SYSTEM
-#endf
+#endif
 @configure@ libsrc_libs=LIBS_MACHINE LIBS_SYSTEM
 @configure@ c_switch_system=C_SWITCH_SYSTEM
 #ifdef SYSTEM_MALLOC
