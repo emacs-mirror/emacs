@@ -1,6 +1,6 @@
 ;;; delsel.el --- delete selection if you insert
 
-;; Copyright (C) 1992, 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1997, 1998, 2001 Free Software Foundation, Inc.
 
 ;; Author: Matthieu Devin <devin@lucid.com>
 ;; Maintainer: FSF
@@ -96,8 +96,10 @@ any selection."
 	       (current-kill 1))
 	     (delete-active-region))
 	    ((eq type 'supersede)
-	     (delete-active-region)
-	     (setq this-command 'ignore))
+	     (let ((empty-region (= (point) (mark))))
+	       (delete-active-region)
+	       (unless empty-region
+		 (setq this-command 'ignore))))
 	    (type
 	     (delete-active-region))))))
 
