@@ -3747,7 +3747,6 @@ TEX_decode_env (evarname, defenv)
     {
       char *oldenv = env;
       env = concat (oldenv, defenv, "");
-      free (oldenv);
     }
 
   /* Allocate a token table */
