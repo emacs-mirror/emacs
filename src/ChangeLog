@@ -1,3 +1,26 @@
+2000-07-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_append_glyph, x_append_composite_glyph)
+	(x_produce_image_glyph, x_append_stretch_glyph): Accomodate to
+	changes in struct glyph starting 1999-12-27.  Some bit-fields of
+	struct glyph were not set, which made glyphs unequal when compared
+	with GLYPH_EQUAL_P.  Redisplay outputs such glyphs, and flickering
+	effects were the result.  This also depended on the contents of
+	memory returned by xmalloc.  If flickering happens again, activate
+	the code in clear_glyph_row that's in #if 0.  If the flickering is
+	gone with that, chances are that it is caused by something
+	similar.
+
+	* dispnew.c (clear_glyph_row): Add debug code in #if 0.
+	
+	* dispextern.h: Add some comments.
+
+	* window.c (add_window_to_list): Add parameter LIST.
+	(window_list): Order list so that, for each frame, windows are
+	in canonical order, and so that frames appear in the list in
+	the order given by Vframe_list.
+	(next_window): Reverse the handling of NEXT_P.
+
 2000-07-04  Andrew Innes  <andrewi@gnu.org>
 
 	* alloca.c [emacs]: Include lisp.h (needed by atimer.h included
