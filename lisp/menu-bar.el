@@ -25,7 +25,9 @@
 
 (define-key global-map [menu-bar] (make-sparse-keymap "menu-bar"))
 (defvar menu-bar-help-menu (make-sparse-keymap "Help"))
-(define-key global-map [menu-bar help] (cons "Help" menu-bar-help-menu))
+;; Put Help item in help-menu-bar-map so it always goes last.
+(setq help-menu-bar-map (make-sparse-keymap))
+(define-key help-menu-bar-map [help] (cons "Help" menu-bar-help-menu))
 (defvar menu-bar-edit-menu (make-sparse-keymap "Edit"))
 (define-key global-map [menu-bar edit] (cons "Edit" menu-bar-edit-menu))
 (defvar menu-bar-file-menu (make-sparse-keymap "File"))
