@@ -793,7 +793,9 @@ Assumes the tags table is the current buffer."
 			       (get major-mode 'find-tag-default-function)
 			       'find-tag-default)))
 	 (spec (completing-read (if default
-				    (format "%s(default %s) " string default)
+				    (format "%s (default %s): "
+					    (substring string 0 (string-match "[ :]+\\'" string))
+					    default)
 				  string)
 				'tags-complete-tag
 				nil nil nil nil default)))
@@ -914,10 +916,12 @@ Contrast this with the ring of marks gone to by the command.
 
 See documentation of variable `tags-file-name'."
   (interactive (find-tag-interactive "Find tag: "))
-  (let ((buf (find-tag-noselect tagname next-p regexp-p)))
+  (let* ((buf (find-tag-noselect tagname next-p regexp-p))
+	 (pos (with-current-buffer buf (point))))
     (condition-case nil
 	(switch-to-buffer buf)
-      (error (pop-to-buffer buf)))))
+      (error (pop-to-buffer buf)))
+    (goto-char pos)))
 ;;;###autoload (define-key esc-map "." 'find-tag)
 
 ;;;###autoload
