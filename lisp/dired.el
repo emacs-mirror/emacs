@@ -1351,9 +1351,11 @@ DIR must be a directory name, not a file name."
 ;;; Functions for finding the file name in a dired buffer line.
 
 (defvar dired-move-to-filename-regexp
-  " [A-Za-z\xa0-\xff][A-Za-z\xa0-\xff][A-Za-z\xa0-\xff] [0-3 ][0-9]\
+  " \\([A-Za-z\xa0-\xff][A-Za-z\xa0-\xff][A-Za-z\xa0-\xff] [0-3 ][0-9]\
+\\|[0-3 ][0-9] [A-Za-z\xa0-\xff][A-Za-z\xa0-\xff][A-Za-z\xa0-\xff]\\)\
  [ 0-9][0-9][:0-9][0-9][ 0-9] "
-  "Regular expression to match a month abbreviation followed date/time.")
+  "Regular expression to match a month abbreviation and date/time.
+The month name and day-of-month are allowed in either order.")
 
 (defvar dired-permission-flags-regexp
   "\\([^ ]\\)[-r][-w]\\([^ ]\\)[-r][-w]\\([^ ]\\)[-r][-w]\\([^ ]\\)"
