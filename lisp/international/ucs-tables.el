@@ -2507,6 +2507,8 @@ BUFFER defaults to the current buffer."
 		     (coding-system-base default-buffer-file-coding-system))))
       (when cs
 	(setq table (coding-system-get cs 'translation-table-for-encode))
+	(if (and table (symbolp table))
+	    (setq table (get table 'translation-table)))
 	(unless (char-table-p table)
 	  (setq table (coding-system-get cs 'translation-table-for-input)))
 	(when (char-table-p table)
