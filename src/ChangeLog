@@ -1,3 +1,10 @@
+2001-10-17  Andrew Innes  <andrewi@gnu.org>
+
+	* w32term.c (w32_read_socket): Determine clipping rectangle for
+	the entire frame, including areas covered by scrollbars and the
+	menubar.  This avoids internal arguments about whether a frame is
+	fully obscured or not.
+
 2001-10-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (try_window_id): Undo last change.  Give up if
