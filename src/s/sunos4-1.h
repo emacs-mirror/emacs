@@ -16,18 +16,18 @@
 
 /* Some systems do not run the Network Information Service, but have
    modified the shared C library to include resolver support without
-   also changing the C archive library (/usr/lib/libc.a).  If we can't
-   detect the presence of res_init, use -lresolv to supplement libc.a.
-   The #ifdef HAVE_GETHOSTNAME is to prevent configure from
-   setting libsrc_libs to -lresolv in lib-src/Makefile.  configure
-   includes this file without defining any of the HAVE_* macros.  */
-#ifdef HAVE_GETHOSTNAME
-/* This was #ifndef, but Stephen P Potter <spp@cis.ufl.edu> says
-   it should be #ifdef.  */
-#ifdef HAVE_RES_INIT
+   also changing the C archive library (/usr/lib/libc.a).  If we
+   detect the presence of libresolv.a, use -lresolv to supplement libc.a.
+
+   We used to have #ifdef HAVE_GETHOSTNAME is to prevent configure from
+   setting libsrc_libs to -lresolv in lib-src/Makefile.  But nowadays
+   configure is smarter about computing libsrc_libs, and would not
+   be fooled.  Anyway, why not use -lresolv in lib-src?  */
+/* #ifdef HAVE_GETHOSTNAME */
+#ifdef HAVE_LIBRESOLV
 #define LIBS_SYSTEM -lresolv
 #endif
-#endif
+/* #endif */
 
 #if 0 /* Not necessary, since SYSTEM_MALLOC is defined in sunos4-0.h.  */
 /* Tell GNU malloc to compensate for a bug in localtime.  */
