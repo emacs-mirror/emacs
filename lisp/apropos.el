@@ -154,7 +154,7 @@ Returns list of symbols and documentation found."
 		       (point))))
 	      item (assq symbol sym-list))
 	(and (if (= type 1)
-		 (documentation symbol)
+		 (and (fboundp symbol) (documentation symbol))
 	       (documentation-property symbol 'variable-documentation))
 	     (or item
 		 (setq item (list symbol nil nil)
