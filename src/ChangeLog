@@ -1,3 +1,7 @@
+1999-12-10  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xterm.c (x_initialize): only setup xaw3d_* if they've been declared.
+
 1999-12-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* frame.h (FRAME_FOREGROUND_PIXEL, FRAME_BACKGROUND_PIXEL)
