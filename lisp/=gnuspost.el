@@ -631,10 +631,9 @@ a program specified by the rest of the value."
 
 (defun gnus-inews-login-name ()
   "Return user login name.
-Got from the variable gnus-user-login-name, the environment variables
-USER and LOGNAME, and the function user-login-name."
-  (or gnus-user-login-name
-      (getenv "USER") (getenv "LOGNAME") (user-login-name)))
+Got from the variable `gnus-user-login-name' and the function
+`user-login-name'."
+  (or gnus-user-login-name (user-login-name)))
 
 (defun gnus-inews-full-name ()
   "Return user full name.
