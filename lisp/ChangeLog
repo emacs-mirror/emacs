@@ -1,3 +1,8 @@
+2001-12-24  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (occur-mode-display-occurrence): New function.
+	(occur-mode-map): Bind C-o to it.
+
 2001-12-24  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* viper-cmd.el (viper-change-state): Got rid of make-local-hook.
