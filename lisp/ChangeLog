@@ -1,3 +1,8 @@
+2000-12-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dired.el (dired-insert-directory): If file-system-info is
+	fboundp, call it instead of invoking dired-free-space-program.
+
 2000-12-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* server.el (server-visit-files): Push files on file-name-history.
