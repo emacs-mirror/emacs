@@ -1,3 +1,12 @@
+1999-12-31  William M. Perry <wmperry@gnu.org>
+
+	* xfns.c (enum jpeg_keyword_index): Add JPEG_DATA.
+	(jpeg_format): Add :data.
+	(jpeg_image_p): Handle :data.
+	(our_fill_input_buffer, our_skip_input_data, our_term_source)
+	(jpeg_memory_src): New functions.
+	(jpeg_load): Read image from string data.
+
 1999-12-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (IT_update_begin): Don't dereference members of struct
