@@ -20,6 +20,30 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef HAVE_TERMIOS
 #define HAVE_TCATTR
 #endif
+
+/* If we defined these before and we are about to redefine them,
+   prevent alarming warnings.  */
+#ifdef BSD_TERMIOS
+#undef NL0
+#undef NL1
+#undef CR0
+#undef CR1
+#undef CR2
+#undef CR3
+#undef TAB0
+#undef TAB1
+#undef TAB2
+#undef XTABS
+#undef BS0
+#undef BS1
+#undef FF0
+#undef FF1
+#undef ECHO
+#undef NOFLSH
+#undef TOSTOP
+#undef FLUSHO
+#undef PENDIN
+#endif
 
 /* Include the proper files.  */
 #ifdef HAVE_TERMIO
