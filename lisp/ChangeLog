@@ -1,3 +1,7 @@
+2003-04-09  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* man.el (Man-heading-regexp): Accept hyphen.
+
 2003-04-09  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el: Specify rescale ratio 1.3 for CDAC
