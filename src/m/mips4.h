@@ -48,3 +48,12 @@ NOTE-END  */
 #define LD_SWITCH_MACHINE -systype bsd43 -g3 -D 800000
 
 #define NO_MODE_T
+
+/* These are needed on Riscos 4.0.
+   It appears that's the only system which uses mips4.h and defined BSD.  */
+#ifdef BSD
+#undef HAVE_STRERROR
+#undef HAVE_XRMSETDATABASE
+#undef HAVE_XSCREENRESOURCESTRING
+#undef HAVE_SETSID
+#endif
