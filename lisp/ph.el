@@ -1127,7 +1127,7 @@ This function can only be called from a PH/QI query result buffer."
       global-map
       [menu-bar tools ph] 
       (cons "Ph"
-	    (easy-menu-create-keymaps "Ph" (cdr (ph-menu))))))
+	    (easy-menu-create-menu "Ph" (cdr (ph-menu))))))
    ))
 
 (ph-install-menu)
