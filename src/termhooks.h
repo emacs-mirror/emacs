@@ -259,7 +259,10 @@ struct input_event {
   /* What kind of event was this?  */
   enum event_kind kind;
   
-  Lisp_Object code;
+  /* For an ascii_keystroke, this is the character.
+     For a non_ascii_keystroke, this is the keysym code.
+     For a mouse event, this is the button number.
+  int code;
   enum scroll_bar_part part;
 
   /* This field is copied into a vector while the event is in the queue,
