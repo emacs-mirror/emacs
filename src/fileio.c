@@ -2725,6 +2725,7 @@ and (2) it puts less data in the undo list.")
   Lisp_Object handler, val, insval;
   Lisp_Object p;
   int total;
+  int not_regular;
 
   val = Qnil;
   p = Qnil;
@@ -2764,14 +2765,21 @@ and (2) it puts less data in the undo list.")
       goto notfound;
     }
 
+  not_regular = 0;
 #ifdef S_IFREG
   /* This code will need to be changed in order to work on named
      pipes, and it's probably just not worth it.  So we should at
      least signal an error.  */
   if (!S_ISREG (st.st_mode))
-    Fsignal (Qfile_error,
-	     Fcons (build_string ("not a regular file"),
-		    Fcons (filename, Qnil)));
+    {
+      if (NILP (visit))
+	Fsignal (Qfile_error,
+		 Fcons (build_string ("not a regular file"),
+			Fcons (filename, Qnil)));
+
+      not_regular = 1;
+      goto notfound;
+    }
 #endif
 
   if (fd < 0)
@@ -3036,6 +3044,11 @@ and (2) it puts less data in the undo list.")
 	  unlock_file (filename);
 	}
 #endif /* CLASH_DETECTION */
+      if (not_regular)
+	Fsignal (Qfile_error,
+		 Fcons (build_string ("not a regular file"),
+			Fcons (filename, Qnil)));
+
       /* If visiting nonexistent file, return nil.  */
       if (current_buffer->modtime == -1)
 	report_file_error ("Opening input file", Fcons (filename, Qnil));
