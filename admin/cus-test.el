@@ -38,6 +38,8 @@
 ;;
 ;;   src/emacs -batch -l admin/cus-test.el -f cus-test-libs
 ;;
+;;   src/emacs -batch -l admin/cus-test.el -f cus-test-noloads
+;;
 ;; in the emacs source directory.
 ;;
 ;; For interactive use: Load this file.  Then
@@ -84,6 +86,10 @@
 ;; The command `cus-test-libs' runs for all libraries with autoloads
 ;; separate emacs processes of the form "emacs -batch -l LIB".
 ;;
+;; The command `cus-test-noloads' returns a list of variables which
+;; are somewhere declared as custom options, but not loaded by
+;; `custom-load-symbol'.
+;;
 ;; Some results from October 2002:
 ;;
 ;; 4523 options tested
@@ -108,6 +114,18 @@
 ;; (eudc-export error 255)
 ;; (ada-xref error 255)
 ;; (ada-stmt error 255)
+;;
+;; The following options were not loaded by custom-load-symbol:
+;; edt-bottom-scroll-margin
+;; edt-keep-current-page-delimiter
+;; edt-top-scroll-margin
+;; edt-use-EDT-control-key-bindings
+;; edt-word-entities
+;; grep-find-use-xargs
+;; master-mode-hook
+;; outline-level
+;; outline-minor-mode-hook
+;; refill-mode-hook
 
 
 ;;; Code:
@@ -120,7 +138,7 @@
 (defvar cus-test-skip-list nil
   "List of variables to disregard by `cus-test-apropos'.")
 
-(defvar cus-test-noloads nil
+(defvar cus-test-libs-noloads nil
   "List of libraries not to load by `cus-test-load-libs'.")
 
 ;; The file eudc-export.el loads libraries "bbdb" and "bbdb-com" which
@@ -146,7 +164,7 @@
 
 ;; Loading dunnet in batch mode leads to a Dead end.
 (let (noninteractive) (load "dunnet"))
-(add-to-list 'cus-test-noloads "dunnet")
+(add-to-list 'cus-test-libs-noloads "dunnet")
 
 ;; Never Viperize.
 (setq viper-mode nil)
@@ -177,6 +195,14 @@
 (defvar cus-test-tested-variables nil
   "List of options tested by last call of `cus-test-apropos'.")
 
+;; I haven't understood this :get stuff.  The symbols with a
+;; custom-get property are stored here.
+(defvar cus-test-vars-with-custom-get nil
+  "Set by `cus-test-apropos' to a list of options with :get property.")
+
+(defvar cus-test-vars-with-changed-state nil
+  "Set by `cus-test-apropos' to a list of options with state 'changed.")
+
 (defvar cus-test-deps-errors nil
   "List of require/load problems found by `cus-test-deps'.")
 
@@ -193,13 +219,12 @@ Only unloaded features will be require'd.")
 (defvar cus-test-libs-loaded nil
   "List of files loaded by `cus-test-load-libs' or `cus-test-libs'.")
 
-;; I haven't understood this :get stuff.  The symbols with a
-;; custom-get property are stored here.
-(defvar cus-test-vars-with-custom-get nil
-  "Set by `cus-test-apropos' to a list of options with :get property.")
+(defvar cus-test-vars-not-cus-loaded nil
+  "A list of options not loaded by `custom-load-symbol'.
+Set by `cus-test-noloads'.")
 
-(defvar cus-test-vars-with-changed-state nil
-  "Set by `cus-test-apropos' to a list of options with state 'changed.")
+;; (defvar cus-test-vars-cus-loaded nil
+;;   "A list of options loaded by `custom-load-symbol'.")
 
 (defun cus-test-apropos (regexp)
   "Check the options matching REGEXP.
@@ -285,8 +310,8 @@ The detected problematic options are stored in `cus-test-errors'."
     (if (not cus-test-errors)
 	(insert "No errors found by cus-test.")
       (insert "The following variables seem to have problems:\n\n")
-      (dolist (E cus-test-errors)
-	(insert (symbol-name E) "\n")))))
+      (dolist (e cus-test-errors)
+	(insert (symbol-name e) "\n")))))
 
 (defun cus-test-load-custom-loads ()
   "Call `custom-load-symbol' on all atoms."
@@ -296,14 +321,14 @@ The detected problematic options are stored in `cus-test-errors'."
 
 (defun cus-test-load-libs ()
   "Load the libraries with autoloads.
-Don't load libraries in `cus-test-noloads'."
+Don't load libraries in `cus-test-libs-noloads'."
   (interactive)
   (setq cus-test-libs-errors nil)
   (setq cus-test-libs-loaded nil)
   (mapc
    (lambda (file)
      (condition-case alpha
-	 (unless (member file cus-test-noloads)
+	 (unless (member file cus-test-libs-noloads)
 	   (load file)
 	   (push file cus-test-libs-loaded))
        (error
@@ -348,7 +373,7 @@ This function is suitable for batch mode.  E.g., invoke
 
   src/emacs -batch -l admin/cus-test.el -f cus-test-opts
 
-in the emacs source directory."
+in the Emacs source directory."
   (interactive)
   (message "Running %s" 'cus-test-load-libs)
   (cus-test-load-libs)
@@ -367,7 +392,7 @@ This function is suitable for batch mode.  E.g., invoke
 
   src/emacs -batch -l admin/cus-test.el -f cus-test-deps
 
-in the emacs source directory."
+in the Emacs source directory."
   (interactive)
   (setq cus-test-deps-errors nil)
   (setq cus-test-deps-required nil)
@@ -375,55 +400,54 @@ in the emacs source directory."
   (mapatoms
    ;; This code is mainly from `custom-load-symbol'.
    (lambda (symbol)
-     (unless custom-load-recursion
-       (let ((custom-load-recursion t))
-	 (dolist (load (get symbol 'custom-loads))
-	   (cond
-	    ((symbolp load)
-	     ;; (condition-case nil (require load) (error nil))
-	     (condition-case alpha
-		 (unless (featurep load)
-		   (require load)
-		   (push (list symbol load) cus-test-deps-required))
-	       (error
-		(push (list symbol load alpha) cus-test-deps-errors)
-		(message "Require problem: %s %s %s" symbol load alpha))))
-	    ((equal load "loaddefs")
-	     (push
-	      (message "Symbol %s has loaddefs as custom dependency" symbol)
-	      cus-test-deps-errors))
-	    ;; This is subsumed by the test below, but it's much
-	    ;; faster.
-	    ((assoc load load-history))
-	    ;; This was just
-	    ;; (assoc (locate-library load) load-history)
-	    ;; but has been optimized not to load locate-library
-	    ;; if not necessary.
-	    ((let ((regexp (concat "\\(\\`\\|/\\)" (regexp-quote load)
-				   "\\(\\'\\|\\.\\)"))
-		   (found nil))
-	       (dolist (loaded load-history)
-		 (and (stringp (car loaded))
-		      (string-match regexp (car loaded))
-		      (setq found t)))
-	       found))
-	    ;; Without this, we would load cus-edit recursively.
-	    ;; We are still loading it when we call this,
-	    ;; and it is not in load-history yet.
-	    ((equal load "cus-edit"))
-	    ;; This would ignore load problems with files in
-	    ;; lisp/term/
-	    ;; ((locate-library (concat term-file-prefix load)))
-	    (t
-	     ;; (condition-case nil (load load) (error nil))
-	     (condition-case alpha
-		 (progn
-		   (load load)
-		   (push (list symbol load) cus-test-deps-loaded))
-	       (error
-		(push (list symbol load alpha) cus-test-deps-errors)
-		(message "Load Problem: %s %s %s" symbol load alpha))))
-	    ))))))
+     (let ((custom-load-recursion t))
+       (dolist (load (get symbol 'custom-loads))
+	 (cond
+	  ((symbolp load)
+	   ;; (condition-case nil (require load) (error nil))
+	   (condition-case alpha
+	       (unless (featurep load)
+		 (require load)
+		 (push (list symbol load) cus-test-deps-required))
+	     (error
+	      (push (list symbol load alpha) cus-test-deps-errors)
+	      (message "Require problem: %s %s %s" symbol load alpha))))
+	  ((equal load "loaddefs")
+	   (push
+	    (message "Symbol %s has loaddefs as custom dependency" symbol)
+	    cus-test-deps-errors))
+	  ;; This is subsumed by the test below, but it's much
+	  ;; faster.
+	  ((assoc load load-history))
+	  ;; This was just
+	  ;; (assoc (locate-library load) load-history)
+	  ;; but has been optimized not to load locate-library
+	  ;; if not necessary.
+	  ((let ((regexp (concat "\\(\\`\\|/\\)" (regexp-quote load)
+				 "\\(\\'\\|\\.\\)"))
+		 (found nil))
+	     (dolist (loaded load-history)
+	       (and (stringp (car loaded))
+		    (string-match regexp (car loaded))
+		    (setq found t)))
+	     found))
+	  ;; Without this, we would load cus-edit recursively.
+	  ;; We are still loading it when we call this,
+	  ;; and it is not in load-history yet.
+	  ((equal load "cus-edit"))
+	  ;; This would ignore load problems with files in
+	  ;; lisp/term/
+	  ;; ((locate-library (concat term-file-prefix load)))
+	  (t
+	   ;; (condition-case nil (load load) (error nil))
+	   (condition-case alpha
+	       (progn
+		 (load load)
+		 (push (list symbol load) cus-test-deps-loaded))
+	     (error
+	      (push (list symbol load alpha) cus-test-deps-errors)
+	      (message "Load Problem: %s %s %s" symbol load alpha))))
+	  )))))
   (message "%s features required"
 	   (length cus-test-deps-required))
   (message "%s files loaded"
@@ -441,7 +465,7 @@ It is suitable for batch mode.  E.g., invoke
 
   src/emacs -batch -l admin/cus-test.el -f cus-test-libs
 
-in the emacs source directory."
+in the Emacs source directory."
   (interactive)
   (with-temp-buffer
     (setq cus-test-libs-errors nil)
@@ -475,6 +499,42 @@ in the emacs source directory."
       (message "The following load problems appeared:")
       (cus-test-message cus-test-libs-errors))
     (run-hooks 'cus-test-after-load-libs-hook)))
+
+(defun cus-test-noloads ()
+  "Find custom options not loaded by `custom-load-symbol'.
+Calling this function after `cus-test-load-libs' is not meaningful.
+It is suitable for batch mode.  E.g., invoke
+
+  src/emacs -batch -l admin/cus-test.el -f cus-test-noloads
+
+in the Emacs source directory."
+  (interactive)
+  (let (cus-loaded)
+
+    (message "Running %s" 'cus-test-load-custom-loads)
+    (cus-test-load-custom-loads)
+    (setq cus-loaded
+	  (cus-test-get-options ""))
+
+    (message "Running %s" 'cus-test-load-libs)
+    (cus-test-load-libs)
+    (setq cus-test-vars-not-cus-loaded
+	  (cus-test-get-options ""))
+
+    (dolist (o cus-loaded)
+      (setq cus-test-vars-not-cus-loaded
+	    (delete o cus-test-vars-not-cus-loaded)))
+
+    (if (not cus-test-vars-not-cus-loaded)
+	(message "No options not loaded by custom-load-symbol found")
+      (message "The following options were not loaded by custom-load-symbol:")
+      (cus-test-message
+       (sort cus-test-vars-not-cus-loaded 'string<)))))
+
+;; And last but not least a quiz:
+;;
+;; Evaluation of the form (customize-option 'debug-on-error) yields a
+;; *Customize* buffer with a mismatch mess.  Why?
 
 (provide 'cus-test)
 
