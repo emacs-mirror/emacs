@@ -10712,10 +10712,13 @@ x_set_window_size (f, change_gravity, cols, rows)
 
      We could just not bother storing any of this information here,
      and let the ConfigureNotify event set everything up, but that
-     might be kind of confusing to the lisp code, since size changes
+     might be kind of confusing to the Lisp code, since size changes
      wouldn't be reported in the frame parameters until some random
-     point in the future when the ConfigureNotify event arrives.  */
-  change_frame_size (f, rows, cols, 0, 0);
+     point in the future when the ConfigureNotify event arrives.
+
+     We pass 1 for DELAY since we can't run Lisp code inside of
+     a BLOCK_INPUT.  */
+  change_frame_size (f, rows, cols, 0, 1);
   PIXEL_WIDTH (f) = pixelwidth;
   PIXEL_HEIGHT (f) = pixelheight;
 
