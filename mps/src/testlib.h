@@ -1,6 +1,6 @@
 /* impl.h.testlib: TEST LIBRARY INTERFACE
  *
- * $HopeName: MMsrc!testlib.h(trunk.17) $
+ * $HopeName: MMsrc!testlib.h(trunk.18) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -115,8 +115,8 @@ extern void cdie(int res, const char *s);
 
 /* error, verror -- die with message */
 
-extern void error(const char *str, const char *format, ...);
-extern void verror(const char *str, const char *format, va_list args);
+extern void error(const char *format, ...);
+extern void verror(const char *format, va_list args);
 
 
 /* Insist -- like assert, but even in release varieties */
