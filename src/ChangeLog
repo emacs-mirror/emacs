@@ -1,3 +1,8 @@
+2002-05-17  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (sig_suspender, sigprocmask): Don't define for DJGPP
+	2.02 and later.
+
 2002-05-16  Juanma Barranquero  <lektu@terra.es>
 
 	* keyboard.c (Fthis_command_keys, Fthis_command_keys_vector): Fix

@@ -1,4 +1,11 @@
-2002-05-17  Eli Zaretskii  <eliz@is.elta.co.il>
+2002-05-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* ps-mule.el (eval-and-compile): Add a trivial replacement for a
+	possibly missing encode-char.
+	(ps-mule-font-info-database-bdf): Add associations for Unicode
+	fonts.  Doc fix.
+	(ps-mule-font-info-database-ps-bdf): Doc fix.
+	(ps-mule-encode-ucs2): New function for encoding Unicode characters.
 
 	* tar-mode.el (tar-octal-time): Fix the last argument of logior.
 
