@@ -1,3 +1,10 @@
+2002-09-10  Miles Bader  <miles@gnu.org>
+
+	* simple.el (do-auto-fill): `fill-indent-according-to-mode' is a
+	variable, not a function.
+
+	* kmacro.el (kmacro-call-macro): Deal with a non-numeric prefix arg.
+
 2002-09-10  Kim F. Storm  <storm@cua.dk>
 
 	* macros.el (apply-macro-to-region-lines): Let-bind mark-active to
