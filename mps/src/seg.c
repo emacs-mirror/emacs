@@ -1,6 +1,6 @@
 /* impl.c.seg: SEGMENTS
  *
- * $HopeName$
+ * $HopeName: MMsrc!seg.c(trunk.28) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .design: The design for this module is design.mps.seg.
@@ -15,7 +15,7 @@
  * .purpose.class.seg-gc: Class GCSeg is a concrete class support all
  * all current GC features, and providing full backwards compatibility
  * with "old-style" segments.  It may be subclassed by clients of the
- *  module. 
+ * module. 
  *
  * TRANSGRESSIONS
  *
@@ -29,7 +29,7 @@
 #include "tract.h"
 #include "mpm.h"
 
-SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.27) $");
+SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.28) $");
 
 
 /* SegGCSeg -- convert generic Seg to GCSeg */
@@ -55,8 +55,7 @@ static Res SegInit(Seg seg, Pool pool, Addr base, Size size,
 /* SegAlloc -- allocate a segment from the arena */
 
 Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref, 
-             Size size, Pool pool,
-             Bool withReservoirPermit, ...)
+             Size size, Pool pool, Bool withReservoirPermit, ...)
 {
   Res res;
   Arena arena;
@@ -303,6 +302,10 @@ void SegSetRankSet(Seg seg, RankSet rankSet)
 void SegSetSummary(Seg seg, RefSet summary)
 {
   AVERT(Seg, seg);
+
+#ifdef PROTECTION_NONE
+  summary = RefSetUNIV;
+#endif
   seg->class->setSummary(seg, summary);
 }
 
@@ -313,6 +316,12 @@ void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary)
 {
   AVERT(Seg, seg);  
   AVER(RankSetCheck(rankSet));
+
+#ifdef PROTECTION_NONE
+  if (rankSet != RankSetEMPTY) {
+    summary = RefSetUNIV;
+  }
+#endif
   seg->class->setRankSummary(seg, rankSet, summary);
 }
 
