@@ -432,11 +432,13 @@ that."
 	(goto-char (point-max))
 	(while (and (not (bobp)) (bolp))
 	  (delete-char -1))
+        (insert "\n")
         ;; Make a back-reference in this buffer if appropriate.
         (when help-xref-stack
-	  (insert "\n\n")
+	  (insert "\n")
 	  (help-insert-xref-button help-back-label 'help-back
-				   (current-buffer))))
+				   (current-buffer))
+          (insert "\n")))
       ;; View mode steals RET from us.
       (set (make-local-variable 'minor-mode-overriding-map-alist)
            (list (cons 'view-mode help-xref-override-view-map)))
