@@ -1,3 +1,9 @@
+2000-09-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* process.c (Fopen_network_stream) [HAVE_GETADDRINFO]: Use
+	 gai_strerror.  Make sure xerrno is set if connect fails.  Improve
+	 error recovery.
+
 2000-09-29  Jason Rumney <jasonr@gnu.org>
 
 	* w32term.c (w32_char_font_type, w32_encode_char)

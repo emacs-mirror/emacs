@@ -1,3 +1,7 @@
+2000-09-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in: Support `sparc*-*-netbsd*'.
+
 2000-09-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info/dir (MIME): Add entry for emacs-mime.
