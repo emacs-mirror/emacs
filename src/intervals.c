@@ -2009,8 +2009,7 @@ set_point_both (buffer, charpos, bytepos)
   if (charpos > BUF_ZV (buffer) || charpos < BUF_BEGV (buffer))
     abort ();
 
-  have_overlays = (! NILP (buffer->overlays_before)
-		   || ! NILP (buffer->overlays_after));
+  have_overlays = (buffer->overlays_before || buffer->overlays_after);
 
   /* If we have no text properties and overlays,
      then we can do it quickly.  */
