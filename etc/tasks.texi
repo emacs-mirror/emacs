@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate January 10, 1999
+@set lastupdate January 12, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -464,6 +464,7 @@ Software for desktop publishing.  We are extending Emacs into a WYSIWYG
 word processor, to handle primarily linear text; what this item proposes
 is software focused on page layout.
 
+@ignore It looks like TruePrint will fill this gap
 @item
 A program to typeset C code for printing, to make it easier to read on
 paper.  For ideas on what to do, see the book,
@@ -475,6 +476,7 @@ Addison-Wesley, ISBN 0-201-10745-7
 @end display
 
 But you don't have to do exactly what they propose.
+@end ignore
 
 @item
 A program to reformat HTML source to make it easier to read as HTML.
