@@ -1,3 +1,29 @@
+
+2002-07-25  Carsten Dominik  <dominik@astro.uva.nl>
+
+
+	* textmodes/reftex.el (reftex-compile-variables): Simplified
+	regular expression.
+
+	* textmodes/reftex-parse.el (reftex-locate-bibliography-files):
+	Simplified the regexp.
+
+	* textmodes/reftex-cite.el (reftex-get-bibkey-default): New
+	function.
+	(reftex-extract-bib-entries-from-thebibliography): Use
+	`reftex-get-bibkey-default' to get a default regex.
+	(reftex-extract-bib-entries): Use `reftex-get-bibkey-default' to
+	get a default regex.
+
+	* textmodes/reftex-toc.el (reftex-toc-mode): make-local-hook for
+	XEmacs compatibility (got OK from RMS).
+
+	* textmodes/reftex-index.el (reftex-index-mode): likewise.
+
+	* textmodes/reftex-sel.el (reftex-select-label-mode): likewise.
+	(reftex-select-bib-mode): likewise
+
+
 2002-07-25  Colin Walters  <walters@debian.org>
 
 	* ibuffer.el (ibuffer-mouse-popup-menu): Allow point to be moved
