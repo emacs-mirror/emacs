@@ -84,13 +84,17 @@ item.  Loading is done with @code{load-library}, and only if the file is
 not already loaded.
 
 @item :require @var{feature}
-Require feature @var{feature} (a symbol) when installing a value for
-this item (an option or a face) that was saved using the customization
-feature.  This is done by calling @code{require}.
+Execute @code{(require '@var{feature})} when your saved customizations
+set the value of this item.  @var{feature} should be a symbol.
 
 The most common reason to use @code{:require} is when a variable enables
 a feature such as a minor mode, and just setting the variable won't have
 any effect unless the code which implements the mode is loaded.
+
+@item :version @var{version}
+This option specifies that the item was first introduced in Emacs
+version @var{version}, or that its default value was changed in that
+version.  The value @var{version} must be a string.
 @end table
 
 @node Group Definitions
@@ -130,17 +134,9 @@ is a symbol, and @var{widget} is a widget type for editing that symbol.
 Useful widgets are @code{custom-variable} for a variable,
 @code{custom-face} for a face, and @code{custom-group} for a group.
 
-When a new group is introduced into Emacs, use this keyword in
-@code{defgroup}:
-
-@table @code
-@item :version @var{version}
-This option specifies that the group was first introduced in Emacs
-version @var{version}.  The value @var{version} must be a string.
-@end table
-
-Tag the group with a version like this when it is introduced, rather
-than the individual members (@pxref{Variable Definitions}).
+When you introduce a new group into Emacs, use the @code{:version}
+keyword in the @code{defgroup}; then you need not use it for
+the individual members of the group.
 
 In addition to the common keywords (@pxref{Common Keywords}), you can
 also use this keyword in @code{defgroup}:
@@ -223,26 +219,13 @@ This is meaningful only for certain types, currently including
 @code{hook}, @code{plist} and @code{alist}.  See the definition of the
 individual types for a description of how to use @code{:options}.
 
-@item :version @var{version}
-This option specifies that the variable was first introduced, or its
-default value was changed, in Emacs version @var{version}.  The value
-@var{version} must be a string.  For example,
-
-@example
-(defcustom foo-max 34
-  "*Maximum number of foo's allowed."
-  :type 'integer
-  :group 'foo
-  :version "20.3")
-@end example
-
 @item :set @var{setfunction}
-Specify @var{setfunction} as the way to change the value of this option.
-The function @var{setfunction} should take two arguments, a symbol and
-the new value, and should do whatever is necessary to update the value
-properly for this option (which may not mean simply setting the option
-as a Lisp variable).  The default for @var{setfunction} is
-@code{set-default}.
+Specify @var{setfunction} as the way to change the value of this
+option.  The function @var{setfunction} should take two arguments, a
+symbol (the option name) and the new value, and should do whatever is
+necessary to update the value properly for this option (which may not
+mean simply setting the option as a Lisp variable).  The default for
+@var{setfunction} is @code{set-default}.
 
 @item :get @var{getfunction}
 Specify @var{getfunction} as the way to extract the value of this
@@ -258,10 +241,10 @@ is almost surely a mistake to specify @code{getfunction} for a value
 that really is stored in a Lisp variable.
 
 @item :initialize @var{function}
-@var{function} should be a function used to initialize the variable when
-the @code{defcustom} is evaluated.  It should take two arguments, the
-symbol and value.  Here are some predefined functions meant for use in
-this way:
+@var{function} should be a function used to initialize the variable
+when the @code{defcustom} is evaluated.  It should take two arguments,
+the option name (a symbol) and the value.  Here are some predefined
+functions meant for use in this way:
 
 @table @code
 @item custom-initialize-set

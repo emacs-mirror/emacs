@@ -109,7 +109,7 @@ use the `well known' port for that service when accessing URLs.  With
 the possible exception of @code{telnet}, it is rare for ports to be
 specified, and it is possible using a non-standard port may have
 undesired consequences if a different service is listening on that
-port (e.g.@: an HTTP URL specifying the SMTP port can cause mail to be
+port (e.g., an HTTP URL specifying the SMTP port can cause mail to be
 sent).@c , but @xref{Other Variables, url-bad-port-list}.
 The meaning of
 the @var{path} component depends on the service.
@@ -142,7 +142,7 @@ URLs.  These are actually vectors of the form:
 @noindent where
 @table @var
 @item type
-is the type of the URL scheme, e.g.@: @code{http}
+is the type of the URL scheme, e.g., @code{http}
 @item user
 is the username associated with it, or @code{nil};
 @item password
@@ -182,7 +182,7 @@ is @code{t} for a fully-specified URL, with a host part indicated by
 @findex url-set-attributes
 @findex url-set-full
 These attributes have accessors named @code{url-@var{part}}, where
-@var{part} is the name of one of the elements above, e.g.@:
+@var{part} is the name of one of the elements above, e.g.,
 @code{url-host}.  Similarly, there are setters of the form
 @code{url-set-@var{part}}.
 
@@ -317,7 +317,12 @@ Default is one hour.
 @subsection Language and Encoding Preferences
 
 HTTP allows clients to express preferences for the language and
-encoding of documents which servers may honour.
+encoding of documents which servers may honour.  For each of these
+variables, the value is a string; it can specify a single choice, or
+it can be a comma-separated list in descending order of preference.
+Each element can be followed by @samp{;q=@var{priority}} to specify
+its preference level; e.g., for @code{url-mime-language-string},
+@w{@code{"de, en-gb;q=0.8, en;q=0.7"}}.
 
 @defopt url-mime-charset-string
 @cindex character sets
@@ -325,23 +330,22 @@ encoding of documents which servers may honour.
 This variable specifies a preference for character sets when documents
 can be served in more than one encoding.
 
-HTTP allows specifying a list of MIME charsets which indicate your
-preferred character set encodings, e.g.@: Latin-9 or Big5, and these
-can be weighted.  In Emacs 21 this list is generated automatically
-from the list of defined coding systems which have associated MIME
-types.  These are sorted by coding priority.  @xref{Recognize Coding,
-, Recognizing Coding Systems, emacs, The GNU Emacs Manual}.
+HTTP allows specifying a series of MIME charsets which indicate your
+preferred character set encodings, e.g., Latin-9 or Big5, and these
+can be weighted.  The default series is generated automatically from
+the associated MIME types of all defined coding systems, sorted by the
+coding system priority specified in Emacs.  @xref{Recognize Coding, ,
+Recognizing Coding Systems, emacs, The GNU Emacs Manual}.
 @end defopt
 
 @defopt url-mime-language-string
 @cindex language preferences
 A string specifying the preferred language when servers can serve
-files in several languages.  Use RFC 1766 abbreviations, e.g.@:
-@samp{en} for English, @samp{de} for German.  It can be a
-comma-separated list in descending order of preference.  The ordering
-can be made explicit using `q' factors defined by HTTP, e.g.@:
-@w{@samp{de, en-gb;q=0.8, en;q=0.7}}.  It can be @samp{*} to get the
-first available language (as opposed to the default).
+files in several languages.  Use RFC 1766 abbreviations, e.g.,
+@samp{en} for English, @samp{de} for German.
+
+The string can be @code{"*"} to get the first available language (as
+opposed to the default).
 @end defopt
 
 @node HTTP URL Options

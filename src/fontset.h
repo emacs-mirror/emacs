@@ -204,6 +204,7 @@ extern int face_for_char P_ ((FRAME_PTR, struct face *, int,
 			      int, Lisp_Object));
 extern int make_fontset_for_ascii_face P_ ((FRAME_PTR, int, struct face *));
 extern int new_fontset_from_font_name P_ ((Lisp_Object));
+extern void set_default_ascii_font P_ ((Lisp_Object));
 extern struct font_info *fs_load_font P_ ((struct frame *, char *, int));
 extern int fs_query_fontset P_ ((Lisp_Object, int));
 EXFUN (Fquery_fontset, 2);

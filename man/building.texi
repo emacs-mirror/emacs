@@ -325,7 +325,6 @@ Lisp programs.
 * Debugger Operation::	Connection between the debugger and source buffers.
 * Commands of GUD::	Key bindings for common commands.
 * GUD Customization::	Defining your own commands for GUD.
-* GUD Tooltips::        Showing variable values by pointing with the mouse.
 * GDB Graphical Interface::  An enhanced mode that uses GDB features to
                         implement a graphical debugging environment through
                         Emacs.
@@ -340,18 +339,9 @@ to a particular debugger program.
 @table @kbd
 @item M-x gdb @key{RET} @var{file} @key{RET}
 @findex gdb
-Run GDB as a subprocess of Emacs.  By default, GDB starts as for
-@kbd{M-x gdba} below.  If you want GDB to start as in Emacs 21.3 and
-earlier then edit the string in the minibuffer or set
-@code{gud-gdb-command-name} to ``gdb --fullname''.  You need to do
-this if you want to run multiple debugging sessions within one Emacs
-session.  In this case, the command creates a buffer for input and
-output to GDB, and switches to it.  If a GDB buffer already exists, it
-just switches to that buffer.
-
-@item M-x gdba @key{RET} @var{file} @key{RET}
-Run GDB as a subprocess of Emacs, providing a graphical interface
-to GDB features through Emacs.  @xref{GDB Graphical Interface}.
+Run GDB as a subprocess of Emacs.  By default, this operates in
+graphical mode; @xref{GDB Graphical Interface}.  Graphical mode
+does not support any other debuggers.
 
 @item M-x dbx @key{RET} @var{file} @key{RET}
 @findex dbx
@@ -396,8 +386,6 @@ debugger supports.  However, shell wildcards and variables are not
 allowed.  GUD assumes that the first argument not starting with a
 @samp{-} is the executable file name.
 
-  Emacs can only run one debugger process at a time.
-
 @node Debugger Operation
 @subsection Debugger Operation
 
@@ -423,6 +411,16 @@ changes to be reflected in the debugger's tables.
 debugger buffer, which uses a variant of Shell mode.  All the usual
 commands for your debugger are available, and you can use the Shell mode
 history commands to repeat them.  @xref{Shell Mode}.
+
+@cindex tooltips with GUD
+@vindex tooltip-gud-modes
+@vindex tooltip-gud-tips-p
+  The Tooltip facility (@pxref{Tooltips}) provides support for GUD@.
+You activate this feature by setting the variable
+@code{tooltip-gud-tips-p} to @code{t}.  Then you can display a
+variable's value in a tooltip simply by pointing at it with the mouse.
+This operates in the GUD buffer and in source buffers with major modes
+in the list @code{tooltip-gud-modes}.
 
 @node Commands of GUD
 @subsection Commands of GUD
@@ -653,28 +651,24 @@ If you don't use @samp{%p} in the command string, the command you define
 ignores any numeric argument.
 @end table
 
-@node GUD Tooltips
-@subsection GUD Tooltips
-
-@cindex tooltips with GUD
-The Tooltip facility (@pxref{Tooltips}) provides support for GUD@.  If
-GUD support is activated by customizing the @code{tooltip} group,
-variable values can be displayed in tooltips by pointing at them with
-the mouse in the GUD buffer or in source buffers with major modes in the
-customizable list @code{tooltip-gud-modes}.
-
 @node GDB Graphical Interface
 @subsection GDB Graphical Interface
 
-By default, the command @code{gdb} starts GDB using a graphical
+  By default, the command @code{gdb} starts GDB using a graphical
 interface where you view and control the program's data using Emacs
 windows.  You can still interact with GDB through the GUD buffer, but
 the point of this mode is that you can do it through menus and clicks,
 without needing to know GDB commands.
 
+@vindex gud-gdb-command-name
 @findex gdba
-If you have customised @code{gud-gdb-command-name}, then start this
-mode with the command @code{gdba}.
+  You can also run GDB in text command mode, which creates a buffer
+for input and output to GDB.  To do this, set
+@code{gud-gdb-command-name} to @code{"gdb --fullname"} or edit the
+startup command in the minibuffer to say that.  You need to do use
+text command mode to run multiple debugging sessions within one Emacs
+session.  If you have customised @code{gud-gdb-command-name} in that
+way, then you can use @kbd{M-x gdba} to invoke GDB in graphical mode.
 
 @menu
 * Layout::               Control the number of displayed buffers.

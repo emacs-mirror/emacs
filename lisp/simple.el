@@ -733,10 +733,48 @@ that uses or sets the mark."
 
 ;; Counting lines, one way or another.
 
-(defun goto-line (arg)
-  "Goto line ARG, counting from line 1 at beginning of buffer."
-  (interactive "NGoto line: ")
-  (setq arg (prefix-numeric-value arg))
+(defun goto-line (arg &optional buffer)
+  "Goto line ARG, counting from line 1 at beginning of buffer.
+Normally, move point in the curren buffer.
+With just C-u as argument, move point in the most recently displayed
+other buffer, and switch to it.
+
+If there's a number in the buffer at point, it is the default for ARG."
+  (interactive
+   (if (and current-prefix-arg (not (consp current-prefix-arg)))
+       (list (prefix-numeric-value current-prefix-arg))
+     ;; Look for a default, a number in the buffer at point.
+     (let* ((default
+	      (save-excursion
+		(skip-chars-backward "0-9")
+		(if (looking-at "[0-9]")
+		    (buffer-substring-no-properties
+		     (point)
+		     (progn (skip-chars-forward "0-9")
+			    (point))))))
+	    ;; Decide if we're switching buffers.
+	    (buffer
+	     (if (consp current-prefix-arg)
+		 (other-buffer (current-buffer) t)))
+	    (buffer-prompt
+	     (if buffer
+		 (concat " in " (buffer-name buffer))
+	       "")))
+       ;; Read the argument, offering that number (if any) as default.
+       (list (read-from-minibuffer (format (if default "Goto line%s (%s): "
+					     "Goto line%s: ")
+					   buffer-prompt
+					   default)
+				   nil nil t
+				   'minibuffer-history
+				   default)
+	     buffer))))
+  ;; Switch to the desired buffer, one way or another.
+  (if buffer
+      (let ((window (get-buffer-window buffer)))
+	(if window (select-window window)
+	  (switch-to-buffer-other-window buffer))))
+  ;; Move to the specified line number in that buffer.
   (save-restriction
     (widen)
     (goto-char 1)
@@ -2875,6 +2913,14 @@ START and END specify the portion of the current buffer to be copied."
 (put 'mark-inactive 'error-conditions '(mark-inactive error))
 (put 'mark-inactive 'error-message "The mark is not active now")
 
+(defvar activate-mark-hook nil
+  "Hook run when the mark becomes active.
+It is also run at the end of a command, if the mark is active and
+it is possible that the region may have changed")
+
+(defvar deactivate-mark-hook nil
+  "Hook run when the mark becomes inactive.")
+
 (defun mark (&optional force)
   "Return this buffer's mark value as integer; error if mark inactive.
 If optional argument FORCE is non-nil, access the mark value
@@ -2966,6 +3012,7 @@ Display `Mark set' unless the optional second arg NOMSG is non-nil."
     (if (or arg (null mark) (/= mark (point)))
 	(push-mark nil nomsg t)
       (setq mark-active t)
+      (run-hooks 'activate-mark-hook)
       (unless nomsg
 	(message "Mark activated")))))
 
@@ -3469,6 +3516,33 @@ boundaries bind `inhibit-field-text-motion' to t."
 	      ;; keep going.
 	      (setq arg 1)
 	    (setq done t)))))))
+
+(defun move-beginning-of-line (arg)
+  "Move point to beginning of current display line.
+With argument ARG not nil or 1, move forward ARG - 1 lines first.
+If point reaches the beginning or end of buffer, it stops there.
+To ignore intangibility, bind `inhibit-point-motion-hooks' to t.
+
+This command does not move point across a field boundary unless doing so
+would move beyond there to a different line; if ARG is nil or 1, and
+point starts at a field boundary, point does not move.  To ignore field
+boundaries bind `inhibit-field-text-motion' to t."
+  (interactive "p")
+  (or arg (setq arg 1))
+  (if (/= arg 1)
+      (line-move (1- arg) t))
+  (let (done pos)
+    (while (not done)
+      (beginning-of-line 1)
+      ;; (not bolp) means that it stopped at a field boundary.
+      (if (or (bobp) (not (bolp)))
+	  (setq done t)
+	(sit-for 0)
+	(if (and (consp (setq pos (pos-visible-in-window-p (point) nil t)))
+		 (= (car pos) 0))
+	    (setq done t)
+	  (backward-char 1))))))
+
 
 ;;; Many people have said they rarely use this feature, and often type
 ;;; it by accident.  Maybe it shouldn't even be on a key.
@@ -4987,7 +5061,17 @@ the front of the list of recently selected ones."
 
 ;;; Handling of Backspace and Delete keys.
 
-(defcustom normal-erase-is-backspace nil
+(defcustom normal-erase-is-backspace
+  (and (not noninteractive)
+       (or (memq system-type '(ms-dos windows-nt))
+	   (and (memq window-system '(x))
+		(fboundp 'x-backspace-delete-keys-p)
+		(x-backspace-delete-keys-p))
+	   ;; If the terminal Emacs is running on has erase char
+	   ;; set to ^H, use the Backspace key for deleting
+	   ;; backward and, and the Delete key for deleting forward.
+	   (and (null window-system)
+		(eq tty-erase-char ?\^H))))
   "If non-nil, Delete key deletes forward and Backspace key deletes backward.
 
 On window systems, the default value of this option is chosen

@@ -94,7 +94,28 @@ extern int pending_atimers;
     }						\
   while (0)
 
-#define TOTALLY_UNBLOCK_INPUT (interrupt_input_blocked = 0)
+/* Undo any number of BLOCK_INPUT calls,
+   and also reinvoke any pending signal.  */
+
+#define TOTALLY_UNBLOCK_INPUT			\
+  do if (interrupt_input_blocked != 0)		\
+    {						\
+      interrupt_input_blocked = 1;		\
+      UNBLOCK_INPUT;				\
+    }						\
+  while (0)
+
+/* Undo any number of BLOCK_INPUT calls down to level LEVEL,
+   and also (if the level is now 0) reinvoke any pending signal.  */
+
+#define UNBLOCK_INPUT_TO(LEVEL)				\
+  do							\
+    {							\
+      interrupt_input_blocked = (LEVEL) + 1;		\
+      UNBLOCK_INPUT;					\
+    }							\
+  while (0)
+
 #define UNBLOCK_INPUT_RESIGNAL UNBLOCK_INPUT
 
 /* In critical section ? */

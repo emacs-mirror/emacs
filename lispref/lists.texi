@@ -248,7 +248,7 @@ This is in contrast to @code{cdr}, which signals an error if
 @tindex pop
 @defmac pop listname
 This macro is a way of examining the @sc{car} of a list,
-and taking it off the list, all at once.  It is new in Emacs 21.
+and taking it off the list, all at once.
 
 It operates on the list which is stored in the symbol @var{listname}.
 It removes this element from the list by setting @var{listname}
@@ -436,7 +436,6 @@ any symbol can serve both purposes.
 @defmac push newelt listname
 This macro provides an alternative way to write
 @code{(setq @var{listname} (cons @var{newelt} @var{listname}))}.
-It is new in Emacs 21.
 
 @example
 (setq l '(a b))

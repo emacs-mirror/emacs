@@ -388,11 +388,7 @@ remove the star from the line in the backtrace buffer.
 @item j
 Flag the current frame like @kbd{b}.  Then continue execution like
 @kbd{c}, but temporarily disable break-on-entry for all functions that
-are set up to do so by @code{debug-on-entry}.  The temporarily disabled
-functions are set up to debug on entry again when the debugger is
-entered or when @code{debug-on-entry} is called;
-@code{cancel-debug-on-entry} also re-enables these functions before it
-disables any functions that its argument says it should disable.
+are set up to do so by @code{debug-on-entry}.
 
 @item e
 Read a Lisp expression in the minibuffer, evaluate it, and print the

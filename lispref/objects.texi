@@ -1166,7 +1166,7 @@ only the first 3 bits are used:
 
     A hash table is a very fast kind of lookup table, somewhat like an
 alist in that it maps keys to corresponding values, but much faster.
-Hash tables are a new feature in Emacs 21; they have no read syntax, and
+Hash tables have no read syntax, and
 print using hash notation.  @xref{Hash Tables}.
 
 @example
@@ -1549,9 +1549,9 @@ positions.
 @cindex @samp{#@var{n}=} read syntax
 @cindex @samp{#@var{n}#} read syntax
 
-  In Emacs 21, to represent shared or circular structures within a
-complex of Lisp objects, you can use the reader constructs
-@samp{#@var{n}=} and @samp{#@var{n}#}.
+  To represent shared or circular structures within a complex of Lisp
+objects, you can use the reader constructs @samp{#@var{n}=} and
+@samp{#@var{n}#}.
 
   Use @code{#@var{n}=} before an object to label it for later reference;
 subsequently, you can use @code{#@var{n}#} to refer the same object in

@@ -1,3 +1,194 @@
+2005-03-08  Juri Linkov  <juri@jurta.org>
+
+	* textmodes/sgml-mode.el (sgml-tag, html-tag-alist)
+	(html-horizontal-rule, html-line, html-image, html-checkboxes)
+	(html-radio-buttons): Add a space before the trailing `/>' where
+	sgml-xml-mode is non-nil.
+	(sgml-delete-tag): Check if the tag ends with `/>' to not delete
+	the subsequent tag of the empty XML tag.
+	(html-href-anchor): Don't set initial input to "http:".
+	(html-image): Ask for the image URL and set point inside alt="".
+	(html-name-anchor): Duplicate the name in the `id' attribute when
+	sgml-xml-mode is non-nil.
+	(html-paragraph): Remove \n before <p>.
+	(html-checkboxes, html-radio-buttons): Insert `checked="checked"'
+	instead of `checked' when sgml-xml-mode is non-nil.
+
+	* facemenu.el (list-colors-print): Print #RRGGBB in default face.
+	Remove 1 space before #RRGGBB to not truncate it on terminal
+	windows w/o fringes.  Remove 1 space between bg and fg examples
+	to get more space.
+	(list-colors-duplicates): Replace `and' with `if' for `boundp' to
+	avoid byte-compile warnings.
+
+	* image-file.el (image-file-handler): Put `safe-magic' property to
+	`image-file-handler'.
+
+	* info.el (Info-isearch-search): Emulate word search in
+	isearching through multiple Info nodes with Info-search.
+	(Info-isearch-wrap): Allow isearch-word.
+
+2005-03-08  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (debugger-step-through): Make sure that
+	stepping into the debugger's code is not possible.
+	(debugger-jumping-flag): Docstring update.
+
+2005-03-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed.el (calc-do-embedded): Reset mode line when
+	embedded mode begins.
+	(calc-embedded-language-alist): New variable.
+	(calc-embedded-find-modes): Use calc-embedded-language-alist to
+	set default language mode.
+
+2005-03-08  Kenichi Handa  <handa@m17n.org>
+
+	* international/ccl.el (define-ccl-program): Fix docstring about
+	extra 256 bytes assured for the output buffer.
+
+	* international/utf-16.el (ccl-encode-mule-utf-16le-with-signature):
+	Fix BUFFER_MAGNIFICATION to 2.
+	(ccl-encode-mule-utf-16be-with-signature): Likewise.
+
+2005-03-07  Karl Chen  <quarl@cs.berkeley.edu>
+
+	* align.el (align-rules-list): Added an alignment rule for CSS
+	declarations (applies to css-mode and html-mode buffers).
+
+2005-03-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debug-on-entry-1): Fix handling of macros.
+
+2005-03-07  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (move-beginning-of-line): New command.
+
+	* bindings.el (global-map): Bind C-a to move-beginning-of-line.
+
+	* reveal.el (reveal-mode-map): Bind C-a to beginning-of-line.
+
+	* emulation/cua-base.el: Put CUA move property on move-end-of-line
+	and move-beginning-of-line.
+
+	* apropos.el (apropos-print): Omit command from M-x ... RET.
+
+2005-03-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-create-handler): Handle just MI case.
+	(gdb-send, gdb-send-item): Log items sent from gdb-send too.
+
+2005-03-06  Richard M. Stallman  <rms@gnu.org>
+
+	* bindings.el (esc-map): Bind M-g to goto-line.
+
+	* facemenu.el (global-map): Bind M-o, not M-g.
+
+2005-03-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* menu-bar.el (menu-bar-file-menu): Add the same :enable to
+	"Open Directory" as for "Open File".
+
+2005-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (activate-mark-hook, deactivate-mark-hook): Add defvars.
+	(push-mark-command): Run activate-mark-hook.
+
+2005-03-06  Richard M. Stallman  <rms@gnu.org>
+
+	* help-mode.el (help-mode-finish): Don't alter the element
+	in view-return-to-alist if there already is one.
+
+	* jit-lock.el (jit-lock-stealth-fontify): When calling sit-for,
+	make sure the current buffer is the expected one.
+
+	* novice.el (disabled-command-function): Output in *Disabled Command*.
+	Explicitly ignore non-keyboard events, and explicitly handle C-g.
+
+	* textmodes/flyspell.el (flyspell-large-region):
+	Pass args differently for aspell.
+
+	* files.el (mode-require-final-newline): Doc fix.
+
+2005-03-03  Stephan Stahl  <stahl@eos.franken.de> (tiny change)
+
+	* progmodes/which-func.el (which-function):
+	Specify NOERROR when calling imenu--make-index-alist.
+
+2005-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (normal-erase-is-backspace): Define default value.
+
+	* custom.el (custom-theme-set-variables): Remove unused var `immediate'.
+	(custom-reevaluate-setting): Simple function to handle
+	variables that are defined before their default value can really
+	be computed.
+
+	* startup.el (command-line): Use it for temporary-file-directory,
+	small-emporary-file-directory, auto-save-file-name-transforms,
+	blink-cursor-mode, and normal-erase-is-backspace.
+
+	* font-lock.el (font-lock-fontify-keywords-region): Ensure forward
+	progress, even with buggy anchored keywords.
+
+2005-03-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* simple.el (goto-line): Remove unbalanced final parenthesis.
+
+2005-03-05  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (goto-line): Use a number at point as the default.
+	With C-u as arg, switch buffers.
+
+2005-03-05  Juri Linkov  <juri@jurta.org>
+
+	* frame.el (blink-cursor-mode): Replace `emacs-quick-startup'
+	with `no-blinking-cursor'.
+
+	* startup.el (no-blinking-cursor): New defvar.
+	(command-line): Add `--no-blinking-cursor' to longopts.
+	Set `no-blinking-cursor' to t for command line arguments
+	-Q, -nbc, --no-blinking-cursor.  Replace `emacs-quick-startup'
+	with `no-blinking-cursor' in the condition for calling
+	`blink-cursor-mode'.
+
+2005-03-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* menu-bar.el (menu-bar-make-mm-toggle): Doc fix.
+	(menu-bar-options-save): Add blink-cursor-mode.
+	(menu-bar-options-menu): Add blink-cursor-mode.
+
+2005-03-04  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar-version): Increase to 0.11.
+	(icalendar-export-file, icalendar-export-region)
+	(icalendar-import-file, icalendar-import-buffer): Add autoload cookies.
+	(icalendar--convert-ical-to-diary): Fix problem with DURATION.
+
+2005-03-04  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (debugger-step-after-exit): Make it a defvar.
+	(debug-function-list): Ditto.
+
+2005-03-04  Robert J. Chassell  <bob@rattlesnake.com>
+
+	* textmodes/texinfmt.el (texinfo-append-refill):
+	Redefine the types of line to which @refill
+	is not appended by replacing a search for `@refill\\|@bye' with
+	`@refill\\|^[ \t]*@'.  The intent is to solve both the `@end
+	itemize@refill' bug and the unfilled long lines bug.
+	(texinfmt-version): Update number and date.
+
+2005-03-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* international/code-pages.el (windows-1250, windows-125[2-8])
+	(iso-8859-10, -13, -16, georgian-ps): Add autoload cookies.
+
+2005-03-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.el (blink-cursor-mode): `emacs-quick-startup' may not be
+	bound yet.
+
 2005-03-02  Romain Francoise  <romain@orebokech.com>
 
 	* ibuf-ext.el (ibuffer-filter-disable): Move back to the current
@@ -11,9 +202,21 @@
 	type, use the default.  Rewrite to use `add-text-properties' and
 	plist functions.
 
+2005-03-01  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (inhibit-debug-on-entry): Add docstring.
+	(debugger-jumping-flag): New var.
+	(debug-entry-code): Use it.
+	(debugger-jump): Use debugger-jumping-flag and add
+	debugger-reenable to post-command-hook.
+	(debugger-reenable): Use debugger-jumping-flag and remove itself
+	from post-command-hook.
+	(debug, debug-on-entry, cancel-debug-on-entry): Remove call to
+	debugger-reenable.
+
 2005-03-01  Robert J. Chassell  <bob@rattlesnake.com>
 
-	* textmodes/texinfmt.el: (texinfo-no-refill-regexp): Comment out
+	* textmodes/texinfmt.el (texinfo-no-refill-regexp): Comment out
 	inclusion of "itemize\\|", which may be unnecessary, is certainly
 	inelegant, and stops refilling in itemize lists when formatting
 	Japanese Texinfo files to Info.
@@ -52,8 +255,7 @@
 	(debugger-setup-buffer): Delete one more frame line in case of
 	debug on entry.
 	(debugger-frame-number): Update to use the new text introduced by
-	the 1999-11-03 change.  Skip one more frame in case of debug on
-	entry.
+	the 1999-11-03 change.  Skip one more frame in case of debug on entry.
 
 2005-02-28  Kim F. Storm  <storm@cua.dk>
 

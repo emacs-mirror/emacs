@@ -9,6 +9,7 @@
 @cindex options (command line)
 @cindex switches (command line)
 @cindex startup (command line arguments)
+@cindex invocation (command line arguments)
 
   GNU Emacs supports command line arguments to request various actions
 when invoking Emacs.  These are for compatibility with other editors and
@@ -1211,6 +1212,13 @@ Enable vertical scroll bars.
 @opindex --line-spacing
 @cindex line spacing, command-line argument
 Specify @var{pixels} as additional space to put between lines, in pixels.
+
+@item -nbc
+@opindex -nbc
+@itemx --no-blinking-cursor
+@opindex --no-blinking-cursor
+@cindex blinking cursor disable, command-line argument
+Disable the blinking cursor on graphical terminals.
 @end table
 
   The @samp{--xrm} option (@pxref{Resources}) specifies additional

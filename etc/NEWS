@@ -164,6 +164,10 @@ See the files mac/README and mac/INSTALL for build instructions.
 ---
 ** Support for GNU/Linux systems on X86-64 machines was added.
 
+** Mac OS 9 port now uses the Carbon API by default.  You can also
+create non-Carbon build by specifying `NonCarbon' as a target.  See
+the files mac/README and mac/INSTALL for build instructions.
+
 ---
 ** A French translation of the `Emacs Survival Guide' is available.
 
@@ -173,6 +177,12 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 
 * Changes in Emacs 22.1
+
+** C-u M-x goto-line now switches to the most recent previous buffer,
+and goes to the specified line in that buffer.
+
+When goto-line starts to execute, if there's a number in the buffer at
+point then it acts as the default argument for the minibuffer.
 
 ** Emacs now responds to mouse-clicks on the mode-line, header-line and
 display margin, when run in an xterm.
@@ -354,6 +364,10 @@ the next/previous matching line found by M-x occur.
 This is like using -q --no-site-file, but in addition it also disables
 the menu-bar, the tool-bar, the scroll-bars, tool tips, the blinking
 cursor, and the fancy startup screen.
+
++++
+** New command line option -nbc or --no-blinking-cursor disables
+the blinking cursor on graphical terminals.
 
 ** C-h v and C-h f commands now include a hyperlink to the C source for
 variables and functions defined in C (if the C source is available).

@@ -1646,10 +1646,16 @@ If DIRECTION is `backward', search in the reverse direction."
   (Info-search regexp bound noerror count 'backward))
 
 (defun Info-isearch-search ()
-  (if (and Info-isearch-search (not isearch-word))
+  (if Info-isearch-search
       (lambda (string &optional bound noerror count)
 	(condition-case nil
-	    (progn
+	    (if isearch-word
+		(Info-search (concat "\\b" (replace-regexp-in-string
+					    "\\W+" "\\\\W+"
+					    (replace-regexp-in-string
+					     "^\\W+\\|\\W+$" "" string)) "\\b")
+			     bound noerror count
+			     (unless isearch-forward 'backward))
 	      (Info-search (if isearch-regexp string (regexp-quote string))
 			   bound noerror count
 			   (unless isearch-forward 'backward))
@@ -1659,7 +1665,7 @@ If DIRECTION is `backward', search in the reverse direction."
       (isearch-search-fun))))
 
 (defun Info-isearch-wrap ()
-  (when (and Info-isearch-search (not isearch-word))
+  (when Info-isearch-search
     (if isearch-forward (Info-top-node) (Info-final-node))
     (goto-char (if isearch-forward (point-min) (point-max)))))
 

@@ -81,14 +81,14 @@ those to be created in the future.  (You can also set foreground and
 background colors for the current frame only; see @ref{Frame
 Parameters}.)
 
-  Emacs 21 can correctly display variable-width fonts, but Emacs
-commands that calculate width and indentation do not know how to
-calculate variable widths.  This can sometimes lead to incorrect
-results when you use variable-width fonts.  In particular, indentation
-commands can give inconsistent results, so we recommend you avoid
-variable-width fonts for editing program source code.  Filling will
-sometimes make lines too long or too short.  We plan to address these
-issues in future Emacs versions.
+  Emacs can correctly display variable-width fonts, but Emacs commands
+that calculate width and indentation do not know how to calculate
+variable widths.  This can sometimes lead to incorrect results when
+you use variable-width fonts.  In particular, indentation commands can
+give inconsistent results, so we recommend you avoid variable-width
+fonts for editing program source code.  Filling will sometimes make
+lines too long or too short.  We plan to address these issues in
+future Emacs versions.
 
 @findex list-faces-display
   To see what faces are currently defined, and what they look like, type

@@ -88,15 +88,19 @@ typedef struct w32_bitmap_record Bitmap_Record;
 #include <alloca.h>
 #include <sys/param.h>
 #endif
+#if TARGET_API_MAC_CARBON
 #ifdef MAC_OSX
 #include <QuickTime/QuickTime.h>
-#else /* not MAC_OSX */
+#else  /* not MAC_OSX */
+#include <QuickTime.h>
+#endif	/* not MAC_OSX */
+#else  /* not TARGET_API_MAC_CARBON */
 #include <Windows.h>
 #include <Gestalt.h>
 #include <TextUtils.h>
 #include <ImageCompression.h>
 #include <QuickTimeComponents.h>
-#endif /* not MAC_OSX */
+#endif	/* not TARGET_API_MAC_CARBON */
 
 /* MAC_TODO : Color tables on Mac.  */
 #undef COLOR_TABLE_SUPPORT

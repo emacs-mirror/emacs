@@ -774,6 +774,23 @@ make_fontset (frame, name, base)
 }
 
 
+/* Set the ASCII font of the default fontset to FONTNAME if that is
+   not yet set.  */
+void
+set_default_ascii_font (fontname)
+     Lisp_Object fontname;
+{
+  if (! CONSP (FONTSET_ASCII (Vdefault_fontset)))
+    {
+      int id = fs_query_fontset (fontname, 2);
+
+      if (id >= 0)
+	fontname = XCDR (FONTSET_ASCII (FONTSET_FROM_ID (id)));
+      FONTSET_ASCII (Vdefault_fontset)
+	= Fcons (make_number (0), fontname);
+    }
+}
+
 
 /********** INTERFACES TO xfaces.c, xfns.c, and dispextern.h **********/
 
@@ -2129,21 +2146,6 @@ syms_of_fontset ()
   FONTSET_ID (Vdefault_fontset) = make_number (0);
   FONTSET_NAME (Vdefault_fontset)
     = build_string ("-*-*-*-*-*-*-*-*-*-*-*-*-fontset-default");
-  {
-    Lisp_Object default_ascii_font;
-
-#if defined (macintosh)
-    default_ascii_font
-      = build_string ("-apple-monaco-medium-r-*--*-120-*-*-*-*-mac-roman");
-#elif defined (WINDOWSNT)
-    default_ascii_font
-      = build_string ("-*-courier new-normal-r-*-*-*-100-*-*-*-*-iso8859-1");
-#else
-    default_ascii_font
-      = build_string ("-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1");
-#endif
-    FONTSET_ASCII (Vdefault_fontset) = default_ascii_font;
-  }
   AREF (Vfontset_table, 0) = Vdefault_fontset;
   next_fontset_id = 1;
 

@@ -1,3 +1,30 @@
+2005-03-08  Bjorn Solberg <bjorn_ding@hekneby.org>  (tiny change)
+
+	* nnimap.el (nnimap-retrieve-headers-from-server): Sort NOV
+	buffer (since IMAP server might return FETCH response out of
+	order, and the nntp buffer must be sorted).
+
+2005-03-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el: Don't autoload former message-utils variables.
+	(message-strip-subject-trailing-was): Changed doc string.
+
+	* nnweb.el: Fixes for `gnus-group-make-web-group'.
+	(nnweb-type-definition): Don't add "hl=en" in `address'.  Added
+	`base'.
+	(nnweb-google-search): Add "hl=en" here.
+	(nnweb-google-parse-1, nnweb-google-create-mapping): Don't
+	hardcode URL.
+
+2005-03-03  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-get-reply-headers, message-followup):
+	Mention related variables `message-use-followup-to' and
+	`message-use-mail-followup-to', in the information buffer.
+
+	* nnweb.el (nnweb-type-definition): Use groups.google.de instead
+	of broken groups(-beta).google.com.
+
 2005-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-sum.el (gnus-summary-exit): Undo last change and fix it in

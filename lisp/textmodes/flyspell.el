@@ -1329,7 +1329,7 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
 		    nil
 		    buffer
 		    nil
-		    "-l"
+		    (if ispell-really-aspell "list" "-l")
 		    (let (args)
 		      ;; Local dictionary becomes the global dictionary in use.
 		      (if ispell-local-dictionary

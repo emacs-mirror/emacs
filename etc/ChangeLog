@@ -1,3 +1,7 @@
+2005-03-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* NEWS: Mention Carbon build on Mac OS 9.
+	
 2005-03-01  David Kastrup  <dak@gnu.org>
 
 	* DEBUG: Add information about `-fno-crossjumping' for GCC.

@@ -477,28 +477,22 @@ usage: (or CONDITIONS ...)  */)
   (args)
      Lisp_Object args;
 @{
-  register Lisp_Object val;
-  Lisp_Object args_left;
+  register Lisp_Object val = Qnil;
   struct gcpro gcpro1;
 @end group
 
 @group
-  if (NILP (args))
-    return Qnil;
-
-  args_left = args;
-  GCPRO1 (args_left);
+  GCPRO1 (args);
 @end group
 
 @group
-  do
+  while (CONSP (args))
     @{
-      val = Feval (Fcar (args_left));
+      val = Feval (XCAR (args));
       if (!NILP (val))
-        break;
-      args_left = Fcdr (args_left);
+	break;
+      args = XCDR (args);
     @}
-  while (!NILP (args_left));
 @end group
 
 @group
@@ -549,7 +543,7 @@ indicating a special form that receives unevaluated arguments, or
 @code{MANY}, indicating an unlimited number of evaluated arguments (the
 equivalent of @code{&rest}).  Both @code{UNEVALLED} and @code{MANY} are
 macros.  If @var{max} is a number, it may not be less than @var{min} and
-it may not be greater than seven.
+it may not be greater than eight.
 
 @item interactive
 This is an interactive specification, a string such as might be used as
