@@ -806,6 +806,7 @@ external program defined by `sendmail-program'."
 		    (generate-new-buffer " sendmail errors")
 		  0))
 	(tembuf (generate-new-buffer " sendmail temp"))
+	(multibyte enable-multibyte-characters)
 	(case-fold-search nil)
 	(coding (and (local-variable-p 'buffer-file-coding-system)
 		     buffer-file-coding-system))
@@ -826,6 +827,8 @@ external program defined by `sendmail-program'."
 	(save-excursion
 	  (set-buffer tembuf)
 	  (erase-buffer)
+	  (unless multibyte
+	    (set-buffer-multibyte nil))
 	  (insert-buffer-substring mailbuf)
 	  (set-buffer-file-coding-system coding)
 	  (goto-char (point-max))
