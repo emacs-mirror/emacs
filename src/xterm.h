@@ -999,7 +999,6 @@ extern void x_wm_set_icon_position P_ ((struct frame *, int, int));
 extern void x_delete_display P_ ((struct x_display_info *));
 extern void x_initialize P_ ((void));
 extern void x_display_cursor P_ ((struct window *, int, int, int, int, int));
-extern void x_update_cursor P_ ((struct frame *, int));
 extern unsigned long x_copy_color P_ ((struct frame *, unsigned long));
 #ifdef USE_X_TOOLKIT
 extern XtAppContext Xt_app_con;
