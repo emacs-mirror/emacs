@@ -116,14 +116,6 @@
 	* bindings.el (global-map): Don't bind S-<backspace>.  Too many
 	people hit it by mistake.
 
-2003-05-23  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
-
-	* simple.el (kill-region): If nothing was killed, and the
-	previous command was not a kill, break kill sequence.
-	(kill-whole-line): Don't use kill-line.  Make it work with
-	invisible lines.  Make it repeatable.
-	From Luc Teirlinck <teirllm@dms.auburn.edu>.
-
 2003-05-26  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-delete-file): Fix free variable reference.
