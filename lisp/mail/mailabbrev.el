@@ -7,8 +7,6 @@
 ;; Created: 19 Oct 90
 ;; Keywords: mail
 
-;;; ??? We must get papers for this or delete it.
-
 ;;; This file is part of GNU Emacs.
 
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
