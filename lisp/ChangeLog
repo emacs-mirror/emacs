@@ -1,3 +1,11 @@
+2003-05-25  Kevin Ryde  <user42@zip.com.au>
+
+	* info-look.el (autoconf-mode setups): Recognise AH_ and AU_ entries
+	in "(autoconf)Autoconf Macro Index".  Add "(autoconf)M4 Macro Index"
+	and "(autoconf)Autotest Macro Index".  Remove duplicate copy of
+	"(automake)Macro and Variable Index".  Keep automake after all
+	autoconf possibilities, so as to prefer those.
+
 2003-05-25  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-info-breakpoints-custom, gdb-assembler-custom):
