@@ -3223,8 +3223,11 @@ See calc-keypad for details."
      ("\\matrix" mat) ("\\bmatrix" mat) ("\\pmatrix" mat)
      ("\\begin" begenv)
      ("\\cr" punc ";") ("\\\\" punc ";") ("\\*" punc "*")
-     ("\\{" punc "[") ("\\}" punc "]")
-))
+     ("\\{" punc "[") ("\\}" punc "]")))
+
+(defconst math-latex-ignore-words
+  (append math-tex-ignore-words
+          '(("\\begin" begenv))))
 
 (defconst math-eqn-ignore-words
   '( ("roman") ("bold") ("italic") ("mark") ("lineup") ("evalto")
@@ -3232,8 +3235,7 @@ See calc-keypad for details."
      ("right" ("floor") ("ceil"))
      ("arc" ("sin") ("cos") ("tan") ("sinh") ("cosh") ("tanh"))
      ("size" n) ("font" n) ("fwd" n) ("back" n) ("up" n) ("down" n)
-     ("above" punc ",")
-))
+     ("above" punc ",")))
 
 (defconst math-standard-opers
   '( ( "_"     calcFunc-subscr 1200 1201 )
