@@ -9,11 +9,14 @@
    have been observed in ISC 3.0.  */
 #define BROKEN_SELECT_NON_X
 
-/* Although ISC has sockets, again in -linet, again it's not what Emacs
-   needs.  With this defined, interrupt-shell-subjob and the like do
-   nothing.  --karl@cs.umb.edu
-#define HAVE_SOCKETS */
+/* karl@cs.umb.edu says that ISC's socket support (in -linet) isn't
+   what Emacs needs; it makes interrupt-shell-subjob and the like do
+   nothing.  But that appears to have been another manifestation of
+   the broken select, so it should now be safe to define this again.  */
+#define HAVE_SOCKETS
 
+#define NO_SOCKETS_IN_FILE_SYSTEM
+#define NEED_NET_ERRNO_H
 
 /* This keeps the .cdbx section that gcc puts out when generating
    stabs-in-coff output, so Emacs can be debugged.  --karl@cs.umb.edu. */
@@ -51,13 +54,8 @@
 #define NO_X_DESTROY_DATABASE
 
 /* -linet may be needed to avoid undefined symbols such as gethostname,
-   inet_addr, gethostbyname, socket, connect, ...  But if we are not
-   compiling with X support, it's not needed.  */
-#ifdef HAVE_X_WINDOWS
+   inet_addr, gethostbyname, socket, connect, ...  */
 #define LIBS_SYSTEM -linet LIB_STANDARD_1
-#else
-#define LIBS_SYSTEM LIB_STANDARD_1
-#endif
 
 /* This system has job control.  */
 #undef NOMULTIPLEJOBS
