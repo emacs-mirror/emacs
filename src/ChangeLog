@@ -1,3 +1,17 @@
+2003-10-03  Kenichi Handa  <handa@m17n.org>
+
+	* macterm.c (x_load_font): Clear all members of FONTP before start
+	filling them.
+
+2003-10-02  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fs_load_font): Don't set fontp->font_encoder to NULL
+	before calling find_ccl_program_func.  Call find_ccl_program_func
+	only when fontp->font_encoder is not NULL.
+
+	* xterm.c (x_load_font): Clear all members of FONTP before start
+	filling them.
+
 2003-10-03  John Paul Wallington  <jpw@gnu.org>
 
 	* keymap.c (map_keymap): Don't abort when binding is a vector.
