@@ -1682,6 +1682,10 @@ previously unmodified.  HIGHWORD and LOWWORD are the high and low\n\
 modification count of the most recent save is different, this entry is\n\
 obsolete.\n\
 \n\
+An entry (nil PROP VAL BEG . END) indicates that a text property\n\
+was modified between BEG and END.  PROP is the property name,\n\
+and VAL is the old value.\n\
+\n\
 nil marks undo boundaries.  The undo command treats the changes\n\
 between two undo boundaries as a single step to be undone.\n\
 \n\
