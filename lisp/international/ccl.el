@@ -1244,7 +1244,7 @@ Optional arg VECTOR is a compiled CCL code of the CCL program."
 (defmacro define-ccl-program (name ccl-program &optional doc)
   "Set NAME the compiled code of CCL-PROGRAM.
 
-CCL-PROGRAM is has this form:
+CCL-PROGRAM has this form:
 	(BUFFER_MAGNIFICATION
 	 CCL_MAIN_CODE
 	 [ CCL_EOF_CODE ])
