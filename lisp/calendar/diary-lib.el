@@ -331,7 +331,7 @@ These hooks have the following distinct roles:
                      (setq d (cdr d)))
                    (or entry-found
                        (not diary-list-include-blanks)
-                       (setq diary-entries-list 
+                       (setq diary-entries-list
                              (append diary-entries-list
                                      (list (list date "" "")))))
                    (setq date
@@ -597,7 +597,7 @@ is created."
 
 
 
-(defcustom diary-mail-addr 
+(defcustom diary-mail-addr
   (if (boundp 'user-mail-address) user-mail-address nil)
   "*Email address that `diary-mail-entries' will send email to."
   :group 'diary
@@ -626,7 +626,7 @@ emacs -batch \\
 -eval \"(setq diary-mail-days 3 \\
              european-calendar-style t \\
              diary-mail-addr \\\"user@host.name\\\" )\" \\
--l diary-lib -f diary-mail-entries 
+-l diary-lib -f diary-mail-entries
 at -f diary-rem.sh 0200 tomorrow
 
 You may have to tweak the syntax of the `at' command to suit your
@@ -947,8 +947,11 @@ A value of 0 in any position of the pattern is a wildcard."
   "Returns t if E1 is earlier than E2."
   (or (calendar-date-compare e1 e2)
       (and (calendar-date-equal (car e1) (car e2))
-           (< (diary-entry-time (car (cdr e1)))
-              (diary-entry-time (car (cdr e2)))))))
+           (let* ((ts1 (cadr e1)) (t1 (diary-entry-time ts1))
+                  (ts2 (cadr e2)) (t2 (diary-entry-time ts2)))
+             (or (< t1 t2)
+                 (and (= t1 t2)
+                      (string-lessp ts1 ts2)))))))
 
 (defcustom diary-unknown-time
   -9999
@@ -959,7 +962,7 @@ after those with times."
   :type 'integer
   :group 'diary
   :version "20.3")
- 
+
 (defun diary-entry-time (s)
   "Time at the beginning of the string S in a military-style integer.  For
 example, returns 1325 for 1:25pm.  Returns `diary-unknown-time' (default value
@@ -967,19 +970,19 @@ example, returns 1325 for 1:25pm.  Returns `diary-unknown-time' (default value
 XX:XX (military time), and XXam, XXAM, XXpm, XXPM, XX:XXam, XX:XXAM XX:XXpm,
 or XX:XXPM."
   (let ((case-fold-search nil))
-    (cond ((string-match;; Military time  
+    (cond ((string-match        ; Military time
 	    "\\`[ \t\n\\^M]*\\([0-9]?[0-9]\\):?\\([0-9][0-9]\\)\\(\\>\\|[^ap]\\)" s)
 	   (+ (* 100 (string-to-int
 		      (substring s (match-beginning 1) (match-end 1))))
 	      (string-to-int (substring s (match-beginning 2) (match-end 2)))))
-	  ((string-match;; Hour only  XXam or XXpm
+	  ((string-match        ; Hour only  XXam or XXpm
 	    "\\`[ \t\n\\^M]*\\([0-9]?[0-9]\\)\\([ap]\\)m\\>" s)
 	   (+ (* 100 (% (string-to-int
 			   (substring s (match-beginning 1) (match-end 1)))
 			  12))
 	      (if (equal ?a (downcase (aref s (match-beginning 2))))
 		  0 1200)))
-	  ((string-match;; Hour and minute  XX:XXam or XX:XXpm
+	  ((string-match        ; Hour and minute  XX:XXam or XX:XXpm
 	    "\\`[ \t\n\\^M]*\\([0-9]?[0-9]\\):\\([0-9][0-9]\\)\\([ap]\\)m\\>" s)
 	   (+ (* 100 (% (string-to-int
 			   (substring s (match-beginning 1) (match-end 1)))
@@ -987,9 +990,7 @@ or XX:XXPM."
 	      (string-to-int (substring s (match-beginning 2) (match-end 2)))
 	      (if (equal ?a (downcase (aref s (match-beginning 3))))
 		  0 1200)))
-	  (t diary-unknown-time))));; Unrecognizable
-
-;; Unrecognizable
+	  (t diary-unknown-time)))) ; Unrecognizable
 
 (defun list-sexp-diary-entries (date)
   "Add sexp entries for DATE from the diary file to `diary-entries-list'.
@@ -1126,7 +1127,7 @@ A number of built-in functions are available for this type of diary entry:
                   will appear on the proper Hebrew-date anniversary and on the
                   day before.  (If `european-calendar-style' is t, the order
                   of the parameters should be changed to DAY, MONTH, YEAR.)
-                  
+
       %%(diary-rosh-hodesh)
                   Diary entries will be made on the dates of Rosh Hodesh on
                   the Hebrew calendar.  Note that since there is no text, it
@@ -1382,7 +1383,7 @@ appropriate."
     diary-entry)
   "*Pseudo-pattern giving form of reminder messages in the fancy diary
 display.
- 
+
 Used by the function `diary-remind', a pseudo-pattern is a list of
 expressions that can involve the keywords `days' (a number), `date' (a list of
 month, day, year), and `diary-entry' (a string)."
@@ -1428,7 +1429,7 @@ marked on the calendar."
   "Add the entry (DATE STRING SPECIFIER) to `diary-entries-list'.
 Do nothing if DATE or STRING is nil."
   (and date string
-       (setq diary-entries-list 
+       (setq diary-entries-list
              (append diary-entries-list (list (list date string specifier))))))
 
 (defun make-diary-entry (string &optional nonmarking file)

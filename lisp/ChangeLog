@@ -1,3 +1,8 @@
+2001-10-05  Sam Steingold  <sds@gnu.org>
+
+	* calendar/diary-lib.el (diary-entry-compare): When times are
+	identical, compare the entries lexicographically.
+
 2001-10-06  Miles Bader  <miles@gnu.org>
 
 	* rfn-eshadow.el (rfn-eshadow-update-overlay): Use
@@ -17,12 +22,12 @@
 	`off' and used nil to mean `unspecified'.  Remove `unspecified'
 	choices from all attributes (unspecified is handled by the parent
 	checklist).
-	* cus-edit.el (custom-face-edit-convert-widget) 
+	* cus-edit.el (custom-face-edit-convert-widget)
 	(custom-face-edit-deactivate, custom-face-edit-activate)
 	(custom-face-edit-delete, custom-face-edit-attribute-tag):
 	New functions.
 	(custom-face-edit): Specify a custom :convert-widget.
-	(custom-pre-filter-face-spec, custom-post-filter-face-spec): 
+	(custom-pre-filter-face-spec, custom-post-filter-face-spec):
 	Don't pass in default filters that map between `nil' and `off' and
 	`unspecified' and `nil'.
 
@@ -54,7 +59,7 @@
 	(minibuffer-contents-no-properties, delete-minibuffer-contents):
 	Functions removed (now subrs).
 	(minibuffer-prompt-width): Use `minibuffer-prompt-end'.
-	
+
 	* minibuf-eldef.el (minibuf-eldef-setup-minibuffer)
 	(minibuf-eldef-update-minibuffer): Use `minibuffer-' functions
 	instead of calling `field-' functions directly.
