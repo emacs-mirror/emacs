@@ -1,6 +1,6 @@
 # impl.nmk.w3i3mv: WINDOWS (INTEL) NMAKE FILE
 #
-# $HopeName: MMsrc!w3i3mv.nmk(trunk.58) $
+# $HopeName: MMsrc!w3i3mv.nmk(trunk.59) $
 #
 # Copyright (C) 1997.  Harlequin Group plc.  All rights reserved.
 #
@@ -219,6 +219,35 @@ POOLNOBJ = $(POOLNOBJ0:>=.obj)
 ARENAANOBJ0 = $(ARENAAN:<=w3i3mv\wi\)
 ARENAANOBJ = $(ARENAANOBJ0:>=.obj)
 TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\wi\)
+TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
+
+!ELSEIF "$(VARIETY)" == "we"
+CFLAGS=$(CFLAGSCOMMONPRE) $(CFWE) $(CFLAGSCOMMONPOST)
+LINKFLAGS=$(LINKFLAGSCOMMON) $(LFWE)
+LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSWE)
+MPMOBJ0 = $(MPM:<=w3i3mv\we\)
+MPMOBJ = $(MPMOBJ0:>=.obj)
+PLINTHOBJ0 = $(PLINTH:<=w3i3mv\we\)
+PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
+SWOBJ0 = $(SW:<=w3i3mv\we\)
+SWOBJ = $(SWOBJ0:>=.obj)
+AMSOBJ0 = $(AMS:<=w3i3mv\we\)
+AMSOBJ = $(AMSOBJ0:>=.obj)
+AMCOBJ0 = $(AMC:<=w3i3mv\we\)
+AMCOBJ = $(AMCOBJ0:>=.obj)
+AWLOBJ0 = $(AWL:<=w3i3mv\we\)
+AWLOBJ = $(AWLOBJ0:>=.obj)
+LOOBJ0 = $(LO:<=w3i3mv\we\)
+LOOBJ = $(LOOBJ0:>=.obj)
+DWOBJ0 = $(DW:<=w3i3mv\we\)
+DWOBJ = $(DWOBJ0:>=.obj)
+DWTESTOBJ0 = $(DWTEST:<=w3i3mv\we\)
+DWTESTOBJ = $(DWTESTOBJ0:>=.obj)
+POOLNOBJ0 = $(POOLN:<=w3i3mv\we\)
+POOLNOBJ = $(POOLNOBJ0:>=.obj)
+ARENAANOBJ0 = $(ARENAAN:<=w3i3mv\we\)
+ARENAANOBJ = $(ARENAANOBJ0:>=.obj)
+TESTLIBOBJ0 = $(TESTLIB:<=w3i3mv\we\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 #!ELSEIF "$(VARIETY)" == "cv"
