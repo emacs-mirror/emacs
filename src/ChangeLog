@@ -1,3 +1,19 @@
+2002-07-07  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (make_cursor_line_fully_visible): Don't try short scrolls.
+	Instead just return 0 when there is something to be done.
+	(try_scrolling): If make_cursor_line_fully_visible returns 0,
+	retry scrolling as if cursor were off the bottom.
+	(try_cursor_movement): If make_cursor_line_fully_visible returns 0,
+	return CURSOR_MOVEMENT_MUST_SCROLL.
+	(redisplay_window): If make_cursor_line_fully_visible returns 0,
+	go to try_to_scroll.
+
+	* buffer.c (Fbuffer_local_value): Store current value into its binding
+	so we get the up-to-date value for the binding that is loaded.
+
+	* eval.c (Fdefmacro): Doc fix.
+
 2002-07-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xdisp.c: Remove unused variable `face'.

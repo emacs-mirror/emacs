@@ -1,3 +1,23 @@
+2002-07-07  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/easymenu.el (easy-menu-popup-menu): Function deleted.
+
+	* emacs-lisp/advice.el (ad-compile-function):
+	Disable cl-function warnings if cl is loaded.
+
+	* files.el (safe-local-eval-forms): New user option.
+	(hack-one-local-variable-eval-safep): Support it.
+	Also allow `safe-local-eval-function' property to be a function
+	or a list of functions.
+	(c-add-style): Delete `safe-local-eval-function' property.
+	
+	* files.el (after-find-file): Make buffer read-only if file is
+	marked that way, even for root.
+
+	* files.el (save-some-buffers): Doc fix.
+
+	* bindings.el (completion-ignored-extensions): Add .gmo and .mo.
+
 2002-07-06  Francesco Potorti`  <pot@gnu.org>
 
 	* dos-w32.el (file-name-buffer-file-type-alist): Add knowledge of

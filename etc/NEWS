@@ -66,6 +66,11 @@ to specify the value of `default-directory' for mail buffers.  This
 directory is used for auto-save files of mail buffers.  It defaults to
 "~/".
 
+** When you are root, and you visit a file whose modes specify
+read-only, the Emacs buffer is now read-only too.  Type C-x C-q if you
+want to make the buffer writable.  (As root, you will in fact be able
+to alter the file.)
+
 ---
 ** ps-print can now print Unicode characters.
 
@@ -737,9 +742,25 @@ completing file names.  Elements of `completion-ignored-extensions'
 which do not end in a slash are never considered when a completion
 candidate is a directory.
 
+** The variable `safe-local-eval-forms' specifies a list of forms that
+are ok to evaluate when they appear in an `eval' local variables
+specification.  Normally Emacs asks for confirmation before evaluating
+such a form, but if the form appears in this list, no confirmation is
+needed.
+
+** If a function has a non-nil `safe-local-eval-function' property,
+that means it is ok to evaluate some calls to that function when it
+appears in an `eval' local variables specification.  If the property
+is t, then any form calling that function with constant arguments is
+ok.  If the property is a function or list of functions, they are called
+with the form as argument, and if any returns t, the form is ok to call.
+
+If the form is not "ok to call", that means Emacs asks for
+confirmation as before.
+
 +++
-** Completion commands in the minibuffer apply only to the
-text before point.  If there is text in the buffer after point,
+** The completion commands TAB, SPC and ? in the minibuffer apply only
+to the text before point.  If there is text in the buffer after point,
 it remains unchanged.
 
 +++
@@ -940,6 +961,14 @@ to override the internal read-file-name function.
 ** The new function `read-directory-name' can be used instead of
 `read-file-name' to read a directory name; when used, completion
 will only show directories.
+
+** The new function `file-remote-p' tests a file name and returns
+non-nil if it specifies a remote file (one that Emacs accesses using
+its own special methods and not directly through the file system).
+
+** When a Lisp file uses CL functions at run-time, compiling the file
+now issues warnings about these calls, unless the file performs
+(require 'cl) when loaded.
 
 ** The new Lisp library fringe.el controls the apperance of fringes.
 
