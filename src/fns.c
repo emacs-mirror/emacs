@@ -60,6 +60,13 @@ Lisp_Object Qcursor_in_echo_area;
 Lisp_Object Qwidget_type;
 
 static int internal_equal ();
+
+extern long get_random ();
+extern void seed_random ();
+
+#ifndef HAVE_UNISTD_H
+extern long time ();
+#endif
 
 DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
   "Return the argument unchanged.")
@@ -68,10 +75,6 @@ DEFUN ("identity", Fidentity, Sidentity, 1, 1, 0,
 {
   return arg;
 }
-
-extern long get_random ();
-extern void seed_random ();
-extern long time ();
 
 DEFUN ("random", Frandom, Srandom, 0, 1, 0,
   "Return a pseudo-random number.\n\
