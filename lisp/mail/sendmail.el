@@ -164,6 +164,8 @@ If t, it means to insert the contents of the file `mail-signature-file'.")
 (defvar mail-reply-buffer nil)
 (defvar mail-send-actions nil
   "A list of actions to be performed upon successful sending of a message.")
+(put 'mail-reply-buffer 'permanent-local t)
+(put 'mail-send-actions 'permanent-local t)
 
 (defvar mail-default-headers nil
   "*A string containing header lines, to be inserted in outgoing messages.
@@ -315,7 +317,6 @@ C-c C-v  mail-sent-via (add a Sent-via field for each To or CC)."
   (interactive)
   (kill-all-local-variables)
   (make-local-variable 'mail-reply-buffer)
-  (setq mail-reply-buffer nil)
   (make-local-variable 'mail-send-actions)
   (set-syntax-table mail-mode-syntax-table)
   (use-local-map mail-mode-map)
