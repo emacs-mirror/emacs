@@ -321,6 +321,9 @@ struct glyph
   /* Width in pixels.  */
   short pixel_width;
 
+  /* Ascent and descent in pixels.  */
+  short ascent, descent;
+
   /* Vertical offset.  If < 0, the glyph is displayed raised, if > 0
      the glyph is displayed lowered.  */
   short voffset;
@@ -359,8 +362,10 @@ struct glyph
      doesn't have a glyph in a font.  */
   unsigned glyph_not_available_p : 1;
 
+#define FACE_ID_BITS	21
+
   /* Face of the glyph.  */
-  unsigned face_id : 21;
+  unsigned face_id : FACE_ID_BITS;
 
   /* Type of font used to display the character glyph.  May be used to
      determine which set of functions to use to obtain font metrics
@@ -1493,6 +1498,7 @@ enum face_id
   BASIC_FACE_ID_SENTINEL
 };
 
+#define MAX_FACE_ID  ((1 << FACE_ID_BITS) - 1)
 
 /* A cache of realized faces.  Each frame has its own cache because
    Emacs allows different frame-local face definitions.  */
@@ -2536,6 +2542,7 @@ extern void x_draw_vertical_border P_ ((struct window *w));
 extern void frame_to_window_pixel_xy P_ ((struct window *, int *, int *));
 extern void get_glyph_string_clip_rect P_ ((struct glyph_string *,
 					    NativeRectangle *nr));
+extern Lisp_Object find_hot_spot P_ ((Lisp_Object, int, int));
 extern void note_mouse_highlight P_ ((struct frame *, int, int));
 extern void x_clear_window_mouse_face P_ ((struct window *));
 extern void cancel_mouse_face P_ ((struct frame *));
