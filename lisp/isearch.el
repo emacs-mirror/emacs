@@ -690,6 +690,7 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
 		      (lookup-key isearch-mode-map (vector e)))
 		  (setq isearch-word t  ;; so message-prefix is right
 			isearch-new-word t)
+		(cancel-kbd-macro-events)
 		(isearch-unread e))
 	      (setq cursor-in-echo-area nil)
 	      (setq isearch-new-string
