@@ -1193,6 +1193,8 @@ a non-nil `permanent-local' property are not eliminated by this function.")
 {
   register Lisp_Object alist, sym, tem;
   Lisp_Object oalist;
+
+  call1 (Vrun_hooks, intern ("change-major-mode-hook"));
   oalist = current_buffer->local_var_alist;
 
   /* Make sure no local variables remain set up with this buffer
