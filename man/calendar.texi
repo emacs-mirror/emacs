@@ -7,9 +7,9 @@
 @findex calendar
 
   Emacs provides the functions of a desk calendar, with a diary of
-planned or past events.  It also has facilities for other related tasks,
-such as managing your appointments, or keeping track of how much time
-you spend working on a certain project.
+planned or past events.  It also has facilities for managing your
+appointments, and keeping track of how much time you spend working on
+certain projects.
 
   To enter the calendar, type @kbd{M-x calendar}; this displays a
 three-month calendar centered on the current month, with point on the
@@ -373,8 +373,8 @@ then the printed calendars show the holidays in @code{calendar-holidays}.
 If the variable @code{cal-tex-diary} is non-@code{nil} (the default is
 @code{nil}), diary entries are included also (in weekly and monthly
 calendars only).  If the variable @code{cal-tex-rules} is non-@code{nil}
-(the default is @code{nil}), the calendar styles with sufficient room
-have ruled pages.
+(the default is @code{nil}), the calendar displays ruled pages
+in styles that have sufficient room.
 
 @node Holidays
 @section Holidays
@@ -1443,23 +1443,26 @@ savings time should occur.  For Cambridge, Massachusetts both variables'
 values are 120.
 
 @node Time Intervals
-@section Keeping Track of Time Intervals
-@cindex time intervals, keeping track of
-@cindex project, time spent working on
+@section Summing Time Intervals
+@cindex time intervals, summing
+@cindex summing time intervals
+@cindex timeclock
 
-  Emacs can help you keep track of time intervals.  A typical scenario
-is to keep track of how much time you spend working on certain projects.
+  The timeclock feature adds up time intervals, so you can (for
+instance) keep track of how much time you spend working.
 
 @findex timeclock-in
 @findex timeclock-out
 @findex timeclock-workday-remaining
 @findex timeclock-when-to-leave
   Use the @kbd{M-x timeclock-in} command when you start working on a
-project, and @kbd{M-x timeclock-out} command when you're done.  Once
-you've collected some data, you can use @kbd{M-x
-timeclock-workday-remaining} to see how much time is left to work today
-(assuming a typical average of 8 hours a day), and @kbd{M-x
-timeclock-when-to-leave} which will calculate when you're free to go.
+project, and @kbd{M-x timeclock-out} command when you're done.  Each
+time you do this, it adds one time interval to the record of the project.
+
+  Once you've collected data from a number of time intervals, you can use
+@kbd{M-x timeclock-workday-remaining} to see how much time is left to
+work today (assuming a typical average of 8 hours a day), and @kbd{M-x
+timeclock-when-to-leave} which will calculate when you're ``done.''
 
 @vindex timeclock-modeline-display
 @findex timeclock-modeline-display
@@ -1469,21 +1472,22 @@ workday in the mode line, either customize the
 @code{t}, or invoke the @kbd{M-x timeclock-modeline-display} command.
 
 @vindex timeclock-ask-before-exiting
-  Ending the current Emacs session might or might not mean that you stop
-working on the project.  If you'd like Emacs to ask you about this, set
-the value of the variable @code{timeclock-ask-before-exiting} to
-@code{t} (via @kbd{M-x customize}).  By default, only an explicit
-@kbd{M-x timeclock-out} tells Emacs you stopped working on a project.
+  Terminating the current Emacs session might or might not mean that
+you have stopped working on the project.  If you'd like Emacs to ask
+you about this, set the value of the variable
+@code{timeclock-ask-before-exiting} to @code{t} (via @kbd{M-x
+customize}).  By default, only an explicit @kbd{M-x timeclock-out}
+tells Emacs that the current interval is over.
 
 @cindex @file{.timelog} file
 @vindex timeclock-file
 @findex timeclock-reread-log
-  The timeclock functions work by accumulating the data on a file called
-@file{.timelog} in the user's home directory.  (On MS-DOS, this file is
-called @file{_timelog}, since leading dots in file names are not
-allowed.)  The name of this file can be changed by customizing the
-variable @code{timeclock-file}.  If you edit this file manually, or if
-you change the value of any of timeclock's customizable variables, you
-should run the command @kbd{M-x timeclock-reread-log}.  This will
-recompute any discrepancies in your average working time, and will make
-sure that the various display functions return the correct value.
+  The timeclock functions work by accumulating the data on a file
+called @file{.timelog} in your home directory.  (On MS-DOS, this file
+is called @file{_timelog}, since an initial period is not allowed in
+file names on MS-DOS.)  You can specify a different name for this file
+by customizing the variable @code{timeclock-file}.  If you edit the
+timeclock file manually, or if you change the value of any of
+timeclock's customizable variables, you should run the command
+@kbd{M-x timeclock-reread-log} to update the data in Emacs from the
+file.
