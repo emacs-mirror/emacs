@@ -29,8 +29,27 @@ Boston, MA 02111-1307, USA.  */
 
 Lisp_Object Qexecute_kbd_macro;
 
+/* Kbd macro currently being executed (a string or vector).  */
+
 Lisp_Object Vexecuting_macro;
+
+/* Index of next character to fetch from that macro.  */
+
 int executing_macro_index;
+
+/* Number of successful iterations so far
+   for innermost keyboard macro.
+   This is not bound at each level,
+   so after an error, it describes the innermost interrupted macro.  */
+
+int executing_macro_iterations;
+
+/* This is the macro that was executing.
+   This is not bound at each level,
+   so after an error, it describes the innermost interrupted macro.
+   We use it only as a kind of flag, so no need to protect it.  */
+
+Lisp_Object executing_macro;
 
 Lisp_Object Fexecute_kbd_macro ();
 
@@ -196,6 +215,7 @@ defining others, use \\[name-last-kbd-macro].")
 
 /* Restore Vexecuting_macro and executing_macro_index - called when
    the unwind-protect in Fexecute_kbd_macro gets invoked.  */
+
 static Lisp_Object
 pop_kbd_macro (info)
      Lisp_Object info;
@@ -219,6 +239,7 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
   int pdlcount = specpdl_ptr - specpdl;
   int repeat = 1;
   struct gcpro gcpro1;
+  int success_count = 0;
 
   if (!NILP (count))
     {
@@ -238,15 +259,20 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
   do
     {
       Vexecuting_macro = final;
+      executing_macro = final;
       executing_macro_index = 0;
 
       current_kboard->Vprefix_arg = Qnil;
       command_loop_1 ();
 
+      executing_macro_iterations = ++success_count;
+
       QUIT;
     }
   while (--repeat
 	 && (STRINGP (Vexecuting_macro) || VECTORP (Vexecuting_macro)));
+
+  executing_macro = Qnil;
 
   UNGCPRO;
   return unbind_to (pdlcount, Qnil);
