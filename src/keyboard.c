@@ -4762,21 +4762,6 @@ make_lispy_event (event)
 				      (sizeof (lispy_accent_keys)
 				       / sizeof (lispy_accent_keys[0])));
 
-      /* Handle system-specific keysyms.  */
-      if (event->code & (1 << 28))
-	{
-	  /* We need to use an alist rather than a vector as the cache
-	     since we can't make a vector long enuf.  */
-	  if (NILP (current_kboard->system_key_syms))
-	    current_kboard->system_key_syms = Fcons (Qnil, Qnil);
-	  return modify_event_symbol (event->code,
-				      event->modifiers,
-				      Qfunction_key,
-				      current_kboard->Vsystem_key_alist,
-				      0, &current_kboard->system_key_syms,
-				      (unsigned) -1);
-	}
-
 #ifdef XK_kana_A
       if (event->code >= 0x400 && event->code < 0x500)
 	return modify_event_symbol (event->code - 0x400,
@@ -4796,30 +4781,26 @@ make_lispy_event (event)
 				    iso_lispy_function_keys, &func_key_syms,
 				    (sizeof (iso_lispy_function_keys)
 				     / sizeof (iso_lispy_function_keys[0])));
-      else
 #endif
 
-#ifdef HAVE_X_WINDOWS
-      if (event->code - FUNCTION_KEY_OFFSET < 0
+      /* Handle system-specific or unknown keysyms.  */
+      if (event->code & (1 << 28)
+	  || event->code - FUNCTION_KEY_OFFSET < 0
 	  || (event->code - FUNCTION_KEY_OFFSET
-	      >= sizeof lispy_function_keys / sizeof *lispy_function_keys))
+	      >= sizeof lispy_function_keys / sizeof *lispy_function_keys)
+	  || !lispy_function_keys[event->code - FUNCTION_KEY_OFFSET])
 	{
-	  /* EVENT->code is an unknown keysym, for example someone
-	     assigned `ccaron' to a key in a locale where
-	     XmbLookupString doesn't return a translation for it.  */
-	  char *name;
-	  Lisp_Object symbol;
-	  
-	  BLOCK_INPUT;
-	  /* This returns a pointer to a static area.  Don't free it.  */
-	  name = XKeysymToString (event->code);
-	  symbol = name ? intern (name) : Qnil;
-	  UNBLOCK_INPUT;
-	  
-	  if (!NILP (symbol))
-	    return apply_modifiers (event->modifiers, symbol);
+	  /* We need to use an alist rather than a vector as the cache
+	     since we can't make a vector long enuf.  */
+	  if (NILP (current_kboard->system_key_syms))
+	    current_kboard->system_key_syms = Fcons (Qnil, Qnil);
+	  return modify_event_symbol (event->code,
+				      event->modifiers,
+				      Qfunction_key,
+				      current_kboard->Vsystem_key_alist,
+				      0, &current_kboard->system_key_syms,
+				      (unsigned) -1);
 	}
-#endif /* HAVE_X_WINDOWS */
 
       return modify_event_symbol (event->code - FUNCTION_KEY_OFFSET,
 				  event->modifiers,
