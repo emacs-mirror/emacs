@@ -71,7 +71,7 @@ Put point there and hit \\[exit-recursive-edit]."))
 	    (or (search-forward "02139, USA." nil t)
 		(with-output-to-temp-buffer "*Help*"
 		  (princ (substitute-command-keys "\
-I don't know where the copying notie ends.
+I don't know where the copying notice ends.
 Put point there and hit \\[exit-recursive-edit]."))
 		  (recursive-edit)))
 	    (delete-region beg (point))
