@@ -447,7 +447,7 @@ install-arch-indep: mkdir info
 	-chmod -R a+r ${datadir}/emacs ${COPYDESTS} ${infodir}
 	thisdir=`/bin/pwd`; \
 	cd ${srcdir}/etc; \
-	for page in emacs etags ctags ; do \
+	for page in emacs etags ctags gfdl ; do \
 	  (cd $${thisdir}; \
 	   ${INSTALL_DATA} ${srcdir}/etc/$${page}.1 ${man1dir}/$${page}${manext}; \
 	   chmod a+r ${man1dir}/$${page}${manext}); \
