@@ -39,3 +39,6 @@
 /* Tell GNU malloc to compensate for a bug in localtime.  */
 #define SUNOS_LOCALTIME_BUG
 #endif
+
+/* Define dlopen, dlclose, dlsym.  */
+#define USE_DL_STUBS
