@@ -12227,12 +12227,9 @@ display_line (it)
       hpos_before = it->hpos;
       x_before = x;
 	  
-      if ((nglyphs == 1
-	   /* A wide multibyte character produces multiple glyphs on
-	      tty window  .*/
-	   || !SINGLE_BYTE_CHAR_P (it->c))
-	  && it->current_x < it->last_visible_x)
+      if (it->current_x < it->last_visible_x)
 	{
+	  /* Glyphs produced fit entirely in the line.  */
 	  it->hpos += nglyphs;
 	  row->ascent = max (row->ascent, it->max_ascent);
 	  row->height = max (row->height, it->max_ascent + it->max_descent);
