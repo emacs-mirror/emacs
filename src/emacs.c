@@ -188,12 +188,14 @@ extern noshare char **environ;
    Provide dummy definitions to avoid error.
    (We don't have any real constructors or destructors.)  */
 #ifdef __GNUC__
-__do_clobal_ctors ()
+__do_global_ctors ()
 {}
-__do_clobal_ctors_aux ()
+__do_global_ctors_aux ()
 {}
-char * __CTOR_LIST__[1] = { (char *) (-1) };
-char * __DTOR_LIST__[1] = { (char *) (-1) };
+char * __CTOR_LIST__[2] = { (char *) (-1), 0 };
+char * __DTOR_LIST__[2] = { (char *) (-1), 0 };
+__main ()
+{}
 #endif /* __GNUC__ */
 
 /* ARGSUSED */
