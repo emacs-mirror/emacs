@@ -270,21 +270,35 @@ both at the level of the file and at the level of the directories
 containing it, until no links are left at any level."
   (if (string= filename "~")
       (setq filename (expand-file-name filename)))
-  (let ((dir (file-name-directory filename))
-	target)
-    ;; Get the truename of the directory.
-    (or (string= dir "/")
-	(setq dir (file-name-as-directory (file-truename (directory-file-name dir)))))
-    ;; Put it back on the file name.
-    (setq filename (concat dir (file-name-nondirectory filename)))
-    ;; Is the file name the name of a link?
-    (setq target (file-symlink-p filename))
-    (if target
-	;; Yes => chase that link, then start all over
-	;; since the link may point to a directory name that uses links.
-	(file-truename (expand-file-name target dir))
-      ;; No, we are done!
-      filename)))
+  (let (handler (handlers file-name-handler-alist))
+    (save-match-data
+     (while (and (consp handlers) (null handler))
+       (if (and (consp (car handlers))
+		(stringp (car (car handlers)))
+		(string-match (car (car handlers)) filename))
+	   (setq handler (cdr (car handlers))))
+       (setq handlers (cdr handlers))))
+    ;; For file name that has a special handler, call handler.
+    ;; This is so that ange-ftp can save time by doing a no-op.
+    (if handler
+	(funcall handler 'file-truename filename)
+      (let ((dir (file-name-directory filename))
+	    target dirfile)
+	;; Get the truename of the directory.
+	(setq dirfile (directory-file-name dir))
+	;; If these are equal, we have the (or a) root directory.
+	(or (string= dir dirfile)
+	    (setq dir (file-name-as-directory (file-truename dirfile))))
+	;; Put it back on the file name.
+	(setq filename (concat dir (file-name-nondirectory filename)))
+	;; Is the file name the name of a link?
+	(setq target (file-symlink-p filename))
+	(if target
+	    ;; Yes => chase that link, then start all over
+	    ;; since the link may point to a directory name that uses links.
+	    (file-truename (expand-file-name target dir))
+	  ;; No, we are done!
+	  filename)))))
 
 (defun switch-to-buffer-other-window (buffer)
   "Select buffer BUFFER in another window."
