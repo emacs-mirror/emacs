@@ -1,6 +1,6 @@
 ;;; pcvs.el -- A Front-end to CVS.
 
-;; Copyright (C) 1991, 92, 93, 94, 95, 95, 97, 98, 99, 2000  Free Software Foundation, Inc.
+;; Copyright (C) 1991,92,93,94,95,95,97,98,99,2000  Free Software Foundation, Inc.
 
 ;; Author: (The PCL-CVS Trust) pcl-cvs@cyclic.com
 ;;	(Per Cederqvist) ceder@lysator.liu.se
@@ -13,8 +13,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Version: $Name:  $
-;; Revision: $Id: pcvs.el,v 1.21 2000/12/10 21:20:56 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.22 2000/12/11 03:20:21 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1428,7 +1427,7 @@ Signal an error if there is no backup file."
   (let ((backup-file (cvs-fileinfo->backup-file fileinfo)))
     (unless backup-file
       (error "%s has no backup file." (cvs-fileinfo->full-path fileinfo)))
-    (list backup-file (cvs-fileinfo->file fileinfo))))
+    (list backup-file (cvs-fileinfo->full-path fileinfo))))
 
 ;;
 ;; Emerge support
@@ -1948,17 +1947,15 @@ With prefix argument, prompt for cvs flags."
 
 (defun cvs-execute-single-file (fi extractor program constant-args)
   "Internal function for `cvs-execute-single-file-list'."
-  (let* ((cur-dir (cvs-fileinfo->dir fi))
-	 (default-directory (cvs-expand-dir-name cur-dir))
-	 (inhibit-read-only t)
-	 (arg-list (funcall extractor fi)))
+  (let* ((arg-list (funcall extractor fi))
+	 (inhibit-read-only t))
 
     ;; Execute the command unless extractor returned t.
     (when (listp arg-list)
       (let* ((args (append constant-args arg-list)))
 
-	(insert (format "=== cd %s\n=== %s %s\n\n"
-			cur-dir program (cvs-strings->string args)))
+	(insert (format "=== %s %s\n\n"
+			program (cvs-strings->string args)))
 
 	;; FIXME: return the exit status?
 	(apply 'call-process program nil t t args)
@@ -1967,10 +1964,9 @@ With prefix argument, prompt for cvs flags."
 ;; FIXME: make this run in the background ala cvs-run-process...
 (defun cvs-execute-single-file-list (fis extractor program constant-args)
   "Run PROGRAM on all elements on FIS.
-The PROGRAM will be called with pwd set to the directory the files
-reside in.  CONSTANT-ARGS is a list of strings to pass as arguments to
-PROGRAM.  The arguments given to the program will be CONSTANT-ARGS
-followed by the list that EXTRACTOR returns.
+CONSTANT-ARGS is a list of strings to pass as arguments to PROGRAM.
+The arguments given to the program will be CONSTANT-ARGS followed by
+the list that EXTRACTOR returns.
 
 EXTRACTOR will be called once for each file on FIS.  It is given
 one argument, the cvs-fileinfo.  It can return t, which means ignore
