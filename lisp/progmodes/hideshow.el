@@ -204,7 +204,8 @@
 (defcustom hs-minor-mode-hook nil
   "*Hook called when hideshow minor mode is activated or deactivated."
   :type 'hook
-  :group 'hideshow)
+  :group 'hideshow
+  :version "21.1")
 
 (defcustom hs-isearch-open 'block
   "*What kind of hidden blocks to open when doing `isearch'.
