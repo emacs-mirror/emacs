@@ -149,17 +149,16 @@
 ;; (set-language-info-alist
 ;;  "Windows-1251" `((coding-system windows-1251)
 ;; 		  (coding-priority windows-1251)
-;; 		  (nonascii-translation
-;; 		   . ,(get 'decode-windows-1252 'translation-table))
 ;; 		  (input-method . "russian-typewriter") ; fixme?
 ;; 		  (features code-pages)
 ;; 		  (documentation . "Support for windows-1251 character set."))
 ;;  '("Cyrillic"))
 
 (set-language-info-alist
- "Tajik" `((coding-system cyrillic-koi8-t)
-	   (coding-priority cyrillic-koi8-t)
+ "Tajik" `((coding-system koi8-t)
+	   (coding-priority koi8-t)
 	   (nonascii-translation . cyrillic-koi8-t)
+	   (charset . koi8-t)
 	   (input-method . "russian-typewriter") ; fixme?
 	   (features code-pages)
 	   (documentation . "Support for Tajik using KOI8-T."))
@@ -169,6 +168,7 @@
  "Bulgarian" `((coding-system windows-1251)
 	       (coding-priority windows-1251)
 	       (nonascii-translation . windows-1251)
+	       (charset . windows-1251)
 	       (input-method . "bulgarian-standard")
 	       (features code-pages)
 	       (documentation
@@ -179,11 +179,20 @@
  "Belarusian" `((coding-system windows-1251)
 		(coding-priority windows-1251)
 		(nonascii-translation . windows-1251)
+		(charset . windows-1251)
 		(input-method . "belarusian")
 		(features code-pages)
 		(documentation
 		 . "Support for Belarusian with windows-1251 character set.
 \(The name Belarusian replaced Byelorussian in the early 1990s.)"))
+ '("Cyrillic"))
+
+(set-language-info-alist
+ "Ukrainian" `((coding-system koi8-u)
+	       (coding-priority koi8-u)
+	       (input-method . "ukrainian-computer")
+	       (documentation
+		. "Support for Ukrainian with koi8-u character set."))
  '("Cyrillic"))
 
 (provide 'cyrillic)
