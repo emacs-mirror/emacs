@@ -3785,6 +3785,10 @@ mark_object (argptr)
 {
   Lisp_Object *objptr = argptr;
   register Lisp_Object obj;
+#ifdef GC_CHECK_MARKED_OBJECTS
+  void *po;
+  struct mem_node *m;
+#endif
 
  loop:
   obj = *objptr;
@@ -3798,21 +3802,81 @@ mark_object (argptr)
   if (last_marked_index == LAST_MARKED_SIZE)
     last_marked_index = 0;
 
+  /* Perform some sanity checks on the objects marked here.  Abort if
+     we encounter an object we know is bogus.  This increases GC time
+     by ~80%, and requires compilation with GC_MARK_STACK != 0.  */
+#ifdef GC_CHECK_MARKED_OBJECTS
+
+  po = (void *) XPNTR (obj);
+
+  /* Check that the object pointed to by PO is known to be a Lisp
+     structure allocated from the heap.  */
+#define CHECK_ALLOCATED()			\
+  do {						\
+    m = mem_find (po);				\
+    if (m == MEM_NIL)				\
+      abort ();					\
+  } while (0)
+
+  /* Check that the object pointed to by PO is live, using predicate
+     function LIVEP.  */
+#define CHECK_LIVE(LIVEP)			\
+  do {						\
+    if (!LIVEP (m, po))				\
+      abort ();					\
+  } while (0)
+
+  /* Check both of the above conditions.  */
+#define CHECK_ALLOCATED_AND_LIVE(LIVEP)		\
+  do {						\
+    CHECK_ALLOCATED ();				\
+    CHECK_LIVE (LIVEP);				\
+  } while (0)					\
+  
+#else /* not GC_CHECK_MARKED_OBJECTS */
+  
+#define CHECK_ALLOCATED()		(void) 0
+#define CHECK_LIVE(LIVEP)		(void) 0
+#define CHECK_ALLOCATED_AND_LIVE(LIVEP)	(void) 0
+  
+#endif /* not GC_CHECK_MARKED_OBJECTS */
+
   switch (SWITCH_ENUM_CAST (XGCTYPE (obj)))
     {
     case Lisp_String:
       {
 	register struct Lisp_String *ptr = XSTRING (obj);
+	CHECK_ALLOCATED_AND_LIVE (live_string_p);
 	MARK_INTERVAL_TREE (ptr->intervals);
 	MARK_STRING (ptr);
       }
       break;
 
     case Lisp_Vectorlike:
+#ifdef GC_CHECK_MARKED_OBJECTS
+      m = mem_find (po);
+      if (m == MEM_NIL && !GC_SUBRP (obj)
+	  && po != &buffer_defaults
+	  && po != &buffer_local_symbols)
+	abort ();
+#endif /* GC_CHECK_MARKED_OBJECTS */
+      
       if (GC_BUFFERP (obj))
 	{
 	  if (!XMARKBIT (XBUFFER (obj)->name))
-	    mark_buffer (obj);
+	    {
+#ifdef GC_CHECK_MARKED_OBJECTS
+	      if (po != &buffer_defaults && po != &buffer_local_symbols)
+		{
+		  struct buffer *b;
+		  for (b = all_buffers; b && b != po; b = b->next)
+		    ;
+		  if (b == NULL)
+		    abort ();
+		}
+#endif /* GC_CHECK_MARKED_OBJECTS */
+	      mark_buffer (obj);
+	    }
 	}
       else if (GC_SUBRP (obj))
 	break;
@@ -3829,6 +3893,8 @@ mark_object (argptr)
 
 	  if (size & ARRAY_MARK_FLAG)
 	    break;   /* Already marked */
+	  
+	  CHECK_LIVE (live_vector_p);
 	  ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
 	  size &= PSEUDOVECTOR_SIZE_MASK;
 	  for (i = 0; i < size; i++) /* and then mark its elements */
@@ -3850,6 +3916,7 @@ mark_object (argptr)
 	  if (size & ARRAY_MARK_FLAG) break;   /* Already marked */
 	  ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
 
+	  CHECK_LIVE (live_vector_p);
 	  mark_object (&ptr->name);
 	  mark_object (&ptr->icon_name);
 	  mark_object (&ptr->title);
@@ -3881,6 +3948,7 @@ mark_object (argptr)
 
 	  if (ptr->size & ARRAY_MARK_FLAG)
 	    break;   /* Already marked */
+	  CHECK_LIVE (live_vector_p);
 	  ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
 	}
       else if (GC_WINDOWP (obj))
@@ -3902,6 +3970,7 @@ mark_object (argptr)
 	    break;
 
 	  /* Mark it.  */
+	  CHECK_LIVE (live_vector_p);
 	  ptr->size |= ARRAY_MARK_FLAG;
 
 	  /* There is no Lisp data above The member CURRENT_MATRIX in
@@ -3930,8 +3999,9 @@ mark_object (argptr)
 	  /* Stop if already marked.  */
 	  if (size & ARRAY_MARK_FLAG)
 	    break;
-
+	  
 	  /* Mark it.  */
+	  CHECK_LIVE (live_vector_p);
 	  h->size |= ARRAY_MARK_FLAG;
 
 	  /* Mark contents.  */
@@ -3967,6 +4037,7 @@ mark_object (argptr)
 	  register int i;
 
 	  if (size & ARRAY_MARK_FLAG) break; /* Already marked */
+	  CHECK_LIVE (live_vector_p);
 	  ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
 	  if (size & PSEUDOVECTOR_FLAG)
 	    size &= PSEUDOVECTOR_SIZE_MASK;
@@ -3983,6 +4054,7 @@ mark_object (argptr)
 	struct Lisp_Symbol *ptrx;
 
 	if (XMARKBIT (ptr->plist)) break;
+	CHECK_ALLOCATED_AND_LIVE (live_symbol_p);
 	XMARK (ptr->plist);
 	mark_object ((Lisp_Object *) &ptr->value);
 	mark_object (&ptr->function);
@@ -4010,6 +4082,7 @@ mark_object (argptr)
       break;
 
     case Lisp_Misc:
+      CHECK_ALLOCATED_AND_LIVE (live_misc_p);
       switch (XMISCTYPE (obj))
 	{
 	case Lisp_Misc_Marker:
@@ -4074,6 +4147,7 @@ mark_object (argptr)
       {
 	register struct Lisp_Cons *ptr = XCONS (obj);
 	if (XMARKBIT (ptr->car)) break;
+	CHECK_ALLOCATED_AND_LIVE (live_cons_p);
 	XMARK (ptr->car);
 	/* If the cdr is nil, avoid recursion for the car.  */
 	if (EQ (ptr->cdr, Qnil))
@@ -4088,6 +4162,7 @@ mark_object (argptr)
       }
 
     case Lisp_Float:
+      CHECK_ALLOCATED_AND_LIVE (live_float_p);
       XMARK (XFLOAT (obj)->type);
       break;
 
@@ -4097,6 +4172,10 @@ mark_object (argptr)
     default:
       abort ();
     }
+
+#undef CHECK_LIVE
+#undef CHECK_ALLOCATED
+#undef CHECK_ALLOCATED_AND_LIVE
 }
 
 /* Mark the pointers in a buffer structure.  */
