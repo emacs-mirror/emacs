@@ -1,3 +1,7 @@
+2002-10-07  Richard M. Stallman  <rms@gnu.org>
+
+	* unexelf.c (unexec): Redo 9/16 change, but only if IRIX6_5.
+
 2002-10-06  Andrew Choi  <akochoi@shaw.ca>
 
 	* macmenu.c (mac_menu_show): Add j to count menu items; match

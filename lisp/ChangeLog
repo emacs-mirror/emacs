@@ -1,3 +1,12 @@
+2002-10-07  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix.
+
+	* progmodes/compile.el (grep-compute-defaults): Set the standard-value
+	properties of the variables being initialized.
+
+	* thingatpt.el (thing-at-point-url-path-regexp): Doc fix.
+
 2002-10-07  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua-normal-cursor-color): Fixed
