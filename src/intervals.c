@@ -1813,8 +1813,16 @@ textget (plist, prop)
      Lisp_Object plist;
      register Lisp_Object prop;
 {
-  register Lisp_Object tail, fallback;
-  fallback = Qnil;
+  lookup_char_property (plist, prop, 1);
+}
+
+Lisp_Object
+lookup_char_property (plist, prop, textprop)
+     Lisp_Object plist;
+     register Lisp_Object prop;
+     int textprop;
+{
+  register Lisp_Object tail, fallback = Qnil;
 
   for (tail = plist; !NILP (tail); tail = Fcdr (Fcdr (tail)))
     {
@@ -1832,9 +1840,20 @@ textget (plist, prop)
 
   if (! NILP (fallback))
     return fallback;
-  if (CONSP (Vdefault_text_properties))
-    return Fplist_get (Vdefault_text_properties, prop);
-  return Qnil;
+  /* Check for alternative properties */
+  tail = Fassq (prop, Vchar_property_alias_alist);
+  if (NILP (tail))
+    return tail;
+  tail = XCDR (tail);
+  for (; NILP (fallback) && !NILP (tail); tail = XCDR (tail))
+    {
+      if (!CONSP (tail))
+	wrong_type_argument (Qlistp, tail);
+      fallback = Fplist_get (plist, XCAR (tail));
+    }
+  if (textprop && NILP (fallback) && CONSP (Vdefault_text_properties))
+    fallback = Fplist_get (Vdefault_text_properties, prop);
+  return fallback;
 }
 
 
