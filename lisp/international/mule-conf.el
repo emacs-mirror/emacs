@@ -88,8 +88,8 @@
   [1 96 1 0 ?b 1 "RHP of Latin-9" "RHP of Latin-9 (ISO 8859-15): ISO-IR-203"
      "Right-Hand Part of Latin Alphabet 9 (ISO/IEC 8859-15): ISO-IR-203"])
 (define-charset 143 'latin-iso8859-14
-  [1 96 1 0 ?_ 1 "RHP of Latin-8" "RHP of Latin-8 (ISO 8859-14)"
-     "Right-Hand Part of Latin Alphabet 8 (ISO/IEC 8859-14)"])
+  [1 96 1 0 ?_ 1 "RHP of Latin-8" "RHP of Latin-8 (ISO 8859-14): ISO-IR-199"
+     "Right-Hand Part of Latin Alphabet 8 (ISO/IEC 8859-14): ISO-IR-199"])
 
 ;; 2-byte charsets.  Valid range of CHARSET-ID is 144..153.
 
@@ -279,6 +279,9 @@
 
 (setq standard-translation-table-for-encode nil)
 
+(defvar translation-table-for-input nil
+  "If non-nil, a char table used to translate characters from input methods.
+\(Currently only used by Quail.)")
 
 ;;; Make fundamental coding systems.
 
@@ -429,6 +432,7 @@ is treated as a character."
 
 (setq file-coding-system-alist
       '(("\\.elc\\'" . (emacs-mule . emacs-mule))
+	("\\.utf\\(-8\\)?\\'" . utf-8)
 	;; We use raw-text for reading loaddefs.el so that if it
 	;; happens to have DOS or Mac EOLs, they are converted to
 	;; newlines.  This is required to make the special treatment
