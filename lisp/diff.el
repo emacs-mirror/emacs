@@ -34,6 +34,9 @@
 (defvar diff-switches "-c"
   "*A string or list of strings specifying switches to be be passed to diff.")
 
+(defvar diff-command "diff"
+  "*The command to use to run diff.")
+
 (defvar diff-regexp-alist
   '(
     ;; -u format: @@ -OLDSTART,OLDEND +NEWSTART,NEWEND @@
@@ -196,7 +199,7 @@ With prefix arg, prompt for diff switches."
     (unwind-protect
 	(let ((command
 	       (mapconcat 'identity
-			  (append '("diff")
+			  (append (list diff-command)
 				  ;; Use explicitly specified switches
 				  (if switches
 				      (if (consp switches)
