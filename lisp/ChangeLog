@@ -1,3 +1,10 @@
+2005-03-09  Kenichi Handa  <handa@m17n.org>
+
+	* textmodes/ispell.el (ispell-insert-word): New function. 
+	(ispell-word): Use ispell-insert-word to isnert a new word.
+	(ispell-process-line): Likewise
+	(ispell-complete-word): Likewise.
+
 2005-03-09  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/calendar.el (redraw-calendar): Preserve point.
