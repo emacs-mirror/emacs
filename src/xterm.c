@@ -4302,7 +4302,7 @@ x_bitmap_icon (f, file)
   else
     {
       /* Create the GNU bitmap if necessary.  */
-      if (!FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id < 0)
+      if (FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id < 0)
 	FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id
 	  = x_create_bitmap_from_data (f, gnu_bits,
 				       gnu_width, gnu_height);
