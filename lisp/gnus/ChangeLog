@@ -1,3 +1,29 @@
+2004-10-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-coding-system-priorities): Prefer iso-8859-1 than
+	iso-2022-jp even in the Japanese language environment.  Suggested
+	by Jason Rumney <jasonr@gnu.org>.
+
+2004-10-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-update-summary-mark-positions): Allow users to
+	use the same characters as the dummy marks; make it free from
+	getting affected by the language environment.
+	(gnus-summary-read-group-1): Update mark positions only when the
+	format spec is updated.
+
+	* gnus-spec.el (gnus-update-format-specifications): Return a list
+	of updated types.
+
+2004-10-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnspool.el (nnspool-spool-directory): Use news-path if the
+	news-directory variable is not bound.
+
+	* gnus-group.el (gnus-group-line-format-alist): Convert the value
+	of gnus-tmp-news-method into string if it may be passed to
+	gnus-correct-length which takes only a string argument.
+
 2004-10-25  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* html2text.el (html2text-buffer-head): Removed.  Use `goto-char'
