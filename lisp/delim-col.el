@@ -4,7 +4,7 @@
 
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Time-stamp: <2001-07-15 11:12:35 pavel>
+;; Time-stamp: <2001-10-13 10:02:26 pavel>
 ;; Version: 2.1
 ;; Keywords: internal
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
@@ -362,7 +362,7 @@ START and END delimits the corners of text rectangle."
 (defvar delimit-columns-limit nil)
 
 
-(defun delimit-columns-rectangle-max (startpos &optional ignore ignore)
+(defun delimit-columns-rectangle-max (startpos &optional ignore1 ignore2)
   (set-marker delimit-columns-limit (point))
   (goto-char startpos)
   (let ((ncol 1)
@@ -395,7 +395,7 @@ START and END delimits the corners of text rectangle."
       (setq values (cdr values)))))
 
 
-(defun delimit-columns-rectangle-line (startpos &optional ignore ignore)
+(defun delimit-columns-rectangle-line (startpos &optional ignore1 ignore2)
   (let ((len  (length delimit-columns-max))
 	(ncol 0)
 	origin)
