@@ -3890,13 +3890,13 @@ as display specification.
 
 *** Other display properties
 
-- :space-width FACTOR
+- (space-width FACTOR)
 
 Specifies that space characters in the text having that property
 should be displayed FACTOR times as wide as normal; FACTOR must be an
 integer or float.
 
-- :height HEIGHT
+- (height HEIGHT)
 
 Display text having this property in a font that is smaller or larger.
 
@@ -3915,13 +3915,13 @@ height as argument.  The function should return the new height to use.
 Otherwise, HEIGHT is evaluated to get the new height, with the symbol
 `height' bound to the current specified font height.
 
-- :raise FACTOR
+- (raise FACTOR)
 
 FACTOR must be a number, specifying a multiple of the current
 font's height.  If it is positive, that means to display the characters
 raised.  If it is negative, that means to display them lower down.  The
 amount of raising or lowering is computed without taking account of the
-`:height' subproperty.
+`height' subproperty.
 
 *** Conditional display properties
 
