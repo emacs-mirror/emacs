@@ -1,3 +1,13 @@
+2000-03-08  Dave Love  <fx@gnu.org>
+
+	* hftctl.c, strftime.c: Use PROTOTYPES.
+	* eval.c (find_handler_clause): Likewise.
+
+	* mem-limits.h: Use POINTER_TYPE.
+
+	* lisp.h (P_): Define based on PROTOTYPES, not __STDC__.
+	(memory_warnings): Declare using POINTER_TYPE.
+
 2000-03-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (x_set_cursor_type): If ARG is nil, give frame no cursor.
