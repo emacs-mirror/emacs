@@ -1,6 +1,6 @@
 /* impl.h.mpstd: HARLEQUIN MEMORY POOL SYSTEM TARGET DETECTION
  *
- * $HopeName: MMsrc!mpstd.h(trunk.16) $
+ * $HopeName: MMsrc!mpstd.h(trunk.17) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  * Detect the target platform using predefined preprocessor symbols
@@ -23,9 +23,21 @@
  * them.  See analysis.irix-cpp. */
 
 #if defined(__sgi) && defined(__unix) && defined(__mips) && defined(_SYSTYPE_SVR4) && (_MIPS_FPSET == 16)
-#define MPS_PF_I5R4CC
+#define MPS_PF_I5M2CC
 #define MPS_OS_I5
-#define MPS_ARCH_R4
+#define MPS_ARCH_M2
+#define MPS_BUILD_CC
+#define MPS_T_WORD      unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    8 /* .hack.align */
+
+/* See analysis.irix-cpp */
+
+#elif defined(__sgi) && defined(__unix) && defined(__mips) && defined(_SYSTYPE_SVR4) && defined(_ABIN32)
+#define MPS_PF_IAM4CC
+#define MPS_OS_IA
+#define MPS_ARCH_M4
 #define MPS_BUILD_CC
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
@@ -34,10 +46,10 @@
 
 /* Irix 4 man cc. See analysis.irix-cpp */
 
-#elif defined(__sgi) && defined(__unix) && defined(__mips) && defined(_SYSTYPE_SYSV) && defined(__SVR3) && !defined(__GNUC__)
-#define MPS_PF_I4R4CC
+#elif defined(__sgi) && defined(__unix) && defined(__mips) && defined(_SYSTYPE_SYSV) && defined(__SVR3)
+#define MPS_PF_I4M2CC
 #define MPS_OS_I4
-#define MPS_ARCH_R4
+#define MPS_ARCH_M2
 #define MPS_BUILD_CC
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
@@ -47,9 +59,9 @@
 /* GCC 2.7.2, gcc -E -dM */
 
 #elif defined(__sgi) && defined(__unix) && defined(__mips) && defined(__SYSTYPE_SYSV) && defined(__GNUC__)
-#define MPS_PF_I4R4GC
+#define MPS_PF_I4M2GC
 #define MPS_OS_I4
-#define MPS_ARCH_R4
+#define MPS_ARCH_M2
 #define MPS_BUILD_GC
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
@@ -99,9 +111,9 @@
 /* a way to determine the OS -- we assume MacOS 7.  */
 
 #elif defined(__MWERKS__) && __MC68K__ == 1
-#define MPS_PF_S7M6MW
+#define MPS_PF_S760MW
 #define MPS_OS_S7
-#define MPS_ARCH_M6
+#define MPS_ARCH_60
 #define MPS_BUILD_MW
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
@@ -127,9 +139,9 @@
 /* which lets us determine the system version.                          */
 
 #elif defined(m68k) && (defined (applec) || defined(__SC__))
-#define MPS_PF_S7M6AC
+#define MPS_PF_S760AC
 #define MPS_OS_S7
-#define MPS_ARCH_M6
+#define MPS_ARCH_60
 #define MPS_BUILD_AC
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
@@ -155,9 +167,9 @@
 
 #elif defined(__sun__) && defined(__sparc__) && defined(__GNUC__) && \
       !defined(__svr4__)
-#define MPS_PF_SUSPGC
+#define MPS_PF_SUS8GC
 #define MPS_OS_SU
-#define MPS_ARCH_SP
+#define MPS_ARCH_S8
 #define MPS_BUILD_GC
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
@@ -168,9 +180,9 @@
 
 #elif defined(sun) && defined(sparc) && defined(__LCC__) && \
       !defined(__svr4__)
-#define MPS_PF_SUSPLC
+#define MPS_PF_SUS8LC
 #define MPS_OS_SU
-#define MPS_ARCH_SP
+#define MPS_ARCH_S8
 #define MPS_BUILD_LC
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
@@ -181,9 +193,9 @@
 
 #elif defined(__sun__) && defined(__sparc__) && defined(__GNUC__) && \
       defined(__svr4__)
-#define MPS_PF_SOSPGC
+#define MPS_PF_SOS8GC
 #define MPS_OS_SO
-#define MPS_ARCH_SP
+#define MPS_ARCH_S8
 #define MPS_BUILD_GC
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
@@ -196,9 +208,9 @@
 
 #elif defined(__sun) && defined(__SUNPRO_C) && defined(__SVR4) && defined(__sparc)
 
-#define MPS_PF_SOUSSC
+#define MPS_PF_SOS9SC
 #define MPS_OS_SO
-#define MPS_ARCH_US
+#define MPS_ARCH_S9
 #define MPS_BUILD_SC
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
