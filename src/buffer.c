@@ -1042,7 +1042,7 @@ with SIGHUP.")
   register struct buffer *b;
   register Lisp_Object tem;
   register struct Lisp_Marker *m;
-  struct gcpro gcpro1, gcpro2;
+  struct gcpro gcpro1;
 
   if (NILP (buffer))
     buf = Fcurrent_buffer ();
@@ -1071,7 +1071,6 @@ with SIGHUP.")
 
   /* Run hooks with the buffer to be killed the current buffer.  */
   {
-    register Lisp_Object val;
     int count = specpdl_ptr - specpdl;
     Lisp_Object list;
 
@@ -2032,7 +2031,7 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
      int *next_ptr;
      int *prev_ptr;
 {
-  Lisp_Object tail, overlay, start, end, result;
+  Lisp_Object tail, overlay, start, end;
   int idx = 0;
   int len = *len_ptr;
   Lisp_Object *vec = *vec_ptr;
@@ -2175,7 +2174,7 @@ overlays_in (beg, end, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
      int *next_ptr;
      int *prev_ptr;
 {
-  Lisp_Object tail, overlay, ostart, oend, result;
+  Lisp_Object tail, overlay, ostart, oend;
   int idx = 0;
   int len = *len_ptr;
   Lisp_Object *vec = *vec_ptr;
@@ -2684,8 +2683,7 @@ recenter_overlay_lists (buf, pos)
 	       CONSP (other);
 	       other_prev = other, other = XCONS (other)->cdr)
 	    {
-	      Lisp_Object otherbeg, otheroverlay, follower;
-	      int win;
+	      Lisp_Object otherbeg, otheroverlay;
 
 	      otheroverlay = XCONS (other)->car;
 	      if (! OVERLAY_VALID (otheroverlay))
@@ -2763,7 +2761,6 @@ recenter_overlay_lists (buf, pos)
 	       other_prev = other, other = XCONS (other)->cdr)
 	    {
 	      Lisp_Object otherend, otheroverlay;
-	      int win;
 
 	      otheroverlay = XCONS (other)->car;
 	      if (! OVERLAY_VALID (otheroverlay))
@@ -2832,7 +2829,7 @@ void
 fix_overlays_in_range (start, end)
      register int start, end;
 {
-  Lisp_Object tem, overlay;
+  Lisp_Object overlay;
   Lisp_Object before_list, after_list;
   Lisp_Object *ptail, *pbefore = &before_list, *pafter = &after_list;
   int startpos, endpos;
@@ -3177,7 +3174,6 @@ buffer.")
     /* Redisplay the area the overlay has just left, or just enclosed.  */
     {
       int o_beg, o_end;
-      int change_beg, change_end;
 
       o_beg = OVERLAY_POSITION (OVERLAY_START (overlay));
       o_end = OVERLAY_POSITION (OVERLAY_END (overlay));
@@ -3404,8 +3400,6 @@ If there are no more overlay boundaries before POS, return (point-min).")
   int prevpos;
   Lisp_Object *overlay_vec;
   int len;
-  int i;
-  Lisp_Object tail;
 
   CHECK_NUMBER_COERCE_MARKER (pos, 0);
 
@@ -3830,8 +3824,6 @@ buffer_slot_type_mismatch (offset)
 void
 init_buffer_once ()
 {
-  register Lisp_Object tem;
-
   buffer_permanent_local_flags = 0;
 
   /* Make sure all markable slots in buffer_defaults
@@ -4047,8 +4039,6 @@ init_buffer ()
 void
 syms_of_buffer ()
 {
-  extern Lisp_Object Qdisabled;
-
   staticpro (&last_overlay_modification_hooks);
   last_overlay_modification_hooks
     = Fmake_vector (make_number (10), Qnil);
