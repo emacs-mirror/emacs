@@ -1062,24 +1062,10 @@ def _emacs_execfile (file):
   (setq python-command cmd)
   (setq python-buffer "*Python*")
   (pop-to-buffer "*Python*")
-  (compilation-minor-mode 1)
-  (add-hook 'comint-input-filter-functions 'python-input-filter nil t)
-  ;; Avoid clobbering comint bindings.
-  (set (make-local-variable 'minor-mode-overriding-map-alist)
-       `((compilation-minor-mode
-	  . ,(let ((map (make-sparse-keymap)))
-	       ;; It would be useful to put keymap properties on the
-	       ;; error lines so that we could use RET and mouse-2 on
-	       ;; them directly.  These bindings will only DTRT with
-	       ;; the font-lock-style compilation mode.
-	       (define-key map [mouse-2] #'python-mouse-2-command)
-	       (define-key map "\C-m" #'python-RET-command)
-	       (if (boundp 'compilation-menu-map)
-		   (define-key map [menu-bar compilation]
-		     (cons "Errors" compilation-menu-map)))
-	       map))))
   (set (make-local-variable 'compilation-error-regexp-alist)
-       python-compilation-regexp-alist))
+       python-compilation-regexp-alist)
+  (compilation-shell-minor-mode 1)
+  (add-hook 'comint-input-filter-functions 'python-input-filter nil t))
 
 (defun python-mouse-2-command (event)
   "Command bound to `mouse-2' in inferior Python buffer.
