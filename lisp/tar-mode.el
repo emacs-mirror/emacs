@@ -706,9 +706,14 @@ appear on disk when you save the tar-file's buffer."
 				  (concat tarname "!" name)))
 	   (buffer (get-file-buffer new-buffer-file-name))
 	   (just-created nil)
-	   (pos (point)))
+	   (pos (point))
+	   undo-list)
       (unless buffer
 	(setq buffer (generate-new-buffer bufname))
+	(save-excursion
+	  (set-buffer buffer)
+	  (setq undo-list buffer-undo-list
+		buffer-undo-list t))
 	(setq bufname (buffer-name buffer))
 	(setq just-created t)
 	(unwind-protect
@@ -750,6 +755,7 @@ appear on disk when you save the tar-file's buffer."
 		(setq tar-superior-descriptor descriptor)
 		(setq buffer-read-only read-only-p)
 		(set-buffer-modified-p nil)
+		(setq buffer-undo-list undo-list)
 		(tar-subfile-mode 1))
 	      (set-buffer tar-buffer))
 	  (narrow-to-region (point-min) tar-header-offset)
