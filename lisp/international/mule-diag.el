@@ -89,6 +89,7 @@ but still shows the full information."
       (if arg
 	  (list-character-sets-2)
 	;; Insert header.
+	(insert "Indirectly supported character sets are shown below.\n")
 	(insert
 	 (substitute-command-keys
 	  (concat "Use "
@@ -117,7 +118,28 @@ but still shows the full information."
 	(insert "------\t------------\t\t\t--------------\t- -- ----------\n")
 
 	;; Insert body sorted by charset IDs.
-	(list-character-sets-1 'id)))))
+	(list-character-sets-1 'id)
+
+	;; Insert non-directly-supported charsets.
+	(insert-char ?- 72)
+	(insert "\n\nINDIRECTLY SUPPORTED CHARSETS SETS:\n\n"
+		(propertize "CHARSET NAME\tMAPPED TO" 'face 'bold)
+		"\n------------\t---------\n")
+	(dolist (elt non-iso-charset-alist)
+	  (insert-text-button (symbol-name (car elt))
+			      :type 'list-charset-chars
+			      'help-args (list (car elt)))
+	  (indent-to 16)
+	  (dolist (e (nth 1 elt))
+	    (when (>= (+ (current-column) 1 (string-width (symbol-name e)))
+		      ;; This is an approximate value.  We don't know
+		      ;; the correct window width of this buffer yet.
+		      78)
+	      (insert "\n")
+	      (indent-to 16))
+
+	    (insert (format "%s " e)))
+	  (insert "\n"))))))
 
 (defun sort-listed-character-sets (sort-key)
   (if sort-key
@@ -127,8 +149,13 @@ but still shows the full information."
 	  (goto-char (point-min))
 	  (re-search-forward "[0-9][0-9][0-9]")
 	  (beginning-of-line)
-	  (delete-region (point) (point-max))
-	  (list-character-sets-1 sort-key)))))
+	  (let ((pos (point)))
+	    (search-forward "----------")
+	    (beginning-of-line)
+	    (save-restriction
+	      (narrow-to-region pos (point))
+	      (delete-region (point-min) (point-max))
+	      (list-character-sets-1 sort-key)))))))
 
 (defun charset-multibyte-form-string (charset)
   (let ((info (charset-info charset)))
@@ -249,7 +276,8 @@ but still shows the full information."
 
 (defvar non-iso-charset-alist
   `((mac-roman
-     nil
+     (ascii latin-iso8859-1 mule-unicode-2500-33ff
+	    mule-unicode-0100-24ff mule-unicode-e000-ffff)
      mac-roman-decoder
      ((0 255)))
     (viscii
