@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-defs.el,v 1.9 2000/12/10 21:17:14 monnier Exp $
+;; Revision: $Id: pcvs-defs.el,v 1.10 2000/12/18 03:17:31 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -187,7 +187,7 @@ have no effect."
 (defcustom cvs-buffer-name-alist
   '(("diff" cvs-diff-buffer-name diff-mode)
     ("status" "*cvs-info*" cvs-status-mode)
-    ("tree" (format "*cvs-%s*" cmd) cvs-status-mode)
+    ("tree" "*cvs-info*" cvs-status-mode)
     ("message" "*cvs-commit*" nil log-edit)
     ("log" "*cvs-info*" log-view-mode))
   "*Buffer name and mode to be used for each command.
