@@ -1,6 +1,6 @@
 /* impl.c.amcsshe: POOL CLASS AMC STRESS TEST WITH HEADER
  *
- * $HopeName$
+ * $HopeName: MMsrc!amcsshe.c(trunk.1) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
@@ -20,7 +20,7 @@
 #include <string.h>
 
 
-#define testArenaSIZE     ((size_t)64<<20)
+#define testArenaSIZE     ((size_t)64<<13)
 #define avLEN             3
 #define exactRootsCOUNT   300
 #define ambigRootsCOUNT   50
@@ -268,11 +268,13 @@ static void *test(void *arg, size_t s)
 }
 
 
-int main(void)
+int main(int argc, char **argv)
 {
   mps_arena_t arena;
   mps_thr_t thread;
   void *r;
+
+  randomize(argc, argv);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create\n");
