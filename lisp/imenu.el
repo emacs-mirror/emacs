@@ -785,13 +785,18 @@ The returned value is on the form (INDEX-NAME . INDEX-POSITION)."
 
 ;;;###autoload
 (defun imenu-add-to-menubar (name)
-  "Adds an \"imenu\" entry to the menu bar for the current major mode.
+  "Adds an `imenu' entry to the menu bar for the current buffer.
 NAME is a string used to name the menu bar item.
-See `imenu' for more information."
+See the command `imenu' for more information."
   (interactive "sImenu menu item name: ")
-  (define-key (current-local-map) [menu-bar index]
-    (cons name (nconc (make-sparse-keymap "Imenu")
-		      (make-sparse-keymap))))
+  (let ((newmap (make-sparse-keymap))
+	(menu-bar (lookup-key (current-local-map) [menu-bar])))
+    (define-key newmap [menu-bar]
+      (append (make-sparse-keymap) menu-bar))
+    (define-key newmap [menu-bar index]
+      (cons name (nconc (make-sparse-keymap "Imenu")
+			(make-sparse-keymap))))
+    (use-local-map (append newmap (current-local-map))))
   (add-hook 'menu-bar-update-hook 'imenu-update-menubar))
 
 (defvar imenu-buffer-menubar nil)
@@ -799,17 +804,6 @@ See `imenu' for more information."
 (defun imenu-update-menubar ()
   (and (current-local-map)
        (keymapp (lookup-key (current-local-map) [menu-bar index]))
-       (progn
-	 (or (local-variable-p 'imenu-buffer-menubar)
-	     ;; Make a buffer-specific copy of the local map
-	     ;; so that we don't affect other buffers with the same major mode.
-	     (let ((newmap (make-sparse-keymap)))
-	       (define-key (current-local-map) [menu-bar index]
-		 (cons name (nconc (make-sparse-keymap "Imenu")
-				   (make-sparse-keymap))))
-	       (use-local-map (append newmap (current-local-map)))))
-	 (make-local-variable 'imenu-buffer-menubar)
-	 t)
        (let ((index-alist (imenu--make-index-alist t)))
 	 ;; Don't bother updating if the index-alist has not changed
 	 ;; since the last time we did it.
