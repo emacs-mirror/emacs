@@ -953,15 +953,18 @@ function by default."
 	    (modified-p (buffer-modified-p)))
 	(when coding-system
 	  (set-buffer-file-coding-system coding-system)
-	  (if (and (or (eq coding-system 'no-conversion)
+	  (if (and enable-multibyte-characters
+		   (or (eq coding-system 'no-conversion)
 		       (eq (coding-system-type coding-system) 5))
 		   ;; If buffer was unmodified, we must be visiting it.
 		   (not modified-p))
 	      ;; For coding systems no-conversion and raw-text...,
 	      ;; edit the buffer as unibyte.
-	      (set-buffer-multibyte nil))
+	      (let ((pos-byte (position-bytes (+ (point) inserted))))
+		(set-buffer-multibyte nil)
+		(setq inserted (- pos-byte (position-bytes (point))))))
 	  (set-buffer-modified-p modified-p))))
-  nil)
+  inserted)
 
 (add-hook 'after-insert-file-functions
 	  'after-insert-file-set-buffer-file-coding-system)
