@@ -394,7 +394,7 @@ is nil, ask the user where to save the desktop."
   (when
     (and
       desktop-enable
-      (let ((exists (file-exists-p (concat desktop-dirname desktop-base-file-name))))
+      (let ((exists (file-exists-p (expand-file-name desktop-base-file-name desktop-dirname))))
         (or
           (eq desktop-save 't)
           (and exists (memq desktop-save '(ask-if-new if-exists)))
@@ -405,9 +405,10 @@ is nil, ask the user where to save the desktop."
             (y-or-n-p "Save desktop? ")))))
     (unless desktop-dirname
       (setq desktop-dirname
-        (expand-file-name
-          (call-interactively
-            (lambda (dir) (interactive "DDirectory for desktop file: ") dir)))))
+        (file-name-as-directory
+          (expand-file-name
+            (call-interactively
+              (lambda (dir) (interactive "DDirectory for desktop file: ") dir))))))
     (condition-case err
       (desktop-save desktop-dirname)
       (file-error
@@ -583,7 +584,7 @@ DIRNAME must be the directory in which the desktop file will be saved."
   (run-hooks 'desktop-save-hook)
   (setq dirname (file-name-as-directory (expand-file-name dirname)))
   (save-excursion
-    (let ((filename (concat dirname desktop-base-file-name))
+    (let ((filename (expand-file-name desktop-base-file-name dirname))
           (info
             (mapcar
               (function
@@ -666,11 +667,10 @@ DIRNAME must be the directory in which the desktop file will be saved."
   "Delete the Desktop file and inactivate the desktop system."
   (interactive)
   (if desktop-dirname
-      (let ((filename (concat desktop-dirname desktop-base-file-name)))
-	(setq desktop-dirname nil)
-	(if (file-exists-p filename)
-	    (delete-file filename)))))
-
+      (let ((filename (expand-file-name desktop-base-file-name desktop-dirname)))
+    (setq desktop-dirname nil)
+    (if (file-exists-p filename)
+        (delete-file filename)))))
 ;; ----------------------------------------------------------------------------
 ;;;###autoload
 (defun desktop-read ()
@@ -688,7 +688,7 @@ Returns t if it has read a desktop file, nil otherwise."
           (not
             (file-exists-p (expand-file-name desktop-base-file-name (car dirs)))))
         (setq dirs (cdr dirs)))
-      (setq desktop-dirname (and dirs (expand-file-name (car dirs))))
+      (setq desktop-dirname (and dirs (file-name-as-directory (expand-file-name (car dirs)))))
       (if desktop-dirname
         (let ((desktop-first-buffer nil))
           ;; Evaluate desktop buffer.
@@ -727,16 +727,16 @@ to provide correct modes for autoloaded files."
 However, if `desktop-enable' was nil at call, don't save the old desktop.
 This function always sets `desktop-enable' to t."
   (interactive "DNew directory: ")
+  (setq dir (file-name-as-directory (expand-file-name dir desktop-dirname)))
   (desktop-kill)
   (desktop-clear)
-  (cd dir)
   (setq desktop-enable t)
-  (let ((desktop-path '(".")))
-    (desktop-read)
-    ;; Set `desktop-dirname' even in no desktop file was found
-    (setq desktop-dirname (expand-file-name dir))))
-
-;; ----------------------------------------------------------------------------
+  (let ((desktop-path (list dir))
+        (default-directory dir))
+    (desktop-read))
+  ;; Set `desktop-dirname' even in no desktop file was found
+  (setq desktop-dirname dir))
+  ;; ----------------------------------------------------------------------------
 ;;;###autoload
 (defun desktop-save-in-load-dir ()
   "Save desktop in directory from which it was loaded."
@@ -875,7 +875,6 @@ This function always sets `desktop-enable' to t."
     (let (
       (buffer-list (buffer-list))
       (hlist desktop-buffer-handlers)
-      (desktop-first-buffer)
       (result)
       (handler)
     )
@@ -909,7 +908,7 @@ This function always sets `desktop-enable' to t."
               (when (functionp minor-mode) (funcall minor-mode 1)))
             desktop-buffer-minor-modes)))
         ;; Even though point and mark are non-nil when written by `desktop-save'
-        ;; they may be modified by mandlers wanting to set point or mark themselves.
+        ;; they may be modified by handlers wanting to set point or mark themselves.
         (when desktop-buffer-point (goto-char desktop-buffer-point))
         (when desktop-buffer-mark
           (if (consp desktop-buffer-mark)
