@@ -1,6 +1,6 @@
 ;;; advice.el --- an overloading mechanism for Emacs Lisp functions
 
-;; Copyright (C) 1993,1994,2000  Free Software Foundation, Inc.
+;; Copyright (C) 1993,1994,2000, 2001  Free Software Foundation, Inc.
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
 ;; Maintainer: FSF
@@ -3072,12 +3072,7 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 		    ;; Otherwise we must have a subr: make it interactive if
 		    ;; we have to and initialize required arguments in case
 		    ;; it is called interactively:
-		    (orig-interactive-p
-		     (let ((reqargs (car (ad-parse-arglist advised-arglist))))
-		       (if reqargs
-			   (` (interactive
-			       '(, (make-list (length reqargs) nil))))
-			   '(interactive))))))
+		    (orig-interactive-p (interactive-form origdef))))
 	     (orig-form
 	      (cond ((or orig-special-form-p orig-macro-p)
 		     ;; Special forms and macros will be advised into macros.
