@@ -1436,6 +1436,16 @@ ENCODING is one of the following integer values:
 	2: code points 0x20A0..0x7FFF are used,
 	3: code points 0xA020..0xFF7F are used.  */);
   Vfont_encoding_alist = Qnil;
+  Vfont_encoding_alist
+    = Fcons (Fcons (build_string ("JISX0201"),
+		    Fcons (Fcons (intern ("latin-jisx0201"), make_number (0)),
+			   Qnil)),
+	     Vfont_encoding_alist);
+  Vfont_encoding_alist
+    = Fcons (Fcons (build_string ("ISO8859-1"),
+		    Fcons (Fcons (intern ("ascii"), make_number (0)),
+			   Qnil)),
+	     Vfont_encoding_alist);
 
   DEFVAR_LISP ("use-default-ascent", &Vuse_default_ascent,
 	       doc: /* Char table of characters whose ascent values should be ignored.
