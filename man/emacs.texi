@@ -210,9 +210,9 @@ Advanced Features
 * Shell::	        Executing shell commands from Emacs.
 * Emacs Server::        Using Emacs as an editing server for @code{mail}, etc.
 * Hardcopy::	        Printing buffers or regions.
-* Postscript::	        Printing buffers or regions as Postscript.
-* Postscript Variables::
-                        Customizing the Postscript printing commands.
+* PostScript::	        Printing buffers or regions as PostScript.
+* PostScript Variables::
+                        Customizing the PostScript printing commands.
 * Sorting::	        Sorting lines, paragraphs or pages within Emacs.
 * Narrowing::	        Restricting display and editing to a portion
 		          of the buffer.
@@ -442,7 +442,7 @@ International Character Set Support
 * Fontsets::                Fontsets are collections of fonts
                               that cover the whole spectrum of characters.
 * Defining Fontsets::       Defining a new fontset.
-* Single-Byte European Support::
+* Single-Byte Character Support::
                             You can pick one European character set
                             to use without multibyte characters.
 
