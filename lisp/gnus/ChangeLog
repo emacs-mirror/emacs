@@ -1,3 +1,7 @@
+2000-10-12  Dave Love  <fx@gnu.org>
+
+	* gnus.el (gnus-group-startup-message): Check for PBM image.
+
 2000-10-09  Dave Love  <fx@gnu.org>
 
 	* mail-source.el (mail-source-fetch-imap): Bind

@@ -17,6 +17,9 @@
 
 2000-10-11  Dave Love  <fx@gnu.org>
 
+	* info.el (Info-mode-menu): Fix some help.
+	(info-tool-bar-map): Add entry for Info-last.
+
 	* toolbar/cancel.xpm, toolbar/jump_to.xpm, toolbar/right_arrow.xpm:
 	* toolbar/close.xpm, toolbar/left_arrow.xpm, toolbar/save.xpm:
 	* toolbar/copy.xpm, toolbar/mail.xpm, toolbar/saveas.xpm:
