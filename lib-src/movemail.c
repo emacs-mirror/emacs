@@ -56,6 +56,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <../src/config.h>
 #include <../src/syswait.h>
 
+#ifdef MSDOS
+#undef access
+#endif /* MSDOS */
+
 #ifdef USG
 #include <fcntl.h>
 #include <unistd.h>
@@ -81,8 +85,6 @@ extern int lk_open (), lk_close ();
 #undef write
 #undef close
 
-char *malloc ();
-char *strcpy ();
 char *concat ();
 char *xmalloc ();
 #ifndef errno
@@ -128,7 +130,7 @@ main (argc, argv)
 
   /* Also check that outname's directory is writeable to the real uid.  */
   {
-    char *buf = (char *) malloc (strlen (outname) + 1);
+    char *buf = (char *) xmalloc (strlen (outname) + 1);
     char *p, q;
     strcpy (buf, outname);
     p = buf + strlen (buf);
@@ -399,7 +401,7 @@ char *
 xmalloc (size)
      unsigned size;
 {
-  char *result = malloc (size);
+  char *result = (char *) malloc (size);
   if (!result)
     fatal ("virtual memory exhausted", 0);
   return result;
