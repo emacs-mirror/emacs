@@ -433,7 +433,7 @@ If the third argument is incorrect, Emacs may crash.")
   while (1)
     {
 #ifdef BYTE_CODE_SAFE
-      if (top > stacks)
+      if (top > stacke)
 	error ("Byte code stack overflow (byte compiler bug), pc %d, depth %d",
 	       stack.pc - stack.byte_string_start, stacke - top);
       else if (top < stack.bottom - 1)
