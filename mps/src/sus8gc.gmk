@@ -1,6 +1,6 @@
 # impl.gmk.suspgc: BUILD FOR SUNOS/SPARC/GCC PLATFORM
 #
-# $HopeName: MMsrc!suspgc.gmk(MMdevel_action2.4) $
+# $HopeName: MMsrc!suspgc.gmk(trunk.26) $
 # Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved.
 #
 # This is the GNU makefile for platform.suspgc.
@@ -14,6 +14,7 @@ MPM = assert.c ring.c mpsliban.c mpm.c bt.c \
       mpsioan.c event.c action.c seg.c
 MPMS = sssusp.s
 AMC = amc.c
+AWL = poolawl.c
 LO = lo.c
 MRG = poolmrg.c
 DW = fmtdy.c dw.c
