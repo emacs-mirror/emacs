@@ -1709,6 +1709,12 @@ Weeks start on Monday.
 Diary entries are included if cal-tex-diary is t.
 Holidays are included if `cal-tex-holidays' is t.")
 
+(autoload 'cal-tex-cursor-filofax-daily "cal-tex"
+  "Day-per-page Filofax style calendar for week indicated by cursor.
+Optional prefix argument specifies number of weeks.  Weeks start on Monday. 
+Diary entries are included if `cal-tex-diary' is t.
+Holidays are included if `cal-tex-holidays' is t.")
+
 (autoload 'cal-tex-cursor-year "cal-tex"
   "Make a buffer with LaTeX commands for a year's calendar.
 Optional prefix argument specifies number of years.")
@@ -1953,6 +1959,7 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "tw2" 'cal-tex-cursor-week2)
   (define-key calendar-mode-map "tw3" 'cal-tex-cursor-week-iso)
   (define-key calendar-mode-map "tw4" 'cal-tex-cursor-week-monday)
+  (define-key calendar-mode-map "tfd" 'cal-tex-cursor-filofax-daily)
   (define-key calendar-mode-map "tfw" 'cal-tex-cursor-filofax-2week)
   (define-key calendar-mode-map "tfW" 'cal-tex-cursor-filofax-week)
   (define-key calendar-mode-map "tfy" 'cal-tex-cursor-filofax-year)
