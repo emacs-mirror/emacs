@@ -1,3 +1,7 @@
+2005-03-01  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/copyright.el (copyright-fix-years): New command.
+
 2005-03-01  Lute Kamstra  <lute@gnu.org>
 
 	* emacs-lisp/debug.el (debug-on-entry-1): Reimplement to make sure
