@@ -542,6 +542,43 @@ if we can figure out a reasonably easy way to get that information.")
 
   return build_string (buf);
 }
+
+DEFUN ("current-time-zone", Fcurrent_time_zone, Scurrent_time_zone, 0, 0, 0,
+  "Return the offset, savings state, and names for the current time zone.\n\
+This returns a list of the form (OFFSET SAVINGS-FLAG STANDARD SAVINGS).\n\
+OFFSET is an integer specifying how many minutes east of Greenwich the\n\
+    current time zone is located.  A negative value means west of\n\
+    Greenwich. Note that this describes the standard time; If daylight\n\
+    savings time is in effect, it does not affect this value.\n\
+SAVINGS-FLAG is non-nil iff daylight savings time or some other sort\n\
+    of seasonal time adjustment is in effect.\n\
+STANDARD is a string giving the name of the time zone when no seasonal\n\
+    time adjustment is in effect.\n\
+SAVINGS is a string giving the name of the time zone when there is a\n\
+    seasonal time adjustment in effect.\n\
+If the local area does not use a seasonal time adjustment,\n\
+SAVINGS-FLAG will always be nil, and STANDARD and SAVINGS will be the\n\
+same.")
+  ()
+{
+#ifdef EMACS_CURRENT_TIME_ZONE
+  int offset, savings_flag;
+  char standard[11];
+  char savings[11];
+
+  EMACS_CURRENT_TIME_ZONE (&offset, &savings_flag, standard, savings);
+
+  return Fcons (make_number (offset),
+		Fcons ((savings_flag ? Qt : Qnil),
+		       Fcons (build_string (standard),
+			      Fcons (build_string (savings),
+				     Qnil))));
+#else
+  error
+    ("current-time-zone has not been implemented on this operating system.");
+#endif
+}
+
 
 void
 insert1 (arg)
@@ -1255,6 +1292,7 @@ syms_of_editfns ()
   defsubr (&Suser_full_name);
   defsubr (&Scurrent_time);
   defsubr (&Scurrent_time_string);
+  defsubr (&Scurrent_time_zone);
   defsubr (&Ssystem_name);
   defsubr (&Smessage);
   defsubr (&Sformat);
