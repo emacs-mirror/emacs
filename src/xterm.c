@@ -4773,7 +4773,6 @@ x_new_font (f, fontname)
       char *full_name;
       XFontStruct *font;
       int n_fonts;
-      Atom FONT_atom;
 
       /* Try to find a character-cell font in the list.  */
 #if 0
@@ -4819,10 +4818,9 @@ x_new_font (f, fontname)
 
       /* Try to get the full name of FONT.  Put it in full_name.  */
       full_name = 0;
-      FONT_atom = XInternAtom (FRAME_X_DISPLAY (f), "FONT", False);
       for (i = 0; i < font->n_properties; i++)
 	{
-	  if (FONT_atom == font->properties[i].name)
+	  if (FRAME_X_DISPLAY_INFO (f)->Xatom_FONT == font->properties[i].name)
 	    {
 	      char *name = XGetAtomName (FRAME_X_DISPLAY (f),
 					 (Atom) (font->properties[i].card32));
@@ -6043,6 +6041,8 @@ x_term_init (display_name, xrm_option, resource_name)
     = XInternAtom (dpyinfo->display, "WM_MOVED", False);
   dpyinfo->Xatom_editres
     = XInternAtom (dpyinfo->display, "Editres", False);
+  dpyinfo->Xatom_FONT
+    = XInternAtom (dpyinfo->display, "FONT", False);
   dpyinfo->Xatom_CLIPBOARD
     = XInternAtom (dpyinfo->display, "CLIPBOARD", False);
   dpyinfo->Xatom_TIMESTAMP
