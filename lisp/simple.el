@@ -368,7 +368,8 @@ useful for editing binary files."
   "Move point to the first non-whitespace character on this line."
   (interactive)
   (beginning-of-line 1)
-  (skip-chars-forward " \t"))
+  (let ((limit (line-end-position)))
+    (skip-syntax-forward " " limit)))
 
 (defun fixup-whitespace ()
   "Fixup white space between objects around point.
