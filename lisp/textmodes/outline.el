@@ -330,6 +330,12 @@ at the end of the buffer."
 			 nil 'move)
       (goto-char (1+ (match-beginning 0)))))
 
+(defun outline-previous-heading ()
+  "Move to the previous (possibly invisible) heading line."
+  (interactive)
+  (re-search-backward (concat "^\\(" outline-regexp "\\)")
+		      nil 'move))
+
 (defsubst outline-visible ()
   "Non-nil if the character after point is visible."
   (not (get-char-property (point) 'invisible)))
@@ -645,7 +651,7 @@ Default is enough to cause the following heading to appear."
   (run-hooks 'outline-view-change-hook))
 
 (defun outline-up-heading-all (arg)
-  "Move to the heading line  of which the present line is a subheading.
+  "Move to the heading line of which the present line is a subheading.
 This function considers both visible and invisible heading lines.
 With argument, move up ARG levels."
   (outline-back-to-heading t)
@@ -657,29 +663,9 @@ With argument, move up ARG levels."
     (let ((present-level (funcall outline-level)))
       (while (and (not (< (funcall outline-level) present-level))
 		  (not (bobp)))
-	(outline-next-heading -1))
+	(outline-previous-heading))
       (setq arg (- arg 1)))))
 
-(defun outline-next-heading (arg)
-  "Move to the next heading line (visible or invisible).
-With argument, repeats or can move backward if negative.
-A heading line is one that starts with a `*' (or that
-`outline-regexp' matches)."
-  (if (< arg 0)
-      (beginning-of-line)
-    (end-of-line))
-  (while (and (not (bobp)) (< arg 0))
-    (while (and (not (bobp))
-		(re-search-backward (concat "^\\(" outline-regexp "\\)")
-				    nil 'move)))
-    (setq arg (1+ arg)))
-  (while (and (not (eobp)) (> arg 0))
-    (while (and (not (eobp))
-		(re-search-forward (concat "^\\(" outline-regexp "\\)")
-				   nil 'move)))
-    (setq arg (1- arg)))
-  (beginning-of-line))
-
 (defun outline-up-heading (arg)
   "Move to the visible heading line of which the present line is a subheading.
 With argument, move up ARG levels."
