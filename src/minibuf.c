@@ -1099,7 +1099,8 @@ assoc_for_completion (key, list)
 }
 
 DEFUN ("minibuffer-complete", Fminibuffer_complete, Sminibuffer_complete, 0, 0, "",
-  "Complete the minibuffer contents as far as possible.")
+  "Complete the minibuffer contents as far as possible.\n\
+Return nil if there is no valid completion, else t.")
   ()
 {
   register int i = do_completion ();
@@ -1162,7 +1163,8 @@ DEFUN ("minibuffer-complete-word", Fminibuffer_complete_word, Sminibuffer_comple
   0, 0, "",
   "Complete the minibuffer contents at most a single word.\n\
 After one word is completed as much as possible, a space or hyphen\n\
-is added, provided that matches some possible completion.")
+is added, provided that matches some possible completion.\n\
+Return nil if there is no valid completion, else t.")
   ()
 {
   Lisp_Object completion, tem;
