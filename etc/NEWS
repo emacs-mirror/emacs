@@ -260,8 +260,7 @@ all of these colors.
 When Emacs is invoked on a window system, the new command-line options
 `--fullwidth', `--fullheight', and `--fullscreen' produce a frame
 whose width, height, or both width and height take up the entire
-screen size.  (For now, this works only on GNU and Unix systems, and
-not with every window manager.)
+screen size.  (For now, this does not work with some window managers.)
 
 ** Info-index finally offers completion.
 
