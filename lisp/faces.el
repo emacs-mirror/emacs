@@ -1261,7 +1261,8 @@ Value is the new frame created."
 
 
 (defun face-set-after-frame-default (frame)
-  "Set frame-local faces of FRAME from face specs and resources."
+  "Set frame-local faces of FRAME from face specs and resources.
+Initialize colors of certain faces from frame parameters."
   (dolist (face (face-list))
     (let ((spec (or (get face 'saved-face)
 		    (get face 'face-defface-spec))))
@@ -1269,7 +1270,24 @@ Value is the new frame created."
 	(face-spec-set face spec frame))
       (internal-merge-in-global-face face frame)
       (when (memq window-system '(x w32))
-	(make-face-x-resource-internal face frame)))))
+	(make-face-x-resource-internal face frame))))
+
+  ;; Initialize attributes from frame parameters.
+  (let ((params '((foreground-color default :foreground)
+		  (background-color default :background)
+		  (border-color border :background)
+		  (cursor-color cursor :background)
+		  (scroll-bar-foreground scroll-bar :foreground)
+		  (scroll-bar-background scroll-bar :background)
+		  (mouse-color mouse :background))))
+    (while params
+      (let ((param-name (nth 0 (car params)))
+	    (face (nth 1 (car params)))
+	    (attr (nth 2 (car params)))
+	    value)
+	(when (setq value (frame-parameter frame param-name))
+	  (set-face-attribute face frame attr value)))
+      (setq params (cdr params)))))
 
 
 (defun tty-create-frame-with-faces (&optional parameters)
@@ -1322,11 +1340,6 @@ created."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Standard faces.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Make the standard faces.  The C code knows faces `default',
-;; `modeline', `tool-bar' and `region', so they must be the first faces
-;; made.  Unspecified attributes of these three faces are filled-in
-;; from frame parameters in the C code.
 
 (defgroup basic-faces nil
   "The standard faces of Emacs."
@@ -1382,12 +1395,36 @@ created."
   :group 'basic-faces)
 
 
-(defface margin
+(defface fringe
   '((((class color))
      (:background "grey95"))
     (t
      (:background "gray")))
-  "Basic face for the margins to the left and right of windows under X."
+  "Basic face for the fringes to the left and right of windows under X."
+  :version "21.1"
+  :group 'basic-faces)
+
+
+(defface scroll-bar '()
+  "Basic face for the scroll bar colors under X."
+  :version "21.1"
+  :group 'basic-faces)
+
+
+(defface border '()
+  "Basic face for the frame border under X."
+  :version "21.1"
+  :group 'basic-faces)
+
+
+(defface cursor '()
+  "Basic face for the cursor color under X."
+  :version "21.1"
+  :group 'basic-faces)
+
+
+(defface mouse '()
+  "Basic face for the mouse color under X."
   :version "21.1"
   :group 'basic-faces)
 
