@@ -2158,13 +2158,13 @@ Difficulties Building/Installing/Porting Emacs
     available.  On ftp.gnu.org, the main GNU distribution site, sources are
     available at
 
-      ftp://ftp.gnu.org/pub/gnu/emacs/emacs-20.3.tar.gz
+      ftp://ftp.gnu.org/pub/gnu/emacs/emacs-20.4.tar.gz
 
     The above will obviously change as new versions of Emacs come out.  For
     instance, when Emacs 20.5 is released, it will most probably be
     available at
 
-      ftp://ftp.gnu.org/pub/gnu/emacs/emacs-20.4.tar.gz
+      ftp://ftp.gnu.org/pub/gnu/emacs/emacs-20.5.tar.gz
 
     Again, you should use one of the mirror sites in question 92 (and
     adjust the URL accordingly) so as to reduce load on ftp.gnu.org.
