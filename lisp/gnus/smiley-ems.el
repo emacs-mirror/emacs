@@ -72,7 +72,7 @@ rgexp to replace with IMAGE.  IMAGE is the name of an XBM file in
     (let* ((data-directory smiley-data-directory)
 	   (image (find-image (list (list :type 'xbm
 					  :file (nth 2 elt)
-					  :ascent 100)))))
+					  :ascent 'center)))))
       (if image
 	  (push (list (car elt) (cadr elt) image)
 		smiley-cached-regexp-alist)))))
