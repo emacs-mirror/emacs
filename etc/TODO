@@ -100,7 +100,7 @@ Other features we would like:
 
   This requires the RIT to forward the WM_INITMENU message to
   the main thread, and not return from that message until the main
-  thread has processed the menu_bar_activate_event and regenerated
+  thread has processed the MENU_BAR_ACTIVATE_EVENT and regenerated
   the whole menu bar.  In the mean time, it should process other messages.
 
 * Get some major packages installed: W3/url (development version needs
