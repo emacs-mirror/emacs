@@ -548,7 +548,7 @@ as correspondent.
 
 Usually you don't have to set this variable, except if you collect
 mails sent by you under different user names.  Then it should be a
-regexp matching your mail adresses.
+regexp matching your mail addresses.
 
 *** The new user-option rmail-confirm-expunge controls whether and how
 to ask for confirmation before expunging deleted messages from an
@@ -562,6 +562,9 @@ like `j'.
 *** There is a new user option `rmail-digest-end-regexps' that
 specifies the regular expressions to detect the line that ends a
 digest message.
+
+*** The new user option `rmail-automatic-folder-directives' specifies
+in which folder to put messages automatically.
 
 ** Changes to TeX mode
 
