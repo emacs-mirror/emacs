@@ -2288,7 +2288,10 @@ init_lread ()
 	}
     }
   else
-    Vload_path = decode_env_path (0, normal);
+    /* ../lisp refers to the build directory.
+       NORMAL refers to the lisp dir in the source directory.  */
+    Vload_path = Fcons (build_string ("../lisp"),
+				      decode_env_path (0, normal));
 #endif
 
 #ifndef WINDOWSNT
