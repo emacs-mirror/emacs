@@ -35,7 +35,10 @@
 (defun quoted-printable-decode-region (from to &optional coding-system)
   "Decode quoted-printable in the region between FROM and TO, per RFC 2045.
 If CODING-SYSTEM is non-nil, decode bytes into characters with that
-coding-system."
+coding-system.
+
+Interactively, you can supply the CODING-SYSTEM argument
+with \\[universal-coding-system-argument]."
   (interactive
    ;; Let the user determine the coding system with "C-x RET c".
    (list (region-beginning) (region-end) coding-system-for-read))
@@ -95,13 +98,12 @@ encode lines starting with \"From\"."
   (save-excursion
     (goto-char from)
     (if (fboundp 'string-to-multibyte)	; Emacs 22
-	;; Fixme: Should we allow codes in the range \x80-\xff?
 	(if (re-search-forward (string-to-multibyte "[^\x0-\x7f\x80-\xff]")
 			       to t)
-	    ;; Fixme: Improve message.
-	    (error "Multibyte character in QP encoding region")
-	  (if (re-search-forward "[^\x0-\xff]" to t)
-	      (error "Multibyte character in QP encoding region")))))
+	    ;; Fixme: This is somewhat misleading.
+	    (error "Multibyte character in QP encoding region"))
+      (if (re-search-forward (mm-string-as-multibyte "[^\0-\377]") to t)
+	  (error "Multibyte character in QP encoding region"))))
   (unless class
     ;; Avoid using 8bit characters. = is \075.
     ;; Equivalent to "^\000-\007\013\015-\037\200-\377="
@@ -115,7 +117,7 @@ encode lines starting with \"From\"."
 		  (not (eobp)))
 	(insert
 	 (prog1
-	     ;; To unibyte in case of eight-bit-{control,graphics}
+	     ;; To unibyte in case of Emacs 22 eight-bit.
 	     (format "=%02X" (multibyte-char-to-unibyte (char-after)))
 	   (delete-char 1))))
       ;; Encode white space at the end of lines.
