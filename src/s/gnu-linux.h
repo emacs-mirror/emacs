@@ -160,7 +160,11 @@ Boston, MA 02111-1307, USA.  */
 /* Here is how to find X Windows.  LD_SWITCH_X_SITE_AUX gives an -R option
    says where to find X windows at run time.  */
 
+#ifdef __mips__
+#define LD_SWITCH_SYSTEM -G 0 LD_SWITCH_X_SITE_AUX
+#else
 #define LD_SWITCH_SYSTEM LD_SWITCH_X_SITE_AUX
+#endif /* __mips__ */
 #endif /* __ELF__ */
 
 /* As of version 1.1.51, Linux did not actually implement SIGIO.
