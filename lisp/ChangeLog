@@ -1,3 +1,8 @@
+2004-10-21  John Paul Wallington  <jpw@gnu.org>
+
+	* calc/calc-graph.el (calc-graph-init):
+	Use `set-process-query-on-exit-flag'.
+
 2004-10-21  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/compile.el (compilation-start): Rely on `cd' to get
