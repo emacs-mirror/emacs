@@ -302,3 +302,8 @@ Boston, MA 02111-1307, USA.  */
 
 #define BSD_PGRPS
 #define setpgrp(pid,pgid) setpgid(pid,pgid)
+
+/* Use mmap directly for allocating larger buffers.  */
+#ifdef DOUG_LEA_MALLOC
+#undef REL_ALLOC
+#endif
