@@ -25,7 +25,7 @@
 (if view-mode-map
     nil
   (setq view-mode-map (make-keymap))
-  (fillarray view-mode-map 'View-undefined)
+  (fillarray (car (cdr view-mode-map)) 'View-undefined)
   (define-key view-mode-map "\C-c" 'view-exit)
   (define-key view-mode-map "\C-z" 'suspend-emacs)
   (define-key view-mode-map "q" 'view-exit)
