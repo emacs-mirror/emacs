@@ -1465,6 +1465,7 @@ This is the same as (default-value 'case-fold-search).");
 /* This doc string is too long for cpp; cpp dies if it isn't in a comment.
    But make-docfile finds it!
   DEFVAR_PER_BUFFER ("mode-line-format", &current_buffer->mode_line_format,
+    Qnil,
     "Template for displaying mode line for current buffer.\n\
 Each buffer has its own value of this variable.\n\
 Value may be a string, a symbol or a list or cons cell.\n\
@@ -1687,11 +1688,14 @@ An entry (nil PROP VAL BEG . END) indicates that a text property\n\
 was modified between BEG and END.  PROP is the property name,\n\
 and VAL is the old value.\n\
 \n\
+An entry of the form POSITION indicates that point was at the buffer\n\
+location given by the integer.  Undoing an entry of this form places\n\
+point at POSITION.\n\
+\n\
 nil marks undo boundaries.  The undo command treats the changes\n\
 between two undo boundaries as a single step to be undone.\n\
 \n\
-If the value of the variable is t, undo information is not recorded.\n\
-");
+If the value of the variable is t, undo information is not recorded.");
 
   defsubr (&Sbuffer_list);
   defsubr (&Sget_buffer);
