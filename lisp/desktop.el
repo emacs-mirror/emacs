@@ -581,53 +581,49 @@ DIRNAME must be the directory in which the desktop file will be saved."
   "Save the Desktop file. Parameter DIRNAME specifies where to save desktop."
   (interactive "DDirectory to save desktop file in: ")
   (run-hooks 'desktop-save-hook)
+  (setq dirname (file-name-as-directory (expand-file-name dirname)))
   (save-excursion
-    (let ((filename (expand-file-name desktop-base-file-name dirname))
-      (info
-        (mapcar
-          (function
-            (lambda (b)
-              (set-buffer b)
-              (list
-                (desktop-file-name (buffer-file-name) dirname)
-                (buffer-name)
-                major-mode
-                ;; minor modes
-                (let (ret)
-                  (mapcar
-                    #'(lambda (mim)
-                      (and
-                        (boundp mim)
-                        (symbol-value mim)
-                        (setq
-                          ret
-                          (cons
-                            (let (
-                              (special (assq mim desktop-minor-mode-table))
-                            )
-                              (if special (cadr special) mim))
-                            ret))))
-                    (mapcar #'car minor-mode-alist))
-                  ret)
-                (point)
-                (list (mark t) mark-active)
-                buffer-read-only
-                (run-hook-with-args-until-success 'desktop-buffer-misc-functions)
-                (let (
-                  (locals desktop-locals-to-save)
-                  (loclist (buffer-local-variables))
-                  (ll)
-                )
-                  (while locals
-                    (let ((here (assq (car locals) loclist)))
-                      (if here
-                        (setq ll (cons here ll))
-                        (when (member (car locals) loclist)
-                          (setq ll (cons (car locals) ll)))))
-                    (setq locals (cdr locals)))
-                  ll))))
-          (buffer-list)))
-      (buf (get-buffer-create "*desktop*")))
+    (let ((filename (concat dirname desktop-base-file-name))
+          (info
+            (mapcar
+              (function
+                (lambda (b)
+                  (set-buffer b)
+                  (list
+                    (desktop-file-name (buffer-file-name) dirname)
+                    (buffer-name)
+                    major-mode
+                    ;; minor modes
+                    (let (ret)
+                      (mapcar
+                        #'(lambda (mim)
+                          (and
+                            (boundp mim)
+                            (symbol-value mim)
+                            (setq ret
+                              (cons
+                                (let ((special (assq mim desktop-minor-mode-table)))
+                                  (if special (cadr special) mim))
+                                ret))))
+                        (mapcar #'car minor-mode-alist))
+                      ret)
+                    (point)
+                    (list (mark t) mark-active)
+                    buffer-read-only
+                    (run-hook-with-args-until-success 'desktop-buffer-misc-functions)
+                    (let ((locals desktop-locals-to-save)
+                          (loclist (buffer-local-variables))
+                          (ll))
+                      (while locals
+                        (let ((here (assq (car locals) loclist)))
+                          (if here
+                            (setq ll (cons here ll))
+                            (when (member (car locals) loclist)
+                              (setq ll (cons (car locals) ll)))))
+                        (setq locals (cdr locals)))
+                      ll))))
+              (buffer-list)))
+          (buf (get-buffer-create "*desktop*")))
       (set-buffer buf)
       (erase-buffer)
 
@@ -695,11 +691,14 @@ Returns t if it has read a desktop file, nil otherwise."
       (setq desktop-dirname (and dirs (expand-file-name (car dirs))))
       (if desktop-dirname
         (let ((desktop-first-buffer nil))
-          ;; `desktop-create-buffer' sets `desktop-first-buffer' to the first
-          ;; buffer in the desktop file (the last for desktop files written
-          ;; by desktop version prior to 206).
+          ;; Evaluate desktop buffer.
           (load (expand-file-name desktop-base-file-name desktop-dirname) t t t)
-          (when desktop-first-buffer (switch-to-buffer desktop-first-buffer))
+          ;; `desktop-create-buffer' puts buffers at end of the buffer list.
+          ;; We want buffers existing prior to evaluating the desktop (and not reused)
+          ;; to be placed at the end of the buffer list, so we move them here.
+          (mapcar 'bury-buffer
+                  (nreverse (cdr (memq desktop-first-buffer (nreverse (buffer-list))))))
+          (switch-to-buffer (car (buffer-list)))
           (run-hooks 'desktop-delay-hook)
           (setq desktop-delay-hook nil)
           (run-hooks 'desktop-after-read-hook)
@@ -885,14 +884,14 @@ This function always sets `desktop-enable' to t."
         (setq result (funcall handler))
         (setq hlist (cdr hlist)))
       (unless (bufferp result) (setq result nil))
+      ;; Restore buffer list order with new buffer at end. Don't change
+      ;; the order for old desktop files (old desktop module behaviour).
       (unless (< desktop-file-version 206)
-        (when result (setq buffer-list (cons result buffer-list)))
-        (mapcar 'bury-buffer buffer-list))
+        (mapcar 'bury-buffer buffer-list)
+        (when result (bury-buffer result)))
       (when result
-        (if (< desktop-file-version 206)
-          (setq desktop-first-buffer result)
-          (bury-buffer result))
-        (unless desktop-first-buffer (setq desktop-first-buffer result))
+        (unless (or desktop-first-buffer (< desktop-file-version 206))
+          (setq desktop-first-buffer result))
         (set-buffer result)
         (unless (equal (buffer-name) desktop-buffer-name)
           (rename-buffer desktop-buffer-name))
