@@ -2193,7 +2193,7 @@ it says to replace just that subexpression with NEWTEXT,\n\
 rather than replacing the entire matched text.\n\
 This is, in a vague sense, the inverse of using `\\N' in NEWTEXT;\n\
 `\\N' copies subexp N into NEWTEXT, but using N as SUBEXP puts\n\
-NEWTEXT in place of subexp B.\n\
+NEWTEXT in place of subexp N.\n\
 This is useful only after a regular expression search or match,\n\
 since only regular expressions have distinguished subexpressions.")
   (newtext, fixedcase, literal, string, subexp)
