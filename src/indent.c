@@ -27,6 +27,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "termchar.h"
 #include "termopts.h"
 #include "disptab.h"
+#include "intervals.h"
 
 /* Indentation can insert tabs if this is non-zero;
    otherwise always uses spaces */
@@ -352,6 +353,8 @@ and if COLUMN is in the middle of a tab character, change it to spaces.")
       old_point = point;
       Findent_to (make_number (col), Qnil);
       SET_PT (old_point);
+      /* Set the last_known... vars consistently.  */
+      col = goal;
     }
 
   /* If line ends prematurely, add space to the end.  */
@@ -436,6 +439,11 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
   int selective_rlen
     = (selective && dp && XTYPE (DISP_INVIS_VECTOR (dp)) == Lisp_Vector
        ? XVECTOR (DISP_INVIS_VECTOR (dp))->size : 0);
+#ifdef USE_TEXT_PROPERTIES
+  /* The next location where the `invisible' property changes */
+  int next_invisible = from;
+  Lisp_Object prop, position;
+#endif
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
   for (pos = from; pos < to; pos++)
@@ -448,6 +456,32 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
       prev_vpos = vpos;
       prev_hpos = hpos;
 
+#ifdef USE_TEXT_PROPERTIES
+      /* if the `invisible' property is set, we can skip to
+	 the next property change */
+      while (pos == next_invisible && pos < to)
+      {
+	XFASTINT (position) = pos;
+	prop = Fget_text_property (position,
+				   Qinvisible,
+				   Fcurrent_buffer ());
+        {
+	  Lisp_Object end;
+
+	  end = Fnext_single_property_change (position,
+					      Qinvisible,
+					      Fcurrent_buffer ());
+	  if (INTEGERP (end))
+	    next_invisible = XINT (end);
+	  else
+	    next_invisible = to;
+	  if (! NILP (prop))
+	    pos = next_invisible;
+        }
+      }
+      if (pos >= to)
+	break;
+#endif
       c = FETCH_CHAR (pos);
       if (c >= 040 && c < 0177
 	  && (dp == 0 || XTYPE (DISP_CHAR_VECTOR (dp, c)) != Lisp_Vector))
@@ -610,9 +644,16 @@ vmotion (from, vtarget, width, hscroll, window)
       if (from > BEGV && FETCH_CHAR (from - 1) != '\n')
 	{
 	  prevline = find_next_newline (from, -1);
-	  while (selective > 0
-		 && prevline > BEGV
-		 && position_indentation (prevline) >= selective)
+	  while (prevline > BEGV
+		 && ((selective > 0
+		      && position_indentation (prevline) >= selective)
+#ifdef USE_TEXT_PROPERTIES
+		     /* watch out for newlines with `invisible' property */
+		     || ! NILP (Fget_text_property (XFASTINT (prevline),
+						    Qinvisible,
+						    Fcurrent_buffer ()))
+#endif
+		 ))
 	    prevline = find_next_newline (prevline - 1, -1);
 	  pos = *compute_motion (prevline, 0,
 				 lmargin + (prevline == 1 ? start_hpos : 0),
@@ -641,8 +682,15 @@ vmotion (from, vtarget, width, hscroll, window)
 	{
 	  prevline = find_next_newline (prevline - 1, -1);
 	  if (prevline == BEGV
-	      || selective <= 0
-	      || position_indentation (prevline) < selective)
+	      || ((selective <= 0
+		   || position_indentation (prevline) < selective)
+#ifdef USE_TEXT_PROPERTIES
+		  /* watch out for newlines with `invisible' property */
+		  && NILP (Fget_text_property (XFASTINT (prevline),
+					       Qinvisible,
+					       Fcurrent_buffer ()))
+#endif
+		  ))
 	    break;
 	}
       pos = *compute_motion (prevline, 0,
