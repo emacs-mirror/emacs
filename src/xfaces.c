@@ -1005,10 +1005,10 @@ clear_face_cache (clear_fonts_p)
 DEFUN ("clear-face-cache", Fclear_face_cache, Sclear_face_cache, 0, 1, 0,
   "Clear face caches on all frames.\n\
 Optional THOROUGHLY non-nil means try to free unused fonts, too.")
-  (thorougly)
-     Lisp_Object thorougly;
+  (thoroughly)
+     Lisp_Object thoroughly;
 {
-  clear_face_cache (!NILP (thorougly));
+  clear_face_cache (!NILP (thoroughly));
   ++face_change_count;
   ++windows_or_buffers_changed;
   return Qnil;
