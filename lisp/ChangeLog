@@ -5,6 +5,8 @@
 
 2001-10-30  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* progmodes/autoconf.el (autoconf-mode): Fix comment-start-skip.
+
 	* font-lock.el (java-font-lock-syntactic-face-function): New fun.
 	(font-lock-defaults-alist): Use it.
 	From David Ponce <david.ponce@wanadoo.fr>
