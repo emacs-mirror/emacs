@@ -1,5 +1,9 @@
 2004-11-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* window.c (shrink_windows): Handle special case of one window left
+	when trying to shrink the final reminder.  Grow windows if
+	total_removed is less than total_shrink.
+
 	* xmenu.c (pop_down_menu): Remove global variable current_menu,
 	extract pointer from arg with XSAVE_VALUE.
 	(create_and_show_popup_menu, create_and_show_dialog,

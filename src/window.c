@@ -2657,6 +2657,9 @@ shrink_windows (total, size, nchildren, shrinkable,
             --shrinkable;
             total_removed += smallest;
 
+            /* We don't know what the smallest is now.  */
+            smallest = total;
+
             /* Out of for, just remove one window at the time and
                check again if we have enough space.  */
             break;
@@ -2681,6 +2684,16 @@ shrink_windows (total, size, nchildren, shrinkable,
      that are left and still can be shrunk.  */
   while (total_shrink > total_removed)
     {
+      int nonzero_sizes = 0;
+      int nonzero_idx = -1;
+
+      for (i = 0; i < nchildren; ++i)
+        if (new_sizes[i] > 0)
+          {
+            ++nonzero_sizes;
+            nonzero_idx = i;
+          }
+      
       for (i = 0; i < nchildren; ++i)
         if (new_sizes[i] > min_size)
           {
@@ -2691,6 +2704,25 @@ shrink_windows (total, size, nchildren, shrinkable,
                check again if we have enough space.  */
             break;
           }
+
+
+      /* Special case, only one window left.  */
+      if (nonzero_sizes == 1)
+        break;
+    }
+
+  /* Any surplus due to rounding, we add to windows that are left.  */
+  while (total_shrink < total_removed)
+    {
+      for (i = 0; i < nchildren; ++i)
+        {
+          if (new_sizes[i] != 0 && total_shrink < total_removed)
+            {
+              ++new_sizes[i];
+              --total_removed;
+              break;
+            }
+        }
     }
 
   return new_sizes;
