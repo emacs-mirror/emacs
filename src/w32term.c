@@ -7511,7 +7511,8 @@ glyph_rect (f, x, y, rect)
      RECT *rect;
 {
   Lisp_Object window;
-  int part, found = 0;
+  int part;
+
 
   window = window_from_coordinates (f, x, y, &part, 0);
   if (!NILP (window))
@@ -7519,30 +7520,46 @@ glyph_rect (f, x, y, rect)
       struct window *w = XWINDOW (window);
       struct glyph_row *r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
       struct glyph_row *end = r + w->current_matrix->nrows - 1;
-      int area;
 
       frame_to_window_pixel_xy (w, &x, &y);
-      
-      for (; !found && r < end && r->enabled_p; ++r)
-	if (r->y + r->height >= y)
+
+      for (; r < end && r->enabled_p; ++r)
+	if (r->y <= y && r->y + r->height > y)
 	  {
+	    /* Found the row at y.  */
 	    struct glyph *g = r->glyphs[TEXT_AREA];
 	    struct glyph *end = g + r->used[TEXT_AREA];
 	    int gx;
-	      
-	    for (gx = r->x; !found && g < end; gx += g->pixel_width, ++g)
-	      if (gx + g->pixel_width >= x)
+
+	    rect->top = WINDOW_TO_FRAME_PIXEL_Y (w, r->y);
+	    rect->bottom = rect->top + r->height;
+
+	    if (x < r->x)
+	      {
+		/* x is to the left of the first glyph in the row.  */
+		rect->left = XINT (w->left);
+		rect->right = WINDOW_TO_FRAME_PIXEL_X (w, r->x);
+		return 1;
+	      }
+
+	    for (gx = r->x; g < end; gx += g->pixel_width, ++g)
+	      if (gx <= x && gx + g->pixel_width > x)
 		{
+		  /* x is on a glyph.  */
 		  rect->left = WINDOW_TO_FRAME_PIXEL_X (w, gx);
-		  rect->top = WINDOW_TO_FRAME_PIXEL_Y (w, r->y);
 		  rect->right = rect->left + g->pixel_width;
-		  rect->bottom = rect->top + r->height;
-		  found = 1;
+		  return 1;
 		}
+
+	    /* x is to the right of the last glyph in the row.  */
+	    rect->left = WINDOW_TO_FRAME_PIXEL_X (w, gx);
+	    rect->right = XINT (w->left) + XINT (w->width);
+	    return 1;
 	  }
     }
 
-  return found;
+  /* The y is not on any row.  */
+  return 0;
 }
 
 /* Record the position of the mouse in last_mouse_glyph.  */
