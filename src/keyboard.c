@@ -2088,13 +2088,13 @@ kbd_buffer_get_event ()
 	    obj = make_lispy_switch_frame (frame);
 	  internal_last_event_frame = frame;
 	}
-#endif
 
       /* If we didn't decide to make a switch-frame event, go ahead and 
 	 return a mouse-motion event.  */
       if (NILP (obj))
 	obj = make_lispy_movement (f, bar_window, part, x, y, time);
-     }
+#endif
+    }
   else
     /* We were promised by the above while loop that there was
        something for us to read!  */
@@ -2698,6 +2698,8 @@ make_lispy_event (event)
     }
 }
 
+#ifdef MULTI_FRAME
+
 static Lisp_Object
 make_lispy_movement (frame, bar_window, part, x, y, time)
      FRAME_PTR frame;
@@ -2776,6 +2778,8 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
 			   Qnil));
     }
 }
+
+#endif /* MULTI_FRAME */
 
 /* Construct a switch frame event.  */
 static Lisp_Object
