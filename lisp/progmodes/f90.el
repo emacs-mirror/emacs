@@ -236,143 +236,106 @@ whether to blink the matching beginning."
   :group 'f90)
 
 (defconst f90-keywords-re
-  ;;("allocate" "allocatable" "assign" "assignment" "backspace" "block"
-  ;;"call" "case" "character" "close" "common" "complex" "contains"
-  ;;"continue" "cycle" "data" "deallocate" "dimension" "do" "double" "else"
-  ;;"elseif" "elsewhere" "end" "enddo" "endfile" "endif" "entry" "equivalence"
-  ;;"exit" "external" "forall" "format" "function" "goto" "if" "implicit"
-  ;;"include" "inquire" "integer" "intent" "interface" "intrinsic" "logical"
-  ;;"module" "namelist" "none" "nullify" "only" "open" "operator" "optional" "parameter"
-  ;;"pause" "pointer" "precision" "print" "private" "procedure" "program"
-  ;;"public" "read" "real" "recursive" "result" "return" "rewind" "save" "select"
-  ;;"sequence" "stop" "subroutine" "target" "then" "type" "use" "where"
-  ;;"while" "write")
-  (concat
-   "\\<\\(a\\(llocat\\(able\\|e\\)\\|ssign\\(\\|ment\\)\\)\\|b\\(ackspace\\|"
-   "lock\\)\\|c\\(a\\(ll\\|se\\)\\|haracter\\|lose\\|o\\(m\\(mon\\|plex\\)\\|"
-   "nt\\(ains\\|inue\\)\\)\\|ycle\\)\\|d\\(ata\\|eallocate\\|imension\\|"
-   "o\\(\\|uble\\)\\)\\|e\\(lse\\(\\|if\\|where\\)\\|n\\(d\\(\\|do\\|file\\|"
-   "if\\)\\|try\\)\\|quivalence\\|x\\(it\\|ternal\\)\\)\\|f\\(or\\(all\\|"
-   "mat\\)\\|unction\\)\\|goto\\|i\\(f\\|mplicit\\|n\\(clude\\|quire\\|t\\("
-   "e\\(ger\\|nt\\|rface\\)\\|rinsic\\)\\)\\)\\|logical\\|module\\|n\\("
-   "amelist\\|one\\|ullify\\)\\|o\\(nly\\|p\\(en\\|erator\\|tional\\)\\)\\|p\\(a\\("
-   "rameter\\|use\\)\\|ointer\\|r\\(ecision\\|i\\(nt\\|vate\\)\\|o\\("
-   "cedure\\|gram\\)\\)\\|ublic\\)\\|re\\(a[dl]\\|cursive\\|sult\\|turn\\|wind\\)\\|"
-   "s\\(ave\\|e\\(lect\\|quence\\)\\|top\\|ubroutine\\)\\|t\\(arget\\|hen\\|"
-   "ype\\)\\|use\\|w\\(h\\(ere\\|ile\\)\\|rite\\)\\)\\>")
+  (regexp-opt '("allocatable" "allocate" "assign" "assignment" "backspace"
+		"block" "call" "case" "character" "close" "common" "complex"
+		"contains" "continue" "cycle" "data" "deallocate"
+		"dimension" "do" "double" "else" "elseif" "elsewhere" "end"
+		"enddo" "endfile" "endif" "entry" "equivalence" "exit"
+		"external" "forall" "format" "function" "goto" "if"
+		"implicit" "include" "inquire" "integer" "intent"
+		"interface" "intrinsic" "logical" "module" "namelist" "none"
+		"nullify" "only" "open" "operator" "optional" "parameter"
+		"pause" "pointer" "precision" "print" "private" "procedure"
+		"program" "public" "read" "real" "recursive" "result" "return"
+		"rewind" "save" "select" "sequence" "stop" "subroutine"
+		"target" "then" "type" "use" "where" "while" "write"
+		;; F95 keywords.
+		"elemental" "pure") 'words)
   "Regexp for F90 keywords.")
 
 (defconst f90-keywords-level-3-re
-  ;; ("allocate" "allocatable" "assign" "assignment" "backspace" "close"
-  ;; "deallocate" "dimension" "endfile" "entry" "equivalence" "external"
-  ;; "inquire" "intent" "intrinsic" "nullify" "only" "open" "operator"
-  ;; "optional" "parameter" "pause" "pointer" "print" "private" "public"
-  ;; "read" "recursive" "result" "rewind" "save" "select" "sequence"
-  ;; "target"  "write")
-  (concat
-   "\\<\\(a\\(llocat\\(able\\|e\\)\\|ssign\\(\\|ment\\)\\)\\|backspace\\|"
-   "close\\|d\\(eallocate\\|imension\\)\\|e\\(n\\(dfile\\|try\\)\\|"
-   "quivalence\\|xternal\\)\\|"
-   "in\\(quire\\|t\\(ent\\|rinsic\\)\\)\\|nullify\\|"
-   "o\\(nly\\|p\\(en\\|erator\\|tional\\)\\)\\|"
-   "p\\(a\\(rameter\\|use\\)\\|ointer\\|ri\\(nt\\|vate\\)\\|ublic\\)\\|re\\("
-   "ad\\|cursive\\|sult\\|wind\\)\\|s\\(ave\\|e\\(lect\\|quence\\)\\)\\|target\\|"
-   "write\\)\\>")
-"Keyword-regexp for font-lock level >= 3.")
+  (regexp-opt
+   '("allocatable" "allocate" "assign" "assignment" "backspace"
+     "close" "deallocate" "dimension" "endfile" "entry" "equivalence"
+     "external" "inquire" "intent" "intrinsic" "nullify" "only" "open"
+     "operator" "optional" "parameter" "pause" "pointer" "print" "private"
+     "public" "read" "recursive" "result" "rewind" "save" "select"
+     "sequence" "target" "write"
+     ;; F95 keywords.
+     "elemental" "pure") 'words)
+  "Keyword-regexp for font-lock level >= 3.")
 
 
 (defconst f90-procedures-re
-  ;; ("abs" "achar" "acos" "adjustl" "adjustr" "aimag" "aint" "all" "allocated"
-  ;; "anint" "any" "asin" "associated" "atan" "atan2" "bit_size" "btest"
-  ;; "ceiling" "char" "cmplx" "conjg" "cos" "cosh" "count" "cshift"
-  ;; "date_and_time" "dble" "digits" "dim" "dot_product" "dprod" "eoshift"
-  ;; "epsilon" "exp" "exponent" "floor" "fraction" "huge" "iachar" "iand"
-  ;; "ibclr" "ibits" "ibset" "ichar" "ieor" "index" "int" "ior" "ishft"
-  ;; "ishftc" "kind" "lbound" "len" "len_trim" "lge" "lgt" "lle" "llt" "log"
-  ;; "logical" "log10" "matmul" "max" "maxexponent" "maxloc" "maxval" "merge"
-  ;; "min" "minexponent" "minloc" "minval" "mod" "modulo" "mvbits" "nearest"
-  ;; "nint" "not" "pack" "precision" "present" "product" "radix"
-  ;; "random_number" "random_seed" "range" "real" "repeat" "reshape"
-  ;; "rrspacing" "scale" "scan" "selected_int_kind" "selected_real_kind"
-  ;; "set_exponent" "shape" "sign" "sin" "sinh" "size" "spacing" "spread"
-  ;; "sqrt" "sum" "system_clock" "tan" "tanh" "tiny" "transfer" "transpose"
-  ;; "trim" "ubound" "unpack" "verify")
-  ;; A left parenthesis to avoid highlighting non-procedures.
-  ;; Real is taken out here to avoid highlighting declarations.
-  (concat
-   "\\<\\(a\\(bs\\|c\\(har\\|os\\)\\|djust[lr]\\|i\\(mag\\|nt\\)\\|ll\\(\\|"
-   "ocated\\)\\|n\\(int\\|y\\)\\|s\\(in\\|sociated\\)\\|tan2?\\)\\|b\\("
-   "it_size\\|test\\)\\|c\\(eiling\\|har\\|mplx\\|o\\(njg\\|sh?\\|unt\\)\\|"
-   "shift\\)\\|d\\(ate_and_time\\|ble\\|i\\(gits\\|m\\)\\|ot_product\\|prod"
-   "\\)\\|e\\(oshift\\|psilon\\|xp\\(\\|onent\\)\\)\\|f\\(loor\\|"
-   "raction\\)\\|huge\\|i\\(a\\(char\\|nd\\)\\|b\\(clr\\|its\\|set\\)\\|"
-   "char\\|eor\\|n\\(dex\\|t\\)\\|or\\|shftc?\\)\\|kind\\|l\\(bound\\|"
-   "en\\(\\|_trim\\)\\|g[et]\\|l[et]\\|og\\(\\|10\\|ical\\)\\)\\|m\\(a\\("
-   "tmul\\|x\\(\\|exponent\\|loc\\|val\\)\\)\\|erge\\|in\\(\\|exponent\\|"
-   "loc\\|val\\)\\|od\\(\\|ulo\\)\\|vbits\\)\\|n\\(earest\\|int\\|ot\\)\\|"
-   "p\\(ack\\|r\\(e\\(cision\\|sent\\)\\|oduct\\)\\)\\|r\\(a\\(dix\\|n\\("
-   "dom_\\(number\\|seed\\)\\|ge\\)\\)\\|e\\(peat\\|shape\\)\\|rspacing\\)\\|"
-   "s\\(ca\\(le\\|n\\)\\|e\\(lected_\\(int_kind\\|real_kind\\)\\|"
-   "t_exponent\\)\\|hape\\|i\\(gn\\|nh?\\|ze\\)\\|p\\(acing\\|read\\)\\|"
-   "qrt\\|um\\|ystem_clock\\)\\|t\\(anh?\\|iny\\|r\\(ans\\(fer\\|pose\\)\\|"
-   "im\\)\\)\\|u\\(bound\\|npack\\)\\|verify\\)[ \t]*(")
+  (concat "\\<"
+   (regexp-opt
+    '("abs" "achar" "acos" "adjustl" "adjustr" "aimag" "aint"
+      "all" "allocated" "anint" "any" "asin" "associated"
+      "atan" "atan2" "bit_size" "btest" "ceiling" "char" "cmplx"
+      "conjg" "cos" "cosh" "count" "cshift" "date_and_time" "dble"
+      "digits" "dim" "dot_product" "dprod" "eoshift" "epsilon"
+      "exp" "exponent" "floor" "fraction" "huge" "iachar" "iand"
+      "ibclr" "ibits" "ibset" "ichar" "ieor" "index" "int" "ior"
+      "ishft" "ishftc" "kind" "lbound" "len" "len_trim" "lge" "lgt"
+      "lle" "llt" "log" "log10" "logical" "matmul" "max"
+      "maxexponent" "maxloc" "maxval" "merge" "min" "minexponent"
+      "minloc" "minval" "mod" "modulo" "mvbits" "nearest" "nint"
+      "not" "pack" "precision" "present" "product" "radix"
+      ;; Real is taken out here to avoid highlighting declarations.
+      "random_number" "random_seed" "range" ;; "real"
+      "repeat" "reshape" "rrspacing" "scale" "scan"
+      "selected_int_kind" "selected_real_kind" "set_exponent"
+      "shape" "sign" "sin" "sinh" "size" "spacing" "spread" "sqrt"
+      "sum" "system_clock" "tan" "tanh" "tiny" "transfer"
+      "transpose" "trim" "ubound" "unpack" "verify"
+      ;; F95 intrinsic functions.
+      "null" "cpu_time") t)
+   ;; A left parenthesis to avoid highlighting non-procedures.
+   "[ \t]*(")
   "Regexp whose first part matches F90 intrinsic procedures.")
 
 (defconst f90-operators-re
-;; "and" "or" "not" "eqv" "neqv" "eq" "ne" "lt" "le" "gt" "ge" "true" "false"
- (concat
-   "\\.\\(and\\|eqv?\\|false\\|g[et]\\|l[et]\\|n\\(e\\(\\|qv\\)\\|"
-   "ot\\)\\|or\\|true\\)\\.")
+ (concat "\\."
+	 (regexp-opt '("and" "eq" "eqv" "false" "ge" "gt" "le" "lt" "ne"
+		       "neqv" "not" "or" "true") t)
+	 "\\.")
   "Regexp matching intrinsic operators.")
 
 (defconst f90-hpf-keywords-re
-  ;; Intrinsic procedures
-  ;; ("all_prefix" "all_scatter" "all_suffix" "any_prefix" "any_scatter"
-  ;; "any_suffix" "copy_prefix" "copy_scatter" "copy_suffix" "count_prefix"
-  ;; "count_scatter" "count_suffix" "grade_down" "grade_up" "hpf_alignment"
-  ;; "hpf_template" "hpf_distribution" "iall" "iall_prefix" "iall_scatter"
-  ;; "iall_suffix" "iany" "iany_prefix" "iany_scatter" "iany_suffix" "iparity"
-  ;; "iparity_prefix" "iparity_scatter" "iparity_suffix" "leadz"
-  ;; "maxval_prefix" "maxval_scatter" "maxval_suffix" "minval_prefix"
-  ;; "minval_scatter" "minval_suffix" "parity" "parity_prefix"
-  ;; "parity_scatter" "parity_suffix" "popcnt" "poppar" "product_prefix"
-  ;; "product_scatter" "product_suffix" "sum_prefix" "sum_scatter"
-  ;; "sum_suffix" "ilen" "number_of_processors" "processors_shape")
-  ;; Directives
-  ;; ("align" "distribute" "dynamic" "inherit" "template" "processors"
-  ;; "realign" "redistribute" "independent")
-  ;; Keywords
-  ;; ("pure" "extrinsic" "new" "with" "onto" "block" "cyclic")
-  (concat
-   "\\<\\(a\\(l\\(ign\\|l_\\(prefix\\|s\\(catter\\|uffix\\)\\)\\)\\|ny_\\("
-   "prefix\\|s\\(catter\\|uffix\\)\\)\\)\\|block\\|c\\(o\\(py_\\(prefix\\|"
-   "s\\(catter\\|uffix\\)\\)\\|unt_\\(prefix\\|s\\(catter\\|uffix\\)\\)\\)\\|"
-   "yclic\\)\\|d\\(istribute\\|ynamic\\)\\|extrinsic\\|grade_\\(down\\|"
-   "up\\)\\|hpf_\\(alignment\\|distribution\\|template\\)\\|i\\(a\\(ll\\(\\|"
-   "_\\(prefix\\|s\\(catter\\|uffix\\)\\)\\)\\|ny\\(\\|_\\(prefix\\|s\\("
-   "catter\\|uffix\\)\\)\\)\\)\\|len\\|n\\(dependent\\|herit\\)\\|parity\\(\\|"
-   "_\\(prefix\\|s\\(catter\\|uffix\\)\\)\\)\\)\\|leadz\\|m\\(axval_\\("
-   "prefix\\|s\\(catter\\|uffix\\)\\)\\|inval_\\(prefix\\|s\\(catter\\|"
-   "uffix\\)\\)\\)\\|n\\(ew\\|umber_of_processors\\)\\|onto\\|p\\(arity\\(\\|"
-   "_\\(prefix\\|s\\(catter\\|uffix\\)\\)\\)\\|op\\(cnt\\|par\\)\\|ro\\("
-   "cessors\\(\\|_shape\\)\\|duct_\\(prefix\\|s\\(catter\\|uffix\\)\\)\\)\\|"
-   "ure\\)\\|re\\(align\\|distribute\\)\\|sum_\\(prefix\\|s\\(catter\\|"
-   "uffix\\)\\)\\|template\\|with\\)\\>")
+  (regexp-opt
+   ;; Intrinsic procedures
+   '("all_prefix" "all_scatter" "all_suffix" "any_prefix"
+     "any_scatter" "any_suffix" "copy_prefix" "copy_scatter"
+     "copy_suffix" "count_prefix" "count_scatter" "count_suffix"
+     "grade_down" "grade_up"
+     "hpf_alignment" "hpf_distribution" "hpf_template" "iall" "iall_prefix"
+     "iall_scatter" "iall_suffix" "iany" "iany_prefix" "iany_scatter"
+     "iany_suffix" "ilen" "iparity" "iparity_prefix"
+     "iparity_scatter" "iparity_suffix" "leadz" "maxval_prefix"
+     "maxval_scatter" "maxval_suffix" "minval_prefix" "minval_scatter"
+     "minval_suffix" "number_of_processors" "parity"
+     "parity_prefix" "parity_scatter" "parity_suffix" "popcnt" "poppar"
+     "processors_shape" "product_prefix" "product_scatter"
+     "product_suffix" "sum_prefix" "sum_scatter" "sum_suffix"
+     ;; Directives
+     "align" "distribute" "dynamic" "independent" "inherit" "processors"
+     "realign" "redistribute" "template" 
+     ;; Keywords
+     "block" "cyclic" "extrinsic" "new" "onto" "pure" "with") 'words)
   "Regexp for all HPF keywords, procedures and directives.")
 
 ;; Highlighting patterns
 
 (defvar f90-font-lock-keywords-1
   (list
-   '("\\<\\(end[ \t]*\\(program\\|module\\|function\\|subroutine\\|type\\)\\)\\>[ \t]*\\(\\sw+\\)?"
-     (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
-   '("\\<\\(program\\|call\\|module\\|subroutine\\|function\\|use\\)\\>[ \t]*\\(\\sw+\\)?"
-     (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
    ;; Special highlighting of "module procedure foo-list"
-   '("\\<\\(module[ \t]*procedure\\)\\>" (1 font-lock-keyword-face t))
+   '("\\<\\(module[ \t]*procedure\\)\\>" (1 font-lock-keyword-face))
    ;; Highlight definition of new type
    '("\\<\\(type\\)[ \t]*\\(.*::[ \t]*\\|[ \t]+\\)\\(\\sw+\\)"
      (1 font-lock-keyword-face) (3 font-lock-function-name-face))
+   ;; Other functions and declarations.
+   '("\\<\\(\\(?:end[ \t]*\\)?\\(program\\|module\\|function\\|subroutine\\|type\\)\\|use\\|call\\)\\>[ \t]*\\(\\sw+\\)?"
+     (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
    "\\<\\(\\(end[ \t]*\\)?\\(interface\\|block[ \t]*data\\)\\|contains\\)\\>")
   "This does fairly subdued highlighting of comments and function calls.")
 
@@ -406,8 +369,8 @@ whether to blink the matching beginning."
    (list
     f90-keywords-level-3-re
     f90-operators-re
-    (list f90-procedures-re '(1 font-lock-keyword-face t))
-   "\\<real\\>"			; Avoid overwriting real defs.
+    (list f90-procedures-re '(1 font-lock-keyword-face keep))
+    "\\<real\\>"			; Avoid overwriting real defs.
    ))
   "Highlights all F90 keywords and intrinsic procedures.")
 
@@ -1454,11 +1417,11 @@ If run in the middle of a line, the line is not broken."
 	  (progn
 	    (message "Indenting %s %s..."
 		     (car program) (car (cdr program)))
-	    (f90-indent-region (point) (mark))
+	    (indent-region (point) (mark))
 	    (message "Indenting %s %s...done"
 		     (car program) (car (cdr program))))
 	(message "Indenting the whole file...")
-	(f90-indent-region (point) (mark))
+	(indent-region (point) (mark))
 	(message "Indenting the whole file...done")))))
 
 ;; autofill and break-line
@@ -1476,7 +1439,7 @@ If run in the middle of a line, the line is not broken."
 	     (if (not no-update) (f90-update-line))
 	     (newline 1)
 	     (if f90-beginning-ampersand (insert "&")))))
-  (f90-indent-line))
+  (indent-according-to-mode))
   
 (defun f90-find-breakpoint ()
   "From fill-column, search backward for break-delimiter."
