@@ -1,3 +1,8 @@
+2000-10-31  Gerd Moellmann  <gerd@gnu.org>
+
+	* files.el (find-file-noselect): When we expand a wildcard, return
+	a list of buffers, as we should do according to the doc string.
+
 2000-10-31  Ken Raeburn  <raeburn@gnu.org>
 
 	* loadup.el (top level): Adjust load path if program name is
@@ -31,8 +36,8 @@
 
 2000-10-31  Kenichi Handa  <handa@etl.go.jp>
 
-	* term/mac-win.el: (decode-mac-roman, encode-mac-roman,
-	mac-roman): Moved to european.el.
+	* term/mac-win.el: (decode-mac-roman, encode-mac-roman)
+	(mac-roman): Moved to european.el.
 	(ccl-encode-mac-roman-font, fontset-mac): Modified for
 	mule-unicode-2500-33ff and mule-unicode-e000-ffff.
 	(mac-roman-kbd-insert, mac-roman-kbd-mode): These functions

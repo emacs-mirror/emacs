@@ -1,5 +1,8 @@
 2000-10-31  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (read_char) <wrong_kboard>: Make sure that we
+	process idle timers while waiting for another event.
+
 	* dispnew.c (update_frame_line): Handle case where spaces in 
 	the default face are colored.
 
