@@ -28,6 +28,9 @@
 ;;; list. You can insert to, remove from, and rotate a ring. When the ring
 ;;; fills up, insertions cause the oldest elts to be quietly dropped.
 ;;;
+;;; In ring-ref, 0 is the index of the newest element.  Higher indexes
+;;; correspond to older elements until they wrap.
+;;;
 ;;; HEAD = index of the newest item on the ring.
 ;;; TAIL = index of the oldest item on the ring.
 ;;;
@@ -36,18 +39,16 @@
 
 ;;; Code:
 
-(provide 'ring)
-
 ;;;###autoload
 (defun ring-p (x) 
-  "T if X is a ring; NIL otherwise."
+  "Returns t if X is a ring; nil otherwise."
   (and (consp x) (integerp (car x))
        (consp (cdr x)) (integerp (car (cdr x)))
        (vectorp (cdr (cdr x)))))
 
 ;;;###autoload
 (defun make-ring (size)
-  "Make a ring that can contain SIZE elts."
+  "Make a ring that can contain SIZE elements."
   (cons 1 (cons 0 (make-vector (+ size 1) nil))))
 
 (defun ring-plus1 (index veclen)
@@ -60,7 +61,7 @@
   (- (if (= 0 index) veclen index) 1))
 
 (defun ring-length (ring)
-  "Number of elts in the ring."
+  "Number of elements in the ring."
   (let ((hd (car ring)) (tl (car (cdr ring)))  (siz (length (cdr (cdr ring)))))
     (let ((len (if (<= hd tl) (+ 1 (- tl hd)) (+ 1 tl (- siz hd)))))
       (if (= len siz) 0 len))))
@@ -85,31 +86,6 @@ item to make room."
 	(setcar (cdr ring) (ring-minus1 tl (length vec)))
 	(aref vec tl))))
 
-;;; This isn't actually used in this package. I just threw it in in case
-;;; someone else wanted it. If you want rotating-ring behavior on your history
-;;; retrieval (analagous to kill ring behavior), this function is what you
-;;; need. I should write the yank-input and yank-pop-input-or-kill to go with
-;;; this, and not bind it to a key by default, so it would be available to
-;;; people who want to bind it to a key. But who would want it? Blech.
-(defun ring-rotate (ring n)
-  (if (not (= n 0))
-      (if (ring-empty-p ring) ;Is this the right error check?
-	  (error "ring empty")
-	  (let ((hd (car ring))  (tl (car (cdr ring)))  (vec (cdr (cdr ring))))
-	    (let ((len (length vec)))
-	      (while (> n 0)
-		(setq tl (ring-plus1 tl len))
-		(aset ring tl (aref ring hd))
-		(setq hd (ring-plus1 hd len))
-		(setq n (- n 1)))
-	      (while (< n 0)
-		(setq hd (ring-minus1 hd len))
-		(aset vec hd (aref vec tl))
-		(setq tl (ring-minus1 tl len))
-		(setq n (- n 1))))
-	    (setcar ring hd)
-	    (setcar (cdr ring) tl)))))
-
 (defun ring-mod (n m)
   "Returns N mod M.  M is positive.
 Answer is guaranteed to be non-negative, and less than m."
@@ -119,11 +95,17 @@ Answer is guaranteed to be non-negative, and less than m."
 	   (if (>= m 0) m (- m)))))) ; (abs m)
 
 (defun ring-ref (ring index)
+  "Returns RING's INDEX element.
+INDEX need not be <= the ring length, the appropriate modulo operation
+will be performed.  Element 0 is the most recently inserted; higher indices
+correspond to older elements until they wrap."
   (let ((numelts (ring-length ring)))
     (if (= numelts 0) (error "indexed empty ring")
 	(let* ((hd (car ring))  (tl (car (cdr ring)))  (vec (cdr (cdr ring)))
 	       (index (ring-mod index numelts))
 	       (vec-index (ring-mod (+ index hd) (length vec))))
 	  (aref vec vec-index)))))
+
+(provide 'ring)
 
 ;;; ring.el ends here
