@@ -1,3 +1,9 @@
+2005-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/sgml-mode.el (sgml-fill-nobreak): New fun.
+	(sgml-mode): Use it.
+	(sgml-get-context): Better keep track of implicitly closed tags.
+
 2005-01-13  Kenichi Handa  <handa@m17n.org>
 
 	* textmodes/ispell.el: These changes are to fix misalignment error
@@ -28,8 +34,8 @@
 
 2005-01-12  Nick Roberts  <nickrob@snap.net.nz>
 
-	* xt-mouse.el (xterm-mouse-translate, xterm-mouse-event): Enable
-	mouse clicks on mode-line, header-line and margin.
+	* xt-mouse.el (xterm-mouse-translate, xterm-mouse-event):
+	Enable mouse clicks on mode-line, header-line and margin.
 	(event-type): Give mouse event symbols an 'event-kind property
 	with value 'mouse-click.
 
