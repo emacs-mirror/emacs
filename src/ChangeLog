@@ -1,3 +1,10 @@
+2002-09-26  Richard M. Stallman  <rms@gnu.org>
+
+	* regex.h (__restrict_arr): Don't define if already defined.
+
+	* coding.c (run_pre_post_conversion_on_str):
+	Save and restore Vdeactivate_mark.
+
 2002-09-26  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* minibuf.c (Fminibufferp): Add an optional `buffer' argument.

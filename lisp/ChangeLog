@@ -1,3 +1,32 @@
+2002-09-26  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/unrmail.el (unrmail): Do the work directly,
+	without actually selecting the messages in the from file.
+	(unrmail-unprune): New subroutine.
+
+	* files.el (backup-buffer): Bind local var MODES.
+	Don't use renaming for a suid or sgid file.
+	Use backup-buffer-copy to do copying.
+	(backup-buffer-copy): New subroutine.
+	Clear suid and sgid bits for the copy.
+
+2002-09-26  Edward M. Reingold  <reingold@emr.cs.iit.edu>
+
+	* calendar/solar.el (solar-equinoxes-solstices):
+	Use time properly adjusted for DST in the result.
+
+2002-09-26  Richard M. Stallman  <rms@gnu.org>
+
+	* follow.el (follow-generic-filter): Simply bind deactivate-mark.
+	Bind inhibit-read-only; don't mess with buffer-read-only.
+
+	* speedbar.el (speedbar-refresh): Simply bind deactivate-mark.
+
+2002-09-26  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* ielm.el (inferior-emacs-lisp-mode): Treat the header as
+	output, if comint-use-prompt-regexp-instead-of-fields is nil.
+
 2002-09-26  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* ibuffer.el (ibuffer-update): Call `minibufferp' with argument
