@@ -176,7 +176,7 @@ the mode line appears right above the echo area; it is the
 next-to-last line in the frame.  The mode line starts and ends with
 dashes.  On a text-mode display, the mode line is in inverse video if
 the terminal supports that; on a graphics display, the mode line has a
-3D box appearence to help it stand out.
+3D box appearance to help it stand out.
 
   Normally, the mode line looks like this:
 

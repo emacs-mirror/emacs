@@ -1112,8 +1112,8 @@ IDL manual.
 
 @page
 
-@cindex Help application, keybindings
-@cindex Keybindings, in help application
+@cindex Help application, key bindings
+@cindex Key bindings, in help application
 The help window is normally displayed in a separate frame.  The
 following commands can be used to navigate inside the help system.
 
@@ -1404,7 +1404,7 @@ collects data about routines, and how to update this information.
 @cindex Templates
 
 IDLWAVE can insert IDL code templates into the buffer.  For a few
-templates, this is done with direct keybindings:
+templates, this is done with direct key bindings:
 
 @multitable @columnfractions .15 .85
 @item @kbd{C-c C-c}
@@ -1951,13 +1951,13 @@ modes.
 
 @kindex C-c C-d
 Programs can be compiled, run, and debugged directly from the source
-buffer in Emacs.  The IDLWAVE shell installs keybindings both in the
+buffer in Emacs.  The IDLWAVE shell installs key bindings both in the
 shell buffer and in all IDL code buffers of the current Emacs session.
 On Emacs versions which support this, it also installs a debugging
 toolbar.  The display of the toolbar can be toggled with @kbd{C-c C-d
 C-t} (@code{idlwave-shell-toggle-toolbar}).
 
-The debugging keybindings are by default on the prefix key @kbd{C-c
+The debugging key bindings are by default on the prefix key @kbd{C-c
 C-d}, so for example setting a breakpoint is done with @kbd{C-c C-d
 C-b}, compiling a source file with @kbd{C-c C-d C-c}.  If you find this
 too much work you can choose a combination of modifier keys which is not

@@ -206,7 +206,7 @@ tried to follow the order in which you marked these points.
 @chapter Skeletons as Abbrev Expansions
 @cindex skeletons as abbrevs
 
-  Rather than use a keybinding for every skeleton command, you can also
+  Rather than use a key binding for every skeleton command, you can also
 define an abbreviation (@pxref{(emacs)Defining Abbrevs}) that will expand
 (@pxref{(emacs)Expanding Abbrevs}) into the skeleton.
 

@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: mh-e.texi,v 1.10 2001/05/18 11:26:06 eliz Exp $
+@c $Id: mh-e.texi,v 1.11 2001/05/19 09:21:27 eliz Exp $
 @c %**start of header
 @setfilename ../info/mh-e
 @settitle mh-e
@@ -2810,7 +2810,7 @@ arguments are BEGIN and END@."
 @end group
 @end smallexample
 
-To use the function @code{add-enriched-text}, first create keybindings
+To use the function @code{add-enriched-text}, first create key bindings
 for it (@pxref{Customizing Sending}).  Then, set the mark with
 @kbd{C-@@} or @kbd{C-SPC}, type in the text to be highlighted, and type
 @kbd{C-c t b}.  This adds @samp{<bold>} where you set the mark and

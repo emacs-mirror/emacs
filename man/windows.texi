@@ -374,7 +374,7 @@ by customizing the variable @code{winner-mode}.
 @cindex directional window selection
 @findex windmove-right
 @findex windmove-default-keybindings
-  The Windmove commands move directionally between neighbouring windows in
+  The Windmove commands move directionally between neighboring windows in
 a frame.  @kbd{M-x windmove-right} selects the window immediately to the
 right of the currently selected one, and similarly for the ``left,'' ``up,''
 and ``down'' counterparts.  @kbd{M-x windmove-default-keybindings} binds
