@@ -599,11 +599,15 @@ get_charset_id (charset_symbol)
   Lisp_Object val;
   int charset;
 
-  return ((SYMBOLP (charset_symbol)
-	   && (val = Fget (charset_symbol, Qcharset), VECTORP (val))
-	   && (charset = XINT (XVECTOR (val)->contents[CHARSET_ID_IDX]),
-	       CHARSET_VALID_P (charset)))
-	  ? charset : -1);
+  /* This originally used a ?: operator, but reportedly the HP-UX
+     compiler version HP92453-01 A.10.32.22 miscompiles that.  */
+  if (SYMBOLP (charset_symbol)
+      && VECTORP (val = Fget (charset_symbol, Qcharset))
+      && CHARSET_VALID_P (charset =
+			  XINT (XVECTOR (val)->contents[CHARSET_ID_IDX])))
+    return charset;
+  else
+    return -1;
 }
 
 /* Return an identification number for a new private charset of
