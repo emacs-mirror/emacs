@@ -64,7 +64,7 @@ schedule (str)
     continue;
   if (!*p)
     {
-      fprintf (stderr, "%s: bad input format: %s", pname, str);
+      fprintf (stderr, "%s: bad input format: %s\n", pname, str);
       return;
     }
   *p++ = 0;
@@ -101,7 +101,7 @@ schedule (str)
   ep->reply_at = get_date (str, NULL);
   if (ep->reply_at - time (&now) < 0)
     {
-      fprintf (stderr, "%s: bad time spec: %s%c%s", pname, str, FS, p);
+      fprintf (stderr, "%s: bad time spec: %s%c%s\n", pname, str, FS, p);
       return;
     }
 
@@ -109,7 +109,7 @@ schedule (str)
   ep->token = (char *) malloc ((unsigned) strlen (p) + 1);
   if (! ep->token)
     {
-      fprintf (stderr, "%s: malloc %s: %s%c%s",
+      fprintf (stderr, "%s: malloc %s: %s%c%s\n",
 	       pname, sys_errlist[errno], str, FS, p);
       return;
     }
@@ -231,7 +231,7 @@ sigcatch (sig)
     case SIGTERM:
       fprintf (stderr, "Events still queued:\n");
       for (ep = events; ep < events + num_events; ep++)
-	fprintf (stderr, "%d = %ld @ %s",
+	fprintf (stderr, "%d = %ld @ %s\n",
 		 ep - events, ep->reply_at, ep->token);
       exit (0);
       break;
