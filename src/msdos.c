@@ -38,6 +38,7 @@ Boston, MA 02111-1307, USA.  */
 #include <string.h>	 /* for bzero and string functions */
 #include <sys/stat.h>    /* for _fixpath */
 #include <unistd.h>	 /* for chdir, dup, dup2, etc. */
+#include <dir.h>	 /* for getdisk */
 #if __DJGPP__ >= 2
 #include <fcntl.h>
 #include <io.h>		 /* for setmode */
@@ -4116,6 +4117,16 @@ getdefdir (drive, dst)
 
   errno = e;
   return 1;
+}
+
+char *
+emacs_root_dir (void)
+{
+  static char root_dir[4];
+
+  sprintf (root_dir, "%c:/", 'A' + getdisk ());
+  root_dir[0] = tolower (root_dir[0]);
+  return root_dir;
 }
 
 /* Remove all CR's that are followed by a LF.  */
