@@ -142,7 +142,7 @@ performance.")
     (define-key map "\r" 'te-more-break-advance-one-line)
 
     (setq terminal-more-break-map map)))
-  
+
 
 ;;; Pacify the byte compiler
 (defvar te-process nil)
@@ -167,10 +167,7 @@ performance.")
 
 (defun te-escape ()
   (interactive)
-  (let (s 
-	(local ((defun te-escape ()
-  (interactive)
-  (let (s 
+  (let (s
         (local (current-local-map))
         (global (current-global-map)))
     (unwind-protect
@@ -187,7 +184,7 @@ performance.")
 
     (message "")
 
-    (cond 
+    (cond
      ;;  Certain keys give vector notation, like [escape] when
      ;;  you hit esc key...
      ((and (stringp s)
@@ -240,7 +237,7 @@ Other chars following \"%s\" are interpreted as follows:\n"
 	     (setq l (cdr l))))
 	 nil)))))
 
-			
+
 
 (defun te-escape-extended-command ()
   (interactive)
@@ -309,7 +306,7 @@ Very poor man's file transfer protocol."
   "Discontinue output log."
   (interactive)
   (te-set-output-log nil))
-  
+
 
 (defun te-toggle (sym arg)
   (set sym (cond ((not (numberp arg)) arg)
@@ -442,7 +439,7 @@ lets you type a terminal emulator command."
   (cond ((eq last-input-char terminal-escape-char)
 	 (call-interactively 'te-escape))
 	(t
-	 ;; Convert `return' to C-m, etc. 
+	 ;; Convert `return' to C-m, etc.
 	 (if (and (symbolp last-input-char)
 		  (get last-input-char 'ascii-character))
 	     (setq last-input-char (get last-input-char 'ascii-character)))
@@ -695,7 +692,7 @@ move to start of new line, clear to end of line."
       (forward-char 1) (end-of-line)
       (delete-region (- (point) te-width) (point))
       (insert-char ?\  te-width))))
-      
+
 
 ;; ^p ^l
 (defun te-clear-screen ()
@@ -953,9 +950,9 @@ move to start of new line, clear to end of line."
 				 ;; (Perhaps some operating system or
 				 ;; other is completely incompetent...)
 				 (?\C-m . te-beginning-of-line)
-				 (?\C-g . te-beep)             
-				 (?\C-h . te-backward-char)     
-				 (?\C-i . te-output-tab))))     
+				 (?\C-g . te-beep)
+				 (?\C-h . te-backward-char)
+				 (?\C-i . te-output-tab))))
 		    'te-losing-unix)))
 	  (te-redisplay-if-necessary 1))
 	(and preemptable
@@ -1000,7 +997,7 @@ move to start of new line, clear to end of line."
 
 (defun te-update-pending-output-display ()
   (if (null (cdr te-pending-output))
-      (setq te-pending-output-info "")      
+      (setq te-pending-output-info "")
     (let ((length (te-pending-output-length)))
       (if (< length 1500)
 	  (setq te-pending-output-info "")
@@ -1090,7 +1087,7 @@ subprocess started."
   (if (null height) (setq height (- (window-height (selected-window)) 1)))
   (terminal-mode)
   (setq te-width width te-height height)
-  (setq te-terminal-name (concat te-terminal-name-prefix "-" te-width 
+  (setq te-terminal-name (concat te-terminal-name-prefix "-" te-width
 				 te-height))
   (setq mode-line-buffer-identification
 	(list (format "Emacs terminal %dx%d: %%b  " te-width te-height)
@@ -1118,7 +1115,7 @@ subprocess started."
 			     (format "%s; exec %s"
 				     te-stty-string
 				     (mapconcat 'te-quote-arg-for-sh
-						(cons program args) " ")))) 
+						(cons program args) " "))))
 	(set-process-filter te-process 'te-filter)
 	(set-process-sentinel te-process 'te-sentinel))
     (error (fundamental-mode)
@@ -1231,14 +1228,14 @@ of the terminal-emulator"
 	   (concat "\"" harder "\"")))))
 
 (defun te-create-terminfo ()
-  "Create and compile a terminfo entry for the virtual terminal. This is kept 
+  "Create and compile a terminfo entry for the virtual terminal. This is kept
 in the /tmp directory"
   (if (and system-uses-terminfo
-	   (not (file-exists-p (concat  "/tmp/" 
+	   (not (file-exists-p (concat  "/tmp/"
 					(substring te-terminal-name-prefix 0 1)
 					"/" te-terminal-name))))
-    (let ( (terminfo 
-	    (concat 
+    (let ( (terminfo
+	    (concat
 	     (format "%s,mir, xon,cols#%d, lines#%d,"
 		     te-terminal-name te-width te-height)
 	     "bel=^P^G, clear=^P\\f, cr=^P^A, cub1=^P^B, cud1=^P\\n,"
@@ -1254,7 +1251,7 @@ in the /tmp directory"
 	(write-file file-name)
 	(kill-buffer nil)
 	)
-      (let ( (process-environment 
+      (let ( (process-environment
 	      (cons (concat "TERMINFO=" "/tmp")
 		    process-environment)) )
 	(set-process-sentinel (start-process "tic" nil "tic" file-name)
