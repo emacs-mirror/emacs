@@ -1,3 +1,7 @@
+1999-12-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* eval.c (syms_of_eval): Initialize debugger_may_continue.
+
 1999-12-29  Kenichi Handa  <handa@etl.go.jp>
 
 	* process.c (read_process_output): Fix the args CHARPOS and LENINS
