@@ -328,7 +328,7 @@ buffer."
   (setq shell-last-dir nil)
   (make-local-variable 'shell-dirtrackp)
   (setq shell-dirtrackp t)
-  (add-hook 'comint-input-filter-functions 'shell-directory-tracker)
+  (add-hook 'comint-input-filter-functions 'shell-directory-tracker nil t)
   (setq comint-input-autoexpand shell-input-autoexpand)
   (make-local-variable 'list-buffers-directory)
   (setq list-buffers-directory (expand-file-name default-directory))
