@@ -67,7 +67,7 @@
     ()
   (setq Buffer-menu-mode-map (make-keymap))
   (suppress-keymap Buffer-menu-mode-map t)
-  (define-key Buffer-menu-mode-map "q" 'Buffer-menu-quit)
+  (define-key Buffer-menu-mode-map "q" 'quit-window)
   (define-key Buffer-menu-mode-map "v" 'Buffer-menu-select)
   (define-key Buffer-menu-mode-map "2" 'Buffer-menu-2-window)
   (define-key Buffer-menu-mode-map "1" 'Buffer-menu-1-window)
@@ -183,14 +183,6 @@ Type q immediately to make the buffer menu go away."
   (switch-to-buffer-other-window (list-buffers-noselect arg))
   (message
    "Commands: d, s, x, u; f, o, 1, 2, m, v; ~, %%; q to quit; ? for help."))
-
-(defun Buffer-menu-quit ()
-  "Quit the buffer menu."
-  (interactive)
-  (let ((buffer (current-buffer)))
-    ;; Switch away from the buffer menu and bury it.
-    (switch-to-buffer (other-buffer))
-    (bury-buffer buffer)))
 
 (defun Buffer-menu-mark ()
   "Mark buffer on this line for being displayed by \\<Buffer-menu-mode-map>\\[Buffer-menu-select] command."
