@@ -65,6 +65,32 @@
 ;; Cscheme-specific; you must use cmuscheme.el.  Interested parties are
 ;; invited to port xscheme functionality on top of comint mode...
 
+;;; CHANGE LOG
+;;; ===========================================================================
+;;; 8/88 Olin
+;;; Created. 
+;;;
+;;; 2/15/89 Olin
+;;; Removed -emacs flag from process invocation. It's only useful for
+;;; cscheme, and makes cscheme assume it's running under xscheme.el,
+;;; which messes things up royally. A bug.
+;;;
+;;; 5/22/90 Olin
+;;; - Upgraded to use comint-send-string and comint-send-region.
+;;; - run-scheme now offers to let you edit the command line if
+;;;   you invoke it with a prefix-arg. M-x scheme is redundant, and
+;;;   has been removed.
+;;; - Explicit references to process "scheme" have been replaced with
+;;;   (scheme-proc). This allows better handling of multiple process bufs.
+;;; - Added scheme-send-last-sexp, bound to C-x C-e. A gnu convention.
+;;; - Have not added process query facility a la cmulisp.el's lisp-show-arglist
+;;;   and friends, but interested hackers might find a useful application
+;;;   of this facility.
+;;;
+;;; 3/12/90 Olin
+;;; - scheme-load-file and scheme-compile-file no longer switch-to-scheme.
+;;;   Tale suggested this.
+
 ;;; Code:
 
 (require 'scheme)
@@ -404,33 +430,6 @@ for a minimal, simple implementation. Feel free to extend it.")
 This is a good place to put keybindings.")
 	
 (run-hooks 'cmuscheme-load-hook)
-
-
-;;; CHANGE LOG
-;;; ===========================================================================
-;;; 8/88 Olin
-;;; Created. 
-;;;
-;;; 2/15/89 Olin
-;;; Removed -emacs flag from process invocation. It's only useful for
-;;; cscheme, and makes cscheme assume it's running under xscheme.el,
-;;; which messes things up royally. A bug.
-;;;
-;;; 5/22/90 Olin
-;;; - Upgraded to use comint-send-string and comint-send-region.
-;;; - run-scheme now offers to let you edit the command line if
-;;;   you invoke it with a prefix-arg. M-x scheme is redundant, and
-;;;   has been removed.
-;;; - Explicit references to process "scheme" have been replaced with
-;;;   (scheme-proc). This allows better handling of multiple process bufs.
-;;; - Added scheme-send-last-sexp, bound to C-x C-e. A gnu convention.
-;;; - Have not added process query facility a la cmulisp.el's lisp-show-arglist
-;;;   and friends, but interested hackers might find a useful application
-;;;   of this facility.
-;;;
-;;; 3/12/90 Olin
-;;; - scheme-load-file and scheme-compile-file no longer switch-to-scheme.
-;;;   Tale suggested this.
 
 (provide 'cmuscheme)
 
