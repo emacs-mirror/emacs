@@ -2362,7 +2362,7 @@ The variable `rmail-retry-ignored-headers' is a regular expression
 specifying headers which should not be copied into the new message."
   (interactive)
   (require 'mail-utils)
-  (let (mail-buffer bounce-start bounce-end resending)
+  (let (mail-buffer bounce-start bounce-end bounce-indent resending)
     (save-excursion
       ;; Narrow down to just the quoted original message
       (rmail-beginning-of-message)
@@ -2389,36 +2389,26 @@ specifying headers which should not be copied into the new message."
 	  ;; Support a style of failure message in which the original
 	  ;; message is indented, and included within lines saying
 	  ;; `Start of returned message' and `End of returned message'.
-	  (if (looking-at " *Received:")
-	      (let (column)
+	  (if (looking-at " +Received:")
+	      (progn
+		(setq bounce-start (point))
 		(skip-chars-forward " ")
-		(setq column (current-column))
-		(let ((old-buffer (current-buffer)))
-		  (set-buffer (get-buffer-create " rmail retry temp"))
-		  (insert-buffer old-buffer)
-		  (goto-char (point-max))
-		  (if (re-search-backward "^End of returned message$" nil t)
-		      (delete-region (point) (point-max)))
-		  (indent-rigidly (point-min) (point-max) (- column))
-		  (goto-char (point-min))
-		  (re-search-forward mail-unsent-separator nil t))))
-	  (save-restriction
-	    (let ((old-end (point-max)))
-	      ;; One message contained a few random lines before the old
-	      ;; message header.  The first line of the message started with
-	      ;; two hyphens.  A blank line follows these random lines.
-	      (skip-chars-forward "\n")
-	      (if (looking-at "^--")
-		  (progn
-		    (search-forward "\n\n")
-		    (skip-chars-forward "\n")))
-	      (beginning-of-line)
-	      (narrow-to-region (point) (point-max))
-	      (setq mail-buffer (current-buffer)
-		    bounce-start (point)
-		    bounce-end (point-max))
-	      (or (search-forward "\n\n" nil t)
-		  (error "Cannot find end of header in failed message")))))))
+		(setq bounce-indent (- (current-column)))
+		(goto-char (point-max))
+		(re-search-backward "^End of returned message$" nil t)
+		(setq bounce-end (point)))
+	    ;; One message contained a few random lines before the old
+	    ;; message header.  The first line of the message started with
+	    ;; two hyphens.  A blank line follows these random lines.
+	    (if (looking-at "^--")
+		(progn
+		  (search-forward "\n\n")
+		  (skip-chars-forward "\n")))
+	    (setq bounce-start (point)
+		  bounce-end (point-max))
+	    (or (search-forward "\n\n" nil t)
+		(error "Cannot find end of header in failed message")))
+	  (setq mail-buffer (current-buffer)))))
     ;; Start sending a new message; default header fields from the original.
     ;; Turn off the usual actions for initializing the message body
     ;; because we want to get only the text from the failure message.
@@ -2429,8 +2419,10 @@ specifying headers which should not be copied into the new message."
 	    (erase-buffer)
 	    (insert-buffer-substring mail-buffer bounce-start bounce-end)
 	    (goto-char (point-min))
+	    (if bounce-indent
+		(indent-rigidly (point-min) (point-max) bounce-indent))
 	    (rmail-clear-headers rmail-retry-ignored-headers)
-	    (rmail-clear-headers "^sender:\\|^from\\|^return-path")
+	    (rmail-clear-headers "^sender:\\|^from:\\|^return-path:")
 	    (goto-char (point-min))
 	    (save-restriction
 	      (search-forward "\n\n")
