@@ -1,3 +1,17 @@
+2000-12-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* ebrowse.c (operator_name): Cast argument of isalpha to
+	unsigned char.
+
+	* etags.c (ISALNUM, ISALPHA, ISDIGIT, ISLOWER): New macros.
+	Use them throughout instead of ctype functions/macros.
+	(lowcase): Cast to unsigned char.
+	(UPCASE): New macro.
+	(canonicalize_filename): Use UPCASE instead toupper.
+
+	* fakemail.c (get_keyword): Make sure that isspace and
+	similar aren't called with a negative argument.
+
 2000-12-13  Dave Love  <fx@gnu.org>
 
 	* ebrowse.c (ensure_scope_buffer_room): Fix xrealloc call.

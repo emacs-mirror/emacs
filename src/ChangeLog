@@ -1,5 +1,8 @@
 2000-12-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (Fset_window_point): Remove test for
+	cursor_in_non_selected_windows.
+
 	* lread.c (read1): Recognize end of file after `\\'.
 
 	* xfns.c (x_create_tip_frame): Use unwind_create_tip_frame,
