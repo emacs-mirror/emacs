@@ -293,11 +293,11 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
   else if (string == 0)
     {
       Lisp_Object input;
-      i = num_input_chars;
+      i = num_input_events;
       input = specs;
       /* Compute the arg values using the user's expression.  */
       specs = Feval (specs);
-      if (i != num_input_chars || !NILP (record_flag))
+      if (i != num_input_events || !NILP (record_flag))
 	{
 	  /* We should record this command on the command history.  */
 	  Lisp_Object values, car;
