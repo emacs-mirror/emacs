@@ -8,7 +8,7 @@
 
 @c The edition number appears in several places in this file
 @set EDITION   Fourteenth
-@set EMACSVER  21.2
+@set EMACSVER  21.2.90
 
 @ifnottex
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},
