@@ -63,7 +63,6 @@
 
 	* ses.el (copy-region-as-kill): Deactivate mark.
 
->>>>>>> 1.6818
 2005-01-01  Richard M. Stallman  <rms@gnu.org>
 
 	* replace.el (occur-1): If the output buffer is also an input,
