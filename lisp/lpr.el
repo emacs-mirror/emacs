@@ -219,17 +219,21 @@ for further customization of the printer command."
 				 (nconc (list "-h" title)
 					lpr-page-header-switches))
 	    (setq start (point-min) end (point-max))))
-      (apply (or print-region-function 'call-process-region)
-	     (nconc (list start end lpr-command
-			  nil nil nil)
-		    (nconc (and lpr-add-switches
-				(list "-J" name))
-			   ;; These belong in pr if we are using that.
-			   (and lpr-add-switches lpr-headers-switches
-				(list "-T" title))
-			   (and (stringp printer-name)
-				(list (concat "-P" printer-name)))
-			   switches)))
+      (let ((printer-name-switch (if (memq system-type
+					   '(usg-unix-v dgux hpux irix))
+				     "-d" "-P")))
+	(apply (or print-region-function 'call-process-region)
+	       (nconc (list start end lpr-command
+			    nil nil nil)
+		      (nconc (and lpr-add-switches
+				  (list "-J" name))
+			     ;; These belong in pr if we are using that.
+			     (and lpr-add-switches lpr-headers-switches
+				  (list "-T" title))
+			     (and (stringp printer-name)
+				  (list (concat printer-name-switch
+						printer-name)))
+			     switches))))
       (if (markerp end)
 	  (set-marker end nil))
       (message "Spooling%s...done" switch-string))))
