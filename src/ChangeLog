@@ -1,3 +1,10 @@
+2004-03-12  Richard M. Stallman  <rms@gnu.org>
+
+	* fns.c (internal_equal): New arg PROPS controls comparing
+	text properties.  All callers changed.
+	(Fequal_including_properties): New function.
+	(syms_of_fns): defsubr it.
+
 2004-03-12  Kim F. Storm  <storm@cua.dk>
 
 	Fix image support on MAC.  From YAMAMOTO Mitsuharu.

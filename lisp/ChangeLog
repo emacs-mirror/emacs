@@ -1,3 +1,13 @@
+2004-03-12  Richard M. Stallman  <rms@gnu.org>
+
+	* pcvs.el (cvs-mode-add-change-log-entry-other-window):
+	Fix minor bug.
+
+	* replace.el (occur-engine): Change message for count of matches.
+
+	* emacs-lisp/bytecomp.el (byte-compile-get-constant):
+	For strings, do compare text properties.
+
 2004-03-11  Jason Rumney  <jasonr@gnu.org>
 
 	* net/ldap.el (ldap-search-internal): Handle file URLs with drive

@@ -1,3 +1,8 @@
+2004-03-12  Richard M. Stallman  <rms@gnu.org>
+
+	* intro.texi (Version Info): Add arg to emacs-version.
+	(Lisp History): Change xref to CL manual.
+
 2004-03-09  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* minibuf.texi (Completion Commands): Add xref to Emacs manual
