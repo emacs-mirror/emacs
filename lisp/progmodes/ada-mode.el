@@ -3629,7 +3629,7 @@ This does a lot more highlighting.")
   ;; MATCH is a cons cell containing the start and end location of the
   ;; last search for ada-procedure-start-regexp. 
   (goto-char (car match))
-  (let (proc-found func-found)
+  (let (proc-found func-found procname functype)
     (cond
      ((or (setq proc-found (looking-at "^[ \t]*procedure"))
 	  (setq func-found (looking-at "^[ \t]*function")))
