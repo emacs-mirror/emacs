@@ -1,3 +1,7 @@
+2002-04-17  Francesco Potorti`  <pot@gnu.org>
+
+	* comint.el (comint-password-prompt-regexp): Match "Repeat passphrase".
+
 2002-04-16  Jason Rumney  <jasonr@gnu.org>
 
 	* international/mule-cmds.el (locale-preferred-coding-systems):
@@ -18,7 +22,7 @@
 	compilation error.
 
 2002-04-16  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
+
 	* viper-ex.el: Patch by Samuel Padgett. Copyright papers received.
 	(viper-ex-print-buf-name): New variable.
 	(viper-ex-print-buf): New variable.
@@ -26,10 +30,10 @@
 	(ex-g-marks): New variable.
 	(ex-print): New function.
 	(ex-print-display-lines): New function.
-	
+
 	* viper.el (viper-set-hooks): add window-setup-hook, which sets
 	the cursor color.
-	
+
 	* ediff-util.el (ediff-cleanup-mess): delete ctl window on exit
 	when the window is not in its own frame.
 	(ediff-clone-buffer-for-region-comparison): more robust window
@@ -37,7 +41,7 @@
 	(ediff-make-cloned-buffer): use generate-new-buffer-name.
 	(ediff-inferior-compare-regions): deleted unused vars
 	ctl-buf and quit-now.
-	
+
 2002-04-15  Richard M. Stallman  <rms@gnu.org>
 
 	* facemenu.el (facemenu-add-new-face): Use this only for faces.
@@ -48,14 +52,14 @@
 
 2002-04-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* ediff-init.el (ediff-current-diff-face-A) 
-	(ediff-current-diff-face-B, ediff-current-diff-face-C) 
-	(ediff-current-diff-face-Ancestor, ediff-fine-diff-face-A) 
-	(ediff-fine-diff-face-B, ediff-fine-diff-face-C) 
-	(ediff-fine-diff-face-Ancestor, ediff-even-diff-face-A) 
-	(ediff-even-diff-face-B, ediff-even-diff-face-C) 
-	(ediff-even-diff-face-Ancestor, ediff-odd-diff-face-A) 
-	(ediff-odd-diff-face-B, ediff-odd-diff-face-C) 
+	* ediff-init.el (ediff-current-diff-face-A)
+	(ediff-current-diff-face-B, ediff-current-diff-face-C)
+	(ediff-current-diff-face-Ancestor, ediff-fine-diff-face-A)
+	(ediff-fine-diff-face-B, ediff-fine-diff-face-C)
+	(ediff-fine-diff-face-Ancestor, ediff-even-diff-face-A)
+	(ediff-even-diff-face-B, ediff-even-diff-face-C)
+	(ediff-even-diff-face-Ancestor, ediff-odd-diff-face-A)
+	(ediff-odd-diff-face-B, ediff-odd-diff-face-C)
 	(ediff-odd-diff-face-Ancestor): Add special color definitions for
 	tty and MS-DOS displays.
 
@@ -67,7 +71,7 @@
 
 	* faces.el (highlight): Force foreground to be black on a tty, so
 	this face is readable on a dark-background tty.
-	* wid-edit.el (widget-field-face, widget-single-line-field-face): 
+	* wid-edit.el (widget-field-face, widget-single-line-field-face):
 	Likewise.
 
 2002-04-14  Kim F. Storm  <storm@cua.dk>
@@ -77,7 +81,7 @@
 	Enhanced functionality when command is repeated:
 	- If first command set the mark (no prefix arg), repeat temporarily
 	enables transient-mark-mode.
-	- If first command jumped to mark off ring (with argument), 
+	- If first command jumped to mark off ring (with argument),
 	repeat (with or without arg) jump to next mark off ring.
 	- Use C-u C-u prefix to set mark after jump.
 	(exchange-point-and-mark): Temporarily enable transient-mark-mode
@@ -112,7 +116,7 @@
 	`ibuffer-map-lines'.
 
 	* calc/calc-bin.el (math-format-radix-float): Use `when'.
-	
+
 	* calc/calc.el (math-format-number): Load `calc-ext' before we
 	call `math-group-float'.
 
