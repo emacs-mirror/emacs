@@ -1,3 +1,21 @@
+2003-01-30  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_ccl, encode_coding_ccl): Call ccl_driver
+	with the last arg charset_list acquired from coding.
+	(Fdefine_coding_system_internal): For ccl-based coding system, fix
+	the attribute coding_attr_ccl_valids.
+
+	* coding.h (enum define_coding_ccl_arg_index): Set the first
+	member coding_arg_ccl_decoder to coding_arg_max.
+
+	* ccl.h (ccl_driver): Prototype adjusted.
+
+	* ccl.c (CCL_DECODE_CHAR, CCL_ENCODE_CHAR): New macros.
+	(ccl_driver): New arg CHARSET_LIST.  Use the above macros instead
+	of DECODE_CAHR, ENCODE_CHAR, CHAR_CHARSET.
+	(Fccl_execute): Call ccl_driver with the last arg Qnil.
+	(Fccl_execute_on_string): Likewise.
+
 2003-01-11  Kenichi Handa  <handa@m17n.org>
 
 	* charset.h (ENCODE_CHAR): If the method is SUBSET or SUPERSET,
