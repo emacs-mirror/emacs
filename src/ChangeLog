@@ -1,3 +1,7 @@
+2001-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* coding.c (DECODE_COMPOSITION_END): Fix last change.
+
 2001-12-17  Richard M. Stallman  <rms@gnu.org>
 
 	* coding.c (DECODE_COMPOSITION_END): Check for ! COMPOSING (coding)

@@ -1,3 +1,8 @@
+2001-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (EMACSSOURCES): Update the list of Emacs manual
+	source files.
+
 2001-12-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* idlwave.texi: Update maintainer.
