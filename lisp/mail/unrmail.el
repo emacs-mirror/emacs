@@ -56,6 +56,7 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
     (while (< message-count rmail-total-messages)
       (rmail-show-message
        (setq message-count (1+ message-count)))
+      (rmail-toggle-header)
       (rmail-output to-file 1 t))
     (message "Writing messages to %s...done" to-file)))
 
