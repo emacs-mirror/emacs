@@ -161,6 +161,7 @@ This must be bound to a button-down mouse event."
   (let* ((start-posn (event-start start-event))
 	 (start-point (posn-point start-posn))
 	 (start-window (posn-window start-posn))
+	 (start-frame (window-frame start-window))
 	 (bounds (window-edges start-window))
 	 (top (nth 1 bounds))
 	 (bottom (if (window-minibuffer-p start-window)
@@ -176,30 +177,45 @@ This must be bound to a button-down mouse event."
     (let (event end end-point)
       (track-mouse
 	(while (progn
-		 (setq event (read-event)
-		       end (event-end event)
-		       end-point (posn-point end))
-		 (mouse-movement-p event))
-	  ;; Is the mouse anywhere reasonable on the frame?
-	  (if (windowp (posn-window end))
-	      ;; If the mouse is outside the current window, scroll it.
-	      (if (or (not (eq (posn-window end) start-window))
-		      (not (integer-or-marker-p end-point)))
-		  ;; Which direction should we scroll the window?
-		  (let ((mouse-row
-			 (+ (nth 1 (window-edges (posn-window end)))
-			    (cdr (posn-col-row end)))))
-		    (cond
-		     ((< mouse-row top)
-		      (mouse-scroll-subr
-		       (- mouse-row top) mouse-drag-overlay start-point))
-		     ((and (not (eobp))
-			   (>= mouse-row bottom))
-		      (mouse-scroll-subr (1+ (- mouse-row bottom))
-					 mouse-drag-overlay start-point))))
-		(goto-char end-point)
-		(move-overlay mouse-drag-overlay
-			      start-point (point))))))
+		 (setq event (read-event))
+		 (or (mouse-movement-p event)
+		     (eq (car-safe event) 'switch-frame)))
+
+	  (if (eq (car-safe event) 'switch-frame)
+	      nil
+	    (setq end (event-end event)
+		  end-point (posn-point end))
+
+	    (cond
+
+	     ;; Ignore switch-frame events.
+	     ((eq (car-safe event) 'switch-frame))
+
+	     ;; Are we moving within the original window?
+	     ((and (eq (posn-window end) start-window)
+		   (integer-or-marker-p end-point))
+	      (goto-char end-point)
+	      (move-overlay mouse-drag-overlay
+			    start-point (point)))
+
+	     ;; Are we moving on a different window on the same frame?
+	     ((and (windowp (posn-window end))
+		   (eq (window-frame (posn-window end)) start-frame))
+	      (let ((mouse-row
+		     (+ (nth 1 (window-edges (posn-window end)))
+			(cdr (posn-col-row end)))))
+		(cond
+		 ((< mouse-row top)
+		  (mouse-scroll-subr
+		   (- mouse-row top) mouse-drag-overlay start-point))
+		 ((and (not (eobp))
+		       (>= mouse-row bottom))
+		  (mouse-scroll-subr (1+ (- mouse-row bottom))
+				     mouse-drag-overlay start-point)))))
+
+	     ;; Otherwise, we have no idea where the mouse is.
+	     (t)))))
+
       (if (and (eq (get (event-basic-type event) 'event-kind) 'mouse-click)
 	       (eq (posn-window (event-end event)) start-window)
 	       (numberp (posn-point (event-end event))))
