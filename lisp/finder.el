@@ -121,6 +121,7 @@ arguments compiles from `load-path'."
        (or dirs load-path))
       (insert "))\n\n(provide 'finder-inf)\n")
       (kill-buffer "*finder-scratch*")
+      (eval-current-buffer) ;; So we get the new keyword list immediately
       (basic-save-buffer)
       )))
 
