@@ -64,7 +64,7 @@ With argument t, set the random number seed from the current time and pid.")
 
   if (EQ (limit, Qt))
     srandom (getpid () + time (0));
-  if (XTYPE (limit) == Lisp_Int && XINT (limit) > 0)
+  if (INTEGERP (limit) && XINT (limit) > 0)
     {
       if (XFASTINT (limit) >= 0x40000000)
 	/* This case may occur on 64-bit machines.  */
@@ -101,8 +101,7 @@ A byte-code function object is also allowed.")
   register int i;
 
  retry:
-  if (XTYPE (obj) == Lisp_Vector || XTYPE (obj) == Lisp_String
-      || XTYPE (obj) == Lisp_Compiled)
+  if (VECTORP (obj) || STRINGP (obj) || COMPILEDP (obj))
     return Farray_length (obj);
   else if (CONSP (obj))
     {
@@ -134,9 +133,9 @@ Symbols are also allowed; their print names are used instead.")
   (s1, s2)
      register Lisp_Object s1, s2;
 {
-  if (XTYPE (s1) == Lisp_Symbol)
+  if (SYMBOLP (s1))
     XSETSTRING (s1, XSYMBOL (s1)->name), XSETTYPE (s1, Lisp_String);
-  if (XTYPE (s2) == Lisp_Symbol)
+  if (SYMBOLP (s2))
     XSETSTRING (s2, XSYMBOL (s2)->name), XSETTYPE (s2, Lisp_String);
   CHECK_STRING (s1, 0);
   CHECK_STRING (s2, 1);
@@ -158,9 +157,9 @@ Symbols are also allowed; their print names are used instead.")
   register unsigned char *p1, *p2;
   register int end;
 
-  if (XTYPE (s1) == Lisp_Symbol)
+  if (SYMBOLP (s1))
     XSETSTRING (s1, XSYMBOL (s1)->name), XSETTYPE (s1, Lisp_String);
-  if (XTYPE (s2) == Lisp_Symbol)
+  if (SYMBOLP (s2))
     XSETSTRING (s2, XSYMBOL (s2)->name), XSETTYPE (s2, Lisp_String);
   CHECK_STRING (s1, 0);
   CHECK_STRING (s2, 1);
@@ -255,7 +254,7 @@ with the original.")
      Lisp_Object arg;
 {
   if (NILP (arg)) return arg;
-  if (!CONSP (arg) && XTYPE (arg) != Lisp_Vector && XTYPE (arg) != Lisp_String)
+  if (!CONSP (arg) && !VECTORP (arg) && !STRINGP (arg))
     arg = wrong_type_argument (Qsequencep, arg);
   return concat (1, &arg, CONSP (arg) ? Lisp_Cons : XTYPE (arg), 0);
 }
@@ -289,11 +288,10 @@ concat (nargs, args, target_type, last_special)
   for (argnum = 0; argnum < nargs; argnum++)
     {
       this = args[argnum];
-      if (!(CONSP (this) || NILP (this)
-	    || XTYPE (this) == Lisp_Vector || XTYPE (this) == Lisp_String
-	    || XTYPE (this) == Lisp_Compiled))
+      if (!(CONSP (this) || NILP (this) || VECTORP (this) || STRINGP (this)
+	    || COMPILEDP (this)))
 	{
-	  if (XTYPE (this) == Lisp_Int)
+	  if (INTEGERP (this))
             args[argnum] = Fnumber_to_string (this);
 	  else
 	    args[argnum] = wrong_type_argument (Qsequencep, this);
@@ -337,7 +335,7 @@ concat (nargs, args, target_type, last_special)
       if (!CONSP (this))
 	thislen = Flength (this), thisleni = XINT (thislen);
 
-      if (XTYPE (this) == Lisp_String && XTYPE (val) == Lisp_String
+      if (STRINGP (this) && STRINGP (val)
 	  && ! NULL_INTERVAL_P (XSTRING (this)->intervals))
 	{
 	  copy_text_properties (make_number (0), thislen, this,
@@ -356,7 +354,7 @@ concat (nargs, args, target_type, last_special)
 	  else
 	    {
 	      if (thisindex >= thisleni) break;
-	      if (XTYPE (this) == Lisp_String)
+	      if (STRINGP (this))
 		XFASTINT (elt) = XSTRING (this)->data[thisindex++];
 	      else
 		elt = XVECTOR (this)->contents[thisindex++];
@@ -369,11 +367,11 @@ concat (nargs, args, target_type, last_special)
 	      prev = tail;
 	      tail = XCONS (tail)->cdr;
 	    }
-	  else if (XTYPE (val) == Lisp_Vector)
+	  else if (VECTORP (val))
 	    XVECTOR (val)->contents[toindex++] = elt;
 	  else
 	    {
-	      while (XTYPE (elt) != Lisp_Int)
+	      while (!INTEGERP (elt))
 		elt = wrong_type_argument (Qintegerp, elt);
 	      {
 #ifdef MASSC_REGISTER_BUG
@@ -486,10 +484,9 @@ DEFUN ("elt", Felt, Selt, 2, 2, 0,
   CHECK_NUMBER (n, 0);
   while (1)
     {
-      if (XTYPE (seq) == Lisp_Cons || NILP (seq))
+      if (CONSP (seq) || NILP (seq))
 	return Fcar (Fnthcdr (n, seq));
-      else if (XTYPE (seq) == Lisp_String
-	       || XTYPE (seq) == Lisp_Vector)
+      else if (STRINGP (seq) || VECTORP (seq))
 	return Faref (seq, n);
       else
 	seq = wrong_type_argument (Qsequencep, seq);
@@ -889,8 +886,7 @@ do_cdr:
     return (extract_float (o1) == extract_float (o2)) ? Qt : Qnil;
 #endif
   if (XTYPE (o1) != XTYPE (o2)) return Qnil;
-  if (XTYPE (o1) == Lisp_Cons
-      || XTYPE (o1) == Lisp_Overlay)
+  if (CONSP (o1) || OVERLAYP (o1))
     {
       Lisp_Object v1;
       v1 = internal_equal (Fcar (o1), Fcar (o2), depth + 1);
@@ -899,15 +895,14 @@ do_cdr:
       o1 = Fcdr (o1), o2 = Fcdr (o2);
       goto do_cdr;
     }
-  if (XTYPE (o1) == Lisp_Marker)
+  if (MARKERP (o1))
     {
       return ((XMARKER (o1)->buffer == XMARKER (o2)->buffer
 	      && (XMARKER (o1)->buffer == 0
 		  || XMARKER (o1)->bufpos == XMARKER (o2)->bufpos))
 	      ? Qt : Qnil);
     }
-  if (XTYPE (o1) == Lisp_Vector
-      || XTYPE (o1) == Lisp_Compiled)
+  if (VECTORP (o1) || COMPILEDP (o1))
     {
       register int index;
       if (XVECTOR (o1)->size != XVECTOR (o2)->size)
@@ -922,7 +917,7 @@ do_cdr:
 	}
       return Qt;
     }
-  if (XTYPE (o1) == Lisp_String)
+  if (STRINGP (o1))
     {
       if (XSTRING (o1)->size != XSTRING (o2)->size)
 	return Qnil;
@@ -940,14 +935,14 @@ DEFUN ("fillarray", Ffillarray, Sfillarray, 2, 2, 0,
 {
   register int size, index, charval;
  retry:
-  if (XTYPE (array) == Lisp_Vector)
+  if (VECTORP (array))
     {
       register Lisp_Object *p = XVECTOR (array)->contents;
       size = XVECTOR (array)->size;
       for (index = 0; index < size; index++)
 	p[index] = item;
     }
-  else if (XTYPE (array) == Lisp_String)
+  else if (STRINGP (array))
     {
       register unsigned char *p = XSTRING (array)->data;
       CHECK_NUMBER (item, 1);
@@ -1046,7 +1041,7 @@ mapcar1 (leni, vals, fn, seq)
   /* We need not explicitly protect `tail' because it is used only on lists, and
     1) lists are not relocated and 2) the list is marked via `seq' so will not be freed */
 
-  if (XTYPE (seq) == Lisp_Vector)
+  if (VECTORP (seq))
     {
       for (i = 0; i < leni; i++)
 	{
@@ -1054,7 +1049,7 @@ mapcar1 (leni, vals, fn, seq)
 	  vals[i] = call1 (fn, dummy);
 	}
     }
-  else if (XTYPE (seq) == Lisp_String)
+  else if (STRINGP (seq))
     {
       for (i = 0; i < leni; i++)
 	{
