@@ -164,7 +164,7 @@ show environment DISPLAY
 set args -q -geometry +0+0
 
 # Don't let abort actually run, as it will make
-# stdio stop working and therefore the `pr' command below as well.
+# stdio stop working and therefore the `pr' command above as well.
 break abort
 
 # If we are running in synchronous mode, we want a chance to look around
