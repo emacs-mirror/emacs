@@ -175,9 +175,9 @@ All commands in `shared-lisp-mode-map' are inherited by this map.")
 
 ;; Used by cmuscheme
 (defun scheme-mode-commands (map)
-  (define-key map "\t" 'scheme-indent-line)
+  ;;(define-key map "\t" 'indent-for-tab-command) ; default
   (define-key map "\177" 'backward-delete-char-untabify)
-  (define-key map "\e\C-q" 'scheme-indent-sexp))
+  (define-key map "\e\C-q" 'indent-sexp))
 
 ;;;###autoload
 (defun scheme-mode ()
@@ -208,16 +208,24 @@ if that value is non-nil."
   (setq major-mode 'scheme-mode)
   (setq mode-name "Scheme"))
 
-(defvar scheme-mit-dialect t
-  "If non-nil, scheme mode is specialized for MIT Scheme.
-Set this to nil if you normally use another dialect.")
+(defgroup scheme nil
+  "Editing Scheme code"
+  :group 'lisp)
 
-(defvar dsssl-sgml-declaration
+(defcustom scheme-mit-dialect t
+  "If non-nil, scheme mode is specialized for MIT Scheme.
+Set this to nil if you normally use another dialect."
+  :type 'boolean
+  :group 'scheme)
+
+(defcustom dsssl-sgml-declaration
   "<!DOCTYPE style-sheet PUBLIC \"-//James Clark//DTD DSSSL Style Sheet//EN\">
 "
-  "*An SGML declaration (typically using James Clark's style-sheet
-doctype, as required for Jade).  This will be inserted into an empty
-buffer in dsssl-mode if it is defined as a string.")
+  "*An SGML declaration for the DSSSL file.
+This will be inserted into an empty buffer in dsssl-mode if it is
+defined as a string.  It is typically James Clark's style-sheet
+doctype, as required for Jade."
+  :group 'scheme)
 
 (defvar dsssl-imenu-generic-expression
   ;; Perhaps this should also look for the style-sheet DTD tags.  I'm
