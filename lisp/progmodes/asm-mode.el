@@ -72,6 +72,12 @@
   (define-key asm-mode-map "\C-m"	'asm-newline)
   )
 
+(defconst asm-font-lock-keywords
+ '(("^\\(\\(\\sw\\|\\s_\\)+\\)\\>:?[ \t]*\\(\\sw+\\)?"
+    (1 font-lock-function-name-face) (3 font-lock-keyword-face nil t))
+   ("^\\s +\\(\\(\\sw\\|\\s_\\)+\\)" 1 font-lock-keyword-face))
+ "Additional expressions to highlight in Assembler mode.")
+
 (defvar asm-code-level-empty-comment-pattern nil)
 (defvar asm-flush-left-empty-comment-pattern nil)
 (defvar asm-inline-empty-comment-pattern nil)
@@ -103,6 +109,8 @@ Special commands:
   (setq mode-name "Assembler")
   (setq major-mode 'asm-mode)
   (setq local-abbrev-table asm-mode-abbrev-table)
+  (make-local-variable 'font-lock-keywords)
+  (setq font-lock-keywords asm-font-lock-keywords)
   (make-local-variable 'asm-mode-syntax-table)
   (setq asm-mode-syntax-table (make-syntax-table))
   (set-syntax-table asm-mode-syntax-table)
