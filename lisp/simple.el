@@ -818,8 +818,7 @@ Prefix arg means replace the region with it.
 
 The noninteractive arguments are START, END, COMMAND, OUTPUT-BUFFER, REPLACE.
 If REPLACE is non-nil, that means insert the output
-in place of text from START to END,
-and put point at the end, but don't alter the mark.
+in place of text from START to END, putting point and mark around it.
 
 If the output is one line, it is displayed in the echo area,
 but it is nonetheless available in buffer `*Shell Command Output*'
@@ -843,19 +842,21 @@ In either case, the output is inserted after point (leaving mark after it)."
 		 (list (region-beginning) (region-end)
 		       string
 		       current-prefix-arg
-		       (prefix-numeric-value current-prefix-arg))))
-  (if (and output-buffer
-	   (not (or (bufferp output-buffer) (stringp output-buffer))))
+		       current-prefix-arg)))
+  (if (or replace
+	  (and output-buffer
+	       (not (or (bufferp output-buffer) (stringp output-buffer)))))
       ;; Replace specified region with output from command.
       (let ((swap (and replace (< (point) (mark)))))
-	;; Don't muck with mark
-	;; unless called interactively.
+	;; Don't muck with mark unless REPLACE says we should.
+	(goto-char start)
 	(and replace (push-mark))
 	(call-process-region start end shell-file-name t t nil
 			     shell-command-switch command)
 	(let ((shell-buffer (get-buffer "*Shell Command Output*")))
 	  (and shell-buffer (not (eq shell-buffer (current-buffer)))
 	       (kill-buffer shell-buffer)))
+	;; Don't muck with mark unless REPLACE says we should.
 	(and replace swap (exchange-point-and-mark)))
     ;; No prefix argument: put the output in a temp buffer,
     ;; replacing its entire contents.
