@@ -677,7 +677,6 @@
 			      int (math-add int 1))))
 		  (setq str (concat (math-format-number int) point str)))
 		(when calc-group-digits
-		  (require 'calc-ext)
 		  (setq str (math-group-float str))))
 	    (setq figs 0))))
     (or str
