@@ -2157,7 +2157,6 @@ Advanced commands:
   (setq mode-name "Info")
   (setq tab-width 8)
   (use-local-map Info-mode-map)
-  (make-local-hook 'activate-menubar-hook)
   (add-hook 'activate-menubar-hook 'Info-menu-update nil t)
   (set-syntax-table text-mode-syntax-table)
   (setq local-abbrev-table text-mode-abbrev-table)
@@ -2176,7 +2175,7 @@ Advanced commands:
   ;; This is for the sake of the invisible text we use handling titles.
   (make-local-variable 'line-move-ignore-invisible)
   (setq line-move-ignore-invisible t)
-  (add-hook (make-local-hook 'clone-buffer-hook) 'Info-clone-buffer-hook nil t)
+  (add-hook 'clone-buffer-hook 'Info-clone-buffer-hook nil t)
   (Info-set-mode-line)
   (run-hooks 'Info-mode-hook))
 
