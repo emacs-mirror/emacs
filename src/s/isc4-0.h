@@ -2,10 +2,6 @@
 
 #include "isc3-0.h"
 
-/* This works around a bug in ISC 4.0; it fails
-   to clear the "POSIX process" flag on an exec.  */
-#define EXTRA_INITIALIZE __setostype (0)
-
 #define LIBS_SYSTEM -linet
 
 #define ISC4_0
