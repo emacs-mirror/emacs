@@ -2,6 +2,7 @@
 ;;;            under Emacs
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
+;; Maintainer: FSF
 ;; Version: 1.3
 ;; Keywords: unix, tools
 
