@@ -105,7 +105,6 @@
 (update-coding-systems-internal)
 
 (load "indent")
-(load "isearch")
 (load "window")
 (load "frame")
 (load "term/tty-colors")
@@ -119,6 +118,7 @@
       (and (boundp 'x-toolkit-scroll-bars-p)
 	   (load "scroll-bar"))
       (load "select")))
+(load "isearch")
 
 (message "%s" (garbage-collect))
 (load "menu-bar")
