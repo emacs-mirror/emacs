@@ -1,5 +1,9 @@
 2001-05-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (x_set_foreground_color): Set frame's cursor_pixel.
+
+	* dispextern.h (inverse_video): Declare extern.
+
 	* keyboard.c (delete_kboard): Handle the case that selected_frame
 	has been deleted in the course of x_connection_closed.
 
