@@ -717,7 +717,7 @@ the beginning of the combined definition.
 
 The interactive form is present if the original function or some piece
 of advice specifies one.  When an interactive primitive function is
-advised, a special method is used: to call the primitive with
+advised, advice uses a special method: it calls the primitive with
 @code{call-interactively} so that it will read its own arguments.
 In this case, the advice cannot access the arguments.
 
