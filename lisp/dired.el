@@ -626,7 +626,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 (if dired-mode-map
     nil
   ;; Force `f' rather than `e' in the mode doc:
-  (fset 'dired-advertised-find-file 'dired-find-file)
+  (defalias 'dired-advertised-find-file 'dired-find-file)
   ;; This looks ugly when substitute-command-keys uses C-d instead d:
   ;;  (define-key dired-mode-map "\C-d" 'dired-flag-file-deletion)
 
@@ -667,7 +667,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   (define-key dired-mode-map "\M-{" 'dired-prev-marked-file)
   (define-key dired-mode-map "\M-}" 'dired-next-marked-file)
   ;; Make all regexp commands share a `%' prefix:
-  (fset 'dired-regexp-prefix (make-sparse-keymap))
+  (defalias 'dired-regexp-prefix (make-sparse-keymap))
   (define-key dired-mode-map "%" 'dired-regexp-prefix)
   (define-key dired-mode-map "%u" 'dired-upcase)
   (define-key dired-mode-map "%l" 'dired-downcase)
@@ -1147,7 +1147,7 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
 ;(defun dired-get-subdir-min (elt)
 ;  (cdr elt))
 ;; can't use macro,  must be redefinable for other alist format in dired-nstd.
-(fset 'dired-get-subdir-min 'cdr)
+(defalias 'dired-get-subdir-min 'cdr)
 
 (defun dired-get-subdir-max (elt)
   (save-excursion
