@@ -1176,7 +1176,7 @@ is treated as a character."
   :coding-type 'utf-16
   :mnemonic ?U
   :charset-list '(unicode)
-;;   :endian 'big
+  :endian 'big
   :mime-charset 'utf-16be)
 
 (define-coding-system 'utf-16-le-with-signature
@@ -1194,7 +1194,7 @@ is treated as a character."
   :mnemonic ?U
   :charset-list '(unicode)
   :bom t
-;;   :endian 'big
+  :endian 'big
   :mime-charset 'utf-16)
 
 (define-coding-system 'utf-16
@@ -1203,6 +1203,7 @@ is treated as a character."
   :mnemonic ?U
   :charset-list '(unicode)
   :bom '(utf-16-le-with-signature . utf-16-be-with-signature)
+  :endian 'big
   :mime-charset 'utf-16)
 
 (define-coding-system 'iso-2022-7bit
