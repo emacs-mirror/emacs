@@ -1,3 +1,8 @@
+1999-11-20  Kenichi Handa  <handa@mule.m17n.org>
+
+	* ps-mule.el (ps-mule-font-info-database-bdf): Default BDF font
+	for the charset chinese-sisheng is 7bit encoding, not 8bit.
+
 1999-11-19  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* scroll-bar.el (scroll-bar-toolkit-scroll): add handling of the `ratio'
