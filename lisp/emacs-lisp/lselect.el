@@ -29,17 +29,17 @@
 
 ;;; Code:
 
-;;; The selection code requires us to use certain symbols whose names are
-;;; all upper-case; this may seem tasteless, but it makes there be a 1:1
-;;; correspondence between these symbols and X Atoms (which are upcased.)
+;; The selection code requires us to use certain symbols whose names are
+;; all upper-case; this may seem tasteless, but it makes there be a 1:1
+;; correspondence between these symbols and X Atoms (which are upcased.)
 
 (defalias 'x-get-cutbuffer 'x-get-cut-buffer)
 (defalias 'x-store-cutbuffer 'x-set-cut-buffer)
 
-(or (find-face 'primary-selection)
+(or (facep 'primary-selection)
     (make-face 'primary-selection))
 
-(or (find-face 'secondary-selection)
+(or (facep 'secondary-selection)
     (make-face 'secondary-selection))
 
 (defun x-get-secondary-selection ()
@@ -179,7 +179,7 @@ secondary selection instead of the primary selection."
 ;(setq x-sent-selection-hooks 'x-notice-selection-failures)
 
 
-;;; Random utility functions
+;; Random utility functions
 
 (defun x-kill-primary-selection ()
   "If there is a selection, delete the text it covers, and copy it to 
