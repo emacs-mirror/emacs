@@ -534,6 +534,40 @@ else defaults to \"Top\"."
   (set (make-local-variable 'Info-current-file) t)
   (Info-find-node-2 nil nodename))
 
+;; It's perhaps a bit nasty to kill the *info* buffer to force a re-read,
+;; but at least it keeps this routine (which is only for the benefit of
+;; makeinfo-buffer) out of the way of normal operations.
+;;
+(defun Info-revert-find-node (filename nodename)
+  "Go to an info node FILENAME and NODENAME, re-reading disk contents.
+When *info* is already displaying FILENAME and NODENAME, the window position
+is preserved, if possible."
+  (pop-to-buffer "*info*")
+  (let ((old-filename Info-current-file)
+	(old-nodename Info-current-node)
+	(pcolumn      (current-column))
+	(pline        (count-lines (point-min) (line-beginning-position)))
+	(wline        (count-lines (point-min) (window-start)))
+	(old-history  Info-history)
+	(new-history (and Info-current-file
+			  (list Info-current-file Info-current-node (point)))))
+    (kill-buffer (current-buffer))
+    (Info-find-node filename nodename)
+    (setq Info-history old-history)
+    (if (and (equal old-filename Info-current-file)
+	     (equal old-nodename Info-current-node))
+	(progn
+	  ;; note goto-line is no good, we want to measure from point-min
+	  (beginning-of-buffer)
+	  (forward-line wline)
+	  (set-window-start (selected-window) (point))
+	  (beginning-of-buffer)
+	  (forward-line pline)
+	  (move-to-column pcolumn))
+      ;; only add to the history when coming from a different file+node
+      (if new-history
+	  (setq Info-history (cons new-history Info-history))))))
+
 (defun Info-find-in-tag-table-1 (marker regexp case-fold)
   "Find a node in a tag table.
 MARKER specifies the buffer and position to start searching at.
