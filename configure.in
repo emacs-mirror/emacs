@@ -2264,7 +2264,7 @@ utimes setrlimit setpgid getcwd getwd shutdown getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
 gai_strerror mkstemp getline getdelim mremap memmove fsync bzero \
-memset memcmp memmove difftime memcpy mempcpy mblen mbrlen)
+memset memcmp memmove difftime memcpy mempcpy mblen mbrlen posix_memalign)
 
 AC_CHECK_HEADERS(sys/un.h)
 
