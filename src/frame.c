@@ -1222,6 +1222,10 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 	Fselect_window (minibuf_window);
     }
 
+  /* Don't let echo_area_window to remain on a deleted frame.  */
+  if (EQ (f->minibuffer_window, echo_area_window))
+    echo_area_window = sf->minibuffer_window;
+
   /* Clear any X selections for this frame.  */
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (f))
