@@ -392,7 +392,7 @@ interactive functions.  \(See `hi-lock-interactive-patterns'.\)
 \\<minibuffer-local-must-match-map>Use \\[minibuffer-complete] to complete a partially typed regexp.
 \(See info node `Minibuffer History'.\)"
   (interactive
-   (if (vectorp (this-command-keys))
+   (if (and (display-popup-menus-p) (vectorp (this-command-keys)))
        (catch 'snafu
 	 (or
 	  (x-popup-menu
