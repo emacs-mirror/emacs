@@ -656,23 +656,40 @@ This is the same as the exponent of a float.")
   int value;
   double f = extract_float (arg);
 
+  if (f == 0.0)
+    value = -(VALMASK >> 1);
+  else
+    {
 #ifdef HAVE_LOGB
-  IN_FLOAT (value = logb (f), "logb", arg);
-  XSET (val, Lisp_Int, value);
+      IN_FLOAT (value = logb (f), "logb", arg);
 #else
 #ifdef HAVE_FREXP
-  {
-    int exp;  
-
-    IN_FLOAT (frexp (f, &exp), "logb", arg);
-    XSET (val, Lisp_Int, exp-1);
-  }
+      IN_FLOAT (frexp (f, &value), "logb", arg);
+      value--;
 #else
-  /* Would someone like to write code to emulate logb?  */
-  error ("`logb' not implemented on this operating system");
+      int i;
+      double d;
+      if (f < 0.0)
+	f = -f;
+      value = -1;
+      while (f < 0.5)
+	{
+	  for (i = 1, d = 0.5; d * d >= f; i += i)
+	    d *= d;
+	  f /= d;
+	  value -= i;
+	}
+      while (f >= 1.0)
+	{
+	  for (i = 1, d = 2.0; d * d <= f; i += i)
+	    d *= d;
+	  f /= d;
+	  value += i;
+	}
 #endif
 #endif
-
+    }
+  XSET (val, Lisp_Int, value);
   return val;
 }
 
