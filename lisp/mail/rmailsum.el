@@ -485,9 +485,22 @@ As commands are issued in the summary buffer, they are applied to the
 corresponding mail messages in the rmail buffer.
 
 All normal editing commands are turned off.
-Instead, all of the Rmail Mode commands are available, plus:
+Instead, nearly all the Rmail mode commands are available,
+though many of them move only among the messages in the summary.
 
-\\[rmail-summary-undelete-many]	Undelete all or prefix arg deleted messages."
+These additional commands exist:
+
+\\[rmail-summary-undelete-many]	Undelete all or prefix arg deleted messages.
+\\[rmail-summary-wipe] Delete the summary and go to the Rmail buffer.
+
+Commands for sorting the summary:
+
+\\[rmail-summary-sort-by-date] Sort by date.
+\\[rmail-summary-sort-by-subject] Sort by subject.
+\\[rmail-summary-sort-by-author] Sort by author.
+\\[rmail-summary-sort-by-recipient] Sort by recipient.
+\\[rmail-summary-sort-by-correspondent] Sort by correspondent.
+\\[rmail-summary-sort-by-lines] Sort by lines."
   (interactive)
   (kill-all-local-variables)
   (setq major-mode 'rmail-summary-mode)
@@ -765,14 +778,13 @@ Instead, all of the Rmail Mode commands are available, plus:
   "Kill and wipe away Rmail summary, remaining within Rmail."
   (interactive)
   (save-excursion (set-buffer rmail-buffer) (setq rmail-summary-buffer nil))
-  (let ((rmail-wind (get-buffer-window rmail-buffer)))
+  (let ((local-rmail-buffer rmail-buffer))
     (kill-buffer (current-buffer))
     ;; Delete window if not only one.
     (if (not (eq (selected-window) (next-window nil 'no-minibuf)))
 	(delete-window))
-    ;; Switch to the rmail buffer in this window.
-      ;; Select the window with rmail in it, then delete this window.
-    (and rmail-wind (select-window rmail-wind))))
+    ;; Switch windows to the rmail buffer, or switch to it in this window.
+    (pop-to-buffer local-rmail-buffer)))
 
 (defun rmail-summary-expunge ()
   "Actually erase all deleted messages and recompute summary headers."
