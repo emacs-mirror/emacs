@@ -788,9 +788,14 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
   register GLYPH g;
   unsigned int c;
   unsigned char workbuf[4], *buf;
-  int len, produced, processed;
+  int len;
   register int tlen = GLYPH_TABLE_LENGTH;
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
+  struct coding_system *coding;
+
+  coding = (CODING_REQUIRE_ENCODING (&terminal_coding)
+	    ? &terminal_coding
+	    : &safe_terminal_coding);
 
   while (src < src_end)
     {
@@ -828,21 +833,14 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
 	      buf = GLYPH_STRING (tbase, g);
 	    }
 	  
-	  if (! CODING_REQUIRE_ENCODING (&terminal_coding))
-	    /* We had better avoid sending Emacs' internal code to
-               terminal.  */
-	    produced = encode_coding (&safe_terminal_coding, buf, dst,
-				      len, dst_end - dst, &processed);
-	  else
-	    produced = encode_coding (&terminal_coding, buf, dst,
-				      len, dst_end - dst, &processed);
-	  if (processed < len)
+	  encode_coding (coding, buf, dst, len, dst_end - dst);
+	  if (coding->consumed < len)
 	    /* We get a carryover because the remaining output
 	       buffer is too short.  We must break the loop here
 	       without increasing SRC so that the next call of
 	       this function start from the same glyph.  */
 	    break;
-	  dst += produced;
+	  dst += coding->produced;
 	}
       src++;
     }
@@ -882,8 +880,9 @@ write_glyphs (string, len)
     return;
 
   cmplus (len);
-  /* The field `last_block' should be set to 1 only at the tail.  */
-  terminal_coding.last_block = 0;
+  /* The mode bit CODING_MODE_LAST_BLOCK should be set to 1 only at
+     the tail.  */
+  terminal_coding.mode &= ~CODING_MODE_LAST_BLOCK;
   while (len > 0)
     {
       /* We use shared conversion buffer of the current size (1024
@@ -905,18 +904,17 @@ write_glyphs (string, len)
   /* We may have to output some codes to terminate the writing.  */
   if (CODING_REQUIRE_FLUSHING (&terminal_coding))
     {
-      terminal_coding.last_block = 1;
-      produced = encode_coding (&terminal_coding, (char *)0, conversion_buffer,
-				0, conversion_buffer_size,
-				&consumed);
-
-      if (produced > 0)
+      terminal_coding.mode |= CODING_MODE_LAST_BLOCK;
+      encode_coding (&terminal_coding, (char *)0, conversion_buffer,
+		     0, conversion_buffer_size);
+      if (terminal_coding.produced > 0)
 	{
-	  fwrite (conversion_buffer, 1, produced, stdout);
+	  fwrite (conversion_buffer, 1, terminal_coding.produced, stdout);
 	  if (ferror (stdout))
 	    clearerr (stdout);
 	  if (termscript)
-	    fwrite (conversion_buffer, 1, produced, termscript);
+	    fwrite (conversion_buffer, 1, terminal_coding.produced,
+		    termscript);
 	}
     }
   cmcheckmagic ();
@@ -955,8 +953,8 @@ insert_glyphs (start, len)
 
   turn_on_insert ();
   cmplus (len);
-  /* The field `last_block' should be set to 1 only at the tail.  */
-  terminal_coding.last_block = 0;
+  /* The bit CODING_MODE_LAST_BLOCK should be set to 1 only at the tail.  */
+  terminal_coding.mode &= ~CODING_MODE_LAST_BLOCK;
   while (len-- > 0)
     {
       int produced, consumed;
@@ -978,7 +976,7 @@ insert_glyphs (start, len)
 
       if (len <= 0)
 	/* This is the last glyph.  */
-	terminal_coding.last_block = 1;
+	terminal_coding.mode |= CODING_MODE_LAST_BLOCK;
 
       /* We use shared conversion buffer of the current size (1024
 	 bytes at least).  It is surely sufficient for just one glyph.  */
