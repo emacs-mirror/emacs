@@ -1,3 +1,19 @@
+2001-12-18  Dave Love  <fx@gnu.org>
+
+	* test-distrib.c: Conditionally include fcntl.h.
+
+	* fakemail.c: Include "config.h", not <../src/config.h>.
+	(_XOPEN_SOURCE): Define as 500.
+
+	* emacsserver.c: Include "config.h", not <../src/config.h>.
+
+	* cvtmail.c: Include config.h, stdlib.h.
+	(xmalloc, xrealloc, skip_to_lf sysfail): Prototype.
+
+	* yow.c: Conditionally include various headers.  Use "epaths.h",
+	not <../src/epaths.h>.
+	(malloc, realloc) [!HAVE_STDLIB_H]: Prototype.
+
 2001-12-12  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (PHP_functions): New function by Diez B. Roggisch,

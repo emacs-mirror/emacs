@@ -1,5 +1,13 @@
 2001-12-18  Dave Love  <fx@gnu.org>
 
+	* image-file.el (image-file-name-extensions): Add pnm.  Doc fix.
+	(image-file-name-regexps): Doc fix.
+
+	* server.el (server-unload-hook): New function.
+
+	* emacs-lisp/lisp-mnt.el (lm-copyright-prefix): Group the leader.
+	(lm-crack-copyright): Cope with multi-line copyright `lines'.
+
 	* simple.el (newline): Doc fix.
 	(eval-expression-print-level, eval-expression-print-length): Doc
 	fix.  Amend :type.
