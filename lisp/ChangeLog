@@ -1,3 +1,11 @@
+2005-02-24  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar--decode-isodatetime): New
+	optional argument DAY-SHIFT.
+	(icalendar-export-region): Fix coding-system-for-write.
+	(icalendar--convert-ical-to-diary): Shift end-day of all-day
+	events by one.
+
 2005-02-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/tex-mode.el (tex-font-lock-keywords-3): #n is atomic.
