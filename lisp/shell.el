@@ -368,8 +368,9 @@ Otherwise, one argument `-i' is passed to the shell.
 			   (if (and xargs-name (boundp xargs-name))
 			       (symbol-value xargs-name)
 			     '("-i"))))
-	(shell-mode)))
-  (switch-to-buffer "*shell*"))
+	(shell-mode)
+	(switch-to-buffer (current-buffer)))
+    (switch-to-buffer "*shell*")))
 
 ;;; Directory tracking
 ;;; ===========================================================================
