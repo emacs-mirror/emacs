@@ -137,7 +137,8 @@ of a sentence, the ending period, question mark, or exclamation point
 must be followed by two spaces, unless it's inside some sort of quotes
 or parenthesis.
 
-See also the variable `sentence-end-double-space' and Info node `Sentences'."
+See also the variable `sentence-end-double-space', the variable
+`sentence-end-without-period' and Info node `Sentences'."
   :group 'paragraphs
   :type 'regexp)
 
