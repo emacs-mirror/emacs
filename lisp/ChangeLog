@@ -1,3 +1,8 @@
+2002-05-24  Simon Josefsson  <jas@extundo.com>
+
+	* rot13.el (rot13-translate-table): New variable.
+	(rot13, rot13-string, rot13-region): New functions.
+
 2002-05-25  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-engine.el (c-add-stmt-syntax): Fixed some cases
