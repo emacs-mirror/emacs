@@ -1825,8 +1825,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      {
 		int new_x, new_y;
 
-		new_x = event.xclient.data.f[0];
-		new_y = event.xclient.data.f[1];
+		new_x = event.xclient.data.s[0];
+		new_y = event.xclient.data.s[1];
 	      }
 	  }
 	  break;
@@ -3195,11 +3195,11 @@ x_calc_absolute_position (f)
 #ifdef HAVE_X11
   if (f->display.x->left_pos < 0)
     f->display.x->left_pos
-      = XINT (x_frame_width) - PIXEL_WIDTH (f) + f->display.x->left_pos;
+      = XINT (x_screen_width) - PIXEL_WIDTH (f) + f->display.x->left_pos;
 
   if (f->display.x->top_pos < 0)
     f->display.x->top_pos
-      = XINT (x_frame_height) - PIXEL_HEIGHT (f) + f->display.x->top_pos;
+      = XINT (x_screen_height) - PIXEL_HEIGHT (f) + f->display.x->top_pos;
 #else /* X10 */
   WINDOWINFO_TYPE parentinfo;
 
