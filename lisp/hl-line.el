@@ -4,7 +4,7 @@
 
 ;; Author:  Dave Love <fx@gnu.org>
 ;; Created: 1998-09-13
-;; Keywords: faces, frames
+;; Keywords: faces, frames, emulation
 
 ;; This file is part of GNU Emacs.
 
@@ -31,8 +31,8 @@
 ;; a request for a feature of Lesser Editors.
 
 ;; You probably don't really want this; if the cursor is difficult to
-;; spot, try changing its colour or relying on `blink-cursor-mode' The
-;; hookery involved here might slow Emacs noticeably on a slow
+;; spot, try changing its colour, relying on `blink-cursor-mode' or
+;; both.  The hookery used might affect repsonse noticeably on a slow
 ;; machine.
 
 ;; An overlay is used, active only on the selected window.  Hooks are
@@ -50,18 +50,6 @@
   "Highliight the current line."
   :version "21.1"
   :group 'editing)
-
-;;;###autoload
-(defcustom hl-line-mode nil
-  "Toggle Hl-Line mode.
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `hl-line-mode'."
-  :set (lambda (symbol value)
-	 (hl-line-mode (or value 0)))
-  :initialize 'custom-initialize-default
-  :type 'boolean
-  :group 'hl-line
-  :require 'hl-line)
 
 (defcustom hl-line-face 'highlight
   "Face with which to highlight the current line."
@@ -88,25 +76,20 @@ use either \\[customize] or the function `hl-line-mode'."
       (delete-overlay hl-line-overlay)))
 
 ;;;###autoload
-(defun hl-line-mode (&optional arg)
+(define-minor-mode hl-line-mode
   "Global minor mode to highlight the line about point in the current window.
-
 With ARG, turn Hl-Line mode on if ARG is positive, off otherwise.
 Uses functions `hl-line-unhighlight' and `hl-line-highlight' on
 `pre-command-hook' and `post-command-hook'."
-  (interactive "P")
-  (setq hl-line-mode (if (null arg)
-			 (not hl-line-mode)
-		       (> (prefix-numeric-value arg) 0)))
-  (cond (hl-line-mode
-	 (add-hook 'pre-command-hook #'hl-line-unhighlight)
-	 (add-hook 'post-command-hook #'hl-line-highlight))
-	(t
-	 (hl-line-unhighlight)
-	 (remove-hook 'pre-command-hook #'hl-line-unhighlight)
-	 (remove-hook 'post-command-hook #'hl-line-highlight)))
-  (if (interactive-p)
-      (message "Hl-Line mode %sabled" (if hl-line-mode "en" "dis"))))
+  (global . nil) nil nil
+  
+  (if hl-line-mode
+      (progn
+	(add-hook 'pre-command-hook #'hl-line-unhighlight)
+	(add-hook 'post-command-hook #'hl-line-highlight))
+    (hl-line-unhighlight)
+    (remove-hook 'pre-command-hook #'hl-line-unhighlight)
+    (remove-hook 'post-command-hook #'hl-line-highlight)))
 
 (provide 'hl-line)
 
