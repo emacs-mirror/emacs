@@ -456,6 +456,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     close (filefd);
     if (fd1 >= 0)
       close (fd1);
+    if (fd_error >= 0)
+      close (fd_error);
   }
 
   if (pid < 0)
