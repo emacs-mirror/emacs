@@ -1508,8 +1508,10 @@ From a program, any arguments are passed to the `rcs2log' script."
   ;; Search for information in log program output
   (if (and file (file-exists-p file))
       (save-excursion
-	(set-buffer (get-buffer-create "*vc*"))
+	;; Don't switch to the *vc* buffer before running vc-do-command,
+	;; because that would change its default-directory.
 	(apply 'vc-do-command 0 command file last flags)
+	(set-buffer (get-buffer "*vc*"))
 	(set-buffer-modified-p nil)
 	(prog1
 	    (vc-parse-buffer patterns file properties)
