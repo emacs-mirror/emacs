@@ -926,7 +926,8 @@ doc.o: doc.c $(config_h) paths.h buffer.h keyboard.h
 doprnt.o: doprnt.c $(config_h)
 dosfns.o: buffer.h termchar.h termhooks.h frame.h msdos.h dosfns.h $(config_h)
 editfns.o: editfns.c window.h buffer.h systime.h INTERVAL_SRC $(config_h)
-emacs.o: emacs.c commands.h systty.h syssignal.h process.h INTERVAL_SRC $(config_h)
+emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
+   INTERVAL_SRC $(config_h)
 fileio.o: fileio.c window.h buffer.h systime.h INTERVAL_SRC $(config_h)
 filelock.o: filelock.c buffer.h paths.h $(config_h)
 filemode.o: filemode.c  $(config_h)
