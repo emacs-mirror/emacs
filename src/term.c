@@ -511,19 +511,21 @@ set_scroll_region (start, stop)
      int start, stop;
 {
   char *buf;
-  struct frame *sf = XFRAME (selected_frame);
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
 
   if (TS_set_scroll_region)
     buf = tparam (TS_set_scroll_region, 0, 0, start, stop - 1);
   else if (TS_set_scroll_region_1)
     buf = tparam (TS_set_scroll_region_1, 0, 0,
-		  FRAME_LINES (sf), start,
-		  FRAME_LINES (sf) - stop,
-		  FRAME_LINES (sf));
+		  FRAME_LINES (f), start,
+		  FRAME_LINES (f) - stop,
+		  FRAME_LINES (f));
   else
-    buf = tparam (TS_set_window, 0, 0, start, 0, stop, FRAME_COLS (sf));
+    buf = tparam (TS_set_window, 0, 0, start, 0, stop, FRAME_COLS (f));
 
-  OUTPUT (CURTTY (), buf);
+  OUTPUT (FRAME_TTY (f), buf);
   xfree (buf);
   losecursor ();
 }
@@ -532,16 +534,22 @@ set_scroll_region (start, stop)
 static void
 turn_on_insert ()
 {
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
   if (!insert_mode)
-    OUTPUT (CURTTY (), TS_insert_mode);
+    OUTPUT (FRAME_TTY (f), TS_insert_mode);
   insert_mode = 1;
 }
 
 void
 turn_off_insert ()
 {
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
   if (insert_mode)
-    OUTPUT (CURTTY (), TS_end_insert_mode);
+    OUTPUT (FRAME_TTY (f), TS_end_insert_mode);
   insert_mode = 0;
 }
 
@@ -550,16 +558,22 @@ turn_off_insert ()
 void
 turn_off_highlight ()
 {
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
   if (standout_mode)
-    OUTPUT_IF (CURTTY (), TS_end_standout_mode);
+    OUTPUT_IF (FRAME_TTY (f), TS_end_standout_mode);
   standout_mode = 0;
 }
 
 static void
 turn_on_highlight ()
 {
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
   if (!standout_mode)
-    OUTPUT_IF (CURTTY(), TS_standout_mode);
+    OUTPUT_IF (FRAME_TTY (f), TS_standout_mode);
   standout_mode = 1;
 }
 
@@ -578,10 +592,14 @@ toggle_highlight ()
 static void
 tty_hide_cursor ()
 {
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
+
   if (tty_cursor_hidden == 0)
     {
       tty_cursor_hidden = 1;
-      OUTPUT_IF (CURTTY (), TS_cursor_invisible);
+      OUTPUT_IF (FRAME_TTY (f), TS_cursor_invisible);
     }
 }
 
@@ -591,11 +609,15 @@ tty_hide_cursor ()
 static void
 tty_show_cursor ()
 {
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
+
   if (tty_cursor_hidden)
     {
       tty_cursor_hidden = 0;
-      OUTPUT_IF (CURTTY (), TS_cursor_normal);
-      OUTPUT_IF (CURTTY (), TS_cursor_visible);
+      OUTPUT_IF (FRAME_TTY (f), TS_cursor_normal);
+      OUTPUT_IF (FRAME_TTY (f), TS_cursor_visible);
     }
 }
 
@@ -683,7 +705,11 @@ clear_to_end ()
 {
   register int i;
 
-  if (clear_to_end_hook && ! FRAME_TERMCAP_P (updating_frame))
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
+  
+  if (clear_to_end_hook && ! FRAME_TERMCAP_P (f))
     {
       (*clear_to_end_hook) ();
       return;
@@ -691,14 +717,14 @@ clear_to_end ()
   if (TS_clr_to_bottom)
     {
       background_highlight ();
-      OUTPUT (CURTTY (), TS_clr_to_bottom);
+      OUTPUT (FRAME_TTY (f), TS_clr_to_bottom);
     }
   else
     {
-      for (i = curY; i < FRAME_LINES (XFRAME (selected_frame)); i++)
+      for (i = curY; i < FRAME_LINES (f); i++)
 	{
 	  cursor_to (i, 0);
-	  clear_end_of_line (FRAME_COLS (XFRAME (selected_frame)));
+	  clear_end_of_line (FRAME_COLS (f));
 	}
     }
 }
@@ -708,10 +734,11 @@ clear_to_end ()
 void
 clear_frame ()
 {
-  struct frame *sf = XFRAME (selected_frame);
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
 
-  if (clear_frame_hook
-      && ! FRAME_TERMCAP_P ((updating_frame ? updating_frame : sf)))
+  if (clear_frame_hook && ! FRAME_TERMCAP_P (f))
     {
       (*clear_frame_hook) ();
       return;
@@ -719,7 +746,7 @@ clear_frame ()
   if (TS_clr_frame)
     {
       background_highlight ();
-      OUTPUT (FRAME_TTY (updating_frame ? updating_frame : sf), TS_clr_frame);
+      OUTPUT (FRAME_TTY (f), TS_clr_frame);
       cmat (0, 0);
     }
   else
@@ -740,10 +767,12 @@ clear_end_of_line (first_unused_hpos)
 {
   register int i;
 
+  struct frame *f = (updating_frame
+                     ? updating_frame
+                     : XFRAME (selected_frame));
+  
   if (clear_end_of_line_hook
-      && ! FRAME_TERMCAP_P ((updating_frame
-			       ? updating_frame
-			     : XFRAME (selected_frame))))
+      && ! FRAME_TERMCAP_P (f))
     {
       (*clear_end_of_line_hook) (first_unused_hpos);
       return;
@@ -759,7 +788,7 @@ clear_end_of_line (first_unused_hpos)
   background_highlight ();
   if (TS_clr_line)
     {
-      OUTPUT1 (CURTTY (), TS_clr_line);
+      OUTPUT1 (FRAME_TTY (f), TS_clr_line);
     }
   else
     {			/* have to do it the hard way */
@@ -773,9 +802,9 @@ clear_end_of_line (first_unused_hpos)
 
       for (i = curX; i < first_unused_hpos; i++)
 	{
-	  if (TTY_TERMSCRIPT (CURTTY ()))
-	    fputc (' ', TTY_TERMSCRIPT (CURTTY ()));
-	  fputc (' ', TTY_OUTPUT (CURTTY ()));
+	  if (TTY_TERMSCRIPT (FRAME_TTY (f)))
+	    fputc (' ', TTY_TERMSCRIPT (FRAME_TTY (f)));
+	  fputc (' ', TTY_OUTPUT (FRAME_TTY (f)));
 	}
       cmplus (first_unused_hpos - curX);
     }
