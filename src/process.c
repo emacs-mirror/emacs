@@ -2568,6 +2568,13 @@ nil, indicating the current buffer's process.")
   Lisp_Object proc;
 
   proc = get_process (process);
+
+  /* Make sure the process is really alive.  */
+  if (! NILP (XPROCESS (proc)->raw_status_low))
+    update_status (XPROCESS (proc));
+  if (! EQ (XPROCESS (proc)->status, Qrun))
+    error ("Process %s not running", procname);
+
   /* Sending a zero-length record is supposed to mean eof
      when TIOCREMOTE is turned on.  */
 #ifdef DID_REMOTE
