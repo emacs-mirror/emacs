@@ -1963,9 +1963,10 @@ before each command.")
   if (EQ (window, selected_window))
     return window;
 
-  set_marker_both (ow->pointm, ow->buffer,
-		   BUF_PT (XBUFFER (ow->buffer)),
-		   BUF_PT_BYTE (XBUFFER (ow->buffer)));
+  if (! NILP (ow->buffer))
+    set_marker_both (ow->pointm, ow->buffer,
+		     BUF_PT (XBUFFER (ow->buffer)),
+		     BUF_PT_BYTE (XBUFFER (ow->buffer)));
 
   selected_window = window;
   if (XFRAME (WINDOW_FRAME (w)) != selected_frame)
@@ -3274,6 +3275,15 @@ by `current-window-configuration' (which see).")
 	  != previous_frame_menu_bar_lines)
 	x_set_menu_bar_lines (f, data->frame_menu_bar_lines, 0);
 #endif
+
+      if (! NILP (XWINDOW (selected_window)->buffer))
+	{
+	  w = XWINDOW (selected_window);
+	  set_marker_both (w->pointm,
+			   w->buffer,
+			   BUF_PT (XBUFFER (w->buffer)),
+			   BUF_PT_BYTE (XBUFFER (w->buffer)));
+	}
 
       windows_or_buffers_changed++;
       FRAME_WINDOW_SIZES_CHANGED (f) = 1;
