@@ -225,6 +225,7 @@ Lisp_Object Qredisplay_end_trigger_functions;
 Lisp_Object Qinhibit_point_motion_hooks;
 Lisp_Object QCeval, Qwhen, QCfile, QCdata;
 Lisp_Object Qfontified;
+Lisp_Object Qgrow_only;
 
 /* Functions called to fontify regions of text.  */
 
@@ -549,6 +550,13 @@ int automatic_hscrolling_p;
 /* A list of symbols, one for each supported image type.  */
 
 Lisp_Object Vimage_types;
+
+/* The variable `resize-mini-windows'.  If nil, don't resize
+   mini-winodws.  If t, always resize them to fit the text they
+   display.  If `grow-only', let mini-windows grow only until they
+   become empty.  */
+
+Lisp_Object Vresize_mini_windows;
 
 /* Value returned from text property handlers (see below).  */
 
@@ -6078,7 +6086,7 @@ resize_mini_window (w, exact_p)
   xassert (MINI_WINDOW_P (w));
 
   /* Nil means don't try to resize.  */
-  if (NILP (Vmax_mini_window_height)
+  if (NILP (Vresize_mini_windows)
       || (FRAME_X_P (f) && f->output_data.x == NULL))
     return 0;
   
@@ -6132,22 +6140,50 @@ resize_mini_window (w, exact_p)
 	SET_TEXT_POS (start, BEGV, BEGV_BYTE);
       SET_MARKER_FROM_TEXT_POS (w->start, start);
 
-      /* Let it grow only, until we display an empty message, in which
-	 case the window shrinks again.  */
-      if (height > XFASTINT (w->height))
+      if (EQ (Vresize_mini_windows, Qgrow_only))
 	{
-	  int old_height = XFASTINT (w->height);
-	  freeze_window_starts (f, 1);
-	  grow_mini_window (w, height - XFASTINT (w->height));
-	  window_height_changed_p = XFASTINT (w->height) != old_height;
+	  /* Let it grow only, until we display an empty message, in which
+	     case the window shrinks again.  */
+	  if (height > XFASTINT (w->height))
+	    {
+	      int old_height = XFASTINT (w->height);
+	      freeze_window_starts (f, 1);
+	      grow_mini_window (w, height - XFASTINT (w->height));
+	      window_height_changed_p = XFASTINT (w->height) != old_height;
+	    }
+	  else if (height < XFASTINT (w->height)
+		   && (exact_p || BEGV == ZV))
+	    {
+	      int old_height = XFASTINT (w->height);
+	      freeze_window_starts (f, 0);
+	      shrink_mini_window (w);
+	      window_height_changed_p = XFASTINT (w->height) != old_height;
+	    }
 	}
-      else if (height < XFASTINT (w->height)
-	       && (exact_p || BEGV == ZV))
+      else 
 	{
-	  int old_height = XFASTINT (w->height);
-	  freeze_window_starts (f, 0);
-	  shrink_mini_window (w);
-	  window_height_changed_p = XFASTINT (w->height) != old_height;
+	  /* Always resize to exact size needed.  */
+	  if (height > XFASTINT (w->height))
+	    {
+	      int old_height = XFASTINT (w->height);
+	      freeze_window_starts (f, 1);
+	      grow_mini_window (w, height - XFASTINT (w->height));
+	      window_height_changed_p = XFASTINT (w->height) != old_height;
+	    }
+	  else if (height < XFASTINT (w->height))
+	    {
+	      int old_height = XFASTINT (w->height);
+	      freeze_window_starts (f, 0);
+	      shrink_mini_window (w);
+
+	      if (height)
+		{
+		  freeze_window_starts (f, 1);
+		  grow_mini_window (w, height - XFASTINT (w->height));
+		}
+	      
+	      window_height_changed_p = XFASTINT (w->height) != old_height;
+	    }
 	}
     }
 
@@ -13661,6 +13697,8 @@ syms_of_xdisp ()
   staticpro (&Qimage);
   Qmessage_truncate_lines = intern ("message-truncate-lines");
   staticpro (&Qmessage_truncate_lines);
+  Qgrow_only = intern ("grow-only");
+  staticpro (&Qgrow_only);
 
   last_arrow_position = Qnil;
   last_arrow_string = Qnil;
@@ -13839,10 +13877,18 @@ displayed according to the current fontset.");
   DEFVAR_LISP ("max-mini-window-height", &Vmax_mini_window_height,
     "*Maximum height for resizing mini-windows.\n\
 If a float, it specifies a fraction of the mini-window frame's height.\n\
-If an integer, it specifies a number of lines.\n\
-If nil, don't resize.");
+If an integer, it specifies a number of lines.");
   Vmax_mini_window_height = make_float (0.25);
-  
+
+  DEFVAR_LISP ("resize-mini-windows", &Vresize_mini_windows,
+    "*How to resize the mini-window.\n\
+A value of nil means don't automatically resize mini-windows.\n\
+A value of t means resize it to fit the text displayed in it.\n\
+A value of `grow-only', the default, means let mini-windows grow\n\
+only, until the its display becomes empty, at which point the mini-window\n\
+goes back to its normal size.");
+  Vresize_mini_windows = Qgrow_only;
+
   DEFVAR_BOOL ("cursor-in-non-selected-windows",
 	       &cursor_in_non_selected_windows,
     "*Non-nil means display a hollow cursor in non-selected windows.\n\
@@ -13866,7 +13912,7 @@ Bind this around calls to `message' to let it take effect.");
   DEFVAR_LISP ("menu-bar-update-hook",  &Vmenu_bar_update_hook,
     "Normal hook run for clicks on menu bar, before displaying a submenu.\n\
 Can be used to update submenus whose contents should vary.");
-
+  Vmenu_bar_update_hook = Qnil;
 }
 
 
