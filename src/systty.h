@@ -107,6 +107,20 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 
 
+/* Try to establish the correct character to disable terminal functions
+   in a system-independent manner.  Note that USG (at least) define
+   _POSIX_VDISABLE as 0!  */
+
+#ifdef _POSIX_VDISABLE
+#define CDISABLE _POSIX_VDISABLE
+#else /* not _POSIX_VDISABLE */
+#ifdef CDEL
+#define CDISABLE CDEL
+#else /* not CDEL */
+#define CDISABLE 255
+#endif /* not CDEL */
+#endif /* not _POSIX_VDISABLE */
+
 /* Get the number of characters queued for output.  */
 
 /* EMACS_OUTQSIZE(FD, int *SIZE) stores the number of characters
