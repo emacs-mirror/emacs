@@ -294,22 +294,24 @@ file the tag was in."
 	    (let ((tags-file-name this-file)
 		  found)
 	      (visit-tags-table-buffer 'same)
-	      (if (tags-find-table-in-list file recursing-move-to
-					   (tags-included-tables))
-		  (progn
-		    ;; We found FILE in the included table.
-		    (if move-to
-			(progn
-			  ;; The recursive call has already frobbed the list
-			  ;; pointers.  It set tags-table-parent-pointer-list
-			  ;; to a list including RECURSING-MOVE-TO.  Now we
-			  ;; must mutate that cons so its list pointers show
-			  ;; the position where we found this included table.
-			  (setcar (cdr (car recursing-move-to)) list)
-			  (setcar (cdr (cdr (car recursing-move-to))) list)
-			  ;; Don't do further list frobnication below.
-			  (setq move-to nil)))
-		    (setq list t))))))
+	      (and (tags-included-tables)
+		   ;; We have some included tables; check them.
+		   (tags-find-table-in-list file recursing-move-to
+					    tags-included-tables)
+		   (progn
+		     ;; We found FILE in the included table.
+		     (if move-to
+			 (progn
+			   ;; The recursive call has already frobbed the list
+			   ;; pointers.  It set tags-table-parent-pointer-list
+			   ;; to a list including RECURSING-MOVE-TO.  Now we
+			   ;; must mutate that cons so its list pointers show
+			   ;; the position where we found this included table.
+			   (setcar (cdr (car recursing-move-to)) list)
+			   (setcar (cdr (cdr (car recursing-move-to))) list)
+			   ;; Don't do further list frobnication below.
+			   (setq move-to nil)))
+		     (setq list t))))))
       (if (consp list)
 	  (setq list (cdr list))))
     (and list move-to
