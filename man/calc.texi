@@ -775,12 +775,6 @@ Calc has several user interfaces that are specialized for
 different kinds of tasks.  As well as Calc's standard interface,
 there are Quick Mode, Keypad Mode, and Embedded Mode.
 
-@c [fix-ref Installation]
-Calc must be @dfn{installed} before it can be used.  @xref{Installation},
-for instructions on setting up and installing Calc.  We will assume
-you or someone on your system has already installed Calc as described
-there.
-
 @menu
 * Starting Calc::
 * The Standard Interface::
