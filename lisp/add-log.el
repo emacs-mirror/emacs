@@ -414,12 +414,12 @@ Runs `change-log-mode-hook'."
   (use-local-map change-log-mode-map)
   (set (make-local-variable 'fill-paragraph-function)
        'change-log-fill-paragraph)
-  ;; Let each entry behave as one paragraph:
-  ;; We really do want "^" in paragraph-start below: it is only the lines that
-  ;; begin at column 0 (despite the left-margin of 8) that we are looking for.
-  (set (make-local-variable 'paragraph-start) "\\s *$\\|\f\\|^\\<")
-  (set (make-local-variable 'paragraph-separate) "\\s *$\\|\f\\|^\\<")
-  ;; Let all entries for one day behave as one page.
+  ;; We really do want "^" in paragraph-start below: it is only the
+  ;; lines that begin at column 0 (despite the left-margin of 8) that
+  ;; we are looking for.  Adding `* ' allows eliding the blank line
+  ;; between entries for different files.
+  (set (make-local-variable 'paragraph-start) "\\s *$\\|\f\\|^\\<\\|\\* ")
+  (set (make-local-variable 'paragraph-separate) paragraph-start)
   ;; Match null string on the date-line so that the date-line
   ;; is grouped with what follows.
   (set (make-local-variable 'page-delimiter) "^\\<\\|^\f")
