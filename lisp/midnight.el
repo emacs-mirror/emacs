@@ -95,7 +95,7 @@ displayed more than this many seconds ago."
   :type 'integer
   :group 'midnight)
 
-(defcustom clean-buffer-list-kill-regexps '("\\*vc\\.")
+(defcustom clean-buffer-list-kill-regexps nil
   "*List of regexps saying which buffers will be killed at midnight.
 If buffer name matches a regexp in the list and the buffer was not displayed
 in the last `clean-buffer-list-delay-special' seconds, it is killed by
@@ -109,7 +109,8 @@ See also `clean-buffer-list-kill-buffer-names',
   :group 'midnight)
 
 (defcustom clean-buffer-list-kill-buffer-names
-    '("*Help*" "*Apropos*" "*Man " "*Buffer List*" "*Compile-Log*" "*info*")
+    '("*Help*" "*Apropos*" "*Man " "*Buffer List*" "*Compile-Log*" "*info*"
+      "*vc*" "*vc-diff*")
   "*List of strings saying which buffers will be killed at midnight.
 Buffers with names in this list, which were not displayed in the last
 `clean-buffer-list-delay-special' seconds, are killed by `clean-buffer-list'
@@ -151,34 +152,19 @@ two lists will NOT be killed if it also matches anything in this list."
         (when (funcall test el (if key (funcall key rr) rr))
           (return rr)))))
 
-(defun assoc-default (el alist test default)
-  "Find object EL in a pseudo-alist ALIST.
-ALIST is a list of conses or objects.  EL is compared (using TEST) with
-CAR (or the object itself, if it is not a cons) of elements of ALIST.
-When TEST returns non-nil, CDR (or DEFAULT, if the object is not a cons)
-of the object is returned.
-This is a non-consing analogue of
-  (cdr (assoc el (mapcar (lambda (el) (if (consp el) el (cons el default)))
-                         alist)
-              :test test))
-The calling sequence is: (ASSOC-DEFAULT EL ALIST TEST DEFAULT)"
-  (dolist (rr alist)
-    (when (funcall test el (if (consp rr) (car rr) rr))
-      (return (if (consp rr) (cdr rr) default)))))
-
-(defun clean-buffer-list-delay (bn)
-  "Return the delay, in seconds, before this buffer name is auto-killed.
+(defun clean-buffer-list-delay (name)
+  "Return the delay, in seconds, before killing a buffer named NAME.
 Uses `clean-buffer-list-kill-buffer-names', `clean-buffer-list-kill-regexps'
 `clean-buffer-list-delay-general' and `clean-buffer-list-delay-special'.
 Autokilling is done by `clean-buffer-list'."
-  (or (assoc-default bn clean-buffer-list-kill-buffer-names 'string=
+  (or (assoc-default name clean-buffer-list-kill-buffer-names 'string=
                      clean-buffer-list-delay-special)
-      (assoc-default bn clean-buffer-list-kill-regexps 'string-match
+      (assoc-default name clean-buffer-list-kill-regexps 'string-match
                      clean-buffer-list-delay-special)
       (* clean-buffer-list-delay-general 24 60 60)))
 
 (defun clean-buffer-list ()
-  "Kill old buffers.
+  "Kill old buffers that have not been displayed recently.
 The relevant vartiables are `clean-buffer-list-delay-general',
 `clean-buffer-list-delay-special', `clean-buffer-list-kill-buffer-names',
 `clean-buffer-list-kill-never-buffer-names',
@@ -200,7 +186,7 @@ The relevant vartiables are `clean-buffer-list-delay-general',
 ;;; midnight hook
 
 (defvar midnight-period (* 24 60 60)
-  "The number of seconds in a day - the delta for `midnight-timer'.")
+  "The number of seconds in a day--the delta for `midnight-timer'.")
 
 (defcustom midnight-hook 'clean-buffer-list
   "The hook run `midnight-delay' seconds after midnight every day.
