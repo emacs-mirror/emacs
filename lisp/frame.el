@@ -371,6 +371,13 @@ These supersede the values given in `default-frame-alist'."
 	    (setq newparms (nreverse newparms))
 	    (modify-frame-parameters frame-initial-frame
 				     newparms)
+	    ;; If we changed the background color,
+	    ;; we need to update the background-mode parameter
+	    ;; and maybe some faces too.
+	    (when (assq 'background-color newparms)
+	      (unless (assq 'background-mode newparms)
+		(frame-set-background-mode frame-initial-frame))
+	      (face-set-after-frame-default frame-initial-frame))
 	    (if (assq 'font newparms)
 		(frame-update-faces frame-initial-frame)))))
 
