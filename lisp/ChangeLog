@@ -1,3 +1,7 @@
+2005-03-30  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* help-fns.el (help-with-tutorial): Delete title line.
+
 2005-03-30  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/cal-x.el (calendar-one-frame-setup)
@@ -14,7 +18,7 @@
 
 2005-03-30  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.el (org-agenda-phases-of-moon, org-agenda-sunrise-sunset) 
+	* org.el (org-agenda-phases-of-moon, org-agenda-sunrise-sunset)
 	(org-agenda-convert-date, org-agenda-goto-calendar): New commands.
 	(org-diary-default-entry): New function.
 	(org-get-entries-from-diary): Better parsing of diary entries

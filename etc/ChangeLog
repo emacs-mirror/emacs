@@ -1,3 +1,12 @@
+2005-03-30  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* TUTORIAL: Add title line.
+	* TUTORIAL.bg, TUTORIAL.cn, TUTORIAL.cs, TUTORIAL.de,
+	* TUTORIAL.es, TUTORIAL.fr, TUTORIAL.it, TUTORIAL.ja,
+	* TUTORIAL.ko, TUTORIAL.nl, TUTORIAL.pl, TUTORIAL.pt_BR,
+	* TUTORIAL.ro, TUTORIAL.ru, TUTORIAL.sk, TUTORIAL.sl
+	* TUTORIAL.sv, TUTORIAL.th, TUTORIAL.zh: Likewise.
+
 2005-03-29  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-refcard.tex, gnus-logo.eps: New files.
