@@ -1,3 +1,12 @@
+2005-03-18  Tak Ota  <Takaaki.Ota@am.sony.com>
+
+	* textmodes/table.el (table--line-column-position): New idiom.
+	(table--row-column-insertion-point-p): New function to test
+	validity of row and column insertion operation at a location.
+	(table-global-menu, table-cell-menu): Use above functions for
+	deterministic test operation.
+	(table--editable-cell-p): Behave in deterministic fashion.
+
 2005-03-18  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-lazy-highlight-new-loop):
@@ -7,8 +16,8 @@
 	(isearch-lazy-highlight-search): Let-bind case-fold-search to
 	isearch-lazy-highlight-case-fold-search instead of
 	isearch-case-fold-search, and let-bind isearch-regexp to
-	isearch-lazy-highlight-regexp.  Use
-	isearch-lazy-highlight-last-string instead of isearch-string.
+	isearch-lazy-highlight-regexp.
+	Use isearch-lazy-highlight-last-string instead of isearch-string.
 
 	* replace.el (perform-replace): Remove bindings of global
 	variables isearch-string, isearch-regexp, isearch-case-fold-search.
@@ -16,7 +25,7 @@
 	(replace-highlight): Add arguments string, regexp, case-fold.
 	Let-bind isearch-string, isearch-regexp, isearch-case-fold-search
 	to allow isearch-lazy-highlight-new-loop to use these values
-	to set corresponding isearch-lazy-highlight-... internal
+	to set corresponding isearch-lazy-highlight-* internal
 	variables whose values lazy highlighting will use regardless of
 	changes to global variables isearch-string, isearch-regexp,
 	isearch-case-fold-search during lazy highlighting loop.
@@ -41,13 +50,13 @@
 	* isearch.el (lazy-highlight-cleanup) <command>: Rename from
 	`isearch-lazy-highlight-cleanup', add alias to old name and
 	declare obsolete.  Add release numbers to other obsolete vars.
-	(isearch-done, isearch-lazy-highlight-new-loop): Rename
-	`isearch-lazy-highlight-cleanup' to `lazy-highlight-cleanup'.
+	(isearch-done, isearch-lazy-highlight-new-loop):
+	Rename `isearch-lazy-highlight-cleanup' to `lazy-highlight-cleanup'.
 	(lazy-highlight-cleanup) <variable>: Doc fix.
 	(isearch-lazy-highlight-update): Rename obsolete
 	`isearch-lazy-highlight-face' to `lazy-highlight-face'.
 
-2005-03-18  handa  <handa@m17n.org>
+2005-03-18  Kenichi Handa  <handa@m17n.org>
 
 	* language/thai-util.el: Fix categorization of Thai characters in
 	thai-category-table.
@@ -74,7 +83,7 @@
 	(rmail-pop-password-required, rmail-remote-password): Doc fixes.
 	(rmail-preserve-inbox, rmail-probe, rmail-autodetect): Doc fix.
 
-	* mail/sendmail.el (sendmail-send-it): Reenaable the code
+	* mail/sendmail.el (sendmail-send-it): Reenable the code
 	to compute resend-to-address and use it.
 
 	* tar-mode.el (tar-mode): Turn off undo unconditionally.
@@ -88,8 +97,6 @@
 
 	* bindings.el (esc-map): Make M-g a prefix.
 	Bind M-g g and M-g M-g to goto-line.
-
-	* progmodes/perl-mode.el (perl-mode): Use run-mode-hooks.
 
 	* faces.el (face-id): Doc fix.
 
