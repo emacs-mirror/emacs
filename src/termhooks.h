@@ -371,7 +371,7 @@ struct input_event
 #define EVENT_INIT(event) bzero (&(event), sizeof (struct input_event))
 
 /* Called to read input events.  */
-extern int (*read_socket_hook) P_ ((int, struct input_event *, int, int));
+extern int (*read_socket_hook) P_ ((struct input_event *, int, int));
 
 /* Called when a frame's display becomes entirely up to date.  */
 extern void (*frame_up_to_date_hook) P_ ((struct frame *));

@@ -1564,7 +1564,7 @@ main (argc, argv
   if (!noninteractive)
     {
 #ifdef VMS
-      init_vms_input ();/* init_display calls get_frame_size, that needs this.  */
+      init_vms_input ();/* init_display calls get_tty_size, that needs this.  */
 #endif /* VMS */
       init_display ();	/* Determine terminal type.  Calls init_sys_modes.  */
     }

@@ -22,9 +22,9 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #include <stdio.h>
 #include <string.h>
+#include "lisp.h"
 #include "systty.h" /* For emacs_tty in termchar.h */
 #include "termchar.h"
-#include "lisp.h"
 #include "dispextern.h"
 #include "keyboard.h"
 #include "frame.h"

@@ -2946,7 +2946,6 @@ extern void init_sys_modes P_ ((struct tty_output *));
 extern void reset_sys_modes P_ ((struct tty_output *));
 extern void init_all_sys_modes P_ ((void));
 extern void reset_all_sys_modes P_ ((void));
-extern void get_frame_size P_ ((int *, int *));
 extern void wait_for_termination P_ ((int));
 extern void flush_pending_output P_ ((int));
 extern void child_setup_tty P_ ((int));

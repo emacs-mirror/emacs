@@ -246,11 +246,6 @@ static int baud_convert[] =
 
 int emacs_ospeed;
 
-/* The file descriptor for Emacs's input terminal.
-   Under Unix, this is normally zero except when using X;
-   under VMS, we place the input channel number here.  */
-int input_fd;
-
 void croak P_ ((char *));
 
 #ifdef AIXHFT
@@ -263,16 +258,7 @@ void hft_reset ();
 SIGMASKTYPE sigprocmask_set;
 
 
-/* Specify a different file descriptor for further input operations.  */
-
-void
-change_input_fd (fd)
-     int fd;
-{
-  input_fd = fd;
-}
-
-/* Discard pending input on descriptor input_fd.  */
+/* Discard pending input on all input descriptors.  */
 
 void
 discard_tty_input ()
@@ -290,22 +276,28 @@ discard_tty_input ()
 
 #ifdef VMS
   end_kbd_input ();
-  SYS$QIOW (0, input_fd, IO$_READVBLK|IO$M_PURGE, input_iosb, 0, 0,
+  SYS$QIOW (0, fileno (TTY_INPUT (CURTTY())), IO$_READVBLK|IO$M_PURGE, input_iosb, 0, 0,
 	    &buf.main, 0, 0, terminator_mask, 0, 0);
   queue_kbd_input ();
 #else /* not VMS */
 #ifdef APOLLO
   {
     int zero = 0;
-    ioctl (input_fd, TIOCFLUSH, &zero);
+    ioctl (fileno (TTY_INPUT (CURTTY())), TIOCFLUSH, &zero);
   }
 #else /* not Apollo */
 #ifdef MSDOS    /* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
   while (dos_keyread () != -1)
     ;
 #else /* not MSDOS */
-  EMACS_GET_TTY (input_fd, &buf);
-  EMACS_SET_TTY (input_fd, &buf, 0);
+  {
+    struct tty_output tty;
+    for (tty = tty_list; tty; tty = tty->next)
+      {
+        EMACS_GET_TTY (fileno (TTY_INPUT (tty)), &buf);
+        EMACS_SET_TTY (fileno (TTY_INPUT (tty)), &buf, 0);
+      }
+  }
 #endif /* not MSDOS */
 #endif /* not Apollo */
 #endif /* not VMS */
@@ -330,7 +322,7 @@ stuff_char (c)
 
 /* Should perhaps error if in batch mode */
 #ifdef TIOCSTI
-  ioctl (input_fd, TIOCSTI, &c);
+  ioctl (fileno (TTY_INPUT (CURTTY())), TIOCSTI, &c);
 #else /* no TIOCSTI */
   error ("Cannot stuff terminal input characters in this version of Unix");
 #endif /* no TIOCSTI */
@@ -354,7 +346,7 @@ init_baud_rate ()
 #ifdef VMS
       struct sensemode sg;
 
-      SYS$QIOW (0, input_fd, IO$_SENSEMODE, &sg, 0, 0,
+      SYS$QIOW (0, fileno (TTY_INPUT (CURTTY())), IO$_SENSEMODE, &sg, 0, 0,
 		&sg.class, 12, 0, 0, 0, 0 );
       emacs_ospeed = sg.xmit_baud;
 #else /* not VMS */
@@ -362,7 +354,7 @@ init_baud_rate ()
       struct termios sg;
 
       sg.c_cflag = B9600;
-      tcgetattr (input_fd, &sg);
+      tcgetattr (fileno (TTY_INPUT (CURTTY())), &sg);
       emacs_ospeed = cfgetospeed (&sg);
 #if defined (USE_GETOBAUD) && defined (getobaud)
       /* m88k-motorola-sysv3 needs this (ghazi@noc.rutgers.edu) 9/1/94. */
@@ -375,16 +367,16 @@ init_baud_rate ()
 
       sg.c_cflag = B9600;
 #ifdef HAVE_TCATTR
-      tcgetattr (input_fd, &sg);
+      tcgetattr (fileno (TTY_INPUT (CURTTY())), &sg);
 #else
-      ioctl (input_fd, TCGETA, &sg);
+      ioctl (fileno (TTY_INPUT (CURTTY())), TCGETA, &sg);
 #endif
       emacs_ospeed = sg.c_cflag & CBAUD;
 #else /* neither VMS nor TERMIOS nor TERMIO */
       struct sgttyb sg;
 
       sg.sg_ospeed = B9600;
-      if (ioctl (input_fd, TIOCGETP, &sg) < 0)
+      if (ioctl (fileno (TTY_INPUT (CURTTY())), TIOCGETP, &sg) < 0)
 	abort ();
       emacs_ospeed = sg.sg_ospeed;
 #endif /* not HAVE_TERMIO */
@@ -947,7 +939,7 @@ request_sigio ()
 #ifdef SIGWINCH
   sigunblock (sigmask (SIGWINCH));
 #endif
-  fcntl (input_fd, F_SETFL, old_fcntl_flags | FASYNC);
+  fcntl (fileno (TTY_INPUT (CURTTY())), F_SETFL, old_fcntl_flags | FASYNC);
 
   interrupts_deferred = 0;
 }
@@ -961,7 +953,7 @@ unrequest_sigio ()
 #ifdef SIGWINCH
   sigblock (sigmask (SIGWINCH));
 #endif
-  fcntl (input_fd, F_SETFL, old_fcntl_flags);
+  fcntl (fileno (TTY_INPUT (CURTTY())), F_SETFL, old_fcntl_flags);
   interrupts_deferred = 1;
 }
 
@@ -976,7 +968,7 @@ request_sigio ()
   if (read_socket_hook)
     return;
 
-  ioctl (input_fd, FIOASYNC, &on);
+  ioctl (fileno (TTY_INPUT (CURTTY())), FIOASYNC, &on);
   interrupts_deferred = 0;
 }
 
@@ -988,7 +980,7 @@ unrequest_sigio ()
   if (read_socket_hook)
     return;
 
-  ioctl (input_fd, FIOASYNC, &off);
+  ioctl (fileno (TTY_INPUT (CURTTY())), FIOASYNC, &off);
   interrupts_deferred = 1;
 }
 
@@ -1009,7 +1001,7 @@ request_sigio ()
 
   sigemptyset (&st);
   sigaddset (&st, SIGIO);
-  ioctl (input_fd, FIOASYNC, &on);
+  ioctl (fileno (TTY_INPUT (CURTTY())), FIOASYNC, &on);
   interrupts_deferred = 0;
   sigprocmask (SIG_UNBLOCK, &st, (sigset_t *)0);
 }
@@ -1022,7 +1014,7 @@ unrequest_sigio ()
   if (read_socket_hook)
     return;
 
-  ioctl (input_fd, FIOASYNC, &off);
+  ioctl (fileno (TTY_INPUT (CURTTY())), FIOASYNC, &off);
   interrupts_deferred = 1;
 }
 
@@ -1088,7 +1080,7 @@ narrow_foreground_group ()
 
   setpgrp (0, inherited_pgroup);
   if (inherited_pgroup != me)
-    EMACS_SET_TTY_PGRP (input_fd, &me);
+    EMACS_SET_TTY_PGRP (fileno (stdin), &me); /* stdin is intentional here */
   setpgrp (0, me);
 }
 
@@ -1097,7 +1089,7 @@ void
 widen_foreground_group ()
 {
   if (inherited_pgroup != getpid ())
-    EMACS_SET_TTY_PGRP (input_fd, &inherited_pgroup);
+    EMACS_SET_TTY_PGRP (fileno (stdin), &inherited_pgroup); /* stdin is intentional here */
   setpgrp (0, inherited_pgroup);
 }
 
@@ -1300,8 +1292,8 @@ init_all_sys_modes (void)
 }
 
 void
-init_sys_modes (otty)
-     struct tty_output *otty;
+init_sys_modes (tty_out)
+     struct tty_output *tty_out;
 {
   struct emacs_tty tty;
 
@@ -1357,7 +1349,7 @@ nil means don't delete them until `list-processes' is run.  */);
 #ifndef VMS4_4
   sys_access_reinit ();
 #endif
-#endif /* not VMS */
+#endif /* VMS */
 
 #ifdef BSD_PGRPS
   if (! read_socket_hook && EQ (Vwindow_system, Qnil))
@@ -1370,14 +1362,14 @@ nil means don't delete them until `list-processes' is run.  */);
   if (!read_socket_hook && EQ (Vwindow_system, Qnil))
 #endif
     {
-      EMACS_GET_TTY (input_fd, &otty->old_tty);
+      EMACS_GET_TTY (fileno (TTY_INPUT (tty_out)), &tty_out->old_tty);
 
-      otty->old_tty_valid = 1;
+      tty_out->old_tty_valid = 1;
 
-      tty = otty->old_tty;
+      tty = tty_out->old_tty;
 
 #if defined (HAVE_TERMIO) || defined (HAVE_TERMIOS)
-      XSETINT (Vtty_erase_char, otty->old_tty.main.c_cc[VERASE]);
+      XSETINT (Vtty_erase_char, tty_out->old_tty.main.c_cc[VERASE]);
 
 #ifdef DGUX
       /* This allows meta to be sent on 8th bit.  */
@@ -1542,7 +1534,7 @@ nil means don't delete them until `list-processes' is run.  */);
 	  tty.tchars.t_stopc = '\023';
 	}
 
-      tty.lmode = LDECCTQ | LLITOUT | LPASS8 | LNOFLSH | otty->old_tty.lmode;
+      tty.lmode = LDECCTQ | LLITOUT | LPASS8 | LNOFLSH | tty_out->old_tty.lmode;
 #ifdef ultrix
       /* Under Ultrix 4.2a, leaving this out doesn't seem to hurt
 	 anything, and leaving it in breaks the meta key.  Go figure.  */
@@ -1560,28 +1552,28 @@ nil means don't delete them until `list-processes' is run.  */);
       tty.ltchars = new_ltchars;
 #endif /* HAVE_LTCHARS */
 #ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida, MW Aug 1993 */
-      if (!otty->term_initted)
+      if (!tty_out->term_initted)
 	internal_terminal_init ();
       dos_ttraw ();
 #endif
 
-      EMACS_SET_TTY (input_fd, &tty, 0);
+      EMACS_SET_TTY (fileno (TTY_INPUT (tty_out)), &tty, 0);
 
       /* This code added to insure that, if flow-control is not to be used,
 	 we have an unlocked terminal at the start. */
 
 #ifdef TCXONC
-      if (!flow_control) ioctl (input_fd, TCXONC, 1);
+      if (!flow_control) ioctl (fileno (TTY_INPUT (tty_out)), TCXONC, 1);
 #endif
 #ifndef APOLLO
 #ifdef TIOCSTART
-      if (!flow_control) ioctl (input_fd, TIOCSTART, 0);
+      if (!flow_control) ioctl (fileno (TTY_INPUT (tty_out)), TIOCSTART, 0);
 #endif
 #endif
 
 #if defined (HAVE_TERMIOS) || defined (HPUX9)
 #ifdef TCOON
-      if (!flow_control) tcflow (input_fd, TCOON);
+      if (!flow_control) tcflow (fileno (TTY_INPUT (tty_out)), TCOON);
 #endif
 #endif
 
@@ -1601,7 +1593,7 @@ nil means don't delete them until `list-processes' is run.  */);
 
 #ifdef VMS
 /*  Appears to do nothing when in PASTHRU mode.
-      SYS$QIOW (0, input_fd, IO$_SETMODE|IO$M_OUTBAND, 0, 0, 0,
+      SYS$QIOW (0, fileno (TTY_INPUT (tty_out)), IO$_SETMODE|IO$M_OUTBAND, 0, 0, 0,
 		interrupt_signal, oob_chars, 0, 0, 0, 0);
 */
       queue_kbd_input (0);
@@ -1614,9 +1606,9 @@ nil means don't delete them until `list-processes' is run.  */);
   if (interrupt_input
       && ! read_socket_hook && EQ (Vwindow_system, Qnil))
     {
-      old_fcntl_owner = fcntl (input_fd, F_GETOWN, 0);
-      fcntl (input_fd, F_SETOWN, getpid ());
-      init_sigio (input_fd);
+      old_fcntl_owner = fcntl (fileno (TTY_INPUT (tty_out)), F_GETOWN, 0);
+      fcntl (fileno (TTY_INPUT (tty_out)), F_SETOWN, getpid ());
+      init_sigio (fileno (TTY_INPUT (tty_out)));
     }
 #endif /* F_GETOWN */
 #endif /* F_SETOWN_BUG */
@@ -1624,7 +1616,7 @@ nil means don't delete them until `list-processes' is run.  */);
 
 #ifdef BSD4_1
   if (interrupt_input)
-    init_sigio (input_fd);
+    init_sigio (fileno (TTY_INPUT (tty_out)));
 #endif
 
 #ifdef VMS  /* VMS sometimes has this symbol but lacks setvbuf.  */
@@ -1634,9 +1626,9 @@ nil means don't delete them until `list-processes' is run.  */);
   /* This symbol is defined on recent USG systems.
      Someone says without this call USG won't really buffer the file
      even with a call to setbuf. */
-  setvbuf (stdout, (char *) _sobuf, _IOFBF, sizeof _sobuf);
+  setvbuf (TTY_OUTPUT (tty_out), (char *) _sobuf, _IOFBF, sizeof _sobuf);
 #else
-  setbuf (stdout, (char *) _sobuf);
+  setbuf (TTY_OUTPUT (tty_out), (char *) _sobuf);
 #endif
 #ifdef HAVE_WINDOW_SYSTEM
   /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
@@ -1649,26 +1641,37 @@ nil means don't delete them until `list-processes' is run.  */);
 #endif
       )
 #endif
-    set_terminal_modes (otty);
+    set_terminal_modes (tty_out);
 
-  if (!otty->term_initted
-      && FRAMEP (Vterminal_frame)
-      && FRAME_TERMCAP_P (XFRAME (Vterminal_frame)))
-    init_frame_faces (XFRAME (Vterminal_frame));
+  if (!tty_out->term_initted)
+    {
+      Lisp_Object tail, frame;
+      FOR_EACH_FRAME (tail, frame)
+        {
+          if (FRAME_TERMCAP_P (XFRAME (frame))
+              && FRAME_TTY (XFRAME (frame)) == tty_out)
+            init_frame_faces (XFRAME (frame));
+        }
+    }
 
-  if (otty->term_initted && no_redraw_on_reenter)
+  if (tty_out->term_initted && no_redraw_on_reenter)
     {
       if (display_completed)
 	direct_output_forward_char (0);
     }
   else
     {
+      Lisp_Object tail, frame;
       frame_garbaged = 1;
-      if (FRAMEP (Vterminal_frame))
-	FRAME_GARBAGED_P (XFRAME (Vterminal_frame)) = 1;
+      FOR_EACH_FRAME (tail, frame)
+        {
+          if (FRAME_TERMCAP_P (XFRAME (frame))
+              && FRAME_TTY (XFRAME (frame)) == tty_out)
+            FRAME_GARBAGED_P (XFRAME (frame)) = 1;
+        }
     }
 
-  otty->term_initted = 1;
+  tty_out->term_initted = 1;
 }
 
 /* Return nonzero if safe to use tabs in output.
@@ -1679,7 +1682,7 @@ tabs_safe_p ()
 {
   struct emacs_tty tty;
 
-  EMACS_GET_TTY (input_fd, &tty);
+  EMACS_GET_TTY (fileno (TTY_INPUT (CURTTY())), &tty);
   return EMACS_TTY_TABS_OK (&tty);
 }
 
@@ -1688,7 +1691,8 @@ tabs_safe_p ()
    We store 0 if there's no valid information.  */
 
 void
-get_frame_size (widthp, heightp)
+get_tty_size (tty_out, widthp, heightp)
+     struct tty_output *tty_out;
      int *widthp, *heightp;
 {
 
@@ -1697,7 +1701,7 @@ get_frame_size (widthp, heightp)
   /* BSD-style.  */
   struct winsize size;
 
-  if (ioctl (input_fd, TIOCGWINSZ, &size) == -1)
+  if (ioctl (fileno (TTY_INPUT (tty_out)), TIOCGWINSZ, &size) == -1)
     *widthp = *heightp = 0;
   else
     {
@@ -1711,7 +1715,7 @@ get_frame_size (widthp, heightp)
   /* SunOS - style.  */
   struct ttysize size;
 
-  if (ioctl (input_fd, TIOCGSIZE, &size) == -1)
+  if (ioctl (fileno (TTY_INPUT (tty_out)), TIOCGSIZE, &size) == -1)
     *widthp = *heightp = 0;
   else
     {
@@ -1724,7 +1728,7 @@ get_frame_size (widthp, heightp)
 
   struct sensemode tty;
 
-  SYS$QIOW (0, input_fd, IO$_SENSEMODE, &tty, 0, 0,
+  SYS$QIOW (0, fileno (TTY_INPUT (CURTTY())), IO$_SENSEMODE, &tty, 0, 0,
 	    &tty.class, 12, 0, 0, 0, 0);
   *widthp = tty.scr_wid;
   *heightp = tty.scr_len;
@@ -1794,8 +1798,8 @@ reset_all_sys_modes (void)
 /* Prepare the terminal for exiting Emacs; move the cursor to the
    bottom of the frame, turn off interrupt-driven I/O, etc.  */
 void
-reset_sys_modes (otty)
-     struct tty_output *otty;
+reset_sys_modes (tty_out)
+     struct tty_output *tty_out;
 {
   struct frame *sf;
 
@@ -1804,7 +1808,7 @@ reset_sys_modes (otty)
       fflush (stdout);
       return;
     }
-  if (!otty->term_initted)
+  if (!tty_out->term_initted)
     return;
 #ifdef HAVE_WINDOW_SYSTEM
   /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
@@ -1834,12 +1838,12 @@ reset_sys_modes (otty)
   }
 #endif
 
-  reset_terminal_modes (otty);
-  fflush (stdout);
+  reset_terminal_modes (tty_out);
+  fflush (TTY_OUTPUT (tty_out));
 #ifdef BSD_SYSTEM
 #ifndef BSD4_1
   /* Avoid possible loss of output when changing terminal modes.  */
-  fsync (fileno (stdout));
+  fsync (TTY_OUTPUT (tty_out));
 #endif
 #endif
 
@@ -1849,12 +1853,13 @@ reset_sys_modes (otty)
   if (interrupt_input)
     {
       reset_sigio ();
-      fcntl (input_fd, F_SETOWN, old_fcntl_owner);
+      fcntl (fileno (TTY_INPUT (tty_out)), F_SETOWN, old_fcntl_owner);
     }
 #endif /* F_SETOWN */
 #endif /* F_SETOWN_BUG */
 #ifdef O_NDELAY
-  fcntl (input_fd, F_SETFL, fcntl (input_fd, F_GETFL, 0) & ~O_NDELAY);
+  fcntl (fileno (TTY_INPUT (tty_out)), F_SETFL,
+         fcntl (fileno (TTY_INPUT (tty_out)), F_GETFL, 0) & ~O_NDELAY);
 #endif
 #endif /* F_SETFL */
 #ifdef BSD4_1
@@ -1862,8 +1867,9 @@ reset_sys_modes (otty)
     reset_sigio ();
 #endif /* BSD4_1 */
 
-  if (otty->old_tty_valid)
-    while (EMACS_SET_TTY (input_fd, &otty->old_tty, 0) < 0 && errno == EINTR)
+  if (tty_out->old_tty_valid)
+    while (EMACS_SET_TTY (fileno (TTY_INPUT (tty_out)),
+                          &tty_out->old_tty, 0) < 0 && errno == EINTR)
       ;
 
 #ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida */
@@ -1874,7 +1880,7 @@ reset_sys_modes (otty)
   /* Ultrix's termios *ignores* any line discipline except TERMIODISC.
      A different old line discipline is therefore not restored, yet.
      Restore the old line discipline by hand.  */
-  ioctl (0, TIOCSETD, &otty->old_tty.main.c_line);
+  ioctl (0, TIOCSETD, &tty_out->old_tty.main.c_line);
 #endif
 
 #ifdef AIXHFT
@@ -1947,9 +1953,9 @@ init_vms_input ()
 {
   int status;
 
-  if (input_fd == 0)
+  if (fileno (TTY_INPUT (CURTTY())) == 0)
     {
-      status = SYS$ASSIGN (&input_dsc, &input_fd, 0, 0);
+      status = SYS$ASSIGN (&input_dsc, &fileno (TTY_INPUT (CURTTY())), 0, 0);
       if (! (status & 1))
 	LIB$STOP (status);
     }
@@ -1960,7 +1966,7 @@ init_vms_input ()
 void
 stop_vms_input ()
 {
-  return SYS$DASSGN (input_fd);
+  return SYS$DASSGN (fileno (TTY_INPUT (CURTTY())));
 }
 
 short input_buffer;
@@ -1976,7 +1982,7 @@ queue_kbd_input ()
 
   waiting_for_ast = 0;
   stop_input = 0;
-  status = SYS$QIO (0, input_fd, IO$_READVBLK,
+  status = SYS$QIO (0, fileno (TTY_INPUT (CURTTY())), IO$_READVBLK,
 		    &input_iosb, kbd_input_ast, 1,
 		    &input_buffer, 1, 0, terminator_mask, 0, 0);
 }
@@ -2093,7 +2099,7 @@ end_kbd_input ()
 #endif
   if (LIB$AST_IN_PROG ())  /* Don't wait if suspending from kbd_buffer_store_event! */
     {
-      SYS$CANCEL (input_fd);
+      SYS$CANCEL (fileno (TTY_INPUT (CURTTY())));
       return;
     }
 
@@ -2102,7 +2108,7 @@ end_kbd_input ()
   SYS$CLREF (input_ef);
   waiting_for_ast = 1;
   stop_input = 1;
-  SYS$CANCEL (input_fd);
+  SYS$CANCEL (fileno (TTY_INPUT (CURTTY())));
   SYS$SETAST (1);
   SYS$WAITFR (input_ef);
   waiting_for_ast = 0;

@@ -28,9 +28,7 @@ Boston, MA 02111-1307, USA.  */
 
 /* Miscellanea.  */
 
-/* Nonzero means don't assume anything about current contents of
-   actual terminal frame */
-
+/* Nonzero means there is at least one garbaged frame. */
 extern int frame_garbaged;
 
 /* Nonzero means FRAME_MESSAGE_BUF (selected_frame) is being used by
@@ -71,7 +69,7 @@ enum text_cursor_kinds
 
 #if !defined(HAVE_X_WINDOWS)
 
-#define PIX_TYPE int
+#define PIX_TYPE unsigned long
 
 /* A (mostly empty) x_output structure definition for building Emacs
    on Unix and GNU/Linux without X support.  */
@@ -743,7 +741,10 @@ typedef struct frame *FRAME_PTR;
 
    Also, if a frame used to be invisible, but has just become visible,
    it must be marked as garbaged, since redisplay hasn't been keeping
-   up its contents.  */
+   up its contents.
+
+   Note that a tty frame is visible if and only if it is the topmost
+   frame. */
 
 #define FRAME_SAMPLE_VISIBILITY(f) \
   (((f)->async_visible && (f)->visible != (f)->async_visible) ? \
@@ -798,8 +799,6 @@ extern int other_visible_frames P_ ((struct frame *));
 
 extern Lisp_Object Vframe_list;
 extern Lisp_Object Vdefault_frame_alist;
-
-extern Lisp_Object Vterminal_frame;
 
 extern Lisp_Object Vmouse_highlight;
 

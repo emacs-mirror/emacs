@@ -3321,7 +3321,7 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
   clear_frame ();
   clear_current_matrices (f);
   update_end (f);
-  fflush (stdout);
+  fflush (TTY_OUTPUT (FRAME_TTY (f)));
   windows_or_buffers_changed++;
   /* Mark all windows as inaccurate, so that every window will have
      its redisplay done.  */
@@ -3461,7 +3461,7 @@ direct_output_for_insert (g)
 
   /* If we can't insert glyphs, we can use this method only
      at the end of a line.  */
-  if (!TTY_CHAR_INS_DEL_OK (CURTTY ()))
+  if (!TTY_CHAR_INS_DEL_OK (FRAME_TTY (f)))
     if (PT != ZV && FETCH_BYTE (PT_BYTE) != '\n')
       return 0;
 
@@ -3658,7 +3658,7 @@ direct_output_for_insert (g)
     rif->update_window_end_hook (w, 1, 0);
   update_end (f);
   updated_row = NULL;
-  fflush (stdout);
+  fflush (TTY_OUTPUT (CURTTY ());
 
   TRACE ((stderr, "direct output for insert\n"));
   mark_window_display_accurate (it.window, 1);
@@ -3749,7 +3749,7 @@ direct_output_forward_char (n)
       cursor_to (y, x);
     }
 
-  fflush (stdout);
+  fflush (TTY_OUTPUT (CURTTY ()));
   redisplay_performed_directly_p = 1;
   return 1;
 }
@@ -5102,18 +5102,18 @@ update_frame_1 (f, force_p, inhibit_id_p)
 		 Also flush out if likely to have more than 1k buffered
 		 otherwise.   I'm told that some telnet connections get
 		 really screwed by more than 1k output at once.  */
-	      int outq = PENDING_OUTPUT_COUNT (stdout);
+	      int outq = PENDING_OUTPUT_COUNT (TTY_OUTPUT (FRAME_TTY (f)));
 	      if (outq > 900
 		  || (outq > 20 && ((i - 1) % preempt_count == 0)))
 		{
-		  fflush (stdout);
+		  fflush (TTY_OUTPUT (FRAME_TTY (f)));
 		  if (preempt_count == 1)
 		    {
 #ifdef EMACS_OUTQSIZE
 		      if (EMACS_OUTQSIZE (0, &outq) < 0)
 			/* Probably not a tty.  Ignore the error and reset
 			   the outq count.  */
-			outq = PENDING_OUTPUT_COUNT (stdout);
+			outq = PENDING_OUTPUT_COUNT (TTY_OUTPUT (FRAME_TTY (f)));
 #endif
 		      outq *= 10;
 		      if (baud_rate <= outq && baud_rate > 0)
@@ -5893,28 +5893,34 @@ window_change_signal (signalnum) /* If we don't have an argument, */
 #endif
   int old_errno = errno;
 
-  get_frame_size (&width, &height);
+  struct tty_output *tty;
+  
+  /* The frame size change obviously applies to a single
+     termcap-controlled terminal, but we can't decide which.
+     Therefore, we resize the frames corresponding to each tty.
+     
+     XXX In fact we only get the signal for the initial terminal.
+  */
+  for (tty = tty_list; tty; tty = tty->next) {
 
-  /* The frame size change obviously applies to a termcap-controlled
-     frame.  Find such a frame in the list, and assume it's the only
-     one (since the redisplay code always writes to stdout, not a
-     FILE * specified in the frame structure).  Record the new size,
-     but don't reallocate the data structures now.  Let that be done
-     later outside of the signal handler.  */
-
-  {
-    Lisp_Object tail, frame;
-
-    FOR_EACH_FRAME (tail, frame)
-      {
-	if (FRAME_TERMCAP_P (XFRAME (frame)))
-	  {
-	    change_frame_size (XFRAME (frame), height, width, 0, 1, 0);
-	    break;
-	  }
-      }
+    get_tty_size (tty, &width, &height);
+    
+    {
+      Lisp_Object tail, frame;
+      
+      FOR_EACH_FRAME (tail, frame)
+        {
+          if (FRAME_TERMCAP_P (XFRAME (frame)) && FRAME_TTY (XFRAME (frame)) == tty)
+            {
+              /* Record the new sizes, but don't reallocate the data structures
+                 now.  Let that be done later outside of the signal handler.  */
+              change_frame_size (XFRAME (frame), height, width, 0, 1, 0);
+              break;
+            }
+        }
+    }
   }
-
+  
   signal (SIGWINCH, window_change_signal);
   errno = old_errno;
 }
@@ -5969,10 +5975,11 @@ change_frame_size (f, newheight, newwidth, pretend, delay, safe)
 {
   Lisp_Object tail, frame;
 
-  if (! FRAME_WINDOW_P (f))
+  if (FRAME_MSDOS_P (f))
     {
-      /* When using termcap, or on MS-DOS, all frames use
-	 the same screen, so a change in size affects all frames.  */
+      /* On MS-DOS, all frames use the same screen, so a change in
+         size affects all frames.  Termcap now supports multiple
+         ttys. */
       FOR_EACH_FRAME (tail, frame)
 	if (! FRAME_WINDOW_P (XFRAME (frame)))
 	  change_frame_size_1 (XFRAME (frame), newheight, newwidth,
@@ -6162,7 +6169,7 @@ terminate any keyboard macro currently executing.  */)
 	putchar (07);
       else
 	ring_bell ();
-      fflush (stdout);
+      fflush (TTY_OUTPUT (CURTTY ()));
     }
   else
     bitch_at_user ();
@@ -6179,7 +6186,7 @@ bitch_at_user ()
     error ("Keyboard macro terminated by a command ringing the bell");
   else
     ring_bell ();
-  fflush (stdout);
+  fflush (TTY_OUTPUT (CURTTY ()));
 }
 
 

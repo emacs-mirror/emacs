@@ -7057,8 +7057,7 @@ x_dispatch_event (event, display)
    EXPECTED is nonzero if the caller knows input is available.  */
 
 static int
-XTread_socket (sd, bufp, numchars, expected)
-     register int sd;
+XTread_socket (bufp, numchars, expected)
      /* register */ struct input_event *bufp;
      /* register */ int numchars;
      int expected;

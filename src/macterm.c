@@ -7598,7 +7598,7 @@ keycode_to_xkeysym (int keyCode, int *xKeySym)
 /* Emacs calls this whenever it wants to read an input event from the
    user. */
 int
-XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
+XTread_socket (struct input_event *bufp, int numchars, int expected)
 {
   int count = 0;
 #if USE_CARBON_EVENTS

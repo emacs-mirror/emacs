@@ -642,7 +642,7 @@ maybe_generate_resize_event ()
 }
 
 int
-w32_console_read_socket (int sd, struct input_event *bufp, int numchars,
+w32_console_read_socket (struct input_event *bufp, int numchars,
 			 int expected)
 {
   BOOL no_events = TRUE;

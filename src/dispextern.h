@@ -2555,7 +2555,7 @@ extern int x_intersect_rectangles P_ ((XRectangle *, XRectangle *,
 
 /* Defined in sysdep.c */
 
-void get_frame_size P_ ((int *, int *));
+void get_tty_size P_ ((struct tty_output *, int *, int *));
 void request_sigio P_ ((void));
 void unrequest_sigio P_ ((void));
 int tabs_safe_p P_ ((void));

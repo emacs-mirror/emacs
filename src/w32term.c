@@ -4078,8 +4078,7 @@ static short temp_buffer[100];
 */
 
 int
-w32_read_socket (sd, bufp, numchars, expected)
-     register int sd;
+w32_read_socket (bufp, numchars, expected)
      /* register */ struct input_event *bufp;
      /* register */ int numchars;
      int expected;

@@ -319,6 +319,15 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 		  (server-select-display display)
 		(error (process-send-string proc (nth 1 err))
 		       (setq request "")))))
+	   ;; Open a new tty at the client.
+	   ((and (equal "-pty" arg) (string-match "\\([^ ]*\\) \\([^ ]*\\) " request))
+	    (let ((pty (server-unquote-arg (match-string 1 request)))
+		  (type (server-unquote-arg (match-string 2 request))))
+	      (setq request (substring request (match-end 0)))
+	      (condition-case err
+		  (make-terminal-frame `((tty . ,pty) (tty-type . ,type)))
+		(error (process-send-string proc (nth 1 err))
+		       (setq request "")))))
 	   ;; ARG is a line number option.
 	   ((string-match "\\`\\+[0-9]+\\'" arg)
 	    (setq lineno (string-to-int (substring arg 1))))

@@ -6384,7 +6384,6 @@ init_window_once ()
 {
   struct frame *f = make_terminal_frame (0, 0);
   XSETFRAME (selected_frame, f);
-  Vterminal_frame = selected_frame;
   minibuf_window = f->minibuffer_window;
   selected_window = f->selected_window;
   last_nonminibuf_frame = f;

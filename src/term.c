@@ -28,10 +28,10 @@ Boston, MA 02111-1307, USA.  */
 
 #include <sys/file.h>
 
+#include "lisp.h"
 #include "systty.h" /* For emacs_tty in termchar.h */
 #include "termchar.h"
 #include "termopts.h"
-#include "lisp.h"
 #include "charset.h"
 #include "coding.h"
 #include "keyboard.h"
@@ -123,7 +123,7 @@ void (*insert_glyphs_hook) P_ ((struct glyph *, int));
 void (*write_glyphs_hook) P_ ((struct glyph *, int));
 void (*delete_glyphs_hook) P_ ((int));
 
-int (*read_socket_hook) P_ ((int, struct input_event *, int, int));
+int (*read_socket_hook) P_ ((struct input_event *, int, int));
 
 void (*frame_up_to_date_hook) P_ ((struct frame *));
 
@@ -792,12 +792,11 @@ clear_end_of_line (first_unused_hpos)
     }
   else
     {			/* have to do it the hard way */
-      struct frame *sf = XFRAME (selected_frame);
       turn_off_insert ();
 
       /* Do not write in last row last col with Auto-wrap on. */
-      if (AutoWrap && curY == FRAME_LINES (sf) - 1
-	  && first_unused_hpos == FRAME_COLS (sf))
+      if (AutoWrap && curY == FRAME_LINES (f) - 1
+	  && first_unused_hpos == FRAME_COLS (f))
 	first_unused_hpos--;
 
       for (i = curX; i < first_unused_hpos; i++)
@@ -925,8 +924,7 @@ write_glyphs (string, len)
      register int len;
 {
   int produced, consumed;
-  struct frame *sf = XFRAME (selected_frame);
-  struct frame *f = updating_frame ? updating_frame : sf;
+  struct frame *f = updating_frame ? updating_frame : XFRAME (selected_frame);
   unsigned char conversion_buffer[1024];
   int conversion_buffer_size = sizeof conversion_buffer;
 
@@ -944,8 +942,8 @@ write_glyphs (string, len)
      since that would scroll the whole frame on some terminals.  */
 
   if (AutoWrap
-      && curY + 1 == FRAME_LINES (sf)
-      && (curX + len) == FRAME_COLS (sf))
+      && curY + 1 == FRAME_LINES (f)
+      && (curX + len) == FRAME_COLS (f))
     len --;
   if (len <= 0)
     return;
@@ -1028,7 +1026,7 @@ insert_glyphs (start, len)
 {
   char *buf;
   struct glyph *glyph = NULL;
-  struct frame *f, *sf;
+  struct frame *f;
 
   if (len <= 0)
     return;
@@ -1039,8 +1037,7 @@ insert_glyphs (start, len)
       return;
     }
 
-  sf = XFRAME (selected_frame);
-  f = updating_frame ? updating_frame : sf;
+  f = updating_frame ? updating_frame : XFRAME (selected_frame);
 
   if (TS_ins_multi_chars)
     {
@@ -1159,7 +1156,7 @@ ins_del_lines (vpos, n)
   char *multi = n > 0 ? TS_ins_multi_lines : TS_del_multi_lines;
   char *single = n > 0 ? TS_ins_line : TS_del_line;
   char *scroll = n > 0 ? TS_rev_scroll : TS_fwd_scroll;
-  struct frame *sf;
+  struct frame *f;
 
   register int i = n > 0 ? n : -n;
   register char *buf;
@@ -1170,7 +1167,7 @@ ins_del_lines (vpos, n)
       return;
     }
 
-  sf = XFRAME (selected_frame);
+  f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   /* If the lines below the insertion are being pushed
      into the end of the window, this is the same as clearing;
@@ -1179,11 +1176,11 @@ ins_del_lines (vpos, n)
   /* If the lines below the deletion are blank lines coming
      out of the end of the window, don't bother,
      as there will be a matching inslines later that will flush them. */
-  if (TTY_SCROLL_REGION_OK (FRAME_TTY (sf))
+  if (TTY_SCROLL_REGION_OK (FRAME_TTY (f))
       && vpos + i >= specified_window)
     return;
-  if (!TTY_MEMORY_BELOW_FRAME (FRAME_TTY (sf))
-      && vpos + i >= FRAME_LINES (sf))
+  if (!TTY_MEMORY_BELOW_FRAME (FRAME_TTY (f))
+      && vpos + i >= FRAME_LINES (f))
     return;
 
   if (multi)
@@ -1191,7 +1188,7 @@ ins_del_lines (vpos, n)
       raw_cursor_to (vpos, 0);
       background_highlight ();
       buf = tparam (multi, 0, 0, i);
-      OUTPUT (FRAME_TTY (sf), buf);
+      OUTPUT (FRAME_TTY (f), buf);
       xfree (buf);
     }
   else if (single)
@@ -1199,7 +1196,7 @@ ins_del_lines (vpos, n)
       raw_cursor_to (vpos, 0);
       background_highlight ();
       while (--i >= 0)
-	OUTPUT (FRAME_TTY (sf), single);
+	OUTPUT (FRAME_TTY (f), single);
       if (TF_teleray)
 	curX = 0;
     }
@@ -1212,15 +1209,15 @@ ins_del_lines (vpos, n)
 	raw_cursor_to (vpos, 0);
       background_highlight ();
       while (--i >= 0)
-	OUTPUTL (FRAME_TTY (sf), scroll, specified_window - vpos);
+	OUTPUTL (FRAME_TTY (f), scroll, specified_window - vpos);
       set_scroll_region (0, specified_window);
     }
 
-  if (!TTY_SCROLL_REGION_OK (FRAME_TTY (sf))
-      && TTY_MEMORY_BELOW_FRAME (FRAME_TTY (sf))
+  if (!TTY_SCROLL_REGION_OK (FRAME_TTY (f))
+      && TTY_MEMORY_BELOW_FRAME (FRAME_TTY (f))
       && n < 0)
     {
-      cursor_to (FRAME_LINES (sf) + n, 0);
+      cursor_to (FRAME_LINES (f) + n, 0);
       clear_to_end ();
     }
 }
@@ -2475,7 +2472,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   /* Get frame size from system, or else from termcap.  */
   {
     int height, width;
-    get_frame_size (&width, &height);
+    get_tty_size (tty, &width, &height);
     FRAME_COLS (sf) = width;
     FRAME_LINES (sf) = height;
   }

@@ -114,8 +114,6 @@ Lisp_Object Qfullscreen, Qfullwidth, Qfullheight, Qfullboth;
 
 Lisp_Object Qface_set_after_frame_default;
 
-
-Lisp_Object Vterminal_frame;
 Lisp_Object Vdefault_frame_alist;
 Lisp_Object Vdefault_frame_scroll_bars;
 Lisp_Object Vmouse_position_function;
@@ -550,6 +548,7 @@ make_terminal_frame (tty, tty_type)
     f->output_data.tty = term_init (tty, tty_type);
   else
     f->output_data.tty = term_dummy_init ();
+  f->output_data.tty->top_frame = frame;
 #ifdef CANNOT_DUMP
   FRAME_FOREGROUND_PIXEL(f) = FACE_TTY_DEFAULT_FG_COLOR;
   FRAME_BACKGROUND_PIXEL(f) = FACE_TTY_DEFAULT_BG_COLOR;
@@ -637,12 +636,15 @@ Note that changing the size of one terminal frame automatically affects all.  */
         type[SBYTES (tty_type)] = 0;
       }
 
-    
     f = make_terminal_frame (name, type);
   }
 
-  change_frame_size (f, FRAME_LINES (sf),
-		     FRAME_COLS (sf), 0, 0, 0);
+  {
+    int width, height;
+    get_tty_size (FRAME_TTY (f), &width, &height);
+    change_frame_size (f, height, width, 0, 0, 0);
+  }
+  
   adjust_glyphs (f);
   calculate_costs (f);
   XSETFRAME (frame, f);
@@ -745,6 +747,15 @@ do_switch_frame (frame, track, for_deletion)
 
   if (!for_deletion && FRAME_HAS_MINIBUF_P (sf))
     resize_mini_window (XWINDOW (FRAME_MINIBUF_WINDOW (sf)), 1);
+
+  if (FRAME_TERMCAP_P (XFRAME (selected_frame))
+      && FRAME_TERMCAP_P (XFRAME (frame))
+      && FRAME_TTY (XFRAME (selected_frame)) == FRAME_TTY (XFRAME (frame)))
+    {
+      XFRAME (selected_frame)->async_visible = 0;
+      XFRAME (frame)->async_visible = 1;
+      FRAME_TTY (XFRAME (frame))->top_frame = frame;
+    }
 
   selected_frame = frame;
   if (! FRAME_MINIBUF_ONLY_P (XFRAME (selected_frame)))
@@ -979,7 +990,10 @@ next_frame (frame, minibuf)
 	f = XCAR (tail);
 
 	if (passed
-	    && FRAME_KBOARD (XFRAME (f)) == FRAME_KBOARD (XFRAME (frame)))
+	    && ((!FRAME_TERMCAP_P (XFRAME (f)) && !FRAME_TERMCAP_P (XFRAME (frame))
+                 && FRAME_KBOARD (XFRAME (f)) == FRAME_KBOARD (XFRAME (frame)))
+                || (FRAME_TERMCAP_P (XFRAME (f)) && FRAME_TERMCAP_P (XFRAME (frame))
+                    && FRAME_TTY (XFRAME (f)) == FRAME_TTY (XFRAME (frame)))))
 	  {
 	    /* Decide whether this frame is eligible to be returned.  */
 
@@ -1056,7 +1070,10 @@ prev_frame (frame, minibuf)
       if (EQ (frame, f) && !NILP (prev))
 	return prev;
 
-      if (FRAME_KBOARD (XFRAME (f)) == FRAME_KBOARD (XFRAME (frame)))
+      if ((!FRAME_TERMCAP_P (XFRAME (f)) && !FRAME_TERMCAP_P (XFRAME (frame))
+           && FRAME_KBOARD (XFRAME (f)) == FRAME_KBOARD (XFRAME (frame)))
+          || (FRAME_TERMCAP_P (XFRAME (f)) && FRAME_TERMCAP_P (XFRAME (frame))
+              && FRAME_TTY (XFRAME (f)) == FRAME_TTY (XFRAME (frame))))
 	{
 	  /* Decide whether this frame is eligible to be returned,
 	     according to minibuf.  */
@@ -4080,9 +4097,6 @@ Setting this variable does not affect existing frames, only new ones.  */);
   Qinhibit_default_face_x_resources
     = intern ("inhibit-default-face-x-resources");
   staticpro (&Qinhibit_default_face_x_resources);
-
-  DEFVAR_LISP ("terminal-frame", &Vterminal_frame,
-	       doc: /* The initial frame-object, which represents Emacs's stdout.  */);
 
   DEFVAR_LISP ("emacs-iconified", &Vemacs_iconified,
 	       doc: /* Non-nil if all of emacs is iconified and frame updates are not needed.  */);

@@ -22,10 +22,10 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #include <signal.h>
 #include <stdio.h>
+#include "lisp.h"
 #include "systty.h" /* This must be included befor termchar.h. */
 #include "termchar.h"
 #include "termopts.h"
-#include "lisp.h"
 #include "termhooks.h"
 #include "macros.h"
 #include "keyboard.h"
@@ -88,9 +88,6 @@ int interrupt_input_blocked;
    during the current critical section.  */
 int interrupt_input_pending;
 
-
-/* File descriptor to use for input.  */
-extern int input_fd;
 
 #ifdef HAVE_WINDOW_SYSTEM
 /* Make all keyboard buffers much bigger when using X windows.  */
@@ -6588,7 +6585,7 @@ read_avail_input (expected)
 
   if (read_socket_hook)
     /* No need for FIONREAD or fcntl; just say don't wait.  */
-    nread = (*read_socket_hook) (input_fd, buf, KBD_BUFFER_SIZE, expected);
+    nread = (*read_socket_hook) (buf, KBD_BUFFER_SIZE, expected);
   else
     {
       /* Using KBD_BUFFER_SIZE - 1 here avoids reading more than
@@ -6597,7 +6594,6 @@ read_avail_input (expected)
       unsigned char cbuf[KBD_BUFFER_SIZE - 1];
       int n_to_read;
 
-      /* Determine how many characters we should *try* to read.  */
 #ifdef WINDOWSNT
       return 0;
 #else /* not WINDOWSNT */
@@ -6605,88 +6601,121 @@ read_avail_input (expected)
       n_to_read = dos_keysns ();
       if (n_to_read == 0)
 	return 0;
+
+      cbuf[0] = dos_keyread ();
+      nread = 1;
+
 #else /* not MSDOS */
+
+      struct tty_output *tty;
+      nread = 0;
+
+      /* Try to read from each available tty, until one succeeds. */
+      for (tty = tty_list; tty && !nread; tty = tty->next) {
+        
+        /* Determine how many characters we should *try* to read.  */
 #ifdef FIONREAD
-      /* Find out how much input is available.  */
-      if (ioctl (input_fd, FIONREAD, &n_to_read) < 0)
-	/* Formerly simply reported no input, but that sometimes led to
-	   a failure of Emacs to terminate.
-	   SIGHUP seems appropriate if we can't reach the terminal.  */
-	/* ??? Is it really right to send the signal just to this process
-	   rather than to the whole process group?
-	   Perhaps on systems with FIONREAD Emacs is alone in its group.  */
-	{
-	  if (! noninteractive)
-	    kill (getpid (), SIGHUP);
-	  else
-	    n_to_read = 0;
-	}
-      if (n_to_read == 0)
-	return 0;
-      if (n_to_read > sizeof cbuf)
-	n_to_read = sizeof cbuf;
+        /* Find out how much input is available.  */
+        if (ioctl (fileno (TTY_INPUT (tty)), FIONREAD, &n_to_read) < 0)
+          {
+            /* Formerly simply reported no input, but that sometimes led to
+               a failure of Emacs to terminate.
+               SIGHUP seems appropriate if we can't reach the terminal.  */
+            /* ??? Is it really right to send the signal just to this process
+               rather than to the whole process group?
+               Perhaps on systems with FIONREAD Emacs is alone in its group.  */
+            if (! noninteractive)
+              {
+                if (! tty_list->next)
+                  kill (getpid (), SIGHUP); /* This was the last terminal. */
+                else
+                  n_to_read = 0; /* XXX tty should be closed here. */
+              }
+            else
+              {
+                n_to_read = 0;
+              }
+          }
+        if (n_to_read == 0)
+          continue;
+        if (n_to_read > sizeof cbuf)
+          n_to_read = sizeof cbuf;
 #else /* no FIONREAD */
 #if defined (USG) || defined (DGUX) || defined(CYGWIN)
-      /* Read some input if available, but don't wait.  */
-      n_to_read = sizeof cbuf;
-      fcntl (input_fd, F_SETFL, O_NDELAY);
+        /* Read some input if available, but don't wait.  */
+        n_to_read = sizeof cbuf;
+        fcntl (fileno (TTY_INPUT (tty)), F_SETFL, O_NDELAY);
 #else
-      you lose;
+        you lose;
 #endif
 #endif
+
+        /* Now read; for one reason or another, this will not block.
+           NREAD is set to the number of chars read.  */
+        do
+          {
+            nread = emacs_read (fileno (TTY_INPUT (tty)), cbuf, n_to_read);
+            /* POSIX infers that processes which are not in the session leader's
+               process group won't get SIGHUP's at logout time.  BSDI adheres to
+               this part standard and returns -1 from read (0) with errno==EIO
+               when the control tty is taken away.
+               Jeffrey Honig <jch@bsdi.com> says this is generally safe.  */
+            if (nread == -1 && errno == EIO)
+              {
+                if (! tty_list->next)
+                  kill (0, SIGHUP); /* This was the last terminal. */
+                else
+                  ;             /* XXX tty should be closed here. */
+              }
+#if defined (AIX) && (! defined (aix386) && defined (_BSD))
+            /* The kernel sometimes fails to deliver SIGHUP for ptys.
+               This looks incorrect, but it isn't, because _BSD causes
+               O_NDELAY to be defined in fcntl.h as O_NONBLOCK,
+               and that causes a value other than 0 when there is no input.  */
+            if (nread == 0)
+              {
+                if (! tty_list->next)
+                  kill (0, SIGHUP); /* This was the last terminal. */
+                else
+                  ;             /* XXX tty should be closed here. */
+              }
+#endif
+          }
+        while (
+               /* We used to retry the read if it was interrupted.
+                  But this does the wrong thing when O_NDELAY causes
+                  an EAGAIN error.  Does anybody know of a situation
+                  where a retry is actually needed?  */
+#if 0
+               nread < 0 && (errno == EAGAIN
+#ifdef EFAULT
+                             || errno == EFAULT
+#endif
+#ifdef EBADSLT
+                             || errno == EBADSLT
+#endif
+                             )
+#else
+               0
+#endif
+               );
+        
+#ifndef FIONREAD
+#if defined (USG) || defined (DGUX) || defined (CYGWIN)
+        fcntl (fileno (TTY_INPUT (tty)), F_SETFL, 0);
+#endif /* USG or DGUX or CYGWIN */
+#endif /* no FIONREAD */
+
+      } /* for each tty */
+      
+      if (! nread)
+        return 0;
+      
 #endif /* not MSDOS */
 #endif /* not WINDOWSNT */
 
-      /* Now read; for one reason or another, this will not block.
-	 NREAD is set to the number of chars read.  */
-      do
-	{
-#ifdef MSDOS
-	  cbuf[0] = dos_keyread ();
-	  nread = 1;
-#else
-	  nread = emacs_read (input_fd, cbuf, n_to_read);
-#endif
-	  /* POSIX infers that processes which are not in the session leader's
-	     process group won't get SIGHUP's at logout time.  BSDI adheres to
-	     this part standard and returns -1 from read (0) with errno==EIO
-	     when the control tty is taken away.
-	     Jeffrey Honig <jch@bsdi.com> says this is generally safe.  */
-	  if (nread == -1 && errno == EIO)
-	    kill (0, SIGHUP);
-#if defined (AIX) && (! defined (aix386) && defined (_BSD))
-	  /* The kernel sometimes fails to deliver SIGHUP for ptys.
-	     This looks incorrect, but it isn't, because _BSD causes
-	     O_NDELAY to be defined in fcntl.h as O_NONBLOCK,
-	     and that causes a value other than 0 when there is no input.  */
-	  if (nread == 0)
-	    kill (0, SIGHUP);
-#endif
-	}
-      while (
-	     /* We used to retry the read if it was interrupted.
-		But this does the wrong thing when O_NDELAY causes
-		an EAGAIN error.  Does anybody know of a situation
-		where a retry is actually needed?  */
-#if 0
-	     nread < 0 && (errno == EAGAIN
-#ifdef EFAULT
-			   || errno == EFAULT
-#endif
-#ifdef EBADSLT
-			   || errno == EBADSLT
-#endif
-			   )
-#else
-	     0
-#endif
-	     );
-
-#ifndef FIONREAD
-#if defined (USG) || defined (DGUX) || defined (CYGWIN)
-      fcntl (input_fd, F_SETFL, 0);
-#endif /* USG or DGUX or CYGWIN */
-#endif /* no FIONREAD */
+      /* XXX Select frame corresponding to the tty. */
+      
       for (i = 0; i < nread; i++)
 	{
 	  buf[i].kind = ASCII_KEYSTROKE_EVENT;
@@ -10058,6 +10087,9 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
   int width, height;
   struct gcpro gcpro1;
 
+  if (tty_list && tty_list->next)
+    error ("Suspend is not supported with multiple ttys");
+  
   if (!NILP (stuffstring))
     CHECK_STRING (stuffstring);
 
@@ -10066,7 +10098,7 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
     call1 (Vrun_hooks, intern ("suspend-hook"));
 
   GCPRO1 (stuffstring);
-  get_frame_size (&old_width, &old_height);
+  get_tty_size (CURTTY (), &old_width, &old_height);
   reset_all_sys_modes ();
   /* sys_suspend can get an error if it tries to fork a subshell
      and the system resources aren't available for that.  */
@@ -10082,7 +10114,7 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
   /* Check if terminal/window size has changed.
      Note that this is not useful when we are running directly
      with a window system; but suspend should be disabled in that case.  */
-  get_frame_size (&width, &height);
+  get_tty_size (CURTTY (), &width, &height);
   if (width != old_width || height != old_height)
     change_frame_size (SELECTED_FRAME (), height, width, 0, 0, 0);
 

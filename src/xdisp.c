@@ -736,10 +736,6 @@ enum move_it_result
 #define CLEAR_FACE_CACHE_COUNT	500
 static int clear_face_cache_count;
 
-/* Record the previous terminal frame we displayed.  */
-
-static struct frame *previous_terminal_frame;
-
 /* Non-zero while redisplay_internal is in progress.  */
 
 int redisplaying_p;
@@ -2012,7 +2008,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
 
   /* If realized faces have been removed, e.g. because of face
      attribute changes of named faces, recompute them.  When running
-     in batch mode, the face cache of Vterminal_frame is null.  If
+     in batch mode, the face cache of the initial frame is null.  If
      we happen to get called, make a dummy face cache.  */
   if (noninteractive && FRAME_FACE_CACHE (it->f) == NULL)
     init_frame_faces (it->f);
@@ -7559,11 +7555,11 @@ clear_garbaged_frames ()
     {
       Lisp_Object tail, frame;
       int changed_count = 0;
-
+      
       FOR_EACH_FRAME (tail, frame)
 	{
 	  struct frame *f = XFRAME (frame);
-
+	  
 	  if (FRAME_VISIBLE_P (f) && FRAME_GARBAGED_P (f))
 	    {
 	      if (f->resized_p)
@@ -7574,7 +7570,7 @@ clear_garbaged_frames ()
 	      f->resized_p = 0;
 	    }
 	}
-
+      
       frame_garbaged = 0;
       if (changed_count)
 	++windows_or_buffers_changed;
@@ -7610,7 +7606,7 @@ echo_area_display (update_frame_p)
   /* When Emacs starts, selected_frame may be a visible terminal
      frame, even if we run under a window system.  If we let this
      through, a message would be displayed on the terminal.  */
-  if (EQ (selected_frame, Vterminal_frame)
+  if (!FRAME_WINDOW_P (XFRAME (selected_frame))
       && !NILP (Vwindow_system))
     return 0;
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -9687,17 +9683,16 @@ redisplay_internal (preserve_echo_area)
   if (face_change_count)
     ++windows_or_buffers_changed;
 
-  if (! FRAME_WINDOW_P (sf)
-      && previous_terminal_frame != sf)
+  if (FRAME_TERMCAP_P (sf)
+      && FRAME_TTY (sf)->previous_terminal_frame != sf)
     {
-      /* Since frames on an ASCII terminal share the same display
-	 area, displaying a different frame means redisplay the whole
-	 thing.  */
+      /* Since frames on a single ASCII terminal share the same
+	 display area, displaying a different frame means redisplay
+	 the whole thing.  */
       windows_or_buffers_changed++;
       SET_FRAME_GARBAGED (sf);
-      XSETFRAME (Vterminal_frame, sf);
+      FRAME_TTY (sf)->previous_terminal_frame = sf;
     }
-  previous_terminal_frame = sf;
 
   /* Set the visible flags for all frames.  Do this before checking
      for resized or garbaged frames; they want to know if their frames
@@ -9719,6 +9714,7 @@ redisplay_internal (preserve_echo_area)
       }
   }
 
+  
   /* Notice any pending interrupt request to change frame size.  */
   do_pending_window_change (1);
 
@@ -10076,7 +10072,7 @@ redisplay_internal (preserve_echo_area)
 	{
 	  struct frame *f = XFRAME (frame);
 
-	  if (FRAME_WINDOW_P (f) || f == sf)
+	  if (FRAME_WINDOW_P (f) || FRAME_TERMCAP_P (f) || f == sf)
 	    {
 	      if (! EQ (frame, selected_frame))
 		/* Select the frame, for the sake of frame-local

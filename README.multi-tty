@@ -25,19 +25,18 @@ STATUS
 ------
 
 We can create frames on new tty devices, but there are problems with
-refresh (only the (single) selected frame is refreshed), and input is
-read only from the initial terminal.  At the moment, the type of the
-new terminals must be the same as the initial terminal.
+redisplay.  Input is read from all terminals (NOT via MULTIKBOARD!).
+At the moment, the type of the new terminals must be the same as the
+initial terminal.  Emacsclient is extended to support opening a new
+terminal frame.
 
-To try it out, start up emacs, and evaluate the following:
+To try it out, start up the emacs server (M-x server-start), and then
+start emacsclient with
 
-	(make-terminal-frame '((tty . "/dev/pts/5") (tty-type . "xterm")))
+	emacsclient -h
 
-(With your own values, of course.)  If you switch to the new frame
-with M-x other-frame, the new tty is refreshed with the frame
-contents.  The result of input from the original terminal appears on
-the new.  If you exit emacs, both terminals are restored to their
-previous states.
+If you exit emacs, both terminals are restored to their previous
+states.
 
 X, Mac, Windows and DOS support is broken.
 
@@ -50,6 +49,8 @@ For the NEWS file:
    specify a terminal device (`tty' parameter) and a terminal type
    (`tty-type' parameter) to `make-terminal-frame'.
 
+** Emacsclient has been extended to support opening a new terminal
+   frame.
 
 CHANGELOG
 ---------
@@ -76,14 +77,49 @@ THINGS THAT ARE DONE
    (Done, new frame parameters: `tty' and `tty-type'.)
 
 
+-- Implement support for reading from multiple terminals.
+
+   (Done, read_avail_input tries to read from each terminal, until one
+   succeeds.)
+
+-- other-frame should cycle through the frames on the `current'
+   terminal.  
+
+   (Done.  A little fragile, but seems to work.)
+
+-- Support different terminal sizes.
+   
+   (Done, no problem.)
+
+-- Make sure terminal resizes are handled gracefully.  (Could be
+   problematic.)
+
+   (Done.  We don't get SIGWINCH for additional ttys, though.)
+
+-- Extend emacsclient to automatically open a new tty when it connects
+   to Emacs.
+   
+   (Done.  It's an ugly hack, needs more work.)
+
+-- Redisplay must refresh the topmost frame on all terminals, not just
+   the initial terminal.
+   
+   (Done, but introduced ugly redisplay problems.  Ugh.)
+
+
 THINGS TO DO
 ------------
+
+** Fix redisplay problems.
 
 ** Make make-terminal-frame look up the tty and tty-type parameters
    from the currently selected terminal before the global default.
 
 ** Move optimalization parameters (costs) from union output_data to
    struct frame.
+
+** Provide a way for emacsclient to tell Emacs that the tty has been
+   resized.
 
 ** Implement terminal deletion, i.e., closing the tty device and
    restoring its previous state without exiting Emacs.  This should be
@@ -96,26 +132,13 @@ THINGS TO DO
    Currently, they are still stored in global variables, so we don't
    really support multiple terminal types.
 
-** Support different terminal sizes.  (Should be solved by the
-   previous entry.)
 
-** Make sure terminal resizes are handled gracefully.  (Could be
-   problematic.)
-
-** Implement support for reading from multiple terminals.
-
-** other-frame should cycle through the frames on the `current'
-   terminal.  This means that Emacs must know from which terminal the
-   last keyboard event came from.  (Multikeyboard support may help
-   with this.)
-
-** Redisplay must refresh the topmost on all terminals, not just
-   the initial terminal.
+** Each keypress should automatically select the frame corresponding
+   to the terminal that it was coming from.  This means that Emacs
+   must know from which terminal the last keyboard event came from.
+   (Multikeyboard support may help with this.)
 
 ** Make struct tty_output available from Lisp.
-
-** Extend emacsclient to automatically open a new tty when it connects
-   to Emacs.
 
 ** Implement support for starting an interactive Emacs session without
    an initial frame.  (The user would connect to it and open frames

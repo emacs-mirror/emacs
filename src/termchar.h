@@ -39,8 +39,16 @@ struct tty_output
 
   int term_initted;             /* 1 if we have been through init_sys_modes. */
   int old_tty_valid;            /* 1 if outer tty status has been recorded.  */
+
+
+  /* Redisplay. */
+
+  /* XXX This may cause problems with GC. */
+  Lisp_Object top_frame;        /* The topmost frame on this tty. */
   
-  
+  /* The previous terminal frame we displayed on this tty.  */
+  struct frame *previous_terminal_frame;
+
   /* Pixel values.
      XXX What are these used for? */
   
