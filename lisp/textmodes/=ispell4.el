@@ -345,16 +345,16 @@ Return value is t unless exit is due to typing `q'."
 	(if ispell-window-configuration
 	    (set-window-configuration ispell-window-configuration))
 	(cond ((null ispell-bad-words)
-	       (error "Ispell has not yet been run."))
+	       (error "Ispell has not yet been run"))
 	      ((markerp (car ispell-bad-words))
 	       (message (substitute-command-keys
-			   "Type \\[ispell-next] to continue.")))
+			   "Type \\[ispell-next] to continue")))
 	      ((eq (car ispell-bad-words) nil)
 	       (setq ispell-bad-words nil)
-	       (message "No more misspellings (but checker was interrupted.)"))
+	       (message "No more misspellings (but checker was interrupted)"))
 	      ((eq (car ispell-bad-words) t)
 	       (setq ispell-bad-words nil)
-	       (message "Ispell done."))
+	       (message "Ispell done"))
 	      (t
 	       (setq ispell-bad-words nil)
 	       (message "Bad ispell internal list"))))
@@ -778,7 +778,7 @@ See also `ispell-look-dictionary' and `ispell-gnu-look-still-broken-p'."
   ;; `look' must support regexp expressions in order to perform an interior
   ;; fragment search.
   (if (and interior-frag (not ispell-have-new-look))
-      (error (concat "Sorry `ispell-have-new-look' is nil.  "
+      (error (concat "Sorry, `ispell-have-new-look' is nil.  "
                      "You also will need GNU Ispell's `look'.")))
 
   (let* ((completion-ignore-case t)
@@ -827,8 +827,8 @@ See also `ispell-look-dictionary' and `ispell-gnu-look-still-broken-p'."
         (if (string-equal (concat ispell-lookup-last-word " ")
                           (buffer-substring
                            (save-excursion (forward-word -1) (point)) (point)))
-            (error "Perfect match...still.  Please move on.")
-          (error "No word fragment at point.")))
+            (error "Perfect match already")
+          (error "No word fragment at point")))
 
     ;; Create list of words from system dictionary starting with `string' if
     ;; new string and not continuing from a previous interior fragment search.
