@@ -482,7 +482,7 @@ and TO is ignored."
 			     (and default-coding-system
 				  (coding-system-get default-coding-system
 						     'safe-charsets))))
-	    overlays)
+	    show-position overlays)
 	(save-excursion
 	  ;; Highlight characters that default-coding-system can't encode.
 	  (when (integerp from)
@@ -492,8 +492,8 @@ and TO is ignored."
 			  (re-search-forward "[^\000-\177]" to t))
 		(setq found (assq (char-charset (preceding-char))
 				  non-safe-chars))))
-	    (beginning-of-line)
-	    (set-window-start (selected-window) (point))
+	    (forward-line -1)
+	    (setq show-position (point))
 	    (save-excursion
 	      (while (and (< (length overlays) 256)
 			  (re-search-forward "[^\000-\177]" to t))
@@ -507,7 +507,11 @@ and TO is ignored."
 	  ;; At last, ask a user to select a proper coding system.  
 	  (unwind-protect
 	      (save-window-excursion
-		;; At first, show a helpful message.
+		(when show-position
+		  ;; At first, be sure to show the current buffer.
+		  (set-window-buffer (selected-window) (current-buffer))
+		  (set-window-start (selected-window) show-position))
+		;; Then, show a helpful message.
 		(with-output-to-temp-buffer "*Warning*"
 		  (save-excursion
 		    (set-buffer standard-output)
