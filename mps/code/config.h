@@ -14,7 +14,7 @@
  *
  * DESIGN
  *
- * See design.mps.config.
+ * See <design/config/>.
  */
 
 #ifndef config_h
@@ -24,7 +24,7 @@
 /* Variety Configuration
  *
  * Convert CONFIG_VAR_* defined on compiler command line into
- * internal configuration parameters.  See design.mps.config.var
+ * internal configuration parameters.  See <design/config/#var>
  * and design.mps.variety.macro.  Note that MPS_HOT is subclassed
  * into MPS_HOT_RED and MPS_HOT_WHITE; this distinction should
  * be rarely used.
@@ -253,7 +253,7 @@
 /* Product Configuration
  *
  * Convert CONFIG_PROD_* defined on compiler command line into
- * internal configuration parameters.  See design.mps.config.prod.
+ * internal configuration parameters.  See <design/config/#prod>.
  */
 
 #if defined(CONFIG_PROD_EPCORE)

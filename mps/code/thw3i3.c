@@ -84,7 +84,7 @@ SRCID(thw3i3, "$Id$");
 
 
 typedef struct ThreadStruct {   /* Win32 thread structure */
-  Sig sig;                      /* design.mps.sig */
+  Sig sig;                      /* <design/sig/> */
   Serial serial;                /* from arena->threadSerial */
   Arena arena;                  /* owning arena */
   RingStruct arenaRing;         /* threads attached to arena */
@@ -303,7 +303,7 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
   return ResOK;
 }
 
-/* Must be thread-safe.  See design.mps.interface.c.thread-safety. */
+/* Must be thread-safe.  See <design/interface-c/#thread-safety>. */
 Arena ThreadArena(Thread thread)
 {
   /* Can't AVER thread as that would not be thread-safe */

@@ -5,7 +5,7 @@
  *
  * .purpose: The implementation of the new manual-variable pool class
  *
- * .design: See design.mps.poolmv2
+ * .design: See <design/poolmvt/>
  */
 
 #ifndef poolmv2_h

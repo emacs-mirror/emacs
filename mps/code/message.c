@@ -5,7 +5,7 @@
  *
  * DESIGN
  *
- * .design: See design.mps.message (it really exists).
+ * .design: See <design/message/> (it really exists).
  *
  * PURPOSE
  *
@@ -136,7 +136,7 @@ void MessagePost(Arena arena, Message message)
   AVERT(Message, message);
 
   /* queueRing field must be a singleton, see */
-  /* design.mps.message.fun.post.singleton */
+  /* <design/message/#fun.post.singleton> */
   AVER(!MessageOnQueue(message));
   if(MessageTypeEnabled(arena, message->type)) {
     RingAppend(&arena->messageRing, &message->queueRing);

@@ -59,7 +59,7 @@ typedef struct AMSStruct {
   AMSRingFunction allocRing;   /* fn to get the ring to allocate from */
   AMSSegsDestroyFunction segsDestroy;
   AMSSegClassFunction segClass;/* fn to get the class for segments */
-  Sig sig;                     /* design.mps.pool.outer-structure.sig */
+  Sig sig;                     /* <design/pool/#outer-structure.sig> */
 } AMSStruct;
 
 
@@ -73,7 +73,7 @@ typedef struct AMSSegStruct {
   Bool allocTableInUse;  /* whether we use allocTable */
   Index firstFree;       /* 1st free grain, if allocTable is not used */
   BT allocTable;         /* set if grain is allocated */
-  /* design.mps.poolams.colour.single */
+  /* <design/poolams/#colour.single> */
   Bool marksChanged;     /* has been marked since last scan */
   Bool ambiguousFixes;   /* has been ambiguously marked since last scan */
   Bool colourTablesInUse;/* whether we use the colour tables */
@@ -93,7 +93,7 @@ typedef struct AMSSegStruct {
 
 
 /* macros for abstracting index/address computations */
-/* design.mps.poolams.addr-index.slow */
+/* <design/poolams/#addr-index.slow> */
 
 /* only use when size is a multiple of the grain size */
 #define AMSGrains(ams, size) ((size) >> (ams)->grainShift)

@@ -5,8 +5,8 @@
  *
  * DESIGN
  *
- * See design.mps.arena.vm and design.mps.locus for basic locus stuff.
- * See design.mps.trace for chains.
+ * See <design/arenavm/> and <design/locus/> for basic locus stuff.
+ * See <design/trace/> for chains.
  */
 
 #include "chain.h"

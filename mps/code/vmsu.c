@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * .design: See design.mps.vm for general design.
+ * .design: See <design/vm/> for general design.
  *
  * mmap(2) is used to reserve address space by creating a mapping to
  * /etc/passwd with page access none.  mmap(2) is used to map pages
@@ -65,7 +65,7 @@ extern int getpagesize(void);
 
 /* The names of zero_fd and none_fd are transgressions, see .fildes.name */
 typedef struct VMStruct {
-  Sig sig;                      /* design.mps.sig */
+  Sig sig;                      /* <design/sig/> */
   int zero_fd;                  /* fildes for mmap, see impl.c.vms{o,u} */
   int none_fd;                  /* fildes for mmap, see impl.c.vms{o,u} */
   Align align;                  /* page size */

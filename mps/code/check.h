@@ -111,8 +111,8 @@ extern void AssertFail1(const char *s);
 
 /* CHECKT -- check type simply
  *
- * Must be thread safe.  See design.mps.interface.c.thread-safety
- * and design.mps.interface.c.check.space.
+ * Must be thread safe.  See <design/interface-c/#thread-safety>
+ * and <design/interface-c/#check.space>.
  */
 
 #define CHECKT(type, val)       ((val) != NULL && (val)->sig == type ## Sig)

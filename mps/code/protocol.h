@@ -25,7 +25,7 @@
 
 /* Macro to set the superclass field. This is not intended */
 /* to be used outside this file. This is a polymorphic macro */
-/* named as a function. See design.mps.protocol.introspect.c-lang */
+/* named as a function. See <design/protocol/#introspect.c-lang> */
 
 #define ProtocolClassSetSuperclassPoly(class, super) \
   (((ProtocolClass)(class))->superclass) = (ProtocolClass)(super)
@@ -120,7 +120,7 @@ typedef Bool (*ProtocolCoerceClassMethod)(ProtocolClass *coerceResult,
 
 
 typedef struct ProtocolClassStruct {
-  Sig sig;                               /* design.mps.sig */
+  Sig sig;                               /* <design/sig/> */
   ProtocolClass superclass;              /* the superclass */
   ProtocolCoerceInstMethod coerceInst;   /* coerce instance to super */
   ProtocolCoerceClassMethod coerceClass; /* coerce class to superclass */
@@ -128,7 +128,7 @@ typedef struct ProtocolClassStruct {
 
 
 typedef struct ProtocolInstStruct {
-  Sig sig;                      /* design.mps.sig */
+  Sig sig;                      /* <design/sig/> */
   ProtocolClass class;          /* the class  */
 } ProtocolInstStruct;
 
@@ -159,7 +159,7 @@ extern Bool ProtocolIsSubclass(ProtocolClass sub, ProtocolClass super);
 
 /* The following are macros because of the need to cast */
 /* subtypes of ProtocolClass. Nevertheless they are named */
-/* as functions. See design.mps.protocol.introspect.c-lang */
+/* as functions. See <design/protocol/#introspect.c-lang> */
 
 
 #define ProtocolClassSuperclassPoly(class) \
@@ -175,7 +175,7 @@ extern Bool ProtocolIsSubclass(ProtocolClass sub, ProtocolClass super);
  *
  * Returns the superclass, with type ProtocolClass. Clients will
  * probably wish to cast this. See
- * design.mps.protocol.int.static-superclass
+ * <design/protocol/#int.static-superclass>
  */
 #define SUPERCLASS(className)  \
   ProtocolClassSuperclassPoly(DERIVE_ENSURE(className)())

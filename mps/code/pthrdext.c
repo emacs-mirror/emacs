@@ -5,7 +5,7 @@
  *
  * .purpose: Provides extension to Pthreads.
  *
- * .design: see design.mps.pthreadext
+ * .design: see <design/pthreadext/>
  *
  * .acknowledgements: This was derived from code posted to
  * comp.programming.threads by Dave Butenhof and Raymond Lau
@@ -36,7 +36,7 @@ SRCID(pthreadext, "$Id$");
 
 /* PTHREADEXT_SIGSUSPEND, PTHREADEXT_SIGRESUME -- signals used
  *
- * See design.mps.pthreadext.impl.signals
+ * See <design/pthreadext/#impl.signals>
  */
 
 #define PTHREADEXT_SIGSUSPEND SIGXFSZ
@@ -44,7 +44,7 @@ SRCID(pthreadext, "$Id$");
 
 
 /* Static data initiatialized on first use of the module
- * See design.mps.pthreadext.impl.static.*
+ * See <design/pthreadext/#impl.static>.*
  */
 
 /* mutex */
@@ -59,7 +59,7 @@ static Bool pthreadextModuleInitialized = FALSE;
 
 
 /* Global variables protected by the mutex
- * See design.mps.pthreadext.impl.global.*
+ * See <design/pthreadext/#impl.global>.*
  */
 
 static PThreadext suspendingVictim = NULL;  /* current victim */
@@ -68,7 +68,7 @@ static RingStruct suspendedRing;            /* PThreadext suspend ring */
 
 /* suspendSignalHandler -- signal handler called when suspending a thread
  *
- * See design.mps.pthreadext.impl.suspend-handler
+ * See <design/pthreadext/#impl.suspend-handler>
  *
  * The interface for determining the MFC might be platform specific.
  *
@@ -140,7 +140,7 @@ static void suspendSignalHandler(int sig,
 
 /* resumeSignalHandler -- signal handler called when resuming a thread
  *
- * See design.mps.pthreadext.impl.suspend-handler
+ * See <design/pthreadext/#impl.suspend-handler>
  */
 
 static void resumeSignalHandler(int sig)
@@ -152,7 +152,7 @@ static void resumeSignalHandler(int sig)
 
 /* PThreadextModuleInit -- Initialize the PThreadext module
  *
- * See design.mps.pthreadext.impl.static.init
+ * See <design/pthreadext/#impl.static.init>
  *
  * Dynamically initialize all state when first used
  * (called by pthread_once).
@@ -263,7 +263,7 @@ extern void PThreadextInit(PThreadext pthreadext, pthread_t id)
 
 /* PThreadextFinish -- Finish a pthreadext
  *
- * See design.mps.pthreadext.impl.finish
+ * See <design/pthreadext/#impl.finish>
  */
 
 extern void PThreadextFinish(PThreadext pthreadext)
@@ -297,7 +297,7 @@ extern void PThreadextFinish(PThreadext pthreadext)
 
 /* PThreadextSuspend -- suspend a thread
  *
- * See design.mps.pthreadext.impl.suspend
+ * See <design/pthreadext/#impl.suspend>
  */
 
 Res PThreadextSuspend(PThreadext target, MutatorFaultContext *contextReturn)
@@ -359,7 +359,7 @@ unlock:
 
 /* PThreadextResume -- resume a suspended thread
  *
- * See design.mps.pthreadext.impl.resume
+ * See <design/pthreadext/#impl.resume>
  */
 
 Res PThreadextResume(PThreadext target)

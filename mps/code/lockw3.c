@@ -34,7 +34,7 @@ SRCID(lockw3, "$Id$");
 
 /* .lock.win32: Win32 lock structure; uses CRITICAL_SECTION */
 typedef struct LockStruct {
-  Sig sig;                      /* design.mps.sig */
+  Sig sig;                      /* <design/sig/> */
   unsigned long claims;         /* # claims held by the owning thread */
   CRITICAL_SECTION cs;          /* Win32's recursive lock thing */
 } LockStruct;

@@ -9,7 +9,7 @@
  * .purpose: CBSs are used to manage potentially unbounded
  * collections of memory blocks.
  *
- * .sources: design.mps.cbs.
+ * .sources: <design/cbs/>.
  */
 
 #include "cbs.h"
@@ -22,7 +22,7 @@
 SRCID(cbs, "$Id$");
 
 
-/* See design.mps.cbs.align */
+/* See <design/cbs/#align> */
 #define cbsMinimumAlignment ((Align)sizeof(void *))
 
 #define cbsOfSplayTree(tree) PARENT(CBSStruct, splayTree, (tree))
@@ -34,7 +34,7 @@ SRCID(cbs, "$Id$");
 
 /* CBSEmergencyBlock* -- Getters and setters for emergency blocks
  *
- * See design.mps.cbs.impl.low-mem.inline.block.
+ * See <design/cbs/#impl.low-mem.inline.block>.
  */
 
 #define CBSEmergencyBlockBase(block) ((Addr)(block))
@@ -51,7 +51,7 @@ SRCID(cbs, "$Id$");
 
 /* CBSEmergencyGrain* -- Getters and setters for emergency grains
  *
- * See design.mps.cbs.impl.low-mem.inline.grain.
+ * See <design/cbs/#impl.low-mem.inline.grain>.
  */
 
 #define CBSEmergencyGrainBase(grain) ((Addr)(grain))
@@ -125,7 +125,7 @@ Bool CBSCheck(CBS cbs)
   CHECKL(cbs->shrink == NULL || FUNCHECK(cbs->shrink));
   CHECKL(cbs->mayUseInline || cbs->emergencyBlockList == NULL);
   CHECKL(cbs->mayUseInline || cbs->emergencyGrainList == NULL);
-  /* See design.mps.cbs.align */
+  /* See <design/cbs/#align> */
   CHECKL(!cbs->mayUseInline ||
          AlignIsAligned(cbs->alignment, cbsMinimumAlignment));
   /* can't check emergencyBlockList or emergencyGrainList more */
@@ -136,7 +136,7 @@ Bool CBSCheck(CBS cbs)
 }
 
 
-/* CBSBlockCheck -- See design.mps.cbs.function.cbs.block.check */
+/* CBSBlockCheck -- See <design/cbs/#function.cbs.block.check> */
 
 Bool CBSBlockCheck(CBSBlock block)
 {
@@ -153,7 +153,7 @@ Bool CBSBlockCheck(CBSBlock block)
 }
 
 
-/* CBSBlockSize -- see design.mps.cbs.function.cbs.block.size */
+/* CBSBlockSize -- see <design/cbs/#function.cbs.block.size> */
 
 Size (CBSBlockSize)(CBSBlock block)
 {
@@ -164,7 +164,7 @@ Size (CBSBlockSize)(CBSBlock block)
 
 /* cbsSplayCompare -- Compare key to [base,limit)
  *
- * See design.mps.splay.type.splay.compare.method
+ * See <design/splay/#type.splay.compare.method>
  */
 
 static Compare cbsSplayCompare(void *key, SplayNode node)
@@ -268,7 +268,7 @@ static void cbsUpdateNode(SplayTree tree, SplayNode node,
 
 /* CBSInit -- Initialise a CBS structure
  *
- * See design.mps.cbs.function.cbs.init.
+ * See <design/cbs/#function.cbs.init>.
  */
 
 Res CBSInit(Arena arena, CBS cbs, void *owner,
@@ -284,7 +284,7 @@ Res CBSInit(Arena arena, CBS cbs, void *owner,
   AVER(delete == NULL || FUNCHECK(delete));
   AVER(BoolCheck(mayUseInline));
   if (mayUseInline) {
-    /* See design.mps.cbs.align */
+    /* See <design/cbs/#align> */
     if (!AlignIsAligned(alignment, cbsMinimumAlignment))
       return ResPARAM;
   }
@@ -327,7 +327,7 @@ Res CBSInit(Arena arena, CBS cbs, void *owner,
 
 /* CBSFinish -- Finish a CBS structure
  *
- * See design.mps.cbs.function.cbs.finish.
+ * See <design/cbs/#function.cbs.finish>.
  */
 
 void CBSFinish(CBS cbs)
@@ -521,7 +521,7 @@ static Res cbsInsertIntoTree(Addr *baseReturn, Addr *limitReturn,
       Size oldRightSize = CBSBlockSize(rightCBS);
 
       /* must block larger neighbour and destroy smaller neighbour; */
-      /* see design.mps.cbs.function.cbs.insert.callback */
+      /* see <design/cbs/#function.cbs.insert.callback> */
       if (oldLeftSize >= oldRightSize) {
         Addr rightLimit = rightCBS->limit;
         cbsBlockDelete(cbs, rightCBS);
@@ -700,7 +700,7 @@ static Res cbsAddToEmergencyLists(CBS cbs, Addr base, Addr limit)
   AVER(cbs->mayUseInline);
 
   size = AddrOffset(base, limit);
-  /* Use the block list if possible.  See design.mps.cbs.align. */
+  /* Use the block list if possible.  See <design/cbs/#align>. */
   if (size > cbsMinimumAlignment) {
     CBSEmergencyBlock prev, block, new;
     new = CBSEmergencyBlockInit(base, limit);
@@ -834,7 +834,7 @@ static void cbsFlushEmergencyLists(CBS cbs)
 
 /* CBSInsert -- Insert a range into the CBS
  *
- * See design.mps.cbs.functions.cbs.insert.
+ * See <design/cbs/#functions.cbs.insert>.
  */
 
 Res CBSInsertReturningRange(Addr *baseReturn, Addr *limitReturn,
@@ -946,7 +946,7 @@ static Res cbsDeleteFromTree(CBS cbs, Addr base, Addr limit)
       Size leftNewSize = AddrOffset(cbsBlock->base, base);
       Size rightNewSize = AddrOffset(limit, cbsBlock->limit);
       /* must shrink larger fragment and create smaller; */
-      /* see design.mps.cbs.function.cbs.delete.callback */
+      /* see <design/cbs/#function.cbs.delete.callback> */
       if (leftNewSize >= rightNewSize) {
         Addr oldLimit = cbsBlock->limit;
         AVER(limit < cbsBlock->limit);
@@ -1090,7 +1090,7 @@ static Res cbsDeleteFromEmergencyGrainList(CBS cbs, Addr base, Addr limit)
 
 /* CBSDelete -- Remove a range from a CBS
  *
- * See design.mps.cbs.function.cbs.delete.
+ * See <design/cbs/#function.cbs.delete>.
  */
 
 Res CBSDelete(CBS cbs, Addr base, Addr limit)
@@ -1157,7 +1157,7 @@ static Res CBSSplayNodeDescribe(SplayNode splayNode, mps_lib_FILE *stream)
 /* CBSIterate -- Iterate all blocks in CBS
  *
  * This is not necessarily efficient.
- * See design.mps.cbs.function.cbs.iterate.
+ * See <design/cbs/#function.cbs.iterate>.
  */
 
 /* Internal version without enter/leave checking. */
@@ -1246,7 +1246,7 @@ void CBSIterateLarge(CBS cbs, CBSIterateMethod iterate, void *closureP)
 /* CBSSetMinSize -- Set minimum interesting size for cbs
  *
  * This function may invoke the shrink and grow methods as
- * appropriate.  See design.mps.cbs.function.cbs.set.min-size.
+ * appropriate.  See <design/cbs/#function.cbs.set.min-size>.
  */
 
 typedef struct {
@@ -1628,7 +1628,7 @@ Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn,
 
 /* CBSDescribe -- describe a CBS
  *
- * See design.mps.cbs.function.cbs.describe.
+ * See <design/cbs/#function.cbs.describe>.
  */
 
 Res CBSDescribe(CBS cbs, mps_lib_FILE *stream)

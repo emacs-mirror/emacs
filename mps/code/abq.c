@@ -7,7 +7,7 @@
  *
  * .purpose: A FIFO queue substrate for impl.c.poolmv2
  *
- * .design: See design.mps.poolmv2
+ * .design: See <design/poolmv2/>
  */
 
 #include "meter.h"

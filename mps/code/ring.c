@@ -8,7 +8,7 @@
  * .purpose: Rings are used to manage potentially unbounded collections
  * of things.
  *
- * .sources: design.mps.ring,
+ * .sources: <design/ring/>,
  *   item 6 of mail.richard_brooksby.1996-03-25.16-02
  */
 
@@ -24,7 +24,7 @@ SRCID(ring, "$Id$");
  *
  * RingCheck performs a consistency check on the ring node.
  * RingCheckSingle performs the same check, but also checks that
- * the ring node is a singleton (design.mps.ring.def.singleton).
+ * the ring node is a singleton (<design/ring/#def.singleton>).
  */
 
 Bool RingCheck(Ring ring)

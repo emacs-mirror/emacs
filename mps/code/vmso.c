@@ -5,7 +5,7 @@
  *
  * DESIGN
  *
- * .design: design.mps.vmso
+ * .design: <design/vmso/>
  *
  * PURPOSE
  *
@@ -68,7 +68,7 @@ extern int munmap(caddr_t addr, size_t len);
 
 /* The names of zero_fd and none_fd are transgressions, see .fildes.name */
 typedef struct VMStruct {
-  Sig sig;                      /* design.mps.sig */
+  Sig sig;                      /* <design/sig/> */
   int zero_fd;                  /* fildes for mmap */
   int none_fd;                  /* fildes for mmap */
   Align align;                  /* page size */

@@ -45,7 +45,7 @@ typedef EventUnion *Event;
 #endif
 
 
-/* Event types -- see design.mps.telemetry
+/* Event types -- see <design/telemetry/>
  *
  * These names are intended to be mnemonic.  They are derived from
  * selected letters as indicated, using the transliteration in

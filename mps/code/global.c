@@ -3,7 +3,7 @@
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
- * .sources: See design.mps.arena.  design.mps.thread-safety is relevant
+ * .sources: See <design/arena/>.  design.mps.thread-safety is relevant
  * to the functions ArenaEnter and ArenaLeave in this file.
  *
  *
@@ -11,7 +11,7 @@
  *
  * .static: Static data is used in ArenaAccess (in order to find the
  * appropriate arena) and GlobalsInit.  It's checked in GlobalsCheck.
- * See design.mps.arena.static.
+ * See <design/arena/#static>.
  *
  * .non-mod: The Globals structure has many fields which properly belong
  * to other modules (see impl.h.mpmst); GlobalsInit contains code which
@@ -32,9 +32,9 @@ SRCID(global, "$Id$");
 
 /* All static data objects are declared here. See .static */
 
-/* design.mps.arena.static.ring.init */
+/* <design/arena/#static.ring.init> */
 static Bool arenaRingInit = FALSE;
-static RingStruct arenaRing;       /* design.mps.arena.static.ring */
+static RingStruct arenaRing;       /* <design/arena/#static.ring> */
 
 
 /* ArenaControlPool -- get the control pool */
@@ -44,7 +44,7 @@ static RingStruct arenaRing;       /* design.mps.arena.static.ring */
 
 /* arenaClaimRingLock, arenaReleaseRingLock -- lock/release the arena ring
  *
- * See design.mps.arena.static.ring.lock.  */
+ * See <design/arena/#static.ring.lock>.  */
 
 static void arenaClaimRingLock(void)
 {
@@ -171,11 +171,11 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKL(TraceSetSuper(arena->busyTraces, arena->flippedTraces));
 
   TRACE_SET_ITER(ti, trace, TraceSetUNIV, arena)
-    /* design.mps.arena.trace */
+    /* <design/arena/#trace> */
     if (TraceSetIsMember(arena->busyTraces, trace)) {
       CHECKD(Trace, trace);
     } else {
-      /* design.mps.arena.trace.invalid */
+      /* <design/arena/#trace.invalid> */
       CHECKL(trace->sig == SigInvalid);
     }
   TRACE_SET_ITER_END(ti, trace, TraceSetUNIV, arena);
@@ -197,7 +197,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
   /* the oldest history entry must be a subset of the prehistory */
   CHECKL(RefSetSub(rs, arena->prehistory));
 
-  /* we also check the statics now. design.mps.arena.static.check */
+  /* we also check the statics now. <design/arena/#static.check> */
   CHECKL(BoolCheck(arenaRingInit));
   CHECKL(RingCheck(&arenaRing));
 
@@ -224,7 +224,7 @@ Res GlobalsInit(Globals arenaGlobals)
   /* Ensure static things are initialized. */
   if (!arenaRingInit) {
     /* there isn't an arena ring yet */
-    /* design.mps.arena.static.init */
+    /* <design/arena/#static.init> */
     arenaRingInit = TRUE;
     RingInit(&arenaRing);
     ProtSetup();
@@ -273,7 +273,7 @@ Res GlobalsInit(Globals arenaGlobals)
     arena->shCache[i] = NULL;
 
   for (i=0; i < TraceLIMIT; i++) {
-    /* design.mps.arena.trace.invalid */
+    /* <design/arena/#trace.invalid> */
     arena->trace[i].sig = SigInvalid;
   }
   for(rank = 0; rank < RankLIMIT; ++rank)
@@ -306,7 +306,7 @@ Res GlobalsCompleteCreate(Globals arenaGlobals)
   AVERT(Globals, arenaGlobals);
   arena = GlobalsArena(arenaGlobals);
 
-  /* initialize the message stuff, design.mps.message */
+  /* initialize the message stuff, <design/message/> */
   {
     void *v;
 
@@ -391,7 +391,7 @@ void GlobalsPrepareToDestroy(Globals arenaGlobals)
     arena->enabledMessageTypes = NULL;
   }
 
-  /* destroy the final pool (see design.mps.finalize) */
+  /* destroy the final pool (see <design/finalize/>) */
   if (arena->isFinalPool) {
     /* All this subtlety is because PoolDestroy will call */
     /* ArenaCheck several times.  The invariant on finalPool */
@@ -440,7 +440,7 @@ void ArenaLeave(Arena arena)
 {
   AVERT(Arena, arena);
   ShieldLeave(arena);
-  ProtSync(arena);              /* design.mps.prot.if.sync */
+  ProtSync(arena);              /* <design/prot/#if.sync> */
   LockReleaseMPM(ArenaGlobals(arena)->lock);
 }
 #endif
@@ -467,7 +467,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
   Ring node, nextNode;
   Res res;
 
-  arenaClaimRingLock();    /* design.mps.arena.lock.ring */
+  arenaClaimRingLock();    /* <design/arena/#lock.ring> */
   mps_exception_info = context;
   AVER(RingCheck(&arenaRing));
 
@@ -476,7 +476,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
     Arena arena = GlobalsArena(arenaGlobals);
     Root root;
 
-    ArenaEnter(arena);     /* design.mps.arena.lock.arena */
+    ArenaEnter(arena);     /* <design/arena/#lock.arena> */
     /* @@@@ The code below assumes that Roots and Segs are disjoint. */
     /* It will fall over (in TraceSegAccess probably) if there is a */
     /* protected root on a segment. */
@@ -582,7 +582,7 @@ Bool ArenaStep(Globals globals, double interval)
 
 /* ArenaFinalize -- registers an object for finalization
  *
- * See design.mps.finalize.  */
+ * See <design/finalize/>.  */
 
 Res ArenaFinalize(Arena arena, Ref obj)
 {
