@@ -4156,6 +4156,13 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		x_real_positions (f, &x, &y);
 		f->display.x->left_pos = x;
 		f->display.x->top_pos = y;
+		if (y != event.xconfigure.y)
+		  {
+		    /* Since the WM decorations come below top_pos now,
+		       we must put them below top_pos in the future.  */
+		    f->display.x->win_gravity = NorthWestGravity;
+		    x_wm_set_size_hint (f, 0, 0);
+		  }
 	      }
 	    }
 #endif /* not USE_X_TOOLKIT */
@@ -5476,7 +5483,8 @@ XTframe_raise_lower (f, raise)
 }
 
 
-/* Change from withdrawn state to mapped state. */
+/* Change from withdrawn state to mapped state,
+   or deiconify. */
 
 x_make_frame_visible (f)
      struct frame *f;
@@ -5489,7 +5497,8 @@ x_make_frame_visible (f)
     {
 #ifdef HAVE_X11
 #ifndef USE_X_TOOLKIT
-      x_set_offset (f, f->display.x->left_pos, f->display.x->top_pos, 0);
+      if (! FRAME_ICONIFIED_P (f))
+	x_set_offset (f, f->display.x->left_pos, f->display.x->top_pos, 0);
 #endif
 
       if (! EQ (Vx_no_window_manager, Qt))
@@ -5661,6 +5670,11 @@ x_iconify_frame (f)
   BLOCK_INPUT;
 
 #ifdef HAVE_X11
+  /* Make sure the X server knows where the window should be positioned,
+     in case the user deiconifies with the window manager.  */
+  if (! FRAME_VISIBLE_P (f) && !FRAME_ICONIFIED_P (f))
+    x_set_offset (f, f->display.x->left_pos, f->display.x->top_pos, 0);
+
   /* Since we don't know which revision of X we're running, we'll use both
      the X11R3 and X11R4 techniques.  I don't know if this is a good idea.  */
 
