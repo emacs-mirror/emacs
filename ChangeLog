@@ -1,3 +1,7 @@
+2000-12-11  Dave Love  <fx@gnu.org>
+
+	* configure.in <alpha*-dec-osf*>: Use full path for NON_GNU_CPP.
+
 2000-12-11  Paul Eggert  <eggert@twinsun.com>
 
 	* aclocal.m4 (AC_SYS_LARGEFILE, AC_SYS_LARGEFILE_MACRO_VALUE):
