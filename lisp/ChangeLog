@@ -1,3 +1,102 @@
+2002-09-30  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el: Don't register "ISO10646.*-1" in
+	font-ccl-encoder-alist.
+
+	* language/cyrillic.el (ccl-decode-koi8): Refer to
+	ucs-translation-table-for-decode.
+	(ccl-decode-koi8-u): Likewise.
+	(ccl-decode-alternativnyj): Likewise.
+	(cyrillic-koi8): Put `dependency' property.
+	(koi8-u): Likewise.
+	(cyrillic-alternativnyj): Likewise.
+
+	* international/utf-8.el (ucs-mule-to-mule-unicode): Don't define
+	this translation-table name here.
+	(utf-translation-table-for-encode): New translation-table name.
+	(utf-fragmentation-table): Renamed from utf-8-fragmentation-table.
+	(utf-defragmentation-table): New variable.
+	(ucs-mule-cjk-to-unicode): Renamed from utf-8-subst-rev-table.
+	(utf-subst-table-for-encode): New translation-table name.
+	(ucs-unicode-to-mule-cjk): Renamed from utf-8-subst-table.
+	(utf-subst-table-for-decode): New translation-table name.
+	(utf-fragment-on-decoding): Renamed from
+	utf-8-fragment-on-decoding.  Correctly handle the case that
+	unify-8859-on-encoding-mode is off.  Handle mule-utf-16-le and
+	mule-utf-16-be too.
+	(utf-translate-cjk): Renamed from utf-8-translate-cjk.  Handle
+	mule-utf-16-le and mule-utf-16-be too.
+	(ccl-decode-mule-utf-8): Refer to utf-translation-table-for-decode
+	and utf-subst-table-for-decode.
+	(ccl-encode-mule-utf-8): Refer to utf-translation-table-for-encode
+	and utf-subst-table-for-encode.
+	(mule-utf-8): Fix `safe-charsets' property, put `dependency'
+	property.
+
+	* international/utf-8-subst.el: Setup ucs-unicode-to-mule-cjk and
+	ucs-mule-cjk-to-unicode, not utf-8-subst-table and
+	utf-8-subst-rev-table.
+
+	* international/utf-16.el (utf-16-decode-ucs): Look up
+	utf-subst-table-for-decode.  Fix for the case that the looking up
+	succeeds.
+	(ccl-decode-mule-utf-16-le): Translate characters by
+	utf-translation-table-for-decode.
+	(ccl-decode-mule-utf-16-be): Likewise.
+	(ccl-encode-mule-utf-16-le): Look up utf-subst-table-for-encode
+	at first.  Translate characters by
+	utf-translation-table-for-encode.
+	(ccl-encode-mule-utf-16-be): Likewise.
+	(mule-utf-16-le, mule-utf-16-be): Add `dependency' property.
+
+	* loadup.el: Preload international/utf-16.  Don't call
+	ucs-unify-8859.
+
+	* international/ucs-tables.el: Don't bind
+	utf-8-translation-table-for-decode while setting up
+	ucs-mule-8859-to-ucs-table, etc.  Add `depenency' property to
+	iso-8859-* coding systems.
+	(ucs-unify-8859): Arguments changed to FOR-ENCODE and FOR-DECODE.
+	If FOR-DECODE is non-nil, make ucs-mule-8859-to-mule-unicode
+	populate the translation table named
+	ucs-translation-table-for-decode.  If FOR-ENCODE is non-nil, make
+	ucs-mule-to-mule-unicode populates the translation table named
+	utf-translation-table-for-encode.  Call register-char-codings for
+	mule-utf-16-be and mule-utf-16-le too.
+	(ucs-fragment-8859): Arguments changed to FOR-ENCODE and
+	FOR-DECODE.  If FOR-DECODE is non-nil, make the translation table
+	named ucs-translation-table-for-decode vacant.  If FOR-ENCODE is
+	non-nil, make a proper char-table populates the translation table
+	name utf-translation-table-for-encode.  Call register-char-codings
+	for all mule-utf-* to to reset their status to the origianl.
+	(unify-8859-on-encoding-mode): Call ucs-unify-8859 and
+	ucs-fragment-8859 with fixed arguments.  Set the version to 21.3.
+	(unify-8859-on-decoding-mode): Likewise.  Remove dependency.
+	(ccl-encode-unicode-font): Deleted, 
+	(ucs-tables-unload-hook): Deleted.
+	
+	* international/mule.el (decode-char): Refer to the translation
+	hash table named utf-subst-table-for-decode.  Refer to the
+	translation table named utf-translation-table-for-decode instead
+	of utf-8-translation-table-for-decode.
+	(encode-char): Refer to the translation hash table named
+	utf-subst-table-for-encode.  Refer to the translation table named
+	utf-translation-table-for-encode instead of
+	utf-8-translation-table-for-encode.
+
+	* international/mule-diag.el (describe-coding-system): Describe
+	`dependency' property..
+
+	* international/mule-conf.el (emacs-mule): Add property
+	`composition'.
+
+	* international/fontset.el (ucs-mule-to-mule-unicode): Define this
+	translation table name here.
+	(ucs-mule-cjk-to-unicode): New translation table name.
+	(ccl-encode-unicode-font): Merge the code in ucs-tables.el.
+	(font-ccl-encoder-alist): Change the font registry pattern to
+	"ISO10646.*-*".
+
 2002-09-30  Colin Walters  <walters@gnu.org>
 
 	* calc/calc-stuff.el (calc-flush-caches): Add optional arg

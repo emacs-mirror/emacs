@@ -1,3 +1,14 @@
+2002-09-30  Kenichi Handa  <handa@m17n.org>
+
+	* xterm.c (x_encode_char): For DIM=1 charset, set ccl->reg[2] to
+	-1 before calling ccl_driver.
+
+	* coding.c (decode_coding_emacs_mule): Check coding->cmp_data.
+	Only when it is non-nil, handle composition sequence.
+	(setup_coding_system) <0>: Don't force composition handling.
+
+	* Makefile.in (lisp, shortlisp): Add utf-16.elc
+
 2002-09-29  Richard M. Stallman  <rms@gnu.org>
 
 	* search.c (Freplace_match): Adjust match data for the substitution
