@@ -4820,7 +4820,6 @@ DEFUN ("save-window-excursion", Fsave_window_excursion, Ssave_window_excursion,
 Restore which buffer appears in which window, where display starts,\n\
 and the value of point and mark for each window.\n\
 Also restore which buffer is current.\n\
-But do not preserve point in the current buffer.\n\
 Does not restore the value of point in current buffer.")
   (args)
      Lisp_Object args;
