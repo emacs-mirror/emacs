@@ -3,6 +3,7 @@
 ;; Copyright (C) 1986, 87, 88, 1997 Free Software Foundation, Inc.
 
 ;; Author: Bill Rozas <jinx@martigny.ai.mit.edu>
+;; Maintainer: FSF
 ;; Keywords: languages, lisp
 
 ;; This file is part of GNU Emacs.
@@ -127,6 +128,8 @@
   ;; because lisp-fill-paragraph should do the job.
   (make-local-variable 'adaptive-fill-mode)
   (setq adaptive-fill-mode nil)
+  (make-local-variable 'normal-auto-fill-function)
+  (setq normal-auto-fill-function 'lisp-mode-auto-fill)
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'lisp-indent-line)
   (make-local-variable 'parse-sexp-ignore-comments)
