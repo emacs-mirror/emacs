@@ -157,7 +157,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
     = Fcons (minibuf_prompt,
 	     Fcons (make_number (minibuf_prompt_width),
 		    Fcons (Vhelp_form,
-			   Fcons (current_perdisplay->Vcurrent_prefix_arg,
+			   Fcons (Vcurrent_prefix_arg,
 				  Fcons (Vminibuffer_history_position,
 					 Fcons (Vminibuffer_history_variable,
 						minibuf_save_list))))));
@@ -397,7 +397,7 @@ read_minibuf_unwind (data)
   minibuf_save_list = Fcdr (minibuf_save_list);
   Vhelp_form = Fcar (minibuf_save_list);
   minibuf_save_list = Fcdr (minibuf_save_list);
-  current_perdisplay->Vcurrent_prefix_arg = Fcar (minibuf_save_list);
+  Vcurrent_prefix_arg = Fcar (minibuf_save_list);
   minibuf_save_list = Fcdr (minibuf_save_list);
   Vminibuffer_history_position = Fcar (minibuf_save_list);
   minibuf_save_list = Fcdr (minibuf_save_list);
