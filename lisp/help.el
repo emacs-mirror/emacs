@@ -120,6 +120,7 @@ Commands:
   (setq major-mode 'help-mode)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(help-font-lock-keywords))
+  (view-mode)
   (run-hooks 'help-mode-hook))
 
 (defun help-quit ()
