@@ -1,6 +1,6 @@
 # impl.gmk.sc: GNUMAKEFILE FRAGMENT FOR CXREF
 #
-# $HopeName: MMsrc!cx.gmk(trunk.1) $
+# $HopeName: MMsrc!cx.gmk(trunk.2) $
 #
 # This file is included by platform makefiles that generate a c
 # cross-reference using the cxref tool.
@@ -19,7 +19,7 @@ error "cx.gmk: MPS_EMPTY defined"
 endif
 
 CC = cxref
-CFLAGSCOMPILER = -d -R -W30,10,30,20
+CFLAGSCOMPILER = -d -R -W40,10,40,20
 CFLAGSDEBUG = $(MPS_EMPTY)
 CFLAGSOPT = $(MPS_EMPTY)
 CFLAGSOPTNODEBUG = $(MPS_EMPTY)
