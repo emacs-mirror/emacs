@@ -802,7 +802,17 @@ and initial semicolons."
 		      (buffer-substring (match-beginning 0) (match-end 0)))))))
 
     (if (not has-comment)
-	(fill-paragraph justify)
+        ;; `paragraph-start' is set here (not in the buffer-local
+        ;; variable so that `forward-paragraph' et al work as
+        ;; expected) so that filling (doc) strings works sensibly.
+        ;; Adding the opening paren to avoid the following sexp being
+        ;; filled means that sexps generally aren't filled as normal
+        ;; text, which is probably sensible.  The `;' and `:' stop the
+        ;; filled para at following comment lines and keywords
+        ;; (typically in `defcustom').
+	(let ((paragraph-start (concat paragraph-start
+                                       "\\|\\s-*[\(;:\"]")))
+          (fill-paragraph justify))
 
       ;; Narrow to include only the comment, and then fill the region.
       (save-excursion
