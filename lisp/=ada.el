@@ -29,8 +29,6 @@
 
 ;;; Code:
 
-(setq auto-mode-alist (cons (cons "\\.ada$" 'ada-mode) auto-mode-alist))
-
 (defvar ada-mode-syntax-table nil
   "Syntax table in use in Ada-mode buffers.")
 
@@ -109,6 +107,7 @@
 
 (defvar ada-indent 4 "*Value is the number of columns to indent in Ada-Mode.")
   
+;;;###autoload
 (defun ada-mode ()
 "This is a mode intended to support program development in Ada.
 Most control constructs and declarations of Ada can be inserted in the buffer
