@@ -1,5 +1,7 @@
 2001-01-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* editfns.c (Fbuffer_substring): Doc fix.
+
 	* xdisp.c (message_dolog, message2, message2_nolog): Rename
 	parameter LEN to NBYTES.
 

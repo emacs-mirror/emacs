@@ -4,7 +4,7 @@
 	
 	* ediff.el (ediff-patch-file): Use better defaults.
 	
-	* ediff-vers.el: Fix for 8+3 DOS file systems
+	* ediff-vers.el: Fix for 8+3 DOS file systems.
 	
 2001-01-19  Colin Walters <walters@cis.ohio-state.edu>
 	
@@ -13,7 +13,7 @@
 	
 2001-01-19  Michael Kifer  <kifer@cs.sunysb.edu>
 	
-	* ediff-hook.el (ediff-xemacs-init-menus): Fixed add-menu-button
+	* ediff-hook.el (ediff-xemacs-init-menus): Fixed add-menu-button.
 	
 	* ediff-init.el (subst-char-in-string): Define and use it, unless
 	it's already defined.
