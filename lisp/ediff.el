@@ -6,8 +6,8 @@
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, version control.
 
-(defconst ediff-version "2.61" "The current version of Ediff")
-(defconst ediff-date "June 10, 1996" "Date of last update")  
+(defconst ediff-version "2.63" "The current version of Ediff")
+(defconst ediff-date "September 12, 1996" "Date of last update")  
 
 
 ;; This file is part of GNU Emacs.
@@ -110,11 +110,13 @@
 ;; ediff-mult is always required, because of the registry stuff
 (require 'ediff-mult)
 
-(eval-when-compile
-  (load "dired")
-  (load-file "./ediff-ptch.el")
-  (load-file "./ediff-vers.el")
-  (load "pcl-cvs" 'noerror))
+(and noninteractive
+     (eval-when-compile
+       (let ((load-path (cons (expand-file-name ".") load-path)))
+	 (load-library "dired")
+	 (load-file "ediff-ptch.el")
+	 (load-file "ediff-vers.el")
+	 (load "pcl-cvs" 'noerror))))
 
 (defvar ediff-use-last-dir nil
   "*If t, Ediff uses previous directory as default when reading file name.")
@@ -127,6 +129,8 @@
   "Last directory used by an Ediff command for file-C.")
 (defvar ediff-last-dir-ancestor nil
   "Last directory used by an Ediff command for the ancestor file.")
+(defvar ediff-last-merge-autostore-dir
+  "Last directory used by an Ediff command as the output directory for merge.")
 
 ;; Some defvars to reduce the number of compiler warnings
 (defvar cvs-cookie-handle)
@@ -562,7 +566,7 @@ can be used to filter out certain file names."
 The second argument, REGEXP, is a regular expression that filters the file
 names. Only the files that are under revision control are taken into account."
   (interactive
-   (let ((dir-A (ediff-get-default-directory-name)))
+   (let* ((dir-A (ediff-get-default-directory-name)))
      (list (ediff-read-file-name
 	    "Directory to merge with revisions:" dir-A nil)
 	   (read-string "Filter through regular expression: "
@@ -581,7 +585,7 @@ names. Only the files that are under revision control are taken into account."
 The second argument, REGEXP, is a regular expression that filters the file
 names. Only the files that are under revision control are taken into account."
   (interactive
-   (let ((dir-A (ediff-get-default-directory-name)))
+   (let* ((dir-A (ediff-get-default-directory-name)))
      (list (ediff-read-file-name
 	    "Directory to merge with revisions and ancestors:" dir-A nil)
 	   (read-string "Filter through regular expression: "
@@ -605,8 +609,8 @@ names. Only the files that are under revision control are taken into account."
 ;; The third argument, REGEXP, is a regular expression that can be used to
 ;; filter out certain file names.
 ;; JOBNAME is the symbol indicating the meta-job to be performed.
-(defun ediff-directories-internal (dir1 dir2 dir3 regexp 
-					action jobname 
+;; MERGE-DIR is the directory in which to store merged files.
+(defun ediff-directories-internal (dir1 dir2 dir3 regexp action jobname 
 					&optional startup-hooks)
   ;; ediff-read-file-name is set to attach a previously entered file name if
   ;; the currently entered file is a directory. This code takes care of that.
@@ -626,9 +630,31 @@ names. Only the files that are under revision control are taken into account."
 	 (error "Directories B and C are the same: %s" dir1)))
 
   (let (diffs ; var where ediff-intersect-directories returns the diff list
+	merge-autostore-dir
 	file-list meta-buf)
+    (if (and ediff-autostore-merges (ediff-merge-metajob jobname))
+	(setq merge-autostore-dir 
+	      (ediff-read-file-name "Directory to save merged files:"
+				    (if ediff-use-last-dir
+					ediff-last-merge-autostore-dir
+				      (ediff-strip-last-dir dir1))
+				    nil)))
+    ;; verify we are not merging into an orig directory
+    (if (stringp merge-autostore-dir)
+	(cond ((and (stringp dir1) (string= merge-autostore-dir dir1))
+	       (or (y-or-n-p "Merge directory same as directory A, sure? ")
+		   (error "Directory merge aborted")))
+	      ((and (stringp dir2) (string= merge-autostore-dir dir2))
+	       (or (y-or-n-p "Merge directory same as directory B, sure? ")
+		   (error "Directory merge aborted")))
+	      ((and (stringp dir3) (string= merge-autostore-dir dir3))
+	       (or (y-or-n-p
+		    "Merge directory same as ancestor directory, sure? ")
+		   (error "Directory merge aborted")))))
+    
     (setq file-list (ediff-intersect-directories 
-		     jobname 'diffs regexp dir1 dir2 dir3))
+		     jobname 'diffs
+		     regexp dir1 dir2 dir3 merge-autostore-dir))
     (setq startup-hooks
 	  ;; this sets various vars in the meta buffer inside
 	  ;; ediff-prepare-meta-buffer
@@ -651,9 +677,26 @@ names. Only the files that are under revision control are taken into account."
 (defun ediff-directory-revisions-internal (dir1 regexp action jobname 
 						&optional startup-hooks)
   (setq dir1 (if (file-directory-p dir1) dir1 (file-name-directory dir1)))
-  (let (file-list meta-buf)
+
+  (let (file-list meta-buf merge-autostore-dir)
+    (if (and ediff-autostore-merges (ediff-merge-metajob jobname))
+	(setq merge-autostore-dir 
+	      (ediff-read-file-name "Directory to save merged files:"
+				    (if ediff-use-last-dir
+					ediff-last-merge-autostore-dir
+				      (ediff-strip-last-dir dir1))
+				    nil)))
+    ;; verify merge-autostore-dir != dir1
+    (if (and (stringp merge-autostore-dir)
+	     (stringp dir1)
+	     (string= merge-autostore-dir dir1))
+	(or (y-or-n-p
+	     "Directory for saving merges is the same as directory A. Sure? ")
+	    (error "Merge of directory revisions aborted")))
+    
     (setq file-list
-	  (ediff-get-directory-files-under-revision jobname regexp dir1))
+	  (ediff-get-directory-files-under-revision
+	   jobname regexp dir1 merge-autostore-dir))
     (setq startup-hooks
 	  ;; this sets various vars in the meta buffer inside
 	  ;; ediff-prepare-meta-buffer
@@ -804,7 +847,6 @@ lines. For small regions, use `ediff-regions-wordwise'."
       (setq reg-B-beg (region-beginning)
 	    reg-B-end (region-end))
       ;; enlarge the region to hold full lines
-      (goto-char reg-A-beg) 
       (goto-char reg-B-beg) 
       (beginning-of-line)
       (setq reg-B-beg (point))
@@ -1052,7 +1094,7 @@ buffer."
     (ediff-load-version-control)
     ;; ancestor-revision=nil
     (funcall
-     (intern (format "%S-ediff-merge-internal" ediff-version-control-package))
+     (intern (format "ediff-%S-merge-internal" ediff-version-control-package))
      rev1 rev2 nil startup-hooks)))
     
 
@@ -1084,7 +1126,7 @@ buffer."
 		(file-name-nondirectory file) "current buffer"))))
     (ediff-load-version-control)
     (funcall
-     (intern (format "%S-ediff-merge-internal" ediff-version-control-package))
+     (intern (format "ediff-%S-merge-internal" ediff-version-control-package))
      rev1 rev2 ancestor-rev startup-hooks)))
 
 ;;;###autoload
@@ -1168,7 +1210,7 @@ buffer. Use `vc.el' or `rcs.el' depending on `ediff-version-control-package'."
 		       (file-name-nondirectory file) "current buffer"))))
     (ediff-load-version-control)
     (funcall
-     (intern (format "%S-ediff-internal" ediff-version-control-package))
+     (intern (format "ediff-%S-internal" ediff-version-control-package))
      rev1 rev2 startup-hooks)
     ))
    
@@ -1198,8 +1240,9 @@ When called interactively, displays the version."
 
 
 ;;;###autoload
-(defun ediff-documentation ()
-  "Display Ediff's manual."
+(defun ediff-documentation (&optional node)
+  "Display Ediff's manual.
+With optional NODE, goes to that node."
   (interactive)
   (let ((ctl-window ediff-control-window)
 	(ctl-buf ediff-control-buffer))
@@ -1209,15 +1252,13 @@ When called interactively, displays the version."
 	(progn
 	  (pop-to-buffer (get-buffer-create "*info*"))
 	  (info (if ediff-xemacs-p "ediff.info" "ediff"))
-	  (message "Type `i' to search for a specific topic"))
+	  (if node
+	      (Info-goto-node node)
+	    (message "Type `i' to search for a specific topic"))
+	  (raise-frame (selected-frame)))
       (error (beep 1)
 	     (with-output-to-temp-buffer ediff-msg-buffer
-	       (princ (format "
-The Info file for Ediff does not seem to be installed.
-
-This file is part of the distribution of %sEmacs.
-Please contact your system administrator. "
-			      (if ediff-xemacs-p "X" ""))))
+	       (princ ediff-BAD-INFO))
 	     (if (window-live-p ctl-window)
 		 (progn
 		   (select-window ctl-window)
@@ -1229,6 +1270,7 @@ Please contact your system administrator. "
 ;;; Local Variables:
 ;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
 ;;; eval: (put 'ediff-eval-in-buffer 'lisp-indent-hook 1)
+;;; eval: (put 'ediff-eval-in-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
 (provide 'ediff)

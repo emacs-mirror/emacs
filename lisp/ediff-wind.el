@@ -853,7 +853,7 @@ into icons, regardless of the window manager.")
     ;; 1 more line for the modeline
     (setq lines (1+ (count-lines (point-min) (point-max)))
 	  fheight lines
-	  fwidth (+ (ediff-help-message-line-length) 2)
+	  fwidth (+ (ediff-help-message-line-length) 1)
 	  adjusted-parameters (append (list
 				       ;; possibly change surrogate minibuffer
 				       (cons 'minibuffer
@@ -1061,7 +1061,7 @@ It assumes that it is called from within the control buffer."
     (setq mode-line-format
 	  (list (if (ediff-narrow-control-frame-p) "   " "-- ")
 		mode-line-buffer-identification
-		"      Quick Help"))
+		"        Quick Help"))
     ;; control buffer id
     (setq mode-line-buffer-identification 
 	  (if (ediff-narrow-control-frame-p)
@@ -1199,6 +1199,7 @@ It assumes that it is called from within the control buffer."
 ;;; Local Variables:
 ;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
 ;;; eval: (put 'ediff-eval-in-buffer 'lisp-indent-hook 1)
+;;; eval: (put 'ediff-eval-in-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
 (provide 'ediff-wind)

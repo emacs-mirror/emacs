@@ -264,6 +264,12 @@ Combining is done according to the specifications in variable
 	)))
   
 
+;;; Local Variables:
+;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
+;;; eval: (put 'ediff-eval-in-buffer 'lisp-indent-hook 1)
+;;; eval: (put 'ediff-eval-in-buffer 'edebug-form-spec '(form body))
+;;; End:
+
 (provide 'ediff-merg)
 
 ;; ediff-merg.el ends here

@@ -821,7 +821,7 @@ These buffers can be cycled through via :R and :P commands.")
 (defvar vip-always t
   "t means, arrange that vi-state will be a default.")
 
-(defvar vip-custom-file-name (convert-standard-filename "~/.vip")
+(defvar vip-custom-file-name (vip-convert-standard-file-name "~/.vip")
   "Viper customisation file.
 This variable must be set _before_ loading Viper.")
 
@@ -2847,10 +2847,8 @@ Undo previous insertion and inserts new."
 	      (setq vip-cted t)
 	      (if vip-electric-mode
 		  (indent-according-to-mode)
-		(indent-to col))
-	      ))
-	(vip-change-state-to-insert)
-	))))
+		(indent-to col))))
+	(vip-change-state-to-insert)))))
 
 (defun vip-Open-line (arg)
   "Open line above."
@@ -3851,8 +3849,9 @@ controlled by the sign of prefix numeric value."
 (defun vip-paren-match (arg)
   "Go to the matching parenthesis."
   (interactive "P")
+  (vip-leave-region-active)
   (let ((com (vip-getcom arg))
-	anchor-point)
+	parse-sexp-ignore-comments anchor-point)
     (if (integerp arg)
 	(if (or (> arg 99) (< arg 1))
 	    (error "Prefix must be between 1 and 99")
@@ -4904,7 +4903,9 @@ One can use `` and '' to temporarily jump 1 step back."
 		vip-open-line vip-Open-line
 		vip-replace-state-exit-cmd))
 	(indent-to-left-margin))
-    (newline 1)
+    ;; use \n instead of newline, or else <Return> will move the insert point
+    ;;(newline 1)
+    (insert "\n")
     (if vip-auto-indent
 	(progn
 	  (setq vip-cted t)

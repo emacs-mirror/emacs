@@ -553,7 +553,11 @@ to write a custom function, similar to `vip-ex-nontrivial-find-file-unix'."
       (setq tmp (cdr tmp)))
     (reverse (apply 'append tmp2))))
 
-      
+(defun vip-convert-standard-file-name (fname)
+  (if vip-emacs-p
+      (convert-standard-filename fname)
+    ;; hopefully, XEmacs adds this functionality
+    fname))
 
 
 
