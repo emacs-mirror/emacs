@@ -1,3 +1,8 @@
+2003-08-18  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* wid-edit.el (widget-echo-help): Make it handle expressions that
+	evaluate to strings.
+
 2003-08-18  Michael Mauger  <mmaug@yahoo.com>
 
 	Version 1.8.0 of sql-mode.  (Patch submitted 2003-06-21)
