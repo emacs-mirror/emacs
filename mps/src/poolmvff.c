@@ -1,6 +1,6 @@
 /* impl.c.poolmvff: First Fit Manual Variable Pool
  * 
- * $HopeName: MMsrc!poolmvff.c(trunk.10) $
+ * $HopeName: MMsrc!poolmvff.c(trunk.11) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: This is a pool class for manually managed objects of
@@ -17,7 +17,7 @@
 #include "mpscmvff.h"
 #include "dbgpool.h"
 
-SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.10) $");
+SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.11) $");
 
 
 /* Would go in poolmvff.h if the class had any MPS-internal clients. */
@@ -137,7 +137,7 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
       /* is using inline datastructures. */
       res = CBSDelete(CBSOfMVFF(mvff), segBase, segLimit);
       AVER(res == ResOK);
-      mvff->free -= AddrOffset(base, limit);
+      mvff->free -= AddrOffset(segBase, segLimit);
       mvff->total -= AddrOffset(segBase, segLimit);
       SegFree(seg);
     }
