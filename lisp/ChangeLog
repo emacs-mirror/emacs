@@ -1,5 +1,8 @@
 2001-09-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* mail/sendmail.el (mail-mode): Doc fix.  From Simon Josefsson
+	<jas@extundo.com>.
+
 	* menu-bar.el (top-level): Minor fixes for text of help-echo in
 	some items of the Options menu.
 
