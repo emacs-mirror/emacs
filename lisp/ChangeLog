@@ -1,3 +1,8 @@
+2002-04-11  Andreas Schwab  <schwab@suse.de>
+
+	* files.el (file-name-non-special): Handle return value of t from
+	`file-name-completion'.
+
 2002-04-10  Colin Walters  <walters@verbum.org>
 
 	* play/snake.el (snake-score-file): Default to just "snake-scores".
