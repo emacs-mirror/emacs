@@ -1871,6 +1871,10 @@ x_window (f, window_prompting, minibuffer_only)
   class_hints.res_class = EMACS_CLASS;
   XSetClassHint (x_current_display, XtWindow (shell_widget), &class_hints);
 
+  f->display.x->wm_hints.input = True;
+  f->display.x->wm_hints.flags |= InputHint;
+  XSetWMHints (x_current_display, FRAME_X_WINDOW (f), &f->display.x->wm_hints);
+
   hack_wm_protocols (shell_widget);
 
   /* Do a stupid property change to force the server to generate a
