@@ -1,5 +1,8 @@
 2002-01-18  Richard M. Stallman  <rms@gnu.org>
 
+	* comint.el (comint-redirect-send-command-to-process):
+	Restore previous current buffer.
+
 	* window.el (window-body-height): New function.
 
 2002-01-18  Zoltan Kemenczy  <kemenczy@rogers.com>
