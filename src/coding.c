@@ -2315,7 +2315,10 @@ decode_coding_sjis_big5 (coding, source, destination,
 	  coding->produced_char++;
 	}
       else if (c1 < 0x80)
-	DECODE_SJIS_BIG5_CHARACTER (charset_ascii, c1, /* dummy */ c2);
+        {
+          c2 = 0;               /* avoid warning */
+          DECODE_SJIS_BIG5_CHARACTER (charset_ascii, c1, /* dummy */ c2);
+        }
       else
 	{
 	  if (sjis_p)
@@ -2334,8 +2337,11 @@ decode_coding_sjis_big5 (coding, source, destination,
 		}
 	      else if (c1 < 0xE0)
 		/* SJIS -> JISX0201-Kana */
-		DECODE_SJIS_BIG5_CHARACTER (charset_katakana_jisx0201, c1,
-					    /* dummy */ c2);
+		{
+		  c2 = 0;	/* avoid warning */
+		  DECODE_SJIS_BIG5_CHARACTER (charset_katakana_jisx0201, c1,
+					      /* dummy */ c2);
+		}
 	      else
 		goto label_invalid_code_1;
 	    }
