@@ -1561,7 +1561,9 @@ The file names should be absolute, or relative to the current directory.")
 ;; which to search for files with extension EXTN.  Normally EXTN is
 ;; given as the regular expression "\\.java$" .
 (defun gud-jdb-build-source-files-list (path extn)
-  (apply 'nconc (mapcar (lambda (d) (directory-files d t extn nil)) path)))
+  (apply 'nconc (mapcar (lambda (d)
+			  (when (files-exists-p d)
+			    (directory-files d t extn nil)) path))))
 
 ;; Move point past whitespace.
 (defun gud-jdb-skip-whitespace ()
