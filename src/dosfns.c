@@ -99,93 +99,93 @@ Return the updated REGISTER vector.\n\
 INTERRUPT should be an integer in the range 0 to 255.\n\
 REGISTERS should be a vector produced by `make-register' and\n\
 `set-register-value'.")
-  (intno, regs)
-  Lisp_Object intno, regs;
+  (interrupt, registers)
+  Lisp_Object interrupt, registers;
 {
   register int i;
   int no;
   union REGS inregs, outregs;
   Lisp_Object val;
 
-  CHECK_NUMBER (intno, 0);
-  no = (unsigned long) XINT (intno);
-  CHECK_VECTOR (regs, 1);
-  if (no < 0 || no > 0xff || XVECTOR (regs)-> size != 8) 
+  CHECK_NUMBER (interrupt, 0);
+  no = (unsigned long) XINT (interrupt);
+  CHECK_VECTOR (registers, 1);
+  if (no < 0 || no > 0xff || XVECTOR (registers)-> size != 8) 
     return Qnil;
   for (i = 0; i < 8; i++)
-    CHECK_NUMBER (XVECTOR (regs)->contents[i], 1);
+    CHECK_NUMBER (XVECTOR (registers)->contents[i], 1);
 
-  inregs.x.ax    = (unsigned long) XFASTINT (XVECTOR (regs)->contents[0]);
-  inregs.x.bx    = (unsigned long) XFASTINT (XVECTOR (regs)->contents[1]);
-  inregs.x.cx    = (unsigned long) XFASTINT (XVECTOR (regs)->contents[2]);
-  inregs.x.dx    = (unsigned long) XFASTINT (XVECTOR (regs)->contents[3]);
-  inregs.x.si    = (unsigned long) XFASTINT (XVECTOR (regs)->contents[4]);
-  inregs.x.di    = (unsigned long) XFASTINT (XVECTOR (regs)->contents[5]);
-  inregs.x.cflag = (unsigned long) XFASTINT (XVECTOR (regs)->contents[6]);
-  inregs.x.flags = (unsigned long) XFASTINT (XVECTOR (regs)->contents[7]);
+  inregs.x.ax    = (unsigned long) XFASTINT (XVECTOR (registers)->contents[0]);
+  inregs.x.bx    = (unsigned long) XFASTINT (XVECTOR (registers)->contents[1]);
+  inregs.x.cx    = (unsigned long) XFASTINT (XVECTOR (registers)->contents[2]);
+  inregs.x.dx    = (unsigned long) XFASTINT (XVECTOR (registers)->contents[3]);
+  inregs.x.si    = (unsigned long) XFASTINT (XVECTOR (registers)->contents[4]);
+  inregs.x.di    = (unsigned long) XFASTINT (XVECTOR (registers)->contents[5]);
+  inregs.x.cflag = (unsigned long) XFASTINT (XVECTOR (registers)->contents[6]);
+  inregs.x.flags = (unsigned long) XFASTINT (XVECTOR (registers)->contents[7]);
 
   int86 (no, &inregs, &outregs);
 
-  XVECTOR (regs)->contents[0] = make_number (outregs.x.ax);
-  XVECTOR (regs)->contents[1] = make_number (outregs.x.bx);
-  XVECTOR (regs)->contents[2] = make_number (outregs.x.cx);
-  XVECTOR (regs)->contents[3] = make_number (outregs.x.dx);
-  XVECTOR (regs)->contents[4] = make_number (outregs.x.si);
-  XVECTOR (regs)->contents[5] = make_number (outregs.x.di);
-  XVECTOR (regs)->contents[6] = make_number (outregs.x.cflag);
-  XVECTOR (regs)->contents[7] = make_number (outregs.x.flags);
+  XVECTOR (registers)->contents[0] = make_number (outregs.x.ax);
+  XVECTOR (registers)->contents[1] = make_number (outregs.x.bx);
+  XVECTOR (registers)->contents[2] = make_number (outregs.x.cx);
+  XVECTOR (registers)->contents[3] = make_number (outregs.x.dx);
+  XVECTOR (registers)->contents[4] = make_number (outregs.x.si);
+  XVECTOR (registers)->contents[5] = make_number (outregs.x.di);
+  XVECTOR (registers)->contents[6] = make_number (outregs.x.cflag);
+  XVECTOR (registers)->contents[7] = make_number (outregs.x.flags);
 
-  return regs;
+  return registers;
 }
 
 DEFUN ("msdos-memget", Fdos_memget, Sdos_memget, 2, 2, 0,
   "Read DOS memory at offset ADDRESS into VECTOR.\n\
 Return the updated VECTOR.")
-  (addr, v)
-  Lisp_Object addr, v;
+  (address, vector)
+  Lisp_Object address, vector;
 {
   register int i;
   int offs, len;
   char *buf;
   Lisp_Object val;
 
-  CHECK_NUMBER (addr, 0);
-  offs = (unsigned long) XINT (addr);
-  CHECK_VECTOR (v, 1);
-  len = XVECTOR (v)-> size;
-  if (len < 1 || len > 2048 || addr < 0 || addr > 0xfffff - len) 
+  CHECK_NUMBER (address, 0);
+  offs = (unsigned long) XINT (address);
+  CHECK_VECTOR (vector, 1);
+  len = XVECTOR (vector)-> size;
+  if (len < 1 || len > 2048 || address < 0 || address > 0xfffff - len) 
     return Qnil;
   buf = alloca (len);
   dosmemget (offs, len, buf);
   
   for (i = 0; i < len; i++)
-    XVECTOR (v)->contents[i] = make_number (buf[i]);
+    XVECTOR (vector)->contents[i] = make_number (buf[i]);
 
-  return v;
+  return vector;
 }
 
 DEFUN ("msdos-memput", Fdos_memput, Sdos_memput, 2, 2, 0,
   "Write DOS memory at offset ADDRESS from VECTOR.")
-  (addr, v)
-  Lisp_Object addr, v;
+  (address, vector)
+  Lisp_Object address, vector;
 {
   register int i;
   int offs, len;
   char *buf;
   Lisp_Object val;
 
-  CHECK_NUMBER (addr, 0);
-  offs = (unsigned long) XINT (addr);
-  CHECK_VECTOR (v, 1);
-  len = XVECTOR (v)-> size;
-  if (len < 1 || len > 2048 || addr < 0 || addr > 0xfffff - len) 
+  CHECK_NUMBER (address, 0);
+  offs = (unsigned long) XINT (address);
+  CHECK_VECTOR (vector, 1);
+  len = XVECTOR (vector)-> size;
+  if (len < 1 || len > 2048 || address < 0 || address > 0xfffff - len) 
     return Qnil;
   buf = alloca (len);
 
   for (i = 0; i < len; i++)
     {
-      CHECK_NUMBER (XVECTOR (v)->contents[i], 1);
-      buf[i] = (unsigned char) XFASTINT (XVECTOR (v)->contents[i]) & 0xFF;
+      CHECK_NUMBER (XVECTOR (vector)->contents[i], 1);
+      buf[i] = (unsigned char) XFASTINT (XVECTOR (vector)->contents[i]) & 0xFF;
     }
 
   dosmemput (buf, len, offs);
@@ -193,7 +193,7 @@ DEFUN ("msdos-memput", Fdos_memput, Sdos_memput, 2, 2, 0,
 }
 
 DEFUN ("msdos-set-keyboard", Fmsdos_set_keyboard, Smsdos_set_keyboard, 1, 2, 0,
-  "Set keyboard layout according to COUNTRY.\n\
+  "Set keyboard layout according to COUNTRY-CODE.\n\
 If the optional argument ALLKEYS is non-nil, the keyboard is mapped for\n\
 all keys; otherwise it is only used when the ALT key is pressed.\n\
 The current keyboard layout is available in dos-keyboard-code.")
