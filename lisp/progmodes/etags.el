@@ -713,31 +713,29 @@ See documentation of variable `tags-file-name'."
 	(visit-tags-table-buffer)
 	;; Record TAGNAME for a future call with NEXT-P non-nil.
 	(setq last-tag tagname))
-      (prog1
-	  ;; Record the location so we can pop back to it later.
-	  (marker-buffer
-	   (car
-	    (setq tags-location-stack
-		  (cons (let ((marker (make-marker)))
-			  (save-excursion
-			    (set-buffer
-			     ;; find-tag-in-order does the real work.
-			     (find-tag-in-order
-			      (if next-p last-tag tagname)
-			      (if regexp-p
-				  find-tag-regexp-search-function
-				find-tag-search-function)
-			      (if regexp-p
-				  find-tag-regexp-tag-order
-				find-tag-tag-order)
-			      (if regexp-p
-				  find-tag-regexp-next-line-after-failure-p
-				find-tag-next-line-after-failure-p)
-			      (if regexp-p "matching" "containing")
-			      (not next-p)))
-			    (set-marker marker (point))))
-			tags-location-stack))))
-	(run-hooks 'local-find-tag-hook)))))
+      ;; Record the location so we can pop back to it later.
+      (let ((marker (make-marker)))
+	(save-excursion
+	  (set-buffer
+	   ;; find-tag-in-order does the real work.
+	   (find-tag-in-order
+	    (if next-p last-tag tagname)
+	    (if regexp-p
+		find-tag-regexp-search-function
+	      find-tag-search-function)
+	    (if regexp-p
+		find-tag-regexp-tag-order
+	      find-tag-tag-order)
+	    (if regexp-p
+		find-tag-regexp-next-line-after-failure-p
+	      find-tag-next-line-after-failure-p)
+	    (if regexp-p "matching" "containing")
+	    (not next-p)))
+	  (set-marker marker (point))
+	  (run-hooks 'local-find-tag-hook)
+	  (setq tags-location-stack
+		(cons marker tags-location-stack))
+	  (current-buffer))))))
 
 ;;;###autoload
 (defun find-tag (tagname &optional next-p regexp-p)
