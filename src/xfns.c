@@ -3511,7 +3511,7 @@ DEFUN ("x-select-region", Fx_select_region, Sx_select_region, 1, 1, "e",
 
  while (1)
    {
-     obj = read_char (-1);
+     obj = read_char (-1, 0, 0, Qnil, 0);
      if (XTYPE (obj) != Lisp_Cons)
        break;
 
@@ -3643,7 +3643,7 @@ DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
 
       do
 	{
-	  obj = read_char (-1);
+	  obj = read_char (-1, 0, 0, Qnil, 0);
 	  if ((XTYPE (obj) != Lisp_Cons)
 	      || (! EQ (Fcar (Fcdr (Fcdr (obj))),
 		       Qvertical_scroll_bar))
@@ -3859,7 +3859,7 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
       XFlush (x_current_display);
       UNBLOCK_INPUT;
 
-      obj = read_char (-1);
+      obj = read_char (-1, 0, 0, Qnil, 0);
       BLOCK_INPUT;
     }
   while (XTYPE (obj) == Lisp_Cons		   /* Mouse event */
