@@ -132,7 +132,7 @@ or `easy-mmode-define-minor-mode'."
 (put 'defconst 'doc-string-elt 3)
 (put 'defmacro 'doc-string-elt 3)
 (put 'define-skeleton 'doc-string-elt 3)
-(put 'define-derived-mode 'doc-string-elt 4)
+(put 'define-derived-mode 'doc-string-elt 3)
 (put 'easy-mmode-define-minor-mode 'doc-string-elt 3)
 (put 'define-generic-mode 'doc-string-elt 3)
 
