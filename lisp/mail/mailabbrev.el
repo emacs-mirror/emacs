@@ -486,7 +486,7 @@ characters which may be a part of the name of a mail alias.")
 		    t))))
   (build-mail-abbrevs file))
 
-(defun rebuild-mail-abbrevs (file)
+(defun rebuild-mail-abbrevs (&optional file)
   "Rebuild all the mail aliases from the given file."
   (interactive (list
 		(let ((insert-default-directory t)
@@ -497,6 +497,8 @@ characters which may be a part of the name of a mail alias.")
 		   default-directory
 		   (expand-file-name def default-directory)
 		   t))))
+  (if (null file)
+      (setq file buffer-file-name))
   (setq mail-abbrevs nil)
   (build-mail-abbrevs file))
 
