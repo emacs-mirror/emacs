@@ -236,7 +236,7 @@
 ;;         eliminate reliance on directory-sep-char and feedmail-sep-thing
 ;;         tweak smart filling (reminded of comma problem by levitte@lp.se)
 ;;         option to control writing in text vs binary mode
-aqq2;; patchlevel 8, 15 June 1998
+;; patchlevel 8, 15 June 1998
 ;;         reliable re-editing of text-mode (vs binary) queued messages
 ;;         user option to keep BCC: in FCC: copy (keep by default)
 ;;         user option to delete body from FCC: copy (keep by default)
