@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -165,6 +164,18 @@ With a prefix, push that prefix as a number onto the stack."
   (interactive)
   (message "Calc %s" calc-version))
 
+;; The following caches are declared in other files, but are
+;; reset here.
+(defvar math-lud-cache) ; calc-mtx.el
+(defvar math-log2-cache) ; calc-bin.el
+(defvar math-radix-digits-cache) ; calc-bin.el
+(defvar math-radix-float-cache-tag) ; calc-bin.el
+(defvar math-random-cache) ; calc-comb.el
+(defvar math-max-digits-cache) ; calc-bin.el
+(defvar math-integral-cache) ; calcalg2.el
+(defvar math-units-table) ; calc-units.el
+(defvar math-format-date-cache) ; calc-forms.el
+(defvar math-holidays-cache-tag) ; calc-forms.el
 
 (defun calc-flush-caches (&optional inhibit-msg)
   (interactive "P")
@@ -175,13 +186,10 @@ With a prefix, push that prefix as a number onto the stack."
 	 math-radix-float-cache-tag nil
 	 math-random-cache nil
 	 math-max-digits-cache nil
-	 math-checked-rewrites nil
 	 math-integral-cache nil
 	 math-units-table nil
 	 math-decls-cache-tag nil
 	 math-eval-rules-cache-tag t
-	 math-graph-var-cache nil
-	 math-graph-data-cache nil
 	 math-format-date-cache nil
 	 math-holidays-cache-tag t)
    (mapcar (function (lambda (x) (set x -100))) math-cache-list)
@@ -270,17 +278,22 @@ With a prefix, push that prefix as a number onto the stack."
   (math-map-over-constants (function (lambda (x) (calcFunc-frac x tol)))
 			   a))
 
-(defun math-map-over-constants (func expr)
+;; The variable math-moc-func is local to math-map-over-constants,
+;; but is used by math-map-over-constants-rec, which is called by
+;; math-map-over-constants.
+(defvar math-moc-func)
+
+(defun math-map-over-constants (math-moc-func expr)
   (math-map-over-constants-rec expr))
 
 (defun math-map-over-constants-rec (expr)
   (cond ((or (Math-primp expr)
 	     (memq (car expr) '(intv sdev)))
 	 (or (and (Math-objectp expr)
-		  (funcall func expr))
+		  (funcall math-moc-func expr))
 	     expr))
 	((and (memq (car expr) '(^ calcFunc-subscr))
-	      (eq func 'math-float)
+	      (eq math-moc-func 'math-float)
 	      (= (length expr) 3)
 	      (Math-integerp (nth 2 expr)))
 	 (list (car expr)
