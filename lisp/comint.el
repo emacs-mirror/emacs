@@ -1081,12 +1081,15 @@ Similarly for Soar, Scheme, etc."
 			(comint-replace-by-expanded-history)
 			(buffer-substring pmark (point))))
 	       (history (if (not (eq comint-input-autoexpand 'history))
-			    (comint-arguments input 0 nil)
+			    input
 			  ;; This is messy 'cos ultimately the original
 			  ;; functions used do insertion, rather than return
 			  ;; strings.  We have to expand, then insert back.
 			  (comint-replace-by-expanded-history)
-			  (buffer-substring pmark (point)))))
+			  (let ((copy (buffer-substring pmark (point))))
+			    (delete-region pmark (point))
+			    (insert input)
+			    copy))))
           (if comint-process-echoes
               (delete-region pmark (point))
 	    (insert ?\n))
