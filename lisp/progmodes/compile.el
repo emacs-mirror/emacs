@@ -61,7 +61,7 @@ it at all.")
 It takes args LIMIT-SEARCH and FIND-AT-LEAST.
 If LIMIT-SEARCH is non-nil, don't bother parsing past that location.
 If FIND-AT-LEAST is non-nil, don't bother parsing after finding that 
- many new erros.
+many new errors.
 It should read in the source files which have errors and set
 `compilation-error-list' to a list with an element for each error message
 found.  See that variable for more info.")
@@ -684,39 +684,38 @@ Does NOT find the source line like \\[next-error]."
 
 (defun compile-mouse-goto-error (event)
   (interactive "e")
-  (let (file)
-    (save-excursion
-      (set-buffer (window-buffer (posn-window (event-end event))))
-      (save-excursion
-	(goto-char (posn-point (event-end event)))
-	(or (compilation-buffer-p (current-buffer))
-	    (error "Not in a compilation buffer."))
-	(setq compilation-last-buffer (current-buffer))
-	(compile-reinitialize-errors nil (point))
+  (save-excursion
+    (set-buffer (window-buffer (posn-window (event-end event))))
+    (goto-char (posn-point (event-end event)))
 
-	;; Move to bol; the marker for the error on this line will point there.
-	(beginning-of-line)
+    (or (compilation-buffer-p (current-buffer))
+	(error "Not in a compilation buffer."))
+    (setq compilation-last-buffer (current-buffer))
+    (compile-reinitialize-errors nil (point))
 
-	;; Move compilation-error-list to the elt of compilation-old-error-list
-	;; we want.
-	(setq compilation-error-list compilation-old-error-list)
-	(while (and compilation-error-list
-		    (> (point) (car (car compilation-error-list))))
-	  (setq compilation-error-list (cdr compilation-error-list)))
-	(or compilation-error-list
-	    (error "No error to go to"))))
-    (select-window (posn-window (event-end event)))
-    ;; Move to another window, so that next-error's window changes
-    ;; result in the desired setup.
-    (or (one-window-p)
-	(progn
-	  (other-window -1)
-	  ;; other-window changed the selected buffer,
-	  ;; but we didn't want to do that.
-	  (set-buffer compilation-last-buffer)))
+    ;; Move to bol; the marker for the error on this line will point there.
+    (beginning-of-line)
 
-    (push-mark)
-    (next-error 1)))
+    ;; Move compilation-error-list to the elt of compilation-old-error-list
+    ;; we want.
+    (setq compilation-error-list compilation-old-error-list)
+    (while (and compilation-error-list
+		(> (point) (car (car compilation-error-list))))
+      (setq compilation-error-list (cdr compilation-error-list)))
+    (or compilation-error-list
+	(error "No error to go to")))
+  (select-window (posn-window (event-end event)))
+  ;; Move to another window, so that next-error's window changes
+  ;; result in the desired setup.
+  (or (one-window-p)
+      (progn
+	(other-window -1)
+	;; other-window changed the selected buffer,
+	;; but we didn't want to do that.
+	(set-buffer compilation-last-buffer)))
+
+  (push-mark)
+  (next-error 1))
 
 (defun compile-goto-error (&optional argp)
   "Visit the source for the error message point is on.
