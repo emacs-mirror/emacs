@@ -40,7 +40,10 @@
 ;; character `*' is embedded in `CHARSET_ENCODING' field.  The
 ;; REGISTRY for ASCII characters are predefined as "ISO8859-1".
 
-(let ((l
+(defun setup-default-fontset ()
+  "Setup the default fontset."
+  (dolist
+      (elt
        ;; Eval this at compile-time, since fontset.el is always loaded
        ;; when run under X and this would always load ind-util.el as well.
        (eval-when-compile
@@ -119,13 +122,7 @@
 	   ((,(indian-glyph-char 0 'malayalam)
 	     . ,(indian-glyph-char 255 'malayalam)) . ("*" . "Malayalam-CDAC"))
 	   )))
-      charset font-spec arg)
-  (while l
-    (setq charset (car (car l)) font-spec (cdr (car l)) l (cdr l))
-    (if (symbolp charset)
-	(setq arg (make-char charset))
-      (setq arg charset))
-    (set-fontset-font "fontset-default" arg font-spec)))
+    (set-fontset-font "fontset-default" (car elt) (cdr elt))))
 
 ;; Set arguments in `font-encoding-alist' (which see).
 (defun set-font-encoding (pattern charset encoding)
@@ -138,9 +135,6 @@
       (setq font-encoding-alist
 	    (cons (list pattern (cons charset encoding)) font-encoding-alist)))
     ))
-
-(set-font-encoding "ISO8859-1" 'ascii 0)
-(set-font-encoding "JISX0201" 'latin-jisx0201 0)
 
 ;; Allow display of arbitrary characters with an iso-10646-encoded
 ;; (`Unicode') font.
@@ -494,7 +488,7 @@ with \"fontset\" in `<CHARSET_REGISTRY> field."
 	    name))
       fontset)))
 
-;;;###autoload
+
 (defun create-fontset-from-fontset-spec (fontset-spec
 					 &optional style-variant noerror)
   "Create a fontset from fontset specification string FONTSET-SPEC.
