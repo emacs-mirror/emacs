@@ -1947,6 +1947,12 @@ x_produce_glyphs (it)
 	  int tab_width = it->tab_width * CANON_X_UNIT (it->f);
 	  int x = it->current_x + it->continuation_lines_width;
 	  int next_tab_x = ((1 + x + tab_width - 1) / tab_width) * tab_width;
+
+	  /* If the distance from the current position to the next tab
+	     stop is less than a canonical character width, use the
+	     tab stop after that.  */
+	  if (next_tab_x - x < CANON_X_UNIT (it->f))
+	    next_tab_x += tab_width;
       
 	  it->pixel_width = next_tab_x - x;
 	  it->nglyphs = 1;
