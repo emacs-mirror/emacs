@@ -1,5 +1,9 @@
 2000-03-26  Dave Love  <fx@gnu.org>
 
+	* net/browse-url.el (browse-url): Re-fix case of
+	browse-url-browser-function being an alist.
+	(browse-url): Add :link to defgroup.
+
 	* files.el: Doc fixes.
 	(file-truename): Include `[' in wildcard characters.
 	(automount-dir-prefix): Customize.
