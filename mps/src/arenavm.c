@@ -1,7 +1,7 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.36) $
- * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!arenavm.c(trunk.37) $
+ * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
  * abstraction.  Use of this arena implies use of a VM.
@@ -21,7 +21,7 @@
  *
  * .improve.table.zone-zero: It would be better to make sure that the
  * page tables are in zone zero, since that zone is least useful for
- * GC. (but it would change how SegAllocWithRefSet avoids allocating
+ * GC. (but it would change how findFreeInRefSet avoids allocating
  * over the tables, see .alloc.skip)@@@@
  */
 
@@ -29,7 +29,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.36) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.37) $");
 
 
 typedef struct VMArenaStruct *VMArena;
@@ -654,21 +654,20 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
   /* to run out of virtual address space, then slow allocation is */
   /* probably the least of our worries. */
 
-  /* We look for space in the following places (in order) */
-  /*   - Zones already allocated to me (refSet) but are not */
-  /*     blacklisted; */
-  /*   - Zones that are either allocated to me, or are unallocated */
-  /*     but not blacklisted; */
-  /*   - Any non-blacklisted zone; */
-  /*   - Any zone; */
-  /* Note that each is a superset of the previous, unless blacklisted */
-  /* zones have been allocated (or the default is used). */
-
   if(pref->isCollected) { /* GC'd segment */
+    /* We look for space in the following places (in order) */
+    /*   - Zones already allocated to me (refSet) but are not */
+    /*     blacklisted; */
+    /*   - Zones that are either allocated to me, or are unallocated */
+    /*     but not blacklisted; */
+    /*   - Any non-blacklisted zone; */
+    /*   - Any zone; */
+    /* Note that each is a superset of the previous, unless blacklisted */
+    /* zones have been allocated (or the default is used). */
     if(!findFreeInRefSet(&base, vmArena, size, 
 			 RefSetDiff(refSet, vmArena->blacklist)) &&
        !findFreeInRefSet(&base, vmArena, size, 
-				 RefSetUnion(refSet,
+                         RefSetUnion(refSet,
 				     RefSetDiff(vmArena->freeSet, 
 						vmArena->blacklist))) && 
        !findFreeInRefSet(&base, vmArena, size, 
@@ -680,11 +679,23 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
       return ResRESOURCE;
     }
   } else { /* non-GC'd segment */
-    if(!findFreeInRefSet(&base, vmArena, size, RefSetUNIV)) {
+    /* We look for space in the following places (in order) */
+    /*   - Zones preferred (refSet) and blacklisted; */
+    /*   - Zones preferred; */
+    /*   - Zones preferred or blacklisted zone; */
+    /*   - Any zone. */
+    /* Note that each is a superset of the previous, unless blacklisted */
+    /* zones have been allocated. */
+    if(!findFreeInRefSet(&base, vmArena, size, 
+			 RefSetInter(refSet, vmArena->blacklist)) &&
+       !findFreeInRefSet(&base, vmArena, size, refSet) && 
+       !findFreeInRefSet(&base, vmArena, size, 
+			 RefSetUnion(refSet, vmArena->blacklist)) && 
+       !findFreeInRefSet(&base, vmArena, size, RefSetUNIV)) {
       return ResRESOURCE;
     }
   }
-  
+
   /* .alloc.early-map: Map in the segment memory before actually */
   /* allocating the pages, so that we can exit straight away if */
   /* we fail. */
