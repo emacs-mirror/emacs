@@ -1876,7 +1876,7 @@ It returns t if it got any new messages."
   (forward-line 1)
   (if (/= (following-char) ?0)
       (error "Bad format in RMAIL file."))
-  (let ((buffer-read-only nil)
+  (let ((inhibit-read-only t)
 	(delta (- (buffer-size) end)))
     (delete-char 1)
     (insert ?1)
@@ -1947,9 +1947,12 @@ Otherwise, delete all header fields whose names match `rmail-ignored-headers'."
       (= (following-char) ?1))))
 
 (defun rmail-msg-restore-non-pruned-header ()
-  (save-excursion
-    (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
-    (let (new-start)
+  (let ((old-point (point))
+	new-point
+	new-start
+	(inhibit-read-only t))
+    (save-excursion
+      (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
       (goto-char (point-min))
       (forward-line 1)
       ;; Change 1 to 0.
@@ -1968,14 +1971,23 @@ Otherwise, delete all header fields whose names match `rmail-ignored-headers'."
       (forward-line -1)
       (let ((start (point)))
 	(search-forward "\n\n")
+	(if (and (<= start old-point)
+		 (<= old-point (point)))
+	    (setq new-point new-start))
 	(delete-region start (point)))
       ;; Narrow to after the new EOOH line.
-      (narrow-to-region new-start (point-max)))))
+      (narrow-to-region new-start (point-max)))
+    (if new-point
+	(goto-char new-point))))
 
 (defun rmail-msg-prune-header ()
-  (save-excursion
-    (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
-    (rmail-reformat-message (point-min) (point-max))))
+  (let ((new-point
+	 (= (point) (point-min))))
+    (save-excursion
+      (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
+      (rmail-reformat-message (point-min) (point-max)))
+    (if new-point
+	(goto-char (point-min)))))
 
 (defun rmail-toggle-header (&optional arg)
   "Show original message header if pruned header currently shown, or vice versa.
@@ -2034,6 +2046,25 @@ otherwise, show it in full."
 					;; last line of window
 					(- (window-height) 2))))))))))
       (rmail-highlight-headers))))
+
+(defun rmail-narrow-to-non-pruned-header ()
+  "Narrow to the whole (original) header of the current message."
+  (let (start end)
+    (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
+    (goto-char (point-min))
+    (forward-line 1)
+    (if (= (following-char) ?1)
+	(progn
+	  (forward-line 1)
+	  (setq start (point))
+	  (search-forward "*** EOOH ***\n")
+	  (setq end (match-beginning 0)))
+      (forward-line 2)
+      (setq start (point))
+      (search-forward "\n\n")
+      (setq end (1- (point))))
+    (narrow-to-region start end)
+    (goto-char start)))
 
 ;; Lifted from repos-count-screen-lines.
 ;; Return number of screen lines between START and END.
@@ -3347,115 +3378,103 @@ specifying headers which should not be copied into the new message."
   (require 'mail-utils)
   (let ((rmail-this-buffer (current-buffer))
 	(msgnum rmail-current-message)
-	(pruned (rmail-msg-is-pruned))
-	bounce-start bounce-end bounce-indent resending)
-    (unwind-protect
-	(progn
-	  (save-excursion
-	    ;; Un-prune the header; we need to search the whole thing.
-	    (if pruned
-		(rmail-toggle-header 0))
-	    (goto-char (rmail-msgbeg msgnum))
-	    (let* ((case-fold-search t)
-		   (top (point))
-		   (content-type
-		    (save-restriction
-		      ;; Fetch any content-type header in current message
-		      (search-forward "\n\n") (narrow-to-region top (point))
-		      (mail-fetch-field "Content-Type") )) )
-	      ;; Handle MIME multipart bounce messages
-	      (if (and content-type 
-		       (string-match 
-			";[\n\t ]*boundary=\"?\\([-0-9a-z'()+_,./:=? ]+\\)\"?" 
-			content-type))
-		  (let ((codestring
-			 (concat "\n--"
-				 (substring content-type (match-beginning 1) 
-					    (match-end 1)))))
-		    (unless (re-search-forward mail-mime-unsent-header nil t)
-		      (error "Cannot find beginning of header in failed message"))
-		    (unless (search-forward "\n\n" nil t)
-		      (error "Cannot find start of Mime data in failed message"))
-		    (setq bounce-start (point))
-		    (if (search-forward codestring nil t)
-			(setq bounce-end (match-beginning 0))
-		      (setq bounce-end (point-max)))
-		    )
-		;; non-MIME bounce
-		(or (re-search-forward mail-unsent-separator nil t)
-		    (error "Cannot parse this as a failure message"))
-		(skip-chars-forward "\n")
-		;; Support a style of failure message in which the original
-		;; message is indented, and included within lines saying
-		;; `Start of returned message' and `End of returned message'.
-		(if (looking-at " +Received:")
-		    (progn
-		      (setq bounce-start (point))
-		      (skip-chars-forward " ")
-		      (setq bounce-indent (- (current-column)))
-		      (goto-char (point-max))
-		      (re-search-backward "^End of returned message$" nil t)
-		      (setq bounce-end (point)))
-		  ;; One message contained a few random lines before
-		  ;; the old message header.  The first line of the
-		  ;; message started with two hyphens.  A blank line
-		  ;; followed these random lines.  The same line
-		  ;; beginning with two hyphens was possibly marking
-		  ;; the end of the message.
-		  (if (looking-at "^--")
-		      (let ((boundary (buffer-substring-no-properties
-				       (point)
-				       (progn (end-of-line) (point)))))
-			(search-forward "\n\n")
-			(skip-chars-forward "\n")
-			(setq bounce-start (point))
-			(goto-char (point-max))
-			(search-backward (concat "\n\n" boundary) bounce-start t)
-			(setq bounce-end (point)))
-		    (setq bounce-start (point)
-			  bounce-end (point-max)))
-		  (unless (search-forward "\n\n" nil t)
-		    (error "Cannot find end of header in failed message"))
-		  ))))
-	  ;; Start sending new message; default header fields from original.
-	  ;; Turn off the usual actions for initializing the message body
-	  ;; because we want to get only the text from the failure message.
-	  (let (mail-signature mail-setup-hook)
-	    (if (rmail-start-mail nil nil nil nil nil rmail-this-buffer
-				  (list (list 'rmail-mark-message
-					      rmail-this-buffer
-					      (aref rmail-msgref-vector msgnum)
-					      "retried")))
-		;; Insert original text as initial text of new draft message.
-		;; Bind inhibit-read-only since the header delimiter
-		;; of the previous message was probably read-only.
-		(let ((inhibit-read-only t)
-		      rmail-displayed-headers
-		      rmail-ignored-headers)
-		  (erase-buffer)
-		  (insert-buffer-substring rmail-this-buffer
-					   bounce-start bounce-end)
-		  (goto-char (point-min))
-		  (if bounce-indent
-		      (indent-rigidly (point-min) (point-max) bounce-indent))
-		  (rmail-clear-headers rmail-retry-ignored-headers)
-		  (rmail-clear-headers "^sender:\\|^return-path:\\|^received:")
-		  (mail-sendmail-delimit-header)
-		  (save-restriction
-		    (narrow-to-region (point-min) (mail-header-end))
-		    (setq resending (mail-fetch-field "resent-to"))
-		    (if mail-self-blind
-			(if resending
-			    (insert "Resent-Bcc: " (user-login-name) "\n")
-			  (insert "BCC: " (user-login-name) "\n"))))
-		  (goto-char (point-min))
-		  (mail-position-on-field (if resending "Resent-To" "To") t)))))
-      ;; save-window-excursion is needed because of the switch-to-buffer
-      ;; in rmail-toggle-header.
-      (save-window-excursion
-	(with-current-buffer rmail-this-buffer
-	  (if pruned
-	      (rmail-toggle-header 1)))))))
+	bounce-start bounce-end bounce-indent resending
+	;; Fetch any content-type header in current message
+	;; Must search thru the whole unpruned header.
+	(content-type
+	 (save-excursion
+	   (save-restriction
+	     (rmail-narrow-to-non-pruned-header)
+	     (mail-fetch-field "Content-Type") ))))
+    (save-excursion
+      (goto-char (point-min))
+      (let ((case-fold-search t))
+	(if (and content-type 
+		 (string-match 
+		  ";[\n\t ]*boundary=\"?\\([-0-9a-z'()+_,./:=? ]+\\)\"?" 
+		  content-type))
+	    ;; Handle a MIME multipart bounce message.
+	    (let ((codestring
+		   (concat "\n--"
+			   (substring content-type (match-beginning 1) 
+				      (match-end 1)))))
+	      (unless (re-search-forward mail-mime-unsent-header nil t)
+		(error "Cannot find beginning of header in failed message"))
+	      (unless (search-forward "\n\n" nil t)
+		(error "Cannot find start of Mime data in failed message"))
+	      (setq bounce-start (point))
+	      (if (search-forward codestring nil t)
+		  (setq bounce-end (match-beginning 0))
+		(setq bounce-end (point-max))))
+	  ;; Non-MIME bounce.
+	  (or (re-search-forward mail-unsent-separator nil t)
+	      (error "Cannot parse this as a failure message"))
+	  (skip-chars-forward "\n")
+	  ;; Support a style of failure message in which the original
+	  ;; message is indented, and included within lines saying
+	  ;; `Start of returned message' and `End of returned message'.
+	  (if (looking-at " +Received:")
+	      (progn
+		(setq bounce-start (point))
+		(skip-chars-forward " ")
+		(setq bounce-indent (- (current-column)))
+		(goto-char (point-max))
+		(re-search-backward "^End of returned message$" nil t)
+		(setq bounce-end (point)))
+	    ;; One message contained a few random lines before
+	    ;; the old message header.  The first line of the
+	    ;; message started with two hyphens.  A blank line
+	    ;; followed these random lines.  The same line
+	    ;; beginning with two hyphens was possibly marking
+	    ;; the end of the message.
+	    (if (looking-at "^--")
+		(let ((boundary (buffer-substring-no-properties
+				 (point)
+				 (progn (end-of-line) (point)))))
+		  (search-forward "\n\n")
+		  (skip-chars-forward "\n")
+		  (setq bounce-start (point))
+		  (goto-char (point-max))
+		  (search-backward (concat "\n\n" boundary) bounce-start t)
+		  (setq bounce-end (point)))
+	      (setq bounce-start (point)
+		    bounce-end (point-max)))
+	    (unless (search-forward "\n\n" nil t)
+	      (error "Cannot find end of header in failed message"))))))
+    ;; We have found the message that bounced, within the current message.
+    ;; Now start sending new message; default header fields from original.
+    ;; Turn off the usual actions for initializing the message body
+    ;; because we want to get only the text from the failure message.
+    (let (mail-signature mail-setup-hook)
+      (if (rmail-start-mail nil nil nil nil nil rmail-this-buffer
+			    (list (list 'rmail-mark-message
+					rmail-this-buffer
+					(aref rmail-msgref-vector msgnum)
+					"retried")))
+	  ;; Insert original text as initial text of new draft message.
+	  ;; Bind inhibit-read-only since the header delimiter
+	  ;; of the previous message was probably read-only.
+	  (let ((inhibit-read-only t)
+		rmail-displayed-headers
+		rmail-ignored-headers)
+	    (erase-buffer)
+	    (insert-buffer-substring rmail-this-buffer
+				     bounce-start bounce-end)
+	    (goto-char (point-min))
+	    (if bounce-indent
+		(indent-rigidly (point-min) (point-max) bounce-indent))
+	    (rmail-clear-headers rmail-retry-ignored-headers)
+	    (rmail-clear-headers "^sender:\\|^return-path:\\|^received:")
+	    (mail-sendmail-delimit-header)
+	    (save-restriction
+	      (narrow-to-region (point-min) (mail-header-end))
+	      (setq resending (mail-fetch-field "resent-to"))
+	      (if mail-self-blind
+		  (if resending
+		      (insert "Resent-Bcc: " (user-login-name) "\n")
+		    (insert "BCC: " (user-login-name) "\n"))))
+	    (goto-char (point-min))
+	    (mail-position-on-field (if resending "Resent-To" "To") t))))))
 
 (defun rmail-summary-exists ()
   "Non-nil iff in an RMAIL buffer and an associated summary buffer exists.
