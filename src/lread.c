@@ -2435,9 +2435,8 @@ init_lread ()
 	    {
 	      dirfile = Fdirectory_file_name (dirfile);
 	      if (access (XSTRING (dirfile)->data, 0) < 0)
-		fprintf (stderr,
-			 "Warning: Lisp directory `%s' does not exist.\n",
-			 XSTRING (Fcar (path_tail))->data);
+		dir_warning ("Warning: Lisp directory `%s' does not exist.\n",
+			     XCONS (path_tail)->car);
 	    }
 	}
     }
@@ -2457,6 +2456,21 @@ init_lread ()
   Vload_file_name = Qnil;
 
   load_descriptor_list = Qnil;
+}
+
+/* Print a warning, using format string FORMAT, that directory DIRNAME
+   does not exist.  Print it on stderr and put it in *Message*.  */
+
+dir_warning (format, dirname)
+     char *format;
+     Lisp_Object dirname;
+{
+  char *buffer
+    = (char *) alloca (XSTRING (dirname)->size + strlen (format) + 5);
+
+  fprintf (stderr, format, XSTRING (dirname)->data);
+  sprintf (buffer, format, XSTRING (dirname)->data);
+  message_dolog (buffer, strlen (buffer), 0);
 }
 
 void
