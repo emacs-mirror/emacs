@@ -4,7 +4,7 @@
 @c   Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/tips
-@node Tips, GNU Emacs Internals, Antinews, Top
+@node Tips, GNU Emacs Internals, Copying, Top
 @appendix Tips and Conventions
 @cindex tips
 @cindex standards of coding style

@@ -1,3 +1,9 @@
+2000-05-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* progmodes/sh-script.el (sh-ancestor-alist): Add `bash2'.
+
+	* files.el (interpreter-mode-alist): Add `bash2'.
+
 2000-05-22  Dave Love  <fx@gnu.org>
 
 	* loadhist.el (feature-symbols, file-provides, file-requires): Use
