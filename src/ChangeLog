@@ -1,5 +1,17 @@
 2000-12-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (echo_char): If C is an integer, always call
+	push_key_description.  Former code could signal an invalid
+	character error.
+
+	* keymap.c (push_key_description): Add parameter FORCE_MULTIBYTE.
+	If set, print multibyte text.
+	(Fsingle_key_description): Call push_key_description with
+	FORCE_MULTIBYTE set.
+	(describe_buffer_bindings): Likewise.
+
+	* lisp.h (push_key_description): Add prototype.
+
 	* xdisp.c (echo_area_display): Bind redisplay-dont-pause to t
 	around the call to redisplay_internal.
 
