@@ -3263,8 +3263,8 @@ base64_decode_1 (from, to, length, multibyte, nchars_return)
       value |= base64_char_to_value[c] << 12;
 
       c = (unsigned char) (value >> 16);
-      if (multibyte)
-	e += CHAR_STRING (c, e);
+      if (multibyte && c >= 128)
+	e += BYTE8_STRING (c, e);
       else
 	*e++ = c;
       nchars++;
@@ -3287,8 +3287,8 @@ base64_decode_1 (from, to, length, multibyte, nchars_return)
       value |= base64_char_to_value[c] << 6;
 
       c = (unsigned char) (0xff & value >> 8);
-      if (multibyte)
-	e += CHAR_STRING (c, e);
+      if (multibyte && c >= 128)
+	e += BYTE8_STRING (c, e);
       else
 	*e++ = c;
       nchars++;
@@ -3305,8 +3305,8 @@ base64_decode_1 (from, to, length, multibyte, nchars_return)
       value |= base64_char_to_value[c];
 
       c = (unsigned char) (0xff & value);
-      if (multibyte)
-	e += CHAR_STRING (c, e);
+      if (multibyte && c >= 128)
+	e += BYTE8_STRING (c, e);
       else
 	*e++ = c;
       nchars++;
