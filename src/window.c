@@ -2231,9 +2231,11 @@ and put SIZE columns in the first of the pair.")
 
   if (NILP (horflag))
     {
-      if (size < window_min_height
-	  || size + window_min_height > XFASTINT (o->height))
-	args_out_of_range_3 (window, chsize, horflag);
+      if (size < window_min_height)
+	error ("Window height %d too small (after splitting)", size);
+      if (size + window_min_height > XFASTINT (o->height))
+	error ("Window height %d too small (after splitting)", 
+	       XFASTINT (o->height) - size);
       if (NILP (o->parent)
 	  || NILP (XWINDOW (o->parent)->vchild))
 	{
@@ -2244,9 +2246,11 @@ and put SIZE columns in the first of the pair.")
     }
   else
     {
-      if (size < window_min_width
-	  || size + window_min_width > XFASTINT (o->width))
-	args_out_of_range_3 (window, chsize, horflag);
+      if (size < window_min_width)
+	error ("Window width %d too small (after splitting)", size);
+      if (size + window_min_width > XFASTINT (o->width))
+	error ("Window width %d too small (after splitting)", 
+	       XFASTINT (o->width) - size);
       if (NILP (o->parent)
 	  || NILP (XWINDOW (o->parent)->hchild))
 	{
