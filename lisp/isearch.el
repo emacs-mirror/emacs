@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1995/03/16 23:31:39 $|$Revision: 1.84 $
+;; |$Date: 1995/03/18 18:10:21 $|$Revision: 1.85 $
 
 ;; This file is part of GNU Emacs.
 
@@ -588,24 +588,29 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 
   (if (and (> (length isearch-string) 0) (not nopush))
       ;; Update the ring data.
-      (if isearch-regexp 
-	  (if (or (null regexp-search-ring)
-		  (not (string= isearch-string (car regexp-search-ring))))
-	      (progn
-		(setq regexp-search-ring
-		      (cons isearch-string regexp-search-ring))
-		(if (> (length regexp-search-ring) regexp-search-ring-max)
-		    (setcdr (nthcdr (1- search-ring-max) regexp-search-ring)
-			    nil))))
-	(if (or (null search-ring)
-		(not (string= isearch-string (car search-ring))))
-	    (progn
-	      (setq search-ring (cons isearch-string search-ring))
-	      (if (> (length search-ring) search-ring-max)
-		  (setcdr (nthcdr (1- search-ring-max) search-ring) nil))))))
+      (isearch-update-ring isearch-string isearch-regexp))
 
   (run-hooks 'isearch-mode-end-hook)
   (and (not edit) isearch-recursive-edit (exit-recursive-edit)))
+
+(defun isearch-update-ring (string &optional regexp)
+  "Add STRING to the beginning of the search ring.
+REGEXP says which ring to use."
+  (if regexp 
+      (if (or (null regexp-search-ring)
+	      (not (string= isearch-string (car regexp-search-ring))))
+	  (progn
+	    (setq regexp-search-ring
+		  (cons isearch-string regexp-search-ring))
+	    (if (> (length regexp-search-ring) regexp-search-ring-max)
+		(setcdr (nthcdr (1- search-ring-max) regexp-search-ring)
+			nil))))
+    (if (or (null search-ring)
+	    (not (string= isearch-string (car search-ring))))
+	(progn
+	  (setq search-ring (cons isearch-string search-ring))
+	  (if (> (length search-ring) search-ring-max)
+	      (setcdr (nthcdr (1- search-ring-max) search-ring) nil))))))
 
 ;;;=======================================================
 ;;; Switching buffers should first terminate isearch-mode.
