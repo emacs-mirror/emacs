@@ -1,7 +1,10 @@
 1999-11-07  Gerd Moellmann  <gerd@gnu.org>
 
-	* alloc.c, buffer.c, editfns.c: Remove conditional compilation on
-	USE_TEXT_PROPERTIES.
+	* xdisp.c (resize_mini_window): Fix computation of needed
+	mini-window height.
+
+	* alloc.c, buffer.c, editfns.c, xdisp.c: Remove conditional
+	compilation on USE_TEXT_PROPERTIES.
 
 	* Fbyte_code: Use block statements in cases and declare v1 and v2
 	locally there.  Rearrange case statements so that thos most
