@@ -6626,18 +6626,21 @@ note_mouse_highlight (f, x, y)
 
 	/* Look for a `help-echo' property.  */
 	{
-	  Lisp_Object help, object, position;
+	  Lisp_Object help, overlay;
 
 	  /* Check overlays first.  */
 	  help = Qnil;
 	  for (i = 0; i < noverlays && NILP (help); ++i)
-	    help = Foverlay_get (overlay_vec[i], Qhelp_echo);
+	    {
+	      overlay = overlay_vec[i];
+	      help = Foverlay_get (overlay, Qhelp_echo);
+	    }
 
 	  if (!NILP (help))
 	    {
 	      help_echo = help;
 	      help_echo_window = window;
-	      help_echo_object = w->buffer;
+	      help_echo_object = overlay;
 	      help_echo_pos = pos;
 	    }
 	  else
