@@ -3,7 +3,7 @@
 	* Version 20.3 released.
 
 	* callproc.c (Fcall_process): Use malloc for decoding_buf.
-	
+
 	* s/freebsd.h (LD_SWITCH_SYSTEM): Delete -dp.
 
 	* s/ms-w32.h (SYSTEM_PURESIZE_EXTRA): Increased.
@@ -25,8 +25,7 @@
 	* ccl.c (CCL_READ_CHAR): If eof is encounterd while processing the
 	last block, don't just finish but processes eol block of the
 	current CCL program.
-	(ccl_driver): Add a new jump label ccl_repeat for the above
-	change.
+	(ccl_driver): Add a new jump label ccl_repeat for the above change.
 
 	* coding.c (ccl_coding_driver): Setup ccl->last_block properly.
 	(setup_coding_system): Correctly setup `valid_codes' member.

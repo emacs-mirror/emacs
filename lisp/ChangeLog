@@ -5,25 +5,23 @@
 
 2001-06-08  Carsten Dominik  <dominik@strw.leidenuniv.nl>
 
-	* textmodes/reftex-ref.el (reftex-select-label-help): Added "z"
+	* textmodes/reftex-ref.el (reftex-select-label-help): Add "z"
 	key description.
 
 	* textmodes/reftex-sel.el (reftex-select-jump): New command.
 
-	* textmodes/reftex-toc.el (reftex-toc-help): Added "z" key
-	description.
+	* textmodes/reftex-toc.el (reftex-toc-help): Add "z" key description.
 	(reftex-toc-jump): New command.
 
 	* textmodes/reftex-cite.el (reftex-parse-bibitem): Regexp changed
 	to parse international characters as well.
 
-	* textmodes/reftex.el: Added autoloads for `reftex-varioref-vref',
+	* textmodes/reftex.el: Add autoloads for `reftex-varioref-vref',
 	`reftex-fancyref-fref', `reftex-fancyref-Fref'.
 
-	* textmodes/reftex-vars.el: Protected single backslash in many
-	docstrings.
-	
-	* textmodes/reftex-dcr.el (reftex-view-crossref): added SPACE and
+	* textmodes/reftex-vars.el: Protect single backslash in docstrings.
+
+	* textmodes/reftex-dcr.el (reftex-view-crossref): Add SPACE and
 	TAB to the key separators.
 
 2001-06-07  Eli Zaretskii  <eliz@is.elta.co.il>

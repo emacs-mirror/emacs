@@ -8299,24 +8299,19 @@
 
 1998-11-13  Carsten Dominik  <cd@delysid.gnu.org>
 
-	* textmodes/reftex.el: (reftex-finding-files): Group documentation
-	fixed.
-	(reftex-toc-toggle-file-boundary,
-	reftex-toc-toggle-labels,
-	reftex-toc-toggle-context,reftex-find-start-point): New functions.
-	(reftex-toc-include-labels, reftex-toc-include-context,
-	reftex-toc-include-file-boundaries,
-	reftex-toc-keep-other-windows): New options.
+	* textmodes/reftex.el: (reftex-finding-files): Group documentation fixed.
+	(reftex-toc-toggle-file-boundary, reftex-toc-toggle-labels)
+	(reftex-toc-toggle-context,reftex-find-start-point): New functions.
+	(reftex-toc-include-labels, reftex-toc-include-context)
+	(reftex-toc-include-file-boundaries, reftex-toc-keep-other-windows):
+	New options.
 	(reftex-use-text-after-label-as-context): Option removed.
-	(reftex-extract-bib-entries): Protect use in non-latex
-	buffers.
-	(reftex-toc-visit-location): Renamed from
-	`reftex-toc-visit-line'.
+	(reftex-extract-bib-entries): Protect use in non-latex buffers.
+	(reftex-toc-visit-location): Renamed from `reftex-toc-visit-line'.
 	(reftex-latin1-to-ascii): Works now with and without Mule.
 	(reftex-truncate): Removed special stuff for Emacs 20.2.
 	(reftex-get-offset): Made more general.
-	(reftex-show-label-location): Renamed from
-	`reftex-select-label-callback'.
+	(reftex-show-label-location): Renamed from `reftex-select-label-callback'.
 	(reftex-pop-to-label): Function removed (using
 	`reftex-show-label-location' instead.
 	(reftex-insert-docstruct): Renamed from
@@ -8324,8 +8319,7 @@
 	(reftex-toc): Now uses `reftex-insert-docstruct' and
 	`reftex-find-start-point'.
 	(reftex-select-item): Use `reftex-find-start-point'.
-	(reftex-toc-visit-line): Can display labels and file
-	boundaries.
+	(reftex-toc-visit-line): Can display labels and file boundaries.
 	(reftex-TeX-master-file): `(TeX-master-file)' protected.
 
 1998-11-12  Sam Steingold  <sds@goems.com>
@@ -8337,7 +8331,7 @@
 
 	* loadup.el (buffer-undo-list): For ms-dos, use fns.el without the
 	version string.
-	* loadhist.el (symbol-file): Likewise
+	* loadhist.el (symbol-file): Likewise.
 
 1998-11-11  Richard Sharman  <Richard_Sharman@Mitel.COM>
 
@@ -9627,8 +9621,8 @@
 
 	* textmodes/reftex.el (reftex-view-crossref): Split up into
 	several functions.  No longer moves to find a macro.
-	(reftex-view-cr-cite, reftex-view-cr-ref,
-	reftex-end-of-bib-entry): New functions.
+	(reftex-view-cr-cite, reftex-view-cr-ref, reftex-end-of-bib-entry):
+	New functions.
 	(reftex-auto-view-crossref): New value `window' allowed.
 	(reftex-view-crossref-when-idle): Process new `window' option in
 	(reftex-translate-to-ascii-function): New default.
@@ -9638,7 +9632,7 @@
 	(reftex-find-tex-file, reftex-find-bib-file): Fixed bug with
 	absolute path names.
 	(reftex-TeX-master-file): Changed sequence of file checks.
-	(reftex-do-citation): bibview cache only with RefTeX mode on.
+	(reftex-do-citation): Bibview cache only with RefTeX mode on.
 
 1998-09-06  Richard Stallman  <rms@gnu.org>
 
@@ -9917,10 +9911,9 @@
 
 	* ps-print.el: Multi-byte buffer handling.
 	(ps-print-version): New version number (4.0) and doc fix.
-	(ps-color-device, ps-face-bold-p, ps-face-italic-p): Conditional
-	compilation for GNU Emacs and emacsens.
-	(ps-generate-postscript-with-faces): Force invisible text to be
-	visible.
+	(ps-color-device, ps-face-bold-p, ps-face-italic-p):
+	Conditional compilation for GNU Emacs and emacsens.
+	(ps-generate-postscript-with-faces): Force invisible text to be visible.
 	(dos-ps-printer): New var to avoid compilation gripes.
 
 1998-08-24  Kenichi Handa  <handa@etl.go.jp>
@@ -9940,8 +9933,7 @@
 	(ps-mule-encode-7bit, ps-mule-encode-8bit): Modified for 20.2.
 	(ccl-encode-ethio-unicode, ps-mule-encode-ethiopic): Likewise.
 	(ps-mule-find-wrappoint): Likewise.
-	(ps-mule-generate-font): Change `X' to `x' in format
-	control-string.
+	(ps-mule-generate-font): Change `X' to `x' in format control-string.
 	(ps-generate): Call ps-mule-begin before calling ps-begin-job.
 	(ps-mule-cmpchar-prologue): Delete unnecessary `gsave' and
 	`restore' form procedures `BC' and `EC'.
@@ -9951,15 +9943,15 @@
 	* ps-print.el (ps-print-prologue-1): Handle the case that FontBBox
 	is an executable procedure.  Make LineThickness, Xshadow, and
 	Yshadow relative to FontHeight.  Set SpaceWidth in BeginDoc.
-	(ps-mule-font-info-database, ps-mule-font-info-database-ps,
-	ps-mule-font-info-database-bdf): New vars.
+	(ps-mule-font-info-database, ps-mule-font-info-database-ps)
+	(ps-mule-font-info-database-bdf): New vars.
 	(ps-mule-encode-7bit, ps-mule-encode-8bit): New funs.
 	(ccl-encode-ethio-unicode): New CCL program.
 	(ps-mule-encode-ethiopic): New fun.
 	(ps-mule-current-charset): New var.
-	(ps-mule-get-font-spec, ps-mule-font-spec-src,
-	ps-mule-font-spec-name, ps-mule-font-spec-encoding,
-	ps-mule-font-spec-bytes, ps-mule-printable-p): New funs.
+	(ps-mule-get-font-spec, ps-mule-font-spec-src)
+	(ps-mule-font-spec-name, ps-mule-font-spec-encoding)
+	(ps-mule-font-spec-bytes, ps-mule-printable-p): New funs.
 	(ps-mule-external-libraries): New var.
 	(ps-mule-init-external-library): New fun.
 	(ps-mule-font-cache): New var.
