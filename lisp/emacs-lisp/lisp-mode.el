@@ -1,6 +1,6 @@
 ;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands.
 
-;; Copyright (C) 1985, 1986, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1999, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, languages
@@ -294,6 +294,8 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
   "Major mode for typing and evaluating Lisp forms.
 Like Lisp mode except that \\[eval-print-last-sexp] evals the Lisp expression
 before point, and prints its value into the buffer, advancing point.
+Note that printing is controled by `eval-expression-print-length'
+and `eval-expression-print-level'.
 
 Commands:
 Delete converts tabs to spaces as it moves back.
