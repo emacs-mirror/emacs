@@ -2802,7 +2802,7 @@ encode_eol (coding, source, destination, src_bytes, dst_bytes)
     }
   else
     {
-      if (src_bytes <= dst_bytes)
+      if (!dst_bytes || src_bytes <= dst_bytes)
 	{
 	  safe_bcopy (src, dst, src_bytes);
 	  src_base = src_end;
@@ -2834,6 +2834,7 @@ encode_eol (coding, source, destination, src_bytes, dst_bytes)
 
   coding->consumed = src_base - source;
   coding->produced = dst - destination;
+  coding->produced_char = coding->produced;
 }
 
 
