@@ -270,10 +270,9 @@ coding systems ordered by priority."
 	      (coding-category-list coding-category-list)
 	      ,@(mapcar (function (lambda (x) (list x x)))
 			coding-category-list))
-	 (mapcar (function (lambda (x) (set (car x) (cdr x))))
-		 prio-list)
-	 (set-coding-priority (mapcar (function (lambda (x) (car x)))
-				      prio-list))
+	 (mapc (function (lambda (x) (set (car x) (cdr x))))
+	       prio-list)
+	 (set-coding-priority (mapcar #'car prio-list))
 	 (detect-coding-region ,from ,to))
      ;; We must restore the internal database.
      (set-coding-priority coding-category-list)
