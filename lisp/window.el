@@ -1,6 +1,7 @@
 ;;; window.el --- GNU Emacs window commands aside from those written in C.
 
-;; Copyright (C) 1985, 1989, 1992, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1989, 1992, 1993, 1994, 2000
+;;  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -258,6 +259,42 @@ to the window's right, if any.  No arg means split equally."
                                   nil
                                   window))))))
 
+(defun count-screen-lines (&optional beg end count-final-newline window)
+  "Return the number of screen lines in the region.
+The number of screen lines may be different from the number of actual lines,
+due to line breaking, display table, etc.
+
+Optional arguments BEG and END default to `point-min' and `point-max'
+respectively.
+
+If region ends with a newline, ignore it unless optinal third argument
+COUNT-FINAL-NEWLINE is non-nil.
+
+The optional fourth argument WINDOW specifies the window used for obtaining
+parameters such as width, horizontal scrolling, and so on. The default is
+to use the selected window's parameters.
+
+Like `vertical-motion', `count-screen-lines' always uses the current buffer,
+regardless of which buffer is displayed in WINDOW. This makes possible to use
+`count-screen-lines' in any buffer, whether or not it is currently displayed
+in some window."
+  (unless beg
+    (setq beg (point-min)))
+  (unless end
+    (setq end (point-max)))
+  (if (= beg end)
+      0
+    (save-excursion
+      (save-restriction
+        (widen)
+        (narrow-to-region (min beg end)
+                          (if (and (not count-final-newline)
+                                   (= ?\n (char-before (max beg end))))
+                              (1- (max beg end))
+                            (max beg end)))
+        (goto-char (point-min))
+        (1+ (vertical-motion (buffer-size) window))))))
+
 (defun shrink-window-if-larger-than-buffer (&optional window)
   "Shrink the WINDOW to be as small as possible to display its contents.
 Do not shrink to less than `window-min-height' lines.
@@ -280,7 +317,10 @@ or if the window is the only window of its frame."
                (or (not mini)
                    (< (nth 3 edges) (nth 1 (window-edges mini)))
                    (> (nth 1 edges) (cdr (assq 'menu-bar-lines params)))))
-          (let ((text-height (window-buffer-height window))
+          ;; `count-screen-lines' always works on the current buffer, so
+          ;; make sure it is the buffer displayed by WINDOW.
+          (let ((text-height (with-current-buffer (window-buffer window)
+                               (count-screen-lines)))
                 (window-height (window-height)))
 	    ;; Don't try to redisplay with the cursor at the end
 	    ;; on its own line--that would force a scroll and spoil things.
