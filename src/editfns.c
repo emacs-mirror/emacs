@@ -2447,6 +2447,8 @@ Use %% to put a single % into the output.")
 	if (format - this_format_start + 1 > longest_format)
 	  longest_format = format - this_format_start + 1;
 
+	if (format == end)
+	  error ("Format string ends in middle of format specifier");
 	if (*format == '%')
 	  format++;
 	else if (++n >= nargs)
@@ -2478,7 +2480,7 @@ Use %% to put a single % into the output.")
 	  {
 	  string:
 	    if (*format != 's' && *format != 'S')
-	      error ("format specifier doesn't match argument type");
+	      error ("Format specifier doesn't match argument type");
 	    thissize = CONVERTED_BYTE_SIZE (multibyte, args[n]);
 	  }
 	/* Would get MPV otherwise, since Lisp_Int's `point' to low memory.  */
