@@ -452,6 +452,10 @@ struct frame
      Clear the frame in clear_garbaged_frames if set.  */
   unsigned resized_p : 1;
 
+  /* Set to non-zero in when we want for force a flush_display in
+     update_frame, usually after resizing the frame.  */
+  unsigned force_flush_display_p : 1;
+
   /* Set to non-zero if the default face for the frame has been
      realized.  Reset to zero whenever the default face changes.
      Used to see the difference between a font change and face change.  */
