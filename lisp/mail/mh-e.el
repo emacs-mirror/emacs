@@ -1,13 +1,13 @@
 ;;; mh-e.el --- GNU Emacs interface to the MH mail system
 
-;;; Copyright 1985,86,87,88,90,92,93 Free Software Foundation
+;;; Copyright 1985,86,87,88,90,92,93,94 Free Software Foundation, Inc.
 
-(defconst mh-e-time-stamp "Time-stamp: <94/03/14 18:34:22 gildea>")
-(defconst mh-e-version "4.0"
+(defconst mh-e-time-stamp "Time-stamp: <94/04/13 11:30:48 gildea>")
+(defconst mh-e-version "4.1"
   "Version numbers of this version of mh-e.")
 
 ;; Maintainer: Stephen Gildea <gildea@lcs.mit.edu>
-;; Version: 4.0
+;; Version: 4.1
 ;; Keywords: mail
 
 ;; mh-e is free software; you can redistribute it and/or modify
@@ -52,7 +52,7 @@
 ;;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;;; Modified by Stephen Gildea 1988.  gildea@lcs.mit.edu
-(defconst mh-e-RCS-id "$Header: mh-e.el,v 3.14 94/03/14 18:34:49 gildea Exp $")
+(defconst mh-e-RCS-id "$Header: mh-e.el,v 3.15 94/04/13 11:36:48 gildea Exp $")
 
 ;;; Code:
 
@@ -60,31 +60,17 @@
 (require 'mh-utils)
 
 
-;;; Site customization:
-
-;;; Set for local environment:
-;;; mh-progs and mh-lib used to be set in paths.el, which tried to
-;;; figure out at build time which of several possible directories MH
-;;; was installed into.  But if you installed MH after building Emacs,
-;;; this would almost certainly be wrong, so now we do it at run time.
-
-(defvar mh-progs nil
-  "Directory containing MH commands, such as inc, repl, and rmm.")
-
-(defvar mh-lib nil
-  "Directory containing the MH library.
-This directory contains, among other things,
-the mhl program and the components file.")
+;;; Site customization (see also mh-utils.el):
 
 (defvar mh-redist-full-contents nil
   "Non-nil if the `dist' command needs whole letter for redistribution.
-This is the case when `send' is compiled with the BERK option.
+This is the case only when `send' is compiled with the BERK option.
 If MH will not allow you to redist a previously redist'd msg, set to nil.")
 
 ;;; Hooks:
 
 (defvar mh-folder-mode-hook nil
-  "Invoked in `mh-folder mode' on a new folder.")
+  "Invoked in MH-Folder mode on a new folder.")
 
 (defvar mh-inc-folder-hook nil
   "Invoked by \\<mh-folder-mode-map>`\\[mh-inc-folder]' after incorporating mail into a folder.")
@@ -93,7 +79,7 @@ If MH will not allow you to redist a previously redist'd msg, set to nil.")
   "Invoked after \\<mh-folder-mode-map>`\\[mh-show]' shows a message.")
 
 (defvar mh-show-mode-hook nil
-  "Invoked in mh-show mode in each message.")
+  "Invoked in MH-Show mode on each message.")
 
 (defvar mh-delete-msg-hook nil
   "Invoked after marking each message for deletion.")
@@ -305,10 +291,10 @@ provided, then prompt for the message sequence."
 
 (defun mh-header-display ()
   "Show the current message with all its headers.
-Displays headers that might have been suppressed by mh-clean-message-header,
-mhl-formfile, or the fallback behavior of scrolling uninteresting headers
-off the top of the window.  Type \"\\[mh-show]\" to show the message
-normally again."
+Displays headers that might have been suppressed by setting the
+variables `mh-clean-message-header' or `mhl-formfile', or by the fallback
+behavior of scrolling uninteresting headers off the top of the window.
+Type \"\\[mh-show]\" to show the message normally again."
   (interactive)
   (and (not mh-showing-with-headers)
        (or mhl-formfile mh-clean-message-header)
@@ -1306,7 +1292,11 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
 (autoload 'mh-undo-folder "mh-funcs"
   "Undo all commands in current folder." t)
 (autoload 'mh-store-msg "mh-funcs"
-  "Store the file(s) contained in the current message." t)
+  "Store the file(s) contained in the current message into DIRECTORY.
+The message can contain a shar file or uuencoded file." t)
+(autoload 'mh-store-buffer "mh-funcs"
+  "Store the file(s) contained in the current buffer into DIRECTORY.
+The buffer can contain a shar file or uuencoded file." t)
 
 
 ;;; mh-pick
