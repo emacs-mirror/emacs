@@ -1,3 +1,10 @@
+2001-08-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* keymap.c (access_keymap): If a binding of the form (GENERIC-CHAR
+	. BINDING) exists, where GENERIC-CHAR is the generic character of
+	the charset of IDX, return BINDING unless there exists a binding
+	for IDX itself.
+
 2001-08-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* xrdb.c (SYSV): Don't define on Solaris 2.
