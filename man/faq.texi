@@ -2669,8 +2669,7 @@ following two lines to your @file{.emacs} file:
 @end lisp
 
 @node Escape sequences in shell output, , Filling paragraphs with a single space, Common requests
-@section Why do I get these strange escape sequences when I run
-@code{ls} from the Shell mode?
+@section Why these strange escape sequences from @code{ls} from the Shell mode?
 @cindex Escape sequences in @code{ls} output
 @cindex @code{ls} in Shell mode
 
