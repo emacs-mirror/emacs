@@ -1,3 +1,8 @@
+2001-07-30  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-checkout-hook): New hook.
+	(vc-checkout): Run it.
+
 2001-07-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* progmodes/make-mode.el (makefile-macroassign-regex): Recognize
