@@ -1,3 +1,12 @@
+2005-02-27  Arne J,Ax(Brgensen  <arne@arnested.dk>
+
+	* mm-decode.el (mm-dissect-buffer): Pass the from field on to
+	`mm-dissect-multipart' and receive the from field as an (optional)
+	argument from `mm-dissect-multipart'.
+	(mm-dissect-multipart): Receive the from field as an argument and
+	pass it on when we call `mm-dissect-buffer' on MIME parts. Fixes
+	verification/decryption of signed/encrypted MIME parts.
+
 2005-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-sum.el (gnus-summary-exit): Move point after displaying the
