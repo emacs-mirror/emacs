@@ -126,9 +126,6 @@ static void test(void) {
   c = conc(string_ch("Hello there"), string_ch(" folks!"));
  }
 
- printf("%s\n", ch_string(a));
- printf("%s\n", ch_string(c));
-
  mps_ap_destroy(ap);
  comment("Destroyed ap.");
 

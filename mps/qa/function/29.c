@@ -127,9 +127,6 @@ static void test(void) {
   z = alloclo(ap, 0x4000);
  }
 
- printf("%s\n", ch_string(a));
- printf("%s\n", ch_string(c));
-
  mps_ap_destroy(ap);
  comment("Destroyed ap.");
 
