@@ -157,9 +157,10 @@ We suggest you avoid using use this command unless you know what you
 are doing.  If you use it by mistake, and the buffer is now displayed
 wrong, use this command again to toggle back to the right mode."
   (interactive "P")
-  (setq enable-multibyte-characters
-	(if (null arg) (null enable-multibyte-characters)
-	  (> (prefix-numeric-value arg) 0)))
+  (let ((new-flag
+	 (if (null arg) (null enable-multibyte-characters)
+	   (> (prefix-numeric-value arg) 0))))
+    (set-buffer-multibyte new-flag))
   (force-mode-line-update))
 
 (defun view-hello-file ()
@@ -224,7 +225,7 @@ This also sets the following values:
 		 base coding-system))
     (set-default-coding-systems (or base coding-system))))
 
-(defun list-subset-p (list1 list2)
+(defun find-safe-coding-system-list-subset-p (list1 list2)
   "Return non-nil if all elements in LIST1 are included in LIST2.
 Comparison done with EQ."
   (catch 'tag
@@ -261,7 +262,8 @@ and TO is ignored."
 	  (if (and (eq coding (coding-system-base coding))
 		   (setq safe (coding-system-get coding 'safe-charsets))
 		   (or (eq safe t)
-		       (list-subset-p charset-list safe)))
+		       (find-safe-coding-system-list-subset-p
+			charset-list safe)))
 	      ;; We put the higher priority to coding systems included
 	      ;; in PREFERED-CODINGS, and within them, put the higher
 	      ;; priority to coding systems which support smaller
