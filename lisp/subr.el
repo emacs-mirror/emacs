@@ -1483,19 +1483,6 @@ The value returned is the value of the last form in BODY."
 	      (cons 'progn body)
 	      '(set-match-data save-match-data-internal))))
 
-(defun substring-no-properties (string &optional from to)
-  "Return a substring of STRING, with no text properties.
-The substring starts at index FROM and ends before TO.
-If FROM is nil or omitted, it defaults to the beginning of STRING.
-If TO is nil or omitted, it defaults to the end of STRING.
-If FROM or TO is negative, it counts from the end.
-
-Simply (substring-no-properties STRING) copies a string without
-its properties."
-  (let ((str (substring string (or from 0) to)))
-    (set-text-properties 0 (length str) nil str)
-    str))
-
 (defun match-string (num &optional string)
   "Return string of text matched by last search.
 NUM specifies which parenthesized expression in the last regexp.
