@@ -767,7 +767,7 @@ x_clear_frame_selections (f)
   Lisp_Object frame;
   Lisp_Object rest;
 
-  XSET (frame, Lisp_Frame, f);
+  XSETFRAME (frame, f);
 
   /* Otherwise, we're really honest and truly being told to drop it.
      Don't use Fdelq as that may QUIT;.  */
@@ -897,7 +897,7 @@ wait_for_property_change (location)
   int count = specpdl_ptr - specpdl;
   Lisp_Object tem;
 
-  XSET (tem, Lisp_Cons, location);
+  XSETCONS (tem, location);
 
   /* Make sure to do unexpect_property_change if we quit or err.  */
   record_unwind_protect (wait_for_property_change_unwind, tem);
