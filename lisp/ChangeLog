@@ -1,3 +1,8 @@
+2001-07-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* progmodes/compile.el (compile-internal): If EMACS is already
+	defined in the environment, don't override its value.
+
 2001-07-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* play/fortune.el: Undo change of 2001-07-13.
