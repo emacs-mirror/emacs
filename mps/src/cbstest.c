@@ -1,6 +1,6 @@
 /*  impl.c.cbstest: COALESCING BLOCK STRUCTURE TEST
  *
- *  $HopeName: MMsrc!cbstest.c(trunk.2) $
+ *  $HopeName: MMsrc!cbstest.c(trunk.3) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  */
 
@@ -15,7 +15,7 @@
 #include "mpsaan.h" /* ANSI arena for BTCreate and BTDestroy */
 #include "testlib.h"
 
-SRCID(cbstest, "$HopeName$");
+SRCID(cbstest, "$HopeName: MMsrc!cbstest.c(trunk.3) $");
 
 #define ArraySize ((Size)123456)
 #define NOperations ((Size)125000)
@@ -372,6 +372,8 @@ static void deallocate(CBS cbs, Addr block, BT allocTable,
   Res res;
   Index ib, il;
   Bool isAllocated;
+  Addr outerBase = base, outerLimit = limit; /* interval containing [ib, il) */
+  Addr freeBase, freeLimit;                  /* interval returned by CBS */
 
   ib = IndexOfAddr(block, base);
   il = IndexOfAddr(block, limit);
@@ -386,7 +388,6 @@ static void deallocate(CBS cbs, Addr block, BT allocTable,
   NDeallocateTried++;
 
   if(isAllocated) {
-    Addr outerBase, outerLimit;    /* interval containing [ib, il) */
     Size left, right, total;       /* Sizes of block and two fragments */
 
     /* Find the free blocks adjacent to the allocated block */
@@ -436,7 +437,7 @@ static void deallocate(CBS cbs, Addr block, BT allocTable,
     }
   }
 
-  res = CBSInsert(cbs, base, limit);
+  res = CBSInsertReturningRange(&freeBase, &freeLimit, cbs, base, limit);
 
   if(!isAllocated) { 
     die_expect((mps_res_t)res, MPS_RES_FAIL,
@@ -448,6 +449,8 @@ static void deallocate(CBS cbs, Addr block, BT allocTable,
     NDeallocateSucceeded++;
     BTResRange(allocTable, ib, il);
     checkExpectations();
+    AVER(freeBase == outerBase);
+    AVER(freeLimit == outerLimit);
   }
 }
 
