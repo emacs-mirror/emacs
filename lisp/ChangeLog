@@ -1,3 +1,11 @@
+2001-10-06  Miles Bader  <miles@gnu.org>
+
+	* rfn-eshadow.el (rfn-eshadow-update-overlay): Use
+	`minibuffer-prompt-end'.
+
+	* simple.el (previous-matching-history-element): Fix misplaced
+	parentheses.
+
 2001-10-05  Miles Bader  <miles@gnu.org>
 
 	* rfn-eshadow.el: New file.
