@@ -463,12 +463,12 @@ remove_properties (plist, list, i, object)
     tail1 = list, use_plist = 0;
 
   /* Go through each element of LIST or PLIST.  */
-  while (! NILP (tail1))
+  while (CONSP (tail1))
     {
       sym = XCAR (tail1);
 
       /* First, remove the symbol if it's at the head of the list */
-      while (! NILP (current_plist) && EQ (sym, XCAR (current_plist)))
+      while (CONSP (current_plist) && EQ (sym, XCAR (current_plist)))
 	{
 	  if (BUFFERP (object))
 	    record_property_change (i->position, LENGTH (i),
@@ -485,7 +485,7 @@ remove_properties (plist, list, i, object)
 	{
 	  register Lisp_Object this;
 	  this = XCDR (XCDR (tail2));
-	  if (EQ (sym, XCAR (this)))
+	  if (CONSP (this) && EQ (sym, XCAR (this)))
 	    {
 	      if (BUFFERP (object))
 		record_property_change (i->position, LENGTH (i),
