@@ -1151,9 +1151,8 @@ if you wish to pass an empty string as the argument."
 		nil
 	      (expand-file-name filename))))
   (or (equal filename buffer-file-name)
-      (null filename)
       (progn
-	(lock-buffer filename)
+	(and filename (lock-buffer filename))
 	(unlock-buffer)))
   (setq buffer-file-name filename)
   (if filename				; make buffer name reflect filename.
