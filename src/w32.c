@@ -1560,10 +1560,11 @@ sys_rename (const char * oldname, const char * newname)
 	     seems to make the second rename work properly.  */
 	  sprintf (p, ".%s.%u", o, i);
 	  i++;
+	  result = rename (oldname, temp);
 	}
       /* This loop must surely terminate!  */
-      while (rename (oldname, temp) < 0 && errno == EEXIST);
-      if (errno != EEXIST)
+      while (result < 0 && errno == EEXIST);
+      if (result < 0)
 	return -1;
     }
 
