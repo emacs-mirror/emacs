@@ -1,6 +1,6 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;;; Copyright (c) 1986, 1993, 1994 Free Software Foundation, Inc.
+;;; Copyright (c) 1986, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: bug-fortran-mode@erl.mit.edu
@@ -135,17 +135,17 @@ Normally $.")
 
 (defvar fortran-column-ruler-fixed
   "0   4 6  10        20        30        40        5\
-0        60        70\n\
-[   ]|{   |    |    |    |    |    |    |    |    \
-|    |    |    |    |}\n"
+\0        60        70\n\
+\[   ]|{   |    |    |    |    |    |    |    |    \
+\|    |    |    |    |}\n"
   "*String displayed above current line by \\[fortran-column-ruler].
 This variable used in fixed format mode.")
 
 (defvar fortran-column-ruler-tab
   "0       810        20        30        40        5\
-0        60        70\n\
-[   ]|  { |    |    |    |    |    |    |    |    \
-|    |    |    |    |}\n"
+\0        60        70\n\
+\[   ]|  { |    |    |    |    |    |    |    |    \
+\|    |    |    |    |}\n"
   "*String displayed above current line by \\[fortran-column-ruler].
 This variable used in TAB format mode.")
 
@@ -183,33 +183,57 @@ This variable used in TAB format mode.")
 ;; Comments are real pain in Fortran because there is no way to represent the
 ;; standard comment syntax in an Emacs syntax table (we can for VAX-style).
 ;; Therefore an unmatched quote in a standard comment will throw fontification
-;; off on the wrong track.  To make it clear(er) to the programmer what is
-;; happening, we could override string fontification when fontifying, by the
-;; keyword regexp, a standard comment.  But by default we turn off syntax
-;; fontification, and we don't put `!'  as a comment-in-any-column in the
-;; regexp keywords as it would be recognised inside a string.
+;; off on the wrong track.  So we do syntactic fontification with regexps.
+
+;; Regexps done by simon@gnu with help from Ulrik Dickow <dickow@nbi.dk> and
+;; probably others Si's forgotten about (sorry).
 
 (defconst fortran-font-lock-keywords-1
-  '(;; Fontify comments.
-;    ("^[Cc!*].*$" 0 font-lock-comment-face t)
-    ("^[Cc!*].*$" . font-lock-comment-face)
-    ;; Program, subroutine and function declarations, plus calls.
-    ("\\<\\(call\\|function\\|program\\|subroutine\\)\\>[ \t]*\\(\\sw+\\)?"
-     (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t)))
+  (let ((comment-chars "c!*"))
+    (list
+     ;;
+     ;; Fontify comments and strings.  We assume that strings cannot be quoted.
+     (cons (concat "^[" comment-chars "].*") 'font-lock-comment-face)
+     '(fortran-match-!-comment . font-lock-comment-face)
+     (list (concat "^[^" comment-chars "\t]" (make-string 71 ?.) "\\(.*\\)")
+           '(1 font-lock-comment-face))
+     '("'[^'\n]*'?" . font-lock-string-face)
+     ;;
+     ;; Program, subroutine and function declarations, plus calls.
+     (list (concat "\\<\\(block[ \t]*data\\|call\\|function\\|program\\|"
+                   "subroutine\\)\\>[ \t]*\\(\\sw+\\)?")
+           '(1 font-lock-keyword-face)
+           '(2 font-lock-function-name-face nil t))))
   "For consideration as a value of `fortran-font-lock-keywords'.
 This does fairly subdued highlighting.")
 
 (defconst fortran-font-lock-keywords-2
   (append fortran-font-lock-keywords-1
    (let ((type-types
-;	  ("integer" "logical" "real" "complex" "dimension" "double" "map"
-;	   "precision" "character" "parameter" "common" "save" "external"
-;	   "implicit" "intrinsic" "data" "equivalence" "structure" "union")
-	  (concat "c\\(haracter\\|om\\(mon\\|plex\\)\\)\\|"
-		  "d\\(ata\\|imension\\|ouble\\)\\|"
-		  "e\\(quivalence\\|xternal\\)\\|"
-		  "i\\(mplicit\\|nt\\(eger\\|rinsic\\)\\)\\|logical\\|map\\|"
-		  "p\\(arameter\\|recision\\)\\|re\\(al\\|cord\\)\\|"
+;     (make-regexp
+;      (let ((simple-types '("character" "byte" "integer" "logical"
+;			    "none" "real" "complex"
+;			    "double[ \t]*precision" "double[ \t]*complex"))
+;	    (structured-types '("structure" "union" "map"))
+;	    (other-types '("record" "dimension" "parameter" "common" "save"
+;			   "external" "intrinsic" "data" "equivalence")))
+;	(append
+;	 (mapcar (lambda (x) (concat "implicit[ \t]*" x)) simple-types)
+;	 simple-types
+;	 (mapcar (lambda (x) (concat "end[ \t]*" x)) structured-types)
+;	 structured-types
+;	 other-types)))
+	  (concat "byte\\|c\\(haracter\\|om\\(mon\\|plex\\)\\)\\|"
+                  "d\\(ata\\|imension\\|ouble"
+                  "[ \t]*\\(complex\\|precision\\)\\)\\|"
+                  "e\\(nd[ \t]*\\(map\\|structure\\|union\\)\\|"
+                  "quivalence\\|xternal\\)\\|"
+                  "i\\(mplicit[ \t]*\\(byte\\|"
+                  "c\\(haracter\\|omplex\\)\\|"
+                  "double[ \t]*\\(complex\\|precision\\)\\|"
+                  "integer\\|logical\\|none\\|real\\)\\|"
+                  "nt\\(eger\\|rinsic\\)\\)\\|"
+                  "logical\\|map\\|none\\|parameter\\|re\\(al\\|cord\\)\\|"
                   "s\\(ave\\|tructure\\)\\|union"))
 	 (fkeywords
 ;	  ("continue" "format" "end" "enddo" "if" "then" "else" "endif"
@@ -221,13 +245,13 @@ This does fairly subdued highlighting.")
 		  "re\\(ad\\|turn\\)\\|stop\\|then\\|w\\(hile\\|rite\\)"))
 	 (flogicals
 ;	  ("and" "or" "not" "lt" "le" "eq" "ge" "gt" "ne" "true" "false")
-          "and\\|eq\\|false\\|g[et]\\|l[et]\\|n\\(e\\|ot\\)\\|or\\|true"))
+	  "and\\|eq\\|false\\|g[et]\\|l[et]\\|n\\(e\\|ot\\)\\|or\\|true"))
      (list
       ;;
       ;; Fontify types and variable names (but not length specs or `/'s).
       (list (concat "\\<\\(" type-types "\\)\\>[0-9 \t/*]*\\(\\sw+\\)?")
 	    '(1 font-lock-type-face)
-	    '(11 font-lock-variable-name-face nil t))
+	    '(15 font-lock-variable-name-face nil t))
       ;;
       ;; Fontify all builtin keywords (except logical, do and goto; see below).
       (concat "\\<\\(" fkeywords "\\)\\>")
@@ -236,16 +260,34 @@ This does fairly subdued highlighting.")
       (concat "\\.\\(" flogicals "\\)\\.")
       ;;
       ;; Fontify do/goto keywords and targets, and goto tags.
-      (list "\\<\\(do\\|go[ \t]*to\\)\\>[ \t]*\\([0-9]+\\)?"
+      (list "\\<\\(do\\|go *to\\)\\>[ \t]*\\([0-9]+\\)?"
 	    '(1 font-lock-keyword-face)
 	    '(2 font-lock-reference-face nil t))
-      (cons "^[ \t]*\\([0-9]+\\)" 'font-lock-reference-face))))
+      (cons "^ *\\([0-9]+\\)" 'font-lock-reference-face))))
   "For consideration as a value of `fortran-font-lock-keywords'.
 This does a lot more highlighting.")
 
-(defvar fortran-font-lock-keywords (if font-lock-maximum-decoration
-					 fortran-font-lock-keywords-2
-				       fortran-font-lock-keywords-1)
+(defconst fortran-font-lock-keywords-3
+  (append fortran-font-lock-keywords-2
+   (list
+    ;;
+    ;; Fontify goto-like `err=label'/`end=label' in read/write statements.
+    (list ", *\\(e\\(nd\\|rr\\)\\)\\> *\\(= *\\([0-9]+\\)\\)?"
+          '(1 font-lock-keyword-face)
+          '(4 font-lock-reference-face nil t))
+    ;;
+    ;; Highlight a standard continuation character and in a TAB-formatted line.
+    '("^     \\([^ 0]\\)" 1 font-lock-string-face)
+    '("^\t\\([1-9]\\)" 1 font-lock-string-face)))
+  "For consideration as a value of `fortran-font-lock-keywords'.
+This does even more highlighting.")
+
+(defvar fortran-font-lock-keywords (cond ((null font-lock-maximum-decoration)
+					  fortran-font-lock-keywords-1)
+					 ((eq font-lock-maximum-decoration 2)
+					  fortran-font-lock-keywords-2)
+					 (t
+					  fortran-font-lock-keywords-3))
   "Additional expressions to highlight in Fortran mode.")
 
 (defvar fortran-mode-map () 
@@ -1248,10 +1290,9 @@ Otherwise return a nil."
 						   (point))))
 	    (beginning-of-line)
 	    (and (re-search-backward
-		  (concat
-		   "\\(^[ \t0-9]*end\\b[ \t]*[^ \t=(a-z]\\)\\|\\(^[ \t0-9]*do\
-[ \t]*0*"
-		   charnum "\\b\\)\\|\\(^[ \t]*0*" charnum "\\b\\)")
+		  (concat "\\(^[ \t0-9]*end\\b[ \t]*[^ \t=(a-z]\\)\\|"
+			  "\\(^[ \t0-9]*do[ \t]*0*" charnum "\\b\\)\\|"
+			  "\\(^[ \t]*0*" charnum "\\b\\)")
 		  nil t)
 		 (looking-at (concat "^[ \t0-9]*do[ \t]*0*" charnum))))))))
 
@@ -1263,25 +1304,41 @@ Return t if `comment-start-skip' found, nil if not."
 ;;; moves point even if comment-start-skip is inside a string-constant.
 ;;; Some code expects certain values for match-beginning and end
   (interactive)
-  (let ((save-match-beginning) (save-match-end))
-    (if (save-excursion 
+  (if (save-excursion
+	(re-search-forward comment-start-skip
+			   (save-excursion (end-of-line) (point)) t))
+      (let ((save-match-beginning (match-beginning 0))
+	    (save-match-end (match-end 0)))
+	(if (fortran-is-in-string-p (match-beginning 0))
+	    (save-excursion
+	      (goto-char save-match-end)
+	      (fortran-find-comment-start-skip)) ; recurse for rest of line
+	  (goto-char save-match-beginning)
 	  (re-search-forward comment-start-skip
-			     (save-excursion (end-of-line) (point)) t))
-	(progn
-	  (setq save-match-beginning (match-beginning 0))
-	  (setq save-match-end (match-end 0))
-	  (if (fortran-is-in-string-p (match-beginning 0))
-	      (progn
-		(save-excursion
-		  (goto-char save-match-end)
-		  (fortran-find-comment-start-skip)) ; recurse for rest of line
-		)
-	    (goto-char save-match-beginning)
-	    (re-search-forward comment-start-skip
-			       (save-excursion (end-of-line) (point)) t)
-	    (goto-char (match-end 0))
-	    t))
-      nil)))
+			     (save-excursion (end-of-line) (point)) t)
+	  (goto-char (match-end 0))
+	  t))
+    nil))
+
+;;;From: simon@gnu (Simon Marshall)
+;;; Find the next ! not in a string.
+(defun fortran-match-!-comment (limit)
+  (let (found)
+    (while (and (setq found (search-forward "!" limit t))
+                (fortran-is-in-string-p (point))))
+    (if (not found)
+	nil
+      ;; Cheaper than `looking-at' "!.*".
+      (store-match-data
+       (list (1- (point)) (progn (end-of-line) (min (point) limit))))
+      t)))
+
+;; The above function is about 10% faster than the below...
+;;(defun fortran-match-!-comment (limit)
+;;  (let (found)
+;;    (while (and (setq found (re-search-forward "!.*" limit t))
+;;                (fortran-is-in-string-p (match-beginning 0))))
+;;    found))
 
 ;;;From: ralf@up3aud1.gwdg.de (Ralf Fassel)
 ;;; Test if TAB format continuation lines work.
