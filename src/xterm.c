@@ -162,8 +162,8 @@ Lisp_Object invocation_name;
 
 Display *x_current_display;
 
-/* The cursor to use for vertical scrollbars on x_current_display.  */
-static Cursor x_vertical_scrollbar_cursor;
+/* The cursor to use for vertical scroll bars on x_current_display.  */
+static Cursor x_vertical_scroll_bar_cursor;
 
 /* Frame being updated by update_frame.  */
 /* This is set by XTupdate_begin and looked at by all the
@@ -663,9 +663,9 @@ XTclear_frame ()
 
   XClear (FRAME_X_WINDOW (f));
 
-  /* We have to clear the scrollbars, too.  If we have changed
+  /* We have to clear the scroll bars, too.  If we have changed
      colors or something like that, then they should be notified.  */
-  x_scrollbar_clear (f);
+  x_scroll_bar_clear (f);
 
 #ifndef HAVE_X11
   dumpborder (f, 0);
@@ -1141,7 +1141,7 @@ x_do_pending_expose ()
 	  int intborder;
 
 	  frame = XCONS (tail)->car;
-	  if (XTYPE (frame) != Lisp_Frame)
+	  if (XGCTYPE (frame) != Lisp_Frame)
 	    continue;
 	  f = XFRAME (frame);
 	  if (! FRAME_X_P (f))
@@ -1156,16 +1156,16 @@ x_do_pending_expose ()
 	  clear_cursor (f);
 	  XGetWindowInfo (FRAME_X_WINDOW (f), &windowinfo);
 	  temp_width = ((windowinfo.width - 2 * intborder
-			 - f->display.x->v_scrollbar_width)
+			 - f->display.x->v_scroll_bar_width)
 			/ FONT_WIDTH (f->display.x->font));
 	  temp_height = ((windowinfo.height- 2 * intborder
-			  - f->display.x->h_scrollbar_height)
+			  - f->display.x->h_scroll_bar_height)
 			 / FONT_HEIGHT (f->display.x->font));
 	  if (temp_width != f->width || temp_height != f->height)
 	    {
 	      change_frame_size (f, max (1, temp_height),
 				  max (1, temp_width), 0, 1);
-	      x_resize_scrollbars (f);
+	      x_resize_scroll_bars (f);
 	    }
 	  f->display.x->left_pos = windowinfo.x;
 	  f->display.x->top_pos = windowinfo.y;
@@ -1306,7 +1306,7 @@ XTframe_rehighlight ()
   if (x_focus_frame)
     {
       x_highlight_frame =
-	((XTYPE (FRAME_FOCUS_FRAME (x_focus_frame)) == Lisp_Frame)
+	((XGCTYPE (FRAME_FOCUS_FRAME (x_focus_frame)) == Lisp_Frame)
 	 ? XFRAME (FRAME_FOCUS_FRAME (x_focus_frame))
 	 : x_focus_frame);
       if (! FRAME_LIVE_P (x_highlight_frame))
@@ -1536,15 +1536,15 @@ construct_mouse_click (result, event, f)
 static FRAME_PTR last_mouse_frame;
 static XRectangle last_mouse_glyph;
 
-/* The scrollbar in which the last X motion event occurred.
+/* The scroll bar in which the last X motion event occurred.
 
-   If the last X motion event occured in a scrollbar, we set this
-   so XTmouse_position can know whether to report a scrollbar motion or
+   If the last X motion event occured in a scroll bar, we set this
+   so XTmouse_position can know whether to report a scroll bar motion or
    an ordinary motion.
 
-   If the last X motion event didn't occur in a scrollbar, we set this
+   If the last X motion event didn't occur in a scroll bar, we set this
    to Qnil, to tell XTmouse_position to return an ordinary motion event.  */
-static Lisp_Object last_mouse_scrollbar;
+static Lisp_Object last_mouse_scroll_bar;
 
 /* This is a hack.  We would really prefer that XTmouse_position would
    return the time associated with the position it returns, but there
@@ -1576,7 +1576,7 @@ note_mouse_movement (frame, event)
       || event->y >= last_mouse_glyph.y + last_mouse_glyph.height)
     {
       mouse_moved = 1;
-      last_mouse_scrollbar = Qnil;
+      last_mouse_scroll_bar = Qnil;
     }
   else
     {
@@ -1592,15 +1592,15 @@ note_mouse_movement (frame, event)
     }
 }
 
-static struct scrollbar *x_window_to_scrollbar ();
-static void x_scrollbar_report_motion ();
+static struct scroll_bar *x_window_to_scroll_bar ();
+static void x_scroll_bar_report_motion ();
 
 /* Return the current position of the mouse.
 
-   If the mouse movement started in a scrollbar, set *f, *bar_window,
-   and *part to the frame, window, and scrollbar part that the mouse
+   If the mouse movement started in a scroll bar, set *f, *bar_window,
+   and *part to the frame, window, and scroll bar part that the mouse
    is over.  Set *x and *y to the portion and whole of the mouse's
-   position on the scrollbar.
+   position on the scroll bar.
 
    If the mouse movement started elsewhere, set *f to the frame the
    mouse is on, *bar_window to nil, and *x and *y to the character cell
@@ -1618,14 +1618,14 @@ static void
 XTmouse_position (f, bar_window, part, x, y, time)
      FRAME_PTR *f;
      Lisp_Object *bar_window;
-     enum scrollbar_part *part;
+     enum scroll_bar_part *part;
      Lisp_Object *x, *y;
      unsigned long *time;
 {
   BLOCK_INPUT;
 
-  if (! NILP (last_mouse_scrollbar))
-    x_scrollbar_report_motion (f, bar_window, part, x, y, time);
+  if (! NILP (last_mouse_scroll_bar))
+    x_scroll_bar_report_motion (f, bar_window, part, x, y, time);
   else
     {
       Window root;
@@ -1635,7 +1635,7 @@ XTmouse_position (f, bar_window, part, x, y, time)
       int dummy;
 
       mouse_moved = 0;
-      last_mouse_scrollbar = Qnil;
+      last_mouse_scroll_bar = Qnil;
 
       /* Figure out which root window we're on.  */
       XQueryPointer (x_current_display,
@@ -1701,10 +1701,10 @@ XTmouse_position (f, bar_window, part, x, y, time)
 	/* Is win one of our frames?  */
 	*f = x_window_to_frame (win);
       
-	/* If not, is it one of our scrollbars?  */
+	/* If not, is it one of our scroll bars?  */
 	if (! *f)
 	  {
-	    struct scrollbar *bar = x_window_to_scrollbar (win);
+	    struct scroll_bar *bar = x_window_to_scroll_bar (win);
 
 	    if (bar)
 	      {
@@ -1735,49 +1735,55 @@ XTmouse_position (f, bar_window, part, x, y, time)
 #define XEvent XKeyPressedEvent
 #endif /* ! defined (HAVE_X11) */
 
-/* Scrollbar support.  */
+/* Scroll bar support.  */
 
-/* Given an X window ID, find the struct scrollbar which manages it.  */
-static struct scrollbar *
-x_window_to_scrollbar (window_id)
+/* Given an X window ID, find the struct scroll_bar which manages it.
+   This can be called in GC, so we have to make sure to strip off mark
+   bits.  */
+static struct scroll_bar *
+x_window_to_scroll_bar (window_id)
      Window window_id;
 {
   Lisp_Object tail, frame;
 
-  for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vframe_list;
+       XGCTYPE (tail) == Lisp_Cons;
+       tail = XCONS (tail)->cdr)
     {
       Lisp_Object frame = XCONS (tail)->car;
       Lisp_Object bar, condemned;
 
       /* All elements of Vframe_list should be frames.  */
-      if (XTYPE (frame) != Lisp_Frame)
+      if (XGCTYPE (frame) != Lisp_Frame)
 	abort ();
 
-      /* Scan this frame's scrollbar list for a scrollbar with the
+      /* Scan this frame's scroll bar list for a scroll bar with the
          right window ID.  */
-      condemned = FRAME_CONDEMNED_SCROLLBARS (XFRAME (frame));
-      for (bar = FRAME_SCROLLBARS (XFRAME (frame));
+      condemned = FRAME_CONDEMNED_SCROLL_BARS (XFRAME (frame));
+      for (bar = FRAME_SCROLL_BARS (XFRAME (frame));
 	   /* This trick allows us to search both the ordinary and
-              condemned scrollbar lists with one loop.  */
-	   ! NILP (bar) || (bar = condemned, condemned = Qnil, ! NILP (bar));
-	   bar = XSCROLLBAR(bar)->next)
-	if (SCROLLBAR_X_WINDOW (XSCROLLBAR (bar)) == window_id)
-	  return XSCROLLBAR (bar);
+              condemned scroll bar lists with one loop.  */
+	   ! GC_NILP (bar) || (bar = condemned,
+			       condemned = Qnil,
+			       ! GC_NILP (bar));
+	   bar = XSCROLL_BAR(bar)->next)
+	if (SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar)) == window_id)
+	  return XSCROLL_BAR (bar);
     }
 
   return 0;
 }
 
-/* Open a new X window to serve as a scrollbar, and return the
-   scrollbar vector for it.  */
-static struct scrollbar *
-x_scrollbar_create (window, top, left, width, height)
+/* Open a new X window to serve as a scroll bar, and return the
+   scroll bar vector for it.  */
+static struct scroll_bar *
+x_scroll_bar_create (window, top, left, width, height)
      struct window *window;
      int top, left, width, height;
 {
   FRAME_PTR frame = XFRAME (WINDOW_FRAME (window));
-  struct scrollbar *bar =
-    XSCROLLBAR (Fmake_vector (make_number (SCROLLBAR_VEC_SIZE), Qnil));
+  struct scroll_bar *bar =
+    XSCROLL_BAR (Fmake_vector (make_number (SCROLL_BAR_VEC_SIZE), Qnil));
 
   BLOCK_INPUT;
 
@@ -1789,15 +1795,15 @@ x_scrollbar_create (window, top, left, width, height)
     a.event_mask = (ButtonPressMask | ButtonReleaseMask
 		    | ButtonMotionMask | PointerMotionHintMask
 		    | ExposureMask);
-    a.cursor = x_vertical_scrollbar_cursor;
+    a.cursor = x_vertical_scroll_bar_cursor;
 
     mask = (CWBackPixel | CWEventMask | CWCursor);
 
-    SET_SCROLLBAR_X_WINDOW
+    SET_SCROLL_BAR_X_WINDOW
       (bar, 
        XCreateWindow (x_current_display, FRAME_X_WINDOW (frame),
 
-		      /* Position and size of scrollbar.  */
+		      /* Position and size of scroll bar.  */
 		      left, top, width, height,
 
 		      /* Border width, depth, class, and visual.  */
@@ -1817,13 +1823,13 @@ x_scrollbar_create (window, top, left, width, height)
   bar->dragging = Qnil;
 
   /* Add bar to its frame's list of scroll bars.  */
-  bar->next = FRAME_SCROLLBARS (frame);
+  bar->next = FRAME_SCROLL_BARS (frame);
   bar->prev = Qnil;
-  XSET (FRAME_SCROLLBARS (frame), Lisp_Vector, bar);
+  XSET (FRAME_SCROLL_BARS (frame), Lisp_Vector, bar);
   if (! NILP (bar->next))
-    XSET (XSCROLLBAR (bar->next)->prev, Lisp_Vector, bar);
+    XSET (XSCROLL_BAR (bar->next)->prev, Lisp_Vector, bar);
 
-  XMapWindow (x_current_display, SCROLLBAR_X_WINDOW (bar));
+  XMapWindow (x_current_display, SCROLL_BAR_X_WINDOW (bar));
 
   UNBLOCK_INPUT;
 
@@ -1837,18 +1843,18 @@ x_scrollbar_create (window, top, left, width, height)
    events.)  
 
    Normally, we want to constrain the start and end of the handle to
-   fit inside its rectangle, but if the user is dragging the scrollbar
+   fit inside its rectangle, but if the user is dragging the scroll bar
    handle, we want to let them drag it down all the way, so that the
    bar's top is as far down as it goes; otherwise, there's no way to
    move to the very end of the buffer.  */
 static void
-x_scrollbar_set_handle (bar, start, end, rebuild)
-     struct scrollbar *bar;
+x_scroll_bar_set_handle (bar, start, end, rebuild)
+     struct scroll_bar *bar;
      int start, end;
      int rebuild;
 {
   int dragging = ! NILP (bar->dragging);
-  Window w = SCROLLBAR_X_WINDOW (bar);
+  Window w = SCROLL_BAR_X_WINDOW (bar);
   GC gc = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)))->display.x->normal_gc;
 
   /* If the display is already accurate, do nothing.  */
@@ -1860,9 +1866,9 @@ x_scrollbar_set_handle (bar, start, end, rebuild)
   BLOCK_INPUT;
 
   {
-    int inside_width = VERTICAL_SCROLLBAR_INSIDE_WIDTH (XINT (bar->width));
-    int inside_height = VERTICAL_SCROLLBAR_INSIDE_HEIGHT (XINT (bar->height));
-    int top_range = VERTICAL_SCROLLBAR_TOP_RANGE (XINT (bar->height));
+    int inside_width = VERTICAL_SCROLL_BAR_INSIDE_WIDTH (XINT (bar->width));
+    int inside_height = VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (XINT (bar->height));
+    int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (XINT (bar->height));
 
     /* Make sure the values are reasonable, and try to preserve
        the distance between start and end.  */
@@ -1881,7 +1887,7 @@ x_scrollbar_set_handle (bar, start, end, rebuild)
 	end = top_range;
     }
 
-    /* Store the adjusted setting in the scrollbar.  */
+    /* Store the adjusted setting in the scroll bar.  */
     XSET (bar->start, Lisp_Int, start);
     XSET (bar->end, Lisp_Int, end);
 
@@ -1889,10 +1895,10 @@ x_scrollbar_set_handle (bar, start, end, rebuild)
     if (end > top_range)
       end = top_range;
 
-    /* Draw bottom positions VERTICAL_SCROLLBAR_MIN_HANDLE pixels
+    /* Draw bottom positions VERTICAL_SCROLL_BAR_MIN_HANDLE pixels
        below top positions, to make sure the handle is always at least
        that many pixels tall.  */
-    end += VERTICAL_SCROLLBAR_MIN_HANDLE;
+    end += VERTICAL_SCROLL_BAR_MIN_HANDLE;
 
     /* Draw the empty space above the handle.  Note that we can't clear
        zero-height areas; that means "clear to end of window."  */
@@ -1900,8 +1906,8 @@ x_scrollbar_set_handle (bar, start, end, rebuild)
       XClearArea (x_current_display, w,
 
 		  /* x, y, width, height, and exposures.  */
-		  VERTICAL_SCROLLBAR_LEFT_BORDER,
-		  VERTICAL_SCROLLBAR_TOP_BORDER,
+		  VERTICAL_SCROLL_BAR_LEFT_BORDER,
+		  VERTICAL_SCROLL_BAR_TOP_BORDER,
 		  inside_width, start,
 		  False);
 
@@ -1909,8 +1915,8 @@ x_scrollbar_set_handle (bar, start, end, rebuild)
     XFillRectangle (x_current_display, w, gc,
 
 		    /* x, y, width, height */
-		    VERTICAL_SCROLLBAR_LEFT_BORDER,
-		    VERTICAL_SCROLLBAR_TOP_BORDER + start,
+		    VERTICAL_SCROLL_BAR_LEFT_BORDER,
+		    VERTICAL_SCROLL_BAR_TOP_BORDER + start,
 		    inside_width, end - start);
 
 
@@ -1920,8 +1926,8 @@ x_scrollbar_set_handle (bar, start, end, rebuild)
       XClearArea (x_current_display, w,
 
 		  /* x, y, width, height, and exposures.  */
-		  VERTICAL_SCROLLBAR_LEFT_BORDER,
-		  VERTICAL_SCROLLBAR_TOP_BORDER + end,
+		  VERTICAL_SCROLL_BAR_LEFT_BORDER,
+		  VERTICAL_SCROLL_BAR_TOP_BORDER + end,
 		  inside_width, inside_height - end,
 		  False);
 
@@ -1930,11 +1936,11 @@ x_scrollbar_set_handle (bar, start, end, rebuild)
   UNBLOCK_INPUT;
 }
 
-/* Move a scrollbar around on the screen, to accomodate changing
+/* Move a scroll bar around on the screen, to accomodate changing
    window configurations.  */
 static void
-x_scrollbar_move (bar, top, left, width, height)
-     struct scrollbar *bar;
+x_scroll_bar_move (bar, top, left, width, height)
+     struct scroll_bar *bar;
      int top, left, width, height;
 {
   BLOCK_INPUT;
@@ -1954,7 +1960,7 @@ x_scrollbar_move (bar, top, left, width, height)
     if (height != XINT (bar->height))	mask |= CWHeight;
     
     if (mask)
-      XConfigureWindow (x_current_display, SCROLLBAR_X_WINDOW (bar),
+      XConfigureWindow (x_current_display, SCROLL_BAR_X_WINDOW (bar),
 			mask, &wc);
   }
 
@@ -1966,120 +1972,120 @@ x_scrollbar_move (bar, top, left, width, height)
   UNBLOCK_INPUT;
 }
 
-/* Destroy the X window for BAR, and set its Emacs window's scrollbar
+/* Destroy the X window for BAR, and set its Emacs window's scroll bar
    to nil.  */
 static void
-x_scrollbar_remove (bar)
-     struct scrollbar *bar;
+x_scroll_bar_remove (bar)
+     struct scroll_bar *bar;
 {
   FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
 
   BLOCK_INPUT;
 
   /* Destroy the window.  */
-  XDestroyWindow (x_current_display, SCROLLBAR_X_WINDOW (bar));
+  XDestroyWindow (x_current_display, SCROLL_BAR_X_WINDOW (bar));
 
-  /* Disassociate this scrollbar from its window.  */
-  XWINDOW (bar->window)->vertical_scrollbar = Qnil;
+  /* Disassociate this scroll bar from its window.  */
+  XWINDOW (bar->window)->vertical_scroll_bar = Qnil;
 
   UNBLOCK_INPUT;
 }
 
 /* Set the handle of the vertical scroll bar for WINDOW to indicate
    that we are displaying PORTION characters out of a total of WHOLE
-   characters, starting at POSITION.  If WINDOW has no scrollbar,
+   characters, starting at POSITION.  If WINDOW has no scroll bar,
    create one.  */
 static void
-XTset_vertical_scrollbar (window, portion, whole, position)
+XTset_vertical_scroll_bar (window, portion, whole, position)
      struct window *window;
      int portion, whole, position;
 {
   FRAME_PTR f = XFRAME (WINDOW_FRAME (window));
   int top = XINT (window->top);
-  int left = WINDOW_VERTICAL_SCROLLBAR_COLUMN (window);
-  int height = WINDOW_VERTICAL_SCROLLBAR_HEIGHT (window);
+  int left = WINDOW_VERTICAL_SCROLL_BAR_COLUMN (window);
+  int height = WINDOW_VERTICAL_SCROLL_BAR_HEIGHT (window);
 
-  /* Where should this scrollbar be, pixelwise?  */
+  /* Where should this scroll bar be, pixelwise?  */
   int pixel_top  = CHAR_TO_PIXEL_ROW (f, top);
   int pixel_left = CHAR_TO_PIXEL_COL (f, left);
-  int pixel_width = VERTICAL_SCROLLBAR_PIXEL_WIDTH (f);
-  int pixel_height = VERTICAL_SCROLLBAR_PIXEL_HEIGHT (f, height);
+  int pixel_width = VERTICAL_SCROLL_BAR_PIXEL_WIDTH (f);
+  int pixel_height = VERTICAL_SCROLL_BAR_PIXEL_HEIGHT (f, height);
 
-  struct scrollbar *bar;
+  struct scroll_bar *bar;
 
-  /* Does the scrollbar exist yet?  */
-  if (NILP (window->vertical_scrollbar))
-    bar = x_scrollbar_create (window,
+  /* Does the scroll bar exist yet?  */
+  if (NILP (window->vertical_scroll_bar))
+    bar = x_scroll_bar_create (window,
 			      pixel_top, pixel_left,
 			      pixel_width, pixel_height);
   else
     {
       /* It may just need to be moved and resized.  */
-      bar = XSCROLLBAR (window->vertical_scrollbar);
-      x_scrollbar_move (bar, pixel_top, pixel_left, pixel_width, pixel_height);
+      bar = XSCROLL_BAR (window->vertical_scroll_bar);
+      x_scroll_bar_move (bar, pixel_top, pixel_left, pixel_width, pixel_height);
     }
 
-  /* Set the scrollbar's current state, unless we're currently being
+  /* Set the scroll bar's current state, unless we're currently being
      dragged.  */
   if (NILP (bar->dragging))
     {
       int top_range =
-	VERTICAL_SCROLLBAR_TOP_RANGE (pixel_height);
+	VERTICAL_SCROLL_BAR_TOP_RANGE (pixel_height);
 
       if (whole == 0)
-	x_scrollbar_set_handle (bar, 0, top_range, 0);
+	x_scroll_bar_set_handle (bar, 0, top_range, 0);
       else
 	{
 	  int start = (position * top_range) / whole;
 	  int end = ((position + portion) * top_range) / whole;
 
-	  x_scrollbar_set_handle (bar, start, end, 0);
+	  x_scroll_bar_set_handle (bar, start, end, 0);
 	}
     }
 
-  XSET (window->vertical_scrollbar, Lisp_Vector, bar);
+  XSET (window->vertical_scroll_bar, Lisp_Vector, bar);
 }
 
 
 /* The following three hooks are used when we're doing a thorough
-   redisplay of the frame.  We don't explicitly know which scrollbars
+   redisplay of the frame.  We don't explicitly know which scroll bars
    are going to be deleted, because keeping track of when windows go
    away is a real pain - "Can you say set-window-configuration, boys
    and girls?"  Instead, we just assert at the beginning of redisplay
-   that *all* scrollbars are to be removed, and then save a scrollbar
+   that *all* scroll bars are to be removed, and then save a scroll bar
    from the fiery pit when we actually redisplay its window.  */
 
-/* Arrange for all scrollbars on FRAME to be removed at the next call
-   to `*judge_scrollbars_hook'.  A scrollbar may be spared if
-   `*redeem_scrollbar_hook' is applied to its window before the judgement.  */
+/* Arrange for all scroll bars on FRAME to be removed at the next call
+   to `*judge_scroll_bars_hook'.  A scroll bar may be spared if
+   `*redeem_scroll_bar_hook' is applied to its window before the judgement.  */
 static void 
-XTcondemn_scrollbars (frame)
+XTcondemn_scroll_bars (frame)
      FRAME_PTR frame;
 {
   /* The condemned list should be empty at this point; if it's not,
      then the rest of Emacs isn't using the condemn/redeem/judge
      protocol correctly.  */
-  if (! NILP (FRAME_CONDEMNED_SCROLLBARS (frame)))
+  if (! NILP (FRAME_CONDEMNED_SCROLL_BARS (frame)))
     abort ();
 
   /* Move them all to the "condemned" list.  */
-  FRAME_CONDEMNED_SCROLLBARS (frame) = FRAME_SCROLLBARS (frame);
-  FRAME_SCROLLBARS (frame) = Qnil;
+  FRAME_CONDEMNED_SCROLL_BARS (frame) = FRAME_SCROLL_BARS (frame);
+  FRAME_SCROLL_BARS (frame) = Qnil;
 }
 
-/* Unmark WINDOW's scrollbar for deletion in this judgement cycle.
+/* Unmark WINDOW's scroll bar for deletion in this judgement cycle.
    Note that WINDOW isn't necessarily condemned at all.  */
 static void
-XTredeem_scrollbar (window)
+XTredeem_scroll_bar (window)
      struct window *window;
 {
-  struct scrollbar *bar;
+  struct scroll_bar *bar;
 
-  /* We can't redeem this window's scrollbar if it doesn't have one.  */
-  if (NILP (window->vertical_scrollbar))
+  /* We can't redeem this window's scroll bar if it doesn't have one.  */
+  if (NILP (window->vertical_scroll_bar))
     abort ();
 
-  bar = XSCROLLBAR (window->vertical_scrollbar);
+  bar = XSCROLL_BAR (window->vertical_scroll_bar);
 
   /* Unlink it from the condemned list.  */
   {
@@ -2089,74 +2095,77 @@ XTredeem_scrollbar (window)
       {
 	/* If the prev pointer is nil, it must be the first in one of
            the lists.  */
-	if (EQ (FRAME_SCROLLBARS (f), window->vertical_scrollbar))
+	if (EQ (FRAME_SCROLL_BARS (f), window->vertical_scroll_bar))
 	  /* It's not condemned.  Everything's fine.  */
 	  return;
-	else if (EQ (FRAME_CONDEMNED_SCROLLBARS (f),
-		     window->vertical_scrollbar))
-	  FRAME_CONDEMNED_SCROLLBARS (f) = bar->next;
+	else if (EQ (FRAME_CONDEMNED_SCROLL_BARS (f),
+		     window->vertical_scroll_bar))
+	  FRAME_CONDEMNED_SCROLL_BARS (f) = bar->next;
 	else
 	  /* If its prev pointer is nil, it must be at the front of
              one or the other!  */
 	  abort ();
       }
     else
-      XSCROLLBAR (bar->prev)->next = bar->next;
+      XSCROLL_BAR (bar->prev)->next = bar->next;
 
     if (! NILP (bar->next))
-      XSCROLLBAR (bar->next)->prev = bar->prev;
+      XSCROLL_BAR (bar->next)->prev = bar->prev;
 
-    bar->next = FRAME_SCROLLBARS (f);
+    bar->next = FRAME_SCROLL_BARS (f);
     bar->prev = Qnil;
-    XSET (FRAME_SCROLLBARS (f), Lisp_Vector, bar);
+    XSET (FRAME_SCROLL_BARS (f), Lisp_Vector, bar);
     if (! NILP (bar->next))
-      XSET (XSCROLLBAR (bar->next)->prev, Lisp_Vector, bar);
+      XSET (XSCROLL_BAR (bar->next)->prev, Lisp_Vector, bar);
   }
 }
 
-/* Remove all scrollbars on FRAME that haven't been saved since the
-   last call to `*condemn_scrollbars_hook'.  */
+/* Remove all scroll bars on FRAME that haven't been saved since the
+   last call to `*condemn_scroll_bars_hook'.  */
 static void
-XTjudge_scrollbars (f)
+XTjudge_scroll_bars (f)
      FRAME_PTR f;
 {
   Lisp_Object bar, next;
 
-  bar = FRAME_CONDEMNED_SCROLLBARS (f);
+  bar = FRAME_CONDEMNED_SCROLL_BARS (f);
 
   /* Clear out the condemned list now so we won't try to process any
-     more events on the hapless scrollbars.  */
-  FRAME_CONDEMNED_SCROLLBARS (f) = Qnil;
+     more events on the hapless scroll bars.  */
+  FRAME_CONDEMNED_SCROLL_BARS (f) = Qnil;
 
   for (; ! NILP (bar); bar = next)
     {
-      struct scrollbar *b = XSCROLLBAR (bar);
+      struct scroll_bar *b = XSCROLL_BAR (bar);
 
-      x_scrollbar_remove (b);
+      x_scroll_bar_remove (b);
 
       next = b->next;
       b->next = b->prev = Qnil;
     }
 
-  /* Now there should be no references to the condemned scrollbars,
+  /* Now there should be no references to the condemned scroll bars,
      and they should get garbage-collected.  */
 }
 
 
-/* Handle an Expose or GraphicsExpose event on a scrollbar.  */
+/* Handle an Expose or GraphicsExpose event on a scroll bar.
+
+   This may be called from a signal handler, so we have to ignore GC
+   mark bits.  */
 static void
-x_scrollbar_expose (bar, event)
-     struct scrollbar *bar;
+x_scroll_bar_expose (bar, event)
+     struct scroll_bar *bar;
      XEvent *event;
 {
-  Window w = SCROLLBAR_X_WINDOW (bar);
+  Window w = SCROLL_BAR_X_WINDOW (bar);
   GC gc = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)))->display.x->normal_gc;
 
   BLOCK_INPUT;
 
-  x_scrollbar_set_handle (bar, XINT (bar->start), XINT (bar->end), 1);
+  x_scroll_bar_set_handle (bar, XINT (bar->start), XINT (bar->end), 1);
 
-  /* Draw a one-pixel border just inside the edges of the scrollbar. */
+  /* Draw a one-pixel border just inside the edges of the scroll bar. */
   XDrawRectangle (x_current_display, w, gc,
 
 		  /* x, y, width, height */
@@ -2171,18 +2180,21 @@ x_scrollbar_expose (bar, event)
   UNBLOCK_INPUT;
 }
 
-/* Handle a mouse click on the scrollbar BAR.  If *EMACS_EVENT's kind
-   is set to something other than no_event, it is enqueued.  */
+/* Handle a mouse click on the scroll bar BAR.  If *EMACS_EVENT's kind
+   is set to something other than no_event, it is enqueued.
+
+   This may be called from a signal handler, so we have to ignore GC
+   mark bits.  */
 static void
-x_scrollbar_handle_click (bar, event, emacs_event)
-     struct scrollbar *bar;
+x_scroll_bar_handle_click (bar, event, emacs_event)
+     struct scroll_bar *bar;
      XEvent *event;
      struct input_event *emacs_event;
 {
-  if (XTYPE (bar->window) != Lisp_Window)
+  if (XGCTYPE (bar->window) != Lisp_Window)
     abort ();
 
-  emacs_event->kind = scrollbar_click;
+  emacs_event->kind = scroll_bar_click;
   XSET (emacs_event->code, Lisp_Int, event->xbutton.button - Button1);
   emacs_event->modifiers =
     (x_convert_modifiers (event->xbutton.state)
@@ -2193,25 +2205,25 @@ x_scrollbar_handle_click (bar, event, emacs_event)
   emacs_event->timestamp = event->xbutton.time;
   {
     int internal_height =
-      VERTICAL_SCROLLBAR_INSIDE_HEIGHT (XINT (bar->height));
+      VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (XINT (bar->height));
     int top_range =
-      VERTICAL_SCROLLBAR_TOP_RANGE (XINT (bar->height));
-    int y = event->xbutton.y - VERTICAL_SCROLLBAR_TOP_BORDER;
+      VERTICAL_SCROLL_BAR_TOP_RANGE (XINT (bar->height));
+    int y = event->xbutton.y - VERTICAL_SCROLL_BAR_TOP_BORDER;
 
     if (y < 0) y = 0;
     if (y > top_range) y = top_range;
 
     if (y < XINT (bar->start))
-      emacs_event->part = scrollbar_above_handle;
-    else if (y < XINT (bar->end) + VERTICAL_SCROLLBAR_MIN_HANDLE)
-      emacs_event->part = scrollbar_handle;
+      emacs_event->part = scroll_bar_above_handle;
+    else if (y < XINT (bar->end) + VERTICAL_SCROLL_BAR_MIN_HANDLE)
+      emacs_event->part = scroll_bar_handle;
     else
-      emacs_event->part = scrollbar_below_handle;
+      emacs_event->part = scroll_bar_below_handle;
     
     /* If the user has just clicked on the handle, record where they're
        holding it.  */
     if (event->type == ButtonPress
-	&& emacs_event->part == scrollbar_handle)
+	&& emacs_event->part == scroll_bar_handle)
       XSET (bar->dragging, Lisp_Int, y - XINT (bar->start));
 
     /* If the user has released the handle, set it to its final position.  */
@@ -2221,13 +2233,13 @@ x_scrollbar_handle_click (bar, event, emacs_event)
 	int new_start = y - XINT (bar->dragging);
 	int new_end = new_start + (XINT (bar->end) - XINT (bar->start));
 
-	x_scrollbar_set_handle (bar, new_start, new_end, 0);
+	x_scroll_bar_set_handle (bar, new_start, new_end, 0);
 	bar->dragging = Qnil;
       }
 
     /* Clicks on the handle are always reported as occuring at the top of 
        the handle.  */
-    if (emacs_event->part == scrollbar_handle)
+    if (emacs_event->part == scroll_bar_handle)
       emacs_event->x = bar->start;
     else
       XSET (emacs_event->x, Lisp_Int, y);
@@ -2236,19 +2248,22 @@ x_scrollbar_handle_click (bar, event, emacs_event)
   }
 }
 
-/* Handle some mouse motion while someone is dragging the scrollbar.  */
+/* Handle some mouse motion while someone is dragging the scroll bar.
+
+   This may be called from a signal handler, so we have to ignore GC
+   mark bits.  */
 static void
-x_scrollbar_note_movement (bar, event)
-     struct scrollbar *bar;
+x_scroll_bar_note_movement (bar, event)
+     struct scroll_bar *bar;
      XEvent *event;
 {
   last_mouse_movement_time = event->xmotion.time;
 
   mouse_moved = 1;
-  XSET (last_mouse_scrollbar, Lisp_Vector, bar);
+  XSET (last_mouse_scroll_bar, Lisp_Vector, bar);
 
   /* If we're dragging the bar, display it.  */
-  if (! NILP (bar->dragging))
+  if (! GC_NILP (bar->dragging))
     {
       /* Where should the handle be now?  */
       int new_start = event->xmotion.y - XINT (bar->dragging);
@@ -2257,7 +2272,7 @@ x_scrollbar_note_movement (bar, event)
 	{
 	  int new_end = new_start + (XINT (bar->end) - XINT (bar->start));
 	
-	  x_scrollbar_set_handle (bar, new_start, new_end, 0);
+	  x_scroll_bar_set_handle (bar, new_start, new_end, 0);
 	}
     }
 
@@ -2274,21 +2289,21 @@ x_scrollbar_note_movement (bar, event)
 }
 
 /* Return information to the user about the current position of the mouse
-   on the scrollbar.  */
+   on the scroll bar.  */
 static void
-x_scrollbar_report_motion (f, bar_window, part, x, y, time)
+x_scroll_bar_report_motion (f, bar_window, part, x, y, time)
      FRAME_PTR *f;
      Lisp_Object *bar_window;
-     enum scrollbar_part *part;
+     enum scroll_bar_part *part;
      Lisp_Object *x, *y;
      unsigned long *time;
 {
-  struct scrollbar *bar = XSCROLLBAR (last_mouse_scrollbar);
+  struct scroll_bar *bar = XSCROLL_BAR (last_mouse_scroll_bar);
   int win_x, win_y;
 
   BLOCK_INPUT;
 
-  /* Get the mouse's position relative to the scrollbar window, and
+  /* Get the mouse's position relative to the scroll bar window, and
      report that.  */
   {
     Window dummy_window;
@@ -2296,13 +2311,13 @@ x_scrollbar_report_motion (f, bar_window, part, x, y, time)
     unsigned int dummy_mask;
 
     if (! XQueryPointer (x_current_display,
-			 SCROLLBAR_X_WINDOW (bar),
+			 SCROLL_BAR_X_WINDOW (bar),
 
 			 /* Root, child, root x and root y.  */
 			 &dummy_window, &dummy_window,
 			 &dummy_coord, &dummy_coord,
 
-			 /* Position relative to scrollbar.  */
+			 /* Position relative to scroll bar.  */
 			 &win_x, &win_y,
 
 			 /* Mouse buttons and modifier keys.  */
@@ -2314,10 +2329,10 @@ x_scrollbar_report_motion (f, bar_window, part, x, y, time)
   }
 
   {
-    int inside_height = VERTICAL_SCROLLBAR_INSIDE_HEIGHT (XINT (bar->height));
-    int top_range     = VERTICAL_SCROLLBAR_TOP_RANGE     (XINT (bar->height));
+    int inside_height = VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (XINT (bar->height));
+    int top_range     = VERTICAL_SCROLL_BAR_TOP_RANGE     (XINT (bar->height));
 
-    win_y -= VERTICAL_SCROLLBAR_TOP_BORDER;
+    win_y -= VERTICAL_SCROLL_BAR_TOP_BORDER;
 
     if (! NILP (bar->dragging))
       win_y -= XINT (bar->dragging);
@@ -2331,13 +2346,13 @@ x_scrollbar_report_motion (f, bar_window, part, x, y, time)
     *bar_window = bar->window;
 
     if (! NILP (bar->dragging))
-      *part = scrollbar_handle;
+      *part = scroll_bar_handle;
     else if (win_y < XINT (bar->start))
-      *part = scrollbar_above_handle;
-    else if (win_y < XINT (bar->end) + VERTICAL_SCROLLBAR_MIN_HANDLE)
-      *part = scrollbar_handle;
+      *part = scroll_bar_above_handle;
+    else if (win_y < XINT (bar->end) + VERTICAL_SCROLL_BAR_MIN_HANDLE)
+      *part = scroll_bar_handle;
     else
-      *part = scrollbar_below_handle;
+      *part = scroll_bar_below_handle;
 
     XSET (*x, Lisp_Int, win_y);
     XSET (*y, Lisp_Int, top_range);
@@ -2345,7 +2360,7 @@ x_scrollbar_report_motion (f, bar_window, part, x, y, time)
   }
 
   mouse_moved = 0;
-  last_mouse_scrollbar = Qnil;
+  last_mouse_scroll_bar = Qnil;
 
  done:
   UNBLOCK_INPUT;
@@ -2353,19 +2368,19 @@ x_scrollbar_report_motion (f, bar_window, part, x, y, time)
 
 
 /* The screen has been cleared so we may have changed foreground or
-   background colors, and the scrollbars may need to be redrawn.
-   Clear out the scrollbars, and ask for expose events, so we can
+   background colors, and the scroll bars may need to be redrawn.
+   Clear out the scroll bars, and ask for expose events, so we can
    redraw them.  */
 
-x_scrollbar_clear (f)
+x_scroll_bar_clear (f)
      FRAME_PTR f;
 {
   Lisp_Object bar;
 
-  for (bar = FRAME_SCROLLBARS (f);
+  for (bar = FRAME_SCROLL_BARS (f);
        XTYPE (bar) == Lisp_Vector;
-       bar = XSCROLLBAR (bar)->next)
-    XClearArea (x_current_display, SCROLLBAR_X_WINDOW (XSCROLLBAR (bar)),
+       bar = XSCROLL_BAR (bar)->next)
+    XClearArea (x_current_display, SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar)),
 		0, 0, 0, 0, True);
 }
 
@@ -2479,7 +2494,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    f = x_window_to_frame (event.xclient.window);
 		    if (f)
 		      x_focus_on_frame (f);
-		    /* Not certain about handling scrollbars here */
+		    /* Not certain about handling scroll bars here */
 		  }
 		else if (event.xclient.data.l[0] == Xatom_wm_save_yourself)
 		  {
@@ -2561,11 +2576,11 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    }
 	  else
 	    {
-	      struct scrollbar *bar
-		= x_window_to_scrollbar (event.xexpose.window);
+	      struct scroll_bar *bar
+		= x_window_to_scroll_bar (event.xexpose.window);
 
 	      if (bar)
-		x_scrollbar_expose (bar, &event);
+		x_scroll_bar_expose (bar, &event);
 	    }
 	  break;
 
@@ -2907,11 +2922,11 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      note_mouse_movement (f, &event.xmotion);
 	    else
 	      {
-		struct scrollbar *bar =
-		  x_window_to_scrollbar (event.xmotion.window);
+		struct scroll_bar *bar =
+		  x_window_to_scroll_bar (event.xmotion.window);
 
 		if (bar)
-		  x_scrollbar_note_movement (bar, &event);
+		  x_scroll_bar_note_movement (bar, &event);
 	      }
 	  }
 	  break;
@@ -2959,11 +2974,11 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      }
 	    else
 	      {
-		struct scrollbar *bar =
-		  x_window_to_scrollbar (event.xbutton.window);
+		struct scroll_bar *bar =
+		  x_window_to_scroll_bar (event.xbutton.window);
 
 		if (bar)
-		  x_scrollbar_handle_click (bar, &event, &emacs_event);
+		  x_scroll_bar_handle_click (bar, &event, &emacs_event);
 	      }
 
 	    if (numchars >= 1 && emacs_event.kind != no_event)
@@ -3868,9 +3883,9 @@ x_set_window_size (f, cols, rows)
   BLOCK_INPUT;
 
   check_frame_size (f, &rows, &cols);
-  f->display.x->vertical_scrollbar_extra =
-    (FRAME_HAS_VERTICAL_SCROLLBARS (f)
-     ? VERTICAL_SCROLLBAR_PIXEL_WIDTH (f)
+  f->display.x->vertical_scroll_bar_extra =
+    (FRAME_HAS_VERTICAL_SCROLL_BARS (f)
+     ? VERTICAL_SCROLL_BAR_PIXEL_WIDTH (f)
      : 0);
   pixelwidth = CHAR_TO_PIXEL_WIDTH (f, cols);
   pixelheight = CHAR_TO_PIXEL_HEIGHT (f, rows);
@@ -4024,7 +4039,7 @@ x_make_frame_visible (f)
 	x_wm_set_window_state (f, NormalState);
 
       XMapWindow (XDISPLAY FRAME_X_WINDOW (f));
-      if (FRAME_HAS_VERTICAL_SCROLLBARS (f))
+      if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
 	XMapSubwindows (x_current_display, FRAME_X_WINDOW (f));
 #else /* ! defined (HAVE_X11) */
       XMapWindow (XDISPLAY FRAME_X_WINDOW (f));
@@ -4445,8 +4460,8 @@ x_term_init (display_name)
   /* Figure out which modifier bits mean what.  */
   x_find_modifier_meanings ();
 
-  /* Get the scrollbar cursor.  */
-  x_vertical_scrollbar_cursor =
+  /* Get the scroll bar cursor.  */
+  x_vertical_scroll_bar_cursor =
     XCreateFontCursor (x_current_display, XC_sb_v_double_arrow);
 
   /* Watch for PropertyNotify events on the root window; we use them
@@ -4506,10 +4521,10 @@ x_term_init (display_name)
   mouse_position_hook = XTmouse_position;
   frame_rehighlight_hook = XTframe_rehighlight;
   frame_raise_lower_hook = XTframe_raise_lower;
-  set_vertical_scrollbar_hook = XTset_vertical_scrollbar;
-  condemn_scrollbars_hook = XTcondemn_scrollbars;
-  redeem_scrollbar_hook = XTredeem_scrollbar;
-  judge_scrollbars_hook = XTjudge_scrollbars;
+  set_vertical_scroll_bar_hook = XTset_vertical_scroll_bar;
+  condemn_scroll_bars_hook = XTcondemn_scroll_bars;
+  redeem_scroll_bar_hook = XTredeem_scroll_bar;
+  judge_scroll_bars_hook = XTjudge_scroll_bars;
   
   scroll_region_ok = 1;		/* we'll scroll partial frames */
   char_ins_del_ok = 0;		/* just as fast to write the line */
@@ -4538,7 +4553,7 @@ syms_of_xterm ()
   staticpro (&invocation_name);
   invocation_name = Qnil;
 
-  staticpro (&last_mouse_scrollbar);
+  staticpro (&last_mouse_scroll_bar);
 }
 #endif /* ! defined (HAVE_X11) */
 #endif /* ! defined (HAVE_X_WINDOWS) */
