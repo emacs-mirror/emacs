@@ -1,6 +1,6 @@
 ;;; time-stamp.el --- Maintain last change time stamps in files edited by Emacs
 ;;; Copyright 1989, 1993, 1994, 1995 Free Software Foundation, Inc.
-;;; Maintainer's Time-stamp: <95/05/30 13:28:56 gildea>
+;;; Maintainer's Time-stamp: <95/05/31 10:47:14 gildea>
 
 ;; Maintainer: Stephen Gildea <gildea@lcs.mit.edu>
 ;; Keywords: tools
@@ -48,7 +48,7 @@
 ;;; Originally based on the 19 Dec 88 version of
 ;;;   date.el by John Sturdy <mcvax!harlqn.co.uk!jcgs@uunet.uu.net>
 ;;; version 2, January 1995: replaced functions with %-escapes
-;;; $Id: time-stamp.el,v 1.1 95/05/30 17:57:24 gildea Exp $
+;;; $Id: time-stamp.el,v 1.13 1995/05/30 21:20:09 kwzh Exp kwzh $
 
 ;;; Code:
 
@@ -186,6 +186,23 @@ With arg, turn time stamping on if and only if arg is positive."
   (if (stringp time-stamp-format)
       (time-stamp-strftime time-stamp-format)
     (time-stamp-fconcat time-stamp-format " "))) ;version 1 compatibility
+
+(defconst time-stamp-month-numbers
+  '(("Jan" . 1) ("Feb" . 2) ("Mar" . 3) ("Apr" . 4) ("May" . 5) ("Jun" . 6)
+    ("Jul" . 7) ("Aug" . 8) ("Sep" . 9) ("Oct" . 10) ("Nov" . 11) ("Dec" . 12))
+  "Alist of months and their number.")
+
+(defconst time-stamp-month-full-names
+  ["(zero)" "January" "February" "March" "April" "May" "June"
+   "July" "August" "September" "October" "November" "December"])
+
+(defconst time-stamp-weekday-numbers
+  '(("Sun" . 0) ("Mon" . 1) ("Tue" . 2) ("Wed" . 3)
+    ("Thu" . 4) ("Fri" . 5) ("Sat" . 6))
+  "Alist of weekdays and their number.")
+
+(defconst time-stamp-weekday-full-names
+  ["Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"])
 
 (defun time-stamp-strftime (format &optional time)
   "Uses a FORMAT to format date, time, file, and user information.
@@ -341,23 +358,6 @@ use \"%3a %3b %2d %02H:%02M:%02S %Z %y\""
 	(char-to-string cur-char)))))
       (setq ind (1+ ind)))
     result))
-
-(defconst time-stamp-month-numbers
-  '(("Jan" . 1) ("Feb" . 2) ("Mar" . 3) ("Apr" . 4) ("May" . 5) ("Jun" . 6)
-    ("Jul" . 7) ("Aug" . 8) ("Sep" . 9) ("Oct" . 10) ("Nov" . 11) ("Dec" . 12))
-  "Alist of months and their number.")
-
-(defconst time-stamp-month-full-names
-  ["(zero)" "January" "February" "March" "April" "May" "June"
-   "July" "August" "September" "October" "November" "December"])
-
-(defconst time-stamp-weekday-numbers
-  '(("Sun" . 0) ("Mon" . 1) ("Tue" . 2) ("Wed" . 3)
-    ("Thu" . 4) ("Fri" . 5) ("Sat" . 6))
-  "Alist of weekdays and their number.")
-
-(defconst time-stamp-weekday-full-names
-  ["Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"])
 
 (defun time-stamp-mail-host-name ()
   "Return the name of the host where the user receives mail.
