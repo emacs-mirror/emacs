@@ -1202,7 +1202,7 @@ relock:
 ctagsfiles1 = [xyzXYZ]*.[hc] 
 ctagsfiles2 = [a-wA-W]*.[hc]
 TAGS: $(srcdir)/$(ctagsfiles)
-	../lib-src/etags --include=TAGS-LISP \
+	../lib-src/etags --include=TAGS-LISP --include=${lwlibdir}/TAGS \
 	  --regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
 	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2)
 frc:
