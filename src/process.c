@@ -1437,7 +1437,7 @@ create_process (process, new_argv, current_dir)
 	    /* In order to get a controlling terminal on some versions
 	       of BSD, it is necessary to put the process in pgrp 0
 	       before it opens the terminal.  */
-#ifdef OSF1
+#ifdef HAVE_SETPGID
 	    setpgid (0, 0);
 #else
 	    setpgrp (0, 0);
