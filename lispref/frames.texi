@@ -605,25 +605,6 @@ it and see if it works.)
 @end ignore
 @end table
 
-@defvar line-spacing
-When this permanently buffer-local variable is non-nil, if its value is
-an integer, that many pixels of extra space are put below each line.  If
-the value is a floating point number, compute the spacing by multiplying
-the value by the default frame line height.
-
-Note that this variable and the frame parameter @code{line-spacing}
-(described above) control different things.  The frame parameter is
-involved in setting the frame line height (@pxref{Creating Frames}),
-while the buffer-local variable is for already-created frames.
-
-For example, if the frame parameter is nil, a variable value of 1.0
-``double-spaces'' the display because for every line of text, there is
-an additional full line of space put below it.  Likewise, a value of 2.0
-``triple-spaces'' the display, and so forth.  If, on the other hand, the
-frame parameter is 10, a variable value of 10 would effectively put 20
-pixels of space under the text.
-@end defvar
-
 @defvar blink-cursor-alist
 This variable specifies how to blink the cursor.  Each element has the
 form @code{(@var{on-state} . @var{off-state})}.  Whenever the cursor
