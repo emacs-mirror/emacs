@@ -1,3 +1,15 @@
+2003-04-11  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/etags.el (select-tags-table-mode-map): 
+	Don't create new keymap. Instead copy from button-buffer-map.
+	Bind push-button to `t' instead of binding
+	select-tags-table-select directly
+	
+	* (tags-select-tags-table): New button.
+
+ 	* progmodes/etags.el (select-tags-table): Put
+	a button for each selections.
+
 2003-04-11  Kenichi Handa  <handa@m17n.org>
 
 	* international/quail.el (quail-guidance-str)

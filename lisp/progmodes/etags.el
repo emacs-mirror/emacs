@@ -1890,6 +1890,10 @@ directory specification."
 
 ;; XXX Kludge interface.
 
+(define-button-type 'tags-select-tags-table
+  'action (lambda (button) (select-tags-table-select))
+  'help-echo "RET, t or mouse-2: select tags table")
+
 ;; XXX If a file is in multiple tables, selection may get the wrong one.
 ;;;###autoload
 (defun select-tags-table ()
@@ -1901,16 +1905,21 @@ see the doc of that variable if you want to add names to the list."
   (setq buffer-read-only nil)
   (erase-buffer)
   (let ((set-list tags-table-set-list)
-	(desired-point nil))
+	(desired-point nil)
+	b)
     (when tags-table-list
 	  (setq desired-point (point-marker))
+	  (setq b (point))
 	  (princ tags-table-list (current-buffer))
+	  (make-text-button b (point) 'type 'tags-select-tags-table)
 	  (insert "\C-m")
 	  (prin1 (car tags-table-list) (current-buffer)) ;invisible
       (insert "\n"))
     (while set-list
       (unless (eq (car set-list) tags-table-list)
+	(setq b (point))
 	(princ (car set-list) (current-buffer))
+	(make-text-button b (point) 'type 'tags-select-tags-table)
 	(insert "\C-m")
 	(prin1 (car (car set-list)) (current-buffer)) ;invisible
 	(insert "\n"))
@@ -1918,7 +1927,10 @@ see the doc of that variable if you want to add names to the list."
     (when tags-file-name
 	  (or desired-point
 	      (setq desired-point (point-marker)))
-	  (insert tags-file-name "\C-m")
+	  (setq b (point))
+	  (insert tags-file-name)
+	  (make-text-button b (point) 'type 'tags-select-tags-table)
+	  (insert "\C-m")
 	  (prin1 tags-file-name (current-buffer)) ;invisible
       (insert "\n"))
     (setq set-list (delete tags-file-name
@@ -1926,7 +1938,10 @@ see the doc of that variable if you want to add names to the list."
 					       (mapcar 'copy-sequence
 						       tags-table-set-list)))))
     (while set-list
-      (insert (car set-list) "\C-m")
+      (setq b (point))
+      (insert (car set-list))
+      (make-text-button b (point) 'type 'tags-select-tags-table)
+      (insert "\C-m")
       (prin1 (car set-list) (current-buffer)) ;invisible
       (insert "\n")
       (setq set-list (delete (car set-list) set-list)))
@@ -1939,15 +1954,15 @@ see the doc of that variable if you want to add names to the list."
   (set-buffer-modified-p nil)
   (select-tags-table-mode))
 
-(defvar select-tags-table-mode-map)
-(let ((map (make-sparse-keymap)))
-  (define-key map "t" 'select-tags-table-select)
-  (define-key map " " 'next-line)
-  (define-key map "\^?" 'previous-line)
-  (define-key map "n" 'next-line)
-  (define-key map "p" 'previous-line)
-  (define-key map "q" 'select-tags-table-quit)
-  (setq select-tags-table-mode-map map))
+(defvar select-tags-table-mode-map
+  (let ((map (copy-keymap button-buffer-map)))
+    (define-key map "t" 'push-button)
+    (define-key map " " 'next-line)
+    (define-key map "\^?" 'previous-line)
+    (define-key map "n" 'next-line)
+    (define-key map "p" 'previous-line)
+    (define-key map "q" 'select-tags-table-quit)
+    map))
 
 (defun select-tags-table-mode ()
   "Major mode for choosing a current tags table among those already loaded.
