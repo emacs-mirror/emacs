@@ -182,7 +182,7 @@ generations (this defaults to 1)."
 
 (defun life-insert-random-pattern ()
   (insert-rectangle
-   (elt life-patterns (% (abs (random)) (length life-patterns))))
+   (elt life-patterns (random (length life-patterns))))
   (insert ?\n))
 
 (defun life-increment-generation ()
