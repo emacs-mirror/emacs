@@ -276,7 +276,6 @@ FUNSYM must be a symbol of a defined function."
 	      (cons funsym elp-all-instrumented-list)))
     ))
 
-;;;###autoload
 (defun elp-restore-function (funsym)
   "Restore an instrumented function to its original definition.
 Argument FUNSYM is the symbol of a defined function."
