@@ -249,9 +249,10 @@ Here's a function to do this:
 @example
 (defvar fuzz-factor 1.0e-6)
 (defun approx-equal (x y)
-  (< (/ (abs (- x y))
-        (max (abs x) (abs y)))
-     fuzz-factor))
+  (or (and (= x 0) (= y 0))
+      (< (/ (abs (- x y))
+            (max (abs x) (abs y)))
+         fuzz-factor)))
 @end example
 
 @cindex CL note---integers vrs @code{eq}
@@ -356,7 +357,9 @@ This returns @var{number}, converted to an integer by rounding upward
 
 @defun round number
 This returns @var{number}, converted to an integer by rounding towards the
-nearest integer.
+nearest integer.  Rounding a value equidistant between two integers
+may choose the integer closer to zero, or it may prefer an even integer,
+depending on your machine.
 @end defun
 
 @node Arithmetic Operations
@@ -386,8 +389,8 @@ For example,
      @result{} 5
 @end example
 
-This function is not analogous to the C operator @code{++}---it does
-not increment a variable.  It just computes a sum.  Thus,
+This function is not analogous to the C operator @code{++}---it does not
+increment a variable.  It just computes a sum.  Thus, if we continue,
 
 @example
 foo
@@ -413,7 +416,7 @@ This returns the absolute value of @var{number}.
 
 @defun + &rest numbers-or-markers
 This function adds its arguments together.  When given no arguments,
-@code{+} returns 0.  It does not check for overflow.
+@code{+} returns 0.
 
 @example
 (+)
@@ -430,8 +433,7 @@ The @code{-} function serves two purposes: negation and subtraction.
 When @code{-} has a single argument, the value is the negative of the
 argument.  When there are multiple arguments, @code{-} subtracts each of
 the @var{other-numbers-or-markers} from @var{number-or-marker},
-cumulatively.  If there are no arguments, the result is 0.  This
-function does not check for overflow.
+cumulatively.  If there are no arguments, the result is 0.
 
 @example
 (- 10 1 2 3 4)
@@ -445,8 +447,7 @@ function does not check for overflow.
 
 @defun * &rest numbers-or-markers
 This function multiplies its arguments together, and returns the
-product.  When given no arguments, @code{*} returns 1.  It does
-not check for overflow.
+product.  When given no arguments, @code{*} returns 1.
 
 @example
 (*)
@@ -562,8 +563,9 @@ For any two numbers @var{dividend} and @var{divisor},
 @end example
 
 @noindent
-always equals @var{dividend}, subject to rounding error if
-either argument is floating point.
+always equals @var{dividend}, subject to rounding error if either
+argument is floating point.  For @code{floor}, see @ref{Numeric
+Conversions}.
 @end defun
 
 @node Rounding Operations
@@ -640,6 +642,40 @@ As the examples illustrate, shifting the pattern of bits one place to
 the left produces a number that is twice the value of the previous
 number.
 
+Shifting a pattern of bits two places to the left produces results
+like this (with 8-bit binary numbers):
+
+@example
+@group
+(lsh 3 2)
+     @result{} 12
+;; @r{Decimal 3 becomes decimal 12.}
+00000011 @result{} 00001100       
+@end group
+@end example
+
+On the other hand, shifting one place to the right looks like this:
+
+@example
+@group
+(lsh 6 -1)
+     @result{} 3
+;; @r{Decimal 6 becomes decimal 3.}
+00000110 @result{} 00000011       
+@end group
+
+@group
+(lsh 5 -1)
+     @result{} 2
+;; @r{Decimal 5 becomes decimal 2.}
+00000101 @result{} 00000010       
+@end group
+@end example
+
+@noindent
+As the example illustrates, shifting one place to the right divides the
+value of a positive integer by two, rounding downward.
+
 The function @code{lsh}, like all Emacs Lisp arithmetic functions, does
 not check for overflow, so shifting left can discard significant bits
 and change the sign of the number.  For example, left shifting
@@ -668,41 +704,6 @@ which becomes the following when left shifted:
 1111  1111 1111  1111 1111  1111 1110         
 @end group
 @end example
-
-Shifting the pattern of bits two places to the left produces results
-like this (with 8-bit binary numbers):
-
-@example
-@group
-(lsh 3 2)
-     @result{} 12
-;; @r{Decimal 3 becomes decimal 12.}
-00000011 @result{} 00001100       
-@end group
-@end example
-
-On the other hand, shifting the pattern of bits one place to the right
-looks like this:
-
-@example
-@group
-(lsh 6 -1)
-     @result{} 3
-;; @r{Decimal 6 becomes decimal 3.}
-00000110 @result{} 00000011       
-@end group
-
-@group
-(lsh 5 -1)
-     @result{} 2
-;; @r{Decimal 5 becomes decimal 2.}
-00000101 @result{} 00000010       
-@end group
-@end example
-
-@noindent
-As the example illustrates, shifting the pattern of bits one place to
-the right divides the value of the binary number by two, rounding downward.
 @end defun
 
 @defun ash integer1 count
@@ -713,8 +714,8 @@ is negative.
 
 @code{ash} gives the same results as @code{lsh} except when
 @var{integer1} and @var{count} are both negative.  In that case,
-@code{ash} puts a one in the leftmost position, while @code{lsh} puts
-a zero in the leftmost position.
+@code{ash} puts ones in the empty bit positions on the left, while
+@code{lsh} puts zeros in those bit positions.
 
 Thus, with @code{ash}, shifting the pattern of bits one place to the right
 looks like this:
@@ -1008,18 +1009,8 @@ Emacs's process @sc{id} number.
 This function returns a pseudo-random integer.  Repeated calls return a
 series of pseudo-random integers.
 
-If @var{limit} is @code{nil}, then the value may in principle be any
-integer.  However, on machines where integers have more than 32 bits,
-the possible values may be limited to the interval
-@tex
-$[0,2^{32})$.
-@end tex
-@ifinfo
-[0,2**32).
-@end ifinfo
-
 If @var{limit} is a positive integer, the value is chosen to be
-nonnegative and less than @var{limit} (only in Emacs 19).
+nonnegative and less than @var{limit}.
 
 If @var{limit} is @code{t}, it means to choose a new seed based on the
 current time of day and on Emacs's process @sc{id} number.

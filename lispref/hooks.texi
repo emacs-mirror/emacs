@@ -3,7 +3,7 @@
 @c Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/hooks
-@node Standard Hooks, Antinews, Standard Keymaps, Top
+@node Standard Hooks, Index, Standard Keymaps, Top
 @appendix Standard Hooks
 
 The following is a list of hook variables that let you provide
@@ -122,5 +122,5 @@ special way (they are passed arguments, or else their values are used).
 @item window-setup-hook
 @item write-contents-hooks
 @item write-file-hooks
-@item write-region-annotation-functions
+@item write-region-annotate-functions
 @end table

@@ -496,10 +496,10 @@ The return value is not meaningful.
 
 @defopt transient-mark-mode
 @cindex Transient Mark mode
-This variable enables Transient Mark mode, in which every
-buffer-modifying primitive sets @code{deactivate-mark}.  The consequence
-of this is that commands that modify the buffer normally make the mark
-inactive.
+This variable if non-@code{nil} enables Transient Mark mode, in which
+every buffer-modifying primitive sets @code{deactivate-mark}.  The
+consequence of this is that commands that modify the buffer normally
+make the mark inactive.
 @end defopt
 
 @defvar deactivate-mark

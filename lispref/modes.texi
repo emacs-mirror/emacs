@@ -395,6 +395,8 @@ rest of @code{lisp-mode-variables}.
 @smallexample
 @group
   (make-local-variable 'paragraph-start)
+  ;; @r{Having @samp{^} is not clean, but @code{page-delimiter}}
+  ;; @r{has them too, and removing those is a pain.}
   (setq paragraph-start (concat "^$\\|" page-delimiter))
   @dots{}
 @end group
@@ -486,25 +488,25 @@ state of Emacs.)
 @end deffn
 
 @deffn Command normal-mode &optional find-file
-  This function establishes the proper major mode and local variable
+This function establishes the proper major mode and local variable
 bindings for the current buffer.  First it calls @code{set-auto-mode},
 then it runs @code{hack-local-variables} to parse, and bind or
 evaluate as appropriate, any local variables.
 
-  If the @var{find-file} argument to @code{normal-mode} is
+If the @var{find-file} argument to @code{normal-mode} is
 non-@code{nil}, @code{normal-mode} assumes that the @code{find-file}
 function is calling it.  In this case, it may process a local variables
-list at the end of the file.  The variable @code{enable-local-variables}
-controls whether to do so.
+list at the end of the file and in the @samp{-*-} line.  The variable
+@code{enable-local-variables} controls whether to do so.
 
-  If you run @code{normal-mode} interactively, the argument
+If you run @code{normal-mode} interactively, the argument
 @var{find-file} is normally @code{nil}.  In this case,
 @code{normal-mode} unconditionally processes any local variables list.
 @xref{File variables, , Local Variables in Files, emacs, The GNU Emacs
 Manual}, for the syntax of the local variables section of a file.
 
 @cindex file mode specification error
-  @code{normal-mode} uses @code{condition-case} around the call to the
+@code{normal-mode} uses @code{condition-case} around the call to the
 major mode function, so errors are caught and reported as a @samp{File
 mode specification error},  followed by the original error message.
 @end deffn
@@ -515,6 +517,15 @@ being visited.  A value of @code{t} means process the local variables
 lists unconditionally; @code{nil} means ignore them; anything else means
 ask the user what to do for each file.  The default value is @code{t}.
 @end defopt
+
+@defvar ignored-local-variables
+This variable holds a list of variables that should not be
+set by a local variables list.  Any value specified
+for one of these variables is ignored.
+@end defvar
+
+In addition to this list, any variable whose name has a non-@code{nil}
+@code{risky-local-variable} property is also ignored.
 
 @defopt enable-local-eval
 This variable controls processing of @samp{Eval:} in local variables
@@ -553,8 +564,8 @@ This function sets the major mode of @var{buffer} to the value of
 the current buffer's major mode (if that is suitable).
 
 The low-level primitives for creating buffers do not use this function,
-but medium-level commands such as @code{switch-to-buffer} should use it
-whenever they create buffers.
+but medium-level commands such as @code{switch-to-buffer} and
+@code{find-file-noselect} use it whenever they create buffers.
 @end defun
 
 @defvar initial-major-mode
@@ -757,7 +768,7 @@ minor modes in effect.
 
   Often the biggest problem in implementing a minor mode is finding a
 way to insert the necessary hook into the rest of Emacs.  Minor mode
-keymaps make this easier in Emacs 19 than it used to be.
+keymaps make this easier than it used to be.
 
 @menu
 * Minor Mode Conventions::      Tips for writing a minor mode.
@@ -805,15 +816,15 @@ a positive integer, a symbol other than @code{nil} or @code{-}, or a
 list whose @sc{car} is such an integer or symbol; it should turn the
 mode off otherwise.
 
-Here is an example taken from the definition of @code{overwrite-mode}.
-It shows the use of @code{overwrite-mode} as a variable that enables or
+Here is an example taken from the definition of @code{transient-mark-mode}.
+It shows the use of @code{transient-mark-mode} as a variable that enables or
 disables the mode's behavior, and also shows the proper way to toggle,
 enable or disable the minor mode based on the raw prefix argument value.
 
 @smallexample
 @group
-(setq overwrite-mode
-      (if (null arg) (not overwrite-mode)
+(setq transient-mark-mode
+      (if (null arg) (not transient-mark-mode)
         (> (prefix-numeric-value arg) 0)))
 @end group
 @end smallexample
@@ -847,10 +858,9 @@ check for an existing element, to avoid duplication.  For example:
 @node Keymaps and Minor Modes
 @subsection Keymaps and Minor Modes
 
-As of Emacs version 19, each minor mode can have its own keymap, which is
-active when the mode is enabled.  @xref{Active Keymaps}.  To set up a
-keymap for a minor mode, add an element to the alist
-@code{minor-mode-map-alist}.
+  Each minor mode can have its own keymap, which is active when the mode
+is enabled.  To set up a keymap for a minor mode, add an element to the
+alist @code{minor-mode-map-alist}.  @xref{Active Keymaps}.
 
 @cindex @code{self-insert-command}, minor modes
 One use of minor mode keymaps is to modify the behavior of certain
@@ -860,34 +870,6 @@ facilities for customizing @code{self-insert-command} are limited to
 special cases (designed for abbrevs and Auto Fill mode).  (Do not try
 substituting your own definition of @code{self-insert-command} for the
 standard one.  The editor command loop handles this function specially.)
-
-@defvar minor-mode-map-alist
-This variable is an alist of elements that look like this:
-
-@example
-(@var{variable} . @var{keymap})
-@end example
-
-@noindent
-where @var{variable} is the variable that indicates whether the minor
-mode is enabled, and @var{keymap} is the keymap.  The keymap
-@var{keymap} is active whenever @var{variable} has a non-@code{nil}
-value.
-
-Note that elements of @code{minor-mode-map-alist} do not have the same
-structure as elements of @code{minor-mode-alist}.  The map must be the
-@sc{cdr} of the element; a list with the map as the second element will
-not do.
-
-What's more, the keymap itself must appear in the @sc{cdr}.  It does not
-work to store a variable in the @sc{cdr} and make the map the value of
-that variable.
-
-When more than one minor mode keymap is active, their order of priority
-is the order of @code{minor-mode-map-alist}.  But you should design
-minor modes so that they don't interfere with each other.  If you do
-this properly, the order will not matter.
-@end defvar
 
 @node Mode Line Format
 @section Mode Line Format
@@ -906,8 +888,8 @@ minor modes.
 
   @code{mode-line-format} is a buffer-local variable that holds a
 template used to display the mode line of the current buffer.  All
-windows for the same buffer use the same @code{mode-line-format} and the
-mode lines will appear the same (except for scrolling percentages and
+windows for the same buffer use the same @code{mode-line-format} and
+their mode lines appear the same (except for scrolling percentages and
 line numbers).
 
   The mode line of a window is normally updated whenever a different
@@ -940,7 +922,7 @@ strings, symbols, and numbers kept in the buffer-local variable
 @code{mode-line-format}.  The data structure is called a @dfn{mode line
 construct}, and it is built in recursive fashion out of simpler mode line
 constructs.  The same data structure is used for constructing
-frame titles (pxref{Frame Titles}).
+frame titles (@pxref{Frame Titles}).
 
 @defvar mode-line-format
 The value of this variable is a mode line construct with overall
@@ -967,7 +949,7 @@ value is a list, each element may be a list, a symbol, or a string.
 @cindex percent symbol in mode line
 @item @var{string}
 A string as a mode line construct is displayed verbatim in the mode line
-except for @dfn{@code{%}-constructs}.  Decimal digits after the @code{%}
+except for @dfn{@code{%}-constructs}.  Decimal digits after the @samp{%}
 specify the field width for space filling on the right (i.e., the data
 is left justified).  @xref{%-Constructs}.
 
@@ -1010,8 +992,8 @@ the top of the window is to use a list like this: @code{(-3 "%p")}.
 use the same variables that appear in the default value (@pxref{Mode
 Line Variables}), rather than duplicating their contents or displaying
 the information in another fashion.  This way, customizations made by
-the user, by libraries (such as @code{display-time}) and by major modes
-via changes to those variables remain effective.
+the user or by Lisp programs (such as @code{display-time} and major
+modes) via changes to those variables remain effective.
 
 @cindex Shell mode @code{mode-line-format}
   Here is an example of a @code{mode-line-format} that might be
@@ -1037,7 +1019,7 @@ directory.
    "%n" 
    ")%]----"
 @group
-   (line-number-mode "L%l--")
+   '(line-number-mode "L%l--")
    '(-3 . "%p")
    "-%-"))
 @end group
@@ -1056,19 +1038,22 @@ other variables could have the same effects on the mode line if
 This variable holds the value of the mode-line construct that displays
 whether the current buffer is modified.
 
-The default value of @code{mode-line-modified} is
-@code{("--%1*%1*-")}.  This means that the mode line displays
-@samp{--**-} if the buffer is modified, @samp{-----} if the buffer is
-not modified, and @samp{--%%-} if the buffer is read only.
+The default value of @code{mode-line-modified} is @code{("--%1*%1+-")}.
+This means that the mode line displays @samp{--**-} if the buffer is
+modified, @samp{-----} if the buffer is not modified, @samp{--%%-} if
+the buffer is read only, and @samp{--%*--} if the buffer is read only
+and modified.
 
 Changing this variable does not force an update of the mode line.
 @end defvar
 
 @defvar mode-line-buffer-identification
 This variable identifies the buffer being displayed in the window.  Its
-default value is @code{("Emacs: %17b")}, which means that it displays
-@samp{Emacs:} followed by seventeen characters of the buffer name.  You
-may want to change this in modes such as Rmail that do not behave like a
+default value is @code{("%F: %17b")}, which means that it usually
+displays @samp{Emacs:} followed by seventeen characters of the buffer
+name.  (In a terminal frame, it displays the frame name instead of
+@samp{Emacs}; this has the effect of showing the frame number.)  You may
+want to change this in modes such as Rmail that do not behave like a
 ``normal'' Emacs.
 @end defvar
 
@@ -1111,18 +1096,16 @@ The default value of @code{minor-mode-alist} is:
 @example
 @group
 minor-mode-alist
-@result{} ((abbrev-mode " Abbrev") 
-    (overwrite-mode " Ovwrt") 
+@result{} ((vc-mode vc-mode)
+    (abbrev-mode " Abbrev") 
+    (overwrite-mode overwrite-mode) 
     (auto-fill-function " Fill")         
-    (defining-kbd-macro " Def"))
+    (defining-kbd-macro " Def")
+    (isearch-mode isearch-mode))
 @end group
 @end example
 
-@noindent
-(In earlier Emacs versions, @code{auto-fill-function} was called
-@code{auto-fill-hook}.)
-
-  @code{minor-mode-alist} is not buffer-local.  The variables mentioned
+@code{minor-mode-alist} is not buffer-local.  The variables mentioned
 in the alist should be buffer-local if the minor mode can be enabled
 separately in each buffer.
 @end defvar
@@ -1155,10 +1138,11 @@ The default value of @code{default-mode-line-format} is:
  mode-name 
 @end group
 @group
+ mode-line-process
  minor-mode-alist 
  "%n" 
- mode-line-process
  ")%]----"
+ (line-number-mode "L%l--")
  (-3 . "%p")
  "-%-")
 @end group
@@ -1293,15 +1277,15 @@ the functions are called with arguments, or their values are meaningful.
 The name shows you that the hook is abnormal and that you should look at
 its documentation string to see how to use it properly.
 
-  Most major modes run hooks as the last step of initialization.  This
-makes it easy for a user to customize the behavior of the mode, by
-overriding the local variable assignments already made by the mode.  But
-hooks are used in other contexts too.  For example, the hook
-@code{suspend-hook} runs just before Emacs suspends itself
-(@pxref{Suspending Emacs}).
+  Major mode functions are supposed to run a hook called the @dfn{mode
+hook} as the last step of initialization.  This makes it easy for a user
+to customize the behavior of the mode, by overriding the local variable
+assignments already made by the mode.  But hooks are used in other
+contexts too.  For example, the hook @code{suspend-hook} runs just
+before Emacs suspends itself (@pxref{Suspending Emacs}).
 
-  Here's an expression you can put in your @file{.emacs} file to turn on
-Auto Fill mode when in Lisp Interaction mode:
+  Here's an expression that uses a mode hook to turn on Auto Fill mode
+when in Lisp Interaction mode:
 
 @example
 (add-hook 'lisp-interaction-mode-hook 'turn-on-auto-fill)
@@ -1330,39 +1314,9 @@ expression.
 @end group
 @end example
 
-  Finally, here is an example of how to use the Text mode hook to
-provide a customized mode line for buffers in Text mode, displaying the
-default directory in addition to the standard components of the
-mode line.  (This may cause the mode line to run out of space if you
-have very long file names or display the time and load.)
-
-@example
-@group
-(add-hook 'text-mode-hook
-  (function (lambda ()
-              (setq mode-line-format
-@end group
-                    '(mode-line-modified
-                      "Emacs: %14b"
-                      "  "  
-                      default-directory
-                      " "
-                      global-mode-string
-                      "%[(" 
-                      mode-name 
-                      minor-mode-alist 
-@group
-                      "%n" 
-                      mode-line-process  
-                      ") %]---"
-                      (-3 . "%p")
-                      "-%-")))))
-@end group
-@end example
-
   At the appropriate time, Emacs uses the @code{run-hooks} function to
-run particular hooks.  This function calls the hook functions you have
-added with @code{add-hooks}.
+run particular hooks.  This function calls the hook functions that have
+been added with @code{add-hook}.
 
 @defun run-hooks &rest hookvar
 This function takes one or more hook variable names as arguments, and
@@ -1376,7 +1330,7 @@ lambda expression or a symbol with a function definition), it is
 called.  If it is a list, the elements are called, in order.
 The hook functions are called with no arguments.
 
-For example, here's how @code{emacs-lisp-hooks} runs its mode hook:
+For example, here's how @code{emacs-lisp-mode} runs its mode hook:
 
 @example
 (run-hooks 'emacs-lisp-mode-hook)

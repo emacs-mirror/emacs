@@ -151,7 +151,8 @@ expression and storing it in the function cell of the symbol.  This
 lambda expression thus becomes the function definition of the symbol.
 (The term ``function definition'', meaning the contents of the function
 cell, is derived from the idea that @code{defun} gives the symbol its
-definition as a function.)  @xref{Functions}.
+definition as a function.)  @code{defsubst} and @code{defalias} are two
+other ways of defining a function.  @xref{Functions}.
 
   @code{defmacro} defines a symbol as a macro.  It creates a macro
 object and stores it in the function cell of the symbol.  Note that a
@@ -160,8 +161,8 @@ both macro and function definitions are kept in the function cell, and
 that cell can hold only one Lisp object at any given time.
 @xref{Macros}.
 
-  In GNU Emacs Lisp, a definition is not required in order to use a
-symbol as a variable or function.  Thus, you can make a symbol a global
+  In Emacs Lisp, a definition is not required in order to use a symbol
+as a variable or function.  Thus, you can make a symbol a global
 variable with @code{setq}, whether you define it first or not.  The real
 purpose of definitions is to guide programmers and programming tools.
 They inform programmers who read the code that certain symbols are
@@ -503,11 +504,11 @@ stored in the property list @var{plist}.  For example,
 @end defun
 
 @defun plist-put plist property value
-This stores @var{value} as the value of the @var{property} property
-stored in the property list @var{plist}.  It may modify @var{plist}
-destructively, or it may construct new list structure without altering
-the old.  The function returns the modified property list, so you can
-store that back in the place where you got @var{plist}.  For example,
+This stores @var{value} as the value of the @var{property} property in
+the property list @var{plist}.  It may modify @var{plist} destructively,
+or it may construct new list structure without altering the old.  The
+function returns the modified property list, so you can store that back
+in the place where you got @var{plist}.  For example,
 
 @example
 (setq my-plist '(bar t foo 4))

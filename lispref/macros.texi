@@ -163,8 +163,11 @@ macro in the same file where it is used and before its first use.
   Byte-compiling a file executes any @code{require} calls at top-level
 in the file.  This is in case the file needs the required packages for
 proper compilation.  One way to ensure that necessary macro definitions
-are available during compilation is to require the file that defines
-them.  @xref{Features}.
+are available during compilation is to require the files that define
+them (@pxref{Named Features}).  To avoid loading the macro definition files
+when someone @emph{runs} the compiled program, write
+@code{eval-when-compile} around the @code{require} calls (@pxref{Eval
+During Compile}).
 
 @node Defining Macros
 @section Defining Macros
@@ -176,9 +179,9 @@ from the macro call.
 
   It is possible to use an anonymous Lisp macro just like an anonymous
 function, but this is never done, because it does not make sense to pass
-an anonymous macro to mapping functions such as @code{mapcar}.  In
-practice, all Lisp macros have names, and they are usually defined with
-the special form @code{defmacro}.
+an anonymous macro to functionals such as @code{mapcar}.  In practice,
+all Lisp macros have names, and they are usually defined with the
+special form @code{defmacro}.
 
 @defspec defmacro name argument-list body-forms@dots{}
 @code{defmacro} defines the symbol @var{name} as a macro that looks
@@ -207,7 +210,7 @@ called interactively.
 
   Macros often need to construct large list structures from a mixture of
 constants and nonconstant parts.  To make this easier, use the macro
-@code{`} (often called @dfn{backquote}).
+@samp{`} (often called @dfn{backquote}).
 
   Backquote allows you to quote a list, but selectively evaluate
 elements of that list.  In the simplest case, it is identical to the
@@ -226,9 +229,9 @@ two forms yield identical results:
 @end example
 
 @findex , @r{(with Backquote)}
-The special marker @code{,} inside of the argument to backquote
+The special marker @samp{,} inside of the argument to backquote
 indicates a value that isn't constant.  Backquote evaluates the
-argument of @code{,} and puts the value in the list structure:
+argument of @samp{,} and puts the value in the list structure:
 
 @example
 @group
@@ -244,9 +247,9 @@ argument of @code{,} and puts the value in the list structure:
 @findex ,@@ @r{(with Backquote)}
 @cindex splicing (with backquote)
 You can also @dfn{splice} an evaluated value into the resulting list,
-using the special marker @code{,@@}.  The elements of the spliced list
+using the special marker @samp{,@@}.  The elements of the spliced list
 become elements at the same level as the other elements of the resulting
-list.  The equivalent code without using @code{`} is often unreadable.
+list.  The equivalent code without using @samp{`} is often unreadable.
 Here are some examples:
 
 @example
@@ -280,12 +283,12 @@ Here are some examples:
 @end example
 
 @quotation
-Before Emacs version 19.29, @code{`} used a different syntax which
+Before Emacs version 19.29, @samp{`} used a different syntax which
 required an extra level of parentheses around the entire backquote
-construct.  Likewise, each @code{,} or @code{,@@} substition required an
-extra level of parentheses surrounding both the @code{,} or @code{,@@}
+construct.  Likewise, each @samp{,} or @samp{,@@} substition required an
+extra level of parentheses surrounding both the @samp{,} or @samp{,@@}
 and the following expression.  The old syntax required whitespace
-between the @code{`}, @code{,} or @code{,@@} and the following
+between the @samp{`}, @samp{,} or @samp{,@@} and the following
 expression.
 
 This syntax is still accepted, but no longer recommended except for
@@ -363,10 +366,10 @@ Here's an equivalent definition simplified through use of backquote:
 (defmacro for (var from init to final do &rest body)
   "Execute a simple \"for\" loop.
 For example, (for i from 1 to 10 do (print i))."
-  (` (let (((, var) (, init)))
-        (while (<= (, var) (, final))
-          (,@@ body)
-          (inc (, var))))))
+  `(let ((,var ,init))
+     (while (<= ,var ,final)
+       ,@@body
+       (inc ,var))))
 @end group
 @end smallexample
 
@@ -400,11 +403,11 @@ Here is a macro definition that creates this expansion:
 @group
 (defmacro for (var from init to final do &rest body)
   "Execute a simple for loop: (for i from 1 to 10 do (print i))."
-  (` (let (((, var) (, init))
-           (max (, final)))
-       (while (<= (, var) max)
-         (,@@ body)
-         (inc (, var))))))
+  `(let ((,var ,init)
+         (max ,final))
+     (while (<= ,var max)
+       ,@@body
+       (inc ,var))))
 @end group
 @end smallexample
 
@@ -427,11 +430,11 @@ number of times:
   "Execute a simple for loop: (for i from 1 to 10 do (print i))."
 @end group
 @group
-  (` (let (((, var) (, init))
-           (max (, final)))
-       (while (<= (, var) max)
-         (,@@ body)
-         (inc (, var))))))
+  `(let ((,var ,init)
+         (max ,final))
+     (while (<= ,var max)
+       ,@@body
+       (inc ,var))))
 @end group
 @end smallexample
 @end ifinfo
@@ -469,11 +472,11 @@ this way:
 (defmacro for (var from init to final do &rest body)
   "Execute a simple for loop: (for i from 1 to 10 do (print i))."
   (let ((tempvar (make-symbol "max")))
-    (` (let (((, var) (, init))
-             ((, tempvar) (, final)))
-         (while (<= (, var) (, tempvar))
-                (,@@ body)
-                (inc (, var)))))))
+    `(let ((,var ,init)
+           (,tempvar ,final))
+       (while (<= ,var ,tempvar)
+         ,@@body
+         (inc ,var)))))
 @end group
 @end smallexample
 

@@ -103,8 +103,8 @@ running.  It is useful to include this string in bug reports.
 @example
 @group
 (emacs-version)
-  @result{} "GNU Emacs 19.22.1 of Fri Feb 27 1994 \
-on slug (berkeley-unix)"
+  @result{} "GNU Emacs 19.29.1 (i386-debian-linux) \
+ of Tue Jun  6 1995 on balloon"
 @end group
 @end example
 
@@ -113,20 +113,20 @@ echo area.
 @end deffn
 
 @defvar emacs-build-time
-  The value of this variable is the time at which Emacs was built at the
+The value of this variable is the time at which Emacs was built at the
 local site.
 
 @example
 @group
 emacs-build-time
-     @result{} "Fri Feb 27 14:55:57 1994"
+     @result{} "Tue Jun  6 14:55:57 1995"
 @end group
 @end example
 @end defvar
 
 @defvar emacs-version
 The value of this variable is the version of Emacs being run.  It is a
-string such as @code{"19.22.1"}.
+string such as @code{"19.29.1"}.
 @end defvar
 
   The following two variables did not exist before Emacs version 19.23,
@@ -135,12 +135,12 @@ convenient in the future.
 
 @defvar emacs-major-version
 The major version number of Emacs, as an integer.  For Emacs version
-19.23, the value is 19.
+19.29, the value is 19.
 @end defvar
 
 @defvar emacs-minor-version
 The minor version number of Emacs, as an integer.  For Emacs version
-19.23, the value is 23.
+19.29, the value is 29.
 @end defvar
 
 @node Pure Storage, Garbage Collection, Building Emacs, GNU Emacs Internals
@@ -332,7 +332,7 @@ that the subsequent garbage collection does not happen immediately when
 the threshold is exhausted, but only the next time the Lisp evaluator is
 called.
 
-The initial threshold value is 100,000.  If you specify a larger
+The initial threshold value is 300,000.  If you specify a larger
 value, garbage collection will happen less often.  This reduces the
 amount of time spent garbage collecting, but increases total memory use.
 You may want to do this when running a program that creates lots of
@@ -727,6 +727,10 @@ in this buffer, and their values, with the exception of local variables
 that have special slots in the buffer object.  (Those slots are omitted
 from this table.)  @xref{Buffer-Local Variables}.
 
+@item base_buffer
+This field holds the buffer's base buffer (if it is an indirect buffer),
+or @code{nil}.
+
 @item keymap
 This field holds the buffer's local keymap.  @xref{Keymaps}.
 
@@ -920,4 +924,8 @@ The file descriptor for output to the process.
 The file descriptor for the terminal that the subprocess is using.  (On
 some systems, there is no need to record this, so the value is
 @code{nil}.)
+
+@item tty_name
+The name of the terminal that the subprocess is using,
+or @code{nil} if it is using pipes.
 @end table

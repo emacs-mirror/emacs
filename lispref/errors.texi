@@ -52,6 +52,10 @@ See @code{/} and @code{%} in @ref{Numbers}.
 @code{"Buffer is read-only"}@*
 @xref{Read Only Buffers}.
 
+@item cyclic-function-indirection
+@code{"Symbol's chain of function indirections contains a loop"}@*
+@xref{Function Indirection}.
+
 @item end-of-buffer
 @code{"End of buffer"}@*
 @xref{Motion}.
@@ -105,6 +109,10 @@ The values of the symbols @code{nil} and @code{t}
 may not be changed.@*
 @xref{Constant Variables, , Variables that Never Change}.
 
+@item undefined-color
+@code{"Undefined color"}@*
+@xref{Color Names}.
+
 @item void-function
 @code{"Symbol's function definition is void"}@*
 @xref{Function Cells}.
@@ -120,4 +128,30 @@ may not be changed.@*
 @item wrong-type-argument
 @code{"Wrong type argument"}@*
 @xref{Type Predicates}.
+@end table
+
+  These error types, which are all classified as special cases of
+@code{arith-error}, can occur on certain systems for invalid use of
+mathematical functions.
+
+@table @code
+@item domain-error
+@code{"Arithmetic domain error"}@*
+@xref{Math Functions}.
+
+@item overflow-error
+@code{"Arithmetic overflow error"}@*
+@xref{Math Functions}.
+
+@item range-error
+@code{"Arithmetic range error"}@*
+@xref{Math Functions}.
+
+@item singularity-error
+@code{"Arithmetic singularity error"}@*
+@xref{Math Functions}.
+
+@item underflow-error
+@code{"Arithmetic underflow error"}@*
+@xref{Math Functions}.
 @end table

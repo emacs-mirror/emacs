@@ -60,7 +60,7 @@ documentation is displayed.  This allows documentation strings to refer
 to the keys for related commands and be accurate even when a user
 rearranges the key bindings.  (@xref{Accessing Documentation}.)
 
-  Within the Lisp world, a documentation string is kept with the
+  Within the Lisp world, a documentation string accessible through the
 function or variable that it describes:
 
 @itemize @bullet
@@ -81,14 +81,17 @@ function @code{documentation-property} knows how to extract it.
 @cindex @file{etc/DOC-@var{version}}
 To save space, the documentation for preloaded functions and variables
 (including primitive functions and autoloaded functions) is stored in
-the file @file{emacs/etc/DOC-@var{version}}.  The data structure inside
-Emacs has an integer offset into the file, where the documentation
-string ought to be.  The functions @code{documentation} and
-@code{documentation-property} read the documentation from the file
-@file{emacs/etc/DOC-@var{version}} when they notice the integer there;
-this is transparent to the user.  Keeping the documentation strings out
-of the Emacs core image saves a significant amount of space.
-@xref{Building Emacs}.
+the file @file{emacs/etc/DOC-@var{version}}.  The documentation for
+functions and variables loaded during the Emacs session from
+byte-compiled files is stored in those files (@pxref{Docs and
+Compilation}).
+
+The data structure inside Emacs has an integer offset into the file, or
+a list containing a string and an integer, in place of the documentation
+string.  The functions @code{documentation} and
+@code{documentation-property} use that information to read the
+documentation from the appropriate file; this is transparent to the
+user.
 
   For information on the uses of documentation strings, see @ref{Help, ,
 Help, emacs, The GNU Emacs Manual}.
@@ -105,10 +108,10 @@ use to print nice-looking hardcopy for the file
 @defun documentation-property symbol property &optional verbatim
 This function returns the documentation string that is recorded
 @var{symbol}'s property list under property @var{property}.  It
-retrieves the text from the file @file{emacs/etc/DOC-@var{version}} if
-necessary, and runs @code{substitute-command-keys} to substitute actual
-key bindings.  (This substitution is not done if @var{verbatim} is
-non-@code{nil}; the @var{verbatim} argument exists only as of Emacs 19.)
+retrieves the text from a file if necessary, and runs
+@code{substitute-command-keys} to substitute actual key bindings.  (This
+substitution is not done if @var{verbatim} is non-@code{nil}; the
+@var{verbatim} argument exists only as of Emacs 19.)
 
 @smallexample
 @group
@@ -124,14 +127,10 @@ non-@code{nil}; the @var{verbatim} argument exists only as of Emacs 19.)
 @end defun
 
 @defun documentation function &optional verbatim
-This function returns the documentation string of @var{function}.
-This function will access the documentation string if it is stored in
-the @file{emacs/etc/DOC-@var{version}} file.
-
-In addition, @code{documentation} runs @code{substitute-command-keys}
-on the resulting string, so the value contains the actual (current) key
-bindings.  (This is not done if @var{verbatim} is non-@code{nil}; the
-@var{verbatim} argument exists only as of Emacs 19.)
+This function returns the documentation string of @var{function}.  It
+reads the text from a file if necessary.  Then (unless @var{verbatim} is
+non-@code{nil}) it calls @code{substitute-command-keys}, to return a
+value containing the actual (current) key bindings.
 
 The function @code{documentation} signals a @code{void-function} error
 if @var{function} has no function definition.  However, it is ok if

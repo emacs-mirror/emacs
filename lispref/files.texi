@@ -79,6 +79,11 @@ For historical reasons, these functions have names starting with
 functions and variables that access the visited file name of a buffer or
 that find an existing buffer by its visited file name.
 
+  In a Lisp program, if you want to look at the contents of a file but
+not alter it, the fastest way is to use @code{insert-file-contents} in a
+temporary buffer.  Visiting the file is not necessary and takes longer.
+@xref{Reading from Files}.
+
 @deffn Command find-file filename
 This command selects a buffer visiting the file @var{filename},
 using an existing buffer if there is one, and otherwise creating a 
@@ -132,16 +137,6 @@ visiting the file @var{filename}.
 @end example
 @end defun
 
-@deffn Command find-alternate-file filename
-This command selects a buffer visiting the file @var{filename}, then
-kills the buffer that was previously displayed in the selected window.
-It is useful if you have visited the wrong file by mistake, so that you
-can get rid of the buffer that you did not want to create, at the same
-time as you visit the file you intended.
-
-When this command is called interactively, it prompts for @var{filename}.
-@end deffn
-
 @deffn Command find-file-other-window filename
 This command selects a buffer visiting the file @var{filename}, but
 does so in a window other than the selected window.  It may use another
@@ -161,10 +156,11 @@ When this command is called interactively, it prompts for
 @end deffn
 
 @deffn Command view-file filename
-This command visits @var{filename} in View mode, returning to the
-previous buffer when done.  View mode is a mode that allows you to skim
-rapidly through the file but does not let you modify it.  Entering View
-mode runs the normal hook @code{view-mode-hook}.  @xref{Hooks}.
+This command visits @var{filename} in View mode, and displays it in a
+recursive edit, returning to the previous buffer when done.  View mode
+is a mode that allows you to skim rapidly through the file but does not
+let you modify it.  Entering View mode runs the normal hook
+@code{view-mode-hook}.  @xref{Hooks}.
 
 When @code{view-file} is called interactively, it prompts for
 @var{filename}.
@@ -208,6 +204,7 @@ as the name if that name is free; otherwise, it appends a string such as
 
 @strong{Please note:} @code{create-file-buffer} does @emph{not}
 associate the new buffer with a file and does not select the buffer.
+It also does not use the default major mode.
 
 @example
 @group
@@ -368,9 +365,11 @@ the intended name after it is clear there are no errors.  This procedure
 prevents problems such as a lack of disk space from resulting in an
 invalid file.
 
-(This feature worked differently in older Emacs versions.)
+As a side effect, backups must be made by copying.
+@xref{Rename or Copy}.
 
-Some modes set this non-@code{nil} locally in particular buffers.
+Some modes set this variable non-@code{nil} locally in particular
+buffers.
 @end defvar
 
 @defopt require-final-newline
@@ -401,9 +400,11 @@ current buffer after point. It returns a list of the absolute file name
 and the length of the data inserted.  An error is signaled if
 @var{filename} is not the name of a file that can be read.
 
-To set up saved text properties, @code{insert-file-contents} calls the
-functions in the list @code{after-insert-file-functions}.  For more
-information, see @ref{Saving Properties}.
+The function @code{insert-file-contents} checks the file contents
+against the defined file formats, and converts the file contents if
+appropriate.  @xref{Format Conversion}.  It also calls the functions in
+the list @code{after-insert-file-functions}; see @ref{Saving
+Properties}.
 
 If @var{visit} is non-@code{nil}, this function additionally marks the
 buffer as unmodified and sets up various fields in the buffer so that it
@@ -427,10 +428,6 @@ contents of the buffer (actually, just the accessible portion) with the
 contents of the file.  This is better than simply deleting the buffer
 contents and inserting the whole file, because (1) it preserves some
 marker positions and (2) it puts less data in the undo list.
-
-The function @code{insert-file-contents} checks the file contents
-against the defined file formats, and converts the file contents if
-appropriate.  @xref{Format Conversion}.
 @end defun
 
 If you want to pass a file name to another process so that another
@@ -484,19 +481,16 @@ the buffer as visiting another file (@var{visit}).  The argument
 to implement @code{file-precious-flag}; don't use it yourself unless you
 really know what you're doing.
 
-To output information about text properties, @code{write-region} calls
-the functions in the list @code{write-region-annotation-functions}.  For
-more information, see @ref{Saving Properties}.
+The function @code{write-region} converts the data which it writes to
+the appropriate file formats specified by @code{buffer-file-format}.
+@xref{Format Conversion}.  It also calls the functions in the list
+@code{write-region-annotate-functions}; see @ref{Saving Properties}.
 
 Normally, @code{write-region} displays a message @samp{Wrote file
 @var{filename}} in the echo area.  If @var{visit} is neither @code{t}
 nor @code{nil} nor a string, then this message is inhibited.  This
 feature is useful for programs that use files for internal purposes,
 files that the user does not need to know about.
-
-The function @code{write-region} converts the data which it writes to
-the appropriate file formats specified by @code{buffer-file-format}.
-@xref{Format Conversion}.
 @end deffn
 
 @node File Locks
@@ -737,8 +731,8 @@ time as a list of two numbers.  @xref{File Attributes}.
 @comment  node-name,  next,  previous,  up
 @subsection Distinguishing Kinds of Files
 
-  This section describes how to distinguish directories and symbolic
-links from ordinary files.
+  This section describes how to distinguish various kinds of files, such
+as directories, symbolic links, and ordinary files.
 
 @defun file-symlink-p filename
 @cindex file symbolic links
@@ -1330,9 +1324,16 @@ backup version numbers, or trailing tildes.
 @end defun
 
 @defun file-name-sans-extension filename
-This function returns @var{filename} sans its final ``extension'', if
-any.  The extension, in a file name, is the part that follows the last
-@samp{.}.
+This function returns @var{filename} minus its ``extension,'' if any.
+The extension, in a file name, is the part that starts with the last
+@samp{.} in the last name component.  For example,
+
+@example
+(file-name-sans-extension "foo.lose.c")
+     @result{} "foo.lose"
+(file-name-sans-extension "big.hack/foo")
+     @result{} "big.hack/foo"
+@end example
 @end defun
 
 @node Directory Names
@@ -1825,7 +1826,8 @@ This function creates a directory named @var{dirname}.
 @defun delete-directory dirname
 This function deletes the directory named @var{dirname}.  The function
 @code{delete-file} does not work for files that are directories; you
-must use @code{delete-directory} in that case.
+must use @code{delete-directory} for them.  If the directory contains
+any files, @code{delete-directory} signals an error.
 @end defun
 
 @node Magic File Names
@@ -1887,7 +1889,8 @@ Here are the operations that a magic file name handler gets to handle:
 @code{file-name-directory}, @code{file-name-nondirectory},
 @code{file-name-sans-versions}, @code{file-newer-than-file-p},
 @code{file-readable-p}, @code{file-regular-p}, @code{file-symlink-p},
-@code{file-truename}, @code{file-writable-p}, @code{insert-directory},
+@code{file-truename}, @code{get-file-buffer}, @code{file-writable-p},
+@code{insert-directory},
 @code{insert-file-contents}, @code{load}, @code{make-directory},
 @code{make-symbolic-link}, @code{rename-file}, @code{set-file-modes},
 @code{set-visited-file-modtime}, @code{unhandled-file-name-directory},
@@ -1977,9 +1980,10 @@ is a good way to come up with one.
 @cindex encoding file formats
 @cindex decoding file formats
   The variable @code{format-alist} defines a list of @dfn{file formats},
-which are textual representations used in files for the data (text,
+which describe textual representations used in files for the data (text,
 text-properties, and possibly other information) in an Emacs buffer.
-Emacs performs format conversion when reading and writing files.
+Emacs performs format conversion if appropriate when reading and writing
+files.
 
 @defvar format-alist
 This list contains one format definition for each defined file format.
@@ -2014,7 +2018,7 @@ which specify the part of the buffer it should convert.  It should convert
 the text by editing it in place.  Since this can change the length of the
 text, @var{from-fn} should return the modified end position.
 
-One responsibility of @var{from-fm} is to make sure that the beginning
+One responsibility of @var{from-fn} is to make sure that the beginning
 of the file no longer matches @var{regexp}.  Otherwise it is likely to
 get called again.
 
@@ -2061,23 +2065,26 @@ It keeps checking them until none of them is applicable.
 
 Visiting a file, with @code{find-file-noselect} or the commands that use
 it, performs conversion likewise (because it calls
-@code{insert-file-contents}); but it also calls the mode function for
-each format that it decodes.  It stores a list of the format names
-in the buffer-local variable @code{buffer-file-format}.
+@code{insert-file-contents}); it also calls the mode function for each
+format that it decodes.  It stores a list of the format names in the
+buffer-local variable @code{buffer-file-format}.
 
 @defvar buffer-file-format
-This variable holds a list of the file formats that were decoded in the
-course of visiting the current buffer's file.  It is always local in all
+This variable states the format of the visited file.  More precisely,
+this is a list of the file format names that were decoded in the course
+of visiting the current buffer's file.  It is always local in all
 buffers.
 @end defvar
 
 When @code{write-region} writes data into a file, it first calls the
-encoding functions for the formats listed in @code{buffer-file-format}.
+encoding functions for the formats listed in @code{buffer-file-format},
+in the order of appearance in the list.
 
 @defun format-write-file file format
 This command writes the current buffer contents into the file @var{file}
 in format @var{format}, and makes that format the default for future
-saves of the buffer.
+saves of the buffer.  The argument @var{format} is a list of format
+names.
 @end defun
 
 @defvar auto-save-file-format
@@ -2098,7 +2105,7 @@ is always local in all buffers.
   Emacs on MS-DOS makes a distinction between text files and binary
 files.  This is necessary because ordinary text files on MS-DOS use a
 two character sequence between lines: carriage-return and linefeed
-(CRLF).  Emacs expects just a newline character (a linefeed) between
+(@sc{crlf}).  Emacs expects just a newline character (a linefeed) between
 lines.  When Emacs reads or writes a text file on MS-DOS, it needs to
 convert the line separators.  This means it needs to know which files
 are text files and which are binary.  It makes this decision when

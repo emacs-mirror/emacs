@@ -974,7 +974,8 @@ This function returns, as a string, the text matched in the last search
 or match operation.  It returns the entire text if @var{count} is zero,
 or just the portion corresponding to the @var{count}th parenthetical
 subexpression, if @var{count} is positive.  If @var{count} is out of
-range, the value is @code{nil}.
+range, or if that subexpression didn't match anything, the value is
+@code{nil}.
 
 If the last such operation was done against a string with
 @code{string-match}, then you should pass the same string as the
@@ -1083,10 +1084,14 @@ This function replaces the text in the buffer (or in @var{string}) that
 was matched by the last search.  It replaces that text with
 @var{replacement}.
 
-If @var{string} is @code{nil}, @code{replace-match} does the replacement
-by editing the buffer; it leaves point at the end of the replacement
-text, and returns @code{t}.  If @var{string} is a string, it does the
-replacement by constructing and returning a new string.
+If you did the last search in a buffer, you should specify @code{nil}
+for @var{string}.  Then @code{replace-match} does the replacement by
+editing the buffer; it leaves point at the end of the replacement text,
+and returns @code{t}.
+
+If you did the search in a string, pass the same string as @var{string}.
+Then @code{replace-match} does the replacement by constructing and
+returning a new string.
 
 If @var{fixedcase} is non-@code{nil}, then the case of the replacement
 text is not changed; otherwise, the replacement text is converted to a
@@ -1207,10 +1212,10 @@ that shows the problem that arises if you fail to save the match data:
 
   You can save and restore the match data with @code{save-match-data}:
 
-@defspec save-match-data body@dots{}
+@defmac save-match-data body@dots{}
 This special form executes @var{body}, saving and restoring the match
 data around it.
-@end defspec
+@end defmac
 
   You can use @code{set-match-data} together with @code{match-data} to
 imitate the effect of the special form @code{save-match-data}.  This is
@@ -1318,9 +1323,10 @@ this matches a line that starts with a formfeed character.
 match always starts at the beginning of a line; they should not use
 @samp{^} to anchor the match.  Most often, the paragraph commands do
 check for a match only at the beginning of a line, which means that
-@samp{^} would be superfluous.  When there is a left margin, they accept
-matches that start after the left margin.  In that case, a @samp{^}
-would be incorrect.
+@samp{^} would be superfluous.  When there is a nonzero left margin,
+they accept matches that start after the left margin.  In that case, a
+@samp{^} would be incorrect.  However, a @samp{^} is harmless in modes
+where a left margin is never used.
 
 @defvar paragraph-separate
 This is the regular expression for recognizing the beginning of a line

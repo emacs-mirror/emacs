@@ -536,7 +536,7 @@ manual.  You may want to skip this section and refer back to it later.
 
   Throughout this manual, the phrases ``the Lisp reader'' and ``the Lisp
 printer'' are used to refer to those routines in Lisp that convert
-textual representations of Lisp objects into actual objects, and vice
+textual representations of Lisp objects into actual Lisp objects, and vice
 versa.  @xref{Printed Representation}, for more details.  You, the
 person reading this manual, are thought of as ``the programmer'' and are
 addressed as ``you''.  ``The user'' is the person who uses Lisp programs,
@@ -554,7 +554,7 @@ in this font or form: @var{first-number}.
 @cindex boolean
 @cindex false
 
-  In Lisp, the symbol @code{nil} is overloaded with three meanings: it
+  In Lisp, the symbol @code{nil} has three separate meanings: it
 is a symbol with the name @samp{nil}; it is the logical truth value
 @var{false}; and it is the empty list---the list of zero elements.
 When used as a variable, @code{nil} always has the value @code{nil}.

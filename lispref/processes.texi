@@ -46,7 +46,7 @@ This function returns @code{t} if @var{object} is a process,
 * Output from Processes::    Collecting output from an asynchronous subprocess.
 * Sentinels::                Sentinels run when process run-status changes.
 * Transaction Queues::	     Transaction-based communication with subprocesses.
-* TCP::                      Opening network connections.
+* Network::                  Opening network connections.
 @end menu
 
 @node Subprocess Creation
@@ -313,7 +313,7 @@ inputinput@point{}
 a synchronous subprocess are text or binary.  Text data requires
 translation between the end-of-line convention used within Emacs
 (a single newline character) and the convention used outside Emacs
-(the two-character sequence, CRLF).
+(the two-character sequence, @sc{crlf}).
 
   The variable @code{binary-process-input} applies to input sent to the
 subprocess, and @code{binary-process-output} applies to output received
@@ -321,12 +321,12 @@ from it.  A non-@code{nil} value means the data is non-text; @code{nil}
 means the data is text, and calls for conversion.
 
 @defvar binary-process-input
-If this variable is @code{nil}, convert newlines to CRLF sequences in
+If this variable is @code{nil}, convert newlines to @sc{crlf} sequences in
 the input to a synchronous subprocess.
 @end defvar
 
 @defvar binary-process-output
-If this variable is @code{nil}, convert CRLF sequences to newlines in
+If this variable is @code{nil}, convert @sc{crlf} sequences to newlines in
 the output from a synchronous subprocess.
 @end defvar
 
@@ -396,9 +396,8 @@ command.
 @cindex pipes
 @cindex @sc{pty}s
 This variable controls the type of device used to communicate with
-asynchronous subprocesses.  If it is @code{nil}, then pipes are used.
-If it is @code{t}, then @sc{pty}s are used (or pipes if @sc{pty}s are
-not supported).
+asynchronous subprocesses.  If it is non-@code{nil}, then @sc{pty}s are
+used, when available.  Otherwise, pipes are used.
 
 @sc{pty}s are usually preferable for processes visible to the user, as
 in Shell mode, because they allow job control (@kbd{C-c}, @kbd{C-z},
@@ -945,7 +944,7 @@ Now Emacs does this automatically; filter functions never need to do it
 explicitly.  @xref{Match Data}.
 
   A filter function that writes the output into the buffer of the
-process should check whether the process is still alive.  If it tries to
+process should check whether the buffer is still alive.  If it tries to
 insert into a dead buffer, it will get an error.  If the buffer is dead,
 @code{(buffer-name (process-buffer @var{process}))} returns @code{nil}.
 
@@ -1043,6 +1042,13 @@ thus specified are added together, and @code{accept-process-output}
 returns after that much time whether or not there has been any
 subprocess output.
 
+The argument @var{seconds} need not be an integer.  If it is a floating
+point number, this function waits for a fractional number of seconds.
+Some systems support only a whole number of seconds; on these systems,
+@var{seconds} is rounded down.  If the system doesn't support waiting
+fractions of a second, you get an error if you specify nonzero
+@var{millisec}.
+
 Not all operating systems support waiting periods other than multiples
 of a second; on those that do not, you get an error if you specify
 nonzero @var{millisec}.
@@ -1095,14 +1101,9 @@ would be unpredictable.  If you want to permit quitting inside a
 sentinel, bind @code{inhibit-quit} to @code{nil}.  @xref{Quitting}.
 
   A sentinel that writes the output into the buffer of the process
-should check whether the process is still alive.  If it tries to insert
+should check whether the buffer is still alive.  If it tries to insert
 into a dead buffer, it will get an error.  If the buffer is dead,
 @code{(buffer-name (process-buffer @var{process}))} returns @code{nil}.
-
-  In earlier Emacs versions, every sentinel that did regexp searching or
-matching had to explicitly save and restore the match data.  Now Emacs
-does this automatically; sentinels never need to do it explicitly.
-@xref{Match Data}.
 
   If an error happens during execution of a sentinel, it is caught
 automatically, so that it doesn't stop the execution of whatever
@@ -1110,6 +1111,11 @@ programs was running when the sentinel was started.  However, if
 @code{debug-on-error} is non-@code{nil}, the error-catching is turned
 off.  This makes it possible to use the Lisp debugger to debug the
 sentinel.  @xref{Debugger}.
+
+  In earlier Emacs versions, every sentinel that did regexp searching or
+matching had to explicitly save and restore the match data.  Now Emacs
+does this automatically; sentinels never need to do it explicitly.
+@xref{Match Data}.
 
 @defun set-process-sentinel process sentinel
 This function associates @var{sentinel} with @var{process}.  If
@@ -1186,12 +1192,13 @@ to complete, and then terminate the connection or child process.
 Transaction queues are implemented by means of a filter function.
 @xref{Filter Functions}.
 
-@node TCP
-@section TCP
+@node Network
+@section Network Connections
+@cindex network connection
 @cindex TCP
 
-  Emacs Lisp programs can open TCP connections to other processes on the
-same machine or other machines.  A network connection is handled by Lisp
+  Emacs Lisp programs can open TCP network connections to other processes on
+the same machine or other machines.  A network connection is handled by Lisp
 much like a subprocess, and is represented by a process object.
 However, the process you are communicating with is not a child of the
 Emacs process, so you can't kill it or send it signals.  All you can do
@@ -1201,7 +1208,9 @@ what to do about closure of the connection.
 
   You can distinguish process objects representing network connections
 from those representing subprocesses with the @code{process-status}
-function.  @xref{Process Information}.
+function.  It always returns either @code{open} or @code{closed} for a
+network connection, and it never returns either of those values for a
+real subprocess.  @xref{Process Information}.
 
 @defun open-network-stream name buffer-or-name host service
 This function opens a TCP connection for a service to a host.  It

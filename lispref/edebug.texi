@@ -214,7 +214,7 @@ must tell it; @xref{Instrumenting Macro Calls}, for details.
 definition in a way that does not instrument.  There are two ways of
 evaluating forms that never instrument them: from a file with
 @code{load}, and from the minibuffer with @code{eval-expression}
-(@kbd{M-ESC}).
+(@kbd{M-:}).
 
   If Edebug detects a syntax error while instrumenting, it leaves point
 at the erroneous code and signals an @code{invalid-read-syntax} error.
@@ -626,7 +626,7 @@ Evaluate expression @var{exp} in the context outside of Edebug
 (@code{edebug-eval-expression}).  That is, Edebug tries to minimize its
 interference with the evaluation.
 
-@item M-@key{ESC} @var{exp} @key{RET}
+@item M-: @var{exp} @key{RET}
 Evaluate expression @var{exp} in the context of Edebug itself.
 
 @item C-x C-e

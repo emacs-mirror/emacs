@@ -37,9 +37,9 @@ to allow editing and insertion at different places.
 
   Like other positions, point designates a place between two characters
 (or before the first character, or after the last character), rather
-than a particular character.  Many terminals display the cursor over the
-character that immediately follows point; on such terminals, point is
-actually before the character on which the cursor sits.
+than a particular character.  Usually terminals display the cursor over
+the character that immediately follows point; point is actually before
+the character on which the cursor sits.
 
 @cindex point with narrowing
   The value of point is a number between 1 and the buffer size plus 1.
@@ -119,8 +119,6 @@ or relative to the edges of the selected window.  @xref{Point}.
 * Buffer End Motion::      Moving to the beginning or end of the buffer.
 * Text Lines::             Moving in terms of lines of text.
 * Screen Lines::           Moving in terms of lines as displayed.
-* Vertical Motion::        Implementation of @code{next-line} and 
-                             @code{previous-line}.
 * List Motion::            Moving by parsing lists and sexps.
 * Skipping Characters::    Skipping characters belonging to a certain set.
 @end menu
@@ -422,36 +420,6 @@ to use and more reliable (no dependence on goal column, etc.).
 @c ================
 @end ignore
 
-@defvar cache-long-line-scans
-This variable determines whether Emacs should use caches to handle long
-lines more quickly.  This variable is buffer-local, in all buffers.
-
-  Normally, the line-motion functions work by scanning the buffer for
-newlines.  Columnar operations (like @code{move-to-column} and
-@code{compute-motion}) also work by scanning the buffer, summing
-character widths as they go.  This works well for ordinary text, but if
-the buffer's lines are very long (say, more than 500 characters), these
-motion functions will take longer to execute.  Emacs may also take
-longer to update the display.
-
-  If @code{cache-long-line-scans} is non-@code{nil}, these motion
-functions cache the results of their scans, and consult the cache to
-avoid rescanning regions of the buffer until the text is modified.  The
-caches are most beneficial when they prevent the most searching---that
-is, when the buffer contains long lines and large regions of characters
-with the same, fixed screen width.
-
-  When @code{cache-long-line-scans} is non-@code{nil}, processing short
-lines will become slightly slower (because of the overhead of consulting
-the cache), and the caches will use memory roughly proportional to the
-number of newlines and characters whose screen width varies.
-
-  The caches require no explicit maintenance; their accuracy is
-maintained internally by the Emacs primitives.  Enabling or disabling
-the cache should not affect the behavior of any of the motion functions;
-it should only affect their performance.
-@end defvar
-
   Also see the functions @code{bolp} and @code{eolp} in @ref{Near Point}.
 These functions do not move point, but test whether it is already at the
 beginning or end of a line.
@@ -532,7 +500,8 @@ the form @code{(@var{hpos} . @var{vpos})}.
 
 The argument @var{width} is the number of columns available to display
 text; this affects handling of continuation lines.  Use the value
-returned by @code{window-width} for the window of your choice.
+returned by @code{window-width} for the window of your choice;
+normally, use @code{(window-width @var{window})}.
 
 The argument @var{offsets} is either @code{nil} or a cons cell of the
 form @code{(@var{hscroll} . @var{tab-offset})}.  Here @var{hscroll} is
@@ -584,49 +553,6 @@ When you use @code{compute-motion} for the minibuffer, you need to use
 @code{minibuffer-prompt-width} to get the horizontal position of the
 beginning of the first screen line.  @xref{Minibuffer Misc}.
 @end defun
-
-@node Vertical Motion
-@comment  node-name,  next,  previous,  up
-@subsection The User-Level Vertical Motion Commands
-@cindex goal column
-@cindex vertical text line motion
-@findex next-line
-@findex previous-line
-
-  A goal column is useful if you want to edit text such as a table in
-which you want to move point to a certain column on each line.  The goal
-column affects the vertical text line motion commands, @code{next-line}
-and @code{previous-line}.  @xref{Basic,, Basic Editing Commands, emacs,
-The GNU Emacs Manual}.
-
-@defopt goal-column
-This variable holds an explicitly specified goal column for vertical
-line motion commands.  If it is an integer, it specifies a column, and
-these commands try to move to that column on each line.  If it is
-@code{nil}, then the commands set their own goal columns.  Any other
-value is invalid.
-@end defopt
-
-@defvar temporary-goal-column
-This variable holds the temporary goal column during a sequence of
-consecutive vertical line motion commands.  It is overridden by
-@code{goal-column} if that is non-@code{nil}.  It is set each time a
-vertical motion command is invoked, unless the previous command was also
-a vertical motion command.
-@end defvar
-
-@defopt track-eol
-This variable controls how the vertical line motion commands operate
-when starting at the end of a line.  If @code{track-eol} is
-non-@code{nil}, then vertical motion starting at the end of a line will
-keep to the ends of lines (instead of keeping to a particular column).
-This means moving to the end of each line moved onto.  The value of
-@code{track-eol} has no effect if point is not at the end of a line when
-the first vertical motion command is given.
-
-@code{track-eol} has its effect by telling line motion commands to set
-@code{temporary-goal-column} to 9999 instead of to the current column.
-@end defopt
 
 @node List Motion
 @comment  node-name,  next,  previous,  up

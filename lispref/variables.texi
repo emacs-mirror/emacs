@@ -231,6 +231,12 @@ Macro calls (@pxref{Macros}).
 @code{condition-case} (@pxref{Errors}).
 @end itemize
 
+  Variables can also have buffer-local bindings (@pxref{Buffer-Local
+Variables}); a few variables have terminal-local bindings
+(@pxref{Multiple Displays}).  These kinds of bindings work somewhat like
+ordinary local bindings, but they are localized depending on ``where''
+you are in Emacs, rather than localized in time.
+
 @defvar max-specpdl-size
 @cindex variable limit error
 @cindex evaluation error
@@ -409,6 +415,12 @@ is not even evaluated, and @var{symbol}'s value remains unchanged.  If
 evaluates it and sets @var{symbol} to the result.  (If @var{value} is
 omitted, the value of @var{symbol} is not changed in any case.)
 
+When you evaluate a top-level @code{defvar} form with @kbd{C-M-x} in
+Emacs Lisp mode (@code{eval-defun}), a special feature of
+@code{eval-defun} evaluates it as a @code{defconst}.  The purpose of
+this is to make sure the variable's value is reinitialized, when you ask
+for it specifically.
+
 If @var{symbol} has a buffer-local binding in the current buffer,
 @code{defvar} sets the default value, not the local value.
 @xref{Buffer-Local Variables}.
@@ -532,9 +544,9 @@ then the variable is a user option.
 @end defun
 
   If a user option variable has a @code{variable-interactive} property,
-@code{set-variable} uses that value to control reading the new value for
-the variable.  The property's value is used as if it were the argument
-to @code{interactive}.
+the @code{set-variable} command uses that value to control reading the
+new value for the variable.  The property's value is used as if it were
+the argument to @code{interactive}.
 
   @strong{Warning:} If the @code{defconst} and @code{defvar} special
 forms are used while the variable has a local binding, they set the
@@ -714,7 +726,12 @@ an element to a list if it is not already present in the list.
 @defun add-to-list symbol element
 This function sets the variable @var{symbol} by consing @var{element}
 onto the old value, if @var{element} is not already a member of that
-value.  The value of @var{symbol} had better be a list already.
+value.  It returns the resulting list, whether updated or not.  The
+value of @var{symbol} had better be a list already before the call.
+
+The argument @var{symbol} is not implicitly quoted; @code{add-to-list}
+is an ordinary function, like @code{set} and unlike @code{setq}.  Quote
+the argument yourself if that is what you want.
 
 Here's a scenario showing how to use @code{add-to-list}:
 
@@ -944,6 +961,12 @@ Then you can bind the variable in other programs, knowing reliably what
 the effect will be.
 @end itemize
 
+  In either case, you should define the variable with @code{defvar}.
+This helps other people understand your program by telling them to look
+for inter-function usage.  It also avoids a warning from the byte
+compiler.  Choose the variable's name to avoid name conflicts---don't
+use short names like @code{x}.
+
 @node Buffer-Local Variables
 @section Buffer-Local Variables
 @cindex variables, buffer-local
@@ -1027,7 +1050,7 @@ example of what to avoid:
 (setq foo 'a)
 (let ((foo 'temp))
   (set-buffer "b")
-  @dots{})
+  @var{body}@dots{})
 @group
 foo @result{} 'a      ; @r{The old buffer-local value from buffer @samp{a}}
                ;   @r{is now the default value.}
@@ -1107,6 +1130,10 @@ variable does not work.  This is because @code{let} does not distinguish
 between different kinds of bindings; it knows only which variable the
 binding was made for.
 
+If the variable is terminal-local, this function signals an error.  Such
+variables cannot have buffer-local bindings as well.  @xref{Multiple
+Displays}.
+
 @strong{Note:} do not use @code{make-local-variable} for a hook
 variable.  Instead, use @code{make-local-hook}.  @xref{Hooks}.
 @end deffn
@@ -1118,6 +1145,12 @@ local to the current buffer at the time.
 
 The value returned is @var{variable}.
 @end deffn
+
+@defun local-variable-p variable &optional buffer
+This returns @code{t} if @var{variable} is buffer-local in buffer
+@var{buffer} (which defaults to the current buffer); otherwise,
+@code{nil}.
+@end defun
 
 @defun buffer-local-variables &optional buffer
 This function returns a list describing the buffer-local variables in
@@ -1151,12 +1184,6 @@ the current buffer is used.
 
 Note that storing new values into the @sc{cdr}s of cons cells in this
 list does @emph{not} change the local values of the variables.
-@end defun
-
-@defun local-variable-p variable
-This returns @code{t} if @var{variable} is buffer-local in the current
-buffer.  It is much faster to get the answer this way than to examine
-the value of @code{buffer-local-variables}.
 @end defun
 
 @deffn Command kill-local-variable variable

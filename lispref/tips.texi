@@ -60,14 +60,28 @@ library program, at least if there is more than one entry point to the
 program.
 
 @item
+If a file requires certain other library programs to be loaded
+beforehand, then the comments at the beginning of the file should say
+so.  Also, use @code{require} to make sure they are loaded.
+
+@item
 If one file @var{foo} uses a macro defined in another file @var{bar},
-@var{foo} should contain @code{(require '@var{bar})} before the first
-use of the macro.  (And @var{bar} should contain @code{(provide
-'@var{bar})}, to make the @code{require} work.)  This will cause
-@var{bar} to be loaded when you byte-compile @var{foo}.  Otherwise, you
-risk compiling @var{foo} without the necessary macro loaded, and that
-would produce compiled code that won't work right.  @xref{Compiling
-Macros}.
+@var{foo} should contain this expression before the first use of the
+macro:
+
+@example
+(eval-when-compile (require '@var{bar}))
+@end example
+
+@noindent
+(And @var{bar} should contain @code{(provide '@var{bar})}, to make the
+@code{require} work.)  This will cause @var{bar} to be loaded when you
+byte-compile @var{foo}.  Otherwise, you risk compiling @var{foo} without
+the necessary macro loaded, and that would produce compiled code that
+won't work right.  @xref{Compiling Macros}.
+
+Using @code{eval-when-compile} avoids loading @var{bar} when
+the compiled version of @var{foo} is @emph{used}.
 
 @item
 If you define a major mode, make sure to run a hook variable using
@@ -156,11 +170,6 @@ say which functions are replaced, and how the behavior of the
 replacements differs from that of the originals.
 
 @item
-If a file requires certain standard library programs to be loaded
-beforehand, then the comments at the beginning of the file should say
-so.
-
-@item
 Please keep the names of your Emacs Lisp source files to 13 characters
 or less.  This way, if the files are compiled, the compiled files' names
 will be 14 characters or less, which is short enough to fit on all kinds
@@ -210,6 +219,10 @@ When you encounter an error condition, call the function @code{error}
 
 Do not use @code{message}, @code{throw}, @code{sleep-for},
 or @code{beep} to report errors.
+
+@item
+An error message should start with a capital letter but should not end
+with a period.
 
 @item
 Try to avoid using recursive edits.  Instead, do what the Rmail @kbd{e}
@@ -265,10 +278,10 @@ Function calls are slow in Emacs Lisp even when a compiled function
 is calling another compiled function.
 
 @item
-Using the primitive list-searching functions @code{memq}, @code{assq}, or
-@code{assoc} is even faster than explicit iteration.  It may be worth
-rearranging a data structure so that one of these primitive search
-functions can be used.
+Using the primitive list-searching functions @code{memq}, @code{member},
+@code{assq}, or @code{assoc} is even faster than explicit iteration.  It
+may be worth rearranging a data structure so that one of these primitive
+search functions can be used.
 
 @item
 Certain built-in functions are handled specially in byte-compiled code, 
@@ -431,10 +444,6 @@ It is not practical to use @samp{\\[@dots{}]} very many times, because
 display of the documentation string will become slow.  So use this to
 describe the most important commands in your major mode, and then use
 @samp{\\@{@dots{}@}} to display the rest of the mode's keymap.
-
-@item
-Don't use the term ``Elisp'', since that is or was a trademark.
-Use the term ``Emacs Lisp''.
 @end itemize
 
 @node Comment Tips

@@ -61,7 +61,7 @@ name on command symbols (@pxref{Minibuffer Misc}).
 
   Like other buffers, a minibuffer may use any of several local keymaps
 (@pxref{Keymaps}); these contain various exit commands and in some cases
-completion commands.  @xref{Completion}.
+completion commands (@pxref{Completion}).
 
 @itemize @bullet
 @item
@@ -86,6 +86,11 @@ for cautious completion.
 also be used to read a Lisp object in textual form.  The most basic
 primitive for minibuffer input is @code{read-from-minibuffer}; it can do
 either one.
+
+  In most cases, you should not call minibuffer input functions in the
+middle of a Lisp function.  Instead, do all minibuffer input as part of
+reading the arguments for a command, in the @code{interactive} spec.
+@xref{Defining Commands}.
 
 @defun read-from-minibuffer prompt-string &optional initial-contents keymap read hist
 This function is the most general way to get input through the
@@ -199,12 +204,9 @@ possible to put a space into the string, by quoting it.
 @defvar minibuffer-local-ns-map
 This built-in variable is the keymap used as the minibuffer local keymap
 in the function @code{read-no-blanks-input}.  By default, it makes the
-following bindings:
+following bindings, in addition to those of @code{minibuffer-local-map}:
 
 @table @asis
-@item @key{LFD}
-@code{exit-minibuffer}
-
 @item @key{SPC}
 @cindex @key{SPC} in minibuffer
 @code{exit-minibuffer}
@@ -213,27 +215,9 @@ following bindings:
 @cindex @key{TAB} in minibuffer
 @code{exit-minibuffer}
 
-@item @key{RET}
-@code{exit-minibuffer}
-
-@item @kbd{C-g}
-@code{abort-recursive-edit}
-
 @item @kbd{?}
 @cindex @kbd{?} in minibuffer
 @code{self-insert-and-exit}
-
-@item @kbd{M-n}
-@code{next-history-element}
-
-@item @kbd{M-p}
-@code{previous-history-element}
-
-@item @kbd{M-r}
-@code{next-matching-history-element}
-
-@item @kbd{M-s}
-@code{previous-matching-history-element}
 @end table
 @end defvar
 
@@ -805,6 +789,11 @@ can be completed because the next character is not uniquely determined.
   This section describes the higher-level convenient functions for
 reading certain sorts of names with completion.
 
+  In most cases, you should not call these functions in the middle of a
+Lisp function.  When possible, do all minibuffer input as part of
+reading the arguments for a command, in the @code{interactive} spec.
+@xref{Defining Commands}.
+
 @defun read-buffer prompt &optional default existing
 This function reads the name of a buffer and returns it as a string.
 The argument @var{default} is the default name to use, the value to
@@ -1000,7 +989,8 @@ This variable is used by @code{read-file-name}.  Its value controls
 whether @code{read-file-name} starts by placing the name of the default
 directory in the minibuffer, plus the initial file name if any.  If the
 value of this variable is @code{nil}, then @code{read-file-name} does
-not place any initial input in the minibuffer.  In that case, the
+not place any initial input in the minibuffer (unless you specify
+initial input with the @var{initial} argument).  In that case, the
 default directory is still used for completion of relative file names,
 but is not displayed.
 
@@ -1085,7 +1075,7 @@ match for some possibility; @code{nil} otherwise.
 @end itemize
 
   It would be consistent and clean for completion functions to allow
-lambda expressions (lists tha are functions) as well as function
+lambda expressions (lists that are functions) as well as function
 symbols as @var{collection}, but this is impossible.  Lists as
 completion tables are already assigned another meaning---as alists.  It
 would be unreliable to fail to handle an alist normally because it is
@@ -1357,6 +1347,16 @@ This command replaces the minibuffer contents with the value of the next
 expression).
 @end deffn
 
+@defun minibuffer-prompt
+This function returns the prompt string of the currently active
+minibuffer.  If no minibuffer is active, it returns @code{nil}.
+@end defun
+
+@defun minibuffer-prompt-width
+This function returns the display width of the prompt string of the
+currently active minibuffer.  If no minibuffer is active, it returns 0.
+@end defun
+
 @defvar minibuffer-setup-hook
 This is a normal hook that is run whenever the minibuffer is entered.
 @xref{Hooks}.
@@ -1415,16 +1415,6 @@ minibuffer, a nonnegative integer.  If no minibuffers are active, it
 returns zero.
 @end defun
 
-@defun minibuffer-prompt
-This function returns the prompt string of the currently active
-minibuffer.  If no minibuffer is active, it returns @code{nil}.
-@end defun
-
-@defun minibuffer-prompt-width
-This function returns the display width of the prompt string of the
-currently active minibuffer.  If no minibuffer is active, it returns 0.
-@end defun
-
 @defopt enable-recursive-minibuffers
 If this variable is non-@code{nil}, you can invoke commands (such as
 @code{find-file}) that use minibuffers even while in the minibuffer
@@ -1442,5 +1432,5 @@ window is selected.
 If a command name has a property @code{enable-recursive-minibuffers}
 that is non-@code{nil}, then the command can use the minibuffer to read
 arguments even if it is invoked from the minibuffer.  The minibuffer
-command @code{next-matching-history-element} (normally bound to
-@kbd{M-s} in the minibuffer) uses this feature.
+command @code{next-matching-history-element} (normally @kbd{M-s} in the
+minibuffer) uses this feature.

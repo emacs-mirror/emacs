@@ -45,11 +45,11 @@ current buffer.  Each buffer, including the current buffer, may or may
 not be displayed in any windows.
 @end ifinfo
 
-  Buffers in Emacs editing are objects that have distinct names and
-hold text that can be edited.  Buffers appear to Lisp programs as a
-special data type.  The contents of a buffer may be viewed as an
-extendable string; insertions and deletions may occur in any part of the
-buffer.  @xref{Text}.
+  Buffers in Emacs editing are objects that have distinct names and hold
+text that can be edited.  Buffers appear to Lisp programs as a special
+data type.  You can think of the contents of a buffer as an extendable
+string; insertions and deletions may occur in any part of the buffer.
+@xref{Text}.
 
   A Lisp buffer object contains numerous pieces of information.  Some of
 this information is directly accessible to the programmer through
@@ -212,7 +212,7 @@ Any argument called @var{buffer} must be an actual buffer
 object, not a name.
 
   Buffers that are ephemeral and generally uninteresting to the user
-have names starting with a space, so that the @code{list-buffers} or
+have names starting with a space, so that the @code{list-buffers} and
 @code{buffer-menu} commands don't mention them.  A name starting with
 space also initially disables recording undo information; see
 @ref{Undo}.
@@ -567,7 +567,7 @@ A buffer visiting a write-protected file is normally read-only.
 Here, the purpose is to show the user that editing the buffer with the
 aim of saving it in the file may be futile or undesirable.  The user who
 wants to change the buffer text despite this can do so after clearing
-the read-only flag with @kbd{C-M-q}.
+the read-only flag with @kbd{C-x C-q}.
 
 @item
 Modes such as Dired and Rmail make buffers read-only when altering the
@@ -779,6 +779,9 @@ Therefore, when you kill a buffer, you should also take the precautions
 associated with changing the current buffer (unless you happen to know
 that the buffer being killed isn't current).  @xref{Current Buffer}.
 
+  If you kill a buffer that is the base buffer of one or more indirect
+buffers, the indirect buffers are automatically killed as well.
+
   The @code{buffer-name} of a killed buffer is @code{nil}.  You can use
 this feature to test whether a buffer has been killed:
 
@@ -853,7 +856,7 @@ when set for any reason.  @xref{Buffer-Local Variables}.
 
   An @dfn{indirect buffer} shares the text of some other buffer, which
 is called the @dfn{base buffer} of the indirect buffer.  In some ways it
-is the equivalent, for buffers, of a symbolic link among files.  The base
+is the analogue, for buffers, of a symbolic link among files.  The base
 buffer may not itself be an indirect buffer.
 
   The text of the indirect buffer is always identical to the text of its

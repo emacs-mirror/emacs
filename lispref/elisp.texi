@@ -180,8 +180,6 @@ Appendices
 * Standard Keymaps::        List of standard keymaps.
 * Standard Hooks::          List of standard hook variables.
 
-* Antinews::		    Information about Emacs 18.
-
 * Index::                   Index including concepts, functions, variables,
                               and other terms.
 
@@ -422,7 +420,7 @@ Loading
 
 * How Programs Do Loading:: The @code{load} function and others.
 * Autoload::                Setting up a function to autoload.
-* Features::                Loading a library if it isn't already loaded.
+* Named Features::          Loading a library if it isn't already loaded.
 * Repeated Loading::        Precautions about loading a file twice.
 
 Byte Compilation
@@ -650,6 +648,32 @@ Windows
 * Resizing Windows::        Changing the size of a window.
 * Window Configurations::   Saving and restoring the state of the screen.
 
+Frames
+
+* Creating Frames::	    Creating additional frames.
+* Multiple Displays::       Creating frames on other X displays.
+* Frame Parameters::	    Controlling frame size, position, font, etc.
+* Frame Titles::            Automatic updating of frame titles.
+* Deleting Frames::	    Frames last until explicitly deleted.
+* Finding All Frames::	    How to examine all existing frames.
+* Frames and Windows::	    A frame contains windows;
+			      display of text always works through windows.
+* Minibuffers and Frames::  How a frame finds the minibuffer to use.
+* Input Focus::		    Specifying the selected frame.
+* Visibility of Frames::    Frames may be visible or invisible, or icons.
+* Raising and Lowering::    Raising a frame makes it hide other X windows;
+			      lowering it makes the others hide them.
+* Frame Configurations::    Saving the state of all frames.
+* Mouse Tracking::	    Getting events that say when the mouse moves.
+* Mouse Position::	    Asking where the mouse is, or moving it.
+* Pop-Up Menus::	    Displaying a menu for the user to select from.
+* Dialog Boxes::            Displaying a box to ask yes or no.
+* Pointer Shapes::          Specifying the shape of the mouse pointer.
+* X Selections::	    Transferring text to and from other X clients.
+* Color Names::	            Getting the definitions of color names.
+* Resources::		    Getting resource values from the server.
+* Server Data::		    Getting info about the X server.
+
 Positions
 
 * Point::                   The special position where editing takes place.
@@ -664,8 +688,6 @@ Motion
 * Buffer End Motion::       Moving to the beginning or end of the buffer.
 * Text Lines::              Moving in terms of lines of text.
 * Screen Lines::            Moving in terms of lines as displayed.
-* Vertical Motion::         Implementation of @code{next-line} and
-                              @code{previous-line}.
 * List Motion::             Moving by parsing lists and sexps.
 * Skipping Characters::     Skipping characters belonging to a certain set.
 
@@ -693,6 +715,7 @@ Text
 * Undo::                    Undoing changes to the text of a buffer.
 * Auto Filling::            How auto-fill mode is implemented to break lines.
 * Filling::                 Functions for explicit filling.
+* Margins::                 How to specify margins for filling commands.
 * Sorting::                 Functions for sorting parts of the buffer.
 * Indentation::             Functions to insert or adjust indentation.
 * Columns::                 Computing horizontal positions, and using them.
@@ -769,7 +792,7 @@ Processes
                               an asynchronous subprocess.
 * Output from Processes::   Collecting output from an asynchronous subprocess.
 * Sentinels::               Sentinels run when process run-status changes.
-* TCP::                     Opening network connections.
+* Network::                 Opening network connections.
 
 Receiving Output from Processes
 
@@ -886,7 +909,6 @@ Object Internals
 @include locals.texi
 @include maps.texi
 @include hooks.texi
-@include anti.texi
 
 @include index.texi
 

@@ -36,25 +36,29 @@ displayed in windows.
 @cindex window
 @cindex selected window
 
-  A @dfn{window} is the physical area of the screen in which a buffer is
-displayed.  The term is also used to refer to a Lisp object that
+  A @dfn{window} in Emacs is the physical area of the screen in which a
+buffer is displayed.  The term is also used to refer to a Lisp object that
 represents that screen area in Emacs Lisp.  It should be
 clear from the context which is meant.
 
-  There is always at least one window in any frame.  In each frame, at
-any time, one and only one window is designated as @dfn{selected within
-the frame}.  The frame's cursor appears in that window.  There is also
-one selected frame; and the window selected within that frame is
-@dfn{the selected window}.  The selected window's buffer is usually the
-current buffer (except when @code{set-buffer} has been used).
-@xref{Current Buffer}.
+  Emacs groups windows into frames.  A frame represents an area of
+screen available for Emacs to use.  Each frame always contains at least
+one window, but you can subdivide it vertically or horizontally into
+multiple nonoverlapping Emacs windows.
 
-  For practical purposes, a window exists only while it is displayed on the
-terminal.  Once removed from the display, the window is effectively
-deleted and should not be used, @emph{even though there may still be
-references to it} from other Lisp objects.  Restoring a saved window
-configuration is the only way for a window no longer on the screen to
-come back to life.  (@xref{Deleting Windows}.)
+  In each frame, at any time, one and only one window is designated as
+@dfn{selected within the frame}.  The frame's cursor appears in that
+window.  At ant time, one frame is the selected frame; and the window
+selected within that frame is @dfn{the selected window}.  The selected
+window's buffer is usually the current buffer (except when
+@code{set-buffer} has been used).  @xref{Current Buffer}.
+
+  For practical purposes, a window exists only while it is displayed in
+a frame.  Once removed from the frame, the window is effectively deleted
+and should not be used, @emph{even though there may still be references
+to it} from other Lisp objects.  Restoring a saved window configuration
+is the only way for a window no longer on the screen to come back to
+life.  (@xref{Deleting Windows}.)
 
   Each window has the following attributes:
 
@@ -93,17 +97,16 @@ how recently the window was selected
 @cindex multiple windows
   Users create multiple windows so they can look at several buffers at
 once.  Lisp libraries use multiple windows for a variety of reasons, but
-most often to give different views of the same information.  In Rmail,
-for example, you can move through a summary buffer in one window while
-the other window shows messages one at a time as they are reached.
+most often to display related information.  In Rmail, for example, you
+can move through a summary buffer in one window while the other window
+shows messages one at a time as they are reached.
 
   The meaning of ``window'' in Emacs is similar to what it means in the
 context of general-purpose window systems such as X, but not identical.
-The X Window System subdivides the screen into X windows; Emacs uses one
-or more X windows, called @dfn{frames} in Emacs terminology, and
-subdivides each of them into (nonoverlapping) Emacs windows.  When you
-use Emacs on an ordinary display terminal, Emacs subdivides the terminal
-screen into Emacs windows.
+The X Window System places X windows on the screen; Emacs uses one or
+more X windows as frames, and subdivides them into
+Emacs windows.  When you use Emacs on a character-only terminal, Emacs
+treats the whole terminal screen as one frame.
 
 @cindex terminal screen
 @cindex screen of terminal
@@ -300,6 +303,9 @@ Count all windows in all existing frames.
 @item @code{visible}
 Count all windows in all visible frames.
 
+@item 0
+Count all windows in all visible or iconified frames.
+
 @item anything else
 Count precisely the windows in the selected frame, and no others.
 @end table
@@ -370,6 +376,8 @@ If it is @code{nil}, operate on the selected frame.
 If it is @code{t}, operate on all frames.
 @item
 If it is @code{visible}, operate on all visible frames.
+@item 0
+If it is 0, operate on all visible or iconified frames.
 @item
 If it is a frame, operate on that frame.
 @end itemize
@@ -405,6 +413,14 @@ The return value is @var{window}.
 @end example
 @end defun
 
+@defmac save-selected-window forms@dots{}
+This macro records the selected window, executes @var{forms}
+in sequence, then restores the earlier selected window.
+It does not save or restore anything about the sizes, arrangement
+or contents of windows; therefore, if the @var{forms} change them,
+the changes are permanent.
+@end defmac
+
 @cindex finding windows
   The following functions choose one of the windows on the screen,
 offering various criteria for the choice.
@@ -426,6 +442,8 @@ If it is @code{nil}, consider windows on the selected frame.
 If it is @code{t}, consider windows on all frames.
 @item
 If it is @code{visible}, consider windows on all visible frames.
+@item
+If it is 0, consider windows on all visible or iconified frames.
 @item
 If it is a frame, consider windows on that frame.
 @end itemize
@@ -502,6 +520,9 @@ Consider all windows in all existing frames.
 @item @code{visible}
 Consider all windows in all visible frames.  (To get useful results, you
 must ensure @var{window} is in a visible frame.)
+
+@item @code{t}
+Consider all windows in all visible or iconified frames.
 
 @item anything else
 Consider precisely the windows in @var{window}'s frame, and no others.
@@ -611,19 +632,11 @@ If it is @code{t}, consider windows on all frames.
 @item
 If it is @code{visible}, consider windows on all visible frames.
 @item
+If it is 0, consider windows on all visible or iconified frames.
+@item
 If it is a frame, consider windows on that frame.
 @end itemize
 @end defun
-
-@deffn Command replace-buffer-in-windows buffer
-This function replaces @var{buffer} with some other buffer in all
-windows displaying it.  The other buffer used is chosen with
-@code{other-buffer}.  In the usual applications of this function, you
-don't care which other buffer is used; you just want to make sure that
-@var{buffer} is no longer displayed.
-
-This function returns @code{nil}.
-@end deffn
 
 @node Displaying Buffers
 @section Displaying Buffers in Windows
@@ -716,11 +729,24 @@ already displayed in the selected window and @var{other-window} is
 @code{nil}, then the selected window is considered sufficient display
 for @var{buffer-or-name}, so that nothing needs to be done.
 
+All the variables that affect @code{display-buffer} affect
+@code{pop-to-buffer} as well.  @xref{Choosing Window}.
+
 If @var{buffer-or-name} is a string that does not name an existing
 buffer, a buffer by that name is created.  The major mode for the new
 buffer is set according to the variable @code{default-major-mode}.
 @xref{Auto Major Mode}.
 @end defun
+
+@deffn Command replace-buffer-in-windows buffer
+This function replaces @var{buffer} with some other buffer in all
+windows displaying it.  The other buffer used is chosen with
+@code{other-buffer}.  In the usual applications of this function, you
+don't care which other buffer is used; you just want to make sure that
+@var{buffer} is no longer displayed.
+
+This function returns @code{nil}.
+@end deffn
 
 @node Choosing Window
 @section Choosing a Window for Display
@@ -804,6 +830,13 @@ If the buffer's name is in this list, @code{display-buffer} handles the
 buffer specially.
 
 By default, special display means to give the buffer a dedicated frame.
+
+If an element is a list, instead of a string, then the @sc{car} of the
+list is the buffer name, and the rest of the list says how to create the
+frame.  There are two possibilities for the rest of the list.  It can be
+an alist, specifying frame parameters, or it can contain a function and
+arguments to give to it.  (The function's first argument is always the
+buffer to be displayed; the arguments from the list come after that.)
 @end defvar
 
 @defvar special-display-regexps
@@ -813,6 +846,10 @@ expressions in this list, @code{display-buffer} handles the buffer
 specially.
 
 By default, special display means to give the buffer a dedicated frame.
+
+If an element is a list, instead of a string, then the @sc{car} of the
+list is the regular expression, and the rest of the list says how to
+create the frame.  See above, under @code{special-display-buffer-names}.
 @end defvar
 
 @defvar special-display-function
@@ -840,6 +877,20 @@ window was previously made by this function.
 This variable holds frame parameters for
 @code{special-display-popup-frame} to use when it creates a frame.
 @end defopt
+
+@defvar same-window-buffer-names
+A list of buffer names for buffers that should be displayed in the
+selected window.  If the buffer's name is in this list,
+@code{display-buffer} handles the buffer by switching to it in the
+selected window.
+@end defvar
+
+@defvar same-window-regexps
+A list of regular expressions that specify buffers that should be
+displayed in the selected window.  If the buffer's name matches any of
+the regular expressions in this list, @code{display-buffer} handles the
+buffer by switching to it in the selected window.
+@end defvar
 
 @c Emacs 19 feature
 @defvar display-buffer-function
@@ -1124,10 +1175,6 @@ the window (not counting its mode line).
 This function scrolls the text in another window upward @var{count}
 lines.  Negative values of @var{count}, or @code{nil}, are handled
 as in @code{scroll-up}.
-
-The window that is scrolled is normally the one following the selected
-window in the cyclic ordering of windows---the window that
-@code{next-window} would return.  @xref{Cyclic Window Ordering}.
 
 You can specify a buffer to scroll with the variable
 @code{other-window-scroll-buffer}.  When the selected window is the
@@ -1539,6 +1586,11 @@ comparing the old size data with the new.
 Creating or deleting windows counts as a size change, and therefore
 causes these functions to be called.  Changing the frame size also
 counts, because it changes the sizes of the existing windows.
+
+It is not a good idea to use @code{save-window-excursion} in these
+functions, because that always counts as a size change, and it would
+cause these functions to be called over and over.  In most cases,
+@code{save-selected-window} is what you need here.
 @end defvar
 
 @node Coordinates and Windows
@@ -1627,6 +1679,11 @@ buffers to the state specified by @var{configuration}.  The argument
 @var{configuration} must be a value that was previously returned by
 @code{current-window-configuration}.
 
+This function always counts as a window size change and triggers
+execution of the @code{window-size-change-functions}.  (It doesn't know
+how to tell whether the new configuration actually differs from the old
+one.)
+
 Here is a way of using this function to get the same effect
 as @code{save-window-excursion}:
 
@@ -1648,6 +1705,13 @@ configuration includes the value of point and the portion of the buffer
 that is visible.  It also includes the choice of selected window.
 However, it does not include the value of point in the current buffer;
 use @code{save-excursion} if you wish to preserve that.
+
+Don't use this construct when @code{save-selected-window} is all you need.
+
+Exit from @code{save-window-excursion} always triggers execution of the
+@code{window-size-change-functions}.  (It doesn't know how to tell
+whether the restored configuration actually differs from the one in
+effect at the end of the @var{forms}.)
 
 The return value is the value of the final form in @var{forms}.
 For example:

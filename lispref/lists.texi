@@ -543,9 +543,9 @@ Here are some examples where the final argument is not a list:
 
 @example
 (append '(x y) 'z)
-     @result{} (x y z)
+     @result{} (x y . z)
 (append '(x y) [z])
-     @result{} (x y [z])
+     @result{} (x y . [z])
 @end example
 
 @noindent
@@ -980,11 +980,6 @@ sorted order.  If you wish to make a sorted copy without destroying the
 original, copy it first with @code{copy-sequence} and then sort.
 
 Sorting does not change the @sc{car}s of the cons cells in @var{list};
-each cons cell in the result contains the same element that it contained
-before.  The result differs from the argument @var{list} because the
-cells themselves have been reordered.
-
-Sorting does not change the @sc{car}s of the cons cells in @var{list};
 the cons cell that originally contained the element @code{a} in
 @var{list} still has @code{a} in its @sc{car} after sorting, but it now
 appears in a different position in the list due to the change of
@@ -1106,8 +1101,8 @@ sample-list
 @end group
 @end example
 
-Note that @code{(delq 'b sample-list)} modifies @code{sample-list} to
-splice out the second element, but @code{(delq 'a sample-list)} does not
+Note that @code{(delq 'c sample-list)} modifies @code{sample-list} to
+splice out the third element, but @code{(delq 'a sample-list)} does not
 splice anything---it just returns a shorter list.  Don't assume that a
 variable which formerly held the argument @var{list} now has fewer
 elements, or that it still holds the original list!  Instead, save the
@@ -1177,6 +1172,9 @@ it removes the element just as @code{delq} would.  For example:
 GNU Emacs Lisp are derived from Maclisp, not Common Lisp.  The Common
 Lisp versions do not use @code{equal} to compare elements.
 @end quotation
+
+  See also the function @code{add-to-list}, in @ref{Setting Variables},
+for another way to add an element to a list stored in a variable.
 
 @node Association Lists
 @section Association Lists

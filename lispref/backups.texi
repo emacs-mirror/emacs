@@ -65,11 +65,12 @@ permanent local; @code{kill-local-variables} does not alter it.
 @end defvar
 
 @defopt make-backup-files
-  This variable determines whether or not to make backup files.  If it
+This variable determines whether or not to make backup files.  If it
 is non-@code{nil}, then Emacs creates a backup of each file when it is
-saved for the first time.
+saved for the first time---provided that @code{backup-inhibited}
+is @code{nil} (see below).
 
-  The following example shows how to change the @code{make-backup-files}
+The following example shows how to change the @code{make-backup-files}
 variable only in the @file{RMAIL} buffer and not elsewhere.  Setting it
 @code{nil} stops Emacs from making backups of the @file{RMAIL} file,
 which may save disk space.  (You would put this code in your
@@ -107,10 +108,12 @@ The default value is this:
 If this variable is non-@code{nil}, backups are inhibited.  It records
 the result of testing @code{backup-enable-predicate} on the visited file
 name.  It can also coherently be used by other mechanisms that inhibit
-backups based on which file is visited.  This is a permanent local,
-so that changing the major mode does not lose its value.
+backups based on which file is visited.  For example, VC sets this
+variable non-@code{nil} to prevent making backups for files managed
+with a version control system.
 
-Major modes should not set this variable---they should set
+This is a permanent local, so that changing the major mode does not lose
+its value.  Major modes should not set this variable---they should set
 @code{make-backup-files} instead.
 @end defvar
 
@@ -506,7 +509,7 @@ If this variable is non-@code{nil}, buffers that are visiting files
 have auto-saving enabled by default.  Otherwise, they do not.
 @end defopt
 
-@deffn Command do-auto-save &optional no-message
+@deffn Command do-auto-save &optional no-message current-only
 This function auto-saves all buffers that need to be auto-saved.  It
 saves all buffers for which auto-saving is enabled and that have been
 changed since the previous auto-save.
@@ -515,6 +518,9 @@ Normally, if any buffers are auto-saved, a message that says
 @samp{Auto-saving...} is displayed in the echo area while auto-saving is
 going on.  However, if @var{no-message} is non-@code{nil}, the message
 is inhibited.
+
+If @var{current-only} is non-@code{nil}, only the current buffer
+is auto-saved.
 @end deffn
 
 @defun delete-auto-save-file-if-necessary
@@ -545,17 +551,22 @@ in response.
 
 If it is -1, that means auto-saving is temporarily shut off in this
 buffer due to a substantial deletion.  Explicitly saving the buffer
-stores a positive value in this variable, thus reenabling auto-save.
+stores a positive value in this variable, thus reenabling auto-saving.
 Turning auto-save mode off or on also alters this variable.
 @end defvar
 
 @defvar auto-save-list-file-name
 This variable (if non-@code{nil}) specifies a file for recording the
 names of all the auto-save files.  Each time Emacs does auto-saving, it
-writes into this file the names of all the auto-save files of all the
-buffers that have auto-save enabled.  If Emacs crashes, you can look in
-this file to find all the auto-save files that might contain work that
-was otherwise lost.  The @code{multi-replace} command uses these files.
+writes two lines into this file for each buffer that has auto-saving
+enabled.  The first line gives the name of the visited file (it's empty
+if the buffer has none), and the second gives the name of the auto-save
+file.
+
+If Emacs exits normally, it deletes this file.  If Emacs crashes, you
+can look in the file to find all the auto-save files that might contain
+work that was otherwise lost.  The @code{recover-session} command uses
+these files.
 
 The default name for this file is in your home directory and starts with
 @samp{.saves-}.  It also contains the Emacs process @sc{id} and the host
@@ -612,9 +623,9 @@ regenerate the contents.
 
 @defvar revert-buffer-insert-file-contents-function
 The value of this variable, if non-@code{nil}, is the function to use to
-insert contents when reverting this buffer.  The function receives two
-arguments, first the file name to use; second, @code{t} if the user has
-asked to read the auto-save file.
+insert the updated contents when reverting this buffer.  The function
+receives two arguments: first the file name to use; second, @code{t} if
+the user has asked to read the auto-save file.
 @end defvar
 
 @defvar before-revert-hook
@@ -634,17 +645,4 @@ the modified contents---but only if @code{revert-buffer-function} is
 Font Lock mode uses this hook to recompute the fonts for the updated
 buffer contents.
 @end defvar
-
-@deffn Command recover-file filename
-This function visits @var{filename}, but gets the contents from its
-last auto-save file.  This is useful after the system has crashed, to
-resume editing the same file without losing all the work done in the
-previous session.
-
-An error is signaled if there is no auto-save file for @var{filename},
-or if @var{filename} is newer than its auto-save file.  If
-@var{filename} does not exist, but its auto-save file does, then the
-auto-save file is read as usual.  This last situation may occur if you
-visited a nonexistent file and never actually saved it.
-@end deffn
 

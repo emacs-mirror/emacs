@@ -79,7 +79,9 @@ Structures}.
 A @dfn{macro} is a construct defined in Lisp by the programmer.  It
 differs from a function in that it translates a Lisp expression that you
 write into an equivalent expression to be evaluated instead of the
-original expression.  @xref{Macros}, for how to define and use macros.
+original expression.  Macros enable Lisp programmers to do the sorts of
+things that special forms can do.  @xref{Macros}, for how to define and
+use macros.
 
 @item command
 @cindex command
@@ -150,9 +152,11 @@ function.  For example:
 @end example
 
 @noindent
-(Such a list is called a @dfn{lambda expression} for historical reasons,
-even though it is not really an expression at all---it is not a form
-that can be evaluated meaningfully.)
+Such a list is called a @dfn{lambda expression}.  In Emacs Lisp, it
+actually is valid as an expression---it evaluates to itself.  In some
+other Lisp dialects, a lambda expression is not a valid expression at
+all.  In either case, its main use is not to be evaluated as an
+expression, but to be called as a function.
 
 @menu
 * Lambda Components::       The parts of a lambda expression.
@@ -374,17 +378,17 @@ actually appears inside the Lisp world and can be used by the Emacs help
 facilities.  @xref{Documentation}, for how the @var{documentation-string} is
 accessed.
 
-  It is a good idea to provide documentation strings for all commands,
-and for all other functions in your program that users of your program
-should know about; internal functions might as well have only comments,
-since comments don't take up any room when your program is loaded.
+  It is a good idea to provide documentation strings for all the
+functions in your program, even those that are only called from within
+your program.  Documentation strings are like comments, except that they
+are easier to access.
 
   The first line of the documentation string should stand on its own,
 because @code{apropos} displays just this first line.  It should consist
 of one or two complete sentences that summarize the function's purpose.
 
-  The start of the documentation string is usually indented, but since
-these spaces come before the starting double-quote, they are not part of
+  The start of the documentation string is usually indented in the source file,
+but since these spaces come before the starting double-quote, they are not part of
 the string.  Some people make a practice of indenting any additional
 lines of the string so that the text lines up in the program source.
 @emph{This is a mistake.}  The indentation of the following lines is
@@ -532,10 +536,20 @@ deliberate redefinition from unintentional redefinition.
 @defun defalias name definition
 This special form defines the symbol @var{name} as a function, with
 definition @var{definition} (which can be any valid Lisp function).
-It's best to use this rather than @code{fset} when defining a function
-in a file, because @code{defalias} records which file defined the
-function (@pxref{Unloading}), while @code{fset} does not.
+
+The proper place to use @code{defalias} is where a specific function
+name is being defined---especially where that name appears explicitly in
+the source file being loaded.  This is because @code{defalias} records
+which file defined the function, just like @code{defun}
+(@pxref{Unloading}).
+
+By contrast, in programs that manipulate function definitions for other
+purposes, it is better to use @code{fset}, which does not keep such
+records.
 @end defun
+
+  See also @code{defsubst}, which defines a function like @code{defun}
+and tells the Lisp compiler to open-code it.  @xref{Inline Functions}.
 
 @node Calling Functions
 @section Calling Functions
@@ -645,8 +659,8 @@ find them in data structures (especially in hook variables and property
 lists) and call them using @code{funcall} or @code{apply}.  Functions
 that accept function arguments are often called @dfn{functionals}.
 
-  Sometimes, when you call such a function, it is useful to supply a
-no-op function as the argument.  Here are two different kinds of no-op
+  Sometimes, when you call a functional, it is useful to supply a no-op
+function as the argument.  Here are two different kinds of no-op
 function:
 
 @defun identity arg
@@ -1007,7 +1021,7 @@ Functions}.
 @end defun
 
   When writing a function that extends a previously defined function,
-the following idiom is often used:
+the following idiom is sometimes used:
 
 @example
 (fset 'old-foo (symbol-function 'foo))
@@ -1026,6 +1040,9 @@ to define @code{old-foo} by loading a file.  Since this presumably
 defines @code{foo} rather than @code{old-foo}, it does not produce the
 proper results.  The only way to avoid this problem is to make sure the
 file is loaded before moving aside the old definition of @code{foo}.
+
+  But it is unmodular and unclean, in any case, for a Lisp file to
+redefine a function defined elsewhere.
 
 @node Inline Functions
 @section Inline Functions
@@ -1063,7 +1080,7 @@ Evaluation}.)
 Inline functions can be used and open-coded later on in the same file,
 following the definition, just like macros.
 
-Emacs versions prior to 19 did not have inline functions.
+@c Emacs versions prior to 19 did not have inline functions.
 
 @node Related Topics
 @section Other Topics Related to Functions

@@ -18,9 +18,10 @@ horizontally into smaller windows.
 @dfn{terminal frames}.  If you create additional ones, Emacs displays
 one and only one at any given time---on the terminal screen, of course.
 
-  When Emacs uses X for display, it does not have a terminal frame;
-instead, it starts with a single @dfn{X window frame}.  It can display
-multiple X window frames at the same time, each in its own X window.
+  When Emacs communicates directly with an X server, it does not have a
+terminal frame; instead, it starts with a single @dfn{X window frame}.
+It can display multiple X window frames at the same time, each in its
+own X window.
 
 @defun framep object
 This predicate returns @code{t} if @var{object} is a frame, and
@@ -48,7 +49,7 @@ This predicate returns @code{t} if @var{object} is a frame, and
 * Dialog Boxes::                Displaying a box to ask yes or no.
 * Pointer Shapes::              Specifying the shape of the mouse pointer.
 * X Selections::		Transferring text to and from other X clients.
-* X Connections::	        Opening and closing the X server connection.
+* Color Names::	                Getting the definitions of color names.
 * Resources::		        Getting resource values from the server.
 * Server Data::		        Getting info about the X server.
 @end menu
@@ -66,8 +67,8 @@ an X window frame; otherwise, it makes a terminal frame.
 
 The argument is an alist specifying frame parameters.  Any parameters
 not mentioned in @var{alist} default according to the value of the
-variable @code{default-frame-alist}; parameters not specified there
-either default from the standard X defaults file and X resources.
+variable @code{default-frame-alist}; parameters not specified even there
+default from the standard X defaults file and X resources.
 
 The set of possible parameters depends in principle on what kind of
 window system Emacs uses to display its frames.  @xref{X Frame
@@ -120,7 +121,8 @@ argument, it is like @code{make-frame} (@pxref{Creating Frames}).
 
 @defun x-display-list
 This returns a list that indicates which X displays Emacs has a
-connection to.  The elements of the list are display names (strings).
+connection to.  The elements of the list are strings, and each one is
+a display name.
 @end defun
 
 @defun x-open-connection display &optional xrm-string
@@ -128,9 +130,18 @@ This function opens a connection to the X display @var{display}.  It
 does not create a frame on that display, but it permits you to check
 that communication can be established with that display.
 
-The optional second argument @var{xrm-string} should be a string of
-resources in xrdb format, or @code{nil}.  The resources, if specified,
-apply to all Emacs frames created on this display.
+The optional argument @var{resource-string}, if not @code{nil}, is a
+string of resource names and values, in the same format used in the
+@file{.Xresources} file.  The values you specify override the resource
+values recorded in the X server itself; they apply to all Emacs frames
+created on this display.  Here's an example of what this string might
+look like:
+
+@example
+"*BorderWidth: 3\n*InternalBorder: 2\n"
+@end example
+
+@xref{Resources}.
 @end defun
 
 @defun x-close-connection display
@@ -147,9 +158,8 @@ Just what parameters a frame has depends on what display mechanism it
 uses.
 
 Frame parameters exist for the sake of window systems.  A terminal frame
-has a few parameters, for compatibility's sake only.  You can't change
-these parameters directly; the only ones that ever change are the height
-and width.
+has a few parameters, mostly for compatibility's sake; only the height,
+width and @code{buffer-predicate} parameters really do something.
 
 @menu
 * Parameter Access::       How to change a frame's parameters.
@@ -196,11 +206,11 @@ file.  After reading that file, Emacs checks @code{initial-frame-alist},
 and applies the parameter settings in the altered value to the already
 created initial frame.
 
-If these settings affect the frame geometry, you'll see the frame appear
-with the wrong geometry and then change to the specified one.  If you
-like, you can specify the same geometry with X resources; those do take
-affect before the frame is created.  @xref{Resources X,, X Resources,
-emacs, The GNU Emacs Manual}.
+If these settings affect the frame geometry and appearance, you'll see
+the frame appear with the wrong ones and then change to the specified
+ones.  If that bothers you, you can specify the same geometry and
+appearance with X resources; those do take affect before the frame is
+created.  @xref{Resources X,, X Resources, emacs, The GNU Emacs Manual}.
 
 X resource settings typically apply to all frames.  If you want to
 specify some X resources solely for the sake of the initial frame, and
@@ -211,8 +221,9 @@ the initial frame, specify the same parameters in
 @code{initial-frame-alist} with values that match the X resources.
 @end defvar
 
-If these parameters specify a separate minibuffer-only frame,
-and you have not created one, Emacs creates one for you.
+If these parameters specify a separate minibuffer-only frame with
+@code{(minibuffer . nil)}, and you have not created one, Emacs creates
+one for you.
 
 @defvar minibuffer-frame-alist
 This variable's value is an alist of parameter values used when creating
@@ -220,20 +231,18 @@ an initial minibuffer-only frame---if such a frame is needed, according
 to the parameters for the main initial frame.
 @end defvar
 
-@defvar special-display-frame-alist
-The variable @code{special-display-frame-alist} specifies the frame
-parameters for special display frames.
-@end defvar
-
 @defvar default-frame-alist
 This is an alist specifying default values of frame parameters for
 subsequent Emacs frames (not the initial ones).
 @end defvar
 
+See also @code{special-display-frame-alist}, in @ref{Choosing Window}.
+
 If you use options that specify window appearance when you invoke Emacs,
 they take effect by adding elements to @code{default-frame-alist}.  One
-exception is @samp{-geometry}, which adds to @code{initial-frame-alist}
-instead.  @xref{Command Arguments,,, emacs, The GNU Emacs Manual}.
+exception is @samp{-geometry}, which adds the specified position to
+@code{initial-frame-alist} instead.  @xref{Command Arguments,,, emacs,
+The GNU Emacs Manual}.
 
 @node X Frame Parameters
 @subsection X Window Frame Parameters
@@ -267,8 +276,9 @@ negative @var{pos} value.
 
 A negative number @minus{}@var{pos}, or a list of the form @code{(-
 @var{pos})}, actually specifies the position of the right edge of the
-window with respect to the right edge of the screen, counting toward the
-left.
+window with respect to the right edge of the screen.  A positive value
+of @var{pos} counts toward the left.  If the parameter is a negative
+integer @minus{}@var{pos} then @var{pos} is positive!
 
 @item top
 The screen position of the top edge, in pixels, with respect to the
@@ -278,8 +288,9 @@ negative @var{pos} value.
 
 A negative number @minus{}@var{pos}, or a list of the form @code{(-
 @var{pos})}, actually specifies the position of the bottom edge of the
-window with respect to the bottom edge of the screen, counting toward the
-top.
+window with respect to the bottom edge of the screen.  A positive value
+of @var{pos} counts toward the top.  If the parameter is a negative
+integer @minus{}@var{pos} then @var{pos} is positive!
 
 @item icon-left
 The screen position of the left edge @emph{of the frame's icon}, in
@@ -312,8 +323,8 @@ The number of the X window for the frame.
 @item minibuffer
 Whether this frame has its own minibuffer.  The value @code{t} means
 yes, @code{nil} means no, @code{only} means this frame is just a
-minibuffer, a minibuffer window (in some other frame) means the new
-frame uses that minibuffer.
+minibuffer.  If the value is a minibuffer window (in some other frame),
+the new frame uses that minibuffer.
 
 @item buffer-predicate
 The buffer-predicate function for this frame.  The function
@@ -350,6 +361,10 @@ The type of icon to use for this frame when it is iconified.  If the
 value is a string, that specifies a file containing a bitmap to use.
 Any other non-@code{nil} value specifies the default bitmap icon (a
 picture of a gnu); @code{nil} specifies a text icon.
+
+@item icon-name
+The name to use in the icon for this frame, when and if the icon
+appears.  If this is @code{nil}, the frame's title is used.
 
 @item foreground-color
 The color to use for the image of a character.  This is a string; the X
@@ -414,9 +429,10 @@ by the window manager in its usual fashion.
   Here are some special features for working with sizes and positions:
 
 @defun set-frame-position frame left top
-This function sets the position of the top left corner of
-@var{frame} to @var{left} and @var{top}.  These arguments are measured
-in pixels, counting from the top left corner of the screen.
+This function sets the position of the top left corner of @var{frame} to
+@var{left} and @var{top}.  These arguments are measured in pixels, and
+count from the top left corner of the screen.  Negative parameter values
+count up or rightward from the top left corner of the screen.
 @end defun
 
 @defun frame-height &optional frame
@@ -479,13 +495,13 @@ the left or top edge of the screen.  A negative integer relates the
 right or bottom edge of the window to the right or bottom edge of the
 screen.
 
-@item (+ @var{position})
+@item @code{(+ @var{position})}
 This specifies the position of the left or top edge of the window
 relative to the left or top edge of the screen.  The integer
 @var{position} may be positive or negative; a negative value specifies a
 position outside the screen.
 
-@item (- @var{position})
+@item @code{(- @var{position})}
 This specifies the position of the right or bottom edge of the window
 relative to the right or bottom edge of the screen.  The integer
 @var{position} may be positive or negative; a negative value specifies a
@@ -494,10 +510,11 @@ position outside the screen.
 
 Here is an example:
 
-@smallexample
+@example
 (x-parse-geometry "35x70+0-0")
-     @result{} ((width . 35) (height . 70) (left . 0) (top - 0))
-@end smallexample
+     @result{} ((width . 35) (height . 70)
+         (left . 0) (top - 0))
+@end example
 @end defun
 
 @ignore
@@ -538,7 +555,7 @@ invisible frames).  The default value of @code{frame-title-format} uses
 @code{multiple-frames} so as to put the buffer name in the frame title
 only when there is more than one frame.
 
-The variable is always local to the current X terminal and cannot be
+The variable is always local to the current terminal and cannot be
 buffer-local.  @xref{Multiple Displays}.
 @end defvar
 
@@ -598,6 +615,8 @@ The second argument, @var{minibuf}, says which frames to consider:
 Exclude minibuffer-only frames.
 @item @code{visible}
 Consider all visible frames.
+@item 0
+Consider all visible or iconified frames.
 @item a window
 Consider only the frames using that particular window as their
 minibuffer.
@@ -610,6 +629,9 @@ Consider all frames.
 Like @code{next-frame}, but cycles through all frames in the opposite
 direction.
 @end defun
+
+  See also @code{next-window} and @code{previous-window}, in @ref{Cyclic
+Window Ordering}.
 
 @node Frames and Windows
 @section Frames and Windows
@@ -644,6 +666,9 @@ This function returns the window on @var{frame} that is selected within
 Conversely, selecting a window for Emacs with @code{select-window} also
 makes that window selected within its frame.  @xref{Selecting Windows}.
 
+Another function that (usually) returns one of the windows in a frame is
+@code{minibuffer-window}.  @xref{Minibuffer Misc}.
+
 @node Minibuffers and Frames
 @section Minibuffers and Frames
 
@@ -653,11 +678,10 @@ you can get it with @code{minibuffer-window} (@pxref{Minibuffer Misc}).
 
 However, you can also create a frame with no minibuffer.  Such a frame
 must use the minibuffer window of some other frame.  When you create the
-frame, you can specify explicitly the frame on which to find the
-minibuffer to use.  If you don't, then the minibuffer is found in the
-frame which is the value of the variable
-@code{default-minibuffer-frame}.  Its value should be a frame that does
-have a minibuffer.
+frame, you can specify explicitly the minibuffer window to use (in some
+other frame).  If you don't, then the minibuffer is found in the frame
+which is the value of the variable @code{default-minibuffer-frame}.  Its
+value should be a frame that does have a minibuffer.
 
 If you use a minibuffer-only frame, you might want that frame to raise
 when you enter the minibuffer.  If so, set the variable
@@ -665,7 +689,7 @@ when you enter the minibuffer.  If so, set the variable
 
 @defvar default-minibuffer-frame
 This variable specifies the frame to use for the minibuffer window, by
-default.  It is always local to the current X terminal and cannot be
+default.  It is always local to the current terminal and cannot be
 buffer-local.  @xref{Multiple Displays}.
 @end defvar
 
@@ -697,7 +721,7 @@ lasts until overridden by a subsequent call to @code{switch-frame}.
 Only the selected terminal frame is actually displayed on the terminal.
 Each terminal screen except for the initial one has a number, and the
 number of the selected frame appears in the mode line after the word
-@samp{Emacs}.
+@samp{Emacs} (@pxref{Mode Line Variables}).
 
 @c ??? This is not yet implemented properly.
 @defun select-frame frame
@@ -758,7 +782,7 @@ change it.
 @cindex iconified frame
 @cindex frame visibility
 
-An X windo frame may be @dfn{visible}, @dfn{invisible}, or
+An X window frame may be @dfn{visible}, @dfn{invisible}, or
 @dfn{iconified}.  If it is visible, you can see its contents.  If it is
 iconified, the frame's contents do not appear on the screen, but an icon
 does.  If the frame is invisible, it doesn't show on the screen, not
@@ -882,6 +906,11 @@ The usual purpose of tracking mouse motion is to indicate on the screen
 the consequences of pushing or releasing a button at the current
 position.
 
+In many cases, you can avoid the need to track the mouse by using
+the @code{mouse-face} text property (@pxref{Special Properties}).
+That works at a much lower level and runs more smoothly than
+Lisp-level mouse tracking.
+
 @ignore
 @c These are not implemented yet.
 
@@ -991,7 +1020,7 @@ can have the following form:
 where each pane is a list of form
 
 @example
-(@var{title} (@var{line} @var{item})...)
+(@var{title} (@var{line} . @var{item})...)
 @end example
 
 Each @var{line} should be a string, and each @var{item} should be the
@@ -1005,8 +1034,8 @@ individual items in that menu and provide help for them.  If instead you
 implement the menu by defining a command that calls @code{x-popup-menu},
 the help facilities cannot know what happens inside that command, so
 they cannot give any help for the menu's items.  This is the reason why
-all the menu bar items except @samp{Buffers} are implemented with menu
-keymaps (@pxref{Menu Keymaps}).
+all the menu bar items are normally implemented with menu keymaps
+(@pxref{Menu Keymaps}).
 
 @node Dialog Boxes
 @section Dialog Boxes
@@ -1144,40 +1173,8 @@ This function stores @var{string} into the first cut buffer (cut buffer
 like the way successive kills in Emacs move down the kill ring.
 @end defun
 
-@node X Connections
-@section X Connections
-
-You can close the connection with the X server with the function
-@code{x-close-current-connection}, and open a new one with
-@code{x-open-connection} (perhaps with a different server and display).
-
-@defun x-close-current-connection
-This function closes the connection to the X server.  It deletes all
-frames, making Emacs effectively inaccessible to the user; therefore, a
-Lisp program that closes the connection should open another one.
-@end defun
-
-@defun x-open-connection display &optional resource-string
-This function opens a connection to an X server, for use of display
-@var{display}.
-
-The optional argument @var{resource-string} is a string of resource
-names and values, in the same format used in the @file{.Xresources}
-file.  The values you specify override the resource values recorded in
-the X server itself.  Here's an example of what this string might look
-like:
-
-@example
-"*BorderWidth: 3\n*InternalBorder: 2\n"
-@end example
-
-@xref{Resources}.
-@end defun
-
-@defun x-display-color-p
-This returns @code{t} if the connected X display has color, and
-@code{nil} otherwise.
-@end defun
+@node Color Names
+@section Color Names
 
 @defun x-color-defined-p color
 This function reports whether a color name is meaningful.  It returns
@@ -1221,39 +1218,27 @@ defined, the value is @code{nil}.
 @end example
 @end defun
 
-@defun x-synchronize flag
-The function @code{x-synchronize} enables or disables synchronous
-communication with the X server.  It enables synchronous communication
-if @var{flag} is non-@code{nil}, and disables it if @var{flag} is
-@code{nil}.
-
-In synchronous mode, Emacs waits for a response to each X protocol
-command before doing anything else.  This is useful for debugging Emacs,
-because protocol errors are reported right away, which helps you find
-the erroneous command.  Synchronous mode is not the default because it
-is much slower.
-@end defun
-
 @node Resources
 @section X Resources
 
-@defun x-get-resource attribute &optional component subclass
+@defun x-get-resource attribute class &optional component subclass
 The function @code{x-get-resource} retrieves a resource value from the X
 Windows defaults database.
 
 Resources are indexed by a combination of a @dfn{key} and a @dfn{class}.
 This function searches using a key of the form
 @samp{@var{instance}.@var{attribute}} (where @var{instance} is the name
-under which Emacs was invoked), and using @samp{Emacs} as the class.
+under which Emacs was invoked), and using @samp{Emacs.@var{class}} as
+the class.
 
 The optional arguments @var{component} and @var{subclass} add to the key
 and the class, respectively.  You must specify both of them or neither.
 If you specify them, the key is
 @samp{@var{instance}.@var{component}.@var{attribute}}, and the class is
-@samp{Emacs.@var{subclass}}.
+@samp{Emacs.@var{class}.@var{subclass}}.
 @end defun
 
-  @xref{Resources X, X Resources,, emacs, The GNU Emacs Manual}.
+  @xref{Resources X,, X Resources, emacs, The GNU Emacs Manual}.
 
 @node Server Data
 @section Data about the X Server
@@ -1263,8 +1248,8 @@ get information about the capabilities and origin of an X display that
 Emacs is using.  Each of these functions lets you specify the display
 you are interested in: the @var{display} argument can be either a
 display name, or a frame (meaning use the display that frame is on).  If
-you omit the @var{display} argument, that means to use the selected
-frame's display.
+you omit the @var{display} argument, or specify @code{nil}, that means
+to use the selected frame's display.
 
 @defun x-display-screens &optional display
 This function returns the number of screens associated with the display.

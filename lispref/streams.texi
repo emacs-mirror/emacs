@@ -52,7 +52,7 @@ text produces a list (but not the same list) with elements @code{a}
 and @code{b}.
 
   However, these two operations are not precisely inverses.  There are
-two kinds of exceptions:
+three kinds of exceptions:
 
 @itemize @bullet
 @item
@@ -66,6 +66,10 @@ One object can have multiple textual representations.  For example,
 @samp{1} and @samp{01} represent the same integer, and @samp{(a b)} and
 @samp{(a .@: (b))} represent the same list.  Reading will accept any of
 the alternatives, but printing must choose one of them.
+
+@item
+Comments can appear at certain points in the middle of an object's
+read sequence without affecting the result of reading it.
 @end itemize
 
 @node Input Streams
@@ -160,8 +164,9 @@ whitespace preceding the significant text.
   In Emacs 18, reading a symbol discarded the delimiter terminating the
 symbol.  Thus, point would end up at the beginning of @samp{contents}
 rather than after @samp{the}.  The Emacs 19 behavior is superior because
-it correctly handles input such as @samp{bar(foo)}, where the delimiter
-that ends one object is needed as the beginning of another object.
+it correctly handles input such as @samp{bar(foo)}, where the
+open-parenthesis that ends one object is needed as the beginning of
+another object.
 
   Here is an example of reading from a stream that is a marker,
 initially positioned at the beginning of the buffer shown.  The value

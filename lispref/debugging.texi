@@ -172,8 +172,8 @@ for @var{function-name} in the minibuffer.
   If the function is already set up to invoke the debugger on entry,
 @code{debug-on-entry} does nothing.
 
-  Caveat: if you redefine a function after using @code{debug-on-entry}
-on it, the code to enter the debugger is lost.
+  @strong{Note:} if you redefine a function after using
+@code{debug-on-entry} on it, the code to enter the debugger is lost.
 
   @code{debug-on-entry} returns @var{function-name}.
 
@@ -217,7 +217,8 @@ Entering:
 @deffn Command cancel-debug-on-entry function-name
 This function undoes the effect of @code{debug-on-entry} on
 @var{function-name}.  When called interactively, it prompts for
-@var{function-name} in the minibuffer.
+@var{function-name} in the minibuffer.  If @var{function-name} is
+@code{nil} or the empty string, it cancels debugging for all functions.
 
 If @code{cancel-debug-on-entry} is called more than once on the same
 function, the second call does nothing.  @code{cancel-debug-on-entry}
@@ -329,12 +330,12 @@ cancels a @kbd{b} command on that frame.
 
 @item e
 Read a Lisp expression in the minibuffer, evaluate it, and print the
-value in the echo area.  The debugger alters certain important variables
-as part of its operation; @kbd{e} temporarily restores their
-outside-the-debugger values so you can examine them.  This makes the
-debugger more transparent.  By contrast, @kbd{M-@key{ESC}} does nothing
-special in the debugger; it shows you the variable values within the
-debugger.
+value in the echo area.  The debugger alters certain important
+variables, and the current buffer, as part of its operation; @kbd{e}
+temporarily restores their outside-the-debugger values so you can
+examine them.  This makes the debugger more transparent.  By contrast,
+@kbd{M-:} does nothing special in the debugger; it shows you the
+variable values within the debugger.
 
 @item q
 Terminate the program being debugged; return to top-level Emacs
@@ -376,7 +377,7 @@ whatever called @code{debug}.  This is the only way the function
 
 If the first of the @var{debugger-args} passed to @code{debug} is
 @code{nil} (or if it is not one of the special values in the table
-below), then @code{debug} displays the rest of its arguments at the the
+below), then @code{debug} displays the rest of its arguments at the
 top of the @samp{*Backtrace*} buffer.  This mechanism is used to display
 a message to the user.
 
@@ -564,7 +565,7 @@ This function is used only by the debugger.
 @end defun
 
 @defvar command-debug-status
-This variable records the debugging status of current interactive
+This variable records the debugging status of the current interactive
 command.  Each time a command is called interactively, this variable is
 bound to @code{nil}.  The debugger can set this variable to leave
 information for future debugger invocations during the same command.

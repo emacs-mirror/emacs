@@ -24,6 +24,12 @@ however, as fast as true compiled code.
 by recent earlier versions of Emacs, but the reverse is not true.  In
 particular, if you compile a program with Emacs 19.29, the compiled
 code does not run in earlier versions.
+@iftex
+@xref{Docs and Compilation}.
+@end iftex
+Files compiled in versions before 19.29 may not work in 19.29 if they
+contain character constants with modifier bits, because the bits were
+renumbered in Emacs 19.29.
 
   @xref{Compilation Errors}, for how to investigate errors occurring in
 byte compilation.
@@ -98,10 +104,13 @@ expanded when they are compiled, so the macros must already be defined
 for proper compilation.  For more details, see @ref{Compiling Macros}.
 
   Normally, compiling a file does not evaluate the file's contents or
-load the file.  But it does execute any @code{require} calls at
-top level in the file.  One way to ensure that necessary macro
-definitions are available during compilation is to require the file that
-defines them.  @xref{Features}.
+load the file.  But it does execute any @code{require} calls at top
+level in the file.  One way to ensure that necessary macro definitions
+are available during compilation is to require the file that defines
+them (@pxref{Named Features}).  To avoid loading the macro definition files
+when someone @emph{runs} the compiled program, write
+@code{eval-when-compile} around the @code{require} calls (@pxref{Eval
+During Compile}).
 
 @defun byte-compile symbol
 This function byte-compiles the function definition of @var{symbol},
@@ -191,10 +200,10 @@ This function recompiles every @samp{.el} file in @var{directory} that
 needs recompilation.  A file needs recompilation if a @samp{.elc} file
 exists but is older than the @samp{.el} file.
 
-If a @samp{.el} file exists, but there is no corresponding @samp{.elc}
-file, then @var{flag} says what to do.  If it is @code{nil}, the file is
+When a @samp{.el} file has no corresponding @samp{.elc} file, then
+@var{flag} says what to do.  If it is @code{nil}, these files are
 ignored.  If it is non-@code{nil}, the user is asked whether to compile
-the file.
+each such file.
 
 The returned value of this command is unpredictable.
 @end deffn
@@ -265,7 +274,7 @@ turn off this feature by setting @code{byte-compile-dynamic-docstrings}
 to @code{nil}.  Once this is done, you can compile files that will load
 into older Emacs versions.  You can do this globally, or for one source
 file by specifying a file-local binding for the variable.  Here's one
-way:
+way to do that:
 
 @example
 -*-byte-compile-dynamic-docstrings: nil;-*-
@@ -372,7 +381,7 @@ At top level, this is analogous to the Common Lisp idiom
 @end defspec
 
 @node Byte-Code Objects
-@section Byte-Code Objects
+@section Byte-Code Function Objects
 @cindex compiled function
 @cindex byte-code function
 
@@ -408,10 +417,10 @@ symbols used as function names and variable names.
 The maximum stack size this function needs.
 
 @item docstring
-The documentation string (if any); otherwise, @code{nil}.  For functions
-preloaded before Emacs is dumped, this is usually an integer which is an
-index into the @file{DOC} file; use @code{documentation} to convert this
-into a string (@pxref{Accessing Documentation}).
+The documentation string (if any); otherwise, @code{nil}.  The value may
+be a number or a list, in case the documentation string is stored in a
+file.  Use the function @code{documentation} to get the real
+documentation string (@pxref{Accessing Documentation}).
 
 @item interactive
 The interactive spec (if any).  This can be a string or a Lisp

@@ -45,6 +45,11 @@ Even more powerful is @code{redraw-display}:
 This function clears and redisplays all visible frames.
 @end deffn
 
+  Processing user input takes absolute priority over redisplay.  If you
+call these functions when input is available, they do nothing
+immediately, but a full redisplay does happen eventually---after all the
+input has been processed.
+
   Normally, suspending and resuming Emacs also refreshes the screen.
 Some terminal emulators record separate contents for display-oriented
 programs such as Emacs and for ordinary sequential display.  If you are
@@ -58,11 +63,6 @@ This variable controls whether Emacs redraws the entire screen after it
 has been suspended and resumed.  Non-@code{nil} means yes, @code{nil}
 means no.
 @end defvar
-
-  Processing user input takes absolute priority over redisplay.  If you
-call these functions when input is available, they do nothing
-immediately, but a full redisplay does happen eventually---after all the
-input has been processed.
 
 @node Screen Size
 @section Screen Size
@@ -154,10 +154,10 @@ then truncation is always used for side-by-side windows (within one
 frame) regardless of the value of @code{truncate-lines}.
 @end defopt
 
-@defvar default-truncate-lines
+@defopt default-truncate-lines
 This variable is the default value for @code{truncate-lines}, for
 buffers that do not have local values for it.
-@end defvar
+@end defopt
 
 @defopt truncate-partial-width-windows
 This variable controls display of lines that extend beyond the right
@@ -171,15 +171,17 @@ with the display table; see @ref{Display Tables}.
 
   If your buffer contains @strong{very} long lines, and you use
 continuation to display them, just thinking about them can make Emacs
-redisplay slow.
+redisplay slow.  The column computation and indentation functions also
+become slow.  Then you might find it advisable to set
+@code{cache-long-line-scans} to @code{t}.
 
 @defvar cache-long-line-scans
 If this variable is non-@code{nil}, various indentation and motion
-functions, and Emacs redisplay, cache the results of their scans for
-newlines, and consult the cache to avoid rescanning regions of the
-buffer unless they are modified.
+functions, and Emacs redisplay, cache the results of scanning the
+buffer, and consult the cache to avoid rescanning regions of the buffer
+unless they are modified.
 
-Turning on the newline cache slows down processing of short lines.
+Turning on the cache slows down processing of short lines somewhat.
 
 This variable is automatically local in every buffer.
 @end defvar
@@ -248,6 +250,17 @@ how to display a message and prevent it from being logged:
 @end example
 @end defopt
 
+@defvar echo-keystrokes
+This variable determines how much time should elapse before command
+characters echo.  Its value must be an integer, which specifies the
+number of seconds to wait before echoing.  If the user types a prefix
+key (such as @kbd{C-x}) and then delays this many seconds before
+continuing, the prefix key is echoed in the echo area.  Any subsequent
+characters in the same command will be echoed as well.
+
+If the value is zero, then command input is not echoed.
+@end defvar
+
 @defvar cursor-in-echo-area
 This variable controls where the cursor appears when a message is
 displayed in the echo area.  If it is non-@code{nil}, then the cursor
@@ -284,7 +297,7 @@ especially useful in a program to display the list of entries in a data
 base.  It permits the implementation of convenient filtering commands to
 view just a part of the entries in the data base.  Setting this variable
 is very fast, much faster than scanning all the text in the buffer
-looking for things to change.
+looking for properties to change.
 
 @defvar buffer-invisibility-spec
 This variable specifies which kinds of @code{invisible} properties
@@ -314,13 +327,16 @@ by a visible newline, it displays an ellipsis.
 @end table
 @end defvar
 
+  Ordinarily, commands that operate on text or move point do not care
+whether the text is invisible.  However, the user-level line motion
+commands explicitly ignore invisible newlines.
+
 @node Selective Display
 @section Selective Display
 @cindex selective display
 
-  @dfn{Selective display} is a class of minor modes in which specially
-marked lines do not appear on the screen, or in which highly indented
-lines do not appear.
+  @dfn{Selective display} is a pair of features that hide certain
+lines on the screen.
 
   The first variant, explicit selective display, is designed for use in
 a Lisp program.  The program controls which lines are hidden by altering
@@ -329,7 +345,7 @@ been partially replaced by the invisible text feature (@pxref{Invisible
 Text}); there is a new version of Outline mode which uses that instead.
 
   In the second variant, the choice of lines to hide is made
-automatically based on indentation.  This variant is designed as a
+automatically based on indentation.  This variant is designed to be a
 user-level feature.
 
   The way you control explicit selective display is by replacing a
@@ -469,9 +485,7 @@ given time.
 
   Temporary displays are used by commands to put output into a buffer
 and then present it to the user for perusal rather than for editing.
-Many of the help commands use this feature.  Nowadays you can do the
-same job by creating an overlay with a @code{before-string} property.
-@xref{Overlay Properties}.
+Many of the help commands use this feature.
 
 @defspec with-output-to-temp-buffer buffer-name forms@dots{}
 This function executes @var{forms} while arranging to insert any
@@ -539,6 +553,10 @@ the display and later (presumably) move point forward.  The argument
 
 The return value of @code{momentary-string-display} is not meaningful.
 
+If the string @var{string} does not contain control characters, you can
+do the same job in a more general way by creating an overlay with a
+@code{before-string} property.  @xref{Overlay Properties}.
+
 If @var{message} is non-@code{nil}, it is displayed in the echo area
 while @var{string} is displayed in the buffer.  If it is @code{nil}, a
 default message says to type @var{char} to continue.
@@ -580,10 +598,10 @@ Type RET when done reading
 @cindex overlays
 
 You can use @dfn{overlays} to alter the appearance of a buffer's text on
-the screen.  An overlay is an object that belongs to a particular
-buffer, and has a specified beginning and end.  It also has properties
-that you can examine and set; these affect the display of the text
-within the overlay.
+the screen, for the sake of presentation features.  An overlay is an
+object that belongs to a particular buffer, and has a specified
+beginning and end.  It also has properties that you can examine and set;
+these affect the display of the text within the overlay.
 
 @menu
 * Overlay Properties::	How to read and set properties.
@@ -626,7 +644,7 @@ applies only on that window.
 @item category
 @kindex category @r{(overlay property)}
 If an overlay has a @code{category} property, we call it the
-@dfn{category} of the character.  It should be a symbol.  The properties
+@dfn{category} of the overlay.  It should be a symbol.  The properties
 of the symbol serve as defaults for the properties of the overlay.
 
 @item face
@@ -662,7 +680,7 @@ overlay, @code{t}, the beginning and end of the text range just
 modified, and the length of the pre-change text replaced by that range.
 (For an insertion, the pre-change length is zero; for a deletion, that
 length is the number of characters deleted, and the post-change
-beginning and end are at the same place.)
+beginning and end are equal.)
 
 @item insert-in-front-hooks
 @kindex insert-in-front-hooks @r{(overlay property)}
@@ -685,7 +703,7 @@ invisible, which means that it does not appear on the screen.
 @item intangible
 @kindex intangible @r{(overlay property)}
 The @code{intangible} property on an overlay works just like the
-@code{intangible} text propert.  @xref{Special Properties}, for details.
+@code{intangible} text property.  @xref{Special Properties}, for details.
 
 @item before-string
 @kindex before-string @r{(overlay property)}
@@ -891,6 +909,10 @@ With overlays.  An overlay may have @code{face} and @code{mouse-face}
 properties too; they apply to all the text covered by the overlay.
 
 @item
+With a region that is active.  In Transient Mark mode, the region is
+highlighted with a particular face (see @code{region-face}, below).
+
+@item
 With special glyphs.  Each glyph can specify a particular face id
 number.  @xref{Glyphs}.
 @end itemize
@@ -898,6 +920,7 @@ number.  @xref{Glyphs}.
   If these various sources together specify more than one face for a
 particular character, Emacs merges the attributes of the various faces
 specified.  The attributes of the faces of special glyphs come first;
+then comes the face for region highlighting, if appropriate;
 then come attributes of faces from overlays, followed by those from text
 properties, and last the default face.
 
@@ -951,6 +974,19 @@ new frames.
 These functions set the foreground (or background, respectively) color
 of face @var{face} to @var{color}.  The argument @var{color} should be a
 string, the name of a color.
+
+Certain shades of gray are implemented by stipple patterns on
+black-and-white screens.
+@end defun
+
+@defun set-face-stipple face pattern &optional frame
+This function sets the background stipple pattern of face @var{face} to
+@var{pattern}.  The argument @var{pattern} should be the name of a
+stipple pattern defined by the X server, or @code{nil} meaning don't use
+stipple.
+
+Normally there is no need to pay attention to stipple patterns, because
+they are used automatically to handle certain shades of gray.
 @end defun
 
 @defun set-face-font face font &optional frame
@@ -979,6 +1015,11 @@ These functions return the foreground color (or background color,
 respectively) of face @var{face}, as a string.
 @end defun
 
+@defun face-stipple face &optional frame
+This function returns the name of the background stipple pattern of face
+@var{face}, or @code{nil} if it doesn't have one.
+@end defun
+
 @defun face-font face &optional frame
 This function returns the name of the font of face @var{face}.
 @end defun
@@ -987,7 +1028,7 @@ This function returns the name of the font of face @var{face}.
 This function returns the underline attribute of face @var{face}.
 @end defun
 
-@defun face-id-number face
+@defun face-id face
 This function returns the face id number of face @var{face}.
 @end defun
 
@@ -1048,6 +1089,12 @@ This variable specifies the maximum distance to scan for a matching
 parenthesis before giving up.
 @end defvar
 
+@defvar blink-matching-paren-delay
+This variable specifies the number of seconds for the cursor to remain
+at the matching parenthesis.  A fraction of a second often gives
+good results, but the default is 1, which works on all systems.
+@end defvar
+
 @defun blink-matching-open
 This function is the default value of @code{blink-paren-function}.  It
 assumes that point follows a character with close parenthesis syntax and
@@ -1089,10 +1136,13 @@ default is @code{nil}.
 
 @defopt mode-line-inverse-video
 This variable controls the use of inverse video for mode lines.  If it
-is non-@code{nil}, then mode lines are displayed in inverse video (under
-X, this uses the face named @code{modeline}, which you can set as you
-wish).  Otherwise, mode lines are displayed normally, just like text.
-The default is @code{t}.
+is non-@code{nil}, then mode lines are displayed in inverse video.
+Otherwise, mode lines are displayed normally, just like text.  The
+default is @code{t}.
+
+For X window frames, this displays mode lines using the face named
+@code{modeline}, which is normally the inverse of the default face
+unless you change it.
 @end defopt
 
 @node Usual Display
@@ -1132,7 +1182,7 @@ specify a glyph to use instead of @samp{\}.)
   The usual display conventions apply even when there is a display
 table, for any character whose entry in the active display table is
 @code{nil}.  Thus, when you set up a display table, you need only
-specify the the characters for which you want unusual behavior.
+specify the characters for which you want unusual behavior.
 
   These variables affect the way certain characters are displayed on the
 screen.  Since they change the number of columns the characters occupy,
@@ -1388,11 +1438,6 @@ This variable tells Lisp programs what window system Emacs is running
 under.  Its value should be a symbol such as @code{x} (if Emacs is
 running under X) or @code{nil} (if Emacs is running on an ordinary
 terminal).
-@end defvar
-
-@defvar window-system-version
-This variable distinguishes between different versions of the X Window
-System.  Its value is 10 or 11 when using X; @code{nil} otherwise.
 @end defvar
 
 @defvar window-setup-hook

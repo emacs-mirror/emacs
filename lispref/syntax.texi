@@ -43,7 +43,7 @@ this chapter.
 @end ifinfo
 
   A syntax table is a vector of 256 elements; it contains one entry for
-each of the 256 @sc{ASCII} characters of an 8-bit byte.  Each element is
+each of the 256 possible characters in an 8-bit byte.  Each element is
 an integer that encodes the syntax of the character in question.
 
   Syntax tables are used only for moving across text, not for the Emacs
@@ -650,8 +650,8 @@ exceed that many.
 @node Standard Syntax Tables
 @section Some Standard Syntax Tables
 
-  Each of the major modes in Emacs has its own syntax table.  Here are
-several of them: 
+  Most of the major modes in Emacs have their own syntax tables.  Here
+are several of them:
 
 @defun standard-syntax-table
 This function returns the standard syntax table, which is the syntax

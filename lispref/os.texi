@@ -60,6 +60,10 @@ using a window system.  This library's name is
 @file{term/@var{windowsystem}-win.el}.
 
 @item
+It processes the initial options.  (Some of them are handled
+even earlier than this.)
+
+@item
 It initializes the X window frame and faces, if appropriate.
 
 @item
@@ -101,7 +105,7 @@ It displays the initial echo area message, unless you have suppressed
 that with @code{inhibit-startup-echo-area-message}.
 
 @item 
-It processes any remaining command line arguments.
+It processes the action arguments from the command line.
 
 @item 
 It runs @code{term-setup-hook}.
@@ -178,6 +182,11 @@ Emacs does not subsequently load the @file{default.el} file.
   Another file for site-customization is @file{site-start.el}.  Emacs
 loads this @emph{before} the user's init file.  You can inhibit the
 loading of this file with the option @samp{-no-site-file}.
+
+@defvar site-run-file
+This variable specifies the site-customization file to load
+before the user's init file.  Its normal value is @code{"site-start"}.
+@end defvar
 
   If there is a great deal of code in your @file{.emacs} file, you
 should move it into another file named @file{@var{something}.el},
@@ -543,9 +552,8 @@ through various functions.  These variables include the name of the
 system, the user's @sc{uid}, and so on.
 
 @defvar system-type
-The value of this variable is a symbol indicating the type of
-operating system Emacs is operating on.  Here is a table of the symbols
-for the operating systems that Emacs can run on up to version 19.1.
+The value of this variable is a symbol indicating the type of operating
+system Emacs is operating on.  Here is a table of the possible values:
 
 @table @code
 @item aix-v3
@@ -554,14 +562,26 @@ AIX.
 @item berkeley-unix
 Berkeley BSD.
 
+@item dgux
+Data General DGUX operating system.
+
+@item gnu
+A GNU system using the GNU HURD and Mach.
+
 @item hpux
-Hewlett-Packard operating system.
+Hewlett-Packard HPUX operating system.
 
 @item irix
 Silicon Graphics Irix system.
 
 @item linux
-The free Linux operating system.
+A GNU system using the Linux kernel.
+
+@item ms-dos
+Microsoft MS-DOS ``operating system.''
+
+@item next-mach
+NeXT Mach-based system.
 
 @item rtu
 Masscomp RTU, UCB universe.
@@ -574,6 +594,9 @@ AT&T System V.
 
 @item vax-vms
 VAX VMS.
+
+@item windows-nt
+Microsoft windows NT.
 
 @item xenix
 SCO Xenix 386.
@@ -650,13 +673,6 @@ function works by modifying @code{process-environment}; binding that
 variable with @code{let} is also reasonable practice.
 @end deffn
 
-@defvar path-separator
-This variable holds a string which says which character separates
-directories in a search path (as found in an environment variable).  Its
-value is @code{":"} for Unix and GNU systems, and @code{";"} for MS-DOS
-and Windows NT.
-@end defvar
-
 @defvar process-environment
 This variable is a list of strings, each describing one environment
 variable.  The functions @code{getenv} and @code{setenv} work by means
@@ -675,6 +691,13 @@ process-environment
     "HOME=/user/lewis")
 @end group
 @end smallexample
+@end defvar
+
+@defvar path-separator
+This variable holds a string which says which character separates
+directories in a search path (as found in an environment variable).  Its
+value is @code{":"} for Unix and GNU systems, and @code{";"} for MS-DOS
+and Windows NT.
 @end defvar
 
 @defvar invocation-name
@@ -785,18 +808,6 @@ you to ``fake out'' Emacs by telling the functions what to return.  The
 variables are also useful for constructing frame titles (@pxref{Frame
 Titles}).
 
-@defvar user-real-login-name
-This variable holds the same value that the function
-@code{user-real-login-name} returns.  The variable lets you alter the value;
-also, you can use variables for constructing frame titles.
-@end defvar
-
-@defvar user-full-name
-This variable holds the same value that the function
-@code{user-full-name} returns.  The variable lets you alter the value;
-also, you can use variables for constructing frame titles.
-@end defvar
-
 @defun user-real-uid
 This function returns the real @sc{uid} of the user.
 
@@ -822,16 +833,16 @@ zone.
 This function returns the current time and date as a humanly-readable
 string.  The format of the string is unvarying; the number of characters
 used for each part is always the same, so you can reliably use
-@code{substring} to extract pieces of it.  However, it would be wise to
-count the characters from the beginning of the string rather than from
-the end, as additional information may be added at the end.
+@code{substring} to extract pieces of it.  It is wise to count the
+characters from the beginning of the string rather than from the end, as
+additional information may be added at the end.
 
 @c Emacs 19 feature
 The argument @var{time-value}, if given, specifies a time to format
-instead of the current time.  The argument should be a cons cell
-containing two integers, or a list whose first two elements are
-integers.  Thus, you can use times obtained from @code{current-time}
-(see below) and from @code{file-attributes} (@pxref{File Attributes}).
+instead of the current time.  The argument should be a list whose first
+two elements are integers.  Thus, you can use times obtained from
+@code{current-time} (see below) and from @code{file-attributes}
+(@pxref{File Attributes}).
 
 @example
 @group
@@ -912,8 +923,8 @@ This stands for the full name of the month.
 @item %c
 This is a synonym for @samp{%x %X}.
 @item %C
-This has a locale-specific meaning.  In the C locale, it is equivalent
-to @samp{%A, %B %e, %Y}.
+This has a locale-specific meaning.  In the default locale (named C), it
+is equivalent to @samp{%A, %B %e, %Y}.
 @item %d
 This stands for the day of month, zero-padded.
 @item %D
@@ -959,11 +970,11 @@ This stands for the numeric day of week (0-6).  Sunday is day 0.
 This stands for the week of the year (01-52), assuming that weeks
 start on Monday.
 @item %x
-This has a locale-specific meaning.  In the C locale, it is equivalent
-to @samp{%D}.
+This has a locale-specific meaning.  In the default locale (named C), it
+is equivalent to @samp{%D}.
 @item %X
-This has a locale-specific meaning.  In the C locale, it is equivalent
-to @samp{%T}.
+This has a locale-specific meaning.  In the default locale (named C), it
+is equivalent to @samp{%T}.
 @item %y
 This stands for the year without century (00-99).
 @item %Y
@@ -974,8 +985,8 @@ This stands for the time zone abbreviation.
 @end defun
 
 @defun decode-time time
-This function converts a time value into calendrical form.  The return
-value is a list of nine elements, as follows:
+This function converts a time value into calendrical information.  The
+return value is a list of nine elements, as follows:
 
 @example
 (@var{seconds} @var{minutes} @var{hour} @var{day} @var{month} @var{year} @var{dow} @var{dst} @var{zone})
@@ -1002,7 +1013,8 @@ Sunday.
 @item dst
 @code{t} if daylight savings time is effect, otherwise @code{nil}.
 @item zone
-An integer indicating the number of seconds east of Greenwich.
+An integer indicating the time zone, as the number of seconds east of
+Greenwich.
 @end table
 
 Note that Common Lisp has different meanings for @var{dow} and
@@ -1011,10 +1023,8 @@ Note that Common Lisp has different meanings for @var{dow} and
 
 @defun encode-time seconds minutes hour day month year &optional zone
 This function is the inverse of @code{decode-time}.  It converts seven
-items of calendrical data into a time value.
-
-For the meanings of the arguments, see the table above under
-@code{decode-time}.
+items of calendrical data into a time value.  For the meanings of the
+arguments, see the table above under @code{decode-time}.
 
 Year numbers less than 100 are treated just like other year numbers.  If
 you them to stand for years above 1900, you must alter them yourself
@@ -1028,7 +1038,7 @@ any further alteration for daylight savings time.
 @end defun
 
 @node Timers
-@section Timers
+@section Timers for Delayed Execution
 
 You can set up a timer to call a function at a specified future time.
 
@@ -1100,7 +1110,9 @@ functions.
 @defun set-input-mode interrupt flow meta quit-char
 This function sets the mode for reading keyboard input.  If
 @var{interrupt} is non-null, then Emacs uses input interrupts.  If it is
-@code{nil}, then it uses @sc{cbreak} mode.
+@code{nil}, then it uses @sc{cbreak} mode.  When Emacs communicates
+directly with X, it ignores this argument and uses interrupts if that is
+the way it knows how to communicate.
 
 If @var{flow} is non-@code{nil}, then Emacs uses @sc{xon/xoff} (@kbd{C-q},
 @kbd{C-s}) flow control for output to the terminal.  This has no effect except
@@ -1142,7 +1154,7 @@ is non-@code{nil} if Emacs uses @sc{xon/xoff} (@kbd{C-q}, @kbd{C-s})
 flow control for output to the terminal.  This value has no effect
 unless @var{interrupt} is non-@code{nil}.
 @item meta
-is non-@code{t} if Emacs treats the eighth bit of input characters as
+is @code{t} if Emacs treats the eighth bit of input characters as
 the meta bit; @code{nil} means Emacs clears the eighth bit of every
 input character; any other value means Emacs uses all eight bits as the
 basic character code.
@@ -1150,14 +1162,6 @@ basic character code.
 is the character Emacs currently uses for quitting, usually @kbd{C-g}.
 @end table
 @end defun
-
-@defvar meta-flag
-This variable used to control whether to treat the eight bit in keyboard
-input characters as the @key{Meta} bit.  @code{nil} meant no, and
-anything else meant yes.  This variable existed in Emacs versions 18 and
-earlier but no longer exists in Emacs 19; use @code{set-input-mode}
-instead.
-@end defvar
 
 @node Translating Input
 @subsection Translating Input Events
@@ -1185,7 +1189,7 @@ The @key{META} key.
 Each time the user types a keyboard key, it is altered as if the
 modifier keys specified in the bit mask were held down.
 
-When you use X windows, the program can ``press'' any of the modifier
+When using X windows, the program can ``press'' any of the modifier
 keys in this way.  Otherwise, only the @key{CTL} and @key{META} keys can
 be virtually pressed.
 @end defvar
@@ -1513,8 +1517,10 @@ for flow control is not an official standard.  Interestingly, on the
 model 33 teletype with a paper tape punch (which is very old), @kbd{C-s}
 and @kbd{C-q} were sent by the computer to turn the punch on and off!
 
-  GNU Emacs version 19 provides a convenient way of enabling flow
-control if you want it: call the function @code{enable-flow-control}.
+  As X servers and other window systems replace character-only
+terminals, this problem is gradually being cured.  For the mean time,
+Emacs provides a convenient way of enabling flow control if you want it:
+call the function @code{enable-flow-control}.
 
 @defun enable-flow-control
 This function enables use of @kbd{C-s} and @kbd{C-q} for output flow
@@ -1575,7 +1581,7 @@ calls @var{function} with no arguments.
 
   Any Lisp program output that would normally go to the echo area,
 either using @code{message} or using @code{prin1}, etc., with @code{t}
-as the stream, goes instead to Emacs's standard output descriptor when
+as the stream, goes instead to Emacs's standard error descriptor when
 in batch mode.  Thus, Emacs behaves much like a noninteractive
 application program.  (The echo area output that Emacs itself normally
 generates, such as command echoing, is suppressed entirely.)

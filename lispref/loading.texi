@@ -37,7 +37,7 @@ containing Lisp code.
 * How Programs Do Loading::     The @code{load} function and others.
 * Autoload::                    Setting up a function to autoload.
 * Repeated Loading::            Precautions about loading a file twice.
-* Features::                    Loading a library if it isn't already loaded.
+* Named Features::              Loading a library if it isn't already loaded.
 * Unloading::			How to ``unload'' a library that was loaded.
 * Hooks for Loading::		Providing code to be run when
 				  particular libraries are loaded.
@@ -50,7 +50,7 @@ containing Lisp code.
 @code{autoload} creates a placeholder object for a function in a file;
 trying to call the autoloading function loads the file to get the
 function's real definition (@pxref{Autoload}).  @code{require} loads a
-file if it isn't already loaded (@pxref{Features}).  Ultimately, all
+file if it isn't already loaded (@pxref{Named Features}).  Ultimately, all
 these facilities call the @code{load} function to do the work.
 
 @defun load filename &optional missing-ok nomessage nosuffix
@@ -136,9 +136,10 @@ default value is specified in @file{emacs/src/paths.h} when Emacs is
 built.
 
 The syntax of @code{EMACSLOADPATH} is the same as used for @code{PATH};
-@samp{:} separates directory names, and @samp{.} is used for the current
-default directory.  Here is an example of how to set your
-@code{EMACSLOADPATH} variable from a @code{csh} @file{.login} file:
+@samp{:} (or @samp{;}, according to the operating system) separates
+directory names, and @samp{.} is used for the current default directory.
+Here is an example of how to set your @code{EMACSLOADPATH} variable from
+a @code{csh} @file{.login} file:
 
 @c This overfull hbox is OK.  --rjc 16mar92
 @smallexample
@@ -192,9 +193,7 @@ calls to @code{load}.
 
 @defvar load-in-progress
 This variable is non-@code{nil} if Emacs is in the process of loading a
-file, and it is @code{nil} otherwise.  This is how @code{defun} and
-@code{provide} determine whether a load is in progress, so that their
-effect can be undone if the load fails.
+file, and it is @code{nil} otherwise.
 @end defvar
 
 @defvar load-read-function
@@ -213,9 +212,9 @@ functions should use @code{read}.
 @cindex autoload
 
   The @dfn{autoload} facility allows you to make a function or macro
-available but put off loading its actual definition.  The first call to
-the function automatically reads the proper file to install the real
-definition and other associated code, then runs the real definition
+known in Lisp, but put off loading the file that defines it.  The first
+call to the function automatically reads the proper file to install the
+real definition and other associated code, then runs the real definition
 as if it had been loaded all along.
 
   There are two ways to set up an autoloaded function: by calling
@@ -378,11 +377,16 @@ To avoid the problem, write this:
           (cons '(leif-mode " Leif") minor-mode-alist)))
 @end example
 
+  To add an element to a list just once, use @code{add-to-list}
+(@pxref{Setting Variables}).
+
   Occasionally you will want to test explicitly whether a library has
 already been loaded.  Here's one way to test, in a library, whether it
 has been loaded before:
 
 @example
+(defvar foo-was-loaded)
+
 (if (not (boundp 'foo-was-loaded))
     @var{execute-first-time-only})
 
@@ -393,10 +397,10 @@ has been loaded before:
 If the library uses @code{provide} to provide a named feature, you can
 use @code{featurep} to test whether the library has been loaded.
 @ifinfo
-@xref{Features}.
+@xref{Named Features}.
 @end ifinfo
 
-@node Features
+@node Named Features
 @section Features
 @cindex features
 @cindex requiring features
@@ -500,9 +504,10 @@ features
      @result{} (foo bar bish)
 @end smallexample
 
-If the file isn't completely loaded, due to an error in the evaluating
-its contents, any function definitions or @code{provide} calls that
-occurred during the load are undone.  @xref{Autoload}.
+When a file is loaded to satisfy an autoload, and it stops due to an
+error in the evaluating its contents, any function definitions or
+@code{provide} calls that occurred during the load are undone.
+@xref{Autoload}.
 @end defun
 
 @defun require feature &optional filename
@@ -544,7 +549,8 @@ This command unloads the library that provided feature @var{feature}.
 It undefines all functions, macros, and variables defined in that
 library with @code{defconst}, @code{defvar}, @code{defun},
 @code{defmacro}, @code{defsubst} and @code{defalias}.  It then restores
-any autoloads formerly associated with those symbols.
+any autoloads formerly associated with those symbols.  (Loading
+saves these in the @code{autoload} property of the symbol.)
 
 Ordinarily, @code{unload-feature} refuses to unload a library on which
 other loaded libraries depend.  (A library @var{a} depends on library
@@ -615,7 +621,7 @@ do (1), you can do it immediately---there is no need to wait for when
 the library is loaded.  To do (2), you must load the library (preferably
 with @code{require}).
 
-But it is to use @code{eval-after-load} in your personal customizations
+But it is ok to use @code{eval-after-load} in your personal customizations
 if you don't feel they must meet the design standards of programs to be
 released.
 

@@ -940,11 +940,11 @@ including those signaled with @code{error}:
     (if (eq baz 35)
         t
       ;; @r{This is a call to the function @code{error}.}
-      (error "Rats!  The variable %s was %s, not 35." 'baz baz))
+      (error "Rats!  The variable %s was %s, not 35" 'baz baz))
   ;; @r{This is the handler; it is not a form.}
   (error (princ (format "The error was: %s" err)) 
          2))
-@print{} The error was: (error "Rats!  The variable baz was 34, not 35.")
+@print{} The error was: (error "Rats!  The variable baz was 34, not 35")
 @result{} 2
 @end group
 @end smallexample
@@ -1005,6 +1005,9 @@ message @samp{peculiar error} is used.
 This error has three condition names: @code{new-error}, the narrowest
 classification; @code{my-own-errors}, which we imagine is a wider
 classification; and @code{error}, which is the widest of all.
+
+  The error string should start with a capital letter but it should
+not end with a period.  This is for consistency with the rest of Emacs.
  
   Naturally, Emacs will never signal @code{new-error} on its own; only
 an explicit call to @code{signal} (@pxref{Signaling Errors}) in your

@@ -28,6 +28,9 @@ define such variables for their internal use; we don't list them here.
 @item buffer-display-table
 @pxref{Display Tables}
 
+@item buffer-file-format
+@pxref{Format Conversion}
+
 @item buffer-file-name
 @pxref{Buffer File Name}
 
@@ -39,6 +42,9 @@ define such variables for their internal use; we don't list them here.
 
 @item buffer-file-type
 @pxref{Files and MS-DOS}
+
+@item buffer-invisibility-spec
+@pxref{Invisible Text}
 
 @item buffer-offer-save
 @pxref{Saving Buffers}
@@ -120,6 +126,9 @@ define such variables for their internal use; we don't list them here.
 
 @item paragraph-start
 @pxref{Standard Regexps}
+
+@item point-before-scroll
+Used for communication between mouse commands and scroll-bar commands.
 
 @item require-final-newline
 @pxref{Insertion}

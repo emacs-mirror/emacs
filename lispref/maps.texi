@@ -29,9 +29,15 @@ A sparse keymap used by C mode.
 A full keymap used by Command History mode.
 
 @item ctl-x-4-map
+@vindex ctl-x-4-map
 A sparse keymap for subcommands of the prefix @kbd{C-x 4}.
 
+@item ctl-x-5-map
+@vindex ctl-x-5-map
+A sparse keymap for subcommands of the prefix @kbd{C-x 5}.
+
 @item ctl-x-map
+@vindex ctl-x-map
 A full keymap for @kbd{C-x} commands.
 
 @item debugger-mode-map
@@ -41,10 +47,6 @@ A full keymap used by Debugger mode.
 @item dired-mode-map
 @vindex dired-mode-map
 A full keymap for @code{dired-mode} buffers.
-
-@item doctor-mode-map
-@vindex doctor-mode-map
-A sparse keymap used by Doctor mode.
 
 @item edit-abbrevs-map
 @vindex edit-abbrevs-map
@@ -65,6 +67,38 @@ A full keymap used by Electric Command History mode.
 @item emacs-lisp-mode-map
 @vindex emacs-lisp-mode-map
 A sparse keymap used by Emacs Lisp mode.
+
+@item facemenu-menu
+@vindex facemenu-menu
+The keymap that displays the Text Properties menu.
+
+@item facemenu-background-menu
+@vindex facemenu-background-menu
+The keymap that displays the Background Color submenu of the Text
+Properties menu.
+
+@item facemenu-face-menu
+@vindex facemenu-face-menu
+The keymap that displays the Face submenu of the Text Properties menu.
+
+@item facemenu-foreground-menu
+@vindex facemenu-foreground-menu
+The keymap that displays the Foreground Color submenu of the Text
+Properties menu.
+
+@item facemenu-indentation-menu
+@vindex facemenu-indentation-menu
+The keymap that displays the Indentation submenu of the Text Properties menu.
+
+@item facemenu-justification-menu
+@vindex facemenu-justification-menu
+The keymap that displays the Justification submenu of the Text
+Properties menu.
+
+@item facemenu-special-menu
+@vindex facemenu-special-menu
+The keymap that displays the Special Props submenu of the Text
+Properties menu.
 
 @item function-key-map
 @vindex function-key-map
@@ -91,6 +125,7 @@ A sparse keymap used by the @kbd{e} command of Info.
 A sparse keymap containing Info commands.
 
 @item isearch-mode-map
+@vindex isearch-mode-map
 A keymap that defines the characters you can type within incremental
 search.
 
@@ -107,7 +142,28 @@ A sparse keymap used by Lisp mode.
 @vindex lisp-mode-map
 A sparse keymap used by Lisp mode.
 
+@item menu-bar-edit-menu
+@vindex menu-bar-edit-menu
+The keymap which displays the Edit menu in the menu bar.
+
+@item menu-bar-files-menu
+@vindex menu-bar-files-menu
+The keymap which displays the Files menu in the menu bar.
+
+@item menu-bar-help-menu
+@vindex menu-bar-help-menu
+The keymap which displays the Help menu in the menu bar.
+
+@item menu-bar-search-menu
+@vindex menu-bar-search-menu
+The keymap which displays the Search menu in the menu bar.
+
+@item menu-bar-tools-menu
+@vindex menu-bar-tools-menu
+The keymap which displays the Tools menu in the menu bar.
+
 @item mode-specific-map
+@vindex mode-specific-map
 The keymap for characters following @kbd{C-c}.  Note, this is in the
 global map.  This map is not actually mode specific: its name was chosen
 to be informative for the user in @kbd{C-h b} (@code{display-bindings}),
@@ -118,6 +174,7 @@ where it describes the main use of the @kbd{C-c} prefix key.
 A local keymap used by Occur mode.
 
 @item query-replace-map
+@vindex query-replace-map
 A local keymap used for responses in @code{query-replace} and related
 commands; also for @code{y-or-n-p} and @code{map-y-or-n-p}.  The functions
 that use this map do not support prefix keys; they look up one event at a

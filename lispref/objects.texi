@@ -115,6 +115,11 @@ the end of line.  The Lisp reader discards comments; they do not become
 part of the Lisp objects which represent the program within the Lisp
 system.
 
+  The @samp{#@@@var{count}} construct, which skips the next @var{count}
+characters, is useful for program-generated comments containing binary
+data.  The Emacs Lisp byte compiler uses this in its output files
+(@pxref{Byte Compilation}).  It isn't meant for source files, however.
+
   @xref{Comment Tips}, for conventions for formatting comments.
 
 @node Programming Types
@@ -305,16 +310,29 @@ equivalent to @samp{?\^I} and to @samp{?\^i}:
 characters that exist in @sc{ASCII}, but for keyboard input purposes,
 you can turn any character into a control character with @samp{C-}.  The
 character codes for these non-@sc{ASCII} control characters include the
-2**22 bit as well as the code for the corresponding non-control
+@iftex
+$2^{26}$
+@end iftex
+@ifinfo
+2**26
+@end ifinfo
+bit as well as the code for the corresponding non-control
 character.  Ordinary terminals have no way of generating non-@sc{ASCII}
 control characters, but you can generate them straightforwardly using an
 X terminal.
 
-  You can think of the @key{DEL} character as @kbd{Control-?}:
+  For historical reasons, Emacs treats the @key{DEL} character as
+the control equivalent of @kbd{?}:
 
 @example
 ?\^? @result{} 127     ?\C-? @result{} 127
 @end example
+
+@noindent
+As a result, it is currently not possible to represent the character
+@kbd{Control-?}, which is a meaningful input character under X.  It is
+not easy to change this as various Lisp files refer to @key{DEL} in this
+way.
 
   For representing control characters to be found in files or strings,
 we recommend the @samp{^} syntax; for control characters in keyboard
@@ -324,11 +342,24 @@ of the program, but may guide the understanding of people who read it.
 @cindex meta characters
   A @dfn{meta character} is a character typed with the @key{META}
 modifier key.  The integer that represents such a character has the
-2**23 bit set (which on most machines makes it a negative number).  We
+@iftex
+$2^{27}$
+@end iftex
+@ifinfo
+2**27
+@end ifinfo
+bit set (which on most machines makes it a negative number).  We
 use high bits for this and other modifiers to make possible a wide range
 of basic character codes.
 
-  In a string, the 2**7 bit indicates a meta character, so the meta
+  In a string, the
+@iftex
+$2^{7}$
+@end iftex
+@ifinfo
+2**7
+@end ifinfo
+bit indicates a meta character, so the meta
 characters that can fit in a string have codes in the range from 128 to
 255, and are the meta versions of the ordinary @sc{ASCII} characters.
 (In Emacs versions 18 and older, this convention was used for characters
@@ -343,11 +374,17 @@ or as @samp{?\M-\101}.  Likewise, you can write @kbd{C-M-b} as
 
   The case of an ordinary letter is indicated by its character code as
 part of @sc{ASCII}, but @sc{ASCII} has no way to represent whether a
-control character is upper case or lower case.  Emacs uses the 2**21 bit
-to indicate that the shift key was used for typing a control character.
-This distinction is possible only when you use X terminals or other
-special terminals; ordinary terminals do not indicate the distinction to
-the computer in any way.
+control character is upper case or lower case.  Emacs uses the
+@iftex
+$2^{25}$
+@end iftex
+@ifinfo
+2**25
+@end ifinfo
+bit to indicate that the shift key was used for typing a control
+character.  This distinction is possible only when you use X terminals
+or other special terminals; ordinary terminals do not indicate the
+distinction to the computer in any way.
 
 @cindex hyper characters
 @cindex super characters
@@ -355,8 +392,15 @@ the computer in any way.
   The X Window System defines three other modifier bits that can be set
 in a character: @dfn{hyper}, @dfn{super} and @dfn{alt}.  The syntaxes
 for these bits are @samp{\H-}, @samp{\s-} and @samp{\A-}.  Thus,
-@samp{?\H-\M-\A-x} represents @kbd{Alt-Hyper-Meta-x}.  Numerically, the
-bit values are 2**18 for alt, 2**19 for super and 2**20 for hyper.
+@samp{?\H-\M-\A-x} represents @kbd{Alt-Hyper-Meta-x}.
+@iftex
+Numerically, the
+bit values are $2^{22}$ for alt, $2^{23}$ for super and $2^{24}$ for hyper.
+@end iftex
+@ifinfo
+Numerically, the
+bit values are 2**22 for alt, 2**23 for super and 2**24 for hyper.
+@end ifinfo
 
 @cindex @samp{?} in character constant
 @cindex question mark in character constant
@@ -423,14 +467,13 @@ do such a thing.
 @cindex CL note---case of letters
 @quotation
 @b{Common Lisp note:} In Common Lisp, lower case letters are always
-``folded'' to upper case, unless they are explicitly escaped.  This is
-in contrast to Emacs Lisp, in which upper case and lower case letters
-are distinct.
+``folded'' to upper case, unless they are explicitly escaped.  In Emacs
+Lisp, upper case and lower case letters are distinct.
 @end quotation
 
   Here are several examples of symbol names.  Note that the @samp{+} in
 the fifth example is escaped to prevent it from being read as a number.
-This is not necessary in the last example because the rest of the name
+This is not necessary in the sixth example because the rest of the name
 makes it invalid as a number.
 
 @example
@@ -762,7 +805,14 @@ string containing just a single double-quote character.
 characters.)
 
   If you use the @samp{\M-} syntax to indicate a meta character in a
-string constant, this sets the 2**7 bit of the character in the string.
+string constant, this sets the
+@iftex
+$2^{7}$
+@end iftex
+@ifinfo
+2**7
+@end ifinfo
+bit of the character in the string.
 This is not the same representation that the meta modifier has in a
 character on its own (not inside a string).  @xref{Character Type}.
 
@@ -917,8 +967,9 @@ the evaluator handles this data type specially when it appears as a
 function to be called.  @xref{Byte Compilation}, for information about
 the byte compiler.
 
-The printed representation for a byte-code function object is like that
-for a vector, with an additional @samp{#} before the opening @samp{[}.
+The printed representation and read syntax for a byte-code function
+object is like that for a vector, with an additional @samp{#} before the
+opening @samp{[}.
 
 @node Autoload Type
 @subsection Autoload Type
@@ -998,6 +1049,12 @@ a local keymap (@pxref{Keymaps}); and,
 
 @item
 a local variable binding list (@pxref{Buffer-Local Variables}).
+
+@item
+a list of overlays (@pxref{Overlays}).
+
+@item
+text properties for the text in the buffer (@pxref{Text Properties}).
 @end itemize
 
 @noindent
@@ -1006,7 +1063,10 @@ override global bindings or values.  These are used to customize the
 behavior of programs in different buffers, without actually changing the
 programs.
 
-  Buffers have no read syntax.  They print in hash notation with the
+  A buffer may be @dfn{indirect}, which means it shares the text
+of another buffer.  @xref{Indirect Buffers}.
+
+  Buffers have no read syntax.  They print in hash notation, showing the
 buffer name.
 
 @example
@@ -1187,7 +1247,7 @@ and modify syntax tables.
 
   A @dfn{display table} specifies how to display each character code.
 Each buffer and each window can have its own display table.  A display
-table is actually a vector of length 261.  @xref{Display Tables}.
+table is actually a vector of length 262.  @xref{Display Tables}.
 
 @node Overlay Type
 @subsection Overlay Type
@@ -1196,11 +1256,11 @@ table is actually a vector of length 261.  @xref{Display Tables}.
 appearance of a part of a buffer.  It contains markers delimiting a
 range of the buffer, plus a property list (a list whose elements are
 alternating property names and values).  Overlays are used to present
-parts of the buffer temporarily in a different display style.
-
-  @xref{Overlays}, for how to create and use overlays.  They have no
-read syntax, and print in hash notation, giving the buffer name and
+parts of the buffer temporarily in a different display style.  They have
+no read syntax, and print in hash notation, giving the buffer name and
 range of positions.
+
+  @xref{Overlays}, for how to create and use overlays.
 
 @node Type Predicates
 @section Type Predicates
@@ -1521,6 +1581,9 @@ use @code{string=} (@pxref{Text Comparison}).
      @result{} nil
 @end group
 @end example
+
+Two distinct buffers are never @code{equal}, even if their contents
+are the same.
 @end defun
 
   The test for equality is implemented recursively, and circular lists may

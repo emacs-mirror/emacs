@@ -26,7 +26,7 @@ interactive call, point and the mark are used for these arguments.
 
 @cindex buffer contents
   Throughout this chapter, ``text'' refers to the characters in the
-buffer.
+buffer, together with their properties (when relevant).
 
 @menu
 * Near Point::       Examining text in the vicinity of point.
@@ -41,6 +41,7 @@ buffer.
 * Maintaining Undo:: How to enable and disable undo information.
 			How to control how much information is kept.
 * Filling::          Functions for explicit filling.
+* Margins::          How to specify margins for filling commands.
 * Auto Filling::     How auto-fill mode is implemented to break lines.
 * Sorting::          Functions for sorting parts of the buffer.
 * Columns::          Computing horizontal positions, and using them.
@@ -239,7 +240,8 @@ the result is one plus the index of the first differing characters
 within the substrings.
 
 This function ignores case when comparing characters
-if @code{case-fold-search} is non-@code{nil}.
+if @code{case-fold-search} is non-@code{nil}.  It always ignores
+text properties.
 
 Suppose the current buffer contains the text @samp{foobarbar
 haha!rara!}; then in this example the two substrings are @samp{rbar }
@@ -250,12 +252,10 @@ at the second character.
 (compare-buffer-substring nil 6 11 nil 16 21)
      @result{} 2
 @end example
-
-This function does not exist in Emacs version 18 and earlier.
 @end defun
 
 @node Insertion
-@section Insertion
+@section Inserting Text
 @cindex insertion of text
 @cindex text insertion
 
@@ -279,6 +279,12 @@ point} and the latter insertion @dfn{before point}.
 
   Insertion functions signal an error if the current buffer is
 read-only.
+
+  These functions copy text characters from strings and buffers along
+with their properties.  The inserted characters have exactly the same
+properties as the characters they were copied from.  By contrast,
+characters specified as separate arguments, not part of a string or
+buffer, inherit their text properties from the neighboring text.
 
 @defun insert &rest args
 This function inserts the strings and/or characters @var{args} into the
@@ -393,6 +399,9 @@ result in this case is to insert two newlines at different places: one
 at point, and another earlier in the line.  @code{newline} does not
 auto-fill if @var{number-of-newlines} is non-@code{nil}.
 
+This command indents to the left margin if that is not zero.
+@xref{Margins}.
+
 The value returned is @code{nil}.  In an interactive call, @var{count}
 is the numeric prefix argument.
 @end deffn
@@ -414,7 +423,7 @@ buffer-local when set in any fashion.
 @end defvar
 
 @node Deletion
-@section Deletion of Text
+@section Deleting Text
 
 @cindex deletion vs killing
   Deletion means removing part of the text in a buffer, without saving
@@ -544,7 +553,7 @@ instead.  The value is @code{nil}.
 
 If there is a fill prefix, and the second of the lines being joined
 starts with the prefix, then @code{delete-indentation} deletes the
-fill prefix before joining the lines.  @xref{Filling}.
+fill prefix before joining the lines.  @xref{Margins}.
 
 In the example below, point is located on the line starting
 @samp{events}, and it makes no difference if there are trailing spaces
@@ -713,8 +722,8 @@ and if so appends the killed text to the most recent entry.
 
 @deffn Command kill-region start end
 This function kills the text in the region defined by @var{start} and
-@var{end}.  The text is deleted but saved in the kill ring.  The value
-is always @code{nil}.
+@var{end}.  The text is deleted but saved in the kill ring, along with
+its text properties.  The value is always @code{nil}.
 
 In an interactive call, @var{start} and @var{end} are point and
 the mark.
@@ -728,9 +737,10 @@ text into the kill ring from a read-only buffer.
 
 @deffn Command copy-region-as-kill start end
 This command saves the region defined by @var{start} and @var{end} on
-the kill ring, but does not delete the text from the buffer.  It returns
-@code{nil}.  It also indicates the extent of the text copied by moving
-the cursor momentarily, or by displaying a message in the echo area.
+the kill ring (including text properties), but does not delete the text
+from the buffer.  It returns @code{nil}.  It also indicates the extent
+of the text copied by moving the cursor momentarily, or by displaying a
+message in the echo area.
 
 The command does not set @code{this-command} to @code{kill-region}, so a
 subsequent kill command does not append to the same kill ring entry.
@@ -745,7 +755,7 @@ support Emacs 18.  For Emacs 19, it is better to use @code{kill-new} or
 @subsection Functions for Yanking
 
   @dfn{Yanking} means reinserting an entry of previously killed text
-from the kill ring.
+from the kill ring.  The text properties are copied too.
 
 @deffn Command yank &optional arg
 @cindex inserting killed text
@@ -975,8 +985,9 @@ Here's how you might undo the change:
 @end example
 
 @item @var{position}
-This element indicates where point was at an earlier time.
-Undoing this element sets point to @var{position}.
+This element indicates where point was at an earlier time.  Undoing this
+element sets point to @var{position}.  Deletion normally creates an
+element of this kind as well as a reinsertion element.
 
 @item nil
 This element is a boundary.  The elements between two boundaries are
@@ -1018,7 +1029,7 @@ but it is convenient to have it in C.
 changes the buffer.  Undo commands avoid confusion by saving the undo
 list value at the beginning of a sequence of undo operations.  Then the
 undo operations use and update the saved value.  The new elements added
-by undoing are not part of the saved value, so they don't interfere with
+by undoing are not part of this saved value, so they don't interfere with
 continuing to undo.
 @end defun
 
@@ -1089,10 +1100,9 @@ change group is never discarded separate no matter how big it is.
   @dfn{Filling} means adjusting the lengths of lines (by moving the line
 breaks) so that they are nearly (but no greater than) a specified
 maximum width.  Additionally, lines can be @dfn{justified}, which means
-that spaces are inserted between words to make the line exactly the
-specified width.  The width is controlled by the variable
-@code{fill-column}.  For ease of reading, lines should be no longer than
-70 or so columns.
+inserting spaces to make the left and/or right margins line up
+precisely.  The width is controlled by the variable @code{fill-column}.
+For ease of reading, lines should be no longer than 70 or so columns.
 
   You can use Auto Fill mode (@pxref{Auto Filling}) to fill text
 automatically as you insert it, but changes to existing text may leave
@@ -1100,28 +1110,38 @@ it improperly filled.  Then you must fill the text explicitly.
 
   Most of the commands in this section return values that are not
 meaningful.  All the functions that do filling take note of the current
-left margin, current right margin, and current justification style.  If
-the current justification style is @code{none}, the filling functions
-don't actually do anything.
+left margin, current right margin, and current justification style
+(@pxref{Margins}).  If the current justification style is
+@code{none}, the filling functions don't actually do anything.
 
-@deffn Command fill-paragraph justify-flag
+  Several of the filling functions have an argument @var{justify}.
+If it is non-@code{nil}, that requests some kind of justification.  It
+can be @code{left}, @code{right}, @code{full}, or @code{center}, to
+request a specific style of justification.  If it is @code{t}, that
+means to use the current justification style for this part of the text
+(see @code{current-justification}, below).
+
+  When you call the filling functions interactively, using a prefix
+argument implies the value @code{full} for @var{justify}.
+
+@deffn Command fill-paragraph justify
 @cindex filling a paragraph
 This command fills the paragraph at or after point.  If
-@var{justify-flag} is non-@code{nil}, each line is justified as well.
+@var{justify} is non-@code{nil}, each line is justified as well.
 It uses the ordinary paragraph motion commands to find paragraph
 boundaries.  @xref{Paragraphs,,, emacs, The Emacs Manual}.
 @end deffn
 
-@deffn Command fill-region start end &optional justify-flag
+@deffn Command fill-region start end &optional justify
 This command fills each of the paragraphs in the region from @var{start}
-to @var{end}.  It justifies as well if @var{justify-flag} is
+to @var{end}.  It justifies as well if @var{justify} is
 non-@code{nil}.
 
 The variable @code{paragraph-separate} controls how to distinguish
 paragraphs.  @xref{Standard Regexps}.
 @end deffn
 
-@deffn Command fill-individual-paragraphs start end &optional justify-flag mail-flag
+@deffn Command fill-individual-paragraphs start end &optional justify mail-flag
 This command fills each paragraph in the region according to its
 individual fill prefix.  Thus, if the lines of a paragraph were indented
 with spaces, the filled paragraph will remain indented in the same
@@ -1129,8 +1149,8 @@ fashion.
 
 The first two arguments, @var{start} and @var{end}, are the beginning
 and end of the region to be filled.  The third and fourth arguments,
-@var{justify-flag} and @var{mail-flag}, are optional.  If
-@var{justify-flag} is non-@code{nil}, the paragraphs are justified as
+@var{justify} and @var{mail-flag}, are optional.  If
+@var{justify} is non-@code{nil}, the paragraphs are justified as
 well as filled.  If @var{mail-flag} is non-@code{nil}, it means the
 function is operating on a mail message and therefore should not fill
 the header lines.
@@ -1147,13 +1167,11 @@ This variable alters the action of @code{fill-individual-paragraphs} as
 described above.
 @end defopt
 
-@deffn Command fill-region-as-paragraph start end &optional justify-flag
+@deffn Command fill-region-as-paragraph start end &optional justify
 This command considers a region of text as a paragraph and fills it.  If
 the region was made up of many paragraphs, the blank lines between
 paragraphs are removed.  This function justifies as well as filling when
-@var{justify-flag} is non-@code{nil}.  The precise value of
-@var{justify-flag} specifies a style of justification, as in
-@code{justify-current-line}, below.
+@var{justify} is non-@code{nil}.
 
 In an interactive call, any prefix argument requests justification.
 
@@ -1187,13 +1205,39 @@ whitespace.
 This variable's value specifies the style of justification to use for
 text that doesn't specify a style with a text property.  The possible
 values are @code{left}, @code{right}, @code{full}, @code{center}, or
-@code{none}.
+@code{none}.  The default value is @code{left}.
 @end defopt
 
 @defun current-justification
 This function returns the proper justification style to use for filling
 the text around point.
 @end defun
+
+@defvar fill-paragraph-function
+This variable provides a way for major modes to override the filling of
+paragraphs.  If the value is non-@code{nil}, @code{fill-paragraph} calls
+this function to do the work.  If the function returns a non-@code{nil}
+value, @code{fill-paragraph} assumes the job is done, and immediately
+returns that value.
+
+The usual use of this feature is to fill comments in programming
+language modes.  If the function needs to fill a paragraph in the usual
+way, it can do so as follows:
+
+@example
+(let ((fill-paragraph-function nil))
+  (fill-paragraph arg))
+@end example
+@end defvar
+
+@defvar use-hard-newlines
+If this variable is non-@code{nil}, the filling functions do not delete
+newlines that have the @code{hard} text property.  These ``hard
+newlines'' act as paragraph separators.
+@end defvar
+
+@node Margins
+@section Margins for Filling
 
 @defopt fill-prefix
 This variable specifies a string of text that appears at the beginning
@@ -1203,6 +1247,8 @@ a paragraph; so is any line that starts with the fill prefix followed by
 additional whitespace.  Lines that start with the fill prefix but no
 additional whitespace are ordinary text lines that can be filled
 together.  The resulting filled lines also start with the fill prefix.
+
+The fill prefix follows the left margin whitespace, if any.
 @end defopt
 
 @defopt fill-column
@@ -1225,23 +1271,6 @@ buffers that do not override it.  This is the same as
 The default value for @code{default-fill-column} is 70.
 @end defvar
 
-@defvar fill-paragraph-function
-This variable provides a way for major modes to override the filling of
-paragraphs.  If the value is non-@code{nil}, @code{fill-paragraph} calls
-this function to do the work.  If the function returns a non-@code{nil}
-value, @code{fill-paragraph} assumes the job is done, and immediately
-returns that value.
-
-The usual use of this feature is to fill comments in programming
-language modes.  If the function needs to fill a paragraph in the usual
-way, it can do so as follows:
-
-@example
-(let ((fill-paragraph-function nil))
-  (fill-paragraph arg))
-@end example
-@end defvar
-
 @deffn Command set-left-margin from to margin
 This sets the @code{left-margin} property on the text from @var{from} to
 @var{to} to the value @var{margin}.  If Auto Fill mode is enabled, this
@@ -1249,17 +1278,16 @@ command also refills the region to fit the new margin.
 @end deffn
 
 @deffn Command set-right-margin from to margin
-This sets the @code{fill-colmn} property on the text from @var{from} to
-@var{to} so as to yield a right margin of width @var{margin}.  If Auto
-Fill mode is enabled, this command also refills the region to fit the
-new margin.
+This sets the @code{right-margin} property on the text from @var{from}
+to @var{to} to the value @var{margin}.  If Auto Fill mode is enabled,
+this command also refills the region to fit the new margin.
 @end deffn
 
 @defun current-left-margin
 This function returns the proper left margin value to use for filling
 the text around point.  The value is the sum of the @code{left-margin}
 property of the character at the start of the current line (or zero if
-none), plus the value of the variable @code{left-margin}.
+none), and the value of the variable @code{left-margin}.
 @end defun
 
 @defun current-fill-column
@@ -1272,7 +1300,7 @@ character after point.
 @deffn Command move-to-left-margin &optional n force
 This function moves point to the left margin of the current line.  The
 column moved to is determined by calling the function
-@code{current-left-margin}.  If the argument @var{n} is specified,
+@code{current-left-margin}.  If the argument @var{n} is non-@code{nil},
 @code{move-to-left-margin} moves forward @var{n}@minus{}1 lines first.
 
 If @var{force} is non-@code{nil}, that says to fix the line's
@@ -1286,6 +1314,20 @@ to delete is determined by calling @code{current-left-margin}.
 In no case does this function delete non-whitespace.
 @end defun
 
+@defun indent-to-left-margin
+This is the default @code{indent-line-function}, used in Fundamental
+mode, Text mode, etc.  Its effect is to adjust the indentation at the
+beginning of the current line to the value specified by the variable
+@code{left-margin}.  This may involve either inserting or deleting
+whitespace.
+@end defun
+
+@defvar left-margin
+This variable specifies the base left margin column.  In Fundamental
+mode, @key{LFD} indents to this column.  This variable automatically
+becomes buffer-local when set in any fashion.
+@end defvar
+
 @node Auto Filling
 @comment  node-name,  next,  previous,  up
 @section Auto Filling
@@ -1296,6 +1338,9 @@ In no case does this function delete non-whitespace.
 as inserted.  This section describes the hook used by Auto Fill mode.
 For a description of functions that you can call explicitly to fill and
 justify existing text, see @ref{Filling}.
+
+  Auto Fill mode also enables the functions that change the margins and
+justification style to refill portions of the text.  @xref{Margins}.
 
 @defvar auto-fill-function
 The value of this variable should be a function (of no arguments) to be
@@ -1539,8 +1584,6 @@ containing position @var{beg}, and the entire line containing position
 Note that @code{sort-columns} uses the @code{sort} utility program,
 and so cannot work properly on text containing tab characters.  Use
 @kbd{M-x @code{untabify}} to convert tabs to spaces before sorting.
-
-The @code{sort-columns} function did not work on VMS prior to Emacs 19.
 @end deffn
 
 @node Columns
@@ -1688,20 +1731,6 @@ the current line; except that if that function is
 @code{indent-to-left-margin}, it calls @code{insert-tab} instead.  (That
 is a trivial command that inserts a tab character.)
 @end deffn
-
-@defun indent-to-left-margin
-This is the default @code{indent-line-function}, used in Fundamental
-mode, Text mode, etc.  Its effect is to adjust the indentation at the
-beginning of the current line to the value specified by the variable
-@code{left-margin}.  This may involve either inserting or deleting
-whitespace.
-@end defun
-
-@defvar left-margin
-This variable specifies the column for @code{indent-to-left-margin} to
-indent to.  In Fundamental mode, @key{LFD} indents to this column.  This
-variable automatically becomes buffer-local when set in any fashion.
-@end defvar
 
 @deffn Command newline-and-indent
 @comment !!SourceFile simple.el
@@ -2107,8 +2136,8 @@ This function returns the entire property list of the character at
 @defvar default-text-properties
 This variable holds a property list giving default values for text
 properties.  Whenever a character does not specify a value for a
-property, the value stored in this list is used instead.  Here is an
-example:
+property, neither directly nor through a category symbol, the value
+stored in this list is used instead.  Here is an example:
 
 @example
 (setq default-text-properties '(foo 69))
@@ -2134,6 +2163,12 @@ can affect how the buffer looks on the screen, any change in the text
 properties is considered a buffer modification.  Buffer text property
 changes are undoable (@pxref{Undo}).
 
+@defun put-text-property start end prop value &optional object
+This function sets the @var{prop} property to @var{value} for the text
+between @var{start} and @var{end} in the string or buffer @var{object}.
+If @var{object} is @code{nil}, it defaults to the current buffer.
+@end defun
+
 @defun add-text-properties start end props &optional object
 This function modifies the text properties for the text between
 @var{start} and @var{end} in the string or buffer @var{object}.  If
@@ -2155,12 +2190,6 @@ properties of a range of text:
 (add-text-properties @var{start} @var{end}
                      '(comment t face highlight))
 @end example
-@end defun
-
-@defun put-text-property start end prop value &optional object
-This function sets the @var{prop} property to @var{value} for the text
-between @var{start} and @var{end} in the string or buffer @var{object}.
-If @var{object} is @code{nil}, it defaults to the current buffer.
 @end defun
 
 @defun remove-text-properties start end props &optional object
@@ -2214,13 +2243,14 @@ consecutive characters have the same value for a property.  Rather than
 writing your programs to examine characters one by one, it is much
 faster to process chunks of text that have the same property value.
 
-Here are functions you can use to do this.  In all cases, @var{object}
-defaults to the current buffer.
+Here are functions you can use to do this.  They use @code{eq} for
+comparing property values.  In all cases, @var{object} defaults to the
+current buffer.
 
 For high performance, it's very important to use the @var{limit}
 argument to these functions, especially the ones that search for a
-single property---otherwise, they may spend a long time considering
-changes in other properties while scanning to the end of the buffer.
+single property---otherwise, they may spend a long time scanning to the
+end of the buffer, if the property you are interested in does not change.
 
 Remember that a position is always between two characters; the position
 returned by these functions is between two characters with different
@@ -2314,6 +2344,11 @@ for @var{object} is the current buffer.
 @node Special Properties
 @subsection Properties with Special Meanings
 
+  Here is a table of text property names that have special built-in
+meanings.  The following section lists a few more special property names
+that are used to control filling.  All other names have no standard
+meaning, and you can use them as you like.
+
 @table @code
 @cindex category of text character
 @kindex category @r{(text property)}
@@ -2370,8 +2405,8 @@ on the screen.  @xref{Invisible Text}, for details.
 @kindex intangible @r{(text property)}
 If a group of consecutive characters have equal and non-@code{nil}
 @code{intangible} properties, then you cannot place point between them.
-If you move point forward into the group, point actually moves to the
-end of the group.  If you try to move point backward into the group,
+If you try to move point forward into the group, point actually moves to
+the end of the group.  If you try to move point backward into the group,
 point actually moves to the start of the group.
 
 When the variable @code{inhibit-point-motion-hooks} is non-@code{nil},
@@ -2444,12 +2479,13 @@ property has no effect.
 @end defvar
 
 @node Format Properties
-@section Formatted Text Properties
+@subsection Formatted Text Properties
 
   These text properties affect the behavior of the fill commands.  They
-are used for representing formatted text.  @xref{Filling}.
+are used for representing formatted text.  @xref{Filling}, and
+@ref{Margins}.
 
-@table code
+@table @code
 @item hard
 If a newline character has this property, it is a ``hard'' newline.
 The fill commands do not alter hard newlines and do not move words
@@ -2457,11 +2493,11 @@ across them.  However, this property takes effect only if the variable
 @code{use-hard-newlines} is non-@code{nil}.
 
 @item right-margin
-This property specifies the right margin for filling this part of the
+This property specifies an extra right margin for filling this part of the
 text.
 
 @item left-margin
-This property specifies the left margin for filling this part of the
+This property specifies an extra left margin for filling this part of the
 text.
 
 @item justification
@@ -2541,7 +2577,7 @@ adjoining text.
   You can save text properties in files, and restore text properties
 when inserting the files, using these two hooks: 
 
-@defvar write-region-annotation-functions
+@defvar write-region-annotate-functions
 This variable's value is a list of functions for @code{write-region} to
 run to encode text properties in some fashion as annotations to the text
 being written in the file.  @xref{Writing to Files}.
@@ -2596,6 +2632,10 @@ We suggest not trying to handle arbitrary Lisp objects as property
 names or property values---because a program that general is probably
 difficult to write, and slow.  Instead, choose a set of possible data
 types that are reasonably flexible, and not too hard to encode.
+
+@xref{Format Conversion}, for a related feature.
+
+@c ??? In next edition, merge this info Format Conversion.
 
 @node Not Intervals
 @subsection Why Text Properties are not Intervals
@@ -2659,11 +2699,10 @@ defined by @var{start} and @var{end}.
 
 @cindex Outline mode
 @cindex undo avoidance
-If @var{noundo} is non-@code{nil}, then @code{subst-char-in-region}
-does not record the change for undo and does not mark the buffer as
-modified.  This feature is useful for changes that are not considered
-significant, such as when Outline mode changes visible lines to
-invisible lines and vice versa.
+If @var{noundo} is non-@code{nil}, then @code{subst-char-in-region} does
+not record the change for undo and does not mark the buffer as modified.
+This feature is used for controlling selective display (@pxref{Selective
+Display}).
 
 @code{subst-char-in-region} does not move point and returns
 @code{nil}.
@@ -2700,8 +2739,6 @@ The return value of @code{translate-region} is the number of
 characters that were actually changed by the translation.  This does
 not count characters that were mapped into themselves in the
 translation table.
-
-This function is available in Emacs versions 19 and later.
 @end defun
 
 @node Registers
@@ -2875,13 +2912,13 @@ buffer that's about to change is always the current buffer.
 @end defvar
 
 @defvar before-change-function
-This variable holds one function to call before any buffer modification
-(or @code{nil} for no function).  It is called just like the functions
-in @code{before-change-functions}.
+This obsolete variable holds one function to call before any buffer
+modification (or @code{nil} for no function).  It is called just like
+the functions in @code{before-change-functions}.
 @end defvar
 
 @defvar after-change-function
-This variable holds one function to call after any buffer modification
+This obsolete variable holds one function to call after any buffer modification
 (or @code{nil} for no function).  It is called just like the functions in
 @code{after-change-functions}.
 @end defvar
@@ -2916,6 +2953,3 @@ to call.  Here is an example:
 This variable is a normal hook that is run whenever a buffer is changed
 that was previously in the unmodified state.
 @end defvar
-
-  The variables described in this section are meaningful only starting
-with Emacs version 19.

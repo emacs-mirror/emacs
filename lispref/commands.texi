@@ -82,40 +82,10 @@ and also when the command loop is first entered.  At that time,
 @code{last-command} describes the command before that.  @xref{Hooks}.
 @end defvar
 
-  An erroneous function in the @code{pre-command-hook} list could easily
-make Emacs go into an infinite loop of errors.  To protect you from this
-sort of painful problem, Emacs sets the hook variable to @code{nil}
-temporarily while running the functions in the hook.  Thus, if a hook
-function gets an error, the hook variable is left as @code{nil}.  Emacs
-does the same thing for @code{post-command-hook}.
-
   Quitting is suppressed while running @code{pre-command-hook} and
-@code{post-command-hook}; this is because otherwise a quit, happening by
-chance within one of these hooks, would turn off the hook.
-
-  One inconvenient result of these protective features is that you
-cannot have a function in @code{post-command-hook} or
-@code{pre-command-hook} which changes the value of that variable.  But
-that's not a real limitation.  If you want hook functions to change the
-hook, simply add one fixed function to the hook, and code that function
-to look in another hook variable for other functions to call.  Here is
-an example:
-
-@example
-;; @r{Set up the mechanism.}
-(defvar current-post-command-function nil)
-(defun run-current-post-command-function ()
-  (if current-post-command-function
-      (funcall current-post-command-function)))
-(add-hooks 'post-command-hook 
-           'run-current-post-command-function)
-
-;; @r{Here's a hook function which replaces itself}
-;; @r{with a different hook function to run next time.}
-(defun first-post-command-function ()
-  (setq current-post-command-function
-        'second-post-command-function))
-@end example
+@code{post-command-hook}.  If an error happens while executing one of
+these hooks, it terminates execution of the hook, but that is all it
+does.
 
 @node Defining Commands
 @section Defining Commands
@@ -502,7 +472,7 @@ that is, if @var{object} is a command.  Otherwise, returns @code{nil}.
 
 The interactively callable objects include strings and vectors (treated
 as keyboard macros), lambda expressions that contain a top-level call to
-@code{interactive}, compiled function objects made from such lambda
+@code{interactive}, byte-code function objects made from such lambda
 expressions, autoload objects that are declared as interactive
 (non-@code{nil} fourth argument to @code{autoload}), and some of the
 primitive functions.
@@ -647,6 +617,9 @@ is a symbol with a function definition, but this is not guaranteed.
 The value is copied from @code{this-command} when a command returns to
 the command loop, except when the command specifies a prefix argument
 for the following command.
+
+This variable is always local to the current terminal and cannot be
+buffer-local.  @xref{Multiple Displays}.
 @end defvar
 
 @defvar this-command
@@ -662,7 +635,7 @@ command).
 
 @cindex kill command repetition
 Some commands set this variable during their execution, as a flag for
-whatever command runs next.  In particular, the functions that kill text
+whatever command runs next.  In particular, the functions for killing text
 set @code{this-command} to @code{kill-region} so that any kill commands
 immediately following will know to append the killed text to the
 previous kill.
@@ -737,17 +710,6 @@ frame, the value is the frame to which the event was redirected.
 @xref{Input Focus}.
 @end defvar
 
-@defvar echo-keystrokes
-This variable determines how much time should elapse before command
-characters echo.  Its value must be an integer, which specifies the
-number of seconds to wait before echoing.  If the user types a prefix
-key (such as @kbd{C-x}) and then delays this many seconds before
-continuing, the prefix key is echoed in the echo area.  Any subsequent
-characters in the same command will be echoed as well.
-
-If the value is zero, then command input is not echoed.
-@end defvar
-
 @node Input Events
 @section Input Events
 @cindex events
@@ -798,11 +760,25 @@ An input character event consists of a @dfn{basic code} between 0 and
 
 @table @asis
 @item meta
-The 2**23 bit in the character code indicates a character
+The
+@iftex
+$2^{27}$
+@end iftex
+@ifinfo
+2**27
+@end ifinfo
+bit in the character code indicates a character
 typed with the meta key held down.
 
 @item control
-The 2**22 bit in the character code indicates a non-@sc{ASCII}
+The
+@iftex
+$2^{26}$
+@end iftex
+@ifinfo
+2**26
+@end ifinfo
+bit in the character code indicates a non-@sc{ASCII}
 control character.
 
 @sc{ASCII} control characters such as @kbd{C-a} have special basic
@@ -811,42 +787,95 @@ Thus, the code for @kbd{C-a} is just 1.
 
 But if you type a control combination not in @sc{ASCII}, such as
 @kbd{%} with the control key, the numeric value you get is the code
-for @kbd{%} plus 2**22 (assuming the terminal supports non-@sc{ASCII}
+for @kbd{%} plus
+@iftex
+$2^{26}$
+@end iftex
+@ifinfo
+2**26
+@end ifinfo
+(assuming the terminal supports non-@sc{ASCII}
 control characters).
 
 @item shift
-The 2**21 bit in the character code indicates an @sc{ASCII} control
+The
+@iftex
+$2^{25}$
+@end iftex
+@ifinfo
+2**25
+@end ifinfo
+bit in the character code indicates an @sc{ASCII} control
 character typed with the shift key held down.
 
 For letters, the basic code indicates upper versus lower case; for
 digits and punctuation, the shift key selects an entirely different
 character with a different basic code.  In order to keep within
 the @sc{ASCII} character set whenever possible, Emacs avoids using
-the 2**21 bit for those characters.
+the
+@iftex
+$2^{25}$
+@end iftex
+@ifinfo
+2**25
+@end ifinfo
+bit for those characters.
 
 However, @sc{ASCII} provides no way to distinguish @kbd{C-A} from
-@kbd{C-a}, so Emacs uses the 2**21 bit in @kbd{C-A} and not in
+@kbd{C-a}, so Emacs uses the
+@iftex
+$2^{25}$
+@end iftex
+@ifinfo
+2**25
+@end ifinfo
+bit in @kbd{C-A} and not in
 @kbd{C-a}.
 
 @item hyper
-The 2**20 bit in the character code indicates a character
+The
+@iftex
+$2^{24}$
+@end iftex
+@ifinfo
+2**24
+@end ifinfo
+bit in the character code indicates a character
 typed with the hyper key held down.
 
 @item super
-The 2**19 bit in the character code indicates a character
+The
+@iftex
+$2^{23}$
+@end iftex
+@ifinfo
+2**23
+@end ifinfo
+bit in the character code indicates a character
 typed with the super key held down.
 
 @item alt
-The 2**18 bit in the character code indicates a character typed with
+The
+@iftex
+$2^{22}$
+@end iftex
+@ifinfo
+2**22
+@end ifinfo
+bit in the character code indicates a character typed with
 the alt key held down.  (On some terminals, the key labeled @key{ALT}
 is actually the meta key.)
 @end table
 
-  In the future, Emacs may support a larger range of basic codes.  We
-may also move the modifier bits to larger bit numbers.  Therefore, you
-should avoid mentioning specific bit numbers in your program.
-Instead, the way to test the modifier bits of a character is with the
-function @code{event-modifiers} (@pxref{Classifying Events}).
+  It is best to avoid mentioning specific bit numbers in your program.
+To test the modifier bits of a character, use the function
+@code{event-modifiers} (@pxref{Classifying Events}).  When making key
+bindings, you can use the read syntax for characters with modifier bits
+(@samp{\C-}, @samp{\M-}, and so on).  For making key bindings with
+@code{define-key}, you can use lists such as @code{(control hyper ?x)} to
+specify the characters (@pxref{Changing Key Bindings}).  The function
+@code{event-convert-list} converts such a list into an event type
+(@pxref{Classifying Events}).
 
 @node Function Keys
 @subsection Function Keys
@@ -1258,6 +1287,11 @@ the window manager.  Its standard definition is @code{ignore}; since the
 frame has already been iconified, Emacs has no work to do.
 @end table
 
+  If one of these events arrives in the middle of a key sequence---that
+is, after a prefix key---then Emacs reorders the events so that this
+event comes either before or after the multi-event key sequence, not
+within it.
+
 @node Event Examples
 @subsection Event Examples
 
@@ -1380,6 +1414,20 @@ This function returns non-@code{nil} if @var{object} is a mouse movement
 event.
 @end defun
 
+@defun event-convert-list list
+This function converts a list of modifier names and a basic event type
+to an event type which specifies all of them.  For example,
+
+@example
+(event-convert-list '(control ?a))
+     @result{} 1
+(event-convert-list '(control meta ?a))
+     @result{} -134217727
+(event-convert-list '(control super f1))
+     @result{} C-s-f1
+@end example
+@end defun
+
 @node Accessing Events
 @subsection Accessing Events
 
@@ -1476,7 +1524,13 @@ limited to the range of 0 to 255 as text characters are.
 
   A keyboard character typed using the @key{META} key is called a
 @dfn{meta character}.  The numeric code for such an event includes the
-2**23 bit; it does not even come close to fitting in a string.  However,
+@iftex
+$2^{27}$
+@end iftex
+@ifinfo
+2**27
+@end ifinfo
+bit; it does not even come close to fitting in a string.  However,
 earlier Emacs versions used a different representation for these
 characters, which gave them codes in the range of 128 to 255.  That did
 fit in a string, and many Lisp programs contain string constants that
@@ -1493,9 +1547,36 @@ If the keyboard character value is in the range of 0 to 127, it can go
 in the string unchanged.
 
 @item
-The meta variants of those characters, with codes in the range of 2**23
-to 2**23+127, can also go in the string, but you must change their
-numeric values.  You must set the 2**7 bit instead of the 2**23 bit,
+The meta variants of those characters, with codes in the range of
+@iftex
+$2^{27}$
+@end iftex
+@ifinfo
+2**27
+@end ifinfo
+to
+@iftex
+$2^{27} + 127$,
+@end iftex
+@ifinfo
+2**27+127,
+@end ifinfo
+can also go in the string, but you must change their
+numeric values.  You must set the
+@iftex
+$2^{7}$
+@end iftex
+@ifinfo
+2**7
+@end ifinfo
+bit instead of the
+@iftex
+$2^{27}$
+@end iftex
+@ifinfo
+2**27
+@end ifinfo
+bit,
 resulting in a value between 128 and 255.
 
 @item
@@ -1609,8 +1690,9 @@ not perform case conversion in this way.
 
 The function @code{read-key-sequence} also transforms some mouse events.
 It converts unbound drag events into click events, and discards unbound
-button-down events entirely.  It also reshuffles focus events so that they
-never appear in a key sequence with any other events.
+button-down events entirely.  It also reshuffles focus events and
+miscellaneous window events so that they never appear in a key sequence
+with any other events.
 
 When mouse events occur in special parts of a window, such as a mode
 line or a scroll bar, the event type shows nothing special---it is the
@@ -1626,7 +1708,7 @@ You can define meanings for mouse clicks in special window parts by
 defining key sequences using these imaginary prefix keys.
 
 For example, if you call @code{read-key-sequence} and then click the
-mouse on the window's mode line, you get an event like this:
+mouse on the window's mode line, you get two events, like this:
 
 @example
 (read-key-sequence "Click on the mode line: ")
@@ -1686,8 +1768,9 @@ the echo area.
 @end group
 
 @group
+;; @r{We assume here you use @kbd{M-:} to evaluate this.}
 (symbol-function 'foo)
-     @result{} "^[^[(read-char)^M1"
+     @result{} "^[:(read-char)^M1"
 @end group
 @group
 (execute-kbd-macro 'foo)
@@ -1794,8 +1877,8 @@ as part of a command or explicitly by a Lisp program.
 
 In the example below, the Lisp program reads the character @kbd{1},
 @sc{ASCII} code 49.  It becomes the value of @code{last-input-event},
-while @kbd{C-e} (from the @kbd{C-x C-e} command used to evaluate this
-expression) remains the value of @code{last-command-event}.
+while @kbd{C-e} (we assume @kbd{C-x C-e} command is used to evaluate
+this expression) remains the value of @code{last-command-event}.
 
 @example
 @group
@@ -1852,12 +1935,15 @@ available.  The value is @code{t} if @code{sit-for} waited the full
 time with no input arriving (see @code{input-pending-p} in @ref{Event 
 Input Misc}).  Otherwise, the value is @code{nil}.
 
-@c Emacs 19 feature ??? maybe not working yet
+The argument @var{seconds} need not be an integer.  If it is a floating
+point number, @code{sit-for} waits for a fractional number of seconds.
+Some systems support only a whole number of seconds; on these systems,
+@var{seconds} is rounded down.
+
 The optional argument @var{millisec} specifies an additional waiting
 period measured in milliseconds.  This adds to the period specified by
-@var{seconds}.  Not all operating systems support waiting periods other
-than multiples of a second; on those that do not, you get an error if
-you specify nonzero @var{millisec}.
+@var{seconds}.  If the system doesn't support waiting fractions of a
+second, you get an error if you specify nonzero @var{millisec}.
 
 @cindex forcing redisplay
 Redisplay is always preempted if input arrives, and does not happen at
@@ -1882,12 +1968,15 @@ This function simply pauses for @var{seconds} seconds without updating
 the display.  It pays no attention to available input.  It returns
 @code{nil}.
 
-@c Emacs 19 feature ??? maybe not working yet
+The argument @var{seconds} need not be an integer.  If it is a floating
+point number, @code{sleep-for} waits for a fractional number of seconds.
+Some systems support only a whole number of seconds; on these systems,
+@var{seconds} is rounded down.
+
 The optional argument @var{millisec} specifies an additional waiting
 period measured in milliseconds.  This adds to the period specified by
-@var{seconds}.  Not all operating systems support waiting periods other
-than multiples of a second; on those that do not, you get an error if
-you specify nonzero @var{millisec}.
+@var{seconds}.  If the system doesn't support waiting fractions of a
+second, you get an error if you specify nonzero @var{millisec}.
 
 Use @code{sleep-for} when you wish to guarantee a delay.
 @end defun
@@ -2312,7 +2401,7 @@ the user whether to proceed.
 been executed, to make it convenient to repeat these commands.  A
 @dfn{complex command} is one for which the interactive argument reading
 uses the minibuffer.  This includes any @kbd{M-x} command, any
-@kbd{M-ESC} command, and any command whose @code{interactive}
+@kbd{M-:} command, and any command whose @code{interactive}
 specification reads an argument from the minibuffer.  Explicit use of
 the minibuffer during the execution of the command itself does not cause
 the command to be considered complex.
@@ -2374,14 +2463,6 @@ executed once.  If it is 0, @var{macro} is executed over and over until it
 encounters an error or a failing search.  
 @end defun
 
-@defvar last-kbd-macro
-This variable is the definition of the most recently defined keyboard
-macro.  Its value is a string or vector, or @code{nil}.
-
-The variable is always local to the current X terminal and cannot be
-buffer-local.  @xref{Multiple Displays}.
-@end defvar
-
 @defvar executing-macro
 This variable contains the string or vector that defines the keyboard
 macro that is currently executing.  It is @code{nil} if no macro is
@@ -2396,7 +2477,15 @@ command can test this variable to behave differently while a macro is
 being defined.  The commands @code{start-kbd-macro} and
 @code{end-kbd-macro} set this variable---do not set it yourself.
 
-The variable is always local to the current X terminal and cannot be
+The variable is always local to the current terminal and cannot be
+buffer-local.  @xref{Multiple Displays}.
+@end defvar
+
+@defvar last-kbd-macro
+This variable is the definition of the most recently defined keyboard
+macro.  Its value is a string or vector, or @code{nil}.
+
+The variable is always local to the current terminal and cannot be
 buffer-local.  @xref{Multiple Displays}.
 @end defvar
 

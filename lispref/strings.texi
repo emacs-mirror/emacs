@@ -70,8 +70,16 @@ characters.  @xref{Character Type}, for more information about
 representation of meta and other modifiers for keyboard input
 characters.
 
+  Strings are useful for holding regular expressions.  You can also
+match regular expressions against strings (@pxref{Regexp Search}).  The
+functions @code{match-string} (@pxref{Simple Match Data}) and
+@code{replace-match} (@pxref{Replacing Match}) are useful for
+decomposing and modifying strings based on regular expression matching.
+
   Like a buffer, a string can contain text properties for the characters
 in it, as well as the characters themselves.  @xref{Text Properties}.
+All the Lisp primitives that copy text from strings to buffers or other
+strings also copy the properties of the characters being copied.
 
   @xref{Text}, for information about functions that display strings or
 copy them into buffers.  @xref{Character Type}, and @ref{String Type},
@@ -116,7 +124,7 @@ putting strings together, or by taking them apart.
 @end defun
 
 @defun substring string start &optional end
-  This function returns a new string which consists of those characters
+This function returns a new string which consists of those characters
 from @var{string} in the range from (and including) the character at the
 index @var{start} up to (but excluding) the character at the index
 @var{end}.  The first character is at index zero.
@@ -175,6 +183,9 @@ of @var{string}.
 But we recommend @code{copy-sequence} for this purpose (@pxref{Sequence
 Functions}).
 
+If the characters copied from @var{string} have text properties, the
+properties are copied into the new string also.  @xref{Text Properties}.
+
 A @code{wrong-type-argument} error is signaled if either @var{start} or
 @var{end} is not an integer or @code{nil}.  An @code{args-out-of-range}
 error is signaled if @var{start} indicates a character following
@@ -190,9 +201,10 @@ beginning of a buffer is at index 1.
 @cindex copying strings
 @cindex concatenating strings
 This function returns a new string consisting of the characters in the
-arguments passed to it.  The arguments may be strings, lists of numbers,
-or vectors of numbers; they are not themselves changed.  If
-@code{concat} receives no arguments, it returns an empty string.
+arguments passed to it (along with their text properties, if any).  The
+arguments may be strings, lists of numbers, or vectors of numbers; they
+are not themselves changed.  If @code{concat} receives no arguments, it
+returns an empty string.
 
 @example
 (concat "abc" "-def")

@@ -73,6 +73,12 @@ of the form @code{(car x)}: the subform @code{x} must first be evaluated
 recursively, so that its value can be passed as an argument to the
 function @code{car}.
 
+  Evaluation of a function call ultimately calls the function specified
+in it.  @xref{Functions}.  The execution of the function may itself work
+by evaluating the function definition; or the function may be a Lisp
+primitive implemented in C, or it may be a byte-compiled function
+(@pxref{Byte Compilation}).
+
 @cindex environment
   The evaluation of forms takes place in a context called the
 @dfn{environment}, which consists of the current values and bindings of
@@ -90,17 +96,12 @@ is complete.  The form may also make changes that persist; these changes
 are called @dfn{side effects}.  An example of a form that produces side
 effects is @code{(setq foo 1)}.
 
-  Finally, evaluation of one particular function call, @code{byte-code},
-invokes the @dfn{byte-code interpreter} on its arguments.  Although the
-byte-code interpreter is not the same as the Lisp interpreter, it uses
-the same environment as the Lisp interpreter, and may on occasion invoke
-the Lisp interpreter.  (@xref{Byte Compilation}.)
-
   The details of what evaluation means for each kind of form are
 described below (@pxref{Forms}).
 
 @node Eval
 @section Eval
+@c ??? Perhaps this should be the last section in the chapter.
 
   Most often, forms are evaluated automatically, by virtue of their
 occurrence in a program being run.  On rare occasions, you may need to
@@ -108,10 +109,14 @@ write code that evaluates a form that is computed at run time, such as
 after reading a form from text being edited or getting one from a
 property list.  On these occasions, use the @code{eval} function.
 
-    The functions and variables described in this section evaluate
-forms, specify limits to the evaluation process, or record recently
-returned values.  Loading a file also does evaluation
-(@pxref{Loading}).
+  @strong{Note:} it is generally cleaner and more flexible to call
+functions that are stored in data structures, rather than to evaluate
+expressions stored in data structures.  Using functions provides the
+ability to pass information to them as arguments.
+
+  The functions and variables described in this section evaluate forms,
+specify limits to the evaluation process, or record recently returned
+values.  Loading a file also does evaluation (@pxref{Loading}).
 
 @defun eval form
 This is the basic function for performing evaluation.  It evaluates
@@ -143,19 +148,6 @@ The number of currently active calls to @code{eval} is limited to
 @code{max-lisp-eval-depth} (see below).
 @end defun
 
-@cindex evaluation of buffer contents
-@deffn Command eval-current-buffer &optional stream
-This function evaluates the forms in the current buffer.  It reads
-forms from the buffer and calls @code{eval} on them until the end of the
-buffer is reached, or until an error is signaled and not handled.
-
-If @var{stream} is supplied, the variable @code{standard-output} is
-bound to @var{stream} during the evaluation (@pxref{Output
-Functions}).
-
-@code{eval-current-buffer} always returns @code{nil}.
-@end deffn
-
 @deffn Command eval-region start end &optional stream
 This function evaluates the forms in the current buffer in the region
 defined by the positions @var{start} and @var{end}.  It reads forms from
@@ -170,6 +162,12 @@ for @code{eval-region} to use instead of @code{read} for reading
 expressions.  @xref{How Programs Do Loading}.
 
 @code{eval-region} always returns @code{nil}.
+@end deffn
+
+@cindex evaluation of buffer contents
+@deffn Command eval-current-buffer &optional stream
+This is like @code{eval-region} except that it operates on the whole
+buffer.
 @end deffn
 
 @defvar max-lisp-eval-depth
@@ -296,9 +294,9 @@ unchanged.
   It is common to write numbers, characters, strings, and even vectors
 in Lisp code, taking advantage of the fact that they self-evaluate.
 However, it is quite unusual to do this for types that lack a read
-syntax, because there's no way to write them textually; however, it is
-possible to construct Lisp expressions containing these types by means
-of a Lisp program.  Here is an example:
+syntax, because there's no way to write them textually.  It is possible
+to construct Lisp expressions containing these types by means of a Lisp
+program.  Here is an example:
 
 @example
 @group
@@ -654,14 +652,15 @@ definition loaded from that file.  @xref{Autoload}.
 @section Quoting
 @cindex quoting
 
-  The special form @code{quote} returns its single argument
-``unchanged''.
+  The special form @code{quote} returns its single argument, as written,
+without evaluating it.  This provides a way to include constant symbols
+and lists, which are not self-evaluating objects, in a program.  (It is
+not necessary to quote self-evaluating objects such as numbers, strings,
+and vectors.)
 
 @defspec quote object
-This special form returns @var{object}, without evaluating it.  This
-provides a way to include constant symbols and lists, which are not
-self-evaluating objects, in a program.  (It is not necessary to quote
-self-evaluating objects such as numbers, strings, and vectors.)
+This special form returns @var{object}, without evaluating it.
+@end defspec
 
 @cindex @samp{'} for quoting
 @cindex quoting using apostrophe
@@ -700,9 +699,8 @@ Here are some examples of expressions that use @code{quote}:
      @result{} [(quote foo)]
 @end group
 @end example
-@end defspec
 
   Other quoting constructs include @code{function} (@pxref{Anonymous
 Functions}), which causes an anonymous lambda expression written in Lisp
-to be compiled, and @code{`} (@pxref{Backquote}), which is used to quote
+to be compiled, and @samp{`} (@pxref{Backquote}), which is used to quote
 only part of a list, while computing and substituting other parts.

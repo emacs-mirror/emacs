@@ -15,8 +15,8 @@ collection of elements.
 
   An @dfn{array} is a single primitive object that has a slot for each
 elements.  All the elements are accessible in constant time, but the
-length of an existing array cannot be changed.  Both strings and vectors
-are arrays.
+length of an existing array cannot be changed.  Strings and vectors are
+the two types of arrays.
 
   A list is a sequence of elements, but it is not a single primitive
 object; it is made of cons cells, one cell per element.  Finding the
@@ -36,7 +36,7 @@ But it is possible to add elements to the list, or remove elements.
          | | List | |         Array        | |
          | |      | |  ________   _______  | |   
          | |______| | |        | |       | | |
-         |          | | String | | Vector| | |
+         |          | | Vector | | String| | |
          |          | |________| |_______| | |
          |          |______________________| |
          |___________________________________|
@@ -191,9 +191,8 @@ otherwise, they trigger an @code{args-out-of-range} error.
 @end group
 @end example
 
-This function duplicates @code{aref} (@pxref{Array Functions}) and
-@code{nth} (@pxref{List Elements}), except that it works for any kind of
-sequence.
+This function generalizes @code{aref} (@pxref{Array Functions}) and
+@code{nth} (@pxref{List Elements}).
 @end defun
 
 @node Arrays
@@ -232,9 +231,9 @@ The elements of an array may be referenced or changed with the functions
 @code{aref} and @code{aset}, respectively (@pxref{Array Functions}).
 @end itemize
 
-  In principle, if you wish to have an array of characters, you could use
-either a string or a vector.  In practice, we always choose strings for
-such applications, for four reasons:
+  In principle, if you wish to have an array of text characters, you
+could use either a string or a vector.  In practice, we always choose
+strings for such applications, for four reasons:
 
 @itemize @bullet
 @item
@@ -252,6 +251,11 @@ Many of the specialized editing and I/O facilities of Emacs accept only
 strings.  For example, you cannot insert a vector of characters into a
 buffer the way you can insert a string.  @xref{Strings and Characters}.
 @end itemize
+
+  By contrast, for an array of keyboard input characters (such as a key
+sequence), a vector may be necessary, because many keyboard input
+characters are outside the range that will fit in a string.  @xref{Key
+Sequence Input}.
 
 @node Array Functions
 @section Functions that Operate on Arrays

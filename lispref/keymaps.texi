@@ -74,7 +74,7 @@ intermediate bindings (found for the events before the last) are all
 keymaps; if this is not so, the sequence of events does not form a
 unit---it is not really a key sequence.  In other words, removing one or
 more events from the end of any valid key must always yield a prefix
-key.  For example, @kbd{C-f C-f} is not a key; @kbd{C-f} is not a prefix
+key.  For example, @kbd{C-f C-n} is not a key; @kbd{C-f} is not a prefix
 key, so a longer sequence starting with @kbd{C-f} cannot be a key.
 
   Note that the set of possible multi-event key sequences depends on the
@@ -207,6 +207,7 @@ otherwise.  More precisely, this function tests for a list whose
 
   Here we describe the functions for creating keymaps.
 
+@c ??? This should come after makr-sparse-keymap
 @defun make-keymap &optional prompt
 This function creates and returns a new full keymap (i.e., one
 containing a vector of length 128 for defining all the @sc{ASCII}
@@ -570,9 +571,8 @@ is the order of @code{minor-mode-map-alist}.  But you should design
 minor modes so that they don't interfere with each other.  If you do
 this properly, the order will not matter.
 
-See also @code{minor-mode-key-binding} in @ref{Functions for Key
-Lookup}.  See @ref{Keymaps and Minor Modes}, for more information about
-minor modes.
+See also @code{minor-mode-key-binding}, above.  See @ref{Keymaps and
+Minor Modes}, for more information about minor modes.
 @end defvar
 
 @defvar overriding-local-map
@@ -594,7 +594,7 @@ menu bar display.  So if a menu bar key sequence comes in, you should
 clear @code{overriding-local-map} before looking up and executing that
 key sequence.  Modes that use @code{overriding-local-map} would
 typically do this anyway; normally they respond to events that they do
-not handle by ``unreading'' them and and exiting.
+not handle by ``unreading'' them and exiting.
 @end defvar
 
 @node Key Lookup
@@ -650,12 +650,11 @@ event of the key sequence is looked up in @var{keymap}.
 The events used so far in the lookup form a complete key,
 and @var{command} is its binding.  @xref{What Is a Function}.
 
-@item @var{string}
-@itemx @var{vector}
+@item @var{array}
 @cindex string in keymap
-The events used so far in the lookup form a complete key, whose
-binding is a keyboard macro.  See @ref{Keyboard Macros}, for more
-information.
+The array (either a string or a vector) is a keyboard macro.  The events
+used so far in the lookup form a complete key, and the array is its
+binding.  See @ref{Keyboard Macros}, for more information.
 
 @item @var{list}
 @cindex list in keymap
@@ -685,7 +684,7 @@ binding of @var{othertype} in @var{othermap} and uses that.
 
 This feature permits you to define one key as an alias for another key.
 For example, an entry whose @sc{car} is the keymap called @code{esc-map}
-and whose @sc{cdr} is 32 (the code for space) means, ``Use the global
+and whose @sc{cdr} is 32 (the code for @key{SPC}) means, ``Use the global
 binding of @kbd{Meta-@key{SPC}}, whatever that may be.''
 @end itemize
 
@@ -935,6 +934,10 @@ key name).  For example, @code{(control ?a)} is equivalent to
 @code{?\C-a} and @code{(hyper control left)} is equivalent to
 @code{C-H-left}.
 
+  One advantage of using a list to represent the event type is that the
+precise numeric codes for the modifier bits don't appear in compiled
+files.
+
   For the functions below, an error is signaled if @var{keymap} is not a
 keymap or if @var{key} is not a string or vector representing a key
 sequence.  You can use event types (symbols) as shorthand for events
@@ -1143,6 +1146,13 @@ or
 
 @smallexample
 (global-set-key [?\C-x ?\C-\\] 'next-line)
+@end smallexample
+
+@noindent
+or
+
+@smallexample
+(global-set-key [(control ?x) (control ?\\)] 'next-line)
 @end smallexample
 
 @noindent
@@ -1431,8 +1441,8 @@ You can also supply a second string, called the help string, as follows:
 
 Currently Emacs does not actually use @var{help-string}; it knows only
 how to ignore @var{help-string} in order to extract @var{real-binding}.
-In the future we hope to make @var{help-string} serve as extended
-documentation for the menu item, available on request.
+In the future we may use @var{help-string} as extended documentation for
+the menu item, available on request.
 
 If @var{real-binding} is @code{nil}, then @var{string} appears in the
 menu but cannot be selected.
@@ -1444,6 +1454,11 @@ used to display a menu, Emacs evaluates the expression, and it enables
 the menu item only if the expression's value is non-@code{nil}.  When a
 menu item is disabled, it is displayed in a ``fuzzy'' fashion, and
 cannot be selected with the mouse.
+
+The menu bar does not recalculate which items are enabled every time you
+look at a menu.  This is because the X toolkit requires the whole tree
+of menus in advance.  To force recalculation of the menu bar, call
+@code{force-mode-line-update} (@pxref{Mode Line Format}).
 
 Sometimes it is useful to make menu items that use the ``same'' command
 but with different enable conditions.  You can do this by defining alias
@@ -1539,10 +1554,14 @@ When the user has found the desired alternative from the menu, he or she
 should type the corresponding character---the one whose binding is that
 alternative.
 
+@ignore
 In a menu intended for keyboard use, each menu item must clearly
 indicate what character to type.  The best convention to use is to make
-the character the first letter of the item string.  That is something
-users will understand without being told.
+the character the first letter of the item string---that is something
+users will understand without being told.  We plan to change this; by
+the time you read this manual, keyboard menus may explicitly name the
+key for each alternative.
+@end ignore
 
 This way of using menus in an Emacs-like editor was inspired by the
 Hierarkey system.
@@ -1616,8 +1635,8 @@ were @code{nil}.  @xref{Active Keymaps}.
 parameter must be greater than zero.  Emacs uses just one line for the
 menu bar itself; if you specify more than one line, the other lines
 serve to separate the menu bar from the windows in the frame.  We
-recommend you try 1 or 2 as the value of @code{menu-bar-lines}.  @xref{X
-Frame Parameters}.
+recommend 1 or 2 as the value of @code{menu-bar-lines}.  @xref{X Frame
+Parameters}.
 
   Here's an example of setting up a menu bar item:
 
