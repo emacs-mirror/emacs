@@ -3,17 +3,22 @@ in compiling, installing and running GNU Emacs.
 
 * Emacs dumps core on Solaris in function IMCheckWindow.
 
+This was reported to happen when Emacs runs with more than one frame,
+and one of them is closed, either with "C-x 5 0" or from the window
+manager.
+
 This bug was reported to Sun as
 
     Gtk apps dump core in ximlocal.so.2:IMCheckIMWindow()
     Bug Reports: 4463537
 
-The bug is said to be "Integrated in Releases: s81_40" but there is no
-Patch ID listed.
+Installing Solaris 8 patch 108773-12 for Sparc and 108874-12 for x86
+reportedly fixes the bug, which appears to be inside the shared
+library xiiimp.so.
 
-As far as Emacs is concerned, you can configure it with
-`--with-xim=no' to prevent the core dump, but will loose X input
-method support, of course.
+Alternatively, you can configure Emacs with `--with-xim=no' to prevent
+the core dump, but will loose X input method support, of course.  (You
+can use Emacs's own input methods instead, if you install Leim.)
 
 * Building Emacs with GCC 2.9x fails in the `src' directory.
 
