@@ -1,7 +1,157 @@
+2000-09-20  Dave Love  <fx@gnu.org>
+
+	* mail-source.el (mail-source-delete-incoming): Set to t, assuming
+	we'll be careful merging development changes.
+
+	* gnus-start.el (gnus-1) <gnus-simple-splash>: Don't test for X
+	specifically.
+
+	* gnus-ems.el (gnus-smiley-display): Autoload from smiley-ems.
+	(mouse-set-point, set-face-foreground)
+	(set-face-background, x-popup-menu) [not window-system]: Don't zap
+	them.
+
+	* mm-decode.el (mm-valid-and-fit-image-p): Use display-graphic-p.
+
+	* gnus.el (gnus-version-number): Start 5.9 series.  Avoid some
+	redundant autoloads.
+
 2000-09-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* gnus-ems.el (gnus-article-display-xface): Don't convert PBM
 	to XBM; we always have PBM support.
+
+2000-09-19  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-group.el (gnus-group-make-kiboze-group): Makedir.
+	* nnheader.el (nnheader-parse-nov): Remove Xref in mail-header-xref.
+	* gnus-sum.el (gnus-nov-parse-line): Ditto.
+	* nnkiboze.el (nnkiboze-file-coding-system): New.
+	(nnkiboze-retrieve-headers): Use it.
+	(nnkiboze-request-group): Ditto.
+	(nnkiboze-close-group): Ditto.
+	(nnkiboze-generate-group): Ditto.
+	(nnkiboze-enter-nov): Insert first Xref properly.
+
+2000-09-19  Dave Love  <fx@gnu.org>
+
+	* nnmail.el (nnmail-cache-accepted-message-ids): Default to nil.
+	(nnmail-get-new-mail): Test `sources' in top-level conditional.
+
+	* mail-source.el (mail-sources): Change default to '((file)).
+	Add useful custom type.
+
+2000-09-18  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* gnus-util.el (gnus-time-iso8601): Correct doc string (four digit
+	year).
+	(gnus-date-iso8601): Ditto.
+
+2000-09-18  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mail-source.el (mail-source-fetch-imap): Disable multibyte.
+
+2000-09-17  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* rfc2047.el (rfc2047-q-encoding-alist): Remove = and _ from the
+	pattern. Avoid using 8 bit chars.
+	* qp.el (quoted-printable-encode-region): Avoid using 8 bit chars.
+
+2000-09-16  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* smiley.el (smiley-buffer-ems, smiley-create-glyph-ems,
+	smiley-toggle-extent-ems, smiley-toggle-extents-ems,
+	smiley-toggle-buffer-ems): New functions for Emacs 21. Toggle
+	functions are not implemented yet.
+	
+	* dgnushack.el (dgnushack-compile): Remove smiley.el and 
+	x-overlay.el from the FSF Emacs black list.
+
+2000-09-15  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mm-decode.el (mm-inlined-types): Add application/emacs-lisp.
+	(mm-inline-media-tests): Ditto.
+	(mm-automatic-display): Ditto.
+	* mm-view.el (mm-display-inline-fontify): Generalize from 
+	mm-display-patch-inline. 
+	(mm-display-patch-inline): Use it.
+	(mm-display-elisp-inline): Ditto.
+	
+2000-09-15  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-topic.el (gnus-topic-find-groups): Add recursive parameter.
+	(gnus-topic-unmark-topic): Ditto.
+	(gnus-topic-mark-topic): Ditto.
+	(gnus-topic-get-new-news-this-topic): Use it.
+
+2000-09-15 09:01:40  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-art.el (gnus-treat-display-xface): By default, Emacs 21
+	display xface.
+
+2000-09-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-group.el (gnus-group-rename-group): Inhibit renaming of
+	zombie or killed groups.
+	
+2000-09-15  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mml.el (mml-preview): Reinsert unibyte content. 
+	(mml-parse-1): Remove with-unibyte-current-buffer.
+	(mml-generate-mime-1): Ditto.
+	* gnus-msg.el (gnus-summary-mail-forward): Ditto.
+	* message.el (message-forward): Ditto.
+
+2000-09-14  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-art.el (article-de-quoted-unreadable): Guess charset from
+	original article buffer.
+	(article-de-base64-unreadable): Ditto.
+	(article-wash-html): Ditto.
+
+2000-09-14  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-msg.el (gnus-summary-mail-forward): Disable multibyte
+	unless forward-show-mml.
+
+2000-09-14  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-sum.el (gnus-summary-save-parts-type-history): New.
+	(gnus-summary-save-parts-last-directory): New.
+	(gnus-summary-save-parts): Save history.
+
+2000-09-14 Ben Gertzfield <che@debian.org>
+
+	* gnus-sum.el (gnus-summary-save-parts-default-mime): New
+	variable.
+	(gnus-summary-save-parts): Use it.
+
+2000-09-14  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-art.el (gnus-article-setup-buffer): Clean handle-alist.
+	* gnus-sum.el (gnus-summary-exit): Ditto.
+	(gnus-summary-exit-no-update): Ditto.
+	(gnus-summary-show-article): Ditto.
+
+2000-09-14  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* nndoc.el (nndoc-dissect-mime-parts-sub): Remove
+	Content-Disposition.
+
+2000-09-14  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* webmail.el: Hotmail updated. Add X-Gnus-Webmail.
+
+2000-09-14  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-art.el (gnus-article-setup-buffer): Set
+	gnus-article-mime-handles to nil.
+	* gnus-sum.el (gnus-summary-exit): Ditto.
+	(gnus-summary-exit-no-update): Ditto.
+	(gnus-summary-show-article): Ditto.
+	(gnus-summary-save-parts): Use gnus-article-mime-handles if
+	dissected.
+	* mm-partial.el (mm-partial-find-parts): Remove redundancy.
 
 2000-09-14  Dave Love  <fx@gnu.org>
 

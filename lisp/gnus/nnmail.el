@@ -185,7 +185,7 @@ The return value should be `delete' or a group name (a string)."
   :group 'nnmail
   :type 'boolean)
 
-(defcustom nnmail-spool-file '((file))
+(defcustom nnmail-spool-file nil
   "*Where the mail backends will look for incoming mail.
 This variable is a list of mail source specifiers.
 This variable is obsolete; `mail-sources' should be used instead."
@@ -226,7 +226,7 @@ links, you could set this variable to `copy-file' instead."
       '(nnheader-ms-strip-cr)
     nil)
   "*Hook that will be run after the incoming mail has been transferred.
-The incoming mail is moved from `nnmail-spool-file' (which normally is
+The incoming mail is moved from the specified spool file (which normally is
 something like \"/usr/spool/mail/$user\") to the user's home
 directory.  This hook is called after the incoming mail box has been
 emptied, and can be used to call any mail box programs you have
@@ -1513,7 +1513,8 @@ See the documentation for the variable `nnmail-split-fancy' for documentation."
 	 (new 0)
 	 (total 0)
 	 incoming incomings source)
-    (when (nnmail-get-value "%s-get-new-mail" method)
+    (when (and (nnmail-get-value "%s-get-new-mail" method)
+	       sources)
       (while (setq source (pop sources))
 	;; Be compatible with old values.
 	(cond

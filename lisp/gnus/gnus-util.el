@@ -311,11 +311,11 @@ Cache the result as a text property stored in DATE."
 	     time)))))
 
 (defsubst gnus-time-iso8601 (time)
-  "Return a string of TIME in YYMMDDTHHMMSS format."
+  "Return a string of TIME in YYYYMMDDTHHMMSS format."
   (format-time-string "%Y%m%dT%H%M%S" time))
 
 (defun gnus-date-iso8601 (date)
-  "Convert the DATE to YYMMDDTHHMMSS."
+  "Convert the DATE to YYYYMMDDTHHMMSS."
   (condition-case ()
       (gnus-time-iso8601 (gnus-date-get-time date))
     (error "")))

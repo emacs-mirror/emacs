@@ -885,6 +885,14 @@ For example: ((1 . cn-gb-2312) (2 . big5))."
   :type '(choice (const nil)
 		 integer))
 
+(defcustom gnus-summary-save-parts-default-mime "image/.*"
+  "*A regexp to match MIME parts when saving multiple parts of a message
+with gnus-summary-save-parts (X m). This regexp will be used by default
+when prompting the user for which type of files to save."
+  :group 'gnus-summary
+  :type 'regexp)
+
+
 ;;; Internal variables
 
 (defvar gnus-article-mime-handles nil)
@@ -901,6 +909,9 @@ For example: ((1 . cn-gb-2312) (2 . big5))."
 (defvar gnus-thread-indent-array-level gnus-thread-indent-level)
 (defvar gnus-sort-gathered-threads-function 'gnus-thread-sort-by-number
   "Function called to sort the articles within a thread after it has been gathered together.")
+
+(defvar gnus-summary-save-parts-type-history nil)
+(defvar gnus-summary-save-parts-last-directory nil)
 
 ;; Avoid highlighting in kill files.
 (defvar gnus-summary-inhibit-highlight nil)
@@ -3300,7 +3311,9 @@ Returns HEADER if it was entered in the DEPENDENCIES.  Returns nil otherwise."
 		 (nnheader-nov-read-integer) ; chars
 		 (nnheader-nov-read-integer) ; lines
 		 (unless (eobp)
-		   (nnheader-nov-field)) ; misc
+		   (if (looking-at "Xref: ")
+		       (goto-char (match-end 0)))
+		   (nnheader-nov-field)) ; Xref
 		 (nnheader-nov-parse-extra)))) ; extra
 
       (widen))
@@ -9195,8 +9208,14 @@ save those articles instead."
   "Save parts matching TYPE to DIR.
 If REVERSE, save parts that do not match TYPE."
   (interactive
-   (list (read-string "Save parts of type: " "image/.*")
-	 (read-file-name "Save to directory: " nil nil t)
+   (list (read-string "Save parts of type: " 
+		      (or (car gnus-summary-save-parts-type-history)
+			  gnus-summary-save-parts-default-mime)
+		      'gnus-summary-save-parts-type-history)
+	 (setq gnus-summary-save-parts-last-directory
+	       (read-file-name "Save to directory: " 
+			       gnus-summary-save-parts-last-directory
+			       nil t))
 	 current-prefix-arg))
   (gnus-summary-iterate n
     (let ((gnus-display-mime-function nil)
