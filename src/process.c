@@ -146,7 +146,7 @@ extern Lisp_Object QCfamily;
 extern Lisp_Object QCfilter;
 
 /* a process object is a network connection when its childp field is neither
-   Qt nor Qnil but is instead a cons cell (HOSTNAME PORTNUM).  */
+   Qt nor Qnil but is instead a property list (KEY VAL ...).  */
 
 #ifdef HAVE_SOCKETS
 #define NETCONN_P(p) (GC_CONSP (XPROCESS (p)->childp))
@@ -1035,6 +1035,24 @@ See `make-network-process' for a list of keywords.  */)
     return Fcons (Fplist_get (contact, QChost),
 		  Fcons (Fplist_get (contact, QCservice), Qnil));
   return Fplist_get (contact, key);
+}
+
+DEFUN ("set-process-contact", Fset_process_contact, Sset_process_contact,
+       3, 3, 0,
+       doc: /* Change value in PROCESS' contact information list of KEY to VAL.
+If KEY is already a property on the list, its value is set to VAL,
+otherwise the new KEY VAL pair is added.  Returns VAL.  */)
+     (process, key, val)
+     register Lisp_Object process, key, val;
+{
+  Lisp_Object contact;
+
+  CHECK_PROCESS (process);
+
+  if (NETCONN_P (process))
+    XPROCESS (process)->childp = Fplist_put (XPROCESS (process)->childp, key, val);
+
+  return val;
 }
 
 #if 0 /* Turned off because we don't currently record this info
@@ -2588,6 +2606,10 @@ Notice that the FILTER and SENTINEL args are never used directly by
 the server process.  Also, the BUFFER argument is not used directly by
 the server process, but via the optional :log function, accepted (and
 failed) connections may be logged in the server process' buffer.
+
+The original argument list, modified with the actual connection
+information, is available via the `process-contact' function.
+Additional arguments may be added via `set-process-contact'.
 
 usage: (make-network-process &rest ARGS)  */)
      (nargs, args)
@@ -6341,6 +6363,7 @@ The value takes effect when `start-process' is called.  */);
   defsubr (&Sset_process_query_on_exit_flag);
   defsubr (&Sprocess_query_on_exit_flag);
   defsubr (&Sprocess_contact);
+  defsubr (&Sset_process_contact);
   defsubr (&Slist_processes);
   defsubr (&Sprocess_list);
   defsubr (&Sstart_process);
