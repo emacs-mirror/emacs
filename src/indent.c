@@ -1223,7 +1223,9 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	}
 
       /* Stop if past the target buffer position or screen position.  */
-      if (pos > to)
+      if (pos > to
+	  || vpos > tovpos
+	  || vpos == tovpos && hpos > tohpos)
 	{
 	  /* Go back to the previous position.  */
 	  pos = prev_pos;
@@ -1256,24 +1258,6 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	  break;
 	}
 
-      if (vpos > tovpos || vpos == tovpos && hpos >= tohpos)
-	{
-	  if (contin_hpos && prev_hpos == 0
-	      && ((hpos > tohpos && contin_hpos == width)
-		  || (wide_column_end_hpos > width)))
-	    { /* Line breaks because we can't put the character at the
-		 previous line any more.  It is not the multi-column
-		 character continued in middle.  Go back to previous
-		 buffer position, screen position, and set tab offset
-		 to previous value.  It's the beginning of the
-		 line.  */
-	      pos = prev_pos;
-	      pos_byte = prev_pos_byte;
-	      hpos = prev_hpos;
-	      tab_offset = prev_tab_offset;
-	    }
-	  break;
-	}
       if (pos == ZV) /* We cannot go beyond ZV.  Stop here. */
 	break;
 
