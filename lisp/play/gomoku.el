@@ -113,6 +113,7 @@
   (define-key gomoku-mode-map [left] 'gomoku-move-left)
   (define-key gomoku-mode-map [right] 'gomoku-move-right)
   (define-key gomoku-mode-map [kp-enter] 'gomoku-human-plays)
+  (define-key gomoku-mode-map [mouse-2] 'gomoku-click)
   (define-key gomoku-mode-map [insert] 'gomoku-human-plays))
 
 (defun gomoku-mode ()
@@ -736,6 +737,12 @@ Use \\[describe-mode] for more info."
 		    (gomoku-terminate-game 'draw-agreed))
 		   (t
 		    (gomoku-prompt-for-move)))))))))
+
+(defun gomoku-click (click)
+  "Play at the square where you click."
+  (interactive "e")
+  (mouse-set-point click)
+  (gomoku-human-plays))
 
 (defun gomoku-human-plays ()
   "Signal to the Gomoku program that you have played.
