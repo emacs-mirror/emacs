@@ -1,3 +1,9 @@
+2000-10-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_draw_glyph_string): Treat XA_UNDERLINE_POSITION as a
+	signed value, and use a default value computed from the font's
+	maximum descent.
+
 2000-10-27  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* xterm.c (x_draw_glyph_string): Add a workaround so that fonts
