@@ -763,7 +763,7 @@ to run it every morning at 1am."
          (set-buffer fancy-diary-buffer)
          (buffer-substring (point-min) (point-max)))
      "No entries found"))
-  (funcall (get mail-user-agent 'sendfunc)))
+  (call-interactively (get mail-user-agent 'sendfunc)))
 
 
 (defun diary-name-pattern (string-array &optional fullname)
