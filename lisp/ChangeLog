@@ -1,3 +1,9 @@
+2005-01-15  Alan Mackenzie  <acm@muc.de>
+
+	* ebrowse.el (ebrowse-class-in-tree): Return the tail of the tree
+	rather than the element found, thus enabling the tree to be
+	setcar'd.
+
 2005-01-14  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-show-following-heading): New option.
