@@ -1194,6 +1194,7 @@ appropriate for C-style escape sequences in strings.
 +++
 ** A new command `view-emacs-problems' (C-h P) displays the PROBLEMS file.
 
++++
 ** The Dabbrev package has a new user-option `dabbrev-ignore-regexps'
 containing a list of regular expressions.  Buffers matching a regular
 expression from that list, are not checked.
