@@ -1363,7 +1363,11 @@ and nil for X and Y.")
 
 DEFUN ("set-mouse-position", Fset_mouse_position, Sset_mouse_position, 3, 3, 0,
   "Move the mouse pointer to the center of character cell (X,Y) in FRAME.\n\
-Note, this is a no-op for an X frame that is not visible.\n\
+Coordinates are relative to the frame, not a window,\n\
+so the coordinates of the top left character in the frame\n\
+may be nonzero due to left-hand scroll bars or the menu bar.\n\
+\n\
+This function is a no-op for an X frame that is not visible.\n\
 If you have just created a frame, you must wait for it to become visible\n\
 before calling this function on it, like this.\n\
   (while (not (frame-visible-p frame)) (sleep-for .5))")
