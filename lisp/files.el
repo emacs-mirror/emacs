@@ -1423,7 +1423,7 @@ if you wish to pass an empty string as the argument."
 	  (setq truename (file-truename filename))
 	  (if find-file-visit-truename
 	      (setq filename truename))))
-    (let ((buffer (find-buffer-visiting filename)))
+    (let ((buffer (and filename (find-buffer-visiting filename))))
       (and buffer (not (eq buffer (current-buffer)))
 	   (not (y-or-n-p (message "A buffer is visiting %s; proceed? "
 				   filename)))
