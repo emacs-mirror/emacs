@@ -1648,56 +1648,21 @@ lisp_data_to_selection_data (display, obj,
     {
       /* Since we are now handling multilingual text, we must consider
 	 sending back compound text.  */
-      unsigned char *ptr = XSTRING (obj)->data;
-      int nbytes = STRING_BYTES (XSTRING (obj));
-      int charset_info = find_charset_in_text (ptr, XSTRING (obj)->size,
-					       nbytes, NULL, Qnil);
+      int latin1_p;
+
+      if (NILP (Vnext_selection_coding_system))
+	Vnext_selection_coding_system = Vselection_coding_system;
+
       *format_ret = 8;
-
-      if (charset_info == 0)
-	{
-	  /* No multibyte character in OBJ.  We need not encode it.  */
-	  *size_ret = nbytes;
-	  *data_ret = ptr;
-	  *nofree_ret = 1;
-	  if (NILP (type)) type = QSTRING;
-	  Vlast_coding_system_used = Qraw_text;
-	}
-      else
-	{
-	  /* We must encode contents of OBJ to compound text format.
-             The format is compatible with what the target `STRING'
-             expects if OBJ contains only ASCII and Latin-1
-             characters.  */
-	  int bufsize;
-	  unsigned char *buf;
-	  struct coding_system coding;
-
-	  if (NILP (Vnext_selection_coding_system))
-	    Vnext_selection_coding_system = Vselection_coding_system;
-	  setup_coding_system
-	    (Fcheck_coding_system (Vnext_selection_coding_system), &coding);
-	  coding.src_multibyte = 1;
-	  coding.dst_multibyte = 0;
-	  Vnext_selection_coding_system = Qnil;
-	  coding.mode |= CODING_MODE_LAST_BLOCK;
-	  bufsize = encoding_buffer_size (&coding, nbytes);
-	  buf = (unsigned char *) xmalloc (bufsize);
-	  encode_coding (&coding, ptr, buf, nbytes, bufsize);
-	  *size_ret = coding.produced;
-	  *data_ret = buf;
-          if (charset_info == 1)
-	    {
-	      /* Ok, we can return it as `STRING'.  */
-	      if (NILP (type)) type = QSTRING;
-	    }
-	  else
-	    {
-	      /* We must return it as `COMPOUND_TEXT'.  */
-	      if (NILP (type)) type = QCOMPOUND_TEXT;
-	    }
-	  Vlast_coding_system_used = coding.symbol;
-	}
+      *data_ret = x_encode_text (obj, Vnext_selection_coding_system,
+				 (int *) size_ret, &latin1_p);
+      *nofree_ret = (*data_ret == XSTRING (obj)->data);
+      if (NILP (type))
+	type = (latin1_p ? QSTRING : QCOMPOUND_TEXT);
+      Vlast_coding_system_used = (*nofree_ret
+				  ? Qraw_text
+				  : Vnext_selection_coding_system);
+      Vnext_selection_coding_system = Qnil;
     }
   else if (SYMBOLP (obj))
     {
