@@ -1834,7 +1834,7 @@ TREE denotes the class shown."
 
 
 (defun* ebrowse-draw-tree-fn (&aux stack1 stack2 start)
-  "Display a single class and recursively it's subclasses.
+  "Display a single class and recursively its subclasses.
 This function may look weird, but this is faster than recursion."
   (setq stack1 (make-list (length ebrowse--tree) 0)
 	stack2 (ebrowse-copy-list ebrowse--tree))
