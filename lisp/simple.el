@@ -1335,7 +1335,8 @@ and only used if a buffer is displayed."
 		  (if (= (buffer-size) 0)
 		      0
 		    (count-lines (point-min) (point-max)))))
-	     (cond ((or (<= lines 1)
+	     (cond ((= lines 0))
+		   ((or (<= lines 1)
 			(<= lines
 			    (if resize-mini-windows
 				(cond ((floatp max-mini-window-height)
