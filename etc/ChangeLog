@@ -1,3 +1,7 @@
+2004-07-08  David Kastrup  <dak@gnu.org>
+
+	* NEWS (Lisp changes in 21.4): document (match-data t) change.
+
 2002-06-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* FOR-RELEASE: Moved to the admin directory.

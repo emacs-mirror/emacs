@@ -1426,10 +1426,10 @@ lisp_time_argument (specified_time, result, usec)
 DEFUN ("float-time", Ffloat_time, Sfloat_time, 0, 1, 0,
        doc: /* Return the current time, as a float number of seconds since the epoch.
 If SPECIFIED-TIME is given, it is the time to convert to float
-instead of the current time.  The argument should have the forms:
- (HIGH . LOW) or (HIGH LOW USEC) or (HIGH LOW . USEC).
-Thus, you can use times obtained from `current-time'
-and from `file-attributes'.
+instead of the current time.  The argument should have the form
+(HIGH LOW . IGNORED). Thus, you can use times obtained from
+`current-time' and from `file-attributes'.  SPECIFIED-TIME can also
+have the form (HIGH . LOW), but this is considered obsolete.
 
 WARNING: Since the result is floating point, it may not be exact.
 Do not use this function if precise time stamps are required.  */)
@@ -1501,8 +1501,9 @@ emacs_memftimeu (s, maxsize, format, format_len, tp, ut)
 
 DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 3, 0,
        doc: /* Use FORMAT-STRING to format the time TIME, or now if omitted.
-TIME is specified as (HIGH LOW . IGNORED) or (HIGH . LOW), as returned by
-`current-time' or `file-attributes'.
+TIME is specified as (HIGH LOW . IGNORED), as returned by
+`current-time' or `file-attributes'.  The obsolete form (HIGH . LOW)
+is also still accepted.
 The third, optional, argument UNIVERSAL, if non-nil, means describe TIME
 as Universal Time; nil means describe TIME in the local time zone.
 The value is a copy of FORMAT-STRING, but with certain constructs replaced
@@ -1598,17 +1599,19 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 
 DEFUN ("decode-time", Fdecode_time, Sdecode_time, 0, 1, 0,
        doc: /* Decode a time value as (SEC MINUTE HOUR DAY MONTH YEAR DOW DST ZONE).
-The optional SPECIFIED-TIME should be a list of (HIGH LOW . IGNORED)
-or (HIGH . LOW), as from `current-time' and `file-attributes', or `nil'
-to use the current time.  The list has the following nine members:
-SEC is an integer between 0 and 60; SEC is 60 for a leap second, which
-only some operating systems support.  MINUTE is an integer between 0 and 59.
-HOUR is an integer between 0 and 23.  DAY is an integer between 1 and 31.
-MONTH is an integer between 1 and 12.  YEAR is an integer indicating the
-four-digit year.  DOW is the day of week, an integer between 0 and 6, where
-0 is Sunday.  DST is t if daylight savings time is effect, otherwise nil.
-ZONE is an integer indicating the number of seconds east of Greenwich.
-(Note that Common Lisp has different meanings for DOW and ZONE.)  */)
+The optional SPECIFIED-TIME should be a list of (HIGH LOW . IGNORED),
+as from `current-time' and `file-attributes', or `nil' to use the
+current time.  The obsolete form (HIGH . LOW) is also still accepted.
+The list has the following nine members: SEC is an integer between 0
+and 60; SEC is 60 for a leap second, which only some operating systems
+support.  MINUTE is an integer between 0 and 59.  HOUR is an integer
+between 0 and 23.  DAY is an integer between 1 and 31.  MONTH is an
+integer between 1 and 12.  YEAR is an integer indicating the
+four-digit year.  DOW is the day of week, an integer between 0 and 6,
+where 0 is Sunday.  DST is t if daylight savings time is effect,
+otherwise nil.  ZONE is an integer indicating the number of seconds
+east of Greenwich.  (Note that Common Lisp has different meanings for
+DOW and ZONE.)  */)
      (specified_time)
      Lisp_Object specified_time;
 {
@@ -1740,13 +1743,11 @@ The format is `Sun Sep 16 01:03:52 1973'.
 However, see also the functions `decode-time' and `format-time-string'
 which provide a much more powerful and general facility.
 
-If SPECIFIED-TIME is given, it is a time to format instead
-of the current time.  The argument should have the form:
-  (HIGH . LOW)
-or the form:
-  (HIGH LOW . IGNORED).
-Thus, you can use times obtained from `current-time'
-and from `file-attributes'.  */)
+If SPECIFIED-TIME is given, it is a time to format instead of the
+current time.  The argument should have the form (HIGH LOW . IGNORED).
+Thus, you can use times obtained from `current-time' and from
+`file-attributes'.  SPECIFIED-TIME can also have the form (HIGH . LOW),
+but this is considered obsolete.  */)
      (specified_time)
      Lisp_Object specified_time;
 {
@@ -1797,12 +1798,10 @@ OFFSET is an integer number of seconds ahead of UTC (east of Greenwich).
     A negative value means west of Greenwich.
 NAME is a string giving the name of the time zone.
 If SPECIFIED-TIME is given, the time zone offset is determined from it
-instead of using the current time.  The argument should have the form:
-  (HIGH . LOW)
-or the form:
-  (HIGH LOW . IGNORED).
-Thus, you can use times obtained from `current-time'
-and from `file-attributes'.
+instead of using the current time.  The argument should have the form
+(HIGH LOW . IGNORED).  Thus, you can use times obtained from
+`current-time' and from `file-attributes'.  SPECIFIED-TIME can also
+have the form (HIGH . LOW), but this is considered obsolete.
 
 Some operating systems cannot provide all this information to Emacs;
 in this case, `current-time-zone' returns a list containing nil for

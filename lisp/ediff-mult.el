@@ -200,7 +200,7 @@ Should be a sexp. For instance (car ediff-filtering-regexp-history) or nil."
 (defcustom ediff-meta-truncate-filenames t
   "*If non-nil, truncate long file names in the session group buffers.
 This can be toggled with `ediff-toggle-filename-truncation'."
-  :type 'hook
+  :type 'boolean
   :group 'ediff-mult)
 (defcustom ediff-registry-setup-hook nil
   "*Hooks run just after the registry control panel is set up."

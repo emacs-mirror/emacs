@@ -1144,7 +1144,7 @@ When not inside a field, move to the previous button or field."
       field)))
 
 (defun widget-field-buffer (widget)
-  "Return the start of WIDGET's editing field."
+  "Return the buffer of WIDGET's editing field."
   (let ((overlay (widget-get widget :field-overlay)))
     (cond ((overlayp overlay)
 	   (overlay-buffer overlay))

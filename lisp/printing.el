@@ -3,18 +3,18 @@
 ;; Copyright (C) 2000, 2001, 2002, 2003, 2004
 ;; Free Software Foundation, Inc.
 
-;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Time-stamp: <2004/04/05 23:41:49 vinicius>
+;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
+;; Time-stamp: <2004/07/10 18:48:24 vinicius>
 ;; Keywords: wp, print, PostScript
-;; Version: 6.7.4
+;; Version: 6.8
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst pr-version "6.7.4"
-  "printing.el, v 6.7.4 <2004/03/31 vinicius>
+(defconst pr-version "6.8"
+  "printing.el, v 6.8 <2004/07/10 vinicius>
 
 Please send all bug fixes and enhancements to
-	Vinicius Jose Latorre <vinicius@cpqd.com.br>
+	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ")
 
 ;; This file is part of GNU Emacs.
@@ -40,10 +40,23 @@ Please send all bug fixes and enhancements to
 ;; Introduction
 ;; ------------
 ;;
-;; This package provides some printing utilities that includes
-;; previewing/printing a PostScript file, printing a text file and
+;; This package provides an user interface to some printing utilities that
+;; includes previewing/printing a PostScript file, printing a text file and
 ;; previewing/printing some major modes (like mh-folder-mode,
-;; rmail-summary-mode, gnus-summary-mode, etc).
+;; rmail-summary-mode, gnus-summary-mode, etc).  It also includes a
+;; PostScript/text printer database.
+;;
+;; Indeed, there are two user interfaces:
+;;
+;;    * one is via menubar:
+;;      When `printing' is loaded, the menubar is modified to use `printing'
+;;      menu instead of the print options in menubar.
+;;      This is the default user interface.
+;;
+;;    * other is via buffer interface:
+;;      It is an option of `printing' menu, but it can be binded into another
+;;      key, so user can activate the buffer interface directly without using
+;;      a menu.  See `pr-interface' command.
 ;;
 ;; `printing' was inspired on:
 ;;
@@ -172,7 +185,7 @@ Please send all bug fixes and enhancements to
 ;; Tips
 ;; ----
 ;;
-;; 1. If your have a local printer, that is, a printer which is connected
+;; 1. If you have a local printer, that is, a printer which is connected
 ;;    directly to your computer, don't forget to connect the printer to your
 ;;    computer before printing.
 ;;
@@ -187,16 +200,26 @@ Please send all bug fixes and enhancements to
 ;;    another buffer and, then, print the file or the new static buffer.
 ;;    An example of dynamic buffer is the *Messages* buffer.
 ;;
-;; 4. When running Emacs on Windows with cygwin, check if the
-;;    `pr-shell-file-name' variable is set to the proper shell.  This shell
-;;    will execute the commands to preview/print the buffer, file or directory.
-;;    Also check the setting of `pr-path-style' variable.
-;;    Probably, you should use:
+;; 4. When running Emacs on Windows (with or without cygwin), check if your
+;;    printer is a text printer or not by typing in a DOS window:
 ;;
-;;    (setq pr-shell-file-name "bash")
-;;    (setq pr-path-style 'unix)
+;;       print /D:\\host\printer somefile.txt
 ;;
-;;     And use / instead of \ when specifying a directory.
+;;    Where, `host' is the machine where your printer is directly connected,
+;;    `printer' is the printer name and `somefile.txt' is a text file.
+;;
+;;    If the printer `\\host\printer' doesn't print the content of
+;;    `somefile.txt' or, instead, it returns the following message:
+;;
+;;       PostScript Error Handler
+;;       Offending Command = CCC
+;;       Stack =
+;;
+;;    Where `CCC' is whatever is at the beginning of the text to be printed.
+;;
+;;    Therefore, the printer `\\host\printer' is not a text printer, but a
+;;    PostScript printer.  So, please, don't include this printer in
+;;    `pr-txt-printer-alist' (which see).
 ;;
 ;;
 ;; Using `printing'
@@ -478,9 +501,6 @@ Please send all bug fixes and enhancements to
 ;;
 ;; `pr-buffer-verbose'		Non-nil means to be verbose when editing a
 ;;				field in interface buffer.
-;;
-;; `pr-shell-file-name'		Specify file name to load inferior shells
-;;				from.
 ;;
 ;; To set the above options you may:
 ;;
@@ -912,8 +932,8 @@ Please send all bug fixes and enhancements to
 (require 'ps-print)
 
 
-(and (string< ps-print-version "6.5.7")
-     (error "`printing' requires `ps-print' package version 6.5.7 or later."))
+(and (string< ps-print-version "6.6.4")
+     (error "`printing' requires `ps-print' package version 6.6.4 or later."))
 
 
 (eval-and-compile
@@ -1062,6 +1082,15 @@ Valid values are:
   (if (eq pr-path-style 'windows)
       (subst-char-in-string ?\\ ?/ path)
     path))
+
+
+(defun pr-standard-path (path)
+  "Ensure the proper directory separator depending on the OS.
+That is, if Emacs is running on DOS/Windows, ensure dos/windows-style directory
+separator; otherwise, ensure unix-style directory separator."
+  (if (or pr-cygwin-system ps-windows-system)
+      (subst-char-in-string ?/ ?\\ path)
+    (subst-char-in-string ?\\ ?/ path)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2314,16 +2343,6 @@ It's used by `pr-interface'."
   :group 'printing)
 
 
-(defcustom pr-shell-file-name
-  (if (and (not pr-cygwin-system)
-	   ps-windows-system)
-      "cmdproxy.exe"
-    shell-file-name)
-  "*Specify file name to load inferior shells from."
-  :type 'string
-  :group 'printing)
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Internal Variables
 
@@ -2410,6 +2429,7 @@ See `pr-ps-printer-alist'.")
       (and pr-auto-region transient-mark-mode mark-active)))
 
    ((eq ps-print-emacs-type 'xemacs)	; XEmacs
+    (defvar zmacs-region-stays nil)	; to avoid compilation gripes
     (defsubst pr-region-active-p ()
       (and pr-auto-region (not zmacs-region-stays) (ps-mark-active-p)))))
 
@@ -3792,9 +3812,7 @@ image in a file with that name."
   "Preview PostScript file FILENAME."
   (interactive (list (pr-ps-infile-preprint "Preview ")))
   (and (stringp filename) (file-exists-p filename)
-       (let ((shell-file-name pr-shell-file-name))
-	 (start-process-shell-command "PREVIEW" "*Messages*"
-				      (pr-command pr-gv-command) filename))))
+       (pr-call-process pr-gv-command filename)))
 
 
 ;;;###autoload
@@ -3815,12 +3833,13 @@ image in a file with that name."
        (let* ((file (pr-expand-file-name filename))
 	      (tempfile (pr-dosify-path (make-temp-name file))))
 	 ;; gs use
-	 (pr-shell-command
-	  (concat (pr-command pr-gs-command)
-		  " -sDEVICE=" pr-gs-device
-		  " -r" (int-to-string pr-gs-resolution)
-		  " " (pr-switches-string pr-gs-switches "pr-gs-switches")
-		  " -sOutputFile=" tempfile " " file " -c quit"))
+	 (pr-call-process pr-gs-command
+			  (format "-sDEVICE=%s" pr-gs-device)
+			  (format "-r%d" pr-gs-resolution)
+			  (pr-switches-string pr-gs-switches "pr-gs-switches")
+			  (format "-sOutputFile=\"%s\"" tempfile)
+			  file
+			  "-c quit")
 	 ;; printing
 	 (pr-ps-file-print tempfile)
 	 ;; deleting
@@ -3841,16 +3860,16 @@ image in a file with that name."
 		 (erase-buffer)
 		 (insert-file-contents-literally file))
 	       (pr-despool-print))
-	   (pr-shell-command
-	    (concat (pr-command pr-ps-command) " "
-		    (pr-switches-string pr-ps-switches "pr-gs-switches") " "
-		    (if (string-match "cp" pr-ps-command)
-			;; for "cp" (cmd in out)
-			(concat "\"" file "\" "
-				pr-ps-printer-switch pr-ps-printer)
-		      ;; else, for others (cmd out in)
-		      (concat pr-ps-printer-switch pr-ps-printer
-			      " \"" file "\""))))))))
+	   (apply 'pr-call-process
+		  pr-ps-command
+		  (pr-switches-string pr-ps-switches "pr-gs-switches")
+		  (if (string-match "cp" pr-ps-command)
+		      ;; for "cp" (cmd in out)
+		      (list file
+			    (concat pr-ps-printer-switch pr-ps-printer))
+		    ;; else, for others (cmd out in)
+		    (list (concat pr-ps-printer-switch pr-ps-printer)
+			  file)))))))
 
 
 ;;;###autoload
@@ -4252,9 +4271,22 @@ Or choose the menu option Printing/Show Settings/printing."
      #'ps-print-quote
      (list
       (concat "\n;;; printing.el version " pr-version "\n")
-      '(19 . pr-shell-file-name)
-      '(19 . pr-path-style)
-      '(19 . pr-path-alist)
+      ";; internal vars"
+      (ps-comment-string "pr-txt-command      " pr-txt-command)
+      (ps-comment-string "pr-txt-switches     "
+			 (pr-switches-string pr-txt-switches "pr-txt-switches"))
+      (ps-comment-string "pr-txt-printer      " pr-txt-printer)
+      (ps-comment-string "pr-ps-command       " pr-ps-command)
+      (ps-comment-string "pr-ps-switches      "
+			 (pr-switches-string pr-ps-switches "pr-ps-switches"))
+      (ps-comment-string "pr-ps-printer-switch" pr-ps-printer-switch)
+      (ps-comment-string "pr-ps-printer       " pr-ps-printer)
+      (ps-comment-string "pr-cygwin-system    " pr-cygwin-system)
+      (ps-comment-string "ps-windows-system   " ps-windows-system)
+      (ps-comment-string "ps-lp-system        " ps-lp-system)
+      nil
+      '(14 . pr-path-style)
+      '(14 . pr-path-alist)
       nil
       '(21 . pr-txt-name)
       '(21 . pr-txt-printer-alist)
@@ -4570,6 +4602,7 @@ See `pr-visible-entry-alist'.")
   (cond
    ((eq ps-print-emacs-type 'xemacs)
     ;; XEmacs
+    (defvar current-mouse-event nil)	; to avoid compilation gripes
     (defun pr-menu-position (entry index horizontal)
       (pr-x-make-event
        'button-release
@@ -4633,6 +4666,7 @@ See `pr-visible-entry-alist'.")
 
    ((eq ps-print-emacs-type 'xemacs)
     ;; XEmacs
+    (defvar current-menubar nil)	; to avoid compilation gripes
     (defun pr-menu-lookup (path)
       (car (pr-x-find-menu-item current-menubar (cons "Printing" path))))
 
@@ -4973,7 +5007,7 @@ non-nil."
 	  pr-ps-command        (pr-dosify-path (nth 0 ps))
 	  pr-ps-switches       (nth 1 ps)
 	  pr-ps-printer-switch (nth 2 ps)
-	  pr-ps-printer        (pr-dosify-path (nth 3 ps)))
+	  pr-ps-printer        (nth 3 ps))
     (or (stringp pr-ps-command)
 	(setq pr-ps-command
 	      (cond (ps-windows-system "print")
@@ -4998,7 +5032,7 @@ non-nil."
     (setq pr-txt-name     value
 	  pr-txt-command  (pr-dosify-path (nth 0 txt))
 	  pr-txt-switches (nth 1 txt)
-	  pr-txt-printer  (pr-dosify-path (nth 2 txt))))
+	  pr-txt-printer  (nth 2 txt)))
   (or (stringp pr-txt-command)
       (setq pr-txt-command
 	    (cond (ps-windows-system "print")
@@ -5211,32 +5245,54 @@ non-nil."
   (let (item)
     (and (stringp infile) (file-exists-p infile)
 	 (setq item (cdr (assq pr-ps-utility pr-ps-utility-alist)))
-	 (pr-shell-command
-	  (concat (pr-command (nth 0 item)) " "
-		  (pr-switches-string (nth 1 item)
-				      "pr-ps-utility-alist entry")
-		  " "
-		  (pr-switches-string (nth 8 item)
-				      "pr-ps-utility-alist entry")
-		  " "
-		  (and (nth 2 item)
-		       (format (nth 2 item) ps-paper-type))
-		  " " (format (nth 3 item) n-up) " "
-		  (and pr-file-landscape (nth 4 item)) " "
-		  (and pr-file-duplex    (nth 5 item)) " "
-		  (and pr-file-tumble    (nth 6 item))
-		  " \"" (pr-expand-file-name infile) "\" "
-		  (nth 7 item)
-		  " \"" (pr-expand-file-name outfile) "\"")))))
+	 (pr-call-process (nth 0 item)
+			  (pr-switches-string (nth 1 item)
+					      "pr-ps-utility-alist entry")
+			  (pr-switches-string (nth 8 item)
+					      "pr-ps-utility-alist entry")
+			  (and (nth 2 item)
+			       (format (nth 2 item) ps-paper-type))
+			  (format (nth 3 item) n-up)
+			  (and pr-file-landscape (nth 4 item))
+			  (and pr-file-duplex    (nth 5 item))
+			  (and pr-file-tumble    (nth 6 item))
+			  (pr-expand-file-name infile)
+			  (nth 7 item)
+			  (pr-expand-file-name outfile)))))
 
 
-(defun pr-shell-command (command)
-  (let ((shell-file-name pr-shell-file-name))
-    (shell-command command)))
+(defun pr-remove-nil-from-list (lst)
+  (while (and lst (null (car lst)))
+    (setq lst (cdr lst)))
+  (let ((b lst)
+	(l (cdr lst)))
+    (while l
+      (if (car l)
+	  (setq b l
+		l (cdr l))
+	(setq l (cdr l))
+	(setcdr b l))))
+  lst)
+
+
+(defun pr-call-process (command &rest args)
+  (let ((buffer (get-buffer-create "*Printing Command Output*"))
+	(cmd    (pr-command command))
+	status)
+    (setq args (pr-remove-nil-from-list args))
+    (save-excursion
+      (set-buffer buffer)
+      (goto-char (point-max))
+      (insert (format "%s %S\n" cmd args)))
+    (setq status (apply 'call-process cmd nil buffer nil args))
+    (save-excursion
+      (set-buffer buffer)
+      (goto-char (point-max))
+      (insert (format "Exit status: %s\n" status)))))
 
 
 (defun pr-txt-print (from to)
-  (let ((lpr-command  (pr-command pr-txt-command))
+  (let ((lpr-command  (pr-standard-path (pr-command pr-txt-command)))
 	(lpr-switches (pr-switches pr-txt-switches "pr-txt-switches"))
 	(printer-name pr-txt-printer))
     (lpr-region from to)))

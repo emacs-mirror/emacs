@@ -1665,9 +1665,15 @@ switch_to_buffer_1 (buffer, norecord)
 
 DEFUN ("switch-to-buffer", Fswitch_to_buffer, Sswitch_to_buffer, 1, 2, "BSwitch to buffer: ",
        doc: /* Select buffer BUFFER in the current window.
-BUFFER may be a buffer or a buffer name.
+If BUFFER does not identify an existing buffer,
+then this function creates a buffer with that name.
+
+When called from Lisp, BUFFER may be a buffer, a string \(a buffer name),
+or nil.  If BUFFER is nil, then this function chooses a buffer
+using `other-buffer'.
 Optional second arg NORECORD non-nil means
 do not put this buffer at the front of the list of recently selected ones.
+This function returns the buffer it switched to.
 
 WARNING: This is NOT the way to work on another buffer temporarily
 within a Lisp program!  Use `set-buffer' instead.  That avoids messing with
@@ -1690,11 +1696,15 @@ the window-buffer correspondences.  */)
 
 DEFUN ("pop-to-buffer", Fpop_to_buffer, Spop_to_buffer, 1, 3, 0,
        doc: /* Select buffer BUFFER in some window, preferably a different one.
-If BUFFER is nil, then some other buffer is chosen.
+BUFFER may be a buffer, a string \(a buffer name), or nil.
+If BUFFER is a string which is not the name of an existing buffer,
+then this function creates a buffer with that name.
+If BUFFER is nil, then it chooses some other buffer.
 If `pop-up-windows' is non-nil, windows can be split to do this.
 If optional second arg OTHER-WINDOW is non-nil, insist on finding another
 window even if BUFFER is already visible in the selected window,
 and ignore `same-window-regexps' and `same-window-buffer-names'.
+This function returns the buffer it switched to.
 This uses the function `display-buffer' as a subroutine; see the documentation
 of `display-buffer' for additional customization information.
 

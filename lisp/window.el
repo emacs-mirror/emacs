@@ -34,7 +34,8 @@
 Also restore the selected window of each frame as it was at the start
 of this construct.
 However, if a window has become dead, don't get an error,
-just refrain from reselecting it."
+just refrain from reselecting it.
+Return the value of the last form in BODY."
   `(let ((save-selected-window-window (selected-window))
 	 ;; It is necessary to save all of these, because calling
 	 ;; select-window changes frame-selected-window for whatever
@@ -63,15 +64,17 @@ This does not include the mode line (if any) or the header line (if any)."
 		(if header-line-format 1 0))))))
 
 (defun one-window-p (&optional nomini all-frames)
-  "Return non-nil if the selected window is the only window (in its frame).
+  "Return non-nil if the selected window is the only window.
 Optional arg NOMINI non-nil means don't count the minibuffer
-even if it is active.
+even if it is active.  Otherwise, the minibuffer is counted
+when it is active.
 
 The optional arg ALL-FRAMES t means count windows on all frames.
 If it is `visible', count windows on all visible frames.
 ALL-FRAMES nil or omitted means count only the selected frame,
 plus the minibuffer it uses (which may be on another frame).
-If ALL-FRAMES is neither nil nor t, count only the selected frame."
+ALL-FRAMES 0 means count all windows in all visible or iconified frames.
+If ALL-FRAMES is anything else, count only the selected frame."
   (let ((base-window (selected-window)))
     (if (and nomini (eq base-window (minibuffer-window)))
 	(setq base-window (next-window base-window)))
@@ -87,7 +90,7 @@ bars (top, bottom, or nil)."
   (let ((vert (nth 2 (window-scroll-bars window)))
 	(hor nil))
     (when (or (eq vert t) (eq hor t))
-      (let ((fcsb (frame-current-scroll-bars 
+      (let ((fcsb (frame-current-scroll-bars
 		   (window-frame (or window (selected-window))))))
 	(if (eq vert t)
 	    (setq vert (car fcsb)))
@@ -268,29 +271,38 @@ If WINDOW is nil or omitted, it defaults to the currently selected window."
 
 ;; I think this should be the default; I think people will prefer it--rms.
 (defcustom split-window-keep-point t
-  "*If non-nil, split windows keeps the original point in both children.
+  "*If non-nil, \\[split-window-vertically] keeps the original point \
+in both children.
 This is often more convenient for editing.
 If nil, adjust point in each of the two windows to minimize redisplay.
-This is convenient on slow terminals, but point can move strangely."
+This is convenient on slow terminals, but point can move strangely.
+
+This option applies only to `split-window-vertically' and
+functions that call it.  `split-window' always keeps the original
+point in both children,"
   :type 'boolean
   :group 'windows)
 
 (defun split-window-vertically (&optional arg)
   "Split current window into two windows, one above the other.
 The uppermost window gets ARG lines and the other gets the rest.
-Negative arg means select the size of the lowermost window instead.
+Negative ARG means select the size of the lowermost window instead.
 With no argument, split equally or close to it.
 Both windows display the same buffer now current.
 
 If the variable `split-window-keep-point' is non-nil, both new windows
 will get the same value of point as the current window.  This is often
-more convenient for editing.
+more convenient for editing.  The upper window is the selected window.
 
-Otherwise, we chose window starts so as to minimize the amount of
+Otherwise, we choose window starts so as to minimize the amount of
 redisplay; this is convenient on slow terminals.  The new selected
 window is the one that the current value of point appears in.  The
 value of point can change if the text around point is hidden by the
-new mode line."
+new mode line.
+
+Regardless of the value of `split-window-keep-point', the upper
+window is the original one and the return value is the new, lower
+window."
   (interactive "P")
   (let ((old-w (selected-window))
 	(old-point (point))
@@ -338,10 +350,13 @@ new mode line."
 (defun split-window-horizontally (&optional arg)
   "Split current window into two windows side by side.
 This window becomes the leftmost of the two, and gets ARG columns.
-Negative arg means select the size of the rightmost window instead.
+Negative ARG means select the size of the rightmost window instead.
 The argument includes the width of the window's scroll bar; if there
 are no scroll bars, it includes the width of the divider column
-to the window's right, if any.  No arg means split equally."
+to the window's right, if any.  No ARG means split equally.
+
+The original, leftmost window remains selected.
+The return value is the new, rightmost window."
   (interactive "P")
   (let ((old-w (selected-window))
 	(size (and arg (prefix-numeric-value arg))))

@@ -869,8 +869,15 @@ use with M-x."
 
 (defun switch-to-buffer-other-window (buffer &optional norecord)
   "Select buffer BUFFER in another window.
+If BUFFER does not identify an existing buffer, then this function
+creates a buffer with that name.
+
+When called from Lisp, BUFFER can be a buffer, a string \(a buffer name),
+or nil.  If BUFFER is nil, then this function chooses a buffer
+using `other-buffer'.
 Optional second arg NORECORD non-nil means
 do not put this buffer at the front of the list of recently selected ones.
+This function returns the buffer it switched to.
 
 This uses the function `display-buffer' as a subroutine; see its
 documentation for additional customization information."

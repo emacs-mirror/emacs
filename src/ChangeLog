@@ -1,6 +1,31 @@
+2004-07-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffer.c (Fswitch_to_buffer, Fpop_to_buffer): Doc fixes.
+
+	* window.c (Fwindow_buffer, Fother_window,  Fget_lru_window)
+	(Fget_largest_window, Fget_buffer_window, Fdelete_windows_on)
+	(Freplace_buffer_in_windows, Fset_window_buffer)
+	(Fselect-window, Fdisplay-buffer, Fsplit_window): Doc fixes.
+	(syms_of_window): Expand docstring of `display-buffer-function'.
+
+2004-07-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* editfns.c (Ffloat_time, Fformat_time_string, Fdecode_time)
+	(Fcurrent_time_string, Fcurrent_time_zone): Mention in docstrings
+	that time values of the type (HIGH . LOW) are considered obsolete.
+
+2004-07-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keyboard.c (syms_of_keyboard): Fix `keyboard-translate-table'
+	docstring.
+
+	* fns.c (Fclear_string): Declare `len' before call to CHECK_STRING.
+
 2004-07-06  John Paul Wallington  <jpw@gnu.org>
 
 	* eval.c (Fdefmacro): Signal an error if NAME is not a symbol.
+
+	* fns.c (Fclear_string): Signal an error if STRING is not a string.
 
 2004-07-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 

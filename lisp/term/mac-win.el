@@ -68,24 +68,29 @@
       (goto-char (window-start window))
       (mac-scroll-up-line)))))
 
+(defun mac-scroll-ignore-events ()
+  ;; Ignore confusing non-mouse events
+  (while (not (memq (car-safe (read-event))
+		    '(mouse-1 double-mouse-1 triple-mouse-1))) nil))
+
 (defun mac-scroll-down ()
   (track-mouse
-    (while (not (eq (car-safe (read-event)) 'mouse-1)) nil)
+    (mac-scroll-ignore-events)
     (scroll-down)))
 
 (defun mac-scroll-down-line ()
   (track-mouse
-    (while (not (eq (car-safe (read-event)) 'mouse-1)) nil)
+    (mac-scroll-ignore-events)
     (scroll-down 1)))
 
 (defun mac-scroll-up ()
   (track-mouse
-    (while (not (eq (car-safe (read-event)) 'mouse-1)) nil)
+    (mac-scroll-ignore-events)
     (scroll-up)))
 
 (defun mac-scroll-up-line ()
   (track-mouse
-    (while (not (eq (car-safe (read-event)) 'mouse-1)) nil)
+    (mac-scroll-ignore-events)
     (scroll-up 1)))
 
 (defun xw-defined-colors (&optional frame)
