@@ -2108,7 +2108,7 @@ describe_map (map, keys, elt_describer, partial, shadow, seen)
 
       if (VECTORP (XCONS (tail)->car))
 	describe_vector (XCONS (tail)->car,
-			 elt_prefix, elt_describer, partial, shadow);
+			 elt_prefix, elt_describer, partial, shadow, map);
       else if (CONSP (XCONS (tail)->car))
 	{
 	  event = XCONS (XCONS (tail)->car)->car;
@@ -2193,34 +2193,37 @@ This is text showing the elements of vector matched against indices.")
 
   specbind (Qstandard_output, Fcurrent_buffer ());
   CHECK_VECTOR (vector, 0);
-  describe_vector (vector, Qnil, describe_vector_princ, 0, Qnil);
+  describe_vector (vector, Qnil, describe_vector_princ, 0, Qnil, Qnil);
 
   return unbind_to (count, Qnil);
 }
 
-describe_vector (vector, elt_prefix, elt_describer, partial, shadow)
+describe_vector (vector, elt_prefix, elt_describer,
+		 partial, shadow, entire_map)
      register Lisp_Object vector;
      Lisp_Object elt_prefix;
      int (*elt_describer) ();
      int partial;
      Lisp_Object shadow;
+     Lisp_Object entire_map;
 {
   Lisp_Object this;
   Lisp_Object dummy;
-  Lisp_Object tem1, tem2;
+  Lisp_Object definition;
+  Lisp_Object tem2;
   register int i;
   Lisp_Object suppress;
   Lisp_Object kludge;
   int first = 1;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
-  tem1 = Qnil;
+  definition = Qnil;
 
   /* This vector gets used to present single keys to Flookup_key.  Since
      that is done once per vector element, we don't want to cons up a
      fresh vector every time.  */
   kludge = Fmake_vector (make_number (1), Qnil);
-  GCPRO3 (elt_prefix, tem1, kludge);
+  GCPRO3 (elt_prefix, definition, kludge);
 
   if (partial)
     suppress = intern ("suppress-keymap");
@@ -2228,20 +2231,19 @@ describe_vector (vector, elt_prefix, elt_describer, partial, shadow)
   for (i = 0; i < XVECTOR (vector)->size; i++)
     {
       QUIT;
-      tem1 = get_keyelt (XVECTOR (vector)->contents[i], 0);
+      definition = get_keyelt (XVECTOR (vector)->contents[i], 0);
 
-      if (NILP (tem1)) continue;      
+      if (NILP (definition)) continue;      
 
       /* Don't mention suppressed commands.  */
-      if (SYMBOLP (tem1) && partial)
+      if (SYMBOLP (definition) && partial)
 	{
-	  this = Fget (tem1, suppress);
+	  this = Fget (definition, suppress);
 	  if (!NILP (this))
 	    continue;
 	}
 
-      /* If this command in this map is shadowed by some other map,
-	 ignore it.  */
+      /* If this binding is shadowed by some other map, ignore it.  */
       if (!NILP (shadow))
 	{
 	  Lisp_Object tem;
@@ -2250,6 +2252,19 @@ describe_vector (vector, elt_prefix, elt_describer, partial, shadow)
 	  tem = shadow_lookup (shadow, kludge, Qt);
 
 	  if (!NILP (tem)) continue;
+	}
+
+      /* Ignore this definition if it is shadowed by an earlier
+	 one in the same keymap.  */
+      if (!NILP (entire_map))
+	{
+	  Lisp_Object tem;
+
+	  XVECTOR (kludge)->contents[0] = make_number (i);
+	  tem = Flookup_key (entire_map, kludge, Qt);
+
+	  if (! EQ (tem, definition))
+	    continue;
 	}
 
       if (first)
@@ -2272,7 +2287,7 @@ describe_vector (vector, elt_prefix, elt_describer, partial, shadow)
       /* Find all consecutive characters that have the same definition.  */
       while (i + 1 < XVECTOR (vector)->size
 	     && (tem2 = get_keyelt (XVECTOR (vector)->contents[i+1], 0),
-		 EQ (tem2, tem1)))
+		 EQ (tem2, definition)))
 	i++;
 
       /* If we have a range of more than one character,
@@ -2291,7 +2306,7 @@ describe_vector (vector, elt_prefix, elt_describer, partial, shadow)
       /* Print a description of the definition of this character.
 	 elt_describer will take care of spacing out far enough
 	 for alignment purposes.  */
-      (*elt_describer) (tem1);
+      (*elt_describer) (definition);
     }
 
   UNGCPRO;
