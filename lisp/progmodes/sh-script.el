@@ -2655,13 +2655,11 @@ unless optional argument ARG (the prefix when interactive) is non-nil."
 
 (defun sh-mark-init (buffer)
   "Initialize a BUFFER to be used by `sh-mark-line'."
-  (let ((main-buffer (current-buffer)))
-    (save-excursion
-      (set-buffer (get-buffer-create buffer))
-      (erase-buffer)
-      (occur-mode)
-      (setq occur-buffer main-buffer)
-      )))
+  (save-excursion
+    (set-buffer (get-buffer-create buffer))
+    (erase-buffer)
+    (occur-mode)
+    ))
 
 
 (defun sh-mark-line (message point buffer &optional add-linenum occur-point)
@@ -2671,7 +2669,6 @@ If ADD-LINENUM is non-nil the message is preceded by the line number.
 If OCCUR-POINT is non-nil then the line is marked as a new occurrence
 so that `occur-next' and `occur-prev' will work."
   (let ((m1 (make-marker))
-	(main-buffer (current-buffer))
 	start
 	(line ""))
     (when point
@@ -2683,7 +2680,6 @@ so that `occur-next' and `occur-prev' will work."
 	  (set-buffer (get-buffer buffer))
 	(set-buffer (get-buffer-create buffer))
 	(occur-mode)
-	(setq occur-buffer main-buffer)
 	)
       (goto-char (point-max))
       (setq start (point))
@@ -2699,10 +2695,10 @@ so that `occur-next' and `occur-prev' will work."
       (insert "\n")
       (if point
 	  (progn
-	    (put-text-property start (point) 'occur m1)
+	    (put-text-property start (point) 'occur-target m1)
 	    (if occur-point
-		(put-text-property occur-point (1+ occur-point)
-				   'occur-point t))
+		(put-text-property start occur-point
+				   'occur-match t))
 	    ))
       )))
 
