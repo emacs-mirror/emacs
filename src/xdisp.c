@@ -799,6 +799,9 @@ int help_echo_pos;
 
 Lisp_Object previous_help_echo_string;
 
+/* Null glyph slice */
+
+static struct glyph_slice null_glyph_slice = { 0, 0, 0, 0 };
 
 
 /* Function prototypes.  */
@@ -18092,6 +18095,7 @@ append_glyph (it)
       glyph->glyph_not_available_p = it->glyph_not_available_p;
       glyph->face_id = it->face_id;
       glyph->u.ch = it->char_to_display;
+      glyph->slice = null_glyph_slice;
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
     }
@@ -18128,6 +18132,7 @@ append_composite_glyph (it)
       glyph->glyph_not_available_p = 0;
       glyph->face_id = it->face_id;
       glyph->u.cmp_id = it->cmp_id;
+      glyph->slice = null_glyph_slice;
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
     }
@@ -18339,6 +18344,7 @@ append_stretch_glyph (it, object, width, height, ascent)
       glyph->face_id = it->face_id;
       glyph->u.stretch.ascent = ascent;
       glyph->u.stretch.height = height;
+      glyph->slice = null_glyph_slice;
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
     }
