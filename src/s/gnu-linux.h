@@ -240,10 +240,20 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define HAVE_SYSVIPC
 
+#ifdef LINUX_QMAGIC
+
+#define HAVE_TEXT_START
+#define UNEXEC unexsunos4.o
+#define N_PAGSIZ(x) PAGE_SIZE
+
+#else /* not LINUX_QMAGIC */
+
 #define A_TEXT_OFFSET(hdr) (N_MAGIC(hdr) == QMAGIC ? sizeof (struct exec) : 0)
 #define A_TEXT_SEEK(hdr) (N_TXTOFF(hdr) + A_TEXT_OFFSET(hdr))
 #define ADJUST_EXEC_HEADER \
   unexec_text_start = N_TXTADDR(ohdr) + A_TEXT_OFFSET(ohdr)
+
+#endif /* not LINUX_QMAGIC */
 
 #if 0
 /* In 19.23 and 19.24, configure sometimes fails to define these.
