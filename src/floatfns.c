@@ -647,7 +647,8 @@ This is the same as the exponent of a float.")
     XSET (val, Lisp_Int, exp-1);
   }
 #else
-  Well, what *do* you have?
+  /* Would someone like to write code to emulate logb?  */
+  error ("`logb' not implemented on this operating system");
 #endif
 #endif
 
