@@ -2341,15 +2341,24 @@ map_char_table (c_function, function, subtable, arg, depth, indices)
     }
   else
     {
+      int charset = XFASTINT (indices[0]) - 128;
+
       i = 32;
       to = SUB_CHAR_TABLE_ORDINARY_SLOTS;
+      if (CHARSET_CHARS (charset) == 94)
+	i++, to--;
     }
 
   for (; i < to; i++)
     {
-      Lisp_Object elt = XCHAR_TABLE (subtable)->contents[i];
+      Lisp_Object elt;
+      int charset;
 
+      elt = XCHAR_TABLE (subtable)->contents[i];
       XSETFASTINT (indices[depth], i);
+      charset = XFASTINT (indices[0]) - 128;
+      if (!CHARSET_DEFINED_P (charset))
+	continue;
 
       if (SUB_CHAR_TABLE_P (elt))
 	{
@@ -2359,18 +2368,17 @@ map_char_table (c_function, function, subtable, arg, depth, indices)
 	}
       else
 	{
-	  int charset = XFASTINT (indices[0]) - 128, c1, c2, c;
+	  int c1, c2, c;
 
-	  if (CHARSET_DEFINED_P (charset))
-	    {
-	      c1 = depth >= 1 ? XFASTINT (indices[1]) : 0;
-	      c2 = depth >= 2 ? XFASTINT (indices[2]) : 0;
-	      c = MAKE_NON_ASCII_CHAR (charset, c1, c2);
-	      if (c_function)
-		(*c_function) (arg, make_number (c), elt);
-	      else
-		call2 (function, make_number (c), elt);
-	    }
+	  if (NILP (elt))
+	    elt = XCHAR_TABLE (subtable)->defalt;
+	  c1 = depth >= 1 ? XFASTINT (indices[1]) : 0;
+	  c2 = depth >= 2 ? XFASTINT (indices[2]) : 0;
+	  c = MAKE_NON_ASCII_CHAR (charset, c1, c2);
+	  if (c_function)
+	    (*c_function) (arg, make_number (c), elt);
+	  else
+	    call2 (function, make_number (c), elt);
   	}
     }
 }
@@ -4722,7 +4730,29 @@ integers, including negative integers.")
   return Fput (name, Qhash_table_test, list2 (test, hash));
 }
 
+
+#include <sys/times.h>
+#include <limits.h>
 
+DEFUN ("cpu-ticks", Fcpy_ticks, Scpu_ticks, 0, 0, 0,
+       "Return time-accounting information.\n\
+Value is a list (UTIME STIME CUTIME CSTIME), where\n\
+UTIME is the CPU time used by the current process in the user space,\n\
+STIME is the CPU time used by the current process in the system kernel space\n\
+CUTIME is the CPU time used by the current and its children processs\n\
+  in the user space,\n\
+CSTIME is the CPU time used by the current and its children processs\n\
+  in the system kernel space.")
+     ()
+{
+  struct tms buf;
+
+  times (&buf);
+  return list4 (make_number (buf.tms_utime),
+		make_number (buf.tms_stime),
+		make_number (buf.tms_cutime),
+		make_number (buf.tms_cstime));
+}
 
 
 void
@@ -4867,6 +4897,7 @@ invoked by mouse clicks and mouse menu items.");
   defsubr (&Sbase64_decode_region);
   defsubr (&Sbase64_encode_string);
   defsubr (&Sbase64_decode_string);
+  defsubr (&Scpu_ticks);
 }
 
 
