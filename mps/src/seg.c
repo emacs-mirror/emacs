@@ -1,7 +1,7 @@
 /* impl.c.seg: SEGMENTS
  *
- * $HopeName: MMsrc!seg.c(trunk.10) $
- * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!seg.c(trunk.11) $
+ * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .design: The design for this module is design.mps.seg.
  *
@@ -16,7 +16,7 @@
 
 #include "mpm.h"
 
-SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.10) $");
+SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.11) $");
 
 
 /* SegCheck -- check the integrity of a segment */
@@ -293,4 +293,88 @@ void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary)
   } else if(wasShielded && !willbeShielded) {
     ShieldLower(arena, seg, AccessWRITE);
   }
+}
+
+
+/* SegDescribe -- the description method */
+
+Res SegDescribe(Seg seg, mps_lib_FILE *stream)
+{
+  Res res;
+
+  /* Can't check seg, because Seg has no signature. */
+
+  res = WriteF(stream,
+               "Segment $P [$A,$A) {\n", (WriteFP)seg,
+               (WriteFA)SegBase(seg), (WriteFA)SegLimit(seg),
+               "  pool $P ($U)\n",
+               (WriteFP)seg->_pool, (WriteFU)seg->_pool->serial,
+               "  p $P\n", (WriteFP)seg->_p,
+               NULL);
+  if(res != ResOK)
+    return res;
+  if(seg->_buffer != NULL) {
+    res = BufferDescribe(seg->_buffer, stream);
+    if(res != ResOK)
+      return res;
+  }
+  res = WriteF(stream,
+               "  summary $W\n", (WriteFW)seg->_summary,
+               "  shield depth $U\n", (WriteFU)seg->_depth,
+               "  protection mode:",
+               NULL);
+  if(res != ResOK)
+    return res;
+  if(AccessSetIsMember(seg->_pm, AccessREAD)) {
+     res = WriteF(stream, " read", NULL);
+     if(res != ResOK)
+       return res;
+  }
+  if(AccessSetIsMember(seg->_pm, AccessWRITE)) {
+     res = WriteF(stream, " write", NULL);
+     if(res != ResOK)
+       return res;
+  }
+  res = WriteF(stream, "\n  shield mode:", NULL);
+  if(res != ResOK)
+    return res;
+  if(AccessSetIsMember(seg->_sm, AccessREAD)) {
+     res = WriteF(stream, " read", NULL);
+     if(res != ResOK)
+       return res;
+  }
+  if(AccessSetIsMember(seg->_sm, AccessWRITE)) {
+     res = WriteF(stream, " write", NULL);
+     if(res != ResOK)
+       return res;
+  }
+  res = WriteF(stream, "\n  ranks:", NULL);
+  /* This bit ought to be in a RankSetDescribe in ref.c. */
+  if(RankSetIsMember(seg->_rankSet, RankAMBIG)) {
+     res = WriteF(stream, " ambiguous", NULL);
+     if(res != ResOK)
+       return res;
+  }
+  if(RankSetIsMember(seg->_rankSet, RankEXACT)) {
+     res = WriteF(stream, " exact", NULL);
+     if(res != ResOK)
+       return res;
+  }
+  if(RankSetIsMember(seg->_rankSet, RankFINAL)) {
+     res = WriteF(stream, " final", NULL);
+     if(res != ResOK)
+       return res;
+  }
+  if(RankSetIsMember(seg->_rankSet, RankWEAK)) {
+     res = WriteF(stream, " weak", NULL);
+     if(res != ResOK)
+       return res;
+  }
+  res = WriteF(stream, "\n",
+               "  white  $B\n", (WriteFB)seg->_white,
+               "  grey   $B\n", (WriteFB)seg->_grey,
+               "  nailed $B\n", (WriteFB)seg->_nailed,
+               /* _single is covered by base&limit, _rank is above */
+               "} Segment $P\n", (WriteFP)seg, NULL);
+  return res;
 }
