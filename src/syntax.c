@@ -1173,8 +1173,8 @@ DEFUN ("internal-describe-syntax-value", Finternal_describe_syntax_value,
 
 
 static void
-describe_syntax (value)
-    Lisp_Object value;
+describe_syntax (value, args)
+    Lisp_Object value, args;
 {
   Findent_to (make_number (16), make_number (1));
   Finternal_describe_syntax_value (value);
@@ -1188,13 +1188,14 @@ describe_syntax_1 (vector)
 {
   struct buffer *old = current_buffer;
   set_buffer_internal (XBUFFER (Vstandard_output));
-  describe_vector (vector, Qnil, describe_syntax, 0, Qnil, Qnil, (int *) 0, 0);
+  describe_vector (vector, Qnil, Qnil, describe_syntax,
+		   0, Qnil, Qnil, NULL, 0);
   while (! NILP (XCHAR_TABLE (vector)->parent))
     {
       vector = XCHAR_TABLE (vector)->parent;
       insert_string ("\nThe parent syntax table is:");
-      describe_vector (vector, Qnil, describe_syntax, 0, Qnil, Qnil,
-		       (int *) 0, 0);
+      describe_vector (vector, Qnil, Qnil, describe_syntax,
+		       0, Qnil, Qnil, NULL, 0);
     }
 	
   call0 (intern ("help-mode"));
