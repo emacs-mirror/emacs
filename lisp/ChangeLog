@@ -1,3 +1,8 @@
+2004-04-02  David Kastrup  <dak@gnu.org>
+
+	* net/browse-url.el (browse-url-generic): Use call-process
+	instead of start-process to allow browsers that fork and detach.
+
 2004-04-01  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* compile.el (compilation-current-error): New var.
