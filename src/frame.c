@@ -1246,6 +1246,9 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 	FRAME_KBOARD (f)->Vdefault_minibuffer_frame = Qnil;
     }
 
+  /* Cause frame titles to update--necessary if we now have just one frame.  */
+  update_mode_lines = 1;
+
   return Qnil;
 }
 
