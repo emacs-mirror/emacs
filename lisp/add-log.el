@@ -86,12 +86,12 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
       (find-file file-name))
     (undo-boundary)
     (goto-char (point-min))
-    (if (not (and (looking-at (substring (current-time-string) 0 10))
-		  (looking-at (concat ".* " full-name "  (" login-name "@"))))
-	(progn (insert (current-time-string)
-		       "  " full-name
-		       "  (" login-name
-		       "@" site-name ")\n\n")))
+    (or (looking-at (concat (substring (current-time-string) 0 10)
+				 ".* " full-name "  (" login-name "@"))
+	(insert (current-time-string)
+		"  " full-name
+		"  (" login-name
+		"@" site-name ")\n\n"))
     (goto-char (point-min))
     (setq empty-entry
 	  (and (search-forward "\n\t* \n" nil t)
@@ -180,7 +180,9 @@ Interactively, with a prefix argument, the file name is prompted for."
 (defun change-log-mode ()
   "Major mode for editting change logs; like Indented Text Mode.
 Prevents numeric backups and sets `left-margin' to 8 and `fill-column' to 74.
-New log entries are usually made with \\[add-change-log-entry] or \\[add-change-log-entry-other-window]."
+New log entries are usually made with \\[add-change-log-entry] or \\[add-change-log-entry-other-window].
+Each entry behaves as a paragraph, and the entries for one day as a page.
+Runs `change-log-mode-hook'."
   (interactive)
   (kill-all-local-variables)
   (indented-text-mode)
@@ -236,8 +238,7 @@ Has a preference of looking backwards."
 		   (skip-chars-forward " ")
 		   (buffer-substring (point)
 				     (progn (forward-sexp 1) (point))))))
-	    ((and (or (eq major-mode 'c-mode)
-		      (eq major-mode 'c++-mode))
+	    ((and (memq major-mode '(c-mode 'c++-mode))
 		  (save-excursion (beginning-of-line)
 				  ;; Use eq instead of = here to avoid
 				  ;; error when at bob and char-after
@@ -253,14 +254,13 @@ Has a preference of looking backwards."
 	     (skip-chars-forward " \t")
 	     (buffer-substring (point)
 			       (progn (forward-sexp 1) (point))))
-	    ((or (eq major-mode 'c-mode)
-		 (eq major-mode 'c++-mode))
+	    ((memq major-mode '(c-mode 'c++-mode))
 	     ;; See if we are in the beginning part of a function,
 	     ;; before the open brace.  If so, advance forward.
-	     (while (not (or (looking-at "{")
-			     (looking-at "\\s *$")))
+	     (while (not (looking-at "{\\|\\(\\s *$\\)"))
 	       (forward-line 1))
-	     (or (eobp) (forward-char 1))
+	     (or (eobp)
+		 (forward-char 1))
 	     (beginning-of-defun)
 	     (if (progn (end-of-defun)
 			(< location (point)))
@@ -273,21 +273,16 @@ Has a preference of looking backwards."
 		     (while (and (not (bobp))
 				 (looking-at "[ \t\n]"))
 		       (forward-line -1))
-		     ;; See if this is using the DEFUN macro used in Emacs.
-		     (if (save-excursion
-			   (while (and (not (bobp))
-				       (looking-at "[^\n\f]")
-				       (not (looking-at ".*\\*/")))
-			     (forward-line -1))
-			   (forward-line 1)
-			   (setq tem (point))
-			   (and (looking-at "DEFUN ")
-				(>= location (point))))
+		     ;; See if this is using the DEFUN macro used in Emacs,
+		     ;; or the DEFUN macro used by the C library.
+		     (if (and (looking-at "DEFUN\\b")
+			      (>= location (point)))
 			 (progn
-			   (goto-char tem)
 			   (down-list 1)
-			   (forward-sexp 1)
-			   (skip-chars-forward " ,")
+			   (if (= (char-after (point)) ?\")
+			       (progn
+				 (forward-sexp 1)
+				 (skip-chars-forward " ,")))
 			   (buffer-substring (point)
 					     (progn (forward-sexp 1) (point))))
 		       ;; Ordinary C function syntax.
@@ -303,8 +298,9 @@ Has a preference of looking backwards."
 				  ;; This may also include some of the comments
 				  ;; before the function.
 				  (while (and (not (bobp))
-					      (save-excursion (forward-line -1)
-							      (looking-at "[^\n\f]")))
+					      (save-excursion
+						(forward-line -1)
+						(looking-at "[^\n\f]")))
 				    (forward-line -1))
 				  (>= location (point)))
 				;; Consistency check: going down and up
