@@ -223,7 +223,9 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
   "*Name of this machine, for purposes of naming users.")
 
 (defvar user-mail-address nil
-  "*Full mailing address of this user.")
+  "*Full mailing address of this user.
+This is initialized based on `mail-host-address',
+after your init file is read, in case it sets `mail-host-address'.")
 
 (defvar auto-save-list-file-prefix "~/.saves-"
   "Prefix for generating auto-save-list-file-name.
@@ -401,7 +403,9 @@ this prefix to create a unique file name.")
 			("--debug-init") ("--iconic") ("--icon-type")))
 	    (argi (car args))
 	    (argval nil))
-	(if (string-match "=" argi)
+	;; Handle --OPTION=VALUE format.
+	(if (and (string-match "\\`--" argi)
+		 (string-match "=" argi))
 	    (setq argval (substring argi (match-end 0))
 		  argi (substring argi 0 (match-beginning 0))))
 	(let ((completion (try-completion argi longopts)))
@@ -442,6 +446,8 @@ this prefix to create a unique file name.")
 	  (setq default-frame-alist
 		(cons '(icon-type . t) default-frame-alist))
 	  (setq args (cdr args)))
+	 ((and (not (equal "" argi)) (aref argi 0))
+	  (error "Unknown option `%s'" argi))
 	 (t (setq done t)))
 	;; Was argval set but not used?
 	(and argval
