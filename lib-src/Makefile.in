@@ -351,7 +351,7 @@ etags: ${srcdir}/etags.c $(GETOPTDEPS) $(REGEXPDEPS) ../src/config.h
 /* We depend on etags to assure that parallel makes don't write two
    etags.o files on top of each other.  */
 ctags: etags
-	$(CC) ${ALL_CFLAGS} -DCTAGS -DVERSION="\"${version}\"" -DETAGS_REGEXPS ${srcdir}/etags.c $(GETOPTOBJS) $(REGEXPOBJ) $(LOADLIBES) -o ctags
+	$(CC) ${ALL_CFLAGS} -DCTAGS -DVERSION="\"${version}\"" ${srcdir}/etags.c $(GETOPTOBJS) $(REGEXPOBJ) $(LOADLIBES) -o ctags
 
 profile: ${srcdir}/profile.c
 	$(CC) ${ALL_CFLAGS} ${srcdir}/profile.c $(LOADLIBES) -o profile
