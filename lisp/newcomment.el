@@ -1,12 +1,12 @@
 ;;; newcomment.el --- (un)comment regions of buffers
 
-;; Copyright (C) 1999-2000  Free Software Foundation Inc.
+;; Copyright (C) 1999, 2000  Free Software Foundation Inc.
 
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
 ;; Version: $Name:  $
-;; Revision: $Id: newcomment.el,v 1.25 2000/11/21 21:31:16 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.26 2000/11/29 05:11:01 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -788,7 +788,7 @@ rather than at left margin."
 ;;;###autoload
 (defun comment-region (beg end &optional arg)
   "Comment or uncomment each line in the region.
-With just \\[universal-prefix] prefix arg, uncomment each line in region BEG..END.
+With just \\[universal-argument] prefix arg, uncomment each line in region BEG..END.
 Numeric prefix arg ARG means use ARG comment characters.
 If ARG is negative, delete that many comment characters instead.
 By default, comments start at the left margin, are terminated on each line,
@@ -864,7 +864,7 @@ end- comment markers additionally to what `comment-add' already specifies."
 (defun comment-dwim (arg)
   "Call the comment command you want (Do What I Mean).
 If the region is active and `transient-mark-mode' is on, call
-  `comment-region' (unless it only consists in comments, in which
+  `comment-region' (unless it only consists of comments, in which
   case it calls `uncomment-region').
 Else, if the current line is empty, insert a comment and indent it.
 Else if a prefix ARG is specified, call `comment-kill'.
