@@ -435,6 +435,11 @@ static Lisp_Object
 menu_item_enabled_p_1 (arg)
      Lisp_Object arg;
 {
+  /* If we got a quit from within the menu computation,
+     quit all the way out of it.  This takes care of C-] in the debugger.  */
+  if (CONSP (arg) && EQ (XCONS (arg)->car, Qquit))
+    Fsignal (Qquit, Qnil);
+
   return Qnil;
 }
 
@@ -1495,8 +1500,11 @@ set_frame_menubar (f, first_time)
   int i;
   int id;
   int count;
+  int specpdl_count = specpdl_ptr - specpdl;
 
   count = inhibit_garbage_collection ();
+
+  specbind (Qinhibit_quit, Qt);
 
   id = frame_vector_add_frame (f);
 
@@ -1598,6 +1606,8 @@ set_frame_menubar (f, first_time)
   free_menubar_widget_value_tree (first_wv);
 
   update_frame_menubar (f);
+
+  unbind_to (specpdl_count, Qnil);
 
   UNBLOCK_INPUT;
 }
