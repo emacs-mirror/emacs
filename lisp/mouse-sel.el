@@ -310,7 +310,10 @@ This should be bound to a down-mouse event."
 		 ;; Ignore any movement outside the frame
 		 ((eq (car-safe event) 'switch-frame) nil)
 		 ((and (posn-window end)
-		       (not (eq (window-frame (posn-window end))
+		       (not (eq (let ((posn-w (posn-window end)))
+				  (if (windowp posn-w)
+				      (window-frame posn-w)
+				    posn-w))
 				(window-frame orig-window)))) nil)
 		     
 		 ;; Different window, same frame
