@@ -2210,9 +2210,9 @@ from `standard-syntax-table' otherwise."
 
 (defun syntax-after (pos)
   "Return the syntax of the char after POS.
-The value is either a syntax character (a character that designates
+The value is either a syntax class character (a character that designates
 a syntax in `modify-syntax-entry'), or a cons cell
-of the form (CODE . MATCH), where CODE is the syntax character
+of the form (CLASS . MATCH), where CLASS is the syntax class character
 and MATCH is the matching parenthesis."
   (unless (or (< pos (point-min)) (>= pos (point-max)))
     (let* ((st (if parse-sexp-lookup-properties
