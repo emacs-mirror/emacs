@@ -76,7 +76,7 @@ number of terminal writes telnet will make setting up the host connection.")
   "Maximum value `telnet-count' can have.
 After this many passes, we stop looking for initial setup data.
 Should be set to the number of terminal writes telnet will make
-rejecting one login and prompting for the again for a username and password.")
+rejecting one login and prompting again for a username and password.")
 
 (defun telnet-interrupt-subjob ()
   (interactive)
