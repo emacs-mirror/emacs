@@ -1,6 +1,22 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* `expand-file-name' fails to work on any but the machine you dumped Emacs on.
+
+On some systems, if you use any of the functions which look up
+information in the passwd database before dumping Emacs (say, by using
+expand-file-name in site-init.el), then those functions will not work
+in the dumped Emacs on any host but the one Emacs was dumped on.
+
+Apparently, the Yellow Pages (or Network Information Service)
+functions cache information the first time they are called in the
+undumped emacs, this information gets included in the dumped
+executable, and it is then inaccurate if the executable is used on
+another host.
+
+The solution?  Don't use expand-file-name in site-init.el, or in
+anything it loads.  Yuck.
+
 * On some variants of SVR4, Emacs does not work at all with X.
 
 Try defining BROKEN_FIONREAD in your config.h file.  If this solves
@@ -105,8 +121,7 @@ with a floating point option other than the default.
 It's not terribly hard to make this work with small changes in
 crt0.c together with linking with Fcrt1.o, Wcrt1.o or Mcrt1.o.
 However, the easiest approach is to build Xlib with the default
-floating point option: to decide at run time what hardware is
-available.
+floating point option: -fsoft.
 
 * Emacs fails to get default settings from X Windows server.
 
