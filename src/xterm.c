@@ -85,6 +85,10 @@ Boston, MA 02111-1307, USA.  */
 #include "intervals.h"
 
 #ifdef USE_X_TOOLKIT
+#include <X11/Shell.h>
+#endif
+
+#ifdef USE_X_TOOLKIT
 extern void free_frame_menubar ();
 extern FRAME_PTR x_menubar_window_to_frame ();
 #if (XtSpecificationRelease >= 5) && !defined(NO_EDITRES)
@@ -5727,6 +5731,8 @@ x_wm_set_icon_pixmap (f, pixmap_id)
      struct frame *f;
      int pixmap_id;
 {
+  Pixmap icon_pixmap;
+
 #ifdef USE_X_TOOLKIT
   Window window = XtWindow (f->output_data.x->widget);
 #else
@@ -5735,7 +5741,7 @@ x_wm_set_icon_pixmap (f, pixmap_id)
 
   if (pixmap_id > 0)
     {
-      Pixmap icon_pixmap = x_bitmap_pixmap (f, pixmap_id);
+      icon_pixmap = x_bitmap_pixmap (f, pixmap_id);
       f->output_data.x->wm_hints.icon_pixmap = icon_pixmap;
     }
   else
@@ -5754,8 +5760,20 @@ x_wm_set_icon_pixmap (f, pixmap_id)
 #endif
     }
 
+#ifdef USE_X_TOOLKIT /* same as in x_wm_set_window_state.  */
+
+  {
+    Arg al[1];
+    XtSetArg (al[0], XtNiconPixmap, icon_pixmap);
+    XtSetValues (f->output_data.x->widget, al, 1);
+  }
+
+#else /* not USE_X_TOOLKIT */
+  
   f->output_data.x->wm_hints.flags |= IconPixmapHint;
   XSetWMHints (FRAME_X_DISPLAY (f), window, &f->output_data.x->wm_hints);
+
+#endif /* not USE_X_TOOLKIT */
 }
 
 x_wm_set_icon_position (f, icon_x, icon_y)
