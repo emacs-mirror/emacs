@@ -1,7 +1,5 @@
 ;;; rfc2368.el --- support for rfc2368
 
-;;; Copyright 1999 Sen Nagata <sen@eccosys.com>
-
 ;; Author: Sen Nagata <sen_ml@eccosys.com>
 ;; Keywords: mail
 
