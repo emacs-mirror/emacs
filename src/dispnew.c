@@ -112,7 +112,12 @@ FRAME_PTR selected_frame;
 FRAME_PTR last_nonminibuf_frame;
 
 /* In a single-frame version, the information that would otherwise
-   exist inside frame objects lives in the following structure instead.  */
+   exist inside frame objects lives in the following structure instead.
+
+   NOTE: the_only_frame is not checked for garbage collection; don't
+   store collectable objects in any of its fields!
+
+   You're not/The only frame in town/...  */
 
 #ifndef MULTI_FRAME
 struct frame the_only_frame;
