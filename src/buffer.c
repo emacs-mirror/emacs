@@ -693,11 +693,6 @@ reset_buffer_local_variables (b, permanent_too)
   b->buffer_file_type = Qnil;
 #endif
 
-#if 0
-  b->sort_table = XSTRING (Vascii_sort_table);
-  b->folding_sort_table = XSTRING (Vascii_folding_sort_table);
-#endif /* 0 */
-
   /* Reset all (or most) per-buffer variables to their defaults.  */
   b->local_var_alist = Qnil;
   for (i = 0; i < last_per_buffer_idx; ++i)
