@@ -1,5 +1,8 @@
 2000-06-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (displayed_window_lines): Take empty lines at
+	the bottom of a window into account.
+	
 	* window.c (displayed_window_lines): New function.
 	(Fmove_to_window_line): Use displayed_window_lines to determine
 	the number of lines to move, instead of using the window's height.
