@@ -1196,6 +1196,7 @@ typedef struct
       DEBUG_PRINT2 ("      start: 0x%x\n", regstart[this_reg]);		\
     }									\
 									\
+  set_regs_matched_done = 0;						\
   DEBUG_STATEMENT (nfailure_points_popped++);				\
 } /* POP_FAILURE_POINT */
 
@@ -1236,18 +1237,19 @@ typedef union
 /* Call this when have matched a real character; it sets `matched' flags
    for the subexpressions which we are currently inside.  Also records
    that those subexprs have matched.  */
-#define SET_REGS_MATCHED()						\
-  do									\
-    {									\
-      unsigned r;							\
-      for (r = lowest_active_reg; r <= highest_active_reg; r++)		\
-        {								\
-          MATCHED_SOMETHING (reg_info[r])				\
-            = EVER_MATCHED_SOMETHING (reg_info[r])			\
-            = 1;							\
-        }								\
-    }									\
-  while (0)
+#define SET_REGS_MATCHED()					\
+  if (!set_regs_matched_done)					\
+    {								\
+      unsigned r;						\
+      set_regs_matched_done = 1;				\
+      for (r = lowest_active_reg; r <= highest_active_reg; r++)	\
+        {							\
+          MATCHED_SOMETHING (reg_info[r])			\
+            = EVER_MATCHED_SOMETHING (reg_info[r])		\
+            = 1;						\
+        }							\
+    }								\
+  else
 
 
 /* Registers are set to a sentinel when they haven't yet matched.  */
@@ -3482,6 +3484,9 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
      and need to test it, it's not garbage.  */
   const char *match_end = NULL;
 
+  /* This helps SET_REGS_MATCHED avoid doing redundant work.  */
+  int set_regs_matched_done = 0;
+
   /* Used when we pop values we don't care about.  */
 #ifdef MATCH_MAY_ALLOCATE /* otherwise, these are global.  */
   const char **reg_dummy;
@@ -3889,6 +3894,9 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 
           IS_ACTIVE (reg_info[*p]) = 1;
           MATCHED_SOMETHING (reg_info[*p]) = 0;
+
+	  /* Clear this whenever we change the register activity status.  */
+	  set_regs_matched_done = 0;
           
           /* This is the new highest active register.  */
           highest_active_reg = *p;
@@ -3901,6 +3909,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
           /* Move past the register number and inner group count.  */
           p += 2;
 	  just_past_start_mem = p;
+
           break;
 
 
@@ -3926,7 +3935,10 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 
           /* This register isn't active anymore.  */
           IS_ACTIVE (reg_info[*p]) = 0;
-          
+
+	  /* Clear this whenever we change the register activity status.  */
+	  set_regs_matched_done = 0;
+
           /* If this was the only register active, nothing is active
              anymore.  */
           if (lowest_active_reg == highest_active_reg)
@@ -4094,6 +4106,9 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
                     : bcmp (d, d2, mcnt))
 		  goto fail;
 		d += mcnt, d2 += mcnt;
+
+		/* Do this because we've match some characters.  */
+		SET_REGS_MATCHED ();
 	      }
 	  }
 	  break;
