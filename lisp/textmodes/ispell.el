@@ -714,7 +714,7 @@ LANGUAGE.aff file \(e.g., english.aff\)."
 (defun check-ispell-version (&optional interactivep)
   "Ensure that `ispell-program-name' is valid and the correct version.
 Returns version number if called interactively.
-Otherwise returns the library path if defined."
+Otherwise returns the library directory name, if that is defined."
   ;; This is a little wasteful as we actually launch ispell twice: once
   ;; to make sure it's the right version, and once for real.  But people
   ;; get confused by version mismatches *all* the time (and I've got the
@@ -748,7 +748,7 @@ Otherwise returns the library path if defined."
 				 ", "
 				 ispell-version))
 	    (message result))
-	;; return library path.
+	;; return library directory.
 	(if (re-search-forward "LIBDIR = \\\"\\([^ \t\n]*\\)\\\"" nil t)
 	    (setq result (buffer-substring (match-beginning 1) (match-end 1)))))
       (goto-char (point-min))
@@ -810,10 +810,10 @@ and added as a submenu of the \"Edit\" menu.")
        (not xemacsp)
        'reload))
 
-(defvar ispell-library-path (if (or (not (fboundp 'byte-compiling-files-p))
-				    (not (byte-compiling-files-p)))
-				(check-ispell-version))
-  "The directory where ispell dictionaries reside.")
+(defvar ispell-library-directory (condition-case ()
+				     (check-ispell-version)
+				   (error nil))
+  "Directory where ispell dictionaries reside.")
 
 (defvar ispell-process nil
   "The process object for Ispell.")
@@ -828,12 +828,9 @@ and added as a submenu of the \"Edit\" menu.")
   "Non-nil means that the OS supports asynchronous processes.")
 
 ;;;###autoload
-(if (and ispell-menu-map-needed
-	 (or (not (fboundp 'byte-compiling-files-p))
-	     (not (byte-compiling-files-p))))
+(if ispell-menu-map-needed
     (let ((dicts (reverse (cons (cons "default" nil) ispell-dictionary-alist)))
-	  ;; `ispell-library-path' intentionally not defined in autoload
-	  (path (and (boundp 'ispell-library-path) ispell-library-path))
+	  (dir ispell-library-directory)
 	  name load-dict)
       (setq ispell-menu-map (make-sparse-keymap "Spell"))
       ;; add the dictionaries to the bottom of the list.
@@ -848,12 +845,12 @@ and added as a submenu of the \"Edit\" menu.")
 			     (list 'lambda () '(interactive)
 				   (list
 				     'ispell-change-dictionary "default"))))))
-	      ((or (not path)		; load all if library dir not defined
-		   (file-exists-p (concat path "/" name ".hash"))
-		   (file-exists-p (concat path "/" name ".has"))
+	      ((or (not dir)		; load all if library dir not defined
+		   (file-exists-p (concat dir "/" name ".hash"))
+		   (file-exists-p (concat dir "/" name ".has"))
 		   (and load-dict
-			(or (file-exists-p(concat path "/" load-dict ".hash"))
-			    (file-exists-p(concat path "/" load-dict ".has")))))
+			(or (file-exists-p (concat dir "/" load-dict ".hash"))
+			    (file-exists-p (concat dir "/" load-dict ".has")))))
 	       (define-key ispell-menu-map (vector (intern name))
 		 (cons (concat "Select " (capitalize name) " Dict")
 		       (list 'lambda () '(interactive)
@@ -862,13 +859,11 @@ and added as a submenu of the \"Edit\" menu.")
 
 ;;; define commands in menu in opposite order you want them to appear.
 ;;;###autoload
-(if (and ispell-menu-map-needed
-	 (or (not (fboundp 'byte-compiling-files-p))
-	     (not (byte-compiling-files-p))))
+(if ispell-menu-map-needed
     (progn
       (define-key ispell-menu-map [ispell-change-dictionary]
 	'(menu-item "Change Dictionary..." ispell-change-dictionary
-		    :help "Supply explicit path to dictionary"))
+		    :help "Supply explicit dictionary file name"))
       (define-key ispell-menu-map [ispell-kill-ispell]
 	'(menu-item "Kill Process" ispell-kill-ispell
 		    :enable (and (boundp 'ispell-process) ispell-process
@@ -900,9 +895,7 @@ and added as a submenu of the \"Edit\" menu.")
 		    :help "Complete word fragment at cursor"))))
 
 ;;;###autoload
-(if (and ispell-menu-map-needed
-	 (or (not (fboundp 'byte-compiling-files-p))
-	     (not (byte-compiling-files-p))))
+(if ispell-menu-map-needed
     (progn
       (define-key ispell-menu-map [ispell-continue]
 	'(menu-item "Continue Spell-Checking" ispell-continue
@@ -919,9 +912,7 @@ and added as a submenu of the \"Edit\" menu.")
 		    :help "Spell-check only comments and strings"))))
 
 ;;;###autoload
-(if (and ispell-menu-map-needed
-	 (or (not (fboundp 'byte-compiling-files-p))
-	     (not (byte-compiling-files-p))))
+(if ispell-menu-map-needed
     (progn
       (define-key ispell-menu-map [ispell-region]
 	'(menu-item "Spell-Check Region" ispell-region
@@ -964,17 +955,17 @@ and added as a submenu of the \"Edit\" menu.")
 	(setq name (car (car dicts))
 	      load-dict (car (cdr (member "-d" (nth 5 (car dicts)))))
 	      dicts (cdr dicts))
-	;; Include if the dictionary is in the library, or path not defined.
+	;; Include if the dictionary is in the library, or dir not defined.
 	(if (and (stringp name)
-		 (or (not ispell-library-path)
-		     (file-exists-p (concat ispell-library-path "/"
+		 (or (not ispell-library-directory)
+		     (file-exists-p (concat ispell-library-directory "/"
 					    name ".hash"))
-		     (file-exists-p (concat ispell-library-path "/"
+		     (file-exists-p (concat ispell-library-directory "/"
 					    name ".has"))
 		     (and load-dict
-			  (or (file-exists-p (concat ispell-library-path "/"
+			  (or (file-exists-p (concat ispell-library-directory "/"
 						     load-dict ".hash"))
-			      (file-exists-p (concat ispell-library-path "/"
+			      (file-exists-p (concat ispell-library-directory "/"
 						     load-dict ".has"))))))
 	    (setq menu (append menu
 			       (list
