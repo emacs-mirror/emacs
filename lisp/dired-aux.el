@@ -1728,20 +1728,19 @@ With optional arg REMEMBER-MARKS, return an alist of marked files."
 (defun dired-insert-subdir-doinsert (dirname switches)
   ;; Insert ls output after point.
   ;; Return the boundary of the inserted text (as list of BEG and END).
-  (let ((begin (point)))
-    (message "Reading directory %s..." dirname)
-    (let ((dired-actual-switches
-	   (or switches
-	       (dired-replace-in-string "R" "" dired-actual-switches))))
-      (if (equal dirname (car (car (last dired-subdir-alist))))
-	  ;; If doing the top level directory of the buffer,
-	  ;; redo it as specified in dired-directory.
-	  (dired-readin-insert)
-	(let ((pt (point)))
-	  (dired-insert-directory dirname dired-actual-switches nil nil t)
-	  (goto-char pt))))
-    (message "Reading directory %s...done" dirname)
-    (list begin (point))))
+  (save-excursion
+    (let ((begin (point)))
+      (message "Reading directory %s..." dirname)
+      (let ((dired-actual-switches
+	     (or switches
+		 (dired-replace-in-string "R" "" dired-actual-switches))))
+	(if (equal dirname (car (car (last dired-subdir-alist))))
+	    ;; If doing the top level directory of the buffer,
+	    ;; redo it as specified in dired-directory.
+	    (dired-readin-insert)
+	  (dired-insert-directory dirname dired-actual-switches nil nil t)))
+      (message "Reading directory %s...done" dirname)
+      (list begin (point)))))
 
 (defun dired-insert-subdir-doupdate (dirname elt beg-end)
   ;; Point is at the correct subdir alist position for ELT,
