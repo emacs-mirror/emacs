@@ -1,11 +1,11 @@
 ;;; vc-sccs.el --- support for SCCS version-control
 
-;; Copyright (C) 1992,93,94,95,96,97,98,99,2000 Free Software Foundation, Inc.
+;; Copyright (C) 1992,93,94,95,96,97,98,99,2000,2001 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.7 2001/01/09 14:55:30 fx Exp $
+;; $Id: vc-sccs.el,v 1.8 2001/02/01 15:12:35 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 

@@ -1,11 +1,11 @@
 ;;; vc.el --- drive a version-control system from within Emacs
 
-;; Copyright (C) 1992,93,94,95,96,97,98,2000  Free Software Foundation, Inc.
+;; Copyright (C) 1992,93,94,95,96,97,98,2000,2001  Free Software Foundation, Inc.
 
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.294 2001/01/10 14:42:53 spiegel Exp $
+;; $Id: vc.el,v 1.295 2001/02/01 15:08:49 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 

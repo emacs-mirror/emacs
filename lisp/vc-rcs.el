@@ -1,11 +1,11 @@
 ;;; vc-rcs.el --- support for RCS version-control
 
-;; Copyright (C) 1992,93,94,95,96,97,98,99,2000  Free Software Foundation, Inc.
+;; Copyright (C) 1992,93,94,95,96,97,98,99,2000,2001  Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.16 2001/01/09 14:53:56 fx Exp $
+;; $Id: vc-rcs.el,v 1.17 2001/02/01 15:11:05 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
