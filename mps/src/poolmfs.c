@@ -1,40 +1,41 @@
 /* impl.c.poolmfs: MANUAL FIXED SMALL UNIT POOL
  *
- * $HopeName: MMsrc!poolmfs.c(MMdevel_lib.3) $
- * Copyright (C) 1994,1995 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!poolmfs.c(trunk.12) $
+ * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
  *
- * This is the implementation of the MFS pool class.  MFS operates
- * in a very simple manner: each segment is divided into units.  Free
- * units are kept on a linked list using a header stored in the unit
- * itself.  The linked list it not ordered, so allocation and
+ * This is the implementation of the MFS pool class.
+ *
+ * DESIGN
+ *
+ * .design.misplaced: This design is misplaced, it should be in a
+ * separate document.
+ *
+ * MFS operates in a very simple manner: each segment is divided into
+ * units.  Free units are kept on a linked list using a header stored
+ * in the unit itself.  The linked list is not ordered; allocation and
  * deallocation simply pop and push from the head of the list.  This is
  * fast, but successive allocations might have poor locality if
  * previous successive frees did.
  *
- * **** RESTRICTION: This pool cannot allocate from the arena control
- * pool, nor can it allocate sub-pools, as it is used in the arena
- * bootstrap sequence.  See the arena manager implementation for
- * details.
+ * .restriction: This pool cannot allocate from the space control
+ * pool (as the control pool is an instance of PoolClassMV and MV uses
+ * MFS in its implementation), nor can it allocate sub-pools, as that
+ * causes allocation in the control pool.
  *
  * Notes
- *  1. The simple freelist policy might lead to poor locality of
- *     allocation if the list gets fragmented.  richard 1994-11-03
- *  2. free should check that the pointer it is asked to free is in a
- *     segment owned by the pool.  This required more support from the
- *     arena manager than is currently available.  richard 1994-11-03
- *  3. A describe method is needed.  richard 1994-11-03
- *  4. By not using the rounded extent of a segment some space may be
- *     wasted at the end in alloc.  richard 1994-11-03
- *  5. isValid should check that free list points into the pool.
- *     richard 1994-11-03
- *  6. This pool doesn't support fast cache allocation, which is a
- *     shame. richard 1994-11-03
+ *
+ * .freelist.fragments: The simple freelist policy might lead to poor
+ * locality of allocation if the list gets fragmented.
+ * 
+ * .buffer.not: This pool doesn't support fast cache allocation, which
+ * is a shame.
  */
+
 
 #include "mpm.h"
 #include "poolmfs.h"
 
-SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(MMdevel_lib.3) $");
+SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(trunk.12) $");
 
 
 /*  == Round up ==
@@ -48,9 +49,6 @@ SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(MMdevel_lib.3) $");
 
 
 /*  == Free List Structure ==
- *
- *  The pool keeps a simple linked list of free units stored in the units
- *  themselves.  See note 1.
  */
 
 typedef struct MFSHeaderStruct {
@@ -124,7 +122,7 @@ static void MFSFinish(Pool pool)
 
   seg = mfs->segList;
   while(seg != NULL) {
-    Seg nextSeg = (Seg)seg->p;
+    Seg nextSeg = (Seg)seg->p;   /* .seg.chain */
     PoolSegFree(pool, seg);
     seg = nextSeg;
   }
@@ -159,7 +157,8 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
   if(f == NULL)
   {
     Seg seg;
-    Word i, unitsPerSeg, unitSize;
+    Word i, unitsPerSeg;
+    Size unitSize;
     Addr base;
     Header header = NULL, next;
     Space space;
@@ -169,7 +168,7 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
     if(res != ResOK)
       return res;
 
-    /* chain segs through seg->p; can find them when finishing */
+    /* .seg.chain: chain segs through seg->p */
     seg->p = (void *)mfs->segList;
     mfs->segList = seg;
 
@@ -214,8 +213,7 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
 /*  == Free ==
  *
  *  Freeing a unit simply involves pushing it onto the front of the
- *  freelist.  This might cause bad locality if units are pushed at random
- *  locations throughout the pool.
+ *  freelist.
  */
 
 static void MFSFree(Pool pool, Addr old, Size size)
@@ -230,7 +228,7 @@ static void MFSFree(Pool pool, Addr old, Size size)
   AVER(old != (Addr)0);
   AVER(size == mfs->unroundedUnitSize);
 
-  /* Locality isn't too good, but deallocation is quick.  See note 2. */
+  /* .freelist.fragments */
   h = (Header)old;
   h->next = mfs->freeList;
   mfs->freeList = h;
@@ -282,7 +280,7 @@ static PoolClassStruct PoolClassMFSStruct = {
   PoolNoGrey,                           /* grey */
   PoolNoScan,                           /* scan */
   PoolNoFix,                            /* fix */
-  PoolNoReclaim,                        /* relcaim */
+  PoolNoReclaim,                        /* reclaim */
   PoolNoAccess,                         /* access */
   MFSDescribe,                          /* describe */
   PoolClassSig                          /* impl.h.mpmst.class.end-sig */
@@ -297,14 +295,23 @@ PoolClass PoolClassMFS(void)
 Bool MFSCheck(MFS mfs)
 {
   Space space;
+
   CHECKS(MFS, mfs);
   CHECKD(Pool, &mfs->poolStruct);
   CHECKL(mfs->poolStruct.class == &PoolClassMFSStruct);
   CHECKL(mfs->unroundedUnitSize >= UNIT_MIN);
-  CHECKL(SizeAlignUp(mfs->unroundedUnitSize, mfs->poolStruct.alignment) == mfs->unitSize);
   CHECKL(mfs->extendBy >= UNIT_MIN);
   space = PoolSpace(&mfs->poolStruct);
   CHECKL(SizeIsAligned(mfs->extendBy, ArenaAlign(space)));
+  CHECKL(SizeAlignUp(mfs->unroundedUnitSize, mfs->poolStruct.alignment) ==
+	 mfs->unitSize);
   CHECKL(mfs->unitsPerSeg == mfs->extendBy/mfs->unitSize);
+  if(mfs->freeList != NULL) {
+    /* free list is stored in the pool's managed memory */
+    CHECKL(PoolHasAddr(&mfs->poolStruct, (Addr)mfs->freeList));
+  }
+  if(mfs->segList != (Seg)0) {
+    CHECKL(SegCheck(mfs->segList));
+  }
   return TRUE;
 }
