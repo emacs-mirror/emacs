@@ -1,3 +1,13 @@
+2002-10-29  Masayuki Ataka  <ataka@milk.freemail.ne.jp>  (tiny change)
+
+	* textmodes/texinfo.el (texinfo-environments): Add environment; copying,
+	documentdescription, ifplaintext, ifnotplaintext, and verbatim.
+
+	* textmodes/texinfmt.el (texinfo-format-ifplaintext): New function.
+	(ifplaintext, ifnotplaintext)
+	(afourpaper, afivepaper, afourlatex, afourwide)
+	(documentlanguage, documentencoding): New aliases.
+
 2002-10-29  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* ibuffer.el (ibuffer-mouse-popup-menu): Set point before popping

@@ -109,9 +109,8 @@ Other features we would like:
   the whole menu bar.  In the mean time, it should process other messages.
 
 * Get some major packages installed: W3/url (development version needs
-  significant work), PSGML, Mule-UCS, Tramp (?).  Check the
-  assignments file for other packages which might go in and have been
-  missed.
+  significant work), PSGML, Mule-UCS.  Check the assignments file for other
+  packages which might go in and have been missed.
 
 * Make keymaps a first-class Lisp object (this means a rewrite of
   keymap.c).  What should it do apart from being opaque ?
@@ -124,7 +123,8 @@ Other features we would like:
 * Implement popular parts of the rest of the CL functions as compiler
   macros in cl-macs.
 
-* Highlight rectangles (`mouse-track-rectangle-p' in XEmacs).
+* Highlight rectangles (`mouse-track-rectangle-p' in XEmacs).  Already in CUA,
+  but it's a valuable feature worth making more general.
 
 * Support simultaneous tty and X frames.
 
@@ -169,9 +169,6 @@ Other features we would like:
   things.  [The integration is partly done.]
 
 * Adapt the gnuserv/gnudoit features for server/emacsclient.
-
-* Re-implement emacs-server in lisp as an internal server using
-  make-network-process instead of using an external program.
 
 * Investigate using GNU Lightning or similar system for incremental
   compilation of selected bytecode functions to subrs.  Converting CCL
