@@ -132,8 +132,8 @@ rather than deleted, after it is retrieved."
 
 ;;;###autoload
 (defcustom rmail-dont-reply-to-names nil "\
-*A regexp specifying names to prune of reply to messages.
-A value of nil means exclude your own login name as an address
+*A regexp specifying addresses to prune from a reply message.
+A value of nil means exclude your own email address as an address
 plus whatever is specified by `rmail-default-dont-reply-to-names'."
   :type '(choice regexp (const :tag "Your Name" nil))
   :group 'rmail-reply)
@@ -143,7 +143,7 @@ plus whatever is specified by `rmail-default-dont-reply-to-names'."
 A regular expression specifying part of the value of the default value of
 the variable `rmail-dont-reply-to-names', for when the user does not set
 `rmail-dont-reply-to-names' explicitly.  (The other part of the default
-value is the user's name.)
+value is the user's email address and name.)
 It is useful to set this variable in the site customization file.")
 
 ;;;###autoload
