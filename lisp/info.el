@@ -961,6 +961,7 @@ a case-insensitive match is tried."
 
 (defvar Info-header-line nil
   "If the info node header is hidden, the text of the header.")
+(put 'Info-header-line 'risky-local-variable t)
 
 (defun Info-select-node ()
 "Select the info node that point is in.
