@@ -1,3 +1,7 @@
+2000-01-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* progmodes/glasses.el: New file.
+
 2000-01-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* mail/mail-utils.el (rmail-dont-reply-to): Replace matched
