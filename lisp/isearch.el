@@ -1519,7 +1519,10 @@ The completed string is then editable in the minibuffer.
 If there is no completion possible, say so and continue searching."
   (interactive)
   (if (isearch-complete1)
-      (isearch-edit-string)
+      (progn (setq isearch-message
+		   (mapconcat 'isearch-text-char-description
+			      isearch-string ""))
+	     (isearch-edit-string))
     ;; else
     (sit-for 1)
     (isearch-update)))
