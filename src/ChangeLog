@@ -1,5 +1,7 @@
 2002-10-10  Dave Love  <fx@gnu.org>
 
+	* fns.c (Flanginfo): Fix typo.
+
 	* unexelf.c (unexec): Make last change conditional on Irix 6.5.
 
 2002-10-10  Kenichi Handa  <handa@m17n.org>

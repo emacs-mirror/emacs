@@ -1,3 +1,18 @@
+2002-10-09  Dave Love  <fx@gnu.org>
+
+	* language/european.el ("Latin-2", "Latin-5"): Doc fix.
+
+	* language/cyrillic.el ("Bulgarian"): Fix input method and
+	charset.
+	("Tajik", "Belarusian"): Fix charset.
+
+	* international/mule-cmds.el (describe-language-environment): Be
+	case-insensitive when looking for input methods.
+	(locale-name-match): Doc fix.
+	(locale-charset-match-p): New.
+	(set-locale-environment): Warn if coding system doesn't agree
+	with system locale.
+
 2002-10-09  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (select-safe-coding-system): If
@@ -5,6 +20,8 @@
 	coding system, don't show that :mime-charset name.
 
 2002-10-06  Dave Love  <fx@gnu.org>
+
+	* international/quail.el (quail-help): Fix underlining.
 
 	* language/chinese.el (chinese-gb18030, gb18030) 
 	("Chinese-GB18030"): New.
