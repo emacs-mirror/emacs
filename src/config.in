@@ -1,3 +1,5 @@
+/* src/config.in.  Generated from configure.in by autoheader.  */
+
 /* GNU Emacs site configuration template file.  -*- C -*-
    Copyright (C) 1988, 1993, 1994, 1999, 2000 Free Software Foundation, Inc.
 
@@ -25,80 +27,700 @@ Boston, MA 02111-1307, USA.  */
 #ifndef EMACS_CONFIG_H
 #define EMACS_CONFIG_H
 
-/* These are all defined in the top-level Makefile by configure.
-   They're here only for reference.  */
 
-/* Define GNU_MALLOC if you want to use the GNU memory allocator. */
-#undef GNU_MALLOC
+/* Define to 1 if the mktime function is broken. */
+#undef BROKEN_MKTIME
 
-/* Define if you are using the GNU C Library. */
+/* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
+   systems. This function is required for `alloca.c' support on those systems.
+   */
+#undef CRAY_STACKSEG_END
+
+/* Define to 1 if using `alloca.c'. */
+#undef C_ALLOCA
+
+/* Define to 1 if using `getloadavg.c'. */
+#undef C_GETLOADAVG
+
+/* Define C_SWITCH_X_SITE to contain any special flags your compiler may need
+   to deal with X Windows. For instance, if you've defined HAVE_X_WINDOWS
+   above and your X include files aren't in a place that your compiler can
+   find on its own, you might want to add "-I/..." or something similar. */
+#undef C_SWITCH_X_SITE
+
+/* Define to 1 for DGUX with <sys/dg_sys_info.h>. */
+#undef DGUX
+
+/* Define to 1 if you are using the GNU C Library. */
 #undef DOUG_LEA_MALLOC
 
-/* Define REL_ALLOC if you want to use the relocating allocator for
-   buffer space. */
-#undef REL_ALLOC
+/* Define to the canonical Emacs configuration name. */
+#undef EMACS_CONFIGURATION
 
-#undef HAVE_SHARED_GAME_DIR
-  
-/* Define HAVE_X_WINDOWS if you want to use the X window system.  */
-#undef HAVE_X_WINDOWS
+/* Define to the options passed to configure. */
+#undef EMACS_CONFIG_OPTIONS
 
-/* Define HAVE_X11 if you want to use version 11 of X windows.
-   Otherwise, Emacs expects to use version 10.  */
-#undef HAVE_X11
+/* Define to 1 if the `getloadavg' function needs to be run setuid or setgid.
+   */
+#undef GETLOADAVG_PRIVILEGED
 
-/* Define if using an X toolkit.  */
-#undef USE_X_TOOLKIT
+/* Define to 1 if gettimeofday accepts only one argument. */
+#undef GETTIMEOFDAY_ONE_ARGUMENT
 
-/* Define this if you're using XFree386.  */
-#undef HAVE_XFREE386
+/* Define to 1 if you want to use the GNU memory allocator. */
+#undef GNU_MALLOC
 
-/* Define this if you have Motif 2.1 or newer.  */
-#undef HAVE_MOTIF_2_1
+/* Define to 1 if the file /usr/lpp/X11/bin/smt.exp exists. */
+#undef HAVE_AIX_SMT_EXP
 
-/* Define HAVE_MENUS if you have mouse menus.
-   (This is automatic if you use X, but the option to specify it remains.)
-   It is also defined with other window systems that support xmenu.c.  */
-#undef HAVE_MENUS
+/* Define to 1 if you have the `alarm' function. */
+#undef HAVE_ALARM
 
-/* Define if we have the X11R6 or newer version of Xt.  */
-#undef HAVE_X11XTR6
+/* Define to 1 if you have `alloca', as a function or macro. */
+#undef HAVE_ALLOCA
 
-/* Define if we have the X11R6 or newer version of Xlib.  */
-#undef HAVE_X11R6
+/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
+   */
+#undef HAVE_ALLOCA_H
 
-/* Define if we have the X11R5 or newer version of Xlib.  */
-#undef HAVE_X11R5
+/* Define to 1 if you have the `bcmp' function. */
+#undef HAVE_BCMP
 
-/* Define if we have the XPM libary.  */
-#undef HAVE_XPM
+/* Define to 1 if you have the `bcopy' function. */
+#undef HAVE_BCOPY
 
-/* Define if we have the PNG library.  */
-#undef HAVE_PNG
+/* Define to 1 if you have the `cbrt' function. */
+#undef HAVE_CBRT
 
-/* Define if we have the JPEG library.  */
-#undef HAVE_JPEG
+/* Define to 1 if you have the `closedir' function. */
+#undef HAVE_CLOSEDIR
 
-/* Define if we have the TIFF library.  */
-#undef HAVE_TIFF
+/* Define to 1 if you have the <coff.h> header file. */
+#undef HAVE_COFF_H
 
-/* Define if we have the GIF library.  */
+/* Define to 1 if you have the <com_err.h> header file. */
+#undef HAVE_COM_ERR_H
+
+/* Define to 1 if you have the <des.h> header file. */
+#undef HAVE_DES_H
+
+/* Define to 1 if dynamic ptys are supported. */
+#undef HAVE_DEV_PTMX
+
+/* Define to 1 if you have the `dup2' function. */
+#undef HAVE_DUP2
+
+/* Define to 1 if you have the `euidaccess' function. */
+#undef HAVE_EUIDACCESS
+
+/* Define to 1 if you have the <fcntl.h> header file. */
+#undef HAVE_FCNTL_H
+
+/* Define to 1 if you have the `fmod' function. */
+#undef HAVE_FMOD
+
+/* Define to 1 if you have the `fork' function. */
+#undef HAVE_FORK
+
+/* Define to 1 if you have the `fpathconf' function. */
+#undef HAVE_FPATHCONF
+
+/* Define to 1 if you have the `frexp' function. */
+#undef HAVE_FREXP
+
+/* Define to 1 if fseeko (and presumably ftello) exists and is declared. */
+#undef HAVE_FSEEKO
+
+/* Define to 1 if you have the `ftime' function. */
+#undef HAVE_FTIME
+
+/* Define to 1 if you have the `gai_strerror' function. */
+#undef HAVE_GAI_STRERROR
+
+/* Define to 1 if you have the `getaddrinfo' function. */
+#undef HAVE_GETADDRINFO
+
+/* Define to 1 if you have the `getcwd' function. */
+#undef HAVE_GETCWD
+
+/* Define to 1 if you have the `getdelim' function. */
+#undef HAVE_GETDELIM
+
+/* Define to 1 if you have the `getdomainname' function. */
+#undef HAVE_GETDOMAINNAME
+
+/* Define to 1 if you have the `gethostname' function. */
+#undef HAVE_GETHOSTNAME
+
+/* Define to 1 if you have the `getline' function. */
+#undef HAVE_GETLINE
+
+/* Define to 1 if you have the `getloadavg' function. */
+#undef HAVE_GETLOADAVG
+
+/* Define to 1 if you have the `getpagesize' function. */
+#undef HAVE_GETPAGESIZE
+
+/* Define to 1 if you have the `getpeername' function. */
+#undef HAVE_GETPEERNAME
+
+/* Define to 1 if you have the `getpt' function. */
+#undef HAVE_GETPT
+
+/* Define to 1 if you have the `getsockname' function. */
+#undef HAVE_GETSOCKNAME
+
+/* Define to 1 if you have the `getsockopt' function. */
+#undef HAVE_GETSOCKOPT
+
+/* Define to 1 if you have the `gettimeofday' function. */
+#undef HAVE_GETTIMEOFDAY
+
+/* Define to 1 if you have the `getwd' function. */
+#undef HAVE_GETWD
+
+/* Define to 1 if you have the ungif library (-lungif). */
 #undef HAVE_GIF
 
-/* Define if libXaw3d is available.  */
+/* Define to 1 if you have the `grantpt' function. */
+#undef HAVE_GRANTPT
+
+/* Define to 1 if netdb.h declares h_errno. */
+#undef HAVE_H_ERRNO
+
+/* Define to 1 if you have the `index' function. */
+#undef HAVE_INDEX
+
+/* Define to 1 if you have inet sockets. */
+#undef HAVE_INET_SOCKETS
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the jpeg library (-ljpeg). */
+#undef HAVE_JPEG
+
+/* Define to 1 if you have the <kerberosIV/des.h> header file. */
+#undef HAVE_KERBEROSIV_DES_H
+
+/* Define to 1 if you have the <kerberosIV/krb.h> header file. */
+#undef HAVE_KERBEROSIV_KRB_H
+
+/* Define to 1 if you have the <kerberos/des.h> header file. */
+#undef HAVE_KERBEROS_DES_H
+
+/* Define to 1 if you have the <kerberos/krb.h> header file. */
+#undef HAVE_KERBEROS_KRB_H
+
+/* Define to 1 if you have the <krb5.h> header file. */
+#undef HAVE_KRB5_H
+
+/* Define to 1 if you have the <krb.h> header file. */
+#undef HAVE_KRB_H
+
+/* Define to 1 if you have the `com_err' library (-lcom_err). */
+#undef HAVE_LIBCOM_ERR
+
+/* Define to 1 if you have the `crypto' library (-lcrypto). */
+#undef HAVE_LIBCRYPTO
+
+/* Define to 1 if you have the `des' library (-ldes). */
+#undef HAVE_LIBDES
+
+/* Define to 1 if you have the `des425' library (-ldes425). */
+#undef HAVE_LIBDES425
+
+/* Define to 1 if you have the `dgc' library (-ldgc). */
+#undef HAVE_LIBDGC
+
+/* Define to 1 if you have the `dnet' library (-ldnet). */
+#undef HAVE_LIBDNET
+
+/* Define to 1 if you have the hesiod library (-lhesiod). */
+#undef HAVE_LIBHESIOD
+
+/* Define to 1 if you have the `intl' library (-lintl). */
+#undef HAVE_LIBINTL
+
+/* Define to 1 if you have the `k5crypto' library (-lk5crypto). */
+#undef HAVE_LIBK5CRYPTO
+
+/* Define to 1 if you have the `krb' library (-lkrb). */
+#undef HAVE_LIBKRB
+
+/* Define to 1 if you have the `krb4' library (-lkrb4). */
+#undef HAVE_LIBKRB4
+
+/* Define to 1 if you have the `krb5' library (-lkrb5). */
+#undef HAVE_LIBKRB5
+
+/* Define to 1 if you have the `kstat' library (-lkstat). */
+#undef HAVE_LIBKSTAT
+
+/* Define to 1 if you have the `lockfile' library (-llockfile). */
+#undef HAVE_LIBLOCKFILE
+
+/* Define to 1 if you have the `m' library (-lm). */
+#undef HAVE_LIBM
+
+/* Define to 1 if you have the `mail' library (-lmail). */
+#undef HAVE_LIBMAIL
+
+/* Define to 1 if you have the `ncurses' library (-lncurses). */
+#undef HAVE_LIBNCURSES
+
+/* Define to 1 if you have the `pthreads' library (-lpthreads). */
+#undef HAVE_LIBPTHREADS
+
+/* Define to 1 if you have the resolv library (-lresolv). */
+#undef HAVE_LIBRESOLV
+
+/* Define to 1 if you have the `Xext' library (-lXext). */
+#undef HAVE_LIBXEXT
+
+/* Define to 1 if you have the `Xmu' library (-lXmu). */
+#undef HAVE_LIBXMU
+
+/* Define to 1 if you have the Xp library (-lXp). */
+#undef HAVE_LIBXP
+
+/* Define to 1 if you have the <limits.h> header file. */
+#undef HAVE_LIMITS_H
+
+/* Define to 1 if you have the <linux/version.h> header file. */
+#undef HAVE_LINUX_VERSION_H
+
+/* Define to 1 if you have the `logb' function. */
+#undef HAVE_LOGB
+
+/* Define to 1 if you support file names longer than 14 characters. */
+#undef HAVE_LONG_FILE_NAMES
+
+/* Define to 1 if you have the `lrand48' function. */
+#undef HAVE_LRAND48
+
+/* Define to 1 if you have the <machine/soundcard.h> header file. */
+#undef HAVE_MACHINE_SOUNDCARD_H
+
+/* Define to 1 if you have the <mach/mach.h> header file. */
+#undef HAVE_MACH_MACH_H
+
+/* Define to 1 if you have the <maillock.h> header file. */
+#undef HAVE_MAILLOCK_H
+
+/* Define to 1 if you have the `mblen' function. */
+#undef HAVE_MBLEN
+
+/* Define to 1 if you have the `mbrlen' function. */
+#undef HAVE_MBRLEN
+
+/* Define to 1 if you have the `mbsinit' function. */
+#undef HAVE_MBSINIT
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have mouse menus. (This is automatic if you use X, but
+   the option to specify it remains.) It is also defined with other window
+   systems that support xmenu.c. */
+#undef HAVE_MENUS
+
+/* Define to 1 if you have the `mkdir' function. */
+#undef HAVE_MKDIR
+
+/* Define to 1 if you have the `mkstemp' function. */
+#undef HAVE_MKSTEMP
+
+/* Define to 1 if you have the `mktime' function. */
+#undef HAVE_MKTIME
+
+/* Define to 1 if you have a working `mmap' system call. */
+#undef HAVE_MMAP
+
+/* Define to 1 if you have Motif 2.1 or newer. */
+#undef HAVE_MOTIF_2_1
+
+/* Define to 1 if you have the <nlist.h> header file. */
+#undef HAVE_NLIST_H
+
+/* Define to 1 if you have the png library (-lpng). */
+#undef HAVE_PNG
+
+/* Define to 1 if you have the `pstat_getdynamic' function. */
+#undef HAVE_PSTAT_GETDYNAMIC
+
+/* Define to 1 if you have the `random' function. */
+#undef HAVE_RANDOM
+
+/* Define to 1 if you have the `recvfrom' function. */
+#undef HAVE_RECVFROM
+
+/* Define to 1 if you have the `rename' function. */
+#undef HAVE_RENAME
+
+/* Define to 1 if you have the `res_init' function. */
+#undef HAVE_RES_INIT
+
+/* Define to 1 if you have the `rindex' function. */
+#undef HAVE_RINDEX
+
+/* Define to 1 if you have the `rint' function. */
+#undef HAVE_RINT
+
+/* Define to 1 if you have the `rmdir' function. */
+#undef HAVE_RMDIR
+
+/* Define to 1 if you have the `select' function. */
+#undef HAVE_SELECT
+
+/* Define to 1 if you have the `sendto' function. */
+#undef HAVE_SENDTO
+
+/* Define to 1 if you have the `setitimer' function. */
+#undef HAVE_SETITIMER
+
+/* Define to 1 if you have the `setlocale' function. */
+#undef HAVE_SETLOCALE
+
+/* Define to 1 if you have the `setpgid' function. */
+#undef HAVE_SETPGID
+
+/* Define to 1 if you have the `setrlimit' function. */
+#undef HAVE_SETRLIMIT
+
+/* Define to 1 if you have the `setsid' function. */
+#undef HAVE_SETSID
+
+/* Define to 1 if you have the `setsockopt' function. */
+#undef HAVE_SETSOCKOPT
+
+/* Define to the name of the shared game directory. */
+#undef HAVE_SHARED_GAME_DIR
+
+/* Define to 1 if you have the `shutdown' function. */
+#undef HAVE_SHUTDOWN
+
+/* Define to 1 if you have the <soundcard.h> header file. */
+#undef HAVE_SOUNDCARD_H
+
+/* Define to 1 if `speed_t' is declared by <termios.h>. */
+#undef HAVE_SPEED_T
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdio_ext.h> header file. */
+#undef HAVE_STDIO_EXT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the `strerror' function. */
+#undef HAVE_STRERROR
+
+/* Define to 1 if you have the `strftime' function. */
+#undef HAVE_STRFTIME
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the `strsignal' function. */
+#undef HAVE_STRSIGNAL
+
+/* Define to 1 if `n_un.n_name' is member of `struct nlist'. */
+#undef HAVE_STRUCT_NLIST_N_UN_N_NAME
+
+/* Define to 1 if `tm_zone' is member of `struct tm'. */
+#undef HAVE_STRUCT_TM_TM_ZONE
+
+/* Define to 1 if `struct utimbuf' is declared by <utime.h>. */
+#undef HAVE_STRUCT_UTIMBUF
+
+/* Define to 1 if you have the `sysinfo' function. */
+#undef HAVE_SYSINFO
+
+/* Define to 1 if you have the <sys/select.h> header file. */
+#undef HAVE_SYS_SELECT_H
+
+/* Define to 1 if you have the <sys/soundcard.h> header file. */
+#undef HAVE_SYS_SOUNDCARD_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/systeminfo.h> header file. */
+#undef HAVE_SYS_SYSTEMINFO_H
+
+/* Define to 1 if you have the <sys/timeb.h> header file. */
+#undef HAVE_SYS_TIMEB_H
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#undef HAVE_SYS_TIME_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <sys/un.h> header file. */
+#undef HAVE_SYS_UN_H
+
+/* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
+#undef HAVE_SYS_WAIT_H
+
+/* Define to 1 if you have the <termcap.h> header file. */
+#undef HAVE_TERMCAP_H
+
+/* Define to 1 if you have the <termios.h> header file. */
+#undef HAVE_TERMIOS_H
+
+/* Define to 1 if you have the <term.h> header file. */
+#undef HAVE_TERM_H
+
+/* Define to 1 if you have the tiff library (-ltiff). */
+#undef HAVE_TIFF
+
+/* Define to 1 if `struct timeval' is declared by <sys/time.h>. */
+#undef HAVE_TIMEVAL
+
+/* Define to 1 if `tm_gmtoff' is member of `struct tm'. */
+#undef HAVE_TM_GMTOFF
+
+/* Define to 1 if your `struct tm' has `tm_zone'. Deprecated, use
+   `HAVE_STRUCT_TM_TM_ZONE' instead. */
+#undef HAVE_TM_ZONE
+
+/* Define to 1 if you have the `touchlock' function. */
+#undef HAVE_TOUCHLOCK
+
+/* Define to 1 if you don't have `tm_zone' but do have the external array
+   `tzname'. */
+#undef HAVE_TZNAME
+
+/* Define to 1 if you have the `tzset' function. */
+#undef HAVE_TZSET
+
+/* Define to 1 if you have the `ualarm' function. */
+#undef HAVE_UALARM
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the `utimes' function. */
+#undef HAVE_UTIMES
+
+/* Define to 1 if you have the <utime.h> header file. */
+#undef HAVE_UTIME_H
+
+/* Define to 1 if you have the `vfork' function. */
+#undef HAVE_VFORK
+
+/* Define to 1 if you have the <vfork.h> header file. */
+#undef HAVE_VFORK_H
+
+/* Define to 1 if `fork' works. */
+#undef HAVE_WORKING_FORK
+
+/* Define to 1 if `vfork' works. */
+#undef HAVE_WORKING_VFORK
+
+/* Define to 1 if you want to use version 11 of X windows. Otherwise, Emacs
+   expects to use version 10. */
+#undef HAVE_X11
+
+/* Define to 1 if you have the X11R5 or newer version of Xlib. */
+#undef HAVE_X11R5
+
+/* Define to 1 if you have the X11R6 or newer version of Xlib. */
+#undef HAVE_X11R6
+
+/* Define to 1 if you have the X11R6 or newer version of Xt. */
+#undef HAVE_X11XTR6
+
+/* Define to 1 if you have the Xaw3d library (-lXaw3d). */
 #undef HAVE_XAW3D
 
-/* Define if we should use toolkit scroll bars.  */
-#undef USE_TOOLKIT_SCROLL_BARS
+/* Define to 1 if you're using XFree386. */
+#undef HAVE_XFREE386
 
-/* Define if we should use XIM, if it is available.  */
-#undef USE_XIM
+/* Define to 1 if you have the XkbGetKeyboard function. */
+#undef HAVE_XKBGETKEYBOARD
 
-/* Define if we have the session management (SM) library.  */
+/* Define to 1 if you have the Xpm libary (-lXpm). */
+#undef HAVE_XPM
+
+/* Define to 1 if you have the `XrmSetDatabase' function. */
+#undef HAVE_XRMSETDATABASE
+
+/* Define to 1 if you have the `XScreenNumberOfScreen' function. */
+#undef HAVE_XSCREENNUMBEROFSCREEN
+
+/* Define to 1 if you have the `XScreenResourceString' function. */
+#undef HAVE_XSCREENRESOURCESTRING
+
+/* Define to 1 if you have the `XSetWMProtocols' function. */
+#undef HAVE_XSETWMPROTOCOLS
+
+/* Define to 1 if you have the SM library (-lSM). */
 #undef HAVE_X_SM
 
-/* Define if netdb.h declares h_errno.  */
-#undef HAVE_H_ERRNO
+/* Define to 1 if you want to use the X window system. */
+#undef HAVE_X_WINDOWS
+
+/* Define to 1 if you have the `__fpending' function. */
+#undef HAVE___FPENDING
+
+/* Define to support using a Hesiod database to find the POP server. */
+#undef HESIOD
+
+/* Define to support Kerberos-authenticated POP mail retrieval. */
+#undef KERBEROS
+
+/* Define to use Kerberos 5 instead of Kerberos 4. */
+#undef KERBEROS5
+
+/* Define LD_SWITCH_X_SITE to contain any special flags your loader may need
+   to deal with X Windows. For instance, if you've defined HAVE_X_WINDOWS
+   above and your X libraries aren't in a place that your loader can find on
+   its own, you might want to add "-L/..." or something similar. */
+#undef LD_SWITCH_X_SITE
+
+/* Define LD_SWITCH_X_SITE_AUX with an -R option in case it's needed (for
+   Solaris, for example). */
+#undef LD_SWITCH_X_SITE_AUX
+
+/* Define to -llockfile if it is usable. */
+#undef LIBMAIL
+
+/* Define to 1 if localtime caches TZ. */
+#undef LOCALTIME_CACHE
+
+/* Define to support POP mail retrieval. */
+#undef MAIL_USE_POP
+
+/* Define to 1 if your `struct nlist' has an `n_un' member. Obsolete, depend
+   on `HAVE_STRUCT_NLIST_N_UN_N_NAME */
+#undef NLIST_NAME_UNION
+
+/* Define to 1 if you have <nlist.h>. */
+#undef NLIST_STRUCT
+
+/* Define to 1 if you don't have struct exception in math.h. */
+#undef NO_MATHERR
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define as `void' if your compiler accepts `void *'; otherwise define as
+   `char'. */
+#undef POINTER_TYPE
+
+/* Define to 1 if the C compiler supports function prototypes. */
+#undef PROTOTYPES
+
+/* Define REL_ALLOC if you want to use the relocating allocator for buffer
+   space. */
+#undef REL_ALLOC
+
+/* Define as the return type of signal handlers (`int' or `void'). */
+#undef RETSIGTYPE
+
+/* If using the C implementation of alloca, define if you know the
+   direction of stack growth for your system; otherwise it will be
+   automatically deduced at run-time.
+        STACK_DIRECTION > 0 => grows toward higher addresses
+        STACK_DIRECTION < 0 => grows toward lower addresses
+        STACK_DIRECTION = 0 => direction of growth unknown */
+#undef STACK_DIRECTION
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define to 1 on System V Release 4. */
+#undef SVR4
+
+/* Define to 1 if `sys_siglist' is declared by <signal.h> or <unistd.h>. */
+#undef SYS_SIGLIST_DECLARED
+
+/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
+#undef TIME_WITH_SYS_TIME
+
+/* Define to 1 if your <sys/time.h> declares `struct tm'. */
+#undef TM_IN_SYS_TIME
+
+/* Define to 1 for Encore UMAX. */
+#undef UMAX
+
+/* Define to 1 for Encore UMAX 4.3 that has <inq_status/cpustats.h> instead of
+   <sys/cpustats.h>. */
+#undef UMAX4_3
+
+/* Define to the unexec source file name. */
+#undef UNEXEC_SRC
+
+/* Define to 1 if we should use toolkit scroll bars. */
+#undef USE_TOOLKIT_SCROLL_BARS
+
+/* Define to 1 if we should use XIM, if it is available. */
+#undef USE_XIM
+
+/* Define to 1 if using an X toolkit. */
+#undef USE_X_TOOLKIT
+
+/* Define to 1 if on AIX 3.
+   System headers sometimes define this.
+   We just want to avoid a redefinition error message.  */
+#ifndef _ALL_SOURCE
+# undef _ALL_SOURCE
+#endif
+
+/* Number of bits in a file offset, on hosts where this is settable. */
+#undef _FILE_OFFSET_BITS
+
+/* Define to 1 to make fseeko visible on some hosts (e.g. glibc 2.2). */
+#undef _LARGEFILE_SOURCE
+
+/* Define for large files, on AIX-style hosts. */
+#undef _LARGE_FILES
+
+/* Define like PROTOTYPES; this can be used by system headers. */
+#undef __PROTOTYPES
+
+/* Define to the used machine dependent file. */
+#undef config_machfile
+
+/* Define to the used os dependent file. */
+#undef config_opsysfile
+
+/* Define to empty if `const' does not conform to ANSI C. */
+#undef const
+
+/* Define to `int' if <sys/types.h> does not define. */
+#undef pid_t
+
+/* Define to `unsigned' if <sys/types.h> does not define. */
+#undef size_t
+
+/* Define as `fork' if `vfork' does not work. */
+#undef vfork
+
+/* Define to empty if the keyword `volatile' does not work. Warning: valid
+   code using `volatile' can become incorrect without. Disable with care. */
+#undef volatile
+
 
 /* If we're using any sort of window system, define some consequences.  */
 #ifdef HAVE_X_WINDOWS
@@ -123,27 +745,6 @@ Boston, MA 02111-1307, USA.  */
 /* Turned on June 1996 supposing nobody will mind it.  */
 #define AMPERSAND_FULL_NAME
 
-/* Things set by --with options in the configure script.  */
-
-/* Define to support POP mail retrieval.  */
-#undef MAIL_USE_POP
-
-/* Define to support Kerberos-authenticated POP mail retrieval.  */
-#undef KERBEROS
-/* Define to use Kerberos 5 instead of Kerberos 4 */
-#undef KERBEROS5
-/* Define to support GSS-API in addition to (or instead of) Kerberos */
-#undef GSSAPI
-
-/* Define to support using a Hesiod database to find the POP server.  */
-#undef HESIOD
-#undef HAVE_LIBHESIOD
-
-/* Header for Voxware or PCM sound card driver.  */
-#undef HAVE_MACHINE_SOUNDCARD_H
-#undef HAVE_SYS_SOUNDCARD_H
-#undef HAVE_SOUNDCARD_H
-
 /* Define HAVE_SOUND if we have sound support.  We know it works
    and compiles only on the specified platforms.   For others,
    it probably doesn't make sense to try.  */
@@ -160,192 +761,6 @@ Boston, MA 02111-1307, USA.  */
 #endif
 #endif /* __FreeBSD__ || __NetBSD__ || __linux__  */
 
-/* Some things figured out by the configure script, grouped as they are in
-   configure.in.  */
-#ifndef _ALL_SOURCE  /* suppress warning if this is pre-defined */
-#undef _ALL_SOURCE
-#endif
-
-#undef HAVE_SYS_SELECT_H
-#undef HAVE_SYS_TIMEB_H
-#undef HAVE_SYS_TIME_H
-#undef HAVE_UNISTD_H
-#undef HAVE_UTIME_H
-#undef HAVE_LINUX_VERSION_H
-#undef HAVE_SYS_SYSTEMINFO_H
-#undef HAVE_TERMIOS_H
-#undef HAVE_LIMITS_H
-#undef HAVE_STRING_H
-#undef HAVE_STDLIB_H
-#undef HAVE_TERMCAP_H
-#undef HAVE_TERM_H
-#undef HAVE_STDIO_EXT_H
-#undef STDC_HEADERS
-#undef TIME_WITH_SYS_TIME
-#undef HAVE_VFORK_H
-#undef HAVE_FCNTL_H
-#undef HAVE_SETITIMER
-#undef HAVE_UALARM
-#undef HAVE_SYS_WAIT_H
-#undef HAVE_STRINGS_H
-#undef HAVE_COFF_H
-
-#undef HAVE_LIBDNET
-#undef HAVE_LIBPTHREADS
-#undef HAVE_LIBRESOLV
-#undef HAVE_LIBXMU
-#undef HAVE_LIBNCURSES
-#undef HAVE_LIBINTL
-#undef HAVE_LIBXP
-
-/* movemail Kerberos support */
-/* libraries */
-#undef HAVE_LIBKRB
-#undef HAVE_LIBKRB4
-#undef HAVE_LIBDES
-#undef HAVE_LIBDES425
-#undef HAVE_LIBKRB5
-#undef HAVE_LIBCRYPTO
-#undef HAVE_LIBK5CRYPTO
-#undef HAVE_LIBCOM_ERR
-/* header files */
-#undef HAVE_KRB5_H
-#undef HAVE_DES_H
-#undef HAVE_KRB_H
-#undef HAVE_KERBEROSIV_DES_H
-#undef HAVE_KERBEROSIV_KRB_H
-#undef HAVE_KERBEROS_DES_H
-#undef HAVE_KERBEROS_KRB_H
-#undef HAVE_COM_ERR_H
-
-/* GSS-API libraries and headers */
-#undef HAVE_LIBGSSAPI_KRB5
-#undef HAVE_LIBGSSAPI
-#undef HAVE_GSSAPI_H
-
-/* Mail-file locking */
-#undef HAVE_LIBMAIL
-#undef HAVE_MAILLOCK_H
-#undef HAVE_TOUCHLOCK
-
-#undef HAVE_ALLOCA_H
-
-#undef HAVE_DEV_PTMX
-
-#undef HAVE_GETTIMEOFDAY
-/* If we don't have gettimeofday,
-   the test for GETTIMEOFDAY_ONE_ARGUMENT may succeed,
-   but we should ignore it.  */
-#ifdef HAVE_GETTIMEOFDAY
-#undef GETTIMEOFDAY_ONE_ARGUMENT
-#endif
-#undef HAVE_GETHOSTNAME
-#undef HAVE_GETDOMAINNAME
-#undef HAVE_DUP2
-#undef HAVE_RENAME
-#undef HAVE_CLOSEDIR
-
-#undef TM_IN_SYS_TIME
-#undef HAVE_TM_ZONE
-#undef HAVE_TZNAME
-#undef HAVE_TM_GMTOFF
-
-#undef const
-
-#undef HAVE_LONG_FILE_NAMES
-
-#undef CRAY_STACKSEG_END
-
-#undef UNEXEC_SRC
-
-#undef HAVE_LIBXBSD
-#undef HAVE_XRMSETDATABASE
-#undef HAVE_XSCREENRESOURCESTRING
-#undef HAVE_XSCREENNUMBEROFSCREEN
-#undef HAVE_XSETWMPROTOCOLS
-#undef HAVE_XKBGETKEYBOARD
-
-#undef HAVE_MKDIR
-#undef HAVE_RMDIR
-#undef HAVE_SYSINFO
-#undef HAVE_RANDOM
-#undef HAVE_LRAND48
-#undef HAVE_BCOPY
-#undef HAVE_BCMP
-#undef HAVE_LOGB
-#undef HAVE_FREXP
-#undef HAVE_FMOD
-#undef HAVE_RINT
-#undef HAVE_CBRT
-#undef HAVE_FTIME
-#undef HAVE_RES_INIT /* For -lresolv on Suns.  */
-#undef HAVE_SETSID
-#undef HAVE_FPATHCONF
-#undef HAVE_SELECT
-#undef HAVE_MKTIME
-#undef BROKEN_MKTIME		/* have mktime but it's broken */
-#undef HAVE_EUIDACCESS
-#undef HAVE_GETPAGESIZE
-#undef HAVE_TZSET
-#undef HAVE_SETLOCALE
-#undef HAVE_UTIMES
-#undef HAVE_SETRLIMIT
-#undef HAVE_SETPGID
-#undef HAVE_GETCWD
-#undef HAVE_GETWD
-#undef HAVE_SHUTDOWN
-#undef HAVE_STRFTIME
-#undef STRFTIME_NO_POSIX2
-#undef HAVE_GETADDRINFO
-#undef HAVE___FPENDING
-#undef HAVE_FSEEKO
-#undef HAVE_GETLOADAVG
-#undef NLIST_STRUCT
-#undef NLIST_NAME_UNION
-#undef HAVE_MBLEN
-#undef HAVE_MBRLEN
-#undef HAVE_MBSINIT
-#undef HAVE_STRSIGNAL
-#undef HAVE_GRANTPT
-#undef HAVE_GETPT
-#undef HAVE_SPEED_T		/* speed_t typedef in termios.h */
-#undef HAVE_STRUCT_TIMEZONE
-#undef HAVE_INDEX
-#undef HAVE_RINDEX
-#undef HAVE_MMAP
-#undef HAVE_SENDTO
-#undef HAVE_RECVFROM
-#undef HAVE_GETSOCKOPT
-#undef HAVE_SETSOCKOPT
-#undef HAVE_GETSOCKNAME
-#undef HAVE_GETPEERNAME
-#undef HAVE_GAI_STRERROR
-#undef HAVE_MKSTEMP
-
-#undef HAVE_SYS_UN_H
-
-#undef LOCALTIME_CACHE
-#undef HAVE_INET_SOCKETS
-
-#undef HAVE_AIX_SMT_EXP
-
-#undef HAVE_WORKING_VFORK
-#undef vfork
-#undef size_t
-
-/* Define if you have the ANSI `strerror' function.
-   Otherwise you must have the variable `char *sys_errlist[]'.  */
-#undef HAVE_STRERROR
-
-/* Define if `sys_siglist' is declared by <signal.h>.  */
-#undef SYS_SIGLIST_DECLARED
-
-/* Define if `struct utimbuf' is declared by <utime.h>.  */
-#undef HAVE_STRUCT_UTIMBUF
-
-/* Define if `struct timeval' is declared by <sys/time.h>.  */
-#undef HAVE_TIMEVAL
-
 /* If using GNU, then support inline function declarations. */
 /* Don't try to switch on inline handling as detected by AC_C_INLINE
    generally, because even if non-gcc compilers accept `inline', they
@@ -356,45 +771,8 @@ Boston, MA 02111-1307, USA.  */
 #define INLINE
 #endif
 
-/* Define this if you don't have struct exception in math.h.  */
-#undef NO_MATHERR
-
-/* Define as `void' if your compiler accepts `void *'; otherwise
-   define as `char'.  */
-#undef POINTER_TYPE
-#define PTR POINTER_TYPE *	/* For strftime.c.  */
-
-/* Number of bits in a file offset, on hosts where this is settable.  */
-#undef _FILE_OFFSET_BITS
-/* Define to make ftello visible on some hosts (e.g. HP-UX 10.20).  */
-#undef _LARGEFILE_SOURCE
-/* Define for large files, on AIX-style hosts.  */
-#undef _LARGE_FILES
-
-#undef EMACS_CONFIGURATION
-
-#undef EMACS_CONFIG_OPTIONS
-
-/* The configuration script defines opsysfile to be the name of the
-   s/SYSTEM.h file that describes the system type you are using.  The file
-   is chosen based on the configuration name you give.
-
-   See the file ../etc/MACHINES for a list of systems and the
-   configuration names to use for them.
-
-   See s/template.h for documentation on writing s/SYSTEM.h files.  */
-#undef config_opsysfile 
+/* Include the os and machine dependent files.  */
 #include config_opsysfile
-
-/* The configuration script defines machfile to be the name of the
-   m/MACHINE.h file that describes the machine you are using.  The file is
-   chosen based on the configuration name you give.
-
-   See the file ../etc/MACHINES for a list of machines and the
-   configuration names to use for them.
-
-   See m/template.h for documentation on writing m/MACHINE.h files.  */
-#undef config_machfile
 #include config_machfile
 
 /* Load in the conversion definitions if this system
@@ -426,39 +804,6 @@ Boston, MA 02111-1307, USA.  */
 #endif
 #endif
 
-/* Define LD_SWITCH_SITE to contain any special flags your loader may need.  */
-#undef LD_SWITCH_SITE
-
-/* Define C_SWITCH_SITE to contain any special flags your compiler needs.  */
-#undef C_SWITCH_SITE
-
-/* Define LD_SWITCH_X_SITE to contain any special flags your loader
-   may need to deal with X Windows.  For instance, if you've defined
-   HAVE_X_WINDOWS above and your X libraries aren't in a place that
-   your loader can find on its own, you might want to add "-L/..." or
-   something similar.  */
-#undef LD_SWITCH_X_SITE
-
-/* Define LD_SWITCH_X_SITE_AUX with an -R option
-   in case it's needed (for Solaris, for example).  */
-#undef LD_SWITCH_X_SITE_AUX
-
-/* Define C_SWITCH_X_SITE to contain any special flags your compiler
-   may need to deal with X Windows.  For instance, if you've defined
-   HAVE_X_WINDOWS above and your X include files aren't in a place
-   that your compiler can find on its own, you might want to add
-   "-I/..." or something similar.  */
-#undef C_SWITCH_X_SITE
-
-/* Define STACK_DIRECTION here, but not if m/foo.h did.  */
-#ifndef STACK_DIRECTION
-#undef STACK_DIRECTION
-#endif
-
-/* Define the return type of signal handlers if the s-xxx file
-   did not already do so.  */
-#define RETSIGTYPE void
-
 /* SIGTYPE is the macro we actually use.  */
 #ifndef SIGTYPE
 #define SIGTYPE RETSIGTYPE
@@ -483,11 +828,6 @@ Boston, MA 02111-1307, USA.  */
 #if defined (HAVE_BCOPY) && defined (HAVE_BCMP)
 #define BSTRING
 #endif
-
-/* Define to empty if the keyword `volatile' does not work.  Warning:
-   valid code using `volatile' can become incorrect without.  Disable
-   with care. */
-#undef volatile
 
 /* Some of the files of Emacs which are intended for use with other
    programs assume that if you have a config.h file, you must declare
@@ -574,3 +914,4 @@ extern char *getenv ();
 #else
 #define NO_RETURN	/* nothing */
 #endif
+
