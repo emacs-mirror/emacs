@@ -1,12 +1,12 @@
 ;;; tcl.el --- Tcl code editing commands for Emacs
 
-;; Copyright (C) 1994, 1998, 1999, 2000, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1998, 1999, 2000, 2001, 2002  Free Software Foundation, Inc.
 
-;; Maintainer: Tom Tromey <tromey@busco.lanl.gov>
-;; Author: Tom Tromey <tromey@busco.lanl.gov>
+;; Maintainer: Tom Tromey <tromey@redhat.com>
+;; Author: Tom Tromey <tromey@redhat.com>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.64 $
+;; Version: $Revision: 1.65 $
 
 ;; This file is part of GNU Emacs.
 
@@ -1269,14 +1269,14 @@ simpler version that is often right, and works in Emacs 18."
 	       p-start p-end)
 	   ;; Search backwards.
 	   (save-excursion
-	     (while (looking-at "^[ \t]*#")
+	     (while (and (looking-at "^[ \t]*#[ \t]*[^ \t\n]")
+			 (not (bobp)))
 	       (forward-line -1))
-	     (forward-line)
 	     (setq p-start (point)))
 
 	   ;; Search forwards.
 	   (save-excursion
-	     (while (looking-at "^[ \t]*#")
+	     (while (looking-at "^[ \t]*#[ \t]*[^ \t\n]")
 	       (forward-line))
 	     (setq p-end (point)))
 
