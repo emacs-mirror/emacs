@@ -10879,6 +10879,12 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
   else
     this_scroll_margin = 0;
 
+  /* Force scroll_conservatively to have a reasonable value so it doesn't
+     cause an overflow while computing how much to scroll.  */
+  if (scroll_conservatively)
+    scroll_conservatively = min (scroll_conservatively,
+                                 MOST_POSITIVE_FIXNUM / FRAME_LINE_HEIGHT (f));
+
   /* Compute how much we should try to scroll maximally to bring point
      into view.  */
   if (scroll_step || scroll_conservatively || temp_scroll_step)
