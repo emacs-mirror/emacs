@@ -1,3 +1,8 @@
+1999-10-25  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* frame.el (auto-raise-mode): When enabling the mode,
+	immediately raise the selected frame.
+	
 1999-10-24  Stephen Eglen  <stephen@gnu.org>
 
 	* progmodes/octave-mod.el (octave-auto-indent): Remove :version so
