@@ -1793,29 +1793,43 @@ bitch_at_user ()
 }
 
 DEFUN ("sleep-for", Fsleep_for, Ssleep_for, 1, 2, 0,
-  "Pause, without updating display, for ARG seconds.\n\
-Optional second arg non-nil means ARG is measured in milliseconds.\n\
+  "Pause, without updating display, for SECONDS seconds.\n\
+Optional second arg MILLISECONDS specifies an additional wait period,\n\
+in milliseconds.\n\
 \(Not all operating systems support milliseconds.)")
-  (arg, millisec)
-     Lisp_Object arg, millisec;
+  (seconds, milliseconds)
+     Lisp_Object seconds, milliseconds;
 {
-  int usec = 0;
-  int sec;
+  int sec, usec;
 
-  CHECK_NUMBER (arg, 0);
-  sec = XINT (arg);
+  CHECK_NUMBER (seconds, 0);
+  sec = XINT (seconds);
+  
+  if (NILP (milliseconds))
+    XSET (milliseconds, Lisp_Int, 0);
+  else
+    CHECK_NUMBER (milliseconds, 1);
+  usec = XINT (milliseconds);
+
+#ifndef EMACS_HAS_USECS
+  if (sec == 0 && usec != 0)
+    error ("millisecond `sleep-for' not supported on %s", SYSTEM_TYPE);
+#endif
+
+  /* Assure that 0 <= usec < 1000000.  */
+  if (usec < 0)
+    {
+      /* We can't rely on the rounding being correct if user is negative.  */
+      if (-1000000 < usec)
+	sec--, usec += 1000000;
+      else
+	sec -= -usec / 1000000, usec = 1000000 - (-usec % 1000000);
+    }
+  else
+    sec += usec / 1000000, usec %= 1000000;
+
   if (sec <= 0)
     return Qnil;
-
-  if (!NILP (millisec))
-    {
-#ifndef EMACS_HAS_USECS
-      error ("millisecond `sleep-for' not supported on %s", SYSTEM_TYPE);
-#else
-      usec = sec % 1000 * 1000;
-      sec /= 1000;
-#endif
-    }
 
   {
     Lisp_Object zero;
@@ -1824,7 +1838,10 @@ Optional second arg non-nil means ARG is measured in milliseconds.\n\
     wait_reading_process_input (sec, usec, zero, 0);
   }
 
-#if 0 /* No wait_reading_process_input */
+  /* We should always have wait_reading_process_input; we have a dummy
+     implementation for systems which don't support subprocesses.  */
+#if 0
+  /* No wait_reading_process_input */
   immediate_quit = 1;
   QUIT;
 
@@ -1916,52 +1933,33 @@ sit_for (sec, usec, reading, display)
 }
 
 DEFUN ("sit-for", Fsit_for, Ssit_for, 1, 3, 0,
-  "Perform redisplay, then wait for ARG seconds or until input is available.\n\
-Optional second arg non-nil means ARG counts in milliseconds.\n\
+  "Perform redisplay, then wait for SECONDS seconds or until input is available.\n\
+Optional second arg MILLISECONDS specifies an additional wait period, in\n\
+milliseconds.\n\
 Optional third arg non-nil means don't redisplay, just wait for input.\n\
 Redisplay is preempted as always if input arrives, and does not happen\n\
 if input is available before it starts.\n\
 Value is t if waited the full time with no input arriving.")
-  (arg, millisec, nodisp)
-     Lisp_Object arg, millisec, nodisp;
+  (seconds, milliseconds, nodisp)
+     Lisp_Object seconds, milliseconds, nodisp;
 {
-  int usec = 0;
-  int sec;
+  int sec, usec;
 
-  CHECK_NUMBER (arg, 0);
-  sec = XINT (arg);
+  CHECK_NUMBER (seconds, 0);
+  sec = XINT (seconds);
 
-  if (!NILP (millisec))
-    {
+  if (NILP (milliseconds))
+    XSET (milliseconds, Lisp_Int, 0);
+  else
+    CHECK_NUMBER (milliseconds, 1);
+  usec = XINT (milliseconds);
+
 #ifndef EMACS_HAS_USECS
-      error ("millisecond `sit-for' not supported on %s", SYSTEM_TYPE);
-#else
-      usec = (sec % 1000) * 1000;
-      sec /= 1000;
+  if (usec != 0 && sec == 0)
+    error ("millisecond `sit-for' not supported on %s", SYSTEM_TYPE);
 #endif
-    }
 
   return sit_for (sec, usec, 0, NILP (nodisp));
-}
-
-DEFUN ("sleep-for-millisecs", Fsleep_for_millisecs, Ssleep_for_millisecs,
-  1, 1, 0,
-  "Pause, without updating display, for ARG milliseconds.")
-  (arg)
-     Lisp_Object arg;
-{
-  Lisp_Object zero;
-
-#ifndef EMACS_HAS_USECS
-  error ("sleep-for-millisecs not supported on %s", SYSTEM_TYPE);
-#else
-  CHECK_NUMBER (arg, 0);
-
-  XFASTINT (zero) = 0;
-  wait_reading_process_input (XINT (arg) / 1000, XINT (arg) % 1000 * 1000,
-			      zero, 0);
-  return Qnil;
-#endif /* EMACS_HAS_USECS */
 }
 
 char *terminal_type;
