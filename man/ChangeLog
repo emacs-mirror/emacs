@@ -1,3 +1,12 @@
+2004-11-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Dialog Boxes): 
+	* idlwave.texi (Continued Statement Indentation): 
+	* reftex.texi (Options (Index Support)):
+	(Displaying and Editing the Index, Table of Contents): 
+	* speedbar.texi (Creating a display, Major Display Modes): Replace
+	non-nil with non-@code{nil}.
+
 2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Dialog Boxes): Document use-old-gtk-file-dialog.
