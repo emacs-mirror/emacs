@@ -1076,6 +1076,12 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
 			       current_buffer, inherit);
 }
 
+/* This function should be called after moving gap to FROM and before
+   altering LEN chars of text starting from FROM.  This adjusts
+   various position keepers and markers and as if the text is deleted.
+   Don't forget to call adjust_after_replace after you actually alter
+   the text.  */
+
 void
 adjust_before_replace (from, from_byte, to, to_byte)
      int from, from_byte, to, to_byte;
@@ -1084,13 +1090,16 @@ adjust_before_replace (from, from_byte, to, to_byte)
   record_delete (from, to - from);
 }
 
+/* This function should be called after altering the text between FROM
+   and TO to a new text of LEN chars (LEN_BYTE bytes).  */
+
 void
 adjust_after_replace (from, from_byte, to, to_byte, len, len_byte)
      int from, from_byte, to, to_byte, len, len_byte;
 {
   record_insert (from, len);
   if (from < PT)
-    adjust_point (len, len_byte);
+    adjust_point (len - (to - from), len_byte - (to_byte - from_byte));
 #ifdef USE_TEXT_PROPERTIES
   offset_intervals (current_buffer, PT, len - (to - from));
 #endif
@@ -1101,7 +1110,6 @@ adjust_after_replace (from, from_byte, to, to_byte, len, len_byte)
   if (len == 0)
     evaporate_overlays (from);
   MODIFF++;
-  signal_after_change (from, to - from, len);
 }
 
 /* Replace the text from character positions FROM to TO with NEW,
