@@ -456,7 +456,9 @@ may be cons of style and a font name.  In this case, the style variant
 fontset uses the font for ASCII character set.
 
 If this function attempts to create already existing fontset, error is
-signaled unless the optional 3rd argument NOERROR is non-nil."
+signaled unless the optional 3rd argument NOERROR is non-nil.
+
+It returns a name of the created fontset."
   (if (not (string-match "^[^,]+" fontset-spec))
       (error "Invalid fontset spec: %s" fontset-spec))
   (let ((idx (match-end 0))
@@ -540,7 +542,65 @@ signaled unless the optional 3rd argument NOERROR is non-nil."
 		  (setq fontset-alias-alist
 			(cons (cons new-name new-ascii-font)
 			      fontset-alias-alist)))
-		(setq style-variant (cdr style-variant)))))))))
+		(setq style-variant (cdr style-variant)))))))
+    name))
+
+(defun create-fontset-from-ascii-font (font &optional resolved-font
+					    fontset-name)
+  "Create a fontset from an ASCII font FONT.
+
+Optional 1st arg RESOLVED-FONT is a resolved name of FONT.  If
+omitted, x-resolve-font-name is called to get the resolved name.  At
+this time, if FONT is not avairable, error is signaled.
+
+Optional 2nd arg FONTSET-NAME is a string to be used in
+`<CHARSET_ENCODING>' fields of a new fontset name.  If it is omitted,
+an appropriate name is generated automatically.
+
+Style variants of the fontset is created too.  Font names in the
+variants are generated automatially from FONT unless X resources
+XXX.attribyteFont explicitly specify them.
+
+It returns a name of the created fontset."
+  (or resolved-font
+      (setq resolved-font (x-resolve-font-name font)))
+  (let* ((faces (copy-sequence fontset-default-styles))
+	 (styles faces)
+	 (xlfd (x-decompose-font-name font))
+	 (resolved-xlfd  (x-decompose-font-name resolved-font))
+	 face face-font fontset fontset-spec)
+    (while faces
+      (setq face (car faces))
+      (setq face-font (x-get-resource (concat (symbol-name face)
+					      ".attributeFont")
+				      "Face.AttributeFont"))
+      (if face-font
+	  (setcar faces (cons face face-font)))
+      (setq faces (cdr faces)))
+    (aset xlfd xlfd-regexp-foundry-subnum nil)
+    (aset xlfd xlfd-regexp-family-subnum nil)
+    (aset xlfd xlfd-regexp-registry-subnum "fontset")
+    (or fontset-name
+	(setq fontset-name
+	      (format "%s_%s_%s"
+		      (aref resolved-xlfd xlfd-regexp-registry-subnum)
+		      (aref resolved-xlfd xlfd-regexp-encoding-subnum)
+		      (aref resolved-xlfd xlfd-regexp-pixelsize-subnum))))
+    (aset xlfd xlfd-regexp-encoding-subnum fontset-name)
+    ;; The fontset name should have concrete values in weight and
+    ;; slant field.
+    (let ((weight (aref xlfd xlfd-regexp-weight-subnum))
+	  (slant (aref xlfd xlfd-regexp-slant-subnum)))
+      (if (or (not weight) (string-match "[*?]*" weight))
+	  (aset xlfd xlfd-regexp-weight-subnum
+		(aref resolved-xlfd xlfd-regexp-weight-subnum)))
+      (if (or (not slant) (string-match "[*?]*" slant))
+	  (aset xlfd xlfd-regexp-slant-subnum
+		(aref resolved-xlfd xlfd-regexp-slant-subnum))))
+    (setq fontset (x-compose-font-name xlfd))
+    (or (query-fontset fontset)
+	(create-fontset-from-fontset-spec (concat fontset ", ascii:" font)
+					  styles))))
 
 (defun instantiate-fontset (fontset)
   "Make FONTSET be readly to use.
