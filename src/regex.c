@@ -3738,10 +3738,13 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
     anchored_start = 1;
 
 #ifdef emacs
-  SETUP_SYNTAX_TABLE_FOR_OBJECT (re_match_object,
-				 POS_AS_IN_BUFFER (startpos > 0
-						   ? startpos - 1 : startpos),
-				 1);
+  gl_state.object = re_match_object;
+  {
+    int charpos
+      = SYNTAX_TABLE_BYTE_TO_CHAR (startpos > 0 ? startpos : startpos + 1);
+
+    SETUP_SYNTAX_TABLE_FOR_OBJECT (re_match_object, charpos, 1);
+  }
 #endif
 
   /* Loop through the string, looking for a place to start matching.  */
@@ -4051,13 +4054,14 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
   int result;
 
 #ifdef emacs
-  SETUP_SYNTAX_TABLE_FOR_OBJECT (re_match_object,
-				 POS_AS_IN_BUFFER (pos > 0 ? pos - 1 : pos),
-				 1);
+  int charpos;
+  gl_state.object = re_match_object;
+  charpos = SYNTAX_TABLE_BYTE_TO_CHAR (POS_AS_IN_BUFFER (pos));
+  SETUP_SYNTAX_TABLE_FOR_OBJECT (re_match_object, charpos, 1);
 #endif
 
   result = re_match_2_internal (bufp, string1, size1, string2, size2,
-				    pos, regs, stop);
+				pos, regs, stop);
   alloca (0);
   return result;
 }
