@@ -1336,7 +1336,7 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
 			      "\\([^\\]\\|\\`\\)\"" file "\\1\\\\\"" nil t)
 			     file)
 			 "\"")))))
-    (and (file-name-absolute-p file)
+    (and file (file-name-absolute-p file)
 	 (setq already-absolute t))
     (and file buffer-file-coding-system
 	 (not file-name-coding-system)
