@@ -366,6 +366,7 @@ char *Asm_suffixes [] = { "a",	/* Unix assembler */
 			  "inc", /* Microcontroller include files */
 			  "ins", /* Microcontroller include files */
 			  "s", "sa", /* Unix assembler */
+			  "S",   /* cpp-processed Unix assembler */
 			  "src", /* BSO/Tasking C compiler output */
 			  NULL
 			};
@@ -427,7 +428,7 @@ char *TeX_suffixes [] =
   { "TeX", "bib", "clo", "cls", "ltx", "sty", "tex", NULL };
 
 char *Yacc_suffixes [] =
-  { "y", "ym", NULL };		/* .ym is Objective yacc file */
+  { "y", "ym", "yy", "yxx", "y++", NULL }; /* .ym is Objective yacc file */
 
 /* Table of language names and corresponding functions, file suffixes
    and interpreter names.
