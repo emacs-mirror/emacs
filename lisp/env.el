@@ -59,9 +59,9 @@ the entire variable name in braces.  Use `$$' to insert a single
 dollar sign."
   (let ((start 0))
     (while (string-match 
-	    (rx (or (and "$" (submatch (1+ (in "a-zA-Z0-9_"))))
-		    (and "${" (submatch (minimal-match (0+ anything))) "}")
-		    "$$"))
+	    (rx '(or (and "$" (submatch (1+ (in "a-zA-Z0-9_"))))
+		     (and "${" (submatch (minimal-match (0+ anything))) "}")
+		     "$$"))
 	    string start)
       (cond ((match-beginning 1)
 	     (let ((value (getenv (match-string 1 string))))
