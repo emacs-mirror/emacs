@@ -171,13 +171,13 @@ This is useful for truncating history lists, for example."
   :type 'hook
   :group 'desktop)
 
-(defcustom desktop-globals-to-save '(
-  desktop-missing-file-warning
-  tags-file-name
-  tags-table-list
-  search-ring
-  regexp-search-ring
-  register-alist)
+(defcustom desktop-globals-to-save
+  '(desktop-missing-file-warning
+    tags-file-name
+    tags-table-list
+    search-ring
+    regexp-search-ring
+    register-alist)
   "List of global variables saved by `desktop-save'.
 An element may be variable name (a symbol) or a cons cell of the form
 \(VAR . MAX-SIZE), which means to truncate VAR's value to at most
@@ -186,13 +186,13 @@ Feature: Saving `kill-ring' implies saving `kill-ring-yank-pointer'."
   :type '(repeat (restricted-sexp :match-alternatives (symbolp consp)))
   :group 'desktop)
 
-(defcustom desktop-globals-to-clear '(
-  kill-ring
-  kill-ring-yank-pointer
-  search-ring
-  search-ring-yank-pointer
-  regexp-search-ring
-  regexp-search-ring-yank-pointer)
+(defcustom desktop-globals-to-clear
+  '(kill-ring
+    kill-ring-yank-pointer
+    search-ring
+    search-ring-yank-pointer
+    regexp-search-ring
+    regexp-search-ring-yank-pointer)
   "List of global variables to clear by `desktop-clear'.
 An element may be variable name (a symbol) or a cons cell of the form
 \(VAR . FORM). Symbols are set to nil and for cons cells VAR is set
@@ -202,29 +202,27 @@ to the value obtained by evaluateing FORM."
 
 (defcustom desktop-clear-preserve-buffers-regexp
   "^\\(\\*scratch\\*\\|\\*Messages\\*\\|\\*tramp/.+\\*\\)$"
-  "Regexp identifying buffers that `desktop-clear' should not delete."
+  "Regexp identifying buffers that `desktop-clear' should not delete.
+See also `desktop-clear-preserve-buffers'."
   :type 'regexp
   :group 'desktop)
 
-;; Maintained for backward compatibility
 (defcustom desktop-clear-preserve-buffers nil
   "*List of buffer names that `desktop-clear' should not delete.
-This variable is maintained for backward compatibility only."
+See also `desktop-clear-preserve-buffers-regexp'."
   :type '(repeat string)
   :group 'desktop)
-(make-obsolete-variable 'desktop-clear-preserve-buffers
-                        'desktop-clear-preserve-buffers-regexp)
 
-(defcustom desktop-locals-to-save '(
-  desktop-locals-to-save  ; Itself!  Think it over.
-  truncate-lines
-  case-fold-search
-  case-replace
-  fill-column
-  overwrite-mode
-  change-log-default-name
-  line-number-mode
-  buffer-file-coding-system)
+(defcustom desktop-locals-to-save
+  '(desktop-locals-to-save  ; Itself!  Think it over.
+    truncate-lines
+    case-fold-search
+    case-replace
+    fill-column
+    overwrite-mode
+    change-log-default-name
+    line-number-mode
+    buffer-file-coding-system)
   "List of local variables to save for each buffer.
 The variables are saved only when they really are local."
   :type '(repeat symbol)
@@ -282,11 +280,11 @@ DESKTOP-BUFFER-MISC.")
 (make-obsolete-variable 'desktop-buffer-misc-functions
                         'desktop-save-buffer)
 
-(defcustom desktop-buffer-mode-handlers '(
-  (dired-mode . dired-restore-desktop-buffer)
-  (rmail-mode . rmail-restore-desktop-buffer)
-  (mh-folder-mode . mh-restore-desktop-buffer)
-  (Info-mode . Info-restore-desktop-buffer))
+(defcustom desktop-buffer-mode-handlers
+  '((dired-mode . dired-restore-desktop-buffer)
+    (rmail-mode . rmail-restore-desktop-buffer)
+    (mh-folder-mode . mh-restore-desktop-buffer)
+    (Info-mode . Info-restore-desktop-buffer))
   "Alist of major mode specific functions to restore a desktop buffer.
 Functions are called by `desktop-read'. List elements must have the form
 \(MAJOR-MODE . RESTORE-BUFFER-FUNCTION).
@@ -580,8 +578,7 @@ See also `desktop-base-file-name'."
     (let ((filename (expand-file-name desktop-base-file-name dirname))
           (info
             (mapcar
-              (function
-                (lambda (b)
+              #'(lambda (b)
                   (set-buffer b)
                   (list
                     (desktop-file-name (buffer-file-name) dirname)
@@ -618,7 +615,7 @@ See also `desktop-base-file-name'."
                             (when (member (car locals) loclist)
                               (setq ll (cons (car locals) ll)))))
                         (setq locals (cdr locals)))
-                      ll))))
+                      ll)))
               (buffer-list)))
           (buf (get-buffer-create "*desktop*")))
       (set-buffer buf)
@@ -639,19 +636,15 @@ See also `desktop-base-file-name'."
           " kill-ring))\n"))
 
       (insert "\n;; Buffer section -- buffers listed in same order as in buffer list:\n")
-      (mapcar
-        (function
-          (lambda (l)
-            (if (apply 'desktop-save-buffer-p l)
-              (progn
-                (insert "(desktop-create-buffer " desktop-file-version)
-                (mapcar
-                  (function
-                    (lambda (e)
-                      (insert "\n  " (desktop-value-to-string e))))
-                  l)
-                (insert ")\n\n")))))
-        info)
+      (mapcar #'(lambda (l)
+                  (if (apply 'desktop-save-buffer-p l)
+                      (progn
+                        (insert "(desktop-create-buffer " desktop-file-version)
+                        (mapcar #'(lambda (e)
+                                    (insert "\n  " (desktop-value-to-string e)))
+                                l)
+                        (insert ")\n\n"))))
+              info)
       (setq default-directory dirname)
       (when (file-exists-p filename) (delete-file filename))
       (let ((coding-system-for-write 'emacs-mule))
@@ -816,18 +809,18 @@ directory DIRNAME."
    (defvar desktop-first-buffer) ;; Dynamically bound in `desktop-read'
 )
 
-(defun desktop-create-buffer (
-  desktop-file-version
-  desktop-buffer-file-name
-  desktop-buffer-name
-  desktop-buffer-major-mode
-  desktop-buffer-minor-modes
-  desktop-buffer-point
-  desktop-buffer-mark
-  desktop-buffer-read-only
-  desktop-buffer-misc
-  &optional
-  desktop-buffer-locals)
+(defun desktop-create-buffer
+  (desktop-file-version
+   desktop-buffer-file-name
+   desktop-buffer-name
+   desktop-buffer-major-mode
+   desktop-buffer-minor-modes
+   desktop-buffer-point
+   desktop-buffer-mark
+   desktop-buffer-read-only
+   desktop-buffer-misc
+   &optional
+   desktop-buffer-locals)
   ;; Just to silence the byte compiler. Bound locally in `desktop-read'.
   (eval-when-compile
     (defvar desktop-buffer-ok-count)
@@ -835,21 +828,21 @@ directory DIRNAME."
   ;; To make desktop files with relative file names possible, we cannot
   ;; allow `default-directory' to change. Therefore we save current buffer.
   (save-current-buffer
-    (let (
-      (buffer-list (buffer-list))
-      (result
-         (condition-case err
-             (funcall (or (cdr (assq desktop-buffer-major-mode desktop-buffer-mode-handlers))
-                          'desktop-restore-file-buffer)
-                      desktop-buffer-file-name
-                      desktop-buffer-name
-                      desktop-buffer-misc)
-           (error
-             (message "Desktop: Can't load buffer %s: %s"
-                      desktop-buffer-name (error-message-string err))
-             (when desktop-missing-file-warning (sit-for 1))
-             nil)))
-    )
+    (let ((buffer-list (buffer-list))
+          (result
+           (condition-case err
+               (funcall (or (cdr (assq desktop-buffer-major-mode
+                                       desktop-buffer-mode-handlers))
+                            'desktop-restore-file-buffer)
+                        desktop-buffer-file-name
+                        desktop-buffer-name
+                        desktop-buffer-misc)
+             (error
+              (message "Desktop: Can't load buffer %s: %s"
+                       desktop-buffer-name
+                       (error-message-string err))
+              (when desktop-missing-file-warning (sit-for 1))
+              nil))))
       (if (bufferp result)
           (setq desktop-buffer-ok-count (1+ desktop-buffer-ok-count))
         (setq desktop-buffer-fail-count (1+ desktop-buffer-fail-count))
@@ -867,17 +860,14 @@ directory DIRNAME."
         (unless (equal (buffer-name) desktop-buffer-name)
           (rename-buffer desktop-buffer-name))
         ;; minor modes
-        (cond (
-          ;; backwards compatible
-          (equal '(t) desktop-buffer-minor-modes)
-          (auto-fill-mode 1))(
-          (equal '(nil) desktop-buffer-minor-modes)
-          (auto-fill-mode 0))(
-          t
-          (mapcar
-            #'(lambda (minor-mode)
-              (when (functionp minor-mode) (funcall minor-mode 1)))
-            desktop-buffer-minor-modes)))
+        (cond ((equal '(t) desktop-buffer-minor-modes) ; backwards compatible
+               (auto-fill-mode 1))
+              ((equal '(nil) desktop-buffer-minor-modes) ; backwards compatible
+               (auto-fill-mode 0))
+              (t
+               (mapcar #'(lambda (minor-mode)
+                           (when (functionp minor-mode) (funcall minor-mode 1)))
+                       desktop-buffer-minor-modes)))
         ;; Even though point and mark are non-nil when written by `desktop-save'
         ;; they may be modified by handlers wanting to set point or mark themselves.
         (when desktop-buffer-point
