@@ -440,7 +440,8 @@ DEFUN ("dump-redisplay-history", Fdump_redisplay_history,
 
 void
 safe_bcopy (from, to, size)
-     char *from, *to;
+     const char *from;
+     char *to;
      int size;
 {
   if (size <= 0 || from == to)
@@ -455,7 +456,7 @@ safe_bcopy (from, to, size)
   /* Otherwise, we'll copy from the end.  */
   else
     {
-      register char *endf = from + size;
+      register const char *endf = from + size;
       register char *endt = to + size;
 
       /* If TO - FROM is large, then we should break the copy into
