@@ -851,7 +851,7 @@ run `normal-mode' explicitly."
 				  ("\\.[12345678]\\'" . nroff-mode)
 				  ("\\.TeX\\'" . tex-mode)
 				  ("\\.sty\\'" . latex-mode)
-! 				  ("\\.cls\\'" . latex-mode) ;LaTeX 2e class
+				  ("\\.cls\\'" . latex-mode) ;LaTeX 2e class
 				  ("\\.bbl\\'" . latex-mode)
 				  ("\\.bib\\'" . bibtex-mode)
 				  ("\\.article\\'" . text-mode)
@@ -865,7 +865,7 @@ run `normal-mode' explicitly."
 				  ;; /tmp/Re.... or Message
 				  ("^/tmp/Re" . text-mode)
 				  ("/Message[0-9]*\\'" . text-mode)
-+ 				  ("/drafts/[0-9]+\\'" . mh-letter-mode)
+				  ("/drafts/[0-9]+\\'" . mh-letter-mode)
 				  ;; some news reader is reported to use this
 				  ("^/tmp/fol/" . text-mode)
 				  ("\\.y\\'" . c-mode)
