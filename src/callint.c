@@ -64,10 +64,10 @@ c -- Character.\n\
 C -- Command name: symbol with interactive function definition.\n\
 d -- Value of point as number.  Does not do I/O.\n\
 D -- Directory name.\n\
-e -- Last mouse event.\n\
 f -- Existing file name.\n\
 F -- Possibly nonexistent file name.\n\
 k -- Key sequence (string).\n\
+K -- Mouse click that invoked this command - last-command-char.\n\
 m -- Value of mark as number.  Does not do I/O.\n\
 n -- Number read using minibuffer.\n\
 N -- Prefix arg converted to number, or if none, do like code `n'.\n\
@@ -159,7 +159,12 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
   Lisp_Object prefix_arg;
   unsigned char *string;
   unsigned char *tem;
+
+  /* If varies[i] > 0, the i'th argument shouldn't just have its value
+     in this call quoted in the command history.  It should be
+     recorded as a call to the function named callint_argfuns[varies[i]].  */
   int *varies;
+
   register int i, j;
   int count, foo;
   char prompt[100];
@@ -173,8 +178,10 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 
 retry:
 
-  fun = function;
-  while (XTYPE (fun) == Lisp_Symbol && !EQ (fun, Qunbound)) fun = XSYMBOL (fun)->function;
+  for (fun = function;
+       XTYPE (fun) == Lisp_Symbol && !EQ (fun, Qunbound);
+       fun = XSYMBOL (fun)->function)
+    ;
 
   specs = Qnil;
   string = 0;
@@ -349,11 +356,6 @@ retry:
 	  varies[i] = 1;
 	  break;
 
-	case 'e':
-	  varies[i] = 1;
-	  args[i] = Vmouse_event;
-	  break;
-
 	case 'D':		/* Directory name. */
 	  args[i] = Fread_file_name (build_string (prompt), Qnil,
 				     current_buffer->directory, Qlambda, Qnil);
@@ -370,9 +372,18 @@ retry:
 	  break;
 
 	case 'k':		/* Key sequence (string) */
-	  args[i] = Fread_key_sequence (build_string (prompt));
+	  args[i] = Fread_key_sequence (build_string (prompt), Qnil);
 	  teml = args[i];
 	  visargs[i] = Fkey_description (teml);
+	  break;
+
+	case 'K':		/* Mouse click.  */
+	  args[i] = last_command_char;
+	  if (NULL (Fmouse_click_p (args[i])))
+	    error ("%s must be bound to a mouse click.",
+		   (XTYPE (function) == Lisp_Symbol
+		    ? (char *) XSYMBOL (function)->name->data
+		    : "Command"));
 	  break;
 
 	case 'm':		/* Value of mark.  Does not do I/O.  */
@@ -474,7 +485,8 @@ retry:
   if (arg_from_tty || !NULL (record))
     {
       visargs[0] = function;
-      for (i = 1; i < count + 1; i++	if (varies[i] > 0)
+      for (i = 1; i < count + 1; i++)
+	if (varies[i] > 0)
 	  visargs[i] = Fcons (intern (callint_argfuns[varies[i]]), Qnil);
 	else
 	  visargs[i] = quotify_arg (args[i]);
