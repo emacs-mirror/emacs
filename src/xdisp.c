@@ -10069,15 +10069,18 @@ redisplay_internal (preserve_echo_area)
 	    }
 	}
 
-      /* Do the mark_window_display_accurate after all windows have
-	 been redisplayed because this call resets flags in buffers
-	 which are needed for proper redisplay.  */
-      for (i = 0; i < n; ++i)
+      if (!pause)
 	{
-	  struct frame *f = updated[i];
-	  mark_window_display_accurate (f->root_window, 1);
-	  if (frame_up_to_date_hook)
-	    frame_up_to_date_hook (f);
+	  /* Do the mark_window_display_accurate after all windows have
+	     been redisplayed because this call resets flags in buffers
+	     which are needed for proper redisplay.  */
+	  for (i = 0; i < n; ++i)
+	    {
+	      struct frame *f = updated[i];
+	      mark_window_display_accurate (f->root_window, 1);
+	      if (frame_up_to_date_hook)
+		frame_up_to_date_hook (f);
+	    }
 	}
     }
   else if (FRAME_VISIBLE_P (sf) && !FRAME_OBSCURED_P (sf))
