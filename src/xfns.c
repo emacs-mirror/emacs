@@ -2166,6 +2166,73 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
     return Qnil;
 }
 
+/* Get an X resource, like Fx_get_resource, but for display DPYINFO.  */
+
+static Lisp_Object
+display_x_get_resource (dpyinfo, attribute, class, component, subclass)
+     struct x_display_info *dpyinfo;
+     Lisp_Object attribute, class, component, subclass;
+{
+  register char *value;
+  char *name_key;
+  char *class_key;
+
+  check_x ();
+
+  CHECK_STRING (attribute, 0);
+  CHECK_STRING (class, 0);
+
+  if (!NILP (component))
+    CHECK_STRING (component, 1);
+  if (!NILP (subclass))
+    CHECK_STRING (subclass, 2);
+  if (NILP (component) != NILP (subclass))
+    error ("x-get-resource: must specify both COMPONENT and SUBCLASS or neither");
+
+  validate_x_resource_name ();
+
+  /* Allocate space for the components, the dots which separate them,
+     and the final '\0'.  Make them big enough for the worst case.  */
+  name_key = (char *) alloca (XSTRING (Vx_resource_name)->size
+			      + (STRINGP (component)
+				 ? XSTRING (component)->size : 0)
+			      + XSTRING (attribute)->size
+			      + 3);
+
+  class_key = (char *) alloca (XSTRING (Vx_resource_class)->size
+			       + XSTRING (class)->size
+			       + (STRINGP (subclass)
+				  ? XSTRING (subclass)->size : 0)
+			       + 3);
+
+  /* Start with emacs.FRAMENAME for the name (the specific one)
+     and with `Emacs' for the class key (the general one).  */
+  strcpy (name_key, XSTRING (Vx_resource_name)->data);
+  strcpy (class_key, XSTRING (Vx_resource_class)->data);
+
+  strcat (class_key, ".");
+  strcat (class_key, XSTRING (class)->data);
+
+  if (!NILP (component))
+    {
+      strcat (class_key, ".");
+      strcat (class_key, XSTRING (subclass)->data);
+
+      strcat (name_key, ".");
+      strcat (name_key, XSTRING (component)->data);
+    }
+
+  strcat (name_key, ".");
+  strcat (name_key, XSTRING (attribute)->data);
+
+  value = x_get_string_resource (dpyinfo->xrdb, name_key, class_key);
+
+  if (value != (char *) 0)
+    return build_string (value);
+  else
+    return Qnil;
+}
+
 /* Used when C code wants a resource value.  */
 
 char *
@@ -2210,7 +2277,8 @@ enum resource_types
    and don't let it get stored in any Lisp-visible variables!  */
 
 static Lisp_Object
-x_get_arg (alist, param, attribute, class, type)
+x_get_arg (dpyinfo, alist, param, attribute, class, type)
+     struct x_display_info *dpyinfo;
      Lisp_Object alist, param;
      char *attribute;
      char *class;
@@ -2226,9 +2294,10 @@ x_get_arg (alist, param, attribute, class, type)
 
       if (attribute)
 	{
-	  tem = Fx_get_resource (build_string (attribute),
-				 build_string (class),
-				 Qnil, Qnil);
+	  tem = display_x_get_resource (dpyinfo,
+					build_string (attribute),
+					build_string (class),
+					Qnil, Qnil);
 
 	  if (NILP (tem))
 	    return Qunbound;
@@ -2287,7 +2356,8 @@ x_get_and_record_arg (f, alist, param, attribute, class, type)
 {
   Lisp_Object value;
 
-  value = x_get_arg (alist, param, attribute, class, type);
+  value = x_get_arg (FRAME_X_DISPLAY_INFO (f), alist, param,
+		     attribute, class, type);
   if (! NILP (value))
     store_frame_param (f, param, value);
 
@@ -2312,7 +2382,7 @@ x_default_parameter (f, alist, prop, deflt, xprop, xclass, type)
 {
   Lisp_Object tem;
 
-  tem = x_get_arg (alist, prop, xprop, xclass, type);
+  tem = x_get_arg (FRAME_X_DISPLAY_INFO (f), alist, prop, xprop, xclass, type);
   if (EQ (tem, Qunbound))
     tem = deflt;
   x_set_frame_parameters (f, Fcons (Fcons (prop, tem), Qnil));
@@ -2395,6 +2465,7 @@ x_figure_window_size (f, parms)
   int height, width, left, top;
   register int geometry;
   long window_prompting = 0;
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
   /* Default values if we fall through.
      Actually, if that happens we should get
@@ -2406,9 +2477,9 @@ x_figure_window_size (f, parms)
   f->output_data.x->top_pos = 0;
   f->output_data.x->left_pos = 0;
 
-  tem0 = x_get_arg (parms, Qheight, 0, 0, number);
-  tem1 = x_get_arg (parms, Qwidth, 0, 0, number);
-  tem2 = x_get_arg (parms, Quser_size, 0, 0, number);
+  tem0 = x_get_arg (dpyinfo, parms, Qheight, 0, 0, number);
+  tem1 = x_get_arg (dpyinfo, parms, Qwidth, 0, 0, number);
+  tem2 = x_get_arg (dpyinfo, parms, Quser_size, 0, 0, number);
   if (! EQ (tem0, Qunbound) || ! EQ (tem1, Qunbound))
     {
       if (!EQ (tem0, Qunbound))
@@ -2436,9 +2507,9 @@ x_figure_window_size (f, parms)
   f->output_data.x->pixel_width = CHAR_TO_PIXEL_WIDTH (f, f->width);
   f->output_data.x->pixel_height = CHAR_TO_PIXEL_HEIGHT (f, f->height);
 
-  tem0 = x_get_arg (parms, Qtop, 0, 0, number);
-  tem1 = x_get_arg (parms, Qleft, 0, 0, number);
-  tem2 = x_get_arg (parms, Quser_position, 0, 0, number);
+  tem0 = x_get_arg (dpyinfo, parms, Qtop, 0, 0, number);
+  tem1 = x_get_arg (dpyinfo, parms, Qleft, 0, 0, number);
+  tem2 = x_get_arg (dpyinfo, parms, Quser_position, 0, 0, number);
   if (! EQ (tem0, Qunbound) || ! EQ (tem1, Qunbound))
     {
       if (EQ (tem0, Qminus))
@@ -2960,6 +3031,7 @@ x_icon (f, parms)
      Lisp_Object parms;
 {
   Lisp_Object icon_x, icon_y;
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
   /* Set the position of the icon.  Note that twm groups all
      icons in an icon window.  */
@@ -2980,7 +3052,7 @@ x_icon (f, parms)
 
   /* Start up iconic or window? */
   x_wm_set_window_state
-    (f, (EQ (x_get_arg (parms, Qvisibility, 0, 0, symbol), Qicon)
+    (f, (EQ (x_get_arg (dpyinfo, parms, Qvisibility, 0, 0, symbol), Qicon)
 	 ? IconicState
 	 : NormalState));
 
@@ -3098,7 +3170,7 @@ This function is an internal primitive--use `make-frame' instead.")
      until we know if this frame has a specified name.  */
   Vx_resource_name = Vinvocation_name;
 
-  display = x_get_arg (parms, Qdisplay, 0, 0, string);
+  display = x_get_arg (dpyinfo, parms, Qdisplay, 0, 0, string);
   if (EQ (display, Qunbound))
     display = Qnil;
   dpyinfo = check_x_display_info (display);
@@ -3108,7 +3180,7 @@ This function is an internal primitive--use `make-frame' instead.")
   kb = &the_only_kboard;
 #endif
 
-  name = x_get_arg (parms, Qname, "name", "Name", string);
+  name = x_get_arg (dpyinfo, parms, Qname, "name", "Name", string);
   if (!STRINGP (name)
       && ! EQ (name, Qunbound)
       && ! NILP (name))
@@ -3118,7 +3190,7 @@ This function is an internal primitive--use `make-frame' instead.")
     Vx_resource_name = name;
 
   /* See if parent window is specified.  */
-  parent = x_get_arg (parms, Qparent_id, NULL, NULL, number);
+  parent = x_get_arg (dpyinfo, parms, Qparent_id, NULL, NULL, number);
   if (EQ (parent, Qunbound))
     parent = Qnil;
   if (! NILP (parent))
@@ -3129,7 +3201,7 @@ This function is an internal primitive--use `make-frame' instead.")
      it to make_frame_without_minibuffer.  */
   frame = Qnil;
   GCPRO4 (parms, parent, name, frame);
-  tem = x_get_arg (parms, Qminibuffer, "minibuffer", "Minibuffer", symbol);
+  tem = x_get_arg (dpyinfo, parms, Qminibuffer, "minibuffer", "Minibuffer", symbol);
   if (EQ (tem, Qnone) || NILP (tem))
     f = make_frame_without_minibuffer (Qnil, kb, display);
   else if (EQ (tem, Qonly))
@@ -3153,7 +3225,7 @@ This function is an internal primitive--use `make-frame' instead.")
   f->output_data.x->icon_bitmap = -1;
 
   f->icon_name
-    = x_get_arg (parms, Qicon_name, "iconName", "Title", string);
+    = x_get_arg (dpyinfo, parms, Qicon_name, "iconName", "Title", string);
   if (! STRINGP (f->icon_name))
     f->icon_name = Qnil;
 
@@ -3213,7 +3285,7 @@ This function is an internal primitive--use `make-frame' instead.")
     if (!NILP (tem))
       font = Fcdr (tem);
     if (! STRINGP (font))
-      font = x_get_arg (parms, Qfont, "font", "Font", string);
+      font = x_get_arg (dpyinfo, parms, Qfont, "font", "Font", string);
 
     BLOCK_INPUT;
     /* First, try whatever font the caller has specified.  */
@@ -3260,7 +3332,7 @@ This function is an internal primitive--use `make-frame' instead.")
     {
       Lisp_Object value;
 
-      value = x_get_arg (parms, Qinternal_border_width,
+      value = x_get_arg (dpyinfo, parms, Qinternal_border_width,
 			 "internalBorder", "internalBorder", number);
       if (! EQ (value, Qunbound))
 	parms = Fcons (Fcons (Qinternal_border_width, value),
@@ -3348,7 +3420,7 @@ This function is an internal primitive--use `make-frame' instead.")
   x_wm_set_size_hint (f, window_prompting, 0);
   UNBLOCK_INPUT;
 
-  tem = x_get_arg (parms, Qunsplittable, 0, 0, boolean);
+  tem = x_get_arg (dpyinfo, parms, Qunsplittable, 0, 0, boolean);
   f->no_split = minibuffer_only || EQ (tem, Qt);
 
   UNGCPRO;
@@ -3370,7 +3442,7 @@ This function is an internal primitive--use `make-frame' instead.")
     {
       Lisp_Object visibility;
 
-      visibility = x_get_arg (parms, Qvisibility, 0, 0, symbol);
+      visibility = x_get_arg (dpyinfo, parms, Qvisibility, 0, 0, symbol);
       if (EQ (visibility, Qunbound))
 	visibility = Qt;
 
