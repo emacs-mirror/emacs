@@ -26,7 +26,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-utils.el,v 1.9 1996/01/29 23:17:16 kwzh Exp rms $
+;; $Id: mh-utils.el,v 1.10 1996/06/28 06:56:17 rms Exp rms $
 
 ;;; Code:
 
@@ -576,14 +576,21 @@ Non-nil third argument means not to show the message."
 		"/usr/local/bin/")))
   (or (file-exists-p (expand-file-name "mhl" mh-lib))
       (setq mh-lib
-	    (or (mh-path-search '("/usr/local/lib/mh/"
-				  "/usr/local/mh/lib/"
-				  "/usr/local/bin/mh/"
-				  "/usr/lib/mh/" ;Ultrix 4.2
-				  "/usr/new/lib/mh/" ;Ultrix <4.2
-				  "/usr/contrib/mh/lib/" ;BSDI
-				  )
-				"mhl")
+	    ;; Look for a lib directory roughly parallel to the bin
+	    ;; directory:  Strip any trailing `mh' or `bin' path
+	    ;; components, then look for lib/mh or mh/lib.
+	    (or (let ((mh-base mh-progs))
+		  (while (let ((dir-name (file-name-nondirectory
+					  (directory-file-name mh-base))))
+			   (or (string= "mh" dir-name)
+			       (string= "bin" dir-name)))
+		    (setq mh-base
+			  (file-name-directory (directory-file-name mh-base))))
+		  (mh-path-search
+		   (list (expand-file-name "lib/mh/" mh-base)
+			 (expand-file-name "mh/lib/" mh-base))
+		   "mhl"))
+		(mh-path-search '("/usr/local/bin/mh/") "mhl")
 		(mh-path-search exec-path "mhl") ;unlikely
 		mh-lib
 		"/usr/local/lib/mh/"))))
