@@ -98,7 +98,7 @@ An argument of zero means repeat until error.")
       error ("Not defining kbd macro.");
 
   if (NILP (arg))
-    XFASTINT (arg) = 1;
+    XSETFASTINT (arg, 1);
   else
     CHECK_NUMBER (arg, 0);
 
@@ -205,7 +205,7 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
   if (!STRINGP (final) && !VECTORP (final))
     error ("Keyboard macros must be strings or vectors.");
 
-  XFASTINT (tem) = executing_macro_index;
+  XSETFASTINT (tem, executing_macro_index);
   tem = Fcons (Vexecuting_macro, tem);
   record_unwind_protect (pop_kbd_macro, tem);
 
