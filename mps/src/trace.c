@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.55) $
+ * $HopeName: MMsrc!trace.c(trunk.56) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .sources: design.mps.tracer.
@@ -8,7 +8,7 @@
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.55) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.56) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -942,7 +942,18 @@ Res TraceFix(ScanState ss, Ref *refIO)
       if(res != ResOK)
         return res;
     }
+  } else {
+    /* Address is not in segment. */
+    /* It is illegal for exact references to point to an */
+    /* address that is currently reserved by the arena, but */
+    /* not in use.  There can't possibly be any objects at */
+    /* those addresses.  We check that here.
+    /* This AVER might be a candidate for making CRITICAL in */
+    /* some configurations */
+    AVER(ss->rank < RankEXACT ||
+	 !ArenaIsReservedAddr(ss->arena, ref));
   }
+
 
   /* .fix.fixed.all: */
   /* ss->fixedSummary is accumulated for all the pointers whether */
