@@ -1622,6 +1622,9 @@ extern Lisp_Object Vhelp_form, Vtop_level;
 extern Lisp_Object Fdiscard_input (), Frecursive_edit ();
 extern Lisp_Object Fcommand_execute (), Finput_pending_p ();
 extern Lisp_Object Qvertical_scroll_bar;
+#ifdef MULTI_KBOARD
+extern void delete_kboard ();
+#endif
 
 /* defined in keymap.c */
 
@@ -1630,7 +1633,7 @@ extern Lisp_Object current_global_map;
 extern Lisp_Object Fkey_description (), Fsingle_key_description ();
 extern Lisp_Object Fwhere_is_internal ();
 extern Lisp_Object access_keymap (), store_in_keymap ();
-extern Lisp_Object get_keyelt (), get_keymap();
+extern Lisp_Object get_keyelt (), get_keymap ();
 
 /* defined in indent.c */
 extern Lisp_Object Fvertical_motion (), Findent_to (), Fcurrent_column ();
