@@ -2150,7 +2150,7 @@ extern int invisible_p P_ ((Lisp_Object, Lisp_Object));
 extern void prepare_menu_bars P_ ((void));
 extern void syms_of_xdisp P_ ((void));
 extern void init_xdisp P_ ((void));
-extern Lisp_Object eval_form P_ ((Lisp_Object));
+extern Lisp_Object safe_eval P_ ((Lisp_Object));
 
 /* Defined in vm-limit.c.  */
 extern void memory_warnings P_ ((POINTER_TYPE *, void (*warnfun) ()));
@@ -2334,7 +2334,8 @@ extern void do_autoload P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object un_autoload P_ ((Lisp_Object));
 EXFUN (Ffetch_bytecode, 1);
 extern void init_eval_once P_ ((void));
-extern Lisp_Object call_function P_ ((int, Lisp_Object *));
+extern Lisp_Object safe_call P_ ((int, Lisp_Object *));
+extern Lisp_Object safe_call1 P_ ((Lisp_Object, Lisp_Object));
 extern void init_eval P_ ((void));
 extern void syms_of_eval P_ ((void));
 
