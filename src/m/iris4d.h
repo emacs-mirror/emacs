@@ -157,10 +157,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define TERMINFO
 
-/* sioctl.h should be included where appropriate.  */
-
-#define NEED_SIOCTL
-
 /* Letter to use in finding device name of first pty,
   if system supports pty's.  'a' means it is /dev/ptya0  */
 
