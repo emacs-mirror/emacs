@@ -1,7 +1,7 @@
 ;;;; texnfo-upd.el
 ;;;; A utility for updating nodes and menus in Texinfo files.
 
-;;;; Robert J. Chassell, 23 September 1989; 15 May 1990
+;;;; Version 2.00   14 Dec 1990
 
 ;;;; Copyright 1989, 1990 Free Software Foundation
 
