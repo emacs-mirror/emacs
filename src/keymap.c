@@ -730,7 +730,7 @@ current_minor_maps (modeptr, mapptr)
 	      break;
 	  }
 	cmm_modes[i] = var;
-	cmm_maps [i] = XCONS (assoc)->cdr;
+	cmm_maps [i] = Findirect_function (XCONS (assoc)->cdr);
 	i++;
       }
 
