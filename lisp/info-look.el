@@ -194,7 +194,85 @@ REFER-MODES is a list of other help modes to use.")
        (lambda (item)
 	 (if (string-match "^\\([a-zA-Z]+\\|[^a-zA-Z]\\)\\( .*\\)?$" item)
 	     (concat "@" (match-string 1 item))))
-       "`" "'"))))
+       "`" "'")))
+    (awk-mode ;;; Added by Peter Galbraith <galbraith@mixing.qc.dfo.ca>
+     "[_a-zA-Z]+"
+     nil                                ; Don't ignore-case
+     (("(gawk)Index"                    ; info node
+       (lambda (item)                   ; TRANS-FUNC index-entry-->help-item
+         ;; In awk-mode, we want entries like:
+         ;;  * BEGIN special pattern:                BEGIN/END.
+         ;;  * break statement:                      Break Statement.
+         ;;  * FS:                                   Field Separators.
+         ;;  * gsub:                                 String Functions.
+         ;;  * system:                               I/O Functions.
+         ;;  * systime:                              Time Functions.
+         ;; 
+         ;; But not:
+         ;;  * time of day:                          Time Functions.
+         ;;    ^^^^^^^^^^^ More than one word.
+         ;;
+         ;; However, info-look's info-lookup-make-completions doesn't pass
+         ;; the whole line to the TRANS-FUNC, but only up to the first
+         ;; colon.  So I can't use all the available info to decide what to
+         ;; keep.  Therefore, I have to `set-buffer' to the *info* buffer.
+         ;;
+         ;; Also, info-look offers no way to add non-indexed entries like
+         ;; `cos' and other gawk Numeric Built-in Functions (or does it?)
+         ;; as in ftp://ftp.phys.ocean.dal.ca/users/rhogee/elisp/func-doc.el
+         ;; and http://www.ifi.uio.no/~jensthi/word-help.el (which adds a
+         ;; heap of stuff for latex!)
+         (let ((case-fold-search nil))
+           (cond
+            ((string-match "\\([^ ]+\\) *\\(special pattern\\|statement\\)$" 
+                           item)
+             (match-string 1 item))
+            ((string-match "^[A-Z]+$" item) ;This will grab FS and the like.
+             item)
+            ((string-match "^[a-z]+$" item)
+             (save-excursion
+               (set-buffer "*info*")
+               (if (looking-at " *\\(String\\|I/O\\|Time\\) Functions")
+                   item))))))
+       "`" "'")))                       ;Append PREFIX and SUFFIX to finetune
+                                        ; displayed location in Info node.
+    ;; Perl -- Added by Peter Galbraith <galbraith@mixing.qc.dfo.ca>
+    ;;  Perl Version 5 Info files are available in CPAN sites, at:
+    ;;    http://www.perl.com/CPAN/doc/manual/info/
+    ;;
+    ;;    ftp://ftp.funet.fi/pub/languages/perl/CPAN/doc/manual/texinfo/
+    ;;    ftp://ftp.pasteur.fr/pub/computing/unix/perl/CPAN/doc/manual/texinfo/
+    ;;    ftp://mango.softwords.bc.ca/pub/perl/CPAN/doc/manual/texinfo/
+    ;;    ftp://uiarchive.cso.uiuc.edu/pub/lang/perl/CPAN/doc/manual/texinfo/
+    (perl-mode
+     "$?[^ \n\t{(]+"
+     nil                                ; Don't ignore-case
+     (("(perl5)Function Index"          ; info node
+       (lambda (item)                   ; TRANS-FUNC index-entry-->help-item
+         (if (string-match "^\\([a-z0-9]+\\)" item)
+             (match-string 1 item)))
+       "^" nil)
+      ("(perl5)Variable Index"          ; info node
+       (lambda (item)                   ; TRANS-FUNC index-entry-->help-item
+         (if (string-match "^\\([^ \n\t{(]+\\)" item) ;First word
+             (match-string 1 item)))
+       "^" nil)))
+    ;; LaTeX -- Added by Peter Galbraith <galbraith@mixing.qc.dfo.ca>
+    ;; Info file available at:
+    ;; ftp://ftp.dante.de:pub/tex/info/latex2e-help-texinfo/latex2e.texi
+    (latex-mode "[\\a-zA-Z]+" nil (("(latex)Command Index" nil "`" nil)))
+    (emacs-lisp-mode 
+     "[^][ ()\n\t.\"'#]+" nil
+     (("(elisp)Index"
+       (lambda (item)
+         (if (string-match "[^ ]+" item) ;First word
+             (match-string 0 item)))
+       "" "")
+      ("(emacs)Command Index"
+       (lambda (item)
+         (if (string-match "[^ ]+" item) ;First word
+             (match-string 0 item)))
+       "" ""))))
   "*Alist of help specifications for symbol names.
 See the documentation of the variable `info-lookup-alist' for more details.")
 
@@ -516,7 +594,9 @@ Return nil if there is nothing appropriate."
   (or (info-lookup->mode-value topic mode)
       (error "No %s completion available for `%s'" topic mode))
   (let ((modes (info-lookup->all-modes topic mode))
-	(start (point)) try completion)
+	(start (point)) 
+        (completion-list (info-lookup->completions topic mode))
+        try completion)
     (while (and (not try) modes)
       (setq mode (car modes)
 	    modes (cdr modes)
@@ -524,13 +604,31 @@ Return nil if there is nothing appropriate."
       (goto-char start))
     (and (not try)
 	 (error "Found no %s to complete" topic))
-    (setq completion (try-completion
-		      try (info-lookup->completions topic mode)))
+    (setq completion (try-completion try completion-list)) 
     (cond ((not completion)
+           (message "No %s match" topic)
 	   (ding))
 	  ((stringp completion)
 	   (delete-region (- start (length try)) start)
-	   (insert completion)))))
+	   (insert completion)
+           (if (or (string-equal try completion)
+                   (and (boundp 'info-look-completion)
+                        info-look-completion
+                        (= (point) (car info-look-completion))
+                        (equal completion (car (cdr info-look-completion)))))
+               ;; Show completion list
+               (let ((list (all-completions completion completion-list)))
+                 (with-output-to-temp-buffer "*Completions*"
+                   (display-completion-list list))
+                 (if (member completion list)
+                     (message "Complete but not unique"))))
+           (setq info-look-completion (list (point) completion)))
+          (t
+           (message "%s is complete" topic)))))
+
+(defvar info-look-completion nil
+  "info-look cache for last completion and point to display completion or not")
+(make-variable-buffer-local 'info-look-completion)
 
 (provide 'info-look)
 
