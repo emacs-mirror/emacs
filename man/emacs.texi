@@ -44,7 +44,7 @@ Software Foundation raise funds for GNU development.''
 @c copy of this manual that will be published.  the manual should go
 @c onto the distribution in the full, 8.5 x 11" size.  
 
-@smallbook
+@c @smallbook
 
 @iftex
 @kbdinputstyle code
