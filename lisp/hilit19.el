@@ -1,7 +1,7 @@
-;; hilit19.el, Beta 1.9 -- customizable highlighting for Emacs19.
+;; hilit19.el (Release 2.7) -- customizable highlighting for Emacs19.
 ;; Copyright (c) 1993 Free Software Foundation, Inc.
 ;;
-;; Author:  Jonathan Stigelman <Stig@netcom.com>
+;; Author:   Jonathan Stigelman <Stig@netcom.com>
 ;; Keywords: faces
 ;; 
 ;; This program is free software; you can redistribute it and/or modify
@@ -21,13 +21,15 @@
 
 ;;; Commentary:
 
-;; hilit19.el, Beta 1.9 -- customizable highlighting for Emacs19.
-;; Supports not only source code highlighting, but also rmail, VM, and gnus.
-
-;; WHERE TO GET THE LATEST VERSION OF HILIT19.EL (possibly beta), 
+;; Hilit19.el is a customizable highlighting package for Emacs19.  It supports
+;; not only source code highlighting, but also Info, RMAIL, VM, gnus...
+;; Hilit19 knows (or thinks it knows) how to highlight emacs buffers in
+;; about 25 different modes.
+;; 
+;; WHERE TO GET THE LATEST VERSIONS OF HILIT19.EL (beta and release), 
 ;; PLUS LOTS OF OTHER *WAY COOL* STUFF VIA ANONYMOUS FTP:
 ;;
-;;      netcom.com:/pub/stig/src/hilit19.el.gz
+;;      netcom.com:/pub/stig/src/{Beta,Release}/hilit19.el.gz
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -37,15 +39,12 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; $Id: hilit19.el,v 1.34 1993/07/23 05:18:37 stig Exp stig $
+;; hilit19.el,v 2.7 1993/07/30 02:43:01 stig Release
 ;;
 ;; LCD Archive Entry:
-;; emacs19/hilit19.el|Jonathan Stigelman|Stig@netcom.com
-;; |Comprehensive (and comparatively fast) regex-based highlighting for Emacs 19
-;; Thu Jul 22 21:03:46 1993|Beta 1.9||
+;; hilit19|Jonathan Stigelman|Stig@netcom.com|
+;; Comprehensive (and comparatively fast) regex-based highlighting for Emacs 19|
+;; 1993/07/30 02:43:01|Release 2.7|~/packages/hilit19.el.Z|
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -73,10 +72,20 @@
 ;;
 ;; SETUP -- In your .emacs:
 ;;
-;;      (require 'hilit19)		; not intended to be autoloaded
-;;
-;;      (setq hilit-mode-enable-list '(not text-mode))
-;;
+;; 
+;; (cond (window-system
+;;        (setq hilit-mode-enable-list  '(not text-mode)
+;;              hilit-background-mode   'light
+;;              hilit-inhibit-hooks     nil
+;;              hilit-inhibit-rebinding nil)
+;; 
+;;        (require 'hilit19)
+;;        ))
+;; 
+;; If you like font-lock-mode and want to use both packages, then you can
+;; disable hilit for the modes in which you want to use font-lock by listing
+;; said modes in hilit-mode-enable-list.
+;; 
 ;;      (hilit-translate type     'RoyalBlue   ; enable highlighting in C/C++
 ;;			 string	  nil)         ; disable string highlighting
 ;;
@@ -121,15 +130,25 @@
 ;;
 ;; KNOWN BUGS/TO DO LIST/HELP WANTED/APPLY WITHIN
 ;;
-;; * unbalanced double quote characters can confuse hilit19.  This will be
-;;   fixed, so don't bug me about it.
+;; * When more than one size of font is used in different frames, only one
+;;   font size can have bold & italic properties.
 ;;
-;; * ALTHOUGH HILIT19 IS FASTER THAN FONT-LOCK-MODE, for various reasons,
-;;   the speed of the package could still stand to be improved.  If you care
-;;   to do a little profiling and make things tighter...
+;; * When identifiers such as remove_switch_entry, ar highlighted in C/C++,
+;;   imbedded keywords--"switch" in this case--are highlighted.  I don't
+;;   personally see this problem because I modify the syntax for C/C++ so that
+;;   ?_ is a word character "w".  This also means that forward-word skips over
+;;   entire variables.  This will be fixed when I generalize the highlighting
+;;   patterns.
 ;;
-;; * hilit-toggle-highlight is flaky in large buffers where auto-rehighlight
-;;   is numeric after toggling twice, it loses it's numeric value
+;; * unbalanced, unescaped double quote characters can confuse hilit19.
+;;   This will be fixed, so don't bug me about it.
+;;
+;; * ALTHOUGH HILIT19 IS FASTER THAN FONT-LOCK-MODE...
+;;   For various reasons, the speed of the package could still stand to be
+;;   improved.  If you care to do a little profiling and make things tighter...
+;;
+;; * hilit-toggle-highlight is flaky when auto-rehighlight is neither t nor nil.
+;;   Does anyone actually USE this?  I think I might just remove it.
 ;;
 ;; PROJECTS THAT YOU CAN TAKE OVER BECAUSE I DON'T MUCH CARE ABOUT THEM...
 ;;
@@ -140,135 +159,66 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; Thanks to the following people for their input:
-;;	ebert@enpc.enpc.fr (Rolf EBERT), ada, LaTeX & bibtex highlights
-;;	Vivek Khera <khera@cs.duke.edu>, gnus hooks + random advice & patches
-;;	brian@athe.WUstl.EDU (Brian Dunford-Shore), prolog highlights
-;;	John Ladwig <jladwig@soils.umn.edu>, 1st pass nroff highlights
-;;	campo@sunthpi3.difi.unipi.it (Massimo Campostrini), fortran highlights
-;;	jayb@laplace.MATH.ColoState.EDU (Jay Bourland), 1st pass dired
-;;	Yoshio Turner <yoshio@CS.UCLA.EDU>, modula 2 highlights
-;;	Fritz Knabe <knabe@ecrc.de>, advice & patches
-;;	Alon Albert <alon@milcse.rtsg.mot.com>, advice & patches
-;;	dana@thumper.bellcore.com (Dana A. Chee), for breaking it...
-;;      derway@ndc.com (Don Erway), for breaking it...
+;;    ebert@enpc.enpc.fr (Rolf EBERT), ada, LaTeX & bibtex highlights
+;;    Vivek Khera <khera@cs.duke.edu>, gnus hooks + random advice & patches
+;;    brian@athe.WUstl.EDU (Brian Dunford-Shore), prolog highlights
+;;    John Ladwig <jladwig@soils.umn.edu>, 1st pass nroff highlights
+;;    campo@sunthpi3.difi.unipi.it (Massimo Campostrini), fortran highlights
+;;    jayb@laplace.MATH.ColoState.EDU (Jay Bourland), 1st pass dired
+;;    Yoshio Turner <yoshio@CS.UCLA.EDU>, modula 2 highlights
+;;    Fritz Knabe <knabe@ecrc.de>, advice & patches
+;;    Alon Albert <alon@milcse.rtsg.mot.com>, advice & patches
+;;    dana@thumper.bellcore.com (Dana A. Chee), working on the multi-frame bug
+;;    derway@ndc.com (Don Erway), for breaking it...
 ;;
 ;; With suggestions and minor regex patches from numerous others...
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
-;; HISTORY 
+;; hilit19.el,v
+;; Revision 2.7  1993/07/30  02:43:01  stig
+;; added const to the list of modifiers for C/C++ types
 ;;
-;; V1.9  21-July-1993		Stig@netcom.com
-;;   better documentation and added the function hilit-submit-feedback.
-;;   no longer rebind ^L, now C-S-l (control shift l) repaints the buffer
-;;   multi-line highlights no longer cause problems when
-;;      hilit-auto-rehighlight is 'visible
-;;   added hilit-predefined-face-list...
-;;   changed name of hilit-mode-alist to hilit-patterns-alist
-;;   added hilit-message-quietly to mail-setup-hook
-;;   added hilit-parser-alist which can be used to apply different patterns to
-;;      different parts of a buffer.  This could be integrated in a far more
-;;      elegant manner, but it presently serves the purpose of not applying
-;;      message header patterns to message bodies in mail-mode and it's kin.
-;;   hilit-set-mode-patterns now takes a list of modes and an optional parse-fn
-;; V1.8  19-July-1993		Stig@netcom.com
-;;   changed hilit-translate to be a macro so that now it mirrors setq
-;;   now permit multiple layers of face-translation...
-;;   hilit-lookup-face-create now parses background colors
-;;   added code to check for face changes and recopy the fonts from 'default
-;;      when necessary.  this can be disabled if you never change fonts.
-;;      you should be able to change fonts, redraw, and have all of your
-;;      bold & italic faces back to normal.  Should work in new frames as well.
-;;   fixed typo for one of the vm hooks and included the magic patch to
-;;      vm5.33 that keeps the summary window up to date.
-;;   got rid of the annoying dings and delays when colors aren't available
-;;   set case-fold-search to nil in highlighting-region function
-;;   fixed minor bug in hilit-rehighlight-message-quietly
-;;   patches to Info, LaTeX, fortran, nroff, & c++ patterns
-;;   modula-2-mode support
-;;   improved gnus-mark-article-hook
-;;   moved timecard-mode highlights to timecard-mode itself
-;; V1.7  12-July-1993		Stig@netcom.com
-;;   fix to dired patterns
-;;   punted on the dual functionality in hilit-auto-highlight and added
-;;     hilit-mode-enable-list, which permits users to specifically lock out
-;;     modes by preventing them from being added into the hilit-mode-list
-;;   incorporated defaults for dark backgrounds (see hilit-background-mode)
-;;   incorporated fortran highlighting patterns
-;;   patches to ada-mode and msg-header regexes
-;;   added msg-separator pattern
-;;   changed dired-backup to dired ignored which (which is derived from the
-;;     variable completion-ignored-extensions)
-;; V1.6  5-July-1993		Stig@netcom.com
-;;   added dired patterns
-;;   fixed minor typo bug in mail patterns
-;;   added profiling hook
-;; V1.5  5-July-1993		Stig@netcom.com
-;;   changed behavior of hilit-recenter to more closely match that of recenter
-;;   hilit-auto-highlight can now be a list of major-modes to highlight on find
-;;   reverted to using overlays...the cost of text-properties is too high, IMHO
-;;   added 'visible option to hilit-auto-rehighlight variable
-;;   now highlighting support for info pages (see patch below)
-;;   added hilit-yank and hilit-yank-pop which replace their analogues
-;;   wrote special parsing function for strings...bug squished...faster too
-;;   tuned the texinfo patterns for better performance
-;;   nroff support
-;; V1.4  2-July-1993		Stig@netcom.com
-;;   more efficient highlighting for news and mail
-;;   switched to text properties (this may be temporary)
-;;   changed regular expressions for c*mode to accomodate syntax tables
-;;   minor mod to Ada parameter regexp
-;;   now catch regex stack overflows and print an error
-;;   string matching now uses start and end expressions to prevent overflows
-;; V1.3 28-June-1993		Stig@netcom.com
-;;   added support for hexadecimal color specification under X
-;;   added hilit-translate for simple color translations
-;;   changed coverage of hilit-quietly...when it's quiet, it's always quiet.
-;;   removed extra call to unhighlight-region in rehighlight-buffer
-;;   automatically installs hooks, unless hilit-inhibit-hooks set before load
-;;   installed fixes for latex
-;; V1.2 28-June-1993		Stig@netcom.com
-;;   partially fixed bug in hilit-toggle-highlight
-;;   added string highlighting
-;;   fixed bug in hilit-lookup-face-create
-;;   additions for Ada, Tex, LaTeX, and Texinfo (is scribe next? =)
-;;   now highlight template decls in C++
-;;   added reverse-* intelligence to hilit-lookup-face-create
-;;   imported wysiwyg (overstrike replacement) stuff from my hacks to man.el
-;;   sketched out a stub of a wysiwyg write file hook, care to finish it?
-;; V1.1	25-June-1993		Stig@netcom.com
-;;   replaced last vestiges of original hilit.el
-;;   now map default modes to major-mode values
-;;   reworked face allocation so that colors don't get tied up
-;;   rewrote some comments that I'd put in earlier but somehow managed to nuke
-;; V1.0 22-June-1993		Stig@netcom.com
-;;   incrementally replaced just about everything...simpler, cleaner, & faster
-;;   extended highlight coverage for C/C++ modes (highlight more things)
-;;   added layer of indirection to face selection
+;; Revision 2.6  1993/07/30  00:30:54  stig
+;; now permit selection of arbitrary subexpressions for highlighting...
+;; fixed keyword patterns for C/C++ using this technique.
+;;
+;; Revision 2.5  1993/07/28  05:02:56  stig
+;; improvements to makefile regular expressions
+;; removed about 130 lines just by compacting the big defconst for
+;;   hilit-face-translation-table into a mapcar and defining a separate table
+;;   of default faces.
+;;
+;; Revision 2.4  1993/07/27  14:09:05  stig
+;; documented another "known problem" to "head off gripe mail at the pass."
+;;
+;; Revision 2.3  1993/07/27  02:15:49  stig
+;; (hilit-lookup-face-create) incorporated patch which improves it's behavior
+;; with more than one frame...  Still can't have bold on the same face in two
+;; differrent fonts sizes at the same time...
+;;
+;; Revision 2.2  1993/07/27  02:02:59  stig
+;; vastly improved the makefile patterns
+;; added hook for mh-show-mode
+;;
+;; Revision 2.1  1993/07/24  17:46:21  stig
+;; Phasing out Info-select-hook...  Version 19.18 will use Info-selection-hook.
+;;
+;; Revision 2.0  1993/07/24  13:50:10  stig
+;; better documentation and added the function hilit-submit-feedback.
+;; C-S-l (control shift l) repaints the buffer.  Other bindings are optional.
+;; multi-line highlights no longer cause problems when
+;;   hilit-auto-rehighlight is 'visible
+;; added hilit-predefined-face-list...
+;; changed name of hilit-mode-alist to hilit-patterns-alist
+;; added hilit-message-quietly to mail-setup-hook
+;; added hilit-parser-alist which can be used to apply different patterns to
+;;   different parts of a buffer.  This could be integrated in a far more
+;;   elegant manner, but it presently serves the purpose of not applying
+;;   message header patterns to message bodies in mail-mode and it's kin.
+;; hilit-set-mode-patterns now takes a list of modes and an optional parse-fn
+;;
 
-;;;;;; THIS WILL ALLOW INFO PAGES TO BE HILIGHTED:
-;;
-;; *** 19.15/info.el       Sat Jun 19 14:47:06 1993
-;; --- 19/info.el  Sun Jul  4 03:33:12 1993
-;; ***************
-;; *** 475,481 ****
-;;                                   (setq active-expression
-;;                                         (read (current-buffer))))))
-;;                          (point-max)))
-;; !      (if Info-enable-active-nodes (eval active-expression)))))
-;;   
-;;   (defun Info-set-mode-line ()
-;;     (setq mode-line-buffer-identification
-;; --- 475,482 ----
-;;                                   (setq active-expression
-;;                                         (read (current-buffer))))))
-;;                          (point-max)))
-;; !      (if Info-enable-active-nodes (eval active-expression)))
-;; !    (run-hooks 'Info-select-hook)))
-;;   
-;;   (defun Info-set-mode-line ()
-;;     (setq mode-line-buffer-identification
-;;
 ;;;;;; AND THIS CAN BE APPLIED TO VM 5.33L_19
 ;; 
 ;; *** ../site/vm5.33L_19/vm-summary.el    Fri Jun  4 22:17:11 1993
@@ -301,20 +251,6 @@
 (defvar hilit-quietly nil
   "* If non-nil, this inhibits progress indicators during highlighting")
 
-(defvar hilit-inhibit-hooks nil
-  "* If non-nil, this inhibits installation of hooks for Info, gnus, & vm.")
-
-(defvar hilit-background-mode 'light
-  "* 'mono inhibits color, 'dark or 'light indicate the background brightness.")
-
-(defvar hilit-mode-enable-list nil
-  "* If a list of modes to exclusively enable or specifically disable.
-The sense of the list is negated if it begins with the symbol 'not'.
-Set this variable before you load hilit19.
-
-Ex:  (perl-mode jargon-mode c-mode)	; just perl, C, and jargon modes
-     (not text-mode)			; all modes except text mode")
-
 (defvar hilit-auto-highlight t
   "* T if we should highlight all buffers as we find 'em, nil to disable
   automatic highlighting by the find-file hook.")
@@ -324,24 +260,42 @@ Ex:  (perl-mode jargon-mode c-mode)	; just perl, C, and jargon modes
 
 (defvar hilit-auto-rehighlight t
   "* If this is non-nil, then hilit-redraw and hilit-recenter will also
-  rehighlight part or all of the current buffer.  T will rehighlights the
-  whole buffer, a NUMBER will rehighlight that many lines before and
-  after the cursor, or the symbol 'visible' will rehighlight only the visible
-  portion of the current buffer.")
+  rehighlight part or all of the current buffer.  T will rehighlight the
+  whole buffer, a NUMBER will rehighlight that many lines before and after
+  the cursor, and the symbol 'visible' will rehighlight only the visible
+  portion of the current buffer.  This variable is buffer-local.")
 
 (make-variable-buffer-local 'hilit-auto-rehighlight)
-(setq-default hilit-auto-rehighlight t)
 
 (defvar hilit-auto-rehighlight-fallback '(20000 . 100)
   "* Cons of the form (THRESHOLD . FALLBACK), where FALLBACK is assigned to
-hilit-auto-rehighlight if the size of a newly opened buffer is larger than
-THRESHOLD.")
+  hilit-auto-rehighlight if the size of a newly opened buffer is larger than
+  THRESHOLD.")
 
 (defvar hilit-face-check t
   "* T slows down highlighting but permits the user to change fonts without
-losing bold and italic faces...  T causes hilit-lookup-face-create to dig
-through the frame parameters for the current window every time it's called.
-If you never change fonts in emacs, set this to NIL.")
+  losing bold and italic faces...  T causes hilit-lookup-face-create to dig
+  through the frame parameters for the current window every time it's called.
+  If you never change fonts in emacs, set this to NIL.")
+
+;; Variables which must be set before loading hilit19.
+
+(defvar hilit-inhibit-rebinding nil
+  "If non-nil, this inhibits replacement of recenter, yank, and yank-pop.")
+
+(defvar hilit-inhibit-hooks nil
+  "If non-nil, this inhibits installation of hooks for Info, gnus, & vm.")
+
+(defvar hilit-background-mode 'light
+  "'mono inhibits color, 'dark or 'light indicate the background brightness.")
+
+(defvar hilit-mode-enable-list nil
+  "If a list of modes to exclusively enable or specifically disable.
+The sense of the list is negated if it begins with the symbol 'not'.
+Set this variable before you load hilit19.
+
+Ex:  (perl-mode jargon-mode c-mode)	; just perl, C, and jargon modes
+     (not text-mode)			; all modes except text mode")
 
 ;; Variables that are not generally modified directly
 
@@ -362,7 +316,7 @@ or nil (which disables the pattern).
 See the hilit-lookup-face-create documentation for valid face names.")
 
 (defvar hilit-predefined-face-list (face-list)
-  "List of faces which with hilit-lookup-face-create will NOT tamper.
+  "List of faces with which hilit-lookup-face-create will NOT tamper.
 
 If hilit19 is dumped into emacs at your site, you may have to set this in
 your init file.")
@@ -370,14 +324,16 @@ your init file.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Use this to report bugs:
 
+(eval-when-compile (require 'reporter))	; no compilation gripes
+
 (defun hilit-submit-feeback ()
-  "Submit via mail a bug report on stig-paren"
+  "Submit feedback on hilit19 to the author: Stig@netcom.com"
   (interactive)
   (require 'reporter)
   (and (y-or-n-p "Do you really want to submit a report on hilit19? ")
        (reporter-submit-bug-report
 	"Jonathan Stigelman <Stig@netcom.com>"
-	"hilit19.el Beta 1.9 ($Revision: 1.34 $)"
+	"hilit19.el (Release 2.7)"
 	(and (y-or-n-p "Do you need to include a dump hilit variables? ")
 	     (append
 	      '(
@@ -395,14 +351,16 @@ your init file.")
 		     ))))
 	 (function
 	  (lambda ()
-	    (insert "\nFrame Configuration:\n====================\n"
-		    (prin1-to-string (frame-configuration-to-register ?F))
-		    "\n"
-		    )))
+	    (and (y-or-n-p "Is this a problem with font display? ")
+		 (insert "\nFrame Configuration:\n====================\n"
+			 (prin1-to-string (frame-configuration-to-register ?F))
+			 "\n"
+			 ))))
 	 nil
 	 (concat
-	  "This is (check all that apply, or delete those that don't):\n"
+	  "This is (check all that apply, and delete what's irrelevant):\n"
 	  "  [ ] a _MASSIVE_THANK_YOU_ for writing hilit19.el\n"
+	  "  [ ] An invitation to attend the next Hackers Conference\n"
 	  "  [ ] my DONATION to your vacation fund (prototype digital cash)\n"
 	  "  [ ] You're a RIGHTEOUS HACKER, what are your rates?\n"
 	  "  [ ] I've used the force and read the source, but I'M CONFUSED\n"
@@ -413,211 +371,83 @@ your init file.")
 	  "       for a newer release that fixes the problem.\n"
 	  "  [ ] ADVICE -- or an unfulfilled desire that I suspect you share\n"
 	  "\n"
-	  "Hey Stig, do you do anything besides hack emacs?\n"))))
+	  "Hey Stig, I *know* you're busy but...\n"))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; These faces are either a valid face name, or nil
 ;; if you want to change them, you must do so AFTER hilit19 is loaded
 
-(defconst hilit-face-translation-table
-  (cond ((and (eq hilit-background-mode 'light) (x-display-color-p))
-	 ;; COLOR DEFAULTS for LIGHT backgrounds
-	 '(
-	   ;; used for C/C++ and elisp and perl
-	   (comment	. firebrick-italic)
-	   (include	. purple)
-	   (define	. ForestGreen-bold)
-	   (defun	. blue-bold)
-	   (decl	. RoyalBlue)
-	   (type	. nil)
-	   (keyword	. RoyalBlue)
-	   (label	. red-bold)
-	   (string	. grey40)
-
-	   ;; some further faces for Ada
-	   (struct	. black-bold)
-	   (glob-struct	. magenta)
-	   (named-param	. DarkGoldenrod)
+(defconst hilit-default-face-table
+  '(
+    ;; used for C/C++ and elisp and perl
+    (comment	firebrick-italic    moccasin           italic)
+    (include	purple		    Plum1	       default-bold-italic)
+    (define	ForestGreen-bold    green	       bold)
+    (defun	blue-bold	    cyan-bold	       default-bold-italic)
+    (decl	RoyalBlue	    cyan	       bold)
+    (type	nil		    yellow	       nil)
+    (keyword	RoyalBlue	    cyan	       default-bold-italic)
+    (label	red-bold	    orange-underlined  underline)
+    (string	grey40		    orange	       underline)
+    
+    ;; some further faces for Ada
+    (struct	  black-bold        white-bold	       bold)
+    (glob-struct  magenta	    Plum1	       default-bold-underline)
+    (named-param  DarkGoldenrod	    Goldenrod	       underline)
 	
-	   ;; and anotherone for LaTeX
-	   (crossref	. DarkGoldenrod)
+    ;; and anotherone for LaTeX
+    (crossref	  DarkGoldenrod	    Goldenrod	       underline)
  
-	   (wysiwyg-bold   . bold)
-	   (wysiwyg-underline . underline)
+    ;; compilation buffers
+    (active-error default/pink-bold  default/DeepPink-bold  bold-underline)
+    (error	  red-bold           yellow		    bold)
+    (warning	  blue-italic	     green		    italic)
 
-	   ;; compilation buffers
-	   (error	. red-bold)
-	   (warning	. firebrick)
+    ;; Makefiles (some faces borrowed from C/C++ too)
+    (rule	  blue-bold-underline cyan-underline   bold-underline)
+    
+    ;; VM, GNUS and Text mode
+    (msg-subject    blue-bold       yellow             bold)
+    (msg-from	    purple-bold	    SeaGreen	       bold)
+    (msg-header	    firebrick-bold  cyan	       italic)
+    (msg-separator  black/tan-bold  lightblue	       nil)
+    (msg-quote	    ForestGreen	    green	       italic)
 
-	   ;; Makefiles (some faces borrowed from C/C++ too)
-	   (rule	. blue-bold)
+    (summary-seen     grey40	    white	       nil)
+    (summary-killed   grey50	    white	       nil)
+    (summary-Xed      OliveDrab2    green	       nil)
+    (summary-deleted  firebrick	    white	       italic)
+    (summary-unread   RoyalBlue	    yellow	       bold)
+    (summary-new      blue-bold	    yellow-bold	       default-bold-italic)
+    (summary-current  default/skyblue-bold green/LightGrey-bold reverse-default)
 
-	   ;; VM, GNUS and Text mode
-	   (msg-subject	. blue-bold)
-	   (msg-from	. purple-bold) 
-	   (msg-header	. firebrick-bold)
-	   (msg-separator  . black/tan-bold)
-	   (msg-quote	. ForestGreen)
+    (gnus-group-unsubscribed grey50		white	    nil)
+    (gnus-group-empty	     nil		yellow	    nil)
+    (gnus-group-full	     ForestGreen	green	    italic)
+    (gnus-group-overflowing  firebrick		orange	    default-bold-italic)
 
-	   (summary-seen	. grey40)
-	   (summary-killed	. grey50)
-	   (summary-Xed		. OliveDrab2)
-	   (summary-current	. default/skyblue-bold)
-	   (summary-deleted	. firebrick)
-	   (summary-unread	. RoyalBlue)
-	   (summary-new		. blue-bold)
-
-	   (gnus-group-unsubscribed . grey50)
-	   (gnus-group-empty	. nil)
-	   (gnus-group-full	. ForestGreen)
-	   (gnus-group-overflowing	. firebrick)
-
-	   ;; dired mode
-	   (dired-directory 	. blue-bold)
-	   (dired-link		. firebrick-italic)
-	   (dired-ignored	. ForestGreen)
-	   (dired-deleted	. red-bold-italic)
-	   (dired-marked	. purple)
+    ;; dired mode
+    (dired-directory blue-bold         cyan            bold)
+    (dired-link	     firebrick-italic  green	       italic)
+    (dired-ignored   ForestGreen       moccasin	       nil)
+    (dired-deleted   red-bold-italic   orange	       default-bold-italic)
+    (dired-marked    purple	       Plum1	       nil)
 	
-	   ;; see jargon-mode.el and prep.ai.mit.edu:/pub/gnu/jargon*.txt
-	   (jargon-entry	. blue-bold)
-	   (jargon-xref		. purple-bold)
-	   ;; really used for Info-mode
-	   (jargon-keyword	. firebrick-underline)
-	   ))
-	((and (eq hilit-background-mode 'dark) (x-display-color-p))
-	 ;; COLOR DEFAULTS for DARK backgrounds
-	 '(
-	   ;; used for C/C++ and elisp and perl
-	   (comment	. moccasin)
-	   (include	. Plum1)
-	   (define	. green)
-	   (defun	. cyan-bold)
-	   (decl	. cyan)
-	   (type	. yellow)
-	   (keyword	. cyan)
-	   (label	. orange-underlined)
-	   (string	. orange)
-	
-	   ;; some further faces for Ada
-	   (struct	. white-bold)
-	   (glob-struct	. Plum1)
-	   (named-param	. Goldenrod)
-	
-	   ;; and anotherone for LaTeX
-	   (crossref	. Goldenrod)
-	
-	   (wysiwyg-bold   . bold)
-	   (wysiwyg-underline . underline)
-	
-	   ;; compilation buffers
-	   (error	. yellow)
-	   (warning	. green)
-	
-	   ;; Makefiles (some faces borrowed from C/C++ too)
-	   (rule		. cyan)
-	
-	   ;; VM, GNUS and Text mode
-	   (msg-subject		. yellow)
-	   (msg-from		. SeaGreen2)
-	   (msg-header		. cyan)
-	   (msg-separator	. lightblue)
-	   (msg-quote		. green)
-	
-	   (summary-seen	. white)
-	   (summary-killed	. white)
-	   (summary-Xed		. green)
-	   (summary-current	. green-bold)
-	   (summary-deleted	. white)
-	   (summary-unread	. yellow)
-	   (summary-new		. yellow-bold)
-	
-	   (gnus-group-unsubscribed . white)
-	   (gnus-group-empty	. yellow)
-	   (gnus-group-full	. green)
-	   (gnus-group-overflowing . orange)
+    ;; Info-mode, and jargon-mode.el and prep.ai.mit.edu:/pub/gnu/jargon*
+    (jargon-entry    blue-bold	       cyan            bold)
+    (jargon-xref     purple-bold       Plum1	       italic)
+    (jargon-keyword  firebrick-underline yellow	       underline)
+    )
+  "alist of default faces (face . (light-default dark-default mono-default))")
 
-	   ;; dired mode
-	   (dired-directory	. cyan)
-	   (dired-link		. green)
-	   (dired-ignored	. moccasin)
-	   (dired-deleted	. orange)
-	   (dired-marked	. Plum1)
-
-	   ;; see jargon-mode.el and prep.ai.mit.edu:/pub/gnu/jargon*.txt
-	   (jargon-entry	. cyan)
-	   (jargon-xref		. Plum1)
-	   ;; really used for Info-mode
-	   (jargon-keyword	. yellow)
-	   ))
-	(t
-	 ;; MONO DEFAULTS -- you lose
-	 '(
-	   ;; used for C/C++ and elisp and perl
-	   (comment       . italic)
-	   (include       . default-bold-italic)
-	   (define        . bold)
-	   (defun         . default-bold-italic)
-	   (decl          . bold)
-	   (type          . nil)
-	   (keyword       . default-bold-italic)
-	   (label         . underline)
-	   (string        . underline)
-
-	   ;; some further faces for Ada
-	   (struct	  . bold)
-	   (named-param   . underline)
-	   (glob-struct   . default-bold-underline)
-      
-	   ;; and another one for LaTeX
-	   (crossref	  . underline)
-
-	   (wysiwyg-bold  . bold)
-	   (wysiwyg-underline . underline)
-
-	   ;; compilation buffers
-	   (error         . bold)
-	   (warning       . italic)
-
-	   ;; Makefiles (some faces borrowed from C/C++ too)
-	   (rule          . bold)
-
-	   ;; VM, GNUS and Text mode
-	   (msg-subject   . bold)
-	   (msg-from	  . bold)
-	   (msg-header    . italic)
-	   (msg-separator . nil)
-	   (msg-quote     . italic)
-
-	   (summary-seen	. nil)
-	   (summary-killed	. nil)
-	   (summary-Xed		. nil)
-	   (summary-current	. reverse-default)
-	   (summary-unread	. bold)
-	   (summary-deleted	. italic)
-	   (summary-new		. default-bold-italic)
-
-	   (gnus-group-unsubscribed	. nil)
-	   (gnus-group-empty		. nil)
-	   (gnus-group-full		. italic)
-	   (gnus-group-overflowing	. default-bold-italic)
-
-	   ;; dired mode
-	   (dired-directory 	. bold)
-	   (dired-link		. italic)
-	   (dired-ignored	. nil)
-	   (dired-marked	. nil)
-	   (dired-deleted	. default-bold-italic)
-	
-	   ;; see jargon-mode.el and prep.ai.mit.edu:/pub/gnu/jargon*.txt
-	   (jargon-entry	. bold)
-	   (jargon-xref		. italic)
-	   ;; really used for Info-mode
-	   (jargon-keyword	. underline)
-	   ))
-	)
-    "alist that maps symbolic face-names to real face names")
+(defconst hilit-face-translation-table
+  (let ((index (or (cdr (assq hilit-background-mode
+			      '((light . 1) (dark . 2))))
+		   3)))
+    (mapcar (function (lambda (x) (cons (car x) (nth index x))))
+	    hilit-default-face-table))
+  "alist that maps symbolic face-names to real face names")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; To translate one face to another...
@@ -630,20 +460,14 @@ value of its TO face.  This is like setq for faces.
 The function hilit-lookup-face-create will repeatedly translate until no more
 translations for the face exist in the translation table.
 
-See the documentation for hilit-lookup-face-create for names of valid faces.
-"
-;; can't have an interactive macro
-;;  (interactive "SFace translate from: \nSFace translate to: ")
+See the documentation for hilit-lookup-face-create for names of valid faces."
   (or (zerop (% (length args) 2))
       (error "wrong number of args"))
   (let (cmdl from to)
     (while args
       (setq from (car args) to (nth 1 args) args (nthcdr 2 args)
 	    cmdl (cons (list 'hilit-associate ''hilit-face-translation-table
-			     ;; this is for reverse compatibility...
-			     (if (and (consp from) (eq 'quote (car from)))
-				 from
-			       (list 'quote from)) to)
+			     (list 'quote from) to)
 		       cmdl)))
     (cons 'progn cmdl)))
 
@@ -728,9 +552,17 @@ See the documentation for hilit-translate and hilit-face-translation-table."
 	    (set-face-font face nil frame)
 	    (set-face-underline-p face (string-match "underline" fn))
 	    (if (string-match ".*bold" fn)
-		(make-face-bold face frame  'noerr))
+		(progn
+		  ;; first, fix up this frame's face
+		  (make-face-bold face frame  'noerr)
+		  ;; now, fix up the face from the global list
+		  (set-face-font face (face-font face frame) t)))
 	    (if (string-match ".*italic" fn)
-		(make-face-italic face frame 'noerr))
+		(progn
+		  ;; first, fix up this frame's face
+		  (make-face-italic face frame 'noerr)
+		  ;; now, fix up the face from the global list
+		  (set-face-font face (face-font face frame) t)))
 	    ))
       )))
   face)
@@ -821,7 +653,7 @@ non-nil."
 			 (while (setq region (funcall pstart pend))
 			   (hilit-region-set-face (car region) (cdr region)
 						  face prio))))
-		      (pend
+		      ((stringp pend)
 		       ;; inner loop -- regex-start ... regex-end
 		       (while (re-search-forward pstart nil t nil)
 			 (goto-char (setq mstart (match-beginning 0)))
@@ -830,10 +662,11 @@ non-nil."
 						    face prio)
 			   (forward-char 1))))
 		      (t
+		       (or (numberp pend) (setq pend 0))
 		       ;; inner loop -- just one regex to match whole pattern
 		       (while (re-search-forward pstart nil t nil)
-			 (hilit-region-set-face  (match-beginning 0)
-						 (match-end 0) face prio))))
+			 (hilit-region-set-face  (match-beginning pend)
+						 (match-end pend) face prio))))
 	      (error (message "Unbalanced delimiters?  Barfed on '%s'"
 			      pstart)
 		     (ding) (sit-for 4))))
@@ -956,7 +789,8 @@ the entire buffer is forced."
   (interactive "*P")
   (let ((transient-mark-mode nil))
     (yank arg)
-    (hilit-rehighlight-region (region-beginning) (region-end) t)
+    (and hilit-auto-rehighlight
+	 (hilit-rehighlight-region (region-beginning) (region-end) t))
     (setq this-command 'yank)))
 
 (defun hilit-yank-pop (arg)
@@ -964,7 +798,8 @@ the entire buffer is forced."
   (interactive "*p")
   (let ((transient-mark-mode nil))
     (yank-pop arg)
-    (hilit-rehighlight-region (region-beginning) (region-end) t)
+    (and hilit-auto-rehighlight
+	 (hilit-rehighlight-region (region-beginning) (region-end) t))
     (setq this-command 'yank)))
 
 ;;; this line highlighting stuff is untested.  play with it only if you feel
@@ -1036,17 +871,22 @@ the entire buffer is forced."
 ;; Initialization.  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(substitute-key-definition 'yank     'hilit-yank     (current-global-map))
-(substitute-key-definition 'yank-pop 'hilit-yank-pop (current-global-map))
-
-;; (substitute-key-definition 'recenter 'hilit-recenter (current-global-map))
-;; (substitute-key-definition 'redraw-display 'hilit-redraw-display
-;;			      (current-global-map))
+(and (not hilit-inhibit-rebinding)
+     window-system
+     (progn 
+       (substitute-key-definition 'yank     'hilit-yank
+				  (current-global-map))
+       (substitute-key-definition 'yank-pop 'hilit-yank-pop
+				  (current-global-map))
+       (substitute-key-definition 'recenter 'hilit-recenter
+				  (current-global-map))))
 
 (global-set-key [?\C-\S-l] 'hilit-repaint-command)
 
 (and window-system
      (add-hook 'find-file-hooks 'hilit-find-file-hook t))
+
+(eval-when-compile (require 'gnus))	; no compilation gripes
 
 (and (not hilit-inhibit-hooks)
      window-system
@@ -1058,17 +898,23 @@ the entire buffer is forced."
 		    (lambda (hook)
 		      (add-hook hook 'hilit-rehighlight-buffer-quietly)))
 		   '(
-		     Info-select-hook
+		     compilation-parse-hook
+
+		     Info-select-hook	; FIXME -- phase this out later
+		     Info-selection-hook
+
 		     vm-summary-mode-hooks
 		     vm-summary-pointer-hook
+		     vm-preview-message-hook
+		     vm-show-message-hook
+
+		     gnus-article-prepare-hook
 		     gnus-summary-prepare-hook
 		     gnus-group-prepare-hook
 
-		     vm-preview-message-hook
-		     vm-show-message-hook
-		     gnus-article-prepare-hook
 		     rmail-show-message-hook
 		     mail-setup-hook 
+		     mh-show-mode-hook
 		     ))
 
 	   ;; rehilight only the visible part of the summary buffer for speed.
@@ -1111,7 +957,7 @@ the entire buffer is forced."
       (set alist (cons (cons key val) (eval alist))))))
   
 (defun hilit-set-mode-patterns (modelist patterns &optional parse-fn)
-  "Sets the default hilighting patterns for MODE to PATTERNS.
+  "Sets the default highlighting patterns for MODE to PATTERNS.
 See the variable hilit-mode-enable-list."
   (or (consp modelist) (setq modelist (list modelist)))
   (let (ok (flip (eq (car hilit-mode-enable-list) 'not)))
@@ -1150,9 +996,9 @@ Finds  [^QCHAR]\" ... [^\\]\""
    ("^\\(\\w\\|[$_]\\)+\\s *\\(\\(\\w\\|[$_]\\)+\\s *((\\|(\\)[^)]*)+" nil defun)
    ("^\\(typedef\\|struct\\|union\\|enum\\).*$" nil decl)
    ;; datatype -- black magic regular expression
-   ("[ \n\t({]\\(\\(register\\|volatile\\|unsigned\\|extern\\|static\\)\\s +\\)*\\(\\(\\w\\|[$_]\\)+_t\\|float\\|double\\|void\\|char\\|short\\|int\\|long\\|FILE\\|\\(\\(struct\\|union\\|enum\\)\\([ \t]+\\(\\w\\|[$_]\\)*\\)\\)\\)\\(\\s +\\*+)?\\|[ \n\t;()]\\)" nil type)
+   ("[ \n\t({]\\(\\(const\\|register\\|volatile\\|unsigned\\|extern\\|static\\)\\s +\\)*\\(\\(\\w\\|[$_]\\)+_t\\|float\\|double\\|void\\|char\\|short\\|int\\|long\\|FILE\\|\\(\\(struct\\|union\\|enum\\)\\([ \t]+\\(\\w\\|[$_]\\)*\\)\\)\\)\\(\\s +\\*+)?\\|[ \n\t;()]\\)" nil type)
    ;; key words
-   ("\\<\\(return\\|goto\\|if\\|else\\|case\\|default\\|switch\\|break\\|continue\\|while\\|do\\|for\\)\\>" nil keyword)
+   ("[^_]\\<\\(return\\|goto\\|if\\|else\\|case\\|default\\|switch\\|break\\|continue\\|while\\|do\\|for\\)\\>[^_]" 1 keyword)
    ))
 
 (hilit-set-mode-patterns
@@ -1170,10 +1016,10 @@ Finds  [^QCHAR]\" ... [^\\]\""
    ("^\\(\\(\\w\\|[$_]\\)+[ \t]*::[ \t]*\\)?\\(\\(\\w\\|[$_]\\)+\\|operator.*\\)\\s *\\(\\(\\w\\|[$_]\\)+\\s *((\\|(\\)[^)]*)+" nil defun)
    ("^\\(template\\|typedef\\|struct\\|union\\|class\\|enum\\|public\\|private\\|protected\\).*$" nil decl)
    ;; datatype -- black magic regular expression
-   ("[ \n\t({]\\(\\(register\\|volatile\\|unsigned\\|extern\\|static\\)\\s +\\)*\\(\\(\\w\\|[$_]\\)+_t\\|float\\|double\\|void\\|char\\|short\\|int\\|long\\|FILE\\|\\(\\(struct\\|union\\|enum\\|class\\)\\([ \t]+\\(\\w\\|[$_]\\)*\\)\\)\\)\\(\\s +\\*+)?\\|[ \n\t;()]\\)" nil type)
+   ("[ \n\t({]\\(\\(const\\|register\\|volatile\\|unsigned\\|extern\\|static\\)\\s +\\)*\\(\\(\\w\\|[$_]\\)+_t\\|float\\|double\\|void\\|char\\|short\\|int\\|long\\|FILE\\|\\(\\(struct\\|union\\|enum\\|class\\)\\([ \t]+\\(\\w\\|[$_]\\)*\\)\\)\\)\\(\\s +\\*+)?\\|[ \n\t;()]\\)" nil type)
    ;; key words
-   ("\\<\\(return\\|goto\\|if\\|else\\|case\\|default\\|switch\\|break\\|continue\\|while\\|do\\|for\\|public\\|protected\\|private\\|delete\\|new\\)\\>"
-    nil keyword)))
+   ("[^_]\\<\\(return\\|goto\\|if\\|else\\|case\\|default\\|switch\\|break\\|continue\\|while\\|do\\|for\\|public\\|protected\\|private\\|delete\\|new\\)\\>[^_]"
+    1 keyword)))
 
 (hilit-set-mode-patterns
  'perl-mode
@@ -1289,9 +1135,9 @@ Finds  [^QCHAR]\" ... [^\\]\""
    ;; things that bring in external files
    ("\\\\\\(include\\|input\\|bibliography\\){" "}" include)
 
-   ;; "wysiwyg" emphasis
-   ("{\\\\\\(em\\|it\\|sl\\)" "}" italic)
-   ("{\\\\bf" "}" bold)
+   ;; "wysiwyg" emphasis -- these don't work with nested expressions
+   ;; ("{\\\\\\(em\\|it\\|sl\\)" "}" italic)
+   ;; ("{\\\\bf" "}" bold)
 
    ("``" "''" string)
 
@@ -1309,38 +1155,39 @@ Finds  [^QCHAR]\" ... [^\\]\""
 
 (hilit-set-mode-patterns
  'compilation-mode
- '(("^[^ \t]*:[0-9]+:.*$" nil error)
-   ("^[^ \t]*:[0-9]+: warning:.*$" nil warning)))
+ '(
+   ("^[-_.\"A-Za-z0-9]+\\(:\\|, line \\)[0-9]+: warning:.*$" nil warning)
+   ("^[-_.\"A-Za-z0-9]+\\(:\\|, line \\)[0-9]+:.*$" nil error)
+   ))
 
 (hilit-set-mode-patterns
  'makefile-mode
  '(("^#.*$" nil comment)
    ("[^$]#.*$" nil comment)
    ;; rules
-   ("^%.*$" nil rule)
+   ("^[^ \t\n]*%[^ \t\n]*[ \t]*::?[ \t]*[^ \t\n]*[ \t]*\\(#.*\\)?$" nil rule)
    ("^[.][A-Za-z][A-Za-z]?\..*$" nil rule)
    ;; variable definition
-   ("^[_A-Za-z0-9]+ *\+?=" nil define)
-   ("\\( \\|:=\\)[_A-Za-z0-9]+ *\\+=" nil define)
+   ("^[_A-Za-z0-9]+[ \t]*\+?=" nil define)
+   ("\\( \\|:=\\)[_A-Za-z0-9]+[ \t]*\\+=" nil define)
    ;; variable references
-   ("\$[_A-Za-z0-9]" nil type)
-   ("\${[_A-Za-z0-9]+}" nil type)
-   ("\$\([_A-Za-z0-9]+\)" nil type)
+   ("\\$\\([^ \t\n{(]\\|[{(]@?[_A-Za-z0-9:.,%/=]+[)}]\\)" nil keyword)
+   ("^[A-Za-z0-9.,/_-]+[ \t]*:.*$" nil defun)
    ("^include " nil include)))
 
 (let* ((header-patterns '(("^Subject:.*$" nil msg-subject)
 			  ("^From:.*$" nil msg-from)
 			  ("^--text follows this line--$" nil msg-separator)
 			  ("^[A-Za-z][A-Za-z0-9-]+:" nil msg-header)))
-       (body-patterns '(("^\\(In article\\|[ \t]*\\w*[]>}|]\\).*$"
+       (body-patterns '(("^\\(In article\\|[ \t]*\\w*[]<>}|]\\).*$"
 			 nil msg-quote)))
        (message-patterns (append header-patterns body-patterns)))
   (hilit-set-mode-patterns 'msg-header header-patterns)
   (hilit-set-mode-patterns 'msg-body body-patterns)
-  (hilit-set-mode-patterns
-   '(vm-mode text-mode mail-mode rmail-mode gnus-article-mode news-reply-mode)
-   message-patterns
-   'hilit-rehighlight-message))
+  (hilit-set-mode-patterns '(vm-mode text-mode mail-mode rmail-mode
+			     gnus-article-mode news-reply-mode mh-show-mode)
+			   message-patterns
+			   'hilit-rehighlight-message))
 
 (hilit-set-mode-patterns
  'gnus-group-mode
