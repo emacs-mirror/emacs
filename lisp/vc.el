@@ -58,7 +58,15 @@
 ;;; Code:
 
 (require 'vc-hooks)
+(require 'ring)
 (require 'dired)
+(require 'compile)
+(require 'sendmail)
+
+(if (not (assoc 'vc-parent-buffer minor-mode-alist))
+    (setq minor-mode-alist
+	  (cons '(vc-parent-buffer vc-parent-buffer-name)
+		minor-mode-alist)))
 
 ;; General customization
 
@@ -77,9 +85,11 @@ The value is only computed when needed to avoid an expensive search.")
   "*Display run messages from back-end commands.")
 (defvar vc-mistrust-permissions 'file-symlink-p
   "*Don't assume that permissions and ownership track version-control status.")
-
 (defvar vc-checkin-switches nil
   "*Extra switches passed to the checkin program by \\[vc-checkin].")
+
+(defconst vc-maximum-comment-ring-size 32
+  "Maximum number of saved comments in the comment ring.")
 
 ;;;###autoload
 (defvar vc-checkin-hook nil
@@ -110,19 +120,33 @@ is sensitive to blank lines.")
 (defvar vc-log-after-operation-hook nil)
 (defvar vc-checkout-writeable-buffer-hook 'vc-checkout-writeable-buffer)
 (defvar vc-parent-buffer nil)
+(defvar vc-parent-buffer-name nil)
 
 (defvar vc-log-file)
 (defvar vc-log-version)
 
 (defconst vc-name-assoc-file "VC-names")
 
+(defvar vc-dired-mode nil)
 (make-variable-buffer-local 'vc-dired-mode)
+
+(defvar vc-comment-ring nil)
+(defvar vc-comment-ring-index nil)
+(defvar vc-last-comment-match nil)
 
 ;; File property caching
 
 (defun vc-file-clearprops (file)
   ;; clear all properties of a given file
   (setplist (intern file vc-file-prop-obarray) nil))
+
+(defun vc-clear-context ()
+  "Clear all cached file properties and the comment ring."
+  (interactive)
+  (fillarray vc-file-prop-obarray nil)
+  ;; Note: there is potential for minor lossage here if there is an open
+  ;; log buffer with a nonzero local value of vc-comment-ring-index.
+  (setq vc-comment-ring nil))
 
 ;; Random helper functions
 
@@ -162,8 +186,10 @@ the master name of FILE; this is appended to an optional list of FLAGS."
 	(vc-file (and file (vc-name file)))
 	status)
     (set-buffer (get-buffer-create "*vc*"))
-    (make-local-variable 'vc-parent-buffer)
-    (setq vc-parent-buffer camefrom)
+    (set (make-local-variable 'vc-parent-buffer) camefrom)
+    (set (make-local-variable 'vc-parent-buffer-name)
+	 (concat " from " (buffer-name camefrom)))
+    
     (erase-buffer)
 
     ;; This is so that command arguments typed in the *vc* buffer will
@@ -330,11 +356,11 @@ the master name of FILE; this is appended to an optional list of FLAGS."
       (if vc-initial-comment
 	  (setq vc-log-after-operation-hook
 		'vc-checkout-writeable-buffer-hook)
-	(vc-checkout-writeable-buffer)))
+	(vc-checkout-writeable-buffer file)))
 
      ;; if there is no lock on the file, assert one and get it
      ((not (setq owner (vc-locking-user file)))
-      (vc-checkout-writeable-buffer))
+      (vc-checkout-writeable-buffer file))
 
      ;; a checked-out version exists, but the user may not own the lock
      ((not (string-equal owner (user-login-name)))
@@ -346,7 +372,7 @@ the master name of FILE; this is appended to an optional list of FLAGS."
        owner))
      
      ;; OK, user owns the lock on the file
-     (t (let (file-window)
+     (t
 	  (find-file file)
 
 	  ;; give luser a chance to save before checking in.
@@ -370,7 +396,7 @@ the master name of FILE; this is appended to an optional list of FLAGS."
 
 	    ;; OK, let's do the checkin
 	    (vc-checkin file version comment)
-	    ))))))
+	    )))))
 
 (defun vc-next-action-dired (file rev comment)
   ;; We've accepted a log comment, now do a vc-next-action using it on all
@@ -378,7 +404,11 @@ the master name of FILE; this is appended to an optional list of FLAGS."
   (set-buffer vc-parent-buffer)
   (dired-map-over-marks
    (save-window-excursion
-     (vc-next-action-on-file (dired-get-filename) nil comment)) nil t)
+     (let ((file (dired-get-filename)))
+       (message "Processing %s..." file)
+       (vc-next-action-on-file file nil comment)
+       (message "Processing %s...done" file)))
+   nil t)
   )
 
 ;; Here's the major entry point.
@@ -408,13 +438,15 @@ each one.  The log message will be used as a comment for any register
 or checkin operations, but ignored when doing checkouts.  Attempted
 lock steals will raise an error."
   (interactive "P")
-  (if vc-dired-mode
-      (let ((files (dired-get-marked-files)))
-	(if (null files)
-	    (find-file-other-window (dired-get-filename))
-	  (vc-start-entry nil nil nil
-			  "Enter a change comment."
-			  'vc-next-action-dired)))
+  (catch 'nogo
+    (if vc-dired-mode
+	(let ((files (dired-get-marked-files)))
+	  (if (= (length files) 1)
+	      (find-file-other-window (dired-get-filename))
+	    (vc-start-entry nil nil nil
+			    "Enter a change comment for the marked files."
+			    'vc-next-action-dired)
+	    (throw 'nogo))))
     (while vc-parent-buffer
       (pop-to-buffer vc-parent-buffer))
     (if buffer-file-name
@@ -423,9 +455,9 @@ lock steals will raise an error."
 
 ;;; These functions help the vc-next-action entry point
 
-(defun vc-checkout-writeable-buffer ()
+(defun vc-checkout-writeable-buffer (&optional file)
   "Retrieve a writeable copy of the latest version of the current buffer's file."
-  (vc-checkout (buffer-file-name) t)
+  (vc-checkout (or file (buffer-file-name)) t)
   )
 
 ;;;###autoload
@@ -473,8 +505,9 @@ lock steals will raise an error."
     (if comment
 	(set-buffer (get-buffer-create "*VC-log*"))
       (pop-to-buffer (get-buffer-create "*VC-log*")))
-    (make-local-variable 'vc-parent-buffer)
-    (setq vc-parent-buffer parent)
+    (set (make-local-variable 'vc-parent-buffer) parent)
+    (set (make-local-variable 'vc-parent-buffer-name)
+	 (concat " from " (buffer-name vc-parent-buffer)))
     (vc-mode-line (if file (file-name-nondirectory file) " (no file)"))
     (vc-log-mode)
     (setq vc-log-operation action)
@@ -483,9 +516,10 @@ lock steals will raise an error."
     (if comment
 	(progn
 	  (erase-buffer)
-	  (if (not (eq comment t))
-	      (insert comment))
-	  (vc-finish-logentry))
+	  (if (eq comment t)
+	      (vc-finish-logentry t)
+	    (insert comment)
+	    (vc-finish-logentry nil)))
       (message "%s  Type C-c C-c when done." msg))))
 
 (defun vc-admin (file rev &optional comment)
@@ -514,7 +548,6 @@ level to check it in under.  COMMENT, if specified, is the checkin comment."
       (setq owner (vc-locking-user file)))
   (if (not (y-or-n-p (format "Take the lock on %s:%s from %s?" file rev owner)))
       (error "Steal cancelled."))
-  (require 'sendmail)
   (pop-to-buffer (get-buffer-create "*VC-mail*"))
   (setq default-directory (expand-file-name "~/"))
   (auto-save-mode auto-save-default)
@@ -547,7 +580,7 @@ popped up to accept a comment."
 ;;; Here is a checkin hook that may prove useful to sites using the
 ;;; ChangeLog facility supported by Emacs.
 (defun vc-comment-to-change-log (&optional file)
-  "Update change log from comments entered into VC for the current file.
+  "Update change log from VC change comments entered for the current file.
 Optional FILE specifies the change log file name; see `find-change-log'.
 See `vc-update-change-log'."
   (interactive)
@@ -558,24 +591,22 @@ See `vc-update-change-log'."
 	  (vc-update-change-log
 	   (file-relative-name buffer-file-name))))))
 
-(defun vc-finish-logentry ()
+(defun vc-finish-logentry (&optional nocomment)
   "Complete the operation implied by the current log entry."
   (interactive)
-  (goto-char (point-max))
-  (if (not (bolp)) (newline))
-  ;; Append the contents of the log buffer to the comment ring
-  (save-excursion
-    (set-buffer (get-buffer-create "*VC-comment-ring*"))
-    (goto-char (point-max))
-    (set-mark (point))
-    (insert-buffer-substring "*VC-log*")
-    (if (and (not (bobp)) (not (= (char-after (1- (point))) ?\f)))
-	(insert-char ?\f 1))
-    (if (not (bobp))
-	(forward-char -1))
-    (exchange-point-and-mark)
-    ;; Check for errors
-    (vc-backend-logentry-check vc-log-file))
+  ;; Check and record the comment, if any.
+  (if (not nocomment)
+      (progn
+	(goto-char (point-max))
+	(if (not (bolp))
+	    (newline))
+	;; Comment too long?
+	(vc-backend-logentry-check vc-log-file)
+	;; Record the comment in the comment ring
+	(if (null vc-comment-ring)
+	    (setq vc-comment-ring (make-ring vc-maximum-comment-ring-size)))
+	(ring-insert vc-comment-ring (buffer-string))
+	))
   ;; OK, do it to it
   (if vc-log-operation
       (save-excursion
@@ -589,7 +620,6 @@ See `vc-update-change-log'."
   (vc-error-occurred
    (delete-window (get-buffer-window "*VC-log*")))
   (kill-buffer "*VC-log*")
-  (bury-buffer "*VC-comment-ring*")
   ;; Now make sure we see the expanded headers
   (if buffer-file-name
 	(vc-resynch-window buffer-file-name vc-keep-workfiles t))
@@ -597,57 +627,65 @@ See `vc-update-change-log'."
 
 ;; Code for access to the comment ring
 
-(defun vc-next-comment ()
-  "Fill the log buffer with the next message in the msg ring."
-  (interactive)
-  (erase-buffer)
-  (save-excursion
-    (set-buffer "*VC-comment-ring*")
-    (forward-page)
-    (if (= (point) (point-max))
-	(goto-char (point-min)))
-    (mark-page)
-    (append-to-buffer "*VC-log*" (point) (1- (mark)))
-    ))
+(defun vc-previous-comment (arg)
+  "Cycle backwards through comment history."
+  (interactive "*p")
+  (let ((len (ring-length vc-comment-ring)))
+    (cond ((<= len 0)
+	   (message "Empty comment ring")
+	   (ding))
+	  (t
+	   (erase-buffer)
+	   ;; Initialize the index on the first use of this command
+	   ;; so that the first M-p gets index 0, and the first M-n gets
+	   ;; index -1.
+	   (if (null vc-comment-ring-index)
+	       (setq vc-comment-ring-index
+		     (if (> arg 0) -1
+			 (if (< arg 0) 1 0))))
+	   (setq vc-comment-ring-index
+		 (ring-mod (+ vc-comment-ring-index arg) len))
+	   (message "%d" (1+ vc-comment-ring-index))
+	   (insert (ring-ref vc-comment-ring vc-comment-ring-index))))))
 
-(defun vc-previous-comment ()
-  "Fill the log buffer with the previous message in the msg ring."
-  (interactive)
-  (erase-buffer)
-  (save-excursion
-    (set-buffer "*VC-comment-ring*")
-    (if (= (point) (point-min))
-	(goto-char (point-max)))
-    (backward-page)
-    (mark-page)
-    (append-to-buffer "*VC-log*" (point) (1- (mark)))
-    ))
+(defun vc-next-comment (arg)
+  "Cycle forwards through comment history."
+  (interactive "*p")
+  (vc-previous-comment (- arg)))
 
-(defun vc-comment-search-backward (regexp)
-  "Fill the log buffer with the last message in the msg ring matching REGEXP."
-  (interactive "sSearch backward for: ")
-  (erase-buffer)
-  (save-excursion
-    (set-buffer "*VC-comment-ring*")
-    (if (= (point) (point-min))
-	(goto-char (point-max)))
-    (re-search-backward regexp nil t)
-    (mark-page)
-    (append-to-buffer "*VC-log*" (point) (1- (mark)))
-    ))
+(defun vc-comment-search-reverse (str)
+  "Searches backwards through comment history for substring match."
+  (interactive "sComment substring: ")
+  (if (string= str "")
+      (setq str vc-last-comment-match)
+    (setq vc-last-comment-match str))
+  (if (null vc-comment-ring-index)
+      (setq vc-comment-ring-index -1))
+  (let ((str (regexp-quote str))
+        (len (ring-length vc-comment-ring))
+	(n (1+ vc-comment-ring-index)))
+    (while (and (< n len) (not (string-match str (ring-ref vc-comment-ring n))))
+      (setq n (+ n 1)))
+    (cond ((< n len)
+	   (vc-previous-comment (- n vc-comment-ring-index)))
+	  (t (error "Not found")))))
 
-(defun vc-comment-search-forward (regexp)
-  "Fill the log buffer with the next message in the msg ring matching REGEXP."
-  (interactive "sSearch forward for: ")
-  (erase-buffer)
-  (save-excursion
-    (set-buffer "*VC-comment-ring*")
-    (if (= (point) (point-max))
-	(goto-char (point-min)))
-    (re-search-forward regexp nil t)
-    (mark-page)
-    (append-to-buffer "*VC-log*" (point) (1- (mark)))
-    ))
+(defun vc-comment-search-forward (str)
+  "Searches forwards through comment history for substring match."
+  (interactive "sComment substring: ")
+  (if (string= str "")
+      (setq str vc-last-comment-match)
+    (setq vc-last-comment-match str))
+  (if (null vc-comment-ring-index)
+      (setq vc-comment-ring-index 0))
+  (let ((str (regexp-quote str))
+        (len (ring-length vc-comment-ring))
+	(n vc-comment-ring-index))
+    (while (and (>= n 0) (not (string-match str (ring-ref vc-comment-ring n))))
+      (setq n (- n 1)))
+    (cond ((>= n 0)
+	   (vc-next-comment (- n vc-comment-ring-index)))
+	  (t (error "Not found")))))
 
 ;; Additional entry points for examining version histories
 
@@ -661,14 +699,23 @@ See `vc-update-change-log'."
       (pop-to-buffer vc-parent-buffer))
   (if historic
       (call-interactively 'vc-version-diff)
+    (if (or (null buffer-file-name) (null (vc-name buffer-file-name)))
+	(error "There is no version-control master associated with this buffer."))
     (let ((file buffer-file-name)
 	  unchanged)
       (vc-buffer-sync)
       (setq unchanged (vc-workfile-unchanged-p buffer-file-name))
       (if unchanged
 	  (message "No changes to %s since latest version." file)
-	(pop-to-buffer "*vc*")
 	(vc-backend-diff file nil)
+	;; Ideally, we'd like at this point to parse the diff so that
+	;; the buffer effectively goes into compilation mode and we
+	;; can visit the old and new change locations via next-error.
+	;; Unfortunately, this is just too painful to do.  The basic
+	;; problem is that the `old' file doesn't exist to be
+	;; visited.  This plays hell with numerous assumptions in
+	;; the diff.el and compile.el machinery.
+	(pop-to-buffer "*vc*")
 	(vc-shrink-to-fit)
 	(goto-char (point-min))
 	)
@@ -687,8 +734,9 @@ files in or below it."
   (if (file-directory-p file)
       (let ((camefrom (current-buffer)))
 	(set-buffer (get-buffer-create "*vc-status*"))
-	(make-local-variable 'vc-parent-buffer)
-	(setq vc-parent-buffer camefrom)
+	(set (make-local-variable 'vc-parent-buffer) camefrom)
+	(set (make-local-variable 'vc-parent-buffer-name)
+	     (concat " from " (buffer-name camefrom)))
 	(erase-buffer)
 	(insert "Diffs between "
 		(or rel1 "last version checked in")
@@ -773,6 +821,24 @@ on a buffer attached to the file named in the current Dired buffer line."
   (setq vc-dired-mode t)
   (setq vc-mode " under VC"))
 
+(defun vc-dired-reformat-line (x)
+  ;; Hack a directory-listing line, plugging in locking-user info in
+  ;; place of the user and group info. Should have the beneficial
+  ;; side-effect of shortening the listing line. Each call starts with
+  ;; point immediately following the dired mark area on the line to be
+  ;; hacked.
+  ;;
+  ;; Simplest possible one:
+  ;; (insert (concat x "\t")))
+  ;;
+  ;; This code, like dired, assumes UNIX -l format.
+  (forward-word 1)	;; skip over any extra field due to -ibs options
+  (if x (setq x (concat "(" x ")")))
+  (if (re-search-forward "\\([0-9]+ \\).................\\( .*\\)" nil 0)
+      (let ((rep (substring (concat x "                 ") 0 9)))
+	(replace-match (concat "\\1" rep "\\2") t)))
+  )
+
 ;;;###autoload
 (defun vc-directory (verbose)
   "Show version-control status of all files under the current directory."
@@ -780,7 +846,8 @@ on a buffer attached to the file named in the current Dired buffer line."
   (let (nonempty
 	(dl (length default-directory))
 	(filelist nil) (userlist nil)
-	dired-buf)
+	dired-buf
+	dired-buf-mod-count)
     (vc-file-tree-walk
      (function (lambda (f)
 		 (if (vc-registered f)
@@ -789,22 +856,26 @@ on a buffer attached to the file named in the current Dired buffer line."
 			    (setq filelist (cons (substring f dl) filelist))
 			    (setq userlist (cons user userlist))))))))
     (save-excursion
-     (dired (cons default-directory (nreverse filelist)))
-     (setq dired-buf (current-buffer))
-     (setq nonempty (not (zerop (buffer-size)))))
+      ;; This uses a semi-documented featre of dired; giving a switch
+      ;; argument forces the buffer to refresh each time.
+      (dired
+       (cons default-directory (nreverse filelist))
+       dired-listing-switches)
+      (setq dired-buf (current-buffer))
+      (setq nonempty (not (zerop (buffer-size)))))
     (if nonempty
 	(progn
 	  (pop-to-buffer dired-buf)
 	  (vc-dired-mode)
 	  (goto-char (point-min))
 	  (setq buffer-read-only nil)
+	  (forward-line 1)	;; Skip header line
 	  (mapcar
-	   (function (lambda (x)
-		       (forward-char 2)	;; skip dired's mark area
-		       (if x (insert x))
-		       (insert "\t")
-		       (forward-line 1)))
-	   (cons "\t" (nreverse userlist)))
+	   (lambda (x)
+	     (forward-char 2)	;; skip dired's mark area
+	     (vc-dired-reformat-line x)
+	     (forward-line 1))	;; go to next line
+	   (nreverse userlist))
 	  (setq buffer-read-only t)
 	  (goto-char (point-min))
 	  )
@@ -1269,7 +1340,7 @@ Return nil if there is no such person."
 
 (defun vc-backend-logentry-check (file)
   (vc-backend-dispatch file
-   (if (>= (- (region-end) (region-beginning)) 512)	;; SCCS
+   (if (>= (buffer-size) 512)	;; SCCS
        (progn
 	 (goto-char 512)
 	 (error
@@ -1414,8 +1485,8 @@ saved comments.  These can be recalled as follows:
 
 \\[vc-next-comment]	replace region with next message in comment ring
 \\[vc-previous-comment]	replace region with previous message in comment ring
-\\[vc-search-comment-reverse]	search backward for regexp in the comment ring
-\\[vc-search-comment-forward]	search backward for regexp in the comment ring
+\\[vc-comment-search-reverse]	search backward for regexp in the comment ring
+\\[vc-comment-search-forward]	search backward for regexp in the comment ring
 
 Entry to the change-log submode calls the value of text-mode-hook, then
 the value of vc-log-mode-hook.
@@ -1457,6 +1528,7 @@ Global user options:
   (setq mode-name "VC-Log")
   (make-local-variable 'vc-log-file)
   (make-local-variable 'vc-log-version)
+  (make-local-variable 'vc-comment-ring-index)
   (set-buffer-modified-p nil)
   (setq buffer-file-name nil)
   (run-hooks 'text-mode-hook 'vc-log-mode-hook)
@@ -1468,7 +1540,7 @@ Global user options:
   (setq vc-log-entry-mode (make-sparse-keymap))
   (define-key vc-log-entry-mode "\M-n" 'vc-next-comment)
   (define-key vc-log-entry-mode "\M-p" 'vc-previous-comment)
-  (define-key vc-log-entry-mode "\M-r" 'vc-comment-search-backward)
+  (define-key vc-log-entry-mode "\M-r" 'vc-comment-search-reverse)
   (define-key vc-log-entry-mode "\M-s" 'vc-comment-search-forward)
   (define-key vc-log-entry-mode "\C-c\C-c" 'vc-finish-logentry)
   )
