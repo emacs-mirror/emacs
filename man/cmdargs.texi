@@ -1171,6 +1171,49 @@ Background color for face @var{face}.
 @item @var{face}.attributeUnderline
 Underline flag for face @var{face}.  Use @samp{on} or @samp{true} for
 yes.
+@item @var{face}.attributeFamily
+Font family for face @var{face}.
+@item @var{face}.attributeWidth
+Relative proportional width of the font to use for face @var{face}.
+It should be one of @code{ultra-condensed}, @code{extra-condensed},
+@code{condensed}, @code{semi-condensed}, @code{normal},
+@code{semi-expanded}, @code{expanded}, @code{extra-expanded}, or
+@code{ultra-expanded}.
+@item @var{face}.attributeHeight
+Height of the font to use for face @var{face}: either an integer
+specifying the height in units of 1/10@dmn{pt}, or a floating point
+number that specifies a scale factor to scale the underlying face's
+default font, or a function to be called with the default height which
+will return a new height.
+@item @var{face}.attributeWeight
+A weight to use for the face @var{face}.  It must be one of
+@code{ultra-bold}, @code{extra-bold}, @code{bold},
+@code{semi-bold}, @code{normal}, @code{semi-light}, @code{light},
+@code{extra-light}, @code{ultra-light}.
+@item @var{face}.attributeSlant
+The slant to use for the font of face @var{face}.  It must be one of
+@code{italic}, @code{oblique}, @code{normal},
+@code{reverse-italic}, or @code{reverse-oblique}.
+@item @var{face}.attributeStrikeThrough
+Whether the face @var{face} should be drawn with a line striking
+through the characters.
+@item @var{face}.attributeOverline
+Whether the characters in the face @var{face} should be overlined.
+@item @var{face}.attributeBox
+Whether to draw a box around the characters in face @var{face}.
+@item @var{face}.attributeInverse
+Whether to display the characters in face @var{face} in inverse
+video.
+@item @var{face}.attributeStipple
+The name of a pixmap data file to use for the stipple pattern, or
+@code{false} to not use stipple for the face @var{face}.
+@item @var{face}.attributeBackgroundPixmap
+The background pixmap for the face @var{face}.  Should be a name of a
+pixmap file or @code{false}.
+@item @var{face}.attributeBold
+Whether to draw the characters in the face @var{face} as bold.
+@item @var{face}.attributeItalic
+Whether to draw the characters in the face @var{face} as italic.
 @end table
 
 @node Lucid Resources
