@@ -187,7 +187,8 @@ main (argc, argv)
 	{
 #ifdef MSDOS
 #if __DJGPP__ >= 2
-	  setmode (fileno (stdout), O_BINARY);
+          if (!isatty (fileno (fp)))
+	    setmode (fileno (fp), O_BINARY);
 #else
 	  (fp)->_flag &= ~_IOTEXT; /* read binary */
 	  _setmode (fileno (fp), O_BINARY);
