@@ -12,6 +12,10 @@ MPMPF = mpsliban.c mpsioan.c lockan.c than.c vmli.c \
 
 LIBS = -lm
 
-# Currently using nobbled compiler flags because system headers produce
-# warnings.
-include gcmkli.gmk
+include gc.gmk
+
+CC = cc
+
+# If any adjustment to compiler options is needed, it should be done here.
+
+include comm.gmk

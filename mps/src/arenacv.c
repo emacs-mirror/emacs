@@ -21,7 +21,6 @@
 #include "testlib.h"
 #include "mpsavm.h"
 #include "mpsacl.h"
-#include "mpsaan.h"
 #ifdef MPS_OS_SU
 #include "ossu.h"
 #endif
@@ -158,7 +157,7 @@ static void testAsTract(AllocInfo ai, Arena arena)
   die(found ? ResOK : ResFAIL, "TractOfAddr");
   base = TractBase(tract);
   die(base == ai->the.tractData.base ? ResOK : ResFAIL, "base");
- 
+
 }
 
 static void copyAsTract(AllocInfoStruct *toReturn, AllocInfo from)
@@ -235,7 +234,7 @@ static void testAsSeg(AllocInfo ai, Arena arena)
   Seg seg = ai->the.segData.seg;
   Addr base, limit;
   Size size;
- 
+
   UNUSED(arena);
   base = SegBase(seg);
   limit = SegLimit(seg);
@@ -414,8 +413,6 @@ int main(void)
 
   testPageTable((ArenaClass)mps_arena_class_vm(), TEST_ARENA_SIZE);
   testPageTable((ArenaClass)mps_arena_class_vmnz(), TEST_ARENA_SIZE);
-
-  testPageTable((ArenaClass)mps_arena_class_an(), TEST_ARENA_SIZE);
 
   block = malloc(TEST_ARENA_SIZE);
   die(block == NULL ? ResFAIL : ResOK, "malloc");

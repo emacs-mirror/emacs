@@ -1865,12 +1865,13 @@ static void AMCReclaim(Pool pool, Trace trace, Seg seg)
 
   /* This switching needs to be more complex for multiple traces. */
   AVER_CRITICAL(TraceSetIsSingle(PoolArena(pool)->busyTraces));
-  if(amc->rampMode == collectingRamp)
+  if(amc->rampMode == collectingRamp) {
      if(amc->rampCount > 0)
        /* Entered ramp mode before previous one was cleaned up */
        amc->rampMode = beginRamp;
      else
        amc->rampMode = outsideRamp;
+  }
 
   if(SegNailed(seg) != TraceSetEMPTY) {
     AMCReclaimNailed(pool, trace, seg);

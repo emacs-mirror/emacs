@@ -7,7 +7,6 @@
 #
 # _ANSI_C_SOURCE is defined in PFMDEFS to avoid bug in library headers
 # which define TRUE and FALSE.
-#
 
 PFM = o1algc
 PFMDEFS = -D_ANSI_C_SOURCE
@@ -19,3 +18,5 @@ MPMS = sso1al.s
 LIBS = -lm
 
 include gc.gmk
+
+include comm.gmk

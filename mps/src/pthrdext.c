@@ -15,9 +15,11 @@
  */
 
 
+#if defined(MPS_OS_LI)
 /* open sesame magic */
 #define _BSD_SOURCE 1
 #define _POSIX_C_SOURCE 1
+#endif
 
 #include <pthread.h>
 #include <sched.h>
@@ -28,8 +30,6 @@
 #include <stdlib.h>
 
 #include "pthrdext.h"
-#include "mpm.h"
-
 
 /* PTHREADEXT_SIGSUSPEND, PTHREADEXT_SIGRESUME -- signals used
  *
@@ -37,8 +37,7 @@
  */
 
 #define PTHREADEXT_SIGSUSPEND SIGXFSZ
-#define PTHREADEXT_SIGRESUME SIGPWR
-
+#define PTHREADEXT_SIGRESUME SIGXCPU
 
 /* Static data initiatialized on first use of the module
  * See design.mps.pthreadext.impl.static.*
@@ -62,10 +61,83 @@ static Bool pthreadextModuleInitialized = FALSE;
 static PThreadext suspendingVictim = NULL;  /* current victim */
 static RingStruct suspendedRing;            /* PThreadext suspend ring */
 
+/* suspendSignalHandler -- signal handler called when suspending a thread
+ *
+ * See design.mps.pthreadext.impl.suspend-handler
+ *
+ * The interface for determining the MFC might be platform specific.
+ *
+ * Handle PTHREADEXT_SIGSUSPEND in the target thread, to suspend it until
+ * receiving PTHREADEXT_SIGRESUME (resume). Note that this is run with both
+ * PTHREADEXT_SIGSUSPEND and PTHREADEXT_SIGRESUME blocked. Having
+ * PTHREADEXT_SIGRESUME blocked prevents a resume before we can finish the
+ * suspend protocol.
+ */
 
-static void suspendSignalHandler(int sig, struct sigcontext scp);
-static void resumeSignalHandler(int sig);
+#if defined(MPS_OS_LI)
 
+#include "prmcli.h"
+
+static void suspendSignalHandler(int sig, struct sigcontext scp)
+{
+    sigset_t signal_set;
+    MutatorFaultContextStruct mfContext;
+
+    AVER(sig == PTHREADEXT_SIGSUSPEND);
+    UNUSED(sig);
+
+    AVER(suspendingVictim != NULL);
+    mfContext.scp = &scp;
+    suspendingVictim->suspendedMFC = &mfContext;
+    /* Block all signals except PTHREADEXT_SIGRESUME while suspended. */
+    sigfillset(&signal_set);
+    sigdelset(&signal_set, PTHREADEXT_SIGRESUME);
+    sem_post(&pthreadextSem);
+    sigsuspend(&signal_set);
+
+    /* Once here, the resume signal handler has run to completion. */
+    return;
+}
+
+#elif defined(MPS_OS_FR)
+
+#include "prmcfr.h"
+
+static void suspendSignalHandler(int sig,
+                                 siginfo_t *info,
+                                 void *context)
+{
+    sigset_t signal_set;
+    ucontext_t ucontext;
+    MutatorFaultContextStruct mfContext;
+
+    AVER(sig == PTHREADEXT_SIGSUSPEND);
+    UNUSED(sig);
+
+    AVER(suspendingVictim != NULL);
+    /* copy the ucontext structure so we definitely have it on our stack,
+     * not (e.g.) shared with other threads. */
+    ucontext = *(ucontext_t *)context;
+    mfContext.ucontext = &ucontext;
+    suspendingVictim->suspendedMFC = &mfContext;
+    /* Block all signals except PTHREADEXT_SIGRESUME while suspended. */
+    sigfillset(&signal_set);
+    sigdelset(&signal_set, PTHREADEXT_SIGRESUME);
+    sem_post(&pthreadextSem);
+    sigsuspend(&signal_set);
+
+    /* Once here, the resume signal handler has run to completion. */
+    return;
+}
+
+#endif
+
+static void resumeSignalHandler(int sig)
+{
+    AVER(sig == PTHREADEXT_SIGRESUME);
+    UNUSED(sig);
+    return;
+}
 
 /* PThreadextModuleInit -- Initialize the PThreadext module
  *
@@ -96,12 +168,19 @@ static void PThreadextModuleInit(void)
     /* PTHREADEXT_SIGRESUME signal cannot be delivered before the */
     /* target thread calls sigsuspend.) */
 
-    pthreadext_sigsuspend.sa_flags = 0;
-    pthreadext_sigsuspend.sa_handler = (__sighandler_t)suspendSignalHandler;
     status = sigemptyset(&pthreadext_sigsuspend.sa_mask);
     AVER(status == 0);
     status = sigaddset(&pthreadext_sigsuspend.sa_mask, PTHREADEXT_SIGRESUME);
     AVER(status == 0);
+
+#if defined(MPS_OS_LI)
+    pthreadext_sigsuspend.sa_flags = 0;
+    pthreadext_sigsuspend.sa_handler = (__sighandler_t)suspendSignalHandler;
+
+#elif defined(MPS_OS_FR)
+    pthreadext_sigsuspend.sa_flags = SA_SIGINFO;
+    pthreadext_sigsuspend.sa_sigaction = suspendSignalHandler;
+#endif
 
     pthreadext_sigresume.sa_flags = 0;
     pthreadext_sigresume.sa_handler = resumeSignalHandler;
@@ -131,7 +210,7 @@ extern Bool PThreadextCheck(PThreadext pthreadext)
   /* can't check ID */
   CHECKL(RingCheck(&pthreadext->threadRing));
   CHECKL(RingCheck(&pthreadext->idRing));
-  if (pthreadext->suspendedScp == NULL) {
+  if (pthreadext->suspendedMFC == NULL) {
     /* not suspended */
     CHECKL(RingIsSingle(&pthreadext->threadRing));
     CHECKL(RingIsSingle(&pthreadext->idRing));
@@ -142,7 +221,7 @@ extern Bool PThreadextCheck(PThreadext pthreadext)
     RING_FOR(node, &pthreadext->idRing, next) {
       PThreadext pt = RING_ELT(PThreadext, idRing, node);
       CHECKL(pt->id == pthreadext->id);
-      CHECKL(pt->suspendedScp == pthreadext->suspendedScp);
+      CHECKL(pt->suspendedMFC == pthreadext->suspendedMFC);
     }
   }
   status = pthread_mutex_unlock(&pthreadextMut);
@@ -163,7 +242,7 @@ extern void PThreadextInit(PThreadext pthreadext, pthread_t id)
   AVER(status == 0);
 
   pthreadext->id = id;
-  pthreadext->suspendedScp = NULL;
+  pthreadext->suspendedMFC = NULL;
   RingInit(&pthreadext->threadRing);
   RingInit(&pthreadext->idRing);
   pthreadext->sig = PThreadextSig;
@@ -185,7 +264,7 @@ extern void PThreadextFinish(PThreadext pthreadext)
   status = pthread_mutex_lock(&pthreadextMut);
   AVER(status == 0);
 
-  if(pthreadext->suspendedScp == NULL) {
+  if(pthreadext->suspendedMFC == NULL) {
     AVER(RingIsSingle(&pthreadext->threadRing));
     AVER(RingIsSingle(&pthreadext->idRing));
   } else {
@@ -205,60 +284,12 @@ extern void PThreadextFinish(PThreadext pthreadext)
 }
 
 
-/* suspendSignalHandler -- signal handler called when suspending a thread
- *
- * See design.mps.pthreadext.impl.suspend-handler
- *
- * The interface for determining the sigcontext might be platform specific.
- *
- * Handle PTHREADEXT_SIGSUSPEND in the target thread, to suspend it until
- * receiving PTHREADEXT_SIGRESUME (resume). Note that this is run with both
- * PTHREADEXT_SIGSUSPEND and PTHREADEXT_SIGRESUME blocked. Having
- * PTHREADEXT_SIGRESUME blocked prevents a resume before we can finish the
- * suspend protocol.
- */
-
-static void suspendSignalHandler(int sig, struct sigcontext scp)
-{
-    sigset_t signal_set;
-
-    AVER(sig == PTHREADEXT_SIGSUSPEND);
-    UNUSED(sig);
-
-    /* Tell caller about the sigcontext. */
-    AVER(suspendingVictim != NULL);
-    suspendingVictim->suspendedScp = &scp;
-
-    /* Block all signals except PTHREADEXT_SIGRESUME while suspended. */
-    sigfillset(&signal_set);
-    sigdelset(&signal_set, PTHREADEXT_SIGRESUME);
-    sem_post(&pthreadextSem);
-    sigsuspend(&signal_set);
-
-    /* Once here, the resume signal handler has run to completion. */
-    return;
-}
-
-
-/* resumeSignalHandler -- signal handler called when resuming a thread
- *
- * See design.mps.pthreadext.impl.suspend-handler
- */
-
-static void resumeSignalHandler(int sig)
-{
-    AVER(sig == PTHREADEXT_SIGRESUME);
-    UNUSED(sig);
-    return;
-}
-
-
 /* PThreadextSuspend -- suspend a thread
  *
  * See design.mps.pthreadext.impl.suspend
  */
 
-Res PThreadextSuspend(PThreadext target, struct sigcontext **contextReturn)
+Res PThreadextSuspend(PThreadext target, MutatorFaultContext *contextReturn)
 {
   Ring node, next;
   Res res;
@@ -266,7 +297,7 @@ Res PThreadextSuspend(PThreadext target, struct sigcontext **contextReturn)
 
   AVERT(PThreadext, target);
   AVER(contextReturn != NULL);
-  AVER(target->suspendedScp == NULL); /* multiple suspends illegal */
+  AVER(target->suspendedMFC == NULL); /* multiple suspends illegal */
 
   /* Serialize access to suspend, makes life easier */
   status = pthread_mutex_lock(&pthreadextMut);
@@ -280,7 +311,7 @@ Res PThreadextSuspend(PThreadext target, struct sigcontext **contextReturn)
     PThreadext alreadySusp = RING_ELT(PThreadext, threadRing, node);
     if (alreadySusp->id == target->id) {
       RingAppend(&alreadySusp->idRing, &target->idRing);
-      target->suspendedScp = alreadySusp->suspendedScp;
+      target->suspendedMFC = alreadySusp->suspendedMFC;
       goto noteSuspended;
     }
   }
@@ -302,9 +333,9 @@ Res PThreadextSuspend(PThreadext target, struct sigcontext **contextReturn)
   }
 
 noteSuspended:
-  AVER(target->suspendedScp != NULL);
+  AVER(target->suspendedMFC != NULL);
   RingAppend(&suspendedRing, &target->threadRing);
-  *contextReturn = target->suspendedScp;
+  *contextReturn = target->suspendedMFC;
   res = ResOK;
 
 unlock:
@@ -327,7 +358,7 @@ Res PThreadextResume(PThreadext target)
 
   AVERT(PThreadext, target);
   AVER(pthreadextModuleInitialized);  /* must have been a prior suspend */
-  AVER(target->suspendedScp != NULL);
+  AVER(target->suspendedMFC != NULL);
 
   /* Serialize access to suspend, makes life easier. */
   status = pthread_mutex_lock(&pthreadextMut);
@@ -353,7 +384,7 @@ Res PThreadextResume(PThreadext target)
 noteResumed:
   /* Remove the thread from the suspended ring */
   RingRemove(&target->threadRing);
-  target->suspendedScp = NULL;
+  target->suspendedMFC = NULL;
   res = ResOK;
 
 unlock:

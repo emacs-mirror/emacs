@@ -15,3 +15,5 @@ SWPF = than.c vmso.c protsw.c prmcan.c ssan.c
 LIBS = -lm
 
 include gc.gmk
+
+include comm.gmk

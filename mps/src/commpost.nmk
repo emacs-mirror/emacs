@@ -16,7 +16,7 @@
 all: mpmss.exe amcss.exe amsss.exe segsmss.exe awlut.exe awluthe.exe mpsicv.exe \
      lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe \
      finalcv.exe arenacv.exe bttest.exe teletest.exe \
-     abqtest.exe cbstest.exe btcv.exe mv2eptst.exe mv2test.exe \
+     abqtest.exe cbstest.exe btcv.exe mv2test.exe \
      messtest.exe
 
 # Convenience targets
@@ -26,7 +26,7 @@ all: mpmss.exe amcss.exe amsss.exe segsmss.exe awlut.exe awluthe.exe mpsicv.exe 
 mpmss.exe amcss.exe amcsshe.exe amsss.exe segsmss.exe awlut.exe awluthe.exe dwstress.exe \
      mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
      finalcv.exe arenacv.exe bttest.exe teletest.exe protcv.exe \
-     thw3susp.exe abqtest.exe cbstest.exe btcv.exe mv2eptst.exe \
+     thw3susp.exe abqtest.exe cbstest.exe btcv.exe \
      mv2test.exe epvmss.exe messtest.exe eventcnv.exe replay.exe replaysw.exe \
      mmdw.lib mmsw.lib mps_conf.lib mpsplan.lib:
 !IFDEF VARIETY
@@ -102,10 +102,10 @@ $(PFM)\$(VARIETY)\mpmss.exe: $(PFM)\$(VARIETY)\mpmss.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\bttest.exe: $(PFM)\$(VARIETY)\bttest.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(ARENAANOBJ)
+	$(MPMOBJ) $(PLINTHOBJ)
 
 $(PFM)\$(VARIETY)\teletest.exe: $(PFM)\$(VARIETY)\teletest.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(ARENAANOBJ)
+	$(MPMOBJ) $(PLINTHOBJ)
 
 $(PFM)\$(VARIETY)\lockcov.exe: $(PFM)\$(VARIETY)\lockcov.obj \
 	$(MPMOBJ) $(PLINTHOBJ)
@@ -145,7 +145,7 @@ $(PFM)\$(VARIETY)\protcv.exe:  $(PFM)\$(VARIETY)\protcv.obj \
 	$(MPMOBJ) $(PLINTHOBJ)
 
 $(PFM)\$(VARIETY)\poolncv.exe:  $(PFM)\$(VARIETY)\poolncv.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(ARENAANOBJ) $(POOLNOBJ)
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(POOLNOBJ)
 
 $(PFM)\$(VARIETY)\locv.exe:  $(PFM)\$(VARIETY)\locv.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(LOOBJ)
@@ -159,22 +159,19 @@ $(PFM)\$(VARIETY)\awluthe.exe:  $(PFM)\$(VARIETY)\awluthe.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(LOOBJ) $(AWLOBJ)
 
 $(PFM)\$(VARIETY)\arenacv.exe:  $(PFM)\$(VARIETY)\arenacv.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(ARENAANOBJ)
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\abqtest.exe: $(PFM)\$(VARIETY)\abqtest.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(ARENAANOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\cbstest.exe: $(PFM)\$(VARIETY)\cbstest.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(ARENAANOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\btcv.exe: $(PFM)\$(VARIETY)\btcv.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(ARENAANOBJ) $(TESTLIBOBJ)
-
-$(PFM)\$(VARIETY)\mv2eptst.exe: $(PFM)\$(VARIETY)\mv2eptst.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(ARENAANOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\mv2test.exe: $(PFM)\$(VARIETY)\mv2test.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(ARENAANOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\eventcnv.exe: $(PFM)\$(VARIETY)\eventcnv.obj \
 	$(PFM)\$(VARIETY)\eventpro.obj $(PFM)\$(VARIETY)\table.obj
@@ -206,7 +203,7 @@ $(PFM)\$(VARIETY)\epvmss.exe: $(PFM)\$(VARIETY)\epvmss.obj \
 	$(SWOBJ) $(TESTLIBOBJ) $(PLINTHOBJ) $(EVENTOBJ)
 
 $(PFM)\$(VARIETY)\messtest.exe: $(PFM)\$(VARIETY)\messtest.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(ARENAANOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\mmsw.lib: $(SWOBJ)
 	$(ECHO) $@

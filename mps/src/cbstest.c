@@ -6,7 +6,7 @@
 
 #include "cbs.h"
 #include "mpm.h"
-#include "mpsaan.h" /* ANSI arena for BTCreate and BTDestroy */
+#include "mpsavm.h"
 #include "mps.h"
 #include "testlib.h"
 
@@ -143,7 +143,7 @@ static Bool checkCBSAction(CBS cbs, CBSBlock cbsBlock,
     AVER(base == closure->oldLimit);
     AVER(closure->oldLimit == closure->base);
   }
- 
+
   AVER(BTIsResRange(closure->allocTable,
                     IndexOfAddr(closure->base, base),
                     IndexOfAddr(closure->base, limit)));
@@ -176,7 +176,7 @@ static void checkCBS(CBS cbs, BT allocTable, Addr dummyBlock) {
 }
 
 /* Not very uniform, but never mind. */
-static Word random(Word limit) {
+static Word cbsRnd(Word limit) {
   return (Word)rnd() % limit;
 }
 
@@ -253,15 +253,15 @@ static void randomRange(Addr *baseReturn,
                 /* after base */
   Index limit;  /* a randomly chosen value in (base, limit]. */
 
-  base = random(ArraySize);
+  base = cbsRnd(ArraySize);
 
   do {
     end = nextEdge(allocTable, ArraySize, base);
-  } while(end < ArraySize && random(2) == 0); /* p=0.5 exponential */
+  } while(end < ArraySize && cbsRnd(2) == 0); /* p=0.5 exponential */
 
   AVER(end > base);
 
-  limit = base + 1 + random(end - base);
+  limit = base + 1 + cbsRnd(end - base);
 
   *baseReturn = AddrOfIndex(block, base);
   *limitReturn = AddrOfIndex(block, limit);
@@ -295,7 +295,7 @@ static void checkExpectations(void) {
   AVER(!CallbackDelete.shouldBeCalled);
   AVER(!CallbackGrow.shouldBeCalled);
   AVER(!CallbackShrink.shouldBeCalled);
-} 
+}
 
 
 static void allocate(CBS cbs, Addr block, BT allocTable,
@@ -308,7 +308,7 @@ static void allocate(CBS cbs, Addr block, BT allocTable,
   il = IndexOfAddr(block, limit);
 
   isFree = BTIsResRange(allocTable, ib, il);
- 
+
   /*
   printf("allocate: [%p, %p) -- %s\n",
          base, limit, isFree ? "succeed" : "fail");
@@ -538,7 +538,7 @@ extern int main(int argc, char *argv[])
   int i;
   Addr base, limit;
   mps_arena_t mpsArena;
-  Arena arena; /* the ANSI arena which we use to allocate the BT */
+  Arena arena; /* the arena which we use to allocate the BT */
   CBSStruct cbsStruct;
   CBS cbs;
   void *p;
@@ -557,7 +557,7 @@ extern int main(int argc, char *argv[])
 
   clearExpectations();
 
-  die((mps_res_t)mps_arena_create(&mpsArena, mps_arena_class_an()),
+  die((mps_res_t)mps_arena_create(&mpsArena, mps_arena_class_vm()),
       "Failed to create arena");
   arena = (Arena)mpsArena; /* avoid pun */
 
@@ -585,7 +585,7 @@ extern int main(int argc, char *argv[])
 
   checkCBS(cbs, allocTable, dummyBlock);
   for(i = 0; i < NOperations; i++) {
-    switch(random(3)) {
+    switch(cbsRnd(3)) {
     case 0: {
       randomRange(&base, &limit, allocTable, dummyBlock);
       allocate(cbs, dummyBlock, allocTable, base, limit);
@@ -595,9 +595,9 @@ extern int main(int argc, char *argv[])
       deallocate(cbs, dummyBlock, allocTable, base, limit);
     } break;
     case 2: {
-      size = random(ArraySize / 10) + 1;
-      high = random(2) ? TRUE : FALSE;
-      switch(random(6)) {
+      size = cbsRnd(ArraySize / 10) + 1;
+      high = cbsRnd(2) ? TRUE : FALSE;
+      switch(cbsRnd(6)) {
       case 0:
       case 1:
       case 2: findDelete = CBSFindDeleteNONE; break;

@@ -1,0 +1,28 @@
+# impl.gmk.fri4gc: BUILD FOR FreeBSD/INTEL/GCC PLATFORM
+#
+# $Id$
+# Copyright (c) 2001 Ravenbrook Limited.
+
+PFM = fri4gc
+
+PFMDEFS = -D_REENTRANT
+
+MPMPF = mpsliban.c mpsioan.c lockfr.c thfri4.c pthrdext.c vmfr.c \
+        protfr.c protfri3.c prmcan.c ssfri3.c span.c
+SWPF = than.c vmfr.c protsw.c prmcan.c ssan.c
+
+LIBS = -lm -pthread
+
+include gc.gmk
+
+CFLAGSDEBUG = -g
+CFLAGSOPT = -O -g
+
+CC = cc
+
+# Suppress some warnings (SuSE).
+#   .void: -Wpointer-arith cannot be used because the string.h header does
+#   arithmetic on void*.
+CFLAGSCOMPILER := $(subst -Wpointer-arith,,$(CFLAGSCOMPILER))
+
+include comm.gmk

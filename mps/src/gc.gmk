@@ -9,7 +9,7 @@
 
 
 CC = gcc
-CFLAGSCOMPILER = \
+CFLAGSCOMPILER := \
 	-ansi -pedantic -Wall -Werror -Wpointer-arith \
 	-Wstrict-prototypes -Wmissing-prototypes \
 	-Winline -Waggregate-return -Wnested-externs \
@@ -22,11 +22,10 @@ CFLAGSOPTNODEBUG = -O -g0
 #   thing.o : thing.c ...
 # The sed line converts this into:
 #   <pfm>/<variety>/thing.o <pfm>/<variety>/thing.d : thing.c ...
-# @@ This sequence is vulnerable to interrupts (for some reason)
+# If interrupted, this is liable to leave a zero-length file behind.
 
 define gendep
-	$(SHELL) -ec "gcc -c $(CFLAGS) -MM $< | \
+	$(SHELL) -ec "$(CC) $(CFLAGS) -MM $< | \
 		sed '/:/s!$*.o!$(@D)/& $(@D)/$*.d!' > $@"
+	[ -s $@ ] || rm -f $@
 endef
-
-include comm.gmk

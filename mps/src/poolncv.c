@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include "mpm.h"
 #include "pooln.h"
-#include "mpsaan.h"
+#include "mpsavm.h"
 #include "testlib.h"
 #ifdef MPS_OS_SU
 #include "ossu.h"
@@ -44,7 +44,7 @@ static Bool testit(ArenaClass class, ...)
 
 int main(void)
 {
-  if(testit((ArenaClass)mps_arena_class_an(), (Size)1000)) {
+  if(testit((ArenaClass)mps_arena_class_vm(), (Size)1000)) {
     fprintf(stderr, "Conclusion:  Defects found.\n");
   } else {
     fprintf(stderr, "Conclusion:  Failed to find any defects.\n");

@@ -17,3 +17,12 @@ SWPF = than.c vmli.c protsw.c prmcan.c ssan.c
 LIBS = -lm ${THREADLIB}
 
 include gc.gmk
+
+CC = cc
+
+# Suppress some warnings (SuSE).
+#   .void: -Wpointer-arith cannot be used because the string.h header does
+#   arithmetic on void*.
+CFLAGSCOMPILER := $(subst -Wpointer-arith,,$(CFLAGSCOMPILER))
+
+include comm.gmk

@@ -14,3 +14,5 @@ MPMS = sssus8.s
 LIBS = -lm
 
 include gc.gmk
+
+include comm.gmk
