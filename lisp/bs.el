@@ -195,12 +195,11 @@ return a string representing the columns value."
 	 '(1 font-lock-type-face append) '(1 'bold append))
    ;; Buffername embedded by *
    (list "^\\(.*\\*.*\\*.*\\)$"
-	 1 (if bs--running-in-xemacs
-	       ;; problem in XEmacs with font-lock-constant-face
-	       (if (facep 'font-lock-constant-face)
-		   'font-lock-constant-face
-		 'font-lock-comment-face)
-	     'font-lock-constant-face))
+	 1
+	 ;; problem in XEmacs with font-lock-constant-face
+	 (if (facep 'font-lock-constant-face)
+	     'font-lock-constant-face
+	   'font-lock-comment-face))
    ;; Dired-Buffers
    '("^..\\(.*Dired by .*\\)$" 1 font-lock-function-name-face)
    ;; the star for modified buffers
