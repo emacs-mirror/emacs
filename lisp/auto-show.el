@@ -37,23 +37,33 @@
 
 ;;; Code:
 
-(defvar auto-show-mode t
+(defgroup auto-show nil
+  "Perform automatic horizontal scrolling as point moves."
+  :group 'editing)
+
+(defcustom auto-show-mode t
   "*Non-nil enables automatic horizontal scrolling, when lines are truncated.
 The default value is t.  To change the default, do this:
 	(set-default 'auto-show-mode nil)
 See also command `auto-show-mode'.
 This variable has no effect when lines are not being truncated.
-This variable is automatically local in each buffer where it is set.")
+This variable is automatically local in each buffer where it is set."
+  :type 'boolean
+  :group 'auto-show)
 
 (make-variable-buffer-local 'auto-show-mode)
 
-(defvar auto-show-shift-amount 8 
-  "*Extra columns to scroll. for automatic horizontal scrolling.")
+(defcustom auto-show-shift-amount 8 
+  "*Extra columns to scroll. for automatic horizontal scrolling."
+  :type 'integer
+  :group 'auto-show)
 
-(defvar auto-show-show-left-margin-threshold 50
+(defcustom auto-show-show-left-margin-threshold 50
   "*Threshold column for automatic horizontal scrolling to the right.
 If point is before this column, we try to scroll to make the left margin
-visible.  Setting this to 0 disables this feature.")
+visible.  Setting this to 0 disables this feature."
+  :type 'integer
+  :group 'auto-show)
 
 (defun auto-show-truncationp ()
   "True if line truncation is enabled for the selected window."
