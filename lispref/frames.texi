@@ -280,6 +280,10 @@ window with respect to the right edge of the screen.  A positive value
 of @var{pos} counts toward the left.  If the parameter is a negative
 integer @minus{}@var{pos} then @var{pos} is positive!
 
+Some window managers ignore program-specified positions.  If you want to
+be sure the position you specify is not ignored, specify a
+non-@code{nil} value for the @code{user-position} parameter as well.
+
 @item top
 The screen position of the top edge, in pixels, with respect to the
 top edge of the screen.  The value may be a positive number @var{pos},
@@ -291,6 +295,10 @@ A negative number @minus{}@var{pos}, or a list of the form @code{(-
 window with respect to the bottom edge of the screen.  A positive value
 of @var{pos} counts toward the top.  If the parameter is a negative
 integer @minus{}@var{pos} then @var{pos} is positive!
+
+Some window managers ignore program-specified positions.  If you want to
+be sure the position you specify is not ignored, specify a
+non-@code{nil} value for the @code{user-position} parameter as well.
 
 @item icon-left
 The screen position of the left edge @emph{of the frame's icon}, in
