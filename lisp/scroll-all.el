@@ -109,6 +109,8 @@ When Scroll-All mode is on, scrolling commands entered in one window
 apply to all visible windows in the same frame."
   nil " *SL*" nil
   :global t
+  :group 'windows
+  :group 'scrolling
   (if scroll-all-mode
       (add-hook 'post-command-hook 'scroll-all-check-to-scroll)
     (remove-hook 'post-command-hook 'scroll-all-check-to-scroll)))
