@@ -1,3 +1,19 @@
+2000-09-11  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* diff-mode.el (diff-apply-hunk): Function basically rewritten.
+	Now understands non-unified diffs.  Some functionality moved into
+	`diff-hunk-text' and `diff-find-text'.  Add OTHER-FILE, DRY-RUN,
+	POPUP, and NOERROR arguments.  If DRY-RUN is true, don't actually
+	modify anything.  Only reposition point in the patched file if the
+	patch succeeds.  Only pop up another window if POPUP is true.
+	Emit a message describing what happened if successful, and at what
+	line-offset.  Automatically detect reversed hunks and do something
+	appropriate.
+	(diff-hunk-text, diff-find-text): New functions.
+	(diff-filter-lines): Function removed.
+	(diff-test-hunk): New function.
+	(diff-goto-source): Rewritten in terms of diff-apply-hunk.
+
 2000-09-10  Dave Love  <fx@gnu.org>
 
 	* textmodes/tildify.el: Minor doc/commentary fixes.
