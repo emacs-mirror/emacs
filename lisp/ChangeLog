@@ -4,8 +4,8 @@
 
 2004-01-12  Richard M. Stallman  <rms@gnu.org>
 
-	* mail/rmail.el (rmail-convert-to-babyl-format): Use
-	mail-unquote-printable-region.
+	* mail/rmail.el (rmail-convert-to-babyl-format):
+	Use mail-unquote-printable-region.
 	(rmail-hex-string-to-integer, rmail-decode-quoted-printable):
 	(rmail-hex-char-to-integer): Functions deleted.
 
@@ -23,15 +23,14 @@
 	(appt-display-diary, appt-time-msg-list, appt-mode-string)
 	(appt-prev-comp-time, appt-display-count, appt-timer)
 	(appt-convert-time): Doc change.
-	(appt-disp-window-function, appt-delete-window-function): Use
-	defcustom rather than defvar.
+	(appt-disp-window-function, appt-delete-window-function):
+	Use defcustom rather than defvar.
 	(appt-display-format): New variable.
-	(appt-display-message): New function with display code from
-	appt-check.
-	(appt-check): Add optional FORCE argument.  Doc change.  Add
-	appt-make-list to diary-hook if displaying diary.  Remove
-	checking of view-diary-entries-initially.  Message
-	display section removed to new function appt-display-message.
+	(appt-display-message): New function with display code from appt-check.
+	(appt-check): Add optional FORCE argument.  Doc change.
+	Add appt-make-list to diary-hook if displaying diary.
+	Remove checking of view-diary-entries-initially.
+	Message display section removed to new function appt-display-message.
 	(appt-display-window): Doc change.  Remove unused internal var
 	this-buffer.  Do not beep, since appt-display-message does that.
 	(appt-make-list): Doc change.  Use caar.
@@ -42,12 +41,10 @@
 	functionality.
 
 	* calendar/cal-x.el: (calendar-one-frame-setup)
-	(calendar-only-one-frame-setup, calendar-two-frame-setup): Doc
-	change.
+	(calendar-only-one-frame-setup, calendar-two-frame-setup): Doc change.
 
 	* calendar/calendar.el: Update copyright.
-	(view-diary-entries-initially, european-calendar-style): Doc
-	change.
+	(view-diary-entries-initially, european-calendar-style): Doc change.
 	(calendar-setup): Make defcustom rather than defvar.
 	(mark-visible-calendar-date): Initialize temp-face and faceinfo
 	in let binding so local to function.
@@ -86,8 +83,7 @@
 
 2004-01-07  Nick Roberts  <nick@nick.uklinux.net>
 
-	* progmodes/gud.el (gdb-first-prompt): Renamed from
-	gdb-first-pre-prompt
+	* progmodes/gud.el (gdb-first-prompt): Rename from gdb-first-pre-prompt
 
 	* gdb-ui.el (gdba): Avoid duplication, use gdb-ann3.
 	(gdb-ann3): Use GDB command "set width 0" to prevent word wrapping
@@ -234,9 +230,9 @@
 	gud-n.*, gud-ni.*, gud-s.*, and gud-si.*, respectively, to avoid
 	file-name clashes on 8+3 filesystems.
 
-	* emacs-lisp/tcover-unsafep.el, emacs-lisp/tcover-ses.el: Renamed
-	from testcover-unsafep.el and testcover-ses.el to avoid file-name
-	clashes on 8+3 DOS filesystems.
+	* emacs-lisp/tcover-unsafep.el, emacs-lisp/tcover-ses.el:
+	Renamed from testcover-unsafep.el and testcover-ses.el to avoid
+	file-name clashes on 8+3 DOS filesystems.
 
 2003-12-29  Richard M. Stallman  <rms@gnu.org>
 
@@ -349,7 +345,7 @@
 
 	* xml.el (xml-get-attribute-or-nil): New function, like
 	xml-get-attribute, but returns nil if the attribute was not found.
-	(xml-get-attribute): Converted to defsubst, uses
+	(xml-get-attribute): Convert to defsubst, uses
 	xml-get-attribute-or-nil.
 
 2003-12-29  Eli Zaretskii  <eliz@elta.co.il>
@@ -385,8 +381,8 @@
 
 2003-12-29  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (reset-language-environment): Call
-	set-overriding-fontspec-internal with nil.
+	* international/mule-cmds.el (reset-language-environment):
+	Call set-overriding-fontspec-internal with nil.
 	(set-language-environment): Call set-overriding-fontspec-internal
 	if the language environment specify `overriding-fontspec'.
 	(language-info-alist): Doc added.
@@ -476,12 +472,12 @@
 
 2003-12-24  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (set-default-coding-systems): Call
-	ucs-set-table-for-input for all buffers that don't have local
+	* international/mule-cmds.el (set-default-coding-systems):
+	Call ucs-set-table-for-input for all buffers that don't have local
 	value of buffer-file-coding-system.
 
-	* international/ucs-tables.el (ucs-set-table-for-input): If
-	translation-table-for-encode is a symbol, get its
+	* international/ucs-tables.el (ucs-set-table-for-input):
+	If translation-table-for-encode is a symbol, get its
 	translation-table property.
 
 2003-12-23  Luc Teirlinck  <teirllm@auburn.edu>
@@ -490,11 +486,11 @@
 	to `completing-read' on a recently fixed bug.
 
 	* fringe.el (fringe-query-style): Suggest `?' in minibuffer prompt,
-	instead of SPACE, to get the list of possible fringe modes.  SPACE
-	only works if both `partial-completion-mode' and
+	instead of SPACE, to get the list of possible fringe modes.
+	SPACE only works if both `partial-completion-mode' and
 	`completion-auto-help' are nil.
 
-	* complete.el (PC-is-complete-p): delete.
+	* complete.el (PC-is-complete-p): Delete.
 	(PC-do-completion): Replace all calls to `PC-is-complete-p' with
 	calls to `test-completion'.
 
@@ -505,17 +501,15 @@
 
 	* gdb-ui.el (gdba, gdb-assembler-mode): Call the mode "Machine" as
 	a mode called "Assembler" already exists.
-	(gdb-use-colon-colon-notation, gdb-show-changed-values): New
-	options.
-	(gud-watch): Use format option. Remove font properties from
-	string.
-	(gdb-var-create-handler, gdb-var-list-children-handler): Don't
-	bother about properties as there are none.
+	(gdb-use-colon-colon-notation, gdb-show-changed-values): New options.
+	(gud-watch): Use format option. Remove font properties from string.
+	(gdb-var-create-handler, gdb-var-list-children-handler):
+	Don't bother about properties as there are none.
 	(gdb-var-create-handler, gdb-var-list-children-handler)
 	(gdb-var-update-handler): Call gdb-var-evaluate-expression-handler
 	with two arguments.
-	(gdb-var-evaluate-expression-handler, gdb-post-prompt): Let
-	speedbar show value changes with a different font.
+	(gdb-var-evaluate-expression-handler, gdb-post-prompt):
+	Let speedbar show value changes with a different font.
 	(gdb-edit-value): New defun.
 	(gdb-clear-partial-output, gdb-clear-inferior-io)
 	(def-gdb-auto-update-handler): Use erase-buffer.
@@ -538,11 +532,10 @@
 	(widget-type-default-get, widget-type-match): New functions.
 	(lazy): New widget.
 	(menu-choice, checklist, radio-button-choice, editable-list)
-	(group, documentation-string): Removed redundant (per 2003-10-25
+	(group, documentation-string): Remove redundant (per 2003-10-25
 	change) calls to `widget-children-value-delete'.
-	(widget-choice-value-get, widget-choice-value-inline): Removed
-	functions.
-	(menu-choice): Updated widget.
+	(widget-choice-value-get, widget-choice-value-inline): Remove.
+	(menu-choice): Update widget.
 
 2003-12-03  Kenichi Handa  <handa@m17n.org>
 
@@ -596,19 +589,18 @@
 	parameter for backward compatibility reasons.
 	(tramp-perl-file-attributes): Add a new parameter to Perl script
 	in order to handle uid/gid as strings, if desired.
-	(tramp-handle-file-truename, tramp-handle-file-symlink-p): Apply
-	`file-attributes' instead of `tramp-handle-file-attributes' in
+	(tramp-handle-file-truename, tramp-handle-file-symlink-p):
+	Apply `file-attributes' instead of `tramp-handle-file-attributes' in
 	order to make the function more general.
 	(tramp-handle-file-attributes): Replace proprietary optional
-	parameter NONNUMERIC by the recently (Emacs 21.4) introduced
-	ID-FORMAT.
+	parameter NONNUMERIC by the recently (Emacs 21.4) introduced ID-FORMAT.
 	(tramp-handle-file-attributes-with-perl): Handle parameter
 	NONNUMERIC if set. This wasn't done in the past.
 	(tramp-post-connection): Apply second parameter "$2" if
 	`tramp-remote-perl' is called.
 
-	* net/tramp-smb.el (tramp-smb-handle-delete-file): Correct
-	cut'n'waste error (`filename' instead of `directory').
+	* net/tramp-smb.el (tramp-smb-handle-delete-file):
+	Correct cut'n'waste error (`filename' instead of `directory').
 	(tramp-smb-handle-directory-files-and-attributes)
 	(tramp-smb-handle-file-attributes): Add recently (Emacs 21.4)
 	introduced parameter ID-FORMAT.
@@ -631,8 +623,8 @@
 
 2003-11-30  Jonathan Yavner  <jyavner@member.fsf.org>
 
-	* subr.el (noreturn, 1value): New macros for test coverage.  See
-	`testcover.el'.
+	* subr.el (noreturn, 1value): New macros for test coverage.
+	See `testcover.el'.
 
 	* emacs-lisp/edebug.el: Add def-edebug-spec for `noreturn' and `1value'.
 
@@ -652,9 +644,19 @@
 
 	* cus-start.el (all): Add use-file-dialog.
 
+2003-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (latex-mode): `tex-trailer' is not a regexp.
+
 2003-11-27  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (posn-object-x-y): New defun.
+
+2003-11-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/make-mode.el (makefile-font-lock-syntactic-keywords):
+	Don't use `space' for \\\n.
+	Be more selective as to which # are comment-starters.
 
 2003-11-26  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -762,14 +764,19 @@
 	(breakpoint-enabled-icon, breakpoint-disabled-icon): Set :ascent
 	to 100 for icons to avoid increasing line height when shown.
 
+2003-11-17  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
+	* newcomment.el (comment-normalize-vars): Initialize properly if
+	comment-start was nil.
+
 2003-11-19  Andreas Schwab  <schwab@suse.de>
 
 	* simple.el (set-variable): Fix indentation.
 
 2003-11-17  Kenichi Handa  <handa@m17n.org>
 
-	* international/latin1-disp.el (latin1-display-ucs-per-lynx): Fix
-	docstring.
+	* international/latin1-disp.el (latin1-display-ucs-per-lynx):
+	Fix docstring.
 
 2003-11-17  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
 
@@ -786,13 +793,13 @@
 
 2003-11-16  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-engine.el (c-guess-continued-construct,
-	c-guess-basic-syntax): Check a little more carefully if it's a
+	* cc-engine.el (c-guess-continued-construct)
+	(c-guess-basic-syntax): Check a little more carefully if it's a
 	function declaration when an unknown construct followed by a block
 	is found inside a statement context.  This avoids macros followed
 	by blocks to be taken as function declarations.
 
-	(c-guess-continued-construct): Changed the analysis of a statement
+	(c-guess-continued-construct): Change the analysis of a statement
 	continuation with a brace open to `substatement-block', for
 	consistency with recognized statements.
 
@@ -800,9 +807,9 @@
 	start is in a position so that `c-beginning-of-statement-1' jumped
 	to the beginning of the same statement.
 
-	* cc-fonts.el, cc-engine.el (c-forward-<>-arglist-recur): Don't
-	accept binary operators in the arglist if we're in a function call
-	context, i.e. if `c-restricted-<>-arglists' is set.  That avoids
+	* cc-fonts.el, cc-engine.el (c-forward-<>-arglist-recur):
+	Don't accept binary operators in the arglist if we're in a function
+	call context, i.e. if `c-restricted-<>-arglists' is set.  That avoids
 	template recognition in cases like "if (a < b || c > d)".
 
 	(c-restricted-<>-arglists): New more appropriate name for
@@ -820,7 +827,7 @@
 	instead of duplicating parts of it.  This fixes bogus label
 	recognition.
 
-	* cc-align.el (c-gnu-impose-minimum): Reverted to the old method
+	* cc-align.el (c-gnu-impose-minimum): Revert to the old method
 	of checking the context in which to apply the minimum indentation,
 	so that it isn't enforced in e.g. namespace blocks.
 
@@ -828,19 +835,18 @@
 	`c-gnu-impose-minimum'.  It's defined close to `c-offsets-alist'
 	to somewhat reduce the risk of becoming stale.
 
-	* cc-cmds.el, cc-engine.el (c-shift-line-indentation): Moved from
+	* cc-cmds.el, cc-engine.el (c-shift-line-indentation): Move from
 	cc-cmds to cc-engine to allow use from cc-align.
 
 	* cc-engine.el (c-beginning-of-inheritance-list): Cope with fully
 	qualified identifiers containing "::".
 
-	* cc-defs.el (c-make-keywords-re): Added kludge for bug in
+	* cc-defs.el (c-make-keywords-re): Add kludge for bug in
 	`regexp-opt' in Emacs 20 and XEmacs when strings contain newlines.
 
 	* cc-vars.el (c-emacs-features): Use a space in front of the name
 	of the temporary buffer.  That also avoids dumping problems in
-	XEmacs due to undo info being left around after the buffer is
-	killed.
+	XEmacs due to undo info being left around after the buffer is killed.
 
 	* cc-engine.el (c-in-knr-argdecl): Look closer at the function
 	arglist to see if it's a K&R style declaration.
@@ -860,22 +866,21 @@
 
 2003-11-14  Thien-Thi Nguyen  <ttn@gnu.org>
 
-	* diff-mode.el (diff-hunk-prev, diff-hunk-next): Support
-	operation while narrowed, with `diff-restrict-view'.
+	* diff-mode.el (diff-hunk-prev, diff-hunk-next):
+	Support operation while narrowed, with `diff-restrict-view'.
 
 2003-11-14  Thien-Thi Nguyen  <ttn@gnu.org>
 
-	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation): Take
-	additional optional arg NARROWFUN.  For the generated functions: Add
-	local var `was-narrowed-p'.  Also, if NARROWFUN is specified, include
-	frags that arrange to check for and save narrowing state before the
-	move and then conditionally call NARROWFUN after the move.
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation):
+	Take additional optional arg NARROWFUN.  For the generated functions:
+	Add local var `was-narrowed-p'.  Also, if NARROWFUN is specified,
+	include frags that arrange to check for and save narrowing state before
+	the move and then conditionally call NARROWFUN after the move.
 
 2003-11-14  John Wiegley  <johnw@newartisans.com>
 
-	* eshell/esh-var.el (eshell-parse-variable-ref): Added a backslash
-	that was optional, but obviously missing based on surrounding
-	code.
+	* eshell/esh-var.el (eshell-parse-variable-ref): Add a backslash
+	that was optional, but obviously missing based on surrounding code.
 
 	* eshell/esh-cmd.el (eshell-lisp-command): Do not late-convert
 	string arguments to numbers unless the whole argument was seen as
@@ -883,16 +888,16 @@
 
 2003-11-14  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule.el (ctext-non-standard-encodings-alist): Fix
-	coding systems.
+	* international/mule.el (ctext-non-standard-encodings-alist):
+	Fix coding systems.
 
 2003-11-10  Kenichi Handa  <handa@m17n.org>
 
 	* language/kannada.el ("Kannada"): Add sample-text.
 
 	* language/knd-util.el (kannada-compose-region)
-	(kannada-compose-string, kannada-post-read-conversion): Add
-	autoload cookie.
+	(kannada-compose-string, kannada-post-read-conversion):
+	Add autoload cookie.
 
 	* international/quail.el (quail-completion): Change the message
 	"corresponding translations" to "corresponding characters".
@@ -921,8 +926,8 @@
 
 2003-11-07  Andreas Schwab  <schwab@suse.de>
 
-	* progmodes/autoconf.el (autoconf-font-lock-keywords): Also
-	highlight AH_*.
+	* progmodes/autoconf.el (autoconf-font-lock-keywords):
+	Also highlight AH_*.
 
 	* xml.el (xml-parse-dtd): Fix misplaced paren.
 
@@ -941,10 +946,14 @@
 
 	* files.el (risky-local-variable-p): Make second argument optional.
 
+2003-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (add-hook): Fix last change.
+
 2003-11-03  Eli Zaretskii  <eliz@elta.co.il>
 
-	* mail/rmail.el (rmail-convert-to-babyl-format): If
-	base64-decode-region signals an error, catch it and silently
+	* mail/rmail.el (rmail-convert-to-babyl-format):
+	If base64-decode-region signals an error, catch it and silently
 	ignore it.
 
 2003-11-01  Mark A. Hershberger  <mah@everybody.org>
@@ -953,8 +962,7 @@
 	topmost element has closed.
 	(xml-ns-parse-ns-attrs, xml-ns-expand-el)
 	(xml-ns-expand-attr): New functions to do namespace handling.
-	(xml-intern-attrlist): Back-compatible handling of attribute
-	names.
+	(xml-intern-attrlist): Back-compatible handling of attribute names.
 	(xml-parse-tag): Move namespace handling to seperate functions.
 	Now produces elements in the form ((:ns . "element") (attr-list)
 	children) instead of ('ns:element (attr-list) children).
@@ -994,10 +1002,8 @@
 	(isearch-lazy-highlight-new-loop): Pay attention to the window's
 	end (thru isearch-lazy-highlight-window-end), not only its start.
 
-	* simple.el (overriding-map-is-bound, saved-overriding-map): New
-	variables.
-	(ensure-overriding-map-is-bound, restore-overriding-map): New
-	functions.
+	* simple.el (overriding-map-is-bound, saved-overriding-map): New vars.
+	(ensure-overriding-map-is-bound, restore-overriding-map): New funs.
 	(universal-argument, universal-argument-more, negative-argument)
 	(digit-argument, universal-argument-other-key): Minor changes.
 
