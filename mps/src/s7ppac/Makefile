@@ -1,6 +1,6 @@
 # impl.makefile.s7ppac: S7PPAC MPW MAKE FILE
 #
-# $HopeName: MMsrc!s7ppac:Makefile(trunk.4) $
+# $HopeName: MMsrc!s7ppac:Makefile(trunk.5) $
 #
 # Copyright (C) 1996, 1997 Harlequin Group, all rights reserved
 #
@@ -27,12 +27,12 @@ OSffx     = .c.{Variety}.o
 {OSffx} 	Ä	.c
 	MrC {DepDir}{Default}.c -o {TargDir}{Default}{OSffx} {COptions}
 
-mmsw_{Variety}.o Ä assert{OSffx} ring{OSffx} mpm{OSffx} ¶
-                   arenacl{OSffx} space{OSffx} pool{OSffx} poolmfs{OSffx} ¶
+mmsw_{Variety}.o Ä assert{OSffx} ring{OSffx} mpm{OSffx} bt{OSffx} ¶
+                   arenacl{OSffx} arena{OSffx} pool{OSffx} poolmfs{OSffx} ¶
                    poolmv{OSffx} root{OSffx} format{OSffx} buffer{OSffx} ¶
-                   lockan{OSffx} ref{OSffx} trace{OSffx} than{OSffx} ¶
-                   protsw{OSffx} shield{OSffx} mpsisw{OSffx} ld{OSffx} ¶
-                   ssan{OSffx} poolepdl{OSffx} action{OSffx} seg{OSffx} ¶
+                   lockan{OSffx} ref{OSffx} trace{OSffx} protsw{OSffx} ¶
+                   shield{OSffx} than{OSffx} ssan{OSffx} mpsi{OSffx} ld{OSffx} ¶
+                   poolepdl{OSffx} poolepvm{OSffx} action{OSffx} seg{OSffx} ¶
                    poolmrg{OSffx} message{OSffx}
 	PPCLink {Deps} -xm l -o {Targ} -sym on
 
