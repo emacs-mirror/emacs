@@ -63,6 +63,30 @@ DWORD  data_size = 0;
 PUCHAR bss_start = 0;
 DWORD  bss_size = 0;
 
+#ifdef HAVE_NTGUI
+HINSTANCE hinst = NULL;
+HINSTANCE hprevinst = NULL;
+LPSTR lpCmdLine = "";
+int nCmdShow = 0;
+    
+int __stdcall 
+WinMain (_hinst, _hPrevInst, _lpCmdLine, _nCmdShow)
+     HINSTANCE _hinst;
+     HINSTANCE _hPrevInst;
+     LPSTR _lpCmdLine;
+     int _nCmdShow;
+{
+  /* Need to parse command line */
+    
+  hinst = _hinst;
+  hprevinst = _hPrevInst;
+  lpCmdLine = _lpCmdLine;
+  nCmdShow = _nCmdShow;
+
+  return (main (__argc,__argv,_environ));
+}
+#endif /* HAVE_NTGUI */
+
 /* Startup code for running on NT.  When we are running as the dumped
    version, we need to bootstrap our heap and .bss section into our
    address space before we can actually hand off control to the startup
@@ -70,7 +94,11 @@ DWORD  bss_size = 0;
 void
 _start (void)
 {
+#ifdef HAVE_NTGUI
+  extern void WinMainCRTStartup (void);
+#else
   extern void mainCRTStartup (void);
+#endif /* HAVE_NTGUI */
 
   /* Cache system info, e.g., the NT page size.  */
   cache_system_info ();
@@ -103,7 +131,11 @@ _start (void)
 
   /* Invoke the NT CRT startup routine now that our housecleaning
      is finished.  */
+#ifdef HAVE_NTGUI
+  WinMainCRTStartup ();
+#else
   mainCRTStartup ();
+#endif /* HAVE_NTGUI */
 }
 
 /* Dump out .data and .bss sections into a new exectubale.  */
@@ -209,13 +241,15 @@ open_output_file (file_data *p_file, char *filename, unsigned long size)
   HANDLE file;
   HANDLE file_mapping;
   void  *file_base;
-  
+  int    i;
+
   file = CreateFile (filename, GENERIC_READ | GENERIC_WRITE, 0, NULL,
 		     CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
   if (file == INVALID_HANDLE_VALUE) 
     {
+      i = GetLastError ();
       printf ("open_output_file: Failed to open %s (%d).\n", 
-	     filename, GetLastError ());
+	     filename, i);
       exit (1);
     }
   
@@ -223,16 +257,18 @@ open_output_file (file_data *p_file, char *filename, unsigned long size)
 				    0, size, NULL);
   if (!file_mapping) 
     {
+      i = GetLastError ();
       printf ("open_output_file: Failed to create file mapping of %s (%d).\n",
-	     filename, GetLastError ());
+	     filename, i);
       exit (1);
     }
   
   file_base = MapViewOfFile (file_mapping, FILE_MAP_WRITE, 0, 0, size);
   if (file_base == 0) 
     {
+      i = GetLastError ();
       printf ("open_output_file: Failed to map view of file of %s (%d).\n",
-	     filename, GetLastError ());
+	     filename, i);
       exit (1);
     }
   
