@@ -2596,6 +2596,27 @@ prevent garbage collection during a part of the program.");
   DEFVAR_INT ("pure-bytes-used", &pureptr,
     "Number of bytes of sharable Lisp data allocated so far.");
 
+  DEFVAR_INT ("cons-cells-consed", &cons_cells_consed,
+    "Number of cons cells that have been consed so far.");
+
+  DEFVAR_INT ("floats-consed", &floats_consed,
+    "Number of floats that have been consed so far.");
+
+  DEFVAR_INT ("vector-cells-consed", &vector_cells_consed,
+    "Number of vector cells that have been consed so far.");
+
+  DEFVAR_INT ("symbols-consed", &symbols_consed,
+    "Number of symbols that have been consed so far.");
+
+  DEFVAR_INT ("string-chars-consed", &string_chars_consed,
+    "Number of string characters that have been consed so far.");
+
+  DEFVAR_INT ("misc-objects-consed", &misc_objects_consed,
+    "Number of miscellaneous objects that have been consed so far.");
+
+  DEFVAR_INT ("intervals-consed", &intervals_consed,
+    "Number of intervals that have been consed so far.");
+
 #if 0
   DEFVAR_INT ("data-bytes-used", &malloc_sbrk_used,
     "Number of bytes of unshared memory allocated in this session.");
