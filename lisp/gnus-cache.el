@@ -236,13 +236,14 @@ variable to \"^nnml\".")
 
 (defun gnus-cache-possibly-alter-active (group active)
   "Alter the ACTIVE info for GROUP to reflect the articles in the cache."
-  (let ((cache-active (gnus-gethash group gnus-cache-active-hashtb)))
-    (and cache-active 
-	 (< (car cache-active) (car active))
-	 (setcar active (car cache-active)))
-    (and cache-active
-	 (> (cdr cache-active) (cdr active))
-	 (setcdr active (cdr cache-active)))))
+  (when gnus-cache-active-hashtb
+    (let ((cache-active (gnus-gethash group gnus-cache-active-hashtb)))
+      (and cache-active 
+	   (< (car cache-active) (car active))
+	   (setcar active (car cache-active)))
+      (and cache-active
+	   (> (cdr cache-active) (cdr active))
+	   (setcdr active (cdr cache-active))))))
 
 (defun gnus-cache-retrieve-headers (articles group &optional fetch-old)
   "Retrieve the headers for ARTICLES in GROUP."
