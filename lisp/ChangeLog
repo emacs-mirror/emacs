@@ -1,3 +1,8 @@
+2000-08-17  Miles Bader  <miles@gnu.org>
+
+	* hi-lock.el (hi-yellow, hi-pink, hi-green, hi-blue): Force the
+	foreground color to black if the background is dark.
+
 2000-08-16  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* loadhist.el (unload-feature): Typo.
@@ -79,7 +84,7 @@
 
 2000-08-16  Sam Steingold  <sds@gnu.org>
 
-	* buff-menu.el (list-buffers-noselect): Use `dolist' instead of
+	* buff-menu.el (list-buffers-noselect): Use `dolist' instead Of
 	`while'; use `with-current-buffer' instead of `save-excursion'.
 	Removed unnecessary kludges now that "*Buffer List*" is excluded.
 
