@@ -143,10 +143,6 @@ To save places automatically in all files, put this in your `.emacs' file:
       (message "Saving places to %s..." file)
       (set-buffer (get-buffer-create " *Saved Places*"))
       (delete-region (point-min) (point-max))
-      (if (file-readable-p file)
-          (insert-file-contents file))
-      (delete-region (point-min) (point-max))
-      (goto-char (point-min))
       (print save-place-alist (current-buffer))
       (let ((version-control
              (cond
