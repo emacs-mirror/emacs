@@ -1,3 +1,9 @@
+2003-01-11  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (Fset_process_contact): New function.
+	(syms_of_process): defsubr it.
+	(make-network-process): Update doc.
+
 2003-01-10  Andreas Schwab  <schwab@suse.de>
 
 	* alloc.c (pure_alloc): Correct alignment for Lisp_Floats.
