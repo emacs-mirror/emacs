@@ -1,8 +1,8 @@
 2005-03-30  Marcelo Toledo  <marcelo@marcelotoledo.org>
 
-        * FOR-RELEASE (Documentation): Added check the Emacs Tutorial. The
-        first line of every tutorial must be "Emacs Tutorial" in the
-        repective language.        
+	* FOR-RELEASE (Documentation): Added check the Emacs Tutorial. The
+	first line of every tutorial must be "Emacs Tutorial" in the
+	repective language.
 
 2005-03-02  Miles Bader  <miles@gnu.org>
 
