@@ -15,3 +15,8 @@
 /* People say that using -traditional causes lossage with `const',
    so we might as well try getting rid of -traditional.  */
 #undef C_SWITCH_SYSTEM
+
+/* Martin Tomes <mt00@controls.eurotherm.co.uk> says that ISC has no
+   libX11_s, as specified in s/usg5-3.h.  */
+#undef LIB_X11_LIB
+
