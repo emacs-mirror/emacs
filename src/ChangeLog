@@ -1,7 +1,40 @@
 2001-10-04  Gerd Moellmann  <gerd@gnu.org>
 
+	On some systems, XtCloseDisplay seems to cause a SIGSEGV when
+	called for a lost connection.  Prevent dumping core in this case.
+	Instead print the X error, and exit.  On user request.
+	
+	* xterm.c (error_msg): New variable.
+	(x_fatal_error_signal): New function.
+	(x_connection_closed): Set error_msg.  Install
+	x_fatal_error_signal as fatal_error_signal_hook around the call to
+	XtCloseDisplay.
+
+	* emacs.c (fatal_error_signal_hook): New variable.
+	(fatal_error_signal): Call that function.
+
+2001-10-04  Gerd Moellmann  <gerd@gnu.org>
+
+	With this, Emacs prints how much pure storage it will
+	approximately need in case pure storage overflows while dumping.
+
+	* alloc.c (purebeg, pure_size, pure_bytes_used_before_overflow):
+	New variables.
+	(init_alloc_once): Initialize new variables.
+	(PURE_POINTER_P): Use new variables.
+	(pure_alloc): If pure storage overflows, allocate from the heap.
+	(check_pure_size): New function.
+	(Fgarbage_collect): Don't GC if pure storage has overflowed.
+
+	* lisp.h (pure_size) [HAVE_SHM]: Declare extern size_t.
+	(check_pure_size): Add prototype.
+
+	* emacs.c (Fdump_emacs_data, Fdump_emacs): Call check_pure_size.
+
+2001-10-04  Gerd Moellmann  <gerd@gnu.org>
+
 	This adds a post-gc-hook that's run with GC inhibited.  Requested
-	by Francois Pinard.  XEmacs has it.
+	by Francois Pinard.  XEmacs has it.  Added to NEWS.
 
 	* alloc.c (Vpost_gc_hook, Qpost_gc_hook): New variables.
 	(syms_of_alloc): DEFVAR_LISP post-gc-hook, initialize 
@@ -22,7 +55,7 @@
 	possible to define arbitrary read-only variables, e.g. with
 	`defconst'.)
 
-	Documentation is in lispref/variables.texi.
+	Documentation is in lispref/variables.texi.  Added to NEWS.
 
 	* lisp.h (enum symbol_interned): New enumeration.
 	(struct Lisp_Symbol): Remove member `obarray', add
