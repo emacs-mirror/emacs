@@ -1,3 +1,8 @@
+2004-06-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (global-auto-revert-non-file-buffers): Update
+	docstring.
+
 2004-06-19  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/compile.el (compilation-error-properties): Store one
