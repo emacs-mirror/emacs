@@ -153,15 +153,21 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful."
   (unwind-protect
       (let ((file (plist-get (cdr spec) :file))
 	    gs
-	    (waiting 0))
-	;; If another ghostscript is running, wait for it to complete.
-	;; Two ghostscript processes running at the same time would
-	;; use the same window properties, and get confused.
-	(while (and (process-status "gs") (< waiting 10))
+	    (timeout 10))
+	;; Wait while property gets freed from a previous ghostscript
+	;; process
+	(while (and (not (zerop (length (x-window-property "GHOSTVIEW" 
+							   frame))))
+		    (not (zerop timeout)))
 	  (sit-for 0 100 t)
-	  (setq waiting (1+ waiting)))
-	(when (process-status "gs")
-	  (kill-process "gs"))
+	  (setq timeout (1- timeout)))
+	;; No use waiting longer.  We might want to try killing off
+	;; stuck processes, but there is no point in doing so: either
+	;; they are stuck for good, in which case the user would
+	;; probably be responsible for that, and killing them off will
+	;; make debugging harder, or they are not.  In that case, they
+	;; will cause incomplete displays.  But the same will happen
+	;; if they are killed, anyway.
 	(gs-set-ghostview-window-prop frame spec img-width img-height)
 	(gs-set-ghostview-colors-window-prop frame pixel-colors)
 	(setenv "GHOSTVIEW" window-and-pixmap-id)
