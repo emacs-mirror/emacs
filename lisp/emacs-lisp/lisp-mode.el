@@ -469,51 +469,52 @@ With argument, print output into current buffer."
 		       (opoint (point))
 		       ignore-quotes
 		       expr)
-		   (with-syntax-table emacs-lisp-mode-syntax-table
-		     ;; If this sexp appears to be enclosed in `...'
-		     ;; then ignore the surrounding quotes.
-		     (setq ignore-quotes
-			   (or (eq (following-char) ?\')
-			       (eq (preceding-char) ?\')))
-		     (forward-sexp -1)
-		     ;; If we were after `?\e' (or similar case),
-		     ;; use the whole thing, not just the `e'.
-		     (when (eq (preceding-char) ?\\)
-		       (forward-char -1)
-		       (when (eq (preceding-char) ??)
-			 (forward-char -1)))
+		   (save-excursion
+		     (with-syntax-table emacs-lisp-mode-syntax-table
+		       ;; If this sexp appears to be enclosed in `...'
+		       ;; then ignore the surrounding quotes.
+		       (setq ignore-quotes
+			     (or (eq (following-char) ?\')
+				 (eq (preceding-char) ?\')))
+		       (forward-sexp -1)
+		       ;; If we were after `?\e' (or similar case),
+		       ;; use the whole thing, not just the `e'.
+		       (when (eq (preceding-char) ?\\)
+			 (forward-char -1)
+			 (when (eq (preceding-char) ??)
+			   (forward-char -1)))
 
-		     ;; Skip over `#N='s.
-		     (when (eq (preceding-char) ?=)
-		       (let (labeled-p)
-			 (save-excursion
-			   (skip-chars-backward "0-9#=")
-			   (setq labeled-p (looking-at "\\(#[0-9]+=\\)+")))
-			 (when labeled-p
-			   (forward-sexp -1))))
+		       ;; Skip over `#N='s.
+		       (when (eq (preceding-char) ?=)
+			 (let (labeled-p)
+			   (save-excursion
+			     (skip-chars-backward "0-9#=")
+			     (setq labeled-p (looking-at "\\(#[0-9]+=\\)+")))
+			   (when labeled-p
+			     (forward-sexp -1))))
 
-		     (save-restriction
-		       ;; vladimir@cs.ualberta.ca 30-Jul-1997: skip ` in
-		       ;; `variable' so that the value is returned, not the
-		       ;; name
-		       (if (and ignore-quotes
-				(eq (following-char) ?`))
-			   (forward-char))
-		       (narrow-to-region (point-min) opoint)
-		       (setq expr (read (current-buffer)))
-		       ;; If it's an (interactive ...) form, it's more
-		       ;; useful to show how an interactive call would
-		       ;; use it.
-		       (and (consp expr)
-			    (eq (car expr) 'interactive)
-			    (setq expr
-				  (list 'call-interactively
-					(list 'quote
-					      (list 'lambda
-						    '(&rest args)
-						    expr
-						    'args)))))
-		       expr))))))
+		       (save-restriction
+			 ;; vladimir@cs.ualberta.ca 30-Jul-1997: skip ` in
+			 ;; `variable' so that the value is returned, not the
+			 ;; name
+			 (if (and ignore-quotes
+				  (eq (following-char) ?`))
+			     (forward-char))
+			 (narrow-to-region (point-min) opoint)
+			 (setq expr (read (current-buffer)))
+			 ;; If it's an (interactive ...) form, it's more
+			 ;; useful to show how an interactive call would
+			 ;; use it.
+			 (and (consp expr)
+			      (eq (car expr) 'interactive)
+			      (setq expr
+				    (list 'call-interactively
+					  (list 'quote
+						(list 'lambda
+						      '(&rest args)
+						      expr
+						      'args)))))
+			 expr)))))))
       (let ((unabbreviated (let ((print-length nil) (print-level nil))
 			     (prin1-to-string value)))
 	    (print-length eval-expression-print-length)
