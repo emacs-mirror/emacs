@@ -2299,7 +2299,7 @@ The alist key is the character the title is underlined with (?*, ?= or ?-)."
 	;; on frames that can display the font above.
 	(if (memq (framep (selected-frame)) '(x pc w32))
 	    (add-text-properties (match-end 1) (match-end 2)
-				 'invisible t 'intangible t)))
+				 '(invisible t intangible t))))
       (goto-char (point-min))
       (while (re-search-forward "\\*Note[ \n\t]+\\([^:]*\\):" nil t)
 	(if (= (char-after (1- (match-beginning 0))) ?\") ; hack

@@ -1,3 +1,8 @@
+2000-05-22  Sam Steingold  <sds@gnu.org>
+
+	* info.el (Info-fontify-node): fixed the call to
+	`add-text-properties' (bug introduced on 2000-05-18).
+
 2000-05-22  Dave Love  <fx@gnu.org>
 
 	* bindings.el: Remove debug-ignored-errors set in other files.
@@ -12,9 +17,9 @@
 	quote keywords.
 	(cmpl-string-case-type): Use character classes.
 
-	* comint.el: 
-	* textmodes/ispell.el: 
-	* imenu.el: 
+	* comint.el:
+	* textmodes/ispell.el:
+	* imenu.el:
 	* mail/mh-e.el:
 	* progmodes/compile.el: Add to debug-ignored-errors.
 
@@ -159,7 +164,7 @@
 	* msb.el (msb-menu-cond): Add choice `user'.
 
 2000-05-18  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
-	
+
 	* ps-print.el: Compatibility, customization and doc fix.
 	(ps-printer-name-option): Replace defconst by defvar.
 	(ps-postscript-code-directory): XEmacs compatibility.
@@ -394,7 +399,7 @@
 	area.
 	(syntax-code-table): Format changed.
 	(string-to-syntax): Adjusted for the above change.
-	
+
 2000-05-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* font-lock.el (lisp-font-lock-keywords-1): Add define-minor-mode.
