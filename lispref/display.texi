@@ -1006,6 +1006,38 @@ This function sets the font of face @var{face}.  The argument @var{font}
 should be a string.
 @end defun
 
+@defun make-face-bold face &optional frame noerror
+Make face @var{face} bold, by setting its font to the bold variant of
+the font it is now using.  If @var{noerror} is non-@code{nil}, return
+@code{nil} on failure; otherwise, that signals an error.
+@end defun
+
+@defun make-face-italic face &optional frame noerror
+Make face @var{face} italic, by setting its font to the italic variant of
+the font it is now using.  If @var{noerror} is non-@code{nil}, return
+@code{nil} on failure; otherwise, that signals an error.
+@end defun
+
+@defun make-face-bold-italic face &optional frame noerror
+Make face @var{face} bold and italic, by setting its font to the bold
+italic variant of the font it is now using.  If @var{noerror} is
+non-@code{nil}, return @code{nil} on failure; otherwise, that signals an
+error.
+@end defun
+
+@defun make-face-unbold face &optional frame noerror
+Make face @var{face} not bold, by setting its font to the medium variant
+of the font it is now using.  If @var{noerror} is non-@code{nil}, return
+@code{nil} on failure; otherwise, that signals an error.
+@end defun
+
+@defun make-face-unitalic face &optional frame noerror
+Make face @var{face} italic, by setting its font to the non-slanted
+variant of the font it is now using.  If @var{noerror} is
+non-@code{nil}, return @code{nil} on failure; otherwise, that signals an
+error.
+@end defun
+
 @defun set-face-underline-p face underline-p &optional frame
 This function sets the underline attribute of face @var{face}.
 Non-@code{nil} means do underline; @code{nil} means don't.
