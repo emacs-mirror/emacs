@@ -24,12 +24,12 @@
 ;;; a server for other processes.
 
 ;;; Load this library and do M-x server-edit to enable Emacs as a server.
-;;; Emacs runs the program ../etc/emacsserver as a subprocess
+;;; Emacs runs the program ../arch-lib/emacsserver as a subprocess
 ;;; for communication with clients.  If there are no client buffers to edit, 
 ;;; server-edit acts like (switch-to-buffer (other-buffer))
 
 ;;; When some other program runs "the editor" to edit a file,
-;;; "the editor" can be the Emacs client program ../etc/emacsclient.
+;;; "the editor" can be the Emacs client program ../lib-src/emacsclient.
 ;;; This program transmits the file names to Emacs through
 ;;; the server subprocess, and Emacs visits them and lets you edit them.
 
@@ -130,9 +130,6 @@ Prefix arg means just kill any existing server communications subprocess."
 	(set-process-sentinel server-process nil)
 	(condition-case () (delete-process server-process) (error nil))))
   (condition-case () (delete-file "~/.emacs_server") (error nil))
-  (condition-case ()
-      (delete-file (format "/tmp/esrv%d-%s" (user-uid) (system-name)))
-    (error nil))
   ;; If we already had a server, clear out associated status.
   (while server-clients
     (let ((buffer (nth 1 (car server-clients))))

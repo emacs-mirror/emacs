@@ -75,7 +75,7 @@
 ;doc strings kept in the DOC file rather than in core,
 ;you may load them with a "site-load.el" file.
 ;But you must also cause them to be scanned when the DOC file
-;is generated.  For VMS, you must edit ../etc/makedoc.com.
+;is generated.  For VMS, you must edit ../vms/makedoc.com.
 ;For other systems, you must edit ../src/ymakefile.
 (if (load "site-load" t)
     (garbage-collect))
@@ -94,8 +94,8 @@
 	(setq name (concat (downcase (substring name 0 (match-beginning 0)))
 			   "-"
 			   (substring name (match-end 0)))))
-      (copy-file (expand-file-name "../etc/DOC")
-		 (concat (expand-file-name "../etc/DOC-") name)
+      (copy-file (expand-file-name "../share-lib/DOC")
+		 (concat (expand-file-name "../share-lib/DOC-") name)
 		 t)
       (Snarf-documentation (concat "DOC-" name)))
     (Snarf-documentation "DOC"))
