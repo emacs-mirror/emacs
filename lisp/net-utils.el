@@ -3,7 +3,7 @@
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Mar 16 1997
 ;; Keywords: network communications
-;; Time-stamp: <1999-10-15 23:14:59 pbreton>
+;; Time-stamp: <1999-11-13 10:19:01 pbreton>
 
 ;; This file is part of GNU Emacs.
 
@@ -200,6 +200,24 @@ These options can be used to limit how many ICMP packets are emitted."
   :type  'regexp
   )
 
+(defcustom smbclient-program "smbclient"
+  "Smbclient program."
+  :group 'net-utils
+  :type  'string
+  )
+
+(defcustom smbclient-program-options nil
+  "List of options to pass to the smbclient program."
+  :group 'net-utils
+  :type  '(repeat string)
+  )
+
+(defcustom smbclient-prompt-regexp "^smb: \>"
+  "Regexp which matches the smbclient program's prompt."
+  :group 'net-utils
+  :type  'regexp
+  )
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Nslookup goodies
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -242,6 +260,17 @@ These options can be used to limit how many ICMP packets are emitted."
 	 (require 'font-lock)
 	 (list
 	  (list ftp-prompt-regexp 0 font-lock-reference-face)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; smbclient goodies
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defconst smbclient-font-lock-keywords
+  (and window-system
+       (progn
+	 (require 'font-lock)
+	 (list
+	  (list smbclient-prompt-regexp 0 font-lock-reference-face)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility functions
@@ -296,15 +325,14 @@ These options can be used to limit how many ICMP packets are emitted."
   
 (defmacro net-utils-run-program (name header program &rest args)
   "Run a network information program."
-  (` 
-   (let ((buf (get-buffer-create (concat "*" (, name) "*"))))
-     (set-buffer buf)
-     (erase-buffer)
-     (insert (, header) "\n")
-     (set-process-filter 
-      (apply 'start-process (, name) buf (, program) (,@ args))
-      'net-utils-remove-ctrl-m-filter)
-     (display-buffer buf))))
+  ` (let ((buf (get-buffer-create (concat "*" ,name "*"))))
+      (set-buffer buf)
+      (erase-buffer)
+      (insert ,header "\n")
+      (set-process-filter 
+       (apply 'start-process ,name buf ,program ,@args)
+       'net-utils-remove-ctrl-m-filter)
+      (display-buffer buf)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Wrappers for external network programs
@@ -529,6 +557,72 @@ If your system's ping continues until interrupted, you can try setting
 ;; Occasionally useful
 (define-key ftp-mode-map "\t" 'comint-dynamic-complete)
 
+(defun smbclient (host service)
+  "Connect to SERVICE on HOST via SMB."
+  (interactive 
+   (list
+    (read-from-minibuffer 
+     "Connect to Host: " (net-utils-machine-at-point))
+    (read-from-minibuffer "SMB Service: ")))
+  (require 'comint)
+  (let* ((name (format "smbclient [%s\\%s]" host service))
+	 (buf (get-buffer-create (concat "*" name "*")))
+	 (service-name (concat "\\\\" host "\\" service)))
+    (set-buffer buf)
+    (comint-mode)
+    (comint-exec buf name smbclient-program nil
+		 (if smbclient-program-options
+		     (append (list service-name) smbclient-program-options)
+		   (list service-name)))
+    (smbclient-mode)
+    (switch-to-buffer-other-window buf)
+    ))
+
+(defun smbclient-list-shares (host)
+  "List services on HOST."
+  (interactive 
+   (list
+    (read-from-minibuffer 
+     "Connect to Host: " (net-utils-machine-at-point))
+    ))
+  (let ((buf (get-buffer-create (format "*SMB Shares on %s*" host))))
+    (set-buffer buf)
+    (comint-mode)
+    (comint-exec 
+     buf 
+     "smbclient-list-shares" 
+     smbclient-program 
+     nil
+     (list "-L" host)
+     )
+    (smbclient-mode)
+    (switch-to-buffer-other-window buf)))
+  
+(define-derived-mode 
+  smbclient-mode comint-mode "smbclient"
+  "Major mode for interacting with the smbclient program."
+
+  (set 
+   (make-local-variable 'font-lock-defaults)
+   '((smbclient-font-lock-keywords)))
+  
+  (make-local-variable 'comint-prompt-regexp)
+  (setq comint-prompt-regexp smbclient-prompt-regexp)
+  
+  (make-local-variable 'comint-input-autoexpand)
+  (setq comint-input-autoexpand t)
+  
+  ;; Already buffer local!
+  (setq comint-output-filter-functions
+	(list 'comint-watch-for-password-prompt))
+  
+  (setq local-abbrev-table smbclient-mode-abbrev-table)
+  (abbrev-mode t)
+  )
+
+(define-abbrev smbclient-mode-abbrev-table "q"    "quit")
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Network Connections
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -566,28 +660,28 @@ This list in not complete.")
 ;; Workhorse macro
 (defmacro run-network-program (process-name host port 
 					    &optional initial-string)
-  (`
+  `
    (let ((tcp-connection)
 	 (buf)
 	 )
-    (setq buf (get-buffer-create (concat "*" (, process-name) "*")))
+    (setq buf (get-buffer-create (concat "*" ,process-name "*")))
     (set-buffer buf)
     (or 
      (setq tcp-connection
 	   (open-network-stream 
-	    (, process-name)
+	    ,process-name
 	    buf
-	    (, host)
-	    (, port)
+	    ,host
+	    ,port
 	    ))
-     (error "Could not open connection to %s" (, host)))
+     (error "Could not open connection to %s" ,host))
     (erase-buffer)
     (set-marker (process-mark tcp-connection) (point-min))
     (set-process-filter tcp-connection 'net-utils-remove-ctrl-m-filter)
-    (and (, initial-string)
+    (and ,initial-string
 	 (process-send-string tcp-connection 
-			      (concat (, initial-string) "\r\n")))
-    (display-buffer buf))))
+			      (concat ,initial-string "\r\n")))
+    (display-buffer buf)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Simple protocols
