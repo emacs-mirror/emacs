@@ -1,3 +1,7 @@
+2000-10-24  Kenichi Handa  <handa@etl.go.jp>
+
+	* window.c (Fdisplay_buffer): Fix doc.
+
 2000-10-23  Jason Rumney  <jasonr@gnu.org>
 
 	* fontset.c (syms_of_fontset) [WINDOWSNT]: Special case for
