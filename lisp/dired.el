@@ -1154,14 +1154,13 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
   ;; This is the UNIX version.
   (or eol (setq eol (progn (end-of-line) (point))))
   (beginning-of-line)
-  (if (and (re-search-forward dired-move-to-filename-regexp eol t)
-	   (looking-at " \\([0-9][0-9]:[0-9][0-9]\\| [0-9]+\\|[0-9]+ \\) "))
-      (progn
-	(goto-char (match-end 0))
-	(point))
-    (if raise-error
-	(error "No file on this line")
-      nil)))
+  (or (if (re-search-forward dired-move-to-filename-regexp eol t)
+	  (progn
+	    (goto-char (match-end 0))
+	    (if (= 7 (skip-chars-forward " 0-9:" (+ (point) 7)))
+		(point))))
+      (if raise-error
+	  (error "No file on this line"))))
 
 (defun dired-move-to-end-of-filename (&optional no-error)
   ;; Assumes point is at beginning of filename,
