@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(trunk.23) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.24) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -26,7 +26,7 @@ TESTLIB = <testlib>
 
 # ==== ALMOST GENERIC PRODUCT BUILD FOR NMAKE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(trunk.23) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.24) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -147,7 +147,7 @@ CFCV = /DTARGET_VAR_DP /Z7
 # LINKER FLAGS
 # %%VARIETY: define a macro containing the flags for the new variety
 LINKER = link
-LINKFLAGSCOMMON = /nologo
+LINKFLAGSCOMMON = /nologo /PDB:NONE
 LFDF = /DEBUG:full /DEBUGTYPE:cv
 LFDP = /DEBUG:full /DEBUGTYPE:cv
 LFDS = /DEBUG:full /DEBUGTYPE:cv
@@ -384,13 +384,13 @@ $(PFM)\$(VARIETY)\mmdw.lib: $(MPMOBJ) $(AMCOBJ) $(DWOBJ)
 	$(ECHO) $@
 	@if not exist $(PFM) mkdir $(PFM)
 	@if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
-	cl /c $(CFLAGS) /FR$*.sbr /Fd$(PFM)\$(VARIETY)\$(<:.obj=.pdb) /Fo$@ $<
+	cl /c $(CFLAGS) /Fd$(PFM)\$(VARIETY)\$(<:.obj=.pdb) /Fo$@ $<
 
 {}.asm{$(PFM)\$(VARIETY)}.obj:
 	$(ECHO) $@
 	@if not exist $(PFM) mkdir $(PFM)
 	@if not exist $(PFM)\$(VARIETY) mkdir $(PFM)\$(VARIETY)
-	ml /nologo /c /coff /FR$*.sbr  /Fo$@ $<
+	ml /nologo /c /coff /Fo$@ $<
 
 # Coverage files
 {$(PFM)\$(VARIETY)}.exe{$(PFM)\$(VARIETY)}.cov:
