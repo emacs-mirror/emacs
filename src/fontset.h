@@ -126,6 +126,11 @@ struct font_info
   struct ccl_program *font_encoder;
 };
 
+/* A value which may appear in the member encoding of struch font_info
+   indicating that a font itself doesn't tell which encoding to be
+   used.  */
+#define FONT_ENCODING_NOT_DECIDED 4
+
 #define FONT_NOT_OPENED -1
 #define FONT_NOT_FOUND  -2
 
