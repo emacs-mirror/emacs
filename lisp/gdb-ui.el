@@ -47,6 +47,10 @@
 (defvar gdb-current-address nil)
 (defvar gdb-display-in-progress nil)
 (defvar gdb-dive nil)
+(defvar gdb-buffer-type nil)
+(defvar gdb-variables '()
+  "A list of variables that are local to the GUD buffer.")
+
 
 ;;;###autoload
 (defun gdba (command-line)
@@ -76,9 +80,9 @@ Source buffer                     | Input/Output (of debuggee) buffer
                                   |
 ---------------------------------------------------------------------
 Stack buffer                      | Breakpoints buffer
-\[mouse-2\] gdb-frames-mouse-select | SPC    gdb-toggle-bp-this-line
-                                  |   g    gdb-goto-bp-this-line
-                                  |   d    gdb-delete-bp-this-line
+ RET      gdb-frames-select       | SPC    gdb-toggle-breakpoint
+                                  | RET    gdb-goto-breakpoint
+                                  |   d    gdb-delete-breakpoint
 ---------------------------------------------------------------------
 
 All the buffers share the toolbar and source should always display in the same
@@ -173,9 +177,6 @@ The following interactive lisp functions help control operation :
 ;; representation) and buffers associated with those objects.
 ;; The list of  variables is built up by the expansions of
 ;; def-gdb-variable
-
-(defvar gdb-variables '()
-  "A list of variables that are local to the GUD buffer.")
 
 (defmacro def-gdb-var (root-symbol &optional default doc)
   (let* ((root (symbol-name root-symbol))
@@ -1043,64 +1044,63 @@ output from the current command if that happens to be appropriate."
 
 (defun gud-gdba-marker-filter (string)
   "A gud marker filter for gdb. Handle a burst of output from GDB."
-  (save-match-data
-    (let (
-	  ;; Recall the left over burst from last time
-	  (burst (concat (gdb-get-burst) string))
-	  ;; Start accumulating output for the GUD buffer
-	  (output ""))
-      ;;
-      ;; Process all the complete markers in this chunk.
-      (while (string-match "\n\032\032\\(.*\\)\n" burst)
-	(let ((annotation (match-string 1 burst)))
-          ;;
-	  ;; Stuff prior to the match is just ordinary output.
-	  ;; It is either concatenated to OUTPUT or directed
-	  ;; elsewhere.
-	  (setq output
-		(gdb-concat-output 
-		 output
-		 (substring burst 0 (match-beginning 0))))
+  (let (
+	;; Recall the left over burst from last time
+	(burst (concat (gdb-get-burst) string))
+	;; Start accumulating output for the GUD buffer
+	(output ""))
+    ;;
+    ;; Process all the complete markers in this chunk.
+    (while (string-match "\n\032\032\\(.*\\)\n" burst)
+      (let ((annotation (match-string 1 burst)))
+	;;
+	;; Stuff prior to the match is just ordinary output.
+	;; It is either concatenated to OUTPUT or directed
+	;; elsewhere.
+	(setq output
+	      (gdb-concat-output 
+	       output
+	       (substring burst 0 (match-beginning 0))))
 
-	  ;; Take that stuff off the burst.
-	  (setq burst (substring burst (match-end 0)))
+	;; Take that stuff off the burst.
+	(setq burst (substring burst (match-end 0)))
 
-	  ;; Parse the tag from the annotation, and maybe its arguments.
-	  (string-match "\\(\\S-*\\) ?\\(.*\\)" annotation)
-	  (let* ((annotation-type (match-string 1 annotation))
-		 (annotation-arguments (match-string 2 annotation))
-		 (annotation-rule (assoc annotation-type
-					 gdb-annotation-rules)))
-	    ;; Call the handler for this annotation.
-	    (if annotation-rule
-		(funcall (car (cdr annotation-rule))
-			 annotation-arguments)
-	      ;; Else the annotation is not recognized.  Ignore it silently,
-	      ;; so that GDB can add new annotations without causing
-	      ;; us to blow up.
-	      ))))
-      ;;
-      ;; Does the remaining text end in a partial line?
-      ;; If it does, then keep part of the burst until we get more.
-      (if (string-match "\n\\'\\|\n\032\\'\\|\n\032\032.*\\'"
-			burst)
-	  (progn
-	    ;; Everything before the potential marker start can be output.
-	    (setq output
-		  (gdb-concat-output output
-				     (substring burst 0 (match-beginning 0))))
-            ;;
-	    ;; Everything after, we save, to combine with later input.
-	    (setq burst (substring burst (match-beginning 0))))
-        ;;
-	;; In case we know the burst contains no partial annotations:
+	;; Parse the tag from the annotation, and maybe its arguments.
+	(string-match "\\(\\S-*\\) ?\\(.*\\)" annotation)
+	(let* ((annotation-type (match-string 1 annotation))
+	       (annotation-arguments (match-string 2 annotation))
+	       (annotation-rule (assoc annotation-type
+				       gdb-annotation-rules)))
+	  ;; Call the handler for this annotation.
+	  (if annotation-rule
+	      (funcall (car (cdr annotation-rule))
+		       annotation-arguments)
+	    ;; Else the annotation is not recognized.  Ignore it silently,
+	    ;; so that GDB can add new annotations without causing
+	    ;; us to blow up.
+	    ))))
+    ;;
+    ;; Does the remaining text end in a partial line?
+    ;; If it does, then keep part of the burst until we get more.
+    (if (string-match "\n\\'\\|\n\032\\'\\|\n\032\032.*\\'"
+		      burst)
 	(progn
-	  (setq output (gdb-concat-output output burst))
-	  (setq burst "")))
+	  ;; Everything before the potential marker start can be output.
+	  (setq output
+		(gdb-concat-output output
+				   (substring burst 0 (match-beginning 0))))
+	  ;;
+	  ;; Everything after, we save, to combine with later input.
+	  (setq burst (substring burst (match-beginning 0))))
       ;;
-      ;; Save the remaining burst for the next call to this function.
-      (gdb-set-burst burst)
-      output)))
+      ;; In case we know the burst contains no partial annotations:
+      (progn
+	(setq output (gdb-concat-output output burst))
+	(setq burst "")))
+    ;;
+    ;; Save the remaining burst for the next call to this function.
+    (gdb-set-burst burst)
+    output))
 
 (defun gdb-concat-output (so-far new)
   (let ((sink (gdb-get-output-sink )))
@@ -1327,15 +1327,16 @@ output from the current command if that happens to be appropriate."
 (defvar gdb-breakpoints-mode-map
   (let ((map (make-sparse-keymap))
 	(menu (make-sparse-keymap "Breakpoints")))
-    (define-key menu [toggle] '("Toggle" . gdb-toggle-bp-this-line))
-    (define-key menu [delete] '("Delete" . gdb-delete-bp-this-line))
-    (define-key menu [goto] '("Goto"   . gdb-goto-bp-this-line))
+    (define-key menu [toggle] '("Toggle" . gdb-toggle-breakpoint))
+    (define-key menu [delete] '("Delete" . gdb-delete-breakpoint))
+    (define-key menu [goto] '("Goto"   . gdb-goto-breakpoint))
 
     (suppress-keymap map)
     (define-key map [menu-bar breakpoints] (cons "Breakpoints" menu))
-    (define-key map " " 'gdb-toggle-bp-this-line)
-    (define-key map "d" 'gdb-delete-bp-this-line)
-    (define-key map "g" 'gdb-goto-bp-this-line)
+    (define-key map " " 'gdb-toggle-breakpoint)
+    (define-key map "d" 'gdb-delete-breakpoint)
+    (define-key map "\r" 'gdb-goto-breakpoint)
+    (define-key map [mouse-2] 'gdb-mouse-goto-breakpoint)
     map))
 
 (defun gdb-breakpoints-mode ()
@@ -1348,8 +1349,8 @@ output from the current command if that happens to be appropriate."
   (setq buffer-read-only t)
   (gdb-invalidate-breakpoints))
 
-(defun gdb-toggle-bp-this-line ()
-  "Enable/disable the breakpoint of the current line."
+(defun gdb-toggle-breakpoint ()
+  "Enable/disable the breakpoint at current line."
   (interactive)
   (save-excursion
     (beginning-of-line 1)
@@ -1364,8 +1365,8 @@ output from the current command if that happens to be appropriate."
 	 (match-string 1) "\n")
 	'ignore)))))
 
-(defun gdb-delete-bp-this-line ()
-  "Delete the breakpoint of the current line."
+(defun gdb-delete-breakpoint ()
+  "Delete the breakpoint at current line."
   (interactive)
   (beginning-of-line 1)
   (if (not (looking-at "\\([0-9]+\\).*point\\s-*\\S-*\\s-*\\(.\\)"))
@@ -1375,8 +1376,9 @@ output from the current command if that happens to be appropriate."
 
 (defvar gdb-source-window nil)
 
-(defun gdb-goto-bp-this-line ()
-  "Display the file in the source buffer at the specified breakpoint."
+(defun gdb-goto-breakpoint ()
+  "Display the file in the source buffer at the breakpoint specified on the
+current line."
   (interactive)
   (save-excursion
     (beginning-of-line 1)
@@ -1392,6 +1394,12 @@ output from the current command if that happens to be appropriate."
 				 file
 			       (expand-file-name file gdb-cdir))))
 	  (goto-line (string-to-number line))))))
+
+(defun gdb-mouse-goto-breakpoint (event)
+  "Display the file in the source buffer at the selected breakpoint."
+  (interactive "e")
+  (mouse-set-point event)
+  (gdb-goto-breakpoint))
 
 ;;
 ;; Frames buffer.  This displays a perpetually correct bactracktrace
@@ -1437,6 +1445,7 @@ output from the current command if that happens to be appropriate."
 (defvar gdb-frames-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
+    (define-key map "\r" 'gdb-frames-select)
     (define-key map [mouse-2] 'gdb-frames-mouse-select)
     map))
 
@@ -1453,26 +1462,23 @@ output from the current command if that happens to be appropriate."
 (defun gdb-get-frame-number ()
   (save-excursion
     (let* ((pos (re-search-backward "^#\\([0-9]*\\)" nil t))
-	   (n (or (and pos (string-to-int (match-string 1))) 0)))
+	   (n (or (and pos (match-string-no-properties 1)) "0")))
       n)))
 
-(defun gdb-frames-mouse-select (e)
-  "Make the selected frame become the current frame and
-display the source in the source buffer."
-  (interactive "e")
-  (let (selection)
-    (save-excursion
-      (set-buffer (window-buffer (posn-window (event-end e))))
-      (save-excursion
-	(goto-char (posn-point (event-end e)))
-	(setq selection (gdb-get-frame-number))))
-    (select-window (posn-window (event-end e)))
-    (save-excursion
-      (set-buffer gud-comint-buffer)
-      (gdb-enqueue-input
-       (list (gud-format-command "server frame %p\n" selection) 'ignore))
-      (gud-display-frame))))
+(defun gdb-frames-select ()
+  "Make the frame on the current line become the current frame and display the
+source in the source buffer."
+  (interactive)
+  (gdb-enqueue-input
+   (list (concat "server frame " (gdb-get-frame-number) "\n") 'ignore))
+  (gud-display-frame))
 
+(defun gdb-frames-mouse-select (event)
+  "Make the selected frame become the current frame and display the source in
+the source buffer."
+  (interactive "e")
+  (mouse-set-point event)
+  (gdb-frames-select))
 
 ;;
 ;; Registers buffer.
@@ -1639,13 +1645,13 @@ display the source in the source buffer."
 (defvar gdb-display-mode-map
   (let ((map (make-sparse-keymap))
 	(menu (make-sparse-keymap "Display")))
-    (define-key menu [toggle] '("Toggle" . gdb-toggle-disp-this-line))
-    (define-key menu [delete] '("Delete" . gdb-delete-disp-this-line))
+    (define-key menu [toggle] '("Toggle" . gdb-toggle-display))
+    (define-key menu [delete] '("Delete" . gdb-delete-display))
 
     (suppress-keymap map)
     (define-key map [menu-bar display] (cons "Display" menu))
-    (define-key map " " 'gdb-toggle-disp-this-line)
-    (define-key map "d" 'gdb-delete-disp-this-line)
+    (define-key map " " 'gdb-toggle-display)
+    (define-key map "d" 'gdb-delete-display)
     map))
 
 (defun gdb-display-mode ()
@@ -1672,8 +1678,8 @@ display the source in the source buffer."
   (switch-to-buffer-other-frame
    (gdb-get-create-buffer 'gdb-display-buffer)))
 
-(defun gdb-toggle-disp-this-line ()
-  "Enable/disable the displayed expression of the current line."
+(defun gdb-toggle-display ()
+  "Enable/disable the displayed expression at current line."
   (interactive)
   (save-excursion
     (beginning-of-line 1)
@@ -1688,8 +1694,8 @@ display the source in the source buffer."
 	 (match-string 1) "\n")
 	'ignore)))))
 
-(defun gdb-delete-disp-this-line ()
-  "Delete the displayed expression of the current line."
+(defun gdb-delete-display ()
+  "Delete the displayed expression at current line."
   (interactive)
   (save-excursion
     (set-buffer
@@ -1713,7 +1719,7 @@ display the source in the source buffer."
   '("GDB Expressions Commands"
     "----"
     ["Visualise" gdb-array-visualise t]
-    ["Delete" 	 gdb-delete-display  t])
+    ["Delete" 	 gdb-delete-expression  t])
   "Menu for `gdb-expressions-mode'.")
 
 (defun gdb-expressions-popup-menu (event)
@@ -1786,7 +1792,8 @@ display the source in the source buffer."
     answer))
 
 (defun gdb-display-source-buffer (buffer)
-  (set-window-buffer gdb-source-window buffer))
+  (set-window-buffer gdb-source-window buffer)
+  gdb-source-window)
 
 
 ;;; Shared keymap initialization:
@@ -2059,7 +2066,7 @@ BUFFER nil or omitted means use the current buffer."
 			       (int-to-string (aref gdb-array-stop  n))
 			       " 1 -T X"))))))
 
-(defun gdb-delete-display ()
+(defun gdb-delete-expression ()
   "Delete displayed expression and its frame."
   (interactive)
   (gdb-enqueue-input
