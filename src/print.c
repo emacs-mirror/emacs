@@ -597,8 +597,8 @@ temp_output_buffer_setup (bufname)
   current_buffer->read_only = Qnil;
   current_buffer->filename = Qnil;
   current_buffer->undo_list = Qt;
-  eassert (current_buffer->overlays_before = NULL);
-  eassert (current_buffer->overlays_after = NULL);
+  eassert (current_buffer->overlays_before == NULL);
+  eassert (current_buffer->overlays_after == NULL);
   current_buffer->enable_multibyte_characters
     = buffer_defaults.enable_multibyte_characters;
   Ferase_buffer ();
