@@ -2802,11 +2802,10 @@ NO-ERROR, if a listing for DIRECTORY cannot be obtained."
 	     (host-type (ange-ftp-host-type
 			 (car parsed))))
 	(or
-;;; This variable seems not to exist in Emacs 19 -- rms.
-;;;	 ;; Deal with dired
-;;;	 (and (boundp 'dired-local-variables-file)
-;;;	      (stringp dired-local-variables-file)
-;;;	      (string-equal dired-local-variables-file efile))
+	 ;; Deal with dired
+	 (and (boundp 'dired-local-variables-file) ; in the dired-x package
+	      (stringp dired-local-variables-file)
+	      (string-equal dired-local-variables-file efile))
 	 ;; No dots in dir names in vms.
 	 (and (eq host-type 'vms)
 	      (string-match "\\." efile))
