@@ -478,6 +478,7 @@ void add_member_decl P_ ((struct sym *, char *, char *, int,
 			  unsigned, int, int, int, int));
 void dump_roots P_ ((FILE *));
 void *xmalloc P_ ((int));
+void xfree P_ ((void *));
 void add_global_defn P_ ((char *, char *, int, unsigned, int, int, int));
 void add_global_decl P_ ((char *, char *, int, unsigned, int, int, int));
 void add_define P_ ((char *, char *, int));
@@ -568,6 +569,17 @@ xrealloc (p, sz)
       exit (1);
     }
   return p;
+}
+
+
+/* Like free but always check for null pointers..  */
+
+void
+xfree (p)
+     void *p;
+{
+  if (p)
+    free (p);
 }
 
 
@@ -2572,9 +2584,9 @@ member (cls, vis)
           break;
 
         case IDENT:
-          /* Remember IDENTS seen so far.  Among these will be the member
-             name.  */
-	  id = (char *) alloca (strlen (yytext) + 2);
+	  /* Remember IDENTS seen so far.  Among these will be the member
+	     name.  */
+	  id = (char *) xrealloc (id, strlen (yytext) + 2);
 	  if (tilde)
 	    {
 	      *id = '~';
@@ -2586,7 +2598,11 @@ member (cls, vis)
 	  break;
 
         case OPERATOR:
-          id = operator_name (&sc);
+	  {
+	    char *s = operator_name (&sc);
+	    id = (char *) xrealloc (id, strlen (s) + 1);
+	    strcpy (id, s);
+	  }
           break;
 
         case '(':
@@ -2616,7 +2632,8 @@ member (cls, vis)
 
           if (LOOKING_AT ('{') && id && cls)
 	    add_member_defn (cls, id, regexp, pos, hash, 0, sc, flags);
-	  
+
+	  xfree (id);
           id = NULL;
           sc = SC_MEMBER;
           break;
@@ -2694,6 +2711,8 @@ member (cls, vis)
       skip_matching ();
       print_info ();
     }
+
+  xfree (id);
 }
 
 
@@ -3111,7 +3130,10 @@ declaration (flags)
           /* This is for the case `STARTWRAP class X : ...' or
              `declare (X, Y)\n class A : ...'.  */
           if (id)
-            return;
+	    {
+	      xfree (id);
+	      return;
+	    }
 
         case '=':
           /* Assumed to be the start of an initialization in this context.
@@ -3120,7 +3142,11 @@ declaration (flags)
           break;
 
         case OPERATOR:
-          id = operator_name (&sc);
+	  {
+	    char *s = operator_name (&sc);
+	    id = (char *) xrealloc (id, strlen (s) + 1);
+	    strcpy (id, s);
+	  }
           break;
 
         case T_INLINE:
@@ -3132,7 +3158,7 @@ declaration (flags)
 	  MATCH ();
 	  if (LOOKING_AT (IDENT))
 	    {
-	      id = (char *) alloca (strlen (yytext) + 2);
+	      id = (char *) xrealloc (id, strlen (yytext) + 2);
 	      *id = '~';
 	      strcpy (id + 1, yytext);
 	      MATCH ();
@@ -3194,6 +3220,8 @@ declaration (flags)
 
           if (!cls && id && LOOKING_AT ('{'))
 	    add_global_defn (id, regexp, pos, hash, 0, sc, flags);
+
+	  xfree (id);
           id = NULL;
           break;
         }
@@ -3231,6 +3259,8 @@ declaration (flags)
       skip_matching ();
       print_info ();
     }
+
+  xfree (id);
 }
 
 
@@ -3259,9 +3289,7 @@ globals (start_flags)
 
             if (LOOKING_AT (IDENT))
               {
-                char *namespace_name
-		  = (char *) alloca (strlen (yytext) + 1);
-                strcpy (namespace_name, yytext);
+                char *namespace_name = xstrdup (yytext);
                 MATCH ();
                 
                 if (LOOKING_AT ('='))
@@ -3278,6 +3306,8 @@ globals (start_flags)
                     leave_namespace ();
                     MATCH_IF ('}');
                   }
+
+		xfree (namespace_name);
               }
           }
           break;
