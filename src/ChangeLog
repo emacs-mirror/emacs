@@ -1,3 +1,19 @@
+2001-10-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* bytecode.c (syms_of_bytecode) [BYTE_CODE_METER]: Doc fix.
+	(METER_CODE, Fbyte_code): Use MOST_POSITIVE_FIXNUM.
+
+	* alloc.c (inhibit_garbage_collection): Simplify.
+	(Fmemory_use_counts): Ditto.
+
+	* data.c (most_positive_fixnum, most_negative_fixnum): New
+	variables.
+	(syms_of_data): DEFVAR_INT most-positive-fixnum and
+	most-negative-fixnum.
+
+	* lisp.h (MOST_NEGATIVE_FIXNUM, MOST_POSITIVE_FIXNUM) 
+	(FIXNUM_OVERFLOW_P): New macros.
+
 2001-10-06  Miles Bader  <miles@gnu.org>
 
 	* xterm.h (struct x_output): Add scroll_bar_top_shadow_pixel and
