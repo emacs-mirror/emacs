@@ -443,7 +443,7 @@ Type \\[isearch-exit] to exit, leaving point at location found.
 Type LFD (C-j) to match end of line.
 Type \\[isearch-repeat-forward] to search again forward,\
  \\[isearch-repeat-backward] to search again backward.
-Type \\[isearch-yank-word] to yank word from buffer onto end of search\
+Type \\[isearch-yank-word-or-char] to yank word from buffer onto end of search\
  string and search for it.
 Type \\[isearch-yank-line] to yank rest of line onto end of search string\
  and search for it.
@@ -779,7 +779,7 @@ The following additional command keys are active while editing.
 \\[isearch-ring-retreat-edit] to replace the search string with the previous item in the search ring.
 \\[isearch-complete-edit] to complete the search string using the search ring.
 \\<isearch-mode-map>
-If first char entered is \\[isearch-yank-word], then do word search instead."
+If first char entered is \\[isearch-yank-word-or-char], then do word search instead."
 
   ;; This code is very hairy for several reasons, explained in the code.
   ;; Mainly, isearch-mode must be terminated while editing and then restarted.
@@ -1111,11 +1111,12 @@ might return the position of the end of the line."
 (defun isearch-yank-word-or-char ()
   "Pull next character or word from buffer into search string."
   (interactive)
-  (isearch-yank-internal (lambda () 
-			   (if (or (= (char-syntax (or (char-after) 0)) ?w)
-				   (= (char-syntax (or (char-after (1+ (point))) 0)) ?w))
-			       (forward-word 1)
-			     (forward-char 1)) (point))))
+  (isearch-yank-internal
+   (lambda () 
+     (if (or (= (char-syntax (or (char-after) 0)) ?w)
+             (= (char-syntax (or (char-after (1+ (point))) 0)) ?w))
+         (forward-word 1)
+       (forward-char 1)) (point))))
 
 (defun isearch-yank-word ()
   "Pull next word from buffer into search string."

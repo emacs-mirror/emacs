@@ -1,3 +1,11 @@
+2001-12-19  Karl Fogel  <kfogel@red-bean.com>
+
+	* isearch.el (isearch-forward, isearch-edit-string): Make doc
+	strings mention keybinding for `isearch-yank-word-or-char',
+	rather than `isearch-yank-word', since the former is bound now
+	and the latter is not.
+	(isearch-yank-word-or-char): Fix formatting.
+
 2001-12-19  Werner Lemberg  <wl@gnu.org>
 
 	* language/czech.el, language/european.el, language/slovak.el: More
