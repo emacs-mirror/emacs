@@ -345,7 +345,7 @@ nil if it is not visible in the current calendar window."
              (list (calendar-gregorian-from-absolute (+ abs-r-h 19))
                    "Hol Hamoed Sukkot (fourth day)")
              (list (calendar-gregorian-from-absolute (+ abs-r-h 20))
-                   "Hoshannah Rabbah")))
+                   "Hoshanah Rabbah")))
             (output-list
              (filter-visible-calendar-holidays mandatory)))
       (if all-hebrew-calendar-holidays
@@ -977,9 +977,9 @@ Entry applies if date is Rosh Hodesh, the day before, or the Saturday before."
            (if (= h-yesterday 30)
                (format "%s (second day)" this-month)
              this-month)))
-      (if (= (% d 7) 6);; Saturday--check for Shabbat Mevarhim
+      (if (= (% d 7) 6);; Saturday--check for Shabbat Mevarchim
           (cond ((and (> h-day 22) (/= h-month 6) (= 29 last-day))
-                 (format "Mevarhim Rosh Hodesh %s (%s)"
+                 (format "Mevarchim Rosh Hodesh %s (%s)"
                          (aref h-month-names
                                (if (= h-month
                                       (hebrew-calendar-last-month-of-year
@@ -987,7 +987,7 @@ Entry applies if date is Rosh Hodesh, the day before, or the Saturday before."
                                    0 h-month))
                          (aref calendar-day-name-array (- 29 h-day))))
                 ((and (< h-day 30) (> h-day 22) (= 30 last-day))
-                 (format "Mevarhim Rosh Hodesh %s (%s-%s)"
+                 (format "Mevarchim Rosh Hodesh %s (%s-%s)"
                          (aref h-month-names h-month)
                          (if (= h-day 29)
                              "tomorrow"
