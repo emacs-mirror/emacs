@@ -2425,6 +2425,7 @@ See also `c++-font-lock-extra-types'.")
 	  (regexp-opt
 	   '("break" "continue" "do" "else" "for" "if" "return" "switch"
 	     "while" "asm" "catch" "delete" "new" "sizeof" "this" "throw" "try"
+	     "typeid"
 	     ;; Branko Cibej <branko.cibej@hermes.si> says this is new.
 	     "export"
 	     ;; Mark Mitchell <mmitchell@usa.net> says these are new.
