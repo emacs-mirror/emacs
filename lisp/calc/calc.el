@@ -249,6 +249,9 @@ This can safely be nil as long as the Calc files are on the load-path.")
 ;; Entries are 3-lists:  Formula, Height (in lines), Selection (or nil).
 (defvar calc-stack '((top-of-stack 1 nil)))
 
+(defvar calc-show-banner t
+  "*If non-nil, show a friendly greeting above the stack.")
+
 ;; Index into calc-stack of "top" of stack.
 ;; This is 1 unless calc-truncate-stack has been used.
 ;;(defvar calc-stack-top 1)
@@ -581,7 +584,8 @@ This can safely be nil as long as the Calc files are on the load-path.")
 			       (calc-gnuplot-geometry nil)
 			       (calc-graph-default-resolution 15)
 			       (calc-graph-default-resolution-3d 5)
-			       (calc-invocation-macro nil)))
+			       (calc-invocation-macro nil)
+			       (calc-show-banner t)))
 
 (defconst calc-local-var-list '(calc-stack
 				calc-stack-top
@@ -1702,10 +1706,12 @@ See calc-keypad for details."
 	 (setq calc-any-selections nil
 	       calc-any-evaltos nil)
 	 (erase-buffer)
-	 (insert "--- Emacs Calculator Mode ---\n")
+	 (when calc-show-banner
+	   (insert "--- Emacs Calculator Mode ---\n"))
 	 (while thing
 	   (goto-char (point-min))
-	   (forward-line 1)
+	   (when calc-show-banner
+	     (forward-line 1))
 	   (insert (math-format-stack-value (car thing)) "\n")
 	   (setq thing (cdr thing)))
 	 (calc-renumber-stack)
