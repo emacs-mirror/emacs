@@ -71,7 +71,7 @@
   :group 'tools
   :version "20.3")
 
-(defcustom which-func-modes 
+(defcustom which-func-modes
   '(emacs-lisp-mode c-mode c++-mode perl-mode makefile-mode sh-mode
 		    fortran-mode)
   "List of major modes for which Which Function mode should be used.
@@ -96,7 +96,7 @@ Zero means compute the Imenu menu regardless of size."
   :group 'which-func
   :type 'integer)
 
-(defcustom which-func-format '(" [" which-func-current "]")
+(defcustom which-func-format '("[" which-func-current "]")
   "Format for displaying the function in the mode line."
   :group 'which-func
   :type 'sexp)
@@ -138,21 +138,22 @@ and you want to simplify them for the mode line
   "Non-nil means display current function name in mode line.
 This makes a difference only if `which-func-mode-global' is non-nil")
 (make-variable-buffer-local 'which-func-mode)
-(put 'which-func-mode 'permanent-local t)
+;;(put 'which-func-mode 'permanent-local t)
 
 (add-hook 'find-file-hooks 'which-func-ff-hook t)
 
 (defun which-func-ff-hook ()
   "File find hook for Which Function mode.
 It creates the Imenu index for the buffer, if necessary."
-  (if (or (eq which-func-modes t) (member major-mode which-func-modes))
-      (setq which-func-mode which-func-mode-global)
-    (setq which-func-mode nil))
+  (setq which-func-mode
+	(and which-func-mode-global
+	     (or (eq which-func-modes t) (member major-mode which-func-modes))))
 
   (condition-case nil
       (if (and which-func-mode
 	       (not (member major-mode which-func-non-auto-modes))
-	       (or (< buffer-saved-size which-func-maxout)
+	       (or (null which-func-maxout)
+		   (< buffer-saved-size which-func-maxout)
 		   (= which-func-maxout 0)))
 	  (setq imenu--index-alist
 		(save-excursion (funcall imenu-create-index-function))))
@@ -161,19 +162,16 @@ It creates the Imenu index for the buffer, if necessary."
 
 (defun which-func-update ()
   ;; Update the string containing the current function.
-  (condition-case info
-      (progn
-	(if (not (setq which-func-current (which-function)))
-	    (setq which-func-current which-func-unknown))
-	(if (not (string= which-func-current which-func-previous))
-	  (progn
+  (when which-func-mode
+    (condition-case info
+	(progn
+	  (setq which-func-current (or (which-function) which-func-unknown))
+	  (unless (string= which-func-current which-func-previous)
 	    (force-mode-line-update)
-	    (setq which-func-previous which-func-current))))
-    (error
-     (ding)
-     (remove-hook 'post-command-hook 'which-func-update)
-     (which-func-mode -1)   ; Function mode off
-     (message "Error in which-func-update: %s" info))))
+	    (setq which-func-previous which-func-current)))
+      (error
+       (which-func-mode -1)
+       (error "Error in which-func-update: %s" info)))))
 
 ;; This is the name people would normally expect.
 ;;;###autoload
@@ -185,47 +183,50 @@ It creates the Imenu index for the buffer, if necessary."
 When Which Function mode is enabled, the current function name is
 continuously displayed in the mode line, in certain major modes.
 
-With prefix arg, turn Which Function mode on iff arg is positive,
+With prefix ARG, turn Which Function mode on iff arg is positive,
 and off otherwise."
   (interactive "P")
-  (if (or (and (null arg) which-func-mode-global)
-          (<= (prefix-numeric-value arg) 0))
+  (setq which-func-mode-global
+	(or (and (null arg) which-func-mode-global)
+	    (<= (prefix-numeric-value arg) 0)))
+  (if which-func-mode-global
       ;; Turn it off
-      (if which-func-mode-global
-          (progn
-            (remove-hook 'post-command-hook 'which-func-update)
-            (setq which-func-mode-global nil)
-            (setq which-func-mode nil)
-            (force-mode-line-update)))
+      (progn
+	(remove-hook 'post-command-idle-hook 'which-func-update)
+	(dolist (buf (buffer-list))
+	  (with-current-buffer buf (setq which-func-mode nil))))
     ;;Turn it on
-    (if which-func-mode-global
-        ()
-      (add-hook 'post-command-hook 'which-func-update)
-      (setq which-func-mode-global t)
-      (setq which-func-mode
-	    (or (eq which-func-modes t)
-		(member major-mode which-func-modes))))))
+    (add-hook 'post-command-idle-hook 'which-func-update)
+    (dolist (buf (buffer-list))
+      (with-current-buffer buf
+	(setq which-func-mode
+	      (or (eq which-func-modes t)
+		  (member major-mode which-func-modes)))))))
 
 (defun which-function ()
   "Return current function name based on point.
 If `imenu--index-alist' does not exist, or is empty  or if point
 is located before first function, returns nil."
-  (and
-   (boundp 'imenu--index-alist)
-   imenu--index-alist
-   (let ((pair (car-safe imenu--index-alist))
-         (rest (cdr-safe imenu--index-alist))
-         (name nil))
-     (while (and (or rest pair)
-		 (or (not (number-or-marker-p (cdr pair)))
-		     (> (point) (cdr pair))))
-       (setq name (car pair))
-       (setq pair (car-safe rest))
-       (setq rest (cdr-safe rest)))
-     (and name
-          (if which-func-cleanup-function
-              (funcall which-func-cleanup-function name)
-            name)))))
+  (let (name)
+    ;; First try using imenu support.
+    (when (and (boundp 'imenu--index-alist) imenu--index-alist)
+      (let ((pair (car-safe imenu--index-alist))
+	    (rest (cdr-safe imenu--index-alist)))
+	(while (and (or rest pair)
+		    (or (not (number-or-marker-p (cdr pair)))
+			(> (point) (cdr pair))))
+	  (setq name (car pair))
+	  (setq pair (car-safe rest))
+	  (setq rest (cdr-safe rest)))))
+    ;; Try using add-log support.
+    (when (and (null name) (boundp 'add-log-current-defun-function)
+	       add-log-current-defun-function)
+      (setq name (funcall add-log-current-defun-function)))
+    ;; Filter the name if requested.
+    (when name
+      (if which-func-cleanup-function
+	  (funcall which-func-cleanup-function name)
+	name))))
 
 (provide 'which-func)
 
