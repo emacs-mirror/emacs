@@ -155,6 +155,7 @@ case "${canonical}" in
   *-*-netbsd* )
     opsys=netbsd
     case "${canonical}" in
+      alpha-*-netbsd*)	machine=alpha ;;
       i[3456]86-*-netbsd*) machine=intel386 ;;
       m68k-*-netbsd*)
 			# This is somewhat bogus.
