@@ -1195,7 +1195,8 @@ bound to \\<checkdoc-minor-mode-map> \\[checkdoc-eval-defun] and `checkdoc-eval-
 checking of documentation strings.
 
 \\{checkdoc-minor-mode-map}"
-  nil " CDoc" nil)
+  nil " CDoc" nil
+  :group 'checkdoc)
 
 ;;; Subst utils
 ;;
