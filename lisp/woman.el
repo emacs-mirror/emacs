@@ -4411,6 +4411,7 @@ If optional argument END is non-nil then make buffer read-only after
 logging the message."
   (save-excursion
     (set-buffer (get-buffer-create "*WoMan-Log*"))
+    (setq buffer-read-only nil)
     (goto-char (point-max))
     (or end (insert "  "))  (insert string "\n")
     (if end
