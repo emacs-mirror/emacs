@@ -955,7 +955,7 @@ clear_fontset_elements (fontset)
 
 /* Check validity of NAME as a fontset name and return the
    corresponding fontset.  If not valid, signal an error.
-   If NAME is t, return Vdefault_fontset.  */
+   If NAME is nil, return Vdefault_fontset.  */
 
 static Lisp_Object
 check_fontset_name (name)
@@ -963,7 +963,7 @@ check_fontset_name (name)
 {
   int id;
 
-  if (EQ (name, Qt))
+  if (EQ (name, Qnil))
     return Vdefault_fontset;
 
   CHECK_STRING (name);
@@ -1190,12 +1190,25 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 1, 0,
 
 
 /* Called from Ffontset_info via map_char_table on each leaf of
+   fontset.  ARG is a copy of the default fontset.  The current leaf
+   is indexed by CHARACTER and has value ELT.  This function override
+   the copy by ELT if ELT is not nil.  */
+
+static void
+override_font_info (fontset, character, elt)
+     Lisp_Object fontset, character, elt;
+{
+  if (! NILP (elt))
+    Faset (fontset, character, elt);
+}
+
+/* Called from Ffontset_info via map_char_table on each leaf of
    fontset.  ARG is a list (LAST FONT-INFO ...), where LAST is `(last
    ARG)' and FONT-INFOs have this form:
 	(CHAR FONT-SPEC) or ((FROM . TO) FONT-SPEC)
    The current leaf is indexed by CHARACTER and has value ELT.  This
    function add the information of the current leaf to ARG by
-   appending a new element or modifying the last element..  */
+   appending a new element or modifying the last element.  */
 
 static void
 accumulate_font_info (arg, character, elt)
@@ -1284,6 +1297,14 @@ If FRAME is omitted, it defaults to the currently selected frame.  */)
       if (!NILP (elt)
 	  && EQ (FONTSET_BASE (elt), fontset))
 	realized[n_realized++] = elt;
+    }
+
+  if (! EQ (fontset, Vdefault_fontset))
+    {
+      /* Merge FONTSET onto the default fontset.  */
+      val = Fcopy_sequence (Vdefault_fontset);
+      map_char_table (override_font_info, Qnil, fontset, val, 0, indices);
+      fontset = val;
     }
 
   /* Accumulate information of the fontset in VAL.  The format is
