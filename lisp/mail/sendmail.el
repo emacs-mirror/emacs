@@ -296,11 +296,11 @@ C-c C-v  mail-sent-via (add a sent-via field for each To or CC)."
   (setq font-lock-defaults '(mail-font-lock-keywords t))
   (make-local-variable 'paragraph-separate)
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "^" mail-header-separator
-				"$\\|^[ \t]*[-_][-_][-_]+$\\|"
+  (setq paragraph-start (concat mail-header-separator
+				"$\\|[ \t]*[-_][-_][-_]+$\\|"
 				paragraph-start))
-  (setq paragraph-separate (concat "^" mail-header-separator
-				   "$\\|^[ \t]*[-_][-_][-_]+$\\|"
+  (setq paragraph-separate (concat mail-header-separator
+				   "$\\|[ \t]*[-_][-_][-_]+$\\|"
 				   paragraph-separate))
   (run-hooks 'text-mode-hook 'mail-mode-hook))
 
