@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.342 2002/10/08 15:31:43 monnier Exp $
+;; $Id: vc.el,v 1.343 2002/10/11 09:36:00 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2176,31 +2176,13 @@ There is a special command, `*l', to mark all files currently locked."
 Replace various columns with version control information, VC-INFO.
 This code, like dired, assumes UNIX -l format."
   (beginning-of-line)
-  (let ((pos (point)) limit)
-    (end-of-line)
-    (setq limit (point))
-    (goto-char pos)
-    (when
-        (or
-         (re-search-forward  ;; owner and group
-          "^\\(..[drwxlts-]+ \\) *[0-9]+ [^ ]+ +[^ ]+ +[0-9]+\\( .*\\)"
-          limit t)
-         (re-search-forward  ;; only owner displayed
-          "^\\(..[drwxlts-]+ \\) *[0-9]+ [^ ]+ +[0-9]+\\( .*\\)"
-	  limit t)
-         (re-search-forward  ;; OS/2 -l format, no links, owner, group
-          "^\\(..[drwxlts-]+ \\) *[0-9]+\\( .*\\)"
-          limit t))
-      (let ((replacement (concat (match-string 1)
-                                 (substring (concat vc-info "          ")
-                                            0 10)
-                                 (match-string 2))))
-        ;; FIXME: Clear the text properties to make it work, because with
-        ;; a straightforward replacement, they will get messed up.
-        ;; Eventually, the text properties should be transformed correctly,
-        ;; not removed.
-        (set-text-properties 0 (length replacement) nil replacement)
-        (replace-match replacement)))))
+  (when (re-search-forward  
+         ;; Match link count, owner, group, size.  Group may be missing,
+         ;; and only the size is present in OS/2 -l format.
+         "^..[drwxlts-]+ \\( *[0-9]+\\( [^ ]+ +\\([^ ]+ +\\)?[0-9]+\\)?\\) "
+         (line-end-position) t)
+      (replace-match (substring (concat vc-info "          ") 0 10)
+                     t t nil 1)))
 
 (defun vc-dired-hook ()
   "Reformat the listing according to version control.
