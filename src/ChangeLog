@@ -1,3 +1,11 @@
+2003-02-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_make_frame_visible): Call gtk_window_deiconify.
+
+	* xmenu.c (menu_position_func): Adjust menu popup position so that
+	the menu is fully visible.
+	
+
 2003-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_text_icon, x_raise_frame, x_lower_frame)

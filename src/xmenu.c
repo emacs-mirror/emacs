@@ -2241,6 +2241,7 @@ static Lisp_Object *volatile menu_item_selection;
    create_and_show_popup_menu below.  */
 struct next_popup_x_y
 {
+  FRAME_PTR f;
   int x;
   int y;
 };
@@ -2252,7 +2253,7 @@ struct next_popup_x_y
    PUSH_IN is not documented in the GTK manual.
    USER_DATA is any data passed in when calling gtk_menu_popup.
    Here it points to a struct next_popup_x_y where the coordinates
-   to store in *X and *Y are.
+   to store in *X and *Y are as well as the frame for the popup.
 
    Here only X and Y are used.  */
 static void
@@ -2263,8 +2264,21 @@ menu_position_func (menu, x, y, push_in, user_data)
      gboolean *push_in;
      gpointer user_data;
 {
-  *x = ((struct next_popup_x_y*)user_data)->x;
-  *y = ((struct next_popup_x_y*)user_data)->y;
+  struct next_popup_x_y* data = (struct next_popup_x_y*)user_data;
+  GtkRequisition req;
+  int disp_width = FRAME_X_DISPLAY_INFO (data->f)->width;
+  int disp_height = FRAME_X_DISPLAY_INFO (data->f)->height;
+  
+  *x = data->x;
+  *y = data->y;
+
+  /* Check if there is room for the menu.  If not, adjust x/y so that
+     the menu is fully visible.  */
+  gtk_widget_size_request (GTK_WIDGET (menu), &req);
+  if (data->x + req.width > disp_width)
+    *x -= data->x + req.width - disp_width;
+  if (data->y + req.height > disp_height)
+    *y -= data->y + req.height - disp_height;
 }
 
 static void
@@ -2316,6 +2330,7 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
 
       popup_x_y.x = x;
       popup_x_y.y = y;
+      popup_x_y.f = f;
     }
 
   /* Display the menu.  */
