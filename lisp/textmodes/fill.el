@@ -660,9 +660,10 @@ space does not end a sentence, so don't break a line there."
 	(let (linebeg)
 	  (while (< (point) to)
 	    (setq linebeg (point))
-	    (move-to-column (1+ (current-fill-column)))
+	    (move-to-column (current-fill-column))
 	    (if (when (< (point) to)
 		  ;; Find the position where we'll break the line.
+		  (forward-char 1) ;Use an immediately following space, if any.
 		  (fill-move-to-break-point linebeg)
 		  ;; Check again to see if we got to the end of
 		  ;; the paragraph.
