@@ -1,4 +1,9 @@
-2004-03-11  Kenichi Handa  <handa@etlken2>
+2004-03-30  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Finsert_file_contents): Be sure to call unbind_to
+	after calling code_conversion_save.
+
+2004-03-11  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (handle_auto_composed_prop): Fix Lisp_Object/int mixup.
 
@@ -1048,7 +1053,7 @@
 
 	* syntax.c (skip_chars, skip_syntaxes): Fix type errors.
 
-2003-01-07  Kenichi Handa  <handa@etl.go.jp>
+2003-01-07  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (x_new_font): Optimize for the case that the font is
 	already set for the frame.
@@ -1100,7 +1105,7 @@
 	adjusted.
 	(CODING_ANNOTATE_CHARSET_MASK): New macro.
 
-2003-01-06  Kenichi Handa  <handa@etl.go.jp>
+2003-01-06  Kenichi Handa  <handa@m17n.org>
 
 	* insdel.c (insert_from_gap): Fix argument to offset_intervals.
 
@@ -1234,7 +1239,7 @@
 
 	* editfns.c (Finsert_byte): Return a proper value.
 
-2002-10-14  Kenichi Handa  <handa@etl.go.jp>
+2002-10-14  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding): Fix args to translate_chars.  Pay
 	attention to Vstandard_translation_table_for_decode.
@@ -1333,7 +1338,7 @@
 	characters.
 	(boyer_moore): Rename the last argument to char_high_bits.
 
-2002-09-27  Kenichi Handa  <handa@etl.go.jp>
+2002-09-27  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (display_string): Fix for the case of zero width glyph.
 
@@ -1347,15 +1352,15 @@
 	* xterm.c (x_new_fontset): If FONTSETNAME specifies the default
 	fontset, return Qt.
 
-2002-09-19  Kenichi Handa  <handa@etl.go.jp>
+2002-09-19  Kenichi Handa  <handa@m17n.org>
 
 	* regex.c (re_search_2): Fix previous change.
 
-2002-09-18  Kenichi Handa  <handa@etl.go.jp>
+2002-09-18  Kenichi Handa  <handa@m17n.org>
 
 	* syntax.c (skip_syntaxes): Fix previous change.
 
-2002-09-13  Kenichi Handa  <handa@etl.go.jp>
+2002-09-13  Kenichi Handa  <handa@m17n.org>
 
 	* syntax.c (skip_chars): Fix previous change.
 	(skip_syntaxes): Fix previous change.
@@ -1387,7 +1392,7 @@
 
 	* charset.h (charset_ordered_list_tick): Declare extern.
 
-2002-09-03  Kenichi Handa  <handa@etl.go.jp>
+2002-09-03  Kenichi Handa  <handa@m17n.org>
 
 	The following changes (and some of 2002-08-20 changes of mine) are
 	for handling syntax, category, and case conversion for unibyte
@@ -1495,7 +1500,7 @@
 	(Fbackward_prefix_chars): Likewise.
 	(scan_sexps_forward): Likewise.
 
-2002-08-23  Kenichi Handa  <handa@etl.go.jp>
+2002-08-23  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (QCfontset): New variable.
 	(LFACE_FONTSET): New macro.
@@ -1514,7 +1519,7 @@
 
 	* fns.c (base64_encode_1): Handle eight-bit chars correctly.
 
-2002-08-21  Kenichi Handa  <handa@etl.go.jp>
+2002-08-21  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (coding_set_destination): Fix coding->destination for
 	the case converting a region.
@@ -1528,7 +1533,7 @@
 
 	* fns.c (base64_decode_1): Insert eight-bit chars correctly.
 
-2002-08-20  Kenichi Handa  <handa@etl.go.jp>
+2002-08-20  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (get_next_display_element): Don't display unibyte 8-bit
 	characters by octal form.
@@ -1561,7 +1566,7 @@
 
 	* search.c (Freplace_match): Fix for the unibyte case.
 
-2002-08-19  Kenichi Handa  <handa@etl.go.jp>
+2002-08-19  Kenichi Handa  <handa@m17n.org>
 
 	* lread.c (safe_to_load_p): Fix the logic.
 
@@ -1576,7 +1581,7 @@
 	* emacs.c (main): In the case of --unibyte, instead of aborting on
 	finding non-empty buffer, make it unibyte.
 
-2002-08-18  Kenichi Handa  <handa@etl.go.jp>
+2002-08-18  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (x_new_fontset): Call `create-fontset-from-ascii-font'
 	to create a fontset.
@@ -1587,7 +1592,7 @@
 
 	* xfns.c [HAVE_STDLIB_H]: Fix last change.
 
-2002-08-15  Kenichi Handa  <handa@etl.go.jp>
+2002-08-15  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (fontset_add): Make the type `int'.
 	(fontset_id_valid_p): Define it if FONTSET_DEBUG is defined.
@@ -1612,17 +1617,17 @@
 	* lisp.h (nonascii_insert_offset, Vnonascii_translation_table):
 	Extern deleted.
 
-2002-08-08  Kenichi Handa  <handa@etl.go.jp>
+2002-08-08  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Fdefine_coding_system_internal): Fix category setting
 	for a coding system of type iso-2022.
 
-2002-08-02  Kenichi Handa  <handa@etl.go.jp>
+2002-08-02  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.h (FS_LOAD_FONT): Call fs_load_font with the arg CHARSET
 	-1.
 
-2002-08-01  Kenichi Handa  <handa@etl.go.jp>
+2002-08-01  Kenichi Handa  <handa@m17n.org>
 
 	* syntax.c (Vnext_word_boundary_function_table): New variable.
 	(syms_of_syntax): Declare it as a Lisp variable.
@@ -1651,7 +1656,7 @@
 	(TIOCSIGSEND): Don't test IRIX6.
 	(bcopy, bzero, bcmp): Define conditionally.
 
-2002-07-31  Kenichi Handa  <handa@etl.go.jp>
+2002-07-31  Kenichi Handa  <handa@m17n.org>
 
 	* buffer.c (Qas, Qmake, Qto): New variables.
 	(Fset_buffer_multibyte): New optional arg METHOD.  Caller changed.
@@ -1730,7 +1735,7 @@
 	* ccl.c: Remove `emacs' conditional.  Include hash table stuff
 	from trunk.
 
-2002-07-26  Kenichi Handa  <handa@etl.go.jp>
+2002-07-26  Kenichi Handa  <handa@m17n.org>
 
 	The following changes are to allow specifying multiple font
 	patterns for a character range (specified by script or charset).
@@ -1842,7 +1847,7 @@
 	fontsets, create a new one.
 	(x_get_font_repertory): New function.
 
-2002-07-25  Kenichi Handa  <handa@etl.go.jp>
+2002-07-25  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Ffind_coding_systems_region_internal): Detect an
 	ASCII only string correctly.
@@ -1850,7 +1855,7 @@
 	* lread.c (Fload): Don't load with Qload_force_doc_strings t if
 	version is 0.
 
-2002-07-24  Kenichi Handa  <handa@etl.go.jp>
+2002-07-24  Kenichi Handa  <handa@m17n.org>
 
 	* lread.c: Include "coding.h".
 	(Qget_emacs_mule_file_char, Qload_force_doc_strings,
@@ -1884,12 +1889,12 @@
 	(syms_of_lread): Intern and staticpro Qget_emacs_mule_file_char
 	and Qload_force_doc_strings.
 
-2002-07-23  Kenichi Handa  <handa@etl.go.jp>
+2002-07-23  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (face_before_or_after_it_pos): Call
 	FETCH_MULTIBYTE_CHAR with byte postion, not char position.
 
-2002-07-22  Kenichi Handa  <handa@etl.go.jp>
+2002-07-22  Kenichi Handa  <handa@m17n.org>
 
 	* character.h (TRAILING_CODE_P): New macro.
 	(MAYBE_UNIFY_CHAR): Adjusted for the change of Funify_charset.
@@ -2026,7 +2031,7 @@
 	(safe_to_load_p): If safe, return the magic number version byte.
 	(Fload): Maybe use load-with-code-conversion.
 
-2002-06-12  Kenichi Handa  <handa@etl.go.jp>
+2002-06-12  Kenichi Handa  <handa@m17n.org>
 
 	* category.c (Fmodify_category_entry): Don't modify the contents
 	of category_set for characters out of the range.  Avoid
@@ -2090,7 +2095,7 @@
 
 	* Makefile.in (chartab.o): Depend on charset.h
 
-2002-06-03  Kenichi Handa  <handa@etl.go.jp>
+2002-06-03  Kenichi Handa  <handa@m17n.org>
 
 	* character.c (syms_of_character): Set the default value of
 	Vprintable_chars to Qnil.
@@ -2099,7 +2104,7 @@
 
 	* Makefile.in (lisp, shortlisp): Change indian.elc to indian.el.
 
-2002-05-31  Kenichi Handa  <handa@etl.go.jp>
+2002-05-31  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (load_charset_map): Handle the case that from < to
 	correctly.
@@ -2111,7 +2116,7 @@
 	(encode_coding_big5): Likewise.
 	(encode_coding_charset): Likewise.
 
-2002-05-30  Kenichi Handa  <handa@etl.go.jp>
+2002-05-30  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (lisp): Change chinese.elc to chinese.el.  They are
 	not bytecompiled now.
@@ -2136,7 +2141,7 @@
 	(encode_coding_iso_2022): Change the 1st arg to
 	ENCODE_ISO_CHARACTER to a variable.
 
-2002-05-29  Kenichi Handa  <handa@etl.go.jp>
+2002-05-29  Kenichi Handa  <handa@m17n.org>
 
 	* charset.h (enum define_charset_arg_index): New enums
 	charset_arg_min_code and charset_arg_max_code.
@@ -2204,13 +2209,13 @@
 	* coding.c (Fdefine_coding_system_internal): Fix previous change.
 	(decode_coding_charset): Workaround for the bug of GCC 2.96.
 
-2002-05-23  Kenichi Handa  <handa@etl.go.jp>
+2002-05-23  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (lisp): Change cyrillic.elc to cyrillic.el,
 	vietnamese.elc to vietnamese.el.  They are not bytecompiled now.
 	(shortlisp): Likewise.
 
-2002-05-22  Kenichi Handa  <handa@etl.go.jp>
+2002-05-22  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_charset): Adjusted for the change of
 	Fdefine_coding_system_internal.
@@ -2220,7 +2225,7 @@
 
 	* charset.c (Fmake_char): Fix previous change.
 
-2002-05-21  Kenichi Handa  <handa@etl.go.jp>
+2002-05-21  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (ONE_MORE_BYTE_NO_CHECK): Increment consumed_chars.
 	(emacs_mule_char): New arg src.  Delete arg `composition'.  Caller
@@ -2245,7 +2250,7 @@
 	(Fmake_char): If CODE1 is nil, use the minimum code of the
 	charset.
 
-2002-05-20  Kenichi Handa  <handa@etl.go.jp>
+2002-05-20  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (encode_coding_iso_2022): If coding requires safe
 	encoding, produce a character specified by
@@ -2291,14 +2296,14 @@
 
 	* s/osf5-0.h (C_SWITCH_SYSTEM) [!__GNUC__]: Remove -nointrinsics.
 
-2002-05-16  Kenichi Handa  <handa@etl.go.jp>
+2002-05-16  Kenichi Handa  <handa@m17n.org>
 
 	* character.c (string_escape_byte8): Make multibyte string with
 	correct size.
 
 	* charset.c (Fmake_char): Delete unnecessary code.
 
-2002-05-14  Kenichi Handa  <handa@etl.go.jp>
+2002-05-14  Kenichi Handa  <handa@m17n.org>
 
 	* xfns.c (x_encode_text): Allocate coding.destination here, and
 	call encode_coding_object with dst_object Qnil.
@@ -2332,7 +2337,7 @@
 	(Fdefine_coding_system_alias): Use names, not symbols, in
 	coding-system-alist.
 
-2002-05-13  Kenichi Handa  <handa@etl.go.jp>
+2002-05-13  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (free_realized_fontsets): Call Fclear_face_cache instead
 	of calling free_realized_face.
@@ -2345,7 +2350,7 @@
 	-1.
 	(Fdecode_char): Fix typo.
 
-2002-05-10  Kenichi Handa  <handa@etl.go.jp>
+2002-05-10  Kenichi Handa  <handa@m17n.org>
 
 	* charset.h (struct charset): New member `code_space_mask'.
 
@@ -2374,12 +2379,12 @@
 	(Fset_terminal_coding_system_internal)
 	(Fset_safe_terminal_coding_system_internal): Fix arg declarations.
 
-2002-05-08  Kenichi Handa  <handa@etl.go.jp>
+2002-05-08  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_charset, encode_coding_charset): Handle
 	multiple charsets correctly.
 
-2002-05-07  Kenichi Handa  <handa@etl.go.jp>
+2002-05-07  Kenichi Handa  <handa@m17n.org>
 
 	* search.c (boyer_moore): Fix handling of mulitbyte character
 	translation.
@@ -2387,7 +2392,7 @@
 	* xdisp.c (display_mode_element): When the variable `elt' is
 	changed, update `this' and `lisp_string'.
 
-2002-05-07  Kenichi Handa  <handa@etl.go.jp>
+2002-05-07  Kenichi Handa  <handa@m17n.org>
 
 	* buffer.c (Fset_buffer_multibyte): Fix 8-bit char handling.
 
@@ -2424,7 +2429,7 @@
 	* xfaces.c (try_font_list): Give higher priority to fontset's
 	family than face's family.
 
-2002-04-18  Kenichi Handa  <handa@etl.go.jp>
+2002-04-18  Kenichi Handa  <handa@m17n.org>
 
 	* callproc.c (Fcall_process): Be sure to give the current buffer
 	to decode_coding_c_string.
@@ -2432,19 +2437,19 @@
 	* xfaces.c (try_font_list): Give a family specified in a fontset
 	higher priority than a family specified in a face.
 
-2002-04-09  Kenichi Handa  <handa@etl.go.jp>
+2002-04-09  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Finsert_file_contents): Fix calculation of `inserted'.
 	Fix arguments to insert_from_buffer.
 
 	* xdisp.c (display_mode_element): Fix calculation of `bytepos'.
 
-2002-03-11  Kenichi Handa  <handa@etl.go.jp>
+2002-03-11  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (produce_chars): Set the variable `multibytep' correctly.
 	(decode_coding_gap): Set coding->dst_multibyte correctly.
 
-2002-03-07  Kenichi Handa  <handa@etl.go.jp>
+2002-03-07  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (encode_coding_utf_8): Initialize produced_chars to 0.
 	(decode_coding_utf_16): Fix converting high and low bytes to
@@ -2458,7 +2463,7 @@
 
 	* insdel.c (insert_from_gap): Call record_insert.
 
-2002-03-04  Kenichi Handa  <handa@etl.go.jp>
+2002-03-04  Kenichi Handa  <handa@m17n.org>
 
 	* casefiddle.c (casify_region): Fix multibyte case.
 
@@ -2483,7 +2488,7 @@
 
 	* syntax.h (SET_RAW_SYNTAX_ENTRY): Don't call make_number.
 
-2002-03-01  Kenichi Handa  <handa@etl.go.jp>
+2002-03-01  Kenichi Handa  <handa@m17n.org>
 
 	The following changes are for using Unicode as an internal
 	character model, and use UTF-8 format for buffer/string
