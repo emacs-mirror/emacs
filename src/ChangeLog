@@ -1,3 +1,10 @@
+2002-05-23  Yong Lu <lyongu@asia-infonet.com>
+
+	* charset.c (Fdefine_charset_internal): Fix argument to bzero.
+
+	* coding.c (Fdefine_coding_system_internal): Fix previous change.
+	(decode_coding_charset): Workaround for the bug of GCC 2.96.
+
 2002-05-23  Kenichi Handa  <handa@etl.go.jp>
 
 	* Makefile.in (lisp): Change cyrillic.elc to cyrillic.el,
