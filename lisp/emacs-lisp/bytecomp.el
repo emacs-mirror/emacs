@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.81 $")
+(defconst byte-compile-version "$Revision: 2.82 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1836,7 +1836,7 @@ list that represents a doc string reference.
 	   (symbolp (nth 1 (nth 1 form))))
       (add-to-list 'byte-compile-function-environment
 		   (cons (nth 1 (nth 1 form))
-			 form)))
+			 (cons 'autoload (cdr (cdr form))))))
   (if (stringp (nth 3 form))
       form
     ;; No doc string, so we can compile this as a normal form.
@@ -3641,10 +3641,10 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
       (assq 'byte-code (symbol-function 'byte-compile-form))
       (let ((byte-optimize nil)		; do it fast
 	    (byte-compile-warnings nil))
-	(mapcar '(lambda (x)
-		   (or noninteractive (message "compiling %s..." x))
-		   (byte-compile x)
-		   (or noninteractive (message "compiling %s...done" x)))
+	(mapcar (lambda (x)
+		  (or noninteractive (message "compiling %s..." x))
+		  (byte-compile x)
+		  (or noninteractive (message "compiling %s...done" x)))
 		'(byte-compile-normal-call
 		  byte-compile-form
 		  byte-compile-body
