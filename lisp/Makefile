@@ -137,10 +137,14 @@ compile: backup-compiled-files compile-files
 recompile: doit
 	$(emacs) -f batch-byte-recompile-directory .
 
-# Remove files for a bootstrap.  Compiled Lisp files must be removed
-# because otherwise `bootstrap-emacs' would not be built from sources.
+# Prepare a bootstrap in the lisp subdirectory.  Build loaddefs.el,
+# because it's not sure it's up-to-date, and if it's not, that might
+# lead to errors during the bootstrap because something fails to
+# autoload as expected.  Remove compiled Lisp files so that
+# bootstrap-emacs will be built from sources only.
 
 bootstrap-clean:
+	if test -f $(emacs); then $(MAKE) $(MFLAGS) autoloads; fi
 	-rm -f *.elc */*.elc
 
 # Generate/update files for the bootstrap process.
