@@ -1,3 +1,49 @@
+2000-09-30  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-pretty-mode-name): Prettier.
+
+	* emacs-lisp/lisp.el (lisp-complete-symbol): Only jump 2 not 3 levels.
+
+	* progmodes/c-mode.el (c-mode): 
+	Don't gratuitously override the default for comment-column.
+
+	* textmodes/tex-mode.el (latex-metasection-list): New var.
+	(latex-imenu-create-index): Use it.
+	Move the regexp construction outside loops (and use push).
+	(tex-font-lock-keywords-1, tex-font-lock-keywords-2) 
+	(tex-font-lock-keywords): Moved from font-lock.el.
+	(tex-comment-indent): Remove.
+	(tex-common-initialization): Don't set comment-indent-function.
+	(latex-block-default): New var.
+	(tex-latex-block): Use it to provide a default choice.
+	Add any unknown choice to latex-block-names.
+	Insert [...] after {...}.
+	(tex-last-unended-begin): Simplify regexp.
+	(tex-goto-last-unclosed-latex-block, latex-backward-sexp-1)
+	(latex-forward-sexp-1, latex-forward-sexp): New functions.
+	(latex-mode): Set forward-sexp-function.
+
+	* textmodes/texinfo.el (texinfo-font-lock-syntactic-keywords):
+	Add regexp for @ignore ... @end ignore.
+	(texinfo-heading-face): New face.
+	(texinfo-font-lock-keywords): Use it.
+	(texinfo-mode-menu): New menu.
+	(texinfo-inside-macro-p, texinfo-inside-env-p, texinfo-insert-quote):
+	New functions.
+	(texinfo-mode-map): Bind " to insert-quote and M-RET to insert-@item.
+	(texinfo-section-types-regexp, texinfo-section-level-regexp) 
+	(texinfo-subsection-level-regexp, texinfo-subsubsection-level-regexp):
+	Remove declaration.
+	(texinfo-show-structure): Use outline-regexp and texinfo-section-list.
+
+	* delsel.el (delete-selection-mode): Use define-minor-mode.
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-group): Put more parenthesis.
+
+2000-09-29  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* dired.el (dired-map-over-marks): Use modern backquotes and docstring.
+
 2000-09-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* replace.el (keep-lines-read-args): New function.
