@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.108 $")
+(defconst byte-compile-version "$Revision: 2.109 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -943,7 +943,7 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 	 (goto-char (point-max))
 	 (insert "\n")
 	 (let ((pt (point)))
-	   (insert "^L\nCompiling "
+	   (insert "\f\nCompiling "
 		   (if (stringp byte-compile-current-file)
 		       (concat "file " byte-compile-current-file)
 		     (concat "buffer " (buffer-name byte-compile-current-file)))
@@ -1230,10 +1230,10 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 			'(cl-block-wrapper cl-block-throw
 			  multiple-value-call nth-value
 			  copy-seq first second rest endp cl-member
-			  ;; This is sometimes defined in CL
-			  ;; but that redefines a standard function,
-			  ;; so don't warn about it.
-			  macroexpand))))
+			  ;; These would sometimes be warned about
+			  ;; but such warnings are never useful,
+			  ;; so don't warn about them.
+			  macroexpand cl-macroexpand-all cl-compiling-file))))
 	(byte-compile-warn "Function `%s' from cl package called at runtime"
 			   func)))
   form)
@@ -1328,6 +1328,13 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 					 byte-compile-warnings))
 		)
 	      body)))
+
+;;;      ;; Log the file name.
+;;;      (let ((tem (byte-compile-log-file)))
+;;;        ;; Record position of that text,
+;;;        ;; unless we're compiling multiple files and this isn't the first.
+;;;        (unless warning-series
+;;; 	 (setq warning-series tem)))
 
 (defmacro displaying-byte-compile-warnings (&rest body)
   `(let (warning-series)
