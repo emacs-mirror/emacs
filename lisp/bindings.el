@@ -933,10 +933,8 @@ language you are using."
 
 (define-key ctl-x-map "z" 'repeat)
 
-;;; Don't compile this file; it contains no large function definitions.
 ;;; Don't look for autoload cookies in this file.
 ;;; Local Variables:
-;;; no-byte-compile: t
 ;;; no-update-autoloads: t
 ;;; End:
 
