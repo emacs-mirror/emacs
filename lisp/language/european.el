@@ -48,7 +48,14 @@
   ;; single-byte mode.  We can't use require because the file
   ;; must be eval'd each time in case we change from one Latin-N to another.
   (if (string-match "^Latin-\\([1-9]\\)$" language)
-      (load (downcase language) nil t)))
+      (let ((set-case-syntax-set-multibyte nil))
+	(load (downcase language) nil t)
+	(set-standard-case-table (standard-case-table))
+	(let ((list (buffer-list)))
+	  (while list
+	    (with-current-buffer (car list)
+	      (set-case-table (standard-case-table)))
+	    (setq list (cdr list)))))))
 
 ;; Latin-1 (ISO-8859-1)
 
