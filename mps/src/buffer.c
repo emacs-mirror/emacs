@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.15) $
+ * $HopeName: MMsrc!buffer.c(trunk.16) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  *
  * This is (part of) the implementation of allocation buffers.
@@ -29,7 +29,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.15) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.16) $");
 
 
 /* BufferCreate -- create an allocation buffer in a pool
@@ -55,7 +55,7 @@ Res BufferCreate(Buffer *bufferReturn, Pool pool, Rank rank)
   /* Allocate the buffer structure. */  
   res = SpaceAlloc(&p, space, sizeof(BufferStruct));
   if(res != ResOK) return res;
-  buffer = (Buffer)p;
+  buffer = p;
 
   /* Initialize the buffer.  See impl.h.mpmst for a definition of the
    * structure */
@@ -65,9 +65,9 @@ Res BufferCreate(Buffer *bufferReturn, Pool pool, Rank rank)
   buffer->seg = NULL;
   buffer->rank = rank;
   buffer->base = (Addr)0;
-  buffer->ap.init = (Addr)0;
-  buffer->ap.alloc = (Addr)0;
-  buffer->ap.limit = (Addr)0;
+  buffer->apStruct.init = (Addr)0;
+  buffer->apStruct.alloc = (Addr)0;
+  buffer->apStruct.limit = (Addr)0;
   buffer->alignment = pool->alignment; /* .trans.mod */
   buffer->exposed = FALSE;
   RingInit(&buffer->poolRing);
@@ -153,15 +153,16 @@ Bool BufferCheck(Buffer buffer)
     CHECKL(SegCheck(buffer->seg));	/* design.mps.check.type.no-sig */
     CHECKL(buffer->rank == buffer->seg->rank);
   }
-  CHECKL(buffer->base <= buffer->ap.init);
-  CHECKL(buffer->ap.init <= buffer->ap.alloc);
-  CHECKL(buffer->ap.alloc <= buffer->ap.limit || buffer->ap.limit == 0);
+  CHECKL(buffer->base <= buffer->apStruct.init);
+  CHECKL(buffer->apStruct.init <= buffer->apStruct.alloc);
+  CHECKL(buffer->apStruct.alloc <= buffer->apStruct.limit ||
+	 buffer->apStruct.limit == 0);
   CHECKL(buffer->alignment == buffer->pool->alignment);
   CHECKL(AlignCheck(buffer->alignment));
   CHECKL(AddrIsAligned(buffer->base, buffer->alignment));
-  CHECKL(AddrIsAligned(buffer->ap.init, buffer->alignment));
-  CHECKL(AddrIsAligned(buffer->ap.alloc, buffer->alignment));
-  CHECKL(AddrIsAligned(buffer->ap.limit, buffer->alignment));
+  CHECKL(AddrIsAligned(buffer->apStruct.init, buffer->alignment));
+  CHECKL(AddrIsAligned(buffer->apStruct.alloc, buffer->alignment));
+  CHECKL(AddrIsAligned(buffer->apStruct.limit, buffer->alignment));
   /* .improve.bool-check: */
   CHECKL(buffer->exposed == TRUE || buffer->exposed == FALSE);
   CHECKL(RingCheck(&buffer->poolRing));	/* design.mps.check.type.no-sig */
@@ -192,9 +193,9 @@ void BufferSet(Buffer buffer, Seg seg, Addr base, Addr init, Addr limit)
 
   buffer->seg = seg;
   buffer->base = base;
-  buffer->ap.init = init;
-  buffer->ap.alloc = init;
-  buffer->ap.limit = limit;
+  buffer->apStruct.init = init;
+  buffer->apStruct.alloc = init;
+  buffer->apStruct.limit = limit;
 }
 
 void BufferReset(Buffer buffer)
@@ -204,9 +205,9 @@ void BufferReset(Buffer buffer)
 
   buffer->seg = NULL;
   buffer->base = (Addr)0;
-  buffer->ap.init = (Addr)0;
-  buffer->ap.alloc = (Addr)0;
-  buffer->ap.limit = (Addr)0;
+  buffer->apStruct.init = (Addr)0;
+  buffer->apStruct.alloc = (Addr)0;
+  buffer->apStruct.limit = (Addr)0;
 }
 
 
@@ -237,9 +238,9 @@ Bool BufferIsReset(Buffer buffer)
 
   if(buffer->seg == NULL &&
      buffer->base == (Addr)0 &&
-     buffer->ap.init == (Addr)0 &&
-     buffer->ap.alloc == (Addr)0 &&
-     buffer->ap.limit == (Addr)0)
+     buffer->apStruct.init == (Addr)0 &&
+     buffer->apStruct.alloc == (Addr)0 &&
+     buffer->apStruct.limit == (Addr)0)
     return TRUE;
 
   return FALSE;
@@ -249,7 +250,7 @@ Bool BufferIsReady(Buffer buffer)
 {
   AVERT(Buffer, buffer);
 
-  if(buffer->ap.init == buffer->ap.alloc)
+  if(buffer->apStruct.init == buffer->apStruct.alloc)
     return TRUE;
 
   return FALSE;
@@ -258,7 +259,7 @@ Bool BufferIsReady(Buffer buffer)
 AP BufferAP(Buffer buffer)
 {
   AVERT(Buffer, buffer);
-  return &buffer->ap;
+  return &buffer->apStruct;
 }
 
 /* design.mps.buffer.method.ofap */
@@ -267,7 +268,7 @@ AP BufferAP(Buffer buffer)
 Buffer BufferOfAP(AP ap)
 {
   /* .design.mps.misc.parent.thread-safe */
-  return PARENT(BufferStruct, ap, ap);
+  return PARENT(BufferStruct, apStruct, ap);
 }
 
 /* design.mps.buffer.method.space */
@@ -302,11 +303,11 @@ Res BufferReserve(Addr *pReturn, Buffer buffer, Size size)
   /* satisfy the request?  If so, just increase the alloc marker and */
   /* return a pointer to the area below it. */
 
-  next = AddrAdd(buffer->ap.alloc, size);
-  if(next > buffer->ap.alloc && next <= buffer->ap.limit)
+  next = AddrAdd(buffer->apStruct.alloc, size);
+  if(next > buffer->apStruct.alloc && next <= buffer->apStruct.limit)
   {
-    buffer->ap.alloc = next;
-    *pReturn = buffer->ap.init;
+    buffer->apStruct.alloc = next;
+    *pReturn = buffer->apStruct.init;
     return ResOK;
   }
 
@@ -359,13 +360,13 @@ Bool BufferCommit(Buffer buffer, Addr p, Size size)
    * object at init.
    */
 
-  AVER(p == buffer->ap.init);
-  AVER(AddrAdd(buffer->ap.init, size) == buffer->ap.alloc);
+  AVER(p == buffer->apStruct.init);
+  AVER(AddrAdd(buffer->apStruct.init, size) == buffer->apStruct.alloc);
 
   /* Atomically update the init pointer to declare that the object */
   /* is initialized (though it may be invalid if a flip occurred). */
 
-  buffer->ap.init = buffer->ap.alloc;
+  buffer->apStruct.init = buffer->apStruct.alloc;
 
   /* .improve.memory-barrier: Memory barrier here on the DEC Alpha
    * (and other relaxed memory order architectures). */
@@ -377,7 +378,7 @@ Bool BufferCommit(Buffer buffer, Addr p, Size size)
 
   /* Trip the buffer if a flip has occurred. */
 
-  if(buffer->ap.limit == 0)
+  if(buffer->apStruct.limit == 0)
     return BufferTrip(buffer, p, size);
 
   /* No flip occurred, so succeed. */
@@ -394,10 +395,10 @@ Bool BufferTrip(Buffer buffer, Addr p, Size size)
   Pool pool;
 
   AVERT(Buffer, buffer);
-  AVER(p == buffer->ap.init);
+  AVER(p == buffer->apStruct.init);
   AVER(size > 0);
   AVER(SizeIsAligned(size, buffer->alignment));
-  AVER(AddrAdd(buffer->ap.init, size) == buffer->ap.alloc);
+  AVER(AddrAdd(buffer->apStruct.init, size) == buffer->apStruct.alloc);
 
   pool = BufferPool(buffer);
   return (*pool->class->bufferTrip)(pool, buffer, p, size);
@@ -447,7 +448,8 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
          "  Seg $P\n",         (void *)buffer->seg,
          "  rank $U\n",        (unsigned long)buffer->rank,
          "  base $A  init $A  alloc $A  limit $A\n",
-         buffer->base, buffer->ap.init, buffer->ap.alloc, buffer->ap.limit,
+           buffer->base, buffer->apStruct.init,
+	   buffer->apStruct.alloc, buffer->apStruct.limit,
          "  alignment $W\n",   (Word)buffer->alignment,
 	 "  exposed $U\n",     (unsigned long)buffer->exposed,
 	 /* poolRing is uninteresting */
