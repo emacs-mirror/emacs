@@ -1450,7 +1450,11 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
      attribute changes of named faces, recompute them.  When running
      in batch mode, the face cache of Vterminal_frame is null.  If
      we happen to get called, make a dummy face cache.  */
-  if (noninteractive && FRAME_FACE_CACHE (it->f) == NULL)
+  if (
+#ifndef WINDOWSNT
+      noninteractive &&
+#endif
+      FRAME_FACE_CACHE (it->f) == NULL)
     init_frame_faces (it->f);
   if (FRAME_FACE_CACHE (it->f)->used == 0)
     recompute_basic_faces (it->f);
@@ -2682,7 +2686,9 @@ handle_single_display_prop (it, prop, object, position)
       && EQ (XCAR (prop), Qheight)
       && CONSP (XCDR (prop)))
     {
-      if (FRAME_TERMCAP_P (it->f) || FRAME_MSDOS_P (it->f))
+      if (FRAME_TERMCAP_P (it->f)
+	  || FRAME_MSDOS_P (it->f)
+	  || FRAME_W32_CONSOLE_P (it->f))
 	return 0;
       
       /* `(height HEIGHT)'.  */
@@ -2747,8 +2753,9 @@ handle_single_display_prop (it, prop, object, position)
 	   && CONSP (XCDR (prop)))
     {
       /* `(space_width WIDTH)'.  */
-      if (FRAME_TERMCAP_P (it->f) || FRAME_MSDOS_P (it->f))
-	return 0;
+      if (FRAME_TERMCAP_P (it->f)
+	  || FRAME_MSDOS_P (it->f)
+	  || FRAME_W32_CONSOLE_P (it->f))
       
       value = XCAR (XCDR (prop));
       if (NUMBERP (value) && XFLOATINT (value) > 0)
@@ -2759,8 +2766,9 @@ handle_single_display_prop (it, prop, object, position)
 	   && CONSP (XCDR (prop)))
     {
       /* `(raise FACTOR)'.  */
-      if (FRAME_TERMCAP_P (it->f) || FRAME_MSDOS_P (it->f))
-	return 0;
+      if (FRAME_TERMCAP_P (it->f)
+	  || FRAME_MSDOS_P (it->f)
+	  || FRAME_W32_CONSOLE_P (it->f))
       
 #ifdef HAVE_WINDOW_SYSTEM
       value = XCAR (XCDR (prop));
