@@ -571,9 +571,9 @@ insert state."
    (kill-line arg)
    (vi-set-last-change-command 'kill-line arg))
 
-(defun vi-kill-region ()
-  (interactive)
-  (kill-region)
+(defun vi-kill-region (start end)
+  (interactive "*r")
+  (kill-region start end)
   (vi-set-last-change-command 'kill-region))
   
 (defun vi-append-at-end-of-line (arg)
@@ -1356,12 +1356,12 @@ The following CHAR will be the name for the command or macro."
 p(aragraph), P(age), f(unction in C/Pascal etc.), w(ord), e(nd of sentence),
 l(ines)."
   (interactive "p\nc")
-  (cond ((char-equal region ?d) (mark-defun arg))
+  (cond ((char-equal region ?d) (mark-defun))
 	((char-equal region ?s) (mark-sexp arg))
 	((char-equal region ?b) (mark-whole-buffer))
-	((char-equal region ?p) (mark-paragraph arg))
+	((char-equal region ?p) (mark-paragraph))
 	((char-equal region ?P) (mark-page arg))
-	((char-equal region ?f) (mark-c-function arg))
+	((char-equal region ?f) (mark-c-function))
 	((char-equal region ?w) (mark-word arg))
 	((char-equal region ?e) (mark-end-of-sentence arg))
 	((char-equal region ?l) (vi-mark-lines arg))
