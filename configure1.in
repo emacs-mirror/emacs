@@ -921,12 +921,13 @@ case "${canonical}" in
   ;;
 
   ## Suns
-  *-sun-sunos* | *-sun-bsd* | *-sun-solaris* )
+  *-sun-sunos* | *-sun-bsd* | *-sun-solaris* | i[34]86-*-solaris2* | i[34]86-*-sunos5* )
     case "${canonical}" in
       m68*-sunos1* )	machine=sun1 ;;
       m68*-sunos2* )	machine=sun2 ;;
       m68* )		machine=sun3 ;;
-      i[34]86* )	machine=sun386 ;;
+      i[34]86-sun-* )	machine=sun386 ;;
+      i[34]86-*-* )     machine=intel386 ;;
       sparc* )		machine=sparc ;;
       * )		unported=true ;;
     esac
