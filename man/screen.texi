@@ -134,15 +134,17 @@ flashing the screen.  The error also discards any input you have typed
 ahead.
 
   Some commands display informative messages in the echo area.  These
-messages look much like error messages, but they are not announced with
-a beep and do not throw away input.  Sometimes the message tells you
-what the command has done, when this is not obvious from looking at the
-text being edited.  Sometimes the sole purpose of a command is to show
-you a message giving you specific information---for example, @kbd{C-x =}
-displays a message describing the character position of point in the text
-and its current column in the window.  Commands that take a long time
-often display messages ending in @samp{...} while they are working, and
-add @samp{done} at the end when they are finished.
+messages look much like error messages, but they are not announced
+with a beep and do not throw away input.  Sometimes the message tells
+you what the command has done, when this is not obvious from looking
+at the text being edited.  Sometimes the sole purpose of a command is
+to show you a message giving you specific information---for example,
+@kbd{C-x =} (hold down @key{CTRL} and type @kbd{x}, then let go of
+@key{CTRL} and type @kbd{=}) displays a message describing the
+character position of point in the text and its current column in the
+window.  Commands that take a long time often display messages ending
+in @samp{...} while they are working, and add @samp{done} at the end
+when they are finished.
 
 @cindex @samp{*Messages*} buffer
 @cindex saved echo area messages
