@@ -1,3 +1,10 @@
+2000-09-25  Dave Love  <fx@gnu.org>
+
+	* autoinsert.el (auto-insert): Doc fix.
+	(auto-insert-alist): Following GNU notices, don't say `copyright
+	_by_'.  Use line-beginning-position.
+	(auto-insert): Check buffer-file-name is non-nil before use.
+
 2000-09-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/texinfo.el (texinfo-mode): Prevent filling lines
