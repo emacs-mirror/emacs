@@ -299,6 +299,18 @@ comments, use this:
   To remove keywords from the font-lock highlighting patterns, use the
 function @code{font-lock-remove-keywords}.
 
+@cindex just-in-time (JIT) font-lock
+@cindex background syntax highlighting
+  Fontifying large buffers can take a long time.  To avoid large
+delays when a file is visited, Emacs fontifies only the visible
+portion of a buffer.  As you scroll through the buffer, each portion
+that becomes visible is fontified as soon as it is displayed.  The
+parts of the buffer that are not displayed are fontified
+``stealthily'', in the background, i.e.@: when Emacs is idle.  You can
+control this background fontification, called @dfn{Just-In-Time}, or
+@dfn{JIT} Font Lock, by customizing various options in the
+customization group @samp{jit-lock}.  @xref{Specific Customization}.
+
 @node Highlight Changes
 @section Highlight Changes Mode
 
