@@ -207,7 +207,8 @@ lock_file (fn)
   /* See if this file is visited and has changed on disk since it was
      visited.  */
   {
-    register Lisp_Object subject_buf = Fget_file_buffer (fn);
+    register Lisp_Object subject_buf;
+    subject_buf = Fget_file_buffer (fn);
     if (!NILP (subject_buf)
 	&& NILP (Fverify_visited_file_modtime (subject_buf))
 	&& !NILP (Ffile_exists_p (fn)))
