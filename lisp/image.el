@@ -31,14 +31,14 @@
 
 
 (defconst image-type-regexps
-  '(("^/\\*.*XPM.\\*/" . xpm)
-    ("^P[1-6]" . pbm)
-    ("^GIF8" . gif)
+  '(("\\`/\\*.*XPM.\\*/" . xpm)
+    ("\\`P[1-6]" . pbm)
+    ("\\`GIF8" . gif)
     ("JFIF" . jpeg)
-    ("^\211PNG\r\n" . png)
-    ("^#define" . xbm)
-    ("^\\(MM\0\\*\\)\\|\\(II\\*\0\\)" . tiff)
-    ("^%!PS" . postscript))
+    ("\\`\211PNG\r\n" . png)
+    ("\\`#define" . xbm)
+    ("\\`\\(MM\0\\*\\)\\|\\(II\\*\0\\)" . tiff)
+    ("\\`%!PS" . postscript))
   "Alist of (REGEXP . IMAGE-TYPE) pairs used to auto-detect image types.
 When the first bytes of an image file match REGEXP, it is assumed to
 be of image type IMAGE-TYPE.")
