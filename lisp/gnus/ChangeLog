@@ -1,3 +1,9 @@
+2000-12-13  Miles Bader  <miles@gnu.org>
+
+	* smiley-ems.el (smiley-region): Bind `inhibit-point-motion-hooks'
+	to t, so that we don't get stuck while trying to smilefy
+	intangible text.
+
 2000-12-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* smiley-ems.el (smiley-regexp-alist): Make regexps match
