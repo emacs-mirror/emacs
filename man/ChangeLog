@@ -1,3 +1,8 @@
+2004-08-30  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* emacs-mime.texi, gnus-faq.texi, gnus.texi, message.texi,
+	pgg.texi, sieve.texi: Use @copying and @insertcopying.
+
 2004-08-22  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Mail Source Specifiers): Describe
