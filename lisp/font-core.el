@@ -1,6 +1,6 @@
 ;;; font-core.el --- Core interface to font-lock
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 97, 98, 1999, 2000, 2001, 2002
+;; Copyright (C) 1992, 93, 94, 95, 96, 97, 98, 1999, 2000, 2001, 02, 2003
 ;;  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -77,47 +77,8 @@ and those for buffer-specialized fontification functions,
 ;; keywords.  Really, this shouldn't need to be in font-core.el, but
 ;; we can't avoid it.  In the future, this stuff will hopefully be
 ;; moved to cc-mode itself.
-(defvar font-lock-defaults-alist
-  (let (;; We use `beginning-of-defun', rather than nil, for SYNTAX-BEGIN.
-	;; Thus the calculation of the cache is usually faster but not
-	;; infallible, so we risk mis-fontification.  sm.
-	(c-mode-defaults
-	 '((c-font-lock-keywords c-font-lock-keywords-1
-	    c-font-lock-keywords-2 c-font-lock-keywords-3)
-	   nil nil ((?_ . "w")) beginning-of-defun
-	   (font-lock-syntactic-face-function
-	    . c-font-lock-syntactic-face-function)
-	   (font-lock-mark-block-function . mark-defun)))
-	(c++-mode-defaults
-	 '((c++-font-lock-keywords c++-font-lock-keywords-1
-	    c++-font-lock-keywords-2 c++-font-lock-keywords-3)
-	   nil nil ((?_ . "w")) beginning-of-defun
-	   (font-lock-syntactic-face-function
-	    . c-font-lock-syntactic-face-function)
-	   (font-lock-mark-block-function . mark-defun)))
-	(objc-mode-defaults
-	 '((objc-font-lock-keywords objc-font-lock-keywords-1
-	    objc-font-lock-keywords-2 objc-font-lock-keywords-3)
-	   nil nil ((?_ . "w") (?$ . "w")) nil
-	   (font-lock-syntactic-face-function
-	    . c-font-lock-syntactic-face-function)
-	   (font-lock-mark-block-function . mark-defun)))
-	(java-mode-defaults
-	 '((java-font-lock-keywords java-font-lock-keywords-1
-	    java-font-lock-keywords-2 java-font-lock-keywords-3)
-	   nil nil ((?_ . "w") (?$ . "w")) nil
-	   (font-lock-syntactic-face-function
-	    . java-font-lock-syntactic-face-function)
-	   (font-lock-mark-block-function . mark-defun))))
-    (list
-     (cons 'c-mode			c-mode-defaults)
-     (cons 'c++-mode			c++-mode-defaults)
-     (cons 'objc-mode			objc-mode-defaults)
-     (cons 'java-mode			java-mode-defaults)))
+(defvar font-lock-defaults-alist nil
   "Alist of fall-back Font Lock defaults for major modes.
-
-This variable should not be used any more.
-Set the buffer-local `font-lock-keywords' in the major mode instead.
 
 Each item should be a list of the form:
 
