@@ -1,5 +1,7 @@
 2005-04-04  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* comint.el (comint-prompt-read-only): Doc fix.
+
 	* dired.el (dired-copy-filename-as-kill): Make `-' arg behave like
 	`-1'.  Doc fix.
 
