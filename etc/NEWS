@@ -1452,6 +1452,10 @@ checks are always done now.
 VC Dired buffers are now kept up-to-date during all version control
 operations.
 
+`vc-diff' output is now displayed in `diff-mode'.
+`vc-print-log' uses `log-view-mode'.
+`vc-log-mode' (used for *VC-Log*) has been replaced by `log-edit-mode'.
+
 *** Changes for CVS
 
 There is a new user option, `vc-cvs-stay-local'.  If it is `t' (the
@@ -1946,6 +1950,8 @@ DEFAULT-CODING-SYSTEM is not specified,
 ** The function `subr-arity' provides information on the argument list
 of a primitive.
 
+** `where-is-internal' now also accepts a list of keymaps.
+
 ** The text property `keymap' specifies a key map which overrides the
 buffer's local map and the map specified by the `local-map' property.
 This is probably what most current uses of `local-map' want, rather
@@ -1957,8 +1963,8 @@ after-change-function are no longer acted upon and have been removed.
 ** The function `apropos-mode' runs the hook `apropos-mode-hook'.
 
 +++
-** `concat' no longer accepts individual integer arguments, as
-promised long ago.
+** `concat' no longer accepts individual integer arguments,
+as promised long ago.
 
 ** The new function `float-time' returns the current time as a float.
 

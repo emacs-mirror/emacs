@@ -1,3 +1,7 @@
+2000-10-31  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* cus-edit.el (custom-mode-map): Switch back to a sparse keymap.
+
 2000-10-31  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* ediff-init.el (ediff-prepare-buffer-hook): Expand docstring, no
@@ -27,8 +31,7 @@
 	(ps-page-number): Changed from defmacro to defun.
 	(ps-header-sheet, ps-header-page): Fix bug on selected pages for
 	printing.
-	(ps-print-ensure-fontified): Ensure fontification when jit-lock is
-	on.
+	(ps-print-ensure-fontified): Ensure fontification when jit-lock is on.
 	(ps-end-file, ps-dummy-page): Funs eliminated.
 	(ps-print-color-scale): Changed default value.
 	(ps-page-n-up, ps-print-page-p): New internal vars.
@@ -41,14 +44,12 @@
 
 2000-10-31  Kenichi Handa  <handa@etl.go.jp>
 
-	* term/mac-win.el: (decode-mac-roman, encode-mac-roman)
-	(mac-roman): Moved to european.el.
+	* term/mac-win.el (decode-mac-roman, encode-mac-roman, mac-roman):
+	Moved to european.el.
 	(ccl-encode-mac-roman-font, fontset-mac): Modified for
 	mule-unicode-2500-33ff and mule-unicode-e000-ffff.
-	(mac-roman-kbd-insert, mac-roman-kbd-mode): These functions
-	deleted.
-	(mac-roman-kbd-mode, mac-roman-kbd-mode-map): These variables
-	deleted.
+	(mac-roman-kbd-insert, mac-roman-kbd-mode): These functions deleted.
+	(mac-roman-kbd-mode, mac-roman-kbd-mode-map): These variables deleted.
 
 2000-10-30  Dave Love  <fx@gnu.org>
 
