@@ -1128,13 +1128,13 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 #endif /* not MSDOS */
 }
 
-/* Move the file descriptor FD so that its number is not less than MIN.
+/* Move the file descriptor FD so that its number is not less than MINFD.
    If the file descriptor is moved at all, the original is freed.  */
 int
-relocate_fd (fd, min)
-     int fd, min;
+relocate_fd (fd, minfd)
+     int fd, minfd;
 {
-  if (fd >= min)
+  if (fd >= minfd)
     return fd;
   else
     {
@@ -1151,7 +1151,7 @@ relocate_fd (fd, min)
 	}
       /* Note that we hold the original FD open while we recurse,
 	 to guarantee we'll get a new FD if we need it.  */
-      new = relocate_fd (new, min);
+      new = relocate_fd (new, minfd);
       close (fd);
       return new;
     }
