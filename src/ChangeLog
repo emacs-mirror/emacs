@@ -1,5 +1,7 @@
 2001-11-25  Richard M. Stallman  <rms@gnu.org>
 
+	* unexelf.c (unexec): Index by n, not nn, when checking for ".sbss".
+
 	* callproc.c (Fcall_process): When we make a bigger buffer for bufptr,
 	don't lose the data in it.
 
