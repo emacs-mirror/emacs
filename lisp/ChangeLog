@@ -1,3 +1,8 @@
+2003-03-07  Kevin Rodgers  <kevin.rodgers@ihs.com>
+
+	* dired-x.el (dired-guess-shell-case-fold-search): New user option.
+	(dired-guess-default): Use it.
+
 2003-03-07  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/dcl-mode.el (dcl-font-lock-keywords): New var.
