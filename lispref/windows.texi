@@ -1351,18 +1351,22 @@ which buffer to scroll.
 This option specifies the size of the scroll margin---a minimum number
 of lines between point and the top or bottom of a window.  Whenever
 point gets within this many lines of the top or bottom of the window,
-the window scrolls automatically (if possible) to move point out of the
-margin, closer to the center of the window.
+redisplay scrolls the text automatically (if possible) to move point
+out of the margin, closer to the center of the window.
 @end defopt
 
 @defopt scroll-conservatively
 This variable controls how scrolling is done automatically when point
-moves off the screen (or into the scroll margin).  If the value is zero,
-then redisplay scrolls the text to center point vertically in the
-window.  If the value is a positive integer @var{n}, then redisplay
-scrolls the window up to @var{n} lines in either direction, if that will
-bring point back into view.  Otherwise, it centers point.  The default
-value is zero.
+moves off the screen (or into the scroll margin).  If the value is a
+positive integer @var{n}, then redisplay scrolls the text up to
+@var{n} lines in either direction, if that will bring point back into
+proper view.  This action is called @dfn{conservative scrolling}.
+Otherwise, scrolling happens in the usual way, under the control of
+other variables such as @code{scroll-up-aggressively} and
+@code{scroll-down-aggressively}.
+
+The default value is zero, which means that conservative scrolling
+never happens.
 @end defopt
 
 @defopt scroll-down-aggressively
@@ -1410,15 +1414,16 @@ bottom of the window appear instead at the top.  The default value is
 
 @deffn Command recenter &optional count
 @cindex centering point
-This function scrolls the selected window to put the text where point
-is located at a specified vertical position within the window.
+This function scrolls the text in the selected window so that point is
+displayed at a specified vertical position within the window.  It does
+not ``move point'' with respect to the text.
 
-If @var{count} is a nonnegative number, it puts the line containing
-point @var{count} lines down from the top of the window.  If @var{count}
-is a negative number, then it counts upward from the bottom of the
-window, so that @minus{}1 stands for the last usable line in the window.
-If @var{count} is a non-@code{nil} list, then it stands for the line in
-the middle of the window.
+If @var{count} is a nonnegative number, that puts the line containing
+point @var{count} lines down from the top of the window.  If
+@var{count} is a negative number, then it counts upward from the
+bottom of the window, so that @minus{}1 stands for the last usable
+line in the window.  If @var{count} is a non-@code{nil} list, then it
+stands for the line in the middle of the window.
 
 If @var{count} is @code{nil}, @code{recenter} puts the line containing
 point in the middle of the window, then clears and redisplays the entire
