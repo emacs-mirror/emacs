@@ -1,5 +1,7 @@
 2002-03-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* Makefile.in (lread.o): Depend on coding.h.
+
 	* lread.c (openp, Fload): Encode the file name before pasing it
 	to `stat', `access', and `emacs_open'.
 	(openp): GCPRO the encoded file name.  Don't recompute Lisp
