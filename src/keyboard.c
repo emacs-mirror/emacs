@@ -1815,8 +1815,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
  reread_first:
 
   /* Don't echo mouse motion events.  */
-  if (! (EVENT_HAS_PARAMETERS (c)
-	 && EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_movement)))
+  if (echo_keystrokes
+      && ! (EVENT_HAS_PARAMETERS (c)
+	    && EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_movement)))
     {
       echo_char (c);
       if (! NILP (also_record))
