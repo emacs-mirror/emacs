@@ -1,10 +1,10 @@
 ;;; calculator.el --- a [not so] simple calculator for Emacs
 
-;; Copyright (C) 1998, 2000 by Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2001 by Free Software Foundation, Inc.
 
 ;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience
-;; Time-stamp: <2001-07-15 11:04:11 pavel>
+;; Time-stamp: <2001-09-23 02:24:35 eli>
 
 ;; This file is part of GNU Emacs.
 
@@ -41,6 +41,10 @@
 ;;
 ;; For latest version, check
 ;;     http://www.barzilay.org/misc/calculator.el
+;;
+
+;;; History:
+;; I hate history.
 
 (eval-and-compile
   (if (fboundp 'defgroup) nil
@@ -146,6 +150,12 @@ This makes it possible to paste big integers since they will be read as
 floats, otherwise the Emacs reader will fail on them."
   :type  'boolean
   :group 'calculator)
+
+(defcustom calculator-copy-displayer nil
+  "*If non-nil, this is any value that can be used for
+`calculator-displayer', to format a string before copying it with
+`calculator-copy'.  If nil, then `calculator-displayer's normal value is
+used.")
 
 (defcustom calculator-2s-complement nil
   "*If non-nil, show negative numbers in 2s complement in radix modes.
@@ -378,8 +388,8 @@ Used for repeating operations in calculator-repR/L.")
                                            "oD" "oH" "oX" "oO" "oB")
              (calculator-rotate-displayer      "'")
              (calculator-rotate-displayer-back "\"")
-             (calculator-displayer-left        "{")
-             (calculator-displayer-right       "}")
+             (calculator-displayer-pref        "{")
+             (calculator-displayer-next        "}")
              (calculator-saved-up      [up] [?\C-p])
              (calculator-saved-down    [down] [?\C-n])
              (calculator-quit          "q" [?\C-g])
@@ -534,8 +544,8 @@ Used for repeating operations in calculator-repR/L.")
                                 `(calculator-rotate-displayer ',d)))
                       calculator-displayers)
             "---"
-            ["Change Display Left"  calculator-displayer-left]
-            ["Change Display Right" calculator-displayer-right])
+            ["Change Prev Display" calculator-displayer-prev]
+            ["Change Next Display" calculator-displayer-next])
            "---"
            ["Copy+Quit" calculator-save-and-quit]
            ["Quit"      calculator-quit]))))
@@ -688,28 +698,21 @@ See the documentation for `calculator-mode' for more information."
           (use-local-map old-l-map)
           (use-global-map old-g-map))))
     (progn
-      (setq calculator-buffer
-            (or (and (bufferp calculator-buffer)
-                     (buffer-live-p calculator-buffer)
-                     calculator-buffer)
-                (if calculator-electric-mode
-                  (get-buffer-create "*calculator*")
-                  (let ((split-window-keep-point nil)
-                        (window-min-height 2))
-                    (select-window
-                     ;; maybe leave two lines for our window because
-                     ;; of the normal `raised' modeline in Emacs 21
-                     (split-window-vertically
-                      (- (window-height)
-                         (if (and
-                              (fboundp 'face-attr-construct)
-                              (plist-get (face-attr-construct 'modeline)
-                                         :box))
-                           3
-                           2))))
-                    (switch-to-buffer
-                     (get-buffer-create "*calculator*"))))))
-      (set-buffer calculator-buffer)
+      (setq calculator-buffer (get-buffer-create "*calculator*"))
+      (cond
+        ((not (get-buffer-window calculator-buffer))
+         (let ((split-window-keep-point nil)
+               (window-min-height 2))
+           ;; maybe leave two lines for our window because of the normal
+           ;; `raised' modeline in Emacs 21
+           (select-window
+            (split-window-vertically
+             (if (and (fboundp 'face-attr-construct)
+                      (plist-get (face-attr-construct 'modeline) :box))
+               -3 -2)))
+           (switch-to-buffer calculator-buffer)))
+        ((not (eq (current-buffer) calculator-buffer))
+         (select-window (get-buffer-window calculator-buffer))))
       (calculator-mode)
       (setq buffer-read-only t)
       (calculator-reset)
@@ -873,7 +876,7 @@ that argument."
   (interactive)
   (calculator-rotate-displayer (car (last calculator-displayers))))
 
-(defun calculator-displayer-left ()
+(defun calculator-displayer-prev ()
   "Send the current displayer function a 'left argument.
 This is used to modify display arguments (if the current displayer
 function supports this)."
@@ -884,7 +887,7 @@ function supports this)."
                ((and (consp disp) (eq 'std (car disp)))
                 (calculator-standard-displayer 'left (cadr disp)))))))
 
-(defun calculator-displayer-right ()
+(defun calculator-displayer-next ()
   "Send the current displayer function a 'right argument.
 This is used to modify display arguments (if the current displayer
 function supports this)."
@@ -938,14 +941,16 @@ It will also remove redundant zeros from the result."
            (setq calculator-number-digits
                  (1+ calculator-number-digits))
            (calculator-enter)))
-    (let ((str (format
-                (concat "%."
-                        (number-to-string calculator-number-digits)
-                        (if (eq char ?n)
-                          (let ((n (abs num)))
-                            (if (or (< n 0.001) (> n 1e8)) "e" "f"))
-                          (string char)))
-                num)))
+    (let ((str (if (zerop num)
+                 "0"
+                 (format
+                  (concat "%."
+                          (number-to-string calculator-number-digits)
+                          (if (eq char ?n)
+                            (let ((n (abs num)))
+                              (if (or (< n 0.001) (> n 1e8)) "e" "f"))
+                            (string char)))
+                  num))))
       (calculator-remove-zeros str))))
 
 (defun calculator-eng-display (num)
@@ -1015,19 +1020,18 @@ the 'left or 'right when one of the standard modes is used."
         (if (and (not calculator-2s-complement) (< num 0))
           (concat "-" str)
           str))))
-    ((and (numberp num) (car calculator-displayers))
-     (let ((disp (if (= 1 (length calculator-stack))
-                   ;; customizable display for a single value
-                   (caar calculator-displayers)
-                   calculator-displayer)))
-       (cond ((stringp disp) (format disp num))
-             ((symbolp disp) (funcall disp num))
-             ((and (consp disp)
-                   (eq 'std (car disp)))
-                             (calculator-standard-displayer
-                              num (cadr disp)))
-             ((listp disp)   (eval disp))
-             (t              (prin1-to-string num t)))))
+    ((and (numberp num) calculator-displayer)
+     (cond
+       ((stringp calculator-displayer)
+        (format calculator-displayer num))
+       ((symbolp calculator-displayer)
+        (funcall calculator-displayer num))
+       ((and (consp calculator-displayer)
+             (eq 'std (car calculator-displayer)))
+        (calculator-standard-displayer num (cadr calculator-displayer)))
+       ((listp calculator-displayer)
+        (eval calculator-displayer))
+       (t (prin1-to-string num t))))
     ;; operators are printed here
     (t (prin1-to-string (nth 1 num) t))))
 
@@ -1042,9 +1046,15 @@ If optional argument FORCE is non-nil, don't use the cached string."
           (cons calculator-stack
                 (if calculator-stack
                   (concat
-                   (mapconcat 'calculator-num-to-string
-                              (reverse calculator-stack)
-                              " ")
+                   (let ((calculator-displayer
+                          (if (and calculator-displayers
+                                   (= 1 (length calculator-stack)))
+                            ;; customizable display for a single value
+                            (caar calculator-displayers)
+                            calculator-displayer)))
+                     (mapconcat 'calculator-num-to-string
+                                (reverse calculator-stack)
+                                " "))
                    " "
                    (and calculator-display-fragile
                         calculator-saved-list
@@ -1510,12 +1520,17 @@ Optional string argument KEYS will force using it as the keys entered."
 (defun calculator-copy ()
   "Copy current number to the `kill-ring'."
   (interactive)
-  (calculator-enter)
-  ;; remove trailing spaces and and an index
-  (let ((s (cdr calculator-stack-display)))
-    (if (string-match "^\\([^ ]+\\) *\\(\\[[0-9/]+\\]\\)? *$" s)
-      (setq s (match-string 1 s)))
-    (kill-new s)))
+  (let ((calculator-displayer
+         (or calculator-copy-displayer calculator-displayer))
+        (calculator-displayers
+         (if calculator-copy-displayer nil calculator-displayers)))
+    (calculator-enter)
+    ;; remove trailing spaces and and an index
+    (let ((s (cdr calculator-stack-display)))
+      (and s
+           (if (string-match "^\\([^ ]+\\) *\\(\\[[0-9/]+\\]\\)? *$" s)
+             (setq s (match-string 1 s)))
+           (kill-new s)))))
 
 (defun calculator-set-register (reg)
   "Set a register value for REG."
@@ -1537,7 +1552,8 @@ Used by `calculator-paste' and `get-register'."
                (not (numberp (car calculator-stack)))))
     (progn
       (calculator-clear-fragile)
-      (setq calculator-curnum (calculator-num-to-string val))
+      (setq calculator-curnum (let ((calculator-displayer "%S"))
+                                (calculator-num-to-string val)))
       (calculator-update-display))))
 
 (defun calculator-paste ()
