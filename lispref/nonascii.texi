@@ -744,7 +744,8 @@ This function selects a coding system for encoding specified text,
 asking the user to choose if necessary.  Normally the specified text
 is the text in the current buffer between @var{from} and @var{to},
 defaulting to the whole buffer if they are @code{nil}.  If @var{from}
-is a string, the string is the specified text, and @var{to} is ignored.
+is a string, the string specifies the text to encode, and @var{to} is
+ignored.
 
 If @var{default-coding-system} is non-@code{nil}, that is the first
 coding system to try; if that can handle the text,
