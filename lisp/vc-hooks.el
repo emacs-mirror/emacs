@@ -332,9 +332,11 @@ value of this flag.")
 	    (cond 
 	     ((string-match "Locally Modified"    status) 'locally-modified)
 	     ((string-match "Needs Merge"         status) 'needs-merge)
-	     ((string-match "Needs Checkout"      status) 'needs-checkout)
+	     ((string-match "Needs \\(Checkout\\|Patch\\)" status) 
+                                                          'needs-checkout)
 	     ((string-match "Unresolved Conflict" status) 'unresolved-conflict)
 	     ((string-match "Locally Added"       status) 'locally-added)
+	     (t 'unknown)
 	     ))))))))
     (if (get-buffer "*vc-info*")
 	(kill-buffer (get-buffer "*vc-info*")))))
@@ -804,7 +806,10 @@ of the buffer.  With prefix argument, ask for version number."
 	 (not (vc-locking-user file))
 	 (eq (vc-checkout-model file) 'implicit)
 	 (vc-file-setprop file 'vc-locking-user (user-login-name))
-	 (vc-mode-line file))))
+	 (progn
+	   (and (eq (vc-backend file) 'CVS) 
+		(vc-file-setprop file 'vc-cvs-status nil))
+	   (vc-mode-line file)))))
 
 (defun vc-mode-line (file &optional label)
   "Set `vc-mode' to display type of version control for FILE.
