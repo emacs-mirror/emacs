@@ -10,6 +10,10 @@
 
 	* calc.texi (Queries in Macros): Update xref to keyboard macro query.
 
+2003-08-17  Edward M. Reingold  <reingold@emr.cs.iit.edu>
+
+	* calendar.texi (Specified Dates): Add `calendar-goto-day-of-year'.
+
 2003-08-17  Alex Schroeder  <alex@gnu.org>
 
 	* misc.texi (Saving Emacs Sessions): Manual M-x desktop-save not

@@ -891,6 +891,11 @@ day in the calendar.  Specifying a face highlights the day with that
 face.  This lets you have different colors or markings for vacations,
 appointments, paydays or anything else using a sexp.
 
++++
+** The new function `calendar-goto-day-of-year' (g D) prompts for a
+year and day number, and moves to that date. Negative day numbers
+count backward from the end of the year.
+
 ** VC Changes
 
 *** The key C-x C-q no longer checks files in or out, it only changes

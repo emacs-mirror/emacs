@@ -31,6 +31,22 @@
 	(kmacro-view-macro-repeat): Doc fix.  Change its kmacro-repeat
 	property from 'ring to 'head.
 
+2003-08-17  Alan Shutko  <ats@acm.org>
+
+	* calendar/calendar.el (calendar-make-alist): Correct off-by-one
+	keeping December out of the alist.
+
+2003-08-17  Edward M. Reingold  <reingold@emr.cs.iit.edu>
+
+	* calendar/cal-move.el (calendar-goto-day-of-year): New function.
+	* calendar/calendar.el (calendar-mode-map): Bind it to key.
+	* calendar/cal-menu.el (calendar-mode-map): Add it to menu.
+	(calendar-flatten): New function.
+	(calendar-mouse-view-other-diary-entries)
+	(calendar-mouse-view-diary-entries): Rewritten to put any holidays
+	in the menu title and to show multi-line diary entries correctly
+	in the menu.
+
 2003-08-17  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* info.el (Info-scroll-prefer-subnodes): Add :version keyword to
