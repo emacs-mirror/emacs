@@ -427,7 +427,23 @@ static unsigned char gamegrid_bits[] = {
 ;; ;;;;;;;;;;;;;;; high score functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun gamegrid-add-score (file score)
-  "Add the current score to the high score file."
+  "Add the current score to the high score file.
+
+On POSIX systems there may be a shared game directory for all users in
+which the scorefiles are kept. On such systems Emacs doesn't create
+the score file FILE in this directory, if it doesn't already exist. In
+this case Emacs searches for FILE in the directory specified by
+`gamegrid-user-score-file-directory' and creates it there, if
+necessary.
+
+To add the score file for a game to the system wide shared game
+directory, create the file with the shell command \"touch\" in this
+directory and make sure that it is owned by the correct user and
+group. You probably need special user privileges to do this.
+
+On non-POSIX systems Emacs searches for FILE in the directory
+specified by the variable `temporary-file-directory'. If necessary,
+FILE is created there."
   (case system-type
     ((ms-dos windows-nt)
      (gamegrid-add-score-insecure file score))
@@ -435,48 +451,60 @@ static unsigned char gamegrid_bits[] = {
      (gamegrid-add-score-with-update-game-score file score))))
 
 (defun gamegrid-add-score-with-update-game-score (file score)
-  (let* ((result nil)
-	 (errbuf (generate-new-buffer " *update-game-score loss*"))
+  (let* ((result nil) ;; What is this good for? -- os
 	 (have-shared-game-dir
 	  (not (zerop (logand (file-modes
 			       (expand-file-name "update-game-score"
 						 exec-directory))
-			      #o4000))))
-	 (target (if have-shared-game-dir
-		     (expand-file-name file shared-game-score-directory)
-		   (let ((f (expand-file-name
-			     gamegrid-user-score-file-directory)))
-		     (when (file-writable-p f)
-		       (unless (eq (car-safe (file-attributes f))
-				   t)
-			 (make-directory f))
-		       (setq f (expand-file-name file f))
-		       (unless (file-exists-p f)
-			 (write-region "" nil f nil 'silent nil 'excl)))
-		     f))))
-    (let ((default-directory "/"))
-      (apply
-       'call-process
-       (append
-	(list
-	 (expand-file-name "update-game-score" exec-directory)
-	 nil errbuf nil
-	 "-m" (int-to-string gamegrid-score-file-length)
-	 "-d" (if have-shared-game-dir
-		  (expand-file-name shared-game-score-directory)
-		(file-name-directory target))
-	 file
-	 (int-to-string score)
-	 (concat
-	  (user-full-name)
-	  " <"
-	  (cond ((fboundp 'user-mail-address)
-		 (user-mail-address))
-		((boundp 'user-mail-address)
-		 user-mail-address)
-		(t ""))
-	  ">  "
-	  (current-time-string))))))
+			      #o4000)))))
+    (if (and have-shared-game-dir
+	     (file-exists-p (expand-file-name file shared-game-score-directory)))
+	;; Use the setuid update-gamescore program to update a
+	;; system-wide score file.
+	(gamegrid-add-score-with-update-game-score-1
+	 (expand-file-name file shared-game-score-directory) score)
+      ;; Else: Add the score to a score file in the user's home
+      ;; directory. If `have-shared-game-dir' is non-nil, the
+      ;; "update-gamescore" program is setuid, so don't use it.
+      (if have-shared-game-dir
+	  (gamegrid-add-score-insecure file score
+				       gamegrid-user-score-file-directory)
+	(let ((f (expand-file-name
+		  gamegrid-user-score-file-directory)))
+	  (when (file-writable-p f)
+	    (unless (eq (car-safe (file-attributes f))
+			t)
+	      (make-directory f))
+	    (setq f (expand-file-name file f))
+	    (unless (file-exists-p f)
+	      (write-region "" nil f nil 'silent nil 'excl)))
+	  (gamegrid-add-score-with-update-game-score-1 f score))))))
+
+(defun gamegrid-add-score-with-update-game-score-1 (target score)
+  (let ((default-directory "/")
+	(errbuf (generate-new-buffer " *update-game-score loss*")))
+    (apply
+     'call-process
+     (append
+      (list
+       (expand-file-name "update-game-score" exec-directory)
+       nil errbuf nil
+       "-m" (int-to-string gamegrid-score-file-length)
+       "-d" (if have-shared-game-dir
+		(expand-file-name shared-game-score-directory)
+	      (file-name-directory target))
+       file
+       (int-to-string score)
+       (concat
+	(user-full-name)
+	" <"
+	(cond ((fboundp 'user-mail-address)
+	       (user-mail-address))
+	      ((boundp 'user-mail-address)
+	       user-mail-address)
+	      (t ""))
+	">  "
+	(current-time-string)))))
     (if (buffer-modified-p errbuf)
 	(progn
 	  (display-buffer errbuf)
@@ -491,9 +519,10 @@ static unsigned char gamegrid_bits[] = {
 	      (display-buffer buf))
 	  (find-file-read-only-other-window target))))))
 
-(defun gamegrid-add-score-insecure (file score)
+(defun gamegrid-add-score-insecure (file score &optional directory)
   (save-excursion
-    (setq file (expand-file-name file temporary-file-directory))
+    (setq file (expand-file-name file (or directory
+					  temporary-file-directory)))
     (find-file-other-window file)
     (setq buffer-read-only nil)
     (goto-char (point-max))
