@@ -51,6 +51,18 @@
   "Make a ring that can contain SIZE elements."
   (cons 0 (cons 0 (make-vector size nil))))
 
+(defun ring-insert-at-beginning (ring item)
+  "Add to RING the item ITEM.  Add it at the front (the early end)."
+  (let* ((vec (cdr (cdr ring))) 
+	 (veclen (length vec))
+	 (hd (car ring))
+	 (ln (car (cdr ring))))
+    (setq ln (min veclen (1+ ln))
+	  hd (ring-minus1 hd veclen))
+    (aset vec hd item)
+    (setcar ring hd)
+    (setcar (cdr ring) ln)))
+
 (defun ring-plus1 (index veclen)
   "INDEX+1, with wraparound"
   (let ((new-index (+ index 1)))
@@ -72,8 +84,8 @@
   (mod (1- (+ head (- ringlen index))) veclen))
 
 (defun ring-insert (ring item)
-  "Insert a new item onto the ring. If the ring is full, dump the oldest
-item to make room."       
+  "Insert onto ring RING the item ITEM, as the newest (last) item.
+If the ring is full, dump the oldest item to make room."       
   (let* ((vec (cdr (cdr ring))) 
 	 (veclen (length vec))
 	 (hd (car ring))
