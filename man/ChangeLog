@@ -50,6 +50,7 @@
 	(Table Misc): New nodes, documenting the Table Mode.
 
 2004-10-21  Jay Belanger  <belanger@truman.edu>
+
 	* calc.texi (Algebraic-Style Calculations): Removed a comment.
 
 2004-10-19  Jason Rumney  <jasonr@gnu.org>
