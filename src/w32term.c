@@ -659,6 +659,8 @@ w32_clear_end_of_line (first_unused)
   if (first_unused >= f->width)
     first_unused = f->width;
 
+  first_unused += FRAME_LEFT_SCROLL_BAR_WIDTH (f);
+
   BLOCK_INPUT;
 
   do_line_dance ();
