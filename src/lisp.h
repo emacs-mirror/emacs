@@ -161,6 +161,13 @@ enum Lisp_Type
     Lisp_Overlay
   };
 
+/* This is the set of datatypes that share the marker structure.
+   The first member of the structure is a type code from this set.  */
+enum Lisp_Misc_Type
+  {
+    Lisp_Misc_Marker
+  };
+
 #ifndef NO_UNION_TYPE
 
 #ifndef WORDS_BIG_ENDIAN
@@ -571,10 +578,10 @@ struct Lisp_Subr
 
 struct Lisp_Marker
   {
+    enum Lisp_Misc_Type type;	/* = Lisp_Misc_Marker */
     struct buffer *buffer;
     Lisp_Object chain;
     int bufpos;
-    int modified;
   };
 
 #ifdef LISP_FLOAT_TYPE
