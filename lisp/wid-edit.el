@@ -1185,9 +1185,17 @@ When not inside a field, move to the previous button or field."
     ;; or if a special `boundary' field has been added after the widget
     ;; field.
     (if (overlayp overlay)
-	(if (and (not (eq (get-char-property (overlay-end overlay)
-					     'field
-					     (widget-field-buffer widget))
+	(if (and (not (eq (with-current-buffer
+			      (widget-field-buffer widget)
+			    (save-restriction
+			      ;; `widget-narrow-to-field' can be
+			      ;; active when this function is called
+			      ;; from an change-functions hook. So
+			      ;; temporarily remove field narrowing
+			      ;; before to call `get-char-property'.
+			      (widen)
+			      (get-char-property (overlay-end overlay)
+						 'field)))
 			  'boundary))
 		 (or widget-field-add-space
 		     (null (widget-get widget :size))))
