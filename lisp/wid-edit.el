@@ -722,18 +722,32 @@ The optional ARGS are additional keyword arguments."
 		     (list type)
 		   (copy-sequence type)))
 	 (current widget)
+	 done
 	 (keys args))
     ;; First set the :args keyword.
     (while (cdr current)		;Look in the type.
-      (if (keywordp (car (cdr current)))
-	  (setq current (cdr (cdr current)))
+      (if (and (keywordp (cadr current))
+	       ;; If the last element is a keyword,
+	       ;; it is still the :args element,
+	       ;; even though it is a keyword.
+	       (cddr current))
+	  (if (eq (cadr current) :args)
+	      ;; If :args is explicitly specified, obey it.
+	      (setq current nil)
+	    ;; Some other irrelevant keyword.
+	    (setq current (cdr (cdr current))))
 	(setcdr current (list :args (cdr current)))
 	(setq current nil)))
-    (while args				;Look in the args.
-      (if (keywordp (nth 0 args))
-	  (setq args (nthcdr 2 args))
-	(widget-put widget :args args)
-	(setq args nil)))
+    (while (and args (not done))	;Look in ARGS.
+      (cond ((eq (car args) :args)
+	     ;; Handle explicit specification of :args.
+	     (setq args (cadr args)
+		   done t))
+	    ((keywordp (car args))
+	     (setq args (cddr args)))
+	    (t (setq done t))))
+    (when done
+      (widget-put widget :args args))
     ;; Then Convert the widget.
     (setq type widget)
     (while type
