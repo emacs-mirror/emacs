@@ -1,5 +1,5 @@
 /* Lisp object printing and output streams.
-   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999, 2000
+   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999, 2000, 2001
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1957,8 +1957,8 @@ A value of nil means no limit.");
   Vprint_level = Qnil;
 
   DEFVAR_BOOL ("print-escape-newlines", &print_escape_newlines,
-    "Non-nil means print newlines in strings as backslash-n.\n\
-Also print formfeeds as backslash-f.");
+    "Non-nil means print newlines in strings as `\\n'.\n\
+Also print formfeeds as `\\f'.");
   print_escape_newlines = 0;
 
   DEFVAR_BOOL ("print-escape-nonascii", &print_escape_nonascii,
@@ -1969,20 +1969,20 @@ Only single-byte characters are affected, and only in `prin1'.");
 
   DEFVAR_BOOL ("print-escape-multibyte", &print_escape_multibyte,
     "Non-nil means print multibyte characters in strings as \\xXXXX.\n\
-\(XXX is the hex representation of the character code.)\n\
+\(XXXX is the hex representation of the character code.)\n\
 This affects only `prin1'.");
   print_escape_multibyte = 0;
 
   DEFVAR_BOOL ("print-quoted", &print_quoted,
     "Non-nil means print quoted forms with reader syntax.\n\
-I.e., (quote foo) prints as 'foo, (function foo) as #'foo, and, backquoted\n\
-forms print in the new syntax.");
+I.e., (quote foo) prints as 'foo, (function foo) as #'foo, and backquoted\n\
+forms print as in the new syntax.");
   print_quoted = 0;
 
   DEFVAR_LISP ("print-gensym", &Vprint_gensym,
     "Non-nil means print uninterned symbols so they will read as uninterned.\n\
 I.e., the value of (make-symbol \"foobar\") prints as #:foobar.\n\
-When the uninterned symbol appears within a recursive data structure\n\
+When the uninterned symbol appears within a recursive data structure,\n\
 and the symbol appears more than once, in addition use the #N# and #N=\n\
 constructs as needed, so that multiple references to the same symbol are\n\
 shared once again when the text is read back.");
@@ -2001,15 +2001,19 @@ where N is a positive decimal integer.");
   Vprint_circle = Qnil;
 
   DEFVAR_LISP ("print-continuous-numbering", &Vprint_continuous_numbering,
-  "*Non-nil means keep numbering between several print functions.\n\
-See `print-gensym' nad `print-circle'.  See also `print-number-table'.");
+  "*Non-nil means number continuously across print calls.\n\
+This affects the numbers printed for #N= labels and #M# references.\n\
+See also `print-circle', `print-gensym', and `print-number-table'.\n\
+This variable should not be set with `setq'; bind it with a `let' instead.");
   Vprint_continuous_numbering = Qnil;
 
   DEFVAR_LISP ("print-number-table", &Vprint_number_table,
-  "A vector keeping the information of the current printed object.\n\
-This variable shouldn't be modified in Lisp level, but should be binded\n\
-with nil using let at the same position with `print-continuous-numbering',\n\
-so that the value of this variable can be freed after printing.");
+  "A vector used internally to produce `#N=' labels and `#N#' references.\n\
+The Lisp printer uses this vector to detect Lisp objects referenced more\n\
+than once.  When `print-continuous-numbering' is bound to t, you should\n\
+probably also bind `print-number-table' to nil.  This ensures that the\n\
+value of `print-number-table' can be garbage-collected once the printing\n\
+is done.");
   Vprint_number_table = Qnil;
 
   /* prin1_to_string_buffer initialized in init_buffer_once in buffer.c */
