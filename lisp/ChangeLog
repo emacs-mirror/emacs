@@ -1,3 +1,19 @@
+2002-11-28  Nick Roberts  <nick@nick.uklinux.net>
+
+	* tooltip.el (tooltip-gud-tips-setup): Remove.
+	(tooltip-gud-debugger): Remove.
+	(tooltip-gud-print-command): Use gud-minor mode instead of	
+	tooltip-gud-tips-setup and tooltip-gud-debugger.
+
+	* gdb-ui.el (gdb-starting): Set gdb-running to t.
+	(gdb-stopped): Set gdb-running to nil.
+	(gdb-quit): Reset some variables including tool-bar-map.
+
+	* gud.el (gdb-running): New variable.
+	(gud-menu-map): Use gdb-running to grey out toolbar buttons
+	with gdba in gdb-ui.el.
+	(gud-tool-bar-map): Move to avoid byte compiler warning.
+
 2002-11-27  Jason Rumney  <jasonr@gnu.org>
 
 	* files.el (file-truename): Canonicalize non-existent names on w32.
