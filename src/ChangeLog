@@ -1,5 +1,8 @@
 2000-07-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* fns.c (sweep_weak_table): Mark only objects that are not 
+	marked already.
+
 	* frame.c (next_frame, prev_frame): If MINIBUF is a window,
 	include those frames as candidates which have their focus
 	redirected to the minibuffer frame.
