@@ -673,10 +673,8 @@ The value of `texinfo-tex-trailer' is appended to the temporary file after the r
 	))
     
     (tex-set-buffer-directory "*tex-shell*" zap-directory)
-    (send-string "tex-shell" (concat tex-shell-cd-command " "
-                                     zap-directory "\n"))
-    (send-string "tex-shell" (concat texinfo-tex-command " "
-                                     tex-out-file "\n")))
+    (tex-send-command tex-shell-cd-command zap-directory)
+    (tex-send-command texinfo-tex-command tex-out-file))
   (tex-recenter-output-buffer 0))
 
 (defun texinfo-tex-buffer ()
@@ -696,12 +694,9 @@ The value of `texinfo-tex-trailer' is appended to the temporary file after the r
 
   (setq tex-zap-file buffer-file-name)
 
-  (send-string "tex-shell"
-	       (concat tex-shell-cd-command 
-		       " " (file-name-directory tex-zap-file) "\n"))
+  (tex-send-command tex-shell-cd-command (file-name-directory tex-zap-file))
 
-  (send-string "tex-shell"
-	       (concat texinfo-texi2dvi-command " " tex-zap-file "\n"))
+  (tex-send-command texinfo-texi2dvi-command tex-zap-file)
 
   (tex-recenter-output-buffer 0))
 
@@ -711,9 +706,7 @@ The index files are made by \\[texinfo-tex-region] or \\[texinfo-tex-buffer].
 This runs the shell command defined by `texinfo-texindex-command'."
   (interactive)
   (require 'tex-mode)
-  (send-string "tex-shell"
-	       (concat texinfo-texindex-command
-                       " " tex-zap-file ".??" "\n"))
+  (tex-send-command texinfo-texindex-command (concat tex-zap-file ".??"))
   (tex-recenter-output-buffer nil))
 
 (defun texinfo-tex-print ()
@@ -721,9 +714,7 @@ This runs the shell command defined by `texinfo-texindex-command'."
 This runs the shell command defined by `tex-dvi-print-command'."
   (interactive)
   (require 'tex-mode)
-  (send-string "tex-shell"
-	       (concat tex-dvi-print-command
-                       " " tex-zap-file ".dvi" "\n"))
+  (tex-send-command tex-dvi-print-command (concat tex-zap-file ".dvi"))
   (tex-recenter-output-buffer nil))
 
 (defun texinfo-quit-job ()
@@ -731,11 +722,7 @@ This runs the shell command defined by `tex-dvi-print-command'."
   (interactive)
   (if (not (get-process "tex-shell"))
       (error "No TeX shell running"))
-  (save-excursion
-    (set-buffer (get-buffer "*tex-shell*"))
-    (goto-char (point-max))
-    (insert "x")
-    (comint-send-input)))
+  (tex-send-command "x"))
 
 (defun texinfo-delete-from-print-queue (job-number)
   "Delete job from the line printer spooling queue.
@@ -746,11 +733,7 @@ You are prompted for the job number (use a number shown by a previous
   (if (tex-shell-running)
       (tex-kill-job)
     (tex-start-shell))
-  (send-string "tex-shell"
-               (concat 
-                texinfo-delete-from-print-queue-command
-                " "
-                job-number"\n"))
+  (tex-send-command texinfo-delete-from-print-queue-command job-number)
   (tex-recenter-output-buffer nil))
 
 (provide 'texinfo)
