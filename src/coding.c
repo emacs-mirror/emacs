@@ -2703,6 +2703,8 @@ detect_coding (coding, src, src_bytes)
    is encoded.  Return one of CODING_EOL_LF, CODING_EOL_CRLF,
    CODING_EOL_CR, and CODING_EOL_UNDECIDED.  */
 
+#define MAX_EOL_CHECK_COUNT 3
+
 int
 detect_eol_type (src, src_bytes)
      unsigned char *src;
@@ -2710,21 +2712,34 @@ detect_eol_type (src, src_bytes)
 {
   unsigned char *src_end = src + src_bytes;
   unsigned char c;
+  int total = 0;		/* How many end-of-lines are found so far.  */
+  int eol_type = CODING_EOL_UNDECIDED;
+  int this_eol_type;
 
-  while (src < src_end)
+  while (src < src_end && total < MAX_EOL_CHECK_COUNT)
     {
       c = *src++;
-      if (c == '\n')
-	return CODING_EOL_LF;
-      else if (c == '\r')
+      if (c == '\n' || c == '\r')
 	{
-	  if (src < src_end && *src == '\n')
-	    return CODING_EOL_CRLF;
+	  total++;
+	  if (c == '\n')
+	    this_eol_type = CODING_EOL_LF;
+	  else if (src >= src_end || *src != '\n')
+	    this_eol_type = CODING_EOL_CR;
 	  else
-	    return CODING_EOL_CR;
+	    this_eol_type = CODING_EOL_CRLF, src++;
+
+	  if (eol_type == CODING_EOL_UNDECIDED)
+	    /* This is the first end-of-line.  */
+	    eol_type = this_eol_type;
+	  else if (eol_type != this_eol_type)
+	    /* The found type is different from what found before.
+	       We had better not decode end-of-line.  */
+	    return CODING_EOL_LF;
 	}
     }
-  return CODING_EOL_UNDECIDED;
+
+  return (total ? eol_type : CODING_EOL_UNDECIDED);
 }
 
 /* Detect how end-of-line of a text of length SRC_BYTES pointed by SRC
