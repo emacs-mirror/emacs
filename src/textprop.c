@@ -492,6 +492,8 @@ interval_of (position, object)
 
   if (NILP (object))
     XSETBUFFER (object, current_buffer);
+  else if (EQ (object, Qt))
+    return NULL_INTERVAL;
 
   CHECK_STRING_OR_BUFFER (object, 0);
 
