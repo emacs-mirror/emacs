@@ -212,7 +212,7 @@ echo "Making links to \`lisp'"
  ln [a-zA-Z]*.dat ../${tempdir}/lisp
  ## simula.el doesn't keep abbreviations in simula.defns any more.
  ## ln [a-zA-Z]*.defns ../${tempdir}/lisp
- ln ChangeLog Makefile makefile.nt ChangeLog.? README dired.todo ../${tempdir}/lisp
+ ln ChangeLog Makefile makefile.nt ChangeLog.? README ../${tempdir}/lisp
  cd ../${tempdir}/lisp
  rm -f TAGS =*
  rm -f subdirs.el
