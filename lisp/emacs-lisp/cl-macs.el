@@ -32,8 +32,6 @@
 ;; This package was written by Dave Gillespie; it is a complete
 ;; rewrite of Cesar Quiroz's original cl.el package of December 1986.
 ;;
-;; This package works with Emacs 18, Emacs 19, and Lucid Emacs 19.
-;;
 ;; Bug reports, comments, and suggestions are welcome!
 
 ;; This file contains the portions of the Common Lisp extensions
@@ -63,7 +61,6 @@
 (put 'cl-pop 'edebug-form-spec 'edebug-sexps)
 (put 'cl-pop2 'edebug-form-spec 'edebug-sexps)
 
-(defvar cl-emacs-type)
 (defvar cl-optimize-safety)
 (defvar cl-optimize-speed)
 
@@ -86,20 +83,7 @@
 
 (defvar cl-old-bc-file-form nil)
 
-;; Patch broken Emacs 18 compiler (re top-level macros).
-;; Emacs 19 compiler doesn't need this patch.
-;; Also, undo broken definition of `eql' that uses same bytecode as `eq'.
 (defun cl-compile-time-init ()
-  (setq cl-old-bc-file-form (symbol-function 'byte-compile-file-form))
-  (or (fboundp 'byte-compile-flush-pending)   ; Emacs 19 compiler?
-      (defalias 'byte-compile-file-form
-	(function
-	 (lambda (form)
-	   (setq form (macroexpand form byte-compile-macro-environment))
-	   (if (eq (car-safe form) 'progn)
-	       (cons 'progn (mapcar 'byte-compile-file-form (cdr form)))
-	     (funcall cl-old-bc-file-form form))))))
-  (put 'eql 'byte-compile 'cl-byte-compile-compiler-macro)
   (run-hooks 'cl-hack-bytecomp-hook))
 
 
@@ -397,13 +381,6 @@ If `eval' is in WHEN, BODY is evaluated when interpreted or at non-top-level."
 	       (list* 'eval-when (cons 'compile when) (cddr form))
 	     form)))
 	(t (eval form) form)))
-
-(or (and (fboundp 'eval-when-compile)
-	 (not (eq (car-safe (symbol-function 'eval-when-compile)) 'autoload)))
-    (eval '(defmacro eval-when-compile (&rest body)
-	     "Like `progn', but evaluates the body at compile time.
-The result of the body appears to the compiler as a quoted constant."
-	     (list 'quote (eval (cons 'progn body))))))
 
 (defmacro load-time-value (form &optional read-only)
   "Like `progn', but evaluates the body at load time.
@@ -862,24 +839,20 @@ Valid clauses are:
 
 	       ((memq word '(frame frames screen screens))
 		(let ((temp (gensym)))
-		  (cl-push (list var (if (eq cl-emacs-type 'lucid)
-					 '(selected-screen) '(selected-frame)))
+		  (cl-push (list var  '(selected-frame))
 			   loop-for-bindings)
 		  (cl-push (list temp nil) loop-for-bindings)
 		  (cl-push (list 'prog1 (list 'not (list 'eq var temp))
 				 (list 'or temp (list 'setq temp var)))
 			   loop-body)
-		  (cl-push (list var (list (if (eq cl-emacs-type 'lucid)
-					       'next-screen 'next-frame) var))
+		  (cl-push (list var (list 'next-frame var))
 			   loop-for-steps)))
 
 	       ((memq word '(window windows))
 		(let ((scr (and (memq (car args) '(in of)) (cl-pop2 args)))
 		      (temp (gensym)))
 		  (cl-push (list var (if scr
-					 (list (if (eq cl-emacs-type 'lucid)
-						   'screen-selected-window
-						 'frame-selected-window) scr)
+					 (list 'frame-selected-window scr)
 				       '(selected-window)))
 			   loop-for-bindings)
 		  (cl-push (list temp nil) loop-for-bindings)
@@ -2625,14 +2598,14 @@ surrounded by (block NAME ...)."
 
 ;;; Things that are side-effect-free.
 (mapcar (function (lambda (x) (put x 'side-effect-free t)))
-	'(oddp evenp abs expt signum last butlast ldiff pairlis gcd lcm
+	'(oddp evenp signum last butlast ldiff pairlis gcd lcm
 	  isqrt floor* ceiling* truncate* round* mod* rem* subseq
-	  list-length get* getf gethash hash-table-count))
+	  list-length get* getf))
 
 ;;; Things that are side-effect-and-error-free.
 (mapcar (function (lambda (x) (put x 'side-effect-free 'error-free)))
 	'(eql floatp-safe list* subst acons equalp random-state-p
-	  copy-tree sublis hash-table-p))
+	  copy-tree sublis))
 
 
 (run-hooks 'cl-macs-load-hook)
