@@ -1,3 +1,9 @@
+2000-06-14  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule.el
+	(after-insert-file-set-buffer-file-coding-system): Call
+	set-buffer-file-coding-system with the arg FORCE t.
+
 2000-06-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* mail/sendmail.el (mail-specify-envelope-from): Initialize to
