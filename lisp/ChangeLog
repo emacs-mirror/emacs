@@ -1,5 +1,7 @@
 2000-01-03  Dave Love  <fx@gnu.org>
 
+	* elide-head.el (elide-head) [defgroup: Add :version.
+
 	* cl-extra.el (cl-emacs-type): Remove defvar.
 	(cl-not-hash-table, cl-clrhash, cl-maphash, cl-hash-table-count): Use
 	`cl-hash-table-p', not `hash-table-p'.
