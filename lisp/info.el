@@ -47,6 +47,9 @@ The Lisp code is executed when the node is selected.")
 This value is used as the default for `Info-directory-list'.  It is set
 in paths.el.")
 
+(defvar Info-fontify t
+  "*Non-nil enables highlighting and fonts in Info nodes.")
+
 (defvar Info-directory-list
   (let ((path (getenv "INFOPATH")))
     (if path
@@ -78,11 +81,17 @@ or nil if current info file is not split into subfiles.")
   "Marker pointing at beginning of current Info file's tag table.
 Marker points nowhere if file has no tag table.")
 
+(defvar Info-current-file-completions nil
+  "Cached completion list for current Info file.")
+
 (defvar Info-index-alternatives nil
   "List of possible matches for last Info-index command.")
 
-(defvar Info-suffix-list '( (""         . nil)
-			    (".info"    . nil)
+(defvar Info-standalone nil
+  "Non-nil if Emacs was started solely as an Info browser.")
+
+(defvar Info-suffix-list '( (".info"    . nil)
+			    (""         . nil)
 			    (".Z"       . "uncompress")
 			    (".Y"       . "unyabba")
 			    (".gz"      . "gunzip")
@@ -130,6 +139,24 @@ to read a file name from the minibuffer."
     (if (get-buffer "*info*")
 	(switch-to-buffer "*info*")
       (Info-directory))))
+
+;;;###autoload
+(defun info-standalone ()
+  "Run Emacs as a standalone Info reader.
+Usage:  emacs -f info-standalone [filename]
+In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
+  (setq Info-standalone t)
+  (if (and command-line-args-left
+	   (not (string-match "^-" (car command-line-args-left))))
+      (condition-case err
+	  (progn
+	    (info (car command-line-args-left))
+	    (setq command-line-args-left (cdr command-line-args-left)))
+	(error (send-string-to-terminal
+		(format "%s\n" (if (eq (car-safe err) 'error)
+				   (nth 1 err) err)))
+	       (save-buffers-kill-emacs)))
+    (info)))
 
 ;; Go to an info node specified as separate filename and nodename.
 ;; no-going-back is non-nil if recovering from an error in this function;
@@ -190,6 +217,7 @@ to read a file name from the minibuffer."
 	    (let ((buffer-read-only nil))
 	      (setq Info-current-file nil
 		    Info-current-subfile nil
+		    Info-current-file-completions nil
 		    Info-index-alternatives nil
 		    buffer-file-name nil)
 	      (erase-buffer)
@@ -476,6 +504,7 @@ to read a file name from the minibuffer."
 					(read (current-buffer))))))
 			 (point-max)))
      (if Info-enable-active-nodes (eval active-expression))
+     (if Info-fontify (Info-fontify-node))
      (run-hooks 'Info-selection-hook))))
 
 (defun Info-set-mode-line ()
@@ -493,7 +522,7 @@ to read a file name from the minibuffer."
 
 (defun Info-goto-node (nodename)
   "Go to info node named NAME.  Give just NODENAME or (FILENAME)NODENAME."
-  (interactive "sGoto node: ")
+  (interactive (list (Info-read-node-name "Goto node: ")))
   (let (filename)
     (string-match "\\s *\\((\\s *\\([^\t)]*\\)\\s *)\\s *\\|\\)\\(.*\\)"
 		  nodename)
@@ -507,6 +536,42 @@ to read a file name from the minibuffer."
       (if trim (setq nodename (substring nodename 0 trim))))
     (Info-find-node (if (equal filename "") nil filename)
 		    (if (equal nodename "") "Top" nodename))))
+
+(defun Info-read-node-name (prompt &optional default)
+  (let* ((completion-ignore-case t)
+	 (nodename (completing-read prompt (Info-build-node-completions))))
+    (if (equal nodename "")
+	(or default
+	    (Info-read-node-name prompt))
+      nodename)))
+
+(defun Info-build-node-completions ()
+  (or Info-current-file-completions
+      (let ((compl nil))
+	(save-excursion
+	  (save-restriction
+	    (if (marker-buffer Info-tag-table-marker)
+		(progn
+		  (set-buffer (marker-buffer Info-tag-table-marker))
+		  (goto-char Info-tag-table-marker)
+		  (while (re-search-forward "\nNode: \\(.*\\)\177" nil t)
+		    (setq compl
+			  (cons (list (buffer-substring (match-beginning 1)
+							(match-end 1)))
+				compl))))
+	      (widen)
+	      (goto-char (point-min))
+	      (while (search-forward "\n\^_" nil t)
+		(forward-line 1)
+		(let ((beg (point)))
+		  (forward-line 1)
+		  (if (re-search-backward "Node: *\\([^,\n]*\\) *[,\n\t]"
+					  beg t)
+		      (setq compl 
+			    (cons (list (buffer-substring (match-beginning 1)
+							  (match-end 1)))
+				  compl))))))))
+	(setq Info-current-file-completions compl))))
 
 (defun Info-restore-point (hl)
   "If this node has been visited, restore the point value when we left."
@@ -879,8 +944,10 @@ N is the digit argument used to invoke this command."
 (defun Info-exit ()
   "Exit Info by selecting some other buffer."
   (interactive)
-  (switch-to-buffer (prog1 (other-buffer (current-buffer))
-			   (bury-buffer (current-buffer)))))
+  (if Info-standalone
+      (save-buffers-kill-emacs)
+    (switch-to-buffer (prog1 (other-buffer (current-buffer))
+			(bury-buffer (current-buffer))))))
 
 (defun Info-next-menu-item ()
   (interactive)
@@ -900,21 +967,24 @@ N is the digit argument used to invoke this command."
 	(error "No previous items in menu"))
     (Info-goto-node (Info-extract-menu-node-name))))
 
-(defmacro no-error (&rest body)
+(defmacro Info-no-error (&rest body)
   (list 'condition-case nil (cons 'progn (append body '(t))) '(error nil)))
 
 (defun Info-next-preorder ()
   "Go to the next node, popping up a level if there is none."
   (interactive)
-  (cond ((no-error (Info-next-menu-item))	)
-	((no-error (Info-up)) 			(forward-line 1))
+  (cond ((looking-at "\\*note[ \n]*\\([^:]*\\):")
+	 (Info-follow-reference
+	  (buffer-substring (match-beginning 1) (match-end 1))))
+	((Info-no-error (Info-next-menu-item))	)
+	((Info-no-error (Info-up))		(forward-line 1))
 	(t 					(error "No more nodes"))))
 
 (defun Info-last-preorder ()
   "Go to the last node, popping up a level if there is none."
   (interactive)
-  (cond ((no-error (Info-last-menu-item))	)
-	((no-error (Info-up)) 			(forward-line -1))
+  (cond ((Info-no-error (Info-last-menu-item))	)
+	((Info-no-error (Info-up))		(forward-line -1))
 	(t 					(error "No previous nodes"))))
 
 (defun Info-scroll-up ()
@@ -932,6 +1002,39 @@ N is the digit argument used to invoke this command."
       (Info-last-preorder)
       (scroll-down))
   )
+
+(defun Info-next-reference ()
+  "Move cursor to the next cross-reference or menu item in the node."
+  (interactive)
+  (let ((pat "\\*note[ \n\t]*\\([^:]*\\):\\|^\\* .*:")
+	(old-pt (point)))
+    (or (eobp) (forward-char 1))
+    (or (re-search-forward pat nil t)
+	(progn
+	  (goto-char (point-min))
+	  (or (re-search-forward pat nil t)
+	      (progn
+		(goto-char old-pt)
+		(error "No cross references in this node")))))
+    (goto-char (match-beginning 0))
+    (if (looking-at "\\* Menu:")
+	(Info-next-reference))))
+
+(defun Info-prev-reference ()
+  "Move cursor to the previous cross-reference or menu item in the node."
+  (interactive)
+  (let ((pat "\\*note[ \n\t]*\\([^:]*\\):\\|^\\* .*:")
+	(old-pt (point)))
+    (or (re-search-backward pat nil t)
+	(progn
+	  (goto-char (point-max))
+	  (or (re-search-backward pat nil t)
+	      (progn
+		(goto-char old-pt)
+		(error "No cross references in this node")))))
+    (goto-char (match-beginning 0))
+    (if (looking-at "\\* Menu:")
+	(Info-prev-reference))))
 
 (defun Info-index (topic)
   "Look up a string in the index for this file.
@@ -1054,7 +1157,8 @@ Give a blank topic name to go to the Index node itself."
 		    (if (not (eq ?\  (setq ch (read-event))))
 			(progn (setq unread-command-events (list ch)) nil)
 		      flag))
-	(scroll-up)))))
+	(scroll-up)))
+    (bury-buffer "*Help*")))
 
 (defun Info-get-token (pos start all &optional errorstring)
   "Return the token around POS,
@@ -1126,6 +1230,8 @@ At end of the node's text, moves to the next node."
   (define-key Info-mode-map "." 'beginning-of-buffer)
   (define-key Info-mode-map " " 'Info-scroll-up)
   (define-key Info-mode-map "\C-m" 'Info-next-preorder)
+  (define-key Info-mode-map "\t" 'Info-next-reference)
+  (define-key Info-mode-map "\e\t" 'Info-prev-reference)
   (define-key Info-mode-map "1" 'Info-nth-menu-item)
   (define-key Info-mode-map "2" 'Info-nth-menu-item)
   (define-key Info-mode-map "3" 'Info-nth-menu-item)
@@ -1199,11 +1305,14 @@ Advanced commands:
 2, 3, 4, 5   Pick second ... fifth item in node's menu.
 \\[Info-goto-node]	Move to node specified by name.
 	You may include a filename as well, as (FILENAME)NODENAME.
+\\[universal-argument] \\[info]	Move to new Info file with completion.
 \\[Info-search]	Search through this Info file for specified regexp,
 	and select the node in which the next occurrence is found.
 \\[Info-next-preorder]	Next-preorder; that is, try to go to the next menu item,
 	and if that fails try to move up, and if that fails, tell user
- 	he/she is done reading."
+ 	he/she is done reading.
+\\[Info-next-reference]	Move cursor to next cross-reference or menu item.
+\\[Info-prev-reference]	Move cursor to previous cross-reference or menu item."
   (kill-all-local-variables)
   (setq major-mode 'Info-mode)
   (setq mode-name "Info")
@@ -1218,6 +1327,20 @@ Advanced commands:
   (make-local-variable 'Info-tag-table-marker)
   (make-local-variable 'Info-history)
   (make-local-variable 'Info-index-alternatives)
+  (if (fboundp 'make-face)
+      (progn
+	(make-face 'info-node)
+	(make-face 'info-menu-5)
+	(make-face 'info-xref)
+	(or (face-differs-from-default-p 'info-node)
+	    (if (face-differs-from-default-p 'bold-italic)
+		(copy-face 'bold-italic 'info-node)
+	      (copy-face 'bold 'info-node)))
+	(or (face-differs-from-default-p 'info-menu-5)
+	    (set-face-underline-p 'info-menu-5 t))
+	(or (face-differs-from-default-p 'info-xref)
+	    (copy-face 'bold 'info-xref)))
+    (setq Info-fontify nil))
   (Info-set-mode-line)
   (run-hooks 'Info-mode-hook))
 
@@ -1336,6 +1459,40 @@ Interactively, if the binding is execute-extended-command, a command is read."
 	    (read-command "Find documentation for command: ")))
 	  (t
 	   (Info-goto-emacs-command-node command)))))
+
+(defun Info-fontify-node ()
+  (save-excursion
+    (let ((buffer-read-only nil))
+      (goto-char (point-min))
+      (if (looking-at "^File: [^,: \t]+,?[ \t]+")
+	  (progn
+	    (goto-char (match-end 0))
+	    (while
+		(looking-at "[ \t]*[^:, \t\n]+:[ \t]+\\([^:,\t\n]+\\),?")
+	      (goto-char (match-end 0))
+	      (put-text-property (match-beginning 1) (match-end 1)
+				 'face 'info-xref))))
+      (goto-char (point-min))
+      (while (re-search-forward "\\*Note[ \n\t]*\\([^:]*\\):" nil t)
+	(if (= (char-after (1- (match-beginning 0))) ?\") ; hack
+	    nil
+	  (put-text-property (match-beginning 1) (match-end 1)
+			     'face 'info-xref)))
+      (goto-char (point-min))
+      (if (and (search-forward "\n* Menu:" nil t)
+	       (not (string-match "\\<Index\\>" Info-current-node))
+	       ;; Don't take time to annotate huge menus
+	       (< (- (point-max) (point)) 10000))
+	  (let ((n 0))
+	    (while (re-search-forward "^\\* \\([^:\t\n]*\\):" nil t)
+	      (setq n (1+ n))
+	      (if (memq n '(5 9))   ; visual aids to help with 1-9 keys
+		  (put-text-property (match-beginning 0)
+				     (1+ (match-beginning 0))
+				     'face 'info-menu-5))
+	      (put-text-property (match-beginning 1) (match-end 1)
+				 'face 'info-node))))
+      (set-buffer-modified-p nil))))
 
 (provide 'info)
 
