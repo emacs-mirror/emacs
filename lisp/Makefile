@@ -112,7 +112,7 @@ TAGS-LISP: $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
 compile: doit
 	wd=`pwd`;						\
 	find $$wd -name "*.elc" -print | xargs chmod +w;	\
-	$(setwins)						\
+	$(setwins);						\
 	loadpath="(setq load-path '($$wins))";			\
 	dont_compile=`echo $(DONTCOMPILE)`;			\
 	for el in $(EL); do					\
@@ -136,7 +136,7 @@ compile: doit
 bootstrap-compile: doit
 	wd=`pwd`;						\
 	find $$wd -name "*.elc" -print | xargs rm -f            \
-	$(setwins)						\
+	$(setwins);						\
 	loadpath="(setq load-path '($$wins))";			\
 	dont_compile=`echo $(DONTCOMPILE)`;			\
 	for el in $(EL); do					\
