@@ -92,7 +92,7 @@
 
 (defvar server-clients nil
   "List of current server clients.
-Each element is (CLIENTID FILES...) where CLIENTID is a string
+Each element is (CLIENTID BUFFERS...) where CLIENTID is a string
 that can be given to the server process to identify a client.
 When a buffer is marked as \"done\", it is removed from this list.")
 
@@ -197,7 +197,8 @@ Prefix arg means just kill any existing server communications subprocess."
 (defun server-visit-files (files client)
   "Finds FILES and returns the list CLIENT with the buffers nconc'd.
 FILES is an alist whose elements are (FILENAME LINENUMBER)."
-  (let (client-record (obuf (current-buffer)))
+  ;; Bind last-nonmenu-event to force use of keyboard, not mouse, for queries.
+  (let (client-record (last-nonmenu-event t) (obuf (current-buffer)))
     ;; Restore the current buffer afterward, but not using save-excursion,
     ;; because we don't want to save point in this buffer
     ;; if it happens to be one of those specified by the server.
@@ -299,8 +300,15 @@ Then bury it, and return a suggested buffer to select next."
  	  'server-kill-buffer-query-function)
 
 (defun server-kill-emacs-query-function ()
-  (or (not server-clients)
-      (yes-or-no-p "Server buffers still have clients; exit anyway? ")))
+  (let (live-client
+	(tail server-clients))
+    ;; See if any clients have any buffers that are still alive.
+    (while tail
+      (if (memq t (mapcar 'stringp (mapcar 'buffer-name (cdr (car tail)))))
+	  (setq live-client t))
+      (setq tail (cdr tail)))
+    (or (not live-client)
+	(yes-or-no-p "Server buffers still have clients; exit anyway? "))))
 
 (add-hook 'kill-emacs-query-functions 'server-kill-emacs-query-function)
 
