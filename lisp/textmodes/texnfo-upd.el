@@ -1217,6 +1217,7 @@ document; the values are regular expressions.")
 
 ;;; Updating a node
 
+;;;###autoload
 (defun texinfo-update-node (&optional region-p)
   "Without any prefix argument, update the node in which point is located.
 Non-nil argument (prefix, if interactive) means update the nodes in the
@@ -1262,6 +1263,7 @@ which menu descriptions are indented. Its default value is 32."
           (texinfo-update-the-node))
         (message "Done...updated nodes in region.  You may save the buffer.")))))
 
+;;;###autoload
 (defun texinfo-every-node-update ()
   "Update every node in a Texinfo file."
   (interactive)
@@ -1472,6 +1474,7 @@ towards which the pointer is directed, one of `next, `previous, or
 ; (The subsection to which `Next' points will most likely be the first
 ; item on the section's menu.)
 
+;;;###autoload
 (defun texinfo-sequential-node-update (&optional region-p)
   "Update one node (or many) in a Texinfo file with sequential pointers.
 
