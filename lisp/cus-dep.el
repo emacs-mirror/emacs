@@ -86,6 +86,8 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 	      (let ((members (get symbol 'custom-group))
 		    item where found)
 		(when members
+		  ;; So x and no-x builds won't differ.
+		  (setq members (sort (copy-sequence members) 'string<))
 		  (while members
 		    (setq item (car (car members))
 			  members (cdr members)
