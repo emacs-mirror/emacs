@@ -47,7 +47,7 @@ If you used procmail like in
 (setq nnmail-procmail-directory "~/mail/incoming/")
 (setq nnmail-procmail-suffix "\\.in")
 
-this now has changed to 
+this now has changed to
 
 (setq mail-sources
       '((directory :path "~/mail/incoming/"
@@ -349,7 +349,7 @@ There is now support for Imenu to index headings.  A new command
 `outline-headers-as-kill' copies the visible headings in the region to
 the kill ring, e.g. to produce a table of contents.
 
-** Changes to Emacs Server 
+** Changes to Emacs Server
 
 +++
 *** The new option `server-kill-new-buffers' specifies what to do
@@ -697,7 +697,8 @@ Default is 0.25.
 ** Changes to hideshow.el
 
 Hideshow is now at version 5.x.  It uses a new algorithms for block
-selection and traversal and includes more isearch support.
+selection and traversal, includes more isearch support, and has more
+conventional keybindings.
 
 *** Generalized block selection and traversal
 
@@ -727,6 +728,54 @@ something like this in your .emacs.
 	(add-hook 'hs-minor-mode-hook
 	  (lambda ()
 	    (add-to-list 'mode-line-format 'hs-headline)))
+
+*** New customization var: `hs-hide-all-non-comment-function'
+
+Normally, `hs-hide-all' hides everything, leaving only the
+header lines of top-level forms (and comments, unless var
+`hs-hide-comments-when-hiding-all' is non-nil).  It does this by
+moving point to each top-level block beginning and hiding the
+block there.  In some major modes (for example, Java), this
+behavior results in few blocks left visible, which may not be so
+useful.
+
+You can now set var `hs-hide-all-non-comment-function' to a
+function to be called at each top-level block beginning, instead
+of the normal block-hiding function.  For example, the following
+code defines a function to hide one level down and move point
+appropriately, and then tells hideshow to use the new function.
+
+(defun ttn-hs-hide-level-1 ()
+  (hs-hide-level 1)
+  (forward-sexp 1))
+(setq hs-hide-all-non-comment-function 'ttn-hs-hide-level-1)
+
+The name `hs-hide-all-non-comment-function' was chosen to
+emphasize that this function is not called for comment blocks,
+only for code blocks.
+
+*** Command deleted: `hs-show-region'
+
+Historical Note: This command was added to handle "unbalanced
+parentheses" emergencies back when hideshow.el used selective
+display for implementation.
+
+*** Commands rebound to more conventional keys
+
+The hideshow commands used to be bound to keys of the form "C-c
+LETTER".  This is contrary to the Emacs keybinding convention,
+which reserves that space for user modification.  Here are the
+new bindings (which includes the addition of `hs-toggle-hiding'):
+
+  hs-hide-block               C-c C-h
+  hs-show-block               C-c C-s
+  hs-hide-all                 C-c C-M-h
+  hs-show-all                 C-c C-M-s
+  hs-hide-level               C-c C-l
+  hs-toggle-hiding            C-c C-c
+  hs-mouse-toggle-hiding      [(shift button-2)]
+
+These were chosen to roughly imitate those used by Outline mode.
 
 ** Changes to Change Log mode and Add-Log functions
 
@@ -1334,7 +1383,7 @@ obsolete now, you must set `vc-handled-backends' to nil or exclude
 The variable `vc-checkout-carefully' is obsolete: the corresponding
 checks are always done now.
 
-VC Dired buffers are now kept up-to-date during all version control 
+VC Dired buffers are now kept up-to-date during all version control
 operations.
 
 *** Changes for CVS
@@ -3118,7 +3167,7 @@ resulting from summing up the RGB values of surrounding pixels,
 multiplied by the specified factors, and dividing that sum by the sum
 of the factors' absolute values.
 
-Laplace edge-detection currently uses a matrix of 
+Laplace edge-detection currently uses a matrix of
 
   (1  0  0
    0  0  0
