@@ -11077,7 +11077,7 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
   
   /* Move the tooltip window where the mouse pointer is.  Resize and
      show it.  */
-  if (!INTEGERP (left) && !INTEGERP (top))
+  if (!INTEGERP (left) || !INTEGERP (top))
     {
       BLOCK_INPUT;
       XQueryPointer (FRAME_X_DISPLAY (f), FRAME_X_DISPLAY_INFO (f)->root_window,
