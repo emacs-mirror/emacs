@@ -132,6 +132,8 @@ struct frame
   Lisp_Object scroll_bars;
   Lisp_Object condemned_scroll_bars;
 
+  Lisp_Object menu_bar_items;
+
   /* The output method says how the contents of this frame
      are displayed.  It could be using termcap, or using an X window.  */
   enum output_method output_method;
@@ -140,6 +142,9 @@ struct frame
      struct x_display is used for X window frames;
      it is defined in xterm.h.  */
   union display { struct x_display *x; int nothing; } display;
+
+  /* Number of lines of menu bar.  */
+  int menu_bar_lines;
 
   /* Nonzero if last attempt at redisplay on this frame was preempted.  */
   char display_preempted;
@@ -242,6 +247,7 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_WIDTH(f) (f)->width
 #define FRAME_NEW_HEIGHT(f) (f)->new_height
 #define FRAME_NEW_WIDTH(f) (f)->new_width
+#define FRAME_MENU_BAR_LINES(f) (f)->menu_bar_lines
 #define FRAME_CURSOR_X(f) (f)->cursor_x
 #define FRAME_CURSOR_Y(f) (f)->cursor_y
 #define FRAME_VISIBLE_P(f) ((f)->visible != 0)
@@ -267,6 +273,7 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_HAS_VERTICAL_SCROLL_BARS(f) ((f)->has_vertical_scroll_bars)
 #define FRAME_SCROLL_BARS(f) ((f)->scroll_bars)
 #define FRAME_CONDEMNED_SCROLL_BARS(f) ((f)->condemned_scroll_bars)
+#define FRAME_MENU_BAR_ITEMS(f) ((f)->menu_bar_items)
 
 /* Emacs's redisplay code could become confused if a frame's
    visibility changes at arbitrary times.  For example, if a frame is
@@ -371,6 +378,7 @@ extern int last_nonminibuf_frame;
 #define FRAME_WIDTH(f) (the_only_frame.width)
 #define FRAME_NEW_HEIGHT(f) (the_only_frame.new_height)
 #define FRAME_NEW_WIDTH(f) (the_only_frame.new_width)
+#define FRAME_MENU_BAR_LINES(f) (the_only_frame.menu_bar_lines)
 #define FRAME_CURSOR_X(f) (the_only_frame.cursor_x)
 #define FRAME_CURSOR_Y(f) (the_only_frame.cursor_y)
 #define FRAME_SET_VISIBLE(f,p) (p)
@@ -396,6 +404,7 @@ extern int last_nonminibuf_frame;
   (the_only_frame.has_vertical_scroll_bars)
 #define FRAME_SCROLL_BARS(f) (the_only_frame.scroll_bars)
 #define FRAME_CONDEMNED_SCROLL_BARS(f) (the_only_frame.condemned_scroll_bars)
+#define FRAME_MENU_BAR_ITEMS(f) (the_only_frame.menu_bar_items)
 
 /* See comments in definition above.  */
 #define FRAME_SAMPLE_VISIBILITY(f) (0)
