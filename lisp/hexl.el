@@ -494,6 +494,7 @@ You may also type up to 3 octal digits, to insert a character with that code"
 
 ;00000000: 0011 2233 4455 6677 8899 aabb ccdd eeff  0123456789ABCDEF
 
+;;;###autoload
 (defun hexlify-buffer ()
   "Convert a binary buffer to hexl format"
   (interactive)
