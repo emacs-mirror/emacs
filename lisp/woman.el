@@ -1059,13 +1059,6 @@ Should include ?e, ?o (page even/odd) and either ?n (nroff) or ?t (troff).
 Default is '(?n ?e ?o).  Set via `woman-emulation'.")
 
 
-;;; Button types:
-
-(define-button-type 'woman-xref
-  'action (lambda (button) (woman (button-label button)))
-  'help-echo "RET, mouse-2: display this man page")
-
-
 ;;; Specialized utility functions:
 
 ;;; Fast deletion without saving on the kill ring (cf. simple.el):
@@ -1869,7 +1862,7 @@ See `Man-mode' for additional details."
     (setq woman-imenu-done nil)
     (if woman-imenu (woman-imenu))
     (setq buffer-read-only nil)
-    (WoMan-highlight-references)
+    (Man-highlight-references)
     (setq buffer-read-only t)
     (set-buffer-modified-p nil)))
 
@@ -1963,21 +1956,6 @@ Otherwise use Man and record start of formatting time."
 	 (time (+ (* (- (car time) (car WoMan-Man-start-time)) 65536)
 		  (- (cadr time) (cadr WoMan-Man-start-time)))))
     (message "Man formatting done in %d seconds" time)))
-
-(defun WoMan-highlight-references ()
-  "Highlight the references (in the SEE ALSO section) on mouse-over."
-  ;; Based on `Man-build-references-alist' in `man'.
-  (when (Man-find-section Man-see-also-regexp)
-    (forward-line 1)
-    (let ((end (save-excursion
-		 (Man-next-section 1)
-		 (point))))
-      (back-to-indentation)
-      (while (re-search-forward Man-reference-regexp end t)
-	;; Highlight reference when mouse is over it.
-	;; (NB: WoMan does not hyphenate!)
-	(make-text-button (match-beginning 1) (match-end 1)
-			  'type 'woman-xref)))))
 
 
 ;;; Buffer handling:
