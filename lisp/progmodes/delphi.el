@@ -65,11 +65,17 @@
 (provide 'delphi)
 
 (defconst delphi-version
-  (let ((revision "$Revision: 3.0 $"))
+  (let ((revision "$Revision: 3.2 $"))
     (string-match ": \\([^ ]+\\)" revision)
     (match-string 1 revision))
   "Version of this delphi mode.")
 ;;; $Log: delphi.el,v $
+;;; Revision 3.2  1999/08/04 05:09:19  blaak
+;;; Consider assembly sections as blocks, to indent them better.
+;;;
+;;; Revision 3.1  1999/08/04 04:45:47  blaak
+;;; Make auto-indent on newline optional
+;;;
 ;;; Revision 3.0  1999/08/03 04:59:02  blaak
 ;;; Re-release as an official Emacs language mode
 ;;;
@@ -152,9 +158,18 @@ end;                            end;"
   :type 'boolean
   :group 'delphi)
 
-(defcustom delphi-tab-always-indent t
+(defcustom delphi-tab-always-indents t
   "*Non-nil means TAB in Delphi mode should always reindent the current line,
 regardless of where in the line point is when the TAB command is used."
+  :type 'boolean
+  :group 'delphi)
+
+(defcustom delphi-newline-always-indents t
+  "*Non-nil means NEWLINE in Delphi mode should always reindent the current
+line, insert a blank line and move to the default indent column of the blank
+line. If nil, then no indentation occurs, and NEWLINE does the usual
+behaviour. This is useful when one needs to do customized indentation that
+differs from the default."
   :type 'boolean
   :group 'delphi)
 
@@ -243,7 +258,7 @@ are followed by an expression.")
   "Class visibilities.")
 
 (defconst delphi-block-statements 
-  '(begin try case repeat initialization finalization)
+  '(begin try case repeat initialization finalization asm)
   "Statements that contain multiple substatements.")
 
 (defconst delphi-mid-block-statements
@@ -1141,11 +1156,18 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
                    ;; Indent to use clause keyword.
                    (delphi-line-indent-of token))))
 
+         ;; Assembly sections always indent in from the asm keyword.
+         ((eq token-kind 'asm) 
+          (throw 'done (delphi-stmt-line-indent-of token delphi-indent-level)))
+
          ;; An enclosing statement delimits a previous statement.
          ;; We try to use the existing indent of the previous statement,
          ;; otherwise we calculate from the enclosing statement.
          ((delphi-is token-kind delphi-previous-enclosing-statements)
-          (throw 'done (if last-token (delphi-line-indent-of last-token)
+          (throw 'done (if last-token
+                           ;; Otherwise indent to the last token
+                           (delphi-line-indent-of last-token)
+                         ;; Just indent from the enclosing keyword
                          (delphi-line-indent-of token delphi-indent-level))))
 
          ;; A class or record declaration also delimits a previous statement.
@@ -1373,6 +1395,10 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
            (cond (last-token (delphi-indent-of last-token delphi-indent-level))
 
                  ((+ (delphi-section-indent-of token) delphi-indent-level)))))
+
+         ;; Assembly sections always indent in from the asm keyword.
+         ((eq token-kind 'asm) 
+          (throw 'done (delphi-stmt-line-indent-of token delphi-indent-level)))
 
          ;; Stop at an enclosing statement and indent from it.
          ((delphi-is token-kind delphi-enclosing-statements)
@@ -1620,23 +1646,25 @@ before the indent, the point is moved to the indent."
   (delphi-debug-tokenize-region (window-start) (window-end)))
 
 (defun delphi-newline ()
-  "Terminate the current line with a newline and indent the next."
+  "Terminate the current line with a newline and indent the next, unless
+`delphi-newline-always-indents' is nil, in which case no reindenting occurs."
   (interactive)
   ;; Remove trailing spaces
   (delete-horizontal-space)
   (newline)
-  ;; Indent both the (now) previous and current line first.
-  (save-excursion
-    (previous-line 1)
-    (delphi-indent-line))
-  (delphi-indent-line))
+  (when delphi-newline-always-indents
+    ;; Indent both the (now) previous and current line first.
+    (save-excursion
+      (previous-line 1)
+      (delphi-indent-line))
+    (delphi-indent-line)))
 
 
 (defun delphi-tab ()
   "Indent the current line or insert a TAB, depending on the value of
-delphi-tab-always-indent and the current line position."
+`delphi-tab-always-indents' and the current line position."
   (interactive)
-  (if (or delphi-tab-always-indent ; We are always indenting
+  (if (or delphi-tab-always-indents ; We are always indenting
           ;; Or we are before the first non-space character on the line.
           (save-excursion (skip-chars-backward delphi-space-chars) (bolp)))
       (delphi-indent-line)
@@ -1897,9 +1925,9 @@ comment block. If not in a // comment, just does a normal newline."
             (list '("\r" delphi-newline)
                   '("\t" delphi-tab)
                   '("\177" backward-delete-char-untabify)
-                  '("\C-cd" delphi-find-current-def)
-                  '("\C-cx" delphi-find-current-xdef)
-                  '("\C-cb" delphi-find-current-body)
+;;                '("\C-cd" delphi-find-current-def)
+;;                '("\C-cx" delphi-find-current-xdef)
+;;                '("\C-cb" delphi-find-current-body)
                   '("\C-cu" delphi-find-unit)
                   '("\M-q" delphi-fill-comment)
                   '("\M-j" delphi-new-comment-line)
@@ -1916,9 +1944,6 @@ This is ok since we do our own keyword/comment/string face coloring.")
 (defun delphi-mode (&optional skip-initial-parsing)
   "Major mode for editing Delphi code. \\<delphi-mode-map>
 \\[delphi-tab]\t- Indents the current line for Delphi code.
-\\[delphi-find-current-def]\t- Find previous definition of identifier at the point.
-\\[delphi-find-current-xdef]\t- Find definition, but also in external units.
-\\[delphi-find-current-body]\t- Find the body of the identifier at the point.
 \\[delphi-find-unit]\t- Search for a Delphi source file.
 \\[delphi-fill-comment]\t- Fill the current comment.
 \\[delphi-new-comment-line]\t- If in a // comment, do a new comment line.
@@ -1933,9 +1958,13 @@ Customization:
     Extra indentation for blocks in compound statements.
  `delphi-case-label-indent'           (default 0)
     Extra indentation for case statement labels.
- `delphi-tab-always-indent'           (default t)
+ `delphi-tab-always-indents'          (default t)
     Non-nil means TAB in Delphi mode should always reindent the current line,
     regardless of where in the line point is when the TAB command is used.
+ `delphi-newline-always-indents'      (default t)
+    Non-nil means NEWLINE in Delphi mode should always reindent the current
+    line, insert a blank line and move to the default indent column of the
+    blank line.
  `delphi-search-path'                 (default .)
     Directories to search when finding external units.
  `delphi-verbose'                     (default nil)
