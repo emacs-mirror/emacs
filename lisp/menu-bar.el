@@ -45,11 +45,21 @@
 (define-key menu-bar-file-menu [open-file] '("Open File..." . find-file))
 (define-key menu-bar-file-menu [new-frame] '("New Frame" . new-frame))
 
-(define-key menu-bar-edit-menu [clear] '("Clear" . x-delete-primary-selection))
-(define-key menu-bar-edit-menu [paste] '("Paste" . x-yank-clipboard-selection))
-(define-key menu-bar-edit-menu [copy] '("Copy" . x-copy-primary-selection))
-(define-key menu-bar-edit-menu [cut] '("Cut" . x-kill-primary-selection))
-(define-key menu-bar-edit-menu [undo] '("Undo" . advertised-undo))
+(define-key menu-bar-edit-menu [fill] '("Fill" . fill-region))
+(define-key menu-bar-edit-menu [clear] '("Clear" . delete-region))
+(define-key menu-bar-edit-menu [paste] '("Paste" . yank))
+(define-key menu-bar-edit-menu [copy] '("Copy" . kill-ring-save))
+(define-key menu-bar-edit-menu [cut] '("Cut" . kill-region))
+(define-key menu-bar-edit-menu [undo] '("Undo" . undo))
+
+(put 'fill-region 'menu-enable 'mark-active)
+(put 'kill-region 'menu-enable 'mark-active)
+(put 'kill-ring-save 'menu-enable 'mark-active)
+(put 'yank 'menu-enable '(x-selection-exists-p))
+(put 'delete-region 'menu-enable 'mark-active)
+(put 'undo 'menu-enable '(if (eq last-command 'undo)
+			     pending-undo-list
+			   (consp buffer-undo-list)))
 
 (define-key menu-bar-help-menu [emacs-tutorial]
   '("Emacs Tutorial" . help-with-tutorial))
@@ -87,12 +97,6 @@
 (put 'revert-buffer 'menu-enable '(and (buffer-modified-p) (buffer-file-name)))
 (put 'delete-frame 'menu-enable '(cdr (visible-frame-list)))
 (put 'kill-this-buffer 'menu-enable '(kill-this-buffer-enabled-p))
-
-(put 'x-kill-primary-selection 'menu-enable '(x-selection-owner-p))
-(put 'x-copy-primary-selection 'menu-enable '(x-selection-owner-p))
-(put 'x-yank-clipboard-selection 'menu-enable '(x-selection-owner-p))
-(put 'x-delete-primary-selection 'menu-enable
-     '(x-selection-exists-p 'CLIPBOARD))
 
 (put 'advertised-undo 'menu-enable
      '(and (not (eq t buffer-undo-list))
@@ -193,18 +197,37 @@ and selects that window."
 ;;;	       mode-name
 ;;;	       (or (buffer-file-name) ""))))))
 
-;; Give all existing frames a menu bar.
-;; (Except for minibuffer-only frames.)
-(let ((frames (frame-list)))
-  (while frames
-    (or (eq 'only (cdr (assq 'minibuffer (frame-parameters (car frames)))))
-	(modify-frame-parameters (car frames) '((menu-bar-lines . 1))))
-    (setq frames (cdr frames))))
+(defvar menu-bar-mode nil)
+
+(defun menu-bar-mode (flag)
+  "Toggle display of vertical scroll bars on each frame.
+This command applies to all frames that exist and frames to be
+created in the future.
+With a numeric argument, if the argument is negative,
+turn off scroll bars; otherwise, turn on scroll bars."
+  (interactive "P")
+  (setq menu-bar-mode (if (null flag) (not menu-bar-mode)
+			  (or (not (numberp flag)) (>= flag 0))))
+  (let ((parameter (assq 'menu-bar-lines default-frame-alist)))
+    (if (consp parameter)
+	(setcdr parameter (if menu-bar-mode 1 0))
+      (setq default-frame-alist
+	    (cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
+		  default-frame-alist))))
+  (let ((frames (frame-list)))
+    (while frames
+      ;; Turn menu bar on or off in existing frames.
+      ;; (Except for minibuffer-only frames.)
+      (or (eq 'only (cdr (assq 'minibuffer (frame-parameters (car frames)))))
+	  (modify-frame-parameters
+	   (car frames)
+	   (list (if menu-bar-mode
+		     '(menu-bar-lines . 1)
+		   '(menu-bar-lines . 0)))))
+      (setq frames (cdr frames)))))
 
 ;; Make frames created from now on have a menu bar.
-(or (assq 'menu-bar-lines default-frame-alist)
-    (setq default-frame-alist
-	  (cons '(menu-bar-lines . 1) default-frame-alist)))
+(menu-bar-mode t)
 
 (provide 'menu-bar)
 
