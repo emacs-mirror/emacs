@@ -53,6 +53,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Character position of end of buffer.  */ 
 #define Z (current_buffer->text.z)
 
+/* Is the current buffer narrowed? */
+#define NARROWED	((BEGV != BEG) || (ZV != Z))
+
 /* Modification count.  */
 #define MODIFF (current_buffer->text.modiff)
 
@@ -97,6 +100,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Character position of end of buffer.  */ 
 #define BUF_Z(buf) ((buf)->text.z)
+
+/* Is this buffer narrowed? */
+#define BUF_NARROWED(buf) ((BUF_BEGV(buf) != BUF_BEG(buf)) \
+			   || (BUF_ZV(buf) != BUF_Z(buf)))
 
 /* Modification count.  */
 #define BUF_MODIFF(buf) ((buf)->text.modiff)
