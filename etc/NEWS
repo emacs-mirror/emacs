@@ -173,6 +173,12 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** calculator.el now has radix grouping mode, which is available when
+`calculator-output-radix' is non-nil.  In this mode a separator
+character is used every few digits, making it easier to see byte
+boundries etc.  For more info, see the documentation of the variable
+`calculator-radix-grouping-mode'.
+
 ** You can now follow links by clicking Mouse-1 on the link.
 
 Traditionally, Emacs uses a Mouse-1 click to set point and a Mouse-2
@@ -201,6 +207,24 @@ drag-mouse-1 action, typically copy the text.
 
 You can customize the new Mouse-1 behaviour via the new user option
 `mouse-1-click-follows-link'.
+
++++
+** require-final-newline now has two new possible values:
+
+`visit' means add a newline (as an undoable change) if it's needed
+when visiting the file.
+
+`visit-save' means add a newline (as an undoable change) if it's
+needed when visiting the file, and also add a newline if it's needed
+when saving the file.
+
++++
+** The new option mode-require-final-newline controls how certain
+major modes enable require-final-newline.  Any major mode that's
+designed for a kind of file that should normally end in a newline
+sets require-final-newline based on mode-require-final-newline.
+So you can customize mode-require-final-newline to control what these
+modes do.
 
 +++
 ** When the undo information of the current command gets really large
@@ -1056,6 +1080,9 @@ be navigated with the arrow keys (like Gtk+, Mac and W32).
 ESC, like they do for Gtk+, Mac and W32.
 
 ---
+**  Dialogs and menus pop down when pressing C-g.
+
+---
 ** The menu item "Open File..." has been split into two items, "New File..."
 and "Open File...".  "Open File..." now opens only existing files.  This is
 to support existing GUI file selection dialogs better.
@@ -1871,12 +1898,15 @@ The functions c-hungry-backspace and c-hungry-delete-forward can be
 bound to keys to get this feature without toggling a mode.
 Contributed by Kevin Ryde.
 
-*** Better control over require-final-newline.
-The variable that controls how to handle a final newline when the
-buffer is saved, require-final-newline, is now customizable on a
-per-mode basis through c-require-final-newline.  The default is to set
-it to t only in languages that mandate a final newline in source files
-(C, C++ and Objective-C).
+*** Better control over require-final-newline.  The variable that
+controls how to handle a final newline when the buffer is saved,
+require-final-newline, is now customizable on a per-mode basis through
+c-require-final-newline.  That is a list of modes, and only those
+modes set require-final-newline.  By default that's C, C++ and
+Objective-C.
+
+The specified modes set require-final-newline based on 
+mode-require-final-newline, as usual.
 
 *** Format change for syntactic context elements.
 The elements in the syntactic context returned by c-guess-basic-syntax
@@ -2218,6 +2248,14 @@ anyone has committed to the repository since you last executed
 "checkout", "update" or "commit".  That means using cvs diff options
 -rBASE -rHEAD.
 
+** New variable `hs-set-up-overlay' allows customization of the overlay
+used to effect hiding for hideshow minor mode.  Integration with isearch
+handles the overlay property `display' specially, preserving it during
+temporary overlay showing in the course of an isearch operation.
+
+** New command `recode-region' decodes the region again by a specified
+coding system.
+
 
 * New modes and packages in Emacs 21.4
 
@@ -2464,6 +2502,15 @@ timing measurements of code (including the garbage collection component).
 configuration files.
 
 * Lisp Changes in Emacs 21.4
+
++++
+** If a buffer sets buffer-save-without-query to non-nil,
+save-some-buffers will always save that buffer without asking
+(if it's modified).
+
++++
+** The function symbol-file tells you which file defined
+a certain function or variable.
 
 ** Lisp code can now test if a given buffer position is inside a
 clickable link with the new function `mouse-on-link-p'.  This is the
@@ -3173,6 +3220,10 @@ be inserted is translated through it.
 ** `load-history' can now have elements of the form (t . FUNNAME),
 which means FUNNAME was previously defined as an autoload (before the
 current file redefined it).
+
++++
+** `load-history' now records (defun . FUNNAME) when a function is
+defined.  For a variable, it records just the variable name.
 
 +++
 ** New Lisp library testcover.el works with edebug to help you determine

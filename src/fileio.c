@@ -3861,10 +3861,6 @@ actually used.  */)
          `coding:' tag if the current buffer is not empty.  */
       if (!NILP (Vcoding_system_for_read))
 	coding_system = Vcoding_system_for_read;
-      else if (! NILP (replace))
-	/* In REPLACE mode, we can use the same coding system
-	   that was used to visit the file.  */
-	coding_system = current_buffer->buffer_file_coding_system;
       else
 	{
 	  /* Don't try looking inside a file for a coding system
@@ -4618,7 +4614,8 @@ actually used.  */)
 
   if (! NILP (Ffboundp (Qafter_insert_file_set_coding)))
     {
-      insval = call1 (Qafter_insert_file_set_coding, make_number (inserted));
+      insval = call2 (Qafter_insert_file_set_coding, make_number (inserted),
+		      visit);
       if (! NILP (insval))
 	{
 	  CHECK_NUMBER (insval);
@@ -6104,7 +6101,7 @@ The return value is only relevant for a call to `read-file-name' that happens
 before any other event (mouse or keypress) is handeled.  */)
   ()
 {
-#if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK) || defined (TARGET_API_MAC_CARBON)
+#if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK) || defined (HAVE_CARBON)
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
       && use_dialog_box
       && use_file_dialog
@@ -6245,7 +6242,7 @@ and `read-file-name-function'.  */)
 
   GCPRO2 (insdef, default_filename);
 
-#if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK) || defined (TARGET_API_MAC_CARBON)
+#if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK) || defined (HAVE_CARBON)
   if (! NILP (Fnext_read_file_uses_dialog_p ()))
     {
       /* If DIR contains a file name, split it.  */

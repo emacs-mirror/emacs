@@ -261,7 +261,7 @@ Boston, MA 02111-1307, USA.  */
 
 /* #undef CRAY_STACKSEG_END */
 
-/* #undef UNEXEC_SRC unexelf.c
+/* #undef UNEXEC_SRC */
 
 /* #undef HAVE_LIBXBSD */
 /* #undef HAVE_XRMSETDATABASE */
@@ -365,6 +365,13 @@ Boston, MA 02111-1307, USA.  */
 /* #undef _LARGE_FILES */
 /* Define to make ftello visible on some hosts (e.g. glibc 2.1.3).  */
 /* #undef _XOPEN_SOURCE */
+
+#ifdef __MRC__
+/* Use low-bits for tags.  If ENABLE_CHECKING is turned on together
+   with USE_LSB_TAG, optimization flags should be explicitly turned
+   off.  */
+#define USE_LSB_TAG
+#endif
 
 #ifdef __MRC__
 #define EMACS_CONFIGURATION "macos-mpw"

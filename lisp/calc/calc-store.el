@@ -174,13 +174,17 @@
 (defun calc-read-var-name (prompt &optional calc-store-opers)
   (setq calc-given-value nil
 	calc-aborted-prefix nil)
-  (let ((var (let ((minibuffer-completion-table obarray)
-		   (minibuffer-completion-predicate 'boundp)
-		   (minibuffer-completion-confirm t))
-	       (read-from-minibuffer prompt "var-" calc-var-name-map nil))))
+  (let ((var (concat 
+              "var-"
+              (let ((minibuffer-completion-table
+                     (mapcar (lambda (x) (substring x 4)) 
+                             (all-completions "var-" obarray)))
+                    (minibuffer-completion-predicate 
+                     (lambda (x) (boundp (intern (concat "var-" x)))))
+                    (minibuffer-completion-confirm t))
+                (read-from-minibuffer prompt nil calc-var-name-map nil)))))
     (setq calc-aborted-prefix "")
-    (and (not (equal var ""))
-	 (not (equal var "var-"))
+    (and (not (equal var "var-"))
 	 (if (string-match "\\`\\([-a-zA-Z0-9]+\\) *:?=" var)
 	     (if (null calc-given-value-flag)
 		 (error "Assignment is not allowed in this command")
@@ -196,7 +200,7 @@
 
 (defun calcVar-digit ()
   (interactive)
-  (if (calc-minibuffer-contains "var-\\'")
+  (if (calc-minibuffer-contains "\\'")
       (if (eq calc-store-opers 0)
 	  (beep)
 	(insert "q")
@@ -206,7 +210,7 @@
 (defun calcVar-oper ()
   (interactive)
   (if (and (eq calc-store-opers t)
-	   (calc-minibuffer-contains "var-\\'"))
+	   (calc-minibuffer-contains "\\'"))
       (progn
 	(erase-buffer)
 	(self-insert-and-exit))
@@ -369,9 +373,10 @@
    (if var1
        (let ((value (calc-var-value var1)))
 	 (or value
-	     (error "No such variable: \"%s\"" (calc-var-name var)))
+	     (error "No such variable: \"%s\"" (calc-var-name var1)))
 	 (or var2 (setq var2 (calc-read-var-name
-			      (format "Copy variable: %s, to: " var1))))
+			      (format "Copy variable: %s, to: " 
+                                      (calc-var-name var1)))))
 	 (if var2
 	     (calc-store-value var2 value ""))))))
 

@@ -73,12 +73,13 @@ string are substituted as defined by the current value of the variable
 
 (defvar battery-mode-line-string nil
   "String to display in the mode line.")
+;;;###autoload (put 'battery-mode-line-string 'risky-local-variable t)
 
 (defcustom battery-mode-line-format
   (cond ((eq battery-status-function 'battery-linux-proc-apm)
-	 " [%b%p%%]")
+	 "[%b%p%%]")
 	((eq battery-status-function 'battery-linux-proc-acpi)
-	 " [%b%p%%,%d°C]"))
+	 "[%b%p%%,%d°C]"))
   "*Control string formatting the string to display in the mode line.
 Ordinary characters in the control string are printed as-is, while
 conversion specifications introduced by a `%' character in the control
@@ -128,13 +129,14 @@ seconds."
 
 (defun battery-update ()
   "Update battery status information in the mode line."
-  (setq battery-mode-line-string (propertize (if (and battery-mode-line-format
-						      battery-status-function)
-						 (battery-format
-						  battery-mode-line-format
-						  (funcall battery-status-function))
-					       "")
-					     'help-echo "Battery status information"))
+  (setq battery-mode-line-string
+	(propertize (if (and battery-mode-line-format
+			     battery-status-function)
+			(battery-format
+			 battery-mode-line-format
+			 (funcall battery-status-function))
+		      "")
+		    'help-echo "Battery status information"))
   (force-mode-line-update))
 
 

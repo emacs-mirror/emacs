@@ -955,9 +955,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	  (define-key calc-dumb-map "\C-c\C-c" 'exit-recursive-edit)))
     (use-local-map calc-dumb-map)
     (setq truncate-lines t)
-    (message "Type `q'%s to return to Calc"
-	     (if (eq (lookup-key (current-global-map) "\e#") 'calc-dispatch)
-		    " or `M-# M-#'" ""))
+    (message "Type `q' or `C-c C-c' to return to Calc")
     (recursive-edit)
     (bury-buffer "*Gnuplot Trail*")))
 

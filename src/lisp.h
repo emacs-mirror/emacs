@@ -1689,8 +1689,16 @@ extern void defvar_kboard P_ ((char *, int));
 #define DEFVAR_LISP_NOPRO(lname, vname, doc) defvar_lisp_nopro (lname, vname)
 #define DEFVAR_BOOL(lname, vname, doc) defvar_bool (lname, vname)
 #define DEFVAR_INT(lname, vname, doc) defvar_int (lname, vname)
+
+/* TYPE is nil for a general Lisp variable.
+   An integer specifies a type; then only LIsp values
+   with that type code are allowed (except that nil is allowed too).
+   LNAME is the LIsp-level variable name.
+   VNAME is the name of the buffer slot.
+   DOC is a dummy where you write the doc string as a comment.  */
 #define DEFVAR_PER_BUFFER(lname, vname, type, doc)  \
  defvar_per_buffer (lname, vname, type, 0)
+
 #define DEFVAR_KBOARD(lname, vname, doc) \
  defvar_kboard (lname, \
 		(int)((char *)(&current_kboard->vname) \

@@ -1291,7 +1291,7 @@ list_processes_1 (query_only)
   XSETFASTINT (minspace, 1);
 
   set_buffer_internal (XBUFFER (Vstandard_output));
-  Fbuffer_disable_undo (Vstandard_output);
+  current_buffer->undo_list = Qt;
 
   current_buffer->truncate_lines = Qt;
 

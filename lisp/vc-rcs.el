@@ -500,6 +500,7 @@ Needs RCS 5.6.2 or later for -M."
 (defun vc-rcs-annotate-command (file buffer &optional revision)
   "Annotate FILE, inserting the results in BUFFER.
 Optional arg REVISION is a revision to annotate from."
+  (vc-setup-buffer buffer)
   ;; Aside from the "head revision on the trunk", the instructions for
   ;; each revision on the trunk are an ordered list of kill and insert
   ;; commands necessary to go from the chronologically-following

@@ -46,7 +46,7 @@ Boston, MA 02111-1307, USA.  */
 
 /* Where Emacs should look for X bitmap files.
    The lisp variable x-bitmap-file-path is set based on this value.  */
-/* #define PATH_BITMAPS "/usr/include/X11/bitmaps" */
+#define PATH_BITMAPS ""
 
 /* Where Emacs should look for its docstring file.  The lisp variable
    doc-directory is set to this value.  */
@@ -56,6 +56,9 @@ Boston, MA 02111-1307, USA.  */
    lisp variable configure-info-directory gets its value from this
    macro, and is then used to set the Info-default-directory-list.  */
 #define PATH_INFO "~emacs/info"
+
+/* Where Emacs should store game score files.  */
+#define PATH_GAME "~emacs/games"
 
 /* Where Emacs should look for the application default file. */
 /* #define PATH_X_DEFAULTS "/usr/lib/X11/%L/%T/%N%C%S:/usr/lib/X11/%l/%T/%N%C%S:/usr/lib/X11/%T/%N%C%S:/usr/lib/X11/%L/%T/%N%S:/usr/lib/X11/%l/%T/%N%S:/usr/lib/X11/%T/%N%S" */

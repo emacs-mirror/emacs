@@ -2529,53 +2529,6 @@ ANTLR's syntax and influences the auto indentation, see
 	  (set (car settings) (eval (cadr settings)))))
       (setq settings (cddr settings)))))
 
-(defun antlr-c-common-init ()
-  "Like `c-basic-common-init' when using cc-mode before v5.30."
-  ;; X/Emacs 20 only
-  (make-local-variable 'paragraph-start)
-  (make-local-variable 'paragraph-separate)
-  (make-local-variable 'paragraph-ignore-fill-prefix)
-  (make-local-variable 'require-final-newline)
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (make-local-variable 'comment-start)
-  (make-local-variable 'comment-multi-line)
-  (make-local-variable 'outline-regexp)
-  (make-local-variable 'outline-level)
-  (make-local-variable 'adaptive-fill-regexp)
-  (make-local-variable 'adaptive-fill-mode)
-  (make-local-variable 'imenu-generic-expression) ;set in the mode functions
-  (and (boundp 'comment-line-break-function)
-       (make-local-variable 'comment-line-break-function))
-  ;; Emacs 19.30 and beyond only, AFAIK
-  (if (boundp 'fill-paragraph-function)
-      (progn
-	(make-local-variable 'fill-paragraph-function)
-	(setq fill-paragraph-function 'c-fill-paragraph)))
-  ;; now set their values
-  (setq paragraph-start (concat page-delimiter "\\|$")
-	paragraph-separate paragraph-start
-	paragraph-ignore-fill-prefix t
-	parse-sexp-ignore-comments t
-	comment-column 32
-	comment-multi-line nil
-	comment-line-break-function 'c-comment-line-break-function
-	adaptive-fill-regexp nil
-	adaptive-fill-mode nil)
-  (c-set-style (or antlr-indent-style "gnu"))
-  (and (boundp 'c-current-comment-prefix) (boundp 'c-comment-prefix-regexp)
-       (setq c-current-comment-prefix
-	     (if (listp c-comment-prefix-regexp)
-		 (cdr-safe (or (assoc major-mode c-comment-prefix-regexp)
-			       (assoc 'other c-comment-prefix-regexp)))
-	       c-comment-prefix-regexp)))
-  ;; we have to do something special for c-offsets-alist so that the
-  ;; buffer local value has its own alist structure.
-  (setq c-offsets-alist (copy-alist c-offsets-alist))
-  ;; setup the comment indent variable in a Emacs version portable way
-  ;; ignore any byte compiler warnings you might get here
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'c-comment-indent))
-
 (defun antlr-language-option (search)
   "Find language in `antlr-language-alist' for language option.
 If SEARCH is non-nil, find element for language option.  Otherwise, find
@@ -2643,10 +2596,7 @@ the default language."
 	   (funcall init-fn)))		; is a function in v5.29
 	(t				; cc-mode upto 5.28
 	 (antlr-c-init-language-vars)))	; do it myself
-  (cond ((fboundp 'c-basic-common-init)	; cc-mode 5.30+
-	 (c-basic-common-init antlr-language (or antlr-indent-style "gnu")))
-	(t
-	 (antlr-c-common-init)))
+  (c-basic-common-init antlr-language (or antlr-indent-style "gnu"))
   (make-local-variable 'outline-regexp)
   (make-local-variable 'outline-level)
   (make-local-variable 'require-final-newline)
@@ -2654,7 +2604,7 @@ the default language."
   (make-local-variable 'indent-region-function)
   (setq outline-regexp "[^#\n\^M]"
 	outline-level 'c-outline-level)	; TODO: define own
-  (setq require-final-newline t)
+  (setq require-final-newline mode-require-final-newline)
   (setq indent-line-function 'antlr-indent-line
 	indent-region-function nil)	; too lazy
   (setq comment-start "// "

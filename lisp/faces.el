@@ -854,12 +854,15 @@ Otherwise, return a single face."
 		      (get-char-property (point) 'face)))
 	faces)
     ;; Make a list of the named faces that the `face' property uses.
-    (if (listp faceprop)
+    (if (and (listp faceprop)
+	     ;; Don't treat an attribute spec as a list of faces.
+	     (not (keywordp (car faceprop)))
+	     (not (memq (car faceprop) '(foreground-color background-color))))
 	(dolist (f faceprop)
 	  (if (symbolp f)
 	      (push f faces)))
       (if (symbolp faceprop)
-	  (setq faces (list faceprop))))
+	  (push faceprop faces)))
     ;; If there are none, try to get a face name from the buffer.
     (if (and (null faces)
 	     (memq (intern-soft (thing-at-point 'symbol)) (face-list)))

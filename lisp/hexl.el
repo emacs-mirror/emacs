@@ -111,10 +111,18 @@ Quoting cannot be used, so the arguments cannot themselves contain spaces."
 (defvar hexl-mode-old-isearch-search-fun-function)
 (defvar hexl-mode-old-require-final-newline)
 (defvar hexl-mode-old-syntax-table)
+(defvar hexl-mode-old-font-lock-keywords)
 
 (defvar hexl-ascii-overlay nil
   "Overlay used to highlight ASCII element corresponding to current point.")
 (make-variable-buffer-local 'hexl-ascii-overlay)
+
+(defvar hexl-font-lock-keywords
+  '(("^\\([0-9a-f]+:\\).\\{40\\}  \\(.+$\\)"
+     ;; "^\\([0-9a-f]+:\\).+  \\(.+$\\)"
+     (1 'hexl-address-area t t)
+     (2 'hexl-ascii-area t t)))
+  "Font lock keywords used in `hexl-mode'.")
 
 ;; routines
 
@@ -265,6 +273,11 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
     (make-local-variable 'require-final-newline)
     (setq require-final-newline nil)
 
+    (make-local-variable 'hexl-mode-old-font-lock-keywords)
+    (setq hexl-mode-old-font-lock-keywords font-lock-defaults)
+    (make-local-variable 'font-lock-defaults)
+    (setq font-lock-defaults '(hexl-font-lock-keywords t))
+
     ;; Add hooks to rehexlify or dehexlify on various events.
     (add-hook 'after-revert-hook 'hexl-after-revert-hook nil t)
 
@@ -376,6 +389,7 @@ With arg, don't unhexlify buffer."
   (setq isearch-search-fun-function hexl-mode-old-isearch-search-fun-function)
   (use-local-map hexl-mode-old-local-map)
   (set-syntax-table hexl-mode-old-syntax-table)
+  (setq font-lock-defaults hexl-mode-old-font-lock-keywords)
   (setq major-mode hexl-mode-old-major-mode)
   (force-mode-line-update))
 
@@ -684,15 +698,6 @@ This discards the buffer's undo information."
     (apply 'call-process-region (point-min) (point-max)
 	   (expand-file-name hexl-program exec-directory)
 	   t t nil (split-string hexl-options))
-    (save-excursion
-      (goto-char (point-min))
-      (while (re-search-forward "^[0-9a-f]+:" nil t)
-	(put-text-property (match-beginning 0) (match-end 0)
-			   'font-lock-face 'hexl-address-area))
-      (goto-char (point-min))
-      (while (re-search-forward "  \\(.+$\\)" nil t)
-	(put-text-property (match-beginning 1) (match-end 1) 
-			   'font-lock-face 'hexl-ascii-area)))
     (if (> (point) (hexl-address-to-marker hexl-max-address))
 	(hexl-goto-address hexl-max-address))))
 

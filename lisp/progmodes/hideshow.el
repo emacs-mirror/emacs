@@ -5,7 +5,7 @@
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;;      Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: C C++ java lisp tools editing comments blocks hiding outlines
-;; Maintainer-Version: 5.39.2.8
+;; Maintainer-Version: 5.58.2.3
 ;; Time-of-Day-Author-Most-Likely-to-be-Recalcitrant: early morning
 
 ;; This file is part of GNU Emacs.
@@ -138,6 +138,19 @@
 ;; If you have an entry that works particularly well, consider
 ;; submitting it for inclusion in hideshow.el.  See docstring for
 ;; `hs-special-modes-alist' for more info on the entry format.
+;;
+;; See also variable `hs-set-up-overlay' for per-block customization of
+;; appearance or other effects associated with overlays.  For example:
+;;
+;; (setq hs-set-up-overlay
+;;       (defun my-display-code-line-counts (ov)
+;;         (when (eq 'code (overlay-get ov 'hs))
+;;           (overlay-put ov 'display
+;;                        (propertize
+;;                         (format " ... <%d>"
+;;                                 (count-lines (overlay-start ov)
+;;                                              (overlay-end ov)))
+;;                         'face 'font-lock-type-face)))))
 
 ;; * Bugs
 ;;
@@ -304,6 +317,24 @@ a block), `hs-hide-all', `hs-hide-block' and `hs-hide-level'.")
 These commands include the toggling commands (when the result is to show
 a block), `hs-show-all' and `hs-show-block'..")
 
+(defvar hs-set-up-overlay nil
+  "*Function called with one arg, OV, a newly initialized overlay.
+Hideshow puts a unique overlay on each range of text to be hidden
+in the buffer.  Here is a simple example of how to use this variable:
+
+  (defun display-code-line-counts (ov)
+    (when (eq 'code (overlay-get ov 'hs))
+      (overlay-put ov 'display
+                   (format \"... / %d\"
+                           (count-lines (overlay-start ov)
+                                        (overlay-end ov))))))
+
+  (setq hs-set-up-overlay 'display-code-line-counts)
+
+This example shows how to get information from the overlay as well
+as how to set its `display' property.  See `hs-make-overlay' and
+info node `(elisp)Overlays'.")
+
 ;;---------------------------------------------------------------------------
 ;; internal variables
 
@@ -388,6 +419,35 @@ Note that `mode-line-format' is buffer-local.")
     (when (overlay-get ov 'hs)
       (delete-overlay ov))))
 
+(defun hs-make-overlay (b e kind &optional b-offset e-offset)
+  "Return a new overlay in region defined by B and E with type KIND.
+KIND is either `code' or `comment'.  Optional fourth arg B-OFFSET
+when added to B specifies the actual buffer position where the block
+begins.  Likewise for optional fifth arg E-OFFSET.  If unspecified
+they are taken to be 0 (zero).  The following properties are set
+in the overlay: 'invisible 'hs 'hs-b-offset 'hs-e-offset.  Also,
+depending on variable `hs-isearch-open', the following properties may
+be present: 'isearch-open-invisible 'isearch-open-invisible-temporary.
+If variable `hs-set-up-overlay' is non-nil it should specify a function
+to call with the newly initialized overlay."
+  (unless b-offset (setq b-offset 0))
+  (unless e-offset (setq e-offset 0))
+  (let ((ov (make-overlay b e))
+        (io (if (eq 'block hs-isearch-open)
+                ;; backward compatibility -- `block'<=>`code'
+                'code
+              hs-isearch-open)))
+    (overlay-put ov 'invisible 'hs)
+    (overlay-put ov 'hs kind)
+    (overlay-put ov 'hs-b-offset b-offset)
+    (overlay-put ov 'hs-e-offset e-offset)
+    (when (or (eq io t) (eq io kind))
+      (overlay-put ov 'isearch-open-invisible 'hs-isearch-show)
+      (overlay-put ov 'isearch-open-invisible-temporary
+                   'hs-isearch-show-temporary))
+    (when hs-set-up-overlay (funcall hs-set-up-overlay ov))
+    ov))
+
 (defun hs-isearch-show (ov)
   "Delete overlay OV, and set `hs-headline' to nil.
 
@@ -416,31 +476,16 @@ property of an overlay."
                                  (point))
                  start)))))
   (force-mode-line-update)
+  ;; handle `display' property specially
+  (let (value)
+    (if hide-p
+        (when (setq value (overlay-get ov 'hs-isearch-display))
+          (overlay-put ov 'display value)
+          (overlay-put ov 'hs-isearch-display nil))
+      (when (setq value (overlay-get ov 'display))
+        (overlay-put ov 'hs-isearch-display value)
+        (overlay-put ov 'display nil))))
   (overlay-put ov 'invisible (and hide-p 'hs)))
-
-(defun hs-flag-region (from to flag)
-  "Hide or show lines from FROM to TO, according to FLAG.
-If FLAG is nil then text is shown, while if FLAG is non-nil the text is
-hidden.  FLAG must be one of the symbols `code' or `comment', depending
-on what kind of block is to be hidden."
-  (save-excursion
-    ;; first clear it all out
-    (hs-discard-overlays from to)
-    ;; now create overlays if needed
-    (when flag
-      (let ((overlay (make-overlay from to)))
-        (overlay-put overlay 'invisible 'hs)
-        (overlay-put overlay 'hs flag)
-        (when (or (eq hs-isearch-open t)
-                  (eq hs-isearch-open flag)
-                  ;; deprecated backward compatibility -- `block'<=>`code'
-                  (and (eq 'block hs-isearch-open)
-                       (eq 'code  flag)))
-          (overlay-put overlay 'isearch-open-invisible 'hs-isearch-show)
-          (overlay-put overlay
-                       'isearch-open-invisible-temporary
-                       'hs-isearch-show-temporary))
-        overlay))))
 
 (defun hs-forward-sexp (match-data arg)
   "Adjust point based on MATCH-DATA and call `hs-forward-sexp-func' w/ ARG.
@@ -453,9 +498,10 @@ Original match data is restored upon return."
 (defun hs-hide-comment-region (beg end &optional repos-end)
   "Hide a region from BEG to END, marking it as a comment.
 Optional arg REPOS-END means reposition at end."
-  (hs-flag-region (progn (goto-char beg) (end-of-line) (point))
-                  (progn (goto-char end) (end-of-line) (point))
-                  'comment)
+  (let ((beg-eol (progn (goto-char beg) (end-of-line) (point)))
+        (end-eol (progn (goto-char end) (end-of-line) (point))))
+    (hs-discard-overlays beg-eol end-eol)
+    (hs-make-overlay beg-eol end-eol 'comment beg end))
   (goto-char (if repos-end end beg)))
 
 (defun hs-hide-block-at-point (&optional end comment-reg)
@@ -488,9 +534,8 @@ and then further adjusted to be at the end of the line."
                      (end-of-line)
                      (point))))
         (when (and (< p (point)) (> (count-lines p q) 1))
-          (overlay-put (hs-flag-region p q 'code)
-                       'hs-ofs
-                       (- pure-p p)))
+          (hs-discard-overlays p q)
+          (hs-make-overlay p q 'code (- pure-p p)))
         (goto-char (if end q (min p pure-p)))))))
 
 (defun hs-safety-is-job-n ()
@@ -612,7 +657,7 @@ Return point, or nil if original point was not in a block."
     (setq minp (1+ (point)))
     (funcall hs-forward-sexp-func 1)
     (setq maxp (1- (point))))
-  (hs-flag-region minp maxp nil)        ; eliminate weirdness
+  (hs-discard-overlays minp maxp)       ; eliminate weirdness
   (goto-char minp)
   (while (progn
            (forward-comment (buffer-size))
@@ -678,7 +723,7 @@ If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
   (hs-life-goes-on
    (message "Hiding all blocks ...")
    (save-excursion
-     (hs-flag-region (point-min) (point-max) nil) ; eliminate weirdness
+     (hs-discard-overlays (point-min) (point-max)) ; eliminate weirdness
      (goto-char (point-min))
      (let ((count 0)
            (re (concat "\\("
@@ -717,7 +762,7 @@ If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
   (interactive)
   (hs-life-goes-on
    (message "Showing all blocks ...")
-   (hs-flag-region (point-min) (point-max) nil)
+   (hs-discard-overlays (point-min) (point-max))
    (message "Showing all blocks ... done")
    (run-hooks 'hs-show-hook)))
 
@@ -755,7 +800,7 @@ See documentation for functions `hs-hide-block' and `run-hooks'."
             (goto-char
              (cond (end (overlay-end ov))
                    ((eq 'comment (overlay-get ov 'hs)) here)
-                   (t (+ (overlay-start ov) (overlay-get ov 'hs-ofs)))))
+                   (t (+ (overlay-start ov) (overlay-get ov 'hs-b-offset)))))
             (delete-overlay ov)
             (throw 'eol-begins-hidden-region-p t)))
         nil))
@@ -771,7 +816,7 @@ See documentation for functions `hs-hide-block' and `run-hooks'."
              (setq p (point)
                    q (progn (hs-forward-sexp (hs-match-data t) 1) (point)))))
       (when (and p q)
-        (hs-flag-region p q nil)
+        (hs-discard-overlays p q)
         (goto-char (if end q (1+ p)))))
     (hs-safety-is-job-n)
     (run-hooks 'hs-show-hook))))

@@ -1463,8 +1463,8 @@ Use this command in a compilation log buffer.  Sets the mark at point there."
 ;; If the current buffer is a compilation buffer, return it.
 ;; Otherwise, look for a compilation buffer and signal an error
 ;; if there are none.
-(defun compilation-find-buffer (&optional other-buffer)
-  (next-error-find-buffer other-buffer 'compilation-buffer-internal-p))
+(defun compilation-find-buffer (&optional avoid-current)
+  (next-error-find-buffer avoid-current 'compilation-buffer-internal-p))
 
 ;;;###autoload
 (defun compilation-next-error-function (n &optional reset)

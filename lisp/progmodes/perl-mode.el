@@ -476,7 +476,7 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'perl-indent-line)
   (make-local-variable 'require-final-newline)
-  (setq require-final-newline t)
+  (setq require-final-newline mode-require-final-newline)
   (make-local-variable 'comment-start)
   (setq comment-start "# ")
   (make-local-variable 'comment-end)

@@ -601,6 +601,27 @@ static char xmalloc_overrun_check_trailer[XMALLOC_OVERRUN_CHECK_SIZE] =
 	   ((unsigned)(ptr[-4]) << 24))
 
 
+/* The call depth in overrun_check functions.  For example, this might happen:
+   xmalloc()
+     overrun_check_malloc()
+       -> malloc -> (via hook)_-> emacs_blocked_malloc
+          -> overrun_check_malloc
+             call malloc  (hooks are NULL, so real malloc is called).
+             malloc returns 10000.
+             add overhead, return 10016.
+      <- (back in overrun_check_malloc)
+      add overhead again, return 10032
+   xmalloc returns 10032.
+
+   (time passes).
+
+   xfree(10032)
+     overrun_check_free(10032)
+       decrease overhed
+       free(10016)  <-  crash, because 10000 is the original pointer.  */
+
+static int check_depth;
+
 /* Like malloc, but wraps allocated block with header and trailer.  */
 
 POINTER_TYPE *
@@ -608,15 +629,17 @@ overrun_check_malloc (size)
      size_t size;
 {
   register unsigned char *val;
+  size_t overhead = ++check_depth == 1 ? XMALLOC_OVERRUN_CHECK_SIZE*2 : 0;
 
-  val = (unsigned char *) malloc (size + XMALLOC_OVERRUN_CHECK_SIZE*2);
-  if (val)
+  val = (unsigned char *) malloc (size + overhead);
+  if (val && check_depth == 1)
     {
       bcopy (xmalloc_overrun_check_header, val, XMALLOC_OVERRUN_CHECK_SIZE - 4);
       val += XMALLOC_OVERRUN_CHECK_SIZE;
       XMALLOC_PUT_SIZE(val, size);
       bcopy (xmalloc_overrun_check_trailer, val + size, XMALLOC_OVERRUN_CHECK_SIZE);
     }
+  --check_depth;
   return (POINTER_TYPE *)val;
 }
 
@@ -630,8 +653,10 @@ overrun_check_realloc (block, size)
      size_t size;
 {
   register unsigned char *val = (unsigned char *)block;
+  size_t overhead = ++check_depth == 1 ? XMALLOC_OVERRUN_CHECK_SIZE*2 : 0;
 
   if (val
+      && check_depth == 1
       && bcmp (xmalloc_overrun_check_header,
 	       val - XMALLOC_OVERRUN_CHECK_SIZE,
 	       XMALLOC_OVERRUN_CHECK_SIZE - 4) == 0)
@@ -646,15 +671,16 @@ overrun_check_realloc (block, size)
       bzero (val, XMALLOC_OVERRUN_CHECK_SIZE);
     }
 
-  val = (unsigned char *) realloc ((POINTER_TYPE *)val, size + XMALLOC_OVERRUN_CHECK_SIZE*2);
+  val = (unsigned char *) realloc ((POINTER_TYPE *)val, size + overhead);
 
-  if (val)
+  if (val && check_depth == 1)
     {
       bcopy (xmalloc_overrun_check_header, val, XMALLOC_OVERRUN_CHECK_SIZE - 4);
       val += XMALLOC_OVERRUN_CHECK_SIZE;
       XMALLOC_PUT_SIZE(val, size);
       bcopy (xmalloc_overrun_check_trailer, val + size, XMALLOC_OVERRUN_CHECK_SIZE);
     }
+  --check_depth;
   return (POINTER_TYPE *)val;
 }
 
@@ -666,7 +692,9 @@ overrun_check_free (block)
 {
   unsigned char *val = (unsigned char *)block;
 
+  ++check_depth;
   if (val
+      && check_depth == 1
       && bcmp (xmalloc_overrun_check_header,
 	       val - XMALLOC_OVERRUN_CHECK_SIZE,
 	       XMALLOC_OVERRUN_CHECK_SIZE - 4) == 0)
@@ -682,6 +710,7 @@ overrun_check_free (block)
     }
 
   free (val);
+  --check_depth;
 }
 
 #undef malloc

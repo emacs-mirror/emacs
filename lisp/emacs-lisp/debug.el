@@ -352,7 +352,7 @@ That buffer should be current already."
 	       (end (progn (skip-syntax-forward "w_") (point)))
 	       (sym (intern-soft (buffer-substring-no-properties
 				  beg end)))
-	       (file (and sym (symbol-file sym))))
+	       (file (and sym (symbol-file sym 'defun))))
 	  (when file
 	    (goto-char beg)
 	    ;; help-xref-button needs to operate on something matched

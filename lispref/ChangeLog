@@ -1,3 +1,37 @@
+2004-12-30  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Line Height): Total line-height is now specified
+	in line-height property of form (HEIGHT TOTAL).  Swap (FACE . RATIO)
+	in cons cells.  (nil . RATIO) is relative to actual line height.
+	Use line-height `t' instead of `0' to get minimum height.
+
+2004-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* os.texi (Timers): Discuss timers vs editing the buffer and undo.
+
+2004-12-28  Richard M. Stallman  <rms@gnu.org>
+
+	* commands.texi (Quitting): Clarify value of with-local-quit.
+
+	* elisp.texi (Top): Fix previous change.
+
+	* loading.texi (Loading): Fix previous change.
+
+2004-12-27  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (MAKEINFO): Specify --force.
+
+	* buffers.texi (Killing Buffers): Add buffer-save-without-query.
+
+	* modes.texi (Emulating Mode Line): Document format's BUFFER arg.
+
+	* display.texi (Line Height): Further clarify.
+
+	* elisp.texi (Top): Update Loading submenu.
+
+	* loading.texi (Where Defined): New node.
+	(Unloading): load-history moved to Where Defined.
+
 2004-12-21  Richard M. Stallman  <rms@gnu.org>
 
 	* commands.texi (Event Input Misc): Add while-no-input.

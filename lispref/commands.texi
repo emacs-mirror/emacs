@@ -2605,7 +2605,8 @@ non-@code{nil}, then @code{quit-flag} has no special effect.
 This macro executes @var{forms} in sequence, but allows quitting, at
 least locally, within @var{body} even if @code{inhibit-quit} was
 non-@code{nil} outside this construct.  It returns the value of the
-last form in @var{forms}.
+last form in @var{forms}, unless exited by quitting, in which case
+it returns @code{nil}.
 
 If @code{inhibit-quit} is @code{nil} on entry to @code{with-local-quit},
 it only executes the @var{forms}, and setting @code{quit-flag} causes

@@ -157,8 +157,8 @@ detect_coding_XXX (coding, detect_info)
      struct coding_system *coding;
      struct coding_detection_info *detect_info;
 {
-  unsigned char *src = coding->source;
-  unsigned char *src_end = coding->source + coding->src_bytes;
+  const unsigned char *src = coding->source;
+  const unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
   int consumed_chars = 0;
   int found = 0;
@@ -205,12 +205,12 @@ static void
 decode_coding_XXXX (coding)
      struct coding_system *coding;
 {
-  unsigned char *src = coding->source + coding->consumed;
-  unsigned char *src_end = coding->source + coding->src_bytes;
+  const unsigned char *src = coding->source + coding->consumed;
+  const unsigned char *src_end = coding->source + coding->src_bytes;
   /* SRC_BASE remembers the start position in source in each loop.
      The loop will be exited when there's not enough source code, or
      when there's no room in CHARBUF for a decoded character.  */
-  unsigned char *src_base;
+  const unsigned char *src_base;
   /* A buffer to produce decoded characters.  */
   int *charbuf = coding->charbuf + coding->charbuf_used;
   int *charbuf_end = coding->charbuf + coding->charbuf_size;

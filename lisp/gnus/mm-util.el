@@ -525,7 +525,84 @@ This affects whether coding conversion should be attempted generally."
 		(length (memq (coding-system-base b) priorities)))
 	   t))))
 
-(defun mm-find-mime-charset-region (b e)
+(eval-when-compile
+  (autoload 'latin-unity-massage-name "latin-unity")
+  (autoload 'latin-unity-maybe-remap "latin-unity")
+  (autoload 'latin-unity-representations-feasible-region "latin-unity")
+  (autoload 'latin-unity-representations-present-region "latin-unity")
+  (defvar latin-unity-coding-systems)
+  (defvar latin-unity-ucs-list))
+
+(defun mm-xemacs-find-mime-charset-1 (begin end)
+  "Determine which MIME charset to use to send region as message.
+This uses the XEmacs-specific latin-unity package to better handle the
+case where identical characters from diverse ISO-8859-? character sets
+can be encoded using a single one of the corresponding coding systems.
+
+It treats `mm-coding-system-priorities' as the list of preferred
+coding systems; a useful example setting for this list in Western
+Europe would be '(iso-8859-1 iso-8859-15 utf-8), which would default
+to the very standard Latin 1 coding system, and only move to coding
+systems that are less supported as is necessary to encode the
+characters that exist in the buffer.
+
+Latin Unity doesn't know about those non-ASCII Roman characters that
+are available in various East Asian character sets.  As such, its
+behavior if you have a JIS 0212 LATIN SMALL LETTER A WITH ACUTE in a
+buffer and it can otherwise be encoded as Latin 1, won't be ideal.
+But this is very much a corner case, so don't worry about it."
+  (let ((systems mm-coding-system-priorities) csets psets curset)
+
+    ;; Load the Latin Unity library, if available.
+    (when (and (not (featurep 'latin-unity)) (locate-library "latin-unity"))
+      (require 'latin-unity))
+
+    ;; Now, can we use it?
+    (if (featurep 'latin-unity)
+	(progn
+	  (setq csets (latin-unity-representations-feasible-region begin end)
+		psets (latin-unity-representations-present-region begin end))
+
+	  (catch 'done
+
+	    ;; Pass back the first coding system in the preferred list
+	    ;; that can encode the whole region.
+	    (dolist (curset systems)
+	      (setq curset (latin-unity-massage-name 'buffer-default curset))
+
+	      ;; If the coding system is a universal coding system, then
+	      ;; it can certainly encode all the characters in the region.
+	      (if (memq curset latin-unity-ucs-list)
+		  (throw 'done (list curset)))
+
+	      ;; If a coding system isn't universal, and isn't in
+	      ;; the list that latin unity knows about, we can't
+	      ;; decide whether to use it here. Leave that until later
+	      ;; in `mm-find-mime-charset-region' function, whence we
+	      ;; have been called.
+	      (unless (memq curset latin-unity-coding-systems)
+		(throw 'done nil))
+
+	      ;; Right, we know about this coding system, and it may
+	      ;; conceivably be able to encode all the characters in
+	      ;; the region.
+	      (if (latin-unity-maybe-remap begin end curset csets psets t)
+		  (throw 'done (list curset))))
+
+	    ;; Can't encode using anything from the
+	    ;; `mm-coding-system-priorities' list.
+	    ;; Leave `mm-find-mime-charset' to do most of the work.
+	    nil))
+
+      ;; Right, latin unity isn't available; let `mm-find-charset-region'
+      ;; take its default action, which equally applies to GNU Emacs.
+      nil)))
+
+(defmacro mm-xemacs-find-mime-charset (begin end)
+  (when (featurep 'xemacs)
+    `(mm-xemacs-find-mime-charset-1 ,begin ,end)))
+
+(defun mm-find-mime-charset-region (b e &optional hack-charsets)
   "Return the MIME charsets needed to encode the region between B and E.
 nil means ASCII, a single-element list represents an appropriate MIME
 charset, and a longer list means no appropriate charset."
@@ -566,10 +643,14 @@ charset, and a longer list means no appropriate charset."
 			 (setq systems nil
 			       charsets (list cs))))))
 	       charsets))
+	;; If we're XEmacs, and some coding system is appropriate,
+	;; mm-xemacs-find-mime-charset will return an appropriate list.
+	;; Otherwise, we'll get nil, and the next setq will get invoked.
+	(setq charsets (mm-xemacs-find-mime-charset b e))
+
 	;; Fixme: won't work for unibyte Emacs 22:
 
-	;; Otherwise we're not multibyte, we're XEmacs, or a single
-	;; coding system won't cover it.
+	;; We're not multibyte, or a single coding system won't cover it.
 	(setq charsets
 	      (mm-delete-duplicates
 	       (mapcar 'mm-mime-charset

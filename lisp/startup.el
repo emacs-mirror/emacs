@@ -229,9 +229,17 @@ Put them in `default.el' instead, so that users can more easily
 override them.  Users can prevent loading `default.el' with the `-q'
 option or by setting `inhibit-default-init' in their own init files,
 but inhibiting `site-start.el' requires `--no-site-file', which
-is less convenient."
+is less convenient.
+
+This variable is defined for customization so as to make
+it visible in the relevant context.  However, actually customizing it
+is not allowed, since it would not work anyway.  The only way to set
+this variable usefully is to set it during while building and dumping Emacs."
   :type '(choice (const :tag "none" nil) string)
-  :group 'initialization)
+  :group 'initialization
+  :initialize 'custom-initialize-default
+  :set '(lambda (variable value)
+	  (error "Customizing `site-run-file' does not work")))
 
 (defcustom mail-host-address nil
   "*Name of this machine, for purposes of naming users."

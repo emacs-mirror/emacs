@@ -317,7 +317,7 @@ struct x_display_info
 
   /* More atoms for font properties.  The last three are private
      properties, see the comments in src/fontset.h.  */
-  Atom Xatom_PIXEL_SIZE,
+  Atom Xatom_PIXEL_SIZE, Xatom_AVERAGE_WIDTH,
   Xatom_MULE_BASELINE_OFFSET, Xatom_MULE_RELATIVE_COMPOSE,
   Xatom_MULE_DEFAULT_ASCENT;
 

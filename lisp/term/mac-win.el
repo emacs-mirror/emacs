@@ -1,8 +1,9 @@
-;;; mac-win.el --- support for "Macintosh windows"
+;;; mac-win.el --- parse switches controlling interface with Mac window system
 
-;; Copyright (C) 1999, 2000, 2002, 2003  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004  Free Software Foundation, Inc.
 
 ;; Author: Andrew Choi <akochoi@mac.com>
+;; Keywords: terminals
 
 ;; This file is part of GNU Emacs.
 
@@ -23,243 +24,212 @@
 
 ;;; Commentary:
 
+;; Mac-win.el:  this file is loaded from ../lisp/startup.el when it recognizes
+;; that Mac windows are to be used.  Command line switches are parsed and those
+;; pertaining to Mac are processed and removed from the command line.  The
+;; Mac display is opened and hooks are set for popping up the initial window.
+
+;; startup.el will then examine startup files, and eventually call the hooks
+;; which create the first window(s).
+
 ;;; Code:
+
+;; These are the standard X switches from the Xt Initialize.c file of
+;; Release 4.
 
-;; ---------------------------------------------------------------------------
-;; We want to delay setting frame parameters until the faces are setup
+;; Command line		Resource Manager string
 
-;; Mac can't handle ~ prefix in file names
-;(setq auto-save-list-file-prefix ".saves-")
+;; +rv			*reverseVideo
+;; +synchronous		*synchronous
+;; -background		*background
+;; -bd			*borderColor
+;; -bg			*background
+;; -bordercolor		*borderColor
+;; -borderwidth		.borderWidth
+;; -bw			.borderWidth
+;; -display		.display
+;; -fg			*foreground
+;; -fn			*font
+;; -font		*font
+;; -foreground		*foreground
+;; -geometry		.geometry
+;; -i			.iconType
+;; -itype		.iconType
+;; -iconic		.iconic
+;; -name		.name
+;; -reverse		*reverseVideo
+;; -rv			*reverseVideo
+;; -selectionTimeout    .selectionTimeout
+;; -synchronous		*synchronous
+;; -xrm
 
-(setq frame-creation-function 'x-create-frame-with-faces)
+;; An alist of X options and the function which handles them.  See
+;; ../startup.el.
 
-;; for debugging
-;; (defun mac-handle-scroll-bar-event (event) (interactive "e") (princ event))
+(if (not (eq window-system 'mac))
+    (error "%s: Loading mac-win.el but not compiled for Mac" (invocation-name)))
 
-;;(global-set-key [vertical-scroll-bar mouse-1] 'mac-handle-scroll-bar-event)
-
-(global-set-key
- [vertical-scroll-bar down-mouse-1]
- 'mac-handle-scroll-bar-event)
-
-(global-unset-key [vertical-scroll-bar drag-mouse-1])
-(global-unset-key [vertical-scroll-bar mouse-1])
-
+(require 'frame)
+(require 'mouse)
 (require 'scroll-bar)
+(require 'faces)
+;;(require 'select)
+(require 'menu-bar)
+(require 'fontset)
+(require 'x-dnd)
 
-(defun mac-handle-scroll-bar-event (event)
-  "Handle scroll bar EVENT to emulate Mac Toolbox style scrolling."
-  (interactive "e")
-  (let* ((position (event-start event))
-	 (window (nth 0 position))
-	 (bar-part (nth 4 position)))
-    (select-window window)
-    (cond
-     ((eq bar-part 'up)
-      (goto-char (window-start window))
-      (mac-scroll-down-line))
-     ((eq bar-part 'above-handle)
-      (mac-scroll-down))
-     ((eq bar-part 'handle)
-      (scroll-bar-drag event))
-     ((eq bar-part 'below-handle)
-      (mac-scroll-up))
-     ((eq bar-part 'down)
-      (goto-char (window-start window))
-      (mac-scroll-up-line)))))
+(defvar x-invocation-args)
 
-(defun mac-scroll-ignore-events ()
-  ;; Ignore confusing non-mouse events
-  (while (not (memq (car-safe (read-event))
-		    '(mouse-1 double-mouse-1 triple-mouse-1))) nil))
+(defvar x-command-line-resources nil)
 
-(defun mac-scroll-down ()
-  (track-mouse
-    (mac-scroll-ignore-events)
-    (scroll-down)))
+;; Handler for switches of the form "-switch value" or "-switch".
+(defun x-handle-switch (switch)
+  (let ((aelt (assoc switch command-line-x-option-alist)))
+    (if aelt
+	(let ((param (nth 3 aelt))
+	      (value (nth 4 aelt)))
+	  (if value
+	      (setq default-frame-alist
+		    (cons (cons param value)
+			  default-frame-alist))
+	    (setq default-frame-alist
+		  (cons (cons param
+			      (car x-invocation-args))
+			default-frame-alist)
+		  x-invocation-args (cdr x-invocation-args)))))))
 
-(defun mac-scroll-down-line ()
-  (track-mouse
-    (mac-scroll-ignore-events)
-    (scroll-down 1)))
+;; Handler for switches of the form "-switch n"
+(defun x-handle-numeric-switch (switch)
+  (let ((aelt (assoc switch command-line-x-option-alist)))
+    (if aelt
+	(let ((param (nth 3 aelt)))
+	  (setq default-frame-alist
+		(cons (cons param
+			    (string-to-int (car x-invocation-args)))
+		      default-frame-alist)
+		x-invocation-args
+		(cdr x-invocation-args))))))
 
-(defun mac-scroll-up ()
-  (track-mouse
-    (mac-scroll-ignore-events)
-    (scroll-up)))
+;; Handle options that apply to initial frame only
+(defun x-handle-initial-switch (switch)
+  (let ((aelt (assoc switch command-line-x-option-alist)))
+    (if aelt
+	(let ((param (nth 3 aelt))
+	      (value (nth 4 aelt)))
+	  (if value
+	      (setq initial-frame-alist
+		    (cons (cons param value)
+			  initial-frame-alist))
+	    (setq initial-frame-alist
+		  (cons (cons param
+			      (car x-invocation-args))
+			initial-frame-alist)
+		  x-invocation-args (cdr x-invocation-args)))))))
 
-(defun mac-scroll-up-line ()
-  (track-mouse
-    (mac-scroll-ignore-events)
-    (scroll-up 1)))
+;; Make -iconic apply only to the initial frame!
+(defun x-handle-iconic (switch)
+  (setq initial-frame-alist
+	(cons '(visibility . icon) initial-frame-alist)))
 
-(defun xw-defined-colors (&optional frame)
-  "Internal function called by `defined-colors', which see."
-  (or frame (setq frame (selected-frame)))
-  (let ((all-colors x-colors)
-	(this-color nil)
-	(defined-colors nil))
-    (while all-colors
-      (setq this-color (car all-colors)
-	    all-colors (cdr all-colors))
-      (and (color-supported-p this-color frame t)
-	   (setq defined-colors (cons this-color defined-colors))))
-    defined-colors))
+;; Handle the -xrm option.
+(defun x-handle-xrm-switch (switch)
+  (unless (consp x-invocation-args)
+    (error "%s: missing argument to `%s' option" (invocation-name) switch))
+  (setq x-command-line-resources
+	(if (null x-command-line-resources)
+	    (car x-invocation-args)
+	  (concat x-command-line-resources "\n" (car x-invocation-args))))
+  (setq x-invocation-args (cdr x-invocation-args)))
 
-;; Don't have this yet.
-(fset 'x-get-resource 'ignore)
+;; Handle the geometry option
+(defun x-handle-geometry (switch)
+  (let* ((geo (x-parse-geometry (car x-invocation-args)))
+	 (left (assq 'left geo))
+	 (top (assq 'top geo))
+	 (height (assq 'height geo))
+	 (width (assq 'width geo)))
+    (if (or height width)
+	(setq default-frame-alist
+	      (append default-frame-alist
+		      '((user-size . t))
+		      (if height (list height))
+		      (if width (list width)))
+	      initial-frame-alist
+	      (append initial-frame-alist
+		      '((user-size . t))
+		      (if height (list height))
+		      (if width (list width)))))
+    (if (or left top)
+	(setq initial-frame-alist
+	      (append initial-frame-alist
+		      '((user-position . t))
+		      (if left (list left))
+		      (if top (list top)))))
+    (setq x-invocation-args (cdr x-invocation-args))))
 
-(unless (eq system-type 'darwin)
-  ;; This variable specifies the Unix program to call (as a process) to
-  ;; deteremine the amount of free space on a file system (defaults to
-  ;; df).  If it is not set to nil, ls-lisp will not work correctly
-  ;; unless an external application df is implemented on the Mac.
-  (setq directory-free-space-program nil)
+;; Handle the -name option.  Set the variable x-resource-name
+;; to the option's operand; set the name of
+;; the initial frame, too.
+(defun x-handle-name-switch (switch)
+  (or (consp x-invocation-args)
+      (error "%s: missing argument to `%s' option" (invocation-name) switch))
+  (setq x-resource-name (car x-invocation-args)
+	x-invocation-args (cdr x-invocation-args))
+  (setq initial-frame-alist (cons (cons 'name x-resource-name)
+				  initial-frame-alist)))
 
-  ;; Set this so that Emacs calls subprocesses with "sh" as shell to
-  ;; expand filenames Note no subprocess for the shell is actually
-  ;; started (see run_mac_command in sysdep.c).
-  (setq shell-file-name "sh"))
+(defvar x-display-name nil
+  "The display name specifying server and frame.")
 
-;; X Window emulation in macterm.c is not complete enough to start a
-;; frame without a minibuffer properly.  Call this to tell ediff
-;; library to use a single frame.
-; (ediff-toggle-multiframe)
+(defun x-handle-display (switch)
+  (setq x-display-name (car x-invocation-args)
+	x-invocation-args (cdr x-invocation-args)))
 
-;; Setup to use the Mac clipboard.  The functions mac-cut-function and
-;; mac-paste-function are defined in mac.c.
-(set-selection-coding-system 'compound-text-mac)
-
-(setq interprogram-cut-function
-      '(lambda (str push)
-	 (mac-cut-function
-	  (encode-coding-string str selection-coding-system t) push)))
-
-(setq interprogram-paste-function
-      '(lambda ()
-	 (let ((clipboard (mac-paste-function)))
-	   (if clipboard
-	       (decode-coding-string clipboard selection-coding-system t)))))
-
-;; Don't show the frame name; that's redundant.
-(setq-default mode-line-frame-identification "  ")
-
-(defun mac-drag-n-drop (event)
-  "Edit the files listed in the drag-n-drop event.\n\
-Switch to a buffer editing the last file dropped."
-  (interactive "e")
-  (save-excursion
-    ;; Make sure the drop target has positive co-ords
-    ;; before setting the selected frame - otherwise it
-    ;; won't work.  <skx@tardis.ed.ac.uk>
-    (let* ((window (posn-window (event-start event)))
-	   (coords (posn-x-y (event-start event)))
-	   (x (car coords))
-	   (y (cdr coords)))
-      (if (and (> x 0) (> y 0))
-	  (set-frame-selected-window nil window))
-      (mapcar
-       '(lambda (file)
-	  (find-file
-	   (decode-coding-string
-	    file
-	    (or file-name-coding-system
-		default-file-name-coding-system))))
-       (car (cdr (cdr event)))))
-  (raise-frame)
-  (recenter)))
-
-(global-set-key [drag-n-drop] 'mac-drag-n-drop)
-
-;; By checking whether the variable mac-ready-for-drag-n-drop has been
-;; defined, the event loop in macterm.c can be informed that it can
-;; now receive Finder drag and drop events.  Files dropped onto the
-;; Emacs application icon can only be processed when the initial frame
-;; has been created: this is where the files should be opened.
-(add-hook 'after-init-hook
-	  '(lambda ()
-	     (defvar mac-ready-for-drag-n-drop t)))
-
-; Define constant values to be set to mac-keyboard-text-encoding
-(defconst kTextEncodingMacRoman 0)
-(defconst kTextEncodingISOLatin1 513 "0x201")
-(defconst kTextEncodingISOLatin2 514 "0x202")
-
-
-;; Create a fontset that uses mac-roman font.  With this fontset,
-;; characters decoded from mac-roman encoding (ascii, latin-iso8859-1,
-;; and mule-unicode-xxxx-yyyy) are displayed by a mac-roman font.
-;; Unnecessary in emacs22
-
-;; Carbon uses different fonts than commonly found on X, so
-;; we define our own standard fontset here.
-(defvar mac-standard-fontset-spec
- "-apple-Monaco-normal-r-*-*-12-*-*-*-*-*-fontset-mac"
- "String of fontset spec of the standard fontset.
-This defines a fontset consisting of the Monaco variations for
-European languages which are distributed with Mac OS X.
-
-See the documentation of `create-fontset-from-fontset-spec for the format.")
-
-
-(if (fboundp 'new-fontset)
-    (progn
-      (require 'fontset)
-      ;; Setup the default fontset.
-      (setup-default-fontset)
-      ;; Create the standard fontset.
-      (create-fontset-from-fontset-spec mac-standard-fontset-spec t)
-      ))
-
-
-(if (eq system-type 'darwin)
-    ;; On Darwin filenames are encoded in UTF-8
-    (setq file-name-coding-system 'utf-8)
-  ;; To display filenames in Chinese or Japanese, replace mac-roman with
-  ;; big5 or sjis
-  (setq file-name-coding-system 'mac-roman))
-
-;; If Emacs is started from the Finder, change the default directory
-;; to the user's home directory.
-(if (string= default-directory "/")
-    (cd "~"))
-
-;; Tell Emacs to use pipes instead of pty's for processes because the
-;; latter sometimes lose characters.  Pty support is compiled in since
-;; ange-ftp will not work without it.
-(setq process-connection-type nil)
-
-;; Assume that fonts are always scalable on the Mac.  This sometimes
-;; results in characters with jagged edges.  However, without it,
-;; fonts with both truetype and bitmap representations but no italic
-;; or bold bitmap versions will not display these variants correctly.
-(setq scalable-fonts-allowed t)
-
-;; Make suspend-emacs [C-z] collapse the current frame
-(substitute-key-definition 'suspend-emacs 'iconify-frame
-			   global-map)
-
-;; Support mouse-wheel scrolling
-(mouse-wheel-mode 1)
-
-;; (prefer-coding-system 'mac-roman)
-
-;; Map certain keypad keys into ASCII characters that people usually expect
-(define-key function-key-map [return] [?\C-m])
-(define-key function-key-map [M-return] [?\M-\C-m])
-(define-key function-key-map [tab] [?\t])
-(define-key function-key-map [M-tab] [?\M-\t])
-(define-key function-key-map [backspace] [127])
-(define-key function-key-map [M-backspace] [?\M-\d])
-(define-key function-key-map [escape] [?\e])
-(define-key function-key-map [M-escape] [?\M-\e])
-
-;; Tell read-char how to convert special chars to ASCII
-(put 'return 'ascii-character 13)
-(put 'tab 'ascii-character ?\t)
-(put 'backspace 'ascii-character 127)
-(put 'escape 'ascii-character ?\e)
-
+(defun x-handle-args (args)
+  "Process the X-related command line options in ARGS.
+This is done before the user's startup file is loaded.  They are copied to
+`x-invocation-args', from which the X-related things are extracted, first
+the switch (e.g., \"-fg\") in the following code, and possible values
+\(e.g., \"black\") in the option handler code (e.g., x-handle-switch).
+This function returns ARGS minus the arguments that have been processed."
+  ;; We use ARGS to accumulate the args that we don't handle here, to return.
+  (setq x-invocation-args args
+	args nil)
+  (while (and x-invocation-args
+	      (not (equal (car x-invocation-args) "--")))
+    (let* ((this-switch (car x-invocation-args))
+	   (orig-this-switch this-switch)
+	   completion argval aelt handler)
+      (setq x-invocation-args (cdr x-invocation-args))
+      ;; Check for long options with attached arguments
+      ;; and separate out the attached option argument into argval.
+      (if (string-match "^--[^=]*=" this-switch)
+	  (setq argval (substring this-switch (match-end 0))
+		this-switch (substring this-switch 0 (1- (match-end 0)))))
+      ;; Complete names of long options.
+      (if (string-match "^--" this-switch)
+	  (progn
+	    (setq completion (try-completion this-switch command-line-x-option-alist))
+	    (if (eq completion t)
+		;; Exact match for long option.
+		nil
+	      (if (stringp completion)
+		  (let ((elt (assoc completion command-line-x-option-alist)))
+		    ;; Check for abbreviated long option.
+		    (or elt
+			(error "Option `%s' is ambiguous" this-switch))
+		    (setq this-switch completion))))))
+      (setq aelt (assoc this-switch command-line-x-option-alist))
+      (if aelt (setq handler (nth 2 aelt)))
+      (if handler
+	  (if argval
+	      (let ((x-invocation-args
+		     (cons argval x-invocation-args)))
+		(funcall handler this-switch))
+	    (funcall handler this-switch))
+	(setq args (cons orig-this-switch args)))))
+  (nconc (nreverse args) x-invocation-args))
+
 ;;
 ;; Available colors
 ;;
@@ -1016,8 +986,327 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 		   "GhostWhite"
 		   "ghost white"
 		   "snow")
- "The list of X colors from the `rgb.txt' file.
+  "The list of X colors from the `rgb.txt' file.
 XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
+
+(defun xw-defined-colors (&optional frame)
+  "Internal function called by `defined-colors', which see."
+  (or frame (setq frame (selected-frame)))
+  (let ((all-colors x-colors)
+	(this-color nil)
+	(defined-colors nil))
+    (while all-colors
+      (setq this-color (car all-colors)
+	    all-colors (cdr all-colors))
+      (and (color-supported-p this-color frame t)
+	   (setq defined-colors (cons this-color defined-colors))))
+    defined-colors))
+
+;;;; Function keys
+
+(substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
+			   global-map)
+
+;; Map certain keypad keys into ASCII characters
+;; that people usually expect.
+(define-key function-key-map [return] [?\C-m])
+(define-key function-key-map [M-return] [?\M-\C-m])
+(define-key function-key-map [tab] [?\t])
+(define-key function-key-map [M-tab] [?\M-\t])
+(define-key function-key-map [backspace] [127])
+(define-key function-key-map [M-backspace] [?\M-\d])
+(define-key function-key-map [escape] [?\e])
+(define-key function-key-map [M-escape] [?\M-\e])
+
+;; These tell read-char how to convert
+;; these special chars to ASCII.
+(put 'return 'ascii-character 13)
+(put 'tab 'ascii-character ?\t)
+(put 'backspace 'ascii-character 127)
+(put 'escape 'ascii-character ?\e)
+
+
+;;;; Keysyms
+
+;; Define constant values to be set to mac-keyboard-text-encoding
+(defconst kTextEncodingMacRoman 0)
+(defconst kTextEncodingISOLatin1 513 "0x201")
+(defconst kTextEncodingISOLatin2 514 "0x202")
+
+
+;;;; Selections and cut buffers
+
+;; Setup to use the Mac clipboard.  The functions mac-cut-function and
+;; mac-paste-function are defined in mac.c.
+(set-selection-coding-system 'compound-text-mac)
+
+(setq interprogram-cut-function
+      '(lambda (str push)
+	 (mac-cut-function
+	  (encode-coding-string str selection-coding-system t) push)))
+
+(setq interprogram-paste-function
+      '(lambda ()
+	 (let ((clipboard (mac-paste-function)))
+	   (if clipboard
+	       (decode-coding-string clipboard selection-coding-system t)))))
+
+
+;;; Do the actual Windows setup here; the above code just defines
+;;; functions and variables that we use now.
+
+(setq command-line-args (x-handle-args command-line-args))
+
+;;; Make sure we have a valid resource name.
+(or (stringp x-resource-name)
+    (let (i)
+      (setq x-resource-name (invocation-name))
+
+      ;; Change any . or * characters in x-resource-name to hyphens,
+      ;; so as not to choke when we use it in X resource queries.
+      (while (setq i (string-match "[.*]" x-resource-name))
+	(aset x-resource-name i ?-))))
+
+(if (x-display-list)
+    ;; On Mac OS 8/9, Most coding systems used in code conversion for
+    ;; font names are not ready at the time when the terminal frame is
+    ;; created.  So we reconstruct font name table for the initial
+    ;; frame.
+    (mac-clear-font-name-table)
+  (x-open-connection "Mac"
+		     x-command-line-resources
+		     ;; Exit Emacs with fatal error if this fails.
+		     t))
+
+(setq frame-creation-function 'x-create-frame-with-faces);; Setup the default fontset.
+(setup-default-fontset)
+
+;; Carbon uses different fonts than commonly found on X, so
+;; we define our own standard fontset here.
+(defvar mac-standard-fontset-spec
+ "-apple-Monaco-normal-r-*-*-12-*-*-*-*-*-fontset-mac"
+ "String of fontset spec of the standard fontset.
+This defines a fontset consisting of the Monaco variations for
+European languages which are distributed with Mac OS X.
+
+See the documentation of `create-fontset-from-fontset-spec for the format.")
+
+;; Create a fontset that uses mac-roman font.  With this fontset,
+;; characters decoded from mac-roman encoding (ascii, latin-iso8859-1,
+;; and mule-unicode-xxxx-yyyy) are displayed by a mac-roman font.
+(create-fontset-from-fontset-spec mac-standard-fontset-spec t)
+
+;; Create fontset specified in X resources "Fontset-N" (N is 0, 1, ...).
+(create-fontset-from-x-resource)
+
+;; Try to create a fontset from a font specification which comes
+;; from initial-frame-alist, default-frame-alist, or X resource.
+;; A font specification in command line argument (i.e. -fn XXXX)
+;; should be already in default-frame-alist as a `font'
+;; parameter.  However, any font specifications in site-start
+;; library, user's init file (.emacs), and default.el are not
+;; yet handled here.
+
+(let ((font (or (cdr (assq 'font initial-frame-alist))
+		(cdr (assq 'font default-frame-alist))
+		(x-get-resource "font" "Font")))
+      xlfd-fields resolved-name)
+  (if (and font
+	   (not (query-fontset font))
+	   (setq resolved-name (x-resolve-font-name font))
+	   (setq xlfd-fields (x-decompose-font-name font)))
+      (if (string= "fontset" (aref xlfd-fields xlfd-regexp-registry-subnum))
+	  (new-fontset font (x-complement-fontset-spec xlfd-fields nil))
+	;; Create a fontset from FONT.  The fontset name is
+	;; generated from FONT.
+	(create-fontset-from-ascii-font font resolved-name "startup"))))
+
+;; Apply a geometry resource to the initial frame.  Put it at the end
+;; of the alist, so that anything specified on the command line takes
+;; precedence.
+(let* ((res-geometry (x-get-resource "geometry" "Geometry"))
+       parsed)
+  (if res-geometry
+      (progn
+	(setq parsed (x-parse-geometry res-geometry))
+	;; If the resource specifies a position,
+	;; call the position and size "user-specified".
+	(if (or (assq 'top parsed) (assq 'left parsed))
+	    (setq parsed (cons '(user-position . t)
+			       (cons '(user-size . t) parsed))))
+	;; All geometry parms apply to the initial frame.
+	(setq initial-frame-alist (append initial-frame-alist parsed))
+	;; The size parms apply to all frames.
+	(if (assq 'height parsed)
+	    (setq default-frame-alist
+		  (cons (cons 'height (cdr (assq 'height parsed)))
+			default-frame-alist)))
+	(if (assq 'width parsed)
+	    (setq default-frame-alist
+		  (cons (cons 'width (cdr (assq 'width parsed)))
+			default-frame-alist))))))
+
+;; Check the reverseVideo resource.
+(let ((case-fold-search t))
+  (let ((rv (x-get-resource "reverseVideo" "ReverseVideo")))
+    (if (and rv
+	     (string-match "^\\(true\\|yes\\|on\\)$" rv))
+	(setq default-frame-alist
+	      (cons '(reverse . t) default-frame-alist)))))
+
+(defun x-win-suspend-error ()
+  (error "Suspending an Emacs running under Mac makes no sense"))
+(add-hook 'suspend-hook 'x-win-suspend-error)
+
+;; Don't show the frame name; that's redundant.
+(setq-default mode-line-frame-identification "  ")
+
+;; Turn on support for mouse wheels.
+(mouse-wheel-mode 1)
+
+(defun mac-drag-n-drop (event)
+  "Edit the files listed in the drag-n-drop EVENT.
+Switch to a buffer editing the last file dropped."
+  (interactive "e")
+  ;; Make sure the drop target has positive co-ords
+  ;; before setting the selected frame - otherwise it
+  ;; won't work.  <skx@tardis.ed.ac.uk>
+  (let* ((window (posn-window (event-start event)))
+	 (coords (posn-x-y (event-start event)))
+	 (x (car coords))
+	 (y (cdr coords)))
+    (if (and (> x 0) (> y 0))
+	(set-frame-selected-window nil window))
+    (mapcar (lambda (file-name)
+	      (if (listp file-name)
+		  (let ((line (car file-name))
+			(start (car (cdr file-name)))
+			(end (car (cdr (cdr file-name)))))
+		    (if (> line 0)
+			(goto-line line)
+		      (if (and (> start 0) (> end 0))
+			  (progn (set-mark start)
+				 (goto-char end)))))
+		(x-dnd-handle-one-url window 'private
+				      (concat "file:" file-name))))
+	    (car (cdr (cdr event)))))
+  (raise-frame))
+
+(global-set-key [drag-n-drop] 'mac-drag-n-drop)
+
+;; By checking whether the variable mac-ready-for-drag-n-drop has been
+;; defined, the event loop in macterm.c can be informed that it can
+;; now receive Finder drag and drop events.  Files dropped onto the
+;; Emacs application icon can only be processed when the initial frame
+;; has been created: this is where the files should be opened.
+(add-hook 'after-init-hook
+	  '(lambda ()
+	     (defvar mac-ready-for-drag-n-drop t)))
+
+;;;; Scroll bars
+
+;; for debugging
+;; (defun mac-handle-scroll-bar-event (event) (interactive "e") (princ event))
+
+;;(global-set-key [vertical-scroll-bar mouse-1] 'mac-handle-scroll-bar-event)
+
+(global-set-key
+ [vertical-scroll-bar down-mouse-1]
+ 'mac-handle-scroll-bar-event)
+
+(global-unset-key [vertical-scroll-bar drag-mouse-1])
+(global-unset-key [vertical-scroll-bar mouse-1])
+
+(defun mac-handle-scroll-bar-event (event)
+  "Handle scroll bar EVENT to emulate Mac Toolbox style scrolling."
+  (interactive "e")
+  (let* ((position (event-start event))
+	 (window (nth 0 position))
+	 (bar-part (nth 4 position)))
+    (select-window window)
+    (cond
+     ((eq bar-part 'up)
+      (goto-char (window-start window))
+      (mac-scroll-down-line))
+     ((eq bar-part 'above-handle)
+      (mac-scroll-down))
+     ((eq bar-part 'handle)
+      (scroll-bar-drag event))
+     ((eq bar-part 'below-handle)
+      (mac-scroll-up))
+     ((eq bar-part 'down)
+      (goto-char (window-start window))
+      (mac-scroll-up-line)))))
+
+(defun mac-scroll-ignore-events ()
+  ;; Ignore confusing non-mouse events
+  (while (not (memq (car-safe (read-event))
+		    '(mouse-1 double-mouse-1 triple-mouse-1))) nil))
+
+(defun mac-scroll-down ()
+  (track-mouse
+    (mac-scroll-ignore-events)
+    (scroll-down)))
+
+(defun mac-scroll-down-line ()
+  (track-mouse
+    (mac-scroll-ignore-events)
+    (scroll-down 1)))
+
+(defun mac-scroll-up ()
+  (track-mouse
+    (mac-scroll-ignore-events)
+    (scroll-up)))
+
+(defun mac-scroll-up-line ()
+  (track-mouse
+    (mac-scroll-ignore-events)
+    (scroll-up 1)))
+
+
+;;;; Others
+
+(unless (eq system-type 'darwin)
+  ;; This variable specifies the Unix program to call (as a process) to
+  ;; deteremine the amount of free space on a file system (defaults to
+  ;; df).  If it is not set to nil, ls-lisp will not work correctly
+  ;; unless an external application df is implemented on the Mac.
+  (setq directory-free-space-program nil)
+
+  ;; Set this so that Emacs calls subprocesses with "sh" as shell to
+  ;; expand filenames Note no subprocess for the shell is actually
+  ;; started (see run_mac_command in sysdep.c).
+  (setq shell-file-name "sh"))
+
+;; X Window emulation in macterm.c is not complete enough to start a
+;; frame without a minibuffer properly.  Call this to tell ediff
+;; library to use a single frame.
+; (ediff-toggle-multiframe)
+
+(if (eq system-type 'darwin)
+    ;; On Darwin filenames are encoded in UTF-8
+    (setq file-name-coding-system 'utf-8)
+  ;; To display filenames in Chinese or Japanese, replace mac-roman with
+  ;; big5 or sjis
+  (setq file-name-coding-system 'mac-roman))
+
+;; If Emacs is started from the Finder, change the default directory
+;; to the user's home directory.
+(if (string= default-directory "/")
+    (cd "~"))
+
+;; Tell Emacs to use pipes instead of pty's for processes because the
+;; latter sometimes lose characters.  Pty support is compiled in since
+;; ange-ftp will not work without it.
+(setq process-connection-type nil)
+
+;; Assume that fonts are always scalable on the Mac.  This sometimes
+;; results in characters with jagged edges.  However, without it,
+;; fonts with both truetype and bitmap representations but no italic
+;; or bold bitmap versions will not display these variants correctly.
+(setq scalable-fonts-allowed t)
+
+;; (prefer-coding-system 'mac-roman)
 
 ;;; arch-tag: 71dfcd14-cde8-4d66-b05c-85ec94fb23a6
 ;;; mac-win.el ends here

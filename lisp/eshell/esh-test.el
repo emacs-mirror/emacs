@@ -125,7 +125,7 @@
   (let ((fsym (get-text-property (point) 'test-func)))
     (when fsym
       (let* ((def (symbol-function fsym))
-	     (library (locate-library (symbol-file fsym)))
+	     (library (locate-library (symbol-file fsym 'defun)))
 	     (name (substring (symbol-name fsym)
 			      (length "eshell-test--")))
 	     (inhibit-redisplay t))

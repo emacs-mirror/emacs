@@ -1462,7 +1462,7 @@ or as help on variables `cperl-tips', `cperl-problems',
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'cperl-indent-line)
   (make-local-variable 'require-final-newline)
-  (setq require-final-newline t)
+  (setq require-final-newline mode-require-final-newline)
   (make-local-variable 'comment-start)
   (setq comment-start "# ")
   (make-local-variable 'comment-end)
@@ -6026,7 +6026,8 @@ Currently it is tuned to C and Perl syntax."
   (interactive)
   (let (found-bad (p (point)))
     (setq last-nonmenu-event 13)	; To disable popup
-    (beginning-of-buffer)
+    (with-no-warnings  ; It is useful to push the mark here.
+     (beginning-of-buffer))
     (map-y-or-n-p "Insert space here? "
 		  (lambda (arg) (insert " "))
 		  'cperl-next-bad-style
@@ -7183,13 +7184,9 @@ Delay of auto-help controlled by `cperl-lazy-help-time'."
 ;;; Plug for wrong font-lock:
 
 (defun cperl-font-lock-unfontify-region-function (beg end)
-  (let* ((modified (buffer-modified-p)) (buffer-undo-list t)
-	 (inhibit-read-only t) (inhibit-point-motion-hooks t)
-	 before-change-functions after-change-functions
-	 deactivate-mark buffer-file-name buffer-file-truename)
-    (remove-text-properties beg end '(face nil))
-    (when (and (not modified) (buffer-modified-p))
-      (set-buffer-modified-p nil))))
+  ;; Simplified now that font-lock-unfontify-region uses save-buffer-state.
+  (let (before-change-functions after-change-functions)
+    (remove-text-properties beg end '(face nil))))
 
 (defvar cperl-d-l nil)
 (defun cperl-fontify-syntaxically (end)
