@@ -263,7 +263,7 @@ directory_files_internal (directory, full, match, nosort, attrs)
 			 directory_nbytes);
 		  
 		  if (needsep)
-		    SREF (fullname, directory_nbytes) = DIRECTORY_SEP;
+		    SSET (fullname, directory_nbytes, DIRECTORY_SEP);
 		  
 		  bcopy (SDATA (name),
 			 SDATA (fullname) + directory_nbytes + needsep,
