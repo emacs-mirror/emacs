@@ -919,6 +919,9 @@ shared libraries, for instance those for Xaw3d or image support.
 These errors mean Emacs has been linked with a library whose shared
 library is not in the default search path of the dynamic linker.
 
+Similar problems could prevent Emacs from building, since the build
+process invokes Emacs several times.
+
 On many systems, it is possible to set LD_LIBRARY_PATH in your
 environment to specify additional directories where shared libraries
 can be found.
