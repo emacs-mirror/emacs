@@ -474,6 +474,7 @@ with the original. */)
   return concat (1, &arg, CONSP (arg) ? Lisp_Cons : XTYPE (arg), 0);
 }
 
+#if 0				/* unused */
 /* In string STR of length LEN, see if bytes before STR[I] combine
    with bytes after STR[I] to form a single character.  If so, return
    the number of bytes after STR[I] which combine in this way.
@@ -494,6 +495,7 @@ count_combining (str, len, i)
   PARSE_MULTIBYTE_SEQ (str + j, len - j, bytes);
   return (bytes <= i - j ? 0 : bytes - (i - j));
 }
+#endif
 
 /* This structure holds information of an argument of `concat' that is
    a string and has text properties to be copied.  */
@@ -2730,6 +2732,25 @@ usage: (widget-apply WIDGET PROPERTY &rest ARGS)  */)
   UNGCPRO;
   return result;
 }
+
+#ifdef HAVE_LANGINFO_CODESET
+#include <langinfo.h>
+#endif
+
+/* Fixme: is it useful to get more general info from the locale?  */
+DEFUN ("locale-codeset", Flocale_codeset, Slocale_codeset, 0, 0, 0,
+       doc: /* Return a string indicating the code set in the current locale.
+If the system can't provide such information through a call to
+nl_langinfo(3), return nil.  */)
+     ()
+{
+#ifdef HAVE_LANGINFO_CODESET
+  char *str = nl_langinfo (CODESET);
+  return make_string (str, strlen (str));
+#else
+  return Qnil;
+#endif
+}
 
 /* base64 encode/decode functions (RFC 2045).
    Based on code from GNU recode. */
@@ -4866,6 +4887,7 @@ invoked by mouse clicks and mouse menu items.  */);
   defsubr (&Sbase64_encode_string);
   defsubr (&Sbase64_decode_string);
   defsubr (&Smd5);
+  defsubr (&Slocale_codeset);
 }
 
 
