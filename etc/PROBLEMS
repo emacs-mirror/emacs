@@ -1934,7 +1934,7 @@ The fix is to install a newer version of ncurses, such as version 4.2.
 
 * Emacs does not start complaining that it cannot open termcap database file.
 
-If your system usses Terminfo rather than termcap (most modern systems
+If your system uses Terminfo rather than termcap (most modern systems
 do), this could happen if you have an old version of ncurses
 installed, or if the newer version is not visible to the Emacs
 configure script (i.e. it cannot be found along the usual path the
