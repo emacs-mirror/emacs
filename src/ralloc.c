@@ -114,6 +114,14 @@ static int extra_bytes;
 #define MEM_ROUNDUP(addr) (((unsigned long int)(addr) + MEM_ALIGN - 1) \
 				   & ~(MEM_ALIGN - 1))
 
+/* The hook `malloc' uses for the function which gets more space
+   from the system.  */
+
+#ifndef SYSTEM_MALLOC
+extern POINTER (*__morecore) ();
+#endif
+
+
 
 /***********************************************************************
 		      Implementation using sbrk
@@ -1221,14 +1229,6 @@ r_alloc_check ()
 /***********************************************************************
 			    Initialization
  ***********************************************************************/
-
-/* The hook `malloc' uses for the function which gets more space
-   from the system.  */
-
-#ifndef SYSTEM_MALLOC
-extern POINTER (*__morecore) ();
-#endif
-
 
 /* Initialize various things for memory allocation.  */
 
