@@ -1610,7 +1610,7 @@ OBARRAY defaults to the value of `obarray'.")
   return Qnil;
 }
 
-#define OBARRAY_SIZE 509
+#define OBARRAY_SIZE 1511
 
 void
 init_obarray ()
