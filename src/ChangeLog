@@ -1,3 +1,9 @@
+1999-10-08  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (XTread_socket) <ClientMessage, WM_TAKE_FOCUS>:
+	Don't call XSetInputFocus because that can generate additional
+	FocusIn events.
+	
 1999-10-07  Jeffrey C Honig <jch@bsdi.com>
 
 	* bsdos4.h [HAVE_LIBNCURSES]: Define TERMINFO and LIBS_TERMCAP.
