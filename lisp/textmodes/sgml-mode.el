@@ -446,6 +446,10 @@ Do \\[describe-key] on the following bindings to discover what they do.
        (concat "<!\\(element\\|entity\\)[ \t\n]+%?[ \t\n]*\\("
 	       sgml-name-re "\\)")))
 
+;; Some programs (such as Glade 2) generate XML which has
+;; -*- mode: xml -*-.
+(defalias 'xml-mode 'sgml-mode)
+
 (defun sgml-comment-indent ()
   (if (looking-at "--") comment-column 0))
 
