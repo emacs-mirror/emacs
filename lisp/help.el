@@ -1,6 +1,6 @@
 ;;; help.el --- help commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -661,7 +661,8 @@ It can also be nil, if the definition is not associated with any file."
       (save-excursion
 	(save-match-data
 	  (if (re-search-backward "alias for `\\([^`']+\\)'" nil t)
-	      (help-xref-button 1 #'describe-function def)))))
+	      (help-xref-button 1 #'describe-function def
+				"mouse-2, RET: describe this function")))))
     (or file-name
 	(setq file-name (symbol-file function)))
     (if file-name
@@ -680,7 +681,8 @@ It can also be nil, if the definition is not associated with any file."
 					     (find-function-noselect arg)))
 					(pop-to-buffer (car location))
 					(goto-char (cdr location))))
-				function)))))
+				function
+				"mouse-2, RET: find function's definition")))))
     (if need-close (princ ")"))
     (princ ".")
     (terpri)
@@ -821,7 +823,9 @@ Returns the documentation as a string, also."
 		    (re-search-backward 
 		     (concat "\\(" customize-label "\\)") nil t)
 		    (help-xref-button 1 #'(lambda (v)
-					    (customize-variable v)) variable)
+					    (customize-variable v))
+				      variable
+				      "mouse-2, RET: customize variable")
 		    ))))
 	  ;; Make a hyperlink to the library if appropriate.  (Don't
 	  ;; change the format of the buffer's initial line in case
@@ -834,12 +838,13 @@ Returns the documentation as a string, also."
 	      (with-current-buffer "*Help*"
 		(save-excursion
 		  (re-search-backward "`\\([^`']+\\)'" nil t)
-		  (help-xref-button 1 (lambda (arg)
-					(let ((location
-					       (find-variable-noselect arg)))
-					  (pop-to-buffer (car location))
-					  (goto-char (cdr location))))
-				    variable)))))
+		  (help-xref-button
+		   1 (lambda (arg)
+		       (let ((location
+			      (find-variable-noselect arg)))
+			 (pop-to-buffer (car location))
+			 (goto-char (cdr location))))
+		   variable "mouse-2, RET: find variable's definition")))))
 
 	  (print-help-return-message)
 	  (save-excursion
@@ -1031,7 +1036,8 @@ that."
 		    (save-match-data
 		      (unless (string-match "^([^)]+)" data)
 			(setq data (concat "(emacs)" data))))
-		    (help-xref-button 1 #'info data))))
+		    (help-xref-button 1 #'info data
+				      "mouse-2, RET: read this Info node"))))
               ;; Quoted symbols
               (save-excursion
                 (while (re-search-forward help-xref-symbol-regexp nil t)
@@ -1042,15 +1048,29 @@ that."
                          ((match-string 3) ; `variable' &c
                           (and (boundp sym) ; `variable' doesn't ensure
                                         ; it's actually bound
-                               (help-xref-button 6 #'describe-variable sym)))
+                               (help-xref-button
+				6 #'describe-variable sym
+				"mouse-2, RET: describe this variable")))
                          ((match-string 4) ; `function' &c
                           (and (fboundp sym) ; similarly
-                               (help-xref-button 6 #'describe-function sym)))
+                               (help-xref-button
+				6 #'describe-function sym
+				"mouse-2, RET: describe this function")))
                          ((match-string 5)) ; nothing for symbol
-                         ((or (boundp sym) (fboundp sym))
+                         ((and (boundp sym) (fboundp sym))
                           ;; We can't intuit whether to use the
                           ;; variable or function doc -- supply both.
-                          (help-xref-button 6 #'help-xref-interned sym)))))))
+                          (help-xref-button
+			   6 #'help-xref-interned sym
+			   "mouse-2, RET: describe this symbol"))
+                         ((boundp sym)
+			  (help-xref-button
+			   6 #'describe-variable sym
+			   "mouse-2, RET: describe this variable"))
+			 ((fboundp sym)
+			  (help-xref-button
+			   6 #'describe-function sym
+			   "mouse-2, RET: describe this function")))))))
               ;; An obvious case of a key substitution:
               (save-excursion              
                 (while (re-search-forward
@@ -1059,7 +1079,9 @@ that."
                         "\\<M-x\\s-+\\(\\sw\\(\\sw\\|-\\)+\\)" nil t)
                   (let ((sym (intern-soft (match-string 1))))
                     (if (fboundp sym)
-                        (help-xref-button 1 #'describe-function sym)))))
+                        (help-xref-button
+			 1 #'describe-function sym
+			 "mouse-2, RET: describe this command")))))
               ;; Look for commands in whole keymap substitutions:
               (save-excursion
 		;; Make sure to find the first keymap.
@@ -1082,7 +1104,8 @@ that."
                                    (let ((sym (intern-soft (match-string 0))))
                                      (if (fboundp sym)
                                          (help-xref-button 
-                                          0 #'describe-function sym))))
+                                          0 #'describe-function sym
+					  "mouse-2, RET: describe this function"))))
 			       (zerop (forward-line)))))))))
           (set-syntax-table stab))
         ;; Make a back-reference in this buffer if appropriate.
@@ -1102,13 +1125,14 @@ that."
                          map))))
       (set-buffer-modified-p old-modified))))
 
-(defun help-xref-button (match-number function data)
+(defun help-xref-button (match-number function data &optional help-echo)
   "Make a hyperlink for cross-reference text previously matched.
 
 MATCH-NUMBER is the subexpression of interest in the last matched
 regexp.  FUNCTION is a function to invoke when the button is
 activated, applied to DATA.  DATA may be a single value or a list.
-See `help-make-xrefs'."
+See `help-make-xrefs'.
+If optional arg HELP-ECHO is supplied, it is used as a help string."
   ;; Don't mung properties we've added specially in some instances.
   (unless (get-text-property (match-beginning match-number) 'help-xref)
     (add-text-properties (match-beginning match-number)
@@ -1118,6 +1142,10 @@ See `help-make-xrefs'."
 						(if (listp data)
 						    data
 						  (list data)))))
+    (if help-echo
+	(put-text-property (match-beginning match-number)
+			   (match-end match-number)
+			   'help-echo help-echo))
     (if help-highlight-p
 	(put-text-property (match-beginning match-number)
 			   (match-end match-number)
