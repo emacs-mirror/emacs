@@ -329,10 +329,10 @@ Will return nil instead."
     (setq function (if (fboundp function)
 		       (symbol-function function)
 		     0)))
+  (if (eq (car-safe function) 'macro)
+      (setq function (cdr function)))
   (if (not (consp function))
       nil
-    (if (eq (car function) 'macro)
-	(setq function (cdr function)))
     (if (not (memq (car function) '(lambda autoload)))
 	nil
       (setq function (nth 2 function))
