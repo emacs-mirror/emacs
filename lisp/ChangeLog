@@ -1,3 +1,8 @@
+2001-01-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* jit-lock.el (jit-lock-after-change): If font-lock-multiline
+	is nil, don't check the `font-lock-multiline' text property.
+
 2001-01-19  Michael Kifer  <kifer@cs.sunysb.edu>
 
 	* viper.el: Call initial-major-mode on startup.
