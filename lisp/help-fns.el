@@ -165,6 +165,38 @@ and the file name is displayed in the echo area."
 	  ;; Return the text we displayed.
 	  (buffer-string))))))
 
+(defun help-split-fundoc (doc &optional def)
+  "Split a function docstring DOC into the actual doc and the usage info.
+Return (USAGE . DOC) or nil if there's no usage info."
+  ;; Builtins get the calling sequence at the end of the doc string.
+  ;; In cases where `function' has been fset to a subr we can't search for
+  ;; function's name in the doc string.  Kluge round that using the printed
+  ;; representation.  The arg list then shows the wrong function name, but
+  ;; that might be a useful hint.
+  (let* ((rep (prin1-to-string def))
+	 (name (if (string-match " \\([^ ]+\\)>$" rep)
+		   (match-string 1 rep) "fun")))
+    (if (string-match (format "^(%s[ )].*\\'" (regexp-quote name)) doc)
+	(cons (match-string 0 doc)
+	      (substring doc 0 (match-beginning 0))))))
+
+(defun help-function-arglist (def)
+  (cond
+   ((byte-code-function-p def) (aref def 0))
+   ((eq (car-safe def) 'lambda) (nth 1 def))
+   ((and (eq (car-safe def) 'autoload) (not (eq (nth 4 def) 'keymap)))
+    "[Arg list not available until function definition is loaded.]")
+   (t t)))
+
+(defun help-make-usage (function arglist)
+  (cons (if (symbolp function) function 'anonymous)
+	(mapcar (lambda (arg)
+		  (if (not (symbolp arg)) arg
+		    (let ((name (symbol-name arg)))
+		      (if (string-match "\\`&" name) arg
+			(intern (upcase name))))))
+		arglist)))
+
 ;;;###autoload
 (defun describe-function-1 (function)
   (let* ((def (if (symbolp function)
@@ -248,7 +280,7 @@ and the file name is displayed in the echo area."
     (when (commandp function)
       (let* ((remapped (remap-command function))
 	     (keys (where-is-internal
-		   (or remapped function) overriding-local-map nil nil)))
+		    (or remapped function) overriding-local-map nil nil)))
 	(when remapped
 	  (princ "It is remapped to `")
 	  (princ (symbol-name remapped))
@@ -265,68 +297,27 @@ and the file name is displayed in the echo area."
     ;; If definition is a macro, find the function inside it.
     (if (eq (car-safe def) 'macro)
 	(setq def (cdr def)))
-    (let ((arglist (cond ((byte-code-function-p def)
-			  (car (append def nil)))
-			 ((eq (car-safe def) 'lambda)
-			  (nth 1 def))
-			 ((and (eq (car-safe def) 'autoload)
-			       (not (eq (nth 4 def) 'keymap)))
-			  (concat "[Arg list not available until "
-				  "function definition is loaded.]"))
-			 (t t))))
-      (cond ((listp arglist)
-	     (princ (cons (if (symbolp function) function "anonymous")
-			  (mapcar (lambda (arg)
-				    (if (memq arg '(&optional &rest))
-					arg
-				      (intern (upcase (symbol-name arg)))))
-				  arglist)))
-	     (terpri))
-	    ((stringp arglist)
-	     (princ arglist)
-	     (terpri))))
-    (let ((obsolete (get function 'byte-obsolete-info)))
-      (when obsolete
-        (terpri)
-        (princ "This function is obsolete")
-        (if (nth 2 obsolete) (princ (format " since %s" (nth 2 obsolete))))
-        (princ ";") (terpri)
-        (princ (if (stringp (car obsolete)) (car obsolete)
-                 (format "use `%s' instead." (car obsolete))))
-        (terpri)))
-    (let ((doc (documentation function)))
+    (let* ((arglist (help-function-arglist def))
+	   (doc (documentation function))
+	   usage)
+      (princ (cond
+	      ((listp arglist) (help-make-usage function arglist))
+	      ((stringp arglist) arglist)
+	      ((and doc (subrp def) (setq usage (help-split-fundoc doc def)))
+	       (setq doc (cdr usage)) (car usage))
+	      (t "[Missing arglist.  Please make a bug report.]")))
+      (terpri)
+      (let ((obsolete (get function 'byte-obsolete-info)))
+	(when obsolete
+	  (terpri)
+	  (princ "This function is obsolete")
+	  (if (nth 2 obsolete) (princ (format " since %s" (nth 2 obsolete))))
+	  (princ ";") (terpri)
+	  (princ (if (stringp (car obsolete)) (car obsolete)
+		   (format "use `%s' instead." (car obsolete))))
+	  (terpri)))
       (if doc
-	  (progn (terpri)
-		 (princ doc)
-		 (if (subrp def)
-		     (with-current-buffer standard-output
-		       (beginning-of-line)
-		       ;; Builtins get the calling sequence at the end of
-		       ;; the doc string.  Move it to the same place as
-		       ;; for other functions.
-
-		       ;; In cases where `function' has been fset to a
-		       ;; subr we can't search for function's name in
-		       ;; the doc string.  Kluge round that using the
-		       ;; printed representation.  The arg list then
-		       ;; shows the wrong function name, but that
-		       ;; might be a useful hint.
-		       (let* ((rep (prin1-to-string def))
-			      (name (progn
-				      (string-match " \\([^ ]+\\)>$" rep)
-				      (match-string 1 rep))))
-			 (if (looking-at (format "(%s[ )]" (regexp-quote name)))
-			     (let ((start (point-marker)))
-			       (goto-char (point-min))
-			       (forward-paragraph)
-			       (insert-buffer-substring (current-buffer) start)
-			       (insert ?\n)
-			       (delete-region (1- start) (point-max)))
-			   (goto-char (point-min))
-			   (forward-paragraph)
-			   (insert
-			    "[Missing arglist.  Please make a bug report.]\n")))
-		       (goto-char (point-max)))))
+	  (progn (terpri) (princ doc))
 	(princ "Not documented.")))))
 
 
