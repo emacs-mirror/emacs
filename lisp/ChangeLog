@@ -1,3 +1,21 @@
+2002-06-12  Richard M. Stallman  <rms@gnu.org>
+
+	* international/mule-diag.el (describe-char-after): Doc fix.
+
+	* view.el (view-mode-enter): Clarify echo area message.
+
+	* info.el (Info-select-node): Turn header line on or off here.
+	(Info-setup-header-line): Function deleted.
+	(Info-mode): Make Info-header-line local.
+	(Info-fontify-node): Ignore Info-use-header-line.
+	Unconditionally compute what the header line should be, and
+	store it on the `header-line' property of the node's first char.
+	Bind [header-line down-mouse-1].
+	Use `keymap' property, not `local-map'.
+	Bind [mouse-2] for mouse clicks on the node line in the text.
+
+	* font-lock.el (font-lock-beginning-of-syntax-function): Doc fix.
+
 2002-06-12  Miles Bader  <miles@gnu.org>
 
 	* comint.el (comint-send-input): Properly handle empty and
