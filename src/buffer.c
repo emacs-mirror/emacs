@@ -465,6 +465,8 @@ reset_buffer (b)
   b->modtime = 0;
   XSETFASTINT (b->save_length, 0);
   b->last_window_start = 1;
+  /* It is more conservative to start out "changed" than "unchanged".  */
+  b->clip_changed = 1;
   b->backed_up = Qnil;
   b->auto_save_modified = 0;
   b->auto_save_failure_time = -1;
