@@ -24,5 +24,6 @@ s!^	\./!	go32 ./!
 /^UTILITIES=/s/ emacsserver//
 /^UTILITIES=/s/ timer//
 /^all *:/s/$/ make-docfile/
+s!^	go32 ./test-distrib!	go32 ./test-dis!
 /-o make-docfile/a\
 	coff2exe make-docfile
