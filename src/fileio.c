@@ -2042,8 +2042,10 @@ expand_and_dir_to_file (filename, defdir)
    and bypass the error if the user says to go ahead.
    QUERYSTRING is a name for the action that is being considered
    to alter the file.
+
    *STATPTR is used to store the stat information if the file exists.
-   If the file does not exist, STATPTR->st_mode is set to 0.  */
+   If the file does not exist, STATPTR->st_mode is set to 0.
+   If STATPTR is null, we don't store into it.  */
 
 void
 barf_or_query_if_file_exists (absname, querystring, interactive, statptr)
@@ -3916,8 +3918,8 @@ build_annotations_unwind (buf)
   return Qnil;
 }
 
-DEFUN ("write-region", Fwrite_region, Swrite_region, 3, 6,
-  "r\nFWrite region to file: ",
+DEFUN ("write-region", Fwrite_region, Swrite_region, 3, 7,
+  "r\nFWrite region to file: \ni\ni\ni\np",
   "Write current region into specified file.\n\
 When called from a program, takes three arguments:\n\
 START, END and FILENAME.  START and END are buffer positions.\n\
@@ -3933,10 +3935,12 @@ If VISIT is neither t nor nil nor a string,\n\
   that means do not print the \"Wrote file\" message.\n\
 The optional sixth arg LOCKNAME, if non-nil, specifies the name to\n\
   use for locking and unlocking, overriding FILENAME and VISIT.\n\
+The optional seventh arg CONFIRM, if non-nil, says ask for confirmation\n\
+  before overwriting an existing file.\n\
 Kludgy feature: if START is a string, then that string is written\n\
 to the file, instead of any buffer contents, and END is ignored.")
-  (start, end, filename, append, visit, lockname)
-     Lisp_Object start, end, filename, append, visit, lockname;
+  (start, end, filename, append, visit, lockname, confirm)
+     Lisp_Object start, end, filename, append, visit, lockname, confirm;
 {
   register int desc;
   int failure;
@@ -4029,6 +4033,10 @@ to the file, instead of any buffer contents, and END is ignored.")
   Vlast_coding_system_used = coding.symbol;
 
   filename = Fexpand_file_name (filename, Qnil);
+
+  if (! NILP (confirm))
+    barf_or_query_if_file_exists (filename, "overwrite", 1, 0);
+
   if (STRINGP (visit))
     visit_file = Fexpand_file_name (visit, Qnil);
   else
@@ -4671,7 +4679,7 @@ auto_save_1 ()
   return
     Fwrite_region (Qnil, Qnil,
 		   current_buffer->auto_save_file_name,
-		   Qnil, Qlambda, Qnil);
+		   Qnil, Qlambda, Qnil, Qnil);
 }
 
 static Lisp_Object
