@@ -61,7 +61,7 @@
      "Right-Hand Part of Latin/Greek Alphabet (ISO/IEC 8859-7): ISO-IR-126"])
 (define-charset 135 'arabic-iso8859-6
   [1 96 1 1 ?G 1 "RHP of ISO8859/6" "RHP of Arabic (ISO 8859-6): ISO-IR-127"
-     "Right-Hand Part of Latin/Alabic Alphabet (ISO/IEC 8859-6): ISO-IR-127"])
+     "Right-Hand Part of Latin/Arabic Alphabet (ISO/IEC 8859-6): ISO-IR-127"])
 (define-charset 136 'hebrew-iso8859-8
   [1 96 1 1 ?H 1 "RHP of ISO8859/8" "RHP of Hebrew (ISO 8859-8): ISO-IR-138"
      "Right-Hand Part of Latin/Hebrew Alphabet (ISO/IEC 8859-8): ISO-IR-138"])
