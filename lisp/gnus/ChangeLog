@@ -1,3 +1,9 @@
+1999-12-19  Dave Love  <fx@gnu.org>
+
+	* mail/pop3.el (pop3-movemail-file-coding-system): Doc fix.
+	(pop3-movemail): Replace binding of
+	pop3-movemail-file-coding-system.
+
 1999-10-23  Dave Love  <fx@gnu.org>
 
 	* nnvirtual.el (nnvirtual-create-mapping): Don't use mapc.
