@@ -21634,6 +21634,9 @@ x_draw_vertical_border (w)
      windows (on either side) have...  But we don't :-(
      However, I think this works ok.  ++KFS 2003-04-25 */
 
+  if (!FRAME_WINDOW_P (XFRAME (w->frame)))
+    return;
+
   /* Redraw borders between horizontally adjacent windows.  Don't
      do it for frames with vertical scroll bars because either the
      right scroll bar of a window, or the left scroll bar of its
