@@ -590,8 +590,11 @@ extern void w32_unload_font ();
 
 /* Define for earlier versions of Visual C */
 #ifndef WM_MOUSEWHEEL
-#define WM_MOUSEWHEEL                  (0x020A)
+#define WM_MOUSEWHEEL 		       (WM_MOUSELAST + 1)
 #endif /* WM_MOUSEWHEEL */
+#ifndef MSH_MOUSEWHEEL
+#define MSH_MOUSEWHEEL		       "MSWHEEL_ROLLMSG"
+#endif /* MSH_MOUSEWHEEL */
 
 #define WM_EMACS_START                 (WM_USER + 1)
 #define WM_EMACS_KILL                  (WM_EMACS_START + 0x00)
