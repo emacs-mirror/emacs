@@ -2711,6 +2711,7 @@ Otherwise, nil (in a bare Emacs without preloaded Lisp code).");
   defsubr (&Sautoload);
   defsubr (&Seval);
   defsubr (&Sapply);
+  defsubr (&Srun_hook_with_args);
   defsubr (&Sfuncall);
   defsubr (&Sfetch_bytecode);
   defsubr (&Sbacktrace_debug);
