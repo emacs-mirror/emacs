@@ -13,7 +13,7 @@
 	(ps-run-font-lock-keywords-1): Added checking for initial ^ in
 	ps-run-prompt
 	(ps-mode): Added ps-run-font-lock-keywords-2 to list of
-	customizable variables in doc-string (it's equivalent
+	customizable variables in doc-string (its equivalent
 	ps-run-messages was missing in previous version of the doc-string)
 	(ps-run-mode): Simplified assignment to font-lock-defaults, using
 	symbols only
