@@ -92,8 +92,12 @@
 
 (provide 'facemenu)
 
+;;; Provide some binding for startup:
+;;;###autoload (define-key global-map "\M-g" 'facemenu-keymap)
+;;;###autoload (autoload 'facemenu-keymap "facemenu" "Keymap for face-changing commands." t 'keymap)
+
 (defvar facemenu-key "\M-g"
-  "Prefix to use for facemenu commands.")
+  "Prefix key to use for facemenu commands.")
 
 (defvar facemenu-keybindings
   '((default     . "d")
@@ -129,46 +133,57 @@ If this variable is t, no faces will be added to the menu.  This is useful for
 temporarily turning off the feature that automatically adds faces to the menu
 when they are created.")
 
+;;;###autoload
 (defvar facemenu-face-menu
   (let ((map (make-sparse-keymap "Face")))
     (define-key map "o" (cons "Other..." 'facemenu-set-face))
     map)
   "Menu keymap for faces.")
+;;;###autoload
 (defalias 'facemenu-face-menu facemenu-face-menu)
 
+;;;###autoload
 (defvar facemenu-foreground-menu 
   (let ((map (make-sparse-keymap "Foreground Color")))
     (define-key map "o" (cons "Other" 'facemenu-set-foreground))
     map)
   "Menu keymap for foreground colors.")
+;;;###autoload
 (defalias 'facemenu-foreground-menu facemenu-foreground-menu)
 
+;;;###autoload
 (defvar facemenu-background-menu
   (let ((map (make-sparse-keymap "Background Color")))
     (define-key map "o" (cons "Other" 'facemenu-set-background))
     map)
   "Menu keymap for background colors")
+;;;###autoload
 (defalias 'facemenu-background-menu facemenu-background-menu)
 
+;;;###autoload
 (defvar facemenu-special-menu 
   (let ((map (make-sparse-keymap "Special")))
     (define-key map [read-only] (cons "Read-Only" 'facemenu-set-read-only))
     (define-key map [invisible] (cons "Invisible" 'facemenu-set-invisible))
     map)
   "Menu keymap for non-face text-properties.")
+;;;###autoload
 (defalias 'facemenu-special-menu facemenu-special-menu)
 
+;;;###autoload
 (defvar facemenu-justification-menu
   (let ((map (make-sparse-keymap "Justification")))
-    (define-key map "c" (cons "Center" 'set-justification-center))
-    (define-key map "f" (cons "Full" 'set-justification-full))
-    (define-key map "r" (cons "Right" 'set-justification-right))
-    (define-key map "l" (cons "Left" 'set-justification-left))
-    (define-key map "n" (cons "Unfilled" 'set-justification-none))
+    (define-key map [?c] (cons "Center" 'set-justification-center))
+    (define-key map [?b] (cons "Full" 'set-justification-full))
+    (define-key map [?r] (cons "Right" 'set-justification-right))
+    (define-key map [?l] (cons "Left" 'set-justification-left))
+    (define-key map [?u] (cons "Unfilled" 'set-justification-none))
     map)
   "Submenu for text justification commands.")
+;;;###autoload
 (defalias 'facemenu-justification-menu facemenu-justification-menu)
 
+;;;###autoload
 (defvar facemenu-indentation-menu
   (let ((map (make-sparse-keymap "Indentation")))
     (define-key map [UnIndentRight] 
@@ -181,8 +196,10 @@ when they are created.")
       (cons "Indent" 'increase-left-margin))
     map)
   "Submenu for indentation commands.")
+;;;###autoload
 (defalias 'facemenu-indentation-menu facemenu-indentation-menu)
 
+;;;###autoload
 (defvar facemenu-menu 
   (let ((map (make-sparse-keymap "Face")))
     (define-key map [dc] (cons "Display Colors" 'list-colors-display))
@@ -199,13 +216,14 @@ when they are created.")
     (define-key map [fc] (cons "Face" 'facemenu-face-menu))
     map)
   "Facemenu top-level menu keymap.")
+;;;###autoload
 (defalias 'facemenu-menu facemenu-menu)
 
 (defvar facemenu-keymap 
   (let ((map (make-sparse-keymap "Set face")))
     (define-key map "o" (cons "Other" 'facemenu-set-face))
     map)
-  "Map for keyboard face-changing commands.
+  "Keymap for face-changing commands.
 `Facemenu-update' fills in the keymap according to the bindings
 requested in `facemenu-keybindings'.")
 (defalias 'facemenu-keymap facemenu-keymap)
@@ -282,6 +300,7 @@ typing a character cancels the request."
 	(error "Unknown color: %s" color))
     (facemenu-set-face face start end)))
 
+;;;###autoload
 (defun facemenu-set-face-from-menu (face start end)
   "Set the face of the region or next character typed.
 This function is designed to be called from a menu; the face to use
@@ -308,6 +327,7 @@ typing a character cancels the request."
 			   face)
 	self-insert-face-command this-command))
 
+;;;###autoload
 (defun facemenu-set-invisible (start end)
   "Make the region invisible.
 This sets the `invisible' text property; it can be undone with
@@ -315,6 +335,7 @@ This sets the `invisible' text property; it can be undone with
   (interactive "r")
   (put-text-property start end 'invisible t))
 
+;;;###autoload
 (defun facemenu-set-intangible (start end)
   "Make the region intangible: disallow moving into it.
 This sets the `intangible' text property; it can be undone with
@@ -322,6 +343,7 @@ This sets the `intangible' text property; it can be undone with
   (interactive "r")
   (put-text-property start end 'intangible t))
 
+;;;###autoload
 (defun facemenu-set-read-only (start end)
   "Make the region unmodifiable.
 This sets the `read-only' text property; it can be undone with
@@ -329,6 +351,7 @@ This sets the `read-only' text property; it can be undone with
   (interactive "r")
   (put-text-property start end 'read-only t))
 
+;;;###autoload
 (defun facemenu-remove-all (start end)
   "Remove all text properties that facemenu added to region."
   (interactive "*r") ; error if buffer is read-only despite the next line.
