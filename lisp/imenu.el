@@ -98,7 +98,7 @@ element should come before the second.  The arguments are cons cells;
 (defvar imenu-max-items 25
   "*Maximum number of elements in an mouse menu for Imenu.")
 
-(defvar imenu-scanning-message "Scanning buffer for index...%2d%%"
+(defvar imenu-scanning-message "Scanning buffer for index (%3d%%)"
   "*Progress message during the index scanning of the buffer.
 If non-nil, user gets a message during the scanning of the buffer.
 
@@ -190,6 +190,12 @@ index and it should return nil when it doesn't find another index.")
 This function is called after the function pointed out by
 `imenu-prev-index-position-function'.")
 (make-variable-buffer-local 'imenu-extract-index-name-function)
+
+(defvar imenu-default-goto-function 'imenu-default-goto-function
+  "The default function called when selecting an Imenu item.
+The function in this variable is called when selecting a normal index-item.")
+(make-variable-buffer-local 'imenu-default-goto-function)
+
 
 (defun imenu--subalist-p (item)
   (and (consp (cdr item)) (listp (cadr item))
@@ -685,7 +691,7 @@ pattern.
 		       (let ((name
 			      (buffer-substring-no-properties beg end)))
 			 (if function
-			     (nconc (list name function name beg)
+			     (nconc (list name beg function)
 				    rest)
 			   (cons name beg)))
 		       (cdr 
@@ -838,15 +844,19 @@ The returned value is of the form (INDEX-NAME . INDEX-POSITION)."
 NAME is a string used to name the menu bar item.
 See the command `imenu' for more information."
   (interactive "sImenu menu item name: ")
-  (let ((newmap (make-sparse-keymap))
-	(menu-bar (lookup-key (current-local-map) [menu-bar])))
-    (define-key newmap [menu-bar]
-      (append (make-sparse-keymap) menu-bar))
-    (define-key newmap [menu-bar index]
-      (cons name (nconc (make-sparse-keymap "Imenu")
-			(make-sparse-keymap))))
-    (use-local-map (append newmap (current-local-map))))
-  (add-hook 'menu-bar-update-hook 'imenu-update-menubar))
+  (if (or (and (fboundp imenu-prev-index-position-function)
+		   (fboundp imenu-extract-index-name-function))
+	      (and imenu-generic-expression))
+	 (let ((newmap (make-sparse-keymap))
+	       (menu-bar (lookup-key (current-local-map) [menu-bar])))
+	   (define-key newmap [menu-bar]
+	     (append (make-sparse-keymap) menu-bar))
+	   (define-key newmap [menu-bar index]
+	     (cons name (nconc (make-sparse-keymap "Imenu")
+			       (make-sparse-keymap))))
+	   (use-local-map (append newmap (current-local-map)))
+	   (add-hook 'menu-bar-update-hook 'imenu-update-menubar))
+    (error "The mode `%s' does not support Imenu" mode-name)))
 
 (defvar imenu-buffer-menubar nil)
 
@@ -872,12 +882,38 @@ See the command `imenu' for more information."
 
 (defun imenu--menubar-select (item)
   "Use Imenu to select the function or variable named in this menu item."
-  (if (equal item '("*Rescan*" . -99))
+  (if (equal item imenu--rescan-item)
       (progn
 	(imenu--cleanup)
 	(setq imenu--index-alist nil)
 	(imenu-update-menubar))
     (imenu item)))
+
+(defun imenu-default-goto-function (name position &optional rest)
+"This function is used for moving the point at POSITION. 
+The NAME and REST parameters are not used, they are here just to make
+this function have the same interface as a function placed in a special 
+index-item"
+  (cond 
+   ((markerp position)
+    (if (or (< (marker-position position) (point-min))
+	    (> (marker-position position) (point-max)))
+      ;; widen if outside narrowing
+      (widen))
+    (goto-char (marker-position position)))
+;;;   ;this never happens!
+;;;   ((imenu--subalist-p index-item)
+;;;    (if (or (< (cdr index-item) (point-min))
+;;;	    (> (cdr index-item) (point-max)))
+;;;	;; widen if outside narrowing
+;;;	(widen))
+;;;    (goto-char (cdr index-item)))
+   (t 
+    (if (or (< (cdr index-item) (point-min))
+	    (> (cdr index-item) (point-max)))
+	;; widen if outside narrowing
+	(widen))
+    (goto-char (cdr index-item)))))
 
 ;;;###autoload
 (defun imenu (index-item)
@@ -890,30 +926,14 @@ See `imenu-choose-buffer-index' for more information."
   (and index-item
        (progn
 	 (push-mark)
-	 (cond
-	  ((markerp (cdr index-item))
-	   (if (or (< (marker-position (cdr index-item)) (point-min))
-		   (> (marker-position (cdr index-item)) (point-max)))
-	       ;; widen if outside narrowing
-	       (widen))
-	   (goto-char (marker-position (cdr index-item))))
-	  ((imenu--subalist-p index-item)
-	   (if (or (< (cdr index-item) (point-min))
-		   (> (cdr index-item) (point-max)))
-	       ;; widen if outside narrowing
-	       (widen))
-	   (goto-char (cdr index-item)))
-	  ((integerp (cdr index-item))
-	   (if (or (< (cdr index-item) (point-min))
-		   (> (cdr index-item) (point-max)))
-	       ;; widen if outside narrowing
-	       (widen))
-	   (goto-char (cdr index-item)))
-	  (t
-	   ;; A special item with a function.
-	   (let ((function (cadr index-item))
-		 (rest (cddr index-item)))
-	     (apply function (car index-item) rest)))))))
+	 (let* ((is-special-item (listp (cdr index-item)))
+		(function 
+		 (if is-special-item
+		     (caddr index-item) imenu-default-goto-function))
+	       (position (if is-special-item
+			     (cadr index-item) (cdr index-item)))
+	       (rest (if is-special-item (cddr index-item))))
+	   (apply function (car index-item) position rest)))))
 
 (provide 'imenu)
 
