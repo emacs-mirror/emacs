@@ -1,3 +1,17 @@
+2002-01-31  Richard M. Stallman  <rms@gnu.org>
+
+	* editfns.c (region_limit): Nicer error message.
+
+	* coding.c (decode_composition_emacs_mule):
+	Give up if NCOMPONENT gets too large to index `component'.
+
+	* callint.c (check_mark): New arg to specify clearer error message.
+	Callers changed.
+
+2002-01-27  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.c (Fcompleting_read): Doc fix.
+
 2002-01-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* minibuf.c (Fread_from_minibuffer, Fread_command, Fread_function)

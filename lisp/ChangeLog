@@ -1,3 +1,40 @@
+2002-01-31  Richard M. Stallman  <rms@gnu.org>
+
+	* international/iso-acc.el (iso-languages): Fix ", " in French.
+
+	* cus-start.el (history-length): Specify customization for it.
+
+	* emacs-lisp/debug.el (debugger-setup-buffer):
+	When an eval-buffer frame was reading from a buffer,
+	insert indication of the buffer position.
+	(debugger-frame-number): Ignore ;;;-comment lines in backtrace.
+	(debugger-frame-clear, debugger-frame): Error on non-frame line.
+
+	* simple.el (shell-command-on-region): Err if no mark
+	before reading the command string.
+
+	* hl-line.el (hl-line-highlight, hl-line-unhighlight):
+	Definitions moved down after hl-line-mode var's definition.
+
+	* hilit-chg.el (hilit-chg-fixup): Don't alter overlay if not ours.
+	(hilit-chg-set-face-on-change): Rename arg.
+	(hilit-chg-make-ov): Detect error earlier.
+
+	* ediff-hook.el: Delete autoload cookies.
+
+	* comint.el (comint-scroll-show-maximum-output): Default is t.
+
+	* emacs-lisp/bytecomp.el (batch-byte-compile): New arg noforce.
+	(batch-byte-compile-if-not-done): New function.
+
+	* Makefile.in (compile): New target.
+	(compile-always): Renamed from compile-files.
+	(compile-after-backup): Renamed from compile.
+	(bootstrap): Depend on compile-always, not compile-files.
+	
+	* emulation/pc-select.el (pc-select-save-and-set-mode):
+	Properly use MODE-VAR.
+
 2002-01-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* menu-bar.el (menu-bar-help-menu): Change menu-item "Show Emacs
