@@ -161,8 +161,9 @@ sed -f ../msdos/sed2v2.inp <config.tmp >config.h2
 Rem See if DECL_ALIGN can be supported with this GCC
 rm -f junk.c junk.o junk junk.exe
 echo struct { int i; char *p; } __attribute__((__aligned__(8))) foo;  >junk.c
-rem Two percent signs because it is a special character for COMMAND.COM
-echo int main(void) { return (unsigned long)&foo %% 8; }             >>junk.c
+rem Two percent signs because it is a special character for COMMAND.COM/CMD
+rem Filter thru Sed because "&" is special for CMD.EXE
+echo int main(void) { return (unsigned long)"&"foo %% 8; } | sed "s/.&./\&/"         >>junk.c
 gcc -o junk junk.c
 if not exist junk.exe coff2exe junk
 junk
