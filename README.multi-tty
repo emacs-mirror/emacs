@@ -79,26 +79,30 @@ merge of the Unicode branch.
 
 Please let me know if you find any bugs in this branch.
 
-HOW TO COMPILE AND TEST
------------------------
+HOW TO COMPILE
+--------------
 
-To try out the multi-tty branch, compile and run the multi-tty branch
-with the following commands:
+The multi-tty branch is compiled the same way as Emacs itself:
 
-        find -name "*.elc" | xargs rm   # Delete leftover stuff
-   	mkdir +build
-	cd +build
-	../configure <your favourite options>
+	./configure <your favourite options>
 	make bootstrap
-	src/emacs -nw		# You can also try without -nw
+	make install
+
+HOW TO TEST IT
+--------------
+
+To try out the multi-tty branch start up the Emacs server with the
+following commands:
+
+	emacs
 	M-x server-start
 
 and then (from a shell prompt on another terminal) start emacsclient
 with
-	lib-src/emacsclient /optional/file/names...
-or
-	lib-src/emacsclient -t /optional/file/names...
+	emacsclient -t /optional/file/names...   (for a tty frame)
+	emacsclient /optional/file/names...      (for an X frame)
 
+(Make sure both emacs and emacsclient are multi-tty versions.)
 You'll hopefully have two fully working, independent frames on
 separate terminals. The new frame is closed automatically when you
 finish editing the specified files (C-x #), but delete-frame (C-x 5 0)
