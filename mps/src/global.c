@@ -1,10 +1,16 @@
 /* impl.c.global: ARENA-GLOBAL INTERFACES
  *
- * $HopeName: MMsrc!global.c(trunk.7) $
+ * $HopeName: MMsrc!global.c(trunk.8) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .sources: See design.mps.arena.  design.mps.thread-safety is relevant
  * to the functions ArenaEnter and ArenaLeave in this file.
+ *
+ *
+ * TRANSGRESSIONS
+ *
+ * .static: Static data is used in ArenaAccess (in order to find the
+ * appropriate arena) and ArenaCreate.  See design.mps.arena.static.
  *
  * .non-mod: The Arena structure has many fields which properly belong
  * to other modules (see impl.h.mpmst); ArenaCreate contains code which
@@ -12,13 +18,6 @@
  * with a tag to the relevant module implementation.  Most of the
  * functions should be in some other module, they just ended up here by
  * confusion over naming.
- *
- *
- * TRANSGRESSIONS
- *
- * .static: Static data is used in ArenaAccess (in order to find the
- * appropriate arena) and ArenaCreate (in order to get a fresh serial
- * number).  See design.mps.arena.static.
  */
 
 #include "dongle.h"
@@ -28,7 +27,7 @@
 #include "mpm.h"
 
 
-SRCID(global, "$HopeName: MMsrc!global.c(trunk.7) $");
+SRCID(global, "$HopeName: MMsrc!global.c(trunk.8) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -36,7 +35,6 @@ SRCID(global, "$HopeName: MMsrc!global.c(trunk.7) $");
 /* design.mps.arena.static.ring.init */
 static Bool arenaRingInit = FALSE; 
 static RingStruct arenaRing;       /* design.mps.arena.static.ring */
-static Serial arenaSerial;         /* design.mps.arena.static.serial */
 
 
 /* ArenaControlPool -- get the control pool */
@@ -60,10 +58,58 @@ static void arenaReleaseRingLock(void)
 }
 
 
-/* ArenaCheck -- check the arena */
-
-Bool ArenaCheck(Arena arena)
+/* ArenaAnnounce -- add a new arena into the global ring of arenas
+ *
+ * On entry, the arena must not be locked (there should be no need,
+ * because other threads can't know about it).  On exit, it will be.
+ */
+void ArenaAnnounce(Arena arena)
 {
+  Globals arenaGlobals;
+
+  /* arena checked in ArenaEnter */
+
+  arenaClaimRingLock();
+  ArenaEnter(arena);
+  arenaGlobals = ArenaGlobals(arena);
+  AVERT(Globals, arenaGlobals);
+  RingAppend(&arenaRing, &arenaGlobals->globalRing);
+  arenaReleaseRingLock();
+}
+
+
+/* ArenaDenounce -- remove an arena from the global ring of arenas
+ *
+ * After this, no other thread can access the arena through ArenaAccess.
+ * On entry, the arena should be locked.  On exit, it will still be, but
+ * the lock has been released and reacquired in the meantime, so callers
+ * should not assume anything about the state of the arena.
+ */
+void ArenaDenounce(Arena arena)
+{
+  Globals arenaGlobals;
+
+  AVERT(Arena, arena);
+
+  /* Temporarily give up the arena lock to avoid deadlock, */
+  /* see design.mps.thread-safety.deadlock. */
+  ArenaLeave(arena);
+
+  /* Detach the arena from the global list. */
+  arenaClaimRingLock();
+  ArenaEnter(arena);
+  arenaGlobals = ArenaGlobals(arena);
+  AVERT(Globals, arenaGlobals);
+  RingRemove(&arenaGlobals->globalRing);
+  arenaReleaseRingLock();
+}
+
+
+/* GlobalsCheck -- check the arena globals */
+
+Bool GlobalsCheck(Globals arenaGlobals)
+{
+  Arena arena;
   TraceId ti;
   Trace trace;
   Index i;
@@ -71,22 +117,18 @@ Bool ArenaCheck(Arena arena)
   RefSet rs;
   Rank rank;
 
-  CHECKS(Arena, arena);
-  /* design.mps.arena.static.serial */
-  CHECKL(arena->serial < arenaSerial); 
-  CHECKL(RingCheck(&arena->globalRing));
+  CHECKS(Globals, arenaGlobals);
+  arena = GlobalsArena(arenaGlobals);
+  CHECKL(RingCheck(&arenaGlobals->globalRing));
 
-  CHECKL(MPSVersion() == arena->mpsVersionString);
+  CHECKL(MPSVersion() == arenaGlobals->mpsVersionString);
 
-  CHECKD_NOSIG(Lock, arena->lock);
+  CHECKD_NOSIG(Lock, arenaGlobals->lock);
 
-  /* no check possible on arena->pollThreshold */
-  CHECKL(BoolCheck(arena->insidePoll));
+  /* no check possible on pollThreshold */
+  CHECKL(BoolCheck(arenaGlobals->insidePoll));
 
   CHECKL(BoolCheck(arena->bufferLogging));
-
-  CHECKL(ArenaAllocCheck(arena));
-
   CHECKL(RingCheck(&arena->poolRing));
   CHECKL(RingCheck(&arena->rootRing));
   CHECKL(RingCheck(&arena->formatRing));
@@ -151,35 +193,51 @@ Bool ArenaCheck(Arena arena)
   /* we also check the statics now. design.mps.arena.static.check */
   CHECKL(BoolCheck(arenaRingInit));
   CHECKL(RingCheck(&arenaRing));
-  /* can't check arenaSerial */
 
   return TRUE;
 }
 
 
-/* ArenaInit -- initialize the generic part of the arena
- *
- * .init.caller: Unlike PoolInit, this is called by the class init
- * methods, not the generic Create.  This is because the class is
- * responsible for allocating the descriptor.
- */
+/* GlobalsInit -- initialize the globals of the arena */
 
-void ArenaInit(Arena arena, Lock lock, ArenaClass class)
+Res GlobalsInit(Globals arenaGlobals, Lock lock)
 {
+  Arena arena;
   Index i;
   Rank rank;
 
-  /* We do not check the arena argument, because it's uninitialized. */
-  /* Likewise lock. */
-  AVERT(ArenaClass, class);
+  /* We do not check the lock argument, because it's uninitialized. */
 
-  RingInit(&arena->globalRing);
-  ArenaAllocInit(arena, class);
-  arena->mpsVersionString = MPSVersion();
+  /* This is one of the first things that happens, */
+  /* so check static consistency here. */
+  AVER(MPMCheck());
+
+  if (!DongleTestFull())
+    return ResFAIL;
+
+  arenaClaimRingLock();
+  /* Ensure static things are initialized. */
+  if (!arenaRingInit) {
+    /* there isn't an arena ring yet */
+    /* design.mps.arena.static.init */
+    arenaRingInit = TRUE;
+    RingInit(&arenaRing);
+    ProtSetup();
+  }
+  EventInit();
+  arenaReleaseRingLock();
+
+  arena = GlobalsArena(arenaGlobals);
+
+  RingInit(&arenaGlobals->globalRing);
 
   LockInit(lock);
-  arena->lock = lock;
+  arenaGlobals->lock = lock;
 
+  arenaGlobals->pollThreshold = 0.0;
+  arenaGlobals->insidePoll = FALSE;
+
+  arenaGlobals->mpsVersionString = MPSVersion();
   RingInit(&arena->poolRing);
   arena->poolSerial = (Serial)0;
   RingInit(&arena->rootRing);
@@ -201,8 +259,6 @@ void ArenaInit(Arena arena, Lock lock, ArenaClass class)
   arena->suspended = FALSE;
   for(i = 0; i < ShieldCacheSIZE; i++)
     arena->shCache[i] = NULL;
-  arena->pollThreshold = 0.0;
-  arena->insidePoll = FALSE;
   arena->bufferLogging = FALSE;
   for (i=0; i < TraceLIMIT; i++) {
     /* design.mps.arena.trace.invalid */
@@ -219,154 +275,24 @@ void ArenaInit(Arena arena, Lock lock, ArenaClass class)
   for(i = 0; i < LDHistoryLENGTH; ++i)
     arena->history[i] = RefSetEMPTY;
 
-  arena->sig = ArenaSig;
-  arena->serial = arenaSerial;  /* design.mps.arena.static.serial */
-  ++arenaSerial;
-  
-  AVERT(Arena, arena);
-}
-
-
-/* ArenaCreateV -- create and bootstrap the arena */
-
-Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
-{
-  Res res;
-  Arena arena;
-
-  AVER(MPMCheck());
-  AVER(arenaReturn != NULL);
-  AVERT(ArenaClass, class);
-
-  if (!DongleTestFull())
-    return ResFAIL;
-  arenaClaimRingLock();
-  EventInit();
-  if (!arenaRingInit) {
-    /* there isn't an arena ring yet */
-    /* design.mps.arena.static.init */
-    arenaRingInit = TRUE;
-    RingInit(&arenaRing);
-    arenaSerial = (Serial)0;
-    ProtSetup();
-  }
-
-  res = ArenaAllocCreate(&arena, class, args);
-  if (res != ResOK)
-    goto failInit;
-
-  ArenaEnter(arena);
-  AVERT(Arena, arena);
-
-  /* initialize the reservoir, design.mps.reservoir */
-  res = ReservoirInit(&arena->reservoirStruct, arena);
-  if (res != ResOK) 
-    goto failReservoirInit;
-
-  res = ControlInit(arena);
-  if (res != ResOK) 
-    goto failControlInit;
-
-  /* initialize the message stuff, design.mps.message */
-  {
-    void *v;
-
-    res = ControlAlloc(&v, arena, BTSize(MessageTypeLIMIT), FALSE);
-    if (res != ResOK)
-      goto failEnabledBTAlloc;
-    arena->enabledMessageTypes = v;
-    BTResRange(arena->enabledMessageTypes, 0, MessageTypeLIMIT);
-  }
-
-  /* Add initialized arena to the global list of arenas. */
-  RingAppend(&arenaRing, &arena->globalRing);
-  arenaReleaseRingLock();
-
-  *arenaReturn = arena;
+  arenaGlobals->sig = GlobalsSig;
+  AVERT(Globals, arenaGlobals);
   return ResOK;
-
-failEnabledBTAlloc:
-  ControlFinish(arena);
-failControlInit:
-  ReservoirFinish(&arena->reservoirStruct);
-failReservoirInit:
-  (*class->finish)(arena);
-failInit:
-  arenaReleaseRingLock();
-
-  return res;
 }
 
 
-/* ArenaFinish -- finish the generic part of the arena
- *
- * .finish.caller: Unlike PoolFinish, this is called by the class finish
- * methods, not the generic Destroy.  This is because the class is
- * responsible for deallocating the descriptor.
- */
+/* GlobalsFinish -- finish the globals of the arena */
 
-void ArenaFinish(Arena arena)
+void GlobalsFinish(Globals arenaGlobals)
 {
+  Arena arena;
   Rank rank;
+
+  AVERT(Globals, arenaGlobals);
+  arena = GlobalsArena(arenaGlobals);
 
   STATISTIC_STAT(EVENT_PW(ArenaWriteFaults, arena,
                           arena->writeBarrierHitCount));
-
-  arena->sig = SigInvalid;
-  LockFinish(arena->lock);
-  RingFinish(&arena->poolRing);
-  RingFinish(&arena->formatRing);
-  RingFinish(&arena->messageRing);
-  RingFinish(&arena->rootRing);
-  RingFinish(&arena->threadRing);
-  RingFinish(&arena->globalRing);
-  for(rank = 0; rank < RankLIMIT; ++rank)
-    RingFinish(&arena->greyRing[rank]);
-  ArenaAllocFinish(arena);
-}
-
-
-/* ArenaDestroy -- deallocate and destroy the arena */
-
-void ArenaDestroy(Arena arena)
-{
-  Reservoir reservoir;
-
-  AVERT(Arena, arena);
-  AVER(!arena->insidePoll);
-  reservoir = ArenaReservoir(arena);
-  AVERT(Reservoir, reservoir);
-
-  /* Empty the reservoir - see .reservoir.finish */
-  ReservoirSetLimit(reservoir, 0);
-
-  /* Temporarily give up the arena lock to avoid deadlock */
-  /* see design.mps.arena.lock.avoid.conflict */
-  ArenaLeave(arena);
-
-  /* Detach the arena from the global list. */
-  arenaClaimRingLock();
-  RingRemove(&arena->globalRing);
-  arenaReleaseRingLock();
-
-  /* Reclaim the arena lock and re-test assumptions */
-  ArenaEnter(arena);
-  AVERT(Arena, arena);
-  AVER(!arena->insidePoll);
-
-  /* throw away the BT used by messages */
-  if (arena->enabledMessageTypes != NULL) {
-    ControlFree(arena, (void *)arena->enabledMessageTypes, 
-                BTSize(MessageTypeLIMIT));
-    arena->enabledMessageTypes = NULL;
-  }
-
-  /* .message.queue.empty: Empty the queue of messages before */
-  /* proceeding to finish the arena.  It is important that this */
-  /* is done before destroying the finalization pool as otherwise */
-  /* the message queue would have dangling pointers to messages */
-  /* whose memory has been unmapped. */
-  MessageEmpty(arena);
 
   /* destroy the final pool (see design.mps.finalize) */
   if (arena->isFinalPool) {
@@ -381,20 +307,26 @@ void ArenaDestroy(Arena arena)
     PoolDestroy(pool);
   }
 
-  /* Destroy the control pool & reservoir pool. */
-  arena->poolReady = FALSE;
-  ControlFinish(arena);
-  ReservoirFinish(reservoir);
+  arenaGlobals->sig = SigInvalid;
 
-  ArenaLeave(arena);
+  RingFinish(&arena->poolRing);
+  RingFinish(&arena->formatRing);
+  RingFinish(&arena->messageRing);
+  RingFinish(&arena->rootRing);
+  RingFinish(&arena->threadRing);
+  RingFinish(&arenaGlobals->globalRing);
+  for(rank = 0; rank < RankLIMIT; ++rank)
+    RingFinish(&arena->greyRing[rank]);
 
-  ArenaAllocDestroy(arena);
-
-  EventFinish();
+  LockReleaseMPM(arenaGlobals->lock);
+  /* Theoretically, another thread could grab the lock here, but it's */
+  /* not worth worrying about, since an attempt after the lock has been */
+  /* destroyed would lead to a crash just the same. */
+  LockFinish(arenaGlobals->lock);
 }
 
 
-/* ArenaEnter -- enter the state where you can look at MPM data structures */
+/* ArenaEnter -- enter the state where you can look at the arena */
 
 #if defined(THREAD_SINGLE) && defined(PROTECTION_NONE)
 void (ArenaEnter)(Arena arena)
@@ -408,7 +340,7 @@ void ArenaEnter(Arena arena)
   AVER(CHECKT(Arena, arena));
 
   StackProbe(StackProbeDEPTH);
-  LockClaim(arena->lock);
+  LockClaim(ArenaGlobals(arena)->lock);
   AVERT(Arena, arena); /* can't AVER it until we've got the lock */
   ShieldEnter(arena);
 }
@@ -429,7 +361,7 @@ void ArenaLeave(Arena arena)
   AVERT(Arena, arena);
   ShieldLeave(arena);
   ProtSync(arena);              /* design.mps.prot.if.sync */
-  LockReleaseMPM(arena->lock);
+  LockReleaseMPM(ArenaGlobals(arena)->lock);
 }
 #endif
 
@@ -440,7 +372,6 @@ void ArenaLeave(Arena arena)
  * version.  The format is platform-specific.  We won't necessarily
  * publish this.
  */
-
 MutatorFaultContext mps_exception_info = NULL;
 
 
@@ -450,7 +381,6 @@ MutatorFaultContext mps_exception_info = NULL;
  * corresponds to which mode flags need to be cleared in order
  * for the access to continue.
  */
-
 Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
 {
   Seg seg;
@@ -462,11 +392,11 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
   AVER(RingCheck(&arenaRing));
 
   RING_FOR(node, &arenaRing, nextNode) {
-    Arena arena = RING_ELT(Arena, globalRing, node);
+    Globals arenaGlobals = RING_ELT(Globals, globalRing, node);
+    Arena arena = GlobalsArena(arenaGlobals);
     Root root;
 
     ArenaEnter(arena);     /* design.mps.arena.lock.arena */
-    AVERT(Arena, arena);   /* can't AVER until we've got the lock */
     /* @@@@ The code below assumes that Roots and Segs are disjoint. */
     /* It will fall over (in TraceSegAccess probably) if there is a */
     /* protected root on a segment. */
@@ -532,9 +462,12 @@ void (ArenaPoll)(Arena arena)
 #else
 void ArenaPoll(Arena arena)
 {
+  Globals arenaGlobals;
   double size;
 
   AVERT(Arena, arena);
+  arenaGlobals = ArenaGlobals(arena);
+  AVERT(Globals, arenaGlobals);
 
   if (!DONGLE_TEST_QUICK()) {
     /* Cripple it by deleting the control pool. */
@@ -545,18 +478,18 @@ void ArenaPoll(Arena arena)
   if (arena->clamped)
     return;
   size = arena->fillMutatorSize;
-  if (arena->insidePoll || size < arena->pollThreshold)
+  if (arenaGlobals->insidePoll || size < arenaGlobals->pollThreshold)
     return;
 
-  arena->insidePoll = TRUE;
+  arenaGlobals->insidePoll = TRUE;
 
   TracePoll(arena);
 
   size = arena->fillMutatorSize;
-  arena->pollThreshold = size + ArenaPollALLOCTIME;
-  AVER(arena->pollThreshold > size); /* enough precision? */
+  arenaGlobals->pollThreshold = size + ArenaPollALLOCTIME;
+  AVER(arenaGlobals->pollThreshold > size); /* enough precision? */
 
-  arena->insidePoll = FALSE;
+  arenaGlobals->insidePoll = FALSE;
 }
 #endif
 
@@ -696,41 +629,30 @@ Ref ArenaRead(Arena arena, Addr addr)
 }
 
 
-/* ArenaDescribe -- describe the arena */
+/* GlobalsDescribe -- describe the arena globals */
 
-Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
+Res GlobalsDescribe(Globals arenaGlobals, mps_lib_FILE *stream)
 {
   Res res;
+  Arena arena;
   Ring node, nextNode;
   Index i;
 
-  if (!CHECKT(Arena, arena)) return ResFAIL;
+  if (!CHECKT(Globals, arenaGlobals)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
+  arena = GlobalsArena(arenaGlobals);
   res = WriteF(stream,
-               "Arena $P ($U) {\n",    
-               (WriteFP)arena, (WriteFU)arena->serial,
-               "  class $P (\"$S\")\n", 
-               (WriteFP)arena->class, arena->class->name,
-	       "  mpsVersion $S\n",
-	       arena->mpsVersionString,
-               NULL);
-  if (res != ResOK) return res;
-
-  res = ArenaAllocDescribe(arena, stream);
-  if (res != ResOK) return res;
-
-  res = WriteF(stream,
-               "  lock $P\n", (WriteFP)arena->lock,
-               "  pollThreshold $U KB\n",
-               (WriteFU)(arena->pollThreshold / 1024),
-               "  insidePoll $S\n", arena->insidePoll ? "YES" : "NO",
+	       "  mpsVersion $S\n", arenaGlobals->mpsVersionString,
+               "  lock $P\n", (WriteFP)arenaGlobals->lock,
+               "  pollThreshold $U kB\n",
+               (WriteFU)(arenaGlobals->pollThreshold / 1024),
+               arenaGlobals->insidePoll ? "inside poll\n" : "outside poll\n",
                "  poolSerial $U\n", (WriteFU)arena->poolSerial,
                "  rootSerial $U\n", (WriteFU)arena->rootSerial,
                "  formatSerial $U\n", (WriteFU)arena->formatSerial,
                "  threadSerial $U\n", (WriteFU)arena->threadSerial,
-               "  insideShield $S\n",  
-               arena->insideShield ? "YES" : "NO",
+               arena->insideShield ? "inside shield\n" : "outside shield\n",
                "  busyTraces    $B\n", (WriteFB)arena->busyTraces,
                "  flippedTraces $B\n", (WriteFB)arena->flippedTraces,
                /* @@@@ no TraceDescribe function */
@@ -784,10 +706,5 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
   }
 
   /* @@@@ What about grey rings? */
-
-  res = WriteF(stream,
-               "} Arena $P ($U)\n", (WriteFP)arena, 
-               (WriteFU)arena->serial,
-               NULL);
   return res;
 }
