@@ -892,7 +892,7 @@ DEFUN ("visible-frame-list", Fvisible_frame_list, Svisible_frame_list,
 }
 
 
-DEFUN ("frame-to-front", Fframe_to_front, Sframe_to_front, 1, 1, 0,
+DEFUN ("raise-frame", Fraise_frame, Sraise_frame, 1, 1, 0,
   "Bring FRAME to the front, so it occludes any frames it overlaps.\n\
 If FRAME is invisible, make it visible.\n\
 If Emacs is displaying on an ordinary terminal or some other device which\n\
@@ -908,7 +908,8 @@ doesn't support multiple overlapping frames, this function does nothing.")
   return Qnil;
 }
 
-DEFUN ("frame-to-back", Fframe_to_back, Sframe_to_back, 1, 1, 0,
+/* Should we have a corresponding function called Flower_Power?  */
+DEFUN ("lower-frame", Flower_frame, Slower_frame, 1, 1, 0,
   "Send FRAME to the back, so it is occluded by any frames that overlap it.\n\
 If Emacs is displaying on an ordinary terminal or some other device which\n\
 doesn't support multiple overlapping frames, this function does nothing.")
@@ -1481,8 +1482,8 @@ For values specific to the separate minibuffer frame, see\n\
   defsubr (&Siconify_frame);
   defsubr (&Sframe_visible_p);
   defsubr (&Svisible_frame_list);
-  defsubr (&Sframe_to_front);
-  defsubr (&Sframe_to_back);
+  defsubr (&Sraise_frame);
+  defsubr (&Slower_frame);
   defsubr (&Sredirect_frame_focus);
   defsubr (&Sframe_focus);
   defsubr (&Sframe_parameters);
