@@ -297,6 +297,13 @@ Lisp_Object Qpre_command_hook, Qpost_command_hook;
 Lisp_Object Vpre_command_hook, Vpost_command_hook;
 Lisp_Object Qcommand_hook_internal, Vcommand_hook_internal;
 
+/* List of deferred actions to be performed at a later time.
+   The precise format isn't relevant here; we just check whether it is nil.  */
+Lisp_Object Vdeferred_action_list;
+
+/* Function to call to handle deferred actions, when there are any.  */
+Lisp_Object Vdeferred_action_function;
+
 /* File in which we write all commands we read.  */
 FILE *dribble;
 
@@ -957,6 +964,9 @@ command_loop_1 ()
   if (!NILP (XSYMBOL (Qpost_command_hook)->value) && !NILP (Vrun_hooks))
     safe_run_hooks (Qpost_command_hook);
 
+  if (!NILP (Vdeferred_action_list))
+    call0 (Vdeferred_action_function);
+
   /* Do this after running Vpost_command_hook, for consistency.  */
   last_command = this_command;
 
@@ -1226,6 +1236,9 @@ command_loop_1 ()
 	 if the symbol is a local variable.  */
       if (!NILP (XSYMBOL (Qpost_command_hook)->value) && !NILP (Vrun_hooks))
 	safe_run_hooks (Qpost_command_hook);
+
+      if (!NILP (Vdeferred_action_list))
+	call0 (Vdeferred_action_function);
 
       /* If there is a prefix argument,
 	 1) We don't want last_command to be ``universal-argument''
@@ -6231,6 +6244,17 @@ Each element should have the form (N . SYMBOL) where N is the\n\
 numeric keysym code (sans the \"system-specific\" bit 1<<28)\n\
 and SYMBOL is its name.");
   Vsystem_key_alist = Qnil;
+
+  DEFVAR_LISP ("deferred-action-list", &Vdeferred_action_list,
+    "List of deferred actions to be performed at a later time.\n\
+The precise format isn't relevant here; we just check whether it is nil.");
+  Vdeferred_action_list = Qnil;
+
+  DEFVAR_LISP ("deferred-action-function", &Vdeferred_action_function,
+    "Function to call to handle deferred actions, after each command.\n\
+This function is called with no arguments after each command\n\
+whenever `deferred-action-list' is non-nil.");
+  Vdeferred_action_function = Qnil;
 }
 
 keys_of_keyboard ()
