@@ -235,9 +235,9 @@ Lisp_Object Qdisplay_table;
 
 
 /* The currently selected frame.  In a single-frame version, this
-   variable always holds the address of the_only_frame.  */
+   variable always equals the_only_frame.  */
 
-struct frame *selected_frame;
+Lisp_Object selected_frame;
 
 /* A frame which is not just a mini-buffer, or 0 if there are no such
    frames.  This is usually the most recent such frame that was
@@ -1902,24 +1902,24 @@ adjust_glyphs (f)
 static void
 adjust_frame_glyphs_initially ()
 {
-  struct window *root = XWINDOW (selected_frame->root_window);
+  struct frame *sf = SELECTED_FRAME ();
+  struct window *root = XWINDOW (sf->root_window);
   struct window *mini = XWINDOW (root->next);
-  int frame_height = FRAME_HEIGHT (selected_frame);
-  int frame_width = FRAME_WIDTH (selected_frame);
-  int top_margin = FRAME_TOP_MARGIN (selected_frame);
+  int frame_height = FRAME_HEIGHT (sf);
+  int frame_width = FRAME_WIDTH (sf);
+  int top_margin = FRAME_TOP_MARGIN (sf);
 
   /* Do it for the root window.  */
   XSETFASTINT (root->top, top_margin);
   XSETFASTINT (root->width, frame_width);
-  set_window_height (selected_frame->root_window,
-		     frame_height - 1 - top_margin, 0);
+  set_window_height (sf->root_window, frame_height - 1 - top_margin, 0);
 
   /* Do it for the mini-buffer window.  */
   XSETFASTINT (mini->top, frame_height - 1);
   XSETFASTINT (mini->width, frame_width);
   set_window_height (root->next, 1, 0);
 
-  adjust_frame_glyphs (selected_frame);
+  adjust_frame_glyphs (sf);
   glyphs_initialized_initially_p = 1;
 }
   
@@ -2992,7 +2992,7 @@ int
 direct_output_for_insert (g)
      int g;
 {
-  register struct frame *f = selected_frame;
+  register struct frame *f = SELECTED_FRAME ();
   struct window *w = XWINDOW (selected_window);
   struct it it, it2;
   struct glyph_row *glyph_row;
@@ -3253,7 +3253,7 @@ int
 direct_output_forward_char (n)
      int n;
 {
-  struct frame *f = selected_frame;
+  struct frame *f = SELECTED_FRAME ();
   struct window *w = XWINDOW (selected_window);
   struct glyph_row *row;
 
@@ -5852,8 +5852,9 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
   term_init (terminal_type);
   
   {
-    int width = FRAME_WINDOW_WIDTH (selected_frame);
-    int height = FRAME_HEIGHT (selected_frame);
+    struct frame *sf = SELECTED_FRAME ();
+    int width = FRAME_WINDOW_WIDTH (sf);
+    int height = FRAME_HEIGHT (sf);
 
     unsigned int total_glyphs = height * (width + 2) * sizeof (struct glyph);
 
@@ -5864,7 +5865,7 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
   }
 
   adjust_frame_glyphs_initially ();
-  calculate_costs (selected_frame);
+  calculate_costs (XFRAME (selected_frame));
 
 #ifdef SIGWINCH
 #ifndef CANNOT_DUMP
