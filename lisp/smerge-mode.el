@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: merge diff3 cvs conflict
-;; Revision: $Id: smerge-mode.el,v 1.10 2000/12/23 20:54:14 monnier Exp $
+;; Revision: $Id: smerge-mode.el,v 1.11 2001/01/25 15:36:32 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -181,8 +181,8 @@ Can be nil if the style is undecided, or else:
 - `diff3-A'")
 
 ;; Compiler pacifiers
-(defvar font-lock-mode nil)
-(defvar font-lock-keywords nil)
+(defvar font-lock-mode)
+(defvar font-lock-keywords)
 (eval-when-compile
   (unless (fboundp 'font-lock-fontify-region)
     (autoload 'font-lock-fontify-region "font-lock")))
