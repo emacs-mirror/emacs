@@ -307,10 +307,12 @@ set_frame_size (ew)
   Widget wmshell = get_wm_shell ((Widget) ew);
   Widget app_shell = XtParent ((Widget) wmshell);
   
-  
   if (! XtIsSubclass (wmshell, shellWidgetClass)) abort ();
   if (! XtIsSubclass (app_shell, shellWidgetClass)) abort ();
 
+  /* We don't need this for the momment. The geometry is computed in 
+     xfns.c.  */
+#if 0
   /* If the EmacsFrame doesn't have a geometry but the shell does,
      treat that as the geometry of the frame.  (Is this bogus?
      I'm not sure.) */
@@ -413,7 +415,7 @@ set_frame_size (ew)
 	  flags |= (app_flags & (WidthValue | HeightValue));
 	}
     }
-
+#endif /* 0 */
   {
     struct frame* frame = ew->emacs_frame.frame;
     Dimension pixel_width, pixel_height;
@@ -431,7 +433,19 @@ set_frame_size (ew)
     ew->core.width = pixel_width;
     ew->core.height = pixel_height;
 
+    /* Compute the geometry of the toplevel shell because on some platforms
+       when the geometry is not set, the widget children are resized.  */
+    {
+      int len;
+      char *tem;
+      sprintf (shell_position, "=%dx%d", pixel_width, pixel_height);
+      len = strlen (shell_position) + 1;
+      tem = (char *) xmalloc (len);
+      strncpy (tem, shell_position, len);
+      XtVaSetValues (wmshell, XtNgeometry, tem, 0);
+    }
 
+#if 0 /* We don't need this also.  */
     /* If a position was specified, assign it to the shell widget.
        (Else WM won't do anything with it.)
      */
@@ -468,6 +482,7 @@ set_frame_size (ew)
     /* Also assign the iconic status of the frame to the Shell, so that
        the WM sees it. */
     XtVaSetValues (wmshell, XtNiconic, ew->emacs_frame.iconic, 0);
+#endif /* 0 */
   }
 }
 
