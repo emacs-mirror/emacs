@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.25 $")
+(defconst byte-compile-version "$Revision: 2.26 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1269,7 +1269,7 @@ With prefix arg (noninteractively: 2nd arg), load the file after compiling."
 	(let ((vms-stmlf-recfm t))
 	  (if (file-writable-p target-file)
 	      ;; We must disable any code conversion here.
-	      (let ((coding-system-for-read 'no-conversion))
+	      (let ((coding-system-for-write 'no-conversion))
 		(if (or (eq system-type 'ms-dos) (eq system-type 'windows-nt))
 		    (setq buffer-file-type t))
 		(write-region 1 (point-max) target-file))
