@@ -88,8 +88,7 @@ After each update, `display-time-hook' is run with `run-hooks'."
   (or (eq (process-status proc) 'run)
       (setq display-time-string ""))
   ;; Force mode-line updates
-  (save-excursion (set-buffer (other-buffer)))
-  (set-buffer-modified-p (buffer-modified-p))
+  (force-mode-line-update t)
   (sit-for 0))
 
 (defvar display-time-string-forms
@@ -165,9 +164,7 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'.")
     (setq display-time-string
           (mapconcat 'eval display-time-string-forms "")))
   (run-hooks 'display-time-hook)
-  ;; Force redisplay of all buffers' mode lines to be considered.
-  (save-excursion (set-buffer (other-buffer)))
-  (set-buffer-modified-p (buffer-modified-p))
+  (force-mode-line-update)
   ;; Do redisplay right now, if no input pending.
   (sit-for 0))
 
