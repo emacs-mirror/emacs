@@ -1,3 +1,8 @@
+2002-09-05  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el Don't require vc.el at compile-time; it causes 
+	recursive requirements during bootstrap.
+
 2002-09-05  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (decode-char): Cancel the previous change.
