@@ -52,10 +52,14 @@ NOTE-END */
  the size of various data types.  */
 
 
-/* Linux defines these in <values.h>, but they can't be used in #if's */
+/* Linux defines these in <values.h>, but they can't be used in #if's.
+   #include it now so we know we've overridden it once and for all.  */
+#ifdef linux
+#include <values.h>
 #undef SHORTBITS
 #undef INTBITS
 #undef LONGBITS
+#endif
   
 #define SHORTBITS 16		/* Number of bits in a short */
 
