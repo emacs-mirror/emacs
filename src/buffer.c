@@ -5272,11 +5272,27 @@ Automatically becomes buffer-local when set in any fashion.");
 		     Qnil,
     "Display table that controls display of the contents of current buffer.\n\
 Automatically becomes buffer-local when set in any fashion.\n\
+\n\
+If this variable is nil, the value of `standard-display-table' is used.\n\
+Each window can have its own, overriding display table, see\n\
+`set-window-display-table' and `window-display-table'.
+\n\
 The display table is a char-table created with `make-display-table'.\n\
-The ordinary char-table elements control how to display each possible text\n\
-character.  Each value should be a vector of characters or nil;\n\
-nil means display the character in the default fashion.\n\
-There are six extra slots to control the display of\n\
+A char-table is an array indexed by character codes.  Normal array\n\
+primitives `aref' and `aset' can be used to access elements of a char-table.\n\
+\n\
+Each of the char-table elements control how to display the corresponding\n\
+text character: the element at index C in the table says how to display\n\
+the character whose code is C.  Each element should be a vector of\n\
+characters or nil.  nil means display the character in the default fashion;\n\
+otherwise, the characters from the vector are delivered to the screen\n\
+instead of the original character.\n\
+\n\
+For example, (aset buffer-display-table ?X ?Y) will cause Emacs to display\n\
+a capital Y instead of each X character.\n\
+\n\
+In addition, a char-table has six extra slots to control the display of:\n\
+\n\
   the end of a truncated screen line (extra-slot 0, a single character);\n\
   the end of a continued line (extra-slot 1, a single character);\n\
   the escape character used to display character codes in octal\n\
@@ -5287,9 +5303,8 @@ There are six extra slots to control the display of\n\
     a vector of characters);\n\
   the character used to draw the border between side-by-side windows\n\
     (extra-slot 5, a single character).\n\
-See also the functions `display-table-slot' and `set-display-table-slot'.\n\
-If this variable is nil, the value of `standard-display-table' is used.\n\
-Each window can have its own, overriding display table.");
+\n\
+See also the functions `display-table-slot' and `set-display-table-slot'.");
 #endif
   DEFVAR_PER_BUFFER ("buffer-display-table", &current_buffer->display_table,
 		     Qnil, 0);
