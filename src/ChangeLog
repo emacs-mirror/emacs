@@ -1,3 +1,7 @@
+2001-11-02  Richard M. Stallman  <rms@gnu.org>
+
+	* textprop.c (Fget_char_property): Doc fix.
+
 2001-11-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* process.c (Fstart_process): Add usage to doc-string.
@@ -11,6 +15,11 @@
 	* macros.c: Don't include keymap.h any more.
 
 2001-11-01  Richard M. Stallman  <rms@gnu.org>
+
+	* data.c (Fmake_local_variable): Doc fix.
+
+	* eval.c (Frun_hooks, Frun_hook_with_args_until_failure): Doc fix.
+	(Frun_hook_with_args_until_success, Frun_hook_with_args): Doc fix.
 
 	* keymap.c (Fdescribe_buffer_bindings): Print character property
 	bindings along with or instead of the buffer local map.

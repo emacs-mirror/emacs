@@ -1,3 +1,8 @@
+2001-11-02  Richard M. Stallman  <rms@gnu.org>
+
+	* mouse.el (popup-menu): If the user refuses to select
+	from a menu, don't try to invoke the menu.
+
 2001-11-02  Miles Bader  <miles@gnu.org>
 
 	* help-mode.el (help-xref): New button type.
@@ -24,6 +29,12 @@
 
 2001-11-01  Richard M. Stallman  <rms@gnu.org>
 
+	* files.el (file-newest-backup): Don't pass backup file name
+	thru file-name-sans-versions, because it never has version numbers.
+
+	* textmodes/sgml-mode.el (sgml-xml-guess): Fix regexp
+	to avoid ambiguous nested loops.
+	
 	* files.el (find-file-noselect): Offer to change buffer-read-only
 	only when the file's read-only status has changed from before
 	as well as disagreeing with the buffer's current status.
