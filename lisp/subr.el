@@ -733,11 +733,10 @@ To make a hook variable buffer-local, always use
     (unless (and (consp (symbol-value hook)) (memq t (symbol-value hook)))
       (setq local t)))
   (let ((hook-value (if local (symbol-value hook) (default-value hook))))
-    ;; If the hook value is a single function, turn it into a list.
-    (when (or (not (listp hook-value)) (eq (car hook-value) 'lambda))
-      (setq hook-value (list hook-value)))
-    ;; Do the actual removal if necessary
-    (setq hook-value (delete function (copy-sequence hook-value)))
+    ;; Remove the function, for both the list and the non-list cases.
+    (if (or (not (listp hook-value)) (eq (car hook-value) 'lambda))
+	(if (equal hook-value function) (setq hook-value nil))
+      (setq hook-value (delete function (copy-sequence hook-value))))
     ;; If the function is on the global hook, we need to shadow it locally
     ;;(when (and local (member function (default-value hook))
     ;;	       (not (member (cons 'not function) hook-value)))
