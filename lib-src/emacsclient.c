@@ -44,12 +44,12 @@ int geteuid ();
 /* Name used to invoke this program.  */
 char *progname;
 
-/* Nonzero means don't wait for a response from Emacs.  --nowait.  */
+/* Nonzero means don't wait for a response from Emacs.  --no-wait.  */
 int nowait = 0;
 
 struct option longopts[] =
 {
-  { "nowait",	no_argument,	   NULL, 'n' },
+  { "no-wait",	no_argument,	   NULL, 'n' },
   { "help",	no_argument,	   NULL, 'H' },
   { "version",	no_argument,	   NULL, 'V' },
   { 0 }
@@ -97,7 +97,7 @@ decode_options (argc, argv)
 print_help_and_exit ()
 {
   fprintf (stderr,
-	   "Usage: %s [-n] [--nowait] [+linenumber] filename\n",
+	   "Usage: %s [-n] [--no-wait] [+LINENUMBER] FILENAME\n",
 	   progname);
   fprintf (stderr,
 	   "Report bugs to bug-gnu-emacs@prep.ai.mit.edu.\n");
