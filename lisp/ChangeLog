@@ -1,4 +1,4 @@
-2001-12-29  Richard M. Stallman  <rms@gnu.org>
+2001-12-29  Markus Rost  <rost@math.ohio-state.edu>
 
 	* textmodes/reftex-global.el (reftex-query-replace-document)
 	(reftex-change-label): Doc fix.
