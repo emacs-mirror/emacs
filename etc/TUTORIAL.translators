@@ -1,0 +1,23 @@
+This file contains the list of translators of the tutorial.
+
+TUTORIAL.cs: Milan Zamazal <pdm@zamazal.org>
+             Pavel Janík <Pavel@Janik.cz>
+TUTORIAL.de: Werner Lemberg <wl@gnu.org>
+TUTORIAL.es: Carlos Alberto López Troncoso
+             Igor Tamara Patino <igor@tamarapatino.com>
+TUTORIAL.fr: Éric Jacoboni <jaco@teaser.fr>
+TUTORIAL.ja: Kenichi Handa <handa@etl.go.jp>
+TUTORIAL.ko: Koaunghi Un <koaunghi.un@student.uni-tuebingen.de>
+TUTORIAL.nl: Pieter Schoenmakers <tiggr@ics.ele.tue.nl>
+TUTORIAL.pl: Beatę Wierzchołowską <beataw@orient.uw.edu.pl>
+             Janusz S. Bien <jsbien@mail.uw.edu.pl>
+TUTORIAL.ro: Tudor Hulubei <tudor@gnu.org>
+TUTORIAL.se: Mats Lidell  <mats.lidell@eua.ericsson.se>
+TUTORIAL.sk: Miroslav Vaško <vasko@debian.cz>
+             Pavel Janík <Pavel@Janik.cz>
+TUTORIAL.sl: Primož Peterlin <peterlin@biofiz.mf.uni-lj.si>
+TUTORIAL.th: Virach Sornlertlamvanich <virach@nectec.or.th>
+
+;;; Local Variables:
+;;; coding: utf-8
+;;; End:
