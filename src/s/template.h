@@ -147,8 +147,8 @@ Boston, MA 02111-1307, USA.  */
    is not ':', #define this to be the appropriate character constant.  */
 /* #define SEPCHAR ':' */
 
-/* Define this if the system can use mmap in ralloc.c.  */
-/* #define REL_ALLOC_MMAP 1 */
+/* Define this if the system can use mmap for buffer text allocation.  */
+/* #define USE_MMAP_FOR_BUFFERS 1 */
 
 /* ============================================================ */
 

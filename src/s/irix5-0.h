@@ -123,4 +123,4 @@ char *_getpty();
 
 #define NARROWPROTO 1
 
-#define REL_ALLOC_MMAP 1
+#define USE_MMAP_FOR_BUFFERS 1

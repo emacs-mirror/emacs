@@ -190,7 +190,7 @@
 
 #define GC_MARK_STACK 	1
 
-/* Define REL_ALLOC_MMAP to use an ralloc implementation based on
-   mmap(2)  */
+/* Define USE_MMAP_FOR_BUFFERS to let Emacs use mmap(2) to allocate
+   buffer text.  This overrides REL_ALLOC.  */
 
-#define REL_ALLOC_MMAP	1
+#define USE_MMAP_FOR_BUFFERS	1
