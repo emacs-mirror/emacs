@@ -3560,8 +3560,20 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
                                   file))))))))
 	  (if (/= result 0)
 	      ;; We get here if `insert-directory-program' failed.
-	      ;; Access the file to get a suitable error.
-	      (access-file file "Reading directory")
+	      ;; On non-Posix systems, we cannot open a directory, so
+	      ;; don't even try, because that will always result in
+	      ;; the ubiquitous "Access denied".  Instead, show them
+	      ;; the `ls' command line and let them guess what went
+	      ;; wrong.
+	      (if (and (file-directory-p file)
+		       (memq system-type '(ms-dos windows-nt)))
+		  (error
+		   "Reading directory: \"%s %s -- %s\" exited with status %s"
+		   insert-directory-program
+		   (if (listp switches) (concat switches) switches)
+		   file result)
+		;; Unix.  Access the file to get a suitable error.
+		(access-file file "Reading directory"))
 	    ;; Replace "total" with "used", to avoid confusion.
 	    ;; Add in the amount of free space.
 	    (save-excursion
