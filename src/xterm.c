@@ -151,6 +151,11 @@ extern void _XEditResCheckMessages ();
 #endif
 #endif
 
+#ifdef HAVE_X11R6
+/* This isn't prototyped in OSF 5.0 or or XFree 4.1.  */
+extern char * XSetIMValues P_ ((XIM, ...));
+#endif
+
 #define abs(x)	((x) < 0 ? -(x) : (x))
 
 #define BETWEEN(X, LOWER, UPPER)  ((X) >= (LOWER) && (X) < (UPPER))
@@ -12435,7 +12440,6 @@ xim_open_dpy (dpyinfo, resource_name)
 #ifdef HAVE_X11R6
       destroy.callback = xim_destroy_callback;
       destroy.client_data = (XPointer)dpyinfo;
-      /* This isn't prototyped in OSF 5.0.  */
       XSetIMValues (xim, XNDestroyCallback, &destroy, NULL);
 #endif
     }
