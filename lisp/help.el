@@ -1,10 +1,9 @@
 ;;; help.el --- help commands for Emacs
 
-;; Maintainer: FSF
-;; Last-Modified: 30 Jun 1992
-;; Keywords: help, internal
-
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: help, internal
 
 ;; This file is part of GNU Emacs.
 

@@ -1,9 +1,8 @@
 ;;; ebuff-menu.el --- electric-buffer-list mode
 
-;; Author: Richard Mlynarik <mly@ai.mit.edu>
-;; Last-Modified: 21 Dec 1991
-
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+
+;; Author: Richard Mlynarik <mly@ai.mit.edu>
 
 ;; This file is part of GNU Emacs.
 

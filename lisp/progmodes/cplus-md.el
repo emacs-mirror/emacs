@@ -1,9 +1,10 @@
 ;;; c++-mode.el --- C++ code editing commands for Emacs
 
+;; Copyright (C) 1985 Richard M. Stallman.
+
 ;; Author: Dave Detlefs <dld@cs.cmu.edu>
 ;; 	Stewart Clamen <clamen@cs.cmu.edu>
 ;; Maintainer: Dave Detlefs <dld@cs.cmu.edu>
-;; Last-Modified: 09 May 1991
 ;; Keywords: c
 
 ;;; Commentary:
@@ -11,8 +12,6 @@
 ;; 1987 Dave Detlefs  (dld@cs.cmu.edu) 
 ;; and  Stewart Clamen (clamen@cs.cmu.edu).
 ;; Done by fairly faithful modification of:
-;; c-mode.el, Copyright (C) 1985 Richard M. Stallman.
-
 ;;; Change Log:
 
 ;; Feb, 1990 (Dave Detlefs, dld@cs.cmu.edu)
@@ -99,13 +98,11 @@
   (define-key c++-mode-map "\e\C-q" 'indent-c++-exp)
   (define-key c++-mode-map "\177" 'backward-delete-char-untabify)
   (define-key c++-mode-map "\t" 'c++-indent-command)
-  (define-key c++-mode-map "\C-c\C-i" 'c++-insert-header)
-  (define-key c++-mode-map "\C-c\C-\\" 'c++-macroize-region)
-  (define-key c++-mode-map "\C-c\C-c" 'c++-comment-region)
-  (define-key c++-mode-map "\C-c\C-u" 'c++-uncomment-region)
-  (define-key c++-mode-map "\e\C-a" 'c++-beginning-of-defun)
-  (define-key c++-mode-map "\e\C-e" 'c++-end-of-defun)
-  (define-key c++-mode-map "\e\C-x" 'c++-indent-defun))
+;;   (define-key c++-mode-map "\C-c\C-i" 'c++-insert-header)
+  (define-key c++-mode-map "\C-c\C-\\" 'c-backslash-region)
+;;   (define-key c++-mode-map "\e\C-a" 'c++-beginning-of-defun)
+;;   (define-key c++-mode-map "\e\C-e" 'c++-end-of-defun)
+;;   (define-key c++-mode-map "\e\C-x" 'c++-indent-defun))
 
 (defvar c++-mode-syntax-table nil
   "Syntax table used in C++ mode.")
@@ -119,7 +116,7 @@
 
 (defvar c++-continued-member-init-offset nil
   "*Extra indent for continuation lines of member inits;
-NIL means to align with previous initializations rather than
+nil means to align with previous initializations rather than
 with the colon on the first line.")
 (defvar c++-member-init-indent 0
   "*Indentation level of member initializations in function declarations.")
@@ -569,8 +566,8 @@ Returns nil if line starts inside a string, t if in a comment."
 		    (looking-at "\\*/")))
 	     (search-backward "/*" lim 'move))
 	    ((and
-	      (search-backward "//" (max (point-bol) lim) 'move)
-	      (not (within-string-p (point) opoint))))
+	      (search-backward "//" (max (c++-point-bol) lim) 'move)
+	      (not (c++-within-string-p (point) opoint))))
 	  (t (beginning-of-line)
 	     (skip-chars-forward " \t")
 	     (if (looking-at "#")
@@ -644,16 +641,16 @@ Returns nil if line starts inside a string, t if in a comment."
 		     (>= (car indent-stack) 0))
 		;; Line is on an existing nesting level.
 		;; Lines inside parens are handled specially.
-		(if (/= (char-after (car contain-stack)) ?{)
+		(if (/= (char-after (car contain-stack)) ?\{)
 		    (setq this-indent (car indent-stack))
 		  ;; Line is at statement level.
 		  ;; Is it a new statement?  Is it an else?
 		  ;; Find last non-comment character before this line
 		  (save-excursion
 		    (setq at-else (looking-at "else\\W"))
-		    (setq at-brace (= (following-char) ?{))
+		    (setq at-brace (= (following-char) ?\{))
 		    (c++-backward-to-noncomment opoint)
-		    (if (not (memq (preceding-char) '(nil ?\, ?\; ?} ?: ?{)))
+		    (if (not (memq (preceding-char) '(nil ?\, ?\; ?\} ?: ?\{)))
 			;; Preceding line did not end in comma or semi;
 			;; indent this line  c-continued-statement-offset
 			;; more than previous.
@@ -688,9 +685,9 @@ Returns nil if line starts inside a string, t if in a comment."
 		(setq this-indent (max 1 (+ this-indent c-label-offset))))
 	    (if (looking-at "friend[ \t]class[ \t]")
 		(setq this-indent (+ this-indent c++-friend-offset)))
-	    (if (= (following-char) ?})
+	    (if (= (following-char) ?\})
 		(setq this-indent (- this-indent c-indent-level)))
-	    (if (= (following-char) ?{)
+	    (if (= (following-char) ?\{)
 		(setq this-indent (+ this-indent c-brace-offset)))
 	    ;; Put chosen indentation into effect.
 	    (or (= (current-column) this-indent)
@@ -706,8 +703,10 @@ Returns nil if line starts inside a string, t if in a comment."
 		    (progn
 		      (indent-for-comment)
 		      (beginning-of-line))))))))))
-
-(defun fill-C-comment ()
+
+(defun fill-c++-comment ()
+  "Fill a comment contained in consecutive lines containing point.
+The fill lines remain a comment."
   (interactive)
   (save-excursion
     (let ((save fill-prefix))
@@ -726,28 +725,28 @@ Returns nil if line starts inside a string, t if in a comment."
       (delete-char -1)
       (setq fill-prefix save))))
 
-(defun point-bol ()
+(defun c++-point-bol ()
   "Returns the value of the point at the beginning of the current line."
   (save-excursion
     (beginning-of-line)
     (point)))
 
-(defun c++-insert-header ()
-  "Insert header denoting C++ code at top of buffer."
-  (interactive)
-  (save-excursion
-    (goto-char (point-min))
-    (insert "// "
-	    "This may look like C code, but it is really "
-	    "-*- C++ -*-"
-	    "\n\n")))
+;; (defun c++-insert-header ()
+;;   "Insert header denoting C++ code at top of buffer."
+;;   (interactive)
+;;   (save-excursion
+;;     (goto-char (point-min))
+;;     (insert "// "
+;; 	    "This may look like C code, but it is really "
+;; 	    "-*- C++ -*-"
+;; 	    "\n\n")))
 
-(defun within-string-p (point1 point2)
+(defun c++-within-string-p (point1 point2)
   "Returns true if number of double quotes between two points is odd."
   (let ((s (buffer-substring point1 point2)))
-    (not (zerop (mod (count-char-in-string ?\" s) 2)))))
+    (not (zerop (% (c++-count-char-in-string ?\" s) 2)))))
 
-(defun count-char-in-string (c s)
+(defun c++-count-char-in-string (c s)
   (let ((count 0)
 	(pos 0))
     (while (< pos (length s))
@@ -755,227 +754,147 @@ Returns nil if line starts inside a string, t if in a comment."
       (setq pos (1+ pos)))
     count))
 
-;;; This page covers "macroization;" making C++ parameterized types
-;;; via macros.
+;; rms: This page is creeping featurism, and not worth having.
 
-(defvar c++-default-macroize-column 78
-  "Place to insert backslashes.")
-
-(defun c++-macroize-region (from to arg)
-  "Insert backslashes at end of every line in region.  Useful for defining cpp
-macros.  If called with negative argument, will remove trailing backslashes,
-so that indentation will work right."
-  (interactive "r\np")
-  (save-excursion
-    (goto-char from)
-    (beginning-of-line 1)
-    (let ((line (count-lines (point-min) (point)))
-	  (to-line (save-excursion (goto-char to)
-				   (count-lines (point-min) (point)))))
-      (while (< line to-line)
-	(backslashify-current-line (> arg 0))
-	(next-line 1) (setq line (1+ line))))))
-
-(defun backslashify-current-line (doit)
-  (end-of-line 1)
-  (cond
-   (doit
-    ;; Note that "\\\\" is needed to get one backslash.
-    (if (not (save-excursion (forward-char -1) (looking-at "\\\\")))
-	(progn
-	  (if (>= (current-column) c++-default-macroize-column)
-	      (insert " \\")
-	    (while (<= (current-column) c++-default-macroize-column)
-	      (insert "\t") (end-of-line))
-	    (delete-char -1)
-	    (while (< (current-column) c++-default-macroize-column)
-	      (insert " ") (end-of-line))
-	    (insert "\\")))))
-   (t
-    (forward-char -1)
-    (if (looking-at "\\\\")
-	(progn (skip-chars-backward " \t")
-	       (kill-line))))))
-
-
-;;; This page covers commenting out multiple lines.
-
-(defun c++-comment-region ()
-  "Comment out all lines in a region between mark and current point.
-Inserts \"// \" (`comment-start') in front of each line."
-  (interactive)
-  (let* ((m      (if (eq (mark) nil) (error "Mark is not set!") (mark)))
-	 (start  (if (< (point) m) (point) m))
-	 (end    (if (> (point) m) (point) m))
-	 (mymark (copy-marker end)))
-    (save-excursion
-	(goto-char start)
-	(while (< (point) (marker-position mymark))
-	    (beginning-of-line)
-	    (insert comment-start)
-	    (beginning-of-line)
-	    (next-line 1)))))
-
-(defun c++-uncomment-region ()
-  "Uncomment all lines in region between mark and current point.
-Deletes the leading \"// \" (`comment-start') from each line, if any."
-  (interactive)
-  (let* ((m      (if (eq (mark) nil) (error "Mark is not set!") (mark)))
-	 (start  (if (< (point) m) (point) m))
-	 (end    (if (> (point) m) (point) m))
-	 (mymark (copy-marker end))
-	 (len    (length comment-start))
-	 (char   (string-to-char comment-start)))
-    (save-excursion
-	(goto-char start)
-	(while (< (point) (marker-position mymark))
-	    (beginning-of-line)
-	    (if (looking-at (concat " *" comment-start))
-		(progn
-		  (zap-to-char 1 char)
-		  (delete-char len)))
-	    (beginning-of-line)
-	    (next-line 1)))))
-
 ;;; Below are two regular expressions that attempt to match defuns
 ;;; "strongly" and "weakly."  The strong one almost reconstructs the
 ;;; grammar of C++; the weak one just figures anything id or curly on
 ;;; the left begins a defun.  The constant "c++-match-header-strongly"
 ;;; determines which to use; the default is the weak one.
 
-(defvar c++-match-header-strongly nil
-  "*If nil, use `c++-defun-header-weak' to identify beginning of definitions.
-If non-nil, use `c++-defun-header-strong'.")
-
-(defvar c++-defun-header-strong-struct-equivs "\\(class\\|struct\\|enum\\)"
-  "Regexp to match names of structure declaration blocks in C++.")
-
-(defconst c++-defun-header-strong
-  (let*
-      (; valid identifiers
-       ;; There's a real wierdness here -- if I switch the below
-       (id "\\(\\w\\|_\\)+")
-       ;; to be
-       ;; (id "\\(_\\|\\w\\)+")
-       ;; things no longer work right.  Try it and see!
-
-       ; overloadable operators
-       (op-sym1
-	 "[---+*/%^&|~!=<>]\\|[---+*/%^&|<>=!]=\\|<<=?\\|>>=?")
-       (op-sym2
-	 "&&\\|||\\|\\+\\+\\|--\\|()\\|\\[\\]")	 
-       (op-sym (concat "\\(" op-sym1 "\\|" op-sym2 "\\)"))
-       ; whitespace
-       (middle "[^\\*]*\\(\\*+[^/\\*][^\\*]*\\)*")
-       (c-comment (concat "/\\*" middle "\\*+/"))
-       (wh (concat "\\(\\s \\|\n\\|//.*$\\|" c-comment "\\)"))
-       (wh-opt (concat wh "*"))
-       (wh-nec (concat wh "+"))
-       (oper (concat "\\(" "operator" "\\("
-		     wh-opt op-sym "\\|" wh-nec id "\\)" "\\)"))
-       (dcl-list "([^():]*)")
-       (func-name (concat "\\(" oper "\\|" id "::" id "\\|" id "\\)"))
-       (inits
-	 (concat "\\(:"
-		 "\\(" wh-opt id "(.*\\()" wh-opt "," "\\)\\)*"
-		 wh-opt id "(.*)" wh-opt "{"
-		 "\\|" wh-opt "{\\)"))
-       (type-name (concat
-		    "\\(" c++-defun-header-strong-struct-equivs wh-nec "\\)?"
-		    id))
-       (type (concat "\\(const" wh-nec "\\)?"
-		     "\\(" type-name "\\|" type-name wh-opt "\\*+" "\\|"
-		     type-name wh-opt "&" "\\)"))
-       (modifier "\\(inline\\|virtual\\|overload\\|auto\\|static\\)")
-       (modifiers (concat "\\(" modifier wh-nec "\\)*"))
-       (func-header
-	 ;;     type               arg-dcl
-	 (concat modifiers type wh-nec func-name wh-opt dcl-list wh-opt inits))
-       (inherit (concat "\\(:" wh-opt "\\(public\\|private\\)?"
-			wh-nec id "\\)"))
-       (cs-header (concat
-		    c++-defun-header-strong-struct-equivs
-		    wh-nec id wh-opt inherit "?" wh-opt "{")))
-    (concat "^\\(" func-header "\\|" cs-header "\\)"))
-  "Strongly-defined regexp to match beginning of structure or function def.")
-
-
-;; This part has to do with recognizing defuns.
-
-;; The weak convention we will use is that a defun begins any time
-;; there is a left curly brace, or some identifier on the left margin,
-;; followed by a left curly somewhere on the line.  (This will also
-;; incorrectly match some continued strings, but this is after all
-;; just a weak heuristic.)  Suggestions for improvement (short of the
-;; strong scheme shown above) are welcomed.
-
-(defconst c++-defun-header-weak "^{\\|^[_a-zA-Z].*{"
-  "Weakly-defined regexp to match beginning of structure or function def.")
-
-(defun c++-beginning-of-defun (arg)
-  (interactive "p")
-  (let ((c++-defun-header (if c++-match-header-strongly
-			      c++-defun-header-strong
-			    c++-defun-header-weak)))
-    (cond ((or (= arg 0) (and (> arg 0) (bobp))) nil)
-	  ((and (not (looking-at c++-defun-header))
-		(let ((curr-pos (point))
-		      (open-pos (if (search-forward "{" nil 'move)
-				    (point)))
-		      (beg-pos
-			(if (re-search-backward c++-defun-header nil 'move)
-			    (match-beginning 0))))
-		  (if (and open-pos beg-pos
-			   (< beg-pos curr-pos)
-			   (> open-pos curr-pos))
-		      (progn
-			(goto-char beg-pos)
-			(if (= arg 1) t nil));; Are we done?
-		    (goto-char curr-pos)
-		    nil))))
-	  (t
-	    (if (and (looking-at c++-defun-header) (not (bobp)))
-		(forward-char (if (< arg 0) 1 -1)))
-	    (and (re-search-backward c++-defun-header nil 'move (or arg 1))
-		 (goto-char (match-beginning 0)))))))
-
-
-(defun c++-end-of-defun (arg)
-  (interactive "p")
-  (let ((c++-defun-header (if c++-match-header-strongly
-			      c++-defun-header-strong
-			    c++-defun-header-weak)))
-    (if (and (eobp) (> arg 0))
-	nil
-      (if (and (> arg 0) (looking-at c++-defun-header)) (forward-char 1))
-      (let ((pos (point)))
-	(c++-beginning-of-defun 
-	  (if (< arg 0)
-	      (- (- arg (if (eobp) 0 1)))
-	    arg))
-	(if (and (< arg 0) (bobp))
-	    t
-	  (if (re-search-forward c++-defun-header nil 'move)
-	      (progn (forward-char -1)
-		     (forward-sexp)
-		     (beginning-of-line 2)))
-	  (if (and (= pos (point)) 
-		   (re-search-forward c++-defun-header nil 'move))
-	      (c++-end-of-defun 1))))
-      t)))
-
-(defun c++-indent-defun ()
-  "Indents the current function definition, struct or class declaration."
-  (interactive)
-  (let ((restore (point)))
-    (c++-end-of-defun 1)
-    (beginning-of-line 1)
-    (let ((end (point)))
-      (c++-beginning-of-defun 1)
-      (while (<= (point) end)
-	(c++-indent-line)
-	(next-line 1)
-	(beginning-of-line 1)))
-    (goto-char restore)))
+;; (defvar c++-match-header-strongly nil
+;;   "*If nil, use `c++-defun-header-weak' to identify beginning of definitions.
+;; If non-nil, use `c++-defun-header-strong'.")
+;; 
+;; (defvar c++-defun-header-strong-struct-equivs "\\(class\\|struct\\|enum\\)"
+;;   "Regexp to match names of structure declaration blocks in C++.")
+;; 
+;; (defconst c++-defun-header-strong
+;;   (let*
+;;       (; valid identifiers
+;;        ;; There's a real wierdness here -- if I switch the below
+;;        (id "\\(\\w\\|_\\)+")
+;;        ;; to be
+;;        ;; (id "\\(_\\|\\w\\)+")
+;;        ;; things no longer work right.  Try it and see!
+;; 
+;;        ; overloadable operators
+;;        (op-sym1
+;; 	 "[---+*/%^&|~!=<>]\\|[---+*/%^&|<>=!]=\\|<<=?\\|>>=?")
+;;        (op-sym2
+;; 	 "&&\\|||\\|\\+\\+\\|--\\|()\\|\\[\\]")	 
+;;        (op-sym (concat "\\(" op-sym1 "\\|" op-sym2 "\\)"))
+;;        ; whitespace
+;;        (middle "[^\\*]*\\(\\*+[^/\\*][^\\*]*\\)*")
+;;        (c-comment (concat "/\\*" middle "\\*+/"))
+;;        (wh (concat "\\(\\s \\|\n\\|//.*$\\|" c-comment "\\)"))
+;;        (wh-opt (concat wh "*"))
+;;        (wh-nec (concat wh "+"))
+;;        (oper (concat "\\(" "operator" "\\("
+;; 		     wh-opt op-sym "\\|" wh-nec id "\\)" "\\)"))
+;;        (dcl-list "([^():]*)")
+;;        (func-name (concat "\\(" oper "\\|" id "::" id "\\|" id "\\)"))
+;;        (inits
+;; 	 (concat "\\(:"
+;; 		 "\\(" wh-opt id "(.*\\()" wh-opt "," "\\)\\)*"
+;; 		 wh-opt id "(.*)" wh-opt "{"
+;; 		 "\\|" wh-opt "{\\)"))
+;;        (type-name (concat
+;; 		    "\\(" c++-defun-header-strong-struct-equivs wh-nec "\\)?"
+;; 		    id))
+;;        (type (concat "\\(const" wh-nec "\\)?"
+;; 		     "\\(" type-name "\\|" type-name wh-opt "\\*+" "\\|"
+;; 		     type-name wh-opt "&" "\\)"))
+;;        (modifier "\\(inline\\|virtual\\|overload\\|auto\\|static\\)")
+;;        (modifiers (concat "\\(" modifier wh-nec "\\)*"))
+;;        (func-header
+;; 	 ;;     type               arg-dcl
+;; 	 (concat modifiers type wh-nec func-name wh-opt dcl-list wh-opt inits))
+;;        (inherit (concat "\\(:" wh-opt "\\(public\\|private\\)?"
+;; 			wh-nec id "\\)"))
+;;        (cs-header (concat
+;; 		    c++-defun-header-strong-struct-equivs
+;; 		    wh-nec id wh-opt inherit "?" wh-opt "{")))
+;;     (concat "^\\(" func-header "\\|" cs-header "\\)"))
+;;   "Strongly-defined regexp to match beginning of structure or function def.")
+;; 
+;; 
+;; ;; This part has to do with recognizing defuns.
+;; 
+;; ;; The weak convention we will use is that a defun begins any time
+;; ;; there is a left curly brace, or some identifier on the left margin,
+;; ;; followed by a left curly somewhere on the line.  (This will also
+;; ;; incorrectly match some continued strings, but this is after all
+;; ;; just a weak heuristic.)  Suggestions for improvement (short of the
+;; ;; strong scheme shown above) are welcomed.
+;; 
+;; (defconst c++-defun-header-weak "^{\\|^[_a-zA-Z].*{"
+;;   "Weakly-defined regexp to match beginning of structure or function def.")
+;; 
+;; (defun c++-beginning-of-defun (arg)
+;;   (interactive "p")
+;;   (let ((c++-defun-header (if c++-match-header-strongly
+;; 			      c++-defun-header-strong
+;; 			    c++-defun-header-weak)))
+;;     (cond ((or (= arg 0) (and (> arg 0) (bobp))) nil)
+;; 	  ((and (not (looking-at c++-defun-header))
+;; 		(let ((curr-pos (point))
+;; 		      (open-pos (if (search-forward "{" nil 'move)
+;; 				    (point)))
+;; 		      (beg-pos
+;; 			(if (re-search-backward c++-defun-header nil 'move)
+;; 			    (match-beginning 0))))
+;; 		  (if (and open-pos beg-pos
+;; 			   (< beg-pos curr-pos)
+;; 			   (> open-pos curr-pos))
+;; 		      (progn
+;; 			(goto-char beg-pos)
+;; 			(if (= arg 1) t nil));; Are we done?
+;; 		    (goto-char curr-pos)
+;; 		    nil))))
+;; 	  (t
+;; 	    (if (and (looking-at c++-defun-header) (not (bobp)))
+;; 		(forward-char (if (< arg 0) 1 -1)))
+;; 	    (and (re-search-backward c++-defun-header nil 'move (or arg 1))
+;; 		 (goto-char (match-beginning 0)))))))
+;; 
+;; 
+;; (defun c++-end-of-defun (arg)
+;;   (interactive "p")
+;;   (let ((c++-defun-header (if c++-match-header-strongly
+;; 			      c++-defun-header-strong
+;; 			    c++-defun-header-weak)))
+;;     (if (and (eobp) (> arg 0))
+;; 	nil
+;;       (if (and (> arg 0) (looking-at c++-defun-header)) (forward-char 1))
+;;       (let ((pos (point)))
+;; 	(c++-beginning-of-defun 
+;; 	  (if (< arg 0)
+;; 	      (- (- arg (if (eobp) 0 1)))
+;; 	    arg))
+;; 	(if (and (< arg 0) (bobp))
+;; 	    t
+;; 	  (if (re-search-forward c++-defun-header nil 'move)
+;; 	      (progn (forward-char -1)
+;; 		     (forward-sexp)
+;; 		     (beginning-of-line 2)))
+;; 	  (if (and (= pos (point)) 
+;; 		   (re-search-forward c++-defun-header nil 'move))
+;; 	      (c++-end-of-defun 1))))
+;;       t)))
+;; 
+;; (defun c++-indent-defun ()
+;;   "Indents the current function definition, struct or class declaration."
+;;   (interactive)
+;;   (let ((restore (point)))
+;;     (c++-end-of-defun 1)
+;;     (beginning-of-line 1)
+;;     (let ((end (point)))
+;;       (c++-beginning-of-defun 1)
+;;       (while (<= (point) end)
+;; 	(c++-indent-line)
+;; 	(next-line 1)
+;; 	(beginning-of-line 1)))
+;;     (goto-char restore)))
 
 ;;; c++-mode.el ends here

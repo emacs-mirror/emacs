@@ -1,11 +1,10 @@
 ;;; comint.el --- general command interpreter in a window stuff
 
+;;; Copyright Olin Shivers (1988).
+
 ;; Maintainer: Olin Shivers <shivers@cs.cmu.edu>
-;; Last-Modified: 16 Jul 1992
 ;; Version: 2.03
 ;; Keyword: estensions, processes
-
-;;; Copyright Olin Shivers (1988).
 
 ;;; This file is part of GNU Emacs.
 

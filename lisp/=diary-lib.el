@@ -1,10 +1,9 @@
 ;;; diary.el --- diary functions.
 
-;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Last-Modified: 30 Jun 1992
-;; Keyword: calendar
-
 ;; Copyright (C) 1989, 1990 Free Software Foundation, Inc.
+
+;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
+;; Keyword: calendar
 
 ;; This file is part of GNU Emacs.
 

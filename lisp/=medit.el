@@ -1,11 +1,10 @@
 ;;; medit.el --- front-end to the MEDIT package for editing MDL
 
+;; Copyright (C) 1985 Free Software Foundation, Inc.
+
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
-;; Last-Modified: 05 Apr 1991
 ;; Keywords: languages
-
-;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

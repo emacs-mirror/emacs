@@ -1,10 +1,9 @@
 ;;; life.el --- John Horton Conway's `Life' game for GNU Emacs
 
-;; Author: Kyle Jones <talos!kjones@uunet.uu.net>
-;; Last-Modified: 16 Mar 1992
-;; Keyword: games
-
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
+
+;; Author: Kyle Jones <talos!kjones@uunet.uu.net>
+;; Keyword: games
 
 ;; This file is part of GNU Emacs.
 

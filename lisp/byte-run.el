@@ -1,11 +1,10 @@
 ;; byte-run.el --- byte-compiler support for inlining
 
+;; Copyright (C) 1992 Free Software Foundation, Inc.
+
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
-;; Last-Modified: 13 Jul 1992
 ;; Keywords: internal
-
-;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

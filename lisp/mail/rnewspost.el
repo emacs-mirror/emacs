@@ -1,10 +1,9 @@
 ;;; rnewspost.el --- USENET news poster/mailer for GNU Emacs
 
-;; Maintainer: FSF
-;; Last-Modified: 30 May 1992
-;; Keywords: mail, news
-
 ;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: mail, news
 
 ;; This file is part of GNU Emacs.
 

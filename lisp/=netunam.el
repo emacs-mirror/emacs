@@ -1,11 +1,10 @@
 ;;; netunam.el --- HP-UX RFA Commands
 
+;; Copyright (C) 1988 Free Software Foundation, Inc.
+
 ;; Author: Chris Hanson <cph@zurich.ai.mit.edu>
-;; Last-Modified: 31 Oct 1989
 
 ;;; $Header: netunam.el,v 1.3 88/12/21 16:32:23 GMT cph Exp $
-
-;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

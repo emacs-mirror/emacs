@@ -1,7 +1,6 @@
 ;;; cmuscheme.el -- Scheme process in a buffer. Adapted from tea.el.
 
 ;; Author: Olin Shivers <olin.shivers@cs.cmu.edu>
-;; Last-Modified: 16 Mar 1992
 ;; Keyword: processes, lisp
 
 ;;; Copyright Olin Shivers (1988)

@@ -1,10 +1,9 @@
 ;;; frame.el --- multi-frame management independent of window systems.
 
-;; Maintainer: FSF
-;; Last-Modified: 09 Jul 92
-;; Keywords: internal
-
 ;;;; Copyright (C) 1990, 1992 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: internal
 
 ;;; This file is part of GNU Emacs.
 ;;;

@@ -1,10 +1,9 @@
 ;;; ehelp.el --- bindings for electric-help mode
 
-;; Maintainer: FSF
-;; Last-Modified: 16 Mar 1992
-;; Keywords: help, extensions
-
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: help, extensions
 
 ;; This file is part of GNU Emacs.
 

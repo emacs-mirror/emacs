@@ -1,10 +1,9 @@
 ;;; echistory.el --- Electric Command History Mode
 
+;; Copyright (C) 1985 Free Software Foundation, Inc.
+
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
-;; Last-Modified: 09 May 1991
-
-;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

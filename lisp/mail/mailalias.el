@@ -1,10 +1,9 @@
 ;;; mailalias.el --- expand mailing address aliases defined in ~/.mailrc.
 
-;; Maintainer: FSF
-;; Last-Modified: 01 Jun 1992
-;; Keywords: mail
-
 ;; Copyright (C) 1985, 1987 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
 

@@ -1,13 +1,13 @@
 ;;; edt.el --- EDT emulation in Emacs
 
+;; Copyright (C) 1986 Free Software Foundation, Inc.
+
 ;; Author: Mike Clarkson <mike@yetti.UUCP>
 ;; Maintainer: FSF
 ;; Created: 27 Aug 1986
-;; Last-Modified: 09 May 1991
 ;; Keywords: emulations
 
-;; Copyright (C) 1986 Free Software Foundation, Inc.
-;;  It started from public domain code by Mike Clarkson
+;;  This started from public domain code by Mike Clarkson
 ;;  but has been greatly altered.
 
 ;; This file is part of GNU Emacs.

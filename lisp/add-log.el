@@ -1,7 +1,5 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Maintainer: FSF
-
 ;; Copyright (C) 1985, 86, 87, 88, 89, 90, 91, 1992
 ;;	Free Software Foundation, Inc.
 

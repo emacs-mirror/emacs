@@ -1,10 +1,9 @@
 ;;; paths.el --- define pathnames for use by various Emacs commands.
 
-;; Maintainer: FSF
-;; Last-Modified: 05 Dec 1991
-;; Keywords: internal
-
 ;; Copyright (C) 1986, 1988 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: internal
 
 ;; This file is part of GNU Emacs.
 

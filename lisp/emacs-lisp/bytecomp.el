@@ -1,15 +1,14 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code.
 
+;;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
+
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
-;; Last-Modified: 15 Jul 1992
 ;; Keywords: internal
 
 ;; Subsequently modified by RMS.
 
 (defconst byte-compile-version "FSF 2.1")
-
-;;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -245,8 +244,17 @@ of `message.'")
 (defconst byte-compile-warning-types '(redefine callargs free-vars unresolved))
 (defvar byte-compile-warnings (not noninteractive)
   "*List of warnings that the byte-compiler should issue (t for all).
-Valid elements of this list are `callargs', `redefine', `free-vars',
-and `unresolved'.")
+Valid elements of this list are:
+`free-vars' (references to variables not in the
+	     current lexical scope)
+`unresolved' (calls to unknown functions)
+`callargs'  (lambda calls with args that don't
+	     match the lambda's definition)
+`redefine'  (function cell redefined from
+	     a macro to a lambda or vice versa,
+	     or redefined to take other args)
+This variable defaults to nil in -batch mode, which is
+slightly faster.")
 
 (defvar byte-compile-generate-call-tree nil
   "*Non-nil means collect call-graph information when compiling.

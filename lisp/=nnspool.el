@@ -1,13 +1,12 @@
 ;;; nnspool.el --- spool access using NNTP for GNU Emacs
 
+;; Copyright (C) 1988, 1989 Fujitsu Laboratories LTD.
+;; Copyright (C) 1988, 1989, 1990 Masanobu UMEDA
+
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
-;; Last-Modified: 16 Mar 1992
 ;; Keywords: news
 
 ;; $Header: nnspool.el,v 1.10 90/03/23 13:25:25 umerin Locked $
-
-;; Copyright (C) 1988, 1989 Fujitsu Laboratories LTD.
-;; Copyright (C) 1988, 1989, 1990 Masanobu UMEDA
 
 ;; This file is part of GNU Emacs.
 

@@ -1,11 +1,10 @@
 ;;; appt.el --- appointment notification functions.
 
+;; Copyright (C) 1989, 1990 Free Software Foundation, Inc.
+
 ;; Author: Neil Mager <neilm@juliet.ll.mit.edu>
 ;; Version: 2.1
-;; Last-Modified: 14 Jul 1992
 ;; Keywords: calendar
-
-;; Copyright (C) 1989, 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

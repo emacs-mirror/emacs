@@ -1,12 +1,11 @@
 ;;; calendar.el --- Calendar functions.
 
+;;; Copyright (C) 1988, 1989, 1990, 1991 Free Software Foundation, Inc.
+
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Last-Modified: 30 Jun 1992
 ;; Keyword: calendar
 
 (defconst calendar-version "Version 4.02, released June 14, 1992")
-
-;;; Copyright (C) 1988, 1989, 1990, 1991 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

@@ -1,12 +1,11 @@
 ;;; mail-extr.el --- extract full name and address from RFC 822 mail header.
 
+;; Copyright (C) 1992 Free Software Foundation, Inc.
+
 ;; Author: Joe Wells <jbw@cs.bu.edu>
-;; Last-Modified: 7 Apr 1992
 ;; Version: 1.0
 ;; Adapted-By: ESR
 ;; Keywords: mail
-
-;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

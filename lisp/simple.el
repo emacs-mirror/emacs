@@ -6,7 +6,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -18,6 +18,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Code:
 
 (defun open-line (arg)
   "Insert a newline and leave point before it.  If there is a fill
@@ -237,10 +238,17 @@ Don't use this in Lisp programs!
 			   (/ (buffer-size) 10))
 		      (/ (* (buffer-size) (prefix-numeric-value arg)) 10)))
 	       (point-max)))
+  ;; If we went to a place in the middle of the buffer,
+  ;; adjust it to the beginning of a line.
   (if arg (forward-line 1)
-    ;; Scroll to put point near bottom--show nearly maximum amount of text,
-    ;; but leave room to add something.
-    (recenter -3)))
+    ;; If the end of the buffer is not already on the screen,
+    ;; then scroll specially to put it near, but not at, the bottom.
+    (if (let ((old-point (point)))
+	  (save-excursion
+		    (goto-char (window-start))
+		    (vertical-motion (window-height))
+		    (< (point) old-point)))
+	(recenter -3))))
 
 (defun mark-whole-buffer ()
   "Put point at beginning and mark at end of buffer.
@@ -854,20 +862,21 @@ system cut and paste."
   "Save the region as if killed, but don't kill it."
   (interactive "r")
   (copy-region-as-kill beg end)
-  (save-excursion
-    (let ((other-end (if (= (point) beg) end beg)))
-      (if (pos-visible-in-window-p other-end (selected-window))
-	  (progn
-	    (goto-char other-end)
-	    (sit-for 1))
-	(let* ((killed-text (current-kill 0))
-	       (message-len (min (length killed-text) 40)))
-	  (message
-	   (if (= (point) beg)
-	       (format "Killed until \"%s\""
-		       (substring killed-text (- message-len)))
-	     (format "Killed from \"%s\""
-		     (substring killed-text 0 message-len)))))))))
+  (if (interactive-p)
+      (save-excursion
+	(let ((other-end (if (= (point) beg) end beg)))
+	  (if (pos-visible-in-window-p other-end (selected-window))
+	      (progn
+		(goto-char other-end)
+		(sit-for 1))
+	    (let* ((killed-text (current-kill 0))
+		   (message-len (min (length killed-text) 40)))
+	      (if (= (point) beg)
+		  ;; Don't say "killed"; that is misleading.
+		  (message "Saved text until \"%s\""
+			  (substring killed-text (- message-len)))
+		(message "Saved text from \"%s\""
+			(substring killed-text 0 message-len)))))))))
 
 (defun append-next-kill ()
   "Cause following command, if kill, to append to previous kill."
@@ -1701,7 +1710,10 @@ when close-paren is inserted.")
 (defun set-variable (var val)
   "Set VARIABLE to VALUE.  VALUE is a Lisp object.
 When using this interactively, supply a Lisp expression for VALUE.
-If you want VALUE to be a string, you must surround it with doublequotes."
+If you want VALUE to be a string, you must surround it with doublequotes.
+
+If VARIABLE has a `variable-interactive' property, that is used as if
+it were the arg to `interactive' (which see) to interactively read the value."
   (interactive
    (let* ((var (read-variable "Set variable: "))
 	  (minibuffer-help-form
@@ -1720,89 +1732,14 @@ If you want VALUE to be a string, you must surround it with doublequotes."
 		      (prin1 (symbol-value var))))
 		nil)))))
      (list var
-	   (eval-minibuffer (format "Set %s to value: " var)))))
+	   (let ((prop (get var 'variable-interactive)))
+	     (if prop
+		 ;; Use VAR's `variable-interactive' property
+		 ;; as an interactive spec for prompting.
+		 (call-interactively (list 'lambda '(arg)
+					   (list 'interactive prop)
+					   'arg))
+	       (eval-minibuffer (format "Set %s to value: " var)))))))
   (set var val))
-
-;These commands are defined in editfns.c
-;but they are not assigned to keys there.
-(put 'narrow-to-region 'disabled t)
-(define-key ctl-x-map "n" 'narrow-to-region)
-(define-key ctl-x-map "w" 'widen)
-
-(define-key global-map "\C-j" 'newline-and-indent)
-(define-key global-map "\C-m" 'newline)
-(define-key global-map "\C-o" 'open-line)
-(define-key esc-map "\C-o" 'split-line)
-(define-key global-map "\C-q" 'quoted-insert)
-(define-key esc-map "^" 'delete-indentation)
-(define-key esc-map "\\" 'delete-horizontal-space)
-(define-key esc-map "m" 'back-to-indentation)
-(define-key ctl-x-map "\C-o" 'delete-blank-lines)
-(define-key esc-map " " 'just-one-space)
-(define-key esc-map "z" 'zap-to-char)
-(define-key esc-map "=" 'count-lines-region)
-(define-key ctl-x-map "=" 'what-cursor-position)
-(define-key esc-map "\e" 'eval-expression)
-(define-key ctl-x-map "\e" 'repeat-complex-command)
-(define-key ctl-x-map "u" 'advertised-undo)
-(define-key global-map "\C-_" 'undo)
-(define-key esc-map "!" 'shell-command)
-(define-key esc-map "|" 'shell-command-on-region)
-
-(define-key global-map "\C-u" 'universal-argument)
-(let ((i ?0))
-  (while (<= i ?9)
-    (define-key esc-map (char-to-string i) 'digit-argument)
-    (setq i (1+ i))))
-(define-key esc-map "-" 'negative-argument)
-
-(define-key global-map "\C-k" 'kill-line)
-(define-key global-map "\C-w" 'kill-region)
-(define-key esc-map "w" 'kill-ring-save)
-(define-key esc-map "\C-w" 'append-next-kill)
-(define-key global-map "\C-y" 'yank)
-(define-key esc-map "y" 'yank-pop)
-
-(define-key ctl-x-map "a" 'append-to-buffer)
-
-(define-key global-map "\C-@" 'set-mark-command)
-(define-key ctl-x-map "\C-x" 'exchange-point-and-mark)
-
-(define-key global-map "\C-n" 'next-line)
-(define-key global-map "\C-p" 'previous-line)
-(define-key ctl-x-map "\C-n" 'set-goal-column)
-
-(define-key global-map [up] 'previous-line)
-(define-key global-map [down] 'next-line)
-(define-key global-map [left] 'backward-char)
-(define-key global-map [right] 'forward-char)
-
-(define-key global-map "\C-t" 'transpose-chars)
-(define-key esc-map "t" 'transpose-words)
-(define-key esc-map "\C-t" 'transpose-sexps)
-(define-key ctl-x-map "\C-t" 'transpose-lines)
-
-(define-key esc-map ";" 'indent-for-comment)
-(define-key esc-map "j" 'indent-new-comment-line)
-(define-key esc-map "\C-j" 'indent-new-comment-line)
-(define-key ctl-x-map ";" 'set-comment-column)
-(define-key ctl-x-map "f" 'set-fill-column)
-(define-key ctl-x-map "$" 'set-selective-display)
-
-(define-key esc-map "@" 'mark-word)
-(define-key esc-map "f" 'forward-word)
-(define-key esc-map "b" 'backward-word)
-(define-key esc-map "d" 'kill-word)
-(define-key esc-map "\177" 'backward-kill-word)
-
-(define-key esc-map "<" 'beginning-of-buffer)
-(define-key esc-map ">" 'end-of-buffer)
-(define-key ctl-x-map "h" 'mark-whole-buffer)
-(define-key esc-map "\\" 'delete-horizontal-space)
-
-(fset 'mode-specific-command-prefix (make-sparse-keymap))
-(defconst mode-specific-map (symbol-function 'mode-specific-command-prefix)
-  "Keymap for characters following C-c.")
-(define-key global-map "\C-c" 'mode-specific-command-prefix)
 
 ;;; simple.el ends here

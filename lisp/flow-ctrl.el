@@ -2,11 +2,13 @@
 
 ;;; Copyright (C) 1990 Free Software Foundation, Inc.
 ;;; Copyright (C) 1991 Kevin Gallagher
+
 ;; Author Kevin Gallagher
 ;; Maintainer: FSF
 ;; Adapted-By: ESR
 ;; Keywords: hardware
 
+;;; This file is part of GNU Emacs.
 ;;;
 ;;; GNU Emacs is distributed in the hope that it will be useful, but
 ;;; WITHOUT ANY WARRANTY.  No author or distributor accepts

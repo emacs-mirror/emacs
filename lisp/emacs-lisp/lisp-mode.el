@@ -1,10 +1,9 @@
 ;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands.
 
-;; Maintainer: FSF
-;; Last-Modified: 03 Jun 1992
-;; Keywords: lisp, languages
-
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: lisp, languages
 
 ;; This file is part of GNU Emacs.
 

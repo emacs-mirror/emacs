@@ -1,10 +1,9 @@
 ;;; reposition.el --- center a Lisp function or comment on the screen
 
+;; Copyright (C) 1991 Free Software Foundation, Inc.
+
 ;; Author: Michael D. Ernst <mernst@theory.lcs.mit.edu>
 ;; Maintainer: FSF
-;; Last-Modified: 13 May 1991
-
-;; Copyright (C) 1991 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

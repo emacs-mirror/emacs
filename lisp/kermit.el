@@ -1,10 +1,9 @@
 ;;; kermit.el --- additions to shell mode for use with kermit, etc.
 
+;; Copyright (C) 1988 Free Software Foundation, Inc.
+
 ;; Author: Jeff Norden <jeff@colgate.csnet>
 ;; Created: 15 Feb 1988
-;; Last-modified: 12 Mar 1992
-
-;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

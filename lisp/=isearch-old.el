@@ -1,9 +1,8 @@
 ;;; isearch.el --- incremental search commands
 
-;; Maintainer: FSF
-;; Last-Modified: 30 Jun 1992
-
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
 

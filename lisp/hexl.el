@@ -1,9 +1,8 @@
 ;;; hexl-mode.el --- edit a file in a hex dump format using the hexl filter.
 
-;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
-;; Last-Modified: 06 Mar 1991
-
 ;; Copyright (C) 1989 Free Software Foundation, Inc.
+
+;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
 
 ;; This file is part of GNU Emacs.
 

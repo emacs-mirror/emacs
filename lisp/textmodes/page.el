@@ -1,9 +1,8 @@
 ;;; page.el --- page motion commands for emacs.
 
-;; Maintainer: FSF
-;; Last-Modified: 01 May 1992
-
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
 

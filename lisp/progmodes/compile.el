@@ -1,13 +1,12 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages.
 
+;; Copyright (C) 1985, 86, 87, 92 Free Software Foundation, Inc.
+
 ;; Author: Roland McGrath <roland@prep.ai.mit.edu>
 ;; Maintainer: FSF
-;; Last-Modified: 05 Jul 1992
 ;; Keyword: tools, processes
 
 ;;;!!! dup removal is broken.
-
-;; Copyright (C) 1985, 86, 87, 92 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

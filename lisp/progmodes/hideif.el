@@ -1,12 +1,11 @@
 ;;; hide-ifdef-mode.el --- hides selected code within ifdef.
 
+;;; Copyright (C) 1988 Brian Marick and Daniel LaLiberte
+
 ;; Author: Dan LaLiberte <liberte@a.cs.uiuc.edu>
-;; Last-Modified: 06 Mar 1991
 ;; Keywords: c
 
 ;;; $Header: hide-ifdef-mode.el,v 1.7 88/02/16 03:12:58 liberte Exp $
-
-;;; Copyright (C) 1988 Brian Marick and Daniel LaLiberte
 
 ;;; Commentary:
 

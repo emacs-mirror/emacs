@@ -1,10 +1,10 @@
 ;; etags.el --- etags facility for Emacs
 
-;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
-;; Keywords: tools
-
 ;; Copyright (C) 1985, 1986, 1988, 1989, 1991, 1992
 ;;	Free Software Foundation, Inc.
+
+;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
+;; Keywords: tools
 
 ;; This file is part of GNU Emacs.
 

@@ -1,12 +1,11 @@
 ;;; cl.el --- Common-Lisp extensions for GNU Emacs Lisp.
 
+;; Copyright (C) 1987, 1988, 1989 Free Software Foundation, Inc.
+
 ;; Author: Cesar Quiroz <quiroz@cs.rochester.edu>
-;; Last-Modified: 16 Mar 1992
 ;; Keywords: extensions
 
 (defvar cl-version "2.0 beta 29 October 1989")
-
-;; Copyright (C) 1987, 1988, 1989 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

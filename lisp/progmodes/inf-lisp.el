@@ -1,10 +1,9 @@
 ;;; inf-lisp.el --- an inferior-lisp mode
 
-;; Author: Olin Shivers <shivers@cs.cmu.edu>
-;; Last-Modified: 16 Jul 1992
-;; Keyword: processes, lisp
-
 ;;; Copyright Olin Shivers (1988).
+
+;; Author: Olin Shivers <shivers@cs.cmu.edu>
+;; Keyword: processes, lisp
 
 ;;; This file is part of GNU Emacs.
 

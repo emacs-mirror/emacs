@@ -1,10 +1,9 @@
 ;; dired-aux.el --- directory browsing command support
 
+;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
+
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
 ;; Version: 5.234
-;; Last-Modified: 14 Jul 1992
-
-;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

@@ -1,13 +1,12 @@
 ;;; nntp.el --- NNTP (RFC977) Interface for GNU Emacs
 
+;; Copyright (C) 1987, 1988, 1989 Fujitsu Laboratories LTD.
+;; Copyright (C) 1987, 1988, 1989, 1990 Masanobu UMEDA
+
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
-;; Last-Modified: 16 Mar 1992
 ;; Keywords: news
 
 ;; $Header: nntp.el,v 3.10 90/03/23 13:25:27 umerin Locked $
-
-;; Copyright (C) 1987, 1988, 1989 Fujitsu Laboratories LTD.
-;; Copyright (C) 1987, 1988, 1989, 1990 Masanobu UMEDA
 
 ;; This file is part of GNU Emacs.
 

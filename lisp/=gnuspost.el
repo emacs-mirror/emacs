@@ -1,12 +1,11 @@
 ;;; gnuspost.el --- post news commands for GNUS newsreader
 
+;; Copyright (C) 1989, 1990 Free Software Foundation, Inc.
+
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
-;; Last-Modified: 10 Jun 1992
 ;; Keywords: news
 
 ;; $Header: gnuspost.el,v 1.2 90/03/23 13:25:16 umerin Locked $
-
-;; Copyright (C) 1989, 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

@@ -1,10 +1,9 @@
 ;;; ring.el --- handle rings of marks
 
-;; Maintainer: FSF
-;; Last-Modified: 22 Apr 1991
-;; Keywords: extensions
-
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: extensions
 
 ;; This file is part of GNU Emacs.
 

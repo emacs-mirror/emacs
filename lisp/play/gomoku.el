@@ -1,11 +1,10 @@
 ;;; gomoku.el --- Gomoku game between you and Emacs
 
+;; Copyright (C) 1988 Free Software Foundation, Inc.
+
 ;; Author: Phillippe Schnoebelen <phs@lifia.imag.fr>
-;; Last-Modified: 16 Mar 1992
 ;; Adapted-By: ESR
 ;; Keywords: games
-
-;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

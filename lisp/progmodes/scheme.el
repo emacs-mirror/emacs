@@ -1,12 +1,11 @@
 ;;; scheme.el --- Scheme mode, and its idiosyncratic commands.
 
+;; Copyright (C) 1986, 1987, 1988 Free Software Foundation, Inc.
+
 ;; Author: Bill Rozas <jinz@prep.ai.mit.edu>
-;; Last-Modified: 16 Mar 1992
 ;; Keywords: languages, lisp
 
 ;;; $Header: scheme.el,v 1.7 88/07/15 20:20:00 GMT cph Exp $
-
-;; Copyright (C) 1986, 1987, 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

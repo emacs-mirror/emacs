@@ -1,10 +1,9 @@
 ;;; informat.el --- info support functions package for Emacs
 
-;; Maintainer: FSF
-;; Last-Modified: 09 May 1991
-;; Keywords: help
-
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: help
 
 ;; This file is part of GNU Emacs.
 

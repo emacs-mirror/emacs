@@ -1,10 +1,9 @@
 ;;; ledit.el --- Emacs side of ledit interface
 
-;; Maintainer: FSF
-;; Last-Modified: 13 May 1991
-;; Keyord: languages
-
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keyord: languages
 
 ;; This file is part of GNU Emacs.
 

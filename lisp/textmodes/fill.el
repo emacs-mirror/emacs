@@ -1,10 +1,8 @@
 ;;; fill.el --- fill commands for Emacs
 
-;; Maintainer: FSF
-;; Last-Modified: 24 Jun 1992
-;; Keywords: wp
-
 ;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
+
+;; Keywords: wp
 
 ;; This file is part of GNU Emacs.
 

@@ -1,12 +1,12 @@
 ;;; perl-mode.el --- Perl code editing commands for GNU Emacs
 
+;; Copyright (C) 1990  William F. Mann
+
 ;; Author: William F. Mann
 ;; Maintainer: FSF
-;; Last-Modified: 21 Dec 1991
 ;; Adapted-By: ESR
 ;; Keywords: languages
 
-;;   Copyright (C) 1990  William F. Mann
 ;; Adapted from C code editing commands 'c-mode.el', Copyright 1987 by the
 ;; Free Software Foundation, under terms of its General Public License.
 

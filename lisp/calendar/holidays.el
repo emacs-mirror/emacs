@@ -1,10 +1,9 @@
 ;;; holidays.el --- holiday functions for the calendar package
 
-;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Last-Modified: 14 Jul 1992
-;; Keywords: calendar
-
 ;;; Copyright (C) 1989, 1990 Free Software Foundation, Inc.
+
+;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
+;; Keywords: calendar
 
 ;; This file is part of GNU Emacs.
 

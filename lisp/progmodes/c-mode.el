@@ -1,10 +1,9 @@
 ;;; c-mode.el --- C code editing commands for Emacs
 
-;; Maintainer: FSF
-;; Last-Modified: 11 Jul 1992
-;; Keywords: c
-
 ;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: c
 
 ;; This file is part of GNU Emacs.
 

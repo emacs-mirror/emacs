@@ -1,10 +1,9 @@
 ;;; sendmail.el --- mail sending commands for Emacs.
 
-;; Maintainer: FSF
-;; Last-Modified: 24 Jun 1992
-;; Keywords: mail
-
 ;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
+
+;; Maintainer: FSF
+;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
 

@@ -1,6 +1,9 @@
-;;; edebug.el --- a source-level debugger for emacs lisp.
+;;; edebug.el --- a source-level debugger for emacs lisp
 
 ;; Copyright (C) 1988, 1989, 1990, 1991 Free Software Foundation, Inc
+
+;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
+;; Keywords: lisp, tools
 
 ;; This file is part of GNU Emacs.
 
@@ -19,8 +22,9 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
-;;;================================================================
-;;; This minor mode allows programmers to step through elisp source
+;;;; Commentary:
+
+;;; This minor mode allows programmers to step through Emacs Lisp source
 ;;; code while executing, set breakpoints, etc.  See the texinfo
 ;;; document (being constructed...) for more detailed instructions
 ;;; than contained here.  Send me your enhancement, ideas, bugs, or
@@ -152,7 +156,7 @@
 ;;; 
 ;;; Revision 1.4  89/02/14  22:58:34  liberte
 ;;; Fix broken breakpointing.
-;;; Temporarily widen elisp buffer during edebug.
+;;; Temporarily widen Emacs Lisp buffer during edebug.
 ;;; 
 ;;; Revision 1.3  89/01/30  00:26:09  liberte
 ;;; More bug fixes for cond and let.
@@ -186,6 +190,8 @@
 ;; Use the "?" command in edebug to describe other commands.
 ;; See edebug.texinfo for more instructions.
 
+;;; Code:
+
 
 ;;; Options
 ;;; -------
@@ -198,7 +204,7 @@ If nil, eval-region evaluates normally, but eval-defun with prefix arg
 uses edebug-defun.  eval-region is called by eval-defun, eval-last-sexp,
 and eval-print-last-sexp.
 
-You may wish to make this variable local to each elisp buffer by calling
+You may wish to make this variable local to each Emacs Lisp buffer by calling
 (make-local-variable 'edebug-all-defuns) in your emacs-lisp-mode-hook.
 You can use the function edebug-all-defuns to toggle its value.")
 
@@ -266,7 +272,7 @@ edebug-print-trace-exit.")
 
 (defun edebug-last-sexp ()
   "Return the last sexp before point in current buffer.
-Assumes elisp syntax is active."
+Assumes Emacs Lisp syntax is active."
   (car
    (read-from-string
     (buffer-substring
@@ -852,7 +858,7 @@ may be one of the following:
 	  (throw 'no-match nil))
       (edebug-syntax-error "%s is not %s" form arg))))
 
-;; for loop defined in elisp manual
+;; for loop defined in Emacs Lisp manual
 (put 'for 'edebug-form-hook
      '(symbolp 'from form 'to form 'do &rest form))
 
@@ -2243,7 +2249,7 @@ print value into current buffer."
 
 
 (defun edebug-mode ()
-  "Mode for elisp buffers while in edebug.  Under construction.
+  "Mode for Emacs Lisp buffers while in edebug.  Under construction.
 
 There are both buffer local and global key bindings to several
 functions.  E.g. edebug-step-through is bound to
