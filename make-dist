@@ -191,7 +191,7 @@ echo "Making links to \`lib-src'."
 (cd lib-src
  ln [a-zA-Z]*.[chy] [a-zA-Z]*.lex [a-zA-Z]*.com ../${tempdir}/lib-src
  ln ChangeLog Makefile.in README testfile vcdiff rcs2log ../${tempdir}/lib-src
- ln emacs.csh ../${tempdir}/lib-src
+ ln emacs.csh rcs-checkin ../${tempdir}/lib-src
  cd ../${tempdir}/lib-src
  rm -f getdate.c getdate.tab.c y.tab.c y.tab.h
  rm -f =* TAGS)
