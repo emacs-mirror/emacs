@@ -2999,7 +2999,7 @@ remote host, or Emacs may use a remote-login program (such as
 You can always specify in the file name which method should be used to
 access the remote files, for example
 @file{/ftp:@var{user}@@@var{host}:@var{filename}} uses FTP, whereas
-@file{/sm:@var{user}@@@var{host}:@var{filename}} uses @command{ssh}.
+@file{/ssh:@var{user}@@@var{host}:@var{filename}} uses @command{ssh}.
 When you don't specify a method in the file name, Emacs determines a
 default method according to the following rules:
 
@@ -3011,7 +3011,7 @@ the @command{ftp} method.
 If the user name is @samp{ftp} or @samp{anonymous}, then Emacs assumes
 the @command{ftp} method.
 @item
-Otherwise, Emacs assumes the @command{sm} method.
+Otherwise, Emacs assumes the @command{ssh} method.
 @end enumerate
 
 @noindent
