@@ -2071,12 +2071,20 @@ report this using the `follow-submit-feedback' function."
 		       (new-window-start (window-start win))
 		       (new-window-point (window-point win)))
 		  (cond
-		   ;; The window was moved. Move it back and
-		   ;; select a new.  If no better could be found,
-		   ;; we stick with the new start position.  This
-		   ;; is used when the original process filter
-		   ;; tries to position the cursor at the bottom
-		   ;; of the window.  Example: `lyskom'.
+		   ;; The start of the selected window was repositioned.
+		   ;; Try to use the original start position and continue
+		   ;; working with a window to the "right" in the window
+		   ;; chain.  This will create the effect that the output
+		   ;; starts in one window and continues into the next.
+
+		   ;; If the display has changed so much that it is not
+		   ;; possible to keep the original window fixed and still
+		   ;; display the point then we give up and use the new
+		   ;; window start.
+
+		   ;; This case is typically used when the process filter
+		   ;; tries to reposition the start of the window in order
+		   ;; to view the tail of the output.
 		   ((not (eq orig-window-start new-window-start))
 		    (follow-debug-message "filter: Moved")
 		    (set-window-start win orig-window-start)
