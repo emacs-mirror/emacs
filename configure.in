@@ -260,6 +260,7 @@ case "${canonical}" in
     # This is necessary on 5.0 to avoid mangling src/Makefile.
     # Separated out in case it causes problems on earlier versions.
     alpha*-dec-osf[5-9]*)
+      opsys=osf5-0
       NON_GNU_CPP='cpp' ;;
     esac
   ;;
@@ -1158,7 +1159,7 @@ AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h)
 dnl checks for header files
 AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
   linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
-  termcap.h stdio_ext.h fcntl.h)
+  termcap.h stdio_ext.h fcntl.h term.h)
 AC_HEADER_STDC
 AC_HEADER_TIME
 AC_DECL_SYS_SIGLIST
@@ -1866,7 +1867,7 @@ fi
 AC_CHECK_FUNCS(touchlock)
 AC_CHECK_HEADERS(maillock.h)
 
-AC_CHECK_FUNCS(gettimeofday gethostname getdomainname dup2 \
+AC_CHECK_FUNCS(gethostname getdomainname dup2 \
 rename closedir mkdir rmdir sysinfo \
 random lrand48 bcopy bcmp logb frexp fmod rint cbrt ftime res_init setsid \
 strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
@@ -1971,9 +1972,10 @@ if test $emacs_cv_localtime_cache = yes; then
 fi
 
 if test "x$HAVE_TIMEVAL" = xyes; then
-AC_CACHE_CHECK(whether gettimeofday can accept two arguments,
-	       emacs_cv_gettimeofday_two_arguments,
-AC_TRY_LINK([
+  AC_CHECK_FUNCS(gettimeofday)
+  AC_CACHE_CHECK(whether gettimeofday can accept two arguments,
+		 emacs_cv_gettimeofday_two_arguments,
+  AC_TRY_COMPILE([
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
 #include <time.h>
@@ -1984,13 +1986,42 @@ AC_TRY_LINK([
 #include <time.h>
 #endif
 #endif],
-  [struct timeval time;
-   gettimeofday (&time, 0);],
-  emacs_cv_gettimeofday_two_arguments=yes,
-  emacs_cv_gettimeofday_two_arguments=no))
+    [struct timeval time;
+     gettimeofday (&time, 0);],
+    emacs_cv_gettimeofday_two_arguments=yes,
+    emacs_cv_gettimeofday_two_arguments=no))
   if test $emacs_cv_gettimeofday_two_arguments = no; then
     AC_DEFINE(GETTIMEOFDAY_ONE_ARGUMENT)
   fi
+fi
+
+dnl Note that AC_STRUCT_TIMEZONE doesn't do what you might expect.
+if test "$ac_cv_func_gettimeofday" = yes; then
+  AC_CACHE_CHECK([for struct timezone], emacs_cv_struct_timezone,
+    [AC_TRY_COMPILE([#include <sys/time.h>],
+    [struct timezone tz;],
+    dnl It may be that we can't call gettimeofday with a non-null pointer,
+    dnl even though we have struct timezone (e.g. HPUX).  In that case
+    dnl we'll lie about struct timezone.
+    [AC_TRY_RUN([
+#ifdef TIME_WITH_SYS_TIME
+#include <sys/time.h>
+#include <time.h>
+#else
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif
+#endif
+main () {
+  struct timeval time;
+  struct timezone dummy;
+  exit (gettimeofday (&time, &dummy));
+}],
+      emacs_cv_struct_timezone=yes,
+      emacs_cv_struct_timezone=no, emacs_cv_struct_timezone=yes)],
+    emacs_cv_struct_timezone=no)])
 fi
 
 ok_so_far=yes
