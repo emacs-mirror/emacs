@@ -1877,7 +1877,7 @@ struct redisplay_interface
   /* Flush the display of frame F.  For X, this is XFlush.  */
   void (*flush_display) P_ ((struct frame *f));
 
-  /* Clear the mouse hightlight in windwo W, if there is any.  */
+  /* Clear the mouse hightlight in window W, if there is any.  */
   void (*clear_mouse_face) P_ ((struct window *w));
 
   /* Set *LEFT and *RIGHT to the left and right overhang of GLYPH on
