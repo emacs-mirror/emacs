@@ -205,7 +205,7 @@ a symbol as a valid THING."
 
 (defvar thing-at-point-url-path-regexp
   "[^]\t\n \"'()<>[^`{}]*[^]\t\n \"'()<>[^`{}.,;]+"
-  "A regular expression probably matching the host, path or e-mail part of a URL.")
+  "A regular expression probably matching the host and filename or e-mail part of a URL.")
 
 (defvar thing-at-point-short-url-regexp
   (concat "[-A-Za-z0-9.]+" thing-at-point-url-path-regexp)
