@@ -583,8 +583,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
     (if (and (equal (nth 0 (car hl)) Info-current-file)
 	     (equal (nth 1 (car hl)) Info-current-node))
 	(progn
-	  (setq hl nil)			;terminate the while at next iter
-	  (goto-char (nth 2 (car hl))))
+	  (goto-char (nth 2 (car hl)))
+	  (setq hl nil))		;terminate the while at next iter
       (setq hl (cdr hl)))))
 
 (defvar Info-last-search nil
