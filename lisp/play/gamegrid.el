@@ -145,7 +145,7 @@ static char *noname[] = {
   (if gamegrid-font
       (condition-case nil
 	  (set-face-font face gamegrid-font)
-	('error nil))))
+	(error nil))))
 
 (defun gamegrid-setup-face (face color)
   (set-face-foreground face color)
@@ -153,16 +153,16 @@ static char *noname[] = {
   (gamegrid-set-font face)
   (condition-case nil
       (set-face-background-pixmap face [nothing]);; XEmacs
-    ('error nil))
+    (error nil))
   (condition-case nil
       (set-face-background-pixmap face nil);; Emacs
-    ('error nil)))
+    (error nil)))
 
 (defun gamegrid-make-mono-tty-face ()
   (let ((face (make-face 'gamegrid-mono-tty-face)))
     (condition-case nil
 	(set-face-property face 'reverse t)
-      ('error nil))
+      (error nil))
     face))
 
 (defun gamegrid-make-color-tty-face (color)
