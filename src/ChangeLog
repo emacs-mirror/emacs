@@ -1,5 +1,10 @@
 2005-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* xmenu.c (ENCODE_MENU_STRING) [HAVE_X_I18N]: Use ENCODE_SYSTEM.
+
+	* coding.h (ENCODE_SYSTEM, DECODE_SYSTEM) [!WINDOWSNT]: Use the
+	locale-coding-system, as was already done for WINDOWSNT.
+
 	* keyboard.c (read_char): Only do the 7-bit-meta -> 27-bit-meta
 	translation for chars in the 0-255 range.
 
