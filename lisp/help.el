@@ -461,9 +461,9 @@ With numeric argument display information on correspondingly older changes."
       (goto-char (point-min))
       (while (progn (move-to-column 50) (not (eobp)))
 	(search-forward " " nil t)
-	(insert "\n")))
-    (setq help-xref-stack nil
-          help-xref-stack-item nil)
+	(insert "\n"))
+      (setq help-xref-stack nil
+	    help-xref-stack-item nil))
     (print-help-return-message)))
 
 (defalias 'help 'help-for-help)
@@ -747,9 +747,10 @@ We put that list in a buffer, and display the buffer.
 The optional argument PREFIX, if non-nil, should be a key sequence;
 then we display only bindings that start with that prefix."
   (interactive "P")
-  (setq help-xref-stack nil
-        help-xref-stack-item nil)
-  (describe-bindings-internal nil prefix))
+  (describe-bindings-internal nil prefix)
+  (with-current-buffer "*Help*"
+    (setq help-xref-stack nil
+	  help-xref-stack-item nil)))
 
 (defun where-is (definition &optional insert)
   "Print message listing key sequences that invoke specified command.
@@ -972,7 +973,7 @@ that."
             (insert "\n\n" help-back-label))
           ;; Just to provide the match data:
           (looking-at (concat "\n\n\\(" (regexp-quote help-back-label) "\\)"))
-          (help-xref-button 1 #'help-xref-go-back nil)))
+          (help-xref-button 1 #'help-xref-go-back (current-buffer))))
       ;; View mode steals RET from us.
       (set (make-local-variable 'minor-mode-overriding-map-alist)
            (list (cons 'view-mode
@@ -1035,18 +1036,20 @@ help buffer."
       (set-buffer (window-buffer window))
       (help-follow pos))))
 
-(defun help-xref-go-back ()
-  "Go back to the previous help buffer using info on `help-xref-stack'."
+(defun help-xref-go-back (buffer)
+  "Go back to the previous help buffer text using info on `help-xref-stack'."
   (interactive)
-  (when help-xref-stack
-    (setq help-xref-stack (cdr help-xref-stack)) ; due to help-follow
-    (let* ((item (car help-xref-stack))
-           (method (car item))
-           (args (cdr item)))
-      (setq help-xref-stack (cdr help-xref-stack))
-      (if (listp args)
-          (apply method args)
-        (funcall method args)))))
+  (let (item method args)
+    (with-current-buffer buffer
+      (when help-xref-stack
+	(setq help-xref-stack (cdr help-xref-stack)) ; due to help-follow
+	(setq item (car help-xref-stack)
+	      method (car item)
+	      args (cdr item))
+	(setq help-xref-stack (cdr help-xref-stack))))
+    (if (listp args)
+	(apply method args)
+      (funcall method args))))
 
 (defun help-go-back ()
   (interactive)
