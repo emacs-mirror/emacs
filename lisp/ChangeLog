@@ -1,3 +1,48 @@
+2000-02-04  Carsten Dominik  <dominik@strw.leidenuniv.nl>
+
+	* textmodes/reftex.el (reftex-compile-variables): regexp-quote the
+	environment names before they go into the section regexp.
+
+	* textmodes/reftex-global.el (reftex-change-label): add `A-Z' to
+	char class in regexp.
+
+	* textmodes/reftex-parse.el (reftex-with-special-syntax): Bind
+	`case-fold-search' to nil.
+
+	* progmodes/idlwave.el (idlwave-template): Respect
+	`idlwave-abbrev-change-case'.
+	(idlwave-rw-case, idlwave-elif, idlwave-case, idlwave-for,
+	idlwave-if, idlwave-procedure, idlwave-function, idlwave-repeat,
+	idlwave-while): respect `idlwave-reserved-word-upcase'.
+	(idlwave-rw-case): New function.
+	(idlwave-statement-match): Fixed problem with assignment regexp.
+	(idlwave-font-lock-keywords): Improved regexp for keyword
+	parameters.
+	(idlwave-surround): New argument LENGTH to support padding of 
+	operators longer than 1 char.
+
+	* progmodes/idlw-shell.el (idlwave-shell-print): Fixed bug with
+	idlwave-shell-expression-overlay.  Implemented printing of
+	expressions on higher levels of the calling stack.
+	(idlwave-shell-display-level-in-calling-stack): Restore stack
+	level.
+	(idlwave-retrieve-expression-from-level): New function.
+	(idlwave-shell-last-calling-stack): Variable removed.
+	(idlwave-shell-reset): Argument action reversed (`visible' to
+	`hidden').  Also remove stop-line overlay.
+	(idlwave-shell-calling-stack-routine): New variable.
+	(idlwave-shell-parse-stack-and-display): Messages now display
+	negative level numbers.
+	(idlwave-shell-mode): Set `modeline-format'.
+	(idlwave-shell-display-line): Set `idlwave-shell-mode-line-info'.
+	(idlwave-shell-make-new-bp-overlay): Fixed glyph display for Emacs
+	21.
+	(idlwave-shell-print-expression-function): New option.
+	  
+	* progmodes/idlw-toolbar.el (idlwave-toolbar-add-everywhere,
+	idlwave-toolbar-remove-everywhere): Keybindings prefix is now
+	`tool-bar' instead of `toolbar'.
+
 2000-02-02  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/cl.el: Use bytecomp-load-hook, not
