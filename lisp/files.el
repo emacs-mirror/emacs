@@ -685,11 +685,19 @@ The buffer is not selected, just returned to the caller."
 	      (cond ((not (file-exists-p filename))
 		     (error "File %s no longer exists!" filename))
 		    ((yes-or-no-p
-		      (format
-		       (if (buffer-modified-p buf)
-    "File %s changed on disk.  Discard your edits? "
-    "File %s changed on disk.  Reread from disk? ")
-		       (file-name-nondirectory filename)))
+		      (if (string= (file-name-nondirectory filename)
+				   (buffer-name buf))
+			  (format
+			   (if (buffer-modified-p buf)
+	"File %s changed on disk.  Discard your edits? "
+	"File %s changed on disk.  Reread from disk? ")
+			   (file-name-nondirectory filename))
+			(format
+			 (if (buffer-modified-p buf)
+      "File %s changed on disk.  Discard your edits in %s? "
+      "File %s changed on disk.  Reread from disk into %s? ")
+			 (file-name-nondirectory filename)
+			 (buffer-name buf))))
 		     (save-excursion
 		       (set-buffer buf)
 		       (revert-buffer t t)))))
