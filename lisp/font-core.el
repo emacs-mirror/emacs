@@ -73,6 +73,9 @@ and those for buffer-specialised fontification functions,
 `font-lock-inhibit-thing-lock' and `font-lock-maximum-size'.")
 (make-variable-buffer-local 'font-lock-defaults)
 
+(defvar font-lock-core-only nil
+  "If non-nil, then don't load font-lock.el unless necessary.")
+
 ;; This variable is used where font-lock.el itself supplies the
 ;; keywords.  Really, this shouldn't need to be in font-core.el, but
 ;; we can't avoid it.  In the future, this stuff will hopefully be
@@ -264,12 +267,15 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (set (make-local-variable 'font-lock-set-defaults) t)
     (make-local-variable 'font-lock-fontified)
     (make-local-variable 'font-lock-multiline)
-    ;; Detect if this is a simple mode, which doesn't use any
-    ;; syntactic fontification functions.
-    (when (or font-lock-defaults
-	      (assq major-mode font-lock-defaults-alist))
-      (require 'font-lock)
-      (font-lock-set-defaults-1))))
+    (let ((defaults (or font-lock-defaults
+			(assq major-mode font-lock-defaults-alist))))
+      (when (and defaults
+		 ;; Detect if this is a simple mode, which doesn't use
+		 ;; any syntactic fontification functions.
+		 (not (cdr (assq 'font-lock-core-only
+				 (nthcdr 5 defaults)))))
+	(require 'font-lock)
+	(font-lock-set-defaults-1)))))
 
 ;;; Global Font Lock mode.
 
