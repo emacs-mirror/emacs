@@ -109,6 +109,13 @@
 0 means Sunday (default), 1 means Monday, and so on.")
 
 ;;;###autoload
+(defvar calendar-offset 0
+  "*The offset of the principal month from the center of the calendar window.
+0 means the principal month is in the center (default), -1 means on the left,
++1 means on the right.  Larger (or smaller) values push the principal month off
+the screen.")
+
+;;;###autoload
 (defvar view-diary-entries-initially nil
   "*Non-nil means display current date's diary entries on entry.
 The diary is displayed in another window when the calendar is first displayed,
@@ -923,6 +930,9 @@ with descriptive strings such as
 (defconst fancy-diary-buffer "*Fancy Diary Entries*"
   "Name of the buffer used for the optional fancy display of the diary.")
 
+(defconst lunar-phases-buffer "*Phases of Moon*"
+  "Name of the buffer used for the lunar phases.")
+
 (defmacro increment-calendar-month (mon yr n)
   "Move the variables MON and YR to the month and year by N months.
 Forward if N is positive or backward if N is negative."
@@ -945,10 +955,9 @@ Forward if N is positive or backward if N is negative."
          (setq (, index) (1+ (, index))))
        sum)))
 
-;; The following macros are for speed; the code would be clearer if they
-;; were functions, but they can be called thousands of times when
-;; looking up holidays or processing the diary.  Here, for example, are the
-;; numbers of calls to calendar/diary/holiday functions in preparing the
+;; The following are in-line for speed; they can be called thousands of times
+;; when looking up holidays or processing the diary.  Here, for example, are
+;; the numbers of calls to calendar/diary/holiday functions in preparing the
 ;; fancy diary display, for a moderately complex diary file, with functions
 ;; used instead of macros.  There were a total of 10000 such calls:
 ;;
@@ -974,123 +983,68 @@ Forward if N is positive or backward if N is negative."
 ;;     .
 ;;
 ;; The use of these seven macros eliminates the overhead of 92% of the function
-;; calls; it's faster this way.  For clarity, the defun form of each is given
-;; in comments after the defmacro form.
+;; calls; it's faster this way.
 
-(defmacro extract-calendar-month (date)
+(defsubst extract-calendar-month (date)
   "Extract the month part of DATE which has the form (month day year)."
-  (` (car (, date))))
-;;(defun extract-calendar-month (date)
-;;  "Extract the month part of DATE which has the form (month day year)."
-;;  (car date))
+  (car date))
 
-(defmacro extract-calendar-day (date)
+(defsubst extract-calendar-day (date)
   "Extract the day part of DATE which has the form (month day year)."
-  (` (car (cdr (, date)))))
-;;(defun extract-calendar-day (date)
-;;  "Extract the day part of DATE which has the form (month day year)."
-;;  (car (cdr date)))
+  (car (cdr date)))
 
-(defmacro extract-calendar-year (date)
+(defsubst extract-calendar-year (date)
   "Extract the year part of DATE which has the form (month day year)."
-  (` (car (cdr (cdr (, date))))))
-;;(defun extract-calendar-year (date)
-;;  "Extract the year part of DATE which has the form (month day year)."
-;;  (car (cdr (cdr date))))
+  (car (cdr (cdr date))))
 
-(defmacro calendar-leap-year-p (year)
+(defsubst calendar-leap-year-p (year)
   "Returns t if YEAR is a Gregorian leap year."
-  (` (and
-	(zerop (% (, year) 4))
-	(or (not (zerop (% (, year) 100)))
-	    (zerop (% (, year) 400))))))
-;;(defun calendar-leap-year-p (year)
-;;  "Returns t if YEAR is a Gregorian leap year."
-;;  (and
-;;    (zerop (% year 4))
-;;    (or ((not (zerop (% year 100))))
-;;	  (zerop (% year 400)))))
-;;
+  (and (zerop (% year 4))
+       (or (not (zerop (% year 100)))
+           (zerop (% year 400)))))
+
 ;; The foregoing is a bit faster, but not as clear as the following:
 ;;
-;;(defmacro calendar-leap-year-p (year)
-;;  "Returns t if YEAR is a Gregorian leap year."
-;;  (` (or
-;;        (and (=  (% (, year) 4) 0)
-;;             (/= (% (, year) 100) 0))
-;;        (= (% (, year) 400) 0))))
-;;(defun calendar-leap-year-p (year)
+;;(defsubst calendar-leap-year-p (year)
 ;;  "Returns t if YEAR is a Gregorian leap year."
 ;;  (or
 ;;    (and (=  (% year   4) 0)
 ;;         (/= (% year 100) 0))
 ;;    (= (% year 400) 0)))
 
-(defmacro calendar-last-day-of-month (month year)
+(defsubst calendar-last-day-of-month (month year)
   "The last day in MONTH during YEAR."
-  (` (if (and
-            (= (, month) 2)
-            (, (macroexpand (` (calendar-leap-year-p (, year))))))
-           29
-         (aref [31 28 31 30 31 30 31 31 30 31 30 31] (1- (, month))))))
-;;(defun calendar-last-day-of-month (month year)
-;;  "The last day in MONTH during YEAR."
-;;  (if (and (= month 2) (calendar-leap-year-p year))
-;;      29
-;;    (aref [31 28 31 30 31 30 31 31 30 31 30 31] (1- month))))
+  (if (and (= month 2) (calendar-leap-year-p year))
+      29
+    (aref [31 28 31 30 31 30 31 31 30 31 30 31] (1- month))))
 
-(defmacro calendar-day-number (date)
+;; An explanation of the calculation can be found in PascAlgorithms by
+;; Edward and Ruth Reingold, Scott-Foresman/Little, Brown, 1988.
+
+(defsubst calendar-day-number (date)
   "Return the day number within the year of the date DATE.
 For example, (calendar-day-number '(1 1 1987)) returns the value 1,
 while (calendar-day-number '(12 31 1980)) returns 366."
-;;
-;; An explanation of the calculation can be found in PascAlgorithms by
-;; Edward and Ruth Reingold, Scott-Foresman/Little, Brown, 1988.
-;;
-  (` (let* ((month (, (macroexpand (` (extract-calendar-month (, date))))))
-            (day (, (macroexpand (` (extract-calendar-day (, date))))))
-            (year  (, (macroexpand (` (extract-calendar-year (, date))))))
-            (day-of-year (+ day (* 31 (1- month)))))
-       (if (> month 2)
-           (progn
-             (setq day-of-year (- day-of-year (/ (+ 23 (* 4 month)) 10)))
-            (if (, (macroexpand (` (calendar-leap-year-p year))))
+    (let* ((month (extract-calendar-month date))
+           (day (extract-calendar-day date))
+           (year (extract-calendar-year date))
+         (day-of-year (+ day (* 31 (1- month)))))
+      (if (> month 2)
+          (progn
+            (setq day-of-year (- day-of-year (/ (+ 23 (* 4 month)) 10)))
+            (if (calendar-leap-year-p year)
                 (setq day-of-year (1+ day-of-year)))))
-       day-of-year)))
-;;(defun calendar-day-number (date)
-;;  "Return the day number within the year of the date DATE.
-;;For example, (calendar-day-number '(1 1 1987)) returns the value 1,
-;;while (calendar-day-number '(12 31 1980)) returns 366."
-;;    (let* ((month (extract-calendar-month date))
-;;           (day (extract-calendar-day date))
-;;           (year (extract-calendar-year date))
-;;         (day-of-year (+ day (* 31 (1- month)))))
-;;      (if (> month 2)
-;;          (progn
-;;            (setq day-of-year (- day-of-year (/ (+ 23 (* 4 month)) 10)))
-;;            (if (calendar-leap-year-p year)
-;;                (setq day-of-year (1+ day-of-year)))))
-;;      day-of-year))
+      day-of-year))
 
-(defmacro calendar-absolute-from-gregorian (date)
+(defsubst calendar-absolute-from-gregorian (date)
   "The number of days elapsed between the Gregorian date 12/31/1 BC and DATE.
 The Gregorian date Sunday, December 31, 1 BC is imaginary."
-  (` (let ((prior-years
-	    (1- (, (macroexpand (` (extract-calendar-year (, date))))))))
-       (+ (, (macroexpand (` (calendar-day-number (, date)))));; Days this year
-          (* 365 prior-years);;        + Days in prior years
-          (/ prior-years 4);;          + Julian leap years
-          (- (/ prior-years 100));;    - century years
-          (/ prior-years 400)))));;    + Gregorian leap years
-;;(defun calendar-absolute-from-gregorian (date)
-;;  "The number of days elapsed between the Gregorian date 12/31/1 BC and DATE.
-;;The Gregorian date Sunday, December 31, 1 BC is imaginary."
-;;  (let ((prior-years (1- (extract-calendar-year date))))
-;;    (+ (calendar-day-number date);; Days this year
-;;       (* 365 prior-years);;        + Days in prior years
-;;       (/ prior-years 4);;          + Julian leap years
-;;       (- (/ prior-years 100));;    - century years
-;;       (/ prior-years 400))));;     + Gregorian leap years
+  (let ((prior-years (1- (extract-calendar-year date))))
+    (+ (calendar-day-number date);; Days this year
+       (* 365 prior-years);;        + Days in prior years
+       (/ prior-years 4);;          + Julian leap years
+       (- (/ prior-years 100));;    - century years
+       (/ prior-years 400))));;     + Gregorian leap years
 
 ;;;###autoload
 (defun calendar (&optional arg)
@@ -1142,29 +1096,16 @@ to be replaced by asterisks to highlight it whenever it is in the window."
   (interactive "P")
   (set-buffer (get-buffer-create calendar-buffer))
   (calendar-mode)
-;;;  (setq calendar-window-configuration (current-window-configuration))
   (let* ((completion-ignore-case t)
          (pop-up-windows t)
          (split-height-threshold 1000)
-         (date (calendar-current-date))
-         (month
-          (if arg
-              (cdr (assoc
-                    (capitalize
-                     (completing-read
-                      "Month name: "
-                      (mapcar 'list (append calendar-month-name-array nil))
-                      nil t))
-                    (calendar-make-alist calendar-month-name-array)))
-            (extract-calendar-month date)))
-         (year
-          (if arg
-              (calendar-read
-               "Year (>0): "
-               '(lambda (x) (> x 0))
-               (int-to-string (extract-calendar-year date)))
-            (extract-calendar-year date))))
+         (date (if arg
+                   (calendar-read-date t)
+                 (calendar-current-date)))
+         (month (extract-calendar-month date))
+         (year (extract-calendar-year date)))
     (pop-to-buffer calendar-buffer)
+    (increment-calendar-month month year (- calendar-offset))
     (generate-calendar-window month year)
     (if (and view-diary-entries-initially (calendar-date-is-visible-p date))
         (view-diary-entries
@@ -1535,7 +1476,7 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "iid" 'insert-islamic-diary-entry)
   (define-key calendar-mode-map "iim" 'insert-monthly-islamic-diary-entry)
   (define-key calendar-mode-map "iiy" 'insert-yearly-islamic-diary-entry)
-  (define-key calendar-mode-map "?"   'describe-calendar-mode))
+  (define-key calendar-mode-map "?"   'calendar-goto-info-node))
 
 (defun describe-calendar-mode ()
   "Create a help buffer with a brief description of the calendar-mode."
@@ -1556,234 +1497,29 @@ the inserted text.  Value is always t."
   (list
    (substitute-command-keys "\\<calendar-mode-map>\\[scroll-calendar-left]")
    "Calendar"
-   (substitute-command-keys "\\<calendar-mode-map>\\[describe-calendar-mode] help/\\[calendar-other-month] other/\\[calendar-goto-today] today")
+   (substitute-command-keys "\\<calendar-mode-map>\\[calendar-goto-info-node] info/\\[calendar-other-month] other/\\[calendar-goto-today] today")
    '(calendar-date-string (calendar-current-date) t)
    (substitute-command-keys "\\<calendar-mode-map>\\[scroll-calendar-right]"))
   "The mode line of the calendar buffer.")
 
+(defun calendar-goto-info-node ()
+  "Go to the info node for the calendar."
+  (interactive)
+  (require 'info)
+  (let ((where (Info-find-emacs-command-nodes 'calendar)))
+    (if (not where)
+        (error "Couldn't find documentation for the calendar.")
+      (save-window-excursion (info))
+      (pop-to-buffer "*info*")
+      (Info-find-node (car (car where)) (car (cdr (car where)))))))
+
 (defun calendar-mode ()
   "A major mode for the calendar window.
 
-The commands for cursor movement are:\\<calendar-mode-map>
+For a complete description, type \
+\\<calendar-mode-map>\\[calendar-goto-info-node] from within the calendar.
 
-       \\[calendar-forward-day]  one day forward         \\[calendar-backward-day]  one day backward
-       \\[calendar-forward-week]  one week forward        \\[calendar-backward-week]  one week backward
-       \\[calendar-forward-month]  one month forward       \\[calendar-backward-month]  one month backward
-       \\[calendar-forward-year]  one year forward      \\[calendar-backward-year]  one year backward
-       \\[calendar-beginning-of-week]  beginning of week       \\[calendar-end-of-week]  end of week
-       \\[calendar-beginning-of-month]  beginning of month      \\[calendar-end-of-month]  end of month
-       \\[calendar-beginning-of-year]  beginning of year       \\[calendar-end-of-year]  end of year
-
-       \\[calendar-goto-date]  go to date
-
-       \\[calendar-goto-julian-date]  go to Julian date       \\[calendar-goto-astro-day-number]  go to astronomical (Julian) day number
-       \\[calendar-goto-hebrew-date]  go to Hebrew date       \\[calendar-goto-islamic-date]  go to Islamic date
-       \\[calendar-goto-iso-date]  go to ISO date          \\[calendar-goto-french-date]  go to French Revolutionary date
-
-       \\[calendar-goto-mayan-long-count-date]  go to Mayan Long Count date
-       \\[calendar-next-haab-date]  go to next occurrence of Mayan Haab date
-       \\[calendar-previous-haab-date]  go to previous occurrence of Mayan Haab date
-       \\[calendar-next-tzolkin-date]  go to next occurrence of Mayan Tzolkin date
-       \\[calendar-previous-tzolkin-date]  go to previous occurrence of Mayan Tzolkin date
-       \\[calendar-next-calendar-round-date]  go to next occurrence of Mayan Calendar Round date
-       \\[calendar-previous-calendar-round-date]  go to previous occurrence of Mayan Calendar Round date
-
-You can mark a date in the calendar and switch the point and mark:
-
-       \\[calendar-set-mark]  mark date                 \\[calendar-exchange-point-and-mark]  exchange point and mark
-
-You can determine the number of days (inclusive) between the point and mark by
-
-       \\[calendar-count-days-region]  count days in the region
-
-The commands for calendar movement are:
-
-       \\[scroll-calendar-right]  scroll one month right \\[scroll-calendar-left]  scroll one month left
-       \\[scroll-calendar-right-three-months]  scroll 3 months right    \\[scroll-calendar-left-three-months]  scroll 3 months left
-       \\[calendar-goto-today]  display current month      \\[calendar-other-month]  display another month
-
-Whenever it makes sense, the above commands take prefix arguments that
-multiply their affect.  For convenience, the digit keys and the minus sign
-are bound to digit-argument, so they need not be prefixed with ESC.
-
-If the calendar window somehow becomes corrupted, it can be regenerated with
-
-       \\[redraw-calendar]  redraw the calendar
-
-The following commands deal with holidays and other notable days:
-
-       \\[calendar-cursor-holidays]  give holidays for the date specified by the cursor
-       \\[mark-calendar-holidays]  mark notable days
-       \\[calendar-unmark]  unmark dates
-       \\[list-calendar-holidays]  display notable days
-
-The command M-x holidays causes the notable dates for the current month, and
-the preceding and succeeding months, to be displayed, independently of the
-calendar.
-
-The following commands control the diary:
-
-       \\[mark-diary-entries]  mark diary entries          \\[calendar-unmark]  unmark dates
-       \\[view-diary-entries]  display diary entries       \\[show-all-diary-entries]  show all diary entries
-       \\[print-diary-entries]  print diary entries
-
-Displaying the diary entries causes the diary entries from the diary file
-\(for the date indicated by the cursor in the calendar window) to be
-displayed in another window.  This function takes an integer argument that
-specifies the number of days of calendar entries to be displayed, starting
-with the date indicated by the cursor.
-
-The command \\[print-diary-entries] prints the diary buffer (as it appears)
-on the line printer.
-
-The command M-x diary causes the diary entries for the current date to be
-displayed, independently of the calendar.  The number of days of entries is
-governed by number-of-diary-entries.
-
-The format of the entries in the diary file is described in the
-documentation string for the variable `diary-file'.
-
-When diary entries are in view in the window, they can be edited.  It is
-important to keep in mind that the buffer displayed contains the entire
-diary file, but with portions of it concealed from view.  This means, for
-instance, that the forward-char command can put the cursor at what appears
-to be the end of the line, but what is in reality the middle of some
-concealed line.  BE CAREFUL WHEN EDITING THE DIARY ENTRIES! (Inserting
-additional lines or adding/deleting characters in the middle of a visible
-line will not cause problems; watch out for end-of-line, however--it may
-put you at the end of a concealed line far from where the cursor appears to
-be!)  BEFORE EDITING THE DIARY IT IS BEST TO DISPLAY THE ENTIRE FILE WITH
-show-all-diary-entries.  BE SURE TO WRITE THE FILE BEFORE EXITING FROM THE
-CALENDAR.
-
-The following commands assist in making diary entries:
-
-       \\[insert-diary-entry]  insert a diary entry for the selected date
-       \\[insert-weekly-diary-entry]  insert a diary entry for the selected day of the week
-       \\[insert-monthly-diary-entry]  insert a diary entry for the selected day of the month
-       \\[insert-yearly-diary-entry]  insert a diary entry for the selected day of the year
-       \\[insert-block-diary-entry]  insert a diary entry for the block days between point and mark
-       \\[insert-anniversary-diary-entry]  insert an anniversary diary entry for the selected date
-       \\[insert-cyclic-diary-entry]  insert a cyclic diary entry
-
-There are corresponding commands to assist in making Hebrew- or Islamic-date
-diary entries:
-
-       \\[insert-hebrew-diary-entry]  insert a diary entry for the Hebrew date corresponding
-                to the selected date
-       \\[insert-monthly-hebrew-diary-entry]  insert a diary entry for the day of the Hebrew month
-                corresponding to the selected day
-       \\[insert-yearly-hebrew-diary-entry]  insert a diary entry for the day of the Hebrew year
-                corresponding to the selected day
-       \\[insert-islamic-diary-entry]  insert a diary entry for the Islamic date corresponding
-                to the selected date
-       \\[insert-monthly-islamic-diary-entry]  insert a diary entry for the day of the Islamic month
-                corresponding to the selected day
-       \\[insert-yearly-islamic-diary-entry]  insert a diary entry for the day of the Islamic year
-                corresponding to the selected day
-
-All of the diary entry commands make nonmarking entries when given a prefix
-argument; with no prefix argument, the diary entries are marking.
-
-The day number in the year and the number of days remaining in the year can be
-determined by
-
-       \\[calendar-print-day-of-year]  show day number and the number of days remaining in the year
-
-Equivalent dates on the ISO commercial, Julian, Hebrew, Islamic, French
-Revolutionary, and Mayan calendars can be determined by
-
-       \\[calendar-print-iso-date]  show equivalent date on the ISO commercial calendar
-       \\[calendar-print-julian-date]  show equivalent date on the Julian calendar
-       \\[calendar-print-hebrew-date]  show equivalent date on the Hebrew calendar
-       \\[calendar-print-islamic-date]  show equivalent date on the Islamic calendar
-       \\[calendar-print-french-date]  show equivalent date on the French Revolutionary calendar
-       \\[calendar-print-mayan-date]  show equivalent date on the Mayan calendar
-
-The astronomical (Julian) day number of a date is found with
-
-       \\[calendar-print-astro-day-number]  show equivalent astronomical (Julian) day number
-
-To find the times of sunrise and sunset and lunar phases use
-
-       \\[calendar-sunrise-sunset]  show times of sunrise and sunset
-       \\[calendar-phases-of-moon]  show times of quarters of the moon
-
-The times given apply to location `calendar-location-name' at latitude
-`calendar-latitude', longitude `calendar-longitude'; set these variables for
-your location.  The following variables are also consulted, and you must set
-them if your system does not initialize them properly: `calendar-time-zone',
-`calendar-daylight-time-offset', `calendar-standard-time-zone-name',
-`calendar-daylight-time-zone-name', `calendar-daylight-savings-starts',
-`calendar-daylight-savings-ends', `calendar-daylight-savings-starts-time',
-`calendar-daylight-savings-ends-time'.
-
-To exit from the calendar use
-
-       \\[exit-calendar]  exit from calendar
-
-Set `view-diary-entries-initially' to a non-nil value to display 
-diary entries for the current date in
-another window when the calendar is first displayed, if the current date is
-visible.  The variable `number-of-diary-entries' controls number of days of
-diary entries that to display initially or with the command M-x
-diary.  For example, the default value 1 says to display only the current
-day's diary entries.  The value 2 says to display both the
-current day's and the next day's entries.
-
-The value can also be a vector such as [0 2 2 2 2 4 1]; this value
-says to display no diary entries on Sunday, the display the entries
-for the current date and the day after on Monday through Thursday,
-display Friday through Monday's entries on Friday, and display only
-Saturday's entries on Saturday.
-
-Set `view-calendar-holidays-initially' to a non-nil value to display
-holidays for the current three month period on entry to the calendar.
-
-Set `mark-diary-entries-in-calendar' to a non-nil value to mark in the
-calendar all the dates that have diary entries.  The variable
-`diary-entry-marker' controls how to mark them.
-
-The variable `calendar-load-hook', whose default value is nil, is list of
-functions to be called when the calendar is first loaded.
-
-The variable `initial-calendar-window-hook', whose default value is nil, is
-list of functions to be called when the calendar window is first opened.  The
-functions invoked are called after the calendar window is opened, but once
-opened is never called again.  Leaving the calendar with the `q' command and
-reentering it will cause these functions to be called again.
-
-The variable `today-visible-calendar-hook', whose default value is nil, is the
-list of functions called after the calendar buffer has been prepared with the
-calendar when the current date is visible in the window.  This can be used,
-for example, to replace today's date with asterisks; a function
-calendar-star-date is included for this purpose:
- (setq today-visible-calendar-hook 'calendar-star-date)
-It could also be used to mark the current date; a function is also provided
-for this:
- (setq today-visible-calendar-hook 'calendar-mark-today)
-
-The variable `today-invisible-calendar-hook', whose default value is nil, is
-the list of functions called after the calendar buffer has been prepared with
-the calendar when the current date is not visible in the window.
-
-The variable `diary-display-hook' is the list of functions called after the
-diary buffer is prepared.  The default value simply displays the diary file
-using selective-display to conceal irrelevant diary entries.  An alternative
-function `fancy-diary-display' is provided that, when used as the
-`diary-display-hook', causes a noneditable buffer to be prepared with a neatly
-organized day-by-day listing of relevant diary entries, together with any
-known holidays.  The inclusion of the holidays slows this fancy display of the
-diary; to speed it up, set the variable `holidays-in-diary-buffer' to nil.
-
-The variable `print-diary-entries-hook' is the list of functions called after
-a temporary buffer is prepared with the diary entries currently visible in the
-diary buffer.  The default value of this hook adds a heading (composed from
-the diary buffer's mode line), does the printing with the command lpr-buffer,
-and kills the temporary buffer.  Other uses might include, for example,
-rearranging the lines into order by day and time.
-
-The Gregorian calendar is assumed."
+\\<calendar-mode-map>\\{calendar-mode-map}"
 
   (kill-all-local-variables)
   (setq major-mode 'calendar-mode)
@@ -1830,34 +1566,63 @@ concatenated and the result truncated."
               (calendar-string-spread
                calendar-mode-line-format ?  (frame-width))))))
 
+(defun calendar-window-list ()
+  "List of all calendar-related windows."
+  (let ((calendar-buffers (calendar-buffer-list))
+        list)
+    (walk-windows '(lambda (w)
+                     (if (memq (window-buffer w) calendar-buffers)
+                         (setq list (cons w list))))
+                  nil t)
+    list))
+
+(defun calendar-buffer-list ()
+  "List of all calendar-related buffers."
+  (let* ((diary-buffer (get-file-buffer diary-file))
+         (buffers (list "*Yahrzeits*" lunar-phases-buffer holiday-buffer
+                        fancy-diary-buffer diary-buffer calendar-buffer))
+         (buffer-list nil)
+         b)
+    (while buffers
+      (setq b (car buffers))
+      (setq b (cond ((stringp b) (get-buffer b))
+                    ((bufferp b) b)
+                    (t nil)))
+      (if b (setq buffer-list (cons b buffer-list)))
+      (setq buffers (cdr buffers)))
+    buffer-list))
+
 (defun exit-calendar ()
-  "Delete the calendar window, and bury the calendar and related buffers."
+  "Get out of the calendar window and hide it and related buffers."
   (interactive)
-  (let ((diary-buffer (get-file-buffer diary-file))
-        (d-buffer (get-buffer fancy-diary-buffer))
-        (h-buffer (get-buffer holiday-buffer)))
-    (if (not diary-buffer)
-        (progn
-	  ;; Restoring the configuration is undesirable because
-	  ;; it restores the value of point in other windows.
-;;;          (set-window-configuration calendar-window-configuration)
-	  (or (one-window-p t)
-	      (delete-window))
-          (bury-buffer calendar-buffer)
-          (if d-buffer (bury-buffer d-buffer))
-          (if h-buffer (bury-buffer h-buffer)))
-      (if (or (not (buffer-modified-p diary-buffer))
-              (yes-or-no-p "Diary modified; do you really want to exit the calendar? "))
-          (progn
-;;;            (set-window-configuration calendar-window-configuration)
-	    (or (one-window-p t)
-		(delete-window))
-            (bury-buffer calendar-buffer)
-            (if d-buffer (bury-buffer d-buffer))
-            (if h-buffer (bury-buffer h-buffer))
-            (set-buffer diary-buffer)
-            (set-buffer-modified-p nil)
-            (bury-buffer diary-buffer))))))
+  (let* ((diary-buffer (get-file-buffer diary-file)))
+    (if (and diary-buffer (buffer-modified-p diary-buffer)
+	     (not
+	      (yes-or-no-p
+	       "Diary modified; do you really want to exit the calendar? ")))
+	(error)
+      ;; Need to do this multiple times because one time can replace some
+      ;; calendar-related buffers with other calendar-related buffers
+      (mapcar (lambda (x)
+                (mapcar 'calendar-hide-window (calendar-window-list)))
+              (calendar-window-list)))))
+
+(defun calendar-hide-window (window)
+  "Hide WINDOW if it is calendar-related."
+  (let ((buffer (if (window-live-p window) (window-buffer window))))
+    (if (memq buffer (calendar-buffer-list))
+        (cond
+         ((and window-system
+               (eq 'icon (cdr (assoc 'visibility
+                                     (frame-parameters
+                                      (window-frame window))))))
+          nil)
+         ((and window-system (window-dedicated-p window))
+          (iconify-frame (window-frame window)))
+         ((not (and (select-window window) (one-window-p window)))
+          (delete-window window))
+         (t (set-buffer buffer)
+            (bury-buffer))))))
 
 (defun calendar-goto-today ()
   "Reposition the calendar window so the current date is visible."
@@ -1945,27 +1710,16 @@ position of the cursor with respect to the calendar as well as possible."
   (scroll-calendar-left (* -3 arg)))
 
 (defun calendar-current-date ()
-  "Returns the current date in a list (month day year).
-If in the calendar buffer, also sets the current date local variables."
-  (let* ((date (current-time-string))
-         (garbage
-          (string-match
-           "^\\([A-Z][a-z]*\\) *\\([A-Z][a-z]*\\) *\\([0-9]*\\) .* \\([0-9]*\\)$"
-           date))
-         (month
-          (cdr (assoc 
-                (substring date (match-beginning 2) (match-end 2))
-                '(("Jan" . 1) ("Feb" . 2) ("Mar" . 3) ("Apr" . 4)
-                  ("May" . 5) ("Jun" . 6) ("Jul" . 7) ("Aug" . 8)
-                  ("Sep" . 9) ("Oct" . 10) ("Nov" . 11) ("Dec" . 12)))))
-         (day
-          (string-to-int (substring date (match-beginning 3) (match-end 3))))
-         (year
-          (string-to-int (substring date (match-beginning 4) (match-end 4)))))
-    (list month day year)))
+  "Returns the current date in a list (month day year)."
+  (let ((s (current-time-string)))
+    (list (length (member (substring s 4 7)
+                          '("Dec" "Nov" "Oct" "Sep" "Aug" "Jul"
+                            "Jun" "May" "Apr" "Mar" "Feb" "Jan")))
+          (string-to-number (substring s 8 10))
+          (string-to-number (substring s 20 24)))))
 
 (defun calendar-cursor-to-date (&optional error)
-  "Returns a list of the month, day, and year of current cursor position.
+  "Returns a list (month day year) of current cursor position.
 If cursor is not on a specific date, signals an error if optional parameter
 ERROR is t, otherwise just returns nil."
   (let* ((segment (/ (current-column) 25))
@@ -2222,20 +1976,8 @@ Gregorian date Sunday, December 31, 1 BC."
 (defun calendar-other-month (month year)
   "Display a three-month calendar centered around MONTH and YEAR."
   (interactive
-   (let* ((completion-ignore-case t)
-          (month (cdr (assoc
-                       (capitalize
-                        (completing-read
-                         "Month name: "
-                         (mapcar 'list (append calendar-month-name-array nil))
-                         nil t))
-                       (calendar-make-alist calendar-month-name-array))))
-          (year (calendar-read
-                 "Year (>0): "
-                 '(lambda (x) (> x 0))
-                 (int-to-string
-                  (extract-calendar-year (calendar-current-date))))))
-     (list month year)))
+   (let* ((completion-ignore-case t))
+     (calendar-read-date t)))
   (if (and (= month displayed-month)
            (= year displayed-year))
       nil
@@ -2307,8 +2049,10 @@ is a string to insert in the minibuffer before reading."
       (setq value (read-minibuffer prompt initial-contents)))
     value))
 
-(defun calendar-read-date ()
-  "Prompt for Gregorian date.  Returns a list (month day year)."
+(defun calendar-read-date (&optional noday)
+  "Prompt for Gregorian date.  Returns a list (month day year).
+If optional NODAY is t, does not ask for day, but just returns
+(month nil year)."
   (let* ((year (calendar-read
                 "Year (>0): "
                 '(lambda (x) (> x 0))
@@ -2323,11 +2067,14 @@ is a string to insert in the minibuffer before reading."
                         (mapcar 'list (append month-array nil))
                         nil t))
                       (calendar-make-alist month-array 1 'capitalize))))
-         (last (calendar-last-day-of-month month year))
-         (day (calendar-read
-               (format "Day (1-%d): " last)
-               '(lambda (x) (and (< 0 x) (<= x last))))))
-    (list month day year)))
+         (last (calendar-last-day-of-month month year)))
+       (list month
+             (if noday
+                 nil
+               (day (calendar-read
+                     (format "Day (1-%d): " last)
+                             '(lambda (x) (and (< 0 x) (<= x last))))))
+             year)))
 
 (defun calendar-goto-date (date)
   "Move cursor to DATE."
