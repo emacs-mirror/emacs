@@ -1894,7 +1894,8 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
 
 DEFUN ("next-overlay-change", Fnext_overlay_change, Snext_overlay_change,
   1, 1, 0,
-  "Return the next position after POS where an overlay starts or ends.")
+  "Return the next position after POS where an overlay starts or ends.\n\
+If there are no more overlay boundaries after POS, return (point-max).")
   (pos)
      Lisp_Object pos;
 {
@@ -1937,7 +1938,7 @@ DEFUN ("next-overlay-change", Fnext_overlay_change, Snext_overlay_change,
 DEFUN ("overlay-lists", Foverlay_lists, Soverlay_lists, 0, 0, 0,
   "Return a pair of lists giving all the overlays of the current buffer.\n\
 The car has all the overlays before the overlay center;\n\
-the cdr has all the overlays before the overlay center.\n\
+the cdr has all the overlays after the overlay center.\n\
 Recentering overlays moves overlays between these lists.\n\
 The lists you get are copies, so that changing them has no effect.\n\
 However, the overlays you get are the real objects that the buffer uses.")
