@@ -860,7 +860,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.57 $")
+(defconst ange-ftp-version "$Revision: 1.58 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -1406,12 +1406,12 @@ good, skip, fatal, or unknown."
 	 (setq ange-ftp-process-busy nil
 	       ange-ftp-process-result t
 	       ange-ftp-process-result-line line))
+	((string-match ange-ftp-multi-msgs line)
+	 (setq ange-ftp-process-multi-skip t))
 	((string-match ange-ftp-fatal-msgs line)
 	 (delete-process proc)
 	 (setq ange-ftp-process-busy nil
 	       ange-ftp-process-result-line line))
-	((string-match ange-ftp-multi-msgs line)
-	 (setq ange-ftp-process-multi-skip t))
 	(ange-ftp-process-multi-skip
 	 t)
 	(t
