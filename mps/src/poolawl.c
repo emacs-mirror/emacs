@@ -1,7 +1,7 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.41) $
- * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!poolawl.c(trunk.42) $
+ * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
  *
@@ -13,10 +13,11 @@
  */
 
 
-#include "mpm.h"
 #include "mpscawl.h"
+#include "mpm.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.41) $");
+
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.42) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -537,33 +538,53 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer)
 }
 
 
+/* AWLWhiten -- segment condemning method */
+
+static void AWLRangeWhiten(AWLGroup group, Index base, Index limit)
+/* Split out of AWLWhiten because it's used in more than one place. */
+{
+  if(base != limit) {
+    AVER(base < limit);
+    AVER(limit <= group->grains);
+    BTResRange(group->mark, base, limit);
+    BTResRange(group->scanned, base, limit);
+  }
+}
+
 static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
 {
+  AWL awl;
+  AWLGroup group;
+  Buffer buffer;
+
   /* all parameters checked by generic PoolWhiten */
+
+  awl = PoolPoolAWL(pool);
+  AVERT(AWL, awl);
+  group = (AWLGroup)SegP(seg);
+  AVERT(AWLGroup, group);
+  buffer = SegBuffer(seg);
 
   /* can only whiten for a single trace, */
   /* see design.mps.poolawl.fun.condemn */
   AVER(SegWhite(seg) == TraceSetEMPTY);
 
-  /* We don't condemn buffered segments so that we avoid */
-  /* allocating white objects */
-  if(SegBuffer(seg) == NULL) {
-    AWL awl;
-    AWLGroup group;
+  if(buffer == NULL) {
+    AWLRangeWhiten(group, 0, group->grains);
+  } else {
+    /* Whiten everything except the buffer. */
+    Addr base = SegBase(group->seg);
 
-    awl = PoolPoolAWL(pool);
-    AVERT(AWL, awl);
-
-    group = (AWLGroup)SegP(seg);
-    AVERT(AWLGroup, group);
-    
-    BTResRange(group->mark, 0, group->grains);
-    BTResRange(group->scanned, 0, group->grains);
-    SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace->ti));
+    AWLRangeWhiten(group, 0,
+                   awlIndexOfAddr(base, awl, BufferScanLimit(buffer)));
+    AWLRangeWhiten(group, awlIndexOfAddr(base, awl, BufferLimit(buffer)),
+                   group->grains);
   }
 
+  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace->ti));
   return ResOK;
 }
+
 
 static void AWLGrey(Pool pool, Trace trace, Seg seg)
 {
