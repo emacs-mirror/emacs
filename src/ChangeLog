@@ -1,3 +1,7 @@
+2000-03-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* fns.c (Fy_or_n_p): Cancel busy-cursor.
+
 2000-03-08  Stefan Monnier  <monnier@cs.yale.edu>
 
 	This is a big redesign of failure-stack and register handling, prompted
@@ -10,14 +14,15 @@
 	(RE_UNMATCHED_RIGHT_PAREN_ORD): Renumber.
 	(RE_SYNTAX_EMACS): Add RE_SHY_GROUPS.
 
-	* regex.c (enum re_opcode_t): Remove jump_past_alt, maybe_pop_jump,
-	push_dummy_failure and dumy_failure_jump.
-	Add on_failure_jump_(exclusive, loop and smart).
-	Also fix the comment for (start|stop)_memory since they now only take
-	one argument (the second has becomes unnecessary).
-	(print_partial_compiled_pattern): Adjust for changes in re_opcode_t.
-	(print_compiled_pattern): Use %ld to printf long ints and flush to make
-	debugging a little easier.
+	* regex.c (enum re_opcode_t): Remove jump_past_alt,
+	maybe_pop_jump, push_dummy_failure and dumy_failure_jump.  Add
+	on_failure_jump_(exclusive, loop and smart).  Also fix the comment
+	for (start|stop)_memory since they now only take one argument (the
+	second has becomes unnecessary).
+	(print_partial_compiled_pattern): Adjust for changes in
+	re_opcode_t.
+	(print_compiled_pattern): Use %ld to printf long ints and flush to
+	make debugging a little easier.
 	(union fail_stack_elt): Make the integer unsigned.
 	(struct fail_stack_type): Add a `frame' element.
 	(INIT_FAIL_STACK): Init `frame' as well.
@@ -25,60 +30,60 @@
 	(DEBUG_PUSH, DEBUG_POP): Remove.
 	(NUM_REG_ITEMS): Remove.
 	(NUM_NONREG_ITEMS): Adjust.
-	(FAILURE_PAT, FAILURE_STR, NEXT_FAILURE_HANDLE, TOP_FAILURE_HANDLE):
-	New macros for the cycle detection.
+	(FAILURE_PAT, FAILURE_STR, NEXT_FAILURE_HANDLE)
+	(TOP_FAILURE_HANDLE): New macros for the cycle detection.
 	(ENSURE_FAIL_STACK): New macro for PUSH_FAILURE_(REG|POINT).
-	(PUSH_FAILURE_REG, POP_FAILURE_REG, CHECK_INFINITE_LOOP): New macros.
-	(PUSH_FAILURE_POINT): Don't push registers any more.
-	The pattern address pushed is not the destination of the jump
-	but the source of it instead.
+	(PUSH_FAILURE_REG, POP_FAILURE_REG, CHECK_INFINITE_LOOP): New
+	macros.
+	(PUSH_FAILURE_POINT): Don't push registers any more.  The pattern
+	address pushed is not the destination of the jump but the source
+	of it instead.
 	(NUM_FAILURE_ITEMS): Remove.
 	(POP_FAILURE_POINT): Adapt to the new stack structure (i.e. pop
-	registers before the actual failure point).
-	Don't hardcode any meaning for str==NULL anymore.
+	registers before the actual failure point).  Don't hardcode any
+	meaning for str==NULL anymore.
 	(union register_info_type, REG_MATCH_NULL_STRING_P, IS_ACTIVE)
-	(MATCHED_SOMETHING, EVER_MATCHED_SOMETHING, SET_REGS_MATCHED): Remove.
+	(MATCHED_SOMETHING, EVER_MATCHED_SOMETHING, SET_REGS_MATCHED):
+	Remove.
 	(REG_UNSET_VALUE): Use NULL (why not?).
 	(compile_range): Remove declaration since it doesn't exist.
 	(struct compile_stack_elt_t): Remove inner_group_offset.
 	(old_reg(start|end), reg_info, reg_dummy, reg_info_dummy): Remove.
 	(regex_grow_registers): Remove dead code.
 	(FIXUP_ALT_JUMP): New macro.
-	(regex_compile): Add shy-groups
-	Change loops to use	on_failure_jump_smart&jump instead of
-	on_failure_jump&maybe_pop_jump.
-	Change + loops to eliminate the initial (dummy_failure_)jump.
-	Remove c1_base (looks like unused variable to me).
-	Use `jump' instead of `jump_past_alt' and don't bother with
-	push_dummy_failure in alternatives since it is now unnecessary.
-	Use FIXUP_ALT_JUMP.
-	Eliminate a useless `#ifdef emacs' for (re)allocating the stack.
-	(re_compile_fastmap): Remove dead variables i and num_regs.
-	Exit from loop when bufp->can_be_null rather than jumping to `done'.
-	Avoid jumping backwards so as to ensure termination.
-	Use PATTERN_STACK_EMPTY and POP_PATTERN_OP.
-	Improved handling of backreferences.
-	Remove dead code in handling of `anychar'.
+	(regex_compile): Add shy-groups Change loops to use
+	on_failure_jump_smart&jump instead of
+	on_failure_jump&maybe_pop_jump.  Change + loops to eliminate the
+	initial (dummy_failure_)jump.  Remove c1_base (looks like unused
+	variable to me).  Use `jump' instead of `jump_past_alt' and don't
+	bother with push_dummy_failure in alternatives since it is now
+	unnecessary.  Use FIXUP_ALT_JUMP.  Eliminate a useless `#ifdef
+	emacs' for (re)allocating the stack.
+	(re_compile_fastmap): Remove dead variables i and num_regs.  Exit
+	from loop when bufp->can_be_null rather than jumping to `done'.
+	Avoid jumping backwards so as to ensure termination.  Use
+	PATTERN_STACK_EMPTY and POP_PATTERN_OP.  Improved handling of
+	backreferences.  Remove dead code in handling of `anychar'.
 	(skip_noops, mutually_exclusive_p): New functions taken from the
-	handling of `maybe_pop_jump' in re_match_2_internal.
-	Slightly improve mutually_exclusive_p to handle ".+\n".
-	((lowest|highest)_active_reg, NO_(LOWEST|HIGHEST)_ACTIVE_REG)
-	Remove.
-	(re_match_2_internal): Use %p instead of 0x%x when printf'ing ptrs.
-	Don't SET_REGS_MATCHED anymore.  Remove many dead variables.
-	Push register (in `start_memory') on the stack rather than storing it
-	in old_reg(start|end).
-	Remove the cycle detection from `stop_memory', replaced by the use
-	of on_failure_jump_loop for greedy loops.
-	Add code for the new on_failure_jump_<foo>.
-	Remove ad-hoc code in `on_failure_jump' to push more registers
-	in the case of a loop.
-	Take out code from `maybe_pop_jump' into separate functions and
-	adapt it to the semantics of `on_failure_jump_smart'.
-	Remove jump_past_alt, dummy_failure_jump and push_dummy_failure.
-	Remove dummy_failure handling and handling of `failures to jump
-	to on_failure_jump' (this last one was already dead code, it seems).
-	((group|alt|common_op)_match_null_string_p): Remove.
+	handling of `maybe_pop_jump' in re_match_2_internal.  Slightly
+	improve mutually_exclusive_p to handle ".+\n".
+	(lowest_active_reg, highest_active_reg,
+	NO_(LOWEST|HIGHEST)_ACTIVE_REG) Remove.
+	(re_match_2_internal): Use %p instead of 0x%x when printf'ing
+	ptrs.  Don't SET_REGS_MATCHED anymore.  Remove many dead
+	variables.  Push register (in `start_memory') on the stack rather
+	than storing it in old_reg(start|end).  Remove the cycle detection
+	from `stop_memory', replaced by the use of on_failure_jump_loop
+	for greedy loops.  Add code for the new on_failure_jump_<foo>.
+	Remove ad-hoc code in `on_failure_jump' to push more registers in
+	the case of a loop.  Take out code from `maybe_pop_jump' into
+	separate functions and adapt it to the semantics of
+	`on_failure_jump_smart'.  Remove jump_past_alt, dummy_failure_jump
+	and push_dummy_failure.  Remove dummy_failure handling and
+	handling of `failures to jump to on_failure_jump' (this last one
+	was already dead code, it seems).
+	(group_match_null_string_p, alt_match_null_string_p)
+	(common_op_match_null_string_p): Remove.
 
 2000-03-08  Dave Love  <fx@gnu.org>
 

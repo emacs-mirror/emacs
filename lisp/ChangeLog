@@ -1,31 +1,41 @@
+2000-03-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* octave-mod.el (octave-font-lock-keywords): To font-lock the
+	builtin operators, use `font-lock-builtin-face' for Emacs and
+	`font-lock-preprocessor-face' otherwise.
+	
+	* font-lock.el (lisp-font-lock-keywords-1): Highlight 
+	`(defun (setf foo)' differently.
+
 2000-03-08  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/regexp-opt.el: Update copyright and leading comment.
-	(regexp-opt): Update comment and adapt the code the new meaning of the
-	`paren' argument of regex-opt-group for shy-groups.
-	(regexp-opt-depth): Handle shy groups as well as backslashed backslashes.
+	(regexp-opt): Update comment and adapt the code the new meaning of
+	the `paren' argument of regex-opt-group for shy-groups.
+	(regexp-opt-depth): Handle shy groups as well as backslashed
+	backslashes.
 	(regexp-opt-group): Turn the leading comment into a docstring.
 	Allow `paren' to be a string (the string to use to open a group).
-	Remove open-presuf and close-presuf.
-	Instead of checking for `all one-char' and then later on check for
-	`several one-char', handle both cases close together.
-	Also apply a more generic algorithm for suffixes (the mirror image
-	of the algorithm used for prefixes).
-	Use shy-groups.  Use nreverse rather than reverse.
+	Remove open-presuf and close-presuf.  Instead of checking for `all
+	one-char' and then later on check for `several one-char', handle
+	both cases close together.  Also apply a more generic algorithm
+	for suffixes (the mirror image of the algorithm used for
+	prefixes).  Use shy-groups.  Use nreverse rather than reverse.
 	(regexp-opt-try-suffix): Removed.
 
 	* cmuscheme.el (inferior-scheme-mode-map): Define it independently
-	from comint-mode-map, so we can just inherit from it.  Also, move the
-	initialization into the `defvar' since there's no docstring anyway
-	and it's fairly short.
-	(inferior-scheme-mode): Define it as derived-mode: the code is shorter
-	and this way we inherit from comint-mode-map rather than copying it.
+	from comint-mode-map, so we can just inherit from it.  Also, move
+	the initialization into the `defvar' since there's no docstring
+	anyway and it's fairly short.
+	(inferior-scheme-mode): Define it as derived-mode: the code is
+	shorter and this way we inherit from comint-mode-map rather than
+	copying it.
 
-	* subr.el (replace-regexps-in-string): Properly handle the case where
-	we match an empty string.
+	* subr.el (replace-regexps-in-string): Properly handle the case
+	where we match an empty string.
 
-	* comint.el (comint-exec-1): Add the current-dir to the exec-path when
-	the command has a directory component (such as "./testml").
+	* comint.el (comint-exec-1): Add the current-dir to the exec-path
+	when the command has a directory component (such as "./testml").
 	Also fix a typo in the comment.
 
 2000-03-08  Gerd Moellmann  <gerd@gnu.org>
