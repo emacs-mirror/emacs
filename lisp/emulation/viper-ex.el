@@ -2090,6 +2090,7 @@ Please contact your system administrator. "
 	      (insert region)
 	      ;; ask user
 	      (viper-maybe-checkout (current-buffer))
+	      (setq selective-display nil)
 	      (save-buffer)
 	      (ex-write-info
 	       file-exists ex-file (point-min) (point-max))
