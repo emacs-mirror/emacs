@@ -1,5 +1,8 @@
 2004-11-08  Eli Zaretskii  <eliz@gnu.org>
 
+	* sedlisp.inp (bootstrap-clean): Copy ldefs-boot.el onto
+	loaddefs.el, unless the latter exists and is newer.
+
 	* mainmake.v2 (mostlyclean, distclean, maintainer-clean)
 	(extraclean, bootfast): New targets.
 	(top_distclean): New macro, used by distclean, maintainer-clean,
