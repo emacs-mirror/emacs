@@ -816,7 +816,8 @@ If N is negative, find the next or Nth next match."
     (if (null pos)
 	(error "Not found")
       (setq eshell-history-index pos)
-      (message "History item: %d" (- (ring-length eshell-history-ring) pos))
+      (unless (minibuffer-window-active-p (selected-window))
+	(message "History item: %d" (- (ring-length eshell-history-ring) pos)))
        ;; Can't use kill-region as it sets this-command
       (delete-region (save-excursion (eshell-bol) (point)) (point))
       (insert-and-inherit (eshell-get-history pos)))))
