@@ -509,7 +509,6 @@ static int face_numeric_slant P_ ((Lisp_Object));
 static int face_numeric_swidth P_ ((Lisp_Object));
 static int face_fontset P_ ((Lisp_Object *));
 static char *choose_face_font P_ ((struct frame *, Lisp_Object *, int, int));
-static void default_face_vector P_ ((Lisp_Object *, Lisp_Object*));
 static void merge_face_vectors P_ ((struct frame *, Lisp_Object *, Lisp_Object*, Lisp_Object));
 static void merge_face_inheritance P_ ((struct frame *f, Lisp_Object,
 					Lisp_Object *, Lisp_Object));
@@ -3133,22 +3132,6 @@ merge_face_heights (from, to, invalid, gcpro)
 }
 
 
-/* Default any unspecified face attributes in LFACE from DEFAULTS.
-   Unlike merge_face_vectors, below, this function simply fills in any
-   unspecified attributes in LFACE from the those in DEFAULTS, and will
-   not do face inheritance or make relative attributes absolute. */
-
-static INLINE void
-default_face_vector (lface, defaults)
-     Lisp_Object *lface, *defaults;
-{
-  int i;
-  for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
-    if (UNSPECIFIEDP (lface[i]))
-      lface[i] = defaults[i];
-}
-
-
 /* Merge two Lisp face attribute vectors on frame F, FROM and TO, and
    store the resulting attributes in TO, which must be already be
    completely specified and contain only absolute attributes.  Every
@@ -4579,19 +4562,27 @@ Value is nil if ATTR doesn't have a discrete set of valid values.")
 
 DEFUN ("internal-merge-in-global-face", Finternal_merge_in_global_face,
        Sinternal_merge_in_global_face, 2, 2, 0,
-  "Add attributes from frame-default definition of FACE to FACE on FRAME.")
+  "Add attributes from frame-default definition of FACE to FACE on FRAME.
+Default face attributes override any local face attributes.")
   (face, frame)
      Lisp_Object face, frame;
 {
-  Lisp_Object global_lface, local_lface;
+  int i;
+  Lisp_Object global_lface, local_lface, *gvec, *lvec;
+
   CHECK_LIVE_FRAME (frame, 1);
+
   global_lface = lface_from_face_name (NULL, face, 1);
   local_lface = lface_from_face_name (XFRAME (frame), face, 0);
   if (NILP (local_lface))
     local_lface = Finternal_make_lisp_face (face, frame);
-  default_face_vector (XVECTOR (local_lface)->contents,
-		       XVECTOR (global_lface)->contents);
-  return face;
+
+  /* Make every specified global attribute override the local one.  */
+  lvec = XVECTOR (local_lface)->contents;
+  gvec = XVECTOR (global_lface)->contents;
+  for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
+    if (! UNSPECIFIEDP (gvec[i]))
+      lvec[i] = gvec[i];
 }
 
 
