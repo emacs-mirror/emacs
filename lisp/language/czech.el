@@ -17,7 +17,7 @@
 (defun setup-czech-environment ()
   "Setup multilingual environment (MULE) for Czech."
   (interactive)
-  (setup-8-bit-environment "Czech" 'latin-iso8859-2 'iso-8859-2)
+  (setup-8-bit-environment "Czech" 'latin-iso8859-2 "czech")
   (load "latin-2"))
 
 (set-language-info-alist
