@@ -751,6 +751,17 @@
     ("black"	0     0     0     0))
   "An alist of 8 standard tty colors, their indices and RGB values.")
 
+;; This is used by term.c
+(defvar tty-color-mode-alist
+  '((never . -1)
+    (no . -1)
+    (default . 0)
+    (auto . 0)
+    (ansi8 . 8)
+    (always . 8)
+    (yes . 8))
+  "An alist of supported standard tty color modes and their aliases.")
+
 (defvar tty-defined-color-alist nil
   "An alist of defined terminal colors and their RGB values.
 
