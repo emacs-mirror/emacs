@@ -17,10 +17,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-/* BSD doesn't have it as a default. */
-MAKE = make
-
-/* Here are the things that we expect ../configure to edit. */
+/* Here are the things that we expect ../configure to edit.  */
 srcdir=@srcdir@
 VPATH=@srcdir@
 CC=@CC@
@@ -30,6 +27,9 @@ LN_S=@LN_S@
 /* These escaped doublequotes become part of the macro definition in emacs.c.
    Thus, the definition is a C string constant. */
 configuration=\"@configuration@\"
+/* Substitute an assignment for the MAKE variable, because
+   BSD doesn't have it as a default.  */
+@SET_MAKE@
 
 /* On Xenix and the IBM RS6000, double-dot gets screwed up.  */
 dot = .
