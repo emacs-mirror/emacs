@@ -1,3 +1,8 @@
+2001-09-14  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* eshell/em-unix.el (eshell-shuffle-files, eshell-shuffle-files):
+	Use `equal', not `=', since the device number can be a cons cell.
+
 2001-09-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* simple.el: Comment out change of 2001-09-13.
