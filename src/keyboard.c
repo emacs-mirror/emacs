@@ -2506,7 +2506,7 @@ make_lispy_event (event)
 #ifdef USE_X_TOOLKIT
 		/* The click happened in the menubar.
 		   Look for the menu item selected.  */
-		Lisp_Object items = map_event_to_object(event, f);
+		Lisp_Object items = map_event_to_object (event, f);
 		XFASTINT (event->y) = 1;
 #else /* not USE_X_TOOLKIT  */
 		int hpos;
