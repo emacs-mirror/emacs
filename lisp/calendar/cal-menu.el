@@ -112,6 +112,8 @@
   '("Julian Date" . calendar-goto-julian-date))
 (define-key calendar-mode-map [menu-bar goto islamic]
   '("Islamic Date" . calendar-goto-islamic-date))
+(define-key calendar-mode-map [menu-bar goto persian]
+  '("Persian Date" . calendar-goto-persian-date))
 (define-key calendar-mode-map [menu-bar goto hebrew]
   '("Hebrew Date" . calendar-goto-hebrew-date))
 (define-key calendar-mode-map [menu-bar goto astro]
@@ -395,7 +397,9 @@ The output is in landscape format, one month to a page."
               (format "Astronomical (Julian) day number (after noon UTC): %s"
                            (calendar-astro-date-string date)))
              (list (format "Hebrew date (before sunset): %s"
-                           (calendar-hebrew-date-string date))))
+                           (calendar-hebrew-date-string date)))
+             (list (format "Persian date: %s"
+                           (calendar-persian-date-string date))))
             (let ((i (calendar-islamic-date-string date)))
               (if (not (string-equal i ""))
                   (list (list (format "Islamic date (before sunset): %s" i)))))

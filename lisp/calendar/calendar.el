@@ -61,6 +61,7 @@
 ;;       cal-mayan.el                  Mayan calendars
 ;;       cal-menu.el                   Menu support
 ;;       cal-move.el                   Movement in the calendar
+;;       cal-persian.el                Perisan calendar
 ;;       cal-tex.el                    Calendars in LaTeX
 ;;       cal-x.el                      X-windows dedicated frame functions
 ;;       diary.el                      Diary functions
@@ -335,9 +336,9 @@ causes the diary entry \"Vacation\" to appear from November 1 through November
 `diary-cyclic', `diary-day-of-year', `diary-iso-date', `diary-french-date',
 `diary-hebrew-date', `diary-islamic-date', `diary-mayan-date',
 `diary-chinese-date', `diary-coptic-date', `diary-ethiopic-date',
-`diary-yahrzeit', `diary-sunrise-sunset', `diary-phases-of-moon',
-`diary-parasha', `diary-omer', `diary-rosh-hodesh', and
-`diary-sabbath-candles'.  See the documentation for the function
+`diary-persian-date', `diary-yahrzeit', `diary-sunrise-sunset',
+`diary-phases-of-moon', `diary-parasha', `diary-omer', `diary-rosh-hodesh',
+and `diary-sabbath-candles'.  See the documentation for the function
 `list-sexp-diary-entries' for more details.
 
 Diary entries based on the Hebrew and/or the Islamic calendar are also
@@ -1393,6 +1394,18 @@ Driven by the variable `calendar-date-display-form'."
   "String of Ethiopic date of Gregorian date."
   t)
 
+(autoload 'calendar-goto-persian-date "cal-persian"
+   "Move cursor to Persian date date."
+   t)
+
+(autoload 'calendar-print-persian-date "cal-persian"
+ "Show the Persian date equivalents of date."
+ t)
+
+(autoload 'calendar-persian-date-string "cal-persian"
+  "String of Persian date of Gregorian date."
+  t)
+
 (autoload 'show-all-diary-entries "diary-lib"
   "Show all of the diary entries in the diary file.
 This function gets rid of the selective display of the diary file so that
@@ -1708,6 +1721,7 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "gC"  'calendar-goto-chinese-date)
   (define-key calendar-mode-map "gk"  'calendar-goto-coptic-date)
   (define-key calendar-mode-map "ge"  'calendar-goto-ethiopic-date)
+  (define-key calendar-mode-map "gp"  'calendar-goto-persian-date)
   (define-key calendar-mode-map "gc"  'calendar-goto-iso-date)
   (define-key calendar-mode-map "gf"  'calendar-goto-french-date)
   (define-key calendar-mode-map "gml"  'calendar-goto-mayan-long-count-date)
@@ -1736,6 +1750,7 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "pC"  'calendar-print-chinese-date)
   (define-key calendar-mode-map "pk"  'calendar-print-coptic-date)
   (define-key calendar-mode-map "pe"  'calendar-print-ethiopic-date)
+  (define-key calendar-mode-map "pp"  'calendar-print-persian-date)
   (define-key calendar-mode-map "pc"  'calendar-print-iso-date)
   (define-key calendar-mode-map "pj"  'calendar-print-julian-date)
   (define-key calendar-mode-map "pa"  'calendar-print-astro-day-number)
