@@ -1178,11 +1178,12 @@ This function ensures that none of these modifications will take place."
 	(after-insert-file-functions nil)
 	(coding-system-for-read 'no-conversion)
 	(coding-system-for-write 'no-conversion)
-	(jka-compr-compression-info-list nil)
 	(find-buffer-file-type-function
 	 (if (fboundp 'find-buffer-file-type)
 	     (symbol-function 'find-buffer-file-type)
-	   nil)))
+	   nil))
+	(inhibit-file-name-handlers '(jka-compr-handler image-file-handler))
+	(inhibit-file-name-operation 'insert-file-contents))
     (unwind-protect
 	(progn
 	  (fset 'find-buffer-file-type (lambda (filename) t))
