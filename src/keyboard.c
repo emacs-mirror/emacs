@@ -8040,7 +8040,9 @@ by position only.");
   inhibit_local_menu_bar_menus = 0;
 
   DEFVAR_INT ("num-input-keys", &num_input_keys,
-    "Number of complete keys read from the keyboard so far.");
+    "Number of complete key sequences read from the keyboard so far.\n\
+This includes key sequences read from keyboard macros.\n\
+The number is effectively the number of interactive command invocations.");
   num_input_keys = 0;
 
   DEFVAR_LISP ("last-event-frame", &Vlast_event_frame,
