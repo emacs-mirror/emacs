@@ -218,6 +218,10 @@ THINGS TO DO
    settings as Emacs itself.  This may lead to bogus results in a
    multi-locale setup. (E.g., while logging in from a remote client
    with a different locale.)
+   (Update after new bugreport by Friedrich Delgado Friedrichs: 
+   (at least) the structs terminal_coding and keyboard_coding in
+   coding.c must be moved to struct display, and the Lisp interface
+   [set-]keyboard-coding-system must be adapted for the change.)
 
 ** The single-keyboard mode of MULTI_KBOARD is extremely confusing
    sometimes; Emacs does not respond to stimuli from other keyboards.

@@ -2400,7 +2400,13 @@ See also `locale-charset-language-names', `locale-language-names',
 	  ;; Set the `keyboard-coding-system' if appropriate (tty
 	  ;; only).  At least X and MS Windows can generate
 	  ;; multilingual input.
-	  (unless window-system
+	  (unless (or window-system
+		      keyboard-coding-system)
+	    ;; FIXME: keyboard-coding-system must be removed from the above
+	    ;; condition when multi-tty locale handling is correctly
+	    ;; implemented.  Also, unconditionally overriding it with nil
+	    ;; is not a good idea, as it ignores the user's
+	    ;; customization. -- lorentey
 	    (let ((kcs (or coding-system
 			   (car (get-language-info language-name
 						   'coding-system)))))
