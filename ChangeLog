@@ -1,3 +1,7 @@
+2001-11-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* Makefile.in (uninstall): Remove gfdl.1 when uninstalling.
+
 2001-11-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* configure.in: AC_OUTPUT lispref/Makefile. 
