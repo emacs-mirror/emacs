@@ -121,14 +121,20 @@
   (setq glyph-table (vconcat glyph-table (list string)))
   (1- (length glyph-table)))
 
+;;;###autoload
 (defun standard-display-european (arg)
-  "Arrange to display European characters encoded with ISO 8859.
-This means that characters in the range of 160 to 255 display not
-as octal escapes, but as accented characters."
+  "Toggle display of European characters encoded with ISO 8859.
+When enabled, characters in the range of 160 to 255 display not
+as octal escapes, but as accented characters.
+With prefix argument, enable European character display iff arg is positive."
   (interactive "P")
-  (if arg (standard-display-default 160 255)
+  (if (or (< (prefix-numeric-value arg) 0)
+	  (and (null arg)
+	       (vectorp standard-display-table)
+	       (>= (length standard-display-table) 161)
+	       (equal (aref standard-display-table 160) [160])))
+      (standard-display-default 160 255)
     (standard-display-8bit 160 255)))
-  
 
 (provide 'disp-table)
 
