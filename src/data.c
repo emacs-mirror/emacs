@@ -101,7 +101,7 @@ static Lisp_Object Qinteger, Qsymbol, Qstring, Qcons, Qmarker, Qoverlay;
 static Lisp_Object Qfloat, Qwindow_configuration, Qwindow;
 Lisp_Object Qprocess;
 static Lisp_Object Qcompiled_function, Qbuffer, Qframe, Qvector;
-static Lisp_Object Qchar_table, Qbool_vector;
+static Lisp_Object Qchar_table, Qbool_vector, Qhash_table;
 
 static Lisp_Object swap_in_symval_forwarding ();
 
@@ -247,6 +247,8 @@ for example, (type-of 1) returns `integer'.")
 	return Qbool_vector;
       if (GC_FRAMEP (object))
 	return Qframe;
+      if (GC_HASH_TABLE_P (object))
+	return Qhash_table;
       return Qvector;
 
 #ifdef LISP_FLOAT_TYPE
@@ -2828,6 +2830,7 @@ syms_of_data ()
   Qvector = intern ("vector");
   Qchar_table = intern ("char-table");
   Qbool_vector = intern ("bool-vector");
+  Qhash_table = intern ("hash-table");
 
   staticpro (&Qinteger);
   staticpro (&Qsymbol);
@@ -2846,6 +2849,7 @@ syms_of_data ()
   staticpro (&Qvector);
   staticpro (&Qchar_table);
   staticpro (&Qbool_vector);
+  staticpro (&Qhash_table);
 
   DEFVAR_BOOL ("keyword-symbols-constant-flag", &keyword_symbols_constant_flag,
     "Non-nil means it is an error to set a keyword symbol.\n\
