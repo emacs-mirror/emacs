@@ -207,9 +207,11 @@ ARGS is a list of additional arguments."
 
 ;;;###autoload
 (defmacro easy-mmode-defmap (m bs doc &rest args)
-  `(defconst ,m
-     (easy-mmode-define-keymap ,bs nil (if (boundp ',m) ,m) ,(cons 'list args))
-     ,doc))
+  `(progn
+     (autoload 'easy-mmode-define-keymap "easy-mmode")
+     (defconst ,m
+       (easy-mmode-define-keymap ,bs nil (if (boundp ',m) ,m) ,(cons 'list args))
+       ,doc)))
 
 
 ;;;
@@ -222,13 +224,15 @@ ARGS is a list of additional arguments."
       (let ((char (car cs))
 	    (syntax (cdr cs)))
 	(if (sequencep char)
-	    (mapcar* (lambda (c) (modify-syntax-entry c syntax st)) char)
+	    (mapcar (lambda (c) (modify-syntax-entry c syntax st)) char)
 	  (modify-syntax-entry char syntax st))))
     st))
 
 ;;;###autoload
 (defmacro easy-mmode-defsyntax (st css doc &rest args)
-  `(defconst ,st (custom-create-syntax ,css ,(cons 'list args)) doc))
+  `(progn
+     (autoload 'easy-mmode-define-syntax "easy-mmode")
+     (defconst ,st (easy-mmode-define-syntax ,css ,(cons 'list args)) doc)))
 
 
 
@@ -265,67 +269,78 @@ the parent, and then sets the variable `case-fold-search' to nil:
 Note that if the documentation string had been left out, it would have
 been generated automatically, with a reference to the keymap."
 
-					; Some trickiness, since what
-					; appears to be the docstring
-					; may really be the first
-					; element of the body.
-  (if (and docstring (not (stringp docstring)))
-      (progn (setq body (cons docstring body))
-	     (setq docstring nil)))
   (let* ((child-name (symbol-name child))
 	 (map (intern (concat child-name "-map")))
 	 (syntax (intern (concat child-name "-syntax-table")))
 	 (abbrev (intern (concat child-name "-abbrev-table")))
 	 (hook (intern (concat child-name "-hook"))))
 	 
-  `(progn
-     (defvar ,map (make-sparse-keymap))
-     (defvar ,syntax (make-char-table 'syntax-table nil))
-     (defvar ,abbrev (progn (define-abbrev-table ',abbrev nil) ,abbrev))
-     
-     (defun ,child ()
-       ,(or docstring
+    (when (and docstring (not (stringp docstring)))
+      ;; DOCSTRING is really the first command and there's no docstring
+      (push docstring body)
+      (setq docstring nil))
+
+    (unless (stringp docstring)
+      ;; Use a default docstring.
+      (setq docstring
 	    (format "Major mode derived from `%s' by `define-derived-mode'.
 Inherits all of the parent's attributes, but has its own keymap,
 abbrev table and syntax table:
 
   `%s', `%s' and `%s'
 
-which more-or-less shadow %s's corresponding tables.
-It also runs its own `%s' after its parent's.
+which more-or-less shadow %s's corresponding tables."
+		    parent map syntax abbrev parent)))
 
-\\{%s}" parent map syntax abbrev parent hook map))
-       (interactive)
+    (unless (string-match (regexp-quote (symbol-name hook)) docstring)
+      ;; Make sure the docstring mentions the mode's hook
+      (setq docstring (format "%s
+This mode runs (additionally to any hooks his parent might have run)
+its own `%s' just before exiting."
+			      docstring hook)))
+
+    (unless (string-match "\\\\[{[]" docstring)
+      ;; And don't forget to put the mode's keymap
+      (setq docstring (concat docstring "\n\\{" (symbol-name map) "}")))
+
+    `(progn
+       (defvar ,map (make-sparse-keymap))
+       (defvar ,syntax (make-char-table 'syntax-table nil))
+       (defvar ,abbrev (progn (define-abbrev-table ',abbrev nil) ,abbrev))
+     
+       (defun ,child ()
+	 ,docstring
+	 (interactive)
 					; Run the parent.
-       (,parent)
+	 (,parent)
 					; Identify special modes.
-       (put ',child 'special (get ',parent 'special))
+	 (put ',child 'special (get ',parent 'special))
 					; Identify the child mode.
-       (setq major-mode ',child)
-       (setq mode-name ,name)
+	 (setq major-mode ',child)
+	 (setq mode-name ,name)
 					; Set up maps and tables.
-       (unless (keymap-parent ,map)
-	 (set-keymap-parent ,map (current-local-map)))
-       (let ((parent (char-table-parent ,syntax)))
-	 (unless (and parent (not (eq parent (standard-syntax-table))))
-	   (set-char-table-parent ,syntax (syntax-table))))
-       (when local-abbrev-table
-	 (mapatoms
-	  (lambda (symbol)
-	    (or (intern-soft (symbol-name symbol) ,abbrev)
-		(define-abbrev ,abbrev (symbol-name symbol)
-		  (symbol-value symbol) (symbol-function symbol))))
-	  local-abbrev-table))
+	 (unless (keymap-parent ,map)
+	   (set-keymap-parent ,map (current-local-map)))
+	 (let ((parent (char-table-parent ,syntax)))
+	   (unless (and parent (not (eq parent (standard-syntax-table))))
+	     (set-char-table-parent ,syntax (syntax-table))))
+	 (when local-abbrev-table
+	   (mapatoms
+	    (lambda (symbol)
+	      (or (intern-soft (symbol-name symbol) ,abbrev)
+		  (define-abbrev ,abbrev (symbol-name symbol)
+		    (symbol-value symbol) (symbol-function symbol))))
+	    local-abbrev-table))
        
-       (use-local-map ,map)
-       (set-syntax-table ,syntax)
-       (setq local-abbrev-table ,abbrev)
+	 (use-local-map ,map)
+	 (set-syntax-table ,syntax)
+	 (setq local-abbrev-table ,abbrev)
 					; Splice in the body (if any).
-       ,@body
+	 ,@body
 					; Run the hooks, if any.
-       (run-hooks ',hook)))))
+	 (run-hooks ',hook)))))
 
-
+
 (provide 'easy-mmode)
 
 ;;; easy-mmode.el ends here
