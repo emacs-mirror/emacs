@@ -1,3 +1,9 @@
+2000-09-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* vc-hooks.el (toplevel): Don't require `vc' during compilation;
+	requiring it leads to a recursive loading of vc.el and vc-hooks.el
+	during bootstrap.
+
 2000-09-05  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* vc.el: (toplevel): Don't require `dired' at run-time.
