@@ -1091,13 +1091,14 @@ a value of `safe-charsets' in PLIST."
 (defun define-coding-system-alias (alias coding-system)
   "Define ALIAS as an alias for coding system CODING-SYSTEM."
   (put alias 'coding-system (coding-system-spec coding-system))
-  (nconc (coding-system-get alias 'alias-coding-systems) (list alias))
   (add-to-coding-system-list alias)
   (setq coding-system-alist (cons (list (symbol-name alias))
 				  coding-system-alist))
   (let ((eol-type (coding-system-eol-type coding-system)))
     (if (vectorp eol-type)
-	(put alias 'eol-type (make-subsidiary-coding-system alias))
+	(progn
+	  (nconc (coding-system-get alias 'alias-coding-systems) (list alias))
+	  (put alias 'eol-type (make-subsidiary-coding-system alias)))
       (put alias 'eol-type eol-type))))
 
 (defun set-buffer-file-coding-system (coding-system &optional force)
