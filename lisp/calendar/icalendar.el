@@ -1295,4 +1295,5 @@ the entry."
 
 (provide 'icalendar)
 
+;; arch-tag: 74fdbe8e-0451-4e38-bb61-4416e822f4fc
 ;;; icalendar.el ends here
