@@ -447,6 +447,10 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	child_setup (filefd, fd1, fd_error, new_argv, 0, current_dir);
       }
 #endif /* not WINDOWSNT */
+
+    /* The MSDOS case did this already.  */
+    if (fd_error >= 0)
+      close (fd_error);
 #endif /* not MSDOS */
 
     environ = save_environ;
@@ -456,8 +460,6 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     close (filefd);
     if (fd1 >= 0)
       close (fd1);
-    if (fd_error >= 0)
-      close (fd_error);
   }
 
   if (pid < 0)
