@@ -1069,7 +1069,20 @@
 (map-charset-chars
  #'(lambda (range ignore) (set-char-table-range char-width-table range 2))
  'japanese-jisx0213-2)
- 
+
+;; Other double width
+(map-charset-chars
+ (lambda (range ignore) (set-char-table-range char-width-table range 2))
+ 'ethiopic)
+(map-charset-chars
+ (lambda (range ignore) (set-char-table-range char-width-table range 2))
+ 'tibetan)
+(map-charset-chars
+ (lambda (range ignore) (set-char-table-range char-width-table range 2))
+ 'indian-2-column)
+(map-charset-chars
+ (lambda (range ignore) (set-char-table-range char-width-table range 2))
+ 'arabic-2-column)
 
 ;;; Local Variables:
 ;;; coding: utf-8-emacs
