@@ -221,6 +221,11 @@ windows using @kbd{C-x 3}, and then type @kbd{M-x follow-mode}.  From
 then on, you can edit the buffer in either of the two windows, or scroll
 either one; the other window follows it.
 
+  In Follow mode, if you move point outside the portion visible in one
+window and into the portion visible in the other window, that selects
+the other window---again, treating the two as if they were parts of
+one large window.
+
   To turn off Follow mode, type @kbd{M-x follow-mode} a second time.
 
 @node Selective Display
