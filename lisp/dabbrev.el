@@ -888,23 +888,28 @@ to record whether we upcased the expansion, downcased it, or did neither."
     ;; matches the start of the expansion,
     ;; copy the expansion's case
     ;; instead of downcasing all the rest.
-    ;; Treat a one-capital-letter abbrev as "not all upper case",
-    ;; so as to force preservation of the expansion's pattern
-    ;; if the expansion starts with a capital letter.
-    (let ((expansion-rest (substring expansion 1)))
-      (if (and (not (and (or (string= expansion-rest (downcase expansion-rest))
-			     (string= expansion-rest (upcase expansion-rest)))
-			 (or (string= abbrev (downcase abbrev))
-			     (and (string= abbrev (upcase abbrev))
-				  (> (length abbrev) 1)))))
-	       (string= abbrev
-			(substring expansion 0 (length abbrev))))
+    ;;
+    ;; Treat a one-capital-letter (possibly with preceding non-letter
+    ;; characters) abbrev as "not all upper case", so as to force
+    ;; preservation of the expansion's pattern if the expansion starts
+    ;; with a capital letter.
+    (let ((expansion-rest (substring expansion 1))
+	  (first-letter-position (string-match "[[:alpha:]]" abbrev)))
+      (if (or (null first-letter-position)
+	      (and (not (and (or (string= expansion-rest (downcase expansion-rest))
+				 (string= expansion-rest (upcase expansion-rest)))
+			     (or (string= abbrev (downcase abbrev))
+				 (and (string= abbrev (upcase abbrev))
+				      (> (- (length abbrev) first-letter-position)
+					 1)))))
+		   (string= abbrev
+			    (substring expansion 0 (length abbrev)))))
 	  (setq use-case-replace nil)))
 
     ;; If the abbrev and the expansion are both all-lower-case
     ;; then don't do any conversion.  The conversion would be a no-op
     ;; for this replacement, but it would carry forward to subsequent words.
-    ;; The goal of this is to preven that carrying forward.
+    ;; The goal of this is to prevent that carrying forward.
     (if (and (string= expansion (downcase expansion))
 	     (string= abbrev (downcase abbrev)))
 	(setq use-case-replace nil))
