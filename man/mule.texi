@@ -793,7 +793,7 @@ in the file, that overrides @code{file-coding-system-alist}.
 coding system for certain patterns of file names, or for files
 containing certain patterns; these variables even override
 @samp{-*-coding:-*-} tags in the file itself.  Emacs uses
-@code{auto-coding-alist} for tar and archive files, to prevent Emacs
+@code{auto-coding-alist} for tar and archive files, to prevent it
 from being confused by a @samp{-*-coding:-*-} tag in a member of the
 archive and thinking it applies to the archive file as a whole.
 Likewise, Emacs uses @code{auto-coding-regexp-alist} to ensure that
@@ -834,7 +834,7 @@ set-language-environment}), and if that coding system can safely
 encode all of the characters in the buffer, Emacs uses it, and stores
 its value in @code{buffer-file-coding-system}.  Otherwise, Emacs
 displays a list of coding systems suitable for encoding the buffer's
-contents, and asks to choose one of those coding systems.
+contents, and asks you to choose one of those coding systems.
 
   If you insert the unsuitable characters in a mail message, Emacs
 behaves a bit differently.  It additionally checks whether the
@@ -843,8 +843,8 @@ if it isn't, Emacs tells you that the most-preferred coding system is
 not recommended and prompts you for another coding system.  This is so
 you won't inadvertently send a message encoded in a way that your
 recipient's mail software will have difficulty decoding.  (If you do
-want to use the most-preferred coding system, you can type its name to
-Emacs prompt anyway.)
+want to use the most-preferred coding system, you can still type its
+name to Emacs prompt.)
 
 @vindex sendmail-coding-system
   When you send a message with Mail mode (@pxref{Sending Mail}), Emacs has
@@ -1294,7 +1294,7 @@ characters:
 @cindex 8-bit input
 @item
 If your keyboard can generate character codes 128 and up, representing
-non-ASCII you can type those character codes directly.
+non-ASCII characters, you can type those character codes directly.
 
 On a windowing terminal, you should not need to do anything special to
 use these keys; they should simply work.  On a text-only terminal, you
@@ -1339,7 +1339,7 @@ command names.
 @cindex Latin-1, Latin-2 and Latin-3 input mode
 For Latin-1, Latin-2 and Latin-3, @kbd{M-x iso-accents-mode} installs
 a minor mode which works much like the @code{latin-1-prefix} input
-method does not depend on having the input methods installed.  This
+method, but does not depend on having the input methods installed.  This
 mode is buffer-local.  It can be customized for various languages with
 @kbd{M-x iso-accents-customize}.
 @end itemize
