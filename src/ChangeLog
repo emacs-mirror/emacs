@@ -4,7 +4,9 @@
 	get-buffer-process): Do not confuse make-docfile with doc strings
 	in comment.
 
-	* editfns.c (Fchar_to_string): Make doc string consistent with arguments.
+	* editfns.c (Fchar_to_string): Make doc string consistent with
+	arguments.
+	Put doc strings in comments.
 
 	* abbrev.c, minibuf.c: Put doc strings in comments.
 
