@@ -2699,7 +2699,7 @@ DEFUN ("x-selection-exists-p", Fx_selection_exists_p, Sx_selection_exists_p,
        doc: /* Whether there is an owner for the given X Selection.
 The arg should be the name of the selection in question, typically one of
 the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
-(Those are literal upper-case symbol names, since that's what X expects.)
+\(Those are literal upper-case symbol names, since that's what X expects.)
 For convenience, the symbol nil is the same as `PRIMARY',
 and t is the same as `SECONDARY'.  */)
   (selection)
