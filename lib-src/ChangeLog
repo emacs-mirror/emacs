@@ -1,3 +1,9 @@
+2000-09-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* movemail.c (toplevel): Remove redundant fcnt.h.
+	[!F_OK]: Provide default definitions only after including both
+	fcntl.h and unistd.h.
+
 2000-08-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (profile, make-docfile, hexl): Depend on config.h.
