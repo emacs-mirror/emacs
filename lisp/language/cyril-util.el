@@ -42,7 +42,8 @@
   "Setup multilingual environment (MULE) for Cyrillic ALTERNATIVNYJ users."
   (interactive)
   (setup-8-bit-environment "Cyrillic" 'cyrillic-iso8859-5
-			   'cyrillic-alternativnyj "cyrillic-yawerty"))
+			   'cyrillic-alternativnyj "cyrillic-yawerty")
+  (setq coding-category-raw-text 'cyrillic-alternativnyj))
 
 
 ;; Display 
