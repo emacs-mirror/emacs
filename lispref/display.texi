@@ -730,6 +730,13 @@ newlines, will give strange results.
 @kindex evaporate @r{(overlay property)}
 If this property is non-@code{nil}, the overlay is deleted automatically
 if it ever becomes empty (i.e., if it spans no characters).
+
+@item local-map
+@cindex keymap of character
+@kindex local-map @r{(text property)}
+If this property is non-@code{nil}, it specifies a keymap for a portion
+of the text.  The property's value replaces the buffer's local map, when
+the character after point is within the overlay.  @xref{Active Keymaps}.
 @end table
 
   These are the functions for reading and writing the properties of an
