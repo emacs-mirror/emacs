@@ -16,7 +16,7 @@ display it.
 * Selective Display::      Hiding lines with lots of indentation.
 * Optional Mode Line::     Optional mode line display features.
 * Text Display::           How text characters are normally displayed.
-* Display Vars::           Information on variables for customizing display.
+* Display Custom::         Information on variables for customizing display.
 @end menu
 
 @node Scrolling
@@ -131,23 +131,24 @@ By default, @code{scroll-conservatively} is 0.
 @cindex aggressive scrolling
 @vindex scroll-up-aggressively
 @vindex scroll-down-aggressively 
-  If you prefer a more aggressive scrolling, customize the values of the
-variables @code{scroll-up-aggressively} and
-@code{scroll-down-aggressively}.  The value of
-@code{scroll-up-aggressively} should be either nil or a fraction @var{f}
-between 0 and 1.  If it is a fraction, that specifies where on the
-screen to put point when scrolling upward.  More precisely, when a
-window scrolls up because point is above the window start, the new start
-position is chosen to put point @var{f} part of the window height from
-the top.  The larger @var{f}, the more aggressive the scrolling.
+  When the window does scroll by a longer distance, you can control
+how aggressively it scrolls, by setting the variables
+@code{scroll-up-aggressively} and @code{scroll-down-aggressively}.
+The value of @code{scroll-up-aggressively} should be either
+@code{nil}, or a fraction @var{f} between 0 and 1.  A fraction
+specifies where on the screen to put point when scrolling upward.
+More precisely, when a window scrolls up because point is above the
+window start, the new start position is chosen to put point @var{f}
+part of the window height from the top.  The larger @var{f}, the more
+aggressive the scrolling.
 
-A value of @code{nil} is equivalent to .5, since its effect is to center
-point.
+  @code{nil}, which is the default, scrolls to put point at the center.
+So it is equivalent to .5.
 
-Likewise, @code{scroll-down-aggressively} is used for scrolling down.
-The value, @var{f}, specifies how far point should be placed from the
-bottom of the window; thus, as with @code{scroll-up-aggressively}, a
-larger value scrolls more aggressively.
+  Likewise, @code{scroll-down-aggressively} is used for scrolling
+down.  The value, @var{f}, specifies how far point should be placed
+from the bottom of the window; thus, as with
+@code{scroll-up-aggressively}, a larger value is more aggressive.
 
 @vindex scroll-margin
   The variable @code{scroll-margin} restricts how close point can come
@@ -161,8 +162,18 @@ window, Emacs recenters the window.  By default, @code{scroll-margin} is
 @cindex horizontal scrolling
 
   @dfn{Horizontal scrolling} means shifting all the lines sideways
-within a window---so that some of the text near the left margin
-is not displayed at all.
+within a window---so that some of the text near the left margin is not
+displayed at all.  Emacs does this automatically, in any window that
+uses line truncation rather than continuation: whenever point moves
+off the left or right edge of the screen, Emacs scrolls the buffer
+horizontally to make point visible.
+
+  When a window has been scrolled horizontally, text lines are truncated
+rather than continued (@pxref{Continuation Lines}), with a @samp{$}
+appearing in the first column when there is text truncated to the left,
+and in the last column when there is text truncated to the right.
+
+  You can use these commands to do explicit horizontal scrolling.
 
 @table @kbd
 @item C-x <
@@ -170,11 +181,6 @@ Scroll text in current window to the left (@code{scroll-left}).
 @item C-x >
 Scroll to the right (@code{scroll-right}).
 @end table
-
-  When a window has been scrolled horizontally, text lines are truncated
-rather than continued (@pxref{Continuation Lines}), with a @samp{$}
-appearing in the first column when there is text truncated to the left,
-and in the last column when there is text truncated to the right.
 
 @kindex C-x <
 @kindex C-x >
@@ -193,18 +199,14 @@ attempting to do so has no effect.  This means that you don't have to
 calculate the argument precisely for @w{@kbd{C-x >}}; any sufficiently large
 argument will restore the normal display.
 
-@cindex horizontal scrolling
-@vindex automatic-hscrolling
-  Emacs automatically scrolls a window horizontally whenever that is
-necessary to keep point visible and not too far from the left or right
-edge.  If you don't want this, customize the variable
-@code{automatic-hscrolling} and set it to nil.
+  If you scroll a window horizontally by hand, that sets a lower bound
+for automatic horizontal scrolling.  Automatic scrolling will continue
+to scroll the window, but never further to the right than the amount
+you previously set by @code{scroll-left}.
 
-If a window is scrolled horizontally by means of @code{scroll-left}, the
-chosen column serves as a lower bound for automatic horizontal
-scrolling.  Automatic scrolling will continue to scroll the window to
-the left, if necessary, but won't scroll it more to the right than the
-column set by @code{scroll-left}.
+@vindex automatic-hscrolling
+  To disable automatic horizontal scrolling, set the variable
+@code{automatic-hscrolling} to @code{nil}.
 
 @node Follow Mode
 @section Follow Mode
@@ -256,8 +258,8 @@ hidden lines.  This variable becomes local automatically when set.
 @node Optional Mode Line
 @section Optional Mode Line Features
 
-@cindex Line Number mode
-@cindex mode, Line Number
+@cindex line number display
+@cindex display of line number
 @findex line-number-mode
   The current line number of point appears in the mode line when Line
 Number mode is enabled.  Use the command @kbd{M-x line-number-mode} to
@@ -267,7 +269,6 @@ indicate what it is.  @xref{Minor Modes}, for more information about
 minor modes and about how to use this command.
 
 @vindex line-number-display-limit
-@cindex line number display, removing the limit
   If the buffer is very large (larger than the value of
 @code{line-number-display-limit}), then the line number doesn't appear.
 Emacs doesn't compute the line number when the buffer is large, because
@@ -364,8 +365,8 @@ they are displayed using their graphics (assuming your terminal supports
 them), otherwise as escape sequences.  @xref{Single-Byte Character
 Support}.
 
-@node Display Vars
-@section Variables Controlling Display
+@node Display Custom
+@section Customization of Display
 
   This section contains information for customization only.  Beginning
 users should skip it.
@@ -449,11 +450,25 @@ of actual data transmission, but the value is used for calculations such
 as padding.  On terminals, it also affects decisions about whether to
 scroll part of the screen or redraw it instead.
 
-On window-systems, @code{baud-rate} is only used to determine how
-frequently to look for pending input during display updating.  A higher
-value of @code{baud-rate} means that check for pending input will be
-done less frequently.
+  On window-systems, @code{baud-rate} is only used to determine how
+frequently to look for pending input during display updating.  A
+higher value of @code{baud-rate} means that check for pending input
+will be done less frequently.
 
   You can customize the way any particular character code is displayed
 by means of a display table.  @xref{Display Tables,, Display Tables,
 elisp, The Emacs Lisp Reference Manual}.
+
+@findex hl-line-mode
+@findex blink-cursor-mode
+@cindex cursor, locating visually
+@cindex cursor, blinking
+  There are a number of ways to customize the display of the cursor.
+@kbd{M-x hl-line-mode} enables or disables a global minor mode which
+highlights the line around point.  On window systems, the command
+@kbd{M-x blink-cursor-mode} turns on or off the blinking of the
+cursor.  (On terminals, the terminal itself blinks the cursor, and
+Emacs has no say over it.)
+
+  You can customize the cursor's color, and whether it blinks, using
+the @code{cursor} Custom group (@pxref{Easy Customization}).
