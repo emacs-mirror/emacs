@@ -1,6 +1,6 @@
 /* impl.c.segsmss: Segment splitting and merging stress test
  *
- * $HopeName: MMsrc!segsmss.c(trunk.6) $
+ * $HopeName: MMsrc!segsmss.c(trunk.7) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: Adapted from amsss.c (because AMS already supports 
@@ -55,8 +55,8 @@ typedef struct AMSTStruct {
 
 typedef struct AMSTStruct *AMST;
 
-#define PoolPoolAMST(pool) PARENT(AMSTStruct, amsStruct.poolStruct, (pool))
-#define AMSTPoolAMS(amst)  (&(amst)->amsStruct)
+#define Pool2AMST(pool) PARENT(AMSTStruct, amsStruct.poolStruct, (pool))
+#define AMST2AMS(amst)  (&(amst)->amsStruct)
 
 
 /* AMSTCheck -- the check method for an AMST */
@@ -64,7 +64,7 @@ typedef struct AMSTStruct *AMST;
 static Bool AMSTCheck(AMST amst)
 {
   CHECKS(AMST, amst);
-  CHECKL(AMSCheck(AMSTPoolAMS(amst)));
+  CHECKL(AMSCheck(AMST2AMS(amst)));
   return TRUE;
 }
 
@@ -106,8 +106,8 @@ static Bool AMSTSegCheck(AMSTSeg amstseg)
   return TRUE;
 }
 
-#define SegAMSTSeg(seg)             ((AMSTSeg)(seg))
-#define AMSTSegSeg(amstseg)         ((Seg)(amstseg))
+#define Seg2AMSTSeg(seg)             ((AMSTSeg)(seg))
+#define AMSTSeg2Seg(amstseg)         ((Seg)(amstseg))
 
 
 /* amstSegInit -- initialise an amst segment */
@@ -121,9 +121,9 @@ static Res amstSegInit(Seg seg, Pool pool, Addr base, Size size,
   Res res;
 
   AVERT(Seg, seg);
-  amstseg = SegAMSTSeg(seg);
+  amstseg = Seg2AMSTSeg(seg);
   AVERT(Pool, pool);
-  amst = PoolPoolAMST(pool);
+  amst = Pool2AMST(pool);
   AVERT(AMST, amst);
   /* no useful checks for base and size */
   AVER(BoolCheck(reservoirPermit));
@@ -151,7 +151,7 @@ static void amstSegFinish(Seg seg)
   AMSTSeg amstseg;
 
   AVERT(Seg, seg);
-  amstseg = SegAMSTSeg(seg);
+  amstseg = Seg2AMSTSeg(seg);
   AVERT(AMSTSeg, amstseg);
 
   if (amstseg->next != NULL)
@@ -187,11 +187,11 @@ static Res amstSegMerge(Seg seg, Seg segHi,
 
   AVERT(Seg, seg);
   AVERT(Seg, segHi);
-  amstseg = SegAMSTSeg(seg);
-  amstsegHi = SegAMSTSeg(segHi);
+  amstseg = Seg2AMSTSeg(seg);
+  amstsegHi = Seg2AMSTSeg(segHi);
   AVERT(AMSTSeg, amstseg);
   AVERT(AMSTSeg, amstsegHi);
-  amst = PoolPoolAMST(SegPool(seg));
+  amst = Pool2AMST(SegPool(seg));
 
   /* Merge the superclass fields via direct next-method call */
   super = SEG_SUPERCLASS(AMSTSegClass);
@@ -239,10 +239,10 @@ static Res amstSegSplit(Seg seg, Seg segHi,
 
   AVERT(Seg, seg);
   AVER(segHi != NULL);  /* can't check fully, it's not initialized */
-  amstseg = SegAMSTSeg(seg);
-  amstsegHi = SegAMSTSeg(segHi);
+  amstseg = Seg2AMSTSeg(seg);
+  amstsegHi = Seg2AMSTSeg(segHi);
   AVERT(AMSTSeg, amstseg);
-  amst = PoolPoolAMST(SegPool(seg));
+  amst = Pool2AMST(SegPool(seg));
 
   /* Split the superclass fields via direct next-method call */
   super = SEG_SUPERCLASS(AMSTSegClass);
@@ -342,11 +342,11 @@ static Res AMSTInit(Pool pool, va_list args)
   res = ChainCreate(&chain, pool->arena, 1, &genParam);
   if (res != ResOK)
     return res;
-  res = AMSInitInternal(PoolPoolAMS(pool), format, chain);
+  res = AMSInitInternal(Pool2AMS(pool), format, chain);
   if (res != ResOK)
     return res;
-  amst = PoolPoolAMST(pool);
-  ams = PoolPoolAMS(pool);
+  amst = Pool2AMST(pool);
+  ams = Pool2AMS(pool);
   ams->segSize = AMSTSegSizePolicy;
   ams->segClass = AMSTSegClassGet;
   amst->chain = chain;
@@ -370,7 +370,7 @@ static void AMSTFinish(Pool pool)
   AMST amst;
 
   AVERT(Pool, pool);
-  amst = PoolPoolAMST(pool);
+  amst = Pool2AMST(pool);
   AVERT(AMST, amst);
 
   printf("\nDestroying pool, having performed:\n");
@@ -394,7 +394,7 @@ static Bool AMSSegIsFree(Seg seg)
 {
   AMSSeg amsseg;
   AVERT(Seg, seg);
-  amsseg = SegAMSSeg(seg);
+  amsseg = Seg2AMSSeg(seg);
   return(amsseg->free == amsseg->grains);
 }
 
@@ -409,9 +409,9 @@ static Bool AMSSegRegionIsFree(Seg seg, Addr base, Addr limit)
   Addr sbase;
 
   AVERT(Seg, seg);
-  amsseg = SegAMSSeg(seg);
+  amsseg = Seg2AMSSeg(seg);
   sbase = SegBase(seg);
-  ams = PoolPoolAMS(SegPool(seg));
+  ams = Pool2AMS(SegPool(seg));
 
   bgrain = AMSGrains(ams, AddrOffset(sbase, base)); 
   lgrain = AMSGrains(ams, AddrOffset(sbase, limit));
@@ -438,8 +438,8 @@ static void AMSUnallocateRange(Seg seg, Addr base, Addr limit)
   /* parameters checked by caller */
 
   pool = SegPool(seg);
-  ams = PoolPoolAMS(pool);
-  amsseg = SegAMSSeg(seg);
+  ams = Pool2AMS(pool);
+  amsseg = Seg2AMSSeg(seg);
 
   baseIndex = AMS_ADDR_INDEX(seg, base);
   limitIndex = AMS_ADDR_INDEX(seg, limit);
@@ -480,8 +480,8 @@ static void AMSAllocateRange(Seg seg, Addr base, Addr limit)
   /* parameters checked by caller */
 
   pool = SegPool(seg);
-  ams = PoolPoolAMS(pool);
-  amsseg = SegAMSSeg(seg);
+  ams = Pool2AMS(pool);
+  amsseg = Seg2AMSSeg(seg);
 
   baseIndex = AMS_ADDR_INDEX(seg, base);
   limitIndex = AMS_ADDR_INDEX(seg, limit);
@@ -541,7 +541,7 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(limitReturn != NULL);
   /* other parameters are checked by next method */
   arena = PoolArena(pool);
-  amst = PoolPoolAMST(pool);
+  amst = Pool2AMST(pool);
 
   /* call next method */
   super = POOL_SUPERCLASS(AMSTPoolClass);
@@ -552,11 +552,11 @@ static Res AMSTBufferFill(Addr *baseReturn, Addr *limitReturn,
 
   b = SegOfAddr(&seg, arena, base);
   AVER(b);
-  amstseg = SegAMSTSeg(seg);
+  amstseg = Seg2AMSTSeg(seg);
 
   if (SegLimit(seg) == limit && SegBase(seg) == base) {
     if (amstseg->prev != NULL) {
-      Seg segLo = AMSTSegSeg(amstseg->prev);
+      Seg segLo = AMSTSeg2Seg(amstseg->prev);
       if (SegBuffer(segLo) == NULL && SegGrey(segLo) == SegGrey(seg)) {
         /* .merge */
         Seg mergedSeg;
@@ -622,15 +622,15 @@ static void AMSTStressBufferedSeg(Seg seg, Buffer buffer)
   AVERT(Seg, seg);
   AVERT(Buffer, buffer);
   AVER(SegBuffer(seg) == buffer);
-  amstseg = SegAMSTSeg(seg);
+  amstseg = Seg2AMSTSeg(seg);
   AVERT(AMSTSeg, amstseg);
   limit = BufferLimit(buffer);
   arena = PoolArena(SegPool(seg));
-  amst = PoolPoolAMST(SegPool(seg));
+  amst = Pool2AMST(SegPool(seg));
   AVERT(AMST, amst);
 
   if (amstseg->next != NULL) {
-    Seg segHi = AMSTSegSeg(amstseg->next);
+    Seg segHi = AMSTSeg2Seg(amstseg->next);
     if (AMSSegIsFree(segHi) && SegGrey(segHi) == SegGrey(seg)) {
       /* .bmerge */
       Seg mergedSeg;
