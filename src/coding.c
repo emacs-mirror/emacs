@@ -3799,7 +3799,7 @@ encode_coding_iso_2022 (coding)
 	      /* Not yet implemented.  */
 	      break;
 	    case CODING_ANNOTATE_CHARSET_MASK:
-	      preferred_charset_id = charbuf[3];
+	      preferred_charset_id = charbuf[2];
 	      if (preferred_charset_id >= 0
 		  && NILP (Fmemq (make_number (preferred_charset_id),
 				  charset_list)))
