@@ -511,7 +511,7 @@ k  describe-key.  Type a command key sequence;
 C-k Info-goto-emacs-key-command-node.  Type a command key sequence;
 	it takes you to the Info node for the command bound to that key.
 l  view-lossage.  Show last 100 characters you typed.
-L  describe-language-environment.  This describes either the a
+L  describe-language-environment.  This describes either a
 	specific language environment (if you type its name)
 	or the current language environment (if you type just RET).
 m  describe-mode.  Print documentation of current minor modes,
