@@ -587,7 +587,8 @@ If FRAME is omitted, describe the currently selected frame."
 
 (defun set-default-font (font-name)
   "Set the font of the selected frame to FONT.
-When called interactively, prompt for the name of the font to use."
+When called interactively, prompt for the name of the font to use.
+To get the frame's current default font, use `frame-parameters'."
   (interactive "sFont name: ")
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'font font-name)))
@@ -596,7 +597,8 @@ When called interactively, prompt for the name of the font to use."
 
 (defun set-background-color (color-name)
   "Set the background color of the selected frame to COLOR.
-When called interactively, prompt for the name of the color to use."
+When called interactively, prompt for the name of the color to use.
+To get the frame's current background color, use `frame-parameters'."
   (interactive "sColor: ")
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'background-color color-name)))
@@ -604,7 +606,8 @@ When called interactively, prompt for the name of the color to use."
 
 (defun set-foreground-color (color-name)
   "Set the foreground color of the selected frame to COLOR.
-When called interactively, prompt for the name of the color to use."
+When called interactively, prompt for the name of the color to use.
+To get the frame's current foreground color, use `frame-parameters'."
   (interactive "sColor: ")
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'foreground-color color-name)))
@@ -612,21 +615,24 @@ When called interactively, prompt for the name of the color to use."
 
 (defun set-cursor-color (color-name)
   "Set the text cursor color of the selected frame to COLOR.
-When called interactively, prompt for the name of the color to use."
+When called interactively, prompt for the name of the color to use.
+To get the frame's current cursor color, use `frame-parameters'."
   (interactive "sColor: ")
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'cursor-color color-name))))
 
 (defun set-mouse-color (color-name)
   "Set the color of the mouse pointer of the selected frame to COLOR.
-When called interactively, prompt for the name of the color to use."
+When called interactively, prompt for the name of the color to use.
+To get the frame's current mouse color, use `frame-parameters'."
   (interactive "sColor: ")
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'mouse-color color-name))))
 
 (defun set-border-color (color-name)
   "Set the color of the border of the selected frame to COLOR.
-When called interactively, prompt for the name of the color to use."
+When called interactively, prompt for the name of the color to use.
+To get the frame's current border color, use `frame-parameters'."
   (interactive "sColor: ")
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'border-color color-name))))
