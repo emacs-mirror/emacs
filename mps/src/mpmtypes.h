@@ -34,6 +34,7 @@ typedef Word Index;                     /* design.mps.type.index */
 typedef Word Align;                     /* design.mps.type.align */
 typedef unsigned Shift;                 /* design.mps.type.shift */
 typedef Addr Ref;                       /* design.mps.type.ref */
+typedef void *Pointer;                  /* design.mps.type.pointer */
 typedef Word RefSet;                    /* design.mps.refset */
 typedef unsigned Rank;                  /* design.mps.ref */
 typedef Size Epoch;                     /* design.mps.ld */
@@ -104,7 +105,8 @@ typedef void (*FormatPadMethod)    (Addr base, Size size);
 /* (See impl.h.mps.fmt-methods.) */
 
 typedef Res (*RootScanMethod)   (ScanState ss, void *p, size_t s);
-typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p);
+typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p, 
+                                 size_t s);
 
 
 /* CONSTANTS */
@@ -133,12 +135,9 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p);
                          AttrBUF | AttrBUF_RESERVE | AttrBUF_ALLOC | \
                          AttrGC | AttrINCR_RB | AttrINCR_WB)
 
-
-/* Rank constants -- see design.mps.type.rank
- *
- * .ranks: These definitions must match impl.h.mps.ranks.
- * This is checked by impl.c.mpsi.check.
- */
+/* Rank constants -- see design.mps.type.rank */
+/* These definitions must match impl.h.mps.rank. */
+/* This is checked by impl.c.mpsi.check. */
 
 enum {
   RankAMBIG = 0,
@@ -150,6 +149,7 @@ enum {
 
 
 /* Root Variants -- see design.mps.type.rootvar */
+/* Synchonize with impl.c.mpm.rootvarcheck */
 
 enum {
   RootFUN,
@@ -167,11 +167,9 @@ enum {
 };
 
 
-/* Result Codes -- see design.mps.type.res
- *
- * .result-codes: These definitions must match impl.h.mps.res.
- * This is checked by impl.c.mpsi.check.
- */
+/* Result Codes -- see design.mps.type.res */
+/* These definitions must match impl.h.mps.res. */
+/* This is checked by impl.c.mpsi.check. */
 
 enum {
   ResOK = 0,

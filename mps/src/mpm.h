@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.11) $
+ * $HopeName: MMsrc!mpm.h(trunk.12) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  */
 
@@ -44,6 +44,7 @@ extern Bool MPMCheck(void);
 extern Bool BoolCheck(Bool b);
 extern Bool FunCheck(Fun f);
 extern Bool AttrCheck(Attr attr);
+extern Bool RootVarCheck(RootVar rootVar);
 #define FUNCHECK(f)	(FunCheck((Fun)f))
 
 
@@ -57,14 +58,25 @@ extern Word (WordAlignUp)(Word word, Align align);
 
 extern Bool AlignCheck(Align align);
 
+extern Pointer (PointerAdd)(Pointer p, Size s);
+#define PointerAdd(p, s)        ((Pointer)((char *)(p) + (s)))
+
+extern Pointer (PointerSub)(Pointer p, Size s);
+#define PointerSub(p, s)        ((Pointer)((char *)(p) - (s)))
+
+extern Size (PointerOffset)(Pointer base, Pointer limit);
+#define PointerOffset(base, limit) \
+                                ((Size)((char *)(limit) - (char *)(base)))
+
 extern Addr (AddrAdd)(Addr addr, Size size);
-#define AddrAdd(p, s)           ((Addr)((Word)(p) + (s)))
+#define AddrAdd(p, s)           ((Addr)PointerAdd((Pointer)p, s))
 
 extern Addr (AddrSub)(Addr addr, Size size);
-#define AddrSub(p, s)           ((Addr)((Word)(p) - (s)))
+#define AddrSub(p, s)           ((Addr)PointerSub((Pointer)p, s))
 
 extern Size (AddrOffset)(Addr base, Addr limit);
-#define AddrOffset(p, l)        ((Size)((Word)(l) - (Word)(p)))
+#define AddrOffset(b, l)        (PointerOffset((Pointer)b, (Pointer)l))
+
 
 /* Logs and Powers
  * 
@@ -284,7 +296,7 @@ extern Bool SpaceAccess(Addr addr, AccessSet mode);
 extern void SpaceEnter(Space space);
 extern void SpaceLeave(Space space);
 extern void SpacePoll(Space space);
-extern Res SpaceAlloc(Addr *baseReturn, Space space, Size size);
+extern Res SpaceAlloc(void **baseReturn, Space space, Size size);
 extern void SpaceFree(Space space, Addr base, Size size);
 
 #define SpacePoolRing(space)    (&(space)->poolRing)
@@ -409,11 +421,11 @@ extern Res RootCreateTable(Root *rootReturn, Space space,
 extern Res RootCreateReg(Root *rootReturn, Space space,
                            Rank rank, Thread thread,
                            RootScanRegMethod scan,
-                           void *p);
+                           void *p, size_t s);
 extern Res RootCreateFmt(Root *rootReturn, Space space,
                            Rank rank, FormatScanMethod scan,
                            Addr base, Addr limit);
-extern Res RootCreate(Root *rootReturn, Space space,
+extern Res RootCreateFun(Root *rootReturn, Space space,
                         Rank rank, RootScanMethod scan,
                         void *p, size_t s);
 extern void RootDestroy(Root root);
@@ -421,7 +433,7 @@ extern Bool RootCheck(Root root);
 extern Res RootDescribe(Root root, mps_lib_FILE *stream);
 extern Bool RootIsAtomic(Root root);
 extern Rank RootRank(Root root);
-extern void RootGrey(Root root, Space space, TraceId ti);
+extern void RootGrey(Root root, TraceId ti);
 extern Res RootScan(ScanState ss, Root root);
 extern Space RootSpace(Root root);
 

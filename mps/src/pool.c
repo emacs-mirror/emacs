@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.17) $
+ * $HopeName: MMsrc!pool.c(trunk.18) $
  * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
  *
  * This is the implementation of the generic pool interface.  The
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.17) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.18) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -131,7 +131,7 @@ Res PoolCreateV(Pool *poolReturn, PoolClass class,
 {
   Res res;
   Pool pool;
-  Addr base;
+  void *base;
 
   AVER(poolReturn != NULL);
   AVERT(Space, space);
@@ -146,7 +146,7 @@ Res PoolCreateV(Pool *poolReturn, PoolClass class,
   /* base is the address of the class-specific pool structure. */
   /* We calculate the address of the generic pool structure within the */
   /* instance by using the offset information from the class. */
-  pool = (Pool)AddrAdd(base, class->offset);
+  pool = (Pool)PointerAdd(base, class->offset);
 
   /* Initialize the pool. */  
   res = PoolInitV(pool, space, class, args);

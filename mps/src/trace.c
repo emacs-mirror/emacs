@@ -1,11 +1,11 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.16) $
+ * $HopeName: MMsrc!trace.c(trunk.17) $
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.16) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.17) $");
 
 Bool ScanStateCheck(ScanState ss)
 {
@@ -103,7 +103,7 @@ Res TraceFlip(Space space, TraceId ti, RefSet condemned)
     Ring next = RingNext(node);
     Root root = RING_ELT(Root, spaceRing, node);
 
-    RootGrey(root, space, ti);
+    RootGrey(root, ti);
 
     node = next;
   }

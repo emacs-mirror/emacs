@@ -2,7 +2,7 @@
  *
  *                  WIN32 THREAD MANAGER
  *
- *  $HopeName: MMsrc!thnti3.c(trunk.13) $
+ *  $HopeName: MMsrc!thnti3.c(trunk.14) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -67,7 +67,7 @@
 
 #include <windows.h>
 
-SRCID(thnti3, "$HopeName: MMsrc!thnti3.c(trunk.13) $");
+SRCID(thnti3, "$HopeName: MMsrc!thnti3.c(trunk.14) $");
 
 Bool ThreadCheck(Thread thread)
 {
@@ -85,13 +85,15 @@ Res ThreadRegister(Thread *threadReturn, Space space)
   Thread thread;
   HANDLE procHandle;
   BOOL b;
+  void *p;
 
   AVER(threadReturn != NULL);
   AVERT(Space, space);
 
-  res = SpaceAlloc((Addr *)&thread, space, sizeof(ThreadStruct));
+  res = SpaceAlloc(&p, space, sizeof(ThreadStruct));
   if(res != ResOK)
     return res;
+  thread = (Thread)p; /* avoid pun */
 
   /* Duplicate handle gives us a new handle with updated privileges.
    * .thread.handle describes the ones needed.
