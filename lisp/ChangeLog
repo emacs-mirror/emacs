@@ -1,3 +1,32 @@
+2002-09-18  Richard M. Stallman  <rms@gnu.org>
+
+	* menu-bar.el (menu-bar-search-menu): Nicer help string.
+
+	* replace.el (occur-engine-add-prefix): Use 7 spaces.
+	(occur-engine): Use 7 digits to align tabs in the data.
+
+	* emacs-lisp/bytecomp.el (byte-compile-output-docform):
+	Don't make the definition dynamic if it shares structure
+	with the arg list.
+
+	* gud.el (gud-pdb-marker-regexp): Allow : and \ in file name.
+	(pdb): In gud-remove, pass down the file name.
+
+	* cus-dep.el (custom-make-dependencies): Sort MEMBERS before use.
+
+2002-09-18  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* ielm.el: (*1, *2, *3): New variables.
+	(ielm-eval-input): Make temporary buffers current on entry and 
+        exit to the let bindings for *, ** and ***.
+	(inferior-emacs-lisp-mode): Mention *1, *2 and *3 in the docstring.
+        Do not overrule global bindings for *, ** and ***.
+
+2002-09-18  Tom Tromey  <tromey@redhat.com>
+
+	* progmodes/make-mode.el (makefile-fill-paragraph): Find comment
+	boundaries before filling.
+
 2002-09-18  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* dired.el (dired-insert-directory): Never add "--dired" when
