@@ -1763,8 +1763,8 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.properties\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-javaprop-mode)
      ;; *.cf, *.cfg, *.conf, *.config[.local|.de_DE.UTF8|...], */config
      ("[/.]c\\(?:on\\)?f\\(?:i?g\\)?\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-mode)
-     ("\\`/etc/\\(?:DIR_COLORS\\|ethers\\|.?fstab\\|.*hosts\\|lesskey\\|login\\.?de\\(?:fs\\|vperm\\)\\|mtab\\|permissions\\|protocols\\|rpc\\|services\\)\\'" . conf-space-mode)
-     ("\\`/etc/\\(?:aliases\\|ksysguarddrc\\|opera6rc\\)\\'" . conf-mode)
+     ("\\`/etc/\\(?:DIR_COLORS\\|ethers\\|.?fstab\\|.*hosts\\|lesskey\\|login\\.?de\\(?:fs\\|vperm\\)\\|magic\\|mtab\\|permissions\\|protocols\\|rpc\\|services\\)\\'" . conf-space-mode)
+     ("\\`/etc/\\(?:aliases\\|hosts\\..+\\|ksysguarddrc\\|opera6rc\\)\\'" . conf-mode)
      ;; either user's dot-files or under /etc or some such
      ("/\\.?\\(?:gnokiirc\\|kde.*rc\\|mime\\.types\\|wgetrc\\)\\'" . conf-mode)
      ;; alas not all ~/.*rc files are like this
