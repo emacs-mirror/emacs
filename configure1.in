@@ -552,6 +552,7 @@ case "${configuration}" in
       *-isc* )			opsys=isc3-0 ;;
       *-esix* )			opsys=esix ;;
       *-xenix* )		opsys=xenix ;;
+      *-sco3.2v4* )		opsys=sco4 ;;
       ## Otherwise, we'll fall through to the generic opsys code at the bottom.
     esac
   ;;
