@@ -42,7 +42,7 @@
   "Generate the diary window for ARG days starting with the current date.
 If no argument is provided, the number of days of diary entries is governed
 by the variable `number-of-diary-entries'.  This function is suitable for
-execution in a .emacs file."
+execution in a `.emacs' file."
   (interactive "P")
   (let ((d-file (substitute-in-file-name diary-file))
         (date (calendar-current-date)))
@@ -60,9 +60,9 @@ execution in a .emacs file."
 
 (defun view-diary-entries (arg)
   "Prepare and display a buffer with diary entries.
-Searches the file diary-file for entries that match ARG days starting with
-the date indicated by the cursor position in the displayed three-month
-calendar."
+Searches the file named in `diary-file' for entries that
+match ARG days starting with the date indicated by the cursor position
+in the displayed three-month calendar."
   (interactive "p")
   (let ((d-file (substitute-in-file-name diary-file)))
     (if (and d-file (file-exists-p d-file))
@@ -76,13 +76,13 @@ calendar."
 (autoload 'check-calendar-holidays "holidays"
   "Check the list of holidays for any that occur on DATE.
 The value returned is a list of strings of relevant holiday descriptions.
-The holidays are those in the list calendar-holidays."
+The holidays are those in the list `calendar-holidays'."
   t)
 
 
 (autoload 'calendar-holiday-list "holidays"
   "Form the list of holidays that occur on dates in the calendar window.
-The holidays are those in the list calendar-holidays."
+The holidays are those in the list `calendar-holidays'."
   t)
 
 (autoload 'diary-french-date "cal-french"
@@ -245,13 +245,12 @@ have the following distinct roles:
 
 (defun include-other-diary-files ()
   "Include the diary entries from other diary files with those of diary-file.
-This function is suitable for use just before fancy-diary-display as the
-list-diary-entries-hook; it enables you to use shared diary files together
-with your own.  The files included are specified in the diary-file by lines of
-the form
+This function is suitable for use in `list-diary-entries-hook';
+it enables you to use shared diary files together with your own.
+The files included are specified in the diaryfile by lines of this form:
         #include \"filename\"
 This is recursive; that is, #include directives in diary files thus included
-are obeyed.  You can change the \"#include\" to some other string by
+are obeyed.  You can change the `#include' to some other string by
 changing the variable `diary-include-string'."
   (goto-char (point-min))
   (while (re-search-forward
@@ -311,7 +310,7 @@ changing the variable `diary-include-string'."
 
 (defun fancy-diary-display ()
   "Prepare a diary buffer with relevant entries in a fancy, noneditable form.
-This function is provided for optional use as the `list-diary-entries-hook'."
+This function is provided for optional use as the `diary-display-hook'."
   (if (or (not diary-entries-list)
           (and (not (cdr diary-entries-list))
                (string-equal (car (cdr (car diary-entries-list))) "")))
@@ -442,8 +441,8 @@ the actual printing."
         (error "You don't have a diary buffer!")))))
 
 (defun show-all-diary-entries ()
-  "Show all of the diary entries in the diary-file.
-This function gets rid of the selective display of the diary-file so that
+  "Show all of the diary entries in the diary file.
+This function gets rid of the selective display of the diary file so that
 all entries, not just some, are visible.  If there is no diary buffer, one
 is created."
   (interactive)
@@ -488,8 +487,8 @@ name."
 
 (defun mark-diary-entries ()
   "Mark days in the calendar window that have diary entries.
-Each entry in diary-file visible in the calendar window is marked.  After the
-entries are marked, the hooks `nongregorian-diary-marking-hook' and
+Each entry in the diary file visible in the calendar window is marked.
+After the entries are marked, the hooks `nongregorian-diary-marking-hook' and
 `mark-diary-entries-hook' are run."
   (interactive)
   (setq mark-diary-entries-in-calendar t)
@@ -608,7 +607,7 @@ entries are marked, the hooks `nongregorian-diary-marking-hook' and
 
 (defun mark-sexp-diary-entries ()
   "Mark days in the calendar window that have sexp diary entries.
-Each entry in diary-file (or included files) visible in the calendar window
+Each entry in the diary file (or included files) visible in the calendar window
 is marked.  See the documentation for the function `list-sexp-diary-entries'."
   (let* ((sexp-mark (regexp-quote sexp-diary-entry-symbol))
          (s-entry (concat "\\(\\`\\|\^M\\|\n\\)" sexp-mark "("))
@@ -662,13 +661,13 @@ is marked.  See the documentation for the function `list-sexp-diary-entries'."
                (calendar-gregorian-from-absolute date))))))))
 
 (defun mark-included-diary-files ()
-  "Mark the diary entries from other diary files with those of diary-file.
-This function is suitable for use as the mark-diary-entries-hook; it enables
+  "Mark the diary entries from other diary files with those of the diary file.
+This function is suitable for use as the `mark-diary-entries-hook'; it enables
 you to use shared diary files together with your own.  The files included are
-specified in the diary-file by lines of the form
+specified in the diary-file by lines of this form:
         #include \"filename\"
 This is recursive; that is, #include directives in diary files thus included
-are obeyed.  You can change the \"#include\" to some other string by
+are obeyed.  You can change the `#include' to some other string by
 changing the variable `diary-include-string'."
   (goto-char (point-min))
   (while (re-search-forward
@@ -716,7 +715,7 @@ changing the variable `diary-include-string'."
 
 (defun mark-calendar-date-pattern (month day year)
   "Mark all dates in the calendar window that conform to MONTH/DAY/YEAR.
-A value of 0 in any position is a wild-card."
+A value of 0 in any position is a wildcard."
   (save-excursion
     (set-buffer calendar-buffer)
     (let ((m displayed-month)
@@ -728,7 +727,7 @@ A value of 0 in any position is a wild-card."
 
 (defun mark-calendar-month (month year p-month p-day p-year)
   "Mark dates in the MONTH/YEAR that conform to pattern P-MONTH/P_DAY/P-YEAR.
-A value of 0 in any position of the pattern is a wild-card."
+A value of 0 in any position of the pattern is a wildcard."
   (if (or (and (= month p-month)
                (or (= p-year 0) (= year p-year)))
           (and (= p-month 0)
@@ -780,16 +779,16 @@ and XX:XXam or XX:XXpm."
         (t -9999)));; Unrecognizable
 
 (defun list-hebrew-diary-entries ()
-  "Add any Hebrew date entries from the diary-file to diary-entries-list.
-Hebrew date diary entries must be prefaced by a hebrew-diary-entry-symbol
-(normally an `H').  The same diary-date-forms govern the style of the Hebrew
+  "Add any Hebrew date entries from the diary file to `diary-entries-list'.
+Hebrew date diary entries must be prefaced by `hebrew-diary-entry-symbol'
+(normally an `H').  The same diary date forms govern the style of the Hebrew
 calendar entries, except that the Hebrew month names must be spelled in full.
 The Hebrew months are numbered from 1 to 13 with Nisan being 1, 12 being
 Adar I and 13 being Adar II; you must use `Adar I' if you want Adar of a
 common Hebrew year.  If a Hebrew date diary entry begins with a
-diary-nonmarking-symbol the entry will appear in the diary listing, but will
+`diary-nonmarking-symbol', the entry will appear in the diary listing, but will
 not be marked in the calendar.  This function is provided for use with the
-nongregorian-diary-listing-hook."
+`nongregorian-diary-listing-hook'."
   (if (< 0 number)
       (let ((buffer-read-only nil)
             (diary-modified (buffer-modified-p))
@@ -973,7 +972,7 @@ is provided for use as part of the nongregorian-diary-marking-hook."
 
 (defun mark-hebrew-calendar-date-pattern (month day year)
   "Mark dates in calendar window that conform to Hebrew date MONTH/DAY/YEAR.
-A value of 0 in any position is a wild-card."
+A value of 0 in any position is a wildcard."
   (save-excursion
     (set-buffer calendar-buffer)
     (if (and (/= 0 month) (/= 0 day))
@@ -1046,11 +1045,11 @@ A value of 0 in any position is a wild-card."
                   (calendar-gregorian-from-absolute date)))))))))
 
 (defun list-sexp-diary-entries (date)
-  "Add sexp entries for DATE from the diary-file to diary-entries-list.
+  "Add sexp entries for DATE from the diary file to `diary-entries-list'.
 Also, Make them visible in the diary file.  Returns t if any entries were
 found.
 
-Sexp diary entries must be prefaced by a sexp-diary-entry-symbol (normally
+Sexp diary entries must be prefaced by a `sexp-diary-entry-symbol' (normally
 `%%').  The form of a sexp diary entry is
 
                   %%(SEXP) ENTRY
@@ -1404,7 +1403,7 @@ Entry applies if date is within 50 days after Passover."
 Parameters are DEATH-MONTH, DEATH-DAY, DEATH-YEAR; the diary entry is assumed
 to be the name of the person.  Date of death is on the *civil* calendar;
 although the date of death is specified by the civil calendar, the proper
-Hebrew calendar yahrzeit is determined.  If european-calendar-style is t, the
+Hebrew calendar yahrzeit is determined.  If `european-calendar-style' is t, the
 order of the parameters is changed to DEATH-DAY, DEATH-MONTH, DEATH-YEAR."
   (let* ((h-date (calendar-hebrew-from-absolute
                   (calendar-absolute-from-gregorian
@@ -1525,7 +1524,7 @@ Entry applies if date is Rosh Hodesh, the day before, or the Saturday before."
                  (hebrew-calendar-parasha-name parasha))))))))
 
 (defun add-to-diary-list (date string)
-  "Add the entry (DATE STRING) to the diary-entries-list.
+  "Add the entry (DATE STRING) to `diary-entries-list'.
 Do nothing if DATE or STRING is nil."
   (and date string
        (setq diary-entries-list 
@@ -1671,15 +1670,15 @@ have 30 days), and has Passover start on Tuesday.")
     (aref hebrew-calendar-parashiot-names p)))
 
 (defun list-islamic-diary-entries ()
-  "Add any Islamic date entries from the diary-file to diary-entries-list.
-Islamic date diary entries must be prefaced by an islamic-diary-entry-symbol
-(normally an `I').  The same diary-date-forms govern the style of the Islamic
+  "Add any Islamic date entries from the diary file to `diary-entries-list'.
+Islamic date diary entries must be prefaced by an `islamic-diary-entry-symbol'
+(normally an `I').  The same diary date forms govern the style of the Islamic
 calendar entries, except that the Islamic month names must be spelled in full.
 The Islamic months are numbered from 1 to 12 with Muharram being 1 and 12 being
 Dhu al-Hijjah.  If an Islamic date diary entry begins with a
-diary-nonmarking-symbol the entry will appear in the diary listing, but will
+`diary-nonmarking-symbol', the entry will appear in the diary listing, but will
 not be marked in the calendar.  This function is provided for use with the
-nongregorian-diary-listing-hook."
+`nongregorian-diary-listing-hook'."
   (if (< 0 number)
       (let ((buffer-read-only nil)
             (diary-modified (buffer-modified-p))
@@ -1860,7 +1859,7 @@ provided for use as part of the nongregorian-diary-marking-hook."
 
 (defun mark-islamic-calendar-date-pattern (month day year)
   "Mark dates in calendar window that conform to Islamic date MONTH/DAY/YEAR.
-A value of 0 in any position is a wild-card."
+A value of 0 in any position is a wildcard."
   (save-excursion
     (set-buffer calendar-buffer)
     (if (and (/= 0 month) (/= 0 day))
