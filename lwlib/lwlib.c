@@ -112,6 +112,8 @@ safe_free_str (s)
 }
 
 static widget_value *widget_value_free_list = 0;
+static int malloc_cpt = 0;
+static int malloc_cpt_id = 0;
 
 widget_value *
 malloc_widget_value ()
@@ -126,6 +128,7 @@ malloc_widget_value ()
   else
     {
       wv = (widget_value *) malloc (sizeof (widget_value));
+      malloc_cpt++;
     }
   memset (wv, 0, sizeof (widget_value));
   return wv;
@@ -140,8 +143,24 @@ free_widget_value (wv)
 {
   if (wv->free_list)
     abort ();
-  wv->free_list = widget_value_free_list;
-  widget_value_free_list = wv;
+
+  if (malloc_cpt > 20)
+    {
+      /* When the number of already allocated cells is too big,
+	 We free it.  */
+      malloc_cpt_id++;
+      free (wv);
+      if (malloc_cpt_id > 20)
+	{
+	  malloc_cpt_id = 0;
+	  malloc_cpt = 0;
+	}
+    }
+  else
+    {
+      wv->free_list = widget_value_free_list;
+      widget_value_free_list = wv;
+    }
 }
 
 static void

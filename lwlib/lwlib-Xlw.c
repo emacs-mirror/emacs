@@ -71,13 +71,14 @@ pick_hook (w, client_data, call_data)
 }
 
 /* creation functions */
+
 static Widget
 xlw_create_menubar (instance)
      widget_instance* instance;
 {
   Widget widget;
 
-  widget_value *tem = (widget_value *) XtMalloc (sizeof (widget_value));
+  widget_value *tem = malloc_widget_value (); 
 
   /* _XtCreate is freeing the object we passed,
      so make a copy that we free later.  */
@@ -89,7 +90,7 @@ xlw_create_menubar (instance)
 		      XtNmenu, tem,
 		      0);
 
-  XtFree (tem);
+  free_widget_value (tem);
 
   XtAddCallback (widget, XtNopen, pre_hook, (XtPointer)instance);
   XtAddCallback (widget, XtNselect, pick_hook, (XtPointer)instance);
@@ -106,7 +107,7 @@ xlw_create_popup_menu (instance)
   
   Widget widget;
 
-  widget_value *tem = (widget_value *) XtMalloc (sizeof (widget_value));
+  widget_value *tem = malloc_widget_value ();
 
   /* _XtCreate is freeing the object we passed,
      so make a copy that we free later.  */
@@ -119,7 +120,7 @@ xlw_create_popup_menu (instance)
 			     XtNhorizontal, False,
 			     0);
 
-  XtFree (tem);
+  free_widget_value (tem);
 
   XtAddCallback (widget, XtNselect, pick_hook, (XtPointer)instance);
 
