@@ -106,7 +106,7 @@ This function is used when `adaptive-fill-regexp' does not match."
   :type '(choice (const nil) function)
   :group 'fill)
 
-(defvar fill-indent-according-to-mode t
+(defvar fill-indent-according-to-mode nil ;Screws up CC-mode's filling tricks.
   "Whether or not filling should try to use the major mode's indentation.")
 
 (defun current-fill-column ()
