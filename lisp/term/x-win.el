@@ -508,9 +508,10 @@ This returns ARGS with the arguments that have been processed removed."
 		       (setq x-display-name (getenv "DISPLAY"))))
 
 (setq frame-creation-function 'x-create-frame)
-(setq suspend-hook
-      '(lambda ()
-	 (error "Suspending an emacs running under X makes no sense")))
+
+(defun x-win-suspend-error ()
+  (error "Suspending an emacs running under X makes no sense"))
+(add-hook 'suspend-hooks 'x-win-suspend-error)
 
 ;;; Arrange for the kill and yank functions to set and check the clipboard.
 (setq interprogram-cut-function 'x-select-text)
