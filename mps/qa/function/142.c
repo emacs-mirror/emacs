@@ -1,12 +1,12 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!142.c(trunk.2) $
  summary = EPDR fenceposting check: subfree
  language = c
  link = testlib.o
 OUTPUT_SPEC
  assert = true
- assertfile = .\dbgpool.c
+ assertfile P= dbgpool.c
  assertcond = tag->size == size
 END_HEADER
 */
