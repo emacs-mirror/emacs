@@ -1,3 +1,17 @@
+2004-11-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (unuse_menu_items, pop_down_menu): Arg is of type
+	Lisp_Object.
+	(popup_get_selection): Move unwind protect ...
+	(create_and_show_popup_menu, create_and_show_dialog): ... to here.
+	Move destroy of widget to pop_down_menu.
+	(popup_widget_loop): Move unwind protect ...
+	(create_and_show_popup_menu, create_and_show_dialog): ... to here.
+	Move destroy of widget to pop_down_menu.
+	(pop_down_menu): BLOCK_INPUT and destroy widget/window.
+	(xmenu_show): record unwind pop_down_menu.  Move XMenuDestroy,
+	x_mouse_leave and grabbed = 0 to pop_down_menu.
+
 2004-11-13  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (make_cursor_line_fully_visible_p): New variable.
