@@ -86,7 +86,7 @@ Lisp_Object Voverlay_arrow_position;
 Lisp_Object Voverlay_arrow_string;
 
 /* Values of those variables at last redisplay.  */
-Lisp_Object last_arrow_position, last_arrow_string;
+static Lisp_Object last_arrow_position, last_arrow_string;
 
 /* Nonzero if overlay arrow has been displayed once in this window.  */
 static int overlay_arrow_seen;
@@ -167,6 +167,47 @@ int clip_changed;
 int windows_or_buffers_changed;
 
 
+/* Specify m, a string, as a message in the minibuf.  If m is 0, clear out
+   any existing message, and let the minibuffer text show through.  */
+void
+message1 (m)
+     char *m;
+{
+  if (noninteractive)
+    {
+      if (noninteractive_need_newline)
+	putc ('\n', stderr);
+      noninteractive_need_newline = 0;
+      fprintf (stderr, "%s\n", m);
+      fflush (stderr);
+    }
+  /* A null message buffer means that the frame hasn't really been
+     initialized yet.  Error messages get reported properly by
+     cmd_error, so this must be just an informative message; toss it.  */
+  else if (INTERACTIVE && FRAME_MESSAGE_BUF (selected_frame))
+    {
+#ifdef MULTI_FRAME
+      Lisp_Object minibuf_frame;
+
+      choose_minibuf_frame ();
+      minibuf_frame = WINDOW_FRAME (XWINDOW (minibuf_window));
+      if (FRAME_VISIBLE_P (selected_frame)
+	  && ! FRAME_VISIBLE_P (XFRAME (minibuf_frame)))
+	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (minibuf_window)));
+#endif
+
+      if (m)
+	echo_area_glyphs = m;
+      else
+	echo_area_glyphs = previous_echo_glyphs = 0;
+
+      do_pending_window_change ();
+      echo_area_display ();
+      update_frame (XFRAME (XWINDOW (minibuf_window)->frame), 1, 1);
+      do_pending_window_change ();
+    }
+}
+
 /* Nonzero if FRAME_MESSAGE_BUF (selected_frame) is being used by print;
    zero if being used by message.  */
 int message_buf_print;
@@ -195,16 +236,6 @@ message (m, a1, a2, a3)
      cmd_error, so this must be just an informative message; toss it.  */
   else if (INTERACTIVE && FRAME_MESSAGE_BUF (selected_frame))
     {
-#ifdef MULTI_FRAME
-      Lisp_Object minibuf_frame;
-
-      choose_minibuf_frame ();
-      minibuf_frame = WINDOW_FRAME (XWINDOW (minibuf_window));
-      if (FRAME_VISIBLE_P (selected_frame)
-	  && ! FRAME_VISIBLE_P (XFRAME (minibuf_frame)))
-	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (minibuf_window)));
-#endif
-
       if (m)
 	{
 	  {
@@ -222,55 +253,14 @@ message (m, a1, a2, a3)
 #endif				/* NO_ARG_ARRAY */
 	  }
 
-	  echo_area_glyphs = FRAME_MESSAGE_BUF (selected_frame);
+	  message1 (FRAME_MESSAGE_BUF (selected_frame));
 	}
       else
-	echo_area_glyphs = previous_echo_glyphs = 0;
+	message1 (0);
 
       /* Print should start at the beginning of the message
 	 buffer next time.  */
       message_buf_print = 0;
-
-      do_pending_window_change ();
-      echo_area_display ();
-      update_frame (XFRAME (XWINDOW (minibuf_window)->frame), 1, 1);
-      do_pending_window_change ();
-    }
-}
-
-/* Specify m, a string, as a message in the minibuf.  */
-void
-message1 (m)
-     char *m;
-{
-  if (noninteractive)
-    {
-      if (noninteractive_need_newline)
-	putc ('\n', stderr);
-      noninteractive_need_newline = 0;
-      fprintf (stderr, "%s\n", m);
-      fflush (stderr);
-    }
-  /* A null message buffer means that the frame hasn't really been
-     initialized yet.  Error messages get reported properly by
-     cmd_error, so this must be just an informative message; toss it.  */
-  else if (INTERACTIVE && FRAME_MESSAGE_BUF (selected_frame))
-    {
-#ifdef MULTI_FRAME
-      Lisp_Object minibuf_frame;
-
-      choose_minibuf_frame ();
-      minibuf_frame = WINDOW_FRAME (XWINDOW (minibuf_window));
-      if (FRAME_VISIBLE_P (selected_frame)
-	  && ! FRAME_VISIBLE_P (XFRAME (minibuf_frame)))
-	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (minibuf_window)));
-#endif
-
-      echo_area_glyphs = m;
-      do_pending_window_change ();
-      echo_area_display ();
-      update_frame (XFRAME (XWINDOW (minibuf_window)->frame), 1, 1);
-      do_pending_window_change ();
     }
 }
 
@@ -393,8 +383,8 @@ redisplay ()
 
   /* If specs for an arrow have changed, do thorough redisplay
      to ensure we remove any arrow that should no longer exist.  */
-  if (Voverlay_arrow_position != last_arrow_position
-      || Voverlay_arrow_string != last_arrow_string)
+  if (! EQ (Voverlay_arrow_position, last_arrow_position)
+      || ! EQ (Voverlay_arrow_string, last_arrow_string))
     all_windows = 1, clip_changed = 1;
 
   tlbufpos = this_line_bufpos;
@@ -661,6 +651,7 @@ mark_window_display_accurate (window, flag)
 
   for (;!NILP (window); window = w->next)
     {
+      if (XTYPE (window) != Lisp_Window) abort ();
       w = XWINDOW (window);
 
       if (!NILP (w->buffer))
@@ -2242,7 +2233,7 @@ display_string (w, vpos, string, hpos, truncate, mincol, maxcol)
 	}
       else if (dp != 0 && XTYPE (DISP_CHAR_ROPE (dp, c)) == Lisp_String)
         p1 = copy_rope (p1, start, DISP_CHAR_ROPE (dp, c));
-      else if (c < 0200 && buffer_defaults.ctl_arrow)
+      else if (c < 0200 && ! NILP (buffer_defaults.ctl_arrow))
 	{
 	  if (p1 >= start)
 	    *p1 = (dp && XTYPE (DISP_CTRL_GLYPH (dp)) == Lisp_Int
