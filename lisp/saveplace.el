@@ -91,8 +91,7 @@ To save places automatically in all files, put this in your `.emacs' file:
 \(setq-default save-place t\)"
   (interactive "P")
   (if (not buffer-file-name)
-      (message 
-       (format "Buffer \"%s\" not visiting a file." (buffer-name)))
+      (message "Buffer \"%s\" not visiting a file." (buffer-name))
     (if (and save-place (or (not parg) (<= parg 0)))
 	(progn
 	  (message "No place will be saved in this file.")
@@ -124,7 +123,7 @@ To save places automatically in all files, put this in your `.emacs' file:
 (defun save-place-alist-to-file ()
   (let ((file (expand-file-name save-place-file)))
     (save-excursion
-      (message (format "Saving places to %s..." file))
+      (message "Saving places to %s..." file)
       (set-buffer (get-buffer-create " *Saved Places*"))
       (delete-region (point-min) (point-max))
       (if (file-readable-p file)
@@ -141,7 +140,7 @@ To save places automatically in all files, put this in your `.emacs' file:
                t))))
         (write-file file)
         (kill-buffer (current-buffer))
-        (message (format "Saving places to %s...done" file))))))
+        (message "Saving places to %s...done" file)))))
 
 (defun load-save-place-alist-from-file ()
   (if (not save-place-loaded)
@@ -152,8 +151,7 @@ To save places automatically in all files, put this in your `.emacs' file:
           ;; load it if it exists:
           (if (file-readable-p file)
               (save-excursion
-                (message (format "Loading places from %s..."
-                                 save-place-file))
+                (message "Loading places from %s..." save-place-file)
                 ;; don't want to use find-file because we have been
                 ;; adding hooks to it.
                 (set-buffer (get-buffer-create " *Saved Places*"))
@@ -182,7 +180,7 @@ To save places automatically in all files, put this in your `.emacs' file:
                           (setq s (cdr s))))))
                   
                 (kill-buffer (current-buffer))
-                (message (format "Loading places from %s...done" file))
+                (message "Loading places from %s...done" file)
                 t)
             t)
           nil))))
