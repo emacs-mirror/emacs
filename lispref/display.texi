@@ -1590,9 +1590,9 @@ for bitmap files, for the @code{:stipple} attribute.
 @end defvar
 
 @defun bitmap-spec-p object
-This returns @code{t} if @var{object} is a valid bitmap
-specification, suitable for use with @code{:stipple}.
-It returns @code{nil} otherwise.
+This returns @code{t} if @var{object} is a valid bitmap specification,
+suitable for use with @code{:stipple} (see above).  It returns
+@code{nil} otherwise.
 @end defun
 
 @node Attribute Functions
@@ -1658,10 +1658,10 @@ black-and-white screens.
 @end defun
 
 @defun set-face-stipple face pattern &optional frame
-This function sets the background stipple pattern of face @var{face} to
-@var{pattern}.  The argument @var{pattern} should be the name of a
-stipple pattern defined by the X server, or @code{nil} meaning don't use
-stipple.
+This function sets the background stipple pattern of face @var{face}
+to @var{pattern}.  The argument @var{pattern} should be the name of a
+stipple pattern defined by the X server, or actual bitmap data
+(@pxref{Face Attributes}), or @code{nil} meaning don't use stipple.
 
 Normally there is no need to pay attention to stipple patterns, because
 they are used automatically to handle certain shades of gray.
