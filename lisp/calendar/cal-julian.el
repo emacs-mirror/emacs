@@ -161,7 +161,7 @@ nil if it is not visible in the current calendar window."
   (format "Julian date: %s" (calendar-julian-date-string date)))
 
 (defun calendar-absolute-from-astro (d)
-  "Absolute date of astronical (Julian) day number D."
+  "Absolute date of astronomical (Julian) day number D."
   (- d 1721424.5))
 
 (defun calendar-astro-from-absolute (d)
