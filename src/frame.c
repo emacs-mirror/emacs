@@ -2091,6 +2091,16 @@ DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
   return tem;
 }
 
+DEFUN ("active-minibuffer-window", Factive_minibuffer_window,
+       Sactive_minibuffer_window, 0, 0, 0,
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
+  ()
+{
+  return minibuf_level ? minibuf_window : Qnil;
+}
+
 DEFUN ("window-frame", Fwindow_frame, Swindow_frame, 1, 1, 0,
   /* Don't confuse make-docfile by having two doc strings for this function.
      make-docfile does not pay attention to #if, for good reason!  */
@@ -2429,6 +2439,7 @@ syms_of_frame ()
   XSETFASTINT (Vterminal_frame, 0);
 
   defsubr (&Sselected_frame);
+  defsubr (&Sactive_minibuffer_window);
   defsubr (&Swindow_frame);
   defsubr (&Sframe_first_window);
   defsubr (&Sframep);
