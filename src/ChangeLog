@@ -1,6 +1,6 @@
 2000-01-04  Kenichi Handa  <handa@etl.go.jp>
 
-	* term.c (encode_terminal_code): Fix the previous change.
+	* term.c (encode_terminal_code): Fix previous change.
 
 2000-01-03  Gerd Moellmann  <gerd@gnu.org>
 
