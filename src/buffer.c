@@ -1938,6 +1938,40 @@ recenter_overlay_lists (buf, pos)
   XSETFASTINT (buf->overlay_center, pos);
 }
 
+void
+adjust_overlays_for_insert (pos, length)
+     int pos;
+     int length;
+{
+  /* After an insertion, the lists are still sorted properly,
+     but we may need to update the value of the overlay center.  */
+  if (XFASTINT (current_buffer->overlay_center) >= pos)
+    XSETFASTINT (current_buffer->overlay_center,
+		 XFASTINT (current_buffer->overlay_center) + length);
+}
+
+void
+adjust_overlays_for_delete (pos, length)
+     int pos;
+     int length;
+{
+  if (XFASTINT (current_buffer->overlay_center) < pos)
+    /* The deletion was to our right.  No change needed; the before- and
+       after-lists are still consistent.  */
+    ;
+  else if (XFASTINT (current_buffer->overlay_center) > pos + length)
+    /* The deletion was to our left.  We need to adjust the center value
+       to account for the change in position, but the lists are consistent
+       given the new value.  */
+    XSETFASTINT (current_buffer->overlay_center,
+		 XFASTINT (current_buffer->overlay_center) - length);
+  else
+    /* We're right in the middle.  There might be things on the after-list
+       that now belong on the before-list.  Recentering will move them,
+       and also update the center point.  */
+    recenter_overlay_lists (current_buffer, pos);
+}
+
 /* Fix up overlays that were garbled as a result of permuting markers
    in the range START through END.  Any overlay with at least one
    endpoint in this range will need to be unlinked from the overlay
