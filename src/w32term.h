@@ -481,7 +481,8 @@ extern struct w32_output w32term_display;
    able to split windows horizontally nicely.  */
 
 #define FRAME_X_FRINGE_COLS(F)				\
-     ((2 * FRAME_FRINGE_BITMAP_WIDTH ((F)) + CANON_X_UNIT ((F)) - 1)	\
+     ((F) == XFRAME (tip_frame) ? 0 :                   \
+      (2 * FRAME_FRINGE_BITMAP_WIDTH ((F)) + CANON_X_UNIT ((F)) - 1)	\
       / CANON_X_UNIT ((F)))
 
 /* Total width of fringes in pixels.  */
