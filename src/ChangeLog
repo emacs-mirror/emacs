@@ -1,5 +1,10 @@
 2001-09-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (Frecursive_edit): Pass (BUFFER . SINGLE-KBOARD) to
+	recursive_edit_unwind.
+	(recursive_edit_unwind): Set kboard state according to
+	SINGLE-KBOARD.
+
 	* buffer.c (modify_overlay): Don't do nothing if START == END;
 	This can still be a modification, for example when an overlay has
 	a before-string or after-string.
