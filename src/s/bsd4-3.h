@@ -24,11 +24,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  */
 
 #ifndef BSD4_3
-#define	BSD	43		/* 4.3 * 10, as cpp doesn't do floats */
+#define BSD4_3
 #endif /* BSD4_3 */
 
 #ifndef BSD
-#define BSD4_3	1
+#define BSD
 #endif /* BSD */
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
@@ -127,6 +127,3 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    is named _avenrun.  */
 
 #define LDAV_SYMBOL "_avenrun"
-
-/* The return type of a signal handling function.  */
-#define SIGTYPE int

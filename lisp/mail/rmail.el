@@ -109,7 +109,43 @@ Called with region narrowed to unformatted header.")
 ;;; this expression, you must change the code in rmail-nuke-pinhead-header
 ;;; that knows the exact ordering of the \\( \\) subexpressions.
 (defvar rmail-unix-mail-delimiter
-  "From \\([^ \n]*\\(\\|\".*\"[^ \n]*\\)\\)  ?\\([^ \n]*\\) \\([^ ]*\\) *\\([0-9]*\\) \\([0-9:]*\\)\\( ?[A-Z]?[A-Z][A-Z]T\\( DST\\)?\\| ?[-+]?[0-9][0-9][0-9][0-9]\\|\\) [0-9][0-9]\\([0-9]*\\) *\\(remote from [^\n]*\\)?\n" nil)
+  (let ((time-zone-regexp
+	 (concat "\\([A-Z]?[A-Z][A-Z]T\\( DST\\)?"
+		 "\\|[-+]?[0-9][0-9][0-9][0-9]"
+		 "\\|"
+		 "\\) *")))
+    (concat
+     "From "
+
+     ;; Username, perhaps with a quoted section that can contain spaces.
+     "\\("
+     "[^ \n]*"
+     "\\(\\|\".*\"[^ \n]*\\)"
+     "\\)  ?"
+
+     ;; The time the message was sent.
+     "\\([^ \n]*\\) *"			; day of the week
+     "\\([^ ]*\\) *"			; month
+     "\\([0-9]*\\) *"			; day of month
+     "\\([0-9:]*\\) *"			; time of day
+
+     ;; Perhaps a time zone, specified by an abbreviation, or by a
+     ;; numeric offset.
+     time-zone-regexp
+
+     ;; The year.
+     " [0-9][0-9]\\([0-9]*\\) *"
+
+     ;; On some systems the time zone can appear after the year, too.
+     time-zone-regexp
+
+     ;; I'm not sure what this is.
+     "\\(remote from [^\n]*\\)?"
+
+     "\n"))
+  nil)
+
+
 
 ;;;; *** Rmail Mode ***
 
@@ -704,10 +740,20 @@ argument causes us to read a file name and use that file as the inbox."
 		  ;;  have a Date: field.
 		  (if has-date
 		      ""
-		    ;; If no time zone specified, assume est.
-		    (if (= (match-beginning 7) (match-end 7))
-			"Date: \\3, \\5 \\4 \\9 \\6 EST\n"
-			"Date: \\3, \\5 \\4 \\9 \\6\\7\n"))
+		    (concat
+		     "Date: \\3, \\5 \\4 \\9 \\6 "
+		    
+		     ;; The timezone could be matched by group 7 or group 10.
+		     ;; If neither of them matched, assume EST, since only
+		     ;; Easterners would be so sloppy.
+		     ;; It's a shame the substitution can't use "\\10".
+		     (cond
+		      ((/= (match-beginning 7) (match-end 7)) "\\7")
+		      ((/= (match-beginning 10) (match-end 10))
+		       (buffer-substring (match-beginning 10)
+					 (match-end 10)))
+		      (t "EST"))
+		     "\n"))
 		  ;; Keep and reformat the sender if we don't
 		  ;; have a From: field.
 		  (if has-from

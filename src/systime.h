@@ -17,8 +17,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifdef NEED_TIME_H
-
 /* _h_BSDTYPES is checked because on ISC unix, socket.h includes
    both time.h and sys/time.h, and the later file is protected
    from repeated inclusion.  We just hope that other systems will
@@ -26,11 +24,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifndef _h_BSDTYPES
 #include <time.h>
 #endif /* _h_BSDTYPES */
-#else /* ! defined (NEED_TIME_H) */
+
 #ifdef HAVE_TIMEVAL
+#ifndef NEED_TIME_H		/* Some versions of HP/UX shouldn't have
+				   this included; time.h should do the trick
+				   instead.  */
 #include <sys/time.h>
-#endif /* ! defined (HAVE_TIMEVAL) */
-#endif /* ! defined (NEED_TIME_H) */
+#endif
+#endif
 
 
 /* EMACS_TIME is the type to use to represent temporal intervals -
@@ -145,7 +146,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    expands to a statement which stores information about the current
    time zone in its arguments.
 
-   *OFFSET is set to the number of minutes west of Greenwich at which
+   *OFFSET is set to the number of minutes EAST of Greenwich at which
    the site's time zone is located.  This should describe the offset
    to standard time only; if some sort of daylight savings time is in
    effect, that should not affect this value.  Note that the tm_gmtoff
@@ -178,17 +179,24 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* If we have timeval, then we have gettimeofday; that's half the battle.  */
 #ifdef HAVE_TIMEVAL
-#define EMACS_GET_TZ_OFFSET_AND_SAVINGS(offset, savings_flag)		\
+#define EMACS_GET_TZ_OFFSET(offset)					\
   do {									\
     struct timeval dummy;						\
     struct timezone zoneinfo;						\
 									\
     gettimeofday (&dummy, &zoneinfo);					\
-    *(offset) = zoneinfo.tz_minuteswest;				\
-    *(savings_flag) = zoneinfo.tz_dsttime;				\
+    *(offset) = -zoneinfo.tz_minuteswest;				\
   } while (0)
 #endif /* ! defined (HAVE_TIMEVAL) */
 
+/* System V derivatives have a timezone global variable.  */
+#ifdef USG
+#define EMACS_GET_TZ_OFFSET(offset)					\
+  do {									\
+    tzset ();								\
+    (offset) = timezone;						\
+  }
+#endif
 
 /* The following sane systems have a tzname array.  The timezone() function
    is a stupid idea; timezone names can only be determined geographically,
@@ -222,14 +230,22 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif /* ! defined (ultrix) || defined (hpux) || defined (_AIX) */
 
 /* If we can get all the information we need, let's define the macro!  */
-#if defined (EMACS_GET_TZ_OFFSET_AND_SAVINGS) && defined (EMACS_GET_TZ_NAMES)
+#if defined (EMACS_GET_TZ_OFFSET) && defined (EMACS_GET_TZ_NAMES)
 
 #define EMACS_CURRENT_TIME_ZONE(offset, savings_flag, standard, savings)\
-  do {									\
-    EMACS_GET_TZ_OFFSET_AND_SAVINGS (offset, savings_flag);		\
+  do {								       	\
+    EMACS_TIME t;							\
+    long secs;								\
+    struct tm *tmp;							\
+									\
+    EMACS_GET_TIME (t);							\
+    secs = EMACS_SECS (t);						\
+    tmp = localtime (&secs);						\
+    *(savings_flag) = tmp->tm_isdst;					\
+									\
+    EMACS_GET_TZ_OFFSET (offset);					\
     EMACS_GET_TZ_NAMES (standard, savings);				\
   } while (0)
-
-#endif /* ! defined (EMACS_GET_TZ_OFFSET_AND_SAVINGS) && defined (EMACS_GET_TZ_NAMES) */
+#endif /* ! defined (EMACS_GET_TZ_OFFSET) && defined (EMACS_GET_TZ_NAMES) */
 
 #endif /* EMACS_CURRENT_TIME_ZONE */

@@ -58,7 +58,7 @@ fi
 
 # Find out which version of Emacs this is.
 version=`grep 'defconst[	 ]*emacs-version' lisp/version.el \
-	 | sed -e 's/^.*"\([0-9]+\.[0-9]+\)\..*$/\1/'`
+	 | sed -e 's/^.*"\([0-9][0-9]*\.[0-9][0-9]*\)\..*$/\1/'`
 if [ ! "${version}" ]; then
   echo "${progname}: can't find current emacs version in \`./lisp/version.el'." >&2
   exit 1

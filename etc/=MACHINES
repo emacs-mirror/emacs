@@ -97,7 +97,7 @@ System V rel 4 (-opsystem=usg5-4)
 
   Most versions of V.4 support sockets.  If `/usr/lib/libsocket.so'
   exists, your system supports them.  If yours does not, you must add
-  #undef HAVE_SOCKETS in config.h, aftern the inclusion of s-usg5-4.h.
+  #undef HAVE_SOCKETS in config.h, after the inclusion of s-usg5-4.h.
   (Any system that supports Internet should implement sockets.)
 
 Ultrix (-opsystem=bsd4-2)
@@ -260,10 +260,14 @@ Cydra 5 (-machine=cydra5; -opsystem=usg5-3)
   18.51 worked in one version of their operating system but stopped
   working in a newer version.  This has not been fixed.
 
-DECstation (-machine=pmax; -opsystem=bsd4-3)
+DECstation (-machine=pmax; -opsystem=bsd4-3 or -opsystem=osf1)
 
-  Works, as of 18.55.  See under Ultrix for problems using X windows
-  on Ultrix.  Note that this is a MIPS machine.
+  OSF1 support merged in 18.59.
+
+  See under Ultrix for problems using X windows on Ultrix.
+  Note that this is a MIPS machine.
+  -opsystem=bsd4-3 is said to work ok with Ultrix 4.1.
+
   For Ultrix versions prior to 4.0, you may need to delete
   the definition of START_FILES from src/m/pmax.h.
 
@@ -570,6 +574,26 @@ Mips (-machine=mips or -machine=mips4; -opsystem=usg5-2-2, -opsystem=bsd4-3)
 
   Use -machine=mips4 for RISCOS version 4; use -opsystem=bsd4-3 with
   the BSD world.
+
+  Note that the proper -machine option for the Decstation is `-machine=pmax'.
+
+  If you are compiling with GCC, then you must run fixincludes;
+  the alternative of using -traditional won't work because
+  the definition of SIGN_EXTEND_CHAR uses the keyword `signed'.
+
+  If the SYSV world is the default, then you probably need the following
+  line in etc/Makefile:
+
+    CFLAGS= -g -systype bsd43
+
+  Some operating systems on MIPS machines give SIGTRAP for division by
+  zero instead of the usual signals.  The only real solution is to fix
+  the system to give a proper signal.
+
+  In the meantime, you can change init_data in data.c if you wish.
+  Change it to handle SIGTRAP as well as SIGFPE.  But this will have a
+  great disadvantage: you will not be able to run Emacs under a
+  debugger.  I think crashing on division by zero is a lesser problem.
 
 Motorola Delta (-machine=delta; -opsystem=usg5-3)
 

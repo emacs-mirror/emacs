@@ -29,13 +29,21 @@ HP 9000 series 200 or 300 (-machine=hp9000s300)
   (a derivative of sysV with some BSD features) or BSD 4.3 ported by Utah.
 
   If you're running HP-UX, specify `-opsystem=hpux'.
-
-  If you're running Utah's BSD port, don't use this -machine option;
-  instead, specify `-machine=hp300bsd' and `-opsystem=bsd4-3'.
+  If you're running BSD, specify `-opsystem=bsd4-3'.
 NOTE-END */
 
-/* Define this symbol if you are running a version of HP-UX
-   which predates version 6.5 */
+/* Do this here at the top of the file; including sys/wait.h may
+   include <endian.h>, which defines BIG_ENDIAN, which will conflict
+   with our definition of BIG_ENDIAN if we do this at the bottom.  */
+#ifndef NOT_C_CODE
+#ifndef NO_SHORTNAMES
+#include <sys/wait.h>
+#define WAITTYPE int
+#endif
+#define WRETCODE(w) (((w) >> 8) & 0377)
+#endif
+
+/* Define NOMULTIPLEJOBS on versions of HPUX before 6.5.  */
 
 /* #define NOMULTIPLEJOBS */
 
@@ -55,8 +63,10 @@ NOTE-END */
 
 /* Define BIG_ENDIAN iff lowest-numbered byte in a word
    is the most significant byte.  */
-
+/* Under BSD, <endian.h> defines this.  */
+#ifndef BIG_ENDIAN
 #define BIG_ENDIAN
+#endif
 
 /* Define NO_ARG_ARRAY if you cannot take the address of the first of a
  * group of arguments and treat it as an array of the arguments.  */
@@ -108,8 +118,11 @@ NOTE-END */
    a very old, brain-dead version of PCC. */
 
 #ifdef BSD4_3
+
 /* Tell crt0.c that this is an ordinary 68020.  */
 #undef hp9000s300
+#define m68000
+
 #define CRT0_DUMMIES		bogus_a6,
 
 #define HAVE_ALLOCA
@@ -167,21 +180,23 @@ NOTE-END */
 #endif
 
 /* Define the BSTRING functions in terms of the sysV functions.
-   Version 6 of HP-UX supplies these in the BSD library. */
+   Version 6 of HP-UX supplies these in the BSD library,
+   but that library has reported bugs in `signal'.  */
 
-#ifdef HPUX_5
+/* #ifdef HPUX_5 */
 #define bcopy(a,b,s)	memcpy (b,a,s)
 #define bzero(a,s)	memset (a,0,s)
 #define bcmp		memcmp
-#endif
+/* #endif */
 
 /* On USG systems these have different names.
-   Version 6 of HP-UX supplies these in the BSD library. */
+   Version 6 of HP-UX supplies these in the BSD library,
+   which we currently want to avoid using.  */
 
-#ifdef HPUX_5
+/* #ifdef HPUX_5 */
 #define index strchr
 #define rindex strrchr
-#endif
+/* #endif */
 
 /* Define C_SWITCH_MACHINE to be +X if you want the s200/300
  * Emacs to run on both 68010 and 68020 based hp-ux's.
@@ -202,18 +217,10 @@ NOTE-END */
 #endif
 #endif
 
-#endif /* not BSD4_3 */
-
 /* Define NEED_BSDTTY if you have such. */
 
 #ifndef NOMULTIPLEJOBS
 #define NEED_BSDTTY
 #endif
 
-#ifndef NOT_C_CODE
-#ifndef NO_SHORTNAMES
-#include <sys/wait.h>
-#define WAITTYPE int
-#endif
-#define WRETCODE(w) (((w) >> 8) & 0377)
-#endif
+#endif /* not BSD4_3 */

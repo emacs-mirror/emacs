@@ -338,13 +338,17 @@ With optional non-nil ALL then force then force redisplay of all mode-lines."
   "Translate character FROM to TO at a low level.
 This function creates a `keyboard-translate-table' if necessary
 and then modifies one entry in it."
-  (or (boundp 'keyboard-translate-table)
-      (let ((table (make-string 256))
-	    (i 0))
-	(while (< i 256)
-	  (aset table i i)
-	  (setq i (1+ i)))
-	(setq keyboard-translate-table table)))
+  (or (arrayp keyboard-translate-table)
+      (setq keyboard-translate-table ""))
+  (if (or (> from (length keyboard-translate-table))
+	  (> to   (length keyboard-translate-table)))
+      (progn
+	(let* ((i (length keyboard-translate-table))
+	       (table (make-string (- 256 i) 0)))
+	  (while (< i 256)
+	    (aset table i i)
+	    (setq i (1+ i)))
+	  (setq keyboard-translate-table table))))
   (aset keyboard-translate-table from to))
 
 

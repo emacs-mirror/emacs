@@ -16,14 +16,19 @@ SHELL = /bin/sh
 INSTALL = install
 INSTALLFLAGS =
 
-# Things that a user might actually run
+# Things that a user might actually run, which should be installed in bindir.
 INSTALLABLES = etags ctags emacsclient b2m 
 
-# Things that Emacs runs internally, or during the build process.
+# Things that Emacs runs internally, or during the build process,
+# which should not be installed in bindir.
 UTILITIES= test-distrib wakeup make-docfile digest-doc sorted-doc \
-	movemail cvtmail fakemail yow env emacsserver hexl timer rcs2log vcdiff
+	movemail cvtmail fakemail yow env emacsserver hexl timer
 
-EXECUTABLES= ${UTILITIES} ${INSTALLABLES}
+# Like UTILITIES, but they're not system-dependent, and should not be
+# deleted by the distclean target.
+SCRIPTS= rcs2log vcdiff
+
+EXECUTABLES= ${UTILITIES} ${INSTALLABLES} ${SCRIPTS}
 
 # These things are edited by ../configure; don't change anything before
 # or including the '='; everything after that gets blown away.
@@ -88,10 +93,10 @@ install.xenix:
 
 
 clean mostlyclean:
-	-rm -f ${EXECUTABLES} core *.o
+	-rm -f ${INSTALLABLES} ${UTILITIES} core *.o
 
 distclean:
-	-rm -f ${EXECUTABLES} *~ \#* ../etc/DOC* core *.o
+	-rm -f ${INSTALLABLES} ${UTILITIES} *~ \#* ../etc/DOC* core *.o
 	cd ../arch-lib; rm -f ${EXECUTABLES}
 
 realclean: distclean

@@ -28,15 +28,18 @@
 # 	config.status is removed.
 #
 
-# Remove any leading "." elements from the path name.  When this
-# script is invoked from the config.status script, a new ./ gets added
-# to the the front of the path, resulting in a "././" prefix.  That
-# prefix is then recorded in the resulting config.status file, so
-# basically each time config.status is used, it prepends another "./"
-# to the filename.  This wouldn't be a problem, except that since
-# progname gets recorded in all the Makefiles this script produces,
+# Remove any leading "." elements from the path name.  If we don't
+# remove them, then another "./" will be prepended to the file name
+# each time we use config.status, and the program name will get larger
+# and larger.  This wouldn't be a problem, except that since progname
+# gets recorded in all the Makefiles this script produces,
 # move-if-changed thinks they're different when they're not.
-progname="`echo $0 | sed 's:^\(\./\)*::'`"
+#
+# It would be nice if we could put the ./ in a \( \) group and then
+# apply the * operator to that, so we remove as many leading ./././'s
+# as are present, but some seds (like Ultrix's sed) don't allow you to
+# apply * to a \( \) group.  Bleah.
+progname="`echo $0 | sed 's:^\./::'`"
 
 short_usage="Type \`${progname} -usage' for more information about options."
 
@@ -421,8 +424,8 @@ echo "Examining the machine- and system-dependent files to find out"
 echo " - which libraries the lib-src programs will want, and"
 echo " - whether the GNU malloc routines are usable."
 tempcname="configure.tmp.$$.c"
-echo '#include "src/'${machfile}'"
-#include "src/'${opsysfile}'"
+echo '#include "src/'${opsysfile}'"
+#include "src/'${machfile}'"
 #ifndef LIBS_MACHINE
 #define LIBS_MACHINE
 #endif
@@ -543,6 +546,7 @@ rm -f src/Makefile.tmp
 # If you are thinking about editing it, you should seriously consider
 # editing \`Makefile.in' itself, or running \`${progname}' instead."
  /bin/sed < src/Makefile.in				\
+ -e '/^# DIST: /d'					\
  -e 's;^\(CC[ ]*=\).*$;\1'"${cc};") > src/Makefile.tmp
 ./move-if-change src/Makefile.tmp src/Makefile
 # Remind people not to edit this.
@@ -555,6 +559,7 @@ rm -f lib-src/Makefile.tmp
 # If you are thinking about editing it, you should seriously consider
 # editing \`Makefile.in' itself, or running \`${progname}' instead."
  /bin/sed < lib-src/Makefile.in				\
+ -e '/^# DIST: /d'					\
  -e 's;^\(CFLAGS=\).*$;\1'"${c_switch_site};"		\
  -e 's;^\(LOADLIBES=\).*$;\1'"${libsrc_libs};"		\
  -e 's;^\(CC=\).*$;\1'"${cc};") > lib-src/Makefile.tmp

@@ -184,7 +184,7 @@ With prefix arg, prompt for diff switches."
 	  (setq buf
 		(compile-internal command
 				  "No more differences" "Diff"
-				  'diff-parse-differences)))
+				  'diff-parse-differences))
 	  (save-excursion
 	    (set-buffer buf)
 	    (set (make-local-variable 'diff-old-file) old)
