@@ -1072,21 +1072,17 @@ selected frame."
   (let* ((name (or (cdr (assq 'name parameters))
 		   (cdr (assq 'name default-frame-alist))))
 	 (x-resource-name name)
-	 (res-geometry (if name (x-get-resource "geometry" "Geometry")))
-	 parsed)
+	 (res-geometry (if name (x-get-resource "geometry" "Geometry"))))
     (if res-geometry
-	(progn
-	  (setq parsed (x-parse-geometry res-geometry))
+	(let ((parsed (x-parse-geometry res-geometry)))
 	  ;; If the resource specifies a position,
 	  ;; call the position and size "user-specified".
 	  (if (or (assq 'top parsed) (assq 'left parsed))
-	      (setq parsed (cons '(user-position . t)
-				 (cons '(user-size . t) parsed))))
+	      (setq parsed (append '((user-position . t) (user-size . t))
+				   parsed)))
 	  ;; Put the geometry parameters at the end.
 	  ;; Copy default-frame-alist so that they go after it.
-	  (setq parameters (append parameters
-				   default-frame-alist
-				   parsed)))))
+	  (setq parameters (append parameters default-frame-alist parsed)))))
   (let (frame)
     (if (null global-face-data)
 	(setq frame (x-create-frame parameters))
