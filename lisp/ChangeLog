@@ -1,3 +1,18 @@
+2003-12-27  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el: Handle non-readable directories.
+	(ido-decorations): Add 9th element for non-readable directory.
+	(ido-directory-nonreadable): New dynamic var.
+	(ido-set-current-directory): Set it.
+	(ido-read-buffer, ido-file-internal):
+	(ido-read-file-name, ido-read-directory-name): Let-bind it.
+	(ido-file-name-all-completions1): Return empty list for
+	non-readable directory.
+	(ido-exhibit): Print [Not readable] if directory is not readable.
+	(ido-expand-directory): New defun (based on tiny fix from Karl Chen).
+	(ido-read-file-name, ido-file-internal, ido-read-directory-name):
+	Use it.
+
 2003-12-27  Lars Hansen  <larsh@math.ku.dk>
 
 	* ls-lisp.el (ls-lisp-insert-directory): Add parameter 'string in
