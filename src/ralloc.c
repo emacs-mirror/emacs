@@ -351,7 +351,10 @@ r_alloc_sbrk (size)
   /* This is the first address not currently available for the heap.  */
   POINTER top;
   /* Amount of empty space below that.  */
-  SIZE already_available;
+  /* It is not correct to use SIZE here, because that is usually unsigned.
+     ptrdiff_t would be okay, but is not always available.
+     `long' will work in all cases, in practice.  */
+  long already_available;
   POINTER ptr;
 
   if (! use_relocatable_buffers)
