@@ -170,9 +170,9 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 	 because we do make multibyte strings if the contents warrant.  */
 #ifdef VMS
       bufp = compile_pattern (match, 0,
-			      buffer_defaults.downcase_table->contents, 0, 1);
+			      buffer_defaults.downcase_table, 0, 1);
 #else
-      bufp = compile_pattern (match, 0, 0, 0, 1);
+      bufp = compile_pattern (match, 0, Qnil, 0, 1);
 #endif
     }
 
