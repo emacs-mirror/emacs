@@ -1090,24 +1090,25 @@ lw_pop_down_all_widgets (id)
 }
 
 void
-lw_popup_menu (widget)
+lw_popup_menu (widget, event)
      Widget widget;
+     XEvent *event;
 {
 #if defined (USE_LUCID)
   if (lw_lucid_widget_p (widget))
-    xlw_popup_menu (widget);
+    xlw_popup_menu (widget, event);
 #endif
 #if defined (USE_MOTIF)
   if (lw_motif_widget_p (widget))
-    xm_popup_menu (widget);
+    xm_popup_menu (widget, event);
 #endif
 #if defined (USE_OLIT)
   if (lw_olit_widget_p (widget))
-    xol_popup_menu (widget);
+    xol_popup_menu (widget, event);
 #endif
 #if defined (USE_XAW)
   if (lw_xaw_widget_p (widget))
-    xaw_popup_menu (widget);
+    xaw_popup_menu (widget, event);
 #endif
 }
 
