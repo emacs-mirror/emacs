@@ -1,3 +1,7 @@
+2003-03-12  Andreas Schwab  <schwab@suse.de>
+
+	* xterm.c (x_term_init) [USE_GTK]: Fix typo.
+
 2003-03-12  Kim F. Storm  <storm@cua.dk>
 
 	The following changes consolidates the fringe handling from
