@@ -1,3 +1,27 @@
+2004-06-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dired.el (dired-diff, dired-backup-diff)
+	(dired-clean-directory, dired-do-chmod, dired-do-chgrp)
+	(dired-do-chown, dired-do-touch, dired-do-print)
+	(dired-do-shell-command, dired-do-kill-lines, dired-do-compress)
+	(dired-do-byte-compile, dired-do-load, dired-do-redisplay)
+	(dired-create-directory, dired-do-copy, dired-do-symlink)
+	(dired-do-hardlink, dired-do-rename, dired-do-rename-regexp)
+	(dired-do-copy-regexp, dired-do-hardlink-regexp)
+	(dired-do-symlink-regexp, dired-upcase, dired-downcase)
+	(dired-maybe-insert-subdir, dired-next-subdir)
+	(dired-prev-subdir, dired-goto-subdir, dired-mark-subdir-files)
+	(dired-kill-subdir, dired-tree-up, dired-tree-down)
+	(dired-hide-subdir, dired-hide-all, dired-show-file-type)
+	(dired-run-shell-command, dired-query): Remove redundant,
+	or incorrect, autoloads.
+
+	* dired-aux.el (dired-kill-tree): Do not kill DIRNAME, even if it
+	does not end in a slash.  Add optional argument KILL-ROOT.  Update
+	docstring.
+	(dired-do-touch, dired-clean-directory, dired-run-shell-command)
+	(dired-query): Add autoloads.
+
 2004-06-08  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/compile.el (compilation-set-window-height): Rearrange
