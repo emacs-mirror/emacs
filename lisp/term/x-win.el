@@ -100,7 +100,7 @@
 		("-ms" .	x-handle-switch)
 		("-itype" .	x-handle-switch)
 		("-i" 	.	x-handle-switch)
-		("-iconic" .	x-handle-switch)
+		("-iconic" .	x-handle-iconic)
 		("-xrm" .       x-handle-xrm-switch)
 		("-cr" .	x-handle-switch)
 		("-vb" .	x-handle-switch)
@@ -125,7 +125,6 @@
     ("-cr" cursor-color)
     ("-itype" icon-type t)
     ("-i" icon-type t)
-    ("-iconic" visibility icon)
     ("-vb" vertical-scroll-bars t)
     ("-hb" horizontal-scroll-bars t)
     ("-bd" border-color)
@@ -144,6 +143,11 @@
 			    (car x-invocation-args))
 		      default-frame-alist)
 		x-invocation-args (cdr x-invocation-args))))))
+
+;; Make -iconic apply only to the initial frame!
+(defun x-handle-iconic (switch)
+  (setq initial-frame-alist
+	(cons '(visibility . icon) initial-frame-alist)))
 
 ;; Handler for switches of the form "-switch n"
 (defun x-handle-numeric-switch (switch)
@@ -492,8 +496,8 @@ This returns ARGS with the arguments that have been processed removed."
 (defvar x-last-selected-text nil)
 
 ;;; It is said that overlarge strings are slow to put into the cut buffer.
-(defvar x-cut-buffer-max (min (- (/ (x-server-max-request-size) 2) 100)
-			      20000)
+;;; Note this value is overridden below.
+(defvar x-cut-buffer-max 20000
   "Max number of characters to put in the cut buffer.")
 
 ;;; Make TEXT, a string, the primary X selection.
@@ -518,9 +522,9 @@ This returns ARGS with the arguments that have been processed removed."
 
     ;; Consult the selection, then the cut buffer.  Treat empty strings
     ;; as if they were unset.
-    (or text (setq text (x-get-selection 'PRIMARY)))
+    (setq text (x-get-selection 'PRIMARY))
     (if (string= text "") (setq text nil))
-    (setq text (x-get-cut-buffer 0))
+    (or text (setq text (x-get-cut-buffer 0)))
     (if (string= text "") (setq text nil))
 
     (cond
@@ -554,6 +558,9 @@ This returns ARGS with the arguments that have been processed removed."
 		   x-command-line-resources)
 
 (setq frame-creation-function 'x-create-frame-with-faces)
+
+(setq x-cut-buffer-max (min (- (/ (x-server-max-request-size) 2) 100)
+			    x-cut-buffer-max))
 
 ;; Apply a geometry resource to the initial frame.  Put it at the end
 ;; of the alist, so that anything specified on the command line takes
