@@ -1837,7 +1837,7 @@ NON-BLOCKING is optional arg requesting an non-blocking connect.
   int ret = 0;
   int xerrno = 0;
   int s = -1, outch, inch;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   int retry = 0;
   int count = specpdl_ptr - specpdl;
   int count1;
@@ -1859,8 +1859,7 @@ NON-BLOCKING is optional arg requesting an non-blocking connect.
 #endif
 
   /* Can only GCPRO 5 variables */
-  sentinel = Fcons (sentinel, filter);
-  GCPRO5 (name, buffer, host, service, sentinel);
+  GCPRO6 (name, buffer, host, service, sentinel, filter);
   CHECK_STRING (name);
   CHECK_STRING (host);
 
@@ -2155,8 +2154,8 @@ NON-BLOCKING is optional arg requesting an non-blocking connect.
   XPROCESS (proc)->childp = Fcons (host, Fcons (service, Qnil));
   XPROCESS (proc)->command_channel_p = Qnil;
   XPROCESS (proc)->buffer = buffer;
-  XPROCESS (proc)->sentinel = XCAR (sentinel);
-  XPROCESS (proc)->filter = XCDR (sentinel);
+  XPROCESS (proc)->sentinel = sentinel;
+  XPROCESS (proc)->filter = filter;
   XPROCESS (proc)->command = Qnil;
   XPROCESS (proc)->pid = Qnil;
   XSETINT (XPROCESS (proc)->infd, inch);
