@@ -320,7 +320,7 @@ mostlyclean:
 
 clean: mostlyclean
 	-rm -f ${INSTALLABLES} ${UTILITIES} ${DONT_INSTALL}
-	-rm -f ../etc/DOC* fns*.el *.tab.c *.tab.h
+	-rm -f fns*.el *.tab.c *.tab.h
 
 distclean: clean
 	-rm -f TAGS
