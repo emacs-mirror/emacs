@@ -1,3 +1,18 @@
+2002-07-23  Ken Raeburn  <raeburn@gnu.org>
+
+	* lisp.h (XPNTR): Use NO_UNION_TYPE version for union as well,
+	since it only depends on XUINT.
+
+	* m/alpha.h (BITS_PER_LONG, BITS_PER_EMACS_INT, EMACS_INT,
+	EMACS_UINT, SPECIAL_EMACS_INT, DATA_SEG_BITS,
+	PNTR_COMPARISON_TYPE, VALBITS, MARKBIT, XINT, XUINT, XPNTR):
+	Macros deleted.
+
+	* mem-limits.h (start_of_data): If DATA_START is defined, prefer
+	its value over other approaches.
+	* sysdep.c (start_of_data): Don't define the function if a macro
+	form has been defined.
+
 2002-07-23  Gerd Moellmann  <gerd.moellmann@t-online.de>
 
 	* xdisp.c (redisplay_updating_p): New variable.
