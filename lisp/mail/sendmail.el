@@ -62,12 +62,27 @@ This file defines aliases to be expanded by the mailer; this is a different
 feature from that of defining aliases in `.mailrc' to be expanded in Emacs.
 This variable has no effect unless your system uses sendmail as its mailer.")
 
+(defvar mail-aliases t
+  "Alias of mail address aliases,
+or t meaning should be initialized from `~/.mailrc'.")
+
 (defvar mail-yank-prefix nil
   "*Prefix insert on lines of yanked message being replied to.
 nil means use indentation.")
 
 (defvar mail-abbrevs-loaded nil)
 (defvar mail-mode-map nil)
+
+(autoload 'build-mail-aliases "mailalias"
+  "Read mail aliases from `~/.mailrc' and set `mail-aliases'."
+  nil)
+
+(autoload 'expand-mail-aliases "mailalias"
+  "Expand all mail aliases in suitable header fields found between BEG and END.
+Suitable header fields are `To', `Cc' and `Bcc' and their `Resent-' variants.
+Optional second arg EXCLUDE may be a regular expression defining text to be
+removed from alias expansions."
+  nil)
 
 ;;;###autoload
 (defvar mail-signature nil
@@ -92,8 +107,12 @@ so you can edit or delete these lines.")
      (modify-syntax-entry ?% ". " mail-mode-syntax-table)))
 
 (defun mail-setup (to subject in-reply-to cc replybuffer actions)
+  (if (eq mail-aliases t)
+      (progn
+	(setq mail-aliases nil)
+	(if (file-exists-p "~/.mailrc")
+	    (build-mail-aliases))))
   (setq mail-send-actions actions)
-  (mail-aliases-setup)
   (setq mail-reply-buffer replybuffer)
   (goto-char (point-min))
   (insert "To: ")
@@ -251,6 +270,8 @@ the user from the mailer."
 	  (replace-match "\n")
 	  (backward-char 1)
 	  (setq delimline (point-marker))
+	  (if mail-aliases
+	      (expand-mail-aliases (point-min) delimline))
 	  (goto-char (point-min))
 	  ;; ignore any blank lines in the header
 	  (while (and (re-search-forward "\n\n\n*" delimline t)
