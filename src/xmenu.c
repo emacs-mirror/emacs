@@ -1025,7 +1025,7 @@ on the left of the dialog box and all following items on the right.\n\
 
     /* Display them in a dialog box.  */
     BLOCK_INPUT;
-    selection = xdialog_show (f, 0, 0, title, &error_name);
+    selection = xdialog_show (f, 0, title, &error_name);
     UNBLOCK_INPUT;
 
     discard_menu_items ();
