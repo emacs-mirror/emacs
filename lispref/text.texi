@@ -57,6 +57,7 @@ the character after point.
 * Registers::        How registers are implemented.  Accessing the text or
                        position stored in a register.
 * Base 64::          Conversion to or from base 64 encoding.
+* MD5 Checksum::     Compute the MD5 ``message digest''/``checksum''.
 * Change Hooks::     Supplying functions to be run when text is changed.
 @end menu
 
@@ -3515,7 +3516,13 @@ all markers unrelocated.
 
   Base 64 code is used in email to encode a sequence of 8-bit bytes as
 a longer sequence of @sc{ascii} graphic characters.  It is defined in
-Internet RFC 2045.  This section describes the functions for
+Internet RFC@footnote{
+An RFC, an acronym for @dfn{Request for Comments}, is a numbered
+Internet informational document describing a standard.  RFCs are
+usually written by technical experts acting on their own initiative,
+and are traditionally written in a pragmatic, experience-driven
+manner.
+}2045.  This section describes the functions for
 converting to and from this code.
 
 @defun base64-encode-region beg end &optional no-line-break
@@ -3562,6 +3569,54 @@ the corresponding decoded text.  It returns a string containing the
 decoded text.
 
 The decoding functions ignore newline characters in the encoded text.
+@end defun
+
+@node MD5 Checksum
+@section MD5 Checksum
+@cindex MD5 checksum
+@cindex message digest computation
+
+  MD5 cryptographic checksums, or @dfn{message digests}, are 128-bit
+``fingerprints'' of a document or program.  They are used to verify
+that you have an exact and unaltered copy of the data.  The algorithm
+to calculate the MD5 message digest is defined in Internet
+RFC@footnote{
+For an explanation of what is an RFC, see the footnote in @ref{Base
+64}.
+}1321.  This section describes the Emacs facilities for computing
+message digests.
+
+@defun md5 object &optional start end coding-system noerror
+This function returns the MD5 message digest of @var{object}, which
+should be a buffer or a string.
+
+The two optional arguments @var{start} and @var{end} are character
+positions specifying the portion of @var{object} to compute the
+message digest for.  If they are @code{nil} or omitted, the digest is
+computed for the whole of @var{object}.
+
+The function @code{md5} does not compute the message digest directly
+from the internal Emacs representation of the text (@pxref{Text
+Representations}).  Instead, it encodes the text using a coding
+system, and computes the message digest from the encoded text.  The
+optional fourth argument @var{coding-system} specifies which coding
+system to use for encoding the text.  It should be the same coding
+system that you used to read the text, or that you used or will use
+when saving or sending the text.  @xref{Coding Systems}, for more
+information about coding systems.
+
+If @var{coding-system} is @code{nil} or omitted, the default depends
+on @var{object}.  If @var{object} is a buffer, the default for
+@var{coding-system} is whatever coding system would be chosen by
+default for writing this text into a file.  If @var{object} is a
+string, the user's most preferred coding system (@pxref{Recognize
+Coding, prefer-coding-system, the description of
+@code{prefer-coding-system}, emacs, GNU Emacs Manual}) is used.
+
+Normally, @code{md5} signals an error if the text can't be encoded
+using the specified or chosen coding system.  However, if
+@var{noerror} is non-@code{nil}, it silently uses @code{raw-text}
+coding instead.
 @end defun
 
 @node Change Hooks
