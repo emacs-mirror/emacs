@@ -89,6 +89,8 @@ to be called to find this reference.")
 The value specifies how to go back.  It should be suitable for use
 as the second argument to \\(f@docref-insert-label).
 \\(f@docref-subst) uses this to set up the go-back reference.")
+
+(defvar docref-last-active-buffer)
 
 ;;;###autoload
 (defun docref-setup ()
