@@ -1,3 +1,20 @@
+2004-10-24 Masatake YAMATO <jet@gyve.org>
+
+	* progmodes/asm-mode.el: Use font-lock-variable-name-face for
+	registers.
+
+2004-10-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-get-create-buffer): Allow modes to run
+	kill-all-local-variables.
+	(gdb-breakpoints-mode, gdb-frames-mode, gdb-threads-mode)
+	(gdb-registers-mode, gdb-locals-mode, gdb-assembler-mode): Use
+	kill-all-local-variables and provide mode-hooks.
+	(gdb-assembler-font-lock-keywords): New font lock keywords
+	definition.
+	(gdb-assembler-mode): Use 'gdb-assembler-font-lock-keywords'.
+	Suggested by Masatake YAMATO <jet@gyve.org>.
+
 2004-10-23  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
 	* simple.el (process-file): New function, similar to call-process
