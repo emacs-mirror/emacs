@@ -116,22 +116,13 @@ sigset_t sys_sigsetmask (/*sigset_t new_mask*/);
 { SIGMASKTYPE omask = sigblock (SIGFULLMASK); sigsetmask (omask & ~SIG); }
 #endif
 
-/* It would be very nice if we could somehow clean up all this trash.  */
-
 #ifndef BSD4_1
 #define sigfree() sigsetmask (SIGEMPTYMASK)
-#define sigholdx(sig) sigsetmask (sigmask (sig))
-#define sigblockx(sig) sigblock (sigmask (sig))
-#define sigunblockx(sig) sigunblock (sigmask (sig))
-#define sigpausex(sig) sigpause (0)
 #endif /* not BSD4_1 */
 
 #ifdef BSD4_1
 #define SIGIO SIGTINT
-/* sigfree and sigholdx are in sysdep.c */
-#define sigblockx(sig) sighold (sig)
-#define sigunblockx(sig) sigrelse (sig)
-#define sigpausex(sig) sigpause (sig)
+/* sigfree is in sysdep.c */
 #endif /* BSD4_1 */
 
 /* On bsd, [man says] kill does not accept a negative number to kill a pgrp.
