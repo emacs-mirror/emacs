@@ -1,5 +1,5 @@
 #! /usr/bin/perl
-# $Id: grep-changelog,v 1.5 2001/07/20 10:02:06 gerd Exp $
+# $Id: grep-changelog,v 1.6 2001/07/20 10:04:17 gerd Exp $
 
 # Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 #
@@ -27,19 +27,23 @@
 # author lines leading spaces, and file names are removed.
 
 require 5;
+use strict;
 
 # Parse command line options.
 
+use vars qw($author $regexp $exclude $from_date $to_date
+            $rcs_log $with_date $version $help);
+
 use Getopt::Long;
-$result = GetOptions ("author=s" => \$author,
-		      "text=s"  => \$regexp,
-		      "exclude=s"  => \$exclude,
-		      "from-date=s" => \$from_date,
-		      "to-date=s" => \$to_date,
-		      "rcs-log" => \$rcs_log,
-		      "with-date" => \$with_date,
-		      "version" => \$version,
-		      "help"    => \$help);
+my $result = GetOptions ("author=s" => \$author,
+                         "text=s"  => \$regexp,
+                         "exclude=s"  => \$exclude,
+                         "from-date=s" => \$from_date,
+                         "to-date=s" => \$to_date,
+                         "rcs-log" => \$rcs_log,
+                         "with-date" => \$with_date,
+                         "version" => \$version,
+                         "help"    => \$help);
 
 # If date options are specified, check that they have the format
 # YYYY-MM-DD.
@@ -161,13 +165,14 @@ sub print_log ($$) {
 
 sub parse_changelog ($) {
     my $log = shift;
-    my $entry;
+    my $entry = undef;
+    my $header = undef;
     my $match;
 
     # Open the ChangeLog.
     open (IN, "< $log") || die "Cannot open $log: $!";
 
-    while ($line = <IN>) {
+    while (defined(my $line = <IN>)) {
 	if ($line =~ /^\S/) {
 	    # Line is an author-line.  Print previous entry if
 	    # it matches.
@@ -209,14 +214,14 @@ sub parse_changelog ($) {
 
 if (@ARGV > 0) {
     # If files were specified on the command line, parse those files.
-    while ($log = shift @ARGV) {
+    while (defined(my $log = shift @ARGV)) {
 	parse_changelog ($log);
     }
 } else {
     # Parse default files ChangeLog and ChangeLog.9...ChangeLog.1 in
     # that order.
     parse_changelog ("ChangeLog");
-    for ($i = 9; $i >= 1; --$i) {
+    for (my $i = 9; $i >= 1; --$i) {
 	my $log = "ChangeLog.$i";
 	parse_changelog ($log) if -f $log;
     }
