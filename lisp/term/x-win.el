@@ -1172,9 +1172,11 @@ as returned by (x-server-vendor)."
 (defvar x-cut-buffer-max 20000
   "Max number of characters to put in the cut buffer.")
 
-(defvar x-select-enable-clipboard nil
+(defcustom x-select-enable-clipboard nil
   "Non-nil means cutting and pasting uses the clipboard.
-This is in addition to the primary selection.")
+This is in addition to, but in preference to, the primary selection."
+  :type 'boolean
+  :group 'killing)
 
 ;;; Make TEXT, a string, the primary X selection.
 ;;; Also, set the value of X cut buffer 0, for backward compatibility
