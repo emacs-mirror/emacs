@@ -4446,7 +4446,7 @@ running as USER on HOST using METHOD."
 
 (defun tramp-send-eof (multi-method method user host)
   "Send EOF to the remote end.
-METHOD, HOST and USER specify the the connection."
+METHOD, HOST and USER specify the connection."
   (let ((proc (get-buffer-process
                (tramp-get-buffer multi-method method user host))))
     (unless proc
@@ -4456,7 +4456,7 @@ METHOD, HOST and USER specify the the connection."
 
 (defun tramp-kill-process (multi-method method user host)
   "Kill the connection process used by Tramp.
-MULTI-METHOD, METHOD, USER, and HOST, specify the connection."
+MULTI-METHOD, METHOD, USER, and HOST specify the connection."
   (let ((proc (get-buffer-process
 	       (tramp-get-buffer multi-method method user host))))
     (kill-process proc)))
