@@ -137,8 +137,8 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
        "\\([A-Za-z0-9_-]+[ \t]*[[]?[]]?\\)"
        "\\([ \t]\\)"
        "\\([A-Za-z0-9_-]+\\)"		      ; the string we want to get
-       "\\([ \t]*\\)+("
-       "\\([a-zA-Z,_1-9\n \t]*[[]?[]]?\\)*"   ; arguments
+       "\\([ \t]*\\)("
+       "\\([][a-zA-Z,_1-9\n \t]*\\)"   ; arguments
        ")[ \t]*"
 ;       "[^;(]"
        "[,a-zA-Z_1-9\n \t]*{"               
