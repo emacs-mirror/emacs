@@ -305,8 +305,8 @@
 
 (set-coding-priority
  '(coding-category-iso-7
-   coding-category-iso-8-2
    coding-category-iso-8-1
+   coding-category-iso-8-2
    coding-category-iso-else
    coding-category-sjis 
    coding-category-big5
