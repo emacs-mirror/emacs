@@ -1726,6 +1726,9 @@ x_set_menu_bar_lines (f, value, oldval)
   else
     nlines = 0;
 
+  /* Make sure we redisplay all windows in this frame.  */
+  windows_or_buffers_changed++;
+
 #ifdef USE_X_TOOLKIT
   FRAME_MENU_BAR_LINES (f) = 0;
   if (nlines)
