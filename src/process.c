@@ -1795,7 +1795,10 @@ Return non-nil iff we received any output before the timeout expired.")
    function Fwaiting_for_user_input_p below) whether emacs was waiting
    for user-input when that process-filter was called.
    waiting_for_input cannot be used as that is by definition 0 when
-   lisp code is being evalled */
+   lisp code is being evalled.
+   This is also used in record_asynch_buffer_change.
+   For that purpose, this must be 0
+   when not inside wait_reading_process_input.  */
 static int waiting_for_user_input_p;
 
 /* Read and dispose of subprocess output while waiting for timeout to
@@ -2158,6 +2161,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	    }
 	}			/* end for each file descriptor */
     }				/* end while exit conditions not met */
+
+  waiting_for_user_input_p = 0;
 
   /* If calling from keyboard input, do not quit
      since we want to return C-g as an input character.
