@@ -35,6 +35,7 @@ struct _popserver
   char *buffer;
   int buffer_size, buffer_index;
   int in_multi;
+  int trash_started;
 };
 
 typedef struct _popserver *popserver;
