@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1995/03/23 02:25:55 $|$Revision: 1.86 $
+;; |$Date: 1995/04/07 01:23:30 $|$Revision: 1.87 $
 
 ;; This file is part of GNU Emacs.
 
@@ -137,9 +137,6 @@ string, and RET terminates editing and does a nonincremental search.")
   "*If non-nil, regular expression to match a sequence of whitespace chars.
 You might want to use something like \"[ \\t\\r\\n]+\" instead.")
 
-;; I removed the * from the doc string because highlighting is not 
-;; currently a clean thing to do.  Once highlighting is made clean, 
-;; this feature can be re-enabled and advertised.
 (defvar search-highlight nil
   "*Non-nil means incremental search highlights the current match.")
 
