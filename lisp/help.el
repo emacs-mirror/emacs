@@ -938,7 +938,7 @@ The words preceding the quoted symbol can be used in doc strings to
 distinguish references to variables, functions and symbols.")
 
 (defvar help-xref-info-regexp
-  "\\<info\\s-+node\\s-`\\([^']+\\)'"
+  "\\<[Ii]nfo[ \t\n]+node[ \t\n]+`\\([^']+\\)'"
   "Regexp matching doc string references to an Info node.")
 
 (defun help-setup-xref (item interactive-p)
@@ -980,6 +980,14 @@ that."
         ;; The following should probably be abstracted out.
         (unwind-protect
             (progn
+              ;; Info references
+              (save-excursion
+                (while (re-search-forward help-xref-info-regexp nil t)
+                  (let ((data (match-string 1)))
+		    (save-match-data
+		      (unless (string-match "^([^)]+)" data)
+			(setq data (concat "(emacs)" data))))
+		    (help-xref-button 1 #'info data))))
               ;; Quoted symbols
               (save-excursion
                 (while (re-search-forward help-xref-symbol-regexp nil t)
@@ -1003,14 +1011,6 @@ that."
                           (help-xref-button 6 #'describe-variable sym))
                          ((fboundp sym)
                           (help-xref-button 6 #'describe-function sym)))))))
-              ;; Info references
-              (save-excursion
-                (while (re-search-forward help-xref-info-regexp nil t)
-                  (let ((data (match-string 1)))
-		    (save-match-data
-		      (unless (string-match "^([^)]+)" data)
-			(setq data (concat "(emacs)" data))))
-		    (help-xref-button 1 #'info data))))
               ;; An obvious case of a key substitution:
               (save-excursion              
                 (while (re-search-forward
