@@ -542,6 +542,8 @@ reads the sentence before point, and prints the Doctor's answer."
   (setq eliza-flag nil)
   (make-local-variable 'zippy-flag)
   (setq zippy-flag nil)
+  (make-local-variable 'suicide-flag)
+  (setq suicide-flag nil)
   (make-local-variable 'lover)
   (setq lover '(your partner))
   (make-local-variable 'bak)
@@ -717,6 +719,7 @@ reads the sentence before point, and prints the Doctor's answer."
 (doctor-put-meaning suicides 'death)
 (doctor-put-meaning kill 'death)
 (doctor-put-meaning kills 'death)
+(doctor-put-meaning killing 'death)
 (doctor-put-meaning die 'death)
 (doctor-put-meaning dies 'death)
 (doctor-put-meaning died 'death)
@@ -1574,7 +1577,19 @@ Hack on previous word, setting global variable OWNER to correct result."
       (doctor-foul)
     (doctor-type ($ sexlst))))
 
-(defun doctor-death () (doctor-type ($ deathlst)))
+(defun doctor-death ()
+  (cond (suicide-flag (doctor-type ($ deathlst)))
+	((or (equal found 'suicide)
+             (and (or (equal found 'kill)
+                      (equal found 'killing))
+                  (memq 'yourself sent)))
+	 (setq suicide-flag t)
+	 (doctor-type '(If you are really suicidal, you might
+			   want to contact the Samaritans via
+			   E-mail: jo@samaritans.org or, at your option,
+			   anonymous E-mail: samaritans@anon.penet.fi\ \.
+			   ($ please) ($ continue) \.)))
+	(t (doctor-type ($ deathlst)))))
 
 (defun doctor-foul ()
   (doctor-type ($ foullst)))
