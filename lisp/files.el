@@ -1058,11 +1058,10 @@ run `normal-mode' explicitly."
     ("\\.for\\'" . fortran-mode)
     ("\\.p\\'" . pascal-mode)
     ("\\.pas\\'" . pascal-mode)
-    ("\\.mss\\'" . scribe-mode)
     ("\\.ad[abs]\\'" . ada-mode)
-    ("\\.icn\\'" . icon-mode)
     ("\\.pl\\'" . perl-mode)
     ("\\.pm\\'" . perl-mode)
+    ("\\.s?html?\\'" . html-mode)
     ("\\.cc\\'" . c++-mode)
     ("\\.hh\\'" . c++-mode)
     ("\\.hpp\\'" . c++-mode)
@@ -1075,7 +1074,6 @@ run `normal-mode' explicitly."
     ("\\.h\\+\\+\\'" . c++-mode)
     ("\\.m\\'" . objc-mode)
     ("\\.java\\'" . java-mode)
-    ("\\.sim\\'" . simula-mode)
     ("\\.mk\\'" . makefile-mode)
     ("\\(M\\|m\\|GNUm\\)akefile\\(.in\\)?\\'" . makefile-mode)
 ;;; Less common extensions come here
@@ -1113,6 +1111,9 @@ run `normal-mode' explicitly."
     ("\\.exp\\'" . tcl-mode)
     ("\\.itcl\\'" . tcl-mode)
     ("\\.itk\\'" . tcl-mode)
+    ("\\.icn\\'" . icon-mode)
+    ("\\.sim\\'" . simula-mode)
+    ("\\.mss\\'" . scribe-mode)
     ("\\.f90\\'" . f90-mode)
     ("\\.lsp\\'" . lisp-mode)
     ("\\.awk\\'" . awk-mode)
@@ -1133,7 +1134,6 @@ run `normal-mode' explicitly."
     ("\\.sgml?\\'" . sgml-mode)
     ("\\.dtd\\'" . sgml-mode)
     ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
-    ("\\.s?html?\\'" . html-mode)
     ;; .emacs following a directory delimiter
     ;; in either Unix or VMS syntax.
     ("[]>:/]\\..*emacs\\'" . emacs-lisp-mode)
