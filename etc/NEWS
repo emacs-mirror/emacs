@@ -2071,6 +2071,12 @@ number of corresponding line in current buffer.
 variable `sentence-end-without-space' which contains such characters
 that end a sentence without following spaces.
 
+** The function `sentence-end' should be used to obtain the value of
+the variable `sentence-end'.  If the variable `sentence-end' is nil,
+then this function returns the regexp constructed from the variables
+`sentence-end-without-period', `sentence-end-double-space' and
+`sentence-end-without-space'.
+
 +++
 ** The flags, width, and precision options for %-specifications in function
 `format' are now documented.  Some flags that were accepted but not
