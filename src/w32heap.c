@@ -128,8 +128,6 @@ sbrk (unsigned long increment)
       size = -size;
 
       /* Sanity checks.  */
-      if (size % get_page_size () != 0)
-	return NULL;
       if ((data_region_end - size) < data_region_base)
 	return NULL;
 
