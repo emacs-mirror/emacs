@@ -341,7 +341,7 @@ extern Lisp_Object minibuf_window;
 /* Non-nil means it is the window whose mode line should be
    shown as the selected window when the minibuffer is selected.  */
 
-extern Lisp_Object Vminibuf_selected_window;
+extern Lisp_Object minibuf_selected_window;
 
 /* Non-nil => window to for C-M-v to scroll when the minibuffer is
    selected.  */

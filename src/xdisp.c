@@ -1582,8 +1582,8 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
 	  /* Or show the region if we are in the mini-buffer and W is
 	     the window the mini-buffer refers to.  */
 	  || (MINI_WINDOW_P (XWINDOW (selected_window))
-	      && WINDOWP (Vminibuf_selected_window)
-	      && w == XWINDOW (Vminibuf_selected_window))))
+	      && WINDOWP (minibuf_selected_window)
+	      && w == XWINDOW (minibuf_selected_window))))
     {
       int charpos = marker_position (current_buffer->mark);
       it->region_beg_charpos = min (PT, charpos);

@@ -931,15 +931,15 @@ extern struct glyph_row scratch_glyph_row;
    selected_window, this macro needs three arguments: SELW which is
    compared against the current value of selected_window, MBW which is
    compared against minibuf_window (if SELW doesn't match), and SCRW
-   which is compared against Vminibuf_selected_window (if MBW matches).  */
+   which is compared against minibuf_selected_window (if MBW matches).  */
 
 #define CURRENT_MODE_LINE_FACE_ID_3(SELW, MBW, SCRW)		\
      ((!mode_line_in_non_selected_windows			\
        || (SELW) == XWINDOW (selected_window)			\
        || (minibuf_level > 0					\
-           && !NILP (Vminibuf_selected_window)			\
+           && !NILP (minibuf_selected_window)			\
            && (MBW) == XWINDOW (minibuf_window)			\
-           && (SCRW) == XWINDOW (Vminibuf_selected_window)))	\
+           && (SCRW) == XWINDOW (minibuf_selected_window)))	\
       ? MODE_LINE_FACE_ID					\
       : MODE_LINE_INACTIVE_FACE_ID)
 
