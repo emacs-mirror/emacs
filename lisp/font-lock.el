@@ -339,8 +339,8 @@ If a number, only buffers greater than this size have fontification messages."
 (defvar font-lock-warning-face		'font-lock-warning-face
   "Face name to use for things that should stand out.")
 
-(defvar font-lock-reference-face	'font-lock-constant-face
-  "This variable is obsolete.  Use `font-lock-constant-face'.")
+(defvar font-lock-reference-face	'font-lock-constant-face)
+(make-obsolete-variable 'font-lock-reference-face 'font-lock-constant-face)
 
 ;; Fontification variables:
 
