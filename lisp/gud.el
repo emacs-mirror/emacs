@@ -85,42 +85,44 @@ If SOFT is non-nil, returns nil if the symbol doesn't already exist."
   (let ((sym (gud-symbol sym t minor-mode)))
     (if (boundp sym) (symbol-value sym))))
 
-(defun gud-find-file (file)
-  ;; Don't get confused by double slashes in the name that comes from GDB.
-  (while (string-match "//+" file)
-    (setq file (replace-match "/" t t file)))
-  (let ((minor-mode gud-minor-mode)
-	(buf (funcall gud-find-file file)))
-    (when buf
-      ;; Copy `gud-minor-mode' to the found buffer to turn on the menu.
-      (with-current-buffer buf
-	(set (make-local-variable 'gud-minor-mode) minor-mode)
-	(set (make-local-variable 'tool-bar-map) gud-tool-bar-map))
-      buf)))
+(defvar gdb-running nil "Used by gdba only. Non-nil if debuggee is running
+so that the relevant toolbar icons are greyed out.")
 
 (easy-mmode-defmap gud-menu-map
   '(([refresh]	"Refresh" . gud-refresh)
     ([run]	menu-item "Run" gud-run
-			:enable (memq gud-minor-mode '(gdba gdb)))
+                     :enable (and (not gdb-running)
+				  (memq gud-minor-mode '(gdba gdb))))
     ([goto]	menu-item "Continue to selection" gud-goto
-			:enable (memq gud-minor-mode '(gdba gdb)))
-    ([remove]	"Remove Breakpoint" . gud-remove)
+                     :enable (and (not gdb-running)
+				  (memq gud-minor-mode '(gdba gdb))))
+    ([remove]	menu-item "Remove Breakpoint" gud-remove
+                     :enable (not gdb-running))
     ([tbreak]	menu-item "Temporary Breakpoint" gud-tbreak
-			:enable (memq gud-minor-mode '(gdba gdb sdb xdb)))
-    ([break]	"Set Breakpoint" . gud-break)
+		     :enable (memq gud-minor-mode '(gdba gdb sdb xdb)))
+    ([break]	menu-item "Set Breakpoint" gud-break
+                     :enable (not gdb-running))
     ([up]	menu-item "Up Stack" gud-up
-			:enable (memq gud-minor-mode '(gdba gdb dbx xdb jdb)))
+		     :enable (and (not gdb-running)
+				  (memq gud-minor-mode '(gdba gdb dbx xdb jdb))))
     ([down]	menu-item "Down Stack" gud-down
-			:enable (memq gud-minor-mode '(gdba gdb dbx xdb jdb)))
-    ([print]	"Print Expression" . gud-print)
+		     :enable (and (not gdb-running)
+		     (memq gud-minor-mode '(gdba gdb dbx xdb jdb))))
+    ([print]	menu-item "Print Expression" gud-print
+                     :enable (not gdb-running))
     ([display]	menu-item "Display Expression" gud-display
-			:enable (eq gud-minor-mode 'gdba))
+		     :enable (and (not gdb-running)
+				  (eq gud-minor-mode 'gdba)))
     ([finish]	menu-item "Finish Function" gud-finish
-			:enable (memq gud-minor-mode '(gdba gdb xdb jdb)))
+			:enable  (and (not gdb-running)
+			(memq gud-minor-mode '(gdba gdb xdb jdb))))
     ([stepi]	"Step Instruction" . gud-stepi)
-    ([step]	"Step Line" . gud-step)
-    ([next]	"Next Line" . gud-next)
-    ([cont]	"Continue" . gud-cont))
+    ([step]	menu-item "Step Line" gud-step
+                     :enable (not gdb-running))
+    ([next]	menu-item "Next Line" gud-next
+                     :enable (not gdb-running))
+    ([cont]	menu-item "Continue" gud-cont
+                     :enable (not gdb-running)))
   "Menu for `gud-mode'."
   :name "Gud")
 
@@ -136,6 +138,37 @@ If SOFT is non-nil, returns nil if the symbol doesn't already exist."
   ;; Will inherit from comint-mode via define-derived-mode.
   (make-sparse-keymap)
   "`gud-mode' keymap.")
+
+(defvar gud-tool-bar-map
+  (if (display-graphic-p)
+      (let ((tool-bar-map (make-sparse-keymap)))
+        (tool-bar-add-item-from-menu 'gud-break "gud-break" gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-remove "gud-remove" gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-print "gud-print" gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-display "gud-display" 
+				     gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-run "gud-run" gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-goto "gud-goto" gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-cont "gud-cont" gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-step "gud-step" gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-next "gud-next" gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-finish "gud-finish" gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-up "gud-up" gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-down "gud-down" gud-minor-mode-map)
+        tool-bar-map)))
+
+(defun gud-find-file (file)
+  ;; Don't get confused by double slashes in the name that comes from GDB.
+  (while (string-match "//+" file)
+    (setq file (replace-match "/" t t file)))
+  (let ((minor-mode gud-minor-mode)
+	(buf (funcall gud-find-file file)))
+    (when buf
+      ;; Copy `gud-minor-mode' to the found buffer to turn on the menu.
+      (with-current-buffer buf
+	(set (make-local-variable 'gud-minor-mode) minor-mode)
+	(set (make-local-variable 'tool-bar-map) gud-tool-bar-map))
+      buf)))
 
 ;; ======================================================================
 ;; command definition
@@ -2732,23 +2765,6 @@ pathname standards using file-truename."
 	  (car class-found)
 	(message "gud-find-class: class for file %s not found in gud-jdb-class-source-alist!" f)
 	nil))))
-
-(defvar gud-tool-bar-map
-  (if (display-graphic-p)
-      (let ((tool-bar-map (make-sparse-keymap)))
-        (tool-bar-add-item-from-menu 'gud-break "gud-break" gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-remove "gud-remove" gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-print "gud-print" gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-display "gud-display" gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-run "gud-run" gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-goto "gud-goto" gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-cont "gud-cont" gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-step "gud-step" gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-next "gud-next" gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-finish "gud-finish" gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-up "gud-up" gud-minor-mode-map)
-        (tool-bar-add-item-from-menu 'gud-down "gud-down" gud-minor-mode-map)
-        tool-bar-map)))
 
 (provide 'gud)
 
