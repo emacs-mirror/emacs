@@ -259,6 +259,7 @@ as shown above for the @code{goal-column} variable, means that it is a
 user option; see the description of @code{defvar} in @ref{Defining
 Variables}.
 
+@anchor{Definition of Snarf-documentation}
 @defun Snarf-documentation filename
 This function is used only during Emacs initialization, just before
 the runnable Emacs is dumped.  It finds the file offsets of the
