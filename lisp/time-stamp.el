@@ -40,7 +40,7 @@
 ;; Originally based on the 19 Dec 88 version of
 ;;   date.el by John Sturdy <mcvax!harlqn.co.uk!jcgs@uunet.uu.net>
 ;; Version 2, January 1995: replaced functions with %-escapes
-;; $Id: time-stamp.el,v 1.5 1996/08/13 18:03:17 gildea Exp $
+;; $Id: time-stamp.el,v 1.19 1996/09/22 22:20:58 kwzh Exp rms $
 
 ;;; Code:
 
@@ -462,6 +462,14 @@ around literals."
 		  (cdr (assoc (substring date 4 7) time-stamp-month-numbers)))
 	    (string-to-int (substring date 8 10))
 	    (substring date -4))))
+
+(defun time-stamp-dd/mm/yyyy ()
+  "Return the current date as a string in \"DD/MM/YYYY\" form."
+  (let ((date (current-time-string)))
+    (format "%02d/%02d/%s"
+            (string-to-int (substring date 8 10)) 
+            (cdr (assoc (substring date 4 7) time-stamp-month-numbers))
+            (substring date -4) )))
 
 ;;; same as __DATE__ in ANSI C
 
