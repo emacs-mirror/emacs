@@ -1506,12 +1506,14 @@ extern void defvar_kboard P_ ((char *, int));
       form.
 
    Otherwise, the element is a variable binding.
+   
    If the symbol field is a symbol, it is an ordinary variable binding.
-   Otherwise, it should be a structure (SYMBOL BUFFER . BUFFER),
-   which represents having bound BUFFER's local value,
-   or (SYMBOL nil . BUFFER), which represents having bound the default
-   value when BUFFER was current (buffer not having any local binding
-   for SYMBOL).  */
+   
+   Otherwise, it should be a structure (SYMBOL . WHERE), which means
+   having bound a local value.  If WHERE is nil this means we saw the
+   default value when binding SYMBOL.  WHERE being a buffer or frame
+   means we saw a buffer-local or frame-local value.  Other values
+   of WHERE mean an internal error.  */
 
 struct specbinding
   {
