@@ -395,12 +395,10 @@ This is the input method activated automatically by the command
 `toggle-input-method' (\\[toggle-input-method])."
   :group 'mule)
 
-(defvar previous-input-method nil
-  "Input method selected previously in the current buffer.
-This is the one selected before the current input method is selected.
-See also the documentation of `default-input-method'.")
-(make-variable-buffer-local 'previous-input-method)
-(put 'previous-input-method 'permanent-local t)
+(defvar input-method-history nil
+  "History list for some commands that read input methods.")
+(make-variable-buffer-local 'input-method-history)
+(put 'input-method-history 'permanent-local t)
 
 (defvar inactivate-current-input-method-function nil
   "Function to call for inactivating the current input method.
@@ -446,6 +444,9 @@ If INHIBIT-NULL is non-nil, null input signals an error."
   (if default
       (setq prompt (format prompt default)))
   (let* ((completion-ignore-case t)
+	 ;; This binding is necessary because input-method-history is
+	 ;; buffer local.
+	 (minibuffer-history input-method-history)
 	 (input-method (completing-read prompt input-method-alist
 					nil t nil nil default)))
     (if (> (length input-method) 0)
@@ -453,65 +454,74 @@ If INHIBIT-NULL is non-nil, null input signals an error."
       (if inhibit-null
 	  (error "No valid input method is specified")))))
 
-;; Actvate INPUT-METHOD.
+;; Activate INPUT-METHOD.
 (defun activate-input-method (input-method)
-  (when (and current-input-method
-	     (not (string= current-input-method input-method)))
-    (setq previous-input-method current-input-method)
+  (if (and current-input-method
+	   (not (string= current-input-method input-method)))
     (inactivate-input-method))
   (unless current-input-method
     (let ((slot (assoc input-method input-method-alist)))
       (if (null slot)
-	  (error "Invalid input method `%s'" input-method))
+	  (error "Can't activate input method `%s'" input-method))
       (apply (nth 2 slot) input-method (nthcdr 5 slot))
       (setq current-input-method input-method)
-      (setq current-input-method-title (nth 3 slot)))))
+      (setq current-input-method-title (nth 3 slot))
+      (run-hooks 'input-method-activate-hook))))
 
 ;; Inactivate the current input method.
 (defun inactivate-input-method ()
-  (if current-input-method
+  (when current-input-method
+    (if input-method-history
+	(unless (string= current-input-method (car input-method-history))
+	  (setq input-method-history
+		(cons current-input-method
+		      (delete current-input-method input-method-history))))
+      (setq input-method-history (list current-input-method)))
+    (unwind-protect
+	(funcall inactivate-current-input-method-function)
       (unwind-protect
-	  (funcall inactivate-current-input-method-function)
-	(setq current-input-method nil))))
+	  (run-hooks 'input-method-inactivate-hook)
+	(setq current-input-method nil
+	      current-input-method-title nil)))))
 
 (defun select-input-method (input-method)
-  "Select and activate INPUT-METHOD.
-This sets both the default and local values of `default-input-method'
-to the input method you specify.
-See also the function `register-input-method'."
+  "Select and turn on INPUT-METHOD.
+This sets the default input method to what you specify,
+and turn it on for the current buffer."
   (interactive
-   (let* ((default (or previous-input-method default-input-method)))
+   (let* ((default (or (car input-method-history) default-input-method)))
      (if (not enable-multibyte-characters)
 	 (error "Can't activate an input method while multibyte characters are disabled"))
      (list (read-input-method-name
-	    (if default
-		(format "Input method (default %s): " default)
-	      "Input method: ")
+	    (if default "Input method (default %s): " "Input method: ")
 	    default t))))
   (activate-input-method input-method)
   (setq default-input-method input-method))
 
 (defun toggle-input-method (&optional arg)
   "Turn on or off a multilingual text input method for the current buffer.
+
 With arg, read an input method from minibuffer and turn it on.
+
 Without arg, if some input method is currently activated, turn it off,
-else turn on the default input method (see `default-input-method').
-In the latter case, if default-input-method is nil, select an input method
-interactively."
+else turn on an input method selected last time
+or the default input method (see `default-input-method').
+
+When there's no input method to turn on, turn on what read from minibuffer."
   (interactive "P")
-  (let* ((default (or previous-input-method default-input-method)))
+  (let* ((default (or (car input-method-history) default-input-method)))
     (if (and current-input-method (not arg))
 	(inactivate-input-method)
       (if (not enable-multibyte-characters)
 	  (error "Can't activate any input method while multibyte characters are disabled"))
-      (if (or arg (not default-input-method))
-	  (setq default-input-method
-		(read-input-method-name
-		 (if default
-		     (format "Input method (default %s): " default)
-		   "Input method: ")
-		 default t)))
-      (activate-input-method default-input-method))))
+      (activate-input-method
+       (if (or arg (not default))
+	   (read-input-method-name
+	    (if default "Input method (default %s): " "Input method: " )
+	    default t)  
+	 default))
+      (or default-input-method
+	  (setq default-input-method current-input-method)))))
 
 (defun describe-input-method (input-method)
   "Describe the current input method."
@@ -548,11 +558,9 @@ to be activated instead of the one selected last time."
 	(or input-method
 	    default-input-method
 	    (read-input-method-name "Input method: " nil t)))
-  (save-excursion
-    (set-buffer (window-buffer (minibuffer-window)))
-    (let ((default-input-method input-method)
-	  (minibuffer-setup-hook '(toggle-input-method)))
-      (read-string prompt initial-input))))
+  (let ((minibuffer-setup-hook
+	 (function (lambda () (activate-input-method input-method)))))
+    (read-string prompt initial-input)))
 
 ;; Variables to control behavior of input methods.  All input methods
 ;; should react to these variables.
@@ -581,6 +589,14 @@ The underlining goes away when you finish or abort the input method sequence."
 
 (defvar input-method-after-insert-chunk-hook nil
   "Normal hook run just after an input method insert some chunk of text.")
+
+(defvar input-method-exit-on-invalid-key nil
+  "This flag controls the behaviour of an input method on invalid key input.
+Usually, when a user types a key which doesn't start any character
+handled by the input method, the key is handled by turning off the
+input method temporalily.  After the key is handled, the input method is 
+back on.
+But, if this flag is non-nil, the input method is never back on.")
 
 
 (defun setup-specified-language-environment ()
