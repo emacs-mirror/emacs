@@ -29,6 +29,7 @@ Boston, MA 02111-1307, USA.  */
 #include "termchar.h"
 #include "dispextern.h"
 #include "buffer.h"
+#include "charset.h"
 #include "indent.h"
 #include "commands.h"
 #include "macros.h"
@@ -36,6 +37,8 @@ Boston, MA 02111-1307, USA.  */
 #include "termhooks.h"
 #include "intervals.h"
 #include "keyboard.h"
+#include "coding.h"
+#include "process.h"
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
 extern void set_frame_menubar ();
@@ -548,10 +551,10 @@ message (m, a1, a2, a3)
 	      a[2] = a3;
 
 	      len = doprnt (FRAME_MESSAGE_BUF (f),
-			    (int) FRAME_WIDTH (f), m, (char *)0, 3, a);
+			    FRAME_MESSAGE_BUF_SIZE (f), m, (char *)0, 3, a);
 #else
 	      len = doprnt (FRAME_MESSAGE_BUF (f),
-			    (int) FRAME_WIDTH (f), m, (char *)0, 3, &a1);
+			    FRAME_MESSAGE_BUF_SIZE (f), m, (char *)0, 3, &a1);
 #endif /* NO_ARG_ARRAY */
 
 	      message2 (FRAME_MESSAGE_BUF (f), len);
@@ -987,15 +990,44 @@ redisplay_internal (preserve_echo_area)
 	      && end_unchanged >= tlendpos
 	      && Z - GPT >= tlendpos)))
     {
-      if (tlbufpos > BEGV && FETCH_CHAR (tlbufpos - 1) != '\n'
+      if (tlbufpos > BEGV && FETCH_BYTE (tlbufpos - 1) != '\n'
 	  && (tlbufpos == ZV
-	      || FETCH_CHAR (tlbufpos) == '\n'))
+	      || FETCH_BYTE (tlbufpos) == '\n'))
 	/* Former continuation line has disappeared by becoming empty */
 	goto cancel;
       else if (XFASTINT (w->last_modified) < MODIFF
 	       || XFASTINT (w->last_overlay_modified) < OVERLAY_MODIFF
 	       || MINI_WINDOW_P (w))
 	{
+	  /* We have to handle the case of continuation around a
+	     wide-column character (See the comment in indent.c around
+	     line 885).
+
+	     For instance, in the following case:
+
+	     --------  Insert  --------
+	     K_A_N_\\   `a'    K_A_N_a\		`X_' are wide-column chars.
+	     J_I_       ==>    J_I_		`^^' are cursors.
+	     ^^                ^^
+	     --------          --------
+
+	     As we have to redraw the line above, we should goto cancel.  */
+
+	  struct position val;
+	  int prevline;
+
+	  prevline = find_next_newline (tlbufpos, -1);
+	  val = *compute_motion (prevline, 0,
+				 XINT (w->hscroll) ? 1 - XINT (w->hscroll) : 0,
+				 0,
+				 tlbufpos,
+				 1 << (BITS_PER_SHORT - 1),
+				 1 << (BITS_PER_SHORT - 1),
+				 window_internal_width (w) - 1,
+				 XINT (w->hscroll), 0, w);
+	  if (val.hpos != this_line_start_hpos)
+	    goto cancel;
+
 	  cursor_vpos = -1;
 	  overlay_arrow_seen = 0;
 	  zv_strings_seen = 0;
@@ -1604,7 +1636,10 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 			       ? minibuf_prompt_width : 0)
 			      + (hscroll ? 1 - hscroll : 0)),
 			     0,
-			     PT, height, 0,
+			     PT, height, 
+			     /* BUG FIX: See the comment of
+                                Fpos_visible_in_window_p (window.c).  */
+			     - (1 << (BITS_PER_SHORT - 1)),
 			     width, hscroll, pos_tab_offset (w, startp), w);
       /* If PT does fit on the screen, we will use this start pos,
 	 so do so by setting force_start.  */
@@ -1711,8 +1746,12 @@ redisplay_window (window, just_this_one, preserve_echo_area)
       int this_scroll_margin = scroll_margin;
 
       pos = *compute_motion (startp, 0, (hscroll ? 1 - hscroll : 0), 0,
-			    PT, height, 0, width, hscroll,
-			    pos_tab_offset (w, startp), w);
+			     PT, height,
+			     /* BUG FIX: See the comment of
+                                Fpos_visible_in_window_p (window.c).  */
+			     - (1 << (BITS_PER_SHORT - 1)),
+			     width, hscroll,
+			     pos_tab_offset (w, startp), w);
 
       /* Don't use a scroll margin that is negative or too large.  */
       if (this_scroll_margin < 0)
@@ -1750,7 +1789,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
      but no longer is, find a new starting point.  */
   else if (!NILP (w->start_at_line_beg)
 	   && !(startp <= BEGV
-		|| FETCH_CHAR (startp - 1) == '\n'))
+		|| FETCH_BYTE (startp - 1) == '\n'))
     {
       goto recenter;
     }
@@ -1957,7 +1996,7 @@ recenter:
 
   startp = marker_position (w->start);
   w->start_at_line_beg
-    = (startp == BEGV || FETCH_CHAR (startp - 1) == '\n') ? Qt : Qnil;
+    = (startp == BEGV || FETCH_BYTE (startp - 1) == '\n') ? Qt : Qnil;
 
 done:
   if ((update_mode_line
@@ -2043,7 +2082,6 @@ try_window (window, pos)
   register int height = window_internal_height (w);
   register int vpos = XFASTINT (w->top);
   register int last_text_vpos = vpos;
-  int tab_offset = pos_tab_offset (w, pos);
   FRAME_PTR f = XFRAME (w->frame);
   int width = window_internal_width (w) - 1;
   struct position val;
@@ -2059,13 +2097,18 @@ try_window (window, pos)
   zv_strings_seen = 0;
   val.hpos = XINT (w->hscroll) ? 1 - XINT (w->hscroll) : 0;
   val.ovstring_chars_done = 0;
+  val.tab_offset = pos_tab_offset (w, pos);
 
   while (--height >= 0)
     {
-      val = *display_text_line (w, pos, vpos, val.hpos, tab_offset,
+      val = *display_text_line (w, pos, vpos, val.hpos, val.tab_offset,
 				val.ovstring_chars_done);
+      /* The following code is omitted because we maintain tab_offset
+         in VAL.  */
+#if 0
       tab_offset += width;
       if (val.vpos) tab_offset = 0;
+#endif  /* 0 */
       vpos++;
       if (pos != val.bufpos)
 	{
@@ -2079,7 +2122,7 @@ try_window (window, pos)
 	  last_text_vpos
 	    /* Next line, unless prev line ended in end of buffer with no cr */
 	    = vpos - (val.vpos
-		      && (FETCH_CHAR (val.bufpos - 1) != '\n' || invis));
+		      && (FETCH_BYTE (val.bufpos - 1) != '\n' || invis));
 	}
       pos = val.bufpos;
     }
@@ -2133,7 +2176,7 @@ try_window_id (window)
   struct position val, bp, ep, xp, pp;
   int scroll_amount = 0;
   int delta;
-  int tab_offset, epto, old_tick;
+  int epto, old_tick;
 
   if (GPT - BEG < beg_unchanged)
     beg_unchanged = GPT - BEG;
@@ -2145,7 +2188,10 @@ try_window_id (window)
 
   /* Find position before which nothing is changed.  */
   bp = *compute_motion (start, 0, lmargin, 0,
-			min (ZV, beg_unchanged + BEG), height, 0,
+			min (ZV, beg_unchanged + BEG), height,
+			/* BUG FIX: See the comment of
+                           Fpos_visible_in_window_p() (window.c).  */
+			- (1 << (BITS_PER_SHORT - 1)),
 			width, hscroll, pos_tab_offset (w, start), w);
   if (bp.vpos >= height)
     {
@@ -2156,7 +2202,10 @@ try_window_id (window)
 	     But we need to update window_end_pos to account for
 	     any change in buffer size.  */
 	  bp = *compute_motion (start, 0, lmargin, 0,
-				ZV, height, 0,
+				ZV, height,
+				/* BUG FIX: See the comment of
+                                   Fpos_visible_in_window_p() (window.c).  */
+				- (1 << (BITS_PER_SHORT - 1)),
 				width, hscroll, pos_tab_offset (w, start), w);
 	  XSETFASTINT (w->window_end_vpos, height);
 	  XSETFASTINT (w->window_end_pos, Z - bp.bufpos);
@@ -2188,12 +2237,14 @@ try_window_id (window)
       --vpos;
       pos = bp.bufpos;
     }
+  val.tab_offset = bp.tab_offset; /* Update tab offset.  */
 
   if (bp.contin && bp.hpos != lmargin)
     {
       val.hpos = bp.prevhpos - width + lmargin;
+      val.tab_offset = bp.tab_offset + bp.prevhpos - width;
       did_motion = 1;
-      pos--;
+      DEC_POS (pos);
     }
 
   bp.vpos = vpos;
@@ -2207,7 +2258,9 @@ try_window_id (window)
   /* Compute the cursor position after that newline.  */
   ep = *compute_motion (pos, vpos, val.hpos, did_motion, tem,
 			height, - (1 << (BITS_PER_SHORT - 1)),
-			width, hscroll, pos_tab_offset (w, bp.bufpos), w);
+			width, hscroll,
+			/* We have tab offset in VAL, use it.  */
+			val.tab_offset, w); 
 
   /* If changes reach past the text available on the frame,
      just display rest of frame.  */
@@ -2223,7 +2276,7 @@ try_window_id (window)
      newline before it, so the following line must be redrawn. */
   if (stop_vpos == ep.vpos
       && (ep.bufpos == BEGV
-	  || FETCH_CHAR (ep.bufpos - 1) != '\n'
+	  || FETCH_BYTE (ep.bufpos - 1) != '\n'
 	  || ep.bufpos == Z - end_unchanged))
     stop_vpos = ep.vpos + 1;
 
@@ -2236,17 +2289,20 @@ try_window_id (window)
   if (stop_vpos < height)
     {
       /* Now determine how far up or down the rest of the window has moved */
-      epto = pos_tab_offset (w, ep.bufpos);
       xp = *compute_motion (ep.bufpos, ep.vpos, ep.hpos, 1,
 			    Z - XFASTINT (w->window_end_pos),
-			    10000, 0, width, hscroll, epto, w);
+			    /* Don't care for VPOS... */
+			    1 << (BITS_PER_SHORT - 1),
+			    /* ... nor HPOS.  */
+			    1 << (BITS_PER_SHORT - 1),
+			    width, hscroll, ep.tab_offset, w);
       scroll_amount = xp.vpos - XFASTINT (w->window_end_vpos);
 
       /* Is everything on frame below the changes whitespace?
 	 If so, no scrolling is really necessary.  */
       for (i = ep.bufpos; i < xp.bufpos; i++)
 	{
-	  tem = FETCH_CHAR (i);
+	  tem = FETCH_BYTE (i);
 	  if (tem != ' ' && tem != '\n' && tem != '\t')
 	    break;
 	}
@@ -2263,14 +2319,17 @@ try_window_id (window)
 	    {
 	      pp = *compute_motion (ep.bufpos, ep.vpos, ep.hpos, 1,
 				    PT, height, - (1 << (BITS_PER_SHORT - 1)),
-				    width, hscroll, epto, w);
+				    width, hscroll,
+				    /* We have tab offset in EP, use it.  */
+				    ep.tab_offset, w);
 	    }
 	  else
 	    {
 	      pp = *compute_motion (xp.bufpos, xp.vpos, xp.hpos, 1,
 				    PT, height, - (1 << (BITS_PER_SHORT - 1)),
 				    width, hscroll,
-				    pos_tab_offset (w, xp.bufpos), w);
+				    /* We have tab offset in XP, use it. */
+				    xp.tab_offset, w);
 	    }
 	  if (pp.bufpos < PT || pp.vpos == height)
 	    return 0;
@@ -2373,27 +2432,35 @@ try_window_id (window)
 
   /* Redisplay the lines where the text was changed */
   last_text_vpos = vpos;
+  /* The following code is omitted because we maintain tab offset in
+     val.tab_offset.  */
+#if 0
   tab_offset = pos_tab_offset (w, pos);
   /* If we are starting display in mid-character, correct tab_offset
      to account for passing the line that that character really starts in.  */
   if (val.hpos < lmargin)
     tab_offset += width;
+#endif /* 0 */
   old_tick = MODIFF;
   while (vpos < stop_vpos)
     {
-      val = *display_text_line (w, pos, top + vpos++, val.hpos, tab_offset,
+      val = *display_text_line (w, pos, top + vpos++, val.hpos, val.tab_offset,
 				val.ovstring_chars_done);
       /* If display_text_line ran a hook and changed some text,
 	 redisplay all the way to bottom of buffer
 	 So that we show the changes.  */
       if (old_tick != MODIFF)
 	stop_vpos = height;
+      /* The following code is omitted because we maintain tab offset
+	 in val.tab_offset.  */
+#if 0
       tab_offset += width;
       if (val.vpos) tab_offset = 0;
+#endif
       if (pos != val.bufpos)
 	last_text_vpos
 	  /* Next line, unless prev line ended in end of buffer with no cr */
-	    = vpos - (val.vpos && FETCH_CHAR (val.bufpos - 1) != '\n');
+	    = vpos - (val.vpos && FETCH_BYTE (val.bufpos - 1) != '\n');
       pos = val.bufpos;
     }
 
@@ -2420,28 +2487,37 @@ try_window_id (window)
       FRAME_SCROLL_BOTTOM_VPOS (f) = xp.vpos;
       vpos = xp.vpos;
       pos = xp.bufpos;
-      val.hpos = lmargin;
+      val.hpos = xp.hpos;
+      val.tab_offset = xp.tab_offset;
       if (pos == ZV)
 	vpos = height + scroll_amount;
       else if (xp.contin && xp.hpos != lmargin)
 	{
 	  val.hpos = xp.prevhpos - width + lmargin;
-	  pos--;
+	  val.tab_offset = xp.tab_offset + bp.prevhpos - width;
+	  DEC_POS (pos);
 	}
 
       blank_end_of_window = 1;
+      /* The following code is omitted because we maintain tab offset
+	 in val.tab_offset.  */
+#if 0
       tab_offset = pos_tab_offset (w, pos);
       /* If we are starting display in mid-character, correct tab_offset
 	 to account for passing the line that that character starts in.  */
       if (val.hpos < lmargin)
 	tab_offset += width;
-
+#endif
       while (vpos < height)
 	{
-	  val = *display_text_line (w, pos, top + vpos++, val.hpos, tab_offset,
-				    val.ovstring_chars_done);
+	  val = *display_text_line (w, pos, top + vpos++, val.hpos,
+				    val.tab_offset, val.ovstring_chars_done);
+	  /* The following code is omitted because we maintain tab
+	     offset in val.tab_offset.  */
+#if 0
 	  tab_offset += width;
 	  if (val.vpos) tab_offset = 0;
+#endif /* 0 */
 	  pos = val.bufpos;
 	}
 
@@ -2478,7 +2554,11 @@ try_window_id (window)
   if (cursor_vpos < 0)
     {
     findpoint:
-      val = *compute_motion (start, 0, lmargin, 0, PT, 10000, 10000,
+      val = *compute_motion (start, 0, lmargin, 0, PT, 
+			     /* Don't care for VPOS...  */
+			     1 << (BITS_PER_SHORT - 1),
+			     /* ... nor HPOS.  */
+			     1 << (BITS_PER_SHORT - 1),
 			     width, hscroll, pos_tab_offset (w, start), w);
       /* Admit failure if point is off frame now */
       if (val.vpos >= height)
@@ -2677,6 +2757,15 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
   GLYPH continuer = (dp == 0 || !INTEGERP (DISP_CONTINUE_GLYPH (dp))
 		     ? '\\' : XINT (DISP_CONTINUE_GLYPH (dp)));
 
+  /* If 1, we must handle multibyte characters.  */
+  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  /* Length of multibyte form of each character.  */
+  int len;
+  /* Glyphs generated should be set this bit mask if text must be
+     displayed from right to left.  */
+  GLYPH rev_dir_bit = (NILP (current_buffer->direction_reversed)
+		       ? 0 : GLYPH_MASK_REV_DIR);
+
   /* The next buffer location at which the face should change, due
      to overlays or text property changes.  */
   int next_face_change;
@@ -2760,7 +2849,8 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
       if (left_edge->vpos > vpos
           || left_edge->hpos > 0)
         {
-          pos = left_edge->bufpos - 1;
+          pos = left_edge->bufpos;
+	  DEC_POS (pos);	/* MULE: It may be a multi-byte character */
           hpos = left_edge->prevhpos;
         }
       else
@@ -2820,13 +2910,32 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 		      ovstr += ovstr_done;
 		      ovlen -= ovstr_done;
 
-		      /* Start outputting.  */
-		      for (; ovlen; ovlen--, ovstr++)
+		      while (ovlen > 0)
 			{
-			  if (p1 >= leftmargin && p1 < endp)
-			    *p1 = MAKE_GLYPH (f, *ovstr, current_face);
-			  p1++;
-			  ovstr_done++;
+			  int charset, cols;
+			  GLYPH g;
+
+			  if (multibyte)
+			    {
+			      c = STRING_CHAR_AND_LENGTH (ovstr, ovlen, len);
+			      ovstr += len, ovlen -= len, ovstr_done += len;
+			      charset = CHAR_CHARSET (c);
+			      cols = (charset == CHARSET_COMPOSITION
+				      ? cmpchar_table[COMPOSITE_CHAR_ID (c)]->width
+				      : CHARSET_WIDTH (charset));
+			    }
+			  else
+			    {
+			      c = *ovstr++, ovlen--, ovstr_done++;
+			      cols = 1;
+			    }
+			  g = MAKE_GLYPH (f, c, current_face) | rev_dir_bit;
+			  while (cols-- > 0)
+			    {
+			      if (p1 >= leftmargin && p1 < endp)
+				*p1 = g, g |= GLYPH_MASK_PADDING;
+			      p1++;
+			    }
 			}
 		      /* If we did all the overlay strings
 			 and we have room for text, clear ovstr_done
@@ -2852,7 +2961,12 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 	      /* This is just an estimate to give reasonable
 		 performance; nothing should go wrong if it is too small.  */
 	      if (XFASTINT (limit) > pos + 50)
-		XSETFASTINT (limit, pos + 50);
+		{
+		  int limitpos = pos + 50;
+		  if (limitpos < Z)
+		    INC_POS (limitpos); /* Adjust to character boundary.  */
+		  XSETFASTINT (limit, limitpos);
+		}
 	      limit = Fnext_single_property_change (position, Qinvisible,
 						    Fcurrent_buffer (), limit);
 #endif
@@ -2933,9 +3047,15 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 	     loop, to see what face we should start with.  */
 	  if (pos >= next_face_change
 	      && (FRAME_WINDOW_P (f) || FRAME_MSDOS_P (f)))
-	    current_face = compute_char_face (f, w, pos,
-					      region_beg, region_end,
-					      &next_face_change, pos + 50, 0);
+	    {
+	      int limit = pos + 50;
+
+	      if (limit < Z && !CHAR_HEAD_P (POS_ADDR (limit)))
+		INC_POS (limit); /* Adjust to character boundary.  */
+	      current_face = compute_char_face (f, w, pos,
+						region_beg, region_end,
+						&next_face_change, limit, 0);
+	    }
 #endif
 
 	  /* Compute the next place we need to stop
@@ -2958,7 +3078,7 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 	  if (pos < GPT && GPT < pause)
 	    pause = GPT;
 
-	  p = &FETCH_CHAR (pos);
+	  p = POS_ADDR (pos);
 	}
 
       if (p1 >= endp)
@@ -2966,19 +3086,23 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 
       p1prev = p1;
 
-      c = *p++;
+      if (multibyte)
+	/* PAUSE is surely at character boundary.  */
+	c = STRING_CHAR_AND_LENGTH (p, pause - pos, len), p += len;
+      else
+	c = *p++, len = 1;
       /* Let a display table override all standard display methods.  */
       if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
 	{
 	  p1 = copy_part_of_rope (f, p1, leftmargin,
 				  XVECTOR (DISP_CHAR_VECTOR (dp, c))->contents,
 				  XVECTOR (DISP_CHAR_VECTOR (dp, c))->size,
-				  current_face);
+				  current_face, rev_dir_bit);
 	}
       else if (c >= 040 && c < 0177)
 	{
 	  if (p1 >= leftmargin)
-	    *p1 = MAKE_GLYPH (f, c, current_face);
+	    *p1 = MAKE_GLYPH (f, c, current_face) | rev_dir_bit;
 	  p1++;
 	}
       else if (c == '\n')
@@ -2993,7 +3117,7 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 	    {
 	      invis = 1;
 	      pos = find_next_newline (pos + 1, 1);
-	      if (FETCH_CHAR (pos - 1) == '\n')
+	      if (FETCH_BYTE (pos - 1) == '\n')
 		pos--;
 	    }
 	  if (invis && selective_rlen > 0 && p1 >= leftmargin)
@@ -3002,7 +3126,7 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 	      if (p1 - leftmargin > width)
 		p1 = endp;
 	      copy_part_of_rope (f, p1prev, p1prev, invis_vector_contents,
-				 (p1 - p1prev), current_face);
+				 (p1 - p1prev), current_face, rev_dir_bit);
 	    }
 #ifdef HAVE_FACES
 	  /* Draw the face of the newline character as extending all the 
@@ -3012,7 +3136,7 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 	      if (p1 < leftmargin)
 		p1 = leftmargin;
 	      while (p1 < endp)
-		*p1++ = FAST_MAKE_GLYPH (' ', current_face);
+		*p1++ = FAST_MAKE_GLYPH (' ', current_face) | rev_dir_bit;
 	    }
 #endif
 
@@ -3041,7 +3165,7 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 	  do
 	    {
 	      if (p1 >= leftmargin && p1 < endp)
-		*p1 = MAKE_GLYPH (f, ' ', current_face);
+		*p1 = MAKE_GLYPH (f, ' ', current_face) | rev_dir_bit;
 	      p1++;
 	    }
 	  while ((p1 - leftmargin + taboffset + hscroll - (hscroll > 0))
@@ -3050,7 +3174,7 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
       else if (c == Ctl ('M') && selective == -1)
 	{
 	  pos = find_next_newline (pos, 1);
-	  if (FETCH_CHAR (pos - 1) == '\n')
+	  if (FETCH_BYTE (pos - 1) == '\n')
 	    pos--;
 	  if (selective_rlen > 0)
 	    {
@@ -3058,7 +3182,7 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 	      if (p1 - leftmargin > width)
 		p1 = endp;
 	      copy_part_of_rope (f, p1prev, p1prev, invis_vector_contents,
-				 (p1 - p1prev), current_face);
+				 (p1 - p1prev), current_face, rev_dir_bit);
 	    }
 #ifdef HAVE_FACES
 	  /* Draw the face of the newline character as extending all the 
@@ -3068,7 +3192,7 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 	      if (p1 < leftmargin)
 		p1 = leftmargin;
 	      while (p1 < endp)
-		*p1++ = FAST_MAKE_GLYPH (' ', current_face);
+		*p1++ = FAST_MAKE_GLYPH (' ', current_face) | rev_dir_bit;
 	    }
 #endif
 
@@ -3094,34 +3218,54 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
       else if (c < 0200 && ctl_arrow)
 	{
 	  if (p1 >= leftmargin)
-	    *p1 = fix_glyph (f, (dp && INTEGERP (DISP_CTRL_GLYPH (dp))
-				 ? XINT (DISP_CTRL_GLYPH (dp)) : '^'),
-			     current_face);
+	    *p1 = (fix_glyph (f, (dp && INTEGERP (DISP_CTRL_GLYPH (dp))
+				  ? XINT (DISP_CTRL_GLYPH (dp)) : '^'),
+			      current_face)
+		   | rev_dir_bit);
 	  p1++;
 	  if (p1 >= leftmargin && p1 < endp)
-	    *p1 = MAKE_GLYPH (f, c ^ 0100, current_face);
+	    *p1 = MAKE_GLYPH (f, c ^ 0100, current_face) | rev_dir_bit;
+	  p1++;
+	}
+      else if (len == 1)
+	{
+	  /* C is not a multibyte character.  */
+	  if (p1 >= leftmargin)
+	    *p1 = (fix_glyph (f, (dp && INTEGERP (DISP_ESCAPE_GLYPH (dp))
+				  ? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
+			      current_face)
+		   | rev_dir_bit);
+	  p1++;
+	  if (p1 >= leftmargin && p1 < endp)
+	    *p1 = MAKE_GLYPH (f, (c >> 6) + '0', current_face) | rev_dir_bit;
+	  p1++;
+	  if (p1 >= leftmargin && p1 < endp)
+	    *p1 = (MAKE_GLYPH (f, (7 & (c >> 3)) + '0', current_face)
+		   | rev_dir_bit);
+	  p1++;
+	  if (p1 >= leftmargin && p1 < endp)
+	    *p1 = MAKE_GLYPH (f, (7 & c) + '0', current_face) | rev_dir_bit;
 	  p1++;
 	}
       else
 	{
-	  if (p1 >= leftmargin)
-	    *p1 = fix_glyph (f, (dp && INTEGERP (DISP_ESCAPE_GLYPH (dp))
-				 ? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
-			     current_face);
-	  p1++;
-	  if (p1 >= leftmargin && p1 < endp)
-	    *p1 = MAKE_GLYPH (f, (c >> 6) + '0', current_face);
-	  p1++;
-	  if (p1 >= leftmargin && p1 < endp)
-	    *p1 = MAKE_GLYPH (f, (7 & (c >> 3)) + '0', current_face);
-	  p1++;
-	  if (p1 >= leftmargin && p1 < endp)
-	    *p1 = MAKE_GLYPH (f, (7 & c) + '0', current_face);
-	  p1++;
+	  /* C is a multibyte character.  */
+	  int charset = CHAR_CHARSET (c);
+	  int columns = (charset == CHARSET_COMPOSITION
+			 ? cmpchar_table[COMPOSITE_CHAR_ID (c)]->width
+			 : CHARSET_WIDTH (charset));
+	  GLYPH g = MAKE_GLYPH (f, c, current_face) | rev_dir_bit;
+
+	  while (columns--)
+	    {
+	      if (p1 >= leftmargin && p1 < endp)
+		*p1 = g, g |= GLYPH_MASK_PADDING;
+	      p1++;
+	    }
 	}
 
       prevpos = pos;
-      pos++;
+      pos += len;
 
       /* Update charstarts for the character just output.  */
 
@@ -3174,10 +3318,37 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 	 This occurs when the minibuffer prompt takes up the whole line.  */
       if (p1prev)
 	{
-	  /* Start the next line with that same character */
-	  pos--;
-	  /* but at negative hpos, to skip the columns output on this line.  */
-	  val.hpos += p1prev - endp;
+	  /* Start the next line with that same character whose
+             character code is C and the length of multi-byte form is
+             LEN.  */
+	  pos = prevpos;
+
+	  if (len == 1)
+	    /* C is not a multi-byte character.  We can break it and
+	       start from the middle column in the next line.  So,
+	       adjust VAL.HPOS to skip the columns output on this
+	       line.  */
+	    val.hpos += p1prev - endp;
+	  else
+	    {
+	      /* C is a multibyte character.  Since we can't broke it
+		 in the middle, the whole character should be driven
+		 into the next line.  */
+	      /* As the result, the actual columns occupied by the
+		 text on this line is less than WIDTH.  VAL.TAB_OFFSET
+		 must be adjusted.  */
+	      taboffset = taboffset + (p1prev - endp);
+	      /* Let's fill unused columns with TRUNCATOR or CONTINUER.  */
+	      {
+		GLYPH g = fix_glyph (f, truncate ? truncator : continuer, 0);
+		while (p1prev < endp)
+		  *p1prev++ = g;
+	      }
+	      /* If POINT is at POS, cursor should not on this line.  */
+	      lastpos = pos;
+	      if (PT == pos)
+		cursor_vpos = -1;
+	    }
 	}
 
       /* Keep in this line everything up to the continuation column.  */
@@ -3191,10 +3362,11 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 
   if (pos < ZV)
     {
-      if (FETCH_CHAR (pos) == '\n')
+      if (FETCH_BYTE (pos) == '\n')
 	{
 	  /* If stopped due to a newline, start next line after it */
 	  pos++;
+	  val.tab_offset = 0;
 	  /* Check again for hidden lines, in case the newline occurred exactly
 	     at the right margin.  */
 	  while (pos < ZV && selective > 0
@@ -3216,16 +3388,20 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 		     && indented_beyond_p (pos, selective));
 	      val.hpos = XINT (w->hscroll) ? 1 - XINT (w->hscroll) : 0;
 
-	      lastpos = pos - (FETCH_CHAR (pos - 1) == '\n');
+	      lastpos = pos - (FETCH_BYTE (pos - 1) == '\n');
+	      val.tab_offset = 0;
 	    }
 	  else
 	    {
 	      *p1++ = fix_glyph (f, continuer, 0);
 	      val.vpos = 0;
 	      lastpos--;
+	      val.tab_offset = taboffset + width;
 	    }
 	}
     }
+  else
+    val.tab_offset = 0;
 
   /* If point is at eol or in invisible text at eol,
      record its frame location now.  */
@@ -3273,9 +3449,16 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
   /* If hscroll and line not empty, insert truncation-at-left marker */
   if (hscroll && lastpos != start)
     {
-      *leftmargin = fix_glyph (f, truncator, 0);
+      GLYPH g = fix_glyph (f, truncator, 0);
+      *leftmargin = g;
       if (p1 <= leftmargin)
 	p1 = leftmargin + 1;
+      else			/* MULE: it may be a wide-column character */
+	{
+	  p1prev = leftmargin + 1;
+	  while (p1prev < p1 && *p1prev & GLYPH_MASK_PADDING)
+	    *p1prev++ = g;
+	}
     }
 
   if (!WINDOW_RIGHTMOST_P (w))
@@ -3454,9 +3637,13 @@ display_mode_line (w)
     {
       /* For a partial width window, explicitly set face of each glyph. */
       int i;
+      unsigned int padding;
       GLYPH *ptr = FRAME_DESIRED_GLYPHS (f)->glyphs[vpos];
       for (i = left; i < right; ++i)
-	ptr[i] = FAST_MAKE_GLYPH (FAST_GLYPH_CHAR (ptr[i]), 1);
+	{
+	  padding = ptr[i] & GLYPH_MASK_PADDING;
+	  ptr[i] = FAST_MAKE_GLYPH (FAST_GLYPH_CHAR (ptr[i]), 1) | padding;
+	}
     }
 #endif
 
@@ -3728,6 +3915,46 @@ pint2str (buf, width, d)
       *buf++ = *p;
       *p-- = d;
   }
+}
+
+/* Set a mnemonic character for CODING_SYSTEM (Lisp symbol) in BUF.
+   If EOL_FLAG is 1, set also a mnemonic character for end-of-line
+   type of CODING_SYSTEM.  Return updated pointer into BUF.  */
+
+static char *
+decode_mode_spec_coding (coding_system, buf, eol_flag)
+     Lisp_Object coding_system;
+     register char *buf;
+     int eol_flag;
+{
+  register Lisp_Object val = coding_system;
+
+  if (NILP (val))		/* Not yet decided.  */
+    {
+      *buf++ = '-';
+      if (eol_flag) *buf++ = eol_mnemonic_undecided;
+    }
+  else
+    {
+      while (!NILP (val) && SYMBOLP (val))
+	val = Fget (val, Qcoding_system);
+      *buf++ = XFASTINT (XVECTOR (val)->contents[1]);
+      if (eol_flag)
+	{
+	  val = Fget (coding_system, Qeol_type);
+
+	  if (NILP (val))	/* Not yet decided.  */
+	    *buf++ = eol_mnemonic_undecided;
+	  else if (VECTORP (val)) /* Not yet decided.  */
+	    *buf++ = eol_mnemonic_undecided;
+	  else			/* INTEGERP (val) -- 1:LF, 2:CRLF, 3:CR */
+	    *buf++ = (XFASTINT (val) == 1
+		      ? eol_mnemonic_unix
+		      : (XFASTINT (val) == 2
+			 ? eol_mnemonic_dos : eol_mnemonic_mac));
+	}
+    }
+  return buf;
 }
 
 /* Return a string for the output of a mode line %-spec for window W,
@@ -4052,6 +4279,36 @@ decode_mode_spec (w, c, spec_width, maxwidth)
 #else
       return "T";
 #endif
+
+    case 'z':
+      /* coding-system (not including end-of-line format) */
+    case 'Z':
+      /* coding-system (including end-of-line type) */
+      {
+	int eol_flag = (c == 'Z');
+	char *p;
+
+	p = decode_mode_spec_coding
+	  (find_symbol_value (Qbuffer_file_coding_system),
+	   decode_mode_spec_buf, eol_flag);
+	if (FRAME_TERMCAP_P (f))
+	  {
+	    p = decode_mode_spec_coding (keyboard_coding.symbol, p, eol_flag);
+	    p = decode_mode_spec_coding (terminal_coding.symbol, p, eol_flag);
+	  }
+#ifdef subprocesses
+	obj = Fget_buffer_process (Fcurrent_buffer ());
+	if (PROCESSP (obj))
+	  {
+	    p = decode_mode_spec_coding (XPROCESS (obj)->decode_coding_system,
+					 p, eol_flag);
+	    p = decode_mode_spec_coding (XPROCESS (obj)->encode_coding_system,
+					 p, eol_flag);
+	  }
+#endif /* subprocesses */
+	*p = 0;
+	return decode_mode_spec_buf;
+      }
     }
 
   if (STRINGP (obj))
@@ -4104,8 +4361,8 @@ display_scan_buffer (start, count, shortage)
       {
 	ceiling =  BUFFER_CEILING_OF (start);
 	ceiling = min (limit, ceiling);
-	ceiling_addr = &FETCH_CHAR (ceiling) + 1;
-	base = (cursor = &FETCH_CHAR (start));
+	ceiling_addr = POS_ADDR (ceiling) + 1;
+	base = (cursor = POS_ADDR (start));
 	while (1)
 	  {
 	    while (*cursor != '\n' && *cursor != 015 && ++cursor != ceiling_addr)
@@ -4133,8 +4390,8 @@ display_scan_buffer (start, count, shortage)
 	{			/* we WILL scan under start */
 	  ceiling =  BUFFER_FLOOR_OF (start);
 	  ceiling = max (limit, ceiling);
-	  ceiling_addr = &FETCH_CHAR (ceiling) - 1;
-	  base = (cursor = &FETCH_CHAR (start));
+	  ceiling_addr = POS_ADDR (ceiling) - 1;
+	  base = (cursor = POS_ADDR (start));
 	  cursor++;
 	  while (1)
 	    {
@@ -4235,6 +4492,8 @@ display_string (w, vpos, string, length, hpos, truncate,
   struct frame_glyphs *desired_glyphs = FRAME_DESIRED_GLYPHS (f);
   GLYPH *p1start = desired_glyphs->glyphs[vpos] + hpos;
   int window_width = XFASTINT (w->width);
+  /* If 1, we must display multibyte characters.  */
+  int multibyte = !NILP (XBUFFER (w->buffer)->enable_multibyte_characters);
 
   /* Use the standard display table, not the window's display table.
      We don't want the mode line in rot13.  */
@@ -4278,20 +4537,25 @@ display_string (w, vpos, string, length, hpos, truncate,
   if (maxcol >= 0 && mincol > maxcol)
     mincol = maxcol;
 
+  if (length < 0)
+    /* We need this value for multibyte characters.  */
+    length = strlen (string);
+
   /* We set truncated to 1 if we get stopped by trying to pass END
      (that is, trying to pass MAXCOL.)  */
   truncated = 0;
   while (1)
     {
-      if (length == 0)
+      int len;
+
+      if (length <= 0)
 	break;
-      c = *string++;
-      /* Specified length.  */
-      if (length >= 0)
-	length--;
-      /* Unspecified length (null-terminated string).  */
-      else if (c == 0)
-	break;
+      if (multibyte)
+	c = STRING_CHAR_AND_LENGTH (string, length, len);
+      else
+	c = *string, len = 1;
+
+      string += len, length -= len;
 
       if (p1 >= end)
 	{
@@ -4333,8 +4597,9 @@ display_string (w, vpos, string, length, hpos, truncate,
 	    *p1 = c ^ 0100;
 	  p1++;
 	}
-      else
+      else if (len == 1)
 	{
+	  /* C is a control character or a binary byte data.  */
 	  if (p1 >= start)
 	    *p1 = fix_glyph (f, (dp && INTEGERP (DISP_ESCAPE_GLYPH (dp))
 				 ? XINT (DISP_ESCAPE_GLYPH (dp)) : '\\'),
@@ -4349,6 +4614,48 @@ display_string (w, vpos, string, length, hpos, truncate,
 	  if (p1 >= start && p1 < end)
 	    *p1 = (7 & c) + '0';
 	  p1++;
+	}
+      else
+	{
+	  /* C is a multibyte character.  */	  
+	  int charset = CHAR_CHARSET (c);
+	  int columns = (charset == CHARSET_COMPOSITION
+			 ? cmpchar_table[COMPOSITE_CHAR_ID (c)]->width
+			 : CHARSET_WIDTH (charset));
+
+	  if (p1 < start)
+	    {
+	      /* Since we can't show the left part of C, fill all
+                 columns with spaces.  */
+	      columns -= start - p1;
+	      p1 = start;
+	      while (columns--)
+		{
+		  if (p1 < end)
+		    *p1 = SPACEGLYPH;
+		  p1++;
+		}
+	    }
+	  else if (p1 + columns > end)
+	    {
+	      /* Since we can't show the right part of C, fill all
+                 columns with TRUNCATE if TRUNCATE is specified.  */
+	      if (truncate)
+		{
+		  while (p1 < end)
+		    *p1++ = fix_glyph (f, truncate, 0);
+		  /* And tell the line is truncated.  */
+		  truncated = 1;
+		}
+	      break;
+	    }
+	  else
+	    {
+	      /* We can show the whole glyph of C.  */
+	      *p1++ = c;
+	      while (--columns)
+		*p1++ = c | GLYPH_MASK_PADDING;
+	    }
 	}
     }
 
