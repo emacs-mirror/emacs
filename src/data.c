@@ -1007,6 +1007,8 @@ not have their own values for this variable.")
   return val;
 }
 
+/* Lisp functions for creating and removing buffer-local variables.  */
+
 DEFUN ("make-variable-buffer-local", Fmake_variable_buffer_local, Smake_variable_buffer_local,
   1, 1, "vMake Variable Buffer Local: ",
   "Make VARIABLE have a separate value for each buffer.\n\
@@ -1101,8 +1103,18 @@ just as if the variable were set.")
 	if (current_buffer == XBUFFER (XCONS (XCONS (xs)->cdr)->car))
 	  XCONS (XCONS (XSYMBOL (sym)->value)->cdr)->car = Qnil; 
       }
-
     }
+
+  /* If the symbol forwards into a C variable, then swap in the
+     variable for this buffer immediately.  If C code modifies the
+     variable before we swap in, then that new value will clobber the
+     default value the next time we swap.  */
+  valcontents = XCONS (XSYMBOL (sym)->value)->car;
+  if (XTYPE (valcontents) == Lisp_Intfwd
+      || XTYPE (valcontents) == Lisp_Boolfwd
+      || XTYPE (valcontents) == Lisp_Objfwd)
+    swap_in_symval_forwarding (sym, XSYMBOL (sym)->value);
+
   return sym;
 }
 
