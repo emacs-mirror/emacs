@@ -2369,7 +2369,7 @@ The locations are of the format used in `Info-history', i.e.
 ;;;###autoload
 (defun Info-goto-emacs-command-node (command)
   "Go to the Info node in the Emacs manual for command COMMAND.
-The command is found by looking up in Emacs manual's Command Index
+The command is found by looking up in Emacs manual's indices
 or in another manual found via COMMAND's `info-file' property or
 the variable `Info-file-list-for-emacs'."
   (interactive "CFind documentation for command: ")
@@ -2405,9 +2405,10 @@ the variable `Info-file-list-for-emacs'."
 
 ;;;###autoload
 (defun Info-goto-emacs-key-command-node (key)
-  "Go to the Info node in the Emacs manual the command bound to KEY, a string.
+  "Go to the node in the Emacs manual which describes the command bound to KEY.
+KEY is a string.
 Interactively, if the binding is `execute-extended-command', a command is read.
-The command is found by looking up in Emacs manual's Command Index
+The command is found by looking up in Emacs manual's indices
 or in another manual found via COMMAND's `info-file' property or
 the variable `Info-file-list-for-emacs'."
   (interactive "kFind documentation for key: ")
