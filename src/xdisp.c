@@ -3132,7 +3132,9 @@ reseat_at_next_visible_line_start (it, on_newline_p)
 	  forward_to_next_line_start (it);
 
       /* Position on the newline if we should.  */
-      if (on_newline_p && IT_CHARPOS (*it) > BEGV)
+      if (on_newline_p
+	  && IT_CHARPOS (*it) > BEGV
+	  && FETCH_BYTE (IT_BYTEPOS (*it) - 1) == '\n')
 	{
 	  --IT_CHARPOS (*it);
 	  IT_BYTEPOS (*it) = CHAR_TO_BYTE (IT_CHARPOS (*it));
@@ -3831,32 +3833,37 @@ next_element_from_c_string (it)
    entry.  This function Fills IT with the first glyph from the
    ellipsis if an ellipsis is to be displayed.  */
 
-static void
+static int
 next_element_from_ellipsis (it)
      struct it *it;
 {
-  if (it->dp && VECTORP (DISP_INVIS_VECTOR (it->dp)))
+  if (it->selective_display_ellipsis_p)
     {
-      /* Use the display table definition for `...'.  Invalid glyphs
-	 will be handled by the method returning elements from dpvec.  */
-      struct Lisp_Vector *v = XVECTOR (DISP_INVIS_VECTOR (it->dp));
-      it->dpvec_char_len = it->len;
-      it->dpvec = v->contents;
-      it->dpend = v->contents + v->size;
-      it->current.dpvec_index = 0;
-      it->method = next_element_from_display_vector;
-      get_next_display_element (it);
+      if (it->dp && VECTORP (DISP_INVIS_VECTOR (it->dp)))
+	{
+	  /* Use the display table definition for `...'.  Invalid glyphs
+	     will be handled by the method returning elements from dpvec.  */
+	  struct Lisp_Vector *v = XVECTOR (DISP_INVIS_VECTOR (it->dp));
+	  it->dpvec_char_len = it->len;
+	  it->dpvec = v->contents;
+	  it->dpend = v->contents + v->size;
+	  it->current.dpvec_index = 0;
+	  it->method = next_element_from_display_vector;
+	}
+      else
+	{
+	  /* Use default `...' which is stored in default_invis_vector.  */
+	  it->dpvec_char_len = it->len;
+	  it->dpvec = default_invis_vector;
+	  it->dpend = default_invis_vector + 3;
+	  it->current.dpvec_index = 0;
+	  it->method = next_element_from_display_vector;
+	}
     }
-  else if (it->selective_display_ellipsis_p)
-    {
-      /* Use default `...' which is stored in default_invis_vector.  */
-      it->dpvec_char_len = it->len;
-      it->dpvec = default_invis_vector;
-      it->dpend = default_invis_vector + 3;
-      it->current.dpvec_index = 0;
-      it->method = next_element_from_display_vector;
-      get_next_display_element (it);
-    }
+  else
+    reseat_at_next_visible_line_start (it, 1);
+  
+  return get_next_display_element (it);
 }
 
 
@@ -3977,7 +3984,7 @@ next_element_from_buffer (it)
 					IT_BYTEPOS (*it) + 1,
 					it->selective))
 		{
-		  next_element_from_ellipsis (it);
+		  success_p = next_element_from_ellipsis (it);
 		  it->dpvec_char_len = -1;
 		}
 	    }
@@ -3986,7 +3993,7 @@ next_element_from_buffer (it)
 	      /* A value of selective == -1 means that everything from the
 		 CR to the end of the line is invisible, with maybe an
 		 ellipsis displayed for it.  */
-	      next_element_from_ellipsis (it);
+	      success_p = next_element_from_ellipsis (it);
 	      it->dpvec_char_len = -1;
 	    }
 	}
