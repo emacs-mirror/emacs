@@ -1,3 +1,10 @@
+2004-06-29  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (query-replace-read-args): Swallow a space after
+	everything except )]" which in most cases means after a symbol.
+
+	* emacs-lisp/pp.el (pp-buffer): Add autoload.
+
 2004-06-26  David Kastrup  <dak@gnu.org>
 
 	* replace.el (perform-replace): Highlight the match even in
