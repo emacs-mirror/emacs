@@ -255,6 +255,13 @@ format style.")
 (defconst fortran-font-lock-keywords-3 nil
   "Gaudy level highlighting for Fortran mode.")
 
+(defun fortran-fontify-string (limit)
+  (let ((match (match-string 1)))
+    (cond ((string= "'" match)
+	   (re-search-forward "\\([^'\n]*'?\\)" limit))
+	  ((string= "\"" match)
+	   (re-search-forward "\\([^\"\n]*\"?\\)" limit)))))
+
 (let ((comment-chars "c!*")
       (fortran-type-types
 ;       (eval-when-compile
@@ -295,7 +302,9 @@ format style.")
          (list (concat "^[^" comment-chars "\t\n]" (make-string 71 ?.)
                        "\\(.*\\)")
                '(1 font-lock-comment-face))
-         '("\\(\\s\"\\)\"[^\n]*\\1?" . font-lock-string-face)
+  	 '("\\(\\s\"\\)"		; single- or double-quoted string
+  	   (1 font-lock-string-face)
+  	   (fortran-fontify-string nil nil (1 font-lock-string-face)))
          ;;
          ;; Program, subroutine and function declarations, plus calls.
          (list (concat "\\<\\(block[ \t]*data\\|call\\|entry\\|function\\|"
