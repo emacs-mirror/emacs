@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.54) $
+ * $HopeName: MMsrc!mpsi.c(trunk.55) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.54) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.55) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -556,7 +556,9 @@ mps_res_t mps_alloc_v(mps_addr_t *p_o, mps_pool_t mps_pool, size_t size,
   /* design.mps.class-interface.alloc.size.align. */
 
   /* See .varargs. */
-  res = PoolAlloc(&p, pool, size);
+  /* @@@@ There is currently no requirement for reservoirs to work */
+  /* with unbuffered allocation. */
+  res = PoolAlloc(&p, pool, size, /* withReservoirPermit */ FALSE);
 
   ArenaLeave(arena);
 
@@ -687,6 +689,25 @@ mps_res_t (mps_reserve)(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
 }
 
 
+
+mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *p_o, 
+                                            mps_ap_t mps_ap, size_t size)
+{
+  mps_res_t res;
+
+  AVER(p_o != NULL);
+  AVER(size > 0);
+  AVER(mps_ap != NULL);
+  AVER(CHECKT(Buffer, BufferOfAP((AP)mps_ap)));
+  AVER(mps_ap->init == mps_ap->alloc);
+
+  MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK(res, *p_o, mps_ap, size);
+
+  return res;
+}
+
+
+
 /* mps_commit -- commit initialized object, finishing allocation
  *
  * .commit.call: mps_commit does not call BufferCommit, but instead
@@ -735,7 +756,39 @@ mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
   AVER(size > 0);
   AVER(SizeIsAligned(size, BufferPool(buf)->alignment));
 
-  res = BufferFill(&p, buf, size);
+  res = BufferFill(&p, buf, size, /* withReservoirPermit */ FALSE);
+
+  ArenaLeave(arena);
+  
+  if(res != ResOK) return res;
+  *p_o = (mps_addr_t)p;
+  return MPS_RES_OK;
+}
+
+
+mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *p_o, 
+                                            mps_ap_t mps_ap, 
+                                            size_t size)
+{
+  Buffer buf = BufferOfAP((AP)mps_ap);
+  Arena arena;
+  Addr p;
+  Res res;
+
+  AVER(mps_ap != NULL);  
+  AVER(CHECKT(Buffer, buf));
+  arena = BufferArena(buf);
+
+  ArenaEnter(arena);
+
+  ArenaPoll(arena);                     /* .poll */
+
+  AVER(p_o != NULL);
+  AVERT(Buffer, buf);
+  AVER(size > 0);
+  AVER(SizeIsAligned(size, BufferPool(buf)->alignment));
+
+  res = BufferFill(&p, buf, size, /* withReservoirPermit */ TRUE);
 
   ArenaLeave(arena);
   
@@ -1342,34 +1395,35 @@ mps_res_t mps_ap_alloc_pattern_reset(mps_ap_t mps_ap)
 
 
 /* Low memory reservoir */
-
-/* Null interface at the moment, i.e. trivial implementation. */
-
-
-void mps_reservoir_limit_set(mps_arena_t arena, size_t size)
+void mps_reservoir_limit_set(mps_arena_t mps_arena, size_t size)
 {
-  UNUSED(arena);
-  UNUSED(size);
+  Arena arena = (Arena)mps_arena;
+
+  ArenaEnter(arena);
+  ArenaReservoirLimitSet(arena, size);
+  ArenaLeave(arena);
 }
 
-size_t mps_reservoir_limit(mps_arena_t arena)
+size_t mps_reservoir_limit(mps_arena_t mps_arena)
 {
-  UNUSED(arena);
+  Arena arena = (Arena)mps_arena;
+  Size size;
 
-  return 0;
+  ArenaEnter(arena);
+  size = ArenaReservoirLimit(arena);
+  ArenaLeave(arena);
+
+  return size;
 }
 
-size_t mps_reservoir_available(mps_arena_t arena)
+size_t mps_reservoir_available(mps_arena_t mps_arena)
 {
-  UNUSED(arena);
+  Arena arena = (Arena)mps_arena;
+  Size size;
 
-  return 0;
-}
+  ArenaEnter(arena);
+  size = ArenaReservoirAvailable(arena);
+  ArenaLeave(arena);
 
-mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *p_o, 
-                                            mps_ap_t ap, size_t size)
-{
-  /* Implement with mps_reserve */
-  /* Let mps_reserve check input parameters. Make no assumptions here */
-  return mps_reserve(p_o, ap, size);
+  return size;
 }

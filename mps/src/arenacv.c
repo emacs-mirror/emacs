@@ -1,6 +1,6 @@
 /* impl.c.arenacv: ARENA COVERAGE TEST
  *
- * $HopeName: MMsrc!arenacv.c(trunk.6) $
+ * $HopeName: MMsrc!arenacv.c(trunk.7) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  * .readership: MPS developers
@@ -66,34 +66,38 @@ static void testit(ArenaClass class, ...)
   for(i = 0; i < 2; ++i) { /* zone loop */
     for(offset = 0; offset <= 2*segsPerPage; offset += segsPerPage) {
       if(offset != 0)
-	die(SegAlloc(&offsetSeg, &pref, offset * pageSize, pool),
-	    "offsetSeg");
+        die(SegAlloc(&offsetSeg, &pref, offset * pageSize, pool,
+                     /* withReservoirPermit */ FALSE),
+            "offsetSeg");
       for(gap = segsPerPage+1; gap <= 3 * (segsPerPage+1);
-	  gap += (segsPerPage+1)) {
-	die(SegAlloc(&gapSeg, &pref, gap * pageSize, pool),
-	    "gapSeg");
-	die(SegAlloc(&topSeg, &pref, pageSize, pool),
-	    "topSeg");
-	SegFree(gapSeg);
-	for(new = 1; new <= gap; new += segsPerPage) {
-	  Seg seg;
+          gap += (segsPerPage+1)) {
+        die(SegAlloc(&gapSeg, &pref, gap * pageSize, pool,
+                     /* withReservoirPermit */ FALSE),
+            "gapSeg");
+        die(SegAlloc(&topSeg, &pref, pageSize, pool,
+                     /* withReservoirPermit */ FALSE),
+            "topSeg");
+        SegFree(gapSeg);
+        for(new = 1; new <= gap; new += segsPerPage) {
+          Seg seg;
 
-	  die(SegAlloc(&newSeg, &pref, new * pageSize, pool),
-	      "newSeg");
+          die(SegAlloc(&newSeg, &pref, new * pageSize, pool,
+                       /* withReservoirPermit */ FALSE),
+              "newSeg");
 
-	  /* Test segment iterators */
-	  die(SegFirst(&seg, arena) ? ResOK : ResFAIL, "first");
-	  die(SegNext(&seg, arena, SegBase(seg)) ? ResOK : ResFAIL,
-	      "second");
-	  die(SegNext(&seg, arena, SegBase(seg)) ? ResOK : ResFAIL,
-	      "third");
-	  /* There are at least three segments */
-	  SegNext(&seg, arena, SegBase(seg));
+          /* Test segment iterators */
+          die(SegFirst(&seg, arena) ? ResOK : ResFAIL, "first");
+          die(SegNext(&seg, arena, SegBase(seg)) ? ResOK : ResFAIL,
+              "second");
+          die(SegNext(&seg, arena, SegBase(seg)) ? ResOK : ResFAIL,
+              "third");
+          /* There are at least three segments */
+          SegNext(&seg, arena, SegBase(seg));
 
-	  SegFree(newSeg);
-	}
+          SegFree(newSeg);
+        }
 
-	SegFree(topSeg);
+      SegFree(topSeg);
       }
       if(offset != 0) {
 	/* Test size functions */

@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.43) $
+ * $HopeName: MMsrc!arena.c(trunk.44) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,16 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.43) $");
+SRCID(arena, "$HopeName$");
+
+
+/* Forward declarations */
+
+typedef struct NSEGStruct *NSEG;
+
+void SegRealloc(Seg seg, Pool newpool);
+
+static Bool NSEGCheck(NSEG nseg);
 
 
 /* All static data objects are declared here. See .static */
@@ -49,6 +58,312 @@ static LockStruct arenaRingLock;
 static Serial arenaSerial;         /* design.mps.arena.static.serial */
 
 #define SegArena(seg) PoolArena(SegPool(seg))
+
+
+/* The reservoir pool is defined here. See design.mps.reservoir */
+
+#define PoolPoolNSEG(pool)       PARENT(NSEGStruct, poolStruct, pool)
+
+/* NSEGInit -- initialize the reservoir NSEG pool */
+static Res NSEGInit(Pool pool, va_list arg)
+{
+  NSEG nseg;
+
+  UNUSED(arg);
+  AVER(pool != NULL);
+  nseg = PoolPoolNSEG(pool);
+  nseg->sig = NSEGSig;
+  AVERT(NSEG, nseg);
+
+  return ResOK;
+}
+
+/* NSEGFinish -- finish the reservoir NSEG pool 
+ *
+ * .reservoir.finish: This might be called from ArenaFinish, so the 
+ * arena cannot be checked at this time. In order to avoid the 
+ * check, insist that the arena must have previously emptied the
+ * reservoir, by AVERing that the seg ring is empty.
+ */
+static void NSEGFinish(Pool pool)
+{
+  NSEG nseg;
+
+  AVERT(Pool, pool);
+  nseg = PoolPoolNSEG(pool);
+  AVERT(NSEG, nseg);
+  AVER(RingCheckSingle(PoolSegRing(pool)));  /* .reservoir.finish */
+
+  nseg->sig = SigInvalid;
+}
+
+static PoolClassStruct PoolClassNSEGStruct = {
+  PoolClassSig,
+  "NSEG",                               /* name */
+  sizeof(NSEGStruct),                   /* size */
+  offsetof(NSEGStruct, poolStruct),     /* offset */
+  0,                                    /* attr */
+  NSEGInit,                             /* init */
+  NSEGFinish,                           /* finish */
+  PoolNoAlloc,                          /* alloc */
+  PoolNoFree,                           /* free */
+  PoolNoBufferInit,                     /* bufferInit */
+  PoolNoBufferFill,                     /* bufferFill */
+  PoolNoBufferEmpty,                    /* bufferEmpty */
+  PoolNoBufferFinish,                   /* bufferFinish */
+  PoolNoTraceBegin,			/* traceBegin */
+  PoolNoAccess,                         /* access */
+  PoolNoWhiten,                         /* whiten */
+  PoolNoGrey,                           /* grey */
+  PoolNoBlacken,                        /* blacken */
+  PoolNoScan,                           /* scan */
+  PoolNoFix,                            /* fix */
+  PoolNoFix,                            /* emergency fix */
+  PoolNoReclaim,                        /* reclaim */
+  PoolNoBenefit,			/* benefit */
+  PoolNoAct,                            /* act */
+  PoolNoRampBegin,                      /* ramp begin */
+  PoolNoRampEnd,                        /* ramp end */
+  PoolNoWalk,                           /* walk */
+  PoolTrivDescribe,                     /* describe */
+  PoolClassSig                          /* impl.h.mpmst.class.end-sig */
+};
+
+
+static Bool NSEGCheck(NSEG nseg)
+{
+  CHECKS(NSEG, nseg);
+  CHECKD(Pool, &nseg->poolStruct);
+  CHECKL(nseg->poolStruct.class == &PoolClassNSEGStruct);
+
+  return TRUE;
+}
+
+/* ArenaReservoirIsConsistent
+ *
+ * Returns FALSE if the reservoir is corrupt.
+ */
+
+static Bool ArenaReservoirIsConsistent(Arena arena)
+{
+  Bool res;
+  Size size = 0;
+  Ring node, nextNode;
+  Pool pool;
+  AVERT(Arena, arena);
+  pool = &arena->reservoirStruct.poolStruct;
+  AVERT(Pool, pool);
+
+  /* Check the the size of the segments matches reservoirSize */
+  RING_FOR(node, PoolSegRing(pool), nextNode) {
+    Seg seg = SegOfPoolRing(node);
+    size += SegSize(seg);
+  }
+  if (size != arena->reservoirSize)
+    return FALSE;
+
+  /* design.mps.reservoir.align */
+  res = SizeIsAligned(arena->reservoirLimit, arena->alignment) &&
+        SizeIsAligned(arena->reservoirSize, arena->alignment) &&
+        (arena->reservoirLimit >= arena->reservoirSize);
+
+  return res;
+}
+
+/* ArenaEnsureReservoir  
+ * 
+ * Ensures that the reservoir is the right size, by topping it up 
+ * if possible.
+ */
+
+static Res ArenaEnsureReservoir(Arena arena)
+{
+  Size limit, alignment;
+  Pool reservoir;
+
+  AVERT(Arena, arena);
+  alignment = arena->alignment;
+  limit = arena->reservoirLimit;
+
+  /* optimize the common case of a full reservoir */
+  if (arena->reservoirSize == limit)
+    return ResOK; 
+
+  reservoir = &arena->reservoirStruct.poolStruct;
+  AVERT(Pool, reservoir);
+
+  while (arena->reservoirSize < limit) {
+    Res res;
+    Seg seg;
+    res = (*arena->class->segAlloc)(&seg, SegPrefDefault(), 
+                                    alignment, reservoir);
+    if (res != ResOK) {
+      AVER(ArenaReservoirIsConsistent(arena));
+      return res;
+    }
+    AVER(SegSize(seg) == alignment);
+    arena->reservoirSize += alignment;
+  }
+  AVER(ArenaReservoirIsConsistent(arena));
+  return ResOK;
+}
+
+static Seg ArenaReservoirFirstSeg(Arena arena)
+{
+  Ring ring, node;
+  Pool pool;
+  Seg seg;
+  
+  AVERT(Arena, arena);
+  pool = &arena->reservoirStruct.poolStruct;
+  AVERT(Pool, pool);
+
+  ring = PoolSegRing(pool);
+  node = RingNext(ring);
+  AVER(node != ring);  /* check there is at least 1 segment */
+  seg = SegOfPoolRing(node);
+  return seg;
+}
+
+static void ArenaShrinkReservoir(Arena arena, Size want)
+{
+  AVER(SizeIsAligned(want, arena->alignment));
+  AVER(arena->reservoirSize > want);
+
+  if (arena->reservoirSize == want)
+    return;
+
+  /* Iterate over reservoir segs, freeing them while reservoir is too big */
+  while (arena->reservoirSize > want) {
+    Seg seg = ArenaReservoirFirstSeg(arena);
+    Size size = SegSize(seg);
+    (*arena->class->segFree)(seg);
+    arena->reservoirSize -= size;
+  }
+  AVER(arena->reservoirSize <= want);
+  AVER(ArenaReservoirIsConsistent(arena));
+}
+
+static Res ArenaAllocSegFromReservoir(Seg *segReturn, Arena arena, 
+                                      Size size, Pool pool)
+{
+  Ring ring;
+  Ring node, nextNode;
+  Pool reservoir;
+  
+  AVER(segReturn != NULL);
+  AVERT(Arena, arena);
+  AVER(SizeIsAligned(size, arena->alignment));
+  AVERT(Pool, pool);
+  reservoir = &arena->reservoirStruct.poolStruct;
+  AVERT(Pool, reservoir);
+
+  /* Return the first segment which is big enough */
+  ring = PoolSegRing(pool);
+  RING_FOR(node, ring, nextNode) {
+    Seg seg = SegOfPoolRing(node);
+    Size segSize = SegSize(seg);
+    if (segSize >= size) {
+      arena->reservoirSize -= segSize;
+      SegRealloc(seg, pool);
+      AVER(ArenaReservoirIsConsistent(arena));
+      *segReturn = seg;
+      return ResOK;
+    }
+  }
+  AVER(ArenaReservoirIsConsistent(arena));  
+  return ResMEMORY; /* no suitable segment in the reservoir */
+}
+
+static void ArenaReturnSegToReservoir(Arena arena, Seg seg)
+{
+  Pool reservoir;
+  Size have, limit, new;
+  AVERT(Arena, arena);
+  reservoir = &arena->reservoirStruct.poolStruct;
+  AVERT(Pool, reservoir);
+
+  have = arena->reservoirSize;
+  limit = arena->reservoirLimit;
+  new = SegSize(seg);
+  AVER(have < limit); /* The reservoir mustn't be full */
+  if (new > (limit - have)) {
+    /* The new segment is too big for the reservoir, so free it. */
+    /* design.mps.reservoir.lose */
+    (*arena->class->segFree)(seg);
+  } else {
+    /* Reassign the segment to the reservoir pool */
+    SegRealloc(seg, reservoir);
+    arena->reservoirSize += new; 
+  }
+  AVER(ArenaReservoirIsConsistent(arena));
+}
+
+
+static Count ArenaMutatorBufferCount(Arena arena)
+{
+  Ring nodep, nextp;
+  Count count = 0;
+
+  AVERT(Arena, arena);
+  
+  /* Iterate over all pools, and count the mutator buffers in each */
+  RING_FOR(nodep, &arena->poolRing, nextp) {
+    Pool pool = RING_ELT(Pool, arenaRing, nodep);
+    Ring nodeb, nextb;
+    RING_FOR(nodeb, &pool->bufferRing, nextb) {
+      Buffer buff = RING_ELT(Buffer, poolRing, nodeb);
+      if (buff->isMutator)
+        count++;
+    }
+  }
+  return count;
+}
+
+
+void ArenaReservoirLimitSet(Arena arena, Size size)
+{
+  Size needed;
+  AVERT(Arena, arena);
+
+  if (size > 0) {
+    Size wastage;
+    /* design.mps.reservoir.wastage */
+    wastage = ArenaAlign(arena) * ArenaMutatorBufferCount(arena);
+    /* design.mps.reservoir.align */
+    needed = SizeAlignUp(size, ArenaAlign(arena)) + wastage;
+  } else {
+    needed = 0; /* design.mps.reservoir.really-empty */
+  }
+
+  AVER(SizeIsAligned(needed, arena->alignment));
+
+  if (needed > arena->reservoirSize) {
+    /* Try to grow the reservoir */
+    arena->reservoirLimit = needed;
+    ArenaEnsureReservoir(arena);
+  } else {
+    /* Shrink the reservoir */
+    ArenaShrinkReservoir(arena, needed);
+    arena->reservoirLimit = needed;
+    AVER(ArenaReservoirIsConsistent(arena));  
+  }
+}
+
+Size ArenaReservoirLimit(Arena arena)
+{
+  AVERT(Arena, arena);
+  AVER(ArenaReservoirIsConsistent(arena));  
+  return arena->reservoirLimit;
+}
+
+Size ArenaReservoirAvailable(Arena arena)
+{
+  AVERT(Arena, arena);
+  ArenaEnsureReservoir(arena);
+  return arena->reservoirSize;
+}
+
 
 
 /* ArenaClassCheck -- check the consistency of an arena class */
@@ -98,8 +413,11 @@ Bool ArenaCheck(Arena arena)
   CHECKL(RingCheck(&arena->globalRing));
 
   CHECKL(BoolCheck(arena->poolReady));
-  if(arena->poolReady)                 /* design.mps.arena.pool.ready */
+  if(arena->poolReady) {               /* design.mps.arena.pool.ready */
     CHECKD(MV, &arena->controlPoolStruct);
+    CHECKD(NSEG, &arena->reservoirStruct);
+  }
+
   CHECKD(Lock, &arena->lockStruct);
 
   /* no check possible on arena->pollThreshold */
@@ -228,6 +546,8 @@ void ArenaInit(Arena arena, ArenaClass class)
     /* design.mps.arena.trace.invalid */
     arena->trace[i].sig = SigInvalid;   
   }
+  arena->reservoirLimit = (Size)0;
+  arena->reservoirSize = (Size)0;
   LockInit(&arena->lockStruct);
   arena->insideShield = FALSE;          /* impl.c.shield */
   arena->shCacheI = (Size)0;
@@ -302,12 +622,19 @@ Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
   ArenaEnter(arena);
   AVERT(Arena, arena);
 
+  /* initialize the reservoir, design.mps.reservoir */
+  res = PoolInit(&arena->reservoirStruct.poolStruct, 
+                 arena, &PoolClassNSEGStruct);
+  if(res != ResOK) 
+    goto failReservoirInit;
+
   /* design.mps.arena.pool.init */
   res = PoolInit(&arena->controlPoolStruct.poolStruct, 
                  arena, PoolClassMV(),
                  ARENA_CONTROL_EXTENDBY, ARENA_CONTROL_AVGSIZE,
                  ARENA_CONTROL_MAXSIZE);
-  if(res != ResOK) goto failControlInit;
+  if(res != ResOK) 
+    goto failControlInit;
   arena->poolReady = TRUE;      /* design.mps.arena.pool.ready */
   
   /* initialize the message stuff, design.mps.message */
@@ -331,6 +658,8 @@ Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
 failEnabledBTAlloc:
   PoolFinish(&arena->controlPoolStruct.poolStruct);
 failControlInit:
+  PoolFinish(&arena->reservoirStruct.poolStruct);
+failReservoirInit:
   (*class->finish)(arena);
 failInit:
   LockReleaseMPM(&arenaRingLock);
@@ -372,6 +701,9 @@ void ArenaDestroy(Arena arena)
   AVERT(Arena, arena);
   AVER(!arena->insidePoll);
 
+  /* Empty the reservoir - see .reservoir.finish */
+  ArenaReservoirLimitSet(arena, 0);
+
   /* Detach the arena from the global list. */
   LockClaim(&arenaRingLock);
   RingRemove(&arena->globalRing);
@@ -406,8 +738,9 @@ void ArenaDestroy(Arena arena)
     PoolDestroy(pool);
   }
 
-  /* Destroy the control pool. */
+  /* Destroy the control pool & reservoir pool. */
   arena->poolReady = FALSE;
+  PoolFinish(&arena->reservoirStruct.poolStruct);
   PoolFinish(&arena->controlPoolStruct.poolStruct);
 
   ArenaLeave(arena);
@@ -808,7 +1141,8 @@ Res ArenaAlloc(void **baseReturn, Arena arena, size_t size)
   AVER(size > 0);
 
   pool = MVPool(&arena->controlPoolStruct);
-  res = PoolAlloc(&base, pool, (Size)size);
+  res = PoolAlloc(&base, pool, (Size)size,
+                  /* withReservoirPermit */ FALSE);
   if(res != ResOK) return res;
 
   *baseReturn = (void *)base; /* see .arenaalloc.addr */
@@ -831,9 +1165,23 @@ void ArenaFree(Arena arena, void* base, size_t size)
 }
 
 
+/* SegRealloc -- Reallocate a segment from one pool to another
+ *
+ * The segment appears as a freshly initialized segment in the new pool.
+ */
+
+void SegRealloc(Seg seg, Pool newpool)
+{
+  AVERT(Seg, seg);
+  AVER(seg->_pool != newpool);
+  SegFinish(seg);
+  SegInit(seg, newpool);
+}
+
 /* SegAlloc -- allocate a segment from the arena */
 
-Res SegAlloc(Seg *segReturn, SegPref pref, Size size, Pool pool)
+Res SegAlloc(Seg *segReturn, SegPref pref, Size size, Pool pool,
+             Bool withReservoirPermit)
 {
   Res res;
   Seg seg;
@@ -843,16 +1191,29 @@ Res SegAlloc(Seg *segReturn, SegPref pref, Size size, Pool pool)
   AVERT(SegPref, pref);
   AVER(size > (Size)0);
   AVERT(Pool, pool);
+  AVER(BoolCheck(withReservoirPermit));
 
   arena = PoolArena(pool);
   AVERT(Arena, arena);
   AVER(SizeIsAligned(size, arena->alignment));
 
-  res = (*arena->class->segAlloc)(&seg, pref, size, pool);
-  if(res != ResOK) return res;
+  res = ArenaEnsureReservoir(arena);
+  if (res != ResOK) {
+    AVER(ResIsAllocFailure(res));
+    if (!withReservoirPermit)
+      return res;
+  }
 
-  *segReturn = seg;
-  return ResOK;
+  res = (*arena->class->segAlloc)(&seg, pref, size, pool);
+  if (res == ResOK) {
+    *segReturn = seg;
+    return ResOK;
+  } else if (withReservoirPermit) {
+    AVER(ResIsAllocFailure(res));
+    return ArenaAllocSegFromReservoir(segReturn, arena, size, pool);
+  } else {
+    return res;
+  }
 }
 
 
@@ -861,11 +1222,21 @@ Res SegAlloc(Seg *segReturn, SegPref pref, Size size, Pool pool)
 void SegFree(Seg seg)
 {
   Arena arena;
+  Res res;
 
   AVERT(Seg, seg);
   arena = SegArena(seg);
   AVERT(Arena, arena);
-  (*arena->class->segFree)(seg);
+
+  res = ArenaEnsureReservoir(arena);
+  if (res == ResOK) {
+    (*arena->class->segFree)(seg);
+  } else {
+    AVER(ResIsAllocFailure(res));
+    ArenaReturnSegToReservoir(arena, seg);
+  }
+
+
 }
 
 

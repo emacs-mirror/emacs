@@ -1,6 +1,6 @@
 /* impl.c.pooln: NULL POOL CLASS
  *
- * $HopeName: MMsrc!pooln.c(trunk.20) $
+ * $HopeName: MMsrc!pooln.c(trunk.21) $
  * Copyright (C) 1997 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MPS developers
@@ -9,7 +9,7 @@
 #include "pooln.h"
 #include "mpm.h"
 
-SRCID(pooln, "$HopeName: MMsrc!pooln.c(trunk.20) $");
+SRCID(pooln, "$HopeName: MMsrc!pooln.c(trunk.21) $");
 
 
 typedef struct PoolNStruct {
@@ -53,7 +53,8 @@ Pool (PoolNPool)(PoolN poolN)
 }
 
 
-static Res NAlloc(Addr *pReturn, Pool pool, Size size)
+static Res NAlloc(Addr *pReturn, Pool pool, Size size,
+                  Bool withReservoirPermit)
 {
   PoolN poolN;
 
@@ -63,6 +64,7 @@ static Res NAlloc(Addr *pReturn, Pool pool, Size size)
 
   AVER(pReturn != NULL);
   AVER(size > 0);
+  AVER(BoolCheck(withReservoirPermit));
 
   return ResLIMIT;  /* limit of nil blocks exceeded */
 }
@@ -113,7 +115,8 @@ static void NBufferFinish(Pool pool, Buffer buffer)
 
 
 static Res NBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
-                       Pool pool, Buffer buffer, Size size)
+                       Pool pool, Buffer buffer, Size size,
+                       Bool withReservoirPermit)
 {
   PoolN poolN;
 
@@ -126,6 +129,7 @@ static Res NBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   AVERT(Buffer, buffer);
   AVER(BufferIsReset(buffer));
   AVER(size > 0);
+  AVER(BoolCheck(withReservoirPermit));
 
   NOTREACHED;   /* can't create buffers, so shouldn't fill them */
   return ResUNIMPL;

@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.51) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.52) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -144,12 +144,14 @@ typedef void (*FormattedObjectsStepMethod)(Addr, Format, Pool,
 
 typedef Res (*PoolInitMethod)(Pool pool, va_list args);
 typedef void (*PoolFinishMethod)(Pool pool);
-typedef Res (*PoolAllocMethod)(Addr *pReturn, Pool pool, Size size);
+typedef Res (*PoolAllocMethod)(Addr *pReturn, Pool pool, Size size,
+                               Bool withReservoirPermit);
 typedef void (*PoolFreeMethod)(Pool pool, Addr old, Size size);
 typedef Res (*PoolBufferInitMethod)(Pool pool, Buffer buf, va_list args);
 typedef Res (*PoolBufferFillMethod)(Seg *segReturn,
                                     Addr *baseReturn, Addr *limitReturn,
-                                    Pool pool, Buffer buffer, Size size);
+                                    Pool pool, Buffer buffer, Size size,
+                                    Bool withReservoirPermit);
 typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer);
 typedef void (*PoolBufferFinishMethod)(Pool pool, Buffer buf);
 typedef Res (*PoolTraceBeginMethod)(Pool pool, Trace trace);
