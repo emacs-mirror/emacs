@@ -1277,7 +1277,6 @@ in the selected file.
 			       (speedbar-quick-mouse event)))
 			;; Don't do normal operations.
 			t)))))
-    (make-local-hook 'kill-buffer-hook)
     (add-hook 'kill-buffer-hook (lambda () (let ((skilling (boundp 'skilling)))
 					     (if skilling
 						 nil
