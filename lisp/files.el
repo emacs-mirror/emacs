@@ -1078,8 +1078,12 @@ that are visiting the various files."
 		      (setq buffer-read-only read-only)))
 		  (setq buffer-file-read-only read-only))
 
-		(when (not (eq (not (null rawfile))
-			       (not (null find-file-literally))))
+		(when (and (not (eq (not (null rawfile))
+				    (not (null find-file-literally))))
+			   ;; It is confusing to ask whether to visit
+			   ;; non-literally if they have the file in
+			   ;; hexl-mode.
+			   (not (eq major-mode 'hexl-mode)))
 		  (if (buffer-modified-p)
 		      (if (y-or-n-p (if rawfile
 					"Save file and revisit literally? "
