@@ -1231,7 +1231,7 @@ create_process (process, new_argv, current_dir)
 	  ioctl (xforkin, TIOCSCTTY, 0);
 #endif
 #else /* not HAVE_SETSID */
-#if defined (USG) && !defined (IRIX)
+#ifdef USG
 	/* It's very important to call setpgrp() here and no time
 	   afterwards.  Otherwise, we lose our controlling tty which
 	   is set when we open the pty. */
@@ -2370,7 +2370,7 @@ process_send_signal (process, signo, current_group, nomsg)
 
   	case SIGTSTP:
 	  tcgetattr (XINT (p->infd), &t);
-#ifdef VSWTCH
+#if defined (VSWTCH) && !defined (IRIX5)
   	  send_process (proc, &t.c_cc[VSWTCH], 1);
 #else
 	  send_process (proc, &t.c_cc[VSUSP], 1);
