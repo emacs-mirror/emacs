@@ -1,3 +1,8 @@
+2002-11-28  Dave Love  <fx@gnu.org>
+
+	* s/amdahl.h, s/unipl5-0.h, m/sgi3000.h, s/3700.h, s/alliant-2800.h:
+	* s/alliant.h, s/altos.h: Deleted.  (Unused/empty.)
+
 2002-11-27  Steven Tamm  <steventamm@mac.com>
 
 	* fns.c (Frequire): Change nesting allowance from 2 to 3 to cause
