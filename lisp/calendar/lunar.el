@@ -362,7 +362,7 @@ This function is suitable for execution in a .emacs file."
 
 (defun lunar-new-moon-on-or-after (d)
   "Astronomical (Julian) day number of first new moon on or after astronomical
-(Julian) day number d.  The fractional part is the time of day.
+\(Julian) day number d.  The fractional part is the time of day.
 
 The date and time are local time, including any daylight savings rules,
 as governed by the values of calendar-daylight-savings-starts,
