@@ -1,3 +1,269 @@
+2002-03-01  Kenichi Handa  <handa@etl.go.jp>
+
+	The following changes are for using Unicode as an internal
+	character model, and use UTF-8 format for buffer/string
+	representation.
+
+	* .gdbinit (xchartable): Adjusted for the change of char table
+	structure.
+	(xsubchartable, xcoding, xcharset, xcurbuf): New commands.
+	
+	* Makefile.in (obj): Add character.o and chartab.o.
+	(lisp, shortlisp): Remove utf-8.elc:
+	(*.o): For many files, change dependency on charset.h to
+	character.h, and add dependency on character.h.
+	(character.o, chartab.o): New targets.
+	
+	* abbrev.c, bytecode.c, casefiddle.c, cmds.c, dispnew.c, doc.c,
+	doprnt.c, dosfns.c, frame.c, marker.c, minibuf.c, msdos.c,
+	w16select.c, w32bdf.c, w32console.c: Include "character.h" instead
+	of "charset.h".
+	
+	* dired.c, filelock.c: Include "character.h".
+
+	* alloc.c: Include "character.h" instead of "charset.h".
+	(Fmake_char_table): Moved to chartab.c.
+	(make_sub_char_table): Likewise.
+	(syms_of_alloc): Remove defsubr for Smake_char_table.
+
+	* buffer.c: Include "character.h" instead of "charset.h", don't
+	include "coding.h".
+	(Fset_buffer_multibyte): Adjuted for UTF-8.
+
+	* buffer.h: EXFUN Fbuffer_live_p.
+
+	* callproc.c: Include "character.h" instead of "charset.h".
+	(Fcall_process): Big change for the new code-conversion APIs.
+
+	* casetab.c: Include "character.h" instead of "charset.h".
+	(set_canon, set_identity, shuffle): Adjusted for the new
+	map_char_table spec.
+	(init_casetab_once): Call CHAR_TABLE_SET instead of directly
+	accessing the char table structure.
+
+	* chartab.c: New file that implements char table.
+
+	* category.c: Include "character.h".
+	(copy_category_entry): New function.
+	(copy_category_table): Call map_char_table and copy_category_entry.
+	(Fmake_category_table): Initialize all top-vel slots.
+	(char_category_set): New function.
+	(modify_lower_category_set): Deleted.
+	(Fmodify_category_entry): Call char_table_ref_and_range.
+
+	* category.h (CATEGORY_SET): Just call char_category_set.
+
+	* ccl.c: Include "character.h".
+	(Qccl, Qcclp): New variables.
+	(CCL_WRITE_CHAR): Alway treat the arg CH as a character even if
+	it's less than 256.
+	(CCL_WRITE_MULTIBYTE_CHAR): Deleted.
+	(CCL_WRITE_STRING, CCL_READ_CHAR): Adjusted for the change of SRC
+	and DST type.
+	(ccl_driver): Types of arguments changed.  Code adjusted for that.
+	(Fccl_execute, Fccl_execute_on_string): Adjusted for the change of
+	ccl_driver.
+	(syms_of_ccl): Intern and staticpro Qccl and Qcclp.
+
+	* ccl.h (struct ccl_program): Members eol_type and multibyte
+	deleted.  New members src_multibyte, dst_multibyte, consumed, and
+	produced.
+	(struct ccl_spec): Members decoder and encoder deleted.  New
+	memeber ccl.
+	(CODING_SPEC_CCL_PROGRAM): New macro.
+	(ccl_driver): Prototype updated.
+	(Qccl, Qcclp, Fccl_program_p): Extern them.
+	(CHECK_CCL_PROGRAM): New macro.
+
+	* character.c, character.h, chartab.c: New files. 
+
+	* charset.c: Mostly re-written.  Character and multibyte sequence
+	handling codes are moved to character.c.
+
+	* charset.h: Mostly re-written.  Character and multibyte sequence
+	handling codes are moved to character.h.
+
+	* coding.c, coding.h: Mostly re-written.
+
+	* composite.c: Include "character.h" instead of "charset.h".
+	(CHAR_WIDTH): Moved to character.h.
+	(HASH_KEY, HASH_VALUE): Deleted.
+
+	* composite.h (enum composition_method): Order of enumeration
+	symbols changed.
+
+	* data.c: Include "character.h" instead of "charset.h".
+	(Faref): Call CHAR_TABLE_REF for a char table.
+	(Faset): Call CHAR_TABLE_SET for a char table.
+
+	* dispextern.h (free_realized_face, check_face_attribytes,
+	generate_ascii_font): Extern them.
+	(free_realized_multibyte_face): Extern deleted.
+
+	* disptab.h (DISP_CHAR_VECTOR): Adjusted for the change of char
+	table structure.
+	
+	* editfns.c: Include "character.h" instead of "charset.h".
+	(Fchar_to_string): Always call CHAR_STRING.
+
+	* emacs.c (main): Call init_charset_once, init_charset,
+	syms_of_chartab, and syms_of_character.
+
+	* fileio.c: Include "character.h" instead of "charset.h".
+	(Finsert_file_contents): Big change for the new code-conversion
+	API.
+	(choose_write_coding_system): Likewise.
+	(Fwrite_region): Likewise.
+	(build_annotations_2): Deleted.
+	(e_write): Big change for the new code-conversion API.
+
+	* fns.c: Include "character.h" instead of "charset.h".
+	(copy_sub_char_table): Moved to chartab.c.
+	(Fcopy_sequence): Call copy_char_table for a char table.
+	(concat): Delete codes calling count_multibyte.
+	(string_char_to_byte): Adjusted for the new multibyte form.
+	(string_byte_to_char): Likewise.
+	(internal_equal): Adjusted for the change of char table structure.
+	(Fchar_table_subtype, Fchar_table_parent, Fset_char_table_parent,
+	Fchar_table_extra_slot, Fset_char_table_extra_slot,
+	Fchar_table_range, Fset_char_table_range, Fset_char_table_default,
+	char_table_translate, optimize_sub_char_table,
+	Foptimize_char_table, map_char_table, Fmap_char_table): Moved to
+	chartab.c.
+	(char_table_ref_and_index): Deleted.
+	(HASH_KEY, HASH_VALUE): Moved to lisp.h.
+	(Fmd5): Call preferred_coding_system instead of accessing
+	Vcoding_category_list.  Adjusted for the new code-conversion API.
+	(syms_of_fns): Defsubr for char table related functions moved to
+	chartab.c.
+
+	* fontset.c: Mostly re-written.
+
+	* fontset.h (struct font_info): Type of the member encoding_type
+	changed.
+	(enum FONT_SPEC_INDEX): New enum.
+	(fontset_font_pattern, fs_load_font): Prototype updated.
+	(FS_LOAD_FONT): Adjusted for the change of fs_load_font.
+
+	* indent.c: Include "character.h" instead of "charset.h".
+	(MULTIBYTE_BYTES_WIDTH): Call CHAR_WIDTH instead of
+	WIDTH_BY_CHAR_HEAD.
+
+	* insdel.c: Include "character.h" instead of "charset.h".
+	(copy_text): Don't refer to Vnonascii_translation_table.
+	(insert_from_gap): New function.
+
+	* keyboard.c: Include "character.h" instead of "charset.h".
+	(command_loop_1): Never call direct_output_forward_char before
+	a non-ASCII character.
+	(read_char): If Vkeyboard_translate_table is a char table, always
+	translated a character.
+
+	* keymap.c: Include "character.h".
+	(store_in_keymap): Handle the case that IDX is a cons.
+	(Fdefine_key): Handle the case that KEY is a cons and the car part
+	is also a cons (range).
+	(push_key_description): Adjusted for the new character code.
+	(describe_vector): Call describe_char_table for a char table.
+	(describe_char_table): New function.
+
+	* keymap.h (describe_char_table): Extern it.
+
+	* lisp.h (enum pvec_type): New member PVEC_SUB_CHAR_TABLE.
+	(XSUB_CHAR_TABLE, XSETSUB_CHAR_TABLE): New macros.
+	(CHAR_TABLE_ORDINARY_SLOTS, CHAR_TABLE_SINGLE_BYTE_SLOTS,
+	SUB_CHAR_TABLE_ORDINARY_SLOTS, SUB_CHAR_TABLE_STANDARD_SLOTS):
+	Deleted.
+	(CHAR_TABLE_REF, CHAR_TABLE_SET): Adjusted for the new char table
+	structure.
+	(CHAR_TABLE_TRANSLATE): Just call char_table_translate.
+	(CHARTAB_SIZE_BITS_0, CHARTAB_SIZE_BITS_1, CHARTAB_SIZE_BITS_2,
+	CHARTAB_SIZE_BITS_3): New macros.
+	(chartab_size): Extern it.
+	(struct Lisp_Char_Table): Re-designed.
+	(struct Lisp_Sub_Char_Table): New structure.
+	(HASH_KEY, HASH_VALUE): Moved from fns.c.
+	(CHARACTERBITS): Defined as 22.
+	(GLYPH_MASK_FACE, GLYPH_MASK_CHAR): Adjusted for the above change.
+	(SUB_CHAR_TABLE_P): Check PVEC_CHAR_TABLE.
+	(GC_SUB_CHAR_TABLE_P): New macro.
+	(Fencode_coding_string, Fdecode_coding_string): EXFUN Updated.
+	(code_convert_string_norecord): Extern deleted.
+	(init_character_once, syms_of_character, init_charset,
+	syms_of_composite, Qeq, Fmakehash, insert_from_gap): Extern them.
+
+	* lread.c: Include "character.h".
+	(read_multibyte): New arg NBYTES.
+	(read_escape): The meaning of returned *BYTEREP changed.
+	(to_multibyte): Deleted.
+	(read1): Adjuted the handling of char table and string.
+
+	* print.c: Include "character.h" instead of "charset.h".
+	(print_string): Convert 8-bit raw bytes to octal form by
+	string_escape_byte8.
+	(print_object): Adjusted for the new multibyte form.  Print 8-bit
+	raw bytes always in octal form.  Handle sub char table correctly.
+
+	* process.c: Include "character.h" instead of "charset.h".
+	(read_process_output): Adjusted for the new code-conversion API.
+	(send_process): Likewise.
+
+	* puresize.h (BASE_PURESIZE): Increased.
+
+	* regex.c: Include "character.h" instead of "charset.h".
+	(BYTE8_TO_CHAR, CHAR_BYTE8_P) [not emacs]: New dummy macros.
+	(regex_compile): Accept a range whose starting and ending
+	character have different leading bytes.
+	(analyse_first): Adjusted for the above change.
+
+	* search.c: Include "character.h" instead of "charset.h".
+	(search_buffer, boyer_moore): Adjusted for the new multibyte form.
+	(Freplace_match): Adjusted for the change of
+	multibyte_char_to_unibyte.
+
+	* syntax.c: Include "character.h" instead of "charset.h".
+	(syntax_parent_lookup): Deleted.
+	(Fmodify_syntax_entry): Accept a cons as CHAR.
+	(skip_chars): Adjusted for the new multibyte form.
+	(init_syntax_once): Call char_table_set_range instead of directly
+	accessing the structure of a char table.
+
+	* syntax.h (SET_RAW_SYNTAX_ENTRY): Call CHAR_TABLE_SET.
+	(SYNTAX_ENTRY_FOLLOW_PARENT): Macro deleted.
+	(SET_RAW_SYNTAX_ENTRY_RANGE): New macro.
+	(SYNTAX_ENTRY_INT): Call CHAR_TABLE_REF.
+
+	* term.c: Include "buffer.h" and "character.h".
+	(encode_terminal_code): Adjusted for the new code-conversion API.
+	(write_glyphs): Likewise.
+	(produce_glyphs): Call CHAR_WIDTH instead of CHARSET_WIDTH.
+
+	* w32term.c (x_new_font): Adjusted for the change of FS_LOAD_FONT.
+
+	* xdisp.c: Include "character.h".
+	(get_next_display_element): Adjusted for the new multibyte form.
+	(disp_char_vector): Adjusted for the new char table structure.
+	(decode_mode_spec_coding): Adjusted for the new structure of
+	coding system.
+	(decode_mode_spec): Adjusted for the new code-conversion API.
+
+	* xfaces.c: Include "character.h" instead of "charset.h".
+	(load_face_font): Adjusted for the change of choose_face_font and
+	FS_LOAD_FONT.
+	(generate_ascii_font): New function.
+	(set_lface_from_font_name): Adjusted for the change of
+	FS_LOAD_FONT.
+	(set_font_frame_param): Adjusted for the change of
+	choose_face_font.
+	(free_realized_face): Make it public.
+	(free_realized_faces_for_fontset): Renamed from
+	free_realized_multibyte_face.  Free also faces realized for ASCII.
+	(choose_face_font): Argments changed.  Adjusted for the change of
+	fontset_font_pattern and FS_LOAD_FONT.
+
+	* xfns.c: Include "character.h".
+	(x_encode_text): Adjusted for the new code-conversion API.
+
 2002-02-26  Kim F. Storm  <storm@cua.dk>
 
 	The following changes add a new Vminibuf_selected_window variable
