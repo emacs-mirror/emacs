@@ -3096,22 +3096,29 @@ Otherwise returns nil.")
 
   filename = ENCODE_FILE (filename);
 
-  bufsize = 100;
-  while (1)
+  bufsize = 50;
+  buf = NULL;
+  do
     {
-      buf = (char *) xmalloc (bufsize);
-      bzero (buf, bufsize);
-      valsize = readlink (XSTRING (filename)->data, buf, bufsize);
-      if (valsize < bufsize) break;
-      /* Buffer was not long enough */
-      xfree (buf);
       bufsize *= 2;
+      buf = (char *) xrealloc (buf, bufsize);
+      bzero (buf, bufsize);
+      
+      errno = 0;
+      valsize = readlink (XSTRING (filename)->data, buf, bufsize);
+      if (valsize == -1
+#ifdef ERANGE
+	  /* HP-UX reports ERANGE if buffer is too small.  */
+	  && errno != ERANGE
+#endif
+	  )
+	{
+	  xfree (buf);
+	  return Qnil;
+	}
     }
-  if (valsize == -1)
-    {
-      xfree (buf);
-      return Qnil;
-    }
+  while (valsize >= bufsize);
+  
   val = make_string (buf, valsize);
   if (buf[0] == '/' && index (buf, ':'))
     val = concat2 (build_string ("/:"), val);
