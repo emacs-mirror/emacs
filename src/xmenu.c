@@ -324,6 +324,11 @@ menu_item_equiv_key (item_string, item1, descrip_ptr)
     def1 = Fkey_binding (savedkey, Qnil);
   /* If not, update it.  */
   if (! EQ (def1, def)
+      /* If the command is an alias for another
+         (such as easymenu.el and lmenu.el set it up),
+         check if the original command matches the cached command. */
+      && !(SYMBOLP (def) && SYMBOLP (XSYMBOL (def)->function)
+           && EQ (def1, XSYMBOL (def)->function))
       /* If something had no key binding before, don't recheck it--
 	 doing that takes too much time and makes menus too slow.  */
       && !(!NILP (cachelist) && NILP (savedkey)))
