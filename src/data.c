@@ -2757,6 +2757,7 @@ syms_of_data ()
   defsubr (&Snatnump);
   defsubr (&Ssymbolp);
   defsubr (&Sstringp);
+  defsubr (&Smultibyte_string_p);
   defsubr (&Svectorp);
   defsubr (&Schar_table_p);
   defsubr (&Svector_or_char_table_p);
