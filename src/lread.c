@@ -181,6 +181,24 @@ static int new_backquote_flag;
 
 static Lisp_Object Vloads_in_progress;
 
+/* Limit of the depth of recursive loads.  */
+
+Lisp_Object Vrecursive_load_depth_limit;
+
+/* Non-zero means load dangerous compiled Lisp files.  */
+
+int load_dangerous_libraries;
+
+/* A regular expression used to detect files compiled with Emacs.  */
+
+static Lisp_Object Vbytecomp_version_regexp;
+
+static void readevalloop P_ ((Lisp_Object, FILE*, Lisp_Object, 
+			      Lisp_Object (*) (), int,
+			      Lisp_Object, Lisp_Object));
+static Lisp_Object load_unwind P_ ((Lisp_Object));
+static Lisp_Object load_descriptor_unwind P_ ((Lisp_Object));
+
 
 /* Handle unreading and rereading of characters.
    Write READCHAR to read a character,
@@ -537,22 +555,9 @@ DEFUN ("get-file-char", Fget_file_char, Sget_file_char, 0, 0, 0,
   XSETINT (val, getc (instream));
   return val;
 }
+
+
 
-static void readevalloop P_ ((Lisp_Object, FILE*, Lisp_Object, 
-			      Lisp_Object (*) (), int,
-			      Lisp_Object, Lisp_Object));
-static Lisp_Object load_unwind P_ ((Lisp_Object));
-static Lisp_Object load_descriptor_unwind P_ ((Lisp_Object));
-
-/* Non-zero means load dangerous compiled Lisp files.  */
-
-int load_dangerous_libraries;
-
-/* A regular expression used to detect files compiled with Emacs.  */
-
-static Lisp_Object Vbytecomp_version_regexp;
-
-
 /* Value is non-zero if the file asswociated with file descriptor FD
    is a compiled Lisp file that's safe to load.  Only files compiled
    with Emacs are safe to load.  Files compiled with XEmacs can lead
@@ -708,18 +713,26 @@ Return t if file exists.")
 	return call5 (handler, Qload, found, noerror, nomessage, Qt);
     }
 
-#if 0 /* This is a good idea, but it doesn't quite work.
-	 While compiling files, `provide's seem to not be evaluated.
-	 Let's come back to this when there's more time.  */
-	 
-  /* Check if we're loading this file again while another load
-     of the same file is already in progress.  */
-  if (!NILP (Fmember (found, Vloads_in_progress)))
-    Fsignal (Qerror, Fcons (build_string ("Recursive load"),
-			    Fcons (found, Vloads_in_progress)));
-  record_unwind_protect (record_load_unwind, Vloads_in_progress);
-  Vloads_in_progress = Fcons (found, Vloads_in_progress);
-#endif /* 0 */
+  /* Check if we're stuck in a recursive load cycle.
+
+     2000-09-21: It's not possible to just check for the file loaded
+     being a member of Vloads_in_progress.  This fails because of the
+     way the byte compiler currently works; `provide's are not
+     evaluted, see font-lock.el/jit-lock.el as an example.  This
+     leads to a certain amount of ``normal'' recursion.
+
+     Also, just loading a file recursively is not always an error in
+     the general case; the second load may do something different.  */
+  if (INTEGERP (Vrecursive_load_depth_limit)
+      && XINT (Vrecursive_load_depth_limit) > 0)
+    {
+      Lisp_Object len = Flength (Vloads_in_progress);
+      if (XFASTINT (len) > XFASTINT (Vrecursive_load_depth_limit))
+	Fsignal (Qerror, Fcons (build_string ("Recursive load suspected"),
+				Fcons (found, Vloads_in_progress)));
+      record_unwind_protect (record_load_unwind, Vloads_in_progress);
+      Vloads_in_progress = Fcons (found, Vloads_in_progress);
+    }
 
   /* Load .elc files directly, but not when they are
      remote and have no handler!  */
@@ -3587,6 +3600,12 @@ When the regular expression matches, the file is considered to be safe\n\
 to load.  See also `load-dangerous-libraries'.");
   Vbytecomp_version_regexp
     = build_string ("^;;;.\\(in Emacs version\\|bytecomp version FSF\\)");
+
+  DEFVAR_LISP ("recursive-load-depth-limit", &Vrecursive_load_depth_limit,
+    "Limit for depth of recursive loads.\n\
+Value should be either an integer > 0 specifying the limit, or nil for\n\
+no limit.");
+  Vrecursive_load_depth_limit = make_number (10);
 
   /* Vsource_directory was initialized in init_lread.  */
 
