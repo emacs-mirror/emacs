@@ -4775,43 +4775,81 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 	  else
 	    {
 	      /* An ordinary element.  */
-	      if ( idx < 0 )
-		s = Fcar_safe (Fcdr_safe (elt));	/* alist */
-	      else
-		s = Fcar_safe(elt);			/* vector */
-	      if (!STRINGP (s))
-		/* Ignore the element if it has no prompt string.  */
-		;
-	      /* If we have room for the prompt string, add it to this line.
-		 If this is the first on the line, always add it.  */
-	      else if (XSTRING (s)->size + i + 2 < width
-		       || !notfirst)
+	      Lisp_Object event;
+
+	      if (idx < 0)
 		{
-		  int thiswidth;
-
-		  /* Punctuate between strings.  */
-		  if (notfirst)
-		    {
-		      strcpy (menu + i, ", ");
-		      i += 2;
-		    }
-		  notfirst = 1;
-		  nobindings = 0 ;
-
-		  /* Add as much of string as fits.  */
-		  thiswidth = XSTRING (s)->size;
-		  if (thiswidth + i > width)
-		    thiswidth = width - i;
-		  bcopy (XSTRING (s)->data, menu + i, thiswidth);
-		  i += thiswidth;
-		  menu[i] = 0;
+		  s = Fcar_safe (Fcdr_safe (elt));	/* alist */
+		  event = Fcar_safe (elt);
 		}
 	      else
 		{
-		  /* If this element does not fit, end the line now,
-		     and save the element for the next line.  */
-		  strcpy (menu + i, "...");
-		  break;
+		  s = Fcar_safe (elt);			/* vector */
+		  XSETINT (event, idx);
+		}
+
+	      /* Ignore the element if it has no prompt string.  */
+	      if (STRINGP (s) && INTEGERP (event))
+		{
+		  /* 1 if the char to type matches the string.  */
+		  int char_matches;
+		  Lisp_Object upcased_event, downcased_event;
+		  Lisp_Object desc;
+
+		  upcased_event = Fupcase (event);
+		  downcased_event = Fdowncase (event);
+		  char_matches = (XINT (upcased_event) == XSTRING (s)->data[0]
+				  || XINT (downcased_event) == XSTRING (s)->data[0]);
+		  if (! char_matches)
+		    desc = Fsingle_key_description (event);
+
+		  /* If we have room for the prompt string, add it to this line.
+		     If this is the first on the line, always add it.  */
+		  if ((XSTRING (s)->size + i + 2
+		       + (char_matches ? 0 : XSTRING (desc)->size + 3))
+		      < width
+		      || !notfirst)
+		    {
+		      int thiswidth;
+
+		      /* Punctuate between strings.  */
+		      if (notfirst)
+			{
+			  strcpy (menu + i, ", ");
+			  i += 2;
+			}
+		      notfirst = 1;
+		      nobindings = 0 ;
+
+		      /* If the char to type doesn't match the string's
+			 first char, explicitly show what char to type.  */
+		      if (! char_matches)
+			{
+			  /* Add as much of string as fits.  */
+			  thiswidth = XSTRING (desc)->size;
+			  if (thiswidth + i > width)
+			    thiswidth = width - i;
+			  bcopy (XSTRING (desc)->data, menu + i, thiswidth);
+			  i += thiswidth;
+			  strcpy (menu + i, " = ");
+			  i += 3;
+			}
+
+		      /* Add as much of string as fits.  */
+		      thiswidth = XSTRING (s)->size;
+		      if (thiswidth + i > width)
+			thiswidth = width - i;
+		      bcopy (XSTRING (s)->data, menu + i, thiswidth);
+		      i += thiswidth;
+		      menu[i] = 0;
+		    }
+		  else
+		    {
+		      /* If this element does not fit, end the line now,
+			 and save the element for the next line.  */
+		      strcpy (menu + i, "...");
+		      break;
+		    }
 		}
 
 	      /* Move past this element.  */
