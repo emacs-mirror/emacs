@@ -434,7 +434,7 @@ Return t if file exists.")
      So malloc a full-size pointer, and record the address of that pointer.  */
   ptr = (FILE **) xmalloc (sizeof (FILE *));
   *ptr = stream;
-  XSET (lispstream, Lisp_Internal_Stream, (int) ptr);
+  XSET (lispstream, Lisp_Internal_Stream, (EMACS_INT) ptr);
   record_unwind_protect (load_unwind, lispstream);
   record_unwind_protect (load_descriptor_unwind, load_descriptor_list);
   load_descriptor_list
@@ -1616,7 +1616,8 @@ oblookup (obarray, ptr, size)
      register char *ptr;
      register int size;
 {
-  int hash, obsize;
+  int hash;
+  int obsize;
   register Lisp_Object tail;
   Lisp_Object bucket, tem;
 
