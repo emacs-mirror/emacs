@@ -43,17 +43,13 @@ BODY should be a list of lisp expressions."
   ;; depend on backquote.el.
   (list 'function (cons 'lambda cdr)))
 
-;;(defmacro defun-inline (name args &rest body)
-;;  "Create an \"inline defun\" (actually a macro).
-;;Use just like `defun'."
-;;  (nconc (list 'defmacro name '(&rest args))
-;;	 (if (stringp (car body))
-;;	     (prog1 (list (car body))
-;;	       (setq body (or (cdr body) body))))
-;;	 (list (list 'cons (list 'quote
-;;				 (cons 'lambda (cons args body)))
-;;		     'args))))
+(defmacro when (cond &rest body)
+  "(when COND BODY...): if COND yields non-nil, do BODY, else return nil."
+  (list 'if cond (cons 'progn body)))
 
+(defmacro unless (cond &rest body)
+  "(unless COND BODY...): if COND yields nil, do BODY, else return nil."
+  (cons 'if (cons cond (cons nil body))))
 
 ;;;; Keymap support.
 
