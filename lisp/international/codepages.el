@@ -35,7 +35,7 @@
 
 ;; Those covered are: cp437, cp737, cp720, cp775, cp850, cp851, cp852,
 ;; cp855, cp857, cp860, cp861, cp862, cp863, cp864, cp865, cp866,
-;; cp869, cp874, windows-1250, windows-1251, windows-1252,
+;; cp869, cp874, cp1125, windows-1250, windows-1251, windows-1252,
 ;; windows-1253, windows-1254, windows-1255, windows-1256,
 ;; windows-1257, windows-1258, next, koi8-r, koi8-u, iso-8859-6,
 ;; iso-8859-10, iso-8859-12, iso-8859-16, koi8-t, georgian-ps.  This
@@ -4904,6 +4904,140 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\■
   ?\ ])
 (coding-system-put 'cp720 'mime-charset nil) ; not in IANA list
+
+;; http://oss.software.ibm.com/cvs/icu/charset/data/ucm/ibm-1125_P100-2000.ucm
+(cp-make-coding-system
+ cp1125
+ [?\А
+  ?\Б
+  ?\В
+  ?\Г
+  ?\Д
+  ?\Е
+  ?\Ж
+  ?\З
+  ?\И
+  ?\Й
+  ?\К
+  ?\Л
+  ?\М
+  ?\Н
+  ?\О
+  ?\П
+  ?\Р
+  ?\С
+  ?\Т
+  ?\У
+  ?\Ф
+  ?\Х
+  ?\Ц
+  ?\Ч
+  ?\Ш
+  ?\Щ
+  ?\Ъ
+  ?\Ы
+  ?\Ь
+  ?\Э
+  ?\Ю
+  ?\Я
+  ?\а
+  ?\б
+  ?\в
+  ?\г
+  ?\д
+  ?\е
+  ?\ж
+  ?\з
+  ?\и
+  ?\й
+  ?\к
+  ?\л
+  ?\м
+  ?\н
+  ?\о
+  ?\п
+  ?\░
+  ?\▒
+  ?\▓
+  ?\│
+  ?\┤
+  ?\╡
+  ?\╢
+  ?\╖
+  ?\╕
+  ?\╣
+  ?\║
+  ?\╗
+  ?\╝
+  ?\╜
+  ?\╛
+  ?\┐
+  ?\└
+  ?\┴
+  ?\┬
+  ?\├
+  ?\─
+  ?\┼
+  ?\╞
+  ?\╟
+  ?\╚
+  ?\╔
+  ?\╩
+  ?\╦
+  ?\╠
+  ?\═
+  ?\╬
+  ?\╧
+  ?\╨
+  ?\╤
+  ?\╥
+  ?\╙
+  ?\╘
+  ?\╒
+  ?\╓
+  ?\╫
+  ?\╪
+  ?\┘
+  ?\┌
+  ?\█
+  ?\▄
+  ?\▌
+  ?\▐
+  ?\▀
+  ?\р
+  ?\с
+  ?\т
+  ?\у
+  ?\ф
+  ?\х
+  ?\ц
+  ?\ч
+  ?\ш
+  ?\щ
+  ?\ъ
+  ?\ы
+  ?\ь
+  ?\э
+  ?\ю
+  ?\я
+  ?\Ё
+  ?\ё
+  ?\Ґ
+  ?\ґ
+  ?\Є
+  ?\є
+  ?\І
+  ?\і
+  ?\Ї
+  ?\ї
+  ?\÷
+  ?\±
+  ?\№
+  ?\¤
+  ?\￭
+  ?\ ])
+;; Original ;name for cp1125, says Serhii Hlodin <hlodin@lutsk.bank.gov.ua>
+(define-coding-system-alias 'cp866u 'cp1125)
 
 (dotimes (i 8)
   (let ((w (intern (format "windows-125%d" i)))

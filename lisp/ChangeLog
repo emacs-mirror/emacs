@@ -1,3 +1,14 @@
+2001-11-29  Dave Love  <fx@gnu.org>
+
+	* international/codepages.el (cp1125): New.
+
+2001-11-25  Dave Love  <fx@gnu.org>
+
+	* international/utf-8.el (utf-8-post-read-conversion): Fix typo.
+
+	* international/characters.el: Move Unicode Indian equivalents
+	from Devanagari to Indian.
+
 2001-11-11  Dave Love  <fx@gnu.org>
 
 	* language/thai.el: Add Unicode equivalents.
