@@ -103,7 +103,9 @@ Its name should end with a slash.")
 (defconst sendmail-program
   (if (file-exists-p "/usr/lib/sendmail")
       "/usr/lib/sendmail"
-    "fakemail")			;In ../etc, to interface to /bin/mail.
+    (if (file-exists-p "/usr/ucblib/sendmail")
+	"/usr/ucblib/sendmail"
+      "fakemail"))			;In ../etc, to interface to /bin/mail.
   "Program used to send messages.")
 
 (defconst term-file-prefix (if (eq system-type 'vax-vms) "[.term]" "term/")
