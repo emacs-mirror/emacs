@@ -42,6 +42,7 @@
 (defvar tmm-old-comp-map)
 (defvar tmm-c-prompt)
 (defvar tmm-km-list)
+(defvar tmm-next-shortcut-digit)
 (defvar tmm-table-undef)
 
 ;;;###autoload (define-key global-map "\M-`" 'tmm-menubar)
@@ -94,7 +95,9 @@ See the documentation for `tmm-prompt'."
   (tmm-menubar (car (posn-x-y (event-start event)))))
 
 (defvar tmm-mid-prompt "==>"
-  "String to insert between shortcut and menu item or nil.")
+  "*String to insert between shortcut and menu item. 
+If nil, there will be no shortcuts. It should not consist only of spaces,
+or else the correct item might not be found in the `*Completions*' buffer.")
 
 (defvar tmm-mb-map nil
   "A place to store minibuffer map.")
@@ -105,9 +108,19 @@ Alternatively, you can use Up/Down keys (or your History keys) to change
 the item in the minibuffer, and press RET when you are done, or press the 
 marked letters to pick up your choice.  Type C-g or ESC ESC ESC to cancel.
 "
-  "String to insert at top of completion buffer.
-If this is nil, delete even the usual help text
-and show just the alternatives.")
+  "*Help text to insert on the top of the completion buffer.
+To save space, you can set this to nil,
+in which case the standard introduction text is deleted too.")
+
+(defvar tmm-shortcut-style '(downcase upcase)
+  "*What letters to use as menu shortcuts. 
+Must be either one of the symbols `downcase' or `upcase', 
+or else a list of the two in the order you prefer.")
+
+(defvar tmm-shortcut-words 2
+  "*How many successive words to try for shortcuts, nil means all.
+If you use only one of `downcase' or `upcase' for `tmm-shortcut-style', 
+specify nil for this variable.")
 
 ;;;###autoload
 (defun tmm-prompt (menu &optional in-popup default-item)
@@ -221,77 +234,106 @@ Its value should be an event that has a binding in MENU."
 		 (call-interactively choice))
 	     choice)))))
 
-
 (defun tmm-add-shortcuts (list)
   "Adds shortcuts to cars of elements of the list.
 Takes a list of lists with a string as car, returns list with
 shortcuts added to these cars.
 Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
-  (let ((next-shortcut-number 0))
-    (mapcar (lambda (elt)
-	      (let ((str (car elt)) f b)
-		(setq f (upcase (substring str 0 1)))
-		;; If does not work, try beginning of the other word
-		(if (and (member f tmm-short-cuts)
-			 (string-match " \\([^ ]\\)" str))
-		    (setq f (upcase (substring
-				     str
-				     (setq b (match-beginning 1)) (1+ b)))))
-		;; If we don't have an unique letter shortcut,
-		;; pick a digit as a shortcut instead.
-		(if (member f tmm-short-cuts)
-		    (if (< next-shortcut-number 10)
-			(setq f (format "%d" next-shortcut-number)
-			      next-shortcut-number (1+ next-shortcut-number))
-		      (setq f nil)))
-		(if (null f)
-		    elt
-		  (setq tmm-short-cuts (cons f tmm-short-cuts))
-		  (cons (concat f tmm-mid-prompt str) (cdr elt)))))
-	    (reverse list))))
+  (let ((tmm-next-shortcut-digit ?0))
+    (mapcar 'tmm-add-one-shortcut (reverse list))))
 
+(defsubst tmm-add-one-shortcut (elt)
+;; uses the free vars tmm-next-shortcut-digit and tmm-short-cuts
+  (let* ((str (car elt))
+        (paren (string-match "(" str))  
+        (pos 0) (word 0) char)
+    (catch 'done                        ; ??? is this slow?
+      (while (and (or (not tmm-shortcut-words) ; no limit on words
+                      (< word tmm-shortcut-words)) ; try n words
+                  (setq pos (string-match "\\w+" str pos)) ; get next word
+                  (not (and paren (> pos paren)))) ; don't go past "(binding.."
+        (if (or (= pos 0)
+                (/= (aref str (1- pos)) ?.)) ; avoid file extensions
+            (let ((shortcut-style                 
+                   (if (listp tmm-shortcut-style) ; convert to list
+                       tmm-shortcut-style
+                     (list tmm-shortcut-style))))
+              (while shortcut-style     ; try upcase and downcase variants
+                (setq char (funcall (car shortcut-style) (aref str pos)))
+                (if (not (memq char tmm-short-cuts)) (throw 'done char))
+                (setq shortcut-style (cdr shortcut-style)))))
+        (setq word (1+ word))
+        (setq pos (match-end 0)))
+      (while (<= tmm-next-shortcut-digit ?9) ; no letter shortcut, pick a digit
+        (setq char tmm-next-shortcut-digit)
+        (setq tmm-next-shortcut-digit (1+ tmm-next-shortcut-digit))
+        (if (not (memq char tmm-short-cuts)) (throw 'done char)))
+      (setq char nil))
+    (if char (setq tmm-short-cuts (cons char tmm-short-cuts)))
+    (cons (concat (if char (concat (char-to-string char) tmm-mid-prompt)
+                    ;; keep them lined up in columns
+                    (make-string (1+ (length tmm-mid-prompt)) ?\ ))
+                  str)
+          (cdr elt))))
+
+;; This returns the old map.
 (defun tmm-define-keys (minibuffer)
-  (mapcar (lambda (str)
-	    (define-key (current-local-map) str 'tmm-shortcut)
-	    (define-key (current-local-map) (downcase str) 'tmm-shortcut))
-	  tmm-short-cuts)
-  (if minibuffer
-      (progn
-	(define-key (current-local-map) [pageup] 'tmm-goto-completions)
-	(define-key (current-local-map) [prior] 'tmm-goto-completions)
-	(define-key (current-local-map) "\ev" 'tmm-goto-completions)
-	(define-key (current-local-map) "\C-n" 'next-history-element)
-	(define-key (current-local-map) "\C-p" 'previous-history-element))))
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map t)
+    (mapcar
+     (function
+      (lambda (c)
+        (if (listp tmm-shortcut-style)
+            (define-key map (char-to-string c) 'tmm-shortcut)
+          ;; only one kind of letters are shortcuts, so map both upcase and
+          ;; downcase input to the same
+          (define-key map (char-to-string (downcase c)) 'tmm-shortcut)
+          (define-key map (char-to-string (upcase c)) 'tmm-shortcut))))
+     tmm-short-cuts)
+    (if minibuffer
+	(progn
+          (define-key map [pageup] 'tmm-goto-completions)
+          (define-key map [prior] 'tmm-goto-completions)
+          (define-key map "\ev" 'tmm-goto-completions)
+          (define-key map "\C-n" 'next-history-element)
+          (define-key map "\C-p" 'previous-history-element)))
+    (prog1 (current-local-map)
+      (use-local-map (append map (current-local-map))))))
+
+(defun tmm-completion-delete-prompt ()
+  (set-buffer standard-output)
+  (goto-char 1)
+  (delete-region 1 (search-forward "Possible completions are:\n")))
 
 (defun tmm-add-prompt ()
   (remove-hook 'minibuffer-setup-hook 'tmm-add-prompt)
   (make-local-hook 'minibuffer-exit-hook)
   (add-hook 'minibuffer-exit-hook 'tmm-delete-map nil t)
   (let ((win (selected-window)))
-    (setq tmm-old-mb-map (current-local-map))
-    (use-local-map (append (make-sparse-keymap) tmm-old-mb-map))
-    (tmm-define-keys t)
+    (setq tmm-old-mb-map (tmm-define-keys t))
     ;; Get window and hide it for electric mode to get correct size
     (save-window-excursion 
       (let ((completions
 	     (mapcar 'car minibuffer-completion-table)))
+        (or tmm-completion-prompt
+            (add-hook 'completion-setup-hook
+                      'tmm-completion-delete-prompt 'append))
 	(with-output-to-temp-buffer "*Completions*"
-	  (display-completion-list completions)))
+	  (display-completion-list completions))
+        (remove-hook 'completion-setup-hook 'tmm-completion-delete-prompt))
+      (if tmm-completion-prompt
+          (progn
       (set-buffer "*Completions*")
       (goto-char 1)
-      (if tmm-completion-prompt
-	  (insert tmm-completion-prompt)
-	;; Delete even the usual help info that all completion buffers have.
-	(goto-char 1)
-	(delete-region 1 (search-forward "Possible completions are:\n")))
+            (insert tmm-completion-prompt)))
       )
     (save-excursion
       (other-window 1)			; Electric-pop-up-window does
 					; not work in minibuffer
       (set-buffer (window-buffer (Electric-pop-up-window "*Completions*")))
-      (setq tmm-old-comp-map (current-local-map))
-      (use-local-map (append (make-sparse-keymap) tmm-old-comp-map))
-      (tmm-define-keys nil)
+
+      (setq tmm-old-comp-map (tmm-define-keys nil))
+
       (select-window win)		; Cannot use
 					; save-window-excursion, since
 					; it restores the size
@@ -306,13 +348,15 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 (defun tmm-shortcut ()
   "Choose the shortcut that the user typed."
   (interactive)
-  (let ((c (upcase (char-to-string last-command-char))) s)
-    (if (member c tmm-short-cuts)
+  (let ((c last-command-char) s)
+    (if (symbolp tmm-shortcut-style)
+        (setq c (funcall tmm-shortcut-style c)))
+    (if (memq c tmm-short-cuts)
 	(if (equal (buffer-name) "*Completions*")
 	    (progn
 	      (beginning-of-buffer)
 	      (re-search-forward
-	       (concat "\\(^\\|[ \t]\\)" c tmm-mid-prompt))
+	       (concat "\\(^\\|[ \t]\\)" (char-to-string c) tmm-mid-prompt))
 	      (choose-completion))
 	  (erase-buffer)		; In minibuffer
 	  (mapcar (lambda (elt)
@@ -320,7 +364,7 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 			 (substring (car elt) 0 
 				    (min (1+ (length tmm-mid-prompt))
 					 (length (car elt))))
-			 (concat c tmm-mid-prompt))
+			 (concat (char-to-string c) tmm-mid-prompt))
 			(setq s (car elt))))
 		  tmm-km-list)
 	  (insert s)
@@ -333,7 +377,6 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
   (switch-to-buffer-other-window "*Completions*")
   (search-forward tmm-c-prompt)
   (search-backward tmm-c-prompt))
-
 
 (defun tmm-get-keymap (elt &optional in-x-menu) 
   "Prepends (DOCSTRING EVENT BINDING) to free variable `tmm-km-list'.
@@ -388,7 +431,6 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 	       (setq tmm-km-list 
 		     (cons (cons str (cons event km)) tmm-km-list)))
 	   ))))
-
 
 (defun tmm-get-keybind (keyseq)
   "Return the current binding of KEYSEQ, merging prefix definitions.
