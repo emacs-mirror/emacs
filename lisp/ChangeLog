@@ -1,3 +1,8 @@
+2002-02-04  Simon Josefsson  <jas@extundo.com>
+
+	* dired.el (dired-load-hook, dired-mode-hook) 
+	(dired-before-readin-hook, dired-after-readin-hook): Defcustom.
+
 2002-02-03  Colin Walters  <walters@verbum.org>
 
 	* ibuf-ext.el (ibuffer-filter-format-alist,
