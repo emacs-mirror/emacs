@@ -781,13 +781,18 @@ compile='${CC-cc} $CFLAGS $DEFS conftest.c -o conftest $LIBS >/dev/null 2>&1'
 #### Choose a compiler.
 DEFS=-g
 case ${with_gcc} in
-  "yes" ) CC="gcc -O99" GCC=1 ;;
-  "no"  ) CC="cc"             ;;
+  "yes" ) CC="gcc" GCC=1 ;;
+  "no"  ) CC="cc"        ;;
   * )
 ]
 AC_PROG_CC
 [
 esac
+
+if [ "${GCC}" != "" ]; then
+  DEFS="${DEFS} -O"
+fi
+
 
 #### Some other nice autoconf tests.
 ]
