@@ -1,3 +1,8 @@
+2002-01-08  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (delete_window): Rewrite the code for changing the
+	selected window to handle the case where WINDOW is not a leaf.
+
 2002-01-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* process.c (send_process): Set src_multibyte to 1 after the call
