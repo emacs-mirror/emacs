@@ -1156,13 +1156,17 @@ If the game is finished, this command requests for another game."
   "Move point down one row on the Gomoku board."
   (interactive)
   (if (< (gomoku-point-y) gomoku-board-height)
-      (next-line gomoku-square-height)))
+      (let ((column (current-column)))
+	(forward-line gomoku-square-height)
+	(move-to-column column))))
 
 (defun gomoku-move-up ()
   "Move point up one row on the Gomoku board."
   (interactive)
   (if (> (gomoku-point-y) 1)
-      (previous-line gomoku-square-height)))
+      (let ((column (current-column)))
+	(forward-line (- 1 gomoku-square-height))
+	(move-to-column column))))
 
 (defun gomoku-move-ne ()
   "Move point North East on the Gomoku board."
