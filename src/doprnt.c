@@ -94,11 +94,12 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
 	    }
 	  *string = 0;
 	  /* Get an idea of how much space we might need.  */
-	  size_bound = atoi (&fmtcpy[1]) + 50;
+	  size_bound = atoi (&fmtcpy[1]);
 
 	  /* Avoid pitfall of negative "size" parameter ("%-200d"). */
 	  if (size_bound < 0)
 	    size_bound = -size_bound;
+	  size_bound += 50;
 
 	  /* Make sure we have that much.  */
 	  if (size_bound > size_allocated)
