@@ -31,6 +31,13 @@ support 64-bit executables.  See etc/MACHINES for instructions.
 
 * Changes in Emacs 21.1
 
+** `gnus-user-agent' is a new possibility for `mail-user-agent'.  It
+is like `message-user-agent', but with all the Gnus paraphernalia.
+
++++
+** The recommended way of using Iswitchb is via the new global minor
+mode `iswitchb-mode'.
+
 ** Gnus changes.
 
 The Gnus NEWS entries are short, but they reflect sweeping changes in
