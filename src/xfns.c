@@ -9794,8 +9794,8 @@ gif_load (f, img)
       return 0;
     }
 
-  width = img->width = gif->SWidth;
-  height = img->height = gif->SHeight;
+  width = img->width = max (gif->SWidth, gif->Image.Left + gif->Image.Width);
+  height = img->height = max (gif->SHeight, gif->Image.Top + gif->Image.Height);
 
   /* Create the X image and pixmap.  */
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
