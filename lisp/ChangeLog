@@ -1,3 +1,8 @@
+2004-05-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* compare-w.el (compare-windows-face): Use min-colors instead of
+	checking for tty or pc types.
+
 2004-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (do-auto-fill): Remove unused vars `bol' and `opoint'.
