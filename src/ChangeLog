@@ -584,7 +584,7 @@
 	(x_new_font, x_set_window_size_1): Use it.
 
 	* xfns.c (x_frame_parms): Add `left-fringe' and `right-fringe' parms.
-	(x_set_frame_parameters): Process Process `font' parameter before other
+	(x_set_frame_parameters): Process `font' parameter before other
 	parameters as fringe widths depend on it.
 	(x_set_fringe_width): New function.
 	(x_figure_window_size): Use x_compute_fringe_widths.
