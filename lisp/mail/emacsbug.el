@@ -51,7 +51,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
   (goto-char (point-min))
   (re-search-forward (concat "^" (regexp-quote mail-header-separator) "\n"))
   (insert "In " (emacs-version) "\nconfigured using "
-	  system-configure-options "\n\n")
+	  system-configuration-options "\n\n")
   (message (substitute-command-keys "Type \\[mail-send-and-exit] to send bug report."))
   ;; Make it less likely people will send empty messages.
   (make-local-variable 'mail-send-hook)
