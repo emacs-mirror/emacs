@@ -13,6 +13,7 @@
 
 ;;; Code:
 
+;;;###autoload
 (defun studlify-region (begin end)
   "Studlify-case the region"
   (interactive "*r")
@@ -46,6 +47,7 @@
 	  (forward-char 1))
 	(setq begin (point))))))
 
+;;;###autoload
 (defun studlify-word (count)
   "Studlify-case the current word, or COUNT words if given an argument"
   (interactive "*p")
