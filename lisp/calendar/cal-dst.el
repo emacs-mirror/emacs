@@ -153,21 +153,7 @@ The result has the proper form for calendar-daylight-savings-starts'."
 		      (cons
 		       (list 'calendar-nth-named-day 1 weekday m 'year j)
 		       l)))
-	     l)
-	   ;; Israel is special.
-	   (if (zerop weekday)
-	       (if (< m 7)
-		   (list
-		     '(calendar-gregorian-from-absolute
-		       (calendar-dayname-on-or-before
-			0
-			(calendar-absolute-from-hebrew
-			 (list 1 28 (+ year 3760))))))
-		 (list '(calendar-gregorian-from-absolute
-			 (calendar-dayname-on-or-before
-			  0
-			  (- (calendar-absolute-from-hebrew
-			      (list 7 1 (+ year 3761))) 3))))))))
+	     l)))
 	 (prevday-sec (- -1 utc-diff)) ;; last sec of previous local day
 	 (year (1+ y)))
     ;; Scan through the next few years until only one rule remains.
@@ -310,15 +296,9 @@ you would set `calendar-daylight-savings-starts' to
 
       '(10 1 year)
 
-For a more complex example, daylight savings time begins in Israel on the
-first Sunday after Passover ends on Nisan 21:
+If it starts on the first Sunday in April, you would set it to
 
-      '(calendar-gregorian-from-absolute
-        (calendar-dayname-on-or-before
-         0
-         (calendar-absolute-from-hebrew (list 1 28 (+ year 3760)))))
-
-because Nisan is the first month in the Hebrew calendar.
+      '(calendar-nth-named-day 1 0 4 year)
 
 If the locale never uses daylight savings time, set this to nil.")
 
@@ -332,13 +312,9 @@ date in the form (month day year) on which daylight savings time ends.  It is
 used to determine the starting date of daylight savings time for the holiday
 list and for correcting times of day in the solar and lunar calculations.
 
-For example, daylight savings time ends in Israel on the Sunday Selichot
-begins:
+For example, if daylight savings time ends on the last Sunday in October:
 
-      '(calendar-gregorian-from-absolute
-        (calendar-dayname-on-or-before
-         0
-         (- (calendar-absolute-from-hebrew (list 7 1 (+ year 3761))) 3)))
+      '(calendar-nth-named-day -1 0 10 year)
 
 If the locale never uses daylight savings time, set this to nil.")
   
