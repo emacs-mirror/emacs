@@ -1,3 +1,7 @@
+2002-05-31  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* s/netbsd.h: Include /usr/pkg in the run time shared library path.
+
 2002-05-30  Richard M. Stallman  <rms@gnu.org>
 
 	* window.c (Fset_window_configuration): Correct the handling
