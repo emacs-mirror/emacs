@@ -39,7 +39,7 @@ Building:
     may be fixed in the main FSF source at some point, but until then we
     will just live with them.
 
-    NOTES: You should not have to edit src\paths.h to get Emacs to run
+    NOTE: You should not have to edit src\paths.h to get Emacs to run
     correctly.  All of the variables in src\paths.h are configured
     during start up using the nt\emacs.bat file (which gets installed 
     as bin\emacs.bat -- see below).
@@ -48,14 +48,14 @@ Installing:
 
 (4) Currently, Emacs requires a number of environment variables to be set
     for it to run correctly.  A batch file, emacs.bat, is provided that 
-    sets these variables appropriately and then runs the executable.
-    Before you install Emacs, you first need to edit emacs.bat to 
-    reflect your installation.  To do this, set the emacs_path variable 
-    to point to the directory into which you will be installing Emacs.
-    (This should be the same directory you defined INSTALL_DIR to be
-    in makefile.def above).
+    sets these variables appropriately and then runs the executable
+    (emacs.bat is generated using the definition of INSTALL_DIR in
+    nt\makefile.def and the contents of nt\emacs.bat.in).
 
-(5) Install Emacs.  From this directory, type:
+(5) The install process will install the files necessary to run Emacs in 
+    INSTALL_DIR (which may be the directory in which it was built), 
+    and create a program manager/folder icon in a folder called GNU Emacs.
+    From this directory, type:
 
     > nmake -f makefile.nt install
 
@@ -71,9 +71,7 @@ Installing:
     as it will be different for each user.  (HOME could be set, 
     for example, in the System panel of the Control Panel).
 
-(7) Create a program manager icon for the %emacs_path%\emacs.bat file.
-
-(8) Either click on the icon, or run the emacs.bat file, and away you go.
+(7) Either click on the icon, or run the emacs.bat file, and away you go.
 
     If you would like to resize the command window that Emacs uses,
     or change the font or colors, click on the program manager icon
