@@ -177,7 +177,72 @@ This variable used in TAB format mode.")
   (modify-syntax-entry ?\\ "/" fortran-mode-syntax-table)
   (modify-syntax-entry ?. "w" fortran-mode-syntax-table)
   (modify-syntax-entry ?_ "w" fortran-mode-syntax-table)
+  (modify-syntax-entry ?\! "<" fortran-mode-syntax-table)
   (modify-syntax-entry ?\n ">" fortran-mode-syntax-table))
+
+;; Comments are real pain in Fortran because there is no way to represent the
+;; standard comment syntax in an Emacs syntax table (we can for VAX-style).
+;; Therefore an unmatched quote in a standard comment will throw fontification
+;; off on the wrong track.  But to make it clear(er) to the programmer what is
+;; happening, we don't override string fontification when fontifying, by the
+;; keyword regexp, a standard comment.
+
+(defconst fortran-font-lock-keywords-1
+  '(;; Fontify comments.
+;    ("^[Cc*].*$" 0 font-lock-comment-face t)
+    ("^[Cc*].*$" . font-lock-comment-face)
+    ;; Program, subroutine and function declarations, plus calls.
+    ("\\<\\(call\\|function\\|program\\|subroutine\\)\\>[ \t]*\\(\\sw+\\)?"
+     (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t)))
+  "For consideration as a value of `fortran-font-lock-keywords'.
+This does fairly subdued highlighting.")
+
+(defconst fortran-font-lock-keywords-2
+  (append fortran-font-lock-keywords-1
+   (let ((type-types
+;	  ("integer" "logical" "real" "complex" "dimension" "double" "map"
+;	   "precision" "character" "parameter" "common" "save" "external"
+;	   "implicit" "intrinsic" "data" "equivalence" "structure" "union")
+	  (concat "c\\(haracter\\|om\\(mon\\|plex\\)\\)\\|"
+		  "d\\(ata\\|imension\\|ouble\\)\\|"
+		  "e\\(quivalence\\|xternal\\)\\|"
+		  "i\\(mplicit\\|nt\\(eger\\|rinsic\\)\\)\\|logical\\|map\\|"
+		  "p\\(arameter\\|recision\\)\\|re\\(al\\|cord\\)\\|"
+                  "s\\(ave\\|tructure\\)\\|union"))
+	 (fkeywords
+;	  ("continue" "format" "end" "enddo" "if" "then" "else" "endif"
+;	   "elseif" "while" "inquire" "stop" "return" "include" "open"
+;	   "close" "read" "write" "format" "print")
+	  (concat "c\\(lose\\|ontinue\\)\\|"
+		  "e\\(lse\\(\\|if\\)\\|nd\\(\\|do\\|if\\)\\)\\|format\\|"
+		  "i\\(f\\|n\\(clude\\|quire\\)\\)\\|open\\|print\\|"
+		  "re\\(ad\\|turn\\)\\|stop\\|then\\|w\\(hile\\|rite\\)"))
+	 (flogicals
+;	  ("and" "or" "not" "lt" "le" "eq" "ge" "gt" "ne" "true" "false")
+          "and\\|eq\\|false\\|g[et]\\|l[et]\\|n\\(e\\|ot\\)\\|or\\|true"))
+     (list
+      ;;
+      ;; Fontify types and variable names (but not length specs or `/'s).
+      (list (concat "\\<\\(" type-types "\\)\\>[0-9 \t/*]*\\(\\sw+\\)?")
+	    '(1 font-lock-type-face)
+	    '(11 font-lock-variable-name-face nil t))
+      ;;
+      ;; Fontify all builtin keywords (except logical, do and goto; see below).
+      (concat "\\<\\(" fkeywords "\\)\\>")
+      ;;
+      ;; Fontify all builtin operators.
+      (concat "\\.\\(" flogicals "\\)\\.")
+      ;;
+      ;; Fontify do/goto keywords and targets, and goto tags.
+      (list "\\<\\(do\\|go[ \t]*to\\)\\>[ \t]*\\([0-9]+\\)?"
+	    '(1 font-lock-keyword-face)
+	    '(2 font-lock-reference-face nil t))
+      (cons "^[ \t]*\\([0-9]+\\)" 'font-lock-reference-face))))
+  "For consideration as a value of `fortran-font-lock-keywords'.
+This does a lot more highlighting.")
+
+(defconst fortran-font-lock-keywords fortran-font-lock-keywords-1
+  "Additional expressions to highlight in Fortran mode.")
 
 (defvar fortran-mode-map () 
   "Keymap used in Fortran mode.")
@@ -354,6 +419,8 @@ with no args, if that value is non-nil."
   (setq fortran-startup-message nil)
   (setq local-abbrev-table fortran-mode-abbrev-table)
   (set-syntax-table fortran-mode-syntax-table)
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults '(fortran-font-lock-keywords nil t))
   (make-local-variable 'fortran-break-before-delimiters)
   (setq fortran-break-before-delimiters t)
   (make-local-variable 'indent-line-function)
