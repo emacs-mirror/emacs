@@ -173,6 +173,15 @@ Emacs source code in the directory that `configure' is in.
 To build in a separate directory, you must use a version of `make'
 that supports the `VPATH' variable, such as GNU `make'.
 
+3c) Some people try to build in a separate directory
+by filling it full of symlinks to the real source directory.
+If you do that, `make all' does work, but `make install' fails:
+it copies the symbolic links rather than the actual files.
+
+As far as is known, there is no particular reason to use
+a directory full of links rather than use the standard GNU
+facilities to build in a separate directory (see 3b above).
+
 4) Look at `./lisp/paths.el'; if some of those values are not right
 for your system, set up the file `./lisp/site-init.el' with Emacs
 Lisp code to override them; it is not a good idea to edit paths.el
