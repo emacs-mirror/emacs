@@ -1,5 +1,14 @@
 2000-08-27  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* regex.c: Indent cpp directives and remove parens after `defined'.
+	(PTR_TO_OFFSET, POS_AS_IN_BUFFER): Move to a better place.
+	(ISDIGIT, ISCNTRL, ISXDIGIT) [!emacs]: Remove duplicate definition.
+	(regex_compile): Use RE_FRUGAL instead of RE_ALL_GREEDY.
+	(re_compile_pattern): Use size_t for length.
+	(init_syntax_once): Move to a better place.
+	* regex.h: Merge changes from GNU libc.  Indent cpp directives.
+	(RE_FRUGAL): Replaces RE_ALL_GREEDY (inverted meaning).
+
 	* syntax.c (back_comment): Detect cases where a comment-starter is
 	actually inside another comment as in:   /* a // b */ c // d \n.
 	Make it clear that `comstart_pos' is unused for nested comments.
