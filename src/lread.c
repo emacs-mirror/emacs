@@ -530,9 +530,11 @@ DEFUN ("get-file-char", Fget_file_char, Sget_file_char, 0, 0, 0,
   return val;
 }
 
-static void readevalloop ();
-static Lisp_Object load_unwind ();
-static Lisp_Object load_descriptor_unwind ();
+static void readevalloop P_ ((Lisp_Object, FILE*, Lisp_Object, 
+			      Lisp_Object (*) (), int,
+			      Lisp_Object, Lisp_Object));
+static Lisp_Object load_unwind P_ ((Lisp_Object));
+static Lisp_Object load_descriptor_unwind P_ ((Lisp_Object));
 
 /* Non-zero means load dangerous compiled Lisp files.  */
 
@@ -1088,7 +1090,8 @@ build_load_history (stream, source)
 }
 
 Lisp_Object
-unreadpure ()	/* Used as unwind-protect function in readevalloop */
+unreadpure (junk) /* Used as unwind-protect function in readevalloop */
+     Lisp_Object junk;
 {
   read_pure = 0;
   return Qnil;
