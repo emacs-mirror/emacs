@@ -996,6 +996,104 @@ Optional DEFAULT is a default password to use instead of empty input."
       (message nil)
       (or pass default ""))))
 
+(defmacro atomic-change-group (&rest body)
+  "Perform BODY as an atomic change group.
+This means that if BODY exits abnormally,
+all of its changes to the current buffer are undone.
+This works regadless of whether undo is enabled in the buffer.
+
+This mechanism is transparent to ordinary use of undo;
+if undo is enabled in the buffer and BODY succeeds, the
+user can undo the change normally."
+  (let ((handle (make-symbol "--change-group-handle--"))
+	(success (make-symbol "--change-group-success--")))
+    `(let ((,handle (prepare-change-group))
+	   (,success nil))
+       (unwind-protect
+	   (progn
+	     ;; This is inside the unwind-protect because
+	     ;; it enables undo if that was disabled; we need
+	     ;; to make sure that it gets disabled again.
+	     (activate-change-group ,handle)
+	     ,@body
+	     (setq ,success t))
+	 ;; Either of these functions will disable undo
+	 ;; if it was disabled before.
+	 (if ,success
+	     (accept-change-group ,handle)
+	   (cancel-change-group ,handle))))))
+
+(defun prepare-change-group (&optional buffer)
+  "Return a handle for the current buffer's state, for a change group.
+If you specify BUFFER, make a handle for BUFFER's state instead.
+
+Pass the handle to `activate-change-group' afterward to initiate
+the actual changes of the change group.
+
+To finish the change group, call either `accept-change-group' or
+`cancel-change-group' passing the same handle as argument.  Call
+`accept-change-group' to accept the changes in the group as final;
+call `cancel-change-group' to undo them all.  You should use
+`unwind-protect' to make sure the group is always finished.  The call
+to `activate-change-group' should be inside the `unwind-protect'.
+Once you finish the group, don't use the handle again--don't try to
+finish the same group twice.  For a simple example of correct use, see
+the source code of `atomic-change-group'.
+
+The handle records only the specified buffer.  To make a multibuffer
+change group, call this function once for each buffer you want to
+cover, then use `nconc' to combine the returned values, like this:
+
+  (nconc (prepare-change-group buffer-1)
+         (prepare-change-group buffer-2))
+
+You can then activate that multibuffer change group with a single
+call to `activate-change-group' and finish it with a single call
+to `accept-change-group' or `cancel-change-group'."
+
+  (list (cons (current-buffer) buffer-undo-list)))
+
+(defun activate-change-group (handle)
+  "Activate a change group made with `prepare-change-group' (which see)."
+  (dolist (elt handle)
+    (with-current-buffer (car elt)
+      (if (eq buffer-undo-list t)
+	  (setq buffer-undo-list nil)))))
+
+(defun accept-change-group (handle)
+  "Finish a change group made with `prepare-change-group' (which see).
+This finishes the change group by accepting its changes as final."
+  (dolist (elt handle)
+    (with-current-buffer (car elt)
+      (if (eq elt t)
+	  (setq buffer-undo-list t)))))
+
+(defun cancel-change-group (handle)
+  "Finish a change group made with `prepare-change-group' (which see).
+This finishes the change group by reverting all of its changes."
+  (dolist (elt handle)
+    (with-current-buffer (car elt)
+      (setq elt (cdr elt))
+      (let ((old-car 
+	     (if (consp elt) (car elt)))
+	    (old-cdr
+	     (if (consp elt) (cdr elt))))
+	;; Temporarily truncate the undo log at ELT.
+	(when (consp elt)
+	  (setcar elt nil) (setcdr elt nil))
+	(unless (eq last-command 'undo) (undo-start))
+	;; Make sure there's no confusion.
+	(when (and (consp elt) (not (eq elt (last pending-undo-list))))
+	  (error "Undoing to some unrelated state"))
+	;; Undo it all.
+	(while pending-undo-list (undo-more 1))
+	;; Reset the modified cons cell ELT to its original content.
+	(when (consp elt)
+	  (setcar elt old-car)
+	  (setcdr elt old-cdr))
+	;; Revert the undo info to what it was when we grabbed the state.
+	(setq buffer-undo-list elt)))))
+
 (defun force-mode-line-update (&optional all)
   "Force the mode-line of the current buffer to be redisplayed.
 With optional non-nil ALL, force redisplay of all mode-lines."
@@ -1707,15 +1805,6 @@ If TOGGLE has a non-nil `:included' property, an entry for the mode is
 included in the mode-line minor mode menu.
 If TOGGLE has a `:menu-tag', that is used for the menu item's label."
   (unless toggle-fun (setq toggle-fun toggle))
-  ;; Add the toggle to the minor-modes menu if requested.
-  (when (get toggle :included)
-    (define-key mode-line-mode-menu
-      (vector toggle)
-      (list 'menu-item
-	    (or (get toggle :menu-tag)
-		(if (stringp name) name (symbol-name toggle)))
-	    toggle-fun
-	    :button (cons :toggle toggle))))
   ;; Add the name to the minor-mode-alist.
   (when name
     (let ((existing (assq toggle minor-mode-alist)))
@@ -1737,6 +1826,21 @@ If TOGGLE has a `:menu-tag', that is used for the menu item's label."
 		(nconc found (list (list toggle name)) rest))
 	    (setq minor-mode-alist (cons (list toggle name)
 					 minor-mode-alist)))))))
+  ;; Add the toggle to the minor-modes menu if requested.
+  (when (get toggle :included)
+    (define-key mode-line-mode-menu
+      (vector toggle)
+      (list 'menu-item
+	    (concat
+	     (or (get toggle :menu-tag)
+		 (if (stringp name) name (symbol-name toggle)))
+	     (let ((mode-name (if (stringp name) name
+				(if (symbolp name) (symbol-value name)))))
+	       (if mode-name
+		   (concat " (" mode-name ")"))))
+	    toggle-fun
+	    :button (cons :toggle toggle))))
+
   ;; Add the map to the minor-mode-map-alist.    
   (when keymap
     (let ((existing (assq toggle minor-mode-map-alist)))
