@@ -209,8 +209,8 @@ your own function which is called when `font-lock-mode' is toggled via
   (funcall font-lock-function font-lock-mode)
   ;; Arrange to unfontify this buffer if we change major mode later.
   (if font-lock-mode
-      (add-hook 'change-major-mode-hook 'font-lock-unfontify-buffer)
-    (remove-hook 'change-major-mode-hook 'font-lock-unfontify-buffer)))
+      (add-hook 'change-major-mode-hook 'font-lock-unfontify-buffer nil t)
+    (remove-hook 'change-major-mode-hook 'font-lock-unfontify-buffer t)))
 
 (defun font-lock-default-function (font-lock-mode)
   ;; Turn on Font Lock mode.
