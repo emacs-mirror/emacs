@@ -1,3 +1,55 @@
+2002-04-24  Colin Walters  <walters@verbum.org>
+
+	* ibuf-ext.el (toplevel): Remove byte-compile-dynamic.  Try to set
+	up autoloads manually.
+	(ibuffer-split-list): New function.
+	(ibuffer-filtering-groups): New variable.
+	(ibuffer-hidden-filtering-groups): New variable.
+	(ibuffer-mouse-toggle-filter-group): New function.
+	(ibuffer-toggle-filter-group): New function.
+	(ibuffer-toggle-filter-group-1): New function.
+	(ibuffer-forward-filter-group): New function.
+	(ibuffer-backward-filter-group): New funtion.
+	(ibuffer-generate-filter-groups): New function.
+	(ibuffer-filters-to-filter-group): New function.
+	(ibuffer-pop-filter-group): New function.
+	(ibuffer-jump-to-filter-group): New function.
+	(ibuffer-do-occur): Just use `occur-read-primary-args'
+
+	* ibuffer.el (ibuffer-filter-group-name-face): New.
+	(ibuffer-mode-map): Bind and add menu entries for most new
+	functions; also, bind the arrow keys to the movement functions.
+	(ibuffer-mode-filter-group-map): New.
+	(ibuffer-mouse-toggle-mark): Handle group names.
+	(ibuffer-mouse-visit-buffer): Error if the current buffer is
+	killed.
+	(ibuffer-skip-properties): New function.
+	(ibuffer-backward-line, ibuffer-forward-line): Optionally skip
+	group names.  Also, handle new properties.
+	(ibuffer-visit-buffer, ibuffer-visit-buffer-other-window): Move
+	error handling to `ibuffer-current-buffer'.
+	(ibuffer-visit-buffer-other-frame, ibuffer-bury-buffer): Ditto.
+	(ibuffer-visit-tags-table, ibuffer-do-view-1): Ditto.
+	(ibuffer-toggle-marks): Add optional group argument.
+	(ibuffer-mark-interactive): Skip group names.
+	(ibuffer-current-buffer): Clean up error handling.
+	(ibuffer-fontify-region-function): Fontify group names.
+	(ibuffer-map-lines): Add extra group argument.  Handle it.
+	(ibuffer-current-filter-groups): New function.
+	(ibuffer-redisplay): Handle hidden filtering groups.
+	(ibuffer-sort-bufferlist): New function, taken from
+	`ibuffer-insert-buffers-and-marks'.
+	(ibuffer-insert-filter-group): New function.
+	(ibuffer-redisplay-engine): Renamed from
+	`ibuffer-insert-buffers-and-marks'.  Handle new filtering groups.
+	(ibuffer): Add filter-groups argument.  Handle it.  Use
+	`save-selected-window'.
+	(ibuffer-mode): Make `ibuffer-filtering-groups' and
+	`ibuffer-hidden-filtering-groups' buffer-local.
+	
+	* ibuf-macs.el (ibuffer-save-marks): Call
+	`ibuffer-redisplay-engine'.
+
 2002-04-24  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/easymenu.el (easy-menu-intern): Downcase before interning.
@@ -78,7 +130,7 @@
 	(ibuffer-do-occur-1, ibuffer-occur-revert-buffer-function):
 	Delete.
 	(ibuffer-occur-engine): Moved to replace.el.
-	(ibuffer-do-occur): Simply call `occur-1'.	
+	(ibuffer-do-occur): Simply call `occur-1'.
 
 	* play/gamegrid.el (gamegrid-add-score-with-update-game-score):
 	Handle the case where we're already viewing the score file.
