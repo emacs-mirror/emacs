@@ -1,3 +1,8 @@
+2003-02-06  Matthew Swift  <swift@alum.mit.edu>
+
+	* dired.el (dired-move-to-filename-regexp): Support "K" suffix on
+	"ls -alh" output.
+
 2003-02-04  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* mail/rmailout.el (rmail-output): If preserving MIME-version,
