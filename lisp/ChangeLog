@@ -1,3 +1,16 @@
+1999-12-25  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* jka-compr.el (jka-compr-info-file-magic-bytes): New function.
+	(jka-compr-compression-info-list): Add new elt to each vector.
+	(jka-compr-write-region): Don't compress the data if it is
+	already compressed.
+
+	* jka-compr.el (jka-compr-really-do-compress): New variable.
+	(jka-compr-insert-file-contents): Set jka-compr-really-do-compress
+	if visiting.
+	(jka-compr-write-region): Set jka-compr-really-do-compress
+	if visiting.  Test it when deciding to compress.
+
 1999-12-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/sh-script.el (sh-mode): Don't call sh-set-shell

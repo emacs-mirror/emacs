@@ -8,6 +8,11 @@
 	* process.c (read_process_output): Fix the arg FROM to
 	update_compositions.
 
+1999-12-22  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* search.c (Freplace_match): For nonliteral replacement in buffer,
+	construct all the new text first, then insert all at once.
+
 1999-12-22  Dave Love  <fx@gnu.org>
 
 	* xfns.c (Fx_show_tip): Gcpro `timeout' too.
