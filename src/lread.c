@@ -1287,13 +1287,13 @@ read1 (readcharfun, pch, first_in_list)
 	      if (saved_doc_string_size == 0)
 		{
 		  saved_doc_string_size = nskip + 100;
-		  saved_doc_string = (char *) malloc (saved_doc_string_size);
+		  saved_doc_string = (char *) xmalloc (saved_doc_string_size);
 		}
 	      if (nskip > saved_doc_string_size)
 		{
 		  saved_doc_string_size = nskip + 100;
-		  saved_doc_string = (char *) realloc (saved_doc_string,
-						       saved_doc_string_size);
+		  saved_doc_string = (char *) xrealloc (saved_doc_string,
+							saved_doc_string_size);
 		}
 
 	      saved_doc_string_position = ftell (instream);
@@ -2222,6 +2222,10 @@ defvar_kboard (namestring, offset)
   XSYMBOL (sym)->value = val;
 }
 
+/* Record the value of load-path used at the start of dumping
+   so we can see if the site changed it later during dumping.  */
+static Lisp_Object dump_path;
+
 init_lread ()
 {
   char *normal;
@@ -2244,12 +2248,8 @@ init_lread ()
      from the default before dumping, don't override that value.  */
   if (initialized)
     {
-      Lisp_Object dump_path;
-
-      dump_path = decode_env_path (0, PATH_DUMPLOADSEARCH);
-
       Vsource_directory = Fexpand_file_name (build_string ("../"),
-					     Fcar (dump_path));
+					     Fcar (Fcdr (dump_path)));
 
       if (! NILP (Fequal (dump_path, Vload_path)))
 	{
@@ -2288,10 +2288,13 @@ init_lread ()
 	}
     }
   else
-    /* ../lisp refers to the build directory.
-       NORMAL refers to the lisp dir in the source directory.  */
-    Vload_path = Fcons (build_string ("../lisp"),
-				      decode_env_path (0, normal));
+    {
+      /* ../lisp refers to the build directory.
+	 NORMAL refers to the lisp dir in the source directory.  */
+      Vload_path = Fcons (build_string ("../lisp"),
+			  decode_env_path (0, normal));
+      dump_path = Vload_path;
+    }
 #endif
 
 #ifndef WINDOWSNT
@@ -2456,4 +2459,6 @@ You cannot count on them to still be there!");
 
   Qload_file_name = intern ("load-file-name");
   staticpro (&Qload_file_name);
+
+  staticpro (&dump_path);
 }
