@@ -429,7 +429,9 @@ main (argc, argv, envp)
       signal (SIGAIO, fatal_error_signal);
       signal (SIGPTY, fatal_error_signal);
 #endif
+#ifndef _I386
       signal (SIGIOINT, fatal_error_signal);
+#endif
       signal (SIGGRANT, fatal_error_signal);
       signal (SIGRETRACT, fatal_error_signal);
       signal (SIGSOUND, fatal_error_signal);
