@@ -19,8 +19,8 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#ifndef _COMPOSITE_H
-#define _COMPOSITE_H
+#ifndef EMACS_COMPOSITE_H
+#define EMACS_COMPOSITE_H
 
 /* Methods to display a sequence of components a composition.  */
 enum composition_method {
@@ -203,4 +203,4 @@ extern void compose_region P_ ((int, int, Lisp_Object, Lisp_Object,
 				Lisp_Object));
 extern void syms_of_composition P_ (());
 
-#endif /* not _COMPOSITE_H */
+#endif /* not EMACS_COMPOSITE_H */
