@@ -1206,11 +1206,16 @@ with descriptive strings such as
   "Name of the buffer used for the lunar phases.")
 
 (defmacro increment-calendar-month (mon yr n)
-  "Move the variables MON and YR to the month and year by N months.
-Forward if N is positive or backward if N is negative."
-  `(let ((macro-y (+ (* ,yr 12) ,mon -1 ,n)))
-    (setq ,mon (1+ (% macro-y 12)))
-    (setq ,yr (/ macro-y 12))))
+  "Increment the variables MON and YR by N months.
+Forward if N is positive or backward if N is negative.
+A negative YR is interpreted as BC; -1 being 1 BC, and so on."
+  `(let (macro-y)
+     (if (< ,yr 0) (setq ,yr (1+ ,yr))) ; -1 BC -> 0 AD, etc
+     (setq macro-y (+ (* ,yr 12) ,mon -1 ,n)
+           ,mon (1+ (mod macro-y 12))
+           ,yr (/ macro-y 12))
+     (and (< macro-y 0) (> ,mon 1) (setq ,yr (1- ,yr)))
+     (if (< ,yr 1) (setq ,yr (1- ,yr))))) ; 0 AD -> -1 BC, etc
 
 (defmacro calendar-for-loop (var from init to final do &rest body)
   "Execute a for loop."
@@ -1270,7 +1275,10 @@ Forward if N is positive or backward if N is negative."
   (car (cdr (cdr date))))
 
 (defsubst calendar-leap-year-p (year)
-  "Return t if YEAR is a Gregorian leap year."
+  "Return t if YEAR is a Gregorian leap year.
+A negative year is interpreted as BC; -1 being 1 BC, and so on."
+  ;; 1 BC = 0 AD, 2 BC acts like 1 AD, etc.
+  (if (< year 0) (setq year (1- (abs year))))
   (and (zerop (% year 4))
        (or (not (zerop (% year 100)))
            (zerop (% year 400)))))
@@ -1310,13 +1318,30 @@ while (calendar-day-number '(12 31 1980)) returns 366."
 
 (defsubst calendar-absolute-from-gregorian (date)
   "The number of days elapsed between the Gregorian date 12/31/1 BC and DATE.
-The Gregorian date Sunday, December 31, 1 BC is imaginary."
-  (let ((prior-years (1- (extract-calendar-year date))))
-    (+ (calendar-day-number date);; Days this year
-       (* 365 prior-years);;        + Days in prior years
-       (/ prior-years 4);;          + Julian leap years
-       (- (/ prior-years 100));;    - century years
-       (/ prior-years 400))));;     + Gregorian leap years
+The Gregorian date Sunday, December 31, 1 BC is imaginary.
+DATE is a list of the form (month day year).  A negative year is
+interpreted as BC; -1 being 1 BC, and so on.  Dates before 12/31/1 BC
+return negative results."
+  (let ((year (extract-calendar-year date))
+        offset-years)
+    (cond ((= year 0)
+           (error "There was no year zero"))
+          ((> year 0)
+           (setq offset-years (1- year))
+           (+ (calendar-day-number date) ; Days this year
+              (* 365 offset-years)       ; + Days in prior years
+              (/ offset-years 4)         ; + Julian leap years
+              (- (/ offset-years 100))   ; - century years
+              (/ offset-years 400)))     ; + Gregorian leap years
+          (t
+           ;; Years between date and 1 BC, excluding 1 BC (1 for 2 BC, etc).
+           (setq offset-years (abs (1+ year)))
+           (- (calendar-day-number date)
+              (* 365 offset-years)
+              (/ offset-years 4)
+              (- (/ offset-years 100))
+              (/ offset-years 400)
+              (calendar-day-number '(12 31 -1))))))) ; days in year 1 BC
 
 (autoload 'calendar-goto-today "cal-move"
   "Reposition the calendar window so the current date is visible."
@@ -1888,9 +1913,10 @@ Or, for optional MON, YR."
         (run-hooks 'today-invisible-calendar-hook)))))
 
 (defun generate-calendar (month year)
-  "Generate a three-month Gregorian calendar centered around MONTH, YEAR."
-  (if (< (+ month (* 12 (1- year))) 2)
-      (error "Months before February, 1 AD are not available"))
+  "Generate a three-month Gregorian calendar centered around MONTH, YEAR.
+A negative YEAR is interpreted as BC; -1 being 1 BC, and so on.
+Note that while calendars can be displayed for years BC, some functions (eg
+motion, complex holiday functions) will not work correctly for such dates."
   (setq displayed-month month)
   (setq displayed-year year)
   (erase-buffer)
@@ -1904,7 +1930,7 @@ Or, for optional MON, YR."
 The calendar is inserted at the top of the buffer in which point is currently
 located, but indented INDENT spaces.  The indentation is done from the first
 character on the line and does not disturb the first INDENT characters on the
-line."
+line.  A negative YEAR is interpreted as BC; -1 being 1 BC, and so on."
   (let* ((blank-days;; at start of month
           (mod
            (- (calendar-day-of-week (list month 1 year))
@@ -2395,7 +2421,8 @@ ERROR is t, otherwise just returns nil."
 (defun calendar-gregorian-from-absolute (date)
   "Compute the list (month day year) corresponding to the absolute DATE.
 The absolute date is the number of days elapsed since the (imaginary)
-Gregorian date Sunday, December 31, 1 BC."
+Gregorian date Sunday, December 31, 1 BC.  This function does not
+handle dates in years BC."
 ;; See the footnote on page 384 of ``Calendrical Calculations, Part II:
 ;; Three Historical Calendars'' by E. M. Reingold,  N. Dershowitz, and S. M.
 ;; Clamen, Software--Practice and Experience, Volume 23, Number 4
@@ -2500,8 +2527,8 @@ If optional NODAY is t, does not ask for day, but just returns
 \(month nil year); if NODAY is any other non-nil value the value returned is
 \(month year)"
   (let* ((year (calendar-read
-                "Year (>0): "
-                (lambda (x) (> x 0))
+                "Year: "
+                (lambda (x) (not (zerop x)))
                 (int-to-string (extract-calendar-year
                                 (calendar-current-date)))))
          (month-array calendar-month-name-array)
@@ -2523,7 +2550,11 @@ If optional NODAY is t, does not ask for day, but just returns
             year))))
 
 (defun calendar-interval (mon1 yr1 mon2 yr2)
-  "The number of months difference between MON1, YR1 and MON2, YR2."
+  "The number of months difference between MON1, YR1 and MON2, YR2.
+The result is positive if the second date is later than the first.
+Negative years are interpreted as years BC; -1 being 1 BC, and so on."
+  (if (< yr1 0) (setq yr1 (1+ yr1)))      ; -1 BC -> 0 AD, etc
+  (if (< yr2 0) (setq yr2 (1+ yr2)))
   (+ (* 12 (- yr2 yr1))
      (- mon2 mon1)))
 
@@ -2654,8 +2685,10 @@ argument ABBREV is non-nil, in which case
         (1- month)))
 
 (defun calendar-day-of-week (date)
-  "Return the day-of-the-week index of DATE, 0 for Sunday, 1 for Monday, etc."
-  (% (calendar-absolute-from-gregorian date) 7))
+  "Return the day-of-the-week index of DATE, 0 for Sunday, 1 for Monday, etc.
+DATE is a list of the form (month day year).  A negative year is
+interpreted as BC; -1 being 1 BC, and so on."
+  (mod (calendar-absolute-from-gregorian date) 7))
 
 (defun calendar-unmark ()
   "Delete all diary/holiday marks/highlighting from the calendar."
@@ -2678,6 +2711,9 @@ argument ABBREV is non-nil, in which case
         (year (extract-calendar-year date)))
     (and (<= 1 month) (<= month 12)
          (<= 1 day) (<= day (calendar-last-day-of-month month year))
+         ;; BC dates left as non-legal, to suppress errors from
+         ;; complex holiday algorithms not suitable for years BC.
+         ;; Note there are side effects on calendar navigation.
          (<= 1 year))))
 
 (defun calendar-date-equal (date1 date2)
