@@ -4,6 +4,21 @@
 	no-async-subprocesses branch, call sit-for to give redisplay a
 	chance to show the updated process status in the mode line.
 
+2004-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-compilation-line-number): Remove.
+	(python-compilation-regexp-alist): Don't use it any more.
+	(python-orig-start, python-input-filter): Remove.
+	(inferior-python-mode): Don't set up comint-input-filter-functions.
+	(python-send-region): Use compilation-fake-loc.
+
+	* progmodes/compile.el (compilation-messages-start): New var.
+	(compilation-mode): Don't setup next-error-function here.
+	(compilation-setup): Set it up here instead (for minor modes as well).
+	Make compilation-messages-start buffer local.
+	(compilation-next-error-function): Use it.
+	(compilation-forget-errors): Set compilation-messages-start.
+
 2004-05-01  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* ielm.el (ielm-prompt-read-only): Update docstring.
