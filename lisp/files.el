@@ -1515,6 +1515,8 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 	  (widen)
 	  (and (> (point-max) 1)
 	       (/= (char-after (1- (point-max))) ?\n)
+	       (not (and (eq selective-display t)
+			 (= (char-after (1- (point-max))) ?\r)))
 	       (or (eq require-final-newline t)
 		   (and require-final-newline
 			(y-or-n-p
