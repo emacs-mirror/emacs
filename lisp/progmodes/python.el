@@ -970,10 +970,11 @@ et al.")
   )
 
 (defconst python-compilation-regexp-alist
+  ;; FIXME: maybe this should be moved to compilation-error-regexp-alist-alist.
   `((,(rx (and line-start (1+ (any " \t")) "File \""
 	       (group (1+ (not (any "\"<")))) ; avoid `<stdin>' &c
 	       "\", line " (group (1+ digit))))
-     1 python-compilation-line-number))
+     1 2))
   "`compilation-error-regexp-alist' for inferior Python.")
 
 ;; Fixme: This should inherit some stuff from python-mode, but I'm not
@@ -1002,7 +1003,6 @@ For running multiple processes in multiple buffers, see `python-buffer'.
   ;; Fixme: Maybe install some python-mode bindings too.
   (define-key inferior-python-mode-map "\C-c\C-l" 'python-load-file)
   (define-key inferior-python-mode-map "\C-c\C-z" 'python-switch-to-python)
-  (add-hook 'comint-input-filter-functions 'python-input-filter nil t)
   (add-hook 'comint-preoutput-filter-functions #'python-preoutput-filter
 	    nil t)
   ;; Still required by `comint-redirect-send-command', for instance
@@ -1018,17 +1018,6 @@ Default ignores all inputs of 0, 1, or 2 non-blank characters."
   :type 'regexp
   :group 'python)
 
-(defvar python-orig-start nil
-  "Marker to the start of the region passed to the inferior Python.
-It can also be a filename.")
-
-(defun python-input-filter (str)
-  "`comint-input-filter' function for inferior Python.
-Don't save anything for STR matching `inferior-python-filter-regexp'.
-Also resets variables for adjusting error messages."
-  (setq python-orig-start nil)
-  (not (string-match inferior-python-filter-regexp str)))
-
 ;; Fixme: Loses with quoted whitespace.
 (defun python-args-to-list (string)
   (let ((where (string-match "[ \t]" string)))
@@ -1038,23 +1027,6 @@ Also resets variables for adjusting error messages."
 		 (python-args-to-list (substring string (+ 1 where)))))
 	  (t (let ((pos (string-match "[^ \t]" string)))
 	       (if pos (python-args-to-list (substring string pos))))))))
-
-(defun python-compilation-line-number (file col)
-  "Return error descriptor of error found for FILE, column COL.
-Used as line-number hook function in `python-compilation-regexp-alist'."
-  (let ((line (string-to-number (match-string 2))))
-    (cons (point-marker)
-	  (if (and (markerp python-orig-start)
-		   (marker-buffer python-orig-start))
-	      (let ((start python-orig-start))
-		(with-current-buffer (marker-buffer python-orig-start)
-		  (goto-char start)
-		  (forward-line (1- line))
-		  (point-marker)))
-	    (list (if (stringp python-orig-start)
-		      (list python-orig-start default-directory)
-		    file)
-		  line col)))))
 
 (defvar python-preoutput-result nil
   "Data from output line last `_emacs_out' line seen by the preoutput filter.")
@@ -1178,11 +1150,11 @@ print '_emacs_ok'"))
     (write-region start end f t 'nomsg)
     (when python-buffer
       (with-current-buffer python-buffer
-	(set (make-local-variable 'python-orig-start) orig-start)
-	(let ((comint-input-filter-functions
-	       ;; Don't reset python-orig-start.
-	       (remq 'python-input-filter comint-input-filter-functions)))
-	  (python-send-command command))))))
+	(python-send-command command)
+	;; Tell compile.el to redirect error locations in file `f' to
+	;; positions past marker `orig-start'.  It has to be done *after*
+	;; python-send-command's call to compilation-forget-errors.
+	(compilation-fake-loc orig-start f)))))
 
 (defun python-send-string (string)
   "Evaluate STRING in inferior Python process."
