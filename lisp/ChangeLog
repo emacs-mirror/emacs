@@ -1,3 +1,33 @@
+2004-11-21  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-ext.el (math-read-big-expr, math-read-big-bigp):
+	Replace variable `lines' by math-read-big-lines.
+	(math-read-big-expr): Replace variables the-baseline, the-h2
+	and err-msg by math-read-big-baseline, math-read-big-h2 and
+	math-read-err-msg.
+	(math-read-big-bigp): Replace variable h2 with math-rb-h2.
+
+	* calc/calc-lang.el (math-read-big-rec): Fix typo.
+
+	(math-read-big-balance): Replace unbound variable by value.
+
+	(math-read-big-lines): New variable.
+	(math-read-big-rec, math-read-big-char, math-read-big-emptyp)
+	(math-read-big-error, math-read-big-balance): Replace variable
+	`lines' by declared variable.
+
+	(math-read-big-baseline, math-read-big-h2): New variables.
+	(math-read-big-rec): Replace variables the-baseline and the-h2
+	by declared variables.
+
+	(math-rb-h1, math-rb-h2, math-rb-v1, math-rb-v2): New variables.
+	(math-read-big-rec, math-read-big-char, math-read-big-emptyp)
+	(math-read-big-balance): Replace variables h1, h2, v1 and v2 by
+	declared variables.
+
+	(math-read-big-err-msg): New variable.
+	(math-read-big-error): Replace variable err-msg by declared variable.
+
 2004-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ses.el: Add coding cookie.
