@@ -127,16 +127,6 @@ Letters do not insert themselves; instead, they are commands.
   (use-local-map Buffer-menu-mode-map)
   (setq major-mode 'Buffer-menu-mode)
   (setq mode-name "Buffer Menu")
-  (save-excursion
-    (goto-char (point-min))
-    (search-forward "Buffer")
-    (backward-word 1)
-    (setq Buffer-menu-buffer-column (current-column))
-    (forward-line 2)
-    (while (not (eobp))
-      (let ((where (Buffer-menu-buffer-name-position)))
-	(put-text-property (car where) (cdr where) 'mouse-face 'highlight))
-      (forward-line 1)))
   (make-local-variable 'revert-buffer-function)
   (setq revert-buffer-function 'Buffer-menu-revert-function)
   (setq truncate-lines t)
@@ -148,24 +138,18 @@ Letters do not insert themselves; instead, they are commands.
 
 (defun Buffer-menu-buffer (error-if-non-existent-p)
   "Return buffer described by this line of buffer menu."
-  (let* ((where (Buffer-menu-buffer-name-position))
-	 (string (buffer-substring (car where) (cdr where))))
-    (set-text-properties 0 (length string) nil string)
-    (or (get-buffer string)
-	(if error-if-non-existent-p
-	    (error "No buffer named \"%s\"" string)
-	  nil))))
-
-;; Find the start and end positions of the buffer name on this line.
-;; Returns a cons (START . END).
-(defun Buffer-menu-buffer-name-position ()
-  (save-excursion
-    (beginning-of-line)
-    (forward-char Buffer-menu-buffer-column)
-    (let ((start (point)))
-      (re-search-forward "\t\\|  ")
-      (skip-chars-backward " \t")
-      (cons start (point)))))
+  (let* ((where (save-excursion
+		  (beginning-of-line)
+		  (+ (point) Buffer-menu-buffer-column)))
+	 (name (get-text-property where 'buffer-name)))
+    (if name
+	(or (get-buffer name)
+	    (if error-if-non-existent-p
+		(error "No buffer named `%s'" name)
+	      nil))
+      (if error-if-non-existent-p
+	  (error "No buffer on this line")
+	nil))))
 
 (defun buffer-menu (&optional arg)
   "Make a menu of buffers so you can save, delete or select them.
@@ -469,11 +453,14 @@ The R column contains a % for buffers that are read-only."
  MR Buffer           Size  Mode         File
  -- ------           ----  ----         ----
 ")
+      ;; Record the column where buffer names start.
+      (setq Buffer-menu-buffer-column 4)
       (let ((bl (buffer-list)))
 	(while bl
 	  (let* ((buffer (car bl))
 		 (name (buffer-name buffer))
 		 (file (buffer-file-name buffer))
+		 this-buffer-line-start
 		 this-buffer-read-only
 		 this-buffer-size
 		 this-buffer-mode-name
@@ -498,6 +485,7 @@ The R column contains a % for buffers that are read-only."
 	     ((and files-only (not file)))
 	     ;; Otherwise output info.
 	     (t
+	      (setq this-buffer-line-start (point))
 	      ;; Identify current buffer.
 	      (if (eq buffer old-buffer)
 		  (progn
@@ -507,13 +495,22 @@ The R column contains a % for buffers that are read-only."
 	      ;; Identify modified buffers.
 	      (princ (if (buffer-modified-p buffer) "*" " "))
 	      ;; Handle readonly status.  The output buffer is special
-	      ;; cased to be readonly; it is actually made so at a later
+	      ;; cased to appear readonly; it is actually made so at a later
 	      ;; date.
 	      (princ (if (or (eq buffer standard-output)
 			     this-buffer-read-only)
 			 "% "
 		       "  "))
 	      (princ name)
+	      ;; Put the buffer name into a text property
+	      ;; so we don't have to extract it from the text.
+	      ;; This way we avoid problems with unusual buffer names.
+	      (setq this-buffer-line-start
+		    (+ this-buffer-line-start Buffer-menu-buffer-column))
+	      (put-text-property this-buffer-line-start (point)
+				 'buffer-name name)
+	      (put-text-property this-buffer-line-start (point)
+				 'mouse-face 'highlight)
 	      (indent-to 17 2)
 	      (let (size
 		    mode
