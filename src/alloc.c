@@ -1493,6 +1493,7 @@ mark_object (objptr)
 	mark_object (&ptr->param_alist);
 	mark_object (&ptr->scroll_bars);
 	mark_object (&ptr->condemned_scroll_bars);
+	mark_object (&ptr->menu_bar_items);
       }
       break;
 #endif /* not MULTI_FRAME */
