@@ -822,7 +822,7 @@ buffer. The hook term-exec-hook is run after each exec."
 ;; loses one arg when called with -c, and newer shells (bash,  ksh) don't.
 ;; Thus we add an extra dummy argument "..", and then remove it.
   (apply 'start-process name buffer
-"/bin/sh" "-c" (format "stty sane -nl echo rows %d columns %d; if [ $1 = .. ]; then shift; fi;\
+"/bin/sh" "-c" (format "stty -nl echo rows %d columns %d sane 2>/dev/null; if [ $1 = .. ]; then shift; fi;\
   TERM=$1; export TERM; shift;\
   TERMCAP=$1; export TERMCAP; shift;\
   EMACS=t; export EMACS;\
