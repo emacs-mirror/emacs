@@ -3790,7 +3790,11 @@ decode_mode_spec (w, c, spec_width, maxwidth)
 	  return "Top";
 	else
 	  {
-	    total = ((pos - BUF_BEGV (b)) * 100 + total - 1) / total;
+	    if (total > 1000000)
+	      /* Do it differently for a large value, to avoid overflow.  */
+	      total = ((pos - BUF_BEGV (b)) + (total / 100) - 1) / (total / 100);
+	    else
+	      total = ((pos - BUF_BEGV (b)) * 100 + total - 1) / total;
 	    /* We can't normally display a 3-digit number,
 	       so get us a 2-digit number that is close.  */
 	    if (total == 100)
@@ -3816,7 +3820,11 @@ decode_mode_spec (w, c, spec_width, maxwidth)
 	  }
 	else
 	  {
-	    total = ((botpos - BUF_BEGV (b)) * 100 + total - 1) / total;
+	    if (total > 1000000)
+	      /* Do it differently for a large value, to avoid overflow.  */
+	      total = ((botpos - BUF_BEGV (b)) + (total / 100) - 1) / (total / 100);
+	    else
+	      total = ((botpos - BUF_BEGV (b)) * 100 + total - 1) / total;
 	    /* We can't normally display a 3-digit number,
 	       so get us a 2-digit number that is close.  */
 	    if (total == 100)
