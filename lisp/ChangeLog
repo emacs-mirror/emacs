@@ -1,11 +1,18 @@
+2001-05-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* gud.el (gud-jdb-build-source-files-list): Fix paren typo.
+
+	* pcvs-defs.el (cvs-mode-map): Don't rebind `undo'.
+
+	* files.el (auto-mode-alist): Add *.perl and fix the *.<rev> case.
+
 2001-05-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (command-line): If parameters have been changed in
 	the init files which influence font selection, clear the face
 	cache so that faces get realized with the new parameters.
 
-	* Makefile.in (compile-files): Redirect output of chmod to
-	/dev/null.
+	* Makefile.in (compile-files): Redirect output of chmod to /dev/null.
 
 2001-05-10  Stefan Monnier  <monnier@cs.yale.edu>
 
