@@ -1232,4 +1232,8 @@ copias de GNU Emacs a sus amigos.  ¡Ayude a erradicar el
 obstruccionismo del software ("propietariedad") usando, escribiendo, y
 compartiendo software libre!
 
+--- end of TUTORIAL.es ---
 
+;;; Local Variables:
+;;;   coding: latin-1
+;;; End:
