@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
-;; Author: Roland B Roberts <roberts@nsrl31.nsrl.rochester.edu>
+;; Author: Roland B Roberts <roberts@panix.com>
 ;; Keywords: vms
 
 ;; This file is part of GNU Emacs.
