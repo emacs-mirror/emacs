@@ -1615,6 +1615,8 @@ This is used by `call-process-region'.");
   DEFVAR_LISP ("process-environment", &Vprocess_environment,
     "List of environment variables for subprocesses to inherit.\n\
 Each element should be a string of the form ENVVARNAME=VALUE.\n\
+If multiple entries define the same variable, the first one always\n\
+takes precedence.\n\
 The environment which Emacs inherits is placed in this variable\n\
 when Emacs starts.");
 
