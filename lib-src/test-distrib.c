@@ -32,13 +32,21 @@ cool_read (fd, buf, size)
     }
 }
 
-main ()
+main (argc, argv)
+     int argc;
+     char **argv;
 {
-  int fd = open ("testfile", 0);
+  int fd;
 
+  if (argc != 2)
+    {
+      fprintf (stderr, "Usage: %s testfile\n", argv[0]);
+      exit (2);
+    }
+  fd = open (argv[1], 0);
   if (fd < 0)
     {
-      perror ("opening `testfile'");
+      perror (argv[1]);
       exit (2);
     }
   if (cool_read (fd, buf, sizeof string1) != sizeof string1 ||
@@ -46,9 +54,10 @@ main ()
       cool_read (fd, buf, sizeof string2) != sizeof string2 - 1 ||
       strncmp (buf, string2, sizeof string2 - 1))
     {
-      fprintf (stderr, "Data in file `testfile' has been damaged.\n\
+      fprintf (stderr, "Data in file `%s' has been damaged.\n\
 Most likely this means that many nonprinting characters\n\
-have been corrupted in the files of Emacs, and it will not work.\n");
+have been corrupted in the files of Emacs, and it will not work.\n",
+	       argv[1]);
       exit (2);
     }
   close (fd);

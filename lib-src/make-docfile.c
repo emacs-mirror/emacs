@@ -56,6 +56,11 @@ main (argc, argv)
       outfile = fopen (argv[i + 1], "a");
       i += 2;
     }
+  if (argc > i + 1 && !strcmp (argv[i], "-d"))
+    {
+      chdir (argv[i + 1]);
+      i += 2;
+    }
 
   for (; i < argc; i++)
     err_count += scan_file (argv[i]);	/* err_count seems to be {mis,un}used */
