@@ -7925,6 +7925,12 @@ syms_of_keyboard ()
   unread_switch_frame = Qnil;
   staticpro (&unread_switch_frame);
 
+  internal_last_event_frame = Qnil;
+  staticpro (&internal_last_event_frame);
+
+  read_key_sequence_cmd = Qnil;
+  staticpro (&read_key_sequence_cmd);
+
   defsubr (&Sevent_convert_list);
   defsubr (&Sread_key_sequence);
   defsubr (&Srecursive_edit);
