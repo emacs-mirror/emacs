@@ -112,11 +112,11 @@ struct buffer buffer_local_types;
 
 /* Flags indicating which built-in buffer-local variables
    are permanent locals.  */
-static char buffer_permanent_local_flags[MAX_BUFFER_LOCAL_VARS];
+static char buffer_permanent_local_flags[MAX_PER_BUFFER_VARS];
 
 /* Number of per-buffer variables used.  */
 
-int max_buffer_local_idx;
+int last_per_buffer_idx;
 
 Lisp_Object Fset_buffer ();
 void set_buffer_internal ();
@@ -596,24 +596,24 @@ reset_buffer_local_variables (b, permanent_too)
 
   /* Reset all (or most) per-buffer variables to their defaults.  */
   b->local_var_alist = Qnil;
-  for (i = 0; i < max_buffer_local_idx; ++i)
+  for (i = 0; i < last_per_buffer_idx; ++i)
     if (permanent_too || buffer_permanent_local_flags[i] == 0)
-      SET_BUFFER_HAS_LOCAL_VALUE_P (b, i, 0);
+      SET_PER_BUFFER_VALUE_P (b, i, 0);
 
   /* For each slot that has a default value,
      copy that into the slot.  */
 
-  for (offset = BUFFER_LOCAL_VAR_OFFSET (name);
+  for (offset = PER_BUFFER_VAR_OFFSET (name);
        offset < sizeof *b;
        offset += sizeof (Lisp_Object))
     {
-      int idx = BUFFER_LOCAL_IDX (offset);
+      int idx = PER_BUFFER_IDX (offset);
       if ((idx > 0
 	   && (permanent_too
 	       || buffer_permanent_local_flags[idx] == 0))
 	  /* Is -2 used anywhere?  */
 	  || idx == -2)
-	BUFFER_LOCAL_VALUE (b, offset) = BUFFER_LOCAL_DEFAULT_VALUE (offset);
+	PER_BUFFER_VALUE (b, offset) = PER_BUFFER_DEFAULT (offset);
     }
 }
 
@@ -760,16 +760,16 @@ No argument or nil as argument means use current buffer as BUFFER.")
   {
     int offset, idx;
 
-    for (offset = BUFFER_LOCAL_VAR_OFFSET (name);
+    for (offset = PER_BUFFER_VAR_OFFSET (name);
 	 offset < sizeof (struct buffer);
 	 /* sizeof EMACS_INT == sizeof Lisp_Object */
 	 offset += (sizeof (EMACS_INT)))
       {
-	idx = BUFFER_LOCAL_IDX (offset);
-	if ((idx == -1 || BUFFER_HAS_LOCAL_VALUE_P (buf, idx))
-	    && SYMBOLP (BUFFER_LOCAL_SYMBOL (offset)))
-	  result = Fcons (Fcons (BUFFER_LOCAL_SYMBOL (offset),
-				 BUFFER_LOCAL_VALUE (buf, offset)),
+	idx = PER_BUFFER_IDX (offset);
+	if ((idx == -1 || PER_BUFFER_VALUE_P (buf, idx))
+	    && SYMBOLP (PER_BUFFER_SYMBOL (offset)))
+	  result = Fcons (Fcons (PER_BUFFER_SYMBOL (offset),
+				 PER_BUFFER_VALUE (buf, offset)),
 			  result);
       }
   }
@@ -3823,7 +3823,7 @@ buffer_slot_type_mismatch (offset)
   Lisp_Object sym;
   char *type_name;
   
-  switch (XINT (BUFFER_LOCAL_TYPE (offset)))
+  switch (XINT (PER_BUFFER_TYPE (offset)))
     {
     case Lisp_Int:
       type_name = "integers";
@@ -3841,7 +3841,7 @@ buffer_slot_type_mismatch (offset)
       abort ();
     }
 
-  sym = BUFFER_LOCAL_SYMBOL (offset);
+  sym = PER_BUFFER_SYMBOL (offset);
   error ("Only %s should be stored in the buffer-local variable %s",
 	 type_name, XSYMBOL (sym)->name->data);
 }
@@ -3978,9 +3978,9 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.cursor_type, idx); ++idx;
 
   /* Need more room? */
-  if (idx >= MAX_BUFFER_LOCAL_VARS)
+  if (idx >= MAX_PER_BUFFER_VARS)
     abort ();
-  max_buffer_local_idx = idx;
+  last_per_buffer_idx = idx;
   
   Vbuffer_alist = Qnil;
   current_buffer = 0;
