@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
-;; Version: 1.4.19
+;; Version: 1.4.21
 ;; Keywords: comm languages processes
 
 ;; This file is part of GNU Emacs.
@@ -58,10 +58,8 @@
 ;; modes derived from comint mode.  This makes these modes easier to
 ;; use.
 
-;; sql-mode can be used to enable syntactic hilighting for SQL
-;; statements in another buffer.  SQL statements can then be sent to
-;; the SQL process in the SQLi buffer.  sql-mode has already been
-;; used as a template to a simple PL/SQL mode.
+;; sql-mode can be used to keep editing SQL statements.  The SQL
+;; statements can be sent to the SQL process in the SQLi buffer.
 
 ;; For documentation on the functionality provided by comint mode, and
 ;; the hooks available for customising it, see the file `comint.el'.
@@ -340,6 +338,16 @@ The program can also specify a TCP connection.  See `make-comint'."
   :type 'file
   :group 'SQL)
 
+(defcustom sql-postgres-options '("--pset" "pager=off")
+  "*List of additional options for `sql-postgres-program'.
+The default setting includes the --pset option which breaks
+older versions of the psql client (such as version 6.5.3).
+If you want the psql to prompt you for a user name, add the
+string \"-u\" to the list of options."
+  :type '(repeat string)
+  :version "20.8"
+  :group 'SQL)
+
 
 
 ;;; Variables which do not need customization
@@ -415,7 +423,9 @@ Based on `comint-mode-map'.")
  '("SQL"
    ["Send Paragraph" sql-send-paragraph (and (buffer-live-p sql-buffer)
 					     (get-buffer-process sql-buffer))]
-   ["Send Region" sql-send-region (and mark-active
+   ["Send Region" sql-send-region (and (or (and (boundp 'mark-active); Emacs
+						mark-active)
+					   (mark)); XEmacs
 				       (buffer-live-p sql-buffer)
 				       (get-buffer-process sql-buffer))]
    ["Send Buffer" sql-send-buffer (and (buffer-live-p sql-buffer)
@@ -1011,6 +1021,8 @@ For information on how to create multiple SQLi buffers, see
   (setq major-mode 'sql-mode)
   (setq mode-name "SQL")
   (use-local-map sql-mode-map)
+  (if sql-mode-menu
+      (easy-menu-add sql-mode-menu)); XEmacs
   (set-syntax-table sql-mode-syntax-table)
   (make-local-variable 'font-lock-defaults)
   ;; Note that making KEYWORDS-ONLY nil will cause havoc if you try
@@ -1124,6 +1136,8 @@ you entered, right above the output it created.
   (setq major-mode 'sql-interactive-mode)
   (setq mode-name "SQLi")
   (use-local-map sql-interactive-mode-map)
+  (if sql-interactive-mode-menu
+      (easy-menu-add sql-interactive-mode-menu)); XEmacs
   (set-syntax-table sql-mode-syntax-table)
   (make-local-variable 'font-lock-defaults)
   ;; Note that making KEYWORDS-ONLY nil will cause havoc if you try
@@ -1557,11 +1571,9 @@ Try to set `comint-output-filter-functions' like this:
     (message "Login...")
     ;; username and password are ignored.  Jason Beegan suggest using
     ;; --pset and pager=off instead of \\o|cat.  The later was the
-    ;; solution by Gregor Zych.  If you find that your postgres doesn't
-    ;; like Jason Beegans's solution and prefers Gregor Zych's solution,
-    ;; then I'd love to hear from you.  Send your comments to the
-    ;; mailing list.
-    (let ((params (list "--pset" "pager=off")))
+    ;; solution by Gregor Zych.  Jason's suggestion is the default value
+    ;; for sql-postgres-options.
+    (let ((params sql-postgres-options))
       (if (not (string= "" sql-database))
 	  (setq params (append (list sql-database) params)))
       (if (not (string= "" sql-server))
