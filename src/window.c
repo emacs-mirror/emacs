@@ -4156,6 +4156,11 @@ redraws with point in the center of the current window.")
   if (NILP (arg))
     {
       extern int frame_garbaged;
+      int i;
+
+      /* Invalidate pixel data calculated for all compositions.  */
+      for (i = 0; i < n_compositions; i++)
+	composition_table[i]->font = NULL;
 
       Fredraw_frame (w->frame);
       SET_FRAME_GARBAGED (XFRAME (WINDOW_FRAME (w)));
