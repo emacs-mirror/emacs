@@ -152,6 +152,11 @@ struct frame
   /* Number of lines of menu bar.  */
   int menu_bar_lines;
 
+#ifdef USE_X_TOOLKIT
+  /* Nonzero means using a menu bar that comes from the X toolkit.  */
+  int external_menu_bar;
+#endif
+
   /* Nonzero if last attempt at redisplay on this frame was preempted.  */
   char display_preempted;
 
@@ -253,6 +258,7 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_NEW_HEIGHT(f) (f)->new_height
 #define FRAME_NEW_WIDTH(f) (f)->new_width
 #define FRAME_MENU_BAR_LINES(f) (f)->menu_bar_lines
+#define FRAME_EXTERNAL_MENU_BAR(f) (f)->external_menu_bar
 #define FRAME_CURSOR_X(f) (f)->cursor_x
 #define FRAME_CURSOR_Y(f) (f)->cursor_y
 #define FRAME_VISIBLE_P(f) ((f)->visible != 0)
