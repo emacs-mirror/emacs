@@ -178,6 +178,13 @@ The functions \\[mail-send-on-exit] or \\[mail-dont-send] select
 the RMAIL summary buffer before returning, if it exists and this variable
 is non-nil.")
 
+(defvar mail-send-nonascii 'query
+  "*Specify whether to allow sending non-ASCII characters in mail.
+If t, that means do allow it.  nil means don't allow it.
+`query' means ask the user each time.
+Including non-ASCII characters in a mail message can be problematical
+for the recipient, who may not know how to decode them properly.")
+
 ;; Note: could use /usr/ucb/mail instead of sendmail;
 ;; options -t, and -v if not interactive.
 (defvar mail-mailer-swallows-blank-line
@@ -555,7 +562,18 @@ the user from the mailer."
 	  (y-or-n-p "Send buffer contents as mail message? ")
 	(or (buffer-modified-p)
 	    (y-or-n-p "Message already sent; resend? ")))
-      (let ((inhibit-read-only t))
+      (let ((inhibit-read-only t)
+	    (opoint (point)))
+	(when (and enable-multibyte-characters
+		   (not (eq mail-send-nonascii t)))
+	  (goto-char (point-min))
+	  (skip-chars-forward "\0-\177")
+	  (or (= (point) (point-max))
+	      (if (eq mail-send-nonascii 'query)
+		  (or (y-or-n-p "Message contains non-ASCII characters; send anyway? ")
+		      (error "Aborted"))
+		(error "Message contains non-ASCII characters"))))
+	(goto-char opoint)
 	(run-hooks 'mail-send-hook)
 	(message "Sending...")
 	(funcall send-mail-function)
