@@ -11179,9 +11179,9 @@ try_window_id (w)
      be adjusted, of course.  */
   row = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
   if (MATRIX_ROW_DISPLAYS_TEXT_P (row)
-      && ((first_changed_charpos < CHARPOS (start)
+      && ((last_changed_charpos < CHARPOS (start)
 	   && CHARPOS (start) == BEGV)
-	  || (first_changed_charpos < CHARPOS (start) - 1
+	  || (last_changed_charpos < CHARPOS (start) - 1
 	      && FETCH_BYTE (BYTEPOS (start) - 1) == '\n')))
     {
       int Z_old, delta, Z_BYTE_old, delta_bytes;
