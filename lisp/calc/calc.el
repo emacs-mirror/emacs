@@ -3145,8 +3145,9 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 		  (setq str (concat (substring str 0 (- figs)) point
 				    (substring str (- figs))))
 		(setq str (concat str point)))
-	      (if calc-group-digits
-		  (setq str (math-group-float str))))
+	      (when calc-group-digits
+		(require 'calc-ext)
+		(setq str (math-group-float str))))
 	  (if (< figs 0)
 	      (setq figs (+ calc-internal-prec figs)))
 	  (if (> figs 0)
@@ -3174,8 +3175,9 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 		   (t   ; (< dpos 0)
 		    (setq str (concat "0" point
 				      (make-string (- dpos) ?0) str))))
-		  (if calc-group-digits
-		      (setq str (math-group-float str))))
+		  (when calc-group-digits
+		    (require 'calc-ext)
+		    (setq str (math-group-float str))))
 	      (let* ((eadj (+ exp len))
 		     (scale (if (eq fmt 'eng)
 				(1+ (math-mod (+ eadj 300002) 3))
@@ -3186,8 +3188,9 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 		(if (< scale (length str))
 		    (setq str (concat (substring str 0 scale) point
 				      (substring str scale))))
-		(if calc-group-digits
-		    (setq str (math-group-float str)))
+		(when calc-group-digits
+		  (require 'calc-ext)
+		  (setq str (math-group-float str)))
 		(setq str (format (if (memq calc-language '(math maple))
 				      (if (and prec (> prec 191))
 					  "(%s*10.^%d)" "%s*10.^%d")
