@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; This file contains multibyte characters.  Save this file always in
-;; the coding system `iso-2022-7'.
+;; the coding system `iso-2022-7bit'.
 
 ;;; Predefined categories.
 
