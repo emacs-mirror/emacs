@@ -3775,7 +3775,10 @@ except for one element (optional) that starts with nil and describes
 definitions evaluated from buffers not visiting files.
 The remaining elements of each list are symbols defined as functions,
 and cons cells of the form `(provide . FEATURE)', `(require . FEATURE)',
-`(defvar . VARIABLE), and `(autoload . SYMBOL)'.  */);
+`(defvar . VARIABLE), `(autoload . SYMBOL)', and `(t . SYMBOL)'.
+An element `(t . SYMBOL)' precedes an entry that is just SYMBOL,
+and means that SYMBOL was an autoload before this file redefined it
+as a function.  */);
   Vload_history = Qnil;
 
   DEFVAR_LISP ("load-file-name", &Vload_file_name,
