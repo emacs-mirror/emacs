@@ -1,9 +1,7 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.86) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
- *
- * .readership: MM developers.
+ * $HopeName: MMsrc!mpmst.h(trunk.87) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .design: This header file crosses module boundaries.  The relevant
  * design a module's structures should be found in that module's design
@@ -126,11 +124,13 @@ typedef struct PoolStruct {     /* generic structure */
   Serial actionSerial;          /* serial of next action */
   Align alignment;              /* alignment for units */
   Format format;                /* format only if class->attr&AttrFMT */
+  PoolFixMethod fix;            /* fix method */
   double fillMutatorSize;       /* bytes filled, mutator buffers */
   double emptyMutatorSize;      /* bytes emptied, mutator buffers */
   double fillInternalSize;      /* bytes filled, internal buffers */
   double emptyInternalSize;     /* bytes emptied, internal buffers */
 } PoolStruct;
+
 
 /* MFSStruct -- MFS (Manual Fixed Small) pool outer structure
  *
@@ -489,6 +489,7 @@ typedef struct FormatStruct {
   FormatCopyMethod copy;
   FormatPadMethod pad;
   FormatClassMethod class;      /* pointer indicating class */
+  Size headerSize;              /* size of header */
 } FormatStruct;
 
 
