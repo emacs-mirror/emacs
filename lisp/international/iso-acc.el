@@ -327,7 +327,11 @@ Noninteractively, this operates on text from START to END."
 		(insert (car (cdr (car entry)))))
 	    (forward-char 1)))))))
 
-(iso-accents-customize "default")
+;; Set up the default settings, but don't override
+;; iso-accents-enable if the user has already set it.
+(let ((old iso-accents-enable))
+  (iso-accents-customize "default")
+  (if old
+      (setq iso-accents-enable old)))
 
 ;;; iso-acc.el ends here
-
