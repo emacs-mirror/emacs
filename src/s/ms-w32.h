@@ -360,6 +360,7 @@ Boston, MA 02111-1307, USA.  */
 #define putw	  _putw
 #define umask	  _umask
 #define utime	  _utime
+#define utimbuf	  _utimbuf
 #define index     strchr
 #define rindex    strrchr
 
