@@ -3655,14 +3655,7 @@ direct_output_for_insert (g)
   fflush (stdout);
 
   TRACE ((stderr, "direct output for insert\n"));
-
-  UNCHANGED_MODIFIED = MODIFF;
-  BEG_UNCHANGED = GPT - BEG;
-  XSETFASTINT (w->last_point, PT);
-  w->last_cursor = w->cursor;
-  XSETFASTINT (w->last_modified, MODIFF);
-  XSETFASTINT (w->last_overlay_modified, OVERLAY_MODIFF);
-
+  mark_window_display_accurate (it.window, 1);
   redisplay_performed_directly_p = 1;
   return 1;
 }
