@@ -1,3 +1,7 @@
+2005-01-14  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (Fposn_at_x_y): Add optional arg WHOLE.
+
 2005-01-13  Richard M. Stallman  <rms@gnu.org>
 
 	* keymap.c (Fcurrent_active_maps): Ignore Voverriding_local_map

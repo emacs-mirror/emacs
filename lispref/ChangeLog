@@ -1,5 +1,7 @@
 2005-01-14  Kim F. Storm  <storm@cua.dk>
 
+	* commands.texi (Accessing Events): Add WHOLE arg to posn-at-x-y.
+
 	* text.texi (Links and Mouse-1): Fix string and vector item.
 
 2005-01-13  Richard M. Stallman  <rms@gnu.org>
