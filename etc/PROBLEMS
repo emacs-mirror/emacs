@@ -1019,6 +1019,17 @@ add mod2 = Mode_switch
 EOF
 --------------------------------
 
+* Emacs hangs on KDE when a large portion of text is killed.
+
+This happens because KDE intercepts the X clipboard and appears not to
+notify Emacs properly when it is done.  A C-g will not interrupt this:
+Emacs will print "Quit", but will continue waiting.  After a while,
+Emacs will print a message:
+
+  Timed out waiting for property-notify event
+
+A workaround is to kill the KDE application called `klipper'.
+
 * Emacs compiled with DJGPP for MS-DOS/MS-Windows cannot access files
 in the directory with the special name `dev' under the root of any
 drive, e.g. `c:/dev'.
