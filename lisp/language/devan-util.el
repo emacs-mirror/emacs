@@ -27,6 +27,7 @@
 
 ;; History:
 ;; 1996.10.18 written by KAWABATA, Taichi <kawabata@is.s.u-tokyo.ac.jp>
+;; 1997.1.20 fixed some bugs.
 
 ;; Devanagari script composition rules and related programs.
 
@@ -104,7 +105,7 @@
 ;; Syllable ::= Cons-Vowel-Syllable | Vowel-Syllable
 ;; Vowel-Syllable ::= V[D]
 ;; Cons-Vowel-Syllable ::= [Cons-Syllable] Full-Cons [M] [D]
-;; Cons-Syllable ::= [Pure-Cons] [Pure-Cons] Pure-Cons
+;; Cons-Syllable ::= [Pure-Cons] [Pure-Cons] [Pure-Cons] Pure-Cons
 ;; Pure-Cons ::= Full-Cons H
 ;; Full-Cons ::= C [N]
 ;;
@@ -113,25 +114,30 @@
 ;; C - Consonant ($(5!3!4!5!6!7!8!9!:!;!<!=!>!?!@!A!B!C!D!E(B
 ;;                $(5!F!G!H!I!J!K!L!M!N!O!P!Q!R!S!T!U!V!W!X(B)
 ;; N - Nukta ($(5!i(B)
-;; H - Halant($(5!h(B)
-;; V - Vowel ($(5!$!%!&!'!(!)!*!+!,!-!.!/!0!1!2(B)
-;; D - Vowel Modifiers, i.e. Anuswar, Chandrabindu, Visarg  ($(5!!!"(B)
-;; M - Matra ($(5!Z![!\!]!^!_!`!a!b!c!d!e!f!g(B)
+;; H - Halant($(5!h(B) or Virama
+;; V - Vowel ($(5!$!%!&!'!(!)!*!+!,!-!.!/!0!1!2#&#'#*(B)
+;;     ("$(5#&#'#*(B" can be obtained by IS13194 vowels with nukta.)
+;; D - Vowel Modifiers, i.e. Anuswar, Chandrabindu, Visarga  ($(5!!!"!#(B)
+;; M - Matra ($(5!Z![!\!]!^!_!`!a!b!c!d!e!f!g#K#L#M(B)
+;;     ("$(5#K#L#M(B" can be obtained by IS13194 matras with nukta.)
 ;;
 ;; In Emacs, one syllable of Indian language is considered to be one 
 ;; composite glyph.  If we expand the above expression, it would be:
 ;;
-;; [[C [N] H] [C [N] H] C [N] H] C [N] [M] [D] | V [D]
+;; [[C [N] H] [C [N] H] [C [N] H] C [N] H] C [N] [M] [D] | V [D]
 ;; 
 ;; Therefore, in worst case, the consonant syllabe will consist of
 ;; following characters.
 ;;
-;; C N H C N H C N H C N M D
+;; C N H C N H C N H C N H C N M D
+;;
+;; The example is a sanskrit word "kaurtsnya", where five consecutive
+;; consonant appears.
 ;;
 ;; On the other hand, incomplete consonant syllable before inputting
 ;; base consonant must satisfy the following condition:
 ;;
-;; [C [N] H] [C [N] H] C [N] H
+;; [C [N] H] [C [N] H] [C [N] H] C [N] H
 ;;
 ;; This is acceptable BEFORE proper consonant-syllable is input.  The
 ;; string which doesn't match with the above expression is invalid and
@@ -141,21 +147,21 @@
 ;; Third case can be considered, which is acceptable syllable and can
 ;; not add any code more.
 ;;
-;; [[C [N] H] [C [N] H] C [N] H] C [N] [M] D
+;; [[C [N] H] [C [N] H] [C [N] H] C [N] H] C [N] [M] D
 ;;
 ;; However, to make editing possible even in this condition, we will
 ;; not consider about this case.
 
 (defconst devanagari-cons-syllable-examine
-  "\\(\\([$(5!3(B-$(5!X(B]$(5!i(B?$(5!h(B\\)?\\([$(5!3(B-$(5!X(B]$(5!i(B?$(5!h(B\\)?[$(5!3(B-$(5!X(B]$(5!i(B?$(5!h(B\\)?[$(5!3(B-$(5!X(B]$(5!i(B?[$(5!Z(B-$(5!g(B]?[$(5!!!"(B]?"
+  "\\(\\([$(5!3(B-$(5!X(B]$(5!i(B?$(5!h(B\\)?\\([$(5!3(B-$(5!X(B]$(5!i(B?$(5!h(B\\)?[$(5!3(B-$(5!X(B]$(5!i(B?$(5!h(B\\)?[$(5!3(B-$(5!X(B]$(5!i(B?\\([$(5!Z(B-$(5!g#K#L#M(B]\\|\\($(5!_!i(B\\)\\|\\($(5![!i(B\\)\\|\\($(5!\!i(B\\)\\)?[$(5!!!"!#(B]?"
   "Regexp matching to one Devanagari consonant syllable.")
 
 (defconst devanagari-cons-syllable-incomplete-examine
-  "\\([$(5!3(B-$(5!X(B]$(5!i(B?$(5!h(B\\)?\\([$(5!3(B-$(5!X(B]$(5!i(B?$(5!h(B\\)?[$(5!3(B-$(5!X(B]$(5!i(B?$(5!h(B$"
+  "\\([$(5!3(B-$(5!X(B]$(5!i(B?$(5!h(B\\)?\\([$(5!3(B-$(5!X(B]$(5!i(B?$(5!h(B\\)?\\([$(5!3(B-$(5!X(B]$(5!i(B?$(5!h(B\\)?[$(5!3(B-$(5!X(B]$(5!i(B?$(5!h(B$"
   "Regexp matching to one Devanagari incomplete consonant syllable.")
 
 (defconst devanagari-vowel-syllable-examine
-  "[$(5!$(B-$(5!2(B][$(5!!!"!#(B]?"
+  "\\([$(5!$(B-$(5!2#&#'#*(B]\\|\\($(5!*!i(B\\)\\|\\($(5!&!i(B\\)\\|\\($(5!'!i(B\\)\\)[$(5!!!"!#(B]?"
   "Regexp matching to one Devanagari vowel syllable.")
 
 ;;
@@ -167,7 +173,7 @@
 (defconst devanagari-digit-viram-examine 
   "[$(5!q(B-$(5!z!j(B]")
 (defconst devanagari-other-sign-examine
-  "[$(5!!!j(B]$(5!i(B")
+  "\\([$(5!!!j(B]$(5!i(B\\)\\|\\([$(5#!#J(B]\\)")
 
 (defconst devanagari-composite-glyph-unit-examine
   (concat "\\(" devanagari-cons-syllable-incomplete-examine 
@@ -242,6 +248,16 @@
     ;; ("[^$(5!h(B]\\($(5!O!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"p(B")
     ("^\\($(5!O!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"p(B")
 
+    ;; Half Form Ligature
+    ;; Here is the half-form ligature which has higher priority than
+    ;; the common ligature rules listed below.
+    ;; special forms.
+    ("\\($(5!3!h!V!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"l(B")
+    ("\\($(5!:!h!<!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"m(B")
+    ;; Ordinary forms.
+    ("\\($(5!B!h!B!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"c(B")
+    ("\\($(5!F!h!F!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"k(B")
+
     ;; If "r" is preceded by the vowel-suppressed consonant
     ;; (especially those with vertical line), it will be written as
     ;; slanted line below the preceding consonant character.  Some of
@@ -250,12 +266,15 @@
     ("\\($(5!:!i!h!O(B\\)" . "$(5"!(B")
     ("\\($(5!I!i!h!O(B\\)" . "$(5""(B")
     ("\\($(5!3!h!O(B\\)" . "$(5"#(B")
-    ("\\($(5!:!h!O(B\\)" . "$(5"$(B")
+    ("\\($(5!5!h!O(B\\)" . "$(5"$(B")
     ("\\($(5!B!h!O(B\\)" . "$(5"%(B")
     ("\\($(5!H!h!O(B\\)" . "$(5"&(B")
     ("\\($(5!I!h!O(B\\)" . "$(5"'(B")
-    ("\\($(5!U!h!O(B\\)" . "$(5"((B")
-    ("\\($(5!W!h!O(B\\)" . "$(5")(B")
+    ("\\($(5!U!h!O(B\\)" . "$(5")(B")
+
+    ;; Special Rules
+    ;; In the following case, "$(5!<!h!:(B" ligature does not occur.
+    ("\\($(5!<!h(B\\)$(5!:!h!<!h(B" . "$(5"<(B")
 
     ;; Ligature Rules 
     ("\\($(5!3!h!B!h!O!h!M(B\\)" . "$(5$!(B")
@@ -294,7 +313,7 @@
     ("\\($(5!8!h!<(B\\)" . "$(5$B(B")
     ("\\($(5!9!h!M(B\\)" . "$(5$C(B")
     ("\\($(5!:!h!O(B\\)" . "$(5$D(B")
-    ("\\($(5!:!h!h(B\\)" . "$(5$E(B")
+    ("\\($(5!:!h!<(B\\)" . "$(5$E(B")
     ("\\($(5!<!h!8(B\\)" . "$(5$F(B")
     ("\\($(5!<!h!:(B\\)" . "$(5$G(B")
     ("\\($(5!=!h!3(B\\)" . "$(5$H(B")
@@ -372,14 +391,10 @@
     ;; connection which is not listed here has not been examined yet.
     ;; I don't know what to do with them.
     ;;
-    ;; special forms 
-    ("\\($(5!3!h!V!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"l(B")
-    ("\\($(5!:!h!<!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"m(B")
     ;; ordinary forms 
     ("\\($(5!5!h!O!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"`(B")
     ("\\($(5!6!h!F!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"a(B")
     ;; ("\\($(5!<!h!8!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"c(B") ; Mistake, must check later.
-    ("\\($(5!B!h!B!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"c(B")
     ("\\($(5!B!h!O!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"d(B")
     ("\\($(5!E!h!F!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"e(B")
     ("\\($(5!E!h!O!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"f(B")
@@ -400,8 +415,16 @@
     ;; have the vertical line (such as "$(5!?(B"), "$(5"r(B" is put beneath the
     ;; consonant.
     ;;
-    ;; ("cons-not-yet-listed-up\\($(5!h!O(B\\)" . "$(5"q(B")
     ("[$(5!7!9!=!>!?!@!D!O!P!R!S!X(B]\\($(5!h!O(B\\)" . "$(5"r(B")
+    ("\\($(5!J!h!O(B\\)" . "$(5!J"r(B") ; Protect from Half form conversion.
+    ("\\($(5!E!h!O(B\\)" . "$(5!E"r(B") ; Will be replaced with precomposed font.
+    ("\\($(5!6!h!O(B\\)" . "$(5!6"r(B")
+    ("\\($(5!K!h!O(B\\)" . "$(5!K"r(B")
+    ("\\($(5!T!h!O(B\\)" . "$(5!T"r(B")
+    ("\\($(5!L!h!O(B\\)" . "$(5!L"r(B")
+    ("\\($(5!7!h!5!h!O(B\\)" . "$(5$;"r(B") ; Ggr
+    ("\\($(5!7!h!3!h!O(B\\)" . "$(5$9"r(B") ; Gkr
+
     ("$(5!?!i(B\\($(5!h!O(B\\)" . "$(5"r(B")
     ("$(5!@!i(B\\($(5!h!O(B\\)" . "$(5"r(B")
 
@@ -410,6 +433,9 @@
     ("\\($(5!&!i(B\\)" . "$(5#&(B")
     ("\\($(5!'!i(B\\)" . "$(5#'(B")
     ("\\($(5!*!i(B\\)" . "$(5#*(B")
+    ("\\($(5![!i(B\\)" . "$(5#L(B")
+    ("\\($(5!\!i(B\\)" . "$(5#M(B")
+    ("\\($(5!_!i(B\\)" . "$(5#K(B")
     ("\\($(5!3!i(B\\)" . "$(5#3(B")
     ("\\($(5!4!i(B\\)" . "$(5#4(B")
     ("\\($(5!5!i(B\\)" . "$(5#5(B")
@@ -448,6 +474,11 @@
     ("\\($(5!U!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"U(B")
     ("\\($(5!V!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"V(B")
     ("\\($(5!W!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"W(B")
+
+    ;; Special rule for "rR"
+    ("\\($(5!O!_(B\\)" . "$(5!*"p(B")
+    ;; If everything fails, "y" will connect to the front consonant.
+    ("\\($(5!h!M(B\\)" . "$(5"](B")
     )
   "Alist of regexps of Devanagari character sequences vs composed characters.")
 
@@ -546,11 +577,16 @@ Ligatures and special rules are processed."
 ;; Glyphs will be ordered from low priority number to high priority number.
 ;; If application-priority is omitted, it is assumed to be 0.
 ;; If application-direction is omitted, it is asumbed to be '(mr . ml).
+;;
+;; Priority
+;;          Base Glyphs = {$(5!h!i(B} = Misc > 
+;;          {$(5"p"q"r(B} > Matras > {$(5!!!"!#(B}
+;; Question Halant and '$(5"q"r(B' priority problem.
 
 (defconst devanagari-composition-rules
-  '((?$(5!!(B 60 (tr . br))
-    (?$(5!"(B 60 (tr . br))
-    (?$(5!#(B 60)
+  '((?$(5!!(B 70 (tr . br))
+    (?$(5!"(B 70 (mr . mr))
+    (?$(5!#(B 70)
     (?$(5!$(B 0)
     (?$(5!%(B 0)
     (?$(5!&(B 0)
@@ -611,16 +647,16 @@ Ligatures and special rules are processed."
     (?$(5!](B 40 (bc . tc))
     (?$(5!^(B 40 (bc . tc))
     (?$(5!_(B 40 (bc . tc))
-    (?$(5!`(B 40 (tc . bc))
-    (?$(5!a(B 40 (tc . bc))
-    (?$(5!b(B 40 (tc . bc))
-    (?$(5!c(B 40 (tc . bc))
+    (?$(5!`(B 40 (mr . mr))  ; (tc . bc)
+    (?$(5!a(B 40 (mr . mr))
+    (?$(5!b(B 40 (mr . mr))
+    (?$(5!c(B 40 (mr . mr))
     (?$(5!d(B 40)
     (?$(5!e(B 40)
     (?$(5!f(B 40)
     (?$(5!g(B 40)
-    (?$(5!h(B 0 (br . tr))			; Halant's special treatment.
-    (?$(5!i(B 0 (br . tr))			; Nukta's special treatment.
+    (?$(5!h(B 0 (br . tr))
+    (?$(5!i(B 0 (br . tr))
     (?$(5!j(B 0)
     (nil 0)
     (nil 0)
@@ -721,9 +757,9 @@ Ligatures and special rules are processed."
     (?$(5"m(B 0)
     (?$(5"n(B 0)
     (?$(5"o(B 0)
-    (?$(5"p(B 20 (tr . br))
-    (?$(5"q(B 20 (br . tr))
-    (?$(5"r(B 20 (br . tr))
+    (?$(5"p(B 30 (mr . mr))
+    (?$(5"q(B 30 (br . tr))
+    (?$(5"r(B 30 (br . tr))
     (?$(5"s(B 0)
     (?$(5"t(B 0)
     (?$(5"u(B 0)
@@ -778,9 +814,9 @@ Ligatures and special rules are processed."
     (?$(5#H(B 0)
     (?$(5#I(B 0)
     (?$(5#J(B 0)
-    (?$(5#K(B 0)
-    (?$(5#L(B 0)
-    (?$(5#M(B 0)
+    (?$(5#K(B 40 (bc . tc))
+    (?$(5#L(B 40 (bc . tc))
+    (?$(5#M(B 40 (bc . tc))
     (?$(5#N(B 0)
     (?$(5#O(B 0)
     (?$(5#P(B 0)
@@ -929,10 +965,6 @@ Ligatures and special rules are processed."
 ;; Determine composition priority and rule of the array of Glyphs.
 ;; Sort the glyphs with their priority.
 
-;; Example:
-;;(devanagari-reorder-glyph-for-composition '[?$(5"5(B ?$(5!X(B ?$(5![(B])
-;;	=> ((446680 0) (446773 0) (446683 50 (ml . mr)))
-
 (defun devanagari-reorder-glyph-for-composition (glyph-alist)
   (let* ((pos 0)
 	 (ordered-glyphs '()))
@@ -966,6 +998,19 @@ Ligatures and special rules are processed."
     (if (= (length cmp-glyph-list) 1) (char-to-string (car cmp-glyph-list))
       (apply 'compose-chars cmp-glyph-list))))
 
+;; Utility function for Phase 2.5
+;; Check whether given glyph is a Devanagari vertical modifier or not.
+;; If it is a vertical modifier, whether it should be 1-column shape or not
+;; depends on previous non-vertical modifier.
+   ; return nil if it is not vertical modifier.
+(defun devanagari-vertical-modifier-p (glyph)
+  (string-match (char-to-string glyph)
+		"[$(5!]!^!_!`!a!b!c!h!i"p"q"r#K#L#M(B]"))
+
+(defun devanagari-non-vertical-modifier-p (glyph)
+  (string-match (char-to-string glyph)
+		"[$(5!Z![!\!d!e!f!g(B]"))
+
 
 ;;
 ;;    Phase 2.5  Convert Appropriate Character to 1-column shape.
@@ -981,56 +1026,50 @@ Ligatures and special rules are processed."
 ;;   with 2 column base-glyph.
 ;;
 ;; Execution Examples
-;;(devanagari-wide-to-narrow '(446680 446773 (ml . mr) 446683))
-;;(devanagari-wide-to-narrow '(?$(5!6(B (ml . ml) 446773 (tc . mr) 446683))
+;;(devanagari-wide-to-narrow '(?$(5!3(B (ml . ml) ?$(5!a(B))
+;;(devanagari-wide-to-narrow '(?$(5!F(B (ml . ml) ?$(5!a(B))
+
+;(defun devanagari-wide-to-narrow (src-list)
+;  (if (null src-list) '()
+;    (cons 
+;     (if (and (numberp (car src-list))
+;	      (cdr (assq (car src-list) devanagari-1-column-char)))
+;	 (cdr (assq (car src-list) devanagari-1-column-char))
+;       (car src-list))
+;     (devanagari-wide-to-narrow (cdr src-list)))))
 
 (defun devanagari-wide-to-narrow (src-list)
-  (if (null src-list) '()
-    (cons 
-     (if (and (numberp (car src-list))
-	      (cdr (assq (car src-list) devanagari-1-column-char)))
-	 (cdr (assq (car src-list) devanagari-1-column-char))
-       (car src-list))
-     (devanagari-wide-to-narrow (cdr src-list)))))
+  (devanagari-wide-to-narrow-iter src-list t))
 
-;; Make this function obsolete temporary Because now Emacs supports
-;; attaching 1 column character at the center 2 column char.  However,
-;; there are still problems attempting to attach Halant or Nukta sign
-;; at the non-vowel consonant.  This problem can not be solved until
-;; Emacs supports attaching the glyph at `temporary-preserved metric'.
+(defun devanagari-wide-to-narrow-iter (src-list wide-p)
+  (let ((glyph (car src-list)))
+    (cond ((null src-list) '())
+	  ; not glyph code
+	  ((not (numberp glyph)) 
+	   (cons glyph (devanagari-wide-to-narrow-iter (cdr src-list) wide-p)))
+	  ; vertical modifier glyph
+	  ((devanagari-vertical-modifier-p glyph)
+	   (if (and (null wide-p)
+		    (cdr (assq glyph devanagari-1-column-char)))
+	       (cons (cdr (assq glyph devanagari-1-column-char))
+		     (devanagari-wide-to-narrow-iter (cdr src-list) nil))
+	       (cons glyph
+		     (devanagari-wide-to-narrow-iter (cdr src-list) t))))
+	  ; nonvertical modifier glyph
+	  ((devanagari-non-vertical-modifier-p glyph)
+	   (if (cdr (assq glyph devanagari-1-column-char))
+	       (cons (cdr (assq glyph devanagari-1-column-char))
+		     (devanagari-wide-to-narrow-iter (cdr src-list) wide-p))
+	       (cons glyph
+		     (devanagari-wide-to-narrow-iter (cdr src-list) wide-p))))
+	  ; normal glyph
+	  (t
+	   (if (cdr (assq glyph devanagari-1-column-char))
+	       (cons (cdr (assq glyph devanagari-1-column-char))
+		     (devanagari-wide-to-narrow-iter (cdr src-list) nil))
+	       (cons glyph
+		     (devanagari-wide-to-narrow-iter (cdr src-list) t)))))))
 
-(defun devanagari-wide-to-narrow-old (src-list)
-  (if (null src-list) (progn (error "devanagari-wide-to-narrow error") nil)
-    (let* ((base-glyph (cdr (assq (car src-list) devanagari-1-column-char)))
-	   (wide-base-glyph nil)
-	   (apply-glyph-list (cdr src-list)))
-      (if (null base-glyph)
-	  (progn 
-	    (setq wide-base-glyph t)
-	    (setq base-glyph (car src-list))))
-      (cons base-glyph
-	    (devanagari-wide-to-narrow-iter apply-glyph-list wide-base-glyph))
-      )))
-
-;; Convert apply-glyph-list from 2-column to 1-column.
-;;   wide-base-glyph is t when base-glyph is 2-column.
-;;   When apply-glyph is put at the top or bottom of 2-column base-glyph,
-;;   they must be 2-column glyph, too.  Otherwise, they will be 
-;;   converted to 1-column glyph if possible.
-
-(defun devanagari-wide-to-narrow-iter (apply-glyph-list wide-base-glyph)
-  (if (< (length apply-glyph-list) 2) '()
-    (let* ((apply-dir    (car apply-glyph-list))
-	   (apply-glyph  (car (cdr apply-glyph-list)))
-	   (apply-rest   (cdr (cdr apply-glyph-list)))
-	   (put-t-or-b   (member (car apply-dir) '(tl tc tr bl bc br)))
-	   (narrow-glyph (cdr (assq apply-glyph devanagari-1-column-char))))
-      (append 
-       (list apply-dir
-	     (if (or (and wide-base-glyph put-t-or-b)
-		     (null narrow-glyph))
-		 apply-glyph narrow-glyph))
-       (devanagari-wide-to-narrow-iter apply-rest wide-base-glyph)))))
 
 ;;
 ;; Summary
