@@ -1332,7 +1332,7 @@ Uses `makefile-use-curly-braces-for-macros-p'."
       (buffer-substring (match-beginning 1)
 			(match-end 1)))
      ((progn
-	(forward-char)
+	(or (eobp) (forward-char))
 	(re-search-backward makefile-dependency-regex nil t))
       (buffer-substring (match-beginning 1)
 			(match-end 1)))
