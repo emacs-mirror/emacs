@@ -885,16 +885,13 @@ which will run faster and probably do exactly what you want."
 			      (progn (goto-char (nth 1 match-again))
 				     match-again)
 			    (and (or match-again
-				     ;; MATCH-AGAIN nil means in the
-				     ;; regexp case that there's no
-				     ;; match adjacent to the last
-				     ;; one.  So, we could move
-				     ;; forward, but we don't want to
-				     ;; because that moves point 1
-				     ;; position after the last
-				     ;; replacement when everything
-				     ;; has been done.
-				     regexp-flag
+				     ;; MATCH-AGAIN non-nil means we
+				     ;; accept an adjacent match.  If
+				     ;; we don't, move one char to the
+				     ;; right.  This takes us a
+				     ;; character too far at the end,
+				     ;; but this is undone after the
+				     ;; while-loop.
 				     (progn (forward-char 1) (not (eobp))))
 				 (funcall search-function search-string limit t)
 				 ;; For speed, use only integers and
@@ -1048,6 +1045,13 @@ which will run faster and probably do exactly what you want."
 		    (cons (cons (point)
 				(or replaced (match-data t)))
 			  stack)))))
+
+      ;; The code preventing adjacent regexp matches in the condition
+      ;; of the while-loop above will haven taken us one character
+      ;; beyond the last replacement.  Undo that.
+      (when (and regexp-flag (not match-again) (> replace-count 0))
+	(backward-char 1))
+      
       (replace-dehighlight))
     (or unread-command-events
 	(message "Replaced %d occurrence%s"
