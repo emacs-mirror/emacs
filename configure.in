@@ -170,7 +170,9 @@ case "${canonical}" in
     machine=acorn opsys=riscix1-1
   ;;
   arm-acorn-riscix1.2* | arm-acorn-riscix )
-    machine=acorn opsys=riscix1-2
+    ## This name is riscix12 instead of riscix1.2
+    ## to avoid a file name conflict on MSDOS.
+    machine=acorn opsys=riscix12
   ;;
 
   ## Alliant machines
@@ -276,7 +278,9 @@ case "${canonical}" in
 
   ## Data General AViiON Machines
   m88k-dg-dgux5.4R3* | m88k-dg-dgux5.4.3* )
-    machine=aviion opsys=dgux5-4r3
+    ## This name is dgux5-4-3 instead of dgux5-4r3
+    ## to avoid a file name conflict on MSDOS.
+    machine=aviion opsys=dgux5-4-3
   ;;
   m88k-dg-dgux5.4R2* | m88k-dg-dgux5.4.2* )
     machine=aviion opsys=dgux5-4r2
@@ -718,7 +722,9 @@ case "${canonical}" in
       i[3456]86-*-sunos4	  ) opsys=sunos4-0 ;;
       *-sunos4.0*	  ) opsys=sunos4-0 ;;
       *-sunos4.1.[3-9]*noshare )
-		opsys=sunos4-1-3
+		## This name is sunos413 instead of sunos4-1-3
+		## to avoid a file name conflict on MSDOS.
+		opsys=sunos413
 		NON_GNU_CPP=/usr/lib/cpp
 		NON_GCC_TEST_OPTIONS=-Bstatic
 		GCC_TEST_OPTIONS=-static
