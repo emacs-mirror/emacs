@@ -1300,7 +1300,8 @@ x_report_frame_params (f, alistptr)
 		   : FRAME_SCROLL_BAR_PIXEL_WIDTH (f) > 0
 		   ? make_number (FRAME_SCROLL_BAR_PIXEL_WIDTH (f))
 		   /* nil means "use default width"
-		      for non-toolkit scroll bar */
+		      for non-toolkit scroll bar.
+		      ruler-mode.el depends on this.  */
 		   : Qnil));
   sprintf (buf, "%ld", (long) FRAME_X_WINDOW (f));
   store_in_alist (alistptr, Qwindow_id,
