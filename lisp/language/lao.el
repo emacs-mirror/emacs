@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2001 Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, Lao
 
@@ -31,7 +32,8 @@
  "8-bit encoding for ASCII (MSB=0) and LAO (MSB=1)"
  '(ascii lao nil nil
    nil nil)
- '((safe-charsets ascii lao)))
+ '((safe-charsets ascii lao)
+   (post-read-conversion . lao-post-read-conversion)))
 
 (set-language-info-alist
  "Lao" '((charset lao)
@@ -44,15 +46,22 @@
 	 (documentation . t)))
 
 (aset use-default-ascent ?(1;(B t)
+(aset use-default-ascent ?$,1D;(B t)
 (aset use-default-ascent ?(1=(B t)
+(aset use-default-ascent ?$,1D=(B t)
 (aset use-default-ascent ?(1?(B t)
+(aset use-default-ascent ?$,1D?(B t)
 (aset use-default-ascent ?(1B(B t)
+(aset use-default-ascent ?$,1DB(B t)
 (aset ignore-relative-composition ?(1\(B t)
+(aset ignore-relative-composition ?$,1D\(B t)
 
 ;; Register a function to compose Lao characters.
-(aset composition-function-table (make-char 'lao)
-      '(("\\c0\\c9?\\(\\(\\c2\\|\\c3\\)\\c4?\\|\\c4\\)?"
-	 . lao-composition-function)))
+(let ((patterns '(("\\c0\\c9?\\(\\(\\c2\\|\\c3\\)\\c4?\\|\\c4\\)?"
+	 . lao-composition-function))))
+  (aset composition-function-table (make-char 'lao) patterns)
+  (dotimes (i (1+ (- #xeff #xe80)))
+    (aset composition-function-table (decode-char 'ucs (+ i #xe80)) patterns)))
 
 (provide 'lao)
 
