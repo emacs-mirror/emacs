@@ -1,8 +1,8 @@
-# $HopeName: MMQA_harness!script:version(trunk.8) $
+# $HopeName: MMQA_harness!script:version(trunk.9) $
 # This file should be updated automatically whenever the test
 # harness changes. Edit with care!
 
-$HARNESS_VERSION="2.6";
+$HARNESS_VERSION="3.0";
 
 # Version history:
 # [Recorded history begins with version 2.0]
@@ -21,3 +21,8 @@ $HARNESS_VERSION="2.6";
 #         because some tests have e.g. value = (size_t)1024.
 #  2.6 -- "qa help install" added, after drj asked for it
 #
+#  3.0 -- scrutinize MPS header files, extracting symbols. Record settings
+#         and other info at time of clib, and check before running tests.
+#         INTERFACE_VERSION removed. DANGEROUS added. 1999-05-04
+#
+
