@@ -1,3 +1,8 @@
+2002-11-20  Simon Josefsson  <jas@extundo.com>
+
+	* play/morse.el (morse-code): Add non-ASCII characters, according
+	to table at http://www.soton.ac.uk/~scp93ch/morse/.
+
 2002-11-21  Richard M. Stallman  <rms@gnu.org>
 
 	* dired.el (dired-sort-inhibit): New variable.
