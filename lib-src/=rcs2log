@@ -12,7 +12,7 @@
 
 # Author: Paul Eggert <eggert@twinsun.com>
 
-# $Id: rcs2log,v 1.13.1.1 1993/09/24 00:54:33 eggert Exp $
+# $Id: rcs2log,v 1.15 1993/09/24 01:03:32 eggert Exp eggert $
 
 # Copyright 1992, 1993 Free Software Foundation, Inc.
 
@@ -259,7 +259,12 @@ printlogline='{
 
 	# Print each line of the log, transliterating \r to \n.
 	while ((i = index(Log, CR)) != 0) {
-		printf "%s%s\n", sep, substr(Log, 1, i-1)
+		logline = substr(Log, 1, i-1)
+		if (logline ~ /[^	 ]/) {
+			printf "%s%s\n", sep, logline
+		} else {
+			print ""
+		}
 		sep = indent_string
 		Log = substr(Log, i+1)
 	}
