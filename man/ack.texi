@@ -17,15 +17,12 @@ written substantial portions.
 
 @itemize @bullet
 @item
-Per Abhiddenware wrote @file{gnus-cite.el}, a citation-parsing facility
-for news articles.
-
-@item
 Per Abrahamsen wrote the customization buffer facilities, as well as
 @file{double.el} for typing accented characters not normally available
 from the keyboard, @file{xt-mouse.el} which handles mouse commands
 through Xterm, @file{gnus-cus.el} which implements customization
-commands for Gnus, and @file{cpp.el} which hides or highlights parts of
+commands for Gnus, @file{gnus-cite.el}, a citation-parsing facility
+for news articles and @file{cpp.el} which hides or highlights parts of
 C programs according to preprocessor conditionals.
 
 @item
@@ -54,8 +51,12 @@ Eli Barzilay wrote @file{calculator.el}, a desktop calculator for
 Emacs.
 
 @item
-Steven L.@: Baur wrote @file{earcon.el}, a facility for sound effects
-for email and news messages, @file{footnote.el} which lets you include
+Steven L.@: Baur wrote
+@c If earcon.el actually works with Emacs 21, it isn't useful for lack
+@c of  sound files. -- fx
+@c @file{earcon.el}, a facility for sound effects
+@c for email and news messages, 
+@file{footnote.el} which lets you include
 footnotes in email messages, and @file{gnus-audio.el} which provides
 sound effects for Gnus.
 
@@ -152,8 +153,6 @@ Andrew Choi wrote the Macintosh support code, and contributed
 @item
 James Clark wrote @file{sgml-mode.el}, a mode for editing SGML
 documents, and contributed to Emacs's dumping procedures.
-@file{sgml-mode.el} was later adapted by Eric Raymond, Daniel Pfeiffer,
-and Francesco Potorti.
 
 @item
 Mike Clarkson wrote @file{edt.el}, an emulation of DEC's EDT editor.
@@ -423,7 +422,7 @@ Karl Heuer wrote the original blessmail script, implemented the
 @code{Lisp_Object} type to allow for more data bits.
 
 @item
-Manabu Higashida ported Emacs to the MS-DOS operating system.
+Manabu Higashida ported Emacs to MS-DOS.
 
 @item
 Anders Holst wrote @file{hippie-exp.el}, a versatile completion and
@@ -765,10 +764,6 @@ conflicts, and
 @end itemize
 
 @item
-Keith Moore wrote @file{aixcc.lex}, a pre-processor designed to help
-Emacs parse the error messages produced by the AIX C compiler.
-
-@item
 Morioka Tomohiko wrote several packages for MIME support in Gnus and
 elsewhere.
 
@@ -778,9 +773,8 @@ with completion, and @file{rfc2368.el}, support for @code{mailto:}
 URLs.
 
 @item
-Erik Naggum wrote the time-conversion functions, and has tested daily
-the latest source code up to and including Emacs version 20.  He also
-wrote @file{disp-table.el}, a package for dealing with display tables,
+Erik Naggum wrote the time-conversion functions.  He also wrote
+@file{disp-table.el}, a package for dealing with display tables,
 @file{latin-4.el} and @file{latin-5.el}, code which sets up
 case-conversion and syntax tables for the ISO Latin-4 and Latin-5
 character sets, @file{mailheader.el}, a pacakage for parsing email
@@ -1404,11 +1398,14 @@ VI text editor.
 @item
 Detlev Zundel wrote @file{re-builder.el}, a package for building regexps
 with visual feedback.
+
+@c utf-8.el author?
 @end itemize
 
 Others too numerous to mention have reported and fixed bugs, and added
-features to many parts of Emacs.  We thank them for their generosity as
-well.
+features to many parts of Emacs.  (Many are mentioned in the
+@file{ChangeLog} files which are summarized in the file @file{AUTHORS}
+in the distribution.)  We thank them for their generosity as well.
 
 This list intended to mention every contributor of a major package or
 feature we currently distribute; if you know of someone we have omitted,
