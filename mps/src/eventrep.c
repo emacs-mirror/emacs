@@ -1,7 +1,7 @@
 /* impl.c.eventrep: Allocation replayer routines
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
- * $HopeName: MMsrc!eventrep.c(MMdevel_alloc_replay.1) $
+ * $HopeName: MMsrc!eventrep.c(trunk.2) $
  */
 
 #include "config.h"
@@ -54,7 +54,7 @@ static Table apTable; /* dictionary of apReps */
 
 /* poolSupport -- describes pool support for explicit deallocation */
 
-enum {supportTruncate, supportFree, supportNothing};
+enum {supportTruncate = 1, supportFree, supportNothing};
 typedef int poolSupport;
 
 
