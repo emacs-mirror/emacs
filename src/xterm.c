@@ -4221,7 +4221,12 @@ x_draw_glyph_string (s)
 
 	  if (!XGetFontProperty (s->font, XA_UNDERLINE_THICKNESS, &h))
 	    h = 1;
-	  if (!XGetFontProperty (s->font, XA_UNDERLINE_POSITION, &dy))
+	  if (!XGetFontProperty (s->font, XA_UNDERLINE_POSITION, &dy)
+	      /* If the font specifies a negative underline position,
+		 we'll get a huge positive number, because dy is
+		 unsigned.  This comparison is a workaround that just
+		 ignores the font's underline position in that case.  XXX */
+	      || dy > s->height)
 	    dy = s->height - h;
       
 	  if (s->face->underline_defaulted_p)
