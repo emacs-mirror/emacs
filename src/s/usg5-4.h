@@ -171,7 +171,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
     fatal ("ioctl I_PUSH ttcompat", errno);
 
 /* Undo the SVr3 X11 library definition */
-#undef LIB_X11_LIB -lX11
+#undef LIB_X11_LIB
 
 /* The definition of this in s-usg5-3.h is not needed in 5.4.  */
 /* liblnsl_s should never be used.  The _s suffix implies a shared
