@@ -55,8 +55,8 @@ BODY should be a list of lisp expressions."
   "Add NEWELT to the list which is the value of LISTNAME.
 This is equivalent to (setq LISTNAME (cons NEWELT LISTNAME)).
 LISTNAME must be a symbol."
-  (list 'setq list
-	(list 'cons newelt list)))
+  (list 'setq listname
+	(list 'cons newelt listname)))
 
 (defmacro pop (listname)
   "Return the first element of LISTNAME's value, and remove it from the list.
