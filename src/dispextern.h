@@ -54,6 +54,15 @@ struct face
   
     /* Whether or not to underline text in this face.  */
     char underline;
+
+    /* Does this face own its resources?  (color, font, etcetera)
+       If this is a face which we computed by combining other faces,
+       then this is true, and we shouldn't free any of the resources
+       it refers to; the faces from which it was constructed own it.
+       On the other hand, if this is a face the user created and
+       filled in directly, then this is false, and we should free the
+       resources when we free it.  */
+    char copy;
   };
 
 /* Let's stop using this and get rid of it.  */
