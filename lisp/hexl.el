@@ -336,7 +336,7 @@ Ask the user for confirmation."
 (defun hexl-current-address (&optional validate)
   "Return current hexl-address."
   (interactive)
-  (let ((current-column (- (% (point) 68) 11)) 
+  (let ((current-column (- (% (point) 68) 11))
 	(hexl-address 0))
     (if (< current-column 0)
 	(if validate
@@ -541,18 +541,30 @@ With prefix arg N, puts point N bytes of the way from the true beginning."
   (hexl-scroll-up (- arg)))
 
 (defun hexl-scroll-up (arg)
-  "Scroll hexl buffer window upward ARG lines; or near full window if no ARG."
+  "Scroll hexl buffer window upward ARG lines; or near full window if no ARG.
+If there's no byte at the target address, move to the first or last line."
   (interactive "P")
   (if (null arg)
       (setq arg (1- (window-height)))
     (setq arg (prefix-numeric-value arg)))
-  (let ((movement (* arg 16))
-	(address (hexl-current-address)))
-    (if (or (> (+ address movement) hexl-max-address)
-	    (< (+ address movement) 0))
-	(message "Out of hexl region.")
-      (hexl-goto-address (+ address movement))
-      (recenter 0))))
+  (let* ((movement (* arg 16))
+	 (address (hexl-current-address))
+	 (dest (+ address movement)))
+    (cond
+     ;; If possible, try to stay at the same offset from the beginning
+     ;; of the 16-byte group, even if we move to the first or last
+     ;; group.
+     ((and (> dest hexl-max-address)
+	   (>= (% hexl-max-address 16) (% address 16)))
+      (setq dest (+ (logand hexl-max-address -16) (% address 16))))
+     ((> dest hexl-max-address)
+      (setq dest hexl-max-address))
+     ((< dest 0)
+      (setq dest (% address 16))))
+    (if (/= dest (+ address movement))
+	(message "Out of hexl region."))
+    (hexl-goto-address dest)
+    (recenter 0)))
 
 (defun hexl-beginning-of-1k-page ()
   "Go to beginning of 1k boundary."
@@ -772,7 +784,7 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
 
 (defun hexl-follow-ascii-find ()
   "Find and highlight the ASCII element corresponding to current point."
-  (let ((pos (+ 51 
+  (let ((pos (+ 51
 		(- (point) (current-column))
 		(mod (hexl-current-address) 16))))
     (move-overlay hexl-ascii-overlay pos (1+ pos))
@@ -792,7 +804,10 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
   (define-key hexl-mode-map [M-right] 'hexl-forward-short)
   (define-key hexl-mode-map [next] 'hexl-scroll-up)
   (define-key hexl-mode-map [prior] 'hexl-scroll-down)
-  (define-key hexl-mode-map [home] 'hexl-beginning-of-buffer)
+  (define-key hexl-mode-map [home] 'hexl-beginning-of-line)
+  (define-key hexl-mode-map [end] 'hexl-end-of-line)
+  (define-key hexl-mode-map [C-home] 'hexl-beginning-of-buffer)
+  (define-key hexl-mode-map [C-end] 'hexl-end-of-buffer)
   (define-key hexl-mode-map [deletechar] 'undefined)
   (define-key hexl-mode-map [deleteline] 'undefined)
   (define-key hexl-mode-map [insertline] 'undefined)
