@@ -237,6 +237,8 @@ message2 (m, len)
       echo_area_display ();
       update_frame (XFRAME (XWINDOW (minibuf_window)->frame), 1, 1);
       do_pending_window_change ();
+      if (frame_up_to_date_hook != 0 && ! gc_in_progress)
+	(*frame_up_to_date_hook) (XFRAME (XWINDOW (minibuf_window)->frame));
     }
 }
 
@@ -2092,7 +2094,8 @@ display_text_line (w, start, vpos, hpos, taboffset)
     {
       /* Record which glyph starts a character,
 	 and the character position of that character.  */
-      charstart[p1 - p1start] = pos;
+      if (p1 >= p1start)
+	charstart[p1 - p1start] = pos;
 
       if (p1 >= endp)
 	break;
@@ -2280,19 +2283,31 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  p1++;
 	}
 
-      /* For all the glyphs occupied by this character, except for the
-	 first, store -1 in charstarts.  */
-      if (p1 != p1prev)
+      /* Do nothing here for a char that's entirely off the left edge.  */
+      if (p1 >= p1start)
 	{
-	  int *p2x = &charstart[p1prev - p1start] + 1;
-	  int *p2 = &charstart[p1 - p1start];
-	  while (p2x != p2)
-	    *p2x++ = -1;
+	  /* For all the glyphs occupied by this character, except for the
+	     first, store -1 in charstarts.  */
+	  if (p1 != p1prev)
+	    {
+	      int *p2x = &charstart[p1prev - p1start];
+	      int *p2 = &charstart[p1 - p1start];
+
+	      /* The window's left column should always
+		 contain a character position.
+		 And don't clobber anything to the left of that.  */
+	      if (p1prev < p1start)
+		{
+		  charstart[0] = pos;
+		  p2x = charstart;
+		}
+
+	      /* This loop skips over the char p2x initially points to.  */
+	      while (++p2x != p2)
+		*p2x = -1;
+	    }
 	}
-      else
-	/* If this character took up no space,
-	   erase all mention of it from charstart.  */
-	charstart[p1 - p1start] = 0;
+
       pos++;
     }
 
