@@ -264,8 +264,8 @@ C-c C-v  mail-sent-via (add a sent-via field for each To or CC)."
   (setq major-mode 'mail-mode)
   (setq mode-name "Mail")
   (setq buffer-offer-save t)
-  (make-local-variable 'font-lock-keywords)
-  (setq font-lock-keywords mail-font-lock-keywords)
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults '(mail-font-lock-keywords t))
   (make-local-variable 'paragraph-separate)
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat "^" mail-header-separator
