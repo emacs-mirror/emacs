@@ -541,24 +541,20 @@ A negative ARG moves in the opposite order."
     falist))
 
 (defvar frame-name-history nil)
-(defvar frame-names-alist nil)
 (defun select-frame-by-name (name)
   "Select the frame whose name is NAME and raise it.
 If there is no frame by that name, signal an error."
   (interactive
-   (let (input default)
-     (setq frame-names-alist (make-frame-names-alist))
-     (setq default (car (car frame-names-alist)))
-     (setq input
-	   (completing-read
-	    (format "Select Frame (default %s): " default)
-	    frame-names-alist nil t nil 'frame-name-history))
+   (let* ((frame-names-alist (make-frame-names-alist))
+	   (default (car (car frame-names-alist)))
+	   (input (completing-read
+		   (format "Select Frame (default %s): " default)
+		   frame-names-alist nil t nil 'frame-name-history)))
      (if (= (length input) 0)
 	 (list default)
        (list input))))
-  (or (interactive-p)
-      (setq frame-names-alist (make-frame-names-alist)))
-  (let ((frame (cdr (assoc name frame-names-alist))))
+  (let* ((frame-names-alist (make-frame-names-alist))
+	 (frame (cdr (assoc name frame-names-alist))))
     (or frame
 	(error "There is no frame named `%s'" name))
     (make-frame-visible frame)
