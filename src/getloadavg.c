@@ -1038,7 +1038,7 @@ getloadavg (loadavg, nelem)
 #endif /* ! HAVE_GETLOADAVG */
 
 #ifdef TEST
-void
+int
 main (argc, argv)
      int argc;
      char **argv;
