@@ -772,6 +772,7 @@ comint mode, which see."
   (setq mode-name "Debugger")
   (setq mode-line-process '(": %s"))
   (use-local-map (copy-keymap comint-mode-map))
+  (define-key (current-local-map) "\C-c\C-l" 'gud-refresh)
   (make-local-variable 'gud-last-frame)
   (setq gud-last-frame nil)
   (make-local-variable 'comint-prompt-regexp)
