@@ -1,3 +1,15 @@
+2003-01-21  Dave Love  <fx@gnu.org>
+
+	* alloc.c (Fgc_status): Print zombie list.
+	(mark_maybe_object) [GC_MARK_STACK==GC_USE_GCPROS_CHECK_ZOMBIES]:
+	Fix assignment of zombies.
+	(Fgarbage_collect) [GC_MARK_STACK==GC_USE_GCPROS_CHECK_ZOMBIES]:
+	Don't take car of non-cons.
+
+	* s/sol2-5.h (GC_SETJMP_WORKS, GC_MARK_STACK): Define.
+
+	* s/sunos4-0.h (GC_SETJMP_WORKS, GC_MARK_STACK): Define.
+
 2003-01-20  David Ponce  <david@dponce.com>
 
 	* w32menu.c (digest_single_submenu): Declare all args.
