@@ -465,6 +465,17 @@ for decoding and encoding files, process I/O, etc."
 (define-coding-system-alias
   'us-ascii 'iso-safe)
 
+(make-coding-system
+ 'iso-latin-1 2 ?1
+ "ISO 2022 based 8-bit encoding for Latin-1 (MIME:ISO-8859-1)."
+ '(ascii latin-iso8859-1 nil nil
+   nil nil nil nil nil nil nil nil nil nil nil t t)
+ '((safe-charsets ascii latin-iso8859-1)
+   (mime-charset . iso-8859-1)))
+
+(define-coding-system-alias 'iso-8859-1 'iso-latin-1)
+(define-coding-system-alias 'latin-1 'iso-latin-1)
+
 ;; Use iso-safe for terminal output if some other coding system is not
 ;; specified explicitly.
 (set-safe-terminal-coding-system-internal 'iso-safe)
