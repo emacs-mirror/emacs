@@ -420,18 +420,15 @@ to get different commands to edit and resubmit."
 		 "Redo: " (prin1-to-string elt) read-expression-map t
 		 (cons 'command-history arg)))
 
-;;;  read-from-minibuffer handles the adding of what is read to the history
-;;;  variable.
-;;;
-;;;	  ;; If command was added to command-history as a string,
-;;;	  ;; get rid of that.  We want only evallable expressions there.
-;;;	  (if (stringp (car command-history))
-;;;	      (setq command-history (cdr command-history)))
-;;;
-;;;	  ;; If command to be redone does not match front of history,
-;;;	  ;; add it to the history.
-;;;	  (or (equal newcmd (car command-history))
-;;;	      (setq command-history (cons newcmd command-history)))
+	  ;; If command was added to command-history as a string,
+	  ;; get rid of that.  We want only evallable expressions there.
+	  (if (stringp (car command-history))
+	      (setq command-history (cdr command-history)))
+
+	  ;; If command to be redone does not match front of history,
+	  ;; add it to the history.
+	  (or (equal newcmd (car command-history))
+	      (setq command-history (cons newcmd command-history)))
 	  (eval newcmd))
       (ding))))
 
