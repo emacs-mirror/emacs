@@ -7,7 +7,7 @@
 @finalout
 @end iftex
 
-@dircategory Editors
+@dircategory Emacs
 @direntry
 * SC: (sc).		Supercite lets you cite parts of messages you're 
 			  replying to, in flexible ways.

@@ -6,7 +6,7 @@
 @comment @setfilename viper.info
 @setfilename ../info/viper
 
-@dircategory Editors
+@dircategory Emacs
 @direntry
 * VIPER: (viper).       The newest Emacs VI-emulation mode.
                           (also, A VI Plan for Emacs Rescue

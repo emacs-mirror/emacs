@@ -9,7 +9,7 @@
 @end iftex
 @c %**end of header
 
-@dircategory Editors
+@dircategory Emacs
 @direntry
 * Widget: (widget).      Documenting the "widget" package used by the
                            Emacs Custom facility.

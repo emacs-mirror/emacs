@@ -15,7 +15,7 @@
 @c      @smallbook
 @comment %**end of header (This is for running Texinfo on a region.)
 
-@dircategory Editors
+@dircategory Emacs
 @direntry
 * Forms: (forms).	Emacs package for editing data bases
 			  by filling in forms.

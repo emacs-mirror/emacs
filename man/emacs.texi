@@ -11,7 +11,7 @@ This is the thirteenth edition of the @cite{GNU Emacs Manual},
 updated for Emacs version 20.4
 @c Please REMEMBER to update edition number in *three* places in this file.
 
-@dircategory Editors
+@dircategory Emacs
 @direntry
 * Emacs: (emacs).	The extensible self-documenting text editor.
 @end direntry

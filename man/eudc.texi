@@ -10,7 +10,7 @@
 @footnotestyle end
 
 @ifinfo
-@dircategory Editors
+@dircategory Emacs
 @direntry
 * EUDC: (eudc).   A client for directory servers (LDAP, PH)
 @end direntry

@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename ../info/reftex
 @settitle RefTeX User Manual
-@dircategory Editors
+@dircategory Emacs
 @direntry
 * RefTeX: (reftex).	Emacs support for LaTeX cross-references and citations.
 @end direntry

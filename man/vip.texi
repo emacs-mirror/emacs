@@ -3,7 +3,7 @@
 @setfilename ../info/vip
 @settitle VIP
 
-@dircategory Editors
+@dircategory Emacs
 @direntry
 * VIP: (vip).		An older VI-emulation for Emacs.
 @end direntry

@@ -19,7 +19,7 @@
 @c dired-x.el REVISION NUMBER
 @settitle Dired Extra Version 2 User's Manual
 
-@dircategory Editors
+@dircategory Emacs
 @direntry
 * Dired-X: (dired-x).   Dired Extra Features.
 @end direntry

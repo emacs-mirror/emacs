@@ -2,7 +2,7 @@
 @setfilename ../info/cl
 @settitle Common Lisp Extensions
 
-@dircategory Editors
+@dircategory Emacs
 @direntry
 * CL: (cl).		Partial Common Lisp support for Emacs Lisp.
 @end direntry

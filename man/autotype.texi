@@ -11,7 +11,7 @@
 @c  @cindex selfinserting text
 @c  @cindex autotypist
 
-@dircategory Editors
+@dircategory Emacs
 @direntry
 * Autotype: (autotype). Convenient features for text that you enter frequently
                           in Emacs.

@@ -8,7 +8,7 @@
 
 @c The @ifinfo stuff only appears in the Info version
 @ifinfo
-@dircategory Editors
+@dircategory Emacs
 @direntry
 * Emacs FAQ: (efaq).	Frequently Asked Questions about Emacs.
 @end direntry
