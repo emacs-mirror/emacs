@@ -3481,10 +3481,32 @@ abort ()
 }
 #endif
 
+/* The following two are required so that customization feature
+   won't complain about unbound variables.  */
+#ifndef HAVE_X_WINDOWS
+/* Search path for bitmap files (xfns.c).  */
+Lisp_Object Vx_bitmap_file_path;
+#endif
+#ifndef subprocesses
+/* Nonzero means delete a process right away if it exits (process.c).  */
+static int delete_exited_processes;
+#endif
+
 syms_of_msdos ()
 {
   recent_doskeys = Fmake_vector (make_number (NUM_RECENT_DOSKEYS), Qnil);
   staticpro (&recent_doskeys);
+#ifndef HAVE_X_WINDOWS
+  DEFVAR_LISP ("x-bitmap-file-path", &Vx_bitmap_file_path,
+    "List of directories to search for bitmap files for X.");
+  Vx_bitmap_file_path = decode_env_path ((char *) 0, ".");
+#endif
+#ifndef subprocesses
+  DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,
+    "*Non-nil means delete processes immediately when they exit.\n\
+nil means don't delete them until `list-processes' is run.");
+  delete_exited_processes = 0;
+#endif
 
   defsubr (&Srecent_doskeys);
   defsubr (&Smsdos_long_file_names);
