@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/11/14 14:38:36 vinicius>
+;; Time-stamp: <2004/11/15 17:23:32 vinicius>
 ;; Keywords: wp, print, PostScript
 ;; Version: 6.8.3
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
@@ -3882,7 +3882,7 @@ image in a file with that name."
 	   ;; use `pr-ps-command' to print
 	   (apply 'pr-call-process
 		  pr-ps-command
-		  (pr-switches-string pr-ps-switches "pr-gs-switches")
+		  (pr-switches-string pr-ps-switches "pr-ps-switches")
 		  (if (string-match "cp" pr-ps-command)
 		      ;; for "cp" (cmd in out)
 		      (list file
@@ -4000,7 +4000,7 @@ bottom."
   (interactive)
   (pr-save-interactive
    (pr-toggle 'ps-spool-duplex "Printing duplex"
-	      'postcsript-options 5 12 'toggle)))
+	      'postscript-options 5 12 'toggle)))
 
 
 ;;;###autoload
@@ -5325,24 +5325,33 @@ non-nil."
 
 
 (defun pr-call-process (command &rest args)
-  (pr-save-file-modes
-   (let ((buffer (get-buffer-create "*Printing Command Output*"))
-	 (cmd    (pr-command command))
-	 status)
-     (setq args (pr-remove-nil-from-list args))
-     (save-excursion
-       (set-buffer buffer)
-       (goto-char (point-max))
-       (insert (format "%s %S\n" cmd args)))
+  (let ((buffer (get-buffer-create "*Printing Command Output*"))
+	(cmd    (pr-command command))
+	status)
+    (setq args (pr-remove-nil-from-list args))
+    ;; *Printing Command Output* == show command & args
+    (save-excursion
+      (set-buffer buffer)
+      (goto-char (point-max))
+      (insert (format "%s %S\n" cmd args)))
+    ;; *Printing Command Output* == show any return message from command
+    (pr-save-file-modes
      (setq status
 	   (condition-case data
 	       (apply 'call-process cmd nil buffer nil args)
 	     ((quit error)
-	      (error-message-string data))))
-     (save-excursion
-       (set-buffer buffer)
-       (goto-char (point-max))
-       (insert (format "Exit status: %s\n" status))))))
+	      (error-message-string data)))))
+    ;; *Printing Command Output* == show exit status
+    (save-excursion
+      (set-buffer buffer)
+      (goto-char (point-max))
+      (insert (format "Exit status: %s\n\n" status)))
+    ;; message if error status
+    (if (or (stringp status)
+	    (and (integerp status) (/= status 0)))
+	(message
+	 "Printing error status: %s (see *Printing Command Output* buffer)"
+	 status))))
 
 
 (defun pr-txt-print (from to)
@@ -5353,7 +5362,10 @@ non-nil."
 
 
 (defun pr-switches-string (switches mess)
-  (mapconcat 'identity (pr-switches switches mess) " "))
+  ;; If SWITCHES is nil, return nil.
+  ;; Otherwise, return the list of string in a string.
+  (and switches
+       (mapconcat 'identity (pr-switches switches mess) " ")))
 
 
 (defun pr-switches (switches mess)

@@ -1,3 +1,12 @@
+2004-11-15  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el (pr-ps-file-print, pr-toggle-duplex): Fix typos.
+	Reported by Glenn Morris <gmorris+emacs@ast.cam.ac.uk>.
+	(pr-switches-string): If SWITCHES is nil, return nil.  Otherwise,
+	return the list of string in a string.
+	(pr-call-process): Message if calling process returns an error, that
+	is, the exit status is different of zero.
+
 2004-11-15  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calcalg2.el (math-integrate-by-parts):  Removed unused
