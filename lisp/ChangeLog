@@ -1,5 +1,9 @@
 2004-09-08  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* bs.el (bs-mode): Doc fix.
+
+2004-09-08  Thien-Thi Nguyen  <ttn@gnu.org>
+
 	* info.el (Info-insert-dir): Fix temp buffer leak bug.
 
 2004-09-08  Thien-Thi Nguyen  <ttn@gnu.org>
