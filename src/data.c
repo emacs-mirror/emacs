@@ -2481,8 +2481,12 @@ In this case, the sign bit is duplicated.")
   CHECK_NUMBER (value, 0);
   CHECK_NUMBER (count, 1);
 
-  if (XINT (count) > 0)
+  if (XINT (count) >= BITS_PER_EMACS_INT)
+    XSETINT (val, 0);
+  else if (XINT (count) > 0)
     XSETINT (val, XINT (value) << XFASTINT (count));
+  else if (XINT (count) <= -BITS_PER_EMACS_INT)
+    XSETINT (val, XINT (value) < 0 ? -1 : 0);
   else
     XSETINT (val, XINT (value) >> -XINT (count));
   return val;
@@ -2500,8 +2504,12 @@ In this case,  zeros are shifted in on the left.")
   CHECK_NUMBER (value, 0);
   CHECK_NUMBER (count, 1);
 
-  if (XINT (count) > 0)
+  if (XINT (count) >= BITS_PER_EMACS_INT)
+    XSETINT (val, 0);
+  else if (XINT (count) > 0)
     XSETINT (val, (EMACS_UINT) XUINT (value) << XFASTINT (count));
+  else if (XINT (count) <= -BITS_PER_EMACS_INT)
+    XSETINT (val, 0);
   else
     XSETINT (val, (EMACS_UINT) XUINT (value) >> -XINT (count));
   return val;
