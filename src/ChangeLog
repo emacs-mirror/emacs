@@ -1,3 +1,8 @@
+2003-06-06  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (encoding_buffer_size): If coding->type is
+	coding_type_ccl, double magnification on CRLF encoding.
+
 2003-06-06  Jason Rumney  <jasonr@gnu.org>
 
 	* w32reg.c (SYSTEM_DEFAULT_RESOURCES): New constant.
