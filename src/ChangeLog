@@ -1,3 +1,8 @@
+2001-08-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* fileio.c (Finsert_file_contents): Call Fset_buffer_multibyte
+	unconfitionally.
+
 2001-08-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* keymap.c (access_keymap): Return the cdr of the binding of
