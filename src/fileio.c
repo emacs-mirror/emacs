@@ -4117,7 +4117,7 @@ actually used.")
       && (NILP (visit) || !NILP (replace)))
     signal_after_change (PT, 0, inserted);
 
-  if (set_coding_system)
+  if (set_coding_system && inserted > 0)
     Vlast_coding_system_used = coding.symbol;
 
   if (inserted > 0)
