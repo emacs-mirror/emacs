@@ -1,3 +1,12 @@
+2004-09-28  Stefan  <monnier@iro.umontreal.ca>
+
+	* dired.el (dired-view-command-alist): Use more efficient regexps.
+	Remove dubious arguments.
+	(dired-align-file): New function.
+	(dired-insert-directory): Use it.
+	(dired-move-to-end-of-filename): Make the " -> " search more specific.
+	(dired-buffers-for-dir): Remove unused var `pattern'.
+
 2004-09-29  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/gdb-ui.el (breakpoint): Define as fringe bitmap.
