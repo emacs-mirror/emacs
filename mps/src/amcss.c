@@ -1,6 +1,6 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.30) $
+ * $HopeName: MMsrc!amcss.c(trunk.31) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  */
 
@@ -19,7 +19,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 
 #define testArenaSIZE     ((size_t)64<<20)
@@ -87,11 +86,11 @@ static void *test(void *arg, size_t s)
       "pool_create(amc)");
 
   die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "BufferCreate");
-  die(mps_ap_create(&busy_ap, pool, MPS_RANK_EXACT), "BufferCreate");
+  die(mps_ap_create(&busy_ap, pool, MPS_RANK_EXACT), "BufferCreate 2");
 
-  for(i=0; i<exactRootsCOUNT; ++i)
+  for(i = 0; i < exactRootsCOUNT; ++i)
     exactRoots[i] = objNULL;
-  for(i=0; i<ambigRootsCOUNT; ++i)
+  for(i = 0; i < ambigRootsCOUNT; ++i)
     ambigRoots[i] = (mps_addr_t)rnd();
 
   die(mps_root_create_table_masked(&exactRoot, arena,
@@ -124,8 +123,8 @@ static void *test(void *arg, size_t s)
       printf("\nCollection %lu, %lu objects.\n",
              c, objs);
       for(r = 0; r < exactRootsCOUNT; ++r)
-        assert(exactRoots[r] == objNULL ||
-               dylan_check(exactRoots[r]));
+        cdie(exactRoots[r] == objNULL || dylan_check(exactRoots[r]),
+             "all roots check");
       if(collections == collectionsCOUNT / 2) {
         unsigned long object_count = 0;
         mps_arena_park(arena);
@@ -149,11 +148,11 @@ static void *test(void *arg, size_t s)
       }
     }
 
-    r = rnd();
+    r = (size_t)rnd();
     if(r & 1) {
       i = (r >> 1) % exactRootsCOUNT;
       if(exactRoots[i] != objNULL)
-        assert(dylan_check(exactRoots[i]));
+        cdie(dylan_check(exactRoots[i]), "dying root check");
       exactRoots[i] = make();
       if(exactRoots[(exactRootsCOUNT-1) - i] != objNULL)
         dylan_write(exactRoots[(exactRootsCOUNT-1) - i],
@@ -197,7 +196,7 @@ int main(int argc, char **argv)
   randomize(argc, argv);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
-      "arena_create\n");
+      "arena_create");
   adjust_collection_freq(0.2);
   die(mps_thread_reg(&thread, arena), "thread_reg");
   mps_tramp(&r, test, arena, 0);
