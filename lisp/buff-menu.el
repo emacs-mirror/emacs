@@ -61,7 +61,7 @@ Letters do not insert themselves; instead, they are commands.
 \\[Buffer-menu-mark] -- mark buffer to be displayed.
 \\[Buffer-menu-select] -- select buffer of line point is on.
   Also show buffers marked with m in other windows.
-\\[Buffer-menu-1-window] -- select that buffer in full-screen window.
+\\[Buffer-menu-1-window] -- select that buffer in full-frame window.
 \\[Buffer-menu-2-window] -- select that buffer in one window,
   together with buffer selected before this one in another window.
 \\[Buffer-menu-this-window] -- select that buffer in place of the buffer menu buffer.
@@ -239,7 +239,7 @@ You can mark buffers with the \\<Buffer-menu-mode-map>\\[Buffer-menu-mark] comma
 	(insert ?\ ))
       (or (eq tem buff) (memq tem others) (setq others (cons tem others))))
     (setq others (nreverse others)
-	  tem (/ (1- (screen-height)) (1+ (length others))))
+	  tem (/ (1- (frame-height)) (1+ (length others))))
     (delete-other-windows)
     (switch-to-buffer buff)
     (or (eq menu buff)
@@ -260,7 +260,7 @@ You can mark buffers with the \\<Buffer-menu-mode-map>\\[Buffer-menu-mark] comma
       (error "Specified buffer has no file"))))
 
 (defun Buffer-menu-1-window ()
-  "Select this line's buffer, alone, in full screen."
+  "Select this line's buffer, alone, in full frame."
   (interactive)
   (switch-to-buffer (Buffer-menu-buffer t))
   (bury-buffer (other-buffer))

@@ -1,3 +1,4 @@
+
 /* Generic frame functions.
    Copyright (C) 1989, 1992 Free Software Foundation.
 
@@ -884,7 +885,8 @@ store_frame_param (f, prop, val)
 DEFUN ("frame-parameters", Fframe_parameters, Sframe_parameters, 0, 1, 0,
   "Return the parameters-alist of frame FRAME.\n\
 It is a list of elements of the form (PARM . VALUE), where PARM is a symbol.\n\
-The meaningful PARMs depend on the kind of frame.")
+The meaningful PARMs depend on the kind of frame.\n\
+If FRAME is omitted, return information on the currently selected frame.")
   (frame)
      Lisp_Object frame;
 {
@@ -953,6 +955,11 @@ The meaningful PARMs depend on the kind of frame; undefined PARMs are ignored.")
 }
 
 
+#if 0
+/* This function isn't useful enough by itself to include; we need to
+   add functions to allow the user to find the size of a font before
+   this is actually useful.  */
+
 DEFUN ("frame-pixel-size", Fframe_pixel_size, 
        Sframe_pixel_size, 1, 1, 0,
   "Return a cons (width . height) of FRAME's size in pixels.")
@@ -968,6 +975,10 @@ DEFUN ("frame-pixel-size", Fframe_pixel_size,
   return Fcons (make_number (x_pixel_width (f)),
 		make_number (x_pixel_height (f)));
 }
+#endif
+
+#if 0
+/* These functions have no C callers, and can be written nicely in lisp.  */
 
 DEFUN ("frame-height", Fframe_height, Sframe_height, 0, 0, 0,
   "Return number of lines available for display on selected frame.")
@@ -982,6 +993,7 @@ DEFUN ("frame-width", Fframe_width, Sframe_width, 0, 0, 0,
 {
   return make_number (FRAME_WIDTH (selected_frame));
 }
+#endif
 
 DEFUN ("set-frame-height", Fset_frame_height, Sset_frame_height, 2, 3, 0,
   "Specify that the frame FRAME has LINES lines.\n\
@@ -1084,6 +1096,7 @@ off the frame.")
 
   return Qt;
 }
+
 
 #ifndef HAVE_X11
 DEFUN ("rubber-band-rectangle", Frubber_band_rectangle, Srubber_band_rectangle,

@@ -1,4 +1,4 @@
-;;; screen.el --- multi-screen management independent of window systems.
+;;; frame.el --- multi-frame management independent of window systems.
 
 ;;;; Copyright (C) 1990, 1992 Free Software Foundation, Inc.
 
@@ -18,292 +18,310 @@
 ;;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-(defvar screen-creation-function nil
-  "Window-system dependent function to call to create a new screen.
-The window system startup file should set this to its screen creation
+(defvar frame-creation-function nil
+  "Window-system dependent function to call to create a new frame.
+The window system startup file should set this to its frame creation
 function, which should take an alist of parameters as its argument.")
 
 ;;; The default value for this must ask for a minibuffer.  There must
-;;; always exist a screen with a minibuffer, and after we delete the
-;;; terminal screen, this will be the only screen.
-(defvar initial-screen-alist '((minibuffer . nil))
-  "Alist of values used when creating the initial emacs text screen.
+;;; always exist a frame with a minibuffer, and after we delete the
+;;; terminal frame, this will be the only frame.
+(defvar initial-frame-alist '((minibuffer . nil))
+  "Alist of values used when creating the initial emacs text frame.
 These may be set in your init file, like this:
- (setq initial-screen-alist '((top . 1) (left . 1) (width . 80) (height . 55)))
-These supercede the values given in screen-default-alist.")
+ (setq initial-frame-alist '((top . 1) (left . 1) (width . 80) (height . 55)))
+These supercede the values given in frame-default-alist.")
 
-(defvar minibuffer-screen-alist nil
-  "Alist of values to apply to a minibuffer screen.
+(defvar minibuffer-frame-alist nil
+  "Alist of values to apply to a minibuffer frame.
 These may be set in your init file, like this:
- (setq minibuffer-screen-alist
+ (setq minibuffer-frame-alist
    '((top . 1) (left . 1) (width . 80) (height . 1)))
-These supercede the values given in default-screen-alist.")
+These supercede the values given in default-frame-alist.")
 
-(defvar pop-up-screen-alist nil
-  "Alist of values used when creating pop-up screens.
-Pop-up screens are used for completions, help, and the like.
+(defvar pop-up-frame-alist nil
+  "Alist of values used when creating pop-up frames.
+Pop-up frames are used for completions, help, and the like.
 This variable can be set in your init file, like this:
-  (setq pop-up-screen-alist '((width . 80) (height . 20)))
-These supercede the values given in default-screen-alist.")
+  (setq pop-up-frame-alist '((width . 80) (height . 20)))
+These supercede the values given in default-frame-alist.")
 
-(setq pop-up-screen-function
+(setq pop-up-frame-function
       (function (lambda ()
-		  (new-screen pop-up-screen-alist))))
+		  (new-frame pop-up-frame-alist))))
 
 
-;;;; Arrangement of screens at startup
+;;;; Arrangement of frames at startup
 
 ;;; 1) Load the window system startup file from the lisp library and read the
 ;;; high-priority arguments (-q and the like).  The window system startup
-;;; file should create any screens specified in the window system defaults.
+;;; file should create any frames specified in the window system defaults.
 ;;; 
-;;; 2) If no screens have been opened, we open an initial text screen.
+;;; 2) If no frames have been opened, we open an initial text frame.
 ;;;
 ;;; 3) Once the init file is done, we apply any newly set parameters
-;;; in initial-screen-alist to the screen.
+;;; in initial-frame-alist to the frame.
 
-(add-hook 'before-init-hook 'screen-initialize)
-(add-hook 'window-setup-hook 'screen-notice-user-settings)
+(add-hook 'before-init-hook 'frame-initialize)
+(add-hook 'window-setup-hook 'frame-notice-user-settings)
 
-;;; If we create the initial screen, this is it.
-(defvar screen-initial-screen nil)
+;;; If we create the initial frame, this is it.
+(defvar frame-initial-frame nil)
 
 ;;; startup.el calls this function before loading the user's init
-;;; file - if there is no screen with a minibuffer open now, create
+;;; file - if there is no frame with a minibuffer open now, create
 ;;; one to display messages while loading the init file.
-(defun screen-initialize ()
+(defun frame-initialize ()
   
   ;; Are we actually running under a window system at all?
   (if (and window-system (not noninteractive))
-      (let ((screens (screen-list)))
+      (let ((frames (frame-list)))
     
-	;; Look for a screen that has a minibuffer.
-	(while (and screens
-		    (or (eq (car screens) terminal-screen)
+	;; Look for a frame that has a minibuffer.
+	(while (and frames
+		    (or (eq (car frames) terminal-frame)
 			(not (cdr (assq 'minibuffer
-					(screen-parameters
-					 (car screens)))))))
-	  (setq screens (cdr screens)))
+					(frame-parameters
+					 (car frames)))))))
+	  (setq frames (cdr frames)))
 
-	;; If there was none, then we need to create the opening screen.
-	(or screens
-	    (setq default-minibuffer-screen
-		  (setq screen-initial-screen
-			(new-screen initial-screen-alist))))
+	;; If there was none, then we need to create the opening frame.
+	(or frames
+	    (setq default-minibuffer-frame
+		  (setq frame-initial-frame
+			(new-frame initial-frame-alist))))
     
-	;; At this point, we know that we have a screen open, so we 
-	;; can delete the terminal screen.
-	(delete-screen terminal-screen)
-	(setq terminal-screen nil))
+	;; At this point, we know that we have a frame open, so we 
+	;; can delete the terminal frame.
+	(delete-frame terminal-frame)
+	(setq terminal-frame nil))
     
     ;; No, we're not running a window system.  Arrange to cause errors.
-    (setq screen-creation-function
+    (setq frame-creation-function
 	  (function
 	   (lambda (parameters)
 	     (error
-	      "Can't create multiple screens without a window system."))))))
+	      "Can't create multiple frames without a window system."))))))
 					
 ;;; startup.el calls this function after loading the user's init file.
 ;;; If we created a minibuffer before knowing if we had permission, we
-;;; need to see if it should go away or change.  Create a text screen
+;;; need to see if it should go away or change.  Create a text frame
 ;;; here.
-(defun screen-notice-user-settings ()
-  (if screen-initial-screen
+(defun frame-notice-user-settings ()
+  (if frame-initial-frame
       (progn
 	
-	;; If the user wants a minibuffer-only screen, we'll have to
+	;; If the user wants a minibuffer-only frame, we'll have to
 	;; make a new one; you can't remove or add a root window to/from
-	;; an existing screen.
-	(if (eq (cdr (or (assq 'minibuffer initial-screen-alist)
+	;; an existing frame.
+	(if (eq (cdr (or (assq 'minibuffer initial-frame-alist)
 			 '(minibuffer . t)))
 		     'only)
 	    (progn
-	      (setq default-minibuffer-screen
-		    (new-screen
-		     (append initial-screen-alist
-			     (screen-parameters screen-initial-screen))))
-	      (delete-screen screen-initial-screen))
-	  (modify-screen-parameters screen-initial-screen
-				    initial-screen-alist))))
+	      (setq default-minibuffer-frame
+		    (new-frame
+		     (append initial-frame-alist
+			     (frame-parameters frame-initial-frame))))
+	      (delete-frame frame-initial-frame))
+	  (modify-frame-parameters frame-initial-frame
+				    initial-frame-alist))))
 
-  ;; Make sure the initial screen can be GC'd if it is ever deleted.
-  (makunbound 'screen-initial-screen))
+  ;; Make sure the initial frame can be GC'd if it is ever deleted.
+  (makunbound 'frame-initial-frame))
 
 
-;;;; Creation of additional screens
+;;;; Creation of additional frames
 
-;;; Return some screen other than the current screen,
-;;; creating one if neccessary.  Note that the minibuffer screen, if
-;;; separate, is not considered (see next-screen).
-(defun get-screen ()
-  (let ((s (if (equal (next-screen (selected-screen)) (selected-screen))
-	       (new-screen)
-	     (next-screen (selected-screen)))))
+;;; Return some frame other than the current frame,
+;;; creating one if neccessary.  Note that the minibuffer frame, if
+;;; separate, is not considered (see next-frame).
+(defun get-frame ()
+  (let ((s (if (equal (next-frame (selected-frame)) (selected-frame))
+	       (new-frame)
+	     (next-frame (selected-frame)))))
     s))
 
-(defun next-multiscreen-window ()
-  "Select the next window, regardless of which screen it is on."
+(defun next-multiframe-window ()
+  "Select the next window, regardless of which frame it is on."
   (interactive)
   (select-window (next-window (selected-window)
 			      (> (minibuffer-depth) 0)
 			      t)))
 
-(defun previous-multiscreen-window ()
-  "Select the previous window, regardless of which screen it is on."
+(defun previous-multiframe-window ()
+  "Select the previous window, regardless of which frame it is on."
   (interactive)
   (select-window (previous-window (selected-window)
 				  (> (minibuffer-depth) 0)
 				  t)))
 
-(defun new-screen (&optional parameters)
-  "Create a new screen, displaying the current buffer.
+(defun new-frame (&optional parameters)
+  "Create a new frame, displaying the current buffer.
 
 Optional argument PARAMETERS is an alist of parameters for the new
-screen.  Specifically, PARAMETERS is a list of pairs, each having one
+frame.  Specifically, PARAMETERS is a list of pairs, each having one
 of the following forms:
 
-(name . STRING)	- The screen should be named STRING.
+(name . STRING)	- The frame should be named STRING.
 
-(height . NUMBER) - The screen should be NUMBER text lines high.  If
+(height . NUMBER) - The frame should be NUMBER text lines high.  If
 	this parameter is present, the width parameter must also be
 	given.
 
-(width . NUMBER) - The screen should be NUMBER characters in width.
+(width . NUMBER) - The frame should be NUMBER characters in width.
 	If this parameter is present, the height parameter must also
 	be given.
 
-(minibuffer . t) - the screen should have a minibuffer
-(minibuffer . none) - the screen should have no minibuffer
-(minibuffer . only) - the screen should contain only a minibuffer
-(minibuffer . WINDOW) - the screen should use WINDOW as its minibuffer window.
+(minibuffer . t) - the frame should have a minibuffer
+(minibuffer . none) - the frame should have no minibuffer
+(minibuffer . only) - the frame should contain only a minibuffer
+(minibuffer . WINDOW) - the frame should use WINDOW as its minibuffer window.
 
 (NAME . VALUE), specifying the parameter and the value it should have.
 NAME should be one of the following symbols:
   name		VALUE 
 
-The documentation for the function x-create-screen describes
-additional screen parameters that Emacs will recognize when running
+The documentation for the function x-create-frame describes
+additional frame parameters that Emacs will recognize when running
 under the X Window System."
   (interactive)
-  (funcall screen-creation-function parameters))
+  (funcall frame-creation-function parameters))
 
 
 ;;;; Iconification
 
 ;;; A possible enhancement for the below: if you iconify a surrogate
-;;; minibuffer screen, iconify all of its minibuffer's users too; 
-;;; de-iconify them as a group.  This will need to wait until screens
+;;; minibuffer frame, iconify all of its minibuffer's users too; 
+;;; de-iconify them as a group.  This will need to wait until frames
 ;;; have mapping and unmapping hooks.
 
 (defun iconify ()
-  "Iconify or deiconify the selected screen."
+  "Iconify or deiconify the selected frame."
   (interactive)
-  (let ((screen (selected-screen)))
-    (if (eq (screen-visible-p screen) t)
-	(iconify-screen screen)
-      (make-screen-visible screen))))
+  (let ((frame (selected-frame)))
+    (if (eq (frame-visible-p frame) t)
+	(iconify-frame frame)
+      (make-frame-visible frame))))
 
 
-;;;; Screen configurations
+;;;; Frame configurations
 
-(defun current-screen-configuration ()
-  "Return a list describing the positions and states of all screens.
-Each element is a list of the form (SCREEN ALIST WINDOW-CONFIG), where
-SCREEN is a screen object, ALIST is an association list specifying
-some of SCREEN's parameters, and WINDOW-CONFIG is a window
-configuration object for SCREEN."
+(defun current-frame-configuration ()
+  "Return a list describing the positions and states of all frames.
+Each element is a list of the form (FRAME ALIST WINDOW-CONFIG), where
+FRAME is a frame object, ALIST is an association list specifying
+some of FRAME's parameters, and WINDOW-CONFIG is a window
+configuration object for FRAME."
   (mapcar (function
-	   (lambda (screen)
-	     (list screen
-		   (screen-parameters screen)
-		   (current-window-configuration screen))))
-	  (screen-list)))
+	   (lambda (frame)
+	     (list frame
+		   (frame-parameters frame)
+		   (current-window-configuration frame))))
+	  (frame-list)))
 
-(defun set-screen-configuration (configuration)
-  "Restore the screens to the state described by CONFIGURATION.
-Each screen listed in CONFIGURATION has its position, size, window
+(defun set-frame-configuration (configuration)
+  "Restore the frames to the state described by CONFIGURATION.
+Each frame listed in CONFIGURATION has its position, size, window
 configuration, and other parameters set as specified in CONFIGURATION."
-  (let (screens-to-delete)
+  (let (frames-to-delete)
     (mapcar (function
-	     (lambda (screen)
-	       (let ((parameters (assq screen configuration)))
+	     (lambda (frame)
+	       (let ((parameters (assq frame configuration)))
 		 (if parameters
 		     (progn
-		       (modify-screen-parameters screen (nth 1 parameters))
+		       (modify-frame-parameters frame (nth 1 parameters))
 		       (set-window-configuration (nth 2 parameters)))
-		   (setq screens-to-delete (cons screen screens-to-delete))))))
-	    (screen-list))
-    (mapcar 'delete-screen screens-to-delete)))
+		   (setq frames-to-delete (cons frame frames-to-delete))))))
+	    (frame-list))
+    (mapcar 'delete-frame frames-to-delete)))
 
 
-;;;; Convenience functions for dynamically changing screen parameters
+;;;; Convenience functions for accessing and interactively changing
+;;;; frame parameters.
 
-(defun set-screen-height (h)
+(defun frame-width (&optional frame)
+  "Return number of lines available for display on FRAME.
+If FRAME is omitted, describe the currently selected frame."
+  (cdr (assq 'width (frame-parameters frame))))
+
+(defun frame-width (&optional frame)
+  "Return number of columns available for display on FRAME.
+If FRAME is omitted, describe the currently selected frame."
+  (cdr (assq 'height (frame-parameters frame))))
+
+(defun set-frame-height (h)
   (interactive "NHeight: ")
-  (let* ((screen (selected-screen))
-	 (width (cdr (assoc 'width (screen-parameters (selected-screen))))))
-    (set-screen-size (selected-screen) width h)))
+  (let* ((frame (selected-frame))
+	 (width (cdr (assoc 'width (frame-parameters (selected-frame))))))
+    (set-frame-size (selected-frame) width h)))
 
-(defun set-screen-width (w)
+(defun set-frame-width (w)
   (interactive "NWidth: ")
-  (let* ((screen (selected-screen))
-	 (height (cdr (assoc 'height (screen-parameters (selected-screen))))))
-    (set-screen-size (selected-screen) w height)))
+  (let* ((frame (selected-frame))
+	 (height (cdr (assoc 'height (frame-parameters (selected-frame))))))
+    (set-frame-size (selected-frame) w height)))
 
 (defun set-default-font (font-name)
   (interactive "sFont name: ")
-  (modify-screen-parameters (selected-screen)
+  (modify-frame-parameters (selected-frame)
 			    (list (cons 'font font-name))))
 
-(defun set-screen-background (color-name)
+(defun set-frame-background (color-name)
   (interactive "sColor: ")
-  (modify-screen-parameters (selected-screen)
+  (modify-frame-parameters (selected-frame)
 			    (list (cons 'background-color color-name))))
 
-(defun set-screen-foreground (color-name)
+(defun set-frame-foreground (color-name)
   (interactive "sColor: ")
-  (modify-screen-parameters (selected-screen)
+  (modify-frame-parameters (selected-frame)
 			    (list (cons 'foreground-color color-name))))
 
 (defun set-cursor-color (color-name)
   (interactive "sColor: ")
-  (modify-screen-parameters (selected-screen)
+  (modify-frame-parameters (selected-frame)
 			    (list (cons 'cursor-color color-name))))
 
 (defun set-pointer-color (color-name)
   (interactive "sColor: ")
-  (modify-screen-parameters (selected-screen)
+  (modify-frame-parameters (selected-frame)
 			    (list (cons 'mouse-color color-name))))
 
 (defun set-auto-raise (toggle)
   (interactive "xt or nil? ")
-  (modify-screen-parameters (selected-screen)
+  (modify-frame-parameters (selected-frame)
 			    (list (cons 'auto-raise toggle))))
 
 (defun set-auto-lower (toggle)
   (interactive "xt or nil? ")
-  (modify-screen-parameters (selected-screen)
+  (modify-frame-parameters (selected-frame)
 			    (list (cons 'auto-lower toggle))))
 
 (defun set-vertical-bar (toggle)
   (interactive "xt or nil? ")
-  (modify-screen-parameters (selected-screen)
+  (modify-frame-parameters (selected-frame)
 			    (list (cons 'vertical-scroll-bar toggle))))
 
 (defun set-horizontal-bar (toggle)
   (interactive "xt or nil? ")
-  (modify-screen-parameters (selected-screen)
+  (modify-frame-parameters (selected-frame)
 			    (list (cons 'horizontal-scroll-bar toggle))))
+
+;;;; Aliases for backward compatibility with Emacs 18.
+(fset 'screen-height 'frame-height)
+(fset 'screen-width 'frame-width)
+(fset 'set-screen-width 'set-frame-width)
+(fset 'set-screen-height 'set-frame-height)
+
 
 ;;;; Key bindings
 (defvar ctl-x-5-map (make-sparse-keymap)
-  "Keymap for screen commands.")
+  "Keymap for frame commands.")
 (fset 'ctl-x-5-prefix ctl-x-5-map)
 (define-key ctl-x-map "5" 'ctl-x-5-prefix)
 
-(define-key ctl-x-5-map "2" 'new-screen)
-(define-key ctl-x-5-map "0" 'delete-screen)
+(define-key ctl-x-5-map "2" 'new-frame)
+(define-key ctl-x-5-map "0" 'delete-frame)
 
-(provide 'screen)
+(provide 'frame)
 
-;;; screen.el ends here
+;;; frame.el ends here

@@ -291,7 +291,7 @@ Therefore, you need to have `(display-time)' in your .emacs file."
     ;; Make sure we're not in the minibuffer
     ;; before splitting the window.
 
-    (if (= (screen-height)
+    (if (= (frame-height)
            (nth 3 (window-edges (selected-window))))
         nil
       (appt-select-lowest-window)
@@ -313,7 +313,7 @@ Therefore, you need to have `(display-time)' in your .emacs file."
           (beep 1))
       (kill-buffer appt-disp-buf))))
 
-;; Select the lowest window on the screen.
+;; Select the lowest window on the frame.
 (defun appt-select-lowest-window ()
   (setq lowest-window (selected-window))
   (let* ((bottom-edge (car (cdr (cdr (cdr (window-edges))))))
