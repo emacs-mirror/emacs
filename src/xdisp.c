@@ -455,6 +455,17 @@ prepare_menu_bars ()
   all_windows = (update_mode_lines || buffer_shared > 1
 		 || clip_changed || windows_or_buffers_changed);
 
+#ifdef HAVE_X_WINDOWS
+  {
+    Lisp_Object tail, frame;
+
+    FOR_EACH_FRAME (tail, frame)
+      if (FRAME_VISIBLE_P (XFRAME (frame))
+	  || FRAME_ICONIFIED_P (XFRAME (frame)))
+	x_consider_frame_title (frame);
+  }
+#endif
+
   /* Update the menu bar item lists, if appropriate.
      This has to be done before any actual redisplay
      or generation of display lines.  */
@@ -701,11 +712,6 @@ redisplay ()
 
 	  if (FRAME_VISIBLE_P (f))
 	    redisplay_windows (FRAME_ROOT_WINDOW (f));
-#ifdef HAVE_X_WINDOWS
-	  else if (FRAME_ICONIFIED_P (f)
-		   && ! MINI_WINDOW_P (XWINDOW (f->selected_window)))
-	    x_consider_frame_title (frame);
-#endif
 
 	  /* Any scroll bars which redisplay_windows should have nuked
 	     should now go away.  */
@@ -2576,11 +2582,6 @@ display_mode_line (w)
       for (i = left; i < right; ++i)
 	ptr[i] = FAST_MAKE_GLYPH (FAST_GLYPH_CHAR (ptr[i]), 1);
     }
-#endif
-
-#ifdef HAVE_X_WINDOWS
-  if (w == XWINDOW (f->selected_window))
-    x_consider_frame_title (WINDOW_FRAME (w));
 #endif
 }
 
