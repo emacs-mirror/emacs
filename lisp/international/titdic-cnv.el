@@ -310,7 +310,7 @@ the generated Quail package is saved."
       (let ((coding-system-for-read 'no-conversion))
 	(insert-file-contents (expand-file-name filename)))
       (set-visited-file-name (tit-make-quail-package-name filename dirname) t)
-      (set-buffer-file-coding-system 'iso-2022-7)
+      (set-buffer-file-coding-system 'iso-2022-7bit)
 
       ;; Decode the buffer contents from the encoding specified by a
       ;; value of the key "ENCODE:".

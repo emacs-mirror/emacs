@@ -49,7 +49,7 @@
 (make-coding-system
  'iso-2022-7-short
  2 ?J
- "Like `iso-2022-7' but no ASCII designation before SPC."
+ "Like `iso-2022-7bit' but no ASCII designation before SPC."
  '(ascii nil nil nil t t nil t))
 
 (defconst skkdic-jbytes
