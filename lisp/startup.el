@@ -228,9 +228,12 @@ This is initialized based on `mail-host-address',
 after your init file is read, in case it sets `mail-host-address'.")
 
 (defvar auto-save-list-file-prefix "~/.saves-"
-  "Prefix for generating auto-save-list-file-name.
-Emacs's pid and the system name will be appended to
-this prefix to create a unique file name.")
+  "Prefix for generating `auto-save-list-file-name'.
+This is used after reading your `.emacs' file to initialize
+`auto-save-list-file-name', by appending Emacs's pid and the system name,
+if you have not already set `auto-save-list-file-name' yourself.
+Set this to nil if you want to prevent `auto-save-list-file-name'
+from being initialized.")
 
 (defvar init-file-debug nil)
 
@@ -284,12 +287,14 @@ this prefix to create a unique file name.")
 	(setq default-directory (abbreviate-file-name default-directory))
 	;; Specify the file for recording all the auto save files of this session.
 	;; This is used by recover-session.
-	(setq auto-save-list-file-name
-	      (expand-file-name
-	       (format "%s%d-%s"
-		       auto-save-list-file-prefix
-		       (emacs-pid)
-		       (system-name))))
+	(or auto-save-list-file-name
+	    (and auto-save-list-file-prefix
+		 (setq auto-save-list-file-name
+		       (expand-file-name
+			(format "%s%d-%s"
+				auto-save-list-file-prefix
+				(emacs-pid)
+				(system-name))))))
 	(run-hooks 'emacs-startup-hook)
 	(and term-setup-hook
 	     (run-hooks 'term-setup-hook))
@@ -658,7 +663,13 @@ Type \\[info] to enter Info, which you can use to read GNU documentation."
 			   window-system)
 		       (insert "\n
 C-mouse-3 (third mouse button, with Control) gets a mode-specific menu."))
-		   (if (directory-files "~/" nil "\\`\\.saves-" t)
+		   (if (directory-files (file-name-directory auto-save-list-file-prefix)
+					nil
+					(concat "\\`"
+						(regexp-quote
+						 (file-name-nondirectory
+						  auto-save-list-file-prefix)))
+					t)
 		       (insert "\n\nIf an Emacs session crashed recently,\n"
 			       "type M-x recover-session RET to recover"
 			       " the files you were editing."))
