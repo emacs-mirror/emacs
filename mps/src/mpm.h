@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.96) $
+ * $HopeName: MMsrc!mpm.h(trunk.97) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -64,6 +64,10 @@ extern void *(PointerSub)(void *p, size_t s);
 extern size_t (PointerOffset)(void *base, void *limit);
 #define PointerOffset(base, limit) ((char *)(limit) - (char *)(base))
 
+extern void *(PointerAlignUp)(void *p, size_t s);
+#define PointerAlignUp(p, s) \
+  ((void *)WordAlignUp((Word)(p), (Align)(s)))
+
 extern Addr (AddrAdd)(Addr addr, Size size);
 #define AddrAdd(p, s) ((Addr)PointerAdd((void *)(p), (s)))
 
@@ -75,7 +79,7 @@ extern Size (AddrOffset)(Addr base, Addr limit);
   ((Size)(PointerOffset((void *)(b), (void *)(l))))
 
 extern Addr (AddrAlignDown)(Addr addr, Align align);
-#define AddrAlignDown(p, a)     ((Addr)WordAlignDown((Word)(p), (a)))
+#define AddrAlignDown(p, a)     ((Addr)WordAlignDown(AddrWord((p)), (a)))
 
 #define AddrWord(a)             ((Word)(a))
 #define SizeWord(s)             ((Word)(s))
