@@ -868,7 +868,7 @@ save_excursion_restore (info)
   /* Point marker.  */
   tem = XCAR (info);
   Fgoto_char (tem);
-  unchain_marker (tem);
+  unchain_marker (XMARKER (tem));
 
   /* Mark marker.  */
   info = XCDR (info);
@@ -876,7 +876,7 @@ save_excursion_restore (info)
   omark = Fmarker_position (current_buffer->mark);
   Fset_marker (current_buffer->mark, tem, Fcurrent_buffer ());
   nmark = Fmarker_position (tem);
-  unchain_marker (tem);
+  unchain_marker (XMARKER (tem));
 
   /* visible */
   info = XCDR (info);
@@ -3814,7 +3814,7 @@ transpose_markers (start1, end1, start2, end2,
      register int start1_byte, end1_byte, start2_byte, end2_byte;
 {
   register int amt1, amt1_byte, amt2, amt2_byte, diff, diff_byte, mpos;
-  register Lisp_Object marker;
+  register struct Lisp_Marker *marker;
 
   /* Update point as if it were a marker.  */
   if (PT < start1)
@@ -3849,10 +3849,9 @@ transpose_markers (start1, end1, start2, end2,
   amt1_byte = (end2_byte - start2_byte) + (start2_byte - end1_byte);
   amt2_byte = (end1_byte - start1_byte) + (start2_byte - end1_byte);
 
-  for (marker = BUF_MARKERS (current_buffer); !NILP (marker);
-       marker = XMARKER (marker)->chain)
+  for (marker = BUF_MARKERS (current_buffer); marker; marker = marker->next)
     {
-      mpos = marker_byte_position (marker);
+      mpos = marker->bytepos;
       if (mpos >= start1_byte && mpos < end2_byte)
 	{
 	  if (mpos < end1_byte)
@@ -3861,9 +3860,9 @@ transpose_markers (start1, end1, start2, end2,
 	    mpos += diff_byte;
 	  else
 	    mpos -= amt2_byte;
-	  XMARKER (marker)->bytepos = mpos;
+	  marker->bytepos = mpos;
 	}
-      mpos = XMARKER (marker)->charpos;
+      mpos = marker->charpos;
       if (mpos >= start1 && mpos < end2)
 	{
 	  if (mpos < end1)
@@ -3873,7 +3872,7 @@ transpose_markers (start1, end1, start2, end2,
 	  else
 	    mpos -= amt2;
 	}
-      XMARKER (marker)->charpos = mpos;
+      marker->charpos = mpos;
     }
 }
 
