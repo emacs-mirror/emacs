@@ -2302,9 +2302,9 @@ See also `locale-charset-language-names', `locale-language-names',
 	  (setq locale-coding-system coding-system))))
 
     ;; Default to A4 paper if we're not in a C, POSIX or US locale.
-    ;; (See comments in Flanginfo.)
+    ;; (See comments in Flocale_info.)
     (let ((locale locale)
-	  (paper (langinfo 'paper)))
+	  (paper (locale-info 'paper)))
       (if paper
 	  ;; This will always be null at the time of writing.
 	  (cond
