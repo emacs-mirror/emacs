@@ -5596,6 +5596,15 @@ DIR defaults to current buffer's directory default.")
       && use_dialog_box
       && have_menus_p ())
     {
+      /* If DIR contains a file name, split it.  */
+      Lisp_Object file;
+      file = Ffile_name_nondirectory (dir);
+      if (XSTRING (file)->size && NILP (default_filename))
+	{
+	  default_filename = file;
+	  dir = Ffile_name_directory (dir);
+	}
+      default_filename = Fexpand_file_name (default_filename, dir);
       val = Fx_file_dialog (prompt, dir, default_filename, mustmatch);
       add_to_history = 1;
     }
