@@ -1,13 +1,18 @@
+2004-12-06  Stefan  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-unfontify-region): Save buffer state.
+	(font-lock-default-unfontify-region): Dont' save buffer state any more.
+
 2004-12-07  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-help.el (calc-describe-key): 
+	* calc/calc-help.el (calc-describe-key):
 	Set calc-summary-indentation even when Calc Summary buffer exists.
 
 2004-12-07  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/holidays.el (holiday-easter-etc): Make arguments
-	optional for backwards compatability.  Doc fix.  Remove
-	un-necessary local vars mandatory, output-list.
+	optional for backwards compatability.  Doc fix.
+	Remove un-necessary local vars mandatory, output-list.
 	(holiday-advent):  Make arguments optional for backwards
 	compatability.  Doc fix.
 
@@ -41,7 +46,7 @@
 2004-12-05  Sam Steingold  <sds@gnu.org>
 
 	* net/tramp.el (tramp-handle-file-accessible-directory-p):
-	Fix `tramp-time-diff' comparison logic
+	Fix `tramp-time-diff' comparison logic.
 
 2004-12-05  Paul Pogonyshev  <pogonyshev@gmx.net>
 

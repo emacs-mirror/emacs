@@ -2581,6 +2581,9 @@ strings by giving that character a non-nil `cursor' text property.
 around potentially blocking or long-running code in timers
 and post-command-hooks.
 
+** An unconditional face specification in defface (one where the DISPLAY part
+is just t) applies to all cases and does not override subsequent entries.
+
 +++
 ** New face attribute `min-colors' can be used to tailor the face color
 to the number of colors supported by a display, and define the
