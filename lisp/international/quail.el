@@ -1431,8 +1431,12 @@ Remaining args are for FUNC."
 ;; buffer.
 (defun quail-require-guidance-buf ()
   (and input-method-verbose-flag
-       (not (and (eq (selected-window) (minibuffer-window))
-		 (quail-simple)))))
+       (if (eq input-method-verbose-flag 'default)
+	   (not (and (eq (selected-window) (minibuffer-window))
+		     (quail-simple)))
+	 (if (eq input-method-verbose-flag 'complex-only)
+	     (not (quail-simple))
+	   t))))
 
 (defun quail-show-guidance-buf ()
   "Display a guidance buffer for Quail input method in some window.
