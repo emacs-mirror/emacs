@@ -969,6 +969,9 @@ yanking point; just return the Nth kill forward."
 The text is deleted but saved in the kill ring.
 The command \\[yank] can retrieve it from there.
 \(If you want to kill and then yank immediately, use \\[copy-region-as-kill].)
+If the buffer is read-only, Emacs will beep and refrain from deleting
+the text, but put the text in the kill ring anyway.  This means that
+you can use the killing commands to copy text from a read-only buffer.
 
 This is the primitive for programs to kill text (as opposed to deleting it).
 Supply two arguments, character numbers indicating the stretch of text
@@ -977,12 +980,18 @@ Any command that calls this function is a \"kill command\".
 If the previous command was also a kill command,
 the text killed this time appends to the text killed last time
 to make one entry in the kill ring."
-  (interactive "*r")
+  (interactive "r")
   (cond
-   ;; If the buffer was read-only, we used to just do a
-   ;; copy-region-as-kill.  This was never what I wanted - usually I
-   ;; was making a mistake and trying to edit a file checked into RCS -
-   ;; so I've taken the code out.
+
+   ;; If the buffer is read-only, we should beep, in case the person
+   ;; just isn't aware of this.  However, there's no harm in putting
+   ;; the region's text in the kill ring, anyway.
+   (buffer-read-only
+    (copy-region-as-kill beg end)
+    (ding))
+
+   ;; In certain cases, we can arrange for the undo list and the kill
+   ;; ring to share the same string object.  This code does that.
    ((not (or (eq buffer-undo-list t)
 	     (eq last-command 'kill-region)
 	     (eq beg end)))
@@ -993,6 +1002,7 @@ to make one entry in the kill ring."
       ;; and put it in the kill-ring.
       (kill-new (car (car buffer-undo-list)))
       (setq this-command 'kill-region)))
+
    (t
     (copy-region-as-kill beg end)
     (delete-region beg end))))
