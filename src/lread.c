@@ -1349,7 +1349,8 @@ STREAM or the value of `standard-input' may be:\n\
  a function (call it with no arguments for each character,\n\
      call it with a char as argument to push a char back)\n\
  a string (takes text from string, starting at the beginning)\n\
- t (read text line using minibuffer and use it).")
+ t (read text line using minibuffer and use it, or read from\n\
+    standard input in batch mode).")
   (stream)
      Lisp_Object stream;
 {
