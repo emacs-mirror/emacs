@@ -7465,7 +7465,9 @@ main (void)
 
   do_get_menus ();
 
+#ifndef USE_LSB_TAG
   do_check_ram_size ();
+#endif
 
   init_emacs_passwd_dir ();
 
