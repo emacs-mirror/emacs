@@ -963,15 +963,13 @@ If FORK is a string, it is the name to use for the new buffer."
 		  (goto-char marker)
 		  (while (re-search-forward "\nNode: \\(.*\\)\177" nil t)
 		    (setq compl
-			  (cons (list (buffer-substring (match-beginning 1)
-							(match-end 1)))
+			  (cons (list (match-string-no-properties 1))
 				compl))))
 	      (widen)
 	      (goto-char (point-min))
 	      ;; If the buffer begins with a node header, process that first.
 	      (if (Info-node-at-bob-matching node-regexp)
-		  (setq compl (list (buffer-substring (match-beginning 1)
-						      (match-end 1)))))
+		  (setq compl (list (match-string-no-properties 1))))
 	      ;; Now for the rest of the nodes.
 	      (while (search-forward "\n\^_" nil t)
 		(forward-line 1)
@@ -979,8 +977,7 @@ If FORK is a string, it is the name to use for the new buffer."
 		  (forward-line 1)
 		  (if (re-search-backward node-regexp beg t)
 		      (setq compl 
-			    (cons (list (buffer-substring (match-beginning 1)
-							  (match-end 1)))
+			    (cons (list (match-string-no-properties 1))
 				  compl))))))))
 	(setq compl (cons '("*") compl))
 	(setq Info-current-file-completions compl))))
@@ -1039,8 +1036,7 @@ If FORK is a string, it is the name to use for the new buffer."
 		      (re-search-forward "\\(^.*\\): [0-9]+$")
 		      (goto-char (+ (match-end 1) 2))
 		      (setq list (cons (cons (read (current-buffer))
-					     (buffer-substring
-					      (match-beginning 1) (match-end 1)))
+					     (match-string-no-properties 1))
 				       list))
 		      (goto-char (1+ (match-end 0))))
 		    (setq list (nreverse list)
@@ -1158,7 +1154,7 @@ NAME may be an abbreviation of the reference name."
 
        (goto-char (point-min))
        (while (re-search-forward "\\*note[ \n\t]*\\([^:]*\\):" nil t)
-	 (setq str (buffer-substring
+	 (setq str (buffer-substring-no-properties
 		    (match-beginning 1)
 		    (1- (point))))
 	 ;; See if this one should be the default.
@@ -1266,12 +1262,10 @@ NAME may be an abbreviation of the reference name."
 	       (goto-char (point-min))
 	       (search-forward "\n* Menu:")
 	       (while (re-search-forward pattern nil t)
-		 (setq completions (cons (cons (format "%s"
-						       (buffer-substring
-							(match-beginning 1)
-							(match-end 1)))
-					       (match-beginning 1))
-					 completions))))
+		 (setq completions
+		       (cons (cons (match-string-no-properties 1)
+				   (match-beginning 1))
+			     completions))))
 	     (try-completion string completions predicate)))
 	  ((eq action t)
 	   (let (completions
@@ -1283,11 +1277,9 @@ NAME may be an abbreviation of the reference name."
 	       (goto-char (point-min))
 	       (search-forward "\n* Menu:")
 	       (while (re-search-forward pattern nil t)
-		 (setq completions (cons (cons (format "%s"
-						       (buffer-substring
-							(match-beginning 1)
-							(match-end 1)))
-					       (match-beginning 1))
+		 (setq completions (cons (cons
+					  (match-string-no-properties 1)
+					  (match-beginning 1))
 					 completions))))
 	     (all-completions string completions predicate)))
 	  (t
@@ -1321,9 +1313,7 @@ Completion is allowed, and the menu item point is on is the default."
 	      (goto-char p)
 	      (end-of-line)
 	      (if (re-search-backward "\n\\* +\\([^:\t\n]*\\):" beg t)
-		  (setq default (format "%s" (buffer-substring
-					      (match-beginning 1)
-					      (match-end 1))))))))
+		  (setq default (match-string-no-properties 1))))))
      (let ((item nil))
        (while (null item)
 	 (setq item (let ((completion-ignore-case t)
@@ -1660,15 +1650,11 @@ Give a blank topic name to go to the Index node itself."
 		(goto-char (point-min))
 		(while (re-search-forward pattern nil t)
 		  (setq matches
-			(cons (list (buffer-substring (match-beginning 1)
-						      (match-end 1))
-				    (buffer-substring (match-beginning 2)
-						      (match-end 2))
+			(cons (list (match-string-no-properties 1)
+				    (match-string-no-properties 2)
 				    Info-current-node
 				    (string-to-int (concat "0"
-							   (buffer-substring
-							    (match-beginning 3)
-							    (match-end 3)))))
+							   (match-string 3))))
 			      matches)))
 		(and (setq node (Info-extract-pointer "next" t))
 		     (string-match "\\<Index\\>" node)))
@@ -1790,7 +1776,7 @@ SIG optional fourth argument, controls action on no match
 					  (> (match-end 0) pos))))))
 	(if (and found (<= (match-beginning 0) pos)
 		 (> (match-end 0) pos))
-	    (buffer-substring (match-beginning 1) (match-end 1))
+	    (match-string-no-properties 1)
 	  (cond ((null errorstring)
 		 nil)
 		((eq errorstring t)
@@ -2176,9 +2162,7 @@ The locations are of the format used in Info-history, i.e.
       (goto-char (point-max))
       (while (re-search-backward cmd-desc nil t)
 	  (setq where (cons (list Info-current-file
-				  (buffer-substring
-				   (match-beginning 1)
-				   (match-end 1))
+				  (match-string-no-properties 1)
 				  0)
 			    where)))
       where)))
