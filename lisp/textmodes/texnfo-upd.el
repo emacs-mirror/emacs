@@ -1347,10 +1347,9 @@ Point must be at beginning of node line.  Does not move point."
 Starts from the current position of the cursor, and searches forward
 on the line for a comma and if one is found, deletes the rest of the
 line, including the comma.  Leaves point at beginning of line."
-  (if (search-forward "," (save-excursion (end-of-line) (point)) t)
-      (progn
-        (goto-char (1- (point)))
-        (kill-line nil)))
+  (let ((eol-point (save-excursion (end-of-line) (point))))
+    (if (search-forward "," eol-point t)
+        (delete-region (1- (point)) eol-point)))
   (beginning-of-line))
 
 (defun texinfo-find-pointer (beginning end level direction)
