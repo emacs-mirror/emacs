@@ -175,17 +175,17 @@ mac/INSTALL.)
 
 1) Make sure your system has enough swapping space allocated to handle
 a program whose pure code is 1.5 MB and whose data area is at
-least 2.5 MB and can reach 80 MB or more.  If the swapping space is
+least 2.8 MB and can reach 100 MB or more.  If the swapping space is
 insufficient, you will get an error in the command `temacs -batch -l
 loadup dump', found in `./src/Makefile.in', or possibly when
 running the final dumped Emacs.
  
-Building Emacs requires about 130 MB of disk space (including the
-Emacs sources) Once installed, Emacs occupies about 70 MB in the file
+Building Emacs requires about 140 MB of disk space (including the
+Emacs sources) Once installed, Emacs occupies about 77 MB in the file
 system where it is installed; this includes the executable files, Lisp
 libraries, miscellaneous data files, and on-line documentation.  If
 the building and installation take place in different directories,
-then the installation procedure momentarily requires 130+70 MB.
+then the installation procedure momentarily requires 140+77 MB.
 
 2) Consult `./etc/MACHINES' to see what configuration name you should
 give to the `configure' program.  That file offers hints for
