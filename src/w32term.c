@@ -896,6 +896,17 @@ w32_per_char_metric (font, char2b, font_type)
 
   xassert (font && char2b);
 
+  /* TODO: This function is currently called through the RIF, and in
+     some cases font_type is UNKNOWN_FONT. We currently allow the
+     cached metrics to be used, which seems to work, but in cases
+     where font_type is UNKNOWN_FONT, we probably haven't encoded
+     char2b appropriately. All callers need checking to see what they
+     are passing.  This is most likely to affect variable width fonts
+     outside the Latin-1 range, particularly in languages like Thai
+     that rely on rbearing and lbearing to provide composition. I
+     don't think that is working currently anyway, but we don't seem
+     to have anyone testing such languages on Windows.  */
+
   /* Handle the common cases quickly.  */
   if (!font->bdf && font->per_char == NULL)
     /* TODO: determine whether char2b exists in font?  */
