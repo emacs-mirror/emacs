@@ -1892,6 +1892,12 @@ be shared by the new frame.")
   tem = x_get_arg (parms, Qunsplittable, 0, 0, boolean);
   f->no_split = minibuffer_only || EQ (tem, Qt);
 
+  /* It is now ok to make the frame official
+     even if we get an error below.
+     And the frame needs to be on Vframe_list
+     or making it visible won't work.  */
+  Vframe_list = Fcons (frame, Vframe_list);
+
   /* Make the window appear on the frame and enable display,
      unless the caller says not to.  */
   {
@@ -1909,7 +1915,6 @@ be shared by the new frame.")
       ;
   }
 
-  Vframe_list = Fcons (frame, Vframe_list);
   return frame;
 #else /* X10 */
   struct frame *f;
@@ -2336,6 +2341,7 @@ fonts), even if they match PATTERN and FACE.")
       Lisp_Object *tail;
       int i;
 
+      tail = &list;
       for (i = 0; i < num_fonts; i++)
         {
 #ifdef BROKEN_XLISTFONTSWITHINFO
