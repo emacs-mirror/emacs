@@ -246,7 +246,7 @@ Lisp_Object
 get_keymap (object)
      Lisp_Object object;
 {
-  return get_keymap_1 (object, 0, 0);
+  return get_keymap_1 (object, 1, 0);
 }
 
 
@@ -344,18 +344,22 @@ access_keymap (map, idx, t_ok, noinherit)
    and INDEX is the object to look up in KEYMAP to yield the definition.
 
    Also if OBJECT has a menu string as the first element,
-   remove that.  Also remove a menu help string as second element.  */
+   remove that.  Also remove a menu help string as second element.
+
+   If AUTOLOAD is nonzero, load autoloadable keymaps
+   that are referred to with indirection.  */
 
 Lisp_Object
-get_keyelt (object)
+get_keyelt (object, autoload)
      register Lisp_Object object;
+     int autoload;
 {
   while (1)
     {
       register Lisp_Object map, tem;
 
       /* If the contents are (KEYMAP . ELEMENT), go indirect.  */
-      map = get_keymap_1 (Fcar_safe (object), 0, 0);
+      map = get_keymap_1 (Fcar_safe (object), 0, autoload);
       tem = Fkeymapp (map);
       if (!NILP (tem))
 	object = access_keymap (map, Fcdr (object), 0, 0);
@@ -583,7 +587,7 @@ the front of KEYMAP.")
   int length;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
-  keymap = get_keymap (keymap);
+  keymap = get_keymap_1 (keymap, 1, 1);
 
   if (XTYPE (key) != Lisp_Vector
       && XTYPE (key) != Lisp_String)
@@ -627,7 +631,7 @@ the front of KEYMAP.")
       if (idx == length)
 	RETURN_UNGCPRO (store_in_keymap (keymap, c, def));
 
-      cmd = get_keyelt (access_keymap (keymap, c, 0, 1));
+      cmd = get_keyelt (access_keymap (keymap, c, 0, 1), 1);
 
       /* If this key is undefined, make it a prefix.  */
       if (NILP (cmd))
@@ -673,7 +677,7 @@ recognize the default bindings, just as `read-key-sequence' does.")
   int t_ok = ! NILP (accept_default);
   int meta_bit;
 
-  keymap = get_keymap (keymap);
+  keymap = get_keymap_1 (keymap, 1, 1);
 
   if (XTYPE (key) != Lisp_Vector
       && XTYPE (key) != Lisp_String)
@@ -709,11 +713,11 @@ recognize the default bindings, just as `read-key-sequence' does.")
 	  idx++;
 	}
 
-      cmd = get_keyelt (access_keymap (keymap, c, t_ok, 0));
+      cmd = get_keyelt (access_keymap (keymap, c, t_ok, 0), 1);
       if (idx == length)
 	return cmd;
 
-      keymap = get_keymap_1 (cmd, 0, 0);
+      keymap = get_keymap_1 (cmd, 0, 1);
       if (NILP (keymap))
 	return make_number (idx);
 
@@ -1170,7 +1174,7 @@ then the value includes only maps for prefixes that start with PREFIX.")
 		  register Lisp_Object tem;
 		  register Lisp_Object cmd;
 
-		  cmd = get_keyelt (XVECTOR (elt)->contents[i]);
+		  cmd = get_keyelt (XVECTOR (elt)->contents[i], 0);
 		  if (NILP (cmd)) continue;
 		  tem = Fkeymapp (cmd);
 		  if (!NILP (tem))
@@ -1211,7 +1215,7 @@ then the value includes only maps for prefixes that start with PREFIX.")
 	    {
 	      register Lisp_Object cmd, tem, filter;
 
-	      cmd = get_keyelt (XCONS (elt)->cdr);
+	      cmd = get_keyelt (XCONS (elt)->cdr, 0);
 	      /* Ignore definitions that aren't keymaps themselves.  */
 	      tem = Fkeymapp (cmd);
 	      if (!NILP (tem))
@@ -1635,7 +1639,7 @@ indirect definition itself.")
 
 	  /* Search through indirections unless that's not wanted.  */
 	  if (NILP (noindirect))
-	    binding = get_keyelt (binding);
+	    binding = get_keyelt (binding, 0);
 
 	  /* End this iteration if this element does not match
 	     the target.  */
@@ -2082,7 +2086,7 @@ describe_map_2 (keymap, elt_prefix, elt_describer, partial, shadow)
       else
 	{
 	  event = Fcar_safe (Fcar (tail));
-	  definition = get_keyelt (Fcdr_safe (Fcar (tail)));
+	  definition = get_keyelt (Fcdr_safe (Fcar (tail)), 0);
 
 	  /* Don't show undefined commands or suppressed commands.  */
 	  if (NILP (definition)) continue;
@@ -2182,7 +2186,7 @@ describe_vector (vector, elt_prefix, elt_describer, partial, shadow)
   for (i = 0; i < XVECTOR (vector)->size; i++)
     {
       QUIT;
-      tem1 = get_keyelt (XVECTOR (vector)->contents[i]);
+      tem1 = get_keyelt (XVECTOR (vector)->contents[i], 0);
 
       if (NILP (tem1)) continue;      
 
@@ -2225,7 +2229,7 @@ describe_vector (vector, elt_prefix, elt_describer, partial, shadow)
 
       /* Find all consecutive characters that have the same definition.  */
       while (i + 1 < XVECTOR (vector)->size
-	     && (tem2 = get_keyelt (XVECTOR (vector)->contents[i+1]),
+	     && (tem2 = get_keyelt (XVECTOR (vector)->contents[i+1], 0),
 		 EQ (tem2, tem1)))
 	i++;
 
