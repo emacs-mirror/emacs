@@ -1598,6 +1598,22 @@ else
 fi
 AC_MSG_RESULT($HAVE_XFREE386)
 
+dnl Check for need for bigtoc support on IBM AIX
+
+case ${host_os} in
+aix*)
+  AC_CACHE_CHECK([for -bbigtoc option], [gdb_cv_bigtoc], [
+    case $GCC in
+    yes) gdb_cv_bigtoc=-Wl,-bbigtoc ;;
+    *) gdb_cv_bigtoc=-bbigtoc ;;
+    esac
+
+    LDFLAGS=$LDFLAGS\ $gdb_cv_bigtoc
+    AC_TRY_LINK([], [int i;], [], [gdb_cv_bigtoc=])
+  ])
+  ;;
+esac
+
 # Change CFLAGS temporarily so that C_SWITCH_X_SITE gets used
 # for the tests that follow.  We set it back to REAL_CFLAGS later on.
 
