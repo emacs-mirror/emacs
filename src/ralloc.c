@@ -60,7 +60,7 @@ static int warnlevel;
 
 /* Function to call to issue a warning;
    0 means don't issue them.  */
-static void (*warnfunction) ();
+static void (*warn_function) ();
 
 static void
 check_memory_limits (address)
@@ -74,7 +74,7 @@ check_memory_limits (address)
       if (data_size > (lim_data / 4) * 3)
 	{
 	  warnlevel++;
-	  (*warnfunction) ("Warning: past 75% of memory limit");
+	  (*warn_function) ("Warning: past 75% of memory limit");
 	}
       break;
 
@@ -82,7 +82,7 @@ check_memory_limits (address)
       if (data_size > (lim_data / 20) * 17)
 	{
 	  warnlevel++;
-	  (*warnfunction) ("Warning: past 85% of memory limit");
+	  (*warn_function) ("Warning: past 85% of memory limit");
 	}
       break;
 
@@ -90,12 +90,12 @@ check_memory_limits (address)
       if (data_size > (lim_data / 20) * 19)
 	{
 	  warnlevel++;
-	  (*warnfunction) ("Warning: past 95% of memory limit");
+	  (*warn_function) ("Warning: past 95% of memory limit");
 	}
       break;
 
     default:
-      (*warnfunction) ("Warning: past acceptable memory limits");
+      (*warn_function) ("Warning: past acceptable memory limits");
       break;
     }
 
@@ -107,9 +107,11 @@ check_memory_limits (address)
 
 /* Obtain SIZE bytes of space.  If enough space is not presently available
    in our process reserve, (i.e., (page_break_value - break_value)),
-   this means getting more page-aligned space from the system. */
+   this means getting more page-aligned space from the system.
 
-static void
+   Return non-zero if all went well, or zero if we couldn't allocate
+   the memory.  */
+static int
 obtain (size)
      SIZE size;
 {
@@ -119,27 +121,32 @@ obtain (size)
     {
       SIZE get = ROUNDUP (size - already_available);
 
-      if (warnfunction)
+      if (warn_function)
 	check_memory_limits (page_break_value);
 
       if (((int) sbrk (get)) < 0)
-	abort ();
+	return 0;
 
       page_break_value += get;
     }
 
   break_value += size;
+
+  return 1;
 }
 
-/* Obtain SIZE bytes of space and return a pointer to the new area. */
+/* Obtain SIZE bytes of space and return a pointer to the new area.
+   If we could not allocate the space, return zero.  */
 
 static POINTER
 get_more_space (size)
      SIZE size;
 {
   POINTER ptr = break_value;
-  obtain (size);
-  return ptr;
+  if (obtain (size))
+    return ptr;
+  else
+    return 0;
 }
 
 /* Note that SIZE bytes of space have been relinquished by the process.
@@ -214,15 +221,24 @@ find_bloc (ptr)
 }
 
 /* Allocate a bloc of SIZE bytes and append it to the chain of blocs.
-   Returns a pointer to the new bloc. */
+   Returns a pointer to the new bloc, or zero if we couldn't allocate
+   memory for the new block.  */
 
 static bloc_ptr
 get_bloc (size)
      SIZE size;
 {
-  register bloc_ptr new_bloc = (bloc_ptr) malloc (BLOC_PTR_SIZE);
+  register bloc_ptr new_bloc;
 
-  new_bloc->data = get_more_space (size);
+  if (! (new_bloc = (bloc_ptr) malloc (BLOC_PTR_SIZE))
+      || ! (new_bloc->data = get_more_space (size)))
+    {
+      if (new_bloc)
+	free (new_bloc);
+
+      return 0;
+    }
+
   new_bloc->size = size;
   new_bloc->next = NIL_BLOC;
   new_bloc->variable = (POINTER *) NIL;
@@ -306,9 +322,14 @@ free_bloc (bloc)
 
 static int use_relocatable_buffers;
 
-/* Obtain SIZE bytes of storage from the free pool, or the system,
-   as neccessary.  If relocatable blocs are in use, this means
-   relocating them. */
+/* Obtain SIZE bytes of storage from the free pool, or the system, as
+   neccessary.  If relocatable blocs are in use, this means relocating
+   them.  This function gets plugged into the GNU malloc's __morecore
+   hook.
+
+   If we're out of memory, we should return zero, to imitate the other
+   __morecore hook values - in particular, __default_morecore in the
+   GNU malloc package.  */
 
 POINTER 
 r_alloc_sbrk (size)
@@ -321,7 +342,9 @@ r_alloc_sbrk (size)
 
   if (size > 0)
     {
-      obtain (size);
+      if (! obtain (size))
+	return 0;
+
       if (first_bloc)
 	{
 	  relocate_some_blocs (first_bloc, first_bloc->data + size);
@@ -345,7 +368,10 @@ r_alloc_sbrk (size)
 
 /* Allocate a relocatable bloc of storage of size SIZE.  A pointer to
    the data is returned in *PTR.  PTR is thus the address of some variable
-   which will use the data area. */
+   which will use the data area.
+
+   If we can't allocate the necessary memory, set *PTR to zero, and
+   return zero.  */
 
 POINTER
 r_alloc (ptr, size)
@@ -355,8 +381,13 @@ r_alloc (ptr, size)
   register bloc_ptr new_bloc;
 
   new_bloc = get_bloc (size);
-  new_bloc->variable = ptr;
-  *ptr = new_bloc->data;
+  if (new_bloc)
+    {
+      new_bloc->variable = ptr;
+      *ptr = new_bloc->data;
+    }
+  else
+    *ptr = 0;
 
   return *ptr;
 }
@@ -377,12 +408,14 @@ r_alloc_free (ptr)
 }
 
 /* Given a pointer at address PTR to relocatable data, resize it to SIZE.
-   This is done by shifting all blocks above this one up in memory,
-   unless SIZE is less than or equal to the current bloc size, in
-   which case nothing happens and the current value is returned.
+   Do this by shifting all blocks above this one up in memory, unless
+   SIZE is less than or equal to the current bloc size, in which case
+   do nothing.
 
-   The contents of PTR is changed to reflect the new bloc, and this
-   value is returned. */
+   Change *PTR to reflect the new bloc, and return this value.
+
+   If more memory cannot be allocated, then leave *PTR unchanged, and
+   return zero.  */
 
 POINTER
 r_re_alloc (ptr, size)
@@ -399,7 +432,9 @@ r_re_alloc (ptr, size)
     /* Wouldn't it be useful to actually resize the bloc here?  */
     return *ptr;
 
-  obtain (size - bloc->size);
+  if (! obtain (size - bloc->size))
+    return 0;
+
   relocate_some_blocs (bloc->next, bloc->data + size);
 
   /* Zero out the new space in the bloc, to help catch bugs faster.  */
@@ -450,7 +485,7 @@ malloc_init (start, warn_func)
 
   lim_data = 0;
   warnlevel = 0;
-  warnfunction = warn_func;
+  warn_function = warn_func;
 
   get_lim_data ();
 }
