@@ -1822,7 +1822,8 @@ beginning and `after-revert-hook' at the end."
      (list (read-file-name "Recover file: "
 			       file-dir nil nil file-name))))
   (setq file (expand-file-name file))
-  (if (auto-save-file-name-p file) (error "%s is an auto-save file" file))
+  (if (auto-save-file-name-p (file-name-nondirectory file))
+      (error "%s is an auto-save file" file))
   (let ((file-name (let ((buffer-file-name file))
 		     (make-auto-save-file-name))))
     (cond ((not (file-newer-than-file-p file-name file))
