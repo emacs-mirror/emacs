@@ -898,8 +898,8 @@ static const char *re_error_msg[] =
    ralloc heap) shift the data out from underneath the regexp
    routines.
 
-   Here's another reason to avoid allocation: Emacs insists on
-   processing input from X in a signal handler; processing X input may
+   Here's another reason to avoid allocation: Emacs 
+   processes input from X in a signal handler; processing X input may
    call malloc; if input arrives while a matching routine is calling
    malloc, then we're scrod.  But Emacs can't just block input while
    calling matching routines; then we don't notice interrupts when
@@ -910,8 +910,9 @@ static const char *re_error_msg[] =
 /* Normally, this is fine.  */
 #define MATCH_MAY_ALLOCATE
 
-/* But under some circumstances, it's not.  */
-#if defined (emacs) || (defined (REL_ALLOC) && defined (C_ALLOCA))
+/* The match routines may not allocate if (1) they would do it with malloc
+   and (2) it's not safe for htem to use malloc.  */
+#if (defined (C_ALLOCA) || defined (REGEX_MALLOC)) && (defined (emacs) || defined (REL_ALLOC))
 #undef MATCH_MAY_ALLOCATE
 #endif
 
