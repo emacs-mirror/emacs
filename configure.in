@@ -164,7 +164,7 @@ case "${canonical}" in
     machine=alliant-2800 opsys=bsd4-3
   ;;
 
-  ;; Alpha (DEC) machines.
+  ## Alpha (DEC) machines.
   alpha-dec-osf* )
     machine=alpha opsys=osf1
   ;;
@@ -678,10 +678,12 @@ case "${canonical}" in
       *-sunos5.4* | *-solaris2.4* )
 		opsys=sol2-4
 		NON_GNU_CPP=/usr/ccs/lib/cpp
+		RANLIB="ar -ts"
 		;;
       *-sunos5.5* | *-solaris2.5* )
 		opsys=sol2-5
 		NON_GNU_CPP=/usr/ccs/lib/cpp
+		RANLIB="ar -ts"
 		;;
       *-sunos5* | *-solaris* )
 		opsys=sol2
@@ -824,6 +826,10 @@ if test x"${opsys}" = x; then
       unported=yes
     ;;
   esac
+fi
+
+if test "x$RANLIB" = x; then
+  RANLIB=ranlib
 fi
 
 changequote([, ])dnl
@@ -1338,6 +1344,7 @@ AC_SUBST(CFLAGS)
 AC_SUBST(X_TOOLKIT_TYPE)
 AC_SUBST(machfile)
 AC_SUBST(opsysfile)
+AC_SUBST(RANLIB)
 
 AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}")
 AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS, "${ac_configure_args}")
