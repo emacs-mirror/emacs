@@ -132,8 +132,7 @@ worry about it; this manual is self-contained.
 
 @pindex cl
   A certain amount of Common Lisp emulation is available via the
-@file{cl} library.  @xref{Top,, Overview, cl, Common Lisp
-Extensions}.
+@file{cl} library.  @inforef{Top, Overview, cl}.
 
   Emacs Lisp is not at all influenced by Scheme; but the GNU project has
 an implementation of Scheme, called Guile.  We use Guile in all new GNU
