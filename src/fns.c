@@ -4318,9 +4318,9 @@ sweep_weak_table (h, remove_entries_p)
 	  else if (EQ (h->weak, Qvalue))
 	    remove_p = !value_known_to_survive_p;
 	  else if (EQ (h->weak, Qkey_or_value))
-	    remove_p = !key_known_to_survive_p || !value_known_to_survive_p;
+	    remove_p = !(key_known_to_survive_p || value_known_to_survive_p);
 	  else if (EQ (h->weak, Qkey_and_value))
-	    remove_p = !key_known_to_survive_p && !value_known_to_survive_p;
+	    remove_p = !(key_known_to_survive_p && value_known_to_survive_p);
 	  else
 	    abort ();
 
