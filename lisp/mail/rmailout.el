@@ -26,10 +26,7 @@
 
 (require 'rmail)
 
-;; Temporary until Emacs always has this variable.
-(defvar rmail-delete-after-output nil
-  "*Non-nil means automatically delete a message that is copied to a file.")
-
+;;;###autoload
 (defvar rmail-output-file-alist nil
   "*Alist matching regexps to suggested output Rmail files.
 This is a list of elements of the form (REGEXP . NAME-EXP).
