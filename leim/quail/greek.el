@@ -461,6 +461,7 @@ ypogegrammeni	|
 psili		>
 dasia		<
 oxia		'
+koronis         ''
 varia		`
 perispomeni	~
 dialytika	\"
@@ -483,6 +484,7 @@ nil t t nil nil nil nil nil nil nil t)
  ("?" ?$,1&^(B) ; erotimatiko
  ("\"" ?,A((B) ; dialytika
  ("|" ?$,1&Z(B) ; ypogegrammeni
+ ("''" ?$,1q}(B) ; koronis
 
  ("A" ?$,1&q(B)
  ("B" ?$,1&r(B)
