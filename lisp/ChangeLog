@@ -1,3 +1,17 @@
+2001-08-14  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Change error function arguments to follow Emacs
+	message convention.  Doc fix.
+	(ps-print-version): New version number (6.5.4).
+	(coding-system-for-write): Change declaration position to avoid
+	XEmacs compilation gripes.
+	(coding-system-for-read, buffer-file-coding-system): Declarations
+	to avoid XEmacs compilation gripes.
+
+	* ps-mule.el: Doc fix.
+	(ps-mule-encode-header-string): If STRING is not a string, replace
+	STRING by empty string.
+
 2001-08-14  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* frame.el (show-trailing-whitespace): Doc fix.
