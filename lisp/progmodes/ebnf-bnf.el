@@ -1,12 +1,12 @@
 ;;; ebnf-bnf.el --- parser for EBNF
 
-;; Copyright (C) 1999, 2000 Free Sofware Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001 Free Sofware Foundation, Inc.
 
-;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Keywords:   wp, ebnf, PostScript
-;; Time-stamp: <2001-07-15 01:02:12 pavel>
-;; Version:    1.5
+;; Keywords: wp, ebnf, PostScript
+;; Time-stamp: <2001/09/18 21:03:57 vinicius>
+;; Version: 1.6
 
 ;; This file is part of GNU Emacs.
 
@@ -94,7 +94,7 @@
 ;;           | "{" body [ "||" body ] "}"       ;; zero-or-more
 ;;           .
 ;;
-;;    non_terminal = "[A-Za-z\\240-\\377][!#%&'*-,0-:<>@-Z\\^-z~\\240-\\377]*".
+;;    non_terminal = "[!#%&'*-,0-:<>@-Z\\\\^-z~\\240-\\377]+".
 ;;
 ;;    terminal = "\\([^\"\\]\\|\\\\[ -~\\240-\\377]\\)+".
 ;;
@@ -469,7 +469,7 @@ See documentation for variable `ebnf-bnf-lex'."
        ((eq token 'non-terminal)
 	;; replace the range "\240-\377" (see `ebnf-range-regexp').
 	(setq ebnf-bnf-lex (ebnf-buffer-substring
-			    (ebnf-range-regexp "!#%&'*-,0-:<>@-Z\\^-z~"
+			    (ebnf-range-regexp "!#%&'*-,0-:<>@-Z\\\\^-z~"
 					       ?\240 ?\377)))
 	(let ((case-fold-search ebnf-case-fold-search)
 	      match)
