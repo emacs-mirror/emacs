@@ -1301,6 +1301,8 @@ basic Devanagari character string."
     (indian-decode-itrans-region (point-min) (point-max))
     (devanagari-compose-from-is13194-region (point-min) (point-max))))
 
+;; Test comment.
+
 ;;
 (provide 'language/devan-util)
 
