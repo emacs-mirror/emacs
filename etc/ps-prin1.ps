@@ -348,7 +348,7 @@ StandardEncoding 46 82 getinterval aload pop
    LineNumber Lines ge or	% or last line
    {currentfont
     gsave
-    0.0 0.0 0.0 setrgbcolor
+    LineNumberColor SetColor
     /L0 findfont setfont
     LineNumber Lines ge
     {(end      )}
@@ -507,11 +507,14 @@ StandardEncoding 46 82 getinterval aload pop
     printGlobalBackground
     printLocalBackground
   }if
-  PrintHeader{
-    PrintOnlyOneHeader{ColumnIndex 1 eq}{true}ifelse{
-      PrintHeaderFrame{HeaderFrame}if
-      HeaderText
-    }if
+  PrintOnlyOneHeader{ColumnIndex 1 eq}{true}ifelse
+  dup PrintHeader and{
+    PrintHeaderFrame{HeaderFrame}if
+    HeaderText
+  }if
+  PrintFooter and{
+    PrintFooterFrame{FooterFrame}if
+    FooterText
   }if
   0 PrintStartY moveto			% move to where printing will start
   /LineNumber where
@@ -549,6 +552,15 @@ StandardEncoding 46 82 getinterval aload pop
     ColumnWidth 0 translate
     /ColumnIndex ColumnIndex 1 add def
   }ifelse
+}def
+
+/TextStart{
+  LeftMargin BottomMargin
+  PrintFooter{
+    FooterPad add
+    FooterLines FooterLineHeight mul add
+    FooterPad add
+    FooterOffset add}if
 }def
 
 % stack: number-of-pages-per-sheet |- --
@@ -605,14 +617,14 @@ StandardEncoding 46 82 getinterval aload pop
     translate
   }if
   % ---- translate to lower left corner of TEXT
-  LeftMargin BottomMargin translate
+  TextStart translate
 
   % ---- N-up printing
   N-Up 1 gt N-Up-Border and pages-per-sheet 0 gt and{
     % ---- page border
     gsave
     0 setgray
-    LeftMargin neg BottomMargin neg moveto
+    TextStart exch neg exch neg moveto
     N-Up-Repeat
     {N-Up-End
      {gsave
@@ -647,6 +659,15 @@ StandardEncoding 46 82 getinterval aload pop
   /HeaderHeight exch def
 }def
 
+/SetFooterLines{			% nb-lines --
+  /FooterLines exch def
+  % ---- bottom up
+  FooterPad
+  FooterLines FooterLineHeight mul add
+  FooterPad add
+  /FooterHeight exch def
+}def
+
 % |---------|
 % |  tm     |
 % |---------|
@@ -655,35 +676,51 @@ StandardEncoding 46 82 getinterval aload pop
 % |  ho     |
 % |---------|
 % |  text   |
+% |---------|
+% |  fo     |
+% |---------|
+% |  footer |
 % |-+-------| <-- (0 0)
 % |  bm     |
 % |---------|
 
 % -- |- x y
 /HeaderFrameStart{0  PrintHeight HeaderOffset add}def
+/FooterFrameStart{0  FooterHeight FooterOffset add neg}def
 
-/HeaderFramePath{
-  PrintHeaderWidth	0			rlineto
-  0			HeaderHeight		rlineto
-  PrintHeaderWidth neg	0			rlineto
-  0			HeaderHeight neg	rlineto
+/doFramePath{
+  /h exch def
+  PrintHeaderWidth	0	rlineto
+  0			h	rlineto
+  PrintHeaderWidth neg	0	rlineto
+  0			h neg	rlineto
 }def
 
-/HeaderFrame{
+/HeaderFramePath{HeaderHeight doFramePath}def
+/FooterFramePath{FooterHeight doFramePath}def
+
+% /path-fun /start-fun vector-property doFrame
+/doFrame{
+  /vecFrame exch def
+  /startFrame exch load def
+  /pathFrame exch load def
   gsave
-    0.4 setlinewidth
-    % ---- fill a black rectangle (the shadow of the next one)
-    HeaderFrameStart moveto
+    vecFrame 2 get setlinewidth				% frame border width
+    % ---- do the shadow of the next rectangle
+    startFrame moveto
     1 -1 rmoveto
-    HeaderFramePath
-    0 setgray fill
+    pathFrame
+    vecFrame 4 get SetColor fill			% frame shadow color
     % ---- do the next rectangle ...
-    HeaderFrameStart moveto
-    HeaderFramePath
-    gsave 0.9 setgray fill grestore	% filled with grey
-    gsave 0 setgray stroke grestore	% drawn  with black
+    startFrame moveto
+    pathFrame
+    gsave vecFrame 1 get SetColor fill grestore		% frame background
+    gsave vecFrame 3 get SetColor stroke grestore	% frame border color
   grestore
 }def
+
+/HeaderFrame{/HeaderFramePath /HeaderFrameStart HeaderFrameProperties doFrame}def
+/FooterFrame{/FooterFramePath /FooterFrameStart FooterFrameProperties doFrame}def
 
 /HeaderStart{
   HeaderFrameStart
@@ -692,6 +729,15 @@ StandardEncoding 46 82 getinterval aload pop
   HeaderPad add			% vertical   pad
   HeaderDescent sub
   HeaderLineHeight HeaderLines 1 sub mul add
+}def
+
+/FooterStart{
+  FooterFrameStart
+  exch FooterPad add exch	% horizontal pad
+  % ---- bottom up
+  FooterPad add			% vertical   pad
+  FooterDescent sub
+  FooterLineHeight FooterLines 1 sub mul add
 }def
 
 /strcat{
@@ -705,39 +751,58 @@ StandardEncoding 46 82 getinterval aload pop
   ShowNofN{(/)strcat PageCount 32 string cvs strcat}if
 }def
 
-/HeaderText{
-  HeaderStart moveto
+% lines is-right HeaderOrFooterTextLines
+/HeaderOrFooterTextLines{
+  /is_right exch def
+  HFStart moveto
+  { % ---- process the lines
+   aload pop
+   exch F
+   gsave
+    dup xcheck{exec}if
+    is_right{
+     dup stringwidth pop
+     PrintHeaderWidth exch sub HFPad HFPad add sub 0 rmoveto
+    }if
+    HFColor SetColor
+    show
+   grestore
+   0 HFLineHeight neg rmoveto
+  }forall
+}def
 
-  HeaderLinesRight HeaderLinesLeft	% -- rightLines leftLines
+% right-lines left-lines /start lineheight pad fore-color HeaderOrFooterText
+/HeaderOrFooterText{
+  /HFColor exch def
+  /HFPad exch def
+  /HFLineHeight exch def
+  /HFStart exch load def
+
+  % -- rightLines leftLines -- at stack
 
   % ---- hack: `PN 1 and'  ==  `PN 2 modulo'
-
   % ---- if even page number and duplex, then exchange left and right
   PageNumber 1 and 0 eq SwitchHeader and{exch}if
 
-  { % ---- process the left lines
-    aload pop
-    exch F
-    gsave
-      dup xcheck{exec}if
-      show
-    grestore
-    0 HeaderLineHeight neg rmoveto
-  }forall
+  % ---- process the left lines
+  false HeaderOrFooterTextLines
 
-  HeaderStart moveto
+  % ---- process the right lines
+  true HeaderOrFooterTextLines
+}def
 
-  { % ---- process the right lines
-    aload pop
-    exch F
-    gsave
-      dup xcheck{exec}if
-      dup stringwidth pop
-      PrintHeaderWidth exch sub HeaderPad 2 mul sub 0 rmoveto
-      show
-    grestore
-    0 HeaderLineHeight neg rmoveto
-  }forall
+/HeaderText{
+  HeaderLinesRight HeaderLinesLeft
+  /HeaderStart HeaderLineHeight HeaderPad
+  HeaderFrameProperties 0 get
+  HeaderOrFooterText
+}def
+
+/FooterText{
+  FooterLinesRight FooterLinesLeft
+  /FooterStart FooterLineHeight FooterPad
+  FooterFrameProperties 0 get
+  HeaderOrFooterText
 }def
 
 /ReportFontInfo{
