@@ -248,13 +248,12 @@ Keymap to display on major and minor modes.")
      'mode-line-frame-identification
      'mode-line-buffer-identification
      (propertize "   " 'help-echo help-echo)
-     'global-mode-string
-     `(global-mode-string ,(propertize "   " 'help-echo help-echo))
      'mode-line-position
      '(vc-mode vc-mode)
      (propertize "   " 'help-echo help-echo)
      'mode-line-modes
      `(which-func-mode ("" which-func-format ,dashes))
+     `(global-mode-string (,dashes global-mode-string))
      (propertize "-%-" 'help-echo help-echo)))
 
   (setq-default mode-line-modes
@@ -269,9 +268,13 @@ Keymap to display on major and minor modes.")
      (propertize ")%]--" 'help-echo help-echo)))
 
   (setq-default mode-line-position
-    `((line-number-mode (,(propertize "L%l " 'help-echo help-echo)))
-      (column-number-mode (,(propertize "C%c " 'help-echo help-echo)))
-      (-3 . ,(propertize "%p" 'help-echo help-echo)))))
+    `((-3 . ,(propertize "%p" 'help-echo help-echo))
+      (line-number-mode 
+       ((column-number-mode
+	 (10 ,(propertize " (%l,%c)" 'help-echo help-echo))
+	 (6 ,(propertize " L%l" 'help-echo help-echo))))
+       ((column-number-mode
+	 (5 ,(propertize " C%c" 'help-echo help-echo))))))))
 
 (defvar mode-line-buffer-identification-keymap nil "\
 Keymap for what is displayed by `mode-line-buffer-identification'.")
