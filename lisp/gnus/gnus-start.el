@@ -1,5 +1,5 @@
 ;;; gnus-start.el --- startup functions for Gnus
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -980,7 +980,7 @@ for new groups, and subscribe the new groups as zombies."
 	  (gnus-message 5 "Looking for new newsgroups...")
 	  (unless gnus-have-read-active-file
 	    (gnus-read-active-file))
-	  (setq gnus-newsrc-last-checked-date (current-time-string))
+	  (setq gnus-newsrc-last-checked-date (message-make-date))
 	  (unless gnus-killed-hashtb
 	    (gnus-make-hashtable-from-killed))
 	  ;; Go though every newsgroup in `gnus-active-hashtb' and compare
@@ -1043,7 +1043,8 @@ for new groups, and subscribe the new groups as zombies."
       (and regs (cdar regs))))))
 
 (defun gnus-ask-server-for-new-groups ()
-  (let* ((date (or gnus-newsrc-last-checked-date (current-time-string)))
+  (let* ((new-date (message-make-date))
+	 (date (or gnus-newsrc-last-checked-date new-date))
 	 (methods (cons gnus-select-method
 			(nconc
 			 (when (gnus-archive-server-wanted-p)
@@ -1053,7 +1054,6 @@ for new groups, and subscribe the new groups as zombies."
 			       gnus-check-new-newsgroups)
 			  gnus-secondary-select-methods))))
 	 (groups 0)
-	 (new-date (current-time-string))
 	 group new-newsgroups got-new method hashtb
 	 gnus-override-subscribe-method)
     (unless gnus-killed-hashtb
@@ -1127,7 +1127,7 @@ for new groups, and subscribe the new groups as zombies."
     (unless (gnus-read-active-file-p)
       (let ((gnus-read-active-file t))
 	(gnus-read-active-file)))
-    (setq gnus-newsrc-last-checked-date (current-time-string))
+    (setq gnus-newsrc-last-checked-date (message-make-date))
     ;; Subscribe to the default newsgroups.
     (let ((groups (or gnus-default-subscribed-newsgroups
 		      gnus-backup-default-subscribed-newsgroups))
