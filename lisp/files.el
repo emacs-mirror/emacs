@@ -135,10 +135,20 @@ This variable is relevant only if `backup-by-copying' and
 
 (defvar backup-enable-predicate
   '(lambda (name)
-     (or (< (length name) 5)
-	 (not (string-equal "/tmp/" (substring name 0 5)))))
+     (and (let ((comp (compare-strings temporary-file-directory 0 nil
+				       name 0 nil)))
+	    (and (not (eq comp t))
+		 (< comp -1)))
+	  (if small-temporary-file-directory
+	      (let ((comp (compare-strings small-temporary-file-directory 0 nil
+					   name 0 nil)))
+		(and (not (eq comp t))
+		     (< comp -1)))
+	    t)))
   "Predicate that looks at a file name and decides whether to make backups.
-Called with an absolute file name as argument, it returns t to enable backup.")
+Called with an absolute file name as argument, it returns t to enable backup.
+The default version checks for files in `temporary-file-directory' or
+`small-temporary-file-directory'.")
 
 (defcustom buffer-offer-save nil
   "*Non-nil in a buffer means always offer to save buffer on exit.
@@ -724,7 +734,7 @@ expand wildcards (if any) and visit multiple files."
 
 (defun find-file-read-only (filename &optional wildcards)
   "Edit file FILENAME but don't allow changes.
-Like \\[find-file] but marks buffer as read-only.
+Like `find-file' but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
   (interactive "fFind file read-only: \np")
   (find-file filename wildcards)
@@ -1571,10 +1581,9 @@ and we don't even do that unless it would come from the file name."
 		  (if (string-match (car (car alist)) name)
 		      (if (and (consp (cdr (car alist)))
 			       (nth 2 (car alist)))
-			  (progn
-			    (setq mode (car (cdr (car alist)))
-				  name (substring name 0 (match-beginning 0))
-				  keep-going t))
+			  (setq mode (car (cdr (car alist)))
+				name (substring name 0 (match-beginning 0))
+				keep-going t)
 			(setq mode (cdr (car alist))
 			      keep-going nil)))
 		  (setq alist (cdr alist))))
@@ -1593,9 +1602,9 @@ and we don't even do that unless it would come from the file name."
 		(let ((interpreter
 		       (save-excursion
 			 (goto-char (point-min))
-			 (if (looking-at "#![ \t]?\\([^ \t\n]*/bin/env[ \t]\\)?\\([^ \t\n]+\\)")
-			     (buffer-substring (match-beginning 2)
-					       (match-end 2))
+			 (if (looking-at "#![ \t]?\\([^ \t\n]*\
+/bin/env[ \t]\\)?\\([^ \t\n]+\\)")
+			     (match-string 2)
 			   "")))
 		      elt)
 		  ;; Map interpreter name to a mode.
@@ -2173,19 +2182,94 @@ the value is \"\"."
         (if period
             "")))))
 
+(defcustom make-backup-file-name-function nil
+  "A function to use instead of the default `make-backup-file-name'.
+A value of nil gives the default `make-backup-file-name' behaviour.
+
+This could be buffer-local to do something special for for specific
+files.  If you define it, you may need to change `backup-file-name-p'
+and `file-name-sans-versions' too.
+
+See also `backup-directory-alist'."
+  :group 'backup
+  :type '(choice (const :tag "Default" nil)
+		 (function :tag "Your function")))
+
+(defcustom backup-directory-alist nil
+  "Alist of filename patterns and backup directory names.
+Each element looks like (REGEXP . DIRECTORY).  Backups of files with
+names matching REGEXP will be made in DIRECTORY.  DIRECTORY may be
+relative or absolute.  If it is absolute, so that all matching files
+are backed up into the same directory, the file names in this
+directory will be the full name of the file backed up with all
+directory separators changed to `|' to prevent clashes.  This will not
+work correctly if your filesystem truncates the resulting name.
+
+For the common case of all backups going into one directory, the alist
+should contain a single element pairing \".\" with the appropriate
+directory name.
+
+If this variable is nil, or it fails to match a filename, the backup
+is made in the original file's directory.
+
+On MS-DOS filesystems without long names this variable is always
+ignored."
+  :group 'backup
+  :type '(repeat (cons (regexp :tag "Regexp macthing filename")
+		       (directory :tag "Backup directory name"))))
+
 (defun make-backup-file-name (file)
   "Create the non-numeric backup file name for FILE.
-This is a separate function so you can redefine it for customization."
-  (if (and (eq system-type 'ms-dos)
-	   (not (msdos-long-file-names)))
-      (let ((fn (file-name-nondirectory file)))
-	(concat (file-name-directory file)
-		(or
-		 (and (string-match "\\`[^.]+\\'" fn)
-		      (concat (match-string 0 fn) ".~"))
-		 (and (string-match "\\`[^.]+\\.\\(..?\\)?" fn)
-		      (concat (match-string 0 fn) "~")))))
-    (concat file "~")))
+Normally this will just be the file's name with `~' appended.
+Customization hooks are provided as follows.
+
+If the variable `make-backup-file-name-function' is non-nil, its value
+should be a function which will be called with FILE as its argument;
+the resulting name is used.
+
+Otherwise a match for FILE is sought in `backup-directory-alist'; see
+the documentation of that variable.  If the directory for the backup
+doesn't exist, it is created."
+  (if make-backup-file-name-function
+      (funcall make-backup-file-name-function file)
+    (if (and (eq system-type 'ms-dos)
+	     (not (msdos-long-file-names)))
+	(let ((fn (file-name-nondirectory file)))
+	  (concat (file-name-directory file)
+		  (or (and (string-match "\\`[^.]+\\'" fn)
+			   (concat (match-string 0 fn) ".~"))
+		      (and (string-match "\\`[^.]+\\.\\(..?\\)?" fn)
+			   (concat (match-string 0 fn) "~")))))
+      (concat (make-backup-file-name-1 file) "~"))))
+
+(defun make-backup-file-name-1 (file)
+  "Subroutine of `make-backup-file-name' and `find-backup-file-name'."
+  (let ((alist backup-directory-alist)
+	elt backup-directory)
+    (while alist
+      (setq elt (pop alist))
+      (if (string-match (car elt) file)
+	  (setq backup-directory (cdr elt)
+		alist nil)))
+    (if (null backup-directory)
+	file
+      (unless (file-exists-p backup-directory)
+	(condition-case nil
+	    (make-directory backup-directory 'parents)
+	  (file-error file)))
+      (if (file-name-absolute-p backup-directory)
+	  ;; Make the name unique by substituting directory
+	  ;; separators.  It may not really be worth bothering about
+	  ;; doubling `|'s in the original name...
+	  (expand-file-name
+	   (subst-char-in-string
+	    directory-sep-char ?|
+	    (replace-regexp-in-string "|" "||" file))
+	   backup-directory)
+	(expand-file-name (file-name-nondirectory file)
+			  (file-name-as-directory
+			   (expand-file-name backup-directory
+					     (file-name-directory file))))))))
 
 (defun backup-file-name-p (file)
   "Return non-nil if FILE is a backup file name (numeric or not).
@@ -2212,45 +2296,47 @@ the index in the name where the version number begins."
 (defun find-backup-file-name (fn)
   "Find a file name for a backup file FN, and suggestions for deletions.
 Value is a list whose car is the name for the backup file
- and whose cdr is a list of old versions to consider deleting now.
-If the value is nil, don't make a backup."
+and whose cdr is a list of old versions to consider deleting now.
+If the value is nil, don't make a backup.
+Uses `backup-directory-alist' in the same way as does
+`make-backup-file-name'."
   (let ((handler (find-file-name-handler fn 'find-backup-file-name)))
     ;; Run a handler for this function so that ange-ftp can refuse to do it.
     (if handler
 	(funcall handler 'find-backup-file-name fn)
       (if (eq version-control 'never)
 	  (list (make-backup-file-name fn))
-	(let* ((base-versions (concat (file-name-nondirectory fn) ".~"))
+	(let* ((basic-name (make-backup-file-name-1 fn))
+	       (base-versions (concat (file-name-nondirectory basic-name)
+				      ".~"))
 	       (backup-extract-version-start (length base-versions))
-	       possibilities
-	       (versions nil)
 	       (high-water-mark 0)
-	       (deserve-versions-p nil)
-	       (number-to-delete 0))
+	       (number-to-delete 0)
+	       possibilities deserve-versions-p versions)
 	  (condition-case ()
 	      (setq possibilities (file-name-all-completions
 				   base-versions
-				   (file-name-directory fn))
-		    versions (sort (mapcar
-				    (function backup-extract-version)
-				    possibilities)
-				   '<)
+				   (file-name-directory basic-name))
+		    versions (sort (mapcar #'backup-extract-version
+					   possibilities)
+				   #'<)
 		    high-water-mark (apply 'max 0 versions)
 		    deserve-versions-p (or version-control
 					   (> high-water-mark 0))
 		    number-to-delete (- (length versions)
-					kept-old-versions kept-new-versions -1))
-	    (file-error
-	     (setq possibilities nil)))
+					kept-old-versions
+					kept-new-versions
+					-1))
+	    (file-error (setq possibilities nil)))
 	  (if (not deserve-versions-p)
-	      (list (make-backup-file-name fn))
-	    (cons (concat fn ".~" (int-to-string (1+ high-water-mark)) "~")
+	      (list (concat basic-name "~"))
+	    (cons (format "%s.~%d~" basic-name (1+ high-water-mark))
 		  (if (and (> number-to-delete 0)
 			   ;; Delete nothing if there is overflow
 			   ;; in the number of versions to keep.
 			   (>= (+ kept-new-versions kept-old-versions -1) 0))
-		      (mapcar (function (lambda (n)
-					  (concat fn ".~" (int-to-string n) "~")))
+		      (mapcar (lambda (n)
+				(format "%s.~%d~" basic-name n))
 			      (let ((v (nthcdr kept-old-versions versions)))
 				(rplacd (nthcdr (1- number-to-delete) v) ())
 				v))))))))))
@@ -2651,15 +2737,18 @@ saying what text to write."
 
 (defun file-newest-backup (filename)
   "Return most recent backup file for FILENAME or nil if no backups exist."
-  (let* ((filename (expand-file-name filename))
+  ;; `make-backup-file-name' will get us the right directory for
+  ;; ordinary or numeric backups.  It might create a directory for
+  ;; backups as a side-effect, according to `backup-directory-alist'.
+  (let* ((filename (file-name-sans-versions
+		    (make-backup-file-name filename)))
 	 (file (file-name-nondirectory filename))
 	 (dir  (file-name-directory    filename))
 	 (comp (file-name-all-completions file dir))
          (newest nil)
          tem)
     (while comp
-      (setq tem (car comp)
-	    comp (cdr comp))
+      (setq tem (pop comp))
       (cond ((and (backup-file-name-p tem)
                   (string= (file-name-sans-versions tem) file))
              (setq tem (concat dir tem))
