@@ -1,16 +1,15 @@
 ;;; ??? We must get papers for this or delete it.
-;;; mailabbrev.el --- abbrev-expansion of mail aliases.
-
+;;; Abbrev-expansion of mail aliases.
 ;;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 ;;; Created: 19 oct 90, Jamie Zawinski <jwz@lucid.com>
 ;;; Modified: 5 apr 92, Roland McGrath <roland@gnu.ai.mit.edu>
-;;; Last change 22-apr-92. jwz
+;;; Last change 13-jun-92. jwz
 
 ;;; This file is part of GNU Emacs.
 
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 1, or (at your option)
+;;; the Free Software Foundation; either version 2, or (at your option)
 ;;; any later version.
 
 ;;; GNU Emacs is distributed in the hope that it will be useful,
@@ -310,7 +309,10 @@ If DEFINITION contains multiple addresses, separate them with commas."
 ;;	(message "Resolving mail aliases... done.")
 	)))
 
-(defun mail-resolve-all-aliases-1 (sym)
+(defun mail-resolve-all-aliases-1 (sym &optional so-far)
+  (if (memq sym so-far)
+      (error "mail alias loop detected: %s"
+	     (mapconcat 'symbol-name (cons sym so-far) " <- ")))
   (let ((definition (and (boundp sym) (symbol-value sym))))
     (if definition
 	(let ((result '())
@@ -322,7 +324,8 @@ If DEFINITION contains multiple addresses, separate them with commas."
 	  (setq definition
 		(mapconcat (function (lambda (x)
 			     (or (mail-resolve-all-aliases-1
-				   (intern-soft x mail-aliases))
+				   (intern-soft x mail-aliases)
+				   (cons sym so-far))
 				 x)))
 			   (nreverse result)
 			   mail-alias-separator-string))
@@ -459,6 +462,9 @@ characters which may be a part of the name of a mail-alias.")
 	;;      expansion with the above syntax table.
 	;;   -  Then we do a trick which tells the expand-abbrev frame which
 	;;      invoked us to not continue (and thus not expand twice.)
+	;;      This means that any abbrev expansion will happen as a result
+	;;      of this function's call to expand-abbrev, and not as a result
+	;;      of the call to expand-abbrev which invoked *us*.
 	;;   -  Then we set the syntax table to mail-mode-header-syntax-table,
 	;;      which doesn't have anything to do with abbrev expansion, but
 	;;      is just for the user's convenience (see its doc string.)
@@ -466,14 +472,17 @@ characters which may be a part of the name of a mail-alias.")
 	(setq local-abbrev-table mail-aliases)
 	;; If the character just typed was non-alpha-symbol-syntax, then don't
 	;; expand the abbrev now (that is, don't expand when the user types -.)
-	(or (= (char-syntax last-command-char) ?_)
-	    (let ((pre-abbrev-expand-hook nil)) ; that's us; don't loop
-	      (set-syntax-table mail-abbrev-syntax-table)
-	      (expand-abbrev)))
-	(setq abbrev-start-location (point)  ; this is the trick
-	      abbrev-start-location-buffer (current-buffer))
-	;; and do this just because.
+	;; Check the character's syntax in the mail-mode-header-syntax-table.
 	(set-syntax-table mail-mode-header-syntax-table)
+	(or (eq (char-syntax last-command-char) ?_)
+	    (let ((pre-abbrev-expand-hook nil)) ; That's us; don't loop.
+	      ;; Use this table so that abbrevs can have hyphens in them.
+	      (set-syntax-table mail-abbrev-syntax-table)
+	      (expand-abbrev)
+	      ;; Now set it back to what it was before.
+	      (set-syntax-table mail-mode-header-syntax-table)))
+	(setq abbrev-start-location (point)  ; This is the trick.
+	      abbrev-start-location-buffer (current-buffer))
 	)))
 
 ;;; utilities
@@ -515,14 +524,16 @@ characters which may be a part of the name of a mail-alias.")
   "Just like `next-line' (\\[next-line]) but expands abbrevs when at \
 end of line."
   (interactive "p")
-  (if (looking-at "[ \t]*\n") (sendmail-pre-abbrev-expand-hook))
+  (if (looking-at "[ \t]*\n") (expand-abbrev))
+  (setq this-command 'next-line)
   (next-line arg))
 
 (defun abbrev-hacking-end-of-buffer (&optional arg)
   "Just like `end-of-buffer' (\\[end-of-buffer]) but expands abbrevs when at \
 end of line."
   (interactive "P")
-  (if (looking-at "[ \t]*\n") (sendmail-pre-abbrev-expand-hook))
+  (if (looking-at "[ \t]*\n") (expand-abbrev))
+  (setq this-command 'end-of-buffer)
   (end-of-buffer arg))
 
 (define-key mail-mode-map "\C-c\C-a" 'mail-interactive-insert-alias)
@@ -540,17 +551,34 @@ end of line."
 ;;;
 ;;; These defuns and defvars aren't inside the cond in deference to
 ;;; the intense brokenness of the v18 byte-compiler.
+;;;
+;;; All the code on this page is gross and hidious and awful and might
+;;; not even work all that well.  Comfort yourself with knowing that the
+;;; v19 code above works wonderfully.
 
 (defun sendmail-v18-self-insert-command (arg)
   "Just like self-insert-command, but runs sendmail-pre-abbrev-expand-hook."
   (interactive "p")
-  (if (not (= (char-syntax last-command-char) ?w))
+  (if (not (eq (char-syntax last-command-char) ?w))
       (progn
 	(sendmail-pre-abbrev-expand-hook)
         ;; Unhack expand-abbrev, so it will work right next time around.
 	(setq abbrev-start-location nil)))
-  (let ((abbrev-mode nil))
+  ;; this is gross and wasteful.
+  (let ((abbrev-mode (if (mail-abbrev-in-expansion-header-p)
+			 nil
+		       abbrev-mode)))
     (self-insert-command arg)))
+
+(defun abbrev-hacking-next-line-v18 (arg)
+  (if (looking-at "[ \t]*\n") (sendmail-pre-abbrev-expand-hook))
+  (setq this-command 'next-line)
+  (next-line arg))
+
+(defun abbrev-hacking-end-of-buffer-v18 (arg)
+  (if (looking-at "[ \t]*\n") (sendmail-pre-abbrev-expand-hook))
+  (setq this-command 'end-of-buffer)
+  (end-of-buffer arg))
 
 (defvar mail-abbrevs-v18-map-munged nil)
 
@@ -562,23 +590,31 @@ end of line."
   ;; local meta binding in the mail-mode-map made a *global* binding
   ;; instead.  Yucko.
   (let ((global-map (current-global-map))
+	new-bindings
 	(i 0))
     (while (< i 128)
       (if (eq 'self-insert-command (or (cdr (assq i mail-mode-map))
 				       (aref global-map i)))
-	  (define-key mail-mode-map (char-to-string i)
-	    'sendmail-v18-self-insert-command))
-      (setq i (1+ i))))
+	  (setq new-bindings
+		(cons (cons i 'sendmail-v18-self-insert-command)
+		      new-bindings)))
+      (setq i (1+ i)))
+    (setq mail-mode-map
+	  (nconc (copy-keymap mail-mode-map) (nreverse new-bindings))))
   (setq mail-abbrevs-v18-map-munged t))
 
 (defun mail-aliases-setup-v18 ()
   "Put this on `mail-setup-hook' to use mail-abbrevs."
-  (if (and (not (vectorp mail-aliases))
-	   (file-exists-p (mail-abbrev-mailrc-file)))
-      (build-mail-aliases))
-  (or mail-abbrevs-v18-map-munged (mail-abbrevs-v18-munge-map))
-  (use-local-map mail-mode-map)
-  (abbrev-mode 1))
+  (if (not (eq major-mode 'mail-mode))
+      nil
+    (or (and mail-mode-map (eq (current-local-map) mail-mode-map))
+	(error "shut 'er down clancy, she's suckin' mud"))
+    (if (and (not (vectorp mail-aliases))
+	     (file-exists-p (mail-abbrev-mailrc-file)))
+	(build-mail-aliases))
+    (or mail-abbrevs-v18-map-munged (mail-abbrevs-v18-munge-map))
+    (use-local-map mail-mode-map)
+    (abbrev-mode 1)))
 
 
 (cond ((or (string-match "^18\\." emacs-version)
@@ -604,6 +640,14 @@ end of line."
 			 "Obsoleted by mail-abbrevs.  Does nothing."
 			 nil)))
        ;;
+       ;; Redefine the abbrev-hacking functions.  Yuck.
+       (fset 'abbrev-hacking-next-line
+	     (function (lambda (p) (interactive "p")
+			 (abbrev-hacking-next-line-v18 p))))
+       (fset 'abbrev-hacking-end-of-buffer
+	     (function (lambda (p) (interactive "P")
+			 (abbrev-hacking-end-of-buffer-v18 p))))
+       ;;
        ;; Encapsulate mail-setup to do the necessary buffer initializations.
        (or (fboundp 'mail-setup-v18)
 	   (fset 'mail-setup-v18 (symbol-function 'mail-setup)))
@@ -611,9 +655,28 @@ end of line."
 	     (function (lambda (&rest args)
 			 (mail-aliases-setup-v18)
 			 (apply 'mail-setup-v18 args))))
+
+       ;;
+       ;; Encapsulate VM's version of mail-setup as well, if vm-mail is
+       ;; defined as a function or as an autoload.
+       (cond ((and (fboundp 'vm-mail)
+		   (if (eq 'autoload (car-safe (symbol-function 'vm-mail)))
+		       (load (nth 1 (symbol-function 'vm-mail)) t)
+		     t))
+	      (or (fboundp 'vm-mail-internal-v18)
+		  (fset 'vm-mail-internal-v18
+			(symbol-function 'vm-mail-internal)))
+	      (fset 'vm-mail-internal
+		    (function (lambda (&rest args)
+				(mail-aliases-setup-v18)
+				(apply 'vm-mail-internal-v18 args))))))
+
+       ;; If we're being loaded from mail-setup-hook or mail-mode-hook
+       ;; as run from inside mail-setup or vm-mail-internal, then install
+       ;; right now.
+       (if (eq major-mode 'mail-mode)
+	   (mail-aliases-setup-v18))
        )
 
       (t ; v19
        (fmakunbound 'expand-mail-aliases)))
-
-;;; mailabbrev.el ends here
