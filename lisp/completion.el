@@ -1,70 +1,33 @@
 ;;; completion.el --- dynamic word-completion code
+;; Copyright (C) 1990, 1993 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: abbrev
+;; Author: Jim Salem <salem@think.com> and Brewster Kahle <brewster@think.com>
+;;   of Thinking Machines Inc.
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; Commentary:
-
-;;; This is a Completion system for GNU Emacs
-;;;
-;;;  E-Mail: 
-;;;   Internet: completion@think.com, bug-completion@think.com
-;;;   UUCP: {rutgers,harvard,mit-eddie}!think!completion
-;;;
-;;;    If you are a new user, we'd appreciate knowing your site name and
-;;; any comments you have.
-;;;
-;;;
-;;;				NO WARRANTY
-;;;
-;;; This software is distributed free of charge and is in the public domain.
-;;; Anyone may use, duplicate or modify this program.  Thinking Machines
-;;; Corporation does not restrict in any way the use of this software by
-;;; anyone.
-;;; 
-;;; Thinking Machines Corporation provides absolutely no warranty of any kind.
-;;; The entire risk as to the quality and performance of this program is with
-;;; you.  In no event will Thinking Machines Corporation be liable to you for
-;;; damages, including any lost profits, lost monies, or other special,
-;;; incidental or consequential damages arising out of the use of this program.
-;;;
-;;; You must not restrict the distribution of this software.
-;;;
-;;; Please keep this notice and author information in any copies you make.
-;;;
-;;; 4/90
-;;;
-;;;
-;;; Advertisement
-;;;---------------
-;;;  Try using this.  If you are like most you will be happy you did.
 ;;; 
 ;;; What to put in .emacs
 ;;;-----------------------
-;;; (load "completion") ;; If it's not part of the standard band.
+;;; (load "completion")
 ;;; (initialize-completions)
-;;; 
-;;; For best results, be sure to byte-compile the file first.
-;;;
-
-;;; Authors 
-;;;---------
-;;;     Jim Salem      {salem@think.com}
-;;;     Brewster Kahle {brewster@think.com}
-;;;  Thinking Machines Corporation
-;;;  245 First St., Cambridge MA 02142 (617) 876-1111
-;;;
-;;; Mailing Lists
-;;;---------------
-;;;
-;;; Bugs to bug-completion@think.com
-;;; Comments to completion@think.com
-;;; Requests to be added completion-request@think.com
-;;;
-;;; Availability
-;;;--------------
-;;; Anonymous FTP from think.com
-;;;
 
 ;;;---------------------------------------------------------------------------
 ;;; Documentation [Slightly out of date]
@@ -2220,6 +2183,11 @@ Prefix args ::
        ))
     ))
 
+;; There is no point bothering to change this again
+;; unless the package changes so much that it matters
+;; for people that have saved completions.
+(defconst completion-version "11")
+
 (defconst saved-cmpl-file-header
     ";;; Completion Initialization file.
 ;;; Version = %s
@@ -2270,7 +2238,7 @@ If file name is not specified, use `save-completions-file-name'."
 	(clear-visited-file-modtime)
 	(erase-buffer)
 	;; (/ 1 0)
-	(insert (format saved-cmpl-file-header *completion-version*))
+	(insert (format saved-cmpl-file-header completion-version))
 	(dolist (completion (list-all-completions))
 	  (setq total-in-db (1+ total-in-db))
 	  (setq last-use-time (completion-last-use-time completion))
