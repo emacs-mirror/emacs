@@ -364,7 +364,18 @@ search_magic_path (search_path, class, escaped_suffix, suffix)
 
 /* Producing databases for individual sources.  */
 
-#define X_DEFAULT_SEARCH_PATH "/usr/lib/X11/%L/%T/%N%C%S:/usr/lib/X11/%l/%T/%N%C%S:/usr/lib/X11/%T/%N%C%S:/usr/lib/X11/%L/%T/%N%S:/usr/lib/X11/%l/%T/%N%S:/usr/lib/X11/%T/%N%S"
+#define X_DEFAULT_SEARCH_PATH "/usr/X11R6/lib/X11/%L/%T/%N%C%S:\
+/usr/X11R6/lib/X11/%l/%T/%N%C%S:\
+/usr/X11R6/lib/X11/%T/%N%C%S:\
+/usr/X11R6/lib/X11/%L/%T/%N%S:\
+/usr/X11R6/lib/X11/%l/%T/%N%S:\
+/usr/X11R6/lib/X11/%T/%N%S:\
+/usr/lib/X11/%L/%T/%N%C%S:\
+/usr/lib/X11/%l/%T/%N%C%S:\
+/usr/lib/X11/%T/%N%C%S:\
+/usr/lib/X11/%L/%T/%N%S:\
+/usr/lib/X11/%l/%T/%N%S:\
+/usr/lib/X11/%T/%N%S"
 
 static XrmDatabase
 get_system_app (class)
