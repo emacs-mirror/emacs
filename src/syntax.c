@@ -1507,9 +1507,15 @@ between them, return t; otherwise return nil.")
 
   while (count1 < 0)
     {
-      while (from > stop)
+      while (1)
 	{
 	  int quoted;
+	  if (from <= stop)
+	    {
+	      SET_PT (stop);
+	      immediate_quit = 0;
+	      return Qnil;
+	    }
 
 	  DEC_POS (from);
 	  quoted = char_quoted (from);
