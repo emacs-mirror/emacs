@@ -669,8 +669,7 @@ Default sorting modes are:
   (let ((modes (mapcar 'car ibuffer-sorting-functions-alist)))
     (add-to-list 'modes 'recency)
     (setq modes (sort modes 'string-lessp))
-    (let ((next (or (find-if 
-                     (lambda (x) (string-lessp ibuffer-sorting-mode x)) modes)
+    (let ((next (or (car-safe (cdr-safe (memq ibuffer-sorting-mode modes)))
                     (car modes))))
       (setq ibuffer-sorting-mode next)
       (message "Sorting by %s" next)))
@@ -705,13 +704,13 @@ Ordering is lexicographic."
 Ordering is lexicographic."
   (:description "mode name")
   (string-lessp (downcase
-		 (symbol-name (with-current-buffer
-				  (car a)
-				mode-name)))
+		  (with-current-buffer
+		      (car a)
+		    mode-name))
 		(downcase
-		 (symbol-name (with-current-buffer
-				  (car b)
-				mode-name)))))
+		 (with-current-buffer
+		     (car b)
+		   mode-name))))
 
 (define-ibuffer-sorter alphabetic
   "Sort the buffers by their names.
