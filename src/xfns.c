@@ -4980,7 +4980,7 @@ XScreenNumberOfScreen (scr)
   int i;
 
   for (i = 0; i < dpy->nscreens; ++i)
-    if (scr == dpy->screens[i])
+    if (scr == dpy->screens + i)
       break;
 
   return i;
