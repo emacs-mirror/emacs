@@ -1,3 +1,11 @@
+2000-05-31  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* .cvsignore (*.tmp): New entry.  Seems to be used for @macro.
+
+	* pcl-cvs.texi: New file.
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS: Add pcl-cvs.
+	(../info/pcl-cvs, pcl-cvs.dvi): New targets.
+
 2000-05-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* info.texi: Clarify description of Info-directory-list,
