@@ -1,11 +1,11 @@
 2002-07-17  Dave Love  <fx@gnu.org>
 
-	* international/utf-8.el (utf-8-subst-table) 
-	(utf-8-subst-rev-table, utf-8-translation-table-for-decode) 
-	(utf-8-fragment-on-decoding, ccl-untranslated-to-ucs) 
+	* international/utf-8.el (utf-8-subst-table)
+	(utf-8-subst-rev-table, utf-8-translation-table-for-decode)
+	(utf-8-fragment-on-decoding, ccl-untranslated-to-ucs)
 	(utf-8-ccl-regs, utf-8-translate-cjk): New.
 	(ccl-encode-mule-utf-8): Use utf-8-subst-rev-table.
-	(ccl-decode-mule-utf-8, ccl-untranslated-to-ucs) 
+	(ccl-decode-mule-utf-8, ccl-untranslated-to-ucs)
 	(utf-8-untranslated-to-ucs, utf-8-compose): Rewritten.
 	(mule-utf-8): Remove pre-write-conversion.
 	(utf-8-post-read-conversion): Comment out.
@@ -14,7 +14,7 @@
 	lookup-character.
 	(ccl-extended-code-table): Add lookup-int-const-tbl,
 	lookup-char-const-tbl.
-	(ccl-compile-lookup-integer, ccl-compile-lookup-character) 
+	(ccl-compile-lookup-integer, ccl-compile-lookup-character)
 	(ccl-dump-lookup-int-const-tbl, ccl-dump-lookup-char-const-tbl):
 	New functions.
 	(define-ccl-program): Doc update.
@@ -24,12 +24,12 @@
 
 2002-07-17  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/mule.el (define-coding-system-alias): Don't
-	append ALIAS in the property `alias-coding-systems' if ALIAS's
+	* international/mule.el (define-coding-system-alias):
+	Don't append ALIAS in the property `alias-coding-systems' if ALIAS's
 	eol-type is not auto-detection.
 
-	* international/mule-diag.el (print-coding-system-briefly): Fix
-	the handling of an alias of which eol-type is not auto-detection.
+	* international/mule-diag.el (print-coding-system-briefly):
+	Fix the handling of an alias of which eol-type is not auto-detection.
 
 	* international/mule-conf.el (us-ascii): Define it as an alias of
 	iso-safe.
@@ -42,6 +42,9 @@
 	* timer.el (timer-set-time-with-usecs): Mark obsolete.
 
 2002-07-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* toolbar/tool-bar.el (tool-bar-add-item-from-menu):
+	Make sure to change the global tool-bar-map.
 
 	* vc.el (vc-default-comment-history): Hard code *vc*.
 	This is because print-log always prints there now.
