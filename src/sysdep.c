@@ -31,7 +31,11 @@ Boston, MA 02111-1307, USA.  */
    declared, e.g. without __USE_XOPEN_EXTENDED with glibc 2.  */
 #ifdef HAVE_RANDOM
 extern long int random P_ ((void));
+#if 0 /* Don't prototype srandom; it takes an unsigned argument on
+	 some systems, and an unsigned long on others, like FreeBSD
+	 4.1.  */
 extern void srandom P_ ((unsigned int));
+#endif
 #endif
 
 #include "blockinput.h"
