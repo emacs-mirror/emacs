@@ -34,6 +34,9 @@ to the FSF.
 ** Implement a smoother vertical scroll facility, one that allows
   C-v to scroll through a tall image.
 
+** Implement intelligent search/replace, going beyond query-replace
+  (see http://graphics.csail.mit.edu/~rcm/chi04.pdf).
+
 ** Implement other text formatting properties.
 *** Footnotes that can appear either in place or at the end of the page.
 *** text property that says "don't break line in middle of this".
