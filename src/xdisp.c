@@ -20970,8 +20970,10 @@ note_mouse_highlight (f, x, y)
   /* Which window is that in?  */
   window = window_from_coordinates (f, x, y, &part, 0, 0, 1);
 
-  /* If we were displaying active text in another window, clear that.  */
-  if (! EQ (window, dpyinfo->mouse_face_window))
+  /* If we were displaying active text in another window, clear that.
+     Also clear if we move out of text area in same window.  */
+  if (! EQ (window, dpyinfo->mouse_face_window)
+      || (part != ON_TEXT && !NILP (dpyinfo->mouse_face_window)))
     clear_mouse_face (dpyinfo);
 
   /* Not on a window -> return.  */
