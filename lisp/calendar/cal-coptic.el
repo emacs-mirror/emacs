@@ -39,8 +39,8 @@
 (require 'cal-julian)
 
 (defvar coptic-calendar-month-name-array
-  ["Tot" "Babe" "Hatur" "Kihak" "Tube" "Amshir" "Baramhat" "Barmuda"
-   "Bashnas" "Bauna" "Abib" "Misra" "Nisi"])
+  ["Tut" "Babah" "Hatur" "Kiyahk" "Tubah" "Amshir" "Baramhat" "Barmundah"
+   "Bashans" "Baunah" "Abib" "Misra" "al-Nasi"])
 
 (defvar coptic-calendar-epoch (calendar-absolute-from-julian '(8 29 284))
   "Absolute date of start of Coptic calendar = August 29, 284 A.D. (Julian).")
@@ -170,11 +170,11 @@ Echo Coptic date unless NOECHO is t."
       f)))
 
 (defconst ethiopic-calendar-month-name-array
-  ["Maskarram" "Tekemt" "Hadar" "Tahsas" "Tarr" "Yekatit" "Magawit" "Miaziah"
-   "Genbot" "Sanni" "Hamle" "Nas'hi" "Pagnem"])
+  ["Maskaram" "Teqemt" "Khedar" "Takhsas" "Ter" "Yakatit" "Magabit" "Miyazya"
+   "Genbot" "Sane" "Hamle" "Nahas" "Paguem"])
 
-(defconst ethiopic-calendar-epoch -2006079
-  "Absolute date of start of Ethiopic calendar = August 29, 5493 B.C.E. (Julian).")
+(defconst ethiopic-calendar-epoch 2430
+  "Absolute date of start of Ethiopic calendar = August 29, 7 C.E. (Julian).")
 
 (defconst ethiopic-name "Ethiopic")
 
