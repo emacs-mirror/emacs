@@ -1,6 +1,6 @@
 ;;; thingatpt.el --- Get the `thing' at point
 
-;; Copyright (C) 1991,92,93,94,95,96,1997 Free Software Foundation, Inc.
+;; Copyright (C) 1991,92,93,94,95,96,97,1998 Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mikew@gopher.dosli.govt.nz>
 ;; Keywords: extensions, matching, mouse
@@ -241,9 +241,12 @@ This may contain whitespace (including newlines) .")
 (put 'url 'thing-at-point 'thing-at-point-url-at-point)
 (defun thing-at-point-url-at-point ()
   "Return the URL around or before point.
-Search backwards for the start of a URL ending at or after 
-point.  If no URL found, return nil.  The access scheme, `http://'
-will be prepended if absent."
+
+Search backwards for the start of a URL ending at or after point.  If
+no URL found, return nil.  The access scheme will be prepended if
+absent: \"mailto:\" if the string contains \"@\", \"ftp://\" if it
+starts with \"ftp\" and not \"ftp:/\", or \"http://\" by default."
+
   (let ((url "") short strip)
     (if (or (setq strip (thing-at-point-looking-at
 			 thing-at-point-markedup-url-regexp))
@@ -258,8 +261,13 @@ will be prepended if absent."
 	  ;; strip whitespace
 	  (while (string-match "\\s +\\|\n+" url)
 	    (setq url (replace-match "" t t url)))
-	  (and short (setq url (concat (if (string-match "@" url)
-					   "mailto:" "http://") url)))
+	  (and short (setq url (concat (cond ((string-match "@" url)
+                                              "mailto:")
+					     ;; e.g. ftp.swiss... or ftp-swiss...
+                                             ((string-match "^ftp" url)
+                                              "ftp://")
+                                             (t "http://"))
+                                       url)))
 	  (if (string-equal "" url)
 	      nil
 	    url)))))
