@@ -1,3 +1,13 @@
+2002-05-31  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/compile.el (grep-tree-command, grep-tree-files-aliases)
+	(grep-tree-ignore-CVS-directories, grep-tree-ignore-case):
+	New custom variables.
+	(grep-compute-defaults): Compute grep-tree-command's default value.
+	(grep-expand-command-macros): New aux function.
+	(grep-tree-last-regexp, grep-tree-last-files): New aux variables.
+	(grep-tree): New command like grep-find but extended prompting.
+
 2002-05-30  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (find-file-default): Add defvar for var already used.
