@@ -231,7 +231,7 @@ If HOOK is void, it is first set to nil."
 	  (let ((tail (assoc (cdr function) (symbol-value hook))))
 	    (equal function tail))
 	(memq function (symbol-value hook)))
-      (set hook (cons function hook))))
+      (set hook (cons function (symbol-value hook)))))
 
 (defun momentary-string-display (string pos &optional exit-char message) 
   "Momentarily display STRING in the buffer at POS.

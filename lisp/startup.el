@@ -75,7 +75,7 @@ altering command-line-args-left to remove them.")
 
 (defvar pre-init-hook nil
   "Functions to call after handling urgent options but before loading init file.
-The window/screen system uses this to open screens to display messages while
+The screen system uses this to open screens to display messages while
 Emacs loads the user's initialization file.")
 
 (defvar term-setup-hook nil
@@ -147,6 +147,9 @@ directory name of the directory where the `.emacs' file was looked for.")
 	       (string= vc "simple"))
 	   (setq version-control 'never))))
 
+  ;; Choose a good default value for split-window-keep-point.
+  (setq split-window-keep-point (> baud-rate 2400))
+
   ;; Read window system's init file if using a window system.
   (if (and window-system (not noninteractive))
       (condition-case data
@@ -196,8 +199,7 @@ directory name of the directory where the `.emacs' file was looked for.")
     ;; Re-attach the program name to the front of the arg list.
     (setcdr command-line-args args))
 
-  ;; If the window system asked to, let it set up some initial screens.
-  (if pre-init-hook (funcall pre-init-hook))
+  (run-hooks 'pre-init-hook)
 
   ;; Load that user's init file, or the default one, or none.
   (let ((debug-on-error init-file-debug)
