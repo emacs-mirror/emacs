@@ -2061,6 +2061,15 @@ construct_menu_click (result, event, f)
   XSET (result->x, Lisp_Int, event->x);
   XSET (result->y, Lisp_Int, -1);
   XSET (result->frame_or_window, Lisp_Frame, f);
+
+  /* Notice if the mouse is still grabbed.  */
+  if (event->type == ButtonPress)
+    {
+      if (! x_mouse_grabbed)
+	Vmouse_depressed = Qt;
+      x_mouse_grabbed |= (1 << event->button);
+      last_mouse_frame = f;
+    }
 }
 
 /* Function to report a mouse movement to the mainstream Emacs code.
@@ -2385,9 +2394,15 @@ show_mouse_face (hl)
   int width = window_internal_width (w);
   FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
   int i;
-  int curs_x = f->phys_cursor_x;
-  int curs_y = f->phys_cursor_y;
   int cursor_off = 0;
+  int old_curs_x = curs_x;
+  int old_curs_y = curs_y;
+
+  /* Set these variables temporarily
+     so that if we have to turn the cursor off and on again
+     we will put it back at the same place.  */
+  curs_x = f->phys_cursor_x;
+  curs_y = f->phys_cursor_y;
 
   for (i = mouse_face_beg_row; i <= mouse_face_end_row; i++)
     {
@@ -2416,6 +2431,9 @@ show_mouse_face (hl)
   /* If we turned the cursor off, turn it back on.  */
   if (cursor_off)
     x_display_cursor (f, 1);
+
+  curs_x = old_curs_x;
+  curs_y = old_curs_y;
 
   /* Change the mouse cursor according to the value of HL.  */
   if (hl > 0)
@@ -4206,8 +4224,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      }
 	    else
 	      {
-		struct scroll_bar *bar =
-		  x_window_to_scroll_bar (event.xbutton.window);
+		struct scroll_bar *bar
+		  = x_window_to_scroll_bar (event.xbutton.window);
 
 		if (bar)
 		  x_scroll_bar_handle_click (bar, &event, &emacs_event);
@@ -4218,6 +4236,12 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    if (f && event.type == ButtonPress)
 		      construct_menu_click (&emacs_event,
 					    &event, f);
+		    else if (f)
+		      {
+			x_mouse_grabbed &= ~(1 << event.xbutton.button);
+			if (!x_mouse_grabbed)
+			  Vmouse_depressed = Qnil;
+		      }
 		  }
 #endif /* USE_X_TOOLKIT */
 	      }
