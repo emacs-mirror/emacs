@@ -105,7 +105,7 @@ function."
 			(append (list :type 'xbm :file (concat icon ".xbm"))
 				colors)
 			(list :type 'xpm :file (concat icon ".xpm")))))))
-    (when image
+    (when (and (display-images-p) image)
       (unless (image-mask-p image)
 	(setq image (append image '(:mask heuristic))))
       (define-key-after tool-bar-map (vector key)
@@ -144,7 +144,7 @@ function."
 		       (list :type 'xpm :file (concat icon ".xpm")))))
 	 (image (find-image spec))
 	 submap key)
-    (when image
+    (when (and (display-images-p) image)
       ;; We'll pick up the last valid entry in the list of keys if
       ;; there's more than one.
       (dolist (k keys)
