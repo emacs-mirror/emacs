@@ -1723,16 +1723,16 @@ Do not start with `~/' or `~user-name/'.")
 ;;; purify-flag make these no-ops when you load ediff.
 ;;; They only do something in loaddefs.el.
 ;;;###autoload
-(if (and purify-flag (not (ediff-if-lucid)))
-  (progn
-    (defvar menu-bar-epatch-menu (make-sparse-keymap "Epatch"))
-    (fset 'menu-bar-epatch-menu (symbol-value 'menu-bar-epatch-menu))
-    (defvar menu-bar-ediff-menu (make-sparse-keymap "Ediff"))
-    (fset 'menu-bar-ediff-menu (symbol-value 'menu-bar-ediff-menu))))
+(if purify-flag
+    (progn
+      (defvar menu-bar-epatch-menu (make-sparse-keymap "Epatch"))
+      (fset 'menu-bar-epatch-menu (symbol-value 'menu-bar-epatch-menu))
+      (defvar menu-bar-ediff-menu (make-sparse-keymap "Ediff"))
+      (fset 'menu-bar-ediff-menu (symbol-value 'menu-bar-ediff-menu))))
 
 
 ;;;###autoload
-(if (and purify-flag (not (ediff-if-lucid)))
+(if purify-flag
     (progn
       (define-key menu-bar-ediff-menu [rcs-ediff]
 	'("File with a version via RCS ..." . rcs-ediff))
@@ -1744,7 +1744,7 @@ Do not start with `~/' or `~user-name/'.")
 	'("Files ..." . ediff-files))))
 
 ;;;###autoload
-(if (and purify-flag (not (ediff-if-lucid)))
+(if purify-flag
     (progn
       (define-key menu-bar-epatch-menu [ediff-patch-buffer]
 	'("To a Buffer ..." . ediff-patch-buffer))
