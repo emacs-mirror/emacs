@@ -8123,7 +8123,7 @@ xim_initialize (dpyinfo, resource_name)
 				      /* This is XPointer in XFree86
 					 but (XPointer *) on Tru64, at
 					 least, hence the configure test.  */
-				      (XRegisterIMInstantiateCallback_arg6) xim_inst);
+				      (XPointer) xim_inst);
 #else /* not HAVE_X11R6_XIM */
       dpyinfo->xim = NULL;
       xim_open_dpy (dpyinfo, resource_name);
