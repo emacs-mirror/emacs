@@ -1,3 +1,13 @@
+2005-03-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* makefile.MPW (NonCarbon): New target.  The target `Emacs' is now
+	used for the Carbon build that defines HAVE_CARBON.
+
+	* inc/config.h (HAVE_STDLIB_H): Define to 1.
+	
+	* src/EmacsMPW.r (SIZE): Increase preferred memory size to 32MB.
+	[HAVE_CARBON] (crfg): New resource for extra stack space.
+
 2004-12-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* makefile.MPW: Add dependencies for fringe.c.x, image.c.x, and
