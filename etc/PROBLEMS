@@ -828,6 +828,37 @@ mangled and is not seen correctly in Rmail or Gnus.  We don't know
 exactly what happens, but it isn't an Emacs problem in cases we've
 seen.
 
+* After upgrading to a newer version of Emacs, the Meta key stops working.
+
+This was reported to happen on a GNU/Linux system distributed by
+Mandrake.  The reason is that the previous version of Emacs was
+modified by Mandrake to make the Alt key act as the Meta key, on a
+keyboard where the Windows key is the one which produces the Meta
+modifier.  A user who started using a newer version of Emacs, which
+was not hacked by Mandrake, expected the Alt key to continue to act as
+Meta, and was astonished when that didn't happen.
+
+The solution is to find out what key on your keyboard produces the Meta
+modifier, and use that key instead.  Try all of the keys to the left
+and to the right of the space bar, together with the `x' key, and see
+which combination produces "M-x" in the echo area.  You can also use
+the `xmodmap' utility to show all the keys which produce a Meta
+modifier:
+
+         xmodmap -pk | egrep -i "meta|alt"
+
+A more convenient way of finding out which keys produce a Meta modifier
+is to use the `xkbprint' utility, if it's available on your system:
+
+         xkbprint 0:0 /tmp/k.ps
+
+This produces a PostScript file `/tmp/k.ps' with a picture of your
+keyboard; printing that file on a PostScript printer will show what
+keys can serve as Meta.
+
+The `xkeycaps' also shows a visual representation of the current
+keyboard settings.  It also allows to modify them.
+
 * On OSF/Dec Unix/Tru64/<whatever it is this year> under X locally or
 remotely, M-SPC acts as a `compose' key with strange results.  See
 keyboard(5).
