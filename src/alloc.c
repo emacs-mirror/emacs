@@ -1822,7 +1822,13 @@ mark_object (argptr)
 	}
 #endif /* MULTI_FRAME */
       else if (GC_BOOL_VECTOR_P (obj))
-	;
+	{
+	  register struct Lisp_Vector *ptr = XVECTOR (obj);
+
+	  if (ptr->size & ARRAY_MARK_FLAG)
+	    break;   /* Already marked */
+	  ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
+	}
       else
 	{
 	  register struct Lisp_Vector *ptr = XVECTOR (obj);
