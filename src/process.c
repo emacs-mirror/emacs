@@ -2311,7 +2311,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  XSETPROCESS (proc, wait_proc);
 
 	  /* Read data from the process, until we exhaust it.  */
-	  while (nread = read_process_output (proc, XINT (wait_proc->infd)))
+	  while (XINT (wait_proc->infd) >= 0
+		 && nread = read_process_output (proc, XINT (wait_proc->infd)))
 	    total_nread += nread;
 	  if (total_nread > 0 && do_display)
 	    redisplay_preserve_echo_area ();
