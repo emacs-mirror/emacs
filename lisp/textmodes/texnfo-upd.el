@@ -1240,13 +1240,15 @@ which menu descriptions are indented. Its default value is 32."
   
   (interactive "P")
   (if (not region-p)
-      (let ((auto-fill-function nil)) ; update a single node
+      ;; update a single node
+      (let ((auto-fill-function nil) (auto-fill-hook nil))
         (if (not (re-search-backward "^@node" (point-min) t))
             (error "Node line not found before this position."))
         (texinfo-update-the-node)
         (message "Done...updated the node.  You may save the buffer."))
     ;; else
     (let ((auto-fill-function nil)
+	  (auto-fill-hook nil)
           (beginning (region-beginning))
 	  (end (region-end)))
       (if (= end beginning)
@@ -1489,7 +1491,8 @@ Info `g*' command is inadequate."
   
   (interactive "P")
   (if (not region-p)
-      (let ((auto-fill-function nil))   ; update a single node
+      ;; update a single node
+      (let ((auto-fill-function nil) (auto-fill-hook nil))
         (if (not (re-search-backward "^@node" (point-min) t))
             (error "Node line not found before this position."))
         (texinfo-sequentially-update-the-node)
@@ -1497,6 +1500,7 @@ Info `g*' command is inadequate."
          "Done...sequentially updated the node .  You may save the buffer."))
     ;; else
     (let ((auto-fill-function nil)
+	  (auto-fill-hook nil)
           (beginning (region-beginning))
           (end (region-end)))
       (if (= end beginning)
