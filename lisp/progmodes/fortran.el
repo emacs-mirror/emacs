@@ -4,7 +4,7 @@
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: bug-fortran-mode@erl.mit.edu
-;; Version 1.30.4 (January 20, 1994)
+;; Version 1.30.5 (May 20, 1994)
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -46,7 +46,7 @@
 
 ;;; Bugs to bug-fortran-mode@erl.mit.edu
 
-(defconst fortran-mode-version "version 1.30.4")
+(defconst fortran-mode-version "version 1.30.5")
 
 ;;; Code:
 
