@@ -189,6 +189,8 @@ Lisp_Object Qgc_cons_threshold, Qchar_table_extra_slots;
 static void mark_object (), mark_buffer (), mark_kboards ();
 static void clear_marks (), gc_sweep ();
 static void compact_strings ();
+
+extern int message_enable_multibyte;
 
 /* Versions of malloc and realloc that print warnings as memory gets full.  */
 
@@ -1543,6 +1545,7 @@ Garbage collection happens automatically if you cons more than\n\
   register Lisp_Object tem;
   char *omessage = echo_area_glyphs;
   int omessage_length = echo_area_glyphs_length;
+  int oldmultibyte = message_enable_multibyte;
   char stack_top_variable;
   register int i;
 
@@ -1695,7 +1698,7 @@ Garbage collection happens automatically if you cons more than\n\
   if (garbage_collection_messages)
     {
       if (omessage || minibuf_level > 0)
-	message2_nolog (omessage, omessage_length);
+	message2_nolog (omessage, omessage_length, oldmultibyte);
       else
 	message1_nolog ("Garbage collecting...done");
     }
