@@ -177,19 +177,6 @@ used to build the menu and must return a new list of menu elements (see
            (add-hook 'kill-buffer-hook 'recentf-remove-file-hook))
          (custom-set-default sym val)))
 
-(defcustom recentf-mode nil
-  "Toggle recentf mode.
-When recentf mode is enabled, it maintains a menu for visiting files that
-were operated on recently.
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `recentf-mode'."
-  :set (lambda (symbol value)
-         (recentf-mode (or value 0)))
-  :initialize 'custom-initialize-default
-  :type 'boolean
-  :group 'recentf
-  :require 'recentf)
-
 (defcustom recentf-load-hook nil
    "*Normal hook run at end of loading the `recentf' package."
   :group 'recentf
@@ -1021,37 +1008,41 @@ which buffer to use for the interaction."
   (recentf-open-files (nthcdr recentf-max-menu-items recentf-list)
 		      (concat "*" recentf-menu-title " - More*")))
 
+
+;;; Note this definition must be at the end of the file, because
+;;; `define-minor-mode' actually calls the mode-function if the
+;;; associated variable is non-nil, which requires that all needed
+;;; functions be already defined.  [This is arguably a bug in d-m-m]
 ;;;###autoload
-(defun recentf-mode (&optional arg)
+(define-minor-mode recentf-mode
   "Toggle recentf mode.
-With prefix ARG, turn recentf mode on if and only if ARG is positive.
-Returns the new status of recentf mode (non-nil means on).
+With prefix argument ARG, turn on if positive, otherwise off.
+Returns non-nil if the new state is enabled.
 
 When recentf mode is enabled, it maintains a menu for visiting files that
 were operated on recently."
-  (interactive "P")
-  (let ((on-p (if arg
-                  (> (prefix-numeric-value arg) 0)
-                (not recentf-mode))))
-    (if on-p
-        (unless recentf-initialized-p
-          (setq recentf-initialized-p t)
-          (if (file-readable-p recentf-save-file)
-              (load-file recentf-save-file))
-          (setq recentf-update-menu-p t)
-          (add-hook 'find-file-hooks       'recentf-add-file-hook)
-          (add-hook 'write-file-hooks      'recentf-add-file-hook)
-          (add-hook 'menu-bar-update-hook  'recentf-update-menu-hook)
-          (add-hook 'kill-emacs-hook       'recentf-save-list))
-      (when recentf-initialized-p
-        (setq recentf-initialized-p nil)
-        (recentf-save-list)
-        (easy-menu-remove-item nil recentf-menu-path recentf-menu-title)
-        (remove-hook 'find-file-hooks       'recentf-add-file-hook)
-        (remove-hook 'write-file-hooks      'recentf-add-file-hook)
-        (remove-hook 'menu-bar-update-hook  'recentf-update-menu-hook)
-        (remove-hook 'kill-emacs-hook       'recentf-save-list)))
-    (setq recentf-mode on-p)))
+  nil nil nil
+  :global t
+  :group 'recentf
+  (if recentf-mode
+      (unless recentf-initialized-p
+	(setq recentf-initialized-p t)
+	(if (file-readable-p recentf-save-file)
+	    (load-file recentf-save-file))
+	(setq recentf-update-menu-p t)
+	(add-hook 'find-file-hooks       'recentf-add-file-hook)
+	(add-hook 'write-file-hooks      'recentf-add-file-hook)
+	(add-hook 'menu-bar-update-hook  'recentf-update-menu-hook)
+	(add-hook 'kill-emacs-hook       'recentf-save-list))
+    (when recentf-initialized-p
+      (setq recentf-initialized-p nil)
+      (recentf-save-list)
+      (easy-menu-remove-item nil recentf-menu-path recentf-menu-title)
+      (remove-hook 'find-file-hooks       'recentf-add-file-hook)
+      (remove-hook 'write-file-hooks      'recentf-add-file-hook)
+      (remove-hook 'menu-bar-update-hook  'recentf-update-menu-hook)
+      (remove-hook 'kill-emacs-hook       'recentf-save-list))))
+
 
 (provide 'recentf)
 
