@@ -1,3 +1,8 @@
+2004-09-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (Fgarbage_collect): Mark keyboards, gtk data, and specpdl
+	before doing the mark_stack_check_gcpros since they are not on the stack.
+
 2004-09-12  Kim F. Storm  <storm@cua.dk>
 
 	* editfns.c (Fformat): Handle format strings with multiple text
