@@ -34,6 +34,8 @@
 	* nnimap.el (nnimap-authinfo-file, nnimap-prune-cache):
 	Add :group 'nnimap.
 
+==> applied, here and in Gnus repository.
+
 2004-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mm-view.el (mm-insert-inline): Make it work in read-only buffer.
@@ -46,19 +48,25 @@
 	* rfc2047.el (rfc2047-encode-message-header): Don't encode non-address
 	headers as address headers (which breaks if subject has a single ").
 
+==> already in Gnus
+	
 2004-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* nnimap.el (nnimap-demule): Avoid string-as-multibyte.
+
+==> applied, here and in Gnus repository.
 
 2004-04-21  Richard M. Stallman  <rms@gnu.org>
 
 	* mailcap.el (mailcap-mime-data): Mark as risky.
 
-==> applied, here and in Gnus reposiory.
+==> applied, here and in Gnus repository.
 
 2004-03-27  Juanma Barranquero  <lektu@terra.es>
 
 	* gnus-srvr.el (gnus-server-prepare): Remove spurious call to `cdr'.
+
+==> already in Gnus
 
 2004-03-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -93,6 +101,8 @@
 
 	* gnus-score.el (gnus-summary-increase-score): Fix format string.
 
+==> applied; here and in Gnus v5-10.  Already fixed in No Gnus.
+
 2003-06-25  Sam Steingold  <sds@gnu.org>
 
 	* gnus-group.el (gnus-group-suspend): Avoid some consing.
@@ -109,6 +119,8 @@
 2003-05-10  Juanma Barranquero  <lektu@terra.es>
 
 	* message.el (message-buffer-naming-style): Fix typo.
+
+==> variable has been removed.
 
 2003-05-07  Dave Love  <fx@gnu.org>
 
@@ -129,6 +141,8 @@
 	* gnus-score.el (gnus-score-lower-thread): Likewise.
 
 	* gnus-art.el (gnus-article-mime-match-handle-function): Likewise.
+
+==> already in Gnus
 
 2003-02-28  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
