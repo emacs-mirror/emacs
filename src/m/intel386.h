@@ -128,9 +128,11 @@ NOTE-END */
 #else /* SOLARIS2_4 */
 #ifndef __GNUC__
 #define C_SWITCH_MACHINE -Xa
+#ifndef NOT_C_CODE
 #ifdef HAVE_ALLOCA_H
 #include <alloca.h>
 #endif /* HAVE_ALLOCA_H */
+#endif /* not NOT_C_CODE */
 #endif /* not __GNUC__ */
 #endif /* SOLARIS2_4 */
 
