@@ -208,7 +208,11 @@ and selects that window."
 					(save-excursion
 					  (set-buffer elt)
 					  (if buffer-read-only "%" " "))
-					(or (buffer-file-name elt) ""))
+					(or (buffer-file-name elt)
+					    (save-excursion
+					      (set-buffer elt)
+					      list-buffers-directory)
+					    ""))
 				       elt)
 				      head)))
 		      (and head (> (length (car (car head))) maxlen)
