@@ -1,3 +1,10 @@
+2002-01-03  Richard M. Stallman  <rms@gnu.org>
+
+	* keymap.c (Fcurrent_active_maps): Put the `keymap' property map first.
+	(Fkey_binding): Try the `keymap' property map first.
+	(Fdescribe_buffer_bindings): Show `keymap' property bindings before
+	minor mode bindings.
+
 2002-01-03  Kim F. Storm  <storm@cua.dk>
 
 	* keyboard.c (read_key_sequence): Fixed cast of submaps arg to bcopy.
