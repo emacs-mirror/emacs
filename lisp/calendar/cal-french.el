@@ -237,7 +237,7 @@ Echo French Revolutionary date unless NOECHO is t."
 	    (day (if (> month 12)
 		     (- month 12)
 		   (calendar-read
-		    "Jour (1-10): "
+		    "Jour (1-30): "
 		    '(lambda (x) (and (<= 1 x) (<= x 30))))))
 	    (month (if (> month 12) 13 month)))
        (list (list month day year)))))
