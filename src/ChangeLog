@@ -1,3 +1,8 @@
+2001-08-31  Gerd Moellmann  <gerd@gnu.org>
+
+	* composite.c (update_compositions): Do nothing if
+	inhibit-modification-hooks is set.
+
 2001-08-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs.c (shut_down_emacs): Don't call check_glyph_memory
