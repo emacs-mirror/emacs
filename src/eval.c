@@ -1094,9 +1094,9 @@ internal_condition_case (bfun, handlers, hfun)
 static Lisp_Object find_handler_clause ();
 
 DEFUN ("signal", Fsignal, Ssignal, 2, 2, 0,
-  "Signal an error.  Args are SIGNAL-NAME, and associated DATA.\n\
+  "Signal an error.  Args are ERROR-SYMBOL and associated DATA.\n\
 This function does not return.\n\n\
-A signal name is a symbol with an `error-conditions' property\n\
+An error symbol is a symbol with an `error-conditions' property\n\
 that is a list of condition names.\n\
 A handler for any of those names will get to handle this signal.\n\
 The symbol `error' should normally be one of them.\n\
@@ -1104,8 +1104,8 @@ The symbol `error' should normally be one of them.\n\
 DATA should be a list.  Its elements are printed as part of the error message.\n\
 If the signal is handled, DATA is made available to the handler.\n\
 See also the function `condition-case'.")
-  (sig, data)
-     Lisp_Object sig, data;
+  (error_symbol, data)
+     Lisp_Object error_symbol, data;
 {
   register struct handler *allhandlers = handlerlist;
   Lisp_Object conditions;
@@ -1122,13 +1122,13 @@ See also the function `condition-case'.")
   TOTALLY_UNBLOCK_INPUT;
 #endif
 
-  conditions = Fget (sig, Qerror_conditions);
+  conditions = Fget (error_symbol, Qerror_conditions);
 
   for (; handlerlist; handlerlist = handlerlist->next)
     {
       register Lisp_Object clause;
       clause = find_handler_clause (handlerlist->handler, conditions,
-				    sig, data, &debugger_value);
+				    error_symbol, data, &debugger_value);
 
 #if 0 /* Most callers are not prepared to handle gc if this returns.
 	 So, since this feature is not very useful, take it out.  */
@@ -1141,7 +1141,7 @@ See also the function `condition-case'.")
 	{
 	  /* We can't return values to code which signalled an error, but we
 	     can continue code which has signalled a quit.  */
-	  if (EQ (sig, Qquit))
+	  if (EQ (error_symbol, Qquit))
 	    return Qnil;
 	  else
 	    error ("Cannot return from the debugger in an error");
@@ -1152,14 +1152,14 @@ See also the function `condition-case'.")
 	{
 	  struct handler *h = handlerlist;
 	  handlerlist = allhandlers;
-	  unwind_to_catch (h->tag, Fcons (clause, Fcons (sig, data)));
+	  unwind_to_catch (h->tag, Fcons (clause, Fcons (error_symbol, data)));
 	}
     }
 
   handlerlist = allhandlers;
   /* If no handler is present now, try to run the debugger,
      and if that fails, throw to top level.  */
-  find_handler_clause (Qerror, conditions, sig, data, &debugger_value);
+  find_handler_clause (Qerror, conditions, error_symbol, data, &debugger_value);
   Fthrow (Qtop_level, Qt);
 }
 
