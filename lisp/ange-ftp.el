@@ -700,10 +700,8 @@ These mean that the FTP process should (or already has) been killed."
   :group 'ange-ftp
   :type 'regexp)
 
-(defcustom ange-ftp-tmp-name-template
-  (if (memq system-type '(ms-dos windows-nt))
-      (concat (or (getenv "TEMP") (getenv "TMP") "c:/temp") "/ange-ftp")
-    "/tmp/ange-ftp")
+(defcustom ange-ftp-tmp-name-template 
+  (concat system-tmp-directory "/ange-ftp")
   "*Template used to create temporary files."
   :group 'ange-ftp
   :type 'directory)
