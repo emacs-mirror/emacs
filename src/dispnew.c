@@ -167,8 +167,6 @@ FILE *termscript;	/* Stdio stream being used for copy of all output.  */
 
 struct cm Wcm;		/* Structure for info on cursor positioning */
 
-extern short ospeed;	/* Output speed (from sg_ospeed) */
-
 int delayed_size_change;  /* 1 means SIGWINCH happened when not safe.  */
 
 #ifdef MULTI_FRAME
