@@ -13,7 +13,7 @@ s/\.h\.in/.h-in/
 /^VPATH *=/s/@[^@\n]*@/./
 /^CC *=/s/@[^@\n]*@/gcc/
 /^CPP *=/s/@[^@\n]*@/gcc -e/
-/^CFLAGS *=/s/@[^@\n]*@/-O2 -g/
+/^CFLAGS *=/s/@[^@\n]*@/-O2 -gcoff/
 /^CPPFLAGS *=/s/@[^@\n]*@//
 /^LDFLAGS *=/s/@[^@\n]*@//
 /^LN_S *=/s/@[^@\n]*@/ln -s/
