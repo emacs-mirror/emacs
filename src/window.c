@@ -5175,7 +5175,7 @@ freeze_window_starts (f, freeze_p)
      struct frame *f;
      int freeze_p;
 {
-  foreach_window (f, freeze_window_start, (void *) freeze_p);
+  foreach_window (f, freeze_window_start, (void *) (freeze_p ? f : 0));
 }
 
 
