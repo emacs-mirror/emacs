@@ -2351,8 +2351,7 @@
 	selected_frame.
 	(read_minibuf): Ditto.
 
-	* keyboard.c (command_loop_1): Change for Lisp_Object
-	selected_frame.
+	* keyboard.c (command_loop_1): Change for Lisp_Object selected_frame.
 	(cmd_error_internal, command_loop_1, read_char,
 	kbd_buffer_get_event, read_avail_input,
 	read_char_minibuf_menu_prompt, read_key_sequence, Fsuspend_emacs,
@@ -2878,14 +2877,13 @@
 	(syms_of_frame_1): Initialize Qmac.
 	(make_terminal_frame) [macintosh]: Initialize output_data.mac fields.
 	(Fmake_terminal_frame) [macintosh]: Add an alternate error check.
-	(Fmodify_frame_parameters) [macintosh]: Call
-	mac_set_frame_parameter in macterm.c.
+	(Fmodify_frame_parameters) [macintosh]:
+	Call mac_set_frame_parameter in macterm.c.
 
 	* keyboard.c [macintosh]: Set KBD_BUFFER_SIZE to a smaller value
 	(512) because Mac compilers limit local data of a function to 32K.
 
-	* make-docfiles.c: Correctly handle input files with Mac-style
-	eol's.
+	* make-docfiles.c: Correctly handle input files with Mac-style eol's.
 
 	* sysdep.c: Define numerous routines to emulate Unix system calls.
 
@@ -3291,8 +3289,7 @@
 	* window.h (beg_unchanged, end_unchanged, unchanged_modified,
 	overlay_unchanged_modified): Remove extern declarations.
 
-	* keyboard.c (command_loop_1):  Set beg/end_unchanged per
-	buffer.
+	* keyboard.c (command_loop_1):  Set beg/end_unchanged per buffer.
 
 	* insdel.c (gap_left): Compute beg/end_unchanged per buffer.
 	(gap_right): Ditto.
@@ -3932,8 +3929,7 @@
 
 1999-07-30  Eli Zaretskii  <eliz@gnu.org>
 
-	* dispextern.h (load_color, lookup_derived_face): Declare
-	prototypes.
+	* dispextern.h (load_color, lookup_derived_face): Declare prototypes.
 
 	* dispnew.c (init_display) [MSDOS]: Don't initialize frame faces,
 	it will be done later.
@@ -3964,8 +3960,7 @@
 	load_color to try to find a suitable approximation.  If the face
 	is inverse-video, swap the foreground and background colors.
 
-	* dosfns.c (msdos_stdcolor_name, msdos_stdcolor_idx): New
-	functions.
+	* dosfns.c (msdos_stdcolor_name, msdos_stdcolor_idx): New functions.
 
 	* dosfns.h (msdos_stdcolor_name, msdos_stdcolor_idx): Declare.
 
@@ -4246,8 +4241,8 @@
 
 	* keyboard.c (read_char): Use message3_nolog to show help-echo.
 
-	* dispnew.c (blank_row): Add y-position as parameter.  Compute
-	visible height.
+	* dispnew.c (blank_row): Add y-position as parameter.
+	Compute visible height.
 
 	* xdisp.c (next_element_from_string): Give padding spaces
 	a position of -1.
@@ -4506,8 +4501,8 @@
 
 	* xterm.c (XTread_socket): Set mouse_face_frame to zero after
 	clearing mouse face.
-	(XTread_socket) <EnterNotify> [LESSTIF_VERSION]: If
-	event.xcrossing.focus is not set, and focus is in the menu bar,
+	(XTread_socket) <EnterNotify> [LESSTIF_VERSION]:
+	If event.xcrossing.focus is not set, and focus is in the menu bar,
 	set focus frame as if event.xcrossing.focus were set.
 
 1999-06-24  Gerd Moellmann  <gerd@gnu.org>
@@ -4795,8 +4790,8 @@
 	* minibuf.c (read_minibuf): Reset echo message strings to nil.
 	(Fminibuffer_completion_help): Ditto.
 
-	* keyboard.c (cmd_error_internal): Set echo_areA_message.
-	(command_loop_1): Test echo_areA_message.
+	* keyboard.c (cmd_error_internal): Set echo_area_message.
+	(command_loop_1): Test echo_area_message.
 	(read_char): Ditto.
 	(record_menu_key): Set echo_area_message to nil.
 	(Fexecute_extended_command): Test echo_area_message.
@@ -10046,9 +10041,9 @@ Sat Aug 16 13:13:32 1997  Gerd Moellmann  <gerd@acm.org>
 	and display_ellipsis_for_invisible_p removed.
 
 	* xdisp.c (next_display_element):  Set last_invisible_text_pos
-	to the last position at which invisible text was found.  Don't
-	decrement cursor.pos for newlines and cr with ellipsis.  Set
-	dpvec for `...' due to invisible text directly.
+	to the last position at which invisible text was found.
+	Don't decrement cursor.pos for newlines and cr with ellipsis.
+	Set dpvec for `...' due to invisible text directly.
 	(redisplay_internal):  Don't assert that cursor is at PT after
 	skip_to.  It may be in invisible text.
 
@@ -11280,8 +11275,8 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 
 1999-06-29  Wolfram Gloger  <wmglo@dent.med.uni-muenchen.de>
 
-	* emacs.c [DOUG_LEA_MALLOC] (malloc_initialize_hook): New
-	function, assigned to the global __malloc_initialize_hook pointer.
+	* emacs.c [DOUG_LEA_MALLOC] (malloc_initialize_hook):
+	New function, assigned to the global __malloc_initialize_hook pointer.
 	(main): Move malloc_set_state call into malloc_initialize_hook
 	so that it happens as early as possible.
 

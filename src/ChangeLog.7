@@ -40,8 +40,8 @@
 	bind input-method-exit-on-first-char and input-method-use-echo-area
 	to t.
 	(read_char): If PREV_EVENT is non-nil, don't run the input method.
-	(read_key_sequence): Do not bind input-method-function.	
-	
+	(read_key_sequence): Do not bind input-method-function.
+
 	* callint.c (Fcall_interactively): Pass new args to Fread_event
 	and Fread_char.  Let Fread_char do the prompting.
 
@@ -77,7 +77,7 @@
 1998-08-16  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
 	* charset.c (Fmultibyte_char_to_unibyte): New function.
-	(syms_of_charset): defsubr it.
+	(syms_of_charset): Defsubr it.
 
 1998-08-15  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
@@ -3397,7 +3397,7 @@
 	(boyer_moore): New arg CHARSET_BASE says which chars
 	to use the translate tables for.
 	(search_buffer): Properly test which chars participate in translation.
-	
+
 1998-02-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* intervals.c (split_interval_right): Make sure to call

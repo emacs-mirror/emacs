@@ -63,7 +63,7 @@
 	(menu_items_inuse): New var.
 	(syms_of_xmenu): Initialize it.
 	(init_menu_items): Use it to detect re-entrance.
-	(Fx_popup_menu, Fx_popup_dialog, set_frame_menubar): Reset it when done.
+	(Fx_popup_menu, Fx_popup_dialog, set_frame_menubar): Reset when done.
 	(Fx_popup_menu): Remove spurious XSETFRAME.
 
 	* editfns.c (find_field): Make an exception for nil fields.

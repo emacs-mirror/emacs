@@ -1,17 +1,39 @@
+2002-11-07  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/compile.el (grep-default-command): New fun.
+	(grep): Use it.
+	(compilation-menu-map): New var.
+	(compilation-minor-mode-map, compilation-shell-minor-mode-map): Use it.
+	(compilation-mode-map): Simplify.
+	(compilation-shell-minor-mode, compilation-minor-mode):
+	Use define-minor-mode.
+
+	* elide-head.el (elide-head): Don't make intangible.
+
+	* help.el (where-is): Rename map to defs (a list of syms is not a map).
+	Test fboundp first, to speed things up.  Use push.
+
+	* isearch.el (isearch-hidden): New var.
+	(isearch-search-and-update): Test it.
+	(isearch-range-invisible): Set it.
+
+	* progmodes/tcl.el (tcl-mode): Don't set paragraph-start,
+	paragraph-separate, comment-column, and fill-paragraph-function.
+	Simplify outline-regexp.
+	(tcl-do-fill-paragraph): Remove.
+
 2002-11-07   Markus Rost  <rost@math.ohio-state.edu>
 
-	* mail/sendmail.el (mail-default-directory): Set the version to
-	21.4.
+	* mail/sendmail.el (mail-default-directory): Set the version to 21.4.
 
-	* progmodes/compile.el (grep-compute-defaults): Undo previous
-	change.  Definition moved down.
-	(grep-command, grep-find-command, grep-tree-command): Allow value
-	nil.  Do not declare :get property.
-	(grep-use-null-device): Doc fix.  Fix type.  Do not declare :get
-	property.
+	* progmodes/compile.el (grep-compute-defaults): Undo previous change.
+	Definition moved down.
+	(grep-command, grep-find-command, grep-tree-command): Allow value nil.
+	Do not declare :get property.
+	(grep-use-null-device): Fix type.  Do not declare :get property.
 
-	* emacs-lisp/checkdoc.el (checkdoc-find-error): Use
-	get-file-buffer instead of get-buffer.
+	* emacs-lisp/checkdoc.el (checkdoc-find-error):
+	Use get-file-buffer instead of get-buffer.
 
 	* cus-dep.el (custom-make-dependencies): Fix comment inserted in
 	cus-load.el.
@@ -33,8 +55,8 @@
 	(ucs-unify-8859, ucs-unify-8859, ucs-fragment-8859): Add/remove
 	set-buffer-major-mode-hook, not quail-activate-hook.
 	(ucs-set-table-for-input): Renamed from ucs-quail-activate.
-	(ucs-unify-8859, ucs-unify-8859, ucs-fragment-8859): Setup
-	keyboard-translate-table, not translation-table-for-input.
+	(ucs-unify-8859, ucs-unify-8859, ucs-fragment-8859):
+	Setup keyboard-translate-table, not translation-table-for-input.
 	Modify set-buffer-major-mode-hook, not quail-activate-hook.
 	(ucs-fragment-8859): Don't use translation-table-for-input coding
 	system property.
@@ -42,13 +64,13 @@
 	(ucs-set-table-for-input): New.
 	(ucs-minibuffer-setup): Use it.
 
-	* international/quail.el (quail-input-string-to-events): Use
-	keyboard-translate-table, not translation-table-for-input.
+	* international/quail.el (quail-input-string-to-events):
+	Use keyboard-translate-table, not translation-table-for-input.
 
 	* files.el (normal-mode): Call ucs-set-table-for-input.
 
-	* international/mule.el (set-buffer-file-coding-system): Call
-	ucs-set-table-for-input.
+	* international/mule.el (set-buffer-file-coding-system):
+	Call ucs-set-table-for-input.
 
 2002-11-06  Richard M. Stallman  <rms@gnu.org>
 
@@ -63,8 +85,8 @@
 
 2002-11-06  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule.el (coding-system-eol-type-mnemonic): Use
-	eol-mnemonic-undecided if CODING-SYSTEM is nil.
+	* international/mule.el (coding-system-eol-type-mnemonic):
+	Use eol-mnemonic-undecided if CODING-SYSTEM is nil.
 
 2002-11-06  Kim F. Storm  <storm@cua.dk>
 
@@ -79,11 +101,11 @@
 
 	* language/cyrillic.el ("Bulgarian"): Fix typo.
 
-	* international/mule.el (coding-system-eol-type-mnemonic): Move from
-	mule-util.el.
+	* international/mule.el (coding-system-eol-type-mnemonic):
+	Move from mule-util.el.
 
-	* international/mule-util.el (coding-system-eol-type-mnemonic): Move to
-	mule.el.
+	* international/mule-util.el (coding-system-eol-type-mnemonic):
+	Move to mule.el.
 
 2002-11-04  Juanma Barranquero  <lektu@terra.es>
 
