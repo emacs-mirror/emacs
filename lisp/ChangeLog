@@ -1,3 +1,7 @@
+2002-05-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* filesets.el (filesets-running-xemacs): Fix last change.
+
 2002-05-08  Markus Rost  <rost@math.ohio-state.edu>
 
 	* filesets.el (filesets-conditional-sort): Use copy-sequence, not
