@@ -2153,16 +2153,11 @@ stat (const char * path, struct stat * buf)
 	}
     }
 
-  if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-    {
-      buf->st_mode = _S_IFDIR;
-      buf->st_nlink = 2;	/* doesn't really matter */
-      fake_inode = 0;		/* this doesn't either I think */
-    }
-  else if (!NILP (Vw32_get_true_file_attributes)
-	   /* No access rights required to get info.  */
-	   && (fh = CreateFile (name, 0, 0, NULL, OPEN_EXISTING, 0, NULL))
-	      != INVALID_HANDLE_VALUE)
+  if (!NILP (Vw32_get_true_file_attributes)
+      /* No access rights required to get info.  */
+      && (fh = CreateFile (name, 0, 0, NULL, OPEN_EXISTING,
+			   FILE_FLAG_BACKUP_SEMANTICS, NULL))
+         != INVALID_HANDLE_VALUE)
     {
       /* This is more accurate in terms of gettting the correct number
 	 of links, but is quite slow (it is noticable when Emacs is
@@ -2185,25 +2180,33 @@ stat (const char * path, struct stat * buf)
 	  fake_inode = 0;
 	}
 
-      switch (GetFileType (fh))
+      if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 	{
-	case FILE_TYPE_DISK:
-	  buf->st_mode = _S_IFREG;
-	  break;
-	case FILE_TYPE_PIPE:
-	  buf->st_mode = _S_IFIFO;
-	  break;
-	case FILE_TYPE_CHAR:
-	case FILE_TYPE_UNKNOWN:
-	default:
-	  buf->st_mode = _S_IFCHR;
+	  buf->st_mode = _S_IFDIR;
+	}
+      else
+	{
+	  switch (GetFileType (fh))
+	    {
+	    case FILE_TYPE_DISK:
+	      buf->st_mode = _S_IFREG;
+	      break;
+	    case FILE_TYPE_PIPE:
+	      buf->st_mode = _S_IFIFO;
+	      break;
+	    case FILE_TYPE_CHAR:
+	    case FILE_TYPE_UNKNOWN:
+	    default:
+	      buf->st_mode = _S_IFCHR;
+	    }
 	}
       CloseHandle (fh);
     }
   else
     {
       /* Don't bother to make this information more accurate.  */
-      buf->st_mode = _S_IFREG;
+      buf->st_mode = (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ?
+	_S_IFREG : _S_IFDIR;
       buf->st_nlink = 1;
       fake_inode = 0;
     }
@@ -2296,21 +2299,15 @@ fstat (int desc, struct stat * buf)
     }
 
   if (info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-    {
       buf->st_mode = _S_IFDIR;
-      buf->st_nlink = 2;	/* doesn't really matter */
-      fake_inode = 0;		/* this doesn't either I think */
-    }
-  else
-    {
-      buf->st_nlink = info.nNumberOfLinks;
-      /* Might as well use file index to fake inode values, but this
-	 is not guaranteed to be unique unless we keep a handle open
-	 all the time (even then there are situations where it is
-	 not unique).  Reputedly, there are at most 48 bits of info
-      (on NTFS, presumably less on FAT). */
-      fake_inode = info.nFileIndexLow ^ info.nFileIndexHigh;
-    }
+
+  buf->st_nlink = info.nNumberOfLinks;
+  /* Might as well use file index to fake inode values, but this
+     is not guaranteed to be unique unless we keep a handle open
+     all the time (even then there are situations where it is
+     not unique).  Reputedly, there are at most 48 bits of info
+     (on NTFS, presumably less on FAT). */
+  fake_inode = info.nFileIndexLow ^ info.nFileIndexHigh;
 
   /* MSVC defines _ino_t to be short; other libc's might not.  */
   if (sizeof (buf->st_ino) == 2)
