@@ -1,5 +1,9 @@
 2000-03-29  Ken Raeburn  <raeburn@gnu.org>
 
+	* scroll.c (CHECK_BOUNDS): Renamed from CHECK.
+
+	* emacs.c (main): Fix sense of no-loadup test.
+
 	* config.in (ENABLE_CHECKING): Undef.
 
 	* lisp.h (struct interval): Replace "parent" field with a union of

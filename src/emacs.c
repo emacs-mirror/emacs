@@ -1179,7 +1179,7 @@ main (argc, argv, envp)
     }
 
   no_loadup
-    = !argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args);
+    = argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args);
 
 
 #ifdef HAVE_X_WINDOWS

@@ -269,7 +269,7 @@ do_scrolling (current_matrix, matrix, window_size, unchanged_at_top)
   for (k = 0; k < window_size; ++k)
     copy_from[k] = -1;
 
-#define CHECK								\
+#define CHECK_BOUNDS							\
   do									\
     {									\
       int k;								\
@@ -326,7 +326,7 @@ do_scrolling (current_matrix, matrix, window_size, unchanged_at_top)
 	  retained_p[j] = 1;
 
 #if GLYPH_DEBUG
-	  CHECK;
+	  CHECK_BOUNDS;
 #endif
 	}
     }
