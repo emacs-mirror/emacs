@@ -2084,7 +2084,7 @@ whether or not it is currently displayed in some window.  */)
 
       /* Move back if we got too far.  This may happen if
 	 truncate-lines is on and PT is beyond right margin.  */
-      if (IT_CHARPOS (it) > PT && XINT (lines) > 0)
+      if (IT_CHARPOS (it) > PT && it.vpos > 0 && XINT (lines) > 0)
 	move_it_by_lines (&it, -1, 0);
 
       it.vpos = 0;
