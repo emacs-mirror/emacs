@@ -1350,7 +1350,12 @@ Creates a buffer if necessary."
 (defun dired-get-file-for-visit ()
   "Get the current line's file name, with an error if file does not exist."
   (interactive)
-  (let ((file-name (file-name-sans-versions (dired-get-filename) t)))
+  ;; We pass t for second arg so that we don't get error for `.' and `..'.
+  (let ((raw (dired-get-filename nil t))
+	file-name)
+    (if (null raw)
+	(error "No file on this line"))
+    (setq file-name (file-name-sans-versions raw t))
     (if (file-exists-p file-name)
 	file-name
       (if (file-symlink-p file-name)
@@ -1482,6 +1487,11 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
     (cond
      ((null file)
       nil)
+     ((and (not no-error-if-not-filep)
+	   (save-excursion
+	     (beginning-of-line)
+	     (looking-at dired-re-dir)))
+      (error "Cannot operate on `.' or `..'"))
      ((eq localp 'verbatim)
       file)
      ((and (eq localp 'no-dir) already-absolute)
@@ -2658,8 +2668,10 @@ Type SPC or `y' to unmark one file, DEL or `n' to skip to next,
 		 (re-search-forward dired-re-mark nil t)
 	       (search-forward string nil t))
 	(if (or (not arg)
-		(dired-query 'query "Unmark file `%s'? "
-			     (dired-get-filename t)))
+		(let ((file (dired-get-filename t t)))
+		  (and file
+		       (dired-query 'query "Unmark file `%s'? "
+				    file))))
 	    (progn (subst-char-in-region (1- (point)) (point)
 					 (preceding-char) ?\ )
 		   (setq count (1+ count)))))
