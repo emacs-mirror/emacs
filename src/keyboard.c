@@ -521,6 +521,9 @@ echo_dash ()
 {
   if (!immediate_echo && echoptr == echobuf)
     return;
+  /* Do nothing if not echoing at all.  */
+  if (echoptr == 0)
+    return;
 
   /* Put a dash at the end of the buffer temporarily,
      but make it go away when the next character is added.  */
