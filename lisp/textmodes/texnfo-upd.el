@@ -149,6 +149,13 @@
 
 ;;; Code:
 
+(or (fboundp 'defgroup)
+    (defmacro defgroup (&rest ignore) nil))
+
+(or (fboundp 'defcustom)
+    (defmacro defcustom (var value doc &rest ignore)
+      `(defvar ,var ,value ,doc)))
+
 (defvar texinfo-master-menu-header
   " --- The Detailed Node Listing ---\n"
   "String inserted before lower level entries in Texinfo master menu.

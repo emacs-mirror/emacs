@@ -27,6 +27,13 @@
 
 ;;; Code:
 
+(or (fboundp 'defgroup)
+    (defmacro defgroup (&rest ignore) nil))
+
+(or (fboundp 'defcustom)
+    (defmacro defcustom (var value doc &rest ignore)
+      `(defvar ,var ,value ,doc)))
+
 (defgroup texinfo nil
   "Texinfo Mode"
   :group 'docs)
