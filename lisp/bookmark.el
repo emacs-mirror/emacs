@@ -1072,8 +1072,9 @@ of the old one in the permanent bookmark record."
 
 
 (defun bookmark-file-or-variation-thereof (file)
-  "Return FILE if it exists, or return the first variation based on
-`Info-suffix-list' that exists, else return nil."
+  "Return FILE (a string) or a reasonable variation that exists, else nil.
+Reasonable variations of the name are made by appending suffixes defined
+in `Info-suffix-list'."
   (if (file-exists-p file)
       file
     (require 'info)  ; ensure Info-suffix-list is bound
@@ -1084,7 +1085,6 @@ of the old one in the permanent bookmark record."
                     (throw 'found suffixed-file))))
             Info-suffix-list)
       nil)))
-
 
 (defun bookmark-jump-noselect (str)
   ;; a leetle helper for bookmark-jump :-)
