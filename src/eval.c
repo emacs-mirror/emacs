@@ -680,7 +680,9 @@ DEFUN ("user-variable-p", Fuser_variable_p, Suser_variable_p, 1, 1, 0,
   "Returns t if VARIABLE is intended to be set and modified by users.\n\
 \(The alternative is a variable used internally in a Lisp program.)\n\
 Determined by whether the first character of the documentation\n\
-for the variable is `*'.")
+for the variable is `*' or if the variable is customizable (has a non-nil\n\
+value of any of `custom-type', `custom-loads' or `standard-value'\n\
+on its property list).")
   (variable)
      Lisp_Object variable;
 {
@@ -700,6 +702,11 @@ for the variable is `*'.")
       && STRINGP (XCAR (documentation))
       && INTEGERP (XCDR (documentation))
       && XINT (XCDR (documentation)) < 0)
+    return Qt;
+  /* Customizable?  */
+  if ((!NILP (Fget (variable, intern ("custom-type"))))
+      || (!NILP (Fget (variable, intern ("custom-loads"))))
+      || (!NILP (Fget (variable, intern ("standard-value")))))
     return Qt;
   return Qnil;
 }  
@@ -2128,7 +2135,7 @@ run_hook_with_args (nargs, args, cond)
   /* If we are dying or still initializing,
      don't do anything--it would probably crash if we tried.  */
   if (NILP (Vrun_hooks))
-    return;
+    return Qnil;
 
   sym = args[0];
   val = find_symbol_value (sym);
