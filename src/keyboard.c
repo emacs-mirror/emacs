@@ -1711,6 +1711,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   before_command_key_count = this_command_key_count;
   before_command_echo_length = echo_length ();
+  c = Qnil;
 
   GCPRO1 (c);
 
@@ -1865,6 +1866,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	    *tailp = Fcons (c, Qnil);
 	    kb->kbd_queue_has_data = 1;
 	    current_kboard = kb;
+	    /* This is going to exit from read_char
+	       so we had better get rid of this frame's stuff.  */
+	    UNGCPRO;
 	    longjmp (wrong_kboard_jmpbuf, 1);
 	  }
       }
@@ -2030,6 +2034,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	if (kb->kbd_queue_has_data)
 	  {
 	    current_kboard = kb;
+	    /* This is going to exit from read_char
+	       so we had better get rid of this frame's stuff.  */
+	    UNGCPRO;
 	    longjmp (wrong_kboard_jmpbuf, 1);
 	  }
     }
@@ -2067,6 +2074,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  if (single_kboard)
 	    goto wrong_kboard;
 	  current_kboard = kb;
+	  /* This is going to exit from read_char
+	     so we had better get rid of this frame's stuff.  */
+	  UNGCPRO;
 	  longjmp (wrong_kboard_jmpbuf, 1);
 	}
 #endif
@@ -2190,8 +2200,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   record_char (c);
   if (! NILP (also_record))
     record_char (also_record);
-
-  UNGCPRO;
 
  from_macro:
  reread_first:
