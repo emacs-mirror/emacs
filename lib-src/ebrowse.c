@@ -57,14 +57,18 @@
 
 /* The character used as a separator in path lists (like $PATH).  */
 
-#if defined(__MSDOS__) || defined(WINDOWSNT)
+#if defined(__MSDOS__)
 #define PATH_LIST_SEPARATOR ';'
 #define FILENAME_EQ(X,Y)    (strcasecmp(X,Y) == 0)
+#else
+#if defined(WINDOWSNT)
+#define PATH_LIST_SEPARATOR ';'
+#define FILENAME_EQ(X,Y)    (stricmp(X,Y) == 0)
 #else
 #define PATH_LIST_SEPARATOR ':'
 #define FILENAME_EQ(X,Y)    (streq(X,Y))
 #endif
-
+#endif
 /* The default output file name.  */
 
 #define DEFAULT_OUTFILE "BROWSE"
