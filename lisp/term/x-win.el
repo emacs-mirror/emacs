@@ -530,6 +530,7 @@ This returns ARGS with the arguments that have been processed removed."
 	;; This is used by DEC's X server.
 	(65280 . remove)
 	;; These are for Sun.
+ 	(392963 . mute-acute)
 	(392976 . f35)
     	(392977 . f36)
 	(393056 . req)
