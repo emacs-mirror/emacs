@@ -9,12 +9,12 @@
 
 	* custom.el (customize-mark-to-save, customize-mark-as-set)
 	(custom-remove-theme): Doc fixes.
-	
+
 2003-01-29  Didier Verna  <didier@xemacs.org>
 
 	* cus-edit.el (custom-save-variables): also save non theme'd ones.
 	* cus-edit.el (custom-save-faces): ditto.
-	
+
 2003-01-29  Juanma Barranquero  <lektu@terra.es>
 
 	* composite.el (decompose-composite-char): Fix docstring.
