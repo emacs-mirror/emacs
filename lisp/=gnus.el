@@ -1,6 +1,6 @@
 ;;; GNUS: an NNTP-based News Reader for GNU Emacs
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993 Free Software Foundation, Inc.
-;; $Header: /home/fsf/rms/e19/lisp/RCS/gnus.el,v 1.15 1993/05/17 02:42:16 roland Exp rms $
+;; $Header: /home/fsf/rms/e19/lisp/RCS/gnus.el,v 1.16 1993/05/30 23:56:49 rms Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -540,20 +540,20 @@ If you'd like to mark as unread (-) instead, use the following hook:
 	 (gnus-summary-mark-as-unread gnus-current-article)
 	 (gnus-summary-set-current-mark \"+\"))))")
 
-(defvar gnus-prepare-article-hook (function gnus-inews-insert-signature)
+(defvar gnus-prepare-article-hook (list (function gnus-inews-insert-signature))
   "*A hook called after preparing body, but before preparing header fields.
-The default hook (gnus-inews-insert-signature) inserts a signature
-file specified by the variable gnus-signature-file.")
+The default hook (`gnus-inews-insert-signature') inserts a signature
+file specified by the variable `gnus-signature-file'.")
 
-(defvar gnus-inews-article-hook (function gnus-inews-do-fcc)
+(defvar gnus-inews-article-hook (list (function gnus-inews-do-fcc))
   "*A hook called before finally posting an article.
-The default hook (gnus-inews-do-fcc) does FCC processing (save article
+The default hook (`gnus-inews-do-fcc') does FCC processing (save article
 to a file).")
 
 (defvar gnus-exit-group-hook nil
   "*A hook called when exiting (not quitting) Summary mode.
 If your machine is so slow that exiting from Summary mode takes very
-long time, set the variable gnus-use-cross-reference to nil. This
+long time, set the variable `gnus-use-cross-reference' to nil. This
 inhibits marking articles as read using cross-reference information.")
 
 (defvar gnus-suspend-gnus-hook nil
@@ -564,7 +564,7 @@ inhibits marking articles as read using cross-reference information.")
 
 (defvar gnus-save-newsrc-hook nil
   "*A hook called when saving the newsrc file.
-This hook is called before saving .newsrc file.")
+This hook is called before saving the `.newsrc' file.")
 
 
 ;; Site dependent variables. You have to define these variables in
@@ -2945,8 +2945,7 @@ NOTE: This command may not work with nnspool.el nor mhspool.el."
   (interactive)
   (gnus-summary-select-article)
   (gnus-eval-in-buffer-window gnus-article-buffer
-    (call-interactively 'isearch-forward)
-    ))
+			      (isearch-forward)))
 
 (defun gnus-summary-search-article-forward (regexp)
   "Search for an article containing REGEXP forward.
@@ -6487,7 +6486,9 @@ If optional argument RAWFILE is non-nil, the raw startup file is read."
 	(error nil))
       (cond ((and (not rawfile)		;Not forced to read the raw file.
 		  ;; .newsrc.el is newer than .newsrc.
-		  (file-newer-than-file-p quick-file newsrc-file)
+		  ;; Do it this way in case timestamps are identical
+		  ;; (on fast machines/disks).
+		  (not (file-newer-than-file-p newsrc-file quick-file))
 		  quick-loaded
 		  gnus-newsrc-assoc	;Really loaded?
 		  )
