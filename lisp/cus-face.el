@@ -59,16 +59,16 @@
 ;;; Font Attributes.
 
 (defconst custom-face-attributes
-  '((:bold (toggle :format "Bold: %[%v%]\n"
+  '((:bold (toggle :format "%[Bold%]: %v\n"
 		   :help-echo "Control whether a bold font should be used.")
 	   set-face-bold-p
 	   face-bold-p)
-    (:italic (toggle :format "Italic: %[%v%]\n"
+    (:italic (toggle :format "%[Italic%]: %v\n"
 		     :help-echo "\
 Control whether an italic font should be used.")
 	     set-face-italic-p
 	     face-italic-p)
-    (:underline (toggle :format "Underline: %[%v%]\n"
+    (:underline (toggle :format "%[Underline%]: %v\n"
 			:help-echo "\
 Control whether the text should be underlined.")
 		set-face-underline-p
