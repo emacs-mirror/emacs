@@ -9352,6 +9352,17 @@ x_create_x_image_and_pixmap (f, width, height, depth, ximg, pixmap)
   header->biClrUsed = palette_colors;
 
   /* TODO: fill in palette.  */
+  if (depth == 1)
+    {
+      (*ximg)->info.bmiColors[0].rgbBlue = 0;
+      (*ximg)->info.bmiColors[0].rgbGreen = 0;
+      (*ximg)->info.bmiColors[0].rgbRed = 0;
+      (*ximg)->info.bmiColors[0].rgbReserved = 0;
+      (*ximg)->info.bmiColors[1].rgbBlue = 255;
+      (*ximg)->info.bmiColors[1].rgbGreen = 255;
+      (*ximg)->info.bmiColors[1].rgbRed = 255;
+      (*ximg)->info.bmiColors[1].rgbReserved = 0;
+    }
 
   hdc = get_frame_dc (f);
 
@@ -9918,9 +9929,9 @@ xbm_read_bitmap_data (contents, end, width, height, data)
 	  int val = value;
 	  expect (XBM_TK_NUMBER);
 
-	  *p++ = val;
+	  *p++ = ~ val;
 	  if (!padding_p || ((i + 2) % bytes_per_line))
-	    *p++ = value >> 8;
+	    *p++ = ~ (value >> 8);
 
 	  if (LA1 == ',' || LA1 == '}')
 	    match ();
@@ -9935,7 +9946,7 @@ xbm_read_bitmap_data (contents, end, width, height, data)
 	  int val = value;
 	  expect (XBM_TK_NUMBER);
 
-	  *p++ = val;
+	  *p++ = ~ val;
 
 	  if (LA1 == ',' || LA1 == '}')
 	    match ();
@@ -10711,9 +10722,9 @@ static void XPutPixel (ximg, x, y, color)
     rowbytes += 4 - (rowbytes % 4);
 
   pixel = ximg->data + y * rowbytes + x * 3;
-  *pixel = 255 - GetRValue (color);
-  *(pixel + 1) = 255 - GetGValue (color);
-  *(pixel + 2) = 255 - GetBValue (color);
+  *pixel = GetRValue (color);
+  *(pixel + 1) = GetGValue (color);
+  *(pixel + 2) = GetBValue (color);
 }
 
 
