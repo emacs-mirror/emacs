@@ -236,8 +236,11 @@ and the value of the environment variable MAIL overrides it)."
   "List of functions to call when Rmail has retrieved new mail.")
 
 ;;;###autoload
-(defvar rmail-show-message-hook nil
-  "List of functions to call when Rmail displays a message.")
+(defcustom rmail-show-message-hook nil
+  "List of functions to call when Rmail displays a message."
+  :type 'hook
+  :options '(goto-addr)
+  :group 'rmail)
 
 ;;;###autoload
 (defvar rmail-quit-hook nil
