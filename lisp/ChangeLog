@@ -1,3 +1,7 @@
+2003-03-08  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el: Provide `cua' feature.
+
 2003-03-08  Juanma Barranquero  <lektu@terra.es>
 
 	* emulation/cua-base.el (cua--standard-movement-commands):
