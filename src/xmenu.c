@@ -321,11 +321,13 @@ xmenu_show (parent, startx, starty, line_list, enable_list, pane_list,
   if (pane_cnt == 0)
     return 0;
 
+  BLOCK_INPUT;
   *error = (char *) 0;		/* Initialize error pointer to null */
   GXMenu = XMenuCreate (XDISPLAY parent, "emacs");
   if (GXMenu == NUL)
     {
       *error = "Can't create menu";
+      UNBLOCK_INPUT;
       return (0);
     }
   
@@ -345,6 +347,7 @@ xmenu_show (parent, startx, starty, line_list, enable_list, pane_list,
 	{
 	  XMenuDestroy (XDISPLAY GXMenu);
 	  *error = "Can't create pane";
+	  UNBLOCK_INPUT;
 	  return (0);
 	}
       for (selidx = 0; selidx < line_cnt[panes]; selidx++)
@@ -361,6 +364,7 @@ xmenu_show (parent, startx, starty, line_list, enable_list, pane_list,
 	      /* free (datap); */
 	      *error = "Can't add selection to menu";
 	      /* error ("Can't add selection to menu"); */
+	      UNBLOCK_INPUT;
 	      return (0);
 	    }
 	}
@@ -412,6 +416,7 @@ xmenu_show (parent, startx, starty, line_list, enable_list, pane_list,
       break;
     }
   XMenuDestroy (XDISPLAY GXMenu);
+  UNBLOCK_INPUT;
   /* free (datap_save);*/
   return (entry);
 }
