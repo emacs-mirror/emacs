@@ -8,9 +8,9 @@
 ;; Maintainer: FSF
 ;; Keywords: lisp
 
-;;; This version incorporates changes up to version 2.10 of the 
+;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.65 $")
+(defconst byte-compile-version "$Revision: 2.66 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -64,7 +64,7 @@
 ;;    - functions being redefined as macros, or vice-versa;
 ;;    - functions or macros defined multiple times in the same file;
 ;;    - functions being called with the incorrect number of arguments;
-;;    - functions being called which are not defined globally, in the 
+;;    - functions being called which are not defined globally, in the
 ;;      file, or as autoloads;
 ;;    - assignment and reference of undeclared free variables;
 ;;    - various syntax errors;
@@ -76,9 +76,9 @@
 ;;
 ;; byte-compile-verbose	Whether to report the function currently being
 ;;				compiled in the minibuffer;
-;; byte-optimize		Whether to do optimizations; this may be 
+;; byte-optimize		Whether to do optimizations; this may be
 ;;				t, nil, 'source, or 'byte;
-;; byte-optimize-log		Whether to report (in excruciating detail) 
+;; byte-optimize-log		Whether to report (in excruciating detail)
 ;;				exactly which optimizations have been made.
 ;;				This may be t, nil, 'source, or 'byte;
 ;; byte-compile-error-on-warn	Whether to stop compilation when a warning is
@@ -87,7 +87,7 @@
 ;;				variable references that are side-effect-free
 ;;				except that they may return an error.
 ;; byte-compile-generate-call-tree	Whether to generate a histogram of
-;;				function calls.  This can be useful for 
+;;				function calls.  This can be useful for
 ;;				finding unused functions, as well as simple
 ;;				performance metering.
 ;; byte-compile-warnings	List of warnings to issue, or t.  May contain
@@ -125,7 +125,7 @@
 ;;
 ;;		(inline (foo 1 2 3))	;; `foo' will be open-coded
 ;;	or...
-;;		(inline			;;  `foo' and `baz' will be 
+;;		(inline			;;  `foo' and `baz' will be
 ;;		 (foo 1 2 3 (bar 5))	;; open-coded, but `bar' will not.
 ;;		 (baz 0))
 ;;
@@ -148,7 +148,7 @@
 ;;
 ;;  o  The command compile-defun is analogous to eval-defun.
 ;;
-;;  o  If you run byte-compile-file on a filename which is visited in a 
+;;  o  If you run byte-compile-file on a filename which is visited in a
 ;;     buffer, and that buffer is modified, you are asked whether you want
 ;;     to save the buffer before compiling.
 ;;
@@ -258,7 +258,7 @@ if you change this variable."
 ;; (defvar byte-compile-generate-emacs19-bytecodes
 ;;         (not (or (and (boundp 'epoch::version) epoch::version)
 ;; 		 (string-lessp emacs-version "19")))
-;;   "*If this is true, then the byte-compiler will generate bytecode which 
+;;   "*If this is true, then the byte-compiler will generate bytecode which
 ;; makes use of byte-ops which are present only in Emacs 19.  Code generated
 ;; this way can never be run in Emacs 18, and may even cause it to crash.")
 
@@ -384,7 +384,7 @@ specify different fields to sort on."
 ;;   "If nil, old .elc files are deleted before the new is saved, and .elc
 ;; files will have the same modes as the corresponding .el file.  Otherwise,
 ;; existing .elc files will simply be overwritten, and the existing modes
-;; will not be changed.  If this variable is nil, then an .elc file which 
+;; will not be changed.  If this variable is nil, then an .elc file which
 ;; is a symbolic link will be turned into a normal file, instead of the file
 ;; which the link points to being overwritten.")
 
@@ -574,10 +574,10 @@ Each element is (INDEX . VALUE)")
 (byte-defop 131 -1 byte-goto-if-nil "to pop value and jump if it's nil")
 (byte-defop 132 -1 byte-goto-if-not-nil "to pop value and jump if it's not nil")
 (byte-defop 133 -1 byte-goto-if-nil-else-pop
-  "to examine top-of-stack, jump and don't pop it if it's nil, 
+  "to examine top-of-stack, jump and don't pop it if it's nil,
 otherwise pop it")
 (byte-defop 134 -1 byte-goto-if-not-nil-else-pop
-  "to examine top-of-stack, jump and don't pop it if it's non nil, 
+  "to examine top-of-stack, jump and don't pop it if it's non nil,
 otherwise pop it")
 
 (byte-defop 135 -1 byte-return "to pop a value and return it from `byte-code'")
@@ -595,7 +595,7 @@ otherwise pop it")
 (byte-defop 142 -1 byte-unwind-protect
   "for unwind-protect.  Takes, on stack, an expression for the unwind-action")
 
-;; For condition-case.  Takes, on stack, the variable to bind, 
+;; For condition-case.  Takes, on stack, the variable to bind,
 ;; an expression for the body, and a list of clauses.
 (byte-defop 143 -2 byte-condition-case)
 
@@ -672,7 +672,7 @@ otherwise pop it")
 ;;; where instruction is a symbol naming a byte-code instruction,
 ;;; and parameter is an argument to that instruction, if any.
 ;;;
-;;; The instruction can be the pseudo-op TAG, which means that this position 
+;;; The instruction can be the pseudo-op TAG, which means that this position
 ;;; in the instruction stream is a target of a goto.  (car PARAMETER) will be
 ;;; the PC for this location, and the whole instruction "(TAG pc)" will be the
 ;;; parameter for some goto op.
@@ -916,7 +916,7 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 ;; 	      val)))
 
 ;; Inhibit v18/v19 selectors if the version is hardcoded.
-;; #### This should print a warning if the user tries to change something 
+;; #### This should print a warning if the user tries to change something
 ;; than can't be changed because the running compiler doesn't support it.
 ;; (cond
 ;;  ((byte-compile-single-version)
@@ -1150,7 +1150,7 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
       (keywordp symbol)))
 
 (defmacro byte-compile-constp (form)
-  ;; Returns non-nil if FORM is a constant.
+  "Return non-nil if FORM is a constant."
   `(cond ((consp ,form) (eq (car ,form) 'quote))
 	 ((not (symbolp ,form)))
 	 ((byte-compile-const-symbol-p ,form))))
@@ -1402,7 +1402,7 @@ The value is t if there were no errors, nil if errors."
 
 ;;(defun byte-compile-and-load-file (&optional filename)
 ;;  "Compile a file of Lisp code named FILENAME into a file of byte code,
-;;and then load it.  The output file's name is made by appending \"c\" to 
+;;and then load it.  The output file's name is made by appending \"c\" to
 ;;the end of FILENAME."
 ;;  (interactive)
 ;;  (if filename ; I don't get it, (interactive-p) doesn't always work
@@ -1806,6 +1806,14 @@ list that represents a doc string reference.
 	 (null form))			;Constants only
        (eval (nth 5 form))		;Macro
        (eval form))			;Define the autoload.
+  ;; Avoid undefined function warnings for the autoload.
+  (if (and (consp (nth 1 form))
+	   (eq (car (nth 1 form)) 'quote)
+	   (consp (cdr (nth 1 form)))
+	   (symbolp (nth 1 (nth 1 form))))
+      (add-to-list 'byte-compile-function-environment
+		   (cons (nth 1 (nth 1 form))
+			 form)))
   (if (stringp (nth 3 form))
       form
     ;; No doc string, so we can compile this as a normal form.
@@ -2308,7 +2316,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	(body
 	 (list body))))
 
-;; This is the recursive entry point for compiling each subform of an 
+;; This is the recursive entry point for compiling each subform of an
 ;; expression.
 ;; If for-effect is non-nil, byte-compile-form will output a byte-discard
 ;; before terminating (ie no value will be left on the stack).
@@ -3134,7 +3142,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 ;;			  (and (stringp (get condition 'error-message))
 ;;			       (consp (get condition 'error-conditions)))))
 ;;                 (byte-compile-warn
-;;                   "%s is not a known condition name (in condition-case)" 
+;;                   "%s is not a known condition name (in condition-case)"
 ;;                   condition))
 		)
 	  (setq compiled-clauses
@@ -3224,7 +3232,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	   (list 'setq 'current-load-list
 		 (list 'cons (list 'quote var)
 		       'current-load-list))
-	   (if string 
+	   (if string
 	       (list 'put (list 'quote var) ''variable-documentation string))
 	   (list 'quote var)))))
 
@@ -3234,12 +3242,12 @@ If FORM is a lambda or a macro, byte-compile it as a function."
        (eval (nth 5 form))  ; macro-p
        (not (fboundp (eval (nth 1 form))))
        (byte-compile-warn
-	"The compiler ignores `autoload' except at top level.  You should 
+	"The compiler ignores `autoload' except at top level.  You should
      probably put the autoload of the macro `%s' at top-level."
 	(eval (nth 1 form))))
   (byte-compile-normal-call form))
 
-;; Lambda's in valid places are handled as special cases by various code.
+;; Lambdas in valid places are handled as special cases by various code.
 ;; The ones that remain are errors.
 (defun byte-compile-lambda-form (form)
   (error "`lambda' used as function name is invalid"))
