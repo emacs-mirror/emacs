@@ -1,11 +1,11 @@
 ;;; url-methods.el --- Load URL schemes as needed
-;; Author: $Author: wmperry $
-;; Created: $Date: 2002/11/04 14:40:32 $
-;; Version: $Revision: 1.14 $
+;; Author: $Author: monnier $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
+;;; Copyright (c) 1993 - 1996, 2004 by William M. Perry <wmperry@cs.indiana.edu>
 ;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
@@ -31,7 +31,6 @@
 
 ;; This loads up some of the small, silly URLs that I really don't
 ;; want to bother putting in their own separate files.
-(require 'url-auto)
 (require 'url-parse)
 
 (defvar url-scheme-registry (make-hash-table :size 7 :test 'equal))

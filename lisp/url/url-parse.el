@@ -1,11 +1,11 @@
 ;;; url-parse.el --- Uniform Resource Locator parser
-;; Author: $Author: fx $
-;; Created: $Date: 2001/10/01 11:52:06 $
-;; Version: $Revision: 1.4 $
+;; Author: $Author: monnier $
+;; Created: $Date: 2004/04/04 01:21:46 $
+;; Version: $Revision: 1.1.1.1 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
+;;; Copyright (c) 1993 - 1996, 2004 by William M. Perry <wmperry@cs.indiana.edu>
 ;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
@@ -25,7 +25,6 @@
 ;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;;; Boston, MA 02111-1307, USA.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(require 'url-auto)
 (require 'url-vars)
 
 (autoload 'url-scheme-get-property "url-methods")
