@@ -858,12 +858,11 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 	   (and current-prefix-arg
 		(emerge-read-file-name "Output file" emerge-last-dir-output
 				       f f nil)))))
+  (if file-out
+      (add-hook 'quit-hooks (` (lambda () (emerge-files-exit (, file-out))))))
   (emerge-files-internal
    file-A file-B startup-hooks
-   (if file-out
-       (cons (` (lambda () (emerge-files-exit (, file-out))))
-	     quit-hooks)
-     quit-hooks)
+   quit-hooks
    file-out))
 
 ;;;###autoload
@@ -881,12 +880,11 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 	   (and current-prefix-arg
 		(emerge-read-file-name "Output file" emerge-last-dir-output
 				       f f nil)))))
+  (if file-out
+      (add-hook 'quit-hooks (` (lambda () (emerge-files-exit (, file-out))))))
   (emerge-files-with-ancestor-internal
    file-A file-B file-ancestor startup-hooks
-   (if file-out
-       (cons (` (lambda () (emerge-files-exit (, file-out))))
-	     quit-hooks)
-     quit-hooks)
+   quit-hooks
    file-out))
 
 ;; Write the merge buffer out in place of the file the A buffer is visiting.
