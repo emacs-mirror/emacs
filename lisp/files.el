@@ -974,20 +974,15 @@ If `enable-local-variables' is nil, this function does not check for a
   ;; set-auto-mode should already have handled that.
   (save-excursion
     (goto-char (point-min))
-    (skip-chars-forward " \t\n\r")
-    (let ((result '())
-	  (end (save-excursion (end-of-line) (point))))
+    (let ((result nil)
+	  (end (save-excursion (end-of-line (and (looking-at "^#!") 2)) (point))))
       ;; Parse the -*- line into the `result' alist.
       (cond ((not (search-forward "-*-" end t))
 	     ;; doesn't have one.
 	     nil)
 	    ((looking-at "[ \t]*\\([^ \t\n\r:;]+\\)\\([ \t]*-\\*-\\)")
-	     ;; Simple form: "-*- MODENAME -*-".
-	     (setq result
-	       (list (cons 'mode
-			   (intern (buffer-substring
-				    (match-beginning 1)
-				    (match-end 1)))))))
+	     ;; Simple form: "-*- MODENAME -*-".  Already handled.
+	     nil)
 	    (t
 	     ;; Hairy form: '-*-' [ <variable> ':' <value> ';' ]* '-*-'
 	     ;; (last ";" is optional).
@@ -1005,7 +1000,8 @@ If `enable-local-variables' is nil, this function does not check for a
 		     (val (save-restriction
 			    (narrow-to-region (point) end)
 			    (read (current-buffer)))))
-		 (setq result (cons (cons key val) result))
+		 (or (eq key 'mode)
+		     (setq result (cons (cons key val) result)))
 		 (skip-chars-forward " \t;")))
 	     (setq result (nreverse result))))
       
@@ -1026,10 +1022,7 @@ If `enable-local-variables' is nil, this function does not check for a
 			  (y-or-n-p (format "Set local variables as specified in -*- line of %s? "
 					    (file-name-nondirectory buffer-file-name)))))))
 	  (while result
-	    (let ((key (car (car result)))
-		  (val (cdr (car result))))
-	      (or (eq key 'mode)
-		  (hack-one-local-variable key val)))
+	    (hack-one-local-variable (car (car result)) (cdr (car result)))
 	    (setq result (cdr result)))))))
 
 (defun hack-local-variables ()
