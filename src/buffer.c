@@ -2143,7 +2143,7 @@ current buffer is cleared.  */)
       GPT = GPT_BYTE;
       TEMP_SET_PT_BOTH (PT_BYTE, PT_BYTE);
 
-      
+
       for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
 	tail->charpos = tail->bytepos;
 
@@ -3339,7 +3339,7 @@ fix_start_end_in_overlays (start, end)
 
       if (endpos < start)
 	break;
-      
+
       if (endpos < end
 	  || (startpos >= start && startpos < end))
 	{
@@ -3382,7 +3382,7 @@ fix_start_end_in_overlays (start, end)
 	{
 	  startpos = endpos;
 	  Fset_marker (OVERLAY_START (overlay), make_number (startpos),
-		       Qnil);	  
+		       Qnil);
 	}
 
       if (startpos >= end)
@@ -4193,7 +4193,7 @@ report_overlay_modification (start, end, after, arg1, arg2, arg3)
 		add_overlay_mod_hooklist (prop, overlay);
 	    }
 	}
-      
+
       for (tail = current_buffer->overlays_after; tail; tail = tail->next)
 	{
 	  int startpos, endpos;
@@ -5866,7 +5866,9 @@ this variable has no effect; the cursor appears as a hollow box.  */);
   DEFVAR_PER_BUFFER ("line-spacing",
 		     &current_buffer->extra_line_spacing, Qnil,
 		     doc: /* Additional space to put between lines when displaying a buffer.
-The space is measured in pixels, and put below lines on window systems.  */);
+The space is measured in pixels, and put below lines on window systems.
+If value is a floating point number, it specifies the spacing relative
+to the default frame line height.  */);
 
   DEFVAR_LISP ("kill-buffer-query-functions", &Vkill_buffer_query_functions,
 	       doc: /* List of functions called with no args to query before killing a buffer.  */);
