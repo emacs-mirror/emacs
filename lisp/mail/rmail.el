@@ -1,6 +1,6 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs.
 
-;; Copyright (C) 1985,86,87,88,93,94,95,96,97,98,2000
+;; Copyright (C) 1985,86,87,88,93,94,95,96,97,98,2000, 2001
 ;;		Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -139,7 +139,20 @@ value is the user's name.)
 It is useful to set this variable in the site customization file.")
 
 ;;;###autoload
-(defcustom rmail-ignored-headers "^via:\\|^mail-from:\\|^origin:\\|^references:\\|^status:\\|^received:\\|^x400-originator:\\|^x400-recipients:\\|^x400-received:\\|^x400-mts-identifier:\\|^x400-content-type:\\|^\\(resent-\\|\\)message-id:\\|^summary-line:\\|^resent-date:\\|^nntp-posting-host:\\|^path:\\|^x-char.*:\\|^x-face:\\|^x-mailer:\\|^delivered-to:\\|^lines:\\|^mime-version:\\|^content-transfer-encoding:\\|^x-coding-system:\\|^return-path:\\|^errors-to:\\|^return-receipt-to:\\|^x-attribution:\\|^x-disclaimer:"
+(defcustom rmail-ignored-headers
+  (concat "^via:\\|^mail-from:\\|^origin:\\|^references:"
+	  "\\|^status:\\|^received:\\|^x400-originator:\\|^x400-recipients:"
+	  "\\|^x400-received:\\|^x400-mts-identifier:\\|^x400-content-type:"
+	  "\\|^\\(resent-\\|\\)message-id:\\|^summary-line:\\|^resent-date:"
+	  "\\|^nntp-posting-host:\\|^path:\\|^x-char.*:\\|^x-face:"
+	  "\\|^x-mailer:\\|^delivered-to:\\|^lines:\\|^mime-version:"
+	  "\\|^content-transfer-encoding:\\|^x-coding-system:"
+	  "\\|^return-path:\\|^errors-to:\\|^return-receipt-to:"
+	  "\\|^x-sign:\\|^x-beenthere:\\|^x-mailman-version:"
+	  "\\|^precedence:\\|^list-help:\\|^list-post:\\|^list-subscribe:"
+	  "\\|^list-id:\\|^list-unsubscribe:\\|^list-archive:"
+	  "\\|^content-type:\\|^content-length:"
+	  "\\|^x-attribution:\\|^x-disclaimer:")
   "*Regexp to match header fields that Rmail should normally hide.
 This variable is used for reformatting the message header,
 which normally happens once for each message,
