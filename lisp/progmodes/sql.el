@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
-;; Version: 1.4.22
+;; Version: 1.4.23
 ;; Keywords: comm languages processes
 
 ;; This file is part of GNU Emacs.
@@ -298,6 +298,13 @@ Starts `sql-interactive-mode' after doing some setup.
 
 The program can also specify a TCP connection.  See `make-comint'."
   :type 'file
+  :group 'SQL)
+
+(defcustom sql-sybase-options nil
+  "*List of additional options for `sql-sybase-program'.
+Some versions of isql might require the -n option in order to work."
+  :type '(repeat string)
+  :version "20.8"
   :group 'SQL)
 
 ;; Customisation for Informix
@@ -1267,8 +1274,8 @@ If buffer exists and a process is running, just switch to buffer
 `*SQL*'.
 
 Interpreter used comes from variable `sql-sybase-program'.  Login uses
-the variables `sql-user', `sql-password', and `sql-server' as
-defaults, if set.
+the variables `sql-server', `sql-user', `sql-password', and
+`sql-database' as defaults, if set.
 
 The buffer is put in sql-interactive-mode, giving commands for sending
 input.  See `sql-interactive-mode'.
@@ -1284,15 +1291,15 @@ The default comes from `process-coding-system-alist' and
   (interactive)
   (if (comint-check-proc "*SQL*")
       (pop-to-buffer "*SQL*")
-    (sql-get-login 'user 'password 'server)
+    (sql-get-login 'server 'user 'password 'server)
     (message "Login...")
     ;; Put all parameters to the program (if defined) in a list and call
     ;; make-comint.
-    (let ((params '("-w" "2048" "-n")))
-      ;; There is no way to specify the database via command line
-      ;; parameters.  The -S option specifies the server.
+    (let ((params sql-sybase-options))
       (if (not (string= "" sql-server))
 	  (setq params (append (list "-S" sql-server) params)))
+      (if (not (string= "" sql-database))
+	  (setq params (append (list "-D" sql-database) params)))
       (if (not (string= "" sql-password))
 	  (setq params (append (list "-P" sql-password) params)))
       (if (not (string= "" sql-user))
