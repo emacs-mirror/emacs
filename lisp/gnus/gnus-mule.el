@@ -3,7 +3,8 @@
 ;; Copyright (C) 1995,1997 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 2000 Electrotechnical Laboratory, JAPAN.
 
-;; Keywords: gnus, mule
+;; Maintainer: FSF
+;; Keywords: news, i18n
 
 ;; This file is part of GNU Emacs.
 
