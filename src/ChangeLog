@@ -1,3 +1,32 @@
+2001-11-17  Jason Rumney  <jasonr@gnu.org>
+
+	* xterm.c (notice_overwritten_cursor): Take care of end < 0 case.
+
+	* w32fns.c (x_set_internal_border_width): Set frame garbaged
+	when X window doesn't exist yet.
+
+	* w32term.c (x_draw_bar_cursor): If the background color of the
+	glyph under the cursor equals the frame's cursor color, use
+	the glyph's foreground color for drawing the bar cursor.
+	(x_after_update_window_line): Clear internal border
+	in different circumstances.
+	(w32_set_vertical_scroll_bar): Check for width and height > 0.
+	(w32_draw_relief_rect): Correct relief by 1 pixel.
+	(x_set_glyph_string_background_width): Set
+	extends_to_end_of_line_p if the row's fill_line_p is set and
+	drawing the last glyph with DRAW_IMAGE_{RAISED,SUNKEN}.
+	(x_display_and_set_cursor): If cursor_in_echo_area,
+	use NO_CURSOR if cursor_in_non_selected_windows is false.
+	(show_mouse_face): Clean up.  Recognize overwritten
+	cursor differently.
+	(x_draw_glyphs): Remove parameters READ_START and
+	REAL_END.  Notice if cursor gets overwritten.
+	(notice_overwritten_cursor): Renamed from
+	note_overwritten_text_cursor.  Rewritten to take glyph widths
+	into account, and to take X positions as parameters.
+	(x_draw_phys_cursor_glyph): Save state of w->phys_cursor_on_p
+	around call to x_draw_glyphs.
+
 2001-11-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (tool_bar_item_info): Avoid calling Fget_text_property
