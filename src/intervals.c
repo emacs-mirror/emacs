@@ -188,9 +188,6 @@ intervals_equal (i0, i1)
   return 1;
 }
 
-static int icount;
-static int idepth;
-static int zero_length;
 
 /* Traverse an interval tree TREE, performing FUNCTION on each node.
    Pass FUNCTION two args: an interval, and ARG.  */
@@ -214,6 +211,11 @@ traverse_intervals (tree, position, depth, function, arg)
 }
 
 #if 0
+
+static int icount;
+static int idepth;
+static int zero_length;
+
 /* These functions are temporary, for debugging purposes only.  */
 
 INTERVAL search_interval, found_interval;
@@ -295,10 +297,12 @@ rotate_right (interval)
 
   /* Deal with any Parent of A;  make it point to B.  */
   if (! ROOT_INTERVAL_P (interval))
-    if (AM_LEFT_CHILD (interval))
-      interval->parent->left = B;
-    else
-      interval->parent->right = B;
+    {
+      if (AM_LEFT_CHILD (interval))
+	interval->parent->left = B;
+      else
+	interval->parent->right = B;
+    }
   B->parent = interval->parent;
 
   /* Make B the parent of A */
@@ -339,10 +343,12 @@ rotate_left (interval)
 
   /* Deal with any parent of A;  make it point to B.  */
   if (! ROOT_INTERVAL_P (interval))
-    if (AM_LEFT_CHILD (interval))
-      interval->parent->left = B;
-    else
-      interval->parent->right = B;
+    {
+      if (AM_LEFT_CHILD (interval))
+	interval->parent->left = B;
+      else
+	interval->parent->right = B;
+    }
   B->parent = interval->parent;
 
   /* Make B the parent of A */
@@ -514,7 +520,6 @@ split_interval_left (interval, offset)
      int offset;
 {
   INTERVAL new = make_interval ();
-  int position = interval->position;
   int new_length = offset;
 
   new->position = interval->position;
@@ -671,7 +676,6 @@ previous_interval (interval)
      register INTERVAL interval;
 {
   register INTERVAL i;
-  register int position_of_previous;
 
   if (NULL_INTERVAL_P (interval))
     return NULL_INTERVAL;
@@ -1285,7 +1289,6 @@ adjust_intervals_for_deletion (buffer, start, length)
 {
   register int left_to_delete = length;
   register INTERVAL tree = BUF_INTERVALS (buffer);
-  register int deleted;
   Lisp_Object parent;
   int offset;
 
@@ -1777,9 +1780,8 @@ set_point_both (buffer, charpos, bytepos)
      register struct buffer *buffer;
      register int charpos, bytepos;
 {
-  register INTERVAL to, from, toprev, fromprev, target;
+  register INTERVAL to, from, toprev, fromprev;
   int buffer_point;
-  register Lisp_Object obj;
   int old_position = BUF_PT (buffer);
   int backwards = (charpos < old_position ? 1 : 0);
   int have_overlays;
@@ -2178,8 +2180,6 @@ set_intervals_multibyte_1 (i, multi_flag, start, start_byte, end, end_byte)
      int multi_flag;
      int start, start_byte, end, end_byte;
 {
-  INTERVAL left, right;
-
   /* Fix the length of this interval.  */
   if (multi_flag)
     i->total_length = end - start;
