@@ -7,6 +7,9 @@
 
 	* ibuf-ext.el (sorter mode-name): Doc fix.
 	(ibuffer-mark-help-buffers): Use `ibuffer-help-buffer-modes'.
+	(operation query-replace): Use new `noerror' arg for
+	`query-replace-read-args'.
+	(operation query-replace-regexp): Ditto
 
 2002-03-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
