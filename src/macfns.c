@@ -2598,7 +2598,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   if (!NILP (parent))
     {
-      f->output_data.mac->parent_desc = (Window) parent;
+      f->output_data.mac->parent_desc = (Window) XFASTINT (parent);
       f->output_data.mac->explicit_parent = 1;
     }
   else

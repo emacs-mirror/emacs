@@ -1,3 +1,20 @@
+2004-05-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* lisp.h (Vx_resource_name, Vx_resource_class): Move from xfns.c
+	section to frame.c section.
+	(Fxw_display_color_p, Fx_file_dialog): Declare if
+	HAVE_WINDOW_SYSTEM defined.	
+	* macfns.c (Fx_create_frame): Fix int/Lisp_Object mixup.
+	* macmenu.c (set_frame_menubar): Use NILP to test a lisp value.
+	* macterm.c (mac_get_emulated_btn, mac_event_to_emacs_modifiers)
+	(mac_get_mouse_btn): Use NILP and EQ to test/compare lisp values.
+	(XTread_socket): Fix int/Lisp_Object mixup.
+	(mac_check_for_quit_char): Fix pointer/Lisp_Object mixup.
+	* macterm.h (struct frame, struct face, struct image)
+	(display_x_get_resource, Fx_display_color_p)
+	(Fx_display_grayscale_p, Fx_display_planes, x_free_gcs): Add
+	prototypes.
+
 2004-05-14  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (wait_reading_process_input): Make reentrant.

@@ -2884,6 +2884,10 @@ extern int indented_beyond_p P_ ((int, int, double));
 extern void syms_of_indent P_ ((void));
 
 /* defined in frame.c */
+#ifdef HAVE_WINDOW_SYSTEM
+extern Lisp_Object Vx_resource_name;
+extern Lisp_Object Vx_resource_class;
+#endif /* HAVE_WINDOW_SYSTEM */
 extern Lisp_Object Qvisible;
 extern void store_frame_param P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void store_in_alist P_ ((Lisp_Object *, Lisp_Object, Lisp_Object));
@@ -3104,11 +3108,12 @@ extern int getloadavg P_ ((double *, int));
 #ifdef HAVE_X_WINDOWS
 /* Defined in xfns.c */
 extern void syms_of_xfns P_ ((void));
-extern Lisp_Object Vx_resource_name;
-extern Lisp_Object Vx_resource_class;
+#endif /* HAVE_X_WINDOWS */
+#ifdef HAVE_WINDOW_SYSTEM
+/* Defined in xfns.c, w32fns.c, or macfns.c */
 EXFUN (Fxw_display_color_p, 1);
 EXFUN (Fx_file_dialog, 4);
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* Defined in xsmfns.c */
 extern void syms_of_xsmfns P_ ((void));
