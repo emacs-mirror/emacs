@@ -6,18 +6,57 @@
 ;;       please contact   (address) O Seidel, Lessingstr 8, Eschborn, FRG
 ;;                        (e-mail ) Oliver.Seidel@cl.cam.ac.uk (2 Aug 1997)
 
-;; $Id: todomode.el,v 1.1 1997/08/03 12:15:13 os10000 Exp os10000 $
+;; $Id: todomode.el,v 1.2 1997/08/03 12:15:28 os10000 Exp os10000 $
 ;;
 ;; $Log: todomode.el,v $
+;; Revision 1.2  1997/08/03 12:15:28  os10000
+;; It appears to work.
+;;
 ;; Revision 1.1  1997/08/03 12:15:13  os10000
 ;; Initial revision
 ;;
 
 ;; ---------------------------------------------------------------------------
 
+;; Description:
+;;
+;; To get this to work, make emacs execute the line "(require 'todomode)"
+;; and maybe initialise the variables below on startup.
+;;
+;; Then you have the following facilities available:
+;;
+;; M-x todo-mode              will enter the todo list screen, here type
+;; p                          for the previous entry
+;; n                          for the next entry
+;; q                          to save the list and exit the buffer
+;; e                          to edit the current entry
+;; i                          to insert a new entry
+;; k                          to kill the current entry
+;; f                          to file the current entry, including a
+;;                            comment and timestamp
+;;
+;; I would recommend to add the following bindings to your global keymap:
+;;
+;; (global-set-key "\C-ct" 'todo-mode)
+;; (global-set-key "\C-ci" 'todo-cmd-inst)
+;;
+;; This will enable you to quickly find the todo-list, or to simply add an
+;; entry, without changing to it and getting sidetracked from your current
+;; project.
+;;
+;; I would also recommend that you execute the command
+;;
+;; (setq todo-prefix "*/* ")
+;;
+;; to have all your entries prefixed in such a way that the diary displays
+;; them every day.
+
+;; ---------------------------------------------------------------------------
+
 ;; User-configurable variables:
 
-(defvar todo-file-do   "~/.todo-do"   "TODO mode filename of list file")
+(defvar todo-prefix "" "TODO mode prefix when creating entries")
+(defvar todo-file-do "~/.todo-do" "TODO mode filename of list file")
 (defvar todo-file-done "~/.todo-done" "TODO mode filename of archive file")
 (defvar todo-mode-hook nil "Hooks invoked when the *TODO* buffer is created.")
 
@@ -54,6 +93,8 @@
 
 (defun todo-cmd-done () "Done with todo list for now."
   (interactive)
+  (beginning-of-line nil)
+  (message "")
   (save-buffer)
   (bury-buffer)
   )
@@ -89,7 +130,8 @@
 
 (defun todo-cmd-inst () "Insert new todo list entry."
   (interactive)
-  (setq todo-entry (read-from-minibuffer "New TODO entry: "))
+  (beginning-of-line nil)
+  (setq todo-entry (concat "*/* " (read-from-minibuffer "New TODO entry: ")))
   (save-window-excursion
     (find-file todo-file-do)
     (setq todo-prv-lne 0)
@@ -155,6 +197,7 @@
   (setq major-mode 'todo-mode)
   (setq mode-name "TODO")
   (use-local-map todo-mode-map)
+  (beginning-of-line nil)
   (run-hooks 'todo-mode-hook) )
 
 (provide 'todomode)
