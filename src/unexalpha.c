@@ -31,6 +31,10 @@ Boston, MA 02111-1307, USA.  */
 #include <aouthdr.h>
 #include <scnhdr.h>
 #include <syms.h>
+#ifndef __linux__
+# include <reloc.h>
+# include <elf_abi.h>
+#endif
 
 static void fatal_unexec ();
 static void mark_x ();
@@ -52,11 +56,14 @@ static void mark_x ();
 extern int errno;
 extern char *strerror ();
 
-void *sbrk();
+void *sbrk ();
 
 #define EEOF -1
 
 static struct scnhdr *text_section;
+static struct scnhdr *rel_dyn_section;
+static struct scnhdr *dynstr_section;
+static struct scnhdr *dynsym_section;
 static struct scnhdr *init_section;
 static struct scnhdr *finit_section;
 static struct scnhdr *rdata_section;
@@ -70,6 +77,8 @@ static struct scnhdr *lit4_section;
 static struct scnhdr *sdata_section;
 static struct scnhdr *sbss_section;
 static struct scnhdr *bss_section;
+
+static struct scnhdr old_data_scnhdr;
 
 static unsigned long Brk;
 
@@ -157,7 +166,7 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
 #define CHECK_SCNHDR(ptr, name, flags)					\
   ptr = NULL;								\
   for (i = 0; i < nhdr.fhdr.f_nscns && !ptr; i++)			\
-    if (strcmp (nhdr.section[i].s_name, name) == 0)			\
+    if (strncmp (nhdr.section[i].s_name, name, 8) == 0)			\
       {									\
 	if (nhdr.section[i].s_flags != flags)				\
 	  fprintf (stderr, "unexec: %x flags (%x expected) in %s section.\n", \
@@ -167,6 +176,15 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
 
   CHECK_SCNHDR (text_section,  _TEXT,  STYP_TEXT);
   CHECK_SCNHDR (init_section,  _INIT,  STYP_INIT);
+#ifdef _REL_DYN
+  CHECK_SCNHDR (rel_dyn_section, _REL_DYN,  STYP_REL_DYN);
+#endif /* _REL_DYN */
+#ifdef _DYNSYM
+  CHECK_SCNHDR (dynsym_section, _DYNSYM,  STYP_DYNSYM);
+#endif /* _REL_DYN */
+#ifdef _DYNSTR
+  CHECK_SCNHDR (dynstr_section, _DYNSTR,  STYP_DYNSTR);
+#endif /* _REL_DYN */
 #ifdef _FINI
   CHECK_SCNHDR (finit_section, _FINI,  STYP_FINI);
 #endif /* _FINI */
@@ -199,6 +217,8 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
   /* Remember the current break */
 
   Brk = brk;
+
+  bcopy (data_section, &old_data_scnhdr, sizeof (old_data_scnhdr));
 
   nhdr.aout.dsize = brk - DATA_START;
   nhdr.aout.bsize = 0;
@@ -341,15 +361,8 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
 	 stat.st_size - ohdr.fhdr.f_symptr - cbHDRR,
 	 "writing symbol table of %s", new_name);
 
-#if 0
-
-/* Not needed for now */
-
-  update_dynamic_symbols (oldptr, new_name, new, newsyms,
-			  ((pHDRR) (oldptr + ohdr.fhdr.f_symptr))->issExtMax,
-                          ((pHDRR) (oldptr + ohdr.fhdr.f_symptr))->cbExtOffset,
-                          ((pHDRR) (oldptr + ohdr.fhdr.f_symptr))->cbSsExtOffset);
-
+#ifndef __linux__
+  update_dynamic_symbols (oldptr, new_name, new, nhdr.aout);
 #endif
 
 #undef symhdr
@@ -364,69 +377,87 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
 }
 
 
-#if 0
-
-/* Not needed for now */
-
-/* The following function updates the values of some symbols
-   that are used by the dynamic loader:
-
-   _edata
-   _end
-
-*/
 
 
-update_dynamic_symbols (old, new_name, new, newsyms, nsyms, symoff, stroff)
+#ifndef __linux__
+
+update_dynamic_symbols (old, new_name, new, aout)
      char *old;			/* Pointer to old executable */
      char *new_name;            /* Name of new executable */
      int new;			/* File descriptor for new executable */
-     long newsyms;		/* Offset of Symbol table in new executable */
-     int nsyms;			/* Number of symbol table entries */
-     long symoff;		/* Offset of External Symbols in old file */
-     long stroff;		/* Offset of string table in old file */
+     struct aouthdr aout;	/* a.out info from the file header */
 {
-  long i;
-  int found = 0;
-  EXTR n_end, n_edata;
+  typedef struct dynrel_info {
+    char * addr;
+    unsigned type:8;
+    unsigned index:24;
+    unsigned info:8;
+    unsigned pad:8;
+  } dr_info;
 
-  /* We go through the symbol table entries until we have found the two
-     symbols. */
+  int nsyms = rel_dyn_section->s_size / sizeof (struct dynrel_info);
+  int i;
+  dr_info * rd_base = (dr_info *) (old + rel_dyn_section->s_scnptr);
+  Elf32_Sym * ds_base = (Elf32_Sym *) (old + dynsym_section->s_scnptr);
 
-  /* cbEXTR is the size of an external symbol table entry */
+  for (i = 0; i < nsyms; i++) {
+    register Elf32_Sym x;
 
-  for (i = 0; i < nsyms && found < 2; i += cbEXTR)
-    {
-      register pEXTR x = (pEXTR) (old + symoff + i);
-      char *s;
-  
-      s = old + stroff + x->asym.iss; /* name of the symbol */
+    if (rd_base[i].index == 0)
+      continue;
 
-      if (!strcmp(s,"_edata"))
-	{
-	  found++;
-          bcopy (x, &n_edata, cbEXTR);
-	  n_edata.asym.value = Brk;
-	  SEEK (new, newsyms + cbHDRR + i,
-		"seeking to symbol _edata in %s", new_name);
-	  WRITE (new, &n_edata, cbEXTR,
-		 "writing symbol table entry for _edata into %s", new_name);
-	}
-      else if (!strcmp(s,"_end"))
-	{
-	  found++;
-          bcopy (x, &n_end, cbEXTR);
-	  n_end.asym.value = Brk;
-	  SEEK (new, newsyms + cbHDRR + i,
-		"seeking to symbol _end in %s", new_name);
-	  WRITE (new, &n_end, cbEXTR,
-		 "writing symbol table entry for _end into %s", new_name);
-	}
+    x = ds_base[rd_base[i].index];
+
+#if 0
+      fprintf (stderr, "Object inspected: %s, addr = %lx, shndx = %x",
+	       old + dynstr_section->s_scnptr + x.st_name, rd_base[i].addr, x.st_shndx);
+#endif
+
+
+    if ((ELF32_ST_BIND (x.st_info) == STB_GLOBAL)
+	&& (x.st_shndx == 0)
+	/* && (x.st_value == NULL) */
+	) {
+      /* OK, this is probably a reference to an object in a shared
+	 library, so copy the old value. This is done in several steps:
+	 1. reladdr is the address of the location in question relative to
+            the start of the data section,
+         2. oldref is the addr is the mapped in temacs executable,
+         3. newref is the address of the location in question in the
+            undumped executable,
+         4. len is the size of the object reference in bytes --
+            currently only 4 (long) and 8 (quad) are supported.
+	    */
+      register unsigned long reladdr = rd_base[i].addr - old_data_scnhdr.s_vaddr;
+      char * oldref = old + old_data_scnhdr.s_scnptr + reladdr;
+      unsigned long newref = aout.tsize + reladdr;
+      int len;
+
+#if 0
+      fprintf (stderr, "...relocated\n");
+#endif
+
+      if (rd_base[i].type == R_REFLONG) 
+	len = 4;
+      else if (rd_base[i].type == R_REFQUAD) 
+	len = 8;
+      else
+	fatal_unexec ("unrecognized relocation type in .dyn.rel section (symbol #%d)", i);
+
+      SEEK (new, newref, "seeking to dynamic symbol in %s", new_name);
+      WRITE (new, oldref, len, "writing old dynrel info in %s", new_name);
     }
+
+#if 0
+    else
+      fprintf (stderr, "...not relocated\n");
+#endif
+
+  }
 
 }
 
-#endif
+#endif /* !__linux__ */
 
 
 /*
