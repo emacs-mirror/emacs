@@ -22360,7 +22360,7 @@ The face used for trailing whitespace is `trailing-whitespace'.  */);
 
   DEFVAR_LISP ("show-nonbreak-escape", &Vshow_nonbreak_escape,
     doc: /* *Non-nil means display escape character before non-break space and hyphen.  */);
-  Vshow_trailing_whitespace = Qt;
+  Vshow_nonbreak_escape = Qt;
 
   DEFVAR_LISP ("void-text-area-pointer", &Vvoid_text_area_pointer,
     doc: /* *The pointer shape to show in void text areas.
