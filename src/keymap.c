@@ -81,6 +81,7 @@ Lisp_Object Qkeymapp, Qkeymap, Qnon_ascii;
 extern Lisp_Object meta_prefix_char;
 
 void describe_map_tree ();
+static Lisp_Object define_as_prefix ();
 static Lisp_Object describe_buffer_bindings ();
 static void describe_command ();
 static void describe_map ();
@@ -255,14 +256,20 @@ get_keymap (object)
    bindings; any key left unmentioned by other tables and bindings is
    given the binding of Qt.  
 
-   If T_OK is zero, bindings for Qt are not treated specially.  */
+   If T_OK is zero, bindings for Qt are not treated specially.
+
+   If NOINHERIT, don't accept a subkeymap found in an inherited keymap.  */
 
 Lisp_Object
-access_keymap (map, idx, t_ok)
+access_keymap (map, idx, t_ok, noinherit)
      Lisp_Object map;
      Lisp_Object idx;
      int t_ok;
+     int noinherit;
 {
+  int noprefix = 0;
+  Lisp_Object val;
+
   /* If idx is a list (some sort of mouse click, perhaps?),
      the index we want to use is the car of the list, which
      ought to be a symbol.  */
@@ -287,9 +294,21 @@ access_keymap (map, idx, t_ok)
 
 	switch (XTYPE (binding))
 	  {
+	  case Lisp_Symbol:
+	    /* If NOINHERIT, stop finding prefix definitions
+	       after we pass a second occurrence of the `keymap' symbol.  */
+	    if (noinherit && EQ (binding, Qkeymap) && ! EQ (tail, map))
+	      noprefix = 1;
+	    break;
+
 	  case Lisp_Cons:
 	    if (EQ (XCONS (binding)->car, idx))
-	      return XCONS (binding)->cdr;
+	      {
+		val = XCONS (binding)->cdr;
+		if (noprefix && CONSP (val) && EQ (XCONS (val)->car, Qkeymap))
+		  return Qnil;
+		return val;
+	      }
 	    if (t_ok && EQ (XCONS (binding)->car, Qt))
 	      t_binding = XCONS (binding)->cdr;
 	    break;
@@ -298,7 +317,12 @@ access_keymap (map, idx, t_ok)
 	    if (XTYPE (idx) == Lisp_Int
 		&& XINT (idx) >= 0
 		&& XINT (idx) < XVECTOR (binding)->size)
-	      return XVECTOR (binding)->contents[XINT (idx)];
+	      {
+		val = XVECTOR (binding)->contents[XINT (idx)];
+		if (noprefix && CONSP (val) && EQ (XCONS (val)->car, Qkeymap))
+		  return Qnil;
+		return val;
+	      }
 	    break;
 	  }
 
@@ -330,7 +354,7 @@ get_keyelt (object)
       map = get_keymap_1 (Fcar_safe (object), 0, 0);
       tem = Fkeymapp (map);
       if (!NILP (tem))
-	object = access_keymap (map, Fcdr (object), 0);
+	object = access_keymap (map, Fcdr (object), 0, 0);
       
       /* If the keymap contents looks like (STRING . DEFN),
 	 use DEFN.
@@ -552,13 +576,11 @@ the front of KEYMAP.")
       if (idx == length)
 	RETURN_UNGCPRO (store_in_keymap (keymap, c, def));
 
-      cmd = get_keyelt (access_keymap (keymap, c, 0));
+      cmd = get_keyelt (access_keymap (keymap, c, 0, 1));
 
+      /* If this key is undefined, make it a prefix.  */
       if (NILP (cmd))
-	{
-	  cmd = Fmake_sparse_keymap (Qnil);
-	  store_in_keymap (keymap, c, cmd);
-	}
+	cmd = define_as_prefix (keymap, c);
 
       keymap = get_keymap_1 (cmd, 0, 1);
       if (NILP (keymap))
@@ -640,7 +662,7 @@ recognize the default bindings, just as `read-key-sequence' does.")
 	  idx++;
 	}
 
-      cmd = get_keyelt (access_keymap (keymap, c, t_ok));
+      cmd = get_keyelt (access_keymap (keymap, c, t_ok, 0));
       if (idx == length)
 	return cmd;
 
@@ -650,6 +672,42 @@ recognize the default bindings, just as `read-key-sequence' does.")
 
       QUIT;
     }
+}
+
+/* Make KEYMAP define event C as a keymap (i.e., as a prefix).
+   Assume that currently it does not define C at all.
+   Return the keymap.  */
+
+static Lisp_Object
+define_as_prefix (keymap, c)
+     Lisp_Object keymap, c;
+{
+  Lisp_Object inherit, cmd;
+
+  cmd = Fmake_sparse_keymap (Qnil);
+  /* If this key is defined as a prefix in an inherited keymap,
+     make it a prefix in this map, and make its definition
+     inherit the other prefix definition.  */
+  inherit = access_keymap (keymap, c, 0, 0);
+  if (NILP (inherit))
+    {
+      /* If there's an inherited keymap
+	 and it doesn't define this key,
+	 make it define this key.  */
+      Lisp_Object tail;
+
+      for (tail = Fcdr (keymap); CONSP (tail); tail = XCONS (tail)->cdr)
+	if (EQ (XCONS (tail)->car, Qkeymap))
+	  break;
+
+      if (!NILP (tail))
+	inherit = define_as_prefix (tail, c);
+    }
+
+  cmd = nconc2 (cmd, inherit);
+  store_in_keymap (keymap, c, cmd);
+
+  return cmd;
 }
 
 /* Append a key to the end of a key sequence.  We always make a vector.  */
