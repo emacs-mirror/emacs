@@ -2378,7 +2378,9 @@ init_system_name ()
 	if (hp)
 	  {
 	    char *fqdn = (char *) hp->h_name;
+#if 0
 	    char *p;
+#endif
 
 	    if (!index (fqdn, '.'))
 	      {
