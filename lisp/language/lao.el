@@ -42,11 +42,11 @@
 	 (features lao-util)
 	 (documentation . t)))
 
-;; Register a function to compose Lao characters.
-(set-char-table-range composition-function-table
-		      '(#x0F00 . #x0F7F) 
-		      '(("\\c0\\c9?\\(\\(\\c2\\|\\c3\\)\\c4?\\|\\c4\\)?"
-			 . lao-composition-function)))
+;; For automatic composition.
+(let ((chars "(1QTUVWXY[\hijklm(B"))
+  (dotimes (i (length chars))
+    (aset composition-function-table (aref chars i)
+	  'lao-composition-function)))
 
 (provide 'lao)
 
