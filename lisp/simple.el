@@ -2408,7 +2408,8 @@ and more reliable (no dependence on goal column, etc.)."
       (if (save-excursion (end-of-line) (eobp))
 	  ;; When adding a newline, don't expand an abbrev.
 	  (let ((abbrev-mode nil))
-	    (newline 1))
+	    (end-of-line)
+	    (insert "\n"))
 	(line-move arg))
     (if (interactive-p)
 	(condition-case nil
