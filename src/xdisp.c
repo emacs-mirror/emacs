@@ -9428,7 +9428,7 @@ update_overlay_arrows (up_to_date)
       if (!SYMBOLP (var))
 	continue;
 
-      if (up_to_date)
+      if (up_to_date > 0)
 	{
 	  Lisp_Object val = find_symbol_value (var);
 	  Fput (var, Qlast_arrow_position,
