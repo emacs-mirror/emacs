@@ -190,11 +190,12 @@ for more information on that.
 @section Tabs vs. Spaces
 
 @vindex indent-tabs-mode
-  Emacs normally uses both tabs and spaces to indent lines.  If you prefer,
-all indentation can be made from spaces only.  To request this, set
-@code{indent-tabs-mode} to @code{nil}.  This is a per-buffer variable;
-altering the variable affects only the current buffer, but there is a
-default value which you can change as well.  @xref{Locals}.
+  Emacs normally uses both tabs and spaces to indent lines.  If you
+prefer, all indentation can be made from spaces only.  To request
+this, set @code{indent-tabs-mode} to @code{nil}.  This is a per-buffer
+variable, so altering the variable affects only the current buffer,
+but there is a default value which you can change as well.
+@xref{Locals}.
 
 @findex tabify
 @findex untabify
