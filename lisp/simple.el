@@ -3491,7 +3491,11 @@ in the definition is used to check that VALUE is valid."
       (unless (widget-apply type :match val)
 	(error "Value `%S' does not match type %S of %S"
 	       val (car type) var))))
-  (set var val))
+  (set var val)
+
+  ;; Force a thorough redisplay for the case that the variable
+  ;; has an effect on the display, like `tab-width' has.
+  (force-mode-line-update))
 
 ;; Define the major mode for lists of completions.
 
