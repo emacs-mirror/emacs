@@ -1,6 +1,6 @@
 # impl.gmk.sc: GNUMAKEFILE FRAGMENT FOR CXREF
 #
-# $HopeName: MMsrc!cx.gmk(trunk.2) $
+# $HopeName: MMsrc!cx.gmk(trunk.3) $
 #
 # This file is included by platform makefiles that generate a c
 # cross-reference using the cxref tool.
@@ -19,7 +19,10 @@ error "cx.gmk: MPS_EMPTY defined"
 endif
 
 CC = cxref
-CFLAGSCOMPILER = -d -R -W40,10,40,20
+# 3rd field width (arguments to -W option) must be one more than the
+# maximum allowed identifer length, see
+# guide.impl.c.naming.ident.length
+CFLAGSCOMPILER = -d -R -W40,10,41,20
 CFLAGSDEBUG = $(MPS_EMPTY)
 CFLAGSOPT = $(MPS_EMPTY)
 CFLAGSOPTNODEBUG = $(MPS_EMPTY)
