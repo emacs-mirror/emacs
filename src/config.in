@@ -124,6 +124,7 @@ and this notice must be preserved on all copies.  */
 #undef HAVE_ALLOCA_H
 
 #undef HAVE_GETTIMEOFDAY
+#undef GETTIMEOFDAY_ONE_ARGUMENT
 #undef HAVE_GETHOSTNAME
 #undef HAVE_DUP2
 #undef HAVE_RENAME
