@@ -1,3 +1,26 @@
+2001-10-01  Alexander Zhuckov  <zuav@int.spb.ru>
+
+	* ebrowse.c (struct alias): Add two new struct members: NAMESP and
+	ALIASEE to help work with namespace aliases.
+	(struct sym): Remove struct member NAMESP_ALIASES.
+	(namespace_alias_table): New variable.
+	(make_namespace): Add parameter CONTEXT.
+	(check_namespace): New function.
+	(find_namespace): Add parameter CONTEXT.
+	(check_namespace_alias): New function.
+	(register_namespace_alias): Change type of parameter
+	OLD_NAME. Search for already defined alias in
+	NAMESPACE_ALIAS_TABLE.
+	(check_namespace): New function.
+	(enter_namespace): Call find_namespace with CONTEXT parameter.
+	(match_qualified_namespace_alias): New function.
+	(parse_qualified_ident_or_type): Fixed typo in comment. While
+	parsing qualified ident or type update namespace context and
+	restore it on exit.
+	(parse_qualified_param_ident_or_type): Fixed typo in comment.
+	(globals): Changed handling of namespace aliases.
+	(version): Added year 2001.
+
 2001-09-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* etags.c (analyse_regex): If regex_arg is NULL, return

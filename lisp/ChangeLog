@@ -1,3 +1,9 @@
+2001-10-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/edebug.el (rx): Add def-edebug-spec.
+
+	* emacs-lisp/rx.el: New file.
+
 2001-10-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* help.el (help-for-help): Doc fix.  From Pavel@Janik.cz (Pavel
