@@ -336,7 +336,7 @@ DEFUN ("generate-new-buffer-name", Fgenerate_new_buffer_name, Sgenerate_new_buff
 If there is no live buffer named NAME, then return NAME.\n\
 Otherwise modify name by appending `<NUMBER>', incrementing NUMBER\n\
 until an unused name is found, and then return that name.\n\
-Optional second argument ignore specifies a name that is okay to use\n\
+Optional second argument IGNORE specifies a name that is okay to use\n\
 \(if it is in the sequence to be tried)\n\
 even if a buffer with that name exists.")
  (name, ignore)
