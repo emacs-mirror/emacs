@@ -1,3 +1,8 @@
+2004-02-21  Masatake YAMATO  <jet@gyve.org>
+
+	* play/animate.el (animate-birthday-present): Accept names other
+	than `Sarah', too.
+
 2004-02-21  Juri Linkov  <juri@jurta.org>
 
 	* startup.el: Remove table of command line arguments from the
