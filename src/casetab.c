@@ -88,6 +88,8 @@ This is the one used for new buffers.")
 			      Fcons (Vascii_eqv_table, Qnil))));
 }
 
+static Lisp_Object set_case_table ();
+
 DEFUN ("set-case-table", Fset_case_table, Sset_case_table, 1, 1, 0,
   "Select a new case table for the current buffer.\n\
 A case table is a list (DOWNCASE UPCASE CANONICALIZE EQUIVALENCES)\n\
@@ -106,7 +108,7 @@ Both CANONICALIZE and EQUIVALENCES may be nil, in which case\n\
   (table)
      Lisp_Object table;
 {
-  set_case_table (table, 0);
+  return set_case_table (table, 0);
 }
 
 DEFUN ("set-standard-case-table",
@@ -116,9 +118,10 @@ See `set-case-table' for more info on case tables.")
   (table)
      Lisp_Object table;
 {
-  set_case_table (table, 1);
+  return set_case_table (table, 1);
 }
 
+static Lisp_Object
 set_case_table (table, standard)
      Lisp_Object table;
      int standard;
