@@ -740,7 +740,7 @@ Text
 * Transposition::           Swapping two portions of a buffer.
 * Registers::               How registers are implemented.  Accessing
                               the text or position stored in a register.
-* Atomic Changes::          Installing several buffer changs ``atomically''.
+* Atomic Changes::          Installing several buffer changes ``atomically''.
 * Base 64::                 Conversion to or from base 64 encoding.
 * MD5 Checksum::            Compute the MD5 ``message digest''/``checksum''.
 * Change Hooks::            Supplying functions to be run when text is changed.
