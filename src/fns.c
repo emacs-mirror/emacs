@@ -148,11 +148,18 @@ To get the number of bytes, use `string-bytes'")
     XSETFASTINT (val, XVECTOR (sequence)->size & PSEUDOVECTOR_SIZE_MASK);
   else if (CONSP (sequence))
     {
-      for (i = 0; CONSP (sequence); ++i)
+      i = 0;
+      while (CONSP (sequence))
 	{
-	  if ((i & 0xff) == 0)
-	    QUIT;
 	  sequence = XCDR (sequence);
+	  ++i;
+
+	  if (!CONSP (sequence))
+	    break;
+
+	  sequence = XCDR (sequence);
+	  ++i;
+	  QUIT;
 	}
 
       if (!NILP (sequence))
