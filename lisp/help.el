@@ -592,32 +592,50 @@ Returns the documentation as a string, also."
      (list (if (equal val "")
 	       v (intern val)))))
   (if (symbolp variable)
-      (with-output-to-temp-buffer "*Help*"
-	(prin1 variable)
-	(if (not (boundp variable))
-	    (princ " is void")
-	  (princ "'s value is ")
-	  (prin1 (symbol-value variable)))
-	(terpri)
-	(if (local-variable-p variable)
-	    (progn
-	      (princ (format "Local in buffer %s; " (buffer-name)))
-	      (if (not (default-boundp variable))
-		  (princ "globally void")
-		(princ "global value is ")
-		(prin1 (default-value variable)))
-	      (terpri)))
-	(terpri)
-	(princ "Documentation:")
-	(terpri)
-	(let ((doc (documentation-property variable 'variable-documentation)))
-	  (princ (or doc "not documented as a variable.")))
-	(print-help-return-message)
-	(save-excursion
-	  (set-buffer standard-output)
-	  (help-mode)
-	  ;; Return the text we displayed.
-	  (buffer-string)))
+      (let (valvoid)
+	(with-output-to-temp-buffer "*Help*"
+	  (prin1 variable)
+	  (if (not (boundp variable))
+	      (progn
+		(princ " is void")
+		(terpri)
+		(setq valvoid t))
+	    (princ "'s value is ")
+	    (terpri)
+	    (pp (symbol-value variable))
+	    (terpri))
+	  (if (local-variable-p variable)
+	      (progn
+		(princ (format "Local in buffer %s; " (buffer-name)))
+		(if (not (default-boundp variable))
+		    (princ "globally void")
+		  (princ "global value is ")
+		  (terpri)
+		  (pp (default-value variable)))
+		(terpri)))
+	  (terpri)
+	  (save-current-buffer
+	    (set-buffer standard-output)
+	    (if (> (count-lines (point-min) (point-max)) 10)
+		(progn
+		  (goto-char (point-min))
+		  (if valvoid
+		      (forward-line 1)
+		    (forward-sexp 1)
+		    (delete-region (point) (progn (end-of-line) (point)))
+		    (insert "'s value is shown below.\n\n")
+		    (save-excursion
+		      (insert "\n\nValue:"))))))
+	  (princ "Documentation:")
+	  (terpri)
+	  (let ((doc (documentation-property variable 'variable-documentation)))
+	    (princ (or doc "not documented as a variable.")))
+	  (print-help-return-message)
+	  (save-excursion
+	    (set-buffer standard-output)
+	    (help-mode)
+	    ;; Return the text we displayed.
+	    (buffer-string))))
     (message "You did not specify a variable")))
 
 (defun where-is (definition)
