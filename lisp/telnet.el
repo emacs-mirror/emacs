@@ -158,6 +158,8 @@ Normally input is edited in Emacs and sent a line at a time."
     (switch-to-buffer (make-comint name "telnet"))
     (set-process-filter (get-process name) 'telnet-initial-filter)
     (erase-buffer)
+    ;; Don't send the `open' cmd till telnet is ready for it.
+    (accept-process-output (get-process name))
     (send-string  name (concat "open " arg "\n"))
     (telnet-mode)
     (setq telnet-count telnet-initial-count)))
