@@ -1,3 +1,52 @@
+2000-01-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* sysdep.c (sys_select): Turn atimers off and on instead of
+	recording and restoring old alarm handler
+
+	* process.c (toplevel): Include atimer.h.
+	(create_process_1): Rewritten.
+	(create_process): Use atimers instead of alarm.
+	(wait_reading_process_input) [hpux]: Turn atimers off instead
+	of turning off SIGALRM.
+	(wait_reading_process_input): Turn off atimers instead off
+	calling stop_polling.
+
+	* emacs.c (main): Call init_atimer.
+
+	* keyboard.c (toplevel): Include systime.h and atimer.h.
+	(polling_for_input): Removed because unused.
+	(input_poll_signal) [POLL_FOR_INPUT]: Removed.
+	(poll_timer): New variable.
+	(poll_for_input, poll_for_input_1): New functions.
+	(start_polling, stop_polling): Rewritten.
+
+	* keyboard.h (polling_for_input): Removed.
+	
+	* atimer.h, atimer.c: New files.
+
+	* Makefile.in (obj): Add atimer.o.
+	(atimer.o): New target.
+
+	* blockinput.h (pending_atimers): Add extern declaration.
+	(UNBLOCK_INPUT): Rewritten.  Handle pending atimers.
+
+	* lisp.h (popup_activated_flag): Add extern declaration.
+
+	* xmenu.c (popup_activated_flag): Make externally visible.
+	(popup_activate_callback) [USE_MOTIF]: Increment
+	popup_activated_flag.
+	(popup_deactivate_callback) [USE_MOTIF]: Decrement it.
+
+	* xterm.c (toplevel): Include atimer.h.
+	(toolkit_scroll_bar_interaction): New variable.
+	(Fxt_process_timeouts): Removed.
+	(x_process_timeouts): New function.
+	(xt_action_hook): Clear toolkit_scroll_bar_interaction.
+	(x_send_scroll_bar_event): Set toolkit_scroll_bar_interaction.
+	(x_make_frame_visible): Call poll_for_input_1 instead of
+	input_poll_signal.  Don't call alarm.
+	(x_initialize): Install timer calling x_process_timeouts.
+	
 2000-01-24  Dave Love  <fx@gnu.org>
 
 	* irix5-0.h: Don't set LD_SWITCH_SYSTEM -- we use unexelf now.

@@ -1,3 +1,8 @@
+2000-01-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* scroll-bar.el (scroll-bar-timer): Variable removed.
+	(scroll-bar-toolkit-scroll): Don't use a timer.
+
 2000-01-25  Kenichi Handa  <handa@etl.go.jp>
 
 	* language/thai-util.el (thai-composition-function): Delete
