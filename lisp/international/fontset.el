@@ -24,73 +24,75 @@
 
 ;;; Code:
 
-;; Set standard REGISTRY of characters in the default fontset to find
-;; an appropriate font for each charset.  This is used to generate a
-;; font name for a fontset if the fontset doesn't specify a font name
-;; for a specific character.  If the value contains a character `-',
-;; the string before that is embedded in `CHARSET_REGISTRY' field, and
-;; the string after that is embedded in `CHARSET_ENCODING' field.  If
-;; the value does not contain `-', the whole string is embedded in
-;; `CHARSET_REGISTRY' field, and a wild card character `*' is embedded
-;; in `CHARSET_ENCODING' field.
-;; The REGISTRY for ASCII characters are predefined as "ISO8859-1".
+;; Set standard fontname specification of characters in the default
+;; fontset to find an appropriate font for each charset.  This is used
+;; to generate a font name for a fontset if the fontset doesn't
+;; specify a font name for a specific character.  The specification
+;; has the form (FAMILY . REGISTRY).  FAMILY may be nil, in which
+;; case, the family name of default face is used.  If REGISTRY
+;; contains a character `-', the string before that is embedded in
+;; `CHARSET_REGISTRY' field, and the string after that is embedded in
+;; `CHARSET_ENCODING' field.  If it does not contain `-', the whole
+;; string is embedded in `CHARSET_REGISTRY' field, and a wild card
+;; character `*' is embedded in `CHARSET_ENCODING' field.  The
+;; REGISTRY for ASCII characters are predefined as "ISO8859-1".
 
-(let ((l `((latin-iso8859-1 . "ISO8859-1")
-	   (latin-iso8859-2 . "ISO8859-2")
-	   (latin-iso8859-3 . "ISO8859-3")
-	   (latin-iso8859-4 . "ISO8859-4")
-	   (thai-tis620 . "TIS620")
-	   (greek-iso8859-7 . "ISO8859-7")
-	   (arabic-iso8859-6 . "ISO8859-6")
-	   (hebrew-iso8859-8 . "ISO8859-8")
-	   (katakana-jisx0201 . "JISX0201")
-	   (latin-jisx0201 . "JISX0201")
-	   (cyrillic-iso8859-5 . "ISO8859-5")
-	   (latin-iso8859-9 . "ISO8859-9")
-	   (japanese-jisx0208-1978 . "JISX0208.1978")
-	   (chinese-gb2312 . "GB2312")
-	   (japanese-jisx0208 . "JISX0208.1983")
-	   (korean-ksc5601 . "KSC5601")
-	   (japanese-jisx0212 . "JISX0212")
-	   (chinese-cns11643-1 . "CNS11643.1992-1")
-	   (chinese-cns11643-2 . "CNS11643.1992-2")
-	   (chinese-cns11643-3 . "CNS11643.1992-3")
-	   (chinese-cns11643-4 . "CNS11643.1992-4")
-	   (chinese-cns11643-5 . "CNS11643.1992-5")
-	   (chinese-cns11643-6 . "CNS11643.1992-6")
-	   (chinese-cns11643-7 . "CNS11643.1992-7")
-	   (chinese-big5-1 . "Big5")
-	   (chinese-big5-2 . "Big5")
-	   (chinese-sisheng . "sisheng_cwnn")
-	   (vietnamese-viscii-lower . "VISCII1.1")
-	   (vietnamese-viscii-upper . "VISCII1.1")
-	   (arabic-digit . "MuleArabic-0")
-	   (arabic-1-column . "MuleArabic-1")
-	   (arabic-2-column . "MuleArabic-2")
-	   (ipa . "MuleIPA")
-	   (ethiopic . "Ethiopic-Unicode")
-	   (ascii-right-to-left . "ISO8859-1")
-	   (indian-is13194 . "IS13194-Devanagari")
-	   (indian-2-column . "MuleIndian-2")
-	   (indian-1-column . "MuleIndian-1")
-	   (lao . "MuleLao-1")
-	   (tibetan . "MuleTibetan-0")
-	   (tibetan-1-column . "MuleTibetan-1")
-	   (latin-iso8859-14 . "ISO8859-14")
-	   (latin-iso8859-15 . "ISO8859-15")
-	   (mule-unicode-0100-24ff . "ISO10646-1")
-	   (japanese-jisx0213-1 . "JISX0213")
-	   (japanese-jisx0213-2 . "JISX0213")
+(let ((l `((latin-iso8859-1 . (nil . "ISO8859-1"))
+	   (latin-iso8859-2 . (nil . "ISO8859-2"))
+	   (latin-iso8859-3 . (nil . "ISO8859-3"))
+	   (latin-iso8859-4 . (nil . "ISO8859-4"))
+	   (thai-tis620 . ("*" . "TIS620"))
+	   (greek-iso8859-7 . ("*" . "ISO8859-7"))
+	   (arabic-iso8859-6 . ("*" . "ISO8859-6"))
+	   (hebrew-iso8859-8 . ("*" . "ISO8859-8"))
+	   (katakana-jisx0201 . ("*" . "JISX0201"))
+	   (latin-jisx0201 . (nil . "JISX0201"))
+	   (cyrillic-iso8859-5 . ("*" . "ISO8859-5"))
+	   (latin-iso8859-9 . (nil . "ISO8859-9"))
+	   (japanese-jisx0208-1978 . ("*" . "JISX0208.1978"))
+	   (chinese-gb2312 . ("*" . "GB2312"))
+	   (japanese-jisx0208 . ("*" . "JISX0208.1983"))
+	   (korean-ksc5601 . ("*" . "KSC5601"))
+	   (japanese-jisx0212 . ("*" . "JISX0212"))
+	   (chinese-cns11643-1 . ("*" . "CNS11643.1992-1"))
+	   (chinese-cns11643-2 . ("*" . "CNS11643.1992-2"))
+	   (chinese-cns11643-3 . ("*" . "CNS11643.1992-3"))
+	   (chinese-cns11643-4 . ("*" . "CNS11643.1992-4"))
+	   (chinese-cns11643-5 . ("*" . "CNS11643.1992-5"))
+	   (chinese-cns11643-6 . ("*" . "CNS11643.1992-6"))
+	   (chinese-cns11643-7 . ("*" . "CNS11643.1992-7"))
+	   (chinese-big5-1 . ("*" . "Big5"))
+	   (chinese-big5-2 . ("*" . "Big5"))
+	   (chinese-sisheng . (nil . "sisheng_cwnn"))
+	   (vietnamese-viscii-lower . (nil . "VISCII1.1"))
+	   (vietnamese-viscii-upper . (nil . "VISCII1.1"))
+	   (arabic-digit . ("*" . "MuleArabic-0"))
+	   (arabic-1-column . ("*" . "MuleArabic-1"))
+	   (arabic-2-column . ("*" . "MuleArabic-2"))
+	   (ipa . (nil . "MuleIPA"))
+	   (ethiopic . ("*" . "Ethiopic-Unicode"))
+	   (ascii-right-to-left . (nil . "ISO8859-1"))
+	   (indian-is13194 . ("*" . "IS13194-Devanagari"))
+	   (indian-2-column . ("*" . "MuleIndian-2"))
+	   (indian-1-column . ("*" . "MuleIndian-1"))
+	   (lao . ("*" . "MuleLao-1"))
+	   (tibetan . ("*" . "MuleTibetan-0"))
+	   (tibetan-1-column . ("*" . "MuleTibetan-1"))
+	   (latin-iso8859-14 . (nil . "ISO8859-14"))
+	   (latin-iso8859-15 . (nil . "ISO8859-15"))
+	   (mule-unicode-0100-24ff . (nil . "ISO10646-1"))
+	   (japanese-jisx0213-1 . ("*" . "JISX0213"))
+	   (japanese-jisx0213-2 . ("*" . "JISX0213"))
 	   ))
-      charset registry arg)
+      charset font-spec arg)
   (while l
-    (setq charset (car (car l)) registry (cdr (car l)) l (cdr l))
-    (or (string-match "-" registry)
-	(setq registry (concat registry "*")))
+    (setq charset (car (car l)) font-spec (cdr (car l)) l (cdr l))
+    (or (string-match "-" (cdr font-spec))
+	(setcdr font-spec (concat (cdr font-spec) "*")))
     (if (symbolp charset)
 	(setq arg (make-char charset))
       (setq arg charset))
-    (set-fontset-font t arg registry)))
+    (set-fontset-font "fontset-default" arg font-spec)))
 
 ;; Set arguments in `font-encoding-alist' (which see).
 (defun set-font-encoding (pattern charset encoding)
@@ -283,15 +285,10 @@ variable `x-font-name-charset-alist'), add that information to FONTLIST."
 
     ;; If font for ASCII is not specified, add it.
     (unless ascii-font
-      (let ((registry (cdr (fontset-font t 0)))
-	    (encoding nil))
-	(if (string-match "-" registry)
-	    (setq encoding (substring registry (match-end 0))
-		  registry (substring registry 0 (match-beginning 0))))
-	(aset xlfd-fields xlfd-regexp-registry-subnum registry)
-	(aset xlfd-fields xlfd-regexp-encoding-subnum encoding)
-	(setq ascii-font (x-compose-font-name xlfd-fields))
-	(setq fontlist (cons (cons 'ascii ascii-font) fontlist))))
+      (aset xlfd-fields xlfd-regexp-registry-subnum "iso8859")
+      (aset xlfd-fields xlfd-regexp-encoding-subnum "1")
+      (setq ascii-font (x-compose-font-name xlfd-fields))
+      (setq fontlist (cons (cons 'ascii ascii-font) fontlist)))
 
     ;; If the font for ASCII also supports the other charsets, and
     ;; they are not specified in FONTLIST, add them.
