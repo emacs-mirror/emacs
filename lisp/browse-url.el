@@ -535,15 +535,11 @@ Doesn't let you edit the URL like browse-url.  Variable
 
 ;; Define these if not already defined (XEmacs compatibility)
 
-(eval-and-compile
-  (or (fboundp 'event-buffer)
-      (defun event-buffer (event)
-	(window-buffer (posn-window (event-start event))))))
+(defun browse-url-event-buffer (event)
+  (window-buffer (posn-window (event-start event))))
 
-(eval-and-compile
-  (or (fboundp 'event-point)
-      (defun event-point (event)
-	(posn-point (event-start event)))))
+(defun browse-url-event-point (event)
+  (posn-point (event-start event)))
 
 ;;;###autoload
 (defun browse-url-at-mouse (event)
@@ -554,8 +550,8 @@ browse-url.  Variable `browse-url-browser-function' says which browser
 to use."
   (interactive "e")
   (save-excursion
-    (set-buffer (event-buffer event))
-    (goto-char (event-point event))
+    (set-buffer (browse-url-event-buffer event))
+    (goto-char (browse-url-event-point event))
     (let ((url (browse-url-url-at-point)))
       (if (string-equal url "")
 	  (error "No URL found"))
