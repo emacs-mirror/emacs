@@ -1,3 +1,8 @@
+2004-08-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keymap.c (Flocal_key_binding, Fglobal_key_binding)
+	(syms_of_keymap) <key-translation-map>: Doc fixes.
+
 2004-08-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (window_list_1): YAILOM.

@@ -1,3 +1,10 @@
+2004-08-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* os.texi (Translating Input): Only non-prefix bindings in
+	`key-translation-map' override actual key bindings.  Warn about
+	possible indirect effect of actual key bindings on non-prefix
+	bindings in `key-translation-map'.
+
 2004-08-06  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* minibuf.texi (High-Level Completion): Add anchor for definition
