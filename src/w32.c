@@ -218,6 +218,108 @@ nt_sleep (int seconds)
   Sleep (seconds * 1000);
 }
 
+/* Emulate rename. */
+
+#ifndef ENOENT
+#define ENOENT 2
+#endif
+#ifndef EXDEV
+#define EXDEV 18
+#endif
+#ifndef EINVAL
+#define EINVAL 22
+#endif
+
+int
+rename (const char *oldname, const char *newname)
+{
+#ifdef WINDOWS95
+  int i, len, len0, len1;
+  char *dirs[2], *names[2], *ptr;
+
+  /* A bug in MoveFile under Windows 95 incorrectly renames files in
+     some cases.  If the old name is of the form FILENAME or
+     FILENAME.SUF, and the new name is of the form FILENAME~ or
+     FILENAME.SUF~, and both the source and target are in the same
+     directory, then MoveFile renames the long form of the filename to
+     FILENAME~ (FILENAME.SUF~) but leaves the DOS short form as
+     FILENAME (FILENAME.SUF).  The result is that the two different
+     filenames refer to the same file.  In this case, rename the
+     source to a temporary name that can then successfully be renamed
+     to the target.  */
+
+  dirs[0] = names[0] = oldname;
+  dirs[1] = names[1] = newname;
+  for (i = 0; i < 2; i++)
+    {
+      /* Canonicalize and remove prefix.  */
+      len = strlen (names[i]);
+      for (ptr = names[i] + len - 1; ptr > names[i]; ptr--)
+	{
+	  if (IS_ANY_SEP (ptr[0]) && ptr[1] != '\0')
+	    {
+	      names[i] = ptr + 1;
+	      break;
+	    }
+	}
+    }
+
+  len0 = strlen (names[0]);
+  len1 = strlen (names[1]);
+
+  /* The predicate is whether the file is being renamed to a filename
+     with ~ appended.  This is conservative, but should be correct.  */
+  if ((len0 == len1 - 1)
+      && (names[1][len0] == '~')
+      && (!strnicmp (names[0], names[1], len0)))
+    {
+      /* Rename the source to a temporary name that can succesfully be
+	 renamed to the target.  The temporary name is in the directory
+	 of the target.  */
+      char *tmp, *fulltmp;
+
+      tmp = "eXXXXXX";
+      fulltmp = alloca (strlen (dirs[1]) + strlen (tmp) + 1);
+      fulltmp[0] = '\0';
+      if (dirs[1] != names[1])
+	{
+	  len = names[1] - dirs[1];
+	  strncpy (fulltmp, dirs[1], len);
+	  fulltmp[len] = '\0';
+	}
+      strcat (fulltmp, tmp);
+      mktemp (fulltmp);
+
+      if (rename (oldname, fulltmp) < 0)
+	return -1;
+      
+      oldname = fulltmp;
+    }
+#endif
+
+  if (!MoveFile (oldname, newname))
+    {
+      switch (GetLastError ())
+	{
+	case ERROR_FILE_NOT_FOUND:
+	  errno = ENOENT;
+	  break;
+	case ERROR_ACCESS_DENIED:
+	  /* This gets returned when going across devices.  */
+	  errno = EXDEV;
+	  break;
+	case ERROR_FILE_EXISTS:
+	case ERROR_ALREADY_EXISTS:
+	default:
+	  errno = EINVAL;
+	  break;
+	}
+      return -1;
+    }
+  errno = 0;
+  return 0;
+}
+
 /* Emulate the Unix directory procedures opendir, closedir, 
    and readdir.  We can't use the procedures supplied in sysdep.c,
    so we provide them here.  */
