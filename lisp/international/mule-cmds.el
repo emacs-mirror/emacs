@@ -636,6 +636,16 @@ and TO is ignored."
 	      (setcar l mime-charset))
 	  (setq l (cdr l))))
 
+      ;; Don't offer variations with locking shift, which you
+      ;; basically never want.
+      (let (l)
+	(dolist (elt codings (setq codings (nreverse l)))
+	  (unless (or (eq 'coding-category-iso-7-else
+			  (coding-system-category elt))
+		      (eq 'coding-category-iso-8-else
+			  (coding-system-category elt)))
+	    (push elt l))))
+
       ;; Make sure the offending buffer is displayed.
       (or (stringp from)
 	  (pop-to-buffer bufname))
@@ -705,7 +715,23 @@ and TO is ignored."
 
     (if (eq coding-system t)
 	(setq coding-system buffer-file-coding-system))
-    coding-system))
+    ;; Check we're not inconsistent with what `coding:' spec &c would
+    ;; give when file is re-read.
+    (unless (stringp from)
+      (let ((auto-cs (save-restriction
+		       (widen)
+		       (save-excursion
+			 (goto-char (point-min))
+			 (set-auto-coding (or buffer-file-name "")
+					  (buffer-size))))))
+	(if (and auto-cs
+		 (not (coding-system-equal (coding-system-base coding-system)
+					   (coding-system-base auto-cs))))
+	    (unless (yes-or-no-p
+		     (format "Selected encoding %s disagrees with \
+%s specified by file contents.  Really save (else edit coding cookies \
+and try again)? " coding-system auto-cs))
+	      (error "Save aborted")))))    coding-system))
 
 (setq select-safe-coding-system-function 'select-safe-coding-system)
 
