@@ -805,26 +805,16 @@ that Viper doesn't know about.")
 		  ((and (numberp event) (< ?\C-? event) (<= event 255))
 		   (setq mod '(meta)
 			 event (- event ?\C-? 1)))
-		  ;; If EVENT is a list, e.g., (switch-frame frame), we
-		  ;; ignore it, since we can't save this kind of events in a
-		  ;; textual form. In most cases, such events are created
-		  ;; unintentionally, and ignoring them is the right thing.
-		  ;; If an event of this kind was created intentionally during
-		  ;; macro definition---too bad.
-		  ((consp event) nil)
 		  (t (event-basic-type event)))
 	    )))
-    
     (if (numberp basis)
 	(setq basis
 	      (if (= basis ?\C-?)
 		  (list 'control '\?) ; taking care of an emacs bug
 		(intern (char-to-string basis)))))
-    
     (if mod
 	(append mod (list basis))
-      basis)
-    ))
+      basis)))
     
 (defun vip-key-to-emacs-key (key)
   (let (key-name char-p modifiers mod-char-list base-key base-key-name)
