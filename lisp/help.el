@@ -179,8 +179,11 @@ If FUNCTION is nil, it applies `message', thus displaying the message."
 ;; So keyboard macro definitions are documented correctly
 (fset 'defining-kbd-macro (symbol-function 'start-kbd-macro))
 
-(defalias 'help 'help-for-help)
-(make-help-screen help-for-help
+(defalias 'help 'help-for-help-internal)
+;; find-function can find this.
+(defalias 'help-for-help 'help-for-help-internal)
+;; It can't find this, but nobody will look.
+(make-help-screen help-for-help-internal
   "a b c C e f F i I k C-k l L m p s t v w C-c C-d C-f C-n C-p C-t C-w . or ? :"
   "You have typed %THIS-KEY%, the help character.  Type a Help option:
 \(Use SPC or DEL to scroll through this text.  Type \\<help-map>\\[help-quit] to exit the Help command.)
