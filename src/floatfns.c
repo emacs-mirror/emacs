@@ -154,6 +154,7 @@ static char *float_error_fn_name;
     }							\
   } while (0)
 #else
+#define IN_FLOAT(d, name, num) (in_float = 1, (d), in_float = 0)
 #define IN_FLOAT2(d, name, num, num2) (in_float = 1, (d), in_float = 0)
 #endif
 
@@ -471,7 +472,7 @@ If second optional argument BASE is given, return log ARG using that base.")
       if (b == 10.0)
 	IN_FLOAT2 (d = log10 (d), "log", arg, base);
       else
-	IN_FLOAT2 (d = log (arg) / log (b), "log", arg, base);
+	IN_FLOAT2 (d = log (d) / log (b), "log", arg, base);
     }
   return make_float (d);
 }
