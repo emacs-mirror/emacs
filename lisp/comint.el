@@ -1983,7 +1983,7 @@ plus all non-ASCII characters."
 	(forward-char 1))
       ;; Set match-data to match the entire string.
       (when (< (point) here)
-	(store-match-data (list (point) here))
+	(set-match-data (list (point) here))
 	(match-string 0)))))
 
 (defun comint-substitute-in-file-name (filename)
