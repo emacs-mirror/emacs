@@ -2018,8 +2018,8 @@ DEFUN ("ash", Fash, Sash, 2, 2, 0,
   "Return VALUE with its bits shifted left by COUNT.\n\
 If COUNT is negative, shifting is actually to the right.\n\
 In this case, the sign bit is duplicated.")
-  (value, num2)
-     register Lisp_Object value, num2;
+  (value, count)
+     register Lisp_Object value, count;
 {
   register Lisp_Object val;
 
