@@ -44,16 +44,19 @@
 
 ;;;###autoload (define-key global-map "\M-`" 'tmm-menubar)
 ;;;###autoload (define-key global-map [f10] 'tmm-menubar)
-;;;###autoload (define-key global-map [menu-bar mouse-1] 'tmm-menubar)
+;;;###autoload (define-key global-map [menu-bar mouse-1] 'tmm-menubar-mouse)
 
 ;;;###autoload
-(defun tmm-menubar ()
+(defun tmm-menubar (&optional x-position)
   "Text-mode emulation of looking and choosing from a menubar.
-See the documentation for `tmm-prompt'."
+See the documentation for `tmm-prompt'.
+X-POSITION, if non-nil, specifies a horizontal position within the menu bar;
+we make that menu bar item (the one at that position) the default choice."
   (interactive)
   (run-hooks 'menu-bar-update-hook)
   ;; Obey menu-bar-final-items; put those items last.
-  (let ((menu-bar (tmm-get-keybind [menu-bar])))
+  (let ((menu-bar (tmm-get-keybind [menu-bar]))
+	menu-bar-item)
     (let ((list menu-bar-final-items))
       (while list
 	(let ((item (car list)))
@@ -63,7 +66,29 @@ See the documentation for `tmm-prompt'."
 	    (setq menu-bar (append (delq this-one menu-bar)
 				   (list this-one)))))
 	(setq list (cdr list))))
-    (tmm-prompt menu-bar)))
+    (if x-position
+	(let ((tail menu-bar)
+	      this-one
+	      (column 0))
+	  (while (and tail (< column x-position))
+	    (setq this-one (car tail))
+	    (if (and (consp (car tail))
+		     (consp (cdr (car tail)))
+		     (stringp (nth 1 (car tail))))
+		(setq column (+ column
+				(length (nth 1 (car tail)))
+				1)))
+	    (setq tail (cdr tail)))
+	  (setq menu-bar-item (car this-one))))
+    (tmm-prompt menu-bar nil menu-bar-item)))
+
+(defun tmm-menubar-mouse (event)
+  "Text-mode emulation of looking and choosing from a menubar.
+This command is used when you click the mouse in the menubar
+on a console which has no window system but does have a mouse.
+See the documentation for `tmm-prompt'."
+  (interactive "e")
+  (tmm-menubar (car (posn-x-y (event-start event)))))
 
 (defvar tmm-mid-prompt "==>"
   "String to insert between shortcut and menu item or nil.")
@@ -80,15 +105,15 @@ marked letters to pick up your choice.  Type C-g or ESC ESC ESC to cancel.
   "What insert on top of completion buffer.")
 
 ;;;###autoload
-(defun tmm-prompt (bind &optional in-popup)
+(defun tmm-prompt (bind &optional in-popup default-item)
   "Text-mode emulation of calling the bindings in keymap.
-Creates a text-mode menu of possible choices. You can access the elements
-in the menu:
-   *)  Either via history mechanism from minibuffer;
+Creates a text-mode menu of possible choices.  You can access the elements
+in the menu in two ways:
+   *)  via history mechanism from minibuffer;
    *)  Or via completion-buffer that is automatically shown.
 The last alternative is currently a hack, you cannot use mouse reliably.
-If the optional argument IN-POPUP is set, is argument-compatible with 
-`x-popup-menu', otherwise the argument BIND should be a cdr of sparse keymap."
+If the optional argument IN-POPUP is non-nil, it should compatible with 
+`x-popup-menu', otherwise the argument BIND should be keymap."
   (if in-popup (if bind (setq bind in-popup) (x-popup-menu nil in-popup)))
   (let (gl-str tmm-km-list out history history-len tmm-table-undef tmm-c-prompt
 	       tmm-old-mb-map tmm-old-comp-map tmm-short-cuts)
@@ -98,22 +123,36 @@ If the optional argument IN-POPUP is set, is argument-compatible with
 			    (setq gl-str elt)
 			  (and (listp elt) (tmm-get-keymap elt in-popup)))))
 	    bind)
+    (setq foo default-item foo1 bind)
     (and tmm-km-list
-	 (progn
+	 (let ((index-of-default 0))
 	   (if tmm-mid-prompt
 	       (setq tmm-km-list (tmm-add-shortcuts tmm-km-list))
 	     t)
+	   ;; Find the default item's index within the menu bar.
+	   ;; We use this to decide the initial minibuffer contents
+	   ;; and initial history position.
+	   (if default-item
+	       (let ((tail bind))
+		 (while (and tail
+			     (not (eq (car-safe (car tail)) default-item)))
+		   ;; Be careful to count only the elements of BIND
+		   ;; that actually constitute menu bar items.
+		   (if (and (consp (car tail))
+			    (stringp (car-safe (cdr (car tail)))))
+		       (setq index-of-default (1+ index-of-default)))
+		   (setq tail (cdr tail)))))
 	   (setq history (reverse (mapcar 'car tmm-km-list)))
 	   (setq history-len (length history))
 	   (setq history (append history history history history))
-	   (setq tmm-c-prompt (nth (1- history-len) history))
+	   (setq tmm-c-prompt (nth (- history-len 1 index-of-default) history))
 	   (add-hook 'minibuffer-setup-hook 'tmm-add-prompt)
 	   (unwind-protect
 	       (setq out
 		     (completing-read
 		      (concat gl-str " (up/down to change, PgUp to menu): ")
 		      tmm-km-list nil t nil
-		      (cons 'history (* 2 history-len))))
+		      (cons 'history (- (* 2 history-len) index-of-default))))
 	     (save-excursion
 	       (remove-hook 'minibuffer-setup-hook 'tmm-add-prompt)
 	       (if (get-buffer "*Completions*")
@@ -265,8 +304,8 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 The values are deduced from the argument ELT, that should be an
 element of keymap, an `x-popup-menu' argument, or an element of
 `x-popup-menu' argument (when IN-X-MENU is not-nil).
-Does it only if it is not already there. Uses free variable 
-`tmm-table-undef' to keep undefined keys."
+This function adds the element only if it is not already present.
+It uses the free variable `tmm-table-undef' to keep undefined keys."
   (let (km str cache (event (car elt)))
     (setq elt (cdr elt))
     (if (eq elt 'undefined)
