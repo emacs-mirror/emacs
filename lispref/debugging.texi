@@ -81,7 +81,7 @@ debugger each time this happens.  If you want errors to enter the
 debugger, set the variable @code{debug-on-error} to non-@code{nil}.
 
 @defopt debug-on-error
-This variable determines whether the debugger is called when a error is
+This variable determines whether the debugger is called when an error is
 signaled and not handled.  If @code{debug-on-error} is @code{t}, all
 errors call the debugger.  If it is @code{nil}, none call the debugger.
 
@@ -93,13 +93,15 @@ value invoke the debugger.
 
   To debug an error that happens during loading of the @file{.emacs}
 file, use the option @samp{-debug-init}, which binds
-@code{debug-on-error} to @code{t} while @file{.emacs} is loaded.
+@code{debug-on-error} to @code{t} while @file{.emacs} is loaded and
+inhibits use of @code{condition-case} to catch init file errors.
 
-  If your @file{.emacs} file sets @code{debug-on-error}, the effect
-lasts only until the end of loading @file{.emacs}.  (This is an
-undesirable by-product of the @samp{-debug-init} feature.)  If you want
-@file{.emacs} to set @code{debug-on-error} permanently, use
-@code{after-init-hook}, like this:
+  If your @file{.emacs} file sets @code{debug-on-error}, the effect may
+not last past the end of loading @file{.emacs}.  (This is an undesirable
+byproduct of the code that implements the @samp{-debug-init} command
+line option.)  The best way to make @file{.emacs} set
+@code{debug-on-error} permanently is with @code{after-init-hook}, like
+this:
 
 @example
 (add-hook 'after-init-hook
@@ -121,8 +123,8 @@ with @kbd{C-g}, which causes quit.
 looping.  To get more information, you can set the variable
 @code{debug-on-quit} to non-@code{nil}.  Quitting with @kbd{C-g} is not
 considered an error, and @code{debug-on-error} has no effect on the
-handling of @kbd{C-g}.  Contrariwise, @code{debug-on-quit} has no effect
-on errors.@refill
+handling of @kbd{C-g}.  Likewise, @code{debug-on-quit} has no effect on
+errors.
 
   Once you have the debugger running in the middle of the infinite loop,
 you can proceed from the debugger using the stepping commands.  If you
@@ -184,7 +186,6 @@ on it, the code to enter the debugger is lost.
 @end group
 @group
 (fact 3)
-     @result{} 6
 @end group
 
 @group
@@ -230,9 +231,9 @@ before you save the file!
 
   The place where you insert @samp{(debug)} must be a place where an
 additional form can be evaluated and its value ignored.  (If the value
-isn't ignored, it will alter the execution of the program!)  The most
-common suitable places are inside a @code{progn} or an implicit
-@code{progn} (@pxref{Sequencing}).
+of @code{(debug)} isn't ignored, it will alter the execution of the
+program!)  The most common suitable places are inside a @code{progn} or
+an implicit @code{progn} (@pxref{Sequencing}).
 
 @node Using Debugger
 @subsection Using the Debugger
@@ -257,12 +258,12 @@ the debugger gets out of the recursive edit and kills the backtrace
 buffer.
 
 @cindex current stack frame
-  The contents of the backtrace buffer show you the functions that are
-executing and their argument values.  It also allows you to specify a
-stack frame by moving point to the line describing that frame.  (A stack
-frame is the place where the Lisp interpreter records information about
-a particular invocation of a function.)  The frame whose line point is
-on is considered the @dfn{current frame}.  Some of the debugger commands
+  The backtrace buffer shows you the functions that are executing and
+their argument values.  It also allows you to specify a stack frame by
+moving point to the line describing that frame.  (A stack frame is the
+place where the Lisp interpreter records information about a particular
+invocation of a function.)  The frame whose line point is on is
+considered the @dfn{current frame}.  Some of the debugger commands
 operate on the current frame.
 
   The debugger itself must be run byte-compiled, since it makes
@@ -342,10 +343,12 @@ to quit, and not debug, use the @kbd{q} command.
 Return a value from the debugger.  The value is computed by reading an
 expression with the minibuffer and evaluating it.
 
-The @kbd{r} command makes a difference when the debugger was invoked due
-to exit from a Lisp call frame (as requested with @kbd{b}); then the
-value specified in the @kbd{r} command is used as the value of that
-frame.
+The @kbd{r} command is useful when the debugger was invoked due to exit
+from a Lisp call frame (as requested with @kbd{b}); then the value
+specified in the @kbd{r} command is used as the value of that frame.  It
+is also useful if you call @code{debug} and use its return value.
+Otherwise, @kbd{r} has the same effect as @kbd{c}, and the specified
+return value does not matter.
 
 You can't use @kbd{r} when the debugger was entered due to an error.
 @end table
@@ -369,7 +372,7 @@ whatever called @code{debug}.  This is the only way the function
 
 If the first of the @var{debugger-args} passed to @code{debug} is
 @code{nil} (or if it is not one of the special values in the table
-below), then @code{debeg} displays the rest of its arguments at the the
+below), then @code{debug} displays the rest of its arguments at the the
 top of the @samp{*Backtrace*} buffer.  This mechanism is used to display
 a message to the user.
 
@@ -446,8 +449,6 @@ display messages---for example, to remind yourself of the conditions
 under which @code{debug} is called.
 @end table
 @end defun
-
-@need 5000
 
 @node Internals of Debugger
 @subsection Internals of the Debugger
@@ -550,12 +551,12 @@ The @kbd{d} command in the debugger works by setting this variable.
 
 @defun backtrace-debug level flag
 This function sets the debug-on-exit flag of the stack frame @var{level}
-levels, giving it the value @var{flag}.  If @var{flag} is
+levels down the stack, giving it the value @var{flag}.  If @var{flag} is
 non-@code{nil}, this will cause the debugger to be entered when that
 frame later exits.  Even a nonlocal exit through that frame will enter
 the debugger.
 
-Normally, this function is only called by the debugger.
+This function is used only by the debugger.
 @end defun
 
 @defvar command-debug-status
@@ -564,9 +565,9 @@ command.  Each time a command is called interactively, this variable is
 bound to @code{nil}.  The debugger can set this variable to leave
 information for future debugger invocations during the same command.
 
-The advantage of using this variable rather that defining another global
-variable is that the data will never carry over to a subsequent command
-invocation.
+The advantage, for the debugger, of using this variable rather than
+another global variable is that the data will never carry over to a
+subsequent command invocation.
 @end defvar
 
 @defun backtrace-frame frame-number
@@ -581,12 +582,12 @@ If that frame has evaluated its arguments and called its function
 already, the value is @code{(t @var{function}
 @var{arg-values}@dots{})}.
 
-In the return value, @var{function} is whatever was supplied as @sc{car}
-of evaluated list, or a @code{lambda} expression in the case of a macro
-call.  If the function has a @code{&rest} argument, that is represented
-as the tail of the list @var{arg-values}.
+In the return value, @var{function} is whatever was supplied as the
+@sc{car} of the evaluated list, or a @code{lambda} expression in the
+case of a macro call.  If the function has a @code{&rest} argument, that
+is represented as the tail of the list @var{arg-values}.
 
-If the argument is out of range, @code{backtrace-frame} returns
+If @var{frame-number} is out of range, @code{backtrace-frame} returns
 @code{nil}.
 @end defun
 
@@ -643,8 +644,8 @@ Usually all the lines from a certain point to the end of the function
 will shift to the right.  There is probably a missing close parenthesis,
 or a superfluous open parenthesis, near that point.  (However, don't
 assume this is true; study the code to make sure.)  Once you have found
-the discrepancy, undo the @kbd{C-M-q}, since the old indentation is
-probably appropriate to the intended parentheses.
+the discrepancy, undo the @kbd{C-M-q} with @kbd{C-_}, since the old
+indentation is probably appropriate to the intended parentheses.
 
   After you think you have fixed the problem, use @kbd{C-M-q} again.  If
 the old indentation actually fit the intended nesting of parentheses,
@@ -654,11 +655,11 @@ anything.
 @node Excess Close
 @subsection Excess Close Parentheses
 
-  To deal with an excess close parenthesis, first insert an
-open parenthesis at the beginning of the file and type @kbd{C-M-f} to
-find the end of the unbalanced defun.  (Then type @kbd{C-@key{SPC} C-_
-C-u C-@key{SPC}} to set the mark there, undo the insertion of the
-open parenthesis, and finally return to the mark.)
+  To deal with an excess close parenthesis, first insert an open
+parenthesis at the beginning of the file, back up over it, and type
+@kbd{C-M-f} to find the end of the unbalanced defun.  (Then type
+@kbd{C-@key{SPC} C-_ C-u C-@key{SPC}} to set the mark there, undo the
+insertion of the open parenthesis, and finally return to the mark.)
 
   Then find the actual matching close parenthesis by typing @kbd{C-M-f}
 at the beginning of the defun.  This will leave you somewhere short of
@@ -670,10 +671,15 @@ type @kbd{C-M-q} at the beginning of the defun.  A range of lines will
 probably shift left; if so, the missing open parenthesis or spurious
 close parenthesis is probably near the first of those lines.  (However,
 don't assume this is true; study the code to make sure.)  Once you have
-found the discrepancy, undo the @kbd{C-M-q}, since the old indentation
-is probably appropriate to the intended parentheses.
+found the discrepancy, undo the @kbd{C-M-q} with @kbd{C-_}, since the
+old indentation is probably appropriate to the intended parentheses.
 
-@node Compilation Errors
+  After you think you have fixed the problem, use @kbd{C-M-q} again.  If
+the old indentation actually fit the intended nesting of parentheses,
+and you have put back those parentheses, @kbd{C-M-q} should not change
+anything.
+
+@node Compilation Errors, Edebug, Syntax Errors, Debugging
 @section Debugging Problems in Compilation
 
   When an error happens during byte compilation, it is normally due to
@@ -695,7 +701,7 @@ the error.
 
   If the error was detected while compiling a form that had been read
 successfully, then point is located at the end of the form.  In this
-case, it can't localize the error precisely, but can still show you
-which function to check.
+case, this technique can't localize the error precisely, but can still
+show you which function to check.
 
 @include edebug.texi
