@@ -1368,7 +1368,7 @@ Returns the new value of the alist."
 			 (goto-char (match-beginning 0))
 			 (beginning-of-line)
 			 (forward-char 2)
-			 (looking-at dired-re-perms))))
+			 (save-match-data (looking-at dired-re-perms)))))
 	(save-excursion
 	  (goto-char (match-beginning 1))
 	  (setq new-dir-name
