@@ -148,6 +148,9 @@ int immediate_quit;
 /* Character to recognize as the help char.  */
 Lisp_Object Vhelp_char;
 
+/* List of other event types to recognize as meaning "help".  */
+Lisp_Object Vhelp_event_list;
+
 /* Form to execute when help char is typed.  */
 Lisp_Object Vhelp_form;
 
@@ -563,7 +566,7 @@ echo_char (c)
 	}
 
       if (current_kboard->echoptr == current_kboard->echobuf
-	  && EQ (c, Vhelp_char))
+	  && help_char_p (c))
 	{
 	  strcpy (ptr, " (Type ? for further options)");
 	  ptr += strlen (ptr);
@@ -2050,7 +2053,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   num_input_chars++;
 
   /* Process the help character specially if enabled */
-  if (EQ (c, Vhelp_char) && !NILP (Vhelp_form))
+  if (!NILP (Vhelp_form) && help_char_p (c))
     {
       Lisp_Object tem0;
       count = specpdl_ptr - specpdl;
@@ -2080,6 +2083,22 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     }
 
   return c;
+}
+
+/* Return 1 if should recognize C as "the help character".  */
+
+int
+help_char_p (c)
+     Lisp_Object c;
+{
+  Lisp_Object tail;
+
+  if (EQ (c, Vhelp_char))
+    return 1;
+  for (tail = Vhelp_event_list; CONSP (tail); tail = XCONS (tail)->cdr)
+    if (EQ (c, XCONS (tail)->car))
+      return 1;
+  return 0;
 }
 
 /* Record the input event C in various ways.  */
@@ -5444,7 +5463,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  Lisp_Object head;
 
 	  head = EVENT_HEAD (key);
-	  if (EQ (head, Vhelp_char))
+	  if (help_char_p (head))
 	    {
 	      read_key_sequence_cmd = Vprefix_help_command;
 	      keybuf[t++] = key;
@@ -6964,6 +6983,11 @@ If the last event came from a keyboard macro, this is set to `macro'.");
 When it is read, do `(eval help-form)', and display result if it's a string.\n\
 If the value of `help-form' is nil, this char can be read normally.");
   XSETINT (Vhelp_char, Ctl ('H'));
+
+  DEFVAR_LISP ("help-event-list", &Vhelp_event_list,
+    "List of input events to recognize as meaning Help.\n\
+These work just like the value of `help-char' (see that).");
+  Vhelp_event_list = Qnil;
 
   DEFVAR_LISP ("help-form", &Vhelp_form,
     "Form to execute when character `help-char' is read.\n\
