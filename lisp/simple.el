@@ -1668,7 +1668,7 @@ Optional second argument REPLACE non-nil means that STRING will replace
 the front of the kill ring, rather than being added to the list."
   (and (fboundp 'menu-bar-update-yank-menu)
        (menu-bar-update-yank-menu string (and replace (car kill-ring))))
-  (if replace
+  (if (and replace kill-ring)
       (setcar kill-ring string)
     (setq kill-ring (cons string kill-ring))
     (if (> (length kill-ring) kill-ring-max)
