@@ -406,7 +406,23 @@ concat (nargs, args, target_type, last_special)
     {
       this = args[argnum];
       len = Flength (this);
-      leni += XFASTINT (len);
+      if (VECTORP (this) && target_type == Lisp_String)
+	{
+	  /* We must pay attention to a multibyte character which
+             takes more than one byte in string.  */
+	  int i;
+	  Lisp_Object ch;
+
+	  for (i = 0; i < XFASTINT (len); i++)
+	    {
+	      ch = XVECTOR (this)->contents[i];
+	      if (! INTEGERP (ch))
+		wrong_type_argument (Qintegerp, ch);
+	      leni += Fchar_bytes (ch);
+	    }
+	}
+      else
+	leni += XFASTINT (len);
     }
 
   XSETFASTINT (len, leni);
@@ -490,14 +506,19 @@ concat (nargs, args, target_type, last_special)
 	      while (!INTEGERP (elt))
 		elt = wrong_type_argument (Qintegerp, elt);
 	      {
+		int c = XINT (elt);
+		unsigned char work[4], *str;
+		int i = CHAR_STRING (c, work, str);
+
 #ifdef MASSC_REGISTER_BUG
 		/* Even removing all "register"s doesn't disable this bug!
 		   Nothing simpler than this seems to work. */
-		unsigned char *p = & XSTRING (val)->data[toindex++];
-		*p = XINT (elt);
+		unsigned char *p = & XSTRING (val)->data[toindex];
+		bcopy (str, p, i);
 #else
-		XSTRING (val)->data[toindex++] = XINT (elt);
+		bcopy (str, & XSTRING (val)->data[toindex], i);
 #endif
+		toindex += i;
 	      }
 	    }
 	}
