@@ -107,7 +107,7 @@ max-lisp-eval-depth being exceeded or an untrappable error may occur:
 Also see `print-length' and `print-circle'.
 
 If non-nil, components at levels equal to or greater than `print-level'
-are printed simply as \"#\".  The object to be printed is at level 0,
+are printed simply as `#'.  The object to be printed is at level 0,
 and if the object is a list or vector, its top-level components are at
 level 1.")
 
@@ -231,15 +231,17 @@ Output stream is STREAM, or value of `standard-output' (which see)."
   "Same as `custom-prin1' except no quoting."
   (cust-print-top-level object stream 'cust-print-internal-princ))
 
+(defvar custom-prin1-chars)
+
 (defun custom-prin1-to-string-func (c)
   "Stream function for `custom-prin1-to-string'."
-  (setq prin1-chars (cons c prin1-chars)))
+  (setq custom-prin1-chars (cons c custom-prin1-chars)))
 
 (defun custom-prin1-to-string (object)
   "Replacement for standard `prin1-to-string'."
-  (let ((prin1-chars nil))
+  (let ((custom-prin1-chars nil))
     (custom-prin1 object 'custom-prin1-to-string-func)
-    (concat (nreverse prin1-chars))))
+    (concat (nreverse custom-prin1-chars))))
 
 
 (defun custom-print (object &optional stream)
@@ -287,11 +289,15 @@ string argument will also work.  The string is generated with
 ;;=========================================
 ;; Support for custom prin1 and princ
 
+(defvar circle-table)
+(defvar circle-tree)
+(defvar circle-level)
+
 (defun cust-print-top-level (object stream internal-printer)
   "Set up for printing."
   (let ((standard-output (or stream standard-output))
 	(circle-table (and print-circle (cust-print-preprocess-circle-tree object)))
-	(level (or print-level -1))
+	(circle-level (or print-level -1))
 	)
 
     (fset 'cust-print-internal-printer internal-printer)
@@ -387,9 +393,9 @@ Otherwise, print normally."
 
 ;; Print a list using print-length, print-level, and print-circle.
 (defun cust-print-list (list)
-  (if (= level 0)
+  (if (= circle-level 0)
       (cust-print-internal-princ "#")
-    (let ((level (1- level)))
+    (let ((circle-level (1- circle-level)))
       (cust-print-internal-princ "(")
       (let ((length (or print-length 0)))
 
@@ -422,9 +428,9 @@ Otherwise, print normally."
 
 ;; Print a vector according to print-length, print-level, and print-circle.
 (defun cust-print-vector (vector)
-  (if (= level 0)
+  (if (= circle-level 0)
       (cust-print-internal-princ "#")
-    (let ((level (1- level))
+    (let ((circle-level (1- circle-level))
 	  (i 0)
 	  (len (length vector)))
       (cust-print-internal-princ "[")
@@ -523,50 +529,45 @@ Otherwise, print normally."
 
 ;;=======================================
 
-(quote 
- examples
- 
- (progn
-   ;; Create some circular structures.
-   (setq circ-sym (let ((x (make-symbol "FOO"))) (list x x)))
-   (setq circ-list (list 'a 'b (vector 1 2 3 4) 'd 'e 'f))
-   (setcar (nthcdr 3 circ-list) circ-list)
-   (aset (nth 2 circ-list) 2 circ-list)
-   (setq dotted-circ-list (list 'a 'b 'c))
-   (setcdr (cdr (cdr dotted-circ-list)) dotted-circ-list)
-   (setq circ-vector (vector 1 2 3 4 (list 'a 'b 'c 'd) 6 7))
-   (aset circ-vector 5 (make-symbol "-gensym-"))
-   (setcar (cdr (aref circ-vector 4)) (aref circ-vector 5))
-   nil)
+;; Example.
 
- (install-custom-print-funcs)
- ;; (setq print-circle t)
+;;;; Create some circular structures.
+;;(setq circ-sym (let ((x (make-symbol "FOO"))) (list x x)))
+;;(setq circ-list (list 'a 'b (vector 1 2 3 4) 'd 'e 'f))
+;;(setcar (nthcdr 3 circ-list) circ-list)
+;;(aset (nth 2 circ-list) 2 circ-list)
+;;(setq dotted-circ-list (list 'a 'b 'c))
+;;(setcdr (cdr (cdr dotted-circ-list)) dotted-circ-list)
+;;(setq circ-vector (vector 1 2 3 4 (list 'a 'b 'c 'd) 6 7))
+;;(aset circ-vector 5 (make-symbol "-gensym-"))
+;;(setcar (cdr (aref circ-vector 4)) (aref circ-vector 5))
 
- (let ((print-circle t))
-   (or (equal (prin1-to-string circ-list) "#1=(a b [1 2 #1# 4] #1# e f)")
-       (error "circular object with array printing")))
+;;(install-custom-print-funcs)
+;;;; (setq print-circle t)
 
- (let ((print-circle t))
-   (or (equal (prin1-to-string dotted-circ-list) "#1=(a b c . #1#)")
-       (error "circular object with array printing")))
+;;(let ((print-circle t))
+;;  (or (equal (prin1-to-string circ-list) "#1=(a b [1 2 #1# 4] #1# e f)")
+;;      (error "circular object with array printing")))
 
- (let* ((print-circle t)
-	(x (list 'p 'q))
-	(y (list (list 'a 'b) x 'foo x)))
-   (setcdr (cdr (cdr (cdr y))) (cdr y))
-   (or (equal (prin1-to-string y) "((a b) . #1=(#2=(p q) foo #2# . #1#))"
-	      )
-       (error "circular list example from CL manual")))
+;;(let ((print-circle t))
+;;  (or (equal (prin1-to-string dotted-circ-list) "#1=(a b c . #1#)")
+;;      (error "circular object with array printing")))
 
- ;; There's no special handling of uninterned symbols in custom-print.
- (let ((print-circle nil))
-   (or (equal (prin1-to-string circ-sym) "(#:FOO #:FOO)")
-       (error "uninterned symbols in list")))
- (let ((print-circle t))
-   (or (equal (prin1-to-string circ-sym) "(#1=FOO #1#)")
-       (error "circular uninterned symbols in list")))
+;;(let* ((print-circle t)
+;;       (x (list 'p 'q))
+;;       (y (list (list 'a 'b) x 'foo x)))
+;;  (setcdr (cdr (cdr (cdr y))) (cdr y))
+;;  (or (equal (prin1-to-string y) "((a b) . #1=(#2=(p q) foo #2# . #1#))"
+;;	     )
+;;      (error "circular list example from CL manual")))
 
- (uninstall-custom-print-funcs)
- )
+;;;; There's no special handling of uninterned symbols in custom-print.
+;;(let ((print-circle nil))
+;;  (or (equal (prin1-to-string circ-sym) "(#:FOO #:FOO)")
+;;      (error "uninterned symbols in list")))
+;;(let ((print-circle t))
+;;  (or (equal (prin1-to-string circ-sym) "(#1=FOO #1#)")
+;;      (error "circular uninterned symbols in list")))
+;;(uninstall-custom-print-funcs)
 
 ;;; cust-print.el ends here
