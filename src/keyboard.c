@@ -4688,12 +4688,35 @@ make_lispy_event (event)
 				     / sizeof (iso_lispy_function_keys[0])));
       else
 #endif
-	return modify_event_symbol (event->code - FUNCTION_KEY_OFFSET,
-				    event->modifiers,
-				    Qfunction_key, Qnil,
-				    lispy_function_keys, &func_key_syms,
-				    (sizeof (lispy_function_keys)
-				     / sizeof (lispy_function_keys[0])));
+
+#ifdef HAVE_X_WINDOWS
+      if (event->code - FUNCTION_KEY_OFFSET < 0
+	  || (event->code - FUNCTION_KEY_OFFSET
+	      >= sizeof lispy_function_keys / sizeof *lispy_function_keys))
+	{
+	  /* EVENT->code is an unknown keysym, for example someone
+	     assigned `ccaron' to a key in a locale where
+	     XmbLookupString doesn't return a translation for it.  */
+	  char *name;
+	  Lisp_Object symbol;
+	  
+	  BLOCK_INPUT;
+	  /* This returns a pointer to a static area.  Don't free it.  */
+	  name = XKeysymToString (event->code);
+	  symbol = name ? intern (name) : Qnil;
+	  UNBLOCK_INPUT;
+	  
+	  if (!NILP (symbol))
+	    return apply_modifiers (event->modifiers, symbol);
+	}
+#endif /* HAVE_X_WINDOWS */
+
+      return modify_event_symbol (event->code - FUNCTION_KEY_OFFSET,
+				  event->modifiers,
+				  Qfunction_key, Qnil,
+				  lispy_function_keys, &func_key_syms,
+				  (sizeof (lispy_function_keys)
+				   / sizeof (lispy_function_keys[0])));
 
 #ifdef HAVE_MOUSE
       /* A mouse click.  Figure out where it is, decide whether it's
