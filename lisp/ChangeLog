@@ -1,13 +1,41 @@
+2003-01-05  Richard M. Stallman  <rms@gnu.org>
+
+	* isearch.el (isearch-repeat): Error if try to repeat search and
+	there was no previou search.
+
+	* dired.el (dired-recursive-deletes): Fix custom type.
+
+	* dabbrev.el (dabbrev--substitute-expansion): 
+	Convert all whitespace to single spaces,
+	except when it's carried over from the existing text.
+
+	* simple.el (split-line): Clean up implementation.
+
+	* mail/rmail.el (rmail-font-lock-keywords): Discard code to match both cases.
+	(rmail-variables): Specify case-insensitive matching for font-lock.
+
+2003-01-05  Alexander Pohoyda  <alexander.pohoyda@gmx.net>  (tiny change)
+
+	* mail/sendmail.el (mail-font-lock-keywords): Match multiline In-Reply-To and X-*.
+	* mail/rmail.el (rmail-font-lock-keywords): Match multiline In-Reply-To and X-*.
+
+2003-01-05  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-substitute-special): Check for &amp last.
+
 2003-01-05  Dave Love  <fx@gnu.org>
 
-	* buff-menu.el (Buffer-menu-execute): Fix for effect of header
-	line.
+	* buff-menu.el (Buffer-menu-execute): Fix previous change.
 
-	* international/mule-diag.el (non-iso-charset-alist): Add
-	vietnamese-tcvn.
+2003-01-05  Benjamin Riefenstahl  <Benjamin.Riefenstahl@epost.de>  (tiny change)
 
-	* international/mule-cmds.el (locale-language-names): Use
-	Croatian, Swedish.
+	* buff-menu.el (Buffer-menu-execute): Allow for Buffer-menu-use-header-line. 
+
+2003-01-05  Dave Love  <fx@gnu.org>
+
+	* international/mule-diag.el (non-iso-charset-alist): Add vietnamese-tcvn.
+
+	* international/mule-cmds.el (locale-language-names): Use Croatian, Swedish.
 
 2003-01-05  Andreas Schwab  <schwab@suse.de>
 
@@ -97,6 +125,7 @@
 	* emacs-lisp/eldoc.el (eldoc-get-var-docstring): Only return a
 	documentation string when `sym' is non-nil.
 
+>>>>>>> 1.4686
 2003-01-02  Steven Tamm  <steventamm@mac.com>
 
 	* scroll-bar.el (toggle-scroll-bar, scroll-bar-mode): Have

@@ -1,3 +1,52 @@
+2003-01-05  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (try_scrolling): New arg LAST_LINE_MISFIT.
+	Count LAST_LINE_MISFIT in scroll margin for end of window.
+	Move label too_near_end before setting SCROLL_MARGIN_POS.
+	Set LAST_LINE_MISFIT before jumping there.
+	
+	* xdisp.c (try_scrolling): Calculate amount_to_scroll better in
+	scroll_conservatively case.  If scrolling that much doesn't change
+	STARTP, move it down one line.
+
+	* xdisp.c (redisplay_window): Pass last_line_misfit arg to try_scrolling.
+	Make it 1 after make_cursor_line_fully_visible fails.
+	
+	* xdisp.c (setup_echo_area_for_printing): Kill Emacs if no selected frame.
+
+	* keymap.c (apropos_predicate, apropos_accumulate): Make them static.
+	(syms_of_keymap): staticpro them.
+	(Fapropos_internal): Initialize them and clear them out.
+	Don't GCPRO them.
+
+	* buffer.c (syms_of_buffer) <scroll-up-aggressively, scroll-down-aggressively>:
+	Doc fixes.
+
+	* lisp.h: New misc type Lisp_Save_Value.
+	(enum Lisp_Misc_Type): Add Lisp_Misc_Save_Value.
+	(XSAVE_VALUE): New macro.
+	(struct Lisp_Save_Value): New data type.
+	(union Lisp_Misc): Add u_save_value alternative.
+	(make_save_value): Declared.
+
+	* alloc.c (make_save_value): New function.
+
+	* xterm.c (x_catch_errors): Save dpy using make_save_value.
+	(x_catch_errors_unwind): Call XSync.
+
+2003-01-01  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (window_scroll_pixel_based): Partially undo last change.
+
+	* keyboard.c (command_loop_1): Call adjust_point_for_property
+	in direct action cases for Qforward_char and Qbackward_char.
+	Set already_adjusted so it won't be done twice.
+
+2002-12-30  Richard Dawe  <rich@phekda.freeserve.co.uk>  (tiny change)
+
+	* src/config.in (!HAVE_SIZE_T): Fix order of arguments in
+	type definition of size_t.
+
 2003-01-02  Steven Tamm  <steventamm@mac.com>
 
 	* macterm.c (syms_of_macterm): Provide the feature "mac-carbon" to
