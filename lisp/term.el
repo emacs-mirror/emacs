@@ -696,8 +696,8 @@ Buffer local variable.")
        (progn ,@body)
      (error nil)))
 
-(defvar term-default-fg-color "SkyBlue")
-(defvar term-default-bg-color "LightBlue")
+(defvar term-default-fg-color nil)
+(defvar term-default-bg-color nil)
 
 (when (fboundp 'make-face)
 ;;; --- Simple faces ---
