@@ -576,6 +576,7 @@ The functions are run with one arg, the newly created frame.")
 
 ;; Alias, kept temporarily.
 (defalias 'new-frame 'make-frame)
+(make-obsolete 'new-frame 'make-frame "21.4")
 
 (defun make-frame (&optional parameters)
   "Return a newly created frame displaying the current buffer.
@@ -1138,7 +1139,6 @@ left untouched.  FRAME nil or omitted means use the selected frame."
     (dolist (frame frames)
       (when (eq (frame-parameter frame 'minibuffer) 'only)
 	(delete-frame frame)))))
-
 
 (make-obsolete 'screen-height 'frame-height) ;before 19.15
 (make-obsolete 'screen-width  'frame-width) ;before 19.15
