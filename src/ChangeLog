@@ -1,5 +1,10 @@
 2000-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* xdisp.c (handle_single_display_prop) [HAVE_WINDOW_SYSTEM]: No
+	need to test for MSDOS frames.
+
+2000-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
 	* dosfns.c (unspecified_colors): Remove.
 	(msdos_stdcolor_idx): Use global variables unspecified_fg and
 	unspecified_bg.

@@ -1,3 +1,9 @@
+2000-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* faces.el (face-read-integer, read-face-attribute)
+	(color-defined-p, color-values): unspecified-{f,b}g are now
+	strings.
+
 2000-01-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-cmds.el (c-fill-paragraph): Count number of spaces
