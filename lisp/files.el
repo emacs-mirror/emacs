@@ -2126,9 +2126,9 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 					 " -d "
 					 (if (stringp switches)
 					     switches
-					   (mapconcat 'identity switches " ")
+					   (mapconcat 'identity switches " "))
 					 " "
-					 pattern))))
+					 pattern)))
 	  ;; SunOS 4.1.3, SVr4 and others need the "." to list the
 	  ;; directory if FILE is a symbolic link.
 	  (apply 'call-process
