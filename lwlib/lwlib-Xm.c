@@ -1267,11 +1267,19 @@ xm_create_dialog (instance)
   return widget;
 }
 
+/* Create a menu bar.  We turn off the f10 key
+   because we have not yet managed to make it work right in Motif.  */
+
 static Widget
 make_menubar (instance)
      widget_instance* instance;
 {
-  return XmCreateMenuBar (instance->parent, instance->info->name, NULL, 0);
+  Arg al[1];
+  int ac;
+
+  ac = 0;
+  XtSetArg(al[0], XmNmenuAccelerator, 0);
+  return XmCreateMenuBar (instance->parent, instance->info->name, al, 1);
 }
 
 static void
