@@ -1824,8 +1824,15 @@ Find text by calling @var{function}, and highlight the matches
 it finds using @code{font-lock-keyword-face}.
 
 When @var{function} is called, it receives one argument, the limit of
-the search.  It should return non-@code{nil} if it succeeds, and set the
-match data to describe the match that was found.
+the search; it should searching at point, and not search beyond the
+limit.  It should return non-@code{nil} if it succeeds, and set the
+match data to describe the match that was found.  Returning @code{nil}
+indicates failure of the search.
+
+Fontification will call @var{function} repeatedly with the same limit,
+and with point where the previous invocation left it, until
+@var{function} fails.  On failure, @var{function} need not reset point
+in any particular way.
 
 @item (@var{matcher} . @var{match})
 In this kind of element, @var{matcher} is either a regular
