@@ -1683,14 +1683,16 @@ From a program, any arguments are passed to the `rcs2log' script."
 	(progn 
 	  (set-buffer "*vc*")
 	  (goto-char (point-min))
-	  (if (re-search-forward "new revision: \\([0-9.]+\\);" nil t)
+	  (if (or (re-search-forward 
+		   "new revision: \\([0-9.]+\\);" nil t)
+		  (re-search-forward 
+		   "reverting to previous revision \\([0-9.]+\\)" nil t))
 	      (progn (setq rev (buffer-substring (match-beginning 1)
 						 (match-end 1)))
 		     (vc-file-setprop file 'vc-workfile-version rev)))
-	  (if (vc-trunk-p rev)
-	      (vc-do-command 0 "rcs" file 'MASTER "-b")
-	    (vc-do-command 0 "rcs" file 'MASTER
-			   (concat "-b" (vc-branch-part rev))))
+	  (if rev (vc-do-command 0 "rcs" file 'MASTER 
+				 (if (vc-trunk-p rev) "-b"
+				   (concat "-b" (vc-branch-part rev)))))
 	  (if lock-version 
 	      ;; exit status of 1 is also accepted.
               ;; It means that the lock was removed before.
