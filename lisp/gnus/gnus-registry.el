@@ -606,7 +606,9 @@ Returns the first place where the trail finds a group name."
       (when gnus-registry-trim-articles-without-groups
 	(unless (gnus-registry-group-count id)
 	  (gnus-registry-delete-id id)))
-      (gnus-registry-store-extra-entry id 'mtime (current-time)))))
+      ;; is this ID still in the registry?
+      (when (gethash id gnus-registry-hashtb)
+	(gnus-registry-store-extra-entry id 'mtime (current-time))))))
 
 (defun gnus-registry-delete-id (id)
   "Delete a message ID from the registry."

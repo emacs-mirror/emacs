@@ -876,7 +876,8 @@ header line with the old Message-ID."
 	    ;; Decode charsets.
 	    (let ((gnus-article-decode-hook
 		   (delq 'article-decode-charset
-			 (copy-sequence gnus-article-decode-hook))))
+			 (copy-sequence gnus-article-decode-hook)))
+		  (rfc2047-quote-decoded-words-containing-tspecials t))
 	      (run-hooks 'gnus-article-decode-hook)))))
       gnus-article-copy)))
 
