@@ -461,7 +461,7 @@ write_abbrev (sym, stream)
     return;
 
   insert ("    (", 5);
-  XSETSTRING (name, XSYMBOL (sym)->name);
+  name = SYMBOL_NAME (sym);
   Fprin1 (name, stream);
   insert (" ", 1);
   Fprin1 (SYMBOL_VALUE (sym), stream);
