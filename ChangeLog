@@ -1,3 +1,7 @@
+2002-11-22  Juanma Barranquero  <lektu@terra.es>
+
+	* config.guess, config.sub: Updated from master source.
+
 2002-11-14  Francesco Potorti`  <pot@gnu.org>
 
 	* configure.in (*-sunos5.8*, *-solaris2.8*): New configurations.
