@@ -11009,12 +11009,12 @@ display_line (it)
       if (!get_next_display_element (it))
 	{
 	  /* Maybe add a space at the end of this line that is used to
-	     display the cursor there under X.  */
-	  if (append_space (it, 1) && row->used[TEXT_AREA] == 1)
+	     display the cursor there under X.  Set the charpos of the
+	     first glyph of blank lines not corresponding to any text
+	     to -1.  */
+	  if ((append_space (it, 1) && row->used[TEXT_AREA] == 1)
+	      || row->used[TEXT_AREA] == 0)
 	    {
-	      /* The position -1 below indicates a blank line not
-		 corresponding to any text, as opposed to an empty line
-		 corresponding to a line end.  */
 	      row->glyphs[TEXT_AREA]->charpos = -1;
 	      row->displays_text_p = 0;
 
