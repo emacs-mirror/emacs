@@ -5,8 +5,8 @@
 
 2002-06-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* language/cyrillic.el (cyrillic-alternativnyj-decode-table): Fix
-	the table to contain correct characters.
+	* language/cyrillic.el (cyrillic-alternativnyj-decode-table):
+	Fix the table to contain correct characters.
 
 2002-06-04  Richard M. Stallman  <rms@gnu.org>
 
@@ -39,7 +39,7 @@
 	after checking for proper minibuffer window.  Added mini-p arg to
 	the hook functions.  Insert choice if all hook functions return nil.
 	(choose-completion-string-functions): Doc update.
-	
+
 2002-06-01  Sam Steingold  <sds@gnu.org>
 
 	* files.el (auto-mode-alist): Strip trailing ".in" from the file
@@ -58,6 +58,11 @@
 	(choose-completion-string1): Renamed from choose-completion-string.
 	(choose-completion-string): Run choose-completion-string-functions
 	until success, and only call choose-completion-string1 if it fails.
+
+2002-05-31  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/ispell.el (autoloaded toplevel): Don't use
+	ispell-library-directory without checking that it's bound.
 
 2002-05-31  Kim F. Storm  <storm@cua.dk>
 
