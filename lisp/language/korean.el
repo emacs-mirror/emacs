@@ -59,7 +59,7 @@
 	    (coding-priority korean-iso-8bit iso-2022-kr)
 	    (sample-text . "Hangul (한글)	안녕하세요, 안녕하십니까")
 	    (documentation . "\
-The following key bindings are avairable while using Korean input methods:
+The following key bindings are available while using Korean input methods:
   Shift-SPC:	toggle-korean-input-mthod
   Control-F9:	quail-hangul-switch-symbol-ksc
   F9:		quail-hangul-switch-hanja")
