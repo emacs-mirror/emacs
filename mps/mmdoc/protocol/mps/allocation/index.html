@@ -1,116 +1,138 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
+<head>
 
- <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
+<title>MPS Allocation Protocol</title>
 
-  <head>
+</head>
 
-   <title>MPS Allocation Protocol</title>
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
 
-  </head>
+<div align="center">
 
-  <body bgcolor='#FFFFFF' text='#000000' link='#000099' vlink='#660066' alink='#FF0000'>
+<h1>MPS Allocation Protocol</h1>
 
-   <div align='center'>
+<p>incomplete</p>
 
-    <h1>MPS Allocation Protocol</h1>
+<address>pekka, 2000-05-22</address>
 
-    <p>incomplete</p>
+</div>
 
-    <address>pekka, 2000-05-22</address>
+<h2><a id="section-Contents" name="section-Contents">Contents</a></h2>
 
-   </div>
+<ul>
 
-   <p>[most of this is still missing, but it's trivial]</p>
+<li><a href="#section-1">1. Introduction</a></li>
 
-   <h2>
+<li><a href="#section-2">2. Alignment</a></li>
 
-    <a id='section-alignment' name='section-alignment'>Alignment</a>
+<li><a href="#section-A">A. References</a></li>
 
-   </h2>
+<li><a href="#section-B">B. Document history</a></li>
 
-   <p>Some processors require that you align accesses to memory; others just work better if you do.  For example, a double precision floating point number on many architectures must be aligned on a double boundary (that is, its address must be a multiple of 8).  Alignments of eight bytes mean the last three bits are 0, etc.</p>
+</ul>
 
-   <p>As a consequence of this, every pool has an alignment.  If the pool alignment is eight bytes, then all allocated objects must be a multiple of eight bytes.  If a six-byte object is allocated, two bytes are wasted.  For many pool classes, clients can specify the pool's alignment when creating it.</p>
+<h2><a id="section-1" name="section-1">1. Introduction</a></h2>
 
-   <p>MPS_PF_ALIGN is a C preprocessor symbol defined in mpstd.h which defines the MPS's notion of the platform alignment.  The platform alignment is the least common multiple (since we assume all alignments are powers of 2 this is the maximum) of all alignments on that platform.  If objects are allocated at platform alignment, generally everything is allocated with no problems, but a lot of space may be wasted.</p>
+<p>[this is a placeholder; this document has mostly not been written yet]</p>
 
-   <p>If the client application allocates memory using an allocation function, the function sorts everything out for it.  If it is using reserve and commit, it has to round allocations up to the pool alignment.  Alloc and Init always need the correct alignment -- if the pool size is four bytes, then the size variable must be four bytes.</p>
+<h2><a id="section-2" name="section-2">2. Alignment</a></h2>
 
-   <h2>
+<p>Some processors require that you align accesses to memory; others
+just work better if you do.  For example, a double precision floating
+point number on many architectures must be aligned on a double
+boundary (that is, its address must be a multiple of 8).  Alignments
+of eight bytes mean the last three bits are 0, etc.</p>
 
-    <a id='section-A' name='section-A'>A. References</a>
+<p>As a consequence of this, every pool has an alignment.  If the pool
+alignment is eight bytes, then all allocated objects must be a
+multiple of eight bytes.  If a six-byte object is allocated, two bytes
+are wasted.  For many pool classes, clients can specify the pool's
+alignment when creating it.</p>
 
-   </h2>
+<p><code class="source">MPS_PF_ALIGN</code> is a C preprocessor symbol
+defined in <code class="filename">mpstd.h</code> which defines the
+MPS's notion of the platform alignment.  The platform alignment is the
+least common multiple (since we assume all alignments are powers of 2
+this is the maximum) of all alignments on that platform.  If objects
+are allocated at platform alignment, generally everything is allocated
+with no problems, but a lot of space may be wasted.</p>
 
-   <h2>
+<p>If the client application allocates memory using an allocation
+function, the function sorts everything out for it.  If it is using
+reserve and commit, it has to round allocations up to the pool
+alignment.  Alloc and Init always need the correct alignment -- if the
+pool size is four bytes, then the size variable must be four
+bytes.</p>
 
-    <a id='section-B' name='section-B'>B. Document History</a>
+<h2><a id="section-A" name="section-A">A. References</a></h2>
 
-   </h2>
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
-   <table>
+<table>
 
-    <tr valign='top'>
+<tr valign="top">
 
-     <td>2000-05-22 15:45:28 +01</td>
+  <td>2000-05-22 15:45:28 +01</td>
 
-     <td>pekka</td>
+  <td>pekka</td>
 
-     <td>New document saved</td>
+  <td>New document saved</td>
 
-    </tr>
+</tr>
 
-    <tr valign='top'>
+<tr valign="top">
 
-     <td>2000-06-06 18:04:16 +01</td>
+  <td>2000-06-06 18:04:16 +01</td>
 
-     <td>pekka</td>
+  <td>pekka</td>
 
-     <td>Remove tags and negative comments</td>
+  <td>Remove tags and negative comments</td>
 
-    </tr>
+</tr>
 
-    <tr valign='top'>
+<tr valign="top">
 
-     <td>2001-09-26</td>
+  <td>2001-09-26</td>
 
-     <td>
+  <td><a href="mailto:ndl@ravenbrook.com">NDL</a></td>
 
-      <a href='mailto:ndl@ravenbrook.com'>NDL</a>
+  <td>Converted from xml to html (second pass).</td>
 
-     </td>
+</tr>
 
-     <td>Converted from xml to html (second pass).</td>
+<tr valign="top">
 
-    </tr>
+  <td>2002-04-15</td>
 
-   </table>
+  <td><a href="mailto:nb@ravenbrook.com">NB</a></td>
 
-   <hr />
+  <td>Reformatted.</td>
 
-   <p>
+</tr>
 
-    <small>Copyright &copy; 2001 Ravenbrook Limited.  This document is provided "as is", without any express or implied warranty.  In no event will the authors be held liable for any damages arising from the use of this document.  You may not duplicate or reproduce this document in any form without the express permission of the copyright holder.</small>
+</table>
 
-   </p>
+<hr />
 
-   <div align='center'>
+<p><small>Copyright &copy; 2001 Ravenbrook Limited.  This document is
+provided "as is", without any express or implied warranty.  In no
+event will the authors be held liable for any damages arising from the
+use of this document.  You may not duplicate or reproduce this
+document in any form without the express permission of the copyright
+holder.</small></p>
 
-    <p>
+<div align="center">
 
-     <code>$Id$</code>
+<p><code>$Id$</code></p>
 
-    </p>
+</div>
 
-   </div>
+</body>
 
-  </body>
-
- </html>
+</html>
 
