@@ -1059,7 +1059,7 @@ Notations:  3.14e6     3.14 * 10^6
   (setq calc-stack-top (- (length calc-stack) calc-stack-top -1))
   (or calc-loaded-settings-file
       (null calc-settings-file)
-      (string-match "\\.emacs" calc-settings-file)
+      (equal calc-settings-file user-init-file)
       (progn
 	(setq calc-loaded-settings-file t)
 	(load calc-settings-file t)))   ; t = missing-ok
