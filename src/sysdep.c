@@ -2045,6 +2045,7 @@ bcmp (b1, b2, length)	/* This could be a macro! */
 }
 #endif /* not BSTRING */
 
+#ifndef HAVE_RANDOM
 #ifdef USG
 /*
  *	The BSD random returns numbers in the range of
@@ -2081,6 +2082,7 @@ srandom (arg)
   srand (arg);
 }
 #endif /* BSD4_1 */
+#endif
 
 #ifdef WRONG_NAME_INSQUE
 
