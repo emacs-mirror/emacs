@@ -90,6 +90,7 @@ above point, which remains at the end.  If point is not at the end of
 the buffer, it remains fixed while more compilation output is added at
 the end of the buffer.
 
+@cindex compilation buffer, keeping current position at the end
 @vindex compilation-scroll-output
   If you set the variable @code{compilation-scroll-output} to a
 non-@code{nil} value, then the compilation buffer always scrolls to
@@ -142,6 +143,10 @@ in @ref{Dired and Find}.
   The @samp{*compilation*} buffer uses a special major mode, Compilation
 mode, whose main feature is to provide a convenient way to look at the
 source line where the error happened.
+
+  If you set the variable @code{compilation-scroll-output} to a
+non-@code{nil} value, then the compilation buffer always scrolls to
+follow output as it comes in.
 
 @table @kbd
 @item C-x `
