@@ -20,6 +20,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "config.h"
 #include "lisp.h"
+#include "puresize.h"
 #ifndef standalone
 #include "buffer.h"
 #include "window.h"
@@ -81,6 +82,14 @@ int pure[PURESIZE / sizeof (int)] = {0,};   /* Force it into data space! */
 #else
 #define pure PURE_SEG_BITS   /* Use shared memory segment */
 #define PUREBEG (char *)PURE_SEG_BITS
+
+/* This variable is used only by the XPNTR macro when HAVE_SHM is
+   defined.  If we used the PURESIZE macro directly there, that would
+   make most of emacs dependent on puresize.h, which we don't want -
+   you should be able to change that without too much recompilation.
+   So map_in_data initializes pure_size, and the dependencies work
+   out.  */
+int pure_size;
 #endif /* not HAVE_SHM */
 
 /* Index in pure at which next pure object will be allocated. */
@@ -1341,6 +1350,7 @@ mark_object (objptr)
 	ptr->size |= ARRAY_MARK_FLAG; /* Else mark it */
 
 	mark_object (&ptr->name);
+	mark_object (&ptr->focus_screen);
 	mark_object (&ptr->width);
 	mark_object (&ptr->height);
 	mark_object (&ptr->selected_window);
@@ -1831,6 +1841,9 @@ init_alloc_once ()
 {
   /* Used to do Vpurify_flag = Qt here, but Qt isn't set up yet!  */
   pureptr = 0;
+#ifdef HAVE_SHM
+  pure_size = PURESIZE;
+#endif
   all_vectors = 0;
   ignore_warnings = 1;
   init_strings ();
