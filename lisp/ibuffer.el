@@ -47,8 +47,8 @@ Operations include sorting, marking by regular expression, and
 the ability to filter the displayed buffers by various criteria."
   :group 'convenience)
 
-(defcustom ibuffer-formats '((mark modified read-only " " (name 16 16 :left :elide)
-				   " " (size 7 -1 :right)
+(defcustom ibuffer-formats '((mark modified read-only " " (name 18 18 :left :elide)
+				   " " (size 9 -1 :right)
 				   " " (mode 16 16 :right :elide) " " filename-and-process)
 			     (mark " " (name 16 -1) " " filename))
   "A list of ways to display buffer lines.
