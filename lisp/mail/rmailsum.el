@@ -207,7 +207,7 @@ nil for FUNCTION means all messages."
 	    (setq buffer-read-only t)
 	    (rmail-summary-mode)
 	    (make-local-variable 'minor-mode-alist)
-	    (setq minor-mode-alist (list '(t (concat ": " description))))
+	    (setq minor-mode-alist (list (list t (concat ": " description))))
 	    (setq rmail-buffer rbuf
 		  rmail-summary-redo redo-form
 		  rmail-total-messages total))))
