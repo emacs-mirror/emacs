@@ -9,7 +9,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.42 $")
+(defconst byte-compile-version "$Revision: 2.43 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1450,7 +1450,7 @@ With argument, insert value in current buffer after the form."
 	   (goto-char 1)
 	   ;; See if the buffer has any multibyte characters.
 	   (skip-chars-forward "\0-\377")
-	   (setq some-multibyte-characters (not (eobp))))))
+	   (not (eobp)))))
 
     (set-buffer outbuffer)
     (goto-char 1)
