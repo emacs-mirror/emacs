@@ -9,7 +9,9 @@
 #define alloca __builtin_alloca
 
 /* use K&R C */
+#ifndef __GNUC__
 #define C_SWITCH_MACHINE -cckr
+#endif
 
 /* SGI has all the fancy wait stuff, but we can't include sys/wait.h
    because it defines BIG_ENDIAN and LITTLE_ENDIAN (ugh!.)  Instead
