@@ -363,6 +363,14 @@ However, if @emph{all} the possible completions end in ``ignored''
 strings, then they are not ignored.  Ignored extensions do not apply to
 lists of completions---those always mention all possible completions.
 
+  If an element of the list in @code{completion-ignored-extensions} ends
+in a slash @file{/}, it indicates a subdirectory that should be ignored
+when completing file names.  (Elements of
+@code{completion-ignored-extensions} which do not end in a slash are
+never considered when a completion candidate is a directory; thus,
+completion returns directories whose names end in @file{.elc} even
+though there's an element @code{".elc"} in the list.)
+
 @vindex completion-auto-help
   Normally, a completion command that cannot determine even one
 additional character automatically displays a list of all possible
