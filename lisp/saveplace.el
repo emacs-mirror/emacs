@@ -1,6 +1,6 @@
 ;;; saveplace.el --- automatically save place in files
 
-;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2001 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: FSF
@@ -63,6 +63,7 @@ simply put this in your `~/.emacs' file:
 
 \(setq-default save-place t\)"
   :type 'boolean
+  :require 'saveplace
   :group 'save-place)
 
 (make-variable-buffer-local 'save-place)
