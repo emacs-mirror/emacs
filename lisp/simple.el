@@ -181,7 +181,6 @@ With arg N, insert N newlines."
     (goto-char loc)
     (end-of-line)))
 
-
 (defun split-line (&optional arg)
   "Split current line, moving portion beyond point vertically down.
 If the current line starts with `fill-prefix', insert it on the new
@@ -190,17 +189,19 @@ line as well.  With prefix arg, don't insert fill-prefix on new line.
 When called from Lisp code, the arg may be a prefix string to copy."
   (interactive "*P")
   (skip-chars-forward " \t")
-  (let ((col (current-column))
-	(pos (point))
-	(beg (line-beginning-position))
-	(prefix (cond ((stringp arg) arg)
-		      (arg nil)
-		      (t fill-prefix))))
+  (let* ((col (current-column))
+	 (pos (point))
+	 ;; What prefix should we check for (nil means don't).
+	 (prefix (cond ((stringp arg) arg)
+		       (arg nil)
+		       (t fill-prefix)))
+	 ;; Does this line start with it?
+	 (have-prfx (and prefix
+			 (save-excursion
+			   (beginning-of-line)
+			   (looking-at (regexp-quote prefix))))))
     (newline 1)
-    (if (and (stringp prefix)
-	     (string-equal prefix
-			   (buffer-substring beg (+ beg (length prefix)))))
-	(insert-and-inherit prefix))
+    (if have-prfx (insert-and-inherit prefix))
     (indent-to col 0)
     (goto-char pos)))
 
