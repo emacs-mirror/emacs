@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!50.c(trunk.4) $
+ id = $HopeName: MMQA_test_function!50.c(trunk.5) $
  summary = finalization tests with AMC, AWL and LO
  language = c
  link = testlib.o rankfmt.o
@@ -15,12 +15,13 @@ END_HEADER
 #include "mpscawl.h"
 #include "mpscamc.h"
 #include "mpsclo.h"
+#include "mpsavm.h"
 #include "rankfmt.h"
 
 
 void *stackpointer;
 
-mps_space_t space;
+mps_arena_t arena;
 
 int final_count = 0;
 
@@ -71,17 +72,17 @@ static void process_mess(mps_message_t message, int faction, mps_addr_t *ref) {
 
  switch (faction) {
   case FINAL_DISCARD:
-   mps_message_discard(space, message);
+   mps_message_discard(arena, message);
    break;
   case FINAL_REREGISTER:
-   mps_message_finalization_ref(&ffref, space, message);
-   mps_finalize(space, &ffref);
+   mps_message_finalization_ref(&ffref, arena, message);
+   mps_finalize(arena, &ffref);
    final_count +=1;
-   mps_message_discard(space, message);
+   mps_message_discard(arena, message);
    break;
   case FINAL_STORE:
-   mps_message_finalization_ref(ref, space, message);
-   mps_message_discard(space, message);
+   mps_message_finalization_ref(ref, arena, message);
+   mps_message_discard(arena, message);
    break;
   case FINAL_QUEUE:
    nq(message);
@@ -104,7 +105,7 @@ static void qpoll(mycell **ref, int faction) {
 static void finalpoll(mycell **ref, int faction) {
  mps_message_t message;
 
- if (mps_message_get(&message, space, MPS_MESSAGE_TYPE_FINALIZATION)) {
+ if (mps_message_get(&message, arena, MPS_MESSAGE_TYPE_FINALIZATION)) {
   final_count -=1;
   process_mess(message, faction, (mps_addr_t*)ref);
  }
@@ -123,48 +124,42 @@ static void test(void) {
 
  long int j;
 
- cdie(mps_space_create(&space), "create space");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t)1024*1024*30),
+      "create arena");
 
- cdie(mps_thread_reg(&thread, space), "register thread");
+ cdie(mps_thread_reg(&thread, arena), "register thread");
 
- cdie(
-  mps_root_create_reg(&root0, space, MPS_RANK_AMBIG, 0, thread,
-   mps_stack_scan_ambig, stackpointer, 0),
-  "create root");
+ cdie(mps_root_create_reg(&root0, arena, MPS_RANK_AMBIG, 0, thread,
+                          mps_stack_scan_ambig, stackpointer, 0),
+      "create root");
  
- cdie(
-  mps_root_create_table(&root1, space, MPS_RANK_AMBIG, 0, &exfmt_root, 1),
-  "create table root");
+ cdie(mps_root_create_table(&root1, arena, MPS_RANK_AMBIG, 0,
+                            (mps_addr_t *)&exfmt_root, 1),
+      "create table root");
 
- cdie(
-  mps_fmt_create_A(&format, space, &fmtA),
-  "create format");
+ cdie(mps_fmt_create_A(&format, arena, &fmtA),
+      "create format");
 
- cdie(
-  mps_pool_create(&poolamc, space, mps_class_amc(), format),
-  "create pool");
+ cdie(mps_pool_create(&poolamc, arena, mps_class_amc(), format),
+      "create pool");
 
- cdie(
-  mps_pool_create(&poolawl, space, mps_class_awl(), format),
-  "create pool");
+ cdie(mps_pool_create(&poolawl, arena, mps_class_awl(), format),
+      "create pool");
 
- cdie(
-  mps_pool_create(&poollo, space, mps_class_lo(), format),
-  "create pool");
+ cdie(mps_pool_create(&poollo, arena, mps_class_lo(), format),
+      "create pool");
 
- cdie(
-  mps_ap_create(&apawl, poolawl, MPS_RANK_WEAK),
-  "create ap");
+ cdie(mps_ap_create(&apawl, poolawl, MPS_RANK_WEAK),
+      "create ap");
 
- cdie(
-  mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
-  "create ap");
+ cdie(mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
+      "create ap");
  
  cdie(
   mps_ap_create(&aplo, poollo, MPS_RANK_EXACT),
   "create ap");
 
- mps_message_type_enable(space, mps_message_type_finalization());
+ mps_message_type_enable(arena, mps_message_type_finalization());
 
 /* register loads of objects for finalization (1000*4) */
 
@@ -175,10 +170,10 @@ static void test(void) {
   a = allocone(apamc, 2, MPS_RANK_EXACT);
   c = allocone(apawl, 2, MPS_RANK_WEAK);
   d = allocone(aplo, 2, MPS_RANK_EXACT); /* rank irrelevant here! */
-  mps_finalize(space, (mps_addr_t*)&a);
-  mps_finalize(space, (mps_addr_t*)&c);
-  mps_finalize(space, (mps_addr_t*)&d);
-  mps_finalize(space, (mps_addr_t*)&d);
+  mps_finalize(arena, (mps_addr_t*)&a);
+  mps_finalize(arena, (mps_addr_t*)&c);
+  mps_finalize(arena, (mps_addr_t*)&d);
+  mps_finalize(arena, (mps_addr_t*)&d);
   final_count += 4;
   setref(a, 0, b);
   setref(a, 1, c);
@@ -193,9 +188,9 @@ static void test(void) {
  c = NULL;
  d = NULL;
 
- mps_arena_collect(space);
+ mps_arena_collect(arena);
 
- while (mps_message_poll(space)) {
+ while (mps_message_poll(arena)) {
   finalpoll(&z, FINAL_DISCARD);
  }
 
@@ -210,7 +205,7 @@ static void test(void) {
  for (j=0; j<10; j++) {
   comment("%d of 10", j);
   a = allocone(apamc, 10000, MPS_RANK_EXACT);
-  mps_finalize(space, (mps_addr_t*)&a);
+  mps_finalize(arena, (mps_addr_t*)&a);
   final_count +=1;
   comment("finalize");
   finalpoll(&z, FINAL_QUEUE);
@@ -251,7 +246,7 @@ static void test(void) {
   qpoll(&z, FINAL_DISCARD);
  }
 
- while (mps_message_poll(space)) {
+ while (mps_message_poll(arena)) {
   finalpoll(&z, FINAL_DISCARD);
  }
 
@@ -264,10 +259,10 @@ static void test(void) {
  mps_ap_destroy(aplo);
  comment("Destroyed aps.");
 
- mps_arena_collect(space);
- comment("Collected space.");
+ mps_arena_collect(arena);
+ comment("Collected arena.");
 
- while (mps_message_poll(space)) {
+ while (mps_message_poll(arena)) {
   finalpoll(&z, FINAL_DISCARD);
  }
 
@@ -284,8 +279,8 @@ static void test(void) {
  mps_thread_dereg(thread);
  comment("Deregistered thread.");
 
- mps_space_destroy(space);
- comment("Destroyed space.");
+ mps_arena_destroy(arena);
+ comment("Destroyed arena.");
 }
 
 
