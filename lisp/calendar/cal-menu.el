@@ -86,7 +86,7 @@
 (define-key calendar-mode-map [menu-bar diary view]
   '("Other File" . view-other-diary-entries))
 
-(define-key calendar-mode-map [menu-bar holidays]
+(define-key calendar-mode-map [menu-bar Holidays]
   (cons "Holidays" (make-sparse-keymap "Holidays")))
 
 (define-key calendar-mode-map [menu-bar goto]
@@ -194,8 +194,8 @@
                            l)))
             (setq l (cons ["Mark Holidays" mark-calendar-holidays t]
                           (cons ["Unmark Calendar" calendar-unmark t] l)))
-            (easy-menu-change nil "holidays" (nreverse l))
-            (define-key calendar-mode-map [menu-bar holidays today]
+            (easy-menu-change nil "Holidays" (nreverse l))
+            (define-key calendar-mode-map [menu-bar Holidays today]
                 `(,(format "For Today (%s)"
                            (calendar-date-string (calendar-current-date) t t))
                   . cal-menu-today-holidays))
@@ -216,13 +216,13 @@
                                y1
                                (calendar-month-name m2 3)
                                y2)))))
-              (define-key  calendar-mode-map [menu-bar holidays 3-month]
-                `(,(format "For Current Window (%s)" title)
+              (define-key  calendar-mode-map [menu-bar Holidays 3-month]
+                `(,(format "For Window (%s)" title)
                   . list-calendar-holidays)))
             (let ((date (calendar-cursor-to-date)))
               (if date
-                  (define-key calendar-mode-map [menu-bar holidays 1-day]
-                    `(,(format "For Cursor Date (%s)"
+                  (define-key calendar-mode-map [menu-bar Holidays 1-day]
+                    `(,(format "For Date %s"
                                (calendar-date-string date t t))
                       . calendar-cursor-holidays))))))
     ;; Try to avoid entering infinite beep mode in case of errors.
