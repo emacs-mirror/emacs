@@ -24,12 +24,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifndef standalone
 #include "buffer.h"
 #include "window.h"
-#ifdef HAVE_X_WINDOWS
-#include "xterm.h"
 #ifdef MULTI_SCREEN
 #include "screen.h"
 #endif	/* MULTI_SCREEN */
-#endif	/* HAVE_X_WINDOWS */
 #endif
 
 #define max(A,B) ((A) > (B) ? (A) : (B))
@@ -753,7 +750,7 @@ make_uninit_string (length)
    arguments, are allowed.  */
 
 Lisp_Object
-make_sequence (nargs, args)
+make_array (nargs, args)
      register int nargs;
      Lisp_Object *args;
 {
@@ -1042,8 +1039,6 @@ Garbage collection happens automatically if you cons more than\n\
   char stack_top_variable;
   register int i;
 
-  BLOCK_INPUT;
-
   /* Save a copy of the contents of the stack, for debugging.  */
 #if MAX_SAVE_STACK > 0
   if (NULL (Vpurify_flag))
@@ -1180,10 +1175,6 @@ Garbage collection happens automatically if you cons more than\n\
     message1 (omessage);
   else if (!noninteractive)
     message1 ("Garbage collecting...done");
-
-#ifdef HAVE_X_WINDOWS
-  UNBLOCK_INPUT;
-#endif
 
   return Fcons (Fcons (make_number (total_conses),
 		       make_number (total_free_conses)),
