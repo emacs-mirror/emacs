@@ -385,7 +385,7 @@ The value is never nil.")
   b->zv_marker = Qnil;
 
   name = Fcopy_sequence (name);
-  INITIALIZE_INTERVAL (XSTRING (name), NULL_INTERVAL);
+  XSTRING (name)->intervals = NULL_INTERVAL;
   b->name = name;
 
   if (XSTRING (name)->data[0] != ' ')
@@ -501,7 +501,7 @@ CLONE nil means the indirect buffer's state is reset to default values.")
   all_buffers = b;
 
   name = Fcopy_sequence (name);
-  INITIALIZE_INTERVAL (XSTRING (name), NULL_INTERVAL);
+  XSTRING (name)->intervals = NULL_INTERVAL;
   b->name = name;
 
   reset_buffer (b);
@@ -3517,6 +3517,7 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
   CHECK_NUMBER_COERCE_MARKER (pos, 0);
 
   len = 10;
+  /* We can't use alloca here because overlays_at can call xrealloc.  */
   overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
 
   /* Put all the overlays we want in a vector in overlay_vec.
