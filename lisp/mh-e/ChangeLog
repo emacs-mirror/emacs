@@ -1,3 +1,7 @@
+2003-04-25  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (mh-version): Set to 7.3+cvs.
+
 2003-04-24  Bill Wohler  <wohler@newt.com>
 
 	* Released MH-E version 7.3.
