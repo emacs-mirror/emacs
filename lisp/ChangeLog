@@ -1,3 +1,20 @@
+2004-11-28  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.el (fringe): New defgroup.
+	(fringe-mode): Move to fringe group.
+	(fringe-indicators): New defcustom.
+	(set-fringe-indicators-1): New defun.
+
+	* menu-bar.el (menu-bar-options-save): Add fringe-indicators.
+	(menu-bar-showhide-fringe-ind-menu): New keymap.
+	(menu-bar-showhide-fringe-ind-empty)
+	(menu-bar-showhide-fringe-ind-mixed)
+	(menu-bar-showhide-fringe-ind-box)
+	(menu-bar-showhide-fringe-ind-right)
+	(menu-bar-showhide-fringe-ind-left)
+	(menu-bar-showhide-fringe-ind-none): New defuns.
+	(menu-bar-showhide-fringe-menu): Add "Indicators" sub-menu.
+
 2004-11-27  Richard M. Stallman  <rms@gnu.org>
 
 	* comint.el (comint-read-noecho): Add trivial compatibility
