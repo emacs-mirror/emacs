@@ -171,6 +171,7 @@ depend on `display-time-day-and-date' and `display-time-24hr-format'."
 			     ,@(list :background (face-attribute
 						  display-time-mail-face
 						  :background)))
+                 'face display-time-mail-face
 		 'help-echo "You have new mail; mouse-2: Read mail"
 		 'local-map (make-mode-line-mouse-map 'mouse-2
 						      read-mail-command)))
