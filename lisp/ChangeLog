@@ -1,3 +1,9 @@
+2003-06-01  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* desktop.el (desktop-create-buffer): Added (desktop-first-buffer) to
+	the let-statement to avoid the startup error that desktop-first-buffer
+	is undefined.
+	
 2003-06-01  Andreas Schwab  <schwab@suse.de>
 
 	* man.el (Man-name-regexp): Also match Latin-1 soft hyphen.
