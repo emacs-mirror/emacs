@@ -733,7 +733,7 @@ EmacsFrameRealize (widget, mask, attrs)
 
   /* This used to contain SubstructureRedirectMask, but this turns out
      to be a problem with XIM on Solaris, and events from that mask
-     don't seem to be used.  Let's check that.  */);
+     don't seem to be used.  Let's check that.  */
   attrs->event_mask = (STANDARD_EVENT_SET
 		       | PropertyChangeMask
 		       | SubstructureNotifyMask);
