@@ -66,7 +66,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define START_FILES crt0.o
 
-/* Define LD_SWITCH_MACHINE if your linker need it.
+/* Define LD_SWITCH_MACHINE if your linker needs it.
  */
 
 #define LD_SWITCH_MACHINE -e __start
@@ -74,9 +74,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #if	pfa50 || pfa70
 
 /* On A-50/60/70/80, data space has high order byte use. */
+#define VALBITS 26
 #define VALMASK (((1<<VALBITS) - 1) | 0x60000000)
-#define XTYPE(a) ((enum Lisp_Type) (((a) >> VALBITS) & 0x1f))
-#define XGCTYPE(a) ((enum Lisp_Type) (((a) >> VALBITS) & 0x1f))
+#define XTYPE(a) ((enum Lisp_Type) (((a) >> VALBITS) & GCTYPEMASK))
 
 #endif /* pfa50, pfa70 */
 
