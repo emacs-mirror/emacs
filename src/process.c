@@ -2329,10 +2329,13 @@ read_process_output (proc, channel)
 	 it up.  */
       int count = specpdl_ptr - specpdl;
       Lisp_Object odeactivate;
-      Lisp_Object obuffer;
+      Lisp_Object obuffer, okeymap;
 
+      /* No need to gcpro these, because all we do with them later
+	 is test them for EQness, and none of them should be a string.  */
       odeactivate = Vdeactivate_mark;
-      obuffer = Fcurrent_buffer ();
+      XSETBUFFER (obuffer, current_buffer);
+      okeymap = current_buffer->keymap;
 
       specbind (Qinhibit_quit, Qt);
       specbind (Qlast_nonmenu_event, Qt);
@@ -2352,7 +2355,8 @@ read_process_output (proc, channel)
       /* Handling the process output should not deactivate the mark.  */
       Vdeactivate_mark = odeactivate;
 
-      if (! EQ (Fcurrent_buffer (), obuffer))
+      if (! EQ (Fcurrent_buffer (), obuffer)
+	  || ! EQ (current_buffer->keymap, okeymap))
 	record_asynch_buffer_change ();
 
       if (waiting_for_user_input_p)
@@ -3206,12 +3210,16 @@ static void
 exec_sentinel (proc, reason)
      Lisp_Object proc, reason;
 {
-  Lisp_Object sentinel, obuffer, odeactivate;
+  Lisp_Object sentinel, obuffer, odeactivate, okeymap;
   register struct Lisp_Process *p = XPROCESS (proc);
   int count = specpdl_ptr - specpdl;
 
+  /* No need to gcpro these, because all we do with them later
+     is test them for EQness, and none of them should be a string.  */
   odeactivate = Vdeactivate_mark;
-  obuffer = Fcurrent_buffer ();
+  XSETBUFFER (obuffer, current_buffer);
+  okeymap = current_buffer->keymap;
+
   sentinel = p->sentinel;
   if (NILP (sentinel))
     return;
@@ -3234,7 +3242,8 @@ exec_sentinel (proc, reason)
   restore_match_data ();
 
   Vdeactivate_mark = odeactivate;
-  if (! EQ (Fcurrent_buffer (), obuffer))
+  if (! EQ (Fcurrent_buffer (), obuffer)
+      || ! EQ (current_buffer->keymap, okeymap))
     record_asynch_buffer_change ();
 
   if (waiting_for_user_input_p)
