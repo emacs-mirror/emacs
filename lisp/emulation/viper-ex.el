@@ -489,7 +489,7 @@ reversed.")
 		      ))
 		   ))
 	    ((eq ex-token-type 'non-command)
-	     (error (format "`%s': %s" ex-token vip-BadExCommand)))
+	     (error "`%s': %s" ex-token vip-BadExCommand))
 	    ((eq ex-token-type 'whole)
 	     (setq address nil)
 	     (setq ex-addresses
@@ -731,7 +731,7 @@ reversed.")
       (setq cf buffer-file-name)
       (setq pf (ex-next nil t))) ; this finds alternative file name
     (if (and (null cf) (string-match "[^\\]%\\|\\`%" cmd))
-	(error "No current file to substitute for `\%'"))
+	(error "No current file to substitute for `%%'"))
     (if (and (null pf) (string-match "[^\\]#\\|\\`#" cmd))
 	(error "No alternate file to substitute for `#'"))
     (save-excursion
@@ -944,22 +944,19 @@ reversed.")
 	     (string= ex-token "change")
 	     (string= ex-token "insert")
 	     (string= ex-token "open"))
-	 (error
-	  (format "`%s': Obsolete command, not supported by Viper"
-		  ex-token)))
+	 (error "`%s': Obsolete command, not supported by Viper"
+		ex-token))
 	((or (string= ex-token "abbreviate")
 	     (string= ex-token "unabbreviate"))
 	 (error
-	  (format
 	   "`%s': Vi-style abbrevs are obsolete. Use the more powerful Emacs abbrevs"
-	   ex-token)))
+	   ex-token))
 	((or (string= ex-token "list")
 	     (string= ex-token "print")
 	     (string= ex-token "z")
 	     (string= ex-token "#"))
-	 (error
-	  (format "`%s': Command not implemented in Viper" ex-token)))
-	(t (error (format "`%s': %s" ex-token vip-BadExCommand)))))
+	 (error "`%s': Command not implemented in Viper" ex-token))
+	(t (error "`%s': %s" ex-token vip-BadExCommand))))
 
 (defun vip-undisplayed-files ()
   (mapcar
