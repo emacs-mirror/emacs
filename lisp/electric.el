@@ -28,38 +28,6 @@
 
 ;;; Code:
 
-;; perhaps this should be in subr.el...
-(defun shrink-window-if-larger-than-buffer (&optional window)
-  "Shrink the WINDOW to be as small as possible to display its contents.  Do
-nothing if only one window is displayed or if the buffer contains more lines
-than the present window height."
-  (save-excursion
-    (set-buffer (window-buffer window))
-    (let ((w (selected-window)) ;save-window-excursion can't win
-	  (buffer-file-name buffer-file-name)
-	  (p (point))
-	  (n 0)
-	  (window-min-height 0)
-	  (buffer-read-only nil)
-	  (modified (buffer-modified-p))
-	  (buffer (current-buffer)))
-      (unwind-protect
-	  (progn
-	    (select-window window)
-	    (goto-char (point-min))
-	    (while (pos-visible-in-window-p (point-max))
-	      ;; defeat file locking... don't try this at home, kids!
-	      (setq buffer-file-name nil)
-	      (insert ?\n) (setq n (1+ n)))
-	    (if (> n 0) (shrink-window (1- n))))
-	(delete-region (point-min) (point))
-	(set-buffer-modified-p modified)
-	(goto-char p)
-	(select-window w)
-	;; Make sure we unbind buffer-read-only
-	;; with the proper current buffer.
-	(set-buffer buffer)))))
-      
 ;; This loop is the guts for non-standard modes which retain control
 ;; until some event occurs.  It is a `do-forever', the only way out is to
 ;; throw.  It assumes that you have set up the keymap, window, and
