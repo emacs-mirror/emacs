@@ -1,3 +1,23 @@
+2005-03-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* calendar/cal-china.el: Update reference to "Calendrical
+	Calculations" book; there's a new edition.
+	* calendar/cal-coptic.el: Likewise.
+	* calendar/cal-french.el: Likewise.
+	* calendar/cal-hebrew.el: Likewise.
+	* calendar/cal-islam.el: Likewise.
+	* calendar/cal-iso.el: Likewise.
+	* calendar/cal-julian.el: Likewise.
+	* calendar/cal-mayan.el: Likewise.
+	* calendar/cal-persia.el: Likewise.
+	* calendar/calendar.el: Likewise.
+	* calendar/holidays.el: Likewise.
+	* calendar/lunar.el: Likewise.
+	* calendar/solar.el: Likewise.
+
+	* calendar/calendar.el (calendar-day-abbrev-array): Remove trailing
+	white space from doc string.
+
 2005-03-30  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-help.el (calc-full-help): Remove email address.

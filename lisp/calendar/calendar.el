@@ -75,13 +75,13 @@
 ;;       solar.el                      Sunrise/sunset, equinoxes/solstices
 
 ;; Technical details of all the calendrical calculations can be found in
-;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
-;; Cambridge University Press (1997).
+;; ``Calendrical Calculations: The Millennium Edition'' by Edward M. Reingold
+;; and Nachum Dershowitz, Cambridge University Press (2001).
 
 ;; An earlier version of the technical details appeared in
 ;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
 ;; Software--Practice and Experience, Volume 20, Number 9 (September, 1990),
-;; pages 899-928.  ``Calendrical Calculations, Part II: Three Historical
+;; pages 899-928, and in ``Calendrical Calculations, Part II: Three Historical
 ;; Calendars'' by E. M. Reingold,  N. Dershowitz, and S. M. Clamen,
 ;; Software--Practice and Experience, Volume 23, Number 4 (April, 1993),
 ;; pages 383-404.
@@ -2763,7 +2763,7 @@ in `calendar-day-name-array'.  These abbreviations may be used
 instead of the full names in the diary file.  Do not include a
 trailing `.' in the strings specified in this variable, though
 you may use such in the diary file.  If any element of this array
-is nil, then the abbreviation will be constructed as the first 
+is nil, then the abbreviation will be constructed as the first
 `calendar-abbrev-length' characters of the corresponding full name.")
 
 (defvar calendar-month-name-array
