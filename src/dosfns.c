@@ -240,19 +240,6 @@ Return nil if startup screen is not available.")
 
   return Qt;
 }
-
-DEFUN ("msdos-long-file-names", Fmsdos_long_file_names, Smsdos_long_file_names,
-  0, 0, 0,
-  "Return non-nil if long file names are supported. on MSDOS.")
-  ()
-{
-#if __DJGPP__ >= 2
-  return (! NILP (Fgetenv ("LFN")) ? Qt : Qnil);
-#else
-  return Qnil;
-#endif
-}
-
 
 /* country info */
 int dos_country_code;
@@ -332,7 +319,6 @@ syms_of_dosfns ()
   defsubr (&Smsdos_set_keyboard);
   defsubr (&Sinsert_startup_screen);
   defsubr (&Smsdos_mouse_disable);
-  defsubr (&Smsdos_long_file_names);
 #ifndef HAVE_X_WINDOWS
   defsubr (&Smsdos_mouse_p);
   defsubr (&Sset_mouse_position);
