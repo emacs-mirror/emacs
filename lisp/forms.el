@@ -1,6 +1,6 @@
 ;;; forms.el --- Forms mode: edit a file as a form to fill in
 
-;; Copyright (C) 1991, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans <jvromans@squirrel.nl>
 
@@ -104,10 +104,10 @@
 ;;			If no write access to the data file is
 ;;			possible, view mode is enforced. 
 ;;
-;;     forms-check-number-of-fields            [bool, default t]
-;;                   If non-nil, a warning will be issued whenever
-;;                   a record is found that does not have the number
-;;                   of fields specified by `forms-number-of-fields'.
+;;	forms-check-number-of-fields            [bool, default t]
+;;			If non-nil, a warning will be issued whenever
+;;			a record is found that does not have the number
+;;			of fields specified by `forms-number-of-fields'.
 ;;
 ;;	forms-multi-line			[string, default "^K"]
 ;;			If non-null the records of the data file may
@@ -126,8 +126,11 @@
 ;;
 ;;	forms-forms-jump			[bool, default nil]
 ;;			Non-nil means: rebind locally the commands that
-;;			perform `beginning-of-buffer' or `end-of-buffer'
-;;			to perform `forms-first-field' resp. `forms-last-field'.
+;;
+;;	forms-insert-after			[bool, default nil]
+;;			Non-nil means: inserts of new records go after
+;;			current record, also initial position is at last
+;;			record.
 ;;
 ;;	forms-read-file-filter			[symbol, default nil]
 ;;			If not nil: this should be the name of a 
@@ -289,10 +292,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.27 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.20 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.27 1996/01/25 06:16:34 kwzh Exp kwzh $")
+  $Id: forms.el,v 2.20 1996/03/01 20:31:29 jv Exp $")
 
 (defvar forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode.")
@@ -354,6 +357,10 @@ The contents may NOT be modified.")
 (defvar forms-use-text-properties (fboundp 'set-text-properties)
   "*Non-nil means: use emacs-19 text properties.
 Defaults to t if this emacs is capable of handling text properties.")
+
+(defvar forms-insert-after nil
+  "*Non-nil means: inserts of new records go after current record.
+Also, initial position is at last record.")
 
 (defvar forms-ro-face 'default
   "The face (a symbol) that is used to display read-only text on the screen.")
@@ -463,6 +470,7 @@ Commands:                        Equivalent keys in read-only mode:
         (make-local-variable 'forms-multi-line)
 	(make-local-variable 'forms-forms-scroll)
 	(make-local-variable 'forms-forms-jump)
+	(make-local-variable 'forms-insert-after)
 	(make-local-variable 'forms-use-text-properties)
 
 	;; Filter functions.
@@ -684,6 +692,10 @@ Commands:                        Equivalent keys in read-only mode:
 	(setq forms--current-record 1))
     (forms-jump-record forms--current-record)
     )
+
+  (if forms-insert-after
+      (forms-last-record)
+    (forms-first-record))
 
   ;; user customising
   ;;(message "forms: proceeding setup (user hooks)...")
@@ -1279,7 +1291,7 @@ Commands:                        Equivalent keys in read-only mode:
   (define-key map [menu-bar forms]
     (cons "Forms" (make-sparse-keymap "Forms")))
   (define-key map [menu-bar forms menu-forms-exit]
-    '("Exit" . forms-exit))
+    '("Exit Forms Mode" . forms-exit))
   (define-key map [menu-bar forms menu-forms-sep1]
     '("----"))
   (define-key map [menu-bar forms menu-forms-save]
@@ -1750,15 +1762,21 @@ Otherwise enables edit mode if the visited file is writable."
   "Create a new record before the current one.
 With ARG: store the record after the current one.
 If `forms-new-record-filter' contains the name of a function, 
-it is called to fill (some of) the fields with default values."
+it is called to fill (some of) the fields with default values.
+If `forms-insert-after is non-nil, the default behavior is to insert
+after the current record."
 
   (interactive "P")
 
   (if forms-read-only
       (error ""))
 
-  (let ((ln (if arg (1+ forms--current-record) forms--current-record))
-        the-list the-record)
+  (let (ln the-list the-record)
+
+    (if (or (and arg forms-insert-after)
+	    (and (not arg) (not forms-insert-after)))
+	(setq ln forms--current-record)
+      (setq ln (1+ forms--current-record)))
 
     (forms--checkmod)
     (if forms-new-record-filter
