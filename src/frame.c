@@ -21,6 +21,9 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 
 #include <stdio.h>
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
 #include "lisp.h"
 #include "charset.h"
 #ifdef HAVE_WINDOW_SYSTEM
@@ -1757,6 +1760,64 @@ store_in_alist (alistptr, prop, val)
     Fsetcdr (tem, val);
 }
 
+static int
+frame_name_fnn_p (str, len)
+     char *str;
+     int len;
+{
+  if (len > 1 && str[0] == 'F')
+    {
+      char *end_ptr;
+      long num = strtol (str + 1, &end_ptr, 10);
+
+      if (end_ptr == str + len)
+	return 1;
+    }
+  return 0;
+}
+
+/* Set the name of the terminal frame.  Also used by MSDOS frames.
+   Modeled after x_set_name which is used for WINDOW frames.  */
+
+void
+set_term_frame_name (f, name)
+     struct frame *f;
+     Lisp_Object name;
+{
+  f->explicit_name = ! NILP (name);
+
+  /* If NAME is nil, set the name to F<num>.  */
+  if (NILP (name))
+    {
+      char namebuf[20];
+
+      /* Check for no change needed in this very common case
+	 before we do any consing.  */
+      if (frame_name_fnn_p (XSTRING (f->name)->data, XSTRING (f->name)->size))
+	return;
+
+      terminal_frame_count++;
+      sprintf (namebuf, "F%d", terminal_frame_count);
+      name = build_string (namebuf);
+    }
+  else
+    {
+      CHECK_STRING (name, 0);
+
+      /* Don't change the name if it's already NAME.  */
+      if (! NILP (Fstring_equal (name, f->name)))
+	return;
+
+      /* Don't allow the user to set the frame name to F<num>, so it
+	 doesn't clash with the names we generate for terminal frames.  */
+      if (frame_name_fnn_p (XSTRING (name)->data, XSTRING (name)->size))
+	error ("Frame names of the form F<num> are usurped by Emacs");
+    }
+
+  f->name = name;
+  update_mode_lines = 1;
+}
+
 void
 store_frame_param (f, prop, val)
      struct frame *f;
@@ -1780,8 +1841,12 @@ store_frame_param (f, prop, val)
     f->buffer_predicate = val;
 
   if (! FRAME_WINDOW_P (f))
-    if (EQ (prop, Qmenu_bar_lines))
-      set_menu_bar_lines (f, val, make_number (FRAME_MENU_BAR_LINES (f)));
+    {
+      if (EQ (prop, Qmenu_bar_lines))
+	set_menu_bar_lines (f, val, make_number (FRAME_MENU_BAR_LINES (f)));
+      else if (EQ (prop, Qname))
+	set_term_frame_name (f, val);
+    }
 
   if (EQ (prop, Qminibuffer) && WINDOWP (val))
     {
