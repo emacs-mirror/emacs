@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.20) $
+ * $HopeName: MMsrc!poolams.c(trunk.21) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  * 
  * .readership: any MPS developer.
@@ -17,7 +17,7 @@
 #include "mpm.h"
 #include "mpscams.h"
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.20) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.21) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -30,7 +30,7 @@ typedef struct AMSStruct {
   ActionStruct actionStruct;    /* action of collecting this pool */
   Size size;                    /* total segment size of the pool */
   Size lastReclaimed;           /* size after last reclaim */
-  Sig sig;                     /* design.mps.pool.outer-structure.sig */
+  Sig sig;                      /* design.mps.pool.outer-structure.sig */
 } AMSStruct;
 
 
@@ -44,7 +44,7 @@ typedef struct AMSGroupStruct {
   Count grains;                 /* number of grains in this group */
   Count free;                   /* number of free grains in this group */
   BT allocTable;                /* set if grain is allocated */
-  /* design.mps.poolams.one-condemn */
+  /* design.mps.poolams.colour.single */
   Bool marked;                  /* has been marked since last scan */
   BT markTable;                 /* set if grain marked */
   BT scanTable;                 /* set if grain scanned */
@@ -94,8 +94,7 @@ static Bool AMSCheck(AMS ams);
 #define AMSSegGroup(seg) ((AMSGroup)SegP(seg))
 
 
-/* the different colours of grains.  See design.mps.poolams.colour.
- * _MIN and _MAX are here for checking. */
+/* The colours of grains.  _MIN and _MAX are here for checking. */
 
 enum {
   AMS_COLOUR_MIN,
@@ -111,10 +110,7 @@ enum {
                                ((col) < AMS_COLOUR_MAX))
 
 
-/* AMSGrainColour -- find the colour of a single grain.
- * 
- * See design.mps.poolams.colour
- * and design.mps.poolams.colour.slow */
+/* AMSGrainColour -- find the colour of a single grain */
 
 static int AMSGrainColour(AMSGroup group, Index index)
 {
@@ -155,10 +151,7 @@ static int AMSGrainColour(AMSGroup group, Index index)
 }
 
 
-/* AMSGroupCheck -- check the group.
- * 
- * This is slow. See design.mps.poolams.colour.check.slow.
- */
+/* AMSGroupCheck -- check the group */
 
 static Bool AMSGroupCheck(AMSGroup group)
 {
@@ -173,11 +166,10 @@ static Bool AMSGroupCheck(AMSGroup group)
   CHECKL(group->grains > 0);
 
   if(SegWhite(group->seg) != TraceSetEMPTY)
-    /* design.mps.poolams.one-condemn */
+    /* design.mps.poolams.colour.single */
     CHECKL(TraceSetSingle(SegWhite(group->seg)));
 
   CHECKL(BoolCheck(group->marked));
-  /* design.mps.poolams.bt-check */
   CHECKL(group->allocTable != NULL);
   CHECKL(group->markTable != NULL);
   CHECKL(group->scanTable != NULL);
@@ -233,7 +225,7 @@ static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
   
   group->seg = seg;
   SegSetP(seg, (void*)group);
-  /* see design.mps.seg.field.rankSet */
+  /* see design.mps.seg.field.rankset */
   if(rankSet != RankSetEMPTY) {
     SegSetRankAndSummary(seg, rankSet, RefSetUNIV);
   } else {
@@ -310,10 +302,10 @@ static void AMSGroupDestroy(AMSGroup group)
 }  
 
 
-/* AMSInit -- the pool class initialization method.
+/* AMSInit -- the pool class initialization method
  * 
  *  Takes one additional argument: the format of the objects
- *  allocated in the pool. design.mps.poolams.init.
+ *  allocated in the pool.  See design.mps.poolams.init.
  */
   
 static Res AMSInit(Pool pool, va_list arg)
@@ -341,7 +333,7 @@ static Res AMSInit(Pool pool, va_list arg)
 }
 
 
-/* AMSFinish -- the pool class finishing method.
+/* AMSFinish -- the pool class finishing method
  * 
  * Destroys all the groups in the pool. Can't invalidate the AMS until
  * we've destroyed all the groups, as it may be checked.
@@ -410,13 +402,11 @@ static Bool AMSGroupAlloc(Index *baseReturn, Index *limitReturn,
   if(!b)
     return FALSE;
 
-  /* design.mps.poolams.colour.free */
+  /* design.mps.poolams.colour.bits */
   AVER(BTIsResRange(group->markTable, base, limit));
   AVER(BTIsSetRange(group->scanTable, base, limit));
   AVER(BTIsResRange(group->allocTable, base, limit));
 
-  /* design.mps.poolams.colour.black, */
-  /* design.mps.poolams.colour.alloc */
   BTSetRange(group->allocTable, base, limit);
   BTSetRange(group->markTable, base, limit);
   group->free -= limit - base;
@@ -445,9 +435,9 @@ static Res AMSBufferInit(Pool pool, Buffer buffer, va_list args)
 }
 
 
-/* AMSBufferFill -- the pool class buffer fill method.
+/* AMSBufferFill -- the pool class buffer fill method
  * 
- * Iterates over the segments looking for space. See
+ * Iterates over the segments looking for space.  See
  * design.mps.poolams.fill
  */
 
@@ -544,14 +534,11 @@ static void AMSBufferEmpty(Pool pool, Buffer buffer)
   initIndex = AMSAddrIndex(group, init);
   limitIndex = AMSAddrIndex(group, limit);
 
-  /* design.mps.poolams.colour.black */
-  /* design.mps.poolams.colour.alloc */
+  /* design.mps.poolams.colour.bits */
   AVER(BTIsSetRange(group->markTable, initIndex, limitIndex));
   AVER(BTIsSetRange(group->scanTable, initIndex, limitIndex));
   AVER(BTIsSetRange(group->allocTable, initIndex, limitIndex));
 
-  /* design.mps.poolams.colour.free */
-  /* design.mps.poolams.colour.empty */
   BTResRange(group->markTable, initIndex, limitIndex);
   BTResRange(group->allocTable, initIndex, limitIndex);
   group->free += limitIndex - initIndex;
@@ -569,12 +556,12 @@ static void AMSRangeWhiten(AMSGroup group, Index base, Index limit)
     AVER(base < limit);
     AVER(limit <= group->grains);
     
-    /* either black or free, see design.mps.poolams.colour */
+    /* either black or free */
     AVER(BTIsSetRange(group->scanTable, base, limit));
     AVER(BTRangesSame(group->allocTable, group->markTable,
 		      base, limit));
     
-    /* black -> white, free -> free, see design.mps.poolams.colour */
+    /* black -> white, free -> free */
     BTResRange(group->markTable, base, limit);
     BTCopyInvertRange(group->allocTable, group->scanTable, base, limit);
   }
@@ -601,7 +588,7 @@ static Res AMSWhiten(Pool pool, Trace trace, Seg seg)
   AVER(group->seg == seg);
   AVER(group->ams == ams);
 
-  /* design.mps.poolams.one-condemn */
+  /* design.mps.poolams.colour.single */
   AVER(SegWhite(seg) == TraceSetEMPTY);
 
   buffer = SegBuffer(seg);
@@ -709,7 +696,7 @@ static Res AMSIterate(AMS ams, AMSGroup group, Seg seg, Arena arena,
 }
 
 
-/* AMSBlackenObject -- blacken a single object (if it is grey).
+/* AMSBlackenObject -- blacken a single object (if it is grey)
  * 
  * This is the object function passed to AMSIterate by AMSBlacken.
  * It just blackens the object if it is grey.  It takes no closure.
@@ -816,7 +803,7 @@ static Res AMSScanObject(AMSGroup group,
   }
 
   if(colour == AMS_GREY) /* blacken the object */
-    BTSet(group->scanTable, i); /* design.mps.poolams.colour.black */
+    BTSet(group->scanTable, i);
 
   return ResOK;
 }
@@ -984,7 +971,6 @@ static Res AMSReclaimObject(AMSGroup group,
   j = AMSAddrIndex(group, next);
   
   if(colour == AMS_WHITE) { /* then we can free it */
-    /* design.mps.poolams.colour.free */
     BTResRange(group->markTable, i, j);
     BTSetRange(group->scanTable, i, j);
     BTResRange(group->allocTable, i, j);
@@ -1040,7 +1026,7 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
 }
 
 
-/* AMSBenefit -- the pool class benefit computation method.
+/* AMSBenefit -- the pool class benefit computation method
  *
  * This does not compute a real benefit, but something which works
  * well enough to run tests.  See design.mps.poolams.benefit.guess.
@@ -1075,7 +1061,7 @@ static double AMSBenefit(Pool pool, Action action)
 }
 
 
-/* AMSSegDescribe -- describe an AMS segment. */
+/* AMSSegDescribe -- describe an AMS segment */
 
 static Res AMSSegDescribe(AMS ams, Seg seg, mps_lib_FILE *stream)
 {
@@ -1176,7 +1162,7 @@ static Res AMSSegDescribe(AMS ams, Seg seg, mps_lib_FILE *stream)
 }
 
 
-/* AMSDescribe -- the pool class description method.
+/* AMSDescribe -- the pool class description method
  * 
  * Iterates over the segments, describing all of them.
  */
@@ -1253,7 +1239,7 @@ static PoolClassStruct PoolClassAMSStruct = {
   AMSBlacken,                /* blacken */
   AMSScan,                   /* scan */
   AMSFix,                    /* fix */
-  AMSFix,                    /* Emergency Fix */
+  AMSFix,                    /* emergency fix */
   AMSReclaim,                /* reclaim */
   AMSBenefit,                /* benefit */
   PoolCollectAct,            /* act */
