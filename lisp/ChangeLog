@@ -1,5 +1,11 @@
 2000-07-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* isearch.el (isearch-resume): New function.
+	(isearch-done): Add something to command-history to resume
+	the search.
+	(isearch-yank-line, isearch-yank-word): Use
+	buffer-substring-no-properties instead of buffer-substring.
+
 	* textmodes/flyspell.el (flyspell-mouse-map): Use `map' instead
 	of flyspell-mouse-map.
 

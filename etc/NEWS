@@ -925,7 +925,10 @@ Fontlock mode is active.
 
 ** Isearch changes
 
-** In Isearch mode, M-C-s and M-C-r are now bound like C-s and C-r,
+*** Isearch now puts a call to `isearch-resume' in the command history,
+so that searches can be resumed.
+
+*** In Isearch mode, M-C-s and M-C-r are now bound like C-s and C-r,
 respectively, i.e. you can repeat a regexp isearch with the same keys
 that started the search.
 

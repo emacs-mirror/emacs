@@ -1,5 +1,11 @@
 2000-07-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispextern.h (GLYPH_FROM_CHAR_GLYPH): Use CHARACTERBITS bits
+	for the character code.
+
+	* config.in (HAVE_SOUND): Define only for FreeBSD, NetBSD and
+	GNU/Linux.
+
 	* xmenu.c (menu_highlight_callback): Call show_help_echo directly
 	if called for a popup menu.
 	(xmenu_show): Store help string in widget values.
