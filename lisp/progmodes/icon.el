@@ -204,7 +204,8 @@ with no args, if that value is non-nil."
   (setq imenu-generic-expression icon-imenu-generic-expression)
   ;; hideshow support
   ;; we start from the assertion that `hs-special-modes-alist' is autoloaded.
-  (pushnew '(icon-mode  "procedure" "end" icon-forward-sexp-function)
+  (pushnew '(icon-mode  "\\<procedure\\>" "\\<end\\>" nil 
+			icon-forward-sexp-function)
 	   hs-special-modes-alist :test 'equal)
   (run-hooks 'icon-mode-hook))
 
@@ -660,9 +661,10 @@ Returns nil if line starts inside a string, t if in a comment."
 
 ;;;used by hs-minor-mode
 (defun icon-forward-sexp-function (arg)
-  (if (> arg 0)
-      (re-search-forward "^[ \t]*end")
-    (re-search-backward "^[ \t]procedure")))
+  (if (< arg 0)
+      (beginning-of-icon-defun)
+    (end-of-icon-defun)
+    (forward-char -1)))
 
 (provide 'icon-mode)
 ;;; icon.el ends here
