@@ -2155,6 +2155,8 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
       {								\
 	if (sjis_p && charset_alt == charset_katakana_jisx0201)	\
 	  *dst++ = c1;						\
+	else if (sjis_p && charset_alt == charset_latin_jisx0201) \
+	  *dst++ = c1 & 0x7F;					\
 	else							\
 	  {							\
 	    *dst++ = charset_alt, *dst++ = c1;			\
