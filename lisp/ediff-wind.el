@@ -151,6 +151,7 @@ In this case, Ediff will use those frames to display these buffers."
    '(vertical-scroll-bars . nil)  ; Emacs only
    '(scrollbar-width . 0)         ; XEmacs only
    '(menu-bar-lines . 0)          ; Emacs only
+   '(tool-bar-lines . 0)      ; Emacs 21+ only
    ;; don't lower and auto-raise
    '(auto-lower . nil)
    '(auto-raise . t)
