@@ -2941,7 +2941,7 @@ send_process_trap ()
 
 send_process (proc, buf, len, object)
      volatile Lisp_Object proc;
-     char *buf;
+     unsigned char *buf;
      int len;
      Lisp_Object object;
 {
@@ -2970,27 +2970,27 @@ send_process (proc, buf, len, object)
     {
       int require = encoding_buffer_size (coding, len);
       int offset, dummy;
-      char *temp_buf = NULL;
+      unsigned char *temp_buf = NULL;
 
       /* Remember the offset of data because a string or a buffer may
          be relocated.  Setting OFFSET to -1 means we don't have to
          care relocation.  */
       offset = (BUFFERP (object)
-		? BUF_PTR_CHAR_POS (XBUFFER (object), (unsigned char *) buf)
+		? BUF_PTR_CHAR_POS (XBUFFER (object), buf)
 		: (STRINGP (object)
-		   ? offset = buf - (char *) XSTRING (object)->data
+		   ? offset = buf - XSTRING (object)->data
 		   : -1));
 
       if (coding->carryover_size > 0)
 	{
-	  temp_buf = (char *) xmalloc (len + coding->carryover_size);
+	  temp_buf = (unsigned char *) xmalloc (len + coding->carryover_size);
 
 	  if (offset >= 0)
 	    {
 	      if (BUFFERP (object))
-		buf = (char *) BUF_CHAR_ADDRESS (XBUFFER (object), offset);
+		buf = BUF_CHAR_ADDRESS (XBUFFER (object), offset);
 	      else if (STRINGP (object))
-		buf = offset + (char *) XSTRING (object)->data;
+		buf = offset + XSTRING (object)->data;
 	      /* Now we don't have to care relocation.  */
 	      offset = -1;
 	    }
@@ -3006,9 +3006,9 @@ send_process (proc, buf, len, object)
 	  if (offset >= 0)
 	    {
 	      if (BUFFERP (object))
-		buf = (char *) BUF_CHAR_ADDRESS (XBUFFER (object), offset);
+		buf = BUF_CHAR_ADDRESS (XBUFFER (object), offset);
 	      else if (STRINGP (object))
-		buf = offset + (char *) XSTRING (object)->data;
+		buf = offset + XSTRING (object)->data;
 	    }
 	}
       object = XPROCESS (proc)->encoding_buf;
@@ -3059,8 +3059,8 @@ send_process (proc, buf, len, object)
 	       If that proves worth handling, we need to save linepos
 	       in the process object.  */
 	    int linepos = 0;
-	    char *ptr = buf;
-	    char *end = buf + len;
+	    unsigned char *ptr = buf;
+	    unsigned char *end = buf + len;
 
 	    /* Scan through this text for a line that is too long.  */
 	    while (ptr != end && linepos < pty_max_bytes)
@@ -3103,10 +3103,9 @@ send_process (proc, buf, len, object)
 		    /* Running filters might relocate buffers or strings.
 		       Arrange to relocate BUF.  */
 		    if (BUFFERP (object))
-		      offset = BUF_PTR_CHAR_POS (XBUFFER (object),
-						 (unsigned char *) buf);
+		      offset = BUF_PTR_CHAR_POS (XBUFFER (object), buf);
 		    else if (STRINGP (object))
-		      offset = buf - (char *) XSTRING (object)->data;
+		      offset = buf - XSTRING (object)->data;
 
 		    XSETFASTINT (zero, 0);
 #ifdef EMACS_HAS_USECS
@@ -3116,9 +3115,9 @@ send_process (proc, buf, len, object)
 #endif
 
 		    if (BUFFERP (object))
-		      buf = (char *) BUF_CHAR_ADDRESS (XBUFFER (object), offset);
+		      buf = BUF_CHAR_ADDRESS (XBUFFER (object), offset);
 		    else if (STRINGP (object))
-		      buf = offset + (char *) XSTRING (object)->data;
+		      buf = offset + XSTRING (object)->data;
 
 		    rv = 0;
 		  }
