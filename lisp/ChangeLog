@@ -1,3 +1,8 @@
+2004-02-21  Juri Linkov  <juri@jurta.org>
+
+	* startup.el: Remove table of command line arguments from the
+	Commentary section.
+
 2004-02-20  John Wiegley  <johnw@newartisans.com>
 
 	* eshell/em-pred.el (eshell-modifier-alist): Changed the "eval
