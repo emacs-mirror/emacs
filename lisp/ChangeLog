@@ -1,3 +1,11 @@
+2002-01-03  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* time.el (display-time-load-average-threshold): Fix defcustom
+	(add type and group).
+
+	* net/ange-ftp.el (ange-ftp-shell-command): Remove port
+	specification from the hostname.
+
 2002-01-02  Richard M. Stallman  <rms@gnu.org>
 
 	* facemenu.el (facemenu-active-faces):
