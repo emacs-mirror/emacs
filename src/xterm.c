@@ -6497,7 +6497,9 @@ x_list_fonts (f, pattern, size, maxnames)
 	    }
 	  else
 	    try_XLoadQueryFont = 0;
-	  XFreeFont (font);
+
+	  if (font)
+	    XFreeFont (dpy, font);
 	}
 
       if (!try_XLoadQueryFont)
