@@ -1114,10 +1114,10 @@ of the old one in the permanent bookmark record."
           ;; rather than after and remain perhaps unaware of the changes.
           (if forward-str
               (if (search-forward forward-str (point-max) t)
-                  (backward-char (length forward-str))))
+                  (goto-char (match-beginning 0))))
           (if behind-str
               (if (search-backward behind-str (point-min) t)
-                  (forward-char (length behind-str))))
+                  (goto-char (match-end 0))))
           ;; added by db
           (setq bookmark-current-bookmark str)
           (cons (current-buffer) (point)))
