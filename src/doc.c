@@ -1,5 +1,5 @@
 /* Record indices of function doc strings stored in a file.
-   Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -174,19 +174,17 @@ subcommands.)");
       return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
     }
 
-  if (NULL (raw))
+  if (NILP (raw))
     doc = Fsubstitute_command_keys (doc);
   return doc;
 }
 
-DEFUN ("documentation-property", Fdocumentation_property, 
-       Sdocumentation_property, 2, 2, 0,
-
+DEFUN ("documentation-property", Fdocumentation_property, Sdocumentation_property, 2, 2, 0,
   "Return the documentation string that is SYMBOL's PROP property.\n\
 This is like `get', but it can refer to strings stored in the\n\
 `share-lib/DOC' file; and if the value is a string, it is passed through\n\
-`substitute-command-keys'.  A non-nil third argument avoids this
-translation."
+`substitute-command-keys'.  A non-nil third argument avoids this\n\
+translation.")
   (sym, prop, raw)
      Lisp_Object sym, prop, raw;
 {
@@ -195,7 +193,7 @@ translation."
   tem = Fget (sym, prop);
   if (XTYPE (tem) == Lisp_Int)
     tem = get_doc_string (XINT (tem) > 0 ? XINT (tem) : - XINT (tem));
-  if (NULL (raw) && XTYPE (tem) == Lisp_String)
+  if (NILP (raw) && XTYPE (tem) == Lisp_String)
     return Fsubstitute_command_keys (tem);
   return tem;
 }

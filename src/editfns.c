@@ -1,5 +1,5 @@
 /* Lisp functions pertaining to editing.
-   Copyright (C) 1985, 1986, 1987, 1989 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1989, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,7 +21,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "config.h"
 
 #ifdef VMS
-#include "pwd.h"
+#include "vms-pwd.h"
 #else
 #include <pwd.h>
 #endif
@@ -30,13 +30,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "buffer.h"
 #include "window.h"
 
-#ifdef NEED_TIME_H
-#include <time.h>
-#else /* not NEED_TIME_H */
-#ifdef HAVE_TIMEVAL
-#include <sys/time.h>
-#endif /* HAVE_TIMEVAL */
-#endif /* not NEED_TIME_H */
+#include "systime.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
@@ -509,10 +503,25 @@ DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
 }
 
 DEFUN ("current-time", Fcurrent_time, Scurrent_time, 0, 0, 0,
-  "Return the current time, as an integer.")
+  "Return the current time, as the number of seconds since 12:00 AM January 1970.\n\
+The time is returned as a list of three integers.  The first has the\n\
+most significant 16 bits of the seconds, while the second has the\n\
+least significant 16 bits.  The third integer gives the microsecond\n\
+count.\n\
+\n\
+The microsecond count is zero on systems that do not provide\n\
+resolution finer than a second.")
   ()
 {
-  return make_number (time(0));
+  EMACS_TIME t;
+  Lisp_Object result[3];
+
+  EMACS_GET_TIME (t);
+  XSET (result[0], Lisp_Int, (EMACS_SECS (t) >> 16) & 0xffff);
+  XSET (result[1], Lisp_Int, (EMACS_SECS (t) >> 0)  & 0xffff);
+  XSET (result[2], Lisp_Int, EMACS_USECS (t));
+
+  return Flist (3, result);
 }
 
 

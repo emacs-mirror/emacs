@@ -1,5 +1,5 @@
 This is a list of the status of GNU Emacs on various machines and systems.
-Last updated 10 Feb 1992.
+Last updated 4 March 1991.
 
 For each system and machine, we give the `-opsystem' and `-machine'
 options you should pass to config.emacs to prepare to build Emacs for
@@ -326,6 +326,11 @@ HP 9000 series 200 or 300 (-machine=hp9000s300;
 
   Series 200 HPUX runs Emacs only if it has the "HP-UX upgrade".
 
+  If you are running HP-UX release 8.0 or later, you need the optional
+  "C/ANSI C" software in order to build Emacs (older releases of HP-UX
+  do not require any special software).  If the file "/etc/filesets/C"
+  exists on your machine, you have this software, otherwise you do not.
+
   Note that HP has used two incompatible assembler syntaxes,
   and has recently changed the format of C function frames.
   src/crt0.c and src/alloca.s have been conditionalised for the new
@@ -362,6 +367,11 @@ HP 9000 series 800 (Spectrum) (-machine=hp9000s800; -opsystem=hpux)
   These files support HP's Precision Architecture machines
   running HP-UX.  It has been moderately tested on the Series
   840.
+
+  If you are running HP-UX release 8.0 or later, you need the optional
+  "C/ANSI C" software in order to build Emacs (older releases of HP-UX
+  do not require any special software).  If the file "/etc/filesets/C"
+  exists on your machine, you have this software, otherwise you do not.
 
 High Level Hardware Orion (-machine=orion; -opsystem=bsd4-2)
 

@@ -1,5 +1,5 @@
 /* Block-relocating memory allocator. 
-   Copyright (C) 1990 Free Software Foundation, Inc.
+   Copyright (C) 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -24,14 +24,15 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    hole between the first bloc and the end of malloc storage. */
 
 #include "config.h"
-#include "lisp.h"		/* Needed for xterm.h */
+#include "lisp.h"		/* Needed for VALBITS.  */
 #undef NULL
 #include "mem_limits.h"
-#include "xterm.h"		/* Needed for BLOCK_INPUT */
 
 #define NIL ((POINTER) 0)
 
 
+/* Declarations for working with the malloc, ralloc, and system breaks.  */
+
 /* System call to set the break value. */
 extern POINTER sbrk ();
 
@@ -52,6 +53,8 @@ static POINTER page_break_value;
 #define ROUND_TO_PAGE(addr) (addr & (~(PAGE - 1)))
 #define EXCEEDS_ELISP_PTR(ptr) ((unsigned int) (ptr) >> VALBITS)
 
+/* Managing "almost out of memory" warnings.  */
+
 /* Level of warnings issued. */
 static int warnlevel;
 
@@ -100,6 +103,8 @@ check_memory_limits (address)
       memory_full ();
 }
 
+/* Functions to get and return memory from the system.  */
+
 /* Obtain SIZE bytes of space.  If enough space is not presently available
    in our process reserve, (i.e., (page_break_value - break_value)),
    this means getting more page-aligned space from the system. */
@@ -112,7 +117,7 @@ obtain (size)
 
   if (already_available < size)
     {
-      SIZE get = ROUNDUP (size);
+      SIZE get = ROUNDUP (size - already_available);
 
       if (warnfunction)
 	check_memory_limits (page_break_value);
@@ -138,26 +143,37 @@ get_more_space (size)
 }
 
 /* Note that SIZE bytes of space have been relinquished by the process.
-   If SIZE is more than a page, return the space the system. */
+   If SIZE is more than a page, return the space to the system. */
 
 static void
 relinquish (size)
      SIZE size;
 {
-  SIZE page_part = ROUND_TO_PAGE (size);
-
-  if (page_part)
-    {
-      if (((int) (sbrk (- page_part))) < 0)
-	abort ();
-
-      page_break_value -= page_part;
-    }
+  POINTER new_page_break;
 
   break_value -= size;
-  bzero (break_value, (size - page_part));
+  new_page_break = (POINTER) ROUNDUP (break_value);
+  
+  if (new_page_break != page_break_value)
+    {
+      if (((int) (sbrk ((char *) new_page_break
+			- (char *) page_break_value))) < 0)
+	abort ();
+
+      page_break_value = new_page_break;
+    }
+
+  /* Zero the space from the end of the "official" break to the actual
+     break, so that bugs show up faster.  */
+  bzero (break_value, ((char *) page_break_value - (char *) break_value));
 }
 
+/* The meat - allocating, freeing, and relocating blocs.  */
+
+/* These structures are allocated in the malloc arena.
+   The linked list is kept in order of increasing '.data' members.
+   The data blocks abut each other; if b->next is non-nil, then
+   b->data + b->size == b->next->data.  */
 typedef struct bp
 {
   struct bp *next;
@@ -173,10 +189,11 @@ typedef struct bp
 /* Head and tail of the list of relocatable blocs. */
 static bloc_ptr first_bloc, last_bloc;
 
-/* Declared in dispnew.c, this version dosen't fuck up if regions overlap. */
+/* Declared in dispnew.c, this version doesn't screw up if regions
+   overlap.  */
 extern void safe_bcopy ();
 
-/* Find the bloc reference by the address in PTR.  Returns a pointer
+/* Find the bloc referenced by the address in PTR.  Returns a pointer
    to that block. */
 
 static bloc_ptr
@@ -285,6 +302,8 @@ free_bloc (bloc)
   free (bloc);
 }
 
+/* Interface routines.  */
+
 static int use_relocatable_buffers;
 
 /* Obtain SIZE bytes of storage from the free pool, or the system,
@@ -306,6 +325,9 @@ r_alloc_sbrk (size)
       if (first_bloc)
 	{
 	  relocate_some_blocs (first_bloc, first_bloc->data + size);
+
+	  /* Zero out the space we just allocated, to help catch bugs
+	     quickly.  */
 	  bzero (virtual_break_value, size);
 	}
     }
@@ -332,11 +354,9 @@ r_alloc (ptr, size)
 {
   register bloc_ptr new_bloc;
 
-  BLOCK_INPUT;
   new_bloc = get_bloc (size);
   new_bloc->variable = ptr;
   *ptr = new_bloc->data;
-  UNBLOCK_INPUT;
 
   return *ptr;
 }
@@ -349,13 +369,11 @@ r_alloc_free (ptr)
 {
   register bloc_ptr dead_bloc;
 
-  BLOCK_INPUT;
   dead_bloc = find_bloc (ptr);
   if (dead_bloc == NIL_BLOC)
     abort ();
 
   free_bloc (dead_bloc);
-  UNBLOCK_INPUT;
 }
 
 /* Given a pointer at address PTR to relocatable data, resize it
@@ -373,12 +391,12 @@ r_re_alloc (ptr, size)
 {
   register bloc_ptr old_bloc, new_bloc;
 
-  BLOCK_INPUT;
   old_bloc = find_bloc (ptr);
   if (old_bloc == NIL_BLOC)
     abort ();
 
   if (size <= old_bloc->size)
+    /* Wouldn't it be useful to actually resize the bloc here?  */
     return *ptr;
 
   new_bloc = get_bloc (size);
@@ -387,7 +405,6 @@ r_re_alloc (ptr, size)
   *ptr = new_bloc->data;
 
   free_bloc (old_bloc);
-  UNBLOCK_INPUT;
 
   return *ptr;
 }
@@ -396,6 +413,15 @@ r_re_alloc (ptr, size)
    from the system.  */
 extern POINTER (*__morecore) ();
 
+/* A flag to indicate whether we have initialized ralloc yet.  For
+   Emacs's sake, please do not make this local to malloc_init; on some
+   machines, the dumping procedure makes all static variables
+   read-only.  On these machines, the word static is #defined to be
+   the empty string, meaning that malloc_initialized becomes an
+   automatic variable, and loses its value each time Emacs is started
+   up.  */
+static int malloc_initialized = 0;
+
 /* Intialize various things for memory allocation. */
 
 void
@@ -403,8 +429,6 @@ malloc_init (start, warn_func)
      POINTER start;
      void (*warn_func) ();
 {
-  static int malloc_initialized = 0;
-
   if (start)
     data_space_start = start;
 
