@@ -242,6 +242,15 @@ Boston, MA 02111-1307, USA.  */
 /* Standard Windows strftime does not support POSIX.2 extensions.  */
 #define STRFTIME_NO_POSIX2 1
 
+#define HAVE_SENDTO 1
+#define HAVE_RECVFROM 1
+#define HAVE_GETSOCKOPT 1
+#define HAVE_SETSOCKOPT 1
+#define HAVE_GETSOCKNAME 1
+#define HAVE_GETPEERNAME 1
+/* Local (unix) sockets are not supported.  */
+#undef HAVE_SYS_UN_H
+
 #define LOCALTIME_CACHE
 #undef HAVE_INET_SOCKETS
 
