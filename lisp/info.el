@@ -967,7 +967,7 @@ a case-insensitive match is tried."
 	  	(if (member-ignore-case x seen)
 	  	    (delete-region (match-beginning 0)
 	  			   (progn (re-search-forward "^[^ \t]" nil t)
-	  				  (goto-char (match-beginning 0))))
+	  				  (match-beginning 0)))
 	  	  (push x seen))))))))))
 
 ;; Note that on entry to this function the current-buffer must be the

@@ -1,3 +1,8 @@
+2002-12-18  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* info.el (Info-dir-remove-duplicates): Avoid infloop when
+	deleting last entry.
+
 2002-12-17  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdba-marker-filter, gdb-output-burst): Merge and
