@@ -1,3 +1,8 @@
+2003-10-10  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Finsert_file_contents) [DOS_NT]: Use the macro
+	CODING_ID_EOL_TYPE..
+
 2003-10-07  Andreas Schwab  <schwab@suse.de>
 
 	* coding.c (produce_chars): Revert last change.
