@@ -96,7 +96,7 @@ NOTE-END  */
 /* These programs require Sun UNIX 4.2 Release 3.2 or greater */
 
 #ifdef HAVE_SUN_WINDOWS
-#define OTHER_FILES  ${etcdir}emacstool
+#define OTHER_FILES  ${libsrc}emacstool
 #define LIBS_MACHINE -lsuntool -lsunwindow -lpixrect
 #define OBJECTS_MACHINE sunfns.o
 #define SYMS_MACHINE syms_of_sunfns ()
