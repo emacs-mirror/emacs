@@ -111,7 +111,7 @@ get_boot_time ()
   return boot_time = utp->ut_time;
 #else
   return 0;
-#endif;
+#endif
 }
 
 /* Here is the structure that stores information about a lock.  */
