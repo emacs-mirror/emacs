@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id$
+;; $Id: vc.el,v 1.311.4.2 2001/11/09 15:14:49 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -288,6 +288,13 @@
 ;;   the newer version.  This function should return a status of either 0
 ;;   (no differences found), or 1 (either non-empty diff or the diff is
 ;;   run asynchronously).
+;;
+;; - diff-tree (dir &optional rev1 rev2) 
+;;
+;;   Insert the diff for all files at and below DIR into the *vc-diff*
+;;   buffer.  The meaning of REV1 and REV2 is the same as for 
+;;   vc-BACKEND-diff.  The default implementation does an explicit tree
+;;   walk, calling vc-BACKEND-diff for each individual file.
 ;;
 ;; - annotate-command (file buf rev)
 ;;
@@ -1684,9 +1691,9 @@ checked in version of that file.  This uses no arguments.
 With a prefix argument, it reads the file name to use
 and two version designators specifying which versions to compare."
   (interactive (list current-prefix-arg t))
-  (vc-ensure-vc-buffer)
   (if historic
       (call-interactively 'vc-version-diff)
+    (vc-ensure-vc-buffer)
     (let ((file buffer-file-name))
       (vc-buffer-sync not-urgent)
       (if (vc-workfile-unchanged-p buffer-file-name)
@@ -1741,37 +1748,13 @@ files in or below it."
                   " and "
                   (or rel2 "current workfile(s)")
                   ":\n\n"))
-	(setq default-directory (file-name-as-directory file))
-	;; FIXME: this should do a single exec in CVS.
-	(vc-file-tree-walk
-	 default-directory
-	 (lambda (f)
-	   (vc-exec-after
-	    `(progn
-	       (message "Looking at %s" ',f)
-	       (vc-call-backend ',(vc-backend file) 'diff ',f ',rel1 ',rel2)))))
+        (let ((dir (file-name-as-directory file)))
+          (vc-call-backend (vc-responsible-backend dir)
+                           'diff-tree dir rel1 rel2))
 	(vc-exec-after `(let ((inhibit-read-only t))
 			  (insert "\nEnd of diffs.\n"))))
     ;; single file diff
-    (if (or (not rel1) (string-equal rel1 ""))
-	(setq rel1 (vc-workfile-version file)))
-    (if (string-equal rel2 "")
-	(setq rel2 nil))
-    (let ((file-rel1 (vc-version-backup-file file rel1))
-	  (file-rel2 (if (not rel2)
-			 file
-		       (vc-version-backup-file file rel2))))
-      (if (and file-rel1 file-rel2)
-	  (apply 'vc-do-command "*vc-diff*" 1 "diff" nil
-		 (append (if (listp diff-switches)
-			     diff-switches
-			   (list diff-switches))
-                         (if (listp vc-diff-switches)
-                             vc-diff-switches
-                           (list vc-diff-switches))
-			 (list (file-relative-name file-rel1)
-			       (file-relative-name file-rel2))))
-	(vc-call diff file rel1 rel2))))
+    (vc-diff-internal file rel1 rel2))
   (set-buffer "*vc-diff*")
   (if (and (zerop (buffer-size))
 	   (not (get-buffer-process (current-buffer))))
@@ -1793,6 +1776,35 @@ files in or below it."
 		      (shrink-window-if-larger-than-buffer)))
     t))
 
+(defun vc-diff-internal (file rel1 rel2)
+  "Run diff to compare FILE's revisions REL1 and REL2.
+Output goes to the current buffer, which is assumed properly set up.
+The exit status of the diff command is returned.
+
+This function takes care to set up a proper coding system for diff output.
+If both revisions are available as local files, then it also does not
+actually call the backend, but performs a local diff."
+  (if (or (not rel1) (string-equal rel1 ""))
+      (setq rel1 (vc-workfile-version file)))
+  (if (string-equal rel2 "")
+      (setq rel2 nil))
+  (let ((file-rel1 (vc-version-backup-file file rel1))
+        (file-rel2 (if (not rel2)
+                       file
+                     (vc-version-backup-file file rel2)))
+        (coding-system-for-read (vc-coding-system-for-diff file)))
+    (if (and file-rel1 file-rel2)
+        (apply 'vc-do-command "*vc-diff*" 1 "diff" nil
+               (append (if (listp diff-switches)
+                           diff-switches
+                         (list diff-switches))
+                       (if (listp vc-diff-switches)
+                           vc-diff-switches
+                         (list vc-diff-switches))
+                       (list (file-relative-name file-rel1)
+                             (file-relative-name file-rel2))))
+      (vc-call diff file rel1 rel2))))
+
 (defmacro vc-diff-switches-list (backend)
   "Make a list of `diff-switches', `vc-diff-switches', 
 and `vc-BACKEND-diff-switches'."
@@ -1803,6 +1815,39 @@ and `vc-BACKEND-diff-switches'."
            (eval (intern (concat "vc-" (symbol-name ',backend) 
                                  "-diff-switches")))))
       (if (listp backend-switches) backend-switches (list backend-switches)))))
+
+(defun vc-default-diff-tree (backend dir rel1 rel2)
+  "Default implementation for diffing an entire tree at and below DIR.
+The meaning of REL1 and REL2 is the same as for `vc-version-diff'."
+  ;; This implementation does an explicit tree walk, and calls 
+  ;; vc-BACKEND-diff directly for each file.  An optimization
+  ;; would be to use `vc-diff-internal', so that diffs can be local,
+  ;; and to call it only for files that are actually changed.
+  ;; However, this is expensive for some backends, and so it is left
+  ;; to backend-specific implementations.
+  (setq default-directory dir)
+  (vc-file-tree-walk
+   default-directory
+   (lambda (f)
+     (vc-exec-after
+      `(let ((coding-system-for-read (vc-coding-system-for-diff ',f))) 
+         (message "Looking at %s" ',f)
+         (vc-call-backend ',(vc-backend f) 
+                          'diff ',f ',rel1 ',rel2))))))
+
+(defun vc-coding-system-for-diff (file)
+  "Return the coding system for reading diff output for FILE."
+  (or coding-system-for-read
+      ;; if we already have this file open, 
+      ;; use the buffer's coding system
+      (let ((buf (find-buffer-visiting file)))
+        (if buf (with-current-buffer buf
+                  buffer-file-coding-system)))
+      ;; otherwise, try to find one based on the file name
+      (car (find-operation-coding-system 'insert-file-contents
+                                         file))
+      ;; and a final fallback
+      'undecided))
 
 ;;;###autoload
 (defun vc-version-other-window (rev)
