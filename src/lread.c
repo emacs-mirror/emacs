@@ -987,6 +987,8 @@ read_escape (readcharfun)
       c = READCHAR;
       if (c == '\\')
 	c = read_escape (readcharfun);
+      if ((c & 0xff) >= 'a' && (c & 0xff) <= 'z')
+	return c - ('a' - 'A');
       return c | shift_modifier;
 
     case 'H':
