@@ -216,6 +216,19 @@ With arg, you are asked to choose which language."
       (goto-char (point-min))
       (set-buffer-modified-p nil))))
 
+(defun mode-line-key-binding (key)
+  "Value is the binding of KEY in the mode line or nil if none."
+  (let (string-info defn)
+    (when (and (eq 'mode-line (aref key 0))
+	       (consp (setq string-info (nth 4 (event-start (aref key 1))))))
+    (let* ((string (car string-info))
+	   (pos (cdr string-info))
+	   (local-map (and (> pos 0)
+			   (< pos (length string))
+			   (get-text-property pos 'local-map string))))
+      (setq defn (and local-map (lookup-key local-map key)))))
+    defn))
+
 (defun describe-key-briefly (key &optional insert)
   "Print the name of the function KEY invokes.  KEY is a string.
 If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
@@ -236,7 +249,8 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
 	    (set-buffer (window-buffer window))
 	    (goto-char position)))
       ;; Ok, now look up the key and name the command.
-      (let ((defn (key-binding key))
+      (let ((defn (or (mode-line-key-binding key)
+		      (key-binding key)))
 	    (key-desc (key-description key)))
 	(if (or (null defn) (integerp defn))
 	    (princ (format "%s is undefined" key-desc))
@@ -317,7 +331,7 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 	  (progn
 	    (set-buffer (window-buffer window))
 	    (goto-char position)))
-      (let ((defn (key-binding key)))
+      (let ((defn (or (mode-line-key-binding key) (key-binding key))))
 	(if (or (null defn) (integerp defn))
 	    (message "%s is undefined" (key-description key))
 	  (with-output-to-temp-buffer "*Help*"
