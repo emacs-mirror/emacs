@@ -170,7 +170,9 @@ function."
 ;;; Set up some global items.  Additions/deletions up for grabs.
 
 (defun tool-bar-setup ()
-  (tool-bar-add-item-from-menu 'save-buffers-kill-emacs "exit")
+  ;; People say it's bad to have EXIT on the tool bar, since users
+  ;; might inadvertently click that button.
+  ;;(tool-bar-add-item-from-menu 'save-buffers-kill-emacs "exit")
   (tool-bar-add-item-from-menu 'find-file "new")
   (tool-bar-add-item-from-menu 'dired "open")
   (tool-bar-add-item-from-menu 'kill-this-buffer "close")
