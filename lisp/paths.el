@@ -62,13 +62,13 @@ environment variable or, if none, this value.")
 Go to a local news spool if its value is nil, in which case `gnus-nntp-server'
 should be set to `(system-name)'.")
 
-(defvar gnus-your-domain nil
+(defvar gnus-local-domain nil
   "Your domain name without your host name like: \"stars.flab.Fujitsu.CO.JP\"
 The DOMAINNAME environment variable is used instead if defined.  If
 the function `system-name' returns a fully qualified domain name, there is no
 need to define the name.")
 
-(defvar gnus-your-organization ""
+(defvar gnus-local-organization ""
   "Your organization like: \"Fujitsu Laboratories Ltd., Kawasaki, Japan.\"
 The `ORGANIZATION' environment variable is used instead if defined.")
 
