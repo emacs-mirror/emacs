@@ -46,12 +46,13 @@
 (defvar ja-dic-filename "ja-dic.el")
 
 ;; To make a generated ja-dic.el smaller.
-(make-coding-system
- 'iso-2022-7bit-short
- 2 ?J
+(define-coding-system 'iso-2022-7bit-short
  "Like `iso-2022-7bit' but no ASCII designation before SPC."
- '(ascii nil nil nil t t nil t)
- '((safe-charsets . t)))
+  :coding-type 'iso-2022
+  :mnemonic ?J
+  :charset-list 'iso-2022
+  :designation [(ascii t) nil nil nil]
+  :flags '(short 7-bit designation))
 
 (defun skkdic-convert-okuri-ari (skkbuf buf)
   (message "Processing OKURI-ARI entries ...")
@@ -475,7 +476,7 @@ To get complete usage, invoke:
 		(- ch)			;  represented by a negative code.
 	      (if (= ch ?ー)		; `ー' is represented by 0.
 		  0
-		(- (nth 2 (split-char ch)) 32))))
+		(- (logand (encode-char ch 'japanese-jisx0208) #xFF) 32))))
       (setq i (1+ i)))
     vec))
 
