@@ -199,7 +199,7 @@ for the regexp; the part that matches gets displayed in this font."
 	    (apropos-describe-plist (button-get button 'apropos-symbol))))
 
 (defun apropos-next-label-button (pos)
-  "Returns the next apropos label button after POS, or nil if there's none.
+  "Return the next apropos label button after POS, or nil if there's none.
 Will also return nil if more than one `apropos-symbol' button is encountered
 before finding a label."
   (let* ((button (next-button pos t))
