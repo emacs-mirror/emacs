@@ -577,6 +577,9 @@ displayed."
     ;; reset profiling info if desired
     (and elp-reset-after-results
 	 (elp-reset-all))))
+
+(defun elp-unload-hook ()
+  (elp-restore-all))
 
 (provide 'elp)
 
