@@ -55,7 +55,47 @@ in the file it applies to.")
   (define-key outline-mode-map "\C-c\C-h" 'hide-subtree)
   (define-key outline-mode-map "\C-c\C-u" 'outline-up-heading)
   (define-key outline-mode-map "\C-c\C-f" 'outline-forward-same-level)
-  (define-key outline-mode-map "\C-c\C-b" 'outline-backward-same-level))
+  (define-key outline-mode-map "\C-c\C-b" 'outline-backward-same-level)
+
+  (define-key outline-mode-map [menu-bar hide]
+    (cons "Hide" (make-sparse-keymap "Hide")))
+
+  (define-key outline-mode-map [menu-bar hide hide-subtree]
+    '("Hide Subtree" . outline-hide-subtree))
+  (define-key outline-mode-map [menu-bar hide hide-entry]
+    '("Hide Entry" . outline-hide-entry))
+  (define-key outline-mode-map [menu-bar hide hide-body]
+    '("Hide Body" . outline-hide-body))
+  (define-key outline-mode-map [menu-bar hide hide-leaves]
+    '("Hide Leaves" . outline-hide-leaves))
+
+  (define-key outline-mode-map [menu-bar show]
+    (cons "Show" (make-sparse-keymap "Show")))
+
+  (define-key outline-mode-map [menu-bar show show-subtree]
+    '("Show Subtree" . outline-show-subtree))
+  (define-key outline-mode-map [menu-bar show show-children]
+    '("Show Children" . outline-show-children))
+  (define-key outline-mode-map [menu-bar show show-branches]
+    '("Show Branches" . outline-show-branches))
+  (define-key outline-mode-map [menu-bar show show-entry]
+    '("Show Entry" . outline-show-entry))
+  (define-key outline-mode-map [menu-bar show show-all]
+    '("Show All" . outline-show-all))
+
+  (define-key outline-mode-map [menu-bar headings]
+    (cons "Headings" (make-sparse-keymap "Headings")))
+
+  (define-key outline-mode-map [menu-bar headings outline-backward-same-level]
+    '("Previous Same Level" . outline-backward-same-level))
+  (define-key outline-mode-map [menu-bar headings outline-forward-same-level]
+    '("Next Same Level" . outline-forward-same-level))
+  (define-key outline-mode-map [menu-bar headings outline-previous-visible-heading]
+    '("Previous" . outline-previous-visible-heading))
+  (define-key outline-mode-map [menu-bar headings outline-next-visible-heading]
+    '("Next" . outline-next-visible-heading))
+  (define-key outline-mode-map [menu-bar headings outline-up-heading]
+    '("Up" . outline-up-heading)))
 
 (defvar outline-minor-mode nil
   "Non-nil if using Outline mode as a minor mode of some other mode.")
@@ -128,6 +168,8 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
 (if outline-minor-mode-map
     nil
   (setq outline-minor-mode-map (make-sparse-keymap))
+  (define-key outline-minor-mode-map [menu-bar]
+    (lookup-key outline-mode-map [menu-bar]))
   (define-key outline-minor-mode-map "\C-c"
     (lookup-key outline-mode-map "\C-c")))
 
