@@ -1,3 +1,77 @@
+2004-09-28  Jesper Harder  <harder@ifa.au.dk>
+
+	* gnus-picon.el: Require cl.
+
+	* mml-sec.el (mml-signencrypt-style): Don't depend on Gnus.
+
+	* mml-smime.el: Require cl.  Autoload message-fetch-field.
+
+	* gnus-fun.el: Require gnus-ems and gnus-util.
+
+	* gnus-diary.el (gnus-diary-header-schedule): caddr -> car (cddr
+
+	* gnus-art.el (gnus-article-edit-mode): Define before first
+	reference.
+
+	* gnus.el (gnus-method-to-server): Move defsubst before first use.
+
+	* spam.el (spam-check-spamoracle, spam-spamoracle-learn): Fix
+	format string mismatch.
+	* nnml.el (nnml-request-set-mark, nnml-save-marks): do.	
+	* nnfolder.el (nnfolder-request-set-mark, nnfolder-save-marks): do.
+
+2004-09-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.el (gnus-version-number): Set to 5.11.
+
+2004-09-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-copy-to-buffer): Don't use set-buffer-multibyte.
+
+2004-09-26  Jesper Harder  <harder@ifa.au.dk>
+
+	* gnus-msg.el (gnus-post-news): Use blank Newsgroups line if
+	GROUP is a virtual group.
+
+	* mm-util.el (mm-charset-synonym-alist): Remove obsolete entries
+	for big5 and gb2312.
+	
+	* rfc2047.el (rfc2047-pad-base64): Deal with more cases of invalid
+	padding.
+
+	* mm-bodies.el (mm-7bit-chars): Don't include \r.	
+
+	* mml.el (mml-compute-boundary-1): Don't uncompress files.
+
+	* rfc2047.el (rfc2047-qp-or-base64): New function to reduce
+	dependencies.
+	(rfc2047-encode): Use it.
+	
+	* flow-fill.el: Typo.
+
+	* mml.el (mml-generate-mime-1): Don't use format=flowed with
+	inline PGP.
+
+	* gnus.el (gnus-getenv-nntpserver): Strip whitespace.
+
+	* gnus-cache.el (gnus-cache-save-buffers): Check if buffer is
+	alive.  Reported by Laurent Martelli <laurent@aopsys.com>.
+
+	* mm-util.el (mm-image-load-path): Handle nil in load-path.
+	From Christian Neukirchen <chneukirchen@yahoo.de>.
+
+	* html2text.el (html2text-replace-list): Add &amp; and &apos;.
+
+	* nnheader.el (nnheader-max-head-length): Increase to 8192.
+
+	* message.el (message-clone-locals): Clone sendmail and smtp
+	variables.
+
+2004-09-23  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-msg.el (gnus-configure-posting-styles): Narrow to headers
+	in `header' match.  Reported by Svend Tollak Munkejord.
+
 2004-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mm-decode.el (mm-copy-to-buffer): Preserve the data's unibyteness.

@@ -204,7 +204,7 @@ There are currently two built-in format functions:
      (let ((head (cdr (assoc (intern (format "X-Diary-%s" (car elt)))
 			     headers))))
        (when head
-	 (nndiary-parse-schedule-value head (cadr elt) (caddr elt)))))
+	 (nndiary-parse-schedule-value head (cadr elt) (car (cddr elt))))))
    nndiary-headers))
 
 ;; #### NOTE: Gnus sometimes gives me a HEADER not corresponding to any

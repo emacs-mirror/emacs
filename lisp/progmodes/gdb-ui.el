@@ -1069,8 +1069,9 @@ static char *magick[] = {
 (defvar breakpoint-disabled-icon nil
   "Icon for disabled breakpoint in display margin")
 
-(defvar breakpoint-bitmap nil
-  "Bitmap for breakpoint in fringe")
+;; Bitmap for breakpoint in fringe
+(define-fringe-bitmap 'breakpoint
+  "\x3c\x7e\xff\xff\xff\xff\x7e\x3c")
 
 (defface breakpoint-enabled-bitmap-face
   '((t
@@ -1140,9 +1141,8 @@ static char *magick[] = {
 	  (save-excursion
 	    (goto-char (posn-point posn))
 	    (if (or (posn-object posn)
-		    (and breakpoint-bitmap
-			 (eq (car (fringe-bitmaps-at-pos (posn-point posn)))
-			     breakpoint-bitmap)))
+		    (eq (car (fringe-bitmaps-at-pos (posn-point posn)))
+			'breakpoint))
 		(gud-remove nil)
 	      (gud-break nil)))))))
 
@@ -1831,11 +1831,7 @@ BUFFER nil or omitted means use the current buffer."
 	(if (>= (car (window-fringes)) 8)
 	    (gdb-put-string
 	     nil (1+ start)
-	     `(left-fringe
-	       ,(or breakpoint-bitmap
-		    (setq breakpoint-bitmap
-			  (define-fringe-bitmap
-			    "\x3c\x7e\xff\xff\xff\xff\x7e\x3c")))
+	     `(left-fringe breakpoint
 	       ,(if enabled
 		    'breakpoint-enabled-bitmap-face
 		  'breakpoint-disabled-bitmap-face)))

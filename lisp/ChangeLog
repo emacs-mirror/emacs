@@ -1,4 +1,116 @@
-2004-09-23  H,Ae(Bkon Malmedal  <hmalmedal@yahoo.no>
+2004-09-28  Stefan  <monnier@iro.umontreal.ca>
+
+	* dired.el (dired-view-command-alist): Use more efficient regexps.
+	Remove dubious arguments.
+	(dired-align-file): New function.
+	(dired-insert-directory): Use it.
+	(dired-move-to-end-of-filename): Make the " -> " search more specific.
+	(dired-buffers-for-dir): Remove unused var `pattern'.
+
+2004-09-29  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/gdb-ui.el (breakpoint): Define as fringe bitmap.
+	(gdb-mouse-toggle-breakpoint): Fix fringe-bitmaps-at-pos usage.
+	(gdb-put-breakpoint-icon): Use breakpoint bitmap.
+
+	* fringe.el (fringe-bitmap-p): New macro.
+	(fringe-bitmaps): Add standard fringe bitmaps on load.
+
+2004-09-28  Matthew Mundell  <matt@mundell.ukfsn.org>  (tiny change)
+
+	* calendar/diary-lib.el (list-diary-entries): Save diary buffer
+	from diary display excursion.  Store diary buffer's point for
+	`simple-diary-display'.
+	(simple-diary-display): Set window point and start when
+	displaying buffer, to preserve point.
+
+2004-09-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* textmodes/enriched.el (enriched-translations): Replace defconst
+	with defvar.
+
+2004-09-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Doc fix.
+	(pr-version): New version number (6.8.1).
+	(pr-ps-file-using-ghostscript): Use make-temp-file instead of
+	make-temp-name.
+	(pr-delete-file): Check if file exists before deleting it.  Reported by
+	Lennart Borgman <lennart.borgman.073@student.lu.se>.
+
+2004-09-26  Stefan  <monnier@iro.umontreal.ca>
+
+	* term.el (term-display-table): New variable.
+	(term-mode): Use it.
+	(term-exec-1): Set the coding system to binary.
+	(term-emulate-terminal): Decode the string before inserting it.
+
+2004-09-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-ansi-at-eval-string, term-ansi-default-fg)
+	(term-ansi-default-bg, term-ansi-current-temp): Delete unused
+	vars.
+	(map): Bind S-prior, S-next and S-insert.
+	(term-mode): Set `indent-tabs-mode' to nil.
+	(term-paste): New function to be bound to S-insert.
+	(term-send-del, term-send-backspace): Change the strings sent.
+	(term-termcap-format): Synchronyze with etc/e/eterm.ti.
+	(term-handle-colors-array): Fix handling of underline and reverse.
+	(term-handle-ansi-escape): Do not handle smcup/rmcup. Add
+	comments.
+	(term-erase-in-line): Fix comparison.
+        (term-emulate-terminal): Fix line wrap handling.
+	(term-start-output-log): Renamed from `term-set-output-log'.
+	(term-stop-output-log): Renamed from `term-stop-photo'.
+        (term-switch-to-alternate-sub-buffer): Comment out, unused.
+
+2004-09-25  Stefan  <monnier@iro.umontreal.ca>
+
+	* dired.el (dired-move-to-filename): Don't output a message if
+	raise-error is non-nil.  Fix return position and value.
+
+	* files.el (insert-directory): Obey --dired even with symlinks.
+
+2004-09-25  Lars Hansen  <larsh@math.ku.dk>
+
+	* ls-lisp.el (ls-lisp-format): Mark file names with property
+	dired-filename.
+
+2004-09-25  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-max-directory-size): New defcustom.
+	(ido-decorations): Add "too big" element.
+	(ido-directory-too-big): New dynamic var.
+	(ido-may-cache-directory): Don't cache big directories.
+	(ido-directory-too-big-p): New defun.
+	(ido-set-current-directory): Update ido-directory-too-big.
+	(ido-read-internal): Make empty ido-cur-item if too-big.
+	(ido-buffer-internal): Use ido-read-internal directly instead of
+	ido-read-buffer.
+	(ido-file-internal): Init ido-directory-too-big.
+	(ido-complete): <TAB> If ido-directory-too-big is set, clear it,
+	and redo completion with full list.
+	(ido-toggle-ignore): <C-a> If ido-directory-too-big is set, clear
+	it, and show completions.
+	(ido-all-completions): Let bind ido-directory-too-big to nil.
+	(ido-exhibit): Handle ido-directory-too-big.
+	(ido-read-buffer): Handle fallback to read-buffer.
+	Init ido-directory-too-big.
+	(ido-read-file-name, ido-read-directory-name, ido-completing-read):
+	Init ido-directory-too-big.
+
+2004-09-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (delay-mode-hooks): Doc fix.
+
+2004-09-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* textmodes/enriched.el
+	(enriched-default-text-properties-local-flag): New variable.
+	(enriched-mode): Make sure that enabling and disabling the mode is
+	a no-op.  Doc fix.
+
+2004-09-23  H,Ae(Bkon Malmedal  <hmalmedal@yahoo.no>  (tiny change)
 
 	* calendar/holidays.el (holiday-advent): Report on a specified day
 	offset from advent, not just advent.

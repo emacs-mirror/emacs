@@ -2977,8 +2977,8 @@ Consecutive characters with the same @code{field} property constitute a
 @item cursor
 @kindex cursor @r{(text property)}
 Normally, the cursor is displayed at the end of any overlay and text
-property string that may be present at the current window position.
-The cursor may be placed on any character of such strings by giving
+property strings present at the current window position.  You can
+place the cursor on any desired character of these strings by giving
 that character a non-@code{nil} @var{cursor} text property.
 
 @item pointer
@@ -2987,55 +2987,50 @@ This specifies a specific pointer shape when the mouse pointer is over
 this text or image.  See the variable @var{void-area-text-pointer}
 for possible pointer shapes.
 
-@item line-height
-@kindex line-height @r{(text property)}
-A newline may have @code{line-height} text or overlay properties that
-controls the height of the corresponding display row.
-
-If the @code{line-height} property value is @samp{0}, the newline does
-not contribute to the height of the display row; instead the height of
-the newline glyph is reduced.  Also, a @code{line-spacing} property on
-this newline is ignored.  This can be used to tile small images or
-image slices without adding blank areas between the images.
-
-If the @code{line-height} property value is a positive integer, the
-value specifies the minimum line height in pixels.  If necessary, the
-line height it increased by increasing the line's ascent.
-
-If the @code{line-height} property value is a floating point number,
-the minimum line height is calculated by multiplying the default frame
-line height by the given value.
-
-If the @code{line-height} property value is a cons @code{(@var{ratio}
-. @var{face})}, the minimum line height is calculated as @var{ratio} *
-height of named face @var{face}.  The @var{ ratio} is an integer or a
-floating point number.  If @var{face} is @code{t}, it specifies the
-current face.
-
 @item line-spacing
 @kindex line-spacing @r{(text property)}
-A newline may also have a @code{line-spacing} text or overlay
-properties that controls the height of the corresponding display row.
+A newline can have a @code{line-spacing} text or overlay property that
+controls the height of the display line ending with that newline.  The
+property value overrides the default frame line spacing and the buffer
+local @code{line-spacing} variable.  We will call the property value
+@var{line-spacing}.
 
-If the @code{line-spacing} property value is an positive integer, the
-value is used as additional pixels to insert after the display line;
-this overrides the default frame line-spacing and any buffer local
-value of the @var{line-spacing} variable.
+If @var{line-spacing} is a positive integer, the value specifies
+additional vertical space, below the display line, in pixels.
 
-If the @code{line-spacing} property is a floating point number or
-cons, the line spacing is calculated as specified above for the
-@code{line-height} property.
+If @var{line-spacing} is a floating point number or cons, the
+additional vertical space is the product of @var{line-spacing} and the
+default frame line height.
 
-If the @code{line-spacing} value is a cons @code{(total . @var{spacing})}
-where @var{spacing} is any of the forms described above, the value of
-@var{spacing} is used as the total height of the line, i.e. a varying
-number of pixels are inserted after each line to make each line
-exactly that many pixels high.
+If the @var{line-spacing} value is a cons @code{(total .
+@var{spacing})} where @var{spacing} is any of the forms described
+above, the value of @var{spacing} specifies the total displayed height
+of the line, regardless of the height of the characters in it.  This
+is equivalent to using the @code{line-height} property.
 
-Using the @code{line-spacing} property overrides the buffer local
-@var{line-spacing} variable.  That value of that variable may be an
-integer that specifies a number of pixels, or a floating point
-number which gives the spacing relative to the default frame line height.
+@item line-height
+@kindex line-height @r{(text property)}
+A newline can have a @code{line-height} text or overlay property that
+controls the total height of the display line ending in that newline.
+We will call the property value @var{line-height}.
+
+If @var{line-height} is 0, the height of the line is determined solely
+from its contents; nothing is added.  Any @code{line-spacing} property
+on this newline is ignored.  This case is useful for tiling small
+images or image slices without adding blank areas between the images.
+
+If @var{line-height} is a positive integer, the value specifies the
+minimum line height in pixels.  The line's ascent height is
+increased as necessary to achieve the specified height.
+
+If @var{line-height} is a floating point number, the minimum line
+height is the product of @var{line-height} and the default frame line
+height.
+
+If @var{line-height} is a cons @code{(@var{ratio} . @var{face})}, the
+minimum line height is calculated as @var{ratio} times the height of
+face @var{face}.  The @var{ratio} is an integer or a floating point
+number.  If @var{face} is @code{t}, it refers to the current face.
 
 @item modification-hooks
 @cindex change hooks for a character

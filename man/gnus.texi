@@ -3013,11 +3013,23 @@ tag can be removed from the article subjects in the summary buffer for
 the group by putting @code{(gnus-list-identifiers "DOCBOOK-APPS:")}
 into the group parameters for the group.
 
-This can also be used as a group-specific hook function, if you'd like.
-If you want to hear a beep when you enter a group, you could put
-something like @code{(dummy-variable (ding))} in the parameters of that
-group.  @code{dummy-variable} will be set to the result of the
-@code{(ding)} form, but who cares?
+This can also be used as a group-specific hook function.  If you want to
+hear a beep when you enter a group, you could put something like
+@code{(dummy-variable (ding))} in the parameters of that group.
+@code{dummy-variable} will be set to the (meaningless) result of the
+@code{(ding)} form.  
+
+Alternatively, since the VARIABLE becomes local to the group, this
+pattern can be used to temporarily change a hook.  For example, if the
+following is added to a group parameter
+
+@lisp
+(gnus-summary-prepared-hook
+  '(lambda nil (local-set-key "d" (local-key-binding "n"))))
+@end lisp
+
+when the group is entered, the 'd' key will not mark the article as
+expired.
 
 @end table
 
@@ -5368,6 +5380,13 @@ to the @code{root} account, you may want to resend it to
 This command understands the process/prefix convention
 (@pxref{Process/Prefix}).
 
+@item S D e
+@kindex S D e (Summary)
+@findex gnus-summary-resend-message-edit
+
+Like the previous command, but will allow you to edit the message as
+if it were a new message before resending.
+
 @item S O m
 @kindex S O m (Summary)
 @findex gnus-uu-digest-mail-forward
@@ -6187,7 +6206,7 @@ Mark all series that have already had some articles marked
 @item M P a
 @kindex M P a (Summary)
 @findex gnus-uu-mark-all
-Mark all articles in series order (@code{gnus-uu-mark-series}).
+Mark all articles in series order (@code{gnus-uu-mark-all}).
 
 @item M P b
 @kindex M P b (Summary)
@@ -9328,6 +9347,26 @@ Here's an example function the does the latter:
 @item gnus-mime-multipart-functions
 Alist of @acronym{MIME} multipart types and functions to handle them.
 
+@vindex gnus-mime-display-multipart-alternative-as-mixed
+@item gnus-mime-display-multipart-alternative-as-mixed
+Display "multipart/alternative" parts as "multipart/mixed".
+
+@vindex gnus-mime-display-multipart-related-as-mixed
+@item gnus-mime-display-multipart-related-as-mixed
+Display "multipart/related" parts as "multipart/mixed".
+
+If displaying "text/html" is discouraged, see
+@code{mm-discouraged-alternatives} in @ref{Display Customization,
+Display Customization, , emacs-mime, Emacs-Mime Manual}.  Images or
+other material inside a "multipart/related" part might be overlooked
+when this variable is nil.
+
+@vindex gnus-mime-display-multipart-as-mixed
+@item gnus-mime-display-multipart-as-mixed
+Display "multipart" parts as "multipart/mixed".  If t, it overrides nil
+values of @code{gnus-mime-display-multipart-alternative-as-mixed} and
+@code{gnus-mime-display-multipart-related-as-mixed}.
+
 @vindex mm-file-name-rewrite-functions
 @item mm-file-name-rewrite-functions
 List of functions used for rewriting file names of @acronym{MIME} parts.
@@ -9423,6 +9462,10 @@ encode using quoted-printable) or @code{t} (always use 8bit).
 @cindex iso-8859-5
 @cindex coding system aliases
 @cindex preferred charset
+
+@xref{Encoding Customization, , Encoding Customization, emacs-mime,
+The Emacs MIME Manual}, for additional variables that control which
+MIME charsets are used when sending messages.
 
 Other charset tricks that may be useful, although not Gnus-specific:
 
@@ -10136,11 +10179,19 @@ the list in one particular group:
 @vindex gnus-newsgroup-variables
 @item gnus-newsgroup-variables
 A list of newsgroup (summary buffer) local variables, or cons of
-variables and their default values (when the default values are not
-@code{nil}), that should be made global while the summary buffer is
-active.  These variables can be used to set variables in the group
-parameters while still allowing them to affect operations done in
-other buffers.  For example:
+variables and their default expressions to be evalled (when the default
+values are not @code{nil}), that should be made global while the summary
+buffer is active.
+
+Note: The default expressions will be evaluated (using function
+@code{eval}) before assignment to the local variable rather than just
+assigned to it.  If the default expression is the symbol @code{global},
+that symbol will not be evaluated but the global value of the local
+variable will be used instead.
+
+These variables can be used to set variables in the group parameters
+while still allowing them to affect operations done in other
+buffers.  For example:
 
 @lisp
 (setq gnus-newsgroup-variables
@@ -10149,6 +10200,7 @@ other buffers.  For example:
  "^From:\\|^Newsgroups:\\|^Subject:\\|^Date:\\|^To:")))
 @end lisp
 
+Also @pxref{Group Parameters}.
 @end table
 
 
@@ -11269,9 +11321,9 @@ no more new text to scroll in.  The default is @code{nil}.
 @vindex gnus-article-mode-line-format
 @item gnus-article-mode-line-format
 This variable is a format string along the same lines as
-@code{gnus-summary-mode-line-format} (@pxref{Mode Line Formatting}).  It
-accepts the same format specifications as that variable, with two
-extensions:
+@code{gnus-summary-mode-line-format} (@pxref{Summary Buffer Mode
+Line}).  It accepts the same format specifications as that variable,
+with two extensions:
 
 @table @samp
 
@@ -13203,7 +13255,9 @@ expression should @emph{always} be @samp{*} so that it matches any mails
 that haven't been matched by any of the other regexps.  (These rules are
 processed from the beginning of the alist toward the end.  The first
 rule to make a match will ``win'', unless you have crossposting enabled.
-In that case, all matching rules will ``win''.)
+In that case, all matching rules will ``win''.)  When new groups are
+created by splitting mail, you may want to run
+@code{gnus-group-find-new-groups} to see the new groups.
 
 If you like to tinker with this yourself, you can set this variable to a
 function of your choice.  This function will be called without any
@@ -13771,10 +13825,10 @@ If non-@code{nil}, ignore errors when reading mail from a mail source.
 
 @item mail-source-directory
 @vindex mail-source-directory
-Directory where files (if any) will be stored.  The default is
-@file{~/Mail/}.  At present, the only thing this is used for is to say
-where the incoming files will be stored if the previous variable is
-@code{nil}.
+Directory where incoming mail source files (if any) will be stored.  The
+default is @file{~/Mail/}.  At present, the only thing this is used for
+is to say where the incoming files will be stored if the variable
+@code{mail-source-delete-incoming} is @code{nil} or a number.
 
 @item mail-source-incoming-file-prefix
 @vindex mail-source-incoming-file-prefix
@@ -16571,7 +16625,7 @@ follows:
 This instructs the @code{imap.el} package to log any exchanges with
 the server.  The log is stored in the buffer @samp{*imap-log*}.  Look
 for error messages, which sometimes are tagged with the keyword
-@code{BAD} - but when submitting a bug, make sure to include all the
+@code{BAD}---but when submitting a bug, make sure to include all the
 data.
 
 @node Other Sources
@@ -18246,8 +18300,8 @@ placeholders if you care (See @code{gnus-auto-goto-ignores}).
 While it may be obvious to all, the only headers and articles
 available while unplugged are those headers and articles that were
 fetched into the Agent while previously plugged.  To put it another
-way, "If you forget to fetch something while plugged, you might have a
-less than satisfying unplugged session".  For this reason, the Agent
+way, ``If you forget to fetch something while plugged, you might have a
+less than satisfying unplugged session''.  For this reason, the Agent
 adds two visual effects to your summary buffer.  These effects display
 the download status of each article so that you always know which
 articles will be available when unplugged.
@@ -18624,7 +18678,7 @@ following incantation:
 
 @example
 #!/bin/sh
-emacs -batch -l ~/.emacs -f -l ~/.gnus.el gnus-agent-batch >/dev/null 2>&1
+emacs -batch -l ~/.emacs -l ~/.gnus.el gnus-agent-batch >/dev/null 2>&1
 @end example
 
 
@@ -20436,8 +20490,8 @@ something like:
 ...
 @end example
 
-Then that means "score on the from header of the grandparent of the
-current article".  An indirection is quite fast, but it's better to say:
+Then that means ``score on the from header of the grandparent of the
+current article''.  An indirection is quite fast, but it's better to say:
 
 @example
 (1-
@@ -22656,7 +22710,7 @@ entering a group.  Thus, entering a group with unseen or unread
 articles becomes the substitute for checking incoming mail.  Whether
 only unseen articles or all unread articles will be processed is
 determined by the @code{spam-autodetect-recheck-messages}.  When set
-to t, unread messages will be rechecked.
+to @code{t}, unread messages will be rechecked.
 
 @code{spam-autodetect} grants the user at once more and less control
 of spam filtering.  The user will have more control over each group's

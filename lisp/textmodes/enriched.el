@@ -102,7 +102,7 @@ expression, which is evaluated to get the string to insert.")
 (defconst enriched-annotation-regexp "<\\(/\\)?\\([-A-Za-z0-9]+\\)>"
   "Regular expression matching enriched-text annotations.")
 
-(defconst enriched-translations
+(defvar enriched-translations
   '((face          (bold-italic "bold" "italic")
 		   (bold        "bold")
 		   (italic      "italic")
@@ -154,6 +154,12 @@ them and their old values to `enriched-old-bindings'."
 The value is a list of \(VAR VALUE VAR VALUE...).")
 (make-variable-buffer-local 'enriched-old-bindings)
 
+;; The next variable is buffer local if and only if Enriched mode is
+;; enabled.  The buffer local value records whether
+;; `default-text-properties' should remain buffer local when disabling
+;; Enriched mode.  For technical reasons, the default value should be t.
+(defvar enriched-default-text-properties-local-flag t)
+
 ;; Technical internal variable.  Bound to t if `enriched-mode' is
 ;; being rerun by a major mode to allow it to restore buffer-local
 ;; variables and to correctly update `enriched-old-bindings'.
@@ -169,7 +175,7 @@ The value is a list of \(VAR VALUE VAR VALUE...).")
   "Minor mode for editing text/enriched files.
 These are files with embedded formatting information in the MIME standard
 text/enriched format.
-Turning the mode on runs `enriched-mode-hook'.
+Turning the mode on or off runs `enriched-mode-hook'.
 
 More information about Enriched mode is available in the file
 etc/enriched.doc in the Emacs distribution directory.
@@ -183,7 +189,11 @@ Commands:
 	 (setq buffer-file-format (delq 'text/enriched buffer-file-format))
 	 ;; restore old variable values
 	 (while enriched-old-bindings
-	   (set (pop enriched-old-bindings) (pop enriched-old-bindings))))
+	   (set (pop enriched-old-bindings) (pop enriched-old-bindings)))
+	 (unless enriched-default-text-properties-local-flag
+	   (kill-local-variable 'default-text-properties))
+	 (kill-local-variable 'enriched-default-text-properties-local-flag)
+	 (unless use-hard-newlines (use-hard-newlines 0)))
 
 	((and (memq 'text/enriched buffer-file-format)
 	      (not enriched-rerun-flag))
@@ -196,7 +206,11 @@ Commands:
 	 ;; These will be restored if we exit Enriched mode.
 	 (setq enriched-old-bindings
 	       (list 'buffer-display-table buffer-display-table
-		     'default-text-properties default-text-properties))
+		     'default-text-properties default-text-properties
+		     'use-hard-newlines use-hard-newlines))
+	 (make-local-variable 'enriched-default-text-properties-local-flag)
+	 (setq enriched-default-text-properties-local-flag
+	       (local-variable-p 'default-text-properties))
 	 (make-local-variable 'default-text-properties)
 	 (setq buffer-display-table  enriched-display-table)
 	 (use-hard-newlines 1 (if enriched-rerun-flag 'never nil))

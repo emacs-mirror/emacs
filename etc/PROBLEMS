@@ -2329,28 +2329,34 @@ The fix is to install a newer version of ncurses, such as version 4.2.
 *** Linux: Segfault during `make bootstrap' under certain recent versions of the Linux kernel.
 
 With certain recent Linux kernels (like the one of Redhat Fedora Core
-1), the new "Exec-shield" functionality is enabled by default, which
+1 and 2), the new "Exec-shield" functionality is enabled by default, which
 creates a different memory layout that breaks the emacs dumper.
+
+Configure can overcome the problem of exec-shield if the architecture is
+x86 and the program setarch is present.  On other architectures no
+workaround is known.
 
 You can check the Exec-shield state like this:
 
     cat /proc/sys/kernel/exec-shield
 
-It returns 1 or 2 when Exec-shield is enabled, 0 otherwise.  Please
+It returns non-zero when Exec-shield is enabled, 0 otherwise.  Please
 read your system documentation for more details on Exec-shield and
-associated commands.
+associated commands.  Exec-shield can be turned off with this command:
+
+    echo "0" > /proc/sys/kernel/exec-shield
 
 When Exec-shield is enabled, building Emacs will segfault during the
 execution of this command:
 
-temacs --batch --load loadup [dump|bootstrap]
+    ./temacs --batch --load loadup [dump|bootstrap]
 
 To work around this problem, it is necessary to temporarily disable
-Exec-shield while building Emacs, using the `setarch' command like
-this:
+Exec-shield while building Emacs, or, on x86, by using the `setarch'
+command when running temacs like this:
 
-    setarch i386 ./configure <configure parameters>
-    setarch i386 make <make parameters>
+    setarch i386 ./temacs --batch --load loadup [dump|bootstrap]
+
 
 *** Fatal signal in the command  temacs -l loadup inc dump.
 

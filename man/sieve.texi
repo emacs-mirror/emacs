@@ -277,7 +277,7 @@ Sets the default port to use, the suggested port number is @code{2000}.
 
 @item sieve-manage-log
 @vindex sieve-manage-log
-If non-nil, should be a string naming a buffer where a protocol trace
+If non-@code{nil}, should be a string naming a buffer where a protocol trace
 is dumped (for debugging purposes).
 
 @end table
@@ -313,7 +313,8 @@ List scripts on the server.
 
 @item sieve-manage-havespace
 @findex sieve-manage-havespace
-Returns non-nil iff server have roam for a script of given size.
+Returns non-@code{nil} iff server have roam for a script of given
+size.
 
 @item sieve-manage-getscript
 @findex sieve-manage-getscript

@@ -909,6 +909,13 @@ LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) \
 #define OBJECTS_MACHINE
 #endif
 
+#ifdef HAVE_EXECSHIELD
+#undef i386
+RUN_TEMACS = @SETARCH@ i386 ./temacs
+#else
+RUN_TEMACS = ./temacs
+#endif
+
 all: emacs${EXEEXT} OTHER_FILES
 
 emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp}
@@ -917,9 +924,9 @@ emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp}
 	ln temacs${EXEEXT} emacs${EXEEXT}
 #else
 #ifdef HAVE_SHM
-	LC_ALL=C ./temacs -nl -batch -l loadup dump
+	LC_ALL=C $(RUN_TEMACS) -nl -batch -l loadup dump
 #else /* ! defined (HAVE_SHM) */
-	LC_ALL=C ./temacs -batch -l loadup dump
+	LC_ALL=C $(RUN_TEMACS) -batch -l loadup dump
 #endif /* ! defined (HAVE_SHM) */
 #endif /* ! defined (CANNOT_DUMP) */
 	-./emacs -q -batch -f list-load-path-shadows
@@ -1339,9 +1346,9 @@ bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
 	ln temacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #else
 #ifdef HAVE_SHM
-	./temacs -nl -batch -l loadup bootstrap
+	$(RUN_TEMACS) -nl -batch -l loadup bootstrap
 #else /* ! defined (HAVE_SHM) */
-	./temacs --batch --load loadup bootstrap
+	$(RUN_TEMACS) --batch --load loadup bootstrap
 #endif /* ! defined (HAVE_SHM) */
 	mv -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #endif /* ! defined (CANNOT_DUMP) */

@@ -1970,6 +1970,8 @@ Major mode functions should use this."
 
 (defmacro delay-mode-hooks (&rest body)
   "Execute BODY, but delay any `run-mode-hooks'.
+These hooks will be executed by the first following call to
+`run-mode-hooks' that occurs outside any `delayed-mode-hooks' form.
 Only affects hooks run in the current buffer."
   (declare (debug t))
   `(progn

@@ -113,7 +113,7 @@ You can also customize or set `mml-signencrypt-style-alist' instead."
 	    (setf (second style-item) style)
 	  ;; otherwise, just return the current value
 	  (second style-item))
-      (gnus-message 3 "Warning, attempt to set invalid signencrypt-style"))))
+      (message "Warning, attempt to set invalid signencrypt style"))))
 
 ;;; Security functions
 

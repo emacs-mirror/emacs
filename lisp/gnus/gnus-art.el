@@ -1464,6 +1464,8 @@ Initialized from `text-mode-syntax-table.")
 
 (defvar gnus-inhibit-hiding nil)
 
+(defvar gnus-article-edit-mode nil)
+
 ;;; Macros for dealing with the article buffer.
 
 (defmacro gnus-with-article-headers (&rest forms)

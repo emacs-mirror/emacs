@@ -1,5 +1,5 @@
 ;;; html2text.el --- a simple html to plain text converter
-;; Copyright (C) 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Joakim Hove <hove@phys.ntnu.no>
 
@@ -42,7 +42,8 @@
 (defvar html2text-format-single-element-list '(("hr" . html2text-clean-hr)))
 
 (defvar html2text-replace-list
-  '(("&nbsp;" . " ") ("&gt;" . ">") ("&lt;" . "<") ("&quot;" . "\""))
+  '(("&nbsp;" . " ") ("&gt;" . ">") ("&lt;" . "<") ("&quot;" . "\"")
+    ("&amp;" . "&") ("&apos;" . "'"))
   "The map of entity to text.
 
 This is an alist were each element is a dotted pair consisting of an

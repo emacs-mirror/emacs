@@ -6685,7 +6685,7 @@ regexp VARSTR."
   (let ((locals (save-excursion
 		  (set-buffer buffer)
 		  (buffer-local-variables)))
-	(regexp "^gnus\\|^nn\\|^message\\|^user-mail-address"))
+	(regexp "^gnus\\|^nn\\|^message\\|^sendmail\\|^smtp\\|^user-mail-address"))
     (mapcar
      (lambda (local)
        (when (and (consp local)

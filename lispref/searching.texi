@@ -975,6 +975,32 @@ comes back" twice.
 @end example
 @end defun
 
+@defun looking-back regexp &optional limit
+This function returns @code{t} if @var{regexp} matches text before
+point, ending at point, and @code{nil} otherwise.
+
+Because regular expression matching works only going forward, this is
+implemented by searching backwards from point for a match that ends at
+point.  That can be quite slow if it has to search a long distance.
+You can bound the time required by specifying @var{limit}, which says
+not to search before @var{limit}.  In this case, the match that is
+found must begin at or after @var{limit}.
+
+@example
+@group
+---------- Buffer: foo ----------
+I read "@point{}The cat in the hat
+comes back" twice.
+---------- Buffer: foo ----------
+
+(looking-back "read \"" 3)
+     @result{} t
+(looking-back "read \"" 4)
+     @result{} nil
+@end group
+@end example
+@end defun
+
 @node POSIX Regexps
 @section POSIX Regular Expression Searching
 

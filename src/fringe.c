@@ -32,12 +32,22 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef HAVE_WINDOW_SYSTEM
 
+extern Lisp_Object Qfringe;
 extern Lisp_Object Qtop, Qbottom, Qcenter;
+extern Lisp_Object Qup, Qdown, Qleft, Qright;
 
 /* Non-nil means that newline may flow into the right fringe.  */
 
 Lisp_Object Voverflow_newline_into_fringe;
 
+/* List of known fringe bitmap symbols.
+
+   The fringe bitmap number is stored in the `fringe' property on
+   those symbols.  Names for the built-in bitmaps are installed by
+   loading fringe.el.
+ */
+
+Lisp_Object Vfringe_bitmaps;
 
 enum fringe_bitmap_type
 {
@@ -444,14 +454,89 @@ static int max_used_fringe_bitmap = MAX_STANDARD_FRINGE_BITMAPS;
 /* Return 1 if FRINGE_ID is a valid fringe bitmap id.  */
 
 int
-valid_fringe_bitmap_id_p (fringe_id)
-     int fringe_id;
+valid_fringe_bitmap_p (bitmap)
+     Lisp_Object bitmap;
 {
-  return (fringe_id >= NO_FRINGE_BITMAP
-	  && fringe_id < max_used_fringe_bitmap
-	  && (fringe_id < MAX_STANDARD_FRINGE_BITMAPS
-	      || fringe_bitmaps[fringe_id] != NULL));
+  int bn;
+
+  if (!INTEGERP (bitmap))
+    return 0;
+
+  bn = XINT (bitmap);
+  return (bn >= NO_FRINGE_BITMAP
+	  && bn < max_used_fringe_bitmap
+	  && (bn < MAX_STANDARD_FRINGE_BITMAPS
+	      || fringe_bitmaps[bn] != NULL));
 }
+
+/* Get fringe bitmap name for bitmap number BN.
+
+   Found by traversing Vfringe_bitmaps comparing BN to the
+   fringe property for each symbol.
+
+   Return BN if not found in Vfringe_bitmaps.  */
+
+static Lisp_Object
+get_fringe_bitmap_name (bn)
+     int bn;
+{
+  Lisp_Object bitmaps;
+  Lisp_Object num;
+
+  /* Zero means no bitmap -- return nil.  */
+  if (bn <= 0)
+    return Qnil;
+
+  bitmaps = Vfringe_bitmaps;
+  num = make_number (bn);
+
+  while (CONSP (bitmaps))
+    {
+      Lisp_Object bitmap = XCAR (bitmaps);
+      if (EQ (num, Fget (bitmap, Qfringe)))
+	return bitmap;
+      bitmaps = XCDR (bitmaps);
+    }
+
+  return num;
+}
+
+
+/* Resolve a BITMAP parameter.
+
+   An INTEGER, corresponding to a bitmap number.
+   A STRING which is interned to a symbol.
+   A SYMBOL which has a fringe property which is a bitmap number.
+*/
+
+static int
+resolve_fringe_bitmap (bitmap, namep)
+     Lisp_Object bitmap;
+     Lisp_Object *namep;
+{
+  if (namep)
+    *namep = Qnil;
+
+  if (STRINGP (bitmap))
+    bitmap = intern (SDATA (bitmap));
+
+  if (SYMBOLP (bitmap))
+    {
+      if (namep)
+	*namep = bitmap;
+      bitmap = Fget (bitmap, Qfringe);
+    }
+
+  if (valid_fringe_bitmap_p (bitmap))
+    {
+      if (namep && NILP (*namep))
+	*namep = get_fringe_bitmap_name (XINT (bitmap));
+      return XINT (bitmap);
+    }
+
+  return -1;
+}
+
 
 /* Draw the bitmap WHICH in one of the left or right fringes of
    window W.  ROW is the glyph row for which to display the bitmap; it
@@ -707,9 +792,10 @@ update_window_fringes (w, force_p)
   int rn, nrows = w->current_matrix->nrows;
   int y;
   int redraw_p = 0;
-  Lisp_Object ind;
-  int boundary_pos = 0, arrow_pos = 0;
-  int empty_pos = 0;
+  Lisp_Object boundary_top = Qnil, boundary_bot = Qnil;
+  Lisp_Object arrow_top = Qnil, arrow_bot = Qnil;
+  Lisp_Object empty_pos;
+  Lisp_Object ind = Qnil;
 
   if (w->pseudo_window_p)
     return 0;
@@ -717,23 +803,29 @@ update_window_fringes (w, force_p)
   if (!MINI_WINDOW_P (w)
       && (ind = XBUFFER (w->buffer)->indicate_buffer_boundaries, !NILP (ind)))
     {
-      int do_eob = 1, do_bob = 1;
-      Lisp_Object arrows;
-
-      if (CONSP (ind))
-	arrows = XCDR (ind), ind = XCAR (ind);
+      if (EQ (ind, Qleft) || EQ (ind, Qright))
+	boundary_top = boundary_bot = arrow_top = arrow_bot = ind;
+      else if (CONSP (ind) && CONSP (XCAR (ind)))
+	{
+	  Lisp_Object pos;
+	  if (pos = Fassq (Qt, ind), !NILP (pos))
+	    boundary_top = boundary_bot = arrow_top = arrow_bot = XCDR (pos);
+	  if (pos = Fassq (Qtop, ind), !NILP (pos))
+	    boundary_top = XCDR (pos);
+	  if (pos = Fassq (Qbottom, ind), !NILP (pos))
+	    boundary_bot = XCDR (pos);
+	  if (pos = Fassq (Qup, ind), !NILP (pos))
+	    arrow_top = XCDR (pos);
+	  if (pos = Fassq (Qdown, ind), !NILP (pos))
+	    arrow_bot = XCDR (pos);
+	}
       else
-	arrows = ind;
+	ind = Qnil;
+    }
 
-      if (EQ (ind, Qleft))
-	boundary_pos = -1;
-      else if (EQ (ind, Qright))
-	boundary_pos = 1;
-
-      if (EQ (arrows, Qleft))
-	arrow_pos = -1;
-      else if (EQ (arrows, Qright))
-	arrow_pos = 1;
+  if (!NILP (ind))
+    {
+      int do_eob = 1, do_bob = 1;
 
       for (y = 0, rn = 0;
 	   y < yb && rn < nrows;
@@ -754,17 +846,17 @@ update_window_fringes (w, force_p)
 	  row->indicate_bob_p = row->indicate_top_line_p = 0;
 	  row->indicate_eob_p = row->indicate_bottom_line_p = 0;
 
-	  if (!NILP (ind)
+	  if (!NILP (boundary_top)
 	      && MATRIX_ROW_START_CHARPOS (row) <= BUF_BEGV (XBUFFER (w->buffer)))
 	    row->indicate_bob_p = do_bob, do_bob = 0;
-	  else if (!NILP (arrows)
+	  else if (!NILP (arrow_top)
 		   && (WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0) == rn)
 	    row->indicate_top_line_p = 1;
 
-	  if (!NILP (ind)
+	  if (!NILP (boundary_bot)
 	      && MATRIX_ROW_END_CHARPOS (row) >= BUF_ZV (XBUFFER (w->buffer)))
 	    row->indicate_eob_p = do_eob, do_eob = 0;
-	  else if (!NILP (arrows)
+	  else if (!NILP (arrow_bot)
 		   && y + row->height >= yb)
 	    row->indicate_bottom_line_p = 1;
 
@@ -776,10 +868,9 @@ update_window_fringes (w, force_p)
 	}
     }
 
-  if (EQ (XBUFFER (w->buffer)->indicate_empty_lines, Qright))
-    empty_pos = 1;
-  else if (EQ (XBUFFER (w->buffer)->indicate_empty_lines, Qleft))
-    empty_pos = -1;
+  empty_pos = XBUFFER (w->buffer)->indicate_empty_lines;
+  if (!NILP (empty_pos) && !EQ (empty_pos, Qright))
+    empty_pos = WINDOW_LEFT_FRINGE_WIDTH (w) == 0 ? Qright : Qleft;
 
   for (y = 0, rn = 0;
        y < yb && rn < nrows;
@@ -803,20 +894,20 @@ update_window_fringes (w, force_p)
 	  left = row->left_user_fringe_bitmap;
 	  left_face_id = row->left_user_fringe_face_id;
 	}
-      else if (row->indicate_bob_p && boundary_pos <= 0)
-	left = ((row->indicate_eob_p && boundary_pos < 0)
+      else if (row->indicate_bob_p && EQ (boundary_top, Qleft))
+	left = ((row->indicate_eob_p && EQ (boundary_bot, Qleft))
 		? LEFT_BRACKET_BITMAP : TOP_LEFT_ANGLE_BITMAP);
-      else if (row->indicate_eob_p && boundary_pos < 0)
+      else if (row->indicate_eob_p && EQ (boundary_bot, Qleft))
 	left = BOTTOM_LEFT_ANGLE_BITMAP;
       else if (row->truncated_on_left_p)
 	left = LEFT_TRUNCATION_BITMAP;
       else if (MATRIX_ROW_CONTINUATION_LINE_P (row))
 	left = CONTINUATION_LINE_BITMAP;
-      else if (row->indicate_empty_line_p && empty_pos <= 0)
+      else if (row->indicate_empty_line_p && EQ (empty_pos, Qleft))
 	left = ZV_LINE_BITMAP;
-      else if (row->indicate_top_line_p && arrow_pos <= 0)
+      else if (row->indicate_top_line_p && EQ (arrow_top, Qleft))
 	left = UP_ARROW_BITMAP;
-      else if (row->indicate_bottom_line_p && arrow_pos < 0)
+      else if (row->indicate_bottom_line_p && EQ (arrow_bot, Qleft))
 	left = DOWN_ARROW_BITMAP;
       else
 	left = NO_FRINGE_BITMAP;
@@ -829,22 +920,20 @@ update_window_fringes (w, force_p)
 	  right = row->right_user_fringe_bitmap;
 	  right_face_id = row->right_user_fringe_face_id;
 	}
-      else if (row->indicate_bob_p && boundary_pos > 0)
-	right = ((row->indicate_eob_p && boundary_pos >= 0)
+      else if (row->indicate_bob_p && EQ (boundary_top, Qright))
+	right = ((row->indicate_eob_p && EQ (boundary_bot, Qright))
 		 ? RIGHT_BRACKET_BITMAP : TOP_RIGHT_ANGLE_BITMAP);
-      else if (row->indicate_eob_p && boundary_pos >= 0)
+      else if (row->indicate_eob_p && EQ (boundary_bot, Qright))
 	right = BOTTOM_RIGHT_ANGLE_BITMAP;
       else if (row->truncated_on_right_p)
 	right = RIGHT_TRUNCATION_BITMAP;
       else if (row->continued_p)
 	right = CONTINUED_LINE_BITMAP;
-      else if (row->indicate_top_line_p && arrow_pos > 0)
+      else if (row->indicate_top_line_p && EQ (arrow_top, Qright))
 	right = UP_ARROW_BITMAP;
-      else if (row->indicate_bottom_line_p && arrow_pos >= 0)
+      else if (row->indicate_bottom_line_p && EQ (arrow_bot, Qright))
 	right = DOWN_ARROW_BITMAP;
-      else if (row->indicate_empty_line_p
-	       && (empty_pos > 0
-		   || (WINDOW_LEFT_FRINGE_WIDTH (w) == 0 && empty_pos == 0)))
+      else if (row->indicate_empty_line_p && EQ (empty_pos, Qright))
 	right = ZV_LINE_BITMAP;
       else
 	right = NO_FRINGE_BITMAP;
@@ -979,19 +1068,12 @@ compute_fringe_widths (f, redraw)
       redraw_frame (f);
 }
 
-DEFUN ("destroy-fringe-bitmap", Fdestroy_fringe_bitmap, Sdestroy_fringe_bitmap,
-       1, 1, 0,
-       doc: /* Destroy fringe bitmap WHICH.
-If WHICH overrides a standard fringe bitmap, the original bitmap is restored.  */)
-  (which)
-     Lisp_Object which;
-{
-  int n;
-  struct fringe_bitmap **fbp;
 
-  CHECK_NUMBER (which);
-  if (n = XINT (which), n >= max_used_fringe_bitmap)
-    return Qnil;
+void
+destroy_fringe_bitmap (n)
+     int n;
+{
+  struct fringe_bitmap **fbp;
 
   fringe_faces[n] = FRINGE_FACE_ID;
 
@@ -1008,7 +1090,31 @@ If WHICH overrides a standard fringe bitmap, the original bitmap is restored.  *
   while (max_used_fringe_bitmap > MAX_STANDARD_FRINGE_BITMAPS
 	 && fringe_bitmaps[max_used_fringe_bitmap - 1] == NULL)
     max_used_fringe_bitmap--;
+}
 
+
+DEFUN ("destroy-fringe-bitmap", Fdestroy_fringe_bitmap, Sdestroy_fringe_bitmap,
+       1, 1, 0,
+       doc: /* Destroy fringe bitmap BITMAP.
+If BITMAP overrides a standard fringe bitmap, the original bitmap is restored.  */)
+  (bitmap)
+     Lisp_Object bitmap;
+{
+  int n;
+  Lisp_Object sym;
+
+  n = resolve_fringe_bitmap (bitmap, &sym);
+  if (n < 0)
+    return Qnil;
+
+  destroy_fringe_bitmap (n);
+
+  if (SYMBOLP (sym))
+    {
+      Vfringe_bitmaps = Fdelq (sym, Vfringe_bitmaps);
+      /* It would be better to remove the fringe property.  */
+      Fput (sym, Qfringe, Qnil);
+    }
   return Qnil;
 }
 
@@ -1079,7 +1185,7 @@ init_fringe_bitmap (which, fb, once_p)
 
   if (!once_p)
     {
-      Fdestroy_fringe_bitmap (make_number (which));
+      destroy_fringe_bitmap (which);
 
       /* XXX Is SELECTED_FRAME OK here? */
       if (FRAME_RIF (SELECTED_FRAME ())->define_fringe_bitmap)
@@ -1093,26 +1199,32 @@ init_fringe_bitmap (which, fb, once_p)
 
 
 DEFUN ("define-fringe-bitmap", Fdefine_fringe_bitmap, Sdefine_fringe_bitmap,
-       1, 5, 0,
-       doc: /* Define a fringe bitmap from BITS of height HEIGHT and width WIDTH.
+       2, 5, 0,
+       doc: /* Define fringe bitmap BITMAP from BITS of size HEIGHT x WIDTH.
+BITMAP is a symbol or string naming the new fringe bitmap.
 BITS is either a string or a vector of integers.
 HEIGHT is height of bitmap.  If HEIGHT is nil, use length of BITS.
 WIDTH must be an integer between 1 and 16, or nil which defaults to 8.
-Optional fourth arg ALIGN may be one of `top', `center', or `bottom',
+Optional fifth arg ALIGN may be one of `top', `center', or `bottom',
 indicating the positioning of the bitmap relative to the rows where it
 is used; the default is to center the bitmap.  Fourth arg may also be a
 list (ALIGN PERIODIC) where PERIODIC non-nil specifies that the bitmap
 should be repeated.
-Optional fifth argument WHICH is bitmap number to redefine.
-Return new bitmap number, or nil of no more free bitmap slots.  */)
-  (bits, height, width, align, which)
-     Lisp_Object bits, height, width, align, which;
+If BITMAP already exists, the existing definition is replaced.  */)
+  (bitmap, bits, height, width, align)
+     Lisp_Object bitmap, bits, height, width, align;
 {
   Lisp_Object len;
   int n, h, i, j;
   unsigned short *b;
   struct fringe_bitmap fb, *xfb;
   int fill1 = 0, fill2 = 0;
+  Lisp_Object sym;
+
+  n = resolve_fringe_bitmap (bitmap, &sym);
+
+  if (NILP (sym) || INTEGERP (sym))
+    sym = wrong_type_argument (Qsymbolp, bitmap);
 
   if (!STRINGP (bits) && !VECTORP (bits))
     bits = wrong_type_argument (Qstringp, bits);
@@ -1165,7 +1277,7 @@ Return new bitmap number, or nil of no more free bitmap slots.  */)
   else if (!NILP (align) && !EQ (align, Qcenter))
     error ("Bad align argument");
 
-  if (NILP (which))
+  if (n < 0)
     {
       if (max_used_fringe_bitmap < MAX_FRINGE_BITMAPS)
 	n = max_used_fringe_bitmap++;
@@ -1177,16 +1289,11 @@ Return new bitmap number, or nil of no more free bitmap slots.  */)
 	    if (fringe_bitmaps[n] == NULL)
 	      break;
 	  if (n == MAX_FRINGE_BITMAPS)
-	    return Qnil;
+	    error ("Cannot define more fringe bitmaps");
 	}
-      which = make_number (n);
-    }
-  else
-    {
-      CHECK_NUMBER (which);
-      n = XINT (which);
-      if (n <= NO_FRINGE_BITMAP || n >= MAX_FRINGE_BITMAPS)
-	error ("Invalid fringe bitmap number");
+
+      Vfringe_bitmaps = Fcons (sym, Vfringe_bitmaps);
+      Fput (sym, Qfringe, make_number (n));
     }
 
   fb.dynamic = 1;
@@ -1214,21 +1321,22 @@ Return new bitmap number, or nil of no more free bitmap slots.  */)
 
   init_fringe_bitmap (n, xfb, 0);
 
-  return which;
+  return sym;
 }
 
 DEFUN ("set-fringe-bitmap-face", Fset_fringe_bitmap_face, Sset_fringe_bitmap_face,
        1, 2, 0,
-       doc: /* Set face for fringe bitmap FRINGE-ID to FACE.
+       doc: /* Set face for fringe bitmap BITMAP to FACE.
 If FACE is nil, reset face to default fringe face.  */)
-  (fringe_id, face)
-     Lisp_Object fringe_id, face;
+  (bitmap, face)
+     Lisp_Object bitmap, face;
 {
+  int bn;
   int face_id;
 
-  CHECK_NUMBER (fringe_id);
-  if (!valid_fringe_bitmap_id_p (XINT (fringe_id)))
-    error ("Invalid fringe id");
+  bn = resolve_fringe_bitmap (bitmap, 0);
+  if (bn < 0)
+    error ("Undefined fringe bitmap");
 
   if (!NILP (face))
     {
@@ -1239,7 +1347,7 @@ If FACE is nil, reset face to default fringe face.  */)
   else
     face_id = FRINGE_FACE_ID;
 
-  fringe_faces [XINT (fringe_id)] = face_id;
+  fringe_faces [bn] = face_id;
 
   return Qnil;
 }
@@ -1250,7 +1358,8 @@ DEFUN ("fringe-bitmaps-at-pos", Ffringe_bitmaps_at_pos, Sfringe_bitmaps_at_pos,
 If WINDOW is nil, use selected window.  If POS is nil, use value of point
 in that window.  Return value is a cons (LEFT . RIGHT) where LEFT and RIGHT
 are the fringe bitmap numbers for the bitmaps in the left and right fringe,
-resp.  Return nil if POS is not visible in WINDOW.  */)
+resp.  If left or right fringe is empty, the corresponding element is nil.
+Return nil if POS is not visible in WINDOW.  */)
   (pos, window)
      Lisp_Object pos, window;
 {
@@ -1276,8 +1385,8 @@ resp.  Return nil if POS is not visible in WINDOW.  */)
   row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
   row = row_containing_pos (w, textpos, row, NULL, 0);
   if (row)
-    return Fcons (make_number (row->left_fringe_bitmap),
-		  make_number (row->right_fringe_bitmap));
+    return Fcons (get_fringe_bitmap_name (row->left_fringe_bitmap),
+		  get_fringe_bitmap_name (row->right_fringe_bitmap));
   else
     return Qnil;
 }
@@ -1290,7 +1399,6 @@ resp.  Return nil if POS is not visible in WINDOW.  */)
 void
 syms_of_fringe ()
 {
-
   defsubr (&Sdestroy_fringe_bitmap);
   defsubr (&Sdefine_fringe_bitmap);
   defsubr (&Sfringe_bitmaps_at_pos);
@@ -1305,6 +1413,10 @@ is at the final newline, the cursor is shown in the right fringe.
 If nil, also continue lines which are exactly as wide as the window.  */);
   Voverflow_newline_into_fringe = Qt;
 
+  DEFVAR_LISP ("fringe-bitmaps", &Vfringe_bitmaps,
+    doc: /* List of fringe bitmap symbols.
+You must (require 'fringe) to use fringe bitmap symbols in your programs." */);
+  Vfringe_bitmaps = Qnil;
 }
 
 /* Initialize this module when Emacs starts.  */

@@ -1,3 +1,47 @@
+2004-09-29  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (valid_fringe_bitmap_p): Fix prototype.
+
+	* fringe.c (Vfringe_bitmaps): New variable.
+	(syms_of_fringe): DEFVAR_LISP it.
+	(valid_fringe_bitmap_p): Rename from valid_fringe_bitmap_id_p.
+	Change arg to Lisp_Object and fail if not an integer.
+	(get_fringe_bitmap_name, resolve_fringe_bitmap)
+	(destroy_fringe_bitmap): New functions.
+	(Fdestroy_fringe_bitmap): Change arg to bitmap symbol.  Use
+	destroy_fringe_bitmap.  Remove symbol from Vfringe_bitmaps and
+	clear its fringe property.
+	(init_fringe_bitmap): Use destroy_fringe_bitmap instead of
+	Fdestroy_fringe_bitmap.
+	(Fdefine_fringe_bitmap): Add BITMAP arg specifying new or existing
+	bitmap symbol; remove WHICH arg.  Add symbol to Vfringe_bitmaps
+	and set fringe property.  Signal error if no free slots.
+	(Fset_fringe_bitmap_face): Change arg to bitmap symbol.
+	(Ffringe_bitmaps_at_pos): Return bitmap symbols instead of numbers.
+
+	* xdisp.c (handle_single_display_prop): Fringe bitmaps are now
+	symbols with a fringe property.
+
+2004-09-27  Kim F. Storm  <storm@cua.dk>
+
+	* buffer.c (syms_of_buffer) <indicate-buffer-boundaries>:
+	Doc fix.  Format may now be a symbol or alist, not a cons.
+
+	* fringe.c (update_window_fringes): Handle new formats of
+	indicate-buffer-boundaries (symbol or alist).  No longer
+	allow a simple cons.
+	(Ffringe_bitmaps_at_pos): Use nil value for no bitmap.
+
+2004-09-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* config.in: Rebuild
+
+2004-09-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* config.in: Rebuild.
+
+	* Makefile.in: Run setarch i386 ./temacs if exec-shield  is present.
+
 2004-09-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xterm.c (x_term_init): Work around a bug in some X servers.

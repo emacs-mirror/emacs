@@ -307,6 +307,7 @@ extern Lisp_Object Qheight;
 extern Lisp_Object QCwidth, QCheight, QCascent;
 extern Lisp_Object Qscroll_bar;
 extern Lisp_Object Qcursor;
+extern Lisp_Object Qfringe;
 
 /* Non-nil means highlight trailing whitespace.  */
 
@@ -3574,8 +3575,9 @@ handle_single_display_prop (it, prop, object, position,
 
 #ifdef HAVE_WINDOW_SYSTEM
 	  value = XCAR (XCDR (prop));
-	  if (!NUMBERP (value)
-	      || !valid_fringe_bitmap_id_p (XINT (value)))
+	  if (!SYMBOLP (value)
+	      || (value = Fget (value, Qfringe),
+		  !valid_fringe_bitmap_p (value)))
 	    return 0;
 
 	  if (CONSP (XCDR (XCDR (prop))))
