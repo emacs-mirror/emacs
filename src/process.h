@@ -87,6 +87,9 @@ struct Lisp_Process
     Lisp_Object encoding_buf;
     /* Size of carryover in encoding.  */
     Lisp_Object encoding_carryover;
+    /* Flag to set coding-system of the process buffer from the
+       coding_system used to decode process output.  */
+    int inherit_coding_system_flag;
 };
 
 #define ChannelMask(n) (1<<(n))
