@@ -1,3 +1,12 @@
+2004-03-26  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-arg-list): New function, which handles both
+	compiled and uncompiled code.
+	(vc-default-workfile-unchanged-p): Use it.
+
+	* vc.el (vc-print-log): Undo prev change, use new function
+	vc-arg-list from vc-hooks.el.
+	
 2004-03-26  Masatake YAMATO  <jet@gyve.org>
 
 	* simple.el (completion-setup-function): Emphasize the
