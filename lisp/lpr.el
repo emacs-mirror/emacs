@@ -120,10 +120,12 @@ The variable `lpr-page-header-program' specifies the program to use."
   ;; and it seems to annoying to do for that MIPS system.
   (let ((name (concat (buffer-name) " Emacs buffer"))
 	(title (concat (buffer-name) " Emacs buffer"))
-	;; On MS-DOS systems, make pipes use binary mode if the
-	;; original file is binary.
-	(binary-process-input buffer-file-type)
-	(binary-process-output buffer-file-type)
+	;; Make pipes use the same coding system as
+	;; writing the buffer to a file would.
+	(coding-system-for-write
+	 (or coding-system-for-write buffer-file-coding-system))
+	(coding-system-for-read
+	 (or coding-system-for-read buffer-file-coding-system))
 	(width tab-width)
 	switch-string)
     (save-excursion
