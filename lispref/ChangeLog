@@ -1,5 +1,8 @@
 2004-11-20  Richard M. Stallman  <rms@gnu.org>
 
+	* positions.texi (Skipping Characters): skip-chars-forward
+	now handles char classes.
+
 	* intro.texi (Printing Notation): Avoid confusion of `print'
 	when explaining @print.
 
