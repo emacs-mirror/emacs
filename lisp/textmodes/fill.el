@@ -1127,6 +1127,13 @@ Also, if CITATION-REGEXP is non-nil,  don't fill header lines."
 			  ;; If this line has more or less indent
 			  ;; than the fill prefix wants, end the paragraph.
 			  (and (looking-at fill-prefix-regexp)
+			       ;; If fill prefix is shorter than a new
+			       ;; fill prefix computed here, end paragraph.
+ 			       (let ((this-line-fill-prefix
+				      (fill-individual-paragraphs-prefix 
+				       citation-regexp)))
+ 				 (>= (length fill-prefix) 
+ 				     (length this-line-fill-prefix)))
 			       (save-excursion
 				 (not (progn (forward-char (length fill-prefix))
 					     (or (looking-at "[ \t]")
