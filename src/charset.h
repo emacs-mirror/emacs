@@ -421,7 +421,9 @@ extern Lisp_Object charset_work;
 #define ENCODE_CHAR(charset, c)						 \
   ((ASCII_CHAR_P (c) && (charset)->ascii_compatible_p)			 \
    ? (c)								 \
-   : (charset)->unified_p						 \
+   : ((charset)->unified_p						 \
+      || (charset)->method == CHARSET_METHOD_SUBSET			 \
+      || (charset)->method == CHARSET_METHOD_SUPERSET)			 \
    ? encode_char ((charset), (c))					 \
    : ((c) < (charset)->min_char || (c) > (charset)->max_char)		 \
    ? (charset)->invalid_code						 \
