@@ -68,7 +68,7 @@
 
 ;;; Code:
 
-(provide 'help-screen)
+(provide 'help-macro)
 (require 'backquote)
 
 (defmacro make-help-screen (fname help-line help-text helped-map)
