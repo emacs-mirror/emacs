@@ -2852,7 +2852,7 @@ x_figure_window_size (f, parms)
        ? 0
        : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->output_data.x->font)));
   f->output_data.x->flags_areas_extra
-    = 2 * FRAME_FLAGS_AREA_WIDTH (f);
+    = FRAME_FLAGS_AREA_WIDTH (f);
   f->output_data.x->pixel_width = CHAR_TO_PIXEL_WIDTH (f, f->width);
   f->output_data.x->pixel_height = CHAR_TO_PIXEL_HEIGHT (f, f->height);
 
