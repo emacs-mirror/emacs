@@ -708,7 +708,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 			   ((eq system-type 'ms-dos)
 			    (concat "~" init-file-user "/_emacs"))
 			   ((eq system-type 'windows-nt)
-			    (if (directory-files "~" nil "^\.emacs\\(\.elc?\\)?$")
+			    (if (directory-files "~" nil "^\\.emacs\\(\\.elc?\\)?$")
 				"~/.emacs"
 			      "~/_emacs"))
 			   ((eq system-type 'vax-vms) 
