@@ -1,6 +1,6 @@
 /* impl.c.poolsnc: STACK NO CHECKING POOL CLASS
  *
- * $HopeName: MMsrc!poolsnc.c(trunk.1) $
+ * $HopeName: MMsrc!poolsnc.c(trunk.2) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * READERSHIP
@@ -26,7 +26,7 @@
 #include "mpm.h"
 
 
-SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.1) $");
+SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.2) $");
 
 
 #define SNCSig  ((Sig)0x519b754c)       /* SIGPooLSNC */
@@ -89,6 +89,11 @@ static void sncRecordFreeSeg(SNC snc, Seg seg)
   AVERT(SNC, snc);
   AVERT(Seg, seg);
   AVER(sncSegNext(seg) == NULL);
+
+  /* Make sure it's not grey, and set to RankSetEMPTY */
+  /* This means it won't be scanned */
+  SegSetGrey(seg, TraceSetEMPTY);
+  SegSetRankAndSummary(seg, RankSetEMPTY, RefSetEMPTY);
 
   sncSegSetNext(seg, snc->freeSegs);
   snc->freeSegs = seg;
@@ -156,30 +161,6 @@ static Bool sncFindFreeSeg(Seg *segReturn, SNC snc, Size size)
     free = sncSegNext(free);
   }
 
-  return FALSE;
-}
-
-
-/* sncSegIsFree
- *
- * determines whether a segment is free by iterating down the free chain
- */
-
-static Bool sncSegIsFree(SNC snc, Seg seg)
-{
-  Seg free;
-
-  AVERT(SNC, snc);
-  AVERT(Seg, seg);
-
-  free = snc->freeSegs;
-  while (free != NULL) {
-    AVERT(Seg, free);
-    if (free == seg) {
-      return TRUE;
-    }
-    free = sncSegNext(free);
-  }
   return FALSE;
 }
 
@@ -282,6 +263,8 @@ static Res SNCBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
     return res;
   }
   sncSegSetNext(seg, NULL);
+
+found:
   /* design.mps.seg.field.rankSet.start */
   if(BufferRankSet(buffer) == RankSetEMPTY) {
     SegSetRankAndSummary(seg, BufferRankSet(buffer), RefSetEMPTY);
@@ -289,7 +272,6 @@ static Res SNCBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
     SegSetRankAndSummary(seg, BufferRankSet(buffer), RefSetUNIV);
   }
 
-found:
   AVERT(Seg, seg);
   /* put the segment on the buffer chain */
   sncRecordAllocatedSeg(buffer, seg);
@@ -329,6 +311,20 @@ static void SNCBufferEmpty(Pool pool, Buffer buffer)
   }
 }
 
+static void SNCBufferFinish(Pool pool, Buffer buffer)
+{
+  SNC snc;
+
+  AVERT(Pool, pool);
+  AVERT(Buffer, buffer);
+  snc = PoolPoolSNC(pool);
+  AVERT(SNC, snc);
+  AVER(BufferIsReset(buffer));
+
+  /* Put any segments which haven't bee popped onto the free list */
+  sncPopPartialSegChain(snc, buffer, NULL);
+}
+
 
 static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 {
@@ -344,54 +340,30 @@ static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   snc = PoolPoolSNC(pool);
   AVERT(SNC, snc);
 
-  /* If the segment has become free then there's no need to scan it */
-  if (!sncSegIsFree(snc, seg)) {
-    format = pool->format;
+  format = pool->format;
+  base = SegBase(seg);
     
-    base = SegBase(seg);
-    
-    /* If the segment is buffered, only walk as far as the end */
-    /* of the initialized objects.  */
-    if(SegBuffer(seg) != NULL) {
-      limit = BufferScanLimit(SegBuffer(seg));
-    } else {
-      limit = SegLimit(seg);
+  /* If the segment is buffered, only walk as far as the end */
+  /* of the initialized objects.  */
+  if(SegBuffer(seg) != NULL) {
+    limit = BufferScanLimit(SegBuffer(seg));
+  } else {
+    limit = SegLimit(seg);
+  }
+  
+  if(base < limit) {
+    res = (*format->scan)(ss, base, limit);
+    if(res != ResOK) {
+      *totalReturn = FALSE;
+      return res;
     }
-    
-    if(base < limit) {
-      res = (*format->scan)(ss, base, limit);
-      if(res != ResOK) {
-        *totalReturn = FALSE;
-        return res;
-      }
-    } else {
-      AVER(base == limit);
-    }
-
-    ss->scannedSize += AddrOffset(base, limit);
+  } else {
+    AVER(base == limit);
   }
 
+  ss->scannedSize += AddrOffset(base, limit);
+
   *totalReturn = TRUE;
-  return ResOK;
-}
-
-
-
-static Res SNCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
-{
-  AVERT(Pool, pool);
-  AVERT(ScanState, ss);
-  AVERT(Seg, seg);
-  AVER(refIO != NULL);
-
-  /* The fix method is a NOOP. */
-  /* The reference might be a valid reference or even a dangling */
-  /* reference to either an allocated or free segment of the pool */
-  /* A NOOP fix will at least avoid breaking the GC when this */
-  /* happens */
-
-  ss->wasMarked = TRUE;
-
   return ResOK;
 }
 
@@ -533,9 +505,8 @@ DEFINE_POOL_CLASS(SNCPoolClass, this)
   this->bufferInit = SNCBufferInit;
   this->bufferFill = SNCBufferFill;
   this->bufferEmpty = SNCBufferEmpty;
+  this->bufferFinish = SNCBufferFinish;
   this->scan = SNCScan;
-  this->fix = SNCFix;
-  this->fixEmergency = SNCFix;
   this->framePush = SNCFramePush;
   this->framePop = SNCFramePop;
   this->framePopPending = SNCFramePopPending;
