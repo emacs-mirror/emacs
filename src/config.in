@@ -199,9 +199,11 @@ and this notice must be preserved on all copies.  */
 #define SIGTYPE RETSIGTYPE
 #endif
 
-/* Non-ANSI C compilers don't have volatile.  */
+/* Non-ANSI C compilers usually don't have volatile.  */
+#ifndef HAVE_VOLATILE
 #ifndef __STDC__
 #define volatile
+#endif
 #endif
 
 /* joe@zircon.uucp says that in order to use XFree386, you have to
@@ -212,10 +214,13 @@ and this notice must be preserved on all copies.  */
 #define HAVE_RANDOM
 #endif
 
-#ifndef THIS_IS_YMAKEFILE
 /* Some of the files of Emacs which are intended for use with other
    programs assume that if you have a config.h file, you must declare
-   the type of getenv.  */
+   the type of getenv.
+
+   This declaration shouldn't appear when alloca.s or ymakfile
+   includes config.h.  */
+#ifndef NOT_C_CODE
 extern char *getenv ();
 #endif
 
