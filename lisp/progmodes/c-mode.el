@@ -1137,7 +1137,9 @@ ENDPOS is encountered."
 	    (if (= (following-char) ?})
 		(setq this-indent (- this-indent c-indent-level)))
 	    (if (= (following-char) ?{)
-		(setq this-indent (+ this-indent c-brace-offset)))
+		(if (zerop (current-column))
+		    (setq this-indent 0)
+		  (setq this-indent (+ this-indent c-brace-offset))))
 	    ;; Don't leave indentation in empty lines.
 	    (if (eolp) (setq this-indent 0))
 	    ;; Put chosen indentation into effect.
