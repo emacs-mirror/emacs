@@ -1,5 +1,7 @@
 2002-06-12  Miles Bader  <miles@gnu.org>
 
+	* emacs-lisp/byte-lexbind.el, emacs-lisp/macroexp.el: New files.
+
 	* subr.el (functionp): Function removed (now a subr).
 	* help-fns.el (describe-function-1): Handle interpreted closures.
 

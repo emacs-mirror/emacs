@@ -1,3 +1,58 @@
+2002-06-12  Miles Bader  <miles@gnu.org>
+
+	Lexical binding changes to the byte-code interpreter:
+
+	* bytecode.c (Bstack_ref, Bstack_set, Bstack_set2, Bvec_ref, Bvec_set)
+	(BdiscardN): New constants. 
+	(exec_byte_code): Renamed from `Fbyte_code'.
+	Implement above new bytecodes.
+	Add ARGS-TEMPLATE, NARGS and ARGS parameters, and optionally use
+	them push initial args on the stack.
+	(Fbyte_code): New function, just call `exec_byte_code'.
+	Add additional optional arguments for `exec_byte_code'.
+	(Qand_optional, Qand_rest): New extern declarations.
+	* eval.c (Fcurry, Ffunctionp): New functions.
+	(syms_of_eval): Initialize them.
+	(funcall_lambda): Call `exec_byte_code' instead of Fbyte_code.
+	If a compiled-function object has a `push-args' slot, call the
+	byte-code interpreter without binding any arguments.
+	(Ffuncall): Add support for curried functions.
+	* lisp.h (Fbyte_code): Declare max-args as MANY.
+	(exec_byte_code): New declaration.
+
+	Lexical binding changes to the lisp interpreter:
+
+	* lisp.h (struct Lisp_Symbol): Add `declared_special' field.
+	(apply_lambda): Add new 3rd arg to decl.
+	* alloc.c (Fmake_symbol): Initialize `declared_special' field.
+	* eval.c (Vinterpreter_lexical_environment): New variable.
+	(syms_of_eval): Initialize it.
+	(Fsetq): Modify SYM's lexical binding if appropriate.
+	(Ffunction): Return a closure if within a lexical environment.
+	(Flet, FletX): Lexically bind non-defvar'd variables if inside a
+	lexical environment.
+	(Feval): Return lexical binding of variables, if they have one.
+	Pass current lexical environment to embedded lambdas.  Handle closures.
+	(Ffuncall): Pass nil lexical environment to lambdas.  Handle closures.
+	(funcall_lambda): Add new LEXENV argument, and lexically bind
+	arguments if it's non-nil.  Bind `interpreter-lexenv' if it changed.
+	(apply_lambda): Add new LEXENV argument and pass it to funcall_lambda.
+	(Fdefvaralias, Fdefvar, Fdefconst): Mark the variable as special.
+	(Qinternal_interpreter_environment, Qclosure): New constants.
+	(syms_of_eval): Initialize them.
+	(Fdefun, Fdefmacro): Use a closure if lexical binding is active.
+	* lread.c (defvar_bool, defvar_lisp_nopro, defvar_per_buffer) 
+	(defvar_kboard, defvar_int): Mark the variable as special.
+	(Vlexical_binding, Qlexical_binding): New variables.
+	(syms_of_lread): Initialize them.
+	(Fload): Bind `lexically-bound' to nil unless specified otherwise
+	in the file header.
+	(lisp_file_lexically_bound_p): New function.
+	(Qinternal_interpreter_environment): New variable.
+	* doc.c (Qclosure): New extern declaration.
+	(Fdocumentation, store_function_docstring): Handle interpreted
+	closures.
+
 2002-06-12  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (Fformat_mode_line): New function.
