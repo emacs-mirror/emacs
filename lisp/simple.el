@@ -2494,13 +2494,14 @@ for `auto-fill-function' when turning Auto Fill mode on."
 Just \\[universal-argument] as argument means to use the current column."
   (interactive "P")
   (cond ((integerp arg)
+	 (message "Fill column set to %d (was %d)" arg fill-column)
 	 (setq fill-column arg))
 	((consp arg)
+	 (message "Fill column set to %d (was %d)" arg fill-column)
 	 (setq fill-column (current-column)))
 	;; Disallow missing argument; it's probably a typo for C-x C-f.
 	(t
-	 (error "set-fill-column requires an explicit argument")))
-  (message "fill-column set to %d" fill-column))
+	 (error "set-fill-column requires an explicit argument"))))
 
 (defvar comment-multi-line nil
   "*Non-nil means \\[indent-new-comment-line] should continue same comment
