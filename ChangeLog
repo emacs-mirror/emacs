@@ -1,3 +1,8 @@
+2001-11-12  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* make-dist: Add lispref/index.*perm files to the distribution.
+	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
+
 2001-11-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* Makefile.in (uninstall): Remove gfdl.1 when uninstalling.
