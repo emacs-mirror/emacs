@@ -2,7 +2,9 @@
 
 	* vc-hooks.el (vc-version-backup-file-name): Use file.~<rev>~ for 
 	manual backups and file.~<rev>.~ for automatic ones.
-
+	(vc-make-version-backup): Don't do it on MS-DOS without long file
+	names.
+	
 	* vc.el (vc-version-other-window): If an automatic backup of the
 	desired version exists, rename it instead of copying it.
 
