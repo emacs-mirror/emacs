@@ -69,6 +69,13 @@ if [ ! "${version}" ]; then
   exit 1
 fi
 
+if grep -s "GNU Emacs version ${version}" ./man/emacs.texi > /dev/null; then
+  true
+else
+  echo "You must update the version number in \`./man/emacs.texi'"
+  exit 1
+fi
+
 ### Make sure the subdirectory is available.
 tempparent="make-dist.tmp.$$"
 if [ -d ${tempparent} ]; then
@@ -104,6 +111,15 @@ ln ChangeLog Makefile.in build-install.in configure configure.in ${tempdir}
 ln make-dist ${tempdir}
 ### Copy config.sub; it's a cross-filesystem symlink.
 cp config.sub ${tempdir}
+
+echo "Updating version number in README."
+(cd ${tempdir}
+ awk \
+   '$1 " " $2 " " $3 " " $4 " " $5 == "This directory tree holds version" { $6 = version; print $0 }
+    $1 " " $2 " " $3 " " $4 " " $5 != "This directory tree holds version"' \
+   version=${version} README > tmp.README
+ mv tmp.README README)
+
 
 echo "Creating subdirectories."
 # I think we're not going to distribute anything in external-lisp, so
