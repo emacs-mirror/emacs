@@ -40,74 +40,46 @@ be called `indentation':
 
 @enumerate
 @item
-The most simple operation is to just insert a tab character.  This
-operation does not have a convenient key binding, because it is
-subsumed by the more general operation described next.  But you can use
-@kbd{C-q @key{TAB}} to insert a literal tab character.
+Insert a tab character.  You can type @kbd{C-q @key{TAB}} to do this.
 
 A tab character is displayed as a stretch of whitespace which extends
 to the next display tab stop position, and the default width of a tab
 stop is eight.  @xref{Display Custom}, for more details.
 
 @item
-Emacs also supports tab stops.  You can set them at arbitrary
-positions, and then use @kbd{M-i} to advance to the next tab stop.  The
-default tab stop list contains positions (columns) that are a multiple
-of eight, and so the effect of @kbd{M-i} is the same as that of
-@kbd{C-q @key{TAB}} in the default case.
-
-You can set the tab stops with @kbd{M-x edit-tab-stops}.
+Advance to the next tab stop.  You can set tab stops at your choice of
+column positions, then type @kbd{M-i} to advance to the next tab stop.
+The default is to have tab stops every eight columns, which means by
+default @kbd{M-i} inserts a tab character.  To set the tab stops, use
+@kbd{M-x edit-tab-stops}.
 
 @item
-You can align successive lines with each other.  This is called
-@dfn{relative indentation} in Emacs and is performed by the command
-@kbd{M-x indent-relative}.  The effect is best shown by an example:
-@example
-This shows the effect of relative indentation.
-^    ^     ^   ^      ^  ^        ^
-@end example
-The positions for the @code{^} characters on the second line were
-obtained using @kbd{M-x indent-relative}.
-
-In Fundamental mode and in Text mode, @key{TAB} runs the command
-@code{indent-relative}.
+Align a line with the previous line.  More precisely, the command
+@kbd{M-x indent-relative} indents the current line under the beginning
+of some word in the previous line.  In Fundamental mode and in Text
+mode, @key{TAB} runs the command @code{indent-relative}.
 
 @item
-The most sophisticated method is called @dfn{syntax-driven indentation}
-and is the default behavior of the @key{TAB} key in Emacs.
-
-  Most programming languages have some indentation convention.  For Lisp
-code, lines are indented according to their nesting in parentheses.  The
-same general idea is used for C code, though many details are different.
-
-  For some languages, different kinds of indentation styles are
-commonly used.  Emacs accomodates this by allowing users to customize
-the indentation.  For example, see @ref{Customizing Indentation,,,ccmode},
-for a description of these facilities for the C language.
+The most sophisticated method is @dfn{syntax-driven indentation}.
+Most programming languages have an indentation convention.  For Lisp
+code, lines are indented according to their nesting in parentheses.  C
+code uses the same general idea, but many details are different.
 
 @kindex TAB
-  Whatever the language, to indent a line, use the @key{TAB} command.  Each
-major mode defines this command to perform the sort of indentation
-appropriate for the particular language.  In Lisp mode, @key{TAB} aligns
-the line according to its depth in parentheses.  No matter where in the
-line you are when you type @key{TAB}, it aligns the line as a whole.  In C
-mode, @key{TAB} implements a subtle and sophisticated indentation style that
-knows about many aspects of C syntax.
-
+Type @key{TAB} to do syntax-driven indentation, in a mode that
+supports it.  It realigns the current line according with the syntax
+of the preceding lines.  No matter where in the line you are when you
+type @key{TAB}, it aligns the line as a whole.
 @end enumerate
 
   Normally, all of the above methods insert an optimal mix of tabs and
-spaces for the needed indentation.  @xref{Just Spaces}, for how to
-prevent use of tabs.  However, the first method (@kbd{C-q @key{TAB}})
-always inserts a tab, even if you prevented their use.
+spaces to align to the desired column.  @xref{Just Spaces}, for how to
+disable use of tabs.  However, @kbd{C-q @key{TAB}} always inserts a
+tab, even they are disabled for the indentation commands.
 
 @c   In Text mode, @key{TAB} runs the command @code{tab-to-tab-stop}, which
 @c indents to the next tab stop column.  You can set the tab stops with
 @c @kbd{M-x edit-tab-stops}.
-
-@c   Normally, @key{TAB} inserts an optimal mix of tabs and spaces for
-@c the intended indentation.  @xref{Just Spaces}, for how to prevent use
-@c of tabs.
 
 @menu
 * Indentation Commands::  Various commands and techniques for indentation.
