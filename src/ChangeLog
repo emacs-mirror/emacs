@@ -1,7 +1,27 @@
+2003-06-15  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* termhooks.h (EVENT_INIT): New macro.
+
+	* keyboard.c (mark_kboards): Move from alloc.c.  Mark kbd_buffer.
+
+	* alloc.c (mark_kboards): Move to keyboard.c.
+
+	* keyboard.c (record_asynch_buffer_change, read_avail_input):
+	* xterm.c (x_dispatch_event):
+	* xmenu.c (find_and_call_menu_selection):
+	* xdisp.c (handle_tool_bar_click):
+	* w32menu.c (menubar_selection_callback):
+	* sysdep.c (kbd_input_ast, read_input_waiting):
+	* msdos.c (dos_rawgetc):
+	* macterm.c (mac_check_for_quit_char):
+	* macmenu.c (menubar_selection_callback):
+	* gtkutil.c (xg_tool_bar_callback): Don't pass uninitialized
+	data to kbd_buffer_store_event.
+
 2003-06-15  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (x_fix_overlapping_area): Always use area relative X
-	to fix redisplay problem with tall characters (such as ,AC(B).  
+	to fix redisplay problem with tall characters (such as ,AC(B).
 
 2003-06-13  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
@@ -15,8 +35,8 @@
 
 	* alloca.c (alloca): Declare arg as size_t.
 
-	* sysdep.c: Remove redundant include of unistd.h, stdlib.h.  Use
-	HAVE_DECL_SYS_SIGLIST, not SYS_SIGLIST_DECLARED.
+	* sysdep.c: Remove redundant include of unistd.h, stdlib.h.
+	Use HAVE_DECL_SYS_SIGLIST, not SYS_SIGLIST_DECLARED.
 
 2003-06-11  Dave Love  <fx@gnu.org>
 
@@ -55,8 +75,8 @@
 	Changes to merge with gnulib version and be consistent with the
 	autoconf test:
 
-	* getloadavg.c: Set NLIST_STRUCT from HAVE_NLIST_H.  Use
-	HAVE_STRUCT_NLIST_N_UN_N_NAME, not NLIST_NAME_UNION.
+	* getloadavg.c: Set NLIST_STRUCT from HAVE_NLIST_H.
+	Use HAVE_STRUCT_NLIST_N_UN_N_NAME, not NLIST_NAME_UNION.
 	[HAVE_LOCALE_H]: Include locale.h.
 	(getloadavg) [HAVE_SETLOCALE]: Run sscanf in C locale.
 
