@@ -524,7 +524,7 @@ See the documentation of function `bibtex-generate-autokey' for details."
   :type 'string)
 
 (defcustom bibtex-autokey-year-length 2
-  "*Number of rightmost digits from the year field yo incorporate into key.
+  "*Number of rightmost digits from the year field to incorporate into key.
 See the documentation of function `bibtex-generate-autokey' for details."
   :group 'bibtex-autokey
   :type 'integer)
