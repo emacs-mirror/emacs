@@ -1,3 +1,8 @@
+2003-12-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfaces.c (lface_fully_specified_p): Take into account that
+	MAC OS always have unspecified stipple.
+
 2003-12-24  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* tparam.c (tparam1): Add handling for `%pN', which

@@ -3186,7 +3186,13 @@ lface_fully_specified_p (attrs)
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
     if (i != LFACE_FONT_INDEX && i != LFACE_INHERIT_INDEX
 	&& i != LFACE_AVGWIDTH_INDEX)
-      if (UNSPECIFIEDP (attrs[i]))
+      if (UNSPECIFIEDP (attrs[i])
+#ifdef MAC_OS
+        /* MAC_TODO: No stipple support on Mac OS yet, this index is
+           always unspecified.  */
+          && i != LFACE_STIPPLE_INDEX
+#endif
+          )
         break;
 
   return i == LFACE_VECTOR_SIZE;
