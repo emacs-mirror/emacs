@@ -665,6 +665,13 @@ useful, such as version control."
   "*Regexp matching files we don't want displayed in a speedbar buffer.
 It is generated from the variable `completion-ignored-extensions'")
 
+;; This can't be further down, since it is needed just after.
+(defvar speedbar-file-regexp
+  (speedbar-extension-list-to-regex speedbar-supported-extension-expressions)
+  "Regular expression matching files we know how to expand.
+Created from `speedbar-supported-extension-expression' with the
+function `speedbar-extension-list-to-regex'")
+
 ;; this is dangerous to customize, because the defaults will probably
 ;; change in the future.
 (defcustom speedbar-supported-extension-expressions
@@ -699,12 +706,6 @@ proportionally to the number of subdirs."
   :group 'speedbar
   :type 'boolean
   :version 21.4)
-
-(defvar speedbar-file-regexp
-  (speedbar-extension-list-to-regex speedbar-supported-extension-expressions)
-  "Regular expression matching files we know how to expand.
-Created from `speedbar-supported-extension-expression' with the
-function `speedbar-extension-list-to-regex'")
 
 (defun speedbar-add-supported-extension (extension)
   "Add EXTENSION as a new supported extension for speedbar tagging.
@@ -1295,8 +1296,9 @@ in the selected file.
     (toggle-read-only 1)
     (speedbar-set-mode-line-format)
     (if speedbar-xemacsp
-	(set (make-local-variable 'mouse-motion-handler)
-	     'speedbar-track-mouse-xemacs)
+	(with-no-warnings
+	 (set (make-local-variable 'mouse-motion-handler)
+	      'speedbar-track-mouse-xemacs))
       (if speedbar-track-mouse-flag
 	  (set (make-local-variable 'track-mouse) t))	;this could be messy.
       (setq auto-show-mode nil))	;no auto-show for Emacs
@@ -1345,7 +1347,8 @@ This gives visual indications of what is up.  It EXPECTS the speedbar
 frame and window to be the currently active frame and window."
   (if (and (frame-live-p speedbar-frame)
 	   (or (not speedbar-xemacsp)
-	       (specifier-instance has-modeline-p)))
+	       (with-no-warnings
+		(specifier-instance has-modeline-p))))
       (save-excursion
 	(set-buffer speedbar-buffer)
 	(let* ((w (or (speedbar-frame-width) 20))
@@ -1546,9 +1549,7 @@ Must be bound to event E."
     ;; This gets the cursor where the user can see it.
     (if (not (bolp)) (forward-char -1))
     (sit-for 0)
-    (if (< emacs-major-version 20)
-	(mouse-major-mode-menu e)
-      (mouse-major-mode-menu e nil))))
+    (mouse-major-mode-menu e nil)))
 
 (defun speedbar-hack-buffer-menu (e)
   "Control mouse 1 is buffer menu.
