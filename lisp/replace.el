@@ -618,6 +618,7 @@ end of the buffer."
     (define-key map "g" 'revert-buffer)
     (define-key map "q" 'quit-window)
     (define-key map "z" 'kill-this-buffer)
+    (define-key map "\C-c\C-f" 'next-error-follow-mode)
     map)
   "Keymap for `occur-mode'.")
 
