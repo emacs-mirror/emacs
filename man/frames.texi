@@ -715,19 +715,22 @@ setting of Scroll Bar mode similarly.  @xref{Resources X}.
 @node Wheeled Mice
 @section Scrolling With `Wheeled' Mice
 
-@cindex mouse wheel
-@findex mwheel-install
+@cindex Mouse Wheel mode
+@findex mouse-wheel-mode
+@vindex mouse-wheel-mode
 Some mice have a `wheel' instead of a third button.  You can usually
-click the wheel to act as @kbd{mouse-3}.  You can also use the wheel to
-scroll windows instead of using the scroll bar or keyboard commands.
-Use @kbd{M-x mwheel-install} to set up the wheel for scrolling or put
-@samp{(require 'mwheel)} in your @file{.emacs}.  (Support for the wheel
-depends on the system generating appropriate events for Emacs.)
+click the wheel to act as @kbd{mouse-2}.  You can also use the wheel
+to scroll windows instead of using the scroll bar or keyboard
+commands.  Use @kbd{M-x mouse-wheel-mode} to enable or disable
+scrolling with the wheel, or customize the option
+@code{mouse-wheel-mode}.  (Support for the wheel depends on the system
+generating appropriate events for Emacs.)
 
-@vindex mwheel-follow-mouse
-@vindex mwheel-scroll-amount
-The variables @code{mwheel-follow-mouse} and @code{mwheel-scroll-amount}
-determine where and by how much buffers are scrolled.
+@vindex mouse-wheel-follow-mouse
+@vindex mouse-wheel-scroll-amount
+The variables @code{mouse-wheel-follow-mouse} and
+@code{mouse-wheel-scroll-amount} determine where and by how much
+buffers are scrolled.
 
 @node Menu Bars
 @section Menu Bars
