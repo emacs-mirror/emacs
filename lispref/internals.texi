@@ -64,26 +64,49 @@ extra time is not too severe a problem.
 
 @cindex @file{site-load.el}
   You can specify additional files to preload by writing a library named
-@file{site-load.el} that loads them.  You may need to increase the
-value of @code{PURESIZE}, in @file{src/puresize.h}, to make room for the
-additional files.  (Try adding increments of 20000 until it is big
+@file{site-load.el} that loads them.  You may need to increase the value
+of @code{PURESIZE}, in @file{src/puresize.h}, to make room for the
+additional data.  (Try adding increments of 20000 until it is big
 enough.)  However, the advantage of preloading additional files
 decreases as machines get faster.  On modern machines, it is usually not
 advisable.
 
+  After @file{loadup.el} reads @file{site-load.el}, it finds the
+documentation strings for primitive and preloaded functions (and
+variables) in the file @file{etc/DOC} where they are stored, by calling
+@code{Snarf-documentation} (@pxref{Accessing Documentation}).
+
 @cindex @file{site-init.el}
   You can specify other Lisp expressions to execute just before dumping
-by putting them in a library named @file{site-init.el}.  However, if
-they might alter the behavior that users expect from an ordinary
-unmodified Emacs, it is better to put them in @file{default.el}, so that
-users can override them if they wish.  @xref{Start-up Summary}.
+by putting them in a library named @file{site-init.el}.  This file is
+executed after the documentation strings are found.
 
-  Before @file{loadup.el} dumps the new executable, it finds the
-documentation strings for primitive and preloaded functions (and
-variables) in the file where they are stored, by calling
-@code{Snarf-documentation} (@pxref{Accessing Documentation}).  These
-strings were moved out of the @file{emacs} executable to make it
-smaller.  @xref{Documentation Basics}.
+  If you want to preload function or variable definitions, there are
+three ways you can do this and make their documentation strings
+accessible when you subsequently run Emacs:
+
+@itemize @bullet
+@item
+Arrange to scan these files when producing the @file{etc/DOC} file,
+and load them with @file{site-load.el}.
+
+@item
+Load the files with @file{site-init.el}, then copy the files into the
+installation directory for Lisp files when you install Emacs.
+
+@item
+Specify a non-@code{nil} value for
+@code{byte-compile-dynamic-docstrings} as a local variable in each these
+files, and load them with either @file{site-load.el} or
+@file{site-init.el}.  (This method has the drawback that the
+documentation strings take up space in Emacs all the time.)
+@end itemize
+
+  It is not advisable to put anything in @file{site-load.el} or
+@file{site-init.el} that would alter any of the features that users
+expect in an ordinary unmodified Emacs.  If you feel you must override
+normal features for your site, do it with @file{default.el}, so that
+users can override your changes if they wish.  @xref{Start-up Summary}.
 
 @defun dump-emacs to-file from-file
 @cindex unexec
