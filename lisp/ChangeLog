@@ -1,3 +1,19 @@
+2002-08-12  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/page-ext.el (pages-target-buffer): Add defvar.
+	Renamed from target-buffer.
+	(pages-directory, pages-copy-header-and-position): Uses changed.
+
+	* calendar/appt.el (appt-make-list): Correct the parsing of
+	each appointment from time-string.
+
+2002-08-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* scroll-all.el (scroll-all-mode): Use define-minor-mode.
+	(scroll-all-mode): defcustom deleted.
+	(running-xemacs): Variable deleted.
+	(minor-mode-alist): Don't manipulate it directly.
+	
 2002-08-10  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-cmds.el (search-unencodable-char): New
