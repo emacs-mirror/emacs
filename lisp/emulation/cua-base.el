@@ -653,16 +653,18 @@ Repeating prefix key when region is active works as a single prefix key."
 (defun cua--prefix-arg (arg)
   (setq cua--register  
 	(and cua-enable-register-prefix
-	     (integerp (this-command-keys))
-	     (cond ((eq cua-enable-register-prefix 'not-ctrl-u)
-		    (not (= (aref (this-command-keys) 0) ?\C-u)))
-		   ((eq cua-enable-register-prefix 'ctrl-u-only)
-		    (= (aref (this-command-keys) 0) ?\C-u))
-		   (t t))
 	     (integerp arg) (>= arg 0) (< arg 10)
+	     (let* ((prefix (aref (this-command-keys) 0))
+		    (ctrl-u-prefix (and (integerp prefix)
+					(= prefix ?\C-u)))))
+	     (cond 
+	      ((eq cua-enable-register-prefix 'not-ctrl-u)
+	       (not ctrl-u-prefix))
+	      ((eq cua-enable-register-prefix 'ctrl-u-only)
+	       ctrl-u-prefix)
+	      (t t))
 	     (+ arg ?0)))
   (if cua--register nil arg))
-
 
 ;;; Enhanced undo - restore rectangle selections
 
