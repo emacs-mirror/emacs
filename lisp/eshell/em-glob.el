@@ -132,9 +132,7 @@ This option slows down recursive glob processing by quite a bit."
        (append eshell-glob-chars-list eshell-special-chars-outside-quoting))
   (set (make-local-variable 'eshell-glob-chars-regexp)
        (format "[%s]+" (apply 'string eshell-glob-chars-list)))
-  (make-local-hook 'eshell-parse-argument-hook)
   (add-hook 'eshell-parse-argument-hook 'eshell-parse-glob-chars t t)
-  (make-local-hook 'eshell-pre-rewrite-command-hook)
   (add-hook 'eshell-pre-rewrite-command-hook
 	    'eshell-no-command-globbing nil t))
 
