@@ -154,7 +154,7 @@ int stack_copy_size;
 /* Non-zero means ignore malloc warnings.  Set during initialization.  */
 int ignore_warnings;
 
-static void mark_object (), mark_buffer (), mark_perdisplays ();
+static void mark_object (), mark_buffer (), mark_kboards ();
 static void clear_marks (), gc_sweep ();
 static void compact_strings ();
 
@@ -1446,7 +1446,7 @@ Garbage collection happens automatically if you cons more than\n\
 	    XMARK (backlist->args[i]);
 	  }
     }  
-  mark_perdisplays ();
+  mark_kboards ();
 
   gc_sweep ();
 
@@ -1763,7 +1763,7 @@ mark_object (objptr)
 	case Lisp_Misc_Boolfwd:
 	case Lisp_Misc_Objfwd:
 	case Lisp_Misc_Buffer_Objfwd:
-	case Lisp_Misc_Display_Objfwd:
+	case Lisp_Misc_Kboard_Objfwd:
 	  /* Don't bother with Lisp_Buffer_Objfwd,
 	     since all markable slots in current buffer marked anyway.  */
 	  /* Don't need to do Lisp_Objfwd, since the places they point
@@ -1868,18 +1868,18 @@ mark_buffer (buf)
 }
 
 
-/* Mark the pointers in the perdisplay objects.  */
+/* Mark the pointers in the kboard objects.  */
 
 static void
-mark_perdisplays ()
+mark_kboards ()
 {
-  PERDISPLAY *perd;
-  for (perd = all_perdisplays; perd; perd = perd->next_perdisplay)
+  KBOARD *kb;
+  for (kb = all_kboards; kb; kb = kb->next_kboard)
     {
-      mark_object (&perd->prefix_factor);
-      mark_object (&perd->prefix_value);
-      mark_object (&perd->kbd_queue);
-      mark_object (&perd->Vlast_kbd_macro);
+      mark_object (&kb->prefix_factor);
+      mark_object (&kb->prefix_value);
+      mark_object (&kb->kbd_queue);
+      mark_object (&kb->Vlast_kbd_macro);
     }
 }
 
