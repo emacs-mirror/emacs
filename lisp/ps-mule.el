@@ -1190,7 +1190,7 @@ This checks if all multi-byte characters in the region are printable or not."
 		   (string-as-multibyte "[^\040-\176\240-\377]"))
 		  ((eq ps-print-control-characters 'control)
 		   (string-as-multibyte "[^\040-\176\200-\377]"))
-		  (t (string-as-multibyte "[^\000-\011\013\015-\377"))))))
+		  (t (string-as-multibyte "[^\000-\011\013\015-\377]"))))))
 
 ;;;###autoload
 (defun ps-mule-begin-page ()
