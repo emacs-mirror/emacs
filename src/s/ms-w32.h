@@ -56,8 +56,6 @@ Boston, MA 02111-1307, USA.  */
 #define SYMS_SYSTEM syms_of_ntterm ()
 
 #define NO_MATHERR
-#define HAVE_FREXP
-#define HAVE_FMOD
 
 /* NOMULTIPLEJOBS should be defined if your system's shell
  does not have "job control" (the ability to stop a program,
@@ -114,19 +112,6 @@ Boston, MA 02111-1307, USA.  */
  */
 
 #define HAVE_TIMEVAL
-struct timeval 
-  {
-    long tv_sec;	/* seconds */
-    long tv_usec;	/* microseconds */
-  };
-struct timezone 
-  {
-    int	tz_minuteswest;	/* minutes west of Greenwich */
-    int	tz_dsttime;	/* type of dst correction */
-  };
-
-void gettimeofday (struct timeval *, struct timezone *);
-
 
 /*
  *      Define HAVE_SELECT if the system supports the `select' system call.
@@ -146,6 +131,10 @@ void gettimeofday (struct timeval *, struct timezone *);
  */
 
 /* #define NONSYSTEM_DIR_LIBRARY */
+
+/* NT supports Winsock which is close enough (with some hacks) */
+
+#define HAVE_SOCKETS
 
 /* Define this symbol if your system has the functions bcopy, etc. */
 
@@ -173,6 +162,8 @@ void gettimeofday (struct timeval *, struct timezone *);
    /usr/spool/mail/$USER.lock.  */
 
 /* #define MAIL_USE_FLOCK */
+#define MAIL_USE_POP
+#define MAIL_USE_SYSTEM_LOCK
 
 /* Define CLASH_DETECTION if you want lock files to be written
    so that Emacs can tell instantly when you try to modify
@@ -203,7 +194,7 @@ void gettimeofday (struct timeval *, struct timezone *);
    (Which you should place, by convention, in sysdep.c).  */
 
 /* Define this to be the separator between path elements */
-#define DIRECTORY_SEP '\\'
+#define DIRECTORY_SEP XINT (Vdirectory_sep_char)
 
 /* Define this to be the separator between devices and paths */
 #define DEVICE_SEP ':'
@@ -214,7 +205,7 @@ void gettimeofday (struct timeval *, struct timezone *);
 
 /* The null device on Windows NT. */
 #define NULL_DEVICE     "NUL:"
-#define EXEC_SUFFIXES   ".exe:.com:.bat:"
+#define EXEC_SUFFIXES   ".exe:.com:.bat:.cmd:"
 
 #ifndef MAXPATHLEN
 #define MAXPATHLEN      _MAX_PATH
@@ -222,15 +213,35 @@ void gettimeofday (struct timeval *, struct timezone *);
 
 #define LISP_FLOAT_TYPE
 
-#define HAVE_DUP2       	1
-#define HAVE_RENAME     	1
-#define HAVE_RMDIR      	1
-#define HAVE_MKDIR      	1
-#define HAVE_GETHOSTNAME	1
-#define HAVE_RANDOM		1
-#define USE_UTIME		1
-#define HAVE_MOUSE		1
-#define HAVE_TZNAME		1
+#define HAVE_SYS_TIMEB_H
+#define HAVE_SYS_TIME_H
+#define HAVE_UNISTD_H
+#define STDC_HEADERS
+#define TIME_WITH_SYS_TIME
+
+#define HAVE_GETTIMEOFDAY
+#define HAVE_GETHOSTNAME
+#define HAVE_DUP2
+#define HAVE_RENAME
+#define HAVE_CLOSEDIR
+
+#define HAVE_TZNAME
+
+#define HAVE_LONG_FILE_NAMES
+
+#define HAVE_MKDIR
+#define HAVE_RMDIR
+#define HAVE_RANDOM
+#define HAVE_BCOPY
+#define HAVE_BCMP
+#define HAVE_LOGB
+#define HAVE_FREXP
+#define HAVE_FMOD
+#define HAVE_FTIME
+#define HAVE_MKTIME
+
+#define HAVE_MOUSE
+#define HAVE_H_ERRNO
 
 #ifdef HAVE_NTGUI
 #define HAVE_WINDOW_SYSTEM
@@ -239,40 +250,73 @@ void gettimeofday (struct timeval *, struct timezone *);
 
 #define MODE_LINE_BINARY_TEXT(_b_) (NILP ((_b_)->buffer_file_type) ? "T" : "B")
 
-/* These have to be defined because our compilers treat __STDC__ as being
-   defined (most of them anyway). */
+/* get some redefinitions in place */
 
-#define access  _access
-#define chdir   _chdir
-#define chmod   _chmod
-#define close   _close
-#define creat   _creat
-#define dup     _dup
-#define dup2    _dup2
-#define execlp  _execlp
-#define execvp  _execvp
-#define getpid  _getpid
-#define index   strchr
-#define isatty  _isatty
-#define link    _link
-#define lseek   _lseek
-#define mkdir   _mkdir
-#define mktemp  _mktemp
-#define open    _open
-#define pipe    _pipe
-#define read    _read
-#define rmdir   _rmdir
-#define sleep   nt_sleep
-#define unlink  _unlink
-#define umask	_umask
-#define utime	_utime
-#define write   _write
-#define _longjmp        longjmp
-#define spawnve win32_spawnve
-#define wait    win32_wait
-#define signal  win32_signal
-#define rindex  strrchr
-#define ctime	nt_ctime	/* Place a wrapper around ctime (see nt.c).  */
+/* IO calls that are emulated or shadowed */
+#define access  sys_access
+#define chdir   sys_chdir
+#define chmod   sys_chmod
+#define close   sys_close
+#define creat   sys_creat
+#define ctime	sys_ctime
+#define dup     sys_dup
+#define dup2    sys_dup2
+#define fopen   sys_fopen
+#define link    sys_link
+#define mkdir   sys_mkdir
+#define mktemp  sys_mktemp
+#define open    sys_open
+#define pipe    sys_pipe
+#define read    sys_read
+#define rename  sys_rename
+#define rmdir   sys_rmdir
+#define select  sys_select
+#define sleep   sys_sleep
+#define unlink  sys_unlink
+#define write   sys_write
+
+/* this is hacky, but is necessary to avoid warnings about macro
+   redefinitions using the SDK compilers */
+#ifndef __STDC__
+#define __STDC__ 1
+#define MUST_UNDEF__STDC__
+#endif
+#include <direct.h>
+#include <io.h>
+#include <stdio.h>
+#ifdef MUST_UNDEF__STDC__
+#undef __STDC__
+#undef MUST_UNDEF__STDC__
+#endif
+
+/* subprocess calls that are emulated */
+#define spawnve sys_spawnve
+#define wait    sys_wait
+#define kill    sys_kill
+#define signal  sys_signal
+
+/* map to MSVC names */
+#define execlp    _execlp
+#define execvp    _execvp
+#define fcloseall _fcloseall
+#define fdopen	  _fdopen
+#define fgetchar  _fgetchar
+#define fileno	  _fileno
+#define flushall  _flushall
+#define fputchar  _fputchar
+#define getw	  _getw
+#define getpid    _getpid
+#define isatty    _isatty
+#define logb      _logb
+#define _longjmp  longjmp
+#define lseek     _lseek
+#define popen     _popen
+#define pclose    _pclose
+#define putw	  _putw
+#define umask	  _umask
+#define utime	  _utime
+#define index     strchr
+#define rindex    strrchr
 
 #ifdef HAVE_NTGUI
 #define abort	win32_abort
@@ -294,39 +338,15 @@ void gettimeofday (struct timeval *, struct timezone *);
 #define EMACS_CONFIGURATION 	get_emacs_configuration ()
 #define EMACS_CONFIG_OPTIONS	"NT"	/* Not very meaningful yet.  */
 
-/* Define this so that winsock.h definitions don't get included when windows.h
-   is...  I don't know if they do the right thing for emacs.  For this to
-   have proper effect, config.h must always be included before windows.h.  */
+/* Define this so that winsock.h definitions don't get included with
+   windows.h.  For this to have proper effect, config.h must always be
+   included before windows.h.  */
 #define _WINSOCKAPI_    1
 
 /* Defines size_t and alloca ().  */
 #include <malloc.h>
 
-/* We have to handle stat specially.  However, #defining stat to
-   something else not only redefines uses of the function, but also
-   redefines uses of the type struct stat.  What unfortunate parallel
-   naming.  */
 #include <sys/stat.h>
-struct nt_stat 
-  {
-    struct _stat statbuf;
-  };
-
-#ifdef stat
-#undef stat
-#endif
-#define stat nt_stat
-#define st_dev statbuf.st_dev
-#define st_ino statbuf.st_ino
-#define st_mode statbuf.st_mode
-#define st_nlink statbuf.st_nlink
-#define st_uid statbuf.st_uid
-#define st_gid statbuf.st_gid
-#define st_rdev statbuf.st_rdev
-#define st_size statbuf.st_size
-#define st_atime statbuf.st_atime
-#define st_mtime statbuf.st_mtime
-#define st_ctime statbuf.st_ctime
 
 /* Define for those source files that do not include enough NT 
    system files.  */
@@ -340,6 +360,7 @@ struct nt_stat
 
 /* For proper declaration of environ.  */
 #include <stdlib.h>
+#include <string.h>
 
 /* Emacs takes care of ensuring that these are defined.  */
 #ifdef max
