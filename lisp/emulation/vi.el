@@ -1,5 +1,8 @@
 ;;; vi.el --- major mode for emulating "vi" editor under GNU Emacs.
 
+; This file is in the public domain because the authors distributed it
+; without a copyright noticed before the US signed the Bern Convention.
+
 ;; Author: Neal Ziring <nz@rsch.wisc.edu>
 ;;	Felix S. T. Wu <wu@crys.wisc.edu>
 ;; Keywords: emulations
@@ -9,7 +12,7 @@
 ; Originally written by : seismo!wucs!nz@rsch.wisc.edu (Neal Ziring)
 ; Extensively redesigned and rewritten by wu@crys.wisc.edu (Felix S.T. Wu)
 ; Last revision: 01/07/87 Wed (for GNU Emacs 18.33)
-;
+
 ; INSTALLATION PROCEDURE:
 ; 1) Add a global key binding for command "vi-mode" (I use ESC ESC instead of
 ;    the single ESC used in real "vi", so I can access other ESC prefixed emacs
