@@ -174,7 +174,7 @@ DEFUN ("keymapp", Fkeymapp, Skeymapp, 1, 1, 0,
   "Return t if ARG is a keymap.\n\
 \n\
 A keymap is a list (keymap . ALIST),\n\
-or a symbol whose function definition is a keymap is itself a keymap.\n\
+or a symbol whose function definition is itself a keymap.\n\
 ALIST elements look like (CHAR . DEFN) or (SYMBOL . DEFN);\n\
 a vector of densely packed bindings for small character codes\n\
 is also allowed as an element.")
