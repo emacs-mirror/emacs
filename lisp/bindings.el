@@ -154,9 +154,8 @@ is okay.  See `mode-line-format'.")
 	"^Current buffer has no process$"
 
 	;; dabbrev
-	"^No dynamic expansion for \".*\" found\\.$"
-	"^No further dynamic expansions for \".*\" found\\.$"
-	"^No further dynamic expansions for `.*' found$"
+	"^No dynamic expansion for .* found$"
+	"^No further dynamic expansion for .* found$"
 
 	;; Completion
 	"^To complete, the point must be after a symbol at least [0-9]* character long\\.$"
