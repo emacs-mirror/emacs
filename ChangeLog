@@ -1,3 +1,7 @@
+2001-11-22  Colin Walters  <walters@debian.org>
+
+	* Makefile.in (install-arch-indep): Install the calc .info files.
+
 2001-11-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* make-dist (lispref): Add *.txt, *.el, permute-index, and

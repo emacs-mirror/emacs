@@ -1,3 +1,8 @@
+2001-11-22  Colin Walters  <walters@debian.org>
+
+	* calc/calc-misc.el (calc-info): Don't perform voodoo, just
+	(info "Calc").
+
 2001-11-21  Richard M. Stallman  <rms@gnu.org>
 
 	* which-func.el (which-function): Call imenu--make-index-alist
