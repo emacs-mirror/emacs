@@ -188,7 +188,7 @@ echo "Updating version number in README."
 echo "Creating subdirectories."
 for subdir in lisp lisp/term site-lisp \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
-	      nt nt/inc nt/inc/sys nt/src \
+	      nt nt/inc nt/inc/sys \
 	      etc etc/e lock cpp info man msdos vms; do
   mkdir ${tempdir}/${subdir}
 done
@@ -255,7 +255,7 @@ echo "Making links to \`src/m'."
 
 echo "Making links to \`src/s'."
 (cd src/s
- ln README [a-zA-Z0-9]*.h *.inp ../../${tempdir}/src/s)
+ ln README [a-zA-Z0-9]*.h ../../${tempdir}/src/s)
 
 echo "Making links to \`lib-src'."
 (cd lib-src
@@ -268,19 +268,15 @@ echo "Making links to \`lib-src'."
 
 echo "Making links to \`nt'."
 (cd nt
- ln [a-z]*.cmd makefile.* todo ChangeLog install readme ../${tempdir}/nt)
+ ln [a-z]*.bat [a-z]*.h makefile.* todo ChangeLog install readme ../${tempdir}/nt)
 
 echo "Making links to \`nt/inc'."
 (cd nt/inc
- ln [a-z]*.h ../${tempdir}/nt/inc)
+ ln [a-z]*.h ../../${tempdir}/nt/inc)
 
 echo "Making links to \`nt/inc/sys'."
 (cd nt/inc/sys
- ln [a-z]*.h ../${tempdir}/nt/inc/sys)
-
-echo "Making links to \`nt/src'."
-(cd nt/src
- ln [a-z]*.h ../${tempdir}/nt/src)
+ ln [a-z]*.h ../../../${tempdir}/nt/inc/sys)
 
 echo "Making links to \`msdos'."
 (cd msdos
