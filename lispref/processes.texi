@@ -901,7 +901,7 @@ shell command.
 @menu
 * Process Buffers::         If no filter, output is put in a buffer.
 * Filter Functions::        Filter functions accept output from the process.
-* Decoding Ouptut::         Filters can get unibyte or multibyte strings.
+* Decoding Output::         Filters can get unibyte or multibyte strings.
 * Accepting Output::        How to wait until process output arrives.
 @end menu
 
