@@ -21,6 +21,16 @@
 #						  9-6-94
 !include makefile.def
 
+ALL		= $(BLD)\addpm.exe
+
+addpm:		  $(BLD) $(BLD)\addpm.exe
+$(BLD)\addpm.exe: $(BLD)\addpm.obj
+$(BLD)\addpm.obj: addpm.c
+		  $(CC) -nologo -out:$@ addpm.c \
+			-link -out:$(BLD)\addpm.exe \
+			-subsystem:windows -entry:WinMainCRTStartup \
+			$(SYS_LDFLAGS) $(BASE_LIBS) user32.lib
+
 # Since Windows 95 does not support multiple commands on one command line
 # (e.g., in for loops), we cannot use for loops any more.
 # SUBDIRS	      = lib-src src lisp
@@ -29,7 +39,8 @@
 # Build emacs
 #
 BUILD_CMD	= $(MAKE) -f makefile.nt all
-all:;		cd ..\lib-src
+all:		$(BLD) $(ALL)
+		cd ..\lib-src
 		$(BUILD_CMD)
 		cd ..\src
 		$(BUILD_CMD)
@@ -38,11 +49,17 @@ all:;		cd ..\lib-src
 		cd ..\nt
 
 
+emacs.bat:	emacs.bat.in
+		echo @echo off > emacs.bat
+		echo REM !!! Warning: This file automatically generated !!! >> emacs.bat
+		echo set emacs_dir=$(INSTALL_DIR)>> emacs.bat
+		type emacs.bat.in >> emacs.bat
+
 #
 # Build and install emacs in INSTALL_DIR
 #
 INSTALL_CMD	= $(MAKE) -f makefile.nt install
-install:	all
+install:	all emacs.bat
 		- mkdir $(INSTALL_DIR)
 		cd ..\lib-src
 		$(INSTALL_CMD)
@@ -52,6 +69,7 @@ install:	all
 		$(INSTALL_CMD)
 		cd ..\nt		
 		- $(CP) emacs.bat $(INSTALL_DIR)\bin
+		- $(ADDPM) $(INSTALL_DIR)\bin\emacs.bat $(EMACS_ICON_PATH)
 		- del /q ..\same-dir.tst
 		- del /q $(INSTALL_DIR)\same-dir.tst
 		echo SameDirTest > ..\same-dir.tst
@@ -97,6 +115,7 @@ real_install:
 CLEAN_CMD	= $(MAKE) -f makefile.nt clean
 clean:;		- del /q /s *~
 		- $(DEL_TREE) deleted
+		- $(DEL_TREE) obj
 		- $(DEL_TREE) ..\bin
 		cd ..\lib-src
 		$(CLEAN_CMD)
