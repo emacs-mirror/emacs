@@ -159,6 +159,8 @@ Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
 
 (defvar translation-table-for-input (make-translation-table))
 
+(define-translation-table 'ucs-translation-table-for-decode)
+
 ;;; Set up the tables.
 
 ;; Most of these tables were derived from ones in Mule-UCS.
