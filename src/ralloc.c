@@ -88,12 +88,18 @@ static POINTER break_value;
 /* The REAL (i.e., page aligned) break value of the process. */
 static POINTER page_break_value;
 
+/* This is the size of a page.  We round memory requests to this boundary.  */
+static int page_size;
+
+/* Whenever we get memory from the system, get this many extra bytes.  */
+static int extra_bytes;
+
 /* Macros for rounding.  Note that rounding to any value is possible
    by changing the definition of PAGE. */
 #define PAGE (getpagesize ())
-#define ALIGNED(addr) (((unsigned int) (addr) & (PAGE - 1)) == 0)
-#define ROUNDUP(size) (((unsigned int) (size) + PAGE - 1) & ~(PAGE - 1))
-#define ROUND_TO_PAGE(addr) (addr & (~(PAGE - 1)))
+#define ALIGNED(addr) (((unsigned int) (addr) & (page_size - 1)) == 0)
+#define ROUNDUP(size) (((unsigned int) (size) + page_size - 1) & ~(page_size - 1))
+#define ROUND_TO_PAGE(addr) (addr & (~(page_size - 1)))
 
 /* Functions to get and return memory from the system.  */
 
@@ -112,6 +118,8 @@ obtain (size)
   if (already_available < size)
     {
       SIZE get = ROUNDUP (size - already_available);
+      /* Get some extra, so we can come here less often.  */
+      get += extra_bytes;
 
       if ((*real_morecore) (get) == 0)
 	return 0;
@@ -146,17 +154,20 @@ relinquish (size)
      SIZE size;
 {
   POINTER new_page_break;
+  int excess;
 
   break_value -= size;
   new_page_break = (POINTER) ROUNDUP (break_value);
+  excess = (char *) page_break_value - (char *) new_page_break;
   
-  if (new_page_break != page_break_value)
+  if (excess > extra_bytes * 2)
     {
-      if ((*real_morecore) ((char *) new_page_break
-			    - (char *) page_break_value) == 0)
+      /* Keep extra_bytes worth of empty space.
+	 And don't free anything unless we can free at least extra_bytes.  */
+      if ((*real_morecore) (extra_bytes - excess) == 0)
 	abort ();
 
-      page_break_value = new_page_break;
+      page_break_value += extra_bytes - excess;
     }
 
   /* Zero the space from the end of the "official" break to the actual
@@ -312,6 +323,8 @@ static int use_relocatable_buffers;
    them.  This function gets plugged into the GNU malloc's __morecore
    hook.
 
+   We provide hysteresis, never relocating by less than extra_bytes.
+
    If we're out of memory, we should return zero, to imitate the other
    __morecore hook values - in particular, __default_morecore in the
    GNU malloc package.  */
@@ -320,34 +333,50 @@ POINTER
 r_alloc_sbrk (size)
      long size;
 {
+  /* This is the first address not currently available for the heap.  */
+  POINTER top;
+  /* Amount of empty space below that.  */
+  SIZE already_available;
   POINTER ptr;
 
   if (! use_relocatable_buffers)
     return (*real_morecore) (size);
 
-  if (size > 0)
+  top = first_bloc ? first_bloc->data : page_break_value;
+  already_available = (char *) top - (char *) virtual_break_value;
+
+  /* Do we not have enough gap already?  */
+  if (size > 0 && already_available < size)
     {
-      if (! obtain (size))
+      /* Get what we need, plus some extra so we can come here less often.  */
+      SIZE get = size - already_available + extra_bytes;
+
+      if (! obtain (get))
 	return 0;
 
       if (first_bloc)
 	{
-	  relocate_some_blocs (first_bloc, first_bloc->data + size);
+	  relocate_some_blocs (first_bloc, first_bloc->data + get);
 
 	  /* Zero out the space we just allocated, to help catch bugs
 	     quickly.  */
-	  bzero (virtual_break_value, size);
+	  bzero (virtual_break_value, get);
 	}
     }
-  else if (size < 0)
+  /* Can we keep extra_bytes of gap while freeing at least extra_bytes?  */
+  else if (size < 0 && already_available - size > 2 * extra_bytes)
     {
+      /* Ok, do so.  This is how many to free.  */
+      SIZE give_back = already_available - size - extra_bytes;
+
       if (first_bloc)
-        relocate_some_blocs (first_bloc, first_bloc->data + size);
-      relinquish (- size);
+	relocate_some_blocs (first_bloc, first_bloc->data - give_back);
+      relinquish (give_back);
     }
 
   ptr = virtual_break_value;
   virtual_break_value += size;
+
   return ptr;
 }
 
@@ -455,6 +484,9 @@ r_alloc_init ()
   virtual_break_value = break_value = (*real_morecore) (0);
   if (break_value == NIL)
     abort ();
+
+  page_size = PAGE;
+  extra_bytes = ROUNDUP (50000);
 
   page_break_value = (POINTER) ROUNDUP (break_value);
   /* Clear the rest of the last page; this memory is in our address space
