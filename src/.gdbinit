@@ -1,5 +1,8 @@
 # Set up a mask to use.
 
+# Force loading of symbols, enough to give us gdb_valbits etc.
+set main
+
 # This should be EMACS_INT, but in some cases that is a macro.
 # long ought to work in all cases right now.
 set $valmask = ((long)1 << gdb_valbits) - 1
