@@ -45,6 +45,9 @@ You can use this to specify the name of your private dictionary.
 The -S option is always passed to Ispell as the last parameter,
 and need not be mentioned here.")
 
+(defvar ispell-look-command "look"
+  "*Command for running look.")
+
 ;Each marker in this list points to the start of a word that
 ;ispell thought was bad last time it did the :file command.
 ;Notice that if the user accepts or inserts a word into his
@@ -215,6 +218,12 @@ that have not already been dumped will be lost."
 
 (defvar ispell-menu-map (make-sparse-keymap "Spell"))
 (defalias 'ispell-menu-map ispell-menu-map)
+
+(define-key ispell-menu-map [ispell-complete-word-interior-frag]
+  '("Complete Interior Fragment" . ispell-complete-word-interior-frag))
+
+(define-key ispell-menu-map [ispell-complete-word]
+  '("Complete Word" . ispell-complete-word))
 
 (define-key ispell-menu-map [reload-ispell]
   '("Reload Dictionary" . reload-ispell))
@@ -572,8 +581,8 @@ L lookup; Q quit\n")
       (set-buffer buf)
       (delete-region (point-min) (point-max))
       (if ispell-have-new-look
-	  (call-process "look" nil buf nil "-r" regex)
-	(call-process "look" nil buf nil regex))
+	  (call-process ispell-look-command nil buf nil "-r" regex)
+	(call-process ispell-look-command nil buf nil regex))
       (goto-char (point-min))
       (forward-line 10)
       (delete-region (point) (point-max))
@@ -607,6 +616,306 @@ L lookup; Q quit\n")
   (if (get-buffer " *problems in info file*")
       (kill-emacs 1))
   (write-region (point-min) (point-max) "ispell.info"))
+
+;;;; ispell-complete-word
+
+;;; Brief Description:
+;;; Complete word fragment at point using dictionary and replace with full
+;;; word.  Expansion done in current buffer like lisp-complete-symbol.
+;;; Completion of interior word fragments possible with prefix argument.
+
+;;; Known Problem: 
+;;; Does not use private dictionary because GNU `look' does not use it.  It
+;;; would be nice if GNU `look' took standard input; this would allow gzip'ed
+;;; dictionaries to be used.  GNU `look' also has a bug, see
+;;; `ispell-gnu-look-still-broken-p'.
+
+;;; Motivation: 
+;;; The `l', "regular expression look up", keymap option of ispell-word
+;;; (ispell-do-look) can only be run after finding a misspelled word.  So
+;;; ispell-do-look can not be used to look for words starting with `cat' to
+;;; find `catechetical' since `cat' is a correctly spelled word.  Furthermore,
+;;; ispell-do-look does not return the entire list returned by `look'.
+;;;  
+;;; ispell-complete-word allows you to get a completion list from the system
+;;; dictionary and expand a word fragment at the current position in a buffer.
+;;; These examples assume ispell-complete-word is bound to M-TAB as it is in
+;;; text-mode; the `Complete Word' and `Complete Interior Fragment' entries of
+;;; the "Spell" submenu under the "Edit" menu may also be used instead of
+;;; M-TAB and C-u M-TAB, respectively.
+;;;
+;;;   EXAMPLE 1: The word `Saskatchewan' needs to be spelled.  The user may
+;;;   type `Sas' and hit M-TAB and a completion list will be built using the
+;;;   shell command `look' and displayed in the *Completions* buffer:
+;;;
+;;;        Possible completions are:
+;;;        sash                               sashay
+;;;        sashayed                           sashed
+;;;        sashes                             sashimi
+;;;        Saskatchewan                       Saskatoon
+;;;        sass                               sassafras
+;;;        sassier                            sassing
+;;;        sasswood                           sassy
+;;;
+;;;   By viewing this list the user will hopefully be motivated to insert the
+;;;   letter `k' after the `sas'.  When M-TAB is hit again the word `Saskat'
+;;;   will be inserted in place of `sas' (note case) since this is a unique
+;;;   substring completion.  The narrowed completion list can be viewed with
+;;;   another M-TAB
+;;;
+;;;        Possible completions are:
+;;;        Saskatchewan                       Saskatoon
+;;;
+;;;   Inserting the letter `c' and hitting M-TAB will narrow the completion
+;;;   possibilities to just `Saskatchewan' and this will be inserted in the
+;;;   buffer.  At any point the user may click the mouse on a completion to
+;;;   select it.
+;;;
+;;;   EXAMPLE 2: The user has typed `Sasaquane' and M-$ (ispell-word) gives no
+;;;   "near-misses" in which case you back up to `Sas' and hit M-TAB and find
+;;;   the correct word as above.  The `Sas' will be replaced by `Saskatchewan'
+;;;   and the remaining word fragment `aquane' can be deleted.
+;;;
+;;;   EXAMPLE 3: If a version of `look' is used that supports regular
+;;;   expressions, then `ispell-have-new-look' should be t (its default) and
+;;;   interior word fragments may also be used for the search.  The word
+;;;   `pneumonia' needs to be spelled.  The user can only remember the
+;;;   interior fragment `mon' in which case `C-u M-TAB' on `mon' gives a list
+;;;   of all words containing the interior word fragment `mon'.  Typing `p'
+;;;   and M-TAB will narrow this list to all the words starting with `p' and
+;;;   containing `mon' from which `pneumonia' can be found as above.
+
+;;; The user-defined variables are:
+;;;
+;;;  ispell-look-command
+;;;  ispell-look-dictionary
+;;;  ispell-gnu-look-still-broken-p
+
+;;; Algorithm (some similarity to lisp-complete-symbol):
+;;;  
+;;; * call-process on command ispell-look-command (default: "look") to find
+;;;   words in ispell-look-dictionary matching `string' (or `regexp' if 
+;;;   ispell-have-new-look is t).  Parse output and store results in 
+;;;   ispell-lookup-completions-alist.
+;;; 
+;;; * Build completion list using try-completion and `string'
+;;; 
+;;; * Replace `string' in buffer with matched common substring completion.
+;;; 
+;;; * Display completion list only if there is no matched common substring.
+;;; 
+;;; * Rebuild ispell-lookup-completions-alist, on a next call, only when
+;;;   beginning of word fragment has changed.
+;;;  
+;;; * Interior fragments searches are performed similarly with the exception
+;;;   that the entire fragment at point is initially removed from the buffer,
+;;;   the STRING passed to try-completion and all-completions is just "" and
+;;;   not the interior fragment; this allows all completions containing the
+;;;   interior fragment to be shown.  The location in the buffer is stored to
+;;;   decide whether future completion narrowing of the current list should be
+;;;   done or if a new list should be built.  See interior fragment example
+;;;   above.
+;;;
+;;; * Robust searches are done using a `look' with -r (regular expression) 
+;;;   switch if ispell-have-new-look is t.
+
+;;;; User-defined variables.
+
+(defvar ispell-look-dictionary nil
+  "*If non-nil then spelling dictionary as string for `ispell-complete-word'.
+Overrides default dictionary file such as \"/usr/dict/words\" or GNU look's
+\"${prefix}/lib/ispell/ispell.words\"")
+
+(defvar ispell-gnu-look-still-broken-p nil
+  "*t if GNU look -r can give different results with and without trialing `.*'.
+Example: `look -dfr \"^ya\" foo' returns nothing, while `look -dfr \"^ya.*\" foo'
+returns `yacc', where `foo' is a dictionary file containing the three lines
+
+   y
+   y's
+   yacc
+
+Both commands should return `yacc'.  If `ispell-complete-word' erroneously
+states that no completions exist for a string, then setting this variable to t
+will help find those completions.")
+
+;;;; Internal variables.
+
+;;; Possible completions for last word fragment.
+(defvar ispell-lookup-completions-alist nil)
+
+;;; Last word fragment processed by `ispell-complete-word'.
+(defvar ispell-lookup-last-word nil)
+
+;;; Buffer local variables.
+
+;;; Value of interior-frag in last call to `ispell-complete-word'.
+(defvar ispell-lookup-last-interior-p nil)
+(make-variable-buffer-local 'ispell-lookup-last-interior-p)
+(put 'ispell-lookup-last-interior-p 'permanent-local t)
+
+;;; Buffer position in last call to `ispell-complete-word'.
+(defvar ispell-lookup-last-bow nil)
+(make-variable-buffer-local 'ispell-lookup-last-bow)
+(put 'ispell-lookup-last-bow 'permanent-local t)
+
+;;;; Interactive functions.
+;;;###autoload
+(defun ispell-complete-word (&optional interior-frag)
+  "Complete word using letters at point to word beginning using `look'.
+With optional argument INTERIOR-FRAG, word fragment at point is assumed to be
+an interior word fragment in which case `ispell-have-new-look' should be t.
+See also `ispell-look-dictionary' and `ispell-gnu-look-still-broken-p'."
+
+  (interactive "P")
+
+  ;; `look' must support regexp expressions in order to perform an interior
+  ;; fragment search.
+  (if (and interior-frag (not ispell-have-new-look))
+      (error (concat "Sorry `ispell-have-new-look' is nil.  "
+                     "You also will need GNU Ispell's `look'.")))
+
+  (let* ((completion-ignore-case t)
+
+         ;; Get location of beginning of word fragment.
+         (bow (save-excursion (skip-chars-backward "a-zA-Z'") (point)))
+
+         ;; Get the string to look up.
+         (string (buffer-substring bow (point)))
+
+         ;; Get regexp for which we search and, if necessary, an interior word
+         ;; fragment.
+         (regexp (if interior-frag
+                     (concat "^.*" string ".*")
+                   ;; If possible use fast binary search: no trailing `.*'.
+                   (concat "^" string
+                           (if ispell-gnu-look-still-broken-p ".*"))))
+
+         ;; We want all completions for case of interior fragments so set
+         ;; prefix to an empty string.
+         (prefix (if interior-frag "" string))
+
+         ;; Are we continuing from a previous interior fragment search?
+         ;; Check last value of interior-word and if the point has moved.
+         (continuing-an-interior-frag-p
+          (and ispell-lookup-last-interior-p
+               (equal ispell-lookup-last-bow bow)))
+
+         ;; Are we starting a unique word fragment search?  Always t for
+         ;; interior word fragment search.
+         (new-unique-string-p
+          (or interior-frag (null ispell-lookup-last-word)
+              (let ((case-fold-search t))
+                ;; Can we locate last word fragment as a substring of current
+                ;; word fragment?  If the last word fragment is larger than
+                ;; the current string then we will have to rebuild the list
+                ;; later.
+                (not (string-match
+                      (concat "^" ispell-lookup-last-word) string)))))
+
+         completion)
+
+    ;; Check for perfect completion already.  That is, maybe the user has hit
+    ;; M-x ispell-complete-word one too many times?
+    (if (string-equal string "")
+        (if (string-equal (concat ispell-lookup-last-word " ")
+                          (buffer-substring
+                           (save-excursion (forward-word -1) (point)) (point)))
+            (error "Perfect match...still.  Please move on.")
+          (error "No word fragment at point.")))
+
+    ;; Create list of words from system dictionary starting with `string' if
+    ;; new string and not continuing from a previous interior fragment search.
+    (if (and (not continuing-an-interior-frag-p) new-unique-string-p)
+        (setq ispell-lookup-completions-alist
+              (ispell-lookup-build-list string regexp)))
+
+    ;; Check for a completion of `string' in the list and store `string' and
+    ;; other variables for the next call.
+    (setq completion (try-completion prefix ispell-lookup-completions-alist)
+          ispell-lookup-last-word string
+          ispell-lookup-last-interior-p interior-frag
+          ispell-lookup-last-bow bow)
+
+    ;; Test the completion status.
+    (cond
+
+     ;; * Guess is a perfect match.
+     ((eq completion t)
+      (insert " ")
+      (message "Perfect match."))
+
+     ;; * No possibilities.
+     ((null completion)
+      (message "Can't find completion for \"%s\"" string)
+      (beep))
+
+     ;; * Replace string fragment with matched common substring completion.
+     ((and (not (string-equal completion ""))
+           ;; Fold case so a completion list is built when `string' and common
+           ;; substring differ only in case.
+           (let ((case-fold-search t))
+             (not (string-match (concat "^" completion "$") string))))
+      (search-backward string bow)
+      (replace-match completion nil t) ; FIXEDCASE doesn't work? or LITERAL?
+      (message "Proposed unique substring.  Repeat for completions list."))
+
+     ;; * String is a common substring completion already.  Make list.
+     (t
+      (message "Making completion list...")
+      (if (string-equal completion "") (delete-region bow (point)))
+      (let ((list (all-completions prefix ispell-lookup-completions-alist)))
+        (with-output-to-temp-buffer " *Completions*"
+          (display-completion-list list)))
+      (message "Making completion list...done")))))
+
+;;;###autoload
+(defun ispell-complete-word-interior-frag ()
+  "Runs `ispell-complete-word' with a non-nil INTERIOR-FRAG.
+A completion list is built for word fragment at point which is assumed to be
+an interior word fragment.  `ispell-have-new-look' should be t."
+  (interactive)
+  (ispell-complete-word t))
+
+;;;; Internal Function.
+
+;;; Build list of words using ispell-look-command from dictionary
+;;; ispell-look-dictionary (if this is a non-nil string).  Look for words
+;;; starting with STRING if ispell-have-new-look is nil or look for REGEXP if
+;;; ispell-have-new-look is t.  Returns result as an alist suitable for use by
+;;; try-completion, all-completions, and completing-read.
+(defun ispell-lookup-build-list (string regexp)
+  (save-excursion
+    (message "Building list...")
+    (set-buffer (get-buffer-create " *ispell look*"))
+    (erase-buffer)
+
+    (if (stringp ispell-look-dictionary)
+        (if ispell-have-new-look
+            (call-process ispell-look-command nil t nil "-fr" regexp
+                          ispell-look-dictionary)
+          (call-process ispell-look-command nil t nil "-f" string
+                        ispell-look-dictionary))
+      (if ispell-have-new-look
+          (call-process ispell-look-command nil t nil "-fr" regexp)
+        (call-process ispell-look-command nil t nil "-f" string)))
+
+    ;; Build list for try-completion and all-completions by storing each line
+    ;; of output starting from bottom of buffer and deleting upwards.
+    (let (list)
+      (goto-char (point-min))
+      (while (not (= (point-min) (point-max)))
+        (end-of-line)
+        (setq list (cons (buffer-substring (point-min) (point)) list))
+        (forward-line)
+        (delete-region (point-min) (point)))
+
+      ;; Clean.
+      (erase-buffer)
+      (message "Building list...done")
+
+      ;; Make the list into an alist and return.
+      (mapcar 'list (nreverse list)))))
 
 (defvar ispell-message-cite-regexp "^    "
   "*Regular expression to match lines cited from one message into another.")
