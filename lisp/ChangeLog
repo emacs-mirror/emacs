@@ -1,3 +1,8 @@
+2002-12-27  Miles Bader  <miles@gnu.org>
+
+	* info.el (Info-complete-menu-item): Make `Info-complete-cache' a
+	buffer-local variable.
+
 2002-12-26  Markus Rost  <rost@math.ohio-state.edu>
 
 	* cus-edit.el (customize-group-other-window): Use pop-to-buffer in
