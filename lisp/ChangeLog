@@ -1,3 +1,23 @@
+2003-06-30  Richard M. Stallman  <rms@gnu.org>
+
+	* loadup.el (pure-space-overflow): Set it if overflow.
+
+	* startup.el (pure-space-overflow): New variable.
+	(fancy-splash-screens-1): Display warning if overflow.
+	(normal-splash-screen): Likewise.
+
+	* vc.el (vc-default-show-log-entry): Use with-no-warnings.
+
+	* subr.el (lazy-completion-table, dynamic-completion-table):
+	New macros.
+
+2003-06-28  Richard M. Stallman  <rms@gnu.org>
+
+	* menu-bar.el (menu-bar-options-menu): Move mouse-set-fonts item here.
+
+	* international/mule-cmds.el (mule-menu-keymap): Delete
+	mouse-set-fonts item here.
+
 2003-06-29  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-display-number-end): Don't re-initialise local
