@@ -1,5 +1,7 @@
 2000-10-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* keymap.c: Update copyright.
+
 	* .gdbinit (xbacktrace): Handle case that $bt->function isn't
 	a symbol.
 

@@ -1,5 +1,10 @@
 2000-10-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* wid-edit.el (widget-field-keymap, widget-text-keymap): Define
+	the tool-bar map as nil, as for the menu-bar.  Otherwise, we'll
+	get duplicate tool-bar entries because we'll see the global ones
+	on more than one path through keymaps.
+
 	* emacs-lisp/lisp.el (defun-prompt-regexp): Doc fix.
 
 	* progmodes/cmacexp.el: Change Francesco's email address.
