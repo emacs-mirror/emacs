@@ -1143,7 +1143,7 @@ w32_bdf_per_char_metric (font, char2b, dim, pcm)
   char buf[2];
 
   if (dim == 1)
-    buf[0] = (char)char2b;
+    buf[0] = (char)(*char2b);
   else
     {
       buf[0] = BYTE1 (*char2b);
@@ -1260,10 +1260,10 @@ w32_per_char_metric (font, char2b, font_type)
   xassert (font_type != UNKNOWN_FONT);
 
   /* Handle the common cases quickly.  */
-  if (font->per_char == NULL)
+  if (!font->bdf && font->per_char == NULL)
     /* TODO: determine whether char2b exists in font?  */
     return &font->max_bounds;
-  else if (*char2b < 128)
+  else if (!font->bdf && *char2b < 128)
     return &font->per_char[*char2b];
 
   pcm = &font->scratch;
