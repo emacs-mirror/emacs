@@ -1897,7 +1897,8 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 
   /* If someone specified a new starting point but did not insist,
      check whether it can be used.  */
-  if (!NILP (w->optional_new_start))
+  if (!NILP (w->optional_new_start)
+      && startp >= BEGV && startp <= ZV)
     {
       w->optional_new_start = Qnil;
       /* Check whether this start pos is usable given where point is.  */
@@ -3135,7 +3136,7 @@ pos_tab_offset (w, pos, pos_byte)
 
   return col;
 }
-
+
 /* Display one line of window W, starting at char position START in W's buffer.
    START_BYTE is the corresponding byte position.
 
