@@ -850,7 +850,8 @@ if we haven't installed it in Emacs yet!
 @end example
 
 @noindent
-The description should be complete in one line.
+The description should be complete in one line.  If the file
+needs a @samp{-*-} specification, put it after @var{description}.
 
   After the copyright notice come several @dfn{header comment} lines,
 each beginning with @samp{;; @var{header-name}:}.  Here is a table of
