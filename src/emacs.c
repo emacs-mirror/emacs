@@ -1576,6 +1576,20 @@ decode_env_path (evarname, defalt)
     path = 0;
   if (!path)
     path = defalt;
+#ifdef DOS_NT
+  /* Ensure values from the environment use the proper directory separator.  */
+  if (path)
+    {
+      p = alloca (strlen (path) + 1);
+      strcpy (p, path);
+      path = p;
+
+      if ('/' == DIRECTORY_SEP)
+	dostounix_filename (path);
+      else
+	unixtodos_filename (path);
+    }
+#endif
   lpath = Qnil;
   while (1)
     {
