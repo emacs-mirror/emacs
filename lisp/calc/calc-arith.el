@@ -27,11 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-arith () nil)
 
 ;;; The following lists are not exhaustive.
 (defvar math-scalar-functions '(calcFunc-det
@@ -2820,6 +2818,8 @@
 	  (math-commutative-collect (nth 1 b) neg)
 	  (math-commutative-collect (nth 2 b) (not neg)))
       (setq math-com-bterms (cons (if neg (math-neg b) b) math-com-bterms)))))
+
+(provide 'calc-arith)
 
 ;;; arch-tag: 6c396b5b-14c6-40ed-bb2a-7cc2e8111465
 ;;; calc-arith.el ends here
