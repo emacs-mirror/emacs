@@ -2,7 +2,7 @@
  *
  *                GENERIC TRACER IMPLEMENTATION
  *
- *  $HopeName$
+ *  $HopeName: MMsrc/!trace.c(trunk.1)$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -284,7 +284,6 @@ void TraceNoteMarked(Trace trace, RefRank rank, Addr count)
 {
   AVER(ISVALID(Trace, trace));
   AVER(ISVALID(RefRank, rank));
-  AVER(count > 0);
   
   trace->work[rank].marked += count;
 }
@@ -315,6 +314,31 @@ Error TraceFix(Trace trace, RefRank rank, Ref *refIO)
     if(PoolOfAddr(&pool, arena, ref))
       return PoolFix(pool, trace, rank, arena, refIO);
 
+  return ErrSUCCESS;
+}
+
+Error TraceScanRegion(Addr *a, Addr *b, Trace trace, RefRank rank)
+{
+  Error e;
+
+  AVER(a != NULL);
+  AVER(b != NULL);
+
+  while(a < b) {
+    e = TraceFix(trace, rank, (Ref *)a);
+    if(e != ErrSUCCESS)
+      return e;
+    ++a;
+  }
+  while(b < a) {
+    ++b;
+    e = TraceFix(trace, rank, (Ref *)b);
+    if(e != ErrSUCCESS)
+      return e;
+  }
+
+  AVER(a == b);
+  
   return ErrSUCCESS;
 }
 
