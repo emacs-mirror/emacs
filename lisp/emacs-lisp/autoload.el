@@ -330,8 +330,14 @@ autoloads go somewhere else.")
 		     ;; insert one before the section here.
 		     (goto-char (match-beginning 0))
 		     (setq found 'new)))))
+	  (or found
+	      (progn
+		(setq found 'new)
+		;; No later sections in the file.  Put before the last page.
+		(goto-char (point-max))
+		(search-backward "\f")))
 	  (or (eq found 'up-to-date)
-	      (and (memq found '(nil new))
+	      (and (eq found 'new)
 		   ;; Check that FILE has any cookies before generating a
 		   ;; new section for it.
 		   (save-excursion
