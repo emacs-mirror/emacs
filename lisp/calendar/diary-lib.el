@@ -103,6 +103,10 @@ The holidays are those in the list `calendar-holidays'."
   "Mayan calendar equivalent of date diary entry."
   t)
 
+(autoload 'diary-iso-date "cal-iso"
+  "ISO calendar equivalent of date diary entry."
+  t)
+
 (autoload 'diary-julian-date "cal-julian"
   "Julian calendar equivalent of date diary entry."
   t)
