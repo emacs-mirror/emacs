@@ -731,6 +731,20 @@ function with `&rest' args, or `unevalled' for a special form.")
     return Fcons (make_number (minargs), make_number (maxargs));
 }
 
+DEFUN ("subr-interactive-form", Fsubr_interactive_form, Ssubr_interactive_form, 1, 1, 0,
+  "Return the interactive form of SUBR or nil if none.\n\
+SUBR must be a built-in function.  Value, if non-nil, is a list\n\
+\(interactive SPEC).")
+  (subr)
+     Lisp_Object subr;
+{
+  if (!SUBRP (subr))
+    wrong_type_argument (Qsubrp, subr);
+  if (XSUBR (subr)->prompt)
+    return list2 (Qinteractive, build_string (XSUBR (subr)->prompt));
+  return Qnil;
+}
+
 
 /* Getting and setting values of symbols */
 
@@ -3000,6 +3014,7 @@ syms_of_data ()
   staticpro (&Qbool_vector);
   staticpro (&Qhash_table);
 
+  defsubr (&Ssubr_interactive_form);
   defsubr (&Seq);
   defsubr (&Snull);
   defsubr (&Stype_of);
