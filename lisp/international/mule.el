@@ -328,15 +328,16 @@ See also the documentation of make-char."
 ;; in `write-region-annotate-functions', i.e. FROM and TO specifying
 ;; region of a text.
 ;;
-;; o character-unification-table-for-decode
+;; o character-translation-table-for-decode
 ;;
-;; The value is a unification table to be applied on decoding.  See
-;; the function `make-unification-table' for the format of unification
-;; table.
+;; The value is a character translation table to be applied on
+;; decoding.  See the function `make-translation-table' for the format
+;; of translation table.
 ;;
-;; o character-unification-table-for-encode
+;; o character-translation-table-for-encode
 ;;
-;; The value is a unification table to be applied on encoding.
+;; The value is a character translation table to be applied on
+;; encoding.
 ;;
 ;; o safe-charsets
 ;;
@@ -346,7 +347,11 @@ See also the documentation of make-char."
 ;; mean that the charset can't be encoded in the coding system,
 ;; instead, it just means that some other receiver of a text encoded
 ;; in the coding system won't be able to handle that charset.
-
+;;
+;; o mime-charset
+;;
+;; The value is a symbol of which name is `MIME-charset' parameter of
+;; the coding system.
 
 ;; Return coding-spec of CODING-SYSTEM
 (defsubst coding-system-spec (coding-system)
@@ -742,6 +747,13 @@ For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems]."
       (set-process-coding-system proc decoding encoding)))
   (force-mode-line-update))
 
+(defun set-clipboard-coding-system (coding-system)
+  "Make CODING-SYSTEM used for communicating with other X clients .
+When sending or receiving text via cut_buffer, selection, and clipboard,
+the text is encoded or decoded by CODING-SYSTEM."
+  (check-coding-system coding-system)
+  (setq clipboard-coding-system coding-system))
+
 (defun set-coding-priority (arg)
   "Set priority of coding categories according to LIST.
 LIST is a list of coding categories ordered by priority."
@@ -973,17 +985,17 @@ or a function symbol which, when called, returns such a cons cell."
 		   (cons (cons regexp coding-system)
 			 network-coding-system-alist)))))))
 
-(defun make-unification-table (&rest args)
-  "Make a unification table (char table) from arguments.
+(defun make-translation-table (&rest args)
+  "Make a character translation table (char table) from arguments.
 Each argument is a list of the form (FROM . TO),
-where FROM is a character to be unified to TO.
+where FROM is a character to be translated to TO.
 
 FROM can be a generic character (see make-char).  In this case, TO is
 a generic character containing the same number of charcters or a
 oridinal character.  If FROM and TO are both generic characters, all
-characters belonging to FROM are unified to characters belonging to TO
+characters belonging to FROM are translated to characters belonging to TO
 without changing their position code(s)."
-  (let ((table (make-char-table 'character-unification-table))
+  (let ((table (make-char-table 'character-translation-table))
 	revlist)
     (while args
       (let ((elts (car args)))
@@ -1001,9 +1013,9 @@ without changing their position code(s)."
 	      (setq to-i (1+ to-i) to-rev (cdr to-rev)))
 	    (if (and (/= from-i to-i) (/= to-i 0))
 		(error "Invalid character pair (%d . %d)" from to))
-	    ;; If we have already unified TO to TO-ALT, FROM should
-	    ;; also be unified to TO-ALT.  But, this is only if TO is
-	    ;; a generic character or TO-ALT is not a generic
+	    ;; If we have already translated TO to TO-ALT, FROM should
+	    ;; also be translated to TO-ALT.  But, this is only if TO
+	    ;; is a generic character or TO-ALT is not a generic
 	    ;; character.
 	    (let ((to-alt (aref table to)))
 	      (if (and to-alt
@@ -1012,8 +1024,8 @@ without changing their position code(s)."
 	    (if (> from-i 0)
 		(set-char-table-default table from to)
 	      (aset table from to))
-	    ;; If we have already unified some chars to FROM, they
-	    ;; should also be unified to TO.
+	    ;; If we have already translated some chars to FROM, they
+	    ;; should also be translated to TO.
 	    (let ((l (assq from revlist)))
 	      (if l
 		  (let ((ch (car l)))
@@ -1032,32 +1044,34 @@ without changing their position code(s)."
     ;; Return TABLE just created.
     table))
 
-(defun define-character-unification-table (symbol &rest args)
-  "define character unification table. This function call make-unification-table,
-store a returned table to character-unification-table-vector.
-And then set the table as SYMBOL's unification-table property,
-the index of the vector as SYMBOL's unification-table-id."
-  (let ((table (apply 'make-unification-table args))
-	(len (length character-unification-table-vector))
-	(id 0)
-	slot)
-    (or (symbolp symbol)
-	(signal 'wrong-type-argument symbol))
-    (put symbol 'unification-table table)
-    (while (and (< id len)
-		(if (consp (setq slot (aref character-unification-table-vector id)))
-		    (if (eq (car slot) symbol) nil t)
-		  (aset character-unification-table-vector id (cons symbol table))
-		  nil))
-      (setq id (1+ id)))
-    (if (= id len)
-	(progn
-	  (setq character-unification-table-vector
-		(vconcat character-unification-table-vector (make-vector len nil)))
-	  (aset character-unification-table-vector id (cons symbol table))))
-    (put symbol 'unification-table-id id)
-    id))
+(defun define-character-translation-table (symbol &rest args)
+  "Define SYMBOL as a name of character translation table makde by ARGS.
 
+See the documentation of the function `make-translation-table' for the
+meaning of ARGS.
+
+This function sets properties character-translation-table and
+character-translation-table-id of SYMBOL to the created table itself
+and identification number of the table respectively."
+  (let ((table (apply 'make-translation-table args))
+	(len (length character-translation-table-vector))
+	(id 0)
+	(done nil))
+    (put symbol 'character-translation-table table)
+    (while (not done)
+      (if (>= id len)
+	  (setq character-translation-table-vector
+		(vconcat character-translation-table-vector
+			 (make-vector len nil))))
+      (let ((slot (aref character-translation-table-vector id)))
+	(if (or (not slot)
+		(eq (car slot) symbol))
+	    (progn
+	      (aset character-translation-table-vector id (cons symbol table))
+	      (setq done t))))
+      (setq id (1+ id)))
+    (put symbol 'character-translation-table-id id)
+    id))
 
 ;;; Initialize some variables.
 
