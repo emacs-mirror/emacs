@@ -1,3 +1,59 @@
+2001-10-30  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/fill.el (sentence-end-double-space)
+	(sentence-end-without-period): Move to paragraphs.el.
+	(fill-indent-according-to-mode): Change default to t.
+	(fill-context-prefix): Simplify control-flow and use a more
+	sophisticated merge that unifies both previous checks.
+	(fill-single-word-nobreak-p, fill-french-nobreak-p): New funs.
+	(fill-nobreak-predicate): Make it into a defcustom'd hook.
+	(fill-nobreak-p): New fun.
+	(fill-region-as-paragraph): Use it.
+	Handle `fill-indent-according-to-mode' slightly differently.
+	(fill-individual-paragraphs-prefix): Simplify the control-flow.
+	(fill-individual-paragraphs-citation): Fix.
+
+	* textmodes/paragraphs.el (use-hard-newlines): Use define-minor-mode.
+	(paragraph-start): Change default to the `text-mode' value.
+	(sentence-end-double-space, sentence-end-without-period):
+	Move from fill.el.
+	(forward-paragraph): Use `parstart' and `parsep' for temp variables
+	rather than rebinding `paragraph-start' and `paragraph-separate'.
+
+	* indent.el (indent-line-function): Change default to indent-relative.
+	(tab-always-indent): Add an `always' setting.
+	(indent-according-to-mode): Handle `indent-relative' and
+	`indent-relative-maybe' specially.
+	(indent-for-tab-command): Rename `prefix-arg' to `arg'.
+	Handle the `always; case for `tab-always-indent'.
+	Don't call indent-according-to-mode for indent-relative' and
+	`indent-relative-maybe'.
+	(insert-tab): Rename `prefix-arg' to `arg'.
+	(indent-region): Indent the first line as well.
+	(indent-relative): Don't mark the buffer modified if the indentation
+	is unchanged.
+
+	* textmodes/text-mode.el (paragraph-indent-minor-mode):
+	Don't set paragraph-separate.  Set paragraph-start more carefully.
+	Set indent-line-function.
+	(paragraph-indent-text-mode): Use it and define-derived-mode.
+	(text-mode-map): Remove the \t binding.
+	(text-mode): Simplify now that the default is more favorable.
+
+2001-10-29  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/find-func.el (find-function-search-for-symbol):
+	If the regexp doesn't match, use a looser one.
+	(find-variable-noselect): Add `file' argument.
+
+	* pcvs.el (cvs-mode-commit-hook): New hook.
+	(cvs-mode-commit): Run it.
+
+	* log-edit.el (log-edit): Run hook after `log-edit-files'.
+
+	* emacs-lisp/edebug.el (delay-mode-hooks): Add edebug-spec.
+	(edebug-instrument-function): Use `find-function-noselect'.
+
 2001-10-29  Richard M. Stallman  <rms@gnu.org>
 
 	* term.el (term-if-emacs19): Macro deleted.
@@ -28,17 +84,17 @@
 2001-10-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* faces.el (invert-face): Check for 'unspecified, not for nil,
-	when testing whether face colors are not specified.  From
-	David.Kastrup@t-online.de (David Kastrup).
+	when testing whether face colors are not specified.
+	From David.Kastrup@t-online.de (David Kastrup).
 	(read-face-name): Doc fix.
 	(make-face-bold, make-face-unbold, make-face-italic)
-	(make-face-unitalic, make-face-bold-italic, invert-face): Remove
-	trailing blank from the prompt passed to read-face-name.
+	(make-face-unitalic, make-face-bold-italic, invert-face):
+	Remove trailing blank from the prompt passed to read-face-name.
 
 2001-10-29  Sam Steingold  <sds@gnu.org>
 
-	* emacs-lisp/bytecomp.el (byte-recompile-directory): Report
-	numbers of files skipped and failed too.
+	* emacs-lisp/bytecomp.el (byte-recompile-directory):
+	Report numbers of files skipped and failed too.
 	(byte-compile-file): Return 'no-byte-compile for skipped files.
 
 2001-10-29  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
@@ -61,8 +117,7 @@
 	* enriched.el (enriched-face-ans): Handle face attributes
 	of the form `(FACE1 FACE2 ...)'.
 
-	* dired-x.el (dired-omit-startup): Show ``Omit'' only in Dired
-	buffers.
+	* dired-x.el (dired-omit-startup): Show ``Omit'' only in Dired buffers.
 
 2001-10-29  Alex Schroeder  <kensanata@yahoo.com>
 

@@ -8,6 +8,16 @@ For older news, see the file ONEWS
 
 * Changes in Emacs 21.2
 
+** tab-always-indent can be set to `never' to make sure indent-for-tab-command
+always tabs rather than indents.
+
+** in fill, you can now customize fill-nobreak-predicate and two
+sample predicates are provided (fill-single-word-nobreak-p and
+fill-french-nobreak-p).
+
+** In texinfo-mode, if font-lock is used then updating one of the `foo's
+in `@foo ... @end foo' updates the other one on the fly.
+
 ** New user option `add-log-always-start-new-record'.
 When this option is enabled, M-x add-change-log-entry will always
 start a new record regardless of when the last record is.
@@ -25,7 +35,7 @@ instead of using default-major-mode.
 ** Byte compiler warning and error messages have been brought more
 in line with the output of other GNU tools.
 
-** Lisp-mode now uses font-lock-docstring-face for the docstrings.
+** Lisp-mode now uses font-lock-doc-face for the docstrings.
 
 ** perl-mode has a new variable `perl-indent-continued-arguments'.
 
@@ -87,6 +97,29 @@ SQL buffer.
 
 
 * Lisp Changes in Emacs 21.2
+
+** The default value of paragraph-start and indent-line-function has
+been changed to reflect the one used in text-mode rather than the one
+used in indented-text-mode.
+
+** New function `text-clone-create'.  Text clones are chunks of text
+that are kept identical by transparently propagating changes from one
+clone to the other.
+
+** font-lock can manage arbitrary text-properties beside `face'.
+*** the FACENAME returned in font-lock-keywords can be a list
+of the form (face FACE PROP1 VAL1 PROP@ VAL2 ...) so you can set
+other properties than `face'.
+*** font-lock-extra-managed-props can be set to make sure those extra
+properties are automatically cleaned up by font-lock.
+
+** The new function `run-mode-hooks' and the new macro `delay-mode-hooks'
+are used by define-derived-mode to make sure the mode hook for the
+parent mode is run at the end of the child mode.
+
+** `provide' and `featurep' now accept an optional second argument
+to test/provide subfeatures.  Also `provide' now checks `after-load-alist'
+and run any code associated with the provided feature.
 
 ** The variable `compilation-parse-errors-filename-function' can
 be used to transform filenames found in compilation output.

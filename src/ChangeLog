@@ -1,3 +1,16 @@
+2001-10-29  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xmenu.c: Include coding.h and charset.h.
+	(Fx_popup_menu): Use FRAME_PTR and FRAME_FONT and FRAME_LINE_HEIGHT.
+	(Fx_popup_dialog): Use FRAME_PTR and enum scroll_bar_part.
+	(single_submenu, xmenu_show): Use ENCODE_SYSTEM.
+	Explicitly set wv->help.  Use `TRUE' rather than `True'.
+	(menu_help_callback): Use empty_string.
+
+	* w32menu.c (Fx_popup_menu): Explicitly init f, xpos, and ypos.
+	(Fx_popup_dialog): Explicitly init f.
+	(w32_menu_display_help): Use empty_string.
+
 2001-10-29  Richard M. Stallman  <rms@gnu.org>
 
 	* fns.c (Frequire): Detect recursive try to require the same
