@@ -316,7 +316,7 @@ This variable is buffer-local."
 (defcustom comint-password-prompt-regexp
   "\\(\\([Oo]ld \\|[Nn]ew \\|Kerberos \\|'s \\|login \\|CVS \\|^\\)\
 [Pp]assword\\( (again)\\)?\\|pass phrase\\|Enter passphrase\\)\
-\\( for [^@ \t\n]+@[^@ \t\n]+\\)?:\\s *\\'"
+\\( for [^:]+\\)?:\\s *\\'"
   "*Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
   :type 'regexp
