@@ -842,6 +842,12 @@ STRING should be given if the last search was by `string-match' on STRING."
 	  (substring string (match-beginning num) (match-end num))
 	(buffer-substring (match-beginning num) (match-end num)))))
 
+(defun buffer-substring-no-properties (beg end)
+  "Return the text from BEG to END, without text properties, as a string."
+  (let ((string (buffer-substring beg end)))
+    (set-text-properties 0 (length string) nil string)
+    string))
+
 (defun shell-quote-argument (argument)
   "Quote an argument for passing as argument to an inferior shell."
   ;; Quote everything except POSIX filename characters.
