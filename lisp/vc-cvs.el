@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.8 2000/10/27 15:06:27 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.9 2000/11/16 13:38:03 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -472,7 +472,8 @@ Inappropriate for CVS"
   (vc-cvs-checkout file nil (vc-workfile-version file) file)
   ;; If "cvs edit" was used to make the file writable,
   ;; call "cvs unedit" now to undo that.
-  (if (not (eq (vc-cvs-checkout-model file) 'implicit))
+  (if (and (not (eq (vc-cvs-checkout-model file) 'implicit))
+           vc-cvs-use-edit)
       (vc-do-command nil 0 "cvs" file "unedit")))
 
 (defun vc-cvs-diff (file &optional oldvers newvers)
@@ -607,7 +608,15 @@ REV is the revision to check out into WORKFILE."
 	  ;; the file in the right place.
 	  (setq default-directory (file-name-directory filename))
 	  (if workfile
-	      (let ((failed t))
+	      (let ((failed t) 
+                    (backup-name (if (string= filename workfile)
+                                     (car (find-backup-file-name filename)))))
+                (when backup-name
+                  (copy-file filename backup-name 
+                             'ok-if-already-exists 'keep-date)
+                  (unless (file-writable-p filename)
+                    (set-file-modes filename
+                                    (logior (file-modes filename) 128))))
 		(unwind-protect
 		    (progn
                       (let ((coding-system-for-read 'no-conversion)
@@ -622,7 +631,15 @@ REV is the revision to check out into WORKFILE."
                                  "-p"
                                  switches)))
 		      (setq failed nil))
-		  (and failed (file-exists-p filename) (delete-file filename))))
+		  (if failed 
+                    (if backup-name
+                        (rename-file backup-name filename 
+                                     'ok-if-already-exists)
+                      (if (file-exists-p filename)
+                          (delete-file filename)))
+                    (and backup-name
+                         (not vc-make-backup-files)
+                         (delete-file backup-name)))))
 	    (if (and (file-exists-p file) (not rev))
 		;; If no revision was specified, just make the file writable
 		;; if necessary (using `cvs-edit' if requested).
