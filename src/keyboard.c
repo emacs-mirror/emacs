@@ -1464,6 +1464,7 @@ make_ctrl_char (c)
 
 Lisp_Object print_help ();
 static Lisp_Object kbd_buffer_get_event ();
+static void record_char ();
 
 /* read a character from the keyboard; call the redisplay if needed */
 /* commandflag 0 means do not do auto-saving, but do do redisplay.
@@ -1494,6 +1495,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   int count;
   jmp_buf save_jump;
   int key_already_recorded = 0;
+  Lisp_Object also_record;
+  also_record = Qnil;
 
   if (CONSP (Vunread_command_events))
     {
@@ -1773,6 +1776,95 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	XSETINT (c, XSTRING (Vkeyboard_translate_table)->data[XFASTINT (c)]);
     }
 
+  /* If this event is a mouse click in the menu bar,
+     return just menu-bar for now.  Modify the mouse click event
+     so we won't do this twice, then queue it up.  */
+  if (EVENT_HAS_PARAMETERS (c)
+      && CONSP (XCONS (c)->cdr)
+      && CONSP (EVENT_START (c))
+      && CONSP (XCONS (EVENT_START (c))->cdr))
+    {
+      Lisp_Object posn;
+
+      posn = POSN_BUFFER_POSN (EVENT_START (c));
+      /* Handle menu-bar events:
+	 insert the dummy prefix event `menu-bar'.  */
+      if (EQ (posn, Qmenu_bar))
+	{
+	  /* Change menu-bar to (menu-bar) as the event "position".  */
+	  POSN_BUFFER_POSN (EVENT_START (c)) = Fcons (posn, Qnil);
+
+	  also_record = c;
+	  Vunread_command_events = Fcons (c, Vunread_command_events);
+	  c = posn;
+	}
+    }
+
+  record_char (c);
+  if (! NILP (also_record))
+    record_char (also_record);
+
+ from_macro:
+ reread_first:
+
+  /* Don't echo mouse motion events.  */
+  if (! (EVENT_HAS_PARAMETERS (c)
+	 && EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_movement)))
+    {
+      echo_char (c);
+      if (! NILP (also_record))
+	echo_char (also_record);
+    }
+
+  /* Record this character as part of the current key.  */
+  add_command_key (c);
+  if (! NILP (also_record))
+    add_command_key (also_record);
+
+  /* Re-reading in the middle of a command */
+ reread:
+  last_input_char = c;
+  num_input_chars++;
+
+  /* Process the help character specially if enabled */
+  if (EQ (c, Vhelp_char) && !NILP (Vhelp_form))
+    {
+      Lisp_Object tem0;
+      count = specpdl_ptr - specpdl;
+
+      record_unwind_protect (Fset_window_configuration,
+			     Fcurrent_window_configuration (Qnil));
+
+      tem0 = Feval (Vhelp_form);
+      if (STRINGP (tem0))
+	internal_with_output_to_temp_buffer ("*Help*", print_help, tem0);
+
+      cancel_echoing ();
+      do
+	c = read_char (0, 0, 0, Qnil, 0);
+      while (BUFFERP (c));
+      /* Remove the help from the frame */
+      unbind_to (count, Qnil);
+      prepare_menu_bars ();
+      redisplay ();
+      if (EQ (c, make_number (040)))
+	{
+	  cancel_echoing ();
+	  do
+	    c = read_char (0, 0, 0, Qnil, 0);
+	  while (BUFFERP (c));
+	}
+    }
+
+  return c;
+}
+
+/* Record the input event C in various ways.  */
+
+static void
+record_char (c)
+     Lisp_Object c;
+{
   total_keys++;
   XVECTOR (recent_keys)->contents[recent_keys_index] = c;
   if (++recent_keys_index >= NUM_RECENT_KEYS)
@@ -1813,54 +1905,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   store_kbd_macro_char (c);
 
   num_nonmacro_input_chars++;
-
- from_macro:
- reread_first:
-
-  /* Don't echo mouse motion events.  */
-  if (! (EVENT_HAS_PARAMETERS (c)
-	 && EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_movement)))
-    echo_char (c);
-
-  /* Record this character as part of the current key.  */
-  add_command_key (c);
-
-  /* Re-reading in the middle of a command */
- reread:
-  last_input_char = c;
-  num_input_chars++;
-
-  /* Process the help character specially if enabled */
-  if (EQ (c, Vhelp_char) && !NILP (Vhelp_form))
-    {
-      Lisp_Object tem0;
-      count = specpdl_ptr - specpdl;
-
-      record_unwind_protect (Fset_window_configuration,
-			     Fcurrent_window_configuration (Qnil));
-
-      tem0 = Feval (Vhelp_form);
-      if (STRINGP (tem0))
-	internal_with_output_to_temp_buffer ("*Help*", print_help, tem0);
-
-      cancel_echoing ();
-      do
-	c = read_char (0, 0, 0, Qnil, 0);
-      while (BUFFERP (c));
-      /* Remove the help from the frame */
-      unbind_to (count, Qnil);
-      prepare_menu_bars ();
-      redisplay ();
-      if (EQ (c, make_number (040)))
-	{
-	  cancel_echoing ();
-	  do
-	    c = read_char (0, 0, 0, Qnil, 0);
-	  while (BUFFERP (c));
-	}
-    }
-
-  return c;
 }
 
 Lisp_Object
