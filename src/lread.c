@@ -87,6 +87,9 @@ Lisp_Object Vcurrent_load_list;
 /* Name of file actually being read by `load'.  */
 Lisp_Object Vload_file_name;
 
+/* Function to use for reading, in `load' and friends.  */
+Lisp_Object Vload_read_function;
+
 /* List of descriptors now open for Fload.  */
 static Lisp_Object load_descriptor_list;
 
@@ -743,7 +746,10 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag)
       else
 	{
 	  UNREAD (c);
-	  val = read0 (readcharfun);
+	  if (NILP (Vload_read_function))
+	    val = read0 (readcharfun);
+	  else
+	    val = call1 (Vload_read_function, readcharfun);
 	}
 
       val = (*evalfun) (val);
@@ -2082,6 +2088,11 @@ or variables, and cons cells `(provide . FEATURE)' and `(require . FEATURE)'.");
   DEFVAR_LISP ("current-load-list", &Vcurrent_load_list,
     "Used for internal purposes by `load'.");
   Vcurrent_load_list = Qnil;
+
+  DEFVAR_LISP ("load-read-function", &Vload_read_function,
+    "Function used by `load' and `eval-region' for reading expressions.\n\
+The default is nil, which means use the function `read'.");
+  Vload_read_function = Qnil;
 
   load_descriptor_list = Qnil;
   staticpro (&load_descriptor_list);
