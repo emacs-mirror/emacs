@@ -617,10 +617,19 @@ unshow_buffer (w)
   if (XBUFFER (buf) != XMARKER (w->pointm)->buffer)
     abort ();
 
+#if 0
   if (w == XWINDOW (selected_window)
       || ! EQ (buf, XWINDOW (selected_window)->buffer))
     /* Do this except when the selected window's buffer
        is being removed from some other window.  */
+#endif
+    /* last_window_start records the start position that this buffer
+       had in the last window to be disconnected from it.
+       Now that this statement is unconditional,
+       it is possible for the buffer to be displayed in the
+       selected window, while last_window_start reflects another
+       window which was recently showing the same buffer.
+       Some people might say that might be a good thing.  Let's see.  */
     XBUFFER (buf)->last_window_start = marker_position (w->start);
 
   /* Point in the selected window's buffer
