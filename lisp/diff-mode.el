@@ -127,7 +127,8 @@ when editing big diffs)."
     ("r" . diff-restrict-view)
     ("R" . diff-reverse-direction)
     ("U" . diff-context->unified)
-    ("C" . diff-unified->context))
+    ("C" . diff-unified->context)
+    ("q" . quit-window))
   "Basic keymap for `diff-mode', bound to various prefix keys.")
 
 (easy-mmode-defmap diff-mode-map
