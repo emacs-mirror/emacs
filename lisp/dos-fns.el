@@ -28,21 +28,6 @@
 
 ;;; Code:
 
-;;; Add %t: into the mode line format just after the open-paren.
-(let ((tail (member "   %[(" mode-line-format)))
-  (setcdr tail (cons (purecopy "%t:")
-		     (cdr tail))))
-
-;; Use ";" instead of ":" as a path separator (from files.el).
-(setq path-separator ";")
-
-;; Set the null device (for compile.el).
-(setq grep-null-device "NUL")
-
-;; Set the grep regexp to match entries with drive letters.
-(setq grep-regexp-alist
-  '(("^\\(\\([a-zA-Z]:\\)?[^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 3)))
-
 ;; This overrides a trivial definition in files.el.
 (defun convert-standard-filename (filename)
   "Convert a standard file's name to something suitable for the current OS.
@@ -92,63 +77,6 @@ with a definition that really does change some file names."
       (if (equal lastchar ?~)
 	  (aset string (1- (length string)) lastchar))
       (concat dir string))))
-
-(defvar file-name-buffer-file-type-alist
-  '(
-    ("[:/].*config.sys$" . nil)		; config.sys text
-    ("\\.elc$" . t)			; emacs stuff
-    ("\\.\\(obj\\|exe\\|com\\|lib\\|sys\\|chk\\|out\\|bin\\|ico\\|pif\\)$" . t)
-					; MS-Dos stuff
-    ("\\.\\(arc\\|zip\\|pak\\|lzh\\|zoo\\)$" . t)
-					; Packers
-    ("\\.\\(a\\|o\\|tar\\|z\\|gz\\|taz\\)$" . t)
-					; Unix stuff
-    ("\\.tp[ulpw]$" . t)
-					; Borland Pascal stuff
-    ("[:/]tags$" . t)
-					; Emacs TAGS file
-    )
-  "*Alist for distinguishing text files from binary files.
-Each element has the form (REGEXP . TYPE), where REGEXP is matched
-against the file name, and TYPE is nil for text, t for binary.")
-
-(defun find-buffer-file-type (filename)
-  (let ((alist file-name-buffer-file-type-alist)
-	(found nil)
-	(code nil))
-    (let ((case-fold-search t))
-      (setq filename (file-name-sans-versions filename))
-      (while (and (not found) alist)
-	(if (string-match (car (car alist)) filename)
-	    (setq code (cdr (car alist))
-		  found t))
-	(setq alist (cdr alist))))
-    (if found
-	(cond((memq code '(nil t)) code)
-	     ((and (symbolp code) (fboundp code))
-	      (funcall code filename)))
-      default-buffer-file-type)))
-
-(defun find-file-binary (filename) 
-  "Visit file FILENAME and treat it as binary."
-  (interactive "FFind file binary: ")
-  (let ((file-name-buffer-file-type-alist '(("" . t))))
-    (find-file filename)))
-
-(defun find-file-text (filename) 
-  "Visit file FILENAME and treat it as a text file."
-  (interactive "FFind file text: ")
-  (let ((file-name-buffer-file-type-alist '(("" . nil))))
-    (find-file filename)))
-
-(defun find-file-not-found-set-buffer-file-type ()
-  (save-excursion
-    (set-buffer (current-buffer))
-    (setq buffer-file-type (find-buffer-file-type (buffer-file-name))))
-  nil)
-
-;;; To set the default file type on new files.
-(add-hook 'find-file-not-found-hooks 'find-file-not-found-set-buffer-file-type)
 
 (defvar msdos-shells '("command.com" "4dos.com" "ndos.com")
   "*List of shells that use `/c' instead of `-c' and a backslashed command.")
