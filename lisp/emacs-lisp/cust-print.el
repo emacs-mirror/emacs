@@ -178,7 +178,7 @@ print-level, but not for vectors."
 ;; Custom printers
 ;;==========================================================
 
-(defconst custom-printers nil
+(defvar custom-printers nil
   ;; e.g. '((symbolp . pkg::print-symbol))
   "An alist for custom printing of any type.
 Pairs are of the form (PREDICATE . PRINTER).  If PREDICATE is true

@@ -321,11 +321,13 @@
 ;;   vc-BACKEND-diff.  The default implementation does an explicit tree
 ;;   walk, calling vc-BACKEND-diff for each individual file.
 ;;
-;; - annotate-command (file buf rev)
+;; - annotate-command (file buf &optional rev)
 ;;
-;;   If this function is provided, it should produce an annotated version
-;;   of FILE in BUF, relative to version REV.  This is currently only
-;;   implemented for CVS, using the `cvs annotate' command.
+;;   If this function is provided, it should produce an annotated display
+;;   of FILE in BUF, relative to version REV.  Annotation means each line
+;;   of FILE displayed is prefixed with version information associated with
+;;   its addition (deleted lines leave no history) and that the text of the
+;;   file is fontified according to age.
 ;;
 ;; - annotate-time ()
 ;;
@@ -645,7 +647,6 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
   :type '(repeat number)
   :group 'vc)
 
-;; vc-annotate functionality (CVS only).
 (defvar vc-annotate-mode-map
   (let ((m (make-sparse-keymap)))
     (define-key m [menu-bar] (make-sparse-keymap "VC-Annotate"))
@@ -1114,12 +1115,6 @@ NOT-URGENT means it is ok to continue if the user says not to save."
 This default implementation always returns non-nil, which means that
 editing non-current versions is not supported by default."
   t)
-
-(defun vc-recompute-state (file)
-  "Force a recomputation of the version control state of FILE.
-The state is computed using the exact, and possibly expensive
-function `vc-BACKEND-state', not the heuristic."
-  (vc-file-setprop file 'vc-state (vc-call state file)))
 
 (defun vc-next-action-on-file (file verbose &optional comment)
   "Do The Right Thing for a given FILE under version control.

@@ -1,5 +1,5 @@
 ;;; gnus-registry.el --- article registry for Gnus
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
@@ -128,7 +128,7 @@ way."
   "Maximum number of entries in the registry, nil for unlimited."
   :group 'gnus-registry
   :type '(radio (const :format "Unlimited " nil)
-		(integer :format "Maximum number: %v\n" :size 0)))
+		(integer :format "Maximum number: %v")))
 
 ;; Function(s) missing in Emacs 20
 (when (memq nil (mapcar 'fboundp '(puthash)))

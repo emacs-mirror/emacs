@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,16 +27,19 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-sel () nil)
-
 
 ;;; Selection commands.
 
 (defvar calc-keep-selection t)
+
+(defvar calc-selection-cache-entry nil)
+(defvar calc-selection-cache-num)
+(defvar calc-selection-cache-comp)
+(defvar calc-selection-cache-offset)
+(defvar calc-selection-true-num)
 
 (defun calc-select-here (num &optional once keep)
   (interactive "P")
@@ -141,26 +143,32 @@
 	 (calc-change-current-selection sel)
        (error "%d is not a valid sub-formula index" num)))))
 
-(defun calc-find-nth-part (expr num)
+;; The variables calc-fnp-op and calc-fnp-num are local to 
+;; calc-find-nth-part (and calc-select-previous) but used by 
+;; calc-find-nth-part-rec, which is called by them.
+(defvar calc-fnp-op)
+(defvar calc-fnp-num)
+
+(defun calc-find-nth-part (expr calc-fnp-num)
   (if (and calc-assoc-selections
 	   (assq (car-safe expr) calc-assoc-ops))
-      (let (op)
+      (let (calc-fnp-op)
 	(calc-find-nth-part-rec expr))
     (if (eq (car-safe expr) 'intv)
-	(and (>= num 1) (<= num 2) (nth (1+ num) expr))
-      (and (not (Math-primp expr)) (>= num 1) (< num (length expr))
-	   (nth num expr)))))
+	(and (>= calc-fnp-num 1) (<= calc-fnp-num 2) (nth (1+ calc-fnp-num) expr))
+      (and (not (Math-primp expr)) (>= calc-fnp-num 1) (< calc-fnp-num (length expr))
+	   (nth calc-fnp-num expr)))))
 
 (defun calc-find-nth-part-rec (expr)   ; uses num, op
-  (or (if (and (setq op (assq (car-safe (nth 1 expr)) calc-assoc-ops))
-	       (memq (car expr) (nth 1 op)))
+  (or (if (and (setq calc-fnp-op (assq (car-safe (nth 1 expr)) calc-assoc-ops))
+	       (memq (car expr) (nth 1 calc-fnp-op)))
 	  (calc-find-nth-part-rec (nth 1 expr))
-	(and (= (setq num (1- num)) 0)
+	(and (= (setq calc-fnp-num (1- calc-fnp-num)) 0)
 	     (nth 1 expr)))
-      (if (and (setq op (assq (car-safe (nth 2 expr)) calc-assoc-ops))
-	       (memq (car expr) (nth 2 op)))
+      (if (and (setq calc-fnp-op (assq (car-safe (nth 2 expr)) calc-assoc-ops))
+	       (memq (car expr) (nth 2 calc-fnp-op)))
 	  (calc-find-nth-part-rec (nth 2 expr))
-	(and (= (setq num (1- num)) 0)
+	(and (= (setq calc-fnp-num (1- calc-fnp-num)) 0)
 	     (nth 2 expr)))))
 
 (defun calc-select-next (num)
@@ -239,9 +247,9 @@
 	     (calc-change-current-selection (car entry))
 	   (let ((len (if (and calc-assoc-selections
 			       (assq (car (car entry)) calc-assoc-ops))
-			  (let (op (num 0))
+			  (let (calc-fnp-op (calc-fnp-num 0))
 			    (calc-find-nth-part-rec (car entry))
-			    (- 1 num))
+			    (- 1 calc-fnp-num))
 			(length (car entry)))))
 	     (calc-select-part (- len num)))))))))
 
@@ -326,6 +334,11 @@
 		"Displaying only selected part of formulas"
 	      "Displaying all but selected part of formulas"))))
 
+;; The variables calc-final-point-line and calc-final-point-column
+;; are declared in calc.el, and are used throughout.
+(defvar calc-final-point-line)
+(defvar calc-final-point-column)
+
 (defun calc-preserve-point ()
   (or (looking-at "\\.\n+\\'")
       (progn
@@ -357,7 +370,6 @@
 		"Selection treats a+b+c as a sum of three terms"
 	      "Selection treats a+b+c as (a+b)+c"))))
 
-(defvar calc-selection-cache-entry nil)
 (defun calc-prepare-selection (&optional num)
   (or num (setq num (calc-locate-cursor-element (point))))
   (setq calc-selection-true-num num
@@ -399,6 +411,10 @@
 		  (equal (car x) '(float 0 0)))
 	      (setcar x (list 'cplx (car x) 0))
 	    (calc-encase-atoms-rec (car x)))))))
+
+;; The variable math-comp-sel-tag is local to calc-find-selected-part,
+;; but is used by math-comp-sel-flat-term and math-comp-add-string-sel
+;; in calccomp.el, which are called (indirectly) by calc-find-selected-part.
 
 (defun calc-find-selected-part ()
   (let* ((math-comp-sel-hpos (- (current-column) calc-selection-cache-offset))
@@ -456,12 +472,18 @@
 	     (setq top (cdr top)))
 	   sel))))
 
-(defun calc-replace-sub-formula (expr old new)
-  (setq new (calc-encase-atoms new))
+;; The variables calc-rsf-old and calc-rsf-new are local to
+;; calc-replace-sub-formula, but used by calc-replace-sub-formula-rec,
+;; which is called by calc-replace-sub-formula.
+(defvar calc-rsf-old)
+(defvar calc-rsf-new)
+
+(defun calc-replace-sub-formula (expr calc-rsf-old calc-rsf-new)
+  (setq calc-rsf-new (calc-encase-atoms calc-rsf-new))
   (calc-replace-sub-formula-rec expr))
 
 (defun calc-replace-sub-formula-rec (expr)
-  (cond ((eq expr old) new)
+  (cond ((eq expr calc-rsf-old) calc-rsf-new)
 	((Math-primp expr) expr)
 	(t
 	 (cons (car expr)
@@ -581,10 +603,14 @@
 		      (calc-top-list m (- n m -1) 'sel))))
     (calc-pop-push-list n vals 1 sels)))
 
+;; The variable calc-sel-reselect is local to several functions
+;; which call calc-auto-selection.
+(defvar calc-sel-reselect)
+
 (defun calc-auto-selection (entry)
   (or (nth 2 entry)
       (progn
-	(and (boundp 'reselect) (setq reselect nil))
+	(setq calc-sel-reselect nil)
 	(calc-prepare-selection)
 	(calc-grow-assoc-formula (car entry) (calc-find-selected-part)))))
 
@@ -611,7 +637,7 @@
   (calc-wrapper
    (calc-preserve-point)
    (let* ((num (max 1 (calc-locate-cursor-element (point))))
-	  (reselect calc-keep-selection)
+	  (calc-sel-reselect calc-keep-selection)
 	  (entry (calc-top num 'entry))
 	  (expr (car entry))
 	  (sel (or (calc-auto-selection entry) expr))
@@ -626,7 +652,7 @@
 					 (list (calc-replace-sub-formula
 						expr sel alg))
 					 num
-					 (list (and reselect alg))))))
+					 (list (and calc-sel-reselect alg))))))
      (calc-handle-whys))))
 
 (defun calc-edit-selection ()
@@ -634,7 +660,7 @@
   (calc-wrapper
    (calc-preserve-point)
    (let* ((num (max 1 (calc-locate-cursor-element (point))))
-	  (reselect calc-keep-selection)
+	  (calc-sel-reselect calc-keep-selection)
 	  (entry (calc-top num 'entry))
 	  (expr (car entry))
 	  (sel (or (calc-auto-selection entry) expr))
@@ -642,9 +668,15 @@
      (let ((str (math-showing-full-precision
 		 (math-format-nice-expr sel (frame-width)))))
        (calc-edit-mode (list 'calc-finish-selection-edit
-			     num (list 'quote sel) reselect))
+			     num (list 'quote sel) calc-sel-reselect))
        (insert str "\n"))))
   (calc-show-edit-buffer))
+
+(defvar calc-original-buffer)
+
+;; The variable calc-edit-disp-trail is local to calc-edit-finish,
+;; in calc-yank.el.
+(defvar calc-edit-disp-trail)
 
 (defun calc-finish-selection-edit (num sel reselect)
   (let ((buf (current-buffer))
@@ -659,7 +691,7 @@
 	    (error (nth 2 val))))
       (calc-wrapper
        (calc-preserve-point)
-       (if disp-trail
+       (if calc-edit-disp-trail
 	   (calc-trail-display 1 t))
        (setq val (calc-encase-atoms (calc-normalize val)))
        (let ((expr (calc-top num 'full)))
@@ -677,7 +709,7 @@
   (calc-slow-wrapper
    (calc-preserve-point)
    (let* ((num (max 1 (calc-locate-cursor-element (point))))
-	  (reselect calc-keep-selection)
+	  (calc-sel-reselect calc-keep-selection)
 	  (entry (calc-top num 'entry))
 	  (sel (or (calc-auto-selection entry) (car entry))))
      (calc-with-default-simplification
@@ -688,7 +720,7 @@
 				     (list (calc-replace-sub-formula
 					    (car entry) sel val))
 				     num
-				     (list (and reselect val))))))
+				     (list (and calc-sel-reselect val))))))
      (calc-handle-whys))))
 
 (defun calc-sel-expand-formula (arg)
@@ -696,7 +728,7 @@
   (calc-slow-wrapper
    (calc-preserve-point)
    (let* ((num (max 1 (calc-locate-cursor-element (point))))
-	  (reselect calc-keep-selection)
+	  (calc-sel-reselect calc-keep-selection)
 	  (entry (calc-top num 'entry))
 	  (sel (or (calc-auto-selection entry) (car entry))))
      (calc-with-default-simplification
@@ -713,7 +745,7 @@
 				     (list (calc-replace-sub-formula
 					    (car entry) sel val))
 				     num
-				     (list (and reselect val))))))
+				     (list (and calc-sel-reselect val))))))
      (calc-handle-whys))))
 
 (defun calc-sel-mult-both-sides (no-simp &optional divide)
@@ -721,7 +753,7 @@
   (calc-wrapper
    (calc-preserve-point)
    (let* ((num (max 1 (calc-locate-cursor-element (point))))
-	  (reselect calc-keep-selection)
+	  (calc-sel-reselect calc-keep-selection)
 	  (entry (calc-top num 'entry))
 	  (expr (car entry))
 	  (sel (or (calc-auto-selection entry) expr))
@@ -774,7 +806,7 @@
 				       (list (calc-replace-sub-formula
 					      expr sel alg))
 				       num
-				       (list (and reselect alg)))))
+				       (list (and calc-sel-reselect alg)))))
      (calc-handle-whys))))
 
 (defun calc-sel-div-both-sides (no-simp)
@@ -786,7 +818,7 @@
   (calc-wrapper
    (calc-preserve-point)
    (let* ((num (max 1 (calc-locate-cursor-element (point))))
-	  (reselect calc-keep-selection)
+	  (calc-sel-reselect calc-keep-selection)
 	  (entry (calc-top num 'entry))
 	  (expr (car entry))
 	  (sel (or (calc-auto-selection entry) expr))
@@ -818,12 +850,14 @@
 				       (list (calc-replace-sub-formula
 					      expr sel alg))
 				       num
-				       (list (and reselect alg)))))
+				       (list (and calc-sel-reselect alg)))))
      (calc-handle-whys))))
 
 (defun calc-sel-sub-both-sides (no-simp)
   (interactive "P")
   (calc-sel-add-both-sides no-simp t))
+
+(provide 'calc-sel)
 
 ;;; arch-tag: e5169792-777d-428f-bff5-acca66813fa2
 ;;; calc-sel.el ends here

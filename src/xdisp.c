@@ -342,6 +342,11 @@ Lisp_Object Vvoid_text_area_pointer;
 
 Lisp_Object Qtrailing_whitespace;
 
+/* Name and number of the face used to highlight escape glyphs.  */
+
+Lisp_Object Qescape_glyph;
+int escape_glyph_face;
+
 /* The symbol `image' which is the car of the lists used to represent
    images in Lisp.  */
 
@@ -807,7 +812,7 @@ static struct glyph_slice null_glyph_slice = { 0, 0, 0, 0 };
 
 /* Function prototypes.  */
 
-static void setup_for_ellipsis P_ ((struct it *));
+static void setup_for_ellipsis P_ ((struct it *, int));
 static void mark_window_display_accurate_1 P_ ((struct window *, int));
 static int single_display_prop_string_p P_ ((Lisp_Object, Lisp_Object));
 static int display_prop_string_p P_ ((Lisp_Object, Lisp_Object));
@@ -3227,7 +3232,7 @@ handle_invisible_prop (it)
 	      it->stack[it->sp - 1].display_ellipsis_p = display_ellipsis_p;
 	    }
 	  else if (display_ellipsis_p)
-	    setup_for_ellipsis (it);
+	    setup_for_ellipsis (it, 0);
 	}
     }
 
@@ -3235,14 +3240,17 @@ handle_invisible_prop (it)
 }
 
 
-/* Make iterator IT return `...' next.  */
+/* Make iterator IT return `...' next.
+   Replaces LEN characters from buffer.  */
 
 static void
-setup_for_ellipsis (it)
+setup_for_ellipsis (it, len)
      struct it *it;
+     int len;
 {
-  if (it->dp
-      && VECTORP (DISP_INVIS_VECTOR (it->dp)))
+  /* Use the display table definition for `...'.  Invalid glyphs
+     will be handled by the method returning elements from dpvec.  */
+  if (it->dp && VECTORP (DISP_INVIS_VECTOR (it->dp)))
     {
       struct Lisp_Vector *v = XVECTOR (DISP_INVIS_VECTOR (it->dp));
       it->dpvec = v->contents;
@@ -3255,12 +3263,12 @@ setup_for_ellipsis (it)
       it->dpend = default_invis_vector + 3;
     }
 
-  /* The ellipsis display does not replace the display of the
-     character at the new position.  Indicate this by setting
-     IT->dpvec_char_len to zero.  */
-  it->dpvec_char_len = 0;
-
+  it->dpvec_char_len = len;
   it->current.dpvec_index = 0;
+
+  /* Remember the current face id in case glyphs specify faces.
+     IT's face is restored in set_iterator_to_next.  */
+  it->saved_face_id = it->face_id;
   it->method = next_element_from_display_vector;
 }
 
@@ -3575,7 +3583,7 @@ handle_single_display_prop (it, prop, object, position,
 	      || EQ (XCAR (prop), Qright_fringe))
 	  && CONSP (XCDR (prop)))
 	{
-	  unsigned face_id = DEFAULT_FACE_ID;
+	  int face_id = DEFAULT_FACE_ID;
 	  int fringe_bitmap;
 
 	  /* Save current settings of IT so that we can restore them
@@ -3594,10 +3602,9 @@ handle_single_display_prop (it, prop, object, position,
 	  if (CONSP (XCDR (XCDR (prop))))
 	    {
 	      Lisp_Object face_name = XCAR (XCDR (XCDR (prop)));
-
-	      face_id = lookup_named_face (it->f, face_name, 'A');
-	      if (face_id < 0)
-		return 0;
+	      int face_id2 = lookup_named_face (it->f, face_name, 'A', 0);
+	      if (face_id2 >= 0)
+		face_id = face_id2;
 	    }
 
 	  push_it (it);
@@ -4049,7 +4056,7 @@ next_overlay_string (it)
       /* If we have to display `...' for invisible text, set
 	 the iterator up for that.  */
       if (display_ellipsis_p)
-	setup_for_ellipsis (it);
+	setup_for_ellipsis (it, 0);
     }
   else
     {
@@ -4841,7 +4848,10 @@ get_next_display_element (it)
      we hit the end of what we iterate over.  Performance note: the
      function pointer `method' used here turns out to be faster than
      using a sequence of if-statements.  */
-  int success_p = (*it->method) (it);
+  int success_p;
+
+ get_next:
+  success_p = (*it->method) (it);
 
   if (it->what == IT_CHARACTER)
     {
@@ -4873,14 +4883,14 @@ get_next_display_element (it)
 		  it->dpvec = v->contents;
 		  it->dpend = v->contents + v->size;
 		  it->current.dpvec_index = 0;
+		  it->saved_face_id = it->face_id;
 		  it->method = next_element_from_display_vector;
-		  success_p = get_next_display_element (it);
 		}
 	      else
 		{
 		  set_iterator_to_next (it, 0);
-		  success_p = get_next_display_element (it);
 		}
+	      goto get_next;
 	    }
 
 	  /* Translate control characters into `\003' or `^C' form.
@@ -4916,6 +4926,22 @@ get_next_display_element (it)
 		 IT->ctl_chars with glyphs for what we have to
 		 display.  Then, set IT->dpvec to these glyphs.  */
 	      GLYPH g;
+	      int ctl_len;
+	      int face_id = escape_glyph_face;
+
+	      /* Find the face id if `escape-glyph' unless we recently did.  */
+	      if (face_id < 0)
+		{
+		  Lisp_Object tem = Fget (Qescape_glyph, Qface);
+		  if (INTEGERP (tem))
+		    face_id = XINT (tem);
+		  else
+		    face_id = 0;
+		  /* If there's overflow, use 0 instead.  */
+		  if (FAST_GLYPH_FACE (FAST_MAKE_GLYPH (0, face_id)) != face_id)
+		    face_id = 0;
+		  escape_glyph_face = face_id;
+		}
 
 	      if (it->c < 128 && it->ctl_arrow_p)
 		{
@@ -4925,19 +4951,12 @@ get_next_display_element (it)
 		      && GLYPH_CHAR_VALID_P (XINT (DISP_CTRL_GLYPH (it->dp))))
 		    g = XINT (DISP_CTRL_GLYPH (it->dp));
 		  else
-		    g = FAST_MAKE_GLYPH ('^', 0);
+		    g = FAST_MAKE_GLYPH ('^', face_id);
 		  XSETINT (it->ctl_chars[0], g);
 
-		  g = FAST_MAKE_GLYPH (it->c ^ 0100, 0);
+		  g = FAST_MAKE_GLYPH (it->c ^ 0100, face_id);
 		  XSETINT (it->ctl_chars[1], g);
-
-		  /* Set up IT->dpvec and return first character from it.  */
-		  it->dpvec_char_len = it->len;
-		  it->dpvec = it->ctl_chars;
-		  it->dpend = it->dpvec + 2;
-		  it->current.dpvec_index = 0;
-		  it->method = next_element_from_display_vector;
-		  get_next_display_element (it);
+		  ctl_len = 2;
 		}
 	      else
 		{
@@ -4952,7 +4971,7 @@ get_next_display_element (it)
 		      && GLYPH_CHAR_VALID_P (XFASTINT (DISP_ESCAPE_GLYPH (it->dp))))
 		    escape_glyph = XFASTINT (DISP_ESCAPE_GLYPH (it->dp));
 		  else
-		    escape_glyph = FAST_MAKE_GLYPH ('\\', 0);
+		    escape_glyph = FAST_MAKE_GLYPH ('\\', face_id);
 
 		  if (SINGLE_BYTE_CHAR_P (it->c))
 		    str[0] = it->c, len = 1;
@@ -4979,23 +4998,27 @@ get_next_display_element (it)
 		      XSETINT (it->ctl_chars[i * 4], escape_glyph);
 		      /* Insert three more glyphs into IT->ctl_chars for
 			 the octal display of the character.  */
-		      g = FAST_MAKE_GLYPH (((str[i] >> 6) & 7) + '0', 0);
+		      g = FAST_MAKE_GLYPH (((str[i] >> 6) & 7) + '0',
+					   face_id);
 		      XSETINT (it->ctl_chars[i * 4 + 1], g);
-		      g = FAST_MAKE_GLYPH (((str[i] >> 3) & 7) + '0', 0);
+		      g = FAST_MAKE_GLYPH (((str[i] >> 3) & 7) + '0',
+					   face_id);
 		      XSETINT (it->ctl_chars[i * 4 + 2], g);
-		      g = FAST_MAKE_GLYPH ((str[i] & 7) + '0', 0);
+		      g = FAST_MAKE_GLYPH ((str[i] & 7) + '0',
+					   face_id);
 		      XSETINT (it->ctl_chars[i * 4 + 3], g);
 		    }
-
-		  /* Set up IT->dpvec and return the first character
-                     from it.  */
-		  it->dpvec_char_len = it->len;
-		  it->dpvec = it->ctl_chars;
-		  it->dpend = it->dpvec + len * 4;
-		  it->current.dpvec_index = 0;
-		  it->method = next_element_from_display_vector;
-		  get_next_display_element (it);
+		  ctl_len = len * 4;
 		}
+
+	      /* Set up IT->dpvec and return first character from it.  */
+	      it->dpvec_char_len = it->len;
+	      it->dpvec = it->ctl_chars;
+	      it->dpend = it->dpvec + ctl_len;
+	      it->current.dpvec_index = 0;
+	      it->saved_face_id = it->face_id;
+	      it->method = next_element_from_display_vector;
+	      goto get_next;
 	    }
 	}
 
@@ -5185,11 +5208,14 @@ set_iterator_to_next (it, reseat_p)
 	       && IT_STRING_CHARPOS (*it) >= 0));
 }
 
-
 /* Load IT's display element fields with information about the next
    display element which comes from a display table entry or from the
    result of translating a control character to one of the forms `^C'
-   or `\003'.  IT->dpvec holds the glyphs to return as characters.  */
+   or `\003'.
+
+   IT->dpvec holds the glyphs to return as characters.
+   IT->saved_face_id holds the face id before the display vector--
+   it is restored into IT->face_idin set_iterator_to_next.  */
 
 static int
 next_element_from_display_vector (it)
@@ -5197,10 +5223,6 @@ next_element_from_display_vector (it)
 {
   /* Precondition.  */
   xassert (it->dpvec && it->current.dpvec_index >= 0);
-
-  /* Remember the current face id in case glyphs specify faces.
-     IT's face is restored in set_iterator_to_next.  */
-  it->saved_face_id = it->face_id;
 
   if (INTEGERP (*it->dpvec)
       && GLYPH_CHAR_VALID_P (XFASTINT (*it->dpvec)))
@@ -5385,28 +5407,7 @@ next_element_from_ellipsis (it)
      struct it *it;
 {
   if (it->selective_display_ellipsis_p)
-    {
-      if (it->dp && VECTORP (DISP_INVIS_VECTOR (it->dp)))
-	{
-	  /* Use the display table definition for `...'.  Invalid glyphs
-	     will be handled by the method returning elements from dpvec.  */
-	  struct Lisp_Vector *v = XVECTOR (DISP_INVIS_VECTOR (it->dp));
-	  it->dpvec_char_len = it->len;
-	  it->dpvec = v->contents;
-	  it->dpend = v->contents + v->size;
-	  it->current.dpvec_index = 0;
-	  it->method = next_element_from_display_vector;
-	}
-      else
-	{
-	  /* Use default `...' which is stored in default_invis_vector.  */
-	  it->dpvec_char_len = it->len;
-	  it->dpvec = default_invis_vector;
-	  it->dpend = default_invis_vector + 3;
-	  it->current.dpvec_index = 0;
-	  it->method = next_element_from_display_vector;
-	}
-    }
+    setup_for_ellipsis (it, it->len);
   else
     {
       /* The face at the current position may be different from the
@@ -11600,6 +11601,9 @@ redisplay_window (window, just_this_one_p)
   *w->desired_matrix->method = 0;
 #endif
 
+  /* Force this to be looked up again for each redisp of each window.  */
+  escape_glyph_face = -1;
+
   specbind (Qinhibit_point_motion_hooks, Qt);
 
   reconsider_clip_changes (w, buffer);
@@ -14532,7 +14536,9 @@ highlight_trailing_whitespace (f, row)
 		  && glyph->u.ch == ' '))
 	  && trailing_whitespace_p (glyph->charpos))
 	{
-	  int face_id = lookup_named_face (f, Qtrailing_whitespace, 0);
+	  int face_id = lookup_named_face (f, Qtrailing_whitespace, 0, 0);
+	  if (face_id < 0)
+	    return;
 
 	  while (glyph >= start
 		 && BUFFERP (glyph->object)
@@ -14625,8 +14631,10 @@ display_line (it)
      hscrolled.  This may stop at an x-position < IT->first_visible_x
      if the first glyph is partially visible or if we hit a line end.  */
   if (it->current_x < it->first_visible_x)
-    move_it_in_display_line_to (it, ZV, it->first_visible_x,
-				MOVE_TO_POS | MOVE_TO_X);
+    {
+      move_it_in_display_line_to (it, ZV, it->first_visible_x,
+				  MOVE_TO_POS | MOVE_TO_X);
+    }
 
   /* Get the initial row height.  This is either the height of the
      text hscrolled, if there is any, or zero.  */
@@ -14955,12 +14963,10 @@ display_line (it)
 		{
 		  if (!get_next_display_element (it))
 		    {
-#ifdef HAVE_WINDOW_SYSTEM
 		      it->continuation_lines_width = 0;
 		      row->ends_at_zv_p = 1;
 		      row->exact_window_width_line_p = 1;
 		      break;
-#endif /* HAVE_WINDOW_SYSTEM */
 		    }
 		  if (ITERATOR_AT_END_OF_LINE_P (it))
 		    {
@@ -18269,6 +18275,19 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
   return x_reached;
 }
 
+/* Expand row matrix if too narrow.  Don't expand if area
+   is not present.  */
+
+#define IT_EXPAND_MATRIX_WIDTH(it, area)		\
+  {							\
+    if (!fonts_changed_p				\
+	&& (it->glyph_row->glyphs[area]			\
+	    < it->glyph_row->glyphs[area + 1]))		\
+      {							\
+	it->w->ncols_scale_factor++;			\
+	fonts_changed_p = 1;				\
+      }							\
+  }
 
 /* Store one glyph for IT->char_to_display in IT->glyph_row.
    Called from x_produce_glyphs when IT->glyph_row is non-null.  */
@@ -18306,11 +18325,8 @@ append_glyph (it)
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
     }
-  else if (!fonts_changed_p)
-    {
-      it->w->ncols_scale_factor++;
-      fonts_changed_p = 1;
-    }
+  else
+    IT_EXPAND_MATRIX_WIDTH (it, area);
 }
 
 /* Store one glyph for the composition IT->cmp_id in IT->glyph_row.
@@ -18348,11 +18364,8 @@ append_composite_glyph (it)
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
     }
-  else if (!fonts_changed_p)
-    {
-      it->w->ncols_scale_factor++;
-      fonts_changed_p = 1;
-    }
+  else
+    IT_EXPAND_MATRIX_WIDTH (it, area);
 }
 
 
@@ -18522,11 +18535,8 @@ produce_image_glyph (it)
 	  glyph->font_type = FONT_TYPE_UNKNOWN;
 	  ++it->glyph_row->used[area];
 	}
-      else if (!fonts_changed_p)
-	{
-	  it->w->ncols_scale_factor++;
-	  fonts_changed_p = 1;
-	}
+      else
+	IT_EXPAND_MATRIX_WIDTH (it, area);
     }
 }
 
@@ -18570,11 +18580,8 @@ append_stretch_glyph (it, object, width, height, ascent)
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
     }
-  else if (!fonts_changed_p)
-    {
-      it->w->ncols_scale_factor++;
-      fonts_changed_p = 1;
-    }
+  else
+    IT_EXPAND_MATRIX_WIDTH (it, area);
 }
 
 
@@ -18805,7 +18812,7 @@ calc_line_height_property (it, prop, font, boff, total)
       struct face *face;
       struct font_info *font_info;
 
-      face_id = lookup_named_face (it->f, face_name, ' ');
+      face_id = lookup_named_face (it->f, face_name, ' ', 0);
       if (face_id < 0)
 	return make_number (-1);
 
@@ -20117,6 +20124,7 @@ erase_phys_cursor (w)
     {
       int x, y;
       int header_line_height = WINDOW_HEADER_LINE_HEIGHT (w);
+      int width;
 
       cursor_glyph = get_phys_cursor_glyph (w);
       if (cursor_glyph == NULL)
@@ -20124,9 +20132,10 @@ erase_phys_cursor (w)
 
       x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
       y = WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height, cursor_row->y));
+      width = min (cursor_glyph->pixel_width,
+		   window_box_width (w, TEXT_AREA) - w->phys_cursor.x);
 
-      rif->clear_frame_area (f, x, y,
-			     cursor_glyph->pixel_width, cursor_row->visible_height);
+      rif->clear_frame_area (f, x, y, width, cursor_row->visible_height);
     }
 
   /* Erase the cursor by redrawing the character underneath it.  */
@@ -20947,13 +20956,16 @@ note_mode_line_or_margin_highlight (w, x, y, area)
       /* If we're on a string with `help-echo' text property, arrange
 	 for the help to be displayed.  This is done by setting the
 	 global variable help_echo_string to the help string.  */
-      help = Fget_text_property (pos, Qhelp_echo, string);
-      if (!NILP (help))
+      if (NILP (help))
 	{
-	  help_echo_string = help;
-	  XSETWINDOW (help_echo_window, w);
-	  help_echo_object = string;
-	  help_echo_pos = charpos;
+	  help = Fget_text_property (pos, Qhelp_echo, string);
+	  if (!NILP (help))
+	    {
+	      help_echo_string = help;
+	      XSETWINDOW (help_echo_window, w);
+	      help_echo_object = string;
+	      help_echo_pos = charpos;
+	    }
 	}
 
       if (NILP (pointer))
@@ -22159,6 +22171,8 @@ syms_of_xdisp ()
   staticpro (&Qfontification_functions);
   Qtrailing_whitespace = intern ("trailing-whitespace");
   staticpro (&Qtrailing_whitespace);
+  Qescape_glyph = intern ("escape-glyph");
+  staticpro (&Qescape_glyph);
   Qimage = intern ("image");
   staticpro (&Qimage);
   QCmap = intern (":map");

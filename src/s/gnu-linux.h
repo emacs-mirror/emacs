@@ -1,5 +1,5 @@
 /* This file is the configuration file for Linux-based GNU systems
-   Copyright (C) 1985, 86, 92, 94, 96, 1999, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 92, 94, 96, 1999, 2002, 2004 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -355,11 +355,21 @@ Boston, MA 02111-1307, USA.  */
 
 #if defined __i386__ || defined __sparc__ || defined __mc68000__ \
     || defined __alpha__ || defined __mips__ || defined __s390__ \
-    || defined __arm__ || defined __powerpc__ || defined __amd64__
+    || defined __arm__ || defined __powerpc__ || defined __amd64__ \
+    || defined __ia64__
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
 #ifdef __mc68000__
 #define GC_LISP_OBJECT_ALIGNMENT 2
+#endif
+#ifdef __ia64__
+#define GC_MARK_SECONDARY_STACK()				\
+  do {								\
+    extern void *__libc_ia64_register_backing_store_base;	\
+    __builtin_ia64_flushrs ();					\
+    mark_memory (__libc_ia64_register_backing_store_base,	\
+		 __builtin_ia64_bsp ());			\
+  } while (0)
 #endif
 #endif
 

@@ -1867,6 +1867,7 @@ follows this line--} by default.
 @item message-directory
 @vindex message-directory
 Directory used by many mailey things.  The default is @file{~/Mail/}.
+All other mail file variables are derived from @code{message-directory}.
 
 @item message-auto-save-directory
 @vindex message-auto-save-directory

@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-alg-2 () nil)
-
 
 (defun calc-derivative (var num)
   (interactive "sDifferentiate with respect to: \np")
@@ -1319,6 +1315,7 @@
 
 ;; The variable math-expr-parts is local to math-expr-rational-in,
 ;; but is used by math-expr-rational-in-rec
+(defvar math-expr-parts)
 
 (defun math-expr-rational-in (expr)
   (let ((math-expr-parts nil))
@@ -2279,6 +2276,7 @@
 ;; math-decompose-poly, but used by math-solve-poly-funny-powers.)
 (defvar math-solve-lhs)
 (defvar math-solve-rhs)
+(defvar math-try-solve-sign)
 
 (defun math-try-solve-for 
   (math-solve-lhs math-solve-rhs &optional math-try-solve-sign no-poly)
@@ -2565,6 +2563,7 @@
 ;;; This deals with negative, fractional, and symbolic powers of "x".
 ;; The variable math-solve-b is local to math-decompose-poly,
 ;; but is used by math-solve-poly-funny-powers.
+(defvar math-solve-b)
 
 (defun math-solve-poly-funny-powers (sub-rhs)    ; uses "t1", "t2"
   (setq math-t1 math-solve-lhs)
@@ -2798,6 +2797,8 @@
 ;; The variables math-int-scale, math-int-factors and math-double-roots
 ;; are local to math-poly-all-roots, but are used by math-poly-integer-root.
 (defvar math-int-scale)
+(defvar math-int-factors)
+(defvar math-double-roots)
 
 (defun math-poly-all-roots (var p &optional math-factoring)
   (catch 'ouch
@@ -3136,6 +3137,7 @@
 
 ;; The variable math-solve-simplifying is local to math-solve-system
 ;; and math-solve-system-rec, but is used by math-solve-system-subst.
+(defvar math-solve-simplifying)
 
 (defun math-solve-system (exprs math-solve-vars math-solve-full)
   (setq exprs (mapcar 'list (if (Math-vectorp exprs)
@@ -3577,6 +3579,8 @@
 	       (and fprime
 		    (math-normalize accum))))
 	(list 'calcFunc-taylor expr var num))))
+
+(provide 'calcalg2)
 
 ;;; arch-tag: f2932ec8-dd63-418b-a542-11a644b9d4c4
 ;;; calcalg2.el ends here

@@ -45,6 +45,9 @@ Boston, MA 02111-1307, USA.  */
 #include <setjmp.h>
 #include <errno.h>
 
+#ifdef HAVE_GTK_AND_PTHREAD
+#include <pthread.h>
+#endif
 #ifdef MSDOS
 #include "msdos.h"
 #include <time.h>
@@ -607,7 +610,7 @@ int flow_control;
 
 /* We are unable to use interrupts if FIONREAD is not available,
    so flush SIGIO so we won't try.  */
-#if !defined (FIONREAD) || defined(HAVE_CARBON)
+#if !defined (FIONREAD)
 #ifdef SIGIO
 #undef SIGIO
 #endif
@@ -1618,7 +1621,10 @@ command_loop_1 ()
       if (NILP (Vthis_command))
 	{
 	  /* nil means key is undefined.  */
+	  Lisp_Object keys = Fvector (i, keybuf);
+	  keys = Fkey_description (keys, Qnil);
 	  bitch_at_user ();
+	  message_with_string ("%s is undefined", keys, 0);
 	  current_kboard->defining_kbd_macro = Qnil;
 	  update_mode_lines = 1;
 	  current_kboard->Vprefix_arg = Qnil;
@@ -6774,6 +6780,25 @@ handle_async_input ()
 #ifdef BSD4_1
   extern int select_alarmed;
 #endif
+#if ! defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD)
+  extern pthread_t main_thread;
+  if (pthread_self () != main_thread)
+    {
+      /* POSIX says any thread can receive the signal.  On GNU/Linux that is
+         not true, but for other systems (FreeBSD at least) it is.  So direct
+         the signal to the correct thread and block it from this thread.  */
+#ifdef SIGIO
+      sigset_t new_mask;
+
+      sigemptyset (&new_mask);
+      sigaddset (&new_mask, SIGIO);
+      pthread_sigmask (SIG_BLOCK, &new_mask, 0);
+      pthread_kill (main_thread, SIGIO);
+#endif
+      return;
+    }
+#endif
+
   interrupt_input_pending = 0;
 
   while (1)
@@ -6801,7 +6826,22 @@ input_available_signal (signo)
 {
   /* Must preserve main program's value of errno.  */
   int old_errno = errno;
+#if ! defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD)
+  extern pthread_t main_thread;
+  if (pthread_self () != main_thread)
+    {
+      /* POSIX says any thread can receive the signal.  On GNU/Linux that is
+         not true, but for other systems (FreeBSD at least) it is.  So direct
+         the signal to the correct thread and block it from this thread.  */
+      sigset_t new_mask;
 
+      sigemptyset (&new_mask);
+      sigaddset (&new_mask, SIGIO);
+      pthread_sigmask (SIG_BLOCK, &new_mask, 0);
+      pthread_kill (main_thread, SIGIO);
+      return;
+    }
+#endif /* HAVE_GTK_AND_PTHREAD */
 #if defined (USG) && !defined (POSIX_SIGNALS)
   /* USG systems forget handlers when they are used;
      must reestablish each time */

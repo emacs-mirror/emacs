@@ -1502,7 +1502,7 @@ of the file.
 Compare the specified two versions of @var{file}.
 
 @item C-x v g
-Display the result of the CVS annotate command using colors.
+Display the file with per-line version information and using colors.
 @end table
 
 @findex vc-version-other-window
@@ -1553,9 +1553,10 @@ them; they exist only in the records of the master file.
 
 @findex vc-annotate
 @kindex C-x v g
-  For CVS-controlled files, you can display the result of the CVS
-annotate command, using colors to enhance the visual appearance.  Use
-the command @kbd{M-x vc-annotate} to do this.  It creates a new buffer
+  For some backends, you can display the file @dfn{annotated} with
+per-line version information and using colors to enhance the visual
+appearance, with the the command @kbd{M-x vc-annotate}.
+It creates a new buffer
 to display file's text, colored to show how old each part is.  Text
 colored red is new, blue means old, and intermediate colors indicate
 intermediate ages.  By default, the time scale is 360 days, so that

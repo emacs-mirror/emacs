@@ -3,7 +3,7 @@ dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.
 dnl
-dnl  Copyright (C) 1994, 95, 96, 1999, 2000, 01, 02, 03, 2004
+dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003, 2004
 dnl  Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
@@ -1994,6 +1994,21 @@ if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk"; then
     AC_DEFINE(HAVE_GTK_FILE_BOTH, 1,
               [Define to 1 if GTK has both file selection and chooser dialog.])
   fi
+
+  dnl Check if pthreads are available.  Emacs only needs this when using
+  dnl gtk_file_chooser under Gnome.
+  if test "$HAVE_GTK_FILE_CHOOSER" = yes; then
+    HAVE_GTK_AND_PTHREAD=no
+    AC_CHECK_HEADERS(pthread.h)
+    if test "$ac_cv_header_pthread_h"; then
+      AC_CHECK_LIB(pthread, pthread_self, HAVE_GTK_AND_PTHREAD=yes)
+    fi
+    if test "$HAVE_GTK_AND_PTHREAD" = yes; then
+      GTK_LIBS="$GTK_LIBS -lpthread"
+      AC_DEFINE(HAVE_GTK_AND_PTHREAD, 1,
+               [Define to 1 if you have GTK and pthread (-lpthread).])
+    fi
+  fi
 fi
 
 dnl Do not put whitespace before the #include statements below.
@@ -2752,7 +2767,8 @@ if test "${REL_ALLOC}" = "yes" ; then
 fi
 
 AH_TOP([/* GNU Emacs site configuration template file.
-   Copyright (C) 1988, 93, 94, 99, 2000, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1988, 1993, 1994, 1999, 2000, 2002, 2004
+             Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2833,7 +2849,7 @@ AH_BOTTOM([
 /* Don't try to switch on inline handling as detected by AC_C_INLINE
    generally, because even if non-gcc compilers accept `inline', they
    may reject `extern inline'.  */
-#ifdef __GNUC__
+#if defined (__GNUC__) && defined (OPTIMIZE)
 #define INLINE __inline__
 #else
 #define INLINE
@@ -2881,7 +2897,13 @@ AH_BOTTOM([
 /* Tell regex.c to use a type compatible with Emacs.  */
 #define RE_TRANSLATE_TYPE Lisp_Object
 #define RE_TRANSLATE(TBL, C) CHAR_TABLE_TRANSLATE (TBL, C)
-#define RE_TRANSLATE_P(TBL) (XFASTINT (TBL) != 0)
+#ifdef make_number
+/* If make_number is a macro, use it.  */
+#define RE_TRANSLATE_P(TBL) (!EQ (TBL, make_number (0)))
+#else
+/* If make_number is a function, avoid it.  */
+#define RE_TRANSLATE_P(TBL) (!(INTEGERP (TBL) && XINT (TBL) == 0))
+#endif
 #endif
 
 /* Avoid link-time collision with system mktime if we will use our own.  */

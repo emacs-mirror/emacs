@@ -675,17 +675,16 @@ types for which fields are filled automatically (if possible).
 point according to context (bound to M-tab).
 
 *** The new commands bibtex-find-entry and bibtex-find-crossref
-locate entries and crossref'd entries.  Crossref fields are clickable
-(bound to mouse-2, RET).
+locate entries and crossref'd entries (bound to C-c C-s and C-c C-x).
+Crossref fields are clickable (bound to mouse-2, RET).
 
 *** In BibTeX mode the command fill-paragraph (bound to M-q) fills
 individual fields of a BibTeX entry.
 
-*** The new command bibtex-validate-globally checks for duplicate keys
-in multiple BibTeX files.  See also the new variables bibtex-files
-and bibtex-file-path.
+*** The new variables bibtex-files and bibtex-file-path define a set
+of BibTeX files that are searched for entry keys.
 
-*** The new command bibtex-find-entry-globally searches BibTeX entries
+*** The new command bibtex-validate-globally checks for duplicate keys
 in multiple BibTeX files.
 
 *** The new command bibtex-copy-summary-as-kill pushes summary
@@ -953,7 +952,7 @@ disabled by customizing the variable `use-file-dialog'.
 
 +++
 ** For Gtk+ version 2.4, you can make Emacs use the old file dialog
-by setting the variable `use-old-gtk-file-dialog' to t.  Default is to use
+by setting the variable `x-use-old-gtk-file-dialog' to t.  Default is to use
 the new dialog.
 
 +++
@@ -1482,9 +1481,9 @@ day of that ISO week.
 
 ---
 ** The functions `holiday-easter-etc' and `holiday-advent' now take
-arguments, and only report on the specified holiday rather than all.
-This makes customization of the variable `christian-holidays' simpler,
-but existing customizations may need to be updated.
+optional arguments, in order to only report on the specified holiday
+rather than all. This makes customization of variables such as
+`christian-holidays' simpler.
 
 ** The function `simple-diary-display' now by default sets a header line.
 This can be controlled through the variables `diary-header-line-flag'
@@ -1960,6 +1959,10 @@ It cannot deal with every code format, but ought to handle a sizeable
 majority.
 
 ---
+** The new function `f90-backslash-not-special' can be used to change
+the syntax of backslashes in F90 buffers.
+
+---
 ** Prolog mode has a new variable `prolog-font-lock-keywords'
 to support use of font-lock.
 
@@ -2335,6 +2338,19 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
++++
+** read-from-minibuffer now accepts an additional argument KEEP-ALL
+saying to put all inputs in the history list, even empty ones.
+
++++
+** The new variable search-spaces-regexp controls how to search
+for spaces in a regular expression.  If it is non-nil, it should be a
+regular expression, and any series of spaces stands for that regular
+expression.  If it is nil, spaces stand for themselves.
+
+Spaces inside of constructs such as [..] and *, +, ? are never
+replaced with search-spaces-regexp.
+
 ---
 ** list-buffers-noselect now takes an additional argument, BUFFER-LIST.
 If it is non-nil, it specifies which buffers to list.
@@ -2347,9 +2363,6 @@ NOMODIFY.  If it is non-nil, it means don't mark the buffer modified.
 ** The new function syntax-after returns the syntax code
 of the character after a specified buffer position, taking account
 of text properties as well as the character code.
-It returns the value compatibly with char-syntax, except
-that the value can be a list (SYNTAX . MATCHER) which says
-what the matching character is.
 
 +++
 ** The new primitive `get-internal-run-time' returns the processor
@@ -2357,10 +2370,15 @@ run time used by Emacs since start-up.
 
 +++
 ** The new function `called-interactively-p' does what many people
-have mistakenly believed `interactively-p' did: it returns t if the
-calling function was called through `call-interactively'.
-This should only be used when you cannot add a new "interactively"
-argument to the command.
+have mistakenly believed `interactive-p' did: it returns t if the
+calling function was called through `call-interactively'.  This should
+only be used when you cannot add a new "interactive" argument to the
+command.
+
++++
+** The new function `assoc-string' replaces `assoc-ignore-case' and
+`assoc-ignore-representation', which are still available, but have
+been declared obsolete.
 
 +++
 ** An interactive specification may now use the code letter 'U' to get
@@ -2439,10 +2457,6 @@ arg is non-nil.
 ** The new primitive `set-file-times' sets a file's access and
 modification times.  Magic file name handlers can handle this
 operation.
-
-** file-remote-p now returns an identifier for the remote system,
-if the file is indeed remote.  (Before, the return value was t in
-this case.)
 
 +++
 ** The display space :width and :align-to text properties are now
@@ -2566,6 +2580,9 @@ strings by giving that character a non-nil `cursor' text property.
 ** New macro with-local-quit temporarily sets inhibit-quit to nil for use
 around potentially blocking or long-running code in timers
 and post-command-hooks.
+
+** An unconditional face specification in defface (one where the DISPLAY part
+is just t) applies to all cases and does not override subsequent entries.
 
 +++
 ** New face attribute `min-colors' can be used to tailor the face color
@@ -3209,6 +3226,7 @@ will only show directories.
 ** The new function `file-remote-p' tests a file name and returns
 non-nil if it specifies a remote file (one that Emacs accesses using
 its own special methods and not directly through the file system).
+The value in that case is an identifier for the remote file system.
 
 ---
 ** When a Lisp file uses CL functions at run-time, compiling the file

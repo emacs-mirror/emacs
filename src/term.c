@@ -791,39 +791,43 @@ clear_end_of_line (first_unused_hpos)
     }
 }
 
-/* Encode SRC_LEN glyphs starting at SRC to terminal output codes and
-   store them at DST.  Do not write more than DST_LEN bytes.  That may
-   require stopping before all SRC_LEN input glyphs have been
-   converted.
+/* Buffer to store the source and result of code conversion for terminal.  */
+static unsigned char *encode_terminal_buf;
+/* Allocated size of the above buffer.  */
+static int encode_terminal_bufsize;
 
-   We store the number of glyphs actually converted in *CONSUMED.  The
-   return value is the number of bytes store in DST.  */
+/* Encode SRC_LEN glyphs starting at SRC to terminal output codes.
+   Set CODING->produced to the byte-length of the resulting byte
+   sequence, and return a pointer to that byte sequence.  */
 
-int
-encode_terminal_code (src, dst, src_len, dst_len, consumed)
+unsigned char *
+encode_terminal_code (src, src_len, coding)
      struct glyph *src;
      int src_len;
-     unsigned char *dst;
-     int dst_len, *consumed;
+     struct coding_system *coding;
 {
   struct glyph *src_start = src, *src_end = src + src_len;
-  unsigned char *dst_start = dst, *dst_end = dst + dst_len;
   register GLYPH g;
-  unsigned char workbuf[MAX_MULTIBYTE_LENGTH];
-  const unsigned char *buf;
-  int len;
+  unsigned char *buf;
+  int nchars, nbytes, required;
   register int tlen = GLYPH_TABLE_LENGTH;
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
-  int result;
-  struct coding_system *coding;
 
-  /* If terminal_coding does any conversion, use it, otherwise use
-     safe_terminal_coding.  We can't use CODING_REQUIRE_ENCODING here
-     because it always return 1 if the member src_multibyte is 1.  */
-  coding = (terminal_coding.common_flags & CODING_REQUIRE_ENCODING_MASK
-	    ? &terminal_coding
-	    : &safe_terminal_coding);
+  /* Allocate sufficient size of buffer to store all characters in
+     multibyte-form.  But, it may be enlarged on demand if
+     Vglyph_table contains a string.  */
+  required = MAX_MULTIBYTE_LENGTH * src_len;
+  if (encode_terminal_bufsize < required)
+    {
+      encode_terminal_bufsize = required;
+      if (encode_terminal_bufsize == 0)
+	encode_terminal_buf = xmalloc (required);
+      else
+	encode_terminal_buf = xrealloc (encode_terminal_buf, required);
+    }
 
+  buf = encode_terminal_buf;
+  nchars = 0;
   while (src < src_end)
     {
       /* We must skip glyphs to be padded for a wide character.  */
@@ -834,18 +838,11 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
 	  if (g < 0 || g >= tlen)
 	    {
 	      /* This glyph doesn't has an entry in Vglyph_table.  */
-	      if (! CHAR_VALID_P (src->u.ch, 0))
-		{
-		  len = 1;
-		  buf = " ";
-		  coding->src_multibyte = 0;
-		}
+	      if (CHAR_VALID_P (src->u.ch, 0))
+		buf += CHAR_STRING (src->u.ch, buf);
 	      else
-		{
-		  len = CHAR_STRING (src->u.ch, workbuf);
-		  buf = workbuf;
-		  coding->src_multibyte = 1;
-		}
+		*buf++ = SPACEGLYPH;
+	      nchars++;
 	    }
 	  else
 	    {
@@ -855,61 +852,72 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
 
 	      if (GLYPH_SIMPLE_P (tbase, tlen, g))
 		{
-		  /* We set the multi-byte form of a character in G
-		     (that should be an ASCII character) at
-		     WORKBUF.  */
-		  workbuf[0] = FAST_GLYPH_CHAR (g);
-		  len = 1;
-		  buf = workbuf;
-		  coding->src_multibyte = 0;
+		  int c = FAST_GLYPH_CHAR (g);
+
+		  if (CHAR_VALID_P (c, 0))
+		    buf += CHAR_STRING (c, buf);
+		  else
+		    *buf++ = SPACEGLYPH;
+		  nchars++;
 		}
 	      else
 		{
 		  /* We have a string in Vglyph_table.  */
-		  len = GLYPH_LENGTH (tbase, g);
-		  buf = GLYPH_STRING (tbase, g);
-		  coding->src_multibyte = STRING_MULTIBYTE (tbase[g]);
+		  Lisp_Object string;
+
+		  string = tbase[g];
+		  if (! STRING_MULTIBYTE (string))
+		    string = string_to_multibyte (string);
+		  nbytes = buf - encode_terminal_buf;
+		  if (nbytes + SBYTES (string) < encode_terminal_bufsize)
+		    {
+		      encode_terminal_bufsize = nbytes + SBYTES (string);
+		      encode_terminal_buf = xrealloc (encode_terminal_buf,
+						      encode_terminal_bufsize);
+		      buf = encode_terminal_buf + nbytes;
+		    }
+		  bcopy (SDATA (string), buf, SBYTES (string));
+		  buf += SBYTES (string);
+		  nchars += SCHARS (string);
 		}
-	    }
-
-	  result = encode_coding (coding, buf, dst, len, dst_end - dst);
-	  len -= coding->consumed;
-	  dst += coding->produced;
-	  if (result == CODING_FINISH_INSUFFICIENT_DST
-	      || (result == CODING_FINISH_INSUFFICIENT_SRC
-		  && len > dst_end - dst))
-	    /* The remaining output buffer is too short.  We must
-	       break the loop here without increasing SRC so that the
-	       next call of this function starts from the same glyph.  */
-	    break;
-
-	  if (len > 0)
-	    {
-	      /* This is the case that a code of the range 0200..0237
-		 exists in buf.  We must just write out such a code.  */
-	      buf += coding->consumed;
-	      while (len--)
-		*dst++ = *buf++;
 	    }
 	}
       src++;
     }
 
-  *consumed = src - src_start;
-  return (dst - dst_start);
-}
+  nbytes = buf - encode_terminal_buf;
+  coding->src_multibyte = 1;
+  coding->dst_multibyte = 0;
+  if (SYMBOLP (coding->pre_write_conversion)
+      && ! NILP (Ffboundp (coding->pre_write_conversion)))
+    {
+      run_pre_write_conversin_on_c_str (&encode_terminal_buf, 
+					&encode_terminal_bufsize,
+					nchars, nbytes, coding);
+      nchars = coding->produced_char;
+      nbytes = coding->produced;
+    }
+  required = nbytes + encoding_buffer_size (coding, nbytes);
+  if (encode_terminal_bufsize < required)
+    {
+      encode_terminal_bufsize = required;
+      encode_terminal_buf = xrealloc (encode_terminal_buf, required);
+    }
 
+  encode_coding (coding, encode_terminal_buf, encode_terminal_buf + nbytes,
+		 nbytes, encode_terminal_bufsize - nbytes);
+  return encode_terminal_buf + nbytes;
+}
 
 void
 write_glyphs (string, len)
      register struct glyph *string;
      register int len;
 {
-  int produced, consumed;
   struct frame *sf = XFRAME (selected_frame);
   struct frame *f = updating_frame ? updating_frame : sf;
-  unsigned char conversion_buffer[1024];
-  int conversion_buffer_size = sizeof conversion_buffer;
+  unsigned char *conversion_buffer;
+  struct coding_system *coding;
 
   if (write_glyphs_hook
       && ! FRAME_TERMCAP_P (f))
@@ -933,9 +941,14 @@ write_glyphs (string, len)
 
   cmplus (len);
 
+  /* If terminal_coding does any conversion, use it, otherwise use
+     safe_terminal_coding.  We can't use CODING_REQUIRE_ENCODING here
+     because it always return 1 if the member src_multibyte is 1.  */
+  coding = (terminal_coding.common_flags & CODING_REQUIRE_ENCODING_MASK
+	    ? &terminal_coding : &safe_terminal_coding);
   /* The mode bit CODING_MODE_LAST_BLOCK should be set to 1 only at
      the tail.  */
-  terminal_coding.mode &= ~CODING_MODE_LAST_BLOCK;
+  coding->mode &= ~CODING_MODE_LAST_BLOCK;
 
   while (len > 0)
     {
@@ -951,47 +964,24 @@ write_glyphs (string, len)
       highlight_if_desired ();
       turn_on_face (f, face_id);
 
-      while (n > 0)
+      if (n == len)
+	/* This is the last run.  */
+	coding->mode |= CODING_MODE_LAST_BLOCK;
+      conversion_buffer = encode_terminal_code (string, n, coding);
+      if (coding->produced > 0)
 	{
-	  /* We use a fixed size (1024 bytes) of conversion buffer.
-	     Usually it is sufficient, but if not, we just repeat the
-	     loop.  */
-	  produced = encode_terminal_code (string, conversion_buffer,
-					   n, conversion_buffer_size,
-					   &consumed);
-	  if (produced > 0)
-	    {
-	      fwrite (conversion_buffer, 1, produced, stdout);
-	      if (ferror (stdout))
-		clearerr (stdout);
-	      if (termscript)
-		fwrite (conversion_buffer, 1, produced, termscript);
-	    }
-	  len -= consumed;
-	  n -= consumed;
-	  string += consumed;
+	  fwrite (conversion_buffer, 1, coding->produced, stdout);
+	  if (ferror (stdout))
+	    clearerr (stdout);
+	  if (termscript)
+	    fwrite (conversion_buffer, 1, coding->produced, termscript);
 	}
+      len -= n;
+      string += n;
 
       /* Turn appearance modes off.  */
       turn_off_face (f, face_id);
       turn_off_highlight ();
-    }
-
-  /* We may have to output some codes to terminate the writing.  */
-  if (CODING_REQUIRE_FLUSHING (&terminal_coding))
-    {
-      terminal_coding.mode |= CODING_MODE_LAST_BLOCK;
-      encode_coding (&terminal_coding, "", conversion_buffer,
-		     0, conversion_buffer_size);
-      if (terminal_coding.produced > 0)
-	{
-	  fwrite (conversion_buffer, 1, terminal_coding.produced, stdout);
-	  if (ferror (stdout))
-	    clearerr (stdout);
-	  if (termscript)
-	    fwrite (conversion_buffer, 1, terminal_coding.produced,
-		    termscript);
-	}
     }
 
   cmcheckmagic ();
@@ -1007,6 +997,9 @@ insert_glyphs (start, len)
   char *buf;
   struct glyph *glyph = NULL;
   struct frame *f, *sf;
+  unsigned char *conversion_buffer;
+  unsigned char space[1];
+  struct coding_system *coding;
 
   if (len <= 0)
     return;
@@ -1032,19 +1025,26 @@ insert_glyphs (start, len)
 
   turn_on_insert ();
   cmplus (len);
-  /* The bit CODING_MODE_LAST_BLOCK should be set to 1 only at the tail.  */
-  terminal_coding.mode &= ~CODING_MODE_LAST_BLOCK;
+
+  if (! start)
+    space[0] = SPACEGLYPH;
+
+  /* If terminal_coding does any conversion, use it, otherwise use
+     safe_terminal_coding.  We can't use CODING_REQUIRE_ENCODING here
+     because it always return 1 if the member src_multibyte is 1.  */
+  coding = (terminal_coding.common_flags & CODING_REQUIRE_ENCODING_MASK
+	    ? &terminal_coding : &safe_terminal_coding);
+  /* The mode bit CODING_MODE_LAST_BLOCK should be set to 1 only at
+     the tail.  */
+  coding->mode &= ~CODING_MODE_LAST_BLOCK;
+
   while (len-- > 0)
     {
-      int produced, consumed;
-      unsigned char conversion_buffer[1024];
-      int conversion_buffer_size = sizeof conversion_buffer;
-
       OUTPUT1_IF (TS_ins_char);
       if (!start)
 	{
-	  conversion_buffer[0] = SPACEGLYPH;
-	  produced = 1;
+	  conversion_buffer = space;
+	  coding->produced = 1;
 	}
       else
 	{
@@ -1062,21 +1062,18 @@ insert_glyphs (start, len)
 
 	  if (len <= 0)
 	    /* This is the last glyph.  */
-	    terminal_coding.mode |= CODING_MODE_LAST_BLOCK;
+	    coding->mode |= CODING_MODE_LAST_BLOCK;
 
-	  /* The size of conversion buffer (1024 bytes) is surely
-	     sufficient for just one glyph.  */
-	  produced = encode_terminal_code (glyph, conversion_buffer, 1,
-					   conversion_buffer_size, &consumed);
+	  conversion_buffer = encode_terminal_code (glyph, 1, coding);
 	}
 
-      if (produced > 0)
+      if (coding->produced > 0)
 	{
-	  fwrite (conversion_buffer, 1, produced, stdout);
+	  fwrite (conversion_buffer, 1, coding->produced, stdout);
 	  if (ferror (stdout))
 	    clearerr (stdout);
 	  if (termscript)
-	    fwrite (conversion_buffer, 1, produced, termscript);
+	    fwrite (conversion_buffer, 1, coding->produced, termscript);
 	}
 
       OUTPUT1_IF (TS_pad_inserted_char);
@@ -2256,6 +2253,8 @@ term_init (terminal_type)
   register char *p;
   int status;
   struct frame *sf = XFRAME (selected_frame);
+
+  encode_terminal_bufsize = 0;
 
 #ifdef WINDOWSNT
   initialize_w32_display ();

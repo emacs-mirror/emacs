@@ -626,7 +626,7 @@ executed once when the buffer is created."
   "Keyboard map for sending characters directly to the inferior process.")
 (defvar term-escape-char nil
   "Escape character for char-sub-mode of term mode.
-Do not change it directly;  use term-set-escape-char instead.")
+Do not change it directly;  use `term-set-escape-char' instead.")
 (defvar term-raw-escape-map nil)
 
 (defvar term-pager-break-map nil)
@@ -959,7 +959,8 @@ The interpreter name is same as buffer name, sans the asterisks.
 
 There are two submodes: line mode and char mode.  By default, you are
 in char mode.  In char sub-mode, each character (except
-`term-escape-char') is set immediately.
+`term-escape-char') is sent immediately to the subprocess.
+The escape character is equivalent to the usual meaning of C-x.
 
 In line mode, you send a line of input at a time; use
 \\[term-send-input] to send.

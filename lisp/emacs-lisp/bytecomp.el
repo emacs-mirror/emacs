@@ -994,14 +994,14 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
   (when byte-compile-read-position
     (let (last entry)
       (while (progn
-           (setq last byte-compile-last-position
-             entry (assq sym read-symbol-positions-list))
-           (when entry
-           (setq byte-compile-last-position
-             (+ byte-compile-read-position (cdr entry))
-             read-symbol-positions-list
-             (byte-compile-delete-first
-              entry read-symbol-positions-list)))
+	       (setq last byte-compile-last-position
+		     entry (assq sym read-symbol-positions-list))
+	       (when entry
+		 (setq byte-compile-last-position
+		       (+ byte-compile-read-position (cdr entry))
+		       read-symbol-positions-list
+		       (byte-compile-delete-first
+			entry read-symbol-positions-list)))
 	       (or (and allow-previous (not (= last byte-compile-last-position)))
 		   (> last byte-compile-last-position)))))))
 
@@ -2875,18 +2875,19 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 ;;
 (defun byte-compile-form (form &optional for-effect)
   (cond ((not (consp form))
-	 (when (symbolp form)
-	   (byte-compile-set-symbol-position form))
 	 (cond ((or (not (symbolp form)) (byte-compile-const-symbol-p form))
+		(when (symbolp form)
+		  (byte-compile-set-symbol-position form))
 		(byte-compile-constant form))
 	       ((and for-effect byte-compile-delete-errors)
+		(when (symbolp form)
+		  (byte-compile-set-symbol-position form))
 		(setq for-effect nil))
 	       (t
 		(byte-compile-variable-ref form))))
 	((symbolp (car form))
 	 (let* ((fn (car form))
 		(handler (get fn 'byte-compile)))
-	   (byte-compile-set-symbol-position fn)
 	   (when (byte-compile-const-symbol-p fn)
 	     (byte-compile-warn "`%s' called as a function" fn))
 	   (and (memq 'interactive-only byte-compile-warnings)
@@ -2897,7 +2898,9 @@ That command is designed for interactive use only" fn))
 		    (or (not (byte-compile-version-cond
 			      byte-compile-compatibility))
 			(not (get (get fn 'byte-opcode) 'emacs19-opcode))))
-	       (funcall handler form)
+	       (progn
+		 (byte-compile-set-symbol-position fn)
+		 (funcall handler form))
 	     (if (memq 'callargs byte-compile-warnings)
 		 (byte-compile-callargs-warn form))
 	     (byte-compile-normal-call form))

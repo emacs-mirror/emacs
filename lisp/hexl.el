@@ -99,9 +99,15 @@ Quoting cannot be used, so the arguments cannot themselves contain spaces."
 
 (defvar hexl-mode-map nil)
 
+(defvar ruler-mode)
+(defvar ruler-mode-ruler-function)
+(defvar hl-line-mode)
+
+(defvar hexl-mode-old-hl-line-mode)
 (defvar hexl-mode-old-local-map)
 (defvar hexl-mode-old-mode-name)
 (defvar hexl-mode-old-major-mode)
+(defvar hexl-mode-old-ruler-mode)
 (defvar hexl-mode-old-isearch-search-fun-function)
 (defvar hexl-mode-old-require-final-newline)
 (defvar hexl-mode-old-syntax-table)
@@ -240,6 +246,14 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
     (setq hexl-mode-old-major-mode major-mode)
     (setq major-mode 'hexl-mode)
 
+    (make-local-variable 'hexl-mode-old-ruler-mode)
+    (setq hexl-mode-old-ruler-mode
+	  (and (boundp 'ruler-mode) ruler-mode))
+
+    (make-local-variable 'hexl-mode-old-hl-line-mode)
+    (setq hexl-mode-old-hl-line-mode
+	  (and (boundp 'hl-line-mode) hl-line-mode))
+
     (make-local-variable 'hexl-mode-old-syntax-table)
     (setq hexl-mode-old-syntax-table (syntax-table))
     (set-syntax-table (standard-syntax-table))
@@ -353,6 +367,10 @@ With arg, don't unhexlify buffer."
   (remove-hook 'post-command-hook 'hexl-follow-ascii-find t)
   (setq hexl-ascii-overlay nil)
 
+  (if (and (boundp 'ruler-mode) ruler-mode (not hexl-mode-old-ruler-mode))
+      (ruler-mode 0))
+  (if (and (boundp 'hl-line-mode) hl-line-mode (not hexl-mode-old-hl-line-mode))
+      (hl-line-mode 0))
   (setq require-final-newline hexl-mode-old-require-final-newline)
   (setq mode-name hexl-mode-old-mode-name)
   (setq isearch-search-fun-function hexl-mode-old-isearch-search-fun-function)

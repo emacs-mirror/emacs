@@ -974,7 +974,7 @@ struct glyph_row *matrix_row P_ ((struct glyph_matrix *, int));
    or a control char, or an overlay string.  */
 
 #define MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P(ROW)	\
-     ((ROW)->end.dpvec_index >= 0			\
+     ((ROW)->end.dpvec_index > 0			\
       || (ROW)->end.overlay_string_index >= 0		\
       || (ROW)->ends_in_middle_of_char_p)
 
@@ -986,7 +986,7 @@ struct glyph_row *matrix_row P_ ((struct glyph_matrix *, int));
 /* Non-zero if ROW starts in the middle of a character.  See above.  */
 
 #define MATRIX_ROW_STARTS_IN_MIDDLE_OF_CHAR_P(ROW)	\
-     ((ROW)->start.dpvec_index >= 0			\
+     ((ROW)->start.dpvec_index > 0			\
       || (ROW)->starts_in_middle_of_char_p		\
       || ((ROW)->start.overlay_string_index >= 0	\
 	  && (ROW)->start.string_pos.charpos > 0))
@@ -2739,7 +2739,7 @@ int ascii_face_of_lisp_face P_ ((struct frame *, int));
 void prepare_face_for_display P_ ((struct frame *, struct face *));
 int xstricmp P_ ((const unsigned char *, const unsigned char *));
 int lookup_face P_ ((struct frame *, Lisp_Object *, int, struct face *));
-int lookup_named_face P_ ((struct frame *, Lisp_Object, int));
+int lookup_named_face P_ ((struct frame *, Lisp_Object, int, int));
 int smaller_face P_ ((struct frame *, int, int));
 int face_with_height P_ ((struct frame *, int, int));
 int lookup_derived_face P_ ((struct frame *, Lisp_Object, int, int));

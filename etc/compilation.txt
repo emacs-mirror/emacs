@@ -110,15 +110,7 @@ Error 24 at (2:progran.f90) : syntax error
 
 * Fortran checker
 
-symbols: ftnchek-file ftnchek-line-file ftnchek-line
-
-File average.f:
-
-Warning in module COMPAV: Variables may be used before set:
-    SUM used at line 14
-    SUM set at line 14
-
-Warning near line 16 col 20: integer quotient expr I/J  converted to real
+symbols: ftnchek
 
     Dummy arg W in module SUBA line 8 file arrayclash.f is array
     L4 used at line 55 file test/assign.f; never set
@@ -274,8 +266,8 @@ symbol: oracle
 
 This stupid precompiler wraps lines at column 80 in the middle of a file name.
 There is no obvious way of detecting this or turning it off.  But if you
-delete the newline, the file name will automatically be reparsed, so that you
-can then go there.
+delete the newline (probably needs M-x toggle-read-only), the file name will
+automatically be reparsed, so that you can then go there.
 
 Semantic error at line 528, column 5, file erosacqdb.pc:
 Error at line 41, column 10 in file /usr/src/sb/ODBI_BHP.hpp

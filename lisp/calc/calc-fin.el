@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-fin () nil)
-
 
 ;;; Financial functions.
 
@@ -412,6 +408,8 @@
 	    (setq res (math-add res (math-sub book salvage))
 		  book salvage)))
       res)))
+
+(provide 'calc-fin)
 
 ;;; arch-tag: 82f30ca8-d02f-4b33-84b4-bb6ecd84597b
 ;;; calc-fin.el ends here

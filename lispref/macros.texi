@@ -448,7 +448,7 @@ For example, (for i from 1 to 10 do (print i))."
 (let ((i 1))
   (while (<= i 3)
     (setq square (* i i))
-    (princ (format "%d      %d" i square))
+    (princ (format "\n%d %d" i square))
     (inc i)))
 @end group
 @group

@@ -55,13 +55,13 @@
 (defcustom canlock-password nil
   "Password to use when signing a Cancel-Lock or a Cancel-Key header."
   :type '(radio (const :format "Not specified " nil)
-		(string :tag "Password" :size 0))
+		(string :tag "Password"))
   :group 'canlock)
 
 (defcustom canlock-password-for-verify canlock-password
   "Password to use when verifying a Cancel-Lock or a Cancel-Key header."
   :type '(radio (const :format "Not specified " nil)
-		(string :tag "Password" :size 0))
+		(string :tag "Password"))
   :group 'canlock)
 
 (defcustom canlock-force-insert-header nil

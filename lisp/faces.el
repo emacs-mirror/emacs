@@ -2021,7 +2021,11 @@ Note: Other faces cannot inherit from the cursor face."
   :group 'font-lock			; like `show-trailing-whitespace'
   :group 'basic-faces)
 
-
+(defface escape-glyph '((((background dark)) :foreground "cyan")
+			(((type pc)) :foreground "magenta")
+			(t :foreground "dark blue"))
+  "Face for displaying \\ and ^ in multichar glyphs."
+  :group 'basic-faces)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Manipulating font names.

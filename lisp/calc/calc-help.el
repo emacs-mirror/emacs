@@ -4,8 +4,7 @@
 ;;           Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -29,12 +28,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-help () nil)
-
 
 (defun calc-help-prefix (arg)
   "This key is the prefix for Calc help functions.  See calc-help-for-help."
@@ -139,6 +135,8 @@ C-w  Describe how there is no warranty for Calc."
   (interactive "kDescribe key briefly: ")
   (calc-describe-key key t))
 
+(defvar Info-history)
+
 (defun calc-describe-key (key &optional briefly)
   (interactive "kDescribe key: ")
   (let ((defn (if (eq (key-binding key) 'calc-dispatch)
@@ -157,7 +155,8 @@ C-w  Describe how there is no warranty for Calc."
 		      (lookup-key calc-help-map key2))
 		  (key-binding key))))
 	(inv nil)
-	(hyp nil))
+	(hyp nil)
+        calc-summary-indentation)
     (while (or (equal key "I") (equal key "H"))
       (if (equal key "I")
 	  (setq inv (not inv))
@@ -187,11 +186,12 @@ C-w  Describe how there is no warranty for Calc."
 				 (copy-to-buffer "*Calc Summary*"
 						 (point) (point-max))
                                  (if Info-history
-                                     (Info-last))))
-			     (setq case-fold-search nil)
-			     (re-search-forward "^\\(.*\\)\\[\\.\\. a b")
-			     (setq calc-summary-indentation
-				   (- (match-end 1) (match-beginning 1)))))
+                                     (Info-last))))))
+                       (goto-char (point-min))
+                       (setq case-fold-search nil)
+                       (re-search-forward "^\\(.*\\)\\[\\.\\. a b")
+                       (setq calc-summary-indentation
+                             (- (match-end 1) (match-beginning 1)))
 		       (goto-char (point-min))
 		       (setq target (if (and (string-match "[0-9]\\'" desc)
 					     (not (string-match "[d#]" desc)))
@@ -400,6 +400,12 @@ C-w  Describe how there is no warranty for Calc."
     (delete-region (point-min) (point))
     (goto-char (point-min))))
 
+(defvar calc-help-long-names '((?b . "binary/business")
+			       (?g . "graphics")
+			       (?j . "selection")
+			       (?k . "combinatorics/statistics")
+			       (?u . "units/statistics")))
+
 (defun calc-full-help ()
   (interactive)
   (with-output-to-temp-buffer "*Help*"
@@ -455,12 +461,6 @@ C-w  Describe how there is no warranty for Calc."
 		calc-shift-Z-prefix-help
 		calc-z-prefix-help)))
     (print-help-return-message)))
-
-(defvar calc-help-long-names '((?b . "binary/business")
-			       (?g . "graphics")
-			       (?j . "selection")
-			       (?k . "combinatorics/statistics")
-			       (?u . "units/statistics")))
 
 (defun calc-h-prefix-help ()
   (interactive)
@@ -673,6 +673,8 @@ C-w  Describe how there is no warranty for Calc."
      "<, =, > (justification); , (commas); [, {, ( (brackets)"
      "} (matrix brackets); . (abbreviate); / (multi-lines)")
    "vec/mat" ?v))
+
+(provide 'calc-help)
 
 ;; arch-tag: 2d347593-7591-449e-a64a-93dab5f2f686
 ;;; calc-help.el ends here

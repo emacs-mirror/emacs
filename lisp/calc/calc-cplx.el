@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-cplx () nil)
-
 
 (defun calc-argument (arg)
   (interactive "P")
@@ -357,6 +353,8 @@
 	   (math-neg (calcFunc-im (nth 1 a))))
 	  (t (calc-record-why 'numberp a)
 	     (list 'calcFunc-im a)))))
+
+(provide 'calc-cplx)
 
 ;;; arch-tag: de73a331-941c-4507-ae76-46c76adc70dd
 ;;; calc-cplx.el ends here

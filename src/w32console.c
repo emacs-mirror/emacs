@@ -294,6 +294,9 @@ w32con_insert_glyphs (register struct glyph *start, register int len)
     }
 }
 
+extern unsigned char *encode_terminal_code P_ ((struct glyph *, int, 
+						struct coding_system *));
+
 static void
 w32con_write_glyphs (register struct glyph *string, register int len)
 {
@@ -301,12 +304,17 @@ w32con_write_glyphs (register struct glyph *string, register int len)
   DWORD r;
   struct frame * f = PICK_FRAME ();
   WORD char_attr;
-  unsigned char conversion_buffer[1024];
-  int conversion_buffer_size = sizeof conversion_buffer;
+  unsigned char *conversion_buffer;
+  struct coding_system *coding;
 
   if (len <= 0)
     return;
 
+  /* If terminal_coding does any conversion, use it, otherwise use
+     safe_terminal_coding.  We can't use CODING_REQUIRE_ENCODING here
+     because it always return 1 if the member src_multibyte is 1.  */
+  coding = (terminal_coding.common_flags & CODING_REQUIRE_ENCODING_MASK
+	    ? &terminal_coding : &safe_terminal_coding);
   /* The mode bit CODING_MODE_LAST_BLOCK should be set to 1 only at
      the tail.  */
   terminal_coding.mode &= ~CODING_MODE_LAST_BLOCK;
@@ -324,69 +332,37 @@ w32con_write_glyphs (register struct glyph *string, register int len)
       /* Turn appearance modes of the face of the run on.  */
       char_attr = w32_face_attributes (f, face_id);
 
-      while (n > 0)
-        {
-	  /* We use a fixed size (1024 bytes) of conversion buffer.
-	     Usually it is sufficient, but if not, we just repeat the
-	     loop.  */
-	  produced = encode_terminal_code (string, conversion_buffer,
-					   n, conversion_buffer_size,
-					   &consumed);
-	  if (produced > 0)
+      if (n == len)
+	/* This is the last run.  */
+	coding->mode |= CODING_MODE_LAST_BLOCK;
+      conversion_buffer = encode_terminal_code (string, n, coding);
+      if (coding->produced > 0)
+	{
+	  /* Set the attribute for these characters.  */
+	  if (!FillConsoleOutputAttribute (cur_screen, char_attr,
+					   coding->produced, cursor_coords,
+					   &r))
 	    {
-              /* Set the attribute for these characters.  */
-              if (!FillConsoleOutputAttribute (cur_screen, char_attr,
-                                               produced, cursor_coords, &r))
-                {
-                  printf ("Failed writing console attributes: %d\n",
-                          GetLastError ());
-                  fflush (stdout);
-                }
+	      printf ("Failed writing console attributes: %d\n",
+		      GetLastError ());
+	      fflush (stdout);
+	    }
 
-              /* Write the characters.  */
-              if (!WriteConsoleOutputCharacter (cur_screen, conversion_buffer,
-                                                produced, cursor_coords, &r))
-                {
-                  printf ("Failed writing console characters: %d\n",
-                          GetLastError ());
-                  fflush (stdout);
-                }
+	  /* Write the characters.  */
+	  if (!WriteConsoleOutputCharacter (cur_screen, conversion_buffer,
+					    coding->produced, cursor_coords,
+					    &r))
+	    {
+	      printf ("Failed writing console characters: %d\n",
+		      GetLastError ());
+	      fflush (stdout);
+	    }
 
-              cursor_coords.X += produced;
-              w32con_move_cursor (cursor_coords.Y, cursor_coords.X);
-            }
-          len -= consumed;
-          n -= consumed;
-          string += consumed;
-        }
-    }
-
-  /* We may have to output some codes to terminate the writing.  */
-  if (CODING_REQUIRE_FLUSHING (&terminal_coding))
-    {
-      terminal_coding.mode |= CODING_MODE_LAST_BLOCK;
-      encode_coding (&terminal_coding, "", conversion_buffer,
-		     0, conversion_buffer_size);
-      if (terminal_coding.produced > 0)
-        {
-          if (!FillConsoleOutputAttribute (cur_screen, char_attr_normal,
-                                           terminal_coding.produced,
-                                           cursor_coords, &r))
-            {
-              printf ("Failed writing console attributes: %d\n",
-                      GetLastError ());
-              fflush (stdout);
-            }
-
-          /* Write the characters.  */
-          if (!WriteConsoleOutputCharacter (cur_screen, conversion_buffer,
-                                            produced, cursor_coords, &r))
-            {
-              printf ("Failed writing console characters: %d\n",
-                      GetLastError ());
-              fflush (stdout);
-            }
-        }
+	  cursor_coords.X += coding->produced;
+	  w32con_move_cursor (cursor_coords.Y, cursor_coords.X);
+	}
+      len -= n;
+      string += n;
     }
 }
 

@@ -76,6 +76,7 @@ not align (only setting space according to `conf-assignment-space')."
     (define-key map "\C-c\C-c" 'conf-colon-mode)
     (define-key map "\C-c:" 'conf-colon-mode)
     (define-key map "\C-c\C-x" 'conf-xdefaults-mode)
+    (define-key map "\C-c\C-p" 'conf-ppd-mode)
     (define-key map "\C-c\C-q" 'conf-quote-normal)
     (define-key map "\C-c\"" 'conf-quote-normal)
     (define-key map "\C-c'" 'conf-quote-normal)
@@ -90,7 +91,6 @@ not align (only setting space according to `conf-assignment-space')."
     (modify-syntax-entry ?-  "_" table)
     (modify-syntax-entry ?.  "_" table)
     (modify-syntax-entry ?\' "\"" table)
-;    (modify-syntax-entry ?:  "_" table)
     (modify-syntax-entry ?\; "<" table)
     (modify-syntax-entry ?\n ">" table)
     (modify-syntax-entry ?\r ">" table)
@@ -111,6 +111,16 @@ not align (only setting space according to `conf-assignment-space')."
     (modify-syntax-entry ?*  ". 23b" table)
     table)
   "Syntax table in use in Java prperties buffers.")
+
+(defvar conf-ppd-mode-syntax-table
+  (let ((table (make-syntax-table conf-mode-syntax-table)))
+    (modify-syntax-entry ?*  ". 1" table)
+    (modify-syntax-entry ?%  ". 2" table)
+    ;; override
+    (modify-syntax-entry ?\' "." table)
+    (modify-syntax-entry ?\; "." table)
+    table)
+  "Syntax table in use in PPD conf-mode buffers.")
 
 (defvar conf-xdefaults-mode-syntax-table
   (let ((table (make-syntax-table conf-mode-syntax-table)))
@@ -230,18 +240,19 @@ whitespace.")
       (forward-line))))
 
 
-(defun conf-quote-normal ()
-  "Set the syntax of \" and ' to punctuation.
+(defun conf-quote-normal (arg)
+  "Set the syntax of ' and \" to punctuation.
+With prefix arg, only do it for ' if 1, or only for \" if 2.
 This only affects the current buffer.  Some conf files use quotes
 to delimit strings, while others allow quotes as simple parts of
 the assigned value.  In those files font locking will be wrong,
 and you can correct it with this command.  (Some files even do
 both, i.e. quotes delimit strings, except when they are
 unbalanced, but hey...)"
-  (interactive)
+  (interactive "P")
   (let ((table (copy-syntax-table (syntax-table))))
-    (modify-syntax-entry ?\" "." table)
-    (modify-syntax-entry ?\' "." table)
+    (if (or (not arg) (= (prefix-numeric-value arg) 1)) (modify-syntax-entry ?\' "." table))
+    (if (or (not arg) (= (prefix-numeric-value arg) 2)) (modify-syntax-entry ?\" "." table))
     (set-syntax-table table)
     (and (boundp 'font-lock-mode)
 	 font-lock-mode
@@ -284,9 +295,9 @@ If instead you start this mode with the generic `conf-mode'
 command, it will parse the buffer.  It will generally well
 identify the first four cases listed below.  If the buffer
 doesn't have enough contents to decide, this is identical to
-`conf-windows-mode' on Windows, elsewhere to `conf-unix-mode'.  See
-also `conf-space-mode', `conf-colon-mode', `conf-javaprop-mode' and
-`conf-xdefaults-mode'.
+`conf-windows-mode' on Windows, elsewhere to `conf-unix-mode'.
+See also `conf-space-mode', `conf-colon-mode', `conf-javaprop-mode',
+`conf-ppd-mode' and `conf-xdefaults-mode'.
 
 \\{conf-mode-map}"
 
@@ -328,7 +339,7 @@ also `conf-space-mode', `conf-colon-mode', `conf-javaprop-mode' and
 	  mode-name name)
     (set (make-local-variable 'comment-start) comment)
     (set (make-local-variable 'comment-start-skip)
-	 (concat comment-start "+\\s *"))
+	 (concat (regexp-quote comment-start) "+\\s *"))
     (set (make-local-variable 'comment-use-syntax) t)
     (set (make-local-variable 'parse-sexp-ignore-comments) t)
     (set (make-local-variable 'outline-regexp)
@@ -343,7 +354,7 @@ also `conf-space-mode', `conf-colon-mode', `conf-javaprop-mode' and
 	    ;; [section]
 	    (nil "^[ \t]*\\[[ \t]*\\(.+\\)[ \t]*\\]" 1)
 	    ;; section { ... }
-	    (nil "^[ \t]*\\([^=:\n]+\\)[ \t\n]*{" 1)))
+	    (nil "^[ \t]*\\([^=:{} \t\n][^=:{}\n]+\\)[ \t\n]*{" 1)))
 
     (run-mode-hooks 'conf-mode-hook)))
 
@@ -502,6 +513,21 @@ For details see `conf-mode'.  Example:
   (setq imenu-generic-expression
 	`(("Parameters" "^[ \t]*\\(.+?\\)[ \t]*:" 1)
 	  ,@(cdr imenu-generic-expression))))
+
+;;;###autoload
+(defun conf-ppd-mode ()
+  "Conf Mode starter for Adobe/CUPS PPD files.
+Comments start with `*%' and \"assignments\" are with `:'.
+For details see `conf-mode'.  Example:
+
+*% Conf mode font-locks this right with C-c C-p (PPD)
+
+*DefaultTransfer: Null
+*Transfer Null.Inverse: \"{ 1 exch sub }\""
+  (interactive)
+  (conf-colon-mode "*%" conf-ppd-mode-syntax-table "Conf[PPD]")
+  ;; no sections, they match within PostScript code
+  (setq imenu-generic-expression (list (car imenu-generic-expression))))
 
 ;;;###autoload
 (defun conf-xdefaults-mode ()

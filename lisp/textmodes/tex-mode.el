@@ -1190,14 +1190,14 @@ area if a mismatch is found."
 	      (forward-sexp 1))
 	    ;; Now check that like matches like.
 	    (goto-char start)
-	    (while (progn (skip-syntax-forward "^(")
-			  (not (eobp)))
-	      (let ((match (matching-paren (following-char))))
-		(save-excursion
+	    (while (re-search-forward "\\s(" nil t)
+	      (save-excursion
+		(let ((pos (match-beginning 0)))
+		  (goto-char pos)
 		  (forward-sexp 1)
-		  (or (= (preceding-char) match)
-		      (error "Mismatched parentheses"))))
-	      (forward-char 1)))
+		  (or (eq (preceding-char) (cdr (syntax-after pos)))
+		      (eq (char-after pos) (cdr (syntax-after (1- (point)))))
+		      (error "Mismatched parentheses"))))))
 	(error
 	 (skip-syntax-forward " .>")
 	 (setq failure-point (point)))))
@@ -1693,9 +1693,12 @@ of the current buffer."
   (let* ((file (or tex-main-file
 		   ;; Compatibility with AUCTeX.
 		   (with-no-warnings
-		    (when (and (boundp 'TeX-master) (stringp TeX-master))
-		      (make-local-variable 'tex-main-file)
-		      (setq tex-main-file TeX-master)))
+		    (when (boundp 'TeX-master)
+		      (cond ((stringp TeX-master)
+			     (make-local-variable 'tex-main-file)
+			     (setq tex-main-file TeX-master))
+			    ((and (eq TeX-master t) buffer-file-name)
+			     (file-relative-name buffer-file-name)))))
 		   ;; Try to guess the main file.
 		   (if (not buffer-file-name)
 		       (error "Buffer is not associated with any file")

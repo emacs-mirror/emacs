@@ -2416,8 +2416,7 @@ image_load_quartz2d (f, img, png_p)
 	  UNGCPRO;
 	  return 0;
 	}
-      path = CFStringCreateWithCString (NULL, SDATA (file),
-					kCFStringEncodingUTF8);
+      path = cfstring_create_with_utf8_cstring (SDATA (file));
       url = CFURLCreateWithFileSystemPath (NULL, path,
 					   kCFURLPOSIXPathStyle, 0);
       CFRelease (path);
@@ -6379,7 +6378,7 @@ our_fill_input_buffer (cinfo)
 
   src->next_input_byte = buffer;
   src->bytes_in_buffer = 2;
-  return TRUE;
+  return 1;
 }
 
 
@@ -6534,11 +6533,11 @@ jpeg_load (f, img)
     jpeg_memory_src (&cinfo, SDATA (specified_data),
 		     SBYTES (specified_data));
 
-  fn_jpeg_read_header (&cinfo, TRUE);
+  fn_jpeg_read_header (&cinfo, 1);
 
   /* Customize decompression so that color quantization will be used.
 	 Start decompression.  */
-  cinfo.quantize_colors = TRUE;
+  cinfo.quantize_colors = 1;
   fn_jpeg_start_decompress (&cinfo);
   width = img->width = cinfo.output_width;
   height = img->height = cinfo.output_height;
@@ -7553,7 +7552,7 @@ gif_load (f, img)
   bg_color.blue = color.blue;
   RGBBackColor (&bg_color);
   SetGWorld (old_port, old_gdh);
-  SetMovieActive (movie, TRUE);
+  SetMovieActive (movie, 1);
   SetMovieGWorld (movie, ximg, NULL);
   SampleNumToMediaTime (media, ino + 1, &time, NULL);
   SetMovieTimeValue (movie, time);
@@ -7931,7 +7930,7 @@ DEFUN ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0, "")
   define_image_type (image_type, init_lib_fn (libraries))
 #else
 #define CHECK_LIB_AVAILABLE(image_type, init_lib_fn, libraries) \
-  define_image_type (image_type, TRUE)
+  define_image_type (image_type, 1)
 #endif /* HAVE_NTGUI */
 
 DEFUN ("init-image-library", Finit_image_library, Sinit_image_library, 2, 2, 0,
@@ -8115,8 +8114,8 @@ init_image ()
 {
   image_types = NULL;
 
-  define_image_type (&xbm_type, TRUE);
-  define_image_type (&pbm_type, TRUE);
+  define_image_type (&xbm_type, 1);
+  define_image_type (&pbm_type, 1);
 
 #ifdef MAC_OS
   /* Animated gifs use QuickTime Movie Toolbox.  So initialize it here. */

@@ -262,6 +262,22 @@ posix_to_mac_pathname (const char *ufn, char *mfn, int mfnbuflen)
   return 1;
 }
 
+#if TARGET_API_MAC_CARBON
+CFStringRef
+cfstring_create_with_utf8_cstring (c_str)
+     const char *c_str;
+{
+  CFStringRef str;
+
+  str = CFStringCreateWithCString (NULL, c_str, kCFStringEncodingUTF8);
+  if (str == NULL)
+    /* Failed to interpret as UTF 8.  Fall back on Mac Roman.  */
+    str = CFStringCreateWithCString (NULL, c_str, kCFStringEncodingMacRoman);
+
+  return str;
+}
+#endif
+
 #ifndef MAC_OSX
 
 /* The following functions with "sys_" prefix are stubs to Unix

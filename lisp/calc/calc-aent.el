@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,13 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc.el.
+
 (require 'calc)
-
 (require 'calc-macs)
-(eval-when-compile '(require calc-macs))
-
-(defun calc-Need-calc-aent () nil)
-
 
 (defun calc-do-quick-calc ()
   (calc-check-defines)
@@ -52,20 +47,20 @@
 	       (entry (calc-do-alg-entry "" "Quick calc: " t))
 	       (alg-exp (mapcar (function
 				 (lambda (x)
-				   (if (and (not calc-extensions-loaded)
+				   (if (and (not (featurep 'calc-ext))
 					    calc-previous-alg-entry
 					    (string-match
 					     "\\`[-0-9._+*/^() ]+\\'"
 					     calc-previous-alg-entry))
 				       (calc-normalize x)
-				     (calc-extensions)
+				     (require 'calc-ext)
 				     (math-evaluate-expr x))))
 				entry)))
 	  (when (and (= (length alg-exp) 1)
 		     (eq (car-safe (car alg-exp)) 'calcFunc-assign)
 		     (= (length (car alg-exp)) 3)
 		     (eq (car-safe (nth 1 (car alg-exp))) 'var))
-	    (calc-extensions)
+	    (require 'calc-ext)
 	    (set (nth 2 (nth 1 (car alg-exp))) (nth 2 (car alg-exp)))
 	    (calc-refresh-evaltos (nth 2 (nth 1 (car alg-exp))))
 	    (setq alg-exp (list (nth 2 (car alg-exp)))))
@@ -92,7 +87,7 @@
 				  "")
 				")")))
 	  (if (and (< (length buf) (frame-width)) (= (length entry) 1)
-		   calc-extensions-loaded)
+		   (featurep 'calc-ext))
 	      (let ((long (concat (math-format-value (car entry) 1000)
 				  " =>  " buf)))
 		(if (<= (length long) (- (frame-width) 8))
@@ -148,7 +143,7 @@
        ((eq separator 'eval)
 	(eval str))
        ((eq separator 'macro)
-	(calc-extensions)
+	(require 'calc-ext)
 	(let* ((calc-buffer (current-buffer))
 	       (calc-window (get-buffer-window calc-buffer))
 	       (save-window (selected-window)))
@@ -209,7 +204,7 @@
 	    (and (memq 'clear-message calc-command-flags)
 		 (message ""))
 	    (cond ((eq separator 'pred)
-		   (calc-extensions)
+		   (require 'calc-ext)
 		   (if (= (length res) 1)
 		       (math-is-true (car res))
 		     (calc-eval-error '(0 "Single value expected"))))
@@ -241,9 +236,14 @@
 			     res (cdr res)))
 		     buf)))))))))
 
+(defvar calc-eval-error nil
+  "Determines how calc handles errors.
+NIL means return a list containing the character position of error.
+STRING means return error message as string rather than list.
+T means abort and give an error message.")
+
 (defun calc-eval-error (msg)
-  (if (and (boundp 'calc-eval-error)
-	   calc-eval-error)
+  (if calc-eval-error
       (if (eq calc-eval-error 'string)
 	  (nth 1 msg)
 	(error "%s" (nth 1 msg)))
@@ -272,19 +272,19 @@
 	 (alg-exp (calc-do-alg-entry initial prompt t)))
     (if (stringp alg-exp)
 	(progn
-	  (calc-extensions)
+	  (require 'calc-ext)
 	  (calc-alg-edit alg-exp))
       (let* ((calc-simplify-mode (if (eq last-command-char ?\C-j)
 				     'none
 				   calc-simplify-mode))
 	     (nvals (mapcar 'calc-normalize alg-exp)))
 	(while alg-exp
-	  (calc-record (if calc-extensions-loaded (car alg-exp) (car nvals))
+	  (calc-record (if (featurep 'calc-ext) (car alg-exp) (car nvals))
 		       "alg'")
 	  (calc-pop-push-record-list calc-dollar-used
 				     (and (not (equal (car alg-exp)
 						      (car nvals)))
-					  calc-extensions-loaded
+					  (featurep 'calc-ext)
 					  "")
 				     (list (car nvals)))
 	  (setq alg-exp (cdr alg-exp)
@@ -386,6 +386,8 @@
     (and (> (length calc-alg-exp) 0) (setq calc-previous-alg-entry calc-alg-exp))
     (exit-minibuffer)))
 
+(defvar calc-buffer)
+
 (defun calcAlg-enter ()
   (interactive)
   (let* ((str (minibuffer-contents))
@@ -443,6 +445,10 @@
 	 ((eq last-command-char ?@) "0@ ")
 	 (t (char-to-string last-command-char)))))
 
+;; The variable calc-digit-value is initially declared in calc.el,
+;; but can be set by calcDigit-algebraic and calcDigit-edit.
+(defvar calc-digit-value)
+
 (defun calcDigit-algebraic ()
   (interactive)
   (if (calc-minibuffer-contains ".*[@oh] *[^'m ]+[^'m]*\\'")
@@ -459,20 +465,89 @@
 
 ;;; Algebraic expression parsing.   [Public]
 
-;;; The next few variables are local to math-read-exprs (and math-read-expr)
-;;; but are set in functions they call.
+(defvar math-read-replacement-list
+  '(;; Misc symbols
+    ("±" "+/-")  ; plus or minus
+    ("×" "*")    ; multiplication sign
+    ("÷" ":")    ; division sign
+    ("−" "-")    ; subtraction sign
+    ("∕" "/")    ; division sign
+    ("∗" "*")    ; asterisk multiplication
+    ("∞" "inf")  ; infinity symbol
+    ("≤" "<=")
+    ("≥" ">=")
+    ("≦" "<=")
+    ("≧" ">=")
+    ;; fractions
+    ("¼" "(1:4)") ; 1/4
+    ("½" "(1:2)") ; 1/2
+    ("¾" "(3:4)") ; 3/4
+    ("⅓" "(1:3)") ; 1/3
+    ("⅔" "(2:3)") ; 2/3
+    ("⅕" "(1:5)") ; 1/5
+    ("⅖" "(2:5)") ; 2/5
+    ("⅗" "(3:5)") ; 3/5
+    ("⅘" "(4:5)") ; 4/5
+    ("⅙" "(1:6)") ; 1/6
+    ("⅚" "(5:6)") ; 5/6
+    ("⅛" "(1:8)") ; 1/8
+    ("⅜" "(3:8)") ; 3/8
+    ("⅝" "(5:8)") ; 5/8
+    ("⅞" "(7:8)") ; 7/8
+    ("⅟" "1:")    ; 1/...
+    ;; superscripts
+    ("⁰" "0")  ; 0
+    ("¹" "1")  ; 1
+    ("²" "2")  ; 2
+    ("³" "3")  ; 3
+    ("⁴" "4")  ; 4
+    ("⁵" "5")  ; 5
+    ("⁶" "6")  ; 6
+    ("⁷" "7")  ; 7
+    ("⁸" "8")  ; 8
+    ("⁹" "9")  ; 9
+    ("⁺" "+")  ; +
+    ("⁻" "-")  ; -
+    ("⁽" "(")  ; (
+    ("⁾" ")")  ; )
+    ("ⁿ" "n")  ; n
+    ("ⁱ" "i")) ; i
+  "A list whose elements (old new) indicate replacements to make
+in Calc algebraic input.")
+
+(defvar math-read-superscripts
+  "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ⁿⁱ" ; 0123456789+-()ni
+  "A string consisting of the superscripts allowed by Calc.")
+
+(defun math-read-preprocess-string (str)
+  "Replace some substrings of STR by Calc equivalents."
+  (setq str
+        (replace-regexp-in-string (concat "[" math-read-superscripts "]+")
+                                  "^(\\&)" str))
+  (let ((rep-list math-read-replacement-list))
+    (while rep-list
+      (setq str
+            (replace-regexp-in-string (nth 0 (car rep-list))
+                                      (nth 1 (car rep-list)) str))
+      (setq rep-list (cdr rep-list))))
+  str)
+
+;; The next few variables are local to math-read-exprs (and math-read-expr
+;; in calc-ext.el), but are set in functions they call.
 
 (defvar math-exp-pos)
 (defvar math-exp-str)
 (defvar math-exp-old-pos)
 (defvar math-exp-token)
 (defvar math-exp-keep-spaces)
+(defvar math-expr-data)
 
 (defun math-read-exprs (math-exp-str)
   (let ((math-exp-pos 0)
 	(math-exp-old-pos 0)
 	(math-exp-keep-spaces nil)
 	math-exp-token math-expr-data)
+    (setq math-exp-str (math-read-preprocess-string math-exp-str))
     (if calc-language-input-filter
 	(setq math-exp-str (funcall calc-language-input-filter math-exp-str)))
     (while (setq math-exp-token (string-match "\\.\\.\\([^.]\\|.[^.]\\)" math-exp-str))
@@ -727,6 +802,9 @@
 		   math-expr-data (char-to-string ch)
 		   math-exp-pos (1+ math-exp-pos)))))))
 
+(defconst math-alg-inequalities
+  '(calcFunc-lt calcFunc-gt calcFunc-leq calcFunc-geq
+		calcFunc-eq calcFunc-neq))
 
 (defun math-read-expr-level (exp-prec &optional exp-term)
   (let* ((x (math-read-factor)) (first t) op op2)
@@ -771,7 +849,7 @@
       (if (not (equal (car op) "2x"))
 	  (math-read-token))
       (and (memq (nth 1 op) '(sdev mod))
-	   (calc-extensions))
+	   (require 'calc-ext))
       (setq x (cond ((consp (nth 1 op))
 		     (funcall (car (nth 1 op)) x op))
 		    ((eq (nth 3 op) -1)
@@ -787,7 +865,7 @@
 		    ((and (not first)
 			  (memq (nth 1 op) math-alg-inequalities)
 			  (memq (car-safe x) math-alg-inequalities))
-		     (calc-extensions)
+		     (require 'calc-ext)
 		     (math-composite-inequalities x op))
 		    (t (list (nth 1 op)
 			     x
@@ -815,7 +893,7 @@
 		      (or (not (listp
 				(setq matches (calc-match-user-syntax rule))))
 			  (let ((args (progn
-					(calc-extensions)
+					(require 'calc-ext)
 					calc-arg-values))
 				(conds nil)
 				temp)
@@ -830,7 +908,7 @@
 						  conds)
 				    match (nth 1 match)))
 			    (while (and conds match)
-			      (calc-extensions)
+			      (require 'calc-ext)
 			      (cond ((eq (car-safe (car conds))
 					 'calcFunc-let)
 				     (setq temp (car conds))
@@ -941,10 +1019,6 @@
 	      matches "Failed"))
     matches))
 
-(defconst math-alg-inequalities
-  '(calcFunc-lt calcFunc-gt calcFunc-leq calcFunc-geq
-		calcFunc-eq calcFunc-neq))
-
 (defun math-remove-dashes (x)
   (if (string-match "\\`\\(.*\\)-\\(.*\\)\\'" x)
       (math-remove-dashes
@@ -1026,7 +1100,7 @@
 			   (throw 'syntax "Expected `)'"))
 		       (math-read-token)
 		       (if (and (eq calc-language 'fortran) args
-				(calc-extensions)
+				(require 'calc-ext)
 				(let ((calc-matrix-mode 'scalar))
 				  (math-known-matrixp
 				   (list 'var sym
@@ -1085,7 +1159,7 @@
 	  ((eq math-exp-token 'hash)
 	   (or calc-hashes-used
 	       (throw 'syntax "#'s not allowed in this context"))
-	   (calc-extensions)
+	   (require 'calc-ext)
 	   (if (<= math-expr-data (length calc-arg-values))
 	       (let ((num math-expr-data))
 		 (math-read-token)
@@ -1116,7 +1190,7 @@
 		     (setq exp (if (and exp2 (Math-realp exp)
 					(Math-anglep exp2))
 				   (math-normalize (list 'polar exp exp2))
-				 (calc-extensions)
+				 (require 'calc-ext)
 				 (list '* exp
 				       (list 'calcFunc-exp
 					     (list '*
@@ -1143,18 +1217,20 @@
 	     (math-read-token)
 	     exp))
 	  ((eq math-exp-token 'string)
-	   (calc-extensions)
+	   (require 'calc-ext)
 	   (math-read-string))
 	  ((equal math-expr-data "[")
-	   (calc-extensions)
+	   (require 'calc-ext)
 	   (math-read-brackets t "]"))
 	  ((equal math-expr-data "{")
-	   (calc-extensions)
+	   (require 'calc-ext)
 	   (math-read-brackets nil "}"))
 	  ((equal math-expr-data "<")
-	   (calc-extensions)
+	   (require 'calc-ext)
 	   (math-read-angle-brackets))
 	  (t (throw 'syntax "Expected a number")))))
+
+(provide 'calc-aent)
 
 ;;; arch-tag: 5599e45d-e51e-44bb-9a20-9f4ed8c96c32
 ;;; calc-aent.el ends here

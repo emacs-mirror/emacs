@@ -394,7 +394,7 @@ time.  Here's how to do this:
 If you bind a variable in one function, and use it or set it in
 another function, the compiler warns about the latter function unless
 the variable has a definition.  But adding a definition would be
-unclean if the variable has a short names, since Lisp packages should
+unclean if the variable has a short name, since Lisp packages should
 not define short variable names.  The right thing to do is to rename
 this variable to start with the name prefix used for the other
 functions and variables in your package.

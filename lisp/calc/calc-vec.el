@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-vec () nil)
-
 
 (defun calc-display-strings (n)
   (interactive "P")
@@ -1101,21 +1097,26 @@
       (cons 'vec (nreverse (sort (copy-sequence (cdr vec)) 'math-beforep)))
     (math-reject-arg vec 'vectorp)))
 
-(defun calcFunc-grade (grade-vec)
-  (if (math-vectorp grade-vec)
-      (let* ((len (1- (length grade-vec))))
-	(cons 'vec (sort (cdr (calcFunc-index len)) 'math-grade-beforep)))
-    (math-reject-arg grade-vec 'vectorp)))
+;; The variable math-grade-vec is local to calcFunc-grade and 
+;; calcFunc-rgrade, but is used by math-grade-beforep, which is called
+;; by calcFunc-grade and calcFunc-rgrade.
+(defvar math-grade-vec)
 
-(defun calcFunc-rgrade (grade-vec)
-  (if (math-vectorp grade-vec)
-      (let* ((len (1- (length grade-vec))))
+(defun calcFunc-grade (math-grade-vec)
+  (if (math-vectorp math-grade-vec)
+      (let* ((len (1- (length math-grade-vec))))
+	(cons 'vec (sort (cdr (calcFunc-index len)) 'math-grade-beforep)))
+    (math-reject-arg math-grade-vec 'vectorp)))
+
+(defun calcFunc-rgrade (math-grade-vec)
+  (if (math-vectorp math-grade-vec)
+      (let* ((len (1- (length math-grade-vec))))
 	(cons 'vec (nreverse (sort (cdr (calcFunc-index len))
 				   'math-grade-beforep))))
-    (math-reject-arg grade-vec 'vectorp)))
+    (math-reject-arg math-grade-vec 'vectorp)))
 
 (defun math-grade-beforep (i j)
-  (math-beforep (nth i grade-vec) (nth j grade-vec)))
+  (math-beforep (nth i math-grade-vec) (nth j math-grade-vec)))
 
 
 ;;; Compile a histogram of data from a vector.
@@ -1461,14 +1462,26 @@
 
 
 
+;; The variable math-rb-close is local to math-read-brackets, but
+;; is used by math-read-vector, which is called (directly and
+;; indirectly) by math-read-brackets.
+(defvar math-rb-close)
 
+;; The next few variables are local to math-read-exprs in calc-aent.el 
+;; and math-read-expr in calc-ext.el, but are set in functions they call.
+(defvar math-exp-pos)
+(defvar math-exp-str)
+(defvar math-exp-old-pos)
+(defvar math-exp-token)
+(defvar math-exp-keep-spaces)
+(defvar math-expr-data)
 
-(defun math-read-brackets (space-sep close)
+(defun math-read-brackets (space-sep math-rb-close)
   (and space-sep (setq space-sep (not (math-check-for-commas))))
   (math-read-token)
   (while (eq math-exp-token 'space)
     (math-read-token))
-  (if (or (equal math-expr-data close)
+  (if (or (equal math-expr-data math-rb-close)
 	  (eq math-exp-token 'end))
       (progn
 	(math-read-token)
@@ -1495,7 +1508,7 @@
 		  (setq vals2 (catch 'syntax (math-read-vector))))
 		(if (and (not (stringp vals2))
 			 (or (assoc math-expr-data '(("\\ldots") ("\\dots") (";")))
-			     (equal math-expr-data close)
+			     (equal math-expr-data math-rb-close)
 			     (eq math-exp-token 'end)))
 		    (setq space-sep nil
 			  vals vals2)
@@ -1509,7 +1522,7 @@
 	    (math-read-token)
 	    (setq vals (if (> (length vals) 2)
 			   (cons 'calcFunc-mul (cdr vals)) (nth 1 vals)))
-	    (let ((exp2 (if (or (equal math-expr-data close)
+	    (let ((exp2 (if (or (equal math-expr-data math-rb-close)
 				(equal math-expr-data ")")
 				(eq math-exp-token 'end))
 			    '(var inf var-inf)
@@ -1519,14 +1532,14 @@
 			  (if (equal math-expr-data ")") 2 3)
 			  vals
 			  exp2)))
-	    (if (not (or (equal math-expr-data close)
+	    (if (not (or (equal math-expr-data math-rb-close)
 			 (equal math-expr-data ")")
 			 (eq math-exp-token 'end)))
 		(throw 'syntax "Expected `]'")))
 	(if (equal math-expr-data ";")
 	    (let ((math-exp-keep-spaces space-sep))
 	      (setq vals (cons 'vec (math-read-matrix (list vals))))))
-	(if (not (or (equal math-expr-data close)
+	(if (not (or (equal math-expr-data math-rb-close)
 		     (eq math-exp-token 'end)))
 	    (throw 'syntax "Expected `]'")))
       (or (eq math-exp-token 'end)
@@ -1557,7 +1570,7 @@
 	       (math-read-token))
 	     (and (not (eq math-exp-token 'end))
 		  (not (equal math-expr-data ";"))
-		  (not (equal math-expr-data close))
+		  (not (equal math-expr-data math-rb-close))
 		  (not (equal math-expr-data "\\dots"))
 		  (not (equal math-expr-data "\\ldots"))))
       (if (equal math-expr-data ",")
@@ -1576,6 +1589,8 @@
       (math-read-token))
     (setq mat (nconc mat (list (math-read-vector)))))
   mat)
+
+(provide 'calc-vec)
 
 ;;; arch-tag: 7902a7af-ec69-440a-8635-ebb4db263402
 ;;; calc-vec.el ends here

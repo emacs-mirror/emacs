@@ -4180,7 +4180,7 @@ conditional/loop constructs."
       (let ((indent-info (if cperl-emacs-can-parse
 			     (list nil nil nil)	; Cannot use '(), since will modify
 			   nil))
-	    (pm 0) (imenu-scanning-message "Indenting... (%3d%%)")
+	    (pm 0)
 	    after-change-functions	; Speed it up!
 	    st comm old-comm-indent new-comm-indent p pp i empty)
 	(if h-a-c (add-hook 'after-change-functions 'cperl-delay-update-hook))
@@ -4191,12 +4191,7 @@ conditional/loop constructs."
 	(goto-char start)
 	(setq end (set-marker (make-marker) end)) ; indentation changes pos
 	(or (bolp) (beginning-of-line 2))
-	(or (fboundp 'imenu-progress-message)
-	    (message "Indenting... For feedback load `imenu'..."))
 	(while (and (<= (point) end) (not (eobp))) ; bol to check start
-	  (and (fboundp 'imenu-progress-message)
-	       (imenu-progress-message
-		pm (/ (* 100 (- (point) start)) (- end start -1))))
 	  (setq st (point))
 	  (if (or
 	       (setq empty (looking-at "[ \t]*\n"))
@@ -4232,10 +4227,7 @@ conditional/loop constructs."
 			     (skip-chars-backward " \t")
 			     (skip-chars-backward "#")
 			     (setq new-comm-indent (current-column))))))))
-	(beginning-of-line 2))
-      	(if (fboundp 'imenu-progress-message)
-	     (imenu-progress-message pm 100)
-	  (message nil)))
+	(beginning-of-line 2)))
       ;; Now run the update hooks
       (and after-change-functions
 	   cperl-update-end
@@ -4385,17 +4377,12 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	packages ends-ranges p marker
 	(prev-pos 0) char fchar index index1 name (end-range 0) package)
     (goto-char (point-min))
-    (if noninteractive
-	(message "Scanning Perl for index")
-      (imenu-progress-message prev-pos 0))
     (cperl-update-syntaxification (point-max) (point-max))
     ;; Search for the function
     (progn ;;save-match-data
       (while (re-search-forward
 	      (or regexp cperl-imenu--function-name-regexp-perl)
 	      nil t)
-	(or noninteractive
-	    (imenu-progress-message prev-pos))
 	(cond
 	 ((and				; Skip some noise if building tags
 	   (match-beginning 2)		; package or sub
@@ -4465,8 +4452,6 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	  (setq index1 (cons (concat "=" name) (cdr index)))
 	  (push index index-pod-alist)
 	  (push index1 index-unsorted-alist)))))
-    (or noninteractive
-	(imenu-progress-message prev-pos 100))
     (setq index-alist
 	  (if (default-value 'imenu-sort-function)
 	      (sort index-alist (default-value 'imenu-sort-function))
@@ -5549,16 +5534,11 @@ Delay of auto-help controlled by `cperl-lazy-help-time'."
   (let ((index-alist '())
 	(prev-pos 0) index index1 name package prefix)
     (goto-char (point-min))
-    (if noninteractive
-	(message "Scanning XSUB for index")
-      (imenu-progress-message prev-pos 0))
     ;; Search for the function
     (progn ;;save-match-data
       (while (re-search-forward
 	      "^\\([ \t]*MODULE\\>[^\n]*\\<PACKAGE[ \t]*=[ \t]*\\([a-zA-Z_][a-zA-Z_0-9:]*\\)\\>\\|\\([a-zA-Z_][a-zA-Z_0-9]*\\)(\\|[ \t]*BOOT:\\)"
 	      nil t)
-	(or noninteractive
-	    (imenu-progress-message prev-pos))
 	(cond
 	 ((match-beginning 2)		; SECTION
 	  (setq package (buffer-substring (match-beginning 2) (match-end 2)))
@@ -5586,8 +5566,6 @@ Delay of auto-help controlled by `cperl-lazy-help-time'."
 	  (setq index (imenu-example--name-and-position))
 	  (setcar index (concat package "::BOOT:"))
 	  (push index index-alist)))))
-    (or noninteractive
-	(imenu-progress-message prev-pos 100))
     index-alist))
 
 (defvar cperl-unreadable-ok nil)

@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -27,14 +26,10 @@
 
 ;;; Code:
 
-
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-mat () nil)
-
 
 (defun calc-mdet (arg)
   (interactive "P")
@@ -176,6 +171,10 @@
 	(nth 1 m)
       (math-reject-arg m 'square-matrixp))))
 
+;; The variable math-det-lu is local to math-det-raw, but is
+;; used by math-det-step, which is called by math-det-raw.
+(defvar math-det-lu)
+
 (defun math-det-raw (m)
   (let ((n (1- (length m))))
     (cond ((= n 1)
@@ -211,13 +210,13 @@
 				(nth 3 (nth 3 m))))))
 	  (t (let ((lud (math-matrix-lud m)))
 	       (if lud
-		   (let ((lu (car lud)))
+		   (let ((math-det-lu (car lud)))
 		     (math-det-step n (nth 2 lud)))
 		 0))))))
 
 (defun math-det-step (n prod)
   (if (> n 0)
-      (math-det-step (1- n) (math-mul prod (nth n (nth n lu))))
+      (math-det-step (1- n) (math-mul prod (nth n (nth n math-det-lu))))
     prod))
 
 ;;; This returns a list (LU index d), or nil if not possible.
@@ -364,6 +363,8 @@
 		     (list 'vec perm lmat umat)))))
 	  (math-reject-arg m "*Singular matrix"))
     (math-reject-arg m 'square-matrixp)))
+
+(provide 'calc-mtx)
 
 ;;; arch-tag: fc0947b1-90e1-4a23-8950-d8ead9c3a306
 ;;; calc-mtx.el ends here

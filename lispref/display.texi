@@ -2817,43 +2817,6 @@ The face you use here should be derived from @code{fringe}, and should
 specify only the foreground color.
 @end defun
 
-@defvar indicate-buffer-boundaries
-This buffer-local variable controls how the buffer boundaries and
-window scrolling are indicated in the window fringes.
-
-Emacs can indicate the buffer boundaries---that is, the first and last
-line in the buffer---with angle icons when they appear on the screen.
-In addition, Emacs can display an up-arrow in the fringe to show
-that there is text above the screen, and a down-arrow to show
-there is text below the screen.
-
-There are four kinds of basic values:
-
-@table @asis
-@item @code{nil}
-Don't display the icons.
-@item @code{left}
-Display them in the left fringe.
-@item @code{right}
-Display them in the right fringe.
-@item @var{anything-else}
-Display the icon at the top of the window top in the left fringe, and other
-in the right fringe.
-@end table
-
-If value is a cons @code{(@var{angles} . @var{arrows})}, @var{angles}
-controls the angle icons, and @var{arrows} controls the arrows.  Both
-@var{angles} and @var{arrows} work according to the table above.
-Thus, @code{(t .  right)} places the top angle icon in the left
-fringe, the bottom angle icon in the right fringe, and both arrows in
-the right fringe.
-@end defvar
-
-@defvar default-indicate-buffer-boundaries
-The value of this variable is the default value for
-@code{indicate-buffer-boundaries} in buffers that do not override it.
-@end defvar
-
 @node Scroll Bars
 @section Scroll Bars
 
@@ -2902,6 +2865,19 @@ displayed control the window's vertical scroll bars.  The function
 in a buffer that is already visible in a window, you can make the
 window take note of the new values by calling @code{set-window-buffer}
 specifying the same buffer that is already displayed.
+
+@defvar scroll-bar-mode
+This variable, always local in all buffers, controls whether and where
+to put scroll bars in windows displaying the buffer.  The possible values
+are @code{nil} for no scroll bar, @code{left} to put a scroll bar on
+the left, and @code{right} to put a scroll bar on the right.
+@end defvar
+
+@defvar scroll-bar-width
+This variable, always local in all buffers, specifies the width of the
+buffer's scroll bars, measured in pixels.  A value of @code{nil} means
+to use the value specified by the frame.
+@end defvar
 
 @node Pointer Shape
 @section Pointer Shape
@@ -4386,6 +4362,14 @@ The value of this variable is the default value for @code{ctl-arrow} in
 buffers that do not override it.  @xref{Default Value}.
 @end defvar
 
+@defopt tab-width
+The value of this variable is the spacing between tab stops used for
+displaying tab characters in Emacs buffers.  The value is in units of
+columns, and the default is 8.  Note that this feature is completely
+independent of the user-settable tab stops used by the command
+@code{tab-to-tab-stop}.  @xref{Indent Tabs}.
+@end defopt
+
 @defopt indicate-empty-lines
 @tindex indicate-empty-lines
 @cindex fringes, and empty line indication
@@ -4394,13 +4378,42 @@ fringe of each empty line at the end of the buffer, on terminals that
 support it (window systems).  @xref{Fringes}.
 @end defopt
 
-@defopt tab-width
-The value of this variable is the spacing between tab stops used for
-displaying tab characters in Emacs buffers.  The value is in units of
-columns, and the default is 8.  Note that this feature is completely
-independent of the user-settable tab stops used by the command
-@code{tab-to-tab-stop}.  @xref{Indent Tabs}.
-@end defopt
+@defvar indicate-buffer-boundaries
+This buffer-local variable controls how the buffer boundaries and
+window scrolling are indicated in the window fringes.
+
+Emacs can indicate the buffer boundaries---that is, the first and last
+line in the buffer---with angle icons when they appear on the screen.
+In addition, Emacs can display an up-arrow in the fringe to show
+that there is text above the screen, and a down-arrow to show
+there is text below the screen.
+
+There are four kinds of basic values:
+
+@table @asis
+@item @code{nil}
+Don't display the icons.
+@item @code{left}
+Display them in the left fringe.
+@item @code{right}
+Display them in the right fringe.
+@item @var{anything-else}
+Display the icon at the top of the window top in the left fringe, and other
+in the right fringe.
+@end table
+
+If value is a cons @code{(@var{angles} . @var{arrows})}, @var{angles}
+controls the angle icons, and @var{arrows} controls the arrows.  Both
+@var{angles} and @var{arrows} work according to the table above.
+Thus, @code{(t .  right)} places the top angle icon in the left
+fringe, the bottom angle icon in the right fringe, and both arrows in
+the right fringe.
+@end defvar
+
+@defvar default-indicate-buffer-boundaries
+The value of this variable is the default value for
+@code{indicate-buffer-boundaries} in buffers that do not override it.
+@end defvar
 
 @node Display Tables
 @section Display Tables
@@ -4460,7 +4473,7 @@ in these situations.
 @item 1
 The glyph for the end of a continued line (the default is @samp{\}).
 Newer Emacs versions, on some platforms, display curved arrows to
-indicate truncation---the display table has no effect in these
+indicate continuation---the display table has no effect in these
 situations.
 @item 2
 The glyph for indicating a character displayed as an octal character

@@ -26,26 +26,7 @@
 
 ;;; Code:
 
-(provide 'calc-ext)
 (require 'calc)
-
-(setq calc-extensions-loaded t)
-
-;;; This function is the autoload "hook" to cause this file to be loaded.
-;;;###autoload
-(defun calc-extensions ()
-  "This function is part of the autoload linkage for parts of Calc."
-  t)
-
-;;; Auto-load calc.el part, in case this part was loaded first.
-(if (fboundp 'calc-dispatch)
-    (and (eq (car-safe (symbol-function 'calc-dispatch)) 'autoload)
-	 (load (nth 1 (symbol-function 'calc-dispatch))))
-  (if (fboundp 'calc)
-      (and (eq (car-safe (symbol-function 'calc)) 'autoload)
-	   (load (nth 1 (symbol-function 'calc))))
-    (error "Main part of Calc must be present in order to load this file")))
-
 (require 'calc-macs)
 
 (defvar math-simplifying nil)
@@ -668,7 +649,7 @@
       (autoload func (car x)))) (cdr x))))
     '(
 
- ("calc-alg" calc-Need-calc-alg calc-has-rules
+ ("calc-alg" calc-has-rules math-defsimplify
 calc-modify-simplify-mode calcFunc-collect calcFunc-esimplify
 calcFunc-islin calcFunc-islinnt calcFunc-lin calcFunc-linnt
 calcFunc-simplify calcFunc-subst math-beforep
@@ -676,13 +657,13 @@ math-build-polynomial-expr math-expand-formula math-expr-contains
 math-expr-contains-count math-expr-depends math-expr-height
 math-expr-subst math-expr-weight math-integer-plus math-is-linear
 math-is-multiple math-is-polynomial math-linear-in math-multiple-of
-math-need-std-simps math-poly-depends math-poly-mix math-poly-mul
+math-poly-depends math-poly-mix math-poly-mul
 math-poly-simplify math-poly-zerop math-polynomial-base
 math-polynomial-p math-recompile-eval-rules math-simplify
 math-simplify-exp math-simplify-extended math-simplify-sqrt
 math-to-simple-fraction)
 
- ("calcalg2" calc-Need-calc-alg-2 calcFunc-asum calcFunc-deriv
+ ("calcalg2" calcFunc-asum calcFunc-deriv
 calcFunc-ffinv calcFunc-finv calcFunc-fsolve calcFunc-gpoly
 calcFunc-integ calcFunc-poly calcFunc-prod calcFunc-roots
 calcFunc-solve calcFunc-sum calcFunc-table calcFunc-taylor
@@ -691,7 +672,7 @@ math-integral-rational-funcs math-lcm-denoms math-looks-evenp
 math-poly-all-roots math-prod-rec math-reject-solution math-solve-eqn
 math-solve-for math-sum-rec math-try-integral)
 
- ("calcalg3" calc-Need-calc-alg-3 calcFunc-efit calcFunc-fit
+ ("calcalg3" calcFunc-efit calcFunc-fit
 calcFunc-fitdummy calcFunc-fitparam calcFunc-fitvar
 calcFunc-hasfitparams calcFunc-hasfitvars calcFunc-maximize
 calcFunc-minimize calcFunc-ninteg calcFunc-polint calcFunc-ratint
@@ -699,7 +680,7 @@ calcFunc-root calcFunc-wmaximize calcFunc-wminimize calcFunc-wroot
 calcFunc-xfit math-find-minimum math-find-root math-ninteg-evaluate
 math-ninteg-midpoint math-ninteg-romberg math-poly-interp)
 
- ("calc-arith" calc-Need-calc-arith calcFunc-abs calcFunc-abssqr
+ ("calc-arith" calcFunc-abs calcFunc-abssqr
 calcFunc-add calcFunc-ceil calcFunc-decr calcFunc-deven calcFunc-dimag
 calcFunc-dint calcFunc-div calcFunc-dnatnum calcFunc-dneg
 calcFunc-dnonneg calcFunc-dnonzero calcFunc-dnumint calcFunc-dodd
@@ -725,7 +706,7 @@ math-pow-fancy math-pow-mod math-pow-of-zero math-pow-zero
 math-quarter-integer math-round math-setup-declarations math-sqr
 math-sqr-float math-trunc-fancy math-trunc-special)
 
- ("calc-bin" calc-Need-calc-bin calcFunc-and calcFunc-ash
+ ("calc-bin" calcFunc-and calcFunc-ash
 calcFunc-clip calcFunc-diff calcFunc-lsh calcFunc-not calcFunc-or
 calcFunc-rash calcFunc-rot calcFunc-rsh calcFunc-xor math-clip
 math-compute-max-digits math-convert-radix-digits math-float-parts
@@ -734,7 +715,7 @@ math-format-bignum-octal math-format-bignum-radix math-format-binary
 math-format-radix math-format-radix-float math-integer-log2
 math-power-of-2 math-radix-float-power)
 
- ("calc-comb" calc-Need-calc-comb calc-report-prime-test
+ ("calc-comb"  calc-report-prime-test
 calcFunc-choose calcFunc-dfact calcFunc-egcd calcFunc-fact
 calcFunc-gcd calcFunc-lcm calcFunc-moebius calcFunc-nextprime
 calcFunc-perm calcFunc-prevprime calcFunc-prfac calcFunc-prime
@@ -742,28 +723,28 @@ calcFunc-random calcFunc-shuffle calcFunc-stir1 calcFunc-stir2
 calcFunc-totient math-init-random-base math-member math-prime-test
 math-random-base)
 
- ("calccomp" calc-Need-calc-comp calcFunc-cascent calcFunc-cdescent
+ ("calccomp" calcFunc-cascent calcFunc-cdescent
 calcFunc-cheight calcFunc-cwidth math-comp-ascent math-comp-descent
 math-comp-height math-comp-width math-compose-expr
 math-composition-to-string math-stack-value-offset-fancy
 math-vector-is-string math-vector-to-string)
 
- ("calc-cplx" calc-Need-calc-cplx calcFunc-arg calcFunc-conj
+ ("calc-cplx" calcFunc-arg calcFunc-conj
 calcFunc-im calcFunc-polar calcFunc-re calcFunc-rect math-complex
 math-fix-circular math-imaginary math-imaginary-i math-normalize-polar
 math-polar math-want-polar)
 
- ("calc-embed" calc-Need-calc-embed calc-do-embedded
+ ("calc-embed" calc-do-embedded
 calc-do-embedded-activate calc-embedded-evaluate-expr
 calc-embedded-modes-change calc-embedded-var-change)
 
- ("calc-fin" calc-Need-calc-fin calc-to-percentage calcFunc-ddb
+ ("calc-fin" calc-to-percentage calcFunc-ddb
 calcFunc-fv calcFunc-fvb calcFunc-fvl calcFunc-irr calcFunc-irrb
 calcFunc-nper calcFunc-nperb calcFunc-nperl calcFunc-npv calcFunc-npvb
 calcFunc-pmt calcFunc-pmtb calcFunc-pv calcFunc-pvb calcFunc-pvl
 calcFunc-rate calcFunc-rateb calcFunc-ratel calcFunc-sln calcFunc-syd)
 
- ("calc-forms" calc-Need-calc-forms calcFunc-badd calcFunc-bsub
+ ("calc-forms" calcFunc-badd calcFunc-bsub
 calcFunc-date calcFunc-day calcFunc-dsadj calcFunc-hms
 calcFunc-holiday calcFunc-hour calcFunc-incmonth calcFunc-incyear
 calcFunc-intv calcFunc-julian calcFunc-makemod calcFunc-minute
@@ -778,11 +759,11 @@ math-normalize-mod math-parse-date math-read-angle-brackets
 math-setup-add-holidays math-setup-holidays math-setup-year-holidays
 math-sort-intv math-to-business-day math-to-hms)
 
- ("calc-frac" calc-Need-calc-frac calc-add-fractions
+ ("calc-frac" calc-add-fractions
 calc-div-fractions calc-mul-fractions calcFunc-fdiv calcFunc-frac
 math-make-frac)
 
- ("calc-funcs" calc-Need-calc-funcs calc-prob-dist calcFunc-bern
+ ("calc-funcs" calc-prob-dist calcFunc-bern
 calcFunc-besJ calcFunc-besY calcFunc-beta calcFunc-betaB
 calcFunc-betaI calcFunc-erf calcFunc-erfc calcFunc-euler
 calcFunc-gamma calcFunc-gammaG calcFunc-gammaP calcFunc-gammaQ
@@ -791,20 +772,18 @@ calcFunc-ltpn calcFunc-ltpp calcFunc-ltpt calcFunc-utpb calcFunc-utpc
 calcFunc-utpf calcFunc-utpn calcFunc-utpp calcFunc-utpt
 math-bernoulli-number math-gammap1-raw)
 
- ("calc-graph" calc-Need-calc-graph calc-graph-show-tty)
+ ("calc-graph" calc-graph-show-tty)
 
- ("calc-help" calc-Need-calc-help)
+ ("calc-incom" calc-digit-dots)
 
- ("calc-incom" calc-Need-calc-incom calc-digit-dots)
-
- ("calc-keypd" calc-Need-calc-keypd calc-do-keypad
+ ("calc-keypd" calc-do-keypad
 calc-keypad-x-left-click calc-keypad-x-middle-click
 calc-keypad-x-right-click)
 
- ("calc-lang" calc-Need-calc-lang calc-set-language
+ ("calc-lang" calc-set-language
 math-read-big-balance math-read-big-rec)
 
- ("calc-map" calc-Need-calc-map calc-get-operator calcFunc-accum
+ ("calc-map" calc-get-operator calcFunc-accum
 calcFunc-afixp calcFunc-anest calcFunc-apply calcFunc-call
 calcFunc-fixp calcFunc-inner calcFunc-map calcFunc-mapa calcFunc-mapc
 calcFunc-mapd calcFunc-mapeq calcFunc-mapeqp calcFunc-mapeqr
@@ -815,11 +794,11 @@ calcFunc-rreduced calcFunc-rreducer math-build-call
 math-calcFunc-to-var math-multi-subst math-multi-subst-rec
 math-var-to-calcFunc)
 
- ("calc-mtx" calc-Need-calc-mat calcFunc-det calcFunc-lud calcFunc-tr
+ ("calc-mtx" calcFunc-det calcFunc-lud calcFunc-tr
 math-col-matrix math-lud-solve math-matrix-inv-raw math-matrix-lud
 math-mul-mat-vec math-mul-mats math-row-matrix)
 
- ("calc-math" calc-Need-calc-math calcFunc-alog calcFunc-arccos
+ ("calc-math" calcFunc-alog calcFunc-arccos
 calcFunc-arccosh calcFunc-arcsin calcFunc-arcsincos calcFunc-arcsinh
 calcFunc-arctan calcFunc-arctan2 calcFunc-arctanh calcFunc-cos
 calcFunc-cosh calcFunc-deg calcFunc-exp calcFunc-exp10 calcFunc-expm1
@@ -834,9 +813,9 @@ math-nearly-zerop math-nearly-zerop-float math-nth-root
 math-sin-cos-raw math-sin-raw math-sqrt math-sqrt-float math-sqrt-raw
 math-tan-raw math-to-radians math-to-radians-2)
 
- ("calc-mode" calc-Need-calc-mode math-get-modes-vec)
+ ("calc-mode" math-get-modes-vec)
 
- ("calc-poly" calc-Need-calc-poly calcFunc-apart calcFunc-expand
+ ("calc-poly" calcFunc-apart calcFunc-expand
 calcFunc-expandpow calcFunc-factor calcFunc-factors calcFunc-nrat
 calcFunc-pcont calcFunc-pdeg calcFunc-pdiv calcFunc-pdivide
 calcFunc-pdivrem calcFunc-pgcd calcFunc-plead calcFunc-pprim
@@ -849,7 +828,7 @@ math-partial-fractions math-poly-degree math-poly-deriv-coefs
 math-poly-gcd-frac-list math-poly-modulus-rec math-ratpoly-p
 math-to-ratpoly math-to-ratpoly-rec)
 
- ("calc-prog" calc-Need-calc-prog calc-default-formula-arglist
+ ("calc-prog" calc-default-formula-arglist
 calc-execute-kbd-macro calc-finish-user-syntax-edit
 calc-fix-token-name calc-fix-user-formula calc-read-parse-table
 calc-read-parse-table-part calc-subsetp calc-write-parse-table
@@ -862,7 +841,7 @@ math-body-refers-to math-break math-composite-inequalities
 math-do-defmath math-handle-for math-handle-foreach
 math-normalize-logical-op math-return)
 
- ("calc-rewr" calc-Need-calc-rewr calcFunc-match calcFunc-matches
+ ("calc-rewr" calcFunc-match calcFunc-matches
 calcFunc-matchnot calcFunc-rewrite calcFunc-vmatches
 math-apply-rewrites math-compile-patterns math-compile-rewrites
 math-flatten-lands math-match-patterns math-rewrite
@@ -870,43 +849,37 @@ math-rewrite-heads)
 
  ("calc-rules" calc-CommuteRules calc-DistribRules calc-FactorRules
 calc-FitRules calc-IntegAfterRules calc-InvertRules calc-JumpRules
-calc-MergeRules calc-Need-calc-rules calc-NegateRules
+calc-MergeRules calc-NegateRules
 calc-compile-rule-set)
 
- ("calc-sel" calc-Need-calc-sel calc-auto-selection
+ ("calc-sel" calc-auto-selection
 calc-delete-selection calc-encase-atoms calc-find-assoc-parent-formula
 calc-find-parent-formula calc-find-sub-formula calc-prepare-selection
 calc-preserve-point calc-replace-selections calc-replace-sub-formula
 calc-roll-down-with-selections calc-roll-up-with-selections
 calc-sel-error)
 
- ("calcsel2" calc-Need-calc-sel-2)
-
- ("calc-stat" calc-Need-calc-stat calc-vector-op calcFunc-agmean
+ ("calc-stat" calc-vector-op calcFunc-agmean
 calcFunc-vcorr calcFunc-vcount calcFunc-vcov calcFunc-vflat
 calcFunc-vgmean calcFunc-vhmean calcFunc-vmax calcFunc-vmean
 calcFunc-vmeane calcFunc-vmedian calcFunc-vmin calcFunc-vpcov
 calcFunc-vprod calcFunc-vpsdev calcFunc-vpvar calcFunc-vsdev
 calcFunc-vsum calcFunc-vvar math-flatten-many-vecs)
 
- ("calc-store" calc-Need-calc-store calc-read-var-name
+ ("calc-store" calc-read-var-name
 calc-store-value calc-var-name)
 
- ("calc-stuff" calc-Need-calc-stuff calc-explain-why calcFunc-clean
+ ("calc-stuff" calc-explain-why calcFunc-clean
 calcFunc-pclean calcFunc-pfloat calcFunc-pfrac)
 
- ("calc-trail" calc-Need-calc-trail)
-
- ("calc-undo" calc-Need-calc-undo)
-
- ("calc-units" calc-Need-calc-units calcFunc-usimplify
+ ("calc-units" calcFunc-usimplify
 math-build-units-table math-build-units-table-buffer
 math-check-unit-name math-convert-temperature math-convert-units
 math-extract-units math-remove-units math-simplify-units
 math-single-units-in-expr-p math-to-standard-units
 math-units-in-expr-p)
 
- ("calc-vec" calc-Need-calc-vec calcFunc-append calcFunc-appendrev
+ ("calc-vec" calcFunc-append calcFunc-appendrev
 calcFunc-arrange calcFunc-cnorm calcFunc-cons calcFunc-cross
 calcFunc-ctrn calcFunc-cvec calcFunc-diag calcFunc-find
 calcFunc-getdiag calcFunc-grade calcFunc-head calcFunc-histogram
@@ -925,7 +898,7 @@ math-dimension-error math-dot-product math-flatten-vector math-map-vec
 math-map-vec-2 math-mat-col math-mimic-ident math-prepare-set
 math-read-brackets math-reduce-cols math-reduce-vec math-transpose)
 
- ("calc-yank" calc-Need-calc-yank calc-alg-edit calc-clean-newlines
+ ("calc-yank" calc-alg-edit calc-clean-newlines
 calc-do-grab-rectangle calc-do-grab-region calc-finish-stack-edit
 calc-force-refresh calc-locate-cursor-element calc-show-edit-buffer)
 
@@ -1176,6 +1149,9 @@ calc-kill calc-kill-region calc-yank))))
 
 ;;;; Miscellaneous.
 
+;; calc-command-flags is declared in calc.el
+(defvar calc-command-flags)
+
 (defun calc-clear-command-flag (f)
   (setq calc-command-flags (delq f calc-command-flags)))
 
@@ -1342,7 +1318,16 @@ calc-kill calc-kill-region calc-yank))))
 
 (defun calc-inverse (&optional n)
   (interactive "P")
-  (calc-fancy-prefix 'calc-inverse-flag "Inverse..." n))
+  (let* ((hyp-flag (if (or
+                        (eq major-mode 'calc-keypad-mode)
+                        (eq major-mode 'calc-trail-mode))
+                       (with-current-buffer calc-main-buffer
+                         calc-hyperbolic-flag)
+                     calc-hyperbolic-flag))
+         (msg (if hyp-flag 
+                 "Inverse Hyperbolic..."
+               "Inverse...")))
+    (calc-fancy-prefix 'calc-inverse-flag msg n)))
 
 (defconst calc-fancy-prefix-map
   (let ((map (make-sparse-keymap)))
@@ -1410,7 +1395,16 @@ calc-kill calc-kill-region calc-yank))))
 
 (defun calc-hyperbolic (&optional n)
   (interactive "P")
-  (calc-fancy-prefix 'calc-hyperbolic-flag "Hyperbolic..." n))
+  (let* ((inv-flag (if (or
+                        (eq major-mode 'calc-keypad-mode)
+                        (eq major-mode 'calc-trail-mode))
+                       (with-current-buffer calc-main-buffer
+                         calc-inverse-flag)
+                     calc-inverse-flag))
+         (msg (if inv-flag 
+                  "Inverse Hyperbolic..."
+                "Hyperbolic...")))
+    (calc-fancy-prefix 'calc-hyperbolic-flag msg n)))
 
 (defun calc-hyperbolic-func ()
   (save-excursion
@@ -1654,7 +1648,8 @@ calc-kill calc-kill-region calc-yank))))
 
 
 (defvar calc-gnuplot-process nil)
-
+(defvar calc-gnuplot-input)
+(defvar calc-gnuplot-buffer)
 
 (defun calc-gnuplot-alive ()
   (and calc-gnuplot-process
@@ -1670,47 +1665,45 @@ calc-kill calc-kill-region calc-yank))))
 
 (defun calc-load-everything ()
   (interactive)
-  (calc-need-macros)       ; calc-macs.el
-  (calc-record-list nil)   ; calc-misc.el
-  (math-read-exprs "0")    ; calc-aent.el
-
-;;;; (Loads here)
-  (calc-Need-calc-alg-2)
-  (calc-Need-calc-alg-3)
-  (calc-Need-calc-alg)
-  (calc-Need-calc-arith)
-  (calc-Need-calc-bin)
-  (calc-Need-calc-comb)
-  (calc-Need-calc-comp)
-  (calc-Need-calc-cplx)
-  (calc-Need-calc-embed)
-  (calc-Need-calc-fin)
-  (calc-Need-calc-forms)
-  (calc-Need-calc-frac)
-  (calc-Need-calc-funcs)
-  (calc-Need-calc-graph)
-  (calc-Need-calc-help)
-  (calc-Need-calc-incom)
-  (calc-Need-calc-keypd)
-  (calc-Need-calc-lang)
-  (calc-Need-calc-map)
-  (calc-Need-calc-mat)
-  (calc-Need-calc-math)
-  (calc-Need-calc-mode)
-  (calc-Need-calc-poly)
-  (calc-Need-calc-prog)
-  (calc-Need-calc-rewr)
-  (calc-Need-calc-rules)
-  (calc-Need-calc-sel-2)
-  (calc-Need-calc-sel)
-  (calc-Need-calc-stat)
-  (calc-Need-calc-store)
-  (calc-Need-calc-stuff)
-  (calc-Need-calc-trail)
-  (calc-Need-calc-undo)
-  (calc-Need-calc-units)
-  (calc-Need-calc-vec)
-  (calc-Need-calc-yank)
+  (require 'calc-aent)
+  (require 'calc-alg)
+  (require 'calc-arith)
+  (require 'calc-bin)
+  (require 'calc-comb)
+  (require 'calc-cplx)
+  (require 'calc-embed)
+  (require 'calc-fin)
+  (require 'calc-forms)
+  (require 'calc-frac)
+  (require 'calc-funcs)
+  (require 'calc-graph)
+  (require 'calc-help)
+  (require 'calc-incom)
+  (require 'calc-keypd)
+  (require 'calc-lang)
+  (require 'calc-macs)
+  (require 'calc-map)
+  (require 'calc-math)
+  (require 'calc-misc)
+  (require 'calc-mode)
+  (require 'calc-mtx)
+  (require 'calc-poly)
+  (require 'calc-prog)
+  (require 'calc-rewr)
+  (require 'calc-rules)
+  (require 'calc-sel)
+  (require 'calc-stat)
+  (require 'calc-store)
+  (require 'calc-stuff)
+  (require 'calc-trail)
+  (require 'calc-undo)
+  (require 'calc-units)
+  (require 'calc-vec)
+  (require 'calc-yank)
+  (require 'calcalg2)
+  (require 'calcalg3)
+  (require 'calccomp)
+  (require 'calcsel2)
 
   (message "All parts of Calc are now loaded"))
 
@@ -2217,6 +2210,11 @@ calc-kill calc-kill-region calc-yank))))
 	     (math-normalize (car a))
 	   (error "Can't use multi-valued function in an expression")))))
 
+;; The variable math-normalize-a is local to math-normalize in calc.el,
+;; but is used by math-normalize-nonstandard, which is called by
+;; math-normalize.
+(defvar math-normalize-a)
+
 (defun math-normalize-nonstandard ()
   (if (consp calc-simplify-mode)
       (progn
@@ -2591,20 +2589,6 @@ calc-kill calc-kill-region calc-yank))))
 	    (cons (car x) (mapcar 'math-evaluate-expr-rec (cdr x))))))
     x))
 
-(defmacro math-defsimplify (funcs &rest code)
-  (append '(progn (math-need-std-simps))
-	  (mapcar (function
-		   (lambda (func)
-		     (list 'put (list 'quote func) ''math-simplify
-			   (list 'nconc
-				 (list 'get (list 'quote func) ''math-simplify)
-				 (list 'list
-				       (list 'function
-					     (append '(lambda (math-simplify-expr))
-						     code)))))))
-		  (if (symbolp funcs) (list funcs) funcs))))
-(put 'math-defsimplify 'lisp-indent-hook 1)
-
 (defun math-any-floats (expr)
   (if (Math-primp expr)
       (math-floatp expr)
@@ -2655,6 +2639,10 @@ calc-kill calc-kill-region calc-yank))))
 		(boundp (nth 2 expr))
 		(eq (car-safe (symbol-value (nth 2 expr))) 'special-const))
 	   (memq (nth 2 expr) '(var-inf var-uinf var-nan)))))
+
+;; The variable math-integral-cache is originally declared in calcalg2.el,
+;; but is set by math-defintegral and math-definitegral2.
+(defvar math-integral-cache)
 
 (defmacro math-defintegral (funcs &rest code)
   (setq math-integral-cache nil)
@@ -2891,6 +2879,7 @@ calc-kill calc-kill-region calc-yank))))
 	(math-exp-old-pos 0)
 	(math-exp-keep-spaces nil)
 	math-exp-token math-expr-data)
+    (setq math-exp-str (math-read-preprocess-string math-exp-str))
     (while (setq math-exp-token (string-match "\\.\\.\\([^.]\\|.[^.]\\)" math-exp-str))
       (setq math-exp-str (concat (substring math-exp-str 0 math-exp-token) "\\dots"
 			    (substring math-exp-str (+ math-exp-token 2)))))
@@ -2943,37 +2932,39 @@ calc-kill calc-kill-region calc-yank))))
 	      (math-expr-function-mapping (get 'tex 'math-function-table))
 	      (math-expr-variable-mapping (get 'tex 'math-variable-table)))
 	  (math-read-expr str)))
-    (let ((lines nil)
+    (let ((math-read-big-lines nil)
 	  (pos 0)
 	  (width 0)
-	  (err-msg nil)
-	  the-baseline the-h2
+	  (math-read-big-err-msg nil)
+	  math-read-big-baseline math-read-big-h2
 	  new-pos p)
       (while (setq new-pos (string-match "\n" str pos))
-	(setq lines (cons (substring str pos new-pos) lines)
+	(setq math-read-big-lines 
+              (cons (substring str pos new-pos) math-read-big-lines)
 	      pos (1+ new-pos)))
-      (setq lines (nreverse (cons (substring str pos) lines))
-	    p lines)
+      (setq math-read-big-lines 
+            (nreverse (cons (substring str pos) math-read-big-lines))
+	    p math-read-big-lines)
       (while p
 	(setq width (max width (length (car p)))
 	      p (cdr p)))
-      (if (math-read-big-bigp lines)
+      (if (math-read-big-bigp math-read-big-lines)
 	  (or (catch 'syntax
-		(math-read-big-rec 0 0 width (length lines)))
-	      err-msg
+		(math-read-big-rec 0 0 width (length math-read-big-lines)))
+	      math-read-big-err-msg
 	      '(error 0 "Syntax error"))
 	(math-read-expr str)))))
 
-(defun math-read-big-bigp (lines)
-  (and (cdr lines)
+(defun math-read-big-bigp (math-read-big-lines)
+  (and (cdr math-read-big-lines)
        (let ((matrix nil)
 	     (v 0)
-	     (height (if (> (length (car lines)) 0) 1 0)))
-	 (while (and (cdr lines)
+	     (height (if (> (length (car math-read-big-lines)) 0) 1 0)))
+	 (while (and (cdr math-read-big-lines)
 		     (let* ((i 0)
 			    j
-			    (l1 (car lines))
-			    (l2 (nth 1 lines))
+			    (l1 (car math-read-big-lines))
+			    (l2 (nth 1 math-read-big-lines))
 			    (len (min (length l1) (length l2))))
 		       (if (> (length l2) 0)
 			   (setq height (1+ height)))
@@ -2984,7 +2975,7 @@ calc-kill calc-kill-region calc-yank))))
 					    (= (aref l2 i) (aref l1 i)))
 				       (and (eq (aref l1 i) ?\[)
 					    (eq (aref l2 i) ?\[)
-					    (let ((h2 (length l1)))
+					    (let ((math-rb-h2 (length l1)))
 					      (setq j (math-read-big-balance
 						       (1+ i) v "[")))
 					    (setq i (1- j)))))
@@ -2994,10 +2985,10 @@ calc-kill calc-kill-region calc-yank))))
 				(eq (aref l2 i) ?\[)
 				(setq matrix t)
 				nil))))
-	   (setq lines (cdr lines)
+	   (setq math-read-big-lines (cdr math-read-big-lines)
 		 v (1+ v)))
 	 (or (and (> height 1)
-		  (not (cdr lines)))
+		  (not (cdr math-read-big-lines)))
 	     matrix))))
 
 ;;; Nontrivial "flat" formatting.
@@ -3287,6 +3278,8 @@ list containing a numeric entry string, or nil.
 A key may contain additional specs for Inverse, Hyperbolic, and Inv+Hyp.")
 
 (run-hooks 'calc-ext-load-hook)
+
+(provide 'calc-ext)
 
 ;;; arch-tag: 1814ba7f-a390-49dc-9e25-a5adc205e97e
 ;;; calc-ext.el ends here

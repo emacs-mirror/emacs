@@ -566,11 +566,20 @@ the expression output by IDL."
 (defvar comint-last-input-start)
 (defvar comint-last-input-end)
 
+;; Other variables
+(defvar idlwave-shell-temp-pro-file nil
+  "Absolute pathname for temporary IDL file for compiling regions")
+
+(defvar idlwave-shell-temp-rinfo-save-file nil
+  "Absolute pathname for temporary IDL file save file for routine_info.
+This is used to speed up the reloading of the routine info procedure
+before use by the shell.")
+
 (defun idlwave-shell-temp-file (type)
   "Return a temp file, creating it if necessary.
 
-TYPE is either 'pro or 'rinfo, and idlwave-shell-temp-pro-file or
-idlwave-shell-temp-rinfo-save-file is set (respectively)."
+TYPE is either 'pro' or 'rinfo', and `idlwave-shell-temp-pro-file' or
+`idlwave-shell-temp-rinfo-save-file' is set (respectively)."
   (cond 
    ((eq type 'rinfo)
     (or idlwave-shell-temp-rinfo-save-file 
@@ -608,16 +617,6 @@ idlwave-shell-temp-rinfo-save-file is set (respectively)."
 	nil)
       file)))
 
-;; Other variables
-(defvar idlwave-shell-temp-pro-file
-  nil
-  "Absolute pathname for temporary IDL file for compiling regions")
-
-(defvar idlwave-shell-temp-rinfo-save-file
-  nil
-  "Absolute pathname for temporary IDL file save file for routine_info.
-This is used to speed up the reloading of the routine info procedure
-before use by the shell.")
 
 (defvar idlwave-shell-dirstack-query "cd,current=___cur & print,___cur"
   "Command used by `idlwave-shell-resync-dirs' to query IDL for 
@@ -2952,6 +2951,10 @@ idlw-shell-examine-alist via mini-buffer shortcut key."
 (defvar idlwave-shell-examine-window-alist nil
   "Variable to hold the win/height pairs for all *Examine* windows.")
 
+(defvar idlwave-shell-examine-map (make-sparse-keymap))
+(define-key idlwave-shell-examine-map "q" 'idlwave-shell-examine-display-quit)
+(define-key idlwave-shell-examine-map "c" 'idlwave-shell-examine-display-clear)
+
 (defun idlwave-shell-examine-display ()
   "View the examine command output in a separate buffer."
   (let (win cur-beg cur-end)
@@ -3031,10 +3034,6 @@ idlw-shell-examine-alist via mini-buffer shortcut key."
 	(goto-char (point-max))
 	(skip-chars-backward "\n")
 	(recenter -1)))))
-
-(defvar idlwave-shell-examine-map (make-sparse-keymap))
-(define-key idlwave-shell-examine-map "q" 'idlwave-shell-examine-display-quit)
-(define-key idlwave-shell-examine-map "c" 'idlwave-shell-examine-display-clear)
 
 (defun idlwave-shell-examine-display-quit ()
   (interactive)
@@ -3411,7 +3410,7 @@ Otherwise return the filename in bp."
 The breakpoint will be placed at the beginning of the statement on the
 line specified by BP or at the next IDL statement if that line is not
 a statement.  Determines IDL's internal representation for the
-breakpoint, which may have occured at a different line than
+breakpoint, which may have occurred at a different line than
 specified.  If NO-SHOW is non-nil, don't do any updating."
   ;; Get and save the old breakpoints
   (idlwave-shell-send-command 

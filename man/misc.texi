@@ -1060,10 +1060,10 @@ Switch to char mode.  Do nothing if already in char mode.
 @item C-c C-c
 Send a literal @key{C-c} to the sub-shell.
 
-@item C-c C-x
-A prefix command to access the global @key{C-x} commands conveniently.
-For example, @kbd{C-c C-x o} invokes the global binding of
-@kbd{C-x o}, which is normally @samp{other-window}.
+@item C-c @var{char}
+This is equivalent to @kbd{C-x @var{char}} in normal Emacs.  For
+example, @kbd{C-c o} invokes the global binding of @kbd{C-x o}, which
+is normally @samp{other-window}.
 @end table
 
 @node Paging in Term

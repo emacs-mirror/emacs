@@ -1763,7 +1763,10 @@ If INITIAL is non-nil, it specifies the initial input string."
 	    (setq ido-set-default-item t))))
 
        ;; Handling the require-match must be done in a better way.
-       ((and require-match (not (ido-existing-item-p)))
+       ((and require-match
+	     (not (if ido-directory-too-big
+		      (file-exists-p (concat ido-current-directory ido-final-text))
+		    (ido-existing-item-p))))
 	(error "must specify valid item"))
 
        (t

@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -28,14 +27,16 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
-(require 'calc-ext)
 
+(require 'calc-ext)
 (require 'calc-macs)
 
-(defun calc-Need-calc-rewr () nil)
-
-
 (defvar math-rewrite-default-iters 100)
+
+;; The variable calc-rewr-sel is local to calc-rewrite-selection and 
+;; calc-rewrite, but is used by calc-locate-selection-marker.
+(defvar calc-rewr-sel)
+
 (defun calc-rewrite-selection (rules-str &optional many prefix)
   (interactive "sRewrite rule(s): \np")
   (calc-slow-wrapper
@@ -43,9 +44,10 @@
    (let* ((num (max 1 (calc-locate-cursor-element (point))))
 	  (reselect t)
 	  (pop-rules nil)
+          rules
 	  (entry (calc-top num 'entry))
 	  (expr (car entry))
-	  (sel (calc-auto-selection entry))
+	  (calc-rewr-sel (calc-auto-selection entry))
 	  (math-rewrite-selections t)
 	  (math-rewrite-default-iters 1))
      (if (or (null rules-str) (equal rules-str "") (equal rules-str "$"))
@@ -73,10 +75,10 @@
      (if (eq many 0)
 	 (setq many '(var inf var-inf))
        (if many (setq many (prefix-numeric-value many))))
-     (if sel
+     (if calc-rewr-sel
 	 (setq expr (calc-replace-sub-formula (car entry)
-					      sel
-					      (list 'calcFunc-select sel)))
+					      calc-rewr-sel
+					      (list 'calcFunc-select calc-rewr-sel)))
        (setq expr (car entry)
 	     reselect nil
 	     math-rewrite-selections nil))
@@ -85,22 +87,22 @@
 		  (math-rewrite
 		   (calc-normalize expr)
 		   rules many)))
-	   sel nil
+	   calc-rewr-sel nil
 	   expr (calc-locate-select-marker expr))
-     (or (consp sel) (setq sel nil))
+     (or (consp calc-rewr-sel) (setq calc-rewr-sel nil))
      (if pop-rules (calc-pop-stack 1))
      (calc-pop-push-record-list 1 (or prefix "rwrt") (list expr)
 				(- num (if pop-rules 1 0))
-				(list (and reselect sel))))
+				(list (and reselect calc-rewr-sel))))
    (calc-handle-whys)))
 
-(defun calc-locate-select-marker (expr)    ; changes "sel"
+(defun calc-locate-select-marker (expr)
   (if (Math-primp expr)
       expr
     (if (and (eq (car expr) 'calcFunc-select)
 	     (= (length expr) 2))
 	(progn
-	  (setq sel (if sel t (nth 1 expr)))
+	  (setq calc-rewr-sel (if calc-rewr-sel t (nth 1 expr)))
 	  (nth 1 expr))
       (cons (car expr)
 	    (mapcar 'calc-locate-select-marker (cdr expr))))))
@@ -138,7 +140,7 @@
 	 (setq many '(var inf var-inf))
        (if many (setq many (prefix-numeric-value many))))
      (setq expr (calc-normalize (math-rewrite expr rules many)))
-     (let (sel)
+     (let (calc-rewr-sel)
        (setq expr (calc-locate-select-marker expr)))
      (calc-pop-push-record-list n "rwrt" (list expr)))
    (calc-handle-whys)))
@@ -165,33 +167,38 @@
        (calc-enter-result n "mtch" (math-match-patterns pat expr nil))))))
 
 
+(defvar math-mt-many)
 
-(defun math-rewrite (whole-expr rules &optional math-mt-many)
-  (let ((crules (math-compile-rewrites rules))
-	(heads (math-rewrite-heads whole-expr))
-	(trace-buffer (get-buffer "*Trace*"))
-	(calc-display-just 'center)
-	(calc-display-origin 39)
-	(calc-line-breaking 78)
-	(calc-line-numbering nil)
-	(calc-show-selections t)
-	(calc-why nil)
-	(math-mt-func (function
-                       (lambda (x)
-                         (let ((result (math-apply-rewrites x (cdr crules)
-                                                            heads crules)))
-                           (if result
-                               (progn
-                                 (if trace-buffer
-                                     (let ((fmt (math-format-stack-value
-                                                 (list result nil nil))))
-                                       (save-excursion
-                                         (set-buffer trace-buffer)
-                                         (insert "\nrewrite to\n" fmt "\n"))))
-                                 (setq heads (math-rewrite-heads result heads t))))
-                           result)))))
+;; The variable math-rewrite-whole-expr is local to math-rewrite,
+;; but is used by math-rewrite-phase
+(defvar math-rewrite-whole-expr)
+
+(defun math-rewrite (math-rewrite-whole-expr rules &optional math-mt-many)
+  (let* ((crules (math-compile-rewrites rules))
+         (heads (math-rewrite-heads math-rewrite-whole-expr))
+         (trace-buffer (get-buffer "*Trace*"))
+         (calc-display-just 'center)
+         (calc-display-origin 39)
+         (calc-line-breaking 78)
+         (calc-line-numbering nil)
+         (calc-show-selections t)
+         (calc-why nil)
+         (math-mt-func (function
+                        (lambda (x)
+                          (let ((result (math-apply-rewrites x (cdr crules)
+                                                             heads crules)))
+                            (if result
+                                (progn
+                                  (if trace-buffer
+                                      (let ((fmt (math-format-stack-value
+                                                  (list result nil nil))))
+                                        (save-excursion
+                                          (set-buffer trace-buffer)
+                                          (insert "\nrewrite to\n" fmt "\n"))))
+                                  (setq heads (math-rewrite-heads result heads t))))
+                            result)))))
     (if trace-buffer
-	(let ((fmt (math-format-stack-value (list whole-expr nil nil))))
+	(let ((fmt (math-format-stack-value (list math-rewrite-whole-expr nil nil))))
 	  (save-excursion
 	    (set-buffer trace-buffer)
 	    (setq truncate-lines t)
@@ -203,26 +210,27 @@
     (if (equal math-mt-many '(neg (var inf var-inf))) (setq math-mt-many -1000000))
     (math-rewrite-phase (nth 3 (car crules)))
     (if trace-buffer
-	(let ((fmt (math-format-stack-value (list whole-expr nil nil))))
+	(let ((fmt (math-format-stack-value (list math-rewrite-whole-expr nil nil))))
 	  (save-excursion
 	    (set-buffer trace-buffer)
 	    (insert "\nDone rewriting"
 		    (if (= math-mt-many 0) " (reached iteration limit)" "")
 		    ":\n" fmt "\n"))))
-    whole-expr))
+    math-rewrite-whole-expr))
 
 (defun math-rewrite-phase (sched)
   (while (and sched (/= math-mt-many 0))
     (if (listp (car sched))
-	(while (let ((save-expr whole-expr))
+	(while (let ((save-expr math-rewrite-whole-expr))
 		 (math-rewrite-phase (car sched))
-		 (not (equal whole-expr save-expr))))
+		 (not (equal math-rewrite-whole-expr save-expr))))
       (if (symbolp (car sched))
 	  (progn
-	    (setq whole-expr (math-normalize (list (car sched) whole-expr)))
+	    (setq math-rewrite-whole-expr 
+                  (math-normalize (list (car sched) math-rewrite-whole-expr)))
 	    (if trace-buffer
 		(let ((fmt (math-format-stack-value
-			    (list whole-expr nil nil))))
+			    (list math-rewrite-whole-expr nil nil))))
 		  (save-excursion
 		    (set-buffer trace-buffer)
 		    (insert "\ncall "
@@ -233,10 +241,10 @@
 	      (save-excursion
 		(set-buffer trace-buffer)
 		(insert (format "\n(Phase %d)\n" math-rewrite-phase))))
-	  (while (let ((save-expr whole-expr))
-		   (setq whole-expr (math-normalize
-				     (math-map-tree-rec whole-expr)))
-		   (not (equal whole-expr save-expr)))))))
+	  (while (let ((save-expr math-rewrite-whole-expr))
+		   (setq math-rewrite-whole-expr (math-normalize
+				     (math-map-tree-rec math-rewrite-whole-expr)))
+		   (not (equal math-rewrite-whole-expr save-expr)))))))
     (setq sched (cdr sched))))
 
 (defun calcFunc-rewrite (expr rules &optional many)
@@ -488,6 +496,28 @@
 
 (defvar math-rewrite-whole nil)
 (defvar math-make-import-list nil)
+
+;; The variable math-import-list is local to part of math-compile-rewrites,
+;; but is also used in a different part, and so the local version could
+;; be affected by the non-local version when math-compile-rewrites calls itself. 
+(defvar math-import-list nil)
+
+;; The variables math-regs, math-num-regs, math-prog-last, math-bound-vars, 
+;; math-conds, math-copy-neg, math-rhs, math-pattern, math-remembering and
+;; math-aliased-vars are local to math-compile-rewrites, 
+;; but are used by many functions math-rwcomp-*, which are called by 
+;; math-compile-rewrites.
+(defvar math-regs)
+(defvar math-num-regs)
+(defvar math-prog-last)
+(defvar math-bound-vars)
+(defvar math-conds)
+(defvar math-copy-neg)
+(defvar math-rhs)
+(defvar math-pattern)
+(defvar math-remembering)
+(defvar math-aliased-vars)
+
 (defun math-compile-rewrites (rules &optional name)
   (if (eq (car-safe rules) 'var)
       (let ((prop (get (nth 2 rules) 'math-rewrite-cache))
@@ -731,26 +761,34 @@
 	      (math-flatten-lands (nth 2 expr)))
     (list expr)))
 
+;; The variables math-rewrite-heads-heads (i.e.; heads for math-rewrite-heads)
+;; math-rewrite-heads-blanks and math-rewrite-heads-skips are local to 
+;; math-rewrite-heads, but used by math-rewrite-heads-rec, which is called by 
+;; math-rewrite-heads.
+(defvar math-rewrite-heads-heads)
+(defvar math-rewrite-heads-skips)
+(defvar math-rewrite-heads-blanks)
+
 (defun math-rewrite-heads (expr &optional more all)
-  (let ((heads more)
-	(skips (and (not all)
+  (let ((math-rewrite-heads-heads more)
+	(math-rewrite-heads-skips (and (not all)
 		    '(calcFunc-apply calcFunc-condition calcFunc-opt
 				     calcFunc-por calcFunc-pnot)))
-	(blanks (and (not all)
+	(math-rewrite-heads-blanks (and (not all)
 		     '(calcFunc-quote calcFunc-plain calcFunc-select
 				      calcFunc-cons calcFunc-rcons
 				      calcFunc-pand))))
     (or (Math-primp expr)
 	(math-rewrite-heads-rec expr))
-    heads))
+    math-rewrite-heads-heads))
 
 (defun math-rewrite-heads-rec (expr)
-  (or (memq (car expr) skips)
+  (or (memq (car expr) math-rewrite-heads-skips)
       (progn
-	(or (memq (car expr) heads)
-	    (memq (car expr) blanks)
+	(or (memq (car expr) math-rewrite-heads-heads)
+	    (memq (car expr) math-rewrite-heads-blanks)
 	    (memq 'algebraic (get (car expr) 'math-rewrite-props))
-	    (setq heads (cons (car expr) heads)))
+	    (setq math-rewrite-heads-heads (cons (car expr) math-rewrite-heads-heads)))
 	(while (setq expr (cdr expr))
 	  (or (Math-primp (car expr))
 	      (math-rewrite-heads-rec (car expr)))))))
@@ -793,21 +831,31 @@
 	(list 'neg (list 'calcFunc-register (nth 1 entry)))
       (list 'calcFunc-register (nth 1 entry)))))
 
-(defun math-rwcomp-substitute (expr old new)
-  (if (and (eq (car-safe old) 'var)
-	   (memq (car-safe new) '(var calcFunc-lambda)))
-      (let ((old-func (math-var-to-calcFunc old))
-	    (new-func (math-var-to-calcFunc new)))
+;; The variables math-rwcomp-subst-old, math-rwcomp-subst-new,
+;; math-rwcomp-subst-old-func and math-rwcomp-subst-new-func
+;; are local to math-rwcomp-substitute, but are used by
+;; math-rwcomp-subst-rec, which is called by math-rwcomp-substitute.
+(defvar math-rwcomp-subst-new)
+(defvar math-rwcomp-subst-old)
+(defvar math-rwcomp-subst-new-func)
+(defvar math-rwcomp-subst-old-func)
+
+(defun math-rwcomp-substitute (expr math-rwcomp-subst-old math-rwcomp-subst-new)
+  (if (and (eq (car-safe math-rwcomp-subst-old) 'var)
+	   (memq (car-safe math-rwcomp-subst-new) '(var calcFunc-lambda)))
+      (let ((math-rwcomp-subst-old-func (math-var-to-calcFunc math-rwcomp-subst-old))
+	    (math-rwcomp-subst-new-func (math-var-to-calcFunc math-rwcomp-subst-new)))
 	(math-rwcomp-subst-rec expr))
-    (let ((old-func nil))
+    (let ((math-rwcomp-subst-old-func nil))
       (math-rwcomp-subst-rec expr))))
 
 (defun math-rwcomp-subst-rec (expr)
-  (cond ((equal expr old) new)
+  (cond ((equal expr math-rwcomp-subst-old) math-rwcomp-subst-new)
 	((Math-primp expr) expr)
-	(t (if (eq (car expr) old-func)
-	       (math-build-call new-func (mapcar 'math-rwcomp-subst-rec
-						 (cdr expr)))
+	(t (if (eq (car expr) math-rwcomp-subst-old-func)
+	       (math-build-call math-rwcomp-subst-new-func 
+                                (mapcar 'math-rwcomp-subst-rec
+                                        (cdr expr)))
 	     (cons (car expr)
 		   (mapcar 'math-rwcomp-subst-rec (cdr expr)))))))
 
@@ -1268,22 +1316,18 @@
 (defun math-rwcomp-assoc-args (expr)
   (if (and (eq (car-safe (nth 1 expr)) (car expr))
 	   (= (length (nth 1 expr)) 3))
-      (math-rwcomp-assoc-args (nth 1 expr))
-    (setq math-args (cons (nth 1 expr) math-args)))
+      (math-rwcomp-assoc-args (nth 1 expr)))
   (if (and (eq (car-safe (nth 2 expr)) (car expr))
 	   (= (length (nth 2 expr)) 3))
-      (math-rwcomp-assoc-args (nth 2 expr))
-    (setq math-args (cons (nth 2 expr) math-args))))
+      (math-rwcomp-assoc-args (nth 2 expr))))
 
 (defun math-rwcomp-addsub-args (expr)
   (if (memq (car-safe (nth 1 expr)) '(+ -))
-      (math-rwcomp-addsub-args (nth 1 expr))
-    (setq math-args (cons (nth 1 expr) math-args)))
+      (math-rwcomp-addsub-args (nth 1 expr)))
   (if (eq (car expr) '-)
-      (setq math-args (cons (math-rwcomp-neg (nth 2 expr)) math-args))
+      ()
     (if (eq (car-safe (nth 2 expr)) '+)
-	(math-rwcomp-addsub-args (nth 2 expr))
-      (setq math-args (cons (nth 2 expr) math-args)))))
+	(math-rwcomp-addsub-args (nth 2 expr)))))
 
 (defun math-rwcomp-order (a b)
   (< (math-rwcomp-priority (car a))
@@ -1419,14 +1463,23 @@
 	      form
 	      '(setcar rules orig))))
 
-(setq math-rewrite-phase 1)
+(defvar math-rewrite-phase 1)
 
-(defun math-apply-rewrites (expr rules &optional heads ruleset)
+;; The variable math-apply-rw-regs is local to math-apply-rewrites,
+;; but is used by math-rwapply-replace-regs and math-rwapply-reg-looks-negp
+;; which are called by math-apply-rewrites.
+(defvar math-apply-rw-regs)
+
+;; The variable math-apply-rw-ruleset is local to math-apply-rewrites,
+;; but is used by math-rwapply-remember.
+(defvar math-apply-rw-ruleset)
+
+(defun math-apply-rewrites (expr rules &optional heads math-apply-rw-ruleset)
   (and
    (setq rules (cdr (or (assq (car-safe expr) rules)
 			(assq nil rules))))
    (let ((result nil)
-	 op regs inst part pc mark btrack
+	 op math-apply-rw-regs inst part pc mark btrack
 	 (tracing math-rwcomp-tracing)
 	 (phase math-rewrite-phase))
      (while rules
@@ -1437,35 +1490,37 @@
 	(and (setq part (nth 3 (car rules)))
 	     (not (memq phase part)))
 	(progn
-	  (setq regs (car (car rules))
+	  (setq math-apply-rw-regs (car (car rules))
 		pc (nth 1 (car rules))
 		btrack nil)
-	  (aset regs 0 expr)
+	  (aset math-apply-rw-regs 0 expr)
 	  (while pc
 
 	    (and tracing
 		 (progn (terpri) (princ (car pc))
 			(if (and (natnump (nth 1 (car pc)))
-				 (< (nth 1 (car pc)) (length regs)))
-			    (princ (format "\n  part = %s"
-					   (aref regs (nth 1 (car pc))))))))
+				 (< (nth 1 (car pc)) (length math-apply-rw-regs)))
+			    (princ 
+                             (format "\n  part = %s"
+                                     (aref math-apply-rw-regs (nth 1 (car pc))))))))
 
 	    (cond ((eq (setq op (car (setq inst (car pc)))) 'func)
-		   (if (and (consp (setq part (aref regs (car (cdr inst)))))
+		   (if (and (consp 
+                             (setq part (aref math-apply-rw-regs (car (cdr inst)))))
 			    (eq (car part)
 				(car (setq inst (cdr (cdr inst)))))
 			    (progn
 			      (while (and (setq inst (cdr inst)
 						part (cdr part))
 					  inst)
-				(aset regs (car inst) (car part)))
+				(aset math-apply-rw-regs (car inst) (car part)))
 			      (not (or inst part))))
 		       (setq pc (cdr pc))
 		     (math-rwfail)))
 
 		  ((eq op 'same)
-		   (if (or (equal (setq part (aref regs (nth 1 inst)))
-				  (setq mark (aref regs (nth 2 inst))))
+		   (if (or (equal (setq part (aref math-apply-rw-regs (nth 1 inst)))
+				  (setq mark (aref math-apply-rw-regs (nth 2 inst))))
 			   (Math-equal part mark))
 		       (setq pc (cdr pc))
 		     (math-rwfail)))
@@ -1474,22 +1529,23 @@
 			calc-matrix-mode
 			(not (eq calc-matrix-mode 'scalar))
 			(eq (car (nth 2 inst)) '*)
-			(consp (setq part (aref regs (car (cdr inst)))))
+			(consp (setq part (aref math-apply-rw-regs (car (cdr inst)))))
 			(eq (car part) '*)
 			(not (math-known-scalarp part)))
 		   (setq mark (nth 3 inst)
 			 pc (cdr pc))
 		   (if (aref mark 4)
 		       (progn
-			 (aset regs (nth 4 inst) (nth 2 part))
+			 (aset math-apply-rw-regs (nth 4 inst) (nth 2 part))
 			 (aset mark 1 (cdr (cdr part))))
-		     (aset regs (nth 4 inst) (nth 1 part))
+		     (aset math-apply-rw-regs (nth 4 inst) (nth 1 part))
 		     (aset mark 1 (cdr part)))
 		   (aset mark 0 (cdr part))
 		   (aset mark 2 0))
 
 		  ((eq op 'try)
-		   (if (and (consp (setq part (aref regs (car (cdr inst)))))
+		   (if (and (consp (setq part 
+                                         (aref math-apply-rw-regs (car (cdr inst)))))
 			    (memq (car part) (nth 2 inst))
 			    (= (length part) 3)
 			    (or (not (eq (car part) '/))
@@ -1525,7 +1581,7 @@
 					      op))
 			       btrack (cons pc btrack)
 			       pc (cdr pc))
-			 (aset regs (nth 2 inst) (car op))
+			 (aset math-apply-rw-regs (nth 2 inst) (car op))
 			 (aset mark 0 op)
 			 (aset mark 1 op)
 			 (aset mark 2 (if (cdr (cdr op)) 1 0)))
@@ -1537,12 +1593,12 @@
 			     (progn
 			       (setq mark (nth 3 inst)
 				     pc (cdr pc))
-			       (aset regs (nth 4 inst) (nth 1 part))
+			       (aset math-apply-rw-regs (nth 4 inst) (nth 1 part))
 			       (aset mark 1 -1)
 			       (aset mark 2 4))
 			   (setq mark (nth 3 inst)
 				 pc (cdr pc))
-			   (aset regs (nth 4 inst) part)
+			   (aset math-apply-rw-regs (nth 4 inst) part)
 			   (aset mark 2 3))
 		       (math-rwfail))))
 
@@ -1551,7 +1607,7 @@
 			 mark (nth 3 part)
 			 op (aref mark 2)
 			 pc (cdr pc))
-		   (aset regs (nth 2 inst)
+		   (aset math-apply-rw-regs (nth 2 inst)
 			 (cond
 			  ((eq op 0)
 			   (if (eq (aref mark 0) (aref mark 1))
@@ -1591,17 +1647,17 @@
 
 		  ((eq op 'select)
 		   (setq pc (cdr pc))
-		   (if (and (consp (setq part (aref regs (nth 1 inst))))
+		   (if (and (consp (setq part (aref math-apply-rw-regs (nth 1 inst))))
 			    (eq (car part) 'calcFunc-select))
-		       (aset regs (nth 2 inst) (nth 1 part))
+		       (aset math-apply-rw-regs (nth 2 inst) (nth 1 part))
 		     (if math-rewrite-selections
 			 (math-rwfail)
-		       (aset regs (nth 2 inst) part))))
+		       (aset math-apply-rw-regs (nth 2 inst) part))))
 
 		  ((eq op 'same-neg)
-		   (if (or (equal (setq part (aref regs (nth 1 inst)))
+		   (if (or (equal (setq part (aref math-apply-rw-regs (nth 1 inst)))
 				  (setq mark (math-neg
-					      (aref regs (nth 2 inst)))))
+					      (aref math-apply-rw-regs (nth 2 inst)))))
 			   (Math-equal part mark))
 		       (setq pc (cdr pc))
 		     (math-rwfail)))
@@ -1613,22 +1669,24 @@
 			 op (aref mark 2))
 		   (cond ((eq op 0)
 			  (if (setq op (cdr (aref mark 1)))
-			      (aset regs (nth 4 inst) (car (aset mark 1 op)))
+			      (aset math-apply-rw-regs (nth 4 inst) 
+                                    (car (aset mark 1 op)))
 			    (if (nth 5 inst)
 				(progn
 				  (aset mark 2 3)
-				  (aset regs (nth 4 inst)
-					(aref regs (nth 1 inst))))
+				  (aset math-apply-rw-regs (nth 4 inst)
+					(aref math-apply-rw-regs (nth 1 inst))))
 			      (math-rwfail t))))
 			 ((eq op 1)
 			  (if (setq op (cdr (aref mark 1)))
-			      (aset regs (nth 4 inst) (car (aset mark 1 op)))
+			      (aset math-apply-rw-regs (nth 4 inst) 
+                                    (car (aset mark 1 op)))
 			    (if (= (aref mark 3) 1)
 				(if (nth 5 inst)
 				    (progn
 				      (aset mark 2 3)
-				      (aset regs (nth 4 inst)
-					    (aref regs (nth 1 inst))))
+				      (aset math-apply-rw-regs (nth 4 inst)
+					    (aref math-apply-rw-regs (nth 1 inst))))
 				  (math-rwfail t))
 			      (aset mark 2 2)
 			      (aset mark 1 (cons nil (aref mark 0)))
@@ -1666,19 +1724,20 @@
 						   (list '- part
 							 (nth 1 (car mark)))
 						 (list op part (car mark))))))
-				(aset regs (nth 4 inst) part))
+				(aset math-apply-rw-regs (nth 4 inst) part))
 			    (if (nth 5 inst)
 				(progn
 				  (aset mark 2 3)
-				  (aset regs (nth 4 inst)
-					(aref regs (nth 1 inst))))
+				  (aset math-apply-rw-regs (nth 4 inst)
+					(aref math-apply-rw-regs (nth 1 inst))))
 			      (math-rwfail t))))
 			 ((eq op 4)
 			  (setq btrack (cdr btrack)))
 			 (t (math-rwfail t))))
 
 		  ((eq op 'integer)
-		   (if (Math-integerp (setq part (aref regs (nth 1 inst))))
+		   (if (Math-integerp (setq part 
+                                            (aref math-apply-rw-regs (nth 1 inst))))
 		       (setq pc (cdr pc))
 		     (if (Math-primp part)
 			 (math-rwfail)
@@ -1688,7 +1747,7 @@
 			 (math-rwfail)))))
 
 		  ((eq op 'real)
-		   (if (Math-realp (setq part (aref regs (nth 1 inst))))
+		   (if (Math-realp (setq part (aref math-apply-rw-regs (nth 1 inst))))
 		       (setq pc (cdr pc))
 		     (if (Math-primp part)
 			 (math-rwfail)
@@ -1698,7 +1757,7 @@
 			 (math-rwfail)))))
 
 		  ((eq op 'constant)
-		   (if (math-constp (setq part (aref regs (nth 1 inst))))
+		   (if (math-constp (setq part (aref math-apply-rw-regs (nth 1 inst))))
 		       (setq pc (cdr pc))
 		     (if (Math-primp part)
 			 (math-rwfail)
@@ -1708,7 +1767,8 @@
 			 (math-rwfail)))))
 
 		  ((eq op 'negative)
-		   (if (math-looks-negp (setq part (aref regs (nth 1 inst))))
+		   (if (math-looks-negp (setq part 
+                                              (aref math-apply-rw-regs (nth 1 inst))))
 		       (setq pc (cdr pc))
 		     (if (Math-primp part)
 			 (math-rwfail)
@@ -1718,15 +1778,16 @@
 			 (math-rwfail)))))
 
 		  ((eq op 'rel)
-		   (setq part (math-compare (aref regs (nth 1 inst))
-					    (aref regs (nth 3 inst)))
+		   (setq part (math-compare (aref math-apply-rw-regs (nth 1 inst))
+					    (aref math-apply-rw-regs (nth 3 inst)))
 			 op (nth 2 inst))
 		   (if (= part 2)
 		       (setq part (math-rweval
 				   (math-simplify
 				    (calcFunc-sign
-				     (math-sub (aref regs (nth 1 inst))
-					       (aref regs (nth 3 inst))))))))
+				     (math-sub 
+                                      (aref math-apply-rw-regs (nth 1 inst))
+                                      (aref math-apply-rw-regs (nth 3 inst))))))))
 		   (if (cond ((eq op 'calcFunc-eq)
 			      (eq part 0))
 			     ((eq op 'calcFunc-neq)
@@ -1743,44 +1804,48 @@
 		     (math-rwfail)))
 
 		  ((eq op 'func-def)
-		   (if (and (consp (setq part (aref regs (car (cdr inst)))))
-			    (eq (car part)
-				(car (setq inst (cdr (cdr inst))))))
+		   (if (and 
+                        (consp (setq part (aref math-apply-rw-regs (car (cdr inst)))))
+                        (eq (car part)
+                            (car (setq inst (cdr (cdr inst))))))
 		       (progn
 			 (setq inst (cdr inst)
 			       mark (car inst))
 			 (while (and (setq inst (cdr inst)
 					   part (cdr part))
 				     inst)
-			   (aset regs (car inst) (car part)))
+			   (aset math-apply-rw-regs (car inst) (car part)))
 			 (if (or inst part)
 			     (setq pc (cdr pc))
 			   (while (eq (car (car (setq pc (cdr pc))))
 				      'func-def))
 			   (setq pc (cdr pc))   ; skip over "func"
 			   (while mark
-			     (aset regs (cdr (car mark)) (car (car mark)))
+			     (aset math-apply-rw-regs (cdr (car mark)) (car (car mark)))
 			     (setq mark (cdr mark)))))
 		     (math-rwfail)))
 
 		  ((eq op 'func-opt)
-		   (if (or (not (and (consp
-				      (setq part (aref regs (car (cdr inst)))))
-				     (eq (car part) (nth 2 inst))))
+		   (if (or (not 
+                            (and 
+                             (consp
+                              (setq part (aref math-apply-rw-regs (car (cdr inst)))))
+                             (eq (car part) (nth 2 inst))))
 			   (and (= (length part) 2)
 				(setq part (nth 1 part))))
 		       (progn
 			 (setq mark (nth 3 inst))
-			 (aset regs (nth 4 inst) part)
+			 (aset math-apply-rw-regs (nth 4 inst) part)
 			 (while (eq (car (car (setq pc (cdr pc)))) 'func-def))
 			 (setq pc (cdr pc))   ; skip over "func"
 			 (while mark
-			   (aset regs (cdr (car mark)) (car (car mark)))
+			   (aset math-apply-rw-regs (cdr (car mark)) (car (car mark)))
 			   (setq mark (cdr mark))))
 		     (setq pc (cdr pc))))
 
 		  ((eq op 'mod)
-		   (if (if (Math-zerop (setq part (aref regs (nth 1 inst))))
+		   (if (if (Math-zerop 
+                            (setq part (aref math-apply-rw-regs (nth 1 inst))))
 			   (Math-zerop (nth 3 inst))
 			 (and (not (Math-zerop (nth 2 inst)))
 			      (progn
@@ -1793,34 +1858,38 @@
 		     (math-rwfail)))
 
 		  ((eq op 'apply)
-		   (if (and (consp (setq part (aref regs (car (cdr inst)))))
+		   (if (and (consp 
+                             (setq part (aref math-apply-rw-regs (car (cdr inst)))))
 			    (not (Math-objvecp part))
 			    (not (eq (car part) 'var)))
 		       (progn
-			 (aset regs (nth 2 inst)
+			 (aset math-apply-rw-regs (nth 2 inst)
 			       (math-calcFunc-to-var (car part)))
-			 (aset regs (nth 3 inst)
+			 (aset math-apply-rw-regs (nth 3 inst)
 			       (cons 'vec (cdr part)))
 			 (setq pc (cdr pc)))
 		     (math-rwfail)))
 
 		  ((eq op 'cons)
-		   (if (and (consp (setq part (aref regs (car (cdr inst)))))
+		   (if (and (consp 
+                             (setq part (aref math-apply-rw-regs (car (cdr inst)))))
 			    (eq (car part) 'vec)
 			    (cdr part))
 		       (progn
-			 (aset regs (nth 2 inst) (nth 1 part))
-			 (aset regs (nth 3 inst) (cons 'vec (cdr (cdr part))))
+			 (aset math-apply-rw-regs (nth 2 inst) (nth 1 part))
+			 (aset math-apply-rw-regs (nth 3 inst) 
+                               (cons 'vec (cdr (cdr part))))
 			 (setq pc (cdr pc)))
 		     (math-rwfail)))
 
 		  ((eq op 'rcons)
-		   (if (and (consp (setq part (aref regs (car (cdr inst)))))
+		   (if (and (consp 
+                             (setq part (aref math-apply-rw-regs (car (cdr inst)))))
 			    (eq (car part) 'vec)
 			    (cdr part))
 		       (progn
-			 (aset regs (nth 2 inst) (calcFunc-rhead part))
-			 (aset regs (nth 3 inst) (calcFunc-rtail part))
+			 (aset math-apply-rw-regs (nth 2 inst) (calcFunc-rhead part))
+			 (aset math-apply-rw-regs (nth 3 inst) (calcFunc-rtail part))
 			 (setq pc (cdr pc)))
 		     (math-rwfail)))
 
@@ -1833,19 +1902,20 @@
 		     (math-rwfail)))
 
 		  ((eq op 'let)
-		   (aset regs (nth 1 inst)
+		   (aset math-apply-rw-regs (nth 1 inst)
 			 (math-rweval
 			  (math-normalize
 			   (math-rwapply-replace-regs (nth 2 inst)))))
 		   (setq pc (cdr pc)))
 
 		  ((eq op 'copy)
-		   (aset regs (nth 2 inst) (aref regs (nth 1 inst)))
+		   (aset math-apply-rw-regs (nth 2 inst) 
+                         (aref math-apply-rw-regs (nth 1 inst)))
 		   (setq pc (cdr pc)))
 
 		  ((eq op 'copy-neg)
-		   (aset regs (nth 2 inst)
-			 (math-rwapply-neg (aref regs (nth 1 inst))))
+		   (aset math-apply-rw-regs (nth 2 inst)
+			 (math-rwapply-neg (aref math-apply-rw-regs (nth 1 inst))))
 		   (setq pc (cdr pc)))
 
 		  ((eq op 'alt)
@@ -1904,7 +1974,7 @@
   (cond ((Math-primp expr)
 	 expr)
 	((eq (car expr) 'calcFunc-register)
-	 (setq expr (aref regs (nth 1 expr)))
+	 (setq expr (aref math-apply-rw-regs (nth 1 expr)))
 	 (if (eq (car-safe expr) '*)
 	     (if (eq (nth 1 expr) -1)
 		 (math-neg (nth 2 expr))
@@ -1953,7 +2023,7 @@
 	 (math-rwapply-reg-neg (nth 1 expr)))
 	((and (eq (car expr) 'neg)
 	      (eq (car-safe (nth 1 expr)) 'calcFunc-register)
-	      (math-scalarp (aref regs (nth 1 (nth 1 expr)))))
+	      (math-scalarp (aref math-apply-rw-regs (nth 1 (nth 1 expr)))))
 	 (math-neg (math-rwapply-replace-regs (nth 1 expr))))
 	((and (eq (car expr) '+)
 	      (math-rwapply-reg-looks-negp (nth 1 expr)))
@@ -2001,14 +2071,14 @@
 	 (if (Math-primp (nth 1 expr))
 	     (nth 1 expr)
 	   (if (eq (car (nth 1 expr)) 'calcFunc-register)
-	       (aref regs (nth 1 (nth 1 expr)))
+	       (aref math-apply-rw-regs (nth 1 (nth 1 expr)))
 	     (cons (car (nth 1 expr)) (mapcar 'math-rwapply-replace-regs
 					      (cdr (nth 1 expr)))))))
 	(t (cons (car expr) (mapcar 'math-rwapply-replace-regs (cdr expr))))))
 
 (defun math-rwapply-reg-looks-negp (expr)
   (if (eq (car-safe expr) 'calcFunc-register)
-      (math-looks-negp (aref regs (nth 1 expr)))
+      (math-looks-negp (aref math-apply-rw-regs (nth 1 expr)))
     (if (memq (car-safe expr) '(* /))
 	(or (math-rwapply-reg-looks-negp (nth 1 expr))
 	    (math-rwapply-reg-looks-negp (nth 2 expr))))))
@@ -2025,8 +2095,8 @@
 				       (math-rwapply-reg-neg (nth 2 expr)))))))
 
 (defun math-rwapply-remember (old new)
-  (let ((varval (symbol-value (nth 2 (car ruleset))))
-	(rules (assq (car-safe old) ruleset)))
+  (let ((varval (symbol-value (nth 2 (car math-apply-rw-ruleset))))
+	(rules (assq (car-safe old) math-apply-rw-ruleset)))
     (if (and (eq (car-safe varval) 'vec)
 	     (not (memq (car-safe old) '(nil schedule + -)))
 	     rules)
@@ -2042,6 +2112,8 @@
 					  (list 'done new nil))
 				    nil nil)
 			      (cdr rules)))))))
+
+(provide 'calc-rewr)
 
 ;;; arch-tag: ca8d7b7d-bff1-4535-90f3-e2241f5e786b
 ;;; calc-rewr.el ends here

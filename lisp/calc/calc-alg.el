@@ -27,11 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-alg () nil)
 
 ;;; Algebra commands.
 
@@ -333,9 +331,19 @@
       aa)))
 
 
-;; Placeholder, to synchronize autoloading.
-(defun math-need-std-simps ()
-  nil)
+(defmacro math-defsimplify (funcs &rest code)
+  (append '(progn)
+          (mapcar (function
+                   (lambda (func)
+                     (list 'put (list 'quote func) ''math-simplify
+                           (list 'nconc
+                                 (list 'get (list 'quote func) ''math-simplify)
+                                 (list 'list
+                                       (list 'function
+                                             (append '(lambda (math-simplify-expr))
+                                                     code)))))))
+                  (if (symbolp funcs) (list funcs) funcs))))
+(put 'math-defsimplify 'lisp-indent-hook 1)
 
 ;; The function created by math-defsimplify uses the variable
 ;; math-simplify-expr, and so is used by functions in math-defsimplify
@@ -501,9 +509,9 @@
 			    (eq signs 5))
 		       math-living-dangerously)))
 	     (math-numberp (car np)))
-	 (let ((n (car np))
-	       d dd
-	       (safe t) (scalar (math-known-scalarp n)))
+	 (let (d
+               (safe t) 
+               (scalar (math-known-scalarp (car np))))
 	   (while (and (eq (car-safe (setq d (car dp))) '*)
 		       safe)
 	     (math-simplify-one-divisor np (cdr d))
@@ -1587,14 +1595,18 @@
 (defvar math-poly-base-const-ok)
 (defvar math-poly-base-pred)
 
-(defun math-polynomial-base (mpb-top-expr &optional math-poly-base-pred)
+;; The variable math-poly-base-top-expr is local to math-polynomial-base,
+;; but is used by math-polynomial-p1 in calc-poly.el, which is called
+;; by math-polynomial-base.
+
+(defun math-polynomial-base (math-poly-base-top-expr &optional math-poly-base-pred)
   (or math-poly-base-pred
       (setq math-poly-base-pred (function (lambda (base) (math-polynomial-p
-					       mpb-top-expr base)))))
+					       math-poly-base-top-expr base)))))
   (or (let ((math-poly-base-const-ok nil))
-	(math-polynomial-base-rec mpb-top-expr))
+	(math-polynomial-base-rec math-poly-base-top-expr))
       (let ((math-poly-base-const-ok t))
-	(math-polynomial-base-rec mpb-top-expr))))
+	(math-polynomial-base-rec math-poly-base-top-expr))))
 
 (defun math-polynomial-base-rec (mpb-expr)
   (and (not (Math-objvecp mpb-expr))
@@ -1687,6 +1699,8 @@
 		    (math-make-frac (nth 1 f)
 				    (math-scale-int 1 (- (nth 2 f)))))))
       f))
+
+(provide 'calc-alg)
 
 ;;; arch-tag: 52e7dcdf-9688-464d-a02b-4bbe789348d0
 ;;; calc-alg.el ends here

@@ -220,7 +220,7 @@ skip_invisible (pos, next_boundary_p, to, window)
      Lisp_Object window;
 {
   Lisp_Object prop, position, overlay_limit, proplimit;
-  Lisp_Object buffer;
+  Lisp_Object buffer, tmp;
   int end, inv_p;
 
   XSETFASTINT (position, pos);
@@ -251,8 +251,9 @@ skip_invisible (pos, next_boundary_p, to, window)
       /* No matter what. don't go past next overlay change.  */
       if (XFASTINT (overlay_limit) < XFASTINT (proplimit))
 	proplimit = overlay_limit;
-      end = XFASTINT (Fnext_single_property_change (position, Qinvisible,
-						    buffer, proplimit));
+      tmp = Fnext_single_property_change (position, Qinvisible,
+					  buffer, proplimit);
+      end = XFASTINT (tmp);
 #if 0
       /* Don't put the boundary in the middle of multibyte form if
          there is no actual property change.  */
@@ -2069,6 +2070,8 @@ whether or not it is currently displayed in some window.  */)
     }
   else
     {
+      int it_start;
+
       SET_TEXT_POS (pt, PT, PT_BYTE);
       start_display (&it, w, pt);
 
@@ -2078,16 +2081,17 @@ whether or not it is currently displayed in some window.  */)
 	 we end up with the iterator placed at where it thinks X is 0,
 	 while the end position is really at some X > 0, the same X that
 	 PT had.  */
-      if (XINT (lines) < 0)
-	{
-	  reseat_at_previous_visible_line_start (&it);
-	  it.current_x = it.hpos = 0;
-	  move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
-	  it.vpos = 0;
-	}
-      else
-	move_it_by_lines (&it, 0, 0);
+      it_start = IT_CHARPOS (it);
+      reseat_at_previous_visible_line_start (&it);
+      it.current_x = it.hpos = 0;
+      move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
 
+      /* Move back if we got too far.  This may happen if
+	 truncate-lines is on and PT is beyond right margin.  */
+      if (IT_CHARPOS (it) > it_start && XINT (lines) > 0)
+	move_it_by_lines (&it, -1, 0);
+
+      it.vpos = 0;
       if (XINT (lines) != 0)
 	move_it_by_lines (&it, XINT (lines), 0);
 

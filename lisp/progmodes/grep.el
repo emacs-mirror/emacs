@@ -247,9 +247,12 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 
 ;;;###autoload
 (defvar grep-regexp-alist
-  '(("^\\(.+?\\)[:( \t]+\
+  ;; rms: I removed the code to match parens around the line number
+  ;; because it causes confusion and so we will find out if anyone needs it.
+  ;; It causes confusion with a file name that contains a number in parens.
+  '(("^\\(.+?\\)[: \t]+\
 \\([0-9]+\\)\\([.:]?\\)\\([0-9]+\\)?\
-\\(?:-\\(?:\\([0-9]+\\)\\3\\)?\\.?\\([0-9]+\\)?\\)?[:) \t]" 1 (2 . 5) (4 . 6))
+\\(?:-\\(?:\\([0-9]+\\)\\3\\)?\\.?\\([0-9]+\\)?\\)?[: \t]" 1 (2 . 5) (4 . 6))
     ("^\\(.+?\\)[:(]+\\([0-9]+\\)\\([:)]\\).*?\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\)"
      1 2
      ;; Calculate column positions (beg . end) of first grep match on a line

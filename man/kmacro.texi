@@ -120,11 +120,6 @@ of zero to @kbd{C-x e} or @kbd{C-x )} means repeat the macro
 indefinitely (until it gets an error or you type @kbd{C-g} or, on
 MS-DOS, @kbd{C-@key{BREAK}}).
 
-@kindex C-x C-k C-s
-@kindex C-x C-k C-k
-Alternatively, you can use @kbd{C-x C-k C-s} to start a keyboard macro,
-and @kbd{C-x C-k C-k...} to end and execute it.
-
   If you wish to repeat an operation at regularly spaced places in the
 text, define a macro and include as part of the macro the commands to move
 to the next place you want to use it.  For example, if you want to change
@@ -185,7 +180,7 @@ beginning of the line and then executing the macro.
 a list of sequences of keys.  There is only one keyboard macro ring,
 shared by all buffers.
 
-  All commands which operates on the keyboard macro ring use the
+  All commands which operate on the keyboard macro ring use the
 same @kbd{C-x C-k} prefix.  Most of these commands can be executed and
 repeated immediately after each other without repeating the @kbd{C-x
 C-k} prefix.  For example,
@@ -207,12 +202,17 @@ executes the keyboard macro at the head of the macro ring.  You can
 repeat the macro immediately by typing another @kbd{C-k}, or you can
 rotate the macro ring immediately by typing @kbd{C-n} or @kbd{C-p}.
 
+When a keyboard macro is being defined, @kbd{C-x C-k C-k} behaves like
+@kbd{C-x )} except that, immediately afterward, you can use most key
+bindings of this section without the @kbd{C-x C-k} prefix.  For
+instance, another @kbd{C-k} will re-execute the macro.
+
 @findex kmacro-cycle-ring-next
 @kindex C-x C-k C-n
 @findex kmacro-cycle-ring-previous
 @kindex C-x C-k C-p
   The commands @kbd{C-x C-k C-n} (@code{kmacro-cycle-ring-next}) and
-@kbd{C-x C-k C-p} (@code{kmacro-cycle-ring-previous}) rotates the
+@kbd{C-x C-k C-p} (@code{kmacro-cycle-ring-previous}) rotate the
 macro ring, bringing the next or previous keyboard macro to the head
 of the macro ring.  The definition of the new head macro is displayed
 in the echo area.  You can continue to rotate the macro ring
@@ -227,14 +227,14 @@ defined keyboard macro''.  For instance, it is the keyboard macro that
 @findex kmacro-view-macro-repeat
 @kindex C-x C-k C-v
 
-  The commands @kbd{C-x C-k C-v} (@code{kmacro-view-macro-repeat})
+  The command @kbd{C-x C-k C-v} (@code{kmacro-view-macro-repeat})
 displays the last keyboard macro, or when repeated (with @kbd{C-v}),
 it displays the previous macro on the macro ring, just like @kbd{C-x
 C-k C-p}, but without actually rotating the macro ring.  If you enter
 @kbd{C-k} immediately after displaying a macro from the ring, that
 macro is executed, but still without altering the macro ring.
 
-  So while e.g. @kbd{C-x C-k C-p C-p C-k C-k} makes the 3rd previous
+  So while e.g. @kbd{C-x C-k C-p C-p C-p C-k C-k} makes the 3rd previous
 macro the current macro and executes it twice, @kbd{C-x C-k C-v C-v
 C-v C-k C-k} will display and execute the 3rd previous macro once and
 then the current macro once.
@@ -242,7 +242,7 @@ then the current macro once.
 @findex kmacro-delete-ring-head
 @kindex C-x C-k C-d
 
-  The commands @kbd{C-x C-k C-d} (@code{kmacro-delete-ring-head})
+  The command @kbd{C-x C-k C-d} (@code{kmacro-delete-ring-head})
 removes and deletes the macro currently at the head of the macro
 ring.  You can use this to delete a macro that didn't work as
 expected, or which you don't need anymore.
@@ -250,21 +250,24 @@ expected, or which you don't need anymore.
 @findex kmacro-swap-ring
 @kindex C-x C-k C-t
 
-  The commands @kbd{C-x C-k C-t} (@code{kmacro-swap-ring})
+  The command @kbd{C-x C-k C-t} (@code{kmacro-swap-ring})
 interchanges the head of the macro ring with the previous element on
 the macro ring.
 
 @findex kmacro-call-ring-2nd-repeat
 @kindex C-x C-k C-l
 
-  The commands @kbd{C-x C-k C-l} (@code{kmacro-call-ring-2nd-repeat})
+  The command @kbd{C-x C-k C-l} (@code{kmacro-call-ring-2nd-repeat})
 executes the previous (rather than the head) element on the macro ring.
+
+@vindex kmacro-ring-max
+  The maximum number of macros stored in the keyboard macro ring is
+determined by the customizable variable @code{kmacro-ring-max}.
 
 @node Keyboard Macro Counter
 @section The Keyboard Macro Counter
 
-  Each keyboard macro has an associated counter which is automatically
-incremented on every repetition of the keyboard macro.  Normally, the
+  Each keyboard macro has an associated counter.  Normally, the
 macro counter is initialized to 0 when you start defining the macro,
 and incremented by 1 after each insertion of the counter value;
 that is, if you insert the macro counter twice while defining the
@@ -275,7 +278,7 @@ macro, the counter will increase by 2 on each repetition of the macro.
   The command @kbd{C-x C-k C-i} (@code{kmacro-insert-counter}) inserts
 the current value of the keyboard macro counter and increments the
 counter by 1.  You can use a numeric prefix argument to specify a
-different increment.  If you specify a @kbd{C-u} prefix, the last
+different increment.  If you just specify a @kbd{C-u} prefix, the last
 inserted counter value is repeated and the counter is not incremented.
 For example, if you enter the following sequence while defining a macro
 
@@ -288,30 +291,65 @@ the text @samp{0112} is inserted in the buffer, and for the first and
 second execution of the macro @samp{3445} and @samp{6778} are
 inserted.
 
+  This command usually only makes sense while defining a keyboard macro.
+But its behavior when no keyboard macro is being defined or executed
+is predictable: it inserts and increments the counter of the head of
+the keyboard macro ring.
+
 @findex kmacro-set-counter
 @kindex C-x C-k C-c
   The command @kbd{C-x C-k C-c} (@code{kmacro-set-counter}) prompts
 for the initial value of the keyboard macro counter if you use it
-before you define a keyboard macro.  If you use it while defining a
-keyboard macro, you set the macro counter to the same (initial) value
-on each repetition of the macro.  If you specify a @kbd{C-u} prefix,
-the counter is reset to the value it had prior to the current
-repetition of the macro (undoing any increments so far in this
-repetition).
+before you define a keyboard macro.  If you use it before executing a
+keyboard macro, it resets that macro's counter.  If you use it while
+defining a keyboard macro, then the macro counter gets reset to that same
+value on each repetition of the macro.  Rather than having the command
+prompt for a value, you can also specify the value with a numeric
+prefix argument.  If you just specify a @kbd{C-u} prefix, the counter
+is reset to the value it had prior to the current repetition of the
+macro (undoing any increments so far in this repetition).  If you just
+specify a @kbd{C-u} prefix while no macro is being defined or executed,
+then the new value of the counter is essentially unpredictable.
 
 @findex kmacro-add-counter
 @kindex C-x C-k C-a
   The command @kbd{C-x C-k C-a} (@code{kmacro-add-counter}) prompts
-for a value to add to the macro counter.
+for a value to add to the macro counter.  You can also specify the
+value with a numeric prefix argument.  If you just specify a @kbd{C-u}
+prefix, the counter is reset to the last value inserted by any
+keyboard macro.  Usually, this will only make sense if that value was
+inserted during the current macro definition or repetition.
+
+  This command normally only makes sense while defining a keyboard macro.
+But its behavior when no keyboard macro is being defined or executed
+is predictable: it affects the counter of the head of the keyboard
+macro ring.
 
 @findex kmacro-set-format
 @kindex C-x C-k C-f
-  The command @kbd{C-x C-k C-f} (@code{kmacro-set-format}) prompts
-for the format to use when inserting the macro counter.  The default
-format is @samp{%d}.  If you set the counter format before you define a
-macro, that format is restored before each repetition of the macro.
-Consequently, any changes you make to the macro counter format while
-defining a macro are only active for the rest of the macro.
+  The command @kbd{C-x C-k C-f} (@code{kmacro-set-format}) prompts for
+the format to use when inserting the macro counter.  The default
+format is @samp{%d}, which means to insert the number in decimal
+without any padding.  You can exit with empty minibuffer to reset the
+format to this default.  You can specify any format string that the
+@code{format} function accepts and that makes sense with a single
+integer extra argument (@pxref{Formatting Strings,,, elisp, The Emacs
+Lisp Reference Manual}).  Do not put the format string inside double
+quotes when you insert it in the minibuffer.
+
+If you use this command while no keyboard macro is being defined or
+executed, the new format affects all subsequent macro definitions.
+Existing macros continue to use the format in effect when they were
+defined.  If you set the format while defining a keyboard macro, this
+affects the macro being defined from that point on, but it does not
+affect subsequent macros.  Execution of the macro will, at each step,
+use the format in effect at that step during its definition.  Changes
+to the macro format during execution of a macro, like the
+corresponding changes during its definition, have no effect on
+subsequent macros.
+
+The format set by @kbd{C-x C-k C-f} does not affect insertion of
+numbers stored in registers.
 
 @node Keyboard Macro Query
 @section Executing Macros with Variations
@@ -378,14 +416,13 @@ changed.
 @cindex binding keyboard macros
 @findex kmacro-bind-to-key
 @kindex C-x C-k b
-  You can also bind the last keyboard macro to a key, using
-@kbd{C-x C-k b} (@code{kmacro-bind-to-key}) followed by the
-key sequence you want the keyboard macro to be bound to.  You can
-bind to any key sequence in the global keymap, but since most key
-sequences already have other bindings, you should select the key
-sequence carefully.  If you try to bind to a key sequence with an
-existing binding (in any keymap), you will be asked if you really
-want to replace the existing binding of that key.
+  You can also bind the last keyboard macro (in its current form) to a
+key, using @kbd{C-x C-k b} (@code{kmacro-bind-to-key}) followed by the
+key sequence you want to bind.  You can bind to any key sequence in
+the global keymap, but since most key sequences already have other
+bindings, you should select the key sequence carefully.  If you try to
+bind to a key sequence with an existing binding (in any keymap), this
+command asks you for confirmation before replacing the existing binding.
 
 To avoid problems caused by overriding existing bindings, the key
 sequences @kbd{C-x C-k 0} through @kbd{C-x C-k 9} and @kbd{C-x C-k A}

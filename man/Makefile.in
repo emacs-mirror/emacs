@@ -20,9 +20,8 @@
 # the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
-# Where to find the source code.  The source code for Emacs's C kernel is
-# expected to be in ${srcdir}/src, and the source code for Emacs's
-# utility programs is expected to be in ${srcdir}/lib-src.  This is
+# Where to find the source code.  $(srcdir) will be the man
+# subdirectory of the source tree.  This is
 # set by the configure script's `--srcdir' option.
 srcdir=@srcdir@
 top_srcdir=@top_srcdir@
@@ -40,7 +39,7 @@ INFO_TARGETS = ../info/emacs ../info/emacs-xtra ../info/ccmode ../info/cl \
 		../info/sc ../info/vip ../info/viper ../info/widget \
 		../info/efaq ../info/ada-mode ../info/autotype ../info/calc \
 		../info/idlwave ../info/eudc ../info/ebrowse ../info/pcl-cvs \
-		../info/woman ../info/eshell \
+		../info/woman ../info/eshell ../info/org ../info/url \
 		../info/speedbar ../info/tramp ../info/ses ../info/smtpmail \
 		../info/flymake
 DVI_TARGETS = 	emacs.dvi calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
@@ -48,7 +47,7 @@ DVI_TARGETS = 	emacs.dvi calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
                  gnus.dvi message.dvi sieve.dvi pgg.dvi mh-e.dvi \
 		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
 		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
-		 pcl-cvs.dvi woman.dvi eshell.dvi \
+		 pcl-cvs.dvi woman.dvi eshell.dvi org.dvi url.dvi \
 		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi flymake.dvi \
                  emacs-xtra.dvi
 INFOSOURCES = info.texi
@@ -287,6 +286,16 @@ ebrowse.dvi: ebrowse.texi
 woman.dvi: woman.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/woman.texi
 
+../info/org: org.texi
+	cd $(srcdir); $(MAKEINFO) org.texi
+org.dvi: org.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/org.texi
+
+../info/url: url.texi
+	cd $(srcdir); $(MAKEINFO) url.texi
+url.dvi: url.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/url.texi
+
 ../info/speedbar: speedbar.texi
 	cd $(srcdir); $(MAKEINFO) speedbar.texi
 speedbar.dvi: speedbar.texi
@@ -322,8 +331,7 @@ distclean: clean
 
 maintainer-clean: distclean
 	rm -f *.aux *.cps *.fns *.kys *.pgs *.vrs *.toc
-# Don't delete these, because they are outside the current directory.
-#	for file in $(INFO_TARGETS); do rm -f $${file}*; done
+	for file in $(INFO_TARGETS); do rm -f $${file}*; done
 
 
 # Formerly this directory had texindex.c and getopt.c in it

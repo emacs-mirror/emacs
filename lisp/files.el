@@ -1761,12 +1761,13 @@ in that case, this function acts as if `enable-local-variables' were t."
      ;; Windows candidates may be opened case sensitively on Unix
      ("\\.\\(?:[iI][nN][iI]\\|[lL][sS][tT]\\|[rR][eE][gG]\\|[sS][yY][sS]\\)\\'" . conf-mode)
      ("\\.\\(?:desktop\\|la\\)\\'" . conf-unix-mode)
+     ("\\.ppd\\'" . conf-ppd-mode)
      ("java.+\\.conf\\'" . conf-javaprop-mode)
      ("\\.properties\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-javaprop-mode)
      ;; *.cf, *.cfg, *.conf, *.config[.local|.de_DE.UTF8|...], */config
      ("[/.]c\\(?:on\\)?f\\(?:i?g\\)?\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-mode)
      ("\\`/etc/\\(?:DIR_COLORS\\|ethers\\|.?fstab\\|.*hosts\\|lesskey\\|login\\.?de\\(?:fs\\|vperm\\)\\|magic\\|mtab\\|pam\\.d/.*\\|permissions\\|protocols\\|rpc\\|services\\)\\'" . conf-space-mode)
-     ("\\`/etc/\\(?:default/.*\\|aliases\\|group-?\\|hosts\\..+\\|ksysguarddrc\\|opera6rc\\|passwd-?\\|shadow-?\\)\\'" . conf-mode)
+     ("\\`/etc/\\(?:acpid?/.+\\|aliases\\|default/.+\\|group-?\\|hosts\\..+\\|inittab\\|ksysguarddrc\\|opera6rc\\|passwd-?\\|shadow-?\\)\\'" . conf-mode)
      ;; either user's dot-files or under /etc or some such
      ("/\\.?\\(?:gnokiirc\\|kde.*rc\\|mime\\.types\\|wgetrc\\)\\'" . conf-mode)
      ;; alas not all ~/.*rc files are like this

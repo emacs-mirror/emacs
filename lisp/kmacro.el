@@ -237,6 +237,8 @@ macro to be executed before appending to it."
 (defvar kmacro-counter 0
   "*Current keyboard macro counter.")
 
+(defvar kmacro-default-counter-format "%d")
+
 (defvar kmacro-counter-format "%d"
   "*Current keyboard macro counter format.")
 
@@ -268,12 +270,12 @@ With \\[universal-argument], insert previous kmacro-counter (but do not modify c
 
 (defun kmacro-set-format (format)
   "Set macro counter FORMAT."
-  (interactive "sMacro Counter Format (printf format): ")
+  (interactive "sMacro Counter Format: ")
   (setq kmacro-counter-format
 	(if (equal format "") "%d" format))
   ;; redefine initial macro counter if we are not executing a macro.
   (if (not (or defining-kbd-macro executing-kbd-macro))
-      (setq kmacro-counter-format-start kmacro-counter-format)))
+      (setq kmacro-default-counter-format kmacro-counter-format)))
 
 
 (defun kmacro-display-counter (&optional value)
@@ -404,12 +406,12 @@ Optional arg EMPTY is message to print if no macros are defined."
       (let* ((x 60)
 	     (m (format-kbd-macro macro))
 	     (l (length m))
-	     (z (and nil trunc (> l x))))
-	(message (format "%s%s: %s%s" (or descr "Macro")
-			 (if (= kmacro-counter 0) ""
-			   (format " [%s]"
-				   (format kmacro-counter-format-start kmacro-counter)))
-			 (if z (substring m 0 (1- x)) m) (if z "..." ""))))
+	     (z (and trunc (> l x))))
+	(message "%s%s: %s%s" (or descr "Macro")
+		 (if (= kmacro-counter 0) ""
+		   (format " [%s]"
+			   (format kmacro-counter-format-start kmacro-counter)))
+		 (if z (substring m 0 (1- x)) m) (if z "..." "")))
     (message (or empty "No keyboard macros defined"))))
 
 
@@ -588,7 +590,8 @@ Use \\[kmacro-bind-to-key] to bind it to a key sequence."
 	      kmacro-initial-counter-value nil
 	      kmacro-counter-value-start kmacro-counter
 	      kmacro-last-counter kmacro-counter
-	      kmacro-counter-format-start kmacro-counter-format))
+	      kmacro-counter-format kmacro-default-counter-format
+	      kmacro-counter-format-start kmacro-default-counter-format))
 
       (start-kbd-macro append
 		       (and append

@@ -1,4 +1,5 @@
 /* Header for coding system handler.
+   Copyright (C) 2004  Free Software Foundation, Inc.
    Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
 
@@ -572,10 +573,10 @@ struct coding_system
    for file names, if any.  */
 #define ENCODE_FILE(name)						   \
   (! NILP (Vfile_name_coding_system)					   \
-   && XFASTINT (Vfile_name_coding_system) != 0				   \
+   && !EQ (Vfile_name_coding_system, make_number (0))			   \
    ? code_convert_string_norecord (name, Vfile_name_coding_system, 1)	   \
    : (! NILP (Vdefault_file_name_coding_system)				   \
-      && XFASTINT (Vdefault_file_name_coding_system) != 0		   \
+      && !EQ (Vdefault_file_name_coding_system, make_number (0))	   \
       ? code_convert_string_norecord (name, Vdefault_file_name_coding_system, 1) \
       : name))
 
@@ -583,10 +584,10 @@ struct coding_system
    for file names, if any.  */
 #define DECODE_FILE(name)						   \
   (! NILP (Vfile_name_coding_system)					   \
-   && XFASTINT (Vfile_name_coding_system) != 0				   \
+   && !EQ (Vfile_name_coding_system, make_number (0))			   \
    ? code_convert_string_norecord (name, Vfile_name_coding_system, 0)	   \
    : (! NILP (Vdefault_file_name_coding_system)				   \
-      && XFASTINT (Vdefault_file_name_coding_system) != 0		   \
+      && !EQ (Vdefault_file_name_coding_system, make_number (0))	   \
       ? code_convert_string_norecord (name, Vdefault_file_name_coding_system, 0) \
       : name))
 
@@ -595,7 +596,7 @@ struct coding_system
    for w32 system functions, if any.  */
 #define ENCODE_SYSTEM(str)						   \
   (! NILP (Vlocale_coding_system)					   \
-   && XFASTINT (Vlocale_coding_system) != 0				   \
+   && !EQ (Vlocale_coding_system, make_number (0))			   \
    ? code_convert_string_norecord (str, Vlocale_coding_system, 1)	   \
    : str)
 
@@ -603,7 +604,7 @@ struct coding_system
    for w32 system functions, if any.  */
 #define DECODE_SYSTEM(name)						   \
   (! NILP (Vlocale_coding_system)					   \
-   && XFASTINT (Vlocale_coding_system) != 0				   \
+   && !EQ (Vlocale_coding_system, make_number (0))			   \
    ? code_convert_string_norecord (str, Vlocale_coding_system, 0)	   \
    : str)
 
@@ -635,6 +636,10 @@ extern int code_convert_region P_ ((int, int, int, int, struct coding_system *,
 extern Lisp_Object run_pre_post_conversion_on_str P_ ((Lisp_Object,
 						       struct coding_system *,
 						       int));
+extern void run_pre_write_conversin_on_c_str P_ ((unsigned char **, int *, 
+						  int, int,
+						  struct coding_system *));
+
 extern int decoding_buffer_size P_ ((struct coding_system *, int));
 extern int encoding_buffer_size P_ ((struct coding_system *, int));
 extern void detect_coding P_ ((struct coding_system *, const unsigned char *,

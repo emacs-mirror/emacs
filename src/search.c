@@ -41,7 +41,7 @@ Boston, MA 02111-1307, USA.  */
 struct regexp_cache
 {
   struct regexp_cache *next;
-  Lisp_Object regexp;
+  Lisp_Object regexp, whitespace_regexp;
   struct re_pattern_buffer buf;
   char fastmap[0400];
   /* Nonzero means regexp was compiled to do full POSIX backtracking.  */
@@ -83,6 +83,8 @@ static Lisp_Object last_thing_searched;
 
 Lisp_Object Qinvalid_regexp;
 
+Lisp_Object Vsearch_spaces_regexp;
+
 static void set_search_regs ();
 static void save_search_regs ();
 static int simple_search ();
@@ -107,7 +109,9 @@ matcher_overflow ()
    for this pattern.  0 means backtrack only enough to get a valid match.
    MULTIBYTE is nonzero if we want to handle multibyte characters in
    PATTERN.  0 means all multibyte characters are recognized just as
-   sequences of binary data.  */
+   sequences of binary data.
+
+   The behavior also depends on Vsearch_spaces_regexp.  */
 
 static void
 compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
@@ -158,11 +162,19 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
   cp->buf.translate = (! NILP (translate) ? translate : make_number (0));
   cp->posix = posix;
   cp->buf.multibyte = multibyte;
+  cp->whitespace_regexp = Vsearch_spaces_regexp;
   BLOCK_INPUT;
   old = re_set_syntax (RE_SYNTAX_EMACS
 		       | (posix ? 0 : RE_NO_POSIX_BACKTRACKING));
+
+  re_set_whitespace_regexp (NILP (Vsearch_spaces_regexp) ? NULL
+			    : SDATA (Vsearch_spaces_regexp));
+
   val = (char *) re_compile_pattern ((char *)raw_pattern,
 				     raw_pattern_size, &cp->buf);
+
+  re_set_whitespace_regexp (NULL);
+
   re_set_syntax (old);
   UNBLOCK_INPUT;
   if (val)
@@ -223,7 +235,8 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
 	  && !NILP (Fstring_equal (cp->regexp, pattern))
 	  && EQ (cp->buf.translate, (! NILP (translate) ? translate : make_number (0)))
 	  && cp->posix == posix
-	  && cp->buf.multibyte == multibyte)
+	  && cp->buf.multibyte == multibyte
+	  && !NILP (Fequal (cp->whitespace_regexp, Vsearch_spaces_regexp)))
 	break;
 
       /* If we're at the end of the cache, compile into the nil cell
@@ -1051,7 +1064,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
       return pos;
     }
 
-  if (RE && !trivial_regexp_p (string))
+  if (RE && !(trivial_regexp_p (string) && NILP (Vsearch_spaces_regexp)))
     {
       unsigned char *p1, *p2;
       int s1, s2;
@@ -2847,7 +2860,7 @@ LIST should have been created by calling `match-data' previously.  */)
 	else
 	  {
 	    int from;
-	    
+
 	    if (MARKERP (marker))
 	      {
 		if (XMARKER (marker)->buffer == 0)
@@ -2855,15 +2868,15 @@ LIST should have been created by calling `match-data' previously.  */)
 		else
 		  XSETBUFFER (last_thing_searched, XMARKER (marker)->buffer);
 	      }
-	    
+
 	    CHECK_NUMBER_COERCE_MARKER (marker);
 	    from = XINT (marker);
 	    list = Fcdr (list);
-	    
+
 	    marker = Fcar (list);
 	    if (MARKERP (marker) && XMARKER (marker)->buffer == 0)
 	      XSETFASTINT (marker, 0);
-	    
+
 	    CHECK_NUMBER_COERCE_MARKER (marker);
 	    search_regs.start[i] = from;
 	    search_regs.end[i] = XINT (marker);
@@ -2972,6 +2985,7 @@ syms_of_search ()
       searchbufs[i].buf.buffer = (unsigned char *) xmalloc (100);
       searchbufs[i].buf.fastmap = searchbufs[i].fastmap;
       searchbufs[i].regexp = Qnil;
+      searchbufs[i].whitespace_regexp = Qnil;
       staticpro (&searchbufs[i].regexp);
       searchbufs[i].next = (i == REGEXP_CACHE_SIZE-1 ? 0 : &searchbufs[i+1]);
     }
@@ -2997,6 +3011,14 @@ syms_of_search ()
 
   saved_last_thing_searched = Qnil;
   staticpro (&saved_last_thing_searched);
+
+  DEFVAR_LISP ("search-spaces-regexp", &Vsearch_spaces_regexp,
+      doc: /* Regexp to substitute for bunches of spaces in regexp search.
+Some commands use this for user-specified regexps.
+Spaces that occur inside character classes or repetition operators
+or other such regexp constructs are not replaced with this.
+A value of nil (which is the normal value) means treat spaces literally.  */);
+  Vsearch_spaces_regexp = Qnil;
 
   defsubr (&Slooking_at);
   defsubr (&Sposix_looking_at);

@@ -575,7 +575,7 @@ If non-nil, NEW means to create a new buffer no matter what."
   ;; emacsen. It shouldn't be needed, but it does no harm.
   (sit-for 0))
 
-(defun cvs-update-header (args fis) ; inline
+(defun cvs-header-msg (args fis)
   (let* ((lastarg nil)
 	 (args (mapcar (lambda (arg)
 			 (cond
@@ -595,38 +595,40 @@ If non-nil, NEW means to create a new buffer no matter what."
 			   (concat (match-string 0 arg) "<log message>"))
 			  ;; Keep the rest as is.
 			  (t arg)))
-		       args))
-	 ;; turn them into a string
-	 (arg (cvs-strings->string
-	       (append (cvs-flags-query 'cvs-cvs-flags nil 'noquery)
-		       (if cvs-cvsroot (list "-d" cvs-cvsroot))
-		       args
-		       (mapcar 'cvs-fileinfo->full-path fis))))
-	 (str (if args (concat "-- Running " cvs-program " " arg " ...\n")
-		"\n")))
-    (if nil (insert str)		;inline
-      ;;(with-current-buffer cvs-buffer
-      (let* ((prev-msg (car (ewoc-get-hf cvs-cookies)))
-	     (tin (ewoc-nth cvs-cookies 0)))
-	;; look for the first *real* fileinfo (to determine emptyness)
-	(while
-	    (and tin
-		 (memq (cvs-fileinfo->type (ewoc-data tin))
-		       '(MESSAGE DIRCHANGE)))
-	  (setq tin (ewoc-next cvs-cookies tin)))
-	;; cleanup the prev-msg
-	(when (string-match "Running \\(.*\\) ...\n" prev-msg)
-	  (setq prev-msg
-		(concat
-		 "-- last cmd: "
-		 (match-string 1 prev-msg)
-		 " --")))
-	;; set the new header and footer
-	(ewoc-set-hf cvs-cookies
-		     str (concat "\n--------------------- "
-				 (if tin "End" "Empty")
-				 " ---------------------\n"
-				 prev-msg))))))
+		       args)))
+    (concat cvs-program " "
+	    (cvs-strings->string
+	     (append (cvs-flags-query 'cvs-cvs-flags nil 'noquery)
+		     (if cvs-cvsroot (list "-d" cvs-cvsroot))
+		     args
+		     (mapcar 'cvs-fileinfo->full-path fis))))))
+
+(defun cvs-update-header (cmd add)
+  (let* ((hf (ewoc-get-hf cvs-cookies))
+	 (str (car hf))
+	 (done "")
+	 (tin (ewoc-nth cvs-cookies 0)))
+    (if (eq (length str) 1) (setq str ""))
+    ;; look for the first *real* fileinfo (to determine emptyness)
+    (while
+	(and tin
+	     (memq (cvs-fileinfo->type (ewoc-data tin))
+		   '(MESSAGE DIRCHANGE)))
+      (setq tin (ewoc-next cvs-cookies tin)))
+    (if add
+	(setq str (concat "-- Running " cmd " ...\n" str))
+      (if (not (string-match
+		(concat "^-- Running " (regexp-quote cmd) " \\.\\.\\.\n") str))
+	  (error "Internal PCL-CVS error while removing message")
+	(setq str (replace-match "" t t str))
+	(if (zerop (length str)) (setq str "\n"))
+	(setq done (concat "-- last cmd: " cmd " --"))))
+    ;; set the new header and footer
+    (ewoc-set-hf cvs-cookies
+		 str (concat "\n--------------------- "
+			     (if tin "End" "Empty")
+			     " ---------------------\n"
+			     done))))
 
 
 (defun cvs-sentinel (proc msg)
@@ -658,7 +660,6 @@ it is finished."
 	    ;; in a file-like buffer.  -stef
 	    (buffer-enable-undo)
 	    (with-current-buffer cvs-buffer
-	      (cvs-update-header nil nil) ;FIXME: might need to be inline
 	      (message "CVS process has completed in %s" (buffer-name)))))
 	;; This might not even be necessary
 	(set-buffer obuf)))))
@@ -1824,8 +1825,12 @@ POSTPROC is a list of expressions to be evaluated at the very end (after
 		;; absence of `cvs update' output has a specific meaning.
 		(or fis (list (cvs-create-fileinfo 'DIRCHANGE "" "." ""))))))
 	(push `(cvs-parse-process ',dont-change-disc nil ',old-fis) postproc)))
+    (let ((msg (cvs-header-msg args fis)))
+      (cvs-update-header msg 'add)
+      (push `(with-current-buffer cvs-buffer
+	       (cvs-update-header ',msg nil))
+	    postproc))
     (setq postproc (if (cdr postproc) (cons 'progn postproc) (car postproc)))
-    (cvs-update-header args fis)
     (with-current-buffer buf
       (let ((inhibit-read-only t)) (erase-buffer))
       (message "Running cvs %s ..." cmd)
