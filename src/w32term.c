@@ -4245,8 +4245,8 @@ w32_read_socket (sd, expected, hold_quit)
 	    {
 	      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
 		{
-		  dpyinfo->mouse_face_hidden = 1;
 		  clear_mouse_face (dpyinfo);
+		  dpyinfo->mouse_face_hidden = 1;
 		}
 
 	      if (temp_index == sizeof temp_buffer / sizeof (short))
@@ -4268,8 +4268,8 @@ w32_read_socket (sd, expected, hold_quit)
 	    {
 	      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
 		{
-		  dpyinfo->mouse_face_hidden = 1;
 		  clear_mouse_face (dpyinfo);
+		  dpyinfo->mouse_face_hidden = 1;
 		}
 
 	      if (temp_index == sizeof temp_buffer / sizeof (short))
@@ -4773,7 +4773,7 @@ w32_read_socket (sd, expected, hold_quit)
 		  help_echo_object = help_echo_window = Qnil;
 		  help_echo_pos = -1;
 		}
-	      
+
 	      any_help_event_p = 1;
 	      gen_help_event (help_echo_string, frame, help_echo_window,
 			      help_echo_object, help_echo_pos);
