@@ -1,12 +1,13 @@
 /*  ==== MPM STRESS TEST ====
  *
- *  $HopeName: MMsrc/!mpmstres.c(trunk.3)$
+ *  $HopeName: MMsrc!mpmss.c(trunk.1) $
  */
 
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include "std.h"
 #include "mps.h"
 #include "lib.h"
 #include "poolmfs.h"
