@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
-   Copyright (C) 1989, 93, 94, 95, 96, 97, 98, 1999, 2000,01,02,03,04
-   Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+     2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -7766,6 +7766,10 @@ x_connection_closed (dpy, error_message)
   error ("%s", error_msg);
 }
 
+/* We specifically use it before defining it, so that gcc doesn't inline it,
+   otherwise gdb doesn't know how to properly put a breakpoint on it.  */
+static void x_error_quitter (Display *display, XErrorEvent *error);
+
 /* This is the first-level handler for X protocol errors.
    It calls x_error_quitter or x_error_catcher.  */
 
@@ -7785,11 +7789,10 @@ x_error_handler (display, error)
    It kills all frames on the display that we got the error for.
    If that was the only one, it prints an error message and kills Emacs.  */
 
-/* This is not static because we want to put a breakpoint on it.
-   It is after x_error_handler so that it won't get inlined in
+/* It is after x_error_handler so that it won't get inlined in
    x_error_handler.  */
 
-void
+static void
 x_error_quitter (display, error)
      Display *display;
      XErrorEvent *error;
