@@ -141,9 +141,7 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
 
 (defun eshell-unix-initialize ()
   "Initialize the UNIX support/emulation code."
-  (make-local-hook 'eshell-post-command-hook)
   (when (eshell-using-module 'eshell-cmpl)
-    (make-local-hook 'pcomplete-try-first-hook)
     (add-hook 'pcomplete-try-first-hook
 	      'eshell-complete-host-reference nil t))
   (make-local-variable 'eshell-complex-commands)
