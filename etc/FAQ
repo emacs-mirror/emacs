@@ -2309,7 +2309,7 @@ Finding/Getting Emacs and Related Packages
   any hints in the source code.
 
   If a package does not come with Emacs, check the Lisp Code Directory,
-  maintained by Dave Brennan <brennan@hal.com>.  The directory is contained
+  (formerly?) maintained by Dave Brennan.  The directory is contained
   in the file LCD-datafile.Z, available from the Emacs Lisp Archive (see
   question 90), and is accessed using the "lispdir" package, available from
   the same site.  Note that lispdir.el requires crypt++, which you can grab
@@ -2791,7 +2791,7 @@ Major Emacs Lisp Packages, Emacs Extensions, and Related Programs
 111: W3-mode -- A World Wide Web browser inside of Emacs
 
   Author: Bill Perry <wmperry@spry.com>
-  Latest version: 4.0pre.23
+  Latest version: 4.0pre.31
   Anonymous FTP:
     ftp://ftp.cs.indiana.edu/pub/elisp/w3/.betas/w3.tar.gz
   Mailing lists:
@@ -2811,9 +2811,9 @@ Major Emacs Lisp Packages, Emacs Extensions, and Related Programs
   Authors: Patrick J. LoPresti <patl@lcs.mit.edu> and 
            Jin S. Choi <jin@atype.com>
   Maintainer: Len Budney <lbudney@pobox.com>
-  Latest version: 3.5b6
+  Latest version: 3.5.1
   Anonymous FTP:
-    http://www.nb.net/~lbudney/linux/software/mailcrypt/mailcrypt-3.5b6.tar.gz
+    ftp://metalab.unc.edu/pub/Linux/apps/crypto/mailcrypt-3.5.1.tar.gz
   World Wide Web:
     http://www.nb.net/~lbudney/linux/software/mailcrypt.html
 
@@ -2821,7 +2821,7 @@ Major Emacs Lisp Packages, Emacs Extensions, and Related Programs
 
   Author: Paul Kinnucan <paulk@mathworks.com>
   Mailing list: jde-subscribe@sunsite.auc.dk
-  Latest version: 2.1.1
+  Latest version: 2.1.4
   World Wide Web: http://sunsite.auc.dk/jde/
 
 115: Patch -- program to apply "diffs" for updating files
