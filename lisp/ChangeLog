@@ -1,3 +1,9 @@
+2001-10-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* obsolete/hilit19.el (hilit-lookup-face-create): Call
+	set-face-font only if display-graphic-p.
+	(toplevel): Remove references to window-system.
+
 2001-10-18  Miles Bader  <miles@gnu.org>
 
 	* simple.el (what-line): Avoid problems with field properties.
