@@ -230,6 +230,10 @@ extern int errno;
 
 extern int extra_keyboard_modifiers;
 
+/* The keysyms to use for the various modifiers.  */
+
+static Lisp_Object Qalt, Qhyper, Qsuper, Qmodifier_value;
+
 static Lisp_Object Qvendor_specific_keysyms;
 
 #if 0
@@ -7014,6 +7018,9 @@ Lisp_Object Qreverse;
 /* True if using command key as meta key.  */
 Lisp_Object Vmac_command_key_is_meta;
 
+/* Modifier associated with the option key, or nil for normal behavior. */
+Lisp_Object Vmac_option_modifier;
+
 /* True if the ctrl and meta keys should be reversed.  */
 Lisp_Object Vmac_reverse_ctrl_meta;
 
@@ -7095,6 +7102,12 @@ mac_to_emacs_modifiers (EventModifiers mods)
     result |= meta_modifier;
   if (NILP (Vmac_command_key_is_meta) && (mods & macAltKey))
     result |= alt_modifier;
+  if (!NILP (Vmac_option_modifier) && (mods & optionKey)) {
+      Lisp_Object val = Fget(Vmac_option_modifier, Qmodifier_value);
+      if (!NILP(val))
+          result |= XUINT(val);
+  }
+
   return result;
 }
 
@@ -8575,7 +8588,18 @@ XTread_socket (sd, expected, hold_quit)
 		    unsigned long some_state = 0;
 		    inev.code = KeyTranslate (kchr_ptr, new_keycode,
 					      &some_state) & 0xff;
-		  }
+		  } else if (!NILP(Vmac_option_modifier) && (er.modifiers & optionKey))
+            {
+                /* When using the option key as an emacs modifier, convert
+                   the pressed key code back to one without the Mac option
+                   modifier applied. */
+                int new_modifiers = er.modifiers & ~optionKey;
+                int new_keycode = keycode | new_modifiers;
+                Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
+                unsigned long some_state = 0;
+                inev.code = KeyTranslate (kchr_ptr, new_keycode,
+                                          &some_state) & 0xff;
+            }
 		else
 		  inev.code = er.message & charCodeMask;
 		inev.kind = ASCII_KEYSTROKE_EVENT;
@@ -9274,6 +9298,14 @@ syms_of_macterm ()
   x_error_message_string = Qnil;
 #endif
 
+  Qmodifier_value = intern ("modifier-value");
+  Qalt = intern ("alt");
+  Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
+  Qhyper = intern ("hyper");
+  Fput (Qhyper, Qmodifier_value, make_number (hyper_modifier));
+  Qsuper = intern ("super");
+  Fput (Qsuper, Qmodifier_value, make_number (super_modifier));
+
   Fprovide (intern ("mac-carbon"), Qnil);
 
   staticpro (&Qreverse);
@@ -9329,6 +9361,12 @@ to 4.1, set this to nil.  */);
     doc: /* Non-nil means that the command key is used as the Emacs meta key.
 Otherwise the option key is used.  */);
   Vmac_command_key_is_meta = Qt;
+
+  DEFVAR_LISP ("mac-option-modifier", &Vmac_option_modifier,
+    doc: /* Modifier to use for the Mac alt/option key.  The value can
+be alt, hyper, or super for the respective modifier.  If the value is
+nil then the key will act as the normal Mac option modifier.  */);
+  Vmac_option_modifier = Qnil;
 
   DEFVAR_LISP ("mac-reverse-ctrl-meta", &Vmac_reverse_ctrl_meta,
     doc: /* Non-nil means that the control and meta keys are reversed.  This is

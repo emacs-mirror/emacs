@@ -1005,8 +1005,8 @@ FRAC should be the inverse of the fractional value; for example, a value of
     (setcar type-break-keystroke-threshold lower)
     (setcdr type-break-keystroke-threshold upper)
     (if (interactive-p)
-        (message "min threshold: %d\tmax threshold: %d" lower upper)
-      type-break-keystroke-threshold)))
+        (message "min threshold: %d\tmax threshold: %d" lower upper))
+    type-break-keystroke-threshold))
 
 
 ;;; misc functions
@@ -1103,37 +1103,12 @@ With optional non-nil ALL, force redisplay of all mode-lines."
 
 (defun type-break-run-at-time (time repeat function)
   (condition-case nil (or (require 'timer) (require 'itimer)) (error nil))
-  (cond ((fboundp 'run-at-time)
-         (run-at-time time repeat function))
-        ((fboundp 'start-timer)
-         (let ((name (if (symbolp function)
-                         (symbol-name function)
-                       "type-break")))
-           (start-timer name function time repeat)))
-        ((fboundp 'start-itimer)
-         (let ((name (if (symbolp function)
-                         (symbol-name function)
-                       "type-break")))
-           (start-itimer name function time repeat)))))
+  (run-at-time time repeat function))
 
 (defvar timer-dont-exit)
 (defun type-break-cancel-function-timers (function)
-  (cond ((fboundp 'cancel-function-timers)
-         (let ((timer-dont-exit t))
-           (cancel-function-timers function)))
-        ((fboundp 'delete-timer)
-         (let ((list timer-list))
-           (while list
-             (and (eq (funcall 'timer-function (car list)) function)
-                  (delete-timer (car list)))
-             (setq list (cdr list)))))
-        ((fboundp 'delete-itimer)
-	 (with-no-warnings
-	  (let ((list itimer-list))
-	    (while list
-	      (and (eq (funcall 'itimer-function (car list)) function)
-		   (delete-itimer (car list)))
-	      (setq list (cdr list))))))))
+  (let ((timer-dont-exit t))
+    (cancel-function-timers function)))
 
 
 ;;; Demo wrappers

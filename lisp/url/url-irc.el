@@ -61,7 +61,7 @@ PASSWORD - What password to use"
 ;;;###autoload
 (defun url-irc (url)
   (let* ((host (url-host url))
-	 (port (string-to-int (url-port url)))
+	 (port (url-port url))
 	 (pass (url-password url))
 	 (user (url-user url))
 	 (chan (url-filename url)))

@@ -354,7 +354,9 @@ Any parameter supported by a frame may be added.  The parameter `height'
 will be initialized to the height of the frame speedbar is
 attached to and added to this list before the new frame is initialized."
   :group 'speedbar
-  :type '(repeat (sexp :tag "Parameter:")))
+  :type '(repeat (cons :format "%v"
+		       (symbol :tag "Parameter")
+		       (sexp :tag "Value"))))
 
 ;; These values by Hrvoje Niksic <hniksic@srce.hr>
 (defcustom speedbar-frame-plist

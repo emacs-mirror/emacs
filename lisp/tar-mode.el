@@ -580,7 +580,7 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
   ;; Prevent loss of data when saving the file.
   (set (make-local-variable 'file-precious-flag) t)
   (auto-save-mode 0)
-  (set (make-local-variable 'write-contents-hooks) '(tar-mode-write-file))
+  (set (make-local-variable 'write-contents-functions) '(tar-mode-write-file))
   (widen)
   (if (and (boundp 'tar-header-offset) tar-header-offset)
       (narrow-to-region (point-min) tar-header-offset)

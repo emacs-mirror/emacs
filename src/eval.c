@@ -540,21 +540,45 @@ usage: (function ARG)  */)
 
 
 DEFUN ("interactive-p", Finteractive_p, Sinteractive_p, 0, 0, 0,
-       doc: /* Return t if function in which this appears was called interactively.
+       doc: /* Return t if the function was run directly by user input.
 This means that the function was called with call-interactively (which
 includes being called as the binding of a key)
-and input is currently coming from the keyboard (not in keyboard macro).  */)
+and input is currently coming from the keyboard (not in keyboard macro),
+and Emacs is not running in batch mode (`noninteractive' is nil).
+
+The only known proper use of `interactive-p' is in deciding whether to
+display a helpful message, or how to display it.  If you're thinking
+of using it for any other purpose, it is quite likely that you're
+making a mistake.  Think: what do you want to do when the command is
+called from a keyboard macro?
+
+If you want to test whether your function was called with
+`call-interactively', the way to do that is by adding an extra
+optional argument, and making the `interactive' spec specify non-nil
+unconditionally for that argument.  (`p' is a good way to do this.)  */)
      ()
 {
-  return interactive_p (1) ? Qt : Qnil;
+  return (INTERACTIVE && interactive_p (1)) ? Qt : Qnil;
 }
 
 
-/*  Return 1 if function in which this appears was called
-    interactively.  This means that the function was called with
-    call-interactively (which includes being called as the binding of
-    a key) and input is currently coming from the keyboard (not in
-    keyboard macro).
+DEFUN ("called-interactively-p", Fcalled_interactively_p, Scalled_interactively_p, 0, 0, 0,
+       doc: /* Return t if the function using this was called with call-interactively.
+This is used for implementing advice and other function-modifying
+features of Emacs.
+
+The cleanest way to test whether your function was called with
+`call-interactively', the way to do that is by adding an extra
+optional argument, and making the `interactive' spec specify non-nil
+unconditionally for that argument.  (`p' is a good way to do this.)  */)
+     ()
+{
+  return (INTERACTIVE && interactive_p (1)) ? Qt : Qnil;
+}
+
+
+/*  Return 1 if function in which this appears was called using
+    call-interactively.
 
     EXCLUDE_SUBRS_P non-zero means always return 0 if the function
     called is a built-in.  */
@@ -565,9 +589,6 @@ interactive_p (exclude_subrs_p)
 {
   struct backtrace *btp;
   Lisp_Object fun;
-
-  if (!INTERACTIVE)
-    return 0;
 
   btp = backtrace_list;
 
@@ -1975,7 +1996,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
   struct backtrace backtrace;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
-  if (handling_signal)
+  if (handling_signal || INPUT_BLOCKED_P)
     abort ();
 
   if (SYMBOLP (form))
@@ -3449,6 +3470,7 @@ The value the function returns is not used.  */);
   defsubr (&Scondition_case);
   defsubr (&Ssignal);
   defsubr (&Sinteractive_p);
+  defsubr (&Scalled_interactively_p);
   defsubr (&Scommandp);
   defsubr (&Sautoload);
   defsubr (&Seval);

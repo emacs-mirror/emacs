@@ -6664,11 +6664,11 @@ prototype \&SUB	Returns prototype of the function given a reference.
 =pod		Switch from Perl to POD.
 ")
 
-(defun cperl-switch-to-doc-buffer ()
+(defun cperl-switch-to-doc-buffer (&optional interactive)
   "Go to the perl documentation buffer and insert the documentation."
-  (interactive)
+  (interactive "p")
   (let ((buf (get-buffer-create cperl-doc-buffer)))
-    (if (interactive-p)
+    (if interactive
 	(switch-to-buffer-other-window buf)
       (set-buffer buf))
     (if (= (buffer-size) 0)

@@ -718,14 +718,17 @@ version 4.7 or newer, compiles to Info pages with embedded images.
 
 ** BibTeX mode:
 *** The new command bibtex-url browses a URL for the BibTeX entry at
-point (bound to C-c C-l and mouse-2 on clickable fields).
+point (bound to C-c C-l and mouse-2, RET on clickable fields).
+
 *** The new command bibtex-entry-update (bound to C-c C-u) updates
 an existing BibTeX entry.
+
 *** New `bibtex-entry-format' option `required-fields', enabled by default.
+
 *** bibtex-maintain-sorted-entries can take values `plain',
 `crossref', and `entry-class' which control the sorting scheme used
-for BibTeX entries. `bibtex-sort-entry-class' controls the sorting
-scheme `entry-class'. TAB completion for reference keys and
+for BibTeX entries.  `bibtex-sort-entry-class' controls the sorting
+scheme `entry-class'.  TAB completion for reference keys and
 automatic detection of duplicates does not require anymore that
 bibtex-maintain-sorted-entries is non-nil.
 
@@ -742,10 +745,21 @@ types for which fields are filled automatically (if possible).
 point according to context (bound to M-tab).
 
 *** The new commands bibtex-find-entry and bibtex-find-crossref
-locate entries and crossref'd entries.
+locate entries and crossref'd entries.  Crossref fields are clickable
+(bound to mouse-2, RET).
 
 *** In BibTeX mode the command fill-paragraph (bound to M-q) fills
 individual fields of a BibTeX entry.
+
+*** The new command bibtex-validate-globally checks for duplicate keys
+in multiple BibTeX files.  See also the new variables bibtex-files
+and bibtex-file-path.
+
+*** The new command bibtex-find-entry-globally searches BibTeX entries
+in multiple BibTeX files.
+
+*** The new command bibtex-copy-summary-as-kill pushes summary
+of BibTeX entry to kill ring (bound to C-c C-t).
 
 ** When display margins are present in a window, the fringes are now
 displayed between the margins and the buffer's text area, rather than
@@ -945,6 +959,9 @@ coding system now also encodes characters from most of Emacs's
 one-dimensional internal charsets, specifically the ISO-8859 ones.
 The utf-16 coding system is affected similarly.
 
+** New variable `utf-translate-cjk-unicode-range' controls which
+Unicode characters to translate in `utf-translate-cjk-mode'.
+
 ** iso-10646-1 (`Unicode') fonts can be used to display any range of
 characters encodable by the utf-8 coding system.  Just specify the
 fontset appropriately.
@@ -997,6 +1014,11 @@ be navigated with the arrow keys (like Gtk+ and W32).
 +++
 ** The file selection dialog for Gtk+, W32 and Motif/Lesstif can be
 disabled by customizing the variable `use-file-dialog'.
+
++++
+** For Gtk+ version 2.4, you can make Emacs use the old file dialog
+by setting the variable `use-old-gtk-file-dialog' to t.  Default is to use
+the new dialog.
 
 +++
 ** Emacs can produce an underscore-like (horizontal bar) cursor.
@@ -2371,6 +2393,13 @@ configuration files.
 * Lisp Changes in Emacs 21.4
 
 +++
+** The new function `called-interactively-p' does what many people
+have mistakenly believed `interactively-p' did: it returns t if the
+calling function was called through `call-interactively'.
+This should only be used when you cannot add a new "interactively"
+argument to the command.
+
++++
 ** An interactive specification may now use the code letter 'U' to get
 the up-event that was discarded in case the last key sequence read for a
 previous 'k' or 'K' argument was a down-event; otherwise nil is used.
@@ -3178,11 +3207,13 @@ KEEP-MARGINS which will preserve the window's current margin, fringe,
 and scroll-bar settings if non-nil.
 
 +++
-** Renamed file hooks to follow the convention:
+** Renamed hooks to better follow the naming convention:
 find-file-hooks to find-file-hook,
 find-file-not-found-hooks to find-file-not-found-functions,
 write-file-hooks to write-file-functions,
-write-contents-hooks to write-contents-functions.
+write-contents-hooks to write-contents-functions,
+x-lost-selection-hooks to x-lost-selection-functions,
+x-sent-selection-hooks to x-sent-selection-functions.
 Marked local-write-file-hooks as obsolete (use the LOCAL arg of `add-hook').
 
 +++

@@ -1,3 +1,421 @@
+2004-11-03  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* files.el (xml-based-modes): Delete var.
+	(magic-mode-alist): New more general var.
+	(set-auto-mode): Use it.
+
+	* buff-menu.el (Buffer-menu-make-sort-button): Preserve point even
+	when clicking from another window.
+
+2004-11-03  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* vc-cvs.el (vc-cvs-local-month-numbers): Delete var.
+	(vc-cvs-annotate-time): Incorporate value of deleted var.
+	Remove special-case handling of beginning-of-buffer cruft.
+	Cache ending position (point) and return value in text property
+	`vc-cvs-annotate-time', and consult it on subsequent invocations.
+
+	* vc-cvs.el (vc-cvs-annotate-command):
+	Delete extraneous lines from beginning of buffer.
+	* vc-mcvs.el (vc-mcvs-annotate-command): Likewise.
+
+	* progmodes/grep.el (grep-default-command): Take empty string
+	for tag if all other methods yield nil.  Shell-quote the tag.
+
+	* vc.el (vc-annotate-display-autoscale): Add prefix-arg
+	spec in `interactive' form, and mention it in the docstring.
+	Also, make sure point is at bol after calling `annotate-time'.
+
+2004-11-02  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/elp.el (elp-instrument-function):
+	Use called-interactively-p.
+
+	* emacs-lisp/easymenu.el (easy-menu-intern):
+	Don't downcase; rather, case-flip the first letter of each word.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
+	Use called-interactively-p.
+
+	* emacs-lisp/bytecomp.el (byte-compile-warning-types):
+	Add interactive-only.
+	(byte-compile-warnings): Add interactive-only as option.
+	(byte-compile-interactive-only-functions): New variable.
+	(byte-compile-form): Warn about calls to functions
+	in byte-compile-interactive-only-functions.
+
+	* emacs-lisp/autoload.el (update-file-autoloads):
+	Don't use interactive-p; take new arg SAVE-AFTER.
+
+	* emacs-lisp/advice.el (ad-make-advised-definition):
+	Use called-interactively-p.
+
+2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* files.el (find-file-existing): New function.
+
+	* menu-bar.el (menu-bar-files-menu): Make "Open File..." call
+	find-file-existing.  Add "New File..." that calls find-file.
+
+	* diropen.pbm diropen.xpm: New files.
+
+	* toolbar/tool-bar.el (tool-bar-setup): Tool bar item dired uses
+	icon diropen.  New tool bar item find-file-existing uses icon open.
+
+	* dired.el (dired-read-dir-and-switches): Call read-driectory-name
+	instead of read-file-name.
+
+2004-11-02  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar-version): Increase to 0.08.
+	(icalendar--split-value): Change name of work buffer.
+	(icalendar--get-weekday-abbrev): Return nil on error.
+	(icalendar--date-to-isodate): New function.
+	(icalendar-convert-diary-to-ical)
+	(icalendar-extract-ical-from-buffer): Use only two args for
+	make-obsolete (XEmacs compatibility).
+	(icalendar-export-file, icalendar-import-file): Blank at end of
+	prompt.
+	(icalendar-export-region): Doc fix.
+	If error, return non-nil and write errors to a buffer.
+	Use correct weekday for weekly recurring events.
+	Check whether date has been parsed for ordinary events.
+	Make weekly events start in the year 2000.
+	DTEND is non-inclusive, shift end date by one day if
+	necessary (not for entries that have date and time).
+	Rename local let variables: oops -> found-error, datestring ->
+	startdatestring.
+
+2004-11-02  Kim F. Storm  <storm@cua.dk>
+
+	* files.el (set-auto-mode-0): Don't rely on dynamic binding of
+	keep-mode-if-same variable.  Add it as optional arg instead.
+	(set-auto-mode): Call set-auto-mode-0 with keep-mode-if-same.
+
+	* ehelp.el (electric-help-map): Reorder Q/q and R/r entries so
+	substitute-command-keys will select lower-case bindings like those
+	used in the static help texts.
+
+	* descr-text.el (describe-text-properties): Don't err if called in
+	the *Help* buffer; output to *Help-2* buffer instead.
+
+	* kmacro.el (group kmacro): Add :version.
+	(kmacro-keyboard-quit): New function to cleanup on C-g.
+	(kmacro-start-macro): Set defining-kbd-macro to append when
+	appending to last macro.
+
+	* simple.el (keyboard-quit): Call kmacro-keyboard-quit.
+
+2004-11-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-enable-debug-log)
+	(gdb-use-inferior-io-buffer, gdb-use-colon-colon-notation)
+	(gud-gdba-command-name, gdb-show-main, gdb-many-windows):
+	Add :version keyword.
+
+2004-11-02  Pavel Kobiakov <pk_at_work@yahoo.com>
+
+	* progmodes/flymake.el (flymake-err-line-patterns): Use
+	`flymake-reformat-err-line-patterns-from-compile-el' to convert
+	`compilation-error-regexp-alist-alist' to internal Flymake format.
+
+	* progmodes/flymake.el: eliminated byte-compiler warnings.
+
+2004-11-01  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-frac.el (calc-over-notation): Replaced
+	`completing-read' with `interactive "s"'.
+
+2004-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* mouse.el (mouse-yank-at-click, mouse-yank-secondary):
+	Revert change from 2004-10-16.  '*' checks the current buffer, but the
+	mouse click may be in another buffer.
+
+2004-11-01  John Paul Wallington  <jpw@gnu.org>
+
+	* files.el (large-file-warning-threshold): Add :version keyword.
+	(kill-some-buffers): Doc fix.
+
+	* thumbs.el (group thumbs): Add :version keyword.
+
+	* textmodes/bibtex.el (bibtex-make-field): Fix typo.
+
+2004-11-01  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/ispell.el (ispell-word): Don't use interactive-p.
+
+	* textmodes/flyspell.el (flyspell-word): Don't use interactive-p.
+
+	* allout.el (allout group): Add :version.
+	(allout-init): Don't use interactive-p.
+	(allout-ascend-to-depth, allout-ascend, allout-end-of-level)
+	(allout-forward-current-level, allout-backward-current-level):
+	Don't use interactive-p.
+
+	* textmodes/bibtex.el (bibtex-make-field): Don't use interactive-p.
+	(bibtex-find-text): Likewise.
+
+	* progmodes/vhdl-mode.el (vhdl-fill-region)
+	(vhdl-beginning-of-statement): Don't use interactive-p.
+
+	* progmodes/idlwave.el (idlwave-update-routine-info):
+	Don't use interactive-p.
+
+	* progmodes/idlw-shell.el (idlwave-shell-send-char):
+	Don't use interactive-p.
+
+	* progmodes/cperl-mode.el (cperl-switch-to-doc-buffer):
+	Don't use interactive-p.
+
+	* progmodes/ada-xref.el (ada-make-body-gnatstub):
+	Don't use interactive-p.
+
+	* play/fortune.el (fortune-to-signature): Don't use interactive-p.
+	(fortune-in-buffer): Doc fix.
+
+	* play/5x5.el (5x5-new-game): Set up the buffer even if not interactive.
+
+	* net/eudc.el (eudc-display-records): Use with-output-to-temp-buffer;
+	don't select the temporary buffer.
+	(eudc-get-email): New optional arg ERROR; don't use interactive-p.
+	(eudc-get-phone): Likewise.
+
+2004-11-01  Kim F. Storm  <storm@cua.dk>
+
+	* man.el (Man-xref-normal-file): Fix help-echo.
+
+2004-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* reveal.el (reveal-last-tick): New var.
+	(reveal-post-command): Use it to avoid closing overlays when we're
+	appending text to them.
+
+2004-10-31  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el: Require button.
+	(bibtex-autokey-transcriptions): Translate TeX `\ ' to space.
+	(bibtex-reference-keys): Distinguish between header keys and
+	crossref keys.
+	(bibtex-beginning-of-field): New function.
+	(bibtex-url-map): Remove.
+	(bibtex-font-lock-keywords): Use bibtex-font-lock-crossref.
+	(bibtex-font-lock-url-regexp): Assume that field names begin at
+	the beginning of a line.
+	(bibtex-font-lock-url): Simplify.  Do not use bibtex-enclosing-field.
+	Remove field delimiters.  Use bibtex-beginning-of-field.
+	Bugfix, point can be inside a field with a url.
+	(bibtex-font-lock-crossref, bibtex-button-action, bibtex-button):
+	New functions.
+	(bibtex-mark-active, bibtex-run-with-idle-timer): Remove.
+	(bibtex-key-in-head): Simplify.
+	(bibtex-current-line): Use bolp.
+	(bibtex-parse-keys): Remove unused arg `add'.
+	Use bibtex-type-in-head and bibtex-key-in-head.
+	(bibtex-parse-entry, bibtex-autofill-entry):
+	Use bibtex-type-in-head and bibtex-key-in-head.
+	(bibtex-autokey-get-field): Do not alter case of replacement text.
+	(bibtex-autokey-get-names): Do all processing of name list.
+	(bibtex-autokey-get-year): New function.
+	(bibtex-autokey-get-title): Do all processing of title words.
+	(bibtex-generate-autokey): Simplify.
+	(bibtex-string-files-init): Use default-directory.
+	Allow for absolute file names in bibtex-string-files.
+	(bibtex-files, bibtex-file-path): New variables.
+	(bibtex-files-expand): New function.
+	(bibtex-find-entry-globally): New command.
+	(bibtex-summary-function): New variable.
+	(bibtex-summary): Default value of bibtex-summary-function.
+	(bibtex-find-crossref): New optional args pnt and split.
+	(bibtex-complete-key-cleanup): Call bibtex-summary-function.
+	(bibtex-copy-summary-as-kill): New command bound to C-cC-t.
+	(bibtex-validate): Fix docstring.  Check only abbreviated month fields.
+	Fix handling of required and alternative fields.
+	Identify duplicate keys even if bibtex-maintain-sorted-entries is nil.
+	Use cons and display-buffer.
+	(bibtex-validate-globally): New command.
+	(bibtex-clean-entry): Use bibtex-files-expand.  Do not call
+	bibtex-parse-keys and bibtex-parse-strings for updating
+	bibtex-reference-keys and bibtex-strings.
+	(bibtex-realign): Remove blank lines past the last entry.
+	(bibtex-reformat): Use bibtex-entry-format as default.
+	(bibtex-choose-completion-string): Remove.
+	(bibtex-complete): Do not use bibtex-choose-completion-string.
+	(bibtex-url): Simplify.
+
+2004-10-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el (x-dnd-test-function, x-dnd-protocol-alist)
+	(x-dnd-types-alist, x-dnd-open-file-other-window)
+	(x-dnd-known-types): Add :version.
+
+2004-10-31  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuffer.el (group ibuffer): Add :version keyword.
+
+2004-10-31  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (group ido): Add :version keyword.
+	(ido-mode): Remove :version keyword.
+
+	* emulation/cua-base.el (group cua): Add :version keyword.
+	(cua-mode): Remove :version keyword.
+
+2004-10-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-tail-mode-text): Add :version keyword.
+
+	* help-at-pt.el (help-at-pt-timer): Move defvar up to avoid
+	compiler warning.
+	(help-at-pt-timer-delay): Add :initialize keyword.  Simplify :set
+	function.
+	(help-at-pt-display-when-idle): Remove autoload.
+
+2004-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* makefile.w32-in (custom-deps, autoloads): Fix *-hooks -> *-hook.
+
+2004-10-30  Juri Linkov  <juri@jurta.org>
+
+	* help.el (function-called-at-point):
+	* help-fns.el (variable-at-point): Read -> intern.
+
+2004-10-30  Simon Josefsson  <jas@extundo.com>
+
+	* progmodes/autoconf.el (autoconf-font-lock-keywords):
+	Recognize AS_* too.
+
+2004-10-29  Simon Josefsson  <jas@extundo.com>
+
+	* subr.el (read-passwd): Move back from password.el.
+
+	* password.el: Remove, not ready yet.
+
+2004-10-29  Andreas Schwab  <schwab@suse.de>
+
+	* speedbar.el (speedbar-frame-parameters): Improve customize type.
+
+2004-10-29  Sam Steingold  <sds@gnu.org>
+
+	* mouse.el (mouse-show-mark): Replace the last occurrence of
+	x-lost-selection-hooks with x-lost-selection-functions.
+
+2004-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-show-mark): Adjust to new name and don't assume
+	x-lost-selection-functions is bound.
+
+	* mouse-sel.el (mouse-sel-mode):
+	* emacs-lisp/lselect.el: Adjust to new names for
+	x-(lost|sent)-selection-functions.
+
+	* subr.el (x-lost-selection-hooks, x-sent-selection-hooks):
+	New obsolete aliases of x-lost-selection-functions and
+	x-sent-selection-functions.
+
+2004-10-28  Kim F. Storm  <storm@cua.dk>
+
+	* imenu.el (imenu-scanning-message): Remove.
+	(imenu-progress-message): Make it a no-op.
+
+2004-10-28  John Paul Wallington  <jpw@gnu.org>
+
+	* files.el (set-auto-mode): Call `throw' correctly.
+
+2004-10-28  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-file-list-for-emacs): Add ("Info" . "info")
+	to search `Info-...' commands in `info' manual.
+	(Info-goto-emacs-command-node, Info-goto-emacs-key-command-node):
+	Add 'info-file "emacs" property.
+	(Info-find-emacs-command-nodes): Fix index line number regexp.
+	Set real line number (instead of fake 0) in first element of the
+	returned list.
+	(Info-goto-emacs-command-node): Use line number of first element
+	to set point in the first found Info node.
+
+	* progmodes/grep.el (grep-regexp-alist): Move match highlighting
+	code to `grep-mode-font-lock-keywords'.
+	(grep-mode-font-lock-keywords): Delete grep markers instead
+	of making them invisible.
+
+2004-10-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* mail/emacsbug.el (report-emacs-bug): Insert x-server-vendor
+	and x-server-version in bug report.
+
+2004-10-28  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* files.el (set-auto-mode-0): New function.
+	(set-auto-mode): Use it to handle aliased modes and to
+	be consistent between C-x C-f and C-x C-w.
+
+2004-10-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/utf-8.el (utf-translate-cjk-charsets):
+	Add katakana-jisx0201.
+
+	* international/subst-jis.el: Add data for JISX0201.
+
+2004-10-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* obsolete/hilit19.el (hilit-mode): New function.
+	Move all the toplevel side-effecting stuff into it, so that loading
+	hilit19 doesn't mess everything up any more.
+
+2004-10-27  Richard M. Stallman  <rms@gnu.org>
+
+	* add-log.el (add-change-log-entry): Set up mailing address
+	and full name later, and don't alter add-log-mailing-address
+	or add-log-full-name.
+
+	* elide-head.el (elide-head): Change error to message.
+	(elide-head-show): Likewise.
+
+	* apropos.el (apropos-macrop): Doc fix.
+
+	* mouse.el (mouse-show-mark): Do most processing the same
+	regardless of transient-mark-mode.
+
+	* shadowfile.el (shadow-copy-files): Use interactive-p
+	only to control whether to print a message.
+
+	* tar-mode.el (tar-mode): Use write-contents-functions,
+	not write-contents-hooks.
+
+	* eshell/em-unix.el (eshell-du-sum-directory): Don't use
+	directory-sep-char.
+
+2004-10-27  Richard M. Stallman  <rms@gnu.org>
+
+	* strokes.el (strokes-unload-hook): Fix previous change.
+
+	* type-break.el (type-break-run-at-time): Always use run-at-time;
+	forget the alternatives.
+	(type-break-cancel-function-timers): Always use cancel-function-timers;
+	forget the alternatives.
+
+	* pcomplete.el (pcomplete-entries): Don't use directory-sep-char.
+
+2004-10-27  Kenichi Handa  <handa@m17n.org>
+
+	* international/subst-jis.el: Use utf-translate-cjk-substitutable-p.
+
+	* international/subst-gb2312.el: Likewise.
+
+	* international/subst-big5.el: Likewise.
+
+	* international/subst-ksc.el: Likewise.
+
+	* international/utf-8.el (utf-translate-cjk-unicode-range-string):
+	New variable.
+	(utf-translate-cjk-set-unicode-range): New function.
+	(utf-translate-cjk-unicode-range): Make it customizable.
+	(utf-8-post-read-conversion):
+	Use utf-translate-cjk-unicode-range-string.
+	(ccl-decode-mule-utf-8): Check utf-subst-table-for-decode for more
+	Unicode ranges.
+
 2004-10-26  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* files.el (auto-mode-alist): Add pod, js, xbm and xpm and group
@@ -46,14 +464,19 @@
 
 2004-10-26  Pavel Kobiakov  <pk_at_work@yahoo.com>
 
-	* progmodes/flymake.el (flymake-split-string): Use
-	`flymake-split-string-remove-empty-edges' in any case.
+	* progmodes/flymake.el (flymake-split-string):
+	Use `flymake-split-string-remove-empty-edges' in any case.
 
 2004-10-26  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/flymake.el (flymake-err-line-patterns):
 	Use `compilation-error-regexp-alist-alist' instead of
 	`compilation-error-regexp-alist'.
+
+2004-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-font-lock-keywords-1): Fix up the spurious
+	verbatim face on the \ of \end{verbatim}.
 
 2004-10-25  Jay Belanger  <belanger@truman.edu>
 
@@ -980,7 +1403,7 @@
 
 2004-09-17  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc.el (calc-mode-var-list): Fixed the value of
+	* calc/calc.el (calc-mode-var-list): Fix the value of
 	`calc-matrix-brackets'.
 
 2004-09-17  Romain Francoise  <romain@orebokech.com>

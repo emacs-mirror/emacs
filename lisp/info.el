@@ -1980,7 +1980,7 @@ Because of ambiguities, this should be concatenated with something like
               (if (match-beginning 5)
                   (string-to-number (match-string 5))
                 (buffer-substring (match-beginning 0) (1- (match-beginning 1)))))
-;;; Comment out the next line to use names of cross-references:
+;;; Uncomment next line to use names of cross-references in non-index nodes:
 ;;;       (setq Info-point-loc
 ;;;             (buffer-substring (match-beginning 0) (1- (match-beginning 1))))
       )
@@ -3214,7 +3214,7 @@ Allowed only if variable `Info-enable-edit' is non-nil."
        (message "Tags may have changed.  Use Info-tagify if necessary")))
 
 (defvar Info-file-list-for-emacs
-  '("ediff" "eudc" "forms" "gnus" "info" ("mh" . "mh-e")
+  '("ediff" "eudc" "forms" "gnus" "info" ("Info" . "info") ("mh" . "mh-e")
     "sc" "message" ("dired" . "dired-x") "viper" "vip" "idlwave"
     ("c" . "ccmode") ("c++" . "ccmode") ("objc" . "ccmode")
     ("java" . "ccmode") ("idl" . "ccmode") ("pike" . "ccmode")
@@ -3245,11 +3245,13 @@ The `info-file' property of COMMAND says which Info manual to search.
 If COMMAND has no property, the variable `Info-file-list-for-emacs'
 defines heuristics for which Info manual to try.
 The locations are of the format used in `Info-history', i.e.
-\(FILENAME NODENAME BUFFERPOS\)."
-  (let ((where '())
+\(FILENAME NODENAME BUFFERPOS\), where BUFFERPOS is the line number
+in the first element of the returned list (which is treated specially in
+`Info-goto-emacs-command-node'), and 0 for the rest elements of a list."
+  (let ((where '()) line-number
 	(cmd-desc (concat "^\\* +" (regexp-quote (symbol-name command))
 			  "\\( <[0-9]+>\\)?:\\s *\\(.*\\)\\."
-			  "\\([ \t]*(line[ \t]*[0-9]*)\\)?$"))
+			  "\\(?:[ \t\n]+(line +\\([0-9]+\\))\\)?"))
 	(info-file "emacs"))		;default
     ;; Determine which info file this command is documented in.
     (if (get command 'info-file)
@@ -3288,11 +3290,17 @@ The locations are of the format used in `Info-history', i.e.
 		    (cons (list Info-current-file
 				(match-string-no-properties 2)
 				0)
-			  where)))
+			  where))
+	      (setq line-number (and (match-beginning 3)
+				     (string-to-number (match-string 3)))))
 	    (and (setq nodes (cdr nodes) node (car nodes))))
 	(Info-goto-node node)))
-    where))
+    (if (and line-number where)
+	(cons (list (nth 0 (car where)) (nth 1 (car where)) line-number)
+	      (cdr where))
+      where)))
 
+;;;###autoload (put 'Info-goto-emacs-command-node 'info-file "emacs")
 ;;;###autoload
 (defun Info-goto-emacs-command-node (command)
   "Go to the Info node in the Emacs manual for command COMMAND.
@@ -3316,9 +3324,11 @@ COMMAND must be a symbol or string."
 	  ;; Bind Info-history to nil, to prevent the last Index node
 	  ;; visited by Info-find-emacs-command-nodes from being
 	  ;; pushed onto the history.
-	  (let ((Info-history nil) (Info-history-list nil))
-	    (Info-find-node (car (car where))
-			    (car (cdr (car where)))))
+	  (let ((Info-history nil) (Info-history-list nil)
+		(line-number (nth 2 (car where))))
+	    (Info-find-node (nth 0 (car where)) (nth 1 (car where)))
+	    (if (and (integerp line-number) (> line-number 0))
+		(forward-line (1- line-number))))
 	  (if (> num-matches 1)
 	      (progn
 		;; (car where) will be pushed onto Info-history
@@ -3332,6 +3342,7 @@ COMMAND must be a symbol or string."
 			 (if (> num-matches 2) "them" "it")))))
       (error "Couldn't find documentation for %s" command))))
 
+;;;###autoload (put 'Info-goto-emacs-key-command-node 'info-file "emacs")
 ;;;###autoload
 (defun Info-goto-emacs-key-command-node (key)
   "Go to the node in the Emacs manual which describes the command bound to KEY.

@@ -83,6 +83,7 @@ extern int errno;
 #include "process.h"
 #include "syssignal.h"
 #include "systty.h"
+#include "blockinput.h"
 
 #ifdef MSDOS
 #include "msdos.h"
@@ -620,6 +621,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     pid = child_setup (filefd, fd1, fd_error, (char **) new_argv,
 		       0, current_dir);
 #else  /* not WINDOWSNT */
+    BLOCK_INPUT;
+
     pid = vfork ();
 
     if (pid == 0)
@@ -637,6 +640,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	child_setup (filefd, fd1, fd_error, (char **) new_argv,
 		     0, current_dir);
       }
+
+    UNBLOCK_INPUT;
 #endif /* not WINDOWSNT */
 
     /* The MSDOS case did this already.  */

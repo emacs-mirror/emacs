@@ -310,6 +310,7 @@ static SELECT_TYPE non_keyboard_wait_mask;
 
 static SELECT_TYPE non_process_wait_mask;
 
+#ifdef NON_BLOCKING_CONNECT
 /* Mask of bits indicating the descriptors that we wait for connect to
    complete on.  Once they complete, they are removed from this mask
    and added to the input_wait_mask and non_keyboard_wait_mask.  */
@@ -318,6 +319,11 @@ static SELECT_TYPE connect_wait_mask;
 
 /* Number of bits set in connect_wait_mask.  */
 static int num_pending_connects;
+
+#define IF_NON_BLOCKING_CONNECT(s) s
+#else
+#define IF_NON_BLOCKING_CONNECT(s)
+#endif
 
 /* The largest descriptor currently in use for a process object.  */
 static int max_process_desc;
@@ -3673,12 +3679,14 @@ deactivate_process (proc)
       chan_process[inchannel] = Qnil;
       FD_CLR (inchannel, &input_wait_mask);
       FD_CLR (inchannel, &non_keyboard_wait_mask);
+#ifdef NON_BLOCKING_CONNECT
       if (FD_ISSET (inchannel, &connect_wait_mask))
 	{
 	  FD_CLR (inchannel, &connect_wait_mask);
 	  if (--num_pending_connects < 0)
 	    abort ();
 	}
+#endif
       if (inchannel == max_process_desc)
 	{
 	  int i;
@@ -4039,8 +4047,11 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 {
   register int channel, nfds;
   SELECT_TYPE Available;
+#ifdef NON_BLOCKING_CONNECT
   SELECT_TYPE Connecting;
-  int check_connect, check_delay, no_avail;
+  int check_connect;
+#endif
+  int check_delay, no_avail;
   int xerrno;
   Lisp_Object proc;
   EMACS_TIME timeout, end_time;
@@ -4051,7 +4062,9 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
   int saved_waiting_for_user_input_p = waiting_for_user_input_p;
 
   FD_ZERO (&Available);
+#ifdef NON_BLOCKING_CONNECT
   FD_ZERO (&Connecting);
+#endif
 
   /* If wait_proc is a process to watch, set wait_channel accordingly.  */
   if (wait_proc != NULL)
@@ -4188,7 +4201,10 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	 timeout to get our attention.  */
       if (update_tick != process_tick && do_display)
 	{
-	  SELECT_TYPE Atemp, Ctemp;
+	  SELECT_TYPE Atemp;
+#ifdef NON_BLOCKING_CONNECT
+	  SELECT_TYPE Ctemp;
+#endif
 
 	  Atemp = input_wait_mask;
 #if 0
@@ -4200,11 +4216,16 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	  */
           FD_CLR (0, &Atemp);
 #endif
-	  Ctemp = connect_wait_mask;
+	  IF_NON_BLOCKING_CONNECT (Ctemp = connect_wait_mask);
+
 	  EMACS_SET_SECS_USECS (timeout, 0, 0);
 	  if ((select (max (max_process_desc, max_keyboard_desc) + 1,
 		       &Atemp,
+#ifdef NON_BLOCKING_CONNECT
 		       (num_pending_connects > 0 ? &Ctemp : (SELECT_TYPE *)0),
+#else
+		       (SELECT_TYPE *)0,
+#endif
 		       (SELECT_TYPE *)0, &timeout)
 	       <= 0))
 	    {
@@ -4264,12 +4285,14 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	  if (XINT (wait_proc->infd) < 0)  /* Terminated */
 	    break;
 	  FD_SET (XINT (wait_proc->infd), &Available);
-	  check_connect = check_delay = 0;
+	  check_delay = 0;
+	  IF_NON_BLOCKING_CONNECT (check_connect = 0);
 	}
       else if (!NILP (wait_for_cell))
 	{
 	  Available = non_process_wait_mask;
-	  check_connect = check_delay = 0;
+	  check_delay = 0;
+	  IF_NON_BLOCKING_CONNECT (check_connect = 0);
 	}
       else
 	{
@@ -4277,7 +4300,7 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	    Available = non_keyboard_wait_mask;
 	  else
 	    Available = input_wait_mask;
-	  check_connect = (num_pending_connects > 0);
+	  IF_NON_BLOCKING_CONNECT (check_connect = (num_pending_connects > 0));
  	  check_delay = wait_channel >= 0 ? 0 : process_output_delay_count;
 	}
 
@@ -4302,8 +4325,10 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	}
       else
 	{
+#ifdef NON_BLOCKING_CONNECT
 	  if (check_connect)
 	    Connecting = connect_wait_mask;
+#endif
 
 #ifdef ADAPTIVE_READ_BUFFERING
 	  if (process_output_skip && check_delay > 0)
@@ -4334,7 +4359,11 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 
 	  nfds = select (max (max_process_desc, max_keyboard_desc) + 1,
 			 &Available,
+#ifdef NON_BLOCKING_CONNECT
 			 (check_connect ? &Connecting : (SELECT_TYPE *)0),
+#else
+			 (SELECT_TYPE *)0,
+#endif
 			 (SELECT_TYPE *)0, &timeout);
 	}
 
@@ -4390,7 +4419,7 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
       if (no_avail)
 	{
 	  FD_ZERO (&Available);
-	  check_connect = 0;
+	  IF_NON_BLOCKING_CONNECT (check_connect = 0);
 	}
 
 #if defined(sun) && !defined(USG5_4)
@@ -6625,6 +6654,11 @@ init_process ()
   FD_ZERO (&non_keyboard_wait_mask);
   FD_ZERO (&non_process_wait_mask);
   max_process_desc = 0;
+
+#ifdef NON_BLOCKING_CONNECT
+  FD_ZERO (&connect_wait_mask);
+  num_pending_connects = 0;
+#endif
 
 #ifdef ADAPTIVE_READ_BUFFERING
   process_output_delay_count = 0;

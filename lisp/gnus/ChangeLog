@@ -1,3 +1,158 @@
+2004-11-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art. (gnus-article-edit-article): Don't associate the
+	article buffer with a draft file.  This is a temporary measure
+	against the 2004-08-22 change to gnus-article-edit-mode.
+
+2004-11-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* html2text.el (html2text-get-attr): Remove unused argument `tag'.
+	(html2text-format-tags): Remove unused variable `attr'.
+
+	* mm-util.el (mm-enrich-utf-8-by-mule-ucs): Fix cleaning of
+	after-load-alist.
+
+	* mm-util.el (mm-mime-mule-charset-alist): Add the windows-1251
+	entry.  From Ilya N. Golubev <gin@mo.msk.ru>.
+	(mm-enrich-utf-8-by-mule-ucs): New function run when Mule-UCS is
+	loaded under XEmacs.
+	(): Don't make duplicated entries in mm-mime-mule-charset-alist.
+
+	* mm-util.el (mm-coding-system-p): Return a coding-system.
+	(mm-mime-mule-charset-alist): Use shift_jis instead of
+	iso-2022-jp-2 for the katakana-jisx0201 mule charset; add new
+	entries for the mime charsets iso-2022-jp-3 and shift_jis.
+	(mm-coding-system-priorities): Use shift_jis and iso-8859-1
+	instead of japanese-shift-jis and iso-latin-1 respectively in
+	order to share the default value with both Emacs and XEmacs-mule.
+	(mm-mule-charset-to-mime-charset): Make
+	mm-coding-system-priorities effective.
+	(mm-sort-coding-systems-predicate): Canonicalize coding-systems
+	while predicating of candidates upon the priorities.
+
+2004-11-01  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-msg.el (gnus-summary-resend-default-address): Add :version.
+
+	* tls.el (tls-process-connection-type, tls-success)
+	(tls-certtool-program): Add :version.
+
+	* starttls.el (starttls-gnutls-program, starttls-use-gnutls)
+	(starttls-extra-arguments, starttls-process-connection-type)
+	(starttls-connect, starttls-failure, starttls-success): 
+
+	* spam-stat.el (spam-stat): Add :version.
+
+	* sieve.el (sieve): Add :version.
+
+	* sha1.el (sha1): Added :version.
+	(sha1-use-external): Removed redundant version.
+
+	* nnmail.el (nnmail-split-fancy-with-parent-ignore-groups)
+	(nnmail-cache-ignore-groups, nnmail-spool-hook)
+	(nnmail-split-fancy-match-partial-words)
+	(nnmail-split-lowercase-expanded): 
+
+	* nndiary.el (nndiary): Add :version.
+
+	* mml2015.el (mml2015-unabbrev-trust-alist): Add :version.
+
+	* mml-sec.el (mml-default-sign-method)
+	(mml-default-encrypt-method, mml-signencrypt-style-alist): Add
+	:version.
+
+	* mm-uu.el (mm-uu-diff-groups-regexp): Add :version.
+
+	* mm-url.el (mm-url-use-external, mm-url-program)
+	(mm-url-arguments): Add :version.
+
+	* mm-decode.el (mm-inline-text-html-with-w3m-keymap)
+	(mm-attachment-file-modes, mm-decrypt-option)
+	(mm-w3m-safe-url-regexp): Add :version.
+
+	* message.el (message-cite-prefix-regexp)
+	(message-sendmail-envelope-from, message-minibuffer-local-map)
+	(message-user-fqdn, message-completion-alist): Add :version.
+
+	* gnus-win.el (gnus-configure-windows-hook)
+	(gnus-use-frames-on-any-display): Add :version.
+
+	* gnus-art.el (gnus-article-address-banner-alist)
+	(gnus-treat-unsplit-urls, gnus-treat-unfold-headers)
+	(gnus-treat-from-picon, gnus-treat-mail-picon)
+	(gnus-treat-x-pgp-sig): Add :version.
+
+	* gnus-sum.el (gnus-spam-mark, gnus-recent-mark)
+	(gnus-undownloaded-mark, gnus-summary-article-move-hook)
+	(gnus-summary-article-delete-hook)
+	(gnus-summary-display-while-building): Add :version.
+
+	* gnus-start.el (gnus-subscribe-newsgroup-hooks)
+	(gnus-get-top-new-news-hook):Add :version.
+
+	* gnus-srvr.el (gnus-server-agent-face, gnus-server-opened-face)
+	(gnus-server-closed-face, gnus-server-denied-face): Add :version.
+
+	* gnus-registry.el (gnus-registry): Add :version.
+
+	* gnus-spec.el (gnus-use-correct-string-widths)
+	(gnus-make-format-preserve-properties): Add :version.
+
+	* gnus.el (gnus-group-charter-alist)
+	(gnus-group-fetch-control-use-browse-url)
+	(gnus-install-group-spam-parameters): Add :version.
+
+	* gnus-diary.el (gnus-diary): Add :version.
+
+	* gnus-delay.el (gnus-delay): Add :version.
+
+	* gnus-cite.el (gnus-cite-unsightly-citation-regexp)
+	(gnus-cite-ignore-quoted-from, gnus-cite-attribution-face)
+	(gnus-cite-blank-line-after-header, gnus-article-boring-faces):
+	Add :version.
+
+	* gnus-agent.el (gnus-agent-max-fetch-size)
+	(gnus-agent-enable-expiration, gnus-agent-queue-mail)
+	(gnus-agent-prompt-send-queue): Add :version.
+
+	* deuglify.el (gnus-outlook-deuglify): Add :version.
+
+	* html2text.el: Beautify code.  Improve doc strings.  Some checkdoc
+	cleanup.
+	(html2text-get-attr, html2text-fix-paragraph): Simplify code.
+	(html2text-format-tag-list): Added "strong" and "em".  From
+	"Alfred M. Szmidt" <ams@kemisten.nu> (tiny change).
+
+2004-10-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-msg.el (gnus-configure-posting-styles): Work with empty
+	signature file.  Suggested by Manoj Srivastava
+	<srivasta@golden-gryphon.com>.
+
+	* mm-util.el (mm-coding-system-priorities): Prefer iso-8859-1 than
+	iso-2022-jp even in the Japanese language environment.  Suggested
+	by Jason Rumney <jasonr@gnu.org>.
+
+2004-10-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-update-summary-mark-positions): Allow users to
+	use the same characters as the dummy marks; make it free from
+	getting affected by the language environment.
+	(gnus-summary-read-group-1): Update mark positions only when the
+	format spec is updated.
+
+	* gnus-spec.el (gnus-update-format-specifications): Return a list
+	of updated types.
+
+2004-10-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnspool.el (nnspool-spool-directory): Use news-path if the
+	news-directory variable is not bound.
+
+	* gnus-group.el (gnus-group-line-format-alist): Convert the value
+	of gnus-tmp-news-method into string if it may be passed to
+	gnus-correct-length which takes only a string argument.
+
 2004-10-25  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* html2text.el (html2text-buffer-head): Removed.  Use `goto-char'

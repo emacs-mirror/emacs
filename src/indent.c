@@ -1883,7 +1883,7 @@ vmotion (from, vtarget, w)
   struct position pos;
   /* vpos is cumulative vertical position, changed as from is changed */
   register int vpos = 0;
-  Lisp_Object prevline;
+  int prevline;
   register int first;
   int from_byte;
   int lmargin = hscroll > 0 ? 1 - hscroll : 0;
@@ -1917,23 +1917,21 @@ vmotion (from, vtarget, w)
 	{
 	  Lisp_Object propval;
 
-	  XSETFASTINT (prevline, find_next_newline_no_quit (from - 1, -1));
-	  while (XFASTINT (prevline) > BEGV
+	  prevline = find_next_newline_no_quit (from - 1, -1);
+	  while (prevline > BEGV
 		 && ((selective > 0
-		      && indented_beyond_p (XFASTINT (prevline),
-					    CHAR_TO_BYTE (XFASTINT (prevline)),
+		      && indented_beyond_p (prevline,
+					    CHAR_TO_BYTE (prevline),
 					    (double) selective)) /* iftc */
-		     /* watch out for newlines with `invisible' property */
-		     || (propval = Fget_char_property (prevline,
+		     /* Watch out for newlines with `invisible' property.
+			When moving upward, check the newline before.  */
+		     || (propval = Fget_char_property (make_number (prevline - 1),
 						       Qinvisible,
 						       text_prop_object),
 			 TEXT_PROP_MEANS_INVISIBLE (propval))))
-	    XSETFASTINT (prevline,
-			 find_next_newline_no_quit (XFASTINT (prevline) - 1,
-						    -1));
-	  pos = *compute_motion (XFASTINT (prevline), 0,
-				 lmargin + (XFASTINT (prevline) == BEG
-					    ? start_hpos : 0),
+	    prevline = find_next_newline_no_quit (prevline - 1, -1);
+	  pos = *compute_motion (prevline, 0,
+				 lmargin + (prevline == BEG ? start_hpos : 0),
 				 0,
 				 from,
 				 /* Don't care for VPOS...  */
@@ -1944,12 +1942,11 @@ vmotion (from, vtarget, w)
 				 /* This compensates for start_hpos
 				    so that a tab as first character
 				    still occupies 8 columns.  */
-				 (XFASTINT (prevline) == BEG
-				  ? -start_hpos : 0),
+				 (prevline == BEG ? -start_hpos : 0),
 				 w);
 	  vpos -= pos.vpos;
 	  first = 0;
-	  from = XFASTINT (prevline);
+	  from = prevline;
 	}
 
       /* If we made exactly the desired vertical distance,
@@ -1977,21 +1974,21 @@ vmotion (from, vtarget, w)
     {
       Lisp_Object propval;
 
-      XSETFASTINT (prevline, find_next_newline_no_quit (from, -1));
-      while (XFASTINT (prevline) > BEGV
+      prevline = find_next_newline_no_quit (from, -1);
+      while (prevline > BEGV
 	     && ((selective > 0
-		  && indented_beyond_p (XFASTINT (prevline),
-					CHAR_TO_BYTE (XFASTINT (prevline)),
+		  && indented_beyond_p (prevline,
+					CHAR_TO_BYTE (prevline),
 					(double) selective)) /* iftc */
-		 /* watch out for newlines with `invisible' property */
-		 || (propval = Fget_char_property (prevline, Qinvisible,
+		 /* Watch out for newlines with `invisible' property.
+		    When moving downward, check the newline after.  */
+		 || (propval = Fget_char_property (make_number (prevline),
+						   Qinvisible,
 						   text_prop_object),
 		     TEXT_PROP_MEANS_INVISIBLE (propval))))
-	XSETFASTINT (prevline,
-		     find_next_newline_no_quit (XFASTINT (prevline) - 1,
-						-1));
-      pos = *compute_motion (XFASTINT (prevline), 0,
-			     lmargin + (XFASTINT (prevline) == BEG
+	prevline = find_next_newline_no_quit (prevline - 1, -1);
+      pos = *compute_motion (prevline, 0,
+			     lmargin + (prevline == BEG
 					? start_hpos : 0),
 			     0,
 			     from,
@@ -2000,7 +1997,7 @@ vmotion (from, vtarget, w)
 			     /* ... nor HPOS.  */
 			     1 << (BITS_PER_SHORT - 1),
 			     -1, hscroll,
-			     (XFASTINT (prevline) == BEG ? -start_hpos : 0),
+			     (prevline == BEG ? -start_hpos : 0),
 			     w);
       did_motion = 1;
     }

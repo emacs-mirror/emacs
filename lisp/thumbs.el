@@ -30,8 +30,8 @@
 ;;; Commentary:
 
 ;; This package create two new mode: thumbs-mode and
-;; thumbs-view-image-mode. It is used for images browsing and viewing
-;; from within emacs. Minimal image manipulation functions are also
+;; thumbs-view-image-mode.  It is used for images browsing and viewing
+;; from within Emacs.  Minimal image manipulation functions are also
 ;; available via external programs.
 ;;
 ;; The 'convert' program from 'ImageMagick'
@@ -62,6 +62,7 @@
 
 (defgroup thumbs nil
   "Thumbnails previewer."
+  :version "21.4"
   :group 'multimedia)
 
 (defcustom thumbs-thumbsdir
@@ -416,7 +417,7 @@ and SAME-WINDOW to show thumbs in the same window."
 (defalias 'thumbs 'thumbs-show-all-from-dir)
 
 (defun thumbs-find-image (img &optional num otherwin)
-  (funcall 
+  (funcall
    (if otherwin 'switch-to-buffer-other-window 'switch-to-buffer)
    (concat "*Image: " (file-name-nondirectory img) " - "
 	   (number-to-string (or num 0)) "*"))

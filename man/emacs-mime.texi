@@ -814,12 +814,12 @@ by using the @code{encoding} @acronym{MML} tag (@pxref{MML Definition}).
 @vindex mm-coding-system-priorities
 Prioritize coding systems to use for outgoing messages.  The default
 is @code{nil}, which means to use the defaults in Emacs.  It is a list of
-coding system symbols (aliases of coding systems does not work, use
-@kbd{M-x describe-coding-system} to make sure you are not specifying
-an alias in this variable).  For example, if you have configured Emacs
+coding system symbols (aliases of coding systems are also allowed, use
+@kbd{M-x describe-coding-system} to make sure you are specifying correct
+coding system names).  For example, if you have configured Emacs
 to prefer UTF-8, but wish that outgoing messages should be sent in
 ISO-8859-1 if possible, you can set this variable to
-@code{(iso-latin-1)}.  You can override this setting on a per-message
+@code{(iso-8859-1)}.  You can override this setting on a per-message
 basis by using the @code{charset} @acronym{MML} tag (@pxref{MML Definition}).
 
 @item mm-content-transfer-encoding-defaults

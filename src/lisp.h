@@ -3165,7 +3165,7 @@ extern void syms_of_xfns P_ ((void));
 #ifdef HAVE_WINDOW_SYSTEM
 /* Defined in xfns.c, w32fns.c, or macfns.c */
 EXFUN (Fxw_display_color_p, 1);
-EXFUN (Fx_file_dialog, 4);
+EXFUN (Fx_file_dialog, 5);
 #endif /* HAVE_WINDOW_SYSTEM */
 
 /* Defined in xsmfns.c */

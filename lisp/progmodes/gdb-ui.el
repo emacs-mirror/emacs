@@ -25,28 +25,28 @@
 
 ;;; Commentary:
 
-;; This mode acts as a graphical user interface to GDB. You can interact with
+;; This mode acts as a graphical user interface to GDB.  You can interact with
 ;; GDB through the GUD buffer in the usual way, but there are also further
 ;; buffers which control the execution and describe the state of your program.
 ;; It separates the input/output of your program from that of GDB, if
-;; required, and watches expressions in the speedbar. It also uses features of
+;; required, and watches expressions in the speedbar.  It also uses features of
 ;; Emacs 21 such as the fringe/display margin for breakpoints, and the toolbar
 ;; (see the GDB Graphical Interface section in the Emacs info manual).
 
 ;; Start the debugger with M-x gdba.
 
 ;; This file has evolved from gdba.el from GDB 5.0 written by Tom Lord and Jim
-;; Kingdon and uses GDB's annotation interface. You don't need to know about
+;; Kingdon and uses GDB's annotation interface.  You don't need to know about
 ;; annotations to use this mode as a debugger, but if you are interested
 ;; developing the mode itself, then see the Annotations section in the GDB
 ;; info manual.
 ;;
-;; GDB developers plan to make the annotation interface obsolete. A new
+;; GDB developers plan to make the annotation interface obsolete.  A new
 ;; interface called GDB/MI (machine interface) has been designed to replace
-;; it. Some GDB/MI commands are used in this file through the CLI command
-;; 'interpreter mi <mi-command>'. A file called gdb-mi.el is included in the
+;; it.  Some GDB/MI commands are used in this file through the CLI command
+;; 'interpreter mi <mi-command>'.  A file called gdb-mi.el is included in the
 ;; GDB repository for future releases (6.2 onwards) that uses GDB/MI as the
-;; primary interface to GDB. It is still under development and is part of a
+;; primary interface to GDB.  It is still under development and is part of a
 ;; process to migrate Emacs from annotations to GDB/MI.
 ;;
 ;; Known Bugs:
@@ -63,7 +63,7 @@
 (defvar gdb-current-language nil)
 (defvar gdb-view-source t "Non-nil means that source code can be viewed.")
 (defvar gdb-selected-view 'source "Code type that user wishes to view.")
-(defvar gdb-var-list nil "List of variables in watch window")
+(defvar gdb-var-list nil "List of variables in watch window.")
 (defvar gdb-var-changed nil "Non-nil means that gdb-var-list has changed.")
 (defvar gdb-buffer-type nil)
 (defvar gdb-overlay-arrow-position nil)
@@ -85,12 +85,12 @@ other with the source file with the main routine of the inferior.
 If `gdb-many-windows' is t, regardless of the value of
 `gdb-show-main', the layout below will appear unless
 `gdb-use-inferior-io-buffer' is nil when the source buffer
-occupies the full width of the frame. Keybindings are given in
+occupies the full width of the frame.  Keybindings are given in
 relevant buffer.
 
 Watch expressions appear in the speedbar/slowbar.
 
-The following interactive lisp functions help control operation :
+The following commands help control operation :
 
 `gdb-many-windows'    - Toggle the number of windows gdb uses.
 `gdb-restore-windows' - To restore the window layout.
@@ -120,8 +120,7 @@ detailed description of this mode.
  RET      gdb-frames-select       | SPC    gdb-toggle-breakpoint
                                   | RET    gdb-goto-breakpoint
                                   |   d    gdb-delete-breakpoint
----------------------------------------------------------------------
-"
+---------------------------------------------------------------------"
   ;;
   (interactive (list (gud-query-cmdline 'gdba)))
   ;;
@@ -134,12 +133,14 @@ detailed description of this mode.
 (defcustom gdb-enable-debug-log nil
  "Non-nil means record the process input and output in `gdb-debug-log'."
   :type 'boolean
-  :group 'gud)
+  :group 'gud
+  :version "21.4")
 
 (defcustom gdb-use-inferior-io-buffer nil
  "Non-nil means display output from the inferior in a separate buffer."
   :type 'boolean
-  :group 'gud)
+  :group 'gud
+  :version "21.4")
 
 (defun gdb-ann3 ()
   (setq gdb-debug-log nil)
@@ -210,10 +211,10 @@ detailed description of this mode.
   (run-hooks 'gdba-mode-hook))
 
 (defcustom gdb-use-colon-colon-notation nil
-  "Non-nil means use FUNCTION::VARIABLE format to display variables in the
-speedbar."
+  "If non-nil use FUN::VAR format to display variables in the speedbar." ;
   :type 'boolean
-  :group 'gud)
+  :group 'gud
+  :version "21.4")
 
 (defun gud-watch ()
   "Watch expression at point."
@@ -376,7 +377,7 @@ speedbar."
 	    (setq gdb-var-changed t))))))
 
 (defun gdb-edit-value (text token indent)
-  "Assign a value to a variable displayed in the speedbar"
+  "Assign a value to a variable displayed in the speedbar."
   (let* ((var (nth (- (count-lines (point-min) (point)) 2) gdb-var-list))
 	 (varnum (cadr var)) (value))
     (setq value (read-string "New value: "))
@@ -389,8 +390,8 @@ speedbar."
 	   'ignore))))
 
 (defcustom gdb-show-changed-values t
-  "Non-nil means use font-lock-warning-face to display values that have
-recently changed in the speedbar."
+  "If non-nil highlight values that have recently changed in the speedbar.
+The highlighting is done with `font-lock-warning-face'."
   :type 'boolean
   :group 'gud)
 
@@ -422,23 +423,23 @@ INDENT is the current indentation depth."
   "The disposition of the output of the current gdb command.
 Possible values are these symbols:
 
-    user -- gdb output should be copied to the GUD buffer
-            for the user to see.
+    `user' -- gdb output should be copied to the GUD buffer
+              for the user to see.
 
-    inferior -- gdb output should be copied to the inferior-io buffer
+    `inferior' -- gdb output should be copied to the inferior-io buffer
 
-    pre-emacs -- output should be ignored util the post-prompt
-                 annotation is received.  Then the output-sink
-		 becomes:...
-    emacs -- output should be collected in the partial-output-buffer
-	     for subsequent processing by a command.  This is the
-	     disposition of output generated by commands that
-	     gdb mode sends to gdb on its own behalf.
-    post-emacs -- ignore output until the prompt annotation is
-		  received, then go to USER disposition.
+    `pre-emacs' -- output should be ignored util the post-prompt
+                   annotation is received.  Then the output-sink
+		   becomes:...
+    `emacs' -- output should be collected in the partial-output-buffer
+	       for subsequent processing by a command.  This is the
+	       disposition of output generated by commands that
+	       gdb mode sends to gdb on its own behalf.
+    `post-emacs' -- ignore output until the prompt annotation is
+		    received, then go to USER disposition.
 
 gdba (gdb-ui.el) uses all five values,  gdbmi (gdb-mi.el) only two
-(user and emacs).")
+\(`user' and `emacs').")
 
 (defvar gdb-current-item nil
   "The most recent command item sent to gdb.")
@@ -619,7 +620,7 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 
 (defun gdb-send (proc string)
   "A comint send filter for gdb.
-This filter may simply queue output for a later time."
+This filter may simply queue input for a later time."
   (if gud-running
       (process-send-string proc (concat string "\n"))
     (gdb-enqueue-input (concat string "\n"))))
@@ -660,7 +661,8 @@ This filter may simply queue output for a later time."
 (defcustom gud-gdba-command-name "gdb -annotate=3"
   "Default command to execute an executable under the GDB-UI debugger."
   :type 'string
-  :group 'gud)
+  :group 'gud
+  :version "21.4")
 
 (defvar gdb-annotation-rules
   '(("pre-prompt" gdb-pre-prompt)
@@ -705,25 +707,25 @@ This filter may simply queue output for a later time."
   (setq gdb-current-item item)
   (with-current-buffer gud-comint-buffer
     (if (eq gud-minor-mode 'gdba)
-	(progn
-	  (if (stringp item)
-	      (progn
-		(setq gdb-output-sink 'user)
-		(process-send-string (get-buffer-process gud-comint-buffer) item))
+	(if (stringp item)
 	    (progn
-	      (gdb-clear-partial-output)
-	      (setq gdb-output-sink 'pre-emacs)
-	      (process-send-string (get-buffer-process gud-comint-buffer)
-				   (car item)))))
-      ; case: eq gud-minor-mode 'gdbmi
+	      (setq gdb-output-sink 'user)
+	      (process-send-string (get-buffer-process gud-comint-buffer) item))
+	  (progn
+	    (gdb-clear-partial-output)
+	    (setq gdb-output-sink 'pre-emacs)
+	    (process-send-string (get-buffer-process gud-comint-buffer)
+				 (car item))))
+      ;; case: eq gud-minor-mode 'gdbmi
       (gdb-clear-partial-output)
       (setq gdb-output-sink 'emacs)
       (process-send-string (get-buffer-process gud-comint-buffer)
-			 (car item)))))
+			   (car item)))))
 
 (defun gdb-pre-prompt (ignored)
-  "An annotation handler for `pre-prompt'. This terminates the collection of
-output from a previous command if that happens to be in effect."
+  "An annotation handler for `pre-prompt'.
+This terminates the collection of output from a previous command if that
+happens to be in effect."
   (let ((sink gdb-output-sink))
     (cond
      ((eq sink 'user) t)
@@ -761,8 +763,9 @@ This sends the next command (if any) to gdb."
   (setq gdb-prompting t))
 
 (defun gdb-starting (ignored)
-  "An annotation handler for `starting'.  This says that I/O for the
-subprocess is now the program being debugged, not GDB."
+  "An annotation handler for `starting'.
+This says that I/O for the subprocess is now the program being debugged,
+not GDB."
   (let ((sink gdb-output-sink))
     (cond
      ((eq sink 'user)
@@ -773,8 +776,9 @@ subprocess is now the program being debugged, not GDB."
      (t (error "Unexpected `starting' annotation")))))
 
 (defun gdb-stopping (ignored)
-  "An annotation handler for `exited' and other annotations which say that I/O
-for the subprocess is now GDB, not the program being debugged."
+  "An annotation handler for `exited' and other annotations.
+They say that I/O for the subprocess is now GDB, not the program
+being debugged."
   (if gdb-use-inferior-io-buffer
       (let ((sink gdb-output-sink))
 	(cond
@@ -792,8 +796,9 @@ for the subprocess is now GDB, not the program being debugged."
      (t (error "Unexpected frame-begin annotation (%S)" sink)))))
 
 (defun gdb-stopped (ignored)
-  "An annotation handler for `stopped'.  It is just like gdb-stopping, except
-that if we already set the output sink to 'user in gdb-stopping, that is fine."
+  "An annotation handler for `stopped'.
+It is just like `gdb-stopping', except that if we already set the output
+sink to `user' in `gdb-stopping', that is fine."
   (setq gud-running nil)
   (let ((sink gdb-output-sink))
     (cond
@@ -803,8 +808,9 @@ that if we already set the output sink to 'user in gdb-stopping, that is fine."
      (t (error "Unexpected stopped annotation")))))
 
 (defun gdb-post-prompt (ignored)
-  "An annotation handler for `post-prompt'. This begins the collection of
-output from the current command if that happens to be appropriate."
+  "An annotation handler for `post-prompt'.
+This begins the collection of output from the current command if that
+happens to be appropriate."
   (if (not gdb-pending-triggers)
       (progn
 	(gdb-get-current-frame)
@@ -832,7 +838,7 @@ output from the current command if that happens to be appropriate."
       (error "Phase error in gdb-post-prompt (got %s)" sink)))))
 
 (defun gud-gdba-marker-filter (string)
-  "A gud marker filter for gdb. Handle a burst of output from GDB."
+  "A gud marker filter for gdb.  Handle a burst of output from GDB."
   (if gdb-enable-debug-log (push (cons 'recv string) gdb-debug-log))
   ;; Recall the left over gud-marker-acc from last time
   (setq gud-marker-acc (concat gud-marker-acc string))
@@ -1065,10 +1071,10 @@ static char *magick[] = {
   "PBM data used for disabled breakpoint icon.")
 
 (defvar breakpoint-enabled-icon nil
-  "Icon for enabled breakpoint in display margin")
+  "Icon for enabled breakpoint in display margin.")
 
 (defvar breakpoint-disabled-icon nil
-  "Icon for disabled breakpoint in display margin")
+  "Icon for disabled breakpoint in display margin.")
 
 ;; Bitmap for breakpoint in fringe
 (define-fringe-bitmap 'breakpoint
@@ -1133,7 +1139,7 @@ static char *magick[] = {
   (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom)))
 
 (defun gdb-mouse-toggle-breakpoint (event)
-  "Toggle breakpoint in left fringe/margin with mouse click"
+  "Toggle breakpoint in left fringe/margin with mouse click."
   (interactive "e")
   (mouse-minibuffer-check event)
   (let ((posn (event-end event)))
@@ -1683,7 +1689,8 @@ static char *magick[] = {
 (defcustom gdb-show-main nil
   "Nil means don't display source file containing the main routine."
   :type 'boolean
-  :group 'gud)
+  :group 'gud
+  :version "21.4")
 
 (defun gdb-setup-windows ()
   "Layout the window pattern for gdb-many-windows."
@@ -1718,13 +1725,14 @@ static char *magick[] = {
   (other-window 1))
 
 (defcustom gdb-many-windows nil
-  "Nil (the default value) means just pop up the GUD buffer
-unless `gdb-show-main' is t. In this case it starts with two
-windows: one displaying the GUD buffer and the other with the
-source file with the main routine of the inferior. Non-nil means
-display the layout shown for `gdba'."
+  "Nil means just pop up the GUD buffer unless `gdb-show-main' is t.
+In this case it starts with two windows: one displaying the GUD
+buffer and the other with the source file with the main routine
+of the inferior.  Non-nil means display the layout shown for
+`gdba'."
   :type 'boolean
-  :group 'gud)
+  :group 'gud
+  :version "21.4")
 
 (defun gdb-many-windows (arg)
 "Toggle the number of windows in the basic arrangement."
@@ -1760,8 +1768,8 @@ This arrangement depends on the value of `gdb-many-windows'."
     (other-window 1)))
 
 (defun gdb-reset ()
-  "Exit a debugging session cleanly by killing the gdb buffers and resetting
- the source buffers."
+  "Exit a debugging session cleanly.
+Kills the gdb buffers and resets the source buffers."
   (dolist (buffer (buffer-list))
     (unless (eq buffer gud-comint-buffer)
       (with-current-buffer buffer

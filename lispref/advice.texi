@@ -51,7 +51,8 @@ is @code{nil}.)
 
   Suppose you wanted to add a similar feature to @code{previous-line},
 which would insert a new line at the beginning of the buffer for the
-command to move to.  How could you do this?
+command to move to (when @code{next-line-add-newlines} is
+non-@code{nil}).  How could you do this?
 
   You could do it by redefining the whole function, but that is not
 modular.  The advice feature provides a cleaner alternative: you can
@@ -273,9 +274,9 @@ Its effect is to make sure that case is ignored in
 searches when the original definition of @code{foo} is run.
 
 @defvar ad-do-it
-This is not really a variable, but it is somewhat used like one
-in around-advice.  It specifies the place to run the function's
-original definition and other ``earlier'' around-advice.
+This is not really a variable, rather a place-holder that looks like a
+variable.  You use it in around-advice to specify the place to run the
+function's original definition and other ``earlier'' around-advice.
 @end defvar
 
 If the around-advice does not use @code{ad-do-it}, then it does not run
@@ -360,10 +361,9 @@ advice.
 This command activates all the advice defined for @var{function}.
 @end deffn
 
-To activate advice for a function whose advice is already active is not
-a no-op.  It is a useful operation which puts into effect any changes in
-that function's advice since the previous activation of advice for that
-function.
+  Activating advice does nothing if @var{function}'s advice is already
+active.  But if there is new advice, added since the previous time you
+activated advice for @var{function}, it activates the new advice.
 
 @deffn Command ad-deactivate function
 This command deactivates the advice for @var{function}.
@@ -430,7 +430,7 @@ This variable controls whether to compile the combined definition
 that results from activating advice for a function.
 
 A value of @code{always} specifies to compile unconditionally.
-A value of @code{nil} specifies never compile the advice.
+A value of @code{never} specifies never compile the advice.
 
 A value of @code{maybe} specifies to compile if the byte-compiler is
 already loaded.  A value of @code{like-original} specifies to compile

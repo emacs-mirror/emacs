@@ -1,3 +1,166 @@
+2004-11-04  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_pattern_regexp): If '*' is preceded by '\',
+	treat it as a literal character.
+
+2004-11-03  Kim F. Storm  <storm@cua.dk>
+
+	* .gdbinit (ppt): New function.
+
+2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_window_to_scroll_bar): Only call
+	xg_get_scroll_id_for_window if toolkit scroll bars are used.
+
+	* gtkutil.c (xg_get_file_with_chooser): Use GTK_STOCK_OK instead
+	of save.
+
+2004-11-02  Andreas Schwab  <schwab@suse.de>
+
+	* window.c (Fscroll_right): Fix last change.
+
+2004-11-02  Kim F. Storm  <storm@cua.dk>
+
+	* Makefile.in (callproc.o): Depend on blockinput.h atimer.h systime.h.
+
+2004-11-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* callproc.c (Fcall_process): Block input around vfork.
+
+2004-11-02  Kim F. Storm  <storm@cua.dk>
+
+	* eval.c (Fcalled_interactively_p): Rename from Fcall_interactive_p.
+	(syms_of_eval): Defsubr it.
+
+2004-11-02  Richard M. Stallman  <rms@gnu.org>
+
+	* insdel.c (replace_range_2): New function.
+
+	* casefiddle.c (casify_region): Handle changes in byte-length
+	using replace_range_2.
+
+	* emacs.c (USAGE3): Delete --horizontal-scroll-bars, -hb.
+
+	* xdisp.c (back_to_previous_visible_line_start):
+	Subtract 1 from pos when checking previous newline for invisibility.
+
+	* window.c (window_scroll_pixel_based): Update preserve_y
+	for header line if any.
+	(Fscroll_left, Fscroll_right): Don't call interactive_p;
+	use a new second argument instead.
+
+	* eval.c (Fcall_interactive_p): New function.
+	(interactive_p): Don't test INTERACTIVE here.
+	(Finteractive_p): Doc fix.
+
+	* eval.c (Feval): Abort if INPUT_BLOCKED_P.
+
+2004-11-02  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>
+
+	* w32fns.c (w32_font_match): Use fast_string_match_ignore_case for
+	comparing font names.
+
+2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* fileio.c (Fread_file_name): Pass Qt as fifth parameter to
+	Fx_file_dialog if only directories should be read.
+
+	* lisp.h: Fx_file_dialog takes 5 parameters.
+
+	* xfns.c (Fx_file_dialog): Both Motif and GTK version:  Add
+	parameter only_dir_p.
+	In Motif version, don't put DEFAULT_FILENAME in filter part of the
+	dialog, just text field part.  Do not add DEFAULT_FILENAME
+	to list of files if it isn't there.
+	In GTK version, pass only_dir_p parameter to xg_get_file_name.
+
+	* macfns.c (Fx_file_dialog): Add parameter only_dir_p.  Check
+	only_dir_p instead of comparing prompt to "Dired".  When using
+	a save dialog, add option kNavDontConfirmReplacement, change title
+	to "Enter name", change text for save button to "Ok".
+
+	* w32fns.c (Fx_file_dialog): Add parameter only_dir_p.  Check
+	only_dir_p instead of comparing prompt to "Dired".
+
+	* gtkutil.c (xg_get_file_with_chooser)
+	(xg_get_file_with_selection): New functions, only defined ifdef
+	HAVE_GTK_FILE_CHOOSER_DIALOG_NEW and HAVE_GTK_FILE_SELECTION_NEW
+	respectively.
+	(xg_get_file_name): Add parameter only_dir_p.
+	Call xg_get_file_with_chooser or xg_get_file_with_selection
+	depending on HAVE_GTK_FILE* and the value of use_old_gtk_file_dialog.
+	(xg_initialize): New DEFVAR_BOOL use_old_gtk_file_dialog.
+
+	* gtkutil.h (xg_get_file_name): Add parameter only_dir_p.
+
+	* config.in: Rebuild (added HAVE_GTK_FILE_*).
+
+2004-11-01  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (connect_wait_mask, num_pending_connects): Only
+	declare and use them if NON_BLOCKING_CONNECT is defined.
+	(init_process): Initialize them if NON_BLOCKING_CONNECT defined.
+	(IF_NON_BLOCKING_CONNECT): New helper macro.
+	(wait_reading_process_output): Only declare and use local vars
+	Connecting and check_connect when NON_BLOCKING_CONNECT is defined.
+
+2004-11-01  Andy Petrusenco  <Igrek@star-sw.com>  (tiny change)
+
+	* w32term.c (x_scroll_run): Delete region objects after use.
+
+2004-10-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c: Add prototypes for forward function declarations.
+	(popup_get_selection): Remove parameter do_timers, remove call to
+	timer_check.
+	(create_and_show_popup_menu, create_and_show_dialog): Remove
+	parameter do_timers from call to popup_get_selection.
+
+	* xdisp.c (update_tool_bar): Pass a copy of f->tool_bar_items to
+	tool_bar_items and assign the result to f->tool_bar_items if
+	not equal.  Move BLOCK/UNBLOCK_INPUT from around call to
+	tool_bar_items to assignment of result.
+
+	* atimer.c (alarm_signal_handler): Do not call set_alarm if
+	pending_atmers is non-zero.
+
+2004-10-31  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (margin_glyphs_to_reserve): Don't use ncols_scale_factor.
+
+2004-10-28  Will  <will@glozer.net>
+
+	* macterm.c: allow user to assign key modifiers to the Mac Option
+	key via a 'mac-option-modifier' variable.
+
+2004-10-28  Stefan  <monnier@iro.umontreal.ca>
+
+	* xselect.c (Vx_lost_selection_functions, Vx_sent_selection_functions):
+	Rename from Vx_lost_selection_hooks and Vx_sent_selection_hooks.
+	(x_handle_selection_request, x_handle_selection_clear)
+	(x_clear_frame_selections, syms_of_xselect): Adjust accordingly.
+
+2004-10-28  Richard M. Stallman  <rms@gnu.org>
+
+	* w32fns.c (Fx_server_vendor, Fx_server_version): Doc fixes.
+
+	* xfns.c (Fx_server_vendor, Fx_server_version): Doc fixes.
+
+2004-10-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (scan_sexps_forward): Give precedence to a 2-char
+	comment-starter over a 1-char one.
+
+2004-10-27  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (get_next_display_element): In mode lines,
+	treat newline and tab like other control characters.
+
+	* editfns.c (Fmessage): Doc fix.
+
+	* indent.c (vmotion): When moving up, check the newline before.
+	Make prevline an int, not a Lisp_Object.
+
 2004-10-27  Kim F. Storm  <storm@cua.dk>
 
 	* editfns.c (Fformat): Allocate discarded table with SAFE_ALLOCA.
@@ -12,8 +175,8 @@
 2004-10-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c: Put empty line between comment and function body.
-	(xg_destroy_widgets): Renamed from remove_from_container.  Just
-	destroy all widgets in list.  Argument wcont removed.
+	(xg_destroy_widgets): Rename from remove_from_container.
+	Just destroy all widgets in list.  Argument wcont removed.
 	(xg_update_menubar, xg_update_submenu): Call xg_destroy_widgets
 	instead of remove_from_container.
 	(xg_display_close, xg_create_tool_bar, update_frame_tool_bar)
@@ -54,17 +217,17 @@
 
 2004-10-21  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
-        * xterm.h (x_output): New member `xic_base_fontname'.
-        (FRAME_XIC_BASE_FONTNAME): New macro.
-        (xic_free_xfontset): Declare.
+	* xterm.h (x_output): New member `xic_base_fontname'.
+	(FRAME_XIC_BASE_FONTNAME): New macro.
+	(xic_free_xfontset): Declare.
 
-        * xfns.c (xic_create_xfontset): Share fontsets between frames
-        based on base_fontname.
-        (xic_free_xfontset): New function.
-        (free_frame_xic): Use it.
-        (xic_set_xfontset): Ditto.
+	* xfns.c (xic_create_xfontset): Share fontsets between frames
+	based on base_fontname.
+	(xic_free_xfontset): New function.
+	(free_frame_xic): Use it.
+	(xic_set_xfontset): Ditto.
 
-        * xterm.c (xim_destroy_callback): Ditto.
+	* xterm.c (xim_destroy_callback): Ditto.
 
 
 2004-10-20  B. Anyos  <banyos@freemail.hu>  (tiny change)
@@ -108,10 +271,10 @@
 
 	* gtkutil.h (xg_update_scrollbar_pos): Remove arguments real_left
 	and canon_width.
-	(xg_frame_cleared): Removed.
+	(xg_frame_cleared): Remove.
 
-	* gtkutil.c (xg_frame_cleared, xg_fixed_handle_expose,
-	xg_find_top_left_in_fixed): Removed.
+	* gtkutil.c (xg_frame_cleared, xg_fixed_handle_expose)
+	(xg_find_top_left_in_fixed): Remove.
 	(xg_create_scroll_bar): Put an event box widget between
 	the scroll bar widget and the edit widget.
 	(xg_show_scroll_bar): Show the parent widget (the event box).
@@ -120,11 +283,11 @@
 	Move the parent (the event box) widget inside the fixed widget.
 	Move window clear to xterm.c.
 
-	* gtkutil.h (xg_frame_cleared): Removed.
+	* gtkutil.h (xg_frame_cleared): Remove.
 
 	* xterm.c (x_clear_frame): Remove call to xg_frame_cleared
-	(x_scroll_bar_create, XTset_vertical_scroll_bar): Remove
-	arguments left and width to xg_update_scrollbar_pos.
+	(x_scroll_bar_create, XTset_vertical_scroll_bar):
+	Remove arguments left and width to xg_update_scrollbar_pos.
 	(XTset_vertical_scroll_bar): Do x_clear_area for USE_GTK also.
 
 2004-10-19  Kenichi Handa  <handa@m17n.org>
@@ -349,7 +512,7 @@
 	compositions to encode.
 	(encode_coding_string): Likewise.  Free composition data.
 
-2004-09-30  Florian Weimer <fw@deneb.enyo.de>	(tiny change)
+2004-09-30  Florian Weimer <fw@deneb.enyo.de>
 
 	* coding.c (code_convert_region): Free composition data.
 
@@ -923,7 +1086,7 @@
 	(Fsave_window_excursion, Fset_window_vscroll)
 	(syms_of_window) <window-size-fixed>: Doc fixes.
 
-2004-07-19  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>  (tiny change)
+2004-07-19  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>
 
 	* w32fns.c (Fx_file_dialog): Use ENCODE_FILE instead of
 	ENCODE_SYSTEM for filenames.
@@ -982,7 +1145,7 @@
 
 	* buffer.c (syms_of_buffer) <transient-mark-mode>: Doc fix.
 
-2004-07-15  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>  (tiny change)
+2004-07-15  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>
 
 	* w32fns.c (Fx_file_dialog): Encode strings in system coding
 	system before passing them to OS functions for display.
@@ -1646,7 +1809,7 @@
 	before actually accepting connection in case it has already been
 	accepted due to recursion.
 
-2004-05-23  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>  (tiny change)
+2004-05-23  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>
 
 	* coding.c (Fset_safe_terminal_coding_system_internal):
 	Set suppress_error in safe_terminal_coding, not terminal_coding.
@@ -1960,7 +2123,7 @@
 	* w32fns.c (Vw32_ansi_code_page): New Lisp variable.
 	(globals_of_w32fns): Set it.
 
-2004-05-09  Piet van Oostrum  <piet@cs.uu.nl>  (tiny change)
+2004-05-09  Piet van Oostrum  <piet@cs.uu.nl>
 
 	* data.c (Fquo): Simplify.
 
@@ -2009,7 +2172,7 @@
 
 	* emacs.c (main) [VMS]: Fix var ref.
 
-2004-05-06  Romain Francoise  <romain@orebokech.com>  (tiny change)
+2004-05-06  Romain Francoise  <romain@orebokech.com>
 
 	* data.c (Fsetq_default): Fix docstring.
 
@@ -2049,7 +2212,7 @@
 
 	* Makefile.in (region-cache.o): Depend on config.h.
 
-2004-05-02  Romain Francoise  <romain@orebokech.com>  (tiny change)
+2004-05-02  Romain Francoise  <romain@orebokech.com>
 
 	* indent.c (compute_motion): Save vpos in prev_vpos when dealing
 	with continuation lines, too.
@@ -3292,7 +3455,7 @@
 	entries that were used before we return.
 	(init_keyboard): Initialize read_avail_input_buf here.
 
-2004-02-16  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+2004-02-16  Jesper Harder  <harder@ifa.au.dk>
 
 	* cmds.c (Fend_of_line): Doc fix.
 
@@ -3960,7 +4123,7 @@
 	to the definition of `signal' in the Elisp manual.
 	* eval.c (Fsignal): Ditto.
 
-2003-12-29  James Clark  <jjc@jclark.com>  (tiny change)
+2003-12-29  James Clark  <jjc@jclark.com>
 
 	* fns.c (internal_equal): Return t for two NaN arguments.
 
@@ -5020,7 +5183,7 @@
 	* fileio.c (Fwrite_region): Fix conditional expression to issue
 	the right message.
 
-2003-08-16  Juri Linkov  <juri@jurta.org>  (tiny change)
+2003-08-16  Juri Linkov  <juri@jurta.org>
 
 	* syntax.c (Fforward_word): Argument changed to optional.
 	Set default value to 1.
@@ -5079,7 +5242,7 @@
 	* fns.c (Fclear_string): New function.
 	(syms_of_fns): defsubr it.
 
-2003-07-28  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp> (tiny change)
+2003-07-28  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>
 
 	* xfns.c (xic_set_preeditarea): Add the left fringe width to spot.x.
 
@@ -5307,7 +5470,7 @@
 
 	* alloc.c (Fgarbage_collect): Doc fix.
 
-2003-07-07  Nozomu Ando  <nand@mac.com>  (tiny change)
+2003-07-07  Nozomu Ando  <nand@mac.com>
 
 	* buffer.c (Fkill_buffer): Clear charpos cache if necessary.
 
@@ -6517,7 +6680,7 @@
 	* alloc.c (Fgarbage_collect): Cast pointers into specpdl
 	to avoid GCC warning.
 
-2003-05-16  Ralph Schleicher  <rs@nunatak.allgaeu.org>  (tiny change)
+2003-05-16  Ralph Schleicher  <rs@nunatak.allgaeu.org>
 
 	* fileio.c (Fdelete_file): Handle symlinks pointing to directories.
 
@@ -8240,7 +8403,7 @@
 	(w32_init_class): Use it.
 	(x_put_x_image): Declare all args.
 
-2003-01-21  Richard Dawe  <rich@phekda.freeserve.co.uk>  (tiny change)
+2003-01-21  Richard Dawe  <rich@phekda.freeserve.co.uk>
 
 	* Makefile.in (ALL_CFLAGS): Include MYCPPFLAGS, not MYCPPFLAG.
 
@@ -8612,7 +8775,7 @@
 	in direct action cases for Qforward_char and Qbackward_char.
 	Set already_adjusted so it won't be done twice.
 
-2002-12-30  Richard Dawe  <rich@phekda.freeserve.co.uk>  (tiny change)
+2002-12-30  Richard Dawe  <rich@phekda.freeserve.co.uk>
 
 	* src/config.in (!HAVE_SIZE_T): Fix order of arguments in
 	type definition of size_t.
@@ -8710,7 +8873,7 @@
 	* dired.c (file_name_completion): Fix that change.
 	Delete special quit-handling code; just use QUIT.
 
-2002-12-21  Tak Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
+2002-12-21  Tak Ota  <Takaaki.Ota@am.sony.com>
 
 	* dired.c (file_name_completion): Close directory on error
 	just as in directory_files_internal.
@@ -10050,8 +10213,8 @@
 
 2002-08-26  Kim F. Storm  <storm@cua.dk>
 
-	* frame.c (make_terminal_frame) [CANNOT_DUMP]: Initialize foreground
-	and background colors.  From Joe Buehler (tiny change).
+	* frame.c (make_terminal_frame) [CANNOT_DUMP]: Initialize
+	foreground and background colors.  From Joe Buehler.
 
 2002-08-26  Miles Bader  <miles@gnu.org>
 

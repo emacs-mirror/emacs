@@ -126,6 +126,7 @@
   "Name of GNUTLS command line tool.
 This program is used when GNUTLS is used, i.e. when
 `starttls-use-gnutls' is non-nil."
+  :version "21.4"
   :type 'string
   :group 'starttls)
 
@@ -138,6 +139,7 @@ i.e. when `starttls-use-gnutls' is nil."
 
 (defcustom starttls-use-gnutls (not (executable-find starttls-program))
   "*Whether to use GNUTLS instead of the `starttls' command."
+  :version "21.4"
   :type 'boolean
   :group 'starttls)
 
@@ -156,11 +158,13 @@ This program is used when GNUTLS is used, i.e. when
 For example, non-TLS compliant servers may require
 '(\"--protocols\" \"ssl3\").  Invoke \"gnutls-cli --help\" to
 find out which parameters are available."
+  :version "21.4"
   :type '(repeat string)
   :group 'starttls)
 
 (defcustom starttls-process-connection-type nil
   "*Value for `process-connection-type' to use when starting STARTTLS process."
+  :version "21.4"
   :type 'boolean
   :group 'starttls)
 
@@ -170,6 +174,7 @@ The default is what GNUTLS's \"gnutls-cli\" outputs."
   ;; GNUTLS cli.c:main() print this string when it is starting to run
   ;; in the application read/write phase.  If the logic, or the string
   ;; itself, is modified, this must be updated.
+  :version "21.4"
   :type 'regexp
   :group 'starttls)
 
@@ -178,6 +183,7 @@ The default is what GNUTLS's \"gnutls-cli\" outputs."
 The default is what GNUTLS's \"gnutls-cli\" outputs."
   ;; GNUTLS cli.c:do_handshake() print this string on failure.  If the
   ;; logic, or the string itself, is modified, this must be updated.
+  :version "21.4"
   :type 'regexp
   :group 'starttls)
 
@@ -188,6 +194,7 @@ The default is what GNUTLS's \"gnutls-cli\" outputs."
   ;; common.c:print_info(), that unconditionally print this string
   ;; last.  If that logic, or the string itself, is modified, this
   ;; must be updated.
+  :version "21.4"
   :type 'regexp
   :group 'starttls)
 

@@ -521,7 +521,7 @@ newline_cache_on_off (buf)
    direction indicated by COUNT.
 
    If we find COUNT instances, set *SHORTAGE to zero, and return the
-   position after the COUNTth match.  Note that for reverse motion
+   position past the COUNTth match.  Note that for reverse motion
    this is not the same as the usual convention for Emacs motion commands.
 
    If we don't find COUNT instances before reaching END, set *SHORTAGE

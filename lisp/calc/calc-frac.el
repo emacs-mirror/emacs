@@ -54,12 +54,7 @@
 
 
 (defun calc-over-notation (fmt)
-  (interactive
-   (list
-    (completing-read "Fraction separator: " (mapcar (lambda (s)
-						      (cons s 0))
-						    '(":" "::" "/" "//" ":/"))
-		     nil t)))
+  (interactive "sFraction separator: ")
   (calc-wrapper
    (if (string-match "\\`\\([^ 0-9][^ 0-9]?\\)[0-9]*\\'" fmt)
        (let ((n nil))

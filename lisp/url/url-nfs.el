@@ -62,7 +62,7 @@ Each can be used any number of times.")
 
 (defun url-nfs-build-filename (url)
   (let* ((host (url-host url))
-	 (port (string-to-int (url-port url)))
+	 (port (url-port url))
 	 (pass (url-password url))
 	 (user (url-user url))
 	 (file (url-filename url)))

@@ -150,7 +150,7 @@ This mirrors the optional behavior of tcsh."
   :type 'boolean
   :group 'pcomplete)
 
-(defcustom pcomplete-suffix-list (list directory-sep-char ?:)
+(defcustom pcomplete-suffix-list (list ?/ ?:)
   "*A list of characters which constitute a proper suffix."
   :type '(repeat character)
   :group 'pcomplete)
@@ -740,7 +740,7 @@ component, `default-directory' is used as the basis for completion."
 		 (function
 		  (lambda (file)
 		    (if (eq (aref file (1- (length file)))
-			    directory-sep-char)
+			    ?/)
 			(and pcomplete-dir-ignore
 			     (string-match pcomplete-dir-ignore file))
 		      (and pcomplete-file-ignore
@@ -757,11 +757,11 @@ component, `default-directory' is used as the basis for completion."
 	       ;; since . is earlier in the ASCII alphabet than
 	       ;; /
 	       (let ((left (if (eq (aref l (1- (length l)))
-				   directory-sep-char)
+				   ?/)
 			       (substring l 0 (1- (length l)))
 			     l))
 		     (right (if (eq (aref r (1- (length r)))
-				    directory-sep-char)
+				    ?/)
 				(substring r 0 (1- (length r)))
 			      r)))
 		 (if above-cutoff

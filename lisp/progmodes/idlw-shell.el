@@ -1137,10 +1137,10 @@ prompt is present and if `idlwave-shell-ready' is non-nil."
 	(goto-char save-point))
       (set-buffer save-buffer))))
 
-(defun idlwave-shell-send-char (c &optional no-error)
+(defun idlwave-shell-send-char (c &optional error)
   "Send one character to the shell, without a newline."
-  (interactive "cChar to send to IDL: ")
-  (let ((errf (if (interactive-p) 'error 'message))
+  (interactive "cChar to send to IDL: \np")
+  (let ((errf (if error 'error 'message))
 	buf proc)
     (if (or (not (setq buf (get-buffer (idlwave-shell-buffer))))
 	    (not (setq proc (get-buffer-process buf))))

@@ -128,6 +128,7 @@
 Use the functions to build a dictionary of words and their statistical
 distribution in spam and non-spam mails.  Then use a function to determine
 whether a buffer contains spam or not."
+  :version "21.4"
   :group 'gnus)
 
 (defcustom spam-stat-file "~/.spam-stat.el"

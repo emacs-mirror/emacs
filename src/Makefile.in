@@ -1034,7 +1034,7 @@ callint.o: callint.c window.h commands.h buffer.h keymap.h \
    keyboard.h dispextern.h $(config_h)
 callproc.o: callproc.c epaths.h buffer.h commands.h $(config_h) \
 	process.h systty.h syssignal.h character.h coding.h ccl.h msdos.h \
-        composite.h w32.h
+        composite.h w32.h blockinput.h atimer.h systime.h
 casefiddle.o: casefiddle.c syntax.h commands.h buffer.h character.h \
    composite.h \
 	charset.h keymap.h $(config_h)

@@ -6237,7 +6237,8 @@ and `read-file-name-function'.  */)
 	}
       if (!NILP(default_filename))
         default_filename = Fexpand_file_name (default_filename, dir);
-      val = Fx_file_dialog (prompt, dir, default_filename, mustmatch);
+      val = Fx_file_dialog (prompt, dir, default_filename, mustmatch,
+                            EQ (predicate, Qfile_directory_p) ? Qt : Qnil);
       add_to_history = 1;
     }
   else

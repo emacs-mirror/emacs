@@ -799,7 +799,7 @@ external command."
 	(size 0.0))
     (while entries
       (unless (string-match "\\`\\.\\.?\\'" (caar entries))
-	(let* ((entry (concat path (char-to-string directory-sep-char)
+	(let* ((entry (concat path "/"
 			      (caar entries)))
 	       (symlink (and (stringp (cadr (car entries)))
 			     (cadr (car entries)))))

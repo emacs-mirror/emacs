@@ -128,6 +128,9 @@ usually do not have translators to read other languages for them.\n\n")
     (insert "\n\n\n")
 
     (insert "In " (emacs-version) "\n")
+    (if (fboundp 'x-server-vendor)
+	(insert "Distributor `" (x-server-vendor) "', version "
+		(mapconcat 'number-to-string (x-server-version) ".") "\n"))
     (if (and system-configuration-options
 	     (not (equal system-configuration-options "")))
 	(insert "configured using `configure "

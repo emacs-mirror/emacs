@@ -1,3 +1,12 @@
+2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in (HAVE_GTK_FILE_CHOOSER, $HAVE_GTK_FILE_SELECTION): New
+	tests for new and old GTK file dialogs.
+	(HAVE_GTK): Only set with_toolkit_scroll_bars if not explicitly set
+	to no.
+
+	* configure: Rebuild
+
 2004-10-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_PERSONALITY_LINUX32): New test if PER_LINUX32

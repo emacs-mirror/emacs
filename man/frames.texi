@@ -910,6 +910,11 @@ use of file selection windows even if you still want other kinds
 of dialogs.  This option has no effect if you have suppressed all dialog
 boxes with the option @code{use-dialog-box}.
 
+@vindex use-old-gtk-file-dialog
+  For Gtk+ version 2.4, you can make Emacs use the old file dialog
+by setting the variable @code{use-old-gtk-file-dialog} to a non-@code{nil}
+value.  If Emacs is built with a Gtk+ version that has only one file dialog,
+the setting of this variable has no effect.
 
 @node Tooltips
 @section Tooltips (or ``Balloon Help'')
