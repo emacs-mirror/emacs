@@ -1,3 +1,8 @@
+2000-12-19  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/quail.el (quail-input-method): Always hide
+	the guidance buffer on exiting.
+
 2000-12-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* tooltip.el (tooltip-mode): Signal an error if x-show-tip
