@@ -1,3 +1,14 @@
+2002-06-12  Dave Love  <fx@gnu.org>
+
+	* language/thai-util.el: Remove redundant unicodes in
+	category-setting.
+
+	* language/lao-util.el: Remove redundant unicodes in
+	category-setting.
+
+	* international/mule-conf.el (japanese-jisx0213-1) 
+	(japanese-jisx0213-2): Add unify-map.
+
 2002-06-12  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/quail.el (quail-update-leim-list-file): Force
