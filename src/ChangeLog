@@ -52,8 +52,8 @@
 	* xfns.c (Fx_file_dialog): Call x_menu_in_use and x_menu_set_in_use.
 	Record unwind with clean_up_file_dialog.
 
-	* xterm.h: Declare x_menu_in_use, x_menu_set_in_use,
-	x_menu_wait_for_event.
+	* xterm.h (x_menu_in_use, x_menu_set_in_use, x_menu_wait_for_event):
+	Declare.
 
 	* xmenu.c (x_menu_in_use, x_menu_set_in_use): New functions.
 
@@ -246,8 +246,8 @@
 
 2004-11-07  Andreas Schwab  <schwab@suse.de>
 
-	* lisp.h: Declare Fmsdos_downcase_filename.
-	* dired.c: Don't declare Fmsdos_downcase_filename.
+	* lisp.h (Fmsdos_downcase_filename): Declare.
+	* dired.c (Fmsdos_downcase_filename): Don't declare here.
 	* fileio.c: Likewise.
 
 2004-11-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
@@ -258,7 +258,7 @@
 
 	* msdos.c (IT_set_frame_parameters): Use EQ, not ==, for Lisp_Object:s.
 
-	* dired.c: extern declare Fmsdos_downcase_filename on MSDOS to avoid
+	* dired.c (Fmsdos_downcase_filename): Declare extern on MSDOS to avoid
 	int/Lisp_Object mixup.
 
 	* fileio.c: Ditto.
@@ -367,7 +367,7 @@
 
 	* fileio.c (Fnext_read_file_uses_dialog_p): New function.
 
-	* gtkutil.h: Declare use_old_gtk_file_dialog.
+	* gtkutil.h (use_old_gtk_file_dialog): Declare.
 
 	* gtkutil.c: Make use_old_gtk_file_dialog non-static.
 	(xg_initialize): Move DEFVAR_BOOL for use_old_gtk_file_dialog ...
@@ -843,7 +843,6 @@
 	mouseUp cases in the early stage.  Add parentheses to fix operator
 	precedence.
 	(XTread_socket) [TARGET_API_MAC_CARBON]: Don't specify drag area.
-
 
 2004-10-05  Jan Dj,Ad(Brv.  <jan.h.d@swipnet.se>
 
@@ -1421,7 +1420,7 @@
 
 2004-07-24  Richard M. Stallman  <rms@gnu.org>
 
-	* keyboard.h (not_single_kboard_state): Declared.
+	* keyboard.h (not_single_kboard_state): Declare.
 
 	* fileio.c (Fwrite_region): Doc fix.
 
@@ -1629,7 +1628,7 @@
 	(lookup_image_type): Pass Qnil as second argument to
 	Finit_image_library.
 
-	* lisp.h: Declare Finit_image_library.
+	* lisp.h (Finit_image_library): Declare.
 
 2004-06-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -2474,7 +2473,7 @@
 
 2004-05-10  Andreas Schwab  <schwab@suse.de>
 
-	* lisp.h: Declare Fmake_symbolic_link.
+	* lisp.h (Fmake_symbolic_link): Declare.
 
 	* fileio.c (Frename_file): Remove extra argument in call to
 	Fmake_symbolic_link.
@@ -4965,9 +4964,9 @@
 	(update_frame_tool_bar): Call xg_get_gdk_pixmap_and_mask.
 	(xg_initialize): Remove xg_left_ptr_cursor.
 
-	* gtkutil.h: xg_get_scroll_id_for_window, xg_win_to_widget takes
-	Display* argument also.  Declare xg_display_open,
-	xg_display_close, xg_create_default_cursor.
+	* gtkutil.h (xg_get_scroll_id_for_window, xg_win_to_widget): Add
+	Display* argument.
+	(xg_display_open, xg_display_close, xg_create_default_cursor): Declare.
 
 2003-11-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -5033,8 +5032,8 @@
 
 2003-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* gtkutil.h: Declare xg_have_tear_offs, remove xg_keep_popup
-	and xg_did_tearoff.
+	* gtkutil.h (xg_have_tear_offs): Declare.
+	(xg_keep_popup, xg_did_tearoff): Remove.
 
 	* gtkutil.c: Remove variable xg_did_tearoff.
 	(xg_have_tear_offs): New function.
@@ -5532,7 +5531,7 @@
 
 	* alloc.c (lisp_align_malloc): Change type of `aligned'.
 
-	* alloca.s: Removed.
+	* alloca.s: Remove.
 
 2003-08-19  Gerd Moellmann  <gerd@gnu.org>
 
@@ -8154,7 +8153,7 @@
 	(handle_one_xevent): ButtonPress/Release:  If event is for a toolkit
 	scrollbar and control is pressed, call x_scroll_bar_handle_click.
 
-	* gtkutil.h: Declare xg_get_scroll_id_for_window.
+	* gtkutil.h (xg_get_scroll_id_for_window): Declare.
 
 	* gtkutil.c (xg_get_scroll_id_for_window): New function.
 	(xg_tool_bar_item_expose_callback): New function.
@@ -8856,7 +8855,7 @@
 	(FRAME_OUTER_TO_INNER_DIFF_Y): Add FRAME_TOOLBAR_HEIGHT to calculation.
 
 	* xterm.c: Include gtkutil.h for USE_GTK.
-	Declare extern void free_frame_menubar for USE_GTK.
+	(free_frame_menubar): Declare extern void for USE_GTK.
 	(note_mouse_highlight): Check popup_activated for USE_GTK.
 	(xt_action_hook): Don't compile if USE_GTK.
 	(x_scroll_bar_to_input_event): Use CurrentTime for USE_GTK.
@@ -8926,7 +8925,7 @@
 	(redisplay_window): Add check for USE_GTK and FRAME_EXTERNAL_TOOL_BAR.
 	(display_menu_bar): Add check for USE_GTK
 
-	* lisp.h: Declare Vx_resource_name extern.
+	* lisp.h (Vx_resource_name): Declare extern.
 
 	* keyboard.c (kbd_buffer_get_event): Check MENU_BAR_ACTIVATE_EVENT
 	for USE_GTK.
@@ -9143,7 +9142,7 @@
 	(XSAVE_VALUE): New macro.
 	(struct Lisp_Save_Value): New data type.
 	(union Lisp_Misc): Add u_save_value alternative.
-	(make_save_value): Declared.
+	(make_save_value): Declare.
 
 	* alloc.c (make_save_value): New function.
 
@@ -12213,7 +12212,7 @@
 	* fontset.c [MAC_OS]: Set Vdefault_fontset to ETL Fixed instead of
 	Apple Monaco.
 
-	* process.c: Declare QCfamily and QCfilter as extern.
+	* process.c (QCfamily, QCfilte): Declare extern.
 	(wait_reading_process_input) [MAC_OSX]: Clear bit for stdin before
 	calling select.
 
@@ -13041,7 +13040,7 @@
 
 2002-03-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xterm.h (x_session_check_input, x_session_initialize): Declared.
+	* xterm.h (x_session_check_input, x_session_initialize): Declare.
 
 	* xterm.c: (XTread_socket): Add call to x_session_check_input and
 	x_session_have_connection.
@@ -13053,7 +13052,7 @@
 
 	* emacs.c (main): Add call to syms_of_xsmfns.
 
-	* lisp.h: Declare syms_of_xsmfns as extern.
+	* lisp.h (syms_of_xsmfns): Declare extern.
 
 	* config.in: Add HAVE_X_SM.
 
@@ -14398,7 +14397,7 @@
 2001-12-09  Jason Rumney  <jasonr@gnu.org>
 
 	* w32menu.c (_widget_value): Make `help' field a Lisp_Object.
-	Add	comment to explain where the struct came from.
+	Add comment to explain where the struct came from.
 	(single_submenu, w32_menu_show): Set `help' field as Lisp_Object.
 	(add_menu_item): Process pop-up menus first to avoid memory leak.
 	(add_menu_item, w32_menu_display_help): Use `help' field as
@@ -15184,7 +15183,7 @@
 	* insdel.c (replace_range): Use adjust_markers_for_replace
 	instead of adjust_markers_for_delete and adjust_markers_for_insert.
 
-	* intervals.h: Declare set_text_properties and set_text_properties_1.
+	* intervals.h (set_text_properties, set_text_properties_1): Declare.
 
 	* textprop.c (set_text_properties_1): New subroutine
 	broken out of set_text_properties.
