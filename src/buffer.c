@@ -85,6 +85,14 @@ struct buffer buffer_local_symbols;
 /* A Lisp_Object pointer to the above, used for staticpro */
 static Lisp_Object Vbuffer_local_symbols;
 
+/* This structure holds the required types for the values in the
+   buffer-local slots.  If a slot contains Qnil, then the
+   corresponding buffer slot may contain a value of any type.  If a
+   slot contains an integer, then prospective values' tags must be
+   equal to that integer.  When a tag does not match, the function
+   buffer_slot_type_mismatch will signal an error.  */
+struct buffer buffer_local_types;
+
 /* Nonzero means don't allow modification of protected fields.  */
 
 int check_protected_fields;
@@ -1201,6 +1209,34 @@ if any protected fields overlap this portion.")
   return collector;
 }
 
+/* Somebody has tried to store NEWVAL into the buffer-local slot with
+   offset XUINT (valcontents), and NEWVAL has an unacceptable type.  */
+void
+buffer_slot_type_mismatch (valcontents, newval)
+     Lisp_Object valcontents, newval;
+{
+  unsigned int offset = XUINT (valcontents);
+  char *symbol_name =
+    (XSYMBOL (*(Lisp_Object *)(offset + (char *)&buffer_local_symbols))
+     ->name->data);
+  char *type_name;
+  
+  switch (XINT (*(Lisp_Object *)(offset + (char *)&buffer_local_types)))
+    {
+    case Lisp_Int:	type_name = "integers";  break;
+    case Lisp_String:	type_name = "strings";   break;
+    case Lisp_Marker:	type_name = "markers";   break;
+    case Lisp_Symbol:	type_name = "symbols";   break;
+    case Lisp_Cons:	type_name = "lists";     break;
+    case Lisp_Vector:	type_name = "vector";    break;
+    default:
+      abort ();
+    }
+
+  error ("only %s should be stored in the buffer-local variable %s",
+	 type_name, symbol_name);
+}
+
 init_buffer_once ()
 {
   register Lisp_Object tem;
@@ -1378,7 +1414,8 @@ This is the same as (default-value 'tab-width).");
     "Default value of `case-fold-search' for buffers that don't override it.\n\
 This is the same as (default-value 'case-fold-search).");
 
-  DEFVAR_PER_BUFFER ("mode-line-format", &current_buffer->mode_line_format, 0);
+  DEFVAR_PER_BUFFER ("mode-line-format", &current_buffer->mode_line_format, 
+		     Qnil, 0);
 
 /* This doc string is too long for cpp; cpp dies if it isn't in a comment.
    But make-docfile finds it!
@@ -1415,40 +1452,46 @@ Decimal digits after the % specify field width to which to pad.");
 nil here means use current buffer's major mode.");
 
   DEFVAR_PER_BUFFER ("major-mode", &current_buffer->major_mode,
+		     make_number (Lisp_Symbol),
     "Symbol for current buffer's major mode.");
 
   DEFVAR_PER_BUFFER ("mode-name", &current_buffer->mode_name,
+                     make_number (Lisp_String),
     "Pretty name of current buffer's major mode (a string).");
 
-  DEFVAR_PER_BUFFER ("abbrev-mode", &current_buffer->abbrev_mode,
+  DEFVAR_PER_BUFFER ("abbrev-mode", &current_buffer->abbrev_mode, Qnil, 
     "Non-nil turns on automatic expansion of abbrevs as they are inserted.\n\
 Automatically becomes buffer-local when set in any fashion.");
 
   DEFVAR_PER_BUFFER ("case-fold-search", &current_buffer->case_fold_search,
+		     Qnil,
     "*Non-nil if searches should ignore case.\n\
 Automatically becomes buffer-local when set in any fashion.");
 
   DEFVAR_PER_BUFFER ("fill-column", &current_buffer->fill_column,
+		     make_number (Lisp_Int),
     "*Column beyond which automatic line-wrapping should happen.\n\
 Automatically becomes buffer-local when set in any fashion.");
 
   DEFVAR_PER_BUFFER ("left-margin", &current_buffer->left_margin,
+		     make_number (Lisp_Int),
     "*Column for the default indent-line-function to indent to.\n\
 Linefeed indents to this column in Fundamental mode.\n\
 Automatically becomes buffer-local when set in any fashion.");
 
   DEFVAR_PER_BUFFER ("tab-width", &current_buffer->tab_width,
+		     make_number (Lisp_Int),
     "*Distance between tab stops (for display of tab characters), in columns.\n\
 Automatically becomes buffer-local when set in any fashion.");
 
-  DEFVAR_PER_BUFFER ("ctl-arrow", &current_buffer->ctl_arrow,
+  DEFVAR_PER_BUFFER ("ctl-arrow", &current_buffer->ctl_arrow, Qnil,
     "*Non-nil means display control chars with uparrow.\n\
 Nil means use backslash and octal digits.\n\
 Automatically becomes buffer-local when set in any fashion.\n\
 This variable does not apply to characters whose display is specified\n\
 in the current display table (if there is one).");
 
-  DEFVAR_PER_BUFFER ("truncate-lines", &current_buffer->truncate_lines,
+  DEFVAR_PER_BUFFER ("truncate-lines", &current_buffer->truncate_lines, Qnil,
     "*Non-nil means do not display continuation lines;\n\
 give each line of text one screen line.\n\
 Automatically becomes buffer-local when set in any fashion.\n\
@@ -1458,10 +1501,12 @@ Note that this is overridden by the variable\n\
 and this buffer is not full-frame width.");
 
   DEFVAR_PER_BUFFER ("default-directory", &current_buffer->directory,
+		     make_number (Lisp_String),
     "Name of default directory of current buffer.  Should end with slash.\n\
 Each buffer has its own value of this variable.");
 
   DEFVAR_PER_BUFFER ("auto-fill-function", &current_buffer->auto_fill_function,
+		     Qnil,
     "Function called (if non-nil) to perform auto-fill.\n\
 It is called after self-inserting a space at a column beyond `fill-column'.\n\
 Each buffer has its own value of this variable.\n\
@@ -1469,30 +1514,34 @@ NOTE: This variable is not an ordinary hook;\n\
 It may not be a list of functions.");
 
   DEFVAR_PER_BUFFER ("buffer-file-name", &current_buffer->filename,
+		     make_number (Lisp_String),
     "Name of file visited in current buffer, or nil if not visiting a file.\n\
 Each buffer has its own value of this variable.");
 
   DEFVAR_PER_BUFFER ("buffer-auto-save-file-name",
 		    &current_buffer->auto_save_file_name,
+		     make_number (Lisp_String),
     "Name of file for auto-saving current buffer,\n\
 or nil if buffer should not be auto-saved.\n\
 Each buffer has its own value of this variable.");
 
-  DEFVAR_PER_BUFFER ("buffer-read-only", &current_buffer->read_only,
+  DEFVAR_PER_BUFFER ("buffer-read-only", &current_buffer->read_only, Qnil,
     "Non-nil if this buffer is read-only.\n\
 Each buffer has its own value of this variable.");
 
-  DEFVAR_PER_BUFFER ("buffer-backed-up", &current_buffer->backed_up,
+  DEFVAR_PER_BUFFER ("buffer-backed-up", &current_buffer->backed_up, Qnil,
     "Non-nil if this buffer's file has been backed up.\n\
 Backing up is done before the first time the file is saved.\n\
 Each buffer has its own value of this variable.");
 
   DEFVAR_PER_BUFFER ("buffer-saved-size", &current_buffer->save_length,
+		     make_number (Lisp_Int),
     "Length of current buffer when last read in, saved or auto-saved.\n\
 0 initially.\n\
 Each buffer has its own value of this variable.");
 
   DEFVAR_PER_BUFFER ("selective-display", &current_buffer->selective_display,
+		     Qnil,
     "Non-nil enables selective display:\n\
 Integer N as value means display only lines\n\
  that start with less than n columns of space.\n\
@@ -1503,15 +1552,17 @@ Automatically becomes buffer-local when set in any fashion.");
 #ifndef old
   DEFVAR_PER_BUFFER ("selective-display-ellipses",
 		    &current_buffer->selective_display_ellipses,
+		     Qnil,
     "t means display ... on previous line when a line is invisible.\n\
 Automatically becomes buffer-local when set in any fashion.");
 #endif
 
-  DEFVAR_PER_BUFFER ("overwrite-mode", &current_buffer->overwrite_mode,
+  DEFVAR_PER_BUFFER ("overwrite-mode", &current_buffer->overwrite_mode, Qnil,
     "Non-nil if self-insertion should replace existing text.\n\
 Automatically becomes buffer-local when set in any fashion.");
 
   DEFVAR_PER_BUFFER ("buffer-display-table", &current_buffer->display_table,
+		     make_number (Lisp_Vector),
     "Display table that controls display of the contents of current buffer.\n\
 Automatically becomes buffer-local when set in any fashion.\n\
 The display table is a vector created with `make-display-table'.\n\
@@ -1528,6 +1579,7 @@ If this variable is nil, the value of `standard-display-table' is used.\n\
 Each window can have its own, overriding display table.");
 
   DEFVAR_PER_BUFFER ("buffer-field-list", &current_buffer->fieldlist,
+		     make_number (Lisp_Cons),
     "List of fields in the current buffer.  See `add-field'.");
 
   DEFVAR_BOOL ("check-protected-fields", check_protected_fields,
@@ -1569,6 +1621,7 @@ The function is called, with no arguments, if it is non-nil.");
   Vfirst_change_function = Qnil;
 
   DEFVAR_PER_BUFFER ("buffer-undo-list", &current_buffer->undo_list,
+		     make_number (Lisp_Cons),
     "List of undo entries in current buffer.\n\
 Recent changes come first; older changes follow newer.\n\
 \n\
