@@ -149,6 +149,10 @@ the future.
    <URL:ftp://ftp.tnt.uni-hannover.de/pub/editors/xemacs/contrib>
    HTML-specific editing.  Can work with PSGML.
 
+ * Hyperbole: `Hyperbole is an open, efficient, programmable
+   information management and hypertext system.'
+   From GNU distribution mirrors.
+
  * ILISP: <URL:http://www.cs.cmu.edu/%7Ecampbell/ilisp/index.html>
    Provides an interactive environment for manipulating an inferior
    process running some form of Lisp.  Reported to have a problem with
