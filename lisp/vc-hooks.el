@@ -3,9 +3,7 @@
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
-;; Version: 5.2
-
-;;	$Id: vc-hooks.el,v 1.10 1993/03/17 14:01:56 eric Exp eric $	
+;; Version: 5.3
 
 ;; This file is part of GNU Emacs.
 
@@ -41,11 +39,11 @@ when creating new masters.")
 the make-backup-files variable.  Otherwise, prevents backups being made.")
 
 ;; Tell Emacs about this new kind of minor mode
-(if (not (assoc 'vc-mode-string minor-mode-alist))
-    (setq minor-mode-alist (cons '(vc-mode-string vc-mode-string)
+(if (not (assoc 'vc-mode minor-mode-alist))
+    (setq minor-mode-alist (cons '(vc-mode vc-mode)
 				 minor-mode-alist)))
 
-(make-variable-buffer-local 'vc-mode-string)
+(make-variable-buffer-local 'vc-mode)
 
 ;; We need a notion of per-file properties because the version
 ;; control state of a file is expensive to derive --- we don't
@@ -119,7 +117,7 @@ read-only flag."
     (toggle-read-only)))
 
 (defun vc-mode-line (file &optional label)
-  "Set `vc-mode-string' to display type of version control for FILE.
+  "Set `vc-mode' to display type of version control for FILE.
 The value is set in the current buffer, which should be the buffer
 visiting FILE."
   (interactive (list buffer-file-name nil))
@@ -129,7 +127,7 @@ visiting FILE."
 	  (if (null (current-local-map))
 	      (use-local-map (make-sparse-keymap)))
 	  (define-key (current-local-map) "\C-x\C-q" 'vc-toggle-read-only)
-	  (setq vc-mode-string
+	  (setq vc-mode
 		(concat " " (or label (symbol-name vc-type))))))
     ;; force update of mode line
     (set-buffer-modified-p (buffer-modified-p))
@@ -163,8 +161,8 @@ Returns t if checkout was successful, nil otherwise."
 	  (cons 'vc-file-not-found-hook find-file-not-found-hooks)))
 
 ;;; Now arrange for bindings and autoloading of the main package.
-;;; Bindings for this have to go in the global map, as it may have
-;;; to coexist with a lot of different major modes.
+;;; Bindings for this have to go in the global map, as we'll often
+;;; want to call them from random buffers.
 
 (setq vc-prefix-map (lookup-key global-map "\C-xv"))
 (if (not (keymapp vc-prefix-map))
