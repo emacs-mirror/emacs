@@ -296,9 +296,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
     }
   else if (EQ (funcar, Qmocklisp))
     {
-#ifdef MULTI_KBOARD
-      kboard_locked = 1;
-#endif
+      single_kboard_state ();
       return ml_apply (fun, Qinteractive);
     }
   else
@@ -352,9 +350,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  Vcommand_history
 	    = Fcons (Fcons (function, values), Vcommand_history);
 	}
-#ifdef MULTI_KBOARD
-      kboard_locked = 1;
-#endif
+      single_kboard_state ();
       return apply1 (function, specs);
     }
 
@@ -661,9 +657,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
     if (varies[i] >= 1 && varies[i] <= 4)
       XSETINT (args[i], marker_position (args[i]));
 
-#ifdef MULTI_KBOARD
-  kboard_locked = 1;
-#endif
+  single_kboard_state ();
 
   {
     Lisp_Object val;
