@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c Copyright (C) 1985,86,87,93,94,95,97,1999 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Programs, Building, Text, Top
 @chapter Editing Programs
@@ -74,11 +74,22 @@ on the screen.
 @cindex Makefile mode
 @cindex Tcl mode
 @cindex CPerl mode
+@cindex DSSSL mode
+@cindex Octave mode
+@cindex Metafont mode
+@cindex Modula2 mode
+@cindex Prolog mode
+@cindex Simula mode
+@cindex VHDL mode
+@cindex M4 mode
+@cindex Shell-script mode
   Emacs also has major modes for the programming languages Lisp, Scheme
-(a variant of Lisp), Awk, C, C++, Fortran, Icon, Java, Objective-C,
-Pascal, Perl, Pike, CORBA IDL, and Tcl.  There is also a major mode for
-makefiles, called Makefile mode.  An second alternative mode for Perl is
-called CPerl mode.
+(a variant of Lisp) and the Scheme-based DSSSL expression language, Awk,
+C, C++, Fortran (free and fixed format), Icon, Java, Metafont (@TeX{}'s
++companion for font creation), Modula2, Objective-C, Octave, Pascal,
+Perl, Pike, Prolog, Simula, VHDL, CORBA IDL, and Tcl.  There is also a
+major mode for makefiles, called Makefile mode.  An alternative mode for
+Perl is called CPerl mode.
 
   Ideally, a major mode should be implemented for each programming
 language that you might want to edit with Emacs; but often the mode for
@@ -1813,9 +1824,16 @@ expression at least @var{m} times and up to @var{n} times.
 
   You should not match more characters with @var{tagregexp} than that
 needed to recognize what you want to tag.  If the match is such that
-more characters than needed are unavoidably matched by @var{tagregexp},
-you may find useful to add a @var{nameregexp}, in order to narrow the tag
-scope.  You can find some examples below.
+more characters than needed are unavoidably matched by @var{tagregexp}
+(as will usually be the case), you should add a @var{nameregexp}, to
+pick out just the tag.  This will enable Emacs to find tags more
+accurately and to do completion on tag names more reliably.  You can
+find some examples below.
+
+  The option @samp{--case-folded-regexp} (or @samp{-c}) si like
+@samp{--regex}, except that the regular expression provided will be
+matched with case folded, i.e. case-insensitively, which is appropriate
+for various programming languages.
 
   The @samp{-R} option deletes all the regexps defined with
 @samp{--regex} options.  It applies to the file names following it, as
@@ -2847,6 +2865,20 @@ typing when you insert Fortran keywords.
   Use @kbd{M-x fortran-mode} to switch to this major mode.  This command
 runs the hook @code{fortran-mode-hook} (@pxref{Hooks}).
 
+@cindex Fortran77
+@cindex Fortran90
+@findex f90-mode
+@findex fortran-mode
+Note that Fortan mode described here (obtained with the
+@code{fortran-mode} command) is for editing the old Fortran77
+idiosyncratic `fixed format' source form.  For editing the modern
+Fortran90 `free format' source form (which is supported by the GNU
+Fortran compiler) use @code{f90-mode}.
+
+By default @code{fortran-mode} is invoked on files with extension
+@samp{.f}, @samp{.F} or @samp{.for} and @code{f90-mode} is invoked for
+the extension @samp{.f90}.
+
 @menu
 * Motion: Fortran Motion.	 Moving point by statements or subprograms.
 * Indent: Fortran Indent.	 Indentation commands for Fortran.
@@ -2869,11 +2901,13 @@ region around one subprogram, convenient for killing it or moving it.
 @kindex C-M-h @r{(Fortran mode)}
 @kindex C-c C-p @r{(Fortran mode)}
 @kindex C-c C-n @r{(Fortran mode)}
+@kindex C-x n d @r{(Fortran mode)}
 @findex beginning-of-fortran-subprogram
 @findex end-of-fortran-subprogram
 @findex mark-fortran-subprogram
 @findex fortran-previous-statement
 @findex fortran-next-statement
+@findex fortran-narrow-to-subprogram
 
 @table @kbd
 @item C-M-a
@@ -2890,6 +2924,10 @@ Move to beginning of current or next statement
 @item C-c C-p
 Move to beginning of current or previous statement
 (@code{fortran-previous-statement}).
+@item C-x n d
+Narrow to the current subprogram, i.e.@: only it is visible
+(@code{fortran-narrow-to-subprogram}).
+Undo the effect of this with @kbd{C-x n w} (@code{widen}).
 @end table
 
 @node Fortran Indent
@@ -2958,6 +2996,13 @@ lines.
   @kbd{M-^} runs the command @code{fortran-join-line}, which is more or
 less the inverse of @code{fortran-split-line}.  It joins the current
 line to the previous line in a suitable way for Fortran code.
+
+@kindex C-c C-d @r{(Fortran mode)}
+@findex fortran-join-line
+  The key sequence @kbd{C-c C-d} runs @code{fortran-join-line}, which
+joins a continuation line back to the previous line, roughly as the
+inverse of @code{fortran-split-line}.  The point must be on a
+continuation line when this command is invoked.
 
 @node ForIndent Cont
 @subsubsection Continuation Lines
@@ -3276,12 +3321,19 @@ the variable @code{indent-tabs-mode}.  If @code{indent-tabs-mode} is
 Otherwise, the variable @code{fortran-column-ruler-tab} is displayed.
 By changing these variables, you can change the column ruler display.
 
-@kindex C-c C-w @r{(Fortran mode)}
+@kindex C-u C-c C-w @r{(Fortran mode)}
 @findex fortran-window-create
-  For even more help, use @kbd{C-c C-w} (@code{fortran-window-create}), a
+  For even more help, use @kbd{M-x fortran-window-create}), a
 command which splits the current window horizontally, making a window 72
 columns wide.  By editing in this window you can immediately see when you
 make a line too wide to be correct Fortran.
+
+@kindex C-c C-w @r{(Fortran mode)}
+@findex fortran-window-create-momentarily
+Also, @kbd{C-c C-w} (@code{fortran-window-create-momentarily}) can be
+used temporarily to split the current window horizontally, making a
+window 72 columns wide to check column widths rather than to edit in
+this mode.  The normal width is restored when you type a space.
 
 @node Fortran Abbrev
 @subsection Fortran Keyword Abbrevs
@@ -3322,6 +3374,7 @@ containing point.
 @section Asm Mode
 
 @cindex Asm mode
+@cindex Assembler mode
 Asm mode is a major mode for editing files of assembler code.  It
 defines these commands:
 
