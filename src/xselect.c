@@ -49,7 +49,7 @@ static Lisp_Object Vx_lost_selection_hooks;
 static Lisp_Object Vx_sent_selection_hooks;
 /* Coding system for communicating with other X clients via cutbuffer,
    selection, and clipboard.  */
-static Lisp_Object Vclipboard_coding_system;
+static Lisp_Object Vselection_coding_system;
 
 /* If this is a smaller number than the max-request-size of the display,
    emacs will use INCR selection transfer when the selection is larger
@@ -1505,7 +1505,7 @@ selection_data_to_lisp_data (display, data, size, type, format)
 	  struct coding_system coding;
 
 	  setup_coding_system
-            (Fcheck_coding_system(Vclipboard_coding_system), &coding);
+            (Fcheck_coding_system(Vselection_coding_system), &coding);
           coding.mode |= CODING_MODE_LAST_BLOCK;
 	  bufsize = decoding_buffer_size (&coding, size);
 	  buf = (unsigned char *) xmalloc (bufsize);
@@ -1644,7 +1644,7 @@ lisp_data_to_selection_data (display, obj,
 	  struct coding_system coding;
 
 	  setup_coding_system
-            (Fcheck_coding_system (Vclipboard_coding_system), &coding);
+            (Fcheck_coding_system (Vselection_coding_system), &coding);
 	  coding.mode |= CODING_MODE_LAST_BLOCK;
 	  bufsize = encoding_buffer_size (&coding, *size_ret);
 	  buf = (unsigned char *) xmalloc (bufsize);
@@ -2281,13 +2281,12 @@ This hook doesn't let you change the behavior of Emacs's selection replies,\n\
 it merely informs you that they have happened.");
   Vx_sent_selection_hooks = Qnil;
 
-  DEFVAR_LISP ("clipboard-coding-system", &Vclipboard_coding_system,
+  DEFVAR_LISP ("selection-coding-system", &Vselection_coding_system,
     "Coding system for communicating with other X clients.\n\
 When sending or receiving text via cut_buffer, selection, and clipboard,\n\
 the text is encoded or decoded by this coding system.\n\
 A default value is `compound-text'");
-  Vclipboard_coding_system=intern ("compound-text");
-  staticpro(&Vclipboard_coding_system);
+  Vselection_coding_system = intern ("compound-text");
 
   DEFVAR_INT ("x-selection-timeout", &x_selection_timeout,
     "Number of milliseconds to wait for a selection reply.\n\
