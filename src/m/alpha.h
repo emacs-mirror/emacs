@@ -123,62 +123,9 @@ NOTE-END
 
 #endif /* notdef __ELF__ */
 
-#ifdef OSF1
-#define ORDINARY_LINK
-
-/* Some systems seem to have this, others don't.  */
-#ifdef HAVE_LIBDNET
-#define LIBS_MACHINE -ldnet
-#else
-#define LIBS_MACHINE -ldnet_stub
-#endif
-#endif /* OSF1 */
-
-#if 0 /* Rainer Schoepf <schoepf@uni-mainz.de> says this loses with X11R6
-	 since it has only shared libraries.  */
-#ifndef __GNUC__
-/* This apparently is for the system ld as opposed to Gnu ld.  */
-#ifdef OSF1
-#define LD_SWITCH_MACHINE      -non_shared
-#endif
-#endif
-#endif /* 0 */
-
-#ifdef OSF1
-#define LIBS_DEBUG
-#define START_FILES pre-crt0.o
-#endif
-
 #if defined (LINUX) && __GNU_LIBRARY__ - 0 < 6
 /* This controls a conditional in main.  */
 #define LINUX_SBRK_BUG
-#endif
-
-
-#ifndef NOT_C_CODE
-/* We need these because pointers are larger than the default ints.  */
-#if !defined(__NetBSD__) && !defined(__OpenBSD__)
-#include <alloca.h>
-#endif
-
-#endif /* not NOT_C_CODE */
-
-#ifdef OSF1
-#define PTY_ITERATION		for (i = 0; i < 1; i++) /* ick */
-#define PTY_NAME_SPRINTF	/* none */
-#define PTY_TTY_NAME_SPRINTF	/* none */
-#define PTY_OPEN					\
-  do							\
-    {							\
-      int dummy;					\
-      SIGMASKTYPE mask;					\
-      mask = sigblock (sigmask (SIGCHLD));		\
-      if (-1 == openpty (&fd, &dummy, pty_name, 0, 0))	\
-	fd = -1;					\
-      sigsetmask (mask);				\
-      emacs_close (dummy);				\
-    }							\
-  while (0)
 #endif
 
 /* On the Alpha it's best to avoid including TERMIO since struct
