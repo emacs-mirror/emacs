@@ -647,7 +647,7 @@ CODE values: 13 = Tool-Position, 14 = Size-in-Pixels, 18 = Size-in-Chars."
 Insert contents into the current buffer at point."
   (interactive "*")
   (set-mark-command nil)
-  (insert-string (sun-get-selection)))
+  (insert (sun-get-selection)))
 
 (defun sun-select-region (beg end)
   "Set the sunwindows selection to the region in the current buffer."
