@@ -1365,7 +1365,7 @@ Any other markers at the point of insertion remain before the text.\n\
 \n\
 If the current buffer is multibyte, unibyte strings are converted\n\
 to multibyte for insertion (see `unibyte-char-to-multibyte').\n\
-If the current buffer is unibyte, multiibyte strings are converted\n\
+If the current buffer is unibyte, multibyte strings are converted\n\
 to unibyte for insertion.")
   (nargs, args)
      int nargs;
@@ -1384,7 +1384,7 @@ Any other markers at the point of insertion remain before the text.\n\
 \n\
 If the current buffer is multibyte, unibyte strings are converted\n\
 to multibyte for insertion (see `unibyte-char-to-multibyte').\n\
-If the current buffer is unibyte, multiibyte strings are converted\n\
+If the current buffer is unibyte, multibyte strings are converted\n\
 to unibyte for insertion.")
   (nargs, args)
      int nargs;
@@ -1401,7 +1401,7 @@ Point and markers move forward to end up after the inserted text.\n\
 \n\
 If the current buffer is multibyte, unibyte strings are converted\n\
 to multibyte for insertion (see `unibyte-char-to-multibyte').\n\
-If the current buffer is unibyte, multiibyte strings are converted\n\
+If the current buffer is unibyte, multibyte strings are converted\n\
 to unibyte for insertion.")
   (nargs, args)
      int nargs;
@@ -1420,7 +1420,7 @@ Point and markers move forward to end up after the inserted text.\n\
 \n\
 If the current buffer is multibyte, unibyte strings are converted\n\
 to multibyte for insertion (see `unibyte-char-to-multibyte').\n\
-If the current buffer is unibyte, multiibyte strings are converted\n\
+If the current buffer is unibyte, multibyte strings are converted\n\
 to unibyte for insertion.")
   (nargs, args)
      int nargs;
