@@ -1600,7 +1600,9 @@ typically for purposes of moderating a list."
       (kill-buffer tembuf))))
 
 (defvar mail-unsent-separator
-  "^ *----- Unsent message follows ----- *$\\|^ *--- Returned message --- *$")
+  (concat "^ *---+ +Unsent message follows +---+ *$\\|"
+	  "^ *---+ +Returned message +---+ *$\\|"
+	  "^ *---+ +Original message +---+ *$"))
 
 (defun rmail-retry-failure ()
   "Edit a mail message which is based on the contents of the current message.
@@ -1612,8 +1614,9 @@ the body of the original message; otherwise copy the current message."
     (save-excursion
       ;; Narrow down to just the quoted original message
       (rmail-beginning-of-message)
-      (or (re-search-forward mail-unsent-separator nil t)
-	  (error "Cannot parse this as a failure message"))
+      (let ((case-fold-search t))
+	(or (re-search-forward mail-unsent-separator nil t)
+	    (error "Cannot parse this as a failure message")))
       (save-restriction
 	(narrow-to-region (point) (point-max))
 	;; Now mail-fetch-field will get from headers of the original message,
