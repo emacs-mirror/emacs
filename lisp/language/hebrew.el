@@ -48,6 +48,7 @@ But, please note that right-to-left writing is not yet supported."
  "Hebrew" '((setup-function . setup-hebrew-environment)
 	    (describe-function . describe-hebrew-support)
 	    (charset . (hebrew-iso8859-8))
+	    (coding-priority hebrew-iso-8bit)
 	    (coding-system . (hebrew-iso-8bit))
 	    (sample-text . "Hebrew	,Hylem(B")
 	    (documentation . "Right-to-left writing is not yet supported.")
