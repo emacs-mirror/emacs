@@ -118,7 +118,7 @@ also no overview or protocol-oriented sections.</strong></p>
 <li> Function <code><a href="#mps_arena_committed">mps_arena_committed</a></code> </li>
 <li> function <code><a href="#mps_arena_create">mps_arena_create</a></code> </li>
 <li> function <code><a href="#mps_arena_create_v">mps_arena_create_v</a></code> </li>
-<li> function <code><a href="#mps_arena_expose">mps_arena_expose</a</code> </li>
+<li> function <code><a href="#mps_arena_expose">mps_arena_expose</a></code> </li>
 <li> function <code><a href="#mps_arena_formatted_objects_walk">mps_arena_formatted_objects_walk</a></code> </li>
 <li> function <code><a href="#mps_arena_park">mps_arena_park</a></code> </li>
 <li> function <code><a href="#mps_arena_release">mps_arena_release</a></code> </li>
@@ -126,6 +126,8 @@ also no overview or protocol-oriented sections.</strong></p>
 <li> function <code><a href="#mps_arena_spare_commit_limit">mps_arena_spare_commit_limit</a></code> </li>
 <li> function <code><a href="#mps_arena_spare_commit_limit_set">mps_arena_spare_commit_limit_set</a></code> </li>
 <li> function <code><a href="#mps_arena_spare_committed">mps_arena_spare_committed</a></code> </li>
+<li> function <code><a href="#mps_arena_unsafe_expose_remember_protection">mps_arena_unsafe_expose_remember_protection</a></code> </li>
+<li> function <code><a href="#mps_arena_unsafe_restore_protection">mps_arena_unsafe_restore_protection</a></code> </li>
 <li> function <code><a href="#mps_bool_t">mps_bool_t</a></code> </li>
 <li> function <code><a href="#mps_class_amc">mps_class_amc</a></code> </li>
 <li> function <code><a href="#mps_class_mvff">mps_class_mvff</a></code> </li>
@@ -3919,10 +3921,28 @@ run to completion and the arena is clamped so that no new collections
 begin.  The MPS also uses barriers to maintain remembered sets (an
 optimisation to help avoid scanning work); calling
 this function will effectively destroy the remembered sets and any
-optimisation gains.  Not only is there a performance hit from having to
-finish any active collections, but future collections will be a lot more
-expensive until the remembered set information has been restored (which
-will usually take one collection cycle).
+optimisation gains.
+</p>
+
+<p>
+Calling this function will introduce a slow down, primarily for two reasons:
+any active collections will be run to completion before this function
+returns; the next collection will have to recompute all the remembered
+sets by scanning the entire heap.
+</p>
+
+<p>
+The second aspect of the slow down, having the next collection recompute
+the remembered sets, can be avoided by using <code><a
+href="#mps_arena_unsafe_expose_remember_protection">mps_arena_unsafe_expose_remember_protection</a></code>
+instead of <code><a
+href="#mps_arena_expose">mps_arena_expose</a></code>, and calling
+<code><a
+href="#mps_arena_unsafe_restore_protection">mps_arena_unsafe_restore_protection</a></code>
+before calling <code><a
+href="#mps_arena_release">mps_arena_release</a></code>.
+Those functions have unsafe aspects and place restrictions on what the
+client can do (basically no exposed data can be changed).
 </p>
 
 <h4>Example</h4>
@@ -3935,8 +3955,11 @@ will usually take one collection cycle).
 
 <h4>See Also</h4>
 
-<code><a href="#mps_arena_clamp">mps_arena_clamp</a></code>, <code><a
-href="#mps_arena_park">mps_arena_park</a></code>
+<code><a href="#mps_arena_clamp">mps_arena_clamp</a></code>,
+<code><a href="#mps_arena_park">mps_arena_park</a></code>,
+<code><a href="#mps_arena_release">mps_arena_release</a></code>,
+<code><a href="#mps_arena_unsafe_expose_remember_protection">mps_arena_unsafe_expose_remember_protection</a></code>,
+<code><a href="#mps_arena_unsafe_restore_protection">mps_arena_unsafe_restore_protection</a></code>
 
 
 <h3>function <code><a id="mps_arena_formatted_objects_walk" name="mps_arena_formatted_objects_walk">mps_arena_formatted_objects_walk</a></code></h3>
@@ -4575,6 +4598,222 @@ href="#mps_arena_spare_commit_limit">mps_arena_spare_commit_limit</a></code></p>
 <h4>Notes</h4>
 
 <p>None.</p>
+
+
+<h3>function <code><a id="mps_arena_unsafe_expose_remember_protection"
+name="mps_arena_unsafe_expose_remember_protection">mps_arena_unsafe_expose_remember_protection</a></code></h3>
+
+<h4>Name</h4>
+
+<p><code><a href="#mps_arena_unsafe_expose_remember_protection">mps_arena_unsafe_expose_remember_protection</a></code></p>
+
+<h4>Summary</h4>
+
+<p><code><a
+href="#mps_arena_unsafe_expose_remember_protection">mps_arena_unsafe_expose_remember_protection</a></code>
+is like <code><a href="#mps_arena_expose">mps_arena_expose</a></code> but
+additionally indicates that the MPS should remember some internal state
+which can be used later to avoid slow down.  This function is
+potentially unsafe and must be used carefully.
+</p>
+
+<h4>Associated Protocols</h4>
+
+<p>
+Arena, clamp, park, protection
+</p>
+
+<h4>Syntax</h4>
+
+<p><code>mps_arena_unsafe_expose_remember_protection(mps_arena);</code></p>
+
+<h4>Type</h4>
+
+<pre>
+extern void mps_arena_unsafe_expose_remember_protection(mps_arena_t);
+</pre>
+
+<h4>Arguments</h4>
+
+<p><code>(mps_arena_t mps_arena)</code></p>
+
+<p><code><a href="#mps_arena">mps_arena</a></code> is an MPS arena object.</p>
+
+<h4>Returned Values</h4>
+
+<p>None.</p>
+
+<h4>Resources</h4>
+
+<p>mps.h</p>
+
+<h4>Description</h4>
+
+<p>
+This function does the same as <code><a
+href="#mps_arena_expose">mps_arena_expose</a></code> in that it ensures
+the MPS is not protecting any page in the arena and also clamps the
+arena.
+Additionally, using this function indicates to the MPS that it should
+remember the protection state internally.
+Later on the client should indicate that the remembered protection state
+should be restored by using the <code><a
+href="#mps_arena_unsafe_restore_protection">mps_arena_unsafe_restore_protection</a></code>
+function.
+Restore the remembered protections is only safe if the contents of the
+exposed pages have not been changed; therefore this function should only
+be used if you do not intend changing the pages, and the remembered
+protection must only be restored if the pages have not been changed.
+</p>
+
+<p>
+Releasing the arena from the clamped state, by calling <code><a
+href="#mps_arena_release">mps_arena_release</a></code>, will cause the MPS to
+forget the remembered state.  Restoring the remembered protection state,
+using <code><a
+href="#mps_arena_unsafe_restore_protection">mps_arena_unsafe_restore_protection</a></code>,
+will also cause the MPS to forget the remembered state.
+</p>
+
+<p>
+The MPS will remember the protection state if resources (memory) are
+available.
+If memory is low then only some or possibly none of the protection state
+will be remembered, with a corresponding inability to avoid slow down
+later.
+It is not possible for the client to tell whether the MPS has in fact
+remembered the protection state.
+</p>
+
+
+<h4>Example</h4>
+
+<p>None.</p>
+
+<h4>Error Handling</h4>
+
+<p>There can be no errors.</p>
+
+<h4>See Also</h4>
+
+<code><a href="#mps_arena_clamp">mps_arena_clamp</a></code>,
+<code><a href="#mps_arena_unsafe_restore_protection">mps_arena_unsafe_restore_protection</a></code>
+
+
+<h3>function <code><a id="mps_arena_unsafe_restore_protection"
+name="mps_arena_unsafe_restore_protection">mps_arena_unsafe_restore_protection</a></code></h3>
+
+<h4>Name</h4>
+
+<p><code><a href="#mps_arena_unsafe_restore_protection">mps_arena_unsafe_restore_protection</a></code></p>
+
+<h4>Summary</h4>
+
+<p><code><a
+href="#mps_arena_unsafe_restore_protection">mps_arena_unsafe_restore_protection</a></code>
+restores the protection state that the MPS remembered when the client
+called <code><a
+href="#mps_arena_unsafe_expose_remember_protection">mps_arena_unsafe_expose_remember_protection</a></code>.
+If used correctly this should avoid any slow down that would otherwise
+occur.
+</p>
+
+<h4>Associated Protocols</h4>
+
+<p>
+Arena, clamp, park, protection
+</p>
+
+<h4>Syntax</h4>
+
+<p><code>mps_arena_unsafe_restore_protection(mps_arena);</code></p>
+
+<h4>Type</h4>
+
+<pre>
+extern void mps_arena_unsafe_restore_protection(mps_arena_t);
+</pre>
+
+<h4>Arguments</h4>
+
+<p><code>(mps_arena_t mps_arena)</code></p>
+
+<p><code><a href="#mps_arena">mps_arena</a></code> is an MPS arena object.</p>
+
+<h4>Returned Values</h4>
+
+<p>None.</p>
+
+<h4>Resources</h4>
+
+<p>mps.h</p>
+
+<h4>Description</h4>
+
+<p>
+This function restores the protection that the MPS has remembered
+(during a period when the arena is exposed).
+The client can cause the MPS to remember the protection state by using
+the <code><a
+href="#mps_arena_unsafe_expose_remember_protection">mps_arena_unsafe_expose_remember_protection</a></code>
+function.
+</p>
+
+<p> The point of remember and restoring the protection state is to
+avoid the slow down that happens when <code><a
+href="#mps_arena_expose">mps_arena_expose</a></code> is used.  Normally
+when this function is used the next garbage collection will be slow
+because the MPS has to do a lot of work to recover remembered sets;
+normally the remembered sets are preserved by the MPS protecting the
+relevant pages, but if the protection is removed then the remembered
+sets have to be discarded and recomputed.
+This recomputation of remembered sets can be avoided by using <code><a
+href="#mps_arena_unsafe_expose_remember_protection">mps_arena_unsafe_expose_remeber_protection</a></code>
+instead, and using <code><a
+href="#mps_arena_unsafe_restore_protection">mps_arena_unsafe_restore_protection</a></code>
+to restore the remembered protections instead of recomputing them.
+</p>
+
+<p>
+This function has unsafe aspects.
+In order for it to be used safely the client must not have changed the
+exposed data between the call to <code><a
+href="#mps_arena_unsafe_expose_remember_protection">mps_arena_unsafe_expose_remember_protection</a></code>
+and <code><a
+href="#mps_arena_unsafe_restore_protection">mps_arena_unsafe_restore_protection</a></code>.
+If the client has changed the exposed data then 
+<code><a
+href="#mps_arena_unsafe_restore_protection">mps_arena_unsafe_restore_protection</a></code>
+must not be called - simply call <code><a
+href="#mps_arena_release">mps_arena_release</a></code> to continue normal
+collections</a>.
+</p>
+
+<p>
+Note that this function does not release the arena from the clamped
+state;
+<code><a href="#mps_arena_release">mps_arena_release</a></code> should be called to continue normal
+collections.
+</p>
+
+<p>
+Calling this function causes the MPS to forget the remember protection
+state; as a consequence the same remembered state cannot be restored
+more than once.
+</p>
+
+<h4>Example</h4>
+
+<p>None.</p>
+
+<h4>Error Handling</h4>
+
+<p>There can be no errors.</p>
+
+<h4>See Also</h4>
+
+<code><a href="#mps_arena_release">mps_arena_release</a></code>,
+<code><a href="#mps_arena_unsafe_expose_remember_protection">mps_arena_unsafe_expose_remember_protection</a></code>
 
 
 <h3>function <code><a id="mps_bool_t" name="mps_bool_t">mps_bool_t</a></code></h3>
