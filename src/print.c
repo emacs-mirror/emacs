@@ -1816,7 +1816,7 @@ Also print formfeeds as backslash-f.");
   DEFVAR_BOOL ("print-escape-nonascii", &print_escape_nonascii,
     "Non-nil means print non-ASCII characters in strings as backslash-NNN.\n\
 NNN is the octal representation of the character's value.\n\
-Only single-byte characters are affected.");
+Only single-byte characters are affected, and only in `prin1'.");
   print_escape_nonascii = 0;
 
   DEFVAR_BOOL ("print-quoted", &print_quoted,
