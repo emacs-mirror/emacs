@@ -389,9 +389,7 @@ StandardEncoding 46 82 getinterval aload pop
   /docState save def
   % ---- [andrewi] set PageSize based on chosen dimensions
   UseSetpagedevice{
-    0
-    {<< /PageSize [PageWidth LandscapePageHeight] >> setpagedevice}
-    CheckConfig
+    << /PageSize [PageWidth LandscapePageHeight] >> setpagedevice
   }{
     LandscapeMode{
       % ---- translate to bottom-right corner of Portrait page
@@ -694,25 +692,5 @@ StandardEncoding 46 82 getinterval aload pop
 
 % 3 cm 20 cm moveto  10 /Courier ReportFontInfo  showpage
 % 3 cm 20 cm moveto  ReportAllFontInfo           showpage
-
-/ErrorMessages
- [(This PostScript printer is not configured with this document page size.)
-  (Duplex printing is not supported on this PostScript printer.)]def
-
-% stack: error-index proc |- --
-/CheckConfig{
-  stopped{
-   1 cm LandscapePageHeight 0.5 mul moveto
-   /Courier findfont 10 scalefont setfont
-   gsave
-    (ps-print error:) show
-   grestore
-   0 -10 rmoveto
-   ErrorMessages exch get show
-   showpage
-   $error /newerror false put
-   stop
-  }if
-}bind def
 
 % === END ps-print prologue 1
