@@ -1851,6 +1851,7 @@ the language name that would otherwise be used for this locale.")
     ("ja.*[._]jis7" . iso-2022-jp)
     ("ja.*[._]pck" . japanese-shift-jis)
     ("ja.*[._]sjis" . japanese-shift-jis)
+    ("jpn" . japanese-shift-jis)   ; MS-Windows uses this.
     )
   "List of pairs of locale regexps and preferred coding systems.
 The first element whose locale regexp matches the start of a downcased locale
