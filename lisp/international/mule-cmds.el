@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2000 Free Software Foundation, Inc.
 
 ;; Keywords: mule, multilingual
 
@@ -23,6 +24,8 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Code:
+
+(eval-when-compile (defvar dos-codepage))
 
 ;;; MULE related key bindings and menus.
 
@@ -63,14 +66,12 @@
   (make-sparse-keymap "Set Coding System"))
 
 (define-key-after mule-menu-keymap [set-language-environment]
-  (list 'menu-item "Set Language Environment" setup-language-environment-map
-	:help "Multilingual environment suitable for specific language")
-  t)
+  (list 'menu-item  "Set Language Environment" setup-language-environment-map
+	:help "Multilingual environment suitable for a specific language"))
 (define-key-after mule-menu-keymap [mouse-set-font]
   '(menu-item "Set Font/Fontset" mouse-set-font
-	      :visible (fboundp 'generate-fontset-menu)
-	      :help "Select a font from list of known fonts/fontsets")
-  t)
+	       :visible (fboundp 'generate-fontset-menu)
+	       :help "Select a font from list of known fonts/fontsets"))
 (define-key-after mule-menu-keymap [separator-mule]
   '("--")
   t)
@@ -80,12 +81,14 @@
 (define-key-after mule-menu-keymap [set-input-method]
   '(menu-item "Select Input Method..." set-input-method)
   t)
+(define-key-after mule-menu-keymap [describe-input-method]
+  '(menu-item "Describe Input Method"  describe-input-method))
 (define-key-after mule-menu-keymap [separator-input-method]
   '("--")
   t)
 (define-key-after mule-menu-keymap [set-various-coding-system]
-  (list 'menu-item "Set Coding Systems" set-coding-system-map)
-  t)
+  (list 'menu-item "Set Coding Systems" set-coding-system-map
+	:enable 'enable-multibyte-characters))
 (define-key-after mule-menu-keymap [view-hello-file]
   '(menu-item "Show Multi-lingual Text" view-hello-file
 	      :enable (file-readable-p
@@ -98,15 +101,18 @@
 (define-key-after mule-menu-keymap [describe-language-environment]
   (list 'menu-item "Describe Language Environment"
 	describe-language-environment-map
-	:help "Show multilingual settings for specific language")
+	:help "Show multilingual settings for a specific language")
   t)
 (define-key-after mule-menu-keymap [describe-input-method]
   '(menu-item "Describe Input Method..." describe-input-method
-	      :help "Keyboard layout for specific input method")
+	      :help "Keyboard layout for a specific input method")
   t)
 (define-key-after mule-menu-keymap [describe-coding-system]
   '(menu-item "Describe Coding System..." describe-coding-system)
   t)
+(define-key-after mule-menu-keymap [list-character-sets]
+  '(menu-item "List Character Sets" list-character-sets
+	      :help "Show table of available character sets"))
 (define-key-after mule-menu-keymap [mule-diag]
   '(menu-item "Show All of Mule Status" mule-diag
 	      :help "Display multilingual environment settings")
@@ -147,6 +153,9 @@
   t)
 (define-key setup-language-environment-map
   [Default] '(menu-item "Default" setup-specified-language-environment))
+
+(define-key describe-language-environment-map
+  [Default] '(menu-item "Default" describe-specified-language-support))
 
 ;; This should be a single character key binding because users use it
 ;; very frequently while editing multilingual text.  Now we can use
@@ -679,7 +688,7 @@ see `language-info-alist'."
 	(progn
 	  (setq key-slot (list key))
 	  (setcdr lang-slot (cons key-slot (cdr lang-slot)))))
-    (setcdr key-slot info)))
+    (setcdr key-slot (purecopy info))))
 
 (defun set-language-info-alist (lang-env alist &optional parents)
   "Store ALIST as the definition of language environment LANG-ENV.
@@ -1379,6 +1388,8 @@ of buffer-file-coding-system set by this function."
   (interactive)
   (let (language-name)
     (if (not (and (symbolp last-command-event)
+		  (or (not (eq last-command-event 'Default))
+		      (setq last-command-event 'English))
 		  (setq language-name (symbol-name last-command-event))))
 	(error "Bogus calling sequence"))
     (describe-language-environment language-name)))
