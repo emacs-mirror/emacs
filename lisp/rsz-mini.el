@@ -7,7 +7,7 @@
 ;; Maintainer: friedman@prep.ai.mit.edu
 ;; Keywords: minibuffer, window, frame, display
 ;; Status: Known to work in FSF GNU Emacs 19.26 and later.
-;; $Id: rsz-mini.el,v 1.8 1995/04/08 08:22:07 friedman Exp rms $
+;; $Id: rsz-mini.el,v 1.9 1995/08/03 17:38:07 rms Exp kwzh $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,12 +51,7 @@
 ;; minor-mode-alist because this mode is specific to the minibuffer, which
 ;; has no mode line.
 
-;; To use this package, put the following in your .emacs:
-;;
-;;     (autoload 'resize-minibuffer-mode "rsz-mini" nil t)
-;;
-;; Invoking the command `resize-minibuffer-mode' will then enable this mode.
-;; Simply loading this file will also enable it.
+;; To enable or disable this mode, use M-x resize-minibuffer-mode.
 
 ;;; Code:
 
