@@ -290,7 +290,7 @@ mkdir ${tempdir}
 ### README while the rest of the tar file is still unpacking.  Whoopee.
 echo "Making links to top-level files"
 ln AUTHORS FTP INSTALL README BUGS move-if-change ${tempdir}
-ln ChangeLog Makefile.in configure configure.in aclocal.m4 ${tempdir}
+ln ChangeLog Makefile.in configure configure.in ${tempdir}
 ln config.bat make-dist update-subdirs vpath.sed ${tempdir}
 ### Copy these files; they're cross-filesystem symlinks.
 cp mkinstalldirs ${tempdir}
@@ -438,7 +438,7 @@ echo "Making links to \`src'"
    fi
  done
  ln README ChangeLog ChangeLog.*[0-9] ../${tempdir}/src
- ln makefile.nt makefile.w32-in vms-pp.trans ../${tempdir}/src
+ ln makefile.nt makefile.w32-in ../${tempdir}/src
  ln .gdbinit .dbxinit ../${tempdir}/src
  cd ../${tempdir}/src
  rm -f config.h epaths.h Makefile Makefile.c
@@ -485,10 +485,10 @@ echo "Making links to \`lib-src'"
 
 echo "Making links to \`nt'"
 (cd nt
- ln emacs.rc config.nt [a-z]*.in [a-z]*.c ../${tempdir}/nt
- ln _emacs nmake.defs gmake.defs subdirs.el ../${tempdir}/nt
+ ln emacs.rc config.nt [a-z]*.c ../${tempdir}/nt
+ ln nmake.defs gmake.defs subdirs.el ../${tempdir}/nt
  ln [a-z]*.bat [a-z]*.h makefile.def makefile.nt ../${tempdir}/nt
- ln TODO ChangeLog INSTALL README makefile.w32-in ../${tempdir}/nt)
+ ln ChangeLog INSTALL README makefile.w32-in ../${tempdir}/nt)
 
 echo "Making links to \`nt/inc'"
 (cd nt/inc
