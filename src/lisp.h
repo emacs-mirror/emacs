@@ -521,8 +521,14 @@ struct PERDISPLAY
     /* Last anonymous kbd macro defined.  */
     Lisp_Object Vlast_kbd_macro;
 
+    /* Flag indicating that we should look at kbd_queue.  This is not the
+       same as !NILP (kbd_queue), because if we've had to push back an
+       incomplete command, then this flag will be clear; we don't want to
+       try reading it again until another character arrives.  */
+    int kbd_queue_has_data;
+
     /* Placeholder for future vars that will be moved here.  */
-    Lisp_Object unused[19];
+    Lisp_Object unused[18];
 
     /* Nonzero means echo each character as typed.  */
     int immediate_echo;
