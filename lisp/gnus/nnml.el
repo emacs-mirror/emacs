@@ -35,6 +35,8 @@
 (require 'nnmail)
 (require 'nnoo)
 (eval-when-compile (require 'cl))
+(eval-and-compile
+  (autoload 'gnus-sorted-intersection "gnus-range"))
 
 (nnoo-declare nnml)
 
@@ -749,7 +751,7 @@ all.  This may very well take some time.")
 	(unless no-active
 	  (nnmail-save-active nnml-group-alist nnml-active-file))))))
 
-(defvar files)
+(eval-when-compile (defvar files))
 (defun nnml-generate-active-info (dir)
   ;; Update the active info for this group.
   (let ((group (nnheader-file-to-group
