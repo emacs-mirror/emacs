@@ -106,25 +106,36 @@
 	   iso-spanish iso-cvt-read-only t nil))
   "List of information about understood file formats.
 Elements are of the form \(NAME DOC-STR REGEXP FROM-FN TO-FN MODIFY MODE-FN).
+
 NAME    is a symbol, which is stored in `buffer-file-format'.
+
 DOC-STR should be a single line providing more information about the
         format.  It is currently unused, but in the future will be shown to
         the user if they ask for more information.
+
 REGEXP  is a regular expression to match against the beginning of the file;
         it should match only files in that format.
+
 FROM-FN is called to decode files in that format; it gets two args, BEGIN 
         and END, and can make any modifications it likes, returning the new
         end.  It must make sure that the beginning of the file no longer
         matches REGEXP, or else it will get called again.
+	Alternatively, FROM-FN can be a shell command (including options)
+	which can be used as a filter to perform the conversion.
+
 TO-FN   is called to encode a region into that format; it is passed three
         arguments: BEGIN, END, and BUFFER.  BUFFER is the original buffer that
         the data being written came from, which the function could use, for
         example, to find the values of local variables.  TO-FN should either
         return a list of annotations like `write-region-annotate-functions',
         or modify the region and return the new end.
+	Alternatively, TO-FN can be a shell command (including options)
+	which can be used as a filter to perform the conversion.
+
 MODIFY, if non-nil, means the TO-FN wants to modify the region.  If nil,
         TO-FN will not make any changes but will instead return a list of
         annotations. 
+
 MODE-FN, if specified, is called when visiting a file with that format.")
 
 ;;; Basic Functions (called from Lisp)
