@@ -118,9 +118,9 @@ main (argc, argv)
 
   /* Don't put CRs in the DOC file.  */
 #ifdef MSDOS
+  _fmode = O_BINARY;
 #if 0  /* Suspicion is that this causes hanging.
 	  So instead we require people to use -o on MSDOS.  */
-  _fmode = O_BINARY;
   (stdout)->_flag &= ~_IOTEXT;
   _setmode (fileno (stdout), O_BINARY);
 #endif
