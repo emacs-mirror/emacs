@@ -1,3 +1,8 @@
+2000-12-27  Kenichi Handa  <handa@etl.go.jp>
+
+	* term.el (term-char-mode): Define all non-ascii self-inserting
+	characters to 'term-send-raw in term-raw-map.
+
 2000-12-25  Michael Kifer  <kifer@cs.sunysb.edu>
 	* viper-init (viper-restore-cursor-type): added condition-case
 	guard.
