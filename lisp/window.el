@@ -428,6 +428,58 @@ in some window."
         (goto-char (point-min))
         (1+ (vertical-motion (buffer-size) window))))))
 
+(defun fit-window-to-buffer (&optional window max-height min-height)
+  "Make WINDOW the right size to display its contents exactly.
+If the optional argument MAX-HEIGHT is supplied, it is the maximum height
+  the window is allowed to be, defaulting to the frame height.
+If the optional argument MIN-HEIGHT is supplied, it is the minimum
+  height the window is allowed to be, defaulting to `window-min-height'.
+
+The heights in MAX-HEIGHT and MIN-HEIGHT include the mode-line and/or
+header-line."
+  (interactive)
+
+  (when (null window)
+    (setq window (selected-window)))
+
+  (let* ((window-height
+	  ;; The current height of WINDOW
+	  (window-height window))
+	 (extra
+	  ;; The amount by which the text height differs from the window
+	  ;; height.
+	  (- window-height (window-text-height window)))
+	 (text-height
+	  ;; The height necessary to show the buffer displayed by WINDOW
+	  ;; (`count-screen-lines' always works on the current buffer).
+	  (with-current-buffer (window-buffer window)
+	    (count-screen-lines)))
+	 (delta
+	  ;; Calculate how much the window height has to change to show
+	  ;; text-height lines, constrained by MIN-HEIGHT and MAX-HEIGHT.
+	  (- (max (min (+ text-height extra)
+		       (or max-height
+			   (frame-height
+			    (window-frame
+			     (or window (selected-window))))))
+		  (or min-height window-min-height))
+	     window-height))
+	 ;; We do our own height checking, so avoid any restrictions due to
+	 ;; window-min-height.
+	 (window-min-height 1))
+
+    ;; Don't try to redisplay with the cursor at the end
+    ;; on its own line--that would force a scroll and spoil things.
+    (when (and (eobp) (bolp) (not (bobp)))
+      (forward-char -1))
+
+    (unless (zerop delta)
+      (if (eq window (selected-window))
+	  (enlarge-window delta)
+	(save-selected-window
+	  (select-window window)
+	  (enlarge-window delta))))))
+
 (defun shrink-window-if-larger-than-buffer (&optional window)
   "Shrink the WINDOW to be as small as possible to display its contents.
 Do not shrink to less than `window-min-height' lines.
@@ -436,36 +488,19 @@ or if some of the window's contents are scrolled out of view,
 or if the window is not the full width of the frame,
 or if the window is the only window of its frame."
   (interactive)
-  (save-selected-window
-    (if window
-	(select-window window)
-      (setq window (selected-window)))
-    (let* ((mini (frame-parameter nil 'minibuffer))
-           (edges (window-edges)))
-      (if (and (< 1 (count-windows))
-               (= (window-width) (frame-width))
-               (pos-visible-in-window-p (point-min) window)
-               (not (eq mini 'only))
-               (or (not mini)
-                   (< (nth 3 edges) (nth 1 (window-edges mini)))
-                   (> (nth 1 edges) (frame-parameter nil 'menu-bar-lines))))
-
-          ;; `count-screen-lines' always works on the current buffer, so
-          ;; make sure it is the buffer displayed by WINDOW.
-          (let ((text-height
-		 (with-current-buffer (window-buffer window)
-		   (count-screen-lines)))
-		(window-height
-		 (window-text-height)))
-
-	    ;; Don't try to redisplay with the cursor at the end
-	    ;; on its own line--that would force a scroll and spoil things.
-	    (when (and (eobp) (bolp) (not (bobp)))
-	      (forward-char -1))
-	    
-            (when (> window-height text-height)
-              (shrink-window
-               (- window-height (max text-height window-min-height)))))))))
+  (when (null window)
+    (setq window (selected-window)))
+  (let* ((frame (window-frame window))
+	 (mini (frame-parameter frame 'minibuffer))
+	 (edges (window-edges window)))
+    (if (and (not (eq window (frame-root-window frame)))
+	     (= (window-width) (frame-width))
+	     (pos-visible-in-window-p (point-min) window)
+	     (not (eq mini 'only))
+	     (or (not mini)
+		 (< (nth 3 edges) (nth 1 (window-edges mini)))
+		 (> (nth 1 edges) (frame-parameter frame 'menu-bar-lines))))
+	(fit-window-to-buffer window (window-height window)))))
 
 (defun kill-buffer-and-window ()
   "Kill the current buffer and delete the selected window."
