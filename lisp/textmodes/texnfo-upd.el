@@ -36,16 +36,16 @@
 ;;   * insert or update the menu for a section, 
 ;;   * create a master menu for a Texinfo source file.
 ;;
-;; Passed an argument, the `texinfo-update-node' and
+;; With a prefix argument, the `texinfo-update-node' and
 ;; `texinfo-make-menu' functions do their jobs in the region.
 ;;
 ;; In brief, the functions for creating or updating nodes and menus, are:
 ;; 
-;;     texinfo-update-node (&optional region-p)            
+;;     texinfo-update-node (&optional beginning end)            
 ;;     texinfo-every-node-update ()                        
 ;;     texinfo-sequential-node-update (&optional region-p)
 ;; 
-;;     texinfo-make-menu (&optional region-p)              
+;;     texinfo-make-menu (&optional beginning end)              
 ;;     texinfo-all-menus-update ()                         
 ;;     texinfo-master-menu ()
 ;;
@@ -80,11 +80,11 @@
 
 ;;; The update node functions described in detail
 
-;; The `texinfo-update-node' function without an argument inserts
+;; The `texinfo-update-node' command with no prefix argument inserts
 ;; the correct next, previous and up pointers for the node in which
 ;; point is located (i.e., for the node preceding point).
 
-;; With an argument, the `texinfo-update-node' function inserts the
+;; With prefix argument, the `texinfo-update-node' function inserts the
 ;; correct next, previous and up pointers for the nodes inside the
 ;; region.
 
@@ -149,13 +149,11 @@
  
 ;;; Code:
 
-;;; The menu making functions
-
-(defun texinfo-make-menu (&optional region-p)
+(defun texinfo-make-menu (&optional beginning end)
   "Without any prefix argument, make or update a menu.
 Make the menu for the section enclosing the node found following point.
 
-Non-nil argument (prefix, if interactive) means make or update menus
+A prefix argument means make or update menus
 for nodes within or part of the marked region.
 
 Whenever a menu exists, and is being updated, the descriptions that
@@ -163,25 +161,24 @@ are associated with node names in the pre-existing menu are
 incorporated into the new menu.  Otherwise, the nodes' section titles
 are inserted as descriptions."
   
-  (interactive "P")
-  (if (not region-p)
+  (interactive
+   (if prefix-arg
+       (list (point) (mark))))
+  (if (null beginning)
       (let ((level (texinfo-hierarchic-level)))
         (texinfo-make-one-menu level)
-        (message "Done...updated the menu.  You may save the buffer."))
+        (message "Menu updated"))
     ;; else
     (message "Making or updating menus in %s... " (buffer-name))
-    (let ((beginning (region-beginning))
-	  (region-end (region-end))
-          (level (progn         ; find section type following point
-                   (goto-char (region-beginning))
-                   (texinfo-hierarchic-level))))
-      (if (= region-end beginning)
-          (error "Please mark a region!"))
-      (save-excursion
+    (save-excursion
+      (goto-char (min beginning end))
+      ;; find section type following point
+      (let ((level (texinfo-hierarchic-level))
+	    (region-end (max beginning end)))
         (save-restriction
           (widen)
           
-          (while  (texinfo-find-lower-level-node level region-end)
+          (while (texinfo-find-lower-level-node level region-end)
             (setq level (texinfo-hierarchic-level)) ; new, lower level
             (texinfo-make-one-menu level))
           
@@ -191,7 +188,7 @@ are inserted as descriptions."
             (while (texinfo-find-lower-level-node level region-end)
               (setq level (texinfo-hierarchic-level)) ; new, lower level
               (texinfo-make-one-menu level))))))
-    (message "Done...updated menus.  You may save the buffer.")))
+    (message "Making or updating menus in %s...done" (buffer-name))))
 
 (defun texinfo-make-one-menu (level)
   "Make a menu of all the appropriate nodes in this section.
@@ -248,21 +245,11 @@ nodes in the buffer before updating the menus."
           (progn
             (message "Updating all nodes in %s ... " (buffer-name))
             (sleep-for 2)
-            (push-mark (point-max) t)
-            (goto-char (point-min))
-	    ;; Using the mark to pass bounds this way
-	    ;; is kludgy, but it's not worth fixing. -- rms.
-	    (let ((mark-active t))
-	      (texinfo-update-node t))))
+	    (texinfo-update-node (point-min) (point-max))))
       
       (message "Updating all menus in %s ... " (buffer-name))        
       (sleep-for 2)
-      (push-mark (point-max) t)
-      (goto-char (point-min))
-      ;; Using the mark to pass bounds this way
-      ;; is kludgy, but it's not worth fixing. -- rms.
-      (let ((mark-active t))
-	(texinfo-make-menu t))
+      (texinfo-make-menu (point-max) (point-min))
       
       (if master-menu-p
           (progn
@@ -799,15 +786,11 @@ title of the section containing the menu."
           (message "Making a master menu in %s ...first updating all nodes... "
                    (buffer-name))
           (sleep-for 2)
-          (push-mark (point-max) t)
-          (goto-char (point-min))
-          (texinfo-update-node t)
+          (texinfo-update-node (point-min) (point-max))
           
           (message "Updating all menus in %s ... " (buffer-name))        
           (sleep-for 2)
-          (push-mark (point-max) t)
-          (goto-char (point-min))
-          (texinfo-make-menu t)))
+          (texinfo-make-menu (point-min) (point-max))))
     
     (message "Now making the master menu in %s... " (buffer-name))
     (sleep-for 2)
@@ -1227,15 +1210,14 @@ document; the values are regular expressions.")
 ;;; Updating a node
 
 ;;;###autoload
-(defun texinfo-update-node (&optional region-p)
+(defun texinfo-update-node (&optional beginning end)
   "Without any prefix argument, update the node in which point is located.
-Non-nil argument (prefix, if interactive) means update the nodes in the
-marked region.
+Interactively, a prefix argument means to operate on the region.
 
 The functions for creating or updating nodes and menus, and their
 keybindings, are:
 
-    texinfo-update-node (&optional region-p)    \\[texinfo-update-node]
+    texinfo-update-node (&optional beginning end)    \\[texinfo-update-node]
     texinfo-every-node-update ()                \\[texinfo-every-node-update]
     texinfo-sequential-node-update (&optional region-p)
 
@@ -1248,41 +1230,35 @@ keybindings, are:
 The `texinfo-column-for-description' variable specifies the column to
 which menu descriptions are indented. Its default value is 32."
   
-  (interactive "P")
-  (if (not region-p)
-      ;; update a single node
+  (interactive
+   (if prefix-arg
+       (list (point) (mark))))
+  (if (null beginning)
+      ;; Update a single node.
       (let ((auto-fill-function nil) (auto-fill-hook nil))
         (if (not (re-search-backward "^@node" (point-min) t))
-            (error "Node line not found before this position."))
+            (error "Node line not found before this position"))
         (texinfo-update-the-node)
         (message "Done...updated the node.  You may save the buffer."))
     ;; else
     (let ((auto-fill-function nil)
-	  (auto-fill-hook nil)
-          (beginning (region-beginning))
-	  (end (region-end)))
-      (if (= end beginning)
-          (error "Please mark a region!"))
-      (save-restriction
-	(narrow-to-region beginning end)
-	(goto-char beginning)
-        (push-mark (point) t)
-	(while (re-search-forward "^@node" (point-max) t)
-          (beginning-of-line)            
-          (texinfo-update-the-node))
-        (message "Done...updated nodes in region.  You may save the buffer.")))))
+	  (auto-fill-hook nil))
+      (save-excursion
+	(save-restriction
+	  (narrow-to-region beginning end)
+	  (goto-char (point-min))
+	  (while (re-search-forward "^@node" (point-max) t)
+	    (beginning-of-line)            
+	    (texinfo-update-the-node))
+	  (goto-char (point-max))
+	  (message "Done...nodes updated in region.  You may save the buffer."))))))
 
 ;;;###autoload
 (defun texinfo-every-node-update ()
   "Update every node in a Texinfo file."
   (interactive)
   (save-excursion
-    (push-mark (point-max) t)
-    (goto-char (point-min))
-    ;; Using the mark to pass bounds this way
-    ;; is kludgy, but it's not worth fixing. -- rms.
-    (let ((mark-active t))
-      (texinfo-update-node t))
+    (texinfo-update-node (point-min) (point-max))
     (message "Done...updated every node.       You may save the buffer.")))
 
 (defun texinfo-update-the-node ()
