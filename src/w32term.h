@@ -646,6 +646,8 @@ extern CRITICAL_SECTION critsect;
 extern void init_crit ();
 extern void delete_crit ();
 
+extern void signal_quit ();
+
 #define enter_crit() EnterCriticalSection (&critsect)
 #define leave_crit() LeaveCriticalSection (&critsect)
 
