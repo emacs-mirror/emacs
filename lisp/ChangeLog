@@ -194,7 +194,7 @@
 2001-10-24  Sam Steingold  <sds@gnu.org>
 
 	* mouse.el (mouse-buffer-menu-mode-groups): Added "Version
-	Control" group.
+	Control" and "SGML" groups.
 
 2001-10-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 

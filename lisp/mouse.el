@@ -1514,7 +1514,8 @@ a large number if you prefer a mixed multitude.  The default is 4."
     ("ObjC" . "C")
     ("Text" . "Text")
     ("Outline" . "Text")
-    ("\\(log\\|diff\\|vc\\|cvs\\)" . "Version Control") ; "Change Management"?
+    ("\\(HT\\|SG\\|X\\|XHT\\)ML" . "SGML")
+    ("log\\|diff\\|vc\\|cvs" . "Version Control") ; "Change Management"?
     ("Lisp" . "Lisp"))
   "How to group various major modes together in \\[mouse-buffer-menu].
 Each element has the form (REGEXP . GROUPNAME).
