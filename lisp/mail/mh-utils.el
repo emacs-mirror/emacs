@@ -25,7 +25,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-utils.el,v 1.5 1995/04/25 22:27:45 kwzh Exp kwzh $
+;; $Id: mh-utils.el,v 1.6 1995/11/03 02:29:09 kwzh Exp kwzh $
 
 ;;; Code:
 
@@ -300,7 +300,7 @@ Type \"\\[mh-header-display]\" to see the message with all its headers."
 	   ;; Changing contents, so this hook needs to be reinitialized.
 	   ;; pgp.el uses this.
 	   (if (boundp 'write-contents-hooks) ;Emacs 19
-	       (setq write-contents-hooks nil))
+	       (kill-local-variable 'write-contents-hooks))
 	   (if formfile
 	       (mh-exec-lib-cmd-output "mhl" "-nobell" "-noclear"
 				       (if (stringp formfile)
