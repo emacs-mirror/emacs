@@ -1,12 +1,53 @@
+2001-12-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/antlr-mode.el (antlr-c-common-init): Undo last change.
+
 2001-12-02  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (insert-directory): If the df output does not look right,
 	don't try to use it.  Other cleanups in overall code structure.
 
+2001-12-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/outline.el (outline-mode-prefix-map):
+	Add bindings for outline-promote and outline-demote.
+	(outline-minor-mode-menu-bar-map): New var.
+	(outline-minor-mode): Use it.
+	(outline-heading-alist): New var (renamed from outline-level-heading).
+	(outline-level): Use it.
+	(outline-insert-heading, outline-promote, outline-demote):
+	Update to use outline-heading-alist.
+
+	* disp-table.el (standard-display-european):
+	Simplify since the function is not interactive any more.
+	Don't set the existing buffers to unibyte.
+
+	* pcvs-util.el (cvs-file-to-string): Move condition-case outside.
+
+	* pcvs.el (cvs-reread-cvsrc): Don't use cvs-file-to-string.
+
+	* reveal.el (reveal-mode): Fix reveal-mode's lighter.
+
+	* shell.el (shell): Use shell-file-name.
+	Pop to buffer before calling comint to set COLUMNS properly.
+
+	* emacs-lisp/cl.el (svref): New alias.
+
+	* progmodes/antlr-mode.el (antlr-c-common-init):
+	Don't inhibit adaptive-fill-mode any more.
+
+	* progmodes/delphi.el (delphi-mode): Don't use make-local-hook.
+
+	* progmodes/etags.el (tags-with-face): Use make-symbol.
+	(tags-search, tags-query-replace): Use backquotes.
+
+	* textmodes/picture.el (picture-mode-map): Don't use defconst
+	for a variable.
+
 2001-12-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* textmodes/reftex-index.el (reftex-index-mode): Remove
-	make-local-hook.
+	* textmodes/reftex-index.el (reftex-index-mode):
+	Remove make-local-hook.
 
 	* textmodes/reftex-toc.el (reftex-toc-mode): Likewise.
 
@@ -22,7 +63,7 @@
 	then do save-excursion, then move point.
 	Specify the buffer for get-char-property.
 	Don't use `@' in interactive.
-	
+
 	* indent.el (indent-line-function):
 	Default is indent-to-left-margin again.
 
