@@ -40,8 +40,8 @@ Boston, MA 02111-1307, USA.  */
 
 #endif /* not emacs */
 
-/* Where is stored translation tables for CCL program.  */
-Lisp_Object Vccl_translation_table_vector;
+/* This contains all code conversion map avairable to CCL.  */
+Lisp_Object Vcode_conversion_map_vector;
 
 /* Alist of fontname patterns vs corresponding CCL program.  */
 Lisp_Object Vfont_ccl_encoder_alist;
@@ -50,19 +50,14 @@ Lisp_Object Vfont_ccl_encoder_alist;
    Ex: (get 'ccl-big5-encoder 'ccl-program) returns ccl program vector.  */
 Lisp_Object Qccl_program;
 
-/* These symbols are properties which associate with ccl translation
-   tables and their ID respectively.  */
-Lisp_Object Qccl_translation_table;
-Lisp_Object Qccl_translation_table_id;
+/* These symbols are properties which associate with code conversion
+   map and their ID respectively.  */
+Lisp_Object Qcode_conversion_map;
+Lisp_Object Qcode_conversion_map_id;
 
 /* Symbols of ccl program have this property, a value of the property
    is an index for Vccl_protram_table. */
 Lisp_Object Qccl_program_idx;
-
-/* These symbols are properties which associate with character
-   unification tables and their ID respectively.  */
-Lisp_Object Qunification_table;
-Lisp_Object Qunification_table_id;
 
 /* Vector of CCL program names vs corresponding program data.  */
 Lisp_Object Vccl_program_table;
@@ -446,126 +441,128 @@ Lisp_Object Vccl_program_table;
 #define CCL_WriteMultibyteChar2	0x01 /* Write Multibyte Character
 					1:ExtendedCOMMNDRrrRRRrrrXXXXX  */
 
-/* Unify a character whose code point is reg[rrr] the charset ID is
-   reg[RRR] with a unification table whose ID is reg[Rrr].
+/* Translate a character whose code point is reg[rrr] and the charset
+   ID is reg[RRR] by a character translation table whose ID is
+   reg[Rrr].
 
-   A unified character is set in reg[rrr] (code point) and reg[RRR]
+   A translated character is set in reg[rrr] (code point) and reg[RRR]
    (charset ID).  */
 
-#define CCL_UnifyCharacter	0x02 /* Unify Multibyte Character
+#define CCL_TranslateCharacter	0x02 /* Translate a multibyte character
 					1:ExtendedCOMMNDRrrRRRrrrXXXXX  */
 
-/* Unify a character whose code point is reg[rrr] and the charset ID
-   is reg[RRR] with a unification table whose ID is ARGUMENT.
+/* Translate a character whose code point is reg[rrr] and the charset
+   ID is reg[RRR] by a character translation table whose ID is
+   ARGUMENT.
 
-   A unified character is set in reg[rrr] (code point) and reg[RRR]
+   A translated character is set in reg[rrr] (code point) and reg[RRR]
    (charset ID).  */
 
-#define CCL_UnifyCharacterConstTbl 0x03 /* Unify Multibyte Character
-					   1:ExtendedCOMMNDRrrRRRrrrXXXXX
-					   2:ARGUMENT(Unification Table ID)
-					*/
+#define CCL_TranslateCharacterConstTbl 0x03 /* Translate a multibyte character
+					       1:ExtendedCOMMNDRrrRRRrrrXXXXX
+					       2:ARGUMENT(Translation Table ID)
+					    */
 
-/* Iterate looking up TABLEs for reg[rrr] starting from the Nth (N =
-   reg[RRR]) TABLE until some value is found.
+/* Iterate looking up MAPs for reg[rrr] starting from the Nth (N =
+   reg[RRR]) MAP until some value is found.
 
-   Each TABLE is a Lisp vector whose element is number, nil, t, or
+   Each MAP is a Lisp vector whose element is number, nil, t, or
    lambda.
-   If the element is nil, ignore the table and proceed to the next table.
+   If the element is nil, ignore the map and proceed to the next map.
    If the element is t or lambda, finish without changing reg[rrr].
    If the element is a number, set reg[rrr] to the number and finish.
 
-   Detail of the table structure is descibed in the comment for
-   CCL_TranslateMultipleMap below.  */
+   Detail of the map structure is descibed in the comment for
+   CCL_MapMultiple below.  */
 
-#define CCL_IterateMultipleMap	0x10 /* Iterate Multiple Map
+#define CCL_IterateMultipleMap	0x10 /* Iterate multiple maps
 					1:ExtendedCOMMNDXXXRRRrrrXXXXX
-					2:NUMBER of TABLEs
-					3:TABLE-ID1
-					4:TABLE-ID2
+					2:NUMBER of MAPs
+					3:MAP-ID1
+					4:MAP-ID2
 					...
 				     */ 
 
-/* Translate code point reg[rrr] by TABLEs starting from the Nth (N =
-   reg[RRR]) table.
+/* Map the code in reg[rrr] by MAPs starting from the Nth (N =
+   reg[RRR]) map.
 
-   TABLEs are suppried in the succeeding CCL codes as follows:
+   MAPs are suppried in the succeeding CCL codes as follows:
 
-   When CCL program gives this nested structure of table to this command:
-	((TABLE-ID11
-	  TABLE-ID12
-	  (TABLE-ID121 TABLE-ID122 TABLE-ID123)
-	  TABLE-ID13)
-	 (TABLE-ID21
-	  (TABLE-ID211 (TABLE-ID2111) TABLE-ID212)
-	  TABLE-ID22)),
+   When CCL program gives this nested structure of map to this command:
+	((MAP-ID11
+	  MAP-ID12
+	  (MAP-ID121 MAP-ID122 MAP-ID123)
+	  MAP-ID13)
+	 (MAP-ID21
+	  (MAP-ID211 (MAP-ID2111) MAP-ID212)
+	  MAP-ID22)),
    the compiled CCL codes has this sequence:
-	CCL_TranslateMultipleMap (CCL code of this command)
-	16 (total number of TABLEs and SEPARATERs)
+	CCL_MapMultiple (CCL code of this command)
+	16 (total number of MAPs and SEPARATERs)
 	-7 (1st SEPARATER)
-	TABLE-ID11
-	TABLE-ID12
+	MAP-ID11
+	MAP-ID12
 	-3 (2nd SEPARATER)
-	TABLE-ID121
-	TABLE-ID122
-	TABLE-ID123
-	TABLE-ID13
+	MAP-ID121
+	MAP-ID122
+	MAP-ID123
+	MAP-ID13
 	-7 (3rd SEPARATER)
-	TABLE-ID21
+	MAP-ID21
 	-4 (4th SEPARATER)
-	TABLE-ID211
+	MAP-ID211
 	-1 (5th SEPARATER)
-	TABLE_ID2111
-	TABLE-ID212
-	TABLE-ID22
+	MAP_ID2111
+	MAP-ID212
+	MAP-ID22
 
    A value of each SEPARATER follows this rule:
-	TABLE-SET := SEPARATOR [(TABLE-ID | TABLE-SET)]+
-	SEPARATOR := -(number of TABLE-IDs and SEPARATORs in the TABLE-SET)
+	MAP-SET := SEPARATOR [(MAP-ID | MAP-SET)]+
+	SEPARATOR := -(number of MAP-IDs and SEPARATORs in the MAP-SET)
 
-   (*)....Nest level of TABLE-SET must not be over than MAX_TABLE_SET_LEVEL.
+   (*)....Nest level of MAP-SET must not be over than MAX_MAP_SET_LEVEL.
 
-   When some table fails to translate (i.e. it doesn't have a value
-   for reg[rrr]), the translation is treated as identity.
+   When some map fails to map (i.e. it doesn't have a value for
+   reg[rrr]), the mapping is treated as identity.
 
-   The translation is iterated for all tables in each table set (set
-   of tables separators by a SEPARATOR) except the case that lambda is
+   The mapping is iterated for all maps in each map set (set of maps
+   separators by a SEPARATOR) except the case that lambda is
    encountered (see below).
 
-   Each table is a Lisp vector of the following format (a) or (b):
+   Each map is a Lisp vector of the following format (a) or (b):
 	(a)......[STARTPOINT VAL1 VAL2 ...]
 	(b)......[t VAL STARTPOINT ENDPOINT],
    where
-	STARTPOINT is an offset to be used for indexing a table,
-	ENDPOINT is a maxmum index number of a table,
+	STARTPOINT is an offset to be used for indexing a map,
+	ENDPOINT is a maxmum index number of a map,
 	VAL and VALn is a number, nil, t, or lambda.  
 
-   Valid index range of a table of type (a) is:
-	STARTPOINT <= index < STARTPOINT + table_size - 1
-   Valid index range of a table of type (b) is:
+   Valid index range of a map of type (a) is:
+	STARTPOINT <= index < STARTPOINT + map_size - 1
+   Valid index range of a map of type (b) is:
 	STARTPOINT <= index < ENDPOINT
 
-   If VALn is nil, the table is ignored and translation proceed to the
-   next table.
+   If VALn is nil, the map is ignored and mapping proceed to the next
+   map.
    In VALn is t, reg[rrr] is reverted to the original value and
-   translation proceed to the next table.
-   If VALn is lambda, translation in the current TABLE-SET finishes
-   and proceed to the upper level TABLE-SET.  */
+   mapping proceed to the next map.
+   If VALn is lambda, mapping in the current MAP-SET finishes
+   and proceed to the upper level MAP-SET.  */
 
-#define CCL_TranslateMultipleMap 0x11 /* Translate Multiple Map
+#define CCL_MapMultiple 0x11	/* Mapping by multiple code conversion maps
 					 1:ExtendedCOMMNDXXXRRRrrrXXXXX
 					 2:N-2
 					 3:SEPARATOR_1 (< 0)
-					 4:TABLE-ID_1
-					 5:TABLE-ID_2
+					 4:MAP-ID_1
+					 5:MAP-ID_2
 					 ...
 					 M:SEPARATOR_x (< 0)
-					 M+1:TABLE-ID_y
+					 M+1:MAP-ID_y
 					 ...
 					 N:SEPARATOR_z (< 0)
 				      */
 
-#define MAX_TABLE_SET_LEVEL 20
+#define MAX_MAP_SET_LEVEL 20
 
 typedef struct
 {
@@ -573,29 +570,29 @@ typedef struct
   int orig_val;
 } tr_stack;
 
-static tr_stack translate_stack[MAX_TABLE_SET_LEVEL];
-static tr_stack *translate_stack_pointer;
+static tr_stack mapping_stack[MAX_MAP_SET_LEVEL];
+static tr_stack *mapping_stack_pointer;
 
-#define PUSH_TRANSLATE_STACK(restlen, orig)                 \
+#define PUSH_MAPPING_STACK(restlen, orig)                 \
 {                                                           \
-  translate_stack_pointer->rest_length = (restlen);         \
-  translate_stack_pointer->orig_val = (orig);               \
-  translate_stack_pointer++;                                \
+  mapping_stack_pointer->rest_length = (restlen);         \
+  mapping_stack_pointer->orig_val = (orig);               \
+  mapping_stack_pointer++;                                \
 }
 
-#define POP_TRANSLATE_STACK(restlen, orig)                  \
+#define POP_MAPPING_STACK(restlen, orig)                  \
 {                                                           \
-  translate_stack_pointer--;                                \
-  (restlen) = translate_stack_pointer->rest_length;         \
-  (orig) = translate_stack_pointer->orig_val;               \
+  mapping_stack_pointer--;                                \
+  (restlen) = mapping_stack_pointer->rest_length;         \
+  (orig) = mapping_stack_pointer->orig_val;               \
 }                                                           \
 
-#define CCL_TranslateSingleMap	0x12 /* Translate Single Map
+#define CCL_MapSingle		0x12 /* Map by single code conversion map
 					1:ExtendedCOMMNDXXXRRRrrrXXXXX
-					2:TABLE-ID
+					2:MAP-ID
 					------------------------------
-					Translate reg[rrr] by TABLE-ID.
-					If some valid translation is found,
+					Map reg[rrr] by MAP-ID.
+					If some valid mapping is found,
 					  set reg[rrr] to the result,
 					else
 					  set reg[RRR] to -1.
@@ -1205,7 +1202,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 
 	      break;
 
-	    case CCL_UnifyCharacter:
+	    case CCL_TranslateCharacter:
 	      i = reg[RRR]; /* charset */
 	      if (i == CHARSET_ASCII)
 		i = reg[rrr] & 0x7F;
@@ -1221,7 +1218,8 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	      else
 		i = ((i - 0xE0) << 14) | (reg[rrr] & 0x3FFF);
 
-	      op = unify_char (UNIFICATION_ID_TABLE (reg[Rrr]), i, -1, 0, 0);
+	      op = translate_char (GET_TRANSLATION_TABLE (reg[Rrr]),
+				   i, -1, 0, 0);
 	      SPLIT_CHAR (op, reg[RRR], i, j);
 	      if (j != -1)
 		i = (i << 7) | j;
@@ -1229,7 +1227,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	      reg[rrr] = i;
 	      break;
 
-	    case CCL_UnifyCharacterConstTbl:
+	    case CCL_TranslateCharacterConstTbl:
 	      op = XINT (ccl_prog[ic]); /* table */
 	      ic++;
 	      i = reg[RRR]; /* charset */
@@ -1247,7 +1245,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	      else
 		i = ((i - 0xE0) << 14) | (reg[rrr] & 0x3FFF);
 
-	      op = unify_char (UNIFICATION_ID_TABLE (op), i, -1, 0, 0);
+	      op = translate_char (GET_TRANSLATION_TABLE (op), i, -1, 0, 0);
 	      SPLIT_CHAR (op, reg[RRR], i, j);
 	      if (j != -1)
 		i = (i << 7) | j;
@@ -1257,10 +1255,10 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 
 	    case CCL_IterateMultipleMap:
 	      {
-		Lisp_Object table, content, attrib, value;
+		Lisp_Object map, content, attrib, value;
 		int point, size, fin_ic;
 
-		j = XINT (ccl_prog[ic++]); /* number of tables. */
+		j = XINT (ccl_prog[ic++]); /* number of maps. */
 		fin_ic = ic + j;
 		op = reg[rrr];
 		if ((j > reg[RRR]) && (j >= 0))
@@ -1278,22 +1276,22 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		for (;i < j;i++)
 		  {
 
-		    size = XVECTOR (Vccl_translation_table_vector)->size;
+		    size = XVECTOR (Vcode_conversion_map_vector)->size;
 		    point = XINT (ccl_prog[ic++]);
 		    if (point >= size) continue;
-		    table =
-		      XVECTOR (Vccl_translation_table_vector)->contents[point];
+		    map =
+		      XVECTOR (Vcode_conversion_map_vector)->contents[point];
 
-		    /* Check table varidity.  */
-		    if (!CONSP (table)) continue;
-		    table = XCONS(table)->cdr;
-		    if (!VECTORP (table)) continue;
-		    size = XVECTOR (table)->size;
+		    /* Check map varidity.  */
+		    if (!CONSP (map)) continue;
+		    map = XCONS(map)->cdr;
+		    if (!VECTORP (map)) continue;
+		    size = XVECTOR (map)->size;
 		    if (size <= 1) continue;
 
-		    content = XVECTOR (table)->contents[0];
+		    content = XVECTOR (map)->contents[0];
 
-		    /* check table type,
+		    /* check map type,
 		       [STARTPOINT VAL1 VAL2 ...] or
 		       [t ELELMENT STARTPOINT ENDPOINT]  */
 		    if (NUMBERP (content))
@@ -1301,14 +1299,14 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 			point = XUINT (content);
 			point = op - point + 1;
 			if (!((point >= 1) && (point < size))) continue;
-			content = XVECTOR (table)->contents[point];
+			content = XVECTOR (map)->contents[point];
 		      }
 		    else if (EQ (content, Qt))
 		      {
 			if (size != 4) continue;
-			if ((op >= XUINT (XVECTOR (table)->contents[2]))
-			    && (op < XUINT (XVECTOR (table)->contents[3])))
-			  content = XVECTOR (table)->contents[1];
+			if ((op >= XUINT (XVECTOR (map)->contents[2]))
+			    && (op < XUINT (XVECTOR (map)->contents[3])))
+			  content = XVECTOR (map)->contents[1];
 			else
 			  continue;
 		      }
@@ -1345,20 +1343,20 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	      }
 	      break;
 	      
-	    case CCL_TranslateMultipleMap:
+	    case CCL_MapMultiple:
 	      {
-		Lisp_Object table, content, attrib, value;
-		int point, size, table_vector_size;
-		int table_set_rest_length, fin_ic;
+		Lisp_Object map, content, attrib, value;
+		int point, size, map_vector_size;
+		int map_set_rest_length, fin_ic;
 
-		table_set_rest_length =
-		  XINT (ccl_prog[ic++]); /* number of tables and separators. */
-		fin_ic = ic + table_set_rest_length;
-		if ((table_set_rest_length > reg[RRR]) && (reg[RRR] >= 0))
+		map_set_rest_length =
+		  XINT (ccl_prog[ic++]); /* number of maps and separators. */
+		fin_ic = ic + map_set_rest_length;
+		if ((map_set_rest_length > reg[RRR]) && (reg[RRR] >= 0))
 		  {
 		    ic += reg[RRR];
 		    i = reg[RRR];
-		    table_set_rest_length -= i;
+		    map_set_rest_length -= i;
 		  }
 		else
 		  {
@@ -1366,44 +1364,43 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		    reg[RRR] = -1;
 		    break;
 		  }
-		translate_stack_pointer = translate_stack;
+		mapping_stack_pointer = mapping_stack;
 		op = reg[rrr];
-		PUSH_TRANSLATE_STACK (0, op);
+		PUSH_MAPPING_STACK (0, op);
 		reg[RRR] = -1;
-		table_vector_size
-		  = XVECTOR (Vccl_translation_table_vector)->size;
-		for (;table_set_rest_length > 0;i++, table_set_rest_length--)
+		map_vector_size = XVECTOR (Vcode_conversion_map_vector)->size;
+		for (;map_set_rest_length > 0;i++, map_set_rest_length--)
 		  {
 		    point = XINT(ccl_prog[ic++]);
 		    if (point < 0)
 		      {
 			point = -point;
-			if (translate_stack_pointer
-			    >= &translate_stack[MAX_TABLE_SET_LEVEL])
+			if (mapping_stack_pointer
+			    >= &mapping_stack[MAX_MAP_SET_LEVEL])
 			  {
 			    CCL_INVALID_CMD;
 			  }
-			PUSH_TRANSLATE_STACK (table_set_rest_length - point,
-					      reg[rrr]);
-			table_set_rest_length = point + 1;
+			PUSH_MAPPING_STACK (map_set_rest_length - point,
+					    reg[rrr]);
+			map_set_rest_length = point + 1;
 			reg[rrr] = op;
 			continue;
 		      }
 
-		    if (point >= table_vector_size) continue;
-		    table =
-		      XVECTOR (Vccl_translation_table_vector)->contents[point];
+		    if (point >= map_vector_size) continue;
+		    map = (XVECTOR (Vcode_conversion_map_vector)
+			   ->contents[point]);
 
-		    /* Check table varidity.  */
-		    if (!CONSP (table)) continue;
-		    table = XCONS (table)->cdr;
-		    if (!VECTORP (table)) continue;
-		    size = XVECTOR (table)->size;
+		    /* Check map varidity.  */
+		    if (!CONSP (map)) continue;
+		    map = XCONS (map)->cdr;
+		    if (!VECTORP (map)) continue;
+		    size = XVECTOR (map)->size;
 		    if (size <= 1) continue;
 
-		    content = XVECTOR (table)->contents[0];
+		    content = XVECTOR (map)->contents[0];
 
-		    /* check table type,
+		    /* check map type,
 		       [STARTPOINT VAL1 VAL2 ...] or
 		       [t ELEMENT STARTPOINT ENDPOINT]  */
 		    if (NUMBERP (content))
@@ -1411,14 +1408,14 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 			point = XUINT (content);
 			point = op - point + 1;
 			if (!((point >= 1) && (point < size))) continue;
-			content = XVECTOR (table)->contents[point];
+			content = XVECTOR (map)->contents[point];
 		      }
 		    else if (EQ (content, Qt))
 		      {
 			if (size != 4) continue;
-			if ((op >= XUINT (XVECTOR (table)->contents[2])) &&
-			    (op < XUINT (XVECTOR (table)->contents[3])))
-			  content = XVECTOR (table)->contents[1];
+			if ((op >= XUINT (XVECTOR (map)->contents[2])) &&
+			    (op < XUINT (XVECTOR (map)->contents[3])))
+			  content = XVECTOR (map)->contents[1];
 			else
 			  continue;
 		      }
@@ -1431,8 +1428,8 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		      {
 			op = XINT (content);
 			reg[RRR] = i;
-			i += table_set_rest_length;
-			POP_TRANSLATE_STACK (table_set_rest_length, reg[rrr]);
+			i += map_set_rest_length;
+			POP_MAPPING_STACK (map_set_rest_length, reg[rrr]);
 		      }
 		    else if (CONSP (content))
 		      {
@@ -1442,15 +1439,15 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 			  continue;
 			reg[RRR] = i;
 			op = XUINT (value);
-			i += table_set_rest_length;
-			POP_TRANSLATE_STACK (table_set_rest_length, reg[rrr]);
+			i += map_set_rest_length;
+			POP_MAPPING_STACK (map_set_rest_length, reg[rrr]);
 		      }
 		    else if (EQ (content, Qt))
 		      {
 			reg[RRR] = i;
 			op = reg[rrr];
-			i += table_set_rest_length;
-			POP_TRANSLATE_STACK (table_set_rest_length, reg[rrr]);
+			i += map_set_rest_length;
+			POP_MAPPING_STACK (map_set_rest_length, reg[rrr]);
 		      }
 		    else if (EQ (content, Qlambda))
 		      {
@@ -1464,31 +1461,31 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	      reg[rrr] = op;
 	      break;
 
-	    case CCL_TranslateSingleMap:
+	    case CCL_MapSingle:
 	      {
-		Lisp_Object table, attrib, value, content;
+		Lisp_Object map, attrib, value, content;
 		int size, point;
-		j = XINT (ccl_prog[ic++]); /* table_id */
+		j = XINT (ccl_prog[ic++]); /* map_id */
 		op = reg[rrr];
-		if (j >= XVECTOR (Vccl_translation_table_vector)->size)
+		if (j >= XVECTOR (Vcode_conversion_map_vector)->size)
 		  {
 		    reg[RRR] = -1;
 		    break;
 		  }
-		table = XVECTOR (Vccl_translation_table_vector)->contents[j];
-		if (!CONSP (table))
+		map = XVECTOR (Vcode_conversion_map_vector)->contents[j];
+		if (!CONSP (map))
 		  {
 		    reg[RRR] = -1;
 		    break;
 		  }
-		table = XCONS(table)->cdr;
-		if (!VECTORP (table))
+		map = XCONS(map)->cdr;
+		if (!VECTORP (map))
 		  {
 		    reg[RRR] = -1;
 		    break;
 		  }
-		size = XVECTOR (table)->size;
-		point = XUINT (XVECTOR (table)->contents[0]);
+		size = XVECTOR (map)->size;
+		point = XUINT (XVECTOR (map)->contents[0]);
 		point = op - point + 1;
 		reg[RRR] = 0;
 		if ((size <= 1) ||
@@ -1496,7 +1493,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		  reg[RRR] = -1;
 		else
 		  {
-		    content = XVECTOR (table)->contents[point];
+		    content = XVECTOR (map)->contents[point];
 		    if (NILP (content))
 		      reg[RRR] = -1;
 		    else if (NUMBERP (content))
@@ -1614,8 +1611,8 @@ setup_ccl_program (ccl, vec)
 }
 
 /* Resolve symbols in the specified CCL code (Lisp vector).  This
-   function converts translation-table and unification-table symbols
-   embeded in the CCL code into their ID numbers.  */
+   function converts symbols of code conversion maps and character
+   translation tables embeded in the CCL code into their ID numbers.  */
 
 Lisp_Object
 resolve_symbol_ccl_program (ccl)
@@ -1636,13 +1633,13 @@ resolve_symbol_ccl_program (ccl)
 	  if (EQ(result, ccl))
 	    result = Fcopy_sequence (ccl);
 
-	  prop = Fget (contents, Qunification_table_id);
+	  prop = Fget (contents, Qcharacter_translation_table_id);
 	  if (NUMBERP (prop))
 	    {
 	      XVECTOR (result)->contents[i] = prop;
 	      continue;
 	    }
-	  prop = Fget (contents, Qccl_translation_table_id);
+	  prop = Fget (contents, Qcode_conversion_map_id);
 	  if (NUMBERP (prop))
 	    {
 	      XVECTOR (result)->contents[i] = prop;
@@ -1860,34 +1857,33 @@ Return index number of the registered CCL program.")
   return make_number (i);
 }
 
-/* register CCL translation table.
-   CCL translation table consists of numbers and Qt and Qnil and Qlambda.
+/* Register code conversion map.
+   A code conversion map consists of numbers, Qt, Qnil, and Qlambda.
    The first element is start code point.
-   The rest elements are translated numbers.
-   Qt shows that an original number before translation.
-   Qnil shows that an empty element.
-   Qlambda makes translation stopped.
+   The rest elements are mapped numbers.
+   Symbol t means to map to an original number before mapping.
+   Symbol nil means that the corresponding element is empty.
+   Symbol lambda menas to terminate mapping here.
 */
 
-DEFUN ("register-ccl-translation-table", Fregister_ccl_translation_table,
-       Sregister_ccl_translation_table,
+DEFUN ("register-code-conversion-map", Fregister_code_conversion_map,
+       Sregister_code_conversion_map,
        2, 2, 0,
-  "Register CCL translation table.\n\
-TABLE should be a vector. SYMBOL is used for pointing the translation table out.\n\
-Return index number of the registered translation table.")
-  (symbol, table)
-     Lisp_Object symbol, table;
+  "Register SYMBOL as code conversion map MAP.\n\
+Return index number of the registered map.")
+  (symbol, map)
+     Lisp_Object symbol, map;
 {
-  int len = XVECTOR (Vccl_translation_table_vector)->size;
+  int len = XVECTOR (Vcode_conversion_map_vector)->size;
   int i;
   Lisp_Object index;
 
   CHECK_SYMBOL (symbol, 0);
-  CHECK_VECTOR (table, 1);
+  CHECK_VECTOR (map, 1);
   
   for (i = 0; i < len; i++)
     {
-      Lisp_Object slot = XVECTOR (Vccl_translation_table_vector)->contents[i];
+      Lisp_Object slot = XVECTOR (Vcode_conversion_map_vector)->contents[i];
 
       if (!CONSP (slot))
 	break;
@@ -1895,9 +1891,9 @@ Return index number of the registered translation table.")
       if (EQ (symbol, XCONS (slot)->car))
 	{
 	  index = make_number (i);
-	  XCONS (slot)->cdr = table;
-	  Fput (symbol, Qccl_translation_table, table);
-	  Fput (symbol, Qccl_translation_table_id, index);
+	  XCONS (slot)->cdr = map;
+	  Fput (symbol, Qcode_conversion_map, map);
+	  Fput (symbol, Qcode_conversion_map_id, index);
 	  return index;
 	}
     }
@@ -1909,14 +1905,14 @@ Return index number of the registered translation table.")
 
       for (j = 0; j < len; j++)
 	XVECTOR (new_vector)->contents[j]
-	  = XVECTOR (Vccl_translation_table_vector)->contents[j];
-      Vccl_translation_table_vector = new_vector;
+	  = XVECTOR (Vcode_conversion_map_vector)->contents[j];
+      Vcode_conversion_map_vector = new_vector;
     }
 
   index = make_number (i);
-  Fput (symbol, Qccl_translation_table, table);
-  Fput (symbol, Qccl_translation_table_id, index);
-  XVECTOR (Vccl_translation_table_vector)->contents[i] = Fcons (symbol, table);
+  Fput (symbol, Qcode_conversion_map, map);
+  Fput (symbol, Qcode_conversion_map_id, index);
+  XVECTOR (Vcode_conversion_map_vector)->contents[i] = Fcons (symbol, map);
   return index;
 }
 
@@ -1933,22 +1929,15 @@ syms_of_ccl ()
   Qccl_program_idx = intern ("ccl-program-idx");
   staticpro (&Qccl_program_idx);
 
-  Qccl_translation_table = intern ("ccl-translation-table");
-  staticpro (&Qccl_translation_table);
+  Qcode_conversion_map = intern ("code-conversion-map");
+  staticpro (&Qcode_conversion_map);
 
-  Qccl_translation_table_id = intern ("ccl-translation-table-id");
-  staticpro (&Qccl_translation_table_id);
+  Qcode_conversion_map_id = intern ("code-conversion-map-id");
+  staticpro (&Qcode_conversion_map_id);
 
-  Qunification_table = intern ("unification-table");
-  staticpro (&Qunification_table);
-
-  Qunification_table_id = intern ("unification-table-id");
-  staticpro (&Qunification_table_id);
-
-  DEFVAR_LISP ("ccl-translation-table-vector", &Vccl_translation_table_vector,
-    "Where is stored translation tables for CCL program.\n\
-Because CCL program can't access these tables except by the index of the vector.");
-  Vccl_translation_table_vector = Fmake_vector (make_number (16), Qnil);
+  DEFVAR_LISP ("code-conversion-map-vector", &Vcode_conversion_map_vector,
+    "Vector of code conversion maps.");
+  Vcode_conversion_map_vector = Fmake_vector (make_number (16), Qnil);
 
   DEFVAR_LISP ("font-ccl-encoder-alist", &Vfont_ccl_encoder_alist,
     "Alist of fontname patterns vs corresponding CCL program.\n\
@@ -1966,7 +1955,7 @@ If the font is single-byte font, the register R2 is not used.");
   defsubr (&Sccl_execute);
   defsubr (&Sccl_execute_on_string);
   defsubr (&Sregister_ccl_program);
-  defsubr (&Sregister_ccl_translation_table);
+  defsubr (&Sregister_code_conversion_map);
 }
 
 #endif  /* emacs */
