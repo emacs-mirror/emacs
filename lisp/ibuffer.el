@@ -1276,11 +1276,16 @@ become unmarked."
 
 (defun ibuffer-compile-format (format)
   (let ((result nil)
-	str-used
-	tmp1-used tmp2-used global-strlen-used)
+	;; We use these variables to keep track of which variables
+	;; inside the generated function we need to bind, since
+	;; binding variables in Emacs takes time.
+	str-used tmp1-used tmp2-used global-strlen-used)
     (dolist (form format)
       (push
+       ;; Generate a form based on a particular format entry, like
+       ;; " ", mark, or (mode 16 16 :right).
        (if (stringp form)
+	   ;; It's a string; all we need to do is insert it.
 	   `(insert ,form)
 	 (let* ((form (ibuffer-expand-format-entry form))
 		(sym (nth 0 form))
@@ -1297,9 +1302,12 @@ become unmarked."
 		  maxform
 		  min-used max-used strlen-used)
 	     (when (or (not (integerp min)) (>= min 0))
+	       ;; This is a complex case; they want it limited to a
+	       ;; minimum size.
 	       (setq min-used t)
 	       (setq str-used t strlen-used t global-strlen-used t
 		     tmp1-used t tmp2-used t)
+	       ;; Generate code to limit the string to a minimum size.
 	       (setq minform `(progn
 				(setq str
 				      ,(ibuffer-compile-make-format-form
@@ -1311,6 +1319,7 @@ become unmarked."
 					align)))))
 	     (when (or (not (integerp max)) (> max 0))
 	       (setq str-used t max-used t)
+	       ;; Generate code to limit the string to a maximum size.
 	       (setq maxform `(progn
 				(setq str
 				      ,(ibuffer-compile-make-substring-form
@@ -1324,9 +1333,29 @@ become unmarked."
 				      ,(ibuffer-compile-make-eliding-form 'str
 									  elide
 									  from-end-p)))))
-	     (let ((callform (ibuffer-aif (assq sym ibuffer-inline-columns)
-					  (nth 1 it)
-					  `(,sym buffer mark)))
+	     ;; Now, put these forms together with the rest of the code.
+	     (let ((callform
+		    ;; Is this an "inline" column?  This means we have
+		    ;; to get the code from the
+		    ;; `ibuffer-inline-columns' alist and insert it
+		    ;; into our generated code.  Otherwise, we just
+		    ;; generate a call to the column function.
+		    (ibuffer-aif (assq sym ibuffer-inline-columns)
+				 (nth 1 it)
+				 `(,sym buffer mark)))
+		   ;; You're not expected to understand this.  Hell, I
+		   ;; don't even understand it, and I wrote it five
+		   ;; minutes ago.
+		   (insertgenfn (ibuffer-aif (get sym 'ibuffer-column-summarizer)
+				  ;; I really, really wish Emacs Lisp had closures.
+				  (lambda (arg sym)
+				    `(insert
+				      (let ((ret ,arg))
+					(put ',sym 'ibuffer-column-summary
+					     (cons ret (get ',sym 'ibuffer-column-summary)))
+					ret)))
+				  (lambda (arg sym)
+				    `(insert ,arg))))
 		   (mincompform `(< strlen ,(if (integerp min)
 						min
 					      'min)))
@@ -1334,6 +1363,8 @@ become unmarked."
 						max
 					      'max))))
 		 (if (or min-used max-used)
+		     ;; The complex case, where we have to limit the
+		     ;; form to a maximum or minimum size.
 		     (progn
 		       (when (and min-used (not (integerp min)))
 			 (push `(min ,min) letbindings))
@@ -1357,16 +1388,24 @@ become unmarked."
 				`(strlen (length str))))
 			     outforms)
 		       (setq outforms
-			     (append outforms `((insert str)))))
-		   (push `(insert ,callform) outforms))
+			     (append outforms (list (funcall insertgenfn 'str sym)))))
+		   ;; The simple case; just insert the string.
+		   (push (funcall insertgenfn callform sym) outforms))
+		 ;; Finally, return a `let' form which binds the
+		 ;; variables in `letbindings', and contains all the
+		 ;; code in `outforms'.
 		 `(let ,letbindings
 		    ,@outforms)))))
        result))
     (setq result
+	  ;; We don't want to unconditionally load the byte-compiler.
 	  (funcall (if (or ibuffer-always-compile-formats
 			   (featurep 'bytecomp))
 		       #'byte-compile
 		     #'identity)
+		   ;; Here, we actually create a lambda form which
+		   ;; inserts all the generated forms for each entry
+		   ;; in the format string.
 		   (nconc (list 'lambda '(buffer mark))
 			  `((let ,(append (when str-used
 					    '(str))
@@ -1397,6 +1436,12 @@ become unmarked."
 				    (cdr entry))))
 		  ibuffer-filter-format-alist))))
 
+(defun ibuffer-clear-summary-columns (format)
+  (dolist (form format)
+    (ibuffer-awhen (and (consp form)
+			(get (car form) 'ibuffer-column-summarizer))
+      (put (car form) 'ibuffer-column-summary nil))))
+  
 (defun ibuffer-check-formats ()
   (when (null ibuffer-formats)
     (error "No formats!"))
@@ -1483,7 +1528,8 @@ become unmarked."
       (while (< (point) end)
 	(if (get-text-property (point) 'ibuffer-title-header)
 	    (put-text-property (point) (line-end-position) 'face ibuffer-title-face)
-	  (unless (get-text-property (point) 'ibuffer-title)
+	  (unless (or (get-text-property (point) 'ibuffer-title)
+		      (get-text-property (point) 'ibuffer-summary))
 	    (multiple-value-bind (buf mark)
 		(get-text-property (point) 'ibuffer-properties)
 	      (let* ((namebeg (next-single-property-change (point) 'ibuffer-name-column
@@ -1521,27 +1567,30 @@ become unmarked."
   "Insert a line describing BUFFER and MARK using FORMAT."
   (assert (eq major-mode 'ibuffer-mode))
   (let ((beg (point)))
-    ;; Here we inhibit `syntax-ppss-after-change-function' and other
-    ;; things font-lock uses.  Otherwise, updating is slowed down dramatically.
     (funcall format buffer mark)
-    (put-text-property beg (point) 'ibuffer-properties (list buffer mark))
-    (insert "\n")
-    (goto-char beg)))
+    (put-text-property beg (point) 'ibuffer-properties (list buffer mark)))
+  (insert "\n"))
 
+;; This function knows a bit too much of the internals.  It would be
+;; nice if it was all abstracted away into
+;; `ibuffer-insert-buffers-and-marks'.
 (defun ibuffer-redisplay-current ()
   (assert (eq major-mode 'ibuffer-mode))
   (when (eobp)
     (forward-line -1))
   (beginning-of-line)
-  (let ((buf (ibuffer-current-buffer)))
-    (when buf
-      (let ((mark (ibuffer-current-mark)))
-	(delete-region (point) (1+ (line-end-position)))
-	(ibuffer-insert-buffer-line
-	 buf mark
-	 (ibuffer-current-format))
-	(when ibuffer-shrink-to-minimum-size
-	  (ibuffer-shrink-to-fit))))))
+  (let ((curformat (mapcar #'ibuffer-expand-format-entry
+			   (ibuffer-current-format t))))
+    (ibuffer-clear-summary-columns curformat)
+    (let ((buf (ibuffer-current-buffer)))
+      (when buf
+	(let ((mark (ibuffer-current-mark)))
+	  (delete-region (point) (1+ (line-end-position)))
+	  (ibuffer-insert-buffer-line
+	   buf mark
+	   (ibuffer-current-format))
+	  (when ibuffer-shrink-to-minimum-size
+	    (ibuffer-shrink-to-fit)))))))
    
 (defun ibuffer-map-on-mark (mark func)
   (ibuffer-map-lines
@@ -1569,7 +1618,8 @@ current mark symbol, and the beginning and ending line positions."
            (while (and (get-text-property (point) 'ibuffer-title)
                        (not (eobp)))
              (forward-line 1))
-           (while (not (eobp))
+           (while (and (not (eobp))
+		       (not (get-text-property (point) 'ibuffer-summary)))
              (let ((result
                     (if (buffer-live-p (ibuffer-current-buffer))
                         (save-excursion
@@ -1704,7 +1754,7 @@ If optional argument INCLUDE-LINES is non-nil, return a list like
   (ibuffer-update-format)
   (ibuffer-redisplay t))
 
-(defun ibuffer-update-title (format)
+(defun ibuffer-update-title-and-summary (format)
   (assert (eq major-mode 'ibuffer-mode))
   ;; Don't do funky font-lock stuff here
   (let ((after-change-functions nil))
@@ -1718,7 +1768,7 @@ If optional argument INCLUDE-LINES is non-nil, return a list like
      (progn
        (let ((opos (point)))
 	 ;; Insert the title names.
-	 (dolist (element (mapcar #'ibuffer-expand-format-entry format))
+	 (dolist (element format)
 	   (insert
 	    (if (stringp element)
 		element
@@ -1732,12 +1782,11 @@ If optional argument INCLUDE-LINES is non-nil, return a list like
 		(let* ((name (or (get sym 'ibuffer-column-name)
 				 (error "Unknown column %s in ibuffer-formats" sym)))
 		       (len (length name)))
-		  (prog1
-		      (if (< len min)
-			  (ibuffer-format-column name
-						 (- min len)
-						 align)
-			name)))))))
+		  (if (< len min)
+		      (ibuffer-format-column name
+					     (- min len)
+					     align)
+		    name))))))
 	 (put-text-property opos (point) 'ibuffer-title-header t)
 	 (insert "\n")
 	 ;; Add the underlines
@@ -1754,12 +1803,46 @@ If optional argument INCLUDE-LINES is non-nil, return a list like
 			    str)))
 	 (insert "\n"))
        (point))
-     'ibuffer-title t)))
+     'ibuffer-title t)
+    ;; Now, insert the summary columns.
+    (goto-char (point-max))
+    (if (get-text-property (1- (point-max)) 'ibuffer-summary)
+	(delete-region (previous-single-property-change
+			(point-max) 'ibuffer-summary)
+		       (point-max)))
+    (put-text-property
+     (point)
+     (progn
+       (insert "\n")
+       (dolist (element format)
+	 (insert
+	  (if (stringp element)
+	      (make-string (length element) ? )
+	    (let ((sym (car element)))
+	      (let ((min (cadr element))
+		    ;; (max (caddr element))
+		    (align (cadddr element)))
+		;; Ignore a negative min when we're inserting the title
+		(when (minusp min)
+		  (setq min (- min)))
+		(let* ((summary (if (get sym 'ibuffer-column-summarizer)
+				    (funcall (get sym 'ibuffer-column-summarizer)
+					     (get sym 'ibuffer-column-summary))
+				  (make-string (length (get sym 'ibuffer-column-name))
+					       ? )))
+		       (len (length summary)))
+		  (if (< len min)
+		      (ibuffer-format-column summary
+					     (- min len)
+					     align)
+		    summary)))))))
+       (point))
+     'ibuffer-summary t)))
 
 (defun ibuffer-update-mode-name ()
   (setq mode-name (format "Ibuffer by %s" (if ibuffer-sorting-mode
 					      ibuffer-sorting-mode
-					    "recency")))
+					    "view time")))
   (when ibuffer-sorting-reversep
     (setq mode-name (concat mode-name " [rev]")))
   (when (and (featurep 'ibuf-ext)
@@ -1844,10 +1927,13 @@ Do not display messages if SILENT is non-nil."
   (assert (eq major-mode 'ibuffer-mode))
   (let ((--ibuffer-insert-buffers-and-marks-format
 	 (ibuffer-current-format))
+	(--ibuffer-expanded-format (mapcar #'ibuffer-expand-format-entry
+					   (ibuffer-current-format t)))
 	(orig (count-lines (point-min) (point)))
 	;; Inhibit font-lock caching tricks, since we're modifying the
 	;; entire buffer at once
 	(after-change-functions nil))
+    (ibuffer-clear-summary-columns --ibuffer-expanded-format)
     (unwind-protect
 	(progn
 	  (setq buffer-read-only nil)
@@ -1871,7 +1957,7 @@ Do not display messages if SILENT is non-nil."
 	       (car entry)
 	       (cdr entry)
 	       --ibuffer-insert-buffers-and-marks-format)))
-	  (ibuffer-update-title (ibuffer-current-format t)))
+	  (ibuffer-update-title-and-summary --ibuffer-expanded-format))
       (setq buffer-read-only t)
       (set-buffer-modified-p ibuffer-did-modification)
       (setq ibuffer-did-modification nil)
