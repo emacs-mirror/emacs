@@ -2627,7 +2627,7 @@ w32_read_socket (sd, bufp, numchars, waitp, expected)
 	  
 	  break;
 	case WM_SYSCOMMAND:
-	  switch (msg.msg.wParam) 
+	  switch (msg.msg.wParam & 0xfff0)  /* Lower 4 bits used by Windows. */
 	    {
 	    case SC_CLOSE:
 	      f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
