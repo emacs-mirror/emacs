@@ -344,10 +344,10 @@ These supersede the values given in `default-frame-alist'.")
 	    ;; manually.
 	    (while tail
 	      (let (newval oldval)
-		(setq oldval (cdr (assq (car (car tail))
-					frame-initial-frame-alist)))
+		(setq oldval (assq (car (car tail))
+				   frame-initial-frame-alist))
 		(setq newval (cdr (assq (car (car tail)) allparms)))
-		(or (eq oldval newval)
+		(or (and oldval (eq (cdr oldval) newval))
 		    (setq newparms
 			  (cons (cons (car (car tail)) newval) newparms))))
 	      (setq tail (cdr tail)))
