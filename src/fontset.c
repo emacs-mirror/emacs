@@ -136,8 +136,6 @@ Lisp_Object Vuse_default_ascent;
 Lisp_Object Vignore_relative_composition;
 Lisp_Object Valternate_fontname_alist;
 Lisp_Object Vfontset_alias_alist;
-Lisp_Object Vhighlight_wrong_size_font;
-Lisp_Object Vclip_large_size_font;
 Lisp_Object Vvertical_centering_font_regexp;
 
 /* The following six are declarations of callback functions depending
@@ -1468,14 +1466,6 @@ alternate fontnames (if any) are tried instead.  */);
   Vfontset_alias_alist = Fcons (Fcons (FONTSET_NAME (Vdefault_fontset),
 				       build_string ("fontset-default")),
 				Qnil);
-
-  DEFVAR_LISP ("highlight-wrong-size-font", &Vhighlight_wrong_size_font,
-	       doc: /* *This variable is obsolete.  */);
-  Vhighlight_wrong_size_font = Qnil;
-
-  DEFVAR_LISP ("clip-large-size-font", &Vclip_large_size_font,
-	       doc: /* *This variable is obsolete.  */);
-  Vclip_large_size_font = Qt;
 
   DEFVAR_LISP ("vertical-centering-font-regexp",
 	       &Vvertical_centering_font_regexp,
