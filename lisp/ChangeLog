@@ -1,3 +1,8 @@
+2003-09-19  Masatake YAMATO  <jet@gyve.org>
+
+	* pcvs.el (cvs-do-removal): Change the prompt depending on
+	`filter' value.
+
 2003-09-19  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* startup.el (command-line-1): Stop startup-echo-area-message

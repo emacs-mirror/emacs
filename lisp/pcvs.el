@@ -2044,11 +2044,15 @@ Returns a list of FIS that should be `cvs remove'd."
     (if (not (or silent
 		 (unwind-protect
 		     (yes-or-no-p 
-		      (let ((nfiles (length files)))
+		      (let ((nfiles (length files))
+			    (verb (if (eq filter 'undo) "Undo" "Delete")))
 			(if (= 1 nfiles)
-			    (format "Delete file: \"%s\" ? " 
+			    (format "%s file: \"%s\" ? " 
+				    verb
 				    (cvs-fileinfo->file (car files)))
-			  (format "Delete %d files? " nfiles))))
+			  (format "%s %d files? " 
+				  verb
+				  nfiles))))
 		   (cvs-bury-buffer tmpbuf cvs-buffer))))
 	(progn (message "Aborting") nil)
       (dolist (fi files)
