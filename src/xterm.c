@@ -3910,7 +3910,7 @@ static void
 x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
 		    raised_p, left_p, right_p, clip_rect)
      struct frame *f;
-     int left_x, top_y, right_x, bottom_y, left_p, right_p, raised_p;
+     int left_x, top_y, right_x, bottom_y, width, left_p, right_p, raised_p;
      XRectangle *clip_rect;
 {
   Display *dpy = FRAME_X_DISPLAY (f);
@@ -3970,7 +3970,7 @@ static void
 x_draw_box_rect (s, left_x, top_y, right_x, bottom_y, width,
 		 left_p, right_p, clip_rect)
      struct glyph_string *s;
-     int left_x, top_y, right_x, bottom_y, left_p, right_p;
+     int left_x, top_y, right_x, bottom_y, width, left_p, right_p;
      XRectangle *clip_rect;
 {
   XGCValues xgcv;
@@ -11982,6 +11982,7 @@ x_display_cursor (w, on, hpos, vpos, x, y)
 void
 x_update_cursor (f, on_p)
      struct frame *f;
+     int on_p;
 {
   x_update_cursor_in_window_tree (XWINDOW (f->root_window), on_p);
 }
