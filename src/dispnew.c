@@ -879,7 +879,7 @@ direct_output_for_insert (g)
   {
 #ifdef HAVE_X_WINDOWS
     int dummy;
-    int face = compute_char_face (frame, w, point, -1, -1, &dummy);
+    int face = compute_char_face (frame, w, point - 1, -1, -1, &dummy);
 #else
     int face = 0;
 #endif
