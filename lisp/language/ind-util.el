@@ -200,7 +200,7 @@ FUNCTION will be called 15 times."
        (lambda (x)
          (apply 
           'mapthread 
-          (lambda (&rest y) (apply function x y))
+          `(lambda (&rest y) (apply ',function x y))
           seqrest))
        seq1)
   (mapcar function seq1)))
