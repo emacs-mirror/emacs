@@ -1015,6 +1015,7 @@ extern char *stack_bottom;
 #define UPCASE_TABLE XSTRING (current_buffer->upcase_table)->data
 
 extern Lisp_Object Vascii_downcase_table, Vascii_upcase_table;
+extern Lisp_Object Vascii_canon_table, Vascii_eqv_table;
 
 /* number of bytes of structure consed since last GC */
 
