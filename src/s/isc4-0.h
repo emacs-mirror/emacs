@@ -1,11 +1,7 @@
 #include "isc3-0.h"
 
 #undef LIBS_SYSTEM
-#ifdef HAVE_X_WINDOWS
 #define LIBS_SYSTEM -linet -lcposix
-#else
-#define LIBS_SYSTEM -lcposix
-#endif
 
 #define ISC4_0
 
