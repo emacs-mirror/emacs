@@ -55,7 +55,8 @@ move to with the same argument."
   (push-mark
     (save-excursion
       (forward-sexp arg)
-      (point))))
+      (point))
+    nil t))
 
 (defun forward-list (&optional arg)
   "Move forward across one balanced group of parentheses.
@@ -188,7 +189,7 @@ The defun marked is the one that contains point or follows point."
   (interactive)
   (push-mark (point))
   (end-of-defun)
-  (push-mark (point))
+  (push-mark (point) nil t)
   (beginning-of-defun)
   (re-search-backward "^\n" (- (point) 1) t))
 
