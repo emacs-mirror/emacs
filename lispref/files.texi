@@ -991,8 +991,7 @@ is owned by the user with @sc{uid} 2235.
 is in the group with @sc{gid} 75.
 
 @item (8489 20284)
-was last accessed on Aug 19 00:09.  Unfortunately, you cannot convert
-this number into a time string in Emacs.
+was last accessed on Aug 19 00:09.
 
 @item (8489 20284)
 was last modified on Aug 19 00:09.
