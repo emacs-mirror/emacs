@@ -66,19 +66,8 @@ struct kboard
   {
     KBOARD *next_kboard;
 
-    /* The state of a prefix arg.
-       After pressing C-u COUNT times, prefix_factor is 4^COUNT
-       and prefix_value is nil.
-       After C-u NUM, prefix_factor is nil and prefix_value is abs(NUM).
-       (prefix_factor and prefix_value are never both non-nil.)
-       prefix_sign is always either +1 or -1; a value of -1 means that
-       the actual numeric argument is the negative of what's in prefix_value,
-       or just `-' if prefix_value is nil.
-       The boolean prefix_partial means that the user is in the process
-       of building a prefix argument, so that a minus or digit key at
-       this point is handled specially.  */
-    Lisp_Object prefix_factor, prefix_value;
-    int prefix_sign, prefix_partial;
+    /* The prefix argument for the next command, in raw form.  */
+    Lisp_Object Vprefix_arg;
 
     /* Unread events specific to this kboard.  */
     Lisp_Object kbd_queue;
