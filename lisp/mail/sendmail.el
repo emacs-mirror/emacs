@@ -833,7 +833,7 @@ The seventh argument ACTIONS is a list of actions to take
   (mail-mode)
   ;; Disconnect the buffer from its visited file
   ;; (in case the user has actually visited a file *mail*).
-  (set-visited-file-name nil)
+;  (set-visited-file-name nil)
   (let (initialized)
     (and (not noerase)
 	 (or (not (buffer-modified-p))
