@@ -125,6 +125,7 @@ extern int errno;
 
 #ifdef BROKEN_TIOCGWINSZ
 #undef TIOCGWINSZ
+#undef TIOCSWINSZ
 #endif
 
 #ifdef USG
