@@ -35,12 +35,6 @@
   (set-language-environment-coding-systems language)
 
   (when default-enable-multibyte-characters
-    (or (member (downcase language)
-		'("latin-1" "latin-2" "latin-3" "latin-4" "latin-5"))
-	(error "Language environment `%s' not supported in unibyte mode"))
-    (standard-display-european 1 (downcase language)))
-
-  (unless default-enable-multibyte-characters
     (if charset
 	(let ((nonascii-offset (- (make-char charset) 128)))
 	  ;; Set up for insertion of characters in this character set
