@@ -9,7 +9,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -107,7 +107,7 @@ This also creates the menu itself."
   (let ((buf (current-buffer)))
     (pop-to-buffer menu)
     (let (buffer-read-only)
-      (setq x-menu-max-width (1- (screen-width)))
+      (setq x-menu-max-width (1- (frame-width)))
       (setq x-menu-item-width 0)
       (let (items-head
 	    (items-tail x-menu-items-alist))

@@ -9,7 +9,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -25,7 +25,7 @@
 ;;; The variable byte-code-vector is defined by the new bytecomp.el.
 ;;; The function byte-decompile-lapcode is defined in byte-opt.el.
 ;;; Since we don't use byte-decompile-lapcode, let's try not loading byte-opt.
-(require 'bytecomp)
+(require 'byte-compile)
 
 (defvar disassemble-column-1-indent 5 "*")
 (defvar disassemble-column-2-indent 10 "*")

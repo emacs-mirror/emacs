@@ -1,11 +1,12 @@
 ;; Grand Unified Debugger mode --- run gdb, sdb, dbx under Emacs control
+;; Copyright (c) 1992 Free Software Foundation, Inc.
 ;;	@(#)gud.el	1.10
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -22,11 +23,6 @@
 ;; Grand Unification (sdb/dbx support) by Eric S. Raymond <eric@thyrsus.com>
 ;; The overloading code was then rewritten by Barry Warsaw <bwarsaw@cen.com>,
 ;; who also hacked the mode to use comint.el.
-
-;; Note: use of this package with sdb requires that your tags.el support
-;; the find-tag-noselect entry point.  Stock distributions up to 18.57 do 
-;; *not* include this feature; if it's not included with this file, email
-;; eric@snark.thyrsus.com for it or get 18.58.
 
 (require 'comint)
 (require 'tags)

@@ -2470,11 +2470,11 @@ auto_save_error ()
 
   ring_bell ();
   message ("Autosaving...error for %s", name);
-  Fsleep_for (make_number (1));
+  Fsleep_for (make_number (1), Qnil);
   message ("Autosaving...error!for %s", name);
-  Fsleep_for (make_number (1));
+  Fsleep_for (make_number (1), Qnil);
   message ("Autosaving...error for %s", name);
-  Fsleep_for (make_number (1));
+  Fsleep_for (make_number (1), Qnil);
   return Qnil;
 }
 
