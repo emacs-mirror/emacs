@@ -154,7 +154,7 @@ Returns non-nil if the new state is enabled."
          (dn (intern (format prefix mouse-wheel-down-button)))
          (up (intern (format prefix mouse-wheel-up-button)))
          (keys
-          (nconc (list dn up)
+          (nconc (list (vector dn) (vector up))
                  (mapcar (lambda (amt) `[(,@(car amt) ,up)])
                          (cdr mouse-wheel-scroll-amount))
                  (mapcar (lambda (amt) `[(,@(car amt) ,dn)])
