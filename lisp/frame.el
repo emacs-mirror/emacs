@@ -252,17 +252,35 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 
     (when (and frame-notice-user-settings
 	       (null frame-initial-frame))
-      ;; This case happens when we don't have a window system.
+      ;; This case happens when we don't have a window system, and
+      ;; also for MS-DOS frames.
       (let ((parms (frame-parameters frame-initial-frame)))
 	;; Don't change the frame names.
 	(setq parms (delq (assq 'name parms) parms))
 	;; Can't modify the minibuffer parameter, so don't try.
 	(setq parms (delq (assq 'minibuffer parms) parms))
 	(modify-frame-parameters nil
-				 (append initial-frame-alist
-					 default-frame-alist
-					 parms
-					 nil))))
+				 (if (null window-system)
+				     (append initial-frame-alist
+					     default-frame-alist
+					     parms
+					     nil)
+				   ;; initial-frame-alist and
+				   ;; default-frame-alist were already
+				   ;; applied in pc-win.el.
+				   parms))
+	(if (null window-system) ;; MS-DOS does this differently in pc-win.el
+	    (let ((newparms (frame-parameters))
+		  (frame (selected-frame)))
+	      (tty-handle-reverse-video frame newparms)
+	      ;; If we changed the background color, we need to update
+	      ;; the background-mode parameter, and maybe some faces,
+	      ;; too.
+	      (when (assq 'background-color newparms)
+		(unless (or (assq 'background-mode initial-frame-alist)
+			    (assq 'background-mode default-frame-alist))
+		  (frame-set-background-mode frame))
+		(face-set-after-frame-default frame))))))
 
     ;; If the initial frame is still around, apply initial-frame-alist
     ;; and default-frame-alist to it.
