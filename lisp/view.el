@@ -187,10 +187,6 @@ This is local in each buffer, once it is used.")
     (setq minor-mode-map-alist
 	  (cons (cons 'view-mode view-mode-map) minor-mode-map-alist)))
 
-;; Always leave view mode before changing major mode.
-;; This is to guarantee that the buffer-read-only variable is restored.
-(add-hook 'change-major-mode-hook 'view-mode-disable)
-
 ;;; Commands that enter or exit view mode.
 
 ;;;###autoload
@@ -399,6 +395,10 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
 
 (defun view-mode-enable ()
   "Turn on View mode."
+  ;; Always leave view mode before changing major mode.
+  ;; This is to guarantee that the buffer-read-only variable is restored.
+  (make-local-hook 'change-major-mode-hook)
+  (add-hook 'change-major-mode-hook 'view-mode-disable nil t)
   (setq view-mode t
 	view-page-size (view-page-size-default view-page-size)
 	view-half-page-size (or view-half-page-size (/ (view-window-size) 2))
@@ -415,6 +415,7 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
 
 (defun view-mode-disable ()
   "Turn off View mode."
+  (remove-hook 'change-major-mode-hook 'view-mode-disable t)
   (and view-overlay (delete-overlay view-overlay))
   (setq view-mode nil
 	Helper-return-blurb view-old-Helper-return-blurb
