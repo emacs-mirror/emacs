@@ -1,11 +1,17 @@
+2002-10-28  Miles Bader  <miles@gnu.org>
+
+	* progmodes/make-mode.el (makefile-warn-continuations): Don't
+	barf when there _aren't_ any suspicious continuations.
+
 2002-10-28  Juanma Barranquero  <lektu@terra.es>
 
-	* progmodes/compile.el (grep-find-use-xargs): Fix docstring.  Patch from
-	Matt Swift <swift@alum.mit.edu>.
+	* progmodes/compile.el (grep-find-use-xargs): Fix docstring.
+	Patch from Matt Swift <swift@alum.mit.edu>.
 
 2002-10-27  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff-wind.el (ediff-control-frame-parameters): added scrollbar-height.
+	* ediff-wind.el (ediff-control-frame-parameters): added
+	scrollbar-height.
 
 2002-10-27  Andreas Schwab  <schwab@suse.de>
 
