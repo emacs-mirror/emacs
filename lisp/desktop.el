@@ -1,6 +1,6 @@
 ;;; desktop.el --- save partial status of Emacs when killed
 
-;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1997 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Keywords: customization
@@ -109,9 +109,18 @@
   "Save status of Emacs when you exit."
   :group 'frames)
 
-(defconst desktop-basefilename
+(defcustom desktop-enable nil
+  "*Non-nil enable Desktop to save the state of Emacs when you exit."
+  :group 'desktop
+  :type 'boolean
+  :require 'desktop
+  :initialize 'custom-initialize-default)
+
+(defcustom desktop-basefilename
   (convert-standard-filename ".emacs.desktop")
-  "File for Emacs desktop, not including the directory name.")
+  "File for Emacs desktop, not including the directory name."
+  :type 'file
+  :group 'desktop)
 
 (defcustom desktop-missing-file-warning nil
   "*If non-nil then desktop warns when a file no longer exists.
@@ -204,10 +213,11 @@ If the function returns t then the buffer is considered created."
   "Opening of form for creation of new buffers.")
 
 (defcustom desktop-save-hook nil
-  "Hook run before saving the desktop to allow you to cut history lists and
-the like shorter."
+  "Hook run before desktop saves the state of Emacs.
+This is useful for truncating history lists, for example."
   :type 'hook
   :group 'desktop)
+
 ;; ----------------------------------------------------------------------------
 (defvar desktop-dirname nil
   "The directory in which the current desktop file resides.")
@@ -220,6 +230,7 @@ the like shorter."
 
 (defvar desktop-delay-hook nil
   "Hooks run after all buffers are loaded; intended for internal use.")
+
 ;; ----------------------------------------------------------------------------
 (defun desktop-truncate (l n)
   "Truncate LIST to at most N elements destructively."
@@ -619,6 +630,16 @@ to provide correct modes for autoloaded files."
 			       (cons 'case-replace cr)
 			       (cons 'overwrite-mode (car mim)))))
 ;; ----------------------------------------------------------------------------
+
+;; If the user set desktop-enable to t with Custom,
+;; do the rest of what it takes to use desktop,
+;; but do it after finishing loading the init file.
+(add-hook 'after-init-hook
+	  '(lambda ()
+	     (when desktop-enable
+	       (desktop-load-default)
+	       (desktop-read))))
+
 (provide 'desktop)
 
 ;; desktop.el ends here.
