@@ -4064,8 +4064,6 @@ FRAME 0 means change the face on all frames, and change the default\n\
       ++windows_or_buffers_changed;
     }
 
-#ifdef HAVE_WINDOW_SYSTEM
-
   if (!UNSPECIFIEDP (value)
       && NILP (Fequal (old_value, value)))
     {
@@ -4075,16 +4073,21 @@ FRAME 0 means change the face on all frames, and change the default\n\
 
       if (EQ (face, Qdefault))
 	{
+#ifdef HAVE_WINDOW_SYSTEM
 	  /* Changed font-related attributes of the `default' face are
 	     reflected in changed `font' frame parameters. */
 	  if ((font_related_attr_p || font_attr_p)
 	      && lface_fully_specified_p (XVECTOR (lface)->contents))
 	    set_font_frame_param (frame, lface);
-	  else if (EQ (attr, QCforeground))
+	  else
+#endif /* HAVE_WINDOW_SYSTEM */
+
+	  if (EQ (attr, QCforeground))
 	    param = Qforeground_color;
 	  else if (EQ (attr, QCbackground))
 	    param = Qbackground_color;
 	}
+#ifdef HAVE_WINDOW_SYSTEM
 #ifndef WINDOWSNT
       else if (EQ (face, Qscroll_bar))
 	{
@@ -4117,6 +4120,7 @@ FRAME 0 means change the face on all frames, and change the default\n\
 	  if (EQ (attr, QCbackground))
 	    param = Qmouse_color;
 	}
+#endif /* HAVE_WINDOW_SYSTEM */
       else if (EQ (face, Qmenu))
 	++menu_face_change_count;
 
@@ -4136,8 +4140,6 @@ FRAME 0 means change the face on all frames, and change the default\n\
 	    Fmodify_frame_parameters (frame, Vparam_value_alist);
 	  }
     }
-
-#endif /* HAVE_WINDOW_SYSTEM */
 
   return face;
 }
