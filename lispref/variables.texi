@@ -452,12 +452,13 @@ the main benefits of defining the variable.)  The documentation is
 stored in the symbol's @code{variable-documentation} property.  The
 Emacs help functions (@pxref{Documentation}) look for this property.
 
-If the first character of @var{doc-string} is @samp{*}, it means that
-this variable is considered a user option.  This lets users set the
-variable conveniently using the commands @code{set-variable} and
-@code{edit-options}.  However, it is better to use @code{defcustom}
-instead of @code{defvar} for user option variables, so you can specify
-customization information.  @xref{Customization}.
+If the variable is a user option that users would want to set
+interactively, you should use @samp{*} as the first character of
+@var{doc-string}.  This lets users set the variable conveniently using
+the @code{set-variable} command.  Note that you should nearly always
+use @code{defcustom} instead of @code{defvar} to define these
+variables, so that users can use @kbd{M-x customize} and related
+commands to set them.  @xref{Customization}.
 
 Here are some examples.  This form defines @code{foo} but does not
 initialize it:
