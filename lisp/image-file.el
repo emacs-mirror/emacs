@@ -110,6 +110,7 @@ the command `insert-file-contents'."
     (when (and (or (null beg) (zerop beg)) (null end))
       (let* ((ibeg (point))
 	     (iend (+ (point) (cadr rval)))
+	     (visitingp (and visit (= ibeg (point-min)) (= iend (point-max))))
 	     (data
 	      (string-make-unibyte
 	       (buffer-substring-no-properties ibeg iend)))
@@ -122,11 +123,13 @@ the command `insert-file-contents'."
 			;; This a cheap attempt to make the whole buffer
 			;; read-only when we're visiting the file (as
 			;; opposed to just inserting it).
-			,@(and visit
-			       (= ibeg (point-min))
-			       (= iend (point-max))
+			,@(and visitingp
 			       '(read-only t front-sticky (read-only))))))
-	(add-text-properties ibeg iend props)))
+	(add-text-properties ibeg iend props)
+	(when visitingp
+	  ;; Inhibit the cursor when the buffer contains only an image,
+	  ;; because cursors look very strange on top of images.
+	  (setq cursor-type nil))))
     rval))
 
 (defun image-file-handler (operation &rest args)
