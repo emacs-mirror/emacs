@@ -2327,16 +2327,16 @@ be shared by the new frame.")
       font = x_new_font (f, XSTRING (font)->data);
     /* Try out a font which we hope has bold and italic variations.  */
     if (!STRINGP (font))
-      font = x_new_font (f, "-misc-fixed-medium-r-normal-*-*-120-*-*-c-*-iso8859-1");
+      font = x_new_font (f, "-misc-fixed-medium-r-normal-*-*-140-*-*-c-*-iso8859-1");
     if (! STRINGP (font))
-      font = x_new_font (f, "-*-*-medium-r-normal-*-*-120-*-*-c-*-iso8859-1");
+      font = x_new_font (f, "-*-*-medium-r-normal-*-*-140-*-*-c-*-iso8859-1");
     if (! STRINGP (font))
       /* This was formerly the first thing tried, but it finds too many fonts
 	 and takes too long.  */
       font = x_new_font (f, "-*-*-medium-r-*-*-*-*-*-*-c-*-iso8859-1");
     /* If those didn't work, look for something which will at least work.  */
     if (! STRINGP (font))
-      font = x_new_font (f, "-*-fixed-*-*-*-*-*-120-*-*-c-*-iso8859-1");
+      font = x_new_font (f, "-*-fixed-*-*-*-*-*-140-*-*-c-*-iso8859-1");
     UNBLOCK_INPUT;
     if (! STRINGP (font))
       font = build_string ("fixed");
