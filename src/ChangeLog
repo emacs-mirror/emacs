@@ -1,5 +1,19 @@
 2001-08-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispextern.h (struct face_cache): Add member
+	menu_face_changed_p.
+
+	* xfaces.c (menu_face_changed_default): New variable.
+	(menu_face_changed_count): Variable removed.
+	(Finternal_set_lisp_face_attribute): Doc fix.  If FRAME is t, set
+	the menu_face_changed_default flag, otherwise set the FRAME's
+	menu_face_changed_p flag if the `menu' face has been changed.
+	Prevent calling set_font_frame_param if FRAME is t.
+	(make_face_cache): Initialize cache's menu_face_changed_p
+	from menu_face_changed_default.
+	(realize_basic_faces): Look into the frame's face cache to
+	determine if the menu appearance needs updating.
+
 	* keymap.c (access_keymap): Fix last change to not consider
 	IDX when it has modifiers.
 
