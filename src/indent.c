@@ -1095,7 +1095,7 @@ vmotion (from, vtarget, w)
      position even if the minibuffer window has scrolled.  */
   if (EQ (window, minibuf_window))
     {
-      if (minibuf_prompt_width == 0)
+      if (minibuf_prompt_width == 0 && STRINGP (minibuf_prompt))
 	minibuf_prompt_width
 	  = string_display_width (minibuf_prompt, Qnil, Qnil);
 
