@@ -307,6 +307,12 @@ int image_cache_refcount, dpyinfo_refcount;
 extern Lisp_Object Vw32_num_mouse_buttons;
 extern Lisp_Object Vw32_recognize_altgr;
 
+extern HWND w32_system_caret_hwnd;
+extern int w32_system_caret_width;
+extern int w32_system_caret_height;
+extern int w32_system_caret_x;
+extern int w32_system_caret_y;
+
 
 /* Error if we are not connected to MS-Windows.  */
 void
@@ -4785,6 +4791,12 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       unregister_hot_keys (hwnd);
       button_state = 0;
       ReleaseCapture ();
+      /* Relinquish the system caret.  */
+      if (w32_system_caret_hwnd)
+	{
+	  DestroyCaret ();
+	  w32_system_caret_hwnd = NULL;
+	}
     case WM_MOVE:
     case WM_SIZE:
     case WM_COMMAND:
@@ -4925,6 +4937,20 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
     case WM_EMACS_DESTROYWINDOW:
       DragAcceptFiles ((HWND) wParam, FALSE);
       return DestroyWindow ((HWND) wParam);
+
+    case WM_EMACS_DESTROY_CARET:
+      w32_system_caret_hwnd = NULL;
+      return DestroyCaret ();
+
+    case WM_EMACS_TRACK_CARET:
+      /* If there is currently no system caret, create one.  */
+      if (w32_system_caret_hwnd == NULL)
+	{
+	  w32_system_caret_hwnd = hwnd;
+	  CreateCaret (hwnd, NULL, w32_system_caret_width,
+		       w32_system_caret_height);
+	}
+      return SetCaretPos (w32_system_caret_x, w32_system_caret_y);
 
     case WM_EMACS_TRACKPOPUPMENU:
       {
