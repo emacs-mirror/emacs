@@ -803,10 +803,10 @@ buffers are scrolled.
   Emacs supports drag and drop so that dropping of files and text is handeled.
 Currently supported drag and drop protocols are XDND and the old KDE 1.x
 protocol.  There is no drag support yet. 
-When text is dropped, Emacs will insert the text where it is dropped.
-When a file is dragged from a file manager to Emacs, Emacs will open that file.
-As a special case, if a file is dropped on a dired buffer the file will
-be copied or moved (depends on exactly how it is dragged and the application
+When text is dropped, Emacs inserts the text where it is dropped.
+When a file is dragged from a file manager to Emacs, Emacs opens that file.
+As a special case, if a file is dropped on a dired buffer the file is
+copied or moved (depends on exactly how it is dragged and the application
 is was dragged from) to the directory the dired buffer is displaying.
 
 @vindex x-dnd-open-file-other-window
