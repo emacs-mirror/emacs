@@ -1,0 +1,66 @@
+#!/bin/sh
+#
+# === RUN A SCRIPT "OVERNIGHT" ===
+#
+# $Id$
+#
+# SYNOPSIS
+#
+#   overnight command args...
+#
+# DESCRIPTION
+#
+# This is a general wrapper for a command that you want to run
+# unattended.  The command output is appended to $HOME/var/log/<name>
+# where the name is the basename of the command.  If the command exits
+# with non-zero status then a mail message is sent to $USER containing
+# the tail of the log file, otherwise no action is taken.
+#
+# This script is more useful than simply using cron, which will mail
+# you if the command produces _any_ output, whether or not it is
+# successful.  Often, you don't want to know if your script succeeds,
+# only if it fails.
+#
+
+script="`basename $0`"
+
+msg () {
+  echo "$script: $*" 1>&2
+}
+
+die () {
+  msg "$@"
+  exit 1
+}
+
+# Create log directories if they don't already exist.
+
+test -d $HOME/var || mkdir $HOME/var ||
+  die "Couldn't create var directory"
+test -d $HOME/var/log || mkdir $HOME/var/log ||
+  die "Couldn't create log directory"
+
+logfile="$HOME/var/log/`basename \"$1\"`"
+
+(
+  date "+$script 19%y-%m-%d %H:%M:%S started \"$*\""
+  "$@"
+  status="$?"
+  date "+$script 19%y-%m-%d %H:%M:%S exited with status $status"
+  exit "$status"
+) >> "$logfile" 2>&1 ||
+{
+  status=$?
+  hostname="`hostname`"
+  {
+    echo "To: $USER"
+    echo "Subject: Overnight script \"$1\" failed on $hostname"
+    echo
+    echo "The overnight script failed with exit code $status on $hostname."
+    echo "The end of the log reads:"
+    echo
+    tail -50 "$logfile" | sed -e 's/^/> /'
+  } | /usr/lib/sendmail -t
+}
+
+exit 0
