@@ -7691,16 +7691,19 @@ face_at_string_position (w, string, pos, bufpos, region_beg,
 
    F is frame where faces are (to be) realized.
 
-   FACE_NAME is named face to merge, or if nil,
-   FACE_ID is face_id of realized face to merge.
+   FACE_NAME is named face to merge.
+
+   If FACE_NAME is nil, FACE_ID is face_id of realized face to merge.
+
+   If FACE_NAME is t, FACE_ID is lface_id of face to merge.
 
    BASE_FACE_ID is realized face to merge into.
 
-   Return new face.
+   Return new face id.
 */
 
 int
-merge_into_realized_face (f, face_name, face_id, base_face_id)
+merge_faces (f, face_name, face_id, base_face_id)
      struct frame *f;
      Lisp_Object face_name;
      int face_id, base_face_id;
@@ -7711,6 +7714,17 @@ merge_into_realized_face (f, face_name, face_id, base_face_id)
   base_face = FACE_FROM_ID (f, base_face_id);
   if (!base_face)
     return base_face_id;
+
+  if (EQ (face_name, Qt))
+    {
+      if (face_id < 0 || face_id >= lface_id_to_name_size)
+	return base_face_id;
+      face_name = lface_id_to_name[face_id];
+      face_id = lookup_derived_face (f, face_name, 0, base_face_id);
+      if (face_id >= 0)
+	return face_id;
+      return base_face_id;
+    }
 
   /* Begin with attributes from the base face.  */
   bcopy (base_face->lface, attrs, sizeof attrs);
@@ -7723,6 +7737,8 @@ merge_into_realized_face (f, face_name, face_id, base_face_id)
   else
     {
       struct face *face;
+      if (face_id < 0)
+	return base_face_id;
       face = FACE_FROM_ID (f, face_id);
       if (!face)
 	return base_face_id;
