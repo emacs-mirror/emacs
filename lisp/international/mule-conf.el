@@ -74,6 +74,12 @@
 ;;   :code-space [128 255]
 ;;   :code-offset #x3FFF80)
 ;;
+;; (define-charset 'eight-bit
+;;   ""
+;;   :dimension 1
+;;   :code-space [128 255]
+;;   :code-offset #x3FFF80)
+;;
 ;; We now set :docstring, :short-name, and :long-name properties.
 
 (put-charset-property
@@ -801,6 +807,26 @@
   :unify-map "is13194"
   :code-offset #x180000)
 
+(define-charset 'devanagari-glyph
+  "Glyphs for Devanagari script.  Subset of `indian-glyph'."
+  :short-name "Devanagari glyph"
+  :code-space [0 255]
+  :code-offset #x180100)
+
+;; These would be necessary for supporting the complete set of Indian
+;; scripts.  See also fontset.el.
+
+;; (let ((i 0))
+;;   (dolist (script '(sanskrit bengali tamil telugu assamese
+;; 	            oriya kannada malayalam gujarati punjabi))
+;;     (define-charset (intern (concat (symbol-name script) "-glyph"))
+;;       (concat "Glyphs for " (capitalize (symbol-name script))
+;; 	      " script.  Subset of `indian-glyph'.")
+;;       :short-name (concat (capitalize (symbol-name script)) " glyph")
+;;       :code-space [0 255]
+;;       :code-offset (+ #x180100 (* 256 i)))
+;;     (setq i (1+ i))))
+
 (define-charset 'indian-glyph
   "Glyphs for Indian characters."
   :short-name "Indian glyph"
@@ -808,13 +834,6 @@
   :emacs-mule-id 240
   :code-space [32 127 32 127]
   :code-offset #x180100)
-
-(define-charset 'devanagari-glyph
-  "Glyphs for Devanagari script.  Subset of `indian-glyph'."
-  :short-name "Devanagari glyph"
-  :code-space [0 255]
-  :code-offset #x180100)
-
 
 ;; Actual Glyph for 1-column width.
 (define-charset 'indian-1-column
@@ -884,6 +903,12 @@
   :emacs-mule-id 244
   :code-space [#x20 #x7F #x20 #x7F]
   :code-offset #x100)
+
+(define-charset 'unicode-bmp
+  "Unicode Basic Multilingual Plane"
+  :short-name "Unicode BMP"
+  :code-space [0 255 0 255]
+  :subset '(unicode 0 #xFFFF 0))
 
 (define-charset 'unicode-bmp
   "Unicode Basic Multilingual Plane"
@@ -1074,10 +1099,9 @@ is treated as a character."
 
 (define-coding-system 'iso-latin-1
   "ISO 2022 based 8-bit encoding for Latin-1 (MIME:ISO-8859-1)."
-  :coding-type 'iso-2022
+  :coding-type 'charset
   :mnemonic ?1
-  :charset-list '(ascii latin-iso8859-1)
-  :designation [ascii latin-iso8859-1 nil nil]
+  :charset-list '(iso-8859-1)
   :mime-charset 'iso-8859-1)
 
 (define-coding-system-alias 'iso-8859-1 'iso-latin-1)
@@ -1088,7 +1112,6 @@ is treated as a character."
 (define-coding-system 'emacs-mule
  "Emacs 21 internal format used in buffer and string."
  :coding-type 'emacs-mule
- :charset-list 'emacs-mule
  :mnemonic ?M)
 
 (define-coding-system 'utf-8
@@ -1150,7 +1173,6 @@ is treated as a character."
   "ISO 2022 based 7-bit encoding using only G0."
   :coding-type 'iso-2022
   :mnemonic ?J
-  :charset-list 'iso-2022
   :designation [(ascii t) nil nil nil]
   :flags '(short ascii-at-eol ascii-at-cntl 7-bit designation composition))
 
@@ -1158,7 +1180,6 @@ is treated as a character."
   "ISO 2022 based 7-bit encoding using SS2 for 96-charset."
   :coding-type 'iso-2022
   :mnemonic ?$
-  :charset-list 'iso-2022
   :designation [(ascii 94) nil (nil 96) nil]
   :flags '(short ascii-at-eol ascii-at-cntl 7-bit
 		 designation single-shift composition))
@@ -1167,7 +1188,6 @@ is treated as a character."
   "ISO-2022 coding system using Locking-Shift for 96-charset."
   :coding-type 'iso-2022
   :mnemonic ?&
-  :charset-list 'iso-2022
   :designation [(ascii 94) (nil 96) nil nil]
   :flags '(ascii-at-eol ascii-at-cntl 7-bit
 			designation locking-shift composition))
@@ -1199,7 +1219,6 @@ is treated as a character."
   "ISO 2022 based 8-bit encoding using SS2 for 96-charset."
   :coding-type 'iso-2022
   :mnemonic ?@
-  :charset-list 'iso-2022
   :designation [(ascii 94) nil (nil 96) nil]
   :flags '(ascii-at-eol ascii-at-cntl designation single-shift composition))
 
@@ -1209,7 +1228,6 @@ is treated as a character."
 This coding system does not support ICCCM Extended Segments."
   :coding-type 'iso-2022
   :mnemonic ?x
-  :charset-list 'iso-2022
   :designation [(ascii 94) (latin-iso8859-1 katakana-jisx0201 96) nil nil]
   :flags '(ascii-at-eol ascii-at-cntl
 			designation locking-shift single-shift composition)
@@ -1231,7 +1249,6 @@ This coding system does not support ICCCM Extended Segments."
 Like `compound-text', but does not produce escape sequences for compositions."
   :coding-type 'iso-2022
   :mnemonic ?x
-  :charset-list 'iso-2022
   :designation [(ascii 94) (latin-iso8859-1 katakana-jisx0201 96) nil nil]
   :flags '(ascii-at-eol ascii-at-cntl
 			designation locking-shift single-shift))
