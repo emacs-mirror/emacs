@@ -1,13 +1,13 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 
-;; Copyright (C) 1994, 95, 97, 98, 99, 2000, 2001, 2002
+;; Copyright (C) 1994, 95, 97, 98, 99, 2000, 2001, 2002, 2003
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Rolf Ebert      <ebert@inf.enst.fr>
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   Revision: 1.164.2.2 (GNAT 3.15)
+;; Ada Core Technologies's version:   Revision: 1.188
 ;; Keywords: languages ada
 
 ;; This file is part of GNU Emacs.
@@ -30,7 +30,7 @@
 ;;; Commentary:
 ;;; This mode is a major mode for editing Ada83 and Ada95 source code.
 ;;; This is a major rewrite of the file packaged with Emacs-20.  The
-;;; ada-mode is composed of four lisp file, ada-mode.el, ada-xref.el,
+;;; ada-mode is composed of four lisp files, ada-mode.el, ada-xref.el,
 ;;; ada-prj.el and ada-stmt.el. Only this file (ada-mode.el) is
 ;;; completely independent from the GNU Ada compiler Gnat, distributed
 ;;; by Ada Core Technologies. All the other files rely heavily on
@@ -148,20 +148,17 @@ If IS-XEMACS is non-nil, check for XEmacs instead of Emacs."
                             (symbol-value 'running-xemacs))
     "Return t if we are using XEmacs."))
 
-(unless ada-xemacs
-  (require 'outline))
-
 (eval-and-compile
   (condition-case nil (require 'find-file) (error nil)))
 
 ;;  This call should not be made in the release that is done for the
 ;;  official Emacs, since it does nothing useful for the latest version
-;;  (if (not (ada-check-emacs-version 21 1))
-;;      (require 'ada-support))
+;;(if (not (ada-check-emacs-version 21 1))
+;;    (require 'ada-support))
 
 (defvar ada-mode-hook nil
   "*List of functions to call when Ada mode is invoked.
-This hook is automatically executed after the ada-mode is
+This hook is automatically executed after the `ada-mode' is
 fully loaded.
 This is a good place to add Ada environment specific bindings.")
 
@@ -379,8 +376,10 @@ If nil, no contextual menu is available."
   :group 'ada)
 
 (defcustom ada-search-directories
-  '("." "$ADA_INCLUDE_PATH" "/usr/adainclude" "/usr/local/adainclude"
-    "/opt/gnu/adainclude")
+  (append '(".")
+	  (split-string (or (getenv "ADA_INCLUDE_PATH") "") ":")
+	  '("/usr/adainclude" "/usr/local/adainclude"
+	    "/opt/gnu/adainclude"))
   "*List of directories to search for Ada files.
 See the description for the `ff-search-directories' variable.
 Emacs will automatically add the paths defined in your project file, and if you
@@ -668,63 +667,23 @@ To get the original region, restore the point to this position before
 calling `region-end' and `region-beginning'.
 Modify this variable if you want to restore the point to another position.")
 
-(defvar ada-contextual-menu
-  (if ada-xemacs
-      '("Ada"
-        ["Goto Declaration/Body"
-         (ada-call-from-contextual-menu 'ada-point-and-xref)
-         :included (and (functionp 'ada-point-and-xref)
-                        ada-contextual-menu-on-identifier)]
-        ["Goto Previous Reference"
-         (ada-call-from-contextual-menu 'ada-xref-goto-previous-reference)
-         :included (functionp 'ada-xref-goto-previous-reference)]
-        ["List References" ada-find-references
-         :included ada-contextual-menu-on-identifier]
-        ["List Local References" ada-find-local-references
-         :included ada-contextual-menu-on-identifier]
-        ["-" nil nil]
-        ["Other File" ff-find-other-file]
-        ["Goto Parent Unit" ada-goto-parent]
-        )
-
-    (let ((map (make-sparse-keymap "Ada")))
-      ;; The identifier part
-      (if (equal ada-which-compiler 'gnat)
-          (progn
-            (define-key-after map [Ref]
-              '(menu-item "Goto Declaration/Body"
-                          (lambda()(interactive)
-                            (ada-call-from-contextual-menu
-                             'ada-point-and-xref))
-                          :visible
-                          (and (functionp 'ada-point-and-xref)
-                               ada-contextual-menu-on-identifier))
-              t)
-            (define-key-after map [Prev]
-              '(menu-item "Goto Previous Reference"
-                          (lambda()(interactive)
-                            (ada-call-from-contextual-menu
-                             'ada-xref-goto-previous-reference))
-                          :visible
-                          (functionp 'ada-xref-goto-previous-reference))
-              t)
-            (define-key-after map [List]
-              '(menu-item "List References"
-                          ada-find-references
-                          :visible ada-contextual-menu-on-identifier) t)
-            (define-key-after map [List-Local]
-              '(menu-item "List Local References"
-                          ada-find-local-references
-                          :visible ada-contextual-menu-on-identifier) t)
-            (define-key-after map [-] '("-" nil) t)
-            ))
-      (define-key-after map [Other] '("Other file" . ff-find-other-file) t)
-      (define-key-after map [Parent] '("Goto Parent Unit" . ada-goto-parent)t)
-      map))
-  "Defines the menu to use when the user presses the right mouse button.
+(easy-menu-define ada-contextual-menu nil
+  "Menu to use when the user presses the right mouse button.
 The variable `ada-contextual-menu-on-identifier' will be set to t before
 displaying the menu if point was on an identifier."
-  )
+  '("Ada"
+    ["Goto Declaration/Body" ada-point-and-xref
+     :included ada-contextual-menu-on-identifier]
+    ["Goto Body" ada-point-and-xref-body
+     :included ada-contextual-menu-on-identifier]
+    ["Goto Previous Reference" ada-xref-goto-previous-reference]
+    ["List References" ada-find-references
+     :included ada-contextual-menu-on-identifier]
+    ["List Local References" ada-find-local-references
+      :included ada-contextual-menu-on-identifier]
+    ["-"                nil nil]
+    ["Other File"       ff-find-other-file]
+    ["Goto Parent Unit" ada-goto-parent]))
 
 
 ;;------------------------------------------------------------------
@@ -789,15 +748,26 @@ both file locations can be clicked on and jumped to."
          (looking-at
           "\\([-_.a-zA-Z0-9]+\\):\\([0-9]+\\)\\(:\\([0-9]+\\)\\)?"))
     (let ((line (match-string 2))
+          file
           (error-pos (point-marker))
           source)
       (save-excursion
         (save-restriction
           (widen)
           ;;  Use funcall so as to prevent byte-compiler warnings
-          (set-buffer (funcall (symbol-function 'compilation-find-file)
-                               (point-marker) (match-string 1)
-                               "./"))
+          ;;  `ada-find-file' is not defined if ada-xref wasn't loaded. But
+          ;;  if we can find it, we should use it instead of
+          ;;  `compilation-find-file', since the latter doesn't know anything
+          ;;  about source path.
+
+          (if (functionp 'ada-find-file)
+              (setq file (funcall (symbol-function 'ada-find-file)
+                                  (match-string 1)))
+            (setq file (funcall (symbol-function 'compilation-find-file)
+                                (point-marker) (match-string 1)
+                                "./")))
+          (set-buffer file)
+
           (if (stringp line)
               (goto-line (string-to-number line)))
           (setq source (point-marker))))
@@ -976,8 +946,7 @@ OLD-LEN indicates what the length of the replaced text was."
         (beginning-of-line)
         (if (looking-at "^[ \t]*#")
             (add-text-properties (match-beginning 0) (match-end 0)
-                                 '(syntax-table (11 . 10))))
-        ))))
+                                 '(syntax-table (11 . 10))))))))
 
 ;;------------------------------------------------------------------
 ;;  Testing the grammatical context
@@ -1045,13 +1014,13 @@ where the mouse button was clicked."
                (save-excursion (skip-syntax-forward "w")
                                (not (ada-after-keyword-p)))
                ))
-    (let (choice)
-      (if ada-xemacs
-          (setq choice (funcall (symbol-function 'popup-menu)
-                                ada-contextual-menu))
-        (setq choice (x-popup-menu position ada-contextual-menu)))
-      (if choice
-          (funcall (lookup-key ada-contextual-menu (vector (car choice))))))
+    (if (fboundp 'popup-menu)
+	(funcall (symbol-function 'popup-menu) ada-contextual-menu)
+      (let (choice)
+	(setq choice (x-popup-menu position ada-contextual-menu))
+ 	(if choice
+ 	    (funcall (lookup-key ada-contextual-menu (vector (car choice)))))))
+
     (set-buffer (cadr ada-contextual-menu-last-point))
     (goto-char (car ada-contextual-menu-last-point))
     ))
@@ -1090,9 +1059,8 @@ name"
 
   ;; Support for speedbar (Specifies that we want to see these files in
   ;; speedbar)
-  (condition-case nil
+  (if (fboundp 'speedbar-add-supported-extension)
       (progn
-        (require 'speedbar)
         (funcall (symbol-function 'speedbar-add-supported-extension)
                  spec)
         (funcall (symbol-function 'speedbar-add-supported-extension)
@@ -1103,7 +1071,7 @@ name"
 ;;;###autoload
 (defun ada-mode ()
   "Ada mode is the major mode for editing Ada code.
-This version was built on Date: 2002/05/21 11:58:02 .
+This version was built on $Date: 2003/01/31 09:21:42 $.
 
 Bindings are as follows: (Note: 'LFD' is control-j.)
 \\{ada-mode-map}
@@ -1635,7 +1603,7 @@ word itself has a special casing."
 
 	      (save-excursion
 		 (while (re-search-forward re max t)
-		   (replace-match (caar substrings))))
+		   (replace-match (caar substrings) t)))
 	      (setq substrings (cdr substrings))
 	      )
 	    )
@@ -3261,8 +3229,12 @@ ORGPOINT is the limit position used in the calculation."
                                "record" nil orgpoint nil 'word-search-forward))
              t)))
         (if match-cons
-            (goto-char (car match-cons)))
-        (list (save-excursion (back-to-indentation) (point)) 'ada-indent))
+	    (progn
+	      (goto-char (car match-cons))
+	      (list (save-excursion (back-to-indentation) (point)) 'ada-indent))
+	  (list (save-excursion (back-to-indentation) (point)) 'ada-broken-indent))
+	)
+
        ;;
        ;; for..loop
        ;;
@@ -3687,7 +3659,7 @@ If NOERROR is non-nil, it only returns nil if no match was found."
                   (skip-chars-backward "a-zA-Z0-9_.'")
                   (ada-goto-previous-word)
                   (and
-                   (looking-at "\\<\\(sub\\)?type\\>")
+                   (looking-at "\\<\\(sub\\)?type\\|case\\>")
                    (save-match-data
                      (ada-goto-previous-word)
                      (not (looking-at "\\<protected\\>"))))
@@ -3715,7 +3687,7 @@ If NOERROR is non-nil, it only returns nil if no match was found."
 	     (progn
 	       (if stop-at-when
 		   (setq nest-count (1- nest-count)))
-	       (setq first nil)))))
+	       ))))
        ;;
        ((looking-at "begin")
 	(setq first nil))
@@ -3896,7 +3868,8 @@ If NOERROR is non-nil, it only returns nil if found no matching start."
 				       "if" "task" "package" "record" "do"
 				       "procedure" "function") t)
 			 "\\>")))
-        found
+	found
+        pos
 
 	;;  First is used for subprograms: they are generally handled
 	;;  recursively, but of course we do not want to do that the
@@ -3907,7 +3880,7 @@ If NOERROR is non-nil, it only returns nil if found no matching start."
     ;;  in the nesting loop below, so we just make sure we don't count it.
     ;;  "declare" is a special case because we need to look after the "begin"
     ;;  keyword
-    (if (looking-at "\\<if\\|loop\\|case\\>")
+    (if (looking-at "\\<if\\|loop\\|case\\|begin\\>")
 	(forward-char 1))
 
     ;;
@@ -3940,10 +3913,16 @@ If NOERROR is non-nil, it only returns nil if found no matching start."
        ((and (looking-at "\\<procedure\\|function\\>"))
 	(if first
 	    (forward-word 1)
+
+	  (setq pos (point))
 	  (ada-search-ignore-string-comment "is\\|;")
-	  (ada-goto-next-non-ws)
-	  (unless (looking-at "\\<new\\>")
-	    (ada-goto-matching-end 0 t))))
+	  (if (= (char-before) ?s)
+	      (progn
+		(ada-goto-next-non-ws)
+		(unless (looking-at "\\<new\\>")
+		  (progn
+		    (goto-char pos)
+		    (ada-goto-matching-end 0 t)))))))
 
        ;; found block end => decrease nest depth
        ((looking-at "\\<end\\>")
@@ -3970,8 +3949,9 @@ If NOERROR is non-nil, it only returns nil if found no matching start."
 
        ;; all the other block starts
        (t
-        (setq nest-count (1+ nest-count)
-	      found      (<= nest-count 0))
+	(if (not first)
+	    (setq nest-count (1+ nest-count)))
+	(setq found      (<= nest-count 0))
         (forward-word 1)))              ; end of 'cond'
 
       (setq first nil))
@@ -4404,7 +4384,8 @@ Moves to 'begin' if in a declarative part."
 	     ((save-excursion
 		(skip-syntax-backward "w")
 		(looking-at "\\<begin\\>"))
-	      (ada-goto-matching-end 1))
+	      (ada-goto-matching-end 1)
+	      )
 
 	     ;; on first line of subprogram body
 	     ;; Do nothing for specs or generic instantion, since these are
@@ -4543,74 +4524,223 @@ Moves to 'begin' if in a declarative part."
   ;; Use predefined function of Emacs19 for comments (RE)
   (define-key ada-mode-map "\C-c;"    'comment-region)
   (define-key ada-mode-map "\C-c:"    'ada-uncomment-region)
+
+  ;; The following keys are bound to functions defined in ada-xref.el or
+  ;; ada-prj,el., However, RMS rightly thinks that the code should be shared,
+  ;; and activated only if the right compiler is used
+  (if ada-xemacs
+      (progn
+        (define-key ada-mode-map '(shift button3) 'ada-point-and-xref)
+        (define-key ada-mode-map '(control tab) 'ada-complete-identifier))
+    (define-key ada-mode-map [C-tab] 'ada-complete-identifier)
+    (define-key ada-mode-map [S-mouse-3] 'ada-point-and-xref))
+
+  (define-key ada-mode-map "\C-co"     'ff-find-other-file)
+  (define-key ada-mode-map "\C-c5\C-d" 'ada-goto-declaration-other-frame)
+  (define-key ada-mode-map "\C-c\C-d"  'ada-goto-declaration)
+  (define-key ada-mode-map "\C-c\C-s"  'ada-xref-goto-previous-reference)
+  (define-key ada-mode-map "\C-c\C-c"  'ada-compile-application)
+  (define-key ada-mode-map "\C-cc"     'ada-change-prj)
+  (define-key ada-mode-map "\C-cd"     'ada-set-default-project-file)
+  (define-key ada-mode-map "\C-cg"     'ada-gdb-application)
+  (define-key ada-mode-map "\C-cr"     'ada-run-application)
+  (define-key ada-mode-map "\C-c\C-o"  'ada-goto-parent)
+  (define-key ada-mode-map "\C-c\C-r"  'ada-find-references)
+  (define-key ada-mode-map "\C-cl"     'ada-find-local-references)
+  (define-key ada-mode-map "\C-c\C-v"  'ada-check-current)
+  (define-key ada-mode-map "\C-cf"     'ada-find-file)
+
+  (define-key ada-mode-map "\C-cu"  'ada-prj-edit)
+
+  ;;  The templates, defined in ada-stmt.el
+
+  (let ((map (make-sparse-keymap)))
+    (define-key map "h"    'ada-header)
+    (define-key map "\C-a" 'ada-array)
+    (define-key map "b"    'ada-exception-block)
+    (define-key map "d"    'ada-declare-block)
+    (define-key map "c"    'ada-case)
+    (define-key map "\C-e" 'ada-elsif)
+    (define-key map "e"    'ada-else)
+    (define-key map "\C-k" 'ada-package-spec)
+    (define-key map "k"    'ada-package-body)
+    (define-key map "\C-p" 'ada-procedure-spec)
+    (define-key map "p"    'ada-subprogram-body)
+    (define-key map "\C-f" 'ada-function-spec)
+    (define-key map "f"    'ada-for-loop)
+    (define-key map "i"    'ada-if)
+    (define-key map "l"    'ada-loop)
+    (define-key map "\C-r" 'ada-record)
+    (define-key map "\C-s" 'ada-subtype)
+    (define-key map "S"    'ada-tabsize)
+    (define-key map "\C-t" 'ada-task-spec)
+    (define-key map "t"    'ada-task-body)
+    (define-key map "\C-y" 'ada-type)
+    (define-key map "\C-v" 'ada-private)
+    (define-key map "u"    'ada-use)
+    (define-key map "\C-u" 'ada-with)
+    (define-key map "\C-w" 'ada-when)
+    (define-key map "w"    'ada-while-loop)
+    (define-key map "\C-x" 'ada-exception)
+    (define-key map "x"    'ada-exit)
+    (define-key ada-mode-map "\C-ct" map))
   )
 
 
 (defun ada-create-menu ()
-  "Create the ada menu as shown in the menu bar.
-This function is designed to be extensible, so that each compiler-specific file
-can add its own items."
-  ;;  Note that the separators must have different length in the submenus
-  (autoload 'easy-menu-define "easymenu")
-
-  (let ((m      '("Ada"
-                  ("Help"   ["Ada Mode" (info "ada-mode") t])))
-        (option '(["Auto Casing" (setq ada-auto-case (not ada-auto-case))
-                   :style toggle :selected ada-auto-case]
-                  ["Auto Indent After Return"
-                   (setq ada-indent-after-return (not ada-indent-after-return))
-                   :style toggle :selected ada-indent-after-return]))
-        (goto   '(["Next compilation error"  next-error t]
-                  ["Previous Package" ada-previous-package t]
-                  ["Next Package" ada-next-package t]
-                  ["Previous Procedure" ada-previous-procedure t]
+  "Create the ada menu as shown in the menu bar."
+  (let ((m '("Ada"
+	     ("Help"
+	      ["Ada Mode"               (info "ada-mode") t]
+	      ["GNAT User's Guide"      (info "gnat_ugn")
+	       (eq ada-which-compiler 'gnat)]
+	      ["GNAT Reference Manual"  (info "gnat_rm")
+	       (eq ada-which-compiler 'gnat)]
+	      ["Gcc Documentation"      (info "gcc")
+	       (eq ada-which-compiler 'gnat)]
+	      ["Gdb Documentation"      (info "gdb")
+	       (eq ada-which-compiler 'gnat)]
+	      ["Ada95 Reference Manual" (info "arm95")
+	       (eq ada-which-compiler 'gnat)])
+	     ("Options"  :included (eq major-mode 'ada-mode)
+	      ["Auto Casing" (setq ada-auto-case (not ada-auto-case))
+	       :style toggle :selected ada-auto-case]
+	      ["Auto Indent After Return"
+	       (setq ada-indent-after-return (not ada-indent-after-return))
+	       :style toggle :selected ada-indent-after-return]
+	      ["Automatically Recompile For Cross-references"
+	       (setq ada-xref-create-ali (not ada-xref-create-ali))
+	       :style toggle :selected ada-xref-create-ali
+	       :included (eq ada-which-compiler 'gnat)]
+	      ["Confirm Commands"
+	       (setq ada-xref-confirm-compile (not ada-xref-confirm-compile))
+	       :style toggle :selected ada-xref-confirm-compile
+	       :included (eq ada-which-compiler 'gnat)]
+	      ["Show Cross-references In Other Buffer"
+	       (setq ada-xref-other-buffer (not ada-xref-other-buffer))
+	       :style toggle :selected ada-xref-other-buffer
+	       :included (eq ada-which-compiler 'gnat)]
+	      ["Tight Integration With GNU Visual Debugger"
+	       (setq ada-tight-gvd-integration (not ada-tight-gvd-integration))
+	       :style toggle :selected ada-tight-gvd-integration
+	       :included (string-match "gvd" ada-prj-default-debugger)])
+	     ["Customize"     (customize-group 'ada)
+	      :included (fboundp 'customize-group)]
+	     ["Check file"    ada-check-current   (eq ada-which-compiler 'gnat)]
+	     ["Compile file"  ada-compile-current (eq ada-which-compiler 'gnat)]
+	     ["Build"         ada-compile-application
+	      (eq ada-which-compiler 'gnat)]
+	     ["Run"           ada-run-application     t]
+	     ["Debug"         ada-gdb-application (eq ada-which-compiler 'gnat)]
+	     ["------"        nil nil]
+	     ("Project"
+	       :included (eq ada-which-compiler 'gnat)
+	      ["Load..."      ada-set-default-project-file t]
+	      ["New..."       ada-prj-new                  t]
+	      ["Edit..."      ada-prj-edit                 t])
+	     ("Goto"   :included (eq major-mode 'ada-mode)
+	      ["Goto Declaration/Body"   ada-goto-declaration
+	       (eq ada-which-compiler 'gnat)]
+	      ["Goto Body"               ada-goto-body
+	       (eq ada-which-compiler 'gnat)]
+	      ["Goto Declaration Other Frame"
+	       ada-goto-declaration-other-frame
+	       (eq ada-which-compiler 'gnat)]
+	      ["Goto Previous Reference" ada-xref-goto-previous-reference
+	       (eq ada-which-compiler 'gnat)]
+	      ["List Local References"   ada-find-local-references
+	       (eq ada-which-compiler 'gnat)]
+	      ["List References"         ada-find-references
+	       (eq ada-which-compiler 'gnat)]
+	      ["Goto Reference To Any Entity" ada-find-any-references
+	       (eq ada-which-compiler 'gnat)]
+	      ["Goto Parent Unit"        ada-goto-parent
+	       (eq ada-which-compiler 'gnat)]
+	      ["--"                      nil                              nil]
+	      ["Next compilation error"  next-error             t]
+	      ["Previous Package"        ada-previous-package   t]
+	      ["Next Package"            ada-next-package       t]
+	      ["Previous Procedure"      ada-previous-procedure t]
                   ["Next Procedure" ada-next-procedure t]
                   ["Goto Start Of Statement" ada-move-to-start t]
-                  ["Goto End Of Statement" ada-move-to-end t]
-                  ["-" nil nil]
-                  ["Other File" ff-find-other-file t]
-                  ["Other File Other Window" ada-ff-other-window t]))
-        (edit   '(["Indent Line"  ada-indent-current-function t]
-                  ["Justify Current Indentation" ada-justified-indent-current t]
-                  ["Indent Lines in Selection" ada-indent-region t]
-                  ["Indent Lines in File" (ada-indent-region (point-min) (point-max)) t]
-                  ["Format Parameter List" ada-format-paramlist t]
-                  ["-" nil nil]
-                  ["Comment Selection" comment-region t]
-                  ["Uncomment Selection" ada-uncomment-region t]
-                  ["--" nil nil]
-                  ["Fill Comment Paragraph" fill-paragraph t]
-                  ["Fill Comment Paragraph Justify" ada-fill-comment-paragraph-justify t]
-                  ["Fill Comment Paragraph Postfix" ada-fill-comment-paragraph-postfix t]
-                  ["---" nil nil]
-                  ["Adjust Case Selection"  ada-adjust-case-region t]
-                  ["Adjust Case in File"     ada-adjust-case-buffer t]
+	      ["Goto End Of Statement"   ada-move-to-end        t]
+	      ["-"                       nil                    nil]
+	      ["Other File"              ff-find-other-file     t]
+	      ["Other File Other Window" ada-ff-other-window    t])
+	     ("Edit"   :included (eq major-mode 'ada-mode)
+	      ["Search File On Source Path"  ada-find-file                t]
+	      ["------"                      nil                          nil]
+	      ["Complete Identifier"         ada-complete-identifier      t]
+	      ["-----"                       nil                          nil]
+	      ["Indent Line"                 ada-indent-current-function  t]
+	      ["Justify Current Indentation" ada-justified-indent-current t]
+	      ["Indent Lines in Selection"   ada-indent-region            t]
+	      ["Indent Lines in File"
+	       (ada-indent-region (point-min) (point-max))                t]
+	      ["Format Parameter List"       ada-format-paramlist         t]
+	      ["-"                           nil                          nil]
+	      ["Comment Selection"           comment-region               t]
+	      ["Uncomment Selection"         ada-uncomment-region         t]
+	      ["--"                          nil                          nil]
+	      ["Fill Comment Paragraph"      fill-paragraph               t]
+	      ["Fill Comment Paragraph Justify"
+	       ada-fill-comment-paragraph-justify                         t]
+	      ["Fill Comment Paragraph Postfix"
+	       ada-fill-comment-paragraph-postfix                         t]
+	      ["---"                         nil                          nil]
+	      ["Adjust Case Selection"       ada-adjust-case-region       t]
+	      ["Adjust Case in File"         ada-adjust-case-buffer       t]
                   ["Create Case Exception"  ada-create-case-exception t]
                   ["Create Case Exception Substring"
-		   ada-create-case-exception-substring t]
-                  ["Reload Case Exceptions" ada-case-read-exceptions t]
-                  ["----" nil nil]
-                  ["Make body for subprogram" ada-make-subprogram-body t]))
+	       ada-create-case-exception-substring                        t]
+	      ["Reload Case Exceptions"      ada-case-read-exceptions     t]
+	      ["----"                        nil                          nil]
+	      ["Make body for subprogram"    ada-make-subprogram-body     t]
+	      ["-----"                       nil                          nil]
+              ["Narrow to subprogram"        ada-narrow-to-defun          t])
+	     ("Templates"
+	      :included  (eq major-mode 'ada-mode)
+	      ["Header"          ada-header          t]
+	      ["-"               nil                 nil]
+	      ["Package Body"    ada-package-body    t]
+	      ["Package Spec"    ada-package-spec    t]
+	      ["Function Spec"   ada-function-spec   t]
+	      ["Procedure Spec"  ada-procedure-spec  t]
+	      ["Proc/func Body"  ada-subprogram-body t]
+	      ["Task Body"       ada-task-body       t]
+	      ["Task Spec"       ada-task-spec       t]
+	      ["Declare Block"   ada-declare-block   t]
+	      ["Exception Block" ada-exception-block t]
+	      ["--"              nil                 nil]
+	      ["Entry"           ada-entry           t]
+	      ["Entry family"    ada-entry-family    t]
+	      ["Select"          ada-select          t]
+	      ["Accept"          ada-accept          t]
+	      ["Or accept"       ada-or-accep        t]
+	      ["Or delay"        ada-or-delay        t]
+	      ["Or terminate"    ada-or-terminate    t]
+	      ["---"             nil                 nil]
+	      ["Type"            ada-type            t]
+	      ["Private"         ada-private         t]
+	      ["Subtype"         ada-subtype         t]
+	      ["Record"          ada-record          t]
+	      ["Array"           ada-array           t]
+	      ["----"            nil                 nil]
+	      ["If"              ada-if              t]
+	      ["Else"            ada-else            t]
+	      ["Elsif"           ada-elsif           t]
+	      ["Case"            ada-case            t]
+	      ["-----"           nil                 nil]
+	      ["While Loop"      ada-while-loop      t]
+	      ["For Loop"        ada-for-loop        t]
+	      ["Loop"            ada-loop            t]
+	      ["------"          nil                 nil]
+	      ["Exception"       ada-exception       t]
+	      ["Exit"            ada-exit            t]
+	      ["When"            ada-when            t])
+	     )))
 
-        )
-
-    ;; Option menu present only if in Ada mode
-    (setq m (append m (list (append '("Options"
-				      :included '(eq major-mode 'ada-mode))
-                                    option))))
-
-    ;; Customize menu always present
-    (when (fboundp 'customize-group)
-      (setq m (append m '(["Customize" (customize-group 'ada)]))))
-
-    ;; Goto and Edit menus present only if in Ada mode
-    (setq m (append m (list (append '("Goto"
-				      :included (eq major-mode 'ada-mode))
-                                    goto)
-                            (append '("Edit"
-				      :included (eq major-mode 'ada-mode))
-                                    edit))))
-
+;    (autoload 'easy-menu-define "easymenu")
     (easy-menu-define ada-mode-menu ada-mode-map "Menu keymap for Ada mode" m)
     (easy-menu-add ada-mode-menu ada-mode-map)
     (when ada-xemacs
@@ -4648,7 +4778,7 @@ can add its own items."
 
   ;;  This advice is not needed anymore with Emacs21. However, for older
   ;;  versions, as well as for XEmacs, we still need to enable it.
-  (if (or (<= emacs-major-version 20) (boundp 'running-xemacs))
+  (if (or (<= emacs-major-version 20) ada-xemacs)
       (progn
 	(ad-activate 'comment-region)
 	(comment-region beg end (- (or arg 2)))
@@ -5057,7 +5187,7 @@ Returns nil if no body was found."
                 "null" "or" "others" "private" "protected" "raise"
                 "range" "record" "rem" "renames" "requeue" "return" "reverse"
                 "select" "separate" "tagged" "task" "terminate" "then" "until"
-                "when" "while" "xor") t)
+                "when" "while" "with" "xor") t)
              "\\>")
      ;;
      ;; Anything following end and not already fontified is a body name.
@@ -5079,6 +5209,7 @@ Returns nil if no body was found."
      (list (concat "\\<\\(goto\\|raise\\|use\\|with\\)"
                    "[ \t]+\\([a-zA-Z0-9_., \t]+\\)\\W")
            '(1 font-lock-keyword-face) '(2 font-lock-reference-face nil t))
+
      ;;
      ;; Goto tags.
      '("<<\\(\\sw+\\)>>" 1 font-lock-reference-face)
@@ -5104,6 +5235,33 @@ Returns nil if no body was found."
     (save-excursion
       (back-to-indentation)
       (current-column))))
+
+;; ---------------------------------------------------------
+;;  Support for narrow-to-region
+;; ---------------------------------------------------------
+
+(defun ada-narrow-to-defun (&optional arg)
+  "make text outside current subprogram invisible.
+The subprogram visible is the one that contains or follow point.
+Optional ARG is ignored.
+Use `M-x widen' to go back to the full visibility for the buffer"
+
+  (interactive)
+  (save-excursion
+    (let (end)
+      (widen)
+      (forward-line 1)
+      (ada-previous-procedure)
+
+      (save-excursion
+        (beginning-of-line)
+        (setq end (point)))
+
+      (ada-move-to-end)
+      (end-of-line)
+      (narrow-to-region end (point))
+      (message
+       "Use M-x widen to get back to full visibility in the buffer"))))
 
 ;; ---------------------------------------------------------
 ;;    Automatic generation of code
@@ -5239,7 +5397,7 @@ This function typically is to be hooked into `ff-file-created-hooks'."
           (setq body-file (ada-get-body-name))
           (if body-file
               (find-file body-file)
-            (error "No body found for the package. Create it first"))
+            (error "No body found for the package. Create it first."))
 
           (save-restriction
             (widen)
@@ -5278,15 +5436,65 @@ This function typically is to be hooked into `ff-file-created-hooks'."
 ;;  Read the special cases for exceptions
 (ada-case-read-exceptions)
 
-;; include the other ada-mode files
+;;  Setup auto-loading of the other ada-mode files.
 (if (equal ada-which-compiler 'gnat)
     (progn
-      ;; The order here is important: ada-xref defines the Project
-      ;; submenu, and ada-prj adds to it.
-      (require 'ada-xref)
-      (condition-case nil  (require 'ada-prj) (error nil))
+      (autoload 'ada-change-prj                   "ada-xref" nil t)
+      (autoload 'ada-check-current                "ada-xref" nil t)
+      (autoload 'ada-compile-application          "ada-xref" nil t)
+      (autoload 'ada-compile-current              "ada-xref" nil t)
+      (autoload 'ada-complete-identifier          "ada-xref" nil t)
+      (autoload 'ada-find-file                    "ada-xref" nil t)
+      (autoload 'ada-find-any-references          "ada-xref" nil t)
+      (autoload 'ada-find-src-file-in-dir         "ada-xref" nil t)
+      (autoload 'ada-find-local-references        "ada-xref" nil t)
+      (autoload 'ada-find-references              "ada-xref" nil t)
+      (autoload 'ada-gdb-application              "ada-xref" nil t)
+      (autoload 'ada-goto-declaration             "ada-xref" nil t)
+      (autoload 'ada-goto-declaration-other-frame "ada-xref" nil t)
+      (autoload 'ada-goto-parent                  "ada-xref" nil t)
+      (autoload 'ada-make-body-gnatstub           "ada-xref" nil t)
+      (autoload 'ada-point-and-xref               "ada-xref" nil t)
+      (autoload 'ada-reread-prj-file              "ada-xref" nil t)
+      (autoload 'ada-run-application              "ada-xref" nil t)
+      (autoload 'ada-set-default-project-file     "ada-xref" nil nil)
+      (autoload 'ada-set-default-project-file     "ada-xref" nil t)
+      (autoload 'ada-xref-goto-previous-reference "ada-xref" nil t)
+
+      (autoload 'ada-customize                    "ada-prj"  nil t)
+      (autoload 'ada-prj-edit                     "ada-prj"  nil t)
+      (autoload 'ada-prj-new                      "ada-prj"  nil t)
+      (autoload 'ada-prj-save                     "ada-prj"  nil t)
       ))
-(condition-case nil (require 'ada-stmt) (error nil))
+
+(autoload 'ada-array           "ada-stmt" nil t)
+(autoload 'ada-case            "ada-stmt" nil t)
+(autoload 'ada-declare-block   "ada-stmt" nil t)
+(autoload 'ada-else            "ada-stmt" nil t)
+(autoload 'ada-elsif           "ada-stmt" nil t)
+(autoload 'ada-exception       "ada-stmt" nil t)
+(autoload 'ada-exception-block "ada-stmt" nil t)
+(autoload 'ada-exit            "ada-stmt" nil t)
+(autoload 'ada-for-loop        "ada-stmt" nil t)
+(autoload 'ada-function-spec   "ada-stmt" nil t)
+(autoload 'ada-header          "ada-stmt" nil t)
+(autoload 'ada-if              "ada-stmt" nil t)
+(autoload 'ada-loop            "ada-stmt" nil t)
+(autoload 'ada-package-body    "ada-stmt" nil t)
+(autoload 'ada-package-spec    "ada-stmt" nil t)
+(autoload 'ada-private         "ada-stmt" nil t)
+(autoload 'ada-procedure-spec  "ada-stmt" nil t)
+(autoload 'ada-record          "ada-stmt" nil t)
+(autoload 'ada-subprogram-body "ada-stmt" nil t)
+(autoload 'ada-subtype         "ada-stmt" nil t)
+(autoload 'ada-tabsize         "ada-stmt" nil t)
+(autoload 'ada-task-body       "ada-stmt" nil t)
+(autoload 'ada-task-spec       "ada-stmt" nil t)
+(autoload 'ada-type            "ada-stmt" nil t)
+(autoload 'ada-use             "ada-stmt" nil t)
+(autoload 'ada-when            "ada-stmt" nil t)
+(autoload 'ada-while-loop      "ada-stmt" nil t)
+(autoload 'ada-with            "ada-stmt" nil t)
 
 ;;; provide ourselves
 (provide 'ada-mode)
