@@ -621,9 +621,6 @@ Meaningful values for KEY include
 			variable `nonascii-translation-table' in this
 			language environment, or a character set from
 			which `nonascii-insert-offset' is calculated.
-  charset-origin-alist
-		     value is an alist to be set in the variable
-			`charset-origin-alist' in this language environment.
   input-method       value is a default input method for this language
 			environment.
   features           value is a list of features requested in this
