@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.39) $
+ * $HopeName: MMsrc!mpmst.h(trunk.40) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -231,6 +231,7 @@ typedef struct SegStruct {      /* segment structure */
   TraceSet _grey : TRACE_MAX;   /* traces for which seg is grey */
   TraceSet _white : TRACE_MAX;  /* traces for which seg is white */
   unsigned int _single : 1;     /* is a single page segment? */
+  unsigned nailCount : 16;      /* false fixes to this seg */
   RankSet _rankSet : RankMAX;   /* ranks of references in this seg */
 } SegStruct;
 
@@ -472,6 +473,14 @@ typedef struct ScanStateStruct {
   Rank rank;                    /* reference rank of scanning */
   Bool wasMarked;               /* design.mps.fix.protocol.was-ready */
   RefSet fixedSummary;          /* accumulated summary of fixed references */
+  Count fixRefCount;            /* refs which pass zone check */
+  Count segRefCount;            /* refs which refer to segs */
+  Count whiteSegRefCount;       /* refs which refer to white segs */
+  Count nailCount;              /* segments nailed by ambig refs */
+  Count snapCount;              /* refs snapped to forwarded objs */
+  Count forwardCount;           /* objects forwarded */
+  Size copiedSize;              /* bytes copied */
+  Size scannedSize;             /* bytes scanned */
 } ScanStateStruct;
 
 
@@ -489,6 +498,21 @@ typedef struct TraceStruct {
   Size condemned;               /* condemned bytes */
   Size foundation;              /* initial grey set size */
   Size rate;                    /* bytes to scan per increment */
+  Count rootScanCount;          /* number of roots scanned */
+  Count rootScanSize;           /* total size of scanned roots */
+  Size rootCopiedSize;          /* bytes copied by scanning roots */
+  Count segScanCount;           /* number of segs scanned */
+  Count segScanSize;            /* total size of scanned segments */
+  Size segCopiedSize;           /* bytes copied by scanning segments */
+  Count fixRefCount;            /* refs which pass zone check */
+  Count segRefCount;            /* refs which refer to segs */
+  Count whiteSegRefCount;       /* refs which refer to white segs */
+  Count nailCount;              /* segments nailed by ambig refs */
+  Count snapCount;              /* refs snapped to forwarded objs */
+  Count forwardCount;           /* objects forwarded */
+  Count faultCount;             /* read barrier faults */
+  Count reclaimCount;           /* segments reclaimed */
+  Count reclaimSize;            /* bytes reclaimed */
 } TraceStruct;
 
 
