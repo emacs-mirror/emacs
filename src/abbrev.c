@@ -214,7 +214,7 @@ then ABBREV is looked up in that table only.")
 DEFUN ("expand-abbrev", Fexpand_abbrev, Sexpand_abbrev, 0, 0, "",
   "Expand the abbrev before point, if there is an abbrev there.\n\
 Effective when explicitly called even when `abbrev-mode' is nil.\n\
-Returns t if expansion took place.")
+Returns the abbrev symbol, if expansion took place.")
   ()
 {
   register char *buffer, *p;
@@ -226,15 +226,14 @@ Returns t if expansion took place.")
   int oldmodiff = MODIFF;
   Lisp_Object value;
 
+  value = Qnil;
+
   if (!NILP (Vrun_hooks))
     call1 (Vrun_hooks, Qpre_abbrev_expand_hook);
-  /* If the hook changes the buffer, treat that as having "done an
-     expansion".  */
-  value = (MODIFF != oldmodiff ? Qt : Qnil);
 
   wordstart = 0;
-  if (!(BUFFERP (Vabbrev_start_location_buffer) &&
-	XBUFFER (Vabbrev_start_location_buffer) == current_buffer))
+  if (!(BUFFERP (Vabbrev_start_location_buffer)
+	&& XBUFFER (Vabbrev_start_location_buffer) == current_buffer))
     Vabbrev_start_location = Qnil;
   if (!NILP (Vabbrev_start_location))
     {
@@ -297,6 +296,7 @@ Returns t if expansion took place.")
 
   /* Now sym is the abbrev symbol.  */
   Vlast_abbrev = sym;
+  value = sym;
   last_abbrev_point = wordstart;
 
   if (INTEGERP (XSYMBOL (sym)->plist))
@@ -351,7 +351,7 @@ Returns t if expansion took place.")
   if (!NILP (hook))
     call0 (hook);
 
-  return Qt;
+  return value;
 }
 
 DEFUN ("unexpand-abbrev", Funexpand_abbrev, Sunexpand_abbrev, 0, 0, "",
