@@ -172,21 +172,6 @@ extern Lisp_Object Vwindow_system_version;
 
 extern int mac_initialized;
 
-/* Functions in macterm.c.  */
-extern void x_set_window_size (struct frame *, int, int, int);
-extern void x_make_frame_visible (struct frame *);
-extern struct mac_display_info *mac_term_init (Lisp_Object, char *, char *);
-extern struct font_info *x_get_font_info (FRAME_PTR, int);
-extern struct font_info *x_load_font (struct frame *, char *, int);
-extern void x_find_ccl_program (struct font_info *);
-extern struct font_info *x_query_font (struct frame *, char *);
-extern void mac_initialize ();
-extern Pixmap XCreatePixmap (Display *, WindowPtr, unsigned int, unsigned int, unsigned int);
-extern Pixmap XCreatePixmapFromBitmapData (Display *, WindowPtr, char *, unsigned int, unsigned int, unsigned long, unsigned long, unsigned int);
-extern void XFreePixmap (Display *, Pixmap);
-extern void XSetForeground (Display *, GC, unsigned long);
-extern void mac_draw_line_to_pixmap (Display *, Pixmap, GC, int, int, int, int);
-
 
 /* compare two strings ignoring case */
 
