@@ -974,10 +974,10 @@ Call this function to override the normal bindings.  This function also
 adds a hook to the minibuffer."
   (interactive)
   (add-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)
-  (global-set-key (read-kbd-macro "C-x b")  'iswitchb-buffer)
-  (global-set-key (read-kbd-macro "C-x 4 b")  'iswitchb-buffer-other-window)
-  (global-set-key (read-kbd-macro "C-x 4 C-o")  'iswitchb-display-buffer)
-  (global-set-key (read-kbd-macro "C-x 5 b")  'iswitchb-buffer-other-frame))
+  (global-set-key "\C-xb" 'iswitchb-buffer)
+  (global-set-key "\C-x4b" 'iswitchb-buffer-other-window)
+  (global-set-key "\C-x4\C-o" 'iswitchb-display-buffer)
+  (global-set-key "\C-x5b" 'iswitchb-buffer-other-frame))
 
 ;;;###autoload
 (defun iswitchb-buffer ()
