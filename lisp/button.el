@@ -184,9 +184,14 @@ Buttons inherit them by setting their `category' property to that symbol."
 	 (point-max))
      prop val)))
 
-(defsubst button-activate (button)
-  "Call BUTTON's action property."
-  (funcall (button-get button 'action) button))
+(defsubst button-activate (button use-mouse-action)
+  "Call BUTTON's action property.
+If USE-MOUSE-ACTION is non-nil, invoke the button's mouse-action
+instead of its normal action; if the button has no mouse-action,
+the normal action is used instead."
+  (funcall (or (and use-mouse-action (button-get button 'mouse-action))
+	       (button-get button 'action))
+	   button))
 
 (defun button-label (button)
   "Return BUTTON's text label."
@@ -314,7 +319,10 @@ If COUNT-CURRENT is non-nil, count any button at POS in the search,
       ;; Search for the next button boundary.
       (setq pos (next-single-char-property-change pos 'button)))
     (let ((button (button-at pos)))
-      (cond ((and button (>= n 2))
+      (cond ((and button (button-get button 'skip))
+	     ;; Found a button, but the button declines to be found; recurse.
+	     (next-button (button-start button) n wrap))
+	    ((and button (>= n 2))
 	     ;; Found a button, but we want a different one; recurse.
 	     (next-button (button-start button) (1- n) wrap))
 	    (button
@@ -344,7 +352,10 @@ If COUNT-CURRENT is non-nil, count any button at POS in the search,
     (unless count-current
       (setq pos (previous-single-char-property-change pos 'button)))
     (let ((button (and (> pos (point-min)) (button-at (1- pos)))))
-      (cond ((and button (>= n 2))
+      (cond ((and button (button-get button 'skip))
+	     ;; Found a button, but the button declines to be found; recurse.
+	     (previous-button (button-start button) n wrap))
+	    ((and button (>= n 2))
 	     ;; Found a button, but we want a different one; recurse.
 	     (previous-button (button-start button) (1- n) wrap))
 	    (button
@@ -362,9 +373,12 @@ If COUNT-CURRENT is non-nil, count any button at POS in the search,
 
 ;; User commands
 
-(defun push-button (&optional pos)
+(defun push-button (&optional pos use-mouse-action)
   "Perform the action specified by a button at location POS.
 POS may be either a buffer position or a mouse-event.
+If USE-MOUSE-ACTION is non-nil, invoke the button's mouse-action
+instead of its normal action; if the button has no mouse-action,
+the normal action is used instead.
 POS defaults to point, except when `push-button' is invoked
 interactively as the result of a mouse-event, in which case, the
 mouse event is used.
@@ -376,12 +390,12 @@ return t."
       ;; POS is a mouse event; switch to the proper window/buffer
       (let ((posn (event-start pos)))
 	(with-current-buffer (window-buffer (posn-window posn))
-	  (push-button (posn-point posn))))
+	  (push-button (posn-point posn) t)))
     ;; POS is just normal position
     (let ((button (button-at (or pos (point)))))
       (if (not button)
 	  nil
-	(button-activate button)
+	(button-activate button use-mouse-action)
 	t))))
 
 (defun forward-button (n &optional wrap display-message)
