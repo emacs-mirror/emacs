@@ -3,7 +3,7 @@
 	* ebrowse.c (yyerror): Changed to take two arguments.  Prototype
 	added.  Callers changed.
 
-2001-01-02  Eli Zaretskii  <a34785@is.elta.co.il>
+2001-01-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* ebrowse.c (enter_namespace, main): Cast variables to shut up
 	compiler warnings.
