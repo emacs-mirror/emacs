@@ -1,3 +1,8 @@
+2003-05-10  Andreas Schwab  <schwab@suse.de>
+
+	* xmenu.c (single_menu_item): Change last parameter to void* to
+	avoid warning.
+
 2003-05-09  Richard M. Stallman  <rms@gnu.org>
 
 	* print.c (Fprin1_to_string): Instead of gcpro, set abort_on_gc.
