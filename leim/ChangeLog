@@ -1,3 +1,8 @@
+2000-11-17  Kenichi Handa  <handa@etl.go.jp>
+
+	* quail/japanese.el (quail-japanese-kanji-kkc): Use marker to
+	remember the conversion start.
+
 2000-10-21  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.nt ($(TIT)): Add $(SUBDIRS) as dependents, instead
