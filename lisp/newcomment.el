@@ -1,6 +1,6 @@
 ;;; newcomment.el --- (un)comment regions of buffers
 
-;; Copyright (C) 1999, 2000  Free Software Foundation Inc.
+;; Copyright (C) 1999,2000,2003  Free Software Foundation Inc.
 
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
@@ -493,15 +493,36 @@ If CONTINUE is non-nil, use the `comment-continue' markers if any."
       ;; Compute desired indent.
       (setq indent (save-excursion (funcall comment-indent-function)))
       (if (not indent)
-	  ;; comment-indent-function refuses: delegate to indent.
+	  ;; comment-indent-function refuses: delegate to line-indent.
 	  (indent-according-to-mode)
 	;; Avoid moving comments past the fill-column.
 	(unless (save-excursion (skip-chars-backward " \t") (bolp))
-	  (setq indent
-		(min indent
-		     (+ (current-column)
+	  (let ((max (+ (current-column)
 			(- (or comment-fill-column fill-column)
-			   (save-excursion (end-of-line) (current-column)))))))
+			   (save-excursion (end-of-line) (current-column))))))
+	    (if (<= max indent)
+		(setq indent max)	;Don't move past the fill column.
+	      ;; We can choose anywhere between indent..max.
+	      ;; Let's try to align to a comment on the previous line.
+	      (let ((other nil))
+		(save-excursion
+		  (when (and (zerop (forward-line -1))
+			     (setq other (comment-search-forward
+					 (line-end-position) t)))
+		    (goto-char other) (setq other (current-column))))
+		(if (and other (<= other max) (> other indent))
+		    ;; There is a comment and it's in the range: bingo.
+		    (setq indent other)
+		  ;; Let's try to align to a comment on the next line, then.
+		  (let ((other nil))
+		    (save-excursion
+		      (when (and (zerop (forward-line 1))
+				 (setq other (comment-search-forward
+					     (line-end-position) t)))
+			(goto-char other) (setq other (current-column))))
+		    (if (and other (<= other max) (> other indent))
+			;; There is a comment and it's in the range: bingo.
+			(setq indent other))))))))
 	(unless (= (current-column) indent)
 	  ;; If that's different from current, change it.
 	  (delete-region (point) (progn (skip-chars-backward " \t") (point)))
@@ -764,9 +785,9 @@ Space is added (and then removed) at the beginning for the text's
 indentation to be kept as it was before narrowing."
   (declare (debug t) (indent 2))
   (let ((bindent (make-symbol "bindent")))
-    `(let ((,bindent (save-excursion (goto-char beg) (current-column))))
+    `(let ((,bindent (save-excursion (goto-char ,beg) (current-column))))
        (save-restriction
-	 (narrow-to-region beg end)
+	 (narrow-to-region ,beg ,end)
 	 (goto-char (point-min))
 	 (insert (make-string ,bindent ? ))
 	 (prog1
@@ -988,13 +1009,13 @@ Else, call `comment-indent'."
 This has no effect in modes that do not define a comment syntax."
   :type 'boolean)
 
-(defun comment-valid-prefix (prefix compos)
+(defun comment-valid-prefix-p (prefix compos)
   (or
    ;; Accept any prefix if the current comment is not EOL-terminated.
    (save-excursion (goto-char compos) (comment-forward) (not (bolp)))
    ;; Accept any prefix that starts with a comment-start marker.
    (string-match (concat "\\`[ \t]*\\(?:" comment-start-skip "\\)")
-		 fill-prefix)))
+		 prefix)))
 
 ;;;###autoload
 (defun comment-indent-new-line (&optional soft)
@@ -1048,7 +1069,7 @@ unless optional argument SOFT is non-nil."
 	 ;; a comment and the prefix is not a comment starter.
 	 ((and fill-prefix
 	       (or (not compos)
-		   (comment-valid-prefix fill-prefix compos)))
+		   (comment-valid-prefix-p fill-prefix compos)))
 	  (indent-to-left-margin)
 	  (insert-and-inherit fill-prefix))
 	 ;; If we're not inside a comment, just try to indent.
