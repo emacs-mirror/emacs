@@ -1,5 +1,7 @@
 2001-01-16  Dave Love  <fx@gnu.org>
 
+	* isearch.el (isearch-lazy-highlight): Add :version.
+
 	* simple.el (backward-delete-char-untabify-method)
 	(next-line-add-newlines): Add :version.
 
