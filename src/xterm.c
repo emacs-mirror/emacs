@@ -1492,7 +1492,7 @@ x_produce_image_glyph (it)
   PREPARE_FACE_FOR_DISPLAY (it->f, face);
   prepare_image_for_display (it->f, img);
 
-  it->ascent = it->phys_ascent = IMAGE_ASCENT (img);
+  it->ascent = it->phys_ascent = image_ascent (img, face);
   it->descent = it->phys_descent = img->height + 2 * img->margin - it->ascent;
   it->pixel_width = img->width + 2 * img->margin;
 
@@ -3560,7 +3560,7 @@ x_draw_image_foreground (s)
      struct glyph_string *s;
 {
   int x;
-  int y = s->ybase - IMAGE_ASCENT (s->img);
+  int y = s->ybase - image_ascent (s->img, s->face);
 
   /* If first glyph of S has a left box line, start drawing it to the
      right of that line.  */
@@ -3639,7 +3639,7 @@ x_draw_image_relief (s)
   int x0, y0, x1, y1, thick, raised_p;
   XRectangle r;
   int x;
-  int y = s->ybase - IMAGE_ASCENT (s->img);
+  int y = s->ybase - image_ascent (s->img, s->face);
   
   /* If first glyph of S has a left box line, start drawing it to the
      right of that line.  */
@@ -3688,7 +3688,7 @@ x_draw_image_foreground_1 (s, pixmap)
      Pixmap pixmap;
 {
   int x;
-  int y = s->ybase - s->y - IMAGE_ASCENT (s->img);
+  int y = s->ybase - s->y - image_ascent (s->img, s->face);
 
   /* If first glyph of S has a left box line, start drawing it to the
      right of that line.  */
