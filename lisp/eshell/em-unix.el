@@ -360,10 +360,12 @@ Remove the DIRECTORY(ies), if they are empty.")
 			   (eq func 'rename-file)
 			   (= (nth 11 (eshell-file-attributes
 				       (file-name-directory
-					(expand-file-name source))))
+					(directory-file-name
+					 (expand-file-name source)))))
 			      (nth 11 (eshell-file-attributes
 				       (file-name-directory
-					(expand-file-name target))))))
+					(directory-file-name
+					 (expand-file-name target)))))))
 		      (apply 'eshell-funcalln func source target args)
 		  (unless (file-directory-p target)
 		    (if verbose
