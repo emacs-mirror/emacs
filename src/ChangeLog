@@ -5,6 +5,12 @@
 
 	* md5.c: Delay include of md5.h until after namespace cleaning.
 
+	* makefile.w32-in (fns.o): Depend on md5.h
+	(md5.o): New target.
+	(sunfns.o): Remove.
+
+	* makefile.nt: Likewise.
+
 2000-12-05  Jason Rumney  <jasonr@altavista.net>
 
 	* w32term.c (expose_area): Complete last change.
