@@ -3790,6 +3790,8 @@ read_key_sequence (keybuf, bufsize, prompt)
   Lisp_Object first_event;
 #endif
 
+  struct buffer *starting_buffer;
+
   int junk;
 
   last_nonmenu_event = Qnil;
@@ -3838,6 +3840,8 @@ read_key_sequence (keybuf, bufsize, prompt)
      keybuf[0..mock_input] holds the sequence we should reread.  */
  replay_sequence:
 
+  starting_buffer = current_buffer;
+
   /* Build our list of keymaps.
      If we recognize a function key and replace its escape sequence in
      keybuf with its symbol, or if the sequence starts with a mouse
@@ -3867,9 +3871,7 @@ read_key_sequence (keybuf, bufsize, prompt)
     if (! NILP (submaps[first_binding]))
       break;
 
-  /* We jump here when a function key substitution has forced us to
-     reprocess the current key sequence.  keybuf[0..mock_input] is the
-     sequence we want to reread.  */
+  /* Start from the beginning in keybuf.  */
   t = 0;
 
   /* These are no-ops the first time through, but if we restart, they
@@ -3958,6 +3960,17 @@ read_key_sequence (keybuf, bufsize, prompt)
 	      goto done;
 	    }
 	  
+	  /* If we have a quit that was typed in another frame, and
+	     quit_throw_to_read_char switched buffers,
+	     replay to get the right keymap.  */
+	  if (EQ (key, quit_char) && current_buffer != starting_buffer)
+	    {
+	      keybuf[t++] = key;
+	      mock_input = t;
+	      Vquit_flag = Qnil;
+	      goto replay_sequence;
+	    }
+	    
 	  Vquit_flag = Qnil;
 	}
 
@@ -4994,6 +5007,8 @@ quit_throw_to_read_char ()
   if (poll_suppress_count == 0)
     abort ();
 #endif
+  if (XFRAME (internal_last_event_frame) != selected_frame)
+    Fhandle_switch_frame (make_lispy_switch_frame (internal_last_event_frame));
 
   _longjmp (getcjmp, 1);
 }
