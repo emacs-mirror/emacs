@@ -3148,12 +3148,20 @@ etags_getcwd ()
 char *
 etags_getcwd ()
 {
-  FILE *pipe;
   char *buf;
   int bufsize = 256;
 
+#ifdef HAVE_GETCWD
   do
     {
+      buf = xnew (bufsize, char);
+      bufsize *= 2;
+    }
+  while (getcwd (buf, bufsize / 2) == NULL);
+#else
+  do
+    {
+      FILE *pipe;
       buf = xnew (bufsize, char);
 
       pipe = (FILE *) popen ("pwd 2>/dev/null", "r");
@@ -3172,6 +3180,7 @@ etags_getcwd ()
       bufsize *= 2;
 
     } while (buf[strlen (buf) - 1] != '\n');
+#endif
 
   buf[strlen (buf) - 1] = '\0';
   return buf;
