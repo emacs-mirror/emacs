@@ -87,7 +87,6 @@ Boston, MA 02111-1307, USA.  */
 /* The STRIDE system is more powerful than standard USG5.  */
 
 #define HAVE_PTYS
-#define HAVE_GETTIMEOFDAY
 #define BSTRING
 #define SKTPAIR
 #define HAVE_SOCKETS
@@ -112,10 +111,6 @@ Boston, MA 02111-1307, USA.  */
  * UniStride has this in /lib/libc.a.
  */
 #undef NONSYSTEM_DIR_LIBRARY
-
-/* UniStride defines getwd.  */
-
-#define HAVE_GETWD
 
 /* Define this macro if system defines a type `union wait'.  */
 
