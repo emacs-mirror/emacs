@@ -2121,7 +2121,7 @@ struct sortstrlist
    it's more efficient to hold onto the memory instead of repeatedly
    allocating and freeing it.  */
 static struct sortstrlist overlay_heads, overlay_tails;
-static char *overlay_str_buf;
+static unsigned char *overlay_str_buf;
 
 /* Allocated length of overlay_str_buf.  */
 static int overlay_str_len;
