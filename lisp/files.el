@@ -373,9 +373,6 @@ with a definition that really does change some file names."
   "Value of the CDPATH environment variable, as a list.
 Not actually set up until the first time you you use it.")
 
-(defvar path-separator ":"
-  "Character used to separate directories in search paths.")
-
 (defun parse-colon-path (cd-path)
   "Explode a colon-separated search path into a list of directory names."
   (and cd-path
