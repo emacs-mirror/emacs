@@ -44,7 +44,7 @@
 	Baha'i calendar to Emacs.  This calendar is based on a solar year
 	of 19 months of 19 days, with 4 intercalary days.  Each year
 	begins on March 21, with the calendar starting in 1844.
-	
+
 	* calendar/cal-menu.el, calendar/calendar.el,
 	calendar/diary-lib.el, calendar/holidays.el: Added support for
 	using cal-bahai.el.
@@ -64,6 +64,14 @@
 	* simple.el (next-error): Fix typo in docstring.
 	(open-line): Make argument names match their use in docstring.
 	(split-line): Fix docstring.
+
+	* emacs-lisp/cl-macs.el (do, do*): Put usage info in a format
+	usable by `describe-function'.
+	(gensym, gentemp, typep, ignore-errors): Make argument names match
+	their use in docstring.
+
+	* progmodes/python.el (python-describe-symbol): Pass INTERACTIVE-P
+	argument to `help-setup-xref'.
 
 2004-05-07  Kai Grossjohann  <kai@emptydomain.de>
 
