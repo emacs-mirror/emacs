@@ -945,6 +945,9 @@ character.")
 
   CHECK_STRING (str, 0);
 
+  if (NILP (current_buffer->enable_multibyte_characters))
+    return make_number (XSTRING (str)->size);
+
   p = XSTRING (str)->data; endp = p + XSTRING (str)->size;
   chars = 0;
   while (p < endp)
@@ -982,6 +985,9 @@ may be more than the number of characters.")
   to = max (XFASTINT (beg), XFASTINT (end));
   p = POS_ADDR (from);
 
+  if (NILP (current_buffer->enable_multibyte_characters))
+    return make_number (to - from);
+
   if (from < GPT && GPT <= to)
     {
       stop = GPT;
@@ -995,9 +1001,9 @@ may be more than the number of characters.")
 
   while (1)
     {
-      if (p == endp)
+      if (p >= endp)
 	{
-	  if (stop == to)
+	  if (stop >= to)
 	    break;
 
 	  p = POS_ADDR (stop);
