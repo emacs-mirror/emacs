@@ -1854,16 +1854,16 @@ not end the comment.  Blank lines do not get comments."
 				   (backward-char (length ce))
 				   (looking-at (regexp-quote ce))))
 			    (delete-char (- (length ce)))))
-		    (setq count numarg)
-		    (while (> 1 (setq count (1+ count)))
-		      (end-of-line)
-		      ;; this is questionable if comment-end ends in whitespace
-		      ;; that is pretty brain-damaged though
-		      (skip-chars-backward " \t")
-		      (save-excursion
-			(backward-char (length ce))
-			(if (looking-at (regexp-quote ce))
-			    (delete-char (length ce)))))))
+		    (let ((count numarg))
+		      (while (> 1 (setq count (1+ count)))
+			(end-of-line)
+			;; this is questionable if comment-end ends in whitespace
+			;; that is pretty brain-damaged though
+			(skip-chars-backward " \t")
+			(save-excursion
+			  (backward-char (length ce))
+			  (if (looking-at (regexp-quote ce))
+			      (delete-char (length ce))))))))
 		(forward-line 1))
 	    ;; Insert at beginning and at end.
             (if (looking-at "[ \t]*$") ()
