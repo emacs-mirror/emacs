@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.242 1999/01/02 21:54:32 rms Exp spiegel $
+;; $Id: vc.el,v 1.243 1999/01/22 16:28:12 spiegel Exp kwzh $
 
 ;; This file is part of GNU Emacs.
 
@@ -104,6 +104,14 @@ If FORM3 is `RCS', use FORM2 for CVS as well as RCS.
 
 (defcustom vc-suppress-confirm nil
   "*If non-nil, treat user as expert; suppress yes-no prompts on some things."
+  :type 'boolean
+  :group 'vc)
+
+(defcustom vc-delete-logbuf-window t
+  "*If non-nil, delete the *VC-log* buffer and window after each logical action.
+If nil, bury that buffer instead.
+This is most useful if you have multiple windows on a frame and would like to
+preserve the setting."
   :type 'boolean
   :group 'vc)
 
@@ -1242,7 +1250,6 @@ May be useful as a `vc-checkin-hook' to update change logs automatically."
     (or (eobp) (looking-at "\n\n")
 	(insert "\n"))))
 
-
 (defun vc-finish-logentry (&optional nocomment)
   "Complete the operation implied by the current log entry."
   (interactive)
@@ -1266,7 +1273,8 @@ May be useful as a `vc-checkin-hook' to update change logs automatically."
 	(log-file vc-log-file)
 	(log-version vc-log-version)
 	(log-entry (buffer-string))
-	(after-hook vc-log-after-operation-hook))
+	(after-hook vc-log-after-operation-hook)
+	(tmp-vc-parent-buffer vc-parent-buffer))
     (pop-to-buffer vc-parent-buffer)
     ;; OK, do it to it
     (save-excursion
@@ -1277,10 +1285,13 @@ May be useful as a `vc-checkin-hook' to update change logs automatically."
     ;; Remove checkin window (after the checkin so that if that fails
     ;; we don't zap the *VC-log* buffer and the typing therein).
     (let ((logbuf (get-buffer "*VC-log*")))
-      (cond (logbuf
-             (delete-windows-on logbuf (selected-frame))
+      (cond ((and logbuf vc-delete-logbuf-window)
+	     (delete-windows-on logbuf (selected-frame))
 	     ;; Kill buffer and delete any other dedicated windows/frames.
-             (kill-buffer logbuf))))
+	     (kill-buffer logbuf))
+	    (t (pop-to-buffer "*VC-log*")
+	       (bury-buffer)
+	       (pop-to-buffer tmp-vc-parent-buffer))))
     ;; Now make sure we see the expanded headers
     (if buffer-file-name
 	(vc-resynch-window buffer-file-name vc-keep-workfiles t))
