@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Id$")
+(defconst byte-compile-version "$Revision:$")
 
 ;; This file is part of GNU Emacs.
 
