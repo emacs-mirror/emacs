@@ -6901,6 +6901,8 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
   (prefixarg)
      Lisp_Object prefixarg;
 {
+  defsubr (&Sfocus_frame);
+  defsubr (&Sunfocus_frame);
   Lisp_Object function;
   char buf[40];
   Lisp_Object saved_keys;
@@ -6909,7 +6911,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
   saved_keys = Fvector (this_command_key_count,
 			XVECTOR (this_command_keys)->contents);
   buf[0] = 0;
-  GCPRO1 (saved_keys, prefixarg);
+  GCPRO2 (saved_keys, prefixarg);
 
   if (EQ (prefixarg, Qminus))
     strcpy (buf, "- ");
