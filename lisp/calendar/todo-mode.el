@@ -4,7 +4,7 @@
 
 ;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.16 1997/10/15 14:00:12 os10000 Exp os10000 $
+;; Version: $Id: todo-mode.el,v 1.17 1997/10/15 14:30:41 os10000 Exp os10000 $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -168,7 +168,7 @@
 ;; mode preparations have been completed.
 ;;
 ;;
-;; --- todo-insert-treshold
+;; --- todo-insert-threshold
 ;;
 ;; Another nifty feature is the insertion accuracy.  If you have 8 items
 ;; in your TODO list, then you may get asked 4 questions by the binary
@@ -225,6 +225,9 @@
 ;;; Change Log:
 
 ;; $Log: todo-mode.el,v $
+;; Revision 1.17  1997/10/15  14:30:41  os10000
+;; Attempted to reconcile Harald's changes with mine since 1.15.
+;;
 ;; Revision 1.16  1997/10/15  14:00:12  os10000
 ;; Fixed 'file-item' and added 20.02 split-string function.
 ;;
@@ -315,13 +318,14 @@
 (defvar todo-file-done	"~/.todo-done"	"*TODO mode archive file.")
 (defvar todo-mode-hook	nil		"*TODO mode hooks.")
 (defvar todo-edit-mode-hook nil		"*TODO Edit mode hooks.")
-(defvar todo-insert-treshold 0		"*TODO mode insertion accuracy.")
+(defvar todo-insert-threshold 0		"*TODO mode insertion accuracy.")
 (defvar todo-edit-buffer " *TODO Edit*"	"TODO Edit buffer name.")
 
 ;; Thanks for the ISO time stamp format go to Karl Eichwalder <ke@suse.de>
 ;; My format string for the appt.el package is "%3b %2d, %y, %02I:%02M%p".
 ;;
-(defvar todo-time-string-format "%y-%02m-%02d %02H:%02M"
+(defvar todo-time-string-format
+  "%:y-%02m-%02d %02H:%02M"
   "TODO mode time string format for done entries.
 For details see the variable `time-stamp-format'.")
 
@@ -483,7 +487,7 @@ For details see the variable `time-stamp-format'.")
     (setq todo-previous-line 0)
     (let ((top 1)
 	  (bottom (1+ (count-lines (point-min) (point-max)))))
-      (while (> (- bottom top) todo-insert-treshold)
+      (while (> (- bottom top) todo-insert-threshold)
 	(let* ((current (/ (+ top bottom) 2))
 	       (answer (if (< current bottom)
 			   (todo-more-important-p current) nil)))
@@ -556,22 +560,23 @@ For details see the variable `time-stamp-format'.")
   (if (> (count-lines (point-min) (point-max)) 0)
       (let ((comment (read-from-minibuffer "Comment: "))
 	    (time-stamp-format todo-time-string-format))
-	(goto-char (todo-item-end))
-	(insert (if (save-excursion (beginning-of-line)
-				    (looking-at (regexp-quote todo-prefix)))
-		    " "
-		  "\n\t")
-		"(" (nth todo-category-number todo-categories) ": "
-		comment ")\n")
+	(if (> (length comment) 0)
+	    (progn
+	      (goto-char (todo-item-end))
+	      (insert (if (save-excursion (beginning-of-line)
+					  (looking-at (regexp-quote todo-prefix)))
+			  " "
+			"\n\t")
+		      "(" (nth todo-category-number todo-categories) ": "
+		      comment ")\n")))
 	(goto-char (todo-item-start))
 	(let ((temp-point (point)))
-	(if (looking-at (regexp-quote todo-prefix))
-	    (replace-match (time-stamp-string))	; Standard prefix -> timestamp
-	  ;; Else prefix non-standard item start with timestamp
-	  (insert (time-stamp-string)))
+	  (if (looking-at (regexp-quote todo-prefix))
+	      (replace-match (time-stamp-string)) ; Standard prefix -> timestamp
+	    ;; Else prefix non-standard item start with timestamp
+	    (insert (time-stamp-string)))
 	  (append-to-file temp-point (todo-item-end) todo-file-done)
-	  (delete-region temp-point (1+ (todo-item-end)))
-	  )
+	  (delete-region temp-point (1+ (todo-item-end))))
 	(todo-backward-item)
 	(message ""))
     (error "No TODO list entry to file away")))
