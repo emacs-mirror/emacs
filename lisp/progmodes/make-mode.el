@@ -234,7 +234,7 @@ not be enclosed in { } or ( )."
 ;; that if you change this regexp you must fix the imenu index
 ;; function defined at the end of the file.
 (defconst makefile-dependency-regex
-  "^ *\\([^ \n\t#:=]+\\([ \t]+[^ \t\n#:=]+\\)*\\)[ \t]*:\\([ \t]*$\\|\\([^=\n].*$\\)\\)"
+  "^ *\\([^ \n\t#:=]+\\([ \t]+\\([^ \t\n#:=]+\\|\\$[({][^ \t\n#})]+[})]\\)\\)*\\)[ \t]*:\\([ \t]*$\\|\\([^=\n].*$\\)\\)"
   "Regex used to find dependency lines in a makefile.")
 
 ;; Note that the first subexpression is used by font lock.  Note that
@@ -264,7 +264,10 @@ not be enclosed in { } or ( )."
    ;;
    ;; Variable references even in targets/strings/comments:
    '("\\$[({]\\([-a-zA-Z0-9_.]+\\)[}):]" 1 font-lock-constant-face prepend)
-
+   ;;
+   ;; Automatic variable references.
+   '("\\$\\([@%<?^+*]\\)" 1 font-lock-reference-face prepend)
+   ;;
    ;; Highlight lines that contain just whitespace.
    ;; They can cause trouble, especially if they start with a tab.
    '("^[ \t]+$" . makefile-space-face)
