@@ -60,6 +60,7 @@ starting with the current one.  Deleted messages are skipped and don't count."
 			  (file-name-directory rmail-last-rmail-file)))
   (setq rmail-last-rmail-file file-name)
   (rmail-maybe-set-message-counters)
+  (setq file-name (abbreviate-file-name file-name))
   (or (get-file-buffer file-name)
       (file-exists-p file-name)
       (if (yes-or-no-p
