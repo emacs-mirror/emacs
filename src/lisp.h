@@ -1182,20 +1182,20 @@ typedef unsigned char UCHAR;
 #define GLYPH int
 
 /* Mask bits for face.  */
-#define GLYPH_MASK_FACE    0x7FFFFF00
+#define GLYPH_MASK_FACE    0x7FF80000
  /* Mask bits for character code.  */
-#define GLYPH_MASK_CHAR    0x000000FF /* The lowest 8 bits */
+#define GLYPH_MASK_CHAR    0x0007FFFF /* The lowest 19 bits */
 
 /* The FAST macros assume that we already know we're in an X window.  */
 
 /* Set a character code and a face ID in a glyph G.  */
-#define FAST_MAKE_GLYPH(char, face) ((char) | ((face) << 8))
+#define FAST_MAKE_GLYPH(char, face) ((char) | ((face) << CHARACTERBITS))
 
 /* Return a glyph's character code.  */
 #define FAST_GLYPH_CHAR(glyph) ((glyph) & GLYPH_MASK_CHAR)
 
 /* Return a glyph's face ID.  */
-#define FAST_GLYPH_FACE(glyph) (((glyph) & GLYPH_MASK_FACE) >> 8)
+#define FAST_GLYPH_FACE(glyph) (((glyph) & GLYPH_MASK_FACE) >> CHARACTERBITS)
 
 /* Slower versions that test the frame type first.  */
 #define MAKE_GLYPH(f, char, face) (FAST_MAKE_GLYPH (char, face))
