@@ -63,6 +63,10 @@ AC_DEFINE(KERBEROS5)])
 AC_ARG_WITH(hesiod,
 [  --with-hesiod           support Hesiod to get the POP server host],
 [AC_DEFINE(HESIOD)])
+
+AC_ARG_WITH(sound,
+[  --without-sound         don't compile with sound support])
+
 dnl This should be the last --with option, because --with-x is
 dnl added later on when we find the path of X, and it's best to
 dnl keep them together visually.
@@ -1348,11 +1352,13 @@ fi
 dnl Do this early because it can frob feature test macros for Unix-98 &c.
 AC_SYS_LARGEFILE
 
-# Sound support for GNU/Linux and the free BSDs.
-AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h soundcard.h)
-# Emulation library used on NetBSD.
-AC_CHECK_LIB(ossaudio, _oss_ioctl, LIBSOUND=-lossaudio, LIBSOUND=)
-AC_SUBST(LIBSOUND)
+if test "${with_sound}" != "no"; then
+  # Sound support for GNU/Linux and the free BSDs.
+  AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h soundcard.h)
+  # Emulation library used on NetBSD.
+  AC_CHECK_LIB(ossaudio, _oss_ioctl, LIBSOUND=-lossaudio, LIBSOUND=)
+  AC_SUBST(LIBSOUND)
+fi
 
 dnl checks for header files
 AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
