@@ -22,22 +22,27 @@
 
 ;;; Commentary:
 
-;; Definitions of miscellaneous 8-bit coding systems based on ASCII,
-;; mainly for PC `code pages'.  They are decoded into Latin-1 and
-;; mule-unicode character sets rather than (lossily) into single iso8859
-;; charsets.  A utility function `cp-make-coding-system' derives them
-;; from simple tables.
+;; Definitions of miscellaneous 8-bit coding systems based on ASCII
+;; (we can't cope with EBCDIC, for instance), mainly for PC `code
+;; pages'.  They are decoded into Latin-1 and mule-unicode charsets
+;; rather than (lossily) into single iso8859 charsets.  The utility
+;; `cp-make-coding-system' derives them from simple tables.
 
-;; Those covered are: cp437, cp775, cp850, cp851, cp852, cp855, cp857,
-;; cp860, cp861, cp862, cp863, cp864, cp865, cp866, cp869, cp874,
-;; windows-1250, windows-1251, windows-1252, windows-1253,
-;; windows-1254, windows-1255, windows-1256, windows-1257,
-;; windows-1258, next, koi8-r, koi8-u.
+;; Those covered are: cp437, cp737, cp720, cp775, cp850, cp851, cp852,
+;; cp855, cp857, cp860, cp861, cp862, cp863, cp864, cp865, cp866,
+;; cp869, cp874, windows-1250, windows-1251, windows-1252,
+;; windows-1253, windows-1254, windows-1255, windows-1256,
+;; windows-1257, windows-1258, next, koi8-r, koi8-u, iso-8859-6,
+;; iso-8859-10, iso-8859-12, iso-8859-16, koi8-t, georgian-ps.  This
+;; is meant to include all the ones relevant to GNU (used in
+;; glibc-defined locales); I'm not sure we get all the multibyte ones
+;; currently in base Emacs.
 
 ;; Note that koi8-r and cp866 (alternativnyj) clash with the
-;; iso8859-5-based versions in cyrillic.el.  A few CPs from
-;; codepage.el aren't covered (in the absence of translation tables to
-;; Unicode).
+;; iso8859-5-based versions in cyrillic.el, and others can clash with
+;; definitions in codepage.el; we try to avoid damage from that.  A
+;; few CPs from codepage.el (770, 773, 774) aren't covered (in the
+;; absence of translation tables to Unicode).
 
 ;; Compile this to avoid loading `ccl' at runtime.
 
@@ -64,15 +69,11 @@ See also the variable `nonascii-translation-table'."
 (defun cp-make-translation-table (v)
   "Return a translation table made from 128-long vector V.
 V comprises characters encodable by mule-utf-8."
-  (let ((encoding-vector (make-vector 256 0))
-	(i 0)
-	translation-table)
-    (while (< i 128)
-      (aset encoding-vector i i)
-      (setq i (1+ i)))
-    (while (< i 256)
-      (aset encoding-vector i (aref v (- i 128)))
-      (setq i (1+ i)))
+  (let ((encoding-vector (make-vector 256 0)))
+    (dotimes (i 128)
+      (aset encoding-vector i i))
+    (dotimes (i 128)
+      (aset encoding-vector (+ i 128) (aref v i)))
     (make-translation-table-from-vector encoding-vector)))
 
 (defun cp-valid-codes (v)
@@ -94,7 +95,111 @@ See `make-coding-system'."
     (if start (push (cons start end) pairs))
     (nreverse pairs)))
 
-;; Macro to allow the ccl compilation at byte-compile time, avoiding
+(defun cp-fix-safe-chars (cs)
+  "Remove `char-coding-system-table' entries from previous definition of CS.
+CS is a base coding system or alias."
+  (when (coding-system-p cs)
+    (let ((chars (coding-system-get cs 'safe-chars)))
+      (map-char-table
+       (lambda (k v)
+	 (if (and v (not (eq v t)))
+	     (aset char-coding-system-table
+		   k
+		   (remq cs (aref char-coding-system-table v)))))
+       chars))))
+
+;; Fix things that have been, or might be done by codepage.el.
+(eval-after-load "codepage" 
+  '(progn
+
+     (dolist (cs '(cp857 cp861 cp1253 cp852 cp866 cp437 cp855 cp869 cp775
+		   cp862 cp864 cp1250 cp863 cp865 cp1251 cp737 cp1257 cp850
+		   cp860 cp851 720))
+       (cp-fix-safe-chars cs))
+
+;; Semi-dummy version for the stuff in codepage.el which we don't
+;; define here.  (Used by mule-diag.)
+(defun cp-supported-codepages ()
+  "Return an alist of supported codepages.
+
+Each association in the alist has the form (NNN . CHARSET), where NNN is the
+codepage number, and CHARSET is the MULE charset which is the closest match
+for the character set supported by that codepage.
+
+A codepage NNN is supported if a variable called `cpNNN-decode-table' exists,
+is a vector, and has a charset property."
+  '(("774" . latin-iso8859-4) ("770" . latin-iso8859-4)
+    ("773" . latin-iso8859-4)))
+
+;; A version which doesn't override the coding systems set up by this
+;; file.  It could still be used for the few missing ones from
+;; codepage.el.
+(defun codepage-setup (codepage)
+  "Create a coding system cpCODEPAGE to support the IBM codepage CODEPAGE.
+
+These coding systems are meant for encoding and decoding 8-bit non-ASCII
+characters used by the IBM codepages, typically in conjunction with files
+read/written by MS-DOS software, or for display on the MS-DOS terminal."
+  (interactive
+   (let ((completion-ignore-case t)
+	  (candidates (cp-supported-codepages)))
+     (list (completing-read "Setup DOS Codepage: (default 437) " candidates
+			        nil t nil nil "437"))))
+  (let ((cp (format "cp%s" codepage)))
+    (unless (coding-system-p (intern cp))
+      (cp-make-coding-systems-for-codepage
+       cp (cp-charset-for-codepage cp) (cp-offset-for-codepage cp))))))
+  )
+
+;; Somewhat ammended from the version in mule-diag.el, needed below.
+(defvar non-iso-charset-alist
+  `((mac-roman
+     nil
+     mac-roman-decoder
+     ((0 255)))
+    (viscii
+     (ascii vietnamese-viscii-lower vietnamese-viscii-upper)
+     viet-viscii-nonascii-translation-table
+     ((0 255)))
+    (big5
+     (ascii chinese-big5-1 chinese-big5-2)
+     decode-big5-char
+     ((32 127)
+      ((?\xA1 ?\xFE) . (?\x40 ?\x7E ?\xA1 ?\xFE))))
+    (sjis
+     (ascii katakana-jisx0201 japanese-jisx0208)
+     decode-sjis-char
+     ((32 127 ?\xA1 ?\xDF)
+      ((?\x81 ?\x9F ?\xE0 ?\xEF) . (?\x40 ?\x7E ?\x80 ?\xFC)))))
+  "Alist of non-ISO charset names vs the corresponding information.
+
+Non-ISO charsets are what Emacs can read (or write) by mapping to (or
+from) some Emacs' charsets that correspond to ISO charsets.
+
+Each element has the following format:
+  (NON-ISO-CHARSET CHARSET-LIST TRANSLATION-METHOD [ CODE-RANGE ])
+
+NON-ISO-CHARSET is a name (symbol) of the non-ISO charset.
+
+CHARSET-LIST is a list of Emacs' charsets into which characters of
+NON-ISO-CHARSET are mapped.
+
+TRANSLATION-METHOD is a translation table (symbol) to translate a
+character code of NON-ISO-CHARSET to the corresponding Emacs character
+code.  It can also be a function to call with one argument, a
+character code in NON-ISO-CHARSET.
+
+CODE-RANGE specifies the valid code ranges of NON-ISO-CHARSET.
+It is a list of RANGEs, where each RANGE is of the form:
+  (FROM1 TO1 FROM2 TO2 ...)
+or
+  ((FROM1-1 TO1-1 FROM1-2 TO1-2 ...) . (FROM2-1 TO2-1 FROM2-2 TO2-2 ...))
+In the first form, valid codes are between FROM1 and TO1, or FROM2 and
+TO2, or...
+The second form is used for 2-byte codes.  The car part is the ranges
+of the first byte, and the cdr part is the ranges of the second byte.")
+
+;; Macro to allow ccl compilation at byte-compile time, avoiding
 ;; loading ccl.
 (defmacro cp-make-coding-system (name v &optional doc-string mnemonic)
   "Make coding system NAME for and 8-bit, extended-ASCII character set.
@@ -124,17 +229,28 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 	       (read-multibyte-character r0 r1)
 	       (translate-character ,encoder r0 r1)
 	       (write-repeat r1)))))))
-    `(let ((translation-table (cp-make-translation-table ,v)))
+    `(let ((translation-table (cp-make-translation-table ,v))
+	   (codes (cp-valid-codes ,v)))
        (define-translation-table ',decoder translation-table)
        (define-translation-table ',encoder 
 	 (char-table-extra-slot translation-table 0))
+       (cp-fix-safe-chars ',name)
        (make-coding-system
 	',name 4 ,(or mnemonic ?D)
 	(or ,doc-string (format "%s encoding" ',name))
 	(cons ,ccl-decoder ,ccl-encoder)
 	(list (cons 'safe-chars (get ',encoder 'translation-table))
-	      (cons 'valid-codes (cp-valid-codes translation-table))
-	      (cons 'mime-charset ',name))))))
+	      (cons 'valid-codes codes)
+	      (cons 'mime-charset ',name)))
+       (push (list ',name
+		   nil			; charset list
+		   ',decoder
+		   (let (l)		; code range
+		     (dolist (elt (reverse codes))
+		       (push (cdr elt) l)
+		       (push (car elt) l))
+		     (list l)))
+	     non-iso-charset-alist))))
 
 
 ;; These tables were mostly derived by running somthing like
@@ -142,6 +258,8 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 ;; `(dotimes (i 128) (insert ?? ?\\ (+ 128 i) ?\n))' and then
 ;; exchanging the ?\� entries for nil.  iconv was used instead in at
 ;; least one case.
+
+;; Fixme: Can we do better for mode-line mnemonics?
 
 (cp-make-coding-system
  cp437
@@ -272,9 +390,139 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ⁿ
   ?\²
   ?\■
-  ?\ 
-  ]
- )
+  ?\ ])
+
+(cp-make-coding-system
+ cp737
+ [?\Α
+  ?\Β
+  ?\Γ
+  ?\Δ
+  ?\Ε
+  ?\Ζ
+  ?\Η
+  ?\Θ
+  ?\Ι
+  ?\Κ
+  ?\Λ
+  ?\Μ
+  ?\Ν
+  ?\Ξ
+  ?\Ο
+  ?\Π
+  ?\Ρ
+  ?\Σ
+  ?\Τ
+  ?\Υ
+  ?\Φ
+  ?\Χ
+  ?\Ψ
+  ?\Ω
+  ?\α
+  ?\β
+  ?\γ
+  ?\δ
+  ?\ε
+  ?\ζ
+  ?\η
+  ?\θ
+  ?\ι
+  ?\κ
+  ?\λ
+  ?\μ
+  ?\ν
+  ?\ξ
+  ?\ο
+  ?\π
+  ?\ρ
+  ?\σ
+  ?\ς
+  ?\τ
+  ?\υ
+  ?\φ
+  ?\χ
+  ?\ψ
+  ?\░
+  ?\▒
+  ?\▓
+  ?\│
+  ?\┤
+  ?\╡
+  ?\╢
+  ?\╖
+  ?\╕
+  ?\╣
+  ?\║
+  ?\╗
+  ?\╝
+  ?\╜
+  ?\╛
+  ?\┐
+  ?\└
+  ?\┴
+  ?\┬
+  ?\├
+  ?\─
+  ?\┼
+  ?\╞
+  ?\╟
+  ?\╚
+  ?\╔
+  ?\╩
+  ?\╦
+  ?\╠
+  ?\═
+  ?\╬
+  ?\╧
+  ?\╨
+  ?\╤
+  ?\╥
+  ?\╙
+  ?\╘
+  ?\╒
+  ?\╓
+  ?\╫
+  ?\╪
+  ?\┘
+  ?\┌
+  ?\█
+  ?\▄
+  ?\▌
+  ?\▐
+  ?\▀
+  ?\ω
+  ?\ά
+  ?\έ
+  ?\ή
+  ?\ϊ
+  ?\ί
+  ?\ό
+  ?\ύ
+  ?\ϋ
+  ?\ώ
+  ?\Ά
+  ?\Έ
+  ?\Ή
+  ?\Ί
+  ?\Ό
+  ?\Ύ
+  ?\Ώ
+  ?\±
+  ?\≥
+  ?\≤
+  ?\Ϊ
+  ?\Ϋ
+  ?\÷
+  ?\≈
+  ?\°
+  ?\∙
+  ?\·
+  ?\√
+  ?\ⁿ
+  ?\²
+  ?\■
+  ?\ ])
+(coding-system-put 'cp737 'mime-charset nil) ; not in IANA list
 
 (cp-make-coding-system
  cp775
@@ -405,8 +653,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\³
   ?\²
   ?\■
-  ?\ 
-  ])
+  ?\ ])
 
 (cp-make-coding-system
  cp850
@@ -537,8 +784,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\³
   ?\²
   ?\■
-  ?\ 
-  ])
+  ?\ ])
 
 (cp-make-coding-system
  cp851
@@ -669,8 +915,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ΰ
   ?\ώ
   ?\■
-  ?\ 
-  ])
+  ?\ ])
 
 (cp-make-coding-system
  cp852
@@ -801,8 +1046,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\Ř
   ?\ř
   ?\■
-  ?\ 
-  ])
+  ?\ ])
 
 (cp-make-coding-system
  cp855
@@ -827,7 +1071,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\њ
   ?\Њ
   ?\ћ
-  ?\
+  ?\Ћ
   ?\ќ
   ?\Ќ
   ?\ў
@@ -933,8 +1177,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\Ч
   nil
   ?\■
-  ?\ 
-  ])
+  ?\ ])
 
 (cp-make-coding-system
  cp857
@@ -1065,8 +1308,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\³
   ?\²
   ?\■
-  ?\ 
-  ])
+  ?\ ])
 
 (cp-make-coding-system
  cp860
@@ -1197,8 +1439,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ⁿ
   ?\²
   ?\■
-  ?\ 
-  ])
+  ?\ ])
 
 (cp-make-coding-system
  cp861
@@ -1329,8 +1570,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ⁿ
   ?\²
   ?\■
-  ?\ 
-  ])
+  ?\ ])
 
 (cp-make-coding-system
  cp862
@@ -1461,8 +1701,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ⁿ
   ?\²
   ?\■
-  ?\ 
-  ])
+  ?\ ])
 
 (cp-make-coding-system
  cp863
@@ -1593,8 +1832,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ⁿ
   ?\²
   ?\■
-  ?\ 
-  ])
+  ?\ ])
 
 (cp-make-coding-system
  cp864
@@ -1725,8 +1963,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ك
   ?\ي
   ?\■
-  ?\ 
-  ])
+  ?\ ])
 
 (cp-make-coding-system
  cp865
@@ -1857,8 +2094,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ⁿ
   ?\²
   ?\■
-  ?\ 
-  ])
+  ?\ ])
 
 ;; This should be the same as cyrillic-alternativnyj,
 ;; (<URL:http://czyborra.com/charsets/cyrillic.html>), but code point
@@ -1993,9 +2229,11 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\№
   ?\¤
   ?\■
-  ?\ 
-  ]
+  ?\ ]
  "CP866 (Cyrillic Alternativnyj) encoding using Unicode.")
+(define-coding-system-alias 'alternativnyj 'cp866)
+(cp-fix-safe-chars 'cyrillic-alternativnyj)
+(define-coding-system-alias 'cyrillic-alternativnyj 'cp866)
 
 (cp-make-coding-system
  cp869
@@ -2126,8 +2364,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ΰ
   ?\ώ
   ?\■
-  ?\ 
-  ])
+  ?\ ])
 
 (cp-make-coding-system
  cp874
@@ -2392,6 +2629,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\˙]
  "CP1250/Windows-1250 Encoding")
 
+;; be_BY, bg_BG
 (cp-make-coding-system
  windows-1251
  [?\Ђ
@@ -2920,6 +3158,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\ÿ]
 "CP1254/Windows-1254 Encoding")
 
+;; yi_US
 (cp-make-coding-system
  windows-1255
  [?\€
@@ -3710,12 +3949,15 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\Щ
   ?\Ч
   ?\Ъ]
- "Cyrillic KOI8-U (Ukranian) encoding.")
+ "Cyrillic KOI8-U (Ukranian) encoding."
+ ?U)
 
-;; Unicode-based, not cyrillic-iso8859-5 based (and incomplete) like the
-;; standard version.
+;; Unicode-based, not cyrillic-iso8859-5 based (and thus incomplete)
+;; like the standard version.
 (cp-make-coding-system
- cyrillic-koi8
+ ;; The base system uses cyrillic-koi8 as the canonical name, but
+ ;; that's not a MIME name.
+ koi8-r
  [?\─
   ?\│
   ?\┌
@@ -3844,18 +4086,815 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
   ?\Щ
   ?\Ч
   ?\Ъ]
- "KOI8 8-bit encoding for Cyrillic (MIME: KOI8-R) using Unicode.")
-(coding-system-put 'cyrillic-koi8 'mime-charset 'koi8-r)
+ "Unicode-based KOI8 encoding for Cyrillic (MIME: KOI8-R)"
+ ?R)
+(cp-fix-safe-chars 'cyrillic-koi8)
+(define-coding-system-alias 'cyrillic-koi8 'koi8-r)
+(define-coding-system-alias 'koi8 'koi8-r)
+(define-coding-system-alias 'cp878 'koi8-r)
 
-(define-coding-system-alias 'cp1250 'windows-1250)
-(define-coding-system-alias 'cp1251 'windows-1251)
-(define-coding-system-alias 'cp1252 'windows-1252)
-(define-coding-system-alias 'cp1253 'windows-1253)
-(define-coding-system-alias 'cp1254 'windows-1254)
-(define-coding-system-alias 'cp1255 'windows-1255)
-(define-coding-system-alias 'cp1256 'windows-1256)
-(define-coding-system-alias 'cp1257 'windows-1257)
-(define-coding-system-alias 'cp1258 'windows-1258)
+(cp-make-coding-system
+ koi8-t					; used by glibc for tg_TJ
+ [?\қ
+  ?\ғ
+  ?\‚
+  ?\Ғ
+  ?\„
+  ?\…
+  ?\†
+  ?\‡
+  nil
+  ?\‰
+  ?\ҳ
+  ?\‹
+  ?\Ҳ
+  ?\ҷ
+  ?\Ҷ
+  nil
+  ?\Қ
+  ?\‘
+  ?\’
+  ?\“
+  ?\”
+  ?\•
+  ?\–
+  ?\—
+  nil
+  ?\™
+  nil
+  ?\›
+  nil
+  nil
+  nil
+  nil
+  nil
+  ?\ӯ
+  ?\Ӯ
+  ?\ё
+  ?\¤
+  ?\ӣ
+  ?\¦
+  ?\§
+  nil
+  nil
+  nil
+  ?\«
+  ?\¬
+  ?\­
+  ?\®
+  nil
+  ?\°
+  ?\±
+  ?\²
+  ?\Ё
+  nil
+  ?\Ӣ
+  ?\¶
+  ?\·
+  nil
+  ?\№
+  nil
+  ?\»
+  nil
+  nil
+  nil
+  ?\©
+  ?\ю
+  ?\а
+  ?\б
+  ?\ц
+  ?\д
+  ?\е
+  ?\ф
+  ?\г
+  ?\х
+  ?\и
+  ?\й
+  ?\к
+  ?\л
+  ?\м
+  ?\н
+  ?\о
+  ?\п
+  ?\я
+  ?\р
+  ?\с
+  ?\т
+  ?\у
+  ?\ж
+  ?\в
+  ?\ь
+  ?\ы
+  ?\з
+  ?\ш
+  ?\э
+  ?\щ
+  ?\ч
+  ?\ъ
+  ?\Ю
+  ?\А
+  ?\Б
+  ?\Ц
+  ?\Д
+  ?\Е
+  ?\Ф
+  ?\Г
+  ?\Х
+  ?\И
+  ?\Й
+  ?\К
+  ?\Л
+  ?\М
+  ?\Н
+  ?\О
+  ?\П
+  ?\Я
+  ?\Р
+  ?\С
+  ?\Т
+  ?\У
+  ?\Ж
+  ?\В
+  ?\Ь
+  ?\Ы
+  ?\З
+  ?\Ш
+  ?\Э
+  ?\Щ
+  ?\Ч
+  ?\Ъ]
+ "Unicode-based KOI8-T encoding for Cyrillic")
+(coding-system-put 'koi8-t 'mime-charset nil) ; not in the IANA list
+
+;;   Online final ISO draft:
+
+;;     http://www.egt.ie/standards/iso8859/fdis8859-16-en.pdf
+
+;;   Equivalent National Standard:
+;;     Romanian Standard SR 14111:1998, Romanian Standards Institution
+;;     (ASRO).
+ 
+;; Intended usage:
+
+;;  "This set of coded graphic characters is intended for use in data and
+;;   text processing applications and also for information interchange. The
+;;   set contains graphic characters used for general purpose applications in
+;;   typical office environments in at least the following languages:
+;;   Albanian, Croatian, English, Finnish, French, German, Hungarian, Irish
+;;   Gaelic (new orthography), Italian, Latin, Polish, Romanian, and
+;;   Slovenian. This set of coded graphic characters may be regarded as a
+;;   version of an 8-bit code according to ISO/IEC 2022 or ISO/IEC 4873 at
+;;   level 1." [ISO 8859-16:2001(E), p. 1]
+  
+;;   This charset is suitable for use in MIME text body parts.
+  
+;;   ISO 8859-16 was primarily designed for single-byte encoding the Romanian
+;;   language. The UTF-8 charset is the preferred and in today's MIME software
+;;   more widely implemented encoding suitable for Romanian.
+(cp-make-coding-system
+ iso-latin-10				; consistent with, e.g. Latin-1
+ [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
+  nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil 
+  ?\ 
+  ?\Ą
+  ?\ą
+  ?\Ł
+  ?\€
+  ?\„
+  ?\Š
+  ?\§
+  ?\š
+  ?\©
+  ?\Ș
+  ?\«
+  ?\Ź
+  ?\­
+  ?\ź
+  ?\Ż
+  ?\°
+  ?\±
+  ?\Č
+  ?\ł
+  ?\Ž
+  ?\”
+  ?\¶
+  ?\·
+  ?\ž
+  ?\č
+  ?\ș
+  ?\»
+  ?\Œ
+  ?\œ
+  ?\Ÿ
+  ?\ż
+  ?\À
+  ?\Á
+  ?\Â
+  ?\Ă
+  ?\Ä
+  ?\Ć
+  ?\Æ
+  ?\Ç
+  ?\È
+  ?\É
+  ?\Ê
+  ?\Ë
+  ?\Ì
+  ?\Í
+  ?\Î
+  ?\Ï
+  ?\Đ
+  ?\Ń
+  ?\Ò
+  ?\Ó
+  ?\Ô
+  ?\Ő
+  ?\Ö
+  ?\Ś
+  ?\Ű
+  ?\Ù
+  ?\Ú
+  ?\Û
+  ?\Ü
+  ?\Ę
+  ?\Ț
+  ?\ß
+  ?\à
+  ?\á
+  ?\â
+  ?\ă
+  ?\ä
+  ?\ć
+  ?\æ
+  ?\ç
+  ?\è
+  ?\é
+  ?\ê
+  ?\ë
+  ?\ì
+  ?\í
+  ?\î
+  ?\ï
+  ?\đ
+  ?\ń
+  ?\ò
+  ?\ó
+  ?\ô
+  ?\ő
+  ?\ö
+  ?\ś
+  ?\ű
+  ?\ù
+  ?\ú
+  ?\û
+  ?\ü
+  ?\ę
+  ?\ț
+  ?\ÿ]
+ "Unicode-based encoding for Latin-10 (MIME: ISO-8859-16)")
+(coding-system-put 'iso-latin-10 'mime-charset 'iso-8859-16)
+(define-coding-system-alias 'iso-8859-16 'iso-latin-10)
+(define-coding-system-alias 'latin-10 'iso-latin-10)
+
+(cp-make-coding-system
+ ;; The base system uses arabic-iso-8bit, but that's not a MIME charset.
+ iso-8859-6
+ [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
+  nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil 
+  ?\ 
+  ?\¤
+  ?\،
+  ?\­
+  ?\؛
+  ?\؟
+  ?\ء
+  ?\آ
+  ?\أ
+  ?\ؤ
+  ?\إ
+  ?\ئ
+  ?\ا
+  ?\ب
+  ?\ة
+  ?\ت
+  ?\ث
+  ?\ج
+  ?\ح
+  ?\خ
+  ?\د
+  ?\ذ
+  ?\ر
+  ?\ز
+  ?\س
+  ?\ش
+  ?\ص
+  ?\ض
+  ?\ط
+  ?\ظ
+  ?\ع
+  ?\غ
+  ?\ـ
+  ?\ف
+  ?\ق
+  ?\ك
+  ?\ل
+  ?\م
+  ?\ن
+  ?\ه
+  ?\و
+  ?\ى
+  ?\ي
+  ?\ً
+  ?\ٌ
+  ?\ٍ
+  ?\َ
+  ?\ُ
+  ?\ِ
+  ?\ّ
+  ?\ْ
+  nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
+  nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
+  nil nil nil nil nil nil nil nil nil nil nil]
+ "Arabic ISO/IEC 8859-6 (MIME: ISO-8859-6) using Unicode"
+ ?6)
+(define-coding-system-alias 'arabic-iso-8bit 'iso-8859-6)
+
+(cp-make-coding-system
+ iso-latin-6
+ [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
+  nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil 
+  ?\ 
+  ?\Ą
+  ?\Ē
+  ?\Ģ
+  ?\Ī
+  ?\Ĩ
+  ?\Ķ
+  ?\§
+  ?\Ļ
+  ?\Đ
+  ?\Š
+  ?\Ŧ
+  ?\Ž
+  ?\­
+  ?\Ū
+  ?\Ŋ
+  ?\°
+  ?\ą
+  ?\ē
+  ?\ģ
+  ?\ī
+  ?\ĩ
+  ?\ķ
+  ?\·
+  ?\ļ
+  ?\đ
+  ?\š
+  ?\ŧ
+  ?\ž
+  ?\―
+  ?\ū
+  ?\ŋ
+  ?\Ā
+  ?\Á
+  ?\Â
+  ?\Ã
+  ?\Ä
+  ?\Å
+  ?\Æ
+  ?\Į
+  ?\Č
+  ?\É
+  ?\Ę
+  ?\Ë
+  ?\Ė
+  ?\Í
+  ?\Î
+  ?\Ï
+  ?\Ð
+  ?\Ņ
+  ?\Ō
+  ?\Ó
+  ?\Ô
+  ?\Õ
+  ?\Ö
+  ?\Ũ
+  ?\Ø
+  ?\Ų
+  ?\Ú
+  ?\Û
+  ?\Ü
+  ?\Ý
+  ?\Þ
+  ?\ß
+  ?\ā
+  ?\á
+  ?\â
+  ?\ã
+  ?\ä
+  ?\å
+  ?\æ
+  ?\į
+  ?\č
+  ?\é
+  ?\ę
+  ?\ë
+  ?\ė
+  ?\í
+  ?\î
+  ?\ï
+  ?\ð
+  ?\ņ
+  ?\ō
+  ?\ó
+  ?\ô
+  ?\õ
+  ?\ö
+  ?\ũ
+  ?\ø
+  ?\ų
+  ?\ú
+  ?\û
+  ?\ü
+  ?\ý
+  ?\þ
+  ?\ĸ]
+ "Unicode-based encoding for Latin-6 (MIME: ISO-8859-10)")
+(coding-system-put 'iso-latin-6 'mime-charset 'iso-8859-10)
+(define-coding-system-alias 'iso-8859-10 'iso-latin-6)
+(define-coding-system-alias 'latin-6 'iso-latin-6)
+
+;; used by lt_LT, lv_LV, mi_NZ
+(cp-make-coding-system
+ iso-latin-7
+ [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
+  nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil 
+  ?\ 
+  ?\Ą
+  ?\Ē
+  ?\Ģ
+  ?\Ī
+  ?\Ĩ
+  ?\Ķ
+  ?\§
+  ?\Ļ
+  ?\Đ
+  ?\Š
+  ?\Ŧ
+  ?\Ž
+  ?\­
+  ?\Ū
+  ?\Ŋ
+  ?\°
+  ?\ą
+  ?\ē
+  ?\ģ
+  ?\ī
+  ?\ĩ
+  ?\ķ
+  ?\·
+  ?\ļ
+  ?\đ
+  ?\š
+  ?\ŧ
+  ?\ž
+  ?\―
+  ?\ū
+  ?\ŋ
+  ?\Ā
+  ?\Á
+  ?\Â
+  ?\Ã
+  ?\Ä
+  ?\Å
+  ?\Æ
+  ?\Į
+  ?\Č
+  ?\É
+  ?\Ę
+  ?\Ë
+  ?\Ė
+  ?\Í
+  ?\Î
+  ?\Ï
+  ?\Ð
+  ?\Ņ
+  ?\Ō
+  ?\Ó
+  ?\Ô
+  ?\Õ
+  ?\Ö
+  ?\Ũ
+  ?\Ø
+  ?\Ų
+  ?\Ú
+  ?\Û
+  ?\Ü
+  ?\Ý
+  ?\Þ
+  ?\ß
+  ?\ā
+  ?\á
+  ?\â
+  ?\ã
+  ?\ä
+  ?\å
+  ?\æ
+  ?\į
+  ?\č
+  ?\é
+  ?\ę
+  ?\ë
+  ?\ė
+  ?\í
+  ?\î
+  ?\ï
+  ?\ð
+  ?\ņ
+  ?\ō
+  ?\ó
+  ?\ô
+  ?\õ
+  ?\ö
+  ?\ũ
+  ?\ø
+  ?\ų
+  ?\ú
+  ?\û
+  ?\ü
+  ?\ý
+  ?\þ
+  ?\ĸ]
+ "Unicode-based encoding for Latin-7 (MIME: ISO-8859-13)")
+(coding-system-put 'iso-latin-7 'mime-charset 'iso-8859-13)
+(define-coding-system-alias 'iso-8859-13 'iso-latin-7)
+(define-coding-system-alias 'latin-7 'iso-latin-7)
+
+(cp-make-coding-system
+ georgian-ps				; used by glibc for ka_GE
+ [?\
+  ?\
+  ?\‚
+  ?\ƒ
+  ?\„
+  ?\…
+  ?\†
+  ?\‡
+  ?\ˆ
+  ?\‰
+  ?\Š
+  ?\‹
+  ?\Œ
+  ?\
+  ?\
+  ?\
+  ?\
+  ?\‘
+  ?\’
+  ?\“
+  ?\”
+  ?\•
+  ?\–
+  ?\—
+  ?\˜
+  ?\™
+  ?\š
+  ?\›
+  ?\œ
+  ?\
+  ?\
+  ?\Ÿ
+  ?\ 
+  ?\¡
+  ?\¢
+  ?\£
+  ?\¤
+  ?\¥
+  ?\¦
+  ?\§
+  ?\¨
+  ?\©
+  ?\ª
+  ?\«
+  ?\¬
+  ?\­
+  ?\®
+  ?\¯
+  ?\°
+  ?\±
+  ?\²
+  ?\³
+  ?\´
+  ?\µ
+  ?\¶
+  ?\·
+  ?\¸
+  ?\¹
+  ?\º
+  ?\»
+  ?\¼
+  ?\½
+  ?\¾
+  ?\¿
+  ?\ა
+  ?\ბ
+  ?\გ
+  ?\დ
+  ?\ე
+  ?\ვ
+  ?\ზ
+  ?\ჱ
+  ?\თ
+  ?\ი
+  ?\კ
+  ?\ლ
+  ?\მ
+  ?\ნ
+  ?\ჲ
+  ?\ო
+  ?\პ
+  ?\ჟ
+  ?\რ
+  ?\ს
+  ?\ტ
+  ?\ჳ
+  ?\უ
+  ?\ფ
+  ?\ქ
+  ?\ღ
+  ?\ყ
+  ?\შ
+  ?\ჩ
+  ?\ც
+  ?\ძ
+  ?\წ
+  ?\ჭ
+  ?\ხ
+  ?\ჴ
+  ?\ჯ
+  ?\ჰ
+  ?\ჵ
+  ?\æ
+  ?\ç
+  ?\è
+  ?\é
+  ?\ê
+  ?\ë
+  ?\ì
+  ?\í
+  ?\î
+  ?\ï
+  ?\ð
+  ?\ñ
+  ?\ò
+  ?\ó
+  ?\ô
+  ?\õ
+  ?\ö
+  ?\÷
+  ?\ø
+  ?\ù
+  ?\ú
+  ?\û
+  ?\ü
+  ?\ý
+  ?\þ
+  ?\ÿ]
+ "Unicode-based encoding for georgian-ps")
+(coding-system-put 'georgian-ps 'mime-charset nil) ; not in IANA list
+
+;; From http://www.microsoft.com/globaldev/reference/oem/720.htm
+(cp-make-coding-system
+ cp720
+ [?\é
+  ?\â
+  ?\à
+  ?\ç
+  ?\ê
+  ?\ë
+  ?\è
+  ?\ï
+  ?\î
+  ?\ّ
+  ?\ْ
+  ?\ô
+  ?\¤
+  ?\ـ
+  ?\û
+  ?\ù
+  ?\ء
+  ?\آ
+  ?\أ
+  ?\ؤ
+  ?\£
+  ?\إ
+  ?\ئ
+  ?\ا
+  ?\ب
+  ?\ة
+  ?\ت
+  ?\ث
+  ?\ج
+  ?\ح
+  ?\خ
+  ?\د
+  ?\ذ
+  ?\ر
+  ?\ز
+  ?\س
+  ?\ش
+  ?\ص
+  ?\«
+  ?\»
+  ?\░
+  ?\▒
+  ?\▓
+  ?\│
+  ?\┤
+  ?\╡
+  ?\╢
+  ?\╖
+  ?\╕
+  ?\╣
+  ?\║
+  ?\╗
+  ?\╝
+  ?\╜
+  ?\╛
+  ?\┐
+  ?\└
+  ?\┴
+  ?\┬
+  ?\├
+  ?\─
+  ?\┼
+  ?\╞
+  ?\╟
+  ?\╚
+  ?\╔
+  ?\╩
+  ?\╦
+  ?\╠
+  ?\═
+  ?\╬
+  ?\╧
+  ?\╨
+  ?\╤
+  ?\╥
+  ?\╙
+  ?\╘
+  ?\╒
+  ?\╓
+  ?\╫
+  ?\╪
+  ?\┘
+  ?\┌
+  ?\█
+  ?\▄
+  ?\▌
+  ?\▐
+  ?\▀
+  ?\ض
+  ?\ط
+  ?\ظ
+  ?\ع
+  ?\غ
+  ?\ف
+  ?\µ
+  ?\ق
+  ?\ك
+  ?\ل
+  ?\م
+  ?\ن
+  ?\ه
+  ?\و
+  ?\ى
+  ?\ي
+  ?\≡
+  ?\ً
+  ?\ٌ
+  ?\ٍ
+  ?\َ
+  ?\ُ
+  ?\ِ
+  ?\≈
+  ?\°
+  ?\∙
+  ?\·
+  ?\√
+  ?\ⁿ
+  ?\²
+  ?\■
+  ?\ ])
+(coding-system-put 'cp720 'mime-charset nil) ; not in IANA list
+
+(dotimes (i 8)
+  (let ((w (intern (format "windows-125%d" i)))
+	(c (intern (format "cp125%d" i))))
+    (define-coding-system-alias c w)
+    ;; Compatibility with codepage.el, though cp... are not the
+    ;; canonical names.
+    (push (assoc w non-iso-charset-alist) non-iso-charset-alist)))
 
 ;; Use Unicode font under Windows.  Jason Rumney fecit.
 (if (and (fboundp 'w32-add-charset-info)
