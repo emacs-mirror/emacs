@@ -926,9 +926,12 @@ SIZE, if supplied, should be a prime number."
 Args are as in `message': a format string, plus arguments to be formatted."
   (let ((msg (apply (function format) fmt args))
 	(max (window-width (minibuffer-window))))
-    (if (>= (length msg) max)
-	(setq msg (concat "> " (substring msg (- 3 max)))))
-    (message "%s" msg)))
+    (if noninteractive
+	msg
+      (if (>= (length msg) max)
+	  ;; Take just the last MAX - 3 chars of the string.
+	  (setq msg (concat "> " (substring msg (- 3 max)))))
+      (message "%s" msg))))
 
 (defun ange-ftp-abbreviate-filename (file &optional new)
   "Abbreviate the file name FILE relative to the default-directory.
@@ -1195,9 +1198,11 @@ Optional DEFAULT is password to start with."
   ;; We set this before actually doing it to avoid the possibility
   ;; of an infinite loop if ange-ftp-netrc-filename is an FTP file.
   (interactive)
-  (let* ((file (ange-ftp-chase-symlinks
-		(ange-ftp-real-expand-file-name ange-ftp-netrc-filename)))
-	 (attr (ange-ftp-real-file-attributes file)))
+  (let (file attr)
+    (let ((default-directory "/"))
+      (setq file (ange-ftp-chase-symlinks
+		  (ange-ftp-real-expand-file-name ange-ftp-netrc-filename)))
+      (setq attr (ange-ftp-real-file-attributes file)))
     (if (and attr			; file exists.
 	     (not (equal (nth 5 attr) ange-ftp-netrc-modtime)))	; file changed
 	(save-match-data
