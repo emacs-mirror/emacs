@@ -6234,6 +6234,11 @@ decode_coding_string (str, coding, nocopy)
 		   shrinked_bytes - from);
   free_conversion_buffer (&buf);
 
+  coding->consumed += shrinked_bytes;
+  coding->consumed_char += shrinked_bytes;
+  coding->produced += shrinked_bytes;
+  coding->produced_char += shrinked_bytes;
+
   if (coding->cmp_data && coding->cmp_data->used)
     coding_restore_composition (coding, newstr);
   coding_free_composition_data (coding);

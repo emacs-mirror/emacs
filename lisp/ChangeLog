@@ -1,3 +1,27 @@
+2004-08-04  Kenichi Handa  <handa@m17n.org>
+
+	* international/encoded-kb.el (encoded-kbd-setup-keymap): Fix
+	previous change.
+
+2004-08-03  Kenichi Handa  <handa@m17n.org>
+
+	* international/encoded-kb.el: The following changes are to
+	utilize key-translation-map instead of minor mode map.
+	(encoded-kbd-iso2022-non-ascii-map): Delete it.
+	(encoded-kbd-coding, encoded-kbd-handle-8bit): Delete them.
+	(encoded-kbd-last-key): New function.
+	(encoded-kbd-iso2022-single-shift): New function.
+	(encoded-kbd-iso2022-designation)
+	(encoded-kbd-self-insert-iso2022-7bit)
+	(encoded-kbd-self-insert-iso2022-8bit)
+	(encoded-kbd-self-insert-sjis, encoded-kbd-self-insert-big5)
+	(encoded-kbd-self-insert-ccl): Make them suitable for bindings in
+	key-translation-map.
+	(encoded-kbd-setup-keymap): Setup key-translation-map.
+	(saved-key-translation-map): New variable.
+	(encoded-kbd-mode): Save/restore key-translation-map.  Adjusted
+	for the change of encoded-kbd-setup-keymap.
+
 2004-08-02  Kim F. Storm  <storm@cua.dk>
 
 	* avoid.el (mouse-avoidance-point-position): Use window-inside-edges

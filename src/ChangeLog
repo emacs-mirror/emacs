@@ -1,3 +1,8 @@
+2004-08-03  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_string): Adjust coding->consumed, and
+	etc. with shrinked_bytes.
+
 2004-08-03  Kim F. Storm  <storm@cua.dk>
 
 	* indent.c (compute_motion): Fix check for full width window

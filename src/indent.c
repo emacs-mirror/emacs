@@ -1262,10 +1262,10 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	width -= 1;
     }
 
-  continuation_glyph_width = 0;
+  continuation_glyph_width = 1;
 #ifdef HAVE_WINDOW_SYSTEM
-  if (!FRAME_WINDOW_P (XFRAME (win->frame)))
-    continuation_glyph_width = 1;
+  if (FRAME_WINDOW_P (XFRAME (win->frame)))
+    continuation_glyph_width = 0;  /* In the fringe.  */
 #endif
 
   immediate_quit = 1;
