@@ -31,7 +31,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potorti` (F.Potorti@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.59";
+char pot_etags_version[] = "@(#) pot revision number is 11.63";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -216,9 +216,7 @@ char searchar = '/';		/* use /.../ searches */
 
 int lineno;			/* line number of current line */
 long charno;			/* current character number */
-
-long linecharno;		/* charno of start of line; not used by C,
-				   but by every other language. */
+long linecharno;		/* charno of start of line */
 
 char *curfile;			/* current input file name */
 char *tagfile;			/* output file */
@@ -880,7 +878,7 @@ main (argc, argv)
 	  tagf = stdout;
 #ifdef DOS_NT
 	  /* Switch redirected `stdout' to binary mode (setting `_fmode'
-	     doesn't take effect until after `stdout' is already open),  */
+	     doesn't take effect until after `stdout' is already open). */
 	  if (!isatty (fileno (stdout)))
 	    setmode (fileno (stdout), O_BINARY);
 #endif /* DOS_NT */
@@ -1071,15 +1069,11 @@ process_file (file)
   struct stat stat_buf;
   FILE *inf;
 #ifdef DOS_NT
-  /* The rest of the program can't grok `\\'-style slashes.  */
-  char *p = file;
+  char *p;
 
-  while (*p)
-    {
-      if (*p == '\\')
-	*p = '/';
-      ++p;
-    }
+  for (p = file; *p != '\0'; p++)
+    if (*p == '\\')
+      *p = '/';
 #endif
 
   if (stat (file, &stat_buf) == 0 && !S_ISREG (stat_buf.st_mode))
@@ -2056,6 +2050,7 @@ typedef struct
 do {									\
   curlinepos = charno;							\
   lineno++;								\
+  linecharno = charno;							\
   charno += readline (&curlb, inf);					\
   lp = curlb.buffer;							\
   quotednl = FALSE;							\
@@ -2923,13 +2918,6 @@ Perl_functions (inf)
 /* Added by Mosur Mohan, 4/22/88 */
 /* Pascal parsing                */
 
-#define GET_NEW_LINE \
-{ \
-  linecharno = charno; lineno++; \
-  charno += 1 + readline (&lb, inf); \
-  dbp = lb.buffer; \
-}
-
 /*
  *  Locates tags for procedures & functions.  Doesn't do any type- or
  *  var-definitions.  It does look for the keyword "extern" or
@@ -2976,7 +2964,10 @@ Pascal_functions (inf)
       c = *dbp++;
       if (c == '\0')		/* if end of line */
 	{
-	  GET_NEW_LINE;
+	  lineno++;
+	  linecharno = charno;
+	  charno += readline (&lb, inf);
+	  dbp = lb.buffer;
 	  if (*dbp == '\0')
 	    continue;
 	  if (!((found_tag && verify_tag) ||
@@ -4318,14 +4309,11 @@ etags_getcwd ()
   char *p, path[MAXPATHLEN + 1]; /* Fixed size is safe on MSDOS.  */
 
   getwd (path);
-  p = path;
-  while (*p)
-    {
-      if (*p == '\\')
-	*p++ = '/';
-      else
-	*p++ = lowcase (*p);
-    }
+  for (p = path; *p != '\0'; p++)
+    if (*p == '\\')
+      *p = '/';
+    else
+      *p = lowcase (*p);
 
   return strdup (path);
 #else /* not DOS_NT */
@@ -4471,14 +4459,11 @@ absolute_dirname (file, cwd)
   char *slashp, *res;
   char save;
 #ifdef DOS_NT
-  char *p = file;
+  char *p;
 
-  while (*p)
-    {
-      if (*p == '\\')
-	*p = '/';
-      ++p;
-    }
+  for (p = file; *p != '\0'; p++)
+    if (*p == '\\')
+      *p = '/';
 #endif
 
   slashp = etags_strrchr (file, '/');
