@@ -308,7 +308,11 @@ Entry to this mode calls the value of `lisp-interaction-mode-hook'
 if that value is non-nil.")
 
 (defun eval-print-last-sexp ()
-  "Evaluate sexp before point; print value into current buffer."
+  "Evaluate sexp before point; print value into current buffer.
+
+Note that printing the result is controlled by the variables
+`eval-expression-print-length' and `eval-expression-print-level',
+which see."
   (interactive)
   (let ((standard-output (current-buffer)))
     (terpri)
@@ -467,7 +471,9 @@ instrumented, `Edebug: FUNCTION' is printed in the minibuffer.  If not
 instrumented, just FUNCTION is printed.
 
 If not acting on a `defun', the result of evaluation is displayed in
-the minibuffer."
+the minibuffer.  This display is controlled by the variables
+`eval-expression-print-length' and `eval-expression-print-level',
+which see."
   (interactive "P")
   (cond (edebug-it
 	 (require 'edebug)
