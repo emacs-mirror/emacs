@@ -1,6 +1,6 @@
 ;;; profile.el --- generate run time measurements of Emacs Lisp functions
 
-;; Copyright (C) 1992, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1998 Free Software Foundation, Inc.
 
 ;; Author: Boaz Ben-Zvi <boaz@lcs.mit.edu>
 ;; Created: 07 Feb 1992
@@ -30,25 +30,24 @@
 ;; DESCRIPTION:
 ;; ------------
 ;;   This program can be used to monitor running time performance of Emacs Lisp
-;; functions. It takes a list of functions and report the real time spent 
-;; inside these functions. It runs a process with a separate timer program.
-;;   Caveat: the C code in ../lib-src/profile.c requires BSD-compatible
-;; time-of-day functions.  If you're running an AT&T version prior to SVr4,
-;; you may have difficulty getting it to work.  Your X library may supply
-;; the required routines if the standard C library does not.
+;; functions.  It takes a list of functions and report the real time spent
+;; inside these functions.  (Actually, for each function it reports the amount
+;; of time spent while at least one instance of that function is on the call
+;; stack.  So if profiled function FOO calls profiled function BAR, the time
+;; spent inside BAR is credited to both functions.)
 
 ;; HOW TO USE:
 ;; -----------
 ;;   Set the variable  profile-functions-list  to the list of functions
-;; (as symbols) You want to profile. Call  M-x  profile-functions to set 
-;; this list on and start using your program.  Note that profile-functions 
-;; MUST be called AFTER all the functions in profile-functions-list have 
+;; (as symbols) You want to profile. Call  M-x  profile-functions to set
+;; this list on and start using your program.  Note that profile-functions
+;; MUST be called AFTER all the functions in profile-functions-list have
 ;; been loaded !!   (This call modifies the code of the profiled functions.
-;; Hence if you reload these functions, you need to call  profile-functions  
+;; Hence if you reload these functions, you need to call  profile-functions
 ;; again! ).
 ;;   To display the results do  M-x  profile-results .  For example:
 ;;-------------------------------------------------------------------
-;;  (setq profile-functions-list '(sokoban-set-mode-line sokoban-load-game 
+;;  (setq profile-functions-list '(sokoban-set-mode-line sokoban-load-game
 ;;	                          sokoban-move-vertical sokoban-move))
 ;;  (load "sokoban")
 ;;  M-x profile-functions
@@ -62,49 +61,46 @@
 ;;      sokoban-load-game                0.453235
 ;;      sokoban-set-mode-line            1.949203
 ;;-----------------------------------------------------
-;; To clear all the settings to profile use profile-finish. 
-;; To set one function at a time (instead of or in addition to setting the 
+;; To clear all the settings to profile use profile-finish.
+;; To set one function at a time (instead of or in addition to setting the
 ;; above list and  M-x profile-functions) use M-x profile-a-function.
 
 ;;; Code:
-
-(defgroup profile nil
-  "Generate run time measurements of Emacs Lisp functions."
-  :prefix "profile-"
-  :group 'lisp)
 
 ;;;
 ;;;  User modifiable VARIABLES
 ;;;
 
-(defcustom profile-functions-list nil 
-  "*List of functions to profile."
-  :type '(repeat function)
-  :group 'profile)
-
-(defcustom profile-timer-program
-  (concat exec-directory "profile")
-  "*Name of the profile timer program."
-  :type 'file
-  :group 'profile)
+(defvar profile-functions-list nil "*List of functions to profile.")
+(defvar profile-buffer "*profile*"
+  "Name of profile buffer.")
+(defvar profile-distinct nil
+  "If non-nil, each time slice gets credited to at most one function.
+\(Namely, the most recent one in the call stack.)  If nil, then the
+time reported for a function includes the entire time from beginning
+to end, even if it called some other function that was also profiled.")
 
 ;;;
 ;;; V A R I A B L E S
 ;;;
 
-(defvar profile-timer-process nil "Process running the timer.")
-(defvar profile-time-list nil 
-    "List of cumulative calls and time for each profiled function.")
+(defvar profile-time-list nil
+  "List of cumulative calls and time for each profiled function.
+Each element looks like (FUN NCALLS SEC . USEC).")
 (defvar profile-init-list nil
-    "List of entry time for each function. 
-Both how many times invoked and real time of start.")
-(defvar profile-max-fun-name 0 "Max length of name of any function profiled.")
-(defvar profile-temp-result- nil "Should NOT be used anywhere else.")
-(defvar profile-time (cons 0 0) "Used to return result from a filter.")
-(defcustom profile-buffer "*profile*" 
-  "Name of profile buffer."
-  :type 'string
-  :group 'profile)
+  "List of entry time for each function.
+Both how many times invoked and real time of start.
+Each element looks like (FUN DEPTH HISEC LOSEC USEC), where DEPTH is
+the current recursion depth, and HISEC, LOSEC, and USEC represent the
+starting time of the call (or of the outermost recursion).")
+(defvar profile-max-fun-name 0
+  "Max length of name of any function profiled.")
+(defvar profile-call-stack nil
+  "A list of the profiled functions currently executing.
+Used only when profile-distinct is non-nil.")
+(defvar profile-last-time nil
+  "The start time of the current time slice.
+Used only when profile-distinct is non-nil.")
 
 (defconst profile-million 1000000)
 
@@ -116,36 +112,23 @@ Both how many times invoked and real time of start.")
   "Profile all the functions listed in `profile-functions-list'.
 With argument FLIST, use the list FLIST instead."
   (interactive "P")
-  (if (null flist) (setq flist profile-functions-list))
-  (mapcar 'profile-a-function flist))
-
-(defun profile-filter (process input)
-  "Filter for the timer process.  Sets `profile-time' to the returned time."
-  (if (zerop (string-match "\\." input)) 
-      (error "Bad output from %s" profile-timer-program)
-    (setcar profile-time 
-	    (string-to-int (substring input 0 (match-beginning 0))))
-    (setcdr profile-time 
-	    (string-to-int (substring input (match-end 0))))))
-
+  (mapcar 'profile-a-function (or flist profile-functions-list)))
 
 (defun profile-print (entry)
   "Print one ENTRY (from `profile-time-list')."
   (let* ((calls (car (cdr entry)))
 	 (timec (cdr (cdr entry)))
-	 (time (+ (car timec) (/ (cdr timec) (float profile-million))))
-	 (avgtime 0.0))
+	 (avgtime (and (not (zerop calls))
+		       (/ (+ (car timec)
+			     (/ (cdr timec) (float profile-million)))
+			  calls))))
     (insert (format (concat "%-"
 			    (int-to-string profile-max-fun-name)
-			    "s%8d%11d.%06d")
+			    "s %7d %10d.%06d")
 		    (car entry) calls (car timec) (cdr timec))
-	    (if (zerop calls)
+	    (if (null avgtime)
 		"\n"
-	      (format "%12d.%06d\n"
-		      (truncate (setq avgtime (/ time calls)))
-		      (truncate (* (- avgtime (ftruncate avgtime))
-				   profile-million))))
-	    )))
+	      (format " %18.6f\n" avgtime)))))
 
 (defun profile-results ()
   "Display profiling results in the buffer `*profile*'.
@@ -158,82 +141,63 @@ With argument FLIST, use the list FLIST instead."
   (insert (make-string profile-max-fun-name ?=) "  ")
   (insert "======  ================  =================\n")
   (mapcar 'profile-print profile-time-list))
-    
-(defun profile-reset-timer ()
-  (process-send-string profile-timer-process "z\n"))
 
-(defun profile-check-zero-init-times (entry)
-  "If ENTRY has non zero time, give an error."
-  (let ((time (cdr (cdr entry))))
-    (if (and (zerop (car time)) (zerop (cdr time))) nil ; OK
-      (error "Process timer died while making performance profile."))))
+(defun profile-add-time (dest now prev)
+  "Add to DEST the difference between timestamps NOW and PREV.
+DEST is a pair (SEC . USEC) which is modified in place.
+NOW and PREV are triples as returned by `current-time'."
+  (let ((sec (+ (car dest)
+		(* 65536 (- (car now) (car prev)))
+		(- (cadr now) (cadr prev))))
+	(usec (+ (cdr dest)
+		 (- (car (cddr now)) (car (cddr prev))))))
+    (if (< usec 0)
+	(setq sec (1- sec)
+	      usec (+ usec profile-million))
+      (if (>= usec profile-million)
+	  (setq sec (1+ sec)
+		usec (- usec profile-million))))
+    (setcar dest sec)
+    (setcdr dest usec)))
 
-(defun profile-get-time ()
-  "Get time from timer process into `profile-time'."
-  ;; first time or if process dies
-  (if (and (processp profile-timer-process)
-	   (eq 'run (process-status profile-timer-process))) nil
-    (setq profile-timer-process;; [re]start the timer process
-	  (start-process "timer" 
-			 (get-buffer-create profile-buffer) 
-			 profile-timer-program))
-    (set-process-filter profile-timer-process 'profile-filter)
-    (process-kill-without-query profile-timer-process)
-    (profile-reset-timer)
-    ;; check if timer died during time measurement
-    (mapcar 'profile-check-zero-init-times profile-init-list)) 
-  ;; make timer process return current time
-  (process-send-string profile-timer-process "p\n")
-  (accept-process-output))
+(defun profile-function-prolog (fun)
+  "Mark the beginning of a call to function FUN."
+  (if profile-distinct
+      (let ((profile-time (current-time)))
+	(if profile-call-stack
+	    (profile-add-time (cdr (cdr (assq (car profile-call-stack)
+					      profile-time-list)))
+			      profile-time profile-last-time))
+	(setq profile-call-stack (cons fun profile-call-stack)
+	      profile-last-time profile-time))
+    (let ((profile-time (current-time))
+	  (init-time (cdr (assq fun profile-init-list))))
+      (if (null init-time) (error "Function %s missing from list" fun))
+      (if (not (zerop (car init-time)));; is it a recursive call ?
+	  (setcar init-time (1+ (car init-time)))
+	(setcar init-time 1)		; mark first entry
+	(setcdr init-time profile-time)))))
 
-(defun profile-find-function (fun flist)
-  "Linear search for FUN in FLIST."
-  (if (null flist) nil
-    (if (eq fun (car (car flist))) (cdr (car flist))
-      (profile-find-function fun (cdr flist)))))
-
-(defun profile-start-function (fun)
-  "On entry, keep current time for function FUN."
-  ;; assumes that profile-time contains the current time
-  (let ((init-time (profile-find-function fun profile-init-list)))
-    (if (null init-time) (error "Function %s missing from list" fun))
-    (if (not (zerop (car init-time)));; is it a recursive call ?
-	(setcar init-time (1+ (car init-time)))
-      (setcar init-time 1)		; mark first entry
-      (setq init-time (cdr init-time))
-      (setcar init-time (car profile-time))
-      (setcdr init-time (cdr profile-time)))
-    ))
-
-(defun profile-update-function (fun)
-  "When the call to the function FUN is finished, add its run time."
-  ;; assumes that profile-time contains the current time
-  (let ((init-time (profile-find-function fun profile-init-list))
-	(accum (profile-find-function fun profile-time-list))
-	calls time sec usec)
-    (if (or (null init-time)
-	    (null accum)) (error "Function %s missing from list" fun))
-    (setq calls (car accum))
-    (setq time (cdr accum))
-    (setcar init-time (1- (car init-time))) ; pop one level in recursion
-    (if (not (zerop (car init-time))) 
-	nil				; in some recursion level,
-					; do not update cumulated time
-      (setcar accum (1+ calls))
-      (setq init-time (cdr init-time))
-      (setq sec (- (car profile-time) (car init-time))
-	    usec (- (cdr profile-time) (cdr init-time)))
-      (setcar init-time 0)		;  reset time to check for error
-      (setcdr init-time 0)		;  in case timer process dies
-      (if (>= usec 0) nil
-	(setq usec (+ usec profile-million))
-	(setq sec (1- sec)))
-      (setcar time (+ sec (car time)))
-      (setcdr time (+ usec (cdr time)))
-      (if (< (cdr time) profile-million) nil
-	(setcar time (1+ (car time)))
-	(setcdr time (- (cdr time) profile-million)))
-      )))
+(defun profile-function-epilog (fun)
+  "Mark the end of a call to function FUN."
+  (if profile-distinct
+      (let ((profile-time (current-time))
+	    (accum (cdr (assq fun profile-time-list))))
+	(setcar accum (1+ (car accum)))
+	(profile-add-time (cdr accum) profile-time profile-last-time)
+	(setq profile-call-stack (cdr profile-call-stack)
+	      profile-last-time profile-time))
+    (let ((profile-time (current-time))
+	  (init-time (cdr (assq fun profile-init-list)))
+	  (accum (cdr (assq fun profile-time-list))))
+      (if (or (null init-time)
+	      (null accum))
+	  (error "Function %s missing from list" fun))
+      (setcar init-time (1- (car init-time))) ; pop one level in recursion
+      ;; Update only if we've finished the outermost recursive call
+      (when (zerop (car init-time))
+	(setcar accum (1+ (car accum)))
+	(profile-add-time (cdr accum) profile-time (cdr init-time))))))
 
 (defun profile-convert-byte-code (function)
   (let ((defn (symbol-function function)))
@@ -255,14 +219,19 @@ With argument FLIST, use the list FLIST instead."
 (defun profile-a-function (fun)
   "Profile the function FUN."
   (interactive "aFunction to profile: ")
+  (let ((def (symbol-function fun)))
+    (when (eq (car-safe def) 'autoload)
+      (load (car (cdr def)))
+      (setq def (symbol-function fun)))
+    (fetch-bytecode def))
   (profile-convert-byte-code fun)
   (let ((def (symbol-function fun)) (funlen (length (symbol-name fun))))
-    (if (eq (car def) 'lambda) nil
-      (error "To profile: %s must be a user-defined function" fun))
+    (or (eq (car def) 'lambda)
+	(error "To profile: %s must be a user-defined function" fun))
     (setq profile-time-list		; add a new entry
 	  (cons (cons fun (cons 0 (cons 0 0))) profile-time-list))
     (setq profile-init-list		; add a new entry
-	  (cons (cons fun (cons 0 (cons 0 0))) profile-init-list))
+	  (cons (cons fun (cons 0 nil)) profile-init-list))
     (if (< profile-max-fun-name funlen) (setq profile-max-fun-name funlen))
     (fset fun (profile-fix-fun fun def))))
 
@@ -270,7 +239,7 @@ With argument FLIST, use the list FLIST instead."
   "Take function FUN and return it fixed for profiling.
 DEF is (symbol-function FUN)."
   (if (< (length def) 3)
-      def		; nothing to see
+      def		; nothing to change
     (let ((prefix (list (car def) (car (cdr def))))
 	  (suffix (cdr (cdr def))))
       ;; Skip the doc string, if there is a string
@@ -281,50 +250,42 @@ DEF is (symbol-function FUN)."
 		suffix (cdr suffix)))
       ;; Check for an interactive spec.
       ;; If found, put it into PREFIX and skip it.
-      (if (and (listp (car suffix)) 
+      (if (and (listp (car suffix))
 	       (eq (car (car suffix)) 'interactive))
 	  (setq prefix (nconc prefix (list (car suffix)))
 		suffix (cdr suffix)))
-      (if (equal (car suffix) '(profile-get-time))
+      (if (eq (car-safe (car suffix)) 'profile-function-prolog)
 	  def				; already profiled
 	;; Prepare new function definition.
+	;; If you change this structure, also change profile-restore-fun.
 	(nconc prefix
-	       (list '(profile-get-time) ; read time
-		     (list 'profile-start-function 
+	       (list (list 'profile-function-prolog
 			   (list 'quote fun))
-		     (list 'setq 'profile-temp-result- 
-			   (cons 'progn suffix))
-		     '(profile-get-time) ; read time
-		     (list 'profile-update-function 
-			   (list 'quote fun))
-		     'profile-temp-result-))))))
+		     (list 'unwind-protect
+			   (cons 'progn suffix)
+			   (list 'profile-function-epilog
+				 (list 'quote fun)))))))))
 
 (defun profile-restore-fun (fun)
   "Restore profiled function FUN to its original state."
-  (let ((def (symbol-function (car fun))) body index)
+  (let ((def (symbol-function fun)) body index)
     ;; move index beyond header
-    (setq index (cdr def))
-    (if (stringp (car (cdr index))) (setq index (cdr index)))
-    (if (and (listp (car (cdr index)))
-	     (eq (car (car (cdr index))) 'interactive))
+    (setq index (cdr-safe def))
+    (if (stringp (car (cdr index)))
 	(setq index (cdr index)))
-    (setq body (car (nthcdr 3 index)))
-    (if (and (listp body)		; the right element ?
-	     (eq (car (cdr body)) 'profile-temp-result-))
-	(setcdr index (cdr (car (cdr (cdr body))))))))
+    (if (eq (car-safe (car (cdr index))) 'interactive)
+	(setq index (cdr index)))
+    (if (eq (car-safe (car (cdr index))) 'profile-function-prolog)
+	(setcdr index (cdr (car (cdr (car (cdr (cdr index))))))))))
 
 (defun profile-finish ()
   "Stop profiling functions.  Clear all the settings."
   (interactive)
-  (mapcar 'profile-restore-fun profile-time-list)
+  (while profile-time-list
+    (profile-restore-fun (car (car profile-time-list)))
+    (setq profile-time-list (cdr profile-time-list)))
   (setq profile-max-fun-name 0)
-  (setq profile-time-list nil)
   (setq profile-init-list nil))
-
-(defun profile-quit ()
-  "Kill the timer process."
-  (interactive)
-  (process-send-string profile-timer-process "q\n"))
 
 (provide 'profile)
 
