@@ -38,7 +38,7 @@ BASE=`basename $1`
 
 case "$3" in
     GLIBC*)
-	SOURCE=`glibc/localedata/charmaps/${BASE}`;;
+	SOURCE=`glibc-2.3.2/localedata/charmaps/${BASE}`;;
     CZYBORRA)
 	SOURCE="http://czyborra.com/charsets/${BASE}";;
     IANA)
