@@ -807,7 +807,7 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 			     (looking-at comment-re)))
 		 ;; We may have gone too far.  Go forward again.
 		 (line-beginning-position
-		  (if (looking-at (concat ".*" comment-start-skip))
+		  (if (looking-at (concat ".*\\(?:" comment-start-skip "\\)"))
 		      1 2))))
 	   ;; Find the beginning of the first line past the region to fill.
 	   (save-excursion
