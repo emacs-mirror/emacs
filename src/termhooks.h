@@ -215,6 +215,12 @@ enum event_kind
 				   which the key was typed.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the keystroke.  */
+  multibyte_char_keystroke,	/* The multibye char code is in .code,
+				   perhaps with modifiers applied.
+				   The others are the same as
+				   ascii_keystroke.  This type of event
+				   is generated only when we are using
+				   XIM on X window.  */
   non_ascii_keystroke,		/* .code is a number identifying the
 				   function key.  A code N represents
 				   a key whose name is
@@ -337,7 +343,8 @@ struct input_event
   /* What kind of event was this?  */
   int kind;
   
-  /* For an ascii_keystroke, this is the character.
+  /* For an ascii_keystroke and multibyte_char_keystroke, this is the
+     character.
      For a non_ascii_keystroke, this is the keysym code.
      For a mouse event, this is the button number.  */
   /* In WindowsNT, for a mouse wheel event, this is the delta.  */
