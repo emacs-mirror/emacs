@@ -1,3 +1,8 @@
+2000-06-13  Ken Raeburn  <raeburn@gnu.org>
+
+	* Makefile.in (install-arch-indep): Don't use "-unset CDPATH" when
+	it's on a continuation line.
+
 2000-06-02  Dave Love  <fx@gnu.org>
 
 	* Makefile.in: (install-arch-indep): Add pcl-cvs to list of info

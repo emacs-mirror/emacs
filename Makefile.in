@@ -321,7 +321,7 @@ install-arch-dep: mkdir
 ## as a workaround for a bug in tar on Ultrix 4.2.
 install-arch-indep: mkdir info
 	-set ${COPYDESTS} ; \
-	-unset CDPATH; \
+	unset CDPATH; \
 	for dir in ${COPYDIR} ; do \
 	  if [ `(cd $$1 && /bin/pwd)` != `(cd $${dir} && /bin/pwd)` ] ; then \
 	    rm -rf $$1 ; \
@@ -331,7 +331,7 @@ install-arch-indep: mkdir info
 	-set ${COPYDESTS} ; \
 	mkdir ${COPYDESTS} ; \
 	chmod ugo+rx ${COPYDESTS} ; \
-	-unset CDPATH; \
+	unset CDPATH; \
 	for dir in ${COPYDIR} ; do \
 	  dest=$$1 ; shift ; \
 	  [ -d $${dir} ] \
