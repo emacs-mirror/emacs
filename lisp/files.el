@@ -229,6 +229,16 @@ and ignores this variable.")
     (defalias 'lock-buffer 'ignore))
 (or (fboundp 'unlock-buffer)
     (defalias 'unlock-buffer 'ignore))
+
+;; This hook function provides support for ange-ftp host name
+;; completion.  It runs the usual ange-ftp hook, but only for
+;; completion operations.  Having this here avoids the need
+;; to load ange-ftp when it's not really in use.
+(defun ange-ftp-completion-hook-function (op &rest args)
+  (if (memq op '(file-name-completion file-name-all-completions))
+      (apply 'ange-ftp-hook-function op args)
+    (let (file-name-handler-alist)
+      (apply op args))))
 
 (defun pwd ()
   "Show the current default directory."
