@@ -2579,52 +2579,23 @@ This function will not modify `match-data'."
 ;;; Warning management
 ;;
 (defvar checkdoc-output-font-lock-keywords
-  '(("\\(\\w+\\.el\\): \\(\\w+\\)"
+  '(("^\\*\\*\\* \\(.+\\.el\\): \\([^ \n]+\\)"
      (1 font-lock-function-name-face)
-     (2 font-lock-comment-face))
-    ("^\\(\\w+\\.el\\):" 1 font-lock-function-name-face)
-    (":\\([0-9]+\\):" 1 font-lock-constant-face))
+     (2 font-lock-comment-face)))
   "Keywords used to highlight a checkdoc diagnostic buffer.")
 
-(defvar checkdoc-output-mode-map nil
-  "Keymap used in `checkdoc-output-mode'.")
+(defvar checkdoc-output-error-regex-alist
+  '(("^\\(.+\\.el\\):\\([0-9]+\\): " 1 2)))
 
 (defvar checkdoc-pending-errors nil
   "Non-nil when there are errors that have not been displayed yet.")
 
-(if checkdoc-output-mode-map
-    nil
-  (setq checkdoc-output-mode-map (make-sparse-keymap))
-  (if (not (string-match "XEmacs" emacs-version))
-      (define-key checkdoc-output-mode-map [mouse-2]
-	'checkdoc-find-error))
-  (define-key checkdoc-output-mode-map "\C-c\C-c" 'checkdoc-find-error)
-  (define-key checkdoc-output-mode-map "\C-m" 'checkdoc-find-error))
-
-(defun checkdoc-output-mode ()
-  "Create and setup the buffer used to maintain checkdoc warnings.
-\\<checkdoc-output-mode-map>\\[checkdoc-find-error]  - Go to this error location."
-  (kill-all-local-variables)
-  (setq mode-name "Checkdoc"
-	major-mode 'checkdoc-output-mode)
-  (set (make-local-variable 'font-lock-defaults)
-       '((checkdoc-output-font-lock-keywords) t t ((?- . "w") (?_ . "w"))))
-  (use-local-map checkdoc-output-mode-map)
-  (run-mode-hooks 'checkdoc-output-mode-hook))
-
-(defalias 'checkdoc-find-error-mouse 'checkdoc-find-error)
-(defun checkdoc-find-error (&optional event)
-  "In a checkdoc diagnostic buffer, find the error under point."
-  (interactive (list last-input-event))
-  (if event (posn-set-point (event-end e)))
-  (beginning-of-line)
-  (if (looking-at "\\(\\(\\w+\\|\\s_\\)+\\.el\\):\\([0-9]+\\):")
-      (let ((l (string-to-int (match-string 3)))
-	    (f (match-string 1)))
-	(if (not (get-file-buffer f))
-	    (error "Can't find buffer %s" f))
-	(switch-to-buffer-other-window (get-file-buffer f))
-	(goto-line l))))
+(define-derived-mode checkdoc-output-mode compilation-mode "Checkdoc"
+  "Set up the major mode for the buffer containing the list of errors."
+  (set (make-local-variable 'compilation-error-regexp-alist)
+       checkdoc-output-error-regex-alist)
+  (set (make-local-variable 'compilation-mode-font-lock-keywords)
+       checkdoc-output-font-lock-keywords))
 
 (defun checkdoc-buffer-label ()
   "The name to use for a checkdoc buffer in the error list."
