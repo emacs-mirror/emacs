@@ -1004,7 +1004,11 @@ that."
               ;; Info references
               (save-excursion
                 (while (re-search-forward help-xref-info-regexp nil t)
-                  (help-xref-button 1 #'info (match-string 1))))
+                  (let ((data (match-string 1)))
+		    (save-match-data
+		      (unless (string-match "^([^)]+)" data)
+			(setq data (concat "(emacs)" data))))
+		    (help-xref-button 1 #'info data))))
               ;; An obvious case of a key substitution:
               (save-excursion              
                 (while (re-search-forward
