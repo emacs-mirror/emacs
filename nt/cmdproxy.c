@@ -90,7 +90,7 @@ fail (char * msg, ...)
   vfprintf (stderr, msg, args);
   va_end (args);
 
-  exit (1);
+  exit (-1);
 }
 
 void
@@ -366,12 +366,18 @@ console_event_handler (DWORD event)
   return TRUE;
 }
 
+/* Change from normal usage; return value indicates whether spawn
+   succeeded or failed - program return code is returned separately.  */
 int
-spawn (char * progname, char * cmdline)
+spawn (char * progname, char * cmdline, int * retcode)
 {
-  DWORD rc = 0xff;
+  BOOL success = FALSE;
   SECURITY_ATTRIBUTES sec_attrs;
   STARTUPINFO start;
+  /* In theory, passing NULL for the environment block to CreateProcess
+     is the same as passing the value of GetEnvironmentStrings, but
+     doing this explicitly seems to cure problems running DOS programs
+     in some cases.  */
   char * envblock = GetEnvironmentStrings ();
 
   sec_attrs.nLength = sizeof (sec_attrs);
@@ -384,9 +390,11 @@ spawn (char * progname, char * cmdline)
   if (CreateProcess (progname, cmdline, &sec_attrs, NULL, TRUE,
 		     0, envblock, NULL, &start, &child))
   {
+    success = TRUE;
     /* wait for completion and pass on return code */
     WaitForSingleObject (child.hProcess, INFINITE);
-    GetExitCodeProcess (child.hProcess, &rc);
+    if (retcode)
+      GetExitCodeProcess (child.hProcess, (DWORD *)retcode);
     CloseHandle (child.hThread);
     CloseHandle (child.hProcess);
     child.hProcess = NULL;
@@ -394,7 +402,7 @@ spawn (char * progname, char * cmdline)
 
   FreeEnvironmentStrings (envblock);
 
-  return (int) rc;
+  return success;
 }
 
 /* Return size of current environment block.  */
@@ -454,7 +462,9 @@ main (int argc, char ** argv)
       /* We are being used as a helper to run a DOS app; just pass
 	 command line to DOS app without change.  */
       /* TODO: fill in progname.  */
-      return spawn (NULL, GetCommandLine ());
+      if (spawn (NULL, GetCommandLine (), &rc))
+	return rc;
+      fail ("Could not run %s\n", GetCommandLine ());
     }
 
   /* Process command line.  If running interactively (-c or /c not
@@ -568,6 +578,7 @@ main (int argc, char ** argv)
 	}
     }
 
+pass_to_shell:
   if (need_shell)
     {
       char * p;
@@ -649,7 +660,16 @@ main (int argc, char ** argv)
   if (!cmdline)
     cmdline = progname;
 
-  rc = spawn (progname, cmdline);
+  if (spawn (progname, cmdline, &rc))
+    return rc;
 
-  return rc;
+  if (!need_shell)
+    {
+      need_shell = TRUE;
+      goto pass_to_shell;
+    }
+
+  fail ("Could not run %s\n", progname);
+
+  return 0;
 }
