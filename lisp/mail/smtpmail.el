@@ -40,7 +40,7 @@
 ;;(setq smtpmail-local-domain "YOUR DOMAIN NAME")
 ;;(setq smtpmail-sendto-domain "YOUR DOMAIN NAME")
 ;;(setq smtpmail-debug-info t) ; only to debug problems
-;;(setq smtpmail-auth-credentials
+;;(setq smtpmail-auth-credentials  ; or use ~/.authinfo
 ;;      '(("YOUR SMTP HOST" 25 "username" "password")))
 ;;(setq smtpmail-starttls-credentials
 ;;      '(("YOUR SMTP HOST" 25 "~/.my_smtp_tls.key" "~/.my_smtp_tls.cert")))
@@ -73,6 +73,7 @@
 (autoload 'message-make-date "message")
 (autoload 'message-make-message-id "message")
 (autoload 'rfc2104-hash "rfc2104")
+(autoload 'netrc-parse "netrc")
 
 ;;;
 (defgroup smtpmail nil
@@ -150,19 +151,21 @@ and sent with `smtpmail-send-queued-mail'."
   :type 'directory
   :group 'smtpmail)
 
-(defcustom smtpmail-auth-credentials '(("" 25 "" nil))
-  "Specify username and password for servers.
-It is a list of four-element lists that contain, in order,
+(defcustom smtpmail-auth-credentials "~/.authinfo"
+  "Specify username and password for servers, directly or via .netrc file.
+This variable can either be a filename pointing to a file in netrc(5)
+format, or list of four-element lists that contain, in order,
 `servername' (a string), `port' (an integer), `user' (a string) and
-`password' (a string, or nil to query the user when needed).
-If you need to enter a `realm' too, add it to the user string, so that
-it looks like `user@realm'."
-  :type '(repeat (list (string  :tag "Server")
+`password' (a string, or nil to query the user when needed).  If you
+need to enter a `realm' too, add it to the user string, so that it
+looks like `user@realm'."
+  :type '(choice file
+		 (repeat (list (string  :tag "Server")
 		       (integer :tag "Port")
 		       (string  :tag "Username")
 		       (choice (const :tag "Query when needed" nil)
-			       (string  :tag "Password"))))
-  :version "21.1"
+				       (string  :tag "Password")))))
+  :version "21.3"
   :group 'smtpmail)
 
 (defcustom smtpmail-starttls-credentials '(("" 25 "" ""))
@@ -464,7 +467,16 @@ This is relative to `smtpmail-queue-dir'.")
 (defun smtpmail-try-auth-methods (process supported-extensions host port)
   (let* ((mechs (cdr-safe (assoc 'auth supported-extensions)))
 	 (mech (car (smtpmail-intersection smtpmail-auth-supported mechs)))
-	 (cred (smtpmail-find-credentials smtpmail-auth-credentials host port))
+	 (cred (if (stringp smtpmail-auth-credentials)
+		   (let* ((netrc (netrc-parse smtpmail-auth-credentials))
+			  (hostentry (netrc-machine 
+				      netrc host (format "%s" (or port "smtp"))
+				      "smtp")))
+		     (list host port
+			   (netrc-get hostentry "login")
+			   (netrc-get hostentry "password")))
+		 (smtpmail-find-credentials
+		  smtpmail-auth-credentials host port)))
 	 (passwd (when cred
 		   (or (smtpmail-cred-passwd cred)
 		       (read-passwd
@@ -511,7 +523,8 @@ This is relative to `smtpmail-queue-dir'.")
        (t
 	(error "Mechanism %s not implemented" mech)))
       ;; Remember the password.
-      (unless (smtpmail-cred-passwd cred)
+      (when (and (not (stringp smtpmail-auth-credentials))
+		 (null (smtpmail-cred-passwd cred)))
 	(setcar (cdr (cdr (cdr cred))) passwd)))))
 
 (defun smtpmail-via-smtp (recipient smtpmail-text-buffer)
