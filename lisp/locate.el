@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1996, 1998 Free Software Foundation, Inc.
 
-;; Author: Peter Breton <pbreton@i-kinetics.com>
+;; Author: Peter Breton <pbreton@cs.umb.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -252,7 +252,6 @@
 ;; From SQL-mode
 (defun locate-current-line-number ()
   "Return the current line number, as an integer."
-  (interactive)
   (+ (count-lines (point-min) (point))
      (if (eq (current-column) 0)
 	 1
