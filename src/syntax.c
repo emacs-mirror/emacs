@@ -53,6 +53,12 @@ int multibyte_syntax_as_symbol;
    only very temporarily.  */
 Lisp_Object syntax_temp;
 
+/* Non-zero means an open parenthesis in column 0 is always considered
+   to be the start of a defun.  Zero means an open parenthesis in
+   column 0 has no special meaning.  */
+
+int open_paren_in_column_0_is_defun_start;
+
 /* This is the internal form of the parse state used in parse-partial-sexp.  */
 
 struct lisp_parse_state
@@ -370,11 +376,13 @@ find_defun_start (pos, pos_byte)
   gl_state.use_global = 0;
   while (PT > BEGV)
     {
-      /* Open-paren at start of line means we found our defun-start.  */
+      /* Open-paren at start of line means we may have found our
+	 defun-start.  */
       if (SYNTAX (FETCH_CHAR (PT_BYTE)) == Sopen)
 	{
 	  SETUP_SYNTAX_TABLE (PT + 1, -1);	/* Try again... */
-	  if (SYNTAX (FETCH_CHAR (PT_BYTE)) == Sopen)
+	  if (SYNTAX (FETCH_CHAR (PT_BYTE)) == Sopen
+	      && open_paren_in_column_0_is_defun_start)
 	    break;
 	  /* Now fallback to the default value.  */
 	  gl_state.current_syntax_table = current_buffer->syntax_table;
@@ -2962,6 +2970,11 @@ relevant only for open/close type.");
   DEFVAR_BOOL ("multibyte-syntax-as-symbol", &multibyte_syntax_as_symbol,
     "Non-nil means `scan-sexps' treats all multibyte characters as symbol.");
   multibyte_syntax_as_symbol = 0;
+
+  DEFVAR_BOOL ("open-paren-in-column-0-is-defun-start",
+	       &open_paren_in_column_0_is_defun_start,
+    "Non-nil means an open paren in column 0 denotes the start of a defun.");
+  open_paren_in_column_0_is_defun_start = 1;
 
   defsubr (&Ssyntax_table_p);
   defsubr (&Ssyntax_table);
