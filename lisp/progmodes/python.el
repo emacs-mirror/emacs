@@ -1415,7 +1415,7 @@ The criterion is either a match for `jython-mode' via
 		(while (re-search-forward
 			(rx (and line-start (or "import" "from") (1+ space)
 				 (group (1+ (not (any " \t\n."))))))
-			10000	     ; Probably not worth customizing.
+			(+ (point-min) 10000) ; Probably not worth customizing.
 			t)
 		  (if (member (match-string 1) python-jython-packages)
 		      (throw 'done t))))
