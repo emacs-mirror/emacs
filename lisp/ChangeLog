@@ -1,5 +1,18 @@
 2002-05-19  Markus Rost  <rost@math.ohio-state.edu>
 
+	* international/ucs-tables.el (unify-8859-on-encoding-mode)
+	(unify-8859-on-decoding-mode): Change :version attributes to
+	strings.
+
+	* simple.el (yank-excluded-properties): Change :version attribute
+	to a string.
+
+	* dired.el (dired-view-command-alist): Change :version attribute
+	to a string.
+
+	* xscheme.el (xscheme-start-hook): Change :version attribute to a
+	string.
+
 	* find-dired.el (find-dired): Implement revert-buffer-function.
 
 	* mail/emacsbug.el (report-emacs-bug-hook): Do another
