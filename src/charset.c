@@ -101,6 +101,10 @@ int _fetch_multibyte_char_len;
 /* Offset to add to a non-ASCII value when inserting it.  */
 int nonascii_insert_offset;
 
+/* Translation table for converting non-ASCII unibyte characters
+   to multibyte codes, or nil.  */
+Lisp_Object Vnonascii_translate_table;
+
 #define min(X, Y) ((X) < (Y) ? (X) : (Y))
 #define max(X, Y) ((X) > (Y) ? (X) : (Y))
 
@@ -277,8 +281,8 @@ unify_char (table, c, charset, c1, c2)
 #define DEFAULT_NONASCII_INSERT_OFFSET 0x800
 
 /* Convert the unibyte character C to multibyte
-   based on nonascii_insert_offset.  Note that copy_text in insdel.c
-   has similar code.  */
+   based on Vnonascii_translate_table or nonascii_insert_offset.
+   Note that copy_text in insdel.c has similar code.  */
 
 int
 unibyte_char_to_multibyte (c)
@@ -286,7 +290,9 @@ unibyte_char_to_multibyte (c)
 {
   if (c >= 0200 && c < 0400)
     {
-      if (nonascii_insert_offset > 0)
+      if (! NILP (Vnonascii_translate_table))
+	c = XINT (Faref (Vnonascii_translate_table, make_number (c)));
+      else if (nonascii_insert_offset > 0)
 	c += nonascii_insert_offset;
       else
 	c += DEFAULT_NONASCII_INSERT_OFFSET;
@@ -1702,11 +1708,24 @@ An ID of a unification table is an index of this vector.");
   leading_code_private_22 = LEADING_CODE_PRIVATE_22;
 
   DEFVAR_INT ("nonascii-insert-offset", &nonascii_insert_offset,
-    "Offset to add to a non-ascii code 0200...0377 when inserting it.\n\
-This applies only when multibyte characters are enabled, and it serves\n\
-to convert a Latin-1 or similar 8-bit character code to the corresponding\n\
-Emacs character code.");
+    "Offset for converting non-ASCII unibyte codes 0200...0377 to multibyte.\n\
+This is used for converting unibyte text to multibyte,\n\
+and for inserting character codes specified by number.\n\n\
+Conversion is performed only when multibyte characters are enabled,\n\
+and it serves to convert a Latin-1 or similar 8-bit character code\n\
+to the corresponding Emacs character code.\n\
+If `nonascii-translate-table' is non-nil, it overrides this variable.");
   nonascii_insert_offset = 0;
+
+  DEFVAR_LISP ("nonascii-translate-table", &Vnonascii_translate_table,
+    "Translate table for converting non-ASCII unibyte codes to multibyte.\n\
+This is used for converting unibyte text to multibyte,\n\
+and for inserting character codes specified by number.\n\n\
+Conversion is performed only when multibyte characters are enabled,\n\
+and it serves to convert a Latin-1 or similar 8-bit character code\n\
+to the corresponding Emacs character code.\n\n\
+If this is nil, `nonascii-insert-offset' is used instead.");
+  Vnonascii_translate_table = Qnil;
 
   DEFVAR_INT ("min-composite-char", &min_composite_char,
     "Minimum character code of a composite character.");
