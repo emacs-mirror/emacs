@@ -186,7 +186,7 @@ shadow\\(Double\\)?Etched\\(In\\|Out\\)\\(Dash\\)?\\)\\)$"
      ((vectorp item)
       (setq name (setq item-string (aref item 0)))
       (setq command (easy-menu-make-symbol (aref item 1) t))
-      (let ((active (aref item 2))
+      (let ((active (if (> (length item) 2) (aref item 2) t))
 	    (count 2)
 	    style selected)
 	(if (and (symbolp active) (= ?: (aref (symbol-name active) 0)))
