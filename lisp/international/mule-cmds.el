@@ -303,6 +303,13 @@ CHARSETS is a list of character sets."
 	      (sort codings (function (lambda (x y) (> (car x) (car y))))))
       )))
 
+(defvar last-coding-system-specified nil
+  "Most recent coding system explicitly specified by the user when asked.
+This variable is set whenever Emacs asks the user which coding system
+to use in order to write a file.  If you set it to nil explicitly,
+then call `write-region', then afterward this variable will be non-nil
+only if the user was explicitly asked and specified a coding system.")
+
 (defun select-safe-coding-system (from to &optional default-coding-system)
   "Ask a user to select a safe coding system from candidates.
 The candidates of coding systems which can safely encode a text
@@ -364,7 +371,7 @@ Please select one from the following safe coding systems:\n"
 			  (format "Select coding system (default %s): "
 				  (car safe-coding-systems))
 			  safe-names nil t nil nil (car (car safe-names)))))
-	      (intern name))
+	      (setq last-coding-system-specified (intern name)))
 	  (kill-buffer "*Warning*"))))))
 
 (setq select-safe-coding-system-function 'select-safe-coding-system)
