@@ -1,3 +1,7 @@
+2005-02-01  Kim F. Storm  <storm@cua.dk>
+
+	* text.texi (Undo) <buffer-undo-list>: Describe `apply' elements.
+
 2005-01-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* commands.texi (Misc Events): Describe the help-echo event.

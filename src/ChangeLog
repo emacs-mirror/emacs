@@ -1,3 +1,12 @@
+2005-01-31  Kim F. Storm  <storm@cua.dk>
+
+	* undo.c (Qapply): New lisp var.
+	(syms_of_undo): Intern and staticpro it.
+	(Fprimitive_undo): Support formats (apply FUNNAME . ARGS) and
+	(apply DELTA BEG END FUNNAME . ARGS) instead of (FUNNAME . ARGS).
+
+	* buffer.c (syms_of_buffer) <buffer-undo-list>: Doc fix.
+
 2005-01-30  Jesper Harder  <harder@phys.au.dk>
 
 	* macterm.c (syms_of_macterm) <mac-reverse-ctrl-meta>

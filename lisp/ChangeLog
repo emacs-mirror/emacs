@@ -1,3 +1,10 @@
+2005-01-31  Kim F. Storm  <storm@cua.dk>
+
+	* ses.el (ses-create-cell-variable-range)
+	(ses-destroy-cell-variable-range, ses-reset-header-string)
+	(ses-set-with-undo, ses-unset-with-undo, ses-aset-with-undo)
+	(ses-insert-row): Fix format of apply undo entries.
+
 2005-01-31  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-aent.el (math-read-token): Separate the TeX and LaTeX
@@ -31,8 +38,8 @@
 	user preferences.
 	(ispell-internal-change-dictionary): New function
 	to change the current dictionary in use.
-	(ispell-region, ispell-process-line, ispell-buffer-local-dict): 
-	Use ispell-current-dictionary.  
+	(ispell-region, ispell-process-line, ispell-buffer-local-dict):
+	Use ispell-current-dictionary.
 	Handle ispell-local-dictionary-overridden.
 	(ispell-buffer-local-dict): Call ispell-internal-change-dictionary.
 
@@ -56,7 +63,7 @@
 	(calc-set-mode-line): Add LaTeX support.
 	(math-expr-special-function-mapping): New variable.
 	(math-tex-ignore-words): Add to list.
-	
+
 	* calc/calccomp.el (math-compose-expr, math-compose-rows):
 	Add LaTeX support.
 	(math-compose-expr): Add support for special functions.
