@@ -2545,6 +2545,9 @@ read_avail_input (expected)
 	/* Formerly simply reported no input, but that sometimes led to
 	   a failure of Emacs to terminate.
 	   SIGHUP seems appropriate if we can't reach the terminal.  */
+	/* ??? Is it really right to send the signal just to this process
+	   rather than to the whole process group?
+	   Perhaps on systems with FIONREAD Emacs is alone in its group.  */
 	kill (getpid (), SIGHUP);
       if (nread == 0)
 	return 0;
