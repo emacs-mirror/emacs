@@ -274,7 +274,7 @@ bootstrap-clean:
 
 # Generate/update files for the bootstrap process.
 
-bootstrap: autoloads compile-always custom-deps
+bootstrap: subdirs.el autoloads compile-always custom-deps
 
 distclean:
 	-rm -f ./Makefile

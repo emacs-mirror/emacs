@@ -1,3 +1,7 @@
+2002-03-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* Makefile.in (bootstrap): Make sure subdirs.el is ready.
+
 2002-03-21  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (open-network-stream, open-network-stream-nowait)
@@ -11,8 +15,8 @@
 
 2002-03-21  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* startup.el (fancy-splash-tail, normal-splash-screen): Update
-	copyright.
+	* startup.el (fancy-splash-tail, normal-splash-screen):
+	Update copyright.
 
 	* novice.el (disabled-command-hook): Clarify output text to match
 	prompt.
@@ -30,28 +34,28 @@
 
 2002-03-20  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff-diff.el (ediff-install-fine-diff-if-necessary): take
-	the current highlighting style into account.
-	(ediff-forward-word-function,ediff-whitespace,ediff-word-1,
-	ediff-word-2,ediff-word-3,ediff-word-4): make them buffer local.
+	* ediff-diff.el (ediff-install-fine-diff-if-necessary):
+	Take the current highlighting style into account.
+	(ediff-forward-word-function,ediff-whitespace,ediff-word-1)
+	(ediff-word-2,ediff-word-3,ediff-word-4): Make them buffer local.
 
-	* ediff-init.el (ediff-patch-job): new macro.
+	* ediff-init.el (ediff-patch-job): New macro.
 
-	* ediff-mult.el (ediff-make-new-meta-list-header): new API function.
-	(ediff-intersect-directories): use ediff-make-new-meta-list-header.
+	* ediff-mult.el (ediff-make-new-meta-list-header): New API function.
+	(ediff-intersect-directories): Use ediff-make-new-meta-list-header.
 
-	* ediff-ptch.el (ediff-map-patch-buffer): use
-	ediff-make-new-meta-list-header.
-	(ediff-fixup-patch-map): use the meta-list API from ediff-mult.el.
+	* ediff-ptch.el (ediff-map-patch-buffer):
+	Use ediff-make-new-meta-list-header.
+	(ediff-fixup-patch-map): Use the meta-list API from ediff-mult.el.
 
-	* ediff-util.el (ediff-toggle-hilit): fix toggling of highliting.
-	(ediff-select-difference): take highlighting style into account.
-	(ediff-clone-buffer-for-region-comparison): new function.
-	(ediff-inferior-compare-regions): added comparison of current diff
+	* ediff-util.el (ediff-toggle-hilit): Fix toggling of highliting.
+	(ediff-select-difference): Take highlighting style into account.
+	(ediff-clone-buffer-for-region-comparison): New function.
+	(ediff-inferior-compare-regions): Added comparison of current diff
 	regions.
 
-	* ediff.el (ediff-clone-buffer-for-region-comparison,
-	ediff-clone-buffer-for-window-comparison): moved to ediff-util.el.
+	* ediff.el (ediff-clone-buffer-for-region-comparison)
+	(ediff-clone-buffer-for-window-comparison): Moved to ediff-util.el.
 
 2002-03-19  pmr-sav  <pmr-sav@hamm.pajato.com>
 
