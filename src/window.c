@@ -3995,10 +3995,13 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	{
 	  if (it.current_y + it.max_ascent + it.max_descent
 	      > it.last_visible_y)
-	    /* The last line was only partially visible, make it fully
-	       visible.  */
-	    w->vscroll = (it.last_visible_y
-			  - it.current_y + it.max_ascent + it.max_descent);
+	    {
+	      /* The last line was only partially visible, make it fully
+		 visible.  */
+	      w->vscroll = (it.last_visible_y
+			    - it.current_y + it.max_ascent + it.max_descent);
+	      adjust_glyphs (it.f);
+	    }
 	  else if (noerror)
 	    return;
 	  else
