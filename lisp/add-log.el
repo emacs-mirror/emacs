@@ -310,27 +310,26 @@ If nil, use local time.")
 This is the value returned by `vc-workfile-version' or, if that is
 nil, by matching `change-log-version-number-regexp-list'."
   (let* ((size (buffer-size))
-	 (end
+	 (limit
 	  ;; The version number can be anywhere in the file, but
 	  ;; restrict search to the file beginning: 10% should be
 	  ;; enough to prevent some mishits.
 	  ;;
 	  ;; Apply percentage only if buffer size is bigger than
 	  ;; approx 100 lines.
-	  (if (> size (* 100 80))
-	      (/ size 10)
-	    size))
-	 version)
+	  (if (> size (* 100 80)) (+ (point) (/ size 10)))))
     (or (and buffer-file-name (vc-workfile-version buffer-file-name))
 	(save-restriction
 	  (widen)
-	  (let ((regexps change-log-version-number-regexp-list))
+	  (let ((regexps change-log-version-number-regexp-list)
+		version)
 	    (while regexps
 	      (save-excursion
 		(goto-char (point-min))
-		(when (re-search-forward (pop regexps) end t)
+		(when (re-search-forward (pop regexps) limit t)
 		  (setq version (match-string 1)
-			regexps nil)))))))))
+			regexps nil))))
+	    version)))))
 
 
 ;;;###autoload
@@ -564,8 +563,13 @@ non-nil, otherwise in local time."
 	(skip-syntax-backward " ")
 	(skip-chars-backward "):")
 	(if (and (looking-at "):")
-		 (> fill-column (+ (current-column) (length defun) 4)))
-	    (progn (delete-region (point) pos) (insert ", "))
+		 (let ((pos (save-excursion (backward-sexp 1) (point))))
+		   (when (equal (buffer-substring pos (point)) defun)
+		     (delete-region pos (point)))
+		   (> fill-column (+ (current-column) (length defun) 4))))
+	    (progn (skip-chars-backward ", ")
+		   (delete-region (point) pos)
+		   (unless (memq (char-before) '(?\()) (insert ", ")))
 	  (if (looking-at "):")
 	      (delete-region (+ 1 (point)) (line-end-position)))
 	  (goto-char pos)
@@ -585,6 +589,26 @@ the change log file in another window."
   (add-change-log-entry whoami file-name t))
 ;;;###autoload (define-key ctl-x-4-map "a" 'add-change-log-entry-other-window)
 
+(defvar add-log-indent-text 0)
+
+(defun add-log-indent ()
+  (let* ((indent
+	  (save-excursion
+	    (beginning-of-line)
+	    (skip-chars-forward " \t")
+	    (cond
+	     ((and (looking-at "\\(.*\\)  [^ \n].*[^ \n]  <.*>$")
+		   ;; Matching the output of add-log-time-format is difficult,
+		   ;; but I'll get it has at least two adjacent digits.
+		   (string-match "[[:digit:]][[:digit:]]" (match-string 1)))
+	      0)
+	     ((looking-at "[^*(]")
+	      (+ (current-left-margin) add-log-indent-text))
+	     (t (current-left-margin)))))
+	 (pos (save-excursion (indent-line-to indent) (point))))
+    (if (> pos (point)) (goto-char pos))))
+
+
 ;;;###autoload
 (define-derived-mode change-log-mode text-mode "Change Log"
   "Major mode for editing change logs; like Indented Text Mode.
@@ -598,7 +622,8 @@ Runs `change-log-mode-hook'."
 	tab-width 8)
   (set (make-local-variable 'fill-paragraph-function)
        'change-log-fill-paragraph)
-  (set (make-local-variable 'indent-line-function) 'indent-to-left-margin)
+  (set (make-local-variable 'indent-line-function) 'add-log-indent)
+  (set (make-local-variable 'tab-always-indent) nil)
   ;; We really do want "^" in paragraph-start below: it is only the
   ;; lines that begin at column 0 (despite the left-margin of 8) that
   ;; we are looking for.  Adding `* ' allows eliding the blank line
