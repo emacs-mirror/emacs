@@ -1070,6 +1070,7 @@ extern Lisp_Object Fcopy_marker ();
 /* Defined in fileio.c */
 
 extern Lisp_Object Qfile_error;
+extern Lisp_Object Ffind_file_name_handler ();
 extern Lisp_Object Ffile_name_as_directory ();
 extern Lisp_Object Fexpand_file_name (), Ffile_name_nondirectory ();
 extern Lisp_Object Fsubstitute_in_file_name ();

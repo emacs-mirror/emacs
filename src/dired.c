@@ -67,7 +67,7 @@ extern struct direct *readdir ();
 #define lstat stat
 #endif
 
-extern Lisp_Object find_file_handler ();
+extern Lisp_Object Ffind_file_name_handler ();
 
 Lisp_Object Vcompletion_ignored_extensions;
 
@@ -95,7 +95,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = find_file_handler (dirname);
+  handler = Ffind_file_name_handler (dirname);
   if (!NILP (handler))
     {
       Lisp_Object args[6];
@@ -199,7 +199,7 @@ Returns nil if DIR contains no name starting with FILE.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = find_file_handler (dirname);
+  handler = Ffind_file_name_handler (dirname);
   if (!NILP (handler))
     return call3 (handler, Qfile_name_completion, file, dirname);
 
@@ -217,7 +217,7 @@ These are all file names in directory DIR which begin with FILE.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = find_file_handler (dirname);
+  handler = Ffind_file_name_handler (dirname);
   if (!NILP (handler))
     return call3 (handler, Qfile_name_all_completions, file, dirname);
 
@@ -489,7 +489,7 @@ If file does not exist, returns nil.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = find_file_handler (filename);
+  handler = Ffind_file_name_handler (filename);
   if (!NILP (handler))
     return call2 (handler, Qfile_attributes, filename);
 
