@@ -82,7 +82,7 @@
 
 ;;; This is passed to the inferior in the EMACS environment variable,
 ;;; so it is important to increase it if there are protocol-relevant changes.
-(defconst term-version "0.95")
+(defconst term-protocol-version "0.95")
 
 (require 'ring)
 (require 'ehelp)
@@ -863,7 +863,7 @@ buffer. The hook term-exec-hook is run after each exec."
 	       (format "TERMINFO=%s" data-directory)
 	    (format term-termcap-format "TERMCAP="
 		    term-term-name term-height term-width))
-	   (format "EMACS=%s (term:%s)" emacs-version term-version)
+	   (format "EMACS=%s (term:%s)" emacs-version term-protocol-version)
 	   (format "LINES=%d" term-height)
 	   (format "COLUMNS=%d" term-width))
 	  process-environment)))
