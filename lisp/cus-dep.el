@@ -30,6 +30,9 @@
 (require 'widget)
 (require 'cus-face)
 
+(defvar generated-custom-dependencies-file "cus-load.el"
+  "File \\[cusom-make-dependencies] puts custom dependencies into.")
+
 (defun custom-make-dependencies ()
   "Batch function to extract custom dependencies from .el files.
 Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
@@ -73,11 +76,12 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 			    (put (nth 1 expr) 'custom-where name))
 			(error nil))))
 		(error nil))))))))
-  (message "Generating cus-load.el...")
-  (set-buffer (find-file-noselect "cus-load.el"))
+  (message "Generating %s..." generated-custom-dependencies-file)
+  (set-buffer (find-file-noselect generated-custom-dependencies-file))
   (erase-buffer)
   (insert "\
-;;; cus-load.el --- automatically extracted custom dependencies
+;;; " (file-name-nondirectory generated-custom-dependencies-file)
+      " --- automatically extracted custom dependencies
 ;;
 ;;; Code:
 
@@ -120,7 +124,8 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 
 ;;; This macro is used so we don't modify the information about
 ;;; variables and groups if it's already set. (We don't know when
-;;; cus-load.el is going to be loaded and at that time some of the
+;;; " (file-name-nondirectory generated-custom-dependencies-file)
+      " is going to be loaded and at that time some of the
 ;;; files might be loaded and some others might not).
 \(defmacro custom-put-if-not (symbol propname value)
   `(unless (get ,symbol ,propname)
@@ -161,17 +166,18 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
     
   (insert "\
 
-\(provide 'cus-load)
+\(provide '" (file-name-sans-extension
+	      (file-name-nondirectory generated-custom-dependencies-file)) ")
 
 ;;; Local Variables:
 ;;; version-control: never
 ;;; no-byte-compile: t
 ;;; no-update-autoloads: t
 ;;; End:
-;;; cus-load.el ends here\n")
+;;; " (file-name-nondirectory generated-custom-dependencies-file) " ends here\n")
   (let ((kept-new-versions 10000000))
     (save-buffer))
-  (message "Generating cus-load.el...done")
+  (message "Generating %s...done" generated-custom-dependencies-file)
   (kill-emacs))
 
 
