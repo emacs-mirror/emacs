@@ -315,32 +315,47 @@
 
 ;;; Code:
 
-(defvar ispell-highlight-p t
-  "*Highlight spelling errors when non-nil.")
+(defgroup ispell nil
+  "Spell checking using ispell"
+  :group 'processes)
 
-(defvar ispell-highlight-face 'highlight
+
+(defcustom ispell-highlight-p t
+  "*Highlight spelling errors when non-nil."
+  :type 'boolean
+  :group 'ispell)
+
+(defcustom ispell-highlight-face 'highlight
   "*The face used for Ispell highlighting.  For Emacses with overlays.
 Possible values are `highlight', `modeline', `secondary-selection',
 `region', and `underline'.
 This variable can be set by the user to whatever face they desire.
 It's most convenient if the cursor color and highlight color are
-slightly different.")
+slightly different."
+  :type 'face
+  :group 'ispell)
 
-(defvar ispell-check-comments t
-  "*If nil, don't check spelling of comments.")
+(defcustom ispell-check-comments t
+  "*If nil, don't check spelling of comments."
+  :type 'boolean
+  :group 'ispell)
 
-(defvar ispell-query-replace-choices nil
+(defcustom ispell-query-replace-choices nil
   "*Corrections made throughout region when non-nil.
-Uses `query-replace' (\\[query-replace]) for corrections.")
+Uses `query-replace' (\\[query-replace]) for corrections."
+  :type 'boolean
+  :group 'ispell)
 
-(defvar ispell-skip-tib nil
+(defcustom ispell-skip-tib nil
   "*Does not spell check `tib' bibliography references when non-nil.
 Skips any text between strings matching regular expressions
 `ispell-tib-ref-beginning' and `ispell-tib-ref-end'.
 
 TeX users beware:  Any field starting with [. will skip until a .] -- even
 your whole buffer -- unless you set `ispell-skip-tib' to nil.  That includes
-a [.5mm] type of number....")
+a [.5mm] type of number...."
+  :type 'boolean
+  :group 'ispell)
 
 (defvar ispell-tib-ref-beginning "[[<]\\."
   "Regexp matching the beginning of a Tib reference.")
@@ -348,18 +363,24 @@ a [.5mm] type of number....")
 (defvar ispell-tib-ref-end "\\.[]>]"
   "Regexp matching the end of a Tib reference.")
 
-(defvar ispell-keep-choices-win t
+(defcustom ispell-keep-choices-win t
   "*When not nil, the `*Choices*' window remains for spelling session.
-This minimizes redisplay thrashing.")
+This minimizes redisplay thrashing."
+  :type 'boolean
+  :group 'ispell)
 
-(defvar ispell-choices-win-default-height 2
+(defcustom ispell-choices-win-default-height 2
   "*The default size of the `*Choices*' window, including status line.
-Must be greater than 1.")
+Must be greater than 1."
+  :type 'integer
+  :group 'ispell)
 
-(defvar ispell-program-name "ispell"
-  "Program invoked by \\[ispell-word] and \\[ispell-region] commands.")
+(defcustom ispell-program-name "ispell"
+  "Program invoked by \\[ispell-word] and \\[ispell-region] commands."
+  :type 'string
+  :group 'ispell)
 
-(defvar ispell-alternate-dictionary
+(defcustom ispell-alternate-dictionary
   (cond ((file-exists-p "/usr/dict/web2") "/usr/dict/web2")
 	((file-exists-p "/usr/share/dict/web2") "/usr/share/dict/web2")
 	((file-exists-p "/usr/dict/words") "/usr/dict/words")
@@ -367,10 +388,14 @@ Must be greater than 1.")
 	((file-exists-p "/usr/share/dict/words") "/usr/share/dict/words")
 	((file-exists-p "/sys/dict") "/sys/dict")
 	(t "/usr/dict/words"))
-  "*Alternate dictionary for spelling help.")
+  "*Alternate dictionary for spelling help."
+  :type 'file
+  :group 'ispell)
 
-(defvar ispell-complete-word-dict ispell-alternate-dictionary
-  "*Dictionary used for word completion.")
+(defcustom ispell-complete-word-dict ispell-alternate-dictionary
+  "*Dictionary used for word completion."
+  :type 'file
+  :group 'ispell)
 
 (defvar ispell-grep-command "egrep"
   "Name of the grep command for search processes.")
@@ -384,12 +409,16 @@ Some machines (like the NeXT) don't support \"-i\"")
   "Name of the look command for search processes.
 This must be an absolute file name.")
 
-(defvar ispell-look-p (file-exists-p ispell-look-command)
+(defcustom ispell-look-p (file-exists-p ispell-look-command)
   "*Non-nil means use `look' rather than `grep'.
-Default is based on whether `look' seems to be available.")
+Default is based on whether `look' seems to be available."
+  :type 'boolean
+  :group 'ispell)
 
-(defvar ispell-have-new-look nil
-  "*Non-nil means use the `-r' option (regexp) when running `look'.")
+(defcustom ispell-have-new-look nil
+  "*Non-nil means use the `-r' option (regexp) when running `look'."
+  :type 'boolean
+  :group 'ispell)
 
 (defvar ispell-look-options (if ispell-have-new-look "-dfr" "-df")
   "String of command options for `ispell-look-command'.")
@@ -398,29 +427,41 @@ Default is based on whether `look' seems to be available.")
   "When non-nil, Emacs uses ptys to communicate with Ispell.
 When nil, Emacs uses pipes.")
 
-(defvar ispell-following-word nil
+(defcustom ispell-following-word nil
   "*Non-nil means `ispell-word' checks the word around or after point.
-Otherwise `ispell-word' checks the preceding word.")
+Otherwise `ispell-word' checks the preceding word."
+  :type 'boolean
+  :group 'ispell)
 
-(defvar ispell-help-in-bufferp nil
+(defcustom ispell-help-in-bufferp nil
   "*Non-nil means display interactive keymap help in a buffer.
-Otherwise use the minibuffer.")
+Otherwise use the minibuffer."
+  :type 'boolean
+  :group 'ispell)
 
-(defvar ispell-quietly nil
-  "*Non-nil means suppress messages in `ispell-word'.")
+(defcustom ispell-quietly nil
+  "*Non-nil means suppress messages in `ispell-word'."
+  :type 'boolean
+  :group 'ispell)
 
-(defvar ispell-format-word (function upcase)
+(defcustom ispell-format-word (function upcase)
   "*Formatting function for displaying word being spell checked.
-The function must take one string argument and return a string.")
+The function must take one string argument and return a string."
+  :type 'function
+  :group 'ispell)
 
 ;;;###autoload
-(defvar ispell-personal-dictionary nil
+(defcustom ispell-personal-dictionary nil
   "*File name of your personal spelling dictionary, or nil.
 If nil, the default personal dictionary, \"~/.ispell_DICTNAME\" is used,
-where DICTNAME is the name of your default dictionary.")
+where DICTNAME is the name of your default dictionary."
+  :type 'file
+  :group 'ispell)
 
-(defvar ispell-silently-savep nil
-  "*When non-nil, save the personal dictionary without confirmation.")
+(defcustom ispell-silently-savep nil
+  "*When non-nil, save the personal dictionary without confirmation."
+  :type 'boolean
+  :group 'ispell)
 
 ;;; This variable contains the current dictionary being used if the ispell
 ;;; process is running.  Otherwise it contains the global default.
@@ -434,11 +475,13 @@ commands in the Emacs session, or else use the \\[ispell-change-dictionary]
 command to change it.  Otherwise, this variable only takes effect in a newly
 started Ispell process.")
 
-(defvar ispell-extra-args nil
+(defcustom ispell-extra-args nil
   "*If non-nil, a list of extra switches to pass to the Ispell program.
 For example, '(\"-W\" \"3\") to cause it to accept all 1-3 character
 words as correct.  See also `ispell-dictionary-alist', which may be used
-for language-specific arguments.")
+for language-specific arguments."
+  :type '(repeat string)
+  :group 'ispell)
 
 ;;; The preparation of the menu bar menu must be autoloaded
 ;;; because otherwise this file gets autoloaded every time Emacs starts
