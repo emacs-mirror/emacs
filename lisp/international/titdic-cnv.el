@@ -1000,7 +1000,7 @@ the generated Quail package is saved."
 	  (insert ";;; Code:\n\n")
 	  (insert "(require 'quail)\n")
 	  (insert "(quail-define-package \"" name "\" \""
-		  (if (eq coding 'big5) "Chiense-BIG5" "Chienge-CNS")
+		  (if (eq coding 'big5) "Chinese-BIG5" "Chinese-CNS")
 		  "\" \"" title "\" t\n")
 	  (let* ((coding-system-for-read coding)
 		 (dicbuf (find-file-noselect filename)))
