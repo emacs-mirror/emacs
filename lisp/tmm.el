@@ -43,6 +43,7 @@
 (defvar tmm-table-undef)
 
 ;;;###autoload (define-key global-map "\M-`" 'tmm-menubar)
+;;;###autoload (define-key global-map [f10] 'tmm-menubar)
 
 ;;;###autoload
 (defun tmm-menubar ()
@@ -176,23 +177,26 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 		  (cons (concat f tmm-mid-prompt str) (cdr elt)))))
 	    (reverse list))))
 
+(defun tmm-define-keys ()
+  (mapcar (lambda (str)
+	    (define-key (current-local-map) str 'tmm-shortcut)
+	    (define-key (current-local-map) (downcase str) 'tmm-shortcut))
+	  tmm-short-cuts)
+  (define-key (current-local-map) [pageup] 'tmm-goto-completions)
+  (define-key (current-local-map) [prior] 'tmm-goto-completions)
+  (define-key (current-local-map) "\ev" 'tmm-goto-completions)
+  (define-key (current-local-map) "\e\e" 'abort-recursive-edit)
+  (define-key (current-local-map) "\C-n" 'next-history-element)
+  (define-key (current-local-map) "\C-p" 'previous-history-element))
+
 (defun tmm-add-prompt ()
   (remove-hook 'minibuffer-setup-hook 'tmm-add-prompt)
   (make-local-hook 'minibuffer-exit-hook)
   (add-hook 'minibuffer-exit-hook 'tmm-delete-map nil t)
-  (let ((map (make-sparse-keymap)) (win (selected-window)))
-    (mapcar (lambda (str)
-	      (define-key map str 'tmm-shortcut)
-	      (define-key map (downcase str) 'tmm-shortcut))
-	    tmm-short-cuts)
+  (let ((win (selected-window)))
     (setq tmm-old-mb-map (current-local-map))
-    (use-local-map (append map (cdr tmm-old-mb-map)))
-    (define-key (current-local-map) [pageup] 'tmm-goto-completions)
-    (define-key (current-local-map) [prior] 'tmm-goto-completions)
-    (define-key (current-local-map) "\ev" 'tmm-goto-completions)
-    (define-key (current-local-map) "\e\e" 'abort-recursive-edit)
-    (define-key (current-local-map) "\C-n" 'next-history-element)
-    (define-key (current-local-map) "\C-p" 'previous-history-element)
+    (use-local-map (append (make-sparse-keymap) tmm-old-mb-map))
+    (tmm-define-keys)
     ;; Get window and hide it for electric mode to get correct size
     (save-window-excursion 
       (let ((completions
@@ -208,7 +212,8 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 					; not work in minibuffer
       (set-buffer (window-buffer (Electric-pop-up-window "*Completions*")))
       (setq tmm-old-comp-map (current-local-map))
-      (use-local-map (append map (cdr tmm-old-comp-map)))
+      (use-local-map (append (make-sparse-keymap) tmm-old-comp-map))
+      (tmm-define-keys)
       (select-window win)		; Cannot use
 					; save-window-excursion, since
 					; it restores the size
