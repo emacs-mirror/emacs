@@ -843,23 +843,26 @@ Annotations to open and to close are returned as a dotted pair."
   "Internal function annotate a single property change.
 PROP-ALIST is the relevant segment of a TRANSLATIONS list.
 OLD and NEW are the values."
-  (cond
-   ;; Numerical annotation - use difference
-   ((and (numberp old) (numberp new))
-    (let* ((entry (progn
-		    (while (and (car (car prop-alist))
-				(not (numberp (car (car prop-alist)))))
-		      (setq prop-alist (cdr prop-alist)))
-		    (car prop-alist)))
-	   (increment (car (car prop-alist)))
-	   (n (ceiling (/ (float (- new old)) (float increment))))
-	   (anno (car (cdr (car prop-alist)))))
-      (if (> n 0)
-	  (cons nil (make-list n anno))
-	(cons (make-list (- n) anno) nil))))
+  (let (num-ann)
+    ;; If old and new values are numbers,
+    ;; look for a number in PROP-ALIST.
+    (if (and (numberp old) (numberp new))
+	(progn
+	  (setq num-ann prop-alist)
+	  (while (and num-ann (not (numberp (car (car num-ann)))))
+	    (setq num-ann (cdr num-ann)))))
+    (if num-ann
+       ;; Numerical annotation - use difference
+       (let* ((entry (car num-ann))
+              (increment (car entry))
+              (n (ceiling (/ (float (- new old)) (float increment))))
+              (anno (car (cdr entry))))
+         (if (> n 0)
+             (cons nil (make-list n anno))
+           (cons (make-list (- n) anno) nil)))
 
-   ;; Standard annotation
-   (t (let ((close (and old (cdr (assoc old prop-alist))))
+      ;; Standard annotation
+      (let ((close (and old (cdr (assoc old prop-alist))))
 	    (open  (and new (cdr (assoc new prop-alist)))))
 	(if (or close open)
 	    (format-make-relatively-unique close open)
