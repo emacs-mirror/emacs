@@ -54,7 +54,7 @@ static struct entry
 env_vars[] = 
 {
   {"emacs_dir", NULL},
-  {"EMACSLOADPATH", "%emacs_dir%/lisp"},
+  {"EMACSLOADPATH", "%emacs_dir%/lisp;%emacs_dir%/site-lisp"},
   {"SHELL", "%COMSPEC%"},
   {"EMACSDATA", "%emacs_dir%/etc"},
   {"EMACSPATH", "%emacs_dir%/bin"},
