@@ -2,6 +2,14 @@
 
 	* xfns.c (gif_load): Avoid sign extension and thus out of bounds
 	color indices when accessing raster pixels.
+	(gif_image_p, png_image_p, jpeg_image_p, tiff_image_p): Allow only
+	one of :file or :data.
+	(enum pbm_keyword_index): Add PBM_DATA.
+	(pbm_format): Add :data.
+	(pbm_image_p): Allow either :file or :data.
+	(pbm_read_file): New function.
+	(pbm_scan_number): Rewritten to read from string.
+	(pbm_load): Support :data.
 
 1999-12-31  Gerd Moellmann  <gerd@gnu.org>
 
