@@ -10,12 +10,12 @@
 ;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Time-stamp: <2004/02/29 00:07:55 vinicius>
-;; Version: 6.6.3
+;; Time-stamp: <2004/03/10 18:57:00 vinicius>
+;; Version: 6.6.4
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.6.3"
-  "ps-print.el, v 6.6.3 <2004/02/29 vinicius>
+(defconst ps-print-version "6.6.4"
+  "ps-print.el, v 6.6.4 <2004/03/10 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -4141,6 +4141,11 @@ If EXTENSION is any other symbol, it is ignored."
 ;; Internal functions and variables
 
 
+(defun ps-message-log-max ()
+  (and (not (string= (buffer-name) "*Messages*"))
+       message-log-max))
+
+
 (defvar ps-print-hook nil)
 (defvar ps-print-begin-sheet-hook nil)
 (defvar ps-print-begin-page-hook nil)
@@ -4153,9 +4158,10 @@ If EXTENSION is any other symbol, it is ignored."
 
 
 (defun ps-spool-without-faces (from to &optional region-p)
-  (run-hooks 'ps-print-hook)
-  (ps-printing-region region-p from to)
-  (ps-generate (current-buffer) from to 'ps-generate-postscript))
+  (let ((message-log-max (ps-message-log-max)))	; to print *Messages* buffer
+    (run-hooks 'ps-print-hook)
+    (ps-printing-region region-p from to)
+    (ps-generate (current-buffer) from to 'ps-generate-postscript)))
 
 
 (defun ps-print-with-faces (from to &optional filename region-p)
@@ -4164,15 +4170,17 @@ If EXTENSION is any other symbol, it is ignored."
 
 
 (defun ps-spool-with-faces (from to &optional region-p)
-  (run-hooks 'ps-print-hook)
-  (ps-printing-region region-p from to)
-  (ps-generate (current-buffer) from to 'ps-generate-postscript-with-faces))
+  (let ((message-log-max (ps-message-log-max)))	; to print *Messages* buffer
+    (run-hooks 'ps-print-hook)
+    (ps-printing-region region-p from to)
+    (ps-generate (current-buffer) from to 'ps-generate-postscript-with-faces)))
 
 
 (defun ps-count-lines-preprint (from to)
-   (or (and from to)
-       (error "The mark is not set now"))
-   (list (count-lines from to)))
+  (or (and from to)
+      (error "The mark is not set now"))
+  (let ((message-log-max (ps-message-log-max)))	; to count lines of *Messages*
+    (list (count-lines from to))))
 
 
 (defun ps-count-lines (from to)
