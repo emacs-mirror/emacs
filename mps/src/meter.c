@@ -1,97 +1,81 @@
-/*  ==== METERING ====
+/* impl.c.meter: METERS
  *
- *  $HopeName: MMsrc!meter.c(trunk.2) $
+ * $HopeName: MMsrc!meter.c(MMdevel_gavinm_splay.4) $
+ * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
- *  Copyright (C) 1995 Harlequin Group, all rights reserved
- *
- *  This is the implementation of the metering module.
- *
- *  Provided here are a simple observer, the Enable and Disable
- *  methods, and validation methods.
- *
- *  Notes
- *  3. This module has static data in violation of
- *  rule.impl.c.no-static
- *  1995-08-15 drj
  */
 
-#include "std.h"
-#include "stdconf.h"
-#include "lib.h"
+#include "mpm.h"
 #include "meter.h"
+#include "math.h"
 
-SRCID("$HopeName$");
-
-
-#ifdef DEBUG
-Bool MeterIsValid(Meter meter, ValidationType validParam)
+void MeterInit(Meter meter, char *name) 
 {
-  unsigned i;
+  meter->name = name;
+  meter->count = 0;
+  meter->total = 0.0;
+  meter->meanSquared = 0.0;
+  meter->max = 0;
+  meter->min = (Size)-1;
+}
 
-  AVER(meter->name != NULL);
-  AVER(meter->enabled == TRUE || meter->enabled == FALSE);
-  AVER(meter->format != NULL);
-  AVER(meter->observers <= METER_OBS_MAX);
-  for(i=0; i<meter->observers; ++i) {
-    AVER(ISVALIDNESTED(MeterObserver, &meter->observer[i]));
+
+void MeterAccumulate(Meter meter, Size amount)
+{
+  Count count = meter->count + 1;
+  double total = meter->total;
+  double meanSquared = meter->meanSquared;
+  double dcount = (double)count;
+
+  /* .limitation.variance: This computation accumulates a running
+   * mean^2, minimizing overflow, but sacrificing numerical stablity
+   * for small variances.  For more accuracy, the data set should be
+   * emitted using a telemetry stream and analyzed off line.
+   */
+  meter->count = count;
+  meter->total = total + amount;
+  meter->meanSquared =
+    meanSquared / dcount * (dcount - 1.0)
+    + amount / dcount * amount;
+  if (amount > meter->max)
+    meter->max = amount;
+  if (amount < meter->min)
+    meter->min = amount;
+}
+
+
+Res MeterWrite(Meter meter, mps_lib_FILE *stream)
+{
+  Res res;
+
+  res = WriteF(stream,
+               "meter $S {", meter->name,
+               "count: $U", meter->count,
+               NULL);
+  if (res != ResOK)
+    return res;
+  if (meter->count > 0) {
+    double mean = meter->total / (double)meter->count;
+    /* --- stddev = sqrt(meanSquared - mean^2), but see
+     * .limitation.variance above
+     */
+    double stddev = sqrt(fabs(meter->meanSquared - (mean * mean)));
+    
+    res = WriteF(stream,
+                 ", total: $D", meter->total,
+                 ", max: $U", meter->max,
+                 ", min: $U", meter->min,
+                 ", mean: $D", mean,
+                 ", stddev: $D", stddev,
+                 NULL);
+    if (res != ResOK)
+      return res;
   }
-  return TRUE;
+  res = WriteF(stream,
+               "}\n",
+               NULL);
+  if (res != ResOK)
+    return res;
+
+  return ResOK;
 }
-#endif /* DEBUG */
-
-#ifdef DEBUG
-Bool MeterObserverIsValid(MeterObserver observer,
-                          ValidationType validParam)
-{
-  AVER(observer->name != NULL);
-  AVER(observer->enabled == TRUE || observer->enabled == FALSE);
-  /* period */
-  /* tick */
-  AVER(observer->f != NULL);
-  /* p */
-  /* i */
-  return TRUE;
-}
-#endif /* DEBUG */
-
-void MeterEnable(Meter meter)
-{
-  AVER(ISVALID(Meter, meter));
-
-  meter->enabled = TRUE;
-}
-
-void MeterDisable(Meter meter)
-{
-  AVER(ISVALID(Meter, meter));
-
-  meter->enabled = FALSE;
-}
-
-Error MeterStream(LibStream *streamReturn)
-{
-  return LibStreamMeter(streamReturn);
-}
-
-void MeterObserverPrint(Meter meter, int index,
-                        const char *file, unsigned line, ...)
-{
-  LibStream s;
-  MeterObserver obs = &meter->observer[index];
-  va_list arg;
-  /* AVER(ISVALID(Meter, meter)) circularity problems */
-
-  ++(obs->tick);
-  if(obs->tick >= obs->period)
-  {
-    if(MeterStream(&s) == ErrSUCCESS) {
-      LibFormat(s, "%s %s %u %s ", meter->name, file, line, obs->name);
-      va_start(arg, line);
-      LibVFormat(s, (char *)meter->format, arg);
-      va_end(arg);
-      LibPutChar(s, '\n');
-    }
-    obs->tick = 0;
-  }
-}
-
