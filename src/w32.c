@@ -1960,19 +1960,6 @@ stat (const char * path, struct stat * buf)
 
       if (GetFileInformationByHandle (fh, &info))
 	{
-	  switch (GetFileType (fh))
-	    {
-	    case FILE_TYPE_DISK:
-	      buf->st_mode = _S_IFREG;
-	      break;
-	    case FILE_TYPE_PIPE:
-	      buf->st_mode = _S_IFIFO;
-	      break;
-	    case FILE_TYPE_CHAR:
-	    case FILE_TYPE_UNKNOWN:
-	    default:
-	      buf->st_mode = _S_IFCHR;
-	    }
 	  buf->st_nlink = info.nNumberOfLinks;
 	  /* Might as well use file index to fake inode values, but this
 	     is not guaranteed to be unique unless we keep a handle open
@@ -1980,13 +1967,27 @@ stat (const char * path, struct stat * buf)
 	     not unique).  Reputedly, there are at most 48 bits of info
 	     (on NTFS, presumably less on FAT). */
 	  fake_inode = info.nFileIndexLow ^ info.nFileIndexHigh;
-	  CloseHandle (fh);
 	}
       else
 	{
-	  errno = EACCES;
-	  return -1;
+	  buf->st_nlink = 1;
+	  fake_inode = 0;
 	}
+
+      switch (GetFileType (fh))
+	{
+	case FILE_TYPE_DISK:
+	  buf->st_mode = _S_IFREG;
+	  break;
+	case FILE_TYPE_PIPE:
+	  buf->st_mode = _S_IFIFO;
+	  break;
+	case FILE_TYPE_CHAR:
+	case FILE_TYPE_UNKNOWN:
+	default:
+	  buf->st_mode = _S_IFCHR;
+	}
+      CloseHandle (fh);
     }
   else
     {
