@@ -6343,7 +6343,7 @@ try_font_list (f, attrs, family, registry, fonts, prefer_face_family)
   Lisp_Object face_family = attrs[LFACE_FAMILY_INDEX];
   Lisp_Object try_family;
 
-  try_family = prefer_face_family ? face_family : family;
+  try_family = (prefer_face_family || NILP (family)) ? face_family : family;
 
   if (STRINGP (try_family))
     nfonts = try_alternative_families (f, try_family, registry, fonts);
@@ -6359,7 +6359,7 @@ try_font_list (f, attrs, family, registry, fonts, prefer_face_family)
     nfonts = try_alternative_families (f, try_family, Qnil, fonts);
 #endif
 
-  if (! prefer_face_family)
+  if (EQ (try_family, family))
     family = face_family;
 
   if (nfonts == 0 && STRINGP (family))
