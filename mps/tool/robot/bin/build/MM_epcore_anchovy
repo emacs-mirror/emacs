@@ -1,0 +1,81 @@
+#!/bin/sh
+#
+# Build and test MM (the MMsrc compound) at tip of branch MM_epcore_anchovy
+# 
+# $HopeName: HOMEmm!bin:build:MM_epcore_anchovy(trunk.1) $
+
+
+script="`basename $0`"
+platform=$1
+varieties="ti hi we"
+
+
+msg () {
+  echo "$script $platform: $*" 1>&2
+}
+
+die () {
+  msg "$@"
+  exit 1
+}
+
+
+test -d $HOME/Builds || mkdir $HOME/Builds ||
+  die "Unable to create Builds directory"
+
+cd $HOME/Builds &&
+rm -rf MM_epcore_anchovy &&
+mkdir MM_epcore_anchovy &&
+cd MM_epcore_anchovy ||
+  die "Unable to get to Builds/MM_epcore_anchovy directory"
+
+hope co -compound MMsrc -branch MM_epcore_anchovy -recursive \
+  -writable-files quit -missing-dir create -extra-files skip ||
+  die "Unable to check out MMsrc(MM_epcore_anchovy) from HOPE"
+
+
+## Build a library
+build_lib () {
+  for variety in $varieties
+  do
+    date
+    gnumake -rf ${platform}.gmk VARIETY=$variety $1 ||
+      die "Unable to build library $1 of MM_epcore_anchovy"
+  done
+}
+
+## Build and run a test
+do_tests () {
+  for variety in $varieties
+  do
+    gnumake -rf ${platform}.gmk VARIETY=$variety $1 ||
+      die "$1 failed for variety $variety of MM_epcore_anchovy"
+    rm mpsio.log
+  done
+}
+
+
+cd src
+
+### Turn telemetry on
+export MPS_TELEMETRY_CONTROL
+MPS_TELEMETRY_CONTROL=-1
+
+### SW builds have different compilation options, so they ought to be
+### done separately.  Do them first.
+
+build_lib mmsw.a
+
+do_tests testrunep
+
+### Then clean up and do the others.
+
+gnumake -rf $platform.gmk clean ||
+  die "Unable to clean up trunk"
+
+do_tests testrun
+
+
+# If the tests succeeded, delete the junk
+cd $HOME/Builds &&
+rm -rf MM_epcore_anchovy

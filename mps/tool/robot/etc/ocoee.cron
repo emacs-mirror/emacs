@@ -1,0 +1,8 @@
+# $HopeName: HOMEmm!etc:ocoee.cron(trunk.1) $
+# minutes hours day-of-month month day-of-week command
+53 20  *  *  *  sh -c ". etc/shenv && overnight checkout"
+45 22  *  *  1-5  sh -c ". etc/shenv && overnight ./bin/build/MM_src_trunk lii4gc"
+#30 01  *  *  2-5  sh -c ". etc/shenv && overnight ./bin/build/MM_dylan_kinglet lii4gc"
+30 02  *  *  2-3  sh -c ". etc/shenv && overnight ./bin/mmqa/MMQA_src_trunk lii4gc hi"
+#55 20  *  *  6  sh -c ". etc/shenv && overnight ./bin/mmqa/MMQA_dylan_kinglet lii4gc ci he"
+30 02  *  *  4  sh -c ". etc/shenv && overnight ./bin/mmqa/MMQA_src_trunk lii4gc ci wi"

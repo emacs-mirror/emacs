@@ -1,0 +1,23 @@
+#!/bin/sh
+# ==== TIDY UP ROBOT HOME DIRECTORY ====
+#
+# This script is run overnight by the Memory Management robot.
+# It does various housekeeping tasks and checks on the home directory
+# to keep things in order.
+
+script="`basename $0`"
+
+# Clear tmp directory
+rm -rf $HOME/tmp
+
+# Truncate log files
+cd $HOME/var/log &&
+find $HOME/var/log -type f -size +1048576c -print |
+while read log
+do
+  mv "$log" "$log~" &&
+  tail -1048576c < "$log~" > "$log" &&
+  rm -f "$log~"
+done
+
+exit 0

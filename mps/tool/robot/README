@@ -1,0 +1,13 @@
+		   MEMORY MANAGEMENT ROBOT
+
+
+$HopeName$
+
+The Memory Management Robot is a pseudo-user who performs tedious
+tasks on behalf of the MM group and reports any problems found.  The
+crontab files used to perform these automatic actions can be found in
+HOMEmm!etc:*.cron.
+
+For information about the Adaptive Memory Management group, see the
+web page <URL:http://webhost/~mm/> or the MM Information database in
+Spring.

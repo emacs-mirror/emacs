@@ -1,0 +1,81 @@
+#!/bin/sh
+#
+# Build and test MM (the MM_src compound) at tip of the trunk
+# 
+# $HopeName: HOMEmm!bin:build:MM_src_trunk(trunk.31) $
+
+
+script="`basename $0`"
+platform=$1
+varieties="ti ci hi wi ce he we"
+
+
+msg () {
+  echo "$script $platform: $*" 1>&2
+}
+
+die () {
+  msg "$@"
+  exit 1
+}
+
+
+test -d $HOME/Builds || mkdir $HOME/Builds ||
+  die "Unable to create Builds directory"
+
+cd $HOME/Builds &&
+rm -rf MM_src_trunk &&
+mkdir MM_src_trunk &&
+cd MM_src_trunk ||
+  die "Unable to get to Builds/MM_src_trunk directory"
+
+hope co -compound MMsrc -branch trunk -recursive \
+  -writable-files quit -missing-dir create -extra-files skip ||
+  die "Unable to check out MMsrc(trunk) from HOPE"
+
+
+## Build a library
+build_lib () {
+  for variety in $varieties
+  do
+    date
+    gnumake -rf ${platform}.gmk VARIETY=$variety $1 ||
+      die "Unable to build library $1 of trunk"
+  done
+}
+
+## Build and run a test
+do_tests () {
+  for variety in $varieties
+  do
+    gnumake -rf ${platform}.gmk VARIETY=$variety $1 ||
+      die "$1 failed for variety $variety of trunk"
+    rm mpsio.log
+  done
+}
+
+
+cd src
+
+### Turn telemetry on
+export MPS_TELEMETRY_CONTROL
+MPS_TELEMETRY_CONTROL=-1
+
+### SW builds have different compilation options, so they ought to be
+### done separately.  Do them first.
+
+build_lib mmsw.a
+
+do_tests testrunep
+
+### Then clean up and do the others.
+
+gnumake -rf $platform.gmk clean ||
+  die "Unable to clean up trunk"
+
+build_lib mps.a 
+
+do_tests testrun
+
+gnumake -rf $platform.gmk clean ||
+  die "Unable to clean up trunk"

@@ -1,0 +1,4 @@
+# $HopeName$
+# minutes hours day-of-month month day-of-week command
+00 01  *  *  *  sh -c ". etc/shenv && overnight checkout"
+05 01  *  *  *  sh -c "./bin/tidy"
