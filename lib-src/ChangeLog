@@ -1,3 +1,35 @@
+2001-12-21  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c (Perl_functions): Tag packages and use them in sub tags.
+	(get_tag): Return a pointer to the tag that is found.
+
+	* etags.c (LOOKING_AT): Use !intoken instead of iswhite.
+	(F_takeprec): Renamed from takeprec.  All callers changed.
+	(F_getit): Renamed from getit.  All callers changed.
+	(nocase_tail): Renamed from tail.  All callers changed.
+	(Ada_getit): Renamed from adagetit.  All callers changed.
+	(L_getit): Simplified by using get_tag.
+	(Perl_functions, Postscript_functions, erlang_attribute): Use the
+	modified LOOKING_AT.
+	(notinname): Removed '[' and added ')' to the recognised chars.
+	(LOOKING_AT, get_tag, PHP_functions): Use notinname.
+	(Ada_getit, Ada_funcs, Python_functions, Scheme_functions):
+	Clarified, using strneq or notinname.
+	(L_isdef, L_isquote): Removed.
+	(Lisp_functions, L_getit): Clarified.
+
+	* etags.c: (P_): Renamed to __P for consistency with config.h.
+	[HAVE_CONFIG_H]: Let config.h deal with __P.
+	[__STDC__] [!HAVE_CONFIG_H]: Define PTR as in config.h.
+	[!__STDC__] [!HAVE_CONFIG_H]: Do not undefine static, because
+	gperf code needs it.
+	[HAVE_CONFIG_H] [!PTR]: Define PTR (for use with Xemacs).
+	[HAVE_CONFIG_H] [!__P]: Define __P (for use with Xemacs).
+	(xmalloc, xrealloc): Use PTR instead of long *.
+	(bool): Make it a define, not a typedef, for C++ compilers.
+	(pattern): Members renamed to avoid name clash in some C++ compilers.
+	(get_language_from_langname): Use const argument.
+
 2001-12-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* makefile.nt, makefile.w32-in: Remove mocklisp files.
