@@ -1,6 +1,6 @@
 ;;; edebug.el --- a source-level debugger for Emacs Lisp
 
-;; Copyright (C) 1988, 89, 90, 91, 92, 93, 94, 95, 97, 1999
+;; Copyright (C) 1988, 89, 90, 91, 92, 93, 94, 95, 97, 1999, 2000
 ;;       Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
@@ -54,35 +54,9 @@
 
 ;;; Code:
 
-(defconst edebug-version
-  (concat "In Emacs version " emacs-version))
-
 ;;; Bug reporting
 
-(defconst edebug-maintainer-address "bug-gnu-emacs@gnu.org")
-
-(defun edebug-submit-bug-report ()
-  "Submit, via mail, a bug report on edebug."
-  (interactive)
-  (require 'reporter)
-  (and (y-or-n-p "Do you really want to submit a report on edebug? ")
-       (reporter-submit-bug-report
-         edebug-maintainer-address
-         (concat "edebug.el " edebug-version)
-         (list 'edebug-setup-hook
-               'edebug-all-defs
-               'edebug-all-forms
-               'edebug-eval-macro-args
-               'edebug-save-windows
-               'edebug-save-displayed-buffer-points
-               'edebug-initial-mode
-               'edebug-trace
-               'edebug-test-coverage
-               'edebug-continue-kbd-macro
-               'edebug-print-length
-               'edebug-print-level
-               'edebug-print-circle
-	       ))))
+(defalias 'edebug-submit-bug-report 'report-emacs-bug)
 
 ;;; Options
 
@@ -929,12 +903,18 @@ This controls how we read comma constructs.")
 (defun edebug-read-function (stream)
   ;; Turn #'thing into (function thing)
   (forward-char 1)
-  (if (/= ?\' (following-char)) (edebug-syntax-error "Bad char"))
-  (forward-char 1)
-  (list 
-   (edebug-storing-offsets (point)  
-     (if (featurep 'cl) 'function* 'function))
-   (edebug-read-storing-offsets stream)))
+  (cond ((eq ?\' (following-char))
+	 (forward-char 1)
+	 (list 
+	  (edebug-storing-offsets (point)  
+	    (if (featurep 'cl) 'function* 'function))
+	  (edebug-read-storing-offsets stream)))
+	((memq (char-after)
+	       ;; Other # read forms than these probably shouldn't be
+	       ;; in source.
+	       '(?: ?B ?O ?X ?b ?o ?x))
+	 (edebug-original-read stream))
+	(t (edebug-syntax-error "Bad char after #"))))
 
 (defun edebug-read-list (stream)
   (forward-char 1)			; skip \(
@@ -2785,10 +2765,6 @@ MSG is printed after `::::} '."
 ;; Emacs 18
 (defvar edebug-outside-unread-command-char)
 
-;; Lucid Emacs
-(defvar edebug-outside-unread-command-event)  ;; like unread-command-events
-(defvar unread-command-event nil)
-
 ;; Emacs 19.
 (defvar edebug-outside-last-command-event)
 (defvar edebug-outside-unread-command-events)
@@ -2804,10 +2780,7 @@ MSG is printed after `::::} '."
 (eval-when-compile
   (setq edebug-unread-command-char-warning
 	(get 'unread-command-char 'byte-obsolete-variable))
-  (put 'unread-command-char 'byte-obsolete-variable nil)
-  (setq edebug-unread-command-event-warning
-	(get 'unread-command-event 'byte-obsolete-variable))
-  (put 'unread-command-event 'byte-obsolete-variable nil))
+  (put 'unread-command-char 'byte-obsolete-variable nil))
 
 (defun edebug-recursive-edit ()
   ;; Start up a recursive edit inside of edebug.
@@ -2845,7 +2818,6 @@ MSG is printed after `::::} '."
 
 	(edebug-outside-last-input-event last-input-event)
 	(edebug-outside-last-command-event last-command-event)
-	(edebug-outside-unread-command-event unread-command-event)
 	(edebug-outside-unread-command-events unread-command-events)
 	(edebug-outside-last-event-frame last-event-frame)
 	(edebug-outside-last-nonmenu-event last-nonmenu-event)
@@ -2868,7 +2840,6 @@ MSG is printed after `::::} '."
 	      ;; More for Emacs 19
 	      (last-input-event nil)
 	      (last-command-event nil)
-	      (unread-command-event nil);; lemacs
 	      (unread-command-events nil)
 	      (last-event-frame nil)
 	      (last-nonmenu-event nil)
@@ -2931,7 +2902,6 @@ MSG is printed after `::::} '."
        last-command edebug-outside-last-command
        this-command edebug-outside-this-command
        unread-command-char edebug-outside-unread-command-char
-       unread-command-event edebug-outside-unread-command-event
        unread-command-events edebug-outside-unread-command-events
        current-prefix-arg edebug-outside-current-prefix-arg
        last-input-char edebug-outside-last-input-char
@@ -3482,7 +3452,7 @@ Use `cancel-debug-on-entry' to cancel the effect of this command.
 Redefining FUNCTION also does that.
 
 This version is from Edebug.  If the function is instrumented for
-Edebug, it calls `edebug-on-entry'"
+Edebug, it calls `edebug-on-entry'."
   (interactive "aDebug on entry (to function): ")
   (let ((func-data (get function 'edebug)))
     (if (or (null func-data) (markerp func-data))
@@ -3576,7 +3546,6 @@ Return the result of the last expression."
 	   (last-command edebug-outside-last-command)
 	   (this-command edebug-outside-this-command)
 	   (unread-command-char edebug-outside-unread-command-char)
-	   (unread-command-event edebug-outside-unread-command-event)
 	   (unread-command-events edebug-outside-unread-command-events)
 	   (current-prefix-arg edebug-outside-current-prefix-arg)
 	   (last-input-char edebug-outside-last-input-char)
@@ -3618,7 +3587,6 @@ Return the result of the last expression."
 	  edebug-outside-last-command last-command
 	  edebug-outside-this-command this-command
 	  edebug-outside-unread-command-char unread-command-char
-	  edebug-outside-unread-command-event unread-command-event
 	  edebug-outside-unread-command-events unread-command-events
 	  edebug-outside-current-prefix-arg current-prefix-arg
 	  edebug-outside-last-input-char last-input-char
@@ -4327,16 +4295,22 @@ It is removed when you hit any char."
      ["Visit Eval List" edebug-visit-eval-list t])
 
     ("Options"
-     ["Edebug All Defs" edebug-all-defs t]
-     ["Edebug All Forms" edebug-all-forms t]
+     ["Edebug All Defs" edebug-all-defs
+      :style toggle :selected edebug-all-defs]
+     ["Edebug All Forms" edebug-all-forms
+      :style toggle :selected edebug-all-forms]
      "----"
-     ["Toggle Tracing" (edebug-toggle 'edebug-trace) t]
-     ["Toggle Coverage Testing" (edebug-toggle 'edebug-test-coverage) t]
-     ["Toggle Window Saving" edebug-toggle-save-windows t]
-     ["Toggle Point Saving" 
-      (edebug-toggle 'edebug-save-displayed-buffer-points) t]
+     ["Tracing" (edebug-toggle 'edebug-trace)
+      :style toggle :selected edebug-trace]
+     ["Test Coverage" (edebug-toggle 'edebug-test-coverage)
+      :style toggle :selected edebug-test-coverage]
+     ["Save Windows" edebug-toggle-save-windows
+      :style toggle :selected edebug-save-windows]
+     ["Save Point" 
+      (edebug-toggle 'edebug-save-displayed-buffer-points)
+      :style toggle :selected edebug-save-displayed-buffer-points]
      ))
-  "Lemacs style menus for Edebug.")
+  "Menus for Edebug.")
 
 
 ;;; Emacs version specific code
@@ -4453,10 +4427,7 @@ Print result in minibuffer."
 (eval-when-compile
   (if edebug-unread-command-char-warning
       (put 'unread-command-char 'byte-obsolete-variable 
-	   edebug-unread-command-char-warning))
-  (if edebug-unread-command-event-warning
-      (put 'unread-command-event 'byte-obsolete-variable 
-	   edebug-unread-command-event-warning)))
+	   edebug-unread-command-char-warning)))
 
 (eval-when-compile
   ;; The body of eval-when-compile seems to get evaluated with eval-defun.
