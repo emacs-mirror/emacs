@@ -1,3 +1,12 @@
+2001-12-13  David Ponce  <david@dponce.com>
+
+	* ruler-mode.el (ruler-mode-extra-left-cols): Removed.
+	(ruler-mode-left-fringe-cols): New macro.
+	(ruler-mode-right-fringe-cols): New macro.
+	(ruler-mode-left-scroll-bar-cols): New macro.
+	(ruler-mode-right-scroll-bar-cols): New macro.
+	(ruler-mode-ruler): Use above new macros.
+
 2001-12-13  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (set-auto-mode): Fix previous change.
