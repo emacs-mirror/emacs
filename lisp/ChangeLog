@@ -1,3 +1,15 @@
+2005-02-27  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* calendar/calendar.el (calendar-buffer): Move above
+	calendar-week-start-day.
+	(calendar-week-start-day): Doc fix.  Add :set function.
+	(calendar-minimum-window-height): New variable.
+	(generate-calendar-window): Only resize window if selected-window
+	is displaying the calendar buffer.  Use new variable
+	calendar-minimum-window-height.
+	(generate-calendar): Reword error message.
+	(calendar-mode-map): Bind DEL to scroll-other-window-down.
+
 2005-02-27  Andreas Schwab  <schwab@suse.de>
 
 	* vc.el (vc-do-command): Don't run command asynchronously when

@@ -1,3 +1,11 @@
+2005-02-27  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* calendar.texi (General Calendar): Document binding of
+	scroll-other-window-down.
+	(Mayan Calendar): Fix earliest date.
+	(Time Intervals): Document timeclock-change.  Fix
+	timeclock-ask-before-exiting documentation.
+
 2005-02-26  Kim F. Storm  <storm@cua.dk>
 
 	* frames.texi (Mouse References):
