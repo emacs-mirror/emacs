@@ -1200,8 +1200,8 @@ This makes the window the right height for its contents, but never
 more than `temp-buffer-max-height' nor less than `window-min-height'.
 This applies to `help', `apropos' and `completion' buffers, and some others.
 
-This variable should be set only with \\[customize], which is equivalent
-to using the function `temp-buffer-resize-mode'."
+Setting this variable directly does not take effect;
+use either \\[customize] or the function `temp-buffer-resize-mode'."
   :get (lambda (symbol)
          (and (memq 'resize-temp-buffer-window temp-buffer-show-hook) t))
   :set (lambda (symbol value)
