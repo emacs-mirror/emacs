@@ -181,7 +181,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Turn off some "helpful" error checks for type mismatches
    that we can't fix without breaking other machines.  */
 #ifdef IRIX_FORCE_32_BITS
+#ifdef THIS_IS_MAKEFILE
 #define C_SWITCH_MACHINE -32
+#endif
 #endif
 
 #endif /* not __GNUC__ */
