@@ -1,6 +1,6 @@
 /* impl.h.misc: MISCELLANEOUS DEFINITIONS
  *
- * $HopeName: MMsrc!misc.h(trunk.11) $
+ * $HopeName: MMsrc!misc.h(trunk.12) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * Small general things which are useful for C but aren't part of the
@@ -17,21 +17,21 @@
 
 /* offsetof -- offset of field within structure
  *
- * .hack.offsetof: On platform.susplc the offsetof macro is not defined
+ * .hack.offsetof: On platform.sus8lc the offsetof macro is not defined
  * (because LCC does not bother fixing up SunOS's broken header files).
  * We define it here using normal C constructs.  This hack is only
- * required on platform.susplc and no other platforms. See
+ * required on platform.sus8lc and no other platforms. See
  * change.mps.tracer2.170003.
  */
 
-#ifdef MPS_PF_SUSPLC
+#ifdef MPS_PF_SUS8LC
 #ifdef offsetof
-#error "offsetof was unexpectedly already defined on platform SUSPLC"
+#error "offsetof was unexpectedly already defined on platform SUS8LC"
 #else
 #define offsetof(type, field) ((size_t)(((char *)&((type *)0)->field) \
 			      - (char *)0))
 #endif /* offsetof */
-#endif /* MPS_PF_SUSPLC */
+#endif /* MPS_PF_SUS8LC */
 
 
 /* SrcId -- source identification
