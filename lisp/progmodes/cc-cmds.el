@@ -1065,9 +1065,11 @@ comment."
 
 ;; used by outline-minor-mode
 (defun c-outline-level ()
-  (save-excursion
-    (skip-chars-forward "\t ")
-    (current-column)))
+  ;; This so that `current-column' DTRT in otherwise-hidden text.
+  (let (buffer-invisibility-spec)
+    (save-excursion
+      (skip-chars-forward "\t ")
+      (current-column))))
 
 
 (defun c-up-conditional (count)

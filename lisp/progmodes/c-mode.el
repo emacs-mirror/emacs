@@ -390,9 +390,11 @@ if that value is non-nil."
   (run-hooks 'c-mode-hook))
 
 (defun c-outline-level ()
-  (save-excursion
-    (skip-chars-forward "\t ")
-    (current-column)))
+  ;; This so that `current-column' DTRT in otherwise-hidden text.
+  (let (buffer-invisibility-spec)
+    (save-excursion
+      (skip-chars-forward "\t ")
+      (current-column))))
 
 ;; This is used by indent-for-comment
 ;; to decide how much to indent a comment in C code
