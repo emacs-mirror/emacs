@@ -1,3 +1,7 @@
+2000-08-29  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* help.el (help-make-xrefs, help-xref-mule-regexp): Doc fix.
+
 2000-08-29  Dave Love  <fx@gnu.org>
 
 	* diff-mode.el (diff-mode) <defgroup>: Add :version.
