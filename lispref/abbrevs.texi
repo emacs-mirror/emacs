@@ -149,13 +149,13 @@ non-@code{nil}, then it is called with no arguments after the abbrev is
 replaced with @var{expansion}; point is located at the end of
 @var{expansion} when @var{hook} is called.
 
-If @var{hook} is a non-nil symbol whose @code{no-self-insert} property
-is non-@code{nil}, @var{hook} can explicitly control whether to insert
-the self-inserting input character that triggered the expansion.  If
-@var{hook} returns non-@code{nil} in this case, that inhibits insertion
-of the character.  By contrast, if @var{hook} returns @code{nil},
-@code{expand-abbrev} also returns @code{nil}, as if expansion had not
-really occurred.
+If @var{hook} is a non-@code{nil} symbol whose @code{no-self-insert}
+property is non-@code{nil}, @var{hook} can explicitly control whether
+to insert the self-inserting input character that triggered the
+expansion.  If @var{hook} returns non-@code{nil} in this case, that
+inhibits insertion of the character.  By contrast, if @var{hook}
+returns @code{nil}, @code{expand-abbrev} also returns @code{nil}, as
+if expansion had not really occurred.
 
 If @var{system-flag} is non-@code{nil}, that marks the abbrev as a
 ``system'' abbrev with the @code{system-type} property.

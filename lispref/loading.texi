@@ -685,12 +685,12 @@ provided}, unless @var{noerror} is non-@code{nil}.
 @end defun
 
 @defun featurep feature &optional subfeature
-This function returns @code{t} if @var{feature} has been provided in the
-current Emacs session (i.e.@:, if @var{feature} is a member of
-@code{features}.)  If @var{subfeature} is non-nil, then the function
-returns @code{t} only if that subfeature is provided as well (i.e.@:
-if @var{subfeature} is a member of the @code{subfeature} property
-of the @var{feature} symbol.)
+This function returns @code{t} if @var{feature} has been provided in
+the current Emacs session (i.e.@:, if @var{feature} is a member of
+@code{features}.)  If @var{subfeature} is non-@code{nil}, then the
+function returns @code{t} only if that subfeature is provided as well
+(i.e.@: if @var{subfeature} is a member of the @code{subfeature}
+property of the @var{feature} symbol.)
 @end defun
 
 @defvar features
