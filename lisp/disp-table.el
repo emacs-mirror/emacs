@@ -24,6 +24,9 @@
 
 ;;; Code:
 
+(defconst display-table-len 262
+  "The proper length of a display table.")
+
 (defun describe-display-table (dt)
   "Describe the display table DT in a help buffer."
   (with-output-to-temp-buffer "*Help*"
@@ -37,6 +40,8 @@
     (prin1 (aref dt 259))
     (princ "\nSelective display glyph sequence: ")
     (prin1 (aref dt 260))
+    (princ "\nVertical window border glyph: ")
+    (prin1 (aref dt 261))
     (princ "\nCharacter display glyph sequences:\n")
     (save-excursion
       (set-buffer standard-output)
@@ -63,7 +68,7 @@
 ;;;###autoload
 (defun make-display-table ()
   "Return a new, empty display table."
-  (make-vector 261 nil))
+  (make-vector display-table-len nil))
 
 ;;;###autoload
 (defun standard-display-8bit (l h)
@@ -72,7 +77,7 @@
     (if (and (>= l ?\ ) (< l 127))
 	(if standard-display-table (aset standard-display-table l nil))
       (or standard-display-table
-	  (setq standard-display-table (make-vector 261 nil)))
+	  (setq standard-display-table (make-vector display-table-len nil)))
       (aset standard-display-table l (vector l)))
     (setq l (1+ l))))
 
@@ -83,7 +88,7 @@
     (if (and (>= l ?\ ) (< l 127))
 	(if standard-display-table (aset standard-display-table l nil))
       (or standard-display-table
-	  (setq standard-display-table (make-vector 261 nil)))
+	  (setq standard-display-table (make-vector display-table-len nil)))
       (aset standard-display-table l nil))
     (setq l (1+ l))))
 
@@ -95,7 +100,7 @@ This function is meaningless for an X frame."
   (if window-system
       (error "Cannot use string glyphs in a windowing system"))
   (or standard-display-table
-      (setq standard-display-table (make-vector 261 nil)))
+      (setq standard-display-table (make-vector display-table-len nil)))
   (aset standard-display-table c (apply 'vector (append s nil))))
 
 ;;;###autoload
@@ -106,7 +111,7 @@ it is meaningless for an X frame."
   (if window-system
       (error "Cannot use string glyphs in a windowing system"))
   (or standard-display-table
-      (setq standard-display-table (make-vector 261 nil)))
+      (setq standard-display-table (make-vector display-table-len nil)))
   (aset standard-display-table c
 	(vector (create-glyph (concat "\016" (char-to-string sc) "\017")))))
 
@@ -118,7 +123,7 @@ X frame."
   (if window-system
       (error "Cannot use string glyphs in a windowing system"))
   (or standard-display-table
-      (setq standard-display-table (make-vector 261 nil)))
+      (setq standard-display-table (make-vector display-table-len nil)))
   (aset standard-display-table c
 	(vector (create-glyph (concat "\e(0" (char-to-string gc) "\e(B")))))
 
@@ -127,7 +132,7 @@ X frame."
   "Display character C as character UC plus underlining."
   (if window-system (require 'faces))
   (or standard-display-table
-      (setq standard-display-table (make-vector 261 nil)))
+      (setq standard-display-table (make-vector display-table-len nil)))
   (aset standard-display-table c
 	(vector 
 	 (if window-system
