@@ -484,7 +484,15 @@ and the greater of them is not at the start of a line."
 
 (defun what-cursor-position (&optional detail)
   "Print info on cursor position (on screen and within buffer).
-With prefix argument, print detailed info of a character on cursor position."
+With prefix argument, print detailed info of a character on cursor position.
+
+For the detailed information, Emacs internal character code, Emacs
+internal character components (the character set name and position
+code(s)), and the corresponding external character components (the
+external character set name and external character code(s)) are shown
+in this order.
+
+Each language environment may show different external character components."
   (interactive "P")
   (let* ((char (following-char))
 	 (beg (point-min))
@@ -505,18 +513,39 @@ With prefix argument, print detailed info of a character on cursor position."
 		     pos total percent beg end col hscroll)
 	  (message "point=%d of %d(%d%%)  column %d %s"
 		   pos total percent col hscroll))
-      (let ((str (if detail (format " %s" (split-char char)) "")))
-	(if (or (/= beg 1) (/= end (1+ total)))
-	    (message "Char: %s (0%o, %d, 0x%x) %s point=%d of %d(%d%%) <%d - %d>  column %d %s"
+      (if detail
+	  (let* ((internal (split-char char))
+		 (charset (char-charset char))
+		 (slot (assq charset charset-origin-alist))
+		 external)
+	    (if slot
+		(setq external (list (nth 1 slot) (funcall (nth 2 slot) char)))
+	      (if (eq charset 'composition)
+		  (setq internal '("composite-character"))
+		(setq external (cons (charset-short-name charset)
+				     (copy-sequence (cdr internal))))
+		(if (= (charset-iso-graphic-plane charset) 1)
+		    (progn
+		      (setcar (cdr external) (+ (nth 1 external) 128))
+		      (if (nth 2 external)
+			  (setcar (nthcdr 2 external)
+				  (+ (nth 2 external) 128)))))))
+	    (message "Char: %s (0%o, %d, 0x%x) %s %s"
 		     (if (< char 256)
 			 (single-key-description char)
 		       (char-to-string char))
-		     char char char str pos total percent beg end col hscroll)
-	  (message "Char: %s (0%o, %d, 0x%x)%s point=%d of %d(%d%%)  column %d %s"
+		     char char char (or internal "") (or external "")))
+	(if (or (/= beg 1) (/= end (1+ total)))
+	    (message "Char: %s (0%o, %d, 0x%x) point=%d of %d(%d%%) <%d - %d>  column %d %s"
+		     (if (< char 256)
+			 (single-key-description char)
+		       (char-to-string char))
+		     char char char pos total percent beg end col hscroll)
+	  (message "Char: %s (0%o, %d, 0x%x) point=%d of %d(%d%%)  column %d %s"
 		   (if (< char 256)
 		       (single-key-description char)
 		     (char-to-string char))
-		   char char char str pos total percent col hscroll))))))
+		   char char char pos total percent col hscroll))))))
 
 (defun fundamental-mode ()
   "Major mode not specialized for anything in particular.
