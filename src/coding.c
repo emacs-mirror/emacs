@@ -2034,7 +2034,7 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
    (character set)	(range)
    ASCII		0x00 .. 0x7F
    KATAKANA-JISX0201	0xA0 .. 0xDF
-   JISX0208 (1st byte)	0x80 .. 0x9F and 0xE0 .. 0xEF
+   JISX0208 (1st byte)	0x81 .. 0x9F and 0xE0 .. 0xEF
 	    (2nd byte)	0x40 .. 0x7E and 0x80 .. 0xFC
    -------------------------------
 
@@ -5034,15 +5034,19 @@ Return the corresponding character.")
   s1 = (XFASTINT (code)) >> 8, s2 = (XFASTINT (code)) & 0xFF;
   if (s1 == 0)
     {
-      if (s2 < 0xA0 || s2 > 0xDF)
-	error ("Invalid Shift JIS code: %s", XFASTINT (code));
-      XSETFASTINT (val, MAKE_NON_ASCII_CHAR (charset_katakana_jisx0201, s2, 0));
+      if (s2 < 0x80)
+	XSETFASTINT (val, s2);
+      else if (s2 >= 0xA0 || s2 <= 0xDF)
+	XSETFASTINT (val,
+		     MAKE_NON_ASCII_CHAR (charset_katakana_jisx0201, s2, 0));
+      else
+	error ("Invalid Shift JIS code: %d", XFASTINT (code));
     }
   else
     {
       if ((s1 < 0x80 || s1 > 0x9F && s1 < 0xE0 || s1 > 0xEF)
 	  || (s2 < 0x40 || s2 == 0x7F || s2 > 0xFC))
-	error ("Invalid Shift JIS code: %s", XFASTINT (code));
+	error ("Invalid Shift JIS code: %d", XFASTINT (code));
       DECODE_SJIS (s1, s2, c1, c2);
       XSETFASTINT (val, MAKE_NON_ASCII_CHAR (charset_jisx0208, c1, c2));
     }
@@ -5060,8 +5064,12 @@ Return the corresponding code in SJIS.")
 
   CHECK_NUMBER (ch, 0);
   SPLIT_CHAR (XFASTINT (ch), charset, c1, c2);
-  if (charset == charset_jisx0208
-      && c1 > 0x20 && c1 < 0x7F && c2 > 0x20 && c2 < 0x7F)
+  if (charset == CHARSET_ASCII)
+    {
+      val = ch;
+    }
+  else if (charset == charset_jisx0208
+	   && c1 > 0x20 && c1 < 0x7F && c2 > 0x20 && c2 < 0x7F)
     {
       ENCODE_SJIS (c1, c2, s1, s2);
       XSETFASTINT (val, (s1 << 8) | s2);
@@ -5073,13 +5081,11 @@ Return the corresponding code in SJIS.")
     }
   else
     error ("Can't encode to shift_jis: %d", XFASTINT (ch));
-    
   return val;
 }
 
 DEFUN ("decode-big5-char", Fdecode_big5_char, Sdecode_big5_char, 1, 1, 0,
-  "Decode a Big5 character CODE of BIG5 coding system.\n\
-CODE is the character code in BIG5.\n\
+  "Decode a Big5 character which has CODE in BIG5 coding system.\n\
 Return the corresponding character.")
   (code)
      Lisp_Object code;
@@ -5090,8 +5096,20 @@ Return the corresponding character.")
 
   CHECK_NUMBER (code, 0);
   b1 = (XFASTINT (code)) >> 8, b2 = (XFASTINT (code)) & 0xFF;
-  DECODE_BIG5 (b1, b2, charset, c1, c2);
-  XSETFASTINT (val, MAKE_NON_ASCII_CHAR (charset, c1, c2));
+  if (b1 == 0)
+    {
+      if (b2 >= 0x80)
+	error ("Invalid BIG5 code: %d", XFASTINT (code));
+      val = code;
+    }
+  else
+    {
+      if ((b1 < 0xA1 || b1 > 0xFE)
+	  || (b2 < 0x40 || (b2 > 0x7E && b2 < 0xA1) || b2 > 0xFE))
+	error ("Invalid BIG5 code: %d", XFASTINT (code));
+      DECODE_BIG5 (b1, b2, charset, c1, c2);
+      XSETFASTINT (val, MAKE_NON_ASCII_CHAR (charset, c1, c2));
+    }
   return val;
 }
 
@@ -5106,13 +5124,20 @@ Return the corresponding character code in Big5.")
 
   CHECK_NUMBER (ch, 0);
   SPLIT_CHAR (XFASTINT (ch), charset, c1, c2);
-  if (charset == charset_big5_1 || charset == charset_big5_2)
+  if (charset == CHARSET_ASCII)
+    {
+      val = ch;
+    }
+  else if ((charset == charset_big5_1
+	    && (XFASTINT (ch) >= 0x250a1 && XFASTINT (ch) <= 0x271ec))
+	   || (charset == charset_big5_2
+	       && XFASTINT (ch) >= 0x290a1 && XFASTINT (ch) <= 0x2bdb2))
     {
       ENCODE_BIG5 (charset, c1, c2, b1, b2);
       XSETFASTINT (val, (b1 << 8) | b2);
     }
   else
-    XSETFASTINT (val, 0);
+    error ("Can't encode to Big5: %d", XFASTINT (ch));
   return val;
 }
 
