@@ -1,3 +1,14 @@
+2002-05-09  Kim F. Storm  <storm@cua.dk>
+
+	* macterm.c (x_draw_image_foreground, x_draw_image_foreground_1): 
+	Enlarge cursor rectangle drawn around image with non-zero relief.
+
+	* w32term.c (x_draw_image_foreground, w32_draw_image_foreground_1): 
+	Enlarge cursor rectangle drawn around image with non-zero relief.
+
+	* xterm.c (x_draw_image_foreground, x_draw_image_foreground_1): 
+	Enlarge cursor rectangle drawn around image with non-zero relief.
+
 2002-05-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* xselect.c (lisp_data_to_selection_data): Don't set selection

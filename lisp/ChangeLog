@@ -1,3 +1,7 @@
+2002-05-09  Kim F. Storm  <storm@cua.dk>
+
+	* wid-edit.el (checkbox): New check-mark image.
+
 2002-05-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* filesets.el (filesets-running-xemacs): Fix last change.
