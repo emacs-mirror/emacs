@@ -11106,7 +11106,7 @@ try_window_id (w)
   if (windows_or_buffers_changed)
     GIVE_UP (2);
   
-  /* Narrowing has not changed.  This flag is also set to prevent
+  /* Verify that narrowing has not changed.  This flag is also set to prevent
      redisplay optimizations.  It would be nice to further
      reduce the number of cases where this prevents try_window_id.  */
   if (current_buffer->clip_changed)
@@ -11118,7 +11118,7 @@ try_window_id (w)
 	  || !WINDOW_FULL_WIDTH_P (w)))
     GIVE_UP (4);
 
-  /* Point is not known NOT to appear in W.  */
+  /* Give up if point is not known NOT to appear in W.  */
   if (PT < CHARPOS (start))
     GIVE_UP (5);
 
@@ -11126,11 +11126,11 @@ try_window_id (w)
   if (XFASTINT (w->last_modified) == 0)
     GIVE_UP (6);
   
-  /* Window is not hscrolled.  */
+  /* Verify that window is not hscrolled.  */
   if (XFASTINT (w->hscroll) != 0)
     GIVE_UP (7);
   
-  /* Display wasn't paused.  */
+  /* Verify that display wasn't paused.  */
   if (NILP (w->window_end_valid))
     GIVE_UP (8);
   
@@ -11226,8 +11226,14 @@ try_window_id (w)
     }
 
   /* Handle the case that changes are all below what is displayed in
-     the window, and that PT is in the window.  */
-  if (first_changed_charpos >= MATRIX_ROW_END_CHARPOS (row))
+     the window, and that PT is in the window.
+     RMS: This used to use >=, but that was spuriously true
+     when inserting at the end of buffer when the end of buffer
+     was visible on the screen.  I think it is safe now,
+     because the test now insists there is a character between the end of
+     the last screen row used and the first change, and that character
+     must not off the bottom of the screen.  */
+  if (first_changed_charpos > MATRIX_ROW_END_CHARPOS (row))
     {
       struct glyph_row *r0;
 
@@ -11257,15 +11263,19 @@ try_window_id (w)
 	}
     }
 
-  /* Check that window start agrees with the start of the first glyph
-     row in its current matrix.  Check this after we know the window
-     start is not in changed text, otherwise positions would not be
-     comparable.  */
+  /* Give up if window start is in the changed area
+     if the total size has changed.  */
+  /* RMS: Is it really relevant whether the total size has changed?
+     Why should that matter?  */
   if (BEG_UNCHANGED + END_UNCHANGED != Z - BEG
       && CHARPOS (start) >= first_changed_charpos
       && CHARPOS (start) <= last_changed_charpos)
     GIVE_UP (15);
   
+  /* Check that window start agrees with the start of the first glyph
+     row in its current matrix.  Check this after we know the window
+     start is not in changed text, otherwise positions would not be
+     comparable.  */
   row = MATRIX_FIRST_TEXT_ROW (current_matrix);
   if (!TEXT_POS_EQUAL_P (start, row->start.pos))
     GIVE_UP (16);
