@@ -175,6 +175,7 @@ messages end up in that group.  If it is a function, the function is
 called in a buffer narrowed to the message in question.  The function
 receives one argument, the name of the group the message comes from.
 The return value should be `delete' or a group name (a string)."
+  :version "21.1"
     :group 'nnmail-expire
     :type '(choice (const delete)
 		   (function :format "%v" nnmail-)
@@ -200,6 +201,7 @@ This variable is obsolete; `mail-sources' should be used instead."
 (defcustom nnmail-scan-directory-mail-source-once nil
   "*If non-nil, scan all incoming procmail sorted mails once.
 It scans low-level sorted spools even when not required."
+  :version "21.1"
   :group 'nnmail-procmail
   :type 'boolean)
 
@@ -418,11 +420,13 @@ parameter.  It should return nil, `warn' or `delete'."
 
 (defcustom nnmail-extra-headers nil
   "*Extra headers to parse."
+  :version "21.1"
   :group 'nnmail
   :type '(repeat symbol))
 
 (defcustom nnmail-split-header-length-limit 512
   "Header lines longer than this limit are excluded from the split function."
+  :version "21.1"
   :group 'nnmail
   :type 'integer)
 
