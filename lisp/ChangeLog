@@ -1,5 +1,9 @@
 2000-04-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* simple.el (clone-indirect-buffer-other-window): New command.
+	(clone-indirect-buffer): Add optional arg NORECROD.
+	(toplevel): Bind `C-x 4 c' to clone-indirect-buffer-other-window.
+
 	* help.el (resize-temp-buffer-window): Use count-screen-lines.
 
 	* window.el (count-screen-lines): New function.

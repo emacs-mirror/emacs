@@ -17,7 +17,9 @@ images and toolkit scrollbars.  Use the --help option to list them.
 * Changes in Emacs 21.1
 
 ** The new command `clone-buffer-indirectly' can be used to create
-an indirect buffer that is a twin copy of the current buffer.
+an indirect buffer that is a twin copy of the current buffer.  The
+command `clone-buffer-indirectly-other-window', bound to C-x 4 c,
+does the same but displays the indirect buffer in another window.
 
 ** New user options `backup-directory-alist' and
 `make-backup-file-name-function' are provided to control the placement
