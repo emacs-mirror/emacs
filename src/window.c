@@ -39,6 +39,8 @@ Lisp_Object Qwindowp, Qwindow_live_p;
 
 static struct window *decode_window P_ ((Lisp_Object));
 
+static Lisp_Object select_window_1 P_ ((Lisp_Object, int));
+
 /* This is the window in which the terminal's cursor should
    be left when nothing is being done with it.  This must
    always be a leaf window, and its buffer is selected by
@@ -1439,7 +1441,8 @@ window_loop (type, obj, mini, frames)
 		  if (NILP (XWINDOW (w)->parent))
 		    {
 		      Lisp_Object new_buffer;
-		      new_buffer = Fother_buffer (obj, Qnil);
+		      new_buffer = Fother_buffer (obj, Qnil,
+						  XWINDOW (w)->frame);
 		      if (NILP (new_buffer))
 			new_buffer
 			  = Fget_buffer_create (build_string ("*scratch*"));
@@ -1474,7 +1477,7 @@ window_loop (type, obj, mini, frames)
 		/* Find another buffer to show in this window.  */
 		Lisp_Object another_buffer;
 		FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (w)));
-		another_buffer = Fother_buffer (obj, Qnil);
+		another_buffer = Fother_buffer (obj, Qnil, XWINDOW (w)->frame);
 		if (NILP (another_buffer))
 		  another_buffer
 		    = Fget_buffer_create (build_string ("*scratch*"));
@@ -1975,6 +1978,14 @@ selects the buffer of the selected window before each command.")
   (window)
      register Lisp_Object window;
 {
+  return select_window_1 (window, 1);
+}
+
+static Lisp_Object
+select_window_1 (window, recordflag)
+     register Lisp_Object window;
+     int recordflag;
+{
   register struct window *w;
   register struct window *ow = XWINDOW (selected_window);
 
@@ -2007,7 +2018,8 @@ selects the buffer of the selected window before each command.")
   else
     selected_frame->selected_window = window;
 
-  record_buffer (w->buffer);
+  if (recordflag)
+    record_buffer (w->buffer);
   Fset_buffer (w->buffer);
 
   XBUFFER (w->buffer)->last_selected_window = window;
@@ -2030,7 +2042,7 @@ selects the buffer of the selected window before each command.")
   windows_or_buffers_changed++;
   return window;
 }
-
+
 /* Deiconify the frame containing the window WINDOW,
    unless it is the selected frame;
    then return WINDOW.
@@ -2361,14 +2373,17 @@ temp_output_buffer_show (buf)
 	      if (!NILP (tem))
 		{
 		  int count = specpdl_ptr - specpdl;
+		  Lisp_Object prev_window;
+		  prev_window = selected_window;
 
 		  /* Select the window that was chosen, for running the hook.  */
 		  record_unwind_protect (Fset_window_configuration,
 					 Fcurrent_window_configuration (Qnil));
 
-		  Fselect_window (window);
+		  select_window_1 (window, 0);
 		  Fset_buffer (w->buffer);
 		  call1 (Vrun_hooks, Qtemp_buffer_show_hook);
+		  select_window_1 (prev_window, 0);
 		  unbind_to (count, Qnil);
 		}
 	    }
