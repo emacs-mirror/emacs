@@ -3664,7 +3664,9 @@ ccl_coding_driver (coding, source, destination, src_bytes, dst_bytes, encodep)
   coding->produced = ccl_driver (ccl, source, destination,
 				 src_bytes, dst_bytes, &(coding->consumed));
   coding->produced_char
-    = multibyte_chars_in_text (destination, coding->produced);
+    = (encodep
+       ? coding->produced
+       : multibyte_chars_in_text (destination, coding->produced));
   coding->consumed_char
     = multibyte_chars_in_text (source, coding->consumed);
 
