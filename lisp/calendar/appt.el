@@ -568,7 +568,7 @@ The time should be in either 24 hour format or am/pm format."
     (setq conv-time (+ (* hr 60) min))
     conv-time))
 
-(setq display-time-hook 'appt-check)
+(add-hook 'display-time-hook 'appt-check)
 
 ;;; appt.el ends here
 
