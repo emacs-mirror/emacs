@@ -1,6 +1,6 @@
 ;;; mh-e.el --- GNU Emacs interface to the MH mail system
 
-;; Copyright (C) 1985,86,87,88,90,92,93,94,95,97 Free Software Foundation, Inc.
+;; Copyright (C) 1985,86,87,88,90,92,93,94,95,97,2000  Free Software Foundation, Inc.
 
 ;; Maintainer: None
 ;; Version: 5.0.2
@@ -60,7 +60,7 @@
 ;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;; Modified by Stephen Gildea 1988.  gildea@lcs.mit.edu
-(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.23 2000/03/07 12:36:39 gerd Exp $")
+(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.24 2000/05/22 17:33:32 fx Exp $")
 
 ;;; Code:
 
@@ -162,7 +162,7 @@ otherwise, your output may be truncated."
 
 (defcustom mh-do-not-confirm nil
   "*Non-nil means do not prompt for confirmation before some mh-e commands.
-Affects non-recoverable commands such as mh-kill-folder and mh-undo-folder."
+Affects non-recoverable commands such as `mh-kill-folder' and `mh-undo-folder'."
   :type 'boolean
   :group 'mh)
 
@@ -757,50 +757,50 @@ Here are all the commands with their current binding, listed in key order:
 
 Variables controlling mh-e operation are (defaults in parentheses):
 
- mh-recursive-folders (nil)
+ `mh-recursive-folders' (nil)
     Non-nil means commands which operate on folders do so recursively.
 
- mh-bury-show-buffer (t)
+ `mh-bury-show-buffer' (t)
     Non-nil means that the buffer used to display message is buried.
     It will never be offered as the default other buffer.
 
- mh-clean-message-header (nil)
+ `mh-clean-message-header' (nil)
     Non-nil means remove header lines matching the regular expression
     specified in mh-invisible-headers from messages.
 
- mh-visible-headers (nil)
+ `mh-visible-headers' (nil)
     If non-nil, it contains a regexp specifying the headers that are shown in
     a message if mh-clean-message-header is non-nil.  Setting this variable
-    overrides mh-invisible-headers.
+    overrides `mh-invisible-headers'.
 
- mh-do-not-confirm (nil)
+ `mh-do-not-confirm' (nil)
     Non-nil means do not prompt for confirmation before executing some
-    non-recoverable commands such as mh-kill-folder and mh-undo-folder.
+    non-recoverable commands such as `mh-kill-folder' and `mh-undo-folder'.
 
- mhl-formfile (nil)
+ `mhl-formfile' (nil)
     Name of format file to be used by mhl to show messages.
     A value of T means use the default format file.
     Nil means don't use mhl to format messages.
 
- mh-lpr-command-format (\"lpr -p -J '%s'\")
+ `mh-lpr-command-format' (\"lpr -p -J '%s'\")
     Format for command used to print a message on a system printer.
 
- mh-scan-prog (\"scan\")
+ `mh-scan-prog' (\"scan\")
     Program to run to generate one-line-per-message listing of a folder.
     Normally \"scan\" or a file name linked to scan.  This file is searched
     for relative to the mh-progs directory unless it is an absolute pathname.
     Automatically becomes buffer-local when set in any fashion.
 
- mh-print-background (nil)
+ `mh-print-background' (nil)
     Print messages in the background if non-nil.
     WARNING: do not delete the messages until printing is finished;
     otherwise, your output may be truncated.
 
- mh-recenter-summary-p (nil)
+ `mh-recenter-summary-p' (nil)
     If non-nil, then the scan listing is recentered when the window displaying
     a messages is toggled off.
 
- mh-summary-height (4)
+ `mh-summary-height' (4)
     Number of lines in the summary window including the mode line.
 
 The value of mh-folder-mode-hook is called when a new folder is set up."
