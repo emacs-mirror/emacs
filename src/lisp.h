@@ -2585,6 +2585,7 @@ extern void record_auto_save P_ ((void));
 extern void init_keyboard P_ ((void));
 extern void syms_of_keyboard P_ ((void));
 extern void keys_of_keyboard P_ ((void));
+extern char *push_key_description P_ ((unsigned int, char *, int));
 
 /* defined in keymap.c */
 
