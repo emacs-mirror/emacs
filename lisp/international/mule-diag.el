@@ -668,6 +668,17 @@ which font is being used for displaying the character."
       (describe-current-coding-system)
     (with-output-to-temp-buffer "*Help*"
       (print-coding-system-briefly coding-system 'doc-string)
+      (princ "\n")
+      (let ((vars (coding-system-get coding-system 'dependency)))
+	(when vars
+	  (princ "See also the documentation of these customizable variables
+which alter the behaviour of this coding system.\n")
+	  (dolist (v vars)
+	    (princ "  `")
+	    (princ v)
+	    (princ "'\n"))
+	  (princ "\n")))
+
       (let ((coding-spec (coding-system-spec coding-system)))
 	(princ "Type: ")
 	(let ((type (coding-system-type coding-system))
