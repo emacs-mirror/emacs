@@ -510,7 +510,7 @@ extern int width_by_char_head[256];
 #define SPLIT_STRING(str, len, charset, c1, c2)			      	\
   ((BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) < 2		      	\
     || BYTES_BY_CHAR_HEAD ((unsigned char) *(str)) > len	      	\
-    || split_non_ascii_string (str, len, &charset, &c1, &c2, 0) < 0)	\
+    || split_non_ascii_string (str, len, &charset, &c1, &c2) < 0)	\
    ? c1 = *(str), charset = CHARSET_ASCII			      	\
    : charset)
 
