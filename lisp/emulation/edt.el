@@ -1,6 +1,7 @@
 ;;; edt.el --- Enhanced EDT Keypad Mode Emulation for GNU Emacs 19
 
-;; Copyright (C) 1986, 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1992, 1993, 1994, 1995, 2000, 2001
+;;   Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <kevingal@onramp.net>
 ;; Maintainer: Kevin Gallagher <kevingal@onramp.net>
@@ -9,28 +10,155 @@
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
+;; it under the terms of the GNU General Public License as published
+;; by the Free Software Foundation; either version 2, or (at your
+;; option) any later version.
 
-;; GNU Emacs is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
+;; GNU Emacs is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;; Usage:
 
-;;  See edt-user.doc in the Emacs etc directory.
-
-;; ====================================================================
 
+;;; Commentary:
+;; 
+
+;; This is Version 4.0 of the EDT Emulation for Emacs 19 and above.
+;; It comes with special functions which replicate nearly all of EDT's
+;; keypad mode behavior.  It sets up default keypad and function key
+;; bindings which closely match those found in EDT.  Support is
+;; provided so that users may reconfigure most keypad and function key
+;; bindings to their own liking.
+
+;; NOTE: Version 4.0 contains several enhancements.  See the
+;; Enhancement section below for the details.
+
+;; Getting Started:
+
+;; To start the EDT Emulation, first start Emacs and then enter 
+;;
+;;    M-x edt-emulation-on
+;;    
+;; to begin the emulation.  After initialization is complete, the
+;; following message will appear below the status line informing you
+;; that the emulation has been enabled: "Default EDT keymap active".
+
+;; You can have the EDT Emulation start up automatically, each time
+;; you initiate a GNU Emacs session, by adding the following line to
+;; your .emacs file:
+;;
+;;    (add-hook term-setup-hook 'edt-emulation-on)
+
+;; IMPORTANT: Be sure to read the file, edt-user.doc, located in the
+;; Emacs "etc" directory.  It contains very helpful user information.
+
+;; The EDT emulation consists of the following files:
+;; 
+;; edt-user.doc     - User Instructions and Sample Customization File
+;; edt.el           - EDT Emulation Functions and Default Configuration
+;; edt-lk201.el     - Built-in support for DEC LK-201 Keyboards
+;; edt-vt100.el     - Built-in support for DEC VT-100 (and above) terminals
+;; edt-pc.el        - Built-in support for PC 101 Keyboards under MS-DOS
+;; edt-mapper.el    - Create an EDT LK-201 Map File for Keyboards Without 
+;;                      Built-in Support
+
+;; Enhancements:
+
+;; Version 4.0 contains the following enhancements:
+
+;;  1.  Scroll margins at the top and bottom of the window are now
+;;      supported.  (The design was copied from tpu-extras.el.)  By
+;;      default, this feature is enabled, with the top margin set to
+;;      10% of the window and the bottom margin set to 15% of the
+;;      window.  To change these settings, you can invoke the function
+;;      edt-set-scroll-margins in your .emacs file.  For example, the
+;;      following line
+;;
+;;           (edt-set-scroll-margins "20%" "25%")
+;;      
+;;      sets the top margin to 20% of the window and the bottom margin
+;;      to 25% of the window.  To disable this feature, set each
+;;      margin to 0%.  You can also invoke edt-set-scroll-margins
+;;      interactively while EDT Emulation is active to change the
+;;      settings for that session.
+;;
+;;      NOTE: Another way to set the scroll margins is to use the
+;;      Emacs customization feature (not available in Emacs 19) to set
+;;      the following two variables directly:
+;;      
+;;           edt-top-scroll-margin and edt-bottom-scroll-margin
+;;
+;;      Enter the Emacs `customize' command.  First select the Editing
+;;      group and then select the Emulations group.  Finally, select
+;;      the Edt group and follow the directions.
+;;      
+;;  2.  The SUBS command is now supported and bound to GOLD-Enter by
+;;      default.  (This design was copied from tpu-edt.el.)  Note, in
+;;      earlier versions of EDT Emulation, GOLD-Enter was assigned to
+;;      the Emacs function `query-replace'.  The binding of
+;;      `query-replace' has been moved to GOLD-/.  If you prefer to
+;;      restore `query-replace' to GOLD-Enter, then use an EDT user
+;;      customization file, edt-user.el, to do this.  See edt-user.doc
+;;      for details.
+
+;;  3.  EDT Emulation now also works in XEmacs, including the
+;;      highlighting of selected text.
+
+;;  4.  If you access a workstation using an X Server, observe that
+;;      the initialization file generated by edt-mapper.el will now
+;;      contain the name of the X Server vendor.  This is a
+;;      convenience for those who have access to their Unix account
+;;      from more than one type of X Server.  Since different X
+;;      Servers typically require different EDT emulation
+;;      initialization files, edt-mapper.el will now generate these
+;;      different initialization files and save them with different
+;;      names.  Then, the correct initialization file for the
+;;      particular X server in use is loaded correctly automatically.
+
+;;  5.  Also, edt-mapper.el is now capable of binding an ASCII key
+;;      sequence, providing the ASCII key sequence prefix is already
+;;      known by Emacs to be a prefix.  As a result of providing this
+;;      support, some terminal/keyboard/window system configurations,
+;;      which don't have a complete set of sensible function key
+;;      bindings built into Emacs in `function-key-map', can still be
+;;      configured for use with EDT Emulation.  (Note: In a few rare
+;;      circumstances this does not work properly.  In particular, it
+;;      does not work if a subset of the leading ASCII characters in a
+;;      key sequence are recognized by Emacs as having an existing
+;;      binding.  For example, if the keypad 7 (KP-7) key generates
+;;      the sequence \"<ESC>Ow\" and \"<ESC>O\" is already bound to a
+;;      function, pressing KP-7 when told to do so by edt-mapper.el
+;;      will result in edt-mapper.el incorrectly mapping \"<ESC>O\" to
+;;      KP-7 and \"w\" to KP-8.  If something like this happens to
+;;      you, it is probably a bug in the support for your keyboard
+;;      within Emacs OR a bug in the Unix termcap/terminfo support for
+;;      your terminal OR a bug in the terminal emulation software you
+;;      are using.)
+
+;;  6.  The edt-quit function (bound to GOLD-q by default) has been
+;;      modified to warn the user when file-related buffer
+;;      modifications exist.  It now cautions the user that those
+;;      modifications will be lost if the user quits without saving
+;;      those buffers.
+
+
+;;; History:
+;; 
+;;  Version 4.0    2000    Added New Features and Fixed a Few Bugs
+;;  
+
+
+;;; Code:
+
 ;;;  Electric Help functions are used for keypad help displays.  A few
 ;;;  picture functions are used in rectangular cut and paste commands.
+
 (require 'ehelp)
 (require 'picture)
 
@@ -38,17 +166,155 @@
 ;;;; VARIABLES and CONSTANTS
 ;;;;
 
+;; For backward compatibility to Emacs 19, skip this if defgroup is
+;; not defined.
+(if (fboundp 'defgroup)
+    (defgroup edt nil
+      "Emacs emulating EDT."
+      :prefix "edt-"
+      :group 'emulations))
+
+;;;
+;;;  Version Information
+;;;
+(defconst edt-version "4.0" "EDT Emulation version number.")
+
+;;;
+;;;  User Configurable Variables
+;;;
+
+;; For backward compatibility to Emacs 19, use defvar if defcustom is
+;; not defined.
+(if (fboundp 'defcustom)
+    (progn
+      (defcustom edt-keep-current-page-delimiter nil
+	"*Emacs MUST be restarted for a change in value to take effect!
+Non-nil leaves Emacs value of `page-delimiter' unchanged within EDT
+Emulation.  If set to nil (the default), the `page-delimiter' variable
+is set to \"\\f\" when edt-emulation-on is first invoked.  This
+setting replicates EDT's page delimiter behavior.  The original value
+is restored when edt-emulation-off is called."
+	:type 'boolean
+	:group 'edt)
+      
+      (defcustom edt-use-EDT-control-key-bindings nil
+	"*Emacs MUST be restarted for a change in value to take effect!
+Non-nil causes the control key bindings to be replaced with EDT
+bindings.  If set to nil (the default), EDT control key bindings are
+not used and the current Emacs control key bindings are retained for
+use within the EDT emulation."
+	:type 'boolean
+	:group 'edt)
+
+      (defcustom edt-word-entities '(?\t)
+	"*Specifies the list of EDT word entity characters.  
+The default list, (\?\\t), contains just the TAB character, which
+emulates EDT.  Characters are specified in the list using their
+decimal ASCII values.  A question mark, followed by the actual
+character, can be used to indicate the numerical value of the
+character, instead of the actual decimal value.  So, ?A means the
+numerical value for the letter A, \?/ means the numerical value for /,
+etc.  Several unprintable and special characters have special
+representations, which you can also use:
+
+            \?\\b  specifies  BS, C-h
+            \?\\t  specifies  TAB, C-i
+            \?\\n  specifies  LFD, C-j
+            \?\\v  specifies  VTAB, C-k
+            \?\\f  specifies  FF, C-l
+            \?\\r  specifies  CR, C-m
+            \?\\e  specifies  ESC, C-[
+            \?\\\\  specifies  \\
+
+In EDT Emulation movement-by-word commands, each character in the list
+will be treated as if it were a separate word."
+	:type '(repeat integer)
+	:group 'edt)
+
+      (defcustom edt-top-scroll-margin 10
+	"*Scroll margin at the top of the screen.  
+Interpreted as a percent of the current window size with a default
+setting of 10%.  If set to 0, top scroll margin is disabled."
+	:type 'integer
+	:group 'edt)
+
+      (defcustom edt-bottom-scroll-margin 15
+	"*Scroll margin at the bottom of the screen.
+Interpreted as a percent of the current window size with a default
+setting of 15%.  If set to 0, bottom scroll margin is disabled."
+	:type 'integer
+	:group 'edt))
+  (progn
+    (defvar edt-keep-current-page-delimiter nil
+      "*Non-nil leaves Emacs value of `page-delimiter' unchanged within EDT
+Emulation.  If set to nil (the default), the `page-delimiter' variable
+is set to \"\\f\" when edt-emulation-on is first invoked.  This
+setting replicates EDT's page delimiter behavior.  The original value
+is restored when edt-emulation-off is called.")
+
+    (defvar edt-use-EDT-control-key-bindings nil
+      "*Non-nil causes the control key bindings to be replaced with EDT
+bindings.  If set to nil (the default), EDT control key bindings are
+not used and the current Emacs control key bindings are retained for
+use within the EDT emulation.")
+
+    (defvar edt-word-entities '(?\t)
+      "*Specifies the list of EDT word entity characters.  
+The default list, (\?\\t), contains just the TAB character, which
+emulates EDT.  Characters are specified in the list using their
+decimal ASCII values.  A question mark, followed by the actual
+character, can be used to indicate the numerical value of the
+character, instead of the actual decimal value.  So, ?A means the
+numerical value for the letter A, \?/ means the numerical value for /,
+etc.  Several unprintable and special characters have special
+representations, which you can also use:
+
+            \?\\b  specifies  BS, C-h
+            \?\\t  specifies  TAB, C-i
+            \?\\n  specifies  LFD, C-j
+            \?\\v  specifies  VTAB, C-k
+            \?\\f  specifies  FF, C-l
+            \?\\r  specifies  CR, C-m
+            \?\\e  specifies  ESC, C-[
+            \?\\\\  specifies  \\
+
+In EDT Emulation movement-by-word commands, each character in the list
+will be treated as if it were a separate word.")
+
+    (defvar edt-top-scroll-margin 10
+      "*Scroll margin at the top of the screen.
+Interpreted as a percent of the current window size with a default
+setting of 10%.  If set to 0, top scroll margin is disabled.")
+
+    (defvar edt-bottom-scroll-margin 15
+      "*Scroll margin at the bottom of the screen.
+Interpreted as a percent of the current window size with a default
+setting of 15%.  If set to 0, bottom scroll margin is disabled.")))
+
+;;;
+;;; Internal Variables
+;;;
+
 (defvar edt-last-deleted-lines ""
-  "Last text deleted by an EDT emulation line delete command.")
+  "Last text deleted by the EDT emulation DEL L command.")
 
 (defvar edt-last-deleted-words ""
-  "Last text deleted by an EDT emulation word delete command.")
+  "Last text deleted by the EDT emulation DEL W command.")
 
 (defvar edt-last-deleted-chars ""
-  "Last text deleted by an EDT emulation character delete command.")
+  "Last text deleted by the EDT emulation DEL C command.")
 
-(defvar edt-last-replaced-key-definition ""
-  "Key definition replaced with edt-define-key or edt-learn command.")
+(defvar edt-find-last-text ""
+  "Last text found by the EDT emulation FIND command.")
+
+(defvar edt-match-beginning-mark (make-marker)
+  "Used internally by the EDT emulation SUBS command.")
+
+(defvar edt-match-end-mark (make-marker)
+  "Used internally by the EDT emulation SUBS command.")
+
+(defvar edt-last-replaced-key-definition nil
+  "Key definition replaced with `edt-define-key' or `edt-learn' command.")
 
 (defvar edt-direction-string ""
   "String indicating current direction of movement.")
@@ -56,11 +322,12 @@
 (defvar edt-select-mode nil
   "Non-nil means select mode is active.")
 
-(defvar edt-select-mode-text ""
-  "Text displayed in mode line when select mode is active.")
+(defvar edt-select-mode-current ""
+  "Text displayed in mode line to indicate the state of EDT select mode.
+When select mode is inactive, it is set to an empty string.")
 
 (defconst edt-select-mode-string " Select"
-  "String to indicate select mode is active.")
+  "Used in mode line to indicate select mode is active.")
 
 (defconst edt-forward-string " ADVANCE"
   "Direction string in mode line to indicate forward movement.")
@@ -74,57 +341,54 @@ Nil means user-defined custom bindings are active.")
 
 (defvar edt-user-map-configured nil
   "Non-nil indicates that user custom EDT key bindings are configured.
-This means that an edt-user.el file was found in the user's load-path.")
+This means that an edt-user.el file was found in the user's `load-path'.")
 
-(defvar edt-keep-current-page-delimiter nil
-  "Non-nil leaves current value of page-delimiter unchanged.
-Nil causes the page-delimiter variable to be set to to \"\\f\"
-when edt-emulation-on is first invoked.  Original value is restored
-when edt-emulation-off is called.")
-
-(defvar edt-use-EDT-control-key-bindings nil
-  "Non-nil causes the control key bindings to be replaced with EDT bindings.
-Nil (the default) means EDT control key bindings are not used and the current
-control key bindings are retained for use in the EDT emulation.")
-
-(defvar edt-word-entities '(?\t)
-  "*Specifies the list of EDT word entity characters.")
+(defvar edt-term nil
+  "Specifies the terminal type, if applicable.")
 
 ;;;
 ;;;  Emacs version identifiers - currently referenced by
 ;;;
-;;;     o edt-emulation-on      o edt-load-xkeys
+;;;     o edt-emulation-on      o edt-load-keys
 ;;;
 (defconst edt-emacs19-p (not (string-lessp emacs-version "19"))
-  "Non-nil if we are running Lucid or GNU Emacs version 19.")
+  "Non-nil if we are running GNU Emacs or XEmacs version 19, or higher.")
 
-(defconst edt-lucid-emacs19-p
-  (and edt-emacs19-p (string-match "Lucid" emacs-version))
-  "Non-nil if we are running Lucid Emacs version 19.")
+(defconst edt-x-emacs19-p
+  (and edt-emacs19-p (string-match "XEmacs" emacs-version))
+  "Non-nil if we are running XEmacs version 19, or higher.")
 
-(defconst edt-gnu-emacs19-p (and edt-emacs19-p (not edt-lucid-emacs19-p))
-  "Non-nil if we are running GNU Emacs version 19.")
+(defconst edt-gnu-emacs19-p (and edt-emacs19-p (not edt-x-emacs19-p))
+  "Non-nil if we are running GNU Emacs version 19, or higher.")
 
-(defvar edt-xkeys-file nil
-  "File mapping X function keys to LK-201 keyboard function and keypad keys.")
+(defconst edt-emacs-variant (if edt-gnu-emacs19-p "gnu" "xemacs")
+  "Indicates Emacs variant:  GNU Emacs or XEmacs \(aka Lucid Emacs\).")
+
+(defconst edt-window-system (if edt-gnu-emacs19-p window-system (console-type))
+  "Indicates window system \(in GNU Emacs\) or console type \(in XEmacs\).")
+
+(defconst edt-xserver (if (eq edt-window-system 'x)
+			  (if edt-x-emacs19-p
+			      (replace-in-string (x-server-vendor) "[ _]" "-")
+			    (subst-char-in-string ?  ?- (x-server-vendor)))
+			nil)
+  "Indicates X server vendor name, if applicable.")
+
+(defvar edt-keys-file nil
+  "User's custom keypad and function keys mappings to emulate LK-201 keyboard.")
 
 ;;;;
 ;;;; EDT Emulation Commands
 ;;;;
 
-;;; Almost all of EDT's keypad mode commands have equivalent
-;;; counterparts in Emacs.  Some behave the same way in Emacs as they
-;;; do in EDT, but most do not.
+;;; Almost all of EDT's keypad mode commands have equivalent Emacs
+;;; function counterparts.  But many of these counterparts behave
+;;; somewhat differently in Emacs.
 ;;;
-;;; The following Emacs functions emulate, where practical, the exact
-;;; behavior of the corresponding EDT keypad mode commands.  In a few
-;;; cases, the emulation is not exact, but it is close enough for most
-;;; EDT die-hards.
-;;;
-;;; In a very few cases, we chose to use the superior Emacs way of
-;;; handling things.  For example, we do not emulate the EDT SUBS
-;;; command.  Instead, we chose to use the superior Emacs
-;;; query-replace function.
+;;; So, the following Emacs functions emulate, where practical, the
+;;; exact behavior of the corresponding EDT keypad mode commands.  In
+;;; a few cases, the emulation is not exact, but it should be close
+;;; enough for most EDT die-hards.
 ;;;
 
 ;;;
@@ -145,67 +409,69 @@ control key bindings are retained for use in the EDT emulation.")
 
 (defun edt-page-forward (num)
   "Move forward to just after next page delimiter.
-Accepts a positive prefix argument for the number of page delimiters to move."
+Argument NUM is the number of page delimiters to move."
   (interactive "p")
   (edt-check-prefix num)
   (if (eobp)
       (error "End of buffer")
-      (progn
-        (forward-page num)
-	(if (eobp)
-	    (edt-line-to-bottom-of-window)
-	    (edt-line-to-top-of-window)))))
+	(progn
+	  (forward-page num)
+	  (if (eobp)
+		  (edt-line-to-bottom-of-window)
+		(edt-line-to-top-of-window)))))
 
 (defun edt-page-backward (num)
   "Move backward to just after previous page delimiter.
-Accepts a positive prefix argument for the number of page delimiters to move."
+Argument NUM is the number of page delimiters to move."
   (interactive "p")
   (edt-check-prefix num)
   (if (bobp)
       (error "Beginning of buffer")
-      (progn
-        (backward-page num)
-        (edt-line-to-top-of-window))))
+	(progn
+	  (backward-page num)
+      (edt-line-to-top-of-window)
+	  (if edt-x-emacs19-p (setq zmacs-region-stays t)))))
 
 (defun edt-page (num)
   "Move in current direction to next page delimiter.
-Accepts a positive prefix argument for the number of page delimiters to move."
+Argument NUM is the number of page delimiters to move."
   (interactive "p")
   (if (equal edt-direction-string edt-forward-string)
       (edt-page-forward num)
-      (edt-page-backward num)))
+    (edt-page-backward num)))
 
 ;;;
 ;;; SECT
 ;;;
 ;;; EDT defaults a section size to be 16 lines of its one and only
 ;;; 24-line window.  That's two-thirds of the window at a time.  The
-;;; EDT SECT commands moves the cursor, not the window.  
+;;; EDT SECT commands moves the cursor, not the window.
 ;;; 
-;;; This emulation of EDT's SECT moves the cursor approximately two-thirds
-;;; of the current window at a time.
+;;; This emulation of EDT's SECT moves the cursor approximately
+;;; two-thirds of the current window at a time.
 
 (defun edt-sect-forward (num)
-  "Move cursor forward two-thirds of a window.
-Accepts a positive prefix argument for the number of sections to move."
+  "Move cursor forward two-thirds of a window's number of lines.
+Argument NUM is the number of sections to move."
   (interactive "p")
   (edt-check-prefix num)
   (edt-line-forward (* (* (/ (- (window-height) 1) 3) 2) num)))
 
+
 (defun edt-sect-backward (num)
   "Move cursor backward two-thirds of a window.
-Accepts a positive prefix argument for the number of sections to move."
+Argument NUM is the number of sections to move."
   (interactive "p")
   (edt-check-prefix num)
   (edt-line-backward (* (* (/ (- (window-height) 1) 3) 2) num)))
 
 (defun edt-sect (num)
   "Move in current direction a full window.
-Accepts a positive prefix argument for the number windows to move."
+Argument NUM is the number of sections to move."
   (interactive "p")
   (if (equal edt-direction-string edt-forward-string)
       (edt-sect-forward num)
-      (edt-sect-backward num)))
+    (edt-sect-backward num)))
 
 ;;;
 ;;; BEGINNING OF LINE
@@ -215,14 +481,18 @@ Accepts a positive prefix argument for the number windows to move."
 
 (defun edt-beginning-of-line (num)
   "Move backward to next beginning of line mark.
-Accepts a positive prefix argument for the number of BOL marks to move."
+Argument NUM is the number of BOL marks to move."
   (interactive "p")
   (edt-check-prefix num)
-  (if (bolp)
-      (forward-line (* -1 num))
+  (let ((beg (edt-current-line)))
+    (if (bolp)
+	(forward-line (* -1 num))
       (progn
-        (setq num (1- num))
-        (forward-line (* -1 num)))))
+	(setq num (1- num))
+	(forward-line (* -1 num))))
+    (edt-top-check beg num))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+
 
 ;;;
 ;;; EOL (End of Line)
@@ -230,37 +500,45 @@ Accepts a positive prefix argument for the number of BOL marks to move."
 
 (defun edt-end-of-line-forward (num)
   "Move forward to next end of line mark.
-Accepts a positive prefix argument for the number of EOL marks to move."
+Argument NUM is the number of EOL marks to move."
   (interactive "p")
   (edt-check-prefix num)
-  (forward-char)
-  (end-of-line num))
+  (let ((beg (edt-current-line)))
+    (forward-char)
+    (end-of-line num)
+    (edt-bottom-check beg num))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+
 
 (defun edt-end-of-line-backward (num)
   "Move backward to next end of line mark.
-Accepts a positive prefix argument for the number of EOL marks to move."
+Argument NUM is the number of EOL marks to move."
   (interactive "p")
   (edt-check-prefix num)
-  (end-of-line (1- num)))
+  (let ((beg (edt-current-line)))
+    (end-of-line (1- num))
+    (edt-top-check beg num))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+
 
 (defun edt-end-of-line (num)
   "Move in current direction to next end of line mark.
-Accepts a positive prefix argument for the number of EOL marks to move."
+Argument NUM is the number of EOL marks to move."
   (interactive "p")
   (if (equal edt-direction-string edt-forward-string)
       (edt-end-of-line-forward num)
-      (edt-end-of-line-backward num)))
+    (edt-end-of-line-backward num)))
 
 ;;;
 ;;; WORD
 ;;;
 ;;; This one is a tad messy.  To emulate EDT's behavior everywhere in
 ;;; the file (beginning of file, end of file, beginning of line, end
-;;; of line, etc.) it takes a bit of special handling.  
+;;; of line, etc.) it takes a bit of special handling.
 ;;; 
 ;;; The variable edt-word-entities contains a list of characters which
 ;;; are to be viewed as distinct words where ever they appear in the
-;;; buffer.  This emulates the EDT line mode command SET ENTITY WORD. 
+;;; buffer.  This emulates the EDT line mode command SET ENTITY WORD.
 
 
 (defun edt-one-word-forward ()
@@ -270,21 +548,22 @@ Accepts a positive prefix argument for the number of EOL marks to move."
       (error "End of buffer"))
   (if (eolp)
       (forward-char)
-      (progn
-        (if (memq (following-char) edt-word-entities)
-            (forward-char)
-            (while (and 
-                     (not (eolp))
-                     (not (eobp))
-                     (not (eq ?\  (char-syntax (following-char))))
-                     (not (memq (following-char) edt-word-entities)))
-              (forward-char)))
-        (while (and 
-                 (not (eolp))
-                 (not (eobp))
-                 (eq ?\  (char-syntax (following-char)))
-                 (not (memq (following-char) edt-word-entities)))
-          (forward-char)))))
+    (progn
+      (if (memq (following-char) edt-word-entities)
+	  (forward-char)
+	(while (and
+		(not (eolp))
+		(not (eobp))
+		(not (eq ?\  (char-syntax (following-char))))
+		(not (memq (following-char) edt-word-entities)))
+	  (forward-char)))
+      (while (and
+	      (not (eolp))
+	      (not (eobp))
+	      (eq ?\  (char-syntax (following-char)))
+	      (not (memq (following-char) edt-word-entities)))
+	(forward-char))))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 (defun edt-one-word-backward ()
   "Move backward to first character of previous word."
@@ -293,25 +572,26 @@ Accepts a positive prefix argument for the number of EOL marks to move."
       (error "Beginning of buffer"))
   (if (bolp)
       (backward-char)
-      (progn
-        (backward-char)
-        (while (and 
-                 (not (bolp))
-                 (not (bobp))
-                 (eq ?\  (char-syntax (following-char)))
-                 (not (memq (following-char) edt-word-entities)))
-          (backward-char))
-        (if (not (memq (following-char) edt-word-entities))
-            (while (and 
-                     (not (bolp))
-                     (not (bobp))
-                     (not (eq ?\  (char-syntax (preceding-char))))
-                     (not (memq (preceding-char) edt-word-entities)))
-              (backward-char))))))
+    (progn
+      (backward-char)
+      (while (and
+	      (not (bolp))
+	      (not (bobp))
+	      (eq ?\  (char-syntax (following-char)))
+	      (not (memq (following-char) edt-word-entities)))
+	(backward-char))
+      (if (not (memq (following-char) edt-word-entities))
+	  (while (and
+		  (not (bolp))
+		  (not (bobp))
+		  (not (eq ?\  (char-syntax (preceding-char))))
+		  (not (memq (preceding-char) edt-word-entities)))
+	    (backward-char)))))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 (defun edt-word-forward (num)
   "Move forward to first character of next word.
-Accepts a positive prefix argument for the number of words to move."
+Argument NUM is the number of words to move."
   (interactive "p")
   (edt-check-prefix num)
   (while (> num 0)
@@ -320,7 +600,7 @@ Accepts a positive prefix argument for the number of words to move."
 
 (defun edt-word-backward (num)
   "Move backward to first character of previous word.
-Accepts a positive prefix argument for the number of words to move."
+Argument NUM is the number of words to move."
   (interactive "p")
   (edt-check-prefix num)
   (while (> num 0)
@@ -329,11 +609,11 @@ Accepts a positive prefix argument for the number of words to move."
 
 (defun edt-word (num)
   "Move in current direction to first character of next word.
-Accepts a positive prefix argument for the number of words to move."
+Argument NUM is the number of words to move."
   (interactive "p")
   (if (equal edt-direction-string edt-forward-string)
       (edt-word-forward num)
-      (edt-word-backward num)))
+    (edt-word-backward num)))
 
 ;;;
 ;;; CHAR
@@ -341,12 +621,13 @@ Accepts a positive prefix argument for the number of words to move."
 
 (defun edt-character (num)
   "Move in current direction to next character.
-Accepts a positive prefix argument for the number of characters to move."
+Argument NUM is the number of characters to move."
   (interactive "p")
   (edt-check-prefix num)
   (if (equal edt-direction-string edt-forward-string)
       (forward-char num)
-      (backward-char num)))
+    (backward-char num))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 ;;;
 ;;; LINE
@@ -357,24 +638,52 @@ Accepts a positive prefix argument for the number of characters to move."
 
 (defun edt-line-backward (num)
   "Move backward to next beginning of line mark.
-Accepts a positive prefix argument for the number of BOL marks to move."
+Argument NUM is the number of BOL marks to move."
   (interactive "p")
   (edt-beginning-of-line num))
 
 (defun edt-line-forward (num)
   "Move forward to next beginning of line mark.
-Accepts a positive prefix argument for the number of BOL marks to move."
+Argument NUM is the number of BOL marks to move."
   (interactive "p")
   (edt-check-prefix num)
-  (forward-line num))
+  (let ((beg (edt-current-line)))
+    (forward-line num)
+    (edt-bottom-check beg num))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 (defun edt-line (num)
   "Move in current direction to next beginning of line mark.
-Accepts a positive prefix argument for the number of BOL marks to move."
+Argument NUM is the number of BOL marks to move."
   (interactive "p")
   (if (equal edt-direction-string edt-forward-string)
       (edt-line-forward num)
-      (edt-line-backward num)))
+    (edt-line-backward num)))
+
+;;;
+;;; UP and DOWN Arrows
+;;;
+
+(defun edt-next-line (num)
+  "Move cursor down one line.
+Argument NUM is the number of lines to move."
+  (interactive "p")
+  (edt-check-prefix num)
+  (let ((beg (edt-current-line)))
+    (next-line num)
+    (edt-bottom-check beg num))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+
+(defun edt-previous-line (num)
+  "Move cursor up one line.
+Argument NUM is the number of lines to move."
+  (interactive "p")
+  (edt-check-prefix num)
+  (let ((beg (edt-current-line)))
+    (previous-line num)
+    (edt-top-check beg num))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+
 
 ;;;
 ;;; TOP
@@ -383,7 +692,8 @@ Accepts a positive prefix argument for the number of BOL marks to move."
 (defun edt-top ()
   "Move cursor to the beginning of buffer."
   (interactive)
-  (goto-char (point-min)))
+  (goto-char (point-min))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 ;;;
 ;;; BOTTOM
@@ -400,24 +710,66 @@ Accepts a positive prefix argument for the number of BOL marks to move."
 ;;;
 
 (defun edt-find-forward (&optional find)
-  "Find first occurrence of a string in forward direction and save it."
+  "Find first occurrence of a string in forward direction and save it.
+Optional argument FIND is t is this function is called from `edt-find'."
   (interactive)
   (if (not find)
-      (set 'search-last-string (read-string "Search forward: ")))
-  (if (search-forward search-last-string)
-      (search-backward search-last-string)))
+      (set 'edt-find-last-text (read-string "Search forward: ")))
+  (let* ((left nil)
+	 (beg (edt-current-line))
+	 (height (window-height))
+	 (top-percent
+	  (if (= 0 edt-top-scroll-margin) 10 edt-top-scroll-margin))
+	 (bottom-percent
+	  (if (= 0 edt-bottom-scroll-margin) 15 edt-bottom-scroll-margin))
+	 (top-margin (/ (* height top-percent) 100))
+	 (bottom-up-margin (+ 1 (/ (* height bottom-percent) 100)))
+	 (bottom-margin (max beg (- height bottom-up-margin 1)))
+	 (top (save-excursion (move-to-window-line top-margin) (point)))
+	 (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
+	 (far (save-excursion
+		(goto-char bottom) (forward-line (- height 2)) (point))))
+    (if (search-forward edt-find-last-text)
+	(progn
+	  (search-backward edt-find-last-text)
+	  (edt-set-match)
+	  (cond((> (point) far)
+		(setq left (save-excursion (forward-line height)))
+		(if (= 0 left) (recenter top-margin)
+		  (recenter (- left bottom-up-margin))))
+	       (t
+		(and (> (point) bottom) (recenter bottom-margin)))))))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 (defun edt-find-backward (&optional find)
-  "Find first occurrence of a string in the backward direction and save it."
+  "Find first occurrence of a string in the backward direction and save it.
+Optional argument FIND is t if this function is called from `edt-find'."
   (interactive)
   (if (not find)
-      (set 'search-last-string (read-string "Search backward: ")))
-  (search-backward search-last-string))
+      (set 'edt-find-last-text (read-string "Search backward: ")))
+  (let* ((left nil)
+	 (beg (edt-current-line))
+	 (height (window-height))
+	 (top-percent
+	  (if (= 0 edt-top-scroll-margin) 10 edt-top-scroll-margin))
+	 (bottom-percent
+	  (if (= 0 edt-bottom-scroll-margin) 15 edt-bottom-scroll-margin))
+	 (top-margin (/ (* height top-percent) 100))
+	 (bottom-up-margin (+ 1 (/ (* height bottom-percent) 100)))
+	 (bottom-margin (max beg (- height bottom-up-margin 1)))
+	 (top (save-excursion (move-to-window-line top-margin) (point)))
+	 (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
+	 (far (save-excursion
+		(goto-char bottom) (forward-line (- height 2)) (point))))
+    (if (search-backward edt-find-last-text)
+	(edt-set-match))
+    (and (< (point) top) (recenter (min beg top-margin))))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 (defun edt-find ()
   "Find first occurrence of string in current direction and save it."
   (interactive)
-  (set 'search-last-string (read-string "Search: "))
+  (set 'edt-find-last-text (read-string "Search: "))
   (if (equal edt-direction-string edt-forward-string)
       (edt-find-forward t)
       (edt-find-backward t)))
@@ -430,26 +782,66 @@ Accepts a positive prefix argument for the number of BOL marks to move."
 (defun edt-find-next-forward ()
   "Find next occurrence of a string in forward direction."
   (interactive)
-  (forward-char 1)
-  (if (search-forward search-last-string nil t)
-      (search-backward search-last-string)
+  (let* ((left nil)
+	 (beg (edt-current-line))
+	 (height (window-height))
+	 (top-percent
+	  (if (= 0 edt-top-scroll-margin) 10 edt-top-scroll-margin))
+	 (bottom-percent
+	  (if (= 0 edt-bottom-scroll-margin) 15 edt-bottom-scroll-margin))
+	 (top-margin (/ (* height top-percent) 100))
+	 (bottom-up-margin (+ 1 (/ (* height bottom-percent) 100)))
+	 (bottom-margin (max beg (- height bottom-up-margin 1)))
+	 (top (save-excursion (move-to-window-line top-margin) (point)))
+	 (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
+	 (far (save-excursion
+		(goto-char bottom) (forward-line (- height 2)) (point))))
+    (forward-char 1)
+    (if (search-forward edt-find-last-text nil t)
+	(progn
+	  (search-backward edt-find-last-text)
+	  (edt-set-match)
+	  (cond((> (point) far)
+		(setq left (save-excursion (forward-line height)))
+		(if (= 0 left) (recenter top-margin)
+		  (recenter (- left bottom-up-margin))))
+	       (t
+		(and (> (point) bottom) (recenter bottom-margin)))))
       (progn
-        (backward-char 1)
-        (error "Search failed: \"%s\"." search-last-string))))
+	(backward-char 1)
+	(error "Search failed: \"%s\"" edt-find-last-text))))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 (defun edt-find-next-backward ()
   "Find next occurrence of a string in backward direction."
   (interactive)
-  (if (eq (search-backward search-last-string nil t) nil)
+  (let* ((left nil)
+	 (beg (edt-current-line))
+	 (height (window-height))
+	 (top-percent
+	  (if (= 0 edt-top-scroll-margin) 10 edt-top-scroll-margin))
+	 (bottom-percent
+	  (if (= 0 edt-bottom-scroll-margin) 15 edt-bottom-scroll-margin))
+	 (top-margin (/ (* height top-percent) 100))
+	 (bottom-up-margin (+ 1 (/ (* height bottom-percent) 100)))
+	 (bottom-margin (max beg (- height bottom-up-margin 1)))
+	 (top (save-excursion (move-to-window-line top-margin) (point)))
+	 (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
+	 (far (save-excursion
+		(goto-char bottom) (forward-line (- height 2)) (point))))
+    (if (not (search-backward edt-find-last-text nil t))
+	(error "Search failed: \"%s\"" edt-find-last-text)
       (progn
-        (error "Search failed: \"%s\"." search-last-string))))
+	(edt-set-match)
+	(and (< (point) top) (recenter (min beg top-margin))))))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 (defun edt-find-next ()
   "Find next occurrence of a string in current direction."
   (interactive)
   (if (equal edt-direction-string edt-forward-string)
       (edt-find-next-forward)
-      (edt-find-next-backward)))
+    (edt-find-next-backward)))
   
 ;;;
 ;;; APPEND
@@ -469,7 +861,7 @@ Accepts a positive prefix argument for the number of BOL marks to move."
 
 (defun edt-delete-line (num)
   "Delete from cursor up to and including the end of line mark.
-Accepts a positive prefix argument for the number of lines to delete."
+Argument NUM is the number of lines to delete."
   (interactive "*p")
   (edt-check-prefix num)
   (let ((beg (point)))
@@ -486,7 +878,7 @@ Accepts a positive prefix argument for the number of lines to delete."
 
 (defun edt-delete-to-end-of-line (num)
   "Delete from cursor up to but excluding the end of line mark.
-Accepts a positive prefix argument for the number of lines to delete."
+Argument NUM is the number of lines to delete."
   (interactive "*p")
   (edt-check-prefix num)
   (let ((beg (point)))
@@ -506,7 +898,7 @@ In select mode, selected text is highlighted."
   (if arg
       (progn
 	(make-local-variable 'edt-select-mode)
-	(setq edt-select-mode 'edt-select-mode-text)
+	(setq edt-select-mode 'edt-select-mode-current)
 	(setq rect-start-point (window-point)))
     (progn
       (kill-local-variable 'edt-select-mode)))
@@ -514,13 +906,15 @@ In select mode, selected text is highlighted."
 
 (defun edt-select ()
   "Set mark at cursor and start text selection."
-  (interactive)   
-  (set-mark-command nil)) 
+  (interactive)
+  (set-mark-command nil))
 
 (defun edt-reset ()
   "Cancel text selection."
   (interactive)
-  (deactivate-mark))
+  (if edt-gnu-emacs19-p
+      (deactivate-mark)
+    (zmacs-deactivate-region)))
 
 ;;;
 ;;; CUT
@@ -539,7 +933,7 @@ In select mode, selected text is highlighted."
 
 (defun edt-delete-to-beginning-of-line (num)
   "Delete from cursor to beginning of line.
-Accepts a positive prefix argument for the number of lines to delete."
+Argument NUM is the number of lines to delete."
   (interactive "*p")
   (edt-check-prefix num)
   (let ((beg (point)))
@@ -554,7 +948,7 @@ Accepts a positive prefix argument for the number of lines to delete."
 
 (defun edt-delete-word (num)
   "Delete from cursor up to but excluding first character of next word.
-Accepts a positive prefix argument for the number of words to delete."
+Argument NUM is the number of words to delete."
   (interactive "*p")
   (edt-check-prefix num)
   (let ((beg (point)))
@@ -568,7 +962,7 @@ Accepts a positive prefix argument for the number of words to delete."
 
 (defun edt-delete-to-beginning-of-word (num)
   "Delete from cursor to beginning of word.
-Accepts a positive prefix argument for the number of words to delete."
+Argument NUM is the number of words to delete."
   (interactive "*p")
   (edt-check-prefix num)
   (let ((beg (point)))
@@ -582,7 +976,7 @@ Accepts a positive prefix argument for the number of words to delete."
 
 (defun edt-delete-character (num)
   "Delete character under cursor.
-Accepts a positive prefix argument for the number of characters to delete."
+Argument NUM is the number of characters to delete."
   (interactive "*p")
   (edt-check-prefix num)
   (setq edt-last-deleted-chars
@@ -595,7 +989,7 @@ Accepts a positive prefix argument for the number of characters to delete."
 
 (defun edt-delete-previous-character (num)
   "Delete character in front of cursor.
-Accepts a positive prefix argument for the number of characters to delete."
+Argument NUM is the number of characters to delete."
   (interactive "*p")
   (edt-check-prefix num)
   (setq edt-last-deleted-chars
@@ -642,11 +1036,85 @@ Accepts a positive prefix argument for the number of characters to delete."
 (defun edt-replace ()
   "Replace marked section with last CUT (killed) text."
   (interactive "*")
-  (exchange-point-and-mark)
-  (let ((beg (point)))
-    (exchange-point-and-mark)
-    (delete-region beg (point)))
-  (yank))
+  (if (edt-check-match)
+      (replace-match (car kill-ring-yank-pointer))
+    (progn
+      (exchange-point-and-mark)
+      (let ((beg (point)))
+	(exchange-point-and-mark)
+	(delete-region beg (point)))
+      (yank))))
+
+;;;
+;;; SUBS
+;;;
+
+(defun edt-substitute (num)
+  "Replace the selected region with the contents of the CUT buffer and.
+Repeat the most recent FIND command.  (The Emacs kill ring is used as
+the CUT buffer.)  
+Argument NUM is the repeat count.  A positive value indicates the of times
+to repeat the substitution.  A negative argument means replace all occurances
+of the search text."
+  (interactive "p")
+  (cond ((or edt-select-mode (edt-check-match))
+	 (while (and (not (= num 0)) (or edt-select-mode (edt-check-match)))
+	   (edt-replace)
+	   (edt-find-next)
+	   (setq num (1- num))))
+	(t
+	 (error "No selection active"))))
+
+(defun edt-set-match nil
+  "Set markers at match beginning and end."
+  ;; Add one to beginning mark so it stays with the first character of
+  ;;   the string even if characters are added just before the string.
+  (setq edt-match-beginning-mark (copy-marker (1+ (match-beginning 0))))
+  (setq edt-match-end-mark (copy-marker (match-end 0))))
+
+(defun edt-unset-match nil
+  "Unset match beginning and end markers."
+  (set-marker edt-match-beginning-mark nil)
+  (set-marker edt-match-end-mark nil))
+
+(defun edt-match-beginning nil
+  "Return the location of the last match beginning."
+  (1- (marker-position edt-match-beginning-mark)))
+
+(defun edt-match-end nil
+  "Return the location of the last match end."
+  (marker-position edt-match-end-mark))
+
+(defun edt-check-match nil
+  "Return t if point is between edt-match markers.
+Otherwise sets the edt-match markers to nil and returns nil."
+  ;; make sure 1- marker is in this buffer
+  ;;           2- point is at or after beginning marker
+  ;;           3- point is before ending marker, or in the case of
+  ;;              zero length regions (like bol, or eol) that the
+  ;;              beginning, end, and point are equal.
+  (cond ((and
+	  (equal (marker-buffer edt-match-beginning-mark) (current-buffer))
+	  (>= (point) (1- (marker-position edt-match-beginning-mark)))
+	  (or
+	   (< (point) (marker-position edt-match-end-mark))
+	   (and (= (1- (marker-position edt-match-beginning-mark))
+		   (marker-position edt-match-end-mark))
+		(= (marker-position edt-match-end-mark) (point))))) t)
+	(t
+	 (edt-unset-match) nil)))
+
+(defun edt-show-match-markers nil
+  "Show the values of the match markers."
+  (interactive)
+  (if (markerp edt-match-beginning-mark)
+      (let ((beg (marker-position edt-match-beginning-mark)))
+	(message "(%s, %s) in %s -- current %s in %s"
+		 (if beg (1- beg) nil)
+		 (marker-position edt-match-end-mark)
+		 (marker-buffer edt-match-end-mark)
+		 (point) (current-buffer)))))
+
 
 ;;;
 ;;; ADVANCE
@@ -658,9 +1126,11 @@ Also, execute command specified if in Minibuffer."
   (interactive)
   (setq edt-direction-string edt-forward-string)
   (force-mode-line-update)
-  (if (string-equal " *Minibuf" 
+  (if (string-equal " *Minibuf"
                     (substring (buffer-name) 0 (min (length (buffer-name)) 9)))
-      (exit-minibuffer)))
+      (exit-minibuffer))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+
   
 ;;;
 ;;; BACKUP
@@ -672,14 +1142,16 @@ Also, execute command specified if in Minibuffer."
   (interactive)
   (setq edt-direction-string edt-backward-string)
   (force-mode-line-update)
-  (if (string-equal " *Minibuf" 
+  (if (string-equal " *Minibuf"
                     (substring (buffer-name) 0 (min (length (buffer-name)) 9)))
-      (exit-minibuffer)))
+      (exit-minibuffer))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+
 
 ;;;
 ;;; CHNGCASE
 ;;;
-;; This function is based upon Jeff Kowalski's case-flip function in his 
+;; This function is based upon Jeff Kowalski's case-flip function in his
 ;; tpu.el.
 
 (defun edt-change-case (num)
@@ -690,7 +1162,8 @@ current direction is ADVANCE, then the prefix number of character(s) under and
 following cursor are changed.  Second, if the current direction is BACKUP, then
 the prefix number of character(s) before the cursor are changed.  Accepts a
 positive prefix for the number of characters to change, but the prefix is
-ignored if text selection is active."
+ignored if text selection is active.
+Argument NUM is the numbers of consecutive characters to change."
   (interactive "*p")
   (edt-check-prefix num)
   (if edt-select-mode
@@ -703,15 +1176,15 @@ ignored if text selection is active."
                    (point) (1+ (point)))
           (forward-char 1))
         (goto-char point-save))
-      (progn
-        (if (string= edt-direction-string edt-backward-string)
-            (backward-char num))
-        (while (> num 0)
-          (funcall (if (<= ?a (following-char))
-                       'upcase-region 'downcase-region)
-                   (point) (1+ (point)))
-          (forward-char 1)
-          (setq num (1- num))))))
+    (progn
+      (if (string= edt-direction-string edt-backward-string)
+	  (backward-char num))
+      (while (> num 0)
+	(funcall (if (<= ?a (following-char))
+		     'upcase-region 'downcase-region)
+		 (point) (1+ (point)))
+	(forward-char 1)
+	(setq num (1- num))))))
 
 ;;;
 ;;; DEFINE KEY
@@ -719,24 +1192,27 @@ ignored if text selection is active."
 
 (defun edt-define-key ()
   "Assign an interactively-callable function to a specified key sequence.
-The current key definition is saved in edt-last-replaced-key-definition.
-Use edt-restore-key to restore last replaced key definition."
+The current key definition is saved in `edt-last-replaced-key-definition'.
+Use `edt-restore-key' to restore last replaced key definition."
   (interactive)
+  (if edt-x-emacs19-p (setq zmacs-region-stays t))
   (let (edt-function
-    edt-key-definition-string)
-    (setq edt-key-definition-string
-         (read-key-sequence "Press the key to be defined: "))
-    (if (string-equal "\C-m" edt-key-definition-string) 
-        (message "Key not defined") 
-        (progn
-          (setq edt-function (read-command "Enter command name: "))
-          (if (string-equal "" edt-function)
-              (message "Key not defined") 
-              (progn
-                (setq edt-last-replaced-key-definition
-                   (lookup-key (current-global-map) edt-key-definition-string))
-                (define-key (current-global-map) 
-                    edt-key-definition-string edt-function)))))))
+	edt-key-definition)
+    (setq edt-key-definition
+	  (read-key-sequence "Press the key to be defined: "))
+    (if (if edt-gnu-emacs19-p
+	    (string-equal "\C-m" edt-key-definition)
+	  (string-equal "\C-m" (events-to-keys edt-key-definition)))
+        (message "Key not defined")
+      (progn
+	(setq edt-function (read-command "Enter command name: "))
+	(if (string-equal "" edt-function)
+	    (message "Key not defined")
+	  (progn
+	    (setq edt-last-replaced-key-definition
+		  (lookup-key (current-global-map) edt-key-definition))
+	    (define-key (current-global-map)
+	      edt-key-definition edt-function)))))))
 
 ;;;
 ;;; FORM FEED INSERT
@@ -744,7 +1220,7 @@ Use edt-restore-key to restore last replaced key definition."
 
 (defun edt-form-feed-insert (num)
   "Insert form feed character at cursor position.
-Accepts a positive prefix argument for the number of form feeds to insert."
+Argument NUM is the number of form feeds to insert."
   (interactive "*p")
   (edt-check-prefix num)
   (while (> num 0)
@@ -757,7 +1233,7 @@ Accepts a positive prefix argument for the number of form feeds to insert."
 
 (defun edt-tab-insert (num)
   "Insert tab character at cursor position.
-Accepts a positive prefix argument for the number of tabs to insert."
+Argument NUM is the the number of tabs to insert."
   (interactive "*p")
   (edt-check-prefix num)
   (while (> num 0)
@@ -769,7 +1245,8 @@ Accepts a positive prefix argument for the number of tabs to insert."
 ;;;
 
 (defun edt-check-prefix (num)
-  "Indicate error if prefix is not positive."
+  "Indicate error if prefix is not positive.
+Argument NUM is the prefix value tested."
   (if (<= num 0)
       (error "Prefix must be positive")))
       
@@ -781,6 +1258,64 @@ Accepts a positive prefix argument for the number of tabs to insert."
   "Indicate error if EDT selection is not active."
   (if (not edt-select-mode)
       (error "Selection NOT active")))
+
+;;;
+;;; Scroll Margins
+;;;
+
+(defun edt-top-check (beg lines)
+  "Enforce scroll margin at the top of screen.
+Argument BEG is the starting line number before cursor was moved.
+Argument LINES is the number of lines the cursor moved toward the top."
+  (let ((margin	 (/ (* (window-height) edt-top-scroll-margin) 100)))
+    (cond ((< beg margin) (recenter beg))
+	  ((< (- beg lines) margin) (recenter margin)))))
+
+(defun edt-bottom-check (beg lines)
+  "Enforce scroll margin at the bottom of screen.
+Argument BEG is the starting line number before cursor was moved.
+Argument LINES is the number of lines the cursor moved toward the bottom."
+  (let* ((height (window-height))
+		 (margin (+ 1 (/ (* height edt-bottom-scroll-margin) 100)))
+		 ;; subtract 1 from height because it includes mode line
+		 (difference (- height margin 1)))
+    (cond ((> beg difference) (recenter beg))
+		  ((and edt-x-emacs19-p (> (+ beg lines 1) difference))
+		   (recenter (- margin)))
+		  ((> (+ beg lines) difference) (recenter (- margin))))))
+
+(defun edt-current-line nil
+  "Return the vertical position of point in the selected window.
+Top line is 0.  Counts each text line only once, even if it wraps."
+  (+ (count-lines (window-start) (point)) (if (= (current-column) 0) 1 0) -1))
+
+;;;###autoload
+(defun edt-set-scroll-margins (top bottom)
+  "Set scroll margins.
+Argument TOP is the top margin in number of lines or percent of window.
+Argument BOTTOM is the bottom margin in number of lines or percent of window."
+  (interactive
+   "sEnter top scroll margin (N lines or N%% or RETURN for current value): \
+\nsEnter bottom scroll margin (N lines or N%% or RETURN for current value): ")
+  ;; set top scroll margin
+  (or (string= top "")
+      (if (string= "%" (substring top -1))
+	  (setq edt-top-scroll-margin (string-to-int top))
+	(setq edt-top-scroll-margin
+	      (/ (1- (+ (* (string-to-int top) 100) (window-height)))
+		 (window-height)))))
+  ;; set bottom scroll margin
+  (or (string= bottom "")
+      (if (string= "%" (substring bottom -1))
+	  (setq edt-bottom-scroll-margin (string-to-int bottom))
+	(setq edt-bottom-scroll-margin
+	      (/ (1- (+ (* (string-to-int bottom) 100) (window-height)))
+		 (window-height)))))
+  ;; report scroll margin settings if running interactively
+  (and (interactive-p)
+       (message "Scroll margins set.  Top = %s%%, Bottom = %s%%"
+		edt-top-scroll-margin edt-bottom-scroll-margin)))
+
 
 ;;;;
 ;;;; ENHANCEMENTS AND ADDITIONS FOR EDT KEYPAD MODE
@@ -798,9 +1333,9 @@ Accepts a positive prefix argument for the number of tabs to insert."
 (defun edt-change-direction ()
   "Toggle movement direction."
   (interactive)
-  (if (equal edt-direction-string edt-forward-string) 
+  (if (equal edt-direction-string edt-forward-string)
       (edt-backup)
-      (edt-advance)))
+    (edt-advance)))
 
 ;;;
 ;;; TOGGLE SELECT
@@ -819,33 +1354,71 @@ Accepts a positive prefix argument for the number of tabs to insert."
 
 (defun edt-sentence-forward (num)
   "Move forward to start of next sentence.
-Accepts a positive prefix argument for the number of sentences to move."
+Argument NUM is the positive number of sentences to move."
   (interactive "p")
   (edt-check-prefix num)
-  (if (eobp)
+  (let* ((left nil)
+	 (beg (edt-current-line))
+	 (height (window-height))
+	 (top-percent
+	  (if (= 0 edt-top-scroll-margin) 10 edt-top-scroll-margin))
+	 (bottom-percent
+	  (if (= 0 edt-bottom-scroll-margin) 15 edt-bottom-scroll-margin))
+	 (top-margin (/ (* height top-percent) 100))
+	 (bottom-up-margin (+ 1 (/ (* height bottom-percent) 100)))
+	 (bottom-margin (max beg (- height bottom-up-margin 1)))
+	 (top (save-excursion (move-to-window-line top-margin) (point)))
+	 (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
+	 (far (save-excursion
+		(goto-char bottom) (forward-line (- height 2)) (point))))
+    (if (eobp)
+	(progn
+	  (error "End of buffer"))
       (progn
-        (error "End of buffer"))
-      (progn
-        (forward-sentence num)
-        (edt-one-word-forward))))
+	(forward-sentence num)
+	(forward-word 1)
+	(backward-sentence)))
+    (cond((> (point) far)
+	  (setq left (save-excursion (forward-line height)))
+	  (if (= 0 left) (recenter top-margin)
+	    (recenter (- left bottom-up-margin))))
+	 (t
+	  (and (> (point) bottom) (recenter bottom-margin)))))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 (defun edt-sentence-backward (num)
   "Move backward to next sentence beginning.
-Accepts a positive prefix argument for the number of sentences to move."
+Argument NUM is the positive number of sentences to move."
   (interactive "p")
   (edt-check-prefix num)
-  (if (eobp)
-      (progn
-        (error "End of buffer"))
-      (backward-sentence num)))
+  (let* ((left nil)
+	 (beg (edt-current-line))
+	 (height (window-height))
+	 (top-percent
+	  (if (= 0 edt-top-scroll-margin) 10 edt-top-scroll-margin))
+	 (bottom-percent
+	  (if (= 0 edt-bottom-scroll-margin) 15 edt-bottom-scroll-margin))
+	 (top-margin (/ (* height top-percent) 100))
+	 (bottom-up-margin (+ 1 (/ (* height bottom-percent) 100)))
+	 (bottom-margin (max beg (- height bottom-up-margin 1)))
+	 (top (save-excursion (move-to-window-line top-margin) (point)))
+	 (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
+	 (far (save-excursion
+		(goto-char bottom) (forward-line (- height 2)) (point))))
+    (if (eobp)
+	(progn
+	  (error "End of buffer"))
+      (backward-sentence num))
+    (and (< (point) top) (recenter (min beg top-margin))))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 (defun edt-sentence (num)
   "Move in current direction to next sentence.
-Accepts a positive prefix argument for the number of sentences to move."
+Argument NUM is the positive number of sentences to move."
   (interactive "p")
   (if (equal edt-direction-string edt-forward-string)
       (edt-sentence-forward num)
-      (edt-sentence-backward num)))
+    (edt-sentence-backward num)))
 
 ;;;
 ;;; PARAGRAPH
@@ -853,35 +1426,69 @@ Accepts a positive prefix argument for the number of sentences to move."
 
 (defun edt-paragraph-forward (num)
   "Move forward to beginning of paragraph.
-Accepts a positive prefix argument for the number of paragraphs to move."
+Argument NUM is the positive number of paragraphs to move."
   (interactive "p")
   (edt-check-prefix num)
-  (while (> num 0)
-    (next-line 1)
-    (forward-paragraph)
-    (previous-line 1)
-    (if (eolp)
-        (next-line 1))
-    (setq num (1- num))))
+  (let* ((left nil)
+	 (beg (edt-current-line))
+	 (height (window-height))
+	 (top-percent
+	  (if (= 0 edt-top-scroll-margin) 10 edt-top-scroll-margin))
+	 (bottom-percent
+	  (if (= 0 edt-bottom-scroll-margin) 15 edt-bottom-scroll-margin))
+	 (top-margin (/ (* height top-percent) 100))
+	 (bottom-up-margin (+ 1 (/ (* height bottom-percent) 100)))
+	 (bottom-margin (max beg (- height bottom-up-margin 1)))
+	 (top (save-excursion (move-to-window-line top-margin) (point)))
+	 (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
+	 (far (save-excursion
+		(goto-char bottom) (forward-line (- height 2)) (point))))
+    (while (> num 0)
+      (forward-paragraph (+ num 1))
+      (start-of-paragraph-text)
+      (if (eolp)
+	  (next-line 1))
+      (setq num (1- num)))
+    (cond((> (point) far)
+	  (setq left (save-excursion (forward-line height)))
+	  (if (= 0 left) (recenter top-margin)
+	    (recenter (- left bottom-up-margin))))
+	 (t
+	  (and (> (point) bottom) (recenter bottom-margin)))))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 (defun edt-paragraph-backward (num)
   "Move backward to beginning of paragraph.
-Accepts a positive prefix argument for the number of paragraphs to move."
+Argument NUM is the positive number of paragraphs to move."
   (interactive "p")
   (edt-check-prefix num)
-  (while (> num 0)
-    (backward-paragraph)
-    (previous-line 1)
-    (if (eolp) (next-line 1))
-    (setq num (1- num))))
+  (let* ((left nil)
+	 (beg (edt-current-line))
+	 (height (window-height))
+	 (top-percent
+	  (if (= 0 edt-top-scroll-margin) 10 edt-top-scroll-margin))
+	 (bottom-percent
+	  (if (= 0 edt-bottom-scroll-margin) 15 edt-bottom-scroll-margin))
+	 (top-margin (/ (* height top-percent) 100))
+	 (bottom-up-margin (+ 1 (/ (* height bottom-percent) 100)))
+	 (bottom-margin (max beg (- height bottom-up-margin 1)))
+	 (top (save-excursion (move-to-window-line top-margin) (point)))
+	 (bottom (save-excursion (move-to-window-line bottom-margin) (point)))
+	 (far (save-excursion
+		(goto-char bottom) (forward-line (- height 2)) (point))))
+    (while (> num 0)
+      (start-of-paragraph-text)
+      (setq num (1- num)))
+    (and (< (point) top) (recenter (min beg top-margin))))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 (defun edt-paragraph (num)
   "Move in current direction to next paragraph.
-Accepts a positive prefix argument for the number of paragraph to move."
+Argument NUM is the positive number of paragraphs to move."
   (interactive "p")
   (if (equal edt-direction-string edt-forward-string)
       (edt-paragraph-forward num)
-      (edt-paragraph-backward num)))
+    (edt-paragraph-backward num)))
 
 ;;;
 ;;; RESTORE KEY
@@ -889,18 +1496,27 @@ Accepts a positive prefix argument for the number of paragraph to move."
 
 (defun edt-restore-key ()
   "Restore last replaced key definition.
-Definition is stored in edt-last-replaced-key-definition."
+Definition is stored in `edt-last-replaced-key-definition'."
   (interactive)
+  (if edt-x-emacs19-p (setq zmacs-region-stays t))
   (if edt-last-replaced-key-definition
       (progn
-        (let (edt-key-definition-string)
-          (set 'edt-key-definition-string
+        (let (edt-key-definition)
+          (set 'edt-key-definition
                (read-key-sequence "Press the key to be restored: "))
-          (if (string-equal "\C-m" edt-key-definition-string) 
-              (message "Key not restored") 
-              (define-key (current-global-map) 
-                 edt-key-definition-string edt-last-replaced-key-definition))))
-      (error "No replaced key definition to restore!")))
+	  (if (if edt-gnu-emacs19-p
+		  (string-equal "\C-m" edt-key-definition)
+		(string-equal "\C-m" (events-to-keys edt-key-definition)))
+              (message "Key not restored")
+	    (progn
+	      (define-key (current-global-map)
+		edt-key-definition edt-last-replaced-key-definition)
+	      (if edt-gnu-emacs19-p
+		  (message "Key definition for %s has been restored."
+			   edt-key-definition)
+		(message "Key definition for %s has been restored."
+			 (events-to-keys edt-key-definition)))))))
+    (error "No replaced key definition to restore!")))
 
 ;;;
 ;;; WINDOW TOP
@@ -911,7 +1527,8 @@ Definition is stored in edt-last-replaced-key-definition."
   (interactive)
   (let ((start-column (current-column)))
     (move-to-window-line 0)
-    (move-to-column start-column)))
+    (move-to-column start-column))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 ;;;
 ;;; WINDOW BOTTOM
@@ -922,7 +1539,8 @@ Definition is stored in edt-last-replaced-key-definition."
   (interactive)
   (let ((start-column (current-column)))
     (move-to-window-line (- (window-height) 2))
-    (move-to-column start-column)))
+    (move-to-column start-column))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 ;;;
 ;;; SCROLL WINDOW LINE
@@ -931,29 +1549,31 @@ Definition is stored in edt-last-replaced-key-definition."
 (defun edt-scroll-window-forward-line ()
   "Move window forward one line leaving cursor at position in window."
   (interactive)
-  (scroll-up 1))
+  (scroll-up 1)
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 (defun edt-scroll-window-backward-line ()
   "Move window backward one line leaving cursor at position in window."
   (interactive)
-  (scroll-down 1))
+  (scroll-down 1)
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 (defun edt-scroll-line ()
   "Move window one line in current direction."
   (interactive)
   (if (equal edt-direction-string edt-forward-string)
       (edt-scroll-window-forward-line)
-      (edt-scroll-window-backward-line)))
+    (edt-scroll-window-backward-line)))
 
 ;;;
 ;;; SCROLL WINDOW
 ;;;
-;;; Scroll a window (less one line) at a time.  Leave cursor in center of 
-;;; window. 
+;;; Scroll a window (less one line) at a time.  Leave cursor in center of
+;;; window.
 
 (defun edt-scroll-window-forward (num)
   "Scroll forward one window in buffer, less one line.
-Accepts a positive prefix argument for the number of windows to move."
+Argument NUM is the positive number of windows to move."
   (interactive "p")
   (edt-check-prefix num)
   (scroll-up (- (* (window-height) num) 2))
@@ -961,7 +1581,7 @@ Accepts a positive prefix argument for the number of windows to move."
 
 (defun edt-scroll-window-backward (num)
   "Scroll backward one window in buffer, less one line.
-Accepts a positive prefix argument for the number of windows to move."
+Argument NUM is the positive number of windows to move."
   (interactive "p")
   (edt-check-prefix num)
   (scroll-down (- (* (window-height) num) 2))
@@ -969,11 +1589,11 @@ Accepts a positive prefix argument for the number of windows to move."
 
 (defun edt-scroll-window (num)
   "Scroll one window in buffer, less one line, in current direction.
-Accepts a positive prefix argument for the number windows to move."
+Argument NUM is the positive number of windows to move."
   (interactive "p")
   (if (equal edt-direction-string edt-forward-string)
       (edt-scroll-window-forward num)
-      (edt-scroll-window-backward num)))
+    (edt-scroll-window-backward num)))
 
 ;;;
 ;;; LINE TO BOTTOM OF WINDOW
@@ -982,7 +1602,8 @@ Accepts a positive prefix argument for the number windows to move."
 (defun edt-line-to-bottom-of-window ()
   "Move the current line to the bottom of the window."
   (interactive)
-  (recenter -1))
+  (recenter -1)
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 ;;;
 ;;; LINE TO TOP OF WINDOW
@@ -991,7 +1612,8 @@ Accepts a positive prefix argument for the number windows to move."
 (defun edt-line-to-top-of-window ()
   "Move the current line to the top of the window."
   (interactive)
-  (recenter 0))
+  (recenter 0)
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 ;;;
 ;;; LINE TO MIDDLE OF WINDOW
@@ -1000,18 +1622,21 @@ Accepts a positive prefix argument for the number windows to move."
 (defun edt-line-to-middle-of-window ()
   "Move window so line with cursor is in the middle of the window."
   (interactive)
-  (recenter '(4)))
+  (recenter '(4))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 ;;;
 ;;; GOTO PERCENTAGE
 ;;;
 
 (defun edt-goto-percentage (num)
-  "Move to specified percentage in buffer from top of buffer."
+  "Move to specified percentage in buffer from top of buffer.
+Argument NUM is the percentage into the buffer to move."
   (interactive "NGoto-percentage: ")
   (if (or (> num 100) (< num 0))
       (error "Percentage %d out of range 0 < percent < 100" num)
-      (goto-char (/ (* (point-max) num) 100))))
+    (goto-char (/ (* (point-max) num) 100)))
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 ;;;
 ;;; FILL REGION
@@ -1019,7 +1644,7 @@ Accepts a positive prefix argument for the number windows to move."
 
 (defun edt-fill-region ()
   "Fill selected text."
-  (interactive "*")         
+  (interactive "*")
   (edt-check-selection)
   (fill-region (point) (mark)))
 
@@ -1029,38 +1654,38 @@ Accepts a positive prefix argument for the number windows to move."
 
 (defun edt-indent-or-fill-region ()
   "Fill region in text modes, indent region in programming language modes."
-  (interactive "*")         
+  (interactive "*")
   (if (string= paragraph-start "$\\|\f")
       (indent-region (point) (mark) nil)
-      (fill-region (point) (mark))))
+    (fill-region (point) (mark))))
 
 ;;;
 ;;; MARK SECTION WISELY
 ;;;
 
 (defun edt-mark-section-wisely ()
-  "Mark the section in a manner consistent with the major-mode.
-Uses mark-defun for emacs-lisp and lisp,
+  "Mark the section in a manner consistent with the `major-mode'.
+Uses `mark-defun' for emacs-lisp and Lisp,
 mark-c-function for C,
 mark-fortran-subsystem for fortran,
-and mark-paragraph for other modes."
+and `mark-paragraph' for other modes."
   (interactive)
   (if edt-select-mode
       (progn
         (edt-reset))
-      (progn
-	(cond  ((or (eq major-mode 'emacs-lisp-mode)
-		    (eq major-mode 'lisp-mode))
-		(mark-defun)
-		(message "Lisp defun selected"))
-	       ((eq major-mode 'c-mode)
-		(mark-c-function)
-		(message "C function selected"))
-	       ((eq major-mode 'fortran-mode)
-		(mark-fortran-subprogram)
-		(message "Fortran subprogram selected"))
-	       (t (mark-paragraph)
-		  (message "Paragraph selected"))))))
+    (progn
+      (cond  ((or (eq major-mode 'emacs-lisp-mode)
+		  (eq major-mode 'lisp-mode))
+	      (mark-defun)
+	      (message "Lisp defun selected"))
+	     ((eq major-mode 'c-mode)
+	      (mark-c-function)
+	      (message "C function selected"))
+	     ((eq major-mode 'fortran-mode)
+	      (mark-fortran-subprogram)
+	      (message "Fortran subprogram selected"))
+	     (t (mark-paragraph)
+		(message "Paragraph selected"))))))
 
 ;;;
 ;;; COPY
@@ -1080,12 +1705,12 @@ and mark-paragraph for other modes."
 
 (defun edt-cut-or-copy ()
   "Cuts (or copies) selected text to kill ring.
-Cuts selected text if buffer-read-only is nil.
-Copies selected text if buffer-read-only is t."
+Cuts selected text if `buffer-read-only' is nil.
+Copies selected text if `buffer-read-only' is t."
   (interactive)
   (if buffer-read-only
       (edt-copy)
-      (edt-cut)))
+    (edt-cut)))
 
 ;;;
 ;;; DELETE ENTIRE LINE
@@ -1102,8 +1727,8 @@ Copies selected text if buffer-read-only is t."
 ;;;
 
 (defun edt-duplicate-line (num)
-  "Duplicate a line of text.
-Accepts a positive prefix argument for the number times to duplicate the line."
+  "Duplicate the line of text containing the cursor.
+Argument NUM is the number of times to duplicate the line."
   (interactive "*p")
   (edt-check-prefix num)
   (let ((old-column (current-column))
@@ -1139,11 +1764,11 @@ Accepts a positive prefix argument for the number times to duplicate the line."
           (forward-line)
           (move-to-column start-column)
           (insert edt-last-copied-word))
-        (progn
-	  (if (not (equal start (point)))
-	      (forward-line))
-          (move-to-column start-column)
-          (error "Nothing to duplicate!")))))
+      (progn
+	(if (not (equal start (point)))
+	    (forward-line))
+	(move-to-column start-column)
+	(error "Nothing to duplicate!")))))
 
 ;;;
 ;;; KEY NOT ASSIGNED
@@ -1184,6 +1809,7 @@ Accepts a positive prefix argument for the number times to duplicate the line."
 (defun edt-display-the-time ()
   "Display the current time."
   (interactive)
+  (if edt-x-emacs19-p (setq zmacs-region-stays t))
   (set 'time-string (current-time-string))
   (message "%s" time-string))
 
@@ -1196,33 +1822,35 @@ Accepts a positive prefix argument for the number times to duplicate the line."
   (interactive)
   (if (eq defining-kbd-macro t)
       (edt-remember)
-      (start-kbd-macro nil)))
+    (start-kbd-macro nil)))
 
 ;;;
 ;;; REMEMBER
 ;;;
 
 (defun edt-remember ()
-  "Store the sequence of key strokes started by edt-learn to a key."
+  "Store the sequence of key strokes started by `edt-learn' to a key."
   (interactive)
   (if (eq defining-kbd-macro nil)
       (error "Nothing to remember!")
-      (progn
-        (end-kbd-macro nil)
-        (let (edt-key-definition-string)
-          (set 'edt-key-definition-string
-               (read-key-sequence "Enter key for binding: "))
-          (if (string-equal "\C-m" edt-key-definition-string) 
-              (message "Key sequence not remembered") 
-              (progn
-                (set 'edt-learn-macro-count (+ edt-learn-macro-count 1))
-                (setq edt-last-replaced-key-definition
-                      (lookup-key (current-global-map)
-                                  edt-key-definition-string))
-                (define-key (current-global-map) edt-key-definition-string
-                  (name-last-kbd-macro
-                    (intern (concat "last-learned-sequence-"
-                                  (int-to-string edt-learn-macro-count)))))))))))
+    (progn
+      (end-kbd-macro nil)
+      (let (edt-key-definition)
+	(set 'edt-key-definition
+	     (read-key-sequence "Enter key for binding: "))
+	(if (if edt-gnu-emacs19-p
+		(string-equal "\C-m" edt-key-definition)
+	      (string-equal "\C-m" (events-to-keys edt-key-definition)))
+	    (message "Key sequence not remembered")
+	  (progn
+	    (set 'edt-learn-macro-count (+ edt-learn-macro-count 1))
+	    (setq edt-last-replaced-key-definition
+		  (lookup-key (current-global-map)
+			      edt-key-definition))
+	    (define-key (current-global-map) edt-key-definition
+	      (name-last-kbd-macro
+	       (intern (concat "last-learned-sequence-"
+			       (int-to-string edt-learn-macro-count)))))))))))
 
 ;;;
 ;;; EXIT
@@ -1239,9 +1867,20 @@ Accepts a positive prefix argument for the number times to duplicate the line."
 ;;;
 
 (defun edt-quit ()
-  "Quit Emacs without saving changes."
+  "Quit Emacs without saving buffer modifications.
+Warn user that modifications will be lost."
   (interactive)
-  (kill-emacs))
+  (let ((list (buffer-list))
+	(working t))
+    (while (and list working)
+      (let ((buffer (car list)))
+	(if (and (buffer-file-name buffer) (buffer-modified-p buffer))
+            (if (edt-y-or-n-p
+		 "Modifications will not be saved, continue quitting? ")
+		(kill-emacs)
+	      (setq working nil)))
+	(setq list (cdr list))))
+    (if working (kill-emacs)))) 
 
 ;;; 
 ;;; SPLIT WINDOW
@@ -1251,7 +1890,8 @@ Accepts a positive prefix argument for the number times to duplicate the line."
   "Split current window and place cursor in the new window."
   (interactive)
   (split-window)
-  (other-window 1))
+  (other-window 1)
+  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
 
 ;;;
 ;;; COPY RECTANGLE
@@ -1283,7 +1923,7 @@ upper left corner."
 (defun edt-cut-rectangle-insert-mode ()
   "Cut a rectangle of text between mark and cursor to register.
 Move cursor back to upper left corner."
-  (interactive "*")         
+  (interactive "*")
   (edt-check-selection)
   (setq edt-rect-start-point (region-beginning))
   (picture-clear-rectangle-to-register (region-beginning) (region-end) 3 t)
@@ -1297,7 +1937,7 @@ If overwrite mode is active, cut text is replaced with whitespace."
   (interactive "*")
   (if overwrite-mode
       (edt-cut-rectangle-overstrike-mode)
-      (edt-cut-rectangle-insert-mode)))
+    (edt-cut-rectangle-insert-mode)))
 
 ;;;
 ;;; PASTE RECTANGLE
@@ -1305,7 +1945,7 @@ If overwrite mode is active, cut text is replaced with whitespace."
 
 (defun edt-paste-rectangle-overstrike-mode ()
   "Paste a rectangular region of text from register, replacing text at cursor."
-  (interactive "*")    
+  (interactive "*")
   (picture-yank-rectangle-from-register 3))
 
 (defun edt-paste-rectangle-insert-mode ()
@@ -1319,7 +1959,7 @@ If overwrite mode is active, existing text is replace with text from register."
   (interactive)
   (if overwrite-mode
       (edt-paste-rectangle-overstrike-mode)
-      (edt-paste-rectangle-insert-mode)))
+    (edt-paste-rectangle-insert-mode)))
 
 ;;;
 ;;; DOWNCASE REGION
@@ -1338,24 +1978,24 @@ and the cursor is left to rest at the beginning of that word."
   (if edt-select-mode
       (progn
 	(downcase-region (mark) (point)))
-      (progn
-	;; Move to beginning of current word.
-	(if (and
-	      (not (bobp))
-	      (not (eobp))
-	      (not (bolp))
-	      (not (eolp))
-	      (not (eq ?\  (char-syntax (preceding-char))))
-	      (not (memq (preceding-char) edt-word-entities))
-	      (not (memq (following-char) edt-word-entities)))
-	    (edt-one-word-backward))
-	(if (equal edt-direction-string edt-backward-string)
-	    (edt-one-word-backward))
-	(let ((beg (point)))
-	  (edt-one-word-forward)
-	  (downcase-region beg (point)))
-	(if (equal edt-direction-string edt-backward-string)
-	    (edt-one-word-backward)))))
+    (progn
+      ;; Move to beginning of current word.
+      (if (and
+	   (not (bobp))
+	   (not (eobp))
+	   (not (bolp))
+	   (not (eolp))
+	   (not (eq ?\  (char-syntax (preceding-char))))
+	   (not (memq (preceding-char) edt-word-entities))
+	   (not (memq (following-char) edt-word-entities)))
+	  (edt-one-word-backward))
+      (if (equal edt-direction-string edt-backward-string)
+	  (edt-one-word-backward))
+      (let ((beg (point)))
+	(edt-one-word-forward)
+	(downcase-region beg (point)))
+      (if (equal edt-direction-string edt-backward-string)
+	  (edt-one-word-backward)))))
 
 ;;;
 ;;; UPCASE REGION
@@ -1374,40 +2014,36 @@ and the cursor is left to rest at the beginning of that word."
   (if edt-select-mode
       (progn
 	(upcase-region (mark) (point)))
-      (progn
-	;; Move to beginning of current word.
-	(if (and
-	      (not (bobp))
-	      (not (eobp))
-	      (not (bolp))
-	      (not (eolp))
-	      (not (eq ?\  (char-syntax (preceding-char))))
-	      (not (memq (preceding-char) edt-word-entities))
-	      (not (memq (following-char) edt-word-entities)))
-	    (edt-one-word-backward))
-	(if (equal edt-direction-string edt-backward-string)
-	    (edt-one-word-backward))
-	(let ((beg (point)))
-	  (edt-one-word-forward)
-	  (upcase-region beg (point)))
-	(if (equal edt-direction-string edt-backward-string)
-	    (edt-one-word-backward)))))
-
-
-;;;
-;;; INITIALIZATION COMMANDS.
-;;;
+    (progn
+      ;; Move to beginning of current word.
+      (if (and
+	   (not (bobp))
+	   (not (eobp))
+	   (not (bolp))
+	   (not (eolp))
+	   (not (eq ?\  (char-syntax (preceding-char))))
+	   (not (memq (preceding-char) edt-word-entities))
+	   (not (memq (following-char) edt-word-entities)))
+	  (edt-one-word-backward))
+      (if (equal edt-direction-string edt-backward-string)
+	  (edt-one-word-backward))
+      (let ((beg (point)))
+	(edt-one-word-forward)
+	(upcase-region beg (point)))
+      (if (equal edt-direction-string edt-backward-string)
+	  (edt-one-word-backward)))))
 
 ;;;
-;;;  Emacs version 19 X-windows key definition support
+;;;  Functions used in loading LK-201 key mapping file.
 ;;;
-(defvar edt-last-answer nil 
-  "Most recent response to edt-y-or-n-p.")
+(defvar edt-last-answer nil
+  "Most recent response to `edt-y-or-n-p'.")
 
 (defun edt-y-or-n-p (prompt &optional not-yes)
   "Prompt for a y or n answer with positive default.
-Optional second argument NOT-YES changes default to negative.
-Like emacs y-or-n-p, also accepts space as y and DEL as n."
+Like Emacs `y-or-n-p', also accepts space as y and DEL as n.
+Argument PROMPT is the prompt string.
+Optional argument NOT-YES changes the default to negative."
   (message "%s[%s]" prompt (if not-yes "n" "y"))
   (let ((doit t))
     (while doit
@@ -1423,20 +2059,36 @@ Like emacs y-or-n-p, also accepts space as y and DEL as n."
 	       (message "Please answer y or n.  %s[%s]"
 			prompt (if not-yes "n" "y")))))))
   edt-last-answer)
+
+;;;
+;;; INITIALIZATION COMMANDS.
+;;;
 
-(defun edt-load-xkeys (file)
-  "Load the EDT X-windows key definitions FILE.
-If FILE is nil, try to load a default file.  The default file names are
-~/.edt-lucid-keys for Lucid emacs, and ~/.edt-gnu-keys for GNU emacs."
-  (interactive "fX key definition file: ")
+;;;
+;;;  Function used to load LK-201 key mapping file generated by edt-mapper.el.
+;;;
+(defun edt-load-keys (file)
+  "Load the LK-201 key mapping FILE generated by edt-mapper.el.  
+If FILE is nil, which is the normal case, try to load a default file.
+The default file names are based upon the window system, terminal
+type, and version of Emacs in use: GNU Emacs or XEmacs (aka Lucid
+Emacs).  If a default file does not exist, ask user if one should be
+created."
+  (interactive "fKey definition file: ")
   (cond (file
 	 (setq file (expand-file-name file)))
-	(edt-xkeys-file
-	 (setq file (expand-file-name edt-xkeys-file)))
-	(edt-gnu-emacs19-p
-	 (setq file (expand-file-name "~/.edt-gnu-keys")))
-	(edt-lucid-emacs19-p
-	 (setq file (expand-file-name "~/.edt-lucid-keys"))))
+	(edt-keys-file
+	 (setq file (expand-file-name edt-keys-file)))
+	(t
+	 (setq file
+	       (expand-file-name
+		(concat
+		 "~/.edt-" edt-emacs-variant
+		 (if edt-term (concat "-" edt-term))
+		 (if edt-xserver (concat "-" edt-xserver))
+		 (if edt-window-system 
+		     (concat "-" (upcase (symbol-name edt-window-system))))
+		 "-keys")))))
   (cond ((file-readable-p file)
 	 (load-file file))
 	(t
@@ -1444,16 +2096,19 @@ If FILE is nil, try to load a default file.  The default file names are
 	 (erase-buffer)
 	 (insert "
 
-     Ack!!  You're running the Enhanced EDT Emulation under X-windows
-     without loading an EDT X key definition file.  To create an EDT X
-     key definition file, run the edt-mapper.el program.  But ONLY run
-     it from an Emacs loaded without any of your own customizations
-     found in your .emacs file, etc.  Some user customization confuse
-     the edt-mapper function.  To do this, you need to invoke Emacs
-     as follows:
+     Ack!!  You're running the Enhanced EDT Emulation without loading an
+     EDT key mapping file.  To create an EDT key mapping file, run the 
+     edt-mapper.el program.  It is safest to run it from an Emacs loaded
+     without any of your own customizations found in your .emacs file, etc.
+     The reason for this is that some user customizations confuse edt-mapper.
+     You can do this by quitting Emacs and then invoking Emacs again as
+     follows:
 
           emacs -q -l edt-mapper.el
      
+     [NOTE:  If you do nothing out of the ordinary in your .emacs file, and
+     the search for edt-mapper.el is successful, you can try running it now.]
+
      The file edt-mapper.el includes these same directions on how to
      use it!  Perhaps it's lying around here someplace. \n     ")
 	 (let ((file "edt-mapper.el")
@@ -1472,48 +2127,78 @@ If FILE is nil, try to load a default file.  The default file names are
 			   "Ah yes, there it is, in \n\n       %s \n\n" path))
 		  (if (edt-y-or-n-p "Do you want to run it now? ")
 		      (load-file path)
-		    (error "EDT Emulation not configured.")))
+		    (error "EDT Emulation not configured")))
 		 (t
 		  (insert "Nope, I can't seem to find it.  :-(\n\n")
 		  (sit-for 20)
-		  (error "EDT Emulation not configured.")))))))
+		  (error "EDT Emulation not configured")))))))
+
+;;;
+;;;  Turning the EDT Emulation on and off.
+;;;
 
 ;;;###autoload
 (defun edt-emulation-on ()
   "Turn on EDT Emulation."
   (interactive)
-  ;; If using MS-DOS or Windows, need to load edt-pc.el
-  (if (memq system-type '(ms-dos windows-nt))
+  ;; If using pc window system (MS-DOS), set terminal type to pc.
+  ;; If not a window system (GNU) or a tty window system (XEmacs),
+  ;; get terminal type.
+  (if (eq edt-window-system 'pc)
       (setq edt-term "pc")
-    (setq edt-term (or (getenv "TERM") "")))
-  ;; All DEC VT series terminals are supported by loading edt-vt100.el
-  (if (string-equal "vt" (substring edt-term 0 (min (length edt-term) 2)))
-      (setq edt-term "vt100"))
-  ;; Load EDT terminal specific configuration file.
-  (let ((term edt-term)
-        hyphend)
-    (while (and term
-                (not (load (concat "edt-" term) t t)))
-      ;; Strip off last hyphen and what follows, then try again
-      (if (setq hyphend (string-match "[-_][^-_]+$" term))
-          (setq term (substring term 0 hyphend))
-          (setq term nil)))
-    ;; Override terminal-specific file if running X Windows.  X Windows support
-    ;; is handled differently in edt-load-xkeys
-    (if (eq window-system 'x)
-	(edt-load-xkeys nil)
-      (if (null term)
-	  (error "Unable to load EDT terminal specific file for %s" edt-term)))
-    (setq edt-term term))
-  (setq edt-orig-transient-mark-mode transient-mark-mode)
-  (add-hook 'activate-mark-hook
-	    (function
-	     (lambda ()
-	       (edt-select-mode t))))
-  (add-hook 'deactivate-mark-hook
-	    (function
-	     (lambda ()
-	       (edt-select-mode nil))))
+    (if (or (not edt-window-system) (eq edt-window-system 'tty))
+	(setq edt-term (getenv "TERM"))))
+  ;; Look for for terminal configuration file for this terminal type.
+  ;; Otherwise, load the user's custom configuration file.
+  (if (or (not edt-window-system) (memq edt-window-system '(pc tty)))
+      (progn
+	;; Load terminal-specific configuration file, if it exists for this
+	;; terminal type.  Note: All DEC VT series terminals are supported
+	;; by the same terminal configuration file: edt-vt100.el.
+	(if (string-equal "vt" (substring edt-term 0 (min (length edt-term) 2)))
+	    (setq edt-term "vt100"))
+	(let ((term edt-term)
+	      hyphend)
+	  (while (and term
+		      (not (load (concat "edt-" term) t t)))
+	    ;; Strip off last hyphen and what follows, then try again
+	    (if (setq hyphend (string-match "[-_][^-_]+$" term))
+		(setq term (substring term 0 hyphend))
+	      (setq term nil)))
+	  ;; If no terminal-specific configuration file exists, load user's
+	  ;; custom EDT terminal configuration file.
+	  ;; If this is a pc running MS-DOS, then custom configuration files
+	  ;; are not supported.  So, if the file is missing, issue an error
+	  ;; message.
+	  (if (null term)
+	      (if (equal edt-term "pc")
+		  (error "Unable to find EDT terminal specific file edt-pc.el")
+		(edt-load-keys nil))
+	    (setq edt-term term))))
+    (edt-load-keys nil))
+  ;; Make highlighting of selected text work properly for EDT commands.
+  (if edt-gnu-emacs19-p
+      (progn
+	(setq edt-orig-transient-mark-mode transient-mark-mode)
+	(add-hook 'activate-mark-hook
+		  (function
+		   (lambda ()
+		     (edt-select-mode t))))
+	(add-hook 'deactivate-mark-hook
+		  (function
+		   (lambda ()
+		     (edt-select-mode nil)))))
+    (progn
+      (add-hook 'zmacs-activate-region-hook
+		(function
+		 (lambda ()
+		   (edt-select-mode t))))
+      (add-hook 'zmacs-deactivate-region-hook
+		(function
+		 (lambda ()
+		   (edt-select-mode nil))))))
+  ;;  Load user's EDT custom key bindings file, if it exists.
+  ;;  Otherwise, use the default bindings.
   (if (load "edt-user" t t)
       (edt-user-emulation-setup)
       (edt-default-emulation-setup)))
@@ -1525,14 +2210,17 @@ If FILE is nil, try to load a default file.  The default file names are
   (if (not edt-keep-current-page-delimiter)
       (setq page-delimiter edt-orig-page-delimiter))
   (setq edt-direction-string "")
-  (setq edt-select-mode-text nil)
+  (setq edt-select-mode-current nil)
   (edt-reset)
   (force-mode-line-update t)
-  (setq transient-mark-mode edt-orig-transient-mark-mode)
+  (if edt-gnu-emacs19-p
+    (setq transient-mark-mode edt-orig-transient-mark-mode))
   (message "Original key bindings restored; EDT Emulation disabled"))
 
 (defun edt-default-emulation-setup (&optional user-setup)
-  "Setup emulation of DEC's EDT editor."
+  "Setup emulation of DEC's EDT editor.
+Optional argument USER-SETUP non-nil means  called from function
+`edt-user-emulation-setup'."
   ;; Setup default EDT global map by copying global map bindings.
   ;; This preserves ESC and C-x prefix bindings and other bindings we
   ;; wish to retain in EDT emulation mode keymaps.  It also permits
@@ -1540,7 +2228,9 @@ If FILE is nil, try to load a default file.  The default file names are
   ;; disturbing the original bindings in global-map.
   (fset 'edt-default-ESC-prefix (copy-keymap 'ESC-prefix))
   (setq edt-default-global-map (copy-keymap (current-global-map)))
-  (define-key edt-default-global-map "\e" 'edt-default-ESC-prefix)
+  (if edt-gnu-emacs19-p
+      (define-key edt-default-global-map "\e" 'edt-default-ESC-prefix)
+    (define-key edt-default-global-map [escape] 'edt-default-ESC-prefix))
   (define-prefix-command 'edt-default-gold-map)
   (edt-setup-default-bindings)
   ;; If terminal has additional function keys, the terminal-specific
@@ -1552,20 +2242,20 @@ If FILE is nil, try to load a default file.  The default file names are
   (setq edt-learn-macro-count 0)
   ;; Display EDT text selection active within the mode line
   (or (assq 'edt-select-mode minor-mode-alist)
-      (setq minor-mode-alist 
+      (setq minor-mode-alist
 	    (cons '(edt-select-mode edt-select-mode) minor-mode-alist)))
   ;; Display EDT direction of motion within the mode line
   (or (assq 'edt-direction-string minor-mode-alist)
       (setq minor-mode-alist
 	    (cons
-	      '(edt-direction-string edt-direction-string) minor-mode-alist)))
+	     '(edt-direction-string edt-direction-string) minor-mode-alist)))
   (if user-setup
       (progn
         (setq edt-user-map-configured t)
         (fset 'edt-emulation-on (symbol-function 'edt-select-user-global-map)))
-      (progn
-        (fset 'edt-emulation-on (symbol-function 'edt-select-default-global-map))
-        (edt-select-default-global-map))))
+    (progn
+      (fset 'edt-emulation-on (symbol-function 'edt-select-default-global-map))
+      (edt-select-default-global-map))))
 
 (defun edt-user-emulation-setup ()
   "Setup user custom emulation of DEC's EDT editor."
@@ -1574,7 +2264,9 @@ If FILE is nil, try to load a default file.  The default file names are
   ;; Setup user EDT global map by copying default EDT global map bindings.
   (fset 'edt-user-ESC-prefix (copy-keymap 'edt-default-ESC-prefix))
   (setq edt-user-global-map (copy-keymap edt-default-global-map))
-  (define-key edt-user-global-map "\e" 'edt-user-ESC-prefix)
+  (if edt-gnu-emacs19-p
+      (define-key edt-user-global-map "\e" 'edt-user-ESC-prefix)
+    (define-key edt-user-global-map [escape] 'edt-user-ESC-prefix))
   ;; If terminal has additional function keys, the user's initialization
   ;; file can assign bindings to them via the optional
   ;; function edt-setup-extra-default-bindings.
@@ -1586,7 +2278,8 @@ If FILE is nil, try to load a default file.  The default file names are
 (defun edt-select-default-global-map()
   "Select default EDT emulation key bindings."
   (interactive)
-  (transient-mark-mode 1)
+  (if edt-gnu-emacs19-p
+    (transient-mark-mode 1))
   (use-global-map edt-default-global-map)
   (if (not edt-keep-current-page-delimiter)
       (progn
@@ -1594,7 +2287,7 @@ If FILE is nil, try to load a default file.  The default file names are
         (setq page-delimiter "\f")))
   (setq edt-default-map-active t)
   (edt-advance)
-  (setq edt-select-mode-text 'edt-select-mode-string)
+  (setq edt-select-mode-current 'edt-select-mode-string)
   (edt-reset)
   (message "Default EDT keymap active"))
 
@@ -1603,7 +2296,8 @@ If FILE is nil, try to load a default file.  The default file names are
   (interactive)
   (if edt-user-map-configured
       (progn
-	(transient-mark-mode 1)
+	(if edt-gnu-emacs19-p
+	    (transient-mark-mode 1))
         (use-global-map edt-user-global-map)
         (if (not edt-keep-current-page-delimiter)
             (progn
@@ -1611,51 +2305,73 @@ If FILE is nil, try to load a default file.  The default file names are
               (setq page-delimiter "\f")))
         (setq edt-default-map-active nil)
         (edt-advance)
-	(setq edt-select-mode-text 'edt-select-mode-string)
+	(setq edt-select-mode-current 'edt-select-mode-string)
         (edt-reset)
         (message "User EDT custom keymap active"))
-      (error "User EDT custom keymap NOT configured!")))
+    (error "User EDT custom keymap NOT configured!")))
 
 (defun edt-switch-global-maps ()
   "Toggle between default EDT keymap and user EDT keymap."
   (interactive)
-  (if edt-default-map-active 
-    (edt-select-user-global-map)
+  (if edt-default-map-active
+      (edt-select-user-global-map)
     (edt-select-default-global-map)))
 
-;; There are three key binding functions needed: one for standard keys
-;; (used to bind control keys, primarily), one for Gold sequences of
-;; standard keys, and one for function keys.  
+;;
+;;  Functions used to set up DEFAULT bindings to EDT emulation functions.
+;;
 
-(defun edt-bind-gold-key (key gold-binding &optional default)
-  "Binds commands to a gold key sequence in the EDT Emulator."
-  (if default
-      (define-key 'edt-default-gold-map key gold-binding)
-      (define-key 'edt-user-gold-map key gold-binding)))
+(defun edt-bind-function-key-default (function-key binding gold-binding)
+  "Binds LK-201 function keys to default bindings in the EDT Emulator.
+Argument FUNCTION-KEY is the name of the function key or keypad function key.
+Argument BINDING is the Emacs function to be bound to <KEY>.
+Argument GOLD-BINDING is the Emacs function to be bound to GOLD <KEY>."
+  (let ((key (cdr (assoc function-key *EDT-keys*))))
+    (if (and key (not (equal key "")))
+	(progn
+	  (define-key edt-default-global-map key binding)
+	  (define-key 'edt-default-gold-map key gold-binding)))))
 
-(defun edt-bind-standard-key (key gold-binding &optional default)
-  "Bind commands to a gold key sequence in the default EDT keymap."
-  (if default
-      (define-key edt-default-global-map key gold-binding)
-      (define-key edt-user-global-map key gold-binding)))
+(defun edt-bind-key-default (key binding)
+  "Bind key sequences to default bindings in the EDT Emulator.
+Argument KEY is the name of a standard key or a function key.
+Argument BINDING is the Emacs function to be bound to <KEY>."
+  (define-key edt-default-global-map key binding))
 
-(defun edt-bind-function-key 
-    (function-key binding gold-binding &optional default)
-  "Binds function keys in the EDT Emulator."
-  (catch 'edt-key-not-supported
-    (let ((key-vector (cdr (assoc function-key *EDT-keys*))))
-      (if (stringp key-vector)
-	  (throw 'edt-key-not-supported t))
-      (if (not (null key-vector))
-	  (progn
-	    (if default
-		(progn
-		  (define-key edt-default-global-map key-vector binding)
-		  (define-key 'edt-default-gold-map key-vector gold-binding))
-              (progn
-                (define-key edt-user-global-map key-vector binding)
-                (define-key 'edt-user-gold-map key-vector gold-binding))))
-	(error "%s is not a legal function key name" function-key)))))
+(defun edt-bind-gold-key-default (key gold-binding)
+  "Binds <GOLD> key sequences to default bindings in the EDT Emulator.
+Argument KEY is the name of a standard key or a function key.
+Argument GOLD-BINDING is the Emacs function to be bound to GOLD <KEY>."
+  (define-key 'edt-default-gold-map key gold-binding))
+
+;;
+;;  Functions used to set up USER CUSTOM bindings to EDT emulation functions.
+;;
+(defun edt-bind-function-key (function-key binding gold-binding)
+  "Binds LK-201 function keys to custom bindings in the EDT Emulator.
+Argument FUNCTION-KEY is the name of the function key or keypad function key.
+Argument BINDING is the Emacs function to be bound to <KEY>.
+Argument GOLD-BINDING is the Emacs function to be bound to GOLD <KEY>."
+  (let ((key (cdr (assoc function-key *EDT-keys*))))
+    (if (and key (not (equal key "")))
+	(progn
+	  (define-key edt-user-global-map key binding)
+	  (define-key 'edt-user-gold-map key gold-binding)))))
+
+(defun edt-bind-key (key binding)
+  "Bind standard key sequences to custom bindings in the EDT Emulator.
+Argument KEY is the name of a key.  It can be a standard key or a function key.
+Argument BINDING is the Emacs function to be bound to <KEY>."
+  (define-key edt-user-global-map key binding))
+
+;;  For backward compatibility to existing edt-user.el files.
+(fset 'edt-bind-standard-key (symbol-function 'edt-bind-key))
+
+(defun edt-bind-gold-key (key gold-binding)
+  "Binds <GOLD> standard key sequences to custom bindings in the EDT Emulator.
+Argument KEY is the name of a standard key or a function key.
+Argument GOLD-BINDING is the Emacs function to be bound to GOLD <KEY>."
+  (define-key 'edt-user-gold-map key gold-binding))
 
 (defun edt-setup-default-bindings ()
   "Assigns default EDT Emulation keyboard bindings."
@@ -1663,65 +2379,81 @@ If FILE is nil, try to load a default file.  The default file names are
   ;; Function Key Bindings:  Regular and GOLD.
 
   ;; VT100/VT200/VT300 PF1 (GOLD), PF2, PF3, PF4 Keys
-  (edt-bind-function-key "PF1" 'edt-default-gold-map 'edt-mark-section-wisely t)
-  (edt-bind-function-key "PF2" 'edt-electric-keypad-help 'describe-function t)
-  (edt-bind-function-key "PF3" 'edt-find-next 'edt-find t)
-  (edt-bind-function-key "PF4" 'edt-delete-line 'edt-undelete-line t)
+  (edt-bind-function-key-default "PF1"
+       'edt-default-gold-map 'edt-mark-section-wisely)
+  (edt-bind-function-key-default "PF2"
+       'edt-electric-keypad-help 'describe-function)
+  (edt-bind-function-key-default "PF3" 'edt-find-next 'edt-find)
+  (edt-bind-function-key-default "PF4" 'edt-delete-line 'edt-undelete-line)
 
   ;; VT100/VT200/VT300 Arrow Keys
-  (edt-bind-function-key "UP" 'previous-line 'edt-window-top t)
-  (edt-bind-function-key "DOWN" 'next-line 'edt-window-bottom t)
-  (edt-bind-function-key "LEFT" 'backward-char 'edt-sentence-backward t)
-  (edt-bind-function-key "RIGHT" 'forward-char 'edt-sentence-forward t)
+  (edt-bind-function-key-default "UP" 'edt-previous-line 'edt-window-top)
+  (edt-bind-function-key-default "DOWN" 'edt-next-line 'edt-window-bottom)
+  (edt-bind-function-key-default "LEFT" 'backward-char 'edt-sentence-backward)
+  (edt-bind-function-key-default "RIGHT" 'forward-char 'edt-sentence-forward)
 
   ;; VT100/VT200/VT300 Keypad Keys
-  (edt-bind-function-key "KP0" 'edt-line 'open-line t)
-  (edt-bind-function-key "KP1" 'edt-word 'edt-change-case t)
-  (edt-bind-function-key "KP2" 'edt-end-of-line 'edt-delete-to-end-of-line t)
-  (edt-bind-function-key "KP3" 'edt-character 'quoted-insert t)
-  (edt-bind-function-key "KP4" 'edt-advance 'edt-bottom t)
-  (edt-bind-function-key "KP5" 'edt-backup 'edt-top t)
-  (edt-bind-function-key "KP6" 'edt-cut 'yank t)
-  (edt-bind-function-key "KP7" 'edt-page 'execute-extended-command t)
-  (edt-bind-function-key "KP8" 'edt-sect 'edt-fill-region t)
-  (edt-bind-function-key "KP9" 'edt-append 'edt-replace t)
-  (edt-bind-function-key "KP-" 'edt-delete-word 'edt-undelete-word t)
-  (edt-bind-function-key "KP," 'edt-delete-character 'edt-undelete-character t)
-  (edt-bind-function-key "KPP" 'edt-select 'edt-reset t)
-  (edt-bind-function-key "KPE" 'other-window 'query-replace t)
+  (edt-bind-function-key-default "KP0" 'edt-line 'open-line)
+  (edt-bind-function-key-default "KP1" 'edt-word 'edt-change-case)
+  (edt-bind-function-key-default "KP2"
+       'edt-end-of-line 'edt-delete-to-end-of-line)
+  (edt-bind-function-key-default "KP3" 'edt-character 'quoted-insert)
+  (edt-bind-function-key-default "KP4" 'edt-advance 'edt-bottom)
+  (edt-bind-function-key-default "KP5" 'edt-backup 'edt-top)
+  (edt-bind-function-key-default "KP6" 'edt-cut 'yank)
+  (edt-bind-function-key-default "KP7" 'edt-page 'execute-extended-command)
+  (edt-bind-function-key-default "KP8" 'edt-sect 'edt-fill-region)
+  (edt-bind-function-key-default "KP9" 'edt-append 'edt-replace)
+  (edt-bind-function-key-default "KP-" 'edt-delete-word 'edt-undelete-word)
+  (edt-bind-function-key-default "KP,"
+       'edt-delete-character 'edt-undelete-character)
+  (edt-bind-function-key-default "KPP" 'edt-select 'edt-reset)
+  (edt-bind-function-key-default "KPE" 'other-window 'edt-substitute)
 
   ;; VT200/VT300 Function Keys
   ;; (F1 through F5, on the VT220, are not programmable, so we skip
-  ;; making default bindings to those keys.  
-  (edt-bind-function-key "FIND" 'edt-find-next 'edt-find t)
-  (edt-bind-function-key "INSERT" 'yank 'edt-key-not-assigned t)
-  (edt-bind-function-key "REMOVE" 'edt-cut 'edt-copy t)
-  (edt-bind-function-key "SELECT" 'edt-toggle-select 'edt-key-not-assigned t)
-  (edt-bind-function-key "NEXT" 'edt-sect-forward 'edt-key-not-assigned t)
-  (edt-bind-function-key "PREVIOUS" 'edt-sect-backward 'edt-key-not-assigned t)
-  (edt-bind-function-key "F6" 'edt-key-not-assigned 'edt-key-not-assigned t)
-  (edt-bind-function-key "F7" 'edt-copy-rectangle 'edt-key-not-assigned t)
-  (edt-bind-function-key "F8" 
-       'edt-cut-rectangle-overstrike-mode 'edt-paste-rectangle-overstrike-mode t)
-  (edt-bind-function-key "F9" 
-       'edt-cut-rectangle-insert-mode 'edt-paste-rectangle-insert-mode t)
-  (edt-bind-function-key "F10" 'edt-cut-rectangle 'edt-paste-rectangle t)
+  ;; making default bindings to those keys.
+  (edt-bind-function-key-default "FIND" 'edt-find-next 'edt-find)
+  (edt-bind-function-key-default "INSERT" 'yank 'edt-key-not-assigned)
+  (edt-bind-function-key-default "REMOVE" 'edt-cut 'edt-copy)
+  (edt-bind-function-key-default "SELECT"
+       'edt-toggle-select 'edt-key-not-assigned)
+  (edt-bind-function-key-default "NEXT"
+       'edt-sect-forward 'edt-key-not-assigned)
+  (edt-bind-function-key-default "PREVIOUS"
+       'edt-sect-backward 'edt-key-not-assigned)
+  (edt-bind-function-key-default "F6"
+       'edt-key-not-assigned 'edt-key-not-assigned)
+  (edt-bind-function-key-default "F7"
+       'edt-copy-rectangle 'edt-key-not-assigned)
+  (edt-bind-function-key-default "F8"
+       'edt-cut-rectangle-overstrike-mode 'edt-paste-rectangle-overstrike-mode)
+  (edt-bind-function-key-default "F9"
+       'edt-cut-rectangle-insert-mode 'edt-paste-rectangle-insert-mode)
+  (edt-bind-function-key-default "F10" 'edt-cut-rectangle 'edt-paste-rectangle)
   ;; Under X, the F11 key can be bound.  If using a VT-200 or higher terminal,
-  ;; the default emacs terminal support causes the VT F11 key to seem as if it 
+  ;; the default emacs terminal support causes the VT F11 key to seem as if it
   ;; is an ESC key when in emacs.
-  (edt-bind-function-key "F11" 
-       'edt-key-not-assigned 'edt-key-not-assigned t)
-  (edt-bind-function-key "F12" 
-       'edt-beginning-of-line 'delete-other-windows t) ;BS
-  (edt-bind-function-key "F13" 
-       'edt-delete-to-beginning-of-word 'edt-key-not-assigned t) ;LF
-  (edt-bind-function-key "F14" 'edt-key-not-assigned 'edt-key-not-assigned t)
-  (edt-bind-function-key "HELP" 'edt-electric-keypad-help 'edt-key-not-assigned t)
-  (edt-bind-function-key "DO" 'execute-extended-command 'edt-key-not-assigned t)
-  (edt-bind-function-key "F17" 'edt-key-not-assigned 'edt-key-not-assigned t)
-  (edt-bind-function-key "F18" 'edt-key-not-assigned 'edt-key-not-assigned t)
-  (edt-bind-function-key "F19" 'edt-key-not-assigned 'edt-key-not-assigned t)
-  (edt-bind-function-key "F20" 'edt-key-not-assigned 'edt-key-not-assigned t)
+  (edt-bind-function-key-default "F11"
+       'edt-key-not-assigned 'edt-key-not-assigned)
+  (edt-bind-function-key-default "F12"
+       'edt-beginning-of-line 'delete-other-windows) ;BS
+  (edt-bind-function-key-default "F13"
+       'edt-delete-to-beginning-of-word 'edt-key-not-assigned) ;LF
+  (edt-bind-function-key-default "F14"
+       'edt-key-not-assigned 'edt-key-not-assigned)
+  (edt-bind-function-key-default "HELP"
+       'edt-electric-keypad-help 'edt-key-not-assigned)
+  (edt-bind-function-key-default "DO"
+       'execute-extended-command 'edt-key-not-assigned)
+  (edt-bind-function-key-default "F17"
+       'edt-key-not-assigned 'edt-key-not-assigned)
+  (edt-bind-function-key-default "F18"
+       'edt-key-not-assigned 'edt-key-not-assigned)
+  (edt-bind-function-key-default "F19"
+       'edt-key-not-assigned 'edt-key-not-assigned)
+  (edt-bind-function-key-default "F20"
+       'edt-key-not-assigned 'edt-key-not-assigned)
 
   ;; Control key bindings:  Regular and GOLD
   ;; 
@@ -1734,142 +2466,139 @@ If FILE is nil, try to load a default file.  The default file names are
   ;; used, instead.
   (if edt-use-EDT-control-key-bindings
       (progn
-        (edt-bind-standard-key "\C-a" 'edt-key-not-assigned t)
-        (edt-bind-standard-key "\C-b" 'edt-key-not-assigned t)
-        ;; Leave binding of C-c as original prefix key.
-        (edt-bind-standard-key "\C-d" 'edt-key-not-assigned t)
-        (edt-bind-standard-key "\C-e" 'edt-key-not-assigned t)
-        (edt-bind-standard-key "\C-f" 'edt-key-not-assigned t)
-        ;; Leave binding of C-g to keyboard-quit
-;        (edt-bind-standard-key "\C-g" 'keyboard-quit t)
-        ;; Standard EDT binding of C-h.  To invoke Emacs help, use
-        ;; GOLD-C-h instead.
-        (edt-bind-standard-key "\C-h" 'edt-beginning-of-line t)
-        (edt-bind-standard-key "\C-i" 'edt-tab-insert t)
-        (edt-bind-standard-key "\C-j" 'edt-delete-to-beginning-of-word t)
-        (edt-bind-standard-key "\C-k" 'edt-define-key t)
-        (edt-bind-gold-key  "\C-k" 'edt-restore-key t)
-        (edt-bind-standard-key "\C-l" 'edt-form-feed-insert t)
+        (edt-bind-key-default "\C-a" 'edt-key-not-assigned)
+        (edt-bind-key-default "\C-b" 'edt-key-not-assigned)
+        ;; Leave binding of C-c to an Emacs prefix key.
+        (edt-bind-key-default "\C-d" 'edt-key-not-assigned)
+        (edt-bind-key-default "\C-e" 'edt-key-not-assigned)
+        (edt-bind-key-default "\C-f" 'edt-key-not-assigned)
+        ;; Leave binding of C-g to the Emacs keyboard-quit
+        (edt-bind-key-default "\C-h" 'edt-beginning-of-line)
+        (edt-bind-key-default "\C-i" 'edt-tab-insert)
+        (edt-bind-key-default "\C-j" 'edt-delete-to-beginning-of-word)
+        (edt-bind-key-default "\C-k" 'edt-define-key)
+        (edt-bind-gold-key-default  "\C-k" 'edt-restore-key)
+        (edt-bind-key-default "\C-l" 'edt-form-feed-insert)
         ;; Leave binding of C-m to newline.
-        (edt-bind-standard-key "\C-n" 'edt-set-screen-width-80 t)
-        (edt-bind-standard-key "\C-o" 'edt-key-not-assigned t)
-        (edt-bind-standard-key "\C-p" 'edt-key-not-assigned t)
-        (edt-bind-standard-key "\C-q" 'edt-key-not-assigned t)
+        (edt-bind-key-default "\C-n" 'edt-set-screen-width-80)
+        (edt-bind-key-default "\C-o" 'edt-key-not-assigned)
+        (edt-bind-key-default "\C-p" 'edt-key-not-assigned)
+        (edt-bind-key-default "\C-q" 'edt-key-not-assigned)
         ;; Leave binding of C-r to isearch-backward.
         ;; Leave binding of C-s to isearch-forward.
-        (edt-bind-standard-key "\C-t" 'edt-display-the-time t)
-        (edt-bind-standard-key "\C-u" 'edt-delete-to-beginning-of-line t)
-        (edt-bind-standard-key "\C-v" 'redraw-display t)
-        (edt-bind-standard-key "\C-w" 'edt-set-screen-width-132 t)
+        (edt-bind-key-default "\C-t" 'edt-display-the-time)
+        (edt-bind-key-default "\C-u" 'edt-delete-to-beginning-of-line)
+        (edt-bind-key-default "\C-v" 'redraw-display)
+        (edt-bind-key-default "\C-w" 'edt-set-screen-width-132)
         ;; Leave binding of C-x as original prefix key.
-        (edt-bind-standard-key "\C-y" 'edt-key-not-assigned t)
-;        (edt-bind-standard-key "\C-z" 'suspend-emacs t)
+        (edt-bind-key-default "\C-y" 'edt-key-not-assigned)
+        ;; Leave binding of C-z to suspend-emacs.
         )
       )
 
-  ;; GOLD bindings for a few Control keys.
-  (edt-bind-gold-key  "\C-g" 'keyboard-quit t); Just in case.
-  (edt-bind-gold-key  "\C-h" 'help-for-help t)
-  (edt-bind-gold-key  [f1] 'help-for-help t)
-  (edt-bind-gold-key  [help] 'help-for-help t)
-  (edt-bind-gold-key  "\C-\\" 'split-window-vertically t)
+  ;; GOLD bindings for a few keys.
+  (edt-bind-gold-key-default  "\C-g" 'keyboard-quit); Just in case.
+  (edt-bind-gold-key-default  "\C-h" 'help-for-help); Just in case.
+  (edt-bind-gold-key-default  [f1] 'help-for-help)
+  (edt-bind-gold-key-default  [help] 'help-for-help)
+  (edt-bind-gold-key-default  "\C-\\" 'split-window-vertically)
 
   ;; GOLD bindings for regular keys.
-  (edt-bind-gold-key "a" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "A" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "b" 'buffer-menu t)
-  (edt-bind-gold-key "B" 'buffer-menu t)
-  (edt-bind-gold-key "c" 'compile t)
-  (edt-bind-gold-key "C" 'compile t)
-  (edt-bind-gold-key "d" 'delete-window t)
-  (edt-bind-gold-key "D" 'delete-window t)
-  (edt-bind-gold-key "e" 'edt-exit t)
-  (edt-bind-gold-key "E" 'edt-exit t)
-  (edt-bind-gold-key "f" 'find-file t)
-  (edt-bind-gold-key "F" 'find-file t)
-  (edt-bind-gold-key "g" 'find-file-other-window t)
-  (edt-bind-gold-key "G" 'find-file-other-window t)
-  (edt-bind-gold-key "h" 'edt-electric-keypad-help t)
-  (edt-bind-gold-key "H" 'edt-electric-keypad-help t)
-  (edt-bind-gold-key "i" 'insert-file t)
-  (edt-bind-gold-key "I" 'insert-file t)
-  (edt-bind-gold-key "j" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "J" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "k" 'edt-toggle-capitalization-of-word t)
-  (edt-bind-gold-key "K" 'edt-toggle-capitalization-of-word t)
-  (edt-bind-gold-key "l" 'edt-lowercase t)
-  (edt-bind-gold-key "L" 'edt-lowercase t)
-  (edt-bind-gold-key "m" 'save-some-buffers t)
-  (edt-bind-gold-key "M" 'save-some-buffers t)
-  (edt-bind-gold-key "n" 'next-error t)
-  (edt-bind-gold-key "N" 'next-error t)
-  (edt-bind-gold-key "o" 'switch-to-buffer-other-window t)
-  (edt-bind-gold-key "O" 'switch-to-buffer-other-window t)
-  (edt-bind-gold-key "p" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "P" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "q" 'edt-quit t)
-  (edt-bind-gold-key "Q" 'edt-quit t)
-  (edt-bind-gold-key "r" 'revert-buffer t)
-  (edt-bind-gold-key "R" 'revert-buffer t)
-  (edt-bind-gold-key "s" 'save-buffer t)
-  (edt-bind-gold-key "S" 'save-buffer t)
-  (edt-bind-gold-key "t" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "T" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "u" 'edt-uppercase t)
-  (edt-bind-gold-key "U" 'edt-uppercase t)
-  (edt-bind-gold-key "v" 'find-file-other-window t)
-  (edt-bind-gold-key "V" 'find-file-other-window t)
-  (edt-bind-gold-key "w" 'write-file t)
-  (edt-bind-gold-key "W" 'write-file t)
-  (edt-bind-gold-key "x" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "X" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "y" 'edt-emulation-off t)
-  (edt-bind-gold-key "Y" 'edt-emulation-off t)
-  (edt-bind-gold-key "z" 'edt-switch-global-maps t)
-  (edt-bind-gold-key "Z" 'edt-switch-global-maps t)
-  (edt-bind-gold-key "1" 'delete-other-windows t)
-  (edt-bind-gold-key "!" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "2" 'edt-split-window t)
-  (edt-bind-gold-key "@" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "3" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "#" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "4" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "$" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "5" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "%" 'edt-goto-percentage t)
-  (edt-bind-gold-key "6" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "^" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "7" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "&" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "8" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "*" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "9" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "(" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "0" 'edt-key-not-assigned t)
-  (edt-bind-gold-key ")" 'edt-key-not-assigned t)
-  (edt-bind-gold-key " " 'undo t)
-  (edt-bind-gold-key "," 'edt-key-not-assigned t)
-  (edt-bind-gold-key "<" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "." 'edt-key-not-assigned t)
-  (edt-bind-gold-key ">" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "/" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "?" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "\\" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "|" 'edt-key-not-assigned t)
-  (edt-bind-gold-key ";" 'edt-key-not-assigned t)
-  (edt-bind-gold-key ":" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "'" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "\"" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "-" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "_" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "=" 'goto-line t)
-  (edt-bind-gold-key "+" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "[" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "{" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "]" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "}" 'edt-key-not-assigned t)
-  (edt-bind-gold-key "`" 'what-line t)
-  (edt-bind-gold-key "~" 'edt-key-not-assigned t)
+  (edt-bind-gold-key-default "a" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "A" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "b" 'buffer-menu)
+  (edt-bind-gold-key-default "B" 'buffer-menu)
+  (edt-bind-gold-key-default "c" 'compile)
+  (edt-bind-gold-key-default "C" 'compile)
+  (edt-bind-gold-key-default "d" 'delete-window)
+  (edt-bind-gold-key-default "D" 'delete-window)
+  (edt-bind-gold-key-default "e" 'edt-exit)
+  (edt-bind-gold-key-default "E" 'edt-exit)
+  (edt-bind-gold-key-default "f" 'find-file)
+  (edt-bind-gold-key-default "F" 'find-file)
+  (edt-bind-gold-key-default "g" 'find-file-other-window)
+  (edt-bind-gold-key-default "G" 'find-file-other-window)
+  (edt-bind-gold-key-default "h" 'edt-electric-keypad-help)
+  (edt-bind-gold-key-default "H" 'edt-electric-keypad-help)
+  (edt-bind-gold-key-default "i" 'insert-file)
+  (edt-bind-gold-key-default "I" 'insert-file)
+  (edt-bind-gold-key-default "j" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "J" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "k" 'edt-toggle-capitalization-of-word)
+  (edt-bind-gold-key-default "K" 'edt-toggle-capitalization-of-word)
+  (edt-bind-gold-key-default "l" 'edt-lowercase)
+  (edt-bind-gold-key-default "L" 'edt-lowercase)
+  (edt-bind-gold-key-default "m" 'save-some-buffers)
+  (edt-bind-gold-key-default "M" 'save-some-buffers)
+  (edt-bind-gold-key-default "n" 'next-error)
+  (edt-bind-gold-key-default "N" 'next-error)
+  (edt-bind-gold-key-default "o" 'switch-to-buffer-other-window)
+  (edt-bind-gold-key-default "O" 'switch-to-buffer-other-window)
+  (edt-bind-gold-key-default "p" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "P" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "q" 'edt-quit)
+  (edt-bind-gold-key-default "Q" 'edt-quit)
+  (edt-bind-gold-key-default "r" 'revert-buffer)
+  (edt-bind-gold-key-default "R" 'revert-buffer)
+  (edt-bind-gold-key-default "s" 'save-buffer)
+  (edt-bind-gold-key-default "S" 'save-buffer)
+  (edt-bind-gold-key-default "t" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "T" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "u" 'edt-uppercase)
+  (edt-bind-gold-key-default "U" 'edt-uppercase)
+  (edt-bind-gold-key-default "v" 'find-file-other-window)
+  (edt-bind-gold-key-default "V" 'find-file-other-window)
+  (edt-bind-gold-key-default "w" 'write-file)
+  (edt-bind-gold-key-default "W" 'write-file)
+  (edt-bind-gold-key-default "x" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "X" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "y" 'edt-emulation-off)
+  (edt-bind-gold-key-default "Y" 'edt-emulation-off)
+  (edt-bind-gold-key-default "z" 'edt-switch-global-maps)
+  (edt-bind-gold-key-default "Z" 'edt-switch-global-maps)
+  (edt-bind-gold-key-default "1" 'delete-other-windows)
+  (edt-bind-gold-key-default "!" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "2" 'edt-split-window)
+  (edt-bind-gold-key-default "@" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "3" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "#" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "4" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "$" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "5" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "%" 'edt-goto-percentage)
+  (edt-bind-gold-key-default "6" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "^" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "7" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "&" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "8" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "*" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "9" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "(" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "0" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default ")" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default " " 'undo)
+  (edt-bind-gold-key-default "," 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "<" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "." 'edt-key-not-assigned)
+  (edt-bind-gold-key-default ">" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "/" 'query-replace)
+  (edt-bind-gold-key-default "?" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "\\" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "|" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default ";" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default ":" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "'" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "\"" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "-" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "_" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "=" 'goto-line)
+  (edt-bind-gold-key-default "+" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "[" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "{" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "]" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "}" 'edt-key-not-assigned)
+  (edt-bind-gold-key-default "`" 'what-line)
+  (edt-bind-gold-key-default "~" 'edt-key-not-assigned)
 )
 
 ;;;
@@ -1884,8 +2613,7 @@ If FILE is nil, try to load a default file.  The default file names are
 ;;;
 
 (defun edt-keypad-help ()
-  "
-                              DEFAULT EDT Keypad Active
+  "DEFAULT EDT Keypad Active.
 
    F7: Copy Rectangle             +----------+----------+----------+----------+
    F8: Cut Rect Overstrike        |Prev Line |Next Line |Bkwd Char |Frwd Char |
@@ -1899,8 +2627,8 @@ G-F10: Paste Rectangle
 G-F12: Delete Other Windows       |   GOLD   |   HELP   |  FNDNXT  |  DEL L   |
   F13: Delete to Begin of Word    |   (PF1)  |   (PF2)  |   (PF3)  |  (PF4)   |
  HELP: Keypad Help                |Mark Wisel|Desc Funct|   FIND   |  UND L   |
-   DO: Execute extended command   +----------+----------+----------+----------+
-                                  |   PAGE   |   SECT   |  APPEND  |  DEL W   |
+G-HELP: Emacs Help                +----------+----------+----------+----------+
+   DO: Execute extended command   |   PAGE   |   SECT   |  APPEND  |  DEL W   |
   C-g: Keyboard Quit              |    (7)   |    (8)   |    (9)   |   (-)    |
 G-C-g: Keyboard Quit              |Ex Ext Cmd|Fill Regio| REPLACE  |  UND W   |
   C-h: Beginning of Line          +----------+----------+----------+----------+
@@ -1913,8 +2641,8 @@ G-C-k: Restore Key                |   WORD   |    EOL   |   CHAR   |   Next   |
   C-n: Set Screen Width 80        | CHNGCASE |  DEL EOL |Quoted Ins|          !
   C-r: Isearch Backward           +---------------------+----------+  (ENTER) |
   C-s: Isearch Forward            |         LINE        |  SELECT  |          !
-  C-t: Display the Time           |         (0)         |    (.)   |   Query  |
-  C-u: Delete to Begin of Line    |      Open Line      |   RESET  |  Replace |
+  C-t: Display the Time           |         (0)         |    (.)   |   SUBS   |
+  C-u: Delete to Begin of Line    |      Open Line      |   RESET  |          |
   C-v: Redraw Display             +---------------------+----------+----------+
   C-w: Set Screen Width 132       
   C-z: Suspend Emacs                    +----------+----------+----------+
@@ -1946,7 +2674,8 @@ G-C-\\: Split Window                     |  FNDNXT  |   Yank   |   CUT    |
   G-%: Go to Percentage           
   G- : Undo  (GOLD Spacebar)      
   G-=: Go to Line                 
-  G-`: What line"
+  G-`: What line
+  G-/: Query-Replace"
 
   (interactive)
   (describe-function 'edt-keypad-help))
@@ -1993,25 +2722,26 @@ G-C-\\: Split Window                     |  FNDNXT  |   Yank   |   CUT    |
 ;;;
 ;;; EDT emulation screen width commands.
 ;;;
-;; Some terminals require modification of terminal attributes when changing the
-;; number of columns displayed, hence the fboundp tests below.  These functions
-;; are defined in the corresponding terminal specific file, if needed.
+;; Some terminals require modification of terminal attributes when
+;; changing the number of columns displayed, hence the fboundp tests
+;; below.  These functions are defined in the corresponding terminal
+;; specific file, if needed.
 
 (defun edt-set-screen-width-80 ()
   "Set screen width to 80 columns."
   (interactive)
   (if (fboundp 'edt-set-term-width-80)
       (edt-set-term-width-80))
-  (set-screen-width 80)
-  (message "Screen width 80"))
+  (set-frame-width nil 80)
+  (message "Terminal width 80"))
 
 (defun edt-set-screen-width-132 ()
   "Set screen width to 132 columns."
   (interactive)
   (if (fboundp 'edt-set-term-width-132)
       (edt-set-term-width-132))
-  (set-screen-width 132)
-  (message "Screen width 132"))
+  (set-frame-width nil 132)
+  (message "Terminal width 132"))
 
 (provide 'edt)
 
