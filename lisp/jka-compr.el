@@ -520,16 +520,10 @@ There should be no more than seven characters after the final `/'."
 		   ;; don't do that conversion.
 		   (and (null enable-multibyte-characters)
 			'raw-text)
-		   (let ((tail file-coding-system-alist)
-			 (newfile
-			  (jka-compr-byte-compiler-base-file-name file))
-			 result)
-		     (while tail
-		       (if (string-match (car (car tail)) newfile)
-			   (setq result (car (cdr (car tail)))
-				 tail nil))
-		       (setq tail (cdr tail)))
-		     result)
+		   (let ((coding (find-operation-coding-system
+				  'insert-file-contents
+				  (jka-compr-byte-compiler-base-file-name file))))
+		     (and (consp coding) (car coding)))
 		   'undecided)) )
 
 	  (setq local-file (or local-copy filename))
