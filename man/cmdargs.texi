@@ -424,7 +424,7 @@ terminal specified by the @env{TERM} variable.  This defaults to
 Used by the Emerge package as a prefix for temporary files.
 @item TZ
 This specifies the current time zone and possibly also daylight
-savings information.  On MS-DOS, if @code{TZ} is not set in the
+saving time information.  On MS-DOS, if @code{TZ} is not set in the
 environment when Emacs starts, Emacs defines a default value as
 appropriate for the country code returned by DOS.  On MS-Windows, Emacs
 does not use @code{TZ} at all.
