@@ -175,7 +175,7 @@ then
 
   echo "Updating finder-inf.el"
 
-  (cd lisp; make finder-inf.el)
+  (cd lisp; make finder-data)
 
   echo "Recompiling Lisp files"
 
@@ -187,7 +187,7 @@ then
 
   echo "Updating cus-load.el"
 
-  (cd lisp; make cus-load.el)
+  (cd lisp; make custom-deps)
 fi
 
 echo "Making lisp/MANIFEST"
