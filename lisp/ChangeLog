@@ -1,3 +1,9 @@
+2001-01-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* iswitchb.el (iswitchb-make-buflist): When nconc'ing lists, don't
+	discard the result.
+	(iswitchb-to-end): Likewise.
+
 2001-01-25  Sam Steingold  <sds@gnu.org>
 
 	* vc-cvs.el (vc-cvs-mode-line-string): Doc & comment fix.
@@ -38,8 +44,8 @@
 	(dired-sort-toggle): Use `replace-regexps-in-string'
 	instead of `dired-replace-in-string'.
 
-	* dired-aux.el (dired-shell-stuff-it, dired-rename-subdir,
-	dired-rename-subdir-2, dired-insert-subdir-doinsert): Ditto.
+	* dired-aux.el (dired-shell-stuff-it, dired-rename-subdir)
+	(dired-rename-subdir-2, dired-insert-subdir-doinsert): Ditto.
 
 	* gs.el (gs-replace-in-string): Removed.
 	(gs-options): Use `replace-regexps-in-string'
