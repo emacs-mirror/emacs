@@ -1,3 +1,7 @@
+2004-11-08  Kim F. Storm  <storm@cua.dk>
+
+	* Makefile.in (bootstrap-clean): New target for 'make bootstrap'.
+
 2004-11-07  Juri Linkov  <juri@jurta.org>
 
 	* info-look.el (info-lookup): Allow reusing in the current buffer

@@ -1,3 +1,10 @@
+2004-11-08  Kim F. Storm  <storm@cua.dk>
+
+	* Makefile.in (bootstrap, bootstrap-clean-before): Remove .elc
+	files before building.
+	(bootfast, bootstrap-clean-before-fast): New targets, like
+	bootstrap but don't remove .elc files.
+
 2004-11-06  Lars Brinkhoff  <lars@nocrew.org>
 
 	* configure.in: Add check for getrusage.
