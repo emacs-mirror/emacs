@@ -3164,6 +3164,19 @@ display_menu_bar (w)
 
   get_display_line (f, vpos, 0);
 
+#if 0
+  /* Show in the menu bar how to invoke it.  */
+  if (!FRAME_X_P (f))
+    {
+      hpos = display_string (XWINDOW (FRAME_ROOT_WINDOW (f)), vpos,
+			     "M-`", 3,
+			     hpos, 0, 0, hpos, maxendcol);
+      /* Put 2 spaces after it.  */
+      hpos = display_string (w, vpos, "", 0, hpos, 0, 0,
+			     hpos + 2, maxendcol);
+    }
+#endif
+
   items = FRAME_MENU_BAR_ITEMS (f);
   for (i = 0; i < XVECTOR (items)->size; i += 3)
     {
