@@ -153,6 +153,7 @@ ln GETTING.GNU.SOFTWARE INSTALL PROBLEMS README BUGS move-if-change ${tempdir}
 ln ChangeLog Makefile.in configure configure.in ${tempdir}
 ln config.bat make-dist update-subdirs vpath.sed ${tempdir}
 ### Copy these files; they're cross-filesystem symlinks.
+cp mkinstalldirs ${tempdir}
 cp config.sub ${tempdir}
 cp config.guess ${tempdir}
 cp install.sh ${tempdir}
