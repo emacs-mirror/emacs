@@ -9725,7 +9725,9 @@ x_create_tip_frame (dpyinfo, parms)
 
 
 DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 4, 0,
-  "Show tooltip STRING on frame FRAME.\n\
+  "Show STRING in a \"tooltip\" window on frame FRAME.\n\
+A tooltip window is a small X window displaying STRING at\n\
+the current mouse position.\n\
 FRAME nil or omitted means use the selected frame.\n\
 PARMS is an optional list of frame parameters which can be\n\
 used to change the tooltip's appearance.\n\
@@ -9863,7 +9865,7 @@ TIMEOUT nil means use the default timeout of 5 seconds.")
 
 
 DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
-  "Hide the current tooltip, if there is any.\n\
+  "Hide the current tooltip window, if there is any.\n\
 Value is t is tooltip was open, nil otherwise.")
   ()
 {
