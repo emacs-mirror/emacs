@@ -188,6 +188,7 @@ detailed description of this mode.
   (setq gdb-var-changed nil)
   (setq gdb-first-prompt nil)
   (setq gdb-prompting nil)
+  (setq gdb-input-queue nil)
   (setq gdb-current-item nil)
   (setq gdb-pending-triggers nil)
   (setq gdb-output-sink 'user)
