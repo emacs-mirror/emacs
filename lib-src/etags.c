@@ -4425,7 +4425,7 @@ absolute_filename (file, cwd)
 	      cp = slashp;
 	      do
 		cp--;
-	      while (cp >= res && *cp != '/');
+	      while (cp >= res && !absolutefn (cp));
 	      if (*cp == '/')
 		{
 		  strcpy (cp, slashp + 3);
