@@ -1,7 +1,7 @@
 /* impl.c.testlib: Test library
  *
- * $HopeName: MMsrc!testlib.c(trunk.12) $
- * Copyright (C) 1995, 1998 Harlequin Group plc.  All rights reserved.
+ * $HopeName$
+ * Copyright (C) 1995, 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: A library of functions that may be of use to unit tests.
  */
@@ -17,6 +17,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#ifdef MPS_OS_IA
+struct itimerspec; /* stop complaints from time.h */
+#endif
+#include <time.h>
 
 
 /* rnd -- a random number generator
@@ -35,6 +39,26 @@ unsigned long rnd(void)
   s = fmod(s, 2147483647.0);  /* 2^31 - 1 */
   seed = (unsigned long)s;
   return seed;
+}
+
+
+/* randomize -- randomize the generator, or initialize to replay */
+
+void randomize(int argc, char **argv)
+{
+  int i, k, n;
+
+  if(argc > 1) {
+    n = sscanf(argv[1], "%d", &k);
+    die((n == 1) ? MPS_RES_OK : MPS_RES_FAIL, "randomize");
+  } else {
+    k = time(NULL) % 32000;
+    printf("Randomizing %d times.\n", k);
+  }
+
+  /* Randomize the random number generator a bit. */
+  for (i = k; i > 0; --i)
+    rnd();
 }
 
 
