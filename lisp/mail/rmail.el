@@ -753,9 +753,7 @@ Instead, these commands are available:
 	    (cons "Output Rmail File" 
 		  (rmail-list-to-menu "Output Rmail File" 
 				      (cdr files) 
-				      'rmail-output-to-rmail-file)))))
-    (message "No files matching %s/%s found"
-	     rmail-secondary-file-directory rmail-secondary-file-regexp)))
+				      'rmail-output-to-rmail-file)))))))
 
 
 ;;;; *** Rmail input ***
