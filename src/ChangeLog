@@ -1,3 +1,12 @@
+2004-08-20  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (wait_reading_process_output): Rename from
+	wait_reading_process_input.  All uses changed.
+	(wait_reading_process_output_1): Rename from
+	wait_reading_process_input_1.  All uses changed.
+
+	* dispnew.c (Fsleep_for): Remove obsolete code.
+
 2004-08-20  Kenichi Handa  <handa@m17n.org>
 
 	* syntax.c (skip_chars): Fix for unibyte case.
