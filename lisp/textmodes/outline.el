@@ -483,7 +483,9 @@ A heading line is one that starts with a `*' (or that
     (while (and (not (eobp))
 		(re-search-forward (concat "^\\(?:" outline-regexp "\\)")
 				   nil 'move)
-		(outline-invisible-p)))
+		(save-excursion
+		  (goto-char (match-beginning 0))
+		  (outline-invisible-p))))
     (setq arg (1- arg)))
   (beginning-of-line))
 
