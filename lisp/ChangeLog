@@ -1,3 +1,8 @@
+2004-06-25  Sam Steingold  <sds@gnu.org>
+
+	* add-log.el (change-log-font-lock-keywords): Support Common Lisp
+	function names `(setf symbol)'.
+
 2004-06-24  Richard M. Stallman  <rms@gnu.org>
 
 	* replace.el (query-replace-read-args): Swallow space after \,SYMBOL.
