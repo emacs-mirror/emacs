@@ -276,6 +276,8 @@ if exist ..\leim\makefile.w32-in copy /b config.settings+%MAKECMD%.defs+..\leim\
 if not exist ..\leim\makefile.w32-in copy /b config.settings+%MAKECMD%.defs+..\leim\Makefile.in ..\leim\makefile
 del config.settings
 
+if not exist ..\site-lisp\subdirs.el copy subdirs.el ..\site-lisp\subdirs.el
+
 echo.
 echo Emacs successfully configured.
 echo Run `%MAKECMD%' to build, then run `%MAKECMD% install' to install.
