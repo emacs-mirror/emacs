@@ -276,6 +276,10 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ;; Semantic error at line 528, column 5, file erosacqdb.pc:
     ("Semantic error at line \\([0-9]+\\), column \\([0-9]+\\), file \\(.*\\):"
      3 1 2)
+
+    ;; EPC F90 compiler:
+    ;; Error 24 at (2:progran.f90) : syntax error
+    ("Error [0-9]+ at (\\([0-9]*\\):\\([^)\n]+\\))" 2 1)
     )
   "Alist that specifies how to match errors in compiler output.
 Each elt has the form (REGEXP FILE-IDX LINE-IDX [COLUMN-IDX FILE-FORMAT...])
@@ -448,10 +452,19 @@ write into the compilation buffer, and to put in its mode line.")
   (nconc
    ;;
    ;; Compiler warning/error lines.
-   (mapcar #'(lambda (item)
-	       (list (nth 0 item)
-		     (list (nth 1 item) 'font-lock-warning-face nil t)
-		     (list (nth 2 item) 'font-lock-variable-name-face nil t)))
+   (mapcar (function
+	    (lambda (item)
+	      ;; Prepend "^", adjusting FILE-IDX and LINE-IDX accordingly.
+	      (let ((file-idx (nth 1 item)) (line-idx (nth 2 item)) keyword)
+		(when (numberp line-idx)
+		  (setq keyword
+			(cons (list (1+ line-idx) 'font-lock-variable-name-face)
+			      keyword)))
+		(when (numberp file-idx)
+		  (setq keyword
+			(cons (list (1+ file-idx) 'font-lock-warning-face)
+			      keyword)))
+		(cons (concat "^\\(" (nth 0 item) "\\)") keyword))))
 	   compilation-error-regexp-alist)
    (list
     ;;
