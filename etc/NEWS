@@ -344,6 +344,11 @@ The default mode has been changed from `plain-tex-mode' to
     to show locations in LaTeX documents where a particular entry has
     been cited.
 
+** Emacs Lisp mode now allows multiple levels of outline headings.
+The level of a heading is determined from the number of leading
+semicolons in a heading line.  Toplevel forms starting with a `('
+in column 1 are always made leaves.
+
 ** The M-x time-stamp command (most commonly used on write-file-hooks)
 has the following new features:
 
