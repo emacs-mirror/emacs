@@ -456,7 +456,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o window.o \
 	eval.o floatfns.o fns.o print.o lread.o \
 	abbrev.o syntax.o UNEXEC mocklisp.o bytecode.o \
 	process.o callproc.o \
-	doprnt.o strftime.o GETLOADAVG_OBJ
+	doprnt.o strftime.o mktime.o GETLOADAVG_OBJ
 
 /* Object files used on some machine or other.
    These go in the DOC file on all machines
@@ -619,10 +619,12 @@ emacs: temacs ${etc}DOC ${lisp}
 #endif /* ! defined (HAVE_SHM) */
 #endif /* ! defined (CANNOT_DUMP) */
 
+# We run make-docfile twice because the command line may get too long
+# on some systems.
 ${etc}DOC: ${libsrc}make-docfile ${obj} ${lisp}
 	-rm -f ${etc}DOC
-	${libsrc}make-docfile -d ${srcdir} ${obj} ${SOME_MACHINE_OBJECTS} \
-	  ${lisp} > ${etc}DOC
+	${libsrc}make-docfile -d ${srcdir} ${obj} ${SOME_MACHINE_OBJECTS} > ${etc}DOC
+	${libsrc}make-docfile -a ${etc}DOC -d ${srcdir}  ${lisp}
 
 ${libsrc}make-docfile:
 	cd ${libsrc}; ${MAKE} ${MFLAGS} make-docfile
@@ -811,6 +813,7 @@ keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
 lastfile.o: lastfile.c  $(config_h)
 macros.o: macros.c window.h buffer.h commands.h macros.h $(config_h)
 malloc.o: malloc.c $(config_h)
+mktime.o: mktime.c $(config_h)
 gmalloc.o: gmalloc.c $(config_h)
 ralloc.o: ralloc.c $(config_h)
 vm-limit.o: vm-limit.c mem-limits.h $(config_h) 
