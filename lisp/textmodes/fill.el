@@ -282,7 +282,7 @@ MAIL-FLAG for a mail message, i. e. don't fill header lines."
       (goto-char min)
       (beginning-of-line)
       (if mailp 
-	  (while (looking-at "[^ \t\n]*:")
+	  (while (or (looking-at "[ \t]*[^ \t\n]*:") (looking-at "[ \t]*$"))
 	    (forward-line 1)))
       (narrow-to-region (point) max)
       ;; Loop over paragraphs.
