@@ -252,6 +252,10 @@ this list.")
 ;; The buffer we last did a completion in.
 (defvar dabbrev--last-completion-buffer nil)
 
+;; Non-nil means we should upcase
+;; when copying successive words.
+(defvar dabbrev--last-case-pattern nil)
+
 ;; Same as dabbrev-check-other-buffers, but is set for every expand.
 (defvar dabbrev--check-other-buffers dabbrev-check-other-buffers)
 
@@ -313,8 +317,8 @@ if there is a suitable one already."
 	  (and arg (= (prefix-numeric-value arg) 16)))
 	 (abbrev (dabbrev--abbrev-at-point))
 	 (ignore-case-p  (and (eval dabbrev-case-fold-search)
-				(or (not dabbrev-upcase-means-case-search)
-				    (string= abbrev (downcase abbrev)))))
+			      (or (not dabbrev-upcase-means-case-search)
+				  (string= abbrev (downcase abbrev)))))
 	 (my-obarray dabbrev--last-obarray)
 	 init)
     (save-excursion
@@ -414,7 +418,8 @@ direction of search to backward if set non-nil.
 
 See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
   (interactive "*P")
-  (let (abbrev expansion old direction (orig-point (point)))
+  (let (abbrev record-case-pattern
+	       expansion old direction (orig-point (point)))
     ;; abbrev -- the abbrev to expand
     ;; expansion -- the expansion found (eventually) or nil until then
     ;; old -- the text currently in the buffer
@@ -438,14 +443,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 		 (markerp dabbrev--last-abbrev-location)
 		 (marker-position dabbrev--last-abbrev-location)
 		 (= (point) (1+ dabbrev--last-abbrev-location)))
-	    (let* ((prev-expansion
-		    (buffer-substring-no-properties
-		     (- dabbrev--last-abbrev-location (length dabbrev--last-expansion))
-		     dabbrev--last-abbrev-location))
-		   ;; If the previous expansion was upcased.
-		   ;; upcase this one too.
-		   (upcase-it
-		     (equal prev-expansion (upcase prev-expansion))))
+	    (progn
 	      ;; The "abbrev" to expand is just the space.
 	      (setq abbrev " ")
 	      (save-excursion
@@ -466,7 +464,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 		(setq expansion
 		      (buffer-substring dabbrev--last-expansion-location
 					(point)))
-		(if upcase-it
+		(if dabbrev--last-case-pattern
 		    (setq expansion (upcase expansion)))
 
 		;; Record the end of this expansion, in case we repeat this.
@@ -481,6 +479,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 			      (if dabbrev-backward-only 1 0)
 			    (prefix-numeric-value arg)))
 	  (setq abbrev (dabbrev--abbrev-at-point))
+	  (setq record-case-pattern t)
 	  (setq old nil)))
 
       ;;--------------------------------
@@ -520,6 +519,15 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
       ;; Success: stick it in and return.
       (setq buffer-undo-list (cons orig-point buffer-undo-list))
       (dabbrev--substitute-expansion old abbrev expansion)
+
+      ;; If we are not copying successive words now,
+      ;; set dabbrev--last-case-pattern.
+      (and record-case-pattern
+	   (setq dabbrev--last-case-pattern
+		 (and (eval dabbrev-case-fold-search)
+		      (not dabbrev-upcase-means-case-search)
+		      (equal abbrev (upcase abbrev)))))
+
       ;; Save state for re-expand.
       (setq dabbrev--last-expansion expansion)	
       (setq dabbrev--last-abbreviation abbrev)
