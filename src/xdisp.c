@@ -5187,7 +5187,6 @@ with_echo_area_buffer (w, which, fn, a1, a2, a3, a4, a5)
       if (!NILP (echo_area_buffer[this_one])
 	  && EQ (echo_area_buffer[this_one], echo_area_buffer[the_other]))
 	echo_area_buffer[this_one] = Qnil;
-      
     }
 
   /* Choose a suitable buffer from echo_buffer[] is we don't
@@ -5403,7 +5402,7 @@ display_echo_area_1 (w)
 
   /* Do this before displaying, so that we have a large enough glyph
      matrix for the display.  */
-  window_height_changed_p = resize_mini_window (w);
+  window_height_changed_p = resize_mini_window (w, 0);
 
   /* Display.  */
   clear_glyph_matrix (w->desired_matrix);
@@ -5415,12 +5414,40 @@ display_echo_area_1 (w)
 }
 
 
-/* Resize mini-window W to fit the size of its contents.  Value is
-   non-zero if the window height has been changed.  */
+/* Resize the echo area window to exactly the size needed for the
+   currently displayed message, if there is one.  */
+
+void
+resize_echo_area_axactly ()
+{
+  if (BUFFERP (echo_area_buffer[0])
+      && WINDOWP (echo_area_window))
+    {
+      struct window *w = XWINDOW (echo_area_window);
+      int resized_p;
+      
+      resized_p = with_echo_area_buffer (w, 0,
+					 (int (*) ()) resize_mini_window,
+					 w, 1);
+      if (resized_p)
+	{
+	  ++windows_or_buffers_changed;
+	  ++update_mode_lines;
+	  redisplay_internal (0);
+	}
+    }
+}
+
+
+/* Resize mini-window W to fit the size of its contents.  EXACT:P
+   means size the window exactly to the size needed.  Otherwise, it's
+   only enlarged until W's buffer is empty.  Value is non-zero if
+   the window height has been changed. */
 
 int
-resize_mini_window (w)
+resize_mini_window (w, exact_p)
      struct window *w;
+     int exact_p;
 {
   struct frame *f = XFRAME (w->frame);
   int window_height_changed_p = 0;
@@ -5474,6 +5501,7 @@ resize_mini_window (w)
       /* Let it grow only, until we display an empty message, in which
 	 case the window shrinks again.  */
       if (height > XFASTINT (w->height)
+	  || exact_p
 	  || BEGV == ZV)
 	{
 	  Lisp_Object old_selected_window;
@@ -6645,8 +6673,14 @@ hscroll_window_tree (window)
 	{
 	  int hscroll_margin, text_area_x, text_area_y;
 	  int text_area_width, text_area_height;
-	  struct glyph_row *cursor_row = MATRIX_ROW (w->current_matrix,
-						     w->cursor.vpos);
+	  struct glyph_row *current_cursor_row
+	    = MATRIX_ROW (w->current_matrix, w->cursor.vpos);
+	  struct glyph_row *desired_cursor_row
+	    = MATRIX_ROW (w->desired_matrix, w->cursor.vpos);
+	  struct glyph_row *cursor_row
+	    = (desired_cursor_row->enabled_p
+	       ? desired_cursor_row
+	       : current_cursor_row);
 
 	  window_box (w, TEXT_AREA, &text_area_x, &text_area_y,
 		      &text_area_width, &text_area_height);
@@ -6656,7 +6690,8 @@ hscroll_window_tree (window)
 	  
 	  if ((XFASTINT (w->hscroll)
 	       && w->cursor.x < hscroll_margin)
-	      || (cursor_row->truncated_on_right_p
+	      || (cursor_row->enabled_p
+		  && cursor_row->truncated_on_right_p
 		  && (w->cursor.x > text_area_width - hscroll_margin)))
 	    {
 	      struct it it;
@@ -7056,7 +7091,7 @@ redisplay_internal (preserve_echo_area)
 	   && (current_buffer->clip_changed
 	       || XFASTINT (w->last_modified) < MODIFF
 	       || XFASTINT (w->last_overlay_modified) < OVERLAY_MODIFF)
-	   && resize_mini_window (w))
+	   && resize_mini_window (w, 0))
     {
       /* Resized active mini-window to fit the size of what it is
          showing if its contents might have changed.  */
@@ -7355,13 +7390,31 @@ update:
   if (consider_all_windows_p)
     {
       Lisp_Object tail;
+      struct frame *f;
+      int hscrolled_p;
 
       pause = 0;
+      hscrolled_p = 0;
+
+      /* See if we have to hscroll.  */
+      for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+	if (FRAMEP (XCAR (tail)))
+	  {
+	    f = XFRAME (XCAR (tail));
+	    
+	    if ((FRAME_WINDOW_P (f)
+		 || f == selected_frame)
+		&& FRAME_VISIBLE_P (f)
+		&& !FRAME_OBSCURED_P (f)
+		&& hscroll_windows (f->root_window))
+	      hscrolled_p = 1;
+	  }
+
+      if (hscrolled_p)
+	goto retry;
 
       for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
 	{
-	  struct frame *f;
-
 	  if (!FRAMEP (XCAR (tail)))
 	    continue;
 
@@ -7375,9 +7428,6 @@ update:
 	      pause |= update_frame (f, 0, 0);
 	      if (!pause)
 		{
-		  if (hscroll_windows (f->root_window))
-		    goto retry;
-
 		  mark_window_display_accurate (f->root_window, 1);
 		  if (frame_up_to_date_hook != 0)
 		    (*frame_up_to_date_hook) (f);
@@ -7390,10 +7440,11 @@ update:
       if (FRAME_VISIBLE_P (selected_frame)
 	  && !FRAME_OBSCURED_P (selected_frame))
 	{
+	  if (hscroll_windows (selected_window))
+	    goto retry;
+	  
 	  XWINDOW (selected_window)->must_be_updated_p = 1;
 	  pause = update_frame (selected_frame, 0, 0);
-	  if (!pause && hscroll_windows (selected_window))
-	    goto retry;
 	}
       else
 	pause = 0;
