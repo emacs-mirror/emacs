@@ -143,7 +143,7 @@ to NEW-FACE on frame NEW-FRAME."
 
 ;; The functions in this section are defined because Lisp packages use
 ;; them, despite the prefix `internal-' suggesting that they are
-;; private to the face implementation.  
+;; private to the face implementation.
 
 (defun internal-find-face (name &optional frame)
   "Retrieve the face named NAME.
@@ -156,6 +156,7 @@ If NAME is already a face, it is simply returned.
 This function is defined for compatibility with Emacs 20.2.  It
 should not be used anymore."
   (facep name))
+(make-obsolete 'internal-find-face 'facep)
 
 
 (defun internal-get-face (name &optional frame)
@@ -169,7 +170,7 @@ This function is defined for compatibility with Emacs 20.2.  It
 should not be used anymore."
   (or (internal-find-face name frame)
       (check-face name)))
-
+(make-obsolete 'internal-find-face "See `facep' and `check-face'.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -512,7 +513,7 @@ box.
 `:inverse-video'
 
 VALUE specifies whether characters in FACE should be displayed in
-inverse video. VALUE must be one of t or nil.
+inverse video.  VALUE must be one of t or nil.
 
 `:stipple'
 
@@ -578,7 +579,8 @@ Use `set-face-attribute' for finer control of the font slant."
 
 (defun make-face-unitalic (face &optional frame noerror)
   "Make the font of FACE be non-italic, if possible.
-FRAME nil or not specified means change face on all frames."
+FRAME nil or not specified means change face on all frames.
+Argument NOERROR is ignored and retained for compatibility."
   (interactive (list (read-face-name "Make which face non-italic ")))
   (set-face-attribute face frame :slant 'normal))
 
@@ -624,7 +626,7 @@ When called interactively, prompt for the face and color."
 (defun set-face-stipple (face stipple &optional frame)
   "Change the stipple pixmap of face FACE to STIPPLE.
 FRAME nil or not specified means change face on all frames.
-STIPPLE. should be a string, the name of a file of pixmap data.
+STIPPLE should be a string, the name of a file of pixmap data.
 The directories listed in the `x-bitmap-file-path' variable are searched.
 
 Alternatively, STIPPLE may be a list of the form (WIDTH HEIGHT DATA)
@@ -985,7 +987,11 @@ The sample text is a string that comes from the variable
 	  (save-excursion
 	    (save-match-data
 	      (search-backward face-name)
-	      (help-xref-button 0 #'customize-face face-name
+	      (help-xref-button 0 (lambda (f)
+				    (if help-xref-stack
+					(pop help-xref-stack))
+				    (customize-face f))
+				face-name
 				"mouse-2: customize this face")))
 	  (let ((beg (point)))
 	    (insert list-faces-sample-text)
@@ -1023,7 +1029,7 @@ The sample text is a string that comes from the variable
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
-  (interactive (list (read-face-name "Describe face ")))
+  (interactive (list (read-face-name "Describe face")))
   (let* ((attrs '((:family . "Family")
 		  (:width . "Width")
 		  (:height . "Height")
@@ -1049,11 +1055,21 @@ If FRAME is omitted or nil, use the selected frame."
 		    (cdr a) ": " (format "%s" attr) "\n")))
 	(insert "\nDocumentation:\n\n"
 		(or (face-documentation face)
-		    "not documented as a face.")))
-      (print-help-return-message))))
-  
-
-
+		    "not documented as a face."))
+	(let ((customize-label "customize"))
+	  (terpri)
+	  (terpri)
+	  (princ (concat "You can " customize-label " this face."))
+	  (with-current-buffer "*Help*"
+	    (save-excursion
+	      (re-search-backward
+	       (concat "\\(" customize-label "\\)") nil t)
+	      (help-xref-button 1 #'customize-face face
+				"mouse-2, RET: customize face")))))
+      (print-help-return-message)
+      (with-current-buffer "*Help*"
+	(help-setup-xref (list #'describe-face face) (interactive-p))
+	(buffer-string)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Face specifications (defface).
@@ -1107,7 +1123,7 @@ If FRAME is nil, the current FRAME is used."
 			((eq req 'background)
 			 (memq (frame-parameter frame 'background-mode)
 			       options))
-			(t (error "Unknown req `%S' with options `%S'" 
+			(t (error "Unknown req `%S' with options `%S'"
 				  req options)))))
     match))
 
@@ -1259,7 +1275,7 @@ examine the brightness for you."
 	   (set var value)
 	   (mapcar 'frame-set-background-mode (frame-list)))
   :initialize 'custom-initialize-changed
-  :type '(choice (choice-item dark) 
+  :type '(choice (choice-item dark)
 		 (choice-item light)
 		 (choice-item :tag "default" nil)))
 
@@ -1455,14 +1471,14 @@ created."
 
 (defun frame-update-faces (frame)
   nil)
-
+(make-obsolete 'frame-update-faces "No longer necessary")
 
 ;; Update the colors of FACE, after FRAME's own colors have been
 ;; changed.
 
 (defun frame-update-face-colors (frame)
   (frame-set-background-mode frame))
-
+(make-obsolete 'frame-update-face-colors 'frame-set-background-mode)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1704,7 +1720,7 @@ created."
 		"\\([-*?]\\|\\'\\)"))
   (setq x-font-regexp-slant (concat - slant -))
   (setq x-font-regexp-weight (concat - weight -))
-  nil)	    
+  nil)
 
 
 (defun x-resolve-font-name (pattern &optional face frame)
@@ -1821,7 +1837,6 @@ If that can't be done, return nil."
   (and (setq font (x-make-font-bold font))
        (x-make-font-italic font)))
 
-
 (provide 'faces)
 
-;;; end of faces.el
+;;; faces.el ends here
