@@ -593,7 +593,6 @@ A frame may not be deleted if its minibuffer is used by other frames.")
      Lisp_Object frame;
 {
   struct frame *f;
-  union display displ;
 
   if (EQ (frame, Qnil))
     {
@@ -654,13 +653,18 @@ A frame may not be deleted if its minibuffer is used by other frames.")
 
   Vframe_list = Fdelq (frame, Vframe_list);
   FRAME_SET_VISIBLE (f, 0);
-  displ = f->display;
-  f->display.nothing = 0;
 
+  /* Since some events are handled at the interrupt level, we may get
+     an event for f at any time; if we zero out the frame's display
+     now, then we may trip up the event-handling code.  Instead, we'll
+     promise that the display of the frame must be valid until we have
+     called the window-system-dependent frame destruction routine.  */
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (f))
-    x_destroy_window (f, displ);
+    x_destroy_window (f);
 #endif
+
+  f->display.nothing = 0;
 
   /* If we've deleted the last_nonminibuf_frame, then try to find
      another one.  */
