@@ -1102,7 +1102,7 @@ command_loop_1 ()
 		  SET_PT (PT - 1);
 		  lose = FETCH_CHAR (PT);
 		  if ((dp
-		       ? (XTYPE (DISP_CHAR_VECTOR (dp, lose)) != Lisp_Vector
+		       ? (VECTORP (DISP_CHAR_VECTOR (dp, lose))
 			  && XVECTOR (DISP_CHAR_VECTOR (dp, lose))->size == 1)
 		       : (lose >= 0x20 && lose < 0x7f))
 		      && (XFASTINT (XWINDOW (selected_window)->last_modified)
