@@ -73,11 +73,3 @@ NOTE-END  */
 /* System provides alloca.  */
 
 #define HAVE_ALLOCA
-
-/* Control header files used by loadst.c.
-   Some users report machines have dkstat.h while others report dk.h,
-   so it's hard to tell what this should say.  */
-
-#ifdef BSD
-#define DKSTAT_HEADER_FILE
-#endif
