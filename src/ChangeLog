@@ -1,3 +1,7 @@
+2001-11-05  Andreas Schwab  <schwab@suse.de>
+
+	* sound.c (sound_perror): Save errno from being clobbered.
+
 2001-11-05  Dale Hagglund  <rdh@yottayotta.com>
 
 	* unexelf.c (unexec): Don't use `mmap'.  Instead, read and write
