@@ -113,7 +113,7 @@ Called from a program, takes three args: START, END and COLUMN."
 	    (goto-char start)
 	    (or (bolp) (forward-line 1))
 	    (while (< (point) end)
-	      (or (and (bolp) (eolp)))
+	      (or (and (bolp) (eolp))
 		  (funcall indent-line-function))
 	      (forward-line 1))
 	    (move-marker end nil))))
