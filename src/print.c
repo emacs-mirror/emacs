@@ -893,7 +893,7 @@ print (obj, printcharfun, escapeflag)
 	       ? "#<frame " : "#<dead frame "),
 	      -1, printcharfun);
       print_string (XFRAME (obj)->name, printcharfun);
-      sprintf (buf, " 0x%x", XFASTINT (XFRAME (obj)));
+      sprintf (buf, " 0x%x", (unsigned int) (XFRAME (obj)));
       strout (buf, -1, printcharfun);
       strout (">", -1, printcharfun);
       break;
