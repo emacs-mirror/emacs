@@ -704,7 +704,7 @@ init_environment (char ** argv)
 	{
 	  char * var = alloca (strlen (tmp) + 8);
 	  sprintf (var, "TMPDIR=%s", tmp);
-	  _putenv (var);
+	  _putenv (strdup (var));
 	  break;
 	}
     }
