@@ -149,6 +149,9 @@ fire repeatedly that many seconds apart."
   (aset timer 3 usecs)
   (aset timer 4 (and (numberp delta) (> delta 0) delta))
   timer)
+(make-obsolete 'timer-set-time-with-usecs
+               "use `timer-set-time' and `timer-inc-time' instead."
+               "21.4")
 
 (defun timer-set-function (timer function &optional args)
   "Make TIMER call FUNCTION with optional ARGS when triggering."
