@@ -351,9 +351,11 @@ output is passed to the filter `inferior-octave-output-digest'."
 (defun inferior-octave-directory-tracker (string)
   "Tracks `cd' commands issued to the inferior Octave process.
 Use \\[inferior-octave-resync-dirs] to resync if Emacs gets confused."
-  (if (string-match "^[ \t]*cd[ \t]*\\([^ \t\n;]*\\)[ \t\n;]"
-		    string)
-      (cd (substring string (match-beginning 1) (match-end 1)))))
+  (cond
+   ((string-match "^[ \t]*cd[ \t;]*$" string)
+    (cd "~"))
+   ((string-match "^[ \t]*cd[ \t]+\\([^ \t\n;]*\\)[ \t\n;]*" string)
+    (cd (substring string (match-beginning 1) (match-end 1))))))
 
 (defun inferior-octave-resync-dirs ()
   "Resync the buffer's idea of the current directory.
