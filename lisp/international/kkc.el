@@ -212,6 +212,14 @@ area while indicating the current selection by `<N>'."
 (defvar kkc-converting nil)
 
 ;;;###autoload
+(defvar kkc-after-update-conversion-functions nil
+  "Functions to run after a conversion is selected in `japanese' input method.
+With this input method, a user can select a proper conversion from
+candidate list.  Each time he changes the selection, functions in this
+list are called with two arguments; starting and ending buffer
+positions that contains the current selection.")
+
+;;;###autoload
 (defun kkc-region (from to)
   "Convert Kana string in the current region to Kanji-Kana mixed string.
 Users can select a desirable conversion interactively.
@@ -635,7 +643,11 @@ and change the current conversion to the last one in the group."
 	  (move-overlay kkc-overlay-head
 			(overlay-start kkc-overlay-head) pos)
 	  (delete-region (point) (overlay-end kkc-overlay-tail)))))
-  (goto-char (overlay-end kkc-overlay-tail)))
+  (unwind-protect
+      (run-hook-with-args 'kkc-after-update-conversion-functions
+			  (overlay-start kkc-overlay-head)
+			  (overlay-end kkc-overlay-head))
+    (goto-char (overlay-end kkc-overlay-tail))))
 
 ;;
 (provide 'kkc)
