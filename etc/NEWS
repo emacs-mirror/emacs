@@ -299,6 +299,9 @@ have been moved from the CL package to the core.
 *** The new package syntax.el provides an efficient way to find the
 current syntactic context (as returned by parse-partial-sexp).
 
+*** The TCL package tcl-mode.el was replaced by tcl.el.
+This was actually done in Emacs-21.1 was not documented.
+	
 
 * Installation Changes in Emacs 21.1
 

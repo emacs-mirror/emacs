@@ -1,5 +1,8 @@
 2001-11-20  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* derived.el (define-derived-mode): Create the abbrev-table
+	from inside the `defvar'.
+
 	* jit-lock.el (jit-lock-defer-time): New var.
 	(jit-lock-defer-timer, jit-lock-buffers): New vars.
 	(jit-lock-mode): Initialize them.  Cancel the timers more carefully.
