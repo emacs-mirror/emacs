@@ -349,7 +349,7 @@ at the end of the buffer."
   (if (re-search-forward (concat "\n\\(?:" outline-regexp "\\)")
 			 nil 'move)
       (goto-char (match-beginning 0)))
-  (if (and (bolp) (not (bobp)))
+  (if (and (bolp) (eobp) (not (bobp)))
       (forward-char -1)))
 
 (defun outline-next-heading ()
@@ -706,8 +706,8 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
   "Hide the body directly following this heading."
   (interactive)
   (outline-back-to-heading)
-  (outline-end-of-heading)
   (save-excursion
+    (outline-end-of-heading)
     (outline-flag-region (point) (progn (outline-next-preface) (point)) t)))
 
 (defun show-entry ()
@@ -769,10 +769,7 @@ Show the heading too, if it is currently invisible."
 
 (defun outline-show-heading ()
   "Show the current heading and move to its end."
-  (outline-flag-region (- (point)
-			  (if (bobp) 0
-			    (if (eq (char-before (1- (point))) ?\n)
-				2 1)))
+  (outline-flag-region (- (point) (if (bobp) 0 1))
 		       (progn (outline-end-of-heading) (point))
 		       nil))
 
@@ -840,10 +837,7 @@ Show the heading too, if it is currently invisible."
     (if (bolp)
 	(progn
 	  ;; Go to end of line before heading
-	  (forward-char -1)
-	  (if (bolp)
-	      ;; leave blank line before heading
-	      (forward-char -1))))))
+	  (forward-char -1)))))
 
 (defun show-branches ()
   "Show all subheadings of this heading, but not their bodies."
@@ -884,6 +878,8 @@ Default is enough to cause the following heading to appear."
 With argument, move up ARG levels.
 If INVISIBLE-OK is non-nil, also consider invisible lines."
   (interactive "p")
+  (and (eq this-command 'outline-up-heading)
+       (or (eq last-command 'outline-up-heading) (push-mark)))
   (outline-back-to-heading invisible-ok)
   (let ((start-level (funcall outline-level)))
     (if (eq start-level 1)
