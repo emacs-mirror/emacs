@@ -5449,7 +5449,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       Lisp_Object new;
 
       record_unwind_protect (code_convert_region_unwind,
-			     Vlatin_extra_code_table);
+			     Vlast_coding_system_used);
       /* We should not call any more pre-write/post-read-conversion
          functions while this pre-write-conversion is running.  */
       inhibit_pre_post_conversion = 1;
