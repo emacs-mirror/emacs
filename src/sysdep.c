@@ -677,8 +677,7 @@ sys_subshell ()
      which somehow wedges the hp compiler.  So instead...  */
 
   dir = intern ("default-directory");
-  /* Can't use NILP */
-  if (XFASTINT (Fboundp (dir)) == XFASTINT (Qnil))
+  if (NILP (Fboundp (dir)))
     goto xyzzy;
   dir = Fsymbol_value (dir);
   if (!STRINGP (dir))
