@@ -375,7 +375,7 @@ if [ `pwd` != `(cd ${srcdir} && pwd)` ] \
   vpath_sed='-f vpath.sed'
 else
   # Do the normal substitution for VPATH.  This will not crash non-GNU make.
-  vpath_sed='-e '\''s|^\(VPATH *=\).*$$|\1 ='\''"${srcdir}/${subdir}|"'
+  vpath_sed=]'AC_QUOTE_SQUOTE(AC_QUOTE_SQUOTE('-e '\''s|^\(VPATH *=\).*$$|\1 ='\''"${srcdir}/${subdir}|"'))'[
 fi
 ] AC_SUBST(vpath_sed) [
 
@@ -1310,4 +1310,4 @@ test -n "${prefix}" &&
 test -n "${exec_prefix}" &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`
 ]
-AC_OUTPUT(Makefile ${extra_output})
+AC_OUTPUT(Makefile)
