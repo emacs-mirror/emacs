@@ -781,6 +781,8 @@ static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
   AVER(base != 0);
   AVER(base < limit);
 
+  base = AddrAdd(base, format->headerSize);
+  limit = AddrAdd(base, format->headerSize);
   dependentObject = awl->findDependent(base);
   dependent = SegOfAddr(&dependentSeg, arena, dependentObject);
   if (dependent) {
@@ -789,8 +791,6 @@ static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
       /* design.mps.poolawl.fun.scan.pass.object.dependent.summary */
       SegSetSummary(dependentSeg, RefSetUNIV);
   }
-  base = AddrAdd(base, format->headerSize);
-  limit = AddrAdd(base, format->headerSize);
   res = (*format->scan)(ss, base, limit);
   if(res == ResOK)
     ss->scannedSize += AddrOffset(base, limit);
