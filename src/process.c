@@ -4525,6 +4525,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
      Lisp_Object read_kbd;
      int do_display;
 {
+  register int nfds;
   EMACS_TIME end_time, timeout;
   SELECT_TYPE waitchannels;
   int xerrno;
@@ -4540,27 +4541,17 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   /* What does time_limit really mean?  */
   if (time_limit || microsecs)
     {
-      if (time_limit == -1)
-	/* In fact, it's zero.  */
-	EMACS_SET_SECS_USECS (timeout, 0, 0);
-      else
-	EMACS_SET_SECS_USECS (timeout, time_limit, microsecs);
-
-      /* How far in the future is that?  */
       EMACS_GET_TIME (end_time);
+      EMACS_SET_SECS_USECS (timeout, time_limit, microsecs);
       EMACS_ADD_TIME (end_time, end_time, timeout);
     }
-  else
-    /* It's infinite.  */
-    EMACS_SET_SECS_USECS (timeout, 100000, 0);
 
   /* Turn off periodic alarms (in case they are in use)
      because the select emulator uses alarms.  */
   stop_polling ();
 
-  for (;;)
+  while (1)
     {
-      int nfds;
       int timeout_reduced_for_timers = 0;
 
       /* If calling from keyboard input, do not quit
@@ -4575,12 +4566,24 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* Compute time from now till when time limit is up */
       /* Exit if already run out */
-      if (time_limit > 0 || microsecs)
+      if (time_limit == -1)
+	{
+	  /* -1 specified for timeout means
+	     gobble output available now
+	     but don't wait at all. */
+
+	  EMACS_SET_SECS_USECS (timeout, 0, 0);
+	}
+      else if (time_limit || microsecs)
 	{
 	  EMACS_GET_TIME (timeout);
 	  EMACS_SUB_TIME (timeout, end_time, timeout);
 	  if (EMACS_TIME_NEG_P (timeout))
 	    break;
+	}
+      else
+	{
+	  EMACS_SET_SECS_USECS (timeout, 100000, 0);
 	}
 
       /* If our caller will not immediately handle keyboard events,
@@ -4602,6 +4605,11 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 		 and that could alter the time delay.  */
 	      goto retry;
 	    }
+
+	  /* If there is unread keyboard input, also return.  */
+	  if (XINT (read_kbd) != 0
+	      && requeued_events_pending_p ())
+	    break;
 
 	  if (! EMACS_TIME_NEG_P (timer_delay) && time_limit != -1)
 	    {
@@ -4686,6 +4694,11 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  if (detect_input_pending_run_timers (do_display))
 	    break;
 	}
+
+      /* If there is unread keyboard input, also return.  */
+      if (XINT (read_kbd) != 0
+	  && requeued_events_pending_p ())
+	break;
 
       /* If wait_for_cell. check for keyboard input
 	 but don't run any timers.
