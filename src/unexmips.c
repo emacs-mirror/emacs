@@ -184,7 +184,7 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
   rdata_section->s_size = data_start - DATA_START;
   data_section->s_vaddr = data_start;
   data_section->s_paddr = data_start;
-  data_section->s_size = brk - DATA_START;
+  data_section->s_size = brk - data_start;
   data_section->s_scnptr = rdata_section->s_scnptr + rdata_section->s_size;
   vaddr = data_section->s_vaddr + data_section->s_size;
   scnptr = data_section->s_scnptr + data_section->s_size;
