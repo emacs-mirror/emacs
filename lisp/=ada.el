@@ -140,7 +140,9 @@ This does fairly subdued highlighting.")
   "For consideration as a value of `ada-font-lock-keywords'.
 This does a lot more highlighting.")
 
-(defvar ada-font-lock-keywords ada-font-lock-keywords-1
+(defvar ada-font-lock-keywords (if font-lock-maximum-decoration
+				   ada-font-lock-keywords-2
+				 ada-font-lock-keywords-1)
   "Additional expressions to highlight in Ada mode.")
 
 (defvar ada-mode-map nil
