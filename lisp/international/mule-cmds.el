@@ -986,8 +986,13 @@ see `language-info-alist'."
 	  (setq key-slot (list key))
 	  (setcdr lang-slot (cons key-slot (cdr lang-slot)))))
     (setcdr key-slot (purecopy info))
+    ;; Update the custom-type of `current-language-environment'.
     (put 'current-language-environment 'custom-type
-	 (current-language-environment-custom-type))))
+	 (cons 'choice (mapcar
+			(lambda (lang)
+			  (list 'const (car lang)))
+			(sort (copy-sequence language-info-alist)
+			      (lambda (x y) (string< (car x) (car y)))))))))
 
 (defun set-language-info-alist (lang-env alist &optional parents)
   "Store ALIST as the definition of language environment LANG-ENV.
@@ -1486,15 +1491,6 @@ This hook is mainly used for canceling the effect of
 	    (set-language-environment language-name)
 	  (customize-mark-as-set 'current-language-environment))
       (error "Bogus calling sequence"))))
-
-(defun current-language-environment-custom-type ()
-  "Return a custom type for `current-language-environment'.
-This is based on `language-info-alist'."
-  (cons 'choice (mapcar
-		 (lambda (lang)
-		   (list 'const (car lang)))
-		 (sort (copy-sequence language-info-alist)
-		       (lambda (x y) (string< (car x) (car y)))))))
 
 (defcustom current-language-environment "English"
   "The last language environment specified with `set-language-environment'.
