@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999,
-@c 2003, 2004
+@c 2003, 2004, 2005
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/lists
@@ -18,7 +18,6 @@ the whole list.
 
 @menu
 * Cons Cells::          How lists are made out of cons cells.
-* Lists as Boxes::                 Graphical notation to explain lists.
 * List-related Predicates::        Is this object a list?  Comparing two lists.
 * List Elements::       Extracting the pieces of a list.
 * Building Lists::      Creating list structure.
@@ -87,7 +86,7 @@ cells.
 elements of @var{l} except the first.
 
   @xref{Cons Cell Type}, for the read and print syntax of cons cells and
-lists, and for more ``box and arrow'' illustrations of lists.
+lists, and for ``box and arrow'' illustrations of lists.
 
 @node List-related Predicates
 @section Predicates on Lists
