@@ -405,7 +405,8 @@ install-arch-indep: mkdir info
 	   echo "Copying etc/DOC-* to ${docdir} ..." ; \
 	   (cd ./etc; tar -chf - DOC*) \
 	     |(cd ${docdir}; umask 0; tar -xvf - && cat > /dev/null) || exit 1; \
-	   (cd $(docdir); chmod a+r DOC*; rm DOC); \
+	   (cd $(docdir); chmod a+r DOC*; \
+	    if test "`echo DOC-*`" != "DOC-*"; then rm DOC; fi); \
 	else true; fi
 	-unset CDPATH; \
 	if [ -r ./lisp ] \
