@@ -1149,14 +1149,14 @@ skip_chars (forwardp, syntaxp, string, lim)
      form "X-Y" of STRING, both X and Y must belong to the same
      character set because a range striding across character sets is
      meaningless.  */
-  int *char_ranges
-    = (int *) alloca (XSTRING (string)->size * (sizeof (int)) * 2);
+  int *char_ranges;
   int n_char_ranges = 0;
   int negate = 0;
   register int i;
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
 
   CHECK_STRING (string, 0);
+  char_ranges = (int *) alloca (XSTRING (string)->size * (sizeof (int)) * 2);
 
   if (NILP (lim))
     XSETINT (lim, forwardp ? ZV : BEGV);
