@@ -1,3 +1,17 @@
+2001-06-06  Dave Love  <fx@gnu.org>
+
+	* international/mule-cmds.el (describe-input-method): Set up
+	xrefs.
+	(locale-language-names): Remove pattern for utf.
+	(locale-preferred-coding-systems): Add pattern for utf.
+
+	* international/mule-conf.el (file-coding-system-alist): Add
+	pattern for utf-8.
+
+	* international/mule.el (make-char): Doc fix.
+	(make-coding-system): Give coding-system a function definition for
+	autoload purposes.
+
 2001-06-05  Dave Love  <fx@gnu.org>
 
 	* language/cyrillic.el (cyrillic-koi8-r-decode-table)
