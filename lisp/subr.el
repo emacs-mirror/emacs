@@ -180,7 +180,44 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
 			  (substitute-key-definition olddef newdef keymap
 						     inner-def
 						     prefix1)))))
-		(setq i (1+ i))))))
+		(setq i (1+ i))))
+	  (if (char-table-p (car scan))
+	      (map-char-table
+	       (function (lambda (char defn)
+			   (let ()
+			     ;; The inside of this let duplicates exactly
+			     ;; the inside of the previous let,
+			     ;; except that it uses set-char-table-range
+			     ;; instead of define-key.
+			     (aset vec1 0 char)
+			     (aset prefix1 (length prefix) char)
+			     (let (inner-def skipped)
+			       ;; Skip past menu-prompt.
+			       (while (stringp (car-safe defn))
+				 (setq skipped (cons (car defn) skipped))
+				 (setq defn (cdr defn)))
+			       (and (consp defn) (consp (car defn))
+				    (setq defn (cdr defn)))
+			       (setq inner-def defn)
+			       (while (and (symbolp inner-def)
+					   (fboundp inner-def))
+				 (setq inner-def (symbol-function inner-def)))
+			       (if (or (eq defn olddef)
+				       (and (or (stringp defn) (vectorp defn))
+					    (equal defn olddef)))
+				   (set-char-table-range (car scan)
+							 char
+							 (nconc (nreverse skipped) newdef))
+				 (if (and (keymapp defn)
+					  (let ((elt (lookup-key keymap prefix1)))
+					    (or (null elt)
+						(keymapp elt)))
+					  (not (memq inner-def
+						     key-substitution-in-progress)))
+				     (substitute-key-definition olddef newdef keymap
+								inner-def
+								prefix1)))))))
+	       (car scan)))))
       (setq scan (cdr scan)))))
 
 (defun define-key-after (keymap key definition after)
