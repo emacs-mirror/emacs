@@ -275,7 +275,7 @@ recreate_heap (char *executable_path)
 		      MEM_RESERVE,
 		      PAGE_NOACCESS);
   if (!tmp)
-    exit (1);
+    w32_fatal_reload_error ("Reserving upper heap address space.");
 
   /* We read in the data for the .bss section from the executable
      first and map in the heap from the executable second to prevent
