@@ -5668,7 +5668,7 @@ x_term_init (display_name, xrm_option, resource_name)
 #else
   dpyinfo->display->db = xrdb;
 #endif
-  /* Put thr rdb where we can find it in a way that works on
+  /* Put the rdb where we can find it in a way that works on
      all versions.  */
   dpyinfo->xrdb = xrdb;
 
@@ -5733,6 +5733,8 @@ x_term_init (display_name, xrm_option, resource_name)
     = XInternAtom (dpyinfo->display, "NULL", False);
   dpyinfo->Xatom_ATOM_PAIR
     = XInternAtom (dpyinfo->display, "ATOM_PAIR", False);
+
+  dpyinfo->cut_buffers_initialized = 0;
 
   connection = ConnectionNumber (dpyinfo->display);
   dpyinfo->connection = connection;
