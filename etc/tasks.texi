@@ -558,6 +558,11 @@ perhaps something like Scientific Workbench and/or Khoros,
 Software to replace card catalogues in libraries.
 
 @item
+A package for editing genealogical records conveniently.
+This could perhaps be done as a Gnome program, or perhaps
+as an Emacs extentsion.
+
+@item
 A project-scheduling package that accepts a list of project sub-tasks
 with their interdependencies, and generates Gantt charts and Pert charts
 and all the other standard project progress reports.
