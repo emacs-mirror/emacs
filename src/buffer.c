@@ -584,7 +584,7 @@ This does not change the name of the visited file (if any).")
      It makes UNIQUE equivalent to
      (rename-buffer (generate-new-buffer-name NEWNAME)).  */
   if (NILP (unique) && XBUFFER (tem) == current_buffer)
-    return current_buffer->newname;
+    return current_buffer->name;
   if (!NILP (tem))
     {
       if (!NILP (unique))
@@ -604,8 +604,8 @@ This does not change the name of the visited file (if any).")
   if (NILP (current_buffer->filename)
       && !NILP (current_buffer->auto_save_file_name))
     call0 (intern ("rename-auto-save-file"));
-  /* refetch since that last call may have done GC */
-  return current_buffer->newname;
+  /* Refetch since that last call may have done GC.  */
+  return current_buffer->name;
 }
 
 DEFUN ("other-buffer", Fother_buffer, Sother_buffer, 0, 2, 0,
