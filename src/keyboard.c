@@ -4249,8 +4249,6 @@ struct input_event last_timer_event;
    run the timer directly instead of queueing a timer-event.
    Now we always run timers directly.  */
 
-static int in_timer_check = 0;
-
 EMACS_TIME
 timer_check (do_it_now)
      int do_it_now;
@@ -4262,11 +4260,6 @@ timer_check (do_it_now)
 
   EMACS_SET_SECS (nexttime, -1);
   EMACS_SET_USECS (nexttime, -1);
-
-  if (in_timer_check)
-    return nexttime;
-
-  in_timer_check = 1;
 
   /* Always consider the ordinary timers.  */
   timers = Vtimer_list;
@@ -4426,7 +4419,6 @@ timer_check (do_it_now)
 	   return the amount of time to wait before it is ripe.  */
 	{
 	  UNGCPRO;
-	  in_timer_check = 0;
 	  return difference;
 	}
     }
@@ -4434,7 +4426,6 @@ timer_check (do_it_now)
   /* No timers are pending in the future.  */
   /* Return 0 if we generated an event, and -1 if not.  */
   UNGCPRO;
-  in_timer_check = 0;
   return nexttime;
 }
 
