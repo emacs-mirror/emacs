@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; For Europeans, five character sets ISO8859-1,2,3,4,9 are supported.
+;; For Europeans, character sets ISO8859-1,2,3,4,9,14,15 are supported.
 
 ;;; Code:
 
@@ -66,11 +66,17 @@
 	     (sample-text
 	      . "Hello, Hej, Tere, Hei, Bonjour, Gr,A|_(B Gott, Ciao, ,A!(BHola!")
 	     (documentation . "\
-This language environment is a generic one for Latin-1 (ISO-8859-1)
-character set which supports the following languages:
- Danish, Dutch, English, Faeroese, Finnish, French, German, Icelandic,
- Irish, Italian, Norwegian, Portuguese, Spanish, and Swedish.
-We also have a German specific language environment \"German\"."))
+This language environment is a generic one for the Latin-1 (ISO-8859-1)
+character set which supports the following European languages:
+ Albanian, Basque, Breton, Catalan, Danish, Dutch, English, Faeroese,
+ Finnish, French (with restrictions -- see Latin-9), Frisian, Galician,
+ German, Greenlandic, Icelandic, Irish Gaelic (new orthography),
+ Italian, Latin, Luxemburgish, Norwegian, Portuguese, Rhaeto-Romanic,
+ Scottish Gaelic, Spanish, and Swedish.
+We also have a German specific language environment \"German\".
+
+Latin-1 also covers several written languages outside Europe, including
+Indonesian/Malay, Tagalog (Philippines), Swahili and Afrikaans."))
  '("European"))
 
 
@@ -101,7 +107,7 @@ We also have a German specific language environment \"German\"."))
 	     (unibyte-display . iso-latin-2)
 	     (input-method . "latin-2-prefix")
 	     (documentation . "\
-This language environment is a generic one for Latin-2 (ISO-8859-2)
+This language environment is a generic one for the Latin-2 (ISO-8859-2)
 character set which supports the following languages:
  Albanian, Czech, English, German, Hungarian, Polish, Romanian,
  Serbo-Croatian or Croatian, Slovak, Slovene, Sorbian (upper and lower),
@@ -206,9 +212,84 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
 	     (unibyte-display . iso-latin-5)
 	     (input-method . "latin-5-prefix")
 	     (documentation . "\
-These languages are supported with the Latin-5 (ISO-8859-9) character set."))
+These languages are supported with the Latin-5 (ISO-8859-9) character set:
+Bulgarian, Byelorussian, (Slavic) Macedonian, Russian, Serbian and
+Ukranian."))				; says ISO 8859-1
  '("European"))
 
+
+;; Latin-8 (ISO-8859-14)
+
+(make-coding-system
+ 'iso-latin-8 2 ?W			; `W' for `Welsh', since `C'
+					; for `Celtic' is taken.
+ "ISO 2022 based 8-bit encoding for Latin-8 (MIME:ISO-8859-14)"
+ '(ascii latin-iso8859-14 nil nil
+   nil nil nil nil nil nil nil nil nil nil nil nil t)
+ '((safe-charsets ascii latin-iso8859-14)
+   (mime-charset . iso-8859-14)))
+
+(define-coding-system-alias 'iso-8859-14 'iso-latin-8)
+(define-coding-system-alias 'latin-8 'iso-latin-8)
+
+(defun setup-latin8-environment ()
+  "Set up multilingual environment (MULE) for European Latin-8 users."
+  (interactive)
+  (set-language-environment "latin-8"))
+
+(set-language-info-alist
+ "Latin-8" '((charset ascii latin-iso8859-14)
+	     (coding-system iso-latin-8)
+	     (coding-priority iso-latin-8)
+	     (nonascii-translation . latin-iso8859-14)
+	     (unibyte-syntax . "latin-8")
+	     (unibyte-display . iso-latin-8)
+	     (input-method . "latin-1-prefix") ; fixme
+;;; Fixme: Welsh/Ga{e}lic greetings
+;;;	     (sample-text
+;;;  	      . "")
+	     (documentation . "\
+This language environment is a generic one for the Latin-8 (ISO-8859-14)
+character set which supports the Celtic languages, specifically Welsh and
+Irish Gaelic (old orthography) which are not covered by other ISO-8859
+character sets."))
+ '("European"))
+
+;; Latin-9 (ISO-8859-15)
+
+(make-coding-system
+ 'iso-latin-9 2 ?0			; `0' for `Latin-0'
+ "ISO 2022 based 8-bit encoding for Latin-9 (MIME:ISO-8859-15)"
+ '(ascii latin-iso8859-15 nil nil
+   nil nil nil nil nil nil nil nil nil nil nil nil t)
+ '((safe-charsets ascii latin-iso8859-15)
+   (mime-charset . iso-8859-15)))
+
+(define-coding-system-alias 'iso-8859-15 'iso-latin-9)
+(define-coding-system-alias 'latin-9 'iso-latin-9)
+(define-coding-system-alias 'latin-0 'iso-latin-9)
+
+(defun setup-latin9-environment ()
+  "Set up multilingual environment (MULE) for European Latin-9 users."
+  (interactive)
+  (set-language-environment "latin-9"))
+
+(set-language-info-alist
+ "Latin-9" '((charset ascii latin-iso8859-15)
+	     (coding-system iso-latin-9)
+	     (coding-priority iso-latin-9)
+	     (nonascii-translation . latin-iso8859-15)
+	     (unibyte-syntax . "latin-9")
+	     (unibyte-display . iso-latin-9)
+	     (input-method . "latin-1-prefix") ; fixme?
+	     (sample-text
+	      . "Ave Latinum IX, ,b&(48<=>(B ,b$$$(B")
+	     (documentation . "\
+This language environment is a generic one for the Latin-9 (ISO-8859-15)
+character set which supports the same languages as Latin-1 with the
+addition of the Euro sign and some additional French and Finnish letters.
+Latin-9 is sometimes nicknamed `Latin-0'."))
+ '("European"))
 
 (defun setup-german-environment ()
   "Set up multilingual environment (MULE) for German users."
