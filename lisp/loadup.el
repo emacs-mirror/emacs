@@ -67,6 +67,7 @@
 (load "simple")
 (load "files")
 
+(load "cus-face")
 (load "faces")  ; after here, `defface' may be used.
 
 (message "Lists of integers (garbage collection statistics) are normal output")
@@ -134,6 +135,7 @@
       (and (boundp 'x-toolkit-scroll-bars)
 	   (load "scroll-bar"))
       (load "select")))
+(load "timer")
 (load "isearch")
 
 (message "%s" (garbage-collect))
