@@ -110,19 +110,19 @@ static int sequence_number;
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
 DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,
-  "Returns t if OBJ is a window.")
-  (obj)
-     Lisp_Object obj;
+  "Returns t if OBJECT is a window.")
+  (object)
+     Lisp_Object object;
 {
-  return WINDOWP (obj) ? Qt : Qnil;
+  return WINDOWP (object) ? Qt : Qnil;
 }
 
 DEFUN ("window-live-p", Fwindow_live_p, Swindow_live_p, 1, 1, 0,
-  "Returns t if OBJ is a window which is currently visible.")
-     (obj)
-     Lisp_Object obj;
+  "Returns t if OBJECT is a window which is currently visible.")
+     (object)
+     Lisp_Object object;
 {
-  return (WINDOWP (obj) && ! NILP (XWINDOW (obj)->buffer) ? Qt : Qnil);
+  return (WINDOWP (object) && ! NILP (XWINDOW (object)->buffer) ? Qt : Qnil);
 }
 
 Lisp_Object
@@ -1205,15 +1205,15 @@ All windows on current frame are arranged in a cyclic order.\n\
 This command selects the window ARG steps away in that order.\n\
 A negative ARG moves in the opposite order.  If the optional second\n\
 argument ALL_FRAMES is non-nil, cycle through all frames.")
-  (n, all_frames)
-     register Lisp_Object n, all_frames;
+  (arg, all_frames)
+     register Lisp_Object arg, all_frames;
 {
   register int i;
   register Lisp_Object w;
 
-  CHECK_NUMBER (n, 0);
+  CHECK_NUMBER (arg, 0);
   w = selected_window;
-  i = XINT (n);
+  i = XINT (arg);
 
   while (i > 0)
     {
@@ -2399,22 +2399,22 @@ and put SIZE columns in the first of the pair.")
 DEFUN ("enlarge-window", Fenlarge_window, Senlarge_window, 1, 2, "p",
   "Make current window ARG lines bigger.\n\
 From program, optional second arg non-nil means grow sideways ARG columns.")
-  (n, side)
-     register Lisp_Object n, side;
+  (arg, side)
+     register Lisp_Object arg, side;
 {
-  CHECK_NUMBER (n, 0);
-  change_window_height (XINT (n), !NILP (side));
+  CHECK_NUMBER (arg, 0);
+  change_window_height (XINT (arg), !NILP (side));
   return Qnil;
 }
 
 DEFUN ("shrink-window", Fshrink_window, Sshrink_window, 1, 2, "p",
   "Make current window ARG lines smaller.\n\
-From program, optional second arg non-nil means shrink sideways ARG columns.")
-  (n, side)
-     register Lisp_Object n, side;
+From program, optional second arg non-nil means shrink sideways arg columns.")
+  (arg, side)
+     register Lisp_Object arg, side;
 {
-  CHECK_NUMBER (n, 0);
-  change_window_height (-XINT (n), !NILP (side));
+  CHECK_NUMBER (arg, 0);
+  change_window_height (-XINT (arg), !NILP (side));
   return Qnil;
 }
 
@@ -2724,10 +2724,10 @@ DEFUN ("scroll-up", Fscroll_up, Sscroll_up, 0, 1, "P",
 A near full screen is `next-screen-context-lines' less than a full screen.\n\
 Negative ARG means scroll downward.\n\
 When calling from a program, supply a number as argument or nil.")
-  (n)
-     Lisp_Object n;
+  (arg)
+     Lisp_Object arg;
 {
-  scroll_command (n, 1);
+  scroll_command (arg, 1);
   return Qnil;
 }
 
@@ -2736,10 +2736,10 @@ DEFUN ("scroll-down", Fscroll_down, Sscroll_down, 0, 1, "P",
 A near full screen is `next-screen-context-lines' less than a full screen.\n\
 Negative ARG means scroll upward.\n\
 When calling from a program, supply a number as argument or nil.")
-  (n)
-     Lisp_Object n;
+  (arg)
+     Lisp_Object arg;
 {
-  scroll_command (n, -1);
+  scroll_command (arg, -1);
   return Qnil;
 }
 
@@ -2796,8 +2796,8 @@ If in the minibuffer, `minibuffer-scroll-window' if non-nil\n\
 specifies the window to scroll.\n\
 If `other-window-scroll-buffer' is non-nil, scroll the window\n\
 showing that buffer, popping the buffer up if necessary.")
-  (n)
-     register Lisp_Object n;
+  (arg)
+     register Lisp_Object arg;
 {
   register Lisp_Object window;
   register int defalt;
@@ -2816,16 +2816,16 @@ showing that buffer, popping the buffer up if necessary.")
   Fset_buffer (w->buffer);
   SET_PT (marker_position (w->pointm));
 
-  if (NILP (n))
+  if (NILP (arg))
     window_scroll (window, defalt, 1);
-  else if (EQ (n, Qminus))
+  else if (EQ (arg, Qminus))
     window_scroll (window, -defalt, 1);
   else
     {
-      if (CONSP (n))
-	n = Fcar (n);
-      CHECK_NUMBER (n, 0);
-      window_scroll (window, XINT (n), 1);
+      if (CONSP (arg))
+	arg = Fcar (arg);
+      CHECK_NUMBER (arg, 0);
+      window_scroll (window, XINT (arg), 1);
     }
 
   Fset_marker (w->pointm, make_number (PT), Qnil);
@@ -2873,36 +2873,36 @@ DEFUN ("recenter", Frecenter, Srecenter, 0, 1, "P",
   "Center point in window and redisplay frame.  With ARG, put point on line ARG.\n\
 The desired position of point is always relative to the current window.\n\
 Just C-u as prefix means put point in the center of the window.\n\
-No arg (i.e., it is nil) erases the entire frame and then\n\
+If ARG is omitted or nil, erases the entire frame and then\n\
 redraws with point in the center of the current window.")
-  (n)
-     register Lisp_Object n;
+  (arg)
+     register Lisp_Object arg;
 {
   register struct window *w = XWINDOW (selected_window);
   register int ht = window_internal_height (w);
   struct position pos;
 
-  if (NILP (n))
+  if (NILP (arg))
     {
       extern int frame_garbaged;
 
       SET_FRAME_GARBAGED (XFRAME (WINDOW_FRAME (w)));
-      XSETFASTINT (n, ht / 2);
+      XSETFASTINT (arg, ht / 2);
     }
-  else if (CONSP (n)) /* Just C-u. */
+  else if (CONSP (arg)) /* Just C-u. */
     {
-      XSETFASTINT (n, ht / 2);
+      XSETFASTINT (arg, ht / 2);
     }
   else
     {
-      n = Fprefix_numeric_value (n);
-      CHECK_NUMBER (n, 0);
+      arg = Fprefix_numeric_value (arg);
+      CHECK_NUMBER (arg, 0);
     }
 
-  if (XINT (n) < 0)
-    XSETINT (n, XINT (n) + ht);
+  if (XINT (arg) < 0)
+    XSETINT (arg, XINT (arg) + ht);
 
-  pos = *vmotion (point, - XINT (n), w);
+  pos = *vmotion (point, - XINT (arg), w);
 
   Fset_marker (w->start, make_number (pos.bufpos), w->buffer);
   w->start_at_line_beg = ((pos.bufpos == BEGV
@@ -2990,10 +2990,10 @@ struct saved_window
 
 DEFUN ("window-configuration-p", Fwindow_configuration_p, Swindow_configuration_p, 1, 1, 0,
   "T if OBJECT is a window-configuration object.")
-  (obj)
-     Lisp_Object obj;
+  (object)
+     Lisp_Object object;
 {
-  if (WINDOW_CONFIGURATIONP (obj))
+  if (WINDOW_CONFIGURATIONP (object))
     return Qt;
   return Qnil;
 }
