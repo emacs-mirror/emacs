@@ -80,6 +80,7 @@ COORD	cursor_coords;
 HANDLE	prev_screen, cur_screen;
 UCHAR	char_attr, char_attr_normal, char_attr_reverse;
 HANDLE  keyboard_handle;
+DWORD   prev_console_mode;
 
 
 /* Setting this as the ctrl handler prevents emacs from being killed when
@@ -521,15 +522,18 @@ set_terminal_window (int size)
 void
 unset_kbd (void)
 {
-  SetConsoleMode (keyboard_handle, ENABLE_PROCESSED_INPUT | ENABLE_LINE_INPUT |
-		  ENABLE_ECHO_INPUT | ENABLE_MOUSE_INPUT);
+  SetConsoleMode (keyboard_handle, prev_console_mode);
 }
 
 void
 reset_kbd (void)
 {
   keyboard_handle = GetStdHandle (STD_INPUT_HANDLE);
+  GetConsoleMode (keyboard_handle, &prev_console_mode);
   SetConsoleMode (keyboard_handle, ENABLE_MOUSE_INPUT | ENABLE_WINDOW_INPUT);
+
+  /* Try to use interrupt input; if we can't, then start polling.  */
+  Fset_input_mode (Qt, Qnil, Qt, Qnil);
 }
 
 typedef int (*term_hook) ();
