@@ -95,8 +95,9 @@ value of this flag.")
 (defvar vc-checkout-switches nil
   "*Extra switches passed to the checkout program by \\[vc-checkout].")
 (defvar vc-path
-  (if (file-exists-p "/usr/sccs")
-      '("/usr/sccs") nil)
+  (if (file-directory-p "/usr/sccs")
+      '("/usr/sccs")
+    nil)
   "*List of extra directories to search for version control commands.")
 (defvar vc-directory-exclusion-list '("SCCS" "RCS")
   "*Directory names ignored by functions that recursively walk file trees.")
