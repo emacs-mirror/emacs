@@ -1262,6 +1262,12 @@ update_menu_bar (f, save_match_data)
 	  if (save_match_data)
 	    record_unwind_protect (Fstore_match_data, Fmatch_data ());
 
+	  /* Run the Lucid hook.  */
+	  call1 (Vrun_hooks, Qactivate_menubar_hook);
+	  /* If it has changed current-menubar from previous value,
+	     really recompute the menubar from the value.  */
+	  if (! NILP (Vlucid_menu_bar_dirty_flag))
+	    call0 (Qrecompute_lucid_menubar);
 	  call1 (Vrun_hooks, Qmenu_bar_update_hook);
 	  current_buffer = XBUFFER (w->buffer);
 	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
