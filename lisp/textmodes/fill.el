@@ -131,7 +131,7 @@ space does not end a sentence, so don't break a line there."
   ;; Arrange for undoing the fill to restore point.
   (if (and buffer-undo-list (not (eq buffer-undo-list t)))
       (setq buffer-undo-list (cons (point) buffer-undo-list)))
-  (or justify (setq justify (justification)))
+  (or justify (setq justify (current-justification)))
 
   ;; Don't let Adaptive Fill mode alter the fill prefix permanently.
   (let ((fill-prefix fill-prefix))
@@ -372,7 +372,7 @@ The `justification' text-property  can locally override this variable.
 This variable automatically becomes buffer-local when set in any fashion.")
 (make-variable-buffer-local 'default-justification)
 
-(defun justification ()
+(defun current-justification ()
   "How should we justify this line?
 This returns the value of the text-property `justification',
 or the variable `default-justification' if there is no text-property.
@@ -464,7 +464,7 @@ it will not be stretched by full justification.
 Third arg NOSQUEEZE non-nil means to leave interior whitespace unchanged,
 otherwise it is made canonical."
   (interactive (list 'full nil nil))
-  (if (eq t how) (setq how (or (justification) 'none)))
+  (if (eq t how) (setq how (or (current-justification) 'none)))
   (save-excursion
    (save-restriction
     (let ((fc (current-fill-column))
