@@ -1,5 +1,5 @@
 Debugging GNU Emacs
-Copyright (c) 1985 Richard M. Stallman.
+Copyright (c) 1985, 2000 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
@@ -11,23 +11,6 @@ Copyright (c) 1985 Richard M. Stallman.
    of this document, or of portions of it,
    under the above conditions, provided also that they
    carry prominent notices stating who last changed them.
-
-On 4.2 you will probably find that dbx does not work for
-debugging GNU Emacs.  For one thing, dbx does not keep the
-inferior process's terminal modes separate from its own.
-For another, dbx does not put the inferior in a separate
-process group, which makes trouble when an inferior uses
-interrupt input, which GNU Emacs must do on 4.2.
-
-dbx has also been observed to have other problems,
-such as getting incorrect values for register variables
-in stack frames other than the innermost one.
-
-The Emacs distribution now contains GDB, the new source-level
-debugger for the GNU system.  GDB works for debugging Emacs.
-GDB currently runs on vaxes under 4.2 and on Sun 2 and Sun 3
-systems.
-
 
 ** Some useful techniques
 
@@ -50,21 +33,9 @@ to get an opportunity to do the set command.
 
 If you are using cbreak input (see the Lisp function set-input-mode),
 then typing Control-g will cause a SIGINT, which will return control
-to the debugger immediately unless you have done
+to GDB immediately if you type this command first:
 
-    ignore 3  (in dbx)
-or  handle 3 nostop noprint  (in gdb)
-
-You will note that most of GNU Emacs is written to avoid
-declaring a local variable in an inner block, even in
-cases where using one would be the cleanest thing to do.
-This is because dbx cannot access any of the variables
-in a function which has even one variable defined in an
-inner block.  A few functions in GNU Emacs do have variables
-in inner blocks, only because I wrote them before realizing
-that dbx had this problem and never rewrote them to avoid it.
-
-I believe that GDB does not have such a problem.
+    handle 2 stop
 
 
 ** Examining Lisp object values.

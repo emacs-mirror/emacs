@@ -60,10 +60,10 @@ character are always in the range 160 through 255 (octal 0240 through
 0377); these values are @dfn{trailing codes}.
 
   Some sequences of bytes are not valid in multibyte text: for example,
-a single isolated byte in the range 128 through 159 is not allowed.
-But character codes 128 through 159 can appear in multibyte text,
-represented as two-byte sequences.  None of the character codes 128
-through 255 normally appear in ordinary multibyte text, but they do
+a single isolated byte in the range 128 through 159 is not allowed.  But
+character codes 128 through 159 can appear in multibyte text,
+represented as two-byte sequences.  All the character codes 128 through
+255 are possible (though slightly abnormal) in multibyte text; they
 appear in multibyte buffers and strings when you do explicit encoding
 and decoding (@pxref{Explicit Encoding}).
 
@@ -135,15 +135,15 @@ acceptable because the buffer's representation is a choice made by the
 user that cannot be overridden automatically.
 
   Converting unibyte text to multibyte text leaves @sc{ascii} characters
-unchanged, and likewise 128 through 159.  It converts the non-@sc{ascii}
-codes 160 through 255 by adding the value @code{nonascii-insert-offset}
-to each character code.  By setting this variable, you specify which
-character set the unibyte characters correspond to (@pxref{Character
-Sets}).  For example, if @code{nonascii-insert-offset} is 2048, which is
-@code{(- (make-char 'latin-iso8859-1) 128)}, then the unibyte
-non-@sc{ascii} characters correspond to Latin 1.  If it is 2688, which
-is @code{(- (make-char 'greek-iso8859-7) 128)}, then they correspond to
-Greek letters.
+unchanged, and likewise character codes 128 through 159.  It converts
+the non-@sc{ascii} codes 160 through 255 by adding the value
+@code{nonascii-insert-offset} to each character code.  By setting this
+variable, you specify which character set the unibyte characters
+correspond to (@pxref{Character Sets}).  For example, if
+@code{nonascii-insert-offset} is 2048, which is @code{(- (make-char
+'latin-iso8859-1) 128)}, then the unibyte non-@sc{ascii} characters
+correspond to Latin 1.  If it is 2688, which is @code{(- (make-char
+'greek-iso8859-7) 128)}, then they correspond to Greek letters.
 
   Converting multibyte text to unibyte is simpler: it discards all but
 the low 8 bits of each character code.  If @code{nonascii-insert-offset}
@@ -242,10 +242,10 @@ codes.  The valid character codes for unibyte representation range from
 0 to 255---the values that can fit in one byte.  The valid character
 codes for multibyte representation range from 0 to 524287, but not all
 values in that range are valid.  The values 128 through 255 are not
-really proper in multibyte text, but they can occur if you do explicit
+entirely proper in multibyte text, but they can occur if you do explicit
 encoding and decoding (@pxref{Explicit Encoding}).  Some other character
 codes cannot occur at all in multibyte text.  Only the @sc{ascii} codes
-0 through 127 are truly legitimate in both representations.
+0 through 127 are completely legitimate in both representations.
 
 @defun char-valid-p charcode &optional genericp
 This returns @code{t} if @var{charcode} is valid for either one of the two

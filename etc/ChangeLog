@@ -2,6 +2,8 @@
 
 	* 3B-MAXMEM, AIX.DUMP, SUN-SUPPORT: Removed.
 
+	* tasks.texi: Updated to the version from /gd/gnuorg.
+
 2000-10-13  John Wiegley  <johnw@gnu.org>
 
 	* NEWS: Added a note about Eshell.
