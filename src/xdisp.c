@@ -906,7 +906,8 @@ redisplay_internal (preserve_echo_area)
       {
 	FRAME_SAMPLE_VISIBILITY (XFRAME (frame));
 
-	number_of_visible_frames++;
+	if (FRAME_VISIBLE_P (XFRAME (frame)))
+	  number_of_visible_frames++;
 
 	/* Clear out all the display lines in which we will generate the
 	   glyphs to display.  */
@@ -1327,15 +1328,12 @@ update:
       FOR_EACH_FRAME (tail, frame)
 	{
 	  int this_is_visible = 0;
-	  if (FRAME_WINDOW_P (XFRAME (frame))
-	      || XFRAME (frame) == selected_frame)
-	    {
-	      if (XFRAME (frame)->visible)
-		this_is_visible = 1;
-	      FRAME_SAMPLE_VISIBILITY (XFRAME (frame));
-	      if (XFRAME (frame)->visible)
-		this_is_visible = 1;
-	    }
+
+	  if (XFRAME (frame)->visible)
+	    this_is_visible = 1;
+	  FRAME_SAMPLE_VISIBILITY (XFRAME (frame));
+	  if (XFRAME (frame)->visible)
+	    this_is_visible = 1;
 
 	  if (this_is_visible)
 	    new_count++;
