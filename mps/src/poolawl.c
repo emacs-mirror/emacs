@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.67) $
+ * $HopeName: MMsrc!poolawl.c(trunk.68) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  *
@@ -44,7 +44,7 @@
 #include "chain.h"
 
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.67) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.68) $");
 
 
 #define AWLSig  ((Sig)0x519b7a37)       /* SIGPooLAWL */
@@ -85,6 +85,7 @@ typedef struct AWLStruct {
   PoolStruct poolStruct;
   Shift alignShift;
   Chain chain;              /* dummy chain */
+  PoolGenStruct pgen;       /* generation representing the pool */
   Size size;                /* allocated size in bytes */
   Serial gen;               /* associated generation (for SegAlloc) */
   Count succAccesses;       /* number of successive single accesses */
@@ -513,6 +514,11 @@ static Res AWLInit(Pool pool, va_list arg)
   if (res != ResOK)
     return res;
   awl->chain = chain;
+  /* .gen: This must be the nursery in the chain, because it's the only */
+  /* generation.  awl->gen is just a hack for segment placement. */
+  res = PoolGenInit(&awl->pgen, chain, 0 /* .gen */, pool);
+  if (res != ResOK)
+    goto failGenInit;
 
   awl->alignShift = SizeLog2(pool->alignment);
   awl->gen = AWLGen;
@@ -525,6 +531,10 @@ static Res AWLInit(Pool pool, va_list arg)
   AVERT(AWL, awl);
   EVENT_PP(PoolInitAWL, pool, format);
   return ResOK;
+
+failGenInit:
+  ChainDestroy(chain);
+  return res;
 }
 
 
@@ -547,6 +557,7 @@ static void AWLFinish(Pool pool)
     SegFree(seg);
   }
   awl->sig = SigInvalid;
+  PoolGenFinish(&awl->pgen);
   ChainDestroy(awl->chain);
 }
 
