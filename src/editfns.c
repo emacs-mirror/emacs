@@ -3135,7 +3135,7 @@ usage: (message STRING &rest ARGS)  */)
 	  && SBYTES (args[0]) == 0))
     {
       message (0);
-      return Qnil;
+      return args[0];
     }
   else
     {
