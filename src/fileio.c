@@ -1,5 +1,5 @@
 /* File IO for GNU Emacs.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -54,11 +54,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifndef vax11c
 extern int errno;
-extern char *sys_errlist[];
-extern int sys_nerr;
 #endif
 
-#define err_str(a) ((a) < sys_nerr ? sys_errlist[a] : "unknown error")
+extern char *strerror ();
 
 #ifdef APOLLO
 #include <sys/time.h>
@@ -2687,7 +2685,7 @@ If VISIT is non-nil, BEG and END must be nil.")
 
   if (how_much < 0)
     error ("IO error reading %s: %s",
-	   XSTRING (filename)->data, err_str (errno));
+	   XSTRING (filename)->data, strerror (errno));
 
  notfound:
  handled:
@@ -3049,7 +3047,7 @@ to the file, instead of any buffer contents, and END is ignored.")
     current_buffer->modtime = st.st_mtime;
 
   if (failure)
-    error ("IO error writing %s: %s", fn, err_str (save_errno));
+    error ("IO error writing %s: %s", fn, strerror (save_errno));
 
   if (visiting)
     {
