@@ -393,8 +393,15 @@ the car and cdr are the same symbol.")
 
 
 
-(defvar sh-mode-syntax-table
-  '((sh eval sh-mode-syntax-table ()
+(defun sh-mode-syntax-table (table &rest list)
+  "Copy TABLE and set syntax for successive CHARs according to strings S."
+  (setq table (copy-syntax-table table))
+  (while list
+    (modify-syntax-entry (pop list) (pop list) table))
+  table)
+
+(defvar sh-mode-default-syntax-table
+  (sh-mode-syntax-table ()
 	?\# "<"
 	?\n ">#"
 	?\" "\"\""
@@ -409,9 +416,10 @@ the car and cdr are the same symbol.")
 	?, "_"
 	?< "."
 	?> ".")
-    (csh eval identity sh)
-    (rc eval identity sh))
+  "Default syntax table for shell mode.")
 
+(defvar sh-mode-syntax-table-input
+  '((sh . nil))
   "Syntax-table used in Shell-Script mode.  See `sh-feature'.")
 
 (defvar sh-mode-map
@@ -480,8 +488,8 @@ the car and cdr are the same symbol.")
 (defcustom sh-require-final-newline
   '((csh . t)
     (pdksh . t)
-    (rc eval . require-final-newline)
-    (sh eval . require-final-newline))
+    (rc . require-final-newline)
+    (sh . require-final-newline))
   "*Value of `require-final-newline' in Shell-Script mode buffers.
 See `sh-feature'."
   :type '(repeat (cons (symbol :tag "Shell")
@@ -561,61 +569,61 @@ documents - you must insert literal tabs by hand.")
 ;; customized this out of sheer bravado.  not for the faint of heart.
 ;; but it *did* have an asterisk in the docstring!
 (defcustom sh-builtins
-  '((bash eval sh-append posix
+  '((bash sh-append posix
 	  "." "alias" "bg" "bind" "builtin" "compgen" "complete"
           "declare" "dirs" "disown" "enable" "fc" "fg" "help" "history"
           "jobs" "kill" "let" "local" "popd" "printf" "pushd" "source"
 	  "suspend" "typeset" "unalias")
 
     ;; The next entry is only used for defining the others
-    (bourne eval sh-append shell
+    (bourne sh-append shell
 	    "eval" "export" "getopts" "newgrp" "pwd" "read" "readonly"
 	    "times" "ulimit")
 
-    (csh eval sh-append shell
+    (csh sh-append shell
 	 "alias" "chdir" "glob" "history" "limit" "nice" "nohup" "rehash"
 	 "setenv" "source" "time" "unalias" "unhash")
 
-    (dtksh eval identity wksh)
+    (dtksh sh-append wksh)
 
     (es "access" "apids" "cd" "echo" "eval" "false" "let" "limit" "local"
 	"newpgrp" "result" "time" "umask" "var" "vars" "wait" "whatis")
 
-    (jsh eval sh-append sh
+    (jsh sh-append sh
 	 "bg" "fg" "jobs" "kill" "stop" "suspend")
 
-    (jcsh eval sh-append csh
+    (jcsh sh-append csh
 	  "bg" "fg" "jobs" "kill" "notify" "stop" "suspend")
 
-    (ksh88 eval sh-append bourne
+    (ksh88 sh-append bourne
 	   "alias" "bg" "false" "fc" "fg" "jobs" "kill" "let" "print" "time"
 	   "typeset" "unalias" "whence")
 
-    (oash eval sh-append sh
+    (oash sh-append sh
 	  "checkwin" "dateline" "error" "form" "menu" "newwin" "oadeinit"
 	  "oaed" "oahelp" "oainit" "pp" "ppfile" "scan" "scrollok" "wattr"
 	  "wclear" "werase" "win" "wmclose" "wmmessage" "wmopen" "wmove"
 	  "wmtitle" "wrefresh")
 
-    (pdksh eval sh-append ksh88
+    (pdksh sh-append ksh88
 	   "bind")
 
-    (posix eval sh-append sh
+    (posix sh-append sh
 	   "command")
 
     (rc "builtin" "cd" "echo" "eval" "limit" "newpgrp" "shift" "umask" "wait"
 	"whatis")
 
-    (sh eval sh-append bourne
+    (sh sh-append bourne
 	"hash" "test" "type")
 
     ;; The next entry is only used for defining the others
     (shell "cd" "echo" "eval" "set" "shift" "umask" "unset" "wait")
 
-    (wksh eval sh-append ksh88
+    (wksh sh-append ksh88
 	  "Xt[A-Z][A-Za-z]*")
 
-    (zsh eval sh-append ksh88
+    (zsh sh-append ksh88
 	 "autoload" "bindkey" "builtin" "chdir" "compctl" "declare" "dirs"
 	 "disable" "disown" "echotc" "enable" "functions" "getln" "hash"
 	 "history" "integer" "limit" "local" "log" "popd" "pushd" "r"
@@ -635,7 +643,7 @@ implemented as aliases.  See `sh-feature'."
 
 
 (defcustom sh-leading-keywords
-  '((bash eval sh-append sh
+  '((bash sh-append sh
           "time")
 
     (csh "else")
@@ -658,33 +666,33 @@ flow of control or syntax.  See `sh-feature'."
 
 
 (defcustom sh-other-keywords
-  '((bash eval sh-append bourne
+  '((bash sh-append bourne
 	  "bye" "logout" "select")
 
     ;; The next entry is only used for defining the others
-    (bourne eval sh-append sh
+    (bourne sh-append sh
 	    "function")
 
-    (csh eval sh-append shell
+    (csh sh-append shell
 	 "breaksw" "default" "end" "endif" "endsw" "foreach" "goto"
 	 "if" "logout" "onintr" "repeat" "switch" "then" "while")
 
     (es "break" "catch" "exec" "exit" "fn" "for" "forever" "fork" "if"
 	"return" "throw" "while")
 
-    (ksh88 eval sh-append bourne
+    (ksh88 sh-append bourne
 	   "select")
 
     (rc "break" "case" "exec" "exit" "fn" "for" "if" "in" "return" "switch"
 	"while")
 
-    (sh eval sh-append shell
+    (sh sh-append shell
 	"done" "esac" "fi" "for" "in" "return")
 
     ;; The next entry is only used for defining the others
     (shell "break" "case" "continue" "exec" "exit")
 
-    (zsh eval sh-append bash
+    (zsh sh-append bash
 	 "select"))
   "*List of keywords not in `sh-leading-keywords'.
 See `sh-feature'."
@@ -698,7 +706,7 @@ See `sh-feature'."
 
 
 (defvar sh-variables
-  '((bash eval sh-append sh
+  '((bash sh-append sh
 	  "allow_null_glob_expansion" "auto_resume" "BASH" "BASH_ENV"
 	  "BASH_VERSINFO" "BASH_VERSION" "cdable_vars" "COMP_CWORD"
 	  "COMP_LINE" "COMP_POINT" "COMP_WORDS" "COMPREPLY" "DIRSTACK"
@@ -714,31 +722,31 @@ See `sh-feature'."
 	  "pushd_silent" "PWD" "RANDOM" "REPLY" "SECONDS" "SHELLOPTS"
 	  "SHLVL" "TIMEFORMAT" "TMOUT" "UID")
 
-    (csh eval sh-append shell
+    (csh sh-append shell
 	 "argv" "cdpath" "child" "echo" "histchars" "history" "home"
 	 "ignoreeof" "mail" "noclobber" "noglob" "nonomatch" "path" "prompt"
 	 "shell" "status" "time" "verbose")
 
-    (es eval sh-append shell
+    (es sh-append shell
 	"apid" "cdpath" "CDPATH" "history" "home" "ifs" "noexport" "path"
 	"pid" "prompt" "signals")
 
-    (jcsh eval sh-append csh
+    (jcsh sh-append csh
 	  "notify")
 
-    (ksh88 eval sh-append sh
+    (ksh88 sh-append sh
 	   "ENV" "ERRNO" "FCEDIT" "FPATH" "HISTFILE" "HISTSIZE" "LINENO"
 	   "OLDPWD" "PPID" "PS3" "PS4" "PWD" "RANDOM" "REPLY" "SECONDS"
 	   "TMOUT")
 
-    (oash eval sh-append sh
+    (oash sh-append sh
 	  "FIELD" "FIELD_MAX" "LAST_KEY" "OALIB" "PP_ITEM" "PP_NUM")
 
-    (rc eval sh-append shell
+    (rc sh-append shell
 	"apid" "apids" "cdpath" "CDPATH" "history" "home" "ifs" "path" "pid"
 	"prompt" "status")
 
-    (sh eval sh-append shell
+    (sh sh-append shell
 	"CDPATH" "IFS" "OPTARG" "OPTIND" "PS1" "PS2")
 
     ;; The next entry is only used for defining the others
@@ -747,7 +755,7 @@ See `sh-feature'."
 	   "LINES" "LOGNAME" "MAIL" "MAILCHECK" "MAILPATH" "PAGER" "PATH"
 	   "SHELL" "TERM" "TERMCAP" "TERMINFO" "VISUAL")
 
-    (tcsh eval sh-append csh
+    (tcsh sh-append csh
 	  "addsuffix" "ampm" "autocorrect" "autoexpand" "autolist"
 	  "autologout" "chase_symlinks" "correct" "dextract" "edit" "el"
 	  "fignore" "gid" "histlit" "HOST" "HOSTTYPE" "HPATH"
@@ -758,7 +766,7 @@ See `sh-feature'."
 	  "tperiod" "tty" "uid" "version" "visiblebell" "watch" "who"
 	  "wordchars")
 
-    (zsh eval sh-append ksh88
+    (zsh sh-append ksh88
 	 "BAUD" "bindcmds" "cdpath" "DIRSTACKSIZE" "fignore" "FIGNORE" "fpath"
 	 "HISTCHARS" "hostcmds" "hosts" "HOSTS" "LISTMAX" "LITHISTSIZE"
 	 "LOGCHECK" "mailpath" "manpath" "NULLCMD" "optcmds" "path" "POSTEDIT"
@@ -787,17 +795,17 @@ See `sh-feature'.")
 
 
 (defvar sh-font-lock-keywords
-  '((csh eval sh-append shell
+  '((csh sh-append shell
 	 '("\\${?[#?]?\\([A-Za-z_][A-Za-z0-9_]*\\|0\\)" 1
 	   font-lock-variable-name-face))
 
-    (es eval sh-append executable-font-lock-keywords
+    (es sh-append executable-font-lock-keywords
 	'("\\$#?\\([A-Za-z_][A-Za-z0-9_]*\\|[0-9]+\\)" 1
 	  font-lock-variable-name-face))
 
-    (rc eval identity es)
+    (rc sh-append es)
 
-    (sh eval sh-append shell
+    (sh sh-append shell
 	;; Variable names.
 	'("\\$\\({#?\\)?\\([A-Za-z_][A-Za-z0-9_]*\\|[-#?@!]\\)" 2
 	  font-lock-variable-name-face)
@@ -807,15 +815,15 @@ See `sh-feature'.")
 	  (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t)))
 
     ;; The next entry is only used for defining the others
-    (shell eval sh-append executable-font-lock-keywords
+    (shell sh-append executable-font-lock-keywords
            ;; Using font-lock-string-face here confuses sh-get-indent-info.
            '("\\\\$" 0 font-lock-warning-face)
 	   '("\\\\[^A-Za-z0-9]" 0 font-lock-string-face)
 	   '("\\${?\\([A-Za-z_][A-Za-z0-9_]*\\|[0-9]+\\|[$*_]\\)" 1
 	     font-lock-variable-name-face))
-    (rpm eval sh-append rpm2
+    (rpm sh-append rpm2
 	 '("%{?\\(\\sw+\\)"  1 font-lock-keyword-face))
-    (rpm2 eval sh-append shell
+    (rpm2 sh-append shell
 	  '("^\\(\\sw+\\):"  1 font-lock-variable-name-face)))
   "Default expressions to highlight in Shell Script modes.  See `sh-feature'.")
 
@@ -1478,16 +1486,23 @@ Calls the value of `sh-set-shell-hook' if set."
       (setq sh-shell-file
 	    (executable-set-magic shell (sh-feature sh-shell-arg)
 				  no-query-flag insert-flag)))
-  (setq require-final-newline (sh-feature sh-require-final-newline)
-;;;	local-abbrev-table (sh-feature sh-abbrevs)
+  (let ((tem (sh-feature sh-require-final-newline)))
+    (unless (eq tem 'require-final-newline)
+      (setq require-final-newline tem)))
+  (setq
 	comment-start-skip "#+[\t ]*"
+;;;	local-abbrev-table (sh-feature sh-abbrevs)
 	mode-line-process (format "[%s]" sh-shell)
 	sh-shell-variables nil
 	sh-shell-variables-initialized nil
 	imenu-generic-expression (sh-feature sh-imenu-generic-expression)
 	imenu-case-fold-search nil)
-  (set-syntax-table (or (sh-feature sh-mode-syntax-table)
-			(standard-syntax-table)))
+  (make-local-variable 'sh-mode-syntax-table)
+  (let ((tem (sh-feature sh-mode-syntax-table-input)))
+    (setq sh-mode-syntax-table
+	  (if tem (apply 'sh-mode-syntax-table tem)
+	    sh-mode-default-syntax-table)))
+  (set-syntax-table sh-mode-syntax-table)
   (dolist (var (sh-feature sh-variables))
     (sh-remember-variable var))
   (make-local-variable 'indent-line-function)
@@ -1513,7 +1528,7 @@ Calls the value of `sh-set-shell-hook' if set."
 
 
 
-(defun sh-feature (list &optional function)
+(defun sh-feature (alist &optional function)
   "Index ALIST by the current shell.
 If ALIST isn't a list where every element is a cons, it is returned as is.
 Else indexing follows an inheritance logic which works in two ways:
@@ -1522,45 +1537,41 @@ Else indexing follows an inheritance logic which works in two ways:
     the alist contains no value for the current shell.
     The ultimate default is always `sh'.
 
-  - If the value thus looked up is a list starting with `eval' its `cdr' is
-    first evaluated.  If that is also a list and the first argument is a
-    symbol in ALIST it is not evaluated, but rather recursively looked up in
-    ALIST to allow the function called to define the value for one shell to be
-    derived from another shell.  While calling the function, is the car of the
-    alist element is the current shell.
+  - If the value thus looked up is a list starting with `sh-append',
+    we call the function `sh-append' with the rest of the list as
+    arguments, and use the value.  However, the next element of the
+    list is not used as-is; instead, we look it up recursively
+    in ALIST to allow the function called to define the value for
+    one shell to be derived from another shell.
     The value thus determined is physically replaced into the alist.
 
 Optional FUNCTION is applied to the determined value and the result is cached
 in ALIST."
-  (or (if (consp list)
-	  (let ((l list))
+  (or (if (consp alist)
+	  (let ((l alist))
 	    (while (and l (consp (car l)))
 	      (setq l (cdr l)))
-	    (if l list)))
+	    (if l alist)))
       (if function
-	  (cdr (assoc (setq function (cons sh-shell function)) list)))
+	  (cdr (assoc (setq function (cons sh-shell function)) alist)))
       (let ((sh-shell sh-shell)
 	    elt val)
 	(while (and sh-shell
-		    (not (setq elt (assq sh-shell list))))
+		    (not (setq elt (assq sh-shell alist))))
 	  (setq sh-shell (cdr (assq sh-shell sh-ancestor-alist))))
 	;; If the shell is not known, treat it as sh.
 	(unless elt
-	  (setq elt (assq 'sh list)))
+	  (setq elt (assq 'sh alist)))
 	(if (and (consp (setq val (cdr elt)))
-		 (eq (car val) 'eval))
+		 (eq (car val) 'sh-append))
 	    (setcdr elt
 		    (setq val
-			  (eval (if (consp (setq val (cdr val)))
-				    (let ((sh-shell (car (cdr val))))
-				      (if (assq sh-shell list)
-					  (setcar (cdr val)
-						  (list 'quote
-							(sh-feature list))))
-				      val)
-				  val)))))
+			  (apply 'sh-append
+				 (let ((sh-shell (car (cdr val))))
+				   (sh-feature alist))
+				 (cddr val)))))
 	(if function
-	    (nconc list
+	    (nconc alist
 		   (list (cons function
 			       (setq sh-shell (car function)
 				     val (funcall (cdr function) val))))))
@@ -1600,13 +1611,6 @@ in ALIST."
 ;;	  (setq list (cdr (cdr list)))))
 ;;      (symbol-value sh-shell)))
 
-
-(defun sh-mode-syntax-table (table &rest list)
-  "Copy TABLE and set syntax for successive CHARs according to strings S."
-  (setq table (copy-syntax-table table))
-  (while list
-    (modify-syntax-entry (pop list) (pop list) table))
-  table)
 
 (defun sh-append (ancestor &rest list)
   "Return list composed of first argument (a list) physically appended to rest."
