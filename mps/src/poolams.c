@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName$
+ * $HopeName: MMsrc!poolams.c(trunk.23) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  * 
  * .readership: any MPS developer.
@@ -26,7 +26,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.22) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.23) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -926,7 +926,7 @@ void AMSReclaim(Pool pool, Trace trace, Seg seg)
   group->free += reclaimed;
   trace->reclaimSize += reclaimed << ams->grainShift;
 
-  if(group->free == group->grains) {
+  if(group->free == group->grains && SegBuffer(seg) == NULL) {
     /* No survivors */
     AMSGroupDestroy(group);
     /* design.mps.poolams.benefit.guess */
