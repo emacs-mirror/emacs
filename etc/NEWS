@@ -90,6 +90,9 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** A New package flymake.el does on-the-fly syntax checking of program
+source files.  See the Flymake's Info manual for more details.
+
 ** New input method chinese-sisheng for inputting Chinese Pinyin
 characters.
 
