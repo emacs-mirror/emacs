@@ -1,7 +1,7 @@
 2004-11-19  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* progmodes/ebnf2ps.el: Fix typos.  Insert :version tag into all
-	defgroup and defcustom.
+	defgroup and defcustom.  Eliminate eval-and-compile usage.
 
 	* progmodes/ebnf-otz.el: Fix typos.
 

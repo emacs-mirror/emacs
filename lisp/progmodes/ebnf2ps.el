@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/11/19 22:24:27 vinicius>
+;; Time-stamp: <2004/11/19 22:30:34 vinicius>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 4.2
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
@@ -1114,19 +1114,18 @@ Please send all bug fixes and enhancements to
 
 
 ;; to avoid gripes with Emacs 20
-(eval-and-compile
-  (or (fboundp 'assq-delete-all)
-      (defun assq-delete-all (key alist)
-	"Delete from ALIST all elements whose car is KEY.
+(or (fboundp 'assq-delete-all)
+    (defun assq-delete-all (key alist)
+      "Delete from ALIST all elements whose car is KEY.
 Return the modified alist.
 Elements of ALIST that are not conses are ignored."
-	(let ((tail alist))
-	  (while tail
-	    (if (and (consp (car tail))
-		     (eq (car (car tail)) key))
-		(setq alist (delq (car tail) alist)))
-	    (setq tail (cdr tail)))
-	  alist))))
+      (let ((tail alist))
+	(while tail
+	  (if (and (consp (car tail))
+		   (eq (car (car tail)) key))
+	      (setq alist (delq (car tail) alist)))
+	  (setq tail (cdr tail)))
+	alist)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
