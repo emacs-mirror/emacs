@@ -188,6 +188,7 @@ main (argc, argv)
 	if (*user == ':')
 	  break;
 
+      user++;
       status = popmail (user, outname);
       exit (status);
     }
