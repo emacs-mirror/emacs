@@ -1518,19 +1518,43 @@ do {									\
     }									\
 } while (0)
 
+/* Discard a saved register off the stack.  */
+#define DISCARD_FAILURE_REG_OR_COUNT()					\
+do {									\
+  int reg = POP_FAILURE_INT ();						\
+  if (reg == -1)							\
+    {									\
+      /* It's a counter.  */						\
+      POP_FAILURE_POINTER ();						\
+      reg = POP_FAILURE_INT ();						\
+      DEBUG_PRINT3 ("     Discard counter %p = %d\n", ptr, reg);	\
+    }									\
+  else									\
+    {									\
+      POP_FAILURE_POINTER ();						\
+      POP_FAILURE_POINTER ();						\
+      DEBUG_PRINT4 ("     Discard reg %d (spanning %p -> %p)\n",	\
+		    reg, regstart[reg], regend[reg]);			\
+    }									\
+} while (0)
+
 /* Check that we are not stuck in an infinite loop.  */
 #define CHECK_INFINITE_LOOP(pat_cur, string_place)			\
 do {									\
-  int failure = TOP_FAILURE_HANDLE();					\
+  int failure = TOP_FAILURE_HANDLE ();					\
   /* Check for infinite matching loops */				\
-  while (failure > 0 &&							\
-	 (FAILURE_STR (failure) == string_place				\
-	  || FAILURE_STR (failure) == NULL))				\
+  while (failure > 0							\
+	 && (FAILURE_STR (failure) == string_place			\
+	     || FAILURE_STR (failure) == NULL))				\
     {									\
       assert (FAILURE_PAT (failure) >= bufp->buffer			\
 	      && FAILURE_PAT (failure) <= bufp->buffer + bufp->used);	\
       if (FAILURE_PAT (failure) == pat_cur)				\
-	goto fail;							\
+	{								\
+	  while (fail_stack.frame < fail_stack.avail)			\
+	    DISCARD_FAILURE_REG_OR_COUNT ();				\
+	  goto fail;							\
+	}								\
       DEBUG_PRINT2 ("  Other pattern: %p\n", FAILURE_PAT (failure));	\
       failure = NEXT_FAILURE_HANDLE(failure);				\
     }									\
@@ -1920,15 +1944,21 @@ struct range_table_work_area
  do { if (p != pend)							\
      {									\
        PATFETCH (c);							\
+       while (c == ' ') PATFETCH (c);					\
        while ('0' <= c && c <= '9')					\
 	 {								\
+           int prev;							\
 	   if (num < 0)							\
-	      num = 0;							\
+	     num = 0;							\
+	   prev = num;							\
 	   num = num * 10 + c - '0';					\
+	   if (num / 10 != prev)					\
+	     FREE_STACK_RETURN (REG_BADBR);				\
 	   if (p == pend)						\
-	      break;							\
+	     break;							\
 	   PATFETCH (c);						\
 	 }								\
+       while (c == ' ') PATFETCH (c);					\
        }								\
     } while (0)
 
