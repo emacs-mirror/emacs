@@ -152,7 +152,12 @@ sed -e '' config.in > config.tmp
 if "%X11%" == "" goto src4
 sed -f ../msdos/sed2x.inp <config.in >config.tmp
 :src4
+if "%DJGPP_VER%" == "2" Goto src41
 sed -f ../msdos/sed2.inp <config.tmp >config.h2
+goto src42
+:src41
+sed -f ../msdos/sed2v2.inp <config.tmp >config.h2
+:src42
 update config.h2 config.h >nul
 rm -f config.tmp config.h2
 
