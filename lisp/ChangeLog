@@ -6,6 +6,30 @@
 	* tooltip.el (tooltip-mode): Add a comment about startup.el
 	setting the default value of this user-option.
 
+2000-11-09  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* font-lock.el (font-lock-*-face) <defvar>: Move.
+	(font-lock-defaults-alist): Mark obsolete.
+	(font-lock-mode, font-lock-mode-hook) <defvar>: Remove.
+	(font-lock-mode): Use define-minor-mode.
+	(font-lock-support-mode): Tweak type to default to jit-lock-mode.
+	(font-lock-turn-off-thing-lock): Be more explicit.
+	(font-lock-apply-syntactic-highlight): Use string-to-syntax after eval.
+	(font-lock-syntactic-face-function): New var.
+	(font-lock-fontify-syntactically-region): Use it.
+	(font-lock-doc-face): New.
+
+	* pcvs.el (cvs-enabledp): Ignore errors.
+	(cvs-commit-filelist): Never query.
+	(cvs-mode-insert): Always add a terminating / in the initial prompt.
+	(cvs-mode-diff-backup): Use cvs-partition rather than delete-if-not.
+	(cvs-do-removal): Use cvs-partition rather than delete-if.
+	Use cvs-insert-strings, cvs-pop-to-buffer-same-frame and
+	cvs-bury-buffer.
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation):
+	Allow `next' to jump to after the end of the last match.
+
 2000-11-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* simple.el (byte-compiling-files-p): New function.
