@@ -1,3 +1,12 @@
+2004-12-27  Masatake YAMATO  <jet@gyve.org>
+
+	* hexl.el (hexlify-buffer): Remove fontification here.
+	Use font lock mechanism instead.
+	(hexl-font-lock-keywords): New font lock kewords.
+	(hexl-mode-old-font-lock-keywords): New variable.
+	(hexl-mode): Store the old font lock keywords.
+	(hexl-mode-exit): Restore the old font lock keywords.
+
 2004-12-27  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (undo): Fix previous change.
