@@ -28,7 +28,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 extern char *index ();
 
-Lisp_Object Vprefix_arg, Vcurrent_prefix_arg, Qminus;
+Lisp_Object Vprefix_arg, Vcurrent_prefix_arg, Qminus, Qplus;
 Lisp_Object Qcall_interactively;
 Lisp_Object Vcommand_history;
 
@@ -630,6 +630,9 @@ syms_of_callint ()
 
   Qminus = intern ("-");
   staticpro (&Qminus);
+
+  Qplus = intern ("+");
+  staticpro (&Qplus);
 
   Qcall_interactively = intern ("call-interactively");
   staticpro (&Qcall_interactively);
