@@ -1493,7 +1493,7 @@ TRANSLATE :=
 LOOKUP :=
 	(lookup-character SYMBOL REG(charset) REG(codepoint))
 	| (lookup-integer SYMBOL REG(integer))
-        ;; SYMBOL refers to a table defined by `define-hash-translation-table'.
+        ;; SYMBOL refers to a table defined by `define-translation-hash-table'.
 MAP :=
      (iterate-multiple-map REG REG MAP-IDs)
      | (map-multiple REG REG (MAP-SET))
