@@ -1,3 +1,26 @@
+2005-03-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Text Display): Mention non-breaking spaces.
+
+	* files.texi (Reverting): Document auto-revert-check-vc-info.
+
+	* frames.texi (Mouse Commands): Document
+	x-mouse-click-focus-ignore-position and mouse-drag-copy-region.
+
+	* help.texi (Help Summary): Add `C-h .'.
+	(Apropos): Apropos accepts a list of search terms.
+	Document apropos-sort-by-scores.
+	(Help Echo): Document display-local-help.
+
+	* misc.texi (Emacs Server): Document server-name.
+	(Invoking emacsclient): Document -s option for server names.
+
+	* text.texi (Outline Visibility): Introduce "current heading
+	line" (commands can be called with point on a body line).
+	Re-order table to follow the sequence of discussion.
+	hide-body won't hide lines before first header line.
+	(TeX Mode): Add DocTeX mode.
+
 2005-03-25  Werner Lemberg  <wl@gnu.org>
 
 	* calc.texi, cl.texi, gnus.texi, idlwave.texi, reftex.texi: Replace
