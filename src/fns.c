@@ -858,6 +858,7 @@ If STRING is unibyte, the result is STRING itself.")
     {
       string = Fcopy_sequence (string);
       XSTRING (string)->size = STRING_BYTES (XSTRING (string));
+      SET_STRING_BYTES (XSTRING (string), -1);
     }
   return string;
 }
