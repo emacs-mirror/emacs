@@ -19,9 +19,11 @@
 /* Tobias Herbert <herbert@clipper.ikp.physik.th-darmstadt.de>
    says this is needed.  */
 
+#ifndef POSIX_SIGNALS
 #ifndef sigblock
 #ifndef SIG_BLOCK
 #define SIG_BLOCK 0
 #endif
 #define sigblock(sig) (sigprocmask (SIG_BLOCK, SIGEMPTYMASK | sig, NULL))
 #endif
+#endif /* not POSIX_SIGNALS */
