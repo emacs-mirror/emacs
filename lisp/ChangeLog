@@ -1,3 +1,8 @@
+2002-03-05  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* xml.el (xml-parse-attlist): Accept empty strings.
+	From Max Froumentin <mf@w3.org>.
+
 2002-03-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mouse.el (mouse-show-mark): Remove the no-highlight alternative:

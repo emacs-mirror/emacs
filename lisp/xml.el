@@ -288,8 +288,8 @@ Leaves the point on the first non-blank character after the tag."
 
       ;; Do we have a string between quotes (or double-quotes),
       ;;  or a simple word ?
-      (unless (looking-at "\"\\([^\"]+\\)\"")
-	(unless (looking-at "'\\([^']+\\)'")
+      (unless (looking-at "\"\\([^\"]*\\)\"")
+	(unless (looking-at "'\\([^']*\\)'")
 	  (error "XML: Attribute values must be given between quotes")))
 
       ;; Each attribute must be unique within a given element
