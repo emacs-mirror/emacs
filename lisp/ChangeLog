@@ -1,3 +1,12 @@
+2002-01-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* menu-bar.el (menu-bar-help-menu): Change menu-item "Show Emacs
+	Version" to "About Emacs".
+
+	* startup.el (normal-splash-screen, display-splash-screen):
+	New functions (separated from command-line-1).
+	(command-line-1): Use them.
+
 2002-01-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* calendar/calendar.el (generate-calendar-month): Doc fix.
