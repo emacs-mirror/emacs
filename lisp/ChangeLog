@@ -1,3 +1,10 @@
+2002-06-01  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/prolog.el (prolog-mode-syntax-table): Add flags to
+	?/ and ?* entries to support /* */ style comments.
+	(prolog-font-lock-keywords): New var.
+	(prolog-mode): Enable font-locking; set `font-lock-defaults'.
+
 2002-06-01  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (choose-completion-string-functions): New special hook.
@@ -33,7 +40,7 @@
 
 	* menu-bar.el (menu-bar-showhide-fringe-menu): Use defvar.
 
-	* subr.el (open-network-stream, open-network-stream-nowait) 
+	* subr.el (open-network-stream, open-network-stream-nowait)
 	(open-network-stream-server, process-kill-without-query):
 	Moved from simple.el.
 
@@ -174,8 +181,8 @@
 
 2002-05-25  Miles Bader  <miles@gnu.org>
 
-	* menu-bar.el (menu-bar-showhide-fringe-menu-customize-left) 
-	(menu-bar-showhide-fringe-menu-customize-right) 
+	* menu-bar.el (menu-bar-showhide-fringe-menu-customize-left)
+	(menu-bar-showhide-fringe-menu-customize-right)
 	(menu-bar-showhide-fringe-menu-customize-disable):
 	Use proper calling convention for `customize-set-value'.
 	Require `fringe' before setting variable.
@@ -2493,7 +2500,7 @@
 	prefix from scroll commands.  Ignore end-of-buffer errors from
 	other windows.
 	(scroll-all-check-to-scroll): Remove `fkey-' prefix from scroll
-	commands. 
+	commands.
 	(scroll-all-beginning-of-buffer-all, scroll-all-end-of-buffer-all):
 	New functions.
 
