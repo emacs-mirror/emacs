@@ -1,3 +1,8 @@
+2002-03-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* calendar/cal-french.el (calendar-goto-french-date): Fix prompt
+	to match the actual code.
+
 2002-03-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* textmodes/po.el (po-find-file-coding-system-guts): Use
