@@ -1,3 +1,12 @@
+2002-01-28  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* configure.in: Recognize BSD/OS 5.0.
+
+2002-01-11  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* make-dist: Make version checking in emacs.texi consistent with
+	how we set it there.
+
 2001-11-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* AUTHORS: Regenerate.
