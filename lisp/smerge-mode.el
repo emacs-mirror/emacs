@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: merge diff3 cvs conflict
-;; Revision: $Id$
+;; Revision: $Id: smerge-mode.el,v 1.1 1999/12/09 13:00:21 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -40,6 +40,10 @@
 ;;   	   (smerge-mode 1))))
 ;;   (add-hook 'find-file-hooks 'sm-try-smerge t)
 
+;;; Todo:
+
+;; - if requested, ask the user whether he wants to call ediff right away
+
 ;;; Code:
 
 (eval-when-compile (require 'cl))
@@ -67,6 +71,11 @@ Used in `smerge-diff-base-mine' and related functions."
   :group 'smerge
   :type '(repeat string))
 
+(defcustom smerge-auto-leave t
+  "*Non-nil means to leave `smerge-mode' when the last conflict is resolved."
+  :group 'smerge
+  :type 'boolean)
+
 (defface smerge-mine-face
   '((t (:foreground "blue")))
   "Face for your code."
@@ -91,17 +100,7 @@ Used in `smerge-diff-base-mine' and related functions."
   :group 'smerge)
 (defvar smerge-markers-face 'smerge-markers-face)
 
-(defmacro smerge-defmap (var bindings &optional doc)
-  `(defvar ,var
-     (let ((m (make-sparse-keymap)))
-       (dolist (b ,bindings)
-	 (if (equal (car b) "")
-	     (set-keymap-parent m (cdr b))
-	   (define-key m (car b) (cdr b))))
-       m)
-     ,doc))
-
-(smerge-defmap smerge-basic-keymap
+(easy-mmode-defmap smerge-basic-map
   '(("n" . smerge-next)
     ("p" . smerge-prev)
     ("a" . smerge-keep-all)
@@ -110,19 +109,18 @@ Used in `smerge-diff-base-mine' and related functions."
     ("m" . smerge-keep-mine)
     ("E" . smerge-ediff)
     ("\C-m" . smerge-keep-current)
-    ("<" . smerge-diff-base-mine)
-    (">" . smerge-diff-base-other)
-    ("=" . smerge-diff-mine-other))
+    ("d<" . smerge-diff-base-mine)
+    ("d>" . smerge-diff-base-other)
+    ("d=" . smerge-diff-mine-other))
   "The base keymap for `smerge-mode'.")
-(fset 'smerge-basic-keymap smerge-basic-keymap)
 
 (defcustom smerge-command-prefix "\e"
   "Prefix for `smerge-mode' commands."
   :group 'smerge
   :type '(choice (string "\e") (string "C-x^") (string "") string))
 
-(smerge-defmap smerge-mode-map
-  `((,smerge-command-prefix . smerge-basic-keymap))
+(easy-mmode-defmap smerge-mode-map
+  `((,smerge-command-prefix . ,smerge-basic-map))
   "Keymap for `smerge-mode'.")
 
 (easy-menu-define smerge-mode-menu smerge-mode-map
@@ -163,29 +161,21 @@ Can be nil if the style is undecided, or else:
 ;;;; Actual code
 ;;;;
 
-(defun smerge-next (&optional count)
-  "Go to the next COUNT'th conflict."
-  (interactive)
-  (unless count (setq count 1))
-  (if (< count 0) (smerge-prev (- count))
-    (if (looking-at smerge-begin-re) (incf count))
-    (unless (re-search-forward smerge-begin-re nil t count)
-      (error "No next conflict"))
-    (goto-char (match-beginning 0))))
-
-(defun smerge-prev (&optional count)
-  "Go to the previous COUNT'th conflict."
-  (interactive)
-  (unless count (setq count 1))
-  (if (< count 0) (smerge-next (- count))
-    (unless (re-search-backward smerge-begin-re nil t count)
-      (error "No previous conflict"))))
+;; Define smerge-next and smerge-prev
+(easy-mmode-define-navigation smerge smerge-begin-re "conflict")
 
 (defconst smerge-match-names ["conflict" "mine" "base" "other"])
 
 (defun smerge-ensure-match (n)
   (unless (match-end n)
     (error (format "No `%s'" (aref smerge-match-names n)))))
+
+(defun smerge-auto-leave ()
+  (when (and smerge-auto-leave
+	     (save-excursion (goto-char (point-min))
+			     (not (re-search-forward smerge-begin-re nil t))))
+    (smerge-mode -1)))
+    
 
 (defun smerge-keep-all ()
   "Keep all three versions.
@@ -195,28 +185,32 @@ Convenient for the kind of conflicts that can arise in ChangeLog files."
   (replace-match (concat (or (match-string 1) "")
 			 (or (match-string 2) "")
 			 (or (match-string 3) ""))
-		 t t))
+		 t t)
+  (smerge-auto-leave))
 
 (defun smerge-keep-base ()
   "Revert to the base version."
   (interactive)
   (smerge-match-conflict)
   (smerge-ensure-match 2)
-  (replace-match (match-string 2) t t))
+  (replace-match (match-string 2) t t)
+  (smerge-auto-leave))
 
 (defun smerge-keep-other ()
   "Use \"other\" version."
   (interactive)
   (smerge-match-conflict)
   ;;(smerge-ensure-match 3)
-  (replace-match (match-string 3) t t))
+  (replace-match (match-string 3) t t)
+  (smerge-auto-leave))
 
 (defun smerge-keep-mine ()
   "Keep your version."
   (interactive)
   (smerge-match-conflict)
   ;;(smerge-ensure-match 1)
-  (replace-match (match-string 1) t t))
+  (replace-match (match-string 1) t t)
+  (smerge-auto-leave))
 
 (defun smerge-keep-current ()
   "Use the current (under the cursor) version."
@@ -228,7 +222,8 @@ Convenient for the kind of conflicts that can arise in ChangeLog files."
 	       (>= (point) (match-end i)))
       (decf i))
     (if (<= i 0) (error "Not inside a version")
-      (replace-match (match-string i) t t))))
+      (replace-match (match-string i) t t)
+      (smerge-auto-leave))))
 
 (defun smerge-diff-base-mine ()
   "Diff 'base' and 'mine' version in current conflict region."
@@ -448,6 +443,10 @@ The point is moved to the end of the conflict."
 (provide 'smerge-mode)
 
 ;;; Change Log:
-;; $Log$
+;; $Log: smerge-mode.el,v $
+;; Revision 1.1  1999/12/09 13:00:21  monnier
+;; New file.  Provides a simple minor-mode for files containing
+;; diff3-style conflict markers, such as generated by RCS
+;;
 
 ;;; smerge-mode.el ends here
