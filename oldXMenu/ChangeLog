@@ -411,3 +411,6 @@
 	* Internal.c: Declare argument `display' in some functions.
 
 
+;; Local Variables:
+;; coding: iso-2022-7bit-unix
+;; End:

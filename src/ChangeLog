@@ -5579,3 +5579,7 @@
 	(pbm_load): Support :data.
 
 See ChangeLog.8 for earlier changes.
+
+;; Local Variables:
+;; coding: iso-2022-7bit-unix
+;; End:

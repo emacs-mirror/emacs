@@ -383,3 +383,7 @@
 	* sed2.inp: New file for changing src/config.h-in into src/config.h
 
 	* sed1.inp: New file for changing src/makefile.in.in into src/makefile
+
+;; Local Variables:
+;; coding: iso-2022-7bit-unix
+;; End:

@@ -1,3 +1,8 @@
+2000-08-21  Kenichi Handa  <handa@etl.go.jp>
+
+	* man.el (Man-getpage-in-background): Decode the process output by
+	the system locale coding system.
+
 2000-08-20  Dave Love  <fx@gnu.org>
 
 	* wid-edit.el (widget-choose, widget-choice-mouse-down-action):

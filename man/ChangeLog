@@ -771,3 +771,6 @@
 	* emacs.tex: Update information for obtaining TeX distribution from the
 	University of Washington.
 
+;; Local Variables:
+;; coding: iso-2022-7bit-unix
+;; End:

@@ -4617,3 +4617,7 @@
 
 	* Makefile: Changed LIBDIR and BINDIR back to /usr/local/{emacs,bin}
 	to match build-install and paths.h.
+
+;; Local Variables:
+;; coding: iso-2022-7bit-unix
+;; End:

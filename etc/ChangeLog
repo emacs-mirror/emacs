@@ -1098,3 +1098,7 @@
 	* server.c [not BSD and not HAVE_SYSVIPC]: fix error message.
 
 	* loadst.c (main) [XENIX]: use /usr/spool/mail, not /usr/mail.
+
+;; Local Variables:
+;; coding: iso-2022-7bit-unix
+;; End:
