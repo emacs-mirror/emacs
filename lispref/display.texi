@@ -2615,13 +2615,15 @@ always supported.
 @table @code
 @item :foreground @var{foreground}
 The value, @var{foreground}, should be a string specifying the image
-foreground color.  This color is used for each pixel in the XBM that is
-1.  The default is the frame's foreground color.
+foreground color, or @code{nil} for the default color.  This color is
+used for each pixel in the XBM that is 1.  The default is the frame's
+foreground color.
 
 @item :background @var{background}
 The value, @var{background}, should be a string specifying the image
-background color.  This color is used for each pixel in the XBM that is
-0.  The default is the frame's background color.
+background color, or @code{nil} for the default color.  This color is
+used for each pixel in the XBM that is 0.  The default is the frame's
+background color.
 @end table
 
   If you specify an XBM image using data within Emacs instead of an
@@ -2758,13 +2760,15 @@ image properties are supported.
 @table @code
 @item :foreground @var{foreground}
 The value, @var{foreground}, should be a string specifying the image
-foreground color.  This color is used for each pixel in the XBM that is
-1.  The default is the frame's foreground color.
+foreground color, or @code{nil} for the default color.  This color is
+used for each pixel in the XBM that is 1.  The default is the frame's
+foreground color.
 
 @item :background @var{background}
 The value, @var{background}, should be a string specifying the image
-background color.  This color is used for each pixel in the XBM that is
-0.  The default is the frame's background color.
+background color, or @code{nil} for the default color.  This color is
+used for each pixel in the XBM that is 0.  The default is the frame's
+background color.
 @end table
 
   For JPEG images, specify image type @code{jpeg}.
