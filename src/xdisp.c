@@ -3788,14 +3788,18 @@ handle_auto_composed_prop (it)
       val =Fget_char_property (make_number (pos), Qauto_composed, it->string);
       if (! NILP (val))
 	{
-	  Lisp_Object next;
-
+	  Lisp_Object limit = Qnil, next;
+	  
+	  /* As Fnext_single_char_property_change is very slow, we
+	     limit the search to the current line.  */
+	  if (! STRINGP (it->string))
+	    limit = make_number (find_next_newline_no_quit (pos, 1));
 	  next = (Fnext_single_property_change
-		     (make_number (pos), Qauto_composed, it->string, Qnil));
-	  if (INTEGERP (next))
+		     (make_number (pos), Qauto_composed, it->string, limit));
+	  if (XINT (next) < XINT (limit))
 	    {
 	      /* The current point is auto-composed, but there exist
-		 characers not yet composed beyond the auto-compused
+		 characters not yet composed beyond the auto-composed
 		 region.  There's a possiblity that the last
 		 characters in the region may be newly composed.  */
 	      int charpos = XINT (next) - 1, bytepos, c;
@@ -3828,11 +3832,16 @@ handle_auto_composed_prop (it)
 	  safe_call (3, args);
 	  unbind_to (count, Qnil);
 
-	  val = Fget_char_property (args[1], Qauto_composed, it->string);
-	  /* Return HANDLED_RECOMPUTE_PROPS only if function fontified
-	     something.  This avoids an endless loop if they failed to
-	     fontify the text for which reason ever.  */
-	  if (! NILP (val))
+	  if (this_pos == pos)
+	    {
+	      val = Fget_char_property (args[1], Qauto_composed, it->string);
+	      /* Return HANDLED_RECOMPUTE_PROPS only if function composed
+		 something.  This avoids an endless loop if they failed to
+		 fontify the text for which reason ever.  */
+	      if (! NILP (val))
+		handled = HANDLED_RECOMPUTE_PROPS;
+	    }
+	  else
 	    handled = HANDLED_RECOMPUTE_PROPS;
 	}
     }
