@@ -5318,11 +5318,22 @@ valid_image_p (object)
   
   if (CONSP (object) && EQ (XCAR (object), Qimage))
     {
-      Lisp_Object symbol = Fplist_get (XCDR (object), QCtype);
-      struct image_type *type = lookup_image_type (symbol);
-      
-      if (type)
-	valid_p = type->valid_p (object);
+      Lisp_Object tem;
+
+      for (tem = XCDR (object); CONSP (tem); tem = XCDR (tem))
+	if (EQ (XCAR (tem), QCtype))
+	  {
+	    tem = XCDR (tem);
+	    if (CONSP (tem) && SYMBOLP (XCAR (tem)))
+	      {
+		struct image_type *type;
+		type = lookup_image_type (XCAR (tem));
+		if (type)
+		  valid_p = type->valid_p (object);
+	      }
+	    
+	    break;
+	  }
     }
 
   return valid_p;
