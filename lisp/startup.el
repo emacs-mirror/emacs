@@ -456,8 +456,8 @@ this prefix to create a unique file name.")
   (if (fboundp 'frame-initialize)
       (frame-initialize))
   ;; If frame was created with a menu bar, set menu-bar-mode on.
-  (if (and (eq window-system 'x)
-	   (> (cdr (assq 'menu-bar-lines (frame-parameters))) 0))
+  (if (or (not (eq window-system 'x))
+	  (> (cdr (assq 'menu-bar-lines (frame-parameters))) 0))
       (menu-bar-mode t))
 
   (run-hooks 'before-init-hook)
@@ -636,6 +636,13 @@ Type \\[info] to enter Info, which you can use to read GNU documentation."
 					(if where
 					    (key-description where)
 					  "M-x help"))))))
+		   ;; Say how to use the menu bar
+		   ;; if that is not with the mouse.
+		   (if (not (assq 'display (frame-parameters)))
+		       (if (eq (key-binding "\M-`") 'tmm-menubar)
+			   (insert "\n\nType M-` to use the menu bar.")
+			 (insert (substitute-command-keys
+				  "\n\nType \\[tmm-menubar] to use the menu bar."))))
 
 		   ;; Windows and MSDOS (currently) do not count as
 		   ;; window systems, but do have mouse support.
