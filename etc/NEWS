@@ -91,6 +91,8 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 ** You can now use next-error (C-x `) and previous-error to advance to
 the next/previous matching line found by M-x occur.
 
+** Telnet will now prompt you for a port number with C-u M-x telnet.
+
 +++
 ** New command line option -Q.
 

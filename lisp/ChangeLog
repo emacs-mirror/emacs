@@ -1,3 +1,7 @@
+2004-04-22  Kim F. Storm  <storm@cua.dk>
+
+	* net/telnet.el (telnet): Add optional port arg.
+
 2004-04-21  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* simple.el (next-error-last-buffer, next-error-function):
