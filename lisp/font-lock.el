@@ -2064,7 +2064,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
      ;; Definitions.
      (list (concat "(\\(def\\("
 		   ;; Function declarations.
-		   "\\(advice\\|alias\\|generic\\|macro\\*?\\|method\\|"
+		   "\\(advice\\|varalias\\|alias\\|generic\\|macro\\*?\\|method\\|"
                    "setf\\|subst\\*?\\|un\\*?\\|"
                    "ine-\\(condition\\|\\(?:derived\\|minor\\)-mode\\|"
                    "method-combination\\|setf-expander\\|skeleton\\|widget\\|"
