@@ -1,6 +1,6 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.17) $
+ * $HopeName: MMsrc!amcss.c(trunk.18) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  */
 
@@ -10,8 +10,6 @@
 #include "fmtdy.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
-#include <math.h>
 #include <string.h>
 #include <assert.h>
 #ifdef MPS_OS_SU
@@ -102,11 +100,17 @@ static void *test(void *arg, size_t s)
       exact_roots[rnd() % NR_EXACT_ROOTS] = make();
     else
       ambig_roots[rnd() % NR_AMBIG_ROOTS] = make();
-    ++i;
 
     r = rnd() % NR_EXACT_ROOTS;
     if(exact_roots[r] != OBJNULL)
       assert(dylan_check(exact_roots[r]));
+
+    if(i % 1000 == 0) {
+      putchar('.');
+      fflush(stdout);
+    }
+
+    ++i;
   }
 
   mps_ap_destroy(ap);

@@ -1,7 +1,7 @@
 /* impl.h.config: MPS CONFIGURATION
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!config.h(trunk.13) $
+ * $HopeName: MMsrc!config.h(trunk.14) $
  */
 
 #ifndef config_h
@@ -78,24 +78,24 @@
 #if defined(CONFIG_PROD_EPCORE)
 #define MPS_PROD_EPCORE
 #define ARENA_SIZE              ((Size)2<<20)
-#define AMC_SIZE_LIMIT		ARENA_SIZE
+#define AMC_SIZE_LIMIT          ARENA_SIZE
 /* .nosync.why: ScriptWorks is single-threaded when using the MM. */
 #define THREAD_SINGLE
 #define PROTECTION_NONE
 #elif defined(CONFIG_PROD_DYLAN)
 #define MPS_PROD_DYLAN
 #define ARENA_SIZE              ((Size)1<<30)
-#define AMC_SIZE_LIMIT		((Size)64<<20)  /* experimentally reasonable limit */
+#define AMC_SIZE_LIMIT          ((Size)64<<20)  /* experimentally reasonable limit */
 #define THREAD_MULTI
 #define PROTECTION
 #elif defined(CONFIG_PROD_MPS)
 #define MPS_PROD_MPS
 #ifdef MPS_OS_S7
 #define ARENA_SIZE              ((Size)2<<20)
-#define AMC_SIZE_LIMIT		ARENA_SIZE
+#define AMC_SIZE_LIMIT          ARENA_SIZE
 #else
 #define ARENA_SIZE              ((Size)64<<20)
-#define AMC_SIZE_LIMIT		ARENA_SIZE
+#define AMC_SIZE_LIMIT          ARENA_SIZE
 #endif /* MPS_OS_S7 */
 #define THREAD_MULTI
 #define PROTECTION
@@ -109,7 +109,7 @@
 #define ARENA_CONTROL_EXTENDBY  ((Size)4096)
 #define ARENA_CONTROL_AVGSIZE   ((Size)32)
 #define ARENA_CONTROL_MAXSIZE   ((Size)65536)
-#define ARENA_POLL_MAX          ((Size)262144)
+#define ARENA_POLL_MAX          ((Size)65536)
 #define ARENA_LD_LENGTH         ((Size)4)
 #define ARENA_ZONESHIFT         ((Shift)20)
 
@@ -123,8 +123,8 @@
 /* Shield Configuration -- see impl.c.shield */
 
 #define SHIELD_CACHE_SIZE       ((Size)2)
-#define SHIELD_DEPTH_WIDTH	((Size)4)
-#define SHIELD_DEPTH		((Count)1<<SHIELD_DEPTH_WIDTH)
+#define SHIELD_DEPTH_WIDTH      ((Size)4)
+#define SHIELD_DEPTH            ((Count)1<<SHIELD_DEPTH_WIDTH)
 
 
 /* VM Configuration -- see impl.c.vm* */

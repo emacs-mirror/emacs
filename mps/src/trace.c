@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.46) $
+ * $HopeName: MMsrc!trace.c(trunk.47) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.46) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.47) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -89,7 +89,6 @@ Bool TraceCheck(Trace trace)
     default:
     NOTREACHED;
   }
-  /* @@@@ Check trace->interval? */
   return TRUE;
 }
 
@@ -137,10 +136,12 @@ static Res TraceStart(Trace trace, Action action)
     res = PoolCondemn(pool, trace, seg, action);
     if(res != ResOK) goto failCondemn;
 
-    /* Add the segment to the approximation of the white set the */
-    /* pool made it white. */
-    if(TraceSetIsMember(SegWhite(seg), trace->ti))
+    /* Add the segment to the approximation of the white set */
+    /* if and only if the pool made it white. */
+    if(TraceSetIsMember(SegWhite(seg), trace->ti)) {
       trace->white = RefSetUnion(trace->white, RefSetOfSeg(arena, seg));
+      trace->condemned += SegSize(seg);
+    }
 
     node = next;
   }
@@ -154,6 +155,7 @@ static Res TraceStart(Trace trace, Action action)
   if(trace->white == RefSetEMPTY) {
     arena->flippedTraces = TraceSetAdd(arena->flippedTraces, trace->ti);
     trace->state = TraceRECLAIM;
+    trace->rate = (Size)1;
     return ResOK;
   }
 
@@ -183,8 +185,11 @@ static Res TraceStart(Trace trace, Action action)
         /* to the white set.  This is done by seeing if the summary */
         /* of references in the segment intersects with the approximation */
         /* to the white set. */
-        if(RefSetInter(SegSummary(seg), trace->white) != RefSetEMPTY)
+        if(RefSetInter(SegSummary(seg), trace->white) != RefSetEMPTY) {
           PoolGrey(SegPool(seg), trace, seg);
+	  if(TraceSetIsMember(SegGrey(seg), trace->ti))
+	    trace->foundation += SegSize(seg);
+        }
       }
     } while(SegNext(&seg, arena, base));
   }
@@ -201,11 +206,28 @@ static Res TraceStart(Trace trace, Action action)
     node = next;
   }
 
+  /* Calculate the rate of working.  Assumes that half the condemned */
+  /* set will survive, and calculates a rate of work which will */
+  /* finish the collection by the time that a megabyte has been */
+  /* allocated.  The 4096 is the number of bytes scanned by each */
+  /* TracePoll (approximately) and should be replaced by a parameter. */
+  /* This is a temporary measure for change.dylan.honeybee.170466. */
+  {
+    double surviving = trace->condemned / 2;
+    double scan = trace->foundation + surviving;
+    /* double reclaim = trace->condemned - surviving; */
+    double alloc = 1024*1024L; /* reclaim / 2; */
+    if(alloc > 0)
+      trace->rate = 1 + (Size)(scan * ARENA_POLL_MAX / (4096 * alloc));
+    else
+      trace->rate = 1 + (Size)(scan / 4096);
+  }
+
   trace->state = TraceUNFLIPPED;
 
   return ResOK;
 
-  /* PoolCodemn failed, possibly half-way through whitening the condemned */
+  /* PoolCondemn failed, possibly half-way through whitening the condemned */
   /* set.  This loop empties the white set again. */ 
 failCondemn:
   ring = PoolSegRing(pool);
@@ -266,7 +288,9 @@ found:
   trace->white = RefSetEMPTY;
   trace->ti = ti;
   trace->state = TraceINIT;
-  trace->interval = (Size)4096; /* @@@@ should be progress control */
+  trace->condemned = (Size)0;   /* nothing condemned yet */
+  trace->foundation = (Size)0;  /* nothing grey yet */
+  trace->rate = (Size)0;        /* no scanning to be done yet */
 
   trace->sig = TraceSig;
   AVERT(Trace, trace);
