@@ -172,7 +172,7 @@ documentation for the function `tempo-complete-tag' for more info.
 (defvar tempo-marks nil
   "A list of marks to jump to with `\\[tempo-forward-mark]' and `\\[tempo-backward-mark]'.")
 
-(defvar tempo-match-finder "\\b\\([^\\b]+\\)\\="
+(defvar tempo-match-finder "\\b\\([[:word:]]+\\)\\="
   "The regexp or function used to find the string to match against tags.
 
 If `tempo-match-finder is a string, it should contain a regular
