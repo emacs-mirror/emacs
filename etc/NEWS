@@ -20,6 +20,11 @@ Emacs to not use X Input Methods (XIM), if they these are available.
 
 * Changes in Emacs 21.1
 
+** C-down-mouse-3 is bound differently.  Now if the menu bar is not
+displayed it pops up a menu containing the items which would be on the
+menu bar.  If the menu bar is displayed, it pops up the major mode
+menu or the Edit menu if there is no major mode menu.
+
 ** Variable `load-path' is no longer customizable because it contains
 a version-dependent component.
 
@@ -1361,6 +1366,9 @@ after-change-function are no longer acted upon and have been removed.
 
 ** The function `apropos-mode' runs the hook `apropos-mode-hook'.
 
+** `concat' no longer accepts individual integer arguments, as
+promised long ago.
+
 
 * Lisp changes in Emacs 21.1 (see following page for display-related features)
 
@@ -1464,9 +1472,6 @@ are introduced for 8-bit characters in the ranges 0x80..0x9F and
 +++
 ** If the APPEND argument of `write-region' is an integer, it seeks to
 that offset in the file before writing.
-
-** `concat' no longer accepts individual integer arguments, as
-promised long ago.
 
 ** The function `add-minor-mode' has been added for convenience and
 compatibility with XEmacs (and is used internally by define-minor-mode).
@@ -2868,8 +2873,8 @@ For tool-bar items without a help form, the caption of the item is
 used as help string.
 
 The hook `show-help-function' can be set to a function that displays
-help differently.  For example, enabling a tooltip window causes the
-help display to appear there instead of in the echo area.
+the help string differently.  For example, enabling a tooltip window
+causes the help display to appear there instead of in the echo area.
 
 +++
 ** Vertical fractional scrolling.
