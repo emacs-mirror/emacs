@@ -1,6 +1,7 @@
 ;;; bindings.el --- define standard key bindings and some variables.
 
-;; Copyright (C) 1985,86,87,92,93,94,95,96,99 Free Software Foundation, Inc.
+;; Copyright (C) 1985,86,87,92,93,94,95,96,99,2000
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -61,13 +62,37 @@ corresponding to the mode line clicked."
 	   (force-mode-line-update))))
     map))
 
-;; This might have a local-map to bring up a MULE menu or describe the
-;; current method.  At least give the user a clue what the field is.
 (defvar mode-line-mule-info
   `(""
-    (current-input-method ("" (propertize current-input-method-title
-					  'help-echo "Input method")))
-    ,(propertize "%Z" 'help-echo (purecopy "Coding system information")))
+    (current-input-method
+     ("" (:eval
+	  (if current-input-method
+	      (propertize
+	       current-input-method-title
+	       'help-echo (concat ,(purecopy "Input method: ")
+				  current-input-method
+				  ".  mouse-2 toggles, mouse-3 describes")
+	       'local-map ,(purecopy
+			    (let ((map (make-sparse-keymap)))
+			      (define-key map [mode-line mouse-2]
+				(lambda (e)
+				  (interactive "e")
+				  (save-selected-window
+				    (select-window
+				     (posn-window (event-start e)))
+				    (toggle-input-method)
+				    (force-mode-line-update))))
+			      (define-key map [mode-line mouse-3]
+				(lambda (e)
+				  (interactive "e")
+				  (save-selected-window
+				    (select-window
+				     (posn-window (event-start e)))
+				    (describe-input-method))))
+			      map)))))))
+    ,(propertize
+      "%Z" 'help-echo
+      (purecopy "Coding system information: see M-x describe-coding-system")))
   "Mode-line control for displaying information of multilingual environment.
 Normally it displays current input method (if any activated) and
 mnemonics of the following coding systems:
