@@ -4,7 +4,7 @@
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
 ;; Created: 12 Dec 1992
-;; Version: advice.el,v 2.13 1994/08/03 23:27:05 hans Exp
+;; Version: advice.el,v 2.14 1994/08/05 03:42:04 hans Exp
 ;; Keywords: extensions, lisp, tools
 
 ;; This file is part of GNU Emacs.
@@ -26,7 +26,7 @@
 ;; LCD Archive Entry:
 ;; advice|Hans Chalupsky|hans@cs.buffalo.edu|
 ;; Overloading mechanism for Emacs Lisp functions|
-;; 1994/08/03 23:27:05|2.13|~/packages/advice.el.Z|
+;; 1994/08/05 03:42:04|2.14|~/packages/advice.el.Z|
 
 
 ;;; Commentary:
@@ -1830,7 +1830,7 @@
 ;; @@ Variable definitions:
 ;; ========================
 
-(defconst ad-version "2.13")
+(defconst ad-version "2.14")
 
 ;;;###autoload
 (defvar ad-redefinition-action 'warn
@@ -2567,10 +2567,19 @@ will clear the cache."
 	;; one with args `(a &rest c)' using that mechanism. Also, the argument
 	;; names from the docstring are more meaningful. Hence, I'll stick with
 	;; the old way of doing things.
-	(t (let ((doc (ad-real-documentation subr-name t)))
-	     (cond ((and doc
-			 (string-match
-			  "[\n\t ]*\narguments: ?\\((.*)\\)\n?\\'" doc))
+	(t (let ((doc (or (ad-real-documentation subr-name t) "")))
+	     (cond ((string-match "^\\(([^\)]+)\\)\n?\\'" doc)
+		    (ad-define-subr-args
+		     subr-name
+		     (cdr (car (read-from-string
+				(downcase
+				 (substring doc
+					    (match-beginning 1)
+					    (match-end 1)))))))
+		    (ad-get-subr-args subr-name))
+		   ;; this is the old format used before Emacs 19.24:
+		   ((string-match
+		     "[\n\t ]*\narguments: ?\\((.*)\\)\n?\\'" doc)
 		    (ad-define-subr-args
 		     subr-name
 		     (car (read-from-string
