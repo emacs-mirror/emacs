@@ -1,3 +1,10 @@
+2003-11-07  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (coding_allocate_composition_data): Reset
+	coding->composing to COMPOSITION_NO.
+	(coding_restore_composition): Detect invalid composition data.
+	Give Fstring and Fvector a Lispy integer, not C int.
+
 2003-11-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_term_init): Fix formatting.
