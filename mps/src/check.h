@@ -1,6 +1,6 @@
 /* impl.h.check: ASSERTION INTERFACE
  *
- * $HopeName: MMsrc!check.h(trunk.14) $
+ * $HopeName: MMsrc!check.h(trunk.15) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .aver: This header defines a family of AVER and NOTREACHED macros.
@@ -120,8 +120,14 @@ extern void AssertFail1(const char *s);
 #define CHECKD(type, val) \
   BEGIN DISCARD(CHECKT(type, val)); NOTREACHED; END
 
+#define CHECKD_NOSIG(type, val) \
+  BEGIN DISCARD((val) != NULL); NOTREACHED; END
+
 #define CHECKU(type, val) \
   BEGIN DISCARD(CHECKT(type, val)); NOTREACHED; END
+
+#define CHECKU_NOSIG(type, val) \
+  BEGIN DISCARD((val) != NULL); NOTREACHED; END
 
 
 #elif defined(MPS_HOT_RED)
@@ -132,7 +138,9 @@ extern void AssertFail1(const char *s);
 
 #define CHECKL(cond)       DISCARD(cond)
 #define CHECKD(type, val)  DISCARD(CHECKT(type, val))
+#define CHECKD_NOSIG(type, val) DISCARD((val) != NULL)
 #define CHECKU(type, val)  DISCARD(CHECKT(type, val))
+#define CHECKU_NOSIG(type, val) DISCARD((val) != NULL)
 
 
 #elif defined(MPS_COOL)
