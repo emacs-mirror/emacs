@@ -1,3 +1,30 @@
+1999-10-07  Emmanuel Briot  <briot@gnat.com>
+
+	* ada-xref.el: New file
+
+	* ada-prj.el: New file
+
+	* ada-stmt.el (ada-stmt-add-to-ada-menu): New function
+
+  	* ada-stmt.el (ada-subprogram-body): Correctly find the name of the
+	subprogram being created.
+
+	* ada-mode.el (ada-get-indent-*, ada-indent-current, ada-goto-*,
+	ada-indent-newline-indent): Rewritten to support the new indentation
+	scheme
+
+	* ada-mode.el (ada-case-read-exceptions, ada-create-case-exceptions):
+	New functions
+
+	* ada-mode.el (ada-fill-comment-paragraph): Add support for the
+	justification parameter
+
+	* ada-mode.el (ada-make-body, ada-gen-treat-proc,
+	ada-make-subprogram-body): Rewritten to benefit from the gnatstub
+	external program
+
+	* ada-support.el: New file
+
 1999-10-07  Dave Love  <fx@gnu.org>
 
 	* bindings.el (bound-and-true-p): New macro.
