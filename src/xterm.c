@@ -607,7 +607,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	      || (cmpcharp == NULL && FAST_GLYPH_FACE (g) != cf))
 	    break;
 
-	  if (c2)
+	  if (c2 > 0)
 	    cp->byte1 = c1, cp->byte2 = c2;
 	  else
 	    cp->byte1 = 0, cp->byte2 = c1;
@@ -629,7 +629,8 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	int line_height = f->output_data.x->line_height;
 	/* Pixel width of each glyph in this run.  */
 	int glyph_width
-	  = FONT_WIDTH (f->output_data.x->font) * CHARSET_WIDTH (charset);
+	  = (FONT_WIDTH (f->output_data.x->font)
+	     * (cmpcharp ? cmpcharp->width : CHARSET_WIDTH (charset)));
 	/* Overall pixel width of this run.  */
 	int run_width
 	  = (FONT_WIDTH (f->output_data.x->font)
@@ -680,6 +681,8 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	    if (FACE_STIPPLE (face))
 	      stippled = 1;
 	  }
+
+#define FACE_DEFAULT (~0)
 
 	/* Setting appropriate font and gc for this charset.  */
 	if (charset != CHARSET_ASCII)
@@ -745,12 +748,12 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	else
 	  {
 	    font = FACE_FONT (face);
+	    if (font == (XFontStruct *) FACE_DEFAULT)
+	      font = f->output_data.x->font;
 	    baseline = FONT_BASE (font);
 	  font_not_found:
-	    gc   = FACE_GC   (face);
+	    gc = FACE_GC   (face);
 	  }
-
-#define FACE_DEFAULT (~0)
 
 	/* Now override that if the cursor's on this character.  */
 	if (hl == 2)
@@ -758,8 +761,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	    /* The cursor overrides stippling.  */
 	    stippled = 0;
 
-	    if ((font == (XFontStruct *) FACE_DEFAULT
-		 || font == f->output_data.x->font)
+	    if (font == f->output_data.x->font
 		&& face->background == f->output_data.x->background_pixel
 		&& face->foreground == f->output_data.x->foreground_pixel)
 	      {
@@ -811,13 +813,12 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	      }
 	  }
 
-	if (font == (XFontStruct *) FACE_DEFAULT)
-	  font = f->output_data.x->font;
-
 	if (font)
-	  require_clipping = (FONT_HEIGHT (font) > line_height
-			      || FONT_WIDTH (font) > glyph_width
-			      || baseline != f->output_data.x->font_baseline);
+	  require_clipping = (!NILP (Vclip_large_size_font)
+			      && (font->ascent > baseline
+				  || font->descent > line_height - baseline
+				  || (!cmpcharp
+				      && FONT_WIDTH (font) > glyph_width)));
 
 	if (font && (just_foreground || (cmpcharp && gidx > 0)))
 	  background_filled = 1;
@@ -838,7 +839,6 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	else if (!font
 		 || FONT_HEIGHT (font) < line_height
 		 || FONT_WIDTH (font) < glyph_width
-		 || baseline != f->output_data.x->font_baseline
 		 || cmpcharp)
 	  {
 	    /* Fill a area for the current run in background pixle of GC.  */
@@ -849,7 +849,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	    /* The current code at first exchange foreground and
 	      background of GC, fill the area, then recover the
 	      original foreground and background of GC.
-	      Aren't there more smart ways?  */
+	      Aren't there any more smart ways?  */
 
 	    XGetGCValues (FRAME_X_DISPLAY (f), gc, mask, &xgcv);
 	    fore = xgcv.foreground, back = xgcv.background;
@@ -1017,7 +1017,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	      }
 #endif
 	  }
-	if (!font || require_clipping)
+	if (!font || require_clipping && !NILP (Vhighlight_wrong_size_font))
 	  {
 	    /* Show rectangles to show that we found no font or a font
                of inappropriate size.  */
