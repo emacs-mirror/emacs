@@ -154,7 +154,7 @@ This must be bound to a mouse click."
   "Kill the region between point and the mouse click.
 The text is saved in the kill ring, as with \\[kill-region]."
   (interactive "e")
-  (let ((click-posn (event-point click)))
+  (let ((click-posn (posn-point (event-start click))))
     (if (numberp click-posn)
 	(kill-region (min (point) click-posn)
 		     (max (point) click-posn)))))
@@ -174,21 +174,25 @@ This does not delete the region; it acts like \\[kill-ring-save]."
   (call-interactively 'kill-ring-save))
 
 (defun mouse-save-then-kill (click)
-  "Copy the region between point and the mouse click in the kill ring.
-This does not delete the region; it acts like \\[kill-ring-save]."
+  "Save text to point in kill ring; the second time, kill the text.
+If the text between point and the mouse is the same as what's
+at the front of the kill ring, this deletes the text.
+Otherwise, it adds the text to the kill ring, like \\[kill-ring-save],
+which prepares for a second click to delete the text."
   (interactive "e")
-  (mouse-set-mark click)
-  (if (string= (buffer-substring (point) (mark)) (car kill-ring))
-      ;; If this text was already saved in kill ring,
-      ;; now delete it from the buffer.
-      (progn
-	(let ((buffer-undo-list t))
-	  (delete-region (point) (mark)))
-	;; Make the undo list by hand so it is shared.
-	(setq buffer-undo-list
-	      (cons (cons (car kill-ring) (point)) buffer-undo-list)))
-    ;; Otherwise, save this region.
-    (call-interactively 'kill-ring-save)))
+  (let ((click-posn (posn-point (event-start click))))
+    (if (string= (buffer-substring (point) click-posn) (car kill-ring))
+	;; If this text was already saved in kill ring,
+	;; now delete it from the buffer.
+	(progn
+	  (let ((buffer-undo-list t))
+	    (delete-region (point) (mark)))
+	  ;; Make the undo list by hand so it is shared.
+	  (setq buffer-undo-list
+		(cons (cons (car kill-ring) (point)) buffer-undo-list)))
+      ;; Otherwise, save this region.
+      (mouse-set-mark click)
+      (call-interactively 'kill-ring-save))))
 
 (defun mouse-buffer-menu (event)
   "Pop up a menu of buffers for selection with the mouse.
