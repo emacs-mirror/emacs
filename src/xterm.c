@@ -1629,6 +1629,21 @@ x_emacs_to_x_modifiers (dpyinfo, state)
 	  | ((state & ctrl_modifier)	? ControlMask      : 0)
 	  | ((state & meta_modifier)	? dpyinfo->meta_mod_mask  : 0));
 }
+
+/* Convert a keysym to its name.  */
+
+char *
+x_get_keysym_name (keysym)
+     KeySym keysym;
+{
+  char *value;
+
+  BLOCK_INPUT;
+  value = XKeysymToString (keysym);
+  UNBLOCK_INPUT;
+
+  return value;
+}
 
 /* Mouse clicks and mouse movement.  Rah.  */
 
@@ -4941,7 +4956,7 @@ x_set_window_size (f, change_gravity, cols, rows)
 #endif /* not USE_X_TOOLKIT */
 }
 
-/* Mouse warping, focus shifting, raising and lowering.  */
+/* Mouse warping.  */
 
 void
 x_set_mouse_position (f, x, y)
@@ -4979,6 +4994,8 @@ x_set_mouse_pixel_position (f, pix_x, pix_y)
 		0, 0, 0, 0, pix_x, pix_y);
   UNBLOCK_INPUT;
 }
+
+/* focus shifting, raising and lowering.  */
 
 x_focus_on_frame (f)
      struct frame *f;
@@ -5052,9 +5069,8 @@ XTframe_raise_lower (f, raise)
   else
     x_lower_frame (f);
 }
-
-/* Change from withdrawn state to mapped state,
-   or deiconify. */
+
+/* Change of visibility.  */
 
 x_make_frame_visible (f)
      struct frame *f;
@@ -5138,6 +5154,8 @@ x_make_frame_visible (f)
 }
 
 /* Change from mapped state to withdrawn state. */
+
+/* Make the frame visible (mapped and not iconified).  */
 
 x_make_frame_invisible (f)
      struct frame *f;
@@ -5314,7 +5332,7 @@ x_iconify_frame (f)
   UNBLOCK_INPUT;
 #endif /* not USE_X_TOOLKIT */
 }
-
+
 /* Destroy the X window of frame F.  */
 
 x_destroy_window (f)
