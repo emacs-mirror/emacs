@@ -869,10 +869,17 @@ Do the same for the keys of the same name."
   '(menu-item "5x5" 5x5
 	      :help "Fill in all the squares on a 5x5 board"))
 
+(define-key menu-bar-tools-menu [calculator]
+  '(menu-item "Calculator" calculator
+	      :help "Invoke the Emacs built-in scientific calculator"))
 (define-key menu-bar-tools-menu [calendar]
   '(menu-item "Display Calendar" calendar))
 (define-key menu-bar-tools-menu [speedbar]
   '(menu-item "Display Speedbar" speedbar-frame-mode))
+
+(define-key menu-bar-tools-menu [separator-net]
+  '("--"))
+
 (define-key menu-bar-tools-menu [directory-search]
   '(menu-item "Directory Search" eudc-tools-menu
 	      :help "Query directory servers via LDAP, CCSO PH/QI or BBDB"))
