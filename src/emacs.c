@@ -1009,11 +1009,14 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
 	  symbol = intern ("default-enable-multibyte-characters");
 	  Fset (symbol, Qnil);
 
-	  /* Erase pre-dump messages in *Messages* now so no abort.  */
-	  old_log_max = Vmessage_log_max;
-	  XSETFASTINT (Vmessage_log_max, 0);
-	  message_dolog ("", 0, 1, 0);
-	  Vmessage_log_max = old_log_max;
+	  if (initialized)
+	    {
+	      /* Erase pre-dump messages in *Messages* now so no abort.  */
+	      old_log_max = Vmessage_log_max;
+	      XSETFASTINT (Vmessage_log_max, 0);
+	      message_dolog ("", 0, 1, 0);
+	      Vmessage_log_max = old_log_max;
+	    }
 
 	  for (tail = Vbuffer_alist; CONSP (tail);
 	       tail = XCONS (tail)->cdr)
