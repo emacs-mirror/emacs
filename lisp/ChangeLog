@@ -1,3 +1,8 @@
+2003-05-26  John Paul Wallington  <jpw@gnu.org>
+
+	* faces.el (display-supports-face-attributes-p): Doc fix.
+	(x-create-frame-with-faces): Call `face-set-after-frame-default'.
+
 2003-05-26  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
 	* bindings.el (global-map): Don't bind S-<backspace>.  Too many

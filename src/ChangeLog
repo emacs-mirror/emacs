@@ -1,3 +1,7 @@
+2003-05-26  John Paul Wallington  <jpw@gnu.org>
+
+	* xfns.c (Fx_create_frame): Don't call Qface_set_after_frame_default.
+
 2003-05-25  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* window.c (Fset_window_buffer): Add type of `keep_margins'.
