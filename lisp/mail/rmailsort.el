@@ -1,5 +1,6 @@
 ;;; Rmail: sort messages.
 ;; Copyright (C) 1990 Masanobu UMEDA
+;; umerin@tc.Nagasaki.GO.JP?
 
 ;; This file is part of GNU Emacs.
 
@@ -134,10 +135,10 @@ Arguments are MSG and FIELD."
     ;; (1) 14 Apr 89 03:20:12 GMT
     ;; (2) Fri, 17 Mar 89 4:01:33 GMT
     (if (string-match
-	 "\\([0-9]+\\) \\([^ ,]+\\) \\([0-9]+\\) \\([0-9:]+\\)" date)
+	 "\\([0-9]+\\) +\\([^ ,]+\\) +\\([0-9]+\\) +\\([0-9:]+\\)" date)
 	(concat
-	 ;; Year
-	 (substring date (match-beginning 3) (match-end 3))
+	 ;; Year (discarding century)
+	 (substring (substring date (match-beginning 3) (match-end 3)) -2)
 	 ;; Month
 	 (cdr
 	  (assoc
