@@ -1,3 +1,40 @@
+2004-08-22  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-word): Use
+	set-process-query-on-exit-flag.
+	(flyspell-highlight-duplicate-region): Take POSS as arg.
+	(flyspell-word): Pass POSS as arg.
+
+	* progmodes/ada-xref.el: Many doc and style fixes.
+	(ada-find-any-references): Use compilation-start.
+	(ada-get-ali-file-name): Improve error msg.
+	(ada-get-ada-file-name): Likewise.
+
+	* net/ange-ftp.el (ange-ftp-gwp-start, ange-ftp-nslookup-host)
+	(ange-ftp-start-process): Use set-process-query-on-exit-flag.
+
+	* mail/mail-extr.el (mail-extr-all-top-level-domains):
+	Add forward defvar.
+
+	* whitespace.el (global-whitespace-mode): New alias
+	for whitespace-global-mode.
+
+	* speedbar.el (speedbar-file-regexp): Definition moved up.
+	(speedbar-mode, speedbar-set-mode-line-format):
+	Use with-no-warnings.
+	(speedbar-emacs-popup-kludge): Delete Emacs 19 alternative.
+
+	* simple.el (shell-command-on-region): New arg DISPLAY-ERROR-BUFFER
+	controls whether to display the error buffer.
+
+	* ps-mule.el: Delete compatibility code for old Emacses.
+	(ps-mule-find-wrappoint): Don't use chars-in-region.
+
+	* frame.el (display-mouse-p, display-selections-p): 
+	Use with-no-warnings.
+	
+	* font-lock.el (font-lock-set-defaults): Use with-no-warnings.
+
 2004-08-22  David Kastrup  <dak@gnu.org>
 
 	* textmodes/reftex-auc.el, progmodes/meta-mode.el: Update AUCTeX

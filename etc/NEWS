@@ -98,6 +98,8 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** global-whitespace-mode is a new alias for whitespace-global-mode.
+
 +++
 ** There are now two new regular expression operators, \_< and \_>,
 for matching the beginning and end of a symbol.  A symbol is a
