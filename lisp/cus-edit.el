@@ -1,6 +1,6 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
-;; Copyright (C) 1996, 1997, 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
@@ -3744,6 +3744,36 @@ or (if there were none) at the end of the buffer."
 	(set-buffer (find-file-noselect (custom-file))))
       (let ((file-precious-flag t))
 	(save-buffer)))))
+
+;;;###autoload
+(defun customize-mark-to-save (symbol)
+  "Mark SYMBOL for later saving.
+
+If the default value of SYMBOL is different from the standard value, 
+set the 'saved-value' property to a list whose car evaluates to the
+default value. Otherwise, set it til nil.
+
+To actually save the value, call 'custom-save-all'.
+
+Return non-nil iff the 'saved-value' property actually changed."
+  (let* ((get (or (get symbol 'custom-get) 'default-value))
+	 (value (funcall get symbol))
+	 (saved (get symbol 'saved-value))
+	 (standard (get symbol 'standard-value))
+	 (comment (get symbol 'customized-variable-comment)))
+    ;; Save default value iff different from standard value.
+    (if (and standard 
+	     (not (condition-case nil
+		      (equal value (eval (car standard)))
+		    (error nil))))
+	(put symbol 'saved-value (list (custom-quote value)))
+      (put symbol 'saved-value nil))
+    ;; Clear customized information (set, but not saved).
+    (put symbol 'customized-value nil)
+    ;; Save any comment that might have been set.
+    (when comment
+      (put symbol 'saved-variable-comment comment))
+    (not (equal saved (get symbol 'saved-value)))))
 
 ;;; The Customize Menu.
 

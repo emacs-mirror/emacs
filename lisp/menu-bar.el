@@ -545,21 +545,30 @@ Do the same for the keys of the same name."
 (defun menu-bar-options-save ()
   "Save current values of Options menu items using Custom."
   (interactive)
-  (dolist (elt '(debug-on-quit debug-on-error auto-compression-mode
-		 case-fold-search truncate-lines show-paren-mode
-		 transient-mark-mode global-font-lock-mode
-		 current-language-environment default-input-method
-		 default-frame-alist display-time-mode))
-    (if (default-value elt)
-	(customize-save-variable elt (default-value elt))))
-  (if (memq 'turn-on-auto-fill text-mode-hook)
-      (customize-save-variable 'text-mode-hook
-			       (default-value 'text-mode-hook)))
-  (if (featurep 'saveplace)
-      (customize-save-variable 'save-place (default-value 'save-place)))
-  (if (featurep 'uniquify)
-      (customize-save-variable 'uniquify-buffer-name-style
-			       (default-value 'uniquify-buffer-name-style))))
+  (let ((need-save nil))
+    (dolist (elt '(debug-on-quit debug-on-error auto-compression-mode
+		   case-fold-search truncate-lines show-paren-mode
+		   transient-mark-mode global-font-lock-mode
+		   current-language-environment default-input-method
+		   default-frame-alist display-time-mode))
+      (when (customize-mark-to-save elt)
+	(setq need-save t)))
+    ;; We only want to save text-mode-hook after adding or removing auto fill.
+    (and (or (memq 'turn-on-auto-fill text-mode-hook) ;Added.
+	     ;; If it is already saved, it is safe to save.
+	     (get 'text-mode-hook 'saved-value)) ;Maybe removed.
+	 (customize-mark-to-save 'text-mode-hook)
+	 (setq need-save t))
+    ;; Avoid loading extra libraries.
+    (and (featurep 'saveplace)
+	 (customize-mark-to-save 'save-place)
+	 (setq need-save t))
+    (and(featurep 'uniquify)
+	(customize-mark-to-save 'uniquify-buffer-name-style)
+	(setq need-save t))
+    ;; Save if we changed anything.
+    (when need-save
+      (custom-save-all))))
 
 (define-key menu-bar-options-menu [save]
   '(menu-item "Save Options" menu-bar-options-save
