@@ -1371,16 +1371,21 @@
 ;;; the BOOL variables are, and not perform this optimization on them.
 ;;;
 (defconst byte-boolean-vars
-  '(abbrev-all-caps abbrevs-changed byte-metering-on
-    cannot-suspend completion-auto-help completion-ignore-case
-    cursor-in-echo-area debug-on-next-call debug-on-quit
-    delete-exited-processes enable-recursive-minibuffers
-    highlight-nonselected-windows indent-tabs-mode inhibit-local-menu-bar-menus
-    insert-default-directory inverse-video load-force-doc-strings
-    load-in-progress menu-prompting minibuffer-auto-raise
-    mode-line-inverse-video multiple-frames no-redraw-on-reenter noninteractive
-    parse-sexp-ignore-comments pop-up-frames pop-up-windows
-    print-escape-newlines system-uses-terminfo truncate-partial-width-windows
+  '(abbrev-all-caps abbrevs-changed byte-debug-flag byte-metering-on
+    cannot-suspend check-markers-debug-flag completion-auto-help
+    completion-ignore-case cursor-in-echo-area debug-on-next-call
+    debug-on-quit delete-exited-processes enable-recursive-minibuffers
+    garbage-collection-messages highlight-nonselected-windows
+    indent-tabs-mode inherit-process-coding-system inhibit-eol-conversion
+    inhibit-local-menu-bar-menus insert-default-directory inverse-video
+    keyword-symbols-constant-flag load-convert-to-unibyte
+    load-force-doc-strings load-in-progress menu-prompting
+    minibuffer-allow-text-properties minibuffer-auto-raise
+    mode-line-inverse-video multiple-frames no-redraw-on-reenter
+    noninteractive parse-sexp-ignore-comments parse-sexp-lookup-properties
+    pop-up-frames pop-up-windows print-escape-newlines
+    print-escape-nonascii print-quoted scroll-preserve-screen-position
+    system-uses-terminfo truncate-partial-width-windows use-dialog-box
     visible-bell vms-stmlf-recfm words-include-escapes)
   "DEFVAR_BOOL variables.  Giving these any non-nil value sets them to t.
 If this does not enumerate all DEFVAR_BOOL variables, the byte-optimizer
