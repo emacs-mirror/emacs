@@ -34,27 +34,31 @@
 
 ;; Generic-mode is a meta-mode which can be used to define small modes
 ;; which provide basic comment and font-lock support.  These modes are
-;; intended for the many configuration files and such which are too small
-;; for a "real" mode, but still have a regular syntax, comment characters
-;; and the like.
+;; intended for the many configuration files and such which are too
+;; small for a "real" mode, but still have a regular syntax, comment
+;; characters and the like.
 ;;
 ;; Each generic mode can define the following:
 ;;
 ;; * List of comment-characters.  The entries in this list should be
 ;;   either a character, a one or two character string or a cons pair.
-;;   If the entry is a character or a one-character string
-;;   LIMITATIONS:  Emacs does not support comment strings of more than
+;;   If the entry is a character or a string, it is added to the
+;;   mode's syntax table with `comment-start' syntax.  If the entry is
+;;   a cons pair, the elements of the pair are considered to be
+;;   `comment-start' and `comment-end' respectively.  (The latter
+;;   should be nil if you want comments to end at end of line.)
+;;   LIMITATIONS: Emacs does not support comment strings of more than
 ;;   two characters in length.
 ;;
 ;; * List of keywords to font-lock.  Each keyword should be a string.
-;;   If you have additional keywords which should be highlighted in a face
-;;   different from `font-lock-keyword-face', you can use the convenience
-;;   function `generic-make-keywords-list' (which see), and add the
-;;   result to the following list:
+;;   If you have additional keywords which should be highlighted in a
+;;   face different from `font-lock-keyword-face', you can use the
+;;   convenience function `generic-make-keywords-list' (which see),
+;;   and add the result to the following list:
 ;;
 ;; * Additional expressions to font-lock.  This should be a list of
-;;   expressions, each of which should be of the same form
-;;   as those in `font-lock-keywords'.
+;;   expressions, each of which should be of the same form as those in
+;;   `font-lock-keywords'.
 ;;
 ;; * List of regular expressions to be placed in auto-mode-alist.
 ;;
@@ -79,35 +83,35 @@
 ;; Use the `define-generic-mode' function to define new modes.
 ;; For example:
 ;;
-;;   (require 'generic)
 ;;   (define-generic-mode 'foo-generic-mode
-;;                        (list ?% )
-;;                        (list "keyword")
-;;                        nil
-;;			  (list "\\.FOO\\'")
-;;			  (list 'foo-setup-function))
+;;     (list ?%)
+;;     (list "keyword")
+;;     nil
+;;     (list "\\.FOO\\'")
+;;     (list 'foo-setup-function))
 ;;
 ;; defines a new generic-mode `foo-generic-mode', which has '%' as a
-;; comment character, and "keyword" as a keyword. When files which end in
-;; '.FOO' are loaded, Emacs will go into foo-generic-mode and call
-;; foo-setup-function.  You can also use the function `foo-generic-mode'
-;; (which is interactive) to put a buffer into foo-generic-mode.
+;; comment character, and "keyword" as a keyword.  When files which
+;; end in '.FOO' are loaded, Emacs will go into foo-generic-mode and
+;; call foo-setup-function.  You can also use the function
+;; `foo-generic-mode' (which is interactive) to put a buffer into
+;; foo-generic-mode.
 ;;
 ;; AUTOMATICALLY ENTERING GENERIC MODE:
 ;;
-;; Generic-mode provides a hook which automatically puts a
-;; file into default-generic-mode if the first few lines of a file in
-;; fundamental mode start with a hash comment character. To disable
+;; Generic-mode provides a hook which automatically puts a file into
+;; default-generic-mode if the first few lines of a file in
+;; fundamental mode start with a hash comment character.  To disable
 ;; this functionality, set the variable `generic-use-find-file-hook'
-;; to nil BEFORE loading generic-mode. See the variables
-;; `generic-lines-to-scan' and `generic-find-file-regexp' for customization
-;; options.
+;; to nil BEFORE loading generic-mode.  See the variables
+;; `generic-lines-to-scan' and `generic-find-file-regexp' for
+;; customization options.
 ;;
 ;; GOTCHAS:
 ;;
-;; Be careful that your font-lock definitions are correct.  Getting them
-;; wrong can cause emacs to continually attempt to fontify! This problem
-;; is not specific to generic-mode.
+;; Be careful that your font-lock definitions are correct.  Getting
+;; them wrong can cause Emacs to continually attempt to fontify! This
+;; problem is not specific to generic-mode.
 ;;
 
 ;; Credit for suggestions, brainstorming, help with debugging:
@@ -117,9 +121,6 @@
 ;;
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Internal Variables
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -128,6 +129,7 @@
   "Global defaults for font-lock in a generic mode.")
 (make-variable-buffer-local 'generic-font-lock-defaults)
 
+;;;###autoload
 (defvar generic-mode-list nil
   "A list of mode names for `generic-mode'.
 Do not add entries to this list directly; use `define-generic-mode'
@@ -143,139 +145,140 @@ instead (which see).")
   :group 'extensions)
 
 (defcustom generic-use-find-file-hook t
-  "*If non-nil, add a hook to enter default-generic-mode automatically.
-This is done if the first few lines of a file in fundamental mode start
-with a hash comment character."
+  "*If non-nil, add a hook to enter `default-generic-mode' automatically.
+This is done if the first few lines of a file in fundamental mode
+start with a hash comment character."
   :group 'generic
-  :type  'boolean
-  )
+  :type  'boolean)
 
 (defcustom generic-lines-to-scan 3
   "*Number of lines that `generic-mode-find-file-hook' looks at.
-Relevant when deciding whether to enter `generic-mode' automatically.
+Relevant when deciding whether to enter Default-Generic mode automatically.
 This variable should be set to a small positive number."
   :group 'generic
-  :type  'integer
-  )
+  :type  'integer)
 
 (defcustom generic-find-file-regexp "^#"
   "*Regular expression used by `generic-mode-find-file-hook'.
-Files in fundamental mode whose first few lines contain a match for
-this regexp, should be put into `default-generic-mode' instead.
-The number of lines tested for the matches is specified by the value
-of the variable `generic-lines-to-scan', which see."
+Files in fundamental mode whose first few lines contain a match
+for this regexp, should be put into Default-Generic mode instead.
+The number of lines tested for the matches is specified by the
+value of the variable `generic-lines-to-scan', which see."
   :group 'generic
-  :type  'regexp
-  )
+  :type  'regexp)
 
 (defcustom generic-ignore-files-regexp "[Tt][Aa][Gg][Ss]\\'"
   "*Regular expression used by `generic-mode-find-file-hook'.
 Files whose names match this regular expression should not be put
-into `default-generic-mode', even if they have lines which match the
-regexp in `generic-find-file-regexp'.  If the value is nil,
+into Default-Generic mode, even if they have lines which match
+the regexp in `generic-find-file-regexp'.  If the value is nil,
 `generic-mode-find-file-hook' does not check the file names."
   :group 'generic
-  :type  '(choice (const :tag "Don't check file names" nil) regexp)
-  )
+  :type  '(choice (const :tag "Don't check file names" nil) regexp))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;###autoload
-(defun define-generic-mode (name comment-list    keyword-list   font-lock-list
-				 auto-mode-list  function-list
-				 &optional description)
-  "Create a new generic mode with NAME.
+(defmacro define-generic-mode (mode comment-list keyword-list
+				    font-lock-list auto-mode-list
+				    function-list &optional docstring)
+  "Create a new generic mode MODE.
 
-NAME should be a symbol; its string representation is used as the function
-name. If DESCRIPTION is provided, it is used as the docstring for the new
-function.
+MODE is the name of the command for the generic mode; it need not
+be quoted.  The optional DOCSTRING is the documentation for the
+mode command.  If you do not supply it, a default documentation
+string will be used instead.
 
-COMMENT-LIST is a list, whose entries are either a single character,
-a one or two character string or a cons pair. If the entry is a character
-or a one-character string, it is added to the mode's syntax table with
-`comment-start' syntax.  If the entry is a cons pair, the elements of the
-pair are considered to be `comment-start' and `comment-end' respectively.
-\(The latter should be nil if you want comments to end at end of line.)
-Note that Emacs has limitations regarding comment characters.
+COMMENT-LIST is a list, whose entries are either a single
+character, a one or two character string or a cons pair.  If the
+entry is a character or a string, it is added to the mode's
+syntax table with `comment-start' syntax.  If the entry is a cons
+pair, the elements of the pair are considered to be
+`comment-start' and `comment-end' respectively.  (The latter
+should be nil if you want comments to end at end of line.)  Note
+that Emacs has limitations regarding comment characters.
 
-KEYWORD-LIST is a list of keywords to highlight with `font-lock-keyword-face'.
-Each keyword should be a string.
+KEYWORD-LIST is a list of keywords to highlight with
+`font-lock-keyword-face'.  Each keyword should be a string.
 
-FONT-LOCK-LIST is a list of additional expressions to highlight. Each entry
-in the list should have the same form as an entry in `font-lock-keywords'.
+FONT-LOCK-LIST is a list of additional expressions to highlight.
+Each entry in the list should have the same form as an entry in
+`font-lock-keywords'.
 
-AUTO-MODE-LIST is a list of regular expressions to add to `auto-mode-alist'.
-These regexps are added to `auto-mode-alist' as soon as `define-generic-mode'
-is called; any old regexps with the same name are removed.
+AUTO-MODE-LIST is a list of regular expressions to add to
+`auto-mode-alist'.  These regexps are added to `auto-mode-alist'
+as soon as `define-generic-mode' is called.
 
-FUNCTION-LIST is a list of functions to call to do some additional setup.
+FUNCTION-LIST is a list of functions to call to do some
+additional setup.
 
 See the file generic-x.el for some examples of `define-generic-mode'."
+  (let* ((name-unquoted (if (eq (car-safe mode) 'quote) ; Backward compatibility.
+			    (eval mode)
+			  mode))
+	 (name-string (symbol-name name-unquoted))
+	 (pretty-name (capitalize (replace-regexp-in-string
+				   "-mode\\'" "" name-string))))
 
-  ;; Add a new entry
-  (add-to-list 'generic-mode-list (symbol-name name))
+    `(progn
+       ;; Add a new entry.
+       (add-to-list 'generic-mode-list ,name-string)
 
-  ;; Add it to auto-mode-alist
-  (dolist (re auto-mode-list)
-    (add-to-list 'auto-mode-alist (cons re name)))
+       ;; Add it to auto-mode-alist
+       (dolist (re ,auto-mode-list)
+	 (add-to-list 'auto-mode-alist (cons re ',name-unquoted)))
 
-  ;; Define a function for it using `defalias' (not `fset') to make
-  ;; the mode appear on load-history.
-  (defalias name
-    `(lambda nil
-       ,(or description (concat "Generic mode for type " (symbol-name name)))
-       (interactive)
-       (generic-mode-internal ',name ',comment-list ',keyword-list
-			      ',font-lock-list ',function-list)))
-  )
+       (defun ,name-unquoted ()
+	 ,(or docstring
+	      (concat pretty-name " mode.\n"
+		      "This a generic mode defined with `define-generic-mode'."))
+	 (interactive)
+	 (generic-mode-internal ',name-unquoted ,comment-list ,keyword-list
+				,font-lock-list ,function-list)))))
 
+;;;###autoload
 (defun generic-mode-internal (mode comments keywords font-lock-list funs)
-  "Go into the generic-mode MODE."
-  (let* ((generic-mode-hooks (intern (concat (symbol-name mode) "-hook")))
-	 (modename (symbol-name mode))
-	 (name (if (string-match "-mode\\'" modename)
-		   (substring modename 0 (match-beginning 0))
-		 modename))
-	 )
+  "Go into the generic mode MODE."
+  (let* ((modename (symbol-name mode))
+	 (generic-mode-hooks (intern (concat modename "-hook")))
+	 (pretty-name (capitalize (replace-regexp-in-string
+				   "-mode\\'" "" modename))))
 
-    ;; Put this after the point where we read generic-mode-name!
     (kill-all-local-variables)
 
-    (setq
-     major-mode			   mode
-     mode-name			   (capitalize name)
-     )
+    (setq major-mode mode
+	  mode-name pretty-name)
 
-    (generic-mode-set-comments     comments)
+    (generic-mode-set-comments comments)
 
     ;; Font-lock functionality
     ;; Font-lock-defaults are always set even if there are no keywords
     ;; or font-lock expressions, so comments can be highlighted.
     (setq generic-font-lock-defaults nil)
-    (generic-mode-set-font-lock      keywords font-lock-list)
-    (make-local-variable	    'font-lock-defaults)
+    (generic-mode-set-font-lock  keywords font-lock-list)
+    (make-local-variable 'font-lock-defaults)
     (setq font-lock-defaults (list 'generic-font-lock-defaults nil))
 
     ;; Call a list of functions
     (mapcar 'funcall funs)
 
-    (run-hooks generic-mode-hooks)
-    )
-  )
+    (run-hooks generic-mode-hooks)))
 
 ;;;###autoload
-(defun generic-mode (type)
-  "Basic comment and font-lock functionality for `generic' files.
-\(Files which are too small to warrant their own mode, but have
-comment characters, keywords, and the like.)
+(defun generic-mode (mode)
+  "Enter generic mode MODE.
+
+Generic modes provide basic comment and font-lock functionality
+for \"generic\" files.  (Files which are too small to warrant their
+own mode, but have comment characters, keywords, and the like.)
 
 To define a generic-mode, use the function `define-generic-mode'.
 Some generic modes are defined in `generic-x.el'."
   (interactive
-   (list (completing-read "Generic Type: " generic-mode-list nil t)))
-  (funcall (intern type)))
+   (list (completing-read "Generic mode: " generic-mode-list nil t)))
+  (funcall (intern mode)))
 
 ;;; Comment Functionality
 (defun generic-mode-set-comments (comment-list)
@@ -283,16 +286,16 @@ Some generic modes are defined in `generic-x.el'."
   (let ((st (make-syntax-table))
 	(chars nil)
 	(comstyles))
-    (make-local-variable	     'comment-start)
-    (make-local-variable	     'comment-start-skip)
-    (make-local-variable	     'comment-end)
+    (make-local-variable 'comment-start)
+    (make-local-variable 'comment-start-skip)
+    (make-local-variable 'comment-end)
 
     ;; Go through all the comments
     (dolist (start comment-list)
-      (let ((end nil) (comstyle ""))
+      (let (end (comstyle ""))
 	;; Normalize
 	(when (consp start)
-	  (setq end (or (cdr start) end))
+	  (setq end (cdr start))
 	  (setq start (car start)))
 	(when (char-valid-p start) (setq start (char-to-string start)))
 	(cond
@@ -360,18 +363,20 @@ Some generic modes are defined in `generic-x.el'."
         imenu-case-fold-search t))
 
 ;; This generic mode is always defined
-(define-generic-mode 'default-generic-mode (list ?#)  nil nil nil nil)
+(define-generic-mode default-generic-mode (list ?#) nil nil nil nil)
 
 ;; A more general solution would allow us to enter generic-mode for
 ;; *any* comment character, but would require us to synthesize a new
 ;; generic-mode on the fly. I think this gives us most of what we
 ;; want.
 (defun generic-mode-find-file-hook ()
-  "Hook function to enter `default-generic-mode' automatically.
-Done if the first few lines of a file in `fundamental-mode' start with
-a match for the regexp in `generic-find-file-regexp', unless the
-file's name matches the regexp which is the value of the variable
-`generic-ignore-files-regexp'.
+  "Hook function to enter Default-Generic mode automatically.
+
+Done if the first few lines of a file in Fundamental mode start
+with a match for the regexp in `generic-find-file-regexp', unless
+the file's name matches the regexp which is the value of the
+variable `generic-ignore-files-regexp'.
+
 This hook will be installed if the variable
 `generic-use-find-file-hook' is non-nil.  The variable
 `generic-lines-to-scan' determines the number of lines to look at."
@@ -390,8 +395,8 @@ This hook will be installed if the variable
 	(default-generic-mode)))))
 
 (defun generic-mode-ini-file-find-file-hook ()
-  "Hook function to enter default-generic-mode automatically for INI files.
-Done if the first few lines of a file in `fundamental-mode' look like an
+  "Hook function to enter Default-Generic mode automatically for INI files.
+Done if the first few lines of a file in Fundamental mode look like an 
 INI file.  This hook is NOT installed by default."
   (and (eq major-mode 'fundamental-mode)
        (save-excursion
