@@ -1,3 +1,7 @@
+2001-08-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (TAGS, TAGS-LISP): Exclude loaddefs.el.
+
 2001-08-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* man.el (man): Mention Man-switches in the doc string.
