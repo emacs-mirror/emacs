@@ -3419,61 +3419,40 @@ decide_coding_unwind (unwind_data)
 }
 
 
-/* Unwind-function for reading from a file in insert-file-contents.
+/* Used to pass values from insert-file-contents to read_non_regular.  */
 
-   INSERTED_BYTES is the number of bytes successfully inserted into
-   current_buffer.
+static int non_regular_fd;
+static int non_regular_inserted;
+static int non_regular_nbytes;
 
-   When reading is interrupted by C-g, this leaves the newly read part
-   of the current buffer undecoded.  If this happens in a multibyte
-   buffer, prevent invalid characters by either discarding what has
-   been read or switching the buffer to unibyte.
 
-           PT                 GPT
-   +-----------------------------------------------------+
-   |       |  inserted bytes   |  GAP_SIZE |             |
-   +-----------------------------------------------------+
-           \                             /
-	    +--------- the gap ---------+	 */
+/* Read from a non-regular file.
+   Read non_regular_trytry bytes max from non_regular_fd.
+   Non_regular_inserted specifies where to put the read bytes.
+   Value is the number of bytes read.  */
 
 static Lisp_Object
-unwind_read (inserted_bytes)
-     Lisp_Object inserted_bytes;
+read_non_regular ()
 {
-  if (!NILP (current_buffer->enable_multibyte_characters))
-    {
-      int nbytes = XINT (inserted_bytes);
-      Lisp_Object args[3];
-      char *action;
+  int nbytes;
+  
+  immediate_quit = 1;
+  QUIT;
+  nbytes = emacs_read (non_regular_fd,
+		       BEG_ADDR + PT_BYTE - 1 + non_regular_inserted,
+		       non_regular_nbytes);
+  Fsignal (Qquit, Qnil);
+  immediate_quit = 0;
+  return make_number (nbytes);
+}
 
-      if (Z == nbytes)
-	{
-	  /* Buffer was previously empty.  Switch it to unibyte
-	     because newly inserted text is not decoded.  */
-	  current_buffer->enable_multibyte_characters = Qnil;
-	  action = "buffer made unibyte";
-	}
-      else
-	{
-	  ZV -= nbytes;
-	  ZV_BYTE -= nbytes;
-	  Z -= nbytes;
-	  Z_BYTE -= nbytes;
-      
-	  GPT = PT;
-	  GPT_BYTE = PT_BYTE;
-	  GAP_SIZE = nbytes + GAP_SIZE;
-	  
-	  action = "no text inserted";
-	}
 
-      
-      args[0] = build_string ("Quit while inserting text in buffer `%s': %s");
-      args[1] = current_buffer->name;
-      args[2] = build_string (action);
-      Fmessage (3, args);
-    }
-      
+/* Condition-case handler used when reading from non-regular files
+   in insert-file-contents.  */
+
+static Lisp_Object
+read_non_regular_quit ()
+{
   return Qnil;
 }
 
@@ -3523,6 +3502,8 @@ actually used.")
   int replace_handled = 0;
   int set_coding_system = 0;
   int coding_system_decided = 0;
+  int gap_size;
+  int read_quit = 0;
 
   if (current_buffer->base_buffer && ! NILP (visit))
     error ("Cannot do file visiting in an indirect buffer");
@@ -4182,55 +4163,86 @@ actually used.")
      before exiting the loop, it is set to a negative value if I/O
      error occurs.  */
   how_much = 0;
+  
   /* Total bytes inserted.  */
   inserted = 0;
+  
   /* Here, we don't do code conversion in the loop.  It is done by
      code_convert_region after all data are read into the buffer.  */
-  while (how_much < total)
-    {
+  {
+    int gap_size = GAP_SIZE;
+    
+    while (how_much < total)
+      {
 	/* try is reserved in some compilers (Microsoft C) */
-      int trytry = min (total - how_much, READ_BUF_SIZE);
-      int this;
-      int count = BINDING_STACK_SIZE ();
+	int trytry = min (total - how_much, READ_BUF_SIZE);
+	int this;
 
-      /* For a special file, GAP_SIZE should be checked every time.  */
-      if (not_regular && GAP_SIZE < trytry)
-	make_gap (total - GAP_SIZE);
+	if (not_regular)
+	  {
+	    Lisp_Object val;
 
-      /* Allow quitting out of the actual I/O.  If a C-g interrupts
-	 this, make sure that no invalid characters remain
-	 in the undecoded part read.  */
-      record_unwind_protect (unwind_read, make_number (inserted));
-      immediate_quit = 1;
-      QUIT;
-      this = emacs_read (fd, BYTE_POS_ADDR (PT_BYTE + inserted - 1) + 1,
-			 trytry);
-      immediate_quit = 0;
-      --specpdl_ptr;
+	    /* Maybe make more room.  */
+	    if (gap_size < trytry)
+	      {
+		make_gap (total - gap_size);
+		gap_size = GAP_SIZE;
+	      }
 
-      if (this <= 0)
-	{
-	  how_much = this;
-	  break;
-	}
+	    /* Read from the file, capturing `quit'.  When an
+	       error occurs, end the loop, and arrange for a quit
+	       to be signaled after decoding the text we read.  */
+	    non_regular_fd = fd;
+	    non_regular_inserted = inserted;
+	    non_regular_nbytes = trytry;
+	    val = internal_condition_case_1 (read_non_regular, Qnil, Qerror,
+					     read_non_regular_quit);
+	    if (NILP (val))
+	      {
+		read_quit = 1;
+		break;
+	      }
 
-      GAP_SIZE -= this;
-      GPT_BYTE += this;
-      ZV_BYTE += this;
-      Z_BYTE += this;
-      GPT += this;
-      ZV += this;
-      Z += this;
+	    this = XINT (val);
+	  }
+	else
+	  {
+	    /* Allow quitting out of the actual I/O.  We don't make text
+	       part of the buffer until all the reading is done, so a C-g
+	       here doesn't do any harm.  */
+	    immediate_quit = 1;
+	    QUIT;
+	    this = emacs_read (fd, BEG_ADDR + PT_BYTE - 1 + inserted, trytry);
+	    immediate_quit = 0;
+	  }
+      
+	if (this <= 0)
+	  {
+	    how_much = this;
+	    break;
+	  }
 
-      /* For a regular file, where TOTAL is the real size,
-	 count HOW_MUCH to compare with it.
-	 For a special file, where TOTAL is just a buffer size,
-	 so don't bother counting in HOW_MUCH.
-	 (INSERTED is where we count the number of characters inserted.)  */
-      if (! not_regular)
-	how_much += this;
-      inserted += this;
-    }
+	gap_size -= this;
+
+	/* For a regular file, where TOTAL is the real size,
+	   count HOW_MUCH to compare with it.
+	   For a special file, where TOTAL is just a buffer size,
+	   so don't bother counting in HOW_MUCH.
+	   (INSERTED is where we count the number of characters inserted.)  */
+	if (! not_regular)
+	  how_much += this;
+	inserted += this;
+      }
+  }
+
+  /* Make the text read part of the buffer.  */
+  GAP_SIZE -= inserted;
+  GPT      += inserted;
+  GPT_BYTE += inserted;
+  ZV       += inserted;
+  ZV_BYTE  += inserted;
+  Z        += inserted;
+  Z_BYTE   += inserted;
 
   if (GAP_SIZE > 0)
     /* Put an anchor to ensure multi-byte form ends at gap.  */
@@ -4445,6 +4457,9 @@ actually used.")
       /* If visiting nonexistent file, return nil.  */
       report_file_error ("Opening input file", Fcons (orig_filename, Qnil));
     }
+
+  if (read_quit)
+    Fsignal (Qquit, Qnil);
 
   /* ??? Retval needs to be dealt with in all cases consistently.  */
   if (NILP (val))
