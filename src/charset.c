@@ -217,12 +217,13 @@ string_to_non_ascii_char (str, len, actual_len, exclude_tail_garbage)
 	  int char_bytes = BYTES_BY_CHAR_HEAD (c);
 
 	  str++;
-	  if (c >= LEADING_CODE_PRIVATE_11)
+	  if (c >= LEADING_CODE_PRIVATE_11 && c <= LEADING_CODE_PRIVATE_22)
 	    charset = *str++;
-	  if (CHARSET_DEFINED_P (charset) && char_bytes <= bytes)
+	  if (char_bytes <= bytes)
 	    {
 	      c1 = *str++ & 0x7f;
-	      if (CHARSET_DIMENSION (charset) == 2)
+	      if (CHARSET_DEFINED_P (charset)
+		  && CHARSET_DIMENSION (charset) == 2)
 		c2 = *str & 0x7F;
 	      c = MAKE_NON_ASCII_CHAR (charset, c1, c2);
 	      if (exclude_tail_garbage)
