@@ -33,7 +33,7 @@ Specification of the font for a face now uses an XLFD font name, for
 compatibility with other X applications.  This means that font
 attributes cannot be merged when combining faces; however, experience
 shows that mergers are bad economics.  Face inheritance has also been
-removed, so no one can accumulate ``too much face''.
+removed to prevent saving face.
 
 @item
 Several face appearance attributes such as 3D appearence,
@@ -66,7 +66,7 @@ toggle read-only and modified status, switch minor modes on and off,
 etc.
 
 @item
-The support for ``wheeled'' mice on XFree86 has been removed, because
+The support for ``wheeled'' mice under X has been removed, because
 of their slow scroll rate, and because you will find less and less of
 these mice as you go back in time.  Instead Emacs 20 provides the
 @kbd{C-v} and @kbd{M-v} keys for scrolling.  (You can also use the
@@ -142,11 +142,12 @@ enter the vaporware phase, so Emacs 20 does not support them:
 @itemize @minus
 @item
 Emacs 20 cannot be built on GNU/Linux systems running on IA64 machines,
-and you cannot build a 64-bit Emacs for SPARC/Solaris systems which
-support 64-bit executables.
+and you cannot build a 64-bit Emacs on Solaris or Irix even though there
+are still 64-bit versions of those OSes.
 
 @item
-LynxOS is also not supported.
+LynxOS is also not supported, and neither is the Macintosh, though they
+still exist.
 @end itemize
 
 @item
@@ -176,8 +177,8 @@ current buffer.  (Transient Mark mode is alien to the spirit of Emacs,
 so we are planning to remove it altogether in an earlier version.)
 
 @item
-@kbd{C-down-mouse-3} does not show the mode-specific menu in Emacs 20
-when menu bar is not displayed.
+@kbd{C-down-mouse-3} does not show what would be in the menu bar
+when the menu bar is not displayed.
 
 @item
 For uniformity, @key{delete} function key in Emacs 20 works exactly like
