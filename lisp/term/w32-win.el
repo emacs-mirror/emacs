@@ -566,9 +566,11 @@ This returns ARGS with the arguments that have been processed removed."
 (defvar x-cut-buffer-max 20000
   "Max number of characters to put in the cut buffer.")
 
-(defvar x-select-enable-clipboard t
+(defcustom x-select-enable-clipboard t
   "Non-nil means cutting and pasting uses the clipboard.
-This is in addition to the primary selection.")
+This is in addition to the primary selection."
+  :type 'boolean
+  :group 'killing)
 
 (defun x-select-text (text &optional push)
   "Make TEXT the last selected text.
