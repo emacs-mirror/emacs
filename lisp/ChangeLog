@@ -1,3 +1,8 @@
+2002-03-24  Colin Walters  <walters@verbum.org>
+
+	* ibuffer.el (ibuffer): If the user has `ibuffer-use-other-window'
+	non-nil, then always use another window.
+
 2002-03-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* subr.el (macro-declaration-function): New function.  Set the
