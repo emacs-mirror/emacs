@@ -154,6 +154,10 @@ will be performed."
     (let* ((hd (car ring))  (ln (car (cdr ring)))  (vec (cdr (cdr ring))))
       (aref vec (ring-index index hd ln (length vec))))))
 
+(defun ring-elements (ring)
+  "Return a list of the lements of RING."
+  (mapcar #'identity (cddr ring)))
+
 ;;; provide ourself:
 
 (provide 'ring)
