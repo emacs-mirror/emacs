@@ -830,6 +830,7 @@ concat (nargs, args, target_type, last_special)
   if (num_textprops > 0)
     {
       Lisp_Object props;
+      int last_to_end = -1;
 
       for (argnum = 0; argnum < num_textprops; argnum++)
 	{
@@ -840,11 +841,11 @@ concat (nargs, args, target_type, last_special)
 				      Qnil);
 	  /* If successive arguments have properites, be sure that the
 	     value of `composition' property be the copy.  */
-	  if (argnum > 0
-	      && textprops[argnum - 1].argnum + 1 == textprops[argnum].argnum)
+	  if (last_to_end == textprops[argnum].to)
 	    make_composition_value_copy (props);
 	  add_text_properties_from_list (val, props,
 					 make_number (textprops[argnum].to));
+	  last_to_end = textprops[argnum].to + XSTRING (this)->size;
 	}
     }
   return val;
