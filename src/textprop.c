@@ -158,17 +158,17 @@ validate_interval_range (object, begin, end, force)
     }
   else
     {
-      register struct Lisp_String *s = XSTRING (object);
+      int len = SCHARS (object);
 
       if (! (0 <= XINT (*begin) && XINT (*begin) <= XINT (*end)
-	     && XINT (*end) <= s->size))
+	     && XINT (*end) <= len))
 	args_out_of_range (*begin, *end);
       XSETFASTINT (*begin, XFASTINT (*begin));
       if (begin != end)
 	XSETFASTINT (*end, XFASTINT (*end));
-      i = s->intervals;
+      i = STRING_INTERVALS (object);
 
-      if (s->size == 0)
+      if (len == 0)
 	return NULL_INTERVAL;
 
       searchpos = XINT (*begin);
@@ -553,11 +553,9 @@ interval_of (position, object)
     }
   else
     {
-      register struct Lisp_String *s = XSTRING (object);
-
       beg = 0;
-      end = s->size;
-      i = s->intervals;
+      end = SCHARS (object);
+      i = STRING_INTERVALS (object);
     }
 
   if (!(beg <= position && position <= end))
