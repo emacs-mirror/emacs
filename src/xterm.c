@@ -6764,6 +6764,9 @@ fast_find_position (w, pos, hpos, vpos, x, y)
 	  best_row = row;
 	  best_row_vpos = row_vpos;
 	}
+
+      if (row->y + row->height >= yb)
+	break;
       
       ++row;
       ++row_vpos;
