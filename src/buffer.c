@@ -131,8 +131,6 @@ static void reset_buffer_local_variables ();
 Lisp_Object Vbuffer_alist;
 
 /* Functions to call before and after each text change. */
-Lisp_Object Vbefore_change_function;
-Lisp_Object Vafter_change_function;
 Lisp_Object Vbefore_change_functions;
 Lisp_Object Vafter_change_functions;
 
@@ -4709,39 +4707,6 @@ Automatically becomes buffer-local when set in any fashion.");
 /*DEFVAR_LISP ("debug-check-symbol", &Vcheck_symbol,
     "Don't ask.");
 */
-  DEFVAR_LISP ("before-change-function", &Vbefore_change_function,
-      "If non-nil, a function to call before each text change (obsolete).\n\
-Two arguments are passed to the function: the positions of\n\
-the beginning and end of the range of old text to be changed.\n\
-\(For an insertion, the beginning and end are at the same place.)\n\
-No information is given about the length of the text after the change.\n\
-\n\
-Buffer changes made while executing the `before-change-function'\n\
-don't call any before-change or after-change functions.\n\
-That's because these variables are temporarily set to nil.\n\
-As a result, a hook function cannot straightforwardly alter the value of\n\
-these variables.  See the Emacs Lisp manual for a way of\n\
-accomplishing an equivalent result by using other variables.\n\n\
-This variable is obsolete; use `before-change-functions' instead.");
-  Vbefore_change_function = Qnil;
-
-  DEFVAR_LISP ("after-change-function", &Vafter_change_function,
-      "If non-nil, a Function to call after each text change (obsolete).\n\
-Three arguments are passed to the function: the positions of\n\
-the beginning and end of the range of changed text,\n\
-and the length of the pre-change text replaced by that range.\n\
-\(For an insertion, the pre-change length is zero;\n\
-for a deletion, that length is the number of bytes deleted,\n\
-and the post-change beginning and end are at the same place.)\n\
-\n\
-Buffer changes made while executing the `after-change-function'\n\
-don't call any before-change or after-change functions.\n\
-That's because these variables are temporarily set to nil.\n\
-As a result, a hook function cannot straightforwardly alter the value of\n\
-these variables.  See the Emacs Lisp manual for a way of\n\
-accomplishing an equivalent result by using other variables.\n\n\
-This variable is obsolete; use `after-change-functions' instead.");
-  Vafter_change_function = Qnil;
 
   DEFVAR_LISP ("before-change-functions", &Vbefore_change_functions,
 	       "List of functions to call before each text change.\n\
