@@ -2,8 +2,8 @@
 
 	* vc-rcs.el (vc-rcs-register): Fix handling of
 	vc-[rcs-]register-switches.
-	(vc-rcs-checkin-switches, vc-rcs-checkout-switches): Variables
-	removed, since they weren't used yet.
+	(vc-rcs-checkin-switches, vc-rcs-checkout-switches):
+	Variables removed, since they weren't used yet.
 
 	* vc-cvs.el (vc-cvs-register): Fix handling of
 	vc-[cvs-]register-switches.
@@ -12,6 +12,11 @@
 	vc-[sccs-]register-switches.
 
 2002-03-18  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* loadup.el ("emacs-lisp/backquote"): Load earlier.
+	("international/ucs-tables"): Load and turn on
+	unify-8859-on-encoding-mode unconditionally.
+	(emacs-version): Use `defconst' rather than `setq'.
 
 	* eshell/esh-ext.el (eshell-binary-suffixes): Use exec-suffixes.
 
