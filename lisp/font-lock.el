@@ -2899,7 +2899,8 @@ See also `java-font-lock-extra-types'.")
 	     "\\|link\\|return\\|see\\|serial\\|serialData\\|serialField"
 	     "\\|since\\|throws"
 	     "\\|version"
-	     "\\)\\>"))
+	     "\\)\\>")
+     '(1 font-lock-constant-face prepend))
     '("@\\(param\\)\\>[ \t]*\\(\\sw+\\)?"
       (1 font-lock-constant-face prepend)
       (2 font-lock-variable-name-face prepend t))
