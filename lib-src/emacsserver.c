@@ -282,13 +282,15 @@ main ()
     }
   signal (SIGTERM, msgcatch);
   signal (SIGINT, msgcatch);
-  /* If parent goes away, remove message box and exit */
-  if (p == 0)
+  if (p > 0)
     {
+      /* This is executed in the original process that did the fork above.  */
+      /* Get pid of Emacs itself.  */
       p = getppid ();
       setpgrp ();		/* Gnu kills process group on exit */
       while (1)
 	{
+	  /* Is Emacs still alive?  */
 	  if (kill (p, 0) < 0)
 	    {
 	      msgctl (s, IPC_RMID, 0);
@@ -298,6 +300,7 @@ main ()
 	}
     }
 
+  /* This is executed in the child made by forking above.  */
   while (1)
     {
       if ((fromlen = msgrcv (s, msgp, BUFSIZ - 1, 1, 0)) < 0)
