@@ -1,5 +1,13 @@
 1999-11-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* alloc.c (Fgarbage_collect): Call unmark_byte_stack.
+
+	* lisp.h: Add prototype for unmark_byte_stack.
+
+	* bytecode.c (mark_byte_stack): Use XMARKBIT and XMARK.
+	(unmark_byte_stack): Renamed from relocate_byte_pcs.  Use
+	XUNMARK.
+
 	* xdisp.c (resize_mini_window): Fix computation of needed
 	mini-window height.
 
