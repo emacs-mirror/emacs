@@ -61,7 +61,7 @@ introduced by a `%' character in a control string."
   (cond ((eq battery-status-function 'battery-linux-proc-apm)
 	 "Power %L, battery %B (%p%% load, remaining time %t)")
 	((eq battery-status-function 'battery-linux-proc-acpi)
-	 "Power %L, battery %B at %r mA (%p%% load, remaining time %t)"))
+	 "Power %L, battery %B at %r (%p%% load, remaining time %t)"))
   "*Control string formatting the string to display in the echo area.
 Ordinary characters in the control string are printed as-is, while
 conversion specifications introduced by a `%' character in the control
@@ -243,7 +243,8 @@ The following %-sequences are provided:
 %m Remaining time in minutes
 %h Remaining time in hours
 %t Remaining time in the form `h:min'"
-  (let (capacity design-capacity rate charging-state warn low minutes hours)
+  (let (capacity design-capacity rate rate-type charging-state warn low
+		 minutes hours)
     (when (file-directory-p "/proc/acpi/battery/")
       ;; ACPI provides information about each battery present in the system in
       ;; a separate subdirectory.  We are going to merge the available
@@ -261,32 +262,41 @@ The following %-sequences are provided:
 		  ;; battery is "charging"/"discharging", the others are
 		  ;; "unknown".
 		  (setq charging-state (match-string 1)))
-	     (when (re-search-forward "present rate: +\\([0-9]+\\) mA$" nil t)
-	       (setq rate (+ (or rate 0) (string-to-int (match-string 1)))))
-	     (when (re-search-forward "remaining capacity: +\\([0-9]+\\) mAh$"
+	     (when (re-search-forward "present rate: +\\([0-9]+\\) \\(m[AW]\\)$"
+				      nil t)
+	       (setq rate (+ (or rate 0) (string-to-int (match-string 1)))
+		     rate-type (or (and rate-type
+					(if (string= rate-type (match-string 2))
+					    rate-type
+					  (error
+					   "Inconsistent rate types (%s vs. %s)"
+					   rate-type (match-string 2))))
+				   (match-string 2))))
+	     (when (re-search-forward "remaining capacity: +\\([0-9]+\\) m[AW]h$"
 				      nil t)
 	       (setq capacity
 		     (+ (or capacity 0) (string-to-int (match-string 1))))))
 	   (goto-char (point-max))
 	   (insert-file-contents (expand-file-name "info" dir))
 	   (when (re-search-forward "present: +yes$" nil t)
-	     (when (re-search-forward "design capacity: +\\([0-9]+\\) mAh$"
+	     (when (re-search-forward "design capacity: +\\([0-9]+\\) m[AW]h$"
 				      nil t)
 	       (setq design-capacity (+ (or design-capacity 0)
 					(string-to-int (match-string 1)))))
-	     (when (re-search-forward "design capacity warning: +\\([0-9]+\\) mAh$"
+	     (when (re-search-forward "design capacity warning: +\\([0-9]+\\) m[AW]h$"
 				      nil t)
 	       (setq warn (+ (or warn 0) (string-to-int (match-string 1)))))
-	     (when (re-search-forward "design capacity low: +\\([0-9]+\\) mAh$"
+	     (when (re-search-forward "design capacity low: +\\([0-9]+\\) m[AW]h$"
 				      nil t)
 	       (setq low (+ (or low 0)
 			    (string-to-int (match-string 1))))))))
        (directory-files "/proc/acpi/battery/" t "BAT")))
     (and capacity rate
-	 (setq minutes (floor (* (/ (float (if (string= charging-state
-							"charging")
-					       (- design-capacity capacity)
-					     capacity)) rate) 60))
+	 (setq minutes (if (zerop rate) 0
+			 (floor (* (/ (float (if (string= charging-state
+							  "charging")
+						 (- design-capacity capacity)
+					       capacity)) rate) 60)))
 	       hours (/ minutes 60)))
     (list (cons ?c (or (and capacity (number-to-string capacity)) "N/A"))
 	  (cons ?L (or (when (file-exists-p "/proc/acpi/ac_adapter/AC/state")
@@ -304,8 +314,17 @@ The following %-sequences are provided:
 			   (when (re-search-forward
 				  "temperature: +\\([0-9]+\\) C$" nil t)
 			     (match-string 1))))
+		       (when (file-exists-p
+			      "/proc/acpi/thermal_zone/THM/temperature")
+			 (with-temp-buffer
+			   (insert-file-contents
+			    "/proc/acpi/thermal_zone/THM/temperature")
+			   (when (re-search-forward
+				  "temperature: +\\([0-9]+\\) C$" nil t)
+			     (match-string 1))))
 		       "N/A"))
-	  (cons ?r (or (and rate (number-to-string rate)) "N/A"))
+	  (cons ?r (or (and rate (concat (number-to-string rate) " "
+					 rate-type)) "N/A"))
 	  (cons ?B (or charging-state "N/A"))
 	  (cons ?b (or (and (string= charging-state "charging") "+")
 		       (and low (< capacity low) "!")
