@@ -25,8 +25,12 @@
 
 ;;; Commentary:
 
-;; Load this and it will display highlighting on whatever
-;; paren matches the one before or after point.
+;; Put this into your ~/.emacs:
+
+;;  (show-paren-mode t)
+
+;; It will display highlighting on whatever paren matches the one
+;; before or after point.
 
 ;;; Code:
 
