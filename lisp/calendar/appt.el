@@ -218,6 +218,16 @@ appt-display-interval
 	The number of minutes to wait between checking the appointments
 	list.
 
+appt-disp-window-function 
+    	Function called to display appointment window. You can customize
+	appt.el by setting this variable to a function different from the
+	one provided with this package.
+  
+appt-delete-window-function 
+    	Function called to remove appointment window and buffer.  You can
+	customize appt.el by setting this variable to a function different
+	from the one provided with this package.
+
 This function is run from the loadst process for display time.
 Therefore, you need to have `(display-time)' in your .emacs file."
 
