@@ -2170,8 +2170,8 @@ A prefix argument says to unflag those files instead."
   "*Regular expression to match \"garbage\" files for `dired-flag-garbage-files'.")
 
 (defun dired-flag-garbage-files ()
-  (interactive)
   "Flag for deletion all files that match `dired-garbage-files-regexp'."
+  (interactive)
   (dired-flag-files-regexp dired-garbage-files-regexp))
 
 (defun dired-flag-backup-files (&optional unflag-p)
