@@ -457,9 +457,10 @@ language.aff file \(e.g., english.aff\).")
 
 ;;; ispell-menu-map from menu-bar.el
 
+;;;###autoload
 (defvar ispell-menu-map nil)
-(if (and (featurep 'menu-bar)		; GNU emacs
-	 (string-match "^19\\." emacs-version))
+;;;###autoload
+(if (null ispell-menu-map)
     (let ((dicts (reverse (cons (cons "default" nil) ispell-dictionary-alist)))
 	  name)
       (setq ispell-menu-map (make-sparse-keymap "Spell"))
