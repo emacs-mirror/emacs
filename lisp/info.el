@@ -1157,7 +1157,7 @@ Give a blank topic name to go to the Index node itself."
   (interactive "sIndex topic: ")
   (let ((orignode Info-current-node)
 	(rnode nil)
-	(pattern (format "\n\\* \\([^\n:]*%s[^\n:]*\\):[ \t]*\\([^.\n]*\\)\\.[ t]*\\([0-9]*\\)"
+	(pattern (format "\n\\* \\([^\n:]*%s[^\n:]*\\):[ \t]*\\([^.\n]*\\)\\.[ \t]*\\([0-9]*\\)"
 			 (regexp-quote topic)))
 	node)
     (Info-goto-node "Top")
