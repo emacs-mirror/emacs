@@ -964,11 +964,11 @@ and leave point on the line before the `@end menu' line."
                                           ; last `* ' entry
                       (goto-char end-of-menu)
                       ;; handle multi-line description
-                      (if (not (re-search-backward "^\* " nil t))
+                      (if (not (re-search-backward "^\\* " nil t))
                           (error "No entries in menu."))
                       (point))))
     (while (< (point) last-entry)
-      (if (re-search-forward  "^\* " end-of-menu t)
+      (if (re-search-forward  "^\\* " end-of-menu t)
           (progn
             (setq this-menu-list
                   (cons
@@ -976,7 +976,7 @@ and leave point on the line before the `@end menu' line."
                     (point)
                     ;; copy multi-line descriptions
                     (save-excursion
-                      (re-search-forward "\\(^\* \\|^@e\\)" nil t)
+                      (re-search-forward "\\(^\\* \\|^@e\\)" nil t)
                       (- (point) 3)))
                    this-menu-list)))))
     this-menu-list))
