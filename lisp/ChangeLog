@@ -1,3 +1,17 @@
+2003-01-26  Juanma Barranquero  <lektu@terra.es>
+
+	* strokes.el (strokes-xpm-encode-length-as-string): Fix typo.
+
+	* vcursor.el (vcursor-disable): Likewise.
+
+	* eshell/esh-cmd.el (eshell-separate-commands): Likewise.
+
+	* progmodes/cc-styles.el (c-make-styles-buffer-local): Likewise.
+
+	* progmodes/cperl-mode.el (cperl-tips): Likewise.
+
+	* progmodes/ebrowse.el (ebrowse-draw-tree-fn): Likewise.
+
 2003-01-24  Juanma Barranquero  <lektu@terra.es>
 
 	* isearch.el (isearch-forward): Fix typo.
