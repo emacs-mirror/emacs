@@ -2539,23 +2539,16 @@ non-nil.
        (if (< item size)
            ;; file was found
            (let ((case-fold-search t)
-                 (curbuf (current-buffer))
-                 (bufname (make-temp-name ""))
-                 (compl bibtex-strings))
-             (create-file-buffer bufname)
-             (set-buffer bufname)
-             (insert-file-contents fullfilename)
-             (goto-char (point-min))
-             (while (re-search-forward bibtex-string nil t)
-               (setq compl
-                     (append compl
-                             (list
-                              (list (buffer-substring-no-properties
-                                     (match-beginning bibtex-key-in-string)
-                                     (match-end bibtex-key-in-string)))))))
-             (kill-buffer bufname)
-             (set-buffer curbuf)
-             (setq bibtex-strings compl))
+                 (compl nil))
+	     (with-temp-buffer
+	       (insert-file-contents fullfilename)
+	       (goto-char (point-min))
+	       (while (re-search-forward bibtex-string nil t)
+		 (setq compl
+		       (cons (list (match-string-no-properties
+				    bibtex-key-in-string))
+			     compl))))
+             (setq bibtex-strings (append bibtex-strings (nreverse compl))))
          (error
           "File %s not in paths defined by bibtex-string-file-path variable"
           filename))))
