@@ -252,6 +252,13 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 ;; Map certain keypad keys into ASCII characters that people usually expect
 (define-key function-key-map [return] [?\C-m])
 (define-key function-key-map [M-return] [?\M-\C-m])
+(define-key function-key-map [tab] [?\t])
+(define-key function-key-map [M-tab] [?\M-\t])
+(define-key function-key-map [backspace] [127])
+(define-key function-key-map [M-backspace] [?\M-\d])
+(define-key function-key-map [escape] [?\e])
+(define-key function-key-map [M-escape] [?\M-\e])
+
 ;; Tell read-char how to convert special chars to ASCII
 (put 'return 'ascii-character 13)
 

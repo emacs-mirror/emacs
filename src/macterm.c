@@ -12535,31 +12535,34 @@ main (void)
 /* Table for translating Mac keycode to X keysym values.  Contributed
    by Sudhir Shenoy.  */
 static unsigned char keycode_to_xkeysym_table[] = {
-/* 0x00 - 0x3f */
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, '\x0d', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-/* 0x40 */
-  0, '\xae' /* kp. */, 0, '\xaa' /* kp* */, 
-  0, '\xab' /* kp+ */, 0, '\x7f' /* kp_clr */,
-  0, 0, 0, '\xaf' /* kp/ */,
-  '\x8d' /* kp_ent */, 0, '\xad' /* kp- */, 0,
-/* 0x50 */
-  0, '\xbd' /* kp= */, '\xb0' /* kp0 */, '\xb1' /* kp1 */,
-  '\xb2' /* kp2 */, '\xb3' /* kp3 */, '\xb4' /* kp4 */, '\xb5' /* kp5 */,
-  '\xb6' /* kp6 */, '\xb7' /* kp7 */, 0, '\xb8' /* kp8 */,
-  '\xb9' /* kp9 */, 0, 0, 0,
-/* 0x60 */
-  '\xc2' /* F5 */, '\xc3' /* F6 */, '\xc4' /* F7 */, '\xc0' /* F3 */,
-  '\xc5' /* F8 */, '\xc6' /* F9 */, 0, '\xc8' /* F11 */, 
-  0, '\xca' /* F13 */, 0, '\xcb' /* F14 */, 
-  0, '\xc7' /* F10 */, 0, '\xc9' /* F12 */,   
-/* 0x70 */
-  0, '\xcc' /* F15 */, '\x9e' /* ins */, '\x95' /* home */,
-  '\x9a' /* pgup */, '\x9f' /* del */, '\xc1' /* F4 */, '\x9c' /* end */,
-  '\xbf' /* F2 */, '\x9b' /* pgdown */, '\xbe' /* F1 */, '\x51' /* left */,
-  '\x53' /* right */, '\x54' /* down */, '\x52' /* up */, 0
+  /*0x00*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  /*0x10*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  /*0x20*/ 0, 0, 0, 0, 0x0d /*return*/, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+
+  /*0x30*/ 0x09 /*tab*/, 0 /*0x0020 space*/, 0, 0x08 /*backspace*/,
+  /*0x34*/ 0, 0x1b /*escape*/, 0, 0,
+  /*0x38*/ 0, 0, 0, 0,
+  /*0x3C*/ 0, 0, 0, 0,
+
+  /*0x40*/ 0, 0xae /*kp-.*/, 0, 0xaa /*kp-**/, 
+  /*0x44*/ 0, 0xab /*kp-+*/, 0, 0x7f /*kp-clear*/,
+  /*0x48*/ 0, 0, 0, 0xaf /*kp-/*/,
+  /*0x4C*/ 0x8d /*kp-enter*/, 0, 0xad /*kp--*/, 0,
+
+  /*0x50*/ 0, 0xbd /*kp-=*/, 0xb0 /*kp-0*/, 0xb1 /*kp-1*/,
+  /*0x54*/ 0xb2 /*kp-2*/, 0xb3 /*kp-3*/, 0xb4 /*kp-4*/, 0xb5 /*kp-5*/,
+  /*0x58*/ 0xb6 /*kp-6*/, 0xb7 /*kp-7*/, 0, 0xb8 /*kp-8*/,
+  /*0x5C*/ 0xb9 /*kp-9*/, 0, 0, 0,
+
+  /*0x60*/ 0xc2 /*f5*/, 0xc3 /*f6*/, 0xc4 /*f7*/, 0xc0 /*f3*/,
+  /*0x64*/ 0xc5 /*f8*/, 0xc6 /*f9*/, 0, 0xc8 /*f11*/, 
+  /*0x68*/ 0, 0xca /*f13*/, 0, 0xcb /*f14*/, 
+  /*0x6C*/ 0, 0xc7 /*f10*/, 0, 0xc9 /*f12*/,
+
+  /*0x70*/ 0, 0xcc /*f15*/, 0x9e /*insert (or 0x6a==help)*/, 0x95 /*home*/,
+  /*0x74*/ 0x9a /*pgup*/, 0x9f /*delete*/, 0xc1 /*f4*/, 0x9c /*end*/,
+  /*0x78*/ 0xbf /*f2*/, 0x9b /*pgdown*/, 0xbe /*f1*/, 0x51 /*left*/,
+  /*0x7C*/ 0x53 /*right*/, 0x54 /*down*/, 0x52 /*up*/, 0
 };
 
 static int
@@ -12928,12 +12931,7 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	  
 	  ObscureCursor ();
 	  
-	  if (keycode == 0x33)  /* delete key (charCode translated to 0x8) */
-	    {
-	      bufp->code = 0x7f;
-	      bufp->kind = ASCII_KEYSTROKE_EVENT;
-	    }
-	  else if (keycode_to_xkeysym (keycode, &xkeysym))
+	  if (keycode_to_xkeysym (keycode, &xkeysym))
 	    {
 	      bufp->code = 0xff00 | xkeysym;
 	      bufp->kind = NON_ASCII_KEYSTROKE_EVENT;

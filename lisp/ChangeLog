@@ -1,3 +1,8 @@
+2003-01-28  Benjamin Riefenstahl  <Benjamin.Riefenstahl@epost.de>
+
+	* term/mac-win.el: Add entries in function-key-map for
+	[tab], [backspace], [escape].
+
 2003-01-28  Kim F. Storm  <storm@cua.dk>
 
 	* info.el (Info-extract-menu-node-name): Another fix for
