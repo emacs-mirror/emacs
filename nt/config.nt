@@ -412,6 +412,26 @@ extern char *getenv ();
 #define BITS_PER_LONG 32
 #endif
 
+#ifndef POINTER_TYPE
+#define POINTER_TYPE void
+#endif
+
+#ifndef PTR
+#define PTR POINTER_TYPE *
+#endif
+
+#ifndef PROTOTYPES
+#define PROTOTYPES 1
+#endif
+
+#ifndef __P
+#if defined PROTOTYPES
+#define __P(args) args
+#else
+#define __P(args) ()
+#endif
+#endif
+
 /* Don't include <string.h> during configure.  */
 #ifndef NOT_C_CODE
 #ifdef HAVE_STRING_H
