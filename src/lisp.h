@@ -511,7 +511,7 @@ extern size_t pure_size;
 
 /* Construct a Lisp_Object from a value or address.  */
 
-#define XSETINT(a, b) XSET (a, Lisp_Int, b)
+#define XSETINT(a, b) (a) = make_number (b)
 #define XSETCONS(a, b) XSET (a, Lisp_Cons, b)
 #define XSETVECTOR(a, b) XSET (a, Lisp_Vectorlike, b)
 #define XSETSTRING(a, b) XSET (a, Lisp_String, b)
@@ -590,6 +590,8 @@ struct interval
     Lisp_Object obj;
   } up;
   unsigned int up_obj : 1;
+
+  unsigned gcmarkbit : 1;
 
   /* The remaining components are `properties' of the interval.
      The first four are duplicates for things which can be on the list,
@@ -879,6 +881,8 @@ enum symbol_interned
 
 struct Lisp_Symbol
 {
+  unsigned gcmarkbit : 1;
+
   /* Non-zero means symbol serves as a variable alias.  The symbol
      holding the real value is found in the value slot.  */
   unsigned indirect_variable : 1;
@@ -1088,7 +1092,8 @@ struct Lisp_Hash_Table
 struct Lisp_Free
   {
     int type : 16;	/* = Lisp_Misc_Free */
-    int spacer : 16;
+    unsigned gcmarkbit : 1;
+    int spacer : 15;
     union Lisp_Misc *chain;
   };
 
@@ -1096,7 +1101,8 @@ struct Lisp_Free
 struct Lisp_Marker
 {
   int type : 16;		/* = Lisp_Misc_Marker */
-  int spacer : 15;
+  unsigned gcmarkbit : 1;
+  int spacer : 14;
   /* 1 means normal insertion at the marker's position
      leaves the marker after the inserted text.  */
   unsigned int insertion_type : 1;
@@ -1123,7 +1129,8 @@ struct Lisp_Marker
 struct Lisp_Intfwd
   {
     int type : 16;	/* = Lisp_Misc_Intfwd */
-    int spacer : 16;
+    unsigned gcmarkbit : 1;
+    int spacer : 15;
     EMACS_INT *intvar;
   };
 
@@ -1134,7 +1141,8 @@ struct Lisp_Intfwd
 struct Lisp_Boolfwd
   {
     int type : 16;	/* = Lisp_Misc_Boolfwd */
-    int spacer : 16;
+    unsigned gcmarkbit : 1;
+    int spacer : 15;
     int *boolvar;
   };
 
@@ -1145,7 +1153,8 @@ struct Lisp_Boolfwd
 struct Lisp_Objfwd
   {
     int type : 16;	/* = Lisp_Misc_Objfwd */
-    int spacer : 16;
+    unsigned gcmarkbit : 1;
+    int spacer : 15;
     Lisp_Object *objvar;
   };
 
@@ -1154,7 +1163,8 @@ struct Lisp_Objfwd
 struct Lisp_Buffer_Objfwd
   {
     int type : 16;	/* = Lisp_Misc_Buffer_Objfwd */
-    int spacer : 16;
+    unsigned gcmarkbit : 1;
+    int spacer : 15;
     int offset;
   };
 
@@ -1188,7 +1198,8 @@ struct Lisp_Buffer_Local_Value
   {
     int type : 16;      /* = Lisp_Misc_Buffer_Local_Value
 			   or Lisp_Misc_Some_Buffer_Local_Value */
-    int spacer : 13;
+    unsigned gcmarkbit : 1;
+    int spacer : 12;
 
     /* 1 means this variable is allowed to have frame-local bindings,
        so check for them when looking for the proper binding.  */
@@ -1224,7 +1235,8 @@ struct Lisp_Buffer_Local_Value
 struct Lisp_Overlay
   {
     int type : 16;	/* = Lisp_Misc_Overlay */
-    int spacer : 16;
+    unsigned gcmarkbit : 1;
+    int spacer : 15;
     Lisp_Object start, end, plist;
   };
 
@@ -1233,7 +1245,8 @@ struct Lisp_Overlay
 struct Lisp_Kboard_Objfwd
   {
     int type : 16;	/* = Lisp_Misc_Kboard_Objfwd */
-    int spacer : 16;
+    unsigned gcmarkbit : 1;
+    int spacer : 15;
     int offset;
   };
 
@@ -1242,7 +1255,8 @@ struct Lisp_Kboard_Objfwd
 struct Lisp_Save_Value
   {
     int type : 16;	/* = Lisp_Misc_Save_Value */
-    int spacer : 16;
+    unsigned gcmarkbit : 1;
+    int spacer : 15;
     void *pointer;
     int integer;
   };
