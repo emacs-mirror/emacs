@@ -2512,15 +2512,23 @@ away in the internal cache."
 
 (defconst ange-ftp-date-regexp
   (let* ((l "[A-Za-z\xa0-\xff]")
+	 ;; In some locales, month abbreviations are as short as 2 letters,
+	 ;; and they can be padded on the right with spaces.
+	 (month (concat l l "+ *"))
+	 ;; Recognize any non-ISO-8859 character.  
+	 ;; The purpose is to match a Kanji character.
 	 (k "[^\x00-\xff]")
 	 (s " ")
 	 (mm "[ 0-1][0-9]")
 	 (dd "[ 0-3][0-9]")
-	 (western (concat "\\(" l l "+ +" dd "\\|" dd s l l "+" "\\)"))
+	 (western (concat "\\(" month s dd "\\|" dd s month "\\)"))
 	 (japanese (concat mm k s dd k)))
-    (concat s "\\(" western "\\|" japanese "\\)" s))
-  "Regular expression to recognize the date in a directory listing.
-This regular expression is designed to recognize dates
+	 ;; Require the previous column to end in a digit.
+	 ;; This avoids recognizing `1 may 1997' as a date in the line:
+	 ;; -r--r--r--   1 may      1997        1168 Oct 19 16:49 README
+    (concat "[0-9]" s "\\(" western "\\|" japanese "\\)" s))
+  "Regular expression to match up to the column before the file name in a
+directory listing.  This regular expression is designed to recognize dates
 regardless of the language.")
 
 (defvar ange-ftp-add-file-entry-alist nil
