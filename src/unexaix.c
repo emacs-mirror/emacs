@@ -1,3 +1,25 @@
+/* 
+  This file is not used because it occasionally fails to work.  This
+  happens because the bss address when Emacs is run is not always the
+  same.  If it happens to be different from what it was
+  when Emacs was dumped, the dumped data won't work.
+  No one has been able to prevent the address from varying.
+
+  The following comments should be in etc/MACHINES if this dumping
+  is ever made to work:
+
+  Note that Emacs can store the pure Lisp data in a shared segment on
+  this machine, but only if you put this command in one of the boot
+  scripts
+
+      emacs -batch -q
+
+  so that it is run as root when the machine is booted.  This command
+  creates a read-only shared segment owned by root.  Otherwise the
+  pure data is not shared.  The pure data size is around 100K, which
+  may not be enough to matter for most users of this machine.
+*/
+
 /* Dumping and loading data areas, for Emacs under AIX.
    (It may also work on other kinds of system V.)
    Copyright (C) 1990 Free Software Foundation, Inc.
