@@ -3156,7 +3156,7 @@ to be handled; the remaining arguments are the arguments that were\n\
 passed to that primitive.  For example, if you do\n\
     (file-exists-p FILENAME)\n\
 and FILENAME is handled by HANDLER, then HANDLER is called like this:\n\
-    (funcall HANDLER FILENAME)");
+    (funcall HANDLER 'file-exists-p FILENAME)");
   defsubr (&Sfile_name_directory);
   defsubr (&Sfile_name_nondirectory);
   defsubr (&Sfile_name_as_directory);
