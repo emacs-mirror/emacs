@@ -38,6 +38,11 @@
 
 ;;; Commentary:
 ;;
+;; If you want Decipher to use its Font Lock mode, you should use
+;;     (setq decipher-use-font-lock t)
+;; See the variable `decipher-use-font-lock' if you want to customize
+;; the faces used.
+;;
 ;; This package is designed to help you crack simple substitution
 ;; ciphers where one letter stands for another.  It works for ciphers
 ;; with or without word divisions.  (You must set the variable
@@ -86,6 +91,28 @@
 (eval-when-compile
   (require 'cl))
 
+(eval-when-compile
+  (require 'font-lock))
+
+(defvar decipher-use-font-lock (featurep 'font-lock)
+  "Non-nil means Decipher should use its Font Lock mode.
+Do *not* turn on font-lock-mode yourself, it's too slow when used with
+Decipher.  Decipher contains special code to keep the buffer fontified
+without using Font Lock mode directly.
+
+You should set this in your `.emacs' file or before loading Decipher;
+use `\\[decipher-toggle-font-lock]' after Decipher is loaded.
+
+Ciphertext uses `font-lock-keyword-face', plaintext uses
+`font-lock-string-face', comments use `font-lock-comment-face', and
+checkpoints use `font-lock-reference-face'.
+
+For example, to display ciphertext in the `bold' face, use
+  (add-hook 'decipher-mode-hook
+            (lambda () (set (make-local-variable 'font-lock-keyword-face)
+                            'bold)))
+in your `.emacs' file.")
+
 (defvar decipher-force-uppercase t
   "*Non-nil means to convert ciphertext to uppercase.
 Nil means the case of the ciphertext is preserved.
@@ -106,6 +133,19 @@ the tail of the list.")
 ;; End of user modifiable variables
 ;;--------------------------------------------------------------------
 
+(defvar decipher-font-lock-keywords
+  '(("^:.*\n"  . font-lock-keyword-face)
+    ("^>.*\n"  . font-lock-string-face)
+    ("^%!.*\n" . font-lock-reference-face)
+    ("^%.*\n"  . font-lock-comment-face)
+    ("\\`(\\([a-z]+\\) +\\([A-Z]+\\).+
+)\\([A-Z ]*\\)\\([a-z ]*\\)"
+     (1 font-lock-string-face)
+     (2 font-lock-keyword-face)
+     (3 font-lock-keyword-face)
+     (4 font-lock-string-face)))
+  "Expressions to fontify in Decipher mode.
+See the variable `decipher-use-font-lock'.")
 (defvar decipher-mode-map nil
   "Keymap for Decipher mode.")
 (if (not decipher-mode-map)
@@ -259,13 +299,22 @@ The most useful commands are:
   (use-local-map decipher-mode-map)
   (set-syntax-table decipher-mode-syntax-table)
   (decipher-read-alphabet)
+  (set (make-local-variable 'font-lock-defaults)
+       '(decipher-font-lock-keywords t))
   ;; Make the buffer writable when we exit Decipher mode:
   (make-local-hook 'change-major-mode-hook)
   (add-hook 'change-major-mode-hook
             (lambda () (setq buffer-read-only nil
                              buffer-undo-list nil))
             nil t)
+  ;; If someone turns on Font Lock, turn it off and use our code instead:
+  (make-local-hook 'font-lock-mode-hook)
+  (add-hook 'font-lock-mode-hook 'decipher-turn-on-font-lock t t)
   (run-hooks 'decipher-mode-hook)
+  (and decipher-use-font-lock
+       ;; Fontify buffer after calling the mode hooks,
+       ;; in case they change the font-lock variables:
+       (font-lock-fontify-buffer))
   (setq buffer-read-only t))
 (put 'decipher-mode 'mode-class 'special)
 
@@ -426,10 +475,15 @@ The most useful commands are:
                 (decipher-set-map (cdr mapping) ?\  t))
             (setcdr mapping cipher-char)
             (search-forward-regexp (concat "^([a-z]*" plain-string))
-            (decipher-insert cipher-char)
+            (and decipher-use-font-lock
+                 (put-text-property 0 1 'face font-lock-keyword-face
+                                    cipher-string))
+            (decipher-insert cipher-string)
             (beginning-of-line)))
       (search-forward-regexp (concat "^([a-z]+   [A-Z]*" cipher-string))
-      (decipher-insert plain-char)
+      (and decipher-use-font-lock
+           (put-text-property 0 1 'face font-lock-string-face plain-string))
+      (decipher-insert plain-string)
       (setq case-fold-search t          ;Case is not significant
             cipher-string    (downcase cipher-string))
       (while (search-forward-regexp "^:" nil t)
@@ -449,7 +503,7 @@ The most useful commands are:
       (move-to-column col t)
       (or (eolp)
           (delete-char 1))
-      (insert char))))
+      (insert-and-inherit char))))
 
 ;;--------------------------------------------------------------------
 ;; Checkpoints:
@@ -490,7 +544,9 @@ Type `\\[decipher-restore-checkpoint]' to restore a checkpoint."
       (insert "\n%" (make-string 69 ?\-)
               "\n% Checkpoints:\n% abcdefghijklmnopqrstuvwxyz\n"))
     (beginning-of-line)
-    (insert "%!" alphabet "! " desc ?\n)))
+    (insert "%!" alphabet "! " desc ?\n))
+  (and decipher-use-font-lock
+       (font-lock-fontify-buffer)))
 
 (defun decipher-restore-checkpoint ()
   "Restore the cipher alphabet from a checkpoint.
@@ -569,6 +625,8 @@ You should use this if you edit the ciphertext."
            (replace-match ")" nil nil))
       (while (re-search-forward "^>.+$" nil t)
         (replace-match ">" nil nil))
+      (and decipher-use-font-lock
+           (font-lock-fontify-buffer))
       (decipher-read-alphabet)
       (while (setq mapping (pop alphabet))
         (or (equal ?\  (cdr mapping))
@@ -577,6 +635,19 @@ You should use this if you edit the ciphertext."
         decipher-undo-list-size  0)
   (message "Reprocessing buffer...done"))
 
+(defun decipher-toggle-font-lock (&optional arg)
+  "Toggle Decipher's Font Lock mode in the current buffer.
+With arg, turn Font Lock mode on if and only if arg is positive.
+See the variable `decipher-use-font-lock' for more information."
+  (interactive "P")
+  (or (eq major-mode 'decipher-mode)
+      (error "This buffer is not in Decipher mode"))
+  (let ((on-p (if arg (> (prefix-numeric-value arg) 0)
+                (not decipher-use-font-lock))))
+    (if on-p (font-lock-fontify-buffer)
+      (font-lock-unfontify-region (point-min) (point-max)))
+    (make-local-variable 'decipher-use-font-lock)
+    (setq decipher-use-font-lock on-p)))
 ;;--------------------------------------------------------------------
 ;; Miscellaneous functions:
 ;;--------------------------------------------------------------------
@@ -593,6 +664,10 @@ You should use this if you edit the ciphertext."
         (backward-char)
         (push (cons plain-char (following-char)) decipher-alphabet)
         (decf plain-char)))))
+(defun decipher-turn-on-font-lock ()
+  "Turn on Decipher's Font Lock code and turn off normal Font Lock mode."
+  (font-lock-mode 0)
+  (decipher-toggle-font-lock 1))
 
 ;;;===================================================================
 ;;; Analyzing ciphertext:
