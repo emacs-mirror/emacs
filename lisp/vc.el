@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.353 2003/05/18 02:53:24 monnier Exp $
+;; $Id: vc.el,v 1.354 2003/05/26 10:33:00 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -62,7 +62,9 @@
 ;; to be installed somewhere on Emacs's path for executables.
 ;;
 ;; If your site uses the ChangeLog convention supported by Emacs, the
-;; function vc-comment-to-change-log should prove a useful checkin hook.
+;; function log-edit-comment-to-change-log could prove a useful checkin hook,
+;; although you might prefer to use C-c C-a (i.e. log-edit-insert-changelog)
+;; from the commit buffer instead or to set `log-edit-setup-invert'.
 ;;
 ;; The vc code maintains some internal state in order to reduce expensive
 ;; version-control operations to a minimum.  Some names are only computed
@@ -518,7 +520,7 @@ These are passed to the checkin program by \\[vc-register]."
   :group 'vc
   :version "20.3")
 
-(defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS")
+(defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS" ".svn")
   "*List of directory names to be ignored when walking directory trees."
   :type '(repeat string)
   :group 'vc)
@@ -558,9 +560,9 @@ See `run-hooks'."
 ;;;###autoload
 (defcustom vc-checkin-hook nil
   "*Normal hook (list of functions) run after a checkin is done.
-See `run-hooks'."
+See also `log-edit-done-hook'."
   :type 'hook
-  :options '(vc-comment-to-change-log)
+  :options '(log-edit-comment-to-change-log)
   :group 'vc)
 
 ;;;###autoload
