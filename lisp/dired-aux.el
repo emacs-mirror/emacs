@@ -627,9 +627,14 @@ the list of file names explicitly with the FILE-LIST argument."
 (defun dired-do-kill-lines (&optional arg fmt)
   "Kill all marked lines (not the files).
 With a prefix argument, kill that many lines starting with the current line.
-\(A negative argument kills lines before the current line.)
-To kill an entire subdirectory, go to its directory header line
-and use this command with a prefix argument (the value does not matter)."
+\(A negative argument kills backward.)
+If you use this command with a prefix argument to kill the line
+for a file that is a directory, which you have inserted in the
+Dired buffer as a subdirectory, then it deletes that subdirectory
+from the buffer as well.
+To kill an entire subdirectory \(without killing its line in the
+parent directory), go to its directory header line and use this
+command with a prefix argument (the value does not matter)."
   ;; Returns count of killed lines.  FMT="" suppresses message.
   (interactive "P")
   (if arg
@@ -638,23 +643,14 @@ and use this command with a prefix argument (the value does not matter)."
 	(dired-kill-line arg))
     (save-excursion
       (goto-char (point-min))
-      (let (buffer-read-only (count 0))
-	(if (not arg)			; kill marked lines
-	    (let ((regexp (dired-marker-regexp)))
-	      (while (and (not (eobp))
-			  (re-search-forward regexp nil t))
-		(setq count (1+ count))
-		(delete-region (progn (beginning-of-line) (point))
-			       (progn (forward-line 1) (point)))))
-	  ;; else kill unmarked lines
-	  (while (not (eobp))
-	    (if (or (dired-between-files)
-		    (not (looking-at "^  ")))
-		(forward-line 1)
-	      (setq count (1+ count))
-	      (delete-region (point) (save-excursion
-				       (forward-line 1)
-				       (point))))))
+      (let (buffer-read-only
+	    (count 0)
+	    (regexp (dired-marker-regexp)))
+	(while (and (not (eobp))
+		    (re-search-forward regexp nil t))
+	  (setq count (1+ count))
+	  (delete-region (progn (beginning-of-line) (point))
+			 (progn (forward-line 1) (point))))
 	(or (equal "" fmt)
 	    (message (or fmt "Killed %d line%s.") count (dired-plural-s count)))
 	count))))
