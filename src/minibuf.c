@@ -293,7 +293,17 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 
   /* If Lisp form desired instead of string, parse it. */
   if (expflag)
-    val = Fread (val);
+    {
+      Lisp_Object expr_and_pos;
+      unsigned char *p;
+
+      expr_and_pos = Fread_from_string (val, Qnil, Qnil);
+      /* Ignore trailing whitespace; any other trailing junk is an error.  */
+      for (p = XSTRING (val)->data + XINT (Fcdr (expr_and_pos)); *p; p++)
+	if (*p != ' ' && *p != '\t' && *p != '\n')
+	  error ("Trailing garbage following expression");
+      val = Fcar (expr_and_pos);
+    }
 
   unbind_to (count, Qnil);	/* The appropriate frame will get selected
 				   in set-window-configuration.  */
