@@ -1839,7 +1839,7 @@ if test "${HAVE_X11}" = "yes"; then
     old_c_flags="${CFLAGS}"
     CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
     AC_CHECK_HEADER(png.h,
-      AC_CHECK_LIB(png, png_set_expand, HAVE_PNG=yes, , -lX11 -lz -lm))
+      AC_CHECK_LIB(png, png_get_channels, HAVE_PNG=yes, , -lX11 -lz -lm))
     CFLAGS="${old_c_flags}"
   fi
 
