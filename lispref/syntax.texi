@@ -1012,3 +1012,9 @@ Normally, it modifies the category set by adding @var{category} to it.
 But if @var{reset} is non-@code{nil}, then it deletes @var{category}
 instead.
 @end defun
+
+@deffn Command describe-categories
+This function describes the category specifications in the current
+category table.  The descriptions are inserted in a buffer, which is
+then displayed.
+@end deffn
