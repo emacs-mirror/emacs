@@ -1007,7 +1007,11 @@ and source-file directory for your debugger."
    (list (read-from-minibuffer "Run perldb (like this): "
 			       (if (consp gud-perldb-history)
 				   (car gud-perldb-history)
-				 (concat perldb-command-name " "))
+				 (concat perldb-command-name
+					 " "
+					 (or (buffer-file-name)
+					     "-e 0"))
+					 " ")
 			       nil nil
 			       '(gud-perldb-history . 1))))
 
