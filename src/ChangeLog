@@ -1,3 +1,7 @@
+2001-09-28  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* s/gnu-linux.h: Fix a typo in comment.
+
 2001-09-28  Andreas Schwab  <schwab@suse.de>
 
 	* s/gnu-linux.h (LD_SWITCH_SYSTEM_TEMACS): Link temacs with -z

@@ -187,7 +187,7 @@ Boston, MA 02111-1307, USA.  */
 #endif /* __mips__ */
 
 /* Link temacs with -z nocombreloc so that unexec works right, whether or
-   not -z combreloc is the default.  GNU ld ignores unknown -z KEYOWRD
+   not -z combreloc is the default.  GNU ld ignores unknown -z KEYWORD
    switches, so this also works with older versions that don't implement
    -z combreloc.  */
 #define LD_SWITCH_SYSTEM_TEMACS -z nocombreloc
