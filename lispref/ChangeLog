@@ -1,3 +1,7 @@
+2004-02-22  Matthew Mundell  <matt@mundell.ukfsn.org>  (tiny change)
+
+	* calendar.texi (Holiday Customizing): Quote arg of holiday-sexp.
+
 2004-02-21  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* text.texi: Various small changes in addition to the following:
