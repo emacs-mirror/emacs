@@ -420,10 +420,11 @@ The value is never nil.  */)
   XSETBUFFER (buf, b);
   Vbuffer_alist = nconc2 (Vbuffer_alist, Fcons (Fcons (name, buf), Qnil));
 
-  /* Fixme:  Protect against errors, which would trigger infinite
-     regress?  */
+  /* An error in calling the function here (should someone redfine it)
+     can lead to infinite regress until you run out of stack.  rms
+     says that's not worth protecting against.  */
   if (!NILP (Ffboundp (Qucs_set_table_for_input)))
-    /* buff is on buffer-alist, so no gcpro */
+    /* buf is on buffer-alist, so no gcpro.  */
     call1 (Qucs_set_table_for_input, buf);
 
   return buf;

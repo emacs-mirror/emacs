@@ -1393,7 +1393,13 @@ allocate_string_data (s, nchars, nbytes)
 #ifdef DOUG_LEA_MALLOC
       /* Prevent mmap'ing the chunk.  Lisp data may not be mmap'ed
 	 because mapped region contents are not preserved in
-	 a dumped Emacs.  */
+	 a dumped Emacs.
+
+         In case you think of allowing it in a dumped Emacs at the
+         cost of not being able to re-dump, there's another reason:
+         mmap'ed data typically have an address towards the top of the
+         address space, which won't fit into an EMACS_INT (at least on
+         32-bit systems with the current tagging scheme).  --fx  */
       mallopt (M_MMAP_MAX, 0);
 #endif
 
