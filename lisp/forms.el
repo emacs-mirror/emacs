@@ -286,7 +286,7 @@
 ;; forms mode functions next/prev record and first/last
 ;; record.
 ;;
-;; `local-write-file-hooks' is defined to save the actual data file
+;; `write-file-functions' is defined to save the actual data file
 ;; instead of the buffer data, `revert-file-hook' is defined to
 ;; revert a forms to original.
 
@@ -301,10 +301,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.45 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.46 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.45 2003/02/04 11:21:12 lektu Exp $")
+  $Id: forms.el,v 2.46 2003/05/23 12:48:06 rms Exp $")
 
 (defcustom forms-mode-hooks nil
   "Hook run upon entering Forms mode."
@@ -656,13 +656,13 @@ Commands:                        Equivalent keys in read-only mode:
 	    (if (not file-modified) (set-buffer-modified-p nil)))
 	  (if write-file-filter
 	      (progn
-		(make-variable-buffer-local 'local-write-file-hooks)
-		(setq local-write-file-hooks (list write-file-filter)))))
+		(make-local-variable 'write-file-functions)
+		(setq write-file-functions (list write-file-filter)))))
       (if write-file-filter
 	  (save-excursion
 	    (set-buffer forms--file-buffer)
-	    (make-variable-buffer-local 'local-write-file-hooks)
-	    (setq local-write-file-hooks (list write-file-filter))))))
+	    (make-local-variable 'write-file-functions)
+	    (setq write-file-functions (list write-file-filter))))))
 
   ;; count the number of records, and set see if it may be modified
   (let (ro)
