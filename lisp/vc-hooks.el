@@ -919,6 +919,18 @@ control system name."
 	  (t 
 	   (concat ":" locker ":" rev)))))
 
+(defun vc-follow-link ()
+  ;; If the current buffer visits a symbolic link, this function makes it
+  ;; visit the real file instead.  If the real file is already visited in 
+  ;; another buffer, make that buffer current, and kill the buffer 
+  ;; that visits the link.
+  (let* ((truename (file-truename buffer-file-name))
+         (true-buffer (get-file-buffer truename)))
+    (if true-buffer 
+        (set-buffer true-buffer)
+      (kill-buffer (current-buffer))
+      (set-buffer (find-file-noselect truename)))))
+
 ;;; install a call to the above as a find-file hook
 (defun vc-find-file-hook ()
   ;; Recompute whether file is version controlled,
@@ -943,14 +955,13 @@ control system name."
                   ((eq vc-follow-symlinks 'ask)
                    (if (yes-or-no-p (format
         "Symbolic link to %s-controlled source file; follow link? " link-type))
-                       (progn (setq buffer-file-name 
-                                    (file-truename buffer-file-name))
+                       (progn (vc-follow-link)
                               (message "Followed link to %s" buffer-file-name)
                               (vc-find-file-hook))
                      (message 
         "Warning: editing through the link bypasses version control")
                      ))
-                  (t (setq buffer-file-name (file-truename buffer-file-name))
+                  (t (vc-follow-link)
                      (message "Followed link to %s" buffer-file-name)
                      (vc-find-file-hook))))))))))
 
