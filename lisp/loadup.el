@@ -101,7 +101,13 @@
     (progn
       (garbage-collect)
       (load "ls-lisp")
-      (load "winnt")))
+      (garbage-collect)
+      (load "winnt")
+      (garbage-collect)
+      (if (not (featurep 'mouse))
+	  (progn
+	    (load "mouse")
+	    (garbage-collect)))))
 (if (eq system-type 'ms-dos)
     (progn
       (load "ls-lisp")
