@@ -291,9 +291,9 @@ The usage info is built from ARGLIST.  DOC can be nil."
     (princ ".")
     (terpri)
     (when (commandp function)
-      (let* ((remapped (remap-command function))
+      (let* ((remapped (command-remapping function))
 	     (keys (where-is-internal
-		   (or remapped function) overriding-local-map nil nil)))
+		    (or remapped function) overriding-local-map nil nil)))
 	(when remapped
 	  (princ "It is remapped to `")
 	  (princ (symbol-name remapped))

@@ -1,3 +1,8 @@
+2003-02-13  Kim F. Storm  <storm@cua.dk>
+
+	* help.el (where-is): Rename remap-command to command-remapping.
+	* help-fns.el (describe-function-1): Likewise.
+
 2003-02-12  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/fortran.el (fortran-fill): Fill lines that do not have

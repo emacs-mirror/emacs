@@ -1,3 +1,8 @@
+2003-02-13  Kim F. Storm  <storm@cua.dk>
+
+	* keymap.c (Fcommand_remapping): Renamed from Fremap_command.
+	All uses changed.
+
 2003-02-12  Juanma Barranquero  <lektu@terra.es>
 
 	* eval.c (Fdefmacro): Fix typo.

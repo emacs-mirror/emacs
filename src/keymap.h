@@ -28,7 +28,7 @@ EXFUN (Fmake_sparse_keymap, 1);
 EXFUN (Fkeymap_prompt, 1);
 EXFUN (Fdefine_key, 3);
 EXFUN (Flookup_key, 3);
-EXFUN (Fremap_command, 1);
+EXFUN (Fcommand_remapping, 1);
 EXFUN (Fkey_binding, 3);
 EXFUN (Fkey_description, 1);
 EXFUN (Fsingle_key_description, 2);

@@ -97,8 +97,8 @@ Lisp_Object Qkeymapp, Qkeymap, Qnon_ascii, Qmenu_item, Qremap;
 /* Alist of elements like (DEL . "\d").  */
 static Lisp_Object exclude_keys;
 
-/* Pre-allocated 2-element vector for Fremap_command to use.  */
-static Lisp_Object remap_command_vector;
+/* Pre-allocated 2-element vector for Fcommand_remapping to use.  */
+static Lisp_Object command_remapping_vector;
 
 /* A char with the CHAR_META bit set in a vector or the 0200 bit set
    in a string key sequence is equivalent to prefixing with this
@@ -1068,7 +1068,7 @@ the front of KEYMAP.  */)
 
 /* This function may GC (it calls Fkey_binding).  */
 
-DEFUN ("remap-command", Fremap_command, Sremap_command, 1, 1, 0,
+DEFUN ("command-remapping", Fcommand_remapping, Scommand_remapping, 1, 1, 0,
        doc: /* Return the remapping for command COMMAND in current keymaps.
 Returns nil if COMMAND is not remapped (or not a symbol).  */)
      (command)
@@ -1077,8 +1077,8 @@ Returns nil if COMMAND is not remapped (or not a symbol).  */)
   if (!SYMBOLP (command))
     return Qnil;
 
-  ASET (remap_command_vector, 1, command);
-  return Fkey_binding (remap_command_vector, Qnil, Qt);
+  ASET (command_remapping_vector, 1, command);
+  return Fkey_binding (command_remapping_vector, Qnil, Qt);
 }
 
 /* Value is number if KEY is too long; nil if valid but has no definition. */
@@ -1490,7 +1490,7 @@ is non-nil, `key-binding' returns the unmapped command.  */)
   if (NILP (no_remap) && SYMBOLP (value))
     {
       Lisp_Object value1;
-      if (value1 = Fremap_command (value), !NILP (value1))
+      if (value1 = Fcommand_remapping (value), !NILP (value1))
 	value = value1;
     }
 
@@ -2257,7 +2257,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
   if (NILP (no_remap) && SYMBOLP (definition))
     {
       Lisp_Object tem;
-      if (tem = Fremap_command (definition), !NILP (tem))
+      if (tem = Fcommand_remapping (definition), !NILP (tem))
 	return Qnil;
     }
 
@@ -3644,8 +3644,8 @@ and applies even for keys that have ordinary bindings.  */);
   Qremap = intern ("remap");
   staticpro (&Qremap);
 
-  remap_command_vector = Fmake_vector (make_number (2), Qremap);
-  staticpro (&remap_command_vector);
+  command_remapping_vector = Fmake_vector (make_number (2), Qremap);
+  staticpro (&command_remapping_vector);
 
   where_is_cache_keymaps = Qt;
   where_is_cache = Qnil;
@@ -3659,7 +3659,7 @@ and applies even for keys that have ordinary bindings.  */);
   defsubr (&Smake_keymap);
   defsubr (&Smake_sparse_keymap);
   defsubr (&Scopy_keymap);
-  defsubr (&Sremap_command);
+  defsubr (&Scommand_remapping);
   defsubr (&Skey_binding);
   defsubr (&Slocal_key_binding);
   defsubr (&Sglobal_key_binding);

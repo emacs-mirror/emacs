@@ -1557,7 +1557,7 @@ command_loop_1 ()
       if (SYMBOLP (cmd))
 	{
 	  Lisp_Object cmd1;
-	  if (cmd1 = Fremap_command (cmd), !NILP (cmd1))
+	  if (cmd1 = Fcommand_remapping (cmd), !NILP (cmd1))
 	    cmd = cmd1;
 	}
 

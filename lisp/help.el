@@ -431,7 +431,7 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
 		     (push symbol defs))))
     (princ (mapconcat
             #'(lambda (symbol)
-                (let* ((remapped (remap-command symbol))
+                (let* ((remapped (command-remapping symbol))
 		       (keys (where-is-internal
 			      symbol overriding-local-map nil nil remapped))
                        (keys (mapconcat 'key-description keys ", ")))
