@@ -1,3 +1,9 @@
+2002-01-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textprop.c (Fnext_property_change, Fnext_single_property_change)
+	(Fprevious_property_change, Fprevious_single_property_change):
+	Stay within the narrowed-buffer boundaries.
+
 2002-01-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* term.c (Ftty_display_color_cells): New function.
@@ -270,7 +276,7 @@
 2002-01-07  Jason Rumney  <jasonr@gnu.org>
 
 	* xmenu.c (set_frame_menubar, xmenu_show):
-	(xdialog_show):	Initialize wv->help to Qnil. 
+	(xdialog_show):	Initialize wv->help to Qnil.
 
 	* w32menu.c (single_submenu, set_frame_menubar, w32_menu_show):
 	(w32_dialog_show): Initialize wv->help to Qnil.
@@ -305,8 +311,8 @@
 	(notice_overwritten_cursor): Don't depend on
 	output_cursor and updated_area.  Compare pixel coordinates with
 	window's cursor pixel coordinates.
-	(x_draw_glyphs, x_clear_end_of_line, show_mouse_face): Call
-	notice_overwritten_cursor with new arg list.
+	(x_draw_glyphs, x_clear_end_of_line, show_mouse_face):
+	Call notice_overwritten_cursor with new arg list.
 	(show_mouse_face): Fix bug setting a row's mouse_face_p flag
 	unconditionally.
 	(x_draw_image_relief): Use predefined macro instead of
@@ -404,17 +410,17 @@
 	* keymap.c (Flookup_key): Error message if key has wrong data type.
 	(Fdefine_key): Add error message for trying to bind [DEL], [RET], etc.
 	(exclude_key): New variable.
-	
+
 2001-12-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_setup_relief_colors): Don't compute an image's
 	background color if it doesn't have a Pixmap.
-	
+
 	* xterm.c (notice_overwritten_cursor): Don't depend on
 	output_cursor and updated_area.  Compare pixel coordinates with
 	window's cursor pixel coordinates.
-	(x_draw_glyphs, x_clear_end_of_line, show_mouse_face): Call
-	notice_overwritten_cursor with new arg list.
+	(x_draw_glyphs, x_clear_end_of_line, show_mouse_face):
+	Call notice_overwritten_cursor with new arg list.
 	(show_mouse_face): Fix bug setting a row's mouse_face_p flag
 	unconditionally.
 
@@ -441,7 +447,7 @@
 	separated by mouse-movement.  When tracking mouse, only record
 	first and last mouse-movement event in same window.
 	Don't record mouse-movement events in keyboard macros.
-	
+
 2001-12-25  Richard M. Stallman  <rms@gnu.org>
 
 	* window.c (enlarge_window): New arg PRESERVE_BEFORE.  Callers changed.
@@ -452,7 +458,7 @@
 
 2001-12-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
- 	The following changes remove mocklisp support:
+	The following changes remove mocklisp support:
 
 	* mocklisp.h, mocklisp.c: Files removed.
 
@@ -460,17 +466,15 @@
 	`Qmocklisp' and `Qmocklisp_arguments'.
 	Remove prototype of syms_of_mocklisp.
 
-	* makefile.nt, makefile.w32-in, Makefile.in: Remove mocklisp
-	files.
+	* makefile.nt, makefile.w32-in, Makefile.in: Remove mocklisp files.
 
 	* callint.c: Do not include mocklisp.h.
 	(Fcall_interactively): Do not test for mocklisp case.
 
 	* eval.c: Remove variables `Qmocklisp_arguments',
-	`Vmocklisp_arguments' and `Qmocklisp'.  Remove prototype of
-	ml_apply.
-	(Fprogn, Fwhile, Fcommandp, Feval, Ffuncall, funcall_lambda): Do
-	not test for mocklisp case.
+	`Vmocklisp_arguments' and `Qmocklisp'.  Remove prototype of ml_apply.
+	(Fprogn, Fwhile, Fcommandp, Feval, Ffuncall, funcall_lambda):
+	Do not test for mocklisp case.
 	(Fwhile): Remove unused variable `tem'.
 	(syms_of_eval): Remove variable `moclisp-arguments'.
 
@@ -645,8 +649,8 @@
 
 2001-12-09  Jason Rumney  <jasonr@gnu.org>
 
-	* w32menu.c (_widget_value): Make `help' field a Lisp_Object. Add
-	comment to explain where the struct came from.
+	* w32menu.c (_widget_value): Make `help' field a Lisp_Object.
+	Add	comment to explain where the struct came from.
 	(single_submenu, w32_menu_show): Set `help' field as Lisp_Object.
 	(add_menu_item): Process pop-up menus first to avoid memory leak.
 	(add_menu_item, w32_menu_display_help): Use `help' field as
@@ -675,7 +679,7 @@
 	* alloc.c (inhibit_garbage_collection): Don't exceed value an int
 	can hold.
 
-	* data.c (Vmost_positive_fixnum, Vmost_negative_fixnum): Renamed
+	* data.c (Vmost_positive_fixnum, Vmost_negative_fixnum): Rename
 	from most_positive_fixnum and most_negative_fixnum, resp., and
 	type changed to Lisp_Object.
 	(syms_of_data): DEFVAR_LISP them.
