@@ -2671,10 +2671,26 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
 ;; digits of precision, it doesn't really matter here.  On the other
 ;; hand, it greatly simplifies the code.
 
+(defsubst progress-reporter-update (reporter value)
+  "Report progress of an operation in the echo area.
+However, if the change since last echo area update is too small
+or not enough time has passed, then do nothing (see
+`make-progress-reporter' for details).
+
+First parameter, REPORTER, should be the result of a call to
+`make-progress-reporter'.  Second, VALUE, determines the actual
+progress of operation; it must be between MIN-VALUE and MAX-VALUE
+as passed to `make-progress-reporter'.
+
+This function is very inexpensive, you may not bother how often
+you call it."
+  (when (>= value (car reporter))
+    (progress-reporter-do-update reporter value)))
+
 (defun make-progress-reporter (message min-value max-value
 				       &optional current-value
 				       min-change min-time)
-  "Return an object suitable for reporting operation progress with `progress-reporter-update'.
+  "Return progress reporter object usage with `progress-reporter-update'.
 
 MESSAGE is shown in the echo area.  When at least 1% of operation
 is complete, the exact percentage will be appended to the
@@ -2710,22 +2726,6 @@ then this parameter is effectively rounded up."
 		       min-time))))
     (progress-reporter-update reporter (or current-value min-value))
     reporter))
-
-(defsubst progress-reporter-update (reporter value)
-  "Report progress of an operation in the echo area.
-However, if the change since last echo area update is too small
-or not enough time has passed, then do nothing (see
-`make-progress-reporter' for details).
-
-First parameter, REPORTER, should be the result of a call to
-`make-progress-reporter'.  Second, VALUE, determines the actual
-progress of operation; it must be between MIN-VALUE and MAX-VALUE
-as passed to `make-progress-reporter'.
-
-This function is very inexpensive, you may not bother how often
-you call it."
-  (when (>= value (car reporter))
-    (progress-reporter-do-update reporter value)))
 
 (defun progress-reporter-force-update (reporter value &optional new-message)
   "Report progress of an operation in the echo area unconditionally.
