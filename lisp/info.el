@@ -855,13 +855,11 @@ Bind this in case the user sets it to nil."
 (defun Info-set-mode-line ()
   (setq mode-line-buffer-identification
 	(concat
-	 "  Info:  ("
-	 (if Info-current-file
-	     (file-name-nondirectory (if (stringp Info-current-file)
-					 Info-current-file
-				       (or buffer-file-name "")))
-	   "")
-	 ")"
+	 "  *Info* ("
+	 (file-name-nondirectory (if (stringp Info-current-file)
+				     Info-current-file
+				   (or buffer-file-name "")))
+	 ") "
 	 (or Info-current-node ""))))
 
 ;; Go to an info node specified with a filename-and-nodename string
