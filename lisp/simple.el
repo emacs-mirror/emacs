@@ -2729,8 +2729,9 @@ WIth prefix argument N, move N items (negative N means move backward)."
     ;; If BUFFER is a minibuffer, barf unless it's the currently
     ;; active minibuffer.
     (if (and (string-match "\\` \\*Minibuf-[0-9]+\\*\\'" (buffer-name buffer))
-	     (or (not (minibuffer-window-active-p (minibuffer-window)))
-		 (not (equal buffer (window-buffer (minibuffer-window))))))
+	     (or (not (active-minibuffer-window))
+		 (not (equal buffer
+			     (window-buffer (active-minibuffer-window))))))
 	(error "Minibuffer is not active for completion")
       ;; Insert the completion into the buffer where completion was requested.
       (set-buffer buffer)
