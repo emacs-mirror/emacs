@@ -695,6 +695,7 @@ enum
 #define PIXEL_HEIGHT(f) ((f)->output_data.x->pixel_height)
 
 #define FRAME_DESIRED_CURSOR(f) ((f)->output_data.x->desired_cursor)
+#define FRAME_CURSOR_WIDTH(f) ((f)->output_data.x->cursor_width)
 
 #define FRAME_XIC(f) ((f)->output_data.x->xic)
 #define FRAME_X_XIM(f) (FRAME_X_DISPLAY_INFO (f)->xim)
