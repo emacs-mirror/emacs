@@ -126,6 +126,16 @@ If t, it means to insert the contents of the file `~/.signature'.")
 It is inserted before you edit the message,
 so you can edit or delete these lines.")
 
+;; Note: could use /usr/ucb/mail instead of sendmail;
+;; options -t, and -v if not interactive.
+(defvar mail-mailer-swallows-blank-line
+  (if (string-match "sparc-sun-sunos\\(\\'\\|[^5]\\)" system-configuration)
+      '(looking-at " \t")
+  "Set this non-nil if the system's mailer runs the header and body together.
+\(This problem exists on Sunos 4 when sendmail is run in remote mode.)
+The value should be an expression to test whether the problem will
+actually occur.")
+
 (defvar mail-mode-syntax-table nil
   "Syntax table used while in mail mode.")
 
@@ -402,6 +412,11 @@ the user from the mailer."
 	    (goto-char (point-min))
 	    (if (re-search-forward "^Subject:[ \t]*\n" delimline t)
 		(replace-match ""))
+	    ;; Insert an extra newline if we need it to work around
+	    ;; Sun's bug that swallows newlines.
+	    (goto-char (1+ delimline))
+	    (if (eval mail-mailer-swallows-blank-line)
+		(newline))
 	    (if mail-interactive
 		(save-excursion
 		  (set-buffer errbuf)
