@@ -153,7 +153,7 @@
     (princ "\n;;\tOriginal TIT dictionary file: ")
     (princ (file-name-nondirectory filename))
     (princ "\n\n;;; Comment:\n\n")
-    (princ ";; Do byte-compile this file again after any modification.\n\n")
+    (princ ";; Byte-compile this file again after any modification.\n\n")
     (princ ";;; Start of the header of original TIT dictionary.\n\n")
 
     (while (not (eobp))
@@ -355,7 +355,7 @@ the generated Quail package is saved."
 	  (if (not slot)
 	      (error "Invalid ENCODE: value in TIT dictionary"))
 	  (setq coding-system (nth 1 slot))
-	  (message "Decoding by %s..." coding-system)
+	  (message "Decoding with coding system %s..." coding-system)
 	  (goto-char (point-min))
 	  (decode-coding-region (point-min) (point-max) coding-system))
 
@@ -415,7 +415,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 	    (titdic-convert file targetdir))
 	  (setq files (cdr files)))
 	(setq command-line-args-left (cdr command-line-args-left)))
-      (message "Do byte-compile the created files by:")
+      (message "Byte-compile the created files by:")
       (message "  %% emacs -batch -f batch-byte-compile XXX.el")))
   (kill-emacs 0))
 
