@@ -140,7 +140,9 @@ void set_frame_menubar ();
 static void push_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 				Lisp_Object, Lisp_Object, Lisp_Object,
 				Lisp_Object, Lisp_Object));
+#ifdef HAVE_DIALOGS
 static Lisp_Object w32_dialog_show ();
+#endif
 static Lisp_Object w32_menu_show ();
 
 static void keymap_panes ();
@@ -2075,7 +2077,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       else
 	out_string = wv->name;
 
-      if (wv->title || wv->call_data == 0)
+      if (wv->title)
 	{
 #if 0  /* no GC while popup menu is active */
 	  out_string = LocalAlloc (0, strlen (wv->name) + 1);
@@ -2083,6 +2085,9 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 #endif
 	  fuFlags = MF_OWNERDRAW | MF_DISABLED;
 	}
+      else if (wv->call_data == 0)
+	fuFlags |= MF_DISABLED;
+
       /* Draw radio buttons and tickboxes. */
       else if (wv->selected && (wv->button_type == BUTTON_TYPE_TOGGLE ||
 				wv->button_type == BUTTON_TYPE_RADIO))
@@ -2178,41 +2183,35 @@ popup_activated ()
 void
 w32_menu_display_help (HMENU menu, UINT item, UINT flags)
 {
-  int pane = 0; /* TODO: Set this to pane number.  */
-
   HMODULE user32 = GetModuleHandle ("user32.dll");
   FARPROC get_menu_item_info = GetProcAddress (user32, "GetMenuItemInfoA");
 
   if (get_menu_item_info)
     {
-      extern Lisp_Object Qmenu_item;
-      Lisp_Object *first_item;
-      Lisp_Object pane_name;
-      Lisp_Object menu_object;
       MENUITEMINFO info;
+      struct frame *f = x_window_to_frame (&one_w32_display_info, owner);
+      Lisp_Object frame, help;
 
       bzero (&info, sizeof (info));
       info.cbSize = sizeof (info);
       info.fMask = MIIM_DATA;
       get_menu_item_info (menu, item, FALSE, &info);
 
-      first_item = XVECTOR (menu_items)->contents;
-      if (EQ (first_item[0], Qt))
-        pane_name = first_item[MENU_ITEMS_PANE_NAME];
-      else if (EQ (first_item[0], Qquote))
-        /* This shouldn't happen, see w32_menu_show.  */
-        pane_name = empty_string;
+      help = info.dwItemData ? build_string ((char *)info.dwItemData) : Qnil;
+
+      /* Store the help echo in the keyboard buffer as the X toolkit
+	 version does, rather than directly showing it. This seems to
+	 solve the GC problems that were present when we based the
+	 Windows code on the non-toolkit version.  */
+      if (f)
+	{
+	  XSETFRAME (frame, f);
+	  kbd_buffer_store_help_event (frame, help);
+	}
       else
-        pane_name = first_item[MENU_ITEMS_ITEM_NAME];
-
-      /* (menu-item MENU-NAME PANE-NUMBER)  */
-      menu_object = Fcons (Qmenu_item,
-                           Fcons (pane_name,
-                                  Fcons (make_number (pane), Qnil)));
-
-      show_help_echo (info.dwItemData ?
-		      build_string ((char *) info.dwItemData) : Qnil,
-                      Qnil, menu_object, make_number (item), 1);
+	/* X version has a loop through frames here, which doesn't
+	   appear to do anything, unless it has some side effect.  */
+	show_help_echo (help, Qnil, Qnil, Qnil, 1);
     }
 }
 
