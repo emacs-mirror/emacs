@@ -317,7 +317,7 @@ This function prompts for a summary if `reporter-prompt-for-summary-p'
 is non-nil.
 
 This function does not send a message; it uses the given information
-to initialize a a messagem, which the user can then edit and finally send
+to initialize a message, which the user can then edit and finally send
 \(or decline to send).  The variable `mail-user-agent' controls which
 mail-sending package is used for editing and sending the message."
   (let ((reporter-eval-buffer (current-buffer))
