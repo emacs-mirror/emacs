@@ -156,8 +156,16 @@
 
 ;; Maintain the obsolete name for now.
 (push (cons "cyrillic-jcuken"
-	    (cdr (assoc "russian-typewriter" input-method-alist)))
-      input-method-alist)
+	    (cdr (assoc "russian-typewriter" quail-package-alist)))
+      quail-package-alist)
+
+;; This needs to be seen by quail-update-leim-list-file, but cannot be
+;; commented out because quail-update-leim-list-file ignores
+;; commented-out lines.
+(if nil
+    (quail-define-package 
+     "cyrillic-jcuken" "Russian" ",L69(B" nil
+     ",L9FC:5=(B Russian typewriter layout (ISO 8859-5 encoding)."))
 
 ;; See comment above.  This is the variant `winkeys' from `ru' in XKB.
 (quail-define-package
