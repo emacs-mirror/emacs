@@ -216,7 +216,7 @@ Special combinations: ~c gives a c with cedilla,
 \"s gives German sharp s.
 /a gives a with ring.
 /e gives an a-e ligature.
-~< and ~> give guillemets.
+~< and ~> give guillemots.
 ~! gives an inverted exclamation mark.
 ~? gives an inverted question mark.
 
