@@ -4,7 +4,7 @@
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 ;; Created: February 2, 1994
-;; Keywords: comparing, merging, patching, version control.
+;; Keywords: comparing, merging, patching, tools, unix
 
 (defconst ediff-version "2.75" "The current version of Ediff")
 (defconst ediff-date "October 29, 2000" "Date of last update")  
@@ -946,6 +946,8 @@ lines.  For small regions, use `ediff-regions-wordwise'."
 		 (and (< beg-B end-A) (<= end-A end-B)))) ; b-B e-A e-B
 	(progn
 	  (with-output-to-temp-buffer ediff-msg-buffer
+	    (ediff-with-current-buffer standard-output
+	      (fundamental-mode))
 	    (princ "
 You have requested to compare overlapping regions of the same buffer.
 
@@ -1359,6 +1361,8 @@ With optional NODE, goes to that node."
 	  (raise-frame (selected-frame)))
       (error (beep 1)
 	     (with-output-to-temp-buffer ediff-msg-buffer
+	       (ediff-with-current-buffer standard-output
+		 (fundamental-mode))
 	       (princ ediff-BAD-INFO))
 	     (if (window-live-p ctl-window)
 		 (progn
