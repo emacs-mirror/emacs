@@ -1152,8 +1152,8 @@
 	 capitalize car-less-than-car car cdr ceiling char-after char-before
 	 concat coordinates-in-window-p
 	 char-width copy-marker cos count-lines
-	 default-boundp default-value documentation downcase
-	 elt exp expt fboundp featurep
+	 decode-char default-boundp default-value documentation downcase
+	 elt encode-char exp expt fboundp featurep
 	 file-directory-p file-exists-p file-locked-p file-name-absolute-p
 	 file-newer-than-file-p file-readable-p file-symlink-p file-writable-p
 	 float floor format frame-visible-p
@@ -1178,7 +1178,7 @@
        '(arrayp atom
 	 bobp bolp buffer-end buffer-list buffer-size buffer-string bufferp
 	 car-safe case-table-p cdr-safe char-or-string-p characterp
-	 commandp cons consp
+	 charsetp commandp cons consp
 	 current-buffer current-global-map current-indentation
 	 current-local-map current-minor-mode-maps
 	 dot dot-marker eobp eolp eq equal eventp
@@ -1189,11 +1189,12 @@
 	 invocation-directory invocation-name
 	 keymapp
 	 line-beginning-position line-end-position list listp
-	 make-marker mark mark-marker markerp memory-limit minibuffer-window
+	 make-marker mark mark-marker markerp max-char memory-limit minibuffer-window
 	 mouse-movement-p
 	 natnump nlistp not null number-or-marker-p numberp
 	 one-window-p overlayp
-	 point point-marker point-min point-max preceding-char processp
+	 point point-marker point-min point-max preceding-char primary-charset
+	 processp
 	 recent-keys recursion-depth
 	 selected-frame selected-window sequencep stringp subrp symbolp
 	 standard-case-table standard-syntax-table syntax-table-p
