@@ -1804,8 +1804,7 @@ process that caused the command to complete.
 If NOWAIT is given then the routine will return immediately the command has
 been queued with no result.  CONT will still be called, however."
   (if (memq (process-status proc) '(run open))
-      (save-excursion
-	(set-buffer (process-buffer proc))
+      (with-current-buffer (process-buffer proc)
 	(ange-ftp-wait-not-busy proc)
 	(setq ange-ftp-process-string ""
 	      ange-ftp-process-result-line ""
@@ -1837,8 +1836,7 @@ been queued with no result.  CONT will still be called, however."
 
 ;; Wait for the ange-ftp process PROC not to be busy.
 (defun ange-ftp-wait-not-busy (proc)
-  (save-excursion
-    (set-buffer (process-buffer proc))
+  (with-current-buffer (process-buffer proc)
     (condition-case nil
 	;; This is a kludge to let user quit in case ftp gets hung.
 	;; It matters because this function can be called from the filter.
@@ -2198,7 +2196,7 @@ and NOWAIT."
 	(ange-ftp-this-user user)
 	(ange-ftp-this-host host)
 	(ange-ftp-this-msg msg)
-	cmd2 cmd3 host-type fix-name-func)
+	cmd2 cmd3 host-type fix-name-func result)
 
     (cond
 
@@ -2228,7 +2226,9 @@ and NOWAIT."
       ;; refuse to list it.  We instead change directory to the
       ;; directory in question and ls ".".
       (when (string-match " " cmd1)
-	(ange-ftp-cd host user (nth 1 cmd))
+	;; Keep the result.  In case of failure, we will (see below)
+	;; short-circuit CMD and return this result directly.
+	(setq result (ange-ftp-cd host user (nth 1 cmd) 'noerror))
 	(setq cmd1 "."))
 
       ;; If the remote ls can take switches, put them in
@@ -2260,16 +2260,19 @@ and NOWAIT."
 		      (and cmd2 (concat " " cmd2))))
 
     ;; Actually send the resulting command.
-    (let (afsc-result
-	  afsc-line)
-      (ange-ftp-raw-send-cmd
-       (ange-ftp-get-process host user)
-       cmd
-       msg
-       (list (lambda (result line host user cmd msg cont nowait)
-               (or cont (setq afsc-result result
-                              afsc-line line))
-               (if result (ange-ftp-call-cont cont result line)
+    (if (and (consp result) (null (car result)))
+	;; `ange-ftp-cd' has failed, so there's no point sending `cmd'.
+	result
+      (let (afsc-result
+	    afsc-line)
+	(ange-ftp-raw-send-cmd
+	 (ange-ftp-get-process host user)
+	 cmd
+	 msg
+	 (list (lambda (result line host user cmd msg cont nowait)
+		 (or cont (setq afsc-result result
+				afsc-line line))
+		 (if result (ange-ftp-call-cont cont result line)
                    (ange-ftp-raw-send-cmd
                     (ange-ftp-get-process host user)
                     cmd
@@ -2278,16 +2281,16 @@ and NOWAIT."
                             (or cont (setq afsc-result result
                                            afsc-line line))
                             (ange-ftp-call-cont cont result line))
-                          cont))
-                   nowait))
-             host user cmd msg cont nowait)
-       nowait)
+                          cont)
+		    nowait)))
+	       host user cmd msg cont nowait)
+	 nowait)
 
-      (if nowait
-	  nil
-	(if cont
+	(if nowait
 	    nil
-	  (cons afsc-result afsc-line))))))
+	  (if cont
+	      nil
+	    (cons afsc-result afsc-line)))))))
 
 ;; It might be nice to message users about the host type identified,
 ;; but there is so much other messaging going on, it would not be
@@ -2435,7 +2438,7 @@ which can parse the output from a DIR listing for a host of type TYPE.")
   "Normal hook run after parsing the text of an ftp directory listing.")
 
 (defun ange-ftp-ls (file lsargs parse &optional no-error wildcard)
-  "Return the output of an `DIR' or `ls' command done over ftp.
+  "Return the output of a `DIR' or `ls' command done over ftp.
 FILE is the full name of the remote file, LSARGS is any args to pass to the
 `ls' command, and PARSE specifies that the output should be parsed and stored
 away in the internal cache."
@@ -2516,7 +2519,13 @@ away in the internal cache."
 					; meaningless but harmless.
 			    ange-ftp-ls-cache-res (buffer-string))
 		      ;; (kill-buffer (current-buffer))
-		      ange-ftp-ls-cache-res)
+		      (if (equal ange-ftp-ls-cache-res "total 0\n")
+			  ;; wu-ftpd seems to return a successful result
+			  ;; with an empty file-listing when doing a
+			  ;; `DIR /some/file/.' which leads ange-ftp to
+			  ;; believe that /some/file is a directory ;-(
+			  nil
+			ange-ftp-ls-cache-res))
 		  (if no-error
 		      nil
 		    (ange-ftp-error host user
@@ -2908,10 +2917,11 @@ this also returns nil."
 	     (setq ange-ftp-hash-mark-unit
 		   (ash ange-ftp-ascii-hash-mark-size -4)))))))
 
-(defun ange-ftp-cd (host user dir)
+(defun ange-ftp-cd (host user dir &optional noerror)
   (let ((result (ange-ftp-send-cmd host user (list 'cd dir) "Doing CD")))
-    (or (car result)
-	(ange-ftp-error host user (concat "CD failed: " (cdr result))))))
+    (if noerror result
+      (or (car result)
+	  (ange-ftp-error host user (concat "CD failed: " (cdr result)))))))
 
 (defun ange-ftp-get-pwd (host user)
   "Attempts to get the current working directory for the given HOST/USER pair.
@@ -3135,8 +3145,10 @@ system TYPE.")
 	       ;; of the transfer is irrelevant, i.e. we can use binary mode
 	       ;; regardless. Maybe a system-type to host-type lookup?
 	       (binary (or (ange-ftp-binary-file filename)
-			   (memq (ange-ftp-host-type host user)
-				 '(unix dumb-unix))))
+			   (and (not (memq system-type
+					   '(ms-dos windows-nt macos vax-vms)))
+				(memq (ange-ftp-host-type host user)
+				      '(unix dumb-unix)))))
 	       (cmd (if append 'append 'put))
 	       (abbr (ange-ftp-abbreviate-filename filename))
 	       ;; we need to reset `last-coding-system-used' to its
@@ -3495,10 +3507,8 @@ Value is (0 0) if the modification time cannot be determined."
 ;; 	res)
 ;;     (set-process-sentinel proc (function ange-ftp-copy-file-locally-sentinel))
 ;;     (process-kill-without-query proc)
-;;     (save-excursion
-;;       (set-buffer (process-buffer proc))
-;;       (make-variable-buffer-local 'copy-cont)
-;;       (setq copy-cont cont))))
+;;     (with-current-buffer (process-buffer proc)
+;;       (set (make-local-variable 'copy-cont) cont))))
 ;;
 ;; (defun ange-ftp-copy-file-locally-sentinel (proc status)
 ;;   (save-excursion
