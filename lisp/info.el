@@ -1140,7 +1140,7 @@ At end of the node's text, moves to the next node."
   (define-key Info-mode-map "u" 'Info-up)
   (define-key Info-mode-map "," 'Info-index-next)
   (define-key Info-mode-map "\177" 'Info-scroll-down)
-  (define-key Info-mode-map [mouse-3] 'Info-follow-nearest-node)
+  (define-key Info-mode-map [mouse-2] 'Info-follow-nearest-node)
   )
 
 ;; Info mode is suitable only for specially formatted data.
