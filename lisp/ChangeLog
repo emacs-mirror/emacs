@@ -1,3 +1,8 @@
+2001-10-29  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* log-view.el (log-view-mode-map): Bind `M-n' and `M-p', not `M n'
+	and `M p'.
+
 2001-10-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* international/iso-acc.el (iso-accents-compose): Push SECOND-CHAR

@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: rcs sccs cvs log version-control
-;; Revision: $Id: log-view.el,v 1.5 2000/12/06 19:49:40 fx Exp $
+;; Revision: $Id: log-view.el,v 1.6 2000/12/18 03:17:31 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -47,8 +47,8 @@
     ("p" . log-view-msg-prev)
     ("N" . log-view-file-next)
     ("P" . log-view-file-prev)
-    ("M-n" . log-view-file-next)
-    ("M-p" . log-view-file-prev))
+    ("\M-n" . log-view-file-next)
+    ("\M-p" . log-view-file-prev))
   "Log-View's keymap."
   :group 'log-view
   ;; Here I really need either buffer-local keymap-inheritance
@@ -171,6 +171,9 @@
 
 ;;; Change Log:
 ;; $Log: log-view.el,v $
+;; Revision 1.6  2000/12/18 03:17:31  monnier
+;; Remove useless Version.
+;;
 ;; Revision 1.5  2000/12/06 19:49:40  fx
 ;; Fix copyright years.
 ;;
