@@ -1298,7 +1298,7 @@ with your script for an edit-interpret-debug cycle."
     (if interpreter
 	(sh-set-shell interpreter nil nil)
       (sh-set-shell sh-shell-file nil t))
-  (run-hooks 'sh-mode-hook))
+    (run-hooks 'sh-mode-hook)))
 ;;;###autoload
 (defalias 'shell-script-mode 'sh-mode)
 
