@@ -1,3 +1,8 @@
+1999-12-11  Samir Barjoud  <samir@mindspring.com>
+
+	* help.el (where-is): use `commandp' as predicate for
+	`completing-read'
+
 1999-12-10  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* cus-edit.el (custom-save-delete): Delete all occurrences,
