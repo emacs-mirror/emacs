@@ -19,8 +19,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Xt features made by Fred Pierresteguy.  */
 
-#define NEW_SELECTIONS
-
 /* On 4.3 these lose if they come after xterm.h.  */
 /* On HP-UX 8.0 signal.h loses if it comes after config.h.  */
 /* Putting these at the beginning seems to be standard for other .c files.  */
@@ -3469,26 +3467,20 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  }
 	  break;
 
-#ifdef NEW_SELECTIONS
 	case SelectionNotify:
 #ifdef USE_X_TOOLKIT
-	  if (x_window_to_frame (event.xselection.requestor))
-	    x_handle_selection_notify (&event);
-	  else
+	  if (! x_window_to_frame (event.xselection.requestor))
 	    goto OTHER;
-#else /* not USE_X_TOOLKIT */
-	  x_handle_selection_notify (&event);
 #endif /* not USE_X_TOOLKIT */
+	  x_handle_selection_notify (&event);
 	  break;
-#endif /* NEW_SELECTIONS */
 
 	case SelectionClear:	/* Someone has grabbed ownership. */
-#ifdef NEW_SELECTIONS
-	  {
 #ifdef USE_X_TOOLKIT
-	  if (x_window_to_frame (event.xselectionclear.window))
-	    {
+	  if (! x_window_to_frame (event.xselectionclear.window))
+	    goto OTHER;
 #endif /* USE_X_TOOLKIT */
+	  {
 	    XSelectionClearEvent *eventp = (XSelectionClearEvent *) &event;
 
 	    if (numchars == 0)
@@ -3502,26 +3494,15 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 	    count += 1;
 	    numchars -= 1;
-#ifdef USE_X_TOOLKIT
 	  }
-	  else
-	    goto OTHER;
-#endif /* USE_X_TOOLKIT */
-	  }
-#else /* not NEW_SELECTIONS */
-	  x_disown_selection (event.xselectionclear.window,
-			      event.xselectionclear.selection,
-			      event.xselectionclear.time);
-#endif /* not NEW_SELECTIONS */
 	  break;
 
 	case SelectionRequest:	/* Someone wants our selection. */
-#ifdef NEW_SELECTIONS
-	  {
 #ifdef USE_X_TOOLKIT
-	  if (x_window_to_frame (event.xselectionrequest.owner))
-	    {
+	  if (!x_window_to_frame (event.xselectionrequest.owner))
+	    goto OTHER;
 #endif /* USE_X_TOOLKIT */
+	  {
 	    XSelectionRequestEvent *eventp = (XSelectionRequestEvent *) &event;
 
 	    if (numchars == 0)
@@ -3538,42 +3519,15 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 	    count += 1;
 	    numchars -= 1;
-#ifdef USE_X_TOOLKIT
 	  }
-	  else
-	    goto OTHER;
-#endif /* USE_X_TOOLKIT */
-	  }
-#else /* not NEW_SELECTIONS */
-	  x_answer_selection_request (event);
-#endif /* not NEW_SELECTIONS */
 	  break;
 
 	case PropertyNotify:
-#ifdef NEW_SELECTIONS
 #ifdef USE_X_TOOLKIT
-	  if (x_any_window_to_frame (event.xproperty.window))
-	    x_handle_property_notify (&event);
-	  else
+	  if (!x_any_window_to_frame (event.xproperty.window))
 	    goto OTHER;
-#else /* not USE_X_TOOLKIT */
-	  x_handle_property_notify (&event);
 #endif /* not USE_X_TOOLKIT */
-#else /* not NEW_SELECTIONS */
-	  /* If we're being told about a root window property, then it's
-	     a cut buffer change.  */
-	  if (event.xproperty.window == ROOT_WINDOW)
-	    x_invalidate_cut_buffer_cache (&event.xproperty);
-
-	  /* Otherwise, we're probably handling an incremental
-             selection transmission.  */
-	  else
-	    {
-	      /* If we were to do this synchronously, there'd be no worry
-		 about re-selecting. */
-	      x_send_incremental (event);
-	    }
-#endif /* not NEW_SELECTIONS */
+	  x_handle_property_notify (&event);
 	  break;
 
 	case ReparentNotify:
@@ -3593,11 +3547,9 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  SET_FRAME_GARBAGED (f);
 		}
 	      else
-		{
-		  dumprectangle (x_window_to_frame (event.xexpose.window),
-				 event.xexpose.x, event.xexpose.y,
-				 event.xexpose.width, event.xexpose.height);
-		}
+		dumprectangle (x_window_to_frame (event.xexpose.window),
+			       event.xexpose.x, event.xexpose.y,
+			       event.xexpose.width, event.xexpose.height);
 	    }
 	  else
 	    {
@@ -3705,6 +3657,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  break;
 
 	case MapNotify:
+	  /* We use x_top_window_to_frame because map events can come
+	     for subwindows and they don't mean that the frame is visible.  */
 	  f = x_top_window_to_frame (event.xmap.window);
 	  if (f)
 	    {
@@ -3718,7 +3672,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 #ifdef USE_X_TOOLKIT
 	  goto OTHER;
 #endif /* USE_X_TOOLKIT */
-  break;
+	  break;
 
 	  /* Turn off processing if we become fully obscured. */
 	case VisibilityNotify:
