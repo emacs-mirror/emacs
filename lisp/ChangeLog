@@ -1,3 +1,12 @@
+2000-07-19  Dave Love  <fx@gnu.org>
+
+	* ediff-init.el (ediff-region-help-echo): Partially fix for Emacs
+	implementation.
+
+	* mouse.el (popup-menu): Allow a list of keymaps for menu arg.
+	(mouse-popup-menubar, mouse-popup-menubar-stuff): New functions.
+	(global-map): Bind c-down-mouse-3 to mouse-popup-menubar-stuff.
+
 2000-07-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/refer.el: Correct maintainer's email address.
