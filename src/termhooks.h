@@ -190,18 +190,11 @@ extern int (*read_socket_hook) ();
    has been included before this file.  */
 #ifdef XINT
 
-/* The keyboard input buffer is an array of these structures.  Each one
-   represents some sort of input event - a keystroke, a mouse click, or
-   a window system event.  These get turned into their lispy forms when
-   they are removed from the event queue.  */
-
-struct input_event {
-
-  /* What kind of event was this?  */
-  enum {
-    no_event,			/* nothing happened.  This should never
+enum event_kind
+{
+  no_event,			/* nothing happened.  This should never
 				   actually appear in the event queue.  */
-    ascii_keystroke,		/* The ASCII code is in .code.
+  ascii_keystroke,		/* The ASCII code is in .code.
 				   .frame_or_window is the frame in
 				   which the key was typed.
 				   Note that this includes meta-keys, and
@@ -209,7 +202,7 @@ struct input_event {
 				   is unused.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the keystroke.  */
-    non_ascii_keystroke,	/* .code is a number identifying the
+  non_ascii_keystroke,		/* .code is a number identifying the
 				   function key.  A code N represents
 				   a key whose name is
 				   function_key_names[N]; function_key_names
@@ -221,7 +214,7 @@ struct input_event {
 				   which the key was typed.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the keystroke.  */
-    mouse_click,		/* The button number is in .code; it must
+  mouse_click,			/* The button number is in .code; it must
 				   be >= 0 and < NUM_MOUSE_BUTTONS, defined
 				   below.
 				   .modifiers holds the state of the
@@ -232,7 +225,7 @@ struct input_event {
 				   the mouse click occurred in.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the click.  */
-    scroll_bar_click,		/* .code gives the number of the mouse button
+  scroll_bar_click,		/* .code gives the number of the mouse button
 				   that was clicked.
 				   .modifiers holds the state of the modifier
 				   keys.
@@ -245,7 +238,24 @@ struct input_event {
 				   whose scroll bar was clicked in.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the click.  */
-  } kind;
+  selection_request_event,	/* Another X client wants a selection from us.
+				   See `struct selection_event'.  */
+  selection_clear_event,	/* Another X client cleared our selection.  */
+};
+
+/* If a struct input_event has a kind which is selection_request_event
+   or selection_clear_event, then its contents are really described
+   by `struct selection_event'; see xterm.h.  */
+
+/* The keyboard input buffer is an array of these structures.  Each one
+   represents some sort of input event - a keystroke, a mouse click, or
+   a window system event.  These get turned into their lispy forms when
+   they are removed from the event queue.  */
+
+struct input_event {
+
+  /* What kind of event was this?  */
+  enum event_kind kind;
   
   Lisp_Object code;
   enum scroll_bar_part part;
@@ -259,7 +269,7 @@ struct input_event {
   Lisp_Object x, y;
   unsigned long timestamp;
 };
-
+
 /* This is used in keyboard.c, to tell how many buttons we will need
    to track the positions of.  */
 #define NUM_MOUSE_BUTTONS (5)
