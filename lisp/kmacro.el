@@ -1,6 +1,6 @@
 ;;; kmacro.el --- enhanced keyboard macros
 
-;; Copyright (C) 2002  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004  Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard convenience
@@ -120,6 +120,7 @@
   "Simplified keyboard macro user interface."
   :group 'keyboard
   :group 'convenience
+  :version "21.4"
   :link '(emacs-commentary-link :tag "Commentary" "kmacro.el")
   :link '(emacs-library-link :tag "Lisp File" "kmacro.el"))
 
@@ -221,6 +222,14 @@ macro to be executed before appending to it."
 (if kmacro-call-mouse-event
   (global-set-key (vector kmacro-call-mouse-event) 'kmacro-end-call-mouse))
 
+
+;;; Called from keyboard-quit
+
+(defun kmacro-keyboard-quit ()
+  (or (not defining-kbd-macro)
+      (eq defining-kbd-macro 'append)
+      (kmacro-ring-empty-p)
+      (kmacro-pop-ring)))
 
 
 ;;; Keyboard macro counter
@@ -585,7 +594,9 @@ Use \\[kmacro-bind-to-key] to bind it to a key sequence."
 		       (and append
 			    (if kmacro-execute-before-append
 				(> (car arg) 4)
-			      (= (car arg) 4)))))))
+			      (= (car arg) 4))))
+      (if (and defining-kbd-macro append)
+	  (setq defining-kbd-macro 'append)))))
 
 
 ;;;###autoload
