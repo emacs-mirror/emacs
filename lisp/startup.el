@@ -545,11 +545,12 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
 ;; Command-line options supported by tty's:
 (defconst tty-long-option-alist
-  '(("--name" .		"-name")
-    ("--title" .	"-T")
-    ("--reverse-video" . "-reverse")
+  '(("--name"		  . "-name")
+    ("--title"		  . "-T")
+    ("--reverse-video"	  . "-reverse")
     ("--foreground-color" . "-fg")
-    ("--background-color" . "-bg")))
+    ("--background-color" . "-bg")
+    ("--color"		  . "-color")))
 
 (defconst tool-bar-images-pixel-height 24
   "Height in pixels of images in the tool bar.")
@@ -618,6 +619,17 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		   (string= this "-reverse"))
 	       (setq default-frame-alist
 		     (cons '(reverse . t)
+			   default-frame-alist)))
+	      ((string= this "-color")
+	       (if (null argval)
+		   (setq argval 8))	; default --color means 8 ANSI colors
+	       (setq default-frame-alist
+		     (cons (cons 'tty-color-mode
+				 (cond
+				  ((numberp argval) argval)
+				  ((string-match "-?[0-9]+" argval)
+				   (string-to-number argval))
+				  (t (intern argval))))
 			   default-frame-alist)))
 	      (t (setq rest (cons this rest))))))
       (nreverse rest)))
@@ -818,7 +830,9 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   ;; Register default TTY colors for the case the terminal hasn't a
   ;; terminal init file.
   (or (memq window-system '(x w32))
-      (not (tty-display-color-p))
+      ;; We do this regardles of whether the terminal supports colors
+      ;; or not, since they can switch that support on or off in
+      ;; mid-session by setting the tty-color-mode frame parameter.
       (let* ((colors (cond ((eq window-system 'pc)
                             msdos-color-values)
                            ((eq system-type 'windows-nt)
