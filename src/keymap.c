@@ -311,6 +311,7 @@ int
 keymap_memberp (map, maps)
      Lisp_Object map, maps;
 {
+  if (NILP (map)) return 0;
   while (KEYMAPP (maps) && !EQ (map, maps))
     maps = Fkeymap_parent (maps);
   return (EQ (map, maps));
