@@ -128,7 +128,7 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;;	"foo.f", line 3: Error: syntax error near end of statement
     ;; or MIPS RISC CC - the one distributed with Ultrix:
     ;;	ccom: Error: foo.c, line 2: syntax error
-    ("\\b\"?\\([^,\" \n\t]\\)\"?, line \\([0-9]+\\):" 1 2)
+    ("\\b\"?\\([^,\" \n\t]+\\)\"?, line \\([0-9]+\\):" 1 2)
 
     ;; IBM AIX PS/2 C version 1.1:
     ;;	****** Error number 140 in line 8 of file errors.c ******
@@ -883,7 +883,8 @@ See variable `compilation-parse-errors-function' for the interface it uses."
     ;; Compile an alist (IDX FILE LINE), where IDX is the number of the
     ;; subexpression for an entire error-regexp, and FILE and LINE are the
     ;; numbers for the subexpressions giving the file name and line number.
-    (setq alist compilation-error-regexp-alist
+    (setq alist (or compilation-error-regexp-alist
+		    (error "compilation-error-regexp-alist is empty!"))
 	  subexpr (1+ error-group))
     (while alist
       (setq error-regexp-groups (cons (list subexpr
@@ -939,9 +940,10 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 	     (while (and alist
 			 (null (match-beginning (car (car alist)))))
 	       (setq alist (cdr alist)))
+	     (setq losing-data (match-data))
 	     (if alist
 		 (setq alist (car alist))
-	       (error "compilation-parse-errors: Impossible regexp match!"))
+	       (error "compilation-parse-errors: impossible regexp match!"))
 	     
 	     ;; Extract the file name and line number from the error message.
 	     (let ((beginning-of-match (match-beginning 0)) ;looking-at nukes
@@ -991,7 +993,7 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 	       )
 	     )
 	    (t
-	     (error "compilation-parse-errors: impossible regexp match!")))
+	     (error "compilation-parse-errors: known groups didn't match!")))
 
       (message "Parsing error messages...%d (%d%% of buffer)"
 	       compilation-num-errors-found
