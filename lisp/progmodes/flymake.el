@@ -32,43 +32,36 @@
 
 ;;; Code:
 
-;;;; [[ Overlay compatibility
+;;;; [[ Xemacs overlay compatibility
+(if (featurep 'xemacs) (progn
 (autoload 'make-overlay            "overlay" "Overlay compatibility kit." t)
 (autoload 'overlayp                "overlay" "Overlay compatibility kit." t)
 (autoload 'overlays-in             "overlay" "Overlay compatibility kit." t)
 (autoload 'delete-overlay          "overlay" "Overlay compatibility kit." t)
 (autoload 'overlay-put             "overlay" "Overlay compatibility kit." t)
 (autoload 'overlay-get             "overlay" "Overlay compatibility kit." t)
+))
 ;;;; ]]
 
 ;;;; [[ cross-emacs compatibility routines
-(defvar flymake-emacs
-  (cond
-   ((string-match "XEmacs" emacs-version)  'xemacs)
-   (t                                      'emacs))
-  "Currently used Emacs flavor")
-
-(defun flymake-makehash (&optional test)
-  (cond
-   ((equal flymake-emacs 'xemacs)  (if test (make-hash-table :test test) (make-hash-table)))
-   (t                              (makehash test))))
-
-(defun flymake-time-to-float (&optional tm)
-  "Convert `current-time` to a float number of seconds."
-  (multiple-value-bind (s0 s1 s2) (or tm (current-time))
-    (+ (* (float (ash 1 16)) s0) (float s1) (* 0.0000001 s2))))
+(defsubst flymake-makehash (&optional test)
+  (if (fboundp 'make-hash-table)
+      (if test (make-hash-table :test test) (make-hash-table))
+    (makehash test)))
 
 (defun flymake-float-time ()
-  (cond
-   ((equal flymake-emacs 'xemacs)  (flymake-time-to-float (current-time)))
-   (t                              (float-time))))
+  (if (featurep 'xemacs)
+      (let ((tm (current-time)))
+	(multiple-value-bind (s0 s1 s2) (current-time)
+			     (+ (* (float (ash 1 16)) s0) (float s1) (* 0.0000001 s2))))
+    (float-time)))
 
-(defun flymake-replace-regexp-in-string (regexp rep str)
-  (cond
-   ((equal flymake-emacs 'xemacs)  (replace-in-string str regexp rep))
-   (t                              (replace-regexp-in-string regexp rep str))))
+(defsubst flymake-replace-regexp-in-string (regexp rep str)
+  (if (featurep 'xemacs)
+      (replace-in-string str regexp rep)
+    (replace-regexp-in-string regexp rep str)))
 
-(defun flymake-split-string-remove-empty-edges (str pattern)
+(defun flymake-split-string (str pattern)
   "Split, then remove first and/or last in case it's empty."
   (let* ((splitted (split-string str pattern)))
     (if (and (> (length splitted) 0) (= 0 (length (elt splitted 0))))
@@ -77,12 +70,10 @@
 	(setq splitted (reverse (cdr (reverse splitted)))))
     splitted))
 
-(defalias 'flymake-split-string 'flymake-split-string-remove-empty-edges)
-
-(defun flymake-get-temp-dir()
-  (cond
-   ((equal flymake-emacs 'xemacs)  (temp-directory))
-   (t                              temporary-file-directory)))
+(defsubst flymake-get-temp-dir ()
+  (if (featurep 'xemacs)
+      (temp-directory)
+    temporary-file-directory))
 
 (defun flymake-line-beginning-position ()
   (save-excursion
@@ -95,29 +86,27 @@
     (point)))
 
 (defun flymake-popup-menu (pos menu-data)
-  (cond
-   ((equal flymake-emacs 'xemacs)
-    (let* ((x-pos       (nth 0 (nth 0 pos)))
-	   (y-pos       (nth 1 (nth 0 pos)))
-	   (fake-event-props  '(button 1 x 1 y 1)))
-      (setq fake-event-props (plist-put fake-event-props 'x x-pos))
-      (setq fake-event-props (plist-put fake-event-props 'y y-pos))
-      (popup-menu (flymake-make-xemacs-menu menu-data) (make-event 'button-press fake-event-props))
-      )
-    )
-   (t (x-popup-menu pos (flymake-make-emacs-menu menu-data)))))
+  (if (featurep 'xemacs)
+      (let* ((x-pos       (nth 0 (nth 0 pos)))
+	     (y-pos       (nth 1 (nth 0 pos)))
+	     (fake-event-props  '(button 1 x 1 y 1)))
+	(setq fake-event-props (plist-put fake-event-props 'x x-pos))
+	(setq fake-event-props (plist-put fake-event-props 'y y-pos))
+	(popup-menu (flymake-make-xemacs-menu menu-data) (make-event 'button-press fake-event-props)))
+    (x-popup-menu pos (flymake-make-emacs-menu menu-data))))
 
 (defun flymake-make-emacs-menu (menu-data)
   (let* ((menu-title     (nth 0 menu-data))
 	 (menu-items     (nth 1 menu-data))
 	 (menu-commands  nil))
-
     (setq menu-commands (mapcar (lambda (foo)
 				  (cons (nth 0 foo) (nth 1 foo)))
 				menu-items))
     (list menu-title (cons "" menu-commands))))
 
 (defun flymake-nop ())
+
+(if (featurep 'xemacs) (progn
 
 (defun flymake-make-xemacs-menu (menu-data)
   (let* ((menu-title     (nth 0 menu-data))
@@ -141,20 +130,18 @@
     (setcar tmp (/ (car tmp) (face-height 'default)))
     edges))
 
+)) ;; xemacs
+
 (defun flymake-current-row ()
   "Return current row number in current frame."
-  (cond
-   ((equal flymake-emacs 'xemacs)  (count-lines (window-start) (point)))
-   (t                              (+ (car (cdr (window-edges))) (count-lines (window-start) (point))))
-   )
-  )
+  (if (featurep 'xemacs)
+      (count-lines (window-start) (point))
+    (+ (car (cdr (window-edges))) (count-lines (window-start) (point)))))
 
 (defun flymake-selected-frame ()
-  (cond
-   ((equal flymake-emacs 'xemacs)  (selected-window))
-   (t                              (selected-frame))
-   )
-  )
+  (if (featurep 'xemacs)
+      (selected-window)
+    (selected-frame)))
 
 ;;;; ]]
 
@@ -435,11 +422,12 @@ Return t if so, nil if not."
   :group 'flymake
   :type 'integer)
 
-(defvar flymake-included-file-name nil " ") ; this is used to pass a parameter to a sort predicate below
+;; This is bound dynamically to pass a parameter to a sort predicate below
+(defvar flymake-included-file-name)
 
 (defun flymake-find-possible-master-files (file-name master-file-dirs masks)
   "Find (by name and location) all posible master files.
-Mater files are .cpp and .c for and .h. Files are searched for 
+Mater files are .cpp and .c for and .h. Files are searched for
 starting from the .h directory and max max-level parent dirs.
 File contents are not checked."
   (let* ((dir-idx    0)
@@ -468,9 +456,8 @@ File contents are not checked."
 	  (setq masks-idx (1+ masks-idx))))
       (setq dir-idx (1+ dir-idx)))
     (when files
-      (setq flymake-included-file-name (file-name-nondirectory file-name))
-      (setq files (sort files 'flymake-master-file-compare))
-      (setq flymake-included-file-name nil))
+      (let ((flymake-included-file-name (file-name-nondirectory file-name)))
+	(setq files (sort files 'flymake-master-file-compare))))
     (flymake-log 3 "found %d possible master file(s)" (length files))
     files))
 
@@ -840,7 +827,7 @@ Value of TYPE is eigher e or w."
   "Replace line numbers with fixed value.
 If line-numbers is less than MIN-LINE, set line numbers to MIN-LINE.
 If line numbers is greater than MAX-LINE, set line numbers to MAX-LINE.
-The reason for this fix is because some compilers might report 
+The reason for this fix is because some compilers might report
 line number outside the file being compiled."
   (let* ((count     (length err-info-list))
 	 (err-info  nil)
@@ -1039,7 +1026,7 @@ Convert it to flymake internal format."
      (" *\\(\\[javac\\]\\)? *\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)\:\\([0-9]+\\)\:[ \t\n]*\\(.+\\)"
       2 4 nil 5))
    ;; compilation-error-regexp-alist)
-   (flymake-reformat-err-line-patterns-from-compile-el compilation-error-regexp-alist-alist)) 
+   (flymake-reformat-err-line-patterns-from-compile-el compilation-error-regexp-alist-alist))
   "patterns for matching error/warning lines, (regexp file-idx line-idx err-text-idx). Use flymake-reformat-err-line-patterns-from-compile-el to add patterns from compile.el")
 
 					;(defcustom flymake-err-line-patterns
@@ -1237,7 +1224,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
     (error
      (flymake-log 1 "Failed to delete dir %s, error ignored" dir-name))))
 
-(defcustom flymake-compilation-prevents-syntax-check t 
+(defcustom flymake-compilation-prevents-syntax-check t
   "If non-nil, syntax check won't be started in case compilation is running."
   :group 'flymake
   :type 'boolean)
@@ -1799,7 +1786,7 @@ Delete temp file."
     (flymake-set-buffer-last-change-time buffer nil)))
 
 (defun flymake-get-real-file-name (buffer file-name-from-err-msg)
-  "Translate file name from error message to `real' file name. 
+  "Translate file name from error message to `real' file name.
 Return full-name. Names are real, not patched."
   (let* ((real-name              nil)
 	 (source-file-name       (buffer-file-name buffer))
