@@ -1148,8 +1148,8 @@ uninitialized, you should not see this.")
 			       (unknown "?" italic "\
 unknown, you should not see this.")
 			       (hidden "-" default "\
-hidden, invoke the dots above to show." "\
-group now hidden, invoke the dots above to show contents.")
+hidden, invoke \"Show\" in the previous line to show." "\
+group now hidden, invoke \"Show\", above, to show contents.")
 			       (invalid "x" custom-invalid-face "\
 the value displayed for this %c is invalid and cannot be set.")
 			       (modified "*" custom-modified-face "\
