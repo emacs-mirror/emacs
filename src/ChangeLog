@@ -1,3 +1,8 @@
+2004-05-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* fileio.c (barf_or_query_if_file_exists): Use lstat.
+	(Frename_file): Handle renaming of symlinks across file systems.
+
 2004-05-04  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (Qtotal): New var.
