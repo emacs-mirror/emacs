@@ -31,6 +31,17 @@
 
 	* eval.c (Fdefmacro): Doc fix.
 
+2002-07-05  Dave Love  <fx@gnu.org>
+
+	* keyboard.c (read_key_sequence): Set initial_idleness_start_time
+	correctly.
+
+	* ccl.c (Vtranslation_hash_table_vector, GET_HASH_TABLE)
+	(HASH_VALUE, CCL_LookupIntConstTbl, CCL_LookupCharConstTbl): New.
+	(ccl_driver): Add cases for CCL_LookupIntConstTbl,
+	CCL_LookupCharConstTbl.
+	(syms_of_ccl): Defvar translation-hash-table-vector.
+
 2002-07-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xdisp.c: Remove unused variable `face'.
