@@ -1477,6 +1477,30 @@ If omitted or nil, that stands for the selected frame's display."
      (t
       (> (tty-color-gray-shades display) 2)))))
 
+(defun display-supports-face-attributes-p (attributes &optional display)
+  "Return non-nil if all the face attributes in ATTRIBUTES are supported.
+The optional argument DISPLAY can be a display name, a frame, or
+nil (meaning the selected frame's display)
+
+The definition of `supported' is somewhat heuristic, but basically means
+that a face containing all the attributes in ATTRIBUTES, when merged
+with the default face for display, can be represented in a way that's
+
+ (1) different in appearance than the default face, and
+ (2) `close in spirit' to what the attributes specify, if not exact.
+
+Point (2) implies that a `:weight black' attribute will be satisified by
+any display that can display bold, and a `:foreground \"yellow\"' as long
+as it can display a yellowish color, but `:slant italic' will _not_ be
+satisified by the tty display code's automatic substitution of a `dim'
+face for italic."
+  (let ((frame (car (frames-on-display-list display))))
+    ;; For now, we assume that non-tty displays can support everything.
+    ;; Later, we should add the ability to query about specific fonts,
+    ;; colors, etc.
+    (or (memq (framep frame) '(x w32 mac))
+	(tty-supports-face-attributes-p attributes frame))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Background mode.
