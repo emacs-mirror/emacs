@@ -2063,14 +2063,14 @@ and entirely reject menu bindings.\n\
 If optional 4th arg NOINDIRECT is non-nil, don't follow indirections\n\
 to other keymaps or slots.  This makes it possible to search for an\n\
 indirect definition itself.")
-  (definition, keymap, firstonly, noindirect)
-     Lisp_Object definition, keymap;
+  (definition, xkeymap, firstonly, noindirect)
+     Lisp_Object definition, xkeymap;
      Lisp_Object firstonly, noindirect;
 {
   Lisp_Object maps;
   Lisp_Object found, sequences;
   Lisp_Object keymap1;
-  int keymap_specified = !NILP (keymap);
+  int keymap_specified = !NILP (xkeymap);
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   /* 1 means ignore all menu bindings entirely.  */
   int nomenus = !NILP (firstonly) && !EQ (firstonly, Qnon_ascii);
@@ -2079,7 +2079,7 @@ indirect definition itself.")
      context.  But don't muck with the value of `keymap',
      because `where_is_internal_1' uses it to check for
      shadowed bindings. */
-  keymap1 = keymap;
+  keymap1 = xkeymap;
   if (! keymap_specified)
     keymap1 = get_local_map (PT, current_buffer, keymap);
     
@@ -2089,7 +2089,7 @@ indirect definition itself.")
 					Qnil));
   else
     {
-      keymap1 = keymap;
+      keymap1 = xkeymap;
       if (! keymap_specified)
 	keymap1 = get_local_map (PT, current_buffer, local_map);
     
@@ -2115,7 +2115,7 @@ indirect definition itself.")
 	}
     }
 
-  GCPRO5 (definition, keymap, maps, found, sequences);
+  GCPRO5 (definition, xkeymap, maps, found, sequences);
   found = Qnil;
   sequences = Qnil;
 
@@ -2168,7 +2168,7 @@ indirect definition itself.")
 		  binding = XVECTOR (elt)->contents[i];
 		  XSETFASTINT (key, i);
 		  sequence = where_is_internal_1 (binding, key, definition,
-						  noindirect, keymap, this,
+						  noindirect, xkeymap, this,
 						  last, nomenus, last_is_meta);
 		  if (!NILP (sequence))
 		    sequences = Fcons (sequence, sequences);
@@ -2180,7 +2180,7 @@ indirect definition itself.")
 	      Lisp_Object args;
 
 	      args = Fcons (Fcons (Fcons (definition, noindirect),
-				   Fcons (keymap, Qnil)),
+				   Fcons (xkeymap, Qnil)),
 			    Fcons (Fcons (this, last),
 				   Fcons (make_number (nomenus),
 					  make_number (last_is_meta))));
@@ -2197,7 +2197,7 @@ indirect definition itself.")
 	      binding = XCDR (elt);
 
 	      sequence = where_is_internal_1 (binding, key, definition,
-					      noindirect, keymap, this,
+					      noindirect, xkeymap, this,
 					      last, nomenus, last_is_meta);
 	      if (!NILP (sequence))
 		sequences = Fcons (sequence, sequences);
