@@ -242,9 +242,15 @@ as a Lisp variable).  The default for @var{setfunction} is
 @item :get @var{getfunction}
 Specify @var{getfunction} as the way to extract the value of this
 option.  The function @var{getfunction} should take one argument, a
-symbol, and should return the ``current value'' for that symbol (which
-need not be the symbol's Lisp value).  The default is
-@code{default-value}.
+symbol, and should return whatever customize should use as the
+``current value'' for that symbol (which need not be the symbol's Lisp
+value).  The default is @code{default-value}.
+
+You have to really understand the workings of Custom to use
+@code{:get} correctly.  It is meant for values that are treated in
+Custom as variables but are not actually stored in Lisp variables.  It
+is almost surely a mistake to specify @code{getfunction} for a value
+that really is stored in a Lisp variable.
 
 @item :initialize @var{function}
 @var{function} should be a function used to initialize the variable when
@@ -255,8 +261,7 @@ this way:
 @table @code
 @item custom-initialize-set
 Use the variable's @code{:set} function to initialize the variable, but
-do not reinitialize it if it is already non-void.  This is the default
-@code{:initialize} function.
+do not reinitialize it if it is already non-void.
 
 @item custom-initialize-default
 Like @code{custom-initialize-set}, but use the function
@@ -267,9 +272,10 @@ defining the variable will not call the minor mode function, but
 customizing the variable will do so.
 
 @item custom-initialize-reset
-Always use the @code{:set} function to initialize the variable.  If the
-variable is already non-void, reset it by calling the @code{:set}
+Always use the @code{:set} function to initialize the variable.  If
+the variable is already non-void, reset it by calling the @code{:set}
 function using the current value (returned by the @code{:get} method).
+This is the default @code{:initialize} function.
 
 @item custom-initialize-changed
 Use the @code{:set} function to initialize the variable, if it is
