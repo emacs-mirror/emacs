@@ -2149,7 +2149,7 @@ Members should `:load' the package `font-lock' to use this widget."
   :args '((const :tag "none" nil)
 	  (repeat :tag "types" regexp)))
 
-(defcustom c-font-lock-extra-types '("FILE" "\\sw+_t")
+(defcustom c-font-lock-extra-types '("FILE" "\\sw+_t" "Lisp_Object")
   "*List of extra types to fontify in C mode.
 Each list item should be a regexp not containing word-delimiters.
 For example, a value of (\"FILE\" \"\\\\sw+_t\") means the word FILE and words
