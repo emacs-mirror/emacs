@@ -126,7 +126,12 @@ in that frame; otherwise change each frame."
 
 ;;;; Associating face names (symbols) with their face vectors.
 
-(defvar global-face-data nil "do not use this")
+(defvar global-face-data nil
+  "Internal data for face support functions.  Not for external use.
+This is an alist associating face names with the default values for
+their parameters.  Newly created frames get their data from here.")
+
+do not use this")
 
 (defun face-list ()
   "Returns a list of all defined face names."
