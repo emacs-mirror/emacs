@@ -401,44 +401,6 @@ adjust_markers_for_delete (from, from_byte, to, to_byte)
     }
 }
 
-/* Adjust all markers for a byte combining of NBYTES at char position
-   FROM and byte position FROM_BYTE.  */
-
-static void
-adjust_markers_for_combining (from, from_byte, nbytes)
-     register int from, from_byte, nbytes;
-{
-  Lisp_Object marker;
-  register struct Lisp_Marker *m;
-  register int bytepos;
-  register int to_byte = from_byte + nbytes;
-
-  marker = BUF_MARKERS (current_buffer);
-
-  while (!NILP (marker))
-    {
-      m = XMARKER (marker);
-      bytepos = m->bytepos;
-
-      if (bytepos >= to_byte)
-	{
-	  record_marker_adjustment (marker,  - nbytes);
-	  m->charpos -= nbytes;
-	}
-      else if (bytepos > from_byte)
-	{
-	  record_marker_adjustment (marker,  from - m->charpos);
-	  m->charpos = from;
-	  m->bytepos = to_byte;
-	}
-      else if (bytepos == from_byte)
-	{
-	  m->bytepos = to_byte;
-	}
-
-      marker = m->chain;
-    }
-}
 
 /* Adjust all markers for calling record_delete for combining bytes.
    whose range in bytes is FROM_BYTE to TO_BYTE.
@@ -605,7 +567,8 @@ adjust_markers_for_replace (from, from_byte, old_chars, old_bytes,
 {
   Lisp_Object marker = BUF_MARKERS (current_buffer);
   int prev_to_byte = from_byte + old_bytes;
-  int diff_chars = new_chars - old_chars;
+  int diff_chars
+    = (new_chars - combined_before_bytes) - (old_chars + combined_after_bytes);
   int diff_bytes = new_bytes - old_bytes;
 
   while (!NILP (marker))
@@ -617,26 +580,30 @@ adjust_markers_for_replace (from, from_byte, old_chars, old_bytes,
 	  if (m->bytepos < prev_to_byte + combined_after_bytes)
 	    {
 	      /* Put it after the combining bytes.  */
-	      m->bytepos = from_byte + new_bytes;
-	      m->charpos = from + new_chars;
+	      m->bytepos = from_byte + new_bytes + combined_after_bytes;
+	      m->charpos = from + new_chars - combined_before_bytes;
 	    }
 	  else
 	    {
 	      m->charpos += diff_chars;
 	      m->bytepos += diff_bytes;
 	    }
-	  if (m->charpos == from + new_chars)
-	    record_marker_adjustment (marker, - old_chars);
 	}
-      else if (m->bytepos > from_byte)
+      else if (m->bytepos >= from_byte)
 	{
-	  record_marker_adjustment (marker, from - m->charpos);
 	  m->charpos = from;
-	  m->bytepos = from_byte;
+	  m->bytepos = from_byte + combined_before_bytes;
+	  /* If all new bytes are combined in addition to that there
+             are after combining bytes, we must set byte position of
+             the marker after the after combining bytes.  */
+	  if (combined_before_bytes == new_bytes)
+	    m->bytepos += combined_after_bytes;
 	}
 
       marker = m->chain;
     }
+
+  CHECK_MARKERS ();
 }
 
 
@@ -1037,15 +1004,17 @@ count_combining_after (string, length, pos, pos_byte)
 /* Combine NBYTES stray trailing-codes, which were formerly separate
    characters, with the preceding character.  These bytes
    are located after position POS / POS_BYTE, and the preceding character
-   is located just before that position.  */
+   is located just before that position.
+
+   This function does not adjust markers for byte combining.  That
+   should be done in advance by the functions
+   adjust_markers_for_insert, adjust_markers_for_delete, or
+   adjust_markers_for_replace.  */
 
 static void
 combine_bytes (pos, pos_byte, nbytes)
      int pos, pos_byte, nbytes;
 {
-  /* Adjust all markers.  */
-  adjust_markers_for_combining (pos, pos_byte, nbytes);
-
   adjust_overlays_for_delete (pos, nbytes);
 
   ADJUST_CHAR_POS (BUF_PT (current_buffer), BUF_PT_BYTE (current_buffer));
@@ -1056,8 +1025,6 @@ combine_bytes (pos, pos_byte, nbytes)
   if (BUF_INTERVALS (current_buffer) != 0)
     /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES.  */
     offset_intervals (current_buffer, pos, - nbytes);
-
-  CHECK_MARKERS ();
 }
 
 /* Insert a sequence of NCHARS chars which occupy NBYTES bytes
