@@ -93,7 +93,10 @@ See definition of `print-region-1' for calling conventions.")
       (if page-headers
 	  (if lpr-headers-switches
 	      ;; On BSD, use an option to get page headers.
-	      (setq switches (append lpr-headers-switches switches))
+	      (setq switches (append (if (stringp lpr-headers-switches)
+					 (list lpr-headers-switches)
+				        lpr-headers-switches)
+				     switches))
 	    (print-region-new-buffer start end)
 	    (call-process-region start end "pr" t t nil)
 	    (setq start (point-min) end (point-max))))
