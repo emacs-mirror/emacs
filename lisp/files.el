@@ -2197,10 +2197,15 @@ If `revert-buffer-function' is used to override the normal revert
 mechanism, this hook is not used.")
 
 (defun revert-buffer (&optional ignore-auto noconfirm preserve-modes)
-  "Replace the buffer text with the text of the visited file on disk.
+  "Replace current buffer text with the text of the visited file on disk.
 This undoes all changes since the file was visited or saved.
 With a prefix argument, offer to revert from latest auto-save file, if
 that is more recent than the visited file.
+
+This command also works for special buffers that contain text which
+doesn't come from a file, but reflects some other data base instead:
+for example, Dired buffers and buffer-list buffers.  In these cases,
+it reconstructs the buffer contents from the appropriate data base.
 
 When called from Lisp, the first argument is IGNORE-AUTO; only offer
 to revert from the auto-save file when this is nil.  Note that the
@@ -2215,10 +2220,11 @@ Optional third argument PRESERVE-MODES non-nil means don't alter
 the files modes.  Normally we reinitialize them using `normal-mode'.
 
 If the value of `revert-buffer-function' is non-nil, it is called to
-do the work.
+do all the work for this command.  Otherwise, the hooks
+`before-revert-hook' and `after-revert-hook' are run at the beginning
+and the end, and if `revert-buffer-insert-file-contents-function' is
+non-nil, it is called instead of rereading visited file contents."
 
-The default revert function runs the hook `before-revert-hook' at the
-beginning and `after-revert-hook' at the end."
   ;; I admit it's odd to reverse the sense of the prefix argument, but
   ;; there is a lot of code out there which assumes that the first
   ;; argument should be t to avoid consulting the auto-save file, and
@@ -2536,6 +2542,10 @@ by `sh' are supported."
 	     result
 	     (concat result
 		     (cond
+		      ((and (eq ch ?\[)
+			    (< (1+ i) len)
+			    (eq (aref wildcard (1+ i)) ?\]))
+		       "\\[")
 		      ((eq ch ?\[)	; [...] maps to regexp char class
 		       (progn
 			 (setq i (1+ i))
