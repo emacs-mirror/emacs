@@ -1,7 +1,13 @@
+2000-12-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keymap.c (get_keyelt): Only eval the filter if `autoload' is set.
+
+	* keyboard.c (menu_bar_items, tool_bar_items):
+	Set `autoload' when looking up `tool-bar' or `menu-bar' submap.
+
 2000-12-13  Gerd Moellmann  <gerd@gnu.org>
 
-	* xterm.c (x_term_init): Declare gray_bitmap_bits as `extern
-	char *'
+	* xterm.c (x_term_init): Declare gray_bitmap_bits as `extern char *'.
 
 	* xfns.c (gray_bitmap_bits): Declare `char *'.
 
