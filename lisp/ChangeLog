@@ -1,3 +1,8 @@
+2004-12-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buff-menu.el (Buffer-menu-revert-function): Clear out undo info
+	before reverting and disable undo recording while reverting.
+
 2004-12-26  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/hideshow.el (hs-set-up-overlay): New user var.
