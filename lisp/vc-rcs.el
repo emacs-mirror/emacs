@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.7 2000/09/22 11:57:30 gerd Exp $
+;; $Id: vc-rcs.el,v 1.8 2000/10/01 11:17:42 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -29,7 +29,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'vc))	;for macros defined there
+  (require 'cl))
 
 (defcustom vc-rcs-release nil
   "*The release number of your RCS installation, as a string.
@@ -716,8 +716,12 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
 If this leaves the RCS subdirectory empty, ask the user
 whether to remove it."
   (let* ((master (vc-name file))
-	 (dir (file-name-directory master)))
-    (delete-file master)
+	 (dir (file-name-directory master))
+	 (backup-info (find-backup-file-name master)))
+    (if (not backup-info)
+	(delete-file master)
+      (rename-file master (car backup-info) 'ok-if-already-exists)
+      (dolist (f (cdr backup-info)) (ignore-errors (delete-file f))))
     (and (string= (file-name-nondirectory (directory-file-name dir)) "RCS")
 	 ;; check whether RCS dir is empty, i.e. it does not
 	 ;; contain any files except "." and ".."
@@ -733,22 +737,20 @@ whether to remove it."
 	(state (vc-state file))
 	(checkout-model (vc-checkout-model file))
 	(comment (and move (vc-call comment-history file))))
-    (if move (vc-unregister file old-backend))
+    (if move (vc-unregister file))
     (vc-file-clearprops file)
     (if (not (vc-rcs-registered file))
 	(progn
-	  (with-vc-properties 
-	   file
-	   ;; TODO: If the file was 'edited under the old backend,
-	   ;; this should actually register the version 
-	   ;; it was based on.
-	   (vc-rcs-register file rev "")
-	   `((vc-backend ,backend)))
+	  ;; TODO: If the file was 'edited under the old backend,
+	  ;; this should actually register the version 
+	  ;; it was based on.
+	  (vc-rcs-register file rev "")
+	  (vc-file-setprop file 'vc-backend 'RCS)
 	  (if (eq checkout-model 'implicit)
 	      (vc-rcs-set-non-strict-locking file))
 	  (if (not move)
 	      (vc-do-command nil 0 "rcs" file (concat "-b" rev ".1"))))
-      (vc-file-setprop file 'vc-backend backend)
+      (vc-file-setprop file 'vc-backend 'RCS)
       (vc-file-setprop file 'vc-state 'edited)
       (set-file-modes file
 		      (logior (file-modes file) 128)))

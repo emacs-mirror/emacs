@@ -150,6 +150,7 @@
 (require 'vc-hooks)
 (require 'ring)
 (eval-when-compile
+  (require 'cl)
   (require 'compile)
   (require 'dired)      ; for dired-map-over-marks macro
   (require 'dired-aux))	; for dired-kill-{line,tree}
@@ -492,8 +493,7 @@ of two-element lists, each of which has the form (PROPERTY VALUE)."
 
 (defsubst vc-editable-p (file)
   (or (eq (vc-checkout-model file) 'implicit)
-      (eq (vc-state file) 'edited)
-      (eq (vc-state file) 'needs-merge)))
+      (memq (vc-state file) '(edited needs-merge))))
 
 ;;; Two macros for elisp programming
 ;;;###autoload
@@ -522,7 +522,7 @@ This macro uses `with-vc-file', passing args to it.
 However, before executing BODY, find FILE, and after BODY, save buffer."
   `(with-vc-file
     ,file ,comment
-    (find-file ,file)
+    (set-buffer (find-file-noselect ,file))
     ,@body
     (save-buffer)))
 
@@ -821,7 +821,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
       ;; will check whether the file on disk is newer.
       (if vc-dired-mode
 	  (find-file-other-window file)
-	(find-file file))
+	(set-buffer (find-file-noselect file)))
       (if (not (verify-visited-file-modtime (current-buffer)))
 	  (if (yes-or-no-p "Replace file on disk with buffer contents? ")
 	      (write-file (buffer-file-name))
@@ -1067,7 +1067,7 @@ first backend that could register the file is used."
                   "Enter initial comment."
 		  (lambda (file rev comment)
 		    (message "Registering %s... " file)
-		    (let ((backend (vc-responsible-backend file)))
+		    (let ((backend (vc-find-new-backend file)))
 		      (vc-file-clearprops file)
 		      (vc-call-backend backend 'register file rev comment)
 		      (vc-file-setprop file 'vc-backend backend)
@@ -1076,27 +1076,34 @@ first backend that could register the file is used."
 			(setq backup-inhibited t)))
 		    (message "Registering %s... done" file))))
 
-(defun vc-responsible-backend (file &optional register)
+(defun vc-responsible-backend (file &optional backends)
   "Return the name of the backend system that is responsible for FILE.
 If no backend in variable `vc-handled-backends' declares itself
-responsible, the first backend in that list will be returned (if optional
-arg REGISTER is non-nil, return the first backend that could register the
-file).
-FILE can also be a directory name (ending with a slash)."
-  (if (null vc-handled-backends)
-      (error "Cannot register, no backends in `vc-handled-backends'"))
-  (or (and (not (file-directory-p file)) (vc-backend file))
-      (catch 'found
-	(mapcar (lambda (backend)
-		  (if (vc-call-backend backend 'responsible-p file)
-		      (throw 'found backend)))
-		vc-handled-backends)
-	(if register
-	    (mapcar (lambda (backend)
-		      (if (vc-call-backend backend 'could-register file)
-			  (throw 'found backend)))
-		    vc-handled-backends)
-	  (car vc-handled-backends)))))
+responsible, the first backend in that list will be returned.
+FILE can also be a directory name (ending with a slash).
+If BACKENDS is non-nil it overrides any current backend or
+`vc-handled-backends'."
+  (or (and (not backends) (not (file-directory-p file)) (vc-backend file))
+      (progn
+	(unless backends (setq backends vc-handled-backends))
+	(unless backends (error "No reponsible backend"))
+	(catch 'found
+	  (dolist (backend backends)
+	    (if (vc-call-backend backend 'responsible-p file)
+		(throw 'found backend)))
+	  (car backends)))))
+
+(defun vc-find-new-backend (file)
+  "Find a new backend to register FILE."
+  (let (backends)
+    ;; We can't register if it's already registered
+    (dolist (backend vc-handled-backends)
+      (when (and (not (vc-call-backend backend 'registered file))
+		 (vc-call-backend backend 'could-register file))
+	(push backend backends)))
+    (unless backends
+      (error "Cannot register, no appropriate backend in `vc-handled-backends'"))
+    (vc-responsible-backend file (nreverse backends))))
 
 (defun vc-default-responsible-p (backend file)
   "Indicate whether BACKEND is reponsible for FILE.  
@@ -1108,13 +1115,13 @@ The default is to return nil always."
 The default implementation returns t for all files."
   t)
 
-(defun vc-unregister (file backend)
+(defun vc-unregister (file)
   "Unregister FILE from version control system BACKEND."
-  (vc-call-backend backend 'unregister file)
+  (vc-call unregister file)
   (vc-file-clearprops file))
 
 (defun vc-default-unregister (backend file)
-  "Default implementation of vc-unregister, signals an error."
+  "Default implementation of `vc-unregister', signals an error."
   (error "Unregistering files is not supported for %s" backend))
 
 (defun vc-resynch-window (file &optional keep noquery)
@@ -1588,7 +1595,7 @@ I.e. reset them to the non-expanded form."
 	      (save-excursion
 		(vc-call-backend backend 'clear-headers))
 	      (vc-restore-buffer-context context))
-	  (find-file filename)
+	  (set-buffer (find-file-noselect filename))
 	  (vc-call-backend backend 'clear-headers)
 	  (kill-buffer filename)))))
 
@@ -2138,9 +2145,8 @@ it if their logs are not in RCS format."
 (defun vc-revert-buffer ()
   "Revert the current buffer's file back to the version it was based on.
 This asks for confirmation if the buffer contents are not identical
-to that version.  Note that for RCS and CVS, this function does not
-automatically pick up newer changes found in the master file;
-use \\[universal-argument] \\[vc-next-action] to do so."
+to that version.  This function does not automatically pick up newer
+changes found in the master file; use \\[universal-argument] \\[vc-next-action] to do so."
   (interactive)
   (vc-ensure-vc-buffer)
   (let ((file buffer-file-name)
@@ -2153,9 +2159,9 @@ use \\[universal-argument] \\[vc-next-action] to do so."
       (unwind-protect
 	  (if (not (yes-or-no-p "Discard changes? "))
 	      (error "Revert canceled"))
-	(if (or (window-dedicated-p (selected-window))
-		(one-window-p t 'selected-frame))
-	    (make-frame-invisible (selected-frame))
+	(if (and (window-dedicated-p (selected-window))
+		 (one-window-p t))
+	    (make-frame-invisible)
 	  (delete-window))))
     (set-buffer obuf)
     ;; Do the reverting
@@ -2218,14 +2224,34 @@ A prefix argument NOREVERT means do not revert the buffer afterwards."
 
 ;;;autoload
 (defun vc-switch-backend (file backend)
-  "Make BACKEND the current version control system for FILE.  
+  "Make BACKEND the current version control system for FILE.
 FILE must already be registered in BACKEND.  The change is not
 permanent, only for the current session.  This function only changes
-VC's perspective on FILE, it does not register or unregister it."
-  (interactive 
+VC's perspective on FILE, it does not register or unregister it.
+By default, this command cycles through the registered backends.
+To get a prompt, use a prefix argument."
+  (interactive
    (list
     buffer-file-name
-    (intern (upcase (read-string "Switch to backend: ")))))
+    (let ((backend (vc-backend buffer-file-name))
+	  (backends nil))
+      ;; Find the registered backends.
+      (dolist (backend vc-handled-backends)
+	(when (vc-call-backend backend 'registered buffer-file-name)
+	  (push backend backends)))
+      ;; Find the next backend.
+      (let ((def (car (delq backend (memq backend (append backends backends)))))
+	    (others (delete backend backends)))
+	(cond
+	 ((null others) (error "No other backend to switch to"))
+	 (current-prefix-arg
+	  (intern
+	   (upcase
+	    (completing-read
+	     (format "Switch to backend [%s]: " def)
+	     (mapcar (lambda (b) (list (downcase (symbol-name b)))) backends)
+	     nil t nil nil (downcase (symbol-name def))))))
+       (t def))))))
   (unless (vc-call-backend backend 'registered file)
     (error "%s is not registered in %s" file backend))
   (vc-file-clearprops file)
@@ -2265,7 +2291,7 @@ of the log entry buffer."
 	(rev (vc-workfile-version file))
 	(state (vc-state file))
 	(comment (and move (vc-call comment-history file))))
-    (if move (vc-unregister file old-backend))
+    (if move (vc-unregister file))
     (vc-file-clearprops file)
     (if (not (vc-call-backend backend 'registered file))
 	(with-vc-properties 
