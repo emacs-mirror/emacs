@@ -3305,7 +3305,8 @@ non-nil, it is called instead of rereading visited file contents."
 			  ;; Auto-saved file shoule be read without
 			  ;; any code conversion.
 			  (if auto-save-p 'emacs-mule-unix
-			    coding-system-for-read)))
+			    (or coding-system-for-read
+				buffer-file-coding-system))))
 		     ;; This force
 		     ;; after-insert-file-set-buffer-file-coding-system
 		     ;; (called from insert-file-contents) to set
