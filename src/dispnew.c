@@ -3552,13 +3552,6 @@ update_frame (f, force_p, inhibit_hairy_id_p)
 	      tem = f->current_tool_bar_string;
 	      f->current_tool_bar_string = f->desired_tool_bar_string;
 	      f->desired_tool_bar_string = tem;
-	      f->n_current_tool_bar_items = f->n_desired_tool_bar_items;
-	      
-	      /* Swap tool-bar items.  We swap because we want to
-		 reuse vectors.  */
-	      tem = f->current_tool_bar_items;
-	      f->current_tool_bar_items = f->desired_tool_bar_items;
-	      f->desired_tool_bar_items = tem;
 	    }
 	}
   
