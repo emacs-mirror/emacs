@@ -97,6 +97,14 @@ The format is (FUNCTION ARGS...).")
   'help-echo (purecopy "mouse-2, RET: customize variable")
   'action #'help-button-action)
 
+(define-button-type 'help-customize-face
+  'help-function (lambda (v)
+		   (if help-xref-stack
+		       (pop help-xref-stack))
+		   (customize-face v))
+  'help-echo (purecopy "mouse-2, RET: customize face")
+  'action #'help-button-action)
+
 (define-button-type 'help-function-def
   'help-function (lambda (fun file)
 		   (require 'find-func)
