@@ -216,15 +216,17 @@ Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
   (define-key tex-mode-map "\C-c\C-o" 'tex-latex-block)
   (define-key tex-mode-map "\C-c\C-e" 'tex-close-latex-block)
   (define-key tex-mode-map "\C-c\C-u" 'tex-goto-last-unclosed-latex-block)
+  (define-key tex-mode-map [menu-bar tex tex-bibtex-file]
+    '("BibTeX File" . tex-bibtex-file))
   (define-key tex-mode-map [menu-bar tex tex-validate-region]
     '("Validate Region" . tex-validate-region))
   (define-key tex-mode-map [menu-bar tex validate-tex-buffer]
     '("Validate Buffer" . validate-tex-buffer))
   (define-key tex-mode-map [menu-bar tex tex-region]
-    '("Tex Region" . tex-region))
+    '("TeX Region" . tex-region))
   (define-key tex-mode-map [menu-bar tex tex-buffer]
-    '("Tex Buffer" . tex-buffer))
-  (define-key tex-mode-map [menu-bar tex tex-file] '("Tex File" . tex-file)))
+    '("TeX Buffer" . tex-buffer))
+  (define-key tex-mode-map [menu-bar tex tex-file] '("TeX File" . tex-file)))
 
 (put 'tex-region 'menu-enable 'mark-active)
 (put 'tex-validate-region 'menu-enable 'mark-active)
@@ -1072,7 +1074,7 @@ is provided, use the alternative command, `tex-alt-dvi-print-command'."
 
 (defun tex-alt-print ()
   "Print the .dvi file made by \\[tex-region], \\[tex-buffer] or \\[tex-file].
-Runs the shell command defined by tex-alt-dvi-print-command."
+Runs the shell command defined by `tex-alt-dvi-print-command'."
   (interactive)
   (tex-print t))
 
