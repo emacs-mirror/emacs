@@ -29,6 +29,7 @@ Boston, MA 02111-1307, USA.  */
 #include "termchar.h"
 #include "disptab.h"
 #include "keyboard.h"
+#include "blockinput.h"
 
 Lisp_Object Qwindowp, Qwindow_live_p;
 
@@ -3213,6 +3214,7 @@ by `current-window-configuration' (which see).")
   Lisp_Object new_current_buffer;
   Lisp_Object frame;
   FRAME_PTR f;
+  int old_point = -1;
 
   while (!WINDOW_CONFIGURATIONP (configuration))
     {
@@ -3226,6 +3228,11 @@ by `current-window-configuration' (which see).")
   new_current_buffer = data->current_buffer;
   if (NILP (XBUFFER (new_current_buffer)->name))
     new_current_buffer = Qnil;
+  else
+    {
+      if (XBUFFER (new_current_buffer) == current_buffer)
+	old_point = PT;
+    }
 
   frame = XWINDOW (SAVED_WINDOW_N (saved_windows, 0)->window)->frame;
   f = XFRAME (frame);
@@ -3245,6 +3252,10 @@ by `current-window-configuration' (which see).")
       int previous_frame_height = FRAME_HEIGHT (f);
       int previous_frame_width =  FRAME_WIDTH  (f);
       int previous_frame_menu_bar_lines = FRAME_MENU_BAR_LINES (f);
+
+      /* The mouse highlighting code could get screwed up
+	 if it runs during this.  */
+      BLOCK_INPUT;
 
       if (XFASTINT (data->frame_height) != previous_frame_height
 	  || XFASTINT (data->frame_width) != previous_frame_width)
@@ -3401,6 +3412,8 @@ by `current-window-configuration' (which see).")
       if (previous_frame_menu_bar_lines != FRAME_MENU_BAR_LINES (f))
 	x_set_menu_bar_lines (f, previous_frame_menu_bar_lines, 0);
 #endif
+
+      UNBLOCK_INPUT;
     }
 
   /* Restore the minimum heights recorded in the configuration.  */
@@ -3416,7 +3429,15 @@ by `current-window-configuration' (which see).")
     do_switch_frame (data->selected_frame, Qnil, 0);
 
   if (!NILP (new_current_buffer))
-    Fset_buffer (new_current_buffer);
+    {
+      Fset_buffer (new_current_buffer);
+
+      /* If the buffer that is current now is the same
+	 that was current before setting the window configuration,
+	 don't alter its PT.  */
+      if (old_point >= 0)
+	SET_PT (old_point);
+    }
 
   Vminibuf_scroll_window = data->minibuf_scroll_window;
 
