@@ -3,7 +3,7 @@
 ;; Maintainer: Noah Friedman <friedman@prep.ai.mit.edu>
 ;; Keywords: unix, comm
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 
 ;;; Commentary:
 
-;; Support for remote login over Internet using rlogin(1).
+;; Support for remote logins using `rlogin'.
 ;;
 ;; Todo: add directory tracking using ange-ftp style patchnames for the cwd.
 
@@ -51,6 +51,7 @@
        (define-key rlogin-mode-map "\C-c\C-\\" 'rlogin-send-Ctrl-backslash)
        (define-key rlogin-mode-map "\C-d" 'rlogin-delchar-or-send-Ctrl-D)))
 
+;;;###autoload
 (defun rlogin (host)
   (interactive "sOpen rlogin connection to host: ")
   (let* ((buffer-name (concat "rlogin-" host))
@@ -65,10 +66,12 @@
                (setq xargs (list host)))
              (set-buffer (apply 'make-comint buffer-name rlogin-program nil xargs))
              (setq proc (get-process buffer-name))
+             (set-marker (process-mark proc) (point-min))
              (set-process-filter proc 'rlogin-filter)
              (rlogin-mode))))
     (switch-to-buffer *buffer-name*)))
 
+;;;###autoload
 (defun rlogin-mode ()
   (interactive)
   (comint-mode)
@@ -79,22 +82,30 @@
   (run-hooks 'rlogin-mode-hook))
 
 (defun rlogin-filter (proc string)
-  (let ((process-buffer (process-buffer proc))
-        (at-eobp (eobp)))
-    (save-excursion
-      (set-buffer process-buffer)
-      (goto-char (point-max))
-      (let ((now (point))
-            process-mark)
-        (insert string)
-        (subst-char-in-region now (point) ?\C-m ?\ )
-        (subst-char-in-region now (point) ?\M-r ?\ )
-        (setq process-mark (process-mark proc))
-        (and process-mark
-            (set-marker process-mark (point)))))
-    (and at-eobp
-         (eq process-buffer (current-buffer))
-         (goto-char (point-max)))))
+  (let ((old-buffer (current-buffer))
+        (old-match-data (match-data))
+        at-max-pos
+        moving)
+    (unwind-protect
+        (progn
+          (set-buffer (process-buffer proc))
+          (setq moving (= (point) (process-mark proc)))
+          (save-excursion
+            (goto-char (process-mark proc))
+            (save-restriction
+              (let ((beg (point)))
+                (insert-before-markers string)
+                (narrow-to-region beg (point))
+                (goto-char (point-min))
+                (while (search-forward "\C-m" nil t)
+                  (delete-char -1))
+                (setq string (buffer-substring (point-min) (point-max)))
+                (goto-char (point-max))))
+            (set-marker (process-mark proc) (point)))
+          (and moving 
+               (goto-char (process-mark proc))))
+      (set-buffer old-buffer)
+      (store-match-data old-match-data))))
 
 (defun rlogin-send-Ctrl-C ()
   (interactive)
