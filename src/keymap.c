@@ -1566,13 +1566,7 @@ push_key_description (c, p)
 	  *p++ = 'A';
 	  *p++ = 'B';
 	}
-      else if (c == Ctl('J'))
-	{
-	  *p++ = 'L';
-	  *p++ = 'F';
-	  *p++ = 'D';
-	}
-      else if (c == Ctl('M'))
+      else if (c == Ctl ('M'))
 	{
 	  *p++ = 'R';
 	  *p++ = 'E';
