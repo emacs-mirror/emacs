@@ -1,3 +1,8 @@
+2004-11-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emulation/tpu-edt.el (tpu-help-keypad-map, tpu-help-text)
+	(tpu-word-separator-list, tpu-skip-chars): defconst->defvar.
+
 2004-11-29  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-arith.el (math-pow-of-zero): Take into account different
@@ -13,7 +18,7 @@
 	* replace.el (occur-next-error): switch to the Occur buffer when
 	appropriate, and use the exclusive filter to
 	next-error-find-buffer to do it.  Use the absolute value of the
-	motion amount.  
+	motion amount.
 
 2004-11-29  Kenichi Handa  <handa@m17n.org>
 
