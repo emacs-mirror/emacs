@@ -1,3 +1,8 @@
+2001-08-31  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* menu-bar.el (menu-bar-options-menu) <transient-mark-mode>: Fix
+	the menu entry to mention transient-mark-mode.
+
 2001-08-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* simple.el (eval-expression-print-level): Fix last change.
