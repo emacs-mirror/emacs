@@ -5575,8 +5575,11 @@ If FILE is nil, close any open dribble file.")
 {
   if (NILP (file))
     {
-      fclose (dribble);
-      dribble = 0;
+      if (dribble)
+	{
+	  fclose (dribble);
+	  dribble = 0;
+	}
     }
   else
     {
