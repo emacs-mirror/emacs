@@ -402,6 +402,7 @@ extern Lisp_Object Qmenu_enable;
 
 Lisp_Object recursive_edit_unwind (), command_loop ();
 Lisp_Object Fthis_command_keys ();
+Lisp_Object Qextended_command_history;
 
 /* Address (if not 0) of EMACS_TIME to zero out if a SIGIO interrupt
    happens.  */
@@ -4548,11 +4549,11 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 
   /* Prompt with buf, and then read a string, completing from and
      restricting to the set of all defined commands.  Don't provide
-     any initial input.  The last Qnil says not to perform a 
-     peculiar hack on the initial input.  */
+     any initial input.  Save the command read on the extended-comman
+     history list. */
   function = Fcompleting_read (build_string (buf),
 			       Vobarray, Qcommandp,
-			       Qt, Qnil, Qnil);
+			       Qt, Qnil, Qextended_command_history);
 
   /* Set this_command_keys to the concatenation of saved_keys and
      function, followed by a RET.  */
@@ -5213,6 +5214,10 @@ syms_of_keyboard ()
 
   this_command_keys = Fmake_vector (make_number (40), Qnil);
   staticpro (&this_command_keys);
+
+  Qextended_command_history = intern ("extended-command-history");
+  Fset (Qextended_command_history, Qnil);
+  staticpro (&Qextended_command_history);
 
   kbd_buffer_frame_or_window
     = Fmake_vector (make_number (KBD_BUFFER_SIZE), Qnil);
