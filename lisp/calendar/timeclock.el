@@ -144,6 +144,10 @@ that day has a different length from the norm."
 (defvar timeclock-update-timer nil
   "The timer used to update `timeclock-mode-string'.")
 
+;; For byte-compiler.
+(defvar display-time-hook)
+(defvar timeclock-modeline-display)
+
 (defcustom timeclock-use-display-time t
   "*If non-nil, use `display-time-hook' for doing modeline updates.
 The advantage to this is that it means one less timer has to be set
@@ -321,6 +325,10 @@ You must modify via \\[customize] for this variable to have an effect."
   :group 'timeclock
   :require 'timeclock)
 
+(defsubst timeclock-time-to-date (time)
+  "Convert the TIME value to a textual date string."
+  (format-time-string "%Y/%m/%d" time))
+
 ;;;###autoload
 (defun timeclock-in (&optional arg project find-project)
   "Clock in, recording the current time moment in the timelog.
@@ -392,13 +400,26 @@ discover the reason."
     (if arg
 	(run-hooks 'timeclock-done-hook))))
 
+(defsubst timeclock-workday-remaining (&optional today-only)
+  "Return the number of seconds until the workday is complete.
+The amount returned is relative to the value of `timeclock-workday'.
+If TODAY-ONLY is non-nil, the value returned will be relative only to
+the time worked today, and not to past time.  This argument only makes
+a difference if `timeclock-relative' is non-nil."
+  (let ((discrep (timeclock-find-discrep)))
+    (if discrep
+	(if today-only
+	    (- (cadr discrep))
+	  (- (car discrep)))
+      0.0)))
+
 ;;;###autoload
 (defun timeclock-status-string (&optional show-seconds today-only)
   "Report the overall timeclock status at the present moment."
   (interactive "P")
-  (let* ((remainder (timeclock-workday-remaining))
-	 (last-in (equal (car timeclock-last-event) "i"))
-	 status)
+  (let ((remainder (timeclock-workday-remaining))
+        (last-in (equal (car timeclock-last-event) "i"))
+        status)
     (setq status
 	  (format "Currently %s since %s (%s), %s %s, leave at %s"
 		  (if last-in "IN" "OUT")
@@ -431,9 +452,11 @@ project you were working on."
 (defun timeclock-query-out ()
   "Ask the user before clocking out.
 This is a useful function for adding to `kill-emacs-query-functions'."
-  (if (and (equal (car timeclock-last-event) "i")
-	   (y-or-n-p "You're currently clocking time, clock out? "))
-      (timeclock-out)))
+  (and (equal (car timeclock-last-event) "i")
+       (y-or-n-p "You're currently clocking time, clock out? ")
+       (timeclock-out))
+  ;; Unconditionally return t for `kill-emacs-query-functions'.
+  t)
 
 ;;;###autoload
 (defun timeclock-reread-log ()
@@ -464,19 +487,6 @@ as with time remaining, where negative time really means overtime)."
 	    (if (< seconds 0) (if reverse-leader "+" "-") "")
 	    (truncate (/ (abs seconds) 60 60))
 	    (% (truncate (/ (abs seconds) 60)) 60))))
-
-(defsubst timeclock-workday-remaining (&optional today-only)
-  "Return the number of seconds until the workday is complete.
-The amount returned is relative to the value of `timeclock-workday'.
-If TODAY-ONLY is non-nil, the value returned will be relative only to
-the time worked today, and not to past time.  This argument only makes
-a difference if `timeclock-relative' is non-nil."
-  (let ((discrep (timeclock-find-discrep)))
-    (if discrep
-	(if today-only
-	    (- (cadr discrep))
-	  (- (car discrep)))
-      0.0)))
 
 (defsubst timeclock-currently-in-p ()
   "Return non-nil if the user is currently clocked in."
@@ -519,6 +529,18 @@ non-nil, the amount returned will be relative to past time worked."
     (if (interactive-p)
 	(message string)
       string)))
+
+(defsubst timeclock-time-to-seconds (time)
+  "Convert TIME to a floating point number."
+  (+ (* (car time) 65536.0)
+     (cadr time)
+     (/ (or (car (cdr (cdr time))) 0) 1000000.0)))
+
+(defsubst timeclock-seconds-to-time (seconds)
+  "Convert SECONDS (a floating point number) to an Emacs time structure."
+  (list (floor seconds 65536)
+	(floor (mod seconds 65536))
+	(floor (* (- seconds (ffloor seconds)) 1000000))))
 
 (defsubst timeclock-when-to-leave (&optional today-only)
   "Return a time value representing at when the workday ends today.
@@ -656,22 +678,6 @@ being logged for.  Normally only \"in\" events specify a project."
 	    (sec  (string-to-number (match-string 7)))
 	    (project (match-string 8)))
 	(list code (encode-time sec min hour mday mon year) project))))
-
-(defsubst timeclock-time-to-seconds (time)
-  "Convert TIME to a floating point number."
-  (+ (* (car time) 65536.0)
-     (cadr time)
-     (/ (or (car (cdr (cdr time))) 0) 1000000.0)))
-
-(defsubst timeclock-seconds-to-time (seconds)
-  "Convert SECONDS (a floating point number) to an Emacs time structure."
-  (list (floor seconds 65536)
-	(floor (mod seconds 65536))
-	(floor (* (- seconds (ffloor seconds)) 1000000))))
-
-(defsubst timeclock-time-to-date (time)
-  "Convert the TIME value to a textual date string."
-  (format-time-string "%Y/%m/%d" time))
 
 (defun timeclock-last-period (&optional moment)
   "Return the value of the last event period.
