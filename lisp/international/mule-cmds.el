@@ -2048,5 +2048,15 @@ If CODING-SYSTEM can't safely encode CHAR, return nil."
       ;; exclude.
       (substring enc2 0 i2))))
 
+;; Backwards compatibility.  These might be better with :init-value t,
+;; but that breaks loadup.
+(define-minor-mode unify-8859-on-encoding-mode
+  "Obsolete."
+  :group 'mule
+  :global t)
+(define-minor-mode unify-8859-on-decoding-mode
+  "Obsolete."
+  :group 'mule
+  :global t)
 
 ;;; mule-cmds.el ends here
