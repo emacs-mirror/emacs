@@ -1,5 +1,4 @@
 ;;; c-mode.el --- C code editing commands for Emacs
-
 ;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -236,8 +235,9 @@ if that value is non-nil."
 
 (defun c-fill-paragraph (&optional arg)
   "Like \\[fill-paragraph] but handle C comments.
-If point is inside a comment, the current paragraph of the comment
-is filled, preserving the comment indentation or line-starting decorations."
+If any of the current line is a comment or within a comment,
+fill the comment or the paragraph of it that point is in,
+preserving the comment indentation or line-starting decorations."
   (interactive "P")
   (let ((first-line
 	 ;; Check for obvious entry to comment.
@@ -248,9 +248,12 @@ is filled, preserving the comment indentation or line-starting decorations."
     (if (or first-line
 	    ;; t if we enter a comment between start of function and this line.
 	    (eq (calculate-c-indent) t)
-	    ;; See if we enter a comment between beg-of-line and here.
-	    (nth 4 (parse-partial-sexp (save-excursion (beginning-of-line) (point))
-				       (point) 0)))
+	    ;; t if this line contains a comment starter.
+	    (save-excursion (beginning-of-line)
+			    (re-search-forward comment-start-skip
+					       (save-excursion (end-of-line)
+							       (point))
+					       t)))
 	;; Inside a comment: fill one comment paragraph.
 	(let ((fill-prefix
 	       ;; The prefix for each line of this paragraph
@@ -534,7 +537,6 @@ Returns nil if line starts inside a string, t if in a comment."
 				    (backward-sexp 1)
 				  (error))
 				(beginning-of-line)
-				(setq tem (point))
 				(looking-at "DEFUN\\b"))
 			      c-argdecl-indent
 			    (if (and (looking-at "\\sw\\|\\s_")
