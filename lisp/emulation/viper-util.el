@@ -577,6 +577,7 @@
   (vip-change-cursor-color vip-replace-overlay-cursor-color)
   )
   
+
   
 (defsubst vip-hide-replace-overlay ()
   (vip-set-replace-overlay-glyphs nil nil)
@@ -643,7 +644,7 @@
 
 ;;; XEmacs compatibility
     
-;; Sit for VAL miliseconds. XEmacs doesn't support the millisecond arg 
+;; Sit for VAL milliseconds. XEmacs doesn't support the millisecond arg 
 ;; in sit-for, so this function smoothes out the differences.
 (defsubst vip-sit-for-short (val &optional nodisp)
   (if vip-xemacs-p
@@ -674,6 +675,10 @@
   (if vip-xemacs-p
       (zmacs-deactivate-region)
     (deactivate-mark)))
+
+(defsubst vip-leave-region-active ()
+  (if vip-xemacs-p
+      (setq zmacs-region-stays t)))
 
     
 (defsubst vip-events-to-keys (events)
