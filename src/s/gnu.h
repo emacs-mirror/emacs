@@ -28,6 +28,8 @@ Boston, MA 02111-1307, USA.  */
 #undef SYSTEM_TYPE
 #define SYSTEM_TYPE "gnu"
 
+#undef NLIST_STRUCT
+
 /* XXX should getloadavg be in libc?  Should we have a libutil?
 #define HAVE_GETLOADAVG */
 #undef NLIST_STRUCT
