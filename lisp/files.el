@@ -258,8 +258,10 @@ Not actually set up until the first time you you use it.")
 	   (setq cd-list
 		 (nconc cd-list
 			(list (substitute-in-file-name
-			       (file-name-as-directory
-				(substring cd-path cd-start cd-colon))))))
+			       (if (= cd-start cd-colon)
+				   "."
+				 (file-name-as-directory
+				  (substring cd-path cd-start cd-colon)))))))
 	   (setq cd-start (+ cd-colon 1)))
 	 cd-list)))
 
