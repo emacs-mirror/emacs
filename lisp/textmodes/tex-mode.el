@@ -237,7 +237,7 @@ Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
 
 (defvar tex-shell-map nil
   "Keymap for the TeX shell.
-Inherits `comint-mode-map' with a few additions.")
+Inherits `shell-mode-map' with a few additions.")
 
 (defvar compare-windows-whitespace)	; Pacify the byte-compiler
 
@@ -825,7 +825,7 @@ line numbers for the errors."
       (set-process-sentinel proc 'tex-shell-sentinel)
       (process-kill-without-query proc)
       (setq comint-prompt-regexp shell-prompt-pattern)
-      (setq tex-shell-map (copy-keymap comint-mode-map))
+      (setq tex-shell-map (copy-keymap shell-mode-map))
       (tex-define-common-keys tex-shell-map)
       (use-local-map tex-shell-map)
       (run-hooks 'tex-shell-hook)
