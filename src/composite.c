@@ -468,7 +468,7 @@ run_composition_function (from, to, prop)
       && find_composition (to, -1, &start, &end, &prop, Qnil)
       && !COMPOSITION_VALID_P (start, end, prop))
     to = end;
-  if (!NILP (func))
+  if (!NILP (Ffboundp (func)))
     call2 (func, make_number (from), make_number (to));
   else if (!NILP (Ffboundp (Vcompose_chars_after_function)))
     call3 (Vcompose_chars_after_function,
