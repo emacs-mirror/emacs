@@ -226,17 +226,32 @@ and ignores this variable.")
 
 ;; Avoid losing in versions where CLASH_DETECTION is disabled.
 (or (fboundp 'lock-buffer)
-    (fset 'lock-buffer 'ignore))
+    (defalias 'lock-buffer 'ignore))
 (or (fboundp 'unlock-buffer)
-    (fset 'unlock-buffer 'ignore))
+    (defalias 'unlock-buffer 'ignore))
 
 (defun pwd ()
   "Show the current default directory."
   (interactive nil)
   (message "Directory %s" default-directory))
 
-(defun cd (dir)
-  "Make DIR become the current buffer's default directory."
+(defvar cd-path nil
+  "Value of the CDPATH environment variable, as a list.
+Not actually set up until the first time you you use it.")
+
+(defun parse-colon-path (cd-path)
+  "Explode a colon-separated list of paths into a string list."
+  (and cd-path
+       (let (cd-prefix cd-list (cd-start 0) cd-colon)
+	 (setq cd-path (concat cd-path ":"))
+	 (while (setq cd-colon (string-match ":" cd-path cd-start))
+	   (setq cd-list
+		 (nconc cd-list (list (substitute-in-file-name (file-name-as-directory (substring cd-path cd-start cd-colon))))))
+	   (setq cd-start (+ cd-colon 1)))
+	 cd-list)))
+
+(defun cd-absolute (dir)
+  "Change current directory to given absolute path DIR."
   (interactive "DChange default directory: ")
   (setq dir (expand-file-name dir))
   (if (not (eq system-type 'vax-vms))
@@ -246,10 +261,30 @@ and ignores this variable.")
     (if (file-executable-p dir)
 	(setq default-directory dir)
       (error "Cannot cd to %s:  Permission denied" dir)))
-  ;; We used to call pwd at this point.  That's not terribly helpful
-  ;; when we're invoking cd interactively, and the new cmushell-based
-  ;; shell has its own (better) facilities for this.
 )
+
+(defun cd (dir)
+  "Make DIR become the current buffer's default directory.
+If your environment imcludes a $CDPATH variable, cd tries each one of that
+colon-separated list of directories when resolving a relative cd."
+  (interactive "FChange default directory: ")
+  (if (= (aref dir 0) ?/)
+      (cd-absolute (expand-file-name dir))
+    (if (null cd-path)
+	(let ((trypath (parse-colon-path (getenv "CDPATH"))))
+	  (setq cd-path (or trypath "./"))))
+    (if (not (catch 'found
+	       (mapcar
+		(function (lambda (x)
+			    (let ((f (expand-file-name (concat x dir))))
+			      (if (file-directory-p f)
+				  (progn
+				    (cd-absolute f)
+				    (throw 'found t))))))
+		cd-path)
+	       nil))
+	(error "No such directory on your cd path.")))
+  )
 
 (defun load-file (file)
   "Load the Lisp file named FILE."
