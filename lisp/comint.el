@@ -388,7 +388,7 @@ field boundaries in a natural way)."
   :group 'comint)
 
 (defcustom comint-mode-hook '()
-  "Called upon entry into comint-mode
+  "Called upon entry into `comint-mode'
 This is run before the process is cranked up."
   :type 'hook
   :group 'comint)
@@ -439,7 +439,7 @@ The command \\[comint-accumulate] sets this.")
 
 (put 'comint-mode 'mode-class 'special)
 
-(defun comint-mode ()
+(define-derived-mode comint-mode fundamental-mode "Comint"
   "Major mode for interacting with an inferior interpreter.
 Interpreter name is same as buffer name, sans the asterisks.
 Return at end of buffer sends line as input.
@@ -475,13 +475,7 @@ to continue it.
 \\{comint-mode-map}
 
 Entry to this mode runs the hooks on `comint-mode-hook'."
-  (interactive)
-  ;; Do not remove this.  All major modes must do this.
-  (kill-all-local-variables)
-  (setq major-mode 'comint-mode)
-  (setq mode-name "Comint")
   (setq mode-line-process '(":%s"))
-  (use-local-map comint-mode-map)
   (make-local-variable 'comint-last-input-start)
   (setq comint-last-input-start (make-marker))
   (set-marker comint-last-input-start (point-min))
@@ -528,8 +522,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-file-name-quote-list)
   (make-local-variable 'comint-accum-marker)
   (setq comint-accum-marker (make-marker))
-  (set-marker comint-accum-marker nil)
-  (run-hooks 'comint-mode-hook))
+  (set-marker comint-accum-marker nil))
 
 (if comint-mode-map
     nil
@@ -563,8 +556,6 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (define-key comint-mode-map "\C-c\C-p" 'comint-previous-prompt)
   (define-key comint-mode-map "\C-c\C-d" 'comint-send-eof)
   ;; Mouse Buttons:
-  ;; Note, if you change this, you will have to change
-  ;; comint-insert-clicked-input as well
   (define-key comint-mode-map [mouse-2] 'comint-insert-clicked-input)
   ;; Menu bars:
   ;; completion:
@@ -658,11 +649,10 @@ If PROGRAM is a string, any more args are arguments to PROGRAM."
   (let ((buffer (get-buffer-create (concat "*" name "*"))))
     ;; If no process, or nuked process, crank up a new one and put buffer in
     ;; comint mode.  Otherwise, leave buffer and existing process alone.
-    (cond ((not (comint-check-proc buffer))
-	   (save-excursion
-	     (set-buffer buffer)
-	     (comint-mode)) ; Install local vars, mode, keymap, ...
-	   (comint-exec buffer name program startfile switches)))
+    (unless (comint-check-proc buffer)
+      (with-current-buffer buffer
+	(comint-mode)) ; Install local vars, mode, keymap, ...
+      (comint-exec buffer name program startfile switches))
     buffer))
 
 ;;;###autoload
@@ -767,27 +757,25 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 (defun comint-insert-clicked-input (event)
   "In a comint buffer, set the current input to the clicked-on previous input."
   (interactive "e")
-  ;; This won't play nicely with other overlays...
-  (let ((overs (overlays-at (posn-point (event-end event)))))
+  (let ((over (catch 'found
+		;; Ignore non-input overlays
+		(dolist (ov (overlays-at (posn-point (event-end event))))
+		  (when (eq (overlay-get ov 'field) 'input)
+		    (throw 'found ov))))))
     ;; do we have input in this area?
-    (if overs
-	(let ((input-str (buffer-substring (overlay-start (car overs))
-					   (overlay-end (car overs)))))
-	  (if (not (comint-after-pmark-p))
-	      (error "Not at command line"))
-	  (delete-region 
+    (if over
+	(let ((input-str (buffer-substring (overlay-start over)
+					   (overlay-end over))))
+	  (delete-region
 	   ;; Can't use kill-region as it sets this-command
 	   (or  (marker-position comint-accum-marker)
 		(process-mark (get-buffer-process (current-buffer))))
-	   (point))	  
+	   (point))
 	  (insert input-str))
       ;; fall back to the user's previous definition if we aren't
-      ;; on previous input region (note, if you change [mouse-2]
-      ;; to something else, you should also change the default
-      ;; keybinding above)
-      (let ((fun (lookup-key global-map [mouse-2])))
-	(if fun
-	    (call-interactively fun event nil))))))
+      ;; on previous input region.
+      (let ((fun (lookup-key global-map (this-command-keys))))
+	(if fun (call-interactively fun))))))
   
 
 ;; Input history processing in a buffer
