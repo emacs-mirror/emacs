@@ -1,3 +1,9 @@
+2005-04-04  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Change Calc version number.
+	(Customizable variables): Fix description of calc-language-alist.
+	(Copying): Put in version 2 of GPL.
+
 2005-04-03  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar.texi (Diary): Mention shell utility `calendar'.
