@@ -1,6 +1,6 @@
 ;;; mh-e.el --- GNU Emacs interface to the MH mail system
 
-;; Copyright (C) 1985,86,87,88,90,92,93,94,95 Free Software Foundation, Inc.
+;; Copyright (C) 1985,86,87,88,90,92,93,94,95,97 Free Software Foundation, Inc.
 
 ;; Maintainer: Stephen Gildea <gildea@lcs.mit.edu>
 ;; Version: 5.0.2
@@ -60,7 +60,7 @@
 ;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;; Modified by Stephen Gildea 1988.  gildea@lcs.mit.edu
-(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.13 1996/01/25 01:02:59 kwzh Exp kwzh $")
+(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.14 1996/05/21 17:26:31 kwzh Exp rms $")
 
 ;;; Code:
 
@@ -70,67 +70,108 @@
 
 ;;; Hooks:
 
-(defvar mh-folder-mode-hook nil
-  "Invoked in MH-Folder mode on a new folder.")
+(defgroup mh nil
+  "Emacs interface to the MH mail system"
+  :group 'mail)
 
-(defvar mh-inc-folder-hook nil
-  "Invoked by \\<mh-folder-mode-map>`\\[mh-inc-folder]' after incorporating mail into a folder.")
+(defgroup mh-hook nil
+  "Hooks to mh-e mode"
+  :prefix "mh-"
+  :group 'mh)
 
-(defvar mh-show-hook nil
-  "Invoked after \\<mh-folder-mode-map>`\\[mh-show]' shows a message.")
 
-(defvar mh-show-mode-hook nil
-  "Invoked in MH-Show mode on each message.")
+(defcustom mh-folder-mode-hook nil
+  "Invoked in MH-Folder mode on a new folder."
+  :type 'hook
+  :group 'mh-hook)
 
-(defvar mh-delete-msg-hook nil
-  "Invoked after marking each message for deletion.")
+(defcustom mh-inc-folder-hook nil
+  "Invoked by \\<mh-folder-mode-map>`\\[mh-inc-folder]' after incorporating mail into a folder."
+  :type 'hook
+  :group 'mh-hook)
 
-(defvar mh-refile-msg-hook nil
-  "Invoked after marking each message for refiling.")
+(defcustom mh-show-hook nil
+  "Invoked after \\<mh-folder-mode-map>`\\[mh-show]' shows a message."
+  :type 'hook
+  :group 'mh-hook)
 
-(defvar mh-before-quit-hook nil
-  "Invoked by \\<mh-folder-mode-map>`\\[mh-quit]' before quitting mh-e.  See also  mh-quit-hook.")
+(defcustom mh-show-mode-hook nil
+  "Invoked in MH-Show mode on each message."
+  :type 'hook
+  :group 'mh-hook)
 
-(defvar mh-quit-hook nil
-  "Invoked after \\<mh-folder-mode-map>`\\[mh-quit]' quits mh-e.  See also  mh-before-quit-hook.")
+(defcustom mh-delete-msg-hook nil
+  "Invoked after marking each message for deletion."
+  :type 'hook
+  :group 'mh-hook)
+
+(defcustom mh-refile-msg-hook nil
+  "Invoked after marking each message for refiling."
+  :type 'hook
+  :group 'mh-hook)
+
+(defcustom mh-before-quit-hook nil
+  "Invoked by \\<mh-folder-mode-map>`\\[mh-quit]' before quitting mh-e.  See also  mh-quit-hook."
+  :type 'hook
+  :group 'mh-hook)
+
+(defcustom mh-quit-hook nil
+  "Invoked after \\<mh-folder-mode-map>`\\[mh-quit]' quits mh-e.  See also  mh-before-quit-hook."
+  :type 'hook
+  :group 'mh-hook)
 
 
 
 ;;; Personal preferences:
 
-(defvar mh-lpr-command-format "lpr -J '%s'"
+(defcustom mh-lpr-command-format "lpr -J '%s'"
   "*Format for Unix command that prints a message.
 The string should be a Unix command line, with the string '%s' where
 the job's name (folder and message number) should appear.  The formatted
-message text is piped to this command when you type \\<mh-folder-mode-map>`\\[mh-print-msg]'.")
+message text is piped to this command when you type \\<mh-folder-mode-map>`\\[mh-print-msg]'."
+  :type 'string
+  :group 'mh)
 
-(defvar mh-scan-prog "scan"
+(defcustom mh-scan-prog "scan"
   "*Program to run to generate one-line-per-message listing of a folder.
 Normally \"scan\" or a file name linked to scan.  This file is searched
 for relative to the mh-progs directory unless it is an absolute pathname.
-Automatically becomes buffer-local when set in any fashion.")
+Automatically becomes buffer-local when set in any fashion."
+  :type 'string
+  :group 'mh)
 (make-variable-buffer-local 'mh-scan-prog)
 
-(defvar mh-inc-prog "inc"
+(defcustom mh-inc-prog "inc"
   "*Program to run to incorporate new mail into a folder.
 Normally \"inc\".  This file is searched for relative to
-the mh-progs directory unless it is an absolute pathname.")
+the mh-progs directory unless it is an absolute pathname."
+  :type 'string
+  :group 'mh)
 
-(defvar mh-print-background nil
+(defcustom mh-print-background nil
   "*Print messages in the background if non-nil.
 WARNING: do not delete the messages until printing is finished;
-otherwise, your output may be truncated.")
+otherwise, your output may be truncated."
+  :type 'boolean
+  :group 'mh)
 
-(defvar mh-recenter-summary-p nil
-  "*Recenter summary window when the show window is toggled off if non-nil.")
+(defcustom mh-recenter-summary-p nil
+  "*Recenter summary window when the show window is toggled off if non-nil."
+  :type 'boolean
+  :group 'mh)
 
-(defvar mh-do-not-confirm nil
+(defcustom mh-do-not-confirm nil
   "*Non-nil means do not prompt for confirmation before some mh-e commands.
-Affects non-recoverable commands such as mh-kill-folder and mh-undo-folder.")
+Affects non-recoverable commands such as mh-kill-folder and mh-undo-folder."
+  :type 'boolean
+  :group 'mh)
 
-(defvar mh-store-default-directory nil
+(defcustom mh-store-default-directory nil
   "*Last directory used by \\[mh-store-msg]; default for next store.
-A directory name string, or nil to use current directory.")
+A directory name string, or nil to use current directory."
+  :type '(choice (const :tag "Current" nil)
+		 directory)
+  :group 'mh)
 
 ;;; Parameterize mh-e to work with different scan formats.  The defaults work
 ;;; with the standard MH scan listings, in which the first 4 characters on
