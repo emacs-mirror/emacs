@@ -1,3 +1,10 @@
+2005-02-24  Miles Bader  <miles@gnu.org>
+
+	* international/mule.el (auto-coding-regexp-alist)
+	(ctext-pre-write-conversion): Replace embedded control characters
+	with octal escapes; this prevents diff from thinking the file is
+	binary.
+
 2005-02-12  Miles Bader  <miles@gnu.org>
 
 	* version.el (emacs-version): Change to "23.0.0".

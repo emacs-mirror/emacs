@@ -1482,7 +1482,7 @@ text, and convert it in the temporary buffer.  Otherwise, convert in-place."
 		       (save-excursion
 			 (goto-char last-pos)
 			 (insert (string-to-multibyte
-				  (format "\e%%/%d%c%c%s"
+				  (format "\e%%/%d%c%c%s\002"
 					  noctets
 					  (+ (/ len 128) 128)
 					  (+ (% len 128) 128)
@@ -1526,7 +1526,7 @@ and the contents of `file-coding-system-alist'."
 
 (defcustom auto-coding-regexp-alist
   '(("^BABYL OPTIONS:[ \t]*-\\*-[ \t]*rmail[ \t]*-\\*-" . no-conversion)
-    ("\\`;ELC   " . emacs-mule))	; Emacs 20-compiled
+    ("\\`;ELC\024\0\0\0" . emacs-mule))	; Emacs 20-compiled
   "Alist of patterns vs corresponding coding systems.
 Each element looks like (REGEXP . CODING-SYSTEM).
 A file whose first bytes match REGEXP is decoded by CODING-SYSTEM on reading.
