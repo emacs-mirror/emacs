@@ -1022,8 +1022,9 @@ The seventh argument ACTIONS is a list of actions to take
   (pop-to-buffer "*mail*")
   ;; Put the auto-save file in the home dir
   ;; to avoid any danger that it can't be written.
-  (let ((default-directory "~/"))
-    (auto-save-mode auto-save-default))
+  (if (file-exists-p (expand-file-name "~/"))
+      (setq default-directory (expand-file-name "~/")))
+  (auto-save-mode auto-save-default)
   (mail-mode)
   ;; Disconnect the buffer from its visited file
   ;; (in case the user has actually visited a file *mail*).
