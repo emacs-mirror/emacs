@@ -1,3 +1,31 @@
+2001-01-20  Andrew Innes  <andrewi@gnu.org>
+
+	* w32term.c (w32_ring_bell): Only support visible bell on w32
+	frames.
+	(w32_initialize): Don't set term hooks that aren't actually needed
+	in windowed mode.
+
+	* xfaces.c (realize_default_face):
+	(realize_face):
+	(realize_tty_face): Remove references to FRAME_W32_CONSOLE_P.
+
+	* xdisp.c (handle_single_display_prop): Remove references to
+	FRAME_W32_CONSOLE_P.
+
+	* dispnew.c (Fredraw_frame): Remove reference to
+	FRAME_W32_CONSOLE_P.
+
+	* frame.h (output_method): Remove output_w32_console method.
+	(FRAME_W32_CONSOLE_P): Remove macro.
+
+	* frame.c (Qw32_console): Remove variable.
+	(Fframep): Remove references to it.
+	(syms_of_frame): Ditto.
+	(Fframe_parameters): Remove references to FRAME_W32_CONSOLE_P.
+
+	* term.c (FRAME_TERMCAP_P) [WINDOWSNT]: Reinstate original
+	redefinition.
+
 2001-01-20  Kenichi Handa  <handa@etl.go.jp>
 
 	* editfns.c (Fformat): Use lisp_string_width instead of strwidth.
