@@ -102,14 +102,8 @@ These supersede the values given in `default-frame-alist'.")
 	      ;; so that we won't reapply them in frame-notice-user-settings.
 	      ;; It would be wrong to reapply them then,
 	      ;; because that would override explicit user resizing.
-	      ;; Remember that they may occur more than once.
-	      (let ((tail initial-frame-alist))
-		(while (consp tail)
-		  (if (and (consp (car tail))
-			   (memq (car (car tail)) '(height width top left)))
-		      (setq initial-frame-alist
-			    (delq tail initial-frame-alist)))
-		  (setq tail (cdr tail))))
+	      (setq initial-frame-alist
+		    (frame-remove-geometry-params initial-frame-alist))
 	      ;; Handle `reverse' as a parameter.
 	      (if (cdr (or (assq 'reverse initial-frame-alist)
 			   (assq 'reverse default-frame-alist)))
@@ -315,6 +309,22 @@ additional frame parameters that Emacs recognizes for X window frames."
   (filtered-frame-list
    (function (lambda (frame)
 	       (eq frame (window-frame (minibuffer-window frame)))))))
+
+(defun frame-remove-geometry-params (param-list)
+  "Return the parameter list PARAM-LIST, but with geometry specs removed.
+This deletes all bindings in PARAM-LIST for `top', `left', `width',
+and `height' parameters.
+Emacs uses this to avoid overriding explicit moves and resizings from
+the user during startup."
+  (setq param-list (cons nil param-list))
+  (let ((tail param-list))
+    (while (consp (cdr tail))
+      (if (and (consp (car (cdr tail)))
+	       (memq (car (car (cdr tail))) '(height width top left)))
+	  (setcdr tail (cdr (cdr tail)))
+	(setq tail (cdr tail)))))
+  (cdr param-list))
+
 
 
 ;;;; Frame configurations
