@@ -2185,7 +2185,7 @@ The following commands are available:
   (make-local-hook 'pre-command-hook)
   (add-hook 'pre-command-hook 'gnus-set-global-variables nil t)
   (gnus-run-hooks 'gnus-summary-mode-hook)
-  (mm-enable-multibyte-mule4)
+  (mm-enable-multibyte)
   (gnus-update-format-specifications nil 'summary 'summary-mode 'summary-dummy)
   (gnus-update-summary-mark-positions))
 
@@ -5942,7 +5942,7 @@ Given a prefix, will force an `article' buffer configuration."
   "Display ARTICLE in article buffer."
   (when (gnus-buffer-live-p gnus-article-buffer)
     (with-current-buffer gnus-article-buffer
-      (mm-enable-multibyte-mule4)))
+      (mm-enable-multibyte)))
   (gnus-set-global-variables)
   (if (null article)
       nil
@@ -5996,7 +5996,7 @@ be displayed."
 	    (when (gnus-buffer-live-p gnus-article-buffer)
 	       (with-current-buffer gnus-article-buffer
 		(if (not gnus-article-decoded-p) ;; a local variable
-		    (mm-disable-multibyte-mule4))))
+		    (mm-disable-multibyte))))
 	    (when (or all-headers gnus-show-all-headers)
 	      (gnus-article-show-all-headers))
 	    (gnus-article-set-window-start
@@ -7952,7 +7952,7 @@ groups."
 	(gnus-summary-show-article t)
 	(when (and (not raw) (gnus-buffer-live-p gnus-article-buffer))
 	  (with-current-buffer gnus-article-buffer
-	    (mm-enable-multibyte-mule4)))
+	    (mm-enable-multibyte)))
 	(if (equal gnus-newsgroup-name "nndraft:drafts")
 	    (setq raw t))
 	(gnus-article-edit-article
