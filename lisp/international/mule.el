@@ -829,7 +829,7 @@ function by default."
 	      ;; It seems that random 8-bit codes are read.  We had
 	      ;; better edit this buffer without multibyte character
 	      ;; facility.
-	      (setq enable-multibyte-characters nil))
+	      (set-buffer-multibyte nil))
 	  (set-buffer-modified-p modified-p))))
   nil)
 
