@@ -74,7 +74,7 @@ containing no symbols.  It is a vector filled with zeros.
 
 @defun clear-abbrev-table table
 This function undefines all the abbrevs in abbrev table @var{table},
-leaving it empty.  The function returns @code{nil}.
+leaving it empty. The function returns @code{nil}.
 @end defun
 
 @defun define-abbrev-table tabname definitions
@@ -118,15 +118,19 @@ describing in English the kind of abbrev this will be (typically,
 the user.  The argument @var{arg} is the number of words in the
 expansion.
 
+
 The return value is the symbol that internally represents the new
 abbrev, or @code{nil} if the user declines to confirm redefining an
 existing abbrev.
 @end defun
 
-@defun define-abbrev table name expansion hook
+@defun define-abbrev table name expansion &optional hook count
 This function defines an abbrev named @var{name}, in @var{table}, to
-expand to @var{expansion} and call @var{hook}.  The return value is a
-symbol that represents the abbrev inside Emacs; its name is @var{name}.
+expand to @var{expansion} and call @var{hook}.  The value of
+@var{count}, if specified, initializes the abbrev's usage-count.  If
+@var{count} is not specified or @code{nil}, the use count is initialized
+to zero.  The return value is a symbol that represents the abbrev inside
+Emacs; its name is @var{name}.
 
 The argument @var{name} should be a string.  The argument
 @var{expansion} is normally the desired expansion (a string), or
@@ -134,12 +138,11 @@ The argument @var{name} should be a string.  The argument
 @code{nil}, then the abbreviation ``expands'' solely by running
 @var{hook}.
 
+
 The argument @var{hook} is a function or @code{nil}.  If @var{hook} is
 non-@code{nil}, then it is called with no arguments after the abbrev is
 replaced with @var{expansion}; point is located at the end of
 @var{expansion} when @var{hook} is called.
-
-The use count of the abbrev is initialized to zero.
 @end defun
 
 @defopt only-global-abbrevs
@@ -168,11 +171,12 @@ described here.
 This is the default file name for reading and saving abbrevs.
 @end defopt
 
-@defun quietly-read-abbrev-file filename
+@defun quietly-read-abbrev-file &optional filename
 This function reads abbrev definitions from a file named @var{filename},
 previously written with @code{write-abbrev-file}.  If @var{filename} is
-@code{nil}, the file specified in @code{abbrev-file-name} is used.
-@code{save-abbrevs} is set to @code{t} so that changes will be saved.
+omitted or @code{nil}, the file specified in @code{abbrev-file-name} is
+used.  @code{save-abbrevs} is set to @code{t} so that changes will be
+saved.
 
 This function does not display any messages.  It returns @code{nil}.
 @end defun
@@ -189,10 +193,11 @@ abbrevs.  This serves as a flag for various Emacs commands to offer to
 save your abbrevs.
 @end defvar
 
-@deffn Command write-abbrev-file filename
+@deffn Command write-abbrev-file &optional filename
 Save all abbrev definitions, in all abbrev tables, in the file
 @var{filename}, in the form of a Lisp program that when loaded will
-define the same abbrevs.  This function returns @code{nil}.
+define the same abbrevs.  If @var{filename} is @code{nil} or omitted,
+@code{abbrev-file-name} is used.  This function returns @code{nil}.
 @end deffn
 
 @node Abbrev Expansion, Standard Abbrev Tables, Abbrev Files, Abbrevs
@@ -221,10 +226,11 @@ argument @var{table} specifies the abbrev table to use, as in
 @end defun
 
 @deffn Command expand-abbrev
-This command expands the abbrev before point, if any.
-If point does not follow an abbrev, this command does nothing.
-The command returns @code{t} if it did expansion, @code{nil} otherwise.
+This command expands the abbrev before point, if any.  If point does not
+follow an abbrev, this command does nothing.  The command returns the
+abbrev symbol if it did expansion, @code{nil} otherwise.
 @end deffn
+
 
 @deffn Command abbrev-prefix-mark &optional arg
 Mark current point as the beginning of an abbrev.  The next call to
@@ -281,6 +287,9 @@ This is a normal hook whose functions are executed, in sequence, just
 before any expansion of an abbrev.  @xref{Hooks}.  Since it is a normal
 hook, the hook functions receive no arguments.  However, they can find
 the abbrev to be expanded by looking in the buffer before point.
+Running the hook is the first thing that @code{expand-abbrev} does, and
+so a hook function can be used to change the current abbrev table before
+abbrev lookup happens.
 @end defvar
 
   The following sample code shows a simple use of
@@ -340,3 +349,4 @@ This is the local abbrev table used in Text mode.
 @defvar lisp-mode-abbrev-table
 This is the local abbrev table used in Lisp mode and Emacs Lisp mode.
 @end defvar
+

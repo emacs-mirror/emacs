@@ -623,7 +623,7 @@ above, it never knows them in the first place.
 @end group
 @end example
 
-Compare these example with the examples of @code{apply}.
+Compare these examples with the examples of @code{apply}.
 @end defun
 
 @defun apply function &rest arguments
@@ -693,7 +693,9 @@ This function ignores any arguments and returns @code{nil}.
 list or other collection.  Emacs Lisp has several such functions;
 @code{mapcar} and @code{mapconcat}, which scan a list, are described
 here.  @xref{Creating Symbols}, for the function @code{mapatoms} which
-maps over the symbols in an obarray.
+maps over the symbols in an obarray.  @xref{Hash Access}, for the
+function @code{maphash} which maps over key/value associations in a
+hash table.
 
   These mapping functions do not allow char-tables because a char-table
 is a sparse array whose nominal range of indices is very large.  To map
