@@ -736,30 +736,21 @@ Buffer local variable.")
   (make-face 'term-invisible)
   (make-face 'term-invisible-inv)
 
-  (copy-face 'default 'term-default-fg)
-  (copy-face 'default 'term-default-bg)
   (term-ignore-error
    (set-face-foreground 'term-default-fg term-default-fg-color))
   (term-ignore-error
    (set-face-background 'term-default-bg term-default-bg-color))
 
-  (copy-face 'default 'term-default-fg-inv)
-  (copy-face 'default 'term-default-bg-inv)
   (term-ignore-error
    (set-face-foreground 'term-default-fg-inv term-default-bg-color))
   (term-ignore-error
    (set-face-background 'term-default-bg-inv term-default-fg-color))
 
-  (copy-face 'default 'term-invisible)
   (term-ignore-error
    (set-face-background 'term-invisible term-default-bg-color))
 
-  (copy-face 'default 'term-invisible-inv)
   (term-ignore-error
    (set-face-background 'term-invisible-inv term-default-fg-color))
-
-  (copy-face 'default 'term-bold)
-  (copy-face 'default 'term-underline)
 
   ;; Set the colors of the new faces.
   (term-ignore-error
@@ -778,28 +769,20 @@ Buffer local variable.")
   (make-face 'term-cyan)
   (make-face 'term-white)
 
-  (copy-face 'default 'term-black)
   (term-ignore-error
    (set-face-foreground 'term-black "black"))
-  (copy-face 'default 'term-red)
   (term-ignore-error
    (set-face-foreground 'term-red "red"))
-  (copy-face 'default 'term-green)
   (term-ignore-error
    (set-face-foreground 'term-green "green"))
-  (copy-face 'default 'term-yellow)
   (term-ignore-error
    (set-face-foreground 'term-yellow "yellow"))
-  (copy-face 'default 'term-blue)
   (term-ignore-error
    (set-face-foreground 'term-blue "blue"))
-  (copy-face 'default 'term-magenta)
   (term-ignore-error
    (set-face-foreground 'term-magenta "magenta"))
-  (copy-face 'default 'term-cyan)
   (term-ignore-error
    (set-face-foreground 'term-cyan "cyan"))
-  (copy-face 'default 'term-white)
   (term-ignore-error
    (set-face-foreground 'term-white "white"))
 
@@ -813,28 +796,20 @@ Buffer local variable.")
   (make-face 'term-cyanbg)
   (make-face 'term-whitebg)
 
-  (copy-face 'default 'term-blackbg)
   (term-ignore-error
    (set-face-background 'term-blackbg "black"))
-  (copy-face 'default 'term-redbg)
   (term-ignore-error
    (set-face-background 'term-redbg "red"))
-  (copy-face 'default 'term-greenbg)
   (term-ignore-error
    (set-face-background 'term-greenbg "green"))
-  (copy-face 'default 'term-yellowbg)
   (term-ignore-error
    (set-face-background 'term-yellowbg "yellow"))
-  (copy-face 'default 'term-bluebg)
   (term-ignore-error
    (set-face-background 'term-bluebg "blue"))
-  (copy-face 'default 'term-magentabg)
   (term-ignore-error
    (set-face-background 'term-magentabg "magenta"))
-  (copy-face 'default 'term-cyanbg)
   (term-ignore-error
    (set-face-background 'term-cyanbg "cyan"))
-  (copy-face 'default 'term-whitebg)
   (term-ignore-error
    (set-face-background 'term-whitebg "white")))
 

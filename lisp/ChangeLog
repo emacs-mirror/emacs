@@ -1,3 +1,7 @@
+2001-11-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* term.el (all faces): Don't (copy-face 'default <foo>).
+
 2001-11-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* tooltip.el (tooltip-delay): Decrease to 0.7.
@@ -10,9 +14,9 @@
 
 2001-11-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* frame.el (set-background-color, set-foreground-color): Call
-	face-set-after-frame-default, to propagate the new colors to the
-	frame's parameters alist.
+	* frame.el (set-background-color, set-foreground-color):
+	Call face-set-after-frame-default, to propagate the new colors to
+	the frame's parameters alist.
 
 	* calendar/timeclock.el (timeclock-out): Signal an error if
 	timeclock-last-event is nil.
@@ -32,6 +36,13 @@
 	* international/mule-cmds.el (locale-language-names): Add chs and
 	cht as aliases for Chinese-GB and Chinese-BIG5.
 
+2001-10-30  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/perl-mode.el (perl-indent-line): Use `eq' to compare
+	output of `char-after'.
+
+	* progmodes/autoconf.el (autoconf-mode): Fix comment-start-skip.
+
 2001-10-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* international/iso-acc.el (iso-accents-compose): Remove a
@@ -40,8 +51,8 @@
 2001-10-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* faces.el (invert-face): Check for 'unspecified, not for nil,
-	when testing whether face colors are not specified.  From
-	David.Kastrup@t-online.de (David Kastrup).
+	when testing whether face colors are not specified.
+	From David.Kastrup@t-online.de (David Kastrup).
 
 2001-10-29  Gerd Moellmann  <gerd@gnu.org>
 
@@ -51,8 +62,7 @@
 	* enriched.el (enriched-face-ans): Handle face attributes
 	of the form `(FACE1 FACE2 ...)'.
 
-	* dired-x.el (dired-omit-startup): Show ``Omit'' only in Dired
-	buffers.
+	* dired-x.el (dired-omit-startup): Show ``Omit'' only in Dired buffers.
 
 2001-10-29  Alex Schroeder  <kensanata@yahoo.com>
 
