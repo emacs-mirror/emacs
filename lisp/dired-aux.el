@@ -1857,6 +1857,28 @@ Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
 
 ;;;###end dired-ins.el
 
+
+;; Functions for searching in tags style among marked files.
+
+;;;###autoload
+(defun dired-do-tags-search (regexp)
+  "Search through all marked files for a match for REGEXP.
+Stops when a match is found.
+To continue searching for next match, use command \\[tags-loop-continue]."
+  (interactive "sSearch marked files (regexp): ")
+  (tags-search regexp '(dired-get-marked-files)))
+
+;;;###autoload
+(defun dired-do-tags-query-replace (from to &optional delimited)
+  "Query-replace-regexp FROM with TO through all marked files.
+Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
+If you exit (\\[keyboard-quit] or ESC), you can resume the query-replace
+with the command \\[tags-loop-continue]."
+  (interactive
+   "sQuery replace in marked files (regexp): \nsQuery replace %s by: \nP")
+  (tags-query-replace from to delimited '(dired-get-marked-files)))
+
+
 (provide 'dired-aux)
 
 ;;; dired-aux.el ends here
