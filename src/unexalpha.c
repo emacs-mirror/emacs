@@ -463,7 +463,7 @@ update_dynamic_symbols (old, new_name, new, aout)
          4. len is the size of the object reference in bytes --
             currently only 4 (long) and 8 (quad) are supported.
 	    */
-      register unsigned long reladdr = rd_base[i].addr - old_data_scnhdr.s_vaddr;
+      register unsigned long reladdr = (long)rd_base[i].addr - old_data_scnhdr.s_vaddr;
       char * oldref = old + old_data_scnhdr.s_scnptr + reladdr;
       unsigned long newref = aout.tsize + reladdr;
       int len;
