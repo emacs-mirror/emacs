@@ -1174,7 +1174,8 @@ If FRAME is nil, the current FRAME is used."
 FRAME is the frame whose frame-local face is set.  FRAME nil means
 do it on all frames.  See `defface' for information about SPEC."
   (let ((attrs (face-spec-choose spec frame)))
-    (face-spec-reset-face face frame)
+    (when attrs
+      (face-spec-reset-face face frame))
     (while attrs
       (let ((attribute (car attrs))
 	    (value (car (cdr attrs))))
