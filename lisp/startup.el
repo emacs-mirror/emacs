@@ -880,13 +880,13 @@ Each element in the list should be a list of strings or pairs
 
 
 (defcustom fancy-splash-delay 5
-  "Delay in seconds between splash screens."
+  "*Delay in seconds between splash screens."
   :group 'fancy-splash-screen
   :type 'integer)
 
 
 (defcustom fancy-splash-image "splash.xpm"
-  "The image to show in the splash screens."
+  "*The image to show in the splash screens."
   :group 'fancy-splash-screen
   :type 'file)
 
@@ -913,6 +913,8 @@ where FACE is a valid face specification, as it can be used with
       (when (> window-width image-width)
 	(let ((pos (/ (- window-width image-width) 2)))
 	  (insert (propertize " " 'display `(space :align-to ,pos))))
+	(when (eq (frame-parameter nil 'background-mode) 'dark)
+	  (setq img (append img '(:color-symbols (("#000000" . "gray"))))))
 	(insert-image img)
 	(insert "\n"))))
   (when (eq system-type 'gnu/linux)
@@ -946,6 +948,7 @@ where FACE is a valid face specification, as it can be used with
 		(fancy-splash-head)
 		(apply #'fancy-splash-insert (car texts))
 		(fancy-splash-tail)
+		(display-startup-echo-area-message)
 		(goto-char (point-min))
 		(set-buffer-modified-p nil)
 		(force-mode-line-update)
@@ -955,39 +958,42 @@ where FACE is a valid face specification, as it can be used with
     (erase-buffer)))
 
 
+(defun display-startup-echo-area-message ()
+  (message (if (eq (key-binding "\C-h\C-p") 'describe-project)
+	       "For information about the GNU Project and its goals, type C-h C-p."
+	     (substitute-command-keys
+	      "For information about the GNU Project and its goals, type \\[describe-project]."))))
+
 (defun command-line-1 (command-line-args-left)
   (or noninteractive (input-pending-p) init-file-had-error
-      (and inhibit-startup-echo-area-message
-	   user-init-file
-	   (or (and (get 'inhibit-startup-echo-area-message 'saved-value)
-		    (equal inhibit-startup-echo-area-message
-			   (if (string= init-file-user "")
-			       (user-login-name)
-			     init-file-user)))
-	       ;; Wasn't set with custom; see if .emacs has a setq.
-	       (let ((buffer (get-buffer-create " *temp*")))
-		 (prog1
-		     (condition-case nil
-			 (save-excursion
-			   (set-buffer buffer)
-			   (insert-file-contents user-init-file)
-			   (re-search-forward
-			    (concat
-			     "([ \t\n]*setq[ \t\n]+"
-			     "inhibit-startup-echo-area-message[ \t\n]+"
-			     (regexp-quote
-			      (prin1-to-string
-			       (if (string= init-file-user "")
-				   (user-login-name)
-				 init-file-user)))
-			     "[ \t\n]*)")
-			    nil t))
-		       (error nil))
-		   (kill-buffer buffer)))))
-      (message (if (eq (key-binding "\C-h\C-p") 'describe-project)
-		   "For information about the GNU Project and its goals, type C-h C-p."
-		 (substitute-command-keys
-		  "For information about the GNU Project and its goals, type \\[describe-project]."))))
+	(and inhibit-startup-echo-area-message
+	     user-init-file
+	     (or (and (get 'inhibit-startup-echo-area-message 'saved-value)
+		      (equal inhibit-startup-echo-area-message
+			     (if (string= init-file-user "")
+				 (user-login-name)
+			       init-file-user)))
+		 ;; Wasn't set with custom; see if .emacs has a setq.
+		 (let ((buffer (get-buffer-create " *temp*")))
+		   (prog1
+		       (condition-case nil
+			   (save-excursion
+			     (set-buffer buffer)
+			     (insert-file-contents user-init-file)
+			     (re-search-forward
+			      (concat
+			       "([ \t\n]*setq[ \t\n]+"
+			       "inhibit-startup-echo-area-message[ \t\n]+"
+			       (regexp-quote
+				(prin1-to-string
+				 (if (string= init-file-user "")
+				     (user-login-name)
+				   init-file-user)))
+			       "[ \t\n]*)")
+			      nil t))
+			 (error nil))
+		     (kill-buffer buffer)))))
+	(display-startup-echo-area-message))
   (if (null command-line-args-left)
       (cond ((and (not inhibit-startup-message) (not noninteractive)
 		  ;; Don't clobber a non-scratch buffer if init file
@@ -1048,7 +1054,7 @@ Copying Conditions	Conditions for redistributing and changing Emacs.
 Getting New Versions	How to obtain the latest version of Emacs.
 ")
 			       (insert "\n\n" (emacs-version)
-				     "
+				       "
 Copyright (C) 2000 Free Software Foundation, Inc.")))
 			 ;; If keys have their default meanings,
 			 ;; use precomputed string to save lots of time.
@@ -1083,8 +1089,8 @@ Activate menubar   F10  or  ESC `  or   M-`")
 			   (insert (substitute-command-keys "
 Activate menubar     \\[tmm-menubar]")))
 
-		       ;; Windows and MSDOS (currently) do not count as
-		       ;; window systems, but do have mouse support.
+			 ;; Windows and MSDOS (currently) do not count as
+			 ;; window systems, but do have mouse support.
 			 (if window-system
 			     (insert "
 Mode-specific menu   C-mouse-3 (third button, with CTRL)"))
@@ -1144,7 +1150,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 	  (file-count 0)
 	  first-file-buffer
 	  tem
-	  just-files  ;; t if this follows the magic -- option.
+	  just-files;; t if this follows the magic -- option.
 	  ;; This includes our standard options' long versions
 	  ;; and long versions of what's on command-switch-alist.
 	  (longopts
@@ -1203,7 +1209,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		       (funcall (cdr tem) argi))
 		   (funcall (cdr tem) argi)))
 		
-		((or (string-equal argi "-f")  ;what the manual claims
+		((or (string-equal argi "-f") ;what the manual claims
 		     (string-equal argi "-funcall")
 		     (string-equal argi "-e")) ; what the source used to say
 		 (if argval
@@ -1321,6 +1327,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 	   (or (get-buffer-window first-file-buffer)
 	       (progn (other-window 1)
 		      (buffer-menu)))))))
+
 
 (defun command-line-normalize-file-name (file)
   "Collapse multiple slashes to one, to handle non-Emacs file names."
