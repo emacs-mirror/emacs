@@ -895,7 +895,7 @@ window_box_height (w)
       if (ml_row && ml_row->mode_line_p)
 	height -= ml_row->height;
       else
-	height -= estimate_mode_line_height (f, MODE_LINE_FACE_ID);
+	height -= estimate_mode_line_height (f, CURRENT_MODE_LINE_FACE_ID (w));
     }
 
   if (WINDOW_WANTS_HEADER_LINE_P (w))
@@ -1078,7 +1078,7 @@ pos_visible_p (w, charpos, fully, exact_mode_line_heights_p)
     {
       if (WINDOW_WANTS_MODELINE_P (w))
 	current_mode_line_height
-	  = display_mode_line (w, MODE_LINE_FACE_ID,
+	  = display_mode_line (w, CURRENT_MODE_LINE_FACE_ID (w),
 			       current_buffer->mode_line_format);
   
       if (WINDOW_WANTS_HEADER_LINE_P (w))
@@ -1456,13 +1456,14 @@ check_window_end (w)
    will produce glyphs in that row.
 
    BASE_FACE_ID is the id of a base face to use.  It must be one of
-   DEFAULT_FACE_ID for normal text, MODE_LINE_FACE_ID or
-   HEADER_LINE_FACE_ID for displaying mode lines, or TOOL_BAR_FACE_ID for
-   displaying the tool-bar.
+   DEFAULT_FACE_ID for normal text, MODE_LINE_FACE_ID,
+   MODE_LINE_INACTIVE_FACE_ID, or HEADER_LINE_FACE_ID for displaying
+   mode lines, or TOOL_BAR_FACE_ID for displaying the tool-bar.
    
-   If ROW is null and BASE_FACE_ID is equal to MODE_LINE_FACE_ID or
-   HEADER_LINE_FACE_ID, the iterator will be initialized to use the
-   corresponding mode line glyph row of the desired matrix of W.  */
+   If ROW is null and BASE_FACE_ID is equal to MODE_LINE_FACE_ID,
+   MODE_LINE_INACTIVE_FACE_ID, or HEADER_LINE_FACE_ID, the iterator
+   will be initialized to use the corresponding mode line glyph row of
+   the desired matrix of W.  */
 
 void
 init_iterator (it, w, charpos, bytepos, row, base_face_id)
@@ -1492,7 +1493,8 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
      appropriate.  */
   if (row == NULL)
     {
-      if (base_face_id == MODE_LINE_FACE_ID)
+      if (base_face_id == MODE_LINE_FACE_ID
+	  || base_face_id == MODE_LINE_INACTIVE_FACE_ID)
 	row = MATRIX_MODE_LINE_ROW (w->desired_matrix);
       else if (base_face_id == HEADER_LINE_FACE_ID)
 	row = MATRIX_HEADER_LINE_ROW (w->desired_matrix);
@@ -2354,7 +2356,7 @@ handle_face_prop (it)
 	 use the mode line face instead of the frame's default face.  */
       if (it->glyph_row == MATRIX_MODE_LINE_ROW (it->w->desired_matrix)
 	  && new_face_id == DEFAULT_FACE_ID)
-	new_face_id = MODE_LINE_FACE_ID;
+	new_face_id = CURRENT_MODE_LINE_FACE_ID (it->w);
 #endif
       
       /* Is this a start of a run of characters with box?  Caveat:
@@ -13431,7 +13433,8 @@ display_mode_lines (w)
 
   if (WINDOW_WANTS_MODELINE_P (w))
     {
-      display_mode_line (w, MODE_LINE_FACE_ID,
+      /* Select mode line face based on the real selected window.  */
+      display_mode_line (w, CURRENT_MODE_LINE_FACE_ID (old_selected_window),
 			 current_buffer->mode_line_format);
       ++n;
     }
