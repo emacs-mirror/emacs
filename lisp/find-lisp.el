@@ -3,7 +3,7 @@
 ;; Author:  Peter Breton
 ;; Created: Fri Mar 26 1999
 ;; Keywords: unix
-;; Time-stamp: <1999-04-19 16:37:01 pbreton>
+;; Time-stamp: <2000-10-04 00:17:29 pbreton>
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
@@ -36,7 +36,7 @@
 ;; user-level functions, and perhaps use some kind of forms interface
 ;; for medium-level queries. Really complicated queries can be
 ;; expressed in Lisp.
-;; 
+;;
 
 ;;; Todo
 ;;
@@ -83,7 +83,7 @@
   "True if DIR is not a dot file, and not a symlink.
 PARENT is the parent directory of DIR."
   (and find-lisp-debug
-       (find-lisp-debug-message 
+       (find-lisp-debug-message
 	(format "Processing directory %s in %s" dir parent)))
   ;; Skip current and parent directories
   (not (or (string= dir ".")
@@ -96,7 +96,7 @@ PARENT is the parent directory of DIR."
   "True if FILE matches `find-lisp-regexp'.
 DIR is the directory containing FILE."
   (and find-lisp-debug
-       (find-lisp-debug-message 
+       (find-lisp-debug-message
 	(format "Processing file %s in %s" file dir)))
   (and (not (file-directory-p (expand-file-name file dir)))
        (string-match find-lisp-regexp file)))
@@ -105,7 +105,7 @@ DIR is the directory containing FILE."
   "True if FILE is a directory.
 Argument DIR is the directory containing FILE."
   (and find-lisp-debug
-       (find-lisp-debug-message 
+       (find-lisp-debug-message
 	(format "Processing file %s in %s" file dir)))
   (and (file-directory-p (expand-file-name file dir))
        (not (or (string= file ".")
@@ -121,20 +121,22 @@ Argument DIR is the directory containing FILE."
 	(directory-predicate 'find-lisp-default-directory-predicate)
 	(find-lisp-regexp regexp)
 	)
-    (find-lisp-find-files-internal 
-     directory 
+    (find-lisp-find-files-internal
+     directory
      file-predicate
      directory-predicate)))
 
 ;; Workhorse function
-(defun find-lisp-find-files-internal (directory file-predicate 
+(defun find-lisp-find-files-internal (directory file-predicate
 						directory-predicate)
   "Find files under DIRECTORY which satisfy FILE-PREDICATE.
-FILE-PREDICATE is a function which takes two arguments: the file and its 
+FILE-PREDICATE is a function which takes two arguments: the file and its
 directory.
 
 DIRECTORY-PREDICATE is used to decide whether to descend into directories.
 It is a function which takes two arguments, the directory and its parent."
+  (or (string-match "/$" directory)
+      (setq directory (concat directory "/")))
   (let (results sub-results)
     (mapcar
      (function
@@ -148,15 +150,15 @@ It is a function which takes two arguments, the directory and its parent."
 		      (progn
 			(setq sub-results
 			      (find-lisp-find-files-internal
-			       fullname 
+			       fullname
 			       file-predicate
 			       directory-predicate))
-			(if results 
+			(if results
 			    (nconc results sub-results)
 			  (setq results sub-results))))
 		 ;; For all files and directories, call the file predicate
 		 (and (funcall file-predicate file directory)
-		      (if results 
+		      (if results
 			  (nconc results (list fullname))
 			(setq results (list fullname))))
 		 )))))
@@ -188,8 +190,8 @@ It is a function which takes two arguments, the directory and its parent."
    "*Find Lisp Dired Subdirectories*"))
 
 ;; Most of this is lifted from find-dired.el
-;; 
-(defun find-lisp-find-dired-internal (dir file-predicate 
+;;
+(defun find-lisp-find-dired-internal (dir file-predicate
 					  directory-predicate buffer-name)
   "Run find (Lisp version) and go into Dired mode on a buffer of the output."
   (let ((dired-buffers dired-buffers)
@@ -202,7 +204,7 @@ It is a function which takes two arguments, the directory and its parent."
     ;; Check that it's really a directory.
     (or (file-directory-p dir)
 	(error "find-dired needs a directory: %s" dir))
-    (or 
+    (or
      (and (buffer-name)
 	  (string= buffer-name (buffer-name)))
 	(switch-to-buffer (setq buf (get-buffer-create buffer-name))))
@@ -226,7 +228,7 @@ It is a function which takes two arguments, the directory and its parent."
     (setq revert-buffer-function
 	  (function
 	   (lambda(ignore1 ignore2)
-	     (find-lisp-insert-directory 
+	     (find-lisp-insert-directory
 	      default-directory
 	      find-lisp-file-predicate
 	      find-lisp-directory-predicate
@@ -240,23 +242,23 @@ It is a function which takes two arguments, the directory and its parent."
 	;; and later)
 	(dired-simple-subdir-alist)
       ;; else we have an ancient tree dired (or classic dired, where
-      ;; this does no harm) 
+      ;; this does no harm)
       (set (make-local-variable 'dired-subdir-alist)
 	   (list (cons default-directory (point-min-marker)))))
-    (find-lisp-insert-directory 
+    (find-lisp-insert-directory
      dir file-predicate directory-predicate 'ignore)
     (goto-char (point-min))
     (dired-goto-next-file)))
 
-(defun find-lisp-insert-directory  (dir 
-				    file-predicate 
-				    directory-predicate 
+(defun find-lisp-insert-directory  (dir
+				    file-predicate
+				    directory-predicate
 				    sort-function)
   "Insert the results of `find-lisp-find-files' in the current buffer."
   (let ((buffer-read-only nil)
-	(files (find-lisp-find-files-internal 
-		dir 
-		file-predicate 
+	(files (find-lisp-find-files-internal
+		dir
+		file-predicate
 		directory-predicate))
 	(len (length dir)))
     (erase-buffer)
@@ -264,7 +266,7 @@ It is a function which takes two arguments, the directory and its parent."
     ;; subdir-alist points there.
     (insert find-lisp-line-indent dir ":\n")
     ;; Make second line a ``find'' line in analogy to the ``total'' or
-    ;; ``wildcard'' line. 
+    ;; ``wildcard'' line.
     ;;
     ;; No analog for find-lisp?
     (insert find-lisp-line-indent "\n")
@@ -272,7 +274,7 @@ It is a function which takes two arguments, the directory and its parent."
     (mapcar
      (function
       (lambda(file)
-	(find-lisp-find-dired-insert-file	 
+	(find-lisp-find-dired-insert-file
 	 (substring file len)
 	 (current-buffer))))
      (sort files 'string-lessp))
@@ -289,7 +291,7 @@ It is a function which takes two arguments, the directory and its parent."
 
 (defun find-lisp-find-dired-insert-file (file buffer)
   (set-buffer buffer)
-  (insert find-lisp-line-indent 
+  (insert find-lisp-line-indent
 	  (find-lisp-format file (file-attributes file) (list "")
 			  (current-time))))
 
