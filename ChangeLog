@@ -1,3 +1,7 @@
+2001-12-13  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* configure: Regenerated.
+
 2001-12-11  Richard M. Stallman  <rms@gnu.org>
 
 	* configure.in (hppa*-*-linux-gnu*): New alternative.
