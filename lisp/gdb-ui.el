@@ -4,7 +4,7 @@
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
-;; Copyright (C) 2002, 2003  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004  Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1985,7 +1985,7 @@ BUFFER nil or omitted means use the current buffer."
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
     (forward-line)
-    (if (looking-at ".*= 0x\\(\\S-*\\) in \\(\\S-*\\)")
+    (if (looking-at ".*=\\s-+0x\\(\\S-*\\)\\s-+in\\s-+\\(\\S-*\\)")
 	(progn
 	  (setq gdb-current-frame (match-string 2))
 	  (let ((address (match-string 1)))
@@ -1994,7 +1994,7 @@ BUFFER nil or omitted means use the current buffer."
 		(setq gdb-current-address
 		      (concat "0x" (match-string 1 address)))
 	      (setq gdb-current-address (concat "0x" address))))
-	  (if (or (if (not (looking-at ".*(\\S-*:[0-9]*)"))
+	  (if (or (if (not (re-search-forward "(\\S-*:[0-9]*);" nil t))
 		      (progn (setq gdb-view-source nil) t))
 		  (eq gdb-selected-view 'assembler))
 	      (progn
@@ -2003,8 +2003,7 @@ BUFFER nil or omitted means use the current buffer."
 		 (gdb-get-create-buffer 'gdb-assembler-buffer))
 		;;update with new frame for machine code if necessary
 		(gdb-invalidate-assembler))))))
-    (forward-line)
-    (if (looking-at " source language \\(\\S-*\\)\.")
+    (if (re-search-forward " source language \\(\\S-*\\)\." nil t)
 	(setq gdb-current-language (match-string 1))))
 
 (provide 'gdb-ui)
