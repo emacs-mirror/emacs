@@ -1,5 +1,8 @@
 2004-10-04  Kenichi Handa  <handa@m17n.org>
 
+	* language/chinese.el (chinese-gbk): Include ascii in
+	charset-list.
+
 	* international/encoded-kb.el (encoded-kbd-setup-keymap): Fix
 	previous change.
 
