@@ -27,8 +27,9 @@
 #endif
 
 /* Make sure we get select from libc rather than from libcurses
-   because libcurses on HPUX 10.10 has a broken version of select.  */
-#define LIBS_TERMCAP -lc -lcurses
+   because libcurses on HPUX 10.10 has a broken version of select.
+   We used to use -lc -lcurses, but this may be cleaner.  */
+#define LIBS_TERMCAP -ltermcap
 
 #undef C_SWITCH_X_SYSTEM
 #undef LD_SWITCH_X_DEFAULT
