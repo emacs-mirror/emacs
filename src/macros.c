@@ -281,6 +281,7 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
 init_macros ()
 {
   Vexecuting_macro = Qnil;
+  executing_macro = Qnil;
 }
 
 syms_of_macros ()
