@@ -1,3 +1,8 @@
+2005-03-03  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs.c (Fkill_emacs): Use EXIT_SUCCESS;
+	no longer special-case VMS.  Add bogus return value.
+
 2005-03-02  Kim F. Storm  <storm@cua.dk>
 
 	* dispextern.h (XASSERTS): Define to 0 if not already defined.
