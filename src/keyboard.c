@@ -4259,7 +4259,7 @@ so that you can determine whether the command was run by mouse or not.");
     "Last terminal input key.");
 
   DEFVAR_LISP ("unread-command-events", &unread_command_events,
-    "Lisp of object to be read as next input from input stream, or nil if none.");
+    "List of objects to be read as next command input events.");
 
   DEFVAR_LISP ("meta-prefix-char", &meta_prefix_char,
     "Meta-prefix character code.  Meta-foo as command input\n\
