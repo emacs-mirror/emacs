@@ -6,7 +6,7 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.34 2003/08/03 18:29:52 karl Exp $
+@comment $Id: info.texi,v 1.35 2003/09/01 15:45:45 miles Exp $
 
 @copying
 This file describes how to use Info, the on-line, menu-driven GNU
@@ -459,7 +459,7 @@ Now type @kbd{]}, to learn about the @kbd{]} and @kbd{[} commands.
 @end menu
 
 @node Help-], , , Help-Inv
-@subsection The @kbd{]} and @kbd{[} commands.
+@subsection The @kbd{]} and @kbd{[} commands
 
 If you type @kbd{n} now, you get an error message saying that this
 node has no next node.  Similarly, if you type @kbd{p}, the error
