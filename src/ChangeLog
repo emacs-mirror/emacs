@@ -1,3 +1,8 @@
+2000-11-06  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* fileio.c (Fwrite_region): Use `visiting' rather than `visit'
+	when ensuring we don't do visit in indirect buffer.
+
 2000-11-06  Kenichi Handa  <handa@etl.go.jp>
 
 	* composite.h (compose_chars_in_text): Add prototype.
