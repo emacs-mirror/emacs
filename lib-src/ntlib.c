@@ -43,6 +43,12 @@ getwd (char *dir)
   return GetCurrentDirectory (MAXPATHLEN, dir);
 }
 
+int
+getpid ()
+{
+  return _getpid ();
+}
+
 static HANDLE getppid_parent;
 static int    getppid_ppid;
 
