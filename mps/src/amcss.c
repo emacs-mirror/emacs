@@ -1,6 +1,6 @@
 /*  ==== POOL CLASS AMC TEST ====
  *
- *  $HopeName: MMsrc!amcss.c(trunk.1) $
+ *  $HopeName: MMsrc!amcss.c(trunk.2) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -9,8 +9,8 @@
  *  moment.
  */
 
-#include "mps.h"
 #include "std.h"
+#include "mps.h"
 #include "lib.h"
 #include "deque.h"
 #include "space.h"
