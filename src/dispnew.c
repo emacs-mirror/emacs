@@ -3278,6 +3278,15 @@ direct_output_forward_char (n)
   if (!NILP (Vshow_trailing_whitespace))
     return 0;
 
+  /* Give up if we are showing a message or just cleared the message
+     because we might need to resize the echo area window.  */
+  if (!NILP (echo_area_buffer[0]) || !NILP (echo_area_buffer[1]))
+    return 0;
+
+  /* Give up if we don't know where the cursor is.  */
+  if (w->cursor.vpos < 0)
+    return 0;
+
   row = MATRIX_ROW (w->current_matrix, w->cursor.vpos);
 
   if (PT <= MATRIX_ROW_START_BYTEPOS (row)
