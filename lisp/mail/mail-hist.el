@@ -61,13 +61,9 @@
   (local-set-key "\M-n" 'mail-hist-next-input))
 
 ;;;###autoload
-(add-hook 'mail-mode-hook 'mail-hist-define-keys)
-
-;;;###autoload
-(add-hook 'vm-mail-mode-hook 'mail-hist-define-keys)
-
-;;;###autoload
-(add-hook 'mail-send-hook 'mail-hist-put-headers-into-history)
+(defun mail-hist-enable ()
+  (add-hook 'mail-mode-hook 'mail-hist-define-keys)
+  (add-hook 'mail-send-hook 'mail-hist-put-headers-into-history))
 
 (defvar mail-hist-header-ring-alist nil
   "Alist of form (header-name . history-ring).
