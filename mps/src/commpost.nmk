@@ -1,21 +1,21 @@
-# ==== SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
+# impl.nmk.commpost: SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpost.nmk(trunk.36) $
-# Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+# $HopeName: MMsrc!commpost.nmk(trunk.37) $
+# Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
 #
 # Second common makefile fragment for w3*mv.nmk.  See commpre.nmk
 
 
-# == Pseudo-targets
+# PSEUDO-TARGETS
 
 # "all" builds all the varieties of all targets
 # %%TARGET: Add the target to the all dependencies
 
 all: mpmss.exe amcss.exe amsss.exe segsmss.exe awlut.exe mpsicv.exe \
      lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe \
-     finalcv.exe arenacv.exe bttest.exe teletest.exe mpm.lib \
+     finalcv.exe arenacv.exe bttest.exe teletest.exe \
      abqtest.exe cbstest.exe btcv.exe mv2eptst.exe mv2test.exe \
      messtest.exe
 
@@ -28,7 +28,7 @@ mpmss.exe amcss.exe amcsshe.exe amsss.exe segsmss.exe awlut.exe dwstress.exe \
      finalcv.exe arenacv.exe bttest.exe teletest.exe protcv.exe \
      thw3susp.exe abqtest.exe cbstest.exe btcv.exe mv2eptst.exe \
      mv2test.exe epvmss.exe messtest.exe eventcnv.exe replay.exe replaysw.exe \
-     mpm.lib mmdw.lib mmsw.lib poolawl.lib mpsplan.lib:
+     mmdw.lib mmsw.lib mps_conf.lib mpsplan.lib:
 !IFDEF VARIETY
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ variety
 !ELSE
@@ -40,6 +40,7 @@ mpsicv.cov:
 
 # "clean" removes the directory containing the build results.
 # Depends on there being no file called "clean".
+# Since we can't know whether we have rmdir, try with deltree as well.
 
 clean:
 	$(ECHO) $(PFM): $@
@@ -87,7 +88,7 @@ FORCE:
 
 !IFDEF VARIETY
 
-# .special.version: version.o has a special rule so that it is always
+# .special.version: version.obj has a special rule so that it is always
 # built. This rule has no commands, meaning that the commands from
 # other rules (the implicit .c -> .obj rule in particular) will be used
 $(PFM)\$(VARIETY)\version.obj: FORCE
@@ -121,7 +122,7 @@ $(PFM)\$(VARIETY)\amcss.exe: $(PFM)\$(VARIETY)\amcss.obj \
 	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amcsshe.exe: $(PFM)\$(VARIETY)\amcsshe.obj \
-	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(PFM)\$(VARIETY)\fmthe.obj \
+	$(CONFIGURAOBJ) $(AMCOBJ) $(PLINTHOBJ) $(PFM)\$(VARIETY)\fmthe.obj \
 	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amsss.exe: $(PFM)\$(VARIETY)\amsss.obj \
@@ -202,18 +203,6 @@ $(PFM)\$(VARIETY)\epvmss.exe: $(PFM)\$(VARIETY)\epvmss.obj \
 $(PFM)\$(VARIETY)\messtest.exe: $(PFM)\$(VARIETY)\messtest.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(ARENAANOBJ) $(TESTLIBOBJ)
 
-$(PFM)\$(VARIETY)\mpm.lib: $(MPMOBJ)
-	$(ECHO) $@
-	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
-
-$(PFM)\$(VARIETY)\amc.lib: $(MPMOBJ) $(AMCOBJ)
-	$(ECHO) $@
-	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
-
-$(PFM)\$(VARIETY)\ams.lib: $(MPMOBJ) $(AMSOBJ)
-	$(ECHO) $@
-	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
-
 $(PFM)\$(VARIETY)\mmsw.lib: $(SWOBJ)
 	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
@@ -223,20 +212,21 @@ $(PFM)\$(VARIETY)\mmdw.lib: $(MPMOBJ) $(AMCOBJ) $(DWOBJ) \
 	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
-$(PFM)\$(VARIETY)\mpsplan.lib: $(PLINTHOBJ)
+$(PFM)\$(VARIETY)\mps_conf.lib: $(CONFIGURAOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) \
+        $(MVFFOBJ) $(AMSOBJ)
 	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
-$(PFM)\$(VARIETY)\poolawl.lib: $(AWLOBJ)
+$(PFM)\$(VARIETY)\mpsplan.lib: $(PLINTHOBJ)
 	$(ECHO) $@
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
 !ENDIF
 
+
 # GENERIC RULES
 
 # Object files
-# [builds objects for static linking with libc]
 
 {}.c{$(PFM)\$(VARIETY)}.obj:
 	$(ECHO) $@
@@ -260,13 +250,8 @@ $(PFM)\$(VARIETY)\poolawl.lib: $(AWLOBJ)
 #	plist /nologo /D ..\.. $(<B) > $(@F)
 
 
-# Dependencies
-# [we can't build these at the moment]
-
 # Executables
-# libcmt.lib is the library needed for multi-threaded programs.
 
 {$(PFM)\$(VARIETY)}.obj{$(PFM)\$(VARIETY)}.exe:
 	$(ECHO) $@
 	$(LINKER) $(LINKFLAGS) /OUT:$@ $(**)
-#!INCLUDE depend.mak
