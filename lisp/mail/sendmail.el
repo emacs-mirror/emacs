@@ -424,24 +424,33 @@ the user from the mailer."
 		  (let ((max (if (/= (1+ (buffer-size)) (point-max))
 				 (point-max))))
 		    (unwind-protect
-			(progn
-			  (narrow-to-region (point-min) (1+ (buffer-size)))
-			  (goto-char (point-max))
-			  (if (eq major-mode 'rmail-mode)
-			      ;; Append as a message to an RMAIL file
-			      (let ((buffer-read-only nil))
-				;; This forces RMAIL's message counters to be
-				;; recomputed when the next RMAIL operation is
-				;; done on the buffer.
-				;; See rmail-maybe-set-message-counters.
-				(setq rmail-total-messages nil)
+			;; Code below lifted from rmailout.el
+			;; function rmail-output-to-rmail-file:
+			(let ((buffer-read-only nil)
+			      (msg (and (boundp 'rmail-current-message)
+					rmail-current-message)))
+			  ;; If MSG is non-nil, buffer is in RMAIL mode.
+			  (if msg
+			      (progn
+				(rmail-maybe-set-message-counters)
+				(widen)
+				(narrow-to-region (point-max) (point-max))
 				(insert "\C-l\n0, unseen,,\n*** EOOH ***\n"
 					"From: " (user-login-name) "\n"
 					"Date: " (current-time-string) "\n")
-				;; Omit the blank line and the Unix From line.
 				(insert-buffer-substring curbuf beg2 end)
 				(insert "\n\C-_")
-				(rmail-set-message-counters))
+				(goto-char (point-min))
+				(widen)
+				(search-backward "\n\^_")
+				(narrow-to-region (point) (point-max))
+				(rmail-count-new-messages t)
+				(rmail-show-message msg)
+				(setq max nil))
+			    ;; Output file not in rmail mode
+			    ;; => just insert at the end.
+			    (narrow-to-region (point-min) (1+ (buffer-size)))
+			    (goto-char (point-max))
 			    (insert-buffer-substring curbuf beg end)))
 		      (if max (narrow-to-region (point-min) max))))))
 	    ;; Else append to the file directly.
