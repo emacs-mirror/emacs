@@ -82,9 +82,6 @@ this function useful in editing binary files."
 		(read-char))))
     (if (eq overwrite-mode 'overwrite-mode-binary)
 	(delete-char arg))
-    ;; Turn a meta-character into a character with the 0200 bit set.
-    (if (/= (logand last-input-char (lsh 1 23)) 0)
-	(setq char (logior char 128)))
     (insert-char char arg)))
 
 (defun delete-indentation (&optional arg)
