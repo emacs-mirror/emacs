@@ -171,6 +171,8 @@ extern Lisp_Object syntax_parent_lookup P_ ((Lisp_Object, int));
   Style a is always the default.
   */
 
+/* These macros extract a particular flag for a given character.  */
+
 #define SYNTAX_COMSTART_FIRST(c) ((SYNTAX_WITH_FLAGS (c) >> 16) & 1)
 
 #define SYNTAX_COMSTART_SECOND(c) ((SYNTAX_WITH_FLAGS (c) >> 17) & 1)
@@ -181,8 +183,22 @@ extern Lisp_Object syntax_parent_lookup P_ ((Lisp_Object, int));
 
 #define SYNTAX_PREFIX(c) ((SYNTAX_WITH_FLAGS (c) >> 20) & 1)
 
-/* extract the comment style bit from the syntax table entry */
 #define SYNTAX_COMMENT_STYLE(c) ((SYNTAX_WITH_FLAGS (c) >> 21) & 1)
+
+/* These macros extract specific flags from an integer
+   that holds the syntax code and the flags.  */
+
+#define SYNTAX_FLAGS_COMSTART_FIRST(flags) (((flags) >> 16) & 1)
+
+#define SYNTAX_FLAGS_COMSTART_SECOND(flags) (((flags) >> 17) & 1)
+
+#define SYNTAX_FLAGS_COMEND_FIRST(flags) (((flags) >> 18) & 1)
+
+#define SYNTAX_FLAGS_COMEND_SECOND(flags) (((flags) >> 19) & 1)
+
+#define SYNTAX_FLAGS_PREFIX(flags) (((flags) >> 20) & 1)
+
+#define SYNTAX_FLAGS_COMMENT_STYLE(flags) (((flags) >> 21) & 1)
 
 /* This array, indexed by a character, contains the syntax code which that
  character signifies (as a char).  For example,
