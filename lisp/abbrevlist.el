@@ -39,7 +39,7 @@
 	  abbrev-table)
 	(setq abbrev-list (sort abbrev-list 'string-lessp))
 	(while abbrev-list
-	  (if (> (+ first-column 40) (frame-width))
+	  (if (> (+ first-column 40) (window-width))
 	      (progn
 		(insert "\n")
 		(setq first-column 0)))
