@@ -1,3 +1,8 @@
+2004-11-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* mail/emacsbug.el (report-emacs-bug): Catch error that x-server-vendor
+	and x-server-version may throw.
+
 2004-11-23  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (substitute-key-definition-key): Optimize.  Don't
