@@ -1,3 +1,8 @@
+2001-08-13  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* desktop.el (desktop-save): Insert the coding: tag before
+	desktop-header.
+
 2001-08-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (TAGS, TAGS-LISP): Remove "loaddefs.el" including
