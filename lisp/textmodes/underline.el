@@ -37,7 +37,7 @@
 Works by overstriking underscores.
 Called from program, takes two arguments START and END
 which specify the range to operate on."
-  (interactive "r")
+  (interactive "*r")
   (save-excursion
    (let ((end1 (make-marker)))
      (move-marker end1 (max start end))
@@ -52,7 +52,7 @@ which specify the range to operate on."
   "Remove all underlining (overstruck underscores) in the region.
 Called from program, takes two arguments START and END
 which specify the range to operate on."
-  (interactive "r")
+  (interactive "*r")
   (save-excursion
    (let ((end1 (make-marker)))
      (move-marker end1 (max start end))
