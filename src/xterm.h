@@ -475,6 +475,9 @@ struct x_display
   /* Nonzero means our parent is another application's window
      and was explicitly specified.  */
   char explicit_parent;
+
+  /* Nonzero means tried already to make this frame visible.  */
+  char asked_for_visible;
 };
 
 /* Get at the computed faces of an X window frame.  */
