@@ -1,5 +1,5 @@
 ;;; comint.el --- general command interpreter in a window stuff
-;; Copyright (C) 1988, 1990, 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1990, 1992, 1993 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;; Keyword: processes
@@ -301,9 +301,14 @@ name of one"
 ;;; for the second argument (program).
 ;;;###autoload
 (defun make-comint (name program &optional startfile &rest switches)
+  "Make a comint process NAME in a buffer, running PROGRAM.
+The name of the buffer is made by surrounding NAME with `*'s.
+If there is already a running process in that buffer, it is not restarted.
+Optional third arg STARTFILE is the name of a file to send the contents of to 
+the process.  Any more args are arguments to PROGRAM."
   (let ((buffer (get-buffer-create (concat "*" name "*"))))
     ;; If no process, or nuked process, crank up a new one and put buffer in
-    ;; comint mode. Otherwise, leave buffer and existing process alone.
+    ;; comint mode.  Otherwise, leave buffer and existing process alone.
     (cond ((not (comint-check-proc buffer))
 	   (save-excursion
 	     (set-buffer buffer)
@@ -313,9 +318,9 @@ name of one"
 
 (defun comint-exec (buffer name command startfile switches)
   "Fires up a process in buffer for comint modes.
-Blasts any old process running in the buffer. Doesn't set the buffer mode.
+Blasts any old process running in the buffer.  Doesn't set the buffer mode.
 You can use this to cheaply run a series of processes in the same comint
-buffer. The hook comint-exec-hook is run after each exec."
+buffer.  The hook comint-exec-hook is run after each exec."
   (save-excursion
     (set-buffer buffer)
     (let ((proc (get-buffer-process buffer)))	; Blast any old process.
