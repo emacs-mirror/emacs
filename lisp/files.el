@@ -872,8 +872,7 @@ Optional second arg RAWFILE non-nil means the file is read literally."
 	   (truename (abbreviate-file-name (file-truename filename)))
 	   (number (nthcdr 10 (file-attributes truename)))
 	   ;; Find any buffer for a file which has same truename.
-	   (other (and (not buf) (find-buffer-visiting filename)))
-	   error)
+	   (other (and (not buf) (find-buffer-visiting filename))))
       ;; Let user know if there is a buffer with the same truename.
       (if other
 	  (progn
@@ -951,7 +950,8 @@ Optional second arg RAWFILE non-nil means the file is read literally."
       buf)))
 
 (defun find-file-noselect-1 (buf filename nowarn rawfile truename number)
-  (let ((inhibit-read-only t))
+  (let ((inhibit-read-only t)
+	error)
     (with-current-buffer buf
       (kill-local-variable 'find-file-literally)
       (setq buffer-file-coding-system nil)
