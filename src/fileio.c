@@ -323,6 +323,7 @@ Lisp_Object Qfile_regular_p;
 Lisp_Object Qfile_accessible_directory_p;
 Lisp_Object Qfile_modes;
 Lisp_Object Qset_file_modes;
+Lisp_Object Qset_file_times;
 Lisp_Object Qfile_newer_than_file_p;
 Lisp_Object Qinsert_file_contents;
 Lisp_Object Qwrite_region;
@@ -3438,7 +3439,59 @@ The value is an integer.  */)
   XSETINT (value, (~ realmask) & 0777);
   return value;
 }
+
+extern int lisp_time_argument P_ ((Lisp_Object, time_t *, int *));
 
+DEFUN ("set-file-times", Fset_file_times, Sset_file_times, 1, 2, 0,
+       doc: /* Set times of file FILENAME to TIME.
+Set both access and modification times.
+Return t on success, else nil.
+Use the current time if TIME is nil.  TIME is in the format of
+`current-time'. */)
+  (filename, time)
+     Lisp_Object filename, time;
+{
+  Lisp_Object absname, encoded_absname;
+  Lisp_Object handler;
+  time_t sec;
+  int usec;
+
+  if (! lisp_time_argument (time, &sec, &usec))
+    error ("Invalid time specification");
+
+  absname = Fexpand_file_name (filename, current_buffer->directory);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = Ffind_file_name_handler (absname, Qset_file_times);
+  if (!NILP (handler))
+    return call3 (handler, Qset_file_times, absname, time);
+
+  encoded_absname = ENCODE_FILE (absname);
+
+  {
+    EMACS_TIME t;
+
+    EMACS_SET_SECS (t, sec);
+    EMACS_SET_USECS (t, usec);
+
+    if (set_file_times (SDATA (encoded_absname), t, t))
+      {
+#ifdef DOS_NT
+        struct stat st;
+
+        /* Setting times on a directory always fails.  */
+        if (stat (SDATA (encoded_absname), &st) == 0
+            && (st.st_mode & S_IFMT) == S_IFDIR)
+          return Qnil;
+#endif
+        report_file_error ("Setting file times", Fcons (absname, Qnil));
+        return Qnil;
+      }
+  }
+
+  return Qt;
+}
 
 #ifdef __NetBSD__
 #define unix 42
@@ -6342,6 +6395,7 @@ syms_of_fileio ()
   Qfile_accessible_directory_p = intern ("file-accessible-directory-p");
   Qfile_modes = intern ("file-modes");
   Qset_file_modes = intern ("set-file-modes");
+  Qset_file_times = intern ("set-file-times");
   Qfile_newer_than_file_p = intern ("file-newer-than-file-p");
   Qinsert_file_contents = intern ("insert-file-contents");
   Qwrite_region = intern ("write-region");
@@ -6375,6 +6429,7 @@ syms_of_fileio ()
   staticpro (&Qfile_accessible_directory_p);
   staticpro (&Qfile_modes);
   staticpro (&Qset_file_modes);
+  staticpro (&Qset_file_times);
   staticpro (&Qfile_newer_than_file_p);
   staticpro (&Qinsert_file_contents);
   staticpro (&Qwrite_region);
@@ -6598,6 +6653,7 @@ a non-nil value.  */);
   defsubr (&Sfile_regular_p);
   defsubr (&Sfile_modes);
   defsubr (&Sset_file_modes);
+  defsubr (&Sset_file_times);
   defsubr (&Sset_default_file_modes);
   defsubr (&Sdefault_file_modes);
   defsubr (&Sfile_newer_than_file_p);
