@@ -810,9 +810,14 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 			    ((eq system-type 'ms-dos)
 			     (concat "~" init-file-user "/_emacs"))
 			    ((eq system-type 'windows-nt)
+			     ;; Prefer .emacs on Windows.
 			     (if (directory-files "~" nil "^\\.emacs\\(\\.elc?\\)?$")
 				 "~/.emacs"
-			       "~/_emacs"))
+			       ;; Also support _emacs for compatibility.
+			       (if (directory-files "~" nil "^_emacs\\(\\.elc?\\)?$")
+				   "~/_emacs"
+				 ;; But default to .emacs if _emacs does not exist.
+				 "~/.emacs")))
 			    ((eq system-type 'vax-vms)
 			     "sys$login:.emacs")
 			    (t
