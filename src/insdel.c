@@ -1,5 +1,5 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs.
-   Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -511,6 +511,8 @@ prepare_to_modify_buffer (start, end)
 #endif /* not CLASH_DETECTION */
 
   signal_before_change (start, end);
+
+  Vdeactivate_mark = Qt;
 }
 
 static Lisp_Object
