@@ -8,7 +8,8 @@
 
 	* replace.el (multi-occur-by-filename-regexp): Doc fix.
 	(occur-engine): Go to `point-min'.  Make nlines argument actually
-	mean number of context lines.  Handle it.
+	mean number of context lines.  Handle it.  Pad digits to the
+	right.
 
 	* ibuf-ext.el (ibuffer-filtering-groups): Renamed to
 	`ibuffer-filter-groups'.  All users updated.
