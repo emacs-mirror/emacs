@@ -3787,6 +3787,7 @@ If VISIBLE-ONLY is non-nil, the group won't be displayed if it isn't already."
 	     (news-server (car (cdr gnus-select-method)))
 	     (news-method (car gnus-select-method))
 	     (max-len 60)
+	     header			;Dummy binding for user-defined specs.
 	     (mode-string (eval gformat)))
 	(setq mode-string (eval gformat))
 	(if (> (length mode-string) max-len) 
