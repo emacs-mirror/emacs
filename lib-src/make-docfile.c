@@ -198,25 +198,32 @@ scan_file (filename)
 
 char buf[128];
 
-/* Skip a C string from INFILE,
- and return the character that follows the closing ".
- If printflag is positive, output string contents to outfile.
- If it is negative, store contents in buf.
- Convert escape sequences \n and \t to newline and tab;
- discard \ followed by newline.  */
+/* Skip a C string or C-style comment from INFILE, and return the
+   character that follows.  COMMENT non-zero means skip a comment.  If
+   PRINTFLAG is positive, output string contents to outfile.  If it is
+   negative, store contents in buf.  Convert escape sequences \n and
+   \t to newline and tab; discard \ followed by newline.  */
 
 int
-read_c_string (infile, printflag)
+read_c_string_or_comment (infile, printflag, comment)
      FILE *infile;
      int printflag;
 {
   register int c;
   char *p = buf;
 
-  c = getc (infile);
+  if (comment)
+    {
+      while ((c = getc (infile)) != EOF
+	     && (c == '\n' || c == '\r' || c == '\t' || c == ' '))
+	;
+    }
+  else
+    c = getc (infile);
+  
   while (c != EOF)
     {
-      while (c != '"' && c != EOF)
+      while (c != EOF && (comment ? c != '*' : c != '"'))
 	{
 	  if (c == '\\')
 	    {
@@ -231,24 +238,41 @@ read_c_string (infile, printflag)
 	      if (c == 't')
 		c = '\t';
 	    }
+	  
 	  if (printflag > 0)
 	    putc (c, outfile);
 	  else if (printflag < 0)
 	    *p++ = c;
 	  c = getc (infile);
 	}
-      c = getc (infile);
-      if (c != '"')
-	break;
-      /* If we had a "", concatenate the two strings.  */
-      c = getc (infile);
-    }
 
+      c = getc (infile);
+
+      if (comment)
+	{
+	  if (c == '/')
+	    {
+	      c = getc (infile);
+	      break;
+	    }
+	}
+      else
+	{
+	  if (c != '"')
+	    break;
+      
+	  /* If we had a "", concatenate the two strings.  */
+	  c = getc (infile);
+	}
+    }
+  
   if (printflag < 0)
     *p = 0;
 
   return c;
 }
+
+
 
 /* Write to file OUT the argument names of function FUNC, whose text is in BUF.
    MINARGS and MAXARGS are the minimum and maximum number of arguments.  */
@@ -431,10 +455,14 @@ scan_c_file (filename, mode)
 	  c = getc (infile);
 	}
 
+      /* Lisp variable or function name.  */
       c = getc (infile);
       if (c != '"')
 	continue;
-      c = read_c_string (infile, -1);
+      c = read_c_string_or_comment (infile, -1, 0);
+
+      /* DEFVAR_LISP ("name", addr /\* doc *\/)
+	 DEFVAR_LISP ("name", addr, doc)  */
 
       if (defunflag)
 	commas = 5;
@@ -450,6 +478,7 @@ scan_c_file (filename, mode)
 	  if (c == ',')
 	    {
 	      commas--;
+
 	      if (defunflag && (commas == 1 || commas == 2))
 		{
 		  do
@@ -467,40 +496,62 @@ scan_c_file (filename, mode)
 		      fscanf (infile, "%d", &maxargs);
 		}
 	    }
-	  if (c < 0)
+
+	  if (c == EOF)
 	    goto eof;
 	  c = getc (infile);
 	}
+      
       while (c == ' ' || c == '\n' || c == '\r' || c == '\t')
 	c = getc (infile);
+      
       if (c == '"')
-	c = read_c_string (infile, 0);
-      while (c != ',')
+	c = read_c_string_or_comment (infile, 0, 0);
+      
+      while (c != EOF && c != ',' && c != '/')
 	c = getc (infile);
-      c = getc (infile);
-      while (c == ' ' || c == '\n' || c == '\r' || c == '\t')
-	c = getc (infile);
-
-      if (c == '"')
+      if (c == ',')
 	{
+          c = getc (infile);
+          while (c == ' ' || c == '\n' || c == '\r' || c == '\t')
+            c = getc (infile);
+	}
+
+      if (c == '"'
+	  || (c == '/'
+	      && (c = getc (infile),
+		  ungetc (c, infile),
+		  c == '*')))
+	{
+	  int comment = c != '"';
+	  
 	  putc (037, outfile);
 	  putc (defvarflag ? 'V' : 'F', outfile);
 	  fprintf (outfile, "%s\n", buf);
-	  c = read_c_string (infile, 1);
+
+	  if (comment)
+	    getc (infile); 	/* Skip past `*' */
+	  c = read_c_string_or_comment (infile, 1, comment);
 
 	  /* If this is a defun, find the arguments and print them.  If
 	     this function takes MANY or UNEVALLED args, then the C source
 	     won't give the names of the arguments, so we shouldn't bother
-	     trying to find them.  */
+	     trying to find them.
+
+	     Old:  DEFUN (..., "DOC") (args)
+	     New:  DEFUN (..., /\* DOC *\/ (args))  */
 	  if (defunflag && maxargs != -1)
 	    {
 	      char argbuf[1024], *p = argbuf;
-	      while (c != ')')
-		{
-		  if (c < 0)
-		    goto eof;
-		  c = getc (infile);
-		}
+
+	      if (!comment)
+		while (c != ')')
+		  {
+		    if (c < 0)
+		      goto eof;
+		    c = getc (infile);
+		  }
+	      
 	      /* Skip into arguments.  */
 	      while (c != '(')
 		{
@@ -909,7 +960,7 @@ scan_lisp_file (filename, mode)
 		       buffer, filename);
 	      continue;
 	    }
-	  read_c_string (infile, 0);
+	  read_c_string_or_comment (infile, 0, 0);
 	  skip_white (infile);
 
 	  if (saved_string == 0)
@@ -962,7 +1013,7 @@ scan_lisp_file (filename, mode)
 	  saved_string = 0;
 	}
       else
-	read_c_string (infile, 1);
+	read_c_string_or_comment (infile, 1, 0);
     }
   fclose (infile);
   return 0;
