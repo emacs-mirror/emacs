@@ -22,8 +22,8 @@ Copyright (C) 1998,99,2000 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with the
-Invariant Sections being none, with the Front-Cover texts being ``A GNU
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU
 Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
 license is included in the section entitled ``GNU Free Documentation
 License'' in the Emacs manual.
@@ -245,7 +245,7 @@ Narrow the buffer to the header under point.
 @item mail-encode-encoded-word-region
 @findex mail-encode-encoded-word-region
 Encode the non-ASCII words in the region.  For instance,
-@samp{Nave} is encoded as @samp{=?iso-8859-1?q?Na=EFve?=}.
+@samp{Naïve} is encoded as @samp{=?iso-8859-1?q?Na=EFve?=}.
 
 @item mail-encode-encoded-word-buffer
 @findex mail-encode-encoded-word-buffer
@@ -576,10 +576,12 @@ The following functions are defined by the library:
 @deffn Command quoted-printable-decode-region @var{from} @var{to} &optional @var{coding-system}
 QP-decode all the encoded text in the region.  If @var{coding-system} is
 non-nil, decode bytes into characters with that coding-system.
+@end deffn
 
 @defun quoted-printable-decode-string @var{string} &optional @var{coding-system}
 Return a QP-encoded copy of @var{string}.  If @var{coding-system} is
 non-nil, decode bytes into characters with that coding-system.
+@end defun
 
 @deffn Command quoted-printable-encode-region @var{from} @var{to} &optional @var{fold} @var{class}
 QP-encode all the region.  If @var{fold} is non-@var{nil}, fold lines at
@@ -588,10 +590,11 @@ non-@code{nil}, translate the characters matched by that class in the
 form expected by @var{skip-chars-forward}.  If variable
 @var{mm-use-ultra-safe-encoding} is defined and non-@code{nil}, fold
 lines unconditionally and encode lines starting with @samp{From }.
+@end deffn
 
 @defun quoted-printable-encode-string string
 Return a QP-encoded copy of @var{string}.
-
+@end defun
 
 @node base64
 @section base64
