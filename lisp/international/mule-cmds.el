@@ -419,8 +419,7 @@ see `language-info-alist'."
     (if lang-slot
 	(cdr (assq key (cdr lang-slot))))))
 
-(defun set-language-info (lang-env key info
-				   &optional describe-map setup-map)
+(defun set-language-info (lang-env key info)
   "Modify part of the definition of language environment LANG-ENV.
 Specifically, this stores the information INFO under KEY
 in the definition of this language environment.
@@ -428,11 +427,7 @@ KEY is a symbol denoting the kind of information.
 INFO is the value for that information.
 
 For a list of useful values for KEY and their meanings,
-see `language-info-alist'.
-
-Optional 4th and 5th args DESCRIBE-MAP and SETUP-MAP are keymaps to
-register LANG-ENV in the menus `Mule'->`Describe Language
-Environment' and `Mule'->`Setup Language Environment', respectively."
+see `language-info-alist'."
   (if (symbolp lang-env)
       (setq lang-env (symbol-name lang-env)))
   (let (lang-slot key-slot)
@@ -445,16 +440,7 @@ Environment' and `Mule'->`Setup Language Environment', respectively."
 	(progn
 	  (setq key-slot (list key))
 	  (setcdr lang-slot (cons key-slot (cdr lang-slot)))))
-    ;; Setup menu.
-    (cond ((eq key 'documentation)
-	   (define-key-after describe-map (vector (intern lang-env))
-	     (cons lang-env 'describe-specified-language-support) t))
-	  ((eq key 'setup-function)
-	   (define-key-after setup-map (vector (intern lang-env))
-	     (cons lang-env 'setup-specified-language-environment) t)))
-
-    (setcdr key-slot info)
-    ))
+    (setcdr key-slot info)))
 
 (defun set-language-info-alist (lang-env alist &optional parents)
   "Store ALIST as the definition of language environment LANG-ENV.
@@ -496,9 +482,19 @@ in the European submenu in each of those two menus."
 		    (cons parent map) t)))
 	    (setq setup-map (symbol-value map))
 	    (setq l (cdr l)))))
+
+    ;; Set up menu items for this language env.
+    (let ((doc (assq 'documentation alist))
+	  (setup-function (assq 'setup-function alist)))
+      (when doc
+	(define-key-after describe-map (vector (intern lang-env))
+	  (cons lang-env 'describe-specified-language-support) t))
+      (when setup-function
+	(define-key-after setup-map (vector (intern lang-env))
+	  (cons lang-env 'setup-specified-language-environment) t)))
+
     (while alist
-      (set-language-info lang-env (car (car alist)) (cdr (car alist))
-			 describe-map setup-map)
+      (set-language-info lang-env (car (car alist)) (cdr (car alist)))
       (setq alist (cdr alist)))))
 
 (defun read-language-name (key prompt &optional default)
@@ -604,9 +600,9 @@ Each element has the form:
    (INPUT-METHOD LANGUAGE-ENV ACTIVATE-FUNC TITLE DESCRIPTION ARGS...)
 See the function `register-input-method' for the meanings of the elements.")
 
-(defun register-input-method (input-method env &rest args)
+(defun register-input-method (input-method lang-env &rest args)
   "Register INPUT-METHOD as an input method for language environment ENV.
-INPUT-METHOD and ENV are symbols or strings.
+INPUT-METHOD and LANG-ENV are symbols or strings.
 
 The remaining arguments are:
 	ACTIVATE-FUNC, TITLE, DESCRIPTION, and ARGS...
@@ -615,11 +611,11 @@ TITLE is a string to show in the mode line when this method is active.
 DESCRIPTION is a string describing this method and what it is good for.
 The ARGS, if any, are passed as arguments to ACTIVATE-FUNC.
 All told, the arguments to ACTIVATE-FUNC are INPUT-METHOD and the ARGS."
-  (if (symbolp language-name)
-      (setq language-name (symbol-name language-name)))
+  (if (symbolp lang-env)
+      (setq lang-env (symbol-name lang-env)))
   (if (symbolp input-method)
       (setq input-method (symbol-name input-method)))
-  (let ((info (cons language-name args))
+  (let ((info (cons lang-env args))
 	(slot (assoc input-method input-method-alist)))
     (if slot
 	(setcdr slot info)
@@ -852,7 +848,7 @@ This hook is mainly used for cancelling the effect of
 `set-language-environment-hook' (which-see).")
 
 (defun setup-specified-language-environment ()
-  "Set up multi-lingual environment convenient for the specified language."
+  "Switch to a specified language environment."
   (interactive)
   (let (language-name)
     (if (and (symbolp last-command-event)
