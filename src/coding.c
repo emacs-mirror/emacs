@@ -640,10 +640,11 @@ detect_coding_emacs_mule (src, src_end)
 
 enum iso_code_class_type iso_code_class[256];
 
-#define CHARSET_OK(idx, charset)		\
-  (CODING_SPEC_ISO_REQUESTED_DESIGNATION	\
-   (coding_system_table[idx], charset)		\
-   != CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION)
+#define CHARSET_OK(idx, charset)			\
+  (coding_system_table[idx]->safe_charsets[charset]	\
+   || (CODING_SPEC_ISO_REQUESTED_DESIGNATION		\
+       (coding_system_table[idx], charset)		\
+       != CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION))
 
 #define SHIFT_OUT_OK(idx) \
   (CODING_SPEC_ISO_INITIAL_DESIGNATION (coding_system_table[idx], 1) >= 0)
@@ -909,7 +910,8 @@ detect_coding_iso2022 (src, src_end)
 				     make_number (chars),		   \
 				     make_number (final_char));		   \
     if (charset >= 0							   \
-	&& CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset) == reg) \
+	&& (CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset) == reg \
+	    || coding->safe_charsets[charset]))				   \
       {									   \
 	if (coding->spec.iso2022.last_invalid_designation_register == 0	   \
 	    && reg == 0							   \
@@ -968,6 +970,7 @@ int check_composing_code (coding, src, src_end)
 	      c1 = *src++;
 	      if ((c1 < ' ' || c1 >= 0x80)
 		  || (charset = iso_charset_table[dim][c >= ','][c1]) < 0
+		  || ! coding->safe_charsets[charset]
 		  || (CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
 		      == CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION))
 		invalid_code_found = 1;
