@@ -883,13 +883,11 @@ No diary entry if there is no sunset on that date."
       (solar-setup))
   (if (= (% (calendar-absolute-from-gregorian date) 7) 5);;  Friday
       (let* ((sunset (car (cdr (solar-sunrise-sunset date))))
-	     (light (if sunset
-                        (dst-adjust-time
-                         date
-                         (- (car sunset) (/ 18.0 60.0))))))
-        (if (and light (calendar-date-equal date (car light)))
+                  (light (if sunset
+                        (cons (- (car sunset) (/ 18.0 60.0)) (cdr sunset)))))
+        (if sunset
             (format "%s Sabbath candle lighting"
-                    (apply 'solar-time-string (cdr light)))))))
+                    (apply 'solar-time-string light))))))
 
 (defun solar-equinoxes/solstices (k year)
   "Date of equinox/solstice K for YEAR.
