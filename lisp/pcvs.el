@@ -13,7 +13,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.33 2002/01/25 22:41:28 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.34 2002/04/03 16:56:36 kai Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -472,7 +472,8 @@ Working dir: " (abbreviate-file-name dir) "
     ;; Check that dir is under CVS control.
     (unless (file-directory-p dir)
       (error "%s is not a directory" dir))
-    (unless (or noexist (file-directory-p (expand-file-name "CVS" dir)))
+    (unless (or noexist (file-directory-p (expand-file-name "CVS" dir))
+		(file-expand-wildcards (expand-file-name "*/CVS" dir)))
       (error "%s does not contain CVS controlled files" dir))
 
     (set-buffer cvsbuf)
@@ -1377,7 +1378,9 @@ The POSTPROC specified there (typically `log-edit') is then called,
 ;;;;
 
 (defun-cvs-mode (cvs-mode-insert . NOARGS) (file)
-  "Insert an entry for a specific file."
+  "Insert an entry for a specific file into the current listing.
+This is typically used if the file is up-to-date (or has been added
+outside of PCL-CVS) and one wants to do some operation on it."
   (interactive
    (list (read-file-name
 	  "File to insert: "
@@ -1980,11 +1983,11 @@ With prefix argument, prompt for cvs flags."
 (defun-cvs-mode cvs-mode-add-change-log-entry-other-window ()
   "Add a ChangeLog entry in the ChangeLog of the current directory."
   (interactive)
-  (let* ((fi (cvs-mode-marked nil nil :one t))
-	 (default-directory (cvs-expand-dir-name (cvs-fileinfo->dir fi)))
-	 (buffer-file-name (expand-file-name (cvs-fileinfo->file fi))))
-    (kill-local-variable 'change-log-default-name)
-    (add-change-log-entry-other-window)))
+  (dolist (fi (cvs-mode-marked nil nil))
+    (let ((default-directory (cvs-expand-dir-name (cvs-fileinfo->dir fi)))
+	  (buffer-file-name (expand-file-name (cvs-fileinfo->file fi))))
+      (kill-local-variable 'change-log-default-name)
+      (save-excursion (add-change-log-entry-other-window)))))
 
 ;; interactive commands to set optional flags
 
@@ -1993,8 +1996,8 @@ With prefix argument, prompt for cvs flags."
   (interactive
    (list (completing-read
 	  "Which flag: "
-	  (mapcar 'list '("cvs" "diff" "update" "status" "log" "tag" ;"rtag"
-			  "commit" "remove" "undo" "checkout"))
+	  '("cvs" "diff" "update" "status" "log" "tag" ;"rtag"
+	    "commit" "remove" "undo" "checkout")
 	  nil t)))
   (let* ((sym (intern (concat "cvs-" flag "-flags"))))
     (let ((current-prefix-arg '(16)))
