@@ -239,21 +239,25 @@ If any of the current line is a comment or within a comment,
 fill the comment or the paragraph of it that point is in,
 preserving the comment indentation or line-starting decorations."
   (interactive "P")
-  (let ((first-line
-	 ;; Check for obvious entry to comment.
-	 (save-excursion
-	   (beginning-of-line)
-	   (skip-chars-forward " \t")
-	   (looking-at comment-start-skip))))
+  (let* (comment-start-place
+	 (first-line
+	  ;; Check for obvious entry to comment.
+	  (save-excursion
+	    (beginning-of-line)
+	    (skip-chars-forward " \t")
+	    (and (looking-at comment-start-skip)
+		 (setq comment-start-place (point))))))
     (if (or first-line
 	    ;; t if we enter a comment between start of function and this line.
 	    (eq (calculate-c-indent) t)
 	    ;; t if this line contains a comment starter.
 	    (save-excursion (beginning-of-line)
-			    (re-search-forward comment-start-skip
-					       (save-excursion (end-of-line)
-							       (point))
-					       t)))
+			    (prog1
+				(re-search-forward comment-start-skip
+						   (save-excursion (end-of-line)
+								   (point))
+						   t)
+			      (setq comment-start-place (point)))))
 	;; Inside a comment: fill one comment paragraph.
 	(let ((fill-prefix
 	       ;; The prefix for each line of this paragraph
@@ -280,18 +284,28 @@ preserving the comment indentation or line-starting decorations."
 	       (concat paragraph-separate
 		       "\\|^[ \t]*/\\*[ \t]*$\\|^[ \t]*\\*/[ \t]*$\\|^[^ \t/*]")))
 	  (save-restriction
-  (recursive-edit)
 	    ;; Don't fill the comment together with the code following it.
-	    (narrow-to-region (save-excursion
-				(search-backward "/*")
-				(beginning-of-line)
-				(point))
+	    ;; So temporarily exclude everything before the comment start,
+	    ;; and everything after the line where the comment ends.
+	    ;; If comment-start-place is non-nil, the comment starter is there.
+	    ;; Otherwise, point is inside the comment.
+	    (narrow-to-region (or comment-start-place
+				  (save-excursion
+				    (search-backward "/*")
+				    (beginning-of-line)
+				    (point)))
 			      (save-excursion
+				(if comment-start-place
+				    (goto-char (+ comment-start-place 2)))
 				(search-forward "*/" nil 'move)
 				(forward-line 1)
 				(point)))
 	    (fill-paragraph arg)
 	    (save-excursion
+	      ;; Find the comment ender (should be on last line of buffer,
+	      ;; given the narrowing) and don't leave it on its own line.
+	      (goto-char (point-max))
+	      (forward-line -1)
 	      (search-forward "*/")
 	      (beginning-of-line)
 	      (if (looking-at "[ \t]*\\*/")
