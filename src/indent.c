@@ -649,7 +649,7 @@ Pass the buffer's (point-max) as TO, to limit the scan to the end of the\n\
 visible section of the buffer, and pass LINE and COL as TOPOS.")
 #endif
 
-DEFUN ("compute-motion", Ffoo, Sfoo, 6, 6, 0,
+DEFUN ("compute-motion", Fcompute_motion, Scompute_motion, 6, 6, 0,
   0)
   (from, frompos, to, topos, width, offsets)
      Lisp_Object from, frompos, to, topos;
