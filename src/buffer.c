@@ -1035,9 +1035,10 @@ list_buffers_1 (files)
   register Lisp_Object tail, tem, buf;
   Lisp_Object col1, col2, col3, minspace;
   register struct buffer *old = current_buffer, *b;
-  int desired_point = 0;
+  Lisp_Object desired_point;
   Lisp_Object other_file_symbol;
 
+  desired_point = Qnil;
   other_file_symbol = intern ("list-buffers-directory");
 
   XFASTINT (col1) = 19;
@@ -1070,7 +1071,7 @@ list_buffers_1 (files)
 	continue;
       /* Identify the current buffer. */
       if (b == old)
-	desired_point = point;
+	XFASTINT (desired_point) = point;
       write_string (b == old ? "." : " ", -1);
       /* Identify modified buffers */
       write_string (BUF_MODIFF (b) > b->save_modified ? "*" : " ", -1);
@@ -1106,7 +1107,7 @@ list_buffers_1 (files)
 
   current_buffer->read_only = Qt;
   set_buffer_internal (old);
-  return make_number (desired_point);
+  return desired_point;
 }
 
 DEFUN ("list-buffers", Flist_buffers, Slist_buffers, 0, 1, "P",
@@ -1120,18 +1121,20 @@ The R column contains a % for buffers that are read-only.")
   (files)
      Lisp_Object files;
 {
-  int count = specpdl_ptr - specpdl;
   Lisp_Object desired_point;
 
   desired_point =
     internal_with_output_to_temp_buffer ("*Buffer List*",
 					 list_buffers_1, files);
 
-  record_unwind_protect (save_excursion_restore, save_excursion_save ());
-  Fset_buffer (build_string ("*Buffer List*"));
-  SET_PT (XINT (desired_point));
-  
-  return unbind_to (count, Qnil);
+  if (NUMBERP (desired_point))
+    {
+      int count = specpdl_ptr - specpdl;
+      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+      Fset_buffer (build_string ("*Buffer List*"));
+      SET_PT (XINT (desired_point));
+      return unbind_to (count, Qnil);
+    }
 }
 
 DEFUN ("kill-all-local-variables", Fkill_all_local_variables, Skill_all_local_variables,
