@@ -1,5 +1,14 @@
 2000-11-06  Kenichi Handa  <handa@etl.go.jp>
 
+	* language/thai.el ("Thai"): Set a lisp form that produces
+	composed string in `sample-text' language info.
+
+	* language/tibetan.el ("Tibetan"): Set a lisp form that produces
+	composed string in `sample-text' language info.
+
+	* international/mule-cmds.el (describe-language-environment): Eval
+	`sample-text' data and insert the result.
+
 	* international/mule-conf.el (compound-text): Define this coding
 	system here.  Make x-ctext and ctext aliases of it.
 
