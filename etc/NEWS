@@ -963,11 +963,12 @@ Meant for Lisp docstrings, Javadoc comments and other "documentation in code".
 These changes generally affect all modes derived from comint mode, which
 include shell-mode, gdb-mode, scheme-interaction-mode, etc.
 
-*** Comint now by default removes CRs from CR LF sequences.  Comint
-now treats single CRs in the output in a way similar to a terminal, by
-deleting everything to the beginning of the line.  This is achieved by
-adding `comint-cr-magic' to `comint-preoutput-filter-functions' by
-default.
+*** Comint now by default interprets some carriage-control characters.
+Comint now removes CRs from CR LF sequences, and treats single CRs and
+BSs in the output in a way similar to a terminal (by deleting to the
+beginning of the line, or deleting the previous character,
+respectively).  This is achieved by adding `comint-carriage-motion' to
+the `comint-output-filter-functions' hook by default.
 
 *** By default, comint no longer uses the variable `comint-prompt-regexp'
 to distinguish prompts from user-input.  Instead, it notices which
