@@ -1232,9 +1232,15 @@ N is the digit argument used to invoke this command."
 
 (defun Info-scroll-up ()
   "Scroll one screenful forward in Info, considering all nodes as one sequence.
-Once you scroll far enough in a node that its menu appears on the screen,
-the next scroll moves into its first subnode.  When you scroll past
-the end of a node, that goes to the next node or back up to the parent node."
+Once you scroll far enough in a node that its menu appears on the screen
+but after point, the next scroll moves into its first subnode.
+
+When you scroll past the end of a node, that goes to the next node; if
+this node has no successor, it moves to the parent node's successor,
+and so on.  If point is inside the menu of a node, it moves to
+subnode indicated by the following menu item.  (That case won't
+normally result from this command, but can happen in other ways.)"
+
   (interactive)
   (if (or (< (window-start) (point-min))
 	  (> (window-start) (point-max)))
