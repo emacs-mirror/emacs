@@ -46,10 +46,7 @@
        'japanese-shift-jis
      'iso-2022-7bit))
 
-  (setq default-input-method "japanese")
-  (setq-default default-input-method "japanese")
-
-  )
+  (setq default-input-method "japanese"))
 
 (defconst japanese-kana-table
   '((?あ ?ア ?ｱ) (?い ?イ ?ｲ) (?う ?ウ ?ｳ) (?え ?エ ?ｴ) (?お ?オ ?ｵ)
