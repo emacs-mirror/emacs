@@ -6517,17 +6517,19 @@ x_load_font (f, fontname, size)
     /* The slot `encoding' specifies how to map a character
        code-points (0x20..0x7F or 0x2020..0x7F7F) of each charset to
        the font code-points (0:0x20..0x7F, 1:0xA0..0xFF, 0:0x2020..0x7F7F,
-       1:0xA0A0..0xFFFF, 3:0x20A0..0x7FFF, or 2:0xA020..0xFF7F).  For the
-       moment, we don't know which charset uses this font.  So, we set
-       informatoin in fontp->encoding[1] which is never used by any
-       charset.  If mapping can't be decided, set 4.  */
+       the font code-points (0:0x20..0x7F, 1:0xA0..0xFF,
+       0:0x2020..0x7F7F, 1:0xA0A0..0xFFFF, 3:0x20A0..0x7FFF, or
+       2:0xA020..0xFF7F).  For the moment, we don't know which charset
+       uses this font.  So, we set informatoin in fontp->encoding[1]
+       which is never used by any charset.  If mapping can't be
+       decided, set FONT_ENCODING_NOT_DECIDED.  */
     fontp->encoding[1]
       = (font->max_byte1 == 0
 	 /* 1-byte font */
 	 ? (font->min_char_or_byte2 < 0x80
 	    ? (font->max_char_or_byte2 < 0x80
 	       ? 0		/* 0x20..0x7F */
-	       : 4)		/* 0x20..0xFF (can't decide) */
+	       : FONT_ENCODING_NOT_DECIDED) /* 0x20..0xFF */
 	    : 1)		/* 0xA0..0xFF */
 	 /* 2-byte font */
 	 : (font->min_byte1 < 0x80
@@ -6535,13 +6537,13 @@ x_load_font (f, fontname, size)
 	       ? (font->min_char_or_byte2 < 0x80
 		  ? (font->max_char_or_byte2 < 0x80
 		     ? 0		/* 0x2020..0x7F7F */
-		     : 4)	/* 0x2020..0x7FFF (can't decide) */
+		     : FONT_ENCODING_NOT_DECIDED) /* 0x2020..0x7FFF */
 		  : 3)		/* 0x20A0..0x7FFF */
-	       : 4)		/* 0x20??..0xA0?? (can't decide) */
+	       : FONT_ENCODING_NOT_DECIDED) /* 0x20??..0xA0?? */
 	    : (font->min_char_or_byte2 < 0x80
 	       ? (font->max_char_or_byte2 < 0x80
 		  ? 2		/* 0xA020..0xFF7F */
-		  : 4)		/* 0xA020..0xFFFF (can't decide) */
+		  : FONT_ENCODING_NOT_DECIDED) /* 0xA020..0xFFFF */
 	       : 1)));		/* 0xA0A0..0xFFFF */
 
     fontp->baseline_offset
