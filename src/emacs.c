@@ -407,9 +407,13 @@ main (argc, argv, envp)
       signal (SIGEMT, fatal_error_signal);
 #endif
       signal (SIGFPE, fatal_error_signal);
+#ifdef SIGBUS
       signal (SIGBUS, fatal_error_signal);
+#endif
       signal (SIGSEGV, fatal_error_signal);
+#ifdef SIGSYS
       signal (SIGSYS, fatal_error_signal);
+#endif
       signal (SIGTERM, fatal_error_signal);
 #ifdef SIGXCPU
       signal (SIGXCPU, fatal_error_signal);

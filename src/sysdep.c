@@ -2040,13 +2040,9 @@ static struct sigaction new_action, old_action;
 
 init_signals ()
 {
-#ifdef POSIX_SIGNALS
-  sigemptyset (&signal_empty_mask);
-  sigfillset (&signal_full_mask);
-#endif
+  sigemptyset (&empty_mask);
+  sigfillset (&full_mask);
 }
-
-int (*signal_handler_t) ();
 
 signal_handler_t
 sys_signal (int signal_number, signal_handler_t action)
@@ -2417,6 +2413,7 @@ sys_write (fildes, buf, nbyte)
  *	always negligible.   Fred Fish, Unisoft Systems Inc.
  */
 
+#ifndef HAVE_SYS_SIGLIST
 char *sys_siglist[NSIG + 1] =
 {
 #ifdef AIX
@@ -2477,6 +2474,7 @@ char *sys_siglist[NSIG + 1] =
 #endif /* not AIX */
   0
   };
+#endif HAVE_SYS_SIGLIST
 
 /*
  *	Warning, this function may not duplicate 4.2 action properly

@@ -18,6 +18,9 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef POSIX_SIGNALS
+
+#include <signal.h>
+
 #define SIGMASKTYPE sigset_t
 
 #define SIGEMPTYMASK (empty_mask)
@@ -26,6 +29,7 @@ extern sigset_t empty_mask, full_mask, temp_mask;
 
 /* POSIX pretty much destroys any possibility of writing sigmask as a
    macro in standard C.  */
+#ifndef sigmask
 #ifdef __GNUC__
 #define sigmask(SIG) 				\
   ({						\
@@ -37,6 +41,7 @@ extern sigset_t empty_mask, full_mask, temp_mask;
 #else /* ! defined (__GNUC__) */
 #define sigmask(SIG) (sys_sigmask (SIG))
 #endif /* ! defined (__GNUC__) */
+#endif
 
 #define sigpause(SIG)    sys_sigpause(SIG)
 #define sigblock(SIG)    sys_sigblock(SIG)
@@ -45,9 +50,13 @@ extern sigset_t empty_mask, full_mask, temp_mask;
 #define sighold(SIG)     ONLY_USED_IN_BSD_4_1
 #define sigrelse(SIG)    ONLY_USED_IN_BSD_4_1
 
-int (*sys_signal (int signal_number, int (*action)())) ();
-int sys_sigpause (int signal_number);
-sigset_t sys_sigblock (sigset_t new_mask);
+/* Whether this is what all systems want or not, this is what
+   appears to be assumed in the source, for example data.c:arith_error() */
+typedef RETSIGTYPE (*signal_handler_t) (int);
+
+signal_handler_t sys_signal (int signal_number, int (*action)());
+int      sys_sigpause   (sigset_t new_mask);
+sigset_t sys_sigblock   (sigset_t new_mask);
 sigset_t sys_sigunblock (sigset_t new_mask);
 sigset_t sys_sigsetmask (sigset_t new_mask);
 
