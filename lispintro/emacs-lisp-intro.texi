@@ -22,7 +22,7 @@
 @comment %**end of header
 
 @set edition-number 2.07
-@set update-date 2002 Aug 23
+@set update-date 2003 Apr 17
 
 @ignore
  ## Summary of shell commands to create various output formats:
@@ -230,7 +230,8 @@ people who are not programmers.
 
 Edition @value{edition-number}, @value{update-date}
 
-Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1997, 2001, 2002 Free Software Foundation, Inc.
+Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1997, 2001,
+2002, 2003 Free Software Foundation, Inc.
 @sp 2
 
 Published by the Free Software Foundation, Inc.@*
