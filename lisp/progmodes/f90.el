@@ -363,8 +363,8 @@ subroutine\\)\\|use\\|call\\)\\>[ \t]*\\(\\sw+\\)?"
    (list
     ;; Variable declarations (avoid the real function call).
     '("^[ \t0-9]*\\(real\\|integer\\|c\\(haracter\\|omplex\\)\\|\
-logical\\|type[ \t]*(\\sw+)\\)\\(.*::\\|[ \t]*(.*)\\)?\\([^!\n]*\\)"
-      (1 font-lock-type-face t) (4 font-lock-variable-name-face))
+logical\\|type[ \t]*(\\sw+)\\)\\(.*::\\|[ \t]*(.*)\\)?\\([^&!\n]*\\)"
+      (1 font-lock-type-face t) (4 font-lock-variable-name-face t))
     ;; do, if, select, where, and forall constructs.
     '("\\<\\(end[ \t]*\\(do\\|if\\|select\\|forall\\|where\\)\\)\\>\
 \\([ \t]+\\(\\sw+\\)\\)?"
@@ -379,6 +379,7 @@ do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
     '("\\<\\(namelist\\|common\\)[ \t]*\/\\(\\sw+\\)?\/"
       (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
     "\\<else\\([ \t]*if\\|where\\)?\\>"
+    '("\\(&\\)[ \t]*\\(!\\|$\\)"  (1 font-lock-keyword-face))
     "\\<\\(then\\|continue\\|format\\|include\\|stop\\|return\\)\\>"
     '("\\<\\(exit\\|cycle\\)[ \t]*\\(\\sw+\\)?\\>"
       (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
@@ -819,6 +820,11 @@ not the last line of a continued statement."
 ;; GM this is not right, eg a continuation line starting with a number.
 ;; Need f90-code-start-position function.
 ;; And yet, things seems to work with this...
+;; cf f90-indent-line
+;;     (beginning-of-line)           ; digits after & \n are not line-nos
+;;     (if (not (save-excursion (and (f90-previous-statement)
+;;                                   (f90-line-continued))))
+;;         (f90-indent-line-no)
 (defsubst f90-current-indentation ()
   "Return indentation of current line.
 Line-numbers are considered whitespace characters."
@@ -1134,7 +1140,9 @@ Return (TYPE NAME), or nil if not found."
   "Move point to the end of the current subprogram.
 Return (TYPE NAME), or nil if not found."
   (interactive)
-  (let ((count 1) (case-fold-search t) matching-end)
+  (let ((case-fold-search t)
+        (count 1) 
+        matching-end)
     (end-of-line)
     (while (and (> count 0)
 		(re-search-forward f90-program-block-re nil 'move))
@@ -1350,7 +1358,8 @@ after indenting."
     (and (< (point) pos)
          (goto-char pos))
     (if auto-fill-function
-        (f90-do-auto-fill)              ; also updates line
+        ;; GM NO-UPDATE not honoured, since this calls f90-update-line.
+        (f90-do-auto-fill)
       (or no-update (f90-update-line)))
     (set-marker pos nil)))
 
@@ -1361,17 +1370,15 @@ If run in the middle of a line, the line is not broken."
   (interactive "*")
   (if abbrev-mode (expand-abbrev))
   (beginning-of-line)             ; reindent where likely to be needed
-  (f90-indent-line-no)
-  (f90-indent-line 'no-update)
+  (f90-indent-line)                ; calls indent-line-no, update-line
   (end-of-line)
   (delete-horizontal-space)		; destroy trailing whitespace
   (let ((string (f90-in-string))
         (cont (f90-line-continued)))
     (and string (not cont) (insert "&"))
-    (f90-update-line)
     (newline)
     (if (or string (and cont f90-beginning-ampersand)) (insert "&")))
-  (f90-indent-line 'no-update))
+  (f90-indent-line 'no-update))         ; nothing to update
 
 
 (defun f90-indent-region (beg-region end-region)
@@ -1684,16 +1691,18 @@ Leave point at the end of line."
 (defun f90-abbrev-start ()
   "Typing `\\[help-command] or `? lists all the F90 abbrevs.
 Any other key combination is executed normally."
-  (interactive)
-  (let (c)
-    (insert last-command-char)
-    (setq c (if (fboundp 'next-command-event) ; XEmacs
-                (event-to-character (next-command-event))
-              (read-event)))
+  (interactive "*")
+  (insert last-command-char)
+  (let (char event)
+    (if (fboundp 'next-command-event) ; XEmacs
+        (setq event (next-command-event)
+              char (event-to-character event))
+      (setq event (read-event)
+            char event))
     ;; Insert char if not equal to `?', or if abbrev-mode is off.
-    (if (and abbrev-mode (or (eq c ??) (eq c help-char)))
+    (if (and abbrev-mode (or (eq char ??) (eq char help-char)))
 	(f90-abbrev-help)
-      (setq unread-command-events (list c)))))
+      (setq unread-command-events (list event)))))
 
 (defun f90-abbrev-help ()
   "List the currently defined abbrevs in F90 mode."
