@@ -2407,9 +2407,10 @@ positions.  All this takes place without modifying the buffer.
 A flag, @code{t} if the encoding function modifies the buffer, and
 @code{nil} if it works by returning a list of annotations.
 
-@item mode
-A mode function to call after visiting a file converted from this
-format.
+@item mode-fn
+A minor-mode function to call after visiting a file converted from this
+format.  The function is called with one argument, the integer 1;
+that tells a minor-mode function to enable the mode.
 @end table
 
 The function @code{insert-file-contents} automatically recognizes file

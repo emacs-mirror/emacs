@@ -1714,6 +1714,11 @@ This specifies the file containing the sound to play.
 If the file name is not absolute, it is expanded against
 the directory @code{data-directory}.
 
+@item :data @var{data}
+This specifies the sound to play without need to refer to a file.  The
+value, @var{data}, should be a string containing the same bytes as a
+sound file.  We recommend using a unibyte string.
+
 @item :volume @var{volume}
 This specifies how loud to play the sound.  It should be a number in the
 range of 0 to 1.  The default is to use whatever volume has been

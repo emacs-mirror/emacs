@@ -1,5 +1,8 @@
 2000-01-10  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
+	* dired-x.el (dired-guess-shell-alist-default): 
+	Suggest xloadimage, which is free, not xv, which isn't.
+
 	* ange-ftp.el (ange-ftp-file-name-nondirectory): 
 	Don't ever include the host name or user name in the value.
 

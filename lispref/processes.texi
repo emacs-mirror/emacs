@@ -875,7 +875,7 @@ which is called the associated buffer of the process, or a function
 called the @dfn{filter function} can be called to act on the output.  If
 the process has no buffer and no filter function, its output is
 discarded.
-
+ 
   Output from a subprocess can arrive only while Emacs is waiting: when
 reading terminal input, in @code{sit-for} and @code{sleep-for}
 (@pxref{Waiting}), and in @code{accept-process-output} (@pxref{Accepting
@@ -884,6 +884,13 @@ plague parallel programming.  For example, you can safely create a
 process and only then specify its buffer or filter function; no output
 can arrive before you finish, if the code in between does not call any
 primitive that waits.
+
+  It is impossible to separate the standard output and standard error
+streams of the subprocess, because Emacs normally spawns the subprocess
+inside a pseudo-TTY, and a pseudo-TTY has only one output channel.  If
+you want to keep the output to those streams separate, you should
+redirect one of them to a file--for example, by using an appropriate
+shell command.
 
   Subprocess output is normally decoded using a coding system before the
 buffer or filter function receives it, much like text read from a file.
