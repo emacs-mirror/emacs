@@ -5,7 +5,7 @@
 ;; Author: Ken Manheimer <klm@python.org>
 ;; Maintainer: Ken Manheimer <klm@python.org>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 1.38 2002/12/16 01:00:51 rost Exp $||
+;; Version: $Id: allout.el,v 1.39 2003/02/04 11:00:03 lektu Exp $||
 ;; Keywords: outlines mode wp languages
 
 ;; This file is part of GNU Emacs.
@@ -508,7 +508,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = allout-version
 (defvar allout-version
-  (let ((rcs-rev "$Revision: 1.38 $"))
+  (let ((rcs-rev "$Revision: 1.39 $"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
@@ -2331,19 +2331,19 @@ are mapped to the command of the corresponding control-key on the
 ;;;_   > allout-pre-command-business ()
 (defun allout-pre-command-business ()
   "Outline `pre-command-hook' function for outline buffers.
-Implements special behavior when cursor is on bullet char.
+Implements special behavior when cursor is on bullet character.
 
-Self-insert characters are reinterpreted control-character references
-into the `allout-mode-map'.  The `allout-mode' `post-command-hook' will
-position a cursor that has moved as a result of such reinterpretation,
-on the destination topic's bullet, when the cursor wound up in the
+When the cursor is on the bullet character, self-insert characters are
+reinterpreted as the corresponding control-character in the
+`allout-mode-map'.  The `allout-mode' `post-command-hook' insures that
+the cursor which has moved as a result of such reinterpretation is
+positioned on the bullet character of the destination topic.
 
 The upshot is that you can get easy, single (ie, unmodified) key
 outline maneuvering operations by positioning the cursor on the bullet
-char.  You stay in this mode until you use some regular
-cursor-positioning command to relocate the cursor off of a bullet
-char."
-
+char.  When in this mode you can use regular cursor-positioning
+command/keystrokes to relocate the cursor off of a bullet character to
+return to regular interpretation of self-insert characters."
   (if (not (allout-mode-p))
       ;; Shouldn't be invoked if not in allout allout-mode, but just in case:
       nil
