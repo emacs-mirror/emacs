@@ -963,7 +963,7 @@ brace."
 	     (c-beginning-of-statement-1)
 	     (setq c-parsing-error
 		   (format "No matching `if' found for `else' on line %d"
-			   (1+ (count-lines 1 here))))
+			   (1+ (count-lines (point-min) here))))
 	     (throw 'orphan-if nil))))
 	(cond
 	 ((looking-at "else\\b[^_]")
