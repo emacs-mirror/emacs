@@ -146,6 +146,10 @@ Lisp_Object Vw32_system_coding_system;
 /* A flag to control whether fonts are matched strictly or not.  */
 int w32_strict_fontnames;
 
+/* A flag to control whether we should only repaint if GetUpdateRect
+   indicates there is an update region.  */
+int w32_strict_painting;
+
 /* Evaluate this expression to rebuild the section of syms_of_w32fns
    that initializes and staticpros the symbols declared below.  Note
    that Emacs 18 has a bug that keeps C-x C-e from being able to
@@ -3723,15 +3727,18 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
         /* MSDN Docs say not to call BeginPaint if GetUpdateRect
            fails.  Apparently this can happen under some
            circumstances.  */
-        if (GetUpdateRect (hwnd, &update_rect, FALSE))
+        if (!w32_strict_painting || GetUpdateRect (hwnd, &update_rect, FALSE))
           {
             enter_crit ();
             BeginPaint (hwnd, &paintStruct);
 
-            /* The rectangles returned by GetUpdateRect and BeginPaint
-               do not always match.  GetUpdateRect seems to be the
-               more reliable of the two.  */
-            wmsg.rect = update_rect;
+	    if (w32_strict_painting)
+	      /* The rectangles returned by GetUpdateRect and BeginPaint
+		 do not always match.  GetUpdateRect seems to be the
+		 more reliable of the two.  */
+	      wmsg.rect = update_rect;
+	    else
+	      wmsg.rect = paintStruct.rcPaint;
 
 #if defined (W32_DEBUG_DISPLAY)
             DebPrint (("WM_PAINT: painting %d,%d-%d,%d\n", wmsg.rect.left,
@@ -3747,7 +3754,12 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
           
             return 0;
           }
-        return 1;
+
+	/* If GetUpdateRect returns 0 (meaning there is no update
+           region), assume the whole window needs to be repainted.  */
+	GetClientRect(hwnd, &wmsg.rect);
+	my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+        return 0;
       }
 
     case WM_INPUTLANGCHANGE:
@@ -7528,6 +7540,13 @@ fields to trick Emacs into translating to Big5, SJIS etc.\n\
 Setting this to t will prevent wrong fonts being selected when\n\
 fontsets are automatically created.");
   w32_strict_fontnames = 0;
+
+  DEFVAR_BOOL ("w32-strict-painting",
+               &w32_strict_painting,
+  "Non-nil means use strict rules for repainting frames.\n\
+Set this to nil to get the old behaviour for repainting; this should\n\
+only be necessary if the default setting causes problems.");
+  w32_strict_painting = 1;
 
   DEFVAR_LISP ("w32-system-coding-system",
                &Vw32_system_coding_system,
