@@ -119,7 +119,7 @@ hard newline are considered to match."
 
 (defcustom paragraph-separate "[ \t\f]*$"
   "*Regexp for beginning of a line that separates paragraphs.
-If you change this, you may have to change paragraph-start also.
+If you change this, you may have to change `paragraph-start' also.
 
 This is matched against the text at the left margin, which is not necessarily
 the beginning of the line, so it should not use \"^\" as an anchor.  This
