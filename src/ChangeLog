@@ -1,3 +1,7 @@
+2000-11-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* eval.c (Fsignal): Reset handling_signal.
+
 2000-11-28  Jason Rumney  <jasonr@gnu.org>
 
 	* w32menu.c (add_menu_item): Reset menu item text when changing
