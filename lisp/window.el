@@ -31,11 +31,20 @@
 
 (defmacro save-selected-window (&rest body)
   "Execute BODY, then select the window that was selected before BODY.
-However, if that window has become dead, don't get an error,
-just refrain from switching to it."
-  `(let ((save-selected-window-window (selected-window)))
+Also restore the selected window of each frame as it was at the start
+of this construct.
+However, if a window has become dead, don't get an error,
+just refrain from reselecting it."
+  `(let ((save-selected-window-window (selected-window))
+	 (save-selected-window-alist
+	  (mapcar (lambda (frame) (list frame (frame-selected-window frame)))
+		  (frame-list))))
      (unwind-protect
 	 (progn ,@body)
+       (dolist (elt save-selected-window-alist)
+	 (and (frame-live-p (car elt))
+	      (window-live-p (cadr elt))
+	      (set-frame-selected-window (car elt) (cadr elt))))
        (if (window-live-p save-selected-window-window)
 	   (select-window save-selected-window-window)))))
 
