@@ -61,6 +61,7 @@
   (define-key Buffer-menu-mode-map "2" 'Buffer-menu-2-window)
   (define-key Buffer-menu-mode-map "1" 'Buffer-menu-1-window)
   (define-key Buffer-menu-mode-map "f" 'Buffer-menu-this-window)
+  (define-key Buffer-menu-mode-map "\C-m" 'Buffer-menu-this-window)
   (define-key Buffer-menu-mode-map "o" 'Buffer-menu-other-window)
   (define-key Buffer-menu-mode-map "\C-o" 'Buffer-menu-switch-other-window)
   (define-key Buffer-menu-mode-map "s" 'Buffer-menu-save)
