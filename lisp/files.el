@@ -3223,7 +3223,7 @@ non-nil, it is called instead of rereading visited file contents."
 			    coding-system-for-read)))
 		     ;; Note that this preserves point in an intelligent way.
 		     (if preserve-modes
-			 (let ((buffer-file-formats buffer-file-formats))
+			 (let ((buffer-file-format buffer-file-format))
 			   (insert-file-contents file-name (not auto-save-p)
 						 nil nil t))
 		       (insert-file-contents file-name (not auto-save-p)
