@@ -36,6 +36,12 @@
 ;;
 ;; latin-[89]-prefix: Dave Love <fx@gnu.org>
 
+;; You might make extra input sequences on the basis of the X
+;; locale/*/Compose files (which have both prefix and postfix
+;; sequences), but bear in mind that sequences which are logical in
+;; that context may not be sensible when they're not signalled with
+;; the Compose key.  An example is a double space for NBSP.
+
 ;;; Code:
 
 (require 'quail)
@@ -58,11 +64,10 @@
              |   ~    | ~p -> ,A6(B  ~- -> ,A-(B  ~= -> ,A/(B  ~| -> ,A&(B
    symbol    |  _ /   | _o -> ,A:(B  _a -> ,A*(B  // -> ,A0(B  /\\ -> ,AW(B  _y -> ,A%(B
              |  _ /   | _: -> ,Aw(B  /c -> ,A"(B  /2 -> ,A=(B  /4 -> ,A<(B  /3 -> ,A>(B
-             |  _ /   | /= => ,A,(B
+             |  _ /   | /= -> ,A,(B
    symbol    |   ^    | ^r -> ,A.(B  ^c -> ,A)(B  ^1 -> ,A9(B  ^2 -> ,A2(B  ^3 -> ,A3(B
 " nil t nil nil nil nil nil nil nil nil t)
 
-;; Fixme: should we have non-break space somehow?  If so, how?
 (quail-define-rules
  ("'A" ?,AA(B)
  ("'E" ?,AI(B)
@@ -144,6 +149,7 @@
  ("/ " ?/)
  ("_o" ?,A:(B)
  ("_a" ?,A*(B)
+ ("_ " ?,A (B)
 ;; Symbols added by Roland Smith <rsmith@xs4all.nl>
  ("_+" ?,A1(B)
  ("_y" ?,A%(B)
@@ -589,7 +595,7 @@ Key translation rules are:
   circumflex |   ^    | ^a -> ,Cb(B
   diaeresis  |   \"    | \"a -> ,Cd(B   \"\" -> ,C((B
    cedilla   |   ~    | ~c -> ,Cg(B   ~s -> ,C:(B   ~~ -> ,C8(B
-  dot above  |   .    | /g -> ,Cu(B   .g -> ,Cu(B
+  dot above  |   / .  | /g -> ,Cu(B   .o -> ,Cu(B
     misc     | \" ~ /  | \"s -> ,C_(B   ~g -> ,C;(B   ~u -> ,C}(B   /h -> ,C1(B   /i -> ,C9(B
    symbol    |   ~    | ~` -> ,C"(B   /# -> ,C#(B   /$ -> ,C$(B   // -> ,C0(B
 " nil t nil nil nil nil nil nil nil nil t)
@@ -869,7 +875,7 @@ For example, the character named `aogonek' is obtained by `/a'."
    symbol    |   ^    | ^r -> ,_.(B  ^c -> ,_)(B
 " nil t nil nil nil nil nil nil nil nil t)
 
-;; Basically following Latin-1 plus dottiness from Latin-3.
+;; Basically following Latin-1, plus dottiness from Latin-3.
 (quail-define-rules
  (".B" ?,_!(B)
  (".b" ?,_"(B)
