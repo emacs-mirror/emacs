@@ -2340,7 +2340,7 @@ window_internal_width (w)
 
   /* Scroll bars occupy a few columns.  */
   if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
-    return width - VERTICAL_SCROLL_BAR_WIDTH;
+    return width - FRAME_SCROLL_BAR_COLS (f);
 
   /* The column of `|' characters separating side-by-side windows
      occupies one column only.  */
