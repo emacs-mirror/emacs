@@ -1,6 +1,6 @@
 ;;; rlogin.el --- remote login interface
 
-;; Copyright (C) 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995, 1997 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman
 ;; Maintainer: Noah Friedman <friedman@prep.ai.mit.edu>
@@ -23,7 +23,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;; $Id: rlogin.el,v 1.35 1996/06/23 04:31:17 friedman Exp rms $
+;; $Id: rlogin.el,v 1.36 1997/04/12 02:53:36 rms Exp rms $
 
 ;;; Commentary:
 
