@@ -6,9 +6,6 @@
 #undef C_SWITCH_SYSTEM
 #define C_SWITCH_SYSTEM	-D_OSF_SOURCE
 
-#define WAIT_USE_INT
-#define SYS_SIGLIST_DECLARED
-#define sys_siglist __sys_siglist
 #ifndef NSIG			/* _OSF_SOURCE seems to get us this */
 #define NSIG __sys_nsig
 #endif
@@ -20,3 +17,6 @@
 
 #define TERMINFO
 #define LIBS_TERMCAP -lcurses
+
+#define GC_SETJMP_WORKS 1
+#define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
