@@ -1,6 +1,6 @@
 ;;; rmailkwd.el --- part of the "RMAIL" mail reader for Emacs.
 
-;; Copyright (C) 1985, 1988, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1988, 1994, 2001 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -60,64 +60,66 @@ Completion is performed over known labels when reading."
 
 ;;;###autoload
 (defun rmail-read-label (prompt)
-  (if (not rmail-keywords) (rmail-parse-file-keywords))
-  (let ((result
-	 (completing-read (concat prompt
-				  (if rmail-last-label
-				      (concat " (default "
-					      (symbol-name rmail-last-label)
-					      "): ")
-				    ": "))
-			  rmail-label-obarray
-			  nil
-			  nil)))
-    (if (string= result "")
-	rmail-last-label
-      (setq rmail-last-label (rmail-make-label result t)))))
+  (with-current-buffer rmail-buffer
+    (if (not rmail-keywords) (rmail-parse-file-keywords))
+    (let ((result
+	   (completing-read (concat prompt
+				    (if rmail-last-label
+					(concat " (default "
+						(symbol-name rmail-last-label)
+						"): ")
+				      ": "))
+			    rmail-label-obarray
+			    nil
+			    nil)))
+      (if (string= result "")
+	  rmail-last-label
+	(setq rmail-last-label (rmail-make-label result t))))))
 
 (defun rmail-set-label (l state &optional n)
-  (rmail-maybe-set-message-counters)
-  (if (not n) (setq n rmail-current-message))
-  (aset rmail-summary-vector (1- n) nil)
-  (let* ((attribute (rmail-attribute-p l))
-	 (keyword (and (not attribute)
-		       (or (rmail-keyword-p l)
-			   (rmail-install-keyword l))))
-	 (label (or attribute keyword)))
-    (if label
-	(let ((omax (- (buffer-size) (point-max)))
-	      (omin (- (buffer-size) (point-min)))
-	      (buffer-read-only nil)
-	      (case-fold-search t))
-	  (unwind-protect
-	      (save-excursion
-		(widen)
-		(goto-char (rmail-msgbeg n))
-		(forward-line 1)
-		(if (not (looking-at "[01],"))
-		    nil
-		  (let ((start (1+ (point)))
-			(bound))
-		    (narrow-to-region (point) (progn (end-of-line) (point)))
-		    (setq bound (point-max))
-		    (search-backward ",," nil t)
-		    (if attribute
-			(setq bound (1+ (point)))
-		      (setq start (1+ (point))))
-		    (goto-char start)
-;		    (while (re-search-forward "[ \t]*,[ \t]*" nil t)
-;		      (replace-match ","))
-;		    (goto-char start)
-		    (if (re-search-forward
+  (with-current-buffer rmail-buffer
+    (rmail-maybe-set-message-counters)
+    (if (not n) (setq n rmail-current-message))
+    (aset rmail-summary-vector (1- n) nil)
+    (let* ((attribute (rmail-attribute-p l))
+	   (keyword (and (not attribute)
+			 (or (rmail-keyword-p l)
+			     (rmail-install-keyword l))))
+	   (label (or attribute keyword)))
+      (if label
+	  (let ((omax (- (buffer-size) (point-max)))
+		(omin (- (buffer-size) (point-min)))
+		(buffer-read-only nil)
+		(case-fold-search t))
+	    (unwind-protect
+		(save-excursion
+		  (widen)
+		  (goto-char (rmail-msgbeg n))
+		  (forward-line 1)
+		  (if (not (looking-at "[01],"))
+		      nil
+		    (let ((start (1+ (point)))
+			  (bound))
+		      (narrow-to-region (point) (progn (end-of-line) (point)))
+		      (setq bound (point-max))
+		      (search-backward ",," nil t)
+		      (if attribute
+			  (setq bound (1+ (point)))
+			(setq start (1+ (point))))
+		      (goto-char start)
+;		      (while (re-search-forward "[ \t]*,[ \t]*" nil t)
+;			(replace-match ","))
+;		      (goto-char start)
+		      (if (re-search-forward
 			   (concat ", " (rmail-quote-label-name label) ",")
 			   bound
 			   'move)
-			(if (not state) (replace-match ","))
-		      (if state (insert " " (symbol-name label) ",")))
-		    (if (eq label rmail-deleted-label)
-			(rmail-set-message-deleted-p n state)))))
-	    (narrow-to-region (- (buffer-size) omin) (- (buffer-size) omax))
-	    (if (= n rmail-current-message) (rmail-display-labels)))))))
+			  (if (not state) (replace-match ","))
+			(if state (insert " " (symbol-name label) ",")))
+		      (if (eq label rmail-deleted-label)
+			  (rmail-set-message-deleted-p n state)))))
+	      (narrow-to-region (- (buffer-size) omin) (- (buffer-size) omax))
+	      (if (= n rmail-current-message) (rmail-display-labels))))))))
 
 ;; Commented functions aren't used by RMAIL but might be nice for user
 ;; packages that do stuff with RMAIL.  Note that rmail-message-labels-p
@@ -192,6 +194,7 @@ With prefix argument N moves forward N messages with these labels."
       (setq labels rmail-last-multi-labels))
   (or labels
       (error "No labels to find have been specified previously"))
+  (set-buffer rmail-buffer)
   (setq rmail-last-multi-labels labels)
   (rmail-maybe-set-message-counters)
   (let ((lastwin rmail-current-message)
