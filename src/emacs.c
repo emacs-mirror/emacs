@@ -911,14 +911,14 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
 
   initialized = 1;
 
-#if defined (sun) || defined (LOCALTIME_CACHE)
-  /* sun's localtime has a bug.  it caches the value of the time
+#ifdef LOCALTIME_CACHE
+  /* Some versions of localtime have a bug.  They cache the value of the time
      zone rather than looking it up every time.  Since localtime() is
      called to bolt the undumping time into the undumped emacs, this
      results in localtime ignoring the TZ environment variable.
      This flushes the new TZ value into localtime. */
   tzset ();
-#endif /* defined (sun) || defined (LOCALTIME_CACHE) */
+#endif /* defined (LOCALTIME_CACHE) */
 
   /* Enter editor command loop.  This never returns.  */
   Frecursive_edit ();
