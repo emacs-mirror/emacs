@@ -948,13 +948,15 @@ The returned value is a Quail map specific to KEY."
 	     (help-char nil)
 	     (overriding-terminal-local-map (quail-translation-keymap))
 	     (generated-events nil)
-	     (input-method-function nil))
+	     (input-method-function nil)
+	     (modified-p (buffer-modified-p)))
 	(setq quail-current-key ""
 	      quail-current-str ""
 	      quail-translating t)
 	(if key
 	    (setq unread-command-events (cons key unread-command-events)))
 	(while quail-translating
+	  (set-buffer-modified-p modified-p)
 	  (let* ((keyseq (read-key-sequence
 			  (and input-method-use-echo-area
 			       (concat input-method-previous-message
@@ -1022,7 +1024,8 @@ The returned value is a Quail map specific to KEY."
 	     (help-char nil)
 	     (overriding-terminal-local-map (quail-conversion-keymap))
 	     (generated-events nil)
-	     (input-method-function nil))
+	     (input-method-function nil)
+	     (modified-p (buffer-modified-p)))
 	(setq quail-current-key ""
 	      quail-current-str ""
 	      quail-translating t
@@ -1031,6 +1034,7 @@ The returned value is a Quail map specific to KEY."
 	(if key
 	    (setq unread-command-events (cons key unread-command-events)))
 	(while quail-converting
+	  (set-buffer-modified-p modified-p)
 	  (or quail-translating
 	      (progn
 		(setq quail-current-key ""
