@@ -730,7 +730,9 @@ and `:slant'.  When called interactively, prompt for the face and font."
 (defun set-face-background (face color &optional frame)
   "Change the background color of face FACE to COLOR (a string).
 FRAME nil or not specified means change face on all frames.
-When called interactively, prompt for the face and color."
+COLOR can be a system-defined color name (see `list-colors-display')
+or a hex spec of the form #RRGGBB.
+When called interactively, prompts for the face and color."
   (interactive (read-face-and-attribute :background))
   (set-face-attribute face frame :background (or color 'unspecified)))
 
@@ -738,7 +740,9 @@ When called interactively, prompt for the face and color."
 (defun set-face-foreground (face color &optional frame)
   "Change the foreground color of face FACE to COLOR (a string).
 FRAME nil or not specified means change face on all frames.
-When called interactively, prompt for the face and color."
+COLOR can be a system-defined color name (see `list-colors-display')
+or a hex spec of the form #RRGGBB.
+When called interactively, prompts for the face and color."
   (interactive (read-face-and-attribute :foreground))
   (set-face-attribute face frame :foreground (or color 'unspecified)))
 

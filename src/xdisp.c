@@ -3273,6 +3273,7 @@ setup_for_ellipsis (it, len)
      IT's face is restored in set_iterator_to_next.  */
   it->saved_face_id = it->face_id;
   it->method = next_element_from_display_vector;
+  it->ellipsis_p = 1;
 }
 
 
@@ -5008,6 +5009,7 @@ get_next_display_element (it)
 		  it->current.dpvec_index = 0;
 		  it->saved_face_id = it->face_id;
 		  it->method = next_element_from_display_vector;
+		  it->ellipsis_p = 0;
 		}
 	      else
 		{
@@ -5159,6 +5161,7 @@ get_next_display_element (it)
 	      it->current.dpvec_index = 0;
 	      it->saved_face_id = it->face_id;
 	      it->method = next_element_from_display_vector;
+	      it->ellipsis_p = 0;
 	      goto get_next;
 	    }
 	}
@@ -5804,10 +5807,11 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
   saved_glyph_row = it->glyph_row;
   it->glyph_row = NULL;
 
-#define BUFFER_POS_REACHED_P()			    \
-  ((op & MOVE_TO_POS) != 0			    \
-   && BUFFERP (it->object)			    \
-   && IT_CHARPOS (*it) >= to_charpos)
+#define BUFFER_POS_REACHED_P()			\
+  ((op & MOVE_TO_POS) != 0			\
+   && BUFFERP (it->object)			\
+   && IT_CHARPOS (*it) >= to_charpos		\
+   && it->method == next_element_from_buffer)
 
   while (1)
     {
@@ -10914,6 +10918,18 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
       glyph = cursor;
       x = cursor_x;
     }
+  else if (row->ends_in_ellipsis_p && glyph == end)
+    {
+      /* Scan back over the ellipsis glyphs, decrementing positions.  */
+      while (glyph > row->glyphs[TEXT_AREA]
+	     && (glyph - 1)->charpos == last_pos)
+	glyph--, x -= glyph->pixel_width;
+      /* That loop always goes one position too far,
+	 including the glyph before the ellipsis.
+	 So scan forward over that one.  */
+      x += glyph->pixel_width;
+      glyph++;
+    }
   else if (string_start
 	   && (glyph == end || !BUFFERP (glyph->object) || last_pos > pt_old))
     {
@@ -14715,10 +14731,22 @@ cursor_row_p (w, row)
       /* If the row ends with a newline from a string, we don't want
 	 the cursor there (if the row is continued it doesn't end in a
 	 newline).  */
-      if (CHARPOS (row->end.string_pos) >= 0
-	  || MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row))
+      if (CHARPOS (row->end.string_pos) >= 0)
 	cursor_row_p = row->continued_p;
-
+      else if (MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row))
+	{
+	  /* If the row ends in middle of a real character,
+	     and the line is continued, we want the cursor here.
+	     That's because MATRIX_ROW_END_CHARPOS would equal
+	     PT if PT is before the character.  */
+	  if (!row->ends_in_ellipsis_p)
+	    cursor_row_p = row->continued_p;
+	  else
+	  /* If the row ends in an ellipsis, then
+	     MATRIX_ROW_END_CHARPOS will equal point after the invisible text.
+	     We want that position to be displayed after the ellipsis.  */
+	    cursor_row_p = 0;
+	}
       /* If the row ends at ZV, display the cursor at the end of that
 	 row instead of at the start of the row below.  */
       else if (row->ends_at_zv_p)
@@ -15194,6 +15222,11 @@ display_line (it)
 
   /* Remember the position at which this line ends.  */
   row->end = it->current;
+
+  /* Record whether this row ends inside an ellipsis.  */
+  row->ends_in_ellipsis_p
+    = (it->method == next_element_from_display_vector
+       && it->ellipsis_p);
 
   /* Save fringe bitmaps in this row.  */
   row->left_user_fringe_bitmap = it->left_user_fringe_bitmap;

@@ -474,7 +474,7 @@
    (let ((lang calc-language))
      (calc-edit-mode (list 'calc-finish-user-syntax-edit (list 'quote lang))
 		     t
-		     (format "Editing %s-Mode Syntax Table"
+		     (format "Editing %s-Mode Syntax Table. "
 			     (cond ((null lang) "Normal")
 				   ((eq lang 'tex) "TeX")
 				   (t (capitalize (symbol-name lang))))))
@@ -660,7 +660,6 @@
 				 (list '\? (list (car last)) '("$$"))))))))
     part))
 
-
 (defun calc-user-define-invocation ()
   (interactive)
   (or last-kbd-macro
@@ -668,9 +667,8 @@
   (setq calc-invocation-macro last-kbd-macro)
   (message "Use `M-# Z' to invoke this macro"))
 
-
-(defun calc-user-define-edit (prefix)
-  (interactive "P")  ; but no calc-wrapper!
+(defun calc-user-define-edit ()
+  (interactive)  ; but no calc-wrapper!
   (message "Edit definition of command: z-")
   (let* ((key (read-char))
 	 (def (or (assq key (calc-user-key-map))
@@ -678,116 +676,278 @@
 		  (assq (downcase key) (calc-user-key-map))
 		  (error "No command defined for that key")))
 	 (cmd (cdr def)))
-    (if (symbolp cmd)
-	(setq cmd (symbol-function cmd)))
+    (when (symbolp cmd)
+      (setq cmdname (symbol-name cmd))
+      (setq cmd (symbol-function cmd)))
     (cond ((or (stringp cmd)
 	       (and (consp cmd)
 		    (eq (car-safe (nth 3 cmd)) 'calc-execute-kbd-macro)))
-	   (if (and (>= (prefix-numeric-value prefix) 0)
-		    (fboundp 'edit-kbd-macro)
-		    (symbolp (cdr def))
-		    (eq major-mode 'calc-mode))
-	       (progn
-		 (if (and (< (window-width) (frame-width))
-			  calc-display-trail)
-		     (let ((win (get-buffer-window (calc-trail-buffer))))
-		       (if win
-			   (delete-window win))))
-		 (edit-kbd-macro (cdr def) prefix nil
-				 (function
-				  (lambda (x)
-				    (and calc-display-trail
-					 (calc-wrapper
-					  (calc-trail-display 1 t)))))
-				 (function
-				  (lambda (cmd)
-				    (if (stringp (symbol-function cmd))
-					(symbol-function cmd)
-				      (let ((mac (nth 1 (nth 3 (symbol-function
-								cmd)))))
-					(if (vectorp mac)
-					    (aref mac 1)
-					  mac)))))
-				 (function
-				  (lambda (new cmd)
-				    (if (stringp (symbol-function cmd))
-					(fset cmd new)
-				      (let ((mac (cdr (nth 3 (symbol-function
-							      cmd)))))
-					(if (vectorp (car mac))
-					    (progn
-					      (aset (car mac) 0
-						    (key-description new))
-					      (aset (car mac) 1 new))
-					  (setcar mac new))))))))
-	     (let ((keys (progn (and (fboundp 'edit-kbd-macro)
-				     (edit-kbd-macro nil))
-				(fboundp 'edmacro-parse-keys))))
-	       (calc-wrapper
-		(calc-edit-mode (list 'calc-finish-macro-edit
-				      (list 'quote def)
-				      keys)
-				t)
-		(if keys
-		    (let (top
-			  (fill-column 70)
-			  (fill-prefix nil))
-		      (insert "Notations: RET, SPC, TAB, DEL, LFD, NUL"
-			      ", C-xxx, M-xxx.\n\n")
-		      (setq top (point))
-		      (insert (if (stringp cmd)
-				  (key-description cmd)
-				(if (vectorp (nth 1 (nth 3 cmd)))
-				    (aref (nth 1 (nth 3 cmd)) 0)
-				  (key-description (nth 1 (nth 3 cmd)))))
-			      "\n")
-		      (if (>= (prog2 (forward-char -1)
-				     (current-column)
-				     (forward-char 1))
-			      (frame-width))
-			  (fill-region top (point))))
-		  (insert "Press C-q to quote control characters like RET"
-			  " and TAB.\n"
-			  (if (stringp cmd)
-			      cmd
-			    (if (vectorp (nth 1 (nth 3 cmd)))
-				(aref (nth 1 (nth 3 cmd)) 1)
-			      (nth 1 (nth 3 cmd)))))))
-	       (calc-show-edit-buffer)
-	       (forward-line (if keys 2 1)))))
+           (let* ((mac (elt (nth 1 (nth 3 cmd)) 1))
+                  (str (edmacro-format-keys mac t))
+                  (macbeg)
+                  (kys (nth 3 (nth 3 cmd))))
+             (calc-edit-mode 
+              (list 'calc-edit-macro-finish-edit cmdname kys)
+              t (format "Editing keyboard macro (%s, bound to %s).\n" 
+                        cmdname kys))
+             (goto-char (point-max))
+             (insert "Original keys: " (elt (nth 1 (nth 3 cmd)) 0)  "\n" )
+             (setq macbeg (point))
+             (insert str "\n")
+             (calc-edit-format-macro-buffer)
+             (calc-show-edit-buffer)
+             (goto-char (point-min))
+             (search-forward "Original")
+             (forward-line 2)))
 	  (t (let* ((func (calc-stack-command-p cmd))
 		    (defn (and func
 			       (symbolp func)
-			       (get func 'calc-user-defn))))
+			       (get func 'calc-user-defn)))
+                    (kys (concat "z" (char-to-string (car def))))
+                    (intcmd (symbol-name (cdr def)))
+                    (algcmd (substring (symbol-name func) 9)))
 	       (if (and defn (calc-valid-formula-func func))
 		   (progn
 		     (calc-wrapper
-		      (calc-edit-mode (list 'calc-finish-formula-edit
-					    (list 'quote func)))
+		      (calc-edit-mode 
+                       (list 'calc-finish-formula-edit (list 'quote func))
+                       nil
+                       (format "Editing formula (%s, %s, bound to %s).\n"
+                               intcmd algcmd kys))
 		      (insert (math-showing-full-precision
 			       (math-format-nice-expr defn (frame-width)))
 			      "\n"))
-		     (calc-show-edit-buffer))
+		     (calc-show-edit-buffer)
+                     (goto-char (point-min))
+                     (forward-line 2))
 		 (error "That command's definition cannot be edited")))))))
 
-(defun calc-finish-macro-edit (def keys)
+;; Formatting the macro buffer
+
+(defun calc-edit-macro-repeats ()
+  (goto-char (point-min))
+  (while
+      (re-search-forward "^\\([0-9]+\\)\\*" nil t)
+    (setq num (string-to-int (match-string 1)))
+    (setq line (buffer-substring (point) (line-end-position)))
+    (goto-char (line-beginning-position))
+    (kill-line 1)
+    (while (> num 0)
+      (insert line "\n")
+      (setq num (1- num)))))
+
+(defun calc-edit-macro-adjust-buffer ()
+  (calc-edit-macro-repeats)
+  (goto-char (point-min))
+  (while (re-search-forward "^RET$" nil t)
+    (delete-char 1))
+  (goto-char (point-min))
+  (while (and (re-search-forward "^$" nil t)
+              (not (= (point) (point-max))))
+    (delete-char 1)))
+
+(defun calc-edit-macro-command ()
+  "Return the command on the current line in a Calc macro editing buffer."
+  (let ((beg (line-beginning-position))
+        (end (save-excursion
+               (if (search-forward ";;" (line-end-position) 1)
+                   (forward-char -2))
+               (skip-chars-backward " \t")
+               (point))))
+    (buffer-substring beg end)))
+
+(defun calc-edit-macro-command-type ()
+  "Return the type of command on the current line in a Calc macro editing buffer."
+  (let ((beg (save-excursion
+               (if (search-forward ";;" (line-end-position) t)
+                   (progn
+                     (skip-chars-forward " \t")
+                     (point)))))
+        (end (save-excursion
+               (goto-char (line-end-position))
+               (skip-chars-backward " \t")
+               (point))))
+    (if beg
+        (buffer-substring beg end)
+      "")))
+
+(defun calc-edit-macro-combine-alg-ent ()
+  "Put an entire algebraic entry on a single line."
+  (let ((line (calc-edit-macro-command))
+        (type (calc-edit-macro-command-type))
+        curline
+        match)
+    (goto-char (line-beginning-position))
+    (kill-line 1)
+    (setq curline (calc-edit-macro-command))
+    (while (and curline
+                (not (string-equal "RET" curline))
+                (not (setq match (string-match "<return>" curline))))
+      (setq line (concat line curline))
+      (kill-line 1)
+      (setq curline (calc-edit-macro-command)))
+    (when match
+      (kill-line 1)
+      (setq line (concat line (substring curline 0 match))))
+    (setq line (replace-regexp-in-string "SPC" " SPC " 
+                  (replace-regexp-in-string " " "" line)))
+    (insert line "\t\t\t")
+    (if (> (current-column) 24)
+        (delete-char -1))
+    (insert ";; " type "\n")
+    (if match
+        (insert "RET\t\t\t;; calc-enter\n"))))
+
+(defun calc-edit-macro-combine-ext-command ()
+  "Put an entire extended command on a single line."
+  (let ((cmdbeg (calc-edit-macro-command))
+        (line "")
+        (type (calc-edit-macro-command-type))
+        curline
+        match)
+    (goto-char (line-beginning-position))
+    (kill-line 1)
+    (setq curline (calc-edit-macro-command))
+    (while (and curline
+                (not (string-equal "RET" curline))
+                (not (setq match (string-match "<return>" curline))))
+      (setq line (concat line curline))
+      (kill-line 1)
+      (setq curline (calc-edit-macro-command)))
+    (when match 
+      (kill-line 1)
+      (setq line (concat line (substring curline 0 match))))
+    (setq line (replace-regexp-in-string " " "" line))
+    (insert cmdbeg " " line "\t\t\t")
+    (if (> (current-column) 24)
+        (delete-char -1))
+    (insert ";; " type "\n")
+    (if match
+        (insert "RET\t\t\t;; calc-enter\n"))))
+
+(defun calc-edit-macro-combine-var-name ()
+  "Put an entire variable name on a single line."
+  (let ((line (calc-edit-macro-command))
+        curline
+        match)
+    (goto-char (line-beginning-position))
+    (kill-line 1)
+    (if (member line '("0" "1" "2" "3" "4" "5" "6" "7" "8" "9"))
+          (insert line "\t\t\t;; calc quick variable\n")
+      (setq curline (calc-edit-macro-command))
+      (while (and curline
+                  (not (string-equal "RET" curline))
+                  (not (setq match (string-match "<return>" curline))))
+        (setq line (concat line curline))
+        (kill-line 1)
+        (setq curline (calc-edit-macro-command)))
+      (when match 
+        (kill-line 1)
+        (setq line (concat line (substring curline 0 match))))
+      (setq line (replace-regexp-in-string " " "" line))
+      (insert line "\t\t\t")
+      (if (> (current-column) 24)
+          (delete-char -1))
+      (insert ";; calc variable\n")
+      (if match
+          (insert "RET\t\t\t;; calc-enter\n")))))
+
+(defun calc-edit-macro-combine-digits ()
+  "Put an entire sequence of digits on a single line."
+  (let ((line (calc-edit-macro-command))
+        curline)
+    (goto-char (line-beginning-position))
+    (kill-line 1)
+    (while (string-equal (calc-edit-macro-command-type) "calcDigit-start")
+      (setq line (concat line (calc-edit-macro-command)))
+      (kill-line 1))
+    (insert line "\t\t\t")
+    (if (> (current-column) 24)
+        (delete-char -1))
+    (insert ";; calc digits\n")))
+
+(defun calc-edit-format-macro-buffer ()
+  "Rewrite the Calc macro editing buffer."
+  (calc-edit-macro-adjust-buffer)
+  (goto-char (point-min))
+  (search-forward "Original keys:")
   (forward-line 1)
-  (if (and keys (looking-at "\n")) (forward-line 1))
-  (let* ((true-str (buffer-substring (point) (point-max)))
-	 (str true-str))
-    (if keys (setq str (edmacro-parse-keys str)))
-    (if (symbolp (cdr def))
-	(if (stringp (symbol-function (cdr def)))
-	    (fset (cdr def) str)
-	  (let ((mac (cdr (nth 3 (symbol-function (cdr def))))))
-	    (if (vectorp (car mac))
-		(progn
-		  (aset (car mac) 0 (if keys true-str (key-description str)))
-		  (aset (car mac) 1 str))
-	      (setcar mac str))))
-      (setcdr def str))))
+  (insert "\n")
+  (skip-chars-forward " \t\n")
+  (let ((type (calc-edit-macro-command-type)))
+    (while (not (string-equal type ""))
+      (cond
+       ((or
+         (string-equal type "calc-algebraic-entry")
+         (string-equal type "calc-auto-algebraic-entry"))
+        (calc-edit-macro-combine-alg-ent))
+       ((string-equal type "calc-execute-extended-command")
+        (calc-edit-macro-combine-ext-command))
+       ((string-equal type "calcDigit-start")
+        (calc-edit-macro-combine-digits))
+       ((or
+         (string-equal type "calc-store")
+         (string-equal type "calc-store-into")
+         (string-equal type "calc-store-neg")
+         (string-equal type "calc-store-plus")
+         (string-equal type "calc-store-minus")
+         (string-equal type "calc-store-div")
+         (string-equal type "calc-store-times")
+         (string-equal type "calc-store-power")
+         (string-equal type "calc-store-concat")
+         (string-equal type "calc-store-inv")
+         (string-equal type "calc-store-dec")
+         (string-equal type "calc-store-incr")
+         (string-equal type "calc-store-exchange")
+         (string-equal type "calc-unstore")
+         (string-equal type "calc-recall")
+         (string-equal type "calc-let")
+         (string-equal type "calc-permanent-variable"))
+        (forward-line 1)
+        (calc-edit-macro-combine-var-name))
+       ((or
+         (string-equal type "calc-copy-variable")
+         (string-equal type "calc-declare-variable"))
+        (forward-line 1)
+        (calc-edit-macro-combine-var-name)
+        (calc-edit-macro-combine-var-name))
+       (t (forward-line 1)))
+      (setq type (calc-edit-macro-command-type))))
+  (goto-char (point-min)))
+
+;; Finish editing the macro
+
+(defun calc-edit-macro-pre-finish-edit ()
+  (goto-char (point-min))
+  (while (re-search-forward "\\(^\\| \\)RET\\($\\|\t\\| \\)" nil t)
+    (search-backward "RET")
+    (delete-char 3)
+    (insert "<return>")))
+
+(defun calc-edit-macro-finish-edit (cmdname key)
+  "Finish editing a Calc macro.
+Redefine the corresponding command."
+  (interactive)
+  (let ((cmd (intern cmdname)))
+    (calc-edit-macro-pre-finish-edit)
+    (goto-char (point-max))
+    (re-search-backward "^Original keys:")
+    (forward-line 1)
+    (let* ((str (buffer-substring (point) (point-max)))
+           (mac (edmacro-parse-keys str t)))
+      (if (= (length mac) 0)
+          (fmakunbound cmd)
+        (fset cmd
+              (list 'lambda '(arg)
+                    '(interactive "P")
+                    (list 'calc-execute-kbd-macro
+                          (vector (key-description mac)
+                                  mac)
+                          'arg key)))))))
 
 (defun calc-finish-formula-edit (func)
+  (goto-char (point-min))
+  (forward-line 2)
   (let ((buf (current-buffer))
 	(str (buffer-substring (point) (point-max)))
 	(start (point))

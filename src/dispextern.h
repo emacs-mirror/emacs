@@ -817,6 +817,9 @@ struct glyph_row
   /* 1 means this row currently shows the cursor in the right fringe.  */
   unsigned cursor_in_fringe_p : 1;
 
+  /* 1 means the last glyph in the row is part of an ellipsis.  */
+  unsigned ends_in_ellipsis_p : 1;
+
   /* Non-zero means display a bitmap on X frames indicating that this
      the first line of the buffer.  */
   unsigned indicate_bob_p : 1;
@@ -1818,6 +1821,10 @@ struct it
   /* 1 means `string' is the value of a `display' property.
      Don't handle some `display' properties in these strings.  */
   unsigned string_from_display_prop_p : 1;
+
+  /* When METHOD == next_element_from_display_vector,
+     this is 1 if we're doing an ellipsis.  Otherwise meaningless.  */
+  unsigned ellipsis_p : 1;
 
   /* Display table in effect or null for none.  */
   struct Lisp_Char_Table *dp;
