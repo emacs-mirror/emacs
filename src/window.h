@@ -129,7 +129,7 @@ struct window
     /* Non-nil means we have explicitly changed the value of start,
        but that the next redisplay is not obliged to use the new value.
        This is used in Fdelete_other_windows to force a call to
-       Vwindow_scroll_functions.  */
+       Vwindow_scroll_functions; also by Frecenter with argument.  */
     Lisp_Object optional_new_start;
     /* Number of columns display within the window is scrolled to the left.  */
     Lisp_Object hscroll;
