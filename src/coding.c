@@ -3546,8 +3546,8 @@ Return length of encoded text.")
 DEFUN ("decode-coding-string", Fdecode_coding_string, Sdecode_coding_string,
        2, 3, 0,
   "Decode STRING which is encoded in CODING-SYSTEM, and return the result.\n\
-Optional arg NOCOPY non-nil means return STRING itself if there's no need\n\
-of decoding.")
+Optional arg NOCOPY non-nil means it is ok to return STRING itself\n\
+if the decoding operation is trivial.")
   (string, coding_system, nocopy)
      Lisp_Object string, coding_system, nocopy;
 {
@@ -3567,8 +3567,8 @@ of decoding.")
 DEFUN ("encode-coding-string", Fencode_coding_string, Sencode_coding_string,
        2, 3, 0,
   "Encode STRING to CODING-SYSTEM, and return the result.\n\
-Optional arg NOCOPY non-nil means return STRING itself if there's no need\n\
-of encoding.")
+Optional arg NOCOPY non-nil means it is ok to return STRING itself\n\
+if the encoding operation is trivial.")
   (string, coding_system, nocopy)
      Lisp_Object string, coding_system, nocopy;
 {
