@@ -83,7 +83,7 @@
 (define-category ?| "While filling, we can break a line at this character.")
 
 ;; For indentation calculation.
-(define-category ?
+(define-category ?                      ; Comment to protect space from deletion
   "This character counts as a space for indentation purposes.")
 
 ;; Keep the following for `kinsoku' processing.  See comments in
