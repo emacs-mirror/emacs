@@ -153,7 +153,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 ;; Every digit appears in the board, crypted or not.
 ;;------------------------------------------------------
 (defvar mpuz-board (make-vector 10 nil)
-  "The board associates ot any digit the list of squares where it appears.")
+  "The board associates to any digit the list of squares where it appears.")
 
 (defun mpuz-put-digit-on-board (number square)
   "Put (last digit of) NUMBER on SQUARE of the puzzle board."
