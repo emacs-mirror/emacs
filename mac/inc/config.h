@@ -184,7 +184,7 @@ Boston, MA 02111-1307, USA.  */
 /* #undef HAVE_TERMIOS_H */
 #define HAVE_LIMITS_H 1
 #define HAVE_STRING_H 1
-/* #undef HAVE_STDLIB_H */
+#define HAVE_STDLIB_H 1
 /* #undef HAVE_TERMCAP_H */
 /* #undef HAVE_TERM_H */
 /* #undef HAVE_STDIO_EXT_H */
