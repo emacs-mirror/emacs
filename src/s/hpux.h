@@ -217,5 +217,5 @@ Boston, MA 02111-1307, USA.  */
 /* This triggers a conditional in xfaces.c.  */
 #define XOS_NEEDS_TIME_H
 
-/* HPUX 7 has sys/wait.h but it does not work right.  */
+/* It's possible that HPUX 7 has sys/wait.h but it does not work right.  */
 #undef HAVE_SYS_WAIT_H

@@ -190,5 +190,6 @@ Boston, MA 02111-1307, USA.  */
     '-A__iob=___ap$$iob' '-A_use_libc_sema=___ap$$use_libc_sema'
 #endif
 
-/* The convex has sys/wait.h but it does not work right.  */
+/* There is some indication that the convex has sys/wait.h
+   but it does not work right.  */
 #undef HAVE_SYS_WAIT_H
