@@ -356,8 +356,6 @@ It serves as a menu to find any of the occurrences in this buffer.
 	(dir default-directory)
 	(linenum 1)
 	(prevpos (point-min))
-	sje-start
-	sje-len
 	(final-context-start (make-marker)))
 ;;;	(save-excursion
 ;;;	  (beginning-of-line)
@@ -433,7 +431,8 @@ It serves as a menu to find any of the occurrences in this buffer.
 		    (insert empty ?:)
 		    (forward-line 1)
 		    (setq tem (1- tem)))
-		  (let ((this-linenum linenum))
+		  (let ((this-linenum linenum)
+			line-start)
 		    (while (< (point) final-context-start)
 		      (if (null tag)
 			  (setq tag (format "%5d" this-linenum)))
