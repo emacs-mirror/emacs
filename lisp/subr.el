@@ -701,6 +701,14 @@ as returned by the `event-start' and `event-end' functions."
 (make-obsolete 'sref 'aref "20.4")
 (make-obsolete 'char-bytes "now always returns 1 (maintained for backward compatibility)." "20.4")
 (make-obsolete 'chars-in-region "use (abs (- BEG END))." "20.3")
+(make-obsolete 'dot 'point		"before 19.15")
+(make-obsolete 'dot-max 'point-max	"before 19.15")
+(make-obsolete 'dot-min 'point-min	"before 19.15")
+(make-obsolete 'dot-marker 'point-marker "before 19.15")
+(make-obsolete 'buffer-flush-undo 'buffer-disable-undo "before 19.15")
+(make-obsolete 'baud-rate "use the baud-rate variable instead." "before 19.15")
+(make-obsolete 'compiled-function-p 'byte-code-function-p "before 19.15")
+(make-obsolete 'define-function 'defalias "20.1")
 
 (defun insert-string (&rest args)
   "Mocklisp-compatibility insert function.
