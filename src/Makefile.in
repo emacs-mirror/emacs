@@ -598,7 +598,7 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
 #endif
 
 #ifdef MSDOS
-#define MSDOS_SUPPORT ${lispsource}ls-lisp.elc ${lispsource}disp-tab.elc ${lispsource}dos-fns.elc
+#define MSDOS_SUPPORT ${lispsource}ls-lisp.elc ${lispsource}disp-table.elc ${lispsource}dos-fns.elc
 #else
 #define MSDOS_SUPPORT
 #endif
