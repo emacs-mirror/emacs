@@ -260,13 +260,13 @@ recover-session invocations.)
 I use the following two bash functions to handle my Emacs sessions:
 
 ,----[ ~/.bash_profile
-| # Usage: preload-emacs <name> [<waitp>]
+| # Usage: preload_emacs <name> [<waitp>]
 | #
 | # Preloads the Emacs instance called NAME in a detached screen
 | # session.  Does nothing if the instance is already running.  If WAITP
 | # is non-empty, the function waits until the server starts up and
 | # creates its socket; otherwise it returns immediately.
-| function preload-emacs {
+| function preload_emacs {
 |     local name="$1"
 |     local waitp="$2"
 |     local screendir="/var/run/screen/S-$USER"
@@ -274,7 +274,7 @@ I use the following two bash functions to handle my Emacs sessions:
 |     local emacs=emacs # Or wherever you installed your multi-tty Emacs
 | 
 |     if [ -z "$name" ]; then 
-| 	echo "Usage: preload-emacs <name> [<waitp>]" >&2
+| 	echo "Usage: preload_emacs <name> [<waitp>]" >&2
 | 	return 1
 |     fi
 | 
@@ -291,33 +291,33 @@ I use the following two bash functions to handle my Emacs sessions:
 |     return 0
 | }
 | 
-| # Usage: connect-emacs <name> <args>...
+| # Usage: connect_emacs <name> <args>...
 | #
 | # Connects to the Emacs instance called NAME.  Starts up the instance
 | # if it is not already running.  The rest of the arguments are passed
 | # to emacsclient.
-| function connect-emacs {
+| function connect_emacs {
 |     local name="$1"
 |     shift
 |     
 |     if [ -z "$name" ]; then
-| 	echo "Usage: connect-emacs <name> <args>..." >&2
+| 	echo "Usage: connect_emacs <name> <args>..." >&2
 |     fi
-|     preload-emacs "$name" wait
+|     preload_emacs "$name" wait
 |     emacsclient -s "$name" "$@"
 | }
 | 
-| export -f preload-emacs connect-emacs
+| export -f preload_emacs connect_emacs
 |
 | # Preload editor and gnus sessions for speedy initial connects.
-| preload-emacs editor
-| preload-emacs gnus
+| preload_emacs editor
+| preload_emacs gnus
 `----
 
 ,----[ ~/.bashrc
-| alias gnus="connect-emacs gnus"
-| alias edit="connect-emacs editor"
-| alias et="connect-emacs editor -t"
+| alias gnus="connect_emacs gnus"
+| alias edit="connect_emacs editor"
+| alias et="connect_emacs editor -t"
 | alias e=edit
 `----
 
