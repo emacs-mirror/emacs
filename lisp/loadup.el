@@ -52,7 +52,7 @@
 
 (load "widget")
 (load "custom")
-(autoload '\` "emacs-lisp/backquote" nil nil 'macro)
+(load "emacs-lisp/backquote")
 (load "map-ynp")
 (load "env")
 (load "cus-start")
@@ -160,7 +160,7 @@
       (load "international/ccl") ; for cpNNN coding systems in codepage.el
       (load "international/codepage")	; internal.el uses cpNNN coding systems
       (load "disp-table"))) ; needed to setup ibm-pc char set, see internal.el
-(if (fboundp 'atan)	; preload some constants and 
+(if (fboundp 'atan)	; preload some constants and
     (progn		; floating pt. functions if we have float support.
       (load "float-sup")))
 (message "%s" (garbage-collect))
@@ -250,7 +250,7 @@
       (princ ")))\n" (current-buffer))
       (write-region (point-min) (point-max)
 		    (expand-file-name
-		     (cond 
+		     (cond
 		      ((eq system-type 'ms-dos)
 		       "../lib-src/fns.el")
 		      ((eq system-type 'windows-nt)
@@ -276,7 +276,7 @@
 (if (or (member (nth 3 command-line-args) '("dump" "bootstrap"))
 	(member (nth 4 command-line-args) '("dump" "bootstrap")))
     (if (eq system-type 'vax-vms)
-	(progn 
+	(progn
 	  (message "Dumping data as file temacs.dump")
 	  (dump-emacs "temacs.dump" "temacs")
 	  (kill-emacs))

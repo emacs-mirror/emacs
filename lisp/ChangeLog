@@ -1,3 +1,8 @@
+2000-12-07  Sam Steingold  <sds@gnu.org>
+
+	* loadup.el: Load emacs-lisp/backquote instead of autoloading.
+	Backquote is used in isearch.el, so autoloading saves nothing.
+
 2000-12-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* startup.el (normal-top-level-add-subdirs-to-load-path): Ignore
@@ -15,7 +20,7 @@
 	* progmodes/idlw-shell.el, progmodes/idlwave.el: Update copyright.
 
 	* bindings.el (mode-line-mode-menu): Add glasses-mode.
-	
+
 	* bindings.el (mode-line-mode-menu): Reverse the order
 	of define-keys so that the menu appears in alphabetical order.
 
@@ -86,7 +91,7 @@
 
 	* startup.el (fancy-splash-text, command-line-1): Use
 	`File' for the menu name instead of `Files'.
-	
+
 	* tmm.el: Update copyright.
 
 	* cus-start.el: Add entry for even-window-heights.
@@ -129,7 +134,7 @@
 
 2000-12-04  Gerd Moellmann  <gerd@gnu.org>
 
-	* mail/rmailsum.el (rmail-summary-expunge) 
+	* mail/rmailsum.el (rmail-summary-expunge)
 	(rmail-summary-expunge-and-save): Ask for confirmation with
 	rmail-expunge-confirmed.
 
@@ -139,7 +144,7 @@
 	* progmodes/etags.el (tag-partial-file-name-match-p): New function.
 	(etags-recognize-tags-table, find-tag-in-order): New
 	functionality: interpret file names as tags.
-	
+
 2000-12-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (Info-scroll-prefer-subnodes): New defcustom.
@@ -161,7 +166,7 @@
 
 2000-12-03  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* emacs-lisp/easy-mmode.el (define-derived-mode) 
+	* emacs-lisp/easy-mmode.el (define-derived-mode)
 	(easy-mmode-derived-mode-p): Remove (moved to derived.el).
 
 	* derived.el (define-derived-mode): Revived, moved from easy-mmode.el.
@@ -210,7 +215,7 @@
 	texinfo-open-quote and texinfo-close-quote.  Insert literal quote
 	with numeric argument.  Docstring fix.
 	(toplevel): Require cl when compiling.
-	
+
 	* international/mule.el (make-char): Doc fix.
 
 2000-12-02  Jason Rumney  <jasonr@gnu.org>
@@ -238,7 +243,7 @@
 
 	* hi-lock.el (hi-lock-refontify): Call jit-lock-refontify.
 
-	* play/5x5.el (5x5-play-solution): 
+	* play/5x5.el (5x5-play-solution):
 
 2000-12-01  Miles Bader  <miles@gnu.org>
 
@@ -255,14 +260,14 @@
 	upper-case variants of each filename extension in
 	`image-file-name-extensions', since they seem to be common.
 
-	* simple.el (minibuffer-contents) 
+	* simple.el (minibuffer-contents)
 	(minibuffer-contents-no-properties, delete-minibuffer-contents):
 	New functions.
 	* filecache.el (file-cache-directory-name)
 	(file-cache-minibuffer-complete): Ignore the minibuffer prompt.
 
 2000-12-01 Milan Zamazal <Milan.Zamazal@qbizm.com>
-	
+
 	* filecache.el (file-cache-minibuffer-complete): Don't try to
 	delete the minibuffer prompt.
 
@@ -302,7 +307,7 @@
 	* bs.el: Fix typos and spelling errors.
 	(bs-appearance) <defgroup>: Renamed from bs-appearence.
 	(bs-configuration): Doc fix.
-	
+
 	* bs.el: Undo mistaken change of 2000-11-28.  Update copyright.
 
 2000-11-30  Rob Riepel  <riepel@Stanford.EDU>
@@ -323,7 +328,7 @@
 
 	* emulation/tpu-extras.el (tpu-forward-line): Use
 	forward-visible-line.
-	
+
 2000-11-30  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* cus-edit.el (custom-face-value-create): Always emphasize tag.
@@ -332,7 +337,7 @@
 
 	* calendar/diary-lib.el (diary-entry-time): Anchor pattern correctly
 	and skip whitespace and newlines.
-	
+
 2000-11-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/cl.el (third...tenth): Really undo change of 2000-08-05.
@@ -423,7 +428,7 @@
 	Suggested by Jay@aol.com.
 	(antlr-hide-actions): Change accordingly.  Hide line if completely
 	hidden action is on a line of its own.
-	
+
 2000-11-29  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* subr.el (combine-run-hooks): Only run-hooks if there's a hook to run.
@@ -570,7 +575,7 @@
 
 2000-11-27  Miles Bader  <miles@gnu.org>
 
-	* wid-edit.el (widget-field-buffer, widget-field-start) 
+	* wid-edit.el (widget-field-buffer, widget-field-start)
 	(widget-field-end): Handle widget field `pseudo-overlays'.
 	(widget-field-value-delete): Delete WIDGET from `widget-field-new'
 	if it's there instead of in `widget-field-list'.
@@ -616,7 +621,7 @@
 
 2000-11-24  Miles Bader  <miles@gnu.org>
 
-	* cus-edit.el (custom-filter-face-spec, custom-pre-filter-face-spec) 
+	* cus-edit.el (custom-filter-face-spec, custom-pre-filter-face-spec)
 	(custom-post-filter-face-spec): New functions.
 	(custom-face-set, custom-face-value-create): Filter the face spec
 	before and after customization.
@@ -634,28 +639,28 @@
 	so that people can easily turn it off.
 
 2000-11-24  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* ediff-diff.el: Moved variables around to have it compile under NT.
-	
+
 	* ediff-help.el (ediff-use-long-help-message): Made it customizable.
-	
+
 	* ediff-init.el (ediff-abbrev-jobname): Use capitalize.
-	
+
 	* ediff-wind.el (ediff-skip-unsuitable-frames): Deleted the
 	redundant skip-small-frames test.
-	
+
 	* viper-cmd.el (viper-change-state-to-vi): Disable overwrite mode.
 	(viper-downgrade-to-insert): protect against errors in hooks.
-	
+
 	* viper-init.el (viper-vi-state-hook,viper-insert-state-hook)
 	(viper-replace-state-hook,viper-emacs-state-hook): Do cursor handling.
 	(viper-restore-cursor-type,viper-set-insert-cursor-type): New
 	functions.
-	
+
 	* viper-util.el (viper-memq-char): Bug fixes.
-	
+
 	* viper.el (viper-mode): Fix cursor handling.
-	
+
 2000-11-24  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-diag.el (list-iso-charset-chars): For
@@ -712,9 +717,9 @@
 
 2000-11-22  Gerd Moellmann  <gerd@gnu.org>
 
-	* mail/rmail.el (rmail-confirm-expunge): Default to 
+	* mail/rmail.el (rmail-confirm-expunge): Default to
 	y-or-n-p.
-	
+
 2000-11-22  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/tex-mode.el (tex-font-lock-keywords-1):
@@ -740,13 +745,13 @@
 
 	* simple.el (delete-trailing-whitespace): New interactive
 	function.
-	
+
 	* progmodes/ada-mode.el (ada-mode): Use it instead of
 	`ada-remove-trailing-spaces'.
 	(ada-remove-trailing-spaces): Removed.
-	
+
 	* textmodes/two-column.el (2C-merge): Recommend it in the doc.
-	
+
 	* textmodes/picture.el (picture-clean): Removed.
 	(picture-mode-exit): Call it instead of `picture-clean'.
 
@@ -8300,7 +8305,7 @@
 
 	(recentf-open-files, recentf-open-more-files)
 	(recentf-edit-list): Dialogs use `recentf-dialog-mode'
-	
+
 	(recentf-dialog-mode): New mode for dialogs. You can now just type
 	"q" to cancel the dialogs.
 
@@ -9290,7 +9295,7 @@
 	We'll have this commented out till get resolve the problem.
 
 2000-06-07  John Wiegley  <johnw@gnu.org>
-	
+
 	* align.el (align-dq-string-modes, align-sq-string-modes)
 	(align-open-comment-modes): Add pyhton-mode.
 	(align-rules-list): Use get-text-property instead of
