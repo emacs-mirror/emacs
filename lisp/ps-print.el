@@ -2,9 +2,23 @@
 
 ;; Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
-;; Author: Jim Thompson <thompson@wg2.waii.com>
-;; Maintainer: duthen@cegelec-red.fr (Jacques Duthen Prestataire)
-;; Keywords: print, PostScript
+;; Author:     Jim Thompson (was <thompson@wg2.waii.com>)
+;; Maintainer: Jacques Duthen <duthen@cegelec-red.fr>
+;; Keywords:   print, PostScript
+;; Time-stamp: <97/01/09 13:52:08 duthen>
+;; Version:    3.04
+
+(defconst ps-print-version "3.04"
+  "ps-print.el, v 3.04 <97/01/09 duthen>
+
+Jack's last change version -- this file may have been edited as part of
+Emacs without changes to the version number.  When reporting bugs,
+please also report the version of Emacs, if any, that ps-print was
+distributed with.
+
+Please send all bug fixes and enhancements to
+	Jacques Duthen <duthen@cegelec-red.fr>.
+")
 
 ;; This file is part of GNU Emacs.
 
@@ -22,72 +36,6 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
-
-;; LCD Archive Entry:
-;; ps-print|James C. Thompson|thompson@wg2.waii.com|
-;; Jim's Pretty-Good PostScript Generator for Emacs 19 (ps-print)|
-;; 26-Feb-1994|2.8|~/packages/ps-print.el|
-
-;; 3.03 [jack] Sept 27, 1996 Jacques Duthen <duthen@cegelec-red.fr>
-;; Merge 31 diffs between 19.29 and 19.34
-
-;; 3.02 [jack] June 26, 1996 Jacques Duthen <duthen@cegelec-red.fr>
-;; Add new page dimensions to `ps-page-dimensions-database' for `paper-type'
-;; Improve landscape mode `ps-landscape-mode' and multiple columns
-;; printing `ps-number-of-columns':
-;; The text and the margins are no more scaled.
-;; Simplify the semantics of `ps-inter-column' (space between columns).
-;; Add error checking for negative `ps-print-width' and `ps-print-height'.
-;; Change the semantics of `ps-top-margin' which is now the TOP MARGIN,
-;; and add `ps-header-offset' instead of having `ps-top-margin' split in 2.
-;; Add `ps-header-font-family', `ps-header-font-size' and 
-;; `ps-header-title-font-size' to control the header.
-;; Add `ps-header-line-pad'.
-;; Change the semantics of `ps-font-info-database' to have symbolic
-;; font families.
-;; Add new fonts to `ps-font-info-database': `Courier' `Helvetica'
-;; `Times' `Palatino' `Helvetica-Narrow' `NewCenturySchlbk'
-;; Make public `ps-font-family' and `ps-font-size' so that the user
-;; can directly control the text font and size without loading ps-print.
-;; Add error checking for unknown font families and a message giving
-;; the exhaustive list of available font families.
-;; Document how to install a new font family.
-;; Add `/ReportAllFontInfo' to get all the font families of the printer.
-;; Add the possibility to make `mixed' font families.
-;; Add `ps-setup' to get the current setup.
-;; Add tools `ps-line-lengths' `ps-nb-pages-buffer' `ps-nb-pages-region'
-;; to help choose the font size.
-;; Split `ps-print-prologue' in two to insert info from header fonts
-;; Replace indexes by macro `ps-page-dimensions-get-width'
-;; to get access to the dimensions list.
-;; Add `ps-select-font' inside `ps-get-page-dimensions'.
-;; Fix the "clumsy" `ps-page-height' management.
-;; Move `ps-get-page-dimensions' to the beginning of `ps-begin-file'
-;; to get early error checking.
-;; Add sample setup `ps-jack-setup'.
-;;
-;; Rewrite a lot of postscript code and add comments inside it
-;; (maybe they should not (or optionally) be included in the generated
-;; Postscript).
-;; Translate the origin to (lm, bm) to simplify the other moves.
-;; Fix bug in `/HeaderOffset' with `/PrintStartY'.
-;; Fix bug in `/SetHeaderLines'.
-;; Change `/ReportFontInfo' for use by `/ReportAllFontInfo'.
-;; 
-
-;; 3.01 [jack] June 4, 1996 Jacques Duthen <duthen@cegelec-red.fr>
-;; Manage float value for every variable representing a size.
-;; Add `ps-font-info-database' `ps-inter-column'
-
-;; 3.00 [jack] May 17, 1996 Jacques Duthen <duthen@cegelec-red.fr>
-;;	based on 2.8 Jim's Pretty-Good version:
-;; Add `ps-landscape-mode' and `ps-number-of-columns'
-;; for dumb multi-column landscape mode.
-
-;; Baseline-version: 2.8.  (Jim's last change version -- this
-;; file may have been edited as part of Emacs without changes to the
-;; version number.  When reporting bugs, please also report the
-;; version of Emacs, if any, that ps-print was distributed with.)
 
 ;;; Commentary:
 
@@ -659,17 +607,11 @@
 
 ;;; Code:
 
-(defconst ps-print-version "3.01"
-  "ps-print.el,v 3.01 1996/06/13 18:12 jack
+(eval-when-compile
+  (require 'cl))
 
-Jack's last change version -- this file may have been edited as part of
-Emacs without changes to the version number.  When reporting bugs,
-please also report the version of Emacs, if any, that ps-print was
-distributed with.
-
-Please send all bug fixes and enhancements to
-	Jacques Duthen <duthen@cegelec-red.fr>.
-")
+(unless (featurep 'lisp-float-type)
+  (error "`ps-print' requires floating point support"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User Variables:
@@ -720,13 +662,13 @@ see `ps-paper-type'.")
 
 (defvar ps-paper-type 'letter
   "*Specifies the size of paper to format for.
-Should be one of the paper types defined in `ps-page-dimensions-database':
-`letter', `legal', `a4'...")
+Should be one of the paper types defined in `ps-page-dimensions-database', for
+example `letter', `legal' or `a4'.")
 
 (defvar ps-landscape-mode 'nil
   "*Non-nil means print in landscape mode.")
 
-(defvar ps-number-of-columns 1
+(defvar ps-number-of-columns (if ps-landscape-mode 2 1)
   "*Specifies the number of columns")
 
 ;;; Horizontal layout
@@ -871,16 +813,16 @@ You can get all the fonts of YOUR printer using `ReportAllFontInfo'.")
 (defvar ps-font-family 'Courier
   "Font family name for ordinary text, when generating Postscript.")
 
-(defvar ps-font-size   8.5
+(defvar ps-font-size   (if ps-landscape-mode 7 8.5)
   "Font size, in points, for ordinary text, when generating Postscript.")
 
 (defvar ps-header-font-family      'Helvetica
   "Font family name for text in the header, when generating Postscript.")
 
-(defvar ps-header-font-size        12
+(defvar ps-header-font-size       (if ps-landscape-mode 10 12)
   "Font size, in points, for text in the header, when generating Postscript.")
 
-(defvar ps-header-title-font-size  14
+(defvar ps-header-title-font-size (if ps-landscape-mode 12 14)
   "Font size, in points, for the top line of text in the header,
 when generating Postscript.")
 
@@ -902,15 +844,31 @@ when generating Postscript.")
 nil means rely solely on the lists `ps-bold-faces', `ps-italic-faces',
 and `ps-underlined-faces'.")
 
-(defvar ps-bold-faces '()
+(defvar ps-bold-faces
+  (unless ps-print-color-p
+    '(font-lock-function-name-face
+      font-lock-builtin-face
+      font-lock-variable-name-face
+      font-lock-keyword-face
+      font-lock-warning-face))
   "*A list of the \(non-bold\) faces that should be printed in bold font.
 This applies to generating Postscript.")
 
-(defvar ps-italic-faces '()
+(defvar ps-italic-faces
+  (unless ps-print-color-p
+    '(font-lock-variable-name-face
+      font-lock-string-face
+      font-lock-comment-face
+      font-lock-warning-face))
   "*A list of the \(non-italic\) faces that should be printed in italic font.
 This applies to generating Postscript.")
 
-(defvar ps-underlined-faces '()
+(defvar ps-underlined-faces
+  (unless ps-print-color-p
+    '(font-lock-function-name-face
+      font-lock-type-face
+      font-lock-reference-face
+      font-lock-warning-face))
   "*A list of the \(non-underlined\) faces that should be printed underlined.
 This applies to generating Postscript.")
 
@@ -934,7 +892,7 @@ string delimiters added to it.")
 (make-variable-buffer-local 'ps-left-header)
 
 (defvar ps-right-header
-  (list "/pagenumberstring load" 'time-stamp-yy/mm/dd 'time-stamp-hh:mm:ss)
+  (list "/pagenumberstring load" 'time-stamp-mon-dd-yyyy 'time-stamp-hh:mm:ss)
   "*The items to display (each on a line) on the right part of the page header.
 This applies to generating Postscript.
 
@@ -2165,7 +2123,8 @@ page-height == bm + print-height + tm - ho - hh
 (defun ps-end-file ()
   (ps-output "\nEndDoc\n\n")
   (ps-output "%%Trailer\n")
-  (ps-output "%%Pages: " (format "%d\n" ps-showpage-count)))
+  (ps-output (format "%%%%Pages: %d\n" (1+ (/ (1- ps-page-count)
+					      ps-number-of-columns)))))
 
 (defun ps-next-page ()
   (ps-end-page)
@@ -2177,19 +2136,20 @@ page-height == bm + print-height + tm - ho - hh
   (setq ps-width-remaining  ps-print-width)
   (setq ps-height-remaining ps-print-height)
 
-  (setq ps-page-count (+ ps-page-count 1))
+  ;; Print only when a new real page begins.
+  (when (zerop (mod ps-page-count ps-number-of-columns))
+    (ps-output (format "\n%%%%Page: %d %d\n"
+		       (1+ (/ ps-page-count ps-number-of-columns))
+		       (1+ (/ ps-page-count ps-number-of-columns)))))
 
-  (ps-output "\n%%Page: " 
-	     (format "%d %d\n" ps-page-count (+ 1 ps-showpage-count)))
   (ps-output "BeginDSCPage\n")
-  (ps-output (format "/PageNumber %d def\n" ps-page-count))
+  (ps-output (format "/PageNumber %d def\n" (incf ps-page-count)))
   (ps-output "/PageCount 0 def\n")
 
-  (if ps-print-header
-      (progn
-	(ps-generate-header "HeaderLinesLeft"    ps-left-header)
-	(ps-generate-header "HeaderLinesRight"   ps-right-header)
-	(ps-output (format "%d SetHeaderLines\n" ps-header-lines))))
+  (when ps-print-header
+    (ps-generate-header "HeaderLinesLeft"    ps-left-header)
+    (ps-generate-header "HeaderLinesRight"   ps-right-header)
+    (ps-output (format "%d SetHeaderLines\n" ps-header-lines)))
 
   (ps-output "BeginPage\n")
   (ps-set-font      ps-current-font)
@@ -2276,7 +2236,7 @@ EndDSCPage\n"))
 		    (if (< q-todo 100)
 			(/ (* 100 q-done) q-todo)
 		      (/ q-done (/ q-todo 100))))
-	      (message "Formatting...%d%%" foo))))))
+	      (message "Formatting...%3d%%" foo))))))
 
 (defun ps-set-font (font)
   (setq ps-current-font font)
@@ -2490,9 +2450,6 @@ EndDSCPage\n"))
                     (list (extent-end-position extent) 'pull extent)))
   nil)
 
-(defun ps-sorter (a b)
-  (< (car a) (car b)))
-
 (defun ps-extent-sorter (a b)
   (< (extent-priority a) (extent-priority b)))
 
@@ -2528,8 +2485,7 @@ EndDSCPage\n"))
 	   (let ((a (cons 'dummy nil))
 		 record type extent extent-list)
 	     (map-extents 'ps-mapper nil from to a)
-	     (setq a (cdr a))
-	     (setq a (sort a 'ps-sorter))
+	     (setq a (sort (cdr a) 'car-less-than-car))
 	   
 	     (setq extent-list nil)
 	   
@@ -2640,7 +2596,7 @@ EndDSCPage\n"))
     (save-restriction
       (narrow-to-region from to)
       (if ps-razzle-dazzle
-	  (message "Formatting...%d%%" (setq ps-razchunk 0)))
+	  (message "Formatting...%3d%%" (setq ps-razchunk 0)))
       (set-buffer buffer)
       (setq ps-source-buffer buffer)
       (setq ps-spool-buffer (get-buffer-create ps-spool-buffer-name))
