@@ -1358,7 +1358,9 @@ DIR must be a directory name, not a file name."
   (let* ((l "\\([A-Za-z]\\|[^\0-\177]\\)")
 	 ;; In some locales, month abbreviations are as short as 2 letters,
 	 ;; and they can be padded on the right with spaces.
-	 (month (concat l l "+ *"))
+	 ;; weiand: changed: month ends potentially with . or , or .,
+;;old	 (month (concat l l "+ *"))
+	 (month (concat l l "+[.]?,? *"))
 	 ;; Recognize any non-ASCII character.  
 	 ;; The purpose is to match a Kanji character.
 	 (k "[^\0-\177]")
@@ -1366,16 +1368,23 @@ DIR must be a directory name, not a file name."
 	 (s " ")
 	 (yyyy "[0-9][0-9][0-9][0-9]")
 	 (mm "[ 0-1][0-9]")
-	 (dd "[ 0-3][0-9]")
+;;old	 (dd "[ 0-3][0-9]")
+	 (dd "[ 0-3][0-9][.]?")
 	 (HH:MM "[ 0-2][0-9]:[0-5][0-9]")
 	 (western (concat "\\(" month s dd "\\|" dd s month "\\)"
-			  s "\\(" HH:MM "\\|" s yyyy "\\|" yyyy s "\\)"))
+         ;; weiand: changed: year potentially unaligned
+;;old			  s "\\(" HH:MM "\\|" s yyyy "\\|" yyyy s "\\)"))
+			  s "\\(" HH:MM "\\|" s "?" yyyy "\\|" yyyy s
+"\\)"))
 	 (japanese (concat mm k s dd k s "\\(" s HH:MM "\\|" yyyy k "\\)")))
-	 ;; The "[0-9]" below requires the previous column to end in a digit.
+	 ;; The "[0-9]" below requires the previous column to end in a
+digit.
 	 ;; This avoids recognizing `1 may 1997' as a date in the line:
 	 ;; -r--r--r--   1 may      1997        1168 Oct 19 16:49 README
-	 ;; The ".*" below finds the last match if there are multiple matches.
-	 ;; This avoids recognizing `jservice  10  1024' as a date in the line:
+	 ;; The ".*" below finds the last match if there are multiple
+matches.
+	 ;; This avoids recognizing `jservice  10  1024' as a date in the
+line:
 	 ;; drwxr-xr-x  3 jservice  10  1024 Jul  2  1997 esg-host
     (concat ".*[0-9]" s "\\(" western "\\|" japanese "\\)" s))
   "Regular expression to match up to the file name in a directory listing.
