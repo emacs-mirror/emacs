@@ -448,7 +448,8 @@ Optional prefix ARG means undelete ARG previous messages."
   (interactive "p")
   (if (/= arg 1)
       (rmail-summary-undelete-many arg)
-    (let ((buffer-read-only nil))
+    (let ((buffer-read-only nil)
+	  (opoint (point)))
       (end-of-line)
       (cond ((re-search-backward "\\(^ *[0-9]*\\)\\(D\\)" nil t)
 	     (replace-match "\\1 ")
@@ -456,7 +457,8 @@ Optional prefix ARG means undelete ARG previous messages."
 	     (pop-to-buffer rmail-buffer)
 	     (and (rmail-message-deleted-p rmail-current-message)
 		  (rmail-undelete-previous-message))
-	     (pop-to-buffer rmail-summary-buffer))))))
+	     (pop-to-buffer rmail-summary-buffer))
+	    (t (goto-char opoint))))))
 
 (defun rmail-summary-undelete-many (&optional n)
   "Undelete all deleted msgs, optional prefix arg N means undelete N prev msgs."
