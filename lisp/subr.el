@@ -133,6 +133,9 @@ but optional second arg NODIGITS non-nil treats them like other chars."
 ;      (copy-sequence keymap)
 ;      (copy-alist keymap)))
 
+(defvar key-substitution-in-progress nil
+ "Used internally by substitute-key-definition.")
+
 (defun substitute-key-definition (olddef newdef keymap &optional oldmap prefix)
   "Replace OLDDEF with NEWDEF for any keys in KEYMAP now defined as OLDDEF.
 In other words, OLDDEF is replaced with NEWDEF where ever it appears.
@@ -141,7 +144,9 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
   (or prefix (setq prefix ""))
   (let* ((scan (or oldmap keymap))
 	 (vec1 (vector nil))
-	 (prefix1 (vconcat prefix vec1)))
+	 (prefix1 (vconcat prefix vec1))
+	 (key-substitution-in-progress
+	  (cons scan key-substitution-in-progress)))
     ;; Scan OLDMAP, finding each char or event-symbol that
     ;; has any definition, and act on it with hack-key.
     (while (consp scan)
@@ -163,7 +168,9 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
 		(setq inner-def (symbol-function inner-def)))
 	      (if (eq defn olddef)
 		  (define-key keymap prefix1 (nconc (nreverse skipped) newdef))
-		(if (keymapp defn)
+		(if (and (keymapp defn)
+			 (not (memq inner-def
+				    key-substitution-in-progress)))
 		    (substitute-key-definition olddef newdef keymap
 					       inner-def
 					       prefix1)))))
@@ -189,7 +196,9 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
 		    (if (eq defn olddef)
 			(define-key keymap prefix1
 			  (nconc (nreverse skipped) newdef))
-		      (if (keymapp defn)
+		      (if (and (keymapp defn)
+			       (not (memq inner-def
+					  key-substitution-in-progress)))
 			  (substitute-key-definition olddef newdef keymap
 						     inner-def
 						     prefix1)))))
