@@ -466,7 +466,6 @@ child_setup_tty (out)
   s.main.c_iflag &= ~IGNBRK;
   s.main.c_iflag &= ~BRKINT;
   /* QUIT and INTR work better as signals, so disable character forms */
-  s.main.c_cc[VQUIT] = 0377;
   s.main.c_cc[VINTR] = 0377;
 #ifdef SIGNALS_VIA_CHARACTERS
   /* the QUIT and INTR character are used in process_send_signal
