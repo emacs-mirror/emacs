@@ -62,6 +62,10 @@ Boston, MA 02111-1307, USA.  */
 #define _USE_LFN 0
 #endif
 
+#ifndef _dos_ds
+#define _dos_ds _go32_info_block.selector_for_linear_memory
+#endif
+
 #if __DJGPP__ > 1
 
 #include <signal.h>
@@ -370,15 +374,37 @@ ScreenVisualBell (void)
 
 #ifndef HAVE_X_WINDOWS
 
+static int blink_bit = -1;	/* the state of the blink bit at startup */
+
 /* Enable bright background colors.  */
 static void
 bright_bg (void)
 {
   union REGS regs;
 
+  /* Remember the original state of the blink/bright-background bit.
+     It is stored at 0040:0065h in the BIOS data area.  */
+  if (blink_bit == -1)
+    blink_bit = (_farpeekb (_dos_ds, 0x465) & 0x20) == 0x20;
+
   regs.h.bl = 0;
   regs.x.ax = 0x1003;
   int86 (0x10, &regs, &regs);
+}
+
+/* Disable bright background colors (and enable blinking) if we found
+   the video system in that state at startup.  */
+static void
+maybe_enable_blinking (void)
+{
+  if (blink_bit == 1)
+    {
+      union REGS regs;
+
+      regs.h.bl = 1;
+      regs.x.ax = 0x1003;
+      int86 (0x10, &regs, &regs);
+    }
 }
 
 /* Set the screen dimensions so that it can show no less than
@@ -869,6 +895,10 @@ IT_reset_terminal_modes (void)
     return;
   
   mouse_off ();
+
+  /* Leave the video system in the same state as we found it,
+     as far as the blink/bright-background bit is concerned.  */
+  maybe_enable_blinking ();
  
   /* We have a situation here.
      We cannot just do ScreenUpdate(startup_screen_buffer) because
@@ -3010,6 +3040,11 @@ run_msdos_command (argv, dir, tempin, tempout, temperr)
       mouse_init ();
       mouse_moveto (x, y);
     }
+
+  /* Some programs might change the meaning of the highest bit of the
+     text attribute byte, so we get blinking characters instead of the
+     bright background colors.  Restore that.  */
+  bright_bg ();
   
  done:
   chdir (oldwd);
