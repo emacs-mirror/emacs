@@ -4232,9 +4232,9 @@ get_next_display_element (it)
 	  else if ((it->c < ' '
 		    && (it->area != TEXT_AREA
 			|| (it->c != '\n' && it->c != '\t')))
-		   || (it->multibyte_p ? CHAR_BYTE8_P (it->c) : it->c >= 127)
 		   || (it->c != '\n' && it->c != '\t'
-		       && !CHAR_PRINTABLE_P (it->c)))
+		       && (it->multibyte_p ? !CHAR_PRINTABLE_P (it->c)
+			   : it->c == 127)))
 	    {
 	      /* IT->c is a control character which must be displayed
 		 either as '\003' or as `^C' where the '\\' and '^'
