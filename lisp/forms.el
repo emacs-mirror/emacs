@@ -289,10 +289,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.26 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.27 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.26 1996/01/25 00:54:17 kwzh Exp kwzh $")
+  $Id: forms.el,v 2.27 1996/01/25 06:16:34 kwzh Exp kwzh $")
 
 (defvar forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode.")
@@ -774,8 +774,8 @@ Commands:                        Equivalent keys in read-only mode:
 	  ;; Validate.
 	  (or (fboundp (car-safe el))
 	      (error (concat "Forms format error: "
-			     "not a function "
-			     (prin1-to-string (car-safe el)))))
+			     "not a function %S")
+		     (car-safe el)))
 
 	  ;; Shift.
 	  (if prev-item
@@ -786,8 +786,8 @@ Commands:                        Equivalent keys in read-only mode:
 	 ;; else
 	 (t
 	  (error (concat "Forms format error: "
-			 "invalid element "
-			 (prin1-to-string el)))))
+			 "invalid element %S")
+		 el)))
 
 	;; Advance to next element of the list.
 	(setq the-list rem)))
