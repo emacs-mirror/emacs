@@ -3086,7 +3086,8 @@ by `current-window-configuration' (which see).")
          when the frame's old selected window has been deleted.  */
 #ifdef MULTI_FRAME
       if (f != selected_frame && ! FRAME_TERMCAP_P (f))
-	Fhandle_switch_frame (WINDOW_FRAME (XWINDOW (data->root_window)), Qnil);
+	do_switch_frame (WINDOW_FRAME (XWINDOW (data->root_window)),
+			 Qnil, 0);
 #endif
 #endif
 
@@ -3112,7 +3113,7 @@ by `current-window-configuration' (which see).")
      Fselect_window above totally superfluous; it still sets f's
      selected window.  */
   if (FRAME_LIVE_P (XFRAME (data->selected_frame)))
-    Fhandle_switch_frame (data->selected_frame, Qnil);
+    do_switch_frame (data->selected_frame, Qnil, 0);
 #endif
 
   if (!NILP (new_current_buffer))
