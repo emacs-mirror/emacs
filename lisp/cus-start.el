@@ -54,8 +54,12 @@
 	     (truncate-lines display boolean)
 	     (selective-display-ellipses display boolean)
 	     (indicate-empty-lines display boolean "21.1")
-	     (scroll-up-aggressively windows boolean "21.1")
-	     (scroll-down-aggressively windows boolean "21.1")
+	     (scroll-up-aggressively windows
+				     (choice (const :tag "off" nil) number)
+				     "21.1")
+	     (scroll-down-aggressively windows
+				       (choice (const :tag "off" nil) number)
+				       "21.1")
 	     ;; callint.c
 	     (mark-even-if-inactive editing-basics boolean)
 	     ;; callproc.c
