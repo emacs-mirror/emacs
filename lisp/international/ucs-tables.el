@@ -48,12 +48,12 @@
 ;; all that users normally care about unifying although, for instance,
 ;; Greek occurs in as many as nine Emacs charsets.
 
-;; The translation table `ucs-mule-to-mule-unicode' is populated,
-;; which could be used for more general unification on decoding.  This
-;; is used by the `mule-utf-8' coding system to encode extra
-;; characters, and also by the coding systems set up by code-pages.el.
-;; The decoding tables here take account of
-;; `utf-8-fragment-on-decoding' which may specify decoding Greek and
+;; The translation-table `utf-translation-table-for-encode' is
+;; populated, which could be used for more general unification on
+;; decoding.  This is used by the `mule-utf-8' coding system to encode
+;; extra characters, and also by the coding systems set up by
+;; code-pages.el.  The decoding tables here take account of
+;; `utf-fragment-on-decoding' which may specify decoding Greek and
 ;; Cyrillic into 8859 charsets.
 
 ;; Unification also puts a `translation-table-for-input' property on
@@ -89,13 +89,13 @@
 ;;; Define tables, to be populated later.
 
 (defvar ucs-mule-8859-to-ucs-table (make-translation-table)
-  "Translation table from Emacs ISO-8859 characters to Unicode.
+  "Char table from Emacs ISO-8859 characters to Unicode.
 This maps Emacs characters from the non-Latin-1
 ...-iso8859-... charsets to their Unicode code points.  This is a
 many-to-one mapping.")
 
 (defvar ucs-mule-8859-to-mule-unicode (make-translation-table)
-  "Translation table from Emacs ISO-8859 characters to Mule Unicode.
+  "Char table from Emacs ISO-8859 characters to Mule Unicode.
 This maps Emacs characters from the non-Latin-1
 ...-iso8859-... charsets to characters from the
 mule-unicode-... charsets.  This is a many-to-one mapping.  The
@@ -156,6 +156,8 @@ Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
 (defvar ucs-8859-15-encode-table nil
   "Used as `translation-table-for-encode' for iso-8859-15.
 Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
+
+(defvar translation-table-for-input (make-translation-table))
 
 ;;; Set up the tables.
 
@@ -1097,51 +1099,57 @@ Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
 	   (setq i (1+ i)))
 	 (nreverse l))))
 
+  ;; Note: Here, using decode-char is safe because
+  ;; utf-fragment-on-decoding is by default nil, thus the translation
+  ;; table `utf-translation-table-for-decode' does nothing.
+
   ;; Convert the lists to the basic char tables.
-  ;; Ensure `decode-char' doesn't use the fragmentation table.
-  ;; Fixme: handa suggests using the RESTRICTION arg.
-  (let ((utf-8-translation-table-for-decode (make-translation-table)))
-    (dolist (n (list 15 14 9 8 7 5 4 3 2 1))
-      (let ((alist (symbol-value (intern (format "ucs-8859-%d-alist" n)))))
-	(dolist (pair alist)
-	  (let ((mule (car pair))
-		(uc (cdr pair))
-		(mu (decode-char 'ucs (cdr pair))))
-	    (aset ucs-mule-8859-to-ucs-table mule uc)
-	    ;; 	  (aset ucs-ucs-to-mule-8859-table uc mule)
-	    ;; 	  (aset ucs-mule-unicode-to-mule-8859 mu mule)
-	    (aset ucs-mule-8859-to-mule-unicode mule mu)
-	    (aset ucs-mule-to-mule-unicode mule mu)))))
-    ;; Derive tables that can be used as per-coding-system
-    ;; `translation-table-for-encode's.
-    (dolist (n (list 15 14 9 8 7 5 4 3 2 1))
-      (let* ((alist (symbol-value (intern (format "ucs-8859-%d-alist" n))))
-	     (encode-translator (set (intern (format "ucs-8859-%d-encode-table"
-						     n))
-				     (make-translation-table)))
-	     elt)
-	;; Start with the mule-unicode component.
-	(dolist (pair alist)
-	  (let ((mule (car pair))
-		(mu (decode-char 'ucs (cdr pair))))
-	    (aset encode-translator mu mule)))
-	;; Find characters from other 8859 sets which map to the same
-	;; unicode as some character in this set.
-	(map-char-table (lambda (k v)
-			  (if (and (setq elt (rassq v alist))
-				   (not (assq k alist)))
-			      (aset encode-translator k (car elt))))
-			ucs-mule-8859-to-ucs-table)
-	(optimize-char-table encode-translator)))))
+  (dolist (n (list 15 14 9 8 7 5 4 3 2 1))
+    (let ((alist (symbol-value (intern (format "ucs-8859-%d-alist" n)))))
+      (dolist (pair alist)
+	(let ((mule (car pair))
+	      (uc (cdr pair))
+	      (mu (decode-char 'ucs (cdr pair))))
+	  (aset ucs-mule-8859-to-ucs-table mule uc)
+	  ;; 	  (aset ucs-ucs-to-mule-8859-table uc mule)
+	  ;; 	  (aset ucs-mule-unicode-to-mule-8859 mu mule)
+	  (aset ucs-mule-8859-to-mule-unicode mule mu)
+	  (aset ucs-mule-to-mule-unicode mule mu)))))
 
-;; Register for use in CCL.
-(define-translation-table 'ucs-mule-8859-to-mule-unicode
-  ucs-mule-8859-to-mule-unicode)
-(define-translation-table 'ucs-mule-to-mule-unicode
-  ucs-mule-to-mule-unicode)
+  ;; Derive tables that can be used as per-coding-system
+  ;; `translation-table-for-encode's.
+  (dolist (n (list 15 14 9 8 7 5 4 3 2 1))
+    (let* ((alist (symbol-value (intern (format "ucs-8859-%d-alist" n))))
+	   (encode-translator (set (intern (format "ucs-8859-%d-encode-table"
+						   n))
+				   (make-translation-table)))
+	   (coding-system
+	    (coding-system-base (intern (format "iso-8859-%d" n))))
+	   (dependency (coding-system-get coding-system 'dependency))
+	   elt)
+      ;; Start with the mule-unicode component (except for latin-iso8859-1).
+      (if (/= n 1)
+	  (dolist (pair alist)
+	    (let ((mule (car pair))
+		  (mu (decode-char 'ucs (cdr pair))))
+	      (aset encode-translator mu mule))))
+      ;; Find characters from other 8859 sets which map to the same
+      ;; unicode as some character in this set.
+      (map-char-table (lambda (k v)
+			(if (and (setq elt (rassq v alist))
+				 (not (assq k alist)))
+			    (aset encode-translator k (car elt))))
+		      ucs-mule-8859-to-ucs-table)
+      (optimize-char-table encode-translator)
 
-(defun ucs-unify-8859 (&optional encode-only)
-  "Set up translation tables for unifying characters from ISO 8859.
+      (or (memq 'unify-8859-on-encoding-mode dependency)
+	  (setq dependency (cons 'unify-8859-on-encoding-mode dependency)))
+      (or (memq 'unify-8859-on-decoding-mode dependency)
+	  (setq dependency (cons 'unify-8859-on-decoding-mode dependency)))
+      (coding-system-put coding-system 'dependency dependency))))
+
+(defun ucs-unify-8859 (for-encode for-decode)
+  "Set up translation-tables for unifying characters from ISO 8859.
 
 On decoding, non-ASCII characters are mapped into the `iso-latin-1'
 and `mule-unicode-0100-24ff' charsets.  On encoding, these are mapped
@@ -1149,139 +1157,129 @@ back appropriate for the coding system.
 
 With prefix arg, do unification on encoding only, i.e. don't unify
 everything on input operations."
-  (interactive "P")
-  (unless encode-only
+  (when for-decode
     ;; Unify 8859 on decoding.  (Non-CCL coding systems only.)
-    (if utf-8-fragment-on-decoding
+    (if utf-fragment-on-decoding
 	(progn (map-char-table
 		(lambda (k v)
-		  (if v (aset ucs-mule-to-mule-unicode v nil)))
-		utf-8-translation-table-for-decode)
-	       (optimize-char-table ucs-mule-to-mule-unicode))
+		  (if v (aset ucs-mule-8859-to-mule-unicode v nil)))
+		utf-fragmentation-table)
+	       (optimize-char-table ucs-mule-8859-to-mule-unicode))
       ;; Reset in case it was changed.
       (map-char-table
        (lambda (k v)
-	 (if v (aset ucs-mule-to-mule-unicode v k)))
-       utf-8-translation-table-for-decode))
+	 (if v (aset ucs-mule-8859-to-mule-unicode v k)))
+       utf-fragmentation-table))
+
+    ;; For non-CCL coding systems (e.g. iso-latin-2).
     (set-char-table-parent standard-translation-table-for-decode
 			   ucs-mule-8859-to-mule-unicode)
+    ;; For CCL coding systems other than mule-utf-*
+    (define-translation-table 'ucs-translation-table-for-decode
+      ucs-mule-8859-to-mule-unicode)
+
     ;; Translate Quail input globally.
     (setq-default translation-table-for-input ucs-mule-to-mule-unicode)
     ;; In case these are set up, but we should use the global
-    ;; translation table.
+    ;; translation-table.
     (remove-hook 'quail-activate-hook 'ucs-quail-activate)
     (remove-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup))
-  ;; Adjust the 8859 coding systems to fragment the unified characters
-  ;; on encoding.
-  (dolist (n '(1 2 3 4 5 7 8 9 14 15))
-    (let* ((coding-system
-	    (coding-system-base (intern (format "iso-8859-%d" n))))
-	   (table (symbol-value
-		   (intern (format "ucs-8859-%d-encode-table" n))))
-	   (safe (coding-system-get coding-system 'safe-chars)))
-      ;; Actually, the coding system's safe-chars are not normally
-      ;; used after they've been registered, but we might as well
-      ;; record them.  Setting the parent here is a convenience.
-      (set-char-table-parent safe table)
-      ;; Update the table of what encodes to what.
-      (register-char-codings coding-system table)
-      (coding-system-put coding-system 'translation-table-for-encode table)
-      (coding-system-put coding-system 'translation-table-for-input table)))
-  ;; Arrange local translation tables for Quail input.
-  (add-hook 'quail-activate-hook 'ucs-quail-activate)
-  (add-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup))
 
-(defun ucs-fragment-8859 (&optional encode-only)
+  (when for-encode
+    ;; Make mule-utf-* encode all characters in ucs-mule-to-mule-unicode.
+    (let ((coding-list '(mule-utf-8 mule-utf-16-be mule-utf-16-le)))
+      (define-translation-table 'utf-translation-table-for-encode
+	ucs-mule-to-mule-unicode)
+      (dolist (coding coding-list)
+	(set-char-table-parent (coding-system-get coding 'safe-chars)
+			       ucs-mule-to-mule-unicode)
+	(register-char-codings coding ucs-mule-to-mule-unicode)))
+
+    ;; Adjust the 8859 coding systems to fragment the unified characters
+    ;; on encoding.
+    (dolist (n '(1 2 3 4 5 7 8 9 14 15))
+      (let* ((coding-system
+	      (coding-system-base (intern (format "iso-8859-%d" n))))
+	     (table (symbol-value
+		     (intern (format "ucs-8859-%d-encode-table" n))))
+	     (safe (coding-system-get coding-system 'safe-chars)))
+	;; Actually, the coding system's safe-chars are not normally
+	;; used after they've been registered, but we might as well
+	;; record them.  Setting the parent here is a convenience.
+	(set-char-table-parent safe table)
+	;; Update the table of what encodes to what.
+	(register-char-codings coding-system table)
+	(coding-system-put coding-system 'translation-table-for-encode table)
+	(coding-system-put coding-system 'translation-table-for-input table)))
+    ;; Arrange local translation-tables for Quail input.
+    (add-hook 'quail-activate-hook 'ucs-quail-activate)
+    (add-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup)))
+
+(defun ucs-fragment-8859 (for-encode for-decode)
   "Undo the unification done by `ucs-unify-8859'.
 With prefix arg, undo unification on encoding only, i.e. don't undo
 unification on input operations."
-  (interactive "P")
-  ;; Maybe fix decoding.
-  (unless encode-only
-    ;; Unify 8859 on decoding.  (Non-CCL coding systems only.)
+  (when for-decode
+    ;; Don't Unify 8859 on decoding.
+    ;; For non-CCL coding systems (e.g. iso-latin-2).
     (set-char-table-parent standard-translation-table-for-decode nil)
+    ;; For CCL coding systems other than mule-utf-* (e.g. cyrillic-koi8).
+    (define-translation-table 'ucs-translation-table-for-decode)
+    ;; For Quail input.
     (setq-default translation-table-for-input nil))
-  ;; Fix encoding.  For each charset, remove the entries in
-  ;; `char-coding-system-table' added to its safe-chars table (as its
-  ;; parent).
-  (dolist (n '(1 2 3 4 5 7 8 9 14 15))
-    (let* ((coding-system
-	    (coding-system-base (intern (format "iso-8859-%d" n))))
-	   (table (symbol-value
-		   (intern (format "ucs-8859-%d-encode-table" n))))
-	   (safe (coding-system-get coding-system 'safe-chars)))
+
+  (when for-encode
+    ;; Make mule-utf-* disabled for all characters in
+    ;; ucs-mule-to-mule-unicode but what originally supported and what
+    ;; translated bt utf-translation-table-for-decode when
+    ;; `utf-fragment-on-decoding' is non-nil.
+    (let ((coding-list '(mule-utf-8 mule-utf-16-be mule-utf-16-le))
+	  (safe (coding-system-get 'mule-utf-8 'safe-chars)))
+      (dolist (coding coding-list)
+	(set-char-table-parent (coding-system-get coding 'safe-chars) nil))
+      ;; Here we assume that all mule-utf-* have the same character
+      ;; repertory, thus we can use SAFE for all of them.
       (map-char-table
        (lambda (key val)
-	 (if (and (>= key 128) val)
-	     (let ((codings (aref char-coding-system-table key)))
-	       (aset char-coding-system-table key
-		     (delq coding-system codings)))))
-       (char-table-parent safe))
-      (set-char-table-parent safe nil)
-      (coding-system-put coding-system 'translation-table-for-encode nil)
-      (coding-system-put coding-system 'translation-table-for-input nil)))
-  (optimize-char-table char-coding-system-table)
-  (remove-hook 'quail-activate-hook 'ucs-quail-activate)
-  (remove-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup))
+	 (if (and (>= key 128) val
+		  (not (aref safe key)))
+	     (aset char-coding-system-table key
+		   (delq 'mule-utf-8
+			 (delq 'mule-utf-16-le
+			       (delq 'mule-utf-16-be
+				     (aref char-coding-system-table key)))))))
+       ucs-mule-to-mule-unicode)
+    
+      (if (not utf-fragment-on-decoding)
+	  (define-translation-table 'utf-translation-table-for-encode)
+	(define-translation-table 'utf-translation-table-for-encode
+	  utf-defragmentation-table)
+	(dolist (coding coding-list)
+	  (register-char-codings coding utf-defragmentation-table))))
 
-(define-minor-mode unify-8859-on-encoding-mode
-  "Set up translation tables for unifying ISO 8859 characters on encoding.
-
-The ISO 8859 characters sets overlap, e.g. 8859-1 (Latin-1) and
-8859-15 (Latin-9) differ only in a few characters.  Emacs normally
-distinguishes equivalent characters from those ISO-8859 character sets
-which are built in to Emacs.  This behaviour is essentially inherited
-from the European-originated international standards.  Treating them
-equivalently, by translating to and from a single representation is
-called `unification'.  (The `utf-8' coding system treats the
-characters of European scripts in a unified manner.)
-
-In this mode, on encoding -- i.e. output operations -- non-ASCII
-characters from the built-in ISO 8859 and `mule-unicode-0100-24ff'
-charsets are handled automatically by the coding system used if it can
-represent them.  Thus, say, an e-acute from the Latin-1 charset (the
-unified representation) in a buffer saved as Latin-9 will be encoded
-directly to a byte value 233.  By default, in contrast, you would be
-prompted for a general coding system to use for saving the file, which
-can cope with separate Latin-1 and Latin-9 representations of e-acute.
-
-Also sets hooks that arrange `translation-table-for-input' to be set
-up locally when Quail input methods are activated.  This will often
-allow input generated by Quail input methods to conform with what the
-buffer's file coding system can encode.  Thus you could use a Latin-2
-input method to search for e-acute in a Latin-1 buffer.
-
-See also command `unify-8859-on-decoding-mode'."
-  :group 'mule
-  :global t
-  :init-value t
-  (if unify-8859-on-encoding-mode
-      (ucs-unify-8859 t)
-    (ucs-fragment-8859 t)))
-
-(custom-add-version 'unify-8859-on-encoding-mode "21.4")
-
-(define-minor-mode unify-8859-on-decoding-mode
-  "Set up translation tables for unifying ISO 8859 characters on decoding.
-On decoding, i.e. input operations, non-ASCII characters from the
-built-in ISO 8859 charsets are unified by mapping them into the
-`iso-latin-1' and `mule-unicode-0100-24ff' charsets.
-
-Also sets `translation-table-for-input' globally, so that Quail input
-methods produce unified characters.
-
-See also command `unify-8859-on-encoding-mode' and the user option
-`utf-8-fragment-on-decoding'."
-  :group 'mule
-  :global t
-  :init-value nil
-  (if unify-8859-on-decoding-mode
-      (ucs-unify-8859)
-    (ucs-fragment-8859)))
-
-(custom-add-dependencies 'unify-8859-on-decoding-mode
-			 '(utf-8-fragment-on-decoding))
-(custom-add-version 'unify-8859-on-decoding-mode "21.4")
+    ;; For each charset, remove the entries in
+    ;; `char-coding-system-table' added to its safe-chars table (as
+    ;; its parent).
+    (dolist (n '(1 2 3 4 5 7 8 9 14 15))
+      (let* ((coding-system
+	      (coding-system-base (intern (format "iso-8859-%d" n))))
+	     (table (symbol-value
+		     (intern (format "ucs-8859-%d-encode-table" n))))
+	     (safe (coding-system-get coding-system 'safe-chars)))
+	(when (char-table-parent safe)
+	  (map-char-table
+	   (lambda (key val)
+	     (if (and (>= key 128) val)
+		 (let ((codings (aref char-coding-system-table key)))
+		   (aset char-coding-system-table key
+			 (delq coding-system codings)))))
+	   (char-table-parent safe))
+	  (set-char-table-parent safe nil))
+	(coding-system-put coding-system 'translation-table-for-encode nil)
+	(coding-system-put coding-system 'translation-table-for-input nil)))
+    (optimize-char-table char-coding-system-table)
+    (remove-hook 'quail-activate-hook 'ucs-quail-activate)
+    (remove-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup)))
 
 (defun ucs-insert (arg)
   "Insert the Emacs character representation of the given Unicode.
@@ -2456,15 +2454,70 @@ Interactively, prompts for a hex string giving the code."
 	      ((memq cs '(lao thai-tis620 tibetan-iso-8bit))
 	       (coding-system-put cs 'translation-table-for-input cs)))))
     (dolist (c safe-charsets)
-      (aset table (make-char c) t))
-    (coding-system-put 'mule-utf-8 'safe-charsets
-		       (append (coding-system-get 'mule-utf-8 'safe-charsets)
-			       safe-charsets))
-    (register-char-codings 'mule-utf-8 table)))
+      (aset table (make-char c) t))))
 
-(defvar translation-table-for-input (make-translation-table))
+(define-minor-mode unify-8859-on-encoding-mode
+  "Set up translation-tables for unifying ISO 8859 characters on encoding.
 
-;; Arrange to set up the translation table for Quail.  This probably
+The ISO 8859 characters sets overlap, e.g. 8859-1 (Latin-1) and
+8859-15 (Latin-9) differ only in a few characters.  Emacs normally
+distinguishes equivalent characters from those ISO-8859 character sets
+which are built in to Emacs.  This behaviour is essentially inherited
+from the European-originated international standards.  Treating them
+equivalently, by translating to and from a single representation is
+called `unification'.  (The `utf-8' coding system treats the
+characters of European scripts in a unified manner.)
+
+In this mode, on encoding -- i.e. output operations -- non-ASCII
+characters from the built-in ISO 8859 and `mule-unicode-0100-24ff'
+charsets are handled automatically by the coding system used if it can
+represent them.  Thus, say, an e-acute from the Latin-1 charset (the
+unified representation) in a buffer saved as Latin-9 will be encoded
+directly to a byte value 233.  By default, in contrast, you would be
+prompted for a general coding system to use for saving the file, which
+can cope with separate Latin-1 and Latin-9 representations of e-acute.
+
+Also sets hooks that arrange `translation-table-for-input' to be set
+up locally when Quail input methods are activated.  This will often
+allow input generated by Quail input methods to conform with what the
+buffer's file coding system can encode.  Thus you could use a Latin-2
+input method to search for e-acute in a Latin-1 buffer.
+
+See also command `unify-8859-on-decoding-mode'."
+  :group 'mule
+  :global t
+  :init-value t
+  (if unify-8859-on-encoding-mode
+      (ucs-unify-8859 t nil)
+    (ucs-fragment-8859 t nil)))
+
+(custom-add-version 'unify-8859-on-encoding-mode "21.3")
+
+(define-minor-mode unify-8859-on-decoding-mode
+  "Set up translation-tables for unifying ISO 8859 characters on decoding.
+On decoding, i.e. input operations, non-ASCII characters from the
+built-in ISO 8859 charsets are unified by mapping them into the
+`iso-latin-1' and `mule-unicode-0100-24ff' charsets.
+
+Also sets `translation-table-for-input' globally, so that Quail input
+methods produce unified characters.
+
+See also command `unify-8859-on-encoding-mode' and the user option
+`utf-fragment-on-decoding'."
+  :group 'mule
+  :global t
+  :init-value nil
+  (if unify-8859-on-decoding-mode
+      (ucs-unify-8859 nil t)
+    (ucs-fragment-8859 nil t)))
+
+(custom-add-version 'unify-8859-on-decoding-mode "21.3")
+
+;; Synchronize the status with the initial value of
+;; unify-8859-on-encoding-mode and unify-8859-on-decoding-mode.
+(ucs-unify-8859 t nil)
+
+;; Arrange to set up the translation-table for Quail.  This probably
 ;; isn't foolproof.
 (defun ucs-quail-activate ()
   "Set up an appropriate `translation-table-for-input' for current buffer.
@@ -2488,57 +2541,6 @@ Intended to be added to `minibuffer-setup-hook'."
 			      (if (window-live-p win) (window-buffer win)
 				(cadr (buffer-list))))
 	 buffer-file-coding-system)))
-
-;; Modified to allow display of arbitrary characters with an
-;; iso-10646-encoded (`Unicode') font.
-(define-ccl-program ccl-encode-unicode-font
-  `(0
-    ((if (r0 == ,(charset-id 'ascii))
-	 ((r2 = r1)
-	  (r1 = 0))
-       (
-	;; Look for a translation for non-ASCII chars.  For a 2D
-	;; charset, produce a single code for the translation.
-	;; Official 2D sets are in the charset id range [#x90,#x99],
-	;; private ones in the range [#xf0,#xfe] (with #xff not used).
-	;; Fixme: Is there a better way to do this?
-	(r3 = (r0 >= #x90))
-	(r3 &= (r0 <= #x99))
-	(r3 |= (r0 >= #xf0))
-	(if r3				; 2D input
-	    (r1 = ((r1 << 7) | r2)))
-	(translate-character ucs-mule-to-mule-unicode r0 r1)
-	(r3 = (r0 >= #x90))
-	(r3 &= (r0 <= #x99))
-	(r3 |= (r0 >= #xf0))
-	(if r3 				; 2D translation
-	    ((r2 = (r1 & 127))
-	     (r1 = (r1 >> 7))))
-	(if (r0 == ,(charset-id 'latin-iso8859-1))
-	    ((r2 = (r1 + 128))
-	     (r1 = 0))
-	  (if (r0 == ,(charset-id 'mule-unicode-0100-24ff))
-	      ((r1 *= 96)
-	       (r1 += r2)
-	       (r1 += ,(- #x100 (* 32 96) 32))
-	       (r1 >8= 0)
-	       (r2 = r7))
-	    (if (r0 == ,(charset-id 'mule-unicode-2500-33ff))
-		((r1 *= 96)
-		 (r1 += r2)
-		 (r1 += ,(- #x2500 (* 32 96) 32))
-		 (r1 >8= 0)
-		 (r2 = r7))
-	      (if (r0 == ,(charset-id 'mule-unicode-e000-ffff))
-		  ((r1 *= 96)
-		   (r1 += r2)
-		   (r1 += ,(- #xe000 (* 32 96) 32))
-		   (r1 >8= 0)
-		   (r2 = r7))))))))))
-  "Encode characters for display with iso10646 font.
-Translate through table `ucs-mule-to-mule-unicode' initially.")
-
-(defalias 'ucs-tables-unload-hook 'ucs-fragment-8859)
 
 (provide 'ucs-tables)
 
