@@ -86,8 +86,6 @@ Lisp_Object Qtitle;
 Lisp_Object Vterminal_frame;
 Lisp_Object Vdefault_frame_alist;
 
-Lisp_Object Qmouse_leave_buffer_hook;
-
 static void
 syms_of_frame_1 ()
 {
@@ -126,9 +124,6 @@ syms_of_frame_1 ()
   staticpro (&Qbuffer_predicate);
   Qtitle = intern ("title");
   staticpro (&Qtitle);
-
-  Qmouse_leave_buffer_hook = intern ("mouse-leave-buffer-hook");
-  staticpro (&Qmouse_leave_buffer_hook);
 
   DEFVAR_LISP ("default-frame-alist", &Vdefault_frame_alist,
     "Alist of default values for frame creation.\n\
