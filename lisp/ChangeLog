@@ -1,5 +1,10 @@
 2000-11-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* Makefile.in (custom-deps, finder-data, autoloads, recompile):
+	Don't set EMACSLOADPATH.
+
+2000-11-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
 	* textmodes/texinfo.el (texinfo-insert-@uref): Renamed from
 	texinfo-insert-@url.
 	(texinfo-insert-@url): A defalias for texinfo-insert-@uref.
