@@ -841,7 +841,8 @@ ecrt0.o: ecrt0.c $(config_h)
 	CRT0_COMPILE ${srcdir}/ecrt0.c
 dired.o: dired.c commands.h buffer.h $(config_h) regex.h
 dispnew.o: dispnew.c commands.h frame.h window.h buffer.h dispextern.h \
-   termchar.h termopts.h termhooks.h cm.h disptab.h systty.h systime.h $(config_h)
+   termchar.h termopts.h termhooks.h cm.h disptab.h systty.h systime.h \
+   xterm.h $(config_h)
 doc.o: doc.c $(config_h) paths.h buffer.h keyboard.h
 doprnt.o: doprnt.c $(config_h)
 dosfns.o: buffer.h termchar.h termhooks.h frame.h msdos.h dosfns.h $(config_h)
@@ -856,7 +857,7 @@ indent.o: indent.c frame.h window.h indent.h buffer.h $(config_h) termchar.h \
 insdel.o: insdel.c window.h buffer.h INTERVAL_SRC blockinput.h $(config_h)
 keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h \
    commands.h frame.h window.h macros.h disptab.h keyboard.h syssignal.h \
-   systty.h systime.h dispextern.h intervals.h blockinput.h $(config_h) 
+   systty.h systime.h dispextern.h intervals.h blockinput.h xterm.h $(config_h)
 keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
    $(config_h) 
 lastfile.o: lastfile.c  $(config_h)
