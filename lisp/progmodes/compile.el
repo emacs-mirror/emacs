@@ -624,7 +624,7 @@ Setting it causes the compilation-mode commands to put point at the
 end of their output window so that the end of the output is always
 visible rather than the begining."
   :type 'boolean
-  :version 20.3
+  :version "20.3"
   :group 'compilation)
 
 (defun compile-internal (command error-message
