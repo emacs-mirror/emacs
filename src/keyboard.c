@@ -474,6 +474,10 @@ static char echobuf[300];
 /* Where to append more text to echobuf if we want to.  */
 static char *echoptr;
 
+/* Nonzero means don't try to suspend even if the operating system seems
+   to support it.  */
+static int cannot_suspend;
+
 #define	min(a,b)	((a)<(b)?(a):(b))
 #define	max(a,b)	((a)>(b)?(a):(b))
 
@@ -5160,7 +5164,8 @@ Also cancel any kbd macro being defined.")
 
 DEFUN ("suspend-emacs", Fsuspend_emacs, Ssuspend_emacs, 0, 1, "",
   "Stop Emacs and return to superior process.  You can resume later.\n\
-On systems that don't have job control, run a subshell instead.\n\n\
+If `cannot-suspend' is non-nil, or if the system doesn't support job\n\
+control, run a subshell instead.\n\n\
 If optional arg STUFFSTRING is non-nil, its characters are stuffed\n\
 to be read as terminal input by Emacs's parent, after suspension.\n\
 \n\
@@ -5195,7 +5200,10 @@ On such systems, Emacs starts a subshell instead of suspending.")
      and the system resources aren't available for that.  */
   record_unwind_protect (init_sys_modes, 0);
   stuff_buffered_input (stuffstring);
-  sys_suspend ();
+  if (cannot_suspend)
+    sys_subshell ();
+  else
+    sys_suspend ();
   unbind_to (count, Qnil);
 
   /* Check if terminal/window size has changed.
@@ -5840,6 +5848,11 @@ If string is of length N, character codes N and up are untranslated.");
 This keymap works like `function-key-map', but comes after that,\n\
 and applies even for keys that have ordinary bindings.");
   Vkey_translation_map = Qnil;
+
+  DEFVAR_BOOL ("cannot-suspend", &cannot_suspend,
+    "Non-nil means to always spawn a subshell instead of suspending,\n\
+even if the operating system has support for stopping a process.");
+  cannot_suspend = 0;
 
   DEFVAR_BOOL ("menu-prompting", &menu_prompting,
     "Non-nil means prompt with menus when appropriate.\n\
