@@ -358,7 +358,7 @@ now look at the character after point.  If a face or faces are
 specified for that character, the commands by default customize those
 faces.
 
-** New language environments: French, Ukrainian, Windows-1251, Tajik,
+** New language environments: French, Ukrainian, Tajik,
 Bulgarian, Belarusian, Ukrainian, UTF-8, Windows-1255, Welsh, Latin-6,
 Latin-7, Lithuanian, Latvian, Swedish, Slovenian, Croatian, Georgian,
 Italian, Russian, Malayalam, Tamil, Russian, Chinese-EUC-TW.  (Set up
@@ -386,7 +386,10 @@ Big 5 is then converted to CNS.
 ---
 ** Many new coding systems are available by loading the `code-pages'
 library.  These include complete versions of most of those in
-codepage.el, based on Unicode mappings.
+codepage.el, based on Unicode mappings.  `codepage-setup' is obsolete,
+except for MS-DOS -- its definitions of the coding systems were mostly
+incomplete.  windows-1252 and windows-1251 are preloaded since the
+former is so common and the latter is used by GNU locales.
 
 ** The utf-8/16 coding systems have been enhanced.
 By default, untranslatable utf-8 sequences (mostly representing CJK
