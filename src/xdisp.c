@@ -12297,7 +12297,7 @@ decode_mode_spec (w, c, field_width, precision)
 	  w->base_line_pos = Qnil;
 
 	/* If the buffer is very big, don't waste time.  */
-	if (!INTEGERP (Vline_number_display_limit)
+	if (INTEGERP (Vline_number_display_limit)
 	    && BUF_ZV (b) - BUF_BEGV (b) > XINT (Vline_number_display_limit))
 	  {
 	    w->base_line_pos = Qnil;

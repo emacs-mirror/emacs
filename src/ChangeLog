@@ -1,7 +1,8 @@
 2000-06-16  Ken Raeburn  <raeburn@gnu.org>
 
 	* xdisp.c (decode_mode_spec): In "no_value" case, do NUL
-	termination of string.
+	termination of string.  Fix sense of test whether
+	Vline_number_display_limit is an integer.
 
 2000-06-16  Gerd Moellmann  <gerd@gnu.org>
 
