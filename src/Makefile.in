@@ -924,7 +924,9 @@ clean: mostlyclean
 /**/# Do not use it on development directories!
 distclean: clean
 	rm -f paths.h config.h Makefile Makefile.in ../etc/DOC-*
-realclean: distclean
+maintainer-clean: distclean
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
 	rm -f TAGS
 versionclean:
 	-rm -f emacs emacs-* ../etc/DOC*
