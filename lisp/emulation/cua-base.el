@@ -878,8 +878,10 @@ global mark ring if last mark was set in another buffer.
 With argument, jump to mark, and pop a new position for mark off
 the local mark ring \(this does not affect the global mark ring\).
 Use \\[pop-global-mark] to jump to a mark off the global mark ring
-\(see `pop-global-mark'\).  Repeating the command without the prefix
-jumps to the next position off the local \(or global\) mark ring.
+\(see `pop-global-mark'\).
+
+Repeating the command without the prefix jumps to the next position
+off the local \(or global\) mark ring.
 
 With a double \\[universal-argument] prefix argument, unconditionally set mark."
   (interactive "P")
@@ -889,8 +891,7 @@ With a double \\[universal-argument] prefix argument, unconditionally set mark."
    ((eq last-command 'pop-to-mark-command)
     (setq this-command 'pop-to-mark-command)
     (pop-to-mark-command))
-   ((and pop-global-mark-quick-repeat
-	 (eq last-command 'pop-global-mark) (not arg))
+   ((and (eq last-command 'pop-global-mark) (not arg))
     (setq this-command 'pop-global-mark)
     (pop-global-mark))
    (arg
