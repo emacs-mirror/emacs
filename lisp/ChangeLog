@@ -1,3 +1,13 @@
+2000-10-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (update-authors): New target for maintenance
+	purposes.
+
+	* emacs-lisp/authors.el (batch-update-authors): New function.
+	(authors-fixed-entries): New defconst.
+	(authors-add-fixed-entries): New function.
+	(authors): Call it.: Don't process lispref/.
+
 2000-10-25  Jason Rumney  <jasonr@gnu.org>
 
 	* cus-edit.el (custom-button-face, custom-button-pressed-face):
