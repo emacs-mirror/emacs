@@ -1,6 +1,6 @@
 ;; todomode.el -- major mode for editing TODO list files
 
-;; $Id: todomode.el,v 1.8 1997/08/05 22:39:04 os10000 Exp os10000 $
+;; $Id: todomode.el,v 1.9 1997/08/06 08:12:03 os10000 Exp os10000 $
 
 ;; ---------------------------------------------------------------------------
 
@@ -65,7 +65,8 @@
 ;;
 ;; You will have the following facilities available:
 ;;
-;; M-x todo-mode              will enter the todo list screen, here type
+;; M-x todo-show              will enter the todo list screen, here type
+;;
 ;; +                          to go to next category
 ;; -                          to go to previous category
 ;; e                          to edit the current entry
@@ -86,7 +87,7 @@
 ;; cornflakes) and things I want to do at home (move my suitcases).  The
 ;; categories can be selected with the cursor keys and if you type in the
 ;; name of a category which didn't exist before, an empty category of the
-;; desired name will be added.
+;; desired name will be added and filled with the new entry.
 ;;
 ;;
 ;;
@@ -99,10 +100,10 @@
 ;; leaving the variable 'todo-prefix' untouched) so that the diary
 ;; displays each entry every day.
 ;;
-;; For this, please read the documentation that goes with the calendar
-;; since that will tell you how you can set up the fancy diary display
-;; and use the #include command to include your todo list file as part
-;; of your diary.
+;; To understand what I mean, please read the documentation that goes
+;; with the calendar since that will tell you how you can set up the
+;; fancy diary display and use the #include command to include your
+;; todo list file as part of your diary.
 ;;
 ;;
 ;; --- todo-file-do
@@ -177,6 +178,11 @@
 
 ;;
 ;; $Log: todomode.el,v $
+;; Revision 1.9  1997/08/06 08:12:03  os10000
+;; Improved documentation.  Broke some lines to comply with
+;; Richard Stallman's email to please keep in sync with the
+;; rest of the Emacs distribution files.
+;;
 ;; Revision 1.8  1997/08/05 22:39:04  os10000
 ;; Made todomode.el available under GPL.
 ;;
@@ -304,13 +310,11 @@
 
 (defun todo-cmd-edit () "Edit current TODO list entry."
   (interactive)
-  (let ((todo-entry (todo-line)))
+  (let ((todo-entry (read-from-minibuffer "Edit: " (todo-line))))
     (delete-region (point-at-bol) (point-at-eol))
-    (insert (read-from-minibuffer "Edit: " todo-entry))
+    (insert todo-entry)
     (beginning-of-line nil)
-    (message "")
-    )
-  )
+    (message "")))
 
 (defvar todo-prv-lne 0 "previous line that I asked about.")
 (defvar todo-prv-ans 0 "previous answer that I got.")
