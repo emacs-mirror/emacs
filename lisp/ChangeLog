@@ -1,5 +1,26 @@
 2000-05-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* hilit-chg.el (highlight-changes-mode): Ask about color or
+	grayscale support, not about window-system.
+
+	* ffap.el (ffap-menu-text-plist): Use display-mouse-p, not
+	window-system.
+	(ffap-highlight): Always default to t.
+
+	* emacs-lisp/edebug.el (edebug-emacs-19-specific): Call
+	display-popup-menus-p instead of looking at window-system.
+
+	* disp-table.el (standard-display-g1, standard-display-graphic):
+	Only refuse to use string glyphs on X and MS-Windows.
+
+	* avoid.el: Remove window-system from commentary, suggest to use
+	display-*-p instead.
+
+	* apropos.el (apropos-print): Use display-mouse-p instead of
+	window-system.
+
+2000-05-25  Eli Zaretskii  <eliz@is.elta.co.il>
+
 	* international/codepage.el (cp-decoding-vector-for-codepage):
 	Fill up unsupported characters with their own codes.  From Kenichi
 	Handa.
