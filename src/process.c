@@ -2337,15 +2337,19 @@ send_process_trap ()
   longjmp (send_process_frame, 1);
 }
 
-send_process (proc, buf, len)
+/* Send some data to process PROC.
+   BUF is the beginning of the data; LEN is the number of characters.
+   OBJECT is the Lisp object that the data comes from.  */
+
+send_process (proc, buf, len, object)
      Lisp_Object proc;
      char *buf;
      int len;
+     Lisp_Object object;
 {
   /* Don't use register vars; longjmp can lose them.  */
   int rv;
   unsigned char *procname = XSTRING (XPROCESS (proc)->name)->data;
-
 
 #ifdef VMS
   struct Lisp_Process *p = XPROCESS (proc);
@@ -2364,6 +2368,21 @@ send_process (proc, buf, len)
   else if (write_to_vms_process (vs, buf, len))
     ;
 #else
+
+  if (pty_max_bytes == 0)
+    {
+#if defined (HAVE_FPATHCONF) && defined (_PC_MAX_CANON)
+      pty_max_bytes = fpathconf (XFASTINT (XPROCESS (proc)->outfd),
+				 _PC_MAX_CANON);
+      if (pty_max_bytes < 0)
+	pty_max_bytes = 250;
+#else
+      pty_max_bytes = 250;
+#endif
+      /* Deduct one, to leave space for the eof.  */
+      pty_max_bytes--;
+    }
+
   if (!setjmp (send_process_frame))
     while (len > 0)
       {
@@ -2371,65 +2390,89 @@ send_process (proc, buf, len)
 	SIGTYPE (*old_sigpipe)();
 	int flush_pty = 0;
 
-	if (pty_max_bytes == 0)
+	/* Decide how much data we can send in one batch.
+	   Long lines need to be split into multiple batches.  */
+	if (!NILP (XPROCESS (proc)->pty_flag))
 	  {
-#if defined (HAVE_FPATHCONF) && defined (_PC_MAX_CANON)
-	    pty_max_bytes = fpathconf (XFASTINT (XPROCESS (proc)->outfd),
-				       _PC_MAX_CANON);
-	    if (pty_max_bytes < 0)
-	      pty_max_bytes = 250;
-#else
-	    pty_max_bytes = 250;
-#endif
+	    /* Starting this at zero is always correct when not the first iteration
+	       because the previous iteration ended by sending C-d.
+	       It may not be correct for the first iteration
+	       if a partial line was sent in a separate send_process call.
+	       If that proves worth handling, we need to save linepos
+	       in the process object.  */
+	    int linepos = 0;
+	    char *ptr = buf;
+	    char *end = buf + len;
+
+	    /* Scan through this text for a line that is too long.  */
+	    while (ptr != end && linepos < pty_max_bytes)
+	      {
+		if (*ptr == '\n')
+		  linepos = 0;
+		else
+		  linepos++;
+		ptr++;
+	      }
+	    /* If we found one, break the line there
+	       and put in a C-d to force the buffer through.  */
+	    this = ptr - buf;
 	  }
 
-	/* Don't send more than pty_max_bytes bytes at a time.  */
-	/* Subtract 1 to leave room for the EOF.  */
-	if (this >= pty_max_bytes && !NILP (XPROCESS (proc)->pty_flag))
-	  this = pty_max_bytes - 1;
+	/* Send this batch, using one or more write calls.  */
+	while (this > 0)
+	  {
+	    old_sigpipe = (SIGTYPE (*) ()) signal (SIGPIPE, send_process_trap);
+	    rv = write (XINT (XPROCESS (proc)->outfd), buf, this);
+	    signal (SIGPIPE, old_sigpipe);
 
-	old_sigpipe = (SIGTYPE (*) ()) signal (SIGPIPE, send_process_trap);
-	rv = write (XINT (XPROCESS (proc)->outfd), buf, this);
+	    if (rv < 0)
+	      {
+		if (0
+#ifdef EWOULDBLOCK
+		    || errno == EWOULDBLOCK
+#endif
+#ifdef EAGAIN
+		    || errno == EAGAIN
+#endif
+		    )
+		  /* Buffer is full.  Wait, accepting input; 
+		     that may allow the program
+		     to finish doing output and read more.  */
+		  {
+		    Lisp_Object zero;
+		    int offset;
+
+		    /* Running filters might relocate buffers or strings.
+		       Arrange to relocate BUF.  */
+		    if (BUFFERP (object))
+		      offset = BUF_PTR_CHAR_POS (XBUFFER (object),
+						 (unsigned char *) buf);
+		    else if (STRINGP (object))
+		      offset = buf - (char *) XSTRING (object)->data;
+
+		    XFASTINT (zero) = 0;
+		    wait_reading_process_input (1, 0, zero, 0);
+
+		    if (BUFFERP (object))
+		      buf = (char *) BUF_CHAR_ADDRESS (XBUFFER (object), offset);
+		    else if (STRINGP (object))
+		      buf = offset + (char *) XSTRING (object)->data;
+
+		    rv = 0;
+		  }
+		else
+		  /* This is a real error.  */
+		  report_file_error ("writing to process", Fcons (proc, Qnil));
+	      }
+	    buf += rv;
+	    len -= rv;
+	    this -= rv;
+	  }
 
 	/* If we sent just part of the string, put in an EOF
 	   to force it through, before we send the rest.  */
-	if (this < len)
-	  Fprocess_send_eof (proc);
-
-	signal (SIGPIPE, old_sigpipe);
-	if (rv < 0)
-	  {
-	    if (0
-#ifdef EWOULDBLOCK
-		|| errno == EWOULDBLOCK
-#endif
-#ifdef EAGAIN
-		|| errno == EAGAIN
-#endif
-		)
-	      {
-		/* It would be nice to accept process output here,
-		   but that is difficult.  For example, it could
-		   garbage what we are sending if that is from a buffer.  */
-		immediate_quit = 1;
-		QUIT;
-		sleep (1);
-		immediate_quit = 0;
-		continue;
-	      }
-	    report_file_error ("writing to process", Fcons (proc, Qnil));
-	  }
-	buf += rv;
-	len -= rv;
-	/* Allow input from processes between bursts of sending.
-	   Otherwise things may get stopped up.  */
 	if (len > 0)
-	  {
-	    Lisp_Object zero;
-
-	    XFASTINT (zero) = 0;
-	    wait_reading_process_input (-1, 0, zero, 0);
-	  }
+	  Fprocess_send_eof (proc);
       }
 #endif
   else
@@ -2469,7 +2512,8 @@ Output from processes can arrive in between bunches.")
     move_gap (start);
 
   start1 = XINT (start);
-  send_process (proc, &FETCH_CHAR (start1), XINT (end) - XINT (start));
+  send_process (proc, &FETCH_CHAR (start1), XINT (end) - XINT (start),
+		Fcurrent_buffer ());
 
   return Qnil;
 }
@@ -2488,7 +2532,7 @@ Output from processes can arrive in between bunches.")
   Lisp_Object proc;
   CHECK_STRING (string, 1);
   proc = get_process (process);
-  send_process (proc, XSTRING (string)->data, XSTRING (string)->size);
+  send_process (proc, XSTRING (string)->data, XSTRING (string)->size, string);
   return Qnil;
 }
 
@@ -2544,20 +2588,20 @@ process_send_signal (process, signo, current_group, nomsg)
 	{
 	case SIGINT:
 	  tcgetattr (XINT (p->infd), &t);
-	  send_process (proc, &t.c_cc[VINTR], 1);
+	  send_process (proc, &t.c_cc[VINTR], 1, Qnil);
 	  return;
 
 	case SIGQUIT:
 	  tcgetattr (XINT (p->infd), &t);
-  	  send_process (proc, &t.c_cc[VQUIT], 1);
+  	  send_process (proc, &t.c_cc[VQUIT], 1, Qnil);
   	  return;
 
   	case SIGTSTP:
 	  tcgetattr (XINT (p->infd), &t);
 #if defined (VSWTCH) && !defined (PREFER_VSUSP)
-  	  send_process (proc, &t.c_cc[VSWTCH], 1);
+  	  send_process (proc, &t.c_cc[VSWTCH], 1, Qnil);
 #else
-	  send_process (proc, &t.c_cc[VSUSP], 1);
+	  send_process (proc, &t.c_cc[VSUSP], 1, Qnil);
 #endif
   	  return;
 	}
@@ -2575,16 +2619,16 @@ process_send_signal (process, signo, current_group, nomsg)
 	{
 	case SIGINT:
 	  ioctl (XINT (p->infd), TIOCGETC, &c);
-	  send_process (proc, &c.t_intrc, 1);
+	  send_process (proc, &c.t_intrc, 1, Qnil);
 	  return;
 	case SIGQUIT:
 	  ioctl (XINT (p->infd), TIOCGETC, &c);
-	  send_process (proc, &c.t_quitc, 1);
+	  send_process (proc, &c.t_quitc, 1, Qnil);
 	  return;
 #ifdef SIGTSTP
 	case SIGTSTP:
 	  ioctl (XINT (p->infd), TIOCGLTC, &lc);
-	  send_process (proc, &lc.t_suspc, 1);
+	  send_process (proc, &lc.t_suspc, 1, Qnil);
 	  return;
 #endif /* ! defined (SIGTSTP) */
 	}
@@ -2599,16 +2643,16 @@ process_send_signal (process, signo, current_group, nomsg)
 	{
 	case SIGINT:
 	  ioctl (XINT (p->infd), TCGETA, &t);
-	  send_process (proc, &t.c_cc[VINTR], 1);
+	  send_process (proc, &t.c_cc[VINTR], 1, Qnil);
 	  return;
 	case SIGQUIT:
 	  ioctl (XINT (p->infd), TCGETA, &t);
-	  send_process (proc, &t.c_cc[VQUIT], 1);
+	  send_process (proc, &t.c_cc[VQUIT], 1, Qnil);
 	  return;
 #ifdef SIGTSTP
 	case SIGTSTP:
 	  ioctl (XINT (p->infd), TCGETA, &t);
-	  send_process (proc, &t.c_cc[VSWTCH], 1);
+	  send_process (proc, &t.c_cc[VSWTCH], 1, Qnil);
 	  return;
 #endif /* ! defined (SIGTSTP) */
 	}
@@ -2669,12 +2713,12 @@ process_send_signal (process, signo, current_group, nomsg)
 #endif /* ! defined (SIGCONT) */
     case SIGINT:
 #ifdef VMS
-      send_process (proc, "\003", 1);	/* ^C */
+      send_process (proc, "\003", 1, Qnil);	/* ^C */
       goto whoosh;
 #endif
     case SIGQUIT:
 #ifdef VMS
-      send_process (proc, "\031", 1);	/* ^Y */
+      send_process (proc, "\031", 1, Qnil);	/* ^Y */
       goto whoosh;
 #endif
     case SIGKILL:
@@ -2815,10 +2859,10 @@ text to PROCESS after you call this function.")
   }
 #else /* did not do TOICREMOTE */
 #ifdef VMS
-  send_process (proc, "\032", 1); 	/* ^z */
+  send_process (proc, "\032", 1, Qnil); 	/* ^z */
 #else
   if (!NILP (XPROCESS (proc)->pty_flag))
-    send_process (proc, "\004", 1);
+    send_process (proc, "\004", 1, Qnil);
   else
     {
       close (XINT (XPROCESS (proc)->outfd));
