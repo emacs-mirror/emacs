@@ -46,8 +46,8 @@ A value of nil means to search whole buffer."
 ;; The character classes include the unibyte (C) sign,
 ;; the Latin-1 version, and the Latin-9 version.
 (defcustom copyright-regexp
- "\\([\251ÅÅ©éÅ©]\\|@copyright{}\\|[Cc]opyright\\s *:?\\s *\\(?:(C)\\)?\
-\\|[Cc]opyright\\s *:?\\s *[\251Å©é©]\\)\
+ "\\([Å©é©]\\|@copyright{}\\|[Cc]opyright\\s *:?\\s *\\(?:(C)\\)?\
+\\|[Cc]opyright\\s *:?\\s *[Å©é©]\\)\
 \\s *\\([1-9]\\([-0-9, ';\n\t]\\|\\s<\\|\\s>\\)*[0-9]+\\)"
   "*What your copyright notice looks like.
 The second \\( \\) construct must match the years."
