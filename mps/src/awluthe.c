@@ -1,4 +1,4 @@
-/* impl.c.awlutth: THREADING UNIT TEST USING POOL CLASS AWL
+/* impl.c.awluthe: POOL CLASS AWL UNIT TEST WITH OBJECT HEADERS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.
@@ -11,7 +11,7 @@
 #include "mpscawl.h"
 #include "mpsclo.h"
 #include "mpsavm.h"
-#include "fmtdy.h"
+#include "fmthe.h"
 #include "testlib.h"
 #include "mps.h"
 #include "mpstd.h"
@@ -19,19 +19,12 @@
 #include "mpsw3.h"
 #endif
 #include <string.h>
-#if defined(MPS_OS_LI) || defined(MPS_OS_FR)
-#include <pthread.h>
-#endif
 
 
 #define testArenaSIZE     ((size_t)64<<20)
-#define TABLE_SLOTS 50
+#define TABLE_SLOTS 49
 #define ITERATIONS 5000
 #define CHATTER 100
-/* The number that a half of all numbers generated from rnd are less
- * than.  Hence, probability a-half, or P a-half */
-/* see impl.h.testlib */
-#define P_A_HALF (1024uL*1024uL*1024uL - 1)     /* 2^30 - 1 */
 
 
 static mps_word_t bogus_class;
@@ -39,6 +32,11 @@ static mps_word_t bogus_class;
 #define UNINIT 0x041412ED
 
 #define DYLAN_ALIGN 4 /* depends on value defined in fmtdy.c */
+
+
+/* size_tAlignUp -- align w up to alignment a */
+
+#define size_tAlignUp(w, a) (((w) + (a) - 1) & ~((size_t)(a) - 1))
 
 
 static mps_word_t wrapper_wrapper[] = {
@@ -78,9 +76,13 @@ static void initialise_wrapper(mps_word_t *wrapper)
 }
 
 
-/* create a dylan string object (byte vector) whose contents
+/* alloc_string  - create a dylan string object
+ *
+ * create a dylan string object (byte vector) whose contents
  * are the string s (including the terminating NUL)
- * .assume.dylan-obj */
+ * .assume.dylan-obj
+ */
+
 static mps_word_t *alloc_string(char *s, mps_ap_t ap)
 {
   size_t l;
@@ -90,22 +92,24 @@ static mps_word_t *alloc_string(char *s, mps_ap_t ap)
 
   l = strlen(s)+1;
   /* number of words * sizeof word */
-  objsize = (2 + (l+sizeof(mps_word_t)-1)/sizeof(mps_word_t)) *
-            sizeof(mps_word_t);
-  objsize = (objsize + DYLAN_ALIGN-1)/DYLAN_ALIGN*DYLAN_ALIGN;
+  objsize = (2 + (l+sizeof(mps_word_t)-1)/sizeof(mps_word_t))
+            * sizeof(mps_word_t);
+  objsize = size_tAlignUp(objsize, DYLAN_ALIGN);
   do {
     size_t i;
     char *s2;
 
-    die(mps_reserve(&p, ap, objsize), "Reserve Leaf\n");
-    object = p;
+    die(mps_reserve(&p, ap, objsize + headerSIZE), "Reserve Leaf\n");
+    object = (mps_word_t *)((char *)p + headerSIZE);
     object[0] = (mps_word_t)string_wrapper;
     object[1] = l << 2 | 1;
     s2 = (char *)&object[2];
     for(i = 0; i < l; ++i) {
       s2[i] = s[i];
     }
-  } while(!mps_commit(ap, p, objsize));
+    ((int*)p)[0] = realHeader;
+    ((int*)p)[1] = 0xED0ED;
+  } while(!mps_commit(ap, p, objsize + headerSIZE));
   return object;
 }
 
@@ -114,25 +118,29 @@ static mps_word_t *alloc_string(char *s, mps_ap_t ap)
  *
  * .assume.dylan-obj
  */
+
 static mps_word_t *alloc_table(unsigned long n, mps_ap_t ap)
 {
   size_t objsize;
   void *p;
   mps_word_t *object;
-  objsize = (4 + n) * sizeof(mps_word_t);
-  objsize = (objsize + MPS_PF_ALIGN-1)/MPS_PF_ALIGN*MPS_PF_ALIGN;
+
+  objsize = (3 + n) * sizeof(mps_word_t);
+  objsize = size_tAlignUp(objsize, MPS_PF_ALIGN);
   do {
     unsigned long i;
 
-    die(mps_reserve(&p, ap, objsize), "Reserve Table\n");
-    object = p;
+    die(mps_reserve(&p, ap, objsize + headerSIZE), "Reserve Table\n");
+    object = (mps_word_t *)((char *)p + headerSIZE);
     object[0] = (mps_word_t)table_wrapper;
     object[1] = 0;
     object[2] = n << 2 | 1;
     for(i = 0; i < n; ++i) {
       object[3+i] = 0;
     }
-  } while(!mps_commit(ap, p, objsize));
+    ((int*)p)[0] = realHeader;
+    ((int*)p)[1] = 0xED0ED;
+  } while(!mps_commit(ap, p, objsize + headerSIZE));
   return object;
 }
 
@@ -145,6 +153,7 @@ static mps_word_t *table_slot(mps_word_t *table, unsigned long n)
   return (mps_word_t *)table[3+n];
 }
 
+
 /* sets the nth slot in a table
  * .assume.dylan-obj
  */
@@ -154,6 +163,7 @@ static void set_table_slot(mps_word_t *table,
   cdie(table[0] == (mps_word_t)table_wrapper, "set_table_slot");
   table[3+n] = (mps_word_t)p;
 }
+
 
 /* links two tables together via their link slot
  * (1st fixed part slot)
@@ -186,7 +196,7 @@ static void test(mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap,
 
   for(i = 0; i < TABLE_SLOTS; ++i) {
     mps_word_t *string;
-    if(rnd() < P_A_HALF) {
+    if (rnd() % 2 == 0) {
       string = alloc_string("iamalive", leafap);
       preserve[i] = string;
     } else {
@@ -207,37 +217,35 @@ static void test(mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap,
   }
 
   for(i = 0; i < TABLE_SLOTS; ++i) {
-    if(preserve[i] == 0) {
-      if(table_slot(weaktable, i)) {
-        fprintf(stdout,
-                "Strongly unreachable weak table entry found, "
-                "slot %lu.\n",
-                i);
+    if (preserve[i] == 0) {
+      if (table_slot(weaktable, i)) {
+        error("Strongly unreachable weak table entry found, slot %lu.\n", i);
       } else {
-        if(table_slot(exacttable, i) != 0) {
-          fprintf(stdout,
-                  "Weak table entry deleted, but corresponding "
-                  "exact table entry not deleted, slot %lu.\n",
-                  i);
+        if (table_slot(exacttable, i) != 0) {
+          error("Weak table entry deleted, but corresponding "
+                "exact table entry not deleted, slot %lu.\n", i);
         }
       }
     }
   }
 
   (void)mps_commit(bogusap, p, 64);
-  puts("A okay\n");
 }
 
+
+/* setup -- set up pools for the test
+ *
+ * v serves two purposes:
+ *  - a pseudo stack base for the stack root.
+ *  - pointer to a guff structure, which packages some values needed
+ *   (arena and thr mostly)
+ */
 
 struct guff_s {
   mps_arena_t arena;
   mps_thr_t thr;
 };
 
-/* v serves two purposes:
- * A pseudo stack base for the stack root.
- * Pointer to a guff structure, which packages some values needed
- * (arena and thr mostly) */
 static void *setup(void *v, size_t s)
 {
   struct guff_s *guff;
@@ -258,10 +266,8 @@ static void *setup(void *v, size_t s)
   die(mps_root_create_reg(&stack, arena, MPS_RANK_AMBIG, 0, thr,
                           mps_stack_scan_ambig, v, 0),
       "Root Create\n");
-  die(mps_fmt_create_A(&dylanfmt, arena, dylan_fmt_A()),
-      "Format Create\n");
-  die(mps_fmt_create_A(&dylanweakfmt, arena, dylan_fmt_A_weak()),
-      "Format Create (weak)\n");
+  EnsureHeaderFormat(&dylanfmt, arena);
+  EnsureHeaderWeakFormat(&dylanweakfmt, arena);
   die(mps_pool_create(&leafpool, arena, mps_class_lo(), dylanfmt),
       "Leaf Pool Create\n");
   die(mps_pool_create(&tablepool, arena, mps_class_awl(), dylanweakfmt,
@@ -292,27 +298,12 @@ static void *setup(void *v, size_t s)
 }
 
 
-static void *setup_thr(void *v)
-{
-  struct guff_s guff;
-  mps_arena_t arena = (mps_arena_t)v;
-  mps_thr_t thread;
-  void *r;
-
-  die(mps_thread_reg(&thread, arena), "thread_reg");
-  guff.arena = arena;
-  guff.thr = thread;
-  mps_tramp(&r, setup, &guff, 0);
-  mps_thread_dereg(thread);
-
-  return r;
-}
-
-
 int main(int argc, char **argv)
 {
+  struct guff_s guff;
   mps_arena_t arena;
-  pthread_t pthread1;
+  mps_thr_t thread;
+  void *r;
 
   randomize(argc, argv);
 
@@ -322,9 +313,11 @@ int main(int argc, char **argv)
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create\n");
-  pthread_create(&pthread1, NULL, setup_thr, (void *)arena);
-  setup_thr(arena);
-  pthread_join(pthread1, NULL);
+  die(mps_thread_reg(&thread, arena), "thread_reg");
+  guff.arena = arena;
+  guff.thr = thread;
+  mps_tramp(&r, setup, &guff, 0);
+  mps_thread_dereg(thread);
   mps_arena_destroy(arena);
 
   fflush(stdout); /* synchronize */
