@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 2000 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Major Modes, Indentation, International, Top
 @chapter Major Modes
@@ -33,12 +33,12 @@ syntactical properties of characters appearing in the buffer.
 
   The major modes fall into three major groups.  Lisp mode (which has
 several variants), C mode, Fortran mode and others are for specific
-programming languages.  Text mode, Nroff mode, @TeX{} mode and Outline
-mode are for editing English text.  The remaining major modes are not
-intended for use on users' files; they are used in buffers created for
-specific purposes by Emacs, such as Dired mode for buffers made by Dired
-(@pxref{Dired}), Mail mode for buffers made by @kbd{C-x m}
-(@pxref{Sending Mail}), and Shell mode for buffers used for
+programming languages.  Text mode, Nroff mode, SGML mode, @TeX{} mode
+and Outline mode are for normal text, plain or marked up.  The remaining
+major modes are not intended for use on users' files; they are used in
+buffers created for specific purposes by Emacs, such as Dired mode for
+buffers made by Dired (@pxref{Dired}), Mail mode for buffers made by
+@kbd{C-x m} (@pxref{Sending Mail}), and Shell mode for buffers used for
 communicating with an inferior shell process (@pxref{Interactive
 Shell}).
 
@@ -46,8 +46,8 @@ Shell}).
 separate paragraphs.  This is to make the paragraph commands useful.
 (@xref{Paragraphs}.)  They also cause Auto Fill mode to use the
 definition of @key{TAB} to indent the new lines it creates.  This is
-because most lines in a program are usually indented.
-(@xref{Indentation}.)
+because most lines in a program are usually indented
+(@pxref{Indentation}).
 
 @menu
 * Choosing Modes::     How major modes are specified or chosen.
