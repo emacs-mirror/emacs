@@ -283,8 +283,8 @@ Return non-nil if FILE is unchanged."
 	(setq logdir (expand-file-name version logdir))
 	(setq logdir (expand-file-name archive logdir))
 	(setq logdir (expand-file-name "patch-log" logdir))
-	;; Revision names go: base-0, patch-N, version-0, versionfix-N.
-	(dolist (file (directory-files logdir))
+	(dolist (file (if (file-directory-p logdir) (directory-files logdir)))
+	  ;; Revision names go: base-0, patch-N, version-0, versionfix-M.
 	  (when (and (eq (aref file 0) ?v) (not sealed))
 	    (setq sealed t rev-nb 0))
 	  (if (and (string-match "-\\([0-9]+\\)\\'" file)

@@ -1,3 +1,8 @@
+2004-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-arch.el (vc-arch-workfile-version): Don't burp if the patch-log
+	directory is missing.
+
 2004-10-17  John Paul Wallington  <jpw@gnu.org>
 
 	* ibuffer.el (ibuffer-default-display-maybe-show-predicates):
@@ -26,7 +31,7 @@
 
 2004-10-17  Richard M. Stallman  <rms@gnu.org>
 
-	* paths.el (news-directory): Renamed from news-path.  Old name alias.
+	* paths.el (news-directory): Rename from news-path.  Old name alias.
 	(rmail-spool-directory): Use defvar.
 	(sendmail-program): Use defcustom.
 	(remote-shell-program): Use defcustom.
