@@ -1237,7 +1237,11 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 		  /* Keep track of which character set row
 		     contains the characters that need translation.  */
 		  int charset_base_code = c & ~CHAR_FIELD3_MASK;
-		  if (charset_base == -1)
+		  int inverse_charset_base = inverse & ~CHAR_FIELD3_MASK;
+
+		  if (charset_base_code != inverse_charset_base)
+		    boyer_moore_ok = 0;
+		  else if (charset_base == -1)
 		    charset_base = charset_base_code;
 		  else if (charset_base != charset_base_code)
 		    /* If two different rows appear, needing translation,
