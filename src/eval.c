@@ -1208,8 +1208,8 @@ See also the function `condition-case'.")
 #else
       if (EQ (clause, Qlambda))
 	{
-	  /* We can't return values to code which signalled an error, but we
-	     can continue code which has signalled a quit.  */
+	  /* We can't return values to code which signaled an error, but we
+	     can continue code which has signaled a quit.  */
 	  if (EQ (error_symbol, Qquit))
 	    return Qnil;
 	  else
@@ -2813,7 +2813,7 @@ Typing C-g sets `quit-flag' non-nil, regardless of `inhibit-quit'.");
   DEFVAR_LISP ("inhibit-quit", &Vinhibit_quit,
     "Non-nil inhibits C-g quitting from happening immediately.\n\
 Note that `quit-flag' will still be set by typing C-g,\n\
-so a quit will be signalled as soon as `inhibit-quit' is nil.\n\
+so a quit will be signaled as soon as `inhibit-quit' is nil.\n\
 To prevent this happening, set `quit-flag' to nil\n\
 before making `inhibit-quit' nil.");
   Vinhibit_quit = Qnil;
