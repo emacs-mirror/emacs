@@ -211,7 +211,6 @@
 	   0
 	 (current-time)))
 
-  (make-local-hook 'eshell-pre-command-hook)
   (add-hook 'eshell-pre-command-hook
 	    (function
 	     (lambda ()
@@ -220,7 +219,6 @@
 			 (car (memory-use-counts))
 		       (current-time))))) nil t)
 
-  (make-local-hook 'eshell-post-command-hook)
   (add-hook 'eshell-post-command-hook
 	    (function
 	     (lambda ()
