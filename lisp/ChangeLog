@@ -1,3 +1,14 @@
+2000-01-05  Carsten Dominik  <cd@gnu.org>
+
+	* textmodes/reftex-vars.el (reftex-parse-file-extension,
+	 reftex-index-phrase-file-extension): New options.
+
+	* textmodes/reftex-index.el (reftex-index-visit-phrases-buffer):
+	 Use new option `reftex-index-phrase-file-extension'.
+
+	* textmodes/reftex.el (reftex-access-parse-file): Use new option
+	 `reftex-parse-file-extension'.
+	
 2000-01-05  Dave Love  <fx@gnu.org>
 
 	* lisp.el (beginning-of-defun): New variable.
