@@ -1,3 +1,8 @@
+2001-12-13  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* src/macfns.c (x_report_frame_params): Make the scroll-bar-width
+	frame parameter have a numeric value all the time.
+
 2001-12-08  Pavel Janík  <Pavel@Janik.cz>
 
 	* COPYING: New file.
