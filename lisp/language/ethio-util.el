@@ -60,7 +60,7 @@
       (global-set-key kb (cdr (car key-bindings)))
       (setq key-bindings (cdr key-bindings))))
 
-  (add-hook 'quail-mode-hook 'ethio-select-a-translation)
+  (add-hook 'quail-activate-hook 'ethio-select-a-translation)
   (add-hook 'find-file-hooks 'ethio-find-file)
   (add-hook 'write-file-hooks 'ethio-write-file)
   (add-hook 'after-save-hook 'ethio-find-file))
@@ -73,7 +73,7 @@
     (setq exit-ethiopic-environment-data
 	  (cdr exit-ethiopic-environment-data)))
 
-  (remove-hook 'quail-mode-hook 'ethio-select-a-translation)
+  (remove-hook 'quail-activate-hook 'ethio-select-a-translation)
   (remove-hook 'find-file-hooks 'ethio-find-file)
   (remove-hook 'write-file-hooks 'ethio-write-file)
   (remove-hook 'after-save-hook 'ethio-find-file))
