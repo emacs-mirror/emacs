@@ -2,9 +2,9 @@
 
 ;; Copyright (C) 1999  Free Software Foundation, Inc.
 
-;; Author: Alex Schroeder <a.schroeder@bsiag.ch>
-;; Maintainer: Alex Schroeder <a.schroeder@bsiag.ch>
-;; Version: 1.1.1
+;; Author: Alex Schroeder <alex@gnu.ch>
+;; Maintainer: Alex Schroeder <alex@gnu.ch>
+;; Version: 1.2.0
 ;; Keywords: comm processes
 
 ;; This file is part of GNU Emacs.
@@ -69,18 +69,27 @@
 ;;   (setq line "[1mbold[0m and [34mblue[0m, [1m[34mbold and blue[0m!!")
 ;;   (ansi-color-to-text-properties line)
 ;;   (insert line))
+;;
+;; Other test strings: (m-eating-bug) "[1mmold[0m should be mold"
 
 ;;; Bugs:
 
-;; Only supports the ANSI sequences that the MUSH I'm on uses (the MUSH
-;; is Elendor, see http://www.elendor.net).  To see the list of codes
-;; supported I did a `help ansi()'.  Based on this information, I used
-;; TinyTalk.el (without ANSI color support), gave myself the ANSI color
-;; flags using `@set me=ANSI' and `@set me=COLOR', and noted the ANSI
-;; escape sequences produced by the MUSH using `think ansi(r,red)' for
-;; example.
+;; 1. Only supports the ANSI sequences that the MUSH I'm on uses (the
+;;    MUSH is Elendor, see http://www.elendor.net).  To see the list of
+;;    codes supported I did a `help ansi()'.  Based on this information,
+;;    I used TinyTalk.el (without ANSI color support), gave myself the
+;;    ANSI color flags using `@set me=ANSI' and `@set me=COLOR', and
+;;    noted the ANSI escape sequences produced by the MUSH using `think
+;;    ansi(r,red)' for example.
 ;;
-;; The code is spaghetti-code, I hate it.
+;; 2. The code is spaghetti-code, I hate it.
+;;
+;; 3. If a squence of chars looks like the start of an ANSI sequence,
+;;    the chars will be set invisible.  If the squence of chars turns
+;;    out not to be an ANSI sequence, this is not undone.  Here is a
+;;    teststring: "Is '[3' visible as ^[[3?"  This could be solved by
+;;    using `state': it shows most of the time how many characters have
+;;    been set invisible.
 
 
 
@@ -126,9 +135,8 @@ added to the string given in the parameter STR."
     (while (< i str-length)
       (setq char (aref str i))
       (cond
-       ;; Eeither just finished an ANSI control squence (state 4) or
-       ;; wrote normal chars (state 0).
-       ((and (or (= state 0) (= state 4)) (= char ?))
+       ;; When writing normal chars (state 0) and happening upon an ANSI sequence.
+       ((and (= state 0) (= char ?))
 	(setq state 1)); saw escape
        ((and (= state 1) (= char ?\[)); seen escape
 	(setq state 2
@@ -145,8 +153,8 @@ added to the string given in the parameter STR."
 	  (setq param2 (string-to-number (substring str i (1+ i)))
 		state 4))); read second digit, prepare to quit
        ((and (or (= state 3) (= state 4)) (= char ?m)); reading last char: m
-	(setq state 4); state 4: m will be invisible.  Now reset face
-	;; according to param1 and param2.
+	(setq state 5); state 5: m will be last invisible char.  Now
+	;; reset face according to param1 and param2.
 	(if (null param2); only param1 set: no color changes!
 	    ;; [0m: default face
 	    (if (= param1 0)
@@ -170,7 +178,13 @@ added to the string given in the parameter STR."
 	;; if reading normal chars, state is 0, put them in the
 	;; current face.
 	(put-text-property i (1+ i) 'face face str))
-      ;; next char
+
+      ;; Debug: (message "%c: %d" char state)
+
+      ;; If we just finished reading an ANSI sequence (state 5), reset
+      ;; state (state 0).
+      (if (> state 4) (setq state 0))
+      ;; Next char
       (setq i (1+ i)))))
 
 (provide 'ansi-color)
