@@ -1,4 +1,4 @@
-;;; ibuf-ext.el --- extended features for ibuffer
+;;; ibuf-ext.el --- extensions for ibuffer -*-byte-compile-dynamic: t;-*-
 
 ;; Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
 
