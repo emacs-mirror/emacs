@@ -107,10 +107,18 @@
 # Exported symbols
 .globl _StackScan
 
+# Imported symbols
+.globl _TraceScanArea
+
 linkageArea = 24 ; size of linkage area to create
 paramArea = 12 ; size of param area to create
 # .local.size: this size is directly related to what registers we save.
 localArea = 76 ; size of local workspace (for 19 registers, r13-r31)
+# A throwaway comment in [MORT] p32 "The called routine is responsible
+# for allocating its own stack frame, making sure to preserve 16-byte
+# alignment on the stack" implies that the stack must always be 16-byte
+# aligned.  Thus, this sum, frameSize, must be a multiple of 16.  24 +
+# 12 + 76 = 112 = 7*16, so much for the abstraction.
 frameSize = linkageArea + paramArea + localArea
 
 _StackScan:
@@ -121,6 +129,15 @@ _StackScan:
     stw r0, 8(r1)
     stwu r1, -frameSize(r1)
 # r1 + frameSize is SPEP
+
+# setup arguments for call to TraceScanArea, and call it
+# First Argument, ScanState, is our first argument, already in r3.
+# Arguments are processed out of order because of the dependency on r4
+# Third Argument: highest stack address.
+    mr r5, r4
+# Second Argument: lowest stack address.
+    mr r4, r1
+    bl _TraceScanArea
 
     lwz r1, 0(r1)
 # r1 is SPEP again
