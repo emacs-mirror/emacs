@@ -18,6 +18,9 @@ installed programs.
 
 * Changes in Emacs 21.3
 
+** jit-lock can now be delayed with `jit-lock-defer-time'.
+If it is set to 0.5, fontification will only happen after 0.5s of idle time.
+
 ** If you hit M-C-SPC (mark-sexp) repeatedly, the marked region
 will now be extended each time, so you can mark the next two sexps with
 M-C-SPC M-C-SPC, for example.
@@ -165,6 +168,24 @@ SQL buffer.
 
 
 * Lisp Changes in Emacs 21.3
+
+** jit-lock obeys a new text-property `jit-lock-defer-multiline'.
+If a piece of text with that property gets contextually refontified
+(see jit-lock-defer-contextually), then all of that text will
+be refontified.  This is useful when the syntax of a textual element
+depends on text several lines further down (and when font-lock-multiline
+is not appropriate to solve that problem).  For example in Perl:
+
+	s{
+		foo
+	}{
+		bar
+	}e
+
+Adding/removing the last `e' changes the `bar' from being a piece of
+text to being a piece of code, so you'd put a jit-lock-defer-multiline
+property over the second half of the command to force (deferred)
+refontification of `bar' whenever the `e' is added/removed.
 
 ** describe-vector now takes a second argument `describer' which is
 called to print the entries' values.  It default to `princ'.
