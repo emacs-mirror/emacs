@@ -132,6 +132,8 @@ and this notice must be preserved on all copies.  */
 #undef HAVE_SETSID
 #undef HAVE_FPATHCONF
 
+#undef HAVE_INET_SOCKETS
+
 #undef HAVE_AIX_SMT_EXP
 
 /* Define if `sys_siglist' is declared by <signal.h>.  */
