@@ -1,3 +1,7 @@
+2000-02-18  Andreas Schwab  <schwab@suse.de>
+
+	* ack.texi (Acknowledgments): Remove extra `@end itemize'.
+
 2000-01-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* eudc.texi: New file based on EUDC 1.30b.

@@ -1,3 +1,8 @@
+2000-02-18  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (install-arch-indep): Add eudc to list of installed
+	info files.
+
 2000-02-17  Ken Raeburn  <raeburn@gnu.org>
 
 	* configure.in: Include -lz and -ljpeg (if it's available) when
