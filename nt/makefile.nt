@@ -23,13 +23,14 @@
 
 ALL		= $(BLD)\addpm.exe
 
+.c{$(BLD)}.obj:
+		  $(CC) $(CFLAGS) -Fo$@ $<
+
 addpm:		  $(BLD) $(BLD)\addpm.exe
-$(BLD)\addpm.exe: $(BLD)\addpm.obj
 $(BLD)\addpm.obj: addpm.c
-		  $(CC) $(CFLAGS) -nologo -out:$@ addpm.c \
-			-link -out:$(BLD)\addpm.exe \
-			-subsystem:windows -entry:WinMainCRTStartup \
-			$(SYS_LDFLAGS) $(BASE_LIBS) user32.lib
+$(BLD)\addpm.exe: $(BLD)\addpm.obj
+		  $(LINK) -out:$@ -subsystem:windows -entry:WinMainCRTStartup \
+		  $(SYS_LDFLAGS) $** $(BASE_LIBS) user32.lib
 
 # Since Windows 95 does not support multiple commands on one command line
 # (e.g., in for loops), we cannot use for loops any more.
