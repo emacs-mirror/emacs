@@ -16,8 +16,8 @@ diary suit your personal tastes.
 * Daylight Savings::       Changing the default.
 * Diary Customizing::      Defaults you can set.
 * Hebrew/Islamic Entries:: How to obtain them.
-* Fancy Diary Display::    Enhancing the diary display, sorting entries.
-* Included Diary Files::   Sharing a common diary file.
+* Fancy Diary Display::    Enhancing the diary display, sorting entries, 
+                             using included diary files.
 * Sexp Diary Entries::     Fancy things you can do.
 * Appt Customizing::	   Customizing appointment reminders.
 @end menu
@@ -47,59 +47,68 @@ calendar automatically displays a list of holidays for the current three
 month period.  The holiday list appears in a separate window.@refill
 
 @vindex mark-diary-entries-in-calendar
-  You can set the variable @code{mark-diary-entries-in-calendar} to @code{t}
-in order to place a plus sign (@samp{+}) beside any dates with diary entries.
-Whenever the calendar window is displayed or redisplayed, the diary entries
-are automatically marked for holidays.
+  You can set the variable @code{mark-diary-entries-in-calendar} to
+@code{t} in order to mark any dates with diary entries.  This takes
+effect whenever the calendar window contents are recomputed.  There are
+two ways of marking these dates: by changing the face (@pxref{Faces}),
+if the display supports that, or by placing a plus sign (@samp{+})
+beside the date otherwise.
 
 @vindex mark-holidays-in-calendar
   Similarly, setting the variable @code{mark-holidays-in-calendar} to
-@code{t} places an asterisk (@samp{*}) after all holiday dates visible
-in the calendar window.
+@code{t} marks holiday dates, either with a change of face or with an
+asterisk (@samp{*}).
+
+@vindex calendar-holiday-marker
+@vindex diary-entry-marker
+  The variable @code{calendar-holiday-marker} specifies how to mark a
+date as being a holiday.  Its value may be a character to insert next to
+the date, or a face name to use for displaying the date.  Likewise, the
+variable @code{diary-entry-marker} specifies how to mark a date that has
+diary entries.
 
 @vindex calendar-load-hook
-  There are many customizations that you can make with the hooks
-provided.  For example, the variable @code{calendar-load-hook}, whose
-default value is @code{nil}, is a normal hook run when the calendar
-package is first loaded (before actually starting to display the
-calendar).
+  The variable @code{calendar-load-hook} is a normal hook run when the
+calendar package is first loaded (before actually starting to display
+the calendar).
 
 @vindex initial-calendar-window-hook
-  The variable @code{initial-calendar-window-hook}, whose default value
-is @code{nil}, is a normal hook run the first time the calendar window
-is displayed.  The function is invoked only when you first enter
-Calendar mode, not when you redisplay an existing Calendar window.  But
-if you leave the calendar with the @kbd{q} command and reenter it, the
-hook runs again.@refill
+  Starting the calendar runs the normal hook
+@code{initial-calendar-window-hook}.  Recomputation of the calendar
+display does not run this hook.  But if you leave the calendar with the
+@kbd{q} command and reenter it, the hook runs again.@refill
 
 @vindex today-visible-calendar-hook
-  The variable @code{today-visible-calendar-hook}, whose default value
-is @code{nil}, is a normal hook run after the calendar buffer has been
-prepared with the calendar when the current date is visible in the
-window.  One use of this hook is to replace today's date with asterisks;
-a function @code{calendar-star-date} is included for this purpose.  In
-your @file{.emacs} file, put:@refill
+  The variable @code{today-visible-calendar-hook} is a normal hook run
+after the calendar buffer has been prepared with the calendar when the
+current date is visible in the window.  One use of this hook is to
+replace today's date with asterisks; to do that, use the hook function
+@code{calendar-star-date}.
 
 @findex calendar-star-date
 @example
-(setq today-visible-calendar-hook 'calendar-star-date)
+(add-hook 'today-visible-calendar-hook 'calendar-star-date)
 @end example
 
 @noindent
-Another standard hook function adds asterisks around the current date.
-Here's how to use it:
+Another standard hook function marks the current date, either by
+changing its face or by adding an asterisk.  Here's how to use it:
 
 @findex calendar-mark-today
 @example
-(setq today-visible-calendar-hook 'calendar-mark-today)
+(add-hook 'today-visible-calendar-hook 'calendar-mark-today)
 @end example
+
+@noindent
+@vindex calendar-today-marker
+The variable @code{calendar-today-marker} specifies how to mark today's
+date.  Its value should be a character to insert next to the date or a
+face name to use for displaying the date.
 
 @vindex today-invisible-calendar-hook
 @noindent
-  A corresponding variable, @code{today-invisible-calendar-hook}, whose
-default value is @code{nil}, is a normal hook run after the calendar
-buffer text has been prepared, if the current date is @emph{not} visible
-in the window.@refill
+  A similar normal hook, @code{today-invisible-calendar-hook} is run if
+the current date is @emph{not} visible in the window.
 
 @node Holiday Customizing
 @section Customizing the Holidays
@@ -130,10 +139,10 @@ described below.
 @vindex all-christian-calendar-holidays
 @vindex all-hebrew-calendar-holidays
 @vindex all-islamic-calendar-holidays
-  By default, Emacs does not consider all the holidays of these
-religions, only those commonly found in secular calendars.  For a more
-extensive collection of religious holidays, you can set any (or all) of
-the variables @code{all-christian-calendar-holidays},
+  By default, Emacs does not include all the holidays of the religions
+that it knows; only those commonly found in secular calendars.  For a
+more extensive collection of religious holidays, you can set any (or
+all) of the variables @code{all-christian-calendar-holidays},
 @code{all-hebrew-calendar-holidays}, or
 @code{all-islamic-calendar-holidays} to @code{t}.  If you want to
 eliminate the religious holidays, set any or all of the corresponding
@@ -142,56 +151,56 @@ variables @code{christian-holidays}, @code{hebrew-holidays}, and
 
 @vindex other-holidays
   You can set the variable @code{other-holidays} to any list of
-holidays.  This list, normally empty, is intended for your use.
+holidays.  This list, normally empty, is intended for individual use.
 
 @cindex holiday forms
   Each of the lists (@code{general-holidays}, @code{local-holidays},
 @code{christian-holidays}, @code{hebrew-holidays},
 @code{islamic-holidays}, and @code{other-holidays}) is a list of
 @dfn{holiday forms}, each holiday form describing a holiday (or
-sometimes a list of holidays).  Holiday forms may have the following
-formats:
+sometimes a list of holidays).
+
+  Here is a table of the possible kinds of holiday form.  Day numbers
+and month numbers count starting from 1, but day-within-week numbers
+count Sunday as 0.  The element @var{string} is always the
+name of the holiday, as a string.
 
 @table @code
 @item (holiday-fixed @var{month} @var{day} @var{string})
-A fixed date on the Gregorian calendar.  @var{month} and @var{day} are
-numbers, @var{string} is the name of the holiday.
+A fixed date on the Gregorian calendar; @var{month} and
+@var{day} are numbers.
 
 @item (holiday-float @var{month} @var{dayname} @var{k} @var{string})
 The @var{k}th @var{dayname} in @var{month} on the Gregorian calendar
 (@var{dayname}=0 for Sunday, and so on); negative @var{k} means count back
-from the end of the month.  @var{string} is the name of the holiday.
+from the end of the month.
 
 @item (holiday-hebrew @var{month} @var{day} @var{string})
-A fixed date on the Hebrew calendar.  @var{month} and @var{day} are
-numbers, @var{string} is the name of the holiday.
+A fixed date on the Hebrew calendar; @var{month} and @var{day} are
+numbers.
 
 @item (holiday-islamic @var{month} @var{day} @var{string})
-A fixed date on the Islamic calendar.  @var{month} and @var{day} are
-numbers, @var{string} is the name of the holiday.
+A fixed date on the Islamic calendar; @var{month} and @var{day} are
+numbers.
 
 @item (holiday-julian @var{month} @var{day} @var{string})
-A fixed date on the Julian calendar.  @var{month} and @var{day} are
-numbers, @var{string} is the name of the holiday.
+A fixed date on the Julian calendar; @var{month} and @var{day} are
+numbers.
 
 @item (holiday-sexp @var{sexp} @var{string})
-@var{sexp} is a Lisp expression that should use the variable @code{year}
-to compute the date of a holiday, or @code{nil} if the holiday doesn't
-happen this year.  The value represents the date as a list of the form
-@code{(@var{month} @var{day} @var{year})}.  @var{string} is the name of
-the holiday.
+A date calculated by the Lisp expression @var{sexp}.  The expression
+should use the variable @code{year} to compute the date of a holiday, or
+@code{nil} if the holiday doesn't happen this year.  The value of @var{sexp}
+must represent the date as a list of the form @code{(@var{month} @var{day}
+@var{year})}.
 
-@item (if @var{boolean} @var{holiday-form} &optional @var{holiday-form})
-A choice between two holidays based on the value of @var{boolean}.
-
-@item (@var{function} &optional @var{args})
-Dates requiring special computation; @var{args}, if any, are passed in
-a list to the function @code{calendar-holiday-function-@var{function}}.
+@item (@var{function} @r{[}@var{args}@r{]})
+A date calculated by the function @var{function}, called with arguments
+@var{args}.
 @end table
 
   For example, suppose you want to add Bastille Day, celebrated in
-France on July 14.  You can do this by adding the following line
-to your @file{.emacs} file:
+France on July 14.  You can do this as follows:
 
 @smallexample
 (setq other-holidays '((holiday-fixed 7 14 "Bastille Day")))
@@ -233,10 +242,10 @@ birthday (since the Islamic months are numbered from 1 starting with
 Muharram), and Thomas Jefferson's birthday, which is 2 April 1743 on the
 Julian calendar.
 
-  To include a holiday conditionally, use either the @samp{if} or the
-@samp{sexp} form.  For example, American presidential elections occur on
-the first Tuesday after the first Monday in November of years divisible
-by 4:
+  To include a holiday conditionally, use either Emacs Lisp's @code{if} or the
+@code{holiday-sexp} form.  For example, American presidential elections
+occur on the first Tuesday after the first Monday in November of years
+divisible by 4:
 
 @smallexample
 (holiday-sexp (if (= 0 (% year 4))
@@ -263,13 +272,11 @@ or
 
   Some holidays just don't fit into any of these forms because special
 calculations are involved in their determination.  In such cases you
-must write a Lisp function to do the calculation.  To include
-eclipses of the sun, for example, add @code{(eclipses)} to
-@code{other-holidays} and write an Emacs Lisp function
-@code{eclipses} that returns a (possibly
-empty) list of the relevant Gregorian dates among the
-range visible in the calendar window, with descriptive strings, like
-this:
+must write a Lisp function to do the calculation.  To include eclipses,
+for example, add @code{(eclipses)} to @code{other-holidays}
+and write an Emacs Lisp function @code{eclipses} that returns a
+(possibly empty) list of the relevant Gregorian dates among the range
+visible in the calendar window, with descriptive strings, like this:
 
 @smallexample
 (((6 27 1991) "Lunar Eclipse") ((7 11 1991) "Solar Eclipse") ... )
@@ -281,7 +288,7 @@ this:
 
   You can customize the manner of displaying dates in the diary,
 in mode lines, and in messages by setting
-@code{calendar-date-display-form}.  This variable is a list of
+@code{calendar-date-display-form}.  This variable holds a list of
 expressions that can involve the variables @code{month}, @code{day}, and
 @code{year}, all numbers in string form, and @code{monthname} and
 @code{dayname}, both alphabetic strings.  In the American style, the
@@ -298,6 +305,7 @@ while in the European style this value is the default:
 ((if dayname (concat dayname ", ")) day " " monthname " " year)
 @end smallexample
 
+@noindent
 The ISO standard date representation is this:
 
 @smallexample
@@ -315,32 +323,29 @@ This specifies a typical American format:
 @section Time Display Format
 @vindex calendar-time-display-form
 
-  In the calendar, diary, and related buffers, Emacs displays times of
-day in the conventional American style with the hours from 1 through 12,
-minutes, and either @samp{am} or @samp{pm}.  If you prefer the
-``military'' (European) style of writing times---in which the hours go
-from 00 to 23---you can alter the variable
-@code{calendar-time-display-form}.  This variable is a list of
-expressions that can involve the variables @code{12-hours},
-@code{24-hours}, and @code{minutes}, all numbers in string form, and
-@code{am-pm} and @code{time-zone}, both alphabetic strings.  The default
-definition of @code{calendar-time-display-form} is as follows:
+  The calendar and diary by default display times of day in the
+conventional American style with the hours from 1 through 12, minutes,
+and either @samp{am} or @samp{pm}.  If you prefer the European style,
+also known in the US as military, in which the hours go from 00 to 23,
+you can alter the variable @code{calendar-time-display-form}.  This
+variable is a list of expressions that can involve the variables
+@code{12-hours}, @code{24-hours}, and @code{minutes}, all numbers in
+string form, and @code{am-pm} and @code{time-zone}, both alphabetic
+strings.  The default value of @code{calendar-time-display-form} is as
+follows:
 
 @smallexample
 (12-hours ":" minutes am-pm
           (if time-zone " (") time-zone (if time-zone ")"))
 @end smallexample
 
-  Setting @code{calendar-time-display-form} to
+@noindent
+Here is a value that provides European style times:
 
 @smallexample
 (24-hours ":" minutes
           (if time-zone " (") time-zone (if time-zone ")"))
 @end smallexample
-
-@noindent
-gives military-style times like @samp{21:07 (UT)} if time zone names are
-defined, and times like @samp{21:07} if they are not.
 
 @node Daylight Savings
 @section Daylight Savings Time
@@ -357,9 +362,9 @@ know which rules to use.
 where you are; on these systems, Emacs gets the information it needs
 from the system automatically.  If some or all of this information is
 missing, Emacs fills in the gaps with the rules currently used in
-Cambridge, Massachusetts.  If the default choice of rules is not
-appropriate for your location, you can tell Emacs the rules to use by
-setting certain variables.
+Cambridge, Massachusetts, which is the center of GNU's world.  If the
+default choice of rules is not appropriate for your location, you can
+tell Emacs the rules to use by setting certain variables.
 
 @vindex calendar-daylight-savings-starts
 @vindex calendar-daylight-savings-ends
@@ -396,8 +401,8 @@ changed to start on October 1, you would set
 @end example
 
   For a more complex example, suppose daylight savings time begins on
-the first of Nisan on the Hebrew calendar.  You would set
-@code{calendar-daylight-savings-starts} as follows:
+the first of Nisan on the Hebrew calendar.  You should set
+@code{calendar-daylight-savings-starts} to this value:
 
 @example
 (calendar-gregorian-from-absolute
@@ -414,14 +419,17 @@ all times in standard time, set @code{calendar-daylight-savings-starts}
 and @code{calendar-daylight-savings-ends} to @code{nil}.
 
 @vindex calendar-daylight-time-offset
-  This variable specifies the difference between daylight savings time and
-standard time, measured in minutes.  The value for Cambridge is 60.
+  The variable @code{calendar-daylight-time-offset} specifies the
+difference between daylight savings time and standard time, measured in
+minutes.  The value for Cambridge is 60.
 
 @vindex calendar-daylight-savings-starts-time
 @vindex calendar-daylight-savings-ends-time
-  These variables specify is the number of minutes after midnight local time
-when the transition to and from daylight savings time should occur.  For
-Cambridge, both variables' values are 120.
+  The variable @code{calendar-daylight-savings-starts-time} and the
+variable @code{calendar-daylight-savings-ends-time} specify the number
+of minutes after midnight local time when the transition to and from
+daylight savings time should occur.  For Cambridge, both variables'
+values are 120.
 
 @node Diary Customizing
 @section Customizing the Diary
@@ -463,18 +471,29 @@ order by day and time.
 @vindex diary-date-forms
   You can customize the form of dates in your diary file, if neither the
 standard American nor European styles suits your needs, by setting the
-variable @code{diary-date-forms}.  This variable is a list of forms of
-dates recognized in the diary file.  Each form is a list of regular
-expressions (@pxref{Regular Expressions}) and the variables
+variable @code{diary-date-forms}.  This variable is a list of patterns
+for recognizing a date.  Each date pattern is a list whose elements may
+be regular expressions (@pxref{Regular Expressions}) or the symbols
 @code{month}, @code{day}, @code{year}, @code{monthname}, and
-@code{dayname}.  The variable @code{monthname} matches the name of the
-month, capitalized or not, or its three-letter abbreviation, followed by
-a period or not; it matches @samp{*}.  Similarly, @code{dayname} matches
-the name of the day, capitalized or not, or its three-letter
-abbreviation, followed by a period or not.  The variables @code{month},
-@code{day}, and @code{year} match those numerical values, preceded by
-arbitrarily many zeros; they also match @samp{*}.  The default value of
-@code{diary-date-forms} in the American style is
+@code{dayname}.  All these elements serve as patterns that match certain
+kinds of text in the diary file.  In order for the date pattern, as a
+whole, to match, all of its elements must match consecutively.
+
+  A regular expression in a date pattern matches in its usual fashion,
+using the standard syntax table altered so that @samp{*} is a word
+constituent.
+
+  The symbols @code{month}, @code{day}, @code{year}, @code{monthname},
+and @code{dayname} match the month number, day number, year number,
+month name, and day name of the date being considered.  The symbols that
+match numbers allow leading zeros; those that match names allow
+three-letter abbreviations and capitalization.  All the symbols can
+match @samp{*}; since @samp{*} in a diary entry means ``any day'', ``any
+month'', and so on, it should match regardless of the date being
+considered.
+
+  The default value of @code{diary-date-forms} in the American style is
+this:
 
 @example
 ((month "/" day "[^/0-9]")
@@ -484,19 +503,16 @@ arbitrarily many zeros; they also match @samp{*}.  The default value of
  (dayname "\\W"))
 @end example
 
-@noindent
-Emacs matches of the diary entries with the date forms is done with the
-standard syntax table from Fundamental mode (@pxref{Syntax Tables}), but
-with the @samp{*} changed so that it is a word constituent.
-
-  The forms on the list must be @emph{mutually exclusive} and must not
-match any portion of the diary entry itself, just the date.  If, to be
-mutually exclusive, the pattern must match a portion of the diary entry
-itself, the first element of the form @emph{must} be @code{backup}.
-This causes the date recognizer to back up to the beginning of the
-current word of the diary entry.  Even if you use @code{backup}, the
-form must absolutely not match more than a portion of the first word of
-the diary entry.  The default value of @code{diary-date-forms} in the
+  The date patterns in the list must be @emph{mutually exclusive} and
+must not match any portion of the diary entry itself, just the date and
+one character of whitespace.  If, to be mutually exclusive, the pattern
+must match a portion of the diary entry text---beyond the whitespace
+that ends the date---then the first element of the date pattern
+@emph{must} be @code{backup}.  This causes the date recognizer to back
+up to the beginning of the current word of the diary entry, after
+finishing the match.  Even if you use @code{backup}, the date pattern
+must absolutely not match more than a portion of the first word of the
+diary entry.  The default value of @code{diary-date-forms} in the
 European style is this list:
 
 @example
@@ -508,56 +524,45 @@ European style is this list:
 @end example
 
 @noindent
-Notice the use of @code{backup} in the middle form because part of the
-diary entry must be matched to distinguish this form from the following one.
+Notice the use of @code{backup} in the third pattern, because it needs
+to match part of a word beyond the date itself to distinguish it from
+the fourth pattern.
 
 @node Hebrew/Islamic Entries
 @section Hebrew- and Islamic-Date Diary Entries
 
   Your diary file can have entries based on Hebrew or Islamic dates, as
-well as entries based on our usual Gregorian calendar.  However, because
-the processing of such entries is time-consuming and most people don't
-need them, you must customize the processing of your diary file to
-specify that you want such entries recognized.  If you want Hebrew-date
-diary entries, for example, you must include these lines in your
-@file{.emacs} file:
+well as entries based on the world-standard Gregorian calendar.
+However, because recognition of such entries is time-consuming and most
+people don't use them, you must explicitly enable their use.  If you
+want the diary to recognize Hebrew-date diary entries, for example, 
+you must do this:
 
 @vindex nongregorian-diary-listing-hook
 @vindex nongregorian-diary-marking-hook
 @findex list-hebrew-diary-entries
 @findex mark-hebrew-diary-entries
 @smallexample
-(setq nongregorian-diary-listing-hook 'list-hebrew-diary-entries)
-(setq nongregorian-diary-marking-hook 'mark-hebrew-diary-entries)
+(add-hook 'nongregorian-diary-listing-hook 'list-hebrew-diary-entries)
+(add-hook 'nongregorian-diary-marking-hook 'mark-hebrew-diary-entries)
 @end smallexample
 
 @noindent
-If you want Islamic-date entries, include these lines in your
-@file{.emacs} file:
+If you want Islamic-date entries, do this:
 
 @findex list-islamic-diary-entries
 @findex mark-islamic-diary-entries
 @smallexample
-(setq nongregorian-diary-listing-hook 'list-islamic-diary-entries)
-(setq nongregorian-diary-marking-hook 'mark-islamic-diary-entries)
-@end smallexample
-
-@noindent
-If you want both Hebrew- and Islamic-date entries, include these lines:
-
-@smallexample
-(setq nongregorian-diary-listing-hook
-      '(list-hebrew-diary-entries list-islamic-diary-entries))
-(setq nongregorian-diary-marking-hook
-      '(mark-hebrew-diary-entries mark-islamic-diary-entries))
+(add-hook 'nongregorian-diary-listing-hook 'list-islamic-diary-entries)
+(add-hook 'nongregorian-diary-marking-hook 'mark-islamic-diary-entries)
 @end smallexample
 
   Hebrew- and Islamic-date diary entries have the same formats as
-Gregorian-date diary entries, except that the date must be preceded with
-an @samp{H} for Hebrew dates and an @samp{I} for Islamic dates.
-Moreover, because the Hebrew and Islamic month names are not uniquely
-specified by the first three letters, you may not abbreviate them.  For
-example, a diary entry for the Hebrew date Heshvan 25 could look like
+Gregorian-date diary entries, except that @samp{H} precedes a Hebrew
+date and @samp{I} precedes an Islamic date.  Moreover, because the
+Hebrew and Islamic month names are not uniquely specified by the first
+three letters, you may not abbreviate them.  For example, a diary entry
+for the Hebrew date Heshvan 25 could look like this:
 
 @smallexample
 HHeshvan 25 Happy Hebrew birthday!
@@ -565,21 +570,19 @@ HHeshvan 25 Happy Hebrew birthday!
 
 @noindent
 and would appear in the diary for any date that corresponds to Heshvan 25
-on the Hebrew calendar.  Similarly, an Islamic-date diary entry might be
+on the Hebrew calendar.  And here is  Islamic-date diary entry  that matches
+Dhu al-Qada 25:
 
 @smallexample
 IDhu al-Qada 25 Happy Islamic birthday!
 @end smallexample
 
-@noindent
-and would appear in the diary for any date that corresponds to Dhu al-Qada 25
-on the Islamic calendar.
-
   As with Gregorian-date diary entries, Hebrew- and Islamic-date entries
 are nonmarking if they are preceded with an ampersand (@samp{&}).
 
-  There are commands to help you in making Hebrew- and Islamic-date
-entries to your diary:
+  Here is a table of commands used in the calendar to create diary entries
+that match the selected date and other dates that are similar in the Hebrew
+or Islamic calendar:
 
 @table @kbd
 @item i h d
@@ -587,10 +590,14 @@ Add a diary entry for the Hebrew date corresponding to the selected date
 (@code{insert-hebrew-diary-entry}).
 @item i h m
 Add a diary entry for the day of the Hebrew month corresponding to the
-selected date (@code{insert-monthly-hebrew-diary-entry}).
+selected date (@code{insert-monthly-hebrew-diary-entry}).  This diary
+entry matches any date which has the same Hebrew day-within-month as the
+selected date.
 @item i h y
 Add a diary entry for the day of the Hebrew year corresponding to the
-selected date (@code{insert-yearly-hebrew-diary-entry}).
+selected date (@code{insert-yearly-hebrew-diary-entry}).  This diary 
+entry matches any date which has the same Hebrew month and day-within-month
+as the selected date.
 @item i i d
 Add a diary entry for the Islamic date corresponding to the selected date
 (@code{insert-islamic-diary-entry}).
@@ -608,12 +615,11 @@ selected date (@code{insert-yearly-islamic-diary-entry}).
 @findex insert-islamic-diary-entry
 @findex insert-monthly-islamic-diary-entry
 @findex insert-yearly-islamic-diary-entry
-  These commands work exactly like the corresponding commands for ordinary
-diary entries: Move point to a date in the calendar window and the above
-commands insert the Hebrew or Islamic date (corresponding to the date
-indicated by point) at the end of your diary file and you can then type the
-diary entry.  If you want the diary entry to be nonmarking, give a numeric
-argument to the command.
+  These commands work much like the corresponding commands for ordinary
+diary entries: they apply to the date that point is on, in the calendar
+window, and what they do is insert just the date portion of a diary entry
+at the end of your diary file.  You must then insert the rest of the 
+diary entry.
 
 @node Fancy Diary Display
 @section Fancy Diary Display
@@ -621,10 +627,9 @@ argument to the command.
 @findex simple-diary-display
 
   Diary display works by preparing the diary buffer and then running the
-hook @code{diary-display-hook}.  The default value of this hook hides
-the irrelevant diary entries and then displays the buffer
-(@code{simple-diary-display}).  However, if you specify the hook as
-follows,
+hook @code{diary-display-hook}.  The default value of this hook
+(@code{simple-diary-display}) hides the irrelevant diary entries and
+then displays the buffer.  However, if you specify the hook as follows,
 
 @cindex diary buffer
 @findex fancy-diary-display
@@ -633,10 +638,11 @@ follows,
 @end example
 
 @noindent
-then fancy mode displays diary entries and holidays by copying them into
-a special buffer that exists only for display.  Copying provides an
-opportunity to change the displayed text to make it prettier---for
-example, to sort the entries by the dates they apply to.
+this enables fancy diary display.  It displays diary entries and
+holidays by copying them into a special buffer that exists only for the
+sake of display.  Copying to a separate buffer provides an opportunity
+to change the displayed text to make it prettier---for example, to sort
+the entries by the dates they apply to.
 
   As with simple diary display, you can print a hard copy of the buffer
 with @code{print-diary-entries}.  To print a hard copy of a day-by-day
@@ -655,7 +661,7 @@ shown in the fancy diary buffer, set the variable
 @cindex sorting diary entries
   If you use the fancy diary display, you can use the normal hook
 @code{list-diary-entries-hook} to sort each day's diary entries by their
-time of day.  Add this line to your @file{.emacs} file:
+time of day.  Here's how
 
 @findex sort-diary-entries
 @example
@@ -667,13 +673,9 @@ For each day, this sorts diary entries that begin with a recognizable
 time of day according to their times.  Diary entries without times come
 first within each day.
 
-@node Included Diary Files
-@section Included Diary Files
-
-  If you use the fancy diary display, you can have diary entries from other
-files included with your own by an ``include'' mechanism.  This facility makes
-possible the sharing of common diary files among groups of users.  Lines in
-the diary file of this form:
+  Fancy diary display also has the ability to process included diary
+files.  This permits a group of people to share a diary file for events
+that apply to all of them.  Lines in the diary file of this form:
 
 @smallexample
 #include "@var{filename}"
@@ -681,13 +683,10 @@ the diary file of this form:
 
 @noindent
 includes the diary entries from the file @var{filename} in the fancy
-diary buffer (because the ordinary diary buffer is just the buffer
-associated with your diary file, you cannot use the include mechanism
-unless you use the fancy diary buffer).  The include mechanism is
-recursive, by the way, so that included files can include other files,
-and so on; you must be careful not to have a cycle of inclusions, of
-course.  To enable the include facility, add lines as follows to your
-@file{.emacs} file:
+diary buffer The include mechanism is recursive, so that included files
+can include other files, and so on; you must be careful not to have a
+cycle of inclusions, of course.  Here is how to enable the include
+facility:
 
 @vindex list-diary-entries-hook
 @vindex mark-diary-entries-hook
@@ -697,6 +696,9 @@ course.  To enable the include facility, add lines as follows to your
 (add-hook 'list-diary-entries-hook 'include-other-diary-files)
 (add-hook 'mark-diary-entries-hook 'mark-included-diary-files)
 @end smallexample
+
+The include mechanism works only with the fancy diary display, because
+ordinary diary display shows the entries directly from your diary file.
 
 @node Sexp Diary Entries
 @section Sexp Entries and the Fancy Diary Display
@@ -755,9 +757,16 @@ Renew medication (5th time)
 in the fancy diary display on September 8, 1990.
 
   The generality of sexp diary entries lets you specify any diary entry
-that you can describe algorithmically.  Suppose you get paid on the 21st
-of the month if it is a weekday, and to the Friday before if the 21st is
-on a weekend.  The diary entry
+that you can describe algorithmically.  A sexp diary entry contains an
+expression that computes whether the entry applies to any given date.
+If its value is non-@code{nil}, the entry applies to that date;
+otherwise, it does not.  The expression can use the variable  @code{date}
+to find the date being considered; its value is a list (@var{month}
+@var{day} @var{year}) that refers to the Gregorian calendar.
+
+  Suppose you get paid on the 21st of the month if it is a weekday, and
+to the Friday before if the 21st is on a weekend.  Here is how to write
+a sexp diary entry that matches those dates:
 
 @smallexample
 &%%(let ((dayname (calendar-day-of-week date))
@@ -767,16 +776,8 @@ on a weekend.  The diary entry
          ) Pay check deposited
 @end smallexample
 
-@noindent
-applies to just those dates.  This example illustrates how the sexp can
-depend on the variable @code{date}; this variable is a list (@var{month}
-@var{day} @var{year}) that gives the Gregorian date for which the diary
-entries are being found.  If the value of the expression is @code{t},
-the entry applies to that date.  If the expression evaluates to
-@code{nil}, the entry does @emph{not} apply to that date.
-
   The following sexp diary entries take advantage of the ability (in the fancy
-diary display) to concoct diary entries based on the date:
+diary display) to concoct diary entries whose text varies based on the date:
 
 @findex diary-sunrise-sunset
 @findex diary-phases-of-moon
@@ -816,9 +817,9 @@ Make a diary entry with today's equivalent date on the Mayan calendar.
 @noindent
 Thus including the diary entry
 
-@smallexample
+@example
 &%%(diary-hebrew-date)
-@end smallexample
+@end example
 
 @noindent
 causes every day's diary display to contain the equivalent date on the
@@ -826,8 +827,8 @@ Hebrew calendar, if you are using the fancy diary display.  (With simple
 diary display, the line @samp{&%%(diary-hebrew-date)} appears in the
 diary for any date, but does nothing particularly useful.)
 
-  There are a number of other available sexp diary entries that are important
-to those who follow the Hebrew calendar:
+  These functions can be used in sexp diary entries based on the Hebrew
+calendar in certain standard ways:
 
 @cindex rosh hodesh
 @findex diary-rosh-hodesh
@@ -871,23 +872,31 @@ can set:
 @vindex appt-display-mode-line
 @vindex appt-msg-window
 @vindex appt-display-duration
+@vindex appt-disp-window-function
+@vindex appt-delete-window-function
 @table @code
 @item appt-message-warning-time
 The time in minutes before an appointment that the reminder begins.  The
 default is 10 minutes.
 @item appt-audible
-If this is @code{t} (the default), Emacs rings the terminal bell for
-appointment reminders.
+If this is non-@code{nil}, Emacs rings the
+terminal bell for appointment reminders.  The default is @code{t}.
 @item appt-visible
-If this is @code{t} (the default), Emacs displays the appointment
-message in echo area.
+If this is non-@code{nil}, Emacs displays the appointment
+message in echo area.  The default is @code{t}.
 @item appt-display-mode-line
-If this is @code{t} (the default), Emacs displays the number of minutes
-to the appointment on the mode line.
+If this is non-@code{nil}, Emacs displays the number of minutes
+to the appointment on the mode line.  The default is @code{t}.
 @item appt-msg-window
-If this is @code{t} (the default), Emacs displays the appointment
-message in another window.
+If this is non-@code{nil}, Emacs displays the appointment
+message in another window.  The default is @code{t}.
+@item appt-disp-window-function
+This variable holds a function to use to create the other window
+for the appointment message.
+@item appt-delete-window-function
+This variable holds a function to use to get rid of the appointment
+message window, when its time is up.
 @item appt-display-duration
-The number of seconds an appointment message is displayed.  The default
+The number of seconds to display an appointment message.  The default
 is 5 seconds.
 @end table
