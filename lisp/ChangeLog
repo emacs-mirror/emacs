@@ -1,5 +1,8 @@
 2002-01-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* textmodes/texinfo.el (texinfo-insert-@end): Fix the change from
+	2001-10-24.
+
 	* mail/sendmail.el (mail-recover-1, mail-recover): Doc fix.
 
 2002-01-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
