@@ -4621,25 +4621,29 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	    {
 	      /* Draw popup menu title. */
 	      char * title = (char *) pDis->itemData;
-	      HDC hdc = pDis->hDC;
-	      HFONT menu_font = GetCurrentObject (hdc, OBJ_FONT);
-	      LOGFONT menu_logfont;
-	      HFONT old_font;
+              if (title)
+                {
+                  HDC hdc = pDis->hDC;
+                  HFONT menu_font = GetCurrentObject (hdc, OBJ_FONT);
+                  LOGFONT menu_logfont;
+                  HFONT old_font;
 
-	      GetObject (menu_font, sizeof (menu_logfont), &menu_logfont);
-	      menu_logfont.lfWeight = FW_BOLD;
-	      menu_font = CreateFontIndirect (&menu_logfont);
-	      old_font = SelectObject (hdc, menu_font);
+                  GetObject (menu_font, sizeof (menu_logfont), &menu_logfont);
+                  menu_logfont.lfWeight = FW_BOLD;
+                  menu_font = CreateFontIndirect (&menu_logfont);
+                  old_font = SelectObject (hdc, menu_font);
 
-	      /* Always draw title as if not selected.  */
-	      ExtTextOut (hdc,
-			  pDis->rcItem.left + GetSystemMetrics (SM_CXMENUCHECK),
-			  pDis->rcItem.top,
-			  ETO_OPAQUE, &pDis->rcItem,
-			  title, strlen (title), NULL);
+                  /* Always draw title as if not selected.  */
+                  ExtTextOut (hdc,
+                              pDis->rcItem.left
+                              + GetSystemMetrics (SM_CXMENUCHECK),
+                              pDis->rcItem.top,
+                              ETO_OPAQUE, &pDis->rcItem,
+                              title, strlen (title), NULL);
 
-	      SelectObject (hdc, old_font);
-	      DeleteObject (menu_font);
+                  SelectObject (hdc, old_font);
+                  DeleteObject (menu_font);
+                }
 	      return TRUE;
 	    }
 	}
@@ -5613,58 +5617,7 @@ w32_unload_font (dpyinfo, font)
  *      (registry	"[^-]+")
  *      (encoding	"[^-]+")
  *      )
- *  (setq x-font-regexp
- *	(concat "\\`\\*?[-?*]"
- *		foundry - family - weight\? - slant\? - swidth - adstyle -
- *		pixelsize - pointsize - resx - resy - spacing - registry -
- *		encoding "[-?*]\\*?\\'"
- *		))
- *  (setq x-font-regexp-head
- *	(concat "\\`[-?*]" foundry - family - weight\? - slant\?
- *		"\\([-*?]\\|\\'\\)"))
- *  (setq x-font-regexp-slant (concat - slant -))
- *  (setq x-font-regexp-weight (concat - weight -))
- * nil)	    
  */
-    
-#define FONT_START       "[-?]"
-#define FONT_FOUNDRY     "[^-]+"
-#define FONT_FAMILY      "\\([^-]+\\)"                      /* 1 */
-#define FONT_WEIGHT      "\\(bold\\|demibold\\|medium\\)"   /* 2 */
-#define FONT_WEIGHT_Q    "\\([^-]*\\)"                      /* 2 */
-#define FONT_SLANT       "\\([ior]\\)"                      /* 3 */
-#define FONT_SLANT_Q     "\\([^-]?\\)"                      /* 3 */
-#define FONT_SWIDTH      "\\([^-]*\\)"                      /* 4 */
-#define FONT_ADSTYLE     "[^-]*"
-#define FONT_PIXELSIZE   "[^-]*"
-#define FONT_POINTSIZE   "\\([0-9][0-9]+\\|\\*\\)"          /* 5 */
-#define FONT_RESX        "[0-9][0-9]+"
-#define FONT_RESY        "[0-9][0-9]+"
-#define FONT_SPACING     "[cmp?*]"
-#define FONT_AVGWIDTH    "[0-9]+"
-#define FONT_REGISTRY    "[^-]+"
-#define FONT_ENCODING    "[^-]+"
-
-#define FONT_REGEXP      ("\\`\\*?[-?*]"     \
-			  FONT_FOUNDRY   "-" \
-			  FONT_FAMILY    "-" \
-			  FONT_WEIGHT_Q  "-" \
-			  FONT_SLANT_Q   "-" \
-			  FONT_SWIDTH    "-" \
-			  FONT_ADSTYLE   "-" \
-			  FONT_PIXELSIZE "-" \
-			  FONT_POINTSIZE "-" \
-			  "[-?*]\\|\\'")
-
-#define FONT_REGEXP_HEAD ("\\`[-?*]"        \
-			  FONT_FOUNDRY  "-" \
-			  FONT_FAMILY   "-" \
-			  FONT_WEIGHT_Q "-" \
-			  FONT_SLANT_Q      \
-			  "\\([-*?]\\|\\'\\)")
-
-#define FONT_REGEXP_SLANT  "-" FONT_SLANT  "-"
-#define FONT_REGEXP_WEIGHT "-" FONT_WEIGHT "-"
 
 LONG 
 x_to_w32_weight (lpw)
@@ -13036,7 +12989,7 @@ respective modifier, or nil to appear as the key `apps'.\n\
 Any other value will cause the key to be ignored.");
   Vw32_apps_modifier = Qnil;
 
-  DEFVAR_LISP ("w32-enable-synthesized_fonts", &Vw32_enable_synthesized_fonts,
+  DEFVAR_LISP ("w32-enable-synthesized-fonts", &Vw32_enable_synthesized_fonts,
     "Non-nil enables selection of artificially italicized and bold fonts.");
   Vw32_enable_synthesized_fonts = Qnil;
 
