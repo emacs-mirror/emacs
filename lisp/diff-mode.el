@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.27 2000/10/03 18:36:36 monnier Exp $
+;; Revision: $Id: diff-mode.el,v 1.28 2000/10/04 21:29:59 miles Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -413,7 +413,7 @@ Non-nil OLD means that we want the old file."
 		       (progn (diff-hunk-prev) (point))
 		     (error (point-min)))))
 	   (header-files
-	    (if (looking-at "[-*][-*][-*] \\(\\S-+\\)\\s-.*\n[-+][-+][-+] \\(\\S-+\\)\\s-.*$")
+	    (if (looking-at "[-*][-*][-*] \\(\\S-+\\)\\(\\s-.*\\)?\n[-+][-+][-+] \\(\\S-+\\)")
 		(list (if old (match-string 1) (match-string 2))
 		      (if old (match-string 2) (match-string 1)))
 	      (forward-line 1) nil))
