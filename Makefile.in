@@ -377,6 +377,7 @@ install-arch-indep: mkdir info
 	      (cd $${dir}; tar -chf - . ) \
 		| (cd $${dest}; umask 022; \
                    tar -xvf - && cat > /dev/null) || exit 1; \
+	      find $${dest} -exec chown $$LOGNAME {} ';' ;\
 	      for subdir in `find $${dest} -type d ! -name RCS ! -name CVS -print` ; do \
 		chmod a+rx $${subdir} ; \
 		rm -rf $${subdir}/RCS ; \
@@ -414,8 +415,8 @@ install-arch-indep: mkdir info
 	then \
 	   echo "Copying etc/DOC-* to ${docdir} ..." ; \
 	   (cd ./etc; tar -chf - DOC*) \
-	     |(cd ${docdir}; umask 0; tar -xvf - && cat > /dev/null) || exit 1; \
-	   (cd $(docdir); chmod a+r DOC*; rm DOC); \
+	     |(cd ${docdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
+	   (cd $(docdir); chown $${LOGNAME} DOC*; chmod a+r DOC*; rm DOC); \
 	else true; fi
 	-unset CDPATH; \
 	if [ -r ./lisp ] \
@@ -425,7 +426,8 @@ install-arch-indep: mkdir info
 	then \
 	   echo "Copying lisp/*.el and lisp/*.elc to ${lispdir} ..." ; \
 	   (cd lisp; tar -chf - *.el *.elc) \
-	     |(cd ${lispdir}; umask 0; tar -xvf - && cat > /dev/null) || exit 1; \
+	     |(cd ${lispdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
+	   (cd ${lispdir}; find . -exec chown $${LOGNAME} {} ';') ; \
 	else true; fi
 	-unset CDPATH; \
 	thisdir=`/bin/pwd`; \
