@@ -760,41 +760,36 @@ static void
 vox_configure (sd)
      struct sound_device *sd;
 {
-  int requested;
+  int val;
   
   xassert (sd->fd >= 0);
 
-  /* Device parameters apparently depend on each other in undocumented
-     ways (not to imply that there is any real documentation).  Be
-     careful when reordering the calls below.  */
-  if (sd->sample_size > 0
-      && ioctl (sd->fd, SNDCTL_DSP_SAMPLESIZE, &sd->sample_size) < 0)
-    sound_perror ("Setting sample size");
-  
-  if (sd->bps > 0
-      && ioctl (sd->fd, SNDCTL_DSP_SPEED, &sd->bps) < 0)
-    sound_perror ("Setting speed");
+  val = sd->format;
+  if (ioctl (sd->fd, SNDCTL_DSP_SETFMT, &sd->format) < 0
+      || val != sd->format)
+    sound_perror ("Set sound format");
 
-  if (sd->sample_rate > 0
-      && ioctl (sd->fd, SOUND_PCM_WRITE_RATE, &sd->sample_rate) < 0)
-    sound_perror ("Setting sample rate");
+  val = sd->channels != 1;
+  if (ioctl (sd->fd, SNDCTL_DSP_STEREO, &val) < 0
+      || val != (sd->channels != 1))
+    sound_perror ("Set stereo/mono");
 
-  requested = sd->format;
-  if (ioctl (sd->fd, SNDCTL_DSP_SETFMT, &sd->format) < 0)
-    sound_perror ("Setting format");
-  else if (requested != sd->format)
-    error ("Setting format");
-
-  if (sd->channels > 1
-      && ioctl (sd->fd, SNDCTL_DSP_STEREO, &sd->channels) < 0)
-    sound_perror ("Setting channels");
+  /* I think bps and sampling_rate are the same, but who knows.
+     Check this. and use SND_DSP_SPEED for both.  */
+  if (sd->sample_rate > 0)
+    {
+      val = sd->sample_rate;
+      if (ioctl (sd->fd, SNDCTL_DSP_SPEED, &sd->sample_rate) < 0
+	  || val != sd->sample_rate)
+	sound_perror ("Set sound speed");
+    }
 
   if (sd->volume > 0)
     {
       int volume = sd->volume & 0xff;
       volume |= volume << 8;
-      if (ioctl (sd->fd, SOUND_MIXER_WRITE_PCM, &volume) < 0)
-	sound_perror ("Setting volume");
+      /* This may fail if there is no mixer.  Ignore the failure.  */
+      ioctl (sd->fd, SOUND_MIXER_WRITE_PCM, &volume);
     }
 }
 
@@ -809,7 +804,6 @@ vox_close (sd)
     {
       /* Flush sound data, and reset the device.  */
       ioctl (sd->fd, SNDCTL_DSP_SYNC, NULL);
-      ioctl (sd->fd, SNDCTL_DSP_RESET, NULL);
 
       /* Close the device.  */
       emacs_close (sd->fd);
