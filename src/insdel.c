@@ -773,7 +773,7 @@ count_size_as_multibyte (ptr, nbytes)
       else
 	{
 	  c = unibyte_char_to_multibyte (c);
-	  outgoing_nbytes += XINT (Fchar_bytes (make_number (c)));
+	  outgoing_nbytes += CHAR_BYTES (c);
 	}
     }
 
