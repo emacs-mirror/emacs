@@ -152,7 +152,7 @@ When enabled, characters in the range of 160 to 255 display not
 as octal escapes, but as accented characters.
 With prefix argument, enable European character display iff arg is positive."
   (interactive "P")
-  (if (or (< (prefix-numeric-value arg) 0)
+  (if (or (<= (prefix-numeric-value arg) 0)
 	  (and (null arg)
 	       (vectorp standard-display-table)
 	       (>= (length standard-display-table) 161)
