@@ -10498,7 +10498,7 @@ displayed at the mouse position, with offset DX added (default is 5 if\n\
 DX isn't specified).  Likewise for the y-position; if a `top' frame\n\
 parameter is specified, it determines the y-position of the tooltip\n\
 window, otherwise it is displayed at the mouse position, with offset\n\
-DY added (default is -5).")
+DY added (default is -10).")
   (string, frame, parms, timeout, dx, dy)
      Lisp_Object string, frame, parms, timeout, dx, dy;
 {
@@ -10532,7 +10532,7 @@ DY added (default is -5).")
     CHECK_NUMBER (dx, 5);
   
   if (NILP (dy))
-    dy = make_number (-5);
+    dy = make_number (-10);
   else
     CHECK_NUMBER (dy, 6);
 
