@@ -655,6 +655,12 @@ You can remedy the problem by installing additional fonts.
 The intlfonts distribution includes a full spectrum of fonts that can
 display all the characters Emacs supports.
 
+Another cause of this for specific characters is fonts which have a
+missing glyph and no default character.  This is known ot occur for
+character number 160 (no-break space) in some fonts, such as Lucida
+but Emacs sets the display table for the unibyte and Latin-1 version
+of this character to display a space.
+
 * Under X11, some characters appear improperly aligned in their lines.
 
 You may have bad X11 fonts; try installing the intlfonts distribution.
