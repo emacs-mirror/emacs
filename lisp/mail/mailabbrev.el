@@ -447,13 +447,8 @@ of a mail alias.")
        ;; are we at the front of an appropriate header line?
        (looking-at mail-abbrev-mode-regexp))
      ;;
-     ;; ...and we are before the mail-header-separator
-     (< (point)
-	(save-excursion
-	  (goto-char (point-min))
-	  (search-forward (concat "\n" mail-header-separator "\n")
-			  nil 0)
-	  (point))))))
+     ;; ...and are we in the headers?
+     (< (point) (mail-header-end)))))
 
 (defvar mail-mode-abbrev-table) ; quiet the compiler
 
