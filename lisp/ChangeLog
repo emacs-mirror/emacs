@@ -1,3 +1,8 @@
+2001-03-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* textmodes/ispell.el (ispell-dictionary-alist-6): Add support
+	for Slovak.  From Pavel.Janik@suse.cz (Pavel Jan,Bm(Bk ml.).
+
 2001-03-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* bindings.el (features): Add `md5' and `overlay' to the list.

@@ -1,3 +1,23 @@
+2001-03-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* data.c (store_symval_forwarding): Add parameter BUF.  If BUF is
+	non-null, set a per-buffer value in BUF instead of the current
+	buffer.
+	(swap_in_global_binding, swap_in_symval_forwarding, Fset_default):
+	Call store_symval_forwarding with BUF null.
+	(set_internal): Call store_symval_forwarding with the BUF
+	parameter passed to set_internal.  Formerly, the value was always
+	set in the current buffer; the buffer recorded in specbind for
+	this case wasn't used.
+	(arith_driver): Reindent.
+
+	* buffer.c (swap_out_buffer_local_variables): Call
+	store_symval_forwarding with BUF null.
+
+	* lisp.h (store_symval_forwarding): Change prototype.
+
+	* eval.c (specbind): Call store_symval_forwarding with BUF null.
+
 2001-03-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* frame.c (do_switch_frame): Remove unused parameter NO_EVENT, add
