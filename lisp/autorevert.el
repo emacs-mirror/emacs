@@ -198,19 +198,6 @@ not necessarily make manual updates useless for non-file buffers."
 This variable becomes buffer local when set in any fashion.")
 (make-variable-buffer-local 'global-auto-revert-ignore-buffer)
 
-(defvar buffer-stale-function nil
-  "Function to check whether a non-file buffer needs reverting.
-This should be a function with one optional argument NOCONFIRM.
-Auto Revert Mode sets NOCONFIRM to t.  The function should return
-non-nil if the buffer should be reverted.  The buffer is current
-when this function is called.
-
-The idea behind the NOCONFIRM argument is that the same function
-can also be used to ask the user whether the buffer should be
-reverted.  In such a situation one has to be less careful about,
-say, reverting remote files, than if the function is called at
-regular intervals by Auto Revert Mode.")
-
 ;; Internal variables:
 
 (defvar auto-revert-buffer-list '()
@@ -349,8 +336,8 @@ Use `auto-revert-mode' to revert a particular buffer."
     (let (revert)
       (cond
        ((auto-revert-vc-buffer-p)
-	(when (auto-revert-handler-vc)
-	  (setq revert 'vc)))
+ 	(when (auto-revert-handler-vc)
+ 	  (setq revert 'vc)))
        ((or (and (buffer-file-name)
 		 (file-readable-p (buffer-file-name))
 		 (not (verify-visited-file-modtime (current-buffer))))
@@ -361,11 +348,11 @@ Use `auto-revert-mode' to revert a particular buffer."
 		 (funcall buffer-stale-function t)))
 	(setq revert t)))
       (when revert
+	(when auto-revert-verbose
+	  (message "Reverting buffer `%s'." (buffer-name)))
 	(revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)
-	(if (eq revert 'vc)
-	    (vc-mode-line buffer-file-name))
-	(if auto-revert-verbose
-	    (message "Reverting buffer `%s'." (buffer-name)))))))
+ 	(if (eq revert 'vc)
+ 	    (vc-mode-line buffer-file-name))))))
 
 (defun auto-revert-buffers ()
   "Revert buffers as specified by Auto-Revert and Global Auto-Revert Mode.
