@@ -980,18 +980,26 @@ print (obj, printcharfun, escapeflag)
       break;
 #endif /* MULTI_FRAME */
 
-    case Lisp_Marker:
-      strout ("#<marker ", -1, printcharfun);
-      if (!(XMARKER (obj)->buffer))
-	strout ("in no buffer", -1, printcharfun);
-      else
+    case Lisp_Misc:
+      switch (XMISC (obj)->type)
 	{
-	  sprintf (buf, "at %d", marker_position (obj));
-	  strout (buf, -1, printcharfun);
-	  strout (" in ", -1, printcharfun);
-	  print_string (XMARKER (obj)->buffer->name, printcharfun);
+	case Lisp_Misc_Marker:
+	  strout ("#<marker ", -1, printcharfun);
+	  if (!(XMARKER (obj)->buffer))
+	    strout ("in no buffer", -1, printcharfun);
+	  else
+	    {
+	      sprintf (buf, "at %d", marker_position (obj));
+	      strout (buf, -1, printcharfun);
+	      strout (" in ", -1, printcharfun);
+	      print_string (XMARKER (obj)->buffer->name, printcharfun);
+	    }
+	  PRINTCHAR ('>');
+	  break;
+
+	default:
+	  abort ();
 	}
-      PRINTCHAR ('>');
       break;
 
     case Lisp_Overlay:
