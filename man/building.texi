@@ -323,8 +323,9 @@ allowed.  GUD assumes that the first argument not starting with a
 for its ordinary input and output.  This is called the GUD buffer.  The
 debugger displays the source files of the program by visiting them in
 Emacs buffers.  An arrow (@samp{=>}) in one of these buffers indicates
-the current execution line.  Moving point in this buffer does not move
-the arrow.
+the current execution line.@footnote{Under a window system the arrow is
+displayed in the marginal area of the Emacs window.}  Moving point in
+this buffer does not move the arrow.
 
   You can start editing these source files at any time in the buffers
 that were made to display them.  The arrow is not part of the file's
@@ -701,6 +702,7 @@ changes that you have just made in the text of a function definition.
 evaluating a @code{defvar} expression does nothing if the variable it
 defines already has a value.  But @kbd{C-M-x} unconditionally resets the
 variable to the initial value specified in the @code{defvar} expression.
+@code{defcustom} expressions are treated similarly.
 This special feature is convenient for debugging Lisp programs.
 
 @kindex C-x C-e
@@ -725,6 +727,16 @@ buffer.  This is a reasonable way to install the contents of a file of
 Lisp code that you are just ready to test.  Later, as you find bugs and
 change individual functions, use @kbd{C-M-x} on each function that you
 change.  This keeps the Lisp world in step with the source file.
+
+@vindex eval-expression-print-level
+@vindex eval-expression-print-length
+@vindex eval-expression-debug-on-error
+The customizable variables @code{eval-expression-print-level} and
+@code{eval-expression-print-length} control the maximum depth and length
+of lists to print in the result of the evaluation commands before
+abbreviating them.  @code{eval-expression-debug-on-error} controls
+whether evaluation errors invoke the debugger when these commands are
+used.
 
 @node Lisp Interaction
 @section Lisp Interaction Buffers
