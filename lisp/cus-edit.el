@@ -2015,18 +2015,10 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 (defface custom-variable-tag-face
   `((((class color)
       (background dark))
-     (:foreground "light blue" :bold t :family "helv"
-		  :height ,(let ((height (face-attribute 'default :height)))
-			     (if (numberp height)
-				 (floor height 0.9)
-			       height))))
+     (:foreground "light blue" :bold t :height 1.2 :inherit variable-pitch))
     (((class color)
       (background light))
-     (:foreground "blue" :family "helv" :bold t
-		  :height ,(let ((height (face-attribute 'default :height)))
-			     (if (numberp height)
-				 (floor height 0.9)
-			       height))))
+     (:foreground "blue" :bold t :height 1.2 :inherit variable-pitch))
     (t (:bold t)))
   "Face used for unpushable variable tags."
   :group 'custom-faces)
@@ -2548,11 +2540,7 @@ Match frames with dark backgrounds.")
 ;;; The `custom-face' Widget.
 
 (defface custom-face-tag-face
-  `((t (:bold t :family "helv"
-	      :height ,(let ((height (face-attribute 'default :height)))
-			     (if (numberp height)
-				 (floor height 0.9)
-			       height)))))
+  `((t (:bold t :height 1.2 :inherit variable-pitch)))
   "Face used for face tags."
   :group 'custom-faces)
 
@@ -3007,19 +2995,10 @@ and so forth.  The remaining group tags are shown with
 (defface custom-group-tag-face-1
   `((((class color)
       (background dark))
-     (:foreground "pink" :family "helv"
-		  :height ,(let ((height (face-attribute 'default :height)))
-			     (if (numberp height)
-				 (floor height 0.9)
-			       height))
-		  :bold t))
+     (:foreground "pink" :bold t :height 1.2 :inherit variable-pitch))
     (((class color)
       (background light))
-     (:foreground "red" :bold t
-		  :height ,(let ((height (face-attribute 'default :height)))
-			     (if (numberp height)
-				 (floor height 0.9)
-			       height))))
+     (:foreground "red" :bold t :height 1.2 :inherit variable-pitch))
     (t (:bold t)))
   "Face used for group tags."
   :group 'custom-faces)
@@ -3027,18 +3006,10 @@ and so forth.  The remaining group tags are shown with
 (defface custom-group-tag-face
   `((((class color)
       (background dark))
-     (:foreground "light blue" :bold t
-		  :height ,(let ((height (face-attribute 'default :height)))
-			     (if (numberp height)
-				 (floor height 0.9)
-			       height))))
+     (:foreground "light blue" :bold t :height 1.2))
     (((class color)
       (background light))
-     (:foreground "blue" :bold t
-		  :height ,(let ((height (face-attribute 'default :height)))
-			     (if (numberp height)
-				 (floor height 0.9)
-			       height))))
+     (:foreground "blue" :bold t :height 1.2))
     (t (:bold t)))
   "Face used for low level group tags."
   :group 'custom-faces)
