@@ -1,5 +1,16 @@
 2001-06-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* widget.c (EmacsFrameSetCharSize): Set XtNwaitForWm depending
+	on the value of the wait-for-wm frame parameter.
+
+	* xterm.h (struct x_output): Add member wait_for_wm.
+
+	* xfns.c (Qwait_for_wm): New variable.
+	(x_frame_parms): Add entry for `wait-for-wm".
+	(x_set_wait_for_wm): New function.
+	(Fx_create_frame): Call x_default_parameter for wait-for-wm.
+	(syms_of_xfns): Initialize and staticpro Qwait_for_wm.
+
 	* xdisp.c (try_window_id) <all changes below window end>: Don't
 	take this shortcut if ZV is visible in the window.
 	(try_window_id): When checking for window start being in changed
