@@ -9,5 +9,6 @@ build-configs		build Emacs in various configurations
 check-doc-strings	check doc strings against documentation
 diff-tar-files		show files added/removed between two tar files
 make-emacs		build Emacs in various ways
+make-tarball.txt	instructions to create pretest or release tarballs
 quick-install-emacs	install emacs quickly (`incrementally')
 revdiff			get CVS diffs of files
