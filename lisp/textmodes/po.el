@@ -130,8 +130,8 @@ Content-Type into a Mule coding system.")
 						    (1- (point))
 						    (1- (+ (point) 4096)))))
 	  (setq short-read (< (nth 1 pair) 4096)))))
-    (cond (short-read nil)
-	  ((re-search-forward charset-regexp nil t) (match-string 1))
+    (cond ((re-search-forward charset-regexp nil t) (match-string 1))
+	  (short-read nil)
 	  ;; We've found the first msgid; maybe, only a part of the msgstr
 	  ;; value was loaded.  Load the next 1024 bytes; if charset still
 	  ;; isn't available, give up.
