@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
-;; Version: 1.9920
+;; Version: 1.9924
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -643,7 +643,7 @@ when the action is chosen.")
   (let ((children custom-options))
     (mapcar (lambda (child)
 	      (when (eq (widget-get child :custom-state) 'modified)
-		(widget-apply child :custom-reset-current)))
+		(widget-apply child :custom-reset-saved)))
 	    children)))
 
 (defun custom-reset-standard (&rest ignore)
@@ -652,7 +652,7 @@ when the action is chosen.")
   (let ((children custom-options))
     (mapcar (lambda (child)
 	      (when (eq (widget-get child :custom-state) 'modified)
-		(widget-apply child :custom-reset-current)))
+		(widget-apply child :custom-reset-standard)))
 	    children)))
 
 ;;; The Customize Commands
@@ -801,10 +801,10 @@ If SYMBOL is nil, customize all faces."
       (let ((found nil))
 	(message "Looking for faces...")
 	(mapcar (lambda (symbol)
-		  (setq found (cons (list symbol 'custom-face) found)))
-		(nreverse (mapcar 'intern 
+		  (push (list symbol 'custom-face) found))
+		(nreverse (mapcar 'intern
 				  (sort (mapcar 'symbol-name (face-list))
-					'string<))))
+					'string-lessp))))
 			
 	(custom-buffer-create found "*Customize Faces*"))
     (if (stringp symbol)
@@ -838,11 +838,10 @@ If SYMBOL is nil, customize all faces."
     (mapatoms (lambda (symbol)
 		(and (get symbol 'customized-face)
 		     (custom-facep symbol)
-		     (setq found (cons (list symbol 'custom-face) found)))
+		     (push (list symbol 'custom-face) found))
 		(and (get symbol 'customized-value)
 		     (boundp symbol)
-		     (setq found
-			   (cons (list symbol 'custom-variable) found)))))
+		     (push (list symbol 'custom-variable) found))))
     (if found 
 	(custom-buffer-create found "*Customize Customized*")
       (error "No customized user options"))))
@@ -855,11 +854,10 @@ If SYMBOL is nil, customize all faces."
     (mapatoms (lambda (symbol)
 		(and (get symbol 'saved-face)
 		     (custom-facep symbol)
-		     (setq found (cons (list symbol 'custom-face) found)))
+		     (push (list symbol 'custom-face) found))
 		(and (get symbol 'saved-value)
 		     (boundp symbol)
-		     (setq found
-			   (cons (list symbol 'custom-variable) found)))))
+		     (push (list symbol 'custom-variable) found))))
     (if found 
 	(custom-buffer-create found "*Customize Saved*")
       (error "No saved user options"))))
@@ -867,27 +865,55 @@ If SYMBOL is nil, customize all faces."
 ;;;###autoload
 (defun customize-apropos (regexp &optional all)
   "Customize all user options matching REGEXP.
-If ALL (e.g., started with a prefix key), include options which are not
-user-settable."
+If ALL is `options', include only options.
+If ALL is `faces', include only faces.
+If ALL is `groups', include only groups.
+If ALL is t (interactively, with prefix arg), include options which are not
+user-settable, as well as faces and groups."
   (interactive "sCustomize regexp: \nP")
   (let ((found nil))
     (mapatoms (lambda (symbol)
 		(when (string-match regexp (symbol-name symbol))
-		  (when (get symbol 'custom-group)
-		    (setq found (cons (list symbol 'custom-group) found)))
-		  (when (custom-facep symbol)
-		    (setq found (cons (list symbol 'custom-face) found)))
-		  (when (and (boundp symbol)
+		  (when (and (not (memq all '(faces options)))
+			     (get symbol 'custom-group))
+		    (push (list symbol 'custom-group) found))
+		  (when (and (not (memq all '(options groups)))
+			     (custom-facep symbol))
+		    (push (list symbol 'custom-face) found))
+		  (when (and (not (memq all '(groups faces)))
+			     (boundp symbol)
 			     (or (get symbol 'saved-value)
 				 (get symbol 'standard-value)
-				 (if all
-				     (get symbol 'variable-documentation)
-				   (user-variable-p symbol))))
-		    (setq found
-			  (cons (list symbol 'custom-variable) found))))))
-    (if found 
-	(custom-buffer-create found "*Customize Apropos*")
-      (error "No matches"))))
+				 (if (memq all '(nil options))
+				     (user-variable-p symbol)
+				   (get symbol 'variable-documentation))))
+		    (push (list symbol 'custom-variable) found)))))
+    (if (not found)
+	(error "No matches")
+      (custom-buffer-create (sort (sort found
+					;; Apropos should always be sorted.
+					'custom-sort-items-alphabetically)
+				  custom-buffer-order-predicate)
+			    "*Customize Apropos*"))))
+
+;;;###autoload
+(defun customize-apropos-options (regexp &optional arg)
+  "Customize all user options matching REGEXP.
+With prefix arg, include options which are not user-settable."
+  (interactive "sCustomize regexp: \nP")
+  (customize-apropos regexp (or arg 'options)))
+
+;;;###autoload
+(defun customize-apropos-faces (regexp)
+  "Customize all user faces matching REGEXP."
+  (interactive "sCustomize regexp: \n")
+  (customize-apropos regexp 'faces))
+
+;;;###autoload
+(defun customize-apropos-groups (regexp)
+  "Customize all user groups matching REGEXP."
+  (interactive "sCustomize regexp: \n")
+  (customize-apropos regexp 'groups))
 
 ;;; Buffer.
 
@@ -1006,6 +1032,31 @@ Reset all visible items in this buffer to their standard settings."
 		      options))))
   (unless (eq (preceding-char) ?\n)
     (widget-insert "\n"))
+  (when (= (length options) 1)
+    (message "Creating parent links...")
+    (let* ((entry (nth 0 options))
+	   (name (nth 0 entry))
+	   (type (nth 1 entry))
+	   parents)
+      (mapatoms (lambda (symbol)
+		  (let ((group (get symbol 'custom-group)))
+		    (when (assq name group)
+		      (when (eq type (nth 1 (assq name group)))
+			(push symbol parents))))))
+      (when parents
+	(widget-insert "\nParent groups:")
+	(mapcar (lambda (group)
+		  (widget-insert " ")
+		  (widget-create 'link 
+				 :tag (custom-unlispify-tag-name group)
+				 :help-echo (format "\
+Create customize buffer for `%S' group." group)
+				 :action (lambda (widget &rest ignore)
+					   (customize-group
+					    (widget-value widget)))
+				 group))
+		parents)
+	(widget-insert ".\n"))))
   (message "Creating customization magic...")
   (mapcar 'custom-magic-reset custom-options)
   (message "Creating customization setup...")
@@ -2356,8 +2407,10 @@ Optional EVENT is the location for the menu."
   (custom-magic-reset widget))
 
 ;;; The `custom-save-all' Function.
-
-(defcustom custom-file "~/.emacs"
+;;;###autoload
+(defcustom custom-file (if (featurep 'xemacs)
+			   "~/.xemacs-custom"
+			 "~/.emacs")
   "File used for storing customization information.
 If you change this from the default \"~/.emacs\" you need to
 explicitly load that file for the settings to take effect."
@@ -2481,14 +2534,19 @@ Leave point at the location of the call, or after the last expression."
 ;;; Menu support
 
 (unless (string-match "XEmacs" emacs-version)
-  (defconst custom-help-menu '("Customize"
-			       ["Update menu..." custom-menu-update t]
-			       ["Group..." customize-group t]
-			       ["Variable..." customize-variable t]
-			       ["Face..." customize-face t]
-			       ["Saved..." customize-saved t]
-			       ["Set..." customize-customized t]
-			       ["Apropos..." customize-apropos t])
+  (defconst custom-help-menu
+    '("Customize"
+      ["Update menu..." custom-menu-update t]
+      ["Group..." customize-group t]
+      ["Variable..." customize-variable t]
+      ["Face..." customize-face t]
+      ["Saved..." customize-saved t]
+      ["Set..." customize-customized t]
+      ["--" custom-menu-sep t]
+      ["Apropos..." customize-apropos t]
+      ["Group apropos..." customize-apropos-groups t]
+      ["Variable apropos..." customize-apropos-options t]
+      ["Face apropos..." customize-apropos-faces t])
     ;; This menu should be identical to the one defined in `menu-bar.el'. 
     "Customize menu")
 

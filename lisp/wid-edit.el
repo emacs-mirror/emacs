@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
-;; Version: 1.9920
+;; Version: 1.9924
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -296,8 +296,11 @@ size field."
     (when widget-field-add-space
       (insert-and-inherit " "))
     (setq to (point)))
-  (add-text-properties (1- to) to ;to (1+ to) 
-  		       '(front-sticky nil start-open t read-only to))
+  (if widget-field-add-space
+      (add-text-properties (1- to) to
+			   '(front-sticky nil start-open t read-only to))
+    (add-text-properties to (1+ to) 
+			 '(front-sticky nil start-open t read-only to)))
   (add-text-properties (1- from) from 
 		       '(rear-nonsticky t end-open t read-only from))
   (let ((map (widget-get widget :keymap))
@@ -2653,8 +2656,8 @@ link for that string."
 	(goto-char from)
 	(while (re-search-forward regexp to t)
 	  (let ((name (match-string 1))
-		(begin (match-beginning 0))
-		(end (match-end 0)))
+		(begin (match-beginning 1))
+		(end (match-end 1)))
 	    (when (funcall predicate name)
 	      (push (widget-convert-button type begin end :value name)
 		    buttons)))))
