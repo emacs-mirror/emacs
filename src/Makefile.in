@@ -694,6 +694,7 @@ lisp= \
 	${lispsource}international/characters.elc \
 	${lispsource}international/ucs-tables.elc \
 	${lispsource}international/utf-8.elc \
+	${lispsource}international/utf-16.elc \
 	${lispsource}international/latin-1.el \
 	${lispsource}international/latin-2.el \
 	${lispsource}international/latin-3.el \
@@ -777,6 +778,7 @@ shortlisp= \
 	../lisp/international/characters.elc \
 	../lisp/international/ucs-tables.elc \
 	../lisp/international/utf-8.elc \
+	../lisp/international/utf-16.elc \
 	../lisp/international/latin-1.el \
 	../lisp/international/latin-2.el \
 	../lisp/international/latin-3.el \
