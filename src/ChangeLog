@@ -1,5 +1,11 @@
 2000-07-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* alloc.c (allocate_string_data): If string had already data
+	assigned, copy old contents to new string data.
+
+	* coding.c (syms_of_coding): Fix typo in spelling of variable
+	`inhibit-iso-escape-detection'.
+
 	* alloca.c (free) [emacs && EMACS_FREE]: Define as EMACS_FREE.
 
 	* Makefile.in: Add dependencies on dispextern.h.

@@ -1,3 +1,9 @@
+2000-07-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* cdl.el: Fix `Maintainer' keyword.
+
+	* play/pong.el: Add author's email address.
+
 2000-07-17  Sam Steingold  <sds@gnu.org>
 
 	* files.el (insert-directory): Call `split-string' instead of
