@@ -535,6 +535,7 @@ Keymaps
 * Key Lookup::                  How extracting elements from keymaps works.
 * Functions for Key Lookup::    How to request key lookup.
 * Changing Key Bindings::       Redefining a key in a keymap.
+* Remapping Commands::          Bindings that translate one command to another.
 * Key Binding Commands::        Interactive interfaces for redefining keys.
 * Scanning Keymaps::            Looking through all keymaps, for printing help.
 
@@ -739,12 +740,16 @@ Text
 * Transposition::           Swapping two portions of a buffer.
 * Registers::               How registers are implemented.  Accessing
                               the text or position stored in a register.
+* Atomic Changes::          Installing several buffer changs ``atomically''.
+* Base 64::                 Conversion to or from base 64 encoding.
+* MD5 Checksum::            Compute the MD5 ``message digest''/``checksum''.
 * Change Hooks::            Supplying functions to be run when text is changed.
 
 The Kill Ring
 
 * Kill Ring Concepts::      What text looks like in the kill ring.
 * Kill Functions::          Functions that kill text.
+* Yanking::                 How yanking is done.
 * Yank Commands::           Commands that access the kill ring.
 * Low-Level Kill Ring::	    Functions and variables for kill ring access.
 * Internals of Kill Ring::  Variables that hold kill-ring data.
