@@ -37,8 +37,10 @@
 ;;; Indent track-mouse like progn.
 (put 'track-mouse 'lisp-indent-function 0)
 
-(defvar mouse-yank-at-point nil
-  "*If non-nil, mouse yank commands yank at point instead of at click.")
+(defcustom mouse-yank-at-point nil
+  "*If non-nil, mouse yank commands yank at point instead of at click."
+  :type 'boolean
+  :group 'mouse)
 
 ;; Provide a mode-specific menu on a mouse button.
 
@@ -426,22 +428,26 @@ This should be bound to a mouse drag event."
   (setq mouse-last-region-end (region-end))
   (setq mouse-last-region-tick (buffer-modified-tick)))
 
-(defvar mouse-scroll-delay 0.25
+(defcustom mouse-scroll-delay 0.25
   "*The pause between scroll steps caused by mouse drags, in seconds.
 If you drag the mouse beyond the edge of a window, Emacs scrolls the
 window to bring the text beyond that edge into view, with a delay of
 this many seconds between scroll steps.  Scrolling stops when you move
 the mouse back into the window, or release the button.
 This variable's value may be non-integral.
-Setting this to zero causes Emacs to scroll as fast as it can.")
+Setting this to zero causes Emacs to scroll as fast as it can."
+  :type 'number
+  :group 'mouse)
 
-(defvar mouse-scroll-min-lines 1
+(defcustom mouse-scroll-min-lines 1
   "*The minimum number of lines scrolled by dragging mouse out of window.
 Moving the mouse out the top or bottom edge of the window begins
 scrolling repeatedly.  The number of lines scrolled per repetition
 is normally equal to the number of lines beyond the window edge that
 the mouse has moved.  However, it always scrolls at least the number
-of lines specified by this variable.")
+of lines specified by this variable."
+  :type 'integer
+  :group 'mouse)
 
 (defun mouse-scroll-subr (window jump &optional overlay start)
   "Scroll the window WINDOW, JUMP lines at a time, until new input arrives.
@@ -1267,10 +1273,12 @@ again.  If you do this twice in the same position, it kills the selection."
 			    (overlay-start mouse-secondary-overlay)
 			    (overlay-end mouse-secondary-overlay)))))))
 
-(defvar mouse-menu-buffer-maxlen 20
+(defcustom mouse-menu-buffer-maxlen 20
   "*Number of buffers in one pane (submenu) of the buffer menu.
 If we have lots of buffers, divide them into groups of
-`mouse-menu-buffer-maxlen' and make a pane (or submenu) for each one.")
+`mouse-menu-buffer-maxlen' and make a pane (or submenu) for each one."
+  :type 'integer
+  :group 'mouse)
 
 (defvar mouse-buffer-menu-mode-groups
   '(("Info\\|Help\\|Apropos\\|Man" . "Help")
