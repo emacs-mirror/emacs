@@ -1,3 +1,7 @@
+2004-04-30  Jesper Harder  <harder@ifa.au.dk>
+
+	* display.texi: emacs -> Emacs.
+
 2004-04-27  Matthew Mundell  <matt@mundell.ukfsn.org>
 
 	* files.texi (Changing Files): Document set-file-times.
