@@ -306,10 +306,10 @@ set_frame_size (ew)
   int flags = 0;
   
   Widget wmshell = get_wm_shell ((Widget) ew);
-  Widget app_shell = XtParent ((Widget) wmshell);
+  /* Each Emacs shell is now independent and top-level.  */
+  Widget app_shell = wmshell;
   
   if (! XtIsSubclass (wmshell, shellWidgetClass)) abort ();
-  if (! XtIsSubclass (app_shell, shellWidgetClass)) abort ();
 
   /* We don't need this for the momment. The geometry is computed in 
      xfns.c.  */
