@@ -1,3 +1,14 @@
+2004-12-31  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el	(buffer-file-coding-system-explicit):
+	Renambed for explicit-buffer-file-coding-system.
+	(after-insert-file-set-coding): Adjusted for the above change.
+
+	* files.el (revert-buffer): Change
+	explicit-buffer-file-coding-system to
+	buffer-file-coding-system-explicit.
+	(basic-save-buffer-1): Likewise.
+
 2004-12-30  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* autorevert.el (auto-revert-tail-handler): Put in undo boundaries.
