@@ -6,7 +6,7 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.9 2001/04/14 11:52:21 eliz Exp $
+@comment $Id: info.texi,v 1.10 2001/04/15 08:43:53 eliz Exp $
 
 @dircategory Texinfo documentation system
 @direntry
@@ -120,12 +120,12 @@ There are two ways of looking at the online version of this manual:
 @enumerate
 @item
 Type @code{info} at your shell's command line.  This approach uses a
-small stand-alone program designed just to read Info files.
+stand-alone program designed just to read Info files.
 
 @item
-Type @code{emacs} at the command line; then type @kbd{C-h i} (Control
-@kbd{h}, followed by @kbd{i}).  This approach uses the Info mode of the
-Emacs program, an editor with many other capabilities.
+Type @code{emacs} at the command line; then type @kbd{C-h i}
+(@kbd{Control-h}, followed by @kbd{i}).  This approach uses the Info
+mode of the Emacs program, an editor with many other capabilities.
 @end enumerate
 
 In either case, then type @kbd{mInfo} (just the letters), followed by
@@ -169,7 +169,7 @@ back up, press the key labeled @samp{Backspace} or @samp{DEL} (on some
 keyboards, this key might be labeled @samp{Delete}).
 
 @ifinfo
-Here are 40 lines of junk, so you can try Spaces and DEL and
+Here are 40 lines of junk, so you can try @key{SPC} and @key{DEL} and
 see what they do.  At the end are instructions of what you should do
 next.
 
@@ -217,10 +217,11 @@ This is line 59
 @end format
 
 If you have managed to get here, go back to the beginning with
-@kbd{DEL} (or Backspace), and come back here again, then you
-understand Space and DEL.  So now type an @kbd{n} ---just one
-character; don't type the quotes and don't type the Return key
-afterward--- to get to the normal start of the course.
+@kbd{DEL} (or @key{BACKSPACE}), and come back here again, then you
+understand the about the @samp{Space} and @samp{Backspace} keys.  So
+now type an @kbd{n} ---just one character; don't type the quotes and
+don't type the Return key afterward--- to get to the normal start of
+the course.
 @end ifinfo
 
 @node Help, Help-P, Help-Small-Screen, Getting Started
@@ -279,11 +280,17 @@ node, @samp{Help-^L}.  In Emacs, @kbd{n} runs the Emacs command
 @code{Info-next}, and @kbd{p} runs @code{Info-prev}.
 
 @format
->> But do not do that yet.  First, try the @kbd{p} command, or click
-   the mouse on the @samp{Prev} link, which takes you to the
+>> But do not type @kbd{n} yet.  First, try the @kbd{p} command,
+   or click the mouse on the @samp{Prev} link, which takes you to the
    @samp{Previous} node.  When you get there, you can do an @kbd{n}
    again to return here.
 @end format
+
+  If you read this in Emacs, you will see an @samp{Info} item in the
+menu bar, close to its right edge.  Clicking your mouse on the
+@samp{Info} menu-bar item opens a menu of commands which include
+@samp{Next} and @samp{Prev} (and also some others which you didn't yet
+learn about).
 
   This all probably seems insultingly simple so far, but @emph{do not} be
 led into skimming.  Things will get more complicated soon.  Also,
@@ -314,27 +321,29 @@ the bottom right corner of the screen.
 @kindex BACKSPACE @r{(Info mode)}
 @findex Info-scroll-up
 @findex Info-scroll-down
-  The Space, Backspace (or DEL)@footnote{The key which we call
-``Backspace or DEL'' in this manual is labeled differently on
+  The @key{SPC}, @key{BACKSPACE} (or @key{DEL})@footnote{The key which
+we call ``Backspace or DEL'' in this manual is labeled differently on
 different keyboards.  Look for a key which is a little ways above the
 @key{ENTER} or @key{RET} key and which you normally use outside Emacs
 to erase the character before the cursor, i.e.@: the character you
 typed last.  It might be labeled @samp{Backspace} or @samp{<-} or
 @samp{DEL}, or sometimes @samp{Delete}.} and @kbd{b} commands exist to
 allow you to ``move around'' in a node that does not all fit on the
-screen at once.  Space moves forward, to show what was below the
-bottom of the screen.  DEL or Backspace moves backward, to show what
-was above the top of the screen (there is not anything above the top
-until you have typed some spaces).  In Emacs, Space runs the command
-@code{Info-scroll-up}, while Backspace runs @code{Info-scroll-down}.
+screen at once.  @key{SPC} moves forward, to show what was below the
+bottom of the screen.  @key{DEL} or @key{BACKSPACE} moves backward, to
+show what was above the top of the screen (there is not anything above
+the top until you have typed some spaces).  In Emacs, @key{SPC} runs
+the command @code{Info-scroll-up}, while @key{BACKSPACE} runs
+@code{Info-scroll-down}.
 
 @format
->> Now try typing a Space (afterward, type a Backspace to return here).
+>> Now try typing a @key{SPC} (afterward, type a @key{BACKSPACE} to
+   return here).
 @end format
 
-  When you type the Space, the two lines that were at the bottom of
-the screen appear at the top, followed by more lines.  DEL or
-Backspace takes the two lines from the top and moves them to the
+  When you type the @key{SPC}, the two lines that were at the bottom of
+the screen appear at the top, followed by more lines.  @key{DEL} or
+@key{BACKSPACE} takes the two lines from the top and moves them to the
 bottom, @emph{usually}, but if there are not a full screen's worth of
 lines above them they may not make it all the way to the bottom.
 
@@ -346,30 +355,31 @@ clicking the mouse on one of these links.
 
 @cindex reading Info documents top to bottom
 @cindex Info documents as tutorials
-  Space and DEL not only move forward and backward through the current
-node.  When these keys hit the beginning or the end of the current
-node, they move to preceding or subsequent nodes.  Specifically, they
-scroll through all the nodes in an Info file as a single logical
-sequence.  In this sequence, a node's subnodes appear following their
-parent.  If a node has a menu, Space takes you into the subnodes
-listed in the menu, one by one.  Once you reach the end of a node, and
-have seen all of its subnodes, Space takes you to the next node or to
-the parent's next node.  This is so you could read the entire manual
-top to bottom by just typing Space.
+  @key{SPC} and @key{DEL} not only move forward and backward through
+the current node.  When these keys hit the beginning or the end of the
+current node, they move to preceding or subsequent nodes.
+Specifically, they scroll through all the nodes in an Info file as a
+single logical sequence.  In this sequence, a node's subnodes appear
+following their parent.  If a node has a menu, @key{SPC} takes you
+into the subnodes listed in the menu, one by one.  Once you reach the
+end of a node, and have seen all of its subnodes, @key{SPC} takes you
+to the next node or to the parent's next node.  This is so you could
+read the entire manual top to bottom by just typing @key{SPC}.
 
 @kindex PAGEUP @r{(Info mode)}
 @kindex PAGEDOWN @r{(Info mode)}
   Many keyboards nowadays have two scroll keys labeled @samp{PageUp}
 and @samp{PageDown} (or maybe @samp{Prior} and @samp{Next}).  If your
 keyboard has these keys, you can use them to move forward and backward
-through the text, like with Space and Backspace.  However, unlike
-Space and Backspace, PageUp and PageDown keys will never scroll beyond
-the beginning or the end of the current node.
+through the text, like with @key{SPC} and @key{BACKSPACE}.  However,
+unlike @key{SPC} and @key{BACKSPACE}, @key{PAGEUP} and @key{PAGEDOWN}
+keys will never scroll beyond the beginning or the end of the current
+node.
 
 @kindex C-l @r{(Info mode)}
   If your screen is ever garbaged, you can tell Info to print it out
 again by typing @kbd{C-l} (@kbd{Control-L}, that is---hold down
-``Control'' and type an @key{L} or @kbd{l}).
+@key{CTRL} and type @kbd{L} or @kbd{l}).
 
 @format
 >> Type @kbd{C-l} now.
@@ -377,13 +387,14 @@ again by typing @kbd{C-l} (@kbd{Control-L}, that is---hold down
 
 @kindex b @r{(Info mode)}
   To move back to the beginning of the node you are on, you can type
-a lot of Backspaces.  You can also type simply @kbd{b} for beginning.
+a lot of @key{BACKSPACE} keys.  You can also type simply @kbd{b} for
+beginning.
 
 @format
 >> Try that now.  (We have put in enough verbiage to push this past
    the first screenful, but screens are so big nowadays that perhaps it
    isn't enough.  You may need to shrink your Emacs or Info window.)
-   Then come back, with Spaces.
+   Then come back, with @key{SCS}s.
 @end format
 
   If your screen is very tall, all of this node might fit at once.
@@ -395,7 +406,7 @@ In that case, @kbd{b} won't do anything.  Sorry; what can we do?
 want to use one but have trouble remembering which, you should type
 a @key{?} (in Emacs it runs the @code{Info-summary} command) which
 prints out a brief list of commands.  When you are finished looking at
-the list, make it go away by typing a Space repeatedly.
+the list, make it go away by typing a @key{SPC} repeatedly.
 
 @format
 >> Type a @key{?} now.  Press @key{SPC} to see consecutive screenfuls of
@@ -404,13 +415,13 @@ the list, make it go away by typing a Space repeatedly.
 @end format
 
   (If you are using the stand-alone Info reader, type @kbd{C-x 0} to
-return here, that is---press and hold ``Control'', type an @kbd{x},
-then release ``Control'' and @kbd{x}, and press @kbd{0}---a zero, not
+return here, that is---press and hold @key{CTRL}, type an @kbd{x},
+then release @key{CTRL} and @kbd{x}, and press @kbd{0}---a zero, not
 the letter ``o''.)
 
   From now on, you will encounter large nodes without warning, and
-will be expected to know how to use Space and Backspace to move
-around in them without being told.  Since not all terminals have
+will be expected to know how to use @key{SPC} and @key{BACKSPACE} to
+move around in them without being told.  Since not all terminals have
 the same size screen, it would be impossible to warn you anyway.
 
 @format
@@ -472,8 +483,8 @@ This means that the subtopic name and node name are the same; they are
 both @samp{Foo}.
 
 @format
->> Now use Spaces to find the menu in this node, then come back to
-   the front with a @kbd{b} and some Spaces.  As you see, a menu is
+>> Now use @key{SPC} to find the menu in this node, then come back to
+   the front with a @kbd{b} and some @key{SPC}s.  As you see, a menu is
    actually visible in its node.  If you cannot find a menu in a node
    by looking at it, then the node does not have a menu and the
    @kbd{m} command is not available.
@@ -492,7 +503,7 @@ to read the subtopic name.
   Now look for the line containing many dashes near the bottom of the
 screen.  There is one more line beneath that one, but usually it is
 blank.  If it is empty, Info is ready for a command, such as @kbd{n}
-or @kbd{b} or Space or @kbd{m}.  If that line contains text ending
+or @kbd{b} or @key{SPC} or @kbd{m}.  If that line contains text ending
 in a colon, it means Info is trying to read more input for the last
 command.  At such times, commands do not work, because Info tries to
 use them as the input it needs.  You must either type your response and
@@ -518,7 +529,7 @@ the menu.
 
 @cindex completion of Info node names
   You can also use the @dfn{completion} feature to help enter the subtopic
-name.  If you type the Tab key after entering part of a name, it will
+name.  If you type the @key{TAB} key after entering part of a name, it will
 magically fill in more of the name---as much as follows uniquely from
 what you have entered.
 
@@ -558,7 +569,7 @@ now; the next thing you will type must be the name of a subtopic.
 @end format
 
   While you are typing the item name, you can use the @key{DEL} (or
-Backspace) key to cancel one character at a time if you make a
+@key{BACKSPACE}) key to cancel one character at a time if you make a
 mistake.
 
 @format
@@ -576,9 +587,9 @@ mistake.
   Another way to move to the menu subtopic lines and between them is
 to type @key{TAB}.  Each time you type a @key{TAB}, you move to the
 next subtopic line.  To move to a previous subtopic line, type
-@kbd{M-@key{TAB}}---that is, press and hold the Meta key and then
-press @key{TAB}.  (On some keyboards, the Meta key might be known as
-``Alt''.)
+@kbd{M-@key{TAB}}---that is, press and hold the @key{META} key and then
+press @key{TAB}.  (On some keyboards, the @key{META} key might be labeled
+@samp{Alt}.)
 
   Once you move cursor to a subtopic line, press @key{RET} to go to
 that subtopic's node.
@@ -594,9 +605,10 @@ the shape of the mouse pointer will change if your platform supports
 that.  After a while, if you leave the mouse on that spot, a tooltip
 will pop up saying ``Mouse-2: go to that node''.  (If the tooltips are
 turned off or unavailable, this message is printed in the @dfn{echo
-area}, the last screen line where you typed the menu subtopics in
+area}, the bottom screen line where you typed the menu subtopics in
 response to the prompt.)  @kbd{Mouse-2} is the second button of your
-mouse---normally the rightmost button.  So pressing @kbd{Mouse-2}
+mouse counting from the left---the rightmost button for two-button
+mice, the middle button for 3-button mice.  So pressing @kbd{Mouse-2}
 while the mouse pointer is on a menu subtopic goes to that subtopic.
 
 @findex Info-mouse-follow-nearest-node
@@ -633,7 +645,7 @@ usually used to ``stay on the same level but go backwards''.
 @kindex u @r{(Info mode)}
 @findex Info-up
   You can go back to the node @samp{Help-M} by typing the command
-@kbd{u} for ``Up'' (the Emacs command ruin by @kbd{u} is
+@kbd{u} for ``Up'' (the Emacs command run by @kbd{u} is
 @code{Info-up}).  That puts you at the @emph{front} of the node---to
 get back to where you were reading you have to type some @key{SPC}s.
 (Some Info readers, such as the one built into Emacs, put you at the
@@ -685,8 +697,8 @@ which the header says is the @samp{Previous} node (from this node, the
 @cindex go to Directory node
   The @kbd{d} command (@code{Info-directory} in Emacs) gets you
 instantly to the Directory node.  This node, which is the first one
-you saw when you entered Info, has a menu which leads (directly, or
-indirectly through other menus), to all the nodes that exist.  The
+you saw when you entered Info, has a menu which leads (directly or
+indirectly, through other menus), to all the nodes that exist.  The
 Directory node lists all the manuals and other Info documents that
 are, or could be, installed on your system.
 
@@ -717,12 +729,13 @@ command.  The @kbd{f} must be followed by the cross reference name
 reference, Info suggests the name if the nearest reference in
 parentheses; typing @key{RET} will follow that reference.  You can
 also type a different name, if the default is not what you want.
-While you enter the name, you can use the DEL (or Backspace) key to
-edit your input.  If you change your mind about following any
-reference, you can use @kbd{Control-g} to cancel the command.
+While you enter the name, you can use the @key{DEL} (or
+@key{BACKSPACE}) key to edit your input.  If you change your mind
+about following any reference, you can use @kbd{Control-g} to cancel
+the command.
 
   Completion is available in the @kbd{f} command; you can complete among
-all the cross reference names in the current node by typing a Tab.
+all the cross reference names in the current node by typing a @key{TAB}.
 
   @kbd{f} runs @code{Info-follow-reference} in Emacs.
 
@@ -1178,7 +1191,7 @@ End Tag Table
 @noindent
 Note that it contains one line per node, and this line contains
 the beginning of the node's header (ending just after the node name),
-a DEL character, and the character position in the file of the
+a @key{DEL} character, and the character position in the file of the
 beginning of the node.
 
 
@@ -1241,20 +1254,21 @@ not scroll with the rest of the buffer, making these links always
 visible.
 
 @item Info-scroll-prefer-subnodes
-If set to a non-@code{nil} value, Space and Backspace (or DEL) keys in
-a menu visit subnodes of the current node before scrolling to its end
-or beginning, respectively.  For example, if the node's menu appears
-on the screen, the next Space moves to a subnode indicated by the
-following menu item.  Setting this option to @code{nil} results in
-behavior similar to the stand-alone Info reader program, which visits
-the first subnode from the menu only when you hit the end of the
-current node.  The default is @code{t}.
+If set to a non-@code{nil} value, @key{SPC} and @key{BACKSPACE} (or
+@key{DEL}) keys in a menu visit subnodes of the current node before
+scrolling to its end or beginning, respectively.  For example, if the
+node's menu appears on the screen, the next @key{SPC} moves to a
+subnode indicated by the following menu item.  Setting this option to
+@code{nil} results in behavior similar to the stand-alone Info reader
+program, which visits the first subnode from the menu only when you
+hit the end of the current node.  The default is @code{t}.
 
 @item Info-enable-active-nodes
 When set to a non-@code{nil} value, allows Info to execute Lisp code
 associated with nodes.  The Lisp code is executed when the node is
 selected.  The Lisp code to be executed should follow the node
-delimiter (the DEL character) and an @samp{execute: } tag, like this:
+delimiter (the @key{DEL} character) and an @samp{execute: } tag, like
+this:
 
 @example
 ^_execute: (message "This is an active node!")
