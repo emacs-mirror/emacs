@@ -6,7 +6,7 @@
 ;; Author: Chris Chase <chase@att.com>
 ;; Maintainer: Carsten Dominik <dominik@strw.leidenuniv.nl>
 ;; Version: 3.11
-;; Date: $Date: 2000/01/03 14:19:10 $
+;; Date: $Date: 2000/01/03 14:27:03 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
@@ -2432,6 +2432,7 @@ static char * file[] = {
 	      (t nil))))
 
 (provide 'idlw-shell)
+(provide 'idlwave-shell)
 
 ;;; Load the toolbar when wanted by the user.
 
