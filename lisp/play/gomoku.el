@@ -104,7 +104,7 @@
   ;; If you have a mouse, you may also bind some mouse click ...
   (define-key gomoku-mode-map "X" 'gomoku-human-plays)		; X
   (define-key gomoku-mode-map "x" 'gomoku-human-plays)		; x
-  (define-key gomoku-mode-map " " 'gomoku-human-plays)		; RET
+  (define-key gomoku-mode-map " " 'gomoku-human-plays)		; SPC
   (define-key gomoku-mode-map "\C-m" 'gomoku-human-plays)	; RET
   (define-key gomoku-mode-map "\C-c\C-p" 'gomoku-human-plays)	; C-c C-p
   (define-key gomoku-mode-map "\C-c\C-b" 'gomoku-human-takes-back) ; C-c C-b
