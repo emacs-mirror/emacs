@@ -230,7 +230,8 @@ If the face already exists, it is unmodified."
 	;; when making a face after frames already exist
 	(if (eq window-system 'x)
 	    (make-face-x-resource-internal face))
-	face)))
+	face))
+  name)
 
 ;; Fill in a face by default based on X resources, for all existing frames.
 ;; This has to be done when a new face is made.
