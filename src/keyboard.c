@@ -1096,8 +1096,10 @@ void
 not_single_kboard_state (kboard)
      KBOARD *kboard;
 {
+#ifdef MULTI_KBOARD
   if (kboard == current_kboard)
     single_kboard = 0;
+#endif
 }
 
 /* Maintain a stack of kboards, so other parts of Emacs
@@ -10203,7 +10205,7 @@ stuff_buffered_input (stuffstring)
   /* Anything we have read ahead, put back for the shell to read.  */
   /* ?? What should this do when we have multiple keyboards??
      Should we ignore anything that was typed in at the "wrong" kboard?
-     
+
      rms: we should stuff everything back into the kboard
      it came from.  */
   for (; kbd_fetch_ptr != kbd_store_ptr; kbd_fetch_ptr++)
