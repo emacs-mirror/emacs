@@ -440,6 +440,23 @@ This returns ARGS with the arguments that have been processed removed."
 (define-key function-key-map [clear] [11])
 (define-key function-key-map [return] [13])
 (define-key function-key-map [escape] [?\e])
+(define-key function-key-map [M-backspace] [?\M-\d])
+(define-key function-key-map [M-delete] [?\M-\d])
+(define-key function-key-map [M-tab] [?\M-\t])
+(define-key function-key-map [M-linefeed] [?\M-\n])
+(define-key function-key-map [M-clear] [?\M-\013])
+(define-key function-key-map [M-return] [?\M-\015])
+(define-key function-key-map [M-escape] [?\M-\e])
+
+;; Eventually these will tell read-char how to convert
+;; these special chars to ASCII.
+(put 'backspace 'ascii-character 127)
+(put 'delete 'ascii-character 127)
+(put 'tab 'ascii-character ?\t)
+(put 'linefeed 'ascii-character ?\n)
+(put 'clear 'ascii-character 12)
+(put 'return 'ascii-character 13)
+(put 'escape 'ascii-character ?\e)
 
 ;;;; Selections and cut buffers
 
