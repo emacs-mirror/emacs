@@ -639,6 +639,13 @@ SONY News 3000 series (RISC NEWS) (-machine=news-risc; -opsystem=bsd4-3)
 
   Works, as of 18.56.  Note that this is a MIPS architecture machine.
 
+  Some versions of the operating system give SIGTRAP for division by zero
+  instead of the usual signals.  This causes division by zero
+  to make Emacs crash.  The system should be fixed to give the proper signal.
+  Changing Emacs is not a proper solution, because it would prevent
+  Emacs from working under any debugger.  But you can change init_data
+  in data.c if you wish.
+
 Stardent 1500 or 3000
 
   See Titan.

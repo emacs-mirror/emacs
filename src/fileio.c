@@ -1405,7 +1405,7 @@ A prefix arg makes KEEP-TIME non-nil.")
   ofd = creat (XSTRING (newname)->data, 0666);
 #endif /* VMS */
   if (ofd < 0)
-    report_file_error ("Opening output file", Fcons (newname, Qnil));
+      report_file_error ("Opening output file", Fcons (newname, Qnil));
 
   record_unwind_protect (close_file_unwind, make_number (ofd));
 
@@ -1413,7 +1413,7 @@ A prefix arg makes KEEP-TIME non-nil.")
   QUIT;
   while ((n = read (ifd, buf, sizeof buf)) > 0)
     if (write (ofd, buf, n) != n)
-      report_file_error ("I/O error", Fcons (newname, Qnil));
+	report_file_error ("I/O error", Fcons (newname, Qnil));
   immediate_quit = 0;
 
   if (fstat (ifd, &st) >= 0)
