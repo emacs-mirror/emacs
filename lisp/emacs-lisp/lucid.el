@@ -21,33 +21,14 @@
 
 ;;; Code:
 
-(defun copy-tree (tree)
-  (if (consp tree)
-      (cons (copy-tree (car tree))
-	    (copy-tree (cdr tree)))
-    (if (vectorp tree)
-	(let* ((new (copy-sequence tree))
-	       (i (1- (length new))))
-	  (while (>= i 0)
-	    (aset new i (copy-tree (aref new i)))
-	    (setq i (1- i)))
-	  new)
-      tree)))
+;; XEmacs autoloads CL so we might as well make use of it.
+(require 'cl)
 
 (defalias 'current-time-seconds 'current-time)
 
-(defun remprop (symbol prop)
-  (let ((plist (symbol-plist symbol)))
-    (while (eq (car plist) prop)
-      (setplist symbol (setq plist (cdr (cdr plist)))))
-    (while plist
-      (if (eq (nth 2 plist) prop)
-	  (setcdr (cdr plist) (nthcdr 4 plist)))
-      (setq plist (cdr (cdr plist))))))
-
 (defun map-keymap (function keymap &optional sort-first)
   "Call FUNCTION for every binding in KEYMAP.
-This includes bindings inherited from a parent keymap.
+This does not include bindings inherited from a parent keymap.
 FUNCTION receives two arguments each time it is called:
 the character (more generally, the event type) that is bound,
 and the binding it has.
@@ -58,30 +39,19 @@ If your code does that, modify it to make a vector containing the event
 type that you get.  That will work in both versions of Emacs."
   (if sort-first
       (let (list)
-	(map-keymap (function (lambda (a b)
-				(setq list (cons (cons a b) list))))
-		    keymap)
+	(cl-map-keymap (lambda (a b) (push (cons a b) list))
+		       keymap)
 	(setq list (sort list
-			 (function (lambda (a b)
-				     (setq a (car a) b (car b))
-				     (if (integerp a)
-					 (if (integerp b) (< a b)
-					   t)
-				       (if (integerp b) t
-					 (string< a b)))))))
-	(while list
-	  (funcall function (car (car list)) (cdr (car list)))
-	  (setq list (cdr list))))
-    (while (consp keymap)
-      (if (consp (car keymap))
-	  (funcall function (car (car keymap)) (cdr (car keymap)))
-	(if (vectorp (car keymap))
-	    (let ((i (1- (length (car keymap))))
-		  (vector (car keymap)))
-	      (while (>= i 0)
-		(funcall function i (aref vector i))
-		(setq i (1- i))))))
-      (setq keymap (cdr keymap)))))
+			 (lambda (a b)
+			   (setq a (car a) b (car b))
+			   (if (integerp a)
+			       (if (integerp b) (< a b)
+				 t)
+			     (if (integerp b) t
+			       (string< a b))))))
+	(dolist (p list)
+	  (funcall function (car p) (cdr p))))
+    (cl-map-keymap function keymap)))
 
 (defun read-number (prompt &optional integers-only)
   "Read a number from the minibuffer.
@@ -141,8 +111,8 @@ bottom of the buffer stack."
 (defun make-extent (beg end &optional buffer)
   (make-overlay beg end buffer))
 
-(defun extent-properties (extent)
-  (overlay-properties extent))
+(defun extent-properties (extent) (overlay-properties extent))
+(unless (fboundp 'extent-property) (defalias 'extent-property 'overlay-get))
 
 (defun extent-at (pos &optional object property before)
   (with-current-buffer (or object (current-buffer))
@@ -196,6 +166,9 @@ bottom of the buffer stack."
 
 (defun set-extent-face (extent face)
   (set-extent-property extent 'face face))
+
+(defun set-extent-end-glyph (extent glyph)
+  (set-extent-property extent 'after-string glyph))
 
 (defun delete-extent (extent)
   (set-extent-property extent 'duplicable nil)
