@@ -1,7 +1,7 @@
 ;;; files.el --- file input and output commands for Emacs
 
 ;; Copyright (C) 1985, 86, 87, 92, 93,
-;;		 94, 95, 96, 97, 1998 Free Software Foundation, Inc.
+;;		 94, 95, 96, 97, 98, 1998 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -653,7 +653,10 @@ creating one if none already exists.
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files."
   (interactive "FFind file: \np")
-  (switch-to-buffer (find-file-noselect filename nil nil wildcards)))
+  (let ((value (find-file-noselect filename nil nil wildcards)))
+    (if (listp value)
+	(mapcar 'switch-to-buffer (nreverse value))
+      (switch-to-buffer value))))
 
 (defun find-file-other-window (filename &optional wildcards)
   "Edit file FILENAME, in another window.
@@ -662,8 +665,13 @@ See the function `display-buffer'.
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files."
   (interactive "FFind file in other window: \np")
-  (switch-to-buffer-other-window (find-file-noselect filename
-						     nil nil wildcards)))
+  (let ((value (find-file-noselect filename nil nil wildcards)))
+    (if (listp value)
+	(progn
+	  (setq value (nreverse value))
+	  (switch-to-buffer-other-window (car value))
+	  (mapcar 'switch-to-buffer (cdr value)))
+      (switch-to-buffer-other-window value))))
 
 (defun find-file-other-frame (filename &optional wildcards)
   "Edit file FILENAME, in another frame.
@@ -672,8 +680,13 @@ See the function `display-buffer'.
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files."
   (interactive "FFind file in other frame: \np")
-  (switch-to-buffer-other-frame (find-file-noselect filename
-						    nil nil wildcards)))
+  (let ((value (find-file-noselect filename nil nil wildcards)))
+    (if (listp value)
+	(progn
+	  (setq value (nreverse value))
+	  (switch-to-buffer-other-frame (car value))
+	  (mapcar 'switch-to-buffer (cdr value)))
+      (switch-to-buffer-other-frame value))))
 
 (defun find-file-read-only (filename &optional wildcards)
   "Edit file FILENAME but don't allow changes.
@@ -890,7 +903,9 @@ The buffer is not selected, just returned to the caller.
 Optional first arg NOWARN non-nil means suppress any warning messages.
 Optional second arg RAWFILE non-nil means the file is read literally.
 Optional third arg WILDCARDS non-nil means do wildcard processing
-and visit all the matching files."
+and visit all the matching files.  When wildcards are actually
+used and expanded, the value is a list of buffers
+that are visiting the various files."
   (setq filename
 	(abbreviate-file-name
 	 (expand-file-name filename)))
@@ -908,8 +923,8 @@ and visit all the matching files."
 	      (find-file-wildcards nil))
 	  (if (null files)
 	      (error "No files match `%s'" filename))
-	  (car (mapcar #'(lambda (fn) (find-file-noselect fn))
-		       files)))
+	  (mapcar #'(lambda (fn) (find-file-noselect fn))
+		  files))
       (let* ((buf (get-file-buffer filename))
 	     (truename (abbreviate-file-name (file-truename filename)))
 	     (number (nthcdr 10 (file-attributes truename)))
