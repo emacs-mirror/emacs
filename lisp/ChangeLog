@@ -1,3 +1,11 @@
+2003-04-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/refill.el (refill-fill-paragraph-at): Undo last fix.
+	(refill-fill-paragraph-at): Don't skip prefix since markers work right.
+
+	* textmodes/fill.el (fill-delete-newlines): Remove trailing whitespace.
+	(fill-paragraph): Don't skip prefix now that markers work right.
+
 2003-04-04  John Paul Wallington  <jpw@gnu.org>
 
 	* ibuffer.el (ibuffer-insert-filter-group): `help-echo' text
@@ -12,21 +20,21 @@
 	New helper functions.
 	(snarf-tag-function): Doc string is changed.  Explained about new
 	optional argument, `use-explicit'.
-	(etags-snarf-tag): Added one optional argument `use-explicit'.
+	(etags-snarf-tag): Add one optional argument `use-explicit'.
 	(file-of-tag-function): Doc string is changed.  Explained about new
 	optional argument, `relative'.
 	(file-of-tag): Doc string is changed.  Explained about new optional
 	argument, `relative'.  Pass `relative' to `file-of-tag-function'.
-	(etags-file-of-tag): Added new argument `relative`.
+	(etags-file-of-tag): Add new argument `relative`.
 	(list-tags): Set `buffer-read-only' to t after making the major mode
 	apropos-mode.
-	(etags-list-tags): Used `make-text-button' instead of
+	(etags-list-tags): Use `make-text-button' instead of
 	`add-text-properties'.  Used `snarf-tag-function',
 	`goto-tag-location-function' and `find-file-of-tag' instead of
 	`find-tag-other-window' (it's too simple).
-	(find-tag-in-order): Used `find-file-of-tag-noselect' instead of
+	(find-tag-in-order): Use `find-file-of-tag-noselect' instead of
 	`find-file'.
-	(etags-tags-apropos): Used `find-file-of-tag-noselect' instead of
+	(etags-tags-apropos): Use `find-file-of-tag-noselect' instead of
 	`find-file'.  Do not use `etags-goto-tag-location` directly; use
 	`goto-tag-location-function' instead.  Print relative file paths
 	instead of complete ones in *Tags List* buffer, so lines in the
@@ -99,16 +107,15 @@
 	(Man-synopsis-regexp, Man-files-regexp, Man-include-regexp)
 	(Man-file-name-regexp, Man-normal-file-prefix-regexp)
 	(Man-header-regexp, Man-normal-file-regexp): New variables.
-	(Man-mode-map): Inherited from `button-buffer-map'.  Don't define
+	(Man-mode-map): Inherit from `button-buffer-map'.  Don't define
 	"\r" and mouse-2 directly.  These key are defined in
 	`button-buffer-map'.
-	(Man-xref-man-page, Man-xref-header-file, Man-xref-normal-file): New
-	buttons.  `Man-xref-man-page' comes from woman.el.
+	(Man-xref-man-page, Man-xref-header-file, Man-xref-normal-file):
+	New buttons.  `Man-xref-man-page' comes from woman.el.
 	(man-follow-mouse): Removed.
 	(Man-fontify-manpage): Use `Man-highlight-references' instead of
 	calling `add-text-properties' directly.
-	(Man-highlight-references, Man-highlight-references0): New
-	functions.
+	(Man-highlight-references, Man-highlight-references0): New functions.
 	(Man-view-header-file): New function.
 
 2003-04-02  Stefan Monnier  <monnier@cs.yale.edu>
