@@ -2202,15 +2202,16 @@ put it in a particular place among the menu's existing items.  If you
 use @code{define-key} to add the item, it normally goes at the front of
 the menu.  To put it elsewhere in the menu, use @code{define-key-after}:
 
-@defun define-key-after map key binding after
+@defun define-key-after map key binding &optional after
 Define a binding in @var{map} for @var{key}, with value @var{binding},
 just like @code{define-key}, but position the binding in @var{map} after
 the binding for the event @var{after}.  The argument @var{key} should be
 of length one---a vector or string with just one element.  But
 @var{after} should be a single event type---a symbol or a character, not
 a sequence.  The new binding goes after the binding for @var{after}.  If
-@var{after} is @code{t}, then the new binding goes last, at the end of
-the keymap.
+@var{after} is @code{t} or omitted, then the new binding goes last, at
+the end of the keymap.  New bindings are added before any inherited
+keymap.
 
 Here is an example:
 
