@@ -1,3 +1,7 @@
+2000-12-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c: Use #if GLYPH_DEBUG instead of #ifdef GLYPH_DEBUG.
+
 2000-12-28  Kenichi Handa  <handa@etl.go.jp>
 
 	* ccl.c (CCL_WRITE_CHAR): Check variable `extra_bytes'.
@@ -19,7 +23,7 @@
 	decode_composition_emacs_mule.
 	(ENCODE_COMPOSITION_EMACS_MULE): New macro.
 	(encode_coding_emacs_mule): Changed from macro to function.  If
-	a text contains compostions, encode them correctly.
+	a text contains compositions, encode them correctly.
 	(setup_coding_system): Set coding->commong_flags for emacs-mule so
 	that decoding and encoding are required.
 
