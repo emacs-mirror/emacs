@@ -73,8 +73,6 @@
 (defvar vc-default-back-end nil
   "*Back-end actually used by this interface; may be SCCS or RCS.
 The value is only computed when needed to avoid an expensive search.")
-(defvar vc-diff-options '("-a" "-c2")
-  "*The command/flags list to be used in constructing diff commands.")
 (defvar vc-suppress-confirm nil
   "*If non-nil, reat user as expert; suppress yes-no prompts on some things.")
 (defvar vc-keep-workfiles t
@@ -692,7 +690,11 @@ See `vc-update-change-log'."
 
 ;;;###autoload
 (defun vc-diff (historic)
-  "Display diffs between file versions."
+  "Display diffs between file versions.
+Normally this compares the current file and buffer with the most recent 
+checked in version of that file.  This uses no arguments.
+With a prefix argument, it reads the file name to use
+and two version designators specifying which versions to compare."
   (interactive "P")
   (if vc-dired-mode
       (set-buffer (find-file-noselect (dired-get-filename))))
@@ -1449,7 +1451,7 @@ Return nil if there is no such person."
 	 file
 	 (and oldvers (concat "-r" oldvers))
 	 (and newvers (concat "-r" newvers))
-	 vc-diff-options
+	 diff-switches
   ))
 
 (defun vc-check-headers ()
@@ -1506,9 +1508,6 @@ Global user options:
 
         vc-suppress-confirm     Suppresses some confirmation prompts,
 				notably for reversions.
-
-	vc-diff-options         A list consisting of the flags
-				to be used for generating context diffs.
 
 	vc-header-alist		Which keywords to insert when adding headers
 				with \\[vc-insert-headers].  Defaults to
