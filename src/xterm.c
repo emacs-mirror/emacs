@@ -4557,17 +4557,20 @@ x_term_init (display_name)
   x_watch_cut_buffer_cache ();
 #endif
 
-  dup2 (ConnectionNumber (x_current_display), 0);
+  if (ConnectionNumber (x_current_display) != 0)
+    {
+      dup2 (ConnectionNumber (x_current_display), 0);
 
 #ifndef SYSV_STREAMS
-  /* Streams somehow keeps track of which descriptor number
-     is being used to talk to X.  So it is not safe to substitute
-     descriptor 0.  But it is safe to make descriptor 0 a copy of it.  */
-  close (ConnectionNumber (x_current_display));
-  ConnectionNumber (x_current_display) = 0;	/* Looks a little strange?
+      /* Streams somehow keeps track of which descriptor number
+	 is being used to talk to X.  So it is not safe to substitute
+	 descriptor 0.  But it is safe to make descriptor 0 a copy of it.  */
+      close (ConnectionNumber (x_current_display));
+      ConnectionNumber (x_current_display) = 0;	/* Looks a little strange?
 						 * check the def of the macro;
 						 * it is a genuine lvalue */
 #endif /* SYSV_STREAMS */
+    }
 
 #endif /* ! defined (HAVE_X11) */
   
