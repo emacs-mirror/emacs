@@ -358,6 +358,8 @@ menu item called \"Item\" under the \"Foo\" submenu of \"Menu\"."
 		    (car (find-menu-item (cdr so-far) (list (car rest))))))
 	    (or menu
 		(let ((rest2 so-far))
+		  (or rest2
+		      (error "Trying to modify a menu that doesn't exist"))
 		  (while (and (cdr rest2) (car (cdr rest2)))
 		    (setq rest2 (cdr rest2)))
 		  (setcdr rest2
