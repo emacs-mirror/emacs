@@ -1,18 +1,17 @@
 ;;; find-dired.el --- run a `find' command and dired the output
 
-;;; Copyright (C) 1992, 1994 Free Software Foundation, Inc.
+;;; Copyright (C) 1992, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>,
 ;;	   Sebastian Kremer <sk@thp.uni-koeln.de>
-;; Maintainer: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Keywords: unix
 
-(defconst find-dired-version (substring "$Revision: 1.17 $" 11 -2)
-  "$Id: find-dired.el,v 1.17 1994/11/19 14:03:23 rms Exp rms $")
+(defconst find-dired-version (substring "$Revision: 1.18 $" 11 -2)
+  "$Id: find-dired.el,v 1.18 1994/12/15 12:16:29 rms Exp roland $")
 
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 1, or (at your option)
+;;; the Free Software Foundation; either version 2, or (at your option)
 ;;; any later version.
 ;;;
 ;;; This program is distributed in the hope that it will be useful,
@@ -33,7 +32,7 @@
 ;;    find-dired|Roland McGrath, Sebastian Kremer
 ;;    |roland@gnu.ai.mit.edu, sk@thp.uni-koeln.de
 ;;    |Run a `find' command and dired the output
-;;    |$Date: 1994/11/19 14:03:23 $|$Revision: 1.17 $|
+;;    |$Date: 1994/12/15 12:16:29 $|$Revision: 1.18 $|
 
 ;; INSTALLATION ======================================================
 
@@ -58,10 +57,15 @@
 
 (require 'dired)
 
+;; find(1)'s -ls corresponds to these switches.
+;; Note -b, at least GNU find quotes spaces etc. in filenames
 ;;;###autoload
-(defvar find-ls-option (if (eq system-type 'berkeley-unix) "-ls"
-			 "-exec ls -ld {} \\;")
-  "*Option to `find' to produce an `ls -l'-type listing.")
+(defvar find-ls-option (if (eq system-type 'berkeley-unix) '("-ls" . "-gilsb")
+			 '("-exec ls -ld {} \\;" . "-ld"))
+  "*Description of the option to `find' to produce an `ls -l'-type listing.
+This is a cons of two strings (FIND-OPTION . LS-SWITCHES).  FIND-OPTION
+gives the option (or options) to `find' that produce the desired output.
+LS-SWITCHES is a list of `ls' switches to tell dired how to parse the output.")
 
 ;;;###autoload
 (defvar find-grep-options (if (eq system-type 'berkeley-unix) "-s" "-q")
@@ -72,6 +76,9 @@ On other systems, the closest you can come is to use `-l'.")
 (defvar find-args nil
   "Last arguments given to `find' by \\[find-dired].")
 
+;; History of find-args values entered in the minibuffer.
+(defvar find-args-history nil)
+
 ;;;###autoload
 (defun find-dired (dir args)
   "Run `find' and go into dired-mode on a buffer of the output.
@@ -79,10 +86,8 @@ The command run (after changing into DIR) is
 
     find . \\( ARGS \\) -ls"
   (interactive (list (read-file-name "Run find in directory: " nil "" t)
-		     (if (featurep 'gmhist)
-			 (read-with-history-in 'find-args-history
-					       "Run find (with args): ")
-		       (read-string "Run find (with args): " find-args))))
+		     (read-string "Run find (with args): " find-args
+				  '(find-args-history . 1))))
   ;; Expand DIR ("" means default-directory), and make sure it has a
   ;; trailing slash.
   (setq dir (file-name-as-directory (expand-file-name dir)))
@@ -100,20 +105,11 @@ The command run (after changing into DIR) is
 		     (if (string= args "")
 			 ""
 		       (concat "\\( " args " \\) "))
-		     find-ls-option))
+		     (car find-ls-option)))
   ;; The next statement will bomb in classic dired (no optional arg allowed)
-  ;; find(1)'s -ls corresponds to these switches.
-  ;; Note -b, at least GNU find quotes spaces etc. in filenames
-  (dired-mode dir "-gilsb")
+  (dired-mode dir (cdr find-ls-option))
   ;; Set subdir-alist so that Tree Dired will work:
-  (if (fboundp 'dired-simple-subdir-alist)
-      ;; will work even with nested dired format (dired-nstd.el,v 1.15
-      ;; and later)
-      (dired-simple-subdir-alist)
-    ;; else we have an ancient tree dired (or classic dired, where
-    ;; this does no harm) 
-    (set (make-local-variable 'dired-subdir-alist)
-	 (list (cons default-directory (point-min-marker)))))
+  (dired-simple-subdir-alist)
   (setq buffer-read-only nil)
   ;; Subdir headlerline must come first because the first marker in
   ;; subdir-alist points there.
@@ -121,12 +117,12 @@ The command run (after changing into DIR) is
   ;; Make second line a ``find'' line in analogy to the ``total'' or
   ;; ``wildcard'' line. 
   (insert "  " args "\n")
-  ;; Start the find process
-  (set-process-filter (start-process-shell-command "find"
-						   (current-buffer) args)
-		      (function find-dired-filter))
-  (set-process-sentinel (get-buffer-process (current-buffer))
-			(function find-dired-sentinel))
+  ;; Start the find process.
+  (let ((proc (start-process-shell-command "find" (current-buffer) args)))
+    (set-process-filter proc (function find-dired-filter))
+    (set-process-sentinel proc (function find-dired-sentinel))
+    ;; Initialize the process marker; it is used by the filter.
+    (move-marker (process-mark proc) 1 (current-buffer)))
   (setq mode-line-process '(":%s")))
 
 ;;;###autoload
@@ -184,10 +180,19 @@ Thus ARG can also contain additional grep options."
 		  (forward-line 1))
 		;; Convert ` ./FILE' to ` FILE'
 		;; This would lose if the current chunk of output
-		;; starts or ends within the ` ./', so backup up a bit:
+		;; starts or ends within the ` ./', so back up a bit:
 		(goto-char (- end 3))	; no error if < 0
 		(while (search-forward " ./" nil t)
-		  (delete-region (point) (- (point) 2)))))))
+		  (delete-region (point) (- (point) 2)))
+		;; Find all the complete lines in the unprocessed
+		;; output and process it to add text properties.
+		(goto-char end)
+		(if (search-backward "\n" (process-mark proc) t)
+		    (progn
+		      (dired-insert-set-properties (process-mark proc)
+						   (1+ (point)))
+		      (move-marker (process-mark proc) (1+ (point)))))
+		))))
       ;; The buffer has been killed.
       (delete-process proc))))
 
