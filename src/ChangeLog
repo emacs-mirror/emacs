@@ -1,3 +1,10 @@
+2001-08-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (start_display): Don't try to determine the continuation
+	lines width if lines are truncated.  It's superfluous and leads to
+	incorrect results if POS is not visible in the window after
+	reseating the iterator at the previous line start.
+
 2001-08-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_dump_glyph_string): Put in #if GLYPH_DEBUG.
