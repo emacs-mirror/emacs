@@ -338,7 +338,7 @@ Otherwise modify name by appending `<NUMBER>', incrementing NUMBER\n\
 until an unused name is found, and then return that name.\n\
 Optional second argument ignore specifies a name that is okay to use\n\
 \(if it is in the sequence to be tried)\n\
-even if a buffer with that name exists.
+even if a buffer with that name exists.")
  (name, ignore)
      register Lisp_Object name, ignore;
 {
@@ -831,7 +831,7 @@ the window-buffer correspondences.")
 		      : selected_window,
 		      buf);
 
-  return Qnil;
+  return buf;
 }
 
 DEFUN ("pop-to-buffer", Fpop_to_buffer, Spop_to_buffer, 1, 2, 0,
@@ -851,7 +851,7 @@ window even if BUFFER is already visible in the selected window.")
   Fset_buffer (buf);
   record_buffer (buf);
   Fselect_window (Fdisplay_buffer (buf, other));
-  return Qnil;
+  return buf;
 }
 
 DEFUN ("current-buffer", Fcurrent_buffer, Scurrent_buffer, 0, 0, 0,
@@ -1573,7 +1573,7 @@ buffer.")
   b = XBUFFER (buffer);
 
   /* If the overlay has changed buffers, do a thorough redisplay.  */
-  if (! EQ (buffer, XMARKER (OVERLAY_START (overlay))->buffer))
+  if (b != XMARKER (OVERLAY_START (overlay))->buffer)
     windows_or_buffers_changed = 1;
   else
     /* Redisplay the area the overlay has just left, or just enclosed.  */
