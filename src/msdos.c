@@ -670,6 +670,11 @@ dos_set_window_size (rows, cols)
   *rows = ScreenRows ();
   *cols = ScreenCols ();
 
+  /* Update Emacs' notion of screen dimensions.  */
+  screen_size_X = *cols;
+  screen_size_Y = *rows;
+  screen_size = *cols * *rows;
+
 #if __DJGPP__ > 1
   /* If the dimensions changed, the mouse highlight info is invalid.  */
   if (current_rows != *rows || current_cols != *cols)
