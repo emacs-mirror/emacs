@@ -12,7 +12,7 @@
 
 # Author: Paul Eggert <eggert@twinsun.com>
 
-# $Id: rcs2log,v 1.12 1993/05/29 06:22:48 rms Exp eggert $
+# $Id: rcs2log,v 1.13 1993/08/09 22:06:00 eggert Exp eggert $
 
 # Copyright 1992, 1993 Free Software Foundation, Inc.
 
@@ -324,7 +324,7 @@ awk '
 			newclumpname = ""
 			sep = "\n"
 			if (date == "") sep = ""
-			if (newlog ~ /^{[^	 }]*}[	 ]/) {
+			if (newlog ~ /^\{[^	 }]*}[	 ]/) {
 				i = index(newlog, "}")
 				newclumpname = substr(newlog, 1, i)
 				while (substr(newlog, i+1) ~ /^[	 ]/) i++
