@@ -147,7 +147,7 @@ connection to.  The elements of the list are strings, and each one is
 a display name.
 @end defun
 
-@defun x-open-connection display &optional xrm-string
+@defun x-open-connection display &optional xrm-string must-succeed
 This function opens a connection to the X display @var{display}.  It
 does not create a frame on that display, but it permits you to check
 that communication can be established with that display.
@@ -164,6 +164,9 @@ look like:
 @end example
 
 @xref{Resources}.
+
+If @var{must-succeed} is non-@code{nil}, failure to open the connection
+terminates Emacs.  Otherwise, it is an ordinary Lisp error.
 @end defun
 
 @defun x-close-connection display
@@ -199,6 +202,13 @@ parameters @code{foreground-color}, @code{background-color},
 
 These functions let you read and change the parameter values of a
 frame.
+
+@defun frame-parameter frame parameter
+@tindex frame-parameter
+This function returns the value of the parameter named @var{parameter}
+of @var{frame}.  If @var{frame} is @code{nil}, it returns the
+selected  frame's parameter.
+@end defun
 
 @defun frame-parameters frame
 The function @code{frame-parameters} returns an alist listing all the
@@ -714,9 +724,13 @@ way to cancel the deletion of a frame aside from restoring a saved frame
 configuration (@pxref{Frame Configurations}); this is similar to the
 way windows behave.
 
-@deffn Command delete-frame &optional frame
+@deffn Command delete-frame &optional frame force
 This function deletes the frame @var{frame}.  By default, @var{frame} is
-the selected frame.
+the selected frame.  
+
+A frame cannot be deleted if its minibuffer is used by other frames.
+Normally, you cannot delete a frame if all other frames are invisible,
+but if the @var{force} is non-@code{nil}, then you are allowed to do so.
 @end deffn
 
 @defun frame-live-p frame
@@ -1023,9 +1037,13 @@ This function returns a frame configuration list that describes
 the current arrangement of frames and their contents.
 @end defun
 
-@defun set-frame-configuration configuration
+@defun set-frame-configuration configuration &optional nodelete
 This function restores the state of frames described in
 @var{configuration}.
+
+Ordinarily, this function deletes all existing frames not listed in
+@var{configuration}.  But if @var{nodelete} is non-@code{nil}, the
+unwanted frames are iconified instead.
 @end defun
 
 @node Mouse Tracking
@@ -1338,17 +1356,22 @@ clients that still use them.
 This function returns the contents of cut buffer number @var{n}.
 @end defun
 
-@defun x-set-cut-buffer string
+@defun x-set-cut-buffer string &optional push
 This function stores @var{string} into the first cut buffer (cut buffer
-0), moving the other values down through the series of cut buffers, much
-like the way successive kills in Emacs move down the kill ring.
+0).  If @var{push} is @code{nil}, only the first cut buffer is changed.
+If @var{push} is non-@code{nil}, that says to move the values down
+through the series of cut buffers, much like the way successive kills in
+Emacs move down the kill ring.  In other words, the previous value of
+the first cut buffer moves into the second cut buffer, and the second to
+the third, and so on through all eight cut buffers.
 @end defun
 
 @defvar selection-coding-system
 @tindex selection-coding-system
 This variable specifies the coding system to use when reading and
 writing selections, the clipboard, or a cut buffer.  @xref{Coding
-Systems}.  The default is @code{compound-text}.
+Systems}.  The default is @code{compound-text}, which converts to
+the text representation that X11 normally uses.
 @end defvar
 
 @cindex clipboard support (for MS-Windows)
