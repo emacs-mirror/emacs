@@ -138,7 +138,9 @@ tparam1 (string, outstring, len, up, left, argp)
   int outlen = 0;
 
   register int tem;
-  int *old_argp = argp;
+  int *old_argp = argp;		/* may move */
+  int *fixed_argp = argp;	/* never moves */
+  int explicit_param_p = 0;	/* set by %p */
   int doleft = 0;
   int doup = 0;
 
@@ -163,7 +165,7 @@ tparam1 (string, outstring, len, up, left, argp)
 	      outlen *= 2;
 	      new = (char *) xrealloc (outstring, outlen);
 	    }
-	  
+
 	  op = new + offset;
 	  outend = new + outlen;
 	  outstring = new;
@@ -174,7 +176,10 @@ tparam1 (string, outstring, len, up, left, argp)
       if (c == '%')
 	{
 	  c = *p++;
-	  tem = *argp;
+	  if (explicit_param_p)
+	    explicit_param_p = 0;
+	  else
+	    tem = *argp;
 	  switch (c)
 	    {
 	    case 'd':		/* %d means output in decimal.  */
@@ -196,6 +201,11 @@ tparam1 (string, outstring, len, up, left, argp)
 	    onedigit:
 	      *op++ = tem % 10 + '0';
 	      argp++;
+	      break;
+
+	    case 'p':		/* %pN means use param N in following susbt.  */
+	      tem = fixed_argp[(*p++) - '1'];
+	      explicit_param_p = 1;
 	      break;
 
 	    case 'C':
@@ -328,3 +338,5 @@ main (argc, argv)
 }
 
 #endif /* DEBUG */
+
+/* tparam.c ends here */
