@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.62 2003/07/04 22:40:26 monnier Exp $
+;; $Id: vc-cvs.el,v 1.63 2003/09/01 15:45:17 miles Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -922,20 +922,22 @@ is non-nil."
     (vc-file-setprop file 'vc-workfile-version (match-string 1))
     (vc-file-setprop file 'vc-cvs-sticky-tag
 		     (vc-cvs-parse-sticky-tag (match-string 4) (match-string 5)))
-    ;; compare checkout time and modification time
-    (let* ((mtime (nth 5 (file-attributes file)))
-	   (system-time-locale "C")
-	   (mtstr (format-time-string "%c" mtime 'utc)))
-      ;; Solaris sometimes uses "Wed Sep 05" instead of  "Wed Sep  5".
-      ;; See "grep '[^a-z_]ctime' cvs/src/*.c" for reference.
-      (if (= (aref mtstr 8) ?0)
-	  (setq mtstr (concat (substring mtstr 0 8) " " (substring mtstr 9))))
-      (cond ((equal mtstr (match-string 2))
-	     (vc-file-setprop file 'vc-checkout-time mtime)
-	     (if set-state (vc-file-setprop file 'vc-state 'up-to-date)))
-	    (t
-	     (vc-file-setprop file 'vc-checkout-time 0)
-	     (if set-state (vc-file-setprop file 'vc-state 'edited))))))))
+    ;; Compare checkout time and modification time.
+    ;; This is intentionally different from the algorithm that CVS uses
+    ;; (based on textual comparison), because there can be problems
+    ;; generating a time string that looks exactly like the one from CVS.
+    (let ((mtime (nth 5 (file-attributes file))))
+      (require 'parse-time)
+      (let ((parsed-time
+	     (parse-time-string (concat (match-string 2) " +0000"))))
+	(cond ((and (not (string-match "\\+" (match-string 2)))
+		    (car parsed-time)
+		    (equal mtime (apply 'encode-time parsed-time)))
+	       (vc-file-setprop file 'vc-checkout-time mtime)
+	       (if set-state (vc-file-setprop file 'vc-state 'up-to-date)))
+	      (t
+	       (vc-file-setprop file 'vc-checkout-time 0)
+	       (if set-state (vc-file-setprop file 'vc-state 'edited)))))))))
 
 (provide 'vc-cvs)
 
