@@ -27,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-yank () nil)
-
 
 ;;; Kill ring commands.
 
@@ -580,6 +577,8 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 		(if (>= num 0)
 		    (calc-enter-result num "edit" vals)
 		  (calc-enter-result 1 "edit" vals (- num))))))))))
+
+(provide 'calc-yank)
 
 ;;; arch-tag: ca61019e-caca-4daa-b32c-b6afe372d5b5
 ;;; calc-yank.el ends here
