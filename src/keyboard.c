@@ -4996,10 +4996,11 @@ make_lispy_event (event)
 		/* The third element of every position
 		   should be the (x,y) pair.  */
 		down = Fcar (Fcdr (Fcdr (start_pos)));
-		if (CONSP (down))
+		if (CONSP (down)
+		    && INTEGERP (XCAR (down)) && INTEGERP (XCDR (down)))
 		  {
-		    xdiff = event->x - XCAR (down);
-		    ydiff = event->y - XCDR (down);
+		    xdiff = XFASTINT (event->x) - XFASTINT (XCAR (down));
+		    ydiff = XFASTINT (event->y) - XFASTINT (XCDR (down));
 		  }
 
 		if (xdiff < double_click_fuzz && xdiff > - double_click_fuzz
