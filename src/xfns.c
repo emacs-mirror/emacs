@@ -2399,6 +2399,17 @@ be shared by the new frame.")
 #endif /* X10 */
 }
 
+Lisp_Object
+x_get_focus_frame ()
+{
+  Lisp_Object xfocus;
+  if (! x_focus_frame)
+    return Qnil;
+
+  XSET (xfocus, Lisp_Frame, x_focus_frame);
+  return xfocus;
+}
+
 DEFUN ("focus-frame", Ffocus_frame, Sfocus_frame, 1, 1, 0,
   "Set the focus on FRAME.")
   (frame)
