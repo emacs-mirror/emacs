@@ -1,7 +1,7 @@
 /* impl.c.poollo: LEAF POOL CLASS
  *
- * $HopeName: MMsrc!poollo.c(trunk.10) $
- * Copyright (C) 1997,1998 Harlequin Group plc, all rights reserved.
+ * $HopeName: MMsrc!poollo.c(trunk.11) $
+ * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
  *
@@ -19,7 +19,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.10) $");
+SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.11) $");
 
 
 /* MACROS */
@@ -219,7 +219,8 @@ static Res loGroupCreate(LOGroup *groupReturn, Pool pool, Size size,
 
   asize = SizeAlignUp(size, ArenaAlign(arena));
   
-  res = ArenaAlloc(&p, arena, (Size)sizeof(LOGroupStruct));
+  res = ControlAlloc(&p, arena, (Size)sizeof(LOGroupStruct), 
+                     withReservoirPermit);
   if(res != ResOK)
     goto failGroup;
   group = (LOGroup)p;
@@ -237,11 +238,11 @@ static Res loGroupCreate(LOGroup *groupReturn, Pool pool, Size size,
 
   bits = asize >> lo->alignShift;
   tablebytes = BTSize(bits);
-  res = ArenaAlloc(&p, arena, tablebytes);
+  res = ControlAlloc(&p, arena, tablebytes, withReservoirPermit);
   if(res != ResOK)
     goto failMarkTable;
   group->mark = p;
-  res = ArenaAlloc(&p, arena, tablebytes);
+  res = ControlAlloc(&p, arena, tablebytes, withReservoirPermit);
   if(res != ResOK)
     goto failAllocTable;
   group->alloc = p;
@@ -264,11 +265,11 @@ static Res loGroupCreate(LOGroup *groupReturn, Pool pool, Size size,
   return ResOK;
 
 failAllocTable:
-  ArenaFree(arena, group->mark, tablebytes);
+  ControlFree(arena, group->mark, tablebytes);
 failMarkTable:
   SegFree(seg);
 failSeg:
-  ArenaFree(arena, group, (Size)sizeof(LOGroupStruct));
+  ControlFree(arena, group, (Size)sizeof(LOGroupStruct));
 failGroup:
   return res;
 }
@@ -291,10 +292,10 @@ static void loGroupDestroy(LOGroup group)
 
   group->sig = SigInvalid;
   SegFree(group->seg);
-  ArenaFree(arena, (Addr)group->alloc, tablesize);
-  ArenaFree(arena, (Addr)group->mark, tablesize);
+  ControlFree(arena, (Addr)group->alloc, tablesize);
+  ControlFree(arena, (Addr)group->mark, tablesize);
   RingRemove(&group->loRing);
-  ArenaFree(arena, group, (Size)sizeof(LOGroupStruct));
+  ControlFree(arena, group, (Size)sizeof(LOGroupStruct));
 }
 
 
@@ -484,8 +485,8 @@ static void LOFinish(Pool pool)
 }
 
 
-static Res LOBufferFill(Seg *segReturn, Addr *baseReturn, 
-                        Addr *limitReturn, Pool pool, Buffer buffer, 
+static Res LOBufferFill(Addr *baseReturn, Addr *limitReturn, 
+                        Pool pool, Buffer buffer, 
                         Size size, Bool withReservoirPermit)
 {
   Res res;
@@ -495,7 +496,6 @@ static Res LOBufferFill(Seg *segReturn, Addr *baseReturn,
   Arena arena;
   Addr base, limit;
 
-  AVER(segReturn != NULL);
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVERT(Pool, pool);
@@ -546,7 +546,6 @@ found:
   AVER(lo->objectsSize < lo->objectsSize + AddrOffset(base, limit));
   lo->objectsSize += AddrOffset(base, limit);
 
-  *segReturn = group->seg;
   *baseReturn = base;
   *limitReturn = limit;
   return ResOK;
@@ -558,12 +557,14 @@ failGroup:
 
 /* Synchronise the buffer with the alloc Bit Table in the group. */
 
-static void LOBufferEmpty(Pool pool, Buffer buffer, Seg seg)
+static void LOBufferEmpty(Pool pool, Buffer buffer, 
+                          Addr init, Addr limit)
 {
   LO lo;
-  Addr base, alloc, limit, segBase;
+  Addr base, segBase;
+  Seg seg;
   LOGroup group;
-  Index baseIndex, allocIndex, limitIndex;
+  Index baseIndex, initIndex, limitIndex;
   Arena arena;
 
   AVERT(Pool, pool);
@@ -571,7 +572,9 @@ static void LOBufferEmpty(Pool pool, Buffer buffer, Seg seg)
   AVERT(LO, lo);
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
+  seg = BufferSeg(buffer);
   AVER(SegCheck(seg));
+  AVER(init <= limit);
   
   group = (LOGroup)SegP(seg);
 
@@ -581,25 +584,23 @@ static void LOBufferEmpty(Pool pool, Buffer buffer, Seg seg)
 
   arena = PoolArena(pool);
   base = BufferBase(buffer);
-  alloc = BufferAlloc(buffer);
-  limit = BufferLimit(buffer);
   segBase = SegBase(seg);
 
   AVER(AddrIsAligned(base, PoolAlignment(pool)));
   AVER(segBase <= base && base < SegLimit(seg));
-  AVER(segBase <= alloc && alloc <= SegLimit(seg));
+  AVER(segBase <= init && init <= SegLimit(seg));
 
-  /* convert base, alloc, and limit, to quantum positions */
+  /* convert base, init, and limit, to quantum positions */
   baseIndex = loIndexOfAddr(segBase, lo, base);
-  allocIndex = loIndexOfAddr(segBase, lo, alloc);
+  initIndex = loIndexOfAddr(segBase, lo, init);
   limitIndex = loIndexOfAddr(segBase, lo, limit);
 
   /* Record the unused portion at the end of the buffer */
   /* as being free. */
   AVER(baseIndex == limitIndex ||
        BTIsSetRange(group->alloc, baseIndex, limitIndex));
-  if(allocIndex != limitIndex) {
-    loGroupFree(group, allocIndex, limitIndex);
+  if(initIndex != limitIndex) {
+    loGroupFree(group, initIndex, limitIndex);
   }
 }
 

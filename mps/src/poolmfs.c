@@ -1,7 +1,7 @@
 /* impl.c.poolmfs: MANUAL FIXED SMALL UNIT POOL
  *
- * $HopeName: MMsrc!poolmfs.c(trunk.31) $
- * Copyright (C) 1997 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!poolmfs.c(trunk.33) $
+ * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * This is the implementation of the MFS pool class.
  *
@@ -10,12 +10,12 @@
  * .design.misplaced: This design is misplaced, it should be in a
  * separate document.
  *
- * MFS operates in a very simple manner: each segment is divided into
- * units.  Free units are kept on a linked list using a header stored
- * in the unit itself.  The linked list is not ordered; allocation and
- * deallocation simply pop and push from the head of the list.  This is
- * fast, but successive allocations might have poor locality if
- * previous successive frees did.
+ * MFS operates in a very simple manner: each region allocated from 
+ * the arena is divided into units.  Free units are kept on a linked 
+ * list using a header stored in the unit itself.  The linked list is 
+ * not ordered; allocation anddeallocation simply pop and push from 
+ * the head of the list.  This is fast, but successive allocations might 
+ * have poor locality if previous successive frees did.
  *
  * .restriction: This pool cannot allocate from the arena control
  * pool (as the control pool is an instance of PoolClassMV and MV uses
@@ -35,7 +35,7 @@
 #include "poolmfs.h"
 #include "mpm.h"
 
-SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(trunk.31) $");
+SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(trunk.33) $");
 
 
 /* ROUND -- Round up
@@ -100,9 +100,9 @@ static Res MFSInit(Pool pool, va_list arg)
 
   mfs->extendBy = extendBy;
   mfs->unitSize = unitSize;
-  mfs->unitsPerSeg = extendBy/unitSize;
+  mfs->unitsPerExtent = extendBy/unitSize;
   mfs->freeList = NULL;
-  mfs->segList = (Seg)0;
+  mfs->tractList = NULL;
   mfs->sig = MFSSig;
 
   AVERT(MFS, mfs);
@@ -113,18 +113,18 @@ static Res MFSInit(Pool pool, va_list arg)
 
 static void MFSFinish(Pool pool)
 {
-  Seg seg;
+  Tract tract;
   MFS mfs;
 
   AVERT(Pool, pool);
   mfs = PoolPoolMFS(pool);
   AVERT(MFS, mfs);
 
-  seg = mfs->segList;
-  while(seg != NULL) {
-    Seg nextSeg = (Seg)SegP(seg);   /* .seg.chain */
-    SegFree(seg);
-    seg = nextSeg;
+  tract = mfs->tractList;
+  while(tract != NULL) {
+    Tract nextTract = (Tract)TractP(tract);   /* .tract.chain */
+    ArenaFree(TractBase(tract), mfs->extendBy, pool);
+    tract = nextTract;
   }
 
   mfs->sig = SigInvalid;
@@ -134,7 +134,8 @@ static void MFSFinish(Pool pool)
 /*  == Allocate ==
  *
  *  Allocation simply involves taking a unit from the front of the freelist
- *  and returning it.  If there are none, a new segment is allocated.
+ *  and returning it.  If there are none, a new region is allocated from the 
+ *  arena.
  */
 
 static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
@@ -154,49 +155,49 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
 
   f = mfs->freeList;
 
-  /* If the free list is empty then extend the pool with a new segment. */
+  /* If the free list is empty then extend the pool with a new region. */
 
   if(f == NULL)
   {
-    Seg seg;
-    Word i, unitsPerSeg;
+    Tract tract;
+    Word i, unitsPerExtent;
     Size unitSize;
     Addr base;
     Header header = NULL, next;
 
-    /* Create a new segment and attach it to the pool. */
-    res = SegAlloc(&seg, SegPrefDefault(), mfs->extendBy, pool,
-                   withReservoirPermit);
+    /* Create a new region and attach it to the pool. */
+    res = ArenaAlloc(&base, SegPrefDefault(), mfs->extendBy, pool,
+                     withReservoirPermit);
     if(res != ResOK)
       return res;
 
-    /* .seg.chain: chain segs through SegP(seg) */
-    SegSetP(seg, (void *)mfs->segList);
-    mfs->segList = seg;
+    /* .tract.chain: chain first tracts through TractP(tract) */
+    tract = TractOfBaseAddr(PoolArena(pool), base);
+    TractSetP(tract, (void *)mfs->tractList);
+    mfs->tractList = tract;
 
-    /* Sew together all the new empty units in the segment, working down */
+    /* Sew together all the new empty units in the region, working down */
     /* from the top so that they are in ascending order of address on the */
     /* free list. */
 
-    unitsPerSeg = mfs->unitsPerSeg;
+    unitsPerExtent = mfs->unitsPerExtent;
     unitSize = mfs->unitSize;
-    base = SegBase(seg);
     next = NULL;
 
 #define SUB(b, s, i)    ((Header)AddrAdd(b, (s)*(i)))
 
-    for(i=0; i<unitsPerSeg; ++i)
+    for(i=0; i<unitsPerExtent; ++i)
     {
-      header = SUB(base, unitSize, unitsPerSeg-i - 1);
+      header = SUB(base, unitSize, unitsPerExtent-i - 1);
       AVER(AddrIsAligned(header, pool->alignment));
-      AVER(AddrAdd((Addr)header, unitSize) <= SegLimit(seg));
+      AVER(AddrAdd((Addr)header, unitSize) <= AddrAdd(base, mfs->extendBy));
       header->next = next;
       next = header;
     }
 
 #undef SUB
 
-    /* The first unit in the segment is now the head of the new free list. */
+    /* The first unit in the region is now the head of the new free list. */
     f = header;
   }
 
@@ -250,10 +251,10 @@ static Res MFSDescribe(Pool pool, mps_lib_FILE *stream)
   res = WriteF(stream,
                "  unrounded unit size $W\n", (WriteFW)mfs->unroundedUnitSize,
                "  unit size $W\n",           (WriteFW)mfs->unitSize,
-               "  segment size $W\n",        (WriteFW)mfs->extendBy,
-               "  units per segment $U\n",   (WriteFU)mfs->unitsPerSeg,
+               "  extent size $W\n",         (WriteFW)mfs->extendBy,
+               "  units per extent $U\n",    (WriteFU)mfs->unitsPerExtent,
                "  free list begins at $P\n", (WriteFP)mfs->freeList,
-               "  seg list begin at $P\n",   (WriteFP)mfs->segList,
+               "  tract list begin at $P\n", (WriteFP)mfs->tractList,
                NULL);
   if(res != ResOK) return res;
 
@@ -294,9 +295,9 @@ Bool MFSCheck(MFS mfs)
   CHECKL(SizeIsAligned(mfs->extendBy, ArenaAlign(arena)));
   CHECKL(SizeAlignUp(mfs->unroundedUnitSize, mfs->poolStruct.alignment) ==
          mfs->unitSize);
-  CHECKL(mfs->unitsPerSeg == mfs->extendBy/mfs->unitSize);
-  if(mfs->segList != (Seg)0) {
-    CHECKL(SegCheck(mfs->segList));
+  CHECKL(mfs->unitsPerExtent == mfs->extendBy/mfs->unitSize);
+  if(mfs->tractList != NULL) {
+    CHECKL(TractCheck(mfs->tractList));
   }
   return TRUE;
 }

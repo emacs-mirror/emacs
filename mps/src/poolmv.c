@@ -1,7 +1,7 @@
 /* impl.c.poolmv: MANUAL VARIABLE POOL
  *
- * $HopeName: MMsrc!poolmv.c(trunk.35) $
- * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!poolmv.c(trunk.37) $
+ * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
  *                   pool, since it is used to implement that pool.
@@ -30,7 +30,7 @@
 #include "poolmfs.h"
 #include "mpm.h"
 
-SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.35) $");
+SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.37) $");
 
 
 #define BLOCKPOOL(mv)   (MFSPool(&(mv)->blockPoolStruct))
@@ -87,18 +87,18 @@ static Bool MVBlockCheck(MVBlock block)
 
 /* MVSpanStruct -- span structure
  *
- * The pool maintains a wrapper for each allocated segment which
- * contains a chain of descriptors for the allocated memory in that
- * segment.  It also contains sentinel block descriptors which mark the
+ * The pool maintains a wrapper for each span allocated from the arena
+ * which contains a chain of descriptors for the allocated memory in that
+ * span.  It also contains sentinel block descriptors which mark the
  * start and end of the span.  These blocks considerably simplify
  * allocation, and may be zero-sized.
  *
  * .design.largest: If 'largestKnown' is TRUE, 'largest' is the size
- * of the largest free block in the segment. Otherwise, 'largest' is
- * one more than the segment size.
+ * of the largest free block in the span. Otherwise, 'largest' is
+ * one more than the span size.
  *
- * .design.largest.alloc: When seeking a segment in which to allocate,
- * a segment should not be examined if 'largest' is less than the
+ * .design.largest.alloc: When seeking a span in which to allocate,
+ * a span should not be examined if 'largest' is less than the
  * space sought.
  *
  * .design.largest.free: When freeing, compute the size of the new
@@ -112,11 +112,12 @@ typedef struct MVSpanStruct {
   Sig sig;                      /* design.mps.sig */
   RingStruct spans;             /* all the spans */ 
   MV mv;                        /* owning MV pool */
-  Seg seg;                      /* segment underlying the span */
+  Tract tract;                  /* first tract of the span */
+  Size size;                    /* size of the span */
   MVBlockStruct base;           /* sentinel at base of span */
   MVBlockStruct limit;          /* sentinel at limit of span */
   MVBlock blocks;               /* allocated blocks */
-  Size space;                   /* total free space in segment */
+  Size space;                   /* total free space in span */
   Size largest;                 /* .design.largest */
   Bool largestKnown;            /* .design.largest */
   unsigned blockCount;          /* number of blocks on chain */
@@ -133,11 +134,15 @@ typedef struct MVSpanStruct {
 
 static Bool MVSpanCheck(MVSpan span)
 {
+  Addr addr, base, limit;
+  Arena arena;
+  Tract tract;
+
   CHECKS(MVSpan, span);
 
   CHECKL(RingCheck(&span->spans));
   CHECKU(MV, span->mv);
-  CHECKL(SegCheck(span->seg));
+  CHECKL(TractCheck(span->tract));
   CHECKL(MVBlockCheck(&span->base));
   CHECKL(MVBlockCheck(&span->limit));
   /* The block chain starts with the base sentinel. */
@@ -149,9 +154,11 @@ static Bool MVSpanCheck(MVSpan span)
   CHECKL(span->blockCount >= 2);
   /* This is just defined this way.  It shouldn't change. */
   CHECKL(span->limit.next == NULL);
-  /* The sentinels should mark the ends of the segment. */
-  CHECKL(span->base.base == SegBase(span->seg));
-  CHECKL(span->limit.limit == SegLimit(span->seg));
+  /* The sentinels should mark the ends of the span. */
+  base = TractBase(span->tract);
+  limit = AddrAdd(base, span->size);
+  CHECKL(span->base.base == base);
+  CHECKL(span->limit.limit == limit);
   /* The sentinels mustn't overlap. */
   CHECKL(span->base.limit <= span->limit.base);
   /* The free space can't be more than the gap between the sentinels. */
@@ -164,6 +171,14 @@ static Bool MVSpanCheck(MVSpan span)
   } else {
     CHECKL(span->largest == SpanSize(span)+1);
   }
+
+  /* Each tract of the span must refer to the span */
+  arena = PoolArena(TractPool(span->tract));
+  TRACT_FOR(tract, addr, arena, base, limit) {
+    CHECKL(TractP(tract) == (void *)span);
+  }
+  CHECKL(addr == limit);
+
   return TRUE;
 }
 
@@ -238,12 +253,12 @@ static void MVFinish(Pool pool)
   mv = PoolPoolMV(pool);
   AVERT(MV, mv);
 
-  /* Destroy all the segments attached to the pool. */
+  /* Destroy all the spans attached to the pool. */
   spans = &mv->spans;
   RING_FOR(node, spans, nextNode) {
     span = RING_ELT(MVSpan, spans, node);
     AVERT(MVSpan, span);
-    SegFree(span->seg);
+    ArenaFree(TractBase(span->tract), span->size, pool);
   }
 
   mv->sig = SigInvalid;
@@ -398,7 +413,7 @@ static Res MVSpanFree(MVSpan span, Addr base, Addr limit, Pool blockPool)
 
         /* If the freed area is in the base sentinel then insert the new */
         /* descriptor after it, otherwise insert before. */
-        if(isBase) { /* case 7: new fragment at the base of the segment */
+        if(isBase) { /* case 7: new fragment at the base of the span */
           new->base = limit;
           new->limit = block->limit;
           block->limit = base;
@@ -449,8 +464,10 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size,
   Res res;
   MVSpan span;
   Arena arena;
+  Addr base, limit, addr;
+  Tract tract;
   MV mv;
-  Size segSize;
+  Size regionSize;
   Ring spans, node = NULL, nextNode; /* gcc whinge stop */
 
   AVER(pReturn != NULL);
@@ -481,39 +498,48 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size,
   }
 
   /* There is no block large enough in any of the spans, so extend the */
-  /* pool with a new segment which will hold the requested allocation. */
+  /* pool with a new region which will hold the requested allocation. */
   /* Allocate a new span descriptor and initialize it to point at the */
-  /* segment. */
+  /* region. */
   res = PoolAlloc((Addr *)&span, SPANPOOL(mv), sizeof(MVSpanStruct),
                   withReservoirPermit);
   if(res != ResOK)
     return res;
 
   if(size <= mv->extendBy)
-    segSize = mv->extendBy;
+    regionSize = mv->extendBy;
   else
-    segSize = size;
+    regionSize = size;
 
   arena = PoolArena(pool);
-  segSize = SizeAlignUp(segSize, ArenaAlign(arena));
+  regionSize = SizeAlignUp(regionSize, ArenaAlign(arena));
 
-  res = SegAlloc(&span->seg, SegPrefDefault(), segSize, pool,
-                 withReservoirPermit);
-  if(res != ResOK) { /* try again with a segment big enough for this object */
-    segSize = SizeAlignUp(size, ArenaAlign(arena));
-    res = SegAlloc(&span->seg, SegPrefDefault(), segSize, pool,
+  res = ArenaAlloc(&base, SegPrefDefault(), regionSize, pool,
                    withReservoirPermit);
+  if(res != ResOK) { /* try again with a region big enough for this object */
+    regionSize = SizeAlignUp(size, ArenaAlign(arena));
+    res = ArenaAlloc(&base, SegPrefDefault(), regionSize, pool,
+                     withReservoirPermit);
     if (res != ResOK) {
       PoolFree(SPANPOOL(mv), (Addr)span, sizeof(MVSpanStruct));
       return res;
     }
   }
 
+  limit = AddrAdd(base, regionSize);
+  span->size = regionSize;
+  span->tract = TractOfBaseAddr(arena, base);
   span->mv = mv;
-  SegSetP(span->seg, (void *)span);
+  /* Set the p field for each tract of the span  */
+  TRACT_FOR(tract, addr, arena, base, limit) {
+    AVER(TractP(tract) == NULL);
+    AVER(TractPool(tract) == pool);
+    TractSetP(tract, (void *)span);
+  }
+  AVER(addr == limit);
   RingInit(&span->spans);
-  span->base.base = span->base.limit = SegBase(span->seg);
-  span->limit.base = span->limit.limit = SegLimit(span->seg);
+  span->base.base = span->base.limit = base;
+  span->limit.base = span->limit.limit = limit;
   span->space = AddrOffset(span->base.limit, span->limit.base);
   span->limit.next = NULL;
   span->base.next = &span->limit;
@@ -546,7 +572,7 @@ static void MVFree(Pool pool, Addr old, Size size)
   MV mv;
   Res res;
   Bool b;
-  Seg seg;
+  Tract tract;
 
   AVERT(Pool, pool);
   mv = PoolPoolMV(pool);
@@ -559,11 +585,11 @@ static void MVFree(Pool pool, Addr old, Size size)
   base = old;
   limit = AddrAdd(base, size);
 
-  /* Map the pointer onto the segment which contains it, and thence */
+  /* Map the pointer onto the tract which contains it, and thence */
   /* onto the span. */
-  b = SegOfAddr(&seg, PoolArena(pool), old);
+  b = TractOfAddr(&tract, PoolArena(pool), old);
   AVER(b);
-  span = (MVSpan)SegP(seg);
+  span = (MVSpan)TractP(tract);
   AVERT(MVSpan, span);
 
   /* the to be freed area should be within the span just found */
@@ -585,7 +611,7 @@ static void MVFree(Pool pool, Addr old, Size size)
     AVER(span->base.limit == span->base.base);
     AVER(span->limit.limit == span->limit.base);
     mv->space -= span->space;
-    SegFree(span->seg);
+    ArenaFree(TractBase(span->tract), span->size, pool);
     RingRemove(&span->spans);
     RingFinish(&span->spans);
     PoolFree(SPANPOOL(mv), (Addr)span, sizeof(MVSpanStruct));
@@ -644,7 +670,7 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
 
     res = WriteF(stream,
                  "    span $P",   (WriteFP)span,
-                 "  seg $P",      (WriteFP)span->seg,
+                 "  tract $P",    (WriteFP)span->tract,
                  "  space $W",    (WriteFW)span->space,
                  "  blocks $U",   (WriteFU)span->blockCount,
                  "  largest ",
@@ -810,7 +836,7 @@ size_t mps_mv_size(mps_pool_t mps_pool)
   RING_FOR(node, spans, nextNode) {
   span = RING_ELT(MVSpan, spans, node);
     AVERT(MVSpan, span);
-    f += SegSize(span->seg);
+    f += span->size;
   }
 
   return (size_t)f;
@@ -823,7 +849,7 @@ Bool MVCheck(MV mv)
 {
   CHECKS(MV, mv);
   CHECKD(Pool, &mv->poolStruct);
-  CHECKL(IsSubclass(mv->poolStruct.class, EnsureMVPoolClass()));
+  CHECKL(IsSubclassPoly(mv->poolStruct.class, EnsureMVPoolClass()));
   CHECKD(MFS, &mv->blockPoolStruct);
   CHECKD(MFS, &mv->spanPoolStruct);
   CHECKL(mv->extendBy > 0);

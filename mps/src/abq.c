@@ -1,7 +1,7 @@
 /* impl.c.abq: AVAILABLE BLOCK QUEUE
  *
- * $HopeName: MMsrc!abq.c(trunk.3) $
- * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!abq.c(trunk.4) $
+ * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
  *
@@ -15,7 +15,7 @@
 #include "cbs.h"
 #include "mpm.h"
 
-SRCID(abq, "$HopeName: MMsrc!abq.c(trunk.3) $");
+SRCID(abq, "$HopeName: MMsrc!abq.c(trunk.4) $");
 
 
 /* Private prototypes */
@@ -42,7 +42,8 @@ Res ABQInit(Arena arena, ABQ abq, void *owner, Count items)
 
   elements = items + 1;
   
-  res = ArenaAlloc(&p, arena, ABQQueueSize(elements));
+  res = ControlAlloc(&p, arena, ABQQueueSize(elements), 
+                     /* withReservoirPermit */ FALSE);
   if (res != ResOK)
     return res;
 
@@ -94,7 +95,7 @@ void ABQFinish(Arena arena, ABQ abq)
   METER_EMIT(&abq->pop);
   METER_EMIT(&abq->peek);
   METER_EMIT(&abq->delete);
-  ArenaFree(arena, abq->queue, ABQQueueSize(abq->elements));
+  ControlFree(arena, abq->queue, ABQQueueSize(abq->elements));
   
   abq->elements = 0;
   abq->queue = NULL;

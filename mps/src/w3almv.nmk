@@ -1,16 +1,17 @@
 # impl.nmk.w3almv: WINDOWS (ALPHA) NMAKE FILE
 #
-# $HopeName: MMsrc!w3almv.nmk(trunk.36) $
+# $HopeName: MMsrc!w3almv.nmk(trunk.37) $
 #
-# Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
+# Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
 #
 
 PFM = w3almv
 PFMDEFS = /DWIN32 /D_WINDOWS
 
 MPM = <assert> <ring> <mpm> <bt> <protocol> \
-      <arenavm> <arenacl> <arena> <pool> <poolabs> <poolmfs> \
-      <poolmv> <root> <format> <buffer> <lockw3> \
+      <arenavm> <arenacl> <arena> <tract> <walk> <reserv> \
+      <pool> <poolabs> <poolmfs> <poolmv> \
+      <root> <format> <buffer> <lockw3> \
       <ref> <trace> <protw3> <prmcan> <shield> <vmw3> \
       <than> <ssan> <mpsi> <mpsiw3> <ld> <span> \
       <event> <action> <seg> <poolmrg> <message> <dbgpool> \
@@ -19,7 +20,8 @@ MPM = <assert> <ring> <mpm> <bt> <protocol> \
       <event> <action> <seg> <poolmrg> <message> <span> \
       <abq> <meter> <cbs> <poolmv2> <splay> <version> <poolmvff>
 SW  = <assert> <ring> <mpm> <bt> <protocol> \
-      <arenavm> <arenacl> <arena> <pool> <poolabs> <poolmfs> \
+      <arenavm> <arenacl> <arena> <tract> <walk> <reserv> \
+      <pool> <poolabs> <poolmfs> \
       <poolmv> <root> <format> <buffer> <lockw3> \
       <ref> <trace> <protsw> <prmcan> <shield> <vmw3> \
       <than> <ssan> <mpsi> <ld> \

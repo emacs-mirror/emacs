@@ -1,7 +1,7 @@
 /* impl.h.protocol: PROTOCOL INHERITANCE DEFINITIONS
  *
- * $HopeName: MMsrc!protocol.h(MMdevel_tony_inheritance.4) $
- * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!protocol.h(trunk.2) $
+ * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  */
 
 #ifndef protocol_h
@@ -20,6 +20,14 @@
 #define DERIVE_ENSURE_INTERNAL(name) protocolEnsure ## name
 #define DERIVE_GUARDIAN(name) protocol ## name ## Guardian
 #define DERIVE_STATIC_STORAGE(name) protocol ## name ## Struct
+
+
+/* Macro to set the superclass field. This is not intended */
+/* to be used outside this file. This is a polymorphic macro */
+/* named as a function. See design.mps.protocol.introspect.c-lang */
+
+#define ProtocolClassSetSuperclassPoly(class, super) \
+  (((ProtocolClass)(class))->superclass) = (ProtocolClass)(super)
 
 
 /* DEFINE_CLASS
@@ -57,7 +65,7 @@
   BEGIN \
     parentName DERIVE_LOCAL(parentName) = DERIVE_ENSURE(parentName)(); \
     *this = *(DERIVE_LOCAL(parentName)); \
-    ProtocolClassSetSuperclass(this, DERIVE_LOCAL(parentName)); \
+    ProtocolClassSetSuperclassPoly(this, DERIVE_LOCAL(parentName)); \
   END
 
 
@@ -167,15 +175,13 @@ extern Bool ProtocolIsSubclass(ProtocolClass sub, ProtocolClass super);
 /* subtypes of ProtocolClass. Nevertheless they are named */
 /* as functions. See design.mps.protocol.introspect.c-lang */
 
-#define ProtocolClassSetSuperclass(class, super) \
-  (((ProtocolClass)(class))->superclass) = (ProtocolClass)(super)
 
-#define ProtocolClassSuperclass(class) \
+#define ProtocolClassSuperclassPoly(class) \
   (((ProtocolClass)(class))->superclass)
 
-#define ClassOf(inst) ((ProtocolInst)(inst)->class)
+#define ClassOfPoly(inst) ((ProtocolInst)(inst)->class)
 
-#define IsSubclass(sub, super) \
+#define IsSubclassPoly(sub, super) \
    ProtocolIsSubclass((ProtocolClass)(sub), (ProtocolClass)(super))
 
 

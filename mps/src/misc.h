@@ -1,7 +1,7 @@
 /* impl.h.misc: MISCELLANEOUS DEFINITIONS
  *
- * $HopeName: MMsrc!misc.h(trunk.22) $
- * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
+ * $HopeName: MMsrc!misc.h(trunk.24) $
+ * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * Small general things which are useful for C but aren't part of the
  * memory manager itself.  The only reason that this file exists is
@@ -107,11 +107,15 @@ typedef const struct SrcIdStruct {
  *
  * The argument is an expression; the expansion followed by a semicolon
  * is syntactically a statement (to avoid it being used in computation).
+ *
+ * .discard: DISCARD uses sizeof so that the expression is not evaluated
+ * and yet the compiler will check that it is a valid expression. The 
+ * conditional is compared with zero so it can designate a bitfield object.
  */
 
 #define DISCARD(expr) \
   BEGIN \
-    (void)sizeof(expr); \
+    (void)sizeof((expr)!=0); \
   END
 
 

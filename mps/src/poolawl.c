@@ -1,7 +1,7 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.56) $
- * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!poolawl.c(trunk.57) $
+ * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
  *
@@ -45,7 +45,7 @@
 #include "mpm.h"
 
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.56) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.57) $");
 
 
 #define AWLSig  ((Sig)0x519b7a37)       /* SIGPooLAWL */
@@ -287,11 +287,11 @@ static void AWLGroupDestroy(AWLGroup group)
   AVER(segGrains == group->grains);
   tableSize = BTSize(segGrains);
   SegFree(seg);
-  ArenaFree(arena, group->alloc, tableSize);
-  ArenaFree(arena, group->scanned, tableSize);
-  ArenaFree(arena, group->mark, tableSize);
+  ControlFree(arena, group->alloc, tableSize);
+  ControlFree(arena, group->scanned, tableSize);
+  ControlFree(arena, group->mark, tableSize);
   group->sig = SigInvalid;
-  ArenaFree(arena, group, sizeof *group);
+  ControlFree(arena, group, sizeof *group);
 }
   
  
@@ -332,23 +332,23 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   res = SegAlloc(&seg, &segPrefStruct, size, pool, withReservoirPermit);
   if(res != ResOK)
     goto failSegAlloc;
-  res = ArenaAlloc(&v, arena, sizeof *group);
+  res = ControlAlloc(&v, arena, sizeof *group, withReservoirPermit);
   if(res != ResOK)
-    goto failArenaAlloc0;
+    goto failControlAlloc0;
   group = v;
   bits = size >> awl->alignShift;
   tableSize = BTSize(bits);
-  res = ArenaAlloc(&v, arena, tableSize);
+  res = ControlAlloc(&v, arena, tableSize, withReservoirPermit);
   if(res != ResOK)
-    goto failArenaAllocMark;
+    goto failControlAllocMark;
   group->mark = v;
-  res = ArenaAlloc(&v, arena, tableSize);
+  res = ControlAlloc(&v, arena, tableSize, withReservoirPermit);
   if(res != ResOK)
-    goto failArenaAllocScanned;
+    goto failControlAllocScanned;
   group->scanned = v;
-  res = ArenaAlloc(&v, arena, tableSize);
+  res = ControlAlloc(&v, arena, tableSize, withReservoirPermit);
   if(res != ResOK)
-    goto failArenaAllocAlloc;
+    goto failControlAllocAlloc;
   group->alloc = v;
   group->grains = bits;
   BTResRange(group->mark, 0, bits);
@@ -365,13 +365,13 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   *groupReturn = group;
   return ResOK;
 
-failArenaAllocAlloc:
-  ArenaFree(arena, group->scanned, tableSize);
-failArenaAllocScanned:
-  ArenaFree(arena, group->mark, tableSize);
-failArenaAllocMark:
-  ArenaFree(arena, group, sizeof *group);
-failArenaAlloc0:
+failControlAllocAlloc:
+  ControlFree(arena, group->scanned, tableSize);
+failControlAllocScanned:
+  ControlFree(arena, group->mark, tableSize);
+failControlAllocMark:
+  ControlFree(arena, group, sizeof *group);
+failControlAlloc0:
   SegFree(seg);
 failSegAlloc:
   return res;
@@ -477,12 +477,12 @@ static Res AWLBufferInit(Pool pool, Buffer buffer, va_list args)
   /* AWL only accepts two ranks */
   AVER(rank == RankEXACT || rank == RankWEAK);
 
-  buffer->rankSet = RankSetSingle(rank);
+  BufferSetRankSet(buffer, RankSetSingle(rank));
   return ResOK;
 }
 
 
-static Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
+static Res AWLBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size size,
                          Bool withReservoirPermit)
 {
@@ -492,7 +492,6 @@ static Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   Res res;
   Ring node, nextNode;
 
-  AVER(segReturn != NULL);
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVERT(Pool, pool);
@@ -543,23 +542,26 @@ found:
     BTSetRange(group->scanned, i, j);
     group->free -= j - i;
   }
-  *segReturn = group->seg;
   *baseReturn = base;
   *limitReturn = limit;
   return ResOK;
 }
 
 
-static void AWLBufferEmpty(Pool pool, Buffer buffer, Seg seg)
+static void AWLBufferEmpty(Pool pool, Buffer buffer, 
+                           Addr init, Addr limit)
 {
   AWL awl;
   AWLGroup group;
+  Seg seg;
   Addr segBase;
   Index i, j;
 
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
+  seg = BufferSeg(buffer);
   AVER(SegCheck(seg));
+  AVER(init <= limit);
 
   awl = PoolPoolAWL(pool);
   AVERT(AWL, awl);
@@ -568,8 +570,8 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer, Seg seg)
 
   segBase = SegBase(seg);
 
-  i = awlIndexOfAddr(segBase, awl, BufferGetInit(buffer));
-  j = awlIndexOfAddr(segBase, awl, BufferLimit(buffer));
+  i = awlIndexOfAddr(segBase, awl, init);
+  j = awlIndexOfAddr(segBase, awl, limit);
   AVER(i <= j);
   if(i < j) {
     BTResRange(group->alloc, i, j);

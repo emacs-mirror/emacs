@@ -1,7 +1,7 @@
 /* impl.c.arenacl: ARENA IMPLEMENTATION USING CLIENT MEMORY
  *
- * $HopeName: MMsrc!arenacl.c(trunk.15) $
- * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
+ * $HopeName: MMsrc!arenacl.c(trunk.16) $
+ * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .readership: MM developers
  * 
@@ -10,14 +10,14 @@
  * .improve.remember: One possible performance improvement is to
  * remember (a conservative approximation to) the indices of the first
  * and last free pages in each chunk, and start searching from these
- * in ChunkSegAlloc. See request.epcore.170534.
+ * in ChunkAlloc. See request.epcore.170534.
  */
 
 #include "mpm.h"
 #include "mpsacl.h"
 
 
-SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.15) $");
+SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.16) $");
 
 
 typedef struct ClientArenaStruct *ClientArena;
@@ -50,9 +50,9 @@ typedef struct ClientArenaStruct {
 #define ClientArenaArena(ClientArena) (&(ClientArena)->arenaStruct)
 
 
-/* SegClientArena -- find the client arena given a segment */
+/* TractClientArena -- find the client arena given a tract */
 
-#define SegClientArena(seg) ArenaClientArena(PoolArena(SegPool(seg)))
+#define TractClientArena(tract) ArenaClientArena(PoolArena(TractPool(tract)))
 
 /* ChunkStruct -- chunk structure */
 
@@ -79,24 +79,20 @@ typedef struct ChunkStruct { /* chunk structure */
  * design.mps.arenavm.table.*.
  *
  * .page: The "pool" field must be the first field of the "tail"
- * field of this union, so that it shares a common prefix with the
- * SegStruct.  See impl.h.mpmst.seg.pool.
+ * field of this union.  See design.mps.arena.tract.field.pool.
  */
 
 typedef struct PageStruct {   /* page structure */
   union {
-    SegStruct segStruct;      /* segment */
+    TractStruct tractStruct;  /* tract */
     struct {
       Pool pool;              /* NULL, must be first field (.page) */
-      Seg seg;                /* segment at base page of run */
-      Addr limit;             /* limit of segment */
     } tail;
   } the;
 } PageStruct;
 
 
-static Addr ClientSegLimit(Seg seg);
-static Bool ClientSegNext(Seg *segReturn, Arena arena, Addr addr);
+static Bool ClientTractNext(Tract *tractReturn, Arena arena, Addr addr);
 
 
 /* ChunkCheck -- check the consistency of a chunk */
@@ -162,17 +158,21 @@ static Bool ChunkCheck(Chunk chunk)
 #define PageBase(chunk, index) \
   AddrAdd((chunk)->pageBase, ((index) << (chunk)->arena->pageShift))
 
-/* PageSeg -- segment descriptor of a page */
+/* PageTract -- tract descriptor of a page */
 
-#define PageSeg(page)           (&(page)->the.segStruct)
+#define PageTract(page)         (&(page)->the.tractStruct)
 
 /* PageTail -- tail descriptor of a page */
 
 #define PageTail(page)          (&(page)->the.tail)
 
-/* PageOfSeg -- page descriptor from segment */
+/* PagePool -- pool field of a page */
 
-#define PageOfSeg(seg)          PARENT(PageStruct, the.segStruct, seg)
+#define PagePool(page)          ((page)->the.tail.pool)
+
+/* PageOfTract -- page descriptor from arena tract */
+
+#define PageOfTract(tract)      PARENT(PageStruct, the.tractStruct, tract)
 
 
 /* ChunkPageIndexOfAddr -- base address to page index (within a chunk) 
@@ -420,7 +420,7 @@ static Res ClientArenaRetract(Arena arena, Addr base, Size size)
  * ClientArenaCommitted -- return the amount of committed virtual memory
  * 
  * (actually for the client arena, ArenaCommitted returns the amount 
- * allocated in segments).
+ * allocated in tracts).
  */
 
 static Size ClientArenaReserved(Arena arena)
@@ -463,17 +463,17 @@ static Size ClientArenaCommitted(Arena arena)
 }
 
 
-/* ChunkSegAlloc: allocate a segment in a chunk */
+/* ChunkAlloc: allocate some tracts in a chunk */
 
-static Res ChunkSegAlloc(Seg *segReturn, SegPref pref, Size pages, 
-                         Pool pool, Chunk chunk)
+static Res ChunkAlloc(Addr *baseReturn, Tract *baseTractReturn,
+                      SegPref pref, Size pages, Pool pool, Chunk chunk)
 {
   Index baseIndex, limitIndex, index;
   Bool b;
-  Seg seg;
   ClientArena clientArena;
 
-  AVER(segReturn != NULL);
+  AVER(baseReturn != NULL);
+  AVER(baseTractReturn != NULL);
   AVERT(Chunk, chunk);
 
   if (pages > chunk->freePages)
@@ -503,48 +503,39 @@ static Res ChunkSegAlloc(Seg *segReturn, SegPref pref, Size pages,
     return ResCOMMIT_LIMIT;
   }
 
-  /* Initialize the generic segment structure. */
-  seg = PageSeg(&chunk->pageTable[baseIndex]);
-  SegInit(seg, pool);
-
-  /* Allocate the first page, and, if there is more than one page, */
-  /* allocate the rest of the pages and store the multi-page */
-  /* information in the page table. */
-  AVER(!BTGet(chunk->allocTable, baseIndex));
-  BTSet(chunk->allocTable, baseIndex);
-  if(pages > 1) {
-    Addr limit = PageBase(chunk, limitIndex);
-    SegSetSingle(seg, FALSE);
-    for(index = baseIndex + 1; index < limitIndex; ++index) {
-      AVER(!BTGet(chunk->allocTable, index));
-      BTSet(chunk->allocTable, index);
-      PageTail(&chunk->pageTable[index])->pool = NULL;
-      PageTail(&chunk->pageTable[index])->seg = seg;
-      PageTail(&chunk->pageTable[index])->limit = limit;
-    }
-  } else {
-    SegSetSingle(seg, TRUE);
+  /* Initialize the generic tract structures. */
+  AVER(limitIndex > baseIndex);
+  for(index = baseIndex; index < limitIndex; ++index) {
+    Tract tract;
+    Addr base;
+    AVER(!BTGet(chunk->allocTable, index));
+    tract = PageTract(&chunk->pageTable[index]);
+    base = PageBase(chunk, index);
+    BTSet(chunk->allocTable, index);
+    TractInit(tract, pool, base);
   }
+
   chunk->freePages -= pages;
   
-  AVERT(Seg, seg);
-
-  *segReturn = seg;
+  *baseReturn = PageBase(chunk, baseIndex);
+  *baseTractReturn = PageTract(&chunk->pageTable[baseIndex]);
+    
   return ResOK;
 }
 
 
-/* ClientSegAlloc -- allocate a segment from the arena */
+/* ClientAlloc -- allocate a region from the arena */
 
-static Res ClientSegAlloc(Seg *segReturn, SegPref pref,
-                          Size size, Pool pool)
+static Res ClientAlloc(Addr *baseReturn, Tract *baseTractReturn,
+                       SegPref pref, Size size, Pool pool)
 {
   ClientArena clientArena;
   Res res;
   Ring node, nextNode;
   Size pages;
 
-  AVER(segReturn != NULL);
+  AVER(baseReturn != NULL);
+  AVER(baseTractReturn != NULL);
   AVERT(SegPref, pref);
   AVER(size > 0);
   AVERT(Pool, pool);
@@ -562,7 +553,7 @@ static Res ClientSegAlloc(Seg *segReturn, SegPref pref,
   /* .req.extend.slow */
   RING_FOR(node, &clientArena->chunkRing, nextNode) { 
     Chunk chunk = RING_ELT(Chunk, arenaRing, node);
-    res = ChunkSegAlloc(segReturn, pref, pages, pool, chunk);
+    res = ChunkAlloc(baseReturn, baseTractReturn, pref, pages, pool, chunk);
     if(res == ResOK || res == ResCOMMIT_LIMIT) {
       return res;
     }
@@ -571,187 +562,20 @@ static Res ClientSegAlloc(Seg *segReturn, SegPref pref,
 }
 
 
-/* SegChunk -- identify the chunk (and index) in which a segment 
- *             resides 
+/* ClientChunkOfAddr -- return the chunk which encloses an address
+ *
  */
 
-static Res SegChunk(Chunk *chunkReturn, Index *indexReturn, Seg seg)
+static Bool ClientChunkOfAddr(Chunk *chunkReturn, 
+                              ClientArena clientArena, Addr addr)
 {
-  Page page;
   Ring node, nextNode;
-  ClientArena clientArena;
-  
-  AVER(chunkReturn != NULL);
-  AVERT(Seg, seg);
-
-  clientArena = SegClientArena(seg);
-  AVERT(ClientArena, clientArena);
-
-  page = PageOfSeg(seg);
+  /* No checks because critical and internal */
 
   RING_FOR(node, &clientArena->chunkRing, nextNode) {
     Chunk chunk = RING_ELT(Chunk, arenaRing, node);
-    if ((page >= chunk->pageTable) &&
-        (page < (chunk->pageTable + chunk->pages))) {
-      *indexReturn = page - chunk->pageTable;
+    if(chunk->base <= addr && addr < chunk->limit) {
       *chunkReturn = chunk;
-      return ResOK;
-    }
-  }
-  return ResFAIL;
-}
-
-
-/* ClientSegFree - free a segment in the arena */
-
-static void ClientSegFree(Seg seg)
-{
-  ClientArena clientArena;
-  Chunk chunk;
-  Index baseIndex, limitIndex;
-  Size pages;
-  Addr base, limit; 
-  Res res;
-
-  AVERT(Seg, seg);
-
-  clientArena = SegClientArena(seg);
-  AVERT(ClientArena, clientArena);
-  res = SegChunk(&chunk, &baseIndex, seg);
-  AVER(res == ResOK);
-
-  base = PageBase(chunk, baseIndex);
-  limit = ClientSegLimit(seg);
-
-  SegFinish(seg);
-
-  pages = AddrOffset(base, limit) >> clientArena->pageShift;
-  limitIndex = baseIndex + pages;
-  AVER(BTIsSetRange(chunk->allocTable, baseIndex, limitIndex));
-  BTResRange(chunk->allocTable, baseIndex, limitIndex);
-
-  chunk->freePages += pages;
-}
-
-
-/* .seg.critical: These Seg functions are low-level and are on 
- * the critical path in various ways.  The more common therefore 
- * use AVER_CRITICAL.
- */
-
-
-/* ClientSegBase -- return the base address of a segment
- *
- * The segment base is calculated by identifying the chunk and page
- * index, then multiplying that by the page size and adding it to
- * the chunk base address.
- */
-
-static Addr ClientSegBase(Seg seg)
-{
-  ClientArena clientArena;
-  Index index;
-  Chunk chunk;
-  Res res;
-  
-  AVERT_CRITICAL(Seg, seg);
-  clientArena = SegClientArena(seg);
-  AVERT_CRITICAL(ClientArena, clientArena);
-
-  res = SegChunk(&chunk, &index, seg);
-  AVER(res == ResOK);
-
-  return PageBase(chunk, index);
-}
-
-
-/* ClientSegLimit -- return the limit address (end+1) of a segment
- *
- * If the segment is a single page, then the limit is just
- * the next page, otherwise it is stored on the next page
- * table entry.
- */
-
-static Addr ClientSegLimit(Seg seg)
-{
-  ClientArena clientArena;
-  Page page;
-
-  AVERT_CRITICAL(Seg, seg);
-  clientArena = SegClientArena(seg);
-  AVERT_CRITICAL(ClientArena, clientArena);
-
-  if(SegSingle(seg)) {
-    return AddrAdd(ClientSegBase(seg), clientArena->pageSize);
-  } else {
-    page = PageOfSeg(seg);
-    return PageTail(page+1)->limit;
-  }
-}
-
-
-/* ClientSegSize -- return the size (limit - base) of a segment
- *
- * .improve.redundant-calc: There is scope for optimizing this,
- * because both base and limit calls do roughly the same thing twice.
- */
-
-static Size ClientSegSize(Seg seg)
-{
-  AVERT_CRITICAL(Seg, seg);
-  return AddrOffset(ClientSegBase(seg), ClientSegLimit(seg));
-}
-
-
-/* ClientSegOfAddr -- return the segment which encloses an address
- *
- * If the address is within the bounds of the arena, calculate the
- * page table index from the address and see if the page is allocated.
- * If it is a head page, return the segment, otherwise follow the
- * tail's pointer back to the segment in the head page.
- */
-
-static Bool ClientSegOfAddr(Seg *segReturn, Arena arena, Addr addr)
-{
-  ClientArena clientArena;
-  Ring node, nextNode;
-  
-  AVER_CRITICAL(segReturn != NULL);
-  clientArena = ArenaClientArena(arena);
-  AVERT_CRITICAL(ClientArena, clientArena);
-
-  RING_FOR(node, &clientArena->chunkRing, nextNode) {
-    Chunk chunk = RING_ELT(Chunk, arenaRing, node);
-    if(chunk->base <= addr && addr < chunk->limit) {
-      Index index = AddrOffset(chunk->pageBase, addr) >> 
-              clientArena->pageShift;
-      if(BTGet(chunk->allocTable, index)) {
-        Page page = &chunk->pageTable[index];
-        if(SegPool(PageSeg(page)) != NULL)
-          *segReturn = PageSeg(page);
-        else
-          *segReturn = PageTail(page)->seg;
-        return TRUE;
-      }
-    }
-  }
-  return FALSE;
-}
-
-static Bool ClientIsReserved(Arena arena, Addr addr)
-{
-  ClientArena clientArena;
-  Ring node, nextNode;
-
-  AVERT(Arena, arena);
-  /* addr is arbitrary */
-
-  clientArena = ArenaClientArena(arena);
-  AVERT(ClientArena, clientArena);
-
-  RING_FOR(node, &clientArena->chunkRing, nextNode) {
-    Chunk chunk = RING_ELT(Chunk, arenaRing, node);
-    if(chunk->base <= addr && addr < chunk->limit) {
       return TRUE;
     }
   }
@@ -759,61 +583,163 @@ static Bool ClientIsReserved(Arena arena, Addr addr)
 }
 
 
-/* SegSearchChunk -- search for a segment in a given chunk
- *
- * Searches for a segment in the chunk starting at page 'index',
- * return NULL if there is none.  A segment is present if it is
- * not free, and its pool is not NULL.
- *
- * This function is private to this module and is used in the segment
- * iteration protocol (SegFirst and SegNext).
+/* ClientFree - free a region in the arena */
+
+static void ClientFree(Addr base, Size size, Pool pool)
+{
+  Arena arena;
+  Chunk chunk;
+  Size pages;
+  ClientArena clientArena;
+  Index pi, baseIndex, limitIndex;
+  Bool foundChunk;
+
+  AVER(base != NULL);
+  AVER(size > (Size)0);
+  AVERT(Pool, pool);
+  arena = PoolArena(pool);
+  AVERT(Arena, arena);
+  clientArena = ArenaClientArena(arena);
+  AVERT(ClientArena, clientArena);
+  AVER(SizeIsAligned(size, clientArena->pageSize));
+  AVER(AddrIsAligned(base, clientArena->pageSize));
+
+  foundChunk = ClientChunkOfAddr(&chunk, clientArena, base);
+  AVER(foundChunk);
+
+  pages = size >> clientArena->pageShift;
+  baseIndex = AddrOffset(chunk->pageBase, base) >> 
+                clientArena->pageShift;
+  limitIndex = baseIndex + pages;
+  AVER(baseIndex < limitIndex);
+  AVER(limitIndex <= chunk->pages);
+
+  for(pi = baseIndex; pi < limitIndex; pi++) {
+    Page page = &chunk->pageTable[pi];
+    Tract tract = PageTract(page);
+    AVER(TractPool(tract) == pool);
+    TractFinish(PageTract(page));
+  }
+
+  AVER(BTIsSetRange(chunk->allocTable, baseIndex, limitIndex));
+  BTResRange(chunk->allocTable, baseIndex, limitIndex);
+
+  chunk->freePages += pages;
+}
+
+
+/* .tract.critical: These Tract functions are low-level and are on 
+ * the critical path in various ways.  The more common therefore 
+ * use AVER_CRITICAL.
  */
-static Seg SegSearchChunk(Chunk chunk, Index index)
+
+
+/* ClientTractOfAddr -- return the tract which encloses an address
+ *
+ * If the address is within the bounds of the arena, calculate the
+ * page table index from the address and see if the page is allocated.
+ * If so, return it.
+ */
+
+static Bool ClientTractOfAddr(Tract *tractReturn, Arena arena, Addr addr)
+{
+  Bool b;
+  Chunk chunk;
+  Index index;
+  ClientArena clientArena;
+  
+  AVER_CRITICAL(tractReturn != NULL);
+  clientArena = ArenaClientArena(arena);
+  AVERT_CRITICAL(ClientArena, clientArena);
+
+  b = ClientChunkOfAddr(&chunk, clientArena, addr);
+  if(!b)
+    return FALSE;
+  index = AddrOffset(chunk->pageBase, addr) >> clientArena->pageShift;
+  if(BTGet(chunk->allocTable, index)) {
+    Page page = &chunk->pageTable[index];
+    *tractReturn = PageTract(page);
+    return TRUE;
+  }
+  return FALSE;
+}
+
+static Bool ClientIsReserved(Arena arena, Addr addr)
+{
+  ClientArena clientArena;
+  Chunk dummy;
+
+  AVERT(Arena, arena);
+  /* addr is arbitrary */
+
+  clientArena = ArenaClientArena(arena);
+  AVERT(ClientArena, clientArena);
+
+  return ClientChunkOfAddr(&dummy, clientArena, addr);
+}
+
+
+/* tractSearchChunk -- search for a tract in a given chunk
+ *
+ * .tract-search: Searches for a tract in the chunk starting at page 
+ * 'index', return NULL if there is none.  A tract is present if its 
+ * page is not free, and its pool is not NULL.
+ *
+ * This function is private to this module and is used in the tract
+ * iteration protocol (TractFirst and TractNext).
+ */
+
+static Tract tractSearchChunk(Chunk chunk, Index index)
 {
   AVERT_CRITICAL(Chunk, chunk);
   AVER_CRITICAL(index <= chunk->pages);
 
-  while(index < chunk->pages &&
-        (!BTGet(chunk->allocTable, index) ||
-         SegPool(PageSeg(&chunk->pageTable[index])) == NULL))
+  while(index < chunk->pages && !BTGet(chunk->allocTable, index)) {
+    /* can't check that the pool is NULL because it won't have */
+    /* been initialized before the first allocation of the page */
+    /* AVER_CRITICAL(PagePool(&chunk->pageTable[index]) == NULL); */
     ++index;
-  
-  if(index < chunk->pages)
-    return PageSeg(&chunk->pageTable[index]);
+  }
+    
+  if(index < chunk->pages) {
+    Tract tract = PageTract(&chunk->pageTable[index]);
+    AVER_CRITICAL(TractPool(tract) != NULL);
+    return tract;
+  }
   
   AVER_CRITICAL(index == chunk->pages);
   return NULL;
 }
 
 
-/* ClientSegFirst -- return the first segment in the arena
+/* ClientTractFirst -- return the first tract in the arena
  *
- * This is used to start an iteration over all segments in the arena.
+ * This is used to start an iteration over all tracts in the arena.
  */
 
-static Bool ClientSegFirst(Seg *segReturn, Arena arena)
+static Bool ClientTractFirst(Tract *tractReturn, Arena arena)
 {
-  return ClientSegNext(segReturn, arena, (Addr)0);
+  return ClientTractNext(tractReturn, arena, (Addr)0);
 }
 
 
-/* ClientSegNext -- return the next segment in the arena
+/* ClientTractNext -- return the next tract in the arena
  *
  * This is used as the iteration step when iterating over all
- * segments in the arena.
+ * tracts in the arena.
  */
 
-static Bool ClientSegNext(Seg *segReturn, Arena arena, Addr addr)
+static Bool ClientTractNext(Tract *tractReturn, Arena arena, Addr addr)
 {
   ClientArena clientArena;
   Ring node, nextNode;
 
-  AVER_CRITICAL(segReturn != NULL);
+  AVER_CRITICAL(tractReturn != NULL);
   clientArena = ArenaClientArena(arena);
   AVERT_CRITICAL(ClientArena, clientArena);
   AVER_CRITICAL(AddrIsAligned(addr, ArenaAlign(arena)));
 
-  /* For each chunk, search for a segment whose base is bigger */
+  /* For each chunk, search for a tract whose base is bigger */
   /* than  addr.  Chunks whose limit is less than addr are not */
   /* considered.  Chunks are on the ring in address order, so */
   /* this finds the first */
@@ -823,7 +749,7 @@ static Bool ClientSegNext(Seg *segReturn, Arena arena, Addr addr)
 
     if(addr < AddrAdd(chunk->pageBase,
                (Size)(chunk->pages << clientArena->pageShift))) {
-      Seg seg;
+      Tract tract;
 
       if(addr < chunk->pageBase) {
         /* The address is not in this chunk, so we want */
@@ -838,48 +764,86 @@ static Bool ClientSegNext(Seg *segReturn, Arena arena, Addr addr)
         AVER(index + 1 != 0);
         ++index;
       }
-      seg = SegSearchChunk(chunk, index);
-      if(seg != NULL) {
-        AVER_CRITICAL(addr < ClientSegBase(seg));
-        *segReturn = seg;
+      tract = tractSearchChunk(chunk, index);
+      if(tract != NULL) {
+        AVER_CRITICAL(addr < TractBase(tract));
+        *tractReturn = tract;
         return TRUE;
       }
     }
-    /* This chunk didn't have any more segs, so try the next one. */
+    /* This chunk didn't have any more tracts, so try the next one. */
   }
   /* If there are no more chunks, then we are done. */
   return FALSE;
 }
 
 
-/* mps_arena_class_cl -- return the arena class CL */
+/* ClientTractNextContig -- return the next contiguous tract
+ *
+ * This is used as the iteration step when iterating over all
+ * a contiguous range of tracts owned by a pool. Both current
+ * and next tracts must be allocated.
+ */
 
-static ArenaClassStruct ArenaClassCLStruct = {
-  ArenaClassSig,
-  "CL",                                     /* name */
-  sizeof(ClientArenaStruct),                /* size */
-  offsetof(ClientArenaStruct, arenaStruct), /* offset */
-  ClientArenaInit,                          /* init */
-  ClientArenaFinish,                        /* finish */
-  ClientArenaReserved,                      /* reserved */
-  ClientArenaCommitted,                     /* committed */
-  ArenaNoSpareCommitExceeded,
-  ClientArenaExtend,                        /* extend */
-  ClientArenaRetract,                       /* retract */
-  ClientIsReserved,                         /* isReserved */
-  ClientSegAlloc,                           /* segAlloc */
-  ClientSegFree,                            /* segFree */
-  ClientSegBase,                            /* segBase */
-  ClientSegLimit,                           /* segLimit */
-  ClientSegSize,                            /* segSize */
-  ClientSegOfAddr,                          /* segOfAddr */
-  ClientSegFirst,                           /* segFirst */
-  ClientSegNext,                            /* segNext */
-  ArenaTrivDescribe,                        /* describe */
-  ArenaClassSig
-};
+static Tract ClientTractNextContig(Arena arena, Tract tract)
+{
+  ClientArena clArena;
+  Page page, next;
+  Tract tnext;
+
+  clArena = ArenaClientArena(arena);
+  AVERT_CRITICAL(ClientArena, clArena);
+  AVERT_CRITICAL(Tract, tract);
+
+  /* check both this tract & next tract lie with the same chunk */
+  {
+    Chunk ch1, ch2;
+    UNUSED(ch1);
+    UNUSED(ch2);
+    AVER_CRITICAL(ClientChunkOfAddr(&ch1, clArena, TractBase(tract)) &&
+                  ClientChunkOfAddr(&ch2, clArena, 
+                                    AddrAdd(TractBase(tract), 
+                                            arena->alignment)) &&
+                  (ch1 == ch2));
+  }
+
+  /* the next contiguous tract is contiguous in the page table */
+  page = PageOfTract(tract);
+  next = page + 1;  
+  tnext = PageTract(next);
+  AVERT_CRITICAL(Tract, tnext);
+  AVER_CRITICAL(PagePool(next) != NULL);
+  return tnext;
+}
+
+
+/* ClientArenaClass  -- The Client arena class definition */
+
+DEFINE_ARENA_CLASS(ClientArenaClass, this)
+{
+  INHERIT_CLASS(this, AbstractArenaClass);
+  this->name = "CL";
+  this->size = sizeof(ClientArenaStruct);
+  this->offset = offsetof(ClientArenaStruct, arenaStruct);
+  this->init = ClientArenaInit;
+  this->finish = ClientArenaFinish;
+  this->reserved = ClientArenaReserved;
+  this->committed = ClientArenaCommitted;
+  this->extend = ClientArenaExtend;
+  this->retract = ClientArenaRetract;
+  this->isReserved = ClientIsReserved;
+  this->alloc = ClientAlloc;
+  this->free = ClientFree;
+  this->tractOfAddr = ClientTractOfAddr;
+  this->tractFirst = ClientTractFirst;
+  this->tractNext = ClientTractNext;
+  this->tractNextContig = ClientTractNextContig;
+}
+
+
+/* mps_arena_class_cl -- return the arena class CL */
 
 mps_arena_class_t mps_arena_class_cl(void)
 {
-  return (mps_arena_class_t)&ArenaClassCLStruct;
+  return (mps_arena_class_t)EnsureClientArenaClass();
 }

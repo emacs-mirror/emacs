@@ -1,6 +1,7 @@
 /* impl.h.check: ASSERTION INTERFACE
  *
- * $HopeName: MMsrc!check.h(trunk.11) $
+ * $HopeName: MMsrc!check.h(trunk.12) $
+ * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * This header defines a family of AVER and NOTREACHED macros. The
  * macros should be used to instrument and annotate code with
@@ -73,7 +74,7 @@ extern void AssertFail1(const char *s);
       AssertFail1(condstring "\n" __FILE__ "\n" STR(__LINE__)); \
   END
 
-    
+
 #define NOTREACHED \
   BEGIN \
     AssertFail1("unreachable statement" "\n" __FILE__ "\n" STR(__LINE__)); \

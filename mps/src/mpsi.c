@@ -1,7 +1,7 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.68) $
- * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
+ * $HopeName: MMsrc!mpsi.c(trunk.69) $
+ * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
  * impl.h.mps, and the internal MPM interfaces, as defined by
@@ -53,7 +53,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.68) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.69) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -632,6 +632,7 @@ mps_res_t mps_ap_create(mps_ap_t *mps_ap_o, mps_pool_t mps_pool, ...)
   Pool pool = (Pool)mps_pool;
   Arena arena;
   Buffer buf;
+  BufferClass bufclass;
   Res res;
   va_list args;
   
@@ -644,7 +645,8 @@ mps_res_t mps_ap_create(mps_ap_t *mps_ap_o, mps_pool_t mps_pool, ...)
   AVERT(Pool, pool);
 
   va_start(args, mps_pool);
-  res = BufferCreateV(&buf, pool, TRUE, args);
+  bufclass = PoolDefaultBufferClass(pool);
+  res = BufferCreateV(&buf, bufclass, pool, TRUE, args);
   va_end(args);
 
   ArenaLeave(arena);
@@ -664,6 +666,7 @@ mps_res_t mps_ap_create_v(mps_ap_t *mps_ap_o, mps_pool_t mps_pool,
   Pool pool = (Pool)mps_pool;
   Arena arena;
   Buffer buf;
+  BufferClass bufclass;
   Res res;
   
   AVER(mps_ap_o != NULL);
@@ -674,7 +677,8 @@ mps_res_t mps_ap_create_v(mps_ap_t *mps_ap_o, mps_pool_t mps_pool,
 
   AVERT(Pool, pool);
 
-  res = BufferCreateV(&buf, pool, TRUE, args);
+  bufclass = PoolDefaultBufferClass(pool);
+  res = BufferCreateV(&buf, bufclass, pool, TRUE, args);
 
   ArenaLeave(arena);
 
@@ -1594,19 +1598,23 @@ mps_res_t mps_ap_alloc_pattern_reset(mps_ap_t mps_ap)
 void mps_reservoir_limit_set(mps_arena_t mps_arena, size_t size)
 {
   Arena arena = (Arena)mps_arena;
+  Reservoir reservoir;
 
   ArenaEnter(arena);
-  ArenaReservoirLimitSet(arena, size);
+  reservoir = ArenaReservoir(arena);
+  ReservoirSetLimit(reservoir, size);
   ArenaLeave(arena);
 }
 
 size_t mps_reservoir_limit(mps_arena_t mps_arena)
 {
   Arena arena = (Arena)mps_arena;
+  Reservoir reservoir;
   Size size;
 
   ArenaEnter(arena);
-  size = ArenaReservoirLimit(arena);
+  reservoir = ArenaReservoir(arena);
+  size = ReservoirLimit(reservoir);
   ArenaLeave(arena);
 
   return size;
@@ -1615,10 +1623,12 @@ size_t mps_reservoir_limit(mps_arena_t mps_arena)
 size_t mps_reservoir_available(mps_arena_t mps_arena)
 {
   Arena arena = (Arena)mps_arena;
+  Reservoir reservoir;
   Size size;
 
   ArenaEnter(arena);
-  size = ArenaReservoirAvailable(arena);
+  reservoir = ArenaReservoir(arena);
+  size = ReservoirAvailable(reservoir);
   ArenaLeave(arena);
 
   return size;
