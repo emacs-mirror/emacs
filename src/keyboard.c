@@ -2057,8 +2057,15 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   if (!NILP (tem))
     {
+      int was_locked = single_kboard;
+
       last_input_char = c;
       Fcommand_execute (tem, Qnil, Fvector (1, &last_input_char));
+
+      /* Resume allowing input from any kboard, if that was true before.  */
+      if (!was_locked)
+	any_kboard_state ();
+
       goto retry;
     }
 
@@ -2931,11 +2938,18 @@ timer_check (do_it_now)
 	      if (do_it_now)
 		{
 		  Lisp_Object tem, event;
+		  int was_locked = single_kboard;
+
 		  tem = get_keymap_1 (Vspecial_event_map, 0, 0);
 		  tem = get_keyelt (access_keymap (tem, Qtimer_event, 0, 0),
 				    1);
 		  event = Fcons (Qtimer_event, Fcons (timer, Qnil));
 		  Fcommand_execute (tem, Qnil, Fvector (1, &event));
+
+		  /* Resume allowing input from any kboard, if that was true before.  */
+		  if (!was_locked)
+		    any_kboard_state ();
+
 		  /* Since we have handled the event,
 		     we don't need to tell the caller to wake up and do it.  */
 		}
