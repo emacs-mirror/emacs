@@ -18,7 +18,9 @@
 #define HAVE_ALLOCA
 /* Adrian Colley <Adrian.Colley@three.serpentine.com> says this is needed.  */
 #ifndef NOT_C_CODE
+#ifndef AIX4
  #pragma alloca
+#endif
 #endif
 
 #undef rindex
