@@ -194,12 +194,13 @@ enum event_kind
 {
   no_event,			/* nothing happened.  This should never
 				   actually appear in the event queue.  */
-  ascii_keystroke,		/* The ASCII code is in .code.
+
+  ascii_keystroke,		/* The ASCII code is in .code, perhaps
+				   with modifiers applied.
+				   .modifiers holds the state of the
+				   modifier keys.
 				   .frame_or_window is the frame in
 				   which the key was typed.
-				   Note that this includes meta-keys, and
-				   the modifiers field of the event
-				   is unused.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the keystroke.  */
   non_ascii_keystroke,		/* .code is a number identifying the
