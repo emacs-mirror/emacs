@@ -53,7 +53,7 @@ static void test(void)
  size_t bytes;
  size_t alignment;
  mps_addr_t q;
- int nextid = 1000000;
+ int nextid = 0x1000000;
 
 /* turn on comments about copying and scanning */
  formatcomments = BLAH;
