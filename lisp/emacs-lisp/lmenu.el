@@ -146,6 +146,56 @@ The syntax, more precisely:
 	   (if (keymapp cmd)
 	       (setq menu cmd)
 	     (call-interactively cmd))))))
+
+(defun popup-dialog-box (data)
+  "Pop up a dialog box.
+A dialog box description is a list.
+
+ - The first element of the list is a string to display in the dialog box.
+ - The rest of the elements are descriptions of the dialog box's buttons.
+   Each one is a vector of three elements:
+   - The first element is the text of the button.
+   - The second element is the `callback'.
+   - The third element is t or nil, whether this button is selectable.
+
+If the `callback' of a button is a symbol, then it must name a command.
+It will be invoked with `call-interactively'.  If it is a list, then it is
+evaluated with `eval'.
+
+One (and only one) of the buttons may be `nil'.  This marker means that all
+following buttons should be flushright instead of flushleft.
+
+The syntax, more precisely:
+
+   form		:=  <something to pass to `eval'>
+   command	:=  <a symbol or string, to pass to `call-interactively'>
+   callback 	:=  command | form
+   active-p	:=  <t, nil, or a form to evaluate to decide whether this
+		    button should be selectable>
+   name		:=  <string>
+   partition	:=  'nil'
+   button	:=  '['  name callback active-p ']'
+   dialog	:=  '(' name [ button ]+ [ partition [ button ]+ ] ')'"
+  (let ((name (car data))
+	(tail (cdr data))
+	converted
+	choice)
+    (while tail
+      (if (null (car tail))
+	  (setq converted (cons nil converted))
+	(let ((item (aref (car tail) 0))
+	      (callback (aref (car tail) 1))
+	      (enable (aref (car tail) 2)))
+	  (setq converted
+		(cons (if enable (cons item callback) item)
+		      converted))))
+      (setq tail (cdr tail)))
+    (setq choice (x-popup-dialog t (cons name (nreverse converted))))
+    (setq meaning (assq choice converted))
+    (if meaning
+	(if (symbolp (cdr meaning))
+	    (call-interactively (cdr meaning))
+	  (eval (cdr meaning))))))
 
 ;; This is empty because the usual elements of the menu bar 
 ;; are provided by menu-bar.el instead.
