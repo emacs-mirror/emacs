@@ -1006,7 +1006,8 @@ DEFUN ("char-charset", Fchar_charset, Schar_charset, 1, 1, 0,
 
 DEFUN ("charset-after", Fcharset_after, Scharset_after, 0, 1, 0,
   "Return charset of a character in current buffer at position POS.\n\
-If POS is nil, it defauls to the current point.")
+If POS is nil, it defauls to the current point.\n\
+If POS is out of range, the value is nil.")
   (pos)
      Lisp_Object pos;
 {
@@ -1016,10 +1017,16 @@ If POS is nil, it defauls to the current point.")
   if (NILP (pos))
     pos_byte = PT_BYTE;
   else if (MARKERP (pos))
-    pos_byte = marker_byte_position (pos);
+    {
+      pos_byte = marker_byte_position (pos);
+      if (pos_byte < BEGV_BYTE || pos_byte >= ZV_BYTE)
+	return Qnil;
+    }
   else
     {
       CHECK_NUMBER (pos, 0);
+      if (XINT (pos) < BEGV || XINT (pos) >= ZV)
+	return Qnil;
       pos_byte = CHAR_TO_BYTE (XINT (pos));
     }
   p = BYTE_POS_ADDR (pos_byte);
