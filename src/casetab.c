@@ -239,7 +239,10 @@ syms_of_casetab ()
   Qcase_table_p = intern ("case-table-p");
   staticpro (&Qcase_table_p);
 
+  staticpro (&Vascii_canon_table);
   staticpro (&Vascii_downcase_table);
+  staticpro (&Vascii_eqv_table);
+  staticpro (&Vascii_upcase_table);
 
   defsubr (&Scase_table_p);
   defsubr (&Scurrent_case_table);
