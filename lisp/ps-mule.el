@@ -208,14 +208,14 @@ See also the variable `ps-font-info-database'.")
      (bold builtin "GothicBBB-Medium.Katakana" ps-mule-encode-7bit 1)
      (bold-italic builtin "GothicBBB-Medium.Katakana" ps-mule-encode-7bit 1))
     (latin-jisx0201
-     (normat builtin "Ryumin-Light.Hankaku" ps-mule-encode-7bit 1)
+     (normal builtin "Ryumin-Light.Hankaku" ps-mule-encode-7bit 1)
      (bold builtin "GothicBBB-Medium.Hankaku" ps-mule-encode-7bit 1))
     (japanese-jisx0208
      (normal builtin "Ryumin-Light-H" ps-mule-encode-7bit 2)
      (bold builtin "GothicBBB-Medium-H" ps-mule-encode-7bit 2))
     (korean-ksc5601
-     (normal builtin "Batang-Medium-KSC-H" ps-mule-encode-7bit 2)
-     (bold builtin " Gulim-Medium-KSC-H" ps-mule-encode-7bit 2))
+     (normal builtin "Munhwa-Regular-KSC-EUC-H" ps-mule-encode-7bit 2)
+     (bold builtin "Munhwa-Bold-KSC-EUC-H" ps-mule-encode-7bit 2))
     )
   "Sample setting of the `ps-mule-font-info-database' to use builtin PS font.
 
