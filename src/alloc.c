@@ -2631,6 +2631,26 @@ allocate_misc ()
   return val;
 }
 
+/* Return a Lisp_Misc_Save_Value object containing POINTER and
+   INTEGER.  This is used to package C values to call record_unwind_protect.
+   The unwind function can get the C values back using XSAVE_VALUE.  */
+
+Lisp_Object
+make_save_value (pointer, integer)
+     void *pointer;
+     int integer;
+{
+  register Lisp_Object val;
+  register struct Lisp_Save_Value *p;
+
+  val = allocate_misc ();
+  XMISCTYPE (val) = Lisp_Misc_Save_Value;
+  p = XSAVE_VALUE (val);
+  p->pointer = pointer;
+  p->integer = integer;
+  return val;
+}
+
 DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
        doc: /* Return a newly allocated marker which does not point at any place.  */)
      ()
