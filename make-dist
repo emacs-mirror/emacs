@@ -387,7 +387,7 @@ echo "Making links to \`lisp' and its subdirectories"
 
 ### Don't distribute an empty calc directory, present due to CVS
 ### misfeatures.
- (cd ../${tempdir}/lisp
+ (cd ./${tempdir}/lisp
   rm -rf calc
  )
 
