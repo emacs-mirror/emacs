@@ -3706,6 +3706,12 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	{
 	  GetUpdateRect (hwnd, &wmsg.rect, FALSE);
 	  w32_clear_rect (f, NULL, &wmsg.rect);
+
+#if defined (W32_DEBUG_DISPLAY)
+          DebPrint (("WM_ERASEBKGND: erasing %d,%d-%d,%d\n",
+                     wmsg.rect.left, wmsg.rect.top, wmsg.rect.right,
+                     wmsg.rect.bottom));
+#endif /* W32_DEBUG_DISPLAY */
 	}
       return 1;
     case WM_PALETTECHANGED:
@@ -3720,7 +3726,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	}
       return 0;
     case WM_PAINT:
-        {
+      {
   	PAINTSTRUCT paintStruct;
         RECT update_rect;
 
@@ -4477,7 +4483,30 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       return ShowWindow ((HWND) wParam, (WPARAM) lParam);
 
     case WM_EMACS_SETFOREGROUND:
-      return SetForegroundWindow ((HWND) wParam);
+      {
+        HWND foreground_window;
+        DWORD foreground_thread, retval;
+
+        /* On NT 5.0, and apparently Windows 98, it is necessary to
+           attach to the thread that currently has focus in order to
+           pull the focus away from it.  */
+        foreground_window = GetForegroundWindow ();
+	foreground_thread = GetWindowThreadProcessId (foreground_window, NULL);
+        if (!foreground_window
+            || foreground_thread == GetCurrentThreadId ()
+            || !AttachThreadInput (GetCurrentThreadId (),
+                                   foreground_thread, TRUE))
+          foreground_thread = 0;
+
+        retval = SetForegroundWindow ((HWND) wParam);
+
+        /* Detach from the previous foreground thread.  */
+        if (foreground_thread)
+          AttachThreadInput (GetCurrentThreadId (),
+                             foreground_thread, FALSE);
+
+        return retval;
+      }
 
     case WM_EMACS_SETWINDOWPOS:
       {
@@ -5345,9 +5374,11 @@ x_to_w32_charset (lpcs)
   else if (stricmp (lpcs, "ms-symbol") == 0)     return SYMBOL_CHARSET;
   /* Map all Japanese charsets to the Windows Shift-JIS charset.  */
   else if (strnicmp (lpcs, "jis", 3) == 0)       return SHIFTJIS_CHARSET;
+  /* Map all GB charsets to the Windows GB2312 charset.  */
+  else if (strnicmp (lpcs, "gb2312", 6) == 0)    return GB2312_CHARSET;
+  /* Map all Big5 charsets to the Windows Big5 charset.  */
+  else if (strnicmp (lpcs, "big5", 4) == 0)      return CHINESEBIG5_CHARSET;
   else if (stricmp (lpcs, "ksc5601.1987") == 0)  return HANGEUL_CHARSET;
-  else if (stricmp (lpcs, "gb2312") == 0)        return GB2312_CHARSET;
-  else if (stricmp (lpcs, "big5") == 0)          return CHINESEBIG5_CHARSET;
   else if (stricmp (lpcs, "ms-oem") == 0)	 return OEM_CHARSET;
 
 #ifdef EASTEUROPE_CHARSET
@@ -5360,13 +5391,19 @@ x_to_w32_charset (lpcs)
   else if (stricmp (lpcs, "iso8859-7") == 0)     return GREEK_CHARSET;
   else if (stricmp (lpcs, "iso8859-8") == 0)     return HEBREW_CHARSET;
   else if (stricmp (lpcs, "iso8859-9") == 0)     return TURKISH_CHARSET;
-  else if (stricmp (lpcs, "viscii") == 0)        return VIETNAMESE_CHARSET;
-  else if (stricmp (lpcs, "vscii") == 0)         return VIETNAMESE_CHARSET;
-  else if (stricmp (lpcs, "tis620") == 0)        return THAI_CHARSET;
+#ifndef VIETNAMESE_CHARSET
+#define VIETNAMESE_CHARSET 163
+#endif
+  /* Map all Viscii charsets to the Windows Vietnamese charset.  */
+  else if (strnicmp (lpcs, "viscii", 6) == 0)    return VIETNAMESE_CHARSET;
+  else if (strnicmp (lpcs, "vscii", 5) == 0)     return VIETNAMESE_CHARSET;
+  /* Map all TIS charsets to the Windows Thai charset.  */
+  else if (strnicmp (lpcs, "tis620", 6) == 0)    return THAI_CHARSET;
   else if (stricmp (lpcs, "mac") == 0)           return MAC_CHARSET;
   else if (stricmp (lpcs, "ksc5601.1992") == 0)  return JOHAB_CHARSET;
-  /* For backwards compatibility with previous 20.4 pretests.  */
-  else if (stricmp (lpcs, "ksc5601") == 0)       return HANGEUL_CHARSET;
+  /* For backwards compatibility with previous 20.4 pretests, map
+     non-specific KSC charsets to the Windows Hangeul charset.  */
+  else if (strnicmp (lpcs, "ksc5601", 7) == 0)   return HANGEUL_CHARSET;
   else if (stricmp (lpcs, "johab") == 0)         return JOHAB_CHARSET;
 #endif
 
@@ -6997,7 +7034,7 @@ If optional parameter FRAME is not specified, use selected frame.")
 
   CHECK_NUMBER (command, 0);
 
-  SendMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, XINT (command), 0);
+  PostMessage (FRAME_W32_WINDOW (f), WM_SYSCOMMAND, XINT (command), 0);
 
   return Qnil;
 }
@@ -7401,7 +7438,9 @@ Value is a number between 0 and 255.\n\
 Phantom key presses are generated in order to stop the system from\n\
 acting on \"Windows\" key events when `w32-pass-lwindow-to-system' or\n\
 `w32-pass-rwindow-to-system' is nil.");
-  Vw32_phantom_key_code = VK_SPACE;
+  /* Although 255 is technically not a valid key code, it works and
+     means that this hack won't interfere with any real key code.  */
+  Vw32_phantom_key_code = 255;
 
   DEFVAR_LISP ("w32-enable-num-lock", 
 	       &Vw32_enable_num_lock,
