@@ -346,8 +346,10 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (use-local-map comint-mode-map)
   (make-local-variable 'comint-last-input-start)
   (setq comint-last-input-start (make-marker))
+  (set-marker comint-last-input-start (point-min))
   (make-local-variable 'comint-last-input-end)
   (setq comint-last-input-end (make-marker))
+  (set-marker comint-last-input-end (point-min))
   (make-local-variable 'comint-last-output-start)
   (setq comint-last-output-start (make-marker))
   (make-local-variable 'comint-prompt-regexp)        ; Don't set; default
@@ -1130,13 +1132,7 @@ Similarly for Soar, Scheme, etc."
 	  (set-marker comint-last-input-start pmark)
 	  (set-marker comint-last-input-end (point))
 	  (set-marker (process-mark proc) (point))
-	  ;; A kludge to prevent the delay between insert and process output
-	  ;; affecting the display.  A case for a comint-send-input-hook?
-	  (if (eq (process-filter proc) 'comint-output-filter)
-	      (let ((functions comint-output-filter-functions))
-		(while functions
-		  (funcall (car functions) (concat input "\n"))
-		  (setq functions (cdr functions)))))))))
+	  (comint-output-filter proc "")))))
 
 ;; The purpose of using this filter for comint processes
 ;; is to keep comint-last-input-end from moving forward
@@ -1421,14 +1417,19 @@ your process from hanging on long inputs.  See `comint-send-string'."
   "Kill all output from interpreter since last input.
 Does not delete the prompt."
   (interactive)
-  (let ((pmark (progn (goto-char
-		       (process-mark (get-buffer-process (current-buffer))))
-		      (beginning-of-line nil)
-		      (point-marker))))
-    (kill-region comint-last-input-end pmark)
-    (insert "*** output flushed ***\n")
-    (comint-skip-prompt)
-    (set-marker pmark (point))))
+  (let ((proc (get-buffer-process (current-buffer)))
+	(replacement nil))
+    (save-excursion
+      (let ((pmark (progn (goto-char (process-mark proc))
+			  (beginning-of-line nil)
+			  (point-marker))))
+	(delete-region comint-last-input-end pmark)
+	(comint-skip-prompt)
+	(setq replacement (concat "*** output flushed ***\n"
+				  (buffer-substring pmark (point))))
+	(delete-region pmark (point))))
+    ;; Output message and put back prompt
+    (comint-output-filter proc replacement)))
 
 (defun comint-show-output ()
   "Display start of this batch of interpreter output at top of window.
