@@ -24,11 +24,11 @@
 ;;; Code:
 
 ;;;###autoload
-(defconst lpr-switches nil 
+(defvar lpr-switches nil 
   "*List of strings to pass as extra switch args to lpr when it is invoked.")
 
 ;;;###autoload
-(defconst lpr-command
+(defvar lpr-command
   (if (memq system-type '(usg-unix-v dgux-unix hpux silicon-graphics-unix))
       "lp" "lpr")
   "*Shell command for printing a file")
