@@ -234,6 +234,7 @@ Initialization options:\n\
 --no-init-file, -q	    load neither ~/.emacs nor default.el\n\
 --no-shared-memory, -nl	    do not use shared memory\n\
 --no-site-file		    do not load site-start.el\n\
+--no-splash		    do not display a splash screen on startup\n\
 --no-window-system, -nw	    don't communicate with X, ignoring $DISPLAY\n\
 --terminal, -t DEVICE	    use DEVICE for terminal I/O\n\
 --unibyte, --no-multibyte   run Emacs in unibyte mode\n\
@@ -1665,6 +1666,7 @@ struct standard_args standard_args[] =
   { "-q", "--no-init-file", 50, 0 },
   { "-no-init-file", 0, 50, 0 },
   { "-no-site-file", "--no-site-file", 40, 0 },
+  { "-no-splash", "--no-splash", 40, 0 },
   { "-u", "--user", 30, 1 },
   { "-user", 0, 30, 1 },
   { "-debug-init", "--debug-init", 20, 0 },
