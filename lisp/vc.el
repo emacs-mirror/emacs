@@ -1038,7 +1038,7 @@ on a buffer attached to the file named in the current Dired buffer line."
 (defun vc-lookup-triple (file name)
   ;; Return the numeric version corresponding to a named snapshot of file
   ;; If name is nil or a version number string it's just passed through
-  (cond ((null name) "")
+  (cond ((null name) name)
 	((let ((firstchar (aref name 0)))
 	   (and (>= firstchar ?0) (<= firstchar ?9)))
 	 name)
