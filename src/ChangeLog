@@ -1,3 +1,20 @@
+2001-10-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* s/ms-w32.h (EXEC_SUFFIXES):
+	* s/msdos.h (EXEC_SUFFIXES):
+	* process.h (EXEC_SUFFIXES): Remove.
+
+	* callproc.c (syms_of_callproc): Init Vexec_suffixes to Qnil.
+	(decode_suffixes): Remove.
+
+	* intervals.h (TEXT_PROP_MEANS_INVISIBLE_WITH_ELLIPSIS)
+	(TEXT_PROP_MEANS_INVISIBLE_NOELLIPSIS): Use invisible_p's new return vals.
+	(invisible_ellipsis_p, invisible_noellipsis_p): Remove.
+
+	* xdisp.c (DOLIST, LOOP_PROPVAL): Remove.
+	(invisible_p): Return 1 or 2 depending on whether an ellipsis is used.
+	(invisible_ellipsis_p, invisible_noellipsis_p): Remove.
+
 2001-10-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* lisp.h (Ftop_level): Add prototype.

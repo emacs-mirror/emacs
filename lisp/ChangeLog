@@ -1,15 +1,23 @@
+2001-10-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/executable.el (executable-binary-suffixes): Make varalias.
+	(executable-find): Use exec-suffixes.
+	(executable-set-magic): Don't use make-local-hook.
+
+	* bindings.el (exec-suffixes): Initialize to a system-dependent value.
+
 2001-10-14  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* bindings.el (completion-ignored-extensions) [ms-dos, windows-nt]:
 	Add .ico, .pif, .lnk, .dll, .drv, .vxd, and .386.
 	Add .so to the Unix and GNU branch.
 
-	* international/latin-1.el: 
-	* international/latin-2.el: 
-	* international/latin-3.el: 
-	* international/latin-4.el: 
-	* international/latin-5.el: 
-	* international/latin-8.el: 
+	* international/latin-1.el:
+	* international/latin-2.el:
+	* international/latin-3.el:
+	* international/latin-4.el:
+	* international/latin-5.el:
+	* international/latin-8.el:
 	* international/latin-9.el: Add no-byte-compile: t, since
 	Makefile.in instructs make-docfile to look at .el files.
 
@@ -23,6 +31,9 @@
 	(button): Add `button-category-symbol' property.
 
 2001-10-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* bindings.el (esc-map): Revert `j' and `C-j' bindings to
+	indent-new-comment-line from comment-indent-new-line.
 
 	* textmodes/refill.el (refill-mode):
 	Bind DEL to backward-delete-char-untabify.
