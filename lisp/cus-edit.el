@@ -1734,6 +1734,12 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   "Face used for pushable variable tags."
   :group 'custom-faces)
 
+(defcustom custom-variable-default-form 'edit
+  "Default form of displaying variable values."
+  :type '(choice (const edit)
+		 (const lisp))
+  :group 'custom-buffer)
+
 (define-widget 'custom-variable 'custom
   "Customize variable."
   :format "%v"
@@ -1742,7 +1748,7 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   :custom-category 'option
   :custom-state nil
   :custom-menu 'custom-variable-menu-create
-  :custom-form 'edit
+  :custom-form nil ; defaults to value of `custom-variable-default-form'
   :value-create 'custom-variable-value-create
   :action 'custom-variable-action
   :custom-set 'custom-variable-set
@@ -1770,6 +1776,8 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 (defun custom-variable-value-create (widget)
   "Here is where you edit the variables value."
   (custom-load-widget widget)
+  (unless (widget-get widget :custom-form)
+    (widget-put widget :custom-form custom-variable-default-form))
   (let* ((buttons (widget-get widget :buttons))
 	 (children (widget-get widget :children))
 	 (form (widget-get widget :custom-form))
@@ -2170,6 +2178,13 @@ Match frames with dark backgrounds.")
   "Face used for face tags."
   :group 'custom-faces)
 
+(defcustom custom-face-default-form 'selected
+  "Default form of displaying face definition."
+  :type '(choice (const all)
+		 (const selected)
+		 (const lisp))
+  :group 'custom-buffer)
+
 (define-widget 'custom-face 'custom
   "Customize face."
   :sample-face 'custom-face-tag-face
@@ -2179,7 +2194,7 @@ Match frames with dark backgrounds.")
   :value-create 'custom-face-value-create
   :action 'custom-face-action
   :custom-category 'face
-  :custom-form 'selected
+  :custom-form nil ; defaults to value of `custom-face-default-form'
   :custom-set 'custom-face-set
   :custom-save 'custom-face-save
   :custom-reset-current 'custom-redraw
@@ -2283,6 +2298,8 @@ Match frames with dark backgrounds.")
 	   (unless (eq state 'hidden)
 	     (message "Creating face editor...")
 	     (custom-load-widget widget)
+	     (unless (widget-get widget :custom-form)
+		 (widget-put widget :custom-form custom-face-default-form))
 	     (let* ((symbol (widget-value widget))
 		    (spec (or (get symbol 'saved-face)
 			      (get symbol 'face-defface-spec)
