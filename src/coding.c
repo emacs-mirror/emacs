@@ -5542,28 +5542,6 @@ get_translation_table (attrs, encodep)
 }
 
 
-static void
-translate_chars (coding, table)
-     struct coding_system *coding;
-     Lisp_Object table;
-{
-  int *charbuf = coding->charbuf;
-  int *charbuf_end = charbuf + coding->charbuf_used;
-  int c;
-
-  if (coding->chars_at_source)
-    return;
-
-  while (charbuf < charbuf_end)
-    {
-      c = *charbuf;
-      if (c < 0)
-	charbuf += -c;
-      else
-	*charbuf++ = translate_char (table, c);
-    }
-}
-
 static Lisp_Object
 get_translation (val, buf, buf_end, last_block, from_nchars, to_nchars)
      Lisp_Object val;
@@ -5571,24 +5549,38 @@ get_translation (val, buf, buf_end, last_block, from_nchars, to_nchars)
      int last_block;
      int *from_nchars, *to_nchars;
 {
-  /* VAL is TO-CHAR, [TO-CHAR ...], ([FROM-CHAR ...] .  TO-CHAR), or
-     ([FROM-CHAR ...] . [TO-CHAR ...]).  */
+  /* VAL is TO or (([FROM-CHAR ...] .  TO) ...) where TO is TO-CHAR or
+     [TO-CHAR ...].  */
   if (CONSP (val))
     {
-      Lisp_Object from;
+      Lisp_Object from, tail;
       int i, len;
 
-      from = XCAR (val);
-      val = XCDR (val);
-      len = ASIZE (from);
-      for (i = 0; i < len; i++)
+      for (tail = val; CONSP (tail); tail = XCDR (tail))
 	{
-	  if (buf + i == buf_end)
-	    return (last_block ? Qnil : Qt);
-	  if (XINT (AREF (from, i)) != buf[i])
-	    return Qnil;
+	  val = XCAR (tail);
+	  from = XCAR (val);
+	  len = ASIZE (from);
+	  for (i = 0; i < len; i++)
+	    {
+	      if (buf + i == buf_end)
+		{
+		  if (! last_block)
+		    return Qt;
+		  break;
+		}
+	      if (XINT (AREF (from, i)) != buf[i])
+		break;
+	    }
+	  if (i == len)
+	    {
+	      val = XCDR (val);
+	      *from_nchars = len;
+	      break;
+	    }
 	}
-      *from_nchars = len;
+      if (! CONSP (tail))
+	return Qnil;
     }
   if (VECTORP (val))
     *buf = XINT (AREF (val, 0)), *to_nchars = ASIZE (val);
@@ -5648,8 +5640,10 @@ produce_chars (coding, translation_table, last_block)
 		  dst_end = coding->destination + coding->dst_bytes;
 		}
 
-	      for (i = 0; i < to_nchars; i++, c = XINT (AREF (trans, i)))
+	      for (i = 0; i < to_nchars; i++)
 		{
+		  if (i > 0)
+		    c = XINT (AREF (trans, i));
 		  if (coding->dst_multibyte
 		      || ! CHAR_BYTE8_P (c))
 		    CHAR_STRING_ADVANCE (c, dst);
@@ -6182,8 +6176,9 @@ handle_charset_annotation (pos, limit, coding, buf, stop)
 
 
 static void
-consume_chars (coding)
+consume_chars (coding, translation_table)
      struct coding_system *coding;
+     Lisp_Object translation_table;
 {
   int *buf = coding->charbuf;
   int *buf_end = coding->charbuf + coding->charbuf_size;
@@ -6195,6 +6190,13 @@ consume_chars (coding)
   Lisp_Object eol_type;
   int c;
   EMACS_INT stop, stop_composition, stop_charset;
+  int max_lookup = 0, *lookup_buf = NULL;
+
+  if (! NILP (translation_table))
+    {
+      max_lookup = XINT (XCHAR_TABLE (translation_table)->extras[1]);
+      lookup_buf = alloca (sizeof (int) * max_lookup);
+    }
 
   eol_type = CODING_ID_EOL_TYPE (coding->id);
   if (VECTORP (eol_type))
@@ -6221,6 +6223,8 @@ consume_chars (coding)
   buf_end -= 1 + MAX_ANNOTATION_LENGTH;
   while (buf < buf_end)
     {
+      Lisp_Object trans;
+
       if (pos == stop)
 	{
 	  if (pos == end_pos)
@@ -6259,7 +6263,32 @@ consume_chars (coding)
 		c = '\r';
 	    }
 	}
-      *buf++ = c;
+
+      if (NILP (translation_table)
+	  || NILP (trans = CHAR_TABLE_REF (translation_table, c)))
+	*buf++ = c;
+      else
+	{
+	  int from_nchars = 1, to_nchars = 1;
+	  int *lookup_buf_end;
+	  const unsigned char *p = src;
+	  int i;
+
+	  lookup_buf[0] = c;
+	  for (i = 1; i < max_lookup && p < src_end; i++)
+	    lookup_buf[i] = STRING_CHAR_ADVANCE (p);
+	  lookup_buf_end = lookup_buf + i;
+	  trans = get_translation (trans, lookup_buf, lookup_buf_end, 1,
+				   &from_nchars, &to_nchars);
+	  if (EQ (trans, Qt)
+	      || buf + to_nchars > buf_end)
+	    break;
+	  *buf++ = *lookup_buf;
+	  for (i = 1; i < to_nchars; i++)
+	    *buf++ = XINT (AREF (trans, i));
+	  for (i = 1; i < from_nchars; i++, pos++)
+	    src += MULTIBYTE_LENGTH_NO_CHECK (src);
+	}
     }
 
   coding->consumed = src - coding->source;
@@ -6316,11 +6345,7 @@ encode_coding (coding)
 
   do {
     coding_set_source (coding);
-    consume_chars (coding);
-
-    if (!NILP (translation_table))
-      translate_chars (coding, translation_table);
-
+    consume_chars (coding, translation_table);
     coding_set_destination (coding);
     (*(coding->encoder)) (coding);
   } while (coding->consumed_char < coding->src_chars);
@@ -8989,7 +9014,7 @@ syms_of_coding ()
   Qchar_table_extra_slots = intern ("char-table-extra-slots");
 
   DEFSYM (Qtranslation_table, "translation-table");
-  Fput (Qtranslation_table, Qchar_table_extra_slots, make_number (1));
+  Fput (Qtranslation_table, Qchar_table_extra_slots, make_number (2));
   DEFSYM (Qtranslation_table_id, "translation-table-id");
   DEFSYM (Qtranslation_table_for_decode, "translation-table-for-decode");
   DEFSYM (Qtranslation_table_for_encode, "translation-table-for-encode");
