@@ -1,3 +1,7 @@
+2003-02-14  Juanma Barranquero  <lektu@terra.es>
+
+	* mm-uu.el (mm-uu-dissect): Fix use of character constant.
+
 2003-02-11  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* nntp.el (nntp-accept-process-output): Don't use point-max to get

@@ -8,6 +8,22 @@
 	* international/mule-cmds.el (view-hello-file): Use `view-file'
 	instead of `find-file-read-only'.
 
+	* dired-aux.el (dired-query-alist): Fix use of character constant.
+
+	* simple.el (backward-delete-char-untabify): Likewise.
+
+	* strokes.el (strokes-read-complex-stroke): Likewise.
+
+	* wid-edit.el (widget-choose): Likewise.
+
+	* xml.el (xml-parse-elem-type): Likewise.
+
+	* emacs-lisp/testcover-ses.el (ses-exercise-signals): Likewise.
+
+	* progmodes/cperl-mode.el (cperl-next-bad-style): Likewise.
+
+	* progmodes/idlwave.el (idlwave-show-begin): Likewise.
+
 2003-02-13  Markus Rost  <rost@math.ohio-state.edu>
 
 	* files.el (find-alternate-file): Undo last change.
