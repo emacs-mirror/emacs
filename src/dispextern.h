@@ -2112,6 +2112,9 @@ void init_sigio P_ ((int));
 #ifdef USE_X_TOOLKIT
 void x_set_menu_resources_from_menu_face P_ ((struct frame *, Widget));
 #endif
+#ifdef HAVE_X_WINDOWS
+void x_free_colors P_ ((struct frame *, unsigned long *, int));
+#endif
 
 void update_face_from_frame_parameter P_ ((struct frame *, Lisp_Object,
 					   Lisp_Object));
