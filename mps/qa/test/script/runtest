@@ -85,6 +85,7 @@ sub run_from_testset {
  &readheader($testfile);
  unless ($test_header{"language"} eq "c") {
   &logcomment("Skipping test $testfile: don't know how to run it.");
+  $testsetresults{$testfile}="/";
  } else {
   $linkfiles = $test_header{"link"};
   $objfile = "$obj_dir/tmp_test";
@@ -92,12 +93,18 @@ sub run_from_testset {
 
   unless (&compile_and_link($testfile, $objfile, $linkfiles)) {
    &logcomment("Compilation failed on $testfile.");
+   $testsetresults{$testfile}="C";
   } else {
    &run_exe($objfile, "no");
    &describe_test("summary");
    &describe_test("summary", LOG_SUMMARY);
    &describe_test("results", LOG_RESULTS);
    &describe_test("full", LOG_FULL);
+   if ($testconclusion eq "PASS") {
+    $testsetresults{$testfile}=".";
+   } else {
+    $testsetresults{$testfile}="*";
+   }
   }
  }
 }
@@ -109,6 +116,8 @@ sub run_testset {
   die "Failed to open testset $testsetfile.";
 
  &ensuredir($LOG_DIR);
+
+ %testsetresults = ();
 
  open(LOG_SUMMARY, ">".$logsummfile);
  open(LOG_RESULTS, ">".$logresfile);
