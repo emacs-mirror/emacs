@@ -102,8 +102,7 @@ binding @code{redisplay-dont-pause} to a non-@code{nil} value.
 @defvar redisplay-dont-pause
 If this variable is non-@code{nil}, pending input does not
 prevent or halt redisplay; redisplay occurs, and finishes,
-regardless of whether input is available.  This feature is available
-as of Emacs 21.
+regardless of whether input is available.
 @end defvar
 
   You can request a display update, but only if no input is pending,
@@ -1180,12 +1179,12 @@ then each element can be any of these possibilities:
 A face name (a symbol or string).
 
 @item
-Starting in Emacs 21, a property list of face attributes.  This has the
-form (@var{keyword} @var{value} @dots{}), where each @var{keyword} is a
-face attribute name and @var{value} is a meaningful value for that
-attribute.  With this feature, you do not need to create a face each
-time you want to specify a particular attribute for certain text.
-@xref{Face Attributes}.
+A property list of face attributes.  This has the form (@var{keyword}
+@var{value} @dots{}), where each @var{keyword} is a face attribute
+name and @var{value} is a meaningful value for that attribute.  With
+this feature, you do not need to create a face each time you want to
+specify a particular attribute for certain text.  @xref{Face
+Attributes}.
 
 @item
 A cons cell of the form @code{(foreground-color . @var{color-name})} or
@@ -1340,7 +1339,7 @@ as an integer.
 
 @defun overlay-buffer overlay
 This function returns the buffer that @var{overlay} belongs to.  It
-returns @code{nil}, if @var{overlay} has been deleted.
+returns @code{nil} if @var{overlay} has been deleted.
 @end defun
 
 @defun delete-overlay overlay
@@ -1909,11 +1908,11 @@ mean.  Note that in general, more than one face can be specified for a
 given piece of text; when that happens, the attributes of all the faces
 are merged to specify how to display the text.  @xref{Displaying Faces}.
 
-  In Emacs 21, any attribute in a face can have the value
-@code{unspecified}.  This means the face doesn't specify that attribute.
-In face merging, when the first face fails to specify a particular
-attribute, that means the next face gets a chance.  However, the
-@code{default} face must specify all attributes.
+  Any attribute in a face can have the value @code{unspecified}.  This
+means the face doesn't specify that attribute.  In face merging, when
+the first face fails to specify a particular attribute, that means the
+next face gets a chance.  However, the @code{default} face must
+specify all attributes.
 
   Some of these font attributes are meaningful only on certain kinds of
 displays---if your display cannot handle a certain attribute, the
@@ -2043,11 +2042,10 @@ that is being pressed.  If it is @code{nil} or omitted, a plain 2D box
 is used.
 @end table
 
-  The attributes @code{:overline}, @code{:strike-through} and
-@code{:box} are new in Emacs 21.  The attributes @code{:family},
-@code{:height}, @code{:width}, @code{:weight}, @code{:slant} are also
-new; previous versions used the following attributes, now semi-obsolete,
-to specify some of the same information:
+  In older versions of Emacs, before @code{:family}, @code{:height},
+@code{:width}, @code{:weight}, and @code{:slant} existed, these
+attributes were used to specify the type face.  They are now
+semi-obsolete, but they still work:
 
 @table @code
 @item :font
@@ -2060,8 +2058,8 @@ A non-@code{nil} value specifies a bold font.
 A non-@code{nil} value specifies an italic font.
 @end table
 
-  For compatibility, you can still set these ``attributes'' in Emacs 21,
-even though they are not real face attributes.  Here is what that does:
+  For compatibility, you can still set these ``attributes'', even
+though they are not real face attributes.  Here is what that does:
 
 @table @code
 @item :font
@@ -2195,31 +2193,22 @@ they are used automatically to handle certain shades of gray.
 @end defun
 
 @defun set-face-font face font &optional frame
-This function sets the font of face @var{face}.
-
-In Emacs 21, this actually sets the attributes @code{:family},
-@code{:width}, @code{:height}, @code{:weight}, and @code{:slant}
-according to the font name @var{font}.
-
-In Emacs 20, this sets the font attribute.  Once you set the font
-explicitly, the bold and italic attributes cease to have any effect,
-because the precise font that you specified is used.
+This function sets the font of face @var{face}.  This actually sets
+the attributes @code{:family}, @code{:width}, @code{:height},
+@code{:weight}, and @code{:slant} according to the font name
+@var{font}.
 @end defun
 
 @defun set-face-bold-p face bold-p &optional frame
 This function specifies whether @var{face} should be bold.  If
 @var{bold-p} is non-@code{nil}, that means yes; @code{nil} means no.
-
-In Emacs 21, this sets the @code{:weight} attribute.
-In Emacs 20, it sets the @code{:bold} attribute.
+This actually sets the @code{:weight} attribute.
 @end defun
 
 @defun set-face-italic-p face italic-p &optional frame
 This function specifies whether @var{face} should be italic.  If
 @var{italic-p} is non-@code{nil}, that means yes; @code{nil} means no.
-
-In Emacs 21, this sets the @code{:slant} attribute.
-In Emacs 20, it sets the @code{:italic} attribute.
+This actually sets the @code{:slant} attribute.
 @end defun
 
 @defun set-face-underline-p face underline-p &optional frame
@@ -2519,9 +2508,8 @@ differently from the default face.
 @cindex faces, automatic choice
 
 @cindex Font-Lock mode
-  Starting with Emacs 21, a hook is available for automatically
-assigning faces to text in the buffer.  This hook is used for part of
-the implementation of Font-Lock mode.
+  This hook is used for automatically assigning faces to text in the
+buffer.  It is part of the implementation of Font-Lock mode.
 
 @tindex fontification-functions
 @defvar fontification-functions
@@ -2571,8 +2559,6 @@ after the first @var{maximum} matching fonts.  Specifying a small value
 for @var{maximum} can make this function much faster, in cases where
 many fonts match the pattern.
 @end defun
-
-  These additional functions are available starting in Emacs 21.
 
 @defun x-family-fonts &optional family frame
 @tindex x-family-fonts
@@ -3031,11 +3017,10 @@ buffer.  The default is to use the @code{arrow} (non-text) pointer.
 
   The @code{display} text property (or overlay property) is used to
 insert images into text, and also control other aspects of how text
-displays.  These features are available starting in Emacs 21.  The value
-of the @code{display} property should be a display specification, or a
-list or vector containing several display specifications.  The rest of
-this section describes several kinds of display specifications and what
-they mean.
+displays.  The value of the @code{display} property should be a
+display specification, or a list or vector containing several display
+specifications.  The rest of this section describes several kinds of
+display specifications and what they mean.
 
 @menu
 * Specified Space::      Displaying one space with a specified width.
@@ -3344,8 +3329,7 @@ string.
 
   To display an image in an Emacs buffer, you must first create an image
 descriptor, then use it as a display specifier in the @code{display}
-property of text that is displayed (@pxref{Display Property}).  Like the
-@code{display} property, this feature is available starting in Emacs 21.
+property of text that is displayed (@pxref{Display Property}).
 
   Emacs can display a number of different image formats; some of them
 are supported only if particular support libraries are installed on
