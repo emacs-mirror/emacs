@@ -6093,21 +6093,9 @@ x_clear_image (f, img)
       
   if (img->ncolors)
     {
-      int class = FRAME_X_DISPLAY_INFO (f)->visual->class;
-      
-      /* If display has an immutable color map, freeing colors is not
-	 necessary and some servers don't allow it.  So don't do it.  */
-      if (class != StaticColor
-	  && class != StaticGray
-	  && class != TrueColor)
-	{
-	  Colormap cmap;
-	  BLOCK_INPUT;
-	  cmap = DefaultColormapOfScreen (FRAME_X_DISPLAY_INFO (f)->screen);
-	  XFreeColors (FRAME_X_DISPLAY (f), cmap, img->colors,
-		       img->ncolors, 0);
-	  UNBLOCK_INPUT;
-	}
+      BLOCK_INPUT;
+      x_free_colors (f, img->colors, img->ncolors);
+      UNBLOCK_INPUT;
       
       xfree (img->colors);
       img->colors = NULL;
@@ -9932,11 +9920,7 @@ x_kill_gs_process (pixmap, f)
 	     allocated colors on behalf of us.  So, to get the
 	     reference counts right, free them once.  */
 	  if (img->ncolors)
-	    {
-	      Colormap cmap = DefaultColormapOfScreen (FRAME_X_SCREEN (f));
-	      XFreeColors (FRAME_X_DISPLAY (f), cmap,
-			   img->colors, img->ncolors, 0);
-	    }
+	    x_free_colors (f, img->colors, img->ncolors);
 #endif
 	}
       else
