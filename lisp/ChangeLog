@@ -1,5 +1,11 @@
 2003-08-02  Andreas Schwab  <schwab@suse.de>
 
+	* textmodes/ispell.el: Don't redo key bindings on loading, put
+	them only in loaddefs.el.
+	* bookmark.el: Likewise.
+	* dabbrev.el: Likewise.
+	* emerge.el: Likewise.
+
 	* apropos.el (apropos-words-to-regexp): Only add `wild' if `words'
 	has more than one member.
 
