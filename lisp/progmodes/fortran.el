@@ -4,7 +4,7 @@
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: bug-fortran-mode@erl.mit.edu
-;; Version 1.30 (November 18, 1992)
+;; Version 1.30 (February 2, 1993)
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -38,10 +38,10 @@
 
 ;;; This file may be used with GNU Emacs version 18.xx if the following
 ;;; variable and function substutions are made.
-;;;    Replace:
-;;;             unread-command-events with unread-command-char
-;;;             frame-width          with screen-width
-;;;             auto-fill-function   with auto-fill-hook
+;;;  Replace:
+;;;   frame-width                           with screen-width
+;;;   auto-fill-function                    with auto-fill-hook
+;;;   (setq unread-command-events (list c)) with (setq unread-command-char c)
 
 ;;; Bugs to bug-fortran-mode@erl.mit.edu
 
@@ -483,7 +483,7 @@ Any other key combination is executed normally."
   (save-excursion
     (set-buffer (get-buffer-create "*Abbrevs*"))
     (erase-buffer)
-    (insert-abbrev-table-description fortran-mode-abbrev-table t)
+    (insert-abbrev-table-description 'fortran-mode-abbrev-table t)
     (goto-char (point-min))
     (set-buffer-modified-p nil)
     (edit-abbrevs-mode))
@@ -1029,8 +1029,8 @@ Fortran strings are delimeted by apostrophes (\').  Quote-Escape-sequences
   (let ((is-in-fortran-string nil))
     (save-excursion   
       (goto-char pos)
-      (fortran-previous-statement)
-      (fortran-next-statement)
+      (if (not (fortran-previous-statement))
+	  (fortran-next-statement))
       (while (< (point) pos)
 	;; Make sure we don't count quotes in continuation column.
 	(if (looking-at "^     ")
