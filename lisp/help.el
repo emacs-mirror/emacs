@@ -1452,7 +1452,7 @@ This applies to `help', `apropos' and `completion' buffers, and some others."
       ;; `help-mode-maybe' may add a `back' button and thus increase the
       ;; text size, so `resize-temp-buffer-window' must be run *after* it.
       (add-hook 'temp-buffer-show-hook 'resize-temp-buffer-window 'append)
-    (remove-hook 'temp-buffer-show-hook 'resize-temp-buffer-window))))
+    (remove-hook 'temp-buffer-show-hook 'resize-temp-buffer-window)))
 
 (defun resize-temp-buffer-window ()
   "Resize the current window to fit its contents.
