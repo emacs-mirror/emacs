@@ -427,7 +427,7 @@ detailed meanings of these arguments."
 	(error "Unknown external charset: %s" charset))
     (insert (format "Characters in non-ISO charset %s.\n" charset))
     (insert "They are mapped to: "
-	    (mapconcat (lambda (x) (symbol-name x)) charsets ", ")
+	    (mapconcat #'symbol-name charsets ", ")
 	    "\n")
     (while ranges
       (setq range (car ranges) ranges (cdr ranges))
@@ -1104,8 +1104,8 @@ This shows which font is used for which character(s)."
    (if (not (and window-system (fboundp 'fontset-list)))
        (error "No fontsets being used")
      (let ((fontset-list (append
-			  (mapcar '(lambda (x) (list x)) (fontset-list))
-			  (mapcar '(lambda (x) (list (cdr x)))
+			  (mapcar 'list (fontset-list))
+			  (mapcar (lambda (x) (list (cdr x)))
 				  fontset-alias-alist)))
 	   (completion-ignore-case t))
        (list (completing-read
