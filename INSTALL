@@ -15,6 +15,33 @@ Copyright (c) 1992, 1994, 1996 Free software Foundation, Inc.
    of the Free Software Foundation are approved by the Foundation.
 
 
+ADDITIONAL DISTRIBUTION FILES
+
+* leim-M.N.tar.gz
+
+The Emacs Lisp code for input methods for various international
+character scripts is distributed in a separate tar file because of its
+large size.  This file is called leim-M.N.tar.gz, with the same
+version number as Emacs, and it unpacks into the directory
+emacs-M.N/leim.  Thus, if you unpack it in the same directory where
+you unpacked the Emacs distribution, it fills in a subdirectory
+of the Emacs distribution.
+
+If you have already unpacked the Leim tar file into a subdirectory of
+the Emacs sources, building and installing Emacs automatically
+installs the input method support as well.  If you unpack the Leim tar
+file into the Emacs sources after building and installing Emacs, just
+build Emacs again and install it again.
+
+* intlfonts-VERSION.tar.gz
+
+The intlfonts distribution contains X11 fonts that Emacs needs in
+order to display international characters.  If you see a non-ASCII
+character appear as a hollow box, that means you don't have a font for
+it.  You might find a font in the intlfonts distribution.  That
+distribution contains its own installation instructions.
+
+
 BUILDING AND INSTALLATION:
 
 (This is for a Unix or Unix-like system.  For MSDOS, see below; search
