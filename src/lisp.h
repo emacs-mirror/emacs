@@ -551,7 +551,7 @@ struct Lisp_Vector
 
 /* This is the number of slots that every char table must have.
    This counts the ordinary slots and the parent and defalt slots.  */
-#define CHAR_TABLE_STANDARD_SLOTS (256+2)
+#define CHAR_TABLE_STANDARD_SLOTS (256+3)
 
 /* Return the number of "extra" slots in the char table CT.  */
 
@@ -573,6 +573,10 @@ struct Lisp_Char_Table
        when the value for a specific character is nil.
        The `defalt' slot takes precedence over this.  */
     Lisp_Object parent;
+    /* This should be a symbol which says what kind of use
+       this char-table is meant for.
+       Typically now the values can be `syntax-table' and `display-table'.  */
+    Lisp_Object purpose;
     /* These hold additional data.  */
     Lisp_Object extras[1];
   };
@@ -994,6 +998,11 @@ typedef unsigned char UCHAR;
 #define CHECK_VECTOR(x, i) \
   do { if (!VECTORP ((x))) x = wrong_type_argument (Qvectorp, (x)); } while (0)
 
+#define CHECK_VECTOR_OR_CHAR_TABLE(x, i)				\
+  do { if (!VECTORP ((x)) && !CHAR_TABLE_P ((x)))			\
+	 x = wrong_type_argument (Qvector_or_char_table_p, (x));	\
+     } while (0)
+
 #define CHECK_BUFFER(x, i) \
   do { if (!BUFFERP ((x))) x = wrong_type_argument (Qbufferp, (x)); } while (0)
 
@@ -1351,7 +1360,7 @@ extern Lisp_Object Qsymbolp, Qlistp, Qconsp;
 extern Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
 extern Lisp_Object Qchar_or_string_p, Qmarkerp, Qvectorp;
 extern Lisp_Object Qinteger_or_marker_p, Qnumber_or_marker_p;
-extern Lisp_Object Qchar_table_p;
+extern Lisp_Object Qchar_table_p, Qvector_or_char_table_p;
 extern Lisp_Object Qboundp, Qfboundp;
 extern Lisp_Object Qbuffer_or_string_p;
 extern Lisp_Object Qcdr;
@@ -1473,6 +1482,7 @@ extern Lisp_Object Fpurecopy (), make_pure_string ();
 extern Lisp_Object pure_cons (), make_pure_vector ();
 extern Lisp_Object Fgarbage_collect ();
 extern Lisp_Object Fmake_byte_code ();
+extern Lisp_Object Qchar_table_extra_slots;
 extern struct Lisp_Vector *allocate_vectorlike ();
 extern int gc_in_progress;
 
