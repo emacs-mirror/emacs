@@ -1,3 +1,12 @@
+2001-11-30  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* textmodes/paragraphs.el (mark-paragraph): Clarify doc.  Clarify
+	error message.  Suggestion from Richard Stallman.
+
+2001-11-29  Kai Grossjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* textmodes/paragraphs.el (mark-paragraph): Allow prefix arg.
+
 2001-11-30  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-cvs.el (vc-cvs-parse-status): Store file state in property,
