@@ -1,3 +1,7 @@
+/* Only edit this file through the CVS module in subversions.  This file
+   is automatically updated whenever changes are made to it there, and
+   all of your work will be lost! - jbailey Sep 19, 2000 */
+
 /* Definitions for data structures and routines for the regular
    expression library, version 0.12.
 

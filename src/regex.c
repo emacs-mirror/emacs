@@ -1,3 +1,7 @@
+/* Only edit this file through the CVS module in subversions.  This file
+   is automatically updated whenever changes are made to it there, and
+   all of your work will be lost! - jbailey Sep 19, 2000 */
+
 /* Extended regular expression matching and search library, version
    0.12.  (Implements POSIX draft P1003.2/D11.2, except for some of the
    internationalization features.)
