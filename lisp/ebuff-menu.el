@@ -195,6 +195,7 @@ electric-buffer-menu-mode-hook if it is non-nil."
     (define-key map "\e\C-v" 'scroll-other-window)
     (define-key map "\e>" 'end-of-buffer)
     (define-key map "\e<" 'beginning-of-buffer)
+    (define-key map "\e\e" nil)
     (define-key map "\e\e\e" 'Electric-buffer-menu-quit)
     (define-key map [escape escape escape] 'Electric-buffer-menu-quit)
     (define-key map [mouse-2] 'Electric-buffer-menu-mouse-select)
