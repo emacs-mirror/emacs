@@ -1960,7 +1960,7 @@ To continue searching for next match, use command \\[tags-loop-continue]."
   (tags-search regexp '(dired-get-marked-files)))
 
 ;;;###autoload
-(defun dired-do-query-replace (from to &optional delimited)
+(defun dired-do-query-replace-regexp (from to &optional delimited)
   "Do `query-replace-regexp' of FROM with TO, on all marked files.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit] or ESC), you can resume the query replace
