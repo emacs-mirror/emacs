@@ -1,3 +1,16 @@
+2002-09-08  Dave Love  <fx@gnu.org>
+
+	* international/mule-conf.el (eight-bit): Add :docstring,
+	:short-name properties.
+	(cp851): Doc fix.
+	(unicode-bmp): New.
+
+	* case-table.el (set-case-syntax-pair): Remove check on byte
+	lengths.
+
+	* language/european.el (cp858): New.
+	("Turkish"): Add special case rules.
+
 2002-09-05  Dave Love  <fx@gnu.org>
 
 	* international/characters.el: Make ,_/(B and ,A(B a case pair.
