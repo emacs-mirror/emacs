@@ -117,6 +117,8 @@ Lisp_Object Qfile_name_completion;
 Lisp_Object Qfile_name_all_completions;
 Lisp_Object Qfile_attributes;
 Lisp_Object Qfile_attributes_lessp;
+
+static int scmp P_ ((unsigned char *, unsigned char *, int));
 
 
 Lisp_Object
@@ -732,6 +734,34 @@ file_name_completion (file, dirname, all_flag, ver_flag)
   if (d) closedir (d);
   Vquit_flag = Qnil;
   return Fsignal (Qquit, Qnil);
+}
+
+/* Compare exactly LEN chars of strings at S1 and S2,
+   ignoring case if appropriate.
+   Return -1 if strings match,
+   else number of chars that match at the beginning.  */
+
+static int
+scmp (s1, s2, len)
+     register unsigned char *s1, *s2;
+     int len;
+{
+  register int l = len;
+
+  if (completion_ignore_case)
+    {
+      while (l && DOWNCASE (*s1++) == DOWNCASE (*s2++))
+	l--;
+    }
+  else
+    {
+      while (l && *s1++ == *s2++)
+	l--;
+    }
+  if (l == 0)
+    return -1;
+  else
+    return len - l;
 }
 
 static int
