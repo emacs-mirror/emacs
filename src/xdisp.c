@@ -1524,6 +1524,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
 	  /* Or show the region if we are in the mini-buffer and W is
 	     the window the mini-buffer refers to.  */
 	  || (MINI_WINDOW_P (XWINDOW (selected_window))
+	      && WINDOWP (Vminibuf_scroll_window)
 	      && w == XWINDOW (Vminibuf_scroll_window))))
     {
       int charpos = marker_position (current_buffer->mark);
@@ -3093,7 +3094,7 @@ string_buffer_position (w, string, around_charpos)
   const int MAX_DISTANCE = 1000;
   int found = 0;
 
-  pos = around_charpos;
+  pos = make_number (around_charpos);
   limit = make_number (min (XINT (pos) + MAX_DISTANCE, ZV));
   while (!found && !EQ (pos, limit))
     {
@@ -3106,7 +3107,7 @@ string_buffer_position (w, string, around_charpos)
 
   if (!found)
     {
-      pos = around_charpos;
+      pos = make_number (around_charpos);
       limit = make_number (max (XINT (pos) - MAX_DISTANCE, BEGV));
       while (!found && !EQ (pos, limit))
 	{
