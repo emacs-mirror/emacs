@@ -75,7 +75,7 @@ See the documentation for `tmm-prompt'."
   "Press PageUp Key to reach this buffer from the minibuffer.
 Alternatively, you can use Up/Down keys (or your History keys) to change
 the item in the minibuffer, and press RET when you are done, or press the 
-marked letters to pick up your choice.  Type ESC ESC to cancel.
+marked letters to pick up your choice.  Type C-g or ESC ESC ESC to cancel.
 "
   "What insert on top of completion buffer.")
 
@@ -186,7 +186,6 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
   (define-key (current-local-map) [pageup] 'tmm-goto-completions)
   (define-key (current-local-map) [prior] 'tmm-goto-completions)
   (define-key (current-local-map) "\ev" 'tmm-goto-completions)
-  (define-key (current-local-map) "\e\e" 'abort-recursive-edit)
   (define-key (current-local-map) "\C-n" 'next-history-element)
   (define-key (current-local-map) "\C-p" 'previous-history-element))
 
