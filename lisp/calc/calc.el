@@ -427,7 +427,7 @@ Otherwise, 1 / 0 is changed to uinf (undirected infinity).")
   (calc-display-strings nil
    "If non-nil, display vectors of byte-sized integers as strings.")
 
-  (calc-matrix-just 'center
+  (calc-matrix-just center
    "If nil, vector elements are left-justified.
 If `right', vector elements are right-justified.
 If `center', vector elements are centered.")
@@ -542,10 +542,10 @@ If nil, selections displayed but ignored.")
   (calc-assoc-selections t
    "If non-nil, selection hides deep structure of associative formulas.")
 
-  (calc-display-working-message 'lots
+  (calc-display-working-message lots
    "If non-nil, display \"Working...\" for potentially slow Calculator commands.")
 
-  (calc-auto-why 'maybe
+  (calc-auto-why maybe
    "If non-nil, automatically execute a \"why\" command to explain odd results.")
 
   (calc-timing nil
@@ -554,16 +554,16 @@ If nil, selections displayed but ignored.")
   (calc-mode-save-mode local)
 
   (calc-standard-date-formats
-   '("N"
-     "<H:mm:SSpp >Www Mmm D, YYYY"
-     "D Mmm YYYY<, h:mm:SS>"
-     "Www Mmm BD< hh:mm:ss> YYYY"
-     "M/D/Y< H:mm:SSpp>"
-     "D.M.Y< h:mm:SS>"
-     "M-D-Y< H:mm:SSpp>"
-     "D-M-Y< h:mm:SS>"
-     "j<, h:mm:SS>"
-     "YYddd< hh:mm:ss>"))
+   ("N"
+    "<H:mm:SSpp >Www Mmm D, YYYY"
+    "D Mmm YYYY<, h:mm:SS>"
+    "Www Mmm BD< hh:mm:ss> YYYY"
+    "M/D/Y< H:mm:SSpp>"
+    "D.M.Y< h:mm:SS>"
+    "M-D-Y< H:mm:SSpp>"
+    "D-M-Y< h:mm:SS>"
+    "j<, h:mm:SS>"
+    "YYddd< hh:mm:ss>"))
 
   (calc-autorange-units nil)
   
