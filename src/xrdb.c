@@ -398,8 +398,6 @@ static XrmDatabase
 get_fallback (display)
      Display *display;
 {
-  XrmDatabase db;
-
   return NULL;
 }
 
@@ -524,14 +522,15 @@ x_load_resources (display, xrm_string, myname, myclass)
      Display *display;
      char *xrm_string, *myname, *myclass;
 {
-  char *xdefs;
   XrmDatabase user_database;
   XrmDatabase rdb;
   XrmDatabase db;
   char line[256];
   char *helv = "-*-helvetica-medium-r-*--*-120-*-*-*-*-iso8859-1";
+#ifdef USE_MOTIF
   char *courier = "-*-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1";
   extern Lisp_Object Vdouble_click_time;
+#endif
 
   x_rm_string = XrmStringToQuark (XrmStringType);
 #ifndef USE_X_TOOLKIT
