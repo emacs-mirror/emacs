@@ -1,6 +1,6 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985, 86, 88, 93, 94, 97, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 88, 93, 94, 97, 1998, 2000 Free Software Foundation, Inc.
 
 ;; Keywords: tools
 
@@ -29,6 +29,7 @@
 
 (eval-when-compile
   (require 'fortran)
+  (require 'timezone)
   (require 'cl))
 
 (defgroup change-log nil
@@ -61,7 +62,7 @@ instead) with no arguments.  It returns a string or nil if it cannot guess."
 ;;;###autoload
 (defcustom add-log-full-name nil
   "*Full name of user, for inclusion in ChangeLog daily headers.
-This defaults to the value returned by the `user-full-name' function."
+This defaults to the value returned by the function `user-full-name'."
   :type '(choice (const :tag "Default" nil)
 		 string)
   :group 'change-log)
@@ -120,9 +121,9 @@ this variable."
 
 (defcustom add-log-file-name-function nil
   "*If non-nil, function to call to identify the filename for a ChangeLog entry.
-This function is called with one argument, `buffer-file-name' in that buffer.
-If this is nil, the default is to use the file's name
-relative to the directory of the change log file."
+This function is called with one argument, the value of variable
+`buffer-file-name' in that buffer.  If this is nil, the default is to
+use the file's name relative to the directory of the change log file."
   :type 'function
   :group 'change-log)
 
@@ -195,8 +196,6 @@ Note: The search is conducted only within 10%, at the beginning of the file."
 It takes the same format as the TZ argument of `set-time-zone-rule'.
 If nil, use local time.")
 
-(defvar add-log-debugging)
-
 (defun add-log-iso8601-time-zone (time)
   (let* ((utc-offset (or (car (current-time-zone time)) 0))
 	 (sign (if (< utc-offset 0) ?- ?+))
@@ -225,6 +224,7 @@ If nil, use local time.")
     (format-time-string "%Y-%m-%d")))
 
 (defun change-log-name ()
+  "Return (system-dependent) default name for a change log file."
   (or change-log-default-name
       (if (eq system-type 'vax-vms)
 	  "$CHANGE_LOG$.TXT"
@@ -393,18 +393,22 @@ non-nil, otherwise in local time."
     (and buffer-file-name
 	 ;; Never want to add a change log entry for the ChangeLog file itself.
 	 (not (string= buffer-file-name file-name))
-	 (setq entry
-	       (if add-log-file-name-function
-		   (funcall add-log-file-name-function buffer-file-name)
+	 (if add-log-file-name-function
+	     (setq entry
+		   (funcall add-log-file-name-function buffer-file-name))
+	   (setq entry
 		 (if (string-match
 		      (concat "^" (regexp-quote (file-name-directory
 						 file-name)))
 		      buffer-file-name)
 		     (substring buffer-file-name (match-end 0))
-		   (file-name-nondirectory buffer-file-name)))))
+		   (file-name-nondirectory buffer-file-name)))
+	   ;; If we have a backup file, it's presumably because we're
+	   ;; comparing old and new versions (e.g. for deleted
+	   ;; functions) and we'll want to use the original name.
+	   (if (backup-file-name-p entry)
+	       (setq entry (file-name-sans-versions entry)))))
 
-    (let ((buffer (find-buffer-visiting file-name)))
-      (setq add-log-debugging (list (gap-position) (gap-size))))
     (if (and other-window (not (equal file-name buffer-file-name)))
 	(find-file-other-window file-name)
       (find-file file-name))
@@ -788,8 +792,8 @@ Has a preference of looking backwards."
 		end))
   (goto-char (match-end 0)))
 
-;; For objective C, return the method name if we are in a method.
 (defun change-log-get-method-definition ()
+"For objective C, return the method name if we are in a method."
   (let ((change-log-get-method-definition-md "["))
     (save-excursion
       (if (re-search-backward "^@implementation\\s-*\\([A-Za-z_]*\\)" nil t)
@@ -803,7 +807,65 @@ Has a preference of looking backwards."
 	   "\\([A-Za-z_]*:?\\)\\s-*\\(([^)]*)\\)?[A-Za-z_]*[ \t\n\f\r]*")
 	  (change-log-get-method-definition-1 ""))
 	(concat change-log-get-method-definition-md "]"))))))
+
+(defun change-log-sortable-date-at ()
+  "Return date of log entry in a consistent form for sorting.
+Point is assumed to be at the start of the entry."
+  (require 'timezone)
+  (if (looking-at "^\\sw.........[0-9:+ ]*")
+      (let ((date (match-string-no-properties 0)))
+	(if date
+	    (if (string-match "\\(....\\)-\\(..\\)-\\(..\\)\\s-+" date)
+		(concat (match-string 1 date) (match-string 2 date)
+			(match-string 3 date))
+	      (condition-case nil
+		  (timezone-make-date-sortable date)
+		(error nil)))))
+    (error "Bad date")))
 
+;;;###autoload
+(defun change-log-merge (other-log)
+  "Merge the contents of ChangeLog file OTHER-LOG with this buffer.
+Both must be found in Change Log mode (since the merging depends on
+the appropriate motion commands).
+
+Entries are inserted in chronological order.
+
+Both the current and old-style time formats for entries are supported,
+so this command could be used to convert old-style logs by merging
+with an empty log."
+  (interactive "*fLog file name to merge: ")
+  (if (not (eq major-mode 'change-log-mode))
+      (error "Not in Change Log mode"))
+  (let ((other-buf (find-file-noselect other-log))
+	(buf (current-buffer))
+	date1 start end)
+    (save-excursion
+      (goto-char (point-min))
+      (set-buffer other-buf)
+      (goto-char (point-min))
+      (if (not (eq major-mode 'change-log-mode))
+	  (error "%s not found in Change Log mode" other-log))
+      ;; Loop through all the entries in OTHER-LOG.
+      (while (not (eobp))
+	(setq date1 (change-log-sortable-date-at))
+	(setq start (point)
+	      end (progn (forward-page) (point)))
+	;; Look for an entry in original buffer that isn't later.
+	(with-current-buffer buf
+	  (while (and (not (eobp))
+		      (string< date1 (change-log-sortable-date-at)))
+	    (forward-page))
+	  (if (not (eobp))
+	      (insert-buffer-substring other-buf start end)
+	    ;; At the end of the original buffer, insert a newline to
+	    ;; separate entries and then the rest of the file being
+	    ;; merged.  Move to the end of it to terminate outer loop.
+	    (insert "\n")
+	    (insert-buffer-substring other-buf start
+				     (with-current-buffer other-buf
+				       (goto-char (point-max))
+				       (point)))))))))
 
 (provide 'add-log)
 
