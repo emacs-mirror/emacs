@@ -1146,10 +1146,26 @@ any double quotes or backslashes must be escaped (\\\",\\\\)."
 	       (image (if (file-exists-p image-file)
 			  (create-image image-file)
 			"[broken image]")))
-	  (message "Found image: %S" image-file)
 	  (if (not (get-text-property start 'display))
 	      (add-text-properties
 	       start (point) `(display ,image rear-nonsticky (display)))))))
+    (set-buffer-modified-p nil)))
+
+;; Texinfo 4.7 adds cookies of the form ^@^H[NAME CONTENTS ^@^H].
+;; Hide any construct of the general form ^@[^@-^_][ ...  ^@[^@-^_]],
+;; including one optional trailing newline.
+(defun Info-hide-cookies-node ()
+  "Hide unrecognised cookies in current node."
+  (save-excursion
+    (let ((inhibit-read-only t)
+	  (case-fold-search t))
+      (goto-char (point-min))
+      (while (re-search-forward
+	      "\\(\0[\0-\37][[][^\0]*\0[\0-\37][]]\n?\\)"
+	      nil t)
+	(let* ((start (match-beginning 1)))
+	  (if (not (get-text-property start 'invisible))
+	      (put-text-property start (point) 'invisible t)))))
     (set-buffer-modified-p nil)))
 
 (defun Info-select-node ()
@@ -1188,6 +1204,7 @@ any double quotes or backslashes must be escaped (\\\",\\\\)."
 	(if Info-enable-active-nodes (eval active-expression))
 	(Info-fontify-node)
 	(Info-display-images-node)
+	(Info-hide-cookies-node)
 	(run-hooks 'Info-selection-hook)))))
 
 (defun Info-set-mode-line ()
