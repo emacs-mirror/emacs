@@ -5927,7 +5927,7 @@ window_change_signal (signalnum) /* If we don't have an argument, */
     if (! tty->term_initted)
       continue;
     
-    get_tty_size (tty, &width, &height);
+    get_tty_size (fileno (TTY_INPUT (tty)), &width, &height);
     
     {
       Lisp_Object tail, frame;

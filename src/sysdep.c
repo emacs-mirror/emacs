@@ -309,10 +309,13 @@ discard_tty_input ()
 #endif /* not WINDOWSNT */
 }
 
+
 #ifdef SIGTSTP
 
 /* Arrange for character C to be read as the next input from
-   the terminal.  */
+   the terminal.
+   XXX What if we have multiple ttys?
+*/
 
 void
 stuff_char (char c)
@@ -331,7 +334,7 @@ stuff_char (char c)
 #endif /* SIGTSTP */
 
 void
-init_baud_rate (struct tty_output *tty)
+init_baud_rate (int fd)
 {
   if (noninteractive)
     emacs_ospeed = 0;
@@ -346,7 +349,7 @@ init_baud_rate (struct tty_output *tty)
 #ifdef VMS
       struct sensemode sg;
 
-      SYS$QIOW (0, fileno (TTY_INPUT (tty)), IO$_SENSEMODE, &sg, 0, 0,
+      SYS$QIOW (0, fd, IO$_SENSEMODE, &sg, 0, 0,
 		&sg.class, 12, 0, 0, 0, 0 );
       emacs_ospeed = sg.xmit_baud;
 #else /* not VMS */
@@ -354,7 +357,7 @@ init_baud_rate (struct tty_output *tty)
       struct termios sg;
 
       sg.c_cflag = B9600;
-      tcgetattr (fileno (TTY_INPUT (tty)), &sg);
+      tcgetattr (fd, &sg);
       emacs_ospeed = cfgetospeed (&sg);
 #if defined (USE_GETOBAUD) && defined (getobaud)
       /* m88k-motorola-sysv3 needs this (ghazi@noc.rutgers.edu) 9/1/94. */
@@ -367,16 +370,16 @@ init_baud_rate (struct tty_output *tty)
 
       sg.c_cflag = B9600;
 #ifdef HAVE_TCATTR
-      tcgetattr (fileno (TTY_INPUT (tty)), &sg);
+      tcgetattr (fd, &sg);
 #else
-      ioctl (fileno (TTY_INPUT (tty)), TCGETA, &sg);
+      ioctl (fd, TCGETA, &sg);
 #endif
       emacs_ospeed = sg.c_cflag & CBAUD;
 #else /* neither VMS nor TERMIOS nor TERMIO */
       struct sgttyb sg;
 
       sg.sg_ospeed = B9600;
-      if (ioctl (fileno (TTY_INPUT (tty)), TIOCGETP, &sg) < 0)
+      if (ioctl (fd, TIOCGETP, &sg) < 0)
 	abort ();
       emacs_ospeed = sg.sg_ospeed;
 #endif /* not HAVE_TERMIO */
@@ -392,6 +395,7 @@ init_baud_rate (struct tty_output *tty)
     baud_rate = 1200;
 }
 
+
 /*ARGSUSED*/
 void
 set_exclusive_use (fd)
@@ -976,7 +980,7 @@ request_sigio ()
 }
 
 void
-unrequest_sigio (struct tty_output *tty)
+unrequest_sigio ()
 {
   int off = 0;
 
@@ -1078,23 +1082,23 @@ int inherited_pgroup;
    group, redirect the TTY to point to our own process group.  We need
    to be in our own process group to receive SIGIO properly.  */
 void
-narrow_foreground_group (struct tty_output *tty)
+narrow_foreground_group (int fd)
 {
   int me = getpid ();
 
   setpgrp (0, inherited_pgroup);
   /* XXX This only works on the controlling tty. */
   if (inherited_pgroup != me)
-    EMACS_SET_TTY_PGRP (fileno (TTY_INPUT (tty)), &me);
+    EMACS_SET_TTY_PGRP (fd, &me);
   setpgrp (0, me);
 }
 
 /* Set the tty to our original foreground group.  */
 void
-widen_foreground_group (struct tty_output *tty)
+widen_foreground_group (int fd)
 {
   if (inherited_pgroup != getpid ())
-    EMACS_SET_TTY_PGRP (fileno (TTY_INPUT (tty)), &inherited_pgroup);
+    EMACS_SET_TTY_PGRP (fd, &inherited_pgroup);
   setpgrp (0, inherited_pgroup);
 }
 
@@ -1289,11 +1293,9 @@ static struct tchars new_tchars = {-1,-1,-1,-1,-1,-1};
 void
 init_all_sys_modes (void)
 {
-  struct tty_output *tty = tty_list;
-  while (tty) {
+  struct tty_output *tty;
+  for (tty = tty_list; tty; tty = tty->next)
     init_sys_modes (tty);
-    tty = tty->next;
-  }
 }
 
 void
@@ -1358,7 +1360,7 @@ nil means don't delete them until `list-processes' is run.  */);
 
 #ifdef BSD_PGRPS
   if (! read_socket_hook && EQ (Vwindow_system, Qnil))
-    narrow_foreground_group (tty_out);
+    narrow_foreground_group (fileno (TTY_INPUT (tty_out)));
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -1683,11 +1685,11 @@ nil means don't delete them until `list-processes' is run.  */);
    At the time this is called, init_sys_modes has not been done yet.  */
 
 int
-tabs_safe_p (struct tty_output *tty)
+tabs_safe_p (int fd)
 {
   struct emacs_tty etty;
 
-  EMACS_GET_TTY (fileno (TTY_INPUT (tty)), &etty);
+  EMACS_GET_TTY (fd, &etty);
   return EMACS_TTY_TABS_OK (&etty);
 }
 
@@ -1696,9 +1698,7 @@ tabs_safe_p (struct tty_output *tty)
    We store 0 if there's no valid information.  */
 
 void
-get_tty_size (tty_out, widthp, heightp)
-     struct tty_output *tty_out;
-     int *widthp, *heightp;
+get_tty_size (int fd, int *widthp, int *heightp)
 {
 
 #ifdef TIOCGWINSZ
@@ -1706,7 +1706,7 @@ get_tty_size (tty_out, widthp, heightp)
   /* BSD-style.  */
   struct winsize size;
 
-  if (ioctl (fileno (TTY_INPUT (tty_out)), TIOCGWINSZ, &size) == -1)
+  if (ioctl (fd, TIOCGWINSZ, &size) == -1)
     *widthp = *heightp = 0;
   else
     {
@@ -1720,7 +1720,7 @@ get_tty_size (tty_out, widthp, heightp)
   /* SunOS - style.  */
   struct ttysize size;
 
-  if (ioctl (fileno (TTY_INPUT (tty_out)), TIOCGSIZE, &size) == -1)
+  if (ioctl (fd, TIOCGSIZE, &size) == -1)
     *widthp = *heightp = 0;
   else
     {
@@ -1733,7 +1733,7 @@ get_tty_size (tty_out, widthp, heightp)
 
   struct sensemode tty;
 
-  SYS$QIOW (0, fileno (TTY_INPUT (tty_out)), IO$_SENSEMODE, &tty, 0, 0,
+  SYS$QIOW (0, fd, IO$_SENSEMODE, &tty, 0, 0,
 	    &tty.class, 12, 0, 0, 0, 0);
   *widthp = tty.scr_wid;
   *heightp = tty.scr_len;
@@ -1793,11 +1793,9 @@ set_window_size (fd, height, width)
 void
 reset_all_sys_modes (void)
 {
-  struct tty_output *tty = tty_list;
-  while (tty) {
+  struct tty_output *tty;
+  for (tty = tty_list; tty; tty = tty->next)
     reset_sys_modes (tty);
-    tty = tty->next;
-  }
 }
 
 /* Prepare the terminal for closing it; move the cursor to the
@@ -1889,7 +1887,7 @@ reset_sys_modes (tty_out)
 #endif
 
 #ifdef BSD_PGRPS
-  widen_foreground_group (tty_out);
+  widen_foreground_group (fileno (TTY_INPUT (tty_out)));
 #endif
 }
 

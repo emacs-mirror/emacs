@@ -10127,7 +10127,7 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
     call1 (Vrun_hooks, intern ("suspend-hook"));
 
   GCPRO1 (stuffstring);
-  get_tty_size (CURTTY (), &old_width, &old_height);
+  get_tty_size (fileno (TTY_INPUT (CURTTY ())), &old_width, &old_height);
   reset_all_sys_modes ();
   /* sys_suspend can get an error if it tries to fork a subshell
      and the system resources aren't available for that.  */
@@ -10143,7 +10143,7 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
   /* Check if terminal/window size has changed.
      Note that this is not useful when we are running directly
      with a window system; but suspend should be disabled in that case.  */
-  get_tty_size (CURTTY (), &width, &height);
+  get_tty_size (fileno (TTY_INPUT (CURTTY ())), &width, &height);
   if (width != old_width || height != old_height)
     change_frame_size (SELECTED_FRAME (), height, width, 0, 0, 0);
 

@@ -2403,7 +2403,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   /* Get frame size from system, or else from termcap.  */
   {
     int height, width;
-    get_tty_size (tty, &width, &height);
+    get_tty_size (fileno (TTY_INPUT (tty)), &width, &height);
     FrameCols (tty) = width;
     FrameRows (tty) = height;
   }
@@ -2609,7 +2609,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
               && tty->TS_end_standout_mode
               && !strcmp (tty->TS_standout_mode, tty->TS_end_standout_mode));
 
-  UseTabs (tty) = tabs_safe_p (tty) && TabWidth (tty) == 8;
+  UseTabs (tty) = tabs_safe_p (fileno (TTY_INPUT (tty))) && TabWidth (tty) == 8;
 
   TTY_SCROLL_REGION_OK (tty)
     = (tty->Wcm->cm_abs
@@ -2628,7 +2628,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   TTY_FAST_CLEAR_END_OF_LINE (tty) = tty->TS_clr_line != 0;
 
-  init_baud_rate (tty);
+  init_baud_rate (fileno (TTY_INPUT (tty)));
   if (read_socket_hook)		/* Baudrate is somewhat
                                    meaningless in this case */
     baud_rate = 9600;
@@ -2737,7 +2737,7 @@ delete_tty (struct tty_output *tty)
 
   if (tty->input)
     fclose (tty->input);
-  if (tty->output)
+  if (tty->output && tty->output != tty->input)
     fclose (tty->output);
   if (tty->termscript)
     fclose (tty->termscript);
@@ -2745,10 +2745,8 @@ delete_tty (struct tty_output *tty)
   if (tty->old_tty)
     xfree (tty->old_tty);
 
-#if 0  /* XXX There is a dangling reference somewhere into this. */
   if (tty->Wcm)
     xfree (tty->Wcm); 
-#endif
   
   bzero (tty, sizeof (struct tty_output));
   xfree (tty);

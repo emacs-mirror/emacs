@@ -39,7 +39,7 @@ commands:
 then start up the emacs server (src/emacs, M-x server-start), and then
 (from a shell prompt on another terminal) start emacsclient with
 
-	lib-src/emacsclient -h  /optional/file/names...
+	lib-src/emacsclient -f /optional/file/names...
 
 You'll hopefully have two fully working, independent frames on
 separate terminals.  (This seems to be very useful, emacsclient starts
@@ -213,13 +213,7 @@ DIARY OF CHANGES
 
    (Seems to be working OK.)
 
-THINGS TO DO
-------------
-
-** Understand Emacs's low-level input system.  It seems
-   complicated. :-)
-
-** Fix mysterious memory corruption error with tty deletion.  To
+-- Fix mysterious memory corruption error with tty deletion.  To
    trigger it, try the following shell command:
 
 	while true; do TERM=no-such-terminal-definition emacsclient -h; done
@@ -230,17 +224,23 @@ THINGS TO DO
    Why were these vars collected into a struct before multi-tty
    support?)
 
-   The bug does not seem to happen if the error occurs before terminal
-   initialization or if I comment out all xfree()s in delete_frame.
-   Update: yes it does, although it is much rarer.  Or maybe it's
-   another bug.
+   (Done.  Whew.  It turned out that the problem had nothing to do
+   with hypothetical external references to Wcm, or any other
+   tty_output component; it was simply that delete_tty closed the
+   filehandles of secondary ttys twice, resulting in fclose doubly
+   free()ing memory.  Utterly trivial matter.  I love the C's memory
+   management, it puts hair on your chest.)
 
-   Idea: Some of these errors may have been caused by having more
-   file handles than FD_SETSIZE.
+THINGS TO DO
+------------
+
+** Understand Emacs's low-level input system (it seems complicated) :-)
+   and maybe rewrite multi-tty input in terms of MULTIKBOARD.
 
 ** Find out why does Emacs abort when it wants to close its
    controlling tty.  Hint: chan_process[] array.  Hey, maybe
-   noninterrupt-IO would work, too?
+   noninterrupt-IO would work, too?  Update: no, there is no process
+   for stdin/out.
 
 ** Support raw secondary terminals.  (Note that SIGIO works only on
    the controlling terminal.) Hint: extend read_input_waiting() for
@@ -252,8 +252,20 @@ THINGS TO DO
 ** Issue with SIGIO: it needs to be disabled during redisplay.  See if
    fcntl() kernel behaviour could be emulated by emacsclient.
 
+** Get rid of the accessor macros in termchar.h, or define macros for
+   all members.
+
 ** Make parts of struct tty_output accessible from Lisp.  The device
    name and the type is sufficient.
+
+** server.el: There are issues with saving files in buffers of closed
+   clients.  Try editing a file with emacsclient -f, and (without
+   saving it) do a delete-frame.  The frame is closed without
+   question, and a surprising confirmation prompt appears in another
+   frame.
+
+** emacsclient.el, server.el: Handle eval or file open errors when
+   doing -f.
 
 ** Export delete_tty to the Lisp environment, for emacsclient.
 
@@ -283,6 +295,6 @@ THINGS TO DO
 
 ** Fix DOS support (I can't do this myself).
 
-
+** Do a grep on XXX and ?? for more issues.
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d

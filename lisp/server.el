@@ -271,7 +271,7 @@ Prefix arg means just kill any existing server communications subprocess."
   (while server-frames
     (let ((frame (cadar server-frames)))
       (setq server-frames (cdr server-frames))
-      (when frame-live-p frame (delete-frame frame 'force))))
+      (when (frame-live-p frame) (delete-frame frame 'force))))
   (unless leave-dead
     (if server-process
 	(server-log (message "Restarting server")))
@@ -314,7 +314,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	  (coding-system (and default-enable-multibyte-characters
 			      (or file-name-coding-system
 				  default-file-name-coding-system)))
-	  client nowait eval
+	  client nowait eval newframe
 	  (files nil)
 	  (lineno 1)
 	  (columnno 0))
@@ -336,6 +336,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 		       (setq request "")))))
 	   ;; Open a new frame at the client.  ARG is the name of the pseudo tty.
 	   ((and (equal "-pty" arg) (string-match "\\([^ ]*\\) \\([^ ]*\\) " request))
+	    (setq newframe t)
 	    (let ((pty (server-unquote-arg (match-string 1 request)))
 		  (type (server-unquote-arg (match-string 2 request))))
 	      (setq request (substring request (match-end 0)))
@@ -364,7 +365,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	    (if eval
 		(condition-case err
 		    (let ((v (eval (car (read-from-string arg)))))
-		      (when v
+		      (when (and (not newframe v))
 			(with-temp-buffer
 			  (let ((standard-output (current-buffer)))
 			    (pp v)
@@ -382,7 +383,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	(server-visit-files files client nowait)
 	(run-hooks 'post-command-hook))
       ;; CLIENT is now a list (CLIENTNUM BUFFERS...)
-      (if (null (cdr client))
+      (if (and (not newframe) (null (cdr client)))
 	  ;; This client is empty; get rid of it immediately.
 	  (progn
 	    (let ((frame (assq (car client) server-frames)))
@@ -607,7 +608,8 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
   ;; since we've already effectively done that.
   (if (null next-buffer)
       (if server-clients
-	  (server-switch-buffer (nth 1 (car server-clients)) killed-one)
+	  (let ((buffer (nth 1 (car server-clients))))
+	    (and buffer (server-switch-buffer buffer killed-one)))
 	(unless (or killed-one (window-dedicated-p (selected-window)))
 	  (switch-to-buffer (other-buffer))
 	  (message "No server buffers remain to edit")))

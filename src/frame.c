@@ -656,7 +656,7 @@ Note that changing the size of one terminal frame automatically affects all.  */
 
   {
     int width, height;
-    get_tty_size (FRAME_TTY (f), &width, &height);
+    get_tty_size (fileno (TTY_INPUT (FRAME_TTY (f))), &width, &height);
     change_frame_size (f, height, width, 0, 0, 0);
   }
   

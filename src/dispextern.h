@@ -2562,11 +2562,11 @@ extern int x_intersect_rectangles P_ ((XRectangle *, XRectangle *,
 
 /* Defined in sysdep.c */
 
-void get_tty_size P_ ((struct tty_output *, int *, int *));
+void get_tty_size P_ ((int, int *, int *));
 void request_sigio P_ ((void));
 void unrequest_sigio P_ ((void));
-int tabs_safe_p P_ ((struct tty_output *));
-void init_baud_rate P_ ((struct tty_output *));
+int tabs_safe_p P_ ((int));
+void init_baud_rate P_ ((int));
 void init_sigio P_ ((int));
 
 /* Defined in xfaces.c */

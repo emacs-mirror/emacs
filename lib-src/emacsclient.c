@@ -118,7 +118,7 @@ int eval = 0;
 char *display = NULL;
 
 /* Nonzero means open a new Emacs frame on the current terminal. */
-int here = 0;
+int frame = 0;
 
 /* If non-NULL, the name of an editor to fallback to if the server
    is not running.  --alternate-editor.   */
@@ -135,7 +135,7 @@ struct option longopts[] =
   { "eval",	no_argument,	   NULL, 'e' },
   { "help",	no_argument,	   NULL, 'H' },
   { "version",	no_argument,	   NULL, 'V' },
-  { "here",	no_argument,       NULL, 'h' },
+  { "frame",	no_argument,       NULL, 'f' },
   { "alternate-editor", required_argument, NULL, 'a' },
   { "socket-name",	required_argument, NULL, 's' },
   { "display",	required_argument, NULL, 'd' },
@@ -153,7 +153,7 @@ decode_options (argc, argv)
   while (1)
     {
       int opt = getopt_long (argc, argv,
-			     "VHnea:s:d:h", longopts, 0);
+			     "VHnea:s:d:f", longopts, 0);
 
       if (opt == EOF)
 	break;
@@ -192,8 +192,8 @@ decode_options (argc, argv)
 	  exit (0);
 	  break;
 
-        case 'h':
-          here = 1;
+        case 'f':
+          frame = 1;
           break;
           
 	case 'H':
@@ -207,7 +207,7 @@ decode_options (argc, argv)
 	}
     }
 
-  if (here) {
+  if (frame) {
     nowait = 0;
     display = 0;
   }
@@ -225,7 +225,7 @@ Every FILE can be either just a FILENAME or [+LINE[:COLUMN]] FILENAME.\n\
 The following OPTIONS are accepted:\n\
 -V, --version           Just print a version info and return\n\
 -H, --help              Print this usage information message\n\
--h, --here              Open a new Emacs frame on the current terminal\n\
+-f, --frame             Open a new Emacs frame on the current terminal\n\
 -n, --no-wait           Don't wait for the server to return\n\
 -e, --eval              Evaluate the FILE arguments as ELisp expressions\n\
 -d, --display=DISPLAY   Visit the file in the given display\n\
@@ -876,7 +876,7 @@ main (argc, argv)
   /* Process options.  */
   decode_options (argc, argv);
 
-  if ((argc - optind < 1) && !eval && !here)
+  if ((argc - optind < 1) && !eval && !frame)
     {
       fprintf (stderr, "%s: file name or argument required\n", progname);
       fprintf (stderr, "Try `%s --help' for more information\n", progname);
@@ -1048,7 +1048,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
       fprintf (out, " ");
     }
 
-  if (here)
+  if (frame)
     {
       if (! init_signals ())
         {
@@ -1108,7 +1108,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
     }
   else
     {
-      if (!here)
+      if (!frame)
         {
           while ((str = fgets (string, BUFSIZ, stdin)))
             {
@@ -1128,7 +1128,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
       return 0;
     }
 
-  if (here)
+  if (frame)
     {
       if (! pty_conversation (out))
         {
