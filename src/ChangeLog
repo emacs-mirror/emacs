@@ -1,3 +1,44 @@
+2002-07-30  Dave Love  <fx@gnu.org>
+
+	* xfns.c (x_put_x_image): Declare args.
+
+	* xfaces.c (font_name_registry, choose_face_font): Delete unused
+	vars.
+	(try_font_list): Declare an arg.
+
+	* xdisp.c (message2_nolog, set_message): Declare an arg.
+
+	* terminfo.c (tparam): Declare an arg.  Use P_ to declare tparm.
+
+	* syntax.c (scan_sexps_forward): Declare an arg.
+
+	* scroll.c (calculate_scrolling, calculate_direct_scrolling):
+	Declare an arg.
+
+	* lisp.h (Fnew_fontset): Declare.
+
+	* keymap.c (push_key_description): Call CHARACTERP correctly.
+
+	* fontset.c (fontset_add): Declare args.  Call make_number
+	correctly.
+	(face_for_char): Delete unused vars.
+	(Fset_fontset_font): Doc fix.  Delete unused vars.
+
+	* doc.c (Fsubstitute_command_keys): Delete unused vars.
+
+	* composite.c (update_compositions): Declare arg.
+
+	* cm.c (calccost, cmgoto): Declare args.
+
+	* charset.c: Remove `emacs' conditional.  Doc fixes.
+	(map_char_table_for_charset): Declare.
+
+	* character.c (syms_of_character) <translation-table-vector>: Doc
+	fix.
+
+	* ccl.c: Remove `emacs' conditional.  Include hash table stuff
+	from trunk.
+
 2002-07-26  Kenichi Handa  <handa@etl.go.jp>
 
 	The following changes are to allow specifying multiple font

@@ -1,5 +1,8 @@
 2002-07-30  Dave Love  <fx@gnu.org>
 
+	* international/titdic-cnv.el (quail-cxterm-package-ext-info): Doc
+	fix.
+
 	* emacs-lisp/copyright.el (copyright-regexp): Remove redundancy.
 
 2002-07-26  Kenichi Handa  <handa@etl.go.jp>

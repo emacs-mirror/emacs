@@ -1,3 +1,14 @@
+2002-07-30  Dave Love  <fx@gnu.org>
+
+	* quail/welsh.el ("welsh"): Doc fix.
+
+	* quail/cyrillic.el: Reinstate some commented-out redundancies.
+	("russian-typewriter"): Renamed from cyrillic-typewriter.  Make
+	cyrillic-jcuken effectively an alias for it.
+	("russian-computer"): New.
+	("bulgarian-phonetic"): Renamed from bulgarian-pho.
+	("bulgarian-bds"): Renamed from bulgarian-standard.
+
 2002-07-01  Dave Love  <fx@gnu.org>
 
 	* quail/indian.el: Update from head.
