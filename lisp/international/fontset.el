@@ -692,7 +692,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 	fontset-spec)
     (while (setq fontset-spec (x-get-resource (concat "fontset-" idx)
 					      (concat "Fontset-" idx)))
-      (create-fontset-from-fontset-spec fontset-spec nil 'noerror)
+      (create-fontset-from-fontset-spec fontset-spec t 'noerror)
       (setq idx (1+ idx)))))
 
 (defsubst fontset-list ()
