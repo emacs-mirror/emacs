@@ -1,5 +1,12 @@
 2001-11-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* mocklisp.c (Fml_defun, Fml_while, Fml_substr): Remove commented
+	and #ifdef'd-out code.
+	Fix and reindent comments.
+
+	* mocklisp.h: Remove comment which is a copy of comment in
+	mocklisp.c.
+
 	* category.h (CHECK_CATEGORY, CHECK_CATEGORY_SET): Remove unused
 	argument `i' in macros.
 
