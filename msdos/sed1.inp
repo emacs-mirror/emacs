@@ -5,7 +5,6 @@ s/^#.*//
 s/^[ \f\t][ \f\t]*$//
 s/^ /	/
 /^obj=/s!$! dosfns.o msdos.o!
-/window.elc/s!window.elc!window.elc ${lispdir}dos-fns.elc!
 s/\.h\.in/.h-in/
 s!^	\./temacs!	go32 temacs!
 s!/bin/sh!command.com!
