@@ -51,6 +51,11 @@ may contain even `F', `b', `i' and `s'.  See also the variable
       "chown" "/etc/chown")
   "Name of chown command (usually `chown' or `/etc/chown').")
 
+(defvar dired-chmod-program
+  (if (eq system-type 'windows-nt)
+      "chmode" "chmod")
+  "Name of chmod command (usually `chmod' or `chmode').")
+
 ;;;###autoload
 (defvar dired-ls-F-marks-symlinks nil
   "*Informs dired about how `ls -lF' marks symbolic links.
