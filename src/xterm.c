@@ -11205,6 +11205,7 @@ x_connection_closed (display, error_message)
   TOTALLY_UNBLOCK_INPUT;
 
   clear_waiting_for_input ();
+  handling_signal = 0;
   error ("%s", error_message);
 }
 
