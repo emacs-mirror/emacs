@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.75) $
+ * $HopeName: MMsrc!mpsi.c(trunk.76) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -53,7 +53,7 @@
 #include "sac.h"
 #include "chain.h"
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.75) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.76) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -68,7 +68,6 @@ SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.75) $");
  * .check.enum.cast: enum comparisons have to be cast to avoid a warning
  * from the SunPro C compiler.  See builder.sc.warn.enum.
  */
-
 static Bool mpsi_check(void)
 {
   /* .check.rc: Check that external and internal result codes match. */
@@ -375,8 +374,7 @@ mps_res_t mps_space_collect(mps_space_t mps_space)
 /* mps_arena_create -- create an arena object */
 
 mps_res_t mps_arena_create(mps_arena_t *mps_arena_o,
-                           mps_arena_class_t mps_arena_class,
-                           ...)
+                           mps_arena_class_t mps_arena_class, ...)
 {
   mps_res_t res;
   va_list args;
@@ -391,8 +389,7 @@ mps_res_t mps_arena_create(mps_arena_t *mps_arena_o,
 /* mps_arena_create_v -- create an arena object */
 
 mps_res_t mps_arena_create_v(mps_arena_t *mps_arena_o,
-                             mps_arena_class_t mps_arena_class,
-                             va_list args)
+                             mps_arena_class_t mps_arena_class, va_list args)
 {
   Arena arena;
   Res res;
@@ -404,9 +401,9 @@ mps_res_t mps_arena_create_v(mps_arena_t *mps_arena_o,
   AVER(mps_arena_o != NULL);
 
   res = ArenaCreateV(&arena, (ArenaClass)mps_arena_class, args);
-
-  if(res != ResOK)
+  if (res != ResOK)
     return res;
+
   ArenaLeave(arena);
   *mps_arena_o = (mps_arena_t)arena;
   return MPS_RES_OK;
@@ -427,7 +424,6 @@ mps_res_t mps_space_create(mps_space_t *mps_space_o)
  * the lock.  In any case, any other thread which is using the
  * arena at the time it is destroyed, will fall over.
  */
-
 void mps_arena_destroy(mps_arena_t mps_arena)
 {
   Arena arena = (Arena)mps_arena;
@@ -451,7 +447,6 @@ void mps_space_destroy(mps_space_t mps_space)
  * design.mps.interface.c.fmt.extend for justification of the
  * way that the format structure is declared as "mps_fmt_A".
  */ 
-
 mps_res_t mps_fmt_create_A(mps_fmt_t *mps_fmt_o,
                            mps_arena_t mps_arena,
                            mps_fmt_A_s *mps_fmt_A)
@@ -479,7 +474,7 @@ mps_res_t mps_fmt_create_A(mps_fmt_t *mps_fmt_o,
 
   ArenaLeave(arena);
 
-  if(res != ResOK) return res;
+  if (res != ResOK) return res;
   *mps_fmt_o = (mps_fmt_t)format;
   return MPS_RES_OK;
 }
@@ -514,7 +509,7 @@ mps_res_t mps_fmt_create_B(mps_fmt_t *mps_fmt_o,
 
   ArenaLeave(arena);
 
-  if(res != ResOK) return res;
+  if (res != ResOK) return res;
   *mps_fmt_o = (mps_fmt_t)format;
   return MPS_RES_OK;
 }
@@ -549,7 +544,7 @@ mps_res_t mps_fmt_create_auto_header(mps_fmt_t *mps_fmt_o,
 
   ArenaLeave(arena);
 
-  if(res != ResOK) return res;
+  if (res != ResOK) return res;
   *mps_fmt_o = (mps_fmt_t)format;
   return MPS_RES_OK;
 }
@@ -575,10 +570,8 @@ void mps_fmt_destroy(mps_fmt_t mps_fmt)
 }
 
 
-mps_res_t mps_pool_create(mps_pool_t *mps_pool_o,
-                          mps_arena_t mps_arena,
-                          mps_class_t mps_class,
-                          ...)
+mps_res_t mps_pool_create(mps_pool_t *mps_pool_o, mps_arena_t mps_arena,
+                          mps_class_t mps_class, ...)
 {
   mps_res_t res;
   va_list args;
@@ -588,10 +581,8 @@ mps_res_t mps_pool_create(mps_pool_t *mps_pool_o,
   return res;
 }
 
-mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o,
-                            mps_arena_t mps_arena,
-                            mps_class_t mps_class,
-                            va_list args)
+mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o, mps_arena_t mps_arena,
+                            mps_class_t mps_class, va_list args)
 {
   Arena arena = (Arena)mps_arena;
   Pool pool;
@@ -608,7 +599,7 @@ mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o,
 
   ArenaLeave(arena);
   
-  if(res != ResOK) return res;
+  if (res != ResOK) return res;
   *mps_pool_o = (mps_pool_t)pool;
   return res;
 }
@@ -658,7 +649,7 @@ mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t mps_pool,
 
   ArenaLeave(arena);
 
-  if(res != ResOK) return res;
+  if (res != ResOK) return res;
   *p_o = (mps_addr_t)p;
   return MPS_RES_OK;
 }
@@ -722,7 +713,7 @@ mps_res_t mps_ap_create(mps_ap_t *mps_ap_o, mps_pool_t mps_pool, ...)
 
   ArenaLeave(arena);
 
-  if(res != ResOK)
+  if (res != ResOK)
     return res;
   *mps_ap_o = (mps_ap_t)BufferAP(buf);
   return MPS_RES_OK;
@@ -753,7 +744,7 @@ mps_res_t mps_ap_create_v(mps_ap_t *mps_ap_o, mps_pool_t mps_pool,
 
   ArenaLeave(arena);
 
-  if(res != ResOK)
+  if (res != ResOK)
     return res;
   *mps_ap_o = (mps_ap_t)BufferAP(buf);
   return MPS_RES_OK;
@@ -864,7 +855,7 @@ mps_res_t (mps_ap_frame_push)(mps_frame_t *frame_o, mps_ap_t mps_ap)
     return MPS_RES_FAIL;
   }
 
-  if(!mps_ap->lwpoppending) {
+  if (!mps_ap->lwpoppending) {
     /* Valid state for a lightweight push */
     *frame_o = (mps_frame_t)mps_ap->init;
     return MPS_RES_OK;
@@ -883,7 +874,7 @@ mps_res_t (mps_ap_frame_push)(mps_frame_t *frame_o, mps_ap_t mps_ap)
     
     res = BufferFramePush(&frame, buf);
 
-    if(res == ResOK) {
+    if (res == ResOK) {
       *frame_o = (mps_frame_t)frame;
     }
     ArenaLeave(arena);
@@ -963,7 +954,7 @@ mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
 
   ArenaLeave(arena);
   
-  if(res != ResOK) return res;
+  if (res != ResOK) return res;
   *p_o = (mps_addr_t)p;
   return MPS_RES_OK;
 }
@@ -995,7 +986,7 @@ mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *p_o,
 
   ArenaLeave(arena);
   
-  if(res != ResOK) return res;
+  if (res != ResOK) return res;
   *p_o = (mps_addr_t)p;
   return MPS_RES_OK;
 }
@@ -1006,7 +997,6 @@ mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *p_o,
  * .ap.trip.internal: Note that mps_ap_trip should never be "called"
  * directly by the client code.  It is invoked by the mps_commit macro.
  */
-
 mps_bool_t mps_ap_trip(mps_ap_t mps_ap, mps_addr_t p, size_t size)
 {
   Buffer buf = BufferOfAP((AP)mps_ap);
@@ -1170,12 +1160,9 @@ void mps_sac_free(mps_sac_t mps_sac, mps_addr_t p, size_t size)
 /* Roots */
 
 
-mps_res_t mps_root_create(mps_root_t *mps_root_o,
-                          mps_arena_t mps_arena,
-                          mps_rank_t mps_rank,
-                          mps_rm_t mps_rm,
-                          mps_root_scan_t mps_root_scan,
-                          void *p, size_t s)
+mps_res_t mps_root_create(mps_root_t *mps_root_o, mps_arena_t mps_arena,
+                          mps_rank_t mps_rank, mps_rm_t mps_rm,
+                          mps_root_scan_t mps_root_scan, void *p, size_t s)
 {
   Arena arena = (Arena)mps_arena;
   Rank rank = (Rank)mps_rank;
@@ -1193,15 +1180,13 @@ mps_res_t mps_root_create(mps_root_t *mps_root_o,
 
   ArenaLeave(arena);
   
-  if(res != ResOK) return res;
+  if (res != ResOK) return res;
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
 }
 
-mps_res_t mps_root_create_table(mps_root_t *mps_root_o,
-                                mps_arena_t mps_arena,
-                                mps_rank_t mps_rank,
-                                mps_rm_t mps_rm,
+mps_res_t mps_root_create_table(mps_root_t *mps_root_o, mps_arena_t mps_arena,
+                                mps_rank_t mps_rank, mps_rm_t mps_rm,
                                 mps_addr_t *base, size_t size)
 {
   Arena arena = (Arena)mps_arena;
@@ -1225,15 +1210,14 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o,
 
   ArenaLeave(arena);
   
-  if(res != ResOK) return res;
+  if (res != ResOK) return res;
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
 }
 
 mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
                                        mps_arena_t mps_arena,
-                                       mps_rank_t mps_rank,
-                                       mps_rm_t mps_rm,
+                                       mps_rank_t mps_rank, mps_rm_t mps_rm,
                                        mps_addr_t *base, size_t size,
                                        mps_word_t mask)
 {
@@ -1258,15 +1242,13 @@ mps_res_t mps_root_create_table_masked(mps_root_t *mps_root_o,
 
   ArenaLeave(arena);
   
-  if(res != ResOK) return res;
+  if (res != ResOK) return res;
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
 }
 
-mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o,
-                              mps_arena_t mps_arena,
-                              mps_rank_t mps_rank,
-                              mps_rm_t mps_rm,
+mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o, mps_arena_t mps_arena,
+                              mps_rank_t mps_rank, mps_rm_t mps_rm,
                               mps_fmt_scan_t mps_fmt_scan,
                               mps_addr_t base, mps_addr_t limit)
 {
@@ -1286,7 +1268,7 @@ mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o,
 
   ArenaLeave(arena);
   
-  if(res != ResOK) return res;
+  if (res != ResOK) return res;
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
 }
@@ -1322,7 +1304,7 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o,
 
   ArenaLeave(arena);
   
-  if(res != ResOK) return res;
+  if (res != ResOK) return res;
   *mps_root_o = (mps_root_t)root;
   return MPS_RES_OK;
 }
@@ -1332,7 +1314,6 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o,
  *
  * See .reg-scan.
  */
-
 mps_res_t mps_stack_scan_ambig(mps_ss_t mps_ss,
                                mps_thr_t mps_thr, void *p, size_t s)
 {
@@ -1389,7 +1370,7 @@ mps_res_t mps_thread_reg(mps_thr_t *mps_thr_o, mps_arena_t mps_arena)
 
   ArenaLeave(arena);
   
-  if(res != ResOK) return res;
+  if (res != ResOK) return res;
   *mps_thr_o = (mps_thr_t)thread;
   return MPS_RES_OK;
 }
@@ -1426,7 +1407,6 @@ void mps_ld_reset(mps_ld_t mps_ld, mps_arena_t mps_arena)
  *
  * See design.mps.interface.c.lock-free.
  */
-
 void mps_ld_add(mps_ld_t mps_ld, mps_arena_t mps_arena, mps_addr_t addr)
 {
   Arena arena = (Arena)mps_arena;
@@ -1456,7 +1436,6 @@ void mps_ld_merge(mps_ld_t mps_ld, mps_arena_t mps_arena,
  *
  * See design.mps.interface.c.lock-free.
  */
-
 mps_bool_t mps_ld_isstale(mps_ld_t mps_ld, mps_arena_t mps_arena,
                           mps_addr_t addr)
 {
@@ -1601,7 +1580,7 @@ mps_bool_t mps_message_get(mps_message_t *mps_message_return,
 
   ArenaLeave(arena);
 
-  if(b) {
+  if (b) {
     *mps_message_return = (mps_message_t)message;
   }
   return b;
@@ -1620,14 +1599,14 @@ mps_bool_t mps_message_queue_type(mps_message_type_t *mps_message_type_return,
 
   ArenaLeave(arena);
 
-  if(b) {
+  if (b) {
     *mps_message_type_return = (mps_message_type_t)type;
   }
   return b;
 }
 
 
-/* Message Type Specific Methods */
+/* Message-Type-Specific Methods */
 
 /* MPS_MESSAGE_TYPE_FINALIZATION */
 
@@ -1706,8 +1685,7 @@ size_t mps_message_gc_not_condemned_size(mps_arena_t mps_arena,
 
 /* Telemetry */
 
-mps_word_t mps_telemetry_control(mps_word_t resetMask, 
-                                 mps_word_t flipMask)
+mps_word_t mps_telemetry_control(mps_word_t resetMask, mps_word_t flipMask)
 {
   /* Doesn't require locking and isn't arena-specific. */
   return EventControl((Word)resetMask, (Word)flipMask);
@@ -1751,7 +1729,6 @@ mps_alloc_pattern_t mps_alloc_pattern_ramp_collect_all(void)
  * So we assume it's a ramp, and call BufferRampBegin/End directly,
  * without dispatching.  No point in creating a mechanism for that.
  */
-
 mps_res_t mps_ap_alloc_pattern_begin(mps_ap_t mps_ap,
                                      mps_alloc_pattern_t alloc_pattern)
 {
@@ -1818,40 +1795,42 @@ mps_res_t mps_ap_alloc_pattern_reset(mps_ap_t mps_ap)
 /* Low memory reservoir */
 
 
+/* mps_reservoir_limit_set -- set the reservoir size */
+
 void mps_reservoir_limit_set(mps_arena_t mps_arena, size_t size)
 {
   Arena arena = (Arena)mps_arena;
-  Reservoir reservoir;
 
   ArenaEnter(arena);
-  reservoir = ArenaReservoir(arena);
-  ReservoirSetLimit(reservoir, size);
+  ReservoirSetLimit(ArenaReservoir(arena), size);
   ArenaLeave(arena);
 }
+
+
+/* mps_reservoir_limit -- return the reservoir size */
 
 size_t mps_reservoir_limit(mps_arena_t mps_arena)
 {
   Arena arena = (Arena)mps_arena;
-  Reservoir reservoir;
   Size size;
 
   ArenaEnter(arena);
-  reservoir = ArenaReservoir(arena);
-  size = ReservoirLimit(reservoir);
+  size = ReservoirLimit(ArenaReservoir(arena));
   ArenaLeave(arena);
 
   return size;
 }
 
+
+/* mps_reservoir_available -- return memory available in the reservoir */
+
 size_t mps_reservoir_available(mps_arena_t mps_arena)
 {
   Arena arena = (Arena)mps_arena;
-  Reservoir reservoir;
   Size size;
 
   ArenaEnter(arena);
-  reservoir = ArenaReservoir(arena);
-  size = ReservoirAvailable(reservoir);
+  size = ReservoirAvailable(ArenaReservoir(arena));
   ArenaLeave(arena);
 
   return size;
