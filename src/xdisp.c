@@ -227,6 +227,9 @@ Lisp_Object Qgrow_only;
 Lisp_Object Qinhibit_eval_during_redisplay;
 Lisp_Object Qbuffer_position, Qposition, Qobject;
 
+/* Cursor shapes */
+Lisp_Object Qbar, Qhbar, Qbox, Qhollow;
+
 Lisp_Object Qrisky_local_variable;
 
 /* Holds the list (error).  */
@@ -531,8 +534,18 @@ static int message_cleared_p;
 /* Non-zero means we want a hollow cursor in windows that are not
    selected.  Zero means there's no cursor in such windows.  */
 
-int cursor_in_non_selected_windows;
+Lisp_Object Vcursor_in_non_selected_windows;
 Lisp_Object Qcursor_in_non_selected_windows;
+
+/* Specifies the desired cursor-type to use to show the blinking
+   cursor off state and cursor shown in non-selected windows.
+   t means to use the default.  */
+
+Lisp_Object Valternate_cursor_type;
+Lisp_Object Qalternate_cursor_type;
+
+/* How to blink the default frame cursor off.  */
+Lisp_Object Vblink_cursor_alist;
 
 /* A scratch glyph row with contents used for generating truncation
    glyphs.  Also used in direct_output_for_insert.  */
@@ -15194,6 +15207,199 @@ invisible_p (propval, list)
 
 
 /***********************************************************************
+			     Cursor types
+ ***********************************************************************/
+
+/* Value is the internal representation of the specified cursor type
+   ARG.  If type is BAR_CURSOR, return in *WIDTH the specified width
+   of the bar cursor.  */
+
+enum text_cursor_kinds
+get_specified_cursor_type (arg, width)
+     Lisp_Object arg;
+     int *width;
+{
+  enum text_cursor_kinds type;
+  
+  if (NILP (arg))
+    return NO_CURSOR;
+
+  if (EQ (arg, Qbox))
+    return FILLED_BOX_CURSOR;
+
+  if (EQ (arg, Qhollow))
+    return HOLLOW_BOX_CURSOR;
+
+  if (EQ (arg, Qbar))
+    {
+      *width = 2;
+      return BAR_CURSOR;
+    }
+
+  if (CONSP (arg)
+      && EQ (XCAR (arg), Qbar)
+      && INTEGERP (XCDR (arg))
+      && XINT (XCDR (arg)) >= 0)
+    {
+      *width = XINT (XCDR (arg));
+      return BAR_CURSOR;
+    }
+
+  if (EQ (arg, Qhbar))
+    {
+      *width = 2;
+      return HBAR_CURSOR;
+    }
+
+  if (CONSP (arg)
+      && EQ (XCAR (arg), Qhbar)
+      && INTEGERP (XCDR (arg))
+      && XINT (XCDR (arg)) >= 0)
+    {
+      *width = XINT (XCDR (arg));
+      return HBAR_CURSOR;
+    }
+
+  /* Treat anything unknown as "hollow box cursor".
+     It was bad to signal an error; people have trouble fixing
+     .Xdefaults with Emacs, when it has something bad in it.  */
+  type = HOLLOW_BOX_CURSOR;
+
+  return type;
+}
+
+/* Set the default cursor types for specified frame.  */
+void
+set_frame_cursor_types (f, arg)
+     struct frame *f;
+     Lisp_Object arg;
+{
+  int width;
+  Lisp_Object tem;
+
+  FRAME_DESIRED_CURSOR (f) = get_specified_cursor_type (arg, &width);
+  FRAME_CURSOR_WIDTH (f) = width;
+
+  /* By default, set up the blink-off state depending on the on-state.  */
+
+  tem = Fassoc (arg, Vblink_cursor_alist);
+  if (!NILP (tem))
+    {
+      FRAME_BLINK_OFF_CURSOR (f)
+	= get_specified_cursor_type (XCDR (tem), &width);
+      FRAME_BLINK_OFF_CURSOR_WIDTH (f) = width;
+    }
+  else
+    FRAME_BLINK_OFF_CURSOR (f) = DEFAULT_CURSOR;
+}
+
+
+/* Return the cursor we want to be displayed.  In a mini-buffer
+   window, we want the cursor only to appear if we are reading input
+   from this window.  For the selected window, we want the cursor type
+   given by the frame parameter or buffer local setting of
+   cursor-type.  If explicitly marked off, draw no cursor.  In all
+   other cases, we want a hollow box cursor.  */
+
+enum text_cursor_kinds
+get_window_cursor_type (w, width)
+     struct window *w;
+     int *width;
+{
+  struct frame *f = XFRAME (w->frame);
+  struct buffer *b = XBUFFER (w->buffer);
+  int cursor_type = DEFAULT_CURSOR;
+  Lisp_Object alt_cursor;
+  int non_selected = 0;
+
+  /* Echo area */
+  if (cursor_in_echo_area
+      && FRAME_HAS_MINIBUF_P (f)
+      && EQ (FRAME_MINIBUF_WINDOW (f), echo_area_window))
+    {
+      if (w == XWINDOW (echo_area_window))
+	{
+	  *width = FRAME_CURSOR_WIDTH (f);
+	  return FRAME_DESIRED_CURSOR (f);
+	}
+
+      non_selected = 1;
+    }
+
+  /* Nonselected window or nonselected frame.  */
+  else if (f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame
+      || w != XWINDOW (f->selected_window))
+    {
+      if (MINI_WINDOW_P (w) && minibuf_level == 0)
+	return NO_CURSOR;
+
+      non_selected = 1;
+    }
+
+  /* Never display a cursor in a window in which cursor-type is nil.  */
+  if (NILP (b->cursor_type))
+    return NO_CURSOR;
+
+  /* Use cursor-in-non-selected-windows for non-selected window or frame.  */
+  if (non_selected)
+    {
+      alt_cursor = Fbuffer_local_value (Qcursor_in_non_selected_windows, w->buffer);
+      return get_specified_cursor_type (alt_cursor, width);
+    }
+
+  /* Get the normal cursor type for this window.  */
+  if (EQ (b->cursor_type, Qt))
+    {
+      cursor_type = FRAME_DESIRED_CURSOR (f);
+      *width = FRAME_CURSOR_WIDTH (f);
+    }
+  else
+    cursor_type = get_specified_cursor_type (b->cursor_type, width);
+
+  /* Use normal cursor if not blinked off.  */
+  if (!w->cursor_off_p)
+    return cursor_type;
+
+  /* Cursor is blinked off, so determine how to "toggle" it.  */
+
+  /* First try to use alternate-cursor-type, unless it is t.  */
+  alt_cursor = Fbuffer_local_value (Qalternate_cursor_type, w->buffer);
+  if (!EQ (alt_cursor, Qt))
+    return get_specified_cursor_type (alt_cursor, width);
+
+  /* Then unless buffer's cursor-type is t (use default),
+     look for an entry matching normal cursor in blink-cursor-alist.  */
+  if (!EQ (b->cursor_type, Qt) &&
+      (alt_cursor = Fassoc (b->cursor_type, Vblink_cursor_alist), !NILP (alt_cursor)))
+    return get_specified_cursor_type (XCDR (alt_cursor), width);
+
+  /* Then see if frame has specified a specific blink off cursor type.  */
+  if (FRAME_BLINK_OFF_CURSOR (f) != DEFAULT_CURSOR)
+    {
+      *width = FRAME_BLINK_OFF_CURSOR_WIDTH (f);
+      return FRAME_BLINK_OFF_CURSOR (f);
+    }
+  
+  /* Finally perform built-in cursor blinking: 
+       filled box      <->   hollow box
+       wide [h]bar     <->   narrow [h]bar
+       narrow [h]bar   <->   no cursor
+       other type      <->   no cursor  */
+
+  if (cursor_type == FILLED_BOX_CURSOR)
+    return HOLLOW_BOX_CURSOR;
+
+  if ((cursor_type == BAR_CURSOR || cursor_type == HBAR_CURSOR) && *width > 1)
+    {
+      *width = 1;
+      return cursor_type;
+    }
+
+  return NO_CURSOR;
+}
+
+
+/***********************************************************************
 			    Initialization
  ***********************************************************************/
 
@@ -15293,6 +15499,8 @@ syms_of_xdisp ()
   staticpro (&Qmessage_truncate_lines);
   Qcursor_in_non_selected_windows = intern ("cursor-in-non-selected-windows");
   staticpro (&Qcursor_in_non_selected_windows);
+  Qalternate_cursor_type = intern ("alternate-cursor-type");
+  staticpro (&Qalternate_cursor_type);
   Qgrow_only = intern ("grow-only");
   staticpro (&Qgrow_only);
   Qinhibit_menubar_update = intern ("inhibit-menubar-update");
@@ -15305,6 +15513,14 @@ syms_of_xdisp ()
   staticpro (&Qbuffer_position);
   Qobject = intern ("object");
   staticpro (&Qobject);
+  Qbar = intern ("bar");
+  staticpro (&Qbar);
+  Qhbar = intern ("hbar");
+  staticpro (&Qhbar);
+  Qbox = intern ("box");
+  staticpro (&Qbox);
+  Qhollow = intern ("hollow");
+  staticpro (&Qhollow);
   Qrisky_local_variable = intern ("risky-local-variable");
   staticpro (&Qrisky_local_variable);
   Qinhibit_free_realized_faces = intern ("inhibit-free-realized-faces");
@@ -15515,11 +15731,24 @@ only, until their display becomes empty, at which point the windows
 go back to their normal size.  */);
   Vresize_mini_windows = Qgrow_only;
 
-  DEFVAR_BOOL ("cursor-in-non-selected-windows",
-	       &cursor_in_non_selected_windows,
-    doc: /* *Non-nil means display a hollow cursor in non-selected windows.
-nil means don't display a cursor there.  */);
-  cursor_in_non_selected_windows = 1;
+  DEFVAR_LISP ("cursor-in-non-selected-windows",
+	       &Vcursor_in_non_selected_windows,
+    doc: /* *Cursor type to display in non-selected windows.
+t means to use hollow box cursor.  See `cursor-type' for other values.  */);
+  Vcursor_in_non_selected_windows = Qt;
+
+  DEFVAR_LISP ("alternate-cursor-type", &Valternate_cursor_type,
+    doc: /* *Cursor type displayed in the blinking cursor off state.
+t means to use default.  See `cursor-type' for other values.  */);
+  Valternate_cursor_type = Qt;
+
+  DEFVAR_LISP ("blink-cursor-alist", &Vblink_cursor_alist,
+    doc: /* Alist specifying how to blink the cursor off.
+Each element has the form (ON-STATE . OFF-STATE).  Whenever the
+`cursor-type' frame-parameter or variable equals ON-STATE,
+comparing using `equal', Emacs uses OFF-STATE to specify
+how to blink it off.  */);
+  Vblink_cursor_alist = Qnil;
 
   DEFVAR_BOOL ("auto-hscroll-mode", &automatic_hscrolling_p,
     doc: /* *Non-nil means scroll the display automatically to make point visible.  */);
