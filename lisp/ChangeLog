@@ -1,3 +1,22 @@
+2002-11-29  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-convert-to-babyl-format):
+	Make search for message delimiter case-sensitive.
+
+	* simple.el (yank-window-start): New variable.
+	(yank): Record yank-window-start
+	(yank-pop): Use yank-window-start.
+
+	* info.el (Info-additional-directory-list): Doc fix.
+
+	* indent.el (indent-according-to-mode, indent-region): Doc fix.
+
+	* tooltip.el (tooltip-gud-tips-p): Doc fix.
+
+	* eshell/em-script.el: Require eshell.
+
+	* eshell/esh-ext.el, eshell/em-cmpl.el: Require esh-util.
+
 2002-11-29  Kim F. Storm  <storm@cua.dk>
 
 	* mwheel.el: Avoid accidental yanking of text while scrolling with
@@ -273,7 +292,7 @@
 	* emacs-lisp/autoload.el (update-autoloads-from-directories):
 	Sort the list of files with no autoloads.
 
-2002-11-16  Alan Shutko  <ats@acm.org>
+2002-11-16  Alan Shutko  <Rats@acm.org>
 
 	* calendar/diary-lib.el (list-diary-entries): Pass a marker
 	indicating source of entry to add-to-diary-list.
