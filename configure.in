@@ -1294,6 +1294,9 @@ else
   CPPFLAGS="$c_switch_system $c_switch_machine $CPPFLAGS"
 fi
 
+dnl Do this early because it can frob feature test macros for Unix-98 &c.
+AC_SYS_LARGEFILE
+
 # Sound support for GNU/Linux and the free BSDs.
 AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h soundcard.h)
 # Emulation library used on NetBSD.
@@ -1906,7 +1909,6 @@ fi
 
 AC_FUNC_GETLOADAVG
 
-AC_SYS_LARGEFILE
 AC_CHECK_FUNCS(ftello)
 
 # UNIX98 PTYs.  AC_SYS_LARGEFILE should have defined _XOPEN_SOURCE
