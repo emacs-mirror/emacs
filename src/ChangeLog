@@ -1,3 +1,10 @@
+2002-05-25  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* xdisp.c (display_mode_element): New argument RISKY; all callers
+	changed.  If non-zero, don't use values of variables which are not
+	marked as risky-local-variables, and remove text properties from
+	string values of such variables.
+
 2002-05-13  Richard M. Stallman  <rms@gnu.org>
 
 	* search.c (search_buffer): Give up boyer moore search if inverse
