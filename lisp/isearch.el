@@ -467,6 +467,14 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (setq isearch-window-configuration
 	(if isearch-slow-terminal-mode (current-window-configuration) nil))
 
+  ;; Maybe make minibuffer frame visible and/or raise it.
+  (let ((frame (window-frame (minibuffer-window))))
+    (if (not (memq (frame-live-p frame) '(nil t)))
+	(progn
+	  (make-frame-visible frame)
+	  (if minibuffer-auto-raise
+	      (raise-frame frame)))))
+
   (setq	isearch-mode " Isearch")  ;; forward? regexp?
   (force-mode-line-update)
 
