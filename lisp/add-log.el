@@ -53,7 +53,7 @@
   "*If non-nil, function to guess name of surrounding function.
 It is used by `add-log-current-defun' in preference to built-in rules.
 Returns function's name as a string, or nil if outside a function."
-  :type 'function
+  :type '(choice (const nil) function)
   :group 'change-log)
 
 ;;;###autoload
@@ -120,7 +120,7 @@ this variable."
   "*If non-nil, function to call to identify the full filename of a buffer.
 This function is called with no argument.  If this is nil, the default is to
 use `buffer-file-name'."
-  :type 'function
+  :type '(choice (const nil) function)
   :group 'change-log)
 
 (defcustom add-log-file-name-function nil
@@ -128,7 +128,7 @@ use `buffer-file-name'."
 This function is called with one argument, the value of variable
 `buffer-file-name' in that buffer.  If this is nil, the default is to
 use the file's name relative to the directory of the change log file."
-  :type 'function
+  :type '(choice (const nil) function)
   :group 'change-log)
 
 
@@ -580,7 +580,7 @@ Runs `change-log-mode-hook'."
   (set (make-local-variable 'version-control) 'never)
   (set (make-local-variable 'adaptive-fill-regexp) "\\s *")
   (set (make-local-variable 'font-lock-defaults)
-       '(change-log-font-lock-keywords t))
+       '(change-log-font-lock-keywords t nil nil backward-paragraph))
   (run-hooks 'change-log-mode-hook))
 
 ;; It might be nice to have a general feature to replace this.  The idea I
