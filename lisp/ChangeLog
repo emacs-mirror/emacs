@@ -1,3 +1,8 @@
+2000-04-19  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/cl-extra.el (cl-old-mapc): Fix definition.
+	(cl-mapc): Rename from mapc.  Fix the funcall.
+
 2000-04-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* simple.el (clone-indirect-buffer-other-window): New command.
