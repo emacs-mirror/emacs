@@ -23,7 +23,12 @@
 
 ;;; Commentary:
 
-; These are processed only at the beginning of the argument list.
+;; This is a list of options processed in this file.
+;; There are also -- forms, but they aren't listed here.
+;; There are also options for X windows, not listed here;
+;; see term/x-win.el.
+
+; These options are processed first, no matter where they appear.
 ; -batch		execute noninteractively (messages go to stdout,
 ;			 variable noninteractive set to t)
 ;			 This option must be the first in the arglist.
@@ -51,7 +56,10 @@
 ; -l file		load file
 ; -load file		same
 ; -insert file		insert file into buffer
+; -L dir		add dir to load-path
 ; file			visit file
+
+; This is always processed last, no matter where it appears.
 ; -kill			kill (exit) emacs
 
 ;;; Code:
@@ -601,11 +609,16 @@ Type \\[describe-distribution] for information on getting the latest version."))
 	       ;; This includes our standard options' long versions
 	       ;; and long versions of what's on command-switch-alist.
 	       (longopts
-	        (append '(("--funcall") ("--load") ("--insert") ("--kill"))
+	        (append '(("--funcall") ("--load") ("--insert") ("--kill")
+			  ("--directory"))
 			(mapcar '(lambda (elt)
 				   (list (concat "-" (car elt))))
 				command-switch-alist)))
-	       tem argval completion)
+	       tem argval completion
+	       ;; List of directories specified in -L/--directory,
+	       ;; in reverse of the order specified.
+	       extra-load-path
+	       (initial-load-path load-path))
 	  (setq command-line-args-left (cdr command-line-args-left))
 
 	  ;; Convert long options to ordinary options
@@ -640,6 +653,17 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		 (if (arrayp (symbol-function tem))
 		     (command-execute tem)
 		   (funcall tem)))
+		;; Set the default directory as specified in -L.
+		((or (string-equal argi "-L")
+		     (string-equal argi "-directory"))
+		 (if argval
+		     (setq tem argval)
+		   (setq tem (car command-line-args-left)
+			 command-line-args-left (cdr command-line-args-left)))
+		 (setq extra-load-path
+		       (cons (expand-file-name tem) extra-load-path))
+		 (setq load-path (append (nreverse extra-load-path)
+					 initial-load-path)))
 		((or (string-equal argi "-l")
 		     (string-equal argi "-load"))
 		 (if argval
