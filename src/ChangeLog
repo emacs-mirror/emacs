@@ -1,3 +1,16 @@
+2003-07-21  Richard M. Stallman  <rms@gnu.org>
+
+	* s/openbsd.h (LD_SWITCH_SYSTEM_TEMACS): Add undef.
+
+	* fns.c (Flocale_info): Renamed from Flanginfo.  Doc fixes.
+	(syms_of_fns): Corresponding change.
+
+	* alloc.c (syms_of_alloc): Doc fixes.
+
+2003-07-20  Han Boetes  <han@mijncomputer.nl>  (tiny change)
+
+	* s/netbsd.h: Use -Wl syntax.
+
 2003-07-17  Richard M. Stallman  <rms@gnu.org>
 
 	* xterm.c (xim_initialize): Redo 6/24 change.

@@ -1714,7 +1714,8 @@ from which the minibuffer was entered. The return value of
 +++
 ** `minor-mode-list' now holds a list of minor mode commands.
 
-** The new command `modify-all-frames-parameters' modifies parameters
++++
+** The new function `modify-all-frames-parameters' modifies parameters
 for all (existing and future) frames.
 
 +++
@@ -1726,62 +1727,77 @@ for all (existing and future) frames.
 +++
 ** The macro `with-syntax-table' does not copy the table any more.
 
++++
 ** The variable `face-font-rescale-alist' specifies how much larger
 (or smaller) font we should use.  For instance, if the value is
 '((SOME-FONTNAME-PATTERN . 1.3)) and a face requests a font of 10
 point, we actually use a font of 13 point if the font matches
 SOME-FONTNAME-PATTERN.
 
++++
 ** The function `number-sequence' returns a list of equally-separated
 numbers.  For instance, (number-sequence 4 9) returns (4 5 6 7 8 9).
 By default, the separation is 1, but you can specify a different separation
 as the third argument.  (number-sequence 1.5 6 2) returns (1.5 3.5 5.5).
 
++++
 ** `file-chase-links' now takes an optional second argument LIMIT which
 specifies the maximum number of links to chase through.  If after that
 many iterations the file name obtained is still a symbolic link,
 `file-chase-links' returns it anyway.
 
+---
 ** `set-fontset-font', `fontset-info', `fontset-font' now operate on
 the default fontset if the argument NAME is nil..
 
++++
 ** The escape sequence \s is now interpreted as a SPACE character,
 unless it is followed by a `-' in a character constant (e.g. ?\s-A),
 in which case it is still interpreted as the super modifier.
 In strings, \s is always interpreted as a space.
 
++++
 ** New function `set-process-filter-multibyte' sets the multibyteness
 of a string given to a process's filter.
 
++++
 ** New function `process-filter-multibyte-p' returns t if
 a string given to a process's filter is multibyte.
 
++++
 ** A filter function of a process is called with a multibyte string if
 the filter's multibyteness is t.  That multibyteness is decided by the
 value of `default-enable-multibyte-characters' when the process is
 created and can be changed later by `set-process-filter-multibyte'.
 
++++
 ** If a process's coding system is raw-text or no-conversion and its
 buffer is multibyte, the output of the process is at first converted
 to multibyte by `string-to-multibyte' then inserted in the buffer.
 Previously, it was converted to multibyte by `string-as-multibyte',
 which was not compatible with the behaviour of file reading.
 
++++
 ** New function `string-to-multibyte' converts a unibyte string to a
 multibyte string with the same individual character codes.
 
++++
 ** New variables `gc-elapsed' and `gcs-done' provide extra information
 on garbage collection.
 
++++
 ** New function `decode-coding-inserted-region' decodes a region as if
 it is read from a file without decoding.
 
-** New function `langinfo' accesses locale information.
++++
+** New function `locale-info' accesses locale information.
 
++++
 ** `save-selected-window' now saves and restores the selected window
 of every frame.  This way, it restores everything that can be changed
 by calling `select-window'.
 
+---
 ** `easy-menu-define' now allows you to use nil for the symbol name
 if you don't need to give the menu a name.  If you install the menu
 into other keymaps right away (MAPS is non-nil), it usually doesn't
@@ -1789,6 +1805,7 @@ need to have a name.
 
 ** Byte compiler changes:
 
+---
 *** `(featurep 'xemacs)' is treated by the compiler as nil.  This
 helps to avoid noisy compiler warnings in code meant to run under both
 Emacs and XEmacs and may sometimes make the result significantly more
@@ -1796,6 +1813,7 @@ efficient.  Since byte code from recent versions of XEmacs won't
 generally run in Emacs and vice versa, this optimization doesn't lose
 you anything.
 
++++
 *** You can avoid warnings for possibly-undefined symbols with a
 simple convention that the compiler understands.  (This is mostly
 useful in code meant to be portable to different Emacs versions.)
@@ -1812,13 +1830,21 @@ unbound.  The test must be in exactly one of the above forms (after
 macro expansion), but such tests may be nested.  Note that `when' and
 `unless' expand to `if', but `cond' doesn't.
 
-** New translation table `translation-table-for-input'.
++++
+*** The new macro `with-no-warnings' suppresses all compiler warnings
+inside its body.  In terms of execution, it is equivalent to `progn'.
+
++++
+** The new translation table `translation-table-for-input'
+is used for customizing self-insertion.  The character to
+be inserted is translated through it.
 
 +++
 ** `load-history' can now have elements of the form (t . FUNNAME),
 which means FUNNAME was previously defined as an autoload (before the
 current file redefined it).
 
++++
 ** New Lisp library testcover.el works with edebug to help you determine
 whether you've tested all your Lisp code.  Function testcover-start
 instruments all functions in a given file.  Then test your code.  Function
@@ -1841,13 +1867,20 @@ its argument.  The macro noreturn suppresses a red splotch.
 do anything dangerous; otherwise it returns a reason why the form might be
 unsafe (calls dangerous function, alters global variable, etc).
 
-** When you are printing using print-continuous-numbering,
-if no objects have had to be recorded in print-number-table,
-all elements of print-number-table are nil.
++++
+** The new variable `print-continuous-numbering', when non-nil, says
+that successive calls to print functions should use the same
+numberings for circular structure references.  This is only relevant
+when `print-circle' is non-nil.
 
+When you bind `print-continuous-numbering' to t, you should
+also bind `print-number-table' to nil.
+
++++
 ** When using non-toolkit scroll bars with the default width,
 the scroll-bar-width frame parameter value is nil.
 
++++
 ** The new function copy-abbrev-table returns a new abbrev table that
 is a copy of a given abbrev table.
 
@@ -1858,12 +1891,15 @@ can start with this line:
 
    #!/usr/bin/emacs --script
 
++++
 ** A function's docstring can now hold the function's usage info on
 its last line.  It should match the regexp "\n\n(fn.*)\\'".
 
+---
 ** New CCL functions `lookup-character' and `lookup-integer' access
 hash tables defined by the Lisp function `define-translation-hash-table'.
 
++++
 ** The new function `minibufferp' returns non-nil if its optional buffer
 argument is a minibuffer.  If the argument is omitted it defaults to
 the current buffer.
@@ -1871,19 +1907,23 @@ the current buffer.
 ** There is a new Warnings facility; see the functions `warn'
 and `display-warning'.
 
++++
 ** The functions all-completions and try-completion now accept lists
 of strings as well as hash-tables additionally to alists, obarrays
 and functions.  Furthermore, the function `test-completion' is now
 exported to Lisp.
 
+---
 ** When pure storage overflows while dumping, Emacs now prints how
 much pure storage it will approximately need.
 
++++
 ** The new variable `auto-coding-functions' lets you specify functions
 to examine a file being visited and deduce the proper coding system
 for it.  (If the coding system is detected incorrectly for a specific
 file, you can put a `coding:' tags to override it.)
 
+---
 ** The new function `merge-coding-systems' fills in unspecified aspects
 of one coding system from another coding system.
 

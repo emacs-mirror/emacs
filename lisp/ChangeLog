@@ -1,3 +1,18 @@
+2003-07-21  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode): Use run-mode-hooks.
+	(lisp-mode): Likewise.
+
+	* subr.el (with-selected-window): Copy code form save-selected-window
+	so as to call select-window with norecord arg.
+	(dynamic-completion-table): Doc fix.
+	(lazy-completion-table): Doc fix.
+
+	* international/mule-cmds.el (set-locale-environment):
+	langinfo renamed to locale-info.
+
+	* international/mule.el (auto-coding-functions): Doc fix.
+
 2003-07-21  Kenichi Handa  <handa@m17n.org>
 
 	* international/quail.el (quail-translate-key): Update
