@@ -6050,6 +6050,7 @@ setup_echo_area_for_printing (multibyte_p)
 
       /* Switch to that buffer and clear it.  */
       set_buffer_internal (XBUFFER (echo_area_buffer[0]));
+      current_buffer->truncate_lines = Qnil;
       
       if (Z > BEG)
 	{
@@ -6088,8 +6089,11 @@ setup_echo_area_for_printing (multibyte_p)
 	}
       
       if (current_buffer != XBUFFER (echo_area_buffer[0]))
-	/* Someone switched buffers between print requests.  */
-	set_buffer_internal (XBUFFER (echo_area_buffer[0]));
+	{
+	  /* Someone switched buffers between print requests.  */
+	  set_buffer_internal (XBUFFER (echo_area_buffer[0]));
+	  current_buffer->truncate_lines = Qnil;
+	}
     }
 }
 
