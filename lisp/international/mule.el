@@ -584,7 +584,8 @@ a value of `safe-charsets' in PLIST."
 			   (if no-alternative-designation
 			       'coding-category-iso-7-tight
 			     'coding-category-iso-7))
-		       (if no-initial-designation
+		       (if (or no-initial-designation
+			       (not no-alternative-designation))
 			   'coding-category-iso-8-else
 			 (if (and (charsetp g1-designation)
 				  (= (charset-dimension g1-designation) 2))
