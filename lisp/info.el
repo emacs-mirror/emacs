@@ -430,6 +430,76 @@ else defaults to `Top'."
   (set (make-local-variable 'Info-current-file) t)
   (Info-find-node-2 nil nodename))
 
+(defun Info-find-in-tag-table-1 (marker regexp case-fold)
+  "Find a node in a tag table.
+MARKER specifies the buffer and position to start searching at.
+REGEXP is a regular expression matching nodes or references.  Its first
+group should match `Node:' or `Ref:'.
+CASE-FOLD t means search for a case-insensitive match.
+If a match was found, value is a list (FOUND-ANCHOR POS MODE), where
+FOUND-ANCHOR is non-nil if a `Ref:' was matched, POS is the position
+where the match was found, and MODE is `major-mode' of the buffer in
+which the match was found."
+  (let ((case-fold-search case-fold)
+	found-mode guesspos found-anchor)
+    (save-excursion
+      (set-buffer (marker-buffer marker))
+      (goto-char marker)
+    
+      ;; Search tag table
+      (beginning-of-line)
+      (when (re-search-forward regexp nil t)
+	(list (string-equal "Ref:" (match-string 1))
+	      (1+ (read (current-buffer)))
+	      major-mode)))))
+
+(defun Info-find-in-tag-table (marker regexp)
+  "Find a node in a tag table.
+MARKER specifies the buffer and position to start searching at.
+REGEXP is a regular expression matching nodes or references.  Its first
+group should match `Node:' or `Ref:'.
+If a match was found, value is a list (FOUND-ANCHOR POS MODE), where
+FOUND-ANCHOR is non-nil if a `Ref:' was matched, POS is the position
+where the match was found, and MODE is `major-mode' of the buffer in
+which the match was found.
+This function tries to find a case-sensitive match first, then a
+case-insensitive match is tried."
+  (let ((result (Info-find-in-tag-table-1 marker regexp nil)))
+    (when (null (car result))
+      (setq result (Info-find-in-tag-table-1 marker regexp t)))
+    result))
+
+(defun Info-find-node-in-buffer-1 (regexp case-fold)
+  "Find a node or anchor in the current buffer.
+REGEXP is a regular expression matching nodes or references.  Its first
+group should match `Node:' or `Ref:'.
+CASE-FOLD t means search for a case-insensitive match.
+Value is the position at which a match was found, or nil if not found."
+  (let ((case-fold-search case-fold)
+	found)
+    (save-excursion
+      (when (Info-node-at-bob-matching regexp)
+	(setq found (point)))
+      (while (and (not found)
+		  (search-forward "\n\^_" nil t))
+	(forward-line 1)
+	(let ((beg (point)))
+	  (forward-line 1)
+	  (when (re-search-backward regexp beg t)
+	    (beginning-of-line)
+	    (setq found (point)))))
+      found)))
+		  
+(defun Info-find-node-in-buffer (regexp)
+  "Find a node or anchor in the current buffer.
+REGEXP is a regular expression matching nodes or references.  Its first
+group should match `Node:' or `Ref:'.
+Value is the position at which a match was found, or nil if not found.
+This function looks for a case-sensitive match first.  If none is found,
+a case-insensitive match is tried."
+  (or (Info-find-node-in-buffer-1 regexp nil)
+      (Info-find-node-in-buffer-1 regexp t)))
+  
 (defun Info-find-node-2 (filename nodename &optional no-going-back)
   (buffer-disable-undo (current-buffer))
   (or (eq major-mode 'Info-mode)
@@ -437,7 +507,6 @@ else defaults to `Top'."
   (widen)
   (setq Info-current-node nil)
   (unwind-protect
-      ;; Bind case-fold-search in case the user sets it to nil.
       (let ((case-fold-search t)
 	    anchorpos)
         ;; Switch files if necessary
@@ -505,73 +574,49 @@ else defaults to `Top'."
 
           ;; Search file for a suitable node.
 	  (let ((guesspos (point-min))
-		(regexp
-		 (concat "\\(Node:\\|Ref:\\) *\\("
-			 (regexp-quote nodename)
-			 "\\) *[,\t\n\177]"))
+		(regexp (concat "\\(Node:\\|Ref:\\) *\\("
+				(regexp-quote nodename)
+				"\\) *[,\t\n\177]"))
 		(nodepos nil))
 
 	    (catch 'foo
+	      
 	      ;; First, search a tag table, if any
-	      (if (marker-position Info-tag-table-marker)
-		  (let (found-in-tag-table
-			found-anchor
-			found-mode
-			(m Info-tag-table-marker))
-		    (save-excursion
-		      (set-buffer (marker-buffer m))
-		      (goto-char m)
-		      (beginning-of-line) ; so re-search will work.
-
-		      ;; Search tag table
-		      (setq found-in-tag-table
- 			    (re-search-forward regexp nil t)
- 			    found-anchor
- 			    (string-equal "Ref:" (match-string 1)))
-		      (if found-in-tag-table
-			  (setq guesspos (1+ (read (current-buffer)))))
-		      (setq found-mode major-mode))
-
-		    ;; Indirect file among split files
-		    (if found-in-tag-table
-			(progn
-			  ;; If this is an indirect file, determine
-			  ;; which file really holds this node and
-			  ;; read it in.
-			  (if (not (eq found-mode 'Info-mode))
-			      ;; Note that the current buffer must be
-			      ;; the *info* buffer on entry to
-			      ;; Info-read-subfile.  Thus the hackery
-			      ;; above.
-			      (setq guesspos (Info-read-subfile guesspos)))))
+	      (when (marker-position Info-tag-table-marker)
+		(let* ((m Info-tag-table-marker)
+		       (found (Info-find-in-tag-table m regexp)))
+		  
+		  (when found
+		    ;; FOUND is (ANCHOR POS MODE).
+		    (setq guesspos (nth 1 found))
+		    
+		    ;; If this is an indirect file, determine which
+		    ;; file really holds this node and read it in.
+		    (unless (eq (nth 2 found) 'Info-mode)
+		      ;; Note that the current buffer must be the
+		      ;; *info* buffer on entry to
+		      ;; Info-read-subfile.  Thus the hackery above.
+		      (setq guesspos (Info-read-subfile guesspos)))
 
 		    ;; Handle anchor
-		    (if found-anchor
-			(progn
-			  (goto-char (setq anchorpos guesspos))
-			  (throw 'foo t)))))
+		    (when (nth 0 found)
+		      (goto-char (setq anchorpos guesspos))
+		      (throw 'foo t)))))
 
 	      ;; Else we may have a node, which we search for:
 	      (goto-char (max (point-min)
 			      (- (byte-to-position guesspos) 1000)))
-	      ;; Now search from our advised position
-	      ;; (or from beg of buffer)
-	      ;; to find the actual node.
-	      ;; First, check whether the node is right
-	      ;; where we are, in case the buffer begins
-	      ;; with a node.
-	      (or (Info-node-at-bob-matching regexp)
-		  (while (search-forward "\n\^_" nil t)
-		    (forward-line 1)
-		    (let ((beg (point)))
-		      (forward-line 1)
-		      (if (re-search-backward regexp beg t)
-			  (progn
-			    (beginning-of-line)
-			    (throw 'foo t)))))
-		  (error
-		   "No such anchor in tag table or node in tag table or file: %s"
-		   nodename)))
+	      
+	      ;; Now search from our advised position (or from beg of
+	      ;; buffer) to find the actual node.  First, check
+	      ;; whether the node is right where we are, in case the
+	      ;; buffer begins with a node.
+	      (let ((pos (Info-find-node-in-buffer regexp)))
+		(when pos
+		  (goto-char pos)
+		  (throw 'foo t))
+		(error "No such anchor in tag table or node in tag table or file: %s"
+		       nodename)))
 
 	    (Info-select-node)
 	    (goto-char (or anchorpos (point-min))))))
