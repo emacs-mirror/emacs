@@ -205,7 +205,7 @@ fs_load_font (f, font_table, charset, fontname, fontset)
 	  elt = XCONS (list)->car;
 	  if (CONSP (elt)
 	      && STRINGP (XCONS (elt)->car) && CONSP (XCONS (elt)->cdr)
-	      && (fast_string_match_ignore_case (XCONS (elt)->car, fontname)
+	      && (fast_c_string_match_ignore_case (XCONS (elt)->car, fontname)
 		  >= 0))
 	    {
 	      Lisp_Object tmp;
@@ -228,7 +228,7 @@ fs_load_font (f, font_table, charset, fontname, fontset)
       elt = XCONS (list)->car;
       if (CONSP (elt)
 	  && STRINGP (XCONS (elt)->car) && VECTORP (XCONS (elt)->cdr)
-	  && fast_string_match_ignore_case (XCONS (elt)->car, fontname) >= 0)
+	  && fast_c_string_match_ignore_case (XCONS (elt)->car, fontname) >= 0)
 	{
 	  fontp->font_encoder
 	    = (struct ccl_program *) xmalloc (sizeof (struct ccl_program));
@@ -465,8 +465,8 @@ just like X's font name matching algorithm allows.")
       Lisp_Object fontset_name = XCONS (XCONS (tem)->car)->car;
       if (!NILP (regexp))
 	{
-	  if (fast_string_match_ignore_case (regexp,
-					     XSTRING (fontset_name)->data)
+	  if (fast_c_string_match_ignore_case (regexp,
+					       XSTRING (fontset_name)->data)
 	      >= 0)
 	    return fontset_name;
 	}
@@ -507,7 +507,7 @@ list_fontsets (f, pattern, size)
 
       if (!NILP (regexp))
 	{
-	  if (fast_string_match_ignore_case (regexp, fontsetp->name) >= 0)
+	  if (fast_c_string_match_ignore_case (regexp, fontsetp->name) >= 0)
 	    name_matched = 1;
 	}
       else
