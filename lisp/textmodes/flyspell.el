@@ -156,15 +156,17 @@ incorrect."
   :version "21.1"
   :type 'hook)
 
-(defcustom flyspell-default-dictionary "american"
+(defcustom flyspell-default-dictionary nil
   "A string that is the name of the default dictionary.
 This is passed to the `ispell-change-dictionary' when flyspell is started.
-If the variables `ispell-local-dictionary' or `ispell-dictionary' are non nil
-when flyspell is started, the value of that variables is used instead
-of `flyspell-default-dictionary' to select the default dictionary."
+If the variable `ispell-local-dictionary' or `ispell-dictionary' is non-nil
+when flyspell is started, the value of that variable is used instead
+of `flyspell-default-dictionary' to select the default dictionary.
+Otherwise, if `flyspell-default-dictionary' is nil, it means to use
+Ispell's ultimate default dictionary."
   :group 'flyspell
   :version "21.1"
-  :type 'string)
+  :type '(choice string nil))
 
 (defcustom flyspell-tex-command-regexp
   "\\(\\(begin\\|end\\)[ \t]*{\\|\\(cite[a-z*]*\\|label\\|ref\\|eqref\\|usepackage\\|documentclass\\)[ \t]*\\(\\[[^]]*\\]\\)?{[^{}]*\\)"
