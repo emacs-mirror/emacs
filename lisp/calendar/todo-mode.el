@@ -4,7 +4,7 @@
 
 ;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.27 1997/10/28 21:26:55 os10000 Exp os10000 $
+;; Version: $Id: todo-mode.el,v 1.28 1997/10/28 21:37:05 os10000 Exp os10000 $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -96,7 +96,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.27 1997/10/28 21:26:55 os10000 Exp os10000 $
+;;      $Id: todo-mode.el,v 1.28 1997/10/28 21:37:05 os10000 Exp os10000 $
 ;;
 ;;  Pre-Requisites
 ;;
@@ -265,6 +265,10 @@
 ;;; Change Log:
 
 ;; $Log: todo-mode.el,v $
+;; Revision 1.28  1997/10/28 21:37:05  os10000
+;; Incorporated simplifying suggestions from
+;; Carsten Dominik <dominik@strw.LeidenUniv.nl>.
+;;
 ;; Revision 1.27  1997/10/28 21:26:55  os10000
 ;; Patch from Paul Stodghill <stodghil@CS.Cornell.EDU>:
 ;; The patch below fixes todo-insert-item so that it will
@@ -615,6 +619,7 @@ Use `todo-categories' instead.")
     (define-key map "d" 'todo-file-item) ;done/delete
     (define-key map "f" 'todo-file-item)
     (define-key map "i" 'todo-insert-item)
+    (define-key map "I" 'todo-insert-item-here)
     (define-key map "j" 'todo-jump-to-category)
     (define-key map "k" 'todo-delete-item)
     (define-key map "l" 'todo-lower-item)
@@ -782,7 +787,6 @@ category."
   (interactive "P")
   (save-excursion
   (todo-show)
-  )
   (let* ((new-item (concat todo-prefix " "
 			   (read-from-minibuffer
                             "New TODO entry: "
@@ -798,9 +802,21 @@ category."
                     (concat "Category ["
                             current-category "]: ")
                     (todo-category-alist) nil nil nil history))))
-    (todo-add-item-non-interactively new-item category ARG)))
+    (todo-add-item-non-interactively new-item category ARG))))
 
 (defalias 'todo-cmd-inst 'todo-insert-item)
+
+;;;### autoload
+(defun todo-insert-item-here ()
+  "Insert new TODO list entry under the cursor."
+  (interactive)
+  (save-excursion
+    (let* ((new-item (concat todo-prefix " "
+			     (read-from-minibuffer
+			      "New TODO entry: "
+			      (if todo-entry-prefix-function
+				  (funcall todo-entry-prefix-function))))))
+      (insert (concat new-item "\n")))))
 
 (defun todo-more-important-p (line)
   "Ask whether entry is more important than the one at LINE."
@@ -1101,6 +1117,7 @@ If SEPARATORS is absent, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
                     ["Edit item"            todo-edit-item t]
                     ["File item"            todo-file-item t]
                     ["Insert new item"      todo-insert-item t]
+                    ["Insert item here"     todo-insert-item-here t]
                     ["Kill item"            todo-delete-item t]
                     "---"
                     ["Lower item priority"  todo-lower-item t]
