@@ -465,6 +465,10 @@ The break position will be always after LINEBEG and generally before point."
 	;; point is at the place where the break occurs.
 	(forward-char 1)
 	(when (fill-nobreak-p) (skip-chars-backward " \t" linebeg))))
+
+  ;; Move back over the single space between the words.
+  (skip-chars-backward " \t")
+
   ;; If the left margin and fill prefix by themselves
   ;; pass the fill-column. or if they are zero
   ;; but we have no room for even one word,
@@ -490,9 +494,6 @@ The break position will be always after LINEBEG and generally before point."
 		  (forward-char -1)
 		(goto-char pos))))
 	  (setq first nil)))
-    ;; Normally, move back over the single space between
-    ;; the words.
-    (skip-chars-backward " \t")
 
     (if enable-multibyte-characters
 	;; If we are going to break the line after or
@@ -547,7 +548,7 @@ justification.  Fourth arg NOSQUEEZE non-nil means not to make spaces
 between words canonical before filling.  Fifth arg SQUEEZE-AFTER, if non-nil,
 means don't canonicalize spaces before that position.
 
-Return the fill-prefix used for filling.
+Return the `fill-prefix' used for filling.
 
 If `sentence-end-double-space' is non-nil, then period followed by one
 space does not end a sentence, so don't break a line there."
@@ -557,9 +558,6 @@ space does not end a sentence, so don't break a line there."
 		       (if current-prefix-arg 'full))))
   (unless (memq justify '(t nil none full center left right))
     (setq justify 'full))
-  ;; Arrange for undoing the fill to restore point.
-  (if (and buffer-undo-list (not (eq buffer-undo-list t)))
-      (setq buffer-undo-list (cons (point) buffer-undo-list)))
 
   ;; Make sure "to" is the endpoint.
   (goto-char (min from to))
@@ -610,7 +608,6 @@ space does not end a sentence, so don't break a line there."
       (save-restriction
 	(goto-char from)
 	(beginning-of-line)
-	(narrow-to-region (point) to)
 
 	(if (not justify)	  ; filling disabled: just check indentation
 	    (progn
@@ -642,24 +639,27 @@ space does not end a sentence, so don't break a line there."
 	    (while (< (point) to)
 	      (setq linebeg (point))
 	      (move-to-column (1+ (current-fill-column)))
-	      (if (>= (point) to)
-		  (or nosqueeze (delete-horizontal-space))
-		;; Find the position where we'll break the line.
-		(fill-move-to-break-point linebeg)
+	      (if (when (< (point) to)
+		    ;; Find the position where we'll break the line.
+		    (fill-move-to-break-point linebeg)
+		    ;; Check again to see if we got to the end of
+		    ;; the paragraph.
+		    (skip-chars-forward " \t")
+		    (< (point) to))
+		  ;; Found a place to cut.
+		  (progn
+		    (fill-newline)
+		    (when justify
+		      ;; Justify the line just ended, if desired.
+		      (save-excursion
+			(forward-line -1)
+			(justify-current-line justify nil t))))
 
-		;; Check again to see if we got to the end of the paragraph.
-		(if (save-excursion (skip-chars-forward " \t") (>= (point) to))
-		    (or nosqueeze (delete-horizontal-space))
-		  (fill-newline)))
-	      ;; Justify the line just ended, if desired.
-	      (if justify
-		  (if (save-excursion (skip-chars-forward " \t") (>= (point) to))
-		      (progn
-			(delete-horizontal-space)
-			(justify-current-line justify t t))
-		    (save-excursion
-		      (forward-line -1)
-		      (justify-current-line justify nil t)))))))
+		(goto-char to)
+		(if (and (eolp) (or (not nosqueeze) justify))
+		    (delete-horizontal-space))
+		;; Justify this last line, if desired.
+		(if justify (justify-current-line justify t t))))))
 	;; Leave point after final newline.
 	(goto-char to))
       (unless (eobp)
@@ -747,40 +747,38 @@ space does not end a sentence, so don't break a line there."
 		       (if current-prefix-arg 'full))))
   (unless (memq justify '(t nil none full center left right))
     (setq justify 'full))
-  (let (end beg fill-pfx)
-    (save-restriction
-      (goto-char (max from to))
-      (when to-eop
-	(skip-chars-backward "\n")
-	(forward-paragraph))
-      (setq end (point))
-      (goto-char (setq beg (min from to)))
-      (beginning-of-line)
-      (narrow-to-region (point) end)
-      (while (not (eobp))
-	(let ((initial (point))
-	      end)
-	  ;; If using hard newlines, break at every one for filling
-	  ;; purposes rather than using paragraph breaks. 
-	  (if use-hard-newlines
-	      (progn 
-		(while (and (setq end (text-property-any (point) (point-max)
-							 'hard t))
-			    (not (= ?\n (char-after end)))
-			    (not (= end (point-max))))
-		  (goto-char (1+ end)))
-		(setq end (if end (min (point-max) (1+ end)) (point-max)))
-		(goto-char initial))
-	    (forward-paragraph 1)
-	    (setq end (point))
-	    (forward-paragraph -1))
-	  (if (< (point) beg)
-	      (goto-char beg))
-	  (if (>= (point) initial)
-	      (setq fill-pfx
-		    (fill-region-as-paragraph (point) end justify nosqueeze))
-	    (goto-char end))))
-      fill-pfx)))
+  (let (max beg fill-pfx)
+    (goto-char (max from to))
+    (when to-eop
+      (skip-chars-backward "\n")
+      (forward-paragraph))
+    (setq max (copy-marker (point) t))
+    (goto-char (setq beg (min from to)))
+    (beginning-of-line)
+    (while (< (point) max)
+      (let ((initial (point))
+	    end)
+	;; If using hard newlines, break at every one for filling
+	;; purposes rather than using paragraph breaks.
+	(if use-hard-newlines
+	    (progn
+	      (while (and (setq end (text-property-any (point) max
+						       'hard t))
+			  (not (= ?\n (char-after end)))
+			  (not (>= end max)))
+		(goto-char (1+ end)))
+	      (setq end (if end (min max (1+ end)) max))
+	      (goto-char initial))
+	  (forward-paragraph 1)
+	  (setq end (min max (point)))
+	  (forward-paragraph -1))
+	(if (< (point) beg)
+	    (goto-char beg))
+	(if (>= (point) initial)
+	    (setq fill-pfx
+		  (fill-region-as-paragraph (point) end justify nosqueeze))
+	  (goto-char end))))
+    fill-pfx))
 
 
 (defcustom default-justification 'left
