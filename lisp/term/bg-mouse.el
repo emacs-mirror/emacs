@@ -137,7 +137,7 @@ To reinitialize the mouse if the terminal is reset, type ESC : RET"
   "Move point to location of BitGraph mouse and yank.  If last command
 was a yank, do a yank-pop."
   (interactive "*")
-  (if (eql last-command 'yank)
+  (if (eq last-command 'yank)
       (yank-pop 1)
     (bg-yank)))
 
