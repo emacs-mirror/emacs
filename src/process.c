@@ -2449,7 +2449,7 @@ OPTION is not a supported option, return nil instead; otherwise return t.  */)
      Lisp_Object process, option, value;
      Lisp_Object no_error;
 {
-  int s, i;
+  int s;
 
   CHECK_PROCESS (process);
 
@@ -3343,7 +3343,7 @@ DEFUN ("network-interface-list", Fnetwork_interface_list, Snetwork_interface_lis
        doc: /* Return an alist of all network interfaces and their network address.
 Each element is a cons, the car of which is a string containing the
 interface name, and the cdr is the network address in internal
-format; see the description of ADDRESS in 'make-network-process'.  */)
+format; see the description of ADDRESS in `make-network-process'.  */)
      ()
 {
   struct ifconf ifconf;
@@ -3521,7 +3521,7 @@ FLAGS is the current flags of the interface.  */)
       any++;
       for (n = 0; n < 6; n++)
 	p->contents[n] = make_number (((unsigned char *)&rq.ifr_hwaddr.sa_data[0])[n]);
-      elt = Fcons (XINT (rq.ifr_hwaddr.sa_family), hwaddr);
+      elt = Fcons (make_number (rq.ifr_hwaddr.sa_family), hwaddr);
     }
 #endif
   res = Fcons (elt, res);
@@ -4607,7 +4607,7 @@ read_process_output (proc, channel)
      Lisp_Object proc;
      register int channel;
 {
-  register int nchars, nbytes;
+  register int nbytes;
   char *chars;
   register Lisp_Object outstream;
   register struct buffer *old = current_buffer;
