@@ -637,7 +637,7 @@ Getting Mail
 * Group Mail Splitting::         Use group customize to drive mail splitting.
 * Incorporating Old Mail::       What about the old mail you have?
 * Expiring Mail::                Getting rid of unwanted mail.
-* Washing Mail::                 Removing gruft from the mail you get.
+* Washing Mail::                 Removing cruft from the mail you get.
 * Duplicates::                   Dealing with duplicated mail.
 * Not Reading Mail::             Using mail backends for reading other files.
 * Choosing a Mail Backend::      Gnus can read a variety of mail formats.
@@ -7441,6 +7441,7 @@ has been done.
 \include{xface}
 @end iflatex
 @end iftex
+@anchor{X-Face}
 Look for and display any X-Face headers
 (@code{gnus-article-display-x-face}).  The command executed by this
 function is given by the @code{gnus-article-x-face-command} variable.
@@ -10661,7 +10662,7 @@ This works for Solaris @code{telnet}, for instance.
 @item nntp-open-ssl-stream
 Opens a connection to a server over a @dfn{secure} channel.  To use this
 you must have SSLay installed
-(@file{ftp://ftp.psy.uq.oz.au/pub/Crypto/SSL}, and you also need
+(@uref{ftp://ftp.psy.uq.oz.au/pub/Crypto/SSL}, and you also need
 @file{ssl.el} (from the W3 distributeion, for instance).  You then
 define a server as follows:
 
@@ -12786,7 +12787,7 @@ Format string URL to fetch an article by @code{Message-ID}.
 @cindex Slashdot
 @cindex nnslashdot
 
-Slashdot (@file{http://slashdot.org/}) is a popular news site, with
+Slashdot (@uref{http://slashdot.org/}) is a popular news site, with
 lively discussion following the news articles.  @code{nnslashdot} will
 let you read this forum in a convenient manner.
 
@@ -12876,7 +12877,7 @@ updated.  The default is 0.
 @cindex nnultimate
 @cindex Ultimate Bulletin Board
 
-The Ultimate Bulletin Board (@file{http://www.ultimatebb.com/}) is
+The Ultimate Bulletin Board (@uref{http://www.ultimatebb.com/}) is
 probably the most popular Web bulletin board system used.  It has a
 quite regular and nice interface, and it's possible to get the
 information Gnus needs to keep groups updated.
@@ -12905,8 +12906,8 @@ The directory where @code{nnultimate} stores its files.  The default is
 @cindex Web Archive
 
 Some mailing lists only have archives on Web servers, such as
-@file{http://www.egroups.com/} and
-@file{http://www.mail-archive.com/}.  It has a quite regular and nice
+@uref{http://www.egroups.com/} and
+@uref{http://www.mail-archive.com/}.  It has a quite regular and nice
 interface, and it's possible to get the information Gnus needs to keep
 groups updated.
 
@@ -13774,7 +13775,7 @@ program.
 
 @vindex imap-ssl-program
 For SSL connections, the OpenSSL program is available from
-@file{http://www.openssl.org/}. OpenSSL was formerly known as SSLeay,
+@uref{http://www.openssl.org/}. OpenSSL was formerly known as SSLeay,
 and nnimap support it too - altough the most recent versions of
 SSLeay, 0.9.x, are known to have serious bugs making it
 useless. Earlier versions, especially 0.8.x, of SSLeay are known to
@@ -14399,7 +14400,7 @@ predicates an additional score rule is superfluous.
 
 Predicates of @code{high} or @code{low} download articles in respect of
 their scores in relationship to @code{gnus-agent-high-score} and
-@code{gnus-agent-low-score} as descibed below.
+@code{gnus-agent-low-score} as described below.
 
 To gain even finer control of what is to be regarded eligible for
 download a predicate can consist of a number of predicates with logical
@@ -16413,7 +16414,7 @@ by hand.
 
 The kill to score conversion package isn't included in Gnus by default.
 You can fetch it from
-@file{http://www.stud.ifi.uio.no/~larsi/ding-various/gnus-kill-to-score.el}.
+@uref{http://www.stud.ifi.uio.no/~larsi/ding-various/gnus-kill-to-score.el}.
 
 If your old kill files are very complex---if they contain more
 non-@code{gnus-kill} forms than not, you'll have to convert them by
@@ -16452,7 +16453,7 @@ article.
 
 To use GroupLens you must register a pseudonym with your local Better
 Bit Bureau (BBB).
-@samp{http://www.cs.umn.edu/Research/GroupLens/bbb.html} is the only
+@uref{http://www.cs.umn.edu/Research/GroupLens/bbb.html} is the only
 better bit in town at the moment.
 
 Once you have registered you'll need to set a couple of variables.
@@ -16861,6 +16862,8 @@ four days, Gnus will decay the scores four times, for instance.
 * NoCeM::                      How to avoid spam and other fatty foods.
 * Undo::                       Some actions can be undone.
 * Moderation::                 What to do if you're a moderator.
+* Emacs Enhancements::         There can be more pictures and stuff under
+                               Emacs 21.
 * XEmacs Enhancements::        There are more pictures and stuff under XEmacs.
 * Fuzzy Matching::             What's the big fuzz?
 * Thwarting Email Spam::       A how-to on avoiding unsolicited commercial email.
@@ -18018,6 +18021,35 @@ To use moderation mode in these two groups, say:
       "^nnml:rec.zoofle$\\|^rec.zoofle$")
 @end lisp
 
+@node Emacs Enhancements
+@section Emacs Enhancements
+@cindex Emacs 21
+
+Starting with version 21, Emacs is able to display pictures and stuff,
+so Gnus has taken advantage of that.
+
+Gnus-specific tool bars will be used if Tool Bar mode is on.  Currently
+the group, summary and message buffers have tool bars defined.
+
+MIME image types may be displayed internally if Emacs was built with
+appropriate support (see variable @code{image-types}).  `X-Face' headers
+may be rendered as images internally if you have appropriate support
+programs (@pxref{X-Face}).  You can play sounds internally if Emacs was
+built with suitable audio support; otherwise Gnus will attempt to play
+sounds externally.
+
+@vindex gnus-treat-display-smileys
+A simplified version of the XEmacs Smiley support for @dfn{emoticons}
+(@pxref{Smileys}) is available on graphical displays under the control
+of @code{gnus-treat-display-smileys}.  Text `smiley' faces---@samp{:-)},
+@samp{:-/}, @samp{:-(} and the like---are mapped to pictures which are
+displayed instead.  The mapping is controlled by a list of regexps
+@vindex smiley-regexp-alist
+@code{smiley-regexp-alist} mapping matched text to image file names.  It
+contains matches for `smiley', `wry' and `frowny' by default.
+
+There is currently no Emacs support for `Picons' (@pxref{Picons}), but
+there is no reason why it couldn't be added.
 
 @node XEmacs Enhancements
 @section XEmacs Enhancements
@@ -18043,7 +18075,7 @@ advantage of that.
 @end iflatex
 @end iftex
 
-So...  You want to slow down your news reader even more!  This is a
+So@dots{}  You want to slow down your news reader even more!  This is a
 good way to do so.  Its also a great way to impress people staring
 over your shoulder as you read news.
 
@@ -18081,12 +18113,12 @@ in either monochrome @code{XBM} format or color @code{XPM} and
 If you have a permanent connection to the Internet you can use Steve
 Kinzler's Picons Search engine by setting
 @code{gnus-picons-piconsearch-url} to the string @*
-@file{http://www.cs.indiana.edu/picons/search.html}.
+@uref{http://www.cs.indiana.edu/picons/search.html}.
 
 @vindex gnus-picons-database
 Otherwise you need a local copy of his database.  For instructions on
 obtaining and installing the picons databases, point your Web browser at @*
-@file{http://www.cs.indiana.edu/picons/ftp/index.html}.  Gnus expects
+@uref{http://www.cs.indiana.edu/picons/ftp/index.html}.  Gnus expects
 picons to be installed into a location pointed to by
 @code{gnus-picons-database}.
 
@@ -18160,7 +18192,7 @@ subdirectories.  This is only useful if
 @item gnus-picons-piconsearch-url
 @vindex gnus-picons-piconsearch-url
 The URL for the web picons search engine.  The only currently known
-engine is @file{http://www.cs.indiana.edu:800/piconsearch}.  To
+engine is @uref{http://www.cs.indiana.edu:800/piconsearch}.  To
 workaround network delays, icons will be fetched in the background.  If
 this is @code{nil} 'the default), then picons are fetched from local
 database indicated by @code{gnus-picons-database}.
@@ -18541,7 +18573,7 @@ each unsolicited commercial email---at your leisure.
 
 If you are also a lazy net citizen, you will probably prefer complaining
 automatically with the @file{gnus-junk.el} package, available FOR FREE
-at @* @file{<URL:http://stud2.tuwien.ac.at/~e9426626/gnus-junk.html>}.
+at @* @uref{http://stud2.tuwien.ac.at/~e9426626/gnus-junk.html}.
 Since most e-mail spam is sent automatically, this may reconcile the
 cosmic balance somewhat.
 
@@ -18713,7 +18745,7 @@ but at the common table.@*
 
 If you want to investigate the person responsible for this outrage,
 you can point your (feh!) web browser to
-@file{http://quimby.gnus.org/~larsi/}.  This is also the primary
+@uref{http://quimby.gnus.org/}.  This is also the primary
 distribution point for the new and spiffy versions of Gnus, and is
 known as The Site That Destroys Newsrcs And Drives People Mad.
 
@@ -20007,7 +20039,7 @@ latest version of gnus or some explanation on where to find it.
  A way to continue editing the latest Message composition.
 
 @item
- http://www.sonicnet.com/feature/ari3/
+@uref{http://www.sonicnet.com/feature/ari3/}
 
 @item
  facep is not declared.
@@ -20273,9 +20305,9 @@ Message-ID, delete the "original".
  when replying to several messages at once, put the "other" message-ids
 into a See-Also header.
 @item
- support setext: URL:http://www.bsdi.com/setext/
+ support setext: @url{http://www.bsdi.com/setext/}
 @item
- support ProleText: <URL:http://proletext.clari.net/prole/proletext.html>
+ support ProleText: @url{http://proletext.clari.net/prole/proletext.html}
 @item
  when browsing a foreign server, the groups that are already subscribed
 should be listed as such and not as "K".
@@ -20591,7 +20623,7 @@ problem is that archives are spread all over the net, unlike FAQs.
 What would be best I suppose is to find the one closest to your site.
 
 In any case, there is a list of general news group archives at @*
-ftp://ftp.neosoft.com/pub/users/claird/news.lists/newsgroup_archives.html
+@uref{ftp://ftp.neosoft.com/pub/users/claird/news.lists/newsgroup_archives.html}
 
 
 
@@ -20888,7 +20920,7 @@ in the summary buffer.
 version branches as threading, checkin date as the date, etc.
 
 @item
- http://www.dejanews.com/forms/dnsetfilter_exp.html ?
+@url{http://www.dejanews.com/forms/dnsetfilter_exp.html}?
 This filter allows one to construct advance queries on the Dejanews
 database such as specifying start and end dates, subject, author,
 and/or newsgroup name.
