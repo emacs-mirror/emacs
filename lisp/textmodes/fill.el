@@ -527,15 +527,16 @@ space does not end a sentence, so don't break a line there."
 		;; further fills will assume it ends a sentence.
 		;; If we now know it does not end a sentence,
 		;; avoid putting it at the end of the line.
-		(while (or (and sentence-end-double-space
-				(> (point) (+ linebeg 2))
-				(eq (preceding-char) ?\ )
-				(not (eq (following-char) ?\ ))
-				(eq (char-after (- (point) 2)) ?\.)
-				(progn (forward-char -2) t))
-			   (and fill-nobreak-predicate
-				(funcall fill-nobreak-predicate)
-				(skip-chars-backward " \t")))
+		(while (and (> (point) linebeg)
+			    (or (and sentence-end-double-space
+				     (> (point) (+ linebeg 2))
+				     (eq (preceding-char) ?\ )
+				     (not (eq (following-char) ?\ ))
+				     (eq (char-after (- (point) 2)) ?\.)
+				     (progn (forward-char -2) t))
+				(and fill-nobreak-predicate
+				     (funcall fill-nobreak-predicate)
+				     (skip-chars-backward " \t"))))
 		  (if (re-search-backward " \\|\\c|.\\|.\\c|" linebeg 0)
 		      (forward-char 1)))
 		;; If the left margin and fill prefix by themselves
