@@ -1,3 +1,7 @@
+2001-02-10  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* simple.el (eval-expression): Doc fix.
+
 2001-02-09  Dave Love  <fx@gnu.org>
 
 	* imenu.el (imenu-generic-expression): Doc fix.
