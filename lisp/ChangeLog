@@ -1,4 +1,8 @@
-2002-11-18   Markus Rost  <rost@math.ohio-state.edu>
+2002-11-18  Juanma Barranquero  <lektu@terra.es>
+
+	* mail/smtpmail.el (smtpmail-send-queued-mail): Add autoload cookie.
+
+2002-11-18  Markus Rost  <rost@math.ohio-state.edu>
 
 	* textmodes/refill.el (defgroup refill): New group.
 
@@ -9,7 +13,7 @@
 	* textmodes/paragraphs.el (use-hard-newlines): Add group.
 
 	* progmodes/compile.el (compilation-shell-minor-mode): Add group.
-	(compilation-minor-mode):  Add group.
+	(compilation-minor-mode): Add group.
 
 	* reveal.el (global-reveal-mode): Add group.
 
@@ -26,7 +30,7 @@
 
 	* menu-bar.el (menu-bar-options-menu): Improve tooltip string.
 
-	* simple.el (indicate-unused-lines) 
+	* simple.el (indicate-unused-lines)
 	(default-indicate-unused-lines): New variable aliases.
 
 2002-11-18  Kenichi Handa  <handa@m17n.org>
@@ -38,7 +42,7 @@
 	* language/cyrillic.el (cyrillic-iso-8bit): Make it safe.
 
 	* language/european.el (iso-latin-1): Make it safe.
-	(iso-latin-2, iso-latin-3, iso-latin-4, iso-latin-5, iso-latin-8) 
+	(iso-latin-2, iso-latin-3, iso-latin-4, iso-latin-5, iso-latin-8)
 	(iso-latin-9): Likewise.
 
 	* language/greek.el (greek-iso-8bit): Make it safe.
@@ -49,11 +53,11 @@
 
 	* language/thai.el (thai-tis620): Make it safe.
 
-2002-11-18   Markus Rost  <rost@math.ohio-state.edu>
+2002-11-18  Markus Rost  <rost@math.ohio-state.edu>
 
 	* bookmark.el (bookmark-menu-length): Fix group name.
 
-2002-11-17   Markus Rost  <rost@math.ohio-state.edu>
+2002-11-17  Markus Rost  <rost@math.ohio-state.edu>
 
 	* speedbar.el (defgroup speedbar): Use group 'etags instead of
 	nonexisting group 'tags.
@@ -76,7 +80,7 @@
 
 	* warnings.el (defgroup warnings): New group.
 
-2002-11-16   Markus Rost  <rost@math.ohio-state.edu>
+2002-11-16  Markus Rost  <rost@math.ohio-state.edu>
 
 	* emacs-lisp/autoload.el (update-autoloads-from-directories):
 	Sort the list of files with no autoloads.
@@ -93,7 +97,7 @@
 	(diary-date): Return mark as well as entry.
 
 	* calendar/calendar.el (diary-face): New.
-	(european-calendar-display-form, describe-calendar-mode) 
+	(european-calendar-display-form, describe-calendar-mode)
 	(mark-visible-calendar-date, calendar-mark-today): Tidy doc string.
 	(calendar-make-alist): New.
 	(calendar-mode): Set up font-lock mode.
@@ -113,7 +117,7 @@
 2002-11-15  Nick Roberts  <nick@nick.uklinux.net>
 
 	* toolbar/gud-break.pbm, toolbar/gud-cont.pbm, toolbar/gud-display.pbm,
-	toolbar/gud-down.pbm, toolbar/gud-finish.pbm, toolbar/gud-goto.pbm, 
+	toolbar/gud-down.pbm, toolbar/gud-finish.pbm, toolbar/gud-goto.pbm,
 	toolbar/gud-next.pbm, toolbar/gud-print.pbm, toolbar/gud-remove.pbm,
 	toolbar/gud-run.pbm, toolbar/gud-step.pbm, toolbar/gud-up.pbm:
 	Icons for debugger (pbm files).
@@ -131,7 +135,7 @@
 	(ibuffer-mode): Run `ibuffer-mode-hook' instead of
 	`ibuffer-mode-hooks'.
 
-2002-11-15   Markus Rost  <rost@math.ohio-state.edu>
+2002-11-15  Markus Rost  <rost@math.ohio-state.edu>
 
 	* mail/rmailedit.el:  Add provide call.
 
@@ -143,7 +147,7 @@
 
 	* international/mule.el (set-buffer-file-coding-system): Undo prv chg.
 
-2002-11-14   Markus Rost  <rost@math.ohio-state.edu>
+2002-11-14  Markus Rost  <rost@math.ohio-state.edu>
 
 	* custom.el (custom-declare-group): Remove unnecessary line of
 	code.
@@ -207,7 +211,7 @@
 	(gud-read-address): Correction.
 
 	* toolbar/gud-break.xpm, toolbar/gud-cont.xpm, toolbar/gud-display.xpm,
-	toolbar/gud-down.xpm, toolbar/gud-finish.xpm, toolbar/gud-goto.xpm, 
+	toolbar/gud-down.xpm, toolbar/gud-finish.xpm, toolbar/gud-goto.xpm,
 	toolbar/gud-next.xpm, toolbar/gud-print.xpm, toolbar/gud-remove.xpm,
 	toolbar/gud-run.xpm, toolbar/gud-step.xpm, toolbar/gud-up.xpm:
 	Icons for debugger.
@@ -236,7 +240,7 @@
 	* replace.el (occur-engine): Set buffer-file-coding-system of
 	OUT-BUF to that of one of BUFFERS if they locally bind that variable.
 
-2002-11-13   Markus Rost  <rost@math.ohio-state.edu>
+2002-11-13  Markus Rost  <rost@math.ohio-state.edu>
 
 	* custom.el (custom-handle-all-keywords): Fix arg passed to
 	custom-add-to-group.
@@ -261,7 +265,7 @@
 	(sgml-parse-tag-backward): Add limit argument.
 	(html-autoview-mode): Use define-minor-mode.
 
-2002-11-12   Markus Rost  <rost@math.ohio-state.edu>
+2002-11-12  Markus Rost  <rost@math.ohio-state.edu>
 
 	* vc-rcs.el (vc-rcs-registered): Handle the autoload cookie so
 	that the definition is found by `find-function-search-for-symbol'
@@ -279,7 +283,7 @@
 
 	* newcomment.el (defgroup comment): Remove autoload cookie.
 
-2002-11-11   Markus Rost  <rost@math.ohio-state.edu>
+2002-11-11  Markus Rost  <rost@math.ohio-state.edu>
 
 	* mwheel.el (mouse-wheel-down-button, mouse-wheel-up-button):
 	Declare with defvar, not with defcustom.
