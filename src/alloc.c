@@ -3774,6 +3774,9 @@ mark_stack ()
 
   /* This trick flushes the register windows so that all the state of
      the process is contained in the stack.  */
+  /* Fixme: Code in the Boehm GC sugests flushing (with `flushrs') is
+     needed on ia64 too.  See mach_dep.c, where it also says inline
+     assembler doesn't work with relevant proprietary compilers.  */
 #ifdef sparc
   asm ("ta 3");
 #endif
@@ -3804,7 +3807,11 @@ mark_stack ()
      that's not the case, something has to be done here to iterate
      over the stack segments.  */
 #ifndef GC_LISP_OBJECT_ALIGNMENT
+#ifdef __GNUC__
+#define GC_LISP_OBJECT_ALIGNMENT __alignof__ (Lisp_Object)
+#else
 #define GC_LISP_OBJECT_ALIGNMENT sizeof (Lisp_Object)
+#endif
 #endif
   for (i = 0; i < sizeof (Lisp_Object); i += GC_LISP_OBJECT_ALIGNMENT)
     mark_memory ((char *) stack_base + i, end);
