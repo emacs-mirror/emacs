@@ -1,5 +1,7 @@
 2000-09-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* s/freebsd.h (POSIX_SIGNALS): Define.
+
 	* xterm.c (x_clear_mouse_face): Block/unblock input.
 
 2000-09-24  Dave Love  <fx@gnu.org>

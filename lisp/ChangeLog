@@ -1,3 +1,9 @@
+2000-09-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* textmodes/texinfo.el (texinfo-mode): Prevent filling lines
+	starting with `@def' or `@multitable', in addition to ones
+	specified by the user in auto-fill-inhibit-regexp.
+
 2000-09-25  Markus Rost  <rost@math.ohio-state.edu>
 
 	* mail/mail-utils.el (rmail-dont-reply-to): Avoid infinite loop if
