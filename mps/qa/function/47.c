@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!47.c(trunk.4) $
+ id = $HopeName: MMQA_test_function!47.c(trunk.5) $
  summary = LDs don't go stale when using only non-moving pools
  language = c
  link = testlib.o rankfmt.o
@@ -11,6 +11,7 @@ END_HEADER
 #include "mpscawl.h"
 #include "mpscmv.h"
 #include "mpscamc.h"
+#include "mpsavm.h"
 #include "rankfmt.h"
 
 
