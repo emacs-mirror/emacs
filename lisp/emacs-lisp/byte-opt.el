@@ -281,7 +281,8 @@
 			  (list 'byte-code string (aref fn 2) (aref fn 3)))
 		    (cdr form)))
 	  (if (eq (car-safe fn) 'lambda)
-	      (cons fn (cdr form))
+	      (macroexpand-all (cons fn (cdr form))
+			       byte-compile-macro-environment)
 	    ;; Give up on inlining.
 	    form))))))
 
@@ -2052,9 +2053,9 @@
 			  byte-discardN-preserve-tos))
 		  (memq (car lap1) '(byte-discard byte-discardN)))
 	     (setq lap (delq lap0 lap))
-	     (setcar lap1 'byte-discardN)
 	     (setcdr lap1 (+ (if (eq (car lap0) 'byte-discard) 1 (cdr lap0))
 			     (if (eq (car lap1) 'byte-discard) 1 (cdr lap1))))
+	     (setcar lap1 'byte-discardN)
 	     (setq stack-adjust 0)
 	     (byte-compile-log-lap "  %s %s\t-->\t%s" lap0 lap1 (car rest)))
 	    
