@@ -46,7 +46,7 @@
 ;; 1. vowel
 ;;  V(A/D)?
 ;; 2. syllable : maximum of 5 consecutive consonants.  (e.g. kartsnya)
-;;  ((CH)?(CH)?(CH)?CH)?C(MA?|D|H)?
+;;  ((CH)?(CH)?(CH)?CH)?C(H|M?(A|D)?)?
 
 (defconst devanagari-consonant
   "[$,15U(B-$,15y68(B-$,16?(B]")
