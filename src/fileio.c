@@ -4680,7 +4680,7 @@ This does code conversion according to the value of
 #endif /* VMS */
   Lisp_Object handler;
   Lisp_Object visit_file;
-  Lisp_Object annotations = Qnil;
+  Lisp_Object annotations;
   Lisp_Object encoded_filename;
   int visiting = (EQ (visit, Qt) || STRINGP (visit));
   int quietly = !NILP (visit);
@@ -4717,6 +4717,8 @@ This does code conversion according to the value of
 
   if (NILP (lockname))
     lockname = visit_file;
+
+  annotations = Qnil;
 
   GCPRO5 (start, filename, annotations, visit_file, lockname);
 
