@@ -719,7 +719,7 @@ usage: (define-charset-internal ...)  */)
   if (! charset.code_linear_p)
     {
       charset.code_space_mask = (unsigned char *) xmalloc (256);
-      bzero (charset.code_space_mask, sizeof (charset.code_space_mask));
+      bzero (charset.code_space_mask, 256);
       for (i = 0; i < 4; i++)
 	for (j = charset.code_space[i * 4]; j <= charset.code_space[i * 4 + 1];
 	     j++)
