@@ -780,6 +780,18 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	(set-buffer "*scratch*")
 	(if (eq major-mode 'fundamental-mode)
 	    (funcall initial-major-mode))))
+
+  ;; Register default TTY colors for the case the terminal hasn't a
+  ;; terminal init file.  The colors are good for xterm-color and the
+  ;; FreeBSD console (cons.*).  They should be sufficient for Linux
+  ;; too, I guess.
+  (let ((colors '("black" "red" "green" "yellow" "blue" "magenta"
+		  "cyan" "white"))
+	(i 0))
+    (while colors
+      (face-register-tty-color (car colors) i)
+      (setq colors (cdr colors) i (1+ i))))
+  
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
   (and term-file-prefix (not noninteractive) (not window-system)
@@ -841,6 +853,9 @@ If this is nil, no message will be displayed."
 		   "For information about the GNU Project and its goals, type C-h C-p."
 		 (substitute-command-keys
 		  "For information about the GNU Project and its goals, type \\[describe-project]."))))
+  (when (and (not noninteractive)
+	     (memq window-system '(x w32)))
+    (make-mode-line-mouse-sensitive))
   (if (null command-line-args-left)
       (cond ((and (not inhibit-startup-message) (not noninteractive)
 		  ;; Don't clobber a non-scratch buffer if init file
@@ -866,8 +881,8 @@ If this is nil, no message will be displayed."
 	     (setq window-setup-hook nil)
 	     ;; Do this now to avoid an annoying delay if the user
 	     ;; clicks the menu bar during the sit-for.
-	     (if (memq window-system '(x w32))
-		 (precompute-menubar-bindings))
+	     (when (memq window-system '(x w32))
+	       (precompute-menubar-bindings))
 	     (setq menubar-bindings-done t)
 	     (when (= (buffer-size) 0)
 	       (let ((buffer-undo-list t))
