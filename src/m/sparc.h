@@ -73,13 +73,6 @@ NOTE-END  */
 #endif
 #endif
 
-/* Must use the system's termcap, if we use any termcap.
-   It does special things.  */
-
-#ifndef TERMINFO
-#define LIBS_TERMCAP -ltermcap
-#endif
-
 /* Mask for address bits within a memory segment */
 
 #define SEGMENT_MASK (SEGSIZ - 1)
@@ -110,3 +103,12 @@ NOTE-END  */
 #define A_TEXT_SEEK(HDR) (N_TXTOFF (hdr) + sizeof (hdr))
 
 #endif /* not __NetBSD__ and not __linux__ and not __OpenBSD__ */
+
+#ifdef __arch64__		/* GCC, 64-bit ABI.  */
+#define BITS_PER_LONG 64
+#define BITS_PER_EMACS_INT 64
+#ifndef _LP64
+#define _LP64			/* Done on Alpha -- not sure if it
+				   should be here.  -- fx */
+#endif
+#endif
