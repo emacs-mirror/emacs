@@ -1,3 +1,13 @@
+2001-11-15  Miles Bader  <miles@gnu.org>
+
+	* editfns.c (find_field): Add BEG_LIMIT and END_LIMIT parameters.
+	(Fdelete_field, Ffield_string, Ffield_string_no_properties):
+	Update arguments to find_field.
+	(Ffield_beginning, Ffield_end): Add LIMIT param, pass to find_field.
+	(Fconstrain_to_field): Use LIMIT arg to shorten search time.
+	* lisp.h (Ffield_beginning, Ffield_end): Update EXFUN decl.
+	* minibuf.c (Fminibuffer_prompt_end): Update args to Ffield_end.
+
 2001-11-14  Richard M. Stallman  <rms@gnu.org>
 
 	* editfns.c (Fpropertize): Allow call with 1 arg.
