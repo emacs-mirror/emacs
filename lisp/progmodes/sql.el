@@ -3,7 +3,7 @@
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003  Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
-;; Maintainer: Alex Schroeder <alex@gnu.org>
+;; Maintainer: Michael Mauger <mmaug@yahoo.com>
 ;; Version: 1.8.0
 ;; Keywords: comm languages processes
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?SqlMode
