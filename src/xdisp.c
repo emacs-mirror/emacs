@@ -533,6 +533,7 @@ struct props
 static enum prop_handled handle_face_prop P_ ((struct it *));
 static enum prop_handled handle_invisible_prop P_ ((struct it *));
 static enum prop_handled handle_display_prop P_ ((struct it *));
+static enum prop_handled handle_composition_prop P_ ((struct it *));
 static enum prop_handled handle_overlay_change P_ ((struct it *));
 static enum prop_handled handle_fontified_prop P_ ((struct it *));
 
@@ -546,6 +547,7 @@ static struct props it_props[] =
   {&Qface,		FACE_PROP_IDX,		handle_face_prop},
   {&Qdisplay,		DISPLAY_PROP_IDX,	handle_display_prop},
   {&Qinvisible,		INVISIBLE_PROP_IDX,	handle_invisible_prop},
+  {&Qcomposition,	COMPOSITION_PROP_IDX,	handle_composition_prop},
   {NULL,		0,			NULL}
 };
 
@@ -646,6 +648,7 @@ static int next_element_from_display_vector P_ ((struct it *));
 static int next_element_from_string P_ ((struct it *));
 static int next_element_from_c_string P_ ((struct it *));
 static int next_element_from_buffer P_ ((struct it *));
+static int next_element_from_composition P_ ((struct it *));
 static int next_element_from_image P_ ((struct it *));
 static int next_element_from_stretch P_ ((struct it *));
 static void load_overlay_strings P_ ((struct it *));
@@ -1943,7 +1946,11 @@ face_before_or_after_it_pos (it, before_p)
       if (before_p)
 	pos = string_pos (IT_STRING_CHARPOS (*it) - 1, it->string);
       else
-	pos = string_pos (IT_STRING_CHARPOS (*it) + 1, it->string);
+	/* For composition, we must check the character after the
+           composition.  */
+	pos = (it->what == IT_COMPOSITION
+	       ? string_pos (IT_STRING_CHARPOS (*it) + it->cmp_len, it->string)
+	       : string_pos (IT_STRING_CHARPOS (*it) + 1, it->string));
 
       /* Get the face for ASCII, or unibyte.  */
       face_id
@@ -1985,8 +1992,14 @@ face_before_or_after_it_pos (it, before_p)
       if (before_p)
 	DEC_TEXT_POS (pos);
       else
-	INC_TEXT_POS (pos);
-
+	{
+	  if (it->what == IT_COMPOSITION)
+	    /* For composition, we must check the position after the
+	       composition.  */
+	    pos.charpos += it->cmp_len, pos.bytepos += it->len;
+	  else
+	    INC_TEXT_POS (pos);
+	}
       /* Determine face for CHARSET_ASCII, or unibyte.  */
       face_id = face_at_buffer_position (it->w,
 					 CHARPOS (pos),
@@ -2529,6 +2542,64 @@ handle_single_display_prop (it, prop, object, position)
     }
 
   return space_or_image_found_p;
+}
+
+
+
+/***********************************************************************
+			`composition' property
+ ***********************************************************************/
+
+/* Set up iterator IT from `composition' property at its current
+   position.  Called from handle_stop.  */
+
+static enum prop_handled
+handle_composition_prop (it)
+     struct it *it;
+{
+  Lisp_Object prop, string;
+  int pos, pos_byte, end;
+  enum prop_handled handled = HANDLED_NORMALLY;
+
+  if (STRINGP (it->string))
+    {
+      pos = IT_STRING_CHARPOS (*it);
+      pos_byte = IT_STRING_BYTEPOS (*it);
+      string = it->string;
+    }
+  else
+    {
+      pos = IT_CHARPOS (*it);
+      pos_byte = IT_BYTEPOS (*it);
+      string = Qnil;
+    }
+
+  /* If there's a valid composition and point is not inside of the
+     composition (in the case that the composition is from the current
+     buffer), draw a glyph composed from the composition components.  */
+  if (find_composition (pos, -1, &pos, &end, &prop, string)
+      && COMPOSITION_VALID_P (pos, end, prop)
+      && (STRINGP (it->string) || (PT <= pos || PT >= end)))
+    {
+      int id = get_composition_id (pos, pos_byte, end - pos, prop, string);
+
+      if (id >= 0)
+	{
+	  it->method = next_element_from_composition;
+	  it->cmp_id = id;
+	  it->cmp_len = COMPOSITION_LENGTH (prop);
+	  /* For a terminal, draw only the first character of the
+             components.  */
+	  it->c = COMPOSITION_GLYPH (composition_table[id], 0);
+	  it->len = (STRINGP (it->string)
+		     ? string_char_to_byte (it->string, end)
+		     : CHAR_TO_BYTE (end)) - pos_byte;
+	  it->stop_charpos = end;
+	  handled = HANDLED_RETURN;
+	}
+    }
+
+  return handled;
 }
 
 
@@ -3340,8 +3411,8 @@ get_next_display_element (it)
 		}
 	      else
 		{
-		  unsigned char work[4], *str;
-		  int len = CHAR_STRING (it->c, work, str);
+		  unsigned char str[MAX_MULTIBYTE_LENGTH];
+		  int len = CHAR_STRING (it->c, str);
 		  int i;
 		  GLYPH escape_glyph;
 
@@ -3440,6 +3511,23 @@ set_iterator_to_next (it)
 	  IT_BYTEPOS (*it) += it->len;
 	  IT_CHARPOS (*it) += 1;
 	  xassert (IT_BYTEPOS (*it) == CHAR_TO_BYTE (IT_CHARPOS (*it)));
+	}
+    }
+  else if (it->method == next_element_from_composition)
+    {
+      xassert (it->cmp_id >= 0 && it ->cmp_id < n_compositions);
+      if (STRINGP (it->string))
+	{
+	  IT_STRING_BYTEPOS (*it) += it->len;
+	  IT_STRING_CHARPOS (*it) += it->cmp_len;
+	  it->method = next_element_from_string;
+	  goto consider_string_end;
+	}
+      else
+	{
+	  IT_BYTEPOS (*it) += it->len;
+	  IT_CHARPOS (*it) += it->cmp_len;
+	  it->method = next_element_from_buffer;
 	}
     }
   else if (it->method == next_element_from_c_string)
@@ -3862,7 +3950,7 @@ next_element_from_buffer (it)
 
       /* Get the next character, maybe multibyte.  */
       p = BYTE_POS_ADDR (IT_BYTEPOS (*it));
-      if (it->multibyte_p)
+      if (it->multibyte_p && !ASCII_BYTE_P (*p))
 	{
 	  int maxlen = ((IT_BYTEPOS (*it) >= GPT_BYTE ? ZV_BYTE : GPT_BYTE)
 			- IT_BYTEPOS (*it));
@@ -3936,6 +4024,22 @@ run_redisplay_end_trigger_hook (it)
   
   /* Notice if it changed the face of the character we are on.  */
   handle_face_prop (it);
+}
+
+
+/* Deliver a composition display element.  The iterator IT is already
+   filled with composition information (done in
+   handle_composition_prop).  Value is always 1.  */
+
+static int
+next_element_from_composition (it)
+     struct it *it;
+{
+  it->what = IT_COMPOSITION;
+  it->position = (STRINGP (it->string)
+		  ? it->current.string_pos
+		  : it->current.pos);
+  return 1;
 }
 
 
@@ -4673,14 +4777,14 @@ message_dolog (m, len, nlflag, multibyte)
 	{
 	  int i, c, nbytes;
 	  unsigned char *msg = (unsigned char *) m;
-	  unsigned char *str, work[4];
+	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 	  /* Convert a single-byte string to multibyte
 	     for the *Message* buffer.  */
 	  for (i = 0; i < len; i++)
 	    {
 	      c = unibyte_char_to_multibyte (msg[i]);
-	      nbytes = CHAR_STRING (c, work, str);
-	      insert_1_both (work, 1, nbytes, 1, 0, 0);
+	      nbytes = CHAR_STRING (c, str);
+	      insert_1_both (str, 1, nbytes, 1, 0, 0);
 	    }
 	}
       else if (len)
@@ -5780,14 +5884,14 @@ set_message_1 (s, string, nbytes, multibyte_p)
 	  /* Convert from single-byte to multi-byte.  */
 	  int i, c, n;
 	  unsigned char *msg = (unsigned char *) s;
-	  unsigned char *str, work[4];
+	  unsigned char str[MAX_MULTIBYTE_LENGTH];
       
 	  /* Convert a single-byte string to multibyte.  */
 	  for (i = 0; i < nbytes; i++)
 	    {
 	      c = unibyte_char_to_multibyte (msg[i]);
-	      n = CHAR_STRING (c, work, str);
-	      insert_1_both (work, 1, n, 1, 0, 0);
+	      n = CHAR_STRING (c, str);
+	      insert_1_both (str, 1, n, 1, 0, 0);
 	    }
 	}
       else
@@ -6953,6 +7057,43 @@ redisplay ()
   redisplay_internal (0);
 }
 
+/* Return 1 if point moved out of or into a composition.  Otherwise
+   return 0.  PREV_BUF and PREV_PT are the last point buffer and
+   position.  BUF and PT are the current point buffer and position.  */
+
+int
+check_point_in_composition (prev_buf, prev_pt, buf, pt)
+     struct buffer *prev_buf, *buf;
+     int prev_pt, pt;
+{
+  int start, end;
+  Lisp_Object prop;
+  Lisp_Object buffer;
+
+  XSETBUFFER (buffer, buf);
+  /* Check a composition at the last point if point moved within the
+     same buffer.  */
+  if (prev_buf == buf)
+    {
+      if (prev_pt == pt)
+	/* Point didn't move.  */
+	return 0;
+    
+      if (prev_pt > BUF_BEGV (buf) && prev_pt < BUF_ZV (buf)
+	  && find_composition (prev_pt, -1, &start, &end, &prop, buffer)
+	  && COMPOSITION_VALID_P (start, end, prop)
+	  && start < prev_pt && end > prev_pt)
+	/* The last point was within the composition.  Return 1 iff
+            point moved out of the composition.  */
+	return (pt <= start || pt >= end);
+    }
+
+  /* Check a composition at the current point.  */
+  return (pt > BUF_BEGV (buf) && pt < BUF_ZV (buf)
+	  && find_composition (pt, -1, &start, &end, &prop, buffer)
+	  && COMPOSITION_VALID_P (start, end, prop)
+	  && start < pt && end > pt);
+}
 
 /* Reconsider the setting of B->clip_changed which is displayed
    in window W.  */
@@ -6970,6 +7111,29 @@ reconsider_clip_changes (w, b)
 	   && w->current_matrix->zv == BUF_ZV (b)
 	   && w->current_matrix->begv == BUF_BEGV (b))
     b->clip_changed = 0;
+
+  /* If display wasn't paused, and W is not a tool bar window, see if
+     point has been moved into or out of a composition.  In that case,
+     we set b->clip_changed to 1 to force updating the screen.  If
+     b->clip_changed has already been set to 1, we can skip this
+     check.  */
+  if (!b->clip_changed
+      && BUFFERP (w->buffer) && !NILP (w->window_end_valid))
+    {
+      int pt;
+
+      if (w == XWINDOW (selected_window))
+	pt = BUF_PT (current_buffer);
+      else
+	pt = marker_position (w->pointm);
+
+      if ((w->current_matrix->buffer != XBUFFER (w->buffer)
+	   || pt != w->last_point)
+	  && check_point_in_composition (w->current_matrix->buffer,
+					 w->last_point,
+					 XBUFFER (w->buffer), pt))
+	b->clip_changed = 1;
+    }
 }
 
 
@@ -7790,13 +7954,10 @@ disp_char_vector (dp, c)
     return (dp->contents[c]);
   
   SPLIT_NON_ASCII_CHAR (c, code[0], code[1], code[2]);
-  if (code[0] != CHARSET_COMPOSITION)
-    {
-      if (code[1] < 32)
-	code[1] = -1;
-      else if (code[2] < 32)
-	code[2] = -1;
-    }
+  if (code[1] < 32)
+    code[1] = -1;
+  else if (code[2] < 32)
+    code[2] = -1;
   
   /* Here, the possible range of code[0] (== charset ID) is
      128..max_charset.  Since the top level char table contains data
@@ -11864,9 +12025,7 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
       else if (INTEGERP (eoltype)
 	       && CHAR_VALID_P (XINT (eoltype), 0))
 	{
-	  unsigned char work[4];
-
-	  eol_str_len = CHAR_STRING (XINT (eoltype), work, eol_str);
+	  eol_str_len = CHAR_STRING (XINT (eoltype), eol_str);
 	}
       else
 	{
