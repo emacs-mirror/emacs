@@ -1,5 +1,9 @@
 2001-12-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* emulation/tpu-edt.el (tpu-reset-screen-size): Use
+	set-frame-height and set-frame-width instead of set-screen-height
+	and set-screen-width.
+
 	* vt-control.el (vt-wide, vt-narrow): Use set-frame-width instead
 	of obsolete set-screen-width.
 
@@ -7,6 +11,10 @@
 
 	* emerge.el (emerge-show-file-name): Use frame-height instead of
 	obsolete screen-height.
+
+	* mail/mh-utils.el (mh-show-msg): Likewise.
+	(mh-handle-process-error): Use frame-width instead of obsolete
+	screen-width.
 
 2001-12-25  Richard M. Stallman  <rms@gnu.org>
 
