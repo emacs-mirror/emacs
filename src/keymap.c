@@ -1532,7 +1532,7 @@ If optional 3rd arg FIRSTONLY is non-nil, return the first key sequence found,\n
 rather than a list of all possible key sequences.\n\
 If FIRSTONLY is the symbol `non-ascii', return the first binding found,\n\
 no matter what it is.\n\
-If FIRSTONLY has another non-nil value, prefer sequences of ASCII characters,
+If FIRSTONLY has another non-nil value, prefer sequences of ASCII characters,\n\
 and entirely reject menu bindings.\n\
 \n\
 If optional 4th arg NOINDIRECT is non-nil, don't follow indirections\n\
