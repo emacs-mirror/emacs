@@ -733,7 +733,7 @@ See also the function `select-sendmail-coding-system'.")
   (require 'mail-utils)
   (let ((errbuf (if mail-interactive
 		    (generate-new-buffer " sendmail errors")
-		  nil))
+		  0))
 	(tembuf (generate-new-buffer " sendmail temp"))
 	(case-fold-search nil)
 	resend-to-addresses
@@ -914,7 +914,7 @@ See also the function `select-sendmail-coding-system'.")
 			      (or resend-to-addresses
 				  '("-t"))))
 		     (exit-value (apply 'call-process-region args)))
-		(or (zerop exit-value)
+		(or (null exit-value) (zerop exit-value)
 		    (error "Sending...failed with exit value %d" exit-value)))
 	    (or fcc-was-found
 		(error "No recipients")))
