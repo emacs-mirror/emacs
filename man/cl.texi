@@ -3127,7 +3127,7 @@ and declare it inline all at once.
 (defsubst foo (...) ...)       ; instead of defun
 @end example
 
-@strong{Note:}  This declaration remains in effect after the
+@strong{Please note:}  this declaration remains in effect after the
 containing source file is done.  It is correct to use it to
 request that a function you have defined should be inlined,
 but it is impolite to use it to request inlining of an external

@@ -1,5 +1,5 @@
 \input texinfo  @c -*-texinfo-*-
-@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.21 2003/09/01 15:45:46 miles Exp $"
+@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.22 2003/09/29 13:44:26 ttn Exp $"
 @c %**start of header
 @setfilename ../info/pcl-cvs
 @settitle PCL-CVS --- Emacs Front-End to CVS
@@ -1088,7 +1088,7 @@ revision.
 This command use @code{ediff} (or @code{emerge}, see above) to allow you
 to do an interactive 3-way merge.
 
-@strong{Note:}  When the file status is @samp{Conflict},
+@strong{Please note:}  when the file status is @samp{Conflict},
 CVS has already performed a merge.  The resulting file is not used in
 any way if you use this command.  If you use the @kbd{q} command inside
 @samp{ediff} (to successfully terminate a merge) the file that CVS
