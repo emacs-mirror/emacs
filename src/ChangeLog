@@ -1,3 +1,8 @@
+2000-03-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (IT_note_mouse_highlight): Return immediately if frame's
+	glyph matrices have been freed.
+
 2000-03-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (tags): Include ../lwlib/TAGS in TAGS.
