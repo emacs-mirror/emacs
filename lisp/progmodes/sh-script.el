@@ -526,7 +526,7 @@ See `sh-feature'.")
 
     ;; The next entry is only used for defining the others
     (shell eval sh-append executable-font-lock-keywords
-	   '("\\\\." 0 font-lock-string-face)
+	   '("\\\\[^A-Za-z0-9]" 0 font-lock-string-face)
 	   '("\\${?\\([A-Za-z_][A-Za-z0-9_]*\\|[0-9]+\\|[$*_]\\)" 1
 	     font-lock-variable-name-face)))
   "*Rules for highlighting shell scripts.  See `sh-feature'.")
