@@ -1,5 +1,5 @@
 \input texinfo  @c -*-texinfo-*-
-@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.16 2002/08/16 06:29:40 eggert Exp $"
+@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.17 2002/10/02 23:24:31 karl Exp $"
 @c %**start of header
 @setfilename ../info/pcl-cvs
 @settitle PCL-CVS --- Emacs Front-End to CVS
@@ -921,7 +921,7 @@ all selected files, and show the result in a temporary buffer
 @findex cvs-mode-add
 @findex cvs-mode-remove-file
 
-The following commands are available to make it easy to add fuiles to
+The following commands are available to make it easy to add files to
 and remove them from the CVS repository.
 
 @table @kbd

@@ -21,7 +21,7 @@ automatically when text is inserted or deleted so they stay with the
 surrounding characters.  @xref{Markers}.
 
   See also the ``field'' feature (@pxref{Fields}), which provides
-functions that are used by many cursur-motion commands.
+functions that are used by many cursor-motion commands.
 
 @menu
 * Point::         The special position where editing takes place.
