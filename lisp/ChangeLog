@@ -1,5 +1,7 @@
 2000-06-09  Dave Love  <fx@gnu.org>
 
+	* tar-mode.el (tar-copy): Supply MUSTBENEW arg to write-region.
+
 	* executable.el: Byte compile dynamic.
 	(executable-insert): Change custom type.
 	(executable-find): Add autoload cookie.
