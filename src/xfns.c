@@ -2005,6 +2005,10 @@ x_set_tool_bar_lines (f, value, oldval)
   int delta, nlines, root_height;
   Lisp_Object root_window;
 
+  /* Treat tool bars like menu bars.  */
+  if (FRAME_MINIBUF_ONLY_P (f))
+    return;
+
   /* Use VALUE only if an integer >= 0.  */
   if (INTEGERP (value) && XINT (value) >= 0)
     nlines = XFASTINT (value);
