@@ -1265,13 +1265,6 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 	  map_char_table (accumulate_script_ranges, Qnil, Vchar_script_table,
 			  val, 0, NULL);
 	  range_list = XCDR (val); 
-	  if (EQ (character, Qascii))
-	    {
-	      if (! STRINGP (font_spec))
-		font_spec = generate_ascii_font_name (FONTSET_NAME (fontset),
-						      font_spec);
-	      FONTSET_ASCII (fontset) = font_spec;
-	    }
 	}
       else if (CHARSETP (character))
 	{
@@ -1283,6 +1276,13 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 	      = Fcons (Fcons (make_number (CHARSET_MIN_CHAR (charset)),
 			      make_number (CHARSET_MAX_CHAR (charset))),
 		       range_list);
+	  if (EQ (character, Qascii))
+	    {
+	      if (! STRINGP (font_spec))
+		font_spec = generate_ascii_font_name (FONTSET_NAME (fontset),
+						      font_spec);
+	      FONTSET_ASCII (fontset) = font_spec;
+	    }
 	}
 
       if (NILP (range_list))
