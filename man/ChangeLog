@@ -1,3 +1,9 @@
+2004-12-15  Juri Linkov  <juri@jurta.org>
+
+	* mark.texi (Transient Mark, Mark Ring): M-< and other
+	movement commands don't set mark in Transient Mark mode
+	if mark is active.
+
 2004-12-15  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi: Consistently capitalized all mode names.

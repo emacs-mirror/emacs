@@ -1,3 +1,24 @@
+2004-12-15  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-update): Test isearch-lazy-highlight
+	before calling isearch-lazy-highlight-new-loop.
+	(isearch-lazy-highlight-new-loop):
+	Don't test isearch-lazy-highlight.
+
+	* replace.el (perform-replace): Add isearch-case-fold-search.
+	Use delimited-flag for isearch-regexp.
+	Reset isearch-lazy-highlight-last-string to force lazy
+	highlighting when called from isearch mode.
+	(query-replace-highlight): Revert defcustom type to boolean.
+	(query-replace-lazy-highlight): New defcustom.
+	(query-replace): New face.
+	(perform-replace, replace-highlight, replace-dehighlight):
+	Test query-replace-lazy-highlight instead of special value
+	`isearch' of query-replace-highlight.
+	(replace-dehighlight): Don't call isearch-dehighlight.
+	(replace-highlight): Don't call isearch-highlight.
+	Use face `query-replace' unconditionally.
+
 2004-12-14  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (inhibit-mark-movement): Remove defvar.
