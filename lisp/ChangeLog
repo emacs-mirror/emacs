@@ -1,5 +1,7 @@
 2001-01-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* mail/sendmail.el (mail-mode): Doc fix.
+
 	* info.el (Info-goto-emacs-command-node): Doc fix.
 	(Info-goto-emacs-key-command-node): Doc fix.
 
