@@ -1,5 +1,5 @@
 /* Minibuffer input and completion.
-   Copyright (C) 1985, 1986, 1993, 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 93, 94, 95, 1996 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -127,6 +127,24 @@ choose_minibuf_frame ()
 #endif
     }
 }
+
+DEFUN ("set-minibuffer-window", Fset_minibuffer_window,
+       Sset_minibuffer_window, 1, 1, 0,
+  "Specify which minibuffer window to use for the minibuffer.\n\
+This effects where the minibuffer is displayed if you put text in it\n\
+without invoking the usual minibuffer commands.")
+  (window)
+     Lisp_Object window;
+{
+  CHECK_WINDOW (window, 1);
+  if (! MINI_WINDOW_P (XWINDOW (window)))
+    error ("Window is not a minibuffer window");
+
+  minibuf_window = window;
+
+  return window;
+}
+
 
 /* Actual minibuffer invocation. */
 
@@ -1817,6 +1835,7 @@ is added with\n\
     "List of regexps that should restrict possible completions.");
   Vcompletion_regexp_list = Qnil;
 
+  defsubr (&Sset_minibuffer_window);
   defsubr (&Sread_from_minibuffer);
   defsubr (&Seval_minibuffer);
   defsubr (&Sread_minibuffer);
