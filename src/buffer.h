@@ -370,7 +370,7 @@ extern Lisp_Object Vtransient_mark_mode;
    Therefore, we cannot assume that they remain valid--we must check.  */
 
 /* 1 if the OV is a cons cell whose car is a cons cell.  */
-#define OVERLAY_VALID(OV) (CONSP ((OV)) && CONSP (XCONS ((OV))->car))
+#define OVERLAY_VALID(OV) (OVERLAYP (OV))
 
 /* Return the marker that stands for where OV starts in the buffer.  */
 #define OVERLAY_START(OV) (XCONS (XCONS ((OV))->car)->car)
@@ -385,7 +385,6 @@ extern Lisp_Object Vtransient_mark_mode;
 #define OVERLAY_POSITION(P)					\
  ((MARKERP ((P)) && XMARKER ((P))->buffer == current_buffer)	\
   ? marker_position ((P)) : 0)
-
 
 /* Allocation of buffer text.  */
 

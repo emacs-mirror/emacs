@@ -844,7 +844,8 @@ do_cdr:
     }
 #endif
   if (XTYPE (o1) != XTYPE (o2)) return Qnil;
-  if (XTYPE (o1) == Lisp_Cons)
+  if (XTYPE (o1) == Lisp_Cons
+      || XTYPE (o1) == Lisp_Overlay)
     {
       Lisp_Object v1;
       v1 = internal_equal (Fcar (o1), Fcar (o2), depth + 1);

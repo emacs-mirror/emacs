@@ -1609,6 +1609,7 @@ mark_object (objptr)
     case Lisp_Cons:
     case Lisp_Buffer_Local_Value:
     case Lisp_Some_Buffer_Local_Value:
+    case Lisp_Overlay:
       {
 	register struct Lisp_Cons *ptr = XCONS (obj);
 	if (XMARKBIT (ptr->car)) break;

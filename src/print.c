@@ -952,6 +952,23 @@ print (obj, printcharfun, escapeflag)
 	}
       PRINTCHAR ('>');
       break;
+
+    case Lisp_Overlay:
+      strout ("#<overlay ", -1, printcharfun);
+      if (!(XMARKER (OVERLAY_START (obj))->buffer))
+	strout ("in no buffer", -1, printcharfun);
+      else
+	{
+	  sprintf (buf, "from %d to %d in ",
+		   marker_position (OVERLAY_START (obj)),
+		   marker_position (OVERLAY_END   (obj)));
+	  strout (buf, -1, printcharfun);
+	  print_string (XMARKER (OVERLAY_START (obj))->buffer->name,
+			printcharfun);
+	}
+      PRINTCHAR ('>');
+      break;
+
 #endif /* standalone */
 
     case Lisp_Subr:
