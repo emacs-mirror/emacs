@@ -1,11 +1,44 @@
 2002-05-17  Dave Love  <fx@gnu.org>
 
+	* international/codepage.el: Most of code removed or commented
+	out.
+	(codepage-setup): Re-written as trivial, obsolete function.
+
+	* language/utf-8-lang.el ("UTF-8"): Use utf-8, not mule-utf-8.
+	Remove setup function.
+
+	* language/english.el (ebcdic-us, ebcdic-uk): New coding systems.
+
+	* Makefile.in (DONTCOMPILE): Add language/vietnamese.el,
+	language/cyrillic.el, language/czech.el.
+
+	* language/vietnamese.el (windows-1258, cp1258): New coding
+	systems.
+	(font-ccl-encoder-alist): Remove viscii, vscii.
+
+	* language/hebrew.el (windows-1255, cp1255): New coding systems.
+
+	* language/european.el (windows-1254, cp1254, windows-1257)
+	(cp1257, next, iso-latin-7, iso-8859-13, latin-7): New coding
+	systems.
+	("Latin-7", "Lithuanian", "Latvian"): Don't require code-pages.
+	(iso-latin-7):
+
+	* language/greek.el (windows-1253, cp1253): New coding systems.
+
+	* international/mule-conf.el (ebcdic-us, ebcdic-uk): Change map
+	file name.
+	(windows-1253, windows-1254, windows-1255, windows-1256) 
+	(windows-1257, windows-1258, next): New charsets.
+
 	* international/utf-8.el, international/utf-8-subst.el: Removed.
 
 	* international/mule.el: Doc fixes.
 	(charset-list, generic-char-p, set-coding-priority): Make
 	obsolete.
 	(coding-system-get): Try to convert old-style symbol to keyword.
+	(define-charset): Purecopy strings in property list.
+	(define-coding-system): Purecopy docstring.
 
 	* international/mule-diag.el (list-character-sets-2): Avoid
 	charset-bytes.
