@@ -5979,8 +5979,6 @@ encode_coding_object (coding, src_object, from, from_byte, to, to_byte,
 
   if (! NILP (CODING_ATTR_PRE_WRITE (attrs)))
     {
-      Lisp_Object val;
-
       coding->src_object = make_conversion_work_buffer (coding->src_multibyte);
       set_buffer_internal (XBUFFER (coding->src_object));
       if (STRINGP (src_object))
@@ -5997,9 +5995,9 @@ encode_coding_object (coding, src_object, from, from_byte, to, to_byte,
 	  set_buffer_internal (XBUFFER (coding->src_object));
 	}
 
-      val = call2 (CODING_ATTR_PRE_WRITE (attrs),
-		   make_number (1), make_number (chars));
-      CHECK_NATNUM (val);
+      call2 (CODING_ATTR_PRE_WRITE (attrs),
+	     make_number (BEG), make_number (Z));
+      coding->src_object = Fcurrent_buffer ();
       if (BEG != GPT)
 	move_gap_both (BEG, BEG_BYTE);
       coding->src_chars = Z - BEG;
@@ -6042,8 +6040,10 @@ encode_coding_object (coding, src_object, from, from_byte, to, to_byte,
   else if (EQ (dst_object, Qt))
     {
       coding->dst_object = Qnil;
-      coding->destination = (unsigned char *) xmalloc (coding->src_chars);
       coding->dst_bytes = coding->src_chars;
+      if (coding->dst_bytes == 0)
+	coding->dst_bytes = 1;
+      coding->destination = (unsigned char *) xmalloc (coding->dst_bytes);
       coding->dst_multibyte = 0;
     }
   else
