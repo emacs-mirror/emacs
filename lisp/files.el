@@ -1431,6 +1431,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.sim\\'" . simula-mode)
      ("\\.mss\\'" . scribe-mode)
      ("\\.f90\\'" . f90-mode)
+     ("\\.indent\\.pro\\'" . fundamental-mode) ; to avoid idlwave-mode
      ("\\.pro\\'" . idlwave-mode)
      ("\\.lsp\\'" . lisp-mode)
      ("\\.awk\\'" . awk-mode)
