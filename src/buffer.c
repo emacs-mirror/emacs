@@ -423,6 +423,7 @@ reset_buffer (b)
   b->overlays_after = Qnil;
   XSETFASTINT (b->overlay_center, 1);
   b->mark_active = Qnil;
+  b->point_before_scroll = Qnil;
 }
 
 /* Reset buffer B's local variables info.
@@ -2714,6 +2715,7 @@ init_buffer_once ()
   XSETINT (buffer_local_flags.mode_name, -1);
   XSETINT (buffer_local_flags.undo_list, -1);
   XSETINT (buffer_local_flags.mark_active, -1);
+  XSETINT (buffer_local_flags.point_before_scroll, -1);
 
   XSETFASTINT (buffer_local_flags.mode_line_format, 1);
   XSETFASTINT (buffer_local_flags.abbrev_mode, 2);
@@ -3222,6 +3224,9 @@ The caches require no explicit maintenance; their accuracy is\n\
 maintained internally by the Emacs primitives.  Enabling or disabling\n\
 the cache should not affect the behavior of any of the motion\n\
 functions; it should only affect their performance.");
+
+  DEFVAR_PER_BUFFER ("point-before-scroll", &current_buffer->point_before_scroll, Qnil,
+  "Value of point before the last series of scroll operations, or nil.");
 
   DEFVAR_LISP ("transient-mark-mode", &Vtransient_mark_mode,
     "*Non-nil means deactivate the mark when the buffer contents change.");
