@@ -3336,7 +3336,7 @@ usage: (make-network-process &rest ARGS)  */)
 #endif	/* HAVE_SOCKETS */
 
 
-#ifdef HAVE_SOCKETS
+#if defined(HAVE_SOCKETS) && defined(HAVE_NET_IF_H) && defined(HAVE_SYS_IOCTL_H)
 
 #ifdef SIOCGIFCONF
 DEFUN ("network-interface-list", Fnetwork_interface_list, Snetwork_interface_list, 0, 0, 0,
@@ -3397,7 +3397,7 @@ format; see the description of ADDRESS in 'make-network-process'.  */)
 
   return res;
 }
-#endif
+#endif /* SIOCGIFCONF */
 
 #if defined(SIOCGIFADDR) || defined(SIOCGIFHWADDR) || defined(SIOCGIFFLAGS)
 
@@ -3483,7 +3483,7 @@ FLAGS is the current flags of the interface.  */)
     return Qnil;
 
   elt = Qnil;
-#ifdef SIOCGIFFLAGS
+#if defined(SIOCGIFFLAGS) && defined(ifr_flags)
   if (ioctl (s, SIOCGIFFLAGS, &rq) == 0)
     {
       int flags = rq.ifr_flags;
@@ -3511,10 +3511,10 @@ FLAGS is the current flags of the interface.  */)
   res = Fcons (elt, res);
 
   elt = Qnil;
-#ifdef SIOCGIFHWADDR
+#if defined(SIOCGIFHWADDR) && defined(ifr_hwaddr)
   if (ioctl (s, SIOCGIFHWADDR, &rq) == 0)
     {
-      Lisp_Object hwaddr = Fmake_vector (6, Qnil);
+      Lisp_Object hwaddr = Fmake_vector (make_number (6), Qnil);
       register struct Lisp_Vector *p = XVECTOR (hwaddr);
       int n;
 
@@ -3527,7 +3527,7 @@ FLAGS is the current flags of the interface.  */)
   res = Fcons (elt, res);
 
   elt = Qnil;
-#ifdef SIOCGIFNETMASK
+#if defined(SIOCGIFNETMASK) && defined(ifr_netmask)
   if (ioctl (s, SIOCGIFNETMASK, &rq) == 0)
     {
       any++;
@@ -3537,7 +3537,7 @@ FLAGS is the current flags of the interface.  */)
   res = Fcons (elt, res);
 
   elt = Qnil;
-#ifdef SIOCGIFBRDADDR
+#if defined(SIOCGIFBRDADDR) && defined(ifr_broadaddr)
   if (ioctl (s, SIOCGIFBRDADDR, &rq) == 0)
     {
       any++;
@@ -3547,7 +3547,7 @@ FLAGS is the current flags of the interface.  */)
   res = Fcons (elt, res);
 
   elt = Qnil;
-#ifdef SIOCGIFADDR
+#if defined(SIOCGIFADDR) && defined(ifr_addr)
   if (ioctl (s, SIOCGIFADDR, &rq) == 0)
     {
       any++;
@@ -6656,13 +6656,15 @@ The value takes effect when `start-process' is called.  */);
   defsubr (&Sset_network_process_option);
   defsubr (&Smake_network_process);
   defsubr (&Sformat_network_address);
+#endif /* HAVE_SOCKETS */
+#if defined(HAVE_SOCKETS) && defined(HAVE_NET_IF_H) && defined(HAVE_SYS_IOCTL_H)
 #ifdef SIOCGIFCONF
   defsubr (&Snetwork_interface_list);
 #endif
 #if defined(SIOCGIFADDR) || defined(SIOCGIFHWADDR) || defined(SIOCGIFFLAGS)
   defsubr (&Snetwork_interface_info);
 #endif
-#endif /* HAVE_SOCKETS */
+#endif /* HAVE_SOCKETS ... */
 #ifdef DATAGRAM_SOCKETS
   defsubr (&Sprocess_datagram_address);
   defsubr (&Sset_process_datagram_address);
