@@ -26,8 +26,8 @@
 
 ;;; Commentary:
 
-;; The coding-system `mule-utf-8' supports encoding/decoding of the
-;; following character sets to and from UTF-8:
+;; The coding-system `mule-utf-8' basically supports encoding/decoding
+;; of the following character sets to and from UTF-8:
 ;;
 ;;   ascii
 ;;   eight-bit-control
@@ -36,15 +36,14 @@
 ;;   mule-unicode-2500-33ff
 ;;   mule-unicode-e000-ffff
 ;;
-;; Characters of other character sets cannot be encoded with
-;; mule-utf-8.  Note that the mule-unicode charsets currently lack
-;; case and syntax information, so things like `downcase' will only
-;; work for characters from ASCII and Latin-1.
-;;
 ;; On decoding, Unicode characters that do not fit into the above
 ;; character sets are handled as `eight-bit-control' or
 ;; `eight-bit-graphic' characters to retain the information about the
 ;; original byte sequence.
+;;
+;; Characters from other character sets can be encoded with
+;; mule-utf-8 by populating the table `ucs-mule-to-mule-unicode' and
+;; registering the translation with `register-char-codings'.
 
 ;; UTF-8 is defined in RFC 2279.  A sketch of the encoding is:
 
@@ -57,6 +56,11 @@
 
 ;;; Code:
 
+(defvar ucs-mule-to-mule-unicode (make-translation-table)
+  "Translation table for encoding to `mule-utf-8'.")
+;; Could have been done by ucs-tables loaded before.
+(unless (get 'ucs-mule-to-mule-unicode 'translation-table)
+  (define-translation-table 'ucs-mule-to-mule-unicode ucs-mule-to-mule-unicode))
 (define-ccl-program ccl-decode-mule-utf-8
   ;;
   ;;        charset         | bytes in utf-8 | bytes in emacs
@@ -230,7 +234,7 @@ characters.")
       (if (r5 < 0)
 	  ((r1 = -1)
 	   (read-multibyte-character r0 r1)
-	   (translate-character ucs-mule-8859-to-mule-unicode r0 r1))
+	   (translate-character ucs-mule-to-mule-unicode r0 r1))
 	(;; We have already done read-multibyte-character.
 	 (r0 = r5)
 	 (r1 = r6)
@@ -344,7 +348,8 @@ Others are encoded as U+FFFD.")
 
 ;; Dummy definition so that the CCL can be checked correctly; the
 ;; actual data are loaded on demand.
-(define-translation-table 'ucs-mule-8859-to-mule-unicode)
+(unless (boundp 'ucs-mule-8859-to-mule-unicode)	; don't zap it
+  (define-translation-table 'ucs-mule-8859-to-mule-unicode))
 
 (defsubst utf-8-untranslated-to-ucs ()
   (let ((b1 (char-after))
@@ -395,66 +400,88 @@ Return the sequence's length."
       (compose-region (point) (+ l (point)) subst)
       l)))
 
+(defcustom utf-8-compose-scripts nil
+  "*Non-nil means compose various scipts on decoding utf-8 text."
+  :group 'mule
+  :type 'boolean)
+
+(autoload 'lao-post-read-conversion "lao-util")	; omitted in Emacs 21.1
+
 (defun utf-8-post-read-conversion (length)
-  "Compose untranslated utf-8 sequences into single characters."
+  "Compose untranslated utf-8 sequences into single characters.
+Also compose particular scripts if `utf-8-compose-scripts' is non-nil."
   (save-excursion
     (while (and (skip-chars-forward
 		 (eval-and-compile	; missing optimization
 		   (string-as-multibyte "^\341-\377")))
 		(not (eobp)))
       (forward-char (utf-8-compose))))
+  (when (and utf-8-compose-scripts (> length 1))
+    ;; These currently have definitions which cover the relevant
+    ;; Unicodes.  We could avoid loading thai-util &c by checking
+    ;; whether the region contains any characters with the appropriate
+    ;; categories.
+    (save-excursion (diacritic-post-read-conversion length))
+    (save-excursion (thai-post-read-conversion length))
+    (save-excursion (lao-post-read-conversion length)))
   length)
 
+;;; (defun utf-8-pre-write-conversion (beg end)
+;;;   (require 'ucs-tables)		  ; ensure translation table is loaded
+;;;   (let ((oldbuff (current-buffer)))
+;;;     (set-buffer (generate-new-buffer " *temp*"))
+;;;     (if (stringp beg)
+;;; 	(insert beg)
+;;;       (insert-buffer-substring beg end oldbuff))
+;;;     ;; Look for 8-bit-graphic characters that haven't been marked as
+;;;     ;; untranslated, and UTF-8-encode them.
+;;;     (goto-char (point-min))
+;;;     (while (and (skip-chars-forward (eval-and-compile
+;;; 				      (string-as-multibyte "^\240-\377")))
+;;; 		(not (eobp)))
+;;;       (if (get-text-property (point) 'untranslated-utf-8)
+;;; 	  (forward-char)
+;;; 	(let ((c (char-after)))
+;;; 	  (delete-char 1)
+;;; 	  (insert (make-char 'latin-iso8859-1 (- c 128)))))))
+;;;   nil)
+
 (defun utf-8-pre-write-conversion (beg end)
-  (require 'ucs-tables)		  ; ensure translation table is loaded
-  (when (stringp beg)
-    (set-buffer (generate-new-buffer " *temp*"))
-    (insert beg)
-    (setq end (1+ (length beg)))
-    (setq beg 1))
-  ;; Look for 8-bit-graphic characters that haven't been marked as
-  ;; untranslated, and UTF-8-encode them.
-  (save-excursion
-    (save-restriction
-      (narrow-to-region beg end)
-      (goto-char beg)
-      (while (and (skip-chars-forward (eval-and-compile
-					(string-as-multibyte "^\240-\377")))
-		  (not (eobp)))
-	(if (get-text-property (point) 'untranslated-utf-8)
-	    (forward-char)
-	  (let ((c (char-after)))
-	    (delete-char 1)
-	    (insert (make-char 'latin-iso8859-1 (- c 128))))))))
+  "Semi-dummy pre-write function effectively to autoload ucs-tables."
+  ;; Ensure translation table is loaded.
+  (require 'ucs-tables)
+  ;; Don't do this again.
+  (coding-system-put 'mule-utf-8 'pre-write-conversion nil)
   nil)
 
 (make-coding-system
  'mule-utf-8 4 ?u
  "UTF-8 encoding for Emacs-supported Unicode characters.
-The supported Emacs character sets are the following, determined by the
-translation table `ucs-mule-8859-to-mule-unicode':
-   ascii
-   eight-bit-control
-   eight-bit-graphic
-   latin-iso8859-1
-   latin-iso8859-2
-   latin-iso8859-3
-   latin-iso8859-4
-   cyrillic-iso8859-5
-   greek-iso8859-7
-   hebrew-iso8859-8
-   latin-iso8859-9
-   latin-iso8859-14
-   latin-iso8859-15
-   mule-unicode-0100-24ff
-   mule-unicode-2500-33ff
-   mule-unicode-e000-ffff
+The supported Emacs character sets are the following, plus others
+which may be included in the translation table
+`ucs-mule-8859-to-mule-unicode':
+ ascii
+ eight-bit-control
+ eight-bit-graphic
+ latin-iso8859-1
+ latin-iso8859-2
+ latin-iso8859-3
+ latin-iso8859-4
+ cyrillic-iso8859-5
+ greek-iso8859-7
+ hebrew-iso8859-8
+ latin-iso8859-9
+ latin-iso8859-14
+ latin-iso8859-15
+ mule-unicode-0100-24ff
+ mule-unicode-2500-33ff
+ mule-unicode-e000-ffff
 
 Unicode characters out of the ranges U+0000-U+33FF and U+E200-U+FFFF
 are decoded into sequences of eight-bit-control and eight-bit-graphic
-characters to preserve their byte sequences and composed to behave as
-a single character when editing.  Emacs characters out of these ranges
-are encoded into U+FFFD."
+characters to preserve their byte sequences and composed to display as
+a single character.  Emacs characters that can't be encoded to these
+ranges are encoded as U+FFFD."
 
  '(ccl-decode-mule-utf-8 . ccl-encode-mule-utf-8)
  '((safe-charsets
@@ -477,30 +504,30 @@ are encoded into U+FFFD."
    (mime-charset . utf-8)
    (coding-category . coding-category-utf-8)
    (valid-codes (0 . 255))
-   (post-read-conversion . utf-8-post-read-conversion)
-   (pre-write-conversion . utf-8-pre-write-conversion)))
+   (pre-write-conversion . utf-8-pre-write-conversion)
+   (post-read-conversion . utf-8-post-read-conversion)))
 
 (define-coding-system-alias 'utf-8 'mule-utf-8)
 
 ;; I think this needs special private charsets defined for the
 ;; untranslated sequences, if it's going to work well.
 
-;; (defun utf-8-compose-function (pos to pattern &optional string)
-;;   (let* ((prop (get-char-property pos 'composition string))
-;; 	 (l (and prop (- (cadr prop) (car prop)))))
-;;     (cond ((and l (> l (- to pos)))
-;; 	   (delete-region pos to))
-;; 	  ((and (> (char-after pos) 224)
-;; 		(< (char-after pos) 256)
-;; 		(save-restriction
-;; 		  (narrow-to-region pos to)
-;; 		  (utf-8-compose)))
-;; 	   t))))
+;;; (defun utf-8-compose-function (pos to pattern &optional string)
+;;;   (let* ((prop (get-char-property pos 'composition string))
+;;; 	 (l (and prop (- (cadr prop) (car prop)))))
+;;;     (cond ((and l (> l (- to pos)))
+;;; 	   (delete-region pos to))
+;;; 	  ((and (> (char-after pos) 224)
+;;; 		(< (char-after pos) 256)
+;;; 		(save-restriction
+;;; 		  (narrow-to-region pos to)
+;;; 		  (utf-8-compose)))
+;;; 	   t))))
 
-;; (dotimes (i 96)
-;;   (aset composition-function-table
-;; 	(+ 128 i)
-;; 	`((,(string-as-multibyte "[\200-\237\240-\377]")
-;; 	   . utf-8-compose-function))))
+;;; (dotimes (i 96)
+;;;   (aset composition-function-table
+;;; 	(+ 128 i)
+;;; 	`((,(string-as-multibyte "[\200-\237\240-\377]")
+;;; 	   . utf-8-compose-function))))
 
 ;;; utf-8.el ends here
