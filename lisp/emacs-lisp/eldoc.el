@@ -11,9 +11,9 @@
 ;; LCD Archive Entry:
 ;; eldoc|Noah Friedman|friedman@prep.ai.mit.edu|
 ;; show function arglist or variable docstring in echo area|
-;; $Date$|$Revision$|~/misc/eldoc.el.gz|
+;; $Date: 1995/11/12 21:04:08 $|$Revision: 1.1 $|~/misc/eldoc.el.gz|
 
-;; $Id$
+;; $Id: eldoc.el,v 1.1 1995/11/12 21:04:08 friedman Rel friedman $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -115,10 +115,11 @@ It is probably best to manipulate this data structure with the commands
 ;; be printed again if necessary without reconsing.
 (defvar eldoc-last-data '(nil . nil))
 
-;; Put this minor mode on the minor-mode-alist.
-(or (assq 'eldoc-mode minor-mode-alist)
+;; Put this minor mode on the global minor-mode-alist.
+(or (assq 'eldoc-mode (default-value 'minor-mode-alist))
     (setq-default minor-mode-alist
-                  (append minor-mode-alist '((eldoc-mode " ElDoc")))))
+                  (append (default-value 'minor-mode-alist)
+                          '((eldoc-mode " ElDoc")))))
 
 
 ;;;###autoload
@@ -185,6 +186,7 @@ overwrite them unless it is more restrained."
        ;; see what you're doing.
        (not (eq (selected-window) (minibuffer-window)))
        (sit-for eldoc-idle-delay)
+       (symbolp this-command)
        (intern-soft (symbol-name this-command) eldoc-mode-message-commands)
        (let ((current-symbol (eldoc-current-symbol))
              (current-fnsym  (eldoc-fnsym-in-current-sexp)))
@@ -284,17 +286,19 @@ documentation string if possible."
          sym)))
 
 (defun eldoc-function-argstring (fn)
-  (let* ((def (eldoc-symbol-function fn))
+  (let* ((prelim-def (eldoc-symbol-function fn))
+         (def (if (eq (car-safe prelim-def) 'macro)
+                  (cdr prelim-def)
+                prelim-def))
          (arglist (cond ((null def) nil)
-                        ((compiled-function-p def)
+                        ((byte-code-function-p def)
                          (if (fboundp 'compiled-function-arglist)
                              (funcall 'compiled-function-arglist def)
-                           (car (append def nil))))
+                           (aref def 0)))
                         ((eq (car-safe def) 'lambda)
                          (nth 1 def))
                         (t t))))
     (eldoc-function-argstring-format arglist)))
-
 
 (defun eldoc-function-argstring-from-docstring (fn)
   (let ((docstring (documentation fn 'raw))
@@ -339,8 +343,18 @@ documentation string if possible."
                              (match-beginning 1)
                              (match-end 1))))
 
-       ;; Some subrs have examples of usage, but they are indented.
-       ;; Actually, `setq-default' may be the only one.
+       ;; This finds the argstring for `condition-case'.
+       ;; I don't know if there are any others with the same pattern.
+       ((string-match (format "^Usage looks like \\((%s[^\n)]*)\\)\\.$" fn)
+                      docstring)
+        ;; end does not include trailing ")" sequence.
+        (setq end (- (match-end 1) 1))
+        (if (string-match " +" docstring (match-beginning 1))
+            (setq doc (substring docstring (match-end 0) end))
+          (setq doc "")))
+
+       ;; This finds the argstring for `setq-default'.
+       ;; I don't know if there are any others with the same pattern.
        ((string-match (format "^[ \t]+\\((%s[^\n)]*)\\)$" fn) docstring)
         ;; end does not include trailing ")" sequence.
         (setq end (- (match-end 1) 1))
