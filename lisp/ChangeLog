@@ -1,3 +1,7 @@
+2005-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* log-view.el (log-view-message-re): Fix up Subversion regexp.
+
 2005-02-18  David Kastrup  <dak@gnu.org>
 
 	* progmodes/meta-mode.el (meta-mark-active): Fix condition to just
@@ -93,8 +97,8 @@
 
 2005-02-15  Lute Kamstra  <lute@gnu.org>
 
-	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Add
-	;;;###autoload to `outline-regexp'.  Suggested by Stefan Monnier
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
+	Add ;;;###autoload to `outline-regexp'.  Suggested by Stefan Monnier
 	<monnier@iro.umontreal.ca>
 	(lisp-outline-level): Improve efficiency.  Suggested by David
 	Kastrup <dak@gnu.org>.
@@ -169,7 +173,7 @@
 	* simple.el (eval-expression-print-format):
 	Avoid warning about edebug-active.
 
-	* help.el (help-for-help-internal): Renamed from help-for-help.
+	* help.el (help-for-help-internal): Rename from help-for-help.
 	(help-for-help): Define with defalias.
 
 	* font-core.el (font-lock-default-function): Use with-no-warnings.
@@ -202,7 +206,7 @@
 2005-02-09  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-location-list): New variable.
-	(gdb-cdir): Delete
+	(gdb-cdir): Delete.
 	(gdb-info-breakpoints-custom, gdb-goto-breakpoint)
 	(gdb-source-info): Treat case when source file is in another
 	directory properly.
@@ -213,8 +217,7 @@
 	* calc/calc-prog.el (calc-write-parse-table-part)
 	(calc-fix-token-name): Fix a check for language type.
 
-	* calc/calccomp.el (math-compose-expr): Fix a check for language
-	type.
+	* calc/calccomp.el (math-compose-expr): Fix a check for language type.
 
 2005-02-07  Andre Spiegel  <spiegel@gnu.org>
 
