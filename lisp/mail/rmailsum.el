@@ -29,6 +29,14 @@
 
 ;;; Code:
 
+(defvar rmail-summary-font-lock-keywords
+  '(("^....D.*$" . font-lock-string-face)			; Deleted.
+    ("^....-.*$" . font-lock-type-face)				; Unread.
+    ;; Neither of the below will be highlighted if either of the above are:
+    ("^....[^D-] \\(......\\)" 1 font-lock-keyword-face)	; Date.
+    ("{ \\([^}]+\\),}" 1 font-lock-comment-face))		; Labels.
+  "Additional expressions to highlight in Rmail Summary mode.")
+
 ;; Entry points for making a summary buffer.
 
 ;; Regenerate the contents of the summary
@@ -547,6 +555,8 @@ Commands for sorting the summary:
   (setq rmail-summary-redo nil)
   (make-local-variable 'revert-buffer-function)
   (make-local-variable 'post-command-hook)
+  (make-local-variable 'font-lock-keywords)
+  (setq font-lock-keywords rmail-summary-font-lock-keywords)
   (rmail-summary-enable)
   (run-hooks 'rmail-summary-mode-hook))
 
