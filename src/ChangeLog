@@ -1,5 +1,8 @@
 2001-04-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* term.c (toggle_highlight): New function.
+	(turn_on_face): Change handling of reverse video.
+
 	* process.c (wait_reading_process_input): Call
 	record_asynch_buffer_change only if a timer really changed
 	buffers.
