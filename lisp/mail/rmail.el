@@ -943,10 +943,6 @@ It returns t if it got any new messages."
 	  ;; Move to the first new message
 	  ;; unless we have other unseen messages before it.
 	  (rmail-show-message (rmail-first-unseen-message))
-	  ;; Update the displayed time, since that will clear out
-	  ;; the flag that says you have mail.
-	  (if (eq (process-status "display-time") 'run)
-	      (display-time-filter display-time-process ""))
 	  t))
     ;; Don't leave the buffer screwed up if we get a disk-full error.
     (rmail-show-message)))
