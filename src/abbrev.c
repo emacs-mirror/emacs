@@ -314,8 +314,8 @@ Returns t if expansion took place.")
       if (!abbrev_all_caps)
 	if (scan_words (point, -1) > scan_words (wordstart, 1))
 	  {
-	    upcase_initials_region (make_number (wordstart),
-				    make_number (point));
+	    Fupcase_initials_region (make_number (wordstart),
+				     make_number (point));
 	    goto caped;
 	  }
       /* If expansion is one word, or if user says so, upcase it all. */
