@@ -33,6 +33,7 @@ Boston, MA 02111-1307, USA.  */
 #include <unistd.h>
 #endif
 
+#include <stdio.h>
 #include <ctype.h>
 
 #include "lisp.h"
@@ -287,16 +288,16 @@ region_limit (beginningp)
 {
   extern Lisp_Object Vmark_even_if_inactive; /* Defined in callint.c. */
   Lisp_Object m;
-  
+
   if (!NILP (Vtransient_mark_mode)
       && NILP (Vmark_even_if_inactive)
       && NILP (current_buffer->mark_active))
     Fsignal (Qmark_inactive, Qnil);
-  
+
   m = Fmarker_position (current_buffer->mark);
   if (NILP (m))
     error ("There is no region now");
-  
+
   if ((PT < XFASTINT (m)) == beginningp)
     m = make_number (PT);
   return m;
@@ -832,7 +833,7 @@ save_excursion_restore (info)
   /* visible */
   info = XCDR (info);
   visible_p = !NILP (XCAR (info));
-  
+
 #if 0 /* We used to make the current buffer visible in the selected window
 	 if that was true previously.  That avoids some anomalies.
 	 But it creates others, and it wasn't documented, and it is simpler
@@ -2884,7 +2885,7 @@ save_restriction_restore (data)
 			     clip_to_bounds (beg->charpos, pt, end->charpos),
 			     clip_to_bounds (beg->bytepos, BUF_PT_BYTE(buf),
 					     end->bytepos));
-	  
+
 	  buf->clip_changed = 1; /* Remember that the narrowing changed. */
 	}
     }
@@ -3191,7 +3192,7 @@ Use %% to put a single % into the output.")
 	   number of chars to print from a string.  */
 
 	precision = field_width = 0;
-	
+
 	while (index ("-*# 0", *format))
 	  ++format;
 
@@ -3368,7 +3369,7 @@ Use %% to put a single % into the output.")
 		  }
 
 	      start = nchars;
-	      
+
 	      if (p > buf
 		  && multibyte
 		  && !ASCII_BYTE_P (*((unsigned char *) p - 1))
@@ -4076,3 +4077,5 @@ functions if all the text being accessed has this property.");
   defsubr (&Ssave_restriction);
   defsubr (&Stranspose_regions);
 }
+
+/* editfns.c ends here */
