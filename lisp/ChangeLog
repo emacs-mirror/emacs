@@ -1,5 +1,26 @@
 2002-07-17  Dave Love  <fx@gnu.org>
 
+	* international/ucs-tables.el: Optimize tables.  Deal with some
+	non-8859 charsets.
+	(ucs-mule-to-mule-unicode): New.
+	(ucs-unify-8859): Use utf-8-fragment-on-decoding, set up Quail
+	translation.
+	(ucs-fragment-8859): Modified consistent with ucs-unify-8859.
+	(unify-8859-on-encoding-mode): Doc mod.  Fix custom version.
+	(unify-8859-on-decoding-mode): Doc mod.  Change code.  Fix custom
+	version.  Add custom dependencies.
+	(ucs-insert): Check for null from decode-char.
+	(translation-table-for-input, ucs-quail-activate) 
+	(ucs-minibuffer-setup, ccl-encode-unicode-font)
+	(ucs-tables-unload-hook): New.
+
+	* international/mule.el (define-translation-hash-table): New.
+	(decode-char): Use utf-8-translation-table-for-decode.
+	(encode-char): Use ucs-mule-to-mule-unicode.
+
+	* international/characters.el: Fix settings of U+2000-U+2027.
+	Remove $,1uf(B.
+
 	* international/mule-cmds.el (locale-language-names): Fix be, add
 	sr_YU@cyrillic, modify tg.
 	(locale-charset-language-names): Put @euro last.

@@ -1,5 +1,7 @@
 2002-07-17  Dave Love  <fx@gnu.org>
 
+	* intervals.h (text_property_stickiness): Use P_.
+
 	* ccl.c: Remove `emacs' conditionals.
 	(ccl_backtrace_table): Fix size spec.
 	(ccl_driver): Fix type errors.
