@@ -76,29 +76,33 @@
 	      (list 'put (list 'quote name)
 		    ''byte-optimizer ''byte-compile-inline-expand))))
 
-(defun make-obsolete (fn new)
+(defun make-obsolete (fn new &optional when)
   "Make the byte-compiler warn that FUNCTION is obsolete.
 The warning will say that NEW should be used instead.
-If NEW is a string, that is the `use instead' message."
+If NEW is a string, that is the `use instead' message.
+If provided, WHEN should be a string indicating when the function
+was first made obsolete, for example a date or a release number."
   (interactive "aMake function obsolete: \nxObsoletion replacement: ")
   (let ((handler (get fn 'byte-compile)))
     (if (eq 'byte-compile-obsolete handler)
-	(setcar (get fn 'byte-obsolete-info) new)
-      (put fn 'byte-obsolete-info (cons new handler))
-      (put fn 'byte-compile 'byte-compile-obsolete)))
+	(setq handler (nth 1 (get fn 'byte-obsolete-info)))
+      (put fn 'byte-compile 'byte-compile-obsolete))
+    (put fn 'byte-obsolete-info (list new handler when)))
   fn)
 
-(defun make-obsolete-variable (var new)
+(defun make-obsolete-variable (var new &optional when)
   "Make the byte-compiler warn that VARIABLE is obsolete,
 and NEW should be used instead.  If NEW is a string, then that is the
-`use instead' message."
+`use instead' message.
+If provided, WHEN should be a string indicating when the variable
+was first made obsolete, for example a date or a release number."
   (interactive
    (list
     (let ((str (completing-read "Make variable obsolete: " obarray 'boundp t)))
       (if (equal str "") (error ""))
       (intern str))
     (car (read-from-string (read-string "Obsoletion replacement: ")))))
-  (put var 'byte-obsolete-variable new)
+  (put var 'byte-obsolete-variable (cons new when))
   var)
 
 (put 'dont-compile 'lisp-indent-hook 0)

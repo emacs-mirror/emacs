@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.69 $")
+(defconst byte-compile-version "$Revision: 2.70 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -806,8 +806,8 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 		    (cons 'format
 		      (cons format-string
 			(mapcar
-			 '(lambda (x)
-			    (if (symbolp x) (list 'prin1-to-string x) x))
+			 (lambda (x)
+			   (if (symbolp x) (list 'prin1-to-string x) x))
 			 args)))))))
 
 (defconst byte-compile-last-warned-form nil)
@@ -895,13 +895,16 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 
 ;;; Used by make-obsolete.
 (defun byte-compile-obsolete (form)
-  (let ((new (get (car form) 'byte-obsolete-info)))
+  (let* ((new (get (car form) 'byte-obsolete-info))
+	 (handler (nth 1 new))
+	 (when (nth 2 new)))
     (if (memq 'obsolete byte-compile-warnings)
-	(byte-compile-warn "%s is an obsolete function; %s" (car form)
+	(byte-compile-warn "%s is an obsolete function%s; %s" (car form)
+			   (if when (concat " since " when) "")
 			   (if (stringp (car new))
 			       (car new)
-			       (format "use %s instead." (car new)))))
-    (funcall (or (cdr new) 'byte-compile-normal-call) form)))
+			     (format "use %s instead." (car new)))))
+    (funcall (or handler 'byte-compile-normal-call) form)))
 
 ;; Compiler options
 
@@ -2383,11 +2386,13 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 			 (prin1-to-string var))
     (if (and (get var 'byte-obsolete-variable)
 	     (memq 'obsolete byte-compile-warnings))
-	(let ((ob (get var 'byte-obsolete-variable)))
-	  (byte-compile-warn "%s is an obsolete variable; %s" var
-			     (if (stringp ob)
-				 ob
-			       (format "use %s instead." ob)))))
+	(let* ((ob (get var 'byte-obsolete-variable))
+	       (when (cdr ob)))
+	  (byte-compile-warn "%s is an obsolete variable%s; %s" var
+			     (if when (concat " since " when) "")
+			     (if (stringp (car ob))
+				 (car ob)
+			       (format "use %s instead." (car ob))))))
     (if (memq 'free-vars byte-compile-warnings)
 	(if (eq base-op 'byte-varbind)
 	    (setq byte-compile-bound-variables
@@ -3551,37 +3556,42 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
   (kill-emacs 0))
 
 
-(make-obsolete 'dot 'point)
-(make-obsolete 'dot-max 'point-max)
-(make-obsolete 'dot-min 'point-min)
-(make-obsolete 'dot-marker 'point-marker)
+(make-obsolete 'dot 'point		"before 19.15")
+(make-obsolete 'dot-max 'point-max	"before 19.15")
+(make-obsolete 'dot-min 'point-min	"before 19.15")
+(make-obsolete 'dot-marker 'point-marker "before 19.15")
 
-(make-obsolete 'buffer-flush-undo 'buffer-disable-undo)
-(make-obsolete 'baud-rate "use the baud-rate variable instead")
-(make-obsolete 'compiled-function-p 'byte-code-function-p)
-(make-obsolete 'define-function 'defalias)
-(make-obsolete-variable 'auto-fill-hook 'auto-fill-function)
-(make-obsolete-variable 'blink-paren-hook 'blink-paren-function)
-(make-obsolete-variable 'lisp-indent-hook 'lisp-indent-function)
+(make-obsolete 'buffer-flush-undo 'buffer-disable-undo "before 19.15")
+(make-obsolete 'baud-rate "use the baud-rate variable instead" "before 19.15")
+(make-obsolete 'compiled-function-p 'byte-code-function-p "before 19.15")
+(make-obsolete 'define-function 'defalias "20.1")
+(make-obsolete-variable 'auto-fill-hook 'auto-fill-function "before 19.15")
+(make-obsolete-variable 'blink-paren-hook 'blink-paren-function "before 19.15")
+(make-obsolete-variable 'lisp-indent-hook 'lisp-indent-function "before 19.15")
 (make-obsolete-variable 'inhibit-local-variables
-		"use enable-local-variables (with the reversed sense).")
+		"use enable-local-variables (with the reversed sense)."
+		"before 19.15")
 (make-obsolete-variable 'unread-command-char
-  "use unread-command-events instead.  That variable is a list of events to reread, so it now uses nil to mean `no event', instead of -1.")
+  "use unread-command-events instead.  That variable is a list of events to reread, so it now uses nil to mean `no event', instead of -1."
+  "before 19.15")
 (make-obsolete-variable 'unread-command-event
-  "use unread-command-events; which is a list of events rather than a single event.")
-(make-obsolete-variable 'suspend-hooks 'suspend-hook)
-(make-obsolete-variable 'comment-indent-hook 'comment-indent-function)
-(make-obsolete-variable 'meta-flag "Use the set-input-mode function instead.")
-(make-obsolete-variable 'executing-macro 'executing-kbd-macro)
+  "use unread-command-events; which is a list of events rather than a single event."
+  "before 19.15")
+(make-obsolete-variable 'suspend-hooks 'suspend-hook "before 19.15")
+(make-obsolete-variable 'comment-indent-hook 'comment-indent-function "before 19.15")
+(make-obsolete-variable 'meta-flag "Use the set-input-mode function instead." "before 19.34")
+(make-obsolete-variable 'executing-macro 'executing-kbd-macro "before 19.34")
 (make-obsolete-variable 'before-change-function
-  "use before-change-functions; which is a list of functions rather than a single function.")
+  "use before-change-functions; which is a list of functions rather than a single function."
+  "before 19.34")
 (make-obsolete-variable 'after-change-function
-  "use after-change-functions; which is a list of functions rather than a single function.")
-(make-obsolete-variable 'font-lock-doc-string-face 'font-lock-string-face)
+  "use after-change-functions; which is a list of functions rather than a single function."
+  "before 19.34")
+(make-obsolete-variable 'font-lock-doc-string-face 'font-lock-string-face "before 19.34")
 (make-obsolete-variable 'post-command-idle-hook
-  "use timers instead, with `run-with-idle-timer'.")
+  "use timers instead, with `run-with-idle-timer'." "before 19.34")
 (make-obsolete-variable 'post-command-idle-delay
-  "use timers instead, with `run-with-idle-timer'.")
+  "use timers instead, with `run-with-idle-timer'." "before 19.34")
 
 (provide 'byte-compile)
 (provide 'bytecomp)
