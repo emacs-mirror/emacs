@@ -2,6 +2,9 @@
 
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 
+;; Author: ATAE@spva.physics.imperial.ac.uk (Ata Etemadi)
+;; Keywords: data
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
