@@ -37,6 +37,8 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "buffer.h"
 
+#include <time.h>
+#include <utmp.h>
 #include <errno.h>
 #ifndef errno
 extern int errno;
@@ -80,6 +82,28 @@ extern int errno;
    --karl@cs.umb.edu/karl@hq.ileaf.com.  */
 
 
+/* Return the time of the last system boot.  */
+
+static time_t boot_time;
+
+static time_t
+get_boot_time ()
+{
+  struct utmp ut, *utp;
+
+  if (boot_time)
+    return boot_time;
+
+  utmpname ("/var/log/wtmp");
+  ut.ut_type = BOOT_TIME;
+  utp = getutid (&ut);
+  endutent ();
+
+  if (!utp)
+    return boot_time = 1;
+  return boot_time = utp->ut_time;
+}
+
 /* Here is the structure that stores information about a lock.  */
 
 typedef struct
@@ -87,6 +111,7 @@ typedef struct
   char *user;
   char *host;
   unsigned long pid;
+  time_t boot_time;
 } lock_info_type;
 
 /* When we read the info back, we might need this much more,
@@ -146,10 +171,10 @@ lock_file_1 (lfname, force)
   else
     host_name = "";
   lock_info_str = (char *)alloca (strlen (user_name) + strlen (host_name)
-			  + LOCK_PID_MAX + 5);
+				  + LOCK_PID_MAX + 5);
 
-  sprintf (lock_info_str, "%s@%s.%lu", user_name, host_name,
-           (unsigned long) getpid ());
+  sprintf (lock_info_str, "%s@%s.%lu:%lu", user_name, host_name,
+           (unsigned long) getpid (), (unsigned long) get_boot_time ());
 
   err = symlink (lock_info_str, lfname);
   if (errno == EEXIST && force)
@@ -178,7 +203,7 @@ current_lock_owner (owner, lfname)
 #endif
   int o, p, len, ret;
   int local_owner = 0;
-  char *at, *dot;
+  char *at, *dot, *colon;
   char *lfinfo = 0;
   int bufsize = 50;
   /* Read arbitrarily-long contents of symlink.  Similar code in
@@ -209,21 +234,30 @@ current_lock_owner (owner, lfname)
       local_owner = 1;
     }
   
-  /* Parse USER@HOST.PID.  If can't parse, return -1.  */
+  /* Parse USER@HOST.PID:BOOT_TIME.  If can't parse, return -1.  */
   /* The USER is everything before the first @.  */
   at = index (lfinfo, '@');
   dot = rindex (lfinfo, '.');
-  if (!at || !dot) {
-    xfree (lfinfo);
-    return -1;
-  }
+  if (!at || !dot)
+    {
+      xfree (lfinfo);
+      return -1;
+    }
   len = at - lfinfo;
   owner->user = (char *) xmalloc (len + 1);
   strncpy (owner->user, lfinfo, len);
   owner->user[len] = 0;
   
-  /* The PID is everything after the last `.'.  */
+  /* The PID is everything from the last `.' to the `:'.  */
   owner->pid = atoi (dot + 1);
+  colon = dot;
+  while (*colon && *colon != ':')
+    colon++;
+  /* After the `:', if there is one, comes the boot time.  */
+  if (*colon == ':')
+    owner->boot_time = atoi (colon + 1);
+  else
+    owner->boot_time = 0;
 
   /* The host is everything in between.  */
   len = dot - at - 1;
@@ -241,7 +275,9 @@ current_lock_owner (owner, lfname)
       if (owner->pid == getpid ())
         ret = 2; /* We own it.  */
       else if (owner->pid > 0
-               && (kill (owner->pid, 0) >= 0 || errno == EPERM))
+               && (kill (owner->pid, 0) >= 0 || errno == EPERM)
+	       && (owner->boot_time == 0
+		   || owner->boot_time == get_boot_time ()))
         ret = 1; /* An existing process on this machine owns it.  */
       /* The owner process is dead or has a strange pid (<=0), so try to
          zap the lockfile.  */
@@ -465,7 +501,6 @@ t if it is locked by you, else a string of the name of the locker.")
 
   return ret;
 }
-
 
 /* Initialization functions.  */
 
