@@ -1906,6 +1906,14 @@ not `make-local-variable'.")
   return run_hook_with_args (nargs, args, until_failure);
 }
 
+/* ARGS[0] should be a hook symbol.
+   Call each of the functions in the hook value, passing each of them
+   as arguments all the rest of ARGS (all NARGS - 1 elements).
+   COND specifies a condition to test after each call
+   to decide whether to stop.
+   The caller (or its caller, etc) must gcpro all of ARGS,
+   except that it isn't necessary to gcpro ARGS[0].  */
+
 Lisp_Object
 run_hook_with_args (nargs, args, cond)
      int nargs;
@@ -1913,10 +1921,13 @@ run_hook_with_args (nargs, args, cond)
      enum run_hooks_condition cond;
 {
   Lisp_Object sym, val, ret;
+  struct gcpro gcpro1, gcpro2;
 
   sym = args[0];
   val = find_symbol_value (sym);
   ret = (cond == until_failure ? Qt : Qnil);
+
+  GCPRO2 (sym, val);
 
   if (EQ (val, Qunbound) || NILP (val))
     return ret;
@@ -1957,6 +1968,52 @@ run_hook_with_args (nargs, args, cond)
 	}
       return ret;
     }
+}
+
+/* Run a hook symbol ARGS[0], but use FUNLIST instead of the actual
+   present value of that symbol.
+   Call each element of FUNLIST,
+   passing each of them the rest of ARGS.
+   The caller (or its caller, etc) must gcpro all of ARGS,
+   except that it isn't necessary to gcpro ARGS[0].  */
+
+Lisp_Object
+run_hook_list_with_args (funlist, nargs, args)
+     Lisp_Object funlist;
+     int nargs;
+     Lisp_Object *args;
+{
+  Lisp_Object sym;
+  Lisp_Object val;
+  struct gcpro gcpro1, gcpro2;
+
+  sym = args[0];
+  GCPRO2 (sym, val);
+
+  for (val = funlist; CONSP (val); val = XCONS (val)->cdr)
+    {
+      if (EQ (XCONS (val)->car, Qt))
+	{
+	  /* t indicates this hook has a local binding;
+	     it means to run the global binding too.  */
+	  Lisp_Object globals;
+
+	  for (globals = Fdefault_value (sym);
+	       CONSP (globals);
+	       globals = XCONS (globals)->cdr)
+	    {
+	      args[0] = XCONS (globals)->car;
+	      Ffuncall (nargs, args);
+	    }
+	}
+      else
+	{
+	  args[0] = XCONS (val)->car;
+	  Ffuncall (nargs, args);
+	}
+    }
+  UNGCPRO;
+  return Qnil;
 }
 
 /* Apply fn to arg */
