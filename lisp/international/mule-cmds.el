@@ -932,22 +932,21 @@ just inactivated.")
   "This flag controls a timing when an input method returns.
 Usually, the input method does not return while there's a possibility
 that it may find a different translation if a user types another key.
-But, it this flag is non-nil, the input method returns
-as soon as the current key sequence reach any of valid translation.")
+But, it this flag is non-nil, the input method returns as soon as
+the current key sequence gets long enough to have some valid translation.")
 
 (defvar input-method-use-echo-area nil
   "This flag controls how an input method shows an intermediate key sequence.
-Usually, the input method insert the intermediate key sequence
-or a candidate of translations corresponding to the sequence
-at the point of the current buffer.
-But, if this flag is non-nil, they are shown in echo area.")
+Usually, the input method inserts the intermediate key sequence,
+or candidate translations corresponding to the sequence,
+at point in the current buffer.
+But, if this flag is non-nil, it displays them in echo area instead.")
 
 (defvar input-method-exit-on-invalid-key nil
   "This flag controls the behaviour of an input method on invalid key input.
 Usually, when a user types a key which doesn't start any character
 handled by the input method, the key is handled by turning off the
-input method temporalily.  After the key is handled, the input method is 
-back on.
+input method temporarily.  After that key, the input method is renabled.
 But, if this flag is non-nil, the input method is never back on.")
 
 
