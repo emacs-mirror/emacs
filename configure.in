@@ -42,16 +42,17 @@ gamedir=yes
 
 AC_ARG_WITH(game-dir,
 [  --with-game-dir         use a shared game directory if possible],
-   [if test "$withval" = yes; then
-      gamedir="${localstatedir}/games/emacs"
-    else
-      if test "$withval" = no; then
-        gamedir=no
-      else
-        gamedir="$withval"
-      fi
-    fi
+   [
+   gamedir="$withval"
 ])
+if test "$gamedir" = yes; then
+  gamedir="${localstatedir}/games/emacs"
+fi
+eval tgamedir=\"$gamedir\"
+if test "$gamedir" != no; then
+  AC_DEFINE_UNQUOTED(HAVE_SHARED_GAME_DIR, "$tgamedir",
+	  	       [Define to the name of the shared game directory.])
+fi
 
 gameuser=games
 AC_ARG_WITH(game-user,
@@ -1495,26 +1496,6 @@ AC_PROG_MAKE_SET
 dnl checks for operating system services
 AC_SYS_LONG_FILE_NAMES
 
-if test "$gamedir" = no; then :
-else
-  AC_MSG_CHECKING([for access to game group "$gameuser"])
-  rm -f conf$$chown.file
-  touch conf$$chown.file
-  dnl If we can't chown a file to group games, then the users
-  dnl can't share scores.
-  if chown "$gameuser" conf$$chown.file 1>/dev/null 2>&1; then
-    AC_MSG_RESULT([yes])
-    if test "$gamedir" = "yes"; then
-      gamedir="${localstatedir}/games/emacs"
-    fi
-    eval tgamedir=\"$gamedir\"
-    AC_DEFINE_UNQUOTED(HAVE_SHARED_GAME_DIR, "$tgamedir",
-    		       [Define to the name of the shared game directory.])
-  else
-    AC_MSG_RESULT([no])
-    gamedir=no
-  fi
-fi
 #### Choose a window system.
 
 AC_PATH_X
