@@ -370,8 +370,8 @@ positions (integers or markers) specifying the region."
   (save-excursion
     (let ((str (buffer-substring start end)))
       (goto-char start)
-      (delete-region start end)
-      (insert (compose-string str)))))
+      (insert (compose-string str))
+      (delete-char (- end start)))))
 
 ;;;###autoload
 (defun decompose-region (start end)
@@ -384,13 +384,14 @@ positions (integers or markers) specifying the region."
     (save-restriction
       (narrow-to-region start end)
       (goto-char (point-min))
-      (while (not (eobp))
-	(let ((ch (following-char)))
-	  (if (>= ch min-composite-char)
-	      (progn
-		(delete-char 1)
-		(insert (decompose-composite-char ch)))
-	    (forward-char 1)))))))
+      (let ((cmpchar-head (char-to-string leading-code-composition)))
+	(while (search-forward cmpchar-head nil t)
+	  (let ((ch (preceding-char)))
+	    (if (>= ch min-composite-char)
+		(progn
+		  (delete-char -1)
+		  (insert (decompose-composite-char ch)))
+	      (forward-char 1))))))))
 
 ;;;###autoload
 (defun decompose-string (string)
