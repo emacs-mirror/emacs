@@ -1,3 +1,8 @@
+2002-09-28  Paul Reilly  <pmr@pajato.com>
+
+	* files.el (auto-mode-alist): Add support for Java Enterprise
+	ARchive (ear/EAR) and Web ARchive (war/WAR) files.
+
 2002-09-28  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* progmodes/m4-mode.el (m4-font-lock-keywords)
