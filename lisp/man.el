@@ -360,7 +360,9 @@ the current column instead of character position."
     (cond
      ((null sections) manword)
      ((consp sections) 
-      (mapconcat (lambda (n) (concat n " " manword)) sections " "))
+      (mapconcat (lambda (n) (concat Man-specified-section-option
+				     n " " manword))
+		 sections " "))
      (t
       (concat sections " " manword)))))
 
@@ -388,7 +390,8 @@ default section number is selected from `Man-auto-section-alist'."
       (if (looking-at "[ \t]*([ \t]*[0-9][a-zA-Z]?[ \t]*)")
 	  (progn (skip-chars-forward "^0-9")
 		 (setq default-title
-		       (concat (buffer-substring
+		       (concat Man-specified-section-option
+			       (buffer-substring
 				(point)
 				(progn
 				  (skip-chars-forward "0-9a-zA-Z")
