@@ -882,9 +882,7 @@ but before calling `pc-selection-mode'):
   (if pc-selection-mode
       (if (null pc-select-key-bindings-alist)
 	  (progn
-	    (setq pc-select-map (copy-keymap (current-global-map))
-		  pc-select-saved-global-map (copy-keymap (current-global-map)))
-	      
+	    (setq pc-select-saved-global-map (copy-keymap (current-global-map)))
 	    (setq pc-select-key-bindings-alist
 		  (append pc-select-default-key-bindings
 			  (if pc-select-selection-keys-only
@@ -899,14 +897,14 @@ but before calling `pc-selection-mode'):
 			      nil
 			    pc-select-tty-key-bindings)))
 
-	    (pc-select-define-keys pc-select-key-bindings-alist pc-select-map)
-	    (use-global-map pc-select-map)
+	    (pc-select-define-keys pc-select-key-bindings-alist
+				   (current-global-map))
 
 	    (unless  (or pc-select-selection-keys-only
 			 (eq window-system 'x)
 			 (memq system-name '(ms-dos windows-nt)))
 	      ;; it is not clear that we need the following line
-       ;; I hope it doesn't do too much harm to leave it in, though...
+	      ;; I hope it doesn't do too much harm to leave it in, though...
 	      (setq pc-select-old-M-delete-binding
 		    (lookup-key function-key-map [M-delete]))
 	      (define-key function-key-map  [M-delete] [?\M-d]))
@@ -920,7 +918,7 @@ but before calling `pc-selection-mode'):
 	    ;; the original author also had this above:
 	    ;; (setq-default normal-erase-is-backspace t)
 	    ;; However, the documentation for the variable says that
-	  ;; "setting it with setq has no effect", so I'm removing it.
+	    ;; "setting it with setq has no effect", so I'm removing it.
       
 	    (pc-select-save-and-set-var highlight-nonselected-windows nil)
 	    (pc-select-save-and-set-var transient-mark-mode t)
@@ -931,14 +929,13 @@ but before calling `pc-selection-mode'):
 	;; do not clobber the values of the variables that were
 	;; saved from before pc-selection mode was activated --
 	;; just make sure the values are the way we like them.
-	(setq pc-select-map (copy-keymap (current-global-map)))
-	(pc-select-define-keys pc-select-key-bindings-alist pc-select-map)
-	(use-global-map pc-select-map)
+	(pc-select-define-keys pc-select-key-bindings-alist
+			       (current-global-map))
 	(unless  (or pc-select-selection-keys-only
 		     (eq window-system 'x)
 		     (memq system-name '(ms-dos windows-nt)))
 	  ;; it is not clear that we need the following line
-       ;; I hope it doesn't do too much harm to leave it in, though...
+	  ;; I hope it doesn't do too much harm to leave it in, though...
 	  (define-key function-key-map  [M-delete] [?\M-d]))
 	(when (and (not pc-select-selection-keys-only)
 		   (or (eq window-system 'x)
@@ -956,10 +953,9 @@ but before calling `pc-selection-mode'):
 		     (memq system-name '(ms-dos windows-nt))))
 	(pc-select-restore-mode normal-erase-is-backspace-mode))
 
-      (setq pc-select-map (copy-keymap (current-global-map)))
       (pc-select-restore-keys
-       pc-select-key-bindings-alist pc-select-map pc-select-saved-global-map)
-      (use-global-map pc-select-map)
+       pc-select-key-bindings-alist (current-global-map)
+       pc-select-saved-global-map)
 
       (pc-select-restore-var highlight-nonselected-windows)
       (pc-select-restore-var transient-mark-mode)
