@@ -1,3 +1,7 @@
+2002-09-19  Kenichi Handa  <handa@etl.go.jp>
+
+	* regex.c (re_search_2): Fix previous change.
+
 2002-09-18  Kenichi Handa  <handa@etl.go.jp>
 
 	* syntax.c (skip_syntaxes): Fix previous change.
