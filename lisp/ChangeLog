@@ -1,3 +1,9 @@
+2005-03-24  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed.el (calc-embedded-mode-change):  Save all
+	relevant mode settings in calc-embedded-original-modes when modes
+	are permanently changed.
+
 2005-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* autoinsert.el: find-file-hooks -> find-file-hook.

@@ -1,3 +1,9 @@
+2005-03-24  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (General Mode Commands)
+	(Mode Settings in Embedded Mode): Added some explanation of
+	recording mode settings.
+
 2005-03-24  Richard M. Stallman  <rms@gnu.org>
 
 	* mule.texi (Single-Byte Character Support): Delete mention
