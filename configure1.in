@@ -292,13 +292,13 @@ case "${srcdir}" in
   "" )
     confdir=`echo $0 | sed 's|//|/|' | sed 's|/[^/]*$||'`
     if [ -f $confdir/src/lisp.h -a -f $confdir/lisp/version.el ]; then
-      srcdir=`(cd $confdir ; pwd)`
+      srcdir="${confdir}"
     else
       if [ -f "./src/lisp.h" -a -f "./lisp/version.el" ]; then
-        srcdir=`pwd`
+        srcdir=`.`
       else
         if [ -f "../src/lisp.h" -a -f "../lisp/version.el" ]; then
-	  srcdir=`(cd .. ; pwd)`
+	  srcdir=`..`
         else
 	  (echo "\
 ${progname}: Neither the current directory nor its parent seem to
@@ -315,7 +315,6 @@ sources may be found."
 
   ## Otherwise, check if the directory they specified is okay.
   * )
-    srcdir=`(cd ${srcdir}; pwd)`
     if [ ! -d "${srcdir}" -o ! -f "${srcdir}/src/lisp.h" -o ! -f "${srcdir}/lisp/version.el" ]; then
       (echo "\
 ${progname}: The directory specified with the \`--srcdir' option,
@@ -327,8 +326,16 @@ are."
       exit 1
     fi
   ;;
-
 esac
+
+#### Make srcdir absolute, if it isn't already.  It's important to
+#### avoid running the path through pwd unnecessary, since pwd can
+#### give you automounter prefixes, which can go away.
+case "${srcdir}" in
+  /* ) ;;
+  *  ) srcdir="`(cd ${srcdir}; pwd)`" ;;
+esac
+
 
 ### Make the necessary directories, if they don't exist.
 if [ ! -d ./src ]; then
