@@ -333,9 +333,9 @@ and if COLUMN is in the middle of a tab character, change it to spaces.")
       else if (dp != 0 && XTYPE (DISP_CHAR_VECTOR (dp, c)) == Lisp_Vector)
 	col += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
       else if (ctl_arrow && (c < 040 || c == 0177))
-        col++;
+        col += 2;
       else if (c < 040 || c >= 0177)
-        col += 3;
+        col += 4;
       else
 	col++;
     }
