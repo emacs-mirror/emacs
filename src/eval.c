@@ -746,7 +746,8 @@ until TEST returns nil.")
 
   test = Fcar (args);
   body = Fcdr (args);
-  while (tem = Feval (test), !NILP (tem))
+  while (tem = Feval (test),
+	 (!EQ (Vmocklisp_arguments, Qt) ? XINT (tem) : !NILP (tem)))
     {
       QUIT;
       Fprogn (body);
