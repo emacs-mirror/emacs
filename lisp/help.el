@@ -486,6 +486,7 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
   (let ((func (indirect-function definition))
         (defs nil)
         (standard-output (if insert (current-buffer) t)))
+    ;; In DEFS, find all symbols that are aliases for DEFINITION.
     (mapatoms (lambda (symbol)
 		(and (fboundp symbol)
 		     (not (eq symbol definition))
@@ -493,27 +494,37 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
 				  (indirect-function symbol)
 				(error symbol)))
 		     (push symbol defs))))
-    (princ (mapconcat
-            #'(lambda (symbol)
-                (let* ((remapped (command-remapping symbol))
-		       (keys (where-is-internal
-			      symbol overriding-local-map nil nil remapped))
-                       (keys (mapconcat 'key-description keys ", ")))
-                  (if insert
-                      (if (> (length keys) 0)
-                          (if remapped
-                              (format "%s (%s) (remapped from %s)"
-                                      keys remapped symbol)
-                            (format "%s (%s)" keys symbol))
-                        (format "M-x %s RET" symbol))
-                    (if (> (length keys) 0)
-                        (if remapped
-                            (format "%s is remapped to %s which is on %s"
-                                    definition symbol keys)
-                          (format "%s is on %s" symbol keys))
-                      (format "%s is not on any key" symbol)))))
-            (cons definition defs)
-            ";\nand ")))
+    ;; Look at all the symbols--first DEFINITION,
+    ;; then its aliases.
+    (dolist (symbol (cons definition defs))
+      (let* ((remapped (command-remapping symbol))
+	     (keys (where-is-internal
+		    symbol overriding-local-map nil nil remapped))
+	     (keys (mapconcat 'key-description keys ", "))
+	     string)
+	(setq string
+	      (if insert
+		  (if (> (length keys) 0)
+		      (if remapped
+			  (format "%s (%s) (remapped from %s)"
+				  keys remapped symbol)
+			(format "%s (%s)" keys symbol))
+		    (format "M-x %s RET" symbol))
+		(if (> (length keys) 0)
+		    (if remapped
+			(format "%s is remapped to %s which is on %s"
+				definition symbol keys)
+		      (format "%s is on %s" symbol keys))
+		  ;; If this is the command the user asked about,
+		  ;; and it is not on any key, say so.
+		  ;; For other symbols, its aliases, say nothing
+		  ;; about them unless they are on keys.
+		  (if (eq symbol definition)
+		      (format "%s is not on any key" symbol)))))
+	(when string
+	  (unless (eq symbol definition)
+	    (princ ";\n its alias "))
+	  (princ string)))))
   nil)
 
 (defun string-key-binding (key)
