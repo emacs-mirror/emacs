@@ -323,7 +323,7 @@ preserving the comment indentation or line-starting decorations."
 	      (narrow-to-region (point)
 				(save-excursion
 				  (forward-line 1)
-				  (while (looking-at "[ \t]*//"))
+				  (while (looking-at "[ \t]*//")
 				    (forward-line 1))
 				  (point)))
 	      (insert fill-prefix)
