@@ -848,7 +848,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       else
 	val = intern ("undecided-dos");
     }
-  else if (SYMBOLP (val))
+  else if (SYMBOLP (val) && NILP (Vcoding_system_for_write))
     {
       Lisp_Object eolval;
       eolval = Fget (val, Qeol_type);
