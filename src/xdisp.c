@@ -11732,12 +11732,11 @@ dump_glyph_row (matrix, vpos, glyphs)
 
       for (area = LEFT_MARGIN_AREA; area < LAST_AREA; ++area)
 	{
-	  struct glyph *glyph, *glyph_end;
-	  glyph = row->glyphs[area];
-	  glyph_end = glyph + row->used[area];
+	  struct glyph *glyph = row->glyphs[area];
+	  struct glyph *glyph_end = glyph + row->used[area];
       
 	  /* Glyph for a line end in text.  */
-	  if (glyph == glyph_end && glyph->charpos > 0)
+	  if (area == TEXT_AREA && glyph == glyph_end && glyph->charpos > 0)
 	    ++glyph_end;
       
 	  if (glyph < glyph_end)
