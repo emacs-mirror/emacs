@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.86) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.87) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.type
@@ -247,8 +247,7 @@ typedef Addr (*FormatClassMethod)(Addr object);
 /* MPS C Interface.  (See impl.h.mps.root-methods.) */
 
 typedef Res (*RootScanMethod)(ScanState ss, void *p, size_t s);
-typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p, 
-                                 size_t s);
+typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p, size_t s);
 
 
 /* CONSTANTS */
@@ -261,15 +260,15 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
 #define AccessSetEMPTY  ((AccessSet)0) /* design.mps.type.access-set */
 #define AccessREAD      ((AccessSet)(1<<0))
 #define AccessWRITE     ((AccessSet)(1<<1))
-#define AccessMAX       ((Size)2)
+#define AccessSetWIDTH  (2)
 #define RefSetEMPTY     BS_EMPTY(RefSet)
 #define RefSetUNIV      BS_UNIV(RefSet)
 #define ZoneSetEMPTY    BS_EMPTY(ZoneSet)
 #define ZoneSetUNIV     BS_UNIV(ZoneSet)
 #define TraceSetEMPTY   BS_EMPTY(TraceSet)
-#define TraceSetUNIV    ((TraceSet)((1u<<TRACE_MAX)-1))
+#define TraceSetUNIV    ((TraceSet)((1u << TraceLIMIT) - 1))
 #define RankSetEMPTY    BS_EMPTY(RankSet)
-#define RankSetUNIV     ((RankSet)((1u<<RankMAX)-1))
+#define RankSetUNIV     ((RankSet)((1u << RankLIMIT) - 1))
 #define AttrFMT         ((Attr)(1<<0))  /* design.mps.type.attr */
 #define AttrSCAN        ((Attr)(1<<1))
 #define AttrPM_NO_READ  ((Attr)(1<<2))
@@ -320,8 +319,7 @@ enum {
 enum {
   BufferFrameVALID = 1,
   BufferFramePOP_PENDING,
-  BufferFrameDISABLED,
-  BufferFrameMAX
+  BufferFrameDISABLED
 };
 
 
@@ -334,7 +332,7 @@ enum {
   RankEXACT = 1,
   RankFINAL = 2,
   RankWEAK = 3,
-  RankMAX
+  RankLIMIT
 };
 
 
@@ -397,9 +395,9 @@ enum {
 /* .message.types: Keep in sync with impl.h.mps.message.types */
 
 enum {
-  MessageTypeFinalization,
+  MessageTypeFINALIZATION,
   MessageTypeGC,
-  MessageTypeMAX
+  MessageTypeLIMIT
 };
 
 
