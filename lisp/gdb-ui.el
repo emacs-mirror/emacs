@@ -130,6 +130,7 @@ The following interactive lisp functions help control operation :
   (setq gdb-display-in-progress nil)
   (setq gdb-dive nil)
   (setq gud-last-last-frame nil)
+  (setq gdb-running nil)
 
   (run-hooks 'gdb-mode-hook)
   (setq gdb-proc (get-buffer-process (current-buffer)))
@@ -679,7 +680,7 @@ This filter may simply queue output for a later time."
 (defconst gdb-source-spec-regexp
   "\\(.*\\):\\([0-9]*\\):[0-9]*:[a-z]*:\\(0x[a-f0-9]*\\)")
 
-;; Do not use this except as an annotation handler."
+;; Do not use this except as an annotation handler.
 (defun gdb-source (args)
   (string-match gdb-source-spec-regexp args)
   ;; Extract the frame position from the marker.
@@ -695,9 +696,9 @@ This filter may simply queue output for a later time."
 ;update with new frame for machine code if necessary
   (gdb-invalidate-assembler))
 
-;; An annotation handler for `prompt'.
-;; This sends the next command (if any) to gdb.
 (defun gdb-prompt (ignored)
+  "An annotation handler for `prompt'. 
+This sends the next command (if any) to gdb."
   (let ((sink (gdb-instance-output-sink)))
     (cond
      ((eq sink 'user) t)
@@ -716,8 +717,8 @@ This filter may simply queue output for a later time."
 	    (set-gdb-instance-prompting t)
 	    (gud-display-frame)))))))
 
-;; An annotation handler for non-top-level prompts.
 (defun gdb-subprompt (ignored)
+  "An annotation handler for non-top-level prompts."
   (let ((highest (gdb-instance-dequeue-input)))
     (if highest
 	(gdb-send-item highest)
@@ -734,10 +735,9 @@ This filter may simply queue output for a later time."
       (set-gdb-instance-output-sink 'pre-emacs)
       (process-send-string gdb-proc (car item)))))
 
-;; An annotation handler for `pre-prompt'.
-;; This terminates the collection of output from a previous
-;; command if that happens to be in effect.
 (defun gdb-pre-prompt (ignored)
+  "An annotation handler for `pre-prompt'. This terminates the collection of
+output from a previous command if that happens to be in effect."
   (let ((sink (gdb-instance-output-sink)))
     (cond
      ((eq sink 'user) t)
@@ -753,28 +753,30 @@ This filter may simply queue output for a later time."
       (set-gdb-instance-output-sink 'user)
       (error "Output sink phase error 1")))))
 
-;; An annotation handler for `starting'.  This says that I/O for the subprocess
-;; is now the program being debugged, not GDB.
 (defun gdb-starting (ignored)
+  "An annotation handler for `starting'.  This says that I/O for the
+subprocess is now the program being debugged, not GDB."
   (let ((sink (gdb-instance-output-sink)))
     (cond
      ((eq sink 'user)
-      (set-gdb-instance-output-sink 'inferior))
+      (progn
+	(setq gdb-running t)
+	(set-gdb-instance-output-sink 'inferior)))
      (t (error "Unexpected `starting' annotation")))))
 
-;; An annotation handler for `exited' and other annotations which say that
-;; I/O for the subprocess is now GDB, not the program being debugged.
 (defun gdb-stopping (ignored)
+  "An annotation handler for `exited' and other annotations which say that I/O
+for the subprocess is now GDB, not the program being debugged."
   (let ((sink (gdb-instance-output-sink)))
     (cond
      ((eq sink 'inferior)
       (set-gdb-instance-output-sink 'user))
      (t (error "Unexpected stopping annotation")))))
 
-;; An annotation handler for `stopped'.  It is just like gdb-stopping, except
-;; that if we already set the output sink to 'user in gdb-stopping, that is
-;; fine.
 (defun gdb-stopped (ignored)
+  "An annotation handler for `stopped'.  It is just like gdb-stopping, except
+that if we already set the output sink to 'user in gdb-stopping, that is fine."
+  (setq gdb-running nil)
   (let ((sink (gdb-instance-output-sink)))
     (cond
      ((eq sink 'inferior)
@@ -791,10 +793,9 @@ This filter may simply queue output for a later time."
      ((eq sink 'emacs) t)
      (t (error "Unexpected frame-begin annotation (%S)" sink)))))
 
-;; An annotation handler for `post-prompt'.
-;; This begins the collection of output from the current
-;; command if that happens to be appropriate."
 (defun gdb-post-prompt (ignored)
+  "An annotation handler for `post-prompt'. This begins the collection of
+output from the current command if that happens to be appropriate."
   (if (not (gdb-instance-pending-triggers))
       (progn
 	(gdb-invalidate-registers ignored)
@@ -805,7 +806,6 @@ This filter may simply queue output for a later time."
      ((eq sink 'user) t)
      ((eq sink 'pre-emacs)
       (set-gdb-instance-output-sink 'emacs))
-
      (t
       (set-gdb-instance-output-sink 'user)
       (error "Output sink phase error 3")))))
@@ -813,7 +813,6 @@ This filter may simply queue output for a later time."
 ;; If we get an error whilst evaluating one of the expressions
 ;; we won't get the display-end annotation. Set the sink back to
 ;; user to make sure that the error message is seen
-
 (defun gdb-error-begin (ignored)
   (set-gdb-instance-output-sink 'user))
 
@@ -915,7 +914,6 @@ This filter may simply queue output for a later time."
 				  'gdb-partial-output-buffer)
 				 start end)
 	(insert "\n")))
-
     (goto-char (point-min))
     (re-search-forward "##" nil t)
     (setq gdb-nesting-level 0)
@@ -1175,7 +1173,7 @@ This filter may simply queue output for a later time."
 	       (concat indices-string "\t" gdb-display-value "\n"))))
 	(setq indices-string "")
 	(setq flag t)
-					; 0<= index < depth, start at right : (- depth 1)
+	; 0<= index < depth, start at right : (- depth 1)
 	(setq index (- (- depth 1)
 		       (- (match-end 2) (match-beginning 2))))
 					;don't set for very last brackets
@@ -1220,7 +1218,7 @@ This filter may simply queue output for a later time."
 
 ;; Handle a burst of output from a gdb instance.
 ;; This function is (indirectly) used as a gud-marker-filter.
-;; It must return output (if any) to be insterted in the gdb
+;; It must return output (if any) to be inserted in the gdb
 ;; buffer.
 
 (defun gdb-output-burst (string)
@@ -1228,7 +1226,6 @@ This filter may simply queue output for a later time."
 This function is (indirectly) used as a gud-marker-filter.
 It must return output (if any) to be insterted in the gdb
 buffer."
-
   (save-match-data
     (let (
 	  ;; Recall the left over burst from last time
@@ -1237,7 +1234,6 @@ buffer."
 	  (output ""))
 
       ;; Process all the complete markers in this chunk.
-
       (while (string-match "\n\032\032\\(.*\\)\n" burst)
 	(let ((annotation (substring burst
 				     (match-beginning 1)
@@ -1247,7 +1243,8 @@ buffer."
 	  ;; It is either concatenated to OUTPUT or directed
 	  ;; elsewhere.
 	  (setq output
-		(gdb-concat-output output
+		(gdb-concat-output 
+		 output
 		 (substring burst 0 (match-beginning 0))))
 
 	  ;; Take that stuff off the burst.
@@ -1271,7 +1268,6 @@ buffer."
 	      ;; so that GDB can add new annotations without causing
 	      ;; us to blow up.
 	      ))))
-
 
       ;; Does the remaining text end in a partial line?
       ;; If it does, then keep part of the burst until we get more.
@@ -1337,7 +1333,6 @@ buffer."
     (delete-region (point-min) (point-max))))
 
 
-
 ;; One trick is to have a command who's output is always available in
 ;; a buffer of it's own, and is always up to date.  We build several
 ;; buffers of this type.
@@ -1354,7 +1349,6 @@ buffer."
 ;; command.
 ;;
 
-
 ;; The trigger function is suitable for use in the assoc GDB-ANNOTATION-RULES
 ;; It adds an idle input for the command we are tracking.  It should be the
 ;; annotation rule binding of whatever gdb sends to tell us this command
@@ -1363,7 +1357,9 @@ buffer."
 ;; NAME is the function name.  DEMAND-PREDICATE tests if output is really needed.
 ;; GDB-COMMAND is a string of such.  OUTPUT-HANDLER is the function bound to the
 ;; input in the input queue (see comment about ``gdb communications'' above).
-(defmacro def-gdb-auto-update-trigger (name demand-predicate gdb-command output-handler)
+
+(defmacro def-gdb-auto-update-trigger (name demand-predicate gdb-command
+					    output-handler)
   `(defun ,name (&optional ignored)
      (if (and (,demand-predicate)
 	      (not (member ',name
@@ -1411,7 +1407,6 @@ buffer."
 ;;
 ;; These display the output of `info breakpoints'.
 ;;
-
 
 (gdb-set-instance-buffer-rules 'gdb-breakpoints-buffer
 			       'gdb-breakpoints-buffer-name
@@ -1559,6 +1554,7 @@ buffer."
   (gdb-invalidate-breakpoints))
 
 (defun gdb-toggle-bp-this-line ()
+"Enable/disable the breakpoint on this line."
   (interactive)
   (save-excursion
     (beginning-of-line 1)
@@ -1576,6 +1572,7 @@ buffer."
 	'(lambda () nil))))))
 
 (defun gdb-delete-bp-this-line ()
+"Delete the breakpoint on this line."
   (interactive)
     (beginning-of-line 1)
     (if (not (looking-at "\\([0-9]+\\).*point\\s-*\\S-*\\s-*\\(.\\)"))
@@ -1592,7 +1589,7 @@ buffer."
 (defvar gdb-source-window nil)
 
 (defun gdb-goto-bp-this-line ()
-"Display the file at the breakpoint specified."
+"Display the file at the specified breakpoint."
   (interactive)
   (save-excursion
     (beginning-of-line 1)
@@ -1830,21 +1827,10 @@ buffer."
 			       'gdb-display-mode)
 
 (def-gdb-auto-updated-buffer gdb-display-buffer
-  ;; This defines the auto update rule for buffers of type
   ;; `gdb-display-buffer'.
-  ;;
-  ;; It defines a function to serve as the annotation handler that
-  ;; handles the `foo-invalidated' message.  That function is called:
   gdb-invalidate-display
-
-  ;; To update the buffer, this command is sent to gdb.
   "server info display\n"
-
-  ;; This also defines a function to be the handler for the output
-  ;; from the command above.  That function will copy the output into
-  ;; the appropriately typed buffer.  That function will be called:
   gdb-info-display-handler
-; buffer specific functions
   gdb-info-display-custom)
 
 (defun gdb-info-display-custom ()
@@ -1895,6 +1881,7 @@ buffer."
    (gdb-get-create-instance-buffer 'gdb-display-buffer)))
 
 (defun gdb-toggle-disp-this-line ()
+"Enable/disable the displayed expression on this line."
   (interactive)
   (save-excursion
     (beginning-of-line 1)
@@ -1912,6 +1899,7 @@ buffer."
 	'(lambda () nil))))))
 
 (defun gdb-delete-disp-this-line ()
+"Delete the displayed expression on this line."
   (interactive)
   (save-excursion
     (set-buffer
@@ -2205,6 +2193,9 @@ Just the partial-output buffer is left."
 		  (remove-images (point-min) (point-max))
 		(remove-strings (point-min) (point-max)))
 	      (setq left-margin-width 0)
+	      (setq gud-minor-mode nil)
+	      (kill-local-variable 'tool-bar-map)
+	      (setq gdb-running nil)
 	      (if (get-buffer-window (current-buffer))
 		  (set-window-margins (get-buffer-window
 				       (current-buffer))
@@ -2216,6 +2207,8 @@ Just the partial-output buffer is left."
   (delete-other-windows))
 
 (defun gdb-source-info ()
+"Finds the source file where the program starts and displays it with related
+buffers."
   (goto-char (point-min))
   (re-search-forward "directory is ")
   (looking-at "\\(\\S-*\\)")
@@ -2488,7 +2481,7 @@ BUFFER nil or omitted means use the current buffer."
 	     (setq gdb-prev-main-or-pc gdb-main-or-pc))))
 
 (defun gdb-delete-line ()
-"Delete current line."
+  "Delete the current line."
 (interactive)
   (let ((start (progn (beginning-of-line) (point)))
 	(end (progn (end-of-line) (+ (point) 1))))
