@@ -72,52 +72,70 @@
 (require 'backquote)
 
 (defmacro make-help-screen (fname help-line help-text helped-map)
-  "Constructs function FNAME that when invoked shows HELP-LINE and if a help
-character is requested, shows HELP-TEXT. The user is prompted for a character
-from the HELPED-MAP and the corresponding interactive function is executed."
+  "Construct help-menu function name FNAME.
+When invoked, FNAME shows HELP-LINE and reads a command using HELPED-MAP.
+If the command is the help character is requested, FNAME displays HELP-TEXT
+and continues trying to read a command using HELPED-MAP.
+When FNAME finally does get a command, it executes that command
+and then returns."
   (` (defun (, fname) ()
 	   (, help-text)
 	   (interactive)
 	   (let ((line-prompt
-		  (substitute-command-keys (, help-line))))
+		  (substitute-command-keys (, help-line)))
+		 (help-screen (documentation (quote (, fname)))))
 	     (message line-prompt)
-	     (let ((char (read-event))
-		   config)
+	     (let ((old-local-map (current-local-map))
+		   (old-global-map (current-global-map))
+		   (minor-mode-map-alist nil)
+		   config key char)
 	       (unwind-protect
 		   (progn
+		     (use-global-map (, helped-map))
+		     (use-local-map nil)
+		     (setq key (read-key-sequence nil))
+		     (setq char (aref key 0))
 		     (if (or (eq char ??) (eq char help-char))
 			 (progn
 			   (setq config (current-window-configuration))
 			   (switch-to-buffer-other-window "*Help*")
 			   (erase-buffer)
-			   (insert (documentation (quote (, fname))))
+			   (insert help-screen)
 			   (goto-char (point-min))
 			   (while (memq char (cons help-char '(?? ?\C-v ?\ ?\177 ?\M-v)))
-			     (if (memq char '(?\C-v ?\ ))
-				 (scroll-up))
-			     (if (memq char '(?\177 ?\M-v))
-				 (scroll-down))
+			     (condition-case nil
+				 (progn
+				   (if (memq char '(?\C-v ?\ ))
+				       (scroll-up))
+				   (if (memq char '(?\177 ?\M-v))
+				       (scroll-down)))
+			       (error nil))
 			     (message "%s%s: "
 				      line-prompt
 				      (if (pos-visible-in-window-p (point-max))
 					  "" " or Space to scroll"))
 			     (let ((cursor-in-echo-area t))
-			       (setq char (read-event))))))
-		     
-		     (let ((defn (cdr (assq (if (integerp char) (downcase char) char) (, helped-map)))))
-		       (if defn
-			   (if (keymapp defn)
-			       (error "sorry, this command cannot be run from the help screen.  Start over.")
-			     (if config
-				 (progn
-				   (set-window-configuration config)
-				   (setq config nil)))
-			     (call-interactively defn))
-			 (if (listp char)
-			     (setq unread-command-events
-				   (cons char unread-command-events)
-				   config nil)
+			       (setq key (read-key-sequence nil)
+				     char (aref key 0))))))
+		     ;; Mouse clicks are not part of the help feature,
+		     ;; so reexecute them in the standard environment.
+		     (if (listp char)
+			 (setq unread-command-events
+			       (cons char unread-command-events)
+			       config nil)
+		       (let ((defn (key-binding key)))
+			 (if defn
+			     (progn
+			       (if config
+				   (progn
+				     (set-window-configuration config)
+				     (setq config nil)))
+			       (use-local-map old-local-map)
+			       (use-global-map old-global-map)
+			       (call-interactively defn))
 			   (ding)))))
+		 (use-local-map old-local-map)
+		 (use-global-map old-global-map)
 		 (if config
 		     (set-window-configuration config))))))
      ))
