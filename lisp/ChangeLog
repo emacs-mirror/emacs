@@ -1,6 +1,9 @@
 2000-09-07  Gerd Moellmann  <gerd@gnu.org>
 
-	* vc.el: Remove `$Id$' tag.
+	* faces.el (set-face-attribute): Simplify by calling 
+	internal-set-lisp-face-attribute with FRAME being 0.
+
+	* vc.el: Remove `Id' version control keyword.
 
 2000-09-07  Kenichi Handa  <handa@etl.go.jp>
 

@@ -1,3 +1,8 @@
+2000-09-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (Finternal_set_lisp_face_attribute): If FRAME is 0,
+	change face on all frames, and change the default for new frames.
+
 2000-09-07  Dave Love  <fx@gnu.org>
 
 	* Makefile.in [!SYSTEM_MALLOC && REL_ALLOC_MMAP]: Set mallocobj.
