@@ -38,6 +38,8 @@
 
 2001-01-29  Dave Love  <fx@gnu.org>
 
+	* elide-head.el (elide-head): Make overlay evaporate.
+
 	* international/mule-conf.el (chinese-big5-1, chinese-big5-2): Doc
 	fix.
 
