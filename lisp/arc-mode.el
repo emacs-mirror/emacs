@@ -1,6 +1,6 @@
 ;;; arc-mode.el --- simple editing of archives
 
-;; Copyright (C) 1995, 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1998, 2003 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Keywords: archives msdog editing major-mode
@@ -618,8 +618,8 @@ archive.
 	;; Not a nice "solution" but it'll have to do
 	(define-key archive-mode-map "\C-xu" 'archive-undo)
 	(define-key archive-mode-map "\C-_" 'archive-undo))
-    (substitute-key-definition 'undo 'archive-undo
-			       archive-mode-map global-map))
+    (define-key archive-mode-map [remap advertised-undo] 'archive-undo)
+    (define-key archive-mode-map [remap undo] 'archive-undo))
 
   (define-key archive-mode-map
     (if archive-lemacs 'button2 [mouse-2]) 'archive-mouse-extract)
