@@ -617,7 +617,7 @@ case "${canonical}" in
     machine=iris4d opsys=irix4-0
   ;;
   mips-sgi-irix6* )
-    machine=iris4d opsys=irix6-0
+    machine=iris4d opsys=irix6-0  NON_GNU_CPP=/lib/cpp
   ;;
   mips-sgi-irix5.[01]* )
     machine=iris4d opsys=irix5-0
