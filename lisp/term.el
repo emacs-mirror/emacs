@@ -1347,6 +1347,8 @@ buffer.  The hook term-exec-hook is run after each exec."
 	(process-connection-type t)
 	;; We should suppress conversion of end-of-line format.
 	(inhibit-eol-conversion t)
+	;; inhibit-eol-conversion doesn't seem to do the job, but this does.
+	(coding-system-for-read 'unknown-unix)
 	)
     (apply 'start-process name buffer
 	   "/bin/sh" "-c"
