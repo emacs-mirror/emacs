@@ -8145,10 +8145,10 @@ xm_scroll_callback (widget, client_data, call_data)
 	UNBLOCK_INPUT;
 
 	/* At the max position of the scroll bar, do a line-wise
-	   movement.  Without doing anything, the LessTif scroll bar
-	   calls us with the same cs->value again and again.  If we
-	   want to make sure that we can reach the end of the buffer,
-	   we have to do something.
+	   movement.  Without doing anything, we would be called with
+	   the same cs->value again and again.  If we want to make
+	   sure that we can reach the end of the buffer, we have to do
+	   something.
 
 	   Implementation note: setting bar->dragging always to
 	   cs->value gives a smoother movement at the max position.
@@ -8290,14 +8290,6 @@ x_create_toolkit_scroll_bar (f, bar)
   BLOCK_INPUT;
 
 #ifdef USE_MOTIF
-  /* LessTif 0.85, problems:
-
-     1. When the mouse if over the scroll bar, the scroll bar will
-     get keyboard events.  I didn't find a way to turn this off.
-
-     2. Do we have to explicitly set the cursor to get an arrow
-     cursor (see below)?  */
-  
   /* Set resources.  Create the widget.  */
   XtSetArg (av[ac], XtNmappedWhenManaged, False); ++ac;
   XtSetArg (av[ac], XmNminimum, XM_SB_MIN); ++ac;
@@ -8439,8 +8431,6 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
 #ifdef USE_MOTIF
   {
     int size, value;
-    Boolean arrow1_selected, arrow2_selected;
-    unsigned char flags;
     XmScrollBarWidget sb;
 
     /* Slider size.  Must be in the range [1 .. MAX - MIN] where MAX
@@ -8455,18 +8445,6 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
     value = min (value, XM_SB_MAX - size);
     value = max (value, XM_SB_MIN);
 
-    /* LessTif: Calling XmScrollBarSetValues after an increment or
-       decrement turns off auto-repeat LessTif-internally.  This can
-       be seen in ScrollBar.c which resets Arrow1Selected and
-       Arrow2Selected.  It also sets internal flags so that LessTif
-       believes the mouse is in the slider.  We either have to change
-       our code, or work around that by accessing private data. */
-
-    sb = (XmScrollBarWidget) widget;
-    arrow1_selected = sb->scrollBar.arrow1_selected;
-    arrow2_selected = sb->scrollBar.arrow2_selected;
-    flags = sb->scrollBar.flags;
-    
     if (NILP (bar->dragging))
       XmScrollBarSetValues (widget, value, size, 0, 0, False);
     else if (last_scroll_bar_part == scroll_bar_down_arrow)
@@ -8486,10 +8464,6 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
 			      min (size, XM_SB_RANGE - old_value),
 			      0, 0, False);
       }
-    
-    sb->scrollBar.arrow1_selected = arrow1_selected;
-    sb->scrollBar.arrow2_selected = arrow2_selected;
-    sb->scrollBar.flags = flags;
   }
 #else /* !USE_MOTIF i.e. use Xaw */
   {
