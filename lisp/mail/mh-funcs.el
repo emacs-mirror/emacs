@@ -1,7 +1,11 @@
 ;;; mh-funcs.el --- mh-e functions not everyone will use right away
-;; Time-stamp: <2001-07-14 13:08:45 pavel>
 
-;; Copyright (C) 1993, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001, 2002 Free Software Foundation, Inc.
+
+;; Author: Bill Wohler <wohler@newt.com>
+;; Maintainer: Bill Wohler <wohler@newt.com>
+;; Keywords: mail
+;; See: mh-e.el
 
 ;; This file is part of GNU Emacs.
 
@@ -28,7 +32,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-funcs.el,v 1.5 1996/01/14 07:34:30 erik Exp $
+;; $Id: mh-funcs.el,v 1.12 2002/04/07 19:20:56 wohler Exp $
 
 ;;; Code:
 
@@ -71,7 +75,7 @@ digest are inserted into the folder after that message."
 
 
 (defun mh-copy-msg (msg-or-seq folder)
-  "Copy the specified MESSAGE(s) to another FOLDER without deleting them.
+  "Copy the specified MSG-OR-SEQ to another FOLDER without deleting them.
 Default is the displayed message.  If optional prefix argument is
 provided, then prompt for the message sequence."
   (interactive (list (if current-prefix-arg
@@ -84,10 +88,12 @@ provided, then prompt for the message sequence."
       (mh-notate-seq msg-or-seq mh-note-copied mh-cmd-note)))
 
 (defun mh-kill-folder ()
-  "Remove the current folder."
+  "Remove the current folder and all included messages.
+Removes all of the messages (files) within the specified current folder,
+and then removes the folder (directory) itself."
   (interactive)
-  (if (or mh-do-not-confirm
-	  (yes-or-no-p (format "Remove folder %s? " mh-current-folder)))
+  (if (yes-or-no-p (format "Remove folder %s (and all included messages)?"
+                           mh-current-folder))
       (let ((folder mh-current-folder))
 	(if (null mh-folder-list)
 	    (mh-set-folder-list))
@@ -100,23 +106,27 @@ provided, then prompt for the message sequence."
 	(mh-set-folder-modified-p nil)	; so kill-buffer doesn't complain
 	(if (get-buffer mh-show-buffer)
 	    (kill-buffer mh-show-buffer))
-	(kill-buffer folder))
+	(if (get-buffer folder)
+	    (kill-buffer folder)))
       (message "Folder not removed")))
 
 
 (defun mh-list-folders ()
   "List mail folders."
   (interactive)
-  (with-output-to-temp-buffer mh-temp-buffer
-    (save-excursion
-      (switch-to-buffer mh-temp-buffer)
-      (erase-buffer)
-      (message "Listing folders...")
-      (mh-exec-cmd-output "folders" t (if mh-recursive-folders
-					  "-recurse"
+  (let ((temp-buffer mh-temp-folders-buffer))
+    (with-output-to-temp-buffer temp-buffer
+      (save-excursion
+	(set-buffer temp-buffer)
+	(erase-buffer)
+	(message "Listing folders...")
+	(mh-exec-cmd-output "folders" t (if mh-recursive-folders
+					    "-recurse"
 					  "-norecurse"))
-      (goto-char (point-min))
-      (message "Listing folders...done"))))
+	(goto-char (point-min))
+	(view-mode 1)
+	(setq view-exit-action 'kill-buffer)
+	(message "Listing folders...done")))))
 
 
 (defun mh-pack-folder (range)
@@ -197,10 +207,10 @@ Otherwise just send the message's body without the headers."
 
 
 (defun mh-print-msg (msg-or-seq)
-  "Print MESSAGE(s) (default: displayed message) on printer.
+  "Print MSG-OR-SEQ (default: displayed message) on printer.
 If optional prefix argument provided, then prompt for the message sequence.
-The variable mh-lpr-command-format is used to generate the print command.
-The messages are formatted by mhl.  See the variable mhl-formfile."
+The variable `mh-lpr-command-format' is used to generate the print command.
+The messages are formatted by mhl.  See the variable `mhl-formfile'."
   (interactive (list (if current-prefix-arg
 			 (reverse (mh-seq-to-msgs
 				   (mh-read-seq-default "Print" t)))
@@ -211,7 +221,7 @@ The messages are formatted by mhl.  See the variable mhl-formfile."
   (let ((print-command
 	 (if (numberp msg-or-seq)
 	     (format "%s -nobell -clear %s %s | %s"
-		     (expand-file-name "mhl" mh-lib)
+		     (expand-file-name "mhl" mh-lib-progs)
 		     (mh-msg-filename msg-or-seq)
 		     (if (stringp mhl-formfile)
 			 (format "-form %s" mhl-formfile)
@@ -223,7 +233,7 @@ The messages are formatted by mhl.  See the variable mhl-formfile."
 			         (format "Sequence from %s" mh-current-folder))))
 	     (format "(scan -clear %s ; %s -nobell -clear %s %s) | %s"
 		     (mapconcat (function (lambda (msg) msg)) msg-or-seq " ")
-		     (expand-file-name "mhl" mh-lib)
+		     (expand-file-name "mhl" mh-lib-progs)
 		     (if (stringp mhl-formfile)
 			 (format "-form %s" mhl-formfile)
 		       "")
@@ -254,8 +264,8 @@ The messages are formatted by mhl.  See the variable mhl-formfile."
 (defun mh-sort-folder (&optional extra-args)
   "Sort the messages in the current folder by date.
 Calls the MH program sortm to do the work.
-The arguments in the list  mh-sortm-args  are passed to sortm
-if this function is passed an argument."
+The arguments in the list `mh-sortm-args' are passed to sortm
+if the optional argument EXTRA-ARGS is given."
   (interactive "P")
   (mh-process-or-undo-commands mh-current-folder)
   (setq mh-next-direction 'forward)
@@ -267,7 +277,8 @@ if this function is passed an argument."
 
 
 (defun mh-undo-folder (&rest ignore)
-  "Undo all pending deletes and refiles in current folder."
+  "Undo all pending deletes and refiles in current folder.
+Argument IGNORE is deprecated."
   (interactive)
   (cond ((or mh-do-not-confirm
 	     (yes-or-no-p "Undo all commands in folder? "))
@@ -286,7 +297,7 @@ if this function is passed an argument."
   "Store the file(s) contained in the current message into DIRECTORY.
 The message can contain a shar file or uuencoded file.
 Default directory is the last directory used, or initially the value of
-mh-store-default-directory  or the current directory."
+`mh-store-default-directory' or the current directory."
   (interactive (list (let ((udir (or mh-store-default-directory default-directory)))
 				 (read-file-name "Store message in directory: "
 						 udir udir nil))))

@@ -1,7 +1,11 @@
 ;;; mh-mime.el --- mh-e support for composing MIME messages
-;; Time-stamp: <2001-07-15 09:52:45 pavel>
 
-;; Copyright (C) 1993, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001, 2002 Free Software Foundation, Inc.
+
+;; Author: Bill Wohler <wohler@newt.com>
+;; Maintainer: Bill Wohler <wohler@newt.com>
+;; Keywords: mail
+;; See: mh-e.el
 
 ;; This file is part of GNU Emacs.
 
@@ -28,13 +32,12 @@
 
 ;;; Change Log:
 
-;; $Id: mh-mime.el,v 1.8 1998/09/23 21:51:50 kwzh Exp $
+;; $Id: mh-mime.el,v 1.26 2002/04/07 19:20:56 wohler Exp $
 
 ;;; Code:
 
 (provide 'mh-mime)
 (require 'mh-comp)
-
 
 ;; To do:
 ;; paragraph code should not fill # lines if MIME enabled.
@@ -54,31 +57,96 @@ MH profile.")
 (defvar mh-edit-mhn-hook nil
   "Invoked on the formatted letter by \\<mh-letter-mode-map>\\[mh-edit-mhn].")
 
-;;;###autoload
+(defun mh-have-file-command ()
+  "Return t if 'file' command is on the system.
+'file -i' is used to get MIME type of composition insertion."
+  (when (not (boundp 'mh-have-file-command))
+    (load "executable" t t)     ; executable-find not autoloaded in emacs20
+    (setq mh-have-file-command
+          (and (fboundp 'executable-find)
+               (executable-find "file") ; file command exists
+                                        ;   and accepts -i and -b args.
+               (zerop (call-process "file" nil nil nil "-i" "-b"
+                                    (expand-file-name "inc" mh-progs))))))
+  mh-have-file-command)
+
+(defun mh-file-mime-type (filename)
+  "Return MIME type of FILENAME from file command.
+Returns nil if file command not on system."
+  (cond
+   ((not (mh-have-file-command))
+    nil)                                ;No file command, exit now.
+   ((not (and (file-exists-p filename)(file-readable-p filename)))
+    nil)
+   (t
+    (save-excursion
+      (let ((tmp-buffer (get-buffer-create mh-temp-buffer)))
+        (set-buffer tmp-buffer)
+        (unwind-protect
+            (progn
+              (call-process "file" nil '(t nil) nil "-b" "-i"
+                            (expand-file-name filename))
+              (goto-char (point-min))
+              (if (not (re-search-forward mh-media-type-regexp nil t))
+                  nil
+                (match-string 0)))
+          (kill-buffer tmp-buffer)))))))
+
+(defvar mh-mhn-compose-insert-p nil
+  "Buffer-local variable to know whether MIME insertion was done.
+Triggers an automatic call to `mh-edit-mhn' in `mh-send-letter'.")
+(make-variable-buffer-local 'mh-mhn-compose-insert-p)
+
+;;; This is needed for Emacs20 which doesn't have mailcap-mime-types.
 (defvar mh-mime-content-types
-  '(("text/plain") ("text/richtext")
-    ("multipart/mixed") ("multipart/alternative") ("multipart/digest")
-    ("multipart/parallel")
-    ("message/rfc822") ("message/partial") ("message/external-body")
-    ("application/octet-stream") ("application/postscript")
-    ("image/jpeg") ("image/gif")
-    ("audio/basic")
-    ("video/mpeg"))
-  "Legal MIME content types.  See documentation for \\[mh-edit-mhn].")
+  '(("application/mac-binhex40") ("application/msword")
+    ("application/octet-stream") ("application/pdf") ("application/pgp-keys")
+    ("application/pgp-signature") ("application/pkcs7-signature")
+    ("application/postscript") ("application/rtf")
+    ("application/vnd.ms-excel") ("application/vnd.ms-powerpoint")
+    ("application/vnd.ms-project") ("application/vnd.ms-tnef")
+    ("application/wordperfect5.1") ("application/wordperfect6.0")
+    ("application/zip")
+
+    ("audio/basic") ("audio/mpeg")
+
+    ("image/gif") ("image/jpeg") ("image/png")
+
+    ("message/delivery-status")
+    ("message/external-body") ("message/partial") ("message/rfc822")
+
+    ("text/enriched") ("text/html") ("text/plain") ("text/rfc822-headers")
+    ("text/richtext") ("text/xml")
+
+    ("video/mpeg") ("video/quicktime"))
+  "Legal MIME content types.
+See documentation for \\[mh-edit-mhn].")
+
+(defvar mh-media-type-regexp
+  (concat (regexp-opt '("text" "image" "audio" "video" "application"
+                        "multipart" "message") t)
+          "/[-.+a-zA-Z0-9]+")
+  "Regexp matching valid media types used in MIME attachment compositions.")
 
 (defun mh-mhn-compose-insertion (filename type description attributes)
   "Add a directive to insert a MIME message part from a file.
-This is the typical way to insert non-text parts in a message.
-Arguments are FILENAME, which tells where to find the file, TYPE, the
-MIME content type, and DESCRIPTION, a line of text for the
-Content-description header.  See also \\[mh-edit-mhn]."
-  (interactive (let ((filename (read-file-name "Insert contents of: "))) 
+This is the typical way to insert non-text parts in a message. Arguments are
+FILENAME, which tells where to find the file, TYPE, the MIME content type,
+DESCRIPTION, a line of text for the Content-Description field. ATTRIBUTES is a
+comma separated list of name=value pairs that is appended to the Content-Type
+field of the attachment.
+See also \\[mh-edit-mhn]."
+  (interactive (let ((filename (read-file-name "Insert contents of: ")))
 		 (list
 		  filename
-		  (completing-read "Content-type: "
-				 mh-mime-content-types nil nil nil)
-		  (read-string "Content-description: ")
-		  (read-string "Content-Attributes: " 
+                  (or (mh-file-mime-type filename)
+		      (completing-read "Content-Type: "
+				       (if (and (require 'mailcap nil t)
+						(fboundp 'mailcap-mime-types))
+					   (mapcar 'list (mailcap-mime-types))
+					 mh-mime-content-types)))
+		  (read-string "Content-Description: ")
+		  (read-string "Content-Attributes: "
 			       (concat "name=\""
 				       (file-name-nondirectory filename)
 				       "\"")))))
@@ -86,6 +154,7 @@ Content-description header.  See also \\[mh-edit-mhn]."
 
 (defun mh-mhn-compose-type (filename type
 			    &optional description attributes comment)
+  (setq mh-mhn-compose-insert-p t)
   (beginning-of-line)
   (insert "#" type)
   (and attributes
@@ -109,9 +178,12 @@ Content-description header.  See also \\[mh-edit-mhn]."
   (interactive (list
 		(read-string "Remote host: ")
 		(read-string "Remote filename: ")
-		(completing-read "External Content-type: "
-				 mh-mime-content-types nil nil nil)
-		(read-string "External Content-description: ")))
+		(completing-read "External Content-Type: "
+				 (if (and (require 'mailcap nil t)
+					  (fboundp 'mailcap-mime-types))
+				     (mapcar 'list (mailcap-mime-types))
+				   mh-mime-content-types))
+		(read-string "External Content-Description: ")))
   (mh-mhn-compose-external-type "anon-ftp" host filename
 				type description))
 
@@ -136,6 +208,7 @@ See also \\[mh-edit-mhn]."
 (defun mh-mhn-compose-external-type (access-type host filename type
 				     &optional description
 				     attributes extra-params comment)
+  (setq mh-mhn-compose-insert-p t)
   (beginning-of-line)
   (insert "#@" type)
   (and attributes
@@ -167,6 +240,7 @@ See also \\[mh-edit-mhn]."
 				     (if mh-sent-from-msg
 					 (format " [%d]" mh-sent-from-msg)
 				       "")))))
+  (setq mh-mhn-compose-insert-p t)
   (beginning-of-line)
   (insert "#forw [")
   (and description
@@ -187,35 +261,45 @@ See also \\[mh-edit-mhn]."
 
 (defun mh-edit-mhn (&optional extra-args)
   "Format the current draft for MIME, expanding any mhn directives.
-Process the current draft with the mhn program, which,
-using directives already inserted in the draft, fills in
-all the MIME components and header fields.
-This step should be done last just before sending the message.
-The mhn program is part of MH version 6.8 or later.
-The `\\[mh-revert-mhn-edit]' command undoes this command.
-The arguments in the list `mh-mhn-args' are passed to mhn
-if this function is passed an argument.
 
-For assistance with creating mhn directives to insert
-various types of components in a message, see
-\\[mh-mhn-compose-insertion] (generic insertion from a file),
-\\[mh-mhn-compose-anon-ftp] (external reference to file via anonymous ftp),
-\\[mh-mhn-compose-external-compressed-tar] \
-\(reference to compressed tar file via anonymous ftp), and
-\\[mh-mhn-compose-forw] (forward message)."
+Process the current draft with the mhn program, which, using directives
+already inserted in the draft, fills in all the MIME components and header
+fields.
+
+This step should be done last just before sending the message.
+
+The `\\[mh-revert-mhn-edit]' command undoes this command. The arguments in the
+list `mh-mhn-args' are passed to mhn if this function is passed an optional
+prefix argument EXTRA-ARGS.
+
+For assistance with creating mhn directives to insert various types of
+components in a message, see \\[mh-mhn-compose-insertion] (generic insertion
+from a file), \\[mh-mhn-compose-anon-ftp] (external reference to file via
+anonymous ftp), \\[mh-mhn-compose-external-compressed-tar] \ \(reference to
+compressed tar file via anonymous ftp), and \\[mh-mhn-compose-forw] (forward
+message). If these helper functions are used, `mh-edit-mhn' is run
+automatically when the draft is sent.
+
+The mhn program is part of MH version 6.8 or later."
   (interactive "*P")
   (save-buffer)
   (message "mhn editing...")
-  (mh-exec-cmd-error (format "mhdraft=%s" buffer-file-name)
-		     "mhn" (if extra-args mh-mhn-args) buffer-file-name)
+  (cond
+   (mh-nmh-p
+    (mh-exec-cmd-error nil
+                       "mhbuild" (if extra-args mh-mhn-args) buffer-file-name))
+   (t
+    (mh-exec-cmd-error (format "mhdraft=%s" buffer-file-name)
+                       "mhn" (if extra-args mh-mhn-args) buffer-file-name)))
+  (setq mh-mhn-compose-insert-p nil)
   (revert-buffer t t)
   (message "mhn editing...done")
   (run-hooks 'mh-edit-mhn-hook))
 
 
 (defun mh-revert-mhn-edit (noconfirm)
-  "Undoes the effect of \\[mh-edit-mhn] by reverting to the backup file.
-Optional non-nil argument means don't ask for confirmation."
+  "Undo the effect of \\[mh-edit-mhn] by reverting to the backup file.
+Optional non-nil argument NOCONFIRM means don't ask for confirmation."
   (interactive "*P")
   (if (null buffer-file-name)
       (error "Buffer does not seem to be associated with any file"))
@@ -230,11 +314,11 @@ Optional non-nil argument means don't ask for confirmation."
 				    ".orig")))))
       (setq backup-strings (cdr backup-strings)))
     (or backup-strings
-	(error "mhn backup file for %s no longer exists!" buffer-file-name))
+	(error "Backup file for %s no longer exists!" buffer-file-name))
     (or noconfirm
 	(yes-or-no-p (format "Revert buffer from file %s? "
 			     backup-file))
-	(error "mhn edit revert not confirmed"))
+	(error "Revert not confirmed"))
     (let ((buffer-read-only nil))
       (erase-buffer)
       (insert-file-contents backup-file))

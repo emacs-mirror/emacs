@@ -1,6 +1,11 @@
 ;;; mh-utils.el --- mh-e code needed for both sending and reading
 
-;; Copyright (C) 1993, 1995, 1997, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 1997, 2000, 2001, 2002 Free Software Foundation, Inc.
+
+;; Author: Bill Wohler <wohler@newt.com>
+;; Maintainer: Bill Wohler <wohler@newt.com>
+;; Keywords: mail
+;; See: mh-e.el
 
 ;; This file is part of GNU Emacs.
 
@@ -23,7 +28,25 @@
 
 ;; Internal support for mh-e package.
 
+;;; Change Log:
+
+;; $Id: mh-utils.el,v 1.79 2002/04/07 19:20:56 wohler Exp $
+
 ;;; Code:
+
+(load "executable" t t)                 ; Non-fatal dependency on
+					; executable-find
+
+;;; Autoload mh-seq
+
+(autoload 'mh-add-to-sequence "mh-seq")
+(autoload 'mh-notate-seq "mh-seq")
+(autoload 'mh-read-seq-default "mh-seq")
+(autoload 'mh-map-to-seq-msgs "mh-seq")
+
+;;; Other Autoloads
+
+(autoload 'mail-header-end "sendmail")
 
 ;;; Set for local environment:
 ;;; mh-progs and mh-lib used to be set in paths.el, which tried to
@@ -41,11 +64,11 @@ the components file.")
 
 (defvar mh-lib-progs nil
   "Directory containing MH helper programs.
-This directory contains, among other things, 
+This directory contains, among other things,
 the mhl program.")
 
 (defvar mh-nmh-p nil
-  "Non-nil if nmh is installed on this system instead of MH")
+  "Non-nil if nmh is installed on this system instead of MH.")
 
 ;;;###autoload
 (put 'mh-progs 'risky-local-variable t)
@@ -76,7 +99,7 @@ folders as soon as mh-e is loaded."
   :type 'boolean
   :group 'mh)
 
-(defcustom mh-clean-message-header nil
+(defcustom mh-clean-message-header t
   "*Non-nil means clean headers of messages that are displayed or inserted.
 The variables `mh-visible-headers' and `mh-invisible-headers' control what
 is removed."
@@ -91,33 +114,108 @@ overrides `mh-invisible-headers'."
   :group 'mh-buffer)
 
 (defvar mh-invisible-headers
-  "^Received: \\|^Message-Id: \\|^Remailed-\\|^Via: \\|^Mail-from: \\|^Return-Path: \\|^Delivery-Date: \\|^In-Reply-To: \\|^Resent-"
-  "Regexp matching lines in a message header that are not to be shown.
+  (concat
+   "^"
+   (let ((max-specpdl-size 1000))	;workaround for insufficient default
+     (regexp-opt
+      '( ;; RFC 822
+	"Received: " "Message-Id: " "Return-Path: "
+	;; RFC 2045
+	"Mime-Version" "Content-"
+	;; sendmail
+	"X-Authentication-Warning: " "X-MIME-Autoconverted: " "From "
+	"Status: "
+	;; X400
+	"X400-" "P1-Message-Id: " "Original-Encoded-Information-Types: "
+	"P1-Recipient: " "P1-Content-Type: " "Ua-Content-Id: "
+	;; MH
+	"Resent" "Prev-Resent" "Forwarded: " "Replied: " "Delivery-Date: "
+	"In-Reply-To: " "Remailed-" "Via: " "Mail-from: "
+	;; gnus
+	"X-Gnus-Mail-Source: "
+	;; MS Outlook
+	"X-Priority: " "X-Msmail-" "X-MimeOLE: " "X-Apparently-From: "
+	"Importance: " "Sensitivity: " "X-MS-TNEF-Correlator: "
+	;; Juno
+	"X-Juno-"
+	;; Hotmail
+	"X-OriginalArrivalTime: " "X-Originating-IP: "
+	;; Netscape/Mozilla
+	"X-Accept-Language: " "X-Mozilla-Status: "
+	;; NTMail
+	"X-Info: " "X-VSMLoop: "
+	;; News
+	"NNTP-" "X-News: "
+	;; Mailman mailing list manager
+	"List-" "X-Beenthere: " "X-Mailman-Version: "
+	;; Egroups/yahoogroups mailing list manager
+	"X-eGroups-" "X-Apparently-To: " "Mailing-List: " "Delivered-To: "
+	;; SourceForge mailing list manager
+	"X-Original-Date: "
+	;; Unknown mailing list managers
+	"X-Mailing-List: " "X-Loop: "
+	"List-Subscribe: " "List-Unsubscribe: "
+	"X-List-Subscribe: " "X-List-Unsubscribe: "
+	"X-Listserver: " "List-" "X-List-Host: "
+	;; Sieve filtering
+	"X-Sieve: "
+	;; Worldtalk gateways
+	"X-Wss-Id: "
+	;; User added
+	"X-Face: " "X-Qotd-"
+	;; Miscellaneous
+	"X-Sender: " "X-Ack: " "Errors-To: " "Precedence: " "X-Message-Id"
+	"X-From-Line" "X-Cron-Env: " "Delivery: " "X-Delivered"
+	"X-Received: " "X-Vms-To: " "Xref: " "X-Request-" "X-UIDL: "
+	"X-Orcl-Content-Type: " "X-Server-Uuid: " "X-Envelope-Sender: "
+	"X-Envelope-To: " "Encoding: " "Old-Return-Path: " "Path: "
+	"References: " "Lines: " "Autoforwarded: " "Bestservhost: "
+	"X-pgp: " "X-Accept-Language: " "Priority: " "User-Agent: "
+	"X-MIMETrack: " "X-Abuse-Info: " "X-Complaints-To: "
+	"X-No-Archive: " "X-Original-Complaints-To: "
+	"X-Original-Trace: " "X-Received-Date: " "X-Server-Date: "
+	"X-Trace: " "X-UserInfo1: " "X-submission-address: ")
+      t)))
+   "*Regexp matching lines in a message header that are not to be shown.
 If `mh-visible-headers' is non-nil, it is used instead to specify what
 to keep.")
+
+;;; Additional header fields that might someday be added:
+;;; "Sender: " "Reply-to: "
 
 (defcustom mh-bury-show-buffer t
   "*Non-nil means that the displayed show buffer for a folder is buried."
   :type 'boolean
   :group 'mh-buffer)
 
-(defcustom mh-summary-height 4
+(defcustom mh-summary-height (or (and (fboundp 'frame-height)
+                                      (> (frame-height) 24)
+                                      (min 10 (/ (frame-height) 6)))
+                                 4)
   "*Number of lines in MH-Folder window (including the mode line)."
   :type 'integer
   :group 'mh-buffer)
 
-(defvar mh-msg-number-regexp "^ *\\([0-9]+\\)"
+;; Use goto-addr if it was already loaded (which probably sets this
+;; variable to t), or if this variable is otherwise set to t.
+(defcustom mh-show-use-goto-addr (and (boundp 'goto-address-highlight-p)
+                                      goto-address-highlight-p)
+  "*Non-nil means URLs and e-mail addresses are highlighted using goto-addr while in mh-show-mode."
+  :type 'boolean
+  :group 'mh-buffer)
+
+(defvar mh-scan-msg-number-regexp "^ *\\([0-9]+\\)"
   "Regexp to find the number of a message in a scan line.
 The message's number must be surrounded with \\( \\)")
 
-(defvar mh-msg-search-regexp "^[^0-9]*%d[^0-9]"
+(defvar mh-scan-msg-search-regexp "^[^0-9]*%d[^0-9]"
   "Format string containing a regexp matching the scan listing for a message.
 The desired message's number will be an argument to format.")
 
 (defcustom mhl-formfile nil
   "*Name of format file to be used by mhl to show and print messages.
-A value of t means use the default format file.
-nil means don't use mhl to format messages when showing; mhl is still used,
+A value of T means use the default format file.
+Nil means don't use mhl to format messages when showing; mhl is still used,
 with the default format file, to format messages when printing them.
 The format used should specify a non-zero value for overflowoffset so
 the message continues to conform to RFC 822 and mh-e can parse the headers."
@@ -125,20 +223,55 @@ the message continues to conform to RFC 822 and mh-e can parse the headers."
   :group 'mh)
 (put 'mhl-formfile 'info-file "mh-e")
 
+(defvar mh-decode-quoted-printable-have-mimedecode
+  (not (null (and (fboundp 'executable-find)(executable-find "mimedecode"))))
+  "Whether the mimedecode command is installed on the system.
+This sets the default value of variable `mh-decode-quoted-printable' to
+determine whether quoted-printable MIME parts are decode when viewed in
+`mh-show'.  The source code for mimedecode can be obtained from
+http://www.freesoft.org/CIE/FAQ/mimedeco.c")
+
+(defcustom mh-decode-quoted-printable
+  mh-decode-quoted-printable-have-mimedecode
+  "Whether to decode quoted-printable MIME parts in `mh-show'.
+This can only be done if the 'mimedecode' command is available in the
+executable path on the system (the mh-decode-quoted-printable-have-mimedecode
+variable is set if the command was found).  That program is used as a helper
+program to achieve this.  The source code for mimedecode can usually be
+obtained from http://www.freesoft.org/CIE/FAQ/mimedeco.c"
+  :type 'boolean
+  :group 'mh-buffer)
+
+(defcustom mh-update-sequences-after-mh-show t
+  "Whether to call `mh-update-sequence' in `mh-show-mode'.
+If set, `mh-update-sequence' is run every time a message is shown, telling
+MH or nmh that this is your current message.  It's useful, for example, to
+display MIME content using \"M-! mhshow RET\""
+  :type 'boolean
+  :group 'mh-buffer)
+
+(defcustom mh-highlight-citation-p 'gnus
+  "How to highlight citations in show buffers.
+The gnus method uses a different color for each indentation."
+  :type '(choice (const :tag "Use gnus" gnus)
+                 (const :tag "Use font-lock" font-lock)
+                 (const :tag "Don't fontify" nil))
+  :group 'mh-buffer)
+
 (defvar mh-default-folder-for-message-function nil
   "Function to select a default folder for refiling or Fcc.
 If set to a function, that function is called with no arguments by
 `\\[mh-refile-msg]' and `\\[mh-to-fcc]' to get a default when
 prompting the user for a folder.  The function is called from within a
-save-excursion, with point at the start of the message.  It should
+`save-excursion', with point at the start of the message.  It should
 return the folder to offer as the refile or Fcc folder, as a string
 with a leading `+' sign.  It can also return an empty string to use no
-default, or nil to calculate the default the usual way.
+default, or NIL to calculate the default the usual way.
 NOTE: This variable is not an ordinary hook;
 It may not be a list of functions.")
 
 (defvar mh-find-path-hook nil
-  "Invoked by mh-find-path while reading the user's MH profile.")
+  "Invoked by `mh-find-path' while reading the user's MH profile.")
 
 (defvar mh-folder-list-change-hook nil
   "Invoked whenever the cached folder list `mh-folder-list' is changed.")
@@ -153,58 +286,257 @@ First argument is folder name.  Second is message number.")
 (defvar mh-note-seq "%"
   "String whose first character is used to notate messages in a sequence.")
 
+(defvar mh-mail-header-separator "--------"
+  "*Line used by MH to separate headers from text in messages being composed.
+This variable should not be used directly in programs. Programs should use
+`mail-header-separator' instead. `mail-header-separator' is initialized to
+`mh-mail-header-separator' in `mh-letter-mode'; in other contexts, you may
+have to perform this initialization yourself.
+
+Do not make this a regexp as it may be the argument to `insert' and it is
+passed through `regexp-quote' before being used by functions like
+`re-search-forward'.")
+
+(defun mh-in-header-p ()
+  ;; Return non-nil if the point is in the header of a draft message.
+  (< (point) (mail-header-end)))
+
+(defun mh-header-field-end ()
+  ;; Move to the end of the current header field.
+  ;; Handles RFC 822 continuation lines.
+  (forward-line 1)
+  (while (looking-at "^[ \t]")
+    (forward-line 1))
+  (backward-char 1))		;to end of previous line
+
+(defun mh-letter-header-font-lock (limit)
+  "Return the entire mail header to font-lock.
+Argument LIMIT limits search."
+  (if (= (point) limit)
+      nil
+    (let* ((mail-header-end (save-match-data (mail-header-end)))
+           (lesser-limit (if (< mail-header-end limit) mail-header-end limit)))
+      (when (mh-in-header-p)
+        (set-match-data (list 1 lesser-limit))
+        (goto-char lesser-limit)
+        t))))
+
+(defun mh-header-field-font-lock (field limit)
+  "Return the value of a header field FIELD to font-lock.
+Argument LIMIT limits search."
+  (if (= (point) limit)
+      nil
+    (let* ((mail-header-end (mail-header-end))
+           (lesser-limit (if (< mail-header-end limit) mail-header-end limit))
+           (case-fold-search t))
+      (when (and (< (point) mail-header-end)   ;Only within header
+                 (re-search-forward (format "^%s" field) lesser-limit t))
+        (let ((match-one-b (match-beginning 0))
+              (match-one-e (match-end 0)))
+          (mh-header-field-end)
+          (if (> (point) limit)           ;Don't search for end beyond limit
+              (goto-char limit))
+          (set-match-data (list match-one-b match-one-e
+                                (1+ match-one-e) (point)))
+          t)))))
+
+(defun mh-header-to-font-lock (limit)
+  (mh-header-field-font-lock "To:" limit))
+
+(defun mh-header-cc-font-lock (limit)
+  (mh-header-field-font-lock "cc:" limit))
+
+(defun mh-header-subject-font-lock (limit)
+  (mh-header-field-font-lock "Subject:" limit))
+
+(defvar mh-show-to-face 'mh-show-to-face
+  "Face for highlighting the To: header field.")
+(if (boundp 'facemenu-unlisted-faces)
+    (add-to-list 'facemenu-unlisted-faces "^mh-show"))
+(defface mh-show-to-face
+  '((((class grayscale) (background light))
+     (:foreground "DimGray" :underline t))
+    (((class grayscale) (background dark))
+     (:foreground "LightGray" :underline t))
+    (((class color) (background light)) (:foreground "SaddleBrown"))
+    (((class color) (background dark))  (:foreground "burlywood"))
+    (t (:underline t)))
+  "Face for highlighting the To: header field."
+  :group 'mh-buffer)
+
+(defvar mh-show-from-face 'mh-show-from-face
+  "Face for highlighting the From: header field.")
+(defface mh-show-from-face
+  '((((class color) (background light))
+     (:foreground "red3"))
+    (((class color) (background dark))
+     (:foreground "cyan"))
+    (t
+     (:bold t)))
+  "Face for highlighting the From: header field."
+  :group 'mh-buffer)
+
+(defvar mh-folder-subject-face 'mh-folder-subject-face
+  "Face for highlighting subject text in MH-Folder buffers.")
+(if (boundp 'facemenu-unlisted-faces)
+    (add-to-list 'facemenu-unlisted-faces "^mh-folder"))
+(defface mh-folder-subject-face
+  '((((class color) (background light))
+     (:foreground "blue4"))
+    (((class color) (background dark))
+     (:foreground "yellow"))
+    (t
+     (:bold t)))
+  "Face for highlighting subject text in MH-Folder buffers."
+  :group 'mh)
+(defvar mh-show-subject-face 'mh-show-subject-face
+  "Face for highlighting the Subject header field.")
+(copy-face 'mh-folder-subject-face 'mh-show-subject-face)
+
+(eval-after-load "font-lock"
+  '(progn
+     (defvar mh-show-cc-face 'mh-show-cc-face
+       "Face for highlighting cc header fields.")
+     (copy-face 'font-lock-variable-name-face 'mh-show-cc-face)
+     (defvar mh-show-date-face 'mh-show-date-face
+       "Face for highlighting the Date header field.")
+     (copy-face 'font-lock-type-face 'mh-show-date-face)
+     (defvar mh-show-header-face 'mh-show-header-face
+       "Face used to deemphasize unspecified header fields.")
+     (copy-face 'font-lock-string-face 'mh-show-header-face)
+     
+     (defvar mh-show-font-lock-keywords
+       '(("^\\(From:\\|Sender:\\)\\(.*\\)"
+          (1 'default) (2 mh-show-from-face))
+         (mh-header-to-font-lock
+          (0 'default) (1 mh-show-to-face))
+         (mh-header-cc-font-lock
+	  (0 'default) (1 mh-show-cc-face))
+         ("^\\(Reply-To:\\|Return-Path:\\)\\(.*\\)$"
+          (1 'default) (2 mh-show-from-face))
+         (mh-header-subject-font-lock
+          (0 'default) (1 mh-show-subject-face))
+         ("^\\(Apparently-To:\\|Newsgroups:\\)\\(.*\\)"
+          (1 'default) (2 mh-show-cc-face))
+         ("^\\(In-reply-to\\|Date\\):\\(.*\\)$"
+          (1 'default) (2 mh-show-date-face))
+         (mh-letter-header-font-lock (0 mh-show-header-face append t)))
+       "Additional expressions to highlight in MH-show mode.")
+     
+     (defvar mh-show-font-lock-keywords-with-cite
+       (eval-when-compile
+         (let* ((cite-chars "[>|}]")
+                (cite-prefix "A-Za-z")
+                (cite-suffix (concat cite-prefix "0-9_.@-`'\"")))
+           (append
+            mh-show-font-lock-keywords
+            (list
+             ;; Use MATCH-ANCHORED to effectively anchor the regexp left side.
+             `(,cite-chars
+               (,(concat "\\=[ \t]*"
+                         "\\(\\([" cite-prefix "]+[" cite-suffix "]*\\)?"
+                         "\\(" cite-chars "[ \t]*\\)\\)+"
+                         "\\(.*\\)")
+                (beginning-of-line) (end-of-line)
+                (2 font-lock-constant-face nil t)
+                (4 font-lock-comment-face nil t)))))))
+       "Additional expressions to highlight in MH-show mode.")
+     ))
+
+(defun mh-gnus-article-highlight-citation ()
+  "Highlight cited text in current buffer using gnus."
+  (interactive)
+  (require 'gnus-cite)
+  (let ((modified (buffer-modified-p))
+        (gnus-article-buffer (buffer-name))
+        (gnus-cite-face-list
+         '(gnus-cite-face-2 gnus-cite-face-3 gnus-cite-face-4 gnus-cite-face-5
+           gnus-cite-face-6 gnus-cite-face-7 gnus-cite-face-8 gnus-cite-face-9
+           gnus-cite-face-10 gnus-cite-face-11 gnus-cite-face-1)))
+    (gnus-article-highlight-citation t)
+    (set-buffer-modified-p modified)))
+
 ;;; Internal bookkeeping variables:
 
 ;; The value of `mh-folder-list-change-hook' is called whenever
 ;; mh-folder-list variable is set.
-(defvar mh-folder-list nil)		;List of folder names for completion.
+;; List of folder names for completion.
+(defvar mh-folder-list nil)
 
 ;; Cached value of the `Path:' component in the user's MH profile.
-(defvar mh-user-path nil)		;User's mail folder directory.
+;; User's mail folder directory.
+(defvar mh-user-path nil)
 
-;; An mh-draft-folder of nil means do not use a draft folder.
+;; An mh-draft-folder of NIL means do not use a draft folder.
 ;; Cached value of the `Draft-Folder:' component in the user's MH profile.
-(defvar mh-draft-folder nil)		;Name of folder containing draft messages.
+;; Name of folder containing draft messages.
+(defvar mh-draft-folder nil)
 
 ;; Cached value of the `Unseen-Sequence:' component in the user's MH profile.
-(defvar mh-unseen-seq nil)		;Name of the Unseen sequence.
+;; Name of the Unseen sequence.
+(defvar mh-unseen-seq nil)
 
-;; Cached value of the `Previous-Sequence:' component in the user's MH profile.
-(defvar mh-previous-seq nil)		;Name of the Previous sequence.
+;; Cached value of the `Previous-Sequence:' component in the user's MH
+;; profile.
+;; Name of the Previous sequence.
+(defvar mh-previous-seq nil)
 
 ;; Cached value of the `Inbox:' component in the user's MH profile,
 ;; or "+inbox" if no such component.
-(defvar mh-inbox nil)			;Name of the Inbox folder.
+;; Name of the Inbox folder.
+(defvar mh-inbox nil)
 
-(defconst mh-temp-buffer " *mh-temp*")	;Name of mh-e scratch buffer.
+;; Name of mh-e scratch buffer.
+(defconst mh-temp-buffer " *mh-temp*")
 
-(defvar mh-previous-window-config nil)	;Window configuration before mh-e command.
+;; Name of the mh-e folder list buffer.
+(defconst mh-temp-folders-buffer "*Folders*")
+
+;; Name of the mh-e sequences list buffer.
+(defconst mh-temp-sequences-buffer "*Sequences*")
+
+;; Window configuration before mh-e command.
+(defvar mh-previous-window-config nil)
+
+;;Non-nil means next SPC or whatever goes to next undeleted message.
+(defvar mh-page-to-next-msg-p nil)
 
 ;;; Internal variables local to a folder.
 
-(defvar mh-current-folder nil)		;Name of current folder, a string.
+;; Name of current folder, a string.
+(defvar mh-current-folder nil)
 
-(defvar mh-show-buffer nil)		;Buffer that displays message for this folder.
+;; Buffer that displays message for this folder.
+(defvar mh-show-buffer nil)
 
-(defvar mh-folder-filename nil)		;Full path of directory for this folder.
+;; Full path of directory for this folder.
+(defvar mh-folder-filename nil)
   
-(defvar mh-msg-count nil)		;Number of msgs in buffer.
+;;Number of msgs in buffer.
+(defvar mh-msg-count nil)
 
-(defvar mh-showing nil)			;If non-nil, show the message in a separate window.
+;; If non-nil, show the message in a separate window.
+(defvar mh-showing-mode nil)
 
 ;;; This holds a documentation string used by describe-mode.
-(defun mh-showing ()
-  "When moving to a new message in the Folder window,
-also show it in a separate Show window."
-  nil)
+(defun mh-showing-mode (&optional arg)
+  "Change whether messages should be displayed.
+With arg, display messages iff ARG is positive."
+  (setq mh-showing-mode
+	(if (null arg)
+	    (not mh-showing-mode)
+	  (> (prefix-numeric-value arg) 0))))
 
-(defvar mh-seq-list nil)		;The sequences of this folder.  An alist of (seq . msgs).
+;; The sequences of this folder.  An alist of (seq . msgs).
+(defvar mh-seq-list nil)
 
-(defvar mh-seen-list nil)		;List of displayed messages to be removed from the Unseen sequence.
+;; List of displayed messages to be removed from the Unseen sequence.
+(defvar mh-seen-list nil)
 
 ;; If non-nil, show buffer contains message with all headers.
 ;; If nil, show buffer contains message processed normally.
-(defvar mh-showing-with-headers nil)	;Showing message with headers or normally.
+;; Showing message with headers or normally.
+(defvar mh-showing-with-headers nil)
 
 
 ;;; mh-e macros
@@ -254,23 +586,35 @@ also show it in a separate Show window."
 ;;; Ensure new buffers won't get this mode if default-major-mode is nil.
 (put 'mh-show-mode 'mode-class 'special)
 
-(defun mh-show-mode ()
+(define-derived-mode mh-show-mode text-mode "MH-Show"
   "Major mode for showing messages in mh-e.
-The value of mh-show-mode-hook is called when a new message is displayed."
-  (kill-all-local-variables)
-  (setq major-mode 'mh-show-mode)
-  (mh-set-mode-name "MH-Show")
-  (run-hooks 'mh-show-mode-hook))
-
+The value of `mh-show-mode-hook' is called when a new message is displayed."
+  (set (make-local-variable 'mail-header-separator) mh-mail-header-separator)
+  (mh-show-unquote-From)
+  (when mh-show-use-goto-addr
+    (if (not (featurep 'goto-addr))
+        (load "goto-addr" t t))
+    (if (fboundp 'goto-address)
+        (goto-address)))
+  (make-local-variable 'font-lock-defaults)
+  (set (make-local-variable 'font-lock-support-mode) nil)
+  (cond
+   ((equal mh-highlight-citation-p 'font-lock)
+    (setq font-lock-defaults '(mh-show-font-lock-keywords-with-cite t)))
+   ((equal mh-highlight-citation-p 'gnus)
+    (setq font-lock-defaults '(mh-show-font-lock-keywords t))
+    (mh-gnus-article-highlight-citation))
+   (t
+    (setq font-lock-defaults '(mh-show-font-lock-keywords t)))))
 
 (defun mh-maybe-show (&optional msg)
   ;; If in showing mode, then display the message pointed to by the cursor.
-  (if mh-showing (mh-show msg)))
+  (if mh-showing-mode (mh-show msg)))
 
 (defun mh-show (&optional message)
   "Show MESSAGE (default: message at cursor).
 Force a two-window display with the folder window on top (size
-mh-summary-height) and the show buffer below it.
+`mh-summary-height') and the show buffer below it.
 If the message is already visible, display the start of the message.
 
 Display of the message is controlled by setting the variables
@@ -283,11 +627,17 @@ Type \"\\[mh-header-display]\" to see the message with all its headers."
        (mh-invalidate-show-buffer))
   (mh-show-msg message))
 
+(defun mh-show-mouse (EVENT)
+  "Move point to mouse EVENT and show message."
+  (interactive "e")
+  (mouse-set-point EVENT)
+  (mh-show))
 
 (defun mh-show-msg (msg)
   (if (not msg)
       (setq msg (mh-get-msg-num t)))
-  (setq mh-showing t)
+  (mh-showing-mode t)
+  (setq mh-page-to-next-msg-p nil)
   (let ((folder mh-current-folder)
 	(clean-message-header mh-clean-message-header)
 	(show-window (get-buffer-window mh-show-buffer)))
@@ -305,8 +655,38 @@ Type \"\\[mh-header-display]\" to see the message with all its headers."
       (shrink-window (- (window-height) mh-summary-height)))
   (mh-recenter nil)
   (if (not (memq msg mh-seen-list)) (setq mh-seen-list (cons msg mh-seen-list)))
+  (when mh-update-sequences-after-mh-show
+    (mh-update-sequences))
   (run-hooks 'mh-show-hook))
 
+
+(defun mh-decode-quoted-printable ()
+  ;; Run mimedecode commmand on current buffer, replacing it contents.
+  (let ((case-fold-search t))
+    (goto-char (point-min))
+    (when (and (re-search-forward
+                "^content-transfer-encoding:[ \t]*quoted-printable"
+                nil t)
+               (search-forward "\n\n" nil t))
+      (message "Converting quoted-printable characters...")
+      (let ((modified (buffer-modified-p))
+            (command "mimedecode"))
+        (shell-command-on-region (point-min) (point-max) command t t)
+        (if (fboundp 'deactivate-mark)
+            (deactivate-mark))
+        (set-buffer-modified-p modified))
+      (message "Converting quoted-printable characters... done."))))
+
+
+(defun mh-show-unquote-From ()
+  ;; Decode >From at beginning of lines for mh-show-mode
+  (save-excursion
+    (let ((modified (buffer-modified-p))
+          (case-fold-search nil))
+      (goto-char (mail-header-end))
+      (while (re-search-forward "^>From" nil t)
+        (replace-match "From"))
+      (set-buffer-modified-p modified))))
 
 (defun mh-display-msg (msg-num folder)
   ;; Display message NUMBER of FOLDER.
@@ -335,6 +715,8 @@ Type \"\\[mh-header-display]\" to see the message with all its headers."
 					   (list "-form" formfile))
 				       msg-filename)
 	     (insert-file-contents msg-filename))
+           (if mh-decode-quoted-printable
+               (mh-decode-quoted-printable))
 	   (goto-char (point-min))
 	   (cond (clean-message-header
 		  (mh-clean-msg-header (point-min)
@@ -395,7 +777,7 @@ Type \"\\[mh-header-display]\" to see the message with all its headers."
   ;; pointing to a message.
   (save-excursion
     (beginning-of-line)
-    (cond ((looking-at mh-msg-number-regexp)
+    (cond ((looking-at mh-scan-msg-number-regexp)
 	   (string-to-int (buffer-substring (match-beginning 1)
 					    (match-end 1))))
 	  (error-if-no-message
@@ -417,7 +799,9 @@ Type \"\\[mh-header-display]\" to see the message with all its headers."
   ;; regular expression specifying the lines to display, otherwise
   ;; INVISIBLE-HEADERS contains a regular expression specifying lines to
   ;; delete from the header.
-  (let ((case-fold-search t))
+  (let ((case-fold-search t)
+        (after-change-functions nil))   ;Work around emacs-20 font-lock bug
+					;causing an endless loop.
     (save-restriction
       (goto-char start)
       (if (search-forward "\n\n" nil 'move)
@@ -442,18 +826,19 @@ Type \"\\[mh-header-display]\" to see the message with all its headers."
 
 
 (defun mh-recenter (arg)
-  ;; Like recenter but with two improvements: nil arg means recenter,
-  ;; and only does anything if the current buffer is in the selected
-  ;; window.  (Commands like save-some-buffers can make this false.)
+  ;; Like recenter but with two improvements:
+  ;;  - only does anything if the current buffer is in the selected
+  ;;    window.  (Commands like save-some-buffers can make this false.)
+  ;;  - nil arg means recenter as with C-u prefix
   (if (eq (get-buffer-window (current-buffer))
 	  (selected-window))
+      ;; '(4) is the same as C-u prefix argument.
       (recenter (if arg arg '(4)))))
 
 
 (defun mh-delete-line (lines)
   ;; Delete version of kill-line.
   (delete-region (point) (progn (forward-line lines) (point))))
-
 
 (defun mh-notate (msg notation offset)
   ;; Marks MESSAGE with the character NOTATION at position OFFSET.
@@ -489,10 +874,10 @@ Type \"\\[mh-header-display]\" to see the message with all its headers."
 
 (defun mh-goto-msg (number &optional no-error-if-no-message dont-show)
   "Position the cursor at message NUMBER.
-Optional non-nil second argument means return nil instead of
-signaling an error if message does not exist; in this case,
-the cursor is positioned near where the message would have been.
-Non-nil third argument means not to show the message."
+Optional non-nil second argument NO-ERROR-IF-NO-MESSAGE means return nil
+instead of signaling an error if message does not exist; in this case, the
+cursor is positioned near where the message would have been.
+Non-nil third argument DONT-SHOW means not to show the message."
   (interactive "NGo to message: ")
   (setq number (prefix-numeric-value number)) ;Emacs 19
   ;; This basic routine tries to be as fast as possible,
@@ -524,12 +909,12 @@ Non-nil third argument means not to show the message."
 
 (defun mh-msg-search-pat (n)
   ;; Return a search pattern for message N in the scan listing.
-  (format mh-msg-search-regexp n))
+  (format mh-scan-msg-search-regexp n))
 
 
 (defun mh-get-profile-field (field)
   ;; Find and return the value of FIELD in the current buffer.
-  ;; Returns nil if the field is not in the buffer.
+  ;; Returns NIL if the field is not in the buffer.
   (let ((case-fold-search t))
     (goto-char (point-min))
     (cond ((not (re-search-forward (format "^%s" field) nil t)) nil)
@@ -604,13 +989,12 @@ Non-nil third argument means not to show the message."
   (and (file-regular-p file) (file-executable-p file)))
 
 (defun mh-find-progs ()
-  "Find the `inc' and `mhl' programs of MH.
+  "Find the directories for the installed MH/nmh binaries and config files.
 Set the `mh-progs' and `mh-lib', and `mh-lib-progs' variables to the
-directory names."
-  (or (and mh-progs (mh-file-command-p (expand-file-name "inc" mh-progs)))
-      (setq mh-progs
-	    (or (mh-path-search exec-path "inc")
-		(mh-path-search '("/usr/local/bin/mh/"
+directory names and set `mh-nmh-p' if we detect nmh instead of MH."
+  (let ((path (or (mh-path-search exec-path "mhparam")
+		 (mh-path-search '("/usr/local/nmh/bin" ; nmh default
+				  "/usr/local/bin/mh/"
 				  "/usr/local/mh/"
 				  "/usr/bin/mh/" ;Ultrix 4.2
 				  "/usr/new/mh/" ;Ultrix <4.2
@@ -618,41 +1002,28 @@ directory names."
 				  "/usr/pkg/bin/"	; NetBSD
 				  "/usr/local/bin/"
 				  )
-				"inc"))))
-  (or (null mh-progs)
-      (let ((mh-base mh-progs))
-	(while (let ((dir-name (file-name-nondirectory
-				(directory-file-name mh-base))))
-		 (or (string= "mh" dir-name)
-		     (string= "bin" dir-name)))
-	  (setq mh-base
-		(file-name-directory (directory-file-name mh-base))))
-	(or (and mh-lib 
-		 (file-exists-p (expand-file-name "components" mh-lib)))
-	    (setq mh-lib
-		  ;; Look for a lib directory roughly parallel to the bin
-		  ;; directory:  Strip any trailing `mh' or `bin' path
-		  ;; components, then look for lib/mh or mh/lib.
-		  (or (mh-path-search
-		       (mapcar (lambda (p) (expand-file-name p mh-base))
-			       '("lib/mh" "etc/nmh" "/etc/nmh" "mh/lib" "etc" "lib"))
-		       "components"
-		       'file-exists-p))))
-	(or (and mh-lib-progs
-		 (mh-file-command-p (expand-file-name "mhl" mh-lib-progs)))
-	    (setq mh-lib-progs
-		  (or (mh-path-search
-		       (mapcar (lambda (p) (expand-file-name p mh-base))
-			       '("lib/mh" "libexec/nmh" "lib/nmh" "mh/lib" "lib"))
-		       "mhl")
-		      (mh-path-search '("/usr/local/bin/mh/") "mhl")
-		      (mh-path-search exec-path "mhl") ;unlikely
-		      )))))
-  (unless (and mh-progs mh-lib mh-lib-progs)
-    (error "Cannot find the commands `inc' and `mhl' and the file `components'"))
-  (setq mh-nmh-p (not (null
-		       (or (string-match "nmh" mh-lib-progs)
-			   (string-match "nmh" mh-lib))))))
+				 "mhparam"))))
+    (if (not path)
+      (error "Unable to find the `mhparam' command"))
+    (save-excursion
+      (let ((tmp-buffer (get-buffer-create mh-temp-buffer)))
+	(set-buffer tmp-buffer)
+	(unwind-protect
+	    (progn
+	      (call-process (expand-file-name "mhparam" path)
+			    nil '(t nil) nil "libdir" "etcdir")
+	      (goto-char (point-min))
+	      (if (search-forward-regexp "^libdir:\\s-\\(\\S-+\\)\\s-*$" nil t)
+		  (setq mh-lib-progs (match-string 1)
+			mh-lib mh-lib-progs
+			mh-progs path))
+	      (goto-char (point-min))
+	      (if (search-forward-regexp "^etcdir:\\s-\\(\\S-+\\)\\s-*$" nil t)
+		  (setq mh-lib (match-string 1)
+			mh-nmh-p t)))
+	  (kill-buffer tmp-buffer))))
+    (unless (and mh-progs mh-lib mh-lib-progs)
+	(error "Unable to determine paths from `mhparam' command"))))
 
 (defun mh-path-search (path file &optional func-p)
   ;; Search PATH, a list of directory names, for FILE.
@@ -713,17 +1084,6 @@ directory names."
 	   (mh-add-to-sequence seq msgs)
 	   (mh-notate-seq seq mh-note-seq (1+ mh-cmd-note))))))
 
-(autoload 'mh-add-to-sequence "mh-seq")
-(autoload 'mh-notate-seq "mh-seq")
-(autoload 'mh-read-seq-default "mh-seq")
-(autoload 'mh-map-to-seq-msgs "mh-seq")
-
-
-(defun mh-set-mode-name (mode-name-string)
-  ;; Set the mode-name and ensure that the mode line is updated.
-  (setq mode-name mode-name-string)
-  (force-mode-line-update t))
-
 (defvar mh-folder-hist nil)
 
 (defun mh-prompt-for-folder (prompt default can-create)
@@ -747,6 +1107,8 @@ directory names."
 	   (setq read-name default))
 	  ((not (mh-folder-name-p read-name))
 	   (setq read-name (format "+%s" read-name))))
+    (if (or (not read-name) (equal "" read-name))
+        (error "No folder specified"))
     (setq folder-name read-name)
     (cond ((and (> (length folder-name) 0)
 		(eq (aref folder-name (1- (length folder-name))) ?/))
@@ -848,7 +1210,7 @@ directory names."
 
 
 (defun mh-folder-name-p (name)
-  ;; Return non-nil if NAME is possibly the name of a folder.
+  ;; Return non-NIL if NAME is possibly the name of a folder.
   ;; A name (a string or symbol) can be a folder name if it begins with "+".
   (if (symbolp name)
       (eq (aref (symbol-name name) 0) ?+)
@@ -888,7 +1250,7 @@ directory names."
 	       ;; the shell hacks necessary here shows just how broken Unix is
 	       (apply 'call-process "/bin/sh" nil t nil "-c"
 		      (format "%s %s ${1+\"$@\"}"
-			      env 
+			      env
 			      (expand-file-name command mh-progs))
 		      command
 		      (mh-list-to-string args))

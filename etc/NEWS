@@ -59,6 +59,11 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
+** MH-E changes.
+
+Upgraded to mh-e version 6.1.1. There have been major changes since
+version 5.0.2; see MH-E-NEWS for details.
+
 +++
 ** The `emacsclient' understand the options `--eval' and `--display'
 which tell Emacs resp. to evaluate the given elisp expressions and

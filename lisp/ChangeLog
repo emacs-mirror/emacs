@@ -1,3 +1,19 @@
+2002-10-01  Bill Wohler  <wohler@newt.com>
+
+	* mail/mh-comp.el, mail/mh-e.el, mail/mh-funcs.el,
+	mail/mh-mime.el, mail/mh-pick.el, mail/mh-seq.el,
+	mail/mh-utils.el, mail/mh-xemacs-compat.el, mail/reply2.pbm,
+	mail/reply2.xpm, toolbar/execute.pbm, toolbar/execute.xpm,
+	toolbar/page-down.pbm, toolbar/page-down.xpm, toolbar/refile.pbm,
+	toolbar/refile.xpm, toolbar/repack.pbm, toolbar/repack.xpm,
+	toolbar/rescan.pbm, toolbar/rescan.xpm, toolbar/show.pbm,
+	toolbar/show.xpm, toolbar/widen.pbm, toolbar/widen.xpm: Upgraded
+	to mh-e version 6.1.1. Full ChangeLog available in
+	http://prdownloads.sourceforge.net/mh-e/mh-e-6.1.tgz?download .
+	There were no user-visible changes in 6.1.1 from 6.1--only the
+	section of the Makefile that installs the files into Emacs was
+	changed.
+
 2002-10-01  Juanma Barranquero  <lektu@terra.es>
 
 	* eshell/esh-module.el (eshell-load-defgroups): Add "no-byte-compile: t"

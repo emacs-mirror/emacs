@@ -1,7 +1,11 @@
 ;;; mh-seq.el --- mh-e sequences support
-;; Time-stamp: <2001-07-14 13:10:33 pavel>
 
-;; Copyright (C) 1993, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001, 2002 Free Software Foundation, Inc.
+
+;; Author: Bill Wohler <wohler@newt.com>
+;; Maintainer: Bill Wohler <wohler@newt.com>
+;; Keywords: mail
+;; See: mh-e.el
 
 ;; This file is part of GNU Emacs.
 
@@ -26,7 +30,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-seq.el,v 1.6 1996/01/29 23:16:57 kwzh Exp $
+;; $Id: mh-seq.el,v 1.14 2002/04/07 19:20:56 wohler Exp $
 
 ;;; Code:
 
@@ -53,7 +57,7 @@
   "List the sequences defined in FOLDER."
   (interactive (list (mh-prompt-for-folder "List sequences in"
 					   mh-current-folder t)))
-  (let ((temp-buffer mh-temp-buffer)
+  (let ((temp-buffer mh-temp-sequences-buffer)
 	(seq-list mh-seq-list))
     (with-output-to-temp-buffer temp-buffer
       (save-excursion
@@ -78,6 +82,8 @@
 	    (insert "\n"))
 	  (setq seq-list (cdr seq-list)))
 	(goto-char (point-min))
+	(view-mode 1)
+	(setq view-exit-action 'kill-buffer)
 	(message "Listing sequences...done")))))
 
 
@@ -106,13 +112,16 @@ Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
 	     (setq mh-mode-line-annotation (symbol-name sequence))
 	     (mh-make-folder-mode-line)
 	     (mh-recenter nil)
+             (if (and (boundp 'tool-bar-mode) tool-bar-mode)
+                 (set (make-local-variable 'tool-bar-map)
+                      mh-folder-seq-tool-bar-map))
 	     (setq mh-narrowed-to-seq sequence)))
 	  (t
 	   (error "No messages in sequence `%s'" (symbol-name sequence))))))
 
 
 (defun mh-put-msg-in-seq (msg-or-seq sequence)
-  "Add MESSAGE(s) (default: displayed message) to SEQUENCE.
+  "Add MSG-OR-SEQ (default: displayed message) to SEQUENCE.
 If optional prefix argument provided, then prompt for the message sequence."
   (interactive (list (if current-prefix-arg
 			 (mh-read-seq-default "Add messages from" t)
@@ -129,14 +138,42 @@ If optional prefix argument provided, then prompt for the message sequence."
 (defun mh-widen ()
   "Remove restrictions from current folder, thereby showing all messages."
   (interactive)
-  (if mh-narrowed-to-seq
+  (let ((msg (mh-get-msg-num nil)))
+    (when mh-narrowed-to-seq
       (with-mh-folder-updating (t)
-	(delete-region (point-min) (point-max))
-	(widen)
-	(setq mh-mode-line-annotation mh-non-seq-mode-line-annotation)
-	(mh-make-folder-mode-line)))
+        (delete-region (point-min) (point-max))
+        (widen)
+        (setq mh-mode-line-annotation mh-non-seq-mode-line-annotation)
+        (mh-make-folder-mode-line))
+      (if msg
+          (mh-goto-msg msg t nil))))
+  (mh-notate-deleted-and-refiled)
+  (if (and (boundp 'tool-bar-mode) tool-bar-mode)
+      (set (make-local-variable 'tool-bar-map) mh-folder-tool-bar-map))
   (setq mh-narrowed-to-seq nil))
 
+
+;; FIXME?  We may want to clear all notations and add one for current-message
+;;         and process user sequences.
+(defun mh-notate-deleted-and-refiled ()
+  ;; notate the sequence 'deleted as well as all the sequences in
+  ;; mh-refile-list.
+  ;;
+  ;; First, the 'deleted sequence is straightforward
+  (mh-notate-seq 'deleted mh-note-deleted mh-cmd-note)
+  ;; Second, refiles are stored in multiple sequences, one for each folder
+  ;; name to refile to.  This list of buffer names is stored in
+  ;; mh-refile-list
+  (mh-mapc
+   (function
+    (lambda (dest)
+      ;; foreach folder name, get the keyed sequence from mh-seq-list
+      (let ((msg-list (cdr (assoc dest mh-seq-list))))
+        (mapcar (lambda (msg)
+                  ;; foreach msg in a sequence, do the mh-notate
+                  (mh-notate msg mh-note-refiled mh-cmd-note))
+                msg-list))))
+   mh-refile-list))
 
 
 ;;; Commands to manipulate sequences.  Sequences are stored in an alist
@@ -234,5 +271,119 @@ If optional prefix argument provided, then prompt for the message sequence."
       (setq end (point))
       (goto-char location)
       (insert-buffer-substring (current-buffer) beginning-of-line end))))
+
+(defun mh-region-to-sequence (begin end)
+  "Define sequence 'region as the messages between point and mark.
+When called programmatically, use arguments BEGIN and END to define region."
+  (interactive "r")
+  (mh-delete-seq-locally 'region)
+  (save-excursion
+    (goto-char begin)
+    (while (<= (point) end)
+      (mh-add-msgs-to-seq (mh-get-msg-num t) 'region t)
+      (forward-line 1))))
+
+
+;;; Commands to handle new 'subject sequence.
+;;; Or "Poor man's threading" by psg.
+(defun mh-subject-thread-to-sequence (all)
+  "Put all following messages with same subject in sequence 'subject.
+If arg ALL is t, move to beginning of folder buffer to collect all messages.
+If arg ALL is nil, collect only messages fron current one on forward.
+Return number of messages put in the sequence:
+ nil -> there was no subject line.
+ 0   -> there were no later messages with the same subject (sequence not made)
+ >1  -> the total number of messages including current one."
+  (if (not (eq major-mode 'mh-folder-mode))
+      (error "Not in a folder buffer"))
+  (save-excursion
+    (beginning-of-line)
+    (if (or (not (looking-at mh-scan-subject-regexp))
+            (not (match-string 2))
+            (string-equal "" (match-string 2)))
+        (progn (message "No subject line.")
+               nil)
+      (let ((subject (match-string-no-properties 2))
+            (end (point-max))
+            (list))
+        (if (> (length subject) 41)
+            (setq subject (substring subject 0 41)))
+        (save-excursion
+          (if all
+              (goto-char (point-min)))
+          (while (re-search-forward mh-scan-subject-regexp nil t)
+            (let ((this-subject (match-string-no-properties 2)))
+              (if (> (length this-subject) 41)
+                  (setq this-subject (substring this-subject 0 41)))
+              (if (string-equal this-subject subject)
+                  (setq list (cons (mh-get-msg-num t) list))))))
+        (cond
+         (list
+          ;; If we created a new sequence, add the initial message to it too.
+          (if (not (member (mh-get-msg-num t) list))
+              (setq list (cons (mh-get-msg-num t) list)))
+          (mh-delete-seq-locally 'subject)
+          ;; sort the result into a sequence
+          (let ((sorted-list (sort (copy-sequence list) 'mh-lessp))
+                (msg))
+            (while sorted-list
+              (mh-add-msgs-to-seq (car sorted-list) 'subject t)
+              (setq sorted-list (cdr sorted-list)))
+            (safe-length list)))
+         (t
+          0))))))
+
+(defun mh-narrow-to-subject-thread ()
+  "Narrow to a sequence containing all following messages with same subject."
+  (interactive)
+  (let ((num (mh-get-msg-num nil))
+        (count (mh-subject-thread-to-sequence t)))
+    (cond
+     ((not count)                       ; No subject line, delete msg anyway
+      nil)
+     ((= 0 count)                       ; No other msgs, delete msg anyway.
+      (message "No other messages with same Subject following this one.")
+      nil)
+     (t                                 ; We have a subject sequence.
+      (message "Found %d messages for subject sequence." count)
+      (mh-narrow-to-seq 'subject)
+      (if (numberp num)
+          (mh-goto-msg num t t))))))
+
+(defun mh-toggle-subject-thread ()
+  "Narrow to or widen from a sequence containing current subject sequence."
+  (interactive)
+  (if (and (stringp mh-mode-line-annotation)
+           (string-equal mh-mode-line-annotation "subject"))
+      (progn
+        (goto-char (point-min))
+        (mh-widen))
+    (mh-narrow-to-subject-thread)))
+
+(defun mh-delete-subject-thread ()
+  "Mark all following messages with same subject to be deleted."
+  (interactive)
+  (let ((count (mh-subject-thread-to-sequence nil)))
+    (cond
+     ((not count)                       ; No subject line, delete msg anyway
+      (mh-delete-msg (mh-get-msg-num t)))
+     ((= 0 count)                       ; No other msgs, delete msg anyway.
+      (message "No other messages with same Subject following this one.")
+      (mh-delete-msg (mh-get-msg-num t)))
+     (t                                 ; We have a subject sequence.
+      (message "Marked %d messages for deletion" count)
+      (mh-delete-msg 'subject)))))
+
+(defun mh-next-unseen-subject-thread ()
+  "Get the next unseen subject thread."
+  (interactive)
+  (if (and mh-mode-line-annotation
+           (string-equal mh-mode-line-annotation "subject"))
+      (goto-char (point-min)))
+  (if (or (not mh-mode-line-annotation)
+          (not (string-equal mh-mode-line-annotation "unseen")))
+      (mh-narrow-to-seq 'unseen))
+  (mh-next-undeleted-msg)
+  (mh-narrow-to-subject-thread))
 
 ;;; mh-seq.el ends here

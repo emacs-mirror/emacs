@@ -1,11 +1,11 @@
 ;;; mh-e.el --- GNU Emacs interface to the MH mail system
 
-;; Copyright (C) 1985,86,87,88,90,92,93,94,95,97,2000  Free Software Foundation, Inc.
+;; Copyright (C) 1985,86,87,88,90,92,93,94,95,97,2000,2001,2002 Free Software Foundation, Inc.
 
+;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
-;; Version: 5.0.2
+;; Version: 6.1.1
 ;; Keywords: mail
-;; Bug-reports: include `M-x mh-version' output in any correspondence
 
 ;; This file is part of GNU Emacs.
 
@@ -26,59 +26,88 @@
 
 ;;; Commentary:
 
-;; HOW TO USE:
-;; M-x mh-rmail to read mail.  Type C-h m there for a list of commands.
-;; C-u M-x mh-rmail to visit any folder.
-;; M-x mh-smail to send mail.  From within the mail reader, "m" works, too.
+;; How to Use:
+;;   M-x mh-rmail to read mail.  Type C-h m there for a list of commands.
+;;   C-u M-x mh-rmail to visit any folder.
+;;   M-x mh-smail to send mail.  From within the mail reader, "m" works, too.
 
-;; MH (Message Handler) is a powerful mail reader.  The MH newsgroup
-;; is comp.mail.mh; the mailing list is mh-users@ics.uci.edu (send to
-;; mh-users-request to be added).  See the monthly Frequently Asked
-;; Questions posting there for information on getting MH and mh-e.
+;; Your .emacs might benefit from these bindings:
+;;   (global-set-key "\C-cr" 'mh-rmail)
+;;   (global-set-key "\C-xm" 'mh-smail)
+;;   (global-set-key "\C-x4m" 'mh-smail-other-window)
 
-;; mh-e is an Emacs interface to the MH mail system.
-;; There is a mailing list for discussion of mh-e and
-;; announcements of new versions.  Send a "subscribe" message to
-;; mh-e-request@gnu.org to be added.  Do not report bugs here; mail
-;; them directly to the maintainer (see top of mh-e.el source).
-;; Include the output of M-x mh-version in any bug report.
+;; MH (Message Handler) is a powerful mail reader.
 
-;; mh-e works with GNU Emacs 18 or 19, and MH 6.
+;; The MH newsgroup is comp.mail.mh; the mailing list is mh-users@ics.uci.edu
+;; (send to mh-users-request to be added). See the monthly Frequently Asked
+;; Questions posting there for information on getting MH and mh-e:
+;;   http://www.faqs.org/faqs/mail/mh-faq/part1/preamble.html
 
-;; NB.  MH must have been compiled with the MHE compiler flag or several
+;; N.B. MH must have been compiled with the MHE compiler flag or several
 ;; features necessary for mh-e will be missing from MH commands, specifically
 ;; the -build switch to repl and forw.
 
-;; Your .emacs might benefit from these bindings:
-;; (global-set-key "\C-cr" 'mh-rmail)
-;; (global-set-key "\C-xm" 'mh-smail)
-;; (global-set-key "\C-x4m" 'mh-smail-other-window)
+;; mh-e is an Emacs interface to the MH mail system.
+
+;; mh-e is supported in GNU Emacs 20 and 21, with MH 6.8.4 and nmh 1.0.4.
+
+;; Mailing Lists:
+;;   mh-e-users@lists.sourceforge.net
+;;   mh-e-announce@lists.sourceforge.net
+;;   mh-e-devel@lists.sourceforge.net
+;;
+;;   Subscribe by sending a "subscribe" message to
+;;   <list>-request@lists.sourceforge.net, or by using the web interface at
+;;   https://sourceforge.net/mail/?group_id=13357
+
+;; Bug Reports:
+;;   https://sourceforge.net/tracker/?group_id=13357&atid=113357
+;;   Include the output of M-x mh-version in any bug report.
+
+;; Feature Requests:
+;;   https://sourceforge.net/tracker/?atid=363357&group_id=13357&func=browse
+
+;; Support:
+;;   https://sourceforge.net/tracker/?group_id=13357&atid=213357
 
 ;;; Change Log:
 
 ;; Original version for Gosling emacs by Brian Reid, Stanford, 1982.
 ;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
-;; Modified by Stephen Gildea 1988.  gildea@stop.mail-abuse.org
-(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.30 2001/09/23 17:38:22 eliz Exp $")
+;; Modified by Stephen Gildea 1988.  gildea@lcs.mit.edu
+;; Maintenance picked up by Bill Wohler <wohler@newt.com> and the
+;; SourceForge Crew <http://mh-e.sourceforge.net/>. 2001.
+
+;; $Id: mh-e.el,v 1.99.1.1 2002/10/01 19:41:43 wohler Exp $
 
 ;;; Code:
 
 (provide 'mh-e)
 (require 'mh-utils)
+(require 'gnus-util)
+(require 'easymenu)
+(if (save-match-data (string-match "XEmacs\\|Lucid" emacs-version))
+    (require 'mh-xemacs-compat))
+(eval-when-compile (require 'cl))
+
+(defconst mh-version "6.1.1" "Version number of mh-e.")
+
+;;; Initial Autoloads
+
+(autoload 'Info-goto-node "info")
 
 
 ;;; Hooks:
 
 (defgroup mh nil
-  "Emacs interface to the MH mail system"
+  "Emacs interface to the MH mail system."
   :group 'mail)
 
 (defgroup mh-hook nil
-  "Hooks to mh-e mode"
+  "Hooks to mh-e mode."
   :prefix "mh-"
   :group 'mh)
-
 
 (defcustom mh-folder-mode-hook nil
   "Invoked in MH-Folder mode on a new folder."
@@ -87,6 +116,14 @@
 
 (defcustom mh-inc-folder-hook nil
   "Invoked by \\<mh-folder-mode-map>`\\[mh-inc-folder]' after incorporating mail into a folder."
+  :type 'hook
+  :group 'mh-hook)
+
+(defcustom mh-folder-updated-hook nil
+  "Invoked when the folder actions (such as moves and deletes) are performed.
+Variables that are useful in this hook include `mh-delete-list' and
+`mh-refile-list' which can be used to see which changes are being made to
+current folder, `mh-current-folder'."
   :type 'hook
   :group 'mh-hook)
 
@@ -111,16 +148,23 @@
   :group 'mh-hook)
 
 (defcustom mh-before-quit-hook nil
-  "Invoked by \\<mh-folder-mode-map>`\\[mh-quit]' before quitting mh-e.  See also  mh-quit-hook."
+  "Invoked by \\<mh-folder-mode-map>`\\[mh-quit]' before quitting mh-e.
+See also `mh-quit-hook'."
   :type 'hook
   :group 'mh-hook)
 
 (defcustom mh-quit-hook nil
-  "Invoked after \\<mh-folder-mode-map>`\\[mh-quit]' quits mh-e.  See also  mh-before-quit-hook."
+  "Invoked after \\<mh-folder-mode-map>`\\[mh-quit]' quits mh-e.
+See also `mh-before-quit-hook'."
   :type 'hook
   :group 'mh-hook)
 
-
+(defcustom mh-unseen-updated-hook nil
+  "Invoked after the unseen sequence has been updated.
+The variable `mh-seen-list' can be used to obtain the list of messages which
+will be removed from the unseen sequence."
+  :type 'hook
+  :group 'mh-hook)
 
 ;;; Personal preferences:
 
@@ -135,8 +179,7 @@ message text is piped to this command when you type \\<mh-folder-mode-map>`\\[mh
 (defcustom mh-scan-prog "scan"
   "*Program to run to generate one-line-per-message listing of a folder.
 Normally \"scan\" or a file name linked to scan.  This file is searched
-for relative to the mh-progs directory unless it is an absolute pathname.
-Automatically becomes buffer-local when set in any fashion."
+for relative to the mh-progs directory unless it is an absolute pathname."
   :type 'string
   :group 'mh)
 (make-variable-buffer-local 'mh-scan-prog)
@@ -161,8 +204,11 @@ otherwise, your output may be truncated."
   :group 'mh)
 
 (defcustom mh-do-not-confirm nil
-  "*Non-nil means do not prompt for confirmation before some mh-e commands.
-Affects non-recoverable commands such as `mh-kill-folder' and `mh-undo-folder'."
+  "*Non-nil means do not prompt for confirmation.
+Commands such as `mh-pack-folder' prompt to confirm whether to process
+outstanding moves and deletes or not before continuing. A non-nil setting will
+perform the action--which is usually desired but cannot be retracted--without
+question."
   :type 'boolean
   :group 'mh)
 
@@ -172,25 +218,6 @@ A directory name string, or nil to use current directory."
   :type '(choice (const :tag "Current" nil)
 		 directory)
   :group 'mh)
-
-;;; Parameterize mh-e to work with different scan formats.  The defaults work
-;;; with the standard MH scan listings, in which the first 4 characters on
-;;; the line are the message number, followed by two places for notations.
-
-(defvar mh-good-msg-regexp  "^....[^D^]"
-  "Regexp specifying the scan lines that are 'good' messages.")
-
-(defvar mh-deleted-msg-regexp "^....D"
-  "Regexp matching scan lines of deleted messages.")
-
-(defvar mh-refiled-msg-regexp  "^....\\^"
-  "Regexp matching scan lines of refiled messages.")
-
-(defvar mh-valid-scan-line "^ *[0-9]"
-  "Regexp matching scan lines for messages (not error messages).")
-
-(defvar mh-cur-scan-msg-regexp "^....\\+"
-  "Regexp matching scan line for the cur message.")
 
 (defvar mh-note-deleted "D"
   "String whose first character is used to notate deleted messages.")
@@ -203,8 +230,358 @@ A directory name string, or nil to use current directory."
 
 (defvar mh-partial-folder-mode-line-annotation "select"
   "Annotation when displaying part of a folder.
-The string is displayed after the folder's name.  nil for no annotation.")
+The string is displayed after the folder's name.  NIL for no annotation.")
 
+;;; Parameterize mh-e to work with different scan formats.  The defaults work
+;;; with the standard MH scan listings, in which the first 4 characters on
+;;; the line are the message number, followed by two places for notations.
+
+(defcustom mh-scan-format-file t
+  "Specifies the format file to pass to the scan program.
+If t, the format string will be taken from the either `mh-scan-format-mh'
+or `mh-scan-format-nmh' depending on whether MH or nmh is in use.
+If nil, the default scan output will be used.
+
+If you customize the scan format, you may need to modify a few variables
+containing regexps that mh-e uses to identify specific portions of the output.
+Use `M-x apropos RET mh-scan.*regexp' to obtain a list of these variables."
+  :type '(choice (const :tag "Use mh-e scan format" t)
+                 (const :tag "Use default scan format" nil)
+                 (file  :tag "Specify a scan format file"))
+  :group 'mh)
+
+;; The following scan formats are passed to the scan program if the
+;; setting of `mh-scan-format-file' above is nil.  They are identical
+;; except the later one makes use of the nmh `decode' function to
+;; decode RFC 2047 encodings.
+
+(defvar mh-scan-format-mh
+  (concat
+   "%4(msg)"
+   "%<(cur)+%| %>"
+   "%<{replied}-"
+   "%?(nonnull(comp{to}))%<(mymbox{to})t%>"
+   "%?(nonnull(comp{cc}))%<(mymbox{cc})c%>"
+   "%?(nonnull(comp{bcc}))%<(mymbox{bcc})b%>"
+   "%?(nonnull(comp{newsgroups}))n%>"
+   "%<(zero) %>"
+   "%02(mon{date})/%02(mday{date})%<{date} %|*%>"
+   "%<(mymbox{from})%<{to}To:%14(friendly{to})%>%>"
+   "%<(zero)%17(friendly{from})%>  "
+   "%{subject}%<{body}<<%{body}%>")
+  "*Scan format string for MH, provided to the scan program via the -format arg.
+This format is identical to the default except that additional hints for
+fontification have been added to the sixth column.
+
+The values of the sixth column, in priority order, are: `-' if the
+message has been replied to, t if an address on the To: line matches
+one of the mailboxes of the current user, `c' if the Cc: line matches,
+`b' if the Bcc: line matches, and `n' if a non-empty Newsgroups: header
+is present.")
+
+(defvar mh-scan-format-nmh
+  (concat
+   "%4(msg)"
+   "%<(cur)+%| %>"
+   "%<{replied}-"
+   "%?(nonnull(comp{to}))%<(mymbox{to})t%>"
+   "%?(nonnull(comp{cc}))%<(mymbox{cc})c%>"
+   "%?(nonnull(comp{bcc}))%<(mymbox{bcc})b%>"
+   "%?(nonnull(comp{newsgroups}))n%>"
+   "%<(zero) %>"
+   "%02(mon{date})/%02(mday{date})%<{date} %|*%>"
+   "%<(mymbox{from})%<{to}To:%14(decode(friendly{to}))%>%>"
+   "%<(zero)%17(decode(friendly{from}))%>  "
+   "%(decode{subject})%<{body}<<%{body}%>")
+  "*Scan format string for nmh, provided to the scan program via the -format arg.
+This format is identical to the default except that additional hints for
+fontification have been added to the sixth column.
+
+The values of the sixth column, in priority order, are: `-' if the
+message has been replied to, t if an address on the To: line matches
+one of the mailboxes of the current user, `c' if the Cc: line matches,
+`b' if the Bcc: line matches, and `n' if a non-empty Newsgroups: header
+is present.")
+
+(defvar mh-scan-good-msg-regexp  "^\\(....\\)[^D^]"
+  "Regexp specifying the scan lines that are 'good' messages.
+The default `mh-folder-font-lock-keywords' expects this expression to contain
+at least one parenthesized expression which matches the message number.")
+
+(defvar mh-scan-deleted-msg-regexp "^\\(....\\)D"
+  "Regexp matching scan lines of deleted messages.
+The default `mh-folder-font-lock-keywords' expects this expression to contain
+at least one parenthesized expression which matches the message number.")
+
+(defvar mh-scan-refiled-msg-regexp  "^\\(....\\)\\^"
+  "Regexp matching scan lines of refiled messages.
+The default `mh-folder-font-lock-keywords' expects this expression to contain
+at least one parenthesized expression which matches the message number.")
+
+(defvar mh-scan-valid-regexp "^ *[0-9]"
+  "Regexp matching scan lines for messages (not error messages).")
+
+(defvar mh-scan-cur-msg-number-regexp "^\\(....\\+\\).*"
+  "Regexp matching scan line for the current message.
+The default `mh-folder-font-lock-keywords' expects this expression to contain
+at least one parenthesized expression which matches the message number.
+Don't disable this regexp as it's needed by non fontifying functions.")
+
+(defvar mh-scan-cur-msg-regexp "^\\(....\\+DISABLED.*\\)"
+  "Regexp matching scan line for the current message.
+The default `mh-folder-font-lock-keywords' expects this expression to contain
+at least one parenthesized expression which matches the whole line.
+To enable this feature, remove the string DISABLED from the regexp.")
+
+(defvar mh-scan-date-regexp "\\([0-9][0-9]/[0-9][0-9]\\)"
+  "Regexp matching a valid date in scan lines.
+The default `mh-folder-font-lock-keywords' expects this expression to contain
+only one parenthesized expression which matches the date field
+\(see `mh-scan-format-regexp').")
+
+(defvar mh-scan-rcpt-regexp  "\\(To:\\)\\(..............\\)"
+  "Regexp specifying the recipient in scan lines for messages we sent.
+The default `mh-folder-font-lock-keywords' expects this expression to contain
+two parenthesized expressions.  The first is expected to match the To:
+that the default scan format file generates.  The second is expected to match
+the recipient's name.")
+
+(defvar mh-scan-body-regexp "\\(<<\\([^\n]+\\)?\\)"
+  "Regexp matching the message body beginning displayed in scan lines.
+The default `mh-folder-font-lock-keywords' expects this expression to contain
+at least one parenthesized expression which matches the body text.")
+
+(defvar mh-scan-subject-regexp
+  "^...............................\\([Rr][Ee]:\\s-*\\)*\\([^<\n]*\\)"
+  "*Regexp matching the subject string in MH folder mode.
+The default `mh-folder-font-lock-keywords' expects this expression to contain
+at least two parenthesized expressions. The first is expected to match the Re:
+string, if any. The second is expected to match the subject line itself.")
+
+(defvar mh-scan-format-regexp
+  (concat "\\([bct]\\)" mh-scan-date-regexp " \\(..................\\)")
+  "Regexp matching the output of scan using `mh-scan-format-mh' or `mh-scan-format-nmh'.
+The default `mh-folder-font-lock-keywords' expects this expression to contain
+at least three parenthesized expressions. The first should match the
+fontification hint, the second is found in `mh-scan-date-regexp', and the
+third should match the user name.")
+
+(defvar mh-folder-followup-face 'mh-folder-followup-face
+  "Face for highlighting Re: (followup) subject text in MH-Folder buffers.")
+(defface mh-folder-followup-face
+  '((((class color) (background light))
+     (:foreground "blue3"))
+    (((class color) (background dark))
+     (:foreground "LightGoldenRod"))
+    (t
+     (:bold t)))
+  "Face for highlighting Re: (followup) subject text in MH-Folder buffers."
+  :group 'mh)
+(defvar mh-folder-address-face 'mh-folder-address-face
+  "Face for highlighting the address in MH-Folder buffers.")
+(copy-face 'mh-folder-subject-face 'mh-folder-address-face)
+(defvar mh-folder-scan-format-face 'mh-folder-scan-format-face
+  "Face for highlighting `mh-scan-format-regexp' matches in MH-Folder buffers.")
+(copy-face 'mh-folder-followup-face 'mh-folder-scan-format-face)
+
+(defvar mh-folder-date-face 'mh-folder-date-face
+  "Face for highlighting the date in MH-Folder buffers.")
+(defface mh-folder-date-face
+  '((((class color) (background light))
+     (:foreground "snow4"))
+    (((class color) (background dark))
+     (:foreground "snow3"))
+    (t
+     (:bold t)))
+  "Face for highlighting the date in MH-Folder buffers."
+  :group 'mh)
+
+(defvar mh-folder-msg-number-face 'mh-folder-msg-number-face
+  "Face for highlighting the message number in MH-Folder buffers.")
+(defface mh-folder-msg-number-face
+  '((((class color) (background light))
+     (:foreground "snow4"))
+    (((class color) (background dark))
+     (:foreground "snow3"))
+    (t
+     (:bold t)))
+  "Face for highlighting the message number in MH-Folder buffers."
+  :group 'mh)
+
+(defvar mh-folder-deleted-face 'mh-folder-deleted-face
+  "Face for highlighting deleted messages in MH-Folder buffers.")
+(copy-face 'mh-folder-msg-number-face 'mh-folder-deleted-face)
+
+(defvar mh-folder-cur-msg-face 'mh-folder-cur-msg-face
+  "Face for the current message line in MH-Folder buffers.")
+(defface mh-folder-cur-msg-face
+  '((((type tty pc) (class color))
+     (:background "LightGreen"))
+    (((class color) (background light))
+     (:background "LightGreen")         ;Use this for solid background colour
+;;;  (:underline t)                     ;Use this for underlining
+     )
+    (((class color) (background dark))
+     (:background "DarkOliveGreen4"))
+    (t (:underline t)))
+  "Face for the current message line in MH-Folder buffers."
+  :group 'mh)
+
+;;mh-folder-subject-face is defined in mh-utils since it's needed there
+;;for mh-show-subject-face.
+
+(eval-after-load "font-lock"
+  '(progn
+     (defvar mh-folder-refiled-face 'mh-folder-refiled-face
+       "Face for highlighting refiled messages in MH-Folder buffers.")
+     (copy-face 'font-lock-variable-name-face 'mh-folder-refiled-face)
+     (defvar mh-folder-cur-msg-number-face 'mh-folder-cur-msg-number-face
+       "Face for highlighting the current message in MH-Folder buffers.")
+     (copy-face 'font-lock-keyword-face 'mh-folder-cur-msg-number-face)
+     (defvar mh-folder-to-face 'mh-folder-to-face
+       "Face for highlighting the To: string in MH-Folder buffers.")
+     (copy-face 'font-lock-string-face 'mh-folder-to-face)
+     (defvar mh-folder-body-face 'mh-folder-body-face
+       "Face for highlighting body text in MH-Folder buffers.")
+     (copy-face 'font-lock-string-face 'mh-folder-body-face)
+     
+     (defvar mh-folder-font-lock-keywords
+       (list
+        ;; Marked for deletion
+        (list (concat mh-scan-deleted-msg-regexp ".*")
+	      '(0 mh-folder-deleted-face))
+        ;; Marked for refile
+        (list (concat mh-scan-refiled-msg-regexp ".*")
+	      '(0 mh-folder-refiled-face))
+        ;;after subj
+        (list mh-scan-body-regexp '(1 mh-folder-body-face nil t))
+        '(mh-folder-font-lock-subject
+          (1 mh-folder-followup-face append t)
+          (2 mh-folder-subject-face append t))
+        ;;current msg
+        (list mh-scan-cur-msg-number-regexp
+	      '(1 mh-folder-cur-msg-number-face))
+        (list mh-scan-good-msg-regexp
+	      '(1 mh-folder-msg-number-face))  ;; Msg number
+        (list mh-scan-date-regexp '(1 mh-folder-date-face))       ;; Date
+        (list mh-scan-rcpt-regexp
+              '(1 mh-folder-to-face)                              ;; To:
+              '(2 mh-folder-address-face))                        ;; address
+        ;; scan font-lock name
+        (list mh-scan-format-regexp
+              '(1 mh-folder-date-face)
+              '(3 mh-folder-scan-format-face))
+        ;; Current message line
+        (list mh-scan-cur-msg-regexp
+	      '(1 mh-folder-cur-msg-face prepend t))
+        ;; Unseen messages in bold
+        '(mh-folder-font-lock-unseen (1 'bold append t))
+        )
+       "Regexp keywords used to fontify the MH-Folder buffer.")
+     ))
+
+(defun mh-folder-font-lock-subject (limit)
+  "Return mh-e scan subject strings to font-lock between point and LIMIT."
+  (if (not (re-search-forward mh-scan-subject-regexp limit t))
+      nil
+    (if (match-beginning 1)
+        (set-match-data (list (match-beginning 1) (match-end 2)
+                              (match-beginning 1) (match-end 2) nil nil))
+      (set-match-data (list (match-beginning 2) (match-end 2)
+                            nil nil (match-beginning 2) (match-end 2))))
+    t))
+
+;; Fontifify unseen mesages in bold. - Peter S Galbraith <psg@debian.org>
+(defvar mh-folder-unseen-seq-name nil
+  "Name of unseen sequence.
+The default for this is provided by the function `mh-folder-unseen-seq-name'
+On nmh systems.")
+
+(defun mh-folder-unseen-seq-name ()
+  "Provide name of unseen sequence from mhparam."
+  (or mh-progs (mh-find-path))
+  (save-excursion
+    (let ((tmp-buffer (get-buffer-create mh-temp-buffer))
+          (unseen-seq-name "unseen"))
+      (set-buffer tmp-buffer)
+      (unwind-protect
+          (progn
+            (call-process (expand-file-name "mhparam" mh-progs)
+                          nil '(t t) nil "-component" "Unseen-Sequence")
+            (goto-char (point-min))
+            (if (re-search-forward "Unseen-Sequence: \\(.*\\)$" nil t)
+                (setq unseen-seq-name (match-string 1))))
+        (kill-buffer tmp-buffer))
+      unseen-seq-name)))
+
+(defun mh-folder-unseen-seq-list ()
+  "Return a list of unseen message numbers for current folder."
+  (if (not mh-folder-unseen-seq-name)
+      (setq mh-folder-unseen-seq-name (mh-folder-unseen-seq-name)))
+  (cond
+   ((not mh-folder-unseen-seq-name)
+    nil)
+   (t
+    (let ((folder mh-current-folder))
+      (save-excursion
+	(let ((tmp-buffer (get-buffer-create mh-temp-buffer)))
+	  (set-buffer tmp-buffer)
+	  (unwind-protect
+	      (progn
+		(call-process (expand-file-name "mark" mh-progs)
+                              nil '(t t) nil 
+                              folder "-seq" mh-folder-unseen-seq-name
+			      "-list")
+		(goto-char (point-min))
+		(sort (mh-read-msg-list) '<))
+	    (kill-buffer tmp-buffer))))))))
+
+(defvar mh-folder-unseen-seq-cache nil
+  "Internal cache variable used for font-lock in mh-e.
+Should only be non-nil through font-lock stepping, and nil once font-lock
+is done highlighting.")
+(make-variable-buffer-local 'mh-folder-unseen-seq-cache)
+
+(defun mh-folder-font-lock-unseen (limit)
+  "Return unseen message lines to font-lock between point and LIMIT."
+  (if (not mh-folder-unseen-seq-cache)
+      (setq mh-folder-unseen-seq-cache (mh-folder-unseen-seq-list)))
+  (let ((cur-msg (mh-get-msg-num nil)))
+    (cond
+     ((not mh-folder-unseen-seq-cache)
+      nil)
+     ((not cur-msg)                     ;Presumably at end of buffer
+      (setq mh-folder-unseen-seq-cache nil)
+      nil)
+     ((member cur-msg mh-folder-unseen-seq-cache)
+      (let ((bpoint (progn (beginning-of-line)(point)))
+            (epoint (progn (forward-line 1)(point))))
+        (if (<= limit (point))
+            (setq  mh-folder-unseen-seq-cache nil))
+        (set-match-data (list bpoint epoint bpoint epoint))
+        t))
+     (t
+      ;; move forward one line at a time, checking each message number.
+      (while (and
+              (= 0 (forward-line 1))
+              (> limit (point))
+              (not (member (mh-get-msg-num nil) mh-folder-unseen-seq-cache))))
+      ;; Examine how we must have exited the loop...
+      (let ((cur-msg (mh-get-msg-num nil)))
+        (cond
+         ((or (not cur-msg)
+              (<= limit (point))
+              (not (member cur-msg mh-folder-unseen-seq-cache)))
+          (setq mh-folder-unseen-seq-cache nil)
+          nil)
+         ((member cur-msg mh-folder-unseen-seq-cache)
+          (let ((bpoint (progn (beginning-of-line)(point)))
+                (epoint (progn (forward-line 1)(point))))
+            (if (<= limit (point))
+                (setq  mh-folder-unseen-seq-cache nil))
+            (set-match-data (list bpoint epoint bpoint epoint))
+            t))))))))
+;; fontifify unseen mesages in bold. - end
 
 ;;; Internal variables:
 
@@ -225,7 +602,7 @@ The string is displayed after the folder's name.  nil for no annotation.")
 
 (defvar mh-last-msg-num nil)		;Number of last msg in buffer.
 
-(defvar mh-mode-line-annotation nil)	;Indiction this is not the full folder.
+(defvar mh-mode-line-annotation nil)	;Message range displayed in buffer.
 
 ;;; Macros and generic functions:
 
@@ -234,44 +611,40 @@ The string is displayed after the folder's name.  nil for no annotation.")
     (funcall func (car list))
     (setq list (cdr list))))
 
+(defun mh-scan-format ()
+  "Generate arguments to the scan program to specify which format string should be used."
+  (if (equal mh-scan-format-file t)
+      (list "-format" (if mh-nmh-p
+			  (list mh-scan-format-nmh)
+			(list mh-scan-format-mh)))
+    (if (not (equal mh-scan-format-file nil))
+      (list "-form" mh-scan-format-file))))
+
 
 
 ;;; Entry points:
 
 ;;;###autoload
 (defun mh-rmail (&optional arg)
-  "Inc(orporate) new mail with MH, or, with arg, scan an MH mail folder.
-This function is an entry point to mh-e, the Emacs front end
-to the MH mail system."
+  "Inc(orporate) new mail with MH.
+Scan an MH folder if ARG is non-nil. This function is an entry point to mh-e,
+the Emacs front end to the MH mail system."
   (interactive "P")
   (mh-find-path)
   (if arg
       (call-interactively 'mh-visit-folder)
       (mh-inc-folder)))
 
-
-;;; mh-smail and mh-smail-other-window have been moved to the new file
-;;; mh-comp.el, but Emacs 18 still looks for them here, so provide a
-;;; definition here, too, for a while.
-
-(defun mh-smail ()
-  "Compose and send mail with the MH mail system.
-This function is an entry point to mh-e, the Emacs front end
-to the MH mail system."
-  (interactive)
-  (mh-find-path)
-  (require 'mh-comp)
-  (call-interactively 'mh-send))
-
-
-(defun mh-smail-other-window ()
-  "Compose and send mail in other window with the MH mail system.
-This function is an entry point to mh-e, the Emacs front end
-to the MH mail system."
-  (interactive)
-  (mh-find-path)
-  (require 'mh-comp)
-  (call-interactively 'mh-send-other-window))
+;;;###autoload
+(defun mh-nmail (&optional arg)
+  "Check for new mail in inbox folder.
+Scan an MH folder if ARG is non-nil. This function is an entry point to mh-e,
+the Emacs front end to the MH mail system."
+  (interactive "P")
+  (mh-find-path) ; init mh-inbox
+  (if arg
+      (call-interactively 'mh-visit-folder)
+    (mh-visit-folder mh-inbox)))
 
 
 
@@ -279,18 +652,26 @@ to the MH mail system."
 
 
 (defun mh-delete-msg (msg-or-seq)
-  "Mark the specified MESSAGE(s) for subsequent deletion and move to the next.
-Default is the displayed message.  If optional prefix argument is
-given then prompt for the message sequence."
-  (interactive (list (if current-prefix-arg
-			 (mh-read-seq-default "Delete" t)
-			 (mh-get-msg-num t))))
+  "Mark the specified MSG-OR-SEQ for subsequent deletion and move to the next.
+
+Default is the displayed message. If optional prefix argument is given then
+prompt for the message sequence. If variable `transient-mark-mode' is non-nil
+and the mark is active, then the selected region is marked for deletion."
+  (interactive (list (cond
+                      ((and (boundp 'transient-mark-mode)
+                            transient-mark-mode mark-active)
+                       (mh-region-to-sequence (region-beginning)(region-end))
+                       'region)
+                      (current-prefix-arg
+                       (mh-read-seq-default "Delete" t))
+                      (t
+                       (mh-get-msg-num t)))))
   (mh-delete-msg-no-motion msg-or-seq)
   (mh-next-msg))
 
 
 (defun mh-delete-msg-no-motion (msg-or-seq)
-  "Mark the specified MESSAGE(s) for subsequent deletion.
+  "Mark the specified MSG-OR-SEQ for subsequent deletion.
 Default is the displayed message.  If optional prefix argument is
 provided, then prompt for the message sequence."
   (interactive (list (if current-prefix-arg
@@ -316,7 +697,7 @@ provided, then prompt for the message sequence."
   "Move to the first message."
   (interactive)
   (goto-char (point-min))
-  (while (and (not (eobp)) (not (looking-at mh-valid-scan-line)))
+  (while (and (not (eobp)) (not (looking-at mh-scan-valid-regexp)))
     (forward-line 1)))
 
 
@@ -341,8 +722,8 @@ Type \"\\[mh-show]\" to show the message normally again."
 
 (defun mh-inc-folder (&optional maildrop-name)
   "Inc(orporate)s new mail into the Inbox folder.
-Optional prefix argument specifies an alternate maildrop from the default.
-If the prefix argument is given, incorporates mail into the current
+Optional argument MAILDROP-NAME specifies an alternate maildrop from the
+default. If the prefix argument is given, incorporates mail into the current
 folder, otherwise uses the folder named by `mh-inbox'.
 Runs `mh-inc-folder-hook' after incorporating new mail.
 Do not call this function from outside mh-e; use \\[mh-rmail] instead."
@@ -359,6 +740,7 @@ Do not call this function from outside mh-e; use \\[mh-rmail] instead."
 	       (switch-to-buffer mh-inbox)
 	       (setq mh-previous-window-config config)))))
   (mh-get-new-mail maildrop-name)
+  (if mh-showing-mode (mh-show))
   (run-hooks 'mh-inc-folder-hook))
 
 
@@ -371,11 +753,11 @@ Do not call this function from outside mh-e; use \\[mh-rmail] instead."
 
 
 (defun mh-next-undeleted-msg (&optional arg)
-  "Move to the NTH next undeleted message in window."
+  "Move to the next undeleted message ARG in window."
   (interactive "p")
   (setq mh-next-direction 'forward)
   (forward-line 1)
-  (cond ((re-search-forward mh-good-msg-regexp nil 0 arg)
+  (cond ((re-search-forward mh-scan-good-msg-regexp nil 0 arg)
 	 (beginning-of-line)
 	 (mh-maybe-show))
 	(t
@@ -385,12 +767,19 @@ Do not call this function from outside mh-e; use \\[mh-rmail] instead."
 
 
 (defun mh-refile-msg (msg-or-seq folder)
-  "Refile MESSAGE(s) (default: displayed message) into FOLDER.
-If optional prefix argument provided, then prompt for message sequence."
+  "Refile MSG-OR-SEQ (default: displayed message) into FOLDER.
+If optional prefix argument provided, then prompt for message sequence.
+If variable `transient-mark-mode' is non-nil and the mark is active, then the
+selected region is marked for refiling."
   (interactive
-   (list (if current-prefix-arg
-	     (mh-read-seq-default "Refile" t)
-	   (mh-get-msg-num t))
+   (list (cond
+          ((and (boundp 'transient-mark-mode) transient-mark-mode mark-active)
+           (mh-region-to-sequence (region-beginning)(region-end))
+           'region)
+          (current-prefix-arg
+           (mh-read-seq-default "Refile" t))
+          (t
+           (mh-get-msg-num t)))
 	 (intern
 	  (mh-prompt-for-folder
 	   "Destination"
@@ -430,24 +819,48 @@ previous refile or write command."
 
 (defun mh-quit ()
   "Quit the current mh-e folder.
-Start by running mh-before-quit-hook.  Restore the previous window
-configuration, if one exists.  Finish by running mh-quit-hook."
+Start by running `mh-before-quit-hook'.  Restore the previous window
+configuration, if one exists.  Finish by running `mh-quit-hook'."
   (interactive)
-  (run-hooks 'mh-before-quit-hook) 
+  (run-hooks 'mh-before-quit-hook)
   (mh-update-sequences)
   (mh-invalidate-show-buffer)
   (bury-buffer (current-buffer))
   (if (get-buffer mh-show-buffer)
       (bury-buffer mh-show-buffer))
+  (if (get-buffer mh-temp-buffer)
+      (kill-buffer mh-temp-buffer))
+  (if (get-buffer mh-temp-folders-buffer)
+      (kill-buffer mh-temp-folders-buffer))
+  (if (get-buffer mh-temp-sequences-buffer)
+      (kill-buffer mh-temp-sequences-buffer))
   (if mh-previous-window-config
       (set-window-configuration mh-previous-window-config))
   (run-hooks 'mh-quit-hook))
 
 (defun mh-page-msg (&optional arg)
   "Page the displayed message forwards.
-Scrolls ARG lines or a full screen if no argument is supplied."
+Scrolls ARG lines or a full screen if no argument is supplied. Show buffer
+first if not displayed. Show the next undeleted message if looking at the
+bottom of the current message."
   (interactive "P")
-  (scroll-other-window arg))
+  (if mh-showing-mode
+      (if mh-page-to-next-msg-p
+	  (if (equal mh-next-direction 'backward)
+	      (mh-previous-undeleted-msg)
+	    (mh-next-undeleted-msg))
+	(if (mh-in-show-buffer (mh-show-buffer)
+	      (pos-visible-in-window-p (point-max)))
+	    (progn
+	      (message (format
+			"End of message (Type %s to read %s undeleted message)"
+			(single-key-description last-input-event)
+			(if (equal mh-next-direction 'backward)
+			    "previous"
+			  "next")))
+	      (setq mh-page-to-next-msg-p t))
+	  (scroll-other-window arg)))
+    (mh-show)))
 
 
 (defun mh-previous-page (&optional arg)
@@ -459,11 +872,11 @@ Scrolls ARG lines or a full screen if no argument is supplied."
 
 
 (defun mh-previous-undeleted-msg (&optional arg)
-  "Move to the NTH previous undeleted message in window."
+  "Move to the previous undeleted message ARG in window."
   (interactive "p")
   (setq mh-next-direction 'backward)
   (beginning-of-line)
-  (cond ((re-search-backward mh-good-msg-regexp nil 0 arg)
+  (cond ((re-search-backward mh-scan-good-msg-regexp nil 0 arg)
 	 (mh-maybe-show))
 	(t
 	 (if (get-buffer mh-show-buffer)
@@ -472,7 +885,7 @@ Scrolls ARG lines or a full screen if no argument is supplied."
 
 (defun mh-rescan-folder (&optional range)
   "Rescan a folder after optionally processing the outstanding commands.
-If optional prefix argument is provided, prompt for the range of
+If optional prefix argument RANGE is provided, prompt for the range of
 messages to display.  Otherwise show the entire folder."
   (interactive (list (if current-prefix-arg
 			 (mh-read-msg-range "Range to scan [all]? ")
@@ -482,8 +895,8 @@ messages to display.  Otherwise show the entire folder."
 
 
 (defun mh-write-msg-to-file (msg file no-headers)
-  "Append MESSAGE to the end of a FILE.
-If NO-HEADERS (prefix argument) is provided, write only the message body.
+  "Append MSG to the end of a FILE.
+If prefix argument NO-HEADERS is provided, write only the message body.
 Otherwise send the entire message including the headers."
   (interactive
    (list (mh-get-msg-num t)
@@ -512,29 +925,37 @@ Otherwise send the entire message including the headers."
 (defun mh-toggle-showing ()
   "Toggle the scanning mode/showing mode of displaying messages."
   (interactive)
-  (if mh-showing
+  (if mh-showing-mode
       (mh-set-scan-mode)
-      (mh-show)))
+    (mh-show)))
 
 
 (defun mh-undo (msg-or-seq)
-  "Undo the pending deletion or refile of the specified MESSAGE(s).
+  "Undo the pending deletion or refile of the specified MSG-OR-SEQ.
 Default is the displayed message.  If optional prefix argument is
-provided, then prompt for the message sequence."
-  (interactive (list (if current-prefix-arg
-			 (mh-read-seq-default "Undo" t)
-			 (mh-get-msg-num t))))
+provided, then prompt for the message sequence.
+If variable `transient-mark-mode' is non-nil and the mark is active, then the
+selected region is unmarked."
+  (interactive (list (cond
+                      ((and (boundp 'transient-mark-mode)
+                            transient-mark-mode mark-active)
+                       (mh-region-to-sequence (region-beginning)(region-end))
+                       'region)
+                      (current-prefix-arg
+                       (mh-read-seq-default "Undo" t))
+                      (t
+                       (mh-get-msg-num t)))))
   (cond ((numberp msg-or-seq)
 	 (let ((original-position (point)))
 	   (beginning-of-line)
-	   (while (not (or (looking-at mh-deleted-msg-regexp)
-			   (looking-at mh-refiled-msg-regexp)
+	   (while (not (or (looking-at mh-scan-deleted-msg-regexp)
+			   (looking-at mh-scan-refiled-msg-regexp)
 			   (and (eq mh-next-direction 'forward) (bobp))
 			   (and (eq mh-next-direction 'backward)
 				(save-excursion (forward-line) (eobp)))))
 	     (forward-line (if (eq mh-next-direction 'forward) -1 1)))
-	   (if (or (looking-at mh-deleted-msg-regexp)
-		   (looking-at mh-refiled-msg-regexp))
+	   (if (or (looking-at mh-scan-deleted-msg-regexp)
+		   (looking-at mh-scan-refiled-msg-regexp))
 	       (progn
 		 (mh-undo-msg (mh-get-msg-num t))
 		 (mh-maybe-show))
@@ -559,21 +980,27 @@ provided, then prompt for the message sequence."
   (mh-find-progs)
   (set-buffer (get-buffer-create mh-temp-buffer))
   (erase-buffer)
-  (insert "  mh-e info:\n\nversion: " mh-e-RCS-id
-	  "\nEmacs: " emacs-version " on " (symbol-name system-type) " ")
+  ;; mh-e and Emacs versions.
+  (insert "mh-e " mh-version "\n\n" (emacs-version) "\n\n")
+  ;; MH version.
+  (let ((help-start (point)))
+    (condition-case err-data
+	(mh-exec-cmd-output "inc" nil (if mh-nmh-p "-version" "-help"))
+      (file-error (insert (mapconcat 'concat (cdr err-data) ": ") "\n")))
+    (goto-char help-start)
+    (if mh-nmh-p
+	(search-forward "inc -- " nil t)
+      (search-forward "version: " nil t))
+    (delete-region help-start (point)))
+  (goto-char (point-max))
+  (insert "mh-progs:\t" mh-progs "\n"
+	  "mh-lib:\t\t" mh-lib "\n"
+	  "mh-lib-progs:\t" mh-lib-progs "\n\n")
+  ;; Linux version.
   (condition-case ()
       (call-process "uname" nil t nil "-a")
     (file-error))
-  (insert "\n\n  MH info:\n\n" (expand-file-name "inc" mh-progs) ":\n")
-  (let ((help-start (point)))
-    (condition-case err-data
-	(mh-exec-cmd-output "inc" nil "-help")
-      (file-error (insert (mapconcat 'concat (cdr err-data) ": "))))
-    (goto-char help-start)
-    (search-forward "version: " nil t)
-    (beginning-of-line)
-    (delete-region help-start (point))
-    (goto-char (point-min)))
+  (goto-char (point-min))
   (display-buffer mh-temp-buffer))
 
 
@@ -586,17 +1013,6 @@ Do not call this function from outside mh-e; see \\[mh-rmail] instead."
     (mh-scan-folder folder (or range "all"))
     (setq mh-previous-window-config config))
   nil)
-
-
-(defun mh-compat-quit ()
-  "The \"b\" key is obsolescent; will assume you want \"\\[mh-quit]\" ..."
-  ;; Was going to make it run mh-burst-digest, but got complaint that
-  ;; 'b' should mean 'back', as it does in info, less, and rn.
-  ;; This is a temporary compatibility function.
-  (interactive)
-  (message "%s" (documentation this-command))
-  (sit-for 1)
-  (call-interactively 'mh-quit))
 
 
 (defun mh-update-sequences ()
@@ -613,11 +1029,15 @@ Flush mh-e's state out to MH.  The message at the cursor becomes current."
 	  (setcdr seq-entry (list new-cur)) ;delete-seq-locally, add-msgs-to-seq
 	  (mh-define-sequence 'cur (list new-cur))
 	  (beginning-of-line)
-	  (if (looking-at mh-good-msg-regexp)
+	  (if (looking-at mh-scan-good-msg-regexp)
 	      (mh-notate nil mh-note-cur mh-cmd-note)))
       (or folder-set
 	  (save-excursion
-	    (mh-exec-cmd-quiet t "folder" mh-current-folder "-fast"))))))
+            ;; psg - mh-current-folder is nil if mh-summary-height < 4 !
+            ;;       So I added this sanity check.
+            (if (stringp mh-current-folder)
+                (mh-exec-cmd-quiet t "folder" mh-current-folder "-fast")
+              (mh-exec-cmd-quiet t "folder" "-fast")))))))
 
 
 
@@ -628,9 +1048,9 @@ Flush mh-e's state out to MH.  The message at the cursor becomes current."
   ;; Delete the MESSAGE.
   (save-excursion
     (mh-goto-msg msg nil t)
-    (if (looking-at mh-refiled-msg-regexp)
+    (if (looking-at mh-scan-refiled-msg-regexp)
 	(error "Message %d is refiled.  Undo refile before deleting" msg))
-    (if (looking-at mh-deleted-msg-regexp)
+    (if (looking-at mh-scan-deleted-msg-regexp)
 	nil
 	(mh-set-folder-modified-p t)
 	(setq mh-delete-list (cons msg mh-delete-list))
@@ -642,9 +1062,9 @@ Flush mh-e's state out to MH.  The message at the cursor becomes current."
   ;; Refile MESSAGE in FOLDER.  FOLDER is a symbol, not a string.
   (save-excursion
     (mh-goto-msg msg nil t)
-    (cond ((looking-at mh-deleted-msg-regexp)
+    (cond ((looking-at mh-scan-deleted-msg-regexp)
 	   (error "Message %d is deleted.  Undo delete before moving" msg))
-	  ((looking-at mh-refiled-msg-regexp)
+	  ((looking-at mh-scan-refiled-msg-regexp)
 	   (if (y-or-n-p
 		(format "Message %d already refiled.  Copy to %s as well? "
 			msg destination))
@@ -673,7 +1093,7 @@ Flush mh-e's state out to MH.  The message at the cursor becomes current."
   ;; Display the scan listing buffer, but do not show a message.
   (if (get-buffer mh-show-buffer)
       (delete-windows-on mh-show-buffer))
-  (setq mh-showing nil)
+  (mh-showing-mode 0)
   (force-mode-line-update)
   (if mh-recenter-summary-p
       (mh-recenter nil)))
@@ -711,110 +1131,33 @@ Flush mh-e's state out to MH.  The message at the cursor becomes current."
 ;;; Ensure new buffers won't get this mode if default-major-mode is nil.
 (put 'mh-folder-mode 'mode-class 'special)
 
-(defun mh-folder-mode ()
+(define-derived-mode mh-folder-mode fundamental-mode "MH-Folder"
   "Major mh-e mode for \"editing\" an MH folder scan listing.\\<mh-folder-mode-map>
+
 You can show the message the cursor is pointing to, and step through the
 messages.  Messages can be marked for deletion or refiling into another
 folder; these commands are executed all at once with a separate command.
 
 A prefix argument (\\[universal-argument]) to delete, refile, list, or undo
-applies the action to a message sequence.
+applies the action to a message sequence. If `transient-mark-mode',
+is non-nil, the action is applied to the region.
 
-Here is a list of the standard keys for mh-e commands, grouped by function.
-This list is purposefully not customized; mh-e has a long history, and many
-alternate key bindings as a result.  This list is to encourage users to use
-standard keys so the other keys can perhaps someday be put to new uses.
+Options that control this mode can be changed with \\[customize-group];
+specify the \"mh\" group. In particular, please see the `mh-scan-format-file'
+option if you wish to modify scan's format.
 
-t	toggle show or scan-only mode
-RET	show message, or back to top if already showing
+When a folder is visited, the hook `mh-folder-mode-hook' is run.
 
-SPC	page message forward
-DEL	page message back
+\\{mh-folder-mode-map}"
 
-n	next message
-p	previous message
-g	go to message by number
-
-d	mark for deletion
-o, ^	mark for output (refile) to another folder
-?	show folder of pending refile
-u	undo delete or refile marking
-
-x	execute marked deletes and refiles
-i	incorporate new mail
-
-m	mail a new message
-r	reply to a message
-f	forward a message
-
-q	quit mh-e
-
-M-f	visit new folder
-M-r	rescan this folder
-
-Here are all the commands with their current binding, listed in key order:
-\\{mh-folder-mode-map}
-
-Variables controlling mh-e operation are (defaults in parentheses):
-
- `mh-recursive-folders' (nil)
-    Non-nil means commands which operate on folders do so recursively.
-
- `mh-bury-show-buffer' (t)
-    Non-nil means that the buffer used to display message is buried.
-    It will never be offered as the default other buffer.
-
- `mh-clean-message-header' (nil)
-    Non-nil means remove header lines matching the regular expression
-    specified in mh-invisible-headers from messages.
-
- `mh-visible-headers' (nil)
-    If non-nil, it contains a regexp specifying the headers that are shown in
-    a message if mh-clean-message-header is non-nil.  Setting this variable
-    overrides `mh-invisible-headers'.
-
- `mh-do-not-confirm' (nil)
-    Non-nil means do not prompt for confirmation before executing some
-    non-recoverable commands such as `mh-kill-folder' and `mh-undo-folder'.
-
- `mhl-formfile' (nil)
-    Name of format file to be used by mhl to show messages.
-    A value of t means use the default format file.
-    nil means don't use mhl to format messages.
-
- `mh-lpr-command-format' (\"lpr -p -J '%s'\")
-    Format for command used to print a message on a system printer.
-
- `mh-scan-prog' (\"scan\")
-    Program to run to generate one-line-per-message listing of a folder.
-    Normally \"scan\" or a file name linked to scan.  This file is searched
-    for relative to the mh-progs directory unless it is an absolute pathname.
-    Automatically becomes buffer-local when set in any fashion.
-
- `mh-print-background' (nil)
-    Print messages in the background if non-nil.
-    WARNING: do not delete the messages until printing is finished;
-    otherwise, your output may be truncated.
-
- `mh-recenter-summary-p' (nil)
-    If non-nil, then the scan listing is recentered when the window displaying
-    a messages is toggled off.
-
- `mh-summary-height' (4)
-    Number of lines in the summary window including the mode line.
-
-The value of mh-folder-mode-hook is called when a new folder is set up."
-
-  (kill-all-local-variables)
-  (use-local-map mh-folder-mode-map)
-  (setq major-mode 'mh-folder-mode)
-  (mh-set-mode-name "MH-Folder")
+  (make-local-variable 'font-lock-defaults)
+  (setq	font-lock-defaults '(mh-folder-font-lock-keywords t))
   (mh-make-local-vars
    'mh-current-folder (buffer-name)	; Name of folder, a string
    'mh-show-buffer (format "show-%s" (buffer-name)) ; Buffer that displays msgs
    'mh-folder-filename			; e.g. "/usr/foobar/Mail/inbox/"
    (file-name-as-directory (mh-expand-file-name (buffer-name)))
-   'mh-showing nil			; Show message also?
+   'mh-showing-mode nil			; Show message also?
    'mh-delete-list nil			; List of msgs nums to delete
    'mh-refile-list nil			; List of folder names in mh-seq-list
    'mh-seq-list nil			; Alist of (seq . msgs) nums
@@ -834,11 +1177,18 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
     (make-local-variable 'write-file-hooks)
     (setq write-file-hooks '(mh-execute-commands))) ;Emacs 18
   (make-local-variable 'revert-buffer-function)
+  (make-local-variable 'hl-line-mode) ; avoid pollution
+  (if (fboundp 'hl-line-mode)
+      (hl-line-mode 1))
   (setq revert-buffer-function 'mh-undo-folder)
-  (or (assq 'mh-showing minor-mode-alist)
+  (or (assq 'mh-showing-mode minor-mode-alist)
       (setq minor-mode-alist
-	    (cons '(mh-showing " Show") minor-mode-alist)))
-  (run-hooks 'mh-folder-mode-hook))
+	    (cons '(mh-showing-mode " Show") minor-mode-alist)))
+  (easy-menu-add mh-folder-sequence-menu)
+  (easy-menu-add mh-folder-message-menu)
+  (easy-menu-add mh-folder-folder-menu)
+  (if (and (boundp 'tool-bar-mode) tool-bar-mode)
+      (set (make-local-variable 'tool-bar-map) mh-folder-tool-bar-map)))
 
 
 (defun mh-make-local-vars (&rest pairs)
@@ -857,12 +1207,11 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
 	 (mh-process-or-undo-commands folder)
 	 (switch-to-buffer folder)))
   (mh-regenerate-headers range)
-  (cond ((zerop (buffer-size))
+  (if (zerop (buffer-size))
 	 (if (equal range "all")
 	     (message "Folder %s is empty" folder)
 	   (message "No messages in %s, range %s" folder range))
-	 (sit-for 5)))
-  (mh-goto-cur-msg))
+	 (mh-goto-cur-msg)))
 
 
 (defun mh-regenerate-headers (range &optional update)
@@ -877,15 +1226,18 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
 	(erase-buffer))
       (setq scan-start (point))
       (mh-exec-cmd-output mh-scan-prog nil
+			  (mh-scan-format)
 			  "-noclear" "-noheader"
 			  "-width" (window-width)
 			  folder range)
       (goto-char scan-start)
       (cond ((looking-at "scan: no messages in")
-	     (keep-lines mh-valid-scan-line)) ; Flush random scan lines
+	     (keep-lines mh-scan-valid-regexp)) ; Flush random scan lines
+	    ((looking-at "scan: bad message list ")
+	     (keep-lines mh-scan-valid-regexp))
 	    ((looking-at "scan: "))	; Keep error messages
 	    (t
-	     (keep-lines mh-valid-scan-line))) ; Flush random scan lines
+	     (keep-lines mh-scan-valid-regexp))) ; Flush random scan lines
       (setq mh-seq-list (mh-read-folder-sequences folder nil))
       (mh-notate-user-sequences)
       (or update
@@ -914,10 +1266,12 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
 	    ;; I think MH 5 used "-ms-file" instead of "-file",
 	    ;; which would make inc'ing from maildrops fail.
 	    (mh-exec-cmd-output mh-inc-prog nil folder
+				(mh-scan-format)
 				"-file" (expand-file-name maildrop-name)
 				"-width" (window-width)
 				"-truncate")
 	    (mh-exec-cmd-output mh-inc-prog nil
+				(mh-scan-format)
 				"-width" (window-width)))
 	(if maildrop-name
 	    (message "inc %s -file %s...done" folder maildrop-name)
@@ -928,11 +1282,11 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
 	       (message "No new mail%s%s" (if maildrop-name " in " "")
 			(if maildrop-name maildrop-name "")))
 	      ((re-search-forward "^inc:" nil t) ; Error messages
-	       (error "inc error"))
+	       (error "Error incorporating mail"))
 	      (t
 	       (mh-remove-cur-notation)
 	       (setq new-mail-p t)))
-	(keep-lines mh-valid-scan-line) ; Flush random scan lines
+	(keep-lines mh-scan-valid-regexp) ; Flush random scan lines
 	(setq mh-seq-list (mh-read-folder-sequences folder t))
 	(mh-notate-user-sequences)
 	(if new-mail-p
@@ -952,20 +1306,25 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
     (setq mh-first-msg-num (mh-get-msg-num nil))
     (mh-last-msg)
     (setq mh-last-msg-num (mh-get-msg-num nil))
-    (setq mh-msg-count (count-lines (point-min) (point-max)))
+    (setq mh-msg-count (if mh-first-msg-num
+ 			   (count-lines (point-min) (point-max))
+ 			 0))
     (setq mode-line-buffer-identification
-	  (list (format "{%%b%s} %d msg%s"
+	  (list (format "{%%b%s} %s msg%s"
 			(if mh-mode-line-annotation
 			    (format "/%s" mh-mode-line-annotation)
 			  "")
-			mh-msg-count
+ 			(if (zerop mh-msg-count)
+ 			    "no"
+ 			  (format "%d" mh-msg-count))
 			(if (zerop mh-msg-count)
 			    "s"
-			  (if (> mh-msg-count 1)
-			      (format "s (%d-%d)" mh-first-msg-num
-				      mh-last-msg-num)
-			    (format " (%d)" mh-first-msg-num))))))))
-
+ 			  (cond ((> mh-msg-count 1)
+ 				 (format "s (%d-%d)" mh-first-msg-num
+ 					 mh-last-msg-num))
+ 				(mh-first-msg-num
+ 				 (format " (%d)" mh-first-msg-num))
+ 				(""))))))))
 
 (defun mh-unmark-all-headers (remove-all-flags)
   ;; Remove all '+' flags from the headers, and if called with a non-nil
@@ -1002,7 +1361,7 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
     (save-excursion
       (and cur-msg
 	   (mh-goto-msg cur-msg t t)
-	   (looking-at mh-cur-scan-msg-regexp)
+	   (looking-at mh-scan-cur-msg-number-regexp)
 	   (mh-notate nil ?  mh-cmd-note)))))
 
 (defun mh-goto-cur-msg ()
@@ -1025,9 +1384,9 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
   (if (mh-outstanding-commands-p)
       (if (or mh-do-not-confirm
 	      (y-or-n-p
-		"Process outstanding deletes and refiles (or lose them)? "))
+	       "Process outstanding deletes and refiles (or lose them)? "))
 	  (mh-process-commands folder)
-	  (mh-undo-folder)))
+	(mh-undo-folder)))
   (mh-update-unseen)
   (mh-invalidate-show-buffer))
 
@@ -1037,6 +1396,9 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
   (message "Processing deletes and refiles for %s..." folder)
   (set-buffer folder)
   (with-mh-folder-updating (nil)
+    ;; Run the hook while the lists are still valid
+    (run-hooks 'mh-folder-updated-hook)
+
     ;; Update the unseen sequence if it exists
     (mh-update-unseen)
 
@@ -1080,13 +1442,14 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
 
 (defun mh-update-unseen ()
   ;; Flush updates to the Unseen sequence out to MH.
-  ;; Return non-nil iff set the MH folder.
+  ;; Return non-NIL iff set the MH folder.
   (if mh-seen-list
       (let* ((unseen-seq (mh-find-seq mh-unseen-seq))
 	     (unseen-msgs (mh-seq-msgs unseen-seq)))
 	(if unseen-msgs
 	    (progn
 	      (mh-undefine-sequence mh-unseen-seq mh-seen-list)
+	      (run-hooks 'mh-unseen-updated-hook)
 	      (while mh-seen-list
 		(setq unseen-msgs (delq (car mh-seen-list) unseen-msgs))
 		(setq mh-seen-list (cdr mh-seen-list)))
@@ -1144,6 +1507,8 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
 	nil
       (string-lessp msg2 msg1))))
 
+(defun mh-lessp (msg1 msg2)
+  (not (mh-greaterp msg1 msg2)))
 
 
 ;;; Basic sequence handling
@@ -1211,7 +1576,7 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
 
 
 (defun mh-internal-seq (name)
-  ;; Return non-nil if NAME is the name of an internal mh-e sequence.
+  ;; Return non-NIL if NAME is the name of an internal mh-e sequence.
   (or (memq name '(answered cur deleted forwarded printed))
       (eq name mh-unseen-seq)
       (eq name mh-previous-seq)
@@ -1219,9 +1584,9 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
 
 
 (defun mh-delete-msg-from-seq (message sequence &optional internal-flag)
-  "Delete MESSAGE from SEQUENCE.  MESSAGE defaults to displayed message.
-From Lisp, optional third arg INTERNAL-FLAG non-nil means do not
-inform MH of the change."
+  "Delete MESSAGE from SEQUENCE.
+MESSAGE defaults to displayed message. From Lisp, optional third arg
+INTERNAL-FLAG non-nil means do not inform MH of the change."
   (interactive (list (mh-get-msg-num t)
 		     (mh-read-seq-default "Delete from" t)
 		     nil))
@@ -1305,64 +1670,219 @@ inform MH of the change."
 ;;; Build the folder-mode keymap:
 
 (suppress-keymap mh-folder-mode-map)
-(define-key mh-folder-mode-map "q" 'mh-quit)
-(define-key mh-folder-mode-map "b" 'mh-compat-quit)
-(define-key mh-folder-mode-map "?" 'mh-msg-is-in-seq)
-(define-key mh-folder-mode-map "%" 'mh-put-msg-in-seq)
-(define-key mh-folder-mode-map "|" 'mh-pipe-msg)
-(define-key mh-folder-mode-map "\ea" 'mh-edit-again)
-(define-key mh-folder-mode-map "\e%" 'mh-delete-msg-from-seq)
-(define-key mh-folder-mode-map "\e#" 'mh-delete-seq)
-(define-key mh-folder-mode-map "\C-xn" 'mh-narrow-to-seq)
-(define-key mh-folder-mode-map "\C-xw" 'mh-widen)
-(define-key mh-folder-mode-map "\eb" 'mh-burst-digest)
-(define-key mh-folder-mode-map "\eu" 'mh-undo-folder)
-(define-key mh-folder-mode-map "\e " 'mh-page-digest)
-(define-key mh-folder-mode-map "\e\177" 'mh-page-digest-backwards)
-(define-key mh-folder-mode-map "\ed" 'mh-redistribute)
-(define-key mh-folder-mode-map "\ee" 'mh-extract-rejected-mail)
-(define-key mh-folder-mode-map "\ef" 'mh-visit-folder)
-(define-key mh-folder-mode-map "\ek" 'mh-kill-folder)
-(define-key mh-folder-mode-map "\el" 'mh-list-folders)
-(define-key mh-folder-mode-map "\en" 'mh-store-msg)
-(define-key mh-folder-mode-map "\ep" 'mh-pack-folder)
-(define-key mh-folder-mode-map "\eq" 'mh-list-sequences)
-(define-key mh-folder-mode-map "\es" 'mh-search-folder)
-(define-key mh-folder-mode-map "\er" 'mh-rescan-folder)
-(define-key mh-folder-mode-map "l" 'mh-print-msg)
-(define-key mh-folder-mode-map "t" 'mh-toggle-showing)
-(define-key mh-folder-mode-map "c" 'mh-copy-msg)
-(define-key mh-folder-mode-map "i" 'mh-inc-folder)
-(define-key mh-folder-mode-map "x" 'mh-execute-commands)
-(define-key mh-folder-mode-map "e" 'mh-execute-commands)
-(define-key mh-folder-mode-map "f" 'mh-forward)
-(define-key mh-folder-mode-map "m" 'mh-send)
-(define-key mh-folder-mode-map "s" 'mh-send)
-(define-key mh-folder-mode-map "r" 'mh-reply)
-(define-key mh-folder-mode-map "a" 'mh-reply)
-(define-key mh-folder-mode-map "j" 'mh-goto-msg)
-(define-key mh-folder-mode-map "g" 'mh-goto-msg)
-(define-key mh-folder-mode-map "\e<" 'mh-first-msg)
-(define-key mh-folder-mode-map "\e>" 'mh-last-msg)
-(define-key mh-folder-mode-map "\177" 'mh-previous-page)
-(define-key mh-folder-mode-map " " 'mh-page-msg)
-(define-key mh-folder-mode-map "\r" 'mh-show)
-(define-key mh-folder-mode-map "." 'mh-show)
-(define-key mh-folder-mode-map "," 'mh-header-display)
-(define-key mh-folder-mode-map "u" 'mh-undo)
-(define-key mh-folder-mode-map "d" 'mh-delete-msg)
-(define-key mh-folder-mode-map "\C-d" 'mh-delete-msg-no-motion)
-(define-key mh-folder-mode-map "p" 'mh-previous-undeleted-msg)
-(define-key mh-folder-mode-map "n" 'mh-next-undeleted-msg)
-(define-key mh-folder-mode-map "o" 'mh-refile-msg)
-(define-key mh-folder-mode-map "^" 'mh-refile-msg)
-(define-key mh-folder-mode-map "\C-o" 'mh-write-msg-to-file)
-(define-key mh-folder-mode-map ">" 'mh-write-msg-to-file)
-(define-key mh-folder-mode-map "!" 'mh-refile-or-write-again)
+
+;; Save the `b' binding for a future `back'. Maybe?
+(gnus-define-keys  mh-folder-mode-map
+  " "		mh-page-msg
+  "!"		mh-refile-or-write-again
+  ","		mh-header-display
+  "."		mh-show			;alias
+  ">"		mh-write-msg-to-file
+  "E"		mh-extract-rejected-mail
+  "\177"	mh-previous-page
+  "\C-d"	mh-delete-msg-no-motion
+  "\e<"		mh-first-msg
+  "\e>"		mh-last-msg
+  "\ed"		mh-redistribute
+  "\r"		mh-show
+  "^"		mh-refile-msg		;alias
+  "c"		mh-copy-msg
+  "d"		mh-delete-msg
+  "e"		mh-edit-again
+  "f"		mh-forward
+  "g"		mh-goto-msg
+  "i"		mh-inc-folder
+  "k"  		mh-delete-subject-thread
+  "l"		mh-print-msg
+  "m"		mh-send			;alias
+  "n"		mh-next-undeleted-msg
+  "o"		mh-refile-msg
+  "p"		mh-previous-undeleted-msg
+  "q"		mh-quit
+  "r"		mh-reply
+  "s"		mh-send
+  "t"		mh-toggle-showing
+  "u"		mh-undo
+  "x"		mh-execute-commands
+  "|"		mh-pipe-msg)
+
+(gnus-define-keys (mh-folder-map "F" mh-folder-mode-map)
+  "S"		mh-sort-folder
+  "f"		mh-visit-folder		;alias
+  "k"		mh-kill-folder
+  "l"		mh-list-folders
+  "o"		mh-visit-folder		;alias
+  "p"		mh-pack-folder
+  "r"		mh-rescan-folder
+  "s"		mh-search-folder
+  "u"		mh-undo-folder
+  "v"		mh-visit-folder)
+
+(gnus-define-keys (mh-sequence-map "S" mh-folder-mode-map)
+  "d"		mh-delete-msg-from-seq
+  "k"		mh-delete-seq
+  "l"		mh-list-sequences
+  "n"		mh-narrow-to-seq
+  "p"		mh-put-msg-in-seq
+  "s"		mh-msg-is-in-seq
+  "w"		mh-widen)
+
+(gnus-define-keys (mh-thread-map "T" mh-folder-mode-map)
+  "d"		mh-delete-subject-thread
+  "k"		mh-delete-subject-thread
+  "s"		mh-narrow-to-subject-thread
+  "t"		mh-toggle-subject-thread
+  "u"		mh-next-unseen-subject-thread)
+
+(gnus-define-keys (mh-extract-map "X" mh-folder-mode-map)
+  "s"		mh-store-msg		;shar
+  "u"		mh-store-msg)		;uuencode
+
+(gnus-define-keys (mh-digest-map "D" mh-folder-mode-map)
+  " "		mh-page-digest
+  "\177"	mh-page-digest-backwards
+  "b"		mh-burst-digest)
+
+(cond
+ ((not (null (save-match-data (string-match "XEmacs\\|Lucid" emacs-version))))
+  (define-key mh-folder-mode-map [button2] 'mh-show-mouse))
+ (t
+  (define-key mh-folder-mode-map [mouse-2] 'mh-show-mouse)))
 
 ;; "C-c /" prefix is used in mh-folder-mode by pgp.el and mailcrypt
 
+;;; Menu extracted from mh-menubar.el V1.1 (31 July 2001)
+;;; Menus for folder mode: folder, message, sequence (in that order)
+;;; folder-mode "Sequence" menu
+(easy-menu-define
+  mh-folder-sequence-menu mh-folder-mode-map "Menu for mh-e folder-sequence."
+  '("Sequence"
+    ["Add Msg to Seq..."        mh-put-msg-in-seq (mh-get-msg-num nil)]
+    ["List Seq's for Msg"       mh-msg-is-in-seq (mh-get-msg-num nil)]
+    ["Delete Msg from Seq..."   mh-delete-msg-from-seq (mh-get-msg-num nil)]
+    ["List Seq's in Folder..."  mh-list-sequences t]
+    ["Delete Seq..."            mh-delete-seq t]
+    ["Show Only Msgs in Seq..." mh-narrow-to-seq t]
+    ["Show All Msgs in Folder"  mh-widen mh-narrowed-to-seq]
+    "--"
+    ["Toggle Subject Thread"    mh-toggle-subject-thread t]
+    ["Narrow to Subject Thread"  mh-narrow-to-subject-thread t]
+    ["Delete Rest of Subject Thread" mh-delete-subject-thread t]
+    ["Next Unseen Subject Thread" mh-next-unseen-subject-thread t]
+    "--"
+    ["Push State Out to MH"     mh-update-sequences t]))
+
+;;; folder-mode "Message" menu
+(easy-menu-define
+  mh-folder-message-menu mh-folder-mode-map "Menu for mh-e folder-message."
+  '("Message"
+    ["Show Msg"                 mh-show (mh-get-msg-num nil)]
+    ["Next Msg"                 mh-next-undeleted-msg t]
+    ["Previous Msg"             mh-previous-undeleted-msg t]
+    ["Go to First Msg"          mh-first-msg t]
+    ["Go to Last Msg"           mh-last-msg t]
+    ["Go to Msg by Number..."   mh-goto-msg t]
+    ["Delete Msg"               mh-delete-msg (mh-get-msg-num nil)]
+    ["Refile Msg"               mh-refile-msg (mh-get-msg-num nil)]
+    ["Undo Delete/Refile"       mh-undo t]
+    ["Process Delete/Refile"    mh-execute-commands
+     (or mh-refile-list mh-delete-list)]
+    "--"
+    ["Compose a New Msg"        mh-send t]
+    ["Reply to Msg..."          mh-reply (mh-get-msg-num nil)]
+    ["Forward Msg..."           mh-forward (mh-get-msg-num nil)]
+    ["Redistribute Msg..."      mh-redistribute (mh-get-msg-num nil)]
+    ["Edit Msg Again"           mh-edit-again (mh-get-msg-num nil)]
+    ["Re-edit a Bounced Msg"    mh-extract-rejected-mail t]
+    "--"
+    ["Refile Msg in Folder..."  mh-refile-msg (mh-get-msg-num nil)]
+    ["Copy Msg to Folder..."    mh-copy-msg (mh-get-msg-num nil)]
+    ["Print Msg"                mh-print-msg (mh-get-msg-num nil)]
+    ["Write Msg to File..."     mh-write-msg-to-file (mh-get-msg-num nil)]
+    ["Pipe Msg to Command..."   mh-pipe-msg (mh-get-msg-num nil)]
+    ["Unpack Uuencoded Msg..."  mh-store-msg (mh-get-msg-num nil)]
+    ["Show Msg with Header"     mh-header-display (mh-get-msg-num nil)]
+    ["Burst Digest Msg"         mh-burst-digest (mh-get-msg-num nil)]))
+
+;;; folder-mode "Folder" menu
+(easy-menu-define
+  mh-folder-folder-menu mh-folder-mode-map  "Menu for mh-e folder."
+  '("Folder"
+    ["Incorporate New Mail"     mh-inc-folder t]
+    ["Toggle Show/Folder"       mh-toggle-showing t]
+    ["Execute Delete/Refile"    mh-execute-commands
+     (or mh-refile-list mh-delete-list)]
+    ["Rescan Folder"            mh-rescan-folder t]
+    ["Pack Folder"              mh-pack-folder t]
+    ["Sort Folder"              mh-sort-folder t]
+    "--"
+    ["Search a Folder..."       mh-search-folder t]
+    ["Visit a Folder..."        mh-visit-folder t]
+    ["List Folders"             mh-list-folders t]
+    ["Quit MH-E"                mh-quit t]))
 
+
+;;; Support for emacs21 toolbar using gnus/message.el icons (and code).
+(eval-when-compile (defvar tool-bar-map))
+(when (and (fboundp 'tool-bar-add-item)
+           tool-bar-mode)
+  (defvar mh-folder-tool-bar-map
+    (let ((tool-bar-map (make-sparse-keymap)))
+      (tool-bar-add-item "mail" 'mh-inc-folder 'mh-folder-inc-folder
+                         :help "Incorporate new mail in Inbox")
+      
+      (tool-bar-add-item "left_arrow" 'mh-previous-undeleted-msg
+                         'mh-folder-prev :help "Previous message")
+      (tool-bar-add-item "page-down" 'mh-page-msg 'mh-folder-page
+                         :help "Page this message")
+      (tool-bar-add-item "right_arrow" 'mh-next-undeleted-msg 'mh-folder-next
+                         :help "Next message")
+
+      (tool-bar-add-item "close" 'mh-delete-msg  'mh-folder-delete
+                         :help "Mark for deletion")
+      (tool-bar-add-item "refile" 'mh-refile-msg  'mh-folder-refile
+                         :help "Refile this message")
+      (tool-bar-add-item "undo" 'mh-undo  'mh-folder-undo
+                         :help "Undo this mark")
+      (tool-bar-add-item "execute" 'mh-execute-commands  'mh-folder-exec
+                         :help "Perform moves and deletes")
+
+      (tool-bar-add-item "show" 'mh-toggle-showing 'mh-folder-toggle-show
+                         :help "Toggle showing message")
+
+      (tool-bar-add-item "mail/reply2" 'mh-reply 'mh-folder-reply
+                         :help "Reply to this message")
+      (tool-bar-add-item "mail_compose" 'mh-send 'mh-folder-compose
+                         :help "Compose new message")
+
+      (tool-bar-add-item "rescan" 'mh-rescan-folder  'mh-folder-rescan
+                         :help "Rescan this folder")
+      (tool-bar-add-item "repack" 'mh-pack-folder  'mh-folder-pack
+                         :help "Repack this folder")
+
+      (tool-bar-add-item "search" 'mh-search-folder  'mh-folder-search
+                         :help "Search this folder")
+      (tool-bar-add-item "fld_open" 'mh-visit-folder  'mh-folder-visit
+                         :help "Visit other folder")
+
+      (tool-bar-add-item "preferences" (lambda ()
+                                         (interactive)
+                                         (customize-group "mh"))
+                         'mh-folder-customize
+                         :help "mh-e preferences")
+      (tool-bar-add-item "help" (lambda ()
+                                  (interactive)
+                                  (Info-goto-node "(mh-e)Top"))
+                         'mh-folder-help :help "Help")
+      tool-bar-map))
+
+  (defvar mh-folder-seq-tool-bar-map
+    (let ((tool-bar-map (copy-keymap mh-folder-tool-bar-map)))
+      (tool-bar-add-item "widen" 'mh-widen 'mh-folder-widen
+                         :help "Widen from this sequence")
+      tool-bar-map)
+    "Tool-bar to use when narrowed to a sequence in MH-Folder buffers.")
+  )
 
 ;;;autoload the other mh-e parts
 
@@ -1503,6 +2023,8 @@ Add the messages found to the sequence named `search'." t)
 
 ;;; mh-seq
 
+(autoload 'mh-region-to-sequence "mh-seq"
+  "Define sequence 'region as the messages in selected region." t)
 (autoload 'mh-delete-seq "mh-seq"
   "Delete the SEQUENCE." t)
 (autoload 'mh-list-sequences "mh-seq"
@@ -1519,6 +2041,16 @@ If optional prefix argument provided, then prompt for the message sequence." t)
   "Remove restrictions from current folder, thereby showing all messages." t)
 (autoload 'mh-rename-seq "mh-seq"
   "Rename SEQUENCE to have NEW-NAME." t)
+(autoload 'mh-narrow-to-subject-thread "mh-seq"
+  "Narrow to a sequence containing all following messages with same subject."
+  t)
+(autoload 'mh-toggle-subject-thread "mh-seq"
+  "Narrow to or widen from a sequence containing current subject sequence." t)
+(autoload 'mh-delete-subject-thread "mh-seq"
+  "Mark all following messages with same subject to be deleted." t)
+(autoload 'mh-next-unseen-subject-thread "mh-seq"
+  "Get the next unseen subject thread." t)
+
 
 (dolist (mess '("^Cursor not pointing to message$"
 		"^There is no other window$"))

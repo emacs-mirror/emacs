@@ -1,7 +1,11 @@
 ;;; mh-pick.el --- make a search pattern and search for a message in mh-e
-;; Time-stamp: <2001-12-20 18:55:31 pavel>
 
-;; Copyright (C) 1993, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001 Free Software Foundation, Inc.
+
+;; Author: Bill Wohler <wohler@newt.com>
+;; Maintainer: Bill Wohler <wohler@newt.com>
+;; Keywords: mail
+;; See: mh-e.el
 
 ;; This file is part of GNU Emacs.
 
@@ -26,12 +30,14 @@
 
 ;;; Change Log:
 
-;; $Id: mh-pick.el,v 1.6 2001/07/15 19:53:53 pj Exp $
+;; $Id: mh-pick.el,v 1.11 2001/12/29 00:10:41 wohler Exp $
 
 ;;; Code:
 
 (provide 'mh-pick)
 (require 'mh-e)
+(require 'easymenu)
+(require 'gnus-util)
 
 (defvar mh-pick-mode-hook nil
   "Invoked in `mh-pick-mode' on a new pattern.")
@@ -71,29 +77,27 @@ Add the messages found to the sequence named `search'."
 
 (put 'mh-pick-mode 'mode-class 'special)
 
-(defun mh-pick-mode ()
+(define-derived-mode mh-pick-mode fundamental-mode "MH-Pick"
   "Mode for creating search templates in mh-e.\\<mh-pick-mode-map>
+
 After each field name, enter the pattern to search for.  If a field's
 value does not matter for the search, leave it empty.  To search the
 entire message, supply the pattern in the \"body\" of the template.
 Each non-empty field must be matched for a message to be selected.
 To effect a logical \"or\", use \\[mh-search-folder] multiple times.
 When you have finished, type  \\[mh-do-pick-search]  to do the search.
-\\{mh-pick-mode-map}
-Turning on mh-pick-mode calls the value of the variable mh-pick-mode-hook
-if that value is non-nil."
-  (interactive)
-  (kill-all-local-variables)
+
+This mode runs the hook `mh-pick-mode-hook'.
+
+\\{mh-pick-mode-map}"
+
   (make-local-variable 'mh-searching-folder)
-  (use-local-map mh-pick-mode-map)
-  (setq major-mode 'mh-pick-mode)
-  (mh-set-mode-name "MH-Pick")
-  (run-hooks 'mh-pick-mode-hook))
+  (easy-menu-add mh-pick-menu))
 
 
 (defun mh-do-pick-search ()
   "Find messages that match the qualifications in the current pattern buffer.
-Messages are searched for in the folder named in mh-searching-folder.
+Messages are searched for in the folder named in `mh-searching-folder'.
 Add the messages found to the sequence named `search'."
   (interactive)
   (let ((pattern-buffer (buffer-name))
@@ -154,7 +158,7 @@ Add the messages found to the sequence named `search'."
   ;; Return the next piece of a pick argument that can be extracted from the
   ;; BUFFER.
   ;; Return a list like ("--fieldname" "pattern") or ("-search" "bodypat")
-  ;; or nil if no pieces remain.
+  ;; or NIL if no pieces remain.
   (set-buffer buffer)
   (let ((case-fold-search t))
     (cond ((eobp)
@@ -177,21 +181,27 @@ Add the messages found to the sequence named `search'."
 	   nil))))
 
 ;;; Build the pick-mode keymap:
+(gnus-define-keys  mh-pick-mode-map
+  "\C-c\C-c"		mh-do-pick-search
+  "\C-c\C-f\C-b"	mh-to-field
+  "\C-c\C-f\C-c"	mh-to-field
+  "\C-c\C-f\C-d"	mh-to-field
+  "\C-c\C-f\C-f"	mh-to-field
+  "\C-c\C-f\C-r"	mh-to-field
+  "\C-c\C-f\C-s"	mh-to-field
+  "\C-c\C-f\C-t"	mh-to-field
+  "\C-c\C-fb"		mh-to-field
+  "\C-c\C-fc"		mh-to-field
+  "\C-c\C-fd"		mh-to-field
+  "\C-c\C-ff"		mh-to-field
+  "\C-c\C-fr"		mh-to-field
+  "\C-c\C-fs"		mh-to-field
+  "\C-c\C-ft"		mh-to-field)
 
-(define-key mh-pick-mode-map "\C-c\C-c" 'mh-do-pick-search)
-(define-key mh-pick-mode-map "\C-c\C-f\C-b" 'mh-to-field)
-(define-key mh-pick-mode-map "\C-c\C-f\C-c" 'mh-to-field)
-(define-key mh-pick-mode-map "\C-c\C-f\C-d" 'mh-to-field)
-(define-key mh-pick-mode-map "\C-c\C-f\C-f" 'mh-to-field)
-(define-key mh-pick-mode-map "\C-c\C-f\C-r" 'mh-to-field)
-(define-key mh-pick-mode-map "\C-c\C-f\C-s" 'mh-to-field)
-(define-key mh-pick-mode-map "\C-c\C-f\C-t" 'mh-to-field)
-(define-key mh-pick-mode-map "\C-c\C-fb" 'mh-to-field)
-(define-key mh-pick-mode-map "\C-c\C-fc" 'mh-to-field)
-(define-key mh-pick-mode-map "\C-c\C-fd" 'mh-to-field)
-(define-key mh-pick-mode-map "\C-c\C-ff" 'mh-to-field)
-(define-key mh-pick-mode-map "\C-c\C-fr" 'mh-to-field)
-(define-key mh-pick-mode-map "\C-c\C-fs" 'mh-to-field)
-(define-key mh-pick-mode-map "\C-c\C-ft" 'mh-to-field)
+;;; Menu extracted from mh-menubar.el V1.1 (31 July 2001)
+(easy-menu-define
+  mh-pick-menu mh-pick-mode-map "Menu for mh-e pick-mode"
+  '("Pick"
+    ["Execute the Search"       mh-do-pick-search t]))
 
 ;;; mh-pick.el ends here
