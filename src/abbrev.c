@@ -271,7 +271,7 @@ Returns t if expansion took place.")
   if (VECTORP (current_buffer->abbrev_table))
     sym = oblookup (current_buffer->abbrev_table, buffer, p - buffer);
   else
-    XFASTINT (sym) = 0;
+    XSETFASTINT (sym, 0);
   if (INTEGERP (sym) || NILP (XSYMBOL (sym)->value))
     sym = oblookup (Vglobal_abbrev_table, buffer, p - buffer);
   if (INTEGERP (sym) || NILP (XSYMBOL (sym)->value))
