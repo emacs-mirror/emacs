@@ -71,6 +71,10 @@
      (ascii vietnamese-viscii-lower vietnamese-viscii-upper)
      viet-viscii-nonascii-translation-table
      ((0 255)))
+    (vietnamese-tcvn
+     (ascii vietnamese-viscii-lower vietnamese-viscii-upper)
+     viet-tcvn-nonascii-translation-table
+     ((0 255)))
     (koi8-r
      (ascii cyrillic-iso8859-5)
      cyrillic-koi8-r-nonascii-translation-table
