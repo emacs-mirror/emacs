@@ -103,8 +103,6 @@
 (new-fontset
  "fontset-default"
  '( ;; for each script
-   (ascii (nil . "ISO8859-1"))
-
    (latin (nil . "ISO8859-1")
 	  (nil . "ISO8859-2")
 	  (nil . "ISO8859-3")
@@ -179,6 +177,7 @@
    (hangul (nil . "KSC5601.1987-0"))
 
    ;; for each charset
+   (ascii (nil . "ISO8859-1"))
    (arabic-digit ("*" . "MuleArabic-0"))
    (arabic-1-column ("*" . "MuleArabic-1"))
    (arabic-2-column ("*" . "MuleArabic-2"))
@@ -443,33 +442,34 @@ with \"fontset\" in `<CHARSET_REGISTRY> field."
       (error "Invalid fontset: %s" fontset))
   (let ((xlfd-fields (x-decompose-font-name fontset)))
     (if xlfd-fields
-	(let ((weight (aref xlfd-fields xlfd-regexp-weight-subnum))
+	(let ((family (aref xlfd-fields xlfd-regexp-family-subnum))
+	      (weight (aref xlfd-fields xlfd-regexp-weight-subnum))
 	      (slant  (aref xlfd-fields xlfd-regexp-slant-subnum))
 	      (swidth (aref xlfd-fields xlfd-regexp-swidth-subnum))
 	      (size   (aref xlfd-fields xlfd-regexp-pixelsize-subnum))
 	      (nickname (aref xlfd-fields xlfd-regexp-registry-subnum))
 	      name)
 	  (if (not (string-match "^fontset-\\(.*\\)$" nickname))
-	      fontset
-	    (setq nickname (match-string 1 nickname))
-	    (if (and size (> (string-to-int size) 0))
-		(setq name (format "%s: %s-dot" nickname size))
-	      (setq name nickname))
-	    (and weight
-		 (cond ((string-match "^medium$" weight)
-			(setq name (concat name " " "medium")))
-		       ((string-match "^bold$\\|^demibold$" weight)
-			(setq name (concat name " " weight)))))
-	    (and slant
-		 (cond ((string-match "^i$" slant)
-			(setq name (concat name " " "italic")))
-		       ((string-match "^o$" slant)
-			(setq name (concat name " " "slant")))
-		       ((string-match "^ri$" slant)
-			(setq name (concat name " " "reverse italic")))
-		       ((string-match "^ro$" slant)
-			(setq name (concat name " " "reverse slant")))))
-	    name))
+	      (setq nickname family)
+	    (setq nickname (match-string 1 nickname)))
+	  (if (and size (> (string-to-int size) 0))
+	      (setq name (format "%s: %s-dot" nickname size))
+	    (setq name nickname))
+	  (and weight
+	       (cond ((string-match "^medium$" weight)
+		      (setq name (concat name " " "medium")))
+		     ((string-match "^bold$\\|^demibold$" weight)
+		      (setq name (concat name " " weight)))))
+	  (and slant
+	       (cond ((string-match "^i$" slant)
+		      (setq name (concat name " " "italic")))
+		     ((string-match "^o$" slant)
+		      (setq name (concat name " " "slant")))
+		     ((string-match "^ri$" slant)
+		      (setq name (concat name " " "reverse italic")))
+		     ((string-match "^ro$" slant)
+		      (setq name (concat name " " "reverse slant")))))
+	  name)
       fontset)))
 
 (defvar charset-script-alist
@@ -607,9 +607,11 @@ It returns a name of the created fontset."
 	fontset)
     (if fontset-name
 	(setq fontset-name (downcase fontset-name))
-      (setq fontset-name
-	    (subst-char-in-string
-	     "-" "_" (aref xlfd xlfd-regexp-registry-subnum) t)))
+      (if (query-fontset "fontset-startup")
+	  (setq fontset-name
+		(subst-char-in-string
+		 ?- ?_ (aref xlfd xlfd-regexp-registry-subnum) t))
+	(setq fontset-name "startup")))
     (aset xlfd xlfd-regexp-registry-subnum
 	  (format "fontset-%s" fontset-name))
     (setq fontset (x-compose-font-name xlfd))
