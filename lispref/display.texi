@@ -2817,15 +2817,19 @@ The function returns @code{nil} if images of this type are not
 supported.  Otherwise it returns an image descriptor.
 @end defun
 
-@defmac defimage variable doc &rest specs
+@defmac defimage symbol specs &optional doc
 @tindex defimage
-This macro defines @var{variable} as an image name.  The second argument,
-@var{doc}, is an optional documentation string.  The remaining
-arguments, @var{specs}, specify alternative ways to display the image.
+This macro defines @var{symbol} as an image name.  The arguments
+@var{specs} is a list which specifies how to display the image.
+The third argument, @var{doc}, is an optional documentation string.
 
 Each argument in @var{specs} has the form of a property list, and each
-one should specify at least the @code{:type} property and the
-@code{:file} property.  Here is an example:
+one should specify at least the @code{:type} property and either the
+@code{:file} or the @code{:data} property.  The value of @code{:type}
+should be a symbol specifying the image type, the value of
+@code{:file} is the file to load the image from, and the value of
+@code{:data} is a string containing the actual image data.  Here is an
+example:
 
 @example
 (defimage test-image
@@ -2836,9 +2840,9 @@ one should specify at least the @code{:type} property and the
 @code{defimage} tests each argument, one by one, to see if it is
 usable---that is, if the type is supported and the file exists.  The
 first usable argument is used to make an image descriptor which is
-stored in the variable @var{variable}.
+stored in @var{symbol}.
 
-If none of the alternatives will work, then @var{variable} is defined
+If none of the alternatives will work, then @var{symbol} is defined
 as @code{nil}.
 @end defmac
 
