@@ -1131,7 +1131,7 @@ window_loop (type, obj, mini, frames)
 	  case GET_LRU_WINDOW:
 	    /* t as arg means consider only full-width windows */
 	    if (!NILP (obj) && XFASTINT (XWINDOW (w)->width)
-		!= FRAME_WIDTH (frame))
+		!= FRAME_WIDTH (XFRAME (WINDOW_FRAME (XWINDOW (w)))))
 	      break;
 #if 0
 	    /* Ignore invisible and iconified frames.  */
