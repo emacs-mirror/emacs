@@ -273,6 +273,7 @@ not be enclosed in { } or ( )."
 
    ;; Automatic variable references.
    '("\\$\\([@%<?^+*]\\)" 1 font-lock-reference-face prepend)
+   '("\\$[({]\\([@%<?^+*][FD]?\\)[}):]" 1 font-lock-reference-face prepend)
 
    ;; Fontify conditionals and includes.
    ;; Note that plain `if' is an automake conditional, and not a bug.
