@@ -2023,11 +2023,12 @@ STRING should be given if the last search was by `string-match' on STRING."
 
 (defun looking-back (regexp &optional limit)
   "Return non-nil if text before point matches regular expression REGEXP.
-Like `looking-at' except backwards and slower.
+Like `looking-at' except matches before point, and is slower.
 LIMIT if non-nil speeds up the search by specifying how far back the
 match can start."
-  (save-excursion
-    (re-search-backward (concat "\\(?:" regexp "\\)\\=") limit t)))
+  (not (null
+	(save-excursion
+	  (re-search-backward (concat "\\(?:" regexp "\\)\\=") limit t)))))
 
 (defconst split-string-default-separators "[ \f\t\n\r\v]+"
   "The default value of separators for `split-string'.
