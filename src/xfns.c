@@ -3330,6 +3330,7 @@ DEFUN ("x-select-region", Fx_select_region, Sx_select_region, 1, 1, "e",
 }
 #endif
 
+#if 0
 DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
   "")
   (event)
@@ -3421,6 +3422,7 @@ DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
       UNBLOCK_INPUT;
     }
 }
+#endif
 
 /* Offset in buffer of character under the pointer, or 0. */
 int mouse_buffer_offset;
@@ -4304,7 +4306,7 @@ syms_of_xfns ()
   Vx_nontext_pointer_shape = Qnil;
 
   DEFVAR_INT ("x-mode-pointer-shape", &Vx_mode_pointer_shape,
-	      "The shape of the pointer when not over text.");
+	      "The shape of the pointer when over the mode line.");
   Vx_mode_pointer_shape = Qnil;
 
   DEFVAR_LISP ("x-bar-cursor", &Vbar_cursor,
@@ -4370,7 +4372,9 @@ Values can be the symbols Always, WhenMapped, or NotUseful.");
   defsubr (&Sx_create_screen);
   defsubr (&Sfocus_screen);
   defsubr (&Sunfocus_screen);
+#if 0
   defsubr (&Sx_horizontal_line);
+#endif
   defsubr (&Sx_rebind_key);
   defsubr (&Sx_rebind_keys);
   defsubr (&Sx_open_connection);

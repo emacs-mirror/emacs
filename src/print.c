@@ -942,7 +942,7 @@ or the symbol t (output appears in the minibuffer line).");
 
 #ifdef LISP_FLOAT_TYPE
   DEFVAR_LISP ("float-output-format", &Vfloat_output_format,
-    "The format descriptor string that lisp uses to print floats.\n\
+    "The format descriptor string used to print floats.\n\
 This is a %-spec like those accepted by `printf' in C,\n\
 but with some restrictions.  It must start with the two characters `%.'.\n\
 After that comes an integer precision specification,\n\

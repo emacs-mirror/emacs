@@ -520,7 +520,8 @@ You are not required to define a variable in order to use it,\n\
 but the definition can supply documentation and an initial value\n\
 in a way that tags can recognize.\n\n\
 INITVALUE is evaluated, and used to set SYMBOL, only if SYMBOL's value is void.\n\
-If SYMBOL is buffer-local, its default value is initialized in this way.\n\
+If SYMBOL is buffer-local, its default value is what is set;\n\
+ buffer-local values are not affected.\n\
 INITVALUE and DOCSTRING are optional.\n\
 If DOCSTRING starts with *, this variable is identified as a user option.\n\
  This means that M-x set-variable and M-x edit-options recognize it.\n\
@@ -552,7 +553,8 @@ DEFUN ("defconst", Fdefconst, Sdefconst, 2, UNEVALLED, 0,
   "(defconst SYMBOL INITVALUE DOCSTRING): define SYMBOL as a constant variable.\n\
 The intent is that programs do not change this value, but users may.\n\
 Always sets the value of SYMBOL to the result of evalling INITVALUE.\n\
-If SYMBOL is buffer-local, its default value is initialized in this way.\n\
+If SYMBOL is buffer-local, its default value is what is set;\n\
+ buffer-local values are not affected.\n\
 DOCSTRING is optional.\n\
 If DOCSTRING starts with *, this variable is identified as a user option.\n\
  This means that M-x set-variable and M-x edit-options recognize it.\n\n\

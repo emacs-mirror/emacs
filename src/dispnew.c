@@ -1794,7 +1794,7 @@ Optional second arg non-nil means ARG is measured in milliseconds.\n\
   if (!NILP (millisec))
     {
 #ifndef EMACS_HAS_USECS
-      error ("millisecond sit-for not supported on %s", SYSTEM_TYPE);
+      error ("millisecond `sleep-for' not supported on %s", SYSTEM_TYPE);
 #else
       usec = sec % 1000 * 1000;
       sec /= 1000;
@@ -1913,7 +1913,7 @@ Value is t if waited the full time with no input arriving.")
   if (!NILP (millisec))
     {
 #ifndef EMACS_HAS_USECS
-      error ("millisecond sit-for not supported on %s", SYSTEM_TYPE);
+      error ("millisecond `sit-for' not supported on %s", SYSTEM_TYPE);
 #else
       usec = (sec % 1000) * 1000;
       sec /= 1000;

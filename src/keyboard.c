@@ -155,7 +155,7 @@ Lisp_Object meta_prefix_char;
 /* Last size recorded for a current buffer which is not a minibuffer.  */
 static int last_non_minibuf_size;
 
-/* Number of idle seconds before an auto-save.  */
+/* Number of idle seconds before an auto-save and garbage collection.  */
 static Lisp_Object Vauto_save_timeout;
 
 /* Total number of times read_char has returned.  */
@@ -3569,7 +3569,9 @@ Zero means disable autosaving due to number of characters typed.");
 
   DEFVAR_LISP ("auto-save-timeout", &Vauto_save_timeout,
     "*Number of seconds idle time before auto-save.\n\
-Zero or nil means disable auto-saving due to idleness.");
+Zero or nil means disable auto-saving due to idleness.\n\
+After auto-saving due to this many seconds of idle time,\n\
+Emacs also does a garbage collection if that seems to be warranted."
   XFASTINT (Vauto_save_timeout) = 30;
 
   DEFVAR_INT ("echo-keystrokes", &echo_keystrokes,
