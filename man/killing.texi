@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,97,2000 Free Software Foundation, Inc.
+@c Copyright (C) 1985,86,87,93,94,95,97,00,2001 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
 @chapter Killing and Moving Text
@@ -37,15 +37,14 @@ can use the @kbd{C-x u} (@code{undo}) command to undo it
 
 @vindex kill-read-only-ok
 @cindex read-only text, killing
-  By default, Emacs does not allow to kill text in read-only buffers.
-Setting the variable @code{kill-read-only-ok} to a non-@code{nil} value
-overrides that.  To alert you to the fact that you killed read-only
-text, Emacs prints a message to that effect in the echo area.
-
-  When @code{kill-read-only-ok} is @code{nil}, Emacs beeps if you try to
-kill text in a read-only buffers, but it puts the text you wanted to
-kill into the kill ring anyway.  This means you can use kill commands to
-copy text from read-only buffers.
+  You cannot kill read-only text, since such text does not allow any
+kind of modification.  But some users like to use the kill commands to
+copy read-only text into the kill ring, without actually changing it.
+If you set the variable @code{kill-read-only-ok} to a non-@code{nil}
+value, the kill commands work specially in a read-only buffer: they
+move over text, and copy it to the kill ring, without actually
+deleting it from the buffer.  When this happens, a message in the echo
+area tells you what is happening.
 
   The delete commands include @kbd{C-d} (@code{delete-char}) and
 @key{DEL} (@code{delete-backward-char}), which delete only one character at
@@ -57,12 +56,13 @@ and @samp{delete} to say which they do.
 @cindex Delete Selection mode
 @cindex mode, Delete Selection
 @findex delete-selection-mode
-You can arrange for selected text to be killed when you insert something
-and replaced by what you insert; this is the way many text interfaces
-work.  To do this turn on Delete Selection mode. with @kbd{M-x
-delete-selection-mode} or using Custom.  Also in Delete Selection mode
-@key{DEL}, @kbd{C-d} and some other keys will just kill the whole
-selection and Transient Mark mode is turned on (@pxref{Transient Mark}).
+  Many window systems follow the convention that insertion while text
+is selected deletes the selected text.  You can make Emacs behave this
+way by enabling Delete Selection mode, with @kbd{M-x
+delete-selection-mode}, or using Custom.  Another effect of this mode
+is that @key{DEL}, @kbd{C-d} and some other keys, when a selection
+exists, will kill the whole selection.  It also enables Transient Mark
+mode (@pxref{Transient Mark}).
 
 @menu
 * Deletion::            Commands for deleting small amounts of text and
@@ -502,6 +502,9 @@ starting from the left edge column of the rectangle.
 @item C-x r t @var{string} @key{RET}
 Insert @var{string} on each line of the region-rectangle
 (@code{string-rectangle}).
+@item M-x replace-rectangle @key{RET} @var{string} @key{RET}
+Replaces each line of the region-rectangle with @var{string}
+(@code{string-rectangle}).
 @end table
 
   The rectangle operations fall into two classes: commands deleting and
@@ -562,13 +565,13 @@ any difference to this command.
 
 @kindex C-x r t
 @findex string-rectangle
-The command @kbd{C-x r t} (@code{M-x string-rectangle}) inserts a
+  The command @kbd{C-x r t} (@code{M-x string-rectangle}) inserts a
 string on each line of the region-rectangle before the rectangle,
 shifting text right.
 
 @findex replace-rectangle
-The command @kbd{M-x replace-rectangle} is similar, but replaces the
-original rectangle.  The string's width need not be the same as the
-width of the rectangle.  If the string's width is less, the text after
-the rectangle shifts left; if the string is wider than the rectangle,
-the text after the rectangle shifts right.
+  The command @kbd{M-x replace-rectangle} is similar to @kbd{C-x r t},
+but replaces the original rectangle.  The string's width need not be
+the same as the width of the rectangle.  If the string's width is
+less, the text after the rectangle shifts left; if the string is wider
+than the rectangle, the text after the rectangle shifts right.
