@@ -1,3 +1,8 @@
+2000-01-12  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
+
+	* emacsclient.c: Add option -a EDITOR and environment variable
+	ALTERNATE_EDITOR.  Exec this editor if we fail to contact Emacs.
+
 1999-12-10  Jonathan Kamens <jik@kamens.brookline.ma.us>
 
 	* movemail.c (popmail): Allow mailbox specifications of the
