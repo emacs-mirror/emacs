@@ -1,3 +1,9 @@
+2000-10-04  Peter Breton  <pbreton@ne.mediaone.net>
+
+	* net/net-utils.el (nslookup-font-lock-keywords)
+	(ftp-font-lock-keywords, smbclient-font-lock-keywords): 
+	Ignore the value of wqindow-system; always define keywords
+
 2000-10-05  Kenichi Handa  <handa@etl.go.jp>
 
 	* startup.el (fancy-splash-screens): Remove the code for
