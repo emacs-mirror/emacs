@@ -3,8 +3,6 @@
 #define USG5_3
 #define IRIX4
 
-#define USE_IRIX_BSDPGRP
-
 #define HAVE_ALLOCA
 #ifndef NOT_C_CODE
 #include <alloca.h>
@@ -51,6 +49,10 @@
     return -1;							\
   strcpy (pty_name, name);					\
 }
+
+/* Use the BSD versions of the getpgrp and setpgrp functions.  */
+#define setpgrp(pid, pgrp) BSDsetpgrp((pid), (pgrp))
+#define getpgrp(pid)       BSDgetpgrp(pid)
 
 /* jpff@maths.bath.ac.uk reports `struct exception' is not defined
    on this system, so inhibit use of matherr.  */

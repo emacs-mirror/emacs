@@ -300,11 +300,7 @@ main (argc, argv, envp)
 
 #ifdef BSD
   {
-#ifdef GETPGRP_NO_ARG
-    inherited_pgroup = getpgrp ();
-#else /* THISSENTENCE_NO_VERB */
     inherited_pgroup = getpgrp (0);
-#endif
     setpgrp (0, getpid ());
   }
 #endif
@@ -687,11 +683,7 @@ shut_down_emacs (sig, no_x, stuff)
   {
     int tpgrp;
     if (EMACS_GET_TTY_PGRP (0, &tpgrp) != -1
-#ifdef GETPGRP_NO_ARG
-	&& tpgrp == getpgrp ())
-#else
 	&& tpgrp == getpgrp (0))
-#endif
       {
 	fflush (stdout);
 	reset_sys_modes ();
