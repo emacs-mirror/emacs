@@ -265,7 +265,7 @@ and point is at the lower right corner."
 	   (or (bolp) (insert ?\n))
 	   (move-to-column insertcolumn t)))
       (setq first nil)
-      (insert (car lines))
+      (insert-for-yank (car lines))
       (setq lines (cdr lines)))))
 
 ;;;###autoload
