@@ -1,3 +1,8 @@
+2000-12-16  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/ja-dic-cnv.el (skkdic-get-candidate-list): Fix the
+	regexp to search for candidates.
+
 2000-12-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (Info-forward-node): If the node has an
