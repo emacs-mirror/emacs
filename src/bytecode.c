@@ -258,6 +258,10 @@ Lisp_Object Qbytecode;
   if (consing_since_gc > gc_cons_threshold)	\
     Fgarbage_collect ();
 
+/* Check for jumping out of range.  */
+#define CHECK_RANGE(ARG)			\
+  if (ARG >= bytestr_length) abort ()
+
 DEFUN ("byte-code", Fbyte_code, Sbyte_code, 3, 3, 0,
   "Function used internally in byte-compiled code.\n\
 The first argument, BYTESTR, is a string of byte code;\n\
@@ -288,6 +292,7 @@ If the third argument is incorrect, Emacs may crash.")
   /* Cached address of beginning of string,
      valid if BYTESTR equals STRING_SAVED.  */
   register unsigned char *strbeg;
+  int bytestr_length = XSTRING (bytestr)->size;
 
   CHECK_STRING (bytestr, 0);
   if (!VECTORP (vector))
@@ -441,6 +446,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  MAYBE_GC ();
 	  QUIT;
 	  op = FETCH2;    /* pc = FETCH2 loses since FETCH2 contains pc++ */
+	  CHECK_RANGE (op);
 	  pc = XSTRING (string_saved)->data + op;
 	  break;
 
@@ -450,6 +456,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  if (NILP (POP))
 	    {
 	      QUIT;
+	      CHECK_RANGE (op);
 	      pc = XSTRING (string_saved)->data + op;
 	    }
 	  break;
@@ -460,6 +467,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  if (!NILP (POP))
 	    {
 	      QUIT;
+	      CHECK_RANGE (op);
 	      pc = XSTRING (string_saved)->data + op;
 	    }
 	  break;
@@ -470,6 +478,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  if (NILP (TOP))
 	    {
 	      QUIT;
+	      CHECK_RANGE (op);
 	      pc = XSTRING (string_saved)->data + op;
 	    }
 	  else DISCARD (1);
@@ -481,6 +490,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  if (!NILP (TOP))
 	    {
 	      QUIT;
+	      CHECK_RANGE (op);
 	      pc = XSTRING (string_saved)->data + op;
 	    }
 	  else DISCARD (1);
