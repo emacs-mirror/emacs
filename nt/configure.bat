@@ -89,6 +89,7 @@ if "%1" == "--without-png" goto withoutpng
 if "%1" == "--without-jpeg" goto withoutjpeg
 if "%1" == "--without-gif" goto withoutgif
 if "%1" == "--without-tiff" goto withouttiff
+if "%1" == "--without-xpm" goto withoutxpm
 if "%1" == "" goto checkutils
 :usage
 echo Usage: configure [options]
@@ -102,9 +103,10 @@ echo.   --no-cygwin             use -mno-cygwin option with GCC
 echo.   --cflags FLAG           pass FLAG to compiler
 echo.   --ldflags FLAG          pass FLAG to compiler when linking
 echo.   --without-png           do not use libpng even if it is installed
-echo.   --without-jpeg          do not use jpeglib even if it is installed
-echo.   --without-gif           do not use giflib even if it is installed
-echo.   --without-tiff          do not use tifflib even if it is installed
+echo.   --without-jpeg          do not use jpeg-6b even if it is installed
+echo.   --without-gif           do not use libungif even if it is installed
+echo.   --without-tiff          do not use tiff even if it is installed
+echo.   --without-xpm		do not use libXpm even if it is installed
 goto end
 rem ----------------------------------------------------------------------
 :setprefix
@@ -180,6 +182,14 @@ rem ----------------------------------------------------------------------
 :withouttiff
 set tiffsupport=N
 set HAVE_TIFF=
+shift
+goto again
+
+rem ----------------------------------------------------------------------
+
+:withoutxpm
+set xpmsupport=N
+set HAVE_XPM=
 shift
 goto again
 
@@ -290,10 +300,10 @@ echo Checking for libpng...
 echo #include "png.h" >junk.c
 echo main (){} >>junk.c
 rem   -o option is ignored with cl, but allows result to be consistent.
-%COMPILER% %usercflags% -c junk.c -o junk.obj
+%COMPILER% %usercflags% -c junk.c -o junk.obj >junk.out 2>junk.err
 if exist junk.obj goto havePng
 
-echo ...building without PNG support.
+echo ...png.h not found, building without PNG support.
 set HAVE_PNG=
 goto :pngDone
 
@@ -306,14 +316,14 @@ rm -f junk.c junk.obj
 
 if (%jpegsupport%) == (N) goto jpegDone
 
-echo Checking for jpeg...
+echo Checking for jpeg-6b...
 echo #include "jconfig.h" >junk.c
 echo main (){} >>junk.c
 rem   -o option is ignored with cl, but allows result to be consistent.
-%COMPILER% %usercflags% -c junk.c -o junk.obj
+%COMPILER% %usercflags% -c junk.c -o junk.obj >junk.out 2>junk.err
 if exist junk.obj goto haveJpeg
 
-echo ...building without JPEG support.
+echo ...jconfig.h not found, building without JPEG support.
 set HAVE_JPEG=
 goto :jpegDone
 
@@ -326,14 +336,14 @@ rm -f junk.c junk.obj
 
 if (%gifsupport%) == (N) goto gifDone
 
-echo Checking for gif...
+echo Checking for libgif...
 echo #include "gif_lib.h" >junk.c
 echo main (){} >>junk.c
 rem   -o option is ignored with cl, but allows result to be consistent.
-%COMPILER% %usercflags% -c junk.c -o junk.obj
+%COMPILER% %usercflags% -c junk.c -o junk.obj >junk.out 2>junk.err
 if exist junk.obj goto haveGif
 
-echo ...building without GIF support.
+echo ...gif_lib.h not found, building without GIF support.
 set HAVE_GIF=
 goto :gifDone
 
@@ -350,10 +360,10 @@ echo Checking for tiff...
 echo #include "tiffio.h" >junk.c
 echo main (){} >>junk.c
 rem   -o option is ignored with cl, but allows result to be consistent.
-%COMPILER% %usercflags% -c junk.c -o junk.obj
+%COMPILER% %usercflags% -c junk.c -o junk.obj >junk.out 2>junk.err
 if exist junk.obj goto haveTiff
 
-echo ...building without TIFF support.
+echo ...tiffio.h not found, building without TIFF support.
 set HAVE_TIFF=
 goto :tiffDone
 
@@ -363,6 +373,27 @@ set HAVE_TIFF=1
 
 :tiffDone
 rm -f junk.c junk.obj
+
+if (%xpmsupport%) == (N) goto xpmDone
+
+echo Checking for libXpm...
+echo #define FOR_MSW 1 >junk.c
+echo #include "X11/xpm.h" >>junk.c
+echo main (){} >>junk.c
+rem   -o option is ignored with cl, but allows result to be consistent.
+%COMPILER% %usercflags% -c junk.c -o junk.obj >junk.out 2>junk.err
+if exist junk.obj goto haveXpm
+
+echo ...X11/xpm.h not found, building without XPM support.
+set HAVE_XPM=
+goto :xpmDone
+
+:haveXpm
+echo ...XPM header available, building with XPM support.
+set HAVE_XPM=1
+
+:xpmDone
+rm -f junk.c junk.obj junk.err junk.out
 
 rem ----------------------------------------------------------------------
 :genmakefiles
@@ -394,6 +425,7 @@ if not "(%HAVE_PNG%)" == "()" echo #define HAVE_PNG 1 >>..\src\config.h
 if not "(%HAVE_JPEG%)" == "()" echo #define HAVE_JPEG 1 >>..\src\config.h
 if not "(%HAVE_GIF%)" == "()" echo #define HAVE_GIF 1 >>..\src\config.h
 if not "(%HAVE_TIFF%)" == "()" echo #define HAVE_TIFF 1 >>..\src\config.h
+if not "(%HAVE_XPM%)" == "()" echo #define HAVE_XPM 1 >>..\src\config.h
 echo /* End of settings from configure.bat.  */ >>..\src\config.h
 
 copy paths.h ..\src\epaths.h
