@@ -1,3 +1,8 @@
+2003-03-27  Andreas Schwab  <schwab@suse.de>
+
+	* vc-cvs.el (vc-cvs-parse-entry): Make sure a file with conflicts
+	is marked as edited.
+
 2003-03-26  Kenichi Handa  <handa@etlken2>
 
 	* files.el (recode-file-name): New function.
