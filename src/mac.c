@@ -2751,6 +2751,7 @@ and t is the same as `SECONDARY'.  */)
 #undef select
 
 extern int inhibit_window_system;
+extern int noninteractive;
 
 /* When Emacs is started from the Finder, SELECT always immediately
    returns as if input is present when file descriptor 0 is polled for
@@ -2767,8 +2768,58 @@ sys_select (n, rfds, wfds, efds, timeout)
 {
   if (!inhibit_window_system && rfds && FD_ISSET (0, rfds))
     return 1;
+  else if (inhibit_window_system || noninteractive)
+    return select(n, rfds, wfds, efds, timeout);
   else
-    return select (n, rfds, wfds, efds, timeout);
+    {
+      EMACS_TIME end_time, now;
+      
+      EMACS_GET_TIME (end_time);
+      if (timeout)
+	EMACS_ADD_TIME (end_time, end_time, *timeout);
+      
+      do
+	{
+	  int r;
+	  EMACS_TIME one_second;
+	  
+	  EMACS_SET_SECS (one_second, 1);
+	  EMACS_SET_USECS (one_second, 0);
+	  
+	  if ((r = select (n, rfds, wfds, efds, &one_second)) > 0)
+	    return r;
+	  
+	  mac_check_for_quit_char();
+	  
+	  EMACS_GET_TIME (now);
+	  EMACS_SUB_TIME (now, end_time, now);
+	}
+      while (!timeout || !EMACS_TIME_NEG_P (now));
+      
+      return 0;
+    }
+}
+
+#undef read
+int sys_read (fds, buf, nbyte)
+     int fds;
+     char *buf;
+     unsigned int nbyte;
+{
+  SELECT_TYPE rfds;
+  EMACS_TIME one_second;
+  int r;
+
+  /* Use select to block on IO while still checking for quit_char */
+  if (!inhibit_window_system && !noninteractive)
+    {
+      FD_ZERO (&rfds);
+      FD_SET (fds, &rfds);
+      if (sys_select (fds+1, &rfds, 0, 0, NULL) < 0)
+	return -1;
+    }
+      
+  return read (fds, buf, nbyte);
 }
 
 
