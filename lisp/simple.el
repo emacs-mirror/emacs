@@ -1434,9 +1434,10 @@ specifies the value of ERROR-BUFFER."
 					 (list t error-file)
 				       t)
 				     nil shell-command-switch command))
-	  (let ((shell-buffer (get-buffer "*Shell Command Output*")))
-	    (and shell-buffer (not (eq shell-buffer (current-buffer)))
-		 (kill-buffer shell-buffer)))
+;;; It is rude to delete a buffer which the command is not using.
+;;;	  (let ((shell-buffer (get-buffer "*Shell Command Output*")))
+;;;	    (and shell-buffer (not (eq shell-buffer (current-buffer)))
+;;;		 (kill-buffer shell-buffer)))
 	  ;; Don't muck with mark unless REPLACE says we should.
 	  (and replace swap (exchange-point-and-mark)))
       ;; No prefix argument: put the output in a temp buffer,
@@ -1485,8 +1486,7 @@ specifies the value of ERROR-BUFFER."
 			      (< 0 (nth 7 (file-attributes error-file))))
 			 "(Shell command %sed with some error output)"
 		       "(Shell command %sed with no output)")
-		     (if (equal 0 exit-status) "succeed" "fail"))
-	    (kill-buffer buffer)))))
+		     (if (equal 0 exit-status) "succeed" "fail"))))))
 
     (when (and error-file (file-exists-p error-file))
       (if (< 0 (nth 7 (file-attributes error-file)))
