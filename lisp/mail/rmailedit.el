@@ -29,6 +29,7 @@
 (defcustom rmail-edit-mode-hook nil
   "List of functions to call when editing an RMAIL message."
   :type 'hook
+  :version "21.1"
   :group 'rmail-edit)
 
 (defvar rmail-old-text)
