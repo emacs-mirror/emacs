@@ -157,7 +157,7 @@ struct x_display_info
   /* The Visual being used for this display.  */
   Visual *visual;
 
-  /* THe colormap being used.  */
+  /* The colormap being used.  */
   Colormap cmap;
   
   /* Number of panes on this screen.  */
@@ -618,7 +618,7 @@ struct x_output
 
 enum
 {
-  /* Values used as a bit mask, BOTH == WIDTH | HEIGH */
+  /* Values used as a bit mask, BOTH == WIDTH | HEIGHT.  */
   FULLSCREEN_NONE       = 0,
   FULLSCREEN_WIDTH      = 1,
   FULLSCREEN_HEIGHT     = 2,
