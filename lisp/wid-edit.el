@@ -856,17 +856,21 @@ Recommended as a parent keymap for modes using widgets.")
 
 (defun widget-button-click (event)
   "Invoke the button that the mouse is pointing at."
-  (interactive "@e")
+  (interactive "e")
   (if (widget-event-point event)
       (let* ((pos (widget-event-point event))
-	     (button (get-char-property pos 'button)))
+	     (start (event-start event))
+	     (button (get-char-property 
+		      pos 'button (and (windowp (posn-window start))
+				       (window-buffer (posn-window start))))))
 	(if button
 	    ;; Mouse click on a widget button.  Do the following
 	    ;; in a save-excursion so that the click on the button
 	    ;; doesn't change point.
 	    (save-selected-window
+	      (select-window (posn-window (event-start event)))
 	      (save-excursion
-		(mouse-set-point event)
+		(goto-char (posn-point (event-start event)))
 		(let* ((overlay (widget-get button :button-overlay))
 		       (face (overlay-get overlay 'face))
 		       (mouse-face (overlay-get overlay 'mouse-face)))
@@ -907,10 +911,11 @@ Recommended as a parent keymap for modes using widgets.")
 		    (overlay-put overlay 'face face)
 		    (overlay-put overlay 'mouse-face mouse-face))))
 
-		(unless (pos-visible-in-window-p (widget-event-point event))
-		  (mouse-set-point event)
-		  (beginning-of-line)
-		  (recenter)))
+	      (unless (pos-visible-in-window-p (widget-event-point event))
+		(mouse-set-point event)
+		(beginning-of-line)
+		(recenter))
+	      )
 
 	    (let ((up t) command)
 	      ;; Mouse click not on a widget button.  Find the global
