@@ -63,7 +63,8 @@ Return t if file exists."
 	      (set-buffer-modified-p nil))
 	    ;; Eval in the original buffer.
 	    (eval-buffer buffer))
-	(kill-buffer buffer))
+	(let (kill-buffer-hook kill-buffer-query-functions)
+	  (kill-buffer buffer)))
       (let ((hook (assoc file after-load-alist)))
 	      (if hook
 		  (mapcar (function eval) (cdr hook))))
