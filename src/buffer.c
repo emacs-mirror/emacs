@@ -222,8 +222,7 @@ The value is never nil.")
   (name)
      register Lisp_Object name;
 {
-  register Lisp_Object buf, function, tem;
-  int count = specpdl_ptr - specpdl;
+  register Lisp_Object buf;
   register struct buffer *b;
 
   buf = Fget_buffer (name);
@@ -275,27 +274,7 @@ The value is never nil.")
   b->mark = Fmake_marker ();
   b->markers = Qnil;
   b->name = name;
-
-  function = buffer_defaults.major_mode;
-  if (NILP (function))
-    {
-      tem = Fget (current_buffer->major_mode, Qmode_class);
-      if (EQ (tem, Qnil))
-	function = current_buffer->major_mode;
-    }
-
-  if (NILP (function) || EQ (function, Qfundamental_mode))
-    return buf;
-
-  /* To select a nonfundamental mode,
-     select the buffer temporarily and then call the mode function. */
-
-  record_unwind_protect (save_excursion_restore, save_excursion_save ());
-
-  Fset_buffer (buf);
-  call0 (function);
-
-  return unbind_to (count, buf);
+  return buf;
 }
 
 /* Reinitialize everything about a buffer except its name and contents
@@ -892,6 +871,36 @@ record_buffer (buf)
   Vbuffer_alist = link;
 }
 
+DEFUN ("set-buffer-major-mode", Fset_buffer_major_mode, Sset_buffer_major_mode, 1, 1, 0,
+  "Set an appropriate major mode for BUFFER, according to `default-major-mode'.\n\
+Use this function before selecting the buffer, since it may need to inspect\n\
+the current buffer's major mode.")
+  (buf)
+     Lisp_Object buf;
+{
+  int count;
+  Lisp_Object function;
+
+  function = buffer_defaults.major_mode;
+  if (NILP (function) && NILP (Fget (current_buffer->major_mode, Qmode_class)))
+    function = current_buffer->major_mode;
+
+  if (NILP (function) || EQ (function, Qfundamental_mode))
+    return Qnil;
+
+  count = specpdl_ptr - specpdl;
+
+  /* To select a nonfundamental mode,
+     select the buffer temporarily and then call the mode function. */
+
+  record_unwind_protect (save_excursion_restore, save_excursion_save ());
+
+  Fset_buffer (buf);
+  call0 (function);
+
+  return unbind_to (count, Qnil);
+}
+
 DEFUN ("switch-to-buffer", Fswitch_to_buffer, Sswitch_to_buffer, 1, 2, "BSwitch to buffer: ",
   "Select buffer BUFFER in the current window.\n\
 BUFFER may be a buffer or a buffer name.\n\
@@ -916,7 +925,14 @@ the window-buffer correspondences.")
   if (NILP (bufname))
     buf = Fother_buffer (Fcurrent_buffer (), Qnil);
   else
-    buf = Fget_buffer_create (bufname);
+    {
+      buf = Fget_buffer (bufname);
+      if (NILP (buf))
+	{
+	  buf = Fget_buffer_create (bufname);
+	  Fset_buffer_major_mode (buf);
+	}
+    }
   Fset_buffer (buf);
   if (NILP (norecord))
     record_buffer (buf);
@@ -3050,6 +3066,7 @@ is a member of the list.");
   defsubr (&Sbuffer_enable_undo);
   defsubr (&Skill_buffer);
   defsubr (&Serase_buffer);
+  defsubr (&Sset_buffer_major_mode);
   defsubr (&Sswitch_to_buffer);
   defsubr (&Spop_to_buffer);
   defsubr (&Scurrent_buffer);
