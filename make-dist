@@ -104,6 +104,9 @@ if [ "x`ls -t configure configure.in | head -1`" != "xconfigure" ]; then
   autoconf
 fi
 
+### Update getdate.c.
+(cd lib-src; make -f Makefile.in getdate.c)
+
 echo "Creating staging directory: \`${tempparent}'"
 mkdir ${tempparent}
 emacsname="emacs-${version}${new_extension}"
@@ -126,8 +129,9 @@ echo "Making links to top-level files."
 ln GETTING.GNU.SOFTWARE INSTALL PROBLEMS README move-if-change ${tempdir}
 ln ChangeLog Makefile.in build-install.in configure configure.in ${tempdir}
 ln make-dist ${tempdir}
-### Copy config.sub; it's a cross-filesystem symlink.
+### Copy config.guess and config.sub; they're cross-filesystem symlinks.
 cp config.sub ${tempdir}
+cp config.guess ${tempdir}
 
 echo "Updating version number in README."
 (cd ${tempdir}
