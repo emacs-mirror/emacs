@@ -1,5 +1,10 @@
 2000-01-02  Dave Love  <fx@gnu.org>
 
+	* outline.el (outline-mode-menu-bar-map): Add
+	outline-headers-as-kill.
+	(outline-mode): Define imenu-generic-expression.
+	(outline-headers-as-kill): New command.
+
 	* text-mode.el (text-mode): Remove page-delimiter's `^' from
 	paragraph-start.
 	(paragraph-indent-minor-mode): New command.

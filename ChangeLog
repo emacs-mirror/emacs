@@ -1,3 +1,7 @@
+2000-01-05  Dave Love  <fx@gnu.org>
+
+	* configure.in: Check for jerror.h as well as libjpeg.
+
 2000-01-03  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (install-arch-indep): Install autotype*.  Run
