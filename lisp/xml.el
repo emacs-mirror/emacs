@@ -274,9 +274,7 @@ Returns one of:
       (if (looking-at "/>")
 	  (progn
 	    (forward-char 2)
-	    ;; Fixme:  Inconsistent with the nil content returned from
-	    ;; `<tag></tag>'.
-	    (nreverse (cons '("") children)))
+	    (nreverse children))
 
 	;; is this a valid start tag ?
 	(if (eq (char-after) ?>)
