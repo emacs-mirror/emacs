@@ -392,6 +392,9 @@ Note that +++ before an item means the Lisp manual has been updated.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
 
+** The function `pixmap-spec-p' has been renamed `bitmap-spec-p'
+because `bitmap' is more in line with the usual X terminology.
+
 ** New function `propertize'
 
 The new function `propertize' can be used to conveniently construct
