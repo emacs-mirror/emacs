@@ -1,61 +1,69 @@
 /* impl.c.lockli: RECURSIVE LOCKS FOR POSIX SYSTEMS
  *
- * $HopeName: $
- * Copyright (C) 2000 Harlequin Ltd.  All rights reserved.
+ * $HopeName$
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
- *  .linux: This implementation currently just supports LinuxThreads 
- *  (platform MPS_OS_LI)
+ * .linux: This implementation currently just supports LinuxThreads 
+ * (platform MPS_OS_LI), Single Unix i/f.
  *
- *  .posix: In fact, the implementation should be reusable for most POSIX
- *  implementations, but may need some customization for each. 
+ * .posix: In fact, the implementation should be reusable for most POSIX
+ * implementations, but may need some customization for each. 
  *
- *  .design: These locks are implemented using mutexes.
+ * .design: These locks are implemented using mutexes.
  *
- *  .recursive: Mutexes support both non-recursive and recursive locking, but 
- *  only at initialization time.  This doesn't match the API of MPS Lock module, 
- *  which chooses at locking time, so all locks are made (non recursive)
- *  errorchecking.  Recursive locks are implemented by checking the error
- *  code.
+ * .recursive: Mutexes support both non-recursive and recursive locking, but 
+ * only at initialization time.  This doesn't match the API of MPS Lock module, 
+ * which chooses at locking time, so all locks are made (non-recursive)
+ * errorchecking.  Recursive locks are implemented by checking the error
+ * code.
  *
- *  .claims: During use the claims field is updated to remember the number of
- *  claims acquired on a lock.  This field must only be modified
- *  while we hold the mutex.  
+ * .claims: During use the claims field is updated to remember the number of
+ * claims acquired on a lock.  This field must only be modified
+ * while we hold the mutex.  
  */
 
-#include "mpm.h"
+#define _XOPEN_SOURCE 500
+#include <pthread.h>
+#include <semaphore.h>
+#include <errno.h>
 
-/* .linux */
+#include "mpmtypes.h"
+#include "lock.h"
+#include "config.h"
+
+
 #ifndef MPS_OS_LI
 #error "lockli.c is specific to LinuxThreads but MPS_OS_LI not defined"
 #endif
 
-#include <pthread.h>
-#include <semaphore.h>
-
-SRCID(lockli, "$HopeName: $");
+SRCID(lockli, "$HopeName$");
 
 
-/* LockAttrSetRecursive -- Set mutexattr to permimt recursive locking
+/* LockAttrSetRecursive -- Set mutexattr to permit recursive locking
  *
- * There's a standard way to do this - but LinuxThreads doesn't quite follow 
- * the standard. Some other implementations might not either. Keep the code
- * general to permit future reuse. (.posix)
+ * There's a standard way to do this - but early LinuxThreads doesn't
+ * quite follow the standard.  Some other implementations might not
+ * either.
  */
 
-#ifdef MPS_OS_LI
+#ifdef OLD_LINUXTHREADS
 
 #define LockAttrSetRecursive(attrptr) \
-  (pthread_mutexattr_setkind_np((attrptr), PTHREAD_MUTEX_ERRORCHECK_NP))
+  pthread_mutexattr_setkind_np(attrptr, PTHREAD_MUTEX_ERRORCHECK_NP)
     
 #else
 
 #define LockAttrSetRecursive(attrptr) \
-  (pthread_mutexattr_settype((attrptr), PTHREAD_MUTEX_ERRORCHECK))
+  pthread_mutexattr_settype(attrptr, PTHREAD_MUTEX_ERRORCHECK)
 
 #endif
 
 
-/* .lock.posix: Posix lock structure; uses a mutex */
+/* LockStruct -- the MPS lock structure
+ *
+ * .lock.posix: Posix lock structure; uses a mutex.
+ */
+
 typedef struct LockStruct {
   Sig sig;                      /* design.mps.sig */
   unsigned long claims;         /* # claims held by owner */
@@ -63,16 +71,26 @@ typedef struct LockStruct {
 } LockStruct;
 
 
+/* LockSize -- size of a LockStruct */
+
 size_t LockSize(void)
 {
   return sizeof(LockStruct);
 }
 
+
+/* LockCheck -- check a lock */
+
 Bool LockCheck(Lock lock)
 {
   CHECKS(Lock, lock);
+  /* While claims can't be very large, I don't dare to put a limit on it. */
+  /* There's no way to test the mutex, or check if it's held by somebody. */
   return TRUE;
 }
+
+
+/* LockInit -- initialize a lock */
 
 void LockInit(Lock lock)
 {
@@ -93,6 +111,9 @@ void LockInit(Lock lock)
   AVERT(Lock, lock);
 }
 
+
+/* LockFinish -- finish a lock */
+
 void LockFinish(Lock lock)
 {
   int res;
@@ -104,6 +125,9 @@ void LockFinish(Lock lock)
   AVER(res == 0);
   lock->sig = SigInvalid;
 }
+
+
+/* LockClaim -- claim a lock (non-recursive) */
 
 void LockClaim(Lock lock)
 {
@@ -121,6 +145,9 @@ void LockClaim(Lock lock)
   lock->claims = 1;
 }
 
+
+/* LockReleaseMPM -- release a lock (non-recursive) */
+
 void LockReleaseMPM(Lock lock)
 {
   int res;
@@ -132,6 +159,9 @@ void LockReleaseMPM(Lock lock)
   /* pthread_mutex_unlock will error if we didn't own the lock. */
   AVER(res == 0);
 }
+
+
+/* LockClaimRecursive -- claim a lock (recursive) */
 
 void LockClaimRecursive(Lock lock)
 {
@@ -150,6 +180,9 @@ void LockClaimRecursive(Lock lock)
   AVER(lock->claims > 0);
 }
 
+
+/* LockReleaseRecursive -- release a lock (recursive) */
+
 void LockReleaseRecursive(Lock lock)
 {
   int res;
@@ -165,10 +198,9 @@ void LockReleaseRecursive(Lock lock)
 }
 
 
-/* Global locking is performed by normal locks. 
- * A separate lock structure is used for recursive and 
- * non-recursive locks so that each may be differently ordered
- * with respect to client-allocated locks.
+/* Global locks
+ *
+ * .global: The two "global" locks are statically allocated normal locks.
  */
 
 static LockStruct globalLockStruct;
@@ -183,6 +215,9 @@ static void globalLockInit(void)
   LockInit(globalRecLock);
 }
 
+
+/* LockClaimGlobalRecursive -- claim the global recursive lock */
+
 void LockClaimGlobalRecursive(void)
 {
   int res;
@@ -193,10 +228,16 @@ void LockClaimGlobalRecursive(void)
   LockClaimRecursive(globalRecLock);
 }
 
+
+/* LockReleaseGlobalRecursive -- release the global recursive lock */
+
 void LockReleaseGlobalRecursive(void)
 {
   LockReleaseRecursive(globalRecLock);
 }
+
+
+/* LockClaimGlobal -- claim the global non-recursive lock */
 
 void LockClaimGlobal(void)
 {
@@ -208,8 +249,10 @@ void LockClaimGlobal(void)
   LockClaim(globalLock);
 }
 
+
+/* LockReleaseGlobal -- release the global non-recursive lock */
+
 void LockReleaseGlobal(void)
 {
   LockReleaseMPM(globalLock);
 }
-
