@@ -527,7 +527,6 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
       if (code != Sendcomment && char_quoted (from, from_byte))
 	continue;
 
-      /* Track parity of quotes.  */
       switch (code)
 	{
 	case Sstring_fence:
@@ -568,31 +567,33 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
 	  comstart_byte = from_byte;
 	  break;
 
-	default:
-	  ;
-	}
-
-      /* If we find another earlier comment-ender,
-	 any comment-starts earlier than that don't count
-	 (because they go with the earlier comment-ender).  */
-      if (code == Sendcomment
-	  && SYNTAX_COMMENT_STYLE (FETCH_CHAR (from_byte)) == comstyle)
-	{
-	  if (comnested)
-	    nesting++;
-	  else
-	    break;
-	}
-
-      /* Assume a defun-start point is outside of strings.  */
-      if (code == Sopen
-	  && (from == stop
-	      || (temp_byte = dec_bytepos (from_byte),
-		  FETCH_CHAR (temp_byte) == '\n')))
-	{
-	  defun_start = from;
-	  defun_start_byte = from_byte;
+	case Sendcomment:
+	  if (SYNTAX_COMMENT_STYLE (FETCH_CHAR (from_byte)) == comstyle)
+	    /* This is the same style of comment ender as ours. */
+	    {
+	      if (comnested)
+		nesting++;
+	      else
+		/* Anything before that can't count because it would match
+		   this comment-ender rather than ours.  */
+		from = stop;	/* Break out of the loop.  */
+	    }
 	  break;
+
+	case Sopen:
+	  /* Assume a defun-start point is outside of strings.  */
+	  if (open_paren_in_column_0_is_defun_start
+	      && (from == stop
+		  || (temp_byte = dec_bytepos (from_byte),
+		      FETCH_CHAR (temp_byte) == '\n')))
+	    {
+	      defun_start = from;
+	      defun_start_byte = from_byte;
+	      from = stop;	/* Break out of the loop.  */
+	    }
+	  break;
+
+	default:
 	}
     }
 
@@ -619,7 +620,7 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
     lossage:
       /* We had two kinds of string delimiters mixed up
 	 together.  Decode this going forwards.
-	 Scan fwd from the previous comment ender
+	 Scan fwd from a known safe place (beginning-of-defun)
 	 to the one in question; this records where we
 	 last passed a comment starter.  */
       /* If we did not already find the defun start, find it now.  */
@@ -628,20 +629,30 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
 	  defun_start = find_defun_start (comment_end, comment_end_byte);
 	  defun_start_byte = find_start_value_byte;
 	}
-      scan_sexps_forward (&state,
-			  defun_start, defun_start_byte,
-			  comment_end - 1, -10000, 0, Qnil, 0);
-      if (state.incomment)
+      do
 	{
-	  /* scan_sexps_forward changed the direction of search in
-	     global variables, so we need to update it completely.  */
-	  
-	  from = state.comstr_start;
-	}
-      else
-	{
-	  from = comment_end;	  
-	}
+	  scan_sexps_forward (&state,
+			      defun_start, defun_start_byte,
+			      comment_end, -10000, 0, Qnil, 0);
+	  defun_start = comment_end;
+	  if (state.incomment == (comnested ? 1 : -1)
+	      && state.comstyle == comstyle)
+	    from = state.comstr_start;
+	  else
+	    {
+	      from = comment_end;
+	      if (state.incomment)
+		/* If comment_end is inside some other comment, maybe ours
+		   is nested, so we need to try again from within the
+		   surrounding comment.  Example: { a (* " *)  */
+		{
+		  /* FIXME: We should advance by one or two chars. */
+		  defun_start = state.comstr_start + 2;
+		  defun_start_byte = CHAR_TO_BYTE (defun_start);
+		}
+	    }
+	} while (defun_start < comment_end);
+
       from_byte = CHAR_TO_BYTE (from);
       UPDATE_SYNTAX_TABLE_FORWARD (from - 1);
     }
@@ -2525,7 +2536,7 @@ do { prev_from = from;				\
 	  /* curlevel++->last ran into compiler bug on Apollo */
 	  curlevel->last = XINT (Fcar (tem));
 	  if (++curlevel == endlevel)
-	    error ("Nesting too deep for parser");
+	    curlevel--; /* error ("Nesting too deep for parser"); */
 	  curlevel->prev = -1;
 	  curlevel->last = -1;
 	  tem = Fcdr (tem);
@@ -2673,7 +2684,7 @@ do { prev_from = from;				\
 	  /* curlevel++->last ran into compiler bug on Apollo */
 	  curlevel->last = prev_from;
 	  if (++curlevel == endlevel)
-	    error ("Nesting too deep for parser");
+	    curlevel--; /* error ("Nesting too deep for parser"); */
 	  curlevel->prev = -1;
 	  curlevel->last = -1;
 	  if (targetdepth == depth) goto done;
