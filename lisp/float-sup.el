@@ -1,4 +1,4 @@
-;;; float-sup.el --- detect absence of floating-point support in Emacs runtime
+;;; float-sup.el --- define some constants useful for floating point numbers.
 
 ;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
 
