@@ -1,3 +1,10 @@
+2003-09-29  Rajesh Vaidheeswarran  <rv@gnu.org>
+
+	* whitespace.el (whitespace-clean-msg): Add user customizable message
+	for displaying ``clean'' output.
+	(whitespace-buffer): Use `whitespace-clean-msg'.
+	(whitespace-global-mode): Fix typo.
+	
 2003-09-29  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* pcvs.el (cvs-mode-unmark-up): Move to goal column when done.
@@ -135,6 +142,16 @@
 	* progmodes/cc-engine.el (c-just-after-func-arglist-p):
 	Handle paren-style types in Pike.  Also fixed some cases of
 	insufficient handling of unbalanced parens.
+
+2003-09-24  Rajesh Vaidheeswarran  <rv@gnu.org>
+
+	* ffap.el (ffap-shell-prompt-regexp): Add regexp to identify
+	common shell prompts that are not common filename or URL
+	characters.
+	(ffap-file-at-point): Use the new regexp to strip the prompts from
+	the file names. This is an issue mostly for user prompts that
+	don't have a trailing space and find-file-at-point is invoked from
+	within a shell inside emacs.
 
 2003-09-24  Andre Spiegel  <spiegel@gnu.org>
 

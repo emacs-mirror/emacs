@@ -65,6 +65,7 @@
 ;; (setq ffap-alist nil)                ; faster, dumber prompting
 ;; (setq ffap-machine-p-known 'accept)  ; no pinging
 ;; (setq ffap-url-regexp nil)           ; disable URL features in ffap
+;; (setq ffap-shell-prompt-regexp nil)  ; disable shell prompt stripping
 ;;
 ;; ffap uses `browse-url' (if found, else `w3-fetch') to fetch URL's.
 ;; For a hairier `ffap-url-fetcher', try ffap-url.el (same ftp site).
@@ -119,6 +120,18 @@ Otherwise return nil (or the optional DEFAULT value)."
   ;; Bug: (ffap-soft-value "nil" 5) --> 5
   (let ((sym (intern-soft name)))
     (if (and sym (boundp sym)) (symbol-value sym) default)))
+
+(defcustom ffap-shell-prompt-regexp
+  ;; This used to test for some shell prompts that don't have a space
+  ;; after them. The common root shell prompt (#) is not listed since it
+  ;; also doubles up as a valid URL character.
+  "[$%><]*"
+  "Paths matching this regexp are stripped off the shell prompt
+If nil, ffap doesn't do shell prompt stripping."
+  :type '(choice (const :tag "Disable" nil)
+		  (const :tag "Standard" "[$%><]*")
+		   regexp)
+  :group 'ffap)
 
 (defcustom ffap-ftp-regexp
   ;; This used to test for ange-ftp or efs being present, but it should be
@@ -1109,6 +1122,11 @@ which may actually result in an url rather than a filename."
          ;; Try stripping off line numbers; good for compilation/grep output.
          ((and (not abs) (string-match ":[0-9]" name)
                (ffap-file-exists-string (substring name 0 (match-beginning 0)))))
+         ;; Try stripping off prominent (non-root - #) shell prompts
+	 ;; if the ffap-shell-prompt-regexp is non-nil.
+         ((and ffap-shell-prompt-regexp
+	       (not abs) (string-match ffap-shell-prompt-regexp name)
+               (ffap-file-exists-string (substring name (match-end 0)))))
 	 ;; Immediately test local filenames.  If default-directory is
 	 ;; remote, you probably already have a connection.
 	 ((and (not abs) (ffap-file-exists-string name)))
