@@ -3025,7 +3025,7 @@ This requires the external program \"diff\" to be in your `exec-path'."
        nil)
      "display the current buffer")
     (?d diff-buffer-with-file
-	"Show difference to last saved version"))
+	"show difference to last saved version"))
   "ACTION-ALIST argument used in call to `map-y-or-n-p'.")
 (put 'save-some-buffers-action-alist 'risky-local-variable t)
 
