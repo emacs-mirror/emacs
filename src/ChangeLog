@@ -1,3 +1,7 @@
+2000-04-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (Ftty_suppress_bold_inverse_default_colors): Doc fix.
+
 2000-04-16  Dave Love  <fx@gnu.org>
 
 	* Makefile.in: Remove obsolete localcpp stuff.
