@@ -253,7 +253,9 @@ enum event_kind
 				   Lisp-level event value.
 				   (Only the toolkit version uses these.)  */
   iconify_event,		/* An X client iconified this window.  */
-  deiconify_event		/* An X client deiconified this window.  */
+  deiconify_event,		/* An X client deiconified this window.  */
+  menu_bar_activate_event       /* A button press in the menu bar
+				   (toolkit version only).  */
 };
 
 /* If a struct input_event has a kind which is selection_request_event
