@@ -1,3 +1,9 @@
+1999-10-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* progmodes/ada-mode.el, progmodes/ada-prj.el,
+	progmodes/ada-stmt.el, progmodes/ada-xref.el: Doc-string and
+	comment fixes.
+
 1999-10-27  Dave Love  <fx@gnu.org>
 
 	* progmodes/compile.el: Checkdoc-inspired fixes.
