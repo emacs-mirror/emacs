@@ -261,9 +261,10 @@ Now we have the variable `charset-list'."
 (defsubst generic-char-p (char)
   "Return t if and only if CHAR is a generic character.
 See also the documentation of make-char."
-  (let ((l (split-char char)))
-    (and (or (= (nth 1 l) 0) (eq (nth 2 l) 0))
-	 (not (eq (car l) 'composition)))))
+  (and (>= char 0400)
+       (let ((l (split-char char)))
+	 (and (or (= (nth 1 l) 0) (eq (nth 2 l) 0))
+	      (not (eq (car l) 'composition))))))
 
 
 ;; Coding system staffs
