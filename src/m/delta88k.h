@@ -142,10 +142,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /*
  * we have the wrong name for networking libs
  */
-#undef LIBX11_SYSTEM
 #ifdef USG5_4
-#define LIBX11_SYSTEM -lX11
+/* rms: not needed; LIB_X11_LIB deals with this.  */
+/* #define LIBX11_SYSTEM -lX11 */
 #else
+#undef LIBX11_SYSTEM
 #define LIBX11_SYSTEM -lnsl -lbsd
 #endif /* USG5_4 */
 
