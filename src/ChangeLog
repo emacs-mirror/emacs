@@ -1,3 +1,8 @@
+2004-06-06  Miles Bader  <miles@gnu.org>
+
+	* xfaces.c (Fdisplay_supports_face_attributes_p): Give up
+	immediately if non-interactive or not initialized.
+
 2004-06-05  Richard M. Stallman  <rms@gnu.org>
 
 	* minibuf.c (Fcompleting_read): Doc fix.

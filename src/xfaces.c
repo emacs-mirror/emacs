@@ -6027,6 +6027,12 @@ face for italic. */)
   struct face *def_face;
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
 
+  if (noninteractive || !initialized)
+    /* We may not be able to access low-level face information in batch
+       mode, or before being dumped, and this function is not going to
+       be very useful in those cases anyway, so just give up.  */
+    return Qnil;
+
   if (NILP (display))
     frame = selected_frame;
   else if (FRAMEP (display))
