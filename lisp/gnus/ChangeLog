@@ -1,3 +1,8 @@
+2001-07-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* nnheader.el (nnheader-init-server-buffer): Make sure the
+	*nntpd* buffer is made multibyte instead of a random buffer.
+
 2001-07-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* gnus.el: Fix the header line, for finder.el.  Suggested by
