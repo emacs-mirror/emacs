@@ -2,7 +2,7 @@
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Header: /home/fsf/rms/e19/lisp/RCS/gnus.el,v 1.25 1993/07/27 23:12:22 rms Exp rms $
+;; Version: $Header: /home/gd/gnu/emacs/19.0/lisp/RCS/gnus.el,v 1.26 1993/07/28 08:35:38 rms Exp eggert $
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -5157,8 +5157,7 @@ ROT47 will be performed for Japanese text in any case."
 		   (list (prefix-numeric-value current-prefix-arg))
 		 (list nil)))
   (cond ((not (numberp n)) (setq n 13))
-	((< n 0) (setq n (- 26 (% (- n) 26))))
-	(t (setq n (% n 26))))		;canonicalize N
+	(t (setq n (mod n 26))))	;canonicalize N
   (if (not (zerop n))		; no action needed for a rot of 0
       (progn
 	(if (or (not (boundp 'caesar-translate-table))
