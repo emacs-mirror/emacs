@@ -98,13 +98,14 @@
 
 (defvar gnus-default-nntp-server nil
   "*Specify default NNTP server.
-This variable should be defined in paths.el.")
+This variable should be defined in `site-init.el'.")
 
 (defvar gnus-nntp-server (or (getenv "NNTPSERVER") gnus-default-nntp-server)
   "*The name of the host running NNTP server.
-If it is a string such as `:DIRECTORY', the user's private DIRECTORY
-is used as a news spool.
-Initialized from the NNTPSERVER environment variable.")
+If it is a string starting with a colon, as in as `:DIRECTORY', then the
+directory ~/DIRECTORY is used as the news spool.
+This variable is initialized from the NNTPSERVER environment variable
+or from `gnus-default-nntp-server'.")
 
 (defvar gnus-nntp-service "nntp"
   "*NNTP service name (\"nntp\" or 119).
@@ -124,7 +125,7 @@ read in all newsgroups.")
 
 (defvar gnus-use-followup-to t
   "*Specifies what to do with Followup-To: field.
-If nil, ignore followup-to: field.  If t, use its value except for
+If nil, ignore `Followup-to:' field.  If t, use its value except for
 `poster'.  Otherwise, if not nil nor t, always use its value.")
 
 (defvar gnus-large-newsgroup 50
@@ -139,23 +140,23 @@ Initialized from the AUTHORCOPY environment variable.
 Articles are saved using a function specified by the the variable
 `gnus-author-copy-saver' (`rmail-output' is default) if a file name is
 given.  Instead, if the first character of the name is `|', the
-contents of the article is piped out to the named program. It is
+contents of the article is piped out to the named program.  It is
 possible to save an article in an MH folder as follows:
 
 \(setq gnus-author-copy \"|/usr/local/lib/mh/rcvstore +Article\")")
 
 (defvar gnus-author-copy-saver (function rmail-output)
   "*A function called with a file name to save an author copy to.
-The default function is `rmail-output' which saves in Unix mailbox format.")
+The default function is `rmail-output' which saves in  inbox format.")
 
 (defvar gnus-use-long-file-name
   (not (memq system-type '(usg-unix-v xenix)))
   "*Non-nil means that a newsgroup name is used as a default file name
-to save articles to. If it's nil, the directory form of a newsgroup is
+to save articles to.  If it's nil, the directory form of a newsgroup is
 used instead.")
 
 (defvar gnus-article-save-directory (getenv "SAVEDIR")
-  "*A directory name to save articles to (default to ~/News).
+  "*A directory name to save articles to (default is `~/News').
 Initialized from the SAVEDIR environment variable.")
 
 (defvar gnus-kill-files-directory (getenv "SAVEDIR")
@@ -246,15 +247,17 @@ thus making them effectively invisible.")
 
 (defvar gnus-ignored-headers
   "^Path:\\|^Posting-Version:\\|^Article-I.D.:\\|^Expires:\\|^Date-Received:\\|^References:\\|^Control:\\|^Xref:\\|^Lines:\\|^Posted:\\|^Relay-Version:\\|^Message-ID:\\|^Nf-ID:\\|^Nf-From:\\|^Approved:\\|^Sender:"
-  "*All random fields within the header of a message.")
+  "*Header fields not worth displaying.
+Ordinarily GNUS excludes these when displaying an article.
+If you want to see them, ask to see the message with \"the full header\"
+\(also known as \"the original header\").")
 
 (defvar gnus-required-headers
   '(From Date Newsgroups Subject Message-ID Path Organization Distribution)
   "*All required fields for articles you post.
 RFC977 and RFC1036 require From, Date, Newsgroups, Subject, Message-ID
 and Path fields.  Organization, Distribution and Lines are optional.
-If you want GNUS not to insert some field, remove it from the
-variable.")
+If you want GNUS not to insert some field, remove it from this list.")
 
 (defvar gnus-show-all-headers nil
   "*Show all headers of an article if non-nil.")
@@ -264,7 +267,7 @@ variable.")
 
 (defvar gnus-optional-headers (function gnus-optional-lines-and-from)
   "*A function generating a optional string displayed in GNUS Summary
-mode buffer.  The function is called with an article HEADER. The
+mode buffer.  The function is called with an article HEADER.  The
 result must be a string excluding `[' and `]'.")
 
 (defvar gnus-auto-extend-newsgroup t
@@ -375,7 +378,7 @@ order.  The function `gnus-subscribe-interactively' asks for your decision.")
 
 (defvar gnus-startup-hook nil
   "*A hook called at start up time.
-This hook is called after GNUS is connected to the NNTP server. So, it
+This hook is called after GNUS is connected to the NNTP server.  So, it
 is possible to change the behavior of GNUS according to the selected
 NNTP server.")
 
@@ -396,8 +399,7 @@ If you want to run a special decoding program like nkf, use this hook.")
 If you want to sort Summary buffer by date and then by subject, you
 can use the following hook:
 
-\(setq gnus-select-group-hook
-      (list
+\(add-hook 'gnus-select-group-hook
        (function
 	(lambda ()
 	  ;; First of all, sort by date.
@@ -415,14 +417,13 @@ can use the following hook:
 	      (if case-fold-search
 		  (downcase (gnus-simplify-subject (gnus-header-subject a) t))
 		(gnus-simplify-subject (gnus-header-subject a) t)))))
-	  ))))
+	  )))
 
 If you'd like to simplify subjects like the
 `gnus-summary-next-same-subject' command does, you can use the
 following hook:
 
-\(setq gnus-select-group-hook
-      (list
+\(add-hook 'gnus-select-group-hook
        (function
 	(lambda ()
 	  (mapcar (function
@@ -431,13 +432,12 @@ following hook:
 		      header
 		      (gnus-simplify-subject
 		       (gnus-header-subject header) 're-only))))
-		  gnus-newsgroup-headers)))))
+		  gnus-newsgroup-headers))))
 
-In some newsgroups author name is meaningless. It is possible to
+In some newsgroups author name is meaningless.  It is possible to
 prevent listing author names in GNUS Summary buffer as follows:
 
-\(setq gnus-select-group-hook
-      (list
+\(add-hook 'gnus-select-group-hook
        (function
 	(lambda ()
 	  (cond ((string-equal \"comp.sources.unix\" gnus-newsgroup-name)
@@ -445,7 +445,7 @@ prevent listing author names in GNUS Summary buffer as follows:
 		       (function gnus-optional-lines)))
 		(t
 		 (setq gnus-optional-headers
-		       (function gnus-optional-lines-and-from))))))))")
+		       (function gnus-optional-lines-and-from)))))))")
 
 (defvar gnus-select-article-hook
   '(gnus-summary-show-thread)
@@ -453,21 +453,20 @@ prevent listing author names in GNUS Summary buffer as follows:
 The default hook shows conversation thread subtrees of the selected
 article automatically using `gnus-summary-show-thread'.
 
-If you'd like to run RMAIL on a digest article automagically, you can
+If you'd like to run Rmail on a digest article automagically, you can
 use the following hook:
 
-\(setq gnus-select-article-hook
-      (list
+\(add-hook 'gnus-select-article-hook
        (function
 	(lambda ()
-	  (gnus-summary-show-thread)
 	  (cond ((string-equal \"comp.sys.sun\" gnus-newsgroup-name)
 		 (gnus-summary-rmail-digest))
 		((and (string-equal \"comp.text\" gnus-newsgroup-name)
 		      (string-match \"^TeXhax Digest\"
 				    (gnus-header-subject gnus-current-headers)))
 		 (gnus-summary-rmail-digest)
-		 ))))))")
+		 ))))
+       t)")
 
 (defvar gnus-select-digest-hook
   (list
@@ -482,15 +481,14 @@ use the following hook:
 This hook can be used to modify incomplete digest articles as follows
 \(this is the default):
 
-\(setq gnus-select-digest-hook
-      (list
+\(add-hook 'gnus-select-digest-hook
        (function
 	(lambda ()
 	  ;; Reply-To: is required by `undigestify-rmail-message'.
 	  (or (mail-position-on-field \"Reply-to\" t)
 	      (progn
 		(mail-position-on-field \"Reply-to\")
-		(insert (gnus-fetch-field \"From\"))))))))")
+		(insert (gnus-fetch-field \"From\")))))))")
 
 (defvar gnus-rmail-digest-hook nil
   "*A hook called when reading digest messages using Rmail.
@@ -502,7 +500,7 @@ This hook is intended to apply a KILL file to the selected newsgroup.
 The function `gnus-apply-kill-file' is called by default.
 
 Since a general KILL file is too heavy to use only for a few
-newsgroups, I recommend you to use a lighter hook function. For
+newsgroups, I recommend you to use a lighter hook function.  For
 example, if you'd like to apply a KILL file to articles which contains
 a string `rmgroup' in subject in newsgroup `control', you can use the
 following hook:
@@ -548,7 +546,7 @@ to a file).")
 (defvar gnus-exit-group-hook nil
   "*A hook called when exiting (not quitting) Summary mode.
 If your machine is so slow that exiting from Summary mode takes very
-long time, set the variable `gnus-use-cross-reference' to nil. This
+long time, set the variable `gnus-use-cross-reference' to nil.  This
 inhibits marking articles as read using cross-reference information.")
 
 (defvar gnus-suspend-gnus-hook nil
@@ -562,7 +560,7 @@ inhibits marking articles as read using cross-reference information.")
 This hook is called before saving the `.newsrc' file.")
 
 
-;; Site dependent variables. You have to define these variables in
+;; Site dependent variables.  You have to define these variables in
 ;;  site-init.el, default.el or your .emacs.
 
 (defvar gnus-local-timezone nil
@@ -592,7 +590,7 @@ file is available, its content is also used.")
 
 (defvar gnus-use-generic-from nil
   "*If nil, prepend local host name to the defined domain in the From:
-field; if stringp, use this; if non-nil, strip of the local host name.")
+field; if a string, use this; if non-nil, strip of the local host name.")
 
 (defvar gnus-use-generic-path nil
   "*If nil, use the NNTP server name in the Path: field; if stringp,
@@ -684,7 +682,7 @@ It is a list of `(original overload &optional file)'.")
 (defvar gnus-distribution-list nil)
 
 (defvar gnus-newsrc-options nil
-  "Options line in the .newsrc file.")
+  "Options line in the `.newsrc' file.")
 
 (defvar gnus-newsrc-options-n-yes nil
   "Regexp representing subscribed newsgroups.")
@@ -694,24 +692,24 @@ It is a list of `(original overload &optional file)'.")
 
 (defvar gnus-newsrc-assoc nil
   "Assoc list of read articles.
-gnus-newsrc-hashtb should be kept so that both hold the same information.")
+`gnus-newsrc-hashtb' should be kept so that both hold the same information.")
 
 (defvar gnus-newsrc-hashtb nil
-  "Hashtable of gnus-newsrc-assoc.")
+  "Hashtable of `gnus-newsrc-assoc'.")
 
 (defvar gnus-killed-assoc nil
-  "Assoc list of newsgroups removed from gnus-newsrc-assoc.
-gnus-killed-hashtb should be kept so that both hold the same information.")
+  "Assoc list of newsgroups removed from `gnus-newsrc-assoc'.
+`gnus-killed-hashtb' should be kept so that both hold the same information.")
 
 (defvar gnus-killed-hashtb nil
-  "Hashtable of gnus-killed-assoc.")
+  "Hashtable of `gnus-killed-assoc'.")
 
 (defvar gnus-marked-assoc nil
   "Assoc list of articles marked as unread.
-gnus-marked-hashtb should be kept so that both hold the same information.")
+`gnus-marked-hashtb' should be kept so that both hold the same information.")
 
 (defvar gnus-marked-hashtb nil
-  "Hashtable of gnus-marked-assoc.")
+  "Hashtable of `gnus-marked-assoc'.")
 
 (defvar gnus-unread-hashtb nil
   "Hashtable of unread articles.")
@@ -752,9 +750,8 @@ gnus-marked-hashtb should be kept so that both hold the same information.")
 
 (defvar gnus-newsgroup-headers nil
   "List of article headers in the current newsgroup.
-If the variable is modified (added or deleted), the function
-gnus-clear-hashtables-for-newsgroup-headers must be called to clear
-the hash tables.")
+If you modify the variable, you must call the function
+`gnus-clear-hashtables-for-newsgroup-headers' to clear the hash tables.")
 (defvar gnus-newsgroup-headers-hashtb-by-id nil)
 (defvar gnus-newsgroup-headers-hashtb-by-number nil)
 
@@ -811,7 +808,7 @@ the hash tables.")
 	  "Rewrite Date field in GMT to local in current buffer.")
 
 (autoload 'metamail-buffer "metamail"
-	  "Process current buffer through 'metamail'." t)
+	  "Process current buffer through `metamail'." t)
 
 (autoload 'rmail-output "rmailout"
 	  "Append this message to Unix mail file named FILE-NAME." t)
@@ -849,13 +846,13 @@ Optional argument HASHSIZE specifies the table size."
   (` (symbol-value (intern-soft (, string) (, hashtable)))))
 
 (defmacro gnus-sethash (string value hashtable)
-  "Set hash value. Arguments are STRING, VALUE, and HASHTABLE."
+  "Set hash value.  Arguments are STRING, VALUE, and HASHTABLE."
   ;; We cannot use define-abbrev since it only accepts string as value.
   (` (set (intern (, string) (, hashtable)) (, value))))
 
-;; Note: Macros defined here are also defined in nntp.el. I don't like
+;; Note: Macros defined here are also defined in nntp.el.  I don't like
 ;; to put them here, but many users got troubled with the old
-;; definitions in nntp.elc. These codes are NNTP 3.10 version.
+;; definitions in nntp.elc.  These codes are NNTP 3.10 version.
 
 (defmacro nntp-header-number (header)
   "Return article number in HEADER."
@@ -1063,15 +1060,15 @@ C-h m	Describe Group Mode.
 C-c C-i	Read Info about Group Mode.
 
   The name of the host running NNTP server is asked for if no default
-host is specified. It is also possible to choose another NNTP server
+host is specified.  It is also possible to choose another NNTP server
 even when the default server is defined by giving a prefix argument to
 the command `\\[gnus]'.
 
-  If an NNTP server is preceded by a colon such as `:Mail', the user's
-private directory `~/Mail' is used as a news spool. This makes it
+  If the NNTP server name starts with a colon, as in `:Mail', the user's
+own directory `~/Mail' is used as a news spool.  This makes it
 possible to read mail stored in MH folders or articles saved by GNUS.
 File names of mail or articles must consist of only numeric
-characters. Otherwise, they are ignored.
+characters.  Otherwise, they are ignored.
 
   If there is a file named `~/.newsrc-SERVER', it is used as the
 startup file instead of standard one when talking to SERVER.  It is
@@ -1079,7 +1076,7 @@ possible to talk to many hosts by using different startup files for
 each.
 
   Option `-n' of the options line in the startup file is recognized
-properly the same as the Bnews system. For example, if the options
+properly the same as the Bnews system.  For example, if the options
 line is `options -n !talk talk.rumors', newsgroups under the `talk'
 hierarchy except for `talk.rumors' are ignored while checking new
 newsgroups.
@@ -1098,7 +1095,7 @@ nntp.el, nnspool.el, and mhspoo.el, respectively.
 
 User customizable variables:
  gnus-nntp-server
-    Specifies the name of the host running the NNTP server. If its
+    Specifies the name of the host running the NNTP server.  If its
     value is a string such as `:DIRECTORY', the user's private
     DIRECTORY is used as a news spool.  The variable is initialized
     from the NNTPSERVER environment variable.
@@ -1179,12 +1176,12 @@ User customizable variables:
 Various hooks for customization:
  gnus-group-mode-hook
     Entry to this mode calls the value with no arguments, if that
-    value is non-nil. This hook is called before GNUS is connected to
-    the NNTP server. So, you can change or define the NNTP server in
+    value is non-nil.  This hook is called before GNUS is connected to
+    the NNTP server.  So, you can change or define the NNTP server in
     this hook.
 
  gnus-startup-hook
-    Called with no arguments after the NNTP server is selected. It is
+    Called with no arguments after the NNTP server is selected.  It is
     possible to change the behavior of GNUS or initialize the
     variables according to the selected NNTP server.
 
@@ -1275,7 +1272,7 @@ If optional argument CONFIRM is non-nil, ask NNTP server."
 
 
 If you have any trouble with this software, please let me
-know. I will fix your problems in the next release.
+know.  I will fix your problems in the next release.
 
 Comments, suggestions, and bug fixes are welcome.
 
@@ -1368,7 +1365,7 @@ If optional argument ALL is non-nil, unsubscribed groups are also listed."
 
 (defun gnus-group-prepare-line (info)
   "Return a string for the Newsgroup buffer from INFO.
-INFO is an element of gnus-newsrc-assoc or gnus-killed-assoc."
+INFO is an element of `gnus-newsrc-assoc' or `gnus-killed-assoc'."
   (let* ((group-name (car info))
 	 (unread-count
 	  (or (nth 1 (gnus-gethash group-name gnus-unread-hashtb))
@@ -1421,7 +1418,7 @@ If optional argument VISIBLE-ONLY is non-nil, non displayed group is ignored."
 		((progn
 		   (goto-char (point-max))
 		   (re-search-backward regexp nil t))))
-	  ;; GROUP is listed in current buffer. So, delete old line.
+	  ;; GROUP is listed in current buffer.  So, delete old line.
 	  (progn
 	    (setq visible t)
 	    (beginning-of-line)
@@ -1521,7 +1518,7 @@ If argument ALL is non-nil, already read articles become readable."
     ))
 
 (defun gnus-group-next-group (n)
-  "Go to next N'th newsgroup."
+  "Go to Nth following newsgroup."
   (interactive "p")
   (while (and (> n 1)
 	      (gnus-group-search-forward nil t))
@@ -1530,7 +1527,7 @@ If argument ALL is non-nil, already read articles become readable."
       (message "No more newsgroups")))
 
 (defun gnus-group-next-unread-group (n)
-  "Go to next N'th unread newsgroup."
+  "Go to Nth following unread newsgroup."
   (interactive "p")
   (while (and (> n 1)
 	      (gnus-group-search-forward nil nil))
@@ -1539,7 +1536,7 @@ If argument ALL is non-nil, already read articles become readable."
       (message "No more unread newsgroups")))
 
 (defun gnus-group-prev-group (n)
-  "Go to previous N'th newsgroup."
+  "Go to Nth previous newsgroup."
   (interactive "p")
   (while (and (> n 1)
 	      (gnus-group-search-forward t t))
@@ -1548,7 +1545,7 @@ If argument ALL is non-nil, already read articles become readable."
       (message "No more newsgroups")))
 
 (defun gnus-group-prev-unread-group (n)
-  "Go to previous N'th unread newsgroup."
+  "Go to Nth previous unread newsgroup."
   (interactive "p")
   (while (and (> n 1)
 	      (gnus-group-search-forward t nil))	      
@@ -1596,7 +1593,7 @@ Cross references (Xref: field) of articles are ignored."
 
 (defun gnus-group-unsubscribe-group (group)
   "Toggle subscribe from/to unsubscribe GROUP.
-New newsgroup is added to .newsrc automatically."
+\(If GROUP is new, it is added to `.newsrc' automatically.)"
   (interactive
    (list (completing-read "Newsgroup: "
 			  gnus-active-hashtb nil 'require-match)))
@@ -1628,7 +1625,7 @@ New newsgroup is added to .newsrc automatically."
   (message "Listing all groups...done"))
 
 (defun gnus-group-get-new-news ()
-  "Get newly arrived articles. In fact, read the active file again."
+  "Get newly arrived articles.  In fact, read the active file again."
   (interactive)
   (gnus-setup-news)
   (gnus-group-list-groups gnus-have-all-newsgroups))
@@ -1687,7 +1684,7 @@ Type \\[widen] to remove restriction."
 (defun gnus-group-suspend ()
   "Suspend the current GNUS session.
 In fact, cleanup buffers except for Group Mode buffer.
-The hook gnus-suspend-gnus-hook is called before actually suspending."
+The hook `gnus-suspend-gnus-hook' is called before actually suspending."
   (interactive)
   (run-hooks 'gnus-suspend-gnus-hook)
   ;; Kill GNUS buffers except for Group Mode buffer.
@@ -1703,8 +1700,8 @@ The hook gnus-suspend-gnus-hook is called before actually suspending."
     (delete-windows-on group-buf t)))
 
 (defun gnus-group-exit ()
-  "Quit reading news after updating .newsrc.
-The hook gnus-exit-gnus-hook is called before actually quitting."
+  "Quit reading news after updating `.newsrc'.
+The hook `gnus-exit-gnus-hook' is called before actually quitting."
   (interactive)
   (if (or noninteractive		;For gnus-batch-kill
 	  (zerop (buffer-size))		;No news is good news.
@@ -1720,8 +1717,8 @@ The hook gnus-exit-gnus-hook is called before actually quitting."
     ))
 
 (defun gnus-group-quit ()
-  "Quit reading news without updating .newsrc.
-The hook gnus-exit-gnus-hook is called before actually quitting."
+  "Quit reading news without updating `.newsrc'.
+The hook `gnus-exit-gnus-hook' is called before actually quitting."
   (interactive)
   (if (or noninteractive		;For gnus-batch-kill
 	  (zerop (buffer-size))
@@ -2061,7 +2058,7 @@ C-c C-s C-a	Sort subjects by article author.
 C-c C-s C-s	Sort subjects alphabetically.
 C-c C-s C-d	Sort subjects by date.
 =	Expand Summary window to show headers full window.
-C-x C-s	Reselect the current newsgroup. Prefix argument means to select all.
+C-x C-s	Reselect the current newsgroup.  Prefix argument means to select all.
 w	Stop page breaking by linefeed.
 C-c C-r	Caesar rotates letters by 13/47 places.
 g	Force to show the current article.
@@ -2089,21 +2086,21 @@ C-c C-i	Read Info about Summary mode.
 
 User customizable variables:
  gnus-large-newsgroup
-    The number of articles which indicates a large newsgroup. If the
+    The number of articles which indicates a large newsgroup.  If the
     number of articles in a newsgroup is greater than the value, the
-    number of articles to be selected is asked for. If the given value
-    N is positive, the last N articles is selected. If N is negative,
-    the first N articles are selected. An empty string means to select
+    number of articles to be selected is asked for.  If the given value
+    N is positive, the last N articles is selected.  If N is negative,
+    the first N articles are selected.  An empty string means to select
     all articles.
 
  gnus-use-long-file-name
     Non-nil means that a newsgroup name is used as a default file name
-    to save articles to. If it's nil, the directory form of a
+    to save articles to.  If it's nil, the directory form of a
     newsgroup is used instead.
 
  gnus-default-article-saver
     Specifies your favorite article saver which is interactively
-    funcallable. Following functions are available:
+    funcallable.  Following functions are available:
 
 	gnus-summary-save-in-rmail (in Rmail format)
 	gnus-summary-save-in-mail (in Unix mail format)
@@ -2117,18 +2114,18 @@ User customizable variables:
     Specifies a function generating a file name to save articles in
     specified format.  The function is called with NEWSGROUP, HEADERS,
     and optional LAST-FILE.  Access macros to the headers are defined
-    as nntp-header-FIELD, and functions are defined as
-    gnus-header-FIELD.
+    as `nntp-header-FIELD', and functions are defined as
+    `gnus-header-FIELD'.
 
  gnus-article-save-directory
     Specifies a directory name to save articles to using the commands
-    gnus-summary-save-in-rmail, gnus-summary-save-in-mail and
-    gnus-summary-save-in-file. The variable is initialized from the
+    `gnus-summary-save-in-rmail', `gnus-summary-save-in-mail' and
+    `gnus-summary-save-in-file'.  The variable is initialized from the
     SAVEDIR environment variable.
 
  gnus-kill-files-directory
     Specifies a directory name to save KILL files to using the commands
-    gnus-edit-global-kill, and gnus-edit-local-kill. The variable is
+    `gnus-edit-global-kill', and `gnus-edit-local-kill'.  The variable is
     initialized from the SAVEDIR environment variable.
 
  gnus-show-all-headers
@@ -2161,7 +2158,7 @@ User customizable variables:
 
  gnus-optional-headers
     Specifies a function which generates an optional string displayed
-    in the Summary buffer. The function is called with an article
+    in the Summary buffer.  The function is called with an article
     HEADERS.  The result must be a string excluding `[' and `]'.  The
     default function returns a string like NNN:AUTHOR, where NNN is
     the number of lines in an article and AUTHOR is the name of the
@@ -2173,16 +2170,16 @@ User customizable variables:
 
  gnus-auto-select-first
     Non-nil means the first unread article is selected automagically
-    when a newsgroup is selected normally (by gnus-group-read-group).
+    when a newsgroup is selected normally (by `gnus-group-read-group').
     If you'd like to prevent automatic selection of the first unread
     article in some newsgroups, set the variable to nil in
-    gnus-select-group-hook or gnus-apply-kill-hook.
+    `gnus-select-group-hook' or `gnus-apply-kill-hook'.
 
  gnus-auto-select-next
     Non-nil means the next newsgroup is selected automagically at the
-    end of the newsgroup. If the value is t and the next newsgroup is
+    end of the newsgroup.  If the value is t and the next newsgroup is
     empty (no unread articles), GNUS will exit Summary mode and go
-    back to Group mode. If the value is neither nil nor t, GNUS won't
+    back to Group mode.  If the value is neither nil nor t, GNUS won't
     exit Summary mode but select the following unread newsgroup.
     Especially, if the value is the symbol `quietly', the next unread
     newsgroup will be selected without any confirmations.
@@ -2204,9 +2201,6 @@ User customizable variables:
     Specifies a regexp describing line-beginnings that separate pages
     of news article.
 
- [gnus-more-message is obsolete.  overlay-arrow-string interfares
-    with other subsystems, such as dbx mode.]
-
  gnus-digest-show-summary
     Non-nil means that a summary of digest messages is shown when
     reading a digest article using `gnus-summary-rmail-digest'
@@ -2218,17 +2212,17 @@ User customizable variables:
  gnus-mail-reply-method
  gnus-mail-other-window-method
     Specifies a function to begin composing mail message using
-    commands gnus-summary-reply and gnus-summary-mail-other-window.
-    Functions gnus-mail-reply-using-mail and gnus-mail-reply-using-mhe
-    are available for the value of gnus-mail-reply-method.  And
-    functions gnus-mail-other-window-using-mail and
-    gnus-mail-other-window-using-mhe are available for the value of
-    gnus-mail-other-window-method.
+    commands `gnus-summary-reply' and `gnus-summary-mail-other-window'.
+    Functions `gnus-mail-reply-using-mail' and `gnus-mail-reply-using-mhe'
+    are available for the value of `gnus-mail-reply-method'.  And
+    functions `gnus-mail-other-window-using-mail' and
+    `gnus-mail-other-window-using-mhe' are available for the value of
+    `gnus-mail-other-window-method'.
 
  gnus-mail-send-method
     Specifies a function to mail a message too which is being posted
     as an article.  The message must have To: or Cc: field.  The value
-    of the variable send-mail-function is the default function which
+    of the variable `send-mail-function' is the default function, which
     uses sendmail mail program.
 
 Various hooks for customization:
@@ -2238,47 +2232,47 @@ Various hooks for customization:
 
  gnus-select-group-hook
     Called with no arguments when newsgroup is selected, if that value
-    is non-nil. It is possible to sort subjects in this hook. See the
+    is non-nil.  It is possible to sort subjects in this hook.  See the
     documentation of this variable for more information.
 
  gnus-summary-prepare-hook
     Called with no arguments after a summary list is created in the
-    Summary buffer, if that value is non-nil. If you'd like to modify
+    Summary buffer, if that value is non-nil.  If you'd like to modify
     the buffer, you can use this hook.
 
  gnus-select-article-hook
     Called with no arguments when an article is selected, if that
-    value is non-nil. See the documentation of this variable for more
+    value is non-nil.  See the documentation of this variable for more
     information.
 
  gnus-select-digest-hook
     Called with no arguments when reading digest messages using Rmail,
-    if that value is non-nil. This hook can be used to modify an
-    article so that Rmail can work with it. See the documentation of
+    if that value is non-nil.  This hook can be used to modify an
+    article so that Rmail can work with it.  See the documentation of
     the variable for more information.
 
  gnus-rmail-digest-hook
     Called with no arguments when reading digest messages using Rmail,
-    if that value is non-nil. This hook is intended to customize Rmail
+    if that value is non-nil.  This hook is intended to customize Rmail
     mode.
 
  gnus-apply-kill-hook
     Called with no arguments when a newsgroup is selected and the
-    Summary buffer is prepared. This hook is intended to apply a KILL
-    file to the selected newsgroup. The format of KILL file is
-    completely different from that of version 3.8. You have to rewrite
-    them in the new format. See the documentation of Kill file mode
+    Summary buffer is prepared.  This hook is intended to apply a KILL
+    file to the selected newsgroup.  The format of KILL file is
+    completely different from that of version 3.8.  You have to rewrite
+    them in the new format.  See the documentation of Kill file mode
     for more information.
 
  gnus-mark-article-hook
     Called with no arguments when an article is selected at the first
-    time. The hook is intended to mark an article as read (or unread)
+    time.  The hook is intended to mark an article as read (or unread)
     automatically when it is selected.  See the documentation of the
     variable for more information.
 
  gnus-exit-group-hook
     Called with no arguments when exiting the current newsgroup, if
-    that value is non-nil. If your machine is so slow that exiting
+    that value is non-nil.  If your machine is so slow that exiting
     from Summary mode takes very long time, inhibit marking articles
     as read using cross-references by setting the variable
     gnus-use-cross-reference to nil in this hook."
@@ -2496,7 +2490,7 @@ Optional PARENT-SUBJECT specifies the subject of the parent."
 
 (defun gnus-summary-set-mode-line ()
   "Set Summary mode line string.
-If you don't like it, define your own gnus-summary-set-mode-line."
+If you don't like it, define your own `gnus-summary-set-mode-line'."
   (let ((unmarked
 	 (- (length gnus-newsgroup-unreads)
 	    (length (gnus-intersection
@@ -2586,7 +2580,8 @@ the same subject will be searched for."
   (gnus-summary-search-subject t unread subject))
 
 (defun gnus-summary-article-number ()
-  "Article number around point. If nothing, return current number."
+  "Return the Article number around point.
+If none, return current article number."
   (save-excursion
     (beginning-of-line)
     (if (looking-at ".[ \t]+\\([0-9]+\\):")
@@ -2680,8 +2675,8 @@ If prefix argument NO-ARTICLE is non-nil, no article is selected initially."
 	      (get-buffer gnus-summary-buffer))
 	  (eq gnus-auto-select-next t)
 	  ;; Expected newsgroup has nothing to read since the articles
-	  ;; are marked as read by cross-referencing. So, try next
-	  ;; newsgroup. (Make sure we are in Group mode buffer now.)
+	  ;; are marked as read by cross-referencing.  So, try next
+	  ;; newsgroup.  (Make sure we are in Group mode buffer now.)
 	  (and (eq (current-buffer)
 		   (get-buffer gnus-group-buffer))
 	       (gnus-group-group-name)
@@ -2713,8 +2708,8 @@ If prefix argument NO-ARTICLE is non-nil, no article is selected initially."
 	      (get-buffer gnus-summary-buffer))
 	  (eq gnus-auto-select-next t)
 	  ;; Expected newsgroup has nothing to read since the articles
-	  ;; are marked as read by cross-referencing. So, try next
-	  ;; newsgroup. (Make sure we are in Group mode buffer now.)
+	  ;; are marked as read by cross-referencing.  So, try next
+	  ;; newsgroup.  (Make sure we are in Group mode buffer now.)
 	  (and (eq (current-buffer)
 		   (get-buffer gnus-group-buffer))
 	       (gnus-summary-search-group t)
@@ -2726,7 +2721,7 @@ If prefix argument NO-ARTICLE is non-nil, no article is selected initially."
 ;; Walking around summary lines.
 
 (defun gnus-summary-next-subject (n &optional unread)
-  "Go to next N'th summary line.
+  "Go to Nth following summary line.
 If optional argument UNREAD is non-nil, only unread article is selected."
   (interactive "p")
   (while (and (> n 1)
@@ -2741,12 +2736,12 @@ If optional argument UNREAD is non-nil, only unread article is selected."
 	))
 
 (defun gnus-summary-next-unread-subject (n)
-  "Go to next N'th unread summary line."
+  "Go to Nth following unread summary line."
   (interactive "p")
   (gnus-summary-next-subject n t))
 
 (defun gnus-summary-prev-subject (n &optional unread)
-  "Go to previous N'th summary line.
+  "Go to Nth previous summary line.
 If optional argument UNREAD is non-nil, only unread article is selected."
   (interactive "p")
   (while (and (> n 1)
@@ -2761,7 +2756,7 @@ If optional argument UNREAD is non-nil, only unread article is selected."
 	))
 
 (defun gnus-summary-prev-unread-subject (n)
-  "Go to previous N'th unread summary line."
+  "Go to Nth previous unread summary line."
   (interactive "p")
   (gnus-summary-prev-subject n t))
 
@@ -2980,7 +2975,7 @@ If argument UNREAD is non-nil, only unread article is selected."
 	  )))
 
 (defun gnus-summary-prev-unread-article ()
-  "Select unred article before current one."
+  "Select unread article before current one."
   (interactive)
   (gnus-summary-prev-article t (and gnus-auto-select-same
 				    (gnus-summary-subject-string))))
@@ -3058,7 +3053,7 @@ Argument LINES specifies lines to be scrolled up (or down if negative)."
   "Refer parent article of current article.
 If a prefix argument CHILD is non-nil, go back to the child article
 using internally maintained articles history.
-NOTE: This command may not work with nnspool.el."
+NOTE: This command may not work with `nnspool.el'."
   (interactive "P")
   (gnus-summary-select-article t t)	;Request all headers.
   (let ((referenced-id nil))		;Message-id of parent or child article.
@@ -3086,7 +3081,7 @@ NOTE: This command may not work with nnspool.el."
   "Refer article specified by MESSAGE-ID.
 If the MESSAGE-ID is nil or an empty string, Message-ID is poped from
 internally maintained articles history.
-NOTE: This command may not work with nnspool.el nor mhspool.el."
+NOTE: This command may not work with `nnspool.el' nor `mhspool.el'."
   (interactive "sMessage-ID: ")
   ;; Make sure that this command depends on the fact that article
   ;; related information is not updated when an article is retrieved
@@ -3121,24 +3116,23 @@ NOTE: This command may not work with nnspool.el nor mhspool.el."
     (error "No such references"))
   )
 
-(defun gnus-summary-next-digest (nth)
-  "Move to head of NTH next digested message."
+(defun gnus-summary-next-digest (n)
+  "Move to head of Nth next digested message."
   (interactive "p")
   (gnus-summary-select-article)
   (gnus-eval-in-buffer-window gnus-article-buffer
-    (gnus-article-next-digest (or nth 1))
+    (gnus-article-next-digest (or n 1))
     ))
 
-(defun gnus-summary-prev-digest (nth)
-  "Move to head of NTH previous digested message."
+(defun gnus-summary-prev-digest (n)
+  "Move to head of Nth previous digested message."
   (interactive "p")
   (gnus-summary-select-article)
   (gnus-eval-in-buffer-window gnus-article-buffer
-    (gnus-article-prev-digest (or nth 1))
-    ))
+    (gnus-article-prev-digest (or n 1))))
 
 (defun gnus-summary-first-unread-article ()
-  "Select first unread article. Return non-nil if successfully selected."
+  "Select first unread article.  Return non-nil if successfully selected."
   (interactive)
   (let ((begin (point)))
     (goto-char (point-min))
@@ -3161,7 +3155,8 @@ NOTE: This command may not work with nnspool.el nor mhspool.el."
 
 (defun gnus-summary-search-article-forward (regexp)
   "Search for an article containing REGEXP forward.
-gnus-select-article-hook is not called during the search."
+`gnus-select-article-hook' is not called for articles examined
+by searching search."
   (interactive
    (list (read-string
 	  (concat "Search forward (regexp): "
@@ -3180,7 +3175,8 @@ gnus-select-article-hook is not called during the search."
 
 (defun gnus-summary-search-article-backward (regexp)
   "Search for an article containing REGEXP backward.
-gnus-select-article-hook is not called during the search."
+`gnus-select-article-hook' is not called for articles examined
+by searching search."
   (interactive
    (list (read-string
 	  (concat "Search backward (regexp): "
@@ -3200,7 +3196,8 @@ gnus-select-article-hook is not called during the search."
 (defun gnus-summary-search-article (regexp &optional backward)
   "Search for an article containing REGEXP.
 Optional argument BACKWARD means do search for backward.
-gnus-select-article-hook is not called during the search."
+`gnus-select-article-hook' is not called for articles examined
+by searching search."
   (let ((gnus-select-article-hook nil)	;Disable hook.
 	(gnus-mark-article-hook nil)	;Inhibit marking as read.
 	(re-search
@@ -3265,10 +3262,10 @@ If optional (prefix) argument BACKWARD is non-nil, do backward instead."
 		    (` (lambda ()
 			 (call-interactively '(, (key-binding command)))))
 		    backward)
-      (message "Executing %s... done" (key-description command)))))
+      (message "Executing %s...done" (key-description command)))))
 
 (defun gnus-summary-beginning-of-article ()
-  "Go to beginning of article body"
+  "Go to beginning of article body."
   (interactive)
   (gnus-summary-select-article)
   (gnus-eval-in-buffer-window gnus-article-buffer
@@ -3279,7 +3276,7 @@ If optional (prefix) argument BACKWARD is non-nil, do backward instead."
     ))
 
 (defun gnus-summary-end-of-article ()
-  "Go to end of article body"
+  "Go to end of article body."
   (interactive)
   (gnus-summary-select-article)
   (gnus-eval-in-buffer-window gnus-article-buffer
@@ -3290,8 +3287,8 @@ If optional (prefix) argument BACKWARD is non-nil, do backward instead."
     ))
 
 (defun gnus-summary-goto-article (article &optional all-headers)
-  "Read ARTICLE if exists.
-Optional argument ALL-HEADERS means all headers are shown."
+  "Read article number ARTICLE if it exists.
+Optional argument ALL-HEADERS means show the full header."
   (interactive
    (list
     (string-to-int
@@ -3347,7 +3344,7 @@ With arg, turn MIME processing on iff arg is positive."
   (gnus-summary-select-article (not gnus-have-all-headers) t))
 
 (defun gnus-summary-stop-page-breaking ()
-  "Stop page breaking by linefeed temporary (Widen article buffer)."
+  "Stop page breaking by linefeed temporary (widen article buffer)."
   (interactive)
   (gnus-summary-select-article)
   (gnus-eval-in-buffer-window gnus-article-buffer
@@ -3364,7 +3361,7 @@ If argument UNMARK is negative, mark articles as unread instead."
   (let ((count
 	 (gnus-summary-mark-same-subject
 	  (gnus-summary-subject-string) unmark)))
-    ;; Select next unread article. If auto-select-same mode, should
+    ;; Select next unread article.  If auto-select-same mode, should
     ;; select the first unread article.
     (gnus-summary-next-article t (and gnus-auto-select-same
 				      (gnus-summary-subject-string)))
@@ -3460,7 +3457,7 @@ Optional 2nd argument CLEAR-MARK remove any kinds of mark."
 
 (defun gnus-summary-mark-as-read-forward (count)
   "Mark current article as read, and then go forward.
-Argument COUNT specifies number of articles marked as read"
+Argument COUNT specifies number of articles marked as read."
   (interactive "p")
   (while (> count 0)
     (gnus-summary-mark-as-read)
@@ -3469,7 +3466,7 @@ Argument COUNT specifies number of articles marked as read"
 
 (defun gnus-summary-mark-as-read-backward (count)
   "Mark current article as read, and then go backward.
-Argument COUNT specifies number of articles marked as read"
+Argument COUNT specifies number of articles marked as read."
   (interactive "p")
   (while (> count 0)
     (gnus-summary-mark-as-read)
@@ -3500,7 +3497,7 @@ Any kind of string (length 1) except for a space and `-' is ok."
 
 (defun gnus-summary-clear-mark-forward (count)
   "Remove current article's mark, and go forward.
-Argument COUNT specifies number of articles unmarked"
+Argument COUNT specifies number of articles unmarked."
   (interactive "p")
   (while (> count 0)
     (gnus-summary-mark-as-unread nil t)
@@ -3509,7 +3506,7 @@ Argument COUNT specifies number of articles unmarked"
 
 (defun gnus-summary-clear-mark-backward (count)
   "Remove current article's mark, and go backward.
-Argument COUNT specifies number of articles unmarked"
+Argument COUNT specifies number of articles unmarked."
   (interactive "p")
   (while (> count 0)
     (gnus-summary-mark-as-unread nil t)
@@ -3517,7 +3514,7 @@ Argument COUNT specifies number of articles unmarked"
     (setq count (1- count))))
 
 (defun gnus-summary-delete-marked-as-read ()
-  "Delete lines which is marked as read."
+  "Delete summary lines for articles that are marked as read."
   (interactive)
   (if gnus-newsgroup-unreads
       (let ((buffer-read-only nil))
@@ -3795,7 +3792,7 @@ Argument REVERSE means reverse order."
    ))
 
 (defun gnus-summary-sort-by-subject (reverse)
-  "Sort Summary buffer by subject alphabetically. `Re:'s are ignored.
+  "Sort Summary buffer by subject alphabetically.  `Re:'s are ignored.
 If case-fold-search is non-nil, case of letters is ignored.
 Argument REVERSE means reverse order."
   (interactive "P")
@@ -3875,11 +3872,11 @@ Caesar rotates Japanese letters by 47 places in any case."
 
 (defun gnus-summary-rmail-digest ()
   "Run RMAIL on current digest article.
-gnus-select-digest-hook will be called with no arguments, if that
-value is non-nil. It is possible to modify the article so that Rmail
+`gnus-select-digest-hook' will be called with no arguments, if that
+value is non-nil.  It is possible to modify the article so that Rmail
 can work with it.
-gnus-rmail-digest-hook will be called with no arguments, if that value
-is non-nil. The hook is intended to customize Rmail mode."
+`gnus-rmail-digest-hook' will be called with no arguments, if that value
+is non-nil.  The hook is intended to customize Rmail mode."
   (interactive)
   (gnus-summary-select-article)
   (require 'rmail)
@@ -4216,7 +4213,7 @@ If prefix argument ALL is non-nil, all articles are marked as read."
 
 (defun gnus-summary-exit (&optional temporary)
   "Exit reading current newsgroup, and then return to group selection mode.
-gnus-exit-group-hook is called with no arguments if that value is non-nil."
+`gnus-exit-group-hook' is called with no arguments if that value is non-nil."
   (interactive)
   (let ((updated nil)
 	(gnus-newsgroup-headers gnus-newsgroup-headers)
@@ -4360,7 +4357,8 @@ Various hooks for customization:
 (defun gnus-article-prepare (article &optional all-headers)
   "Prepare ARTICLE in Article mode buffer.
 ARTICLE can be either a article number or Message-ID.
-If optional argument ALL-HEADERS is non-nil, all headers are inserted."
+If optional argument ALL-HEADERS is non-nil,
+include the article's whole original header."
   ;; Make sure a connection to NNTP server is alive.
   (if (not (gnus-server-opened))
       (progn
@@ -4478,7 +4476,7 @@ If optional argument ALL-HEADERS is non-nil, all headers are inserted."
 
 (defun gnus-article-set-mode-line ()
   "Set Article mode line string.
-If you don't like it, define your own gnus-article-set-mode-line."
+If you don't like it, define your own `gnus-article-set-mode-line'."
   (let ((maxlen 15)			;Maximum subject length
 	(subject
 	 (if gnus-current-headers
@@ -4516,7 +4514,7 @@ If you don't like it, define your own gnus-article-set-mode-line."
 
 (defun gnus-article-next-page (lines)
   "Show next page of current article.
-If end of article, return non-nil. Otherwise return nil.
+If end of article, return non-nil.  Otherwise return nil.
 Argument LINES specifies lines to be scrolled up."
   (interactive "P")
   (move-to-window-line -1)
@@ -4587,18 +4585,18 @@ Set mark at end of digested message."
     (message "End of message")
     ))
 
-(defun gnus-article-prev-digest (nth)
-  "Move to head of NTH previous digested message."
+(defun gnus-article-prev-digest (n)
+  "Move to head of Nth previous digested message."
   ;; Stop page breaking in digest mode.
   (widen)
   (beginning-of-line)
-  ;; Skip NTH - 1 digest.
+  ;; Skip N - 1 digest.
   ;; Suggested by Khalid Sattar <admin@cs.exeter.ac.uk>.
   ;; Digest separator is customizable.
   ;; Suggested by Skip Montanaro <montanaro@sprite.crd.ge.com>.
-  (while (and (> nth 1)
+  (while (and (> n 1)
 	      (re-search-backward gnus-digest-separator nil 'move))
-    (setq nth (1- nth)))
+    (setq n (1- n)))
   (if (re-search-backward gnus-digest-separator nil t)
       (let ((begin (point)))
 	;; Search for end of this message.
@@ -4697,13 +4695,13 @@ well-known.  For this reason, GNUS provides a general function which
 does this easily for non-Lisp programmers.
 
   The `gnus-kill' function executes commands available in Summary Mode
-by their key sequences. `gnus-kill' should be called with FIELD,
+by their key sequences.  `gnus-kill' should be called with FIELD,
 REGEXP and optional COMMAND and ALL.  FIELD is a string representing
 the header field or an empty string.  If FIELD is an empty string, the
 entire article body is searched for.  REGEXP is a string which is
-compared with FIELD value. COMMAND is a string representing a valid
-key sequence in Summary mode or Lisp expression. COMMAND defaults to
-'(gnus-summary-mark-as-read nil \"X\").  Make sure that COMMAND is
+compared with FIELD value.  COMMAND is a string representing a valid
+key sequence in Summary mode or Lisp expression.  COMMAND defaults to
+\(gnus-summary-mark-as-read nil \"X\").  Make sure that COMMAND is
 executed in the Summary buffer.  If the second optional argument ALL
 is non-nil, the COMMAND is applied to articles which are already
 marked as read or unread.  Articles which are marked are skipped over
@@ -4719,8 +4717,8 @@ the following expression:
 
 	(gnus-kill \"Subject\" \"AI\" \"d\")
 
-In this example it is assumed that the command
-`gnus-summary-mark-as-read-forward' is assigned to `d' in Summary Mode.
+\(Here we assume the command `gnus-summary-mark-as-read-forward' is
+assigned to `d' in Summary Mode.)
 
   It is possible to delete unnecessary headers which are marked with
 `X' in a KILL file as follows:
@@ -4733,8 +4731,8 @@ with `D' are deleted in a KILL file, it is impossible to read articles
 which are marked as read in the previous GNUS sessions.  Marks other
 than `D' should be used for articles which should really be deleted.
 
-Entry to this mode calls emacs-lisp-mode-hook and
-gnus-kill-file-mode-hook with no arguments, if that value is non-nil."
+Entry to this mode calls `emacs-lisp-mode-hook' and
+`gnus-kill-file-mode-hook' with no arguments, if that value is non-nil."
   (interactive)
   (kill-all-local-variables)
   (use-local-map gnus-kill-file-mode-map)
@@ -5127,7 +5125,7 @@ If optional argument NEXT is non-nil, it is inserted before NEXT."
 	))
 
 (defun gnus-capitalize-newsgroup (newsgroup)
-  "Capitalize NEWSGROUP name with treating '.' and '-' as part of words."
+  "Capitalize NEWSGROUP name with treating `.' and `-' as part of words."
   ;; Suggested by "Jonathan I. Kamens" <jik@pit-manager.MIT.EDU>.
   (let ((current-syntax-table (syntax-table)))
     (unwind-protect
@@ -5213,7 +5211,7 @@ Optional argument REVERSE means reverse order."
 
 (defun gnus-string-lessp (a b)
   "Return T if first arg string is less than second in lexicographic order.
-If case-fold-search is non-nil, case of letters is ignored."
+If `case-fold-search' is non-nil, case of letters is ignored."
   (if case-fold-search
       (string-lessp (downcase a) (downcase b))
     (string-lessp a b)))
@@ -5224,7 +5222,7 @@ If case-fold-search is non-nil, case of letters is ignored."
 		(gnus-sortable-date date2)))
 
 (defun gnus-sortable-date (date)
-  "Make sortable string by string-lessp from DATE.
+  "Convert DATE into a string that can be sorted with `string-lessp'.
 Timezone package is used."
   (let* ((date   (timezone-fix-time date nil nil)) ;[Y M D H M S]
 	 (year   (aref date 0))
@@ -5283,12 +5281,12 @@ Optional 1st argument COMMAND is default to
 	(gnus-summary-mark-as-read nil \"X\").
 If optional 2nd argument ALL is non-nil, articles marked are also applied to.
 If FIELD is an empty string (or nil), entire article body is searched for.
-COMMAND must be a lisp expression or a string representing a key sequence."
+COMMAND must be a Lisp expression or a string representing a key sequence."
   ;; We don't want to change current point nor window configuration.
   (save-excursion
     (save-window-excursion
       ;; Selected window must be Summary buffer to execute keyboard
-      ;; macros correctly. See command_loop_1.
+      ;; macros correctly.  See command_loop_1.
       (switch-to-buffer gnus-summary-buffer 'norecord)
       (goto-char (point-min))		;From the beginning.
       (if (null command)
@@ -5300,8 +5298,8 @@ COMMAND must be a lisp expression or a string representing a key sequence."
   "If FIELD of article header matches REGEXP, execute lisp FORM (or a string).
 If FIELD is an empty string (or nil), entire article body is searched for.
 If optional 1st argument BACKWARD is non-nil, do backward instead.
-If optional 2nd argument IGNORE-MARKED is non-nil, articles which are
-marked as read or unread are ignored."
+If optional 2nd argument IGNORE-MARKED is non-nil, ignore articles
+marked as read or unread."
   (let ((function nil)
 	(header nil)
 	(article nil))
@@ -5410,7 +5408,7 @@ ROT47 will be performed for Japanese text in any case."
 			  (if (<= v t1) (if (< v t2) v (+ v 47))
 			    (if (<= v t3) (- v 47) v))))
 		  (setq i (1+ i))))
-	      (message "Building caesar-translate-table... done")))
+	      (message "Building caesar-translate-table...done")))
 	(let ((from (region-beginning))
 	      (to (region-end))
 	      (i 0) str len)
@@ -5573,7 +5571,7 @@ ROT47 will be performed for Japanese text in any case."
   "Open network stream to remote NNTP server.
 If optional argument CONFIRM is non-nil, ask you host that NNTP server
 is running even if it is defined.
-Run gnus-open-server-hook just before opening news server."
+Run `gnus-open-server-hook' just before opening news server."
   (if (gnus-server-opened)
       ;; Stream is already opened.
       nil
@@ -5624,7 +5622,7 @@ Run gnus-open-server-hook just before opening news server."
 	     (format "Cannot open NNTP server on %s" gnus-nntp-server)))))
     ))
 
-;; Dummy functions used only once. Should return nil.
+;; Dummy functions used only once.  Should return nil.
 (defun gnus-server-opened () nil)
 (defun gnus-close-server () nil)
 
@@ -5640,7 +5638,7 @@ If no message is available and optional MESSAGE is given, return it."
 (defun gnus-define-access-method (method &optional access-methods)
   "Define access functions for the access METHOD.
 Methods definition is taken from optional argument ACCESS-METHODS or
-the variable gnus-access-methods."
+the variable `gnus-access-methods'."
   (let ((bindings
 	 (cdr (assoc method (or access-methods gnus-access-methods)))))
     (if (null bindings)
@@ -5761,8 +5759,8 @@ are selected."
 
 (defun gnus-get-header-by-number (number)
   "Return a header specified by a NUMBER.
-If the variable gnus-newsgroup-headers is updated, the hashed table
-gnus-newsgroup-headers-hashtb-by-number must be set to nil to indicate
+If you update the variable `gnus-newsgroup-headers', you must set the
+hash table `gnus-newsgroup-headers-hashtb-by-number' to nil to indicate
 rehash is necessary."
   (or gnus-newsgroup-headers-hashtb-by-number
       (gnus-make-headers-hashtable-by-number))
@@ -5771,8 +5769,8 @@ rehash is necessary."
 
 (defun gnus-get-header-by-id (id)
   "Return a header specified by an ID.
-If the variable gnus-newsgroup-headers is updated, the hashed table
-gnus-newsgroup-headers-hashtb-by-id must be set to nil to indicate
+If you update the variable `gnus-newsgroup-headers', you must set the
+hash table `gnus-newsgroup-headers-hashtb-by-id' to nil to indicate
 rehash is necessary."
   (or gnus-newsgroup-headers-hashtb-by-id
       (gnus-make-headers-hashtable-by-id))
@@ -5780,7 +5778,7 @@ rehash is necessary."
        (gnus-gethash id gnus-newsgroup-headers-hashtb-by-id)))
 
 (defun gnus-make-headers-hashtable-by-number ()
-  "Make hashtable for the variable gnus-newsgroup-headers by number."
+  "Make hashtable for the variable `gnus-newsgroup-headers' by number."
   (let ((header nil)
 	(headers gnus-newsgroup-headers))
     (setq gnus-newsgroup-headers-hashtb-by-number
@@ -5793,7 +5791,7 @@ rehash is necessary."
       )))
 
 (defun gnus-make-headers-hashtable-by-id ()
-  "Make hashtable for the variable gnus-newsgroup-headers by id."
+  "Make hashtable for the variable `gnus-newsgroup-headers' by id."
   (let ((header nil)
 	(headers gnus-newsgroup-headers))
     (setq gnus-newsgroup-headers-hashtb-by-id
@@ -5806,7 +5804,7 @@ rehash is necessary."
       )))
 
 (defun gnus-clear-hashtables-for-newsgroup-headers ()
-  "Clear hash tables created for the variable gnus-newsgroup-headers."
+  "Clear hash tables created for the variable `gnus-newsgroup-headers'."
   (setq gnus-newsgroup-headers-hashtb-by-id nil)
   (setq gnus-newsgroup-headers-hashtb-by-number nil))
 
@@ -5917,7 +5915,7 @@ that it was marked as read once."
   "Configure GNUS windows according to the next ACTION.
 The ACTION is either a symbol, such as `summary', or a
 configuration list such as `(1 1 2)'.  If ACTION is not a list,
-configuration list is got from the variable gnus-window-configuration."
+configuration list is got from the variable `gnus-window-configuration'."
   (let* ((windows
 	  (if (listp action)
 	      action (car (cdr (assq action gnus-window-configuration)))))
@@ -5950,7 +5948,7 @@ configuration list is got from the variable gnus-window-configuration."
 	     (setq height (+ (if grpwin (window-height grpwin) 0)
 			     (if subwin (window-height subwin) 0)
 			     (if artwin (window-height artwin) 0)))))
-      ;; The Newsgroup buffer exits always. So, use it to extend the
+      ;; The Newsgroup buffer exits always.  So, use it to extend the
       ;; Group window so as to get enough window space.
       (switch-to-buffer gnus-group-buffer 'norecord)
       (and (get-buffer gnus-summary-buffer)
@@ -6047,7 +6045,7 @@ configuration list is got from the variable gnus-window-configuration."
 
 (defun gnus-overload-functions (&optional overloads)
   "Overload functions specified by optional argument OVERLOADS.
-If nothing is specified, use the variable gnus-overload-functions."
+If nothing is specified, use the variable `gnus-overload-functions'."
   (let ((defs nil)
 	(overloads (or overloads gnus-overload-functions)))
     (while overloads
@@ -6282,7 +6280,7 @@ If optional argument RAWFILE is non-nil, force to read raw startup file."
 
 (defun gnus-find-new-newsgroups ()
   "Looking for new newsgroups and return names.
-`-n' option of options line in .newsrc file is recognized."
+`-n' option of options line in `.newsrc' file is recognized."
   (let ((group nil)
 	(new-newsgroups nil))
     (mapatoms
@@ -6306,7 +6304,7 @@ If optional argument RAWFILE is non-nil, force to read raw startup file."
     ))
 
 (defun gnus-kill-newsgroup (group)
-  "Kill GROUP from gnus-newsrc-assoc, .newsrc and gnus-unread-hashtb."
+  "Kill GROUP from `gnus-newsrc-assoc', `.newsrc' and `gnus-unread-hashtb'."
   (let ((info (gnus-gethash group gnus-newsrc-hashtb)))
     (if (null info)
 	nil
@@ -6376,8 +6374,8 @@ If optional argument NEXT is nil, appended to the last."
     ))
 
 (defun gnus-check-killed-newsgroups ()
-  "Check consistency between gnus-newsrc-assoc and gnus-killed-assoc.
-gnus-killed-hashtb is also updated."
+  "Update `gnus-killed-assoc' based on `gnus-newsrc-assoc'.
+Update `gnus-killed-hashtb' also."
   (let ((group nil)
 	(new-killed nil)
 	(old-killed gnus-killed-assoc))
@@ -6453,7 +6451,7 @@ If optional argument CONFIRM is non-nil, confirm deletion of newsgroups."
     (setq gnus-marked-assoc new-marked)
     (setq gnus-marked-hashtb
 	  (gnus-make-hashtable-from-alist gnus-marked-assoc))
-    (message "Checking bogus newsgroups... done")
+    (message "Checking bogus newsgroups...done")
     ))
 
 (defun gnus-get-unread-articles ()
@@ -6488,7 +6486,7 @@ If optional argument CONFIRM is non-nil, confirm deletion of newsgroups."
 	)
       (setq read (cdr read))
       )
-    (message "Checking new news... done")
+    (message "Checking new news...done")
     ))
 
 (defun gnus-expire-marked-articles ()
@@ -6657,12 +6655,12 @@ Arguments are GROUP, HEADERS, UNREADS, and optional SUBSCRIBED-ONLY."
       (save-excursion
 	(set-buffer nntp-server-buffer)
 	(gnus-active-to-gnus-format)
-	(message "Reading active file... done"))
+	(message "Reading active file...done"))
     (error "Cannot read active file from NNTP server.")))
 
 (defun gnus-active-to-gnus-format ()
   "Convert active file format to internal format.
-Lines matching gnus-ignored-newsgroups are ignored."
+Lines matching `gnus-ignored-newsgroups' are ignored."
   ;; Delete unnecessary lines.
   (goto-char (point-min))
   ;;(delete-matching-lines "^to\\..*$")
@@ -6737,7 +6735,7 @@ If optional argument RAWFILE is non-nil, the raw startup file is read."
 	     (message "Reading %s..." newsrc-file)
 	     (gnus-newsrc-to-gnus-format)
 	     (gnus-check-killed-newsgroups)
-	     (message "Reading %s... Done" newsrc-file)))
+	     (message "Reading %s...done" newsrc-file)))
       )))
 
 (defun gnus-make-newsrc-file (file)
@@ -6749,7 +6747,7 @@ If optional argument RAWFILE is non-nil, the raw startup file is read."
     ))
 
 (defun gnus-newsrc-to-gnus-format ()
-  "Parse current buffer as .newsrc file."
+  "Parse current buffer as `.newsrc' file."
   (let ((newsgroup nil)
 	(subscribe nil)
 	(ranges nil)
@@ -6902,7 +6900,7 @@ If optional argument RAWFILE is non-nil, the raw startup file is read."
     ))
 
 (defun gnus-save-newsrc-file ()
-  "Save to .newsrc FILE."
+  "Save current status in the `.newsrc' file."
   ;; Note: We cannot save .newsrc file if all newsgroups are removed
   ;; from the variable gnus-newsrc-assoc.
   (and (or gnus-newsrc-assoc gnus-killed-assoc)
@@ -6931,12 +6929,12 @@ If optional argument RAWFILE is non-nil, the raw startup file is read."
 		 (require-final-newline t)) ;Don't ask even if requested.
 	     (write-file (concat gnus-current-startup-file ".el")))
 	   (kill-buffer (current-buffer))
-	   (message "Saving %s... Done" gnus-current-startup-file)
+	   (message "Saving %s...done" gnus-current-startup-file)
 	   ))
     ))
 
 (defun gnus-update-newsrc-buffer (group &optional delete next)
-  "Incrementally update .newsrc buffer about GROUP.
+  "Incrementally update `.newsrc' buffer about GROUP.
 If optional 1st argument DELETE is non-nil, delete the group.
 If optional 2nd argument NEXT is non-nil, inserted before it."
   (save-excursion
@@ -6992,7 +6990,7 @@ If optional 2nd argument NEXT is non-nil, inserted before it."
       )))
 
 (defun gnus-gnus-to-quick-newsrc-format ()
-  "Insert GNUS variables such as gnus-newsrc-assoc in lisp format."
+  "Insert GNUS variables such as `gnus-newsrc-assoc' in Lisp format."
   (insert ";; GNUS internal format of .newsrc.\n")
   (insert ";; Touch .newsrc instead if you think to remove this file.\n")
   (let ((variable nil)
@@ -7077,7 +7075,7 @@ If optional 2nd argument NEXT is non-nil, inserted before it."
   (let ((count 0))
     (while range
       (if (/= (cdr (car range)) 0)
-	  ;; If end1 is 0, it must be skipped. Usually no articles in
+	  ;; If end1 is 0, it must be skipped.  Usually no articles in
 	  ;;  this group.
 	  (setq count (+ count 1 (- (cdr (car range)) (car (car range))))))
       (setq range (cdr range))
@@ -7125,7 +7123,7 @@ Range of OBJ is expressed as `((beg1 . end1) (beg2 . end2) ...)."
       (save-excursion
 	(set-buffer nntp-server-buffer)
 	(gnus-distributions-to-gnus-format)
-	(message "Reading distributions file... done"))
+	(message "Reading distributions file...done"))
     ;; It's not a fatal error.
     ;;(error "Cannot read distributions file from NNTP server.")
     )
@@ -7152,25 +7150,6 @@ Range of OBJ is expressed as `((beg1 . end1) (beg2 . end2) ...)."
 		gnus-distribution-list)))
   (setq gnus-distribution-list
 	(nreverse gnus-distribution-list)))
-
-;; Some older version of GNU Emacs does not support function
-;; `file-newer-than-file-p'.
-
-(or (fboundp 'file-newer-than-file-p)
-    (defun file-newer-than-file-p (file1 file2)
-      "Return t if file FILE1 is newer than file FILE2.
-If FILE1 does not exist, the answer is nil;
-otherwise, if FILE2 does not exist, the answer is t."
-      (let ((mod1 (nth 5 (file-attributes file1)))
-	    (mod2 (nth 5 (file-attributes file2))))
-	(cond ((not (file-exists-p file1)) nil)
-	      ((not (file-exists-p file2)) t)
-	      ((and mod2 mod1)
-	       (or (< (car mod2) (car mod1))
-		   (and (= (car mod2) (car mod1))
-			(<= (nth 1 mod2) (nth 1 mod1)))))
-	      ))))
-
 
 (provide 'gnus)
 
