@@ -481,9 +481,11 @@ Afterwards the end-trigger value is reset to nil.  */)
 DEFUN ("window-edges", Fwindow_edges, Swindow_edges, 0, 1, 0,
        doc: /* Return a list of the edge coordinates of WINDOW.
 \(LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at top left corner of frame.
-RIGHT is one more than the rightmost column used by WINDOW,
-and BOTTOM is one more than the bottommost row used by WINDOW
- and its mode-line.  */)
+RIGHT is one more than the rightmost column occupied by WINDOW,
+and BOTTOM is one more than the bottommost row occupied by WINDOW.
+The edges include the space used by the window's scroll bar,
+display margins, fringes, header line, and mode line, if it has them.
+To get the edges of the actual text area, use `window-inside-edges'.  */)
      (window)
      Lisp_Object window;
 {
@@ -494,6 +496,74 @@ and BOTTOM is one more than the bottommost row used by WINDOW
 	 Fcons (make_number (WINDOW_RIGHT_EDGE_COL (w)),
 	 Fcons (make_number (WINDOW_BOTTOM_EDGE_LINE (w)),
 		Qnil))));
+}
+
+DEFUN ("window-pixel-edges", Fwindow_pixel_edges, Swindow_pixel_edges, 0, 1, 0,
+       doc: /* Return a list of the edge pixel coordinates of WINDOW.
+\(LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at top left corner of frame.
+RIGHT is one more than the rightmost x position occupied by WINDOW,
+and BOTTOM is one more than the bottommost y position occupied by WINDOW.
+The pixel edges include the space used by the window's scroll bar,
+display margins, fringes, header line, and mode line, if it has them.
+To get the edges of the actual text area, use `window-inside-pixel-edges'.  */)
+     (window)
+     Lisp_Object window;
+{
+  register struct window *w = decode_window (window);
+
+  return Fcons (make_number (WINDOW_LEFT_EDGE_X (w)),
+	 Fcons (make_number (WINDOW_TOP_EDGE_Y (w)),
+	 Fcons (make_number (WINDOW_RIGHT_EDGE_X (w)),
+	 Fcons (make_number (WINDOW_BOTTOM_EDGE_Y (w)),
+		Qnil))));
+}
+
+DEFUN ("window-inside-edges", Fwindow_inside_edges, Swindow_inside_edges, 0, 1, 0,
+       doc: /* Return a list of the edge coordinates of WINDOW.
+\(LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at top left corner of frame.
+RIGHT is one more than the rightmost column used by text in WINDOW,
+and BOTTOM is one more than the bottommost row used by text in WINDOW.
+The inside edges do not include the space used by the window's scroll bar,
+display margins, fringes, header line, and/or mode line.  */)
+     (window)
+     Lisp_Object window;
+{
+  register struct window *w = decode_window (window);
+
+  return list4 (make_number (WINDOW_BOX_LEFT_EDGE_COL (w)
+			     + WINDOW_LEFT_MARGIN_COLS (w)
+			     + WINDOW_LEFT_FRINGE_COLS (w)),
+		make_number (WINDOW_TOP_EDGE_LINE (w)
+			     + WINDOW_HEADER_LINE_LINES (w)),
+		make_number (WINDOW_RIGHT_EDGE_COL (w)
+			     - WINDOW_RIGHT_MARGIN_COLS (w)
+			     - WINDOW_RIGHT_FRINGE_COLS (w)),
+		make_number (WINDOW_BOTTOM_EDGE_LINE (w)
+			     - WINDOW_MODE_LINE_LINES (w)));
+}
+
+DEFUN ("window-inside-pixel-edges", Fwindow_inside_pixel_edges, Swindow_inside_pixel_edges, 0, 1, 0,
+       doc: /* Return a list of the edge coordinates of WINDOW.
+\(LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at top left corner of frame.
+RIGHT is one more than the rightmost x position used by text in WINDOW,
+and BOTTOM is one more than the bottommost y position used by text in WINDOW.
+The inside edges do not include the space used by the window's scroll bar,
+display margins, fringes, header line, and/or mode line.  */)
+     (window)
+     Lisp_Object window;
+{
+  register struct window *w = decode_window (window);
+
+  return list4 (make_number (WINDOW_BOX_LEFT_EDGE_X (w)
+			     + WINDOW_LEFT_MARGIN_WIDTH (w)
+			     + WINDOW_LEFT_FRINGE_WIDTH (w)),
+		make_number (WINDOW_TOP_EDGE_Y (w)
+			     + WINDOW_HEADER_LINE_HEIGHT (w)),
+		make_number (WINDOW_RIGHT_EDGE_X (w)
+			     - WINDOW_RIGHT_MARGIN_WIDTH (w)
+			     - WINDOW_RIGHT_FRINGE_WIDTH (w)),
+		make_number (WINDOW_BOTTOM_EDGE_Y (w)
+			     - WINDOW_MODE_LINE_HEIGHT (w)));
 }
 
 /* Test if the character at column *X, row *Y is within window W.
@@ -6347,6 +6417,9 @@ This variable automatically becomes buffer-local when set.  */);
   defsubr (&Swindow_redisplay_end_trigger);
   defsubr (&Sset_window_redisplay_end_trigger);
   defsubr (&Swindow_edges);
+  defsubr (&Swindow_pixel_edges);
+  defsubr (&Swindow_inside_edges);
+  defsubr (&Swindow_inside_pixel_edges);
   defsubr (&Scoordinates_in_window_p);
   defsubr (&Swindow_at);
   defsubr (&Swindow_point);
