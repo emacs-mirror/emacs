@@ -1868,8 +1868,8 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 	    {
 	      /* invalid sequence */
 	      *dst++ = c1;
-	      *dst++ = c2;
-	      coding->consumed_char += 2;
+	      src--;
+	      coding->consumed_char++;
 	    }
 	  else
 	    ENCODE_ISO_CHARACTER (c1, c2, /* dummy */ c3);
@@ -1881,9 +1881,8 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 	    {
 	      /* invalid sequence */
 	      *dst++ = c1;
-	      *dst++ = c2;
-	      *dst++ = c3;
-	      coding->consumed_char += 3;
+	      src -= 2;
+	      coding->consumed_char++;
 	    }
 	  else if (c1 < LEADING_CODE_PRIVATE_11)
 	    ENCODE_ISO_CHARACTER (c1, c2, c3);
@@ -1897,10 +1896,8 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 	    {
 	      /* invalid sequence */
 	      *dst++ = c1;
-	      *dst++ = c2;
-	      *dst++ = c3;
-	      *dst++ = c4;
-	      coding->consumed_char += 4;
+	      src -= 3;
+	      coding->consumed_char++;
 	    }
 	  else
 	    ENCODE_ISO_CHARACTER (c2, c3, c4);
@@ -1912,8 +1909,8 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 	    {
 	      /* invalid sequence */
 	      *dst++ = c1;
-	      *dst++ = c2;
-	      coding->consumed_char += 2;
+	      src--;
+	      coding->consumed_char++;
 	    }
 	  else if (c2 == 0xFF)
 	    {
