@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.50) $
+ * $HopeName: MMsrc!trace.c(trunk.51) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .sources: design.mps.tracer.
@@ -8,7 +8,7 @@
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.50) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.51) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -468,6 +468,7 @@ Res TraceFlip(Trace trace)
       AVER(RootRank(root) <= RankEXACT); /* see above */
 
       if(RootRank(root) == ss.rank) {
+        ScanStateSetSummary(&ss, RefSetEMPTY);
         res = RootScan(&ss, root);
         if(res != ResOK) {
           return res;
