@@ -50,35 +50,35 @@ SUBDIRS=quail
 
 # Files generated from TIT dictionaries for Chinese GB character set.
 TIT-GB=\
-	quail/CTLau.el		\
-	quail/CCDOSPY.el	\
-	quail/Punct.el		\
-	quail/PY.el		\
-	quail/QJ.el		\
-	quail/SW.el		\
-	quail/TONEPY.el		\
-	quail/ZIRANMA.el
+	quail/CTLau.elc		\
+	quail/CCDOSPY.elc	\
+	quail/Punct.elc		\
+	quail/PY.elc		\
+	quail/QJ.elc		\
+	quail/SW.elc		\
+	quail/TONEPY.elc	\
+	quail/ZIRANMA.elc
 
 # Files generated from TIT dictionaries for Chinese BIG5 character set.
 TIT-BIG5=\
-	quail/4Corner.el	\
-	quail/ARRAY30.el	\
-	quail/CTLauB.el		\
-	quail/ECDICT.el		\
-	quail/ETZY.el		\
-	quail/Punct-b5.el	\
-	quail/PY-b5.el		\
-	quail/QJ-b5.el		\
-	quail/ZOZY.el
+	quail/4Corner.elc	\
+	quail/ARRAY30.elc	\
+	quail/CTLauB.elc	\
+	quail/ECDICT.elc	\
+	quail/ETZY.elc		\
+	quail/Punct-b5.elc	\
+	quail/PY-b5.elc		\
+	quail/QJ-b5.elc		\
+	quail/ZOZY.elc
 
 CHINESE-TIT=${TIT-GB} ${TIT-BIG5}
 
-NON-TIT-GB=${srcdir}/quail/py-punct.el
+NON-TIT-GB=${srcdir}/quail/py-punct.elc
 
-NON-TIT-BIG5=${srcdir}/quail/quick-b5.el ${srcdir}/quail/tsang-b5.el \
-	     ${srcdir}/quail/pypunct-b5.el
+NON-TIT-BIG5=${srcdir}/quail/quick-b5.elc ${srcdir}/quail/tsang-b5.elc \
+	     ${srcdir}/quail/pypunct-b5.elc
 
-NON-TIT-CNS=${srcdir}/quail/quick-cns.el ${srcdir}/quail/tsang-cns.el
+NON-TIT-CNS=${srcdir}/quail/quick-cns.elc ${srcdir}/quail/tsang-cns.elc
 
 CHINESE-NON-TIT=${NON-TIT-GB} ${NON-TIT-BIG5} ${NON-TIT-CNS}
 
@@ -88,38 +88,38 @@ CHINESE-BIG5=${TIT-BIG5} ${NON-TIT-BIG5}
 
 CHINESE-CNS=${NON-TIT-CNS} 
 
-JAPANESE=${srcdir}/quail/japanese.el ${srcdir}/ja-dic/ja-dic.el
+JAPANESE=${srcdir}/quail/japanese.elc ${srcdir}/ja-dic/ja-dic.elc
 
-KOREAN=	${srcdir}/quail/hangul.el	\
-	${srcdir}/quail/hangul3.el	\
-	${srcdir}/quail/hanja.el	\
-	${srcdir}/quail/hanja-jis.el	\
-	${srcdir}/quail/symbol-ksc.el
+KOREAN=	${srcdir}/quail/hangul.elc	\
+	${srcdir}/quail/hangul3.elc	\
+	${srcdir}/quail/hanja.elc	\
+	${srcdir}/quail/hanja-jis.elc	\
+	${srcdir}/quail/symbol-ksc.elc
 
-THAI=${srcdir}/quail/thai.el
+THAI=${srcdir}/quail/thai.elc
 
-VIETNAMESE=${srcdir}/quail/viqr.el
+VIETNAMESE=${srcdir}/quail/viqr.elc
 
-LAO=${srcdir}/quail/lao.el ${srcdir}/quail/lrt.el
+LAO=${srcdir}/quail/lao.elc ${srcdir}/quail/lrt.elc
 
-INDIAN=${srcdir}/quail/devanagari.el
+INDIAN=${srcdir}/quail/devanagari.elc
 
-TIBETAN=${srcdir}/quail/tibetan.el
+TIBETAN=${srcdir}/quail/tibetan.elc
 
-LATIN=${srcdir}/quail/latin-pre.el ${srcdir}/quail/latin-post.el
+LATIN=${srcdir}/quail/latin-pre.elc ${srcdir}/quail/latin-post.elc
 
 SLAVIC= \
-	${srcdir}/quail/czech.el \
-	${srcdir}/quail/slovak.el
+	${srcdir}/quail/czech.elc \
+	${srcdir}/quail/slovak.elc
 
-GREEK=${srcdir}/quail/greek.el
+GREEK=${srcdir}/quail/greek.elc
 
-RUSSIAN=${srcdir}/quail/cyrillic.el ${srcdir}/quail/cyril-jis.el
+RUSSIAN=${srcdir}/quail/cyrillic.elc ${srcdir}/quail/cyril-jis.elc
 
 MISC= \
-	${srcdir}/quail/ethiopic.el \
-	${srcdir}/quail/ipa.el \
-	${srcdir}/quail/hebrew.el
+	${srcdir}/quail/ethiopic.elc \
+	${srcdir}/quail/ipa.elc \
+	${srcdir}/quail/hebrew.elc
 
 CHINESE=${CHINESE-GB} ${CHINESE-BIG5} ${CHINESE-CNS}
 EASTASIA=${CHINESE} ${JAPANESE} ${KOREAN}
@@ -146,8 +146,12 @@ ${TIT}:
 	if [ -d quail ]; then true; else make quail; fi
 	${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
 	    --eval '(batch-titdic-convert t)' -dir quail ${srcdir}/CXTERM-DIC
+	EL=`echo ${TIT} | sed 's/\.elc/\.el/g'`; \
 	${RUN-EMACS}  -l ${buildlisppath}/international/quail \
-	    -f batch-byte-compile ${TIT}
+	    -f batch-byte-compile $$EL
+
+.el.elc:
+	${RUN-EMACS} -f batch-byte-compile $<
 
 leim-list.el: ${SUBDIRS} ${WORLD}
 	if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \
@@ -177,8 +181,8 @@ install: all
 	-chmod -R a+r ${INSTALLDIR}
 
 clean mostlyclean:
-	ELC=`echo ${TIT} | sed 's/\.el/.elc/g'`; \
-	rm -f ${TIT} $$ELC leim-list.el
+	EL=`echo ${TIT} | sed 's/\.elc/.el/g'`; \
+	rm -f ${TIT} $$EL leim-list.el
 
 distclean maintainer-clean:
 	if test -f stamp-subdir; then rm -rf ${SUBDIRS} stamp-subdir; fi
