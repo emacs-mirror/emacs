@@ -244,7 +244,8 @@ Pascal program are completed runtime and should not be added to this list.")
 		 "[:=]\\|\\(\\<record\\>\\)\\|\\(\\<end\\>\\)" 
 		 (save-excursion (end-of-line 2) (point)) t))
       (cond ((match-beginning 1) (setq nest (1+ nest)))
-	    ((match-beginning 2) (setq nest (1- nest)))))))
+	    ((match-beginning 2) (setq nest (1- nest)))
+	    ((looking-at "[^(\n]+)") (setq nest 0))))))
 
 
 (defun pascal-declaration-beg ()
@@ -427,7 +428,11 @@ no args, if that value is non-nil."
 	(save-excursion
 	  (beginning-of-line)
 	  (pascal-indent-line))
-      (insert "\t"))
+      (if (save-excursion
+	    (skip-chars-backward " \t")
+	    (bolp))
+	  (pascal-indent-line)
+	(insert "\t")))
     (pascal-indent-command)))
 
 
@@ -903,10 +908,12 @@ column number the line should be indented to."
 	   "^[ \t]*[^ \t,:]+[ \t]*\\(,[ \t]*[^ \t,:]+[ \t]*\\)*:"
 	   (marker-position end) 'move)
 	  (forward-char -1))
-      (delete-horizontal-space)
-      (if (> (current-column) ind)
-	  (setq ind (current-column)))
-      (pascal-end-of-statement))
+      (if (< (point) (marker-position end))
+	  (progn
+	    (delete-horizontal-space)
+	    (if (> (current-column) ind)
+		(setq ind (current-column)))
+	    (pascal-end-of-statement))))
     (goto-char beg)
     (setq oldpos (marker-position end))
     ;; Indent all case statements
