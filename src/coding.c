@@ -3202,6 +3202,7 @@ setup_coding_system (coding_system, coding)
 	  }
       }
       coding->common_flags |= CODING_REQUIRE_FLUSHING_MASK;
+      coding->spec.ccl.cr_carryover = 0;
       break;
 
     case 5:
@@ -3883,7 +3884,8 @@ ccl_coding_driver (coding, source, destination, src_bytes, dst_bytes, encodep)
   int result;
 
   ccl->last_block = coding->mode & CODING_MODE_LAST_BLOCK;
-
+  if (encodep)
+    ccl->eol_type = coding->eol_type;
   coding->produced = ccl_driver (ccl, source, destination,
 				 src_bytes, dst_bytes, &(coding->consumed));
   if (encodep)
@@ -3916,6 +3918,136 @@ ccl_coding_driver (coding, source, destination, src_bytes, dst_bytes, encodep)
   return result;
 }
 
+/* Decode EOL format of the text at PTR of BYTES length destructively
+   according to CODING->eol_type.  This is called after the CCL
+   program produced a decoded text at PTR.  If we do CRLF->LF
+   conversion, update CODING->produced and CODING->produced_char.  */
+
+static void
+decode_eol_post_ccl (coding, ptr, bytes)
+     struct coding_system *coding;
+     unsigned char *ptr;
+     int bytes;
+{
+  Lisp_Object val, saved_coding_symbol;
+  unsigned char *pend = ptr + bytes;
+  int dummy;
+
+  /* Remember the current coding system symbol.  We set it back when
+     an inconsistent EOL is found so that `last-coding-system-used' is
+     set to the coding system that doesn't specify EOL conversion.  */
+  saved_coding_symbol = coding->symbol;
+
+  coding->spec.ccl.cr_carryover = 0;
+  if (coding->eol_type == CODING_EOL_UNDECIDED)
+    {
+      /* Here, to avoid the call of setup_coding_system, we directly
+	 call detect_eol_type.  */
+      coding->eol_type = detect_eol_type (ptr, bytes, &dummy);
+      val = Fget (coding->symbol, Qeol_type);
+      if (VECTORP (val) && XVECTOR (val)->size == 3)
+	coding->symbol = XVECTOR (val)->contents[coding->eol_type];
+      coding->mode |= CODING_MODE_INHIBIT_INCONSISTENT_EOL;
+    }
+
+  if (coding->eol_type == CODING_EOL_LF)
+    {
+      /* We have nothing to do.  */
+      ptr = pend;
+    }
+  else if (coding->eol_type == CODING_EOL_CRLF)
+    {
+      unsigned char *pstart = ptr, *p = ptr;
+
+      if (! (coding->mode & CODING_MODE_LAST_BLOCK)
+	  && *(pend - 1) == '\r')
+	{
+	  /* If the last character is CR, we can't handle it here
+	     because LF will be in the not-yet-decoded source text.
+	     Recorded that the CR is not yet processed.  */
+	  coding->spec.ccl.cr_carryover = 1;
+	  coding->produced--;
+	  coding->produced_char--;
+	  pend--;
+	}
+      while (ptr < pend)
+	{
+	  if (*ptr == '\r')
+	    {
+	      if (ptr + 1 < pend && *(ptr + 1) == '\n')
+		{
+		  *p++ = '\n';
+		  ptr += 2;
+		}
+	      else
+		{
+		  if (coding->mode & CODING_MODE_INHIBIT_INCONSISTENT_EOL)
+		    goto undo_eol_conversion;
+		  *p++ = *ptr++;
+		}
+	    }
+	  else if (*ptr == '\n'
+		   && coding->mode & CODING_MODE_INHIBIT_INCONSISTENT_EOL)
+	    goto undo_eol_conversion;
+	  else
+	    *p++ = *ptr++;
+	  continue;
+
+	undo_eol_conversion:
+	  /* We have faced with inconsistent EOL format at PTR.
+	     Convert all LFs before PTR back to CRLFs.  */
+	  for (p--, ptr--; p >= pstart; p--)
+	    {
+	      if (*p == '\n')
+		*ptr-- = '\n', *ptr-- = '\r';
+	      else
+		*ptr-- = *p;
+	    }
+	  /*  If carryover is recorded, cancel it because we don't
+	      convert CRLF anymore.  */
+	  if (coding->spec.ccl.cr_carryover)
+	    {
+	      coding->spec.ccl.cr_carryover = 0;
+	      coding->produced++;
+	      coding->produced_char++;
+	      pend++;
+	    }
+	  p = ptr = pend;
+	  coding->eol_type = CODING_EOL_LF;
+	  coding->symbol = saved_coding_symbol;
+	}
+      if (p < pend)
+	{
+	  /* As each two-byte sequence CRLF was converted to LF, (PEND
+	     - P) is the number of deleted characters.  */
+	  coding->produced -= pend - p;
+	  coding->produced_char -= pend - p;
+	}
+    }
+  else			/* i.e. coding->eol_type == CODING_EOL_CR */
+    {
+      unsigned char *p = ptr;
+
+      for (; ptr < pend; ptr++)
+	{
+	  if (*ptr == '\r')
+	    *ptr = '\n';
+	  else if (*ptr == '\n'
+		   && coding->mode & CODING_MODE_INHIBIT_INCONSISTENT_EOL)
+	    {
+	      for (; p < ptr; p++)
+		{
+		  if (*p == '\n')
+		    *p = '\r';
+		}
+	      ptr = pend;
+	      coding->eol_type = CODING_EOL_LF;
+	      coding->symbol = saved_coding_symbol;
+	    }
+	}
+    }
+}
+
 /* See "GENERAL NOTES about `decode_coding_XXX ()' functions".  Before
    decoding, it may detect coding system and format of end-of-line if
    those are not yet decided.  The source should be unibyte, the
@@ -3931,7 +4063,8 @@ decode_coding (coding, source, destination, src_bytes, dst_bytes)
   if (coding->type == coding_type_undecided)
     detect_coding (coding, source, src_bytes);
 
-  if (coding->eol_type == CODING_EOL_UNDECIDED)
+  if (coding->eol_type == CODING_EOL_UNDECIDED
+      && coding->type != coding_type_ccl)
     detect_eol (coding, source, src_bytes);
 
   coding->produced = coding->produced_char = 0;
@@ -3962,8 +4095,20 @@ decode_coding (coding, source, destination, src_bytes, dst_bytes)
       break;
 
     case coding_type_ccl:
-      ccl_coding_driver (coding, source, destination,
+      if (coding->spec.ccl.cr_carryover)
+	{
+	  /* Set the CR which is not processed by the previous call of
+	     decode_eol_post_ccl in DESTINATION.  */
+	  *destination = '\r';
+	  coding->produced++;
+	  coding->produced_char++;
+	  dst_bytes--;
+	}
+      ccl_coding_driver (coding, source,
+			 destination + coding->spec.ccl.cr_carryover,
 			 src_bytes, dst_bytes, 0);
+      if (coding->eol_type != CODING_EOL_LF)
+	decode_eol_post_ccl (coding, destination, coding->produced);
       break;
 
     default:
@@ -4580,7 +4725,8 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	       encodings again in vain.  */
 	    coding->type = coding_type_emacs_mule;
 	}
-      if (coding->eol_type == CODING_EOL_UNDECIDED)
+      if (coding->eol_type == CODING_EOL_UNDECIDED
+	  && coding->type != coding_type_ccl)
 	{
 	  saved_coding_symbol = coding->symbol;
 	  detect_eol (coding, BYTE_POS_ADDR (from_byte), len_byte);
@@ -5038,7 +5184,8 @@ decode_coding_string (str, coding, nocopy)
 	  if (coding->type == coding_type_undecided)
 	    coding->type = coding_type_emacs_mule;
 	}
-      if (coding->eol_type == CODING_EOL_UNDECIDED)
+      if (coding->eol_type == CODING_EOL_UNDECIDED
+	  && coding->type != coding_type_ccl)
 	{
 	  saved_coding_symbol = coding->symbol;
 	  detect_eol (coding, XSTRING (str)->data, to_byte);
