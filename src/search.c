@@ -1694,7 +1694,7 @@ which is made by replacing the part of STRING that was matched.")
       if (case_action == all_caps)
 	newtext = Fupcase (newtext);
       else if (case_action == cap_initial)
-	newtext = upcase_initials (newtext);
+	newtext = Fupcase_initials (newtext);
 
       return concat3 (before, newtext, after);
     }
@@ -1747,7 +1747,7 @@ which is made by replacing the part of STRING that was matched.")
   if (case_action == all_caps)
     Fupcase_region (make_number (point - inslen), make_number (point));
   else if (case_action == cap_initial)
-    upcase_initials_region (make_number (point - inslen), make_number (point));
+    Fupcase_initials_region (make_number (point - inslen), make_number (point));
   return Qnil;
 }
 
