@@ -3,7 +3,6 @@
 ;; Copyright (C) 1989, 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
-;; Version: $Header: /home/fsf/rms/e19/lisp/RCS/gnuspost.el,v 1.16 1993/11/22 06:44:12 rms Exp $
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -244,6 +243,8 @@ original message into it."
 					  (search-forward "\n\n")
 					  (point)))))
 	  (setq from (mail-fetch-field "from"))
+	  ;; Get reply-to working corrrectly for gnus-auto-mail-to-author (jpm)
+	  (setq reply-to (mail-fetch-field "reply-to"))
 	  (setq	news-reply-yank-from from)
 	  (setq	subject (mail-fetch-field "subject"))
 	  (setq	date (mail-fetch-field "date"))
@@ -310,11 +311,12 @@ original message into it."
 		(mail-position-on-field "FCC")
 		(insert gnus-author-copy)))
 	  ;; Insert To: FROM field, which is expected to mail the
-	  ;; message to the author of the article too.
-	  (if (and gnus-auto-mail-to-author from)
+	  ;; message to the author of the article too.  Use Reply-To
+	  ;; field like gnus-mail-reply-using-m* (jpm).
+	  (if (and gnus-auto-mail-to-author (or reply-to from))
 	      (progn
 		(goto-char (point-min))
-		(insert "To: " from "\n")))
+		(insert "To: " (or reply-to from) "\n")))
 	  (goto-char (point-max)))
 	;; Yank original article automatically.
 	(if yank
