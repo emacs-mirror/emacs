@@ -534,7 +534,7 @@ and `down'."
 
 (defun event-basic-type (event)
   "Returns the basic type of the given event (all modifiers removed).
-The value is an ASCII printing character (not upper case) or a symbol."
+The value is a printing character (not upper case) or a symbol."
   (if (consp event)
       (setq event (car event)))
   (if (symbolp event)
