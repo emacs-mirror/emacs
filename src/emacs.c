@@ -45,6 +45,7 @@ Boston, MA 02111-1307, USA.  */
 #include "blockinput.h"
 #include "syssignal.h"
 #include "process.h"
+#include "termhooks.h"
 #include "keyboard.h"
 
 #ifdef HAVE_SETRLIMIT
@@ -116,6 +117,8 @@ Lisp_Object Vsystem_configuration_options;
 
 Lisp_Object Qfile_name_handler_alist;
 
+Lisp_Object Qusr1_signal, Qusr2_signal;
+
 /* If non-zero, emacs should not attempt to use an window-specific code,
    but instead should use the virtual terminal under which it was started */
 int inhibit_window_system;
@@ -180,40 +183,38 @@ int fatal_error_code;
 int fatal_error_in_progress;
 
 #ifdef SIGUSR1
-int SIGUSR1_in_progress=0;
 SIGTYPE
 handle_USR1_signal (sig)
      int sig;
 {
-  if (! SIGUSR1_in_progress)
-    {
-      SIGUSR1_in_progress = 1;
-      
-      if (!NILP (Vrun_hooks) && !noninteractive)
-	call1 (Vrun_hooks, intern ("signal-USR1-hook"));
-      
-      SIGUSR1_in_progress = 0;
-    }
+  struct input_event buf;
+
+  buf.kind = non_ascii_keystroke;
+  buf.code = Qusr1_signal;
+  buf.frame_or_window = Fselected_frame ();
+  buf.modifiers = 0;
+  buf.timestamp = 0;
+
+  kbd_buffer_store_event (&buf);
 }
+#endif /* SIGUSR1 */
 
 #ifdef SIGUSR2
-int SIGUSR2_in_progress=0;
 SIGTYPE
 handle_USR2_signal (sig)
      int sig;
 {
-  if (! SIGUSR2_in_progress)
-    {
-      SIGUSR2_in_progress = 1;
-      
-      if (!NILP (Vrun_hooks) && !noninteractive)
-	call1 (Vrun_hooks, intern ("signal-USR2-hook"));
-      
-      SIGUSR2_in_progress = 0;
-    }
+  struct input_event buf;
+
+  buf.kind = non_ascii_keystroke;
+  buf.code = Qusr2_signal;
+  buf.frame_or_window = Fselected_frame ();
+  buf.modifiers = 0;
+  buf.timestamp = 0;
+
+  kbd_buffer_store_event (&buf);
 }
-#endif
-#endif 
+#endif /* SIGUSR2 */
 
 /* Handle bus errors, illegal instruction, etc. */
 SIGTYPE
@@ -1858,6 +1859,11 @@ syms_of_emacs ()
 {
   Qfile_name_handler_alist = intern ("file-name-handler-alist");
   staticpro (&Qfile_name_handler_alist);
+
+  Qusr1_signal = intern ("usr1-signal");
+  staticpro (&Qusr1_signal);
+  Qusr2_signal = intern ("usr2-signal");
+  staticpro (&Qusr2_signal);
 
 #ifndef CANNOT_DUMP
 #ifdef HAVE_SHM
