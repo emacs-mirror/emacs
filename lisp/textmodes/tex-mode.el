@@ -463,7 +463,8 @@ Entering SliTeX mode calls the value of `text-mode-hook', then the value of
 	(modify-syntax-entry ?' "w"))
     (set-syntax-table tex-mode-syntax-table))
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start "^[ \t]*$\\|^[\f\\\\%]")
+  ;; A line containing just $$ is treated as a paragraph separator.
+  (setq paragraph-start "^[ \t]*$\\|^[\f\\\\%]\\|^[ \t]*\\$\\$[ \t]*$")
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate paragraph-start)
   (make-local-variable 'comment-start)
@@ -803,6 +804,7 @@ evaluates to a command string."
   (save-excursion
     (let* ((cmd (eval command))
 	   (proc (get-process "tex-shell"))
+	   (buf (process-buffer proc))
            (star (string-match "\\*" cmd))
 	   (string
 	    (concat
@@ -812,15 +814,16 @@ evaluates to a command string."
 		   (concat cmd " " file))
 	       cmd)
 	     (if background "&" ""))))
+      ;; Switch to buffer before checking for subproc output in it.
+      (set-buffer buf)
       ;; If text is unchanged since previous tex-send-command,
       ;; we haven't got any output.  So wait for output now.
-      (if (= (buffer-modified-tick) tex-send-command-modified-tick)
+      (if (= (buffer-modified-tick buf) tex-send-command-modified-tick)
 	  (accept-process-output proc))
-      (set-buffer (process-buffer proc))
       (goto-char (process-mark proc))
       (insert string)
       (comint-send-input)
-      (setq tex-send-command-modified-tick (buffer-modified-tick)))))
+      (setq tex-send-command-modified-tick (buffer-modified-tick buf)))))
 
 (defun tex-delete-last-temp-files ()
   "Delete any junk files from last temp file."
