@@ -407,13 +407,17 @@ static void x_update_window_cursor P_ ((struct window *, int));
 static void x_erase_phys_cursor P_ ((struct window *));
 void x_display_cursor P_ ((struct window *w, int, int, int, int, int));
 void x_display_and_set_cursor P_ ((struct window *, int, int, int, int, int));
-static void w32_draw_fringe_bitmap P_ ((struct window *, HDC hdc, struct glyph_row *, 
+static void w32_draw_fringe_bitmap P_ ((struct window *, HDC hdc,
+					struct glyph_row *, 
 					enum fringe_bitmap_type, int left_p));
 static void w32_clip_to_row P_ ((struct window *, struct glyph_row *,
                                  HDC, int));
 static int x_phys_cursor_in_rect_p P_ ((struct window *, RECT *));
-static void x_draw_row_fringe_bitmaps P_ ((struct window *, struct glyph_row *));
-static void notice_overwritten_cursor P_ ((struct window *, int, int));
+static void x_draw_row_fringe_bitmaps P_ ((struct window *,
+					   struct glyph_row *));
+static void notice_overwritten_cursor P_ ((struct window *,
+					   enum glyph_row_area,
+					   int, int, int, int));
 
 static Lisp_Object Qvendor_specific_keysyms;
 
@@ -3646,6 +3650,7 @@ x_setup_relief_colors (s)
   if (s->face->use_box_color_for_shadows_p)
     color = s->face->box_color;
   else if (s->first_glyph->type == IMAGE_GLYPH
+	   && s->img->pixmap
 	   && !IMAGE_BACKGROUND_TRANSPARENT (s->img, s->f, 0))
     color = IMAGE_BACKGROUND  (s->img, s->f, 0);
   else
@@ -3952,7 +3957,7 @@ x_draw_image_relief (s)
   if (s->hl == DRAW_IMAGE_SUNKEN
       || s->hl == DRAW_IMAGE_RAISED)
     {
-      thick = tool_bar_button_relief >= 0 ? tool_bar_button_relief : 3;
+      thick = tool_bar_button_relief >= 0 ? tool_bar_button_relief : DEFAULT_TOOL_BAR_BUTTON_RELIEF;
       raised_p = s->hl == DRAW_IMAGE_RAISED;
     }
   else
@@ -5050,7 +5055,8 @@ x_draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
 	  x1 -= left_area_width;
 	}
 
-      notice_overwritten_cursor (w, x0, x1);
+      notice_overwritten_cursor (w, area, x0, x1,
+				 row->y, MATRIX_ROW_BOTTOM_Y (row));
     }
 
   /* Value is the x-position up to which drawn, relative to AREA of W.
@@ -5270,10 +5276,13 @@ x_clear_end_of_line (to_x)
   
   /* Notice if the cursor will be cleared by this operation.  */
   if (!updated_row->full_width_p)
-    notice_overwritten_cursor (w, output_cursor.x, -1);
+    notice_overwritten_cursor (w, updated_area,
+			       output_cursor.x, -1,
+			       updated_row->y,
+			       MATRIX_ROW_BOTTOM_Y (updated_row));
 
   from_x = output_cursor.x;
-     
+
   /* Translate to frame coordinates.  */
   if (updated_row->full_width_p)
     {
@@ -7403,7 +7412,8 @@ show_mouse_face (dpyinfo, draw)
 	      x_draw_glyphs (w, start_x, row, TEXT_AREA, 
 			     start_hpos, end_hpos, draw, 0);
 
-	      row->mouse_face_p = draw == DRAW_MOUSE_FACE || DRAW_IMAGE_RAISED;
+	      row->mouse_face_p
+		= draw == DRAW_MOUSE_FACE || draw == DRAW_IMAGE_RAISED;
 	    }
 	}
 
@@ -9187,15 +9197,17 @@ w32_read_socket (sd, bufp, numchars, expected)
    of the line after START_X has been written.  */
 
 static void
-notice_overwritten_cursor (w, start_x, end_x)
+notice_overwritten_cursor (w, area, x0, x1, y0, y1)
      struct window *w;
-     int start_x, end_x;
+     enum glyph_row_area area;
+     int x0, x1, y0, y1;
 {
-  if (updated_area == TEXT_AREA
+  if (area == TEXT_AREA
       && w->phys_cursor_on_p
-      && output_cursor.vpos == w->phys_cursor.vpos
-      && start_x <= w->phys_cursor.x
-      && (end_x < 0 || end_x > w->phys_cursor.x))
+      && y0 <= w->phys_cursor.y
+      && y1 >= w->phys_cursor.y + w->phys_cursor_height
+      && x0 <= w->phys_cursor.x
+      && (x1 < 0 || x1 > w->phys_cursor.x))
     w->phys_cursor_on_p = 0;
 }
 
@@ -9664,7 +9676,7 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 	      if (w32_system_caret_hwnd
 		  && (w32_system_caret_height != w->phys_cursor_height
 		      || w32_system_caret_width != caret_width))
-		PostMessage (hwnd, WM_EMACS_DESTROY_CARET, NULL, NULL);
+		PostMessage (hwnd, WM_EMACS_DESTROY_CARET, 0, 0);
 
 	      if (!w32_system_caret_hwnd)
 		{
@@ -9673,7 +9685,7 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 		}
 
 	      /* Move the system caret.  */
-	      PostMessage (hwnd, WM_EMACS_TRACK_CARET, NULL, NULL);
+	      PostMessage (hwnd, WM_EMACS_TRACK_CARET, 0, 0);
 	    }
 	}
 
