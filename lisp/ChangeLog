@@ -1,3 +1,8 @@
+2003-07-19  Kenichi Handa  <handa@m17n.org>
+
+	* international/kkc.el (kkc-show-conversion-list-update):
+	Highlight the correct candidate in the message.
+
 2003-07-18  John Paul Wallington  <jpw@gnu.org>
 
 	* simple.el (current-word): Don't include punctuation char when
