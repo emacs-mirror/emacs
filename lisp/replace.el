@@ -148,7 +148,9 @@ This function is usually the wrong thing to use in a Lisp program.
 What you probably want is a loop like this:
   (while (search-forward FROM-STRING nil t)
     (replace-match TO-STRING nil t))
-which will run faster and will not set the mark or print anything."
+which will run faster and will not set the mark or print anything.
+\(You may need a more complex loop if FROM-STRING can match the null string
+and TO-STRING is also null.)"
   (interactive (query-replace-read-args "Replace string" nil))
   (perform-replace from-string to-string nil nil delimited))
 
