@@ -953,14 +953,12 @@ This does not delete the region; it acts like \\[kill-ring-save]."
     ;; Delete, but make the undo-list entry share with the kill ring.
     ;; First, delete just one char, so in case buffer is being modified
     ;; for the first time, the undo list records that fact.
-    (let (before-change-function after-change-function
-	  before-change-functions after-change-functions)
+    (let (before-change-functions after-change-functions)
       (delete-region beg
 		     (+ beg (if (> end beg) 1 -1))))
     (let ((buffer-undo-list buffer-undo-list))
       ;; Undo that deletion--but don't change the undo list!
-      (let (before-change-function after-change-function
-	    before-change-functions after-change-functions)
+      (let (before-change-functions after-change-functions)
 	(primitive-undo 1 buffer-undo-list))
       ;; Now delete the rest of the specified region,
       ;; but don't record it.
