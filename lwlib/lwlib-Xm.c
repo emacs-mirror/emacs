@@ -257,8 +257,10 @@ xm_update_pushbutton (instance, widget, val)
 }
 
 static void
-xm_update_cascadebutton (widget_instance* instance, Widget widget,
-			 widget_value* val)
+xm_update_cascadebutton (instance, widget, val)
+     widget_instance* instance;
+     Widget widget;
+     widget_value* val;
 {
   /* Should also rebuild the menu by calling ...update_menu... */
   XtRemoveAllCallbacks (widget, XmNcascadingCallback);
@@ -728,7 +730,10 @@ xm_update_one_value (instance, widget, val)
    I could not find a way to do that with accelerators.
  */
 static void
-activate_button (Widget widget, XtPointer closure, XtPointer call_data)
+activate_button (widget, closure, call_data)
+     Widget widget;
+     XtPointer closure;
+     XtPointer call_data;
 {
   Widget button = (Widget)closure;
   XtCallCallbacks (button, XmNactivateCallback, NULL);
