@@ -1,3 +1,7 @@
+2002-01-28  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* calendar/calendar.el (generate-calendar-month): Doc fix.
+
 2002-01-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* time.el (display-time-mail-directory): New option.
