@@ -379,7 +379,10 @@ x_get_local_selection (selection_symbol, target_type)
 
       CHECK_SYMBOL (target_type, 0);
       handler_fn = Fcdr (Fassq (target_type, Vselection_converter_alist));
-      if (NILP (handler_fn)) return Qnil;
+      if (NILP (handler_fn))
+	Fsignal (Qerror,
+		 Fcons (build_string ("missing selection-conversion function"),
+			Fcons (target_type, Fcons (value, Qnil))));
       value = call3 (handler_fn,
 		     selection_symbol, target_type,
 		     XCONS (XCONS (local_value)->cdr)->car);
@@ -388,6 +391,7 @@ x_get_local_selection (selection_symbol, target_type)
 
   /* Make sure this value is of a type that we could transmit
      to another X client.  */
+
   check = value;
   if (CONSP (value)
       && SYMBOLP (XCONS (value)->car))
@@ -400,6 +404,7 @@ x_get_local_selection (selection_symbol, target_type)
       || INTEGERP (check)
       || NILP (value))
     return value;
+  /* Check for a value that cons_to_long could handle.  */
   else if (CONSP (check)
 	   && INTEGERP (XCONS (check)->car)
 	   && (INTEGERP (XCONS (check)->cdr)
@@ -411,7 +416,7 @@ x_get_local_selection (selection_symbol, target_type)
   else
     return
       Fsignal (Qerror,
-	       Fcons (build_string ("unrecognised selection-conversion type"),
+	       Fcons (build_string ("invalid data returned by selection-conversion function"),
 		      Fcons (handler_fn, Fcons (value, Qnil))));
 }
 
@@ -984,6 +989,7 @@ x_get_foreign_selection (selection_symbol, target_type)
   BLOCK_INPUT;
   XConvertSelection (display, selection_atom, type_atom, target_property,
 		     requestor_window, requestor_time);
+  XFlushQueue ();
 
   /* Prepare to block until the reply has been read.  */
   reading_selection_window = requestor_window;
@@ -1377,7 +1383,11 @@ lisp_data_to_selection_data (display, obj,
       (*(short **) data_ret) [0] = (short) XINT (obj);
       if (NILP (type)) type = QINTEGER;
     }
-  else if (INTEGERP (obj) || CONSP (obj))
+  else if (INTEGERP (obj)
+	   || (CONSP (obj) && INTEGERP (XCONS (obj)->car)
+	       && (INTEGERP (XCONS (obj)->cdr)
+		   || (CONSP (XCONS (obj)->cdr)
+		       && INTEGERP (XCONS (XCONS (obj)->cdr)->car)))))
     {
       *format_ret = 32;
       *size_ret = 1;
@@ -1535,7 +1545,7 @@ DEFUN ("x-own-selection-internal",
 TYPE is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.\n\
 \(Those are literal upper-case symbol names, since that's what X expects.)\n\
 VALUE is typically a string, or a cons of two markers, but may be\n\
-anything that the functions on selection-converter-alist know about.")
+anything that the functions on `selection-converter-alist' know about.")
   (selection_name, selection_value)
      Lisp_Object selection_name, selection_value;
 {
@@ -1555,7 +1565,7 @@ DEFUN ("x-get-selection-internal",
   "Return text selected from some X window.\n\
 SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.\n\
 \(Those are literal upper-case symbol names, since that's what X expects.)\n\
-TYPE is the type of data desired, typically STRING.")
+TYPE is the type of data desired, typically `STRING'.")
   (selection_symbol, target_type)
      Lisp_Object selection_symbol, target_type;
 {
@@ -1599,7 +1609,8 @@ TYPE is the type of data desired, typically STRING.")
 
 DEFUN ("x-disown-selection-internal",
   Fx_disown_selection_internal, Sx_disown_selection_internal, 1, 2, 0,
-  "If we own the named selection, then disown it (make there be no selection).")
+  "If we own the selection SELECTION, disown it.\n\
+Disowning it means there is no such selection.")
   (selection, time)
      Lisp_Object selection;
      Lisp_Object time;
@@ -1637,10 +1648,30 @@ DEFUN ("x-disown-selection-internal",
   return Qt;
 }
 
+/* Get rid of all the selections in buffer BUFFER.
+   This is used when we kill a buffer.  */
+
+void
+x_disown_buffer_selections (buffer)
+     Lisp_Object buffer;
+{
+  Lisp_Object tail;
+  struct buffer *buf = XBUFFER (buffer);
+
+  for (tail = Vselection_alist; CONSP (tail); tail = XCONS (tail)->cdr)
+    {
+      Lisp_Object elt, value;
+      elt = XCONS (tail)->car;
+      value = XCONS (elt)->cdr;
+      if (CONSP (value) && MARKERP (XCONS (value)->car)
+	  && XMARKER (XCONS (value)->car)->buffer == buf)
+	Fx_disown_selection_internal (XCONS (elt)->car, Qnil);
+    }
+}
 
 DEFUN ("x-selection-owner-p", Fx_selection_owner_p, Sx_selection_owner_p,
   0, 1, 0,
-  "Whether the current emacs process owns the given X Selection.\n\
+  "Whether the current Emacs process owns the given X Selection.\n\
 The arg should be the name of the selection in question, typically one of\n\
 the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.\n\
 \(Those are literal upper-case symbol names, since that's what X expects.)\n\
@@ -1709,25 +1740,25 @@ initialize_cut_buffers (display, window)
 }
 
 
-#define CHECK_CUTBUFFER(symbol,n)					\
+#define CHECK_CUT_BUFFER(symbol,n)					\
   { CHECK_SYMBOL ((symbol), (n));					\
     if (!EQ((symbol), QCUT_BUFFER0) && !EQ((symbol), QCUT_BUFFER1)	\
 	&& !EQ((symbol), QCUT_BUFFER2) && !EQ((symbol), QCUT_BUFFER3)	\
 	&& !EQ((symbol), QCUT_BUFFER4) && !EQ((symbol), QCUT_BUFFER5)	\
 	&& !EQ((symbol), QCUT_BUFFER6) && !EQ((symbol), QCUT_BUFFER7))	\
       Fsignal (Qerror,							\
-	       Fcons (build_string ("doesn't name a cutbuffer"),	\
+	       Fcons (build_string ("doesn't name a cut buffer"),	\
 			     Fcons ((symbol), Qnil)));			\
   }
 
-DEFUN ("x-get-cutbuffer-internal", Fx_get_cutbuffer_internal,
-  Sx_get_cutbuffer_internal, 1, 1, 0,
-  "Returns the value of the named cutbuffer (typically CUT_BUFFER0).")
+DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
+  Sx_get_cut_buffer_internal, 1, 1, 0,
+  "Returns the value of the named cut buffer (typically CUT_BUFFER0).")
   (buffer)
      Lisp_Object buffer;
 {
   Display *display = x_current_display;
-  Window window = RootWindow (display, 0); /* Cutbuffers are on screen 0 */
+  Window window = RootWindow (display, 0); /* Cut buffers are on screen 0 */
   Atom buffer_atom;
   unsigned char *data;
   int bytes;
@@ -1736,7 +1767,7 @@ DEFUN ("x-get-cutbuffer-internal", Fx_get_cutbuffer_internal,
   unsigned long size;
   Lisp_Object ret;
 
-  CHECK_CUTBUFFER (buffer, 0);
+  CHECK_CUT_BUFFER (buffer, 0);
   buffer_atom = symbol_to_x_atom (display, buffer);
 
   x_get_window_property (display, window, buffer_atom, &data, &bytes,
@@ -1755,14 +1786,14 @@ DEFUN ("x-get-cutbuffer-internal", Fx_get_cutbuffer_internal,
 }
 
 
-DEFUN ("x-store-cutbuffer-internal", Fx_store_cutbuffer_internal,
-  Sx_store_cutbuffer_internal, 2, 2, 0,
-  "Sets the value of the named cutbuffer (typically CUT_BUFFER0).")
+DEFUN ("x-store-cut-buffer-internal", Fx_store_cut_buffer_internal,
+  Sx_store_cut_buffer_internal, 2, 2, 0,
+  "Sets the value of the named cut buffer (typically CUT_BUFFER0).")
   (buffer, string)
      Lisp_Object buffer, string;
 {
   Display *display = x_current_display;
-  Window window = RootWindow (display, 0); /* Cutbuffers are on screen 0 */
+  Window window = RootWindow (display, 0); /* Cut buffers are on screen 0 */
   Atom buffer_atom;
   unsigned char *data;
   int bytes;
@@ -1770,7 +1801,7 @@ DEFUN ("x-store-cutbuffer-internal", Fx_store_cutbuffer_internal,
   int max_bytes = SELECTION_QUANTUM (display);
   if (max_bytes > MAX_SELECTION_QUANTUM) max_bytes = MAX_SELECTION_QUANTUM;
 
-  CHECK_CUTBUFFER (buffer, 0);
+  CHECK_CUT_BUFFER (buffer, 0);
   CHECK_STRING (string, 0);
   buffer_atom = symbol_to_x_atom (display, buffer);
   data = (unsigned char *) XSTRING (string)->data;
@@ -1797,15 +1828,15 @@ DEFUN ("x-store-cutbuffer-internal", Fx_store_cutbuffer_internal,
 }
 
 
-DEFUN ("x-rotate-cutbuffers-internal", Fx_rotate_cutbuffers_internal,
-  Sx_rotate_cutbuffers_internal, 1, 1, 0,
-  "Rotate the values of the cutbuffers by the given number of steps;\n\
+DEFUN ("x-rotate-cut-buffers-internal", Fx_rotate_cut_buffers_internal,
+  Sx_rotate_cut_buffers_internal, 1, 1, 0,
+  "Rotate the values of the cut buffers by the given number of steps;\n\
 positive means move values forward, negative means backward.")
   (n)
      Lisp_Object n;
 {
   Display *display = x_current_display;
-  Window window = RootWindow (display, 0); /* Cutbuffers are on screen 0 */
+  Window window = RootWindow (display, 0); /* Cut buffers are on screen 0 */
   Atom props [8];
 
   CHECK_NUMBER (n, 0);
@@ -1850,8 +1881,6 @@ Xatoms_of_xselect ()
 void
 syms_of_xselect ()
 {
-  atoms_of_xselect ();
-
   defsubr (&Sx_get_selection_internal);
   defsubr (&Sx_own_selection_internal);
   defsubr (&Sx_disown_selection_internal);
@@ -1859,9 +1888,9 @@ syms_of_xselect ()
   defsubr (&Sx_selection_exists_p);
 
 #ifdef CUT_BUFFER_SUPPORT
-  defsubr (&Sx_get_cutbuffer_internal);
-  defsubr (&Sx_store_cutbuffer_internal);
-  defsubr (&Sx_rotate_cutbuffers_internal);
+  defsubr (&Sx_get_cut_buffer_internal);
+  defsubr (&Sx_store_cut_buffer_internal);
+  defsubr (&Sx_rotate_cut_buffers_internal);
   cut_buffers_initialized = 0;
 #endif
 
