@@ -364,63 +364,6 @@ buffer, mouse-2: prev, M-mouse-2: next, mouse-3: buffer menu")
 	"^Save not confirmed$"
 	"^Recover-file cancelled\\.$"
 	"^Cannot switch buffers in a dedicated window$"
-
-	;; comint
-	"^Not at command line$"
-	"^Empty input ring$"
-	"^No history$"
-	"^Not found$";; To common?
-	"^Current buffer has no process$"
-
-	;; dabbrev
-	"^No dynamic expansion for .* found$"
-	"^No further dynamic expansion for .* found$"
-	"^No possible abbreviation preceding point$"
-
-	;; Completion
-	"^To complete, the point must be after a symbol at least [0-9]* character long\\.$"
-	"^The string \".*\" is too short to be saved as a completion\\.$"
-
-	;; Compile
-	"^No more errors\\( yet\\|\\)$"
-
-	;; Gnus
-	"^NNTP: Connection closed\\.$"
-
-	;; info
-	"^Node has no Previous$"
-	"^No menu in this node$"
-	"^Node has no Next$"
-	"^No \".*\" in index$"
-
-	;; imenu
-	"^No items suitable for an index found in this buffer\\.$"
-	"^This buffer cannot use `imenu-default-create-index-function'$"
-	"^The mode `.*' does not support Imenu$"
-
-	;; ispell
-	"^No word found to check!$"
-
-	;; mh-e
-	"^Cursor not pointing to message$"
-	"^There is no other window$"
-
-	;; man
-	"^No manpage [0-9]* found$"
-	"^Can't find the .* manpage$"
-
-	;; etags
-	"^No tags table in use; use .* to select one$"
-	"^There is no default tag$"
-	"^No previous tag locations$"
-	"^File .* is not a valid tags table$"
-	"^No \\(more \\|\\)tags \\(matching\\|containing\\) "
-	"^Rerun etags: `.*' not found in "
-	"^All files processed$"
-	"^No .* or .* in progress$"
-	"^File .* not in current tags tables$"
-	"^No tags table loaded"
-	"^Nothing to complete$"
 	
 	;; ediff
 	"^Errors in diff output. Diff output is in "
@@ -468,14 +411,7 @@ buffer, mouse-2: prev, M-mouse-2: next, mouse-3: buffer menu")
 	"^Merge of directory revisions aborted$"
 	"^Buffer .* doesn't exist$"
 	"^There is no file to merge$"
-	"^Version control package .*.el not found. Use vc.el instead$"
-	
-	;; cus-edit
-	"^No user options have changed defaults in recent Emacs versions$"
-
-	;; BBDB
-	"^no previous record$"
-	"^no next record$"))
+	"^Version control package .*.el not found. Use vc.el instead$"))
 
 
 (make-variable-buffer-local 'indent-tabs-mode)
