@@ -1,13 +1,28 @@
+2000-09-19  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* diff-mode.el: Docstring fixes.
+	(diff-header-face, diff-comment-face): New faces.
+	(diff-font-lock-keywords): Highlight a bit differently.
+	(diff-find-source-location): Don't return SPAN any more.
+	(diff-hunk-text): Don't bother erasing the temp buffer.
+	(diff-find-text): Drop argument LINE.
+	(diff-apply-hunk): Update calls to diff-find-text.
+	(diff-goto-source): Use pop-to-buffer again and don't raise an error.
+
+	* calendar/calendar.el: Docstring fixes.
+	(calendar-make-alist): Don't quote lambda.
+	(calendar-star-date): Use make-local-variable.
+
 2000-09-19  Dave Love  <fx@gnu.org>
 
-	* toolbar/tool-bar.el: Renamed from toolbar.el.  Change `toolbar'
-	to `tool-bar' generally in symbols.  Make some items invisible in
-	`special' major modes.
-	(tool-bar-add-item-from-menu): Renamed from
-	toolbar-like-menu-item.  Add arg PROPS.
+	* toolbar/tool-bar.el: Renamed from toolbar.el.
+	Change `toolbar' to `tool-bar' generally in symbols.
+	Make some items invisible in `special' major modes.
+	(tool-bar-add-item-from-menu): Renamed from toolbar-like-menu-item.
+	Add arg PROPS.
 
-	* startup.el (fancy-splash-screen) <defgroup>: Fix syntax.  Add
-	:version here.
+	* startup.el (fancy-splash-screen) <defgroup>: Fix syntax.
+	Add :version here.
 	(fancy-splash-delay, fancy-splash-image): Remove :version here.
 
 2000-09-19  Gerd Moellmann  <gerd@gnu.org>
