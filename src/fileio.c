@@ -3275,5 +3275,7 @@ and FILENAME is handled by HANDLER, then HANDLER is called like this:\n\
   defsubr (&Sread_file_name_internal);
   defsubr (&Sread_file_name);
 
+#ifdef unix
   defsubr (&Sunix_sync);
+#endif
 }
