@@ -10812,23 +10812,39 @@ static void XPutPixel (ximg, x, y, color)
 {
   int width = ximg->info.bmiHeader.biWidth;
   int height = ximg->info.bmiHeader.biHeight;
-  int rowbytes = width * 3;
   unsigned char * pixel;
 
-  /* Don't support putting pixels in images with palettes.  */
-  xassert (ximg->info.bmiHeader.biBitCount == 24);
+  /* True color images.  */
+  if (ximg->info.bmiHeader.biBitCount == 24)
+    {
+      int rowbytes = width * 3;
+      /* Ensure scanlines are aligned on 4 byte boundaries.  */
+      if (rowbytes % 4)
+	rowbytes += 4 - (rowbytes % 4);
 
-  /* Ensure scanlines are aligned on 4 byte boundaries.  */
-  if (rowbytes % 4)
-    rowbytes += 4 - (rowbytes % 4);
-
-  pixel = ximg->data + y * rowbytes + x * 3;
-  /* Windows bitmaps are in BGR order.  */
-  *pixel = GetBValue (color);
-  *(pixel + 1) = GetGValue (color);
-  *(pixel + 2) = GetRValue (color);
+      pixel = ximg->data + y * rowbytes + x * 3;
+      /* Windows bitmaps are in BGR order.  */
+      *pixel = GetBValue (color);
+      *(pixel + 1) = GetGValue (color);
+      *(pixel + 2) = GetRValue (color);
+    }
+  /* Monochrome images.  */
+  else if (ximg->info.bmiHeader.biBitCount == 1)
+    {
+      int rowbytes = width / 8;
+      /* Ensure scanlines are aligned on 4 byte boundaries.  */
+      if (rowbytes % 4)
+	rowbytes += 4 - (rowbytes % 4);
+      pixel = ximg->data + y * rowbytes + x / 8;
+      /* Filter out palette info.  */
+      if (color & 0x00ffffff)
+	*pixel = *pixel | (1 << x % 8);
+      else
+	*pixel = *pixel & ~(1 << x % 8);
+    }
+  else
+    image_error ("XPutPixel: palette image not supported.", NULL, Qnil);
 }
-
 
 /* Create IMG->pixmap from an array COLORS of XColor structures, whose
    RGB members are set.  F is the frame on which this all happens.
@@ -11165,7 +11181,7 @@ x_build_heuristic_mask (f, img, how)
   image_background_transparent (img, f, img_dc);
 
   /* Put mask_img into img->mask.  */
-  x_destroy_x_image (mask_img);
+  x_destroy_x_image ((XImage *)mask_img);
   SelectObject (img_dc, prev);
   DeleteDC (img_dc);
 
@@ -11618,7 +11634,7 @@ png_image_p (object)
 {
   struct image_keyword fmt[PNG_LAST];
   bcopy (png_format, fmt, sizeof fmt);
-
+  
   if (!parse_image_spec (object, fmt, PNG_LAST, Qpng))
     return 0;
 
@@ -11675,7 +11691,7 @@ png_read_from_memory (png_ptr, data, length)
 
   if (length > tbr->len - tbr->index)
     png_error (png_ptr, "Read error");
-
+  
   bcopy (tbr->bytes + tbr->index, data, length);
   tbr->index = tbr->index + length;
 }
@@ -11697,14 +11713,13 @@ png_load (f, img)
   png_info *info_ptr = NULL, *end_info = NULL;
   FILE *volatile fp = NULL;
   png_byte sig[8];
-  png_byte *volatile pixels = NULL;
-  png_byte **volatile rows = NULL;
+  png_byte * volatile pixels = NULL;
+  png_byte ** volatile rows = NULL;
   png_uint_32 width, height;
   int bit_depth, color_type, interlace_type;
   png_byte channels;
   png_uint_32 row_bytes;
   int transparent_p;
-  char *gamma_str;
   double screen_gamma, image_gamma;
   int intent;
   struct png_memory_storage tbr;  /* Data to be read */
@@ -11719,31 +11734,31 @@ png_load (f, img)
     {
       file = x_find_image_file (specified_file);
       if (!STRINGP (file))
-        {
-          image_error ("Cannot find image file `%s'", specified_file, Qnil);
-          UNGCPRO;
-          return 0;
-        }
+	{
+	  image_error ("Cannot find image file `%s'", specified_file, Qnil);
+	  UNGCPRO;
+	  return 0;
+	}
 
       /* Open the image file.  */
       fp = fopen (SDATA (file), "rb");
       if (!fp)
-        {
-          image_error ("Cannot open image file `%s'", file, Qnil);
-          UNGCPRO;
-          fclose (fp);
-          return 0;
-        }
+	{
+	  image_error ("Cannot open image file `%s'", file, Qnil);
+	  UNGCPRO;
+	  fclose (fp);
+	  return 0;
+	}
 
       /* Check PNG signature.  */
       if (fread (sig, 1, sizeof sig, fp) != sizeof sig
-          || !png_check_sig (sig, sizeof sig))
-        {
-          image_error ("Not a PNG file:` %s'", file, Qnil);
-          UNGCPRO;
-          fclose (fp);
-          return 0;
-        }
+	  || !png_check_sig (sig, sizeof sig))
+	{
+	  image_error ("Not a PNG file: `%s'", file, Qnil);
+	  UNGCPRO;
+	  fclose (fp);
+	  return 0;
+	}
     }
   else
     {
@@ -11818,14 +11833,14 @@ png_load (f, img)
   png_get_IHDR (png_ptr, info_ptr, &width, &height, &bit_depth, &color_type,
 	        &interlace_type, NULL, NULL);
 
-  /* If image contains simply transparency data, we prefer to
+  /* If image contains simply transparency data, we prefer to 
      construct a clipping mask.  */
   if (png_get_valid (png_ptr, info_ptr, PNG_INFO_tRNS))
     transparent_p = 1;
   else
     transparent_p = 0;
 
-  /* This function is easier to write if we only have to handle
+  /* This function is easier to write if we only have to handle 
      one data format: RGB or RGBA with 8 bits per channel.  Let's
      transform other formats into that format.  */
 
@@ -11838,38 +11853,36 @@ png_load (f, img)
   png_set_expand (png_ptr);
 
   /* Convert grayscale images to RGB.  */
-  if (color_type == PNG_COLOR_TYPE_GRAY
+  if (color_type == PNG_COLOR_TYPE_GRAY 
       || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
     png_set_gray_to_rgb (png_ptr);
 
-  /* The value 2.2 is a guess for PC monitors from PNG example.c.  */
-  gamma_str = getenv ("SCREEN_GAMMA");
-  screen_gamma = gamma_str ? atof (gamma_str) : 2.2;
+  screen_gamma = (f->gamma ? 1 / f->gamma / 0.45455 : 2.2);
 
+#if 0 /* Avoid double gamma correction for PNG images. */
   /* Tell the PNG lib to handle gamma correction for us.  */
-
 #if defined(PNG_READ_sRGB_SUPPORTED) || defined(PNG_WRITE_sRGB_SUPPORTED)
   if (png_get_sRGB (png_ptr, info_ptr, &intent))
-    /* There is a special chunk in the image specifying the gamma.  */
-    png_set_sRGB (png_ptr, info_ptr, intent);
+    /* The libpng documentation says this is right in this case.  */
+    png_set_gamma (png_ptr, screen_gamma, 0.45455);
   else
 #endif
   if (png_get_gAMA (png_ptr, info_ptr, &image_gamma))
     /* Image contains gamma information.  */
     png_set_gamma (png_ptr, screen_gamma, image_gamma);
   else
-    /* Use a default of 0.5 for the image gamma.  */
-    png_set_gamma (png_ptr, screen_gamma, 0.5);
+    /* Use the standard default for the image gamma.  */
+    png_set_gamma (png_ptr, screen_gamma, 0.45455);
+#endif /* if 0 */
 
   /* Handle alpha channel by combining the image with a background
      color.  Do this only if a real alpha channel is supplied.  For
      simple transparency, we prefer a clipping mask.  */
   if (!transparent_p)
     {
-      png_color_16 *image_background;
+      png_color_16 *image_bg;
       Lisp_Object specified_bg
 	= image_spec_value (img->spec, QCbackground, NULL);
-
 
       if (STRINGP (specified_bg))
 	/* The user specified `:background', use that.  */
@@ -11880,36 +11893,38 @@ png_load (f, img)
 	      png_color_16 user_bg;
 
 	      bzero (&user_bg, sizeof user_bg);
-	      user_bg.red = color.red;
-	      user_bg.green = color.green;
-	      user_bg.blue = color.blue;
+	      user_bg.red = 256 * GetRValue (color);
+	      user_bg.green = 256 * GetGValue (color);
+	      user_bg.blue = 256 * GetBValue (color);
 
 	      png_set_background (png_ptr, &user_bg,
 				  PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
 	    }
 	}
-      else if (png_get_bKGD (png_ptr, info_ptr, &image_background))
-	/* Image contains a background color with which to
+      else if (png_get_bKGD (png_ptr, info_ptr, &image_bg))
+	/* Image contains a background color with which to 
 	   combine the image.  */
-	png_set_background (png_ptr, image_background,
+	png_set_background (png_ptr, image_bg,
 			    PNG_BACKGROUND_GAMMA_FILE, 1, 1.0);
       else
 	{
 	  /* Image does not contain a background color with which
-	     to combine the image data via an alpha channel.  Use
+	     to combine the image data via an alpha channel.  Use 
 	     the frame's background instead.  */
-	  XColor color;
-	  Colormap cmap;
+	  COLORREF color;
 	  png_color_16 frame_background;
+	  color = FRAME_BACKGROUND_PIXEL (f);
+#if 0 /* TODO : Colormap support.  */
+	  Colormap cmap;
 
 	  cmap = FRAME_X_COLORMAP (f);
-	  color.pixel = FRAME_BACKGROUND_PIXEL (f);
 	  x_query_color (f, &color);
+#endif
 
 	  bzero (&frame_background, sizeof frame_background);
-	  frame_background.red = color.red;
-	  frame_background.green = color.green;
-	  frame_background.blue = color.blue;
+	  frame_background.red = 256 * GetRValue (color);
+	  frame_background.green = 256 * GetGValue (color);
+	  frame_background.blue = 256 * GetBValue (color);
 
 	  png_set_background (png_ptr, &frame_background,
 			      PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
@@ -11944,12 +11959,12 @@ png_load (f, img)
       fclose (fp);
       fp = NULL;
     }
-
+  
   /* Create the X image and pixmap.  */
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg,
 				    &img->pixmap))
     goto error;
-
+  
   /* Create an image and pixmap serving as mask if the PNG image
      contains an alpha channel.  */
   if (channels == 4
@@ -11958,13 +11973,14 @@ png_load (f, img)
 				       &mask_img, &img->mask))
     {
       x_destroy_x_image (ximg);
-      XFreePixmap (FRAME_W32_DISPLAY (f), img->pixmap);
+      DeleteObject (img->pixmap);
       img->pixmap = 0;
       goto error;
     }
-
   /* Fill the X image and mask from PNG data.  */
+#if 0 /* TODO: Color tables.  */
   init_color_table ();
+#endif
 
   for (y = 0; y < height; ++y)
     {
@@ -11974,22 +11990,25 @@ png_load (f, img)
 	{
 	  unsigned r, g, b;
 
-	  r = *p++ << 8;
-	  g = *p++ << 8;
-	  b = *p++ << 8;
+	  r = *p++;
+	  g = *p++;
+	  b = *p++;
+#if 0 /* TODO: Color tables.  */
 	  XPutPixel (ximg, x, y, lookup_rgb_color (f, r, g, b));
-
+#else
+	  XPutPixel (ximg, x, y, PALETTERGB (r, g, b));
+#endif
 	  /* An alpha channel, aka mask channel, associates variable
-	     transparency with an image.  Where other image formats
-	     support binary transparency---fully transparent or fully
+	     transparency with an image.  Where other image formats 
+	     support binary transparency---fully transparent or fully 
 	     opaque---PNG allows up to 254 levels of partial transparency.
 	     The PNG library implements partial transparency by combining
 	     the image with a specified background color.
 
 	     I'm not sure how to handle this here nicely: because the
 	     background on which the image is displayed may change, for
-	     real alpha channel support, it would be necessary to create
-	     a new image for each possible background.
+	     real alpha channel support, it would be necessary to create 
+	     a new image for each possible background.  
 
 	     What I'm doing now is that a mask is created if we have
 	     boolean transparency information.  Otherwise I'm using
@@ -12011,14 +12030,21 @@ png_load (f, img)
       png_color_16 *bg;
       if (png_get_bKGD (png_ptr, info_ptr, &bg))
 	{
+#if 0 /* TODO: Color tables.  */
 	  img->background = lookup_rgb_color (f, bg->red, bg->green, bg->blue);
+#else
+	  img->background = PALETTERGB (bg->red / 256, bg->green / 256,
+					bg->blue / 256);
+#endif
 	  img->background_valid = 1;
 	}
     }
 
+#if 0 /* TODO: Color tables.  */
   /* Remember colors allocated for this image.  */
   img->colors = colors_in_color_table (&img->ncolors);
   free_color_table ();
+#endif
 
   /* Clean up.  */
   png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
