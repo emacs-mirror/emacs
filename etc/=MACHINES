@@ -260,7 +260,7 @@ Cydra 5 (-machine=cydra5; -opsystem=usg5-3)
   18.51 worked in one version of their operating system but stopped
   working in a newer version.  This has not been fixed.
 
-DECstation (-machine=pmax; -opsystem=bsd4-2)
+DECstation (-machine=pmax; -opsystem=bsd4-3)
 
   Works, as of 18.55.  See under Ultrix for problems using X windows
   on Ultrix.  Note that this is a MIPS machine.
