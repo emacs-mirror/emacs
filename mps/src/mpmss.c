@@ -1,6 +1,6 @@
 /*  impl.c.mpmss: MPM STRESS TEST
  *
- * $HopeName: MMsrc!mpmss.c(trunk.16) $
+ * $HopeName: MMsrc!mpmss.c(trunk.17) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  */
 
@@ -26,6 +26,7 @@ extern mps_class_t PoolClassMFS(void);
 
 
 #define testArenaSIZE   ((((size_t)64)<<20) - 4)
+#define smallArenaSIZE  ((((size_t)1)<<20) - 4)
 #define TEST_SET_SIZE 200
 #define TEST_LOOPS 10
 
@@ -43,7 +44,8 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
   va_start(arg, size);
   res = mps_pool_create_v(&pool, arena, class, arg);
   va_end(arg);
-  if(res != MPS_RES_OK) return res;
+  if(res != MPS_RES_OK)
+    return res;
 
 
   /* allocate a load of objects */
@@ -51,7 +53,8 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
     ss[i] = (*size)(i);
 
     res = mps_alloc((mps_addr_t *)&ps[i], pool, ss[i]);
-    if(res != MPS_RES_OK) return res;
+    if(res != MPS_RES_OK)
+      return res;
     *ps[i] = 1; /* Write something, so it gets swap. */
 
     if(i && i%4==0) putchar('\n');
@@ -71,7 +74,7 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
       ps[i] = tp; ss[i] = ts;
     }
     /* free half of the objects */
-    /* upper half, as when allocaating them again we want smaller objects */
+    /* upper half, as when allocating them again we want smaller objects */
     /* see randomSize() */
     for(i=TEST_SET_SIZE/2; i<TEST_SET_SIZE; ++i) {
       mps_free(pool, (mps_addr_t)ps[i], ss[i]);
@@ -118,6 +121,20 @@ static size_t fixedSize(int i)
 }
 
 
+static int test_in_arena(mps_arena_t arena)
+{
+  fixedSizeSize = 13;
+  die(stress(PoolClassMFS(),
+             arena, fixedSize, (size_t)100000, fixedSizeSize),
+      "stress MFS");
+
+  die(stress(mps_class_mv(),
+             arena, randomSize, (size_t)65536,
+             (size_t)32, (size_t)65536), "stress MV");
+
+  return 0;
+}
+
 int main(void)
 {
   mps_arena_t arena;
@@ -129,14 +146,14 @@ int main(void)
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
 
-  fixedSizeSize = 13;
-  die(stress(PoolClassMFS(),
-             arena, fixedSize, (size_t)100000, fixedSizeSize),
-      "stress MFS");
+  test_in_arena(arena);
 
-  die(stress(mps_class_mv(),
-             arena, randomSize, (size_t)65536,
-             (size_t)32, (size_t)65536), "stress MV");
+  mps_arena_destroy(arena);
+
+  die(mps_arena_create(&arena, mps_arena_class_vm(), smallArenaSIZE),
+      "mps_arena_create");
+
+  test_in_arena(arena);
 
   mps_arena_destroy(arena);
 
