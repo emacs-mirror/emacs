@@ -1112,10 +1112,17 @@ IT_write_glyphs (struct glyph *str, int str_len)
 /* This is used for debugging, to turn off note_mouse_highlight.  */
 int disable_mouse_highlight;
 
-/* If a string, dos_rawgetc generates an event to display that string.
-   (The display is done in keyboard.c:read_char.)  */
+/* If non-nil, dos_rawgetc generates an event to display that string.
+   (The display is done in keyboard.c:read_char, by calling
+   show_help_echo.)  */
 static Lisp_Object help_echo;
 static Lisp_Object previous_help_echo; /* a helper temporary variable */
+
+/* These record the window, the object and the position where the help
+   echo string was generated.  */
+static Lisp_Object help_echo_window;
+static Lisp_Object help_echo_object;
+static int help_echo_pos;
 
 static int mouse_preempted = 0;	/* non-zero when XMenu gobbles mouse events */
 
@@ -1186,6 +1193,9 @@ show_mouse_face (struct display_info *dpyinfo, int hl)
 
       if (end_hpos <= start_hpos)
 	continue;
+      /* Record that some glyphs of this row are displayed in
+         mouse-face.  */
+      row->mouse_face_p = hl > 0;
       if (hl > 0)
 	{
 	  int vpos = row->y + WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y (w);
@@ -1376,7 +1386,12 @@ IT_note_mode_line_highlight (struct window *w, int x, int mode_line_p)
 	  help = Fget_text_property (make_number (glyph->charpos),
 				     Qhelp_echo, glyph->object);
 	  if (!NILP (help))
-	    help_echo = help;
+	    {
+	      help_echo = help;
+	      XSETWINDOW (help_echo_window, w);
+	      help_echo_object = glyph->object;
+	      help_echo_pos = glyph->charpos;
+	    }
 	}
     }
 }
@@ -1626,19 +1641,32 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 	  for (i = 0; i < noverlays && NILP (help); ++i)
 	    help = Foverlay_get (overlay_vec[i], Qhelp_echo); 
 	    
-	  /* Try text properties.  */
-	  if (NILP (help)
-	      && ((STRINGP (glyph->object)
-		   && glyph->charpos >= 0
-		   && glyph->charpos < XSTRING (glyph->object)->size)
-		  || (BUFFERP (glyph->object)
-		      && glyph->charpos >= BEGV
-		      && glyph->charpos < ZV)))
-	    help = Fget_text_property (make_number (glyph->charpos),
-				       Qhelp_echo, glyph->object);
-
 	  if (!NILP (help))
-	    help_echo = help;
+	    {
+	      help_echo = help;
+	      help_echo_window = window;
+	      help_echo_object = w->buffer;
+	      help_echo_pos = pos;
+	    }
+	  /* Try text properties.  */
+	  else if (NILP (help)
+		   && ((STRINGP (glyph->object)
+			&& glyph->charpos >= 0
+			&& glyph->charpos < XSTRING (glyph->object)->size)
+		       || (BUFFERP (glyph->object)
+			   && glyph->charpos >= BEGV
+			   && glyph->charpos < ZV)))
+	    {
+	      help = Fget_text_property (make_number (glyph->charpos),
+					 Qhelp_echo, glyph->object);
+	      if (!NILP (help))
+		{
+		  help_echo = help;
+		  help_echo_window = window;
+		  help_echo_object = glyph->object;
+		  help_echo_pos = glyph->charpos;
+		}
+	    }
 	}
 	  
 	BEGV = obegv;
@@ -1855,9 +1883,8 @@ IT_update_begin (struct frame *f)
 
       /* Can we tell that this update does not affect the window
 	 where the mouse highlight is?  If so, no need to turn off.
-	 Likewise, don't do anything if the frame is garbaged;
-	 in that case, the frame's current matrix that we would use
-	 is all wrong, and we will redisplay that line anyway.  */
+	 Likewise, don't do anything if none of the enabled rows
+	 contains glyphs highlighted in mouse face.  */
       if (!NILP (display_info->mouse_face_window)
 	  && WINDOWP (display_info->mouse_face_window))
 	{
@@ -1872,7 +1899,8 @@ IT_update_begin (struct frame *f)
 	  else
 	    {
 	      for (i = 0; i < w->desired_matrix->nrows; ++i)
-		if (MATRIX_ROW_ENABLED_P (w->desired_matrix, i))
+		if (MATRIX_ROW_ENABLED_P (w->desired_matrix, i)
+		    && MATRIX_ROW (w->current_matrix, i)->mouse_face_p)
 		  break;
 	    }
 
@@ -3235,17 +3263,26 @@ dos_rawgetc ()
       if (mouse_last_x != mouse_prev_x || mouse_last_y != mouse_prev_y)
 	{
 	  previous_help_echo = help_echo;
-	  help_echo = Qnil;
+	  help_echo = help_echo_object = help_echo_window = Qnil;
+	  help_echo_pos = -1;
 	  IT_note_mouse_highlight (SELECTED_FRAME(),
 				   mouse_last_x, mouse_last_y);
 	  /* If the contents of the global variable help_echo has
 	     changed, generate a HELP_EVENT.  */
 	  if (!NILP (help_echo) || !NILP (previous_help_echo))
 	    {
+	      /* HELP_EVENT takes 2 events in the event loop.  */
 	      event.kind = HELP_EVENT;
 	      event.frame_or_window = selected_frame;
-	      event.arg = help_echo;
+	      event.arg = help_echo_object;
+	      event.x = make_number (help_echo_pos);
 	      event.timestamp = event_timestamp ();
+	      event.code = 0;
+	      kbd_buffer_store_event (&event);
+	      if (WINDOWP (help_echo_window))
+		event.frame_or_window = help_echo_window;
+	      event.arg = help_echo;
+	      event.code = 1;
 	      kbd_buffer_store_event (&event);
 	    }
 	}
@@ -3361,7 +3398,11 @@ glyph_to_pixel_coords (f, x, y, pix_x, pix_y)
    grab the nearest Xlib manual (down the hall, second-to-last door on the
    left), but I don't think it's worth the effort.  */
 
+/* These hold text of the current and the previous menu help messages.  */
 static char *menu_help_message, *prev_menu_help_message;
+/* Pane number and item number of the menu item which generated the
+   last menu help message.  */
+static int menu_help_paneno, menu_help_itemno;
 
 static XMenu *
 IT_menu_create ()
@@ -3445,7 +3486,7 @@ IT_menu_calc_size (XMenu *menu, int *width, int *height)
 /* Display MENU at (X,Y) using FACES.  */
 
 static void
-IT_menu_display (XMenu *menu, int y, int x, int *faces, int disp_help)
+IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
 {
   int i, j, face, width;
   struct glyph *text, *p;
@@ -3471,8 +3512,14 @@ IT_menu_display (XMenu *menu, int y, int x, int *faces, int disp_help)
 	= (!menu->submenu[i] && menu->panenumber[i]) || (menu->submenu[i]);
       mousehere = (y + i == my && x <= mx && mx < x + width + 2);
       face = faces[enabled + mousehere * 2];
+      /* The following if clause means that we display the menu help
+	 strings even if the menu item is currently disabled.  */
       if (disp_help && enabled + mousehere * 2 >= 2)
-	menu_help_message = menu->help_text[i];
+	{
+	  menu_help_message = menu->help_text[i];
+	  menu_help_paneno = pn - 1;
+	  menu_help_itemno = i;
+	}
       p = text;
       SET_CHAR_GLYPH (*p, ' ', face, 0);
       p++;
@@ -3617,7 +3664,7 @@ struct IT_menu_state
 int
 XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
 	       int x0, int y0, unsigned ButtonMask, char **txt,
-	       void (*help_callback)(char *))
+	       void (*help_callback)(char *, int, int))
 {
   struct IT_menu_state *state;
   int statecount;
@@ -3642,7 +3689,7 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
     y0 = 1;
 
   /* We will process all the mouse events directly, so we had
-     better prevented dos_rawgetc from stealing them from us.  */
+     better prevent dos_rawgetc from stealing them from us.  */
   mouse_preempted++;
 
   state = alloca (menu->panecount * sizeof (struct IT_menu_state));
@@ -3691,7 +3738,7 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   IT_display_cursor (0);
 
   /* Display the menu title.  */
-  IT_menu_display (menu, y0 - 1, x0 - 1, title_faces, 0);
+  IT_menu_display (menu, y0 - 1, x0 - 1, 1, title_faces, 0);
   if (buffers_num_deleted)
     menu->text[0][7] = ' ';
   if ((onepane = menu->count == 1 && menu->submenu[0]))
@@ -3750,6 +3797,7 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
 			IT_menu_display (state[i].menu,
 					 state[i].y,
 					 state[i].x,
+					 state[i].pane,
 					 faces, 1);
 			state[statecount].menu = state[i].menu->submenu[dy];
 			state[statecount].pane = state[i].menu->panenumber[dy];
@@ -3766,6 +3814,7 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
 	  IT_menu_display (state[statecount - 1].menu,
 			   state[statecount - 1].y,
 			   state[statecount - 1].x,
+			   state[statecount - 1].pane,
 			   faces, 1);
 	}
       else
@@ -3773,7 +3822,8 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
 	  if ((menu_help_message || prev_menu_help_message)
 	      && menu_help_message != prev_menu_help_message)
 	    {
-	      help_callback (menu_help_message);
+	      help_callback (menu_help_message,
+			     menu_help_paneno, menu_help_itemno);
 	      IT_display_cursor (0);
 	      prev_menu_help_message = menu_help_message;
 	    }
@@ -5114,10 +5164,15 @@ syms_of_msdos ()
   recent_doskeys = Fmake_vector (make_number (NUM_RECENT_DOSKEYS), Qnil);
   staticpro (&recent_doskeys);
 #ifndef HAVE_X_WINDOWS
-  staticpro (&help_echo);
   help_echo = Qnil;
-  staticpro (&previous_help_echo);
+  staticpro (&help_echo);
+  help_echo_object = Qnil;
+  staticpro (&help_echo_object);
+  help_echo_window = Qnil;
+  staticpro (&help_echo_window);
   previous_help_echo = Qnil;
+  staticpro (&previous_help_echo);
+  help_echo_pos = -1;
 
   DEFVAR_LISP ("x-bitmap-file-path", &Vx_bitmap_file_path,
     "List of directories to search for bitmap files for X.");
