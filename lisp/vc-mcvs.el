@@ -1,6 +1,7 @@
 ;;; vc-mcvs.el --- VC backend for the Meta-CVS version-control system
 
-;; Copyright (C) 1995,98,99,2000,01,02,03,2004  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;;           Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -114,32 +115,15 @@ This is only meaningful if you don't use the implicit checkout model
 ;;;
 
 ;;;###autoload (defun vc-mcvs-registered (file)
-;;;###autoload   (let ((dir file))
-;;;###autoload     (while (and (stringp dir)
-;;;###autoload                 (not (equal
-;;;###autoload                       dir (setq dir (file-name-directory dir))))
-;;;###autoload                 dir)
-;;;###autoload       (setq dir (if (file-directory-p
-;;;###autoload                      (expand-file-name "MCVS/CVS" dir))
-;;;###autoload                     t (directory-file-name dir))))
-;;;###autoload     (if (eq dir t)
-;;;###autoload          (progn
-;;;###autoload           (load "vc-mcvs")
-;;;###autoload           (vc-mcvs-registered file)))))
+;;;###autoload   (if (vc-find-root file "MCVS/CVS")
+;;;###autoload       (progn
+;;;###autoload         (load "vc-mcvs")
+;;;###autoload         (vc-mcvs-registered file))))
 
 (defun vc-mcvs-root (file)
   "Return the root directory of a Meta-CVS project, if any."
   (or (vc-file-getprop file 'mcvs-root)
-      (vc-file-setprop
-       file 'mcvs-root
-       (let ((root nil))
-	 (while (not (or root
-			 (equal file (setq file (file-name-directory file)))
-			 (null file)))
-	   (if (file-directory-p (expand-file-name "MCVS/CVS" file))
-	       (setq root file)
-	     (setq file (directory-file-name file))))
-	 root))))
+      (vc-file-setprop file 'mcvs-root (vc-find-root file "MCVS/CVS"))))
 
 (defun vc-mcvs-read (file)
   (if (file-readable-p file)
@@ -608,5 +592,5 @@ and that it passes `vc-mcvs-global-switches' to it before FLAGS."
 
 (provide 'vc-mcvs)
 
-;;; arch-tag: a39c7c1c-5247-429d-88df-dd7187d2e704
+;; arch-tag: a39c7c1c-5247-429d-88df-dd7187d2e704
 ;;; vc-mcvs.el ends here
