@@ -1942,6 +1942,7 @@ EXFUN (Fsit_for, 3);
 extern Lisp_Object sit_for P_ ((int, int, int, int, int));
 extern void init_display P_ ((void));
 extern void syms_of_display P_ ((void));
+extern void safe_bcopy P_ ((char *, char *, int));
 
 /* Defined in xdisp.c */
 extern Lisp_Object Qinhibit_redisplay;
@@ -2653,6 +2654,7 @@ extern void syms_of_mocklisp P_ ((void));
 
 /* Defined in term.c */
 extern void syms_of_term P_ ((void));
+extern void fatal ();
 
 #ifdef HAVE_X_WINDOWS
 /* Defined in fontset.c */
