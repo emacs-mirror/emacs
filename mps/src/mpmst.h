@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(MMdevel_restr2.6) $
+ * $HopeName: MMsrc!mpmst.h(trunk.3) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .rationale: Almost all MPM data structures are defined in this
@@ -220,6 +220,7 @@ typedef struct VMStruct {       /* SunOS 4 VM structure; impl.c.vmsu */
 typedef struct SegStruct {      /* segment structure */
   Pool pool;                    /* owner, MUST BE FIRST, impl.c.arenvm.page */
   Bool single;                  /* single page segment */
+  Rank rank;                    /* rank of all references in this seg */
   AccessSet pm, sm;             /* protection and shield modes */
   Size depth;                   /* see impl.c.shield.def.depth */
   void *p;                      /* pointer for use of owning pool */
@@ -304,6 +305,7 @@ typedef struct BufferStruct {
   Space space;                  /* owning space */
   Pool pool;                    /* owning pool */
   Seg seg;                      /* segment being buffered */
+  Rank rank;                    /* rank of references being created */
   Addr base;                    /* base address of allocation buffer */
   APStruct ap;                  /* the allocation point */
   Align alignment;              /* allocation alignment */
@@ -464,6 +466,7 @@ typedef struct ScanStateStruct {
   Space space;                  /* owning space */
   TraceId traceId;              /* trace ID of scan */
   Rank rank;                    /* reference rank of scanning */
+  Addr weakSplat;               /* value of weak refs to unforwarded objects */
 } ScanStateStruct;
 
 typedef struct TraceStruct {
