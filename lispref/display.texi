@@ -1695,10 +1695,10 @@ font.  (This works only on certain systems.)
 
 @item fringe
 @kindex fringe @r{(face name)}
-This face controls the default colors of window fringes, the thin areas on
-either side that are used to display continuation and truncation glyphs.
-Other faces used to display bitmaps in the fringe implicitly inherits from
-this face.
+This face controls the default colors of window fringes, the thin
+areas on either side that are used to display continuation and
+truncation glyphs.  Other faces used to display bitmaps in the fringe
+are implicitly merged with this face.
 
 @item minibuffer-prompt
 @kindex minibuffer-prompt @r{(face name)}
@@ -2008,6 +2008,8 @@ color.  The value is used like that of @code{:underline}.
 The name of a face from which to inherit attributes, or a list of face
 names.  Attributes from inherited faces are merged into the face like an
 underlying face would be, with higher priority than underlying faces.
+If a list of faces is used, attributes from faces earlier in the list
+override those from later faces.
 
 @item :box
 Whether or not a box should be drawn around characters, its color, the
@@ -2833,12 +2835,12 @@ line in a window is by specifying the @code{display} property for one
 of the characters that appears in it.  Use a display specification of
 the form @code{(left-fringe @var{bitmap} [@var{face}])} or
 @code{(right-fringe @var{bitmap} [@var{face}])} (@pxref{Display
-Property}).  Here, @var{bitmap} is a symbol identifying the bitmap
-you want, and @var{face} (which is optional) is the name of the face
-whose colors should be used for displaying the bitmap, instead of the
-default @code{fringe} face.  When specified, @var{face} implicitly
-inherits from the @code{fringe} face, so normally @var{face} only
-specifies the foreground color for the bitmap.
+Property}).  Here, @var{bitmap} is a symbol identifying the bitmap you
+want, and @var{face} (which is optional) is the name of the face whose
+colors should be used for displaying the bitmap, instead of the
+default @code{fringe} face.  @var{face} is automatically merged with
+the @code{fringe} face, so normally @var{face} need only specify the
+foreground color for the bitmap.
 
   These are the symbols identify the standard fringe bitmaps.
 Evaluate @code{(require 'fringe)} to define them.  Fringe bitmap
@@ -2928,8 +2930,8 @@ This sets the face for the fringe bitmap @var{bitmap} to @var{face}.
 If @var{face} is @code{nil}, it selects the @code{fringe} face.  The
 bitmap's face controls the color to draw it in.
 
-The @var{face} implicitly inherits from the @code{fringe} face,
-so normally @var{face} should specifu only the foreground color.
+@var{face} is merged with the @code{fringe} face, so normally
+@var{face} should specify only the foreground color.
 @end defun
 
 @node Overlay Arrow
@@ -2991,10 +2993,20 @@ used.
 @section Scroll Bars
 
 Normally the frame parameter @code{vertical-scroll-bars} controls
-whether the windows in the frame have vertical scroll bars.  A
-non-@code{nil} parameter value means they do.  The frame parameter
+whether the windows in the frame have vertical scroll bars, and
+whether they are on the left or right.  The frame parameter
 @code{scroll-bar-width} specifies how wide they are (@code{nil}
 meaning the default).  @xref{Window Frame Parameters}.
+
+@defun frame-current-scroll-bars &optional frame
+This function reports the scroll bar type settings for frame
+@var{frame}.  The value is a cons cell
+@code{(@var{vertical-type} .@: @var{horizontal-type})}, where
+@var{vertical-type} is either @code{left}, @code{right}, or @code{nil}
+(which means no scroll bar.)  @var{horizontal-type} is meant to
+specify the horizontal scroll bar type, but since they are not
+implemented, it is always @code{nil}.
+@end defun
 
 @vindex vertical-scroll-bar
   You can enable or disable scroll bars for a particular buffer,
@@ -3049,6 +3061,16 @@ to put scroll bars in windows displaying the buffer.  The possible values
 are @code{nil} for no scroll bar, @code{left} to put a scroll bar on
 the left, and @code{right} to put a scroll bar on the right.
 @end defvar
+
+@defun window-current-scroll-bars &optional window
+This function reports the scroll bar type for window @var{window}.
+If @var{window} is omitted or @code{nil}, the selected window is used.
+The value is a cons cell
+@code{(@var{vertical-type} .@: @var{horizontal-type})}.  Unlike
+@code{window-scroll-bars}, this reports the scroll bar type actually
+used, once frame defaults and @code{scroll-bar-mode} are taken into
+account.
+@end defun
 
 @defvar scroll-bar-width
 This variable, always local in all buffers, specifies the width of the
