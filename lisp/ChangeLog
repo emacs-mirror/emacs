@@ -3,6 +3,97 @@
 	* faces.el (face-font-registry-alternatives) [windows-nt]: Make
 	gb2312 an alias for gb2312.1980.
 
+2001-10-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* uniquify.el (uniquify-get-proposed-name): Don't assume dirsep is /.
+	(uniquify-reverse-components): Remove.
+
+	* emacs-lisp/bytecomp.el (byte-recompile-directory):
+	Make sure the file is readable.
+	(byte-compile-file): Don't compile if `no-byte-compile' is set.
+	(byte-compile-defvar): Update to reflect the change in Fdefvar.
+	(batch-byte-recompile-directory): Pass arg=0.
+
+	* progmodes/perl-mode.el (perl-indent-continued-arguments): New var.
+	(perl-calculate-indent): Use it.
+	(perl-backward-to-noncomment): Use forward-comment.
+
+	* derived.el (define-derived-mode, derived-mode-make-docstring):
+	Allow `parent' to be nil.
+
+	* textmodes/nroff-mode.el (nroff-mode-abbrev-table, nroff-mode):
+	Use define-derived-mode.
+	(nroff-mode-map, nroff-mode-syntax-table): Massage.
+
+	* mail/mailabbrev.el (mail-abbrev-in-expansion-header-p): Simplify.
+
+	* emacs-lisp/lselect.el: Use facep iso find-face.
+
+	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression):
+	Use regexp-opt.
+	(doc-string-elt): Set symbols' prop.  Copied from autoload.el.
+	(lisp-font-lock-syntactic-face-function): New function.
+	(lisp-mode-variables): Use it.  Make arg optional.
+	(emacs-lisp-mode): Don't pass an arg to lisp-mode-variables.
+	(lisp-mode): Don't pass an arg to lisp-mode-variables.
+	Set comment-start-skip.
+
+	* emacs-lisp/lisp-mnt.el (lm-history-header): Accept `ChangeLog'.
+
+	* emacs-lisp/cl-macs.el (frame-parameter): Add a setf method.
+	(ignore-errors): Don't bother using a `err' symbol.
+
+	* emacs-lisp/autoload.el (autoload-ensure-default-file)
+	(autoload-insert-section-header, autoload-before-p)
+	(autoload-remove-section): New functions.
+	(generate-file-autoloads): Use them.
+	(update-file-autoloads): Use them.  Return FILE if there's no cookie.
+	Make sure the autoload file is properly formatted when creating it.
+	(update-autoloads-from-directories): Use them as well.
+	Only update autoloads for files whose timestamp has changed.
+	Add a dummy entry to remember the files which had no autoload cookies.
+
+	* timer.el (timer-relative-time): Fix computation for negative `micro'.
+
+	* subr.el (define-key-after): Allow `key' to be longer than 1.
+	(make-local-hook): Make obsolete.
+	(add-hook, remove-hook): Don't use make-local-hook any more.
+	(make-syntax-table): Inherit all chars from s-s-t.
+
+2001-10-04  Gerd Moellmann  <gerd@gnu.org>
+
+	This is a fix for a report saying that resuming a search with C-s
+	C-s doesn't use the case-fold-search setting of the previous
+	search (C-s ... M-c ... then C-s C-s).
+
+	* isearch.el (isearch-last-case-fold-search): New variable.
+	(isearch-mode): Remember value of isearch-case-fold-search
+	in isearch-last-case-fold-search.
+	(isearch-done): Quote value of isearch-case-fold-search.
+	(isearch-repeat): When resuming a search, restore
+	isearch-case-fold-search from isearch-last-case-fold-search.
+
+	Added to NEWS.
+
+	* startup.el (inhibit-startup-buffer-menu): New user-option.
+	(command-line-1): If inhibit-startup-buffer-menu is set, don't
+	display the buffer menu.  From Simon Josefsson <jas@extundo.com>.
+
+	This allows upto 99999 messages in the summary without screwing up
+	the summary sorting.  Previously 9999 was the maximum.  Added to NEWS.
+
+	* mail/rmailsum.el (rmail-make-summary-line)
+	(rmail-make-summary-line-1, rmail-summary-next-same-subject)
+	(rmail-summary-goto-msg, rmail-summary-goto-msg):
+	Allow 5-digit message ids instead of 4.
+
+	This adds expansion of environment variables in the value
+	specified with M-x setenv.  Added to NEWS.
+
+	* env.el (substitute-env-vars): New function.
+	(setenv): Add parameter SUBSTITUTE-ENV-VARS.  If set, substitute
+	environment variables in VALUE.  Return VALUE.
+
 2001-10-03  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* pcvs-util.el (cvs-prefix-define): Typo cons->concat.
