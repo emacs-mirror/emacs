@@ -1,3 +1,27 @@
+2003-02-18  Juanma Barranquero  <lektu@terra.es>
+
+	* help-macro.el (make-help-screen): Fix character constant.
+
+	* mouse-sel.el (mouse-sel-determine-selection-thing): Likewise.
+
+	* calc/calc-graph.el (calc-graph-plot): Likewise.
+
+	* calc/calc-prog.el (calc-macro-edit-variable): Likewise.
+
+	* emacs-lisp/edebug.el: Likewise.
+
+	* emacs-lisp/helper.el (Helper-help-scroller): Likewise.
+
+	* language/cyril-util.el (standard-display-cyrillic-translit):
+	Likewise.
+
+	* mail/rfc822.el (rfc822-nuke-whitespace): Likewise.
+
+	* textmodes/reftex-ref.el (reftex-reference): Likewise.
+
+	* textmodes/table.el (table-generate-source): Use ?\\ instead of
+	space in "work in progress" message.
+
 2003-02-17  Dave Love  <fx@gnu.org>
 
 	* progmodes/ebrowse.el (ebrowse-output): Don't use gensym.

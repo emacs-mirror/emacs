@@ -1,3 +1,8 @@
+2003-02-18  Juanma Barranquero  <lektu@terra.es>
+
+	* ietf-drums.el (ietf-drums-remove-whitespace): Fix character
+	constant.
+
 2003-02-14  Juanma Barranquero  <lektu@terra.es>
 
 	* mm-uu.el (mm-uu-dissect): Fix use of character constant.
