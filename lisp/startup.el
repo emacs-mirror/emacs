@@ -141,6 +141,11 @@ higher incidence of change, don't make sense to load into emacs'
 dumped image.  Thus, the run-time load order is: 1. file described in
 this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 
+(defconst iso-8859-1-locale-regexp "8859[-_]?1"
+  "Regexp that specifies when to enable the ISO 8859-1 character set.
+We do that if this regexp matches the locale name
+specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
+
 (defvar user-mail-address nil
   "Full mailing address of this user.")
 
@@ -201,9 +206,6 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 	       (x-popup-menu nil (cdr (cdr (car submap)))))
 	  (setq submap (cdr submap))))))
 
-(defconst iso-8859-1-locale-regexp "iso[-_]?8859[-_]1"
-  "Use ISO 8859-1 character set by default if this regexp matches LC_CTYPE.")
-
 (defun command-line ()
   (setq command-line-default-directory default-directory)
 
@@ -220,7 +222,16 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 	       (string= vc "simple"))
 	   (setq version-control 'never))))
 
-  (if (string-match iso-8859-1-locale-regexp (getenv "LC_CTYPE"))
+  (if (let ((ctype
+	     ;; Use the first of these three envvars that has a nonempty value.
+	     (or (let ((string (getenv "LC_ALL")))
+		   (and (not (equal string "")) string))
+		 (let ((string (getenv "LC_CTYPE")))
+		   (and (not (equal string "")) string))
+		 (let ((string (getenv "LANG")))
+		   (and (not (equal string "")) string)))))
+	(and ctype
+	     (string-match iso-8859-1-locale-regexp ctype)))
       (progn 
 	(standard-display-european t)
 	(require 'iso-syntax)))
