@@ -3006,10 +3006,12 @@ static void
 exec_sentinel (proc, reason)
      Lisp_Object proc, reason;
 {
-  Lisp_Object sentinel;
+  Lisp_Object sentinel, obuffer, odeactivate;
   register struct Lisp_Process *p = XPROCESS (proc);
   int count = specpdl_ptr - specpdl;
 
+  odeactivate = Vdeactivate_mark;
+  obuffer = Fcurrent_buffer ();
   sentinel = p->sentinel;
   if (NILP (sentinel))
     return;
@@ -3021,6 +3023,11 @@ exec_sentinel (proc, reason)
   /* Inhibit quit so that random quits don't screw up a running filter.  */
   specbind (Qinhibit_quit, Qt);
   call2 (sentinel, proc, reason);
+
+  Vdeactivate_mark = odeactivate;
+  if (! EQ (Fcurrent_buffer (), obuffer))
+    record_asynch_buffer_change ();
+
   if (waiting_for_user_input_p)
     prepare_menu_bars ();
   unbind_to (count, Qnil);
