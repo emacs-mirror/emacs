@@ -938,7 +938,7 @@ void x_handle_property_notify P_ ((XPropertyEvent *));
 
 #ifdef HAVE_DBE
 extern int init_dbe P_ ((Display *));
-extern void dbe_make_frame_buffered P_ ((struct frame *));
+extern void dbe_make_frame_buffered P_ ((struct frame *, int));
 extern void dbe_reset_region P_ ((struct frame *));
 extern void dbe_record_region P_ ((struct frame *, int, int, int, int));
 extern void dbe_show P_ ((struct frame *));
