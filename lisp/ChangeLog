@@ -1,5 +1,9 @@
 2001-01-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* font-lock.el (font-lock-multiline): Default to nil.
+	(font-lock-default-fontify-region): If font-lock-multiline is
+	nil, don't check the property `font-lock-multiline'.
+
 	* jit-lock.el (jit-lock-after-change): If font-lock-multiline
 	is nil, don't check the `font-lock-multiline' text property.
 
