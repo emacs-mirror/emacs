@@ -1,5 +1,8 @@
 2001-10-29  Gerd Moellmann  <gerd@gnu.org>
 
+	* international/iso-acc.el (iso-accents-compose): Push SECOND-CHAR
+	as is on unread-command-events instead of `(SECOND-CHAR)'.
+
 	* enriched.el (enriched-face-ans): Handle face attributes
 	of the form `(FACE1 FACE2 ...)'.
 
