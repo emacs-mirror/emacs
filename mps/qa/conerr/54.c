@@ -1,6 +1,8 @@
-/* test is_stale without resetting
-   language c
-   link myfmt.o testlib.o
+/* TEST_HEADER
+ summary = is_stale without resetting
+ language = c
+ link = myfmt.o testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

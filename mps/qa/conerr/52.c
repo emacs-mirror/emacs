@@ -1,6 +1,8 @@
-/* test reset ld again, in destroyed space
-   language c
-   link myfmt.o testlib.o
+/* TEST_HEADER
+ summary = reset ld again, in destroyed space
+ language = c
+ link = myfmt.o testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

@@ -1,6 +1,8 @@
-/* test destroy a space which isn't a space
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = destroy a space which isn't a space
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

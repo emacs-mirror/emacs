@@ -1,6 +1,8 @@
-/* test create root in uncreated space
-   language c
-   link myfmt.o testlib.o
+/* TEST_HEADER
+ summary = create root in uncreated space
+ language = c
+ link = myfmt.o testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

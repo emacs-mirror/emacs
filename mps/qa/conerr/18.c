@@ -1,6 +1,8 @@
-/* test create a pool with a format in the wrong space
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = create a pool with a format in the wrong space
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

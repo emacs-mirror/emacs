@@ -1,6 +1,8 @@
-/* test allocate in destroyed AP
-   language c
-   link myfmt.o testlib.o
+/* TEST_HEADER
+ summary = allocate in destroyed AP
+ language = c
+ link = myfmt.o testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

@@ -1,6 +1,8 @@
-/* test reserve twice without committing
-   language c
-   link myfmt.o testlib.o
+/* TEST_HEADER
+ summary = reserve twice without committing
+ language = c
+ link = myfmt.o testlib.o
+END_HEADER
 */
 
 #include "testlib.h"
