@@ -93,7 +93,11 @@
 	     
 (make-coding-system
  'koi8-r 4
- ?K "Coding-system used for KOI8."
+ ;; We used to use ?K.  It is true that ?K is more strictly correct,
+ ;; but it is also used for Korean.
+ ;; So people who use koi8 for languages other than Russian
+ ;; will have to forgive us.
+ ?R "Coding-system used for KOI8."
  (cons ccl-decode-koi8 ccl-encode-koi8))
 
 (define-coding-system-alias 'koi8-r 'koi8)
