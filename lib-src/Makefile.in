@@ -29,7 +29,7 @@ configname=@configuration@
 # subdirectories of this directory.  The default values for many of
 # the variables below are expressed in terms of this one, so you may
 # not need to change them.  This is set with the --prefix option to
-@ `../configure'.
+# `../configure'.
 prefix=@prefix@
 
 # Like `prefix', but used for architecture-specific files.  This is
@@ -68,7 +68,7 @@ archlibdir=@archlibdir@
 
 # ==================== Utility Programs for the Build ====================
 
-@ ../configure figures out the correct values for these.
+# ../configure figures out the correct values for these.
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
