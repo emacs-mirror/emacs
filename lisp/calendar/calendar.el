@@ -1306,6 +1306,9 @@ calendar."
   "String of Chinese date of Gregorian date."
   t)
 
+(autoload 'calendar-astro-from-absolute "cal-julian"
+  "Astronomical (Julian) day number of absolute date D.")
+
 (autoload 'calendar-julian-from-absolute "cal-julian"
   "Compute the Julian (month day year) corresponding to the absolute DATE.
 The absolute date is the number of days elapsed since the (imaginary)
