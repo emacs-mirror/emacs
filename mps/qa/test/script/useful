@@ -1,4 +1,4 @@
-# $HopeName$
+# $HopeName: MMQA_harness!script:useful(trunk.1) $
 # Various subroutines that the MMQA harness finds useful.
 #
 
@@ -13,9 +13,15 @@ sub debug {
 
 sub mysystem {
  local ($command) = @_;
- $command =~ s/(\S)\//$1$dirsep/g;
+ $command = &convdirseps($command);
  &debug("SYSTEM >>$command<<");
  system($command);
+}
+
+sub convdirseps {
+ local ($a) = @_;
+ $a =~ s/(\S)\//$1$dirsep/g;
+ return $a;
 }
 
 sub mailfile {
