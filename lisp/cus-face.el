@@ -63,22 +63,22 @@
 ;;; Font Attributes.
 
 (defconst custom-face-attributes
-  '((:bold (toggle :format "%[Bold%]: %v\n"
-		   :help-echo "Control whether a bold font should be used.")
+  '((:bold (boolean :tag "Bold"
+		    :help-echo "Control whether a bold font should be used.")
 	   set-face-bold-p
 	   face-bold-p)
-    (:italic (toggle :format "%[Italic%]: %v\n"
-		     :help-echo "\
+    (:italic (boolean :tag "Italic"
+		      :help-echo "\
 Control whether an italic font should be used.")
 	     set-face-italic-p
 	     face-italic-p)
-    (:underline (toggle :format "%[Underline%]: %v\n"
-			:help-echo "\
+    (:underline (boolean :tag "Underline"
+			 :help-echo "\
 Control whether the text should be underlined.")
 		set-face-underline-p
 		face-underline-p)
-    (:inverse-video (toggle :format "%[Inverse-Video%]: %v\n"
-			:help-echo "\
+    (:inverse-video (boolean :tag "Inverse Video"
+			     :help-echo "\
 Control whether the text should be in inverse video.")
 		set-face-inverse-video-p
 		face-inverse-video-p)
