@@ -1,3 +1,8 @@
+2002-05-04  Markus Rost  <rost@math.ohio-state.edu>
+
+	* emacs-lisp/find-func.el (find-function-search-for-symbol): Bind
+	case-fold-search when searching.
+
 2002-05-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* apropos.el (apropos-print): Fix the reference to mouse-2.
