@@ -33,9 +33,15 @@
 ;;;  The log file should be set for your system, and it must
 ;;;  be writable by all.
 
+(defgroup dunnet nil
+  "Text adventure for Emacs."
+  :prefix "dun-"
+  :group 'games)
 
-(defvar dun-log-file "/usr/local/dunnet.score"
-  "Name of file to store score information for dunnet.")
+(defcustom dun-log-file "/usr/local/dunnet.score"
+  "Name of file to store score information for dunnet."
+  :type 'file
+  :group 'dunnet)
 
 (if nil
     (eval-and-compile (setq byte-compile-warnings nil)))

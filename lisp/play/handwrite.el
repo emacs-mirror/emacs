@@ -72,6 +72,11 @@
 
 ;; Variables
 
+(defgroup handwrite nil
+  "Turns your emacs buffer into a handwritten document."
+  :prefix "handwrite-"
+  :group 'games)
+
 (defvar handwrite-psindex 0
   "The index of the PostScript buffer.")
 (defvar menu-bar-handwrite-map (make-sparse-keymap "Handwrite functions."))
@@ -80,27 +85,46 @@
 
 ;; User definable variables
 
-(defvar handwrite-numlines 60
-  "*The number of lines on a page of the PostScript output from `handwrite'.")
-(defvar handwrite-fontsize 11
-  "*The size of the font for the PostScript output from `handwrite'.")
-(defvar handwrite-linespace 12
-  "*The spacing for the PostScript output from `handwrite'.")
-(defvar handwrite-xstart 30
-  "*X-axis translation in the PostScript output from `handwrite'.")
-(defvar handwrite-ystart 810
-  "*Y-axis translation in the PostScript output from `handwrite'.")
-(defvar handwrite-pagenumbering nil
-  "*If non-nil, number each page of the PostScript output from `handwrite'.")
-(defvar handwrite-10pt-numlines 65
-  "*The number of lines on a page for the function `handwrite-10pt'.")
-(defvar handwrite-11pt-numlines 60
-  "*The number of lines on a page for the function `handwrite-11pt'.")
-(defvar handwrite-12pt-numlines 55
-  "*The number of lines on a page for the function `handwrite-12pt'.")
-(defvar handwrite-13pt-numlines 50
-  "*The number of lines on a page for the function `handwrite-13pt'.")
-
+(defcustom handwrite-numlines 60
+  "*The number of lines on a page of the PostScript output from `handwrite'."
+  :type 'integer
+  :group 'handwrite)
+(defcustom handwrite-fontsize 11
+  "*The size of the font for the PostScript output from `handwrite'."
+  :type 'integer
+  :group 'handwrite)
+(defcustom handwrite-linespace 12
+  "*The spacing for the PostScript output from `handwrite'."
+  :type 'integer
+  :group 'handwrite)
+(defcustom handwrite-xstart 30
+  "*X-axis translation in the PostScript output from `handwrite'."
+  :type 'integer
+  :group 'handwrite)
+(defcustom handwrite-ystart 810
+  "*Y-axis translation in the PostScript output from `handwrite'."
+  :type 'integer
+  :group 'handwrite)
+(defcustom handwrite-pagenumbering nil
+  "*If non-nil, number each page of the PostScript output from `handwrite'."
+  :type 'boolean
+  :group 'handwrite)
+(defcustom handwrite-10pt-numlines 65
+  "*The number of lines on a page for the function `handwrite-10pt'."
+  :type 'integer
+  :group 'handwrite)
+(defcustom handwrite-11pt-numlines 60
+  "*The number of lines on a page for the function `handwrite-11pt'."
+  :type 'integer
+  :group 'handwrite)
+(defcustom handwrite-12pt-numlines 55
+  "*The number of lines on a page for the function `handwrite-12pt'."
+  :type 'integer
+  :group 'handwrite)
+(defcustom handwrite-13pt-numlines 50
+  "*The number of lines on a page for the function `handwrite-13pt'."
+  :type 'integer
+  :group 'handwrite)
 
 ;; Interactive functions
 

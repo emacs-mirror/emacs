@@ -93,22 +93,39 @@
 (eval-when-compile
   (require 'cl))
 
-(defvar decipher-force-uppercase t
+(defgroup decipher nil
+  "Cryptanalyze monoalphabetic substitution ciphers."
+  :prefix "decipher-"
+  :group 'games)
+
+(defcustom decipher-force-uppercase t
   "*Non-nil means to convert ciphertext to uppercase.
 Nil means the case of the ciphertext is preserved.
-This variable must be set before typing `\\[decipher]'.")
+This variable must be set before typing `\\[decipher]'."
+  :type 'boolean
+  :group 'decipher)
 
-(defvar decipher-ignore-spaces nil
+
+(defcustom decipher-ignore-spaces nil
   "*Non-nil means to ignore spaces and punctuation when counting digrams.
 You should set this to `nil' if the cipher message is divided into words,
 or `t' if it is not.
-This variable is buffer-local.")
+This variable is buffer-local."
+  :type 'boolean
+  :group 'decipher)
 (make-variable-buffer-local 'decipher-ignore-spaces)
 
-(defvar decipher-undo-limit 5000
+(defcustom decipher-undo-limit 5000
   "The maximum number of entries in the undo list.
 When the undo list exceeds this number, 100 entries are deleted from
-the tail of the list.")
+the tail of the list."
+  :type 'integer
+  :group 'decipher)
+
+(defcustom decipher-mode-hook nil
+  "Hook to run upon entry to decipher."
+  :type 'hook
+  :group 'decipher)
 
 ;; End of user modifiable variables
 ;;--------------------------------------------------------------------

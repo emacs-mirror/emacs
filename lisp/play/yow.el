@@ -35,8 +35,15 @@
 
 (require 'cookie1)
 
-(defvar yow-file (concat data-directory "yow.lines")
-   "File containing pertinent pinhead phrases.")
+(defgroup yow nil
+  "Quote random zippyisms."
+  :prefix "yow-"
+  :group 'games)
+
+(defcustom yow-file (concat data-directory "yow.lines")
+   "File containing pertinent pinhead phrases."
+  :type 'file
+  :group 'yow)
 
 (defconst yow-load-message "Am I CONSING yet?...")
 (defconst yow-after-load-message "I have SEEN the CONSING!!")

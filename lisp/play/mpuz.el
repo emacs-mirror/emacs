@@ -31,10 +31,17 @@
 
 ;;; Code:
 
+(defgroup mpuz nil
+  "Multiplication puzzle."
+  :prefix "mpuz-"
+  :group 'games)
+
 (random t)				; randomize
 
-(defvar mpuz-silent nil
-  "*Set this to T if you don't want dings on inputs.")
+(defcustom mpuz-silent nil
+  "*Set this to T if you don't want dings on inputs."
+  :type 'boolean
+  :group 'mpuz)
 
 (defun mpuz-ding ()
   "Dings, unless global variable `mpuz-silent' forbids it."
@@ -43,7 +50,10 @@
 
 ;; Mpuz mode and keymaps
 ;;----------------------
-(defvar mpuz-mode-hook nil)
+(defcustom mpuz-mode-hook nil
+  "Hook to run upon entry to mpuz."
+  :type 'hook
+  :group 'mpuz)
 
 (defvar mpuz-mode-map nil
   "Local keymap to use in Mult Puzzle.")

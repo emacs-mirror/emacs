@@ -40,11 +40,20 @@
 (require 'cookie1)
 
 ; Variables
-(defvar spook-phrases-file (concat data-directory "spook.lines")
-   "Keep your favorite phrases here.")
+(defgroup spook nil
+  "Spook phrase utility for overloading the NSA line eater."
+  :prefix "spook-"
+  :group 'games)
 
-(defvar spook-phrase-default-count 15
-   "Default number of phrases to insert")
+(defcustom spook-phrases-file (concat data-directory "spook.lines")
+  "Keep your favorite phrases here."
+  :type 'file
+  :group 'spook)
+
+(defcustom spook-phrase-default-count 15
+  "Default number of phrases to insert."
+  :type 'integer
+  :group 'spook)
 
 ;;;###autoload
 (defun spook ()

@@ -33,8 +33,18 @@
 
 ;;; Code:
 
+(defgroup solitaire nil
+  "Game of solitaire."
+  :prefix "solitaire-"
+  :group 'games)
+
 (defvar solitaire-mode-map nil
   "Keymap for playing solitaire.")
+
+(defcustom solitaire-mode-hook nil
+  "Hook to run upon entry to solitaire."
+  :type 'hook
+  :group 'solitaire)
 
 (if solitaire-mode-map
     ()
@@ -116,10 +126,12 @@ The usual mnemonic keys move the cursor around the board; in addition,
 (defvar solitaire-end-x nil)
 (defvar solitaire-end-y nil)
 
-(defvar solitaire-auto-eval t
+(defcustom solitaire-auto-eval t
   "*Non-nil means check for possible moves after each major change.
 This takes a while, so switch this on if you like to be informed when
-the game is over, or off, if you are working on a slow machine.")
+the game is over, or off, if you are working on a slow machine."
+  :type 'boolean
+  :group 'solitaire)
 
 (defconst solitaire-valid-directions
   '(solitaire-left solitaire-right solitaire-up solitaire-down))
@@ -134,7 +146,7 @@ Move around the board using the cursor keys.
 Move stones using \\[solitaire-move] followed by a direction key.
 Undo moves using \\[solitaire-undo].
 Check for possible moves using \\[solitaire-do-check].
-\(The variable solitaire-auto-eval controls whether to automatically
+\(The variable `solitaire-auto-eval' controls whether to automatically
 check after each move or undo)
 
 What is Solitaire?

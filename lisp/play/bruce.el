@@ -106,11 +106,20 @@
 (require 'cookie1)
 
 ; Variables
-(defvar bruce-phrases-file "~/bruce.lines"
-   "Keep your favorite phrases here.")
+(defgroup bruce nil
+  "Insert phrases selected at random from a file into a buffer."
+  :prefix "bruce-"
+  :group 'games)
 
-(defvar bruce-phrase-default-count 15
-   "Default number of phrases to insert")
+(defcustom bruce-phrases-file "~/bruce.lines"
+  "Keep your favorite phrases here."
+  :type 'file
+  :group 'bruce)
+
+(defcustom bruce-phrase-default-count 15
+  "Default number of phrases to insert."
+  :type 'integer
+  :group 'bruce)
 
 ;;;###autoload
 (defun bruce ()

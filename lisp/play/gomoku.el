@@ -66,11 +66,18 @@
 
 ;;; Code:
 
+(defgroup gomoku nil
+  "Gomoku game between you and Emacs."
+  :prefix "gomoku-"
+  :group 'games)
 ;;;
 ;;; GOMOKU MODE AND KEYMAP.
 ;;;
-(defvar gomoku-mode-hook nil
-  "If non-nil, its value is called on entry to Gomoku mode.")
+(defcustom gomoku-mode-hook nil
+  "If non-nil, its value is called on entry to Gomoku mode.
+One useful value to include is `turn-on-font-lock' to highlight the pieces."
+  :type 'hook
+  :group 'gomoku)
 
 (defvar gomoku-mode-map nil
   "Local keymap to use in Gomoku mode.")
@@ -133,17 +140,21 @@
 			     gomoku-mode-map (current-global-map)))
 
 (defvar gomoku-emacs-won ()
-  "*For making font-lock use the winner's face for the line.")
+  "For making font-lock use the winner's face for the line.")
 
-(defvar gomoku-font-lock-O-face
+(defcustom gomoku-font-lock-O-face
   (if window-system
       (list (facemenu-get-face 'fg:red) 'bold))
-  "*Face to use for Emacs' O.")
+  "*Face to use for Emacs' O."
+  :type '(repeat face)
+  :group 'gomoku)
 
-(defvar gomoku-font-lock-X-face
+(defcustom gomoku-font-lock-X-face
   (if window-system
       (list (facemenu-get-face 'fg:green) 'bold))
-  "*Face to use for your X.")
+  "*Face to use for your X."
+  :type '(repeat face)
+  :group 'gomoku)
 
 (defvar gomoku-font-lock-keywords
   '(("O" . gomoku-font-lock-O-face)

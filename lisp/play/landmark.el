@@ -68,6 +68,11 @@
 
 ;;;_* From Gomoku
 
+(defgroup lm nil
+  "Neural-network robot that learns landmarks."
+  :prefix "lm-"
+  :group 'games)
+
 ;;;_ +  THE BOARD.
 
 ;; The board is a rectangular grid. We code empty squares with 0, X's with 1
@@ -154,8 +159,10 @@
 
 ;;;_ +  LM MODE AND KEYMAP.
 
-(defvar lm-mode-hook nil
-  "If non-nil, its value is called on entry to Lm mode.")
+(defcustom lm-mode-hook nil
+  "If non-nil, its value is called on entry to Lm mode."
+  :type 'hook
+  :group 'lm)
 
 (defvar lm-mode-map nil
   "Local keymap to use in Lm mode.")
@@ -1123,12 +1130,16 @@ this program to add a random element to the way moves were made.")
 ;;;(setq lm-debug nil)
 (defvar lm-debug nil
   "If non-nil, debugging is printed.")
-(defvar lm-one-moment-please nil
+(defcustom lm-one-moment-please nil
   "If non-nil, print \"One moment please\" when a new board is generated.
 The drawback of this is you don't see how many moves the last run took
-because it is overwritten by \"One moment please\".")
-(defvar lm-output-moves t
-  "If non-nil, output number of moves so far on a move-by-move basis.")
+because it is overwritten by \"One moment please\"."
+  :type 'boolean
+  :group 'lm)
+(defcustom lm-output-moves t
+  "If non-nil, output number of moves so far on a move-by-move basis."
+  :type 'boolean
+  :group 'lm)
 
 
 (defun lm-weights-debug ()
@@ -1252,22 +1263,32 @@ because it is overwritten by \"One moment please\".")
   (mapc 'lm-print-wts-int lm-directions))
 
 ;;;_  - learning parameters
-(defvar lm-bound 0.005
-  "The maximum that w0j may be.")
-(defvar lm-c 1.0
+(defcustom lm-bound 0.005
+  "The maximum that w0j may be."
+  :type 'number
+  :group 'lm)
+(defcustom lm-c 1.0
   "A factor applied to modulate the increase in wij.
-Used in the function lm-update-normal-weights.")
-(defvar lm-c-naught 0.5
+Used in the function lm-update-normal-weights."
+  :type 'number
+  :group 'lm)
+(defcustom lm-c-naught 0.5
   "A factor applied to modulate the increase in w0j.
-Used in the function lm-update-naught-weights.")
+Used in the function lm-update-naught-weights."
+  :type 'number
+  :group 'lm)
 (defvar lm-initial-w0 0.0)
 (defvar lm-initial-wij 0.0)
-(defvar lm-no-payoff 0
+(defcustom lm-no-payoff 0
   "The amount of simulation cycles that have occurred with no movement.
-Used to move the robot when he is stuck in a rut for some reason.")
-(defvar lm-max-stall-time 2
+Used to move the robot when he is stuck in a rut for some reason."
+  :type 'integer
+  :group 'lm)
+(defcustom lm-max-stall-time 2
   "The maximum number of cycles that the robot can remain stuck in a place.
-After this limit is reached, lm-random-move is called to push him out of it.")
+After this limit is reached, lm-random-move is called to push him out of it."
+  :type 'integer
+  :group 'lm)
 
 
 ;;;_ + Randomizing functions

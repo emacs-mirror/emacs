@@ -90,33 +90,48 @@
 
 ;;;; Configuration variables
 
-(defvar gametree-half-ply-regexp (regexp-quote ":")
+(defgroup gametree nil
+  "Manage game analysis trees in Emacs."
+  :prefix "gametree-"
+  :group 'games)
+
+(defcustom gametree-half-ply-regexp (regexp-quote ":")
   "*Matches ends of numbers of moves by the \"second\" player.
 For instance, it is an almost universal convention in chess to postfix
 numbers of moves by Black (if considered in isolation) by the ellipsis
 \"...\".  This is NOT a good choice for this program, though, because it
 conflicts with the use of ellipsis by Outline mode to denote collapsed
 subtrees.  The author uses \":\" because it agrees nicely with a set of
-LaTeX macros he uses for typesetting annotated games.")
+LaTeX macros he uses for typesetting annotated games."
+  :type 'regexp
+  :group 'gametree)
 
-(defvar gametree-full-ply-regexp (regexp-quote ".")
+(defcustom gametree-full-ply-regexp (regexp-quote ".")
   "*Matches ends of numbers of moves by the \"first\" player.
 For instance, it is an almost universal convention in chess to postfix
-numbers of moves by White (if considered in isolation) by the dot \".\".")
+numbers of moves by White (if considered in isolation) by the dot \".\"."
+  :type 'regexp
+  :group 'gametree)
 
-(defvar gametree-half-ply-format "%d:"
+(defcustom gametree-half-ply-format "%d:"
   "*Output format for move numbers of moves by the \"second\" player.
-Has to contain \"%d\" to output the actual number.")
+Has to contain \"%d\" to output the actual number."
+  :type 'string
+  :group 'gametree)
 
-(defvar gametree-full-ply-format "%d."
+(defcustom gametree-full-ply-format "%d."
   "*Output format for move numbers of moves by the \"first\" player.
-Has to contain \"%d\" to output the actual number.")
+Has to contain \"%d\" to output the actual number."
+  :type 'string
+  :group 'gametree)
 
-(defvar gametree-make-heading-function
+(defcustom gametree-make-heading-function
   (function (lambda (level)
               (insert (make-string level ?*))))
   "A function of one numeric argument, LEVEL, to insert a heading at point.
-You should change this if you change `outline-regexp'.")
+You should change this if you change `outline-regexp'."
+  :type 'function
+  :group 'gametree)
 
 (defvar gametree-local-layout nil
   "A list encoding the layout (i.e. the show or hide state) of the file.
