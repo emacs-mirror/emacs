@@ -41,9 +41,10 @@ MAKE = make  # BSD doesn't have it as a default.
 # ==================== Things `configure' Might Edit ====================
 
 CC=@CC@
-DEFS=@DEFS@
 C_SWITCH_SYSTEM=@c_switch_system@
 ALLOCA=@ALLOCA@
+LN_S=@LN_S@
+CFLAGS=@CFLAGS@
 
 ### These help us choose version- and architecture-specific directories
 ### to install files in.
@@ -195,8 +196,6 @@ INSTALL_DATA = ${INSTALL}
 # Flags passed down to subdirectory makefiles.
 MFLAGS = 
 
-CFLAGS=${DEFS}
-
 # Subdirectories to make recursively.  `lisp' is not included
 # because the compiled lisp files are part of the distribution
 # and you cannot remake them without installing Emacs first.
@@ -241,7 +240,7 @@ src:	lib-src
 
 ${SUBDIR}: ${SUBDIR_MAKEFILES} FRC
 	cd $@; $(MAKE) all ${MFLAGS} \
-		CC='${CC}' DEFS='${DEFS}' \
+		CC='${CC}' CFLAGS='${CFLAGS}' \
 		srcdir='${srcdir}/$@' libdir='${libdir}'
 
 ## We build the makefiles for the subdirectories here so that we can
@@ -266,7 +265,7 @@ lib-src/Makefile: ${srcdir}/lib-src/Makefile.in Makefile
 	  -e 's|^\(archlibdir *=\).*$$|\1'"${archlibdir}"'|'		\
 	  -e 's|^\(ALLOCA *=\).*$$|\1'"${ALLOCA}"'|'			\
 	  -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
-	  -e 's|^DEFS *=.*$$|DEFS='"${DEFS}"'|' \
+	  -e 's|^CFLAGS *=.*$$|CFLAGS='"${CFLAGS}"'|' \
 	  -e 's|^C_SWITCH_SYSTEM *=.*$$|C_SWITCH_SYSTEM='"${C_SWITCH_SYSTEM}"'|' \
 	  -e 's|^LOADLIBES *=.*$$|LOADLIBES='"${libsrc_libs}"'|'	\
 	  -e '/^# DIST: /d') > lib-src/Makefile.tmp
@@ -284,7 +283,8 @@ src/Makefile: ${srcdir}/src/Makefile.in Makefile
 	  /bin/sed < ${srcdir}/src/Makefile.in				\
 	  -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'|'			\
 	  -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
-	  -e 's|^DEFS *=.*$$|DEFS='"${DEFS}"'|' \
+	  -e 's|^LN_S *=.*$$|LN_S='"${LN_S}"'|'				\
+	  -e 's|^CFLAGS *=.*$$|CFLAGS='"${CFLAGS}"'|' 			\
 	  -e '/^# DIST: /d') > src/Makefile.tmp
 	@${srcdir}/move-if-change src/Makefile.tmp src/Makefile
 	chmod -w src/Makefile
