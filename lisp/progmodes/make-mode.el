@@ -387,6 +387,7 @@ The function must satisfy this calling convention:
     ("notdir" "Names")
     ("suffix" "Names")
     ("basename" "Names")
+    ("addprefix" "Prefix" "Names")
     ("addsuffix" "Suffix" "Names")
     ("join" "List 1" "List 2")
     ("word" "Index" "Text")
