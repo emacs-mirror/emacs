@@ -4,6 +4,7 @@
 ;;	2000, 2001, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
+;; Maintainer: Glenn Morris <gmorris@ast.cam.ac.uk>
 ;; Keywords: calendar
 ;; Human-Keywords: calendar, Gregorian calendar, diary, holidays
 
@@ -1046,13 +1047,43 @@ See the documentation for `calendar-holidays' for details."
 (defcustom christian-holidays
   '((if all-christian-calendar-holidays
         (holiday-fixed 1 6 "Epiphany"))
-    (holiday-easter-etc)
+    (holiday-easter-etc 0 "Easter Sunday")
+    (holiday-easter-etc -2 "Good Friday")
+    (holiday-easter-etc -46 "Ash Wednesday")
+    (if all-christian-calendar-holidays
+        (holiday-easter-etc -63 "Septuagesima Sunday"))
+    (if all-christian-calendar-holidays
+        (holiday-easter-etc -56 "Sexagesima Sunday"))
+    (if all-christian-calendar-holidays
+        (holiday-easter-etc -49 "Shrove Sunday"))
+    (if all-christian-calendar-holidays
+        (holiday-easter-etc -48 "Shrove Monday"))
+    (if all-christian-calendar-holidays
+        (holiday-easter-etc -47 "Shrove Tuesday"))
+    (if all-christian-calendar-holidays
+        (holiday-easter-etc -14 "Passion Sunday"))
+    (if all-christian-calendar-holidays
+        (holiday-easter-etc -7 "Palm Sunday"))
+    (if all-christian-calendar-holidays
+        (holiday-easter-etc -3 "Maundy Thursday"))
+    (if all-christian-calendar-holidays
+        (holiday-easter-etc 35 "Rogation Sunday"))
+    (if all-christian-calendar-holidays
+        (holiday-easter-etc 39 "Ascension Day"))
+    (if all-christian-calendar-holidays
+        (holiday-easter-etc 49 "Pentecost (Whitsunday)"))
+    (if all-christian-calendar-holidays
+        (holiday-easter-etc 50 "Whitmonday"))
+    (if all-christian-calendar-holidays
+        (holiday-easter-etc 56 "Trinity Sunday"))
+    (if all-christian-calendar-holidays
+        (holiday-easter-etc 60 "Corpus Christi"))
     (if all-christian-calendar-holidays
         (holiday-greek-orthodox-easter))
     (if all-christian-calendar-holidays
         (holiday-fixed 8 15 "Assumption"))
     (if all-christian-calendar-holidays
-        (holiday-advent))
+        (holiday-advent 0 "Advent"))
     (holiday-fixed 12 25 "Christmas")
     (if all-christian-calendar-holidays
         (holiday-julian 12 25 "Eastern Orthodox Christmas")))
