@@ -1926,6 +1926,8 @@ directory tracking functions.")
    (t   
     "~/A-Za-z0-9+@:_.$#%,={}-"))
   "String of characters valid in a file name.
+Note that all non-ASCII characters are considered valid in a file name
+regardless of what this variable says.
 
 This is a good thing to set in mode hooks.")
 
@@ -1945,12 +1947,14 @@ This is a good thing to set in mode hooks.")
 (defun comint-word (word-chars)
   "Return the word of WORD-CHARS at point, or nil if non is found.
 Word constituents are considered to be those in WORD-CHARS, which is like the
-inside of a \"[...]\" (see `skip-chars-forward')."
+inside of a \"[...]\" (see `skip-chars-forward'),
+plus all non-ASCII characters."
   (save-excursion
     (let ((non-word-chars (concat "[^\\\\" word-chars "]")) (here (point)))
       (while (and (re-search-backward non-word-chars nil 'move)
-		  ;(memq (char-after (point)) shell-file-name-quote-list)
-		  (eq (preceding-char) ?\\))
+		  ;;(memq (char-after (point)) shell-file-name-quote-list)
+		  (or (>= (following-char) 128)
+		      (eq (preceding-char) ?\\)))
 	(backward-char 1))
       ;; Don't go forward over a word-char (this can happen if we're at bob).
       (if (or (not (bobp)) (looking-at non-word-chars))
