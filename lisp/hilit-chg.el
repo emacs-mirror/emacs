@@ -292,7 +292,7 @@ t means the buffer is suitable if its name does not begin with ` ' nor
 `*' and the buffer has a filename.
 
 A value of nil means no buffers are suitable for `global-highlight-changes'
-(effectively disabling the mode).
+\(effectively disabling the mode).
 
 Examples:
         (c-mode c++-mode)
