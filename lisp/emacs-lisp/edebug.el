@@ -8,7 +8,7 @@
 ;; LCD Archive Entry:
 ;; edebug|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A source level debugger for Emacs Lisp.
-;; |$Date: 1996/09/24 06:54:18 $|$Revision: 3.10 $|~/modes/edebug.el|
+;; |$Date: 1996/10/02 21:41:56 $|$Revision: 3.11 $|~/modes/edebug.el|
 
 ;; This file is part of GNU Emacs.
 
@@ -85,7 +85,7 @@
 ;;; Code:
 
 (defconst edebug-version
-  (let ((raw-version "$Revision: 3.10 $"))
+  (let ((raw-version "$Revision: 3.11 $"))
     (substring raw-version (string-match "[0-9.]*" raw-version)
 	       (match-end 0))))
      
@@ -2123,6 +2123,7 @@ expressions; a `progn' form will be returned enclosing these forms."
 (def-edebug-spec save-match-data t)
 (def-edebug-spec with-output-to-string t)
 (def-edebug-spec with-current-buffer t)
+(def-edebug-spec combine-after-change-calls t)
 (def-edebug-spec with-temp-file t)
 (def-edebug-spec with-temp-buffer t)
 
