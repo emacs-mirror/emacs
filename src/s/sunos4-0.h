@@ -12,3 +12,10 @@
    GNU malloc's memory pool.  But Sun's malloc doesn't seem to mind. */
 
 #define SYSTEM_MALLOC
+
+#ifdef __GNUC__
+/* We must define mkdir with this arg prototype
+   to match GCC's fixed stat.h.  */
+#define MKDIR_PROTOTYPE \
+  int mkdir (const char *dpath, unsigned short dmode)
+#endif /* __GNUC__ */
