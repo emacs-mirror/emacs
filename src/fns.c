@@ -3294,7 +3294,7 @@ Lisp_Object Vweak_hash_tables;
 /* Various symbols.  */
 
 Lisp_Object Qhash_table_p, Qeq, Qeql, Qequal, Qkey, Qvalue;
-Lisp_Object QCtest, QCsize, QCrehash_size, QCrehash_threshold, QCweak;
+Lisp_Object QCtest, QCsize, QCrehash_size, QCrehash_threshold, QCweakness;
 Lisp_Object Qhash_table_test;
 
 /* Function prototypes.  */
@@ -4204,7 +4204,7 @@ multiplying the old size with that factor.  Default is 1.5.\n\
 Resize the hash table when ratio of the number of entries in the table.\n\
 Default is 0.8.\n\
 \n\
-:WEAK WEAK -- WEAK must be one of nil, t, `key', or `value'.\n\
+:WEAKNESS WEAK -- WEAK must be one of nil, t, `key', or `value'.\n\
 If WEAK is not nil, the table returned is a weak table.  Key/value\n\
 pairs are removed from a weak hash table when their key, value or both\n\
 (WEAK t) are otherwise unreferenced.  Default is nil.")
@@ -4268,8 +4268,8 @@ pairs are removed from a weak hash table when their key, value or both\n\
 	     list2 (build_string ("Illegal hash table rehash threshold"),
 		    rehash_threshold));
   
-  /* Look for `:weak WEAK'.  */
-  i = get_key_arg (QCweak, nargs, args, used);
+  /* Look for `:weakness WEAK'.  */
+  i = get_key_arg (QCweakness, nargs, args, used);
   weak = i < 0 ? Qnil : args[i];
   if (!NILP (weak)
       && !EQ (weak, Qt)
@@ -4341,7 +4341,7 @@ Default is 0.8.")
   if (SYMBOLP (args[i])
       && !EQ (args[i], QCrehash_size)
       && !EQ (args[i], QCrehash_threshold)
-      && !EQ (args[i], QCweak))
+      && !EQ (args[i], QCweakness))
     {
       args2[j++] = QCtest;
       args2[j++] = args[i++];
@@ -4353,7 +4353,7 @@ Default is 0.8.")
       || EQ (args[i], Qkey)
       || EQ (args[i], Qvalue))
     {
-      args2[j++] = QCweak;
+      args2[j++] = QCweakness;
       args2[j++] = args[i++];
     }
 
@@ -4551,8 +4551,8 @@ syms_of_fns ()
   staticpro (&QCrehash_size);
   QCrehash_threshold = intern (":rehash-threshold");
   staticpro (&QCrehash_threshold);
-  QCweak = intern (":weak");
-  staticpro (&QCweak);
+  QCweakness = intern (":weakness");
+  staticpro (&QCweakness);
   Qkey = intern ("key");
   staticpro (&Qkey);
   Qvalue = intern ("value");
