@@ -2703,6 +2703,10 @@ This removes only images that were put into @var{buffer} the way
 display them again more efficiently.  It removes an image from the cache
 when it hasn't been displayed for a specified period of time.
 
+When an image is looked up in the cache, its specification is compared
+with cached image specifications using @code{equal}.  This means that
+all images with equal specifications share the same image in the cache.
+
 @defvar image-cache-eviction-delay
 @tindex image-cache-eviction-delay
 This variable specifies the number of seconds an image can remain in the
