@@ -1,5 +1,17 @@
 2003-01-12  Kim F. Storm  <storm@cua.dk>
 
+	* process.h (struct Lisp_Process): New member private_vars.
+
+	* process.c: (QCvars): New variable.
+	(syms_of_process): Intern and staticpro it.
+	(Fprocess_variable, Fset_process_variable): New functions.
+	(syms_of_process): Defsubr them.
+	(Fstart_process): Initialize private_vars plist to nil.
+	(Fmake_network_process): New arg :vars to setup the private
+	variables for new network process.
+	(server_accept_connection): Copy server's private variables to
+	client process.
+
 	* alloc.c (pure_alloc): Fixed 2003-01-10 changed (caused spurious
 	crashes).  Code rewritten and simplified.  Now directly aligns the
 	pointer and recalculates pure_bytes_used, rather than aligning the
