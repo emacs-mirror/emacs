@@ -1147,8 +1147,8 @@ make_menubar (widget_instance* instance)
 static void
 remove_grabs (Widget shell, XtPointer closure, XtPointer call_data)
 {
-  XmRowColumnWidget menu = (XmRowColumnWidget) closure;
-  XmRemoveFromPostFromList (menu, XtParent (XtParent ((Widget) menu)));
+  Widget menu = (Widget) closure;
+  XmRemoveFromPostFromList (menu, XtParent (XtParent (menu)));
 }
 
 static Widget
