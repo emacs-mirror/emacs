@@ -22,10 +22,6 @@ Boston, MA 02111-1307, USA.  */
 #ifndef _FONTSET_H
 #define _FONTSET_H
 
-/* 
-
-#define GENERIC_FONT_PTR void
-
 /* This data type is used for the font_table field of window system
    depending data area (e.g. struct x_display_info on X window).  */
 
