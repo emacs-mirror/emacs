@@ -579,7 +579,10 @@ to jump to the corresponding spot in the Texinfo source file."
 
 ;;; The  tex  and  print  function definitions:
 
-(defvar texinfo-tex-command "texi2dvi"
+(defvar texinfo-texi2dvi-command "texi2dvi"
+  "*Command used by `texinfo-tex-buffer' to run TeX and texindex on a buffer.")
+
+(defvar texinfo-tex-command "tex"
   "*Command used by `texinfo-tex-region' to run TeX on a region.")
 
 (defvar texinfo-texindex-command "texindex"
@@ -698,7 +701,7 @@ The value of `texinfo-tex-trailer' is appended to the temporary file after the r
 		       " " (file-name-directory tex-zap-file) "\n"))
 
   (send-string "tex-shell"
-	       (concat texinfo-tex-command " " tex-zap-file "\n"))
+	       (concat texinfo-texi2dvi-command " " tex-zap-file "\n"))
 
   (tex-recenter-output-buffer 0))
 
@@ -732,12 +735,12 @@ This runs the shell command defined by `tex-dvi-print-command'."
     (set-buffer (get-buffer "*tex-shell*"))
     (goto-char (point-max))
     (insert "x")
-    (shell-send-input)))
+    (comint-send-input)))
 
 (defun texinfo-delete-from-print-queue (job-number)
   "Delete job from the line printer spooling queue.
 You are prompted for the job number (use a number shown by a previous
-\\[texinfo-show-tex-print-queue] command)."
+\\[texinfo-show-print-queue] command)."
   (interactive "nPrinter job number for deletion: ")
   (require 'tex-mode)
   (if (tex-shell-running)
