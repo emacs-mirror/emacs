@@ -148,12 +148,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef HAVE_CRTN
 /* Must define START-FILES so that the linker can find /usr/lib/crt0.o.  */
 #define START_FILES pre-crt0.o /usr/lib/crt1.o
-#define LIB_STANDARD -lbsd -lc /usr/lib/crtn.o
+#define LIB_STANDARD -lc /usr/lib/crtn.o
 #else
 #define START_FILES pre-crt0.o /usr/lib/crt0.o
 /* The entry-point label (start of text segment) is `start', not `__start'.  */
 #define DEFAULT_ENTRY_ADDRESS start
-#define LIB_STANDARD -lbsd -lc
+#define LIB_STANDARD -lc
 #endif
 
 /* Use terminfo instead of termcap.  */
