@@ -47,7 +47,6 @@
 ;; - re-enable (conditionally) the `compile' support after improving it to use
 ;;   the same code as diff-goto-source.
 ;; - Support for # comments in context->unified.
-;; - Do a fuzzy search in diff-goto-source.
 ;; - Allow diff.el to use diff-mode.
 ;;   This mostly means ability to jump from half-hunk to half-hunk
 ;;   in context (and normal) diffs and to jump to the corresponding
@@ -77,7 +76,6 @@
 (defcustom diff-jump-to-old-file nil
   "*Non-nil means `diff-goto-source' jumps to the old file.
 Else, it jumps to the new file."
-  :group 'diff-mode
   :type '(boolean))
 
 (defcustom diff-update-on-the-fly t
@@ -87,12 +85,10 @@ need to be kept consistent with the actual diff.  This can
 either be done on the fly (but this sometimes interacts poorly with the
 undo mechanism) or whenever the file is written (can be slow
 when editing big diffs)."
-  :group 'diff-mode
   :type '(boolean))
 
 (defcustom diff-advance-after-apply-hunk t
   "*Non-nil means `diff-apply-hunk' will move to the next hunk after applying."
-  :group 'diff-mode
   :type 'boolean)
 
 
@@ -164,7 +160,6 @@ when editing big diffs)."
 
 (defcustom diff-minor-mode-prefix "\C-c="
   "Prefix key for `diff-minor-mode' commands."
-  :group 'diff-mode
   :type '(choice (string "\e") (string "C-c=") string))
 
 (easy-mmode-defmap diff-minor-mode-map
@@ -186,8 +181,7 @@ when editing big diffs)."
     (((class color) (background dark))
      (:background "grey45"))
     (t (:bold t)))
-  "`diff-mode' face inherited by hunk and index header faces."
-  :group 'diff-mode)
+  "`diff-mode' face inherited by hunk and index header faces.")
 (defvar diff-header-face 'diff-header-face)
 
 (defface diff-file-header-face
@@ -200,32 +194,27 @@ when editing big diffs)."
     (((class color) (background dark))
      (:background "grey60" :bold t))
     (t (:bold t)))			; :height 1.3
-  "`diff-mode' face used to highlight file header lines."
-  :group 'diff-mode)
+  "`diff-mode' face used to highlight file header lines.")
 (defvar diff-file-header-face 'diff-file-header-face)
 
 (defface diff-index-face
   '((t (:inherit diff-file-header-face)))
-  "`diff-mode' face used to highlight index header lines."
-  :group 'diff-mode)
+  "`diff-mode' face used to highlight index header lines.")
 (defvar diff-index-face 'diff-index-face)
 
 (defface diff-hunk-header-face
   '((t (:inherit diff-header-face)))
-  "`diff-mode' face used to highlight hunk header lines."
-  :group 'diff-mode)
+  "`diff-mode' face used to highlight hunk header lines.")
 (defvar diff-hunk-header-face 'diff-hunk-header-face)
 
 (defface diff-removed-face
   '((t (:inherit diff-changed-face)))
-  "`diff-mode' face used to highlight removed lines."
-  :group 'diff-mode)
+  "`diff-mode' face used to highlight removed lines.")
 (defvar diff-removed-face 'diff-removed-face)
 
 (defface diff-added-face
   '((t (:inherit diff-changed-face)))
-  "`diff-mode' face used to highlight added lines."
-  :group 'diff-mode)
+  "`diff-mode' face used to highlight added lines.")
 (defvar diff-added-face 'diff-added-face)
 
 (defface diff-changed-face
@@ -234,14 +223,12 @@ when editing big diffs)."
     (((type tty pc) (class color) (background dark))
      (:foreground "yellow" :bold t :italic t))
     (t ()))
-  "`diff-mode' face used to highlight changed lines."
-  :group 'diff-mode)
+  "`diff-mode' face used to highlight changed lines.")
 (defvar diff-changed-face 'diff-changed-face)
 
 (defface diff-function-face
   '((t (:inherit diff-context-face)))
-  "`diff-mode' face used to highlight function names produced by \"diff -p\"."
-  :group 'diff-mode)
+  "`diff-mode' face used to highlight function names produced by \"diff -p\".")
 (defvar diff-function-face 'diff-function-face)
 
 (defface diff-context-face
@@ -250,14 +237,12 @@ when editing big diffs)."
     (((class color) (background dark))
      (:foreground "grey70"))
     (t ))
-  "`diff-mode' face used to highlight context and other side-information."
-  :group 'diff-mode)
+  "`diff-mode' face used to highlight context and other side-information.")
 (defvar diff-context-face 'diff-context-face)
 
 (defface diff-nonexistent-face
   '((t (:inherit diff-file-header-face)))
-  "`diff-mode' face used to highlight nonexistent files in recursive diffs."
-  :group 'diff-mode)
+  "`diff-mode' face used to highlight nonexistent files in recursive diffs.")
 (defvar diff-nonexistent-face 'diff-nonexistent-face)
 
 (defvar diff-font-lock-keywords
@@ -313,7 +298,9 @@ when editing big diffs)."
 (defun diff-end-of-hunk (&optional style)
   (if (looking-at diff-hunk-header-re) (goto-char (match-end 0)))
   (let ((end (and (re-search-forward (case style
-				       (unified "^[^-+# \\]")
+				       ;; A `unified' header is ambiguous.
+				       (unified (concat "^[^-+# \\]\\|"
+							diff-file-header-re))
 				       (context "^[^-+#! \\]")
 				       (normal "^[^<>#\\]")
 				       (t "^[^-+#!<> \\]"))
@@ -365,20 +352,17 @@ If the prefix ARG is given, restrict the view to the current file instead."
   "Kill current hunk."
   (interactive)
   (diff-beginning-of-hunk)
-  (let ((start (point))
-	(firsthunk (save-excursion
-		     (ignore-errors
-		       (diff-beginning-of-file) (diff-hunk-next) (point))))
-	(nexthunk  (save-excursion
-		     (ignore-errors
-		       (diff-hunk-next) (point))))
-	(nextfile (save-excursion
-		    (ignore-errors
-		      (diff-file-next) (point)))))
+  (let* ((start (point))
+	 (nexthunk (ignore-errors (diff-hunk-next) (point)))
+	 (firsthunk (ignore-errors
+		      (goto-char start)
+		      (diff-beginning-of-file) (diff-hunk-next) (point)))
+	 (nextfile (ignore-errors (diff-file-next) (point))))
+    (goto-char start)
     (if (and firsthunk (= firsthunk start)
 	     (or (null nexthunk)
 		 (and nextfile (> nexthunk nextfile))))
-	;; we're the only hunk for this file, so kill the file
+	;; It's the only hunk for this file, so kill the file.
 	(diff-file-kill)
       (diff-end-of-hunk)
       (kill-region start (point)))))
@@ -849,15 +833,24 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
     (ignore-errors
       (save-excursion
 	(goto-char (car diff-unhandled-changes))
-	(unless (ignore-errors
-		  (diff-beginning-of-hunk)
-		  (save-excursion
-		    (diff-end-of-hunk)
-		    (> (point) (car diff-unhandled-changes))))
-	  (goto-char (car diff-unhandled-changes))
-	  (re-search-forward diff-hunk-header-re (cdr diff-unhandled-changes))
-	  (diff-beginning-of-hunk))
-	(diff-fixup-modifs (point) (cdr diff-unhandled-changes))))
+	;; We used to fixup modifs on all the changes, but it turns out
+	;; that it's safer not to do it on big changes, for example
+	;; when yanking a big diff, since we might then screw up perfectly
+	;; correct values.  -stef
+	;; (unless (ignore-errors
+	;; 	  (diff-beginning-of-hunk)
+	;; 	  (save-excursion
+	;; 	    (diff-end-of-hunk)
+	;; 	    (> (point) (car diff-unhandled-changes))))
+	;;   (goto-char (car diff-unhandled-changes))
+	;; (re-search-forward diff-hunk-header-re (cdr diff-unhandled-changes))
+	;;   (diff-beginning-of-hunk))
+	;; (diff-fixup-modifs (point) (cdr diff-unhandled-changes))
+	(diff-beginning-of-hunk)
+	(when (save-excursion
+		(diff-end-of-hunk)
+		(> (point) (cdr diff-unhandled-changes)))
+	  (diff-fixup-modifs (point) (cdr diff-unhandled-changes)))))
     (setq diff-unhandled-changes nil)))
 
 ;;;; 
@@ -941,12 +934,11 @@ Only works for unified diffs."
 			      nil t)
 	   (equal (match-string 1) (match-string 2)))))
 
-(defun diff-hunk-text (hunk destp &optional char-offset)
-  "Return the literal source text from HUNK.
-if DESTP is nil return the source, otherwise the destination text.
-If CHAR-OFFSET is non-nil, it should be a char-offset in
-HUNK, and instead of a string, a cons cell is returned whose car is the
-appropriate text, and whose cdr is the corresponding char-offset in that text."
+(defun diff-hunk-text (hunk destp char-offset)
+  "Return the literal source text from HUNK as (TEXT . OFFSET).
+if DESTP is nil TEXT is the source, otherwise the destination text.
+CHAR-OFFSET is a char-offset in HUNK, and OFFSET is the corresponding
+char-offset in TEXT."
   (with-temp-buffer
     (insert hunk)
     (goto-char (point-min))
@@ -1025,23 +1017,47 @@ appropriate text, and whose cdr is the corresponding char-offset in that text."
 
 
 (defun diff-find-text (text)
-  "Return the buffer position of the nearest occurrence of TEXT.
+  "Return the buffer position (BEG . END) of the nearest occurrence of TEXT.
 If TEXT isn't found, nil is returned."
   (let* ((orig (point))
 	 (forw (and (search-forward text nil t)
-			  (match-beginning 0)))
+		    (cons (match-beginning 0) (match-end 0))))
 	 (back (and (goto-char (+ orig (length text)))
 		    (search-backward text nil t)
-			  (match-beginning 0))))
-	  ;; Choose the closest match.
+		    (cons (match-beginning 0) (match-end 0)))))
+    ;; Choose the closest match.
     (if (and forw back)
-	(if (> (- forw orig) (- orig back)) back forw)
+	(if (> (- (car forw) orig) (- orig (car back))) back forw)
+      (or back forw))))
+
+(defun diff-find-approx-text (text)
+  "Return the buffer position (BEG . END) of the nearest occurrence of TEXT.
+Whitespace differences are ignored."
+  (let* ((orig (point))
+	 (re (concat "^[ \t\n]*"
+		     (mapconcat 'regexp-quote (split-string text) "[ \t\n]+")
+		     "[ \t\n]*\n"))
+	 (forw (and (re-search-forward re nil t)
+		    (cons (match-beginning 0) (match-end 0))))
+	 (back (and (goto-char (+ orig (length text)))
+		    (re-search-backward re nil t)
+		    (cons (match-beginning 0) (match-end 0)))))
+    ;; Choose the closest match.
+    (if (and forw back)
+	(if (> (- (car forw) orig) (- orig (car back))) back forw)
       (or back forw))))
 
 (defsubst diff-xor (a b) (if a (not b) b))
 
 (defun diff-find-source-location (&optional other-file reverse)
-  "Find out (BUF LINE-OFFSET POS SRC DST SWITCHED)."
+  "Find out (BUF LINE-OFFSET POS SRC DST SWITCHED).
+BUF is the buffer corresponding to the source file.
+LINE-OFFSET is the offset between the expected and actual positions
+  of the text of the hunk or nil if the text was not found.
+POS is a pair (BEG . END) indicating the position of the text in the buffer.
+SRC and DST are the two variants of text as returned by `diff-hunk-text'.
+  SRC is the variant that was found in the buffer.
+SWITCHED is non-nil if the patch is already applied."
   (save-excursion
     (let* ((other (diff-xor other-file diff-jump-to-old-file))
 	   (char-offset (- (point) (progn (diff-beginning-of-hunk) (point))))
@@ -1065,13 +1081,19 @@ If TEXT isn't found, nil is returned."
       (with-current-buffer buf
 	(goto-line (string-to-number line))
 	(let* ((orig-pos (point))
-	       (pos (diff-find-text (car old)))
-	       (switched nil))
-	  (when (null pos)
-	    (setq pos (diff-find-text (car new)) switched t))
+	       (switched nil)
+	       (pos (or (diff-find-text (car old))
+			(progn (setq switched t) (diff-find-text (car new)))
+			(progn (setq switched nil)
+			       (diff-find-approx-text (car old)))
+			(progn (setq switched t)
+			       (diff-find-approx-text (car new)))
+			(progn (setq switched nil) nil))))
 	  (nconc
 	   (list buf)
-	   (if pos (list (count-lines orig-pos pos) pos) (list nil orig-pos))
+	   (if pos
+	       (list (count-lines orig-pos (car pos)) pos)
+	     (list nil (cons orig-pos (+ orig-pos (length (car old))))))
 	   (if switched (list new old t) (list old new))))))))
 
 
@@ -1104,7 +1126,7 @@ With a prefix argument, REVERSE the hunk."
 	   ;; A reversed patch was detected, perhaps apply it in reverse.
 	   (not (save-window-excursion
 		  (pop-to-buffer buf)
-		  (goto-char (+ pos (cdr old)))
+		  (goto-char (+ (car pos) (cdr old)))
 		  (y-or-n-p
 		   (if reverse
 		       "Hunk hasn't been applied yet; apply it now? "
@@ -1113,11 +1135,11 @@ With a prefix argument, REVERSE the hunk."
      (t
       ;; Apply the hunk
       (with-current-buffer buf
-	(goto-char pos)
-	(delete-char (length (car old)))
+	(goto-char (car pos))
+	(delete-region (car pos) (cdr pos))
 	(insert (car new)))
       ;; Display BUF in a window
-      (set-window-point (display-buffer buf) (+ pos (cdr new)))
+      (set-window-point (display-buffer buf) (+ (car pos) (cdr new)))
       (diff-hunk-status-msg line-offset (diff-xor switched reverse) nil)
       (when diff-advance-after-apply-hunk
 	(diff-hunk-next))))))
@@ -1129,7 +1151,7 @@ With a prefix argument, try to REVERSE the hunk."
   (interactive "P")
   (destructuring-bind (buf line-offset pos src dst &optional switched)
       (diff-find-source-location nil reverse)
-    (set-window-point (display-buffer buf) (+ pos (cdr src)))
+    (set-window-point (display-buffer buf) (+ (car pos) (cdr src)))
     (diff-hunk-status-msg line-offset (diff-xor reverse switched) t)))
 
 
@@ -1147,7 +1169,7 @@ If the prefix arg is bigger than 8 (for example with \\[universal-argument] \\[u
     (destructuring-bind (buf line-offset pos src dst &optional switched)
 	(diff-find-source-location other-file rev)
       (pop-to-buffer buf)
-      (goto-char (+ pos (cdr src)))
+      (goto-char (+ (car pos) (cdr src)))
       (diff-hunk-status-msg line-offset (diff-xor rev switched) t))))
 
 
@@ -1170,7 +1192,7 @@ For use in `add-log-current-defun-function'."
 		(funcall (with-current-buffer buf major-mode))
 		(add-log-current-defun))))
 	  (with-current-buffer buf
-	    (goto-char (+ pos (cdr src)))
+	    (goto-char (+ (car pos) (cdr src)))
 	    (add-log-current-defun))))))
 
 ;; provide the package
