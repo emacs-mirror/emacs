@@ -101,7 +101,9 @@ when you run a version of Emacs without installing it.")
 These directories are not searched for merging the `dir' file.")
 
 (defvar Info-current-file nil
-  "Info file that Info is now looking at, or nil.")
+  "Info file that Info is now looking at, or nil.
+This is the name that was specified in Info, not the actual file name.
+It doesn't contain directory names or file name extensions added by Info.")
 
 (defvar Info-current-subfile nil
   "Info subfile that is actually in the *info* buffer now,
@@ -307,8 +309,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 					(match-end 0))))
 		      (set-marker Info-tag-table-marker pos))))
 	      (setq Info-current-file
-		    (if (eq filename t) "dir"
-		      (file-name-sans-versions buffer-file-name)))))
+		    (if (eq filename t) "dir" filename))))
 	;; Use string-equal, not equal, to ignore text props.
 	(if (string-equal nodename "*")
 	    (progn (setq Info-current-node nodename)
