@@ -8,7 +8,7 @@
 ;; Maintainer: FSF
 ;; Keywords: files
 
-(defconst recentf-version "$Revision: 1.24 $")
+(defconst recentf-version "$Revision: 1.25 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -98,7 +98,7 @@ Set VARIABLE with VALUE, and force a rebuild of the recentf menu."
 
 (defcustom recentf-menu-path '("files")
   "*Path where to add the recentf menu.
-If nil add it at top level (see also `easy-menu-change')."
+If nil add it at top level (see also `easy-menu-add-item')."
   :group 'recentf
   :type '(choice (const :tag "Top Level" nil)
                  (sexp :tag "Menu Path"))
@@ -106,7 +106,7 @@ If nil add it at top level (see also `easy-menu-change')."
 
 (defcustom recentf-menu-before "Open File..."
   "*Name of the menu before which the recentf menu will be added.
-If nil add it at end of menu (see also `easy-menu-change')."
+If nil add it at end of menu (see also `easy-menu-add-item')."
   :group 'recentf
   :type '(choice (string :tag "Name")
                  (const :tag "Last" nil))
@@ -520,10 +520,15 @@ menu-elements (no sub-menu)."
               :help (concat "Open " value)
               :active t))))
 
+(defsubst recentf-menu-bar ()
+  "Return the keymap of the global menu bar."
+  (lookup-key global-map [menu-bar]))
+
 (defun recentf-clear-data ()
   "Clear data used to build the recentf menu.
 This force a rebuild of the menu."
-  (easy-menu-remove-item nil recentf-menu-path recentf-menu-title)
+  (easy-menu-remove-item (recentf-menu-bar)
+                         recentf-menu-path recentf-menu-title)
   (setq recentf-data-cache nil))
 
 ;;; Predefined menu filters
@@ -916,10 +921,11 @@ That is, remove a non readable file from the recent list, if
     (unless (equal recentf-data-cache cache)
       (setq recentf-data-cache cache)
       (condition-case err
-          (easy-menu-change recentf-menu-path
-                            recentf-menu-title
-                            (recentf-make-menu-items)
-                            recentf-menu-before)
+          (easy-menu-add-item
+           (recentf-menu-bar) recentf-menu-path
+           (easy-menu-create-menu recentf-menu-title
+                                  (recentf-make-menu-items))
+           recentf-menu-before)
         (error
          (message "recentf update menu failed: %s"
                   (error-message-string err)))))))
