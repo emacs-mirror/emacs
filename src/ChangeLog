@@ -1,5 +1,11 @@
 2001-01-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* xselect.c (selection_request_dpyinfo): New variable.
+	(x_handle_selection_request): Set it.
+	(x_selection_request_lisp_error): Don't call
+	x_decline_selection_request if selection request's display has
+	been closed.
+
 	* xfaces.c (x_free_colors, x_free_dpy_colors) [DEBUG_X_COLORS]: Do
 	the unregister_colors before calling XFreeColors.
 

@@ -1,5 +1,8 @@
 2001-01-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* comint.el (comint-goto-process-mark): Don't print a message
+	when running in batch mode.
+
 	* isearch.el (isearch-search): In the condition-case handler for
 	`error', set isearch-invalid-regexp to the whole error message.
 
