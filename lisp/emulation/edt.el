@@ -390,7 +390,7 @@ The keys redefined by \\[edt-emulation-on] are given their old definitions."
   (define-key lisp-mode-map "\177" edt-mode-old-lisp-delete) ;"Delete"
   (global-set-key "\C-j" edt-mode-old-linefeed))           ;"LineFeed"
 
-(fset 'GOLD-prefix GOLD-map)
+(defalias 'GOLD-prefix GOLD-map)
 
 (defvar GOLD-map (make-keymap)
    "`GOLD-map' maps the function keys on the VT100 keyboard preceeded
