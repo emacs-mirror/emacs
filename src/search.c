@@ -2323,12 +2323,20 @@ since only regular expressions have distinguished subexpressions.  */)
 		      substart = search_regs.start[sub];
 		      subend = search_regs.end[sub];
 		    }
-		  else if (c >= '1' && c <= '9' && c <= search_regs.num_regs + '0')
+		  else if (c >= '1' && c <= '9')
 		    {
-		      if (search_regs.start[c - '0'] >= 0)
+		      if (search_regs.start[c - '0'] >= 0
+			  && c <= search_regs.num_regs + '0')
 			{
 			  substart = search_regs.start[c - '0'];
 			  subend = search_regs.end[c - '0'];
+			}
+		      else
+			{
+			  /* If that subexp did not match,
+			     replace \\N with nothing.  */
+			  substart = 0;
+			  subend = 0;
 			}
 		    }
 		  else if (c == '\\')
@@ -2507,8 +2515,16 @@ since only regular expressions have distinguished subexpressions.  */)
 	}
 
       if (really_changed)
-	newtext = make_string (substed, substed_len);
+	{
+	  if (buf_multibyte)
+	    {
+	      int nchars = multibyte_chars_in_text (substed, substed_len);
 
+	      newtext = make_multibyte_string (substed, nchars, substed_len);
+	    }
+	  else
+	    newtext = make_unibyte_string (substed, substed_len);
+	}
       xfree (substed);
     }
 
@@ -2900,3 +2916,6 @@ syms_of_search ()
   defsubr (&Sset_match_data);
   defsubr (&Sregexp_quote);
 }
+
+/* arch-tag: a6059d79-0552-4f14-a2cb-d379a4e3c78f
+   (do not change this comment) */
