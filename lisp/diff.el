@@ -95,54 +95,43 @@ and a backup file for NEW is the default for OLD."
 	old (expand-file-name old))
   (diff-internal-diff "diff" (append diff-switches (list new old)) nil))
 
-(defun diff-sccs (new)
-  "Find and display the differences between OLD and SCCS files."
-  (interactive
-   (let (newf)
-      (list
-       (setq newf (buffer-file-name)
-	     newf (if (and newf (file-exists-p newf))
-			  (read-file-name
-			   (concat "Diff new file: ("
-				   (file-name-nondirectory newf) ") ")
-			   nil newf t)
-			(read-file-name "Diff new file: " nil nil t))))))
+(defun diff-backup (file)
+  "Diff this file with its backup file or vice versa.
+Uses the latest backup, if there are several numerical backups.
+If this file is a backup, diff it with its original.
+The backup file is the first file given to `diff'."
+  (interactive "fDiff (file with backup): ")
+  (let (bak ori)
+    (if (backup-file-name-p file)
+	(setq bak file
+	      ori (file-name-sans-versions file))
+      (setq bak (or (diff-latest-backup-file file)
+		    (error "No backup found for %s" file))
+	    ori file))
+    (diff bak ori)))
 
-  (message "Comparing SCCS file %s..." new)
-  (setq new (expand-file-name new))
-  (if (file-exists-p (concat
-		      (file-name-directory new)
-		      "SCCS/s."
-		      (file-name-nondirectory new)))
-      (diff-internal-diff "sccs"
-			  (append '("diffs") diff-switches (list new))
-			  2)
-    (error "%s does not exist"
-	   (concat (file-name-directory new) "SCCS/s."
-		   (file-name-nondirectory new)))))
-
-(defun diff-rcs (new)
-  "Find and display the differences between OLD and RCS files."
-  (interactive
-   (let (newf)
-      (list
-       (setq newf (buffer-file-name)
-	     newf (if (and newf (file-exists-p newf))
-			  (read-file-name
-			   (concat "Diff new file: ("
-				   (file-name-nondirectory newf) ") ")
-			   nil newf t)
-			(read-file-name "Diff new file: " nil nil t))))))
-
-  (message "Comparing RCS file %s..." new)
-  (let* ((fullname (expand-file-name new))
-       (rcsfile (concat (file-name-directory fullname)
-                       "RCS/"
-                       (file-name-nondirectory fullname)
-                       diff-rcs-extension)))
-    (if (file-exists-p rcsfile)
-      (diff-internal-diff "rcsdiff" (append diff-switches (list fullname)) 4)
-      (error "%s does not exist" rcsfile))))
+(defun diff-latest-backup-file (fn)	; actually belongs into files.el
+  "Return the latest existing backup of FILE, or nil."
+  ;; First try simple backup, then the highest numbered of the
+  ;; numbered backups.
+  ;; Ignore the value of version-control because we look for existing
+  ;; backups, which maybe were made earlier or by another user with
+  ;; a different value of version-control.
+  (setq fn (expand-file-name fn))
+  (or
+   (let ((bak (make-backup-file-name fn)))
+     (if (file-exists-p bak) bak))
+   (let* ((dir (file-name-directory fn))
+	  (base-versions (concat (file-name-nondirectory fn) ".~"))
+	  (bv-length (length base-versions)))
+     (concat dir
+	     (car (sort
+		   (file-name-all-completions base-versions dir)
+		   ;; bv-length is a fluid var for backup-extract-version:
+		   (function
+		    (lambda (fn1 fn2)
+		      (> (backup-extract-version fn1)
+			 (backup-extract-version fn2))))))))))
 
 (defun diff-internal-diff (diff-command sw strip)
   (let ((buffer-read-only nil))
