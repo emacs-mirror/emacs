@@ -424,8 +424,8 @@ individual postings from, but pretty much everything is there.
 
 The archive is at @uref{ftp://ftp-mailing-list-archives.gnu.org}.
 
-A web-based interface to the mail archives is available at
-@uref{http://mail.gnu.org/archive/html/}.
+The archive can be browsed over the web at 
+@uref{http://mail.gnu.org/archive/html/, the GNU mail archive}.
 
 Web-based Usenet search services, such as
 @uref{http://groups.google.com, Google}, also archive the
@@ -1216,6 +1216,7 @@ and on @code{xterm} with @kbd{emacs -nw}.
 @node Setting up a customization file, Colors on a TTY, Common requests, Common requests
 @section How do I set up a @file{.emacs} file properly?
 @cindex @file{.emacs} file, setting up
+@cindex @file{.emacs} file, locating
 @cindex Init file, setting up
 @cindex Customization file, setting up
 
@@ -1676,7 +1677,7 @@ The alpha version of an enhanced @samp{gnuserv} is available at
 @uref{ftp://ftp.wellfleet.com/netman/psmith/emacs/gnuserv-2.1alpha.tar.gz}
 
 The version available from @uref{http://meltin.net/hacks/emacs/} is
-more recent, and has been tested under Emacs 21.2.
+more recent, and has been tested with Emacs 21.2.
 
 @end itemize
 
@@ -3539,20 +3540,22 @@ see @ref{Packages that do not come with Emacs}.
 @cindex Finding other packages
 @cindex Lisp packages that do not come with Emacs
 @cindex Packages, those that do not come with Emacs
+@cindex Emacs Lisp List
+@cindex Emacs Lisp Archive
 
-The Emacs Lisp List (ELL),
-@uref{http://www.anc.ed.ac.uk/~stephen/emacs/ell.html}, maintained by
-@email{stephen@@anc.ed.ac.uk, Stephen Eglen}, aims to provide one
-compact list with links to all of the current Emacs lisp files on the
-internet.  The ELL can be browsed over the web, or from Emacs using the
-@file{ell} package, @uref{http://www.anc.ed.ac.uk/~stephen/emacs/ell.el}.
+@uref{http://www.anc.ed.ac.uk/~stephen/emacs/ell.html, The Emacs Lisp
+List (ELL)}, maintained by @email{stephen@@anc.ed.ac.uk, Stephen Eglen},
+aims to provide one compact list with links to all of the current Emacs
+lisp files on the internet.  The ELL can be browsed over the web, or
+from Emacs with @uref{http://www.anc.ed.ac.uk/~stephen/emacs/ell.el, 
+the @file{ell} package}.
 
-Many authors post their packages to the newsgroup
-@uref{news:gnu.emacs.sources}.  You can search the archives of this
+Many authors post their packages to the @uref{news:gnu.emacs.sources,
+Emacs sources newsgroup}.  You can search the archives of this
 group with @uref{http://groups.google.com, Google}, for example.
 
-Several packages are stored in the Lisp area of the Emacs Wiki,
-@uref{http://emacswiki.org/elisp/}.
+Several packages are stored in
+@uref{http://emacswiki.org/elisp/, the Lisp area of the Emacs Wiki}.
 
 For a long time, the Emacs Lisp Archive provided a central repository
 for Emacs packages.  Sadly, it has not been active for some time,
@@ -3830,8 +3833,8 @@ To get additional modes, see @ref{Finding a package with particular
 functionality}.  
 
 Barry Warsaw's @code{cc-mode} now works for C, C@t{++}, Objective-C, and
-Java code.  It is distributed with Emacs, but has its own homepage at
-@uref{http://cc-mode.sourceforge.net/}.
+Java code.  It is distributed with Emacs, but has
+@uref{http://cc-mode.sourceforge.net/, its own homepage}.
 
 @node Translating names to IP addresses,  , Modes for various languages, Finding Emacs and related packages
 @section What is the IP address of XXX.YYY.ZZZ?
@@ -5431,12 +5434,10 @@ most folks as that update propagates around.
 @section Where can I find out more about Gnus?
 @cindex FAQ for Gnus
 @cindex Gnus FAQ
-@cindex Learning more about GNU
+@cindex Learning more about Gnus
 
-Look for the Gnus FAQ, available (along with a great deal of information
-and tips) at
-  
-@uref{http://my.gnus.org/}
+The @uref{http://my.gnus.org, my.gnus.org} site hosts the Gnus FAQ,
+along with a great deal of Gnus information and tips.
 
 @node Concept index,  , Mail and news, Top
 @unnumbered Concept Index
