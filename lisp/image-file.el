@@ -38,15 +38,15 @@
 
 ;;;###autoload
 (defcustom image-file-name-extensions
-  '("png" "jpeg" "jpg" "gif" "tiff" "tif" "xbm" "xpm" "pbm" "pgm" "ppm")
+  '("png" "jpeg" "jpg" "gif" "tiff" "tif" "xbm" "xpm" "pbm" "pgm" "ppm" "pnm")
   "*A list of image-file filename extensions.
 Filenames having one of these extensions are considered image files,
 in addition to those matching `image-file-name-regexps'.
 
 See `auto-image-file-mode'; if `auto-image-file-mode' is enabled,
 setting this variable directly does not take effect unless
-`auto-image-file-mode' is re-enabled; this happens automatically the
-variable is set using \\[customize]."
+`auto-image-file-mode' is re-enabled; this happens automatically when
+the variable is set using \\[customize]."
   :type '(repeat string)
   :set (lambda (sym val)
 	 (set-default sym val)
@@ -64,8 +64,8 @@ in addition to those with an extension in `image-file-name-extensions'.
 
 See function `auto-image-file-mode'; if `auto-image-file-mode' is
 enabled, setting this variable directly does not take effect unless
-`auto-image-file-mode' is re-enabled; this happens automatically the
-variable is set using \\[customize]."
+`auto-image-file-mode' is re-enabled; this happens automatically when
+the variable is set using \\[customize]."
   :type '(repeat regexp)
   :set (lambda (sym val)
 	 (set-default sym val)
