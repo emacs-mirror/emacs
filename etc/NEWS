@@ -1396,6 +1396,10 @@ controls whether or not the function `make-auto-save-file-name' will
 attempt to construct a unique auto-save name (e.g. for remote files).
 
 +++
+** There is a new calendar package, icalendar.el, that can be used to
+convert Emacs diary entries to/from the iCalendar format.
+
++++
 ** Diary sexp entries can have custom marking in the calendar.
 Diary sexp functions which only apply to certain days (such as
 `diary-block' or `diary-cyclic') now take an optional parameter MARK,

@@ -1,3 +1,7 @@
+2004-10-05  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el: New file.
+
 2004-10-05  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-done): Set mark after running hook.
