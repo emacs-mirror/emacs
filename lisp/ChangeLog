@@ -1,3 +1,8 @@
+2001-11-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* international/mule.el (make-translation-table): Doc fix.
+	Suggested by Alex Schroeder <alex@gnu.org>.
+
 2001-11-07  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* cus-edit.el (custom-face-value-create): Don't ignore the
