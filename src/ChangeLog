@@ -1,3 +1,8 @@
+2000-10-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keymap.c (Fwhere_is_internal): Ignore `menu-bar' and `tool-bar'.
+	(where_is_internal_1): Don't bother ignoring menu-items any more.
+
 2000-10-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (update_menu_bindings): New variable.
