@@ -1,6 +1,6 @@
 ;;; bg-mouse.el --- GNU Emacs code for BBN Bitgraph mouse
 
-;; Copyright (C) Free Software Foundation, Inc. Oct 1985.
+;; Copyright (C) 2001 Free Software Foundation, Inc. Oct 1985.
 
 ;; Author: John Robinson <jr@bbn-unix.arpa>
 ;;	Stephen Gildea <gildea@bbn.com>
@@ -255,7 +255,8 @@ X and Y are 0-based character positions in the window."
 (defun bg-window-from-x-y (x y)
   "Find window corresponding to screen coordinates.
 X and Y are 0-based character positions on the screen."
-  (some-window (lambda (w) (coordinates-in-window-p (cons x y) w))))
+  (get-window-with-predicate (lambda (w) 
+			       (coordinates-in-window-p (cons x y) w))))
 
 (defun bg-command-execute (bg-command)
   (if (commandp bg-command)
