@@ -2,6 +2,8 @@
 
 	* play/pong.el (pong-height): Don't use height that exceeds the
 	frame height.
+	(pong-border-options): Make the border colors slightly more
+	bright.
 
 	* play/gamegrid.el (gamegrid-display-type): Treat any
 	color-capable display as color-x, if display-color-p is fboundp.

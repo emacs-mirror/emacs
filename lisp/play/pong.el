@@ -156,7 +156,11 @@
      (t ?\+))
     ((color-x color-x)
      (mono-x grid-x))
-    (((glyph color-x) [0.5 0.5 0.5])
+    ;; The colors used to be [0.5 0.5 0.5], but that produces a black
+    ;; color on 8-color tty's, which would make the border invisible.
+    ;; 0.51 produces white on such tty's, and at the same time has
+    ;; almost no effect on X and similar displays.
+    (((glyph color-x) [0.51 0.51 0.51])
      (color-tty pong-border-color))))
 
 (defconst pong-blank	0)
