@@ -2005,7 +2005,11 @@ To kill a whole line, when point is not at the beginning, type \
 If `kill-whole-line' is non-nil, then this command kills the whole line
 including its terminating newline, when used at the beginning of a line
 with no argument.  As a consequence, you can always kill a whole line
-by typing \\[beginning-of-line] \\[kill-line]."
+by typing \\[beginning-of-line] \\[kill-line].
+
+If the buffer is read-only, Emacs will beep and refrain from deleting
+the line, but put the line in the kill ring anyway.  This means that
+you can use this command to copy text from a read-only buffer."
   (interactive "P")
   (kill-region (point)
 	       ;; It is better to move point to the other end of the kill
