@@ -63,15 +63,11 @@ static struct sigaction sigNext;
 
 static void sigHandle(int sig, siginfo_t *info, void *context)  /* .sigh.args */
 {
-  ucontext_t *ucontext = (ucontext_t *)context;
   AVER(sig == SIGBUS);
 
   if(info->si_code == BUS_PAGE_FAULT) {  /* .sigh.context */
     AccessSet mode;
     Addr base, limit;
-    MutatorFaultContextStruct mfContext;
-
-    mfContext.ucontext = ucontext;
 
     mode = AccessREAD | AccessWRITE; /* .sigh.mode */
 
@@ -81,7 +77,7 @@ static void sigHandle(int sig, siginfo_t *info, void *context)  /* .sigh.args */
 
     /* Offer each protection structure the opportunity to handle the */
     /* exception.  If it succeeds, then allow the mutator to continue. */
-    if(ArenaAccess(base, mode, &mfContext))
+    if(ArenaAccess(base, mode, NULL))
       return;
   }
 
@@ -104,8 +100,11 @@ static void sigHandle(int sig, siginfo_t *info, void *context)  /* .sigh.args */
       (*sigNext.sa_sigaction)(sig, info, context);
     } else {
       /* @@@@ what if the previous handler is BSD-style? */
-        /* We don't have a struct sigcontext to pass to it. */
-      (*sigNext.sa_handler)(sig, info->si_code);
+        /* We don't have a struct sigcontext to pass to it.
+           The second argument (the code) is just info->si_code
+           but the third argument (the sigcontext) we would have to
+           fake from the ucontext.  We could do that. */
+      (*sigNext.sa_handler)(sig);
     }
     break;
   }

@@ -58,7 +58,7 @@ typedef struct ThreadStruct {    /* PThreads thread structure */
   RingStruct arenaRing;          /* threads attached to arena */
   PThreadextStruct thrextStruct; /* PThreads extension */
   pthread_t id;                  /* Pthread object of thread */
-  MutatorFaultContextStruct mfc; /* Context if thread is suspended */
+  MutatorFaultContext mfc;       /* Context if thread is suspended */
 } ThreadStruct;
 
 
@@ -106,7 +106,7 @@ Res ThreadRegister(Thread *threadReturn, Arena arena)
   thread->serial = arena->threadSerial;
   ++arena->threadSerial;
   thread->arena = arena;
-  thread->scpSusp = NULL;
+  thread->mfc = NULL;
 
   PThreadextInit(&thread->thrextStruct, thread->id);
 
@@ -169,9 +169,9 @@ static void threadSuspend(Thread thread)
   /* assume the thread has been destroyed. */
   /* In which case we simply continue. */
   Res res;
-  res = PThreadextSuspend(&thread->thrextStruct, &thread->scpSusp);
+  res = PThreadextSuspend(&thread->thrextStruct, &thread->mfc);
   if(res != ResOK)
-    thread->scpSusp = NULL;
+    thread->mfc = NULL;
 }
 
 
@@ -188,13 +188,13 @@ void ThreadRingSuspend(Ring threadRing)
 static void threadResume(Thread thread)
 {
   /* .error.resume */
-  /* If the previous suspend failed (thread->scpSusp == NULL), */
+  /* If the previous suspend failed (thread->mfc == NULL), */
   /* or in the error case (PThreadextResume returning ResFAIL), */
   /* assume the thread has been destroyed. */
   /* In which case we simply continue. */
-  if(thread->scpSusp != NULL) {
+  if(thread->mfc != NULL) {
     (void)PThreadextResume(&thread->thrextStruct);
-    thread->scpSusp = NULL;
+    thread->mfc = NULL;
   }
 }
 
@@ -243,18 +243,18 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
     if(res != ResOK)
       return res;
   } else {
-    struct sigcontext *scp;
+    MutatorFaultContext mfc;
     Addr *stackBase, *stackLimit, stackPtr;
 
-    scp = thread->scpSusp;
-    if(scp == NULL) {
+    mfc = thread->mfc;
+    if(mfc == NULL) {
       /* .error.suspend */
       /* We assume that the thread must have been destroyed. */
       /* We ignore the situation by returning immediately. */
       return ResOK;
     }
 
-    stackPtr  = (Addr)scp->esp;   /* .i3.sp */
+    stackPtr  = (Addr)mfc->ucontext->uc_mcontext.mc_esp;   /* .i3.sp */
     /* .stack.align */
     stackBase  = (Addr *)AddrAlignUp(stackPtr, sizeof(Addr));
     stackLimit = (Addr *)stackBot;
@@ -273,8 +273,8 @@ Res ThreadScan(ScanState ss, Thread thread, void *stackBot)
      * unecessarily scans the rest of the context.  The optimisation
      * to scan only relevent parts would be machine dependent.
      */
-    res = TraceScanAreaTagged(ss, (Addr *)scp,
-           (Addr *)((char *)scp + sizeof(*scp)));
+    res = TraceScanAreaTagged(ss, (Addr *)mfc->ucontext,
+           (Addr *)((char *)mfc->ucontext + sizeof(*(mfc->ucontext))));
     if(res != ResOK)
       return res;
   }
