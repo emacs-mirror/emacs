@@ -1660,6 +1660,32 @@ The return value of @code{map-y-or-n-p} is the number of objects acted on.
   To read a password to pass to another program, you can use the
 function @code{read-passwd}.
 
+@cindex password cache
+  Passwords are sometimes needed several times throughout an Emacs
+session.  Then it can be useful to avoid having to ask for a password
+more than once.  Passwords are entered into the password cache using
+the function @code{password-cache-add}.  To read a password, possibly
+retrieving the password from the cache without querying the user, you
+can use the function @code{password-read}.  The two calls can be
+combined into the function @code{password-read-and-add} that read a
+password and store it in the cache.
+
+  Typically users do not use the same password for all services.  The
+password cache mechanism use a @samp{key} string to differentiate
+among the passwords.  The @samp{key} string is typically a fixed
+string chosen to be related to what the password is used for.  For
+example, a password used when connecting to a @acronym{IMAP} mail
+server called @samp{mail.example.org}, could use a @samp{key} string
+of @samp{imap:mail.example.org}.  You can use any string, as long as
+it is reasonably unique.
+
+@cindex password expiry
+Passwords in the cache typically expire after a while (controlled by
+the variable @code{password-cache-expiry}), but you can force removal
+of a password using the function @code{password-cache-remove}.  This
+is useful when there is a problem with the password, to avoid using
+the same incorrect password from the cache in the future.
+
 @defun read-passwd prompt &optional confirm default
 This function reads a password, prompting with @var{prompt}.  It does
 not echo the password as the user types it; instead, it echoes @samp{.}
@@ -1674,6 +1700,41 @@ The optional argument @var{default} specifies the default password to
 return if the user enters empty input.  If @var{default} is @code{nil},
 then @code{read-passwd} returns the null string in that case.
 @end defun
+
+@defun password-read prompt key
+Read a password from the user, using @code{read-passwd}, prompting
+with @var{prompt}.  If a password has been stored in the password
+cache, using @code{password-cache-add} on the same @var{key}, it is
+returned directly, without querying the user.
+@end defun
+
+@defun password-cache-add key password
+Add a password to the password cache, indexed under the given
+@var{key}.  The password is later retrieved using @code{password-read}
+called with the same @var{key}.
+@end defun
+
+@defun password-cache-remove key
+Remove a password from the cache, indexed under the given @var{key}.
+@end defun
+
+@defun password-read-and-add prompt &optional key
+Read a password, prompting with @var{prompt}, and possibly add it to
+the cache, indexed using the @var{key} string.  This is one-call
+interface to @code{password-read} and @code{password-cache-add}.
+@end defun
+
+@defvar password-cache-expiry
+This variable specify for how many seconds passwords are retained in
+the password cache before they are expired.  For high security, use a
+low value (below a minute).  For more lax security, use a setting of
+@samp{14400} corresponding to half a work day (4 hours).
+@end defvar
+
+@defvar password-cache
+This variable toggle whether or not the password cache is used at all.
+The default is non-@code{nil}, i.e., to use the cache.
+@end defvar
 
 @node Minibuffer Misc
 @section Minibuffer Miscellany
