@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.126) $
+ * $HopeName: MMsrc!mpm.h(trunk.127) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  */
 
@@ -790,16 +790,13 @@ extern Bool SegPrefCheck(SegPref pref);
 extern SegPref SegPrefDefault(void);
 extern Res SegPrefExpress(SegPref pref, SegPrefKind kind, void *p);
 
-extern Res SegAlloc(Seg *segReturn, SegPref pref,
-                    Size size, Pool pool, Bool withReservoirPermit);
-extern Res SegOfClassAlloc(Seg *segReturn, SegClass class, SegPref pref,
-                           Size size, Pool pool, Bool withReservoirPermit);
+extern Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref,
+                    Size size, Pool pool, Bool withReservoirPermit,
+                    ...);
 extern void SegFree(Seg seg);
 extern Bool SegOfAddr(Seg *segReturn, Arena arena, Addr addr);
 extern Bool SegFirst(Seg *segReturn, Arena arena);
 extern Bool SegNext(Seg *segReturn, Arena arena, Addr addr);
-extern void SegInit(Seg seg, Pool pool, Addr base, Size size);
-extern void SegFinish(Seg seg);
 extern void SegSetWhite(Seg seg, TraceSet white);
 extern void SegSetGrey(Seg seg, TraceSet grey);
 extern void SegSetRankSet(Seg seg, RankSet rankSet);
@@ -809,8 +806,6 @@ extern RefSet SegSummary(Seg seg);
 extern void SegSetSummary(Seg seg, RefSet summary);
 extern Buffer SegBuffer(Seg seg);
 extern void SegSetBuffer(Seg seg, Buffer buffer);
-extern void *SegP(Seg seg);
-extern void SegSetP(Seg seg, void *p);
 extern Bool SegCheck(Seg seg);
 extern Bool GCSegCheck(GCSeg gcseg);
 extern Bool SegClassCheck(SegClass class);
@@ -841,8 +836,7 @@ extern Addr (SegLimit)(Seg seg);
 #define SegGrey(seg)            ((TraceSet)(seg)->grey)
 #define SegWhite(seg)           ((TraceSet)(seg)->white)
 #define SegNailed(seg)          ((seg)->nailed)
-#define SegOfPoolRing(node)     (&(RING_ELT(GCSeg, poolRing, (node)) \
-                                   ->segStruct))
+#define SegOfPoolRing(node)     (RING_ELT(Seg, poolRing, (node)))
 #define SegOfGreyRing(node)     (&(RING_ELT(GCSeg, greyRing, (node)) \
                                    ->segStruct))
 
