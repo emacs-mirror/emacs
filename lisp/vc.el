@@ -1011,7 +1011,7 @@ to that version."
 
 ;;;###autoload
 (defun vc-cancel-version (norevert)
-  "Undo your latest checkin."
+  "Get rid of the version most recently checked in by anyone."
   (interactive "P")
   (if vc-dired-mode
       (find-file-other-window (dired-get-filename)))
