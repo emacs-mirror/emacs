@@ -2554,7 +2554,7 @@ a token has type \(command, address, end-mark\) and value."
 	     (string= ex-token "insert")
 	     (string= ex-token "open")
 	     )
-	 (error (format "%s: no such command from VIP" ex-token)))
+	 (error "%s: no such command from VIP" ex-token))
 	((or (string= ex-token "abbreviate")
 	     (string= ex-token "list")
 	     (string= ex-token "next")
@@ -2567,8 +2567,8 @@ a token has type \(command, address, end-mark\) and value."
 	     (string= ex-token "xit")
 	     (string= ex-token "z")
 	     )
-	 (error (format "%s: not implemented in VIP" ex-token)))
-	(t (error (format "%s: Not an editor command" ex-token)))))
+	 (error "%s: not implemented in VIP" ex-token))
+	(t (error "%s: Not an editor command" ex-token))))
 
 (defun ex-goto ()
   "ex goto command"
@@ -2984,7 +2984,7 @@ vip-s-string"
   (if (and (not (string= ex-file (buffer-file-name)))
 	   (file-exists-p ex-file)
 	   (not ex-variant))
-      (error (format "\"%s\" File exists - use w! to override" ex-file)))
+      (error "\"%s\" File exists - use w! to override" ex-file))
   (let ((end (car ex-addresses)) (beg (car (cdr ex-addresses))))
     (if (> beg end) (error "First address exceeds second"))
     (save-excursion
