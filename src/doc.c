@@ -79,8 +79,7 @@ get_doc_string (filepos)
   int minsize;
   extern char *index ();
 
-  if (XTYPE (Vdoc_directory) != Lisp_String
-      || XTYPE (Vdoc_file_name) != Lisp_String)
+  if (!STRINGP (Vdoc_directory) || !STRINGP (Vdoc_file_name))
     return Qnil;
 
   minsize = XSTRING (Vdoc_directory)->size;
@@ -165,9 +164,9 @@ string is passed through `substitute-command-keys'.")
       if (XVECTOR (fun)->size <= COMPILED_DOC_STRING)
 	return Qnil;
       tem = XVECTOR (fun)->contents[COMPILED_DOC_STRING];
-      if (XTYPE (tem) == Lisp_String)
+      if (STRINGP (tem))
 	doc = tem;
-      else if (XTYPE (tem) == Lisp_Int && XINT (tem) >= 0)
+      else if (INTEGERP (tem) && XINT (tem) >= 0)
 	doc = get_doc_string (XFASTINT (tem));
       else
 	return Qnil;
@@ -179,7 +178,7 @@ string is passed through `substitute-command-keys'.")
 
     case Lisp_Cons:
       funcar = Fcar (fun);
-      if (XTYPE (funcar) != Lisp_Symbol)
+      if (!SYMBOLP (funcar))
 	return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
       else if (EQ (funcar, Qkeymap))
 	return build_string ("Prefix command (definition is a keymap associating keystrokes with\n\
@@ -188,9 +187,9 @@ subcommands.)");
 	       || EQ (funcar, Qautoload))
 	{
 	  tem = Fcar (Fcdr (Fcdr (fun)));
-	  if (XTYPE (tem) == Lisp_String)
+	  if (STRINGP (tem))
 	    doc = tem;
-	  else if (XTYPE (tem) == Lisp_Int && XINT (tem) >= 0)
+	  else if (INTEGERP (tem) && XINT (tem) >= 0)
 	    doc = get_doc_string (XFASTINT (tem));
 	  else
 	    return Qnil;
@@ -231,9 +230,9 @@ translation.")
   register Lisp_Object tem;
 
   tem = Fget (sym, prop);
-  if (XTYPE (tem) == Lisp_Int)
+  if (INTEGERP (tem))
     tem = get_doc_string (XINT (tem) > 0 ? XINT (tem) : - XINT (tem));
-  if (NILP (raw) && XTYPE (tem) == Lisp_String)
+  if (NILP (raw) && STRINGP (tem))
     return Fsubstitute_command_keys (tem);
   return tem;
 }
@@ -250,7 +249,7 @@ store_function_docstring (fun, offset)
   /* The type determines where the docstring is stored.  */
 
   /* Lisp_Subrs have a slot for it.  */
-  if (XTYPE (fun) == Lisp_Subr)
+  if (SUBRP (fun))
     XSUBR (fun)->doc = (char *) - offset;
 
   /* If it's a lisp form, stick it in the form.  */
@@ -262,8 +261,7 @@ store_function_docstring (fun, offset)
       if (EQ (tem, Qlambda) || EQ (tem, Qautoload))
 	{
 	  tem = Fcdr (Fcdr (fun));
-	  if (CONSP (tem) &&
-	      XTYPE (XCONS (tem)->car) == Lisp_Int)
+	  if (CONSP (tem) && INTEGERP (XCONS (tem)->car))
 	    XFASTINT (XCONS (tem)->car) = offset;
 	}
       else if (EQ (tem, Qmacro))
@@ -271,7 +269,7 @@ store_function_docstring (fun, offset)
     }
 
   /* Bytecode objects sometimes have slots for it.  */
-  else if (XTYPE (fun) == Lisp_Compiled)
+  else if (COMPILEDP (fun))
     {
       /* This bytecode object must have a slot for the
 	 docstring, since we've found a docstring for it.  */
@@ -358,7 +356,7 @@ when doc strings are referred to later in the dumped Emacs.")
 	{
 	  end = index (p, '\n');
 	  sym = oblookup (Vobarray, p + 2, end - p - 2);
-	  if (XTYPE (sym) == Lisp_Symbol)
+	  if (SYMBOLP (sym))
 	    {
 	      /* Attach a docstring to a variable?  */
 	      if (p[1] == 'V')
