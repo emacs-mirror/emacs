@@ -480,100 +480,83 @@ For example, -74.0 for New York City.")
 longitude pair.")
 
 (defun calendar-current-time-zone ()
-  "Return the offset, savings state, and names for the current time zone.
-This returns a list of the form (OFFSET SAVINGS-FLAG STANDARD SAVINGS).
-This list is calculated from a heuristic that is usually correct;
-to get more reliable results, use current-time-zone.
-OFFSET is an integer specifying how many minutes east of Greenwich the
-    current time zone is located.  A negative value means west of
-    Greenwich.  This describes the standard time; if daylight
-    savings time is in effect, it does not affect this value.
-SAVINGS-FLAG is non-nil iff daylight savings time or some other sort
-    of seasonal time adjustment is ever in effect.
-STANDARD is a string giving the name of the time zone when no seasonal
-    time adjustment is in effect.
-SAVINGS is a string giving the name of the time zone when there is a
-    seasonal time adjustment in effect.
-If the local area does not use a seasonal time adjustment,
-SAVINGS-FLAG is always nil, and STANDARD and SAVINGS are equal.
+  "Return the UTC difference, dst offset, and names for the current time zone.
 
-Some operating systems cannot provide all this information to Emacs;
-in this case, `calendar-current-time-zone' returns a list containing nil for
-the data it can't find."
-  (let* ((quarter-year-seconds 7889238.0) ; # number of seconds in 1/4 year
-	 (current-time-arithmetic-base 65536.0)
-	 (now (current-time))
-	 (now-zone (current-time-zone now))
-	 (now-offset (car now-zone))
-	 (now-name (car (cdr now-zone)))
-	 probe-zone
-	 (probe-offset now-offset)
-	 (i 0))
+Returns a list of the form (UTC-DIFF DST-OFFSET STD-ZONE DST-ZONE), based on
+a heuristic probing of what the system knows:
+
+UTC-DIFF is an integer specifying the number of minutes difference between
+    standard time in the current time zone and Coordinated Universal Time
+    (Greenwich Mean Time).  A negative value means west of Greenwich.
+DST-OFFSET is an integer giving the daylight savings time offset in minutes.
+STD-ZONE is a string giving the name of the time zone when no seasonal time
+    adjustment is in effect.
+DST-ZONE is a string giving the name of the time zone when there is a seasonal
+    time adjustment in effect.
+
+If the local area does not use a seasonal time adjustment, OFFSET is 0, and
+STD-ZONE and DST-ZONE are equal.
+
+Some operating systems cannot provide all this information to Emacs; in this
+case, `calendar-current-time-zone' returns a list containing nil for the data
+it can't find."
+  (let* ((now (current-time))
+         (now-zone (current-time-zone now))
+         (now-utc-diff (car now-zone))
+         (now-name (car (cdr now-zone)))
+         probe-zone
+         (probe-utc-diff now-utc-diff)
+         (i 1))
     ;; Heuristic: probe the time zone offset in the next three calendar
     ;; quarters, looking for a time zone offset different from now.
-    (while (and (< i 4) (eq now-offset probe-offset))
-      (let ((probe
-	     (list (+ (car now) (round (/ (* i quarter-year-seconds)
-					  current-time-arithmetic-base)))
-		   0 0)))
-        (setq probe-zone (current-time-zone probe))
-	(setq probe-offset (car probe-zone))
-	(setq i (1+ i))))
-    (if (or (eq now-offset probe-offset) (not now-offset) (not probe-offset))
-	(list (and now-offset (/ now-offset 60)) nil now-name now-name)
-      (let ((std-offset (min now-offset probe-offset))
-	    (probe-name (car (cdr probe-zone))))
-	(list (/ std-offset 60)
-	      t
-	      (if (eq std-offset now-offset) now-name probe-name)
-	      (if (eq std-offset now-offset) probe-name now-name))))))
+    ;; There about 120 * 2^16 seconds in a quarter year
+    (while (and (< i 4) (eq now-utc-diff probe-utc-diff))
+      (setq probe-zone (current-time-zone (list (+ (car now) (* i 120)) 0)))
+      (setq probe-utc-diff (car probe-zone))
+      (setq i (1+ i)))
+    (if (or (eq now-utc-diff probe-utc-diff)
+            (not now-utc-diff)
+            (not probe-utc-diff))
+        ;; No change found
+        (list (and now-utc-diff (/ now-utc-diff 60)) 0 now-name now-name)
+      ;; Found a different utc-diff
+      (let ((utc-diff (min now-utc-diff probe-utc-diff))
+            (probe-name (car (cdr probe-zone))))
+        (list (/ utc-diff 60)
+              (/ (abs (- now-utc-diff probe-utc-diff)) 60)
+              (if (eq utc-diff now-utc-diff) now-name probe-name)
+              (if (eq utc-diff now-utc-diff) probe-name now-name))))))
 
-;;; Since the following three defvars are marked to go into
-;;; loaddefs.el, they will be evaluated when Emacs is dumped.
-;;; However, these variables' appropriate values really depend on the
-;;; conditions under which the code is invoked; so it's inappropriate
-;;; to initialize them when Emacs is dumped.  Thus we initialize them
-;;; to nil now, and if they are still nil when this file is actually
-;;; loaded, we give them their real values then.
+;;; The following six defvars relating to daylight savings time should NOT be
+;;; marked to go into loaddefs.el where they would be evaluated when Emacs is
+;;; dumped.  These variables' appropriate values really on the conditions under
+;;; which the code is INVOKED; so it's inappropriate to initialize them when
+;;; Emacs is dumped---they should be initialized when calendar.el is loaded.
 
-;;;###autoload
-(defvar calendar-time-zone nil
+(defvar calendar-time-zone (car (calendar-current-time-zone))
   "*Number of minutes difference between local standard time at
-`calendar-location-name' and Universal (Greenwich) Time.  For example, -300
-for New York City, -480 for Los Angeles.
+`calendar-location-name' and Coordinated Universal (Greenwich) Time.  For
+example, -300 for New York City, -480 for Los Angeles.")
 
-If this is nil, it will be set to the local time zone when the calendar
-package loads.")
-;;; If the user has given this a real value, don't wipe it out.
-(or calendar-time-zone
-    (setq calendar-time-zone (car (calendar-current-time-zone))))
+(defvar calendar-daylight-time-offset (car (cdr (calendar-current-time-zone)))
+  "*A sexp in the variable `year' that gives the number of minutes difference
+between daylight savings time and standard time.
 
-;;;###autoload
-(defvar calendar-standard-time-zone-name nil
+Should be set to 0 if locale has no daylight savings time.")
+
+(defvar calendar-standard-time-zone-name
+  (car (nthcdr 2 (calendar-current-time-zone)))
   "*Abbreviated name of standard time zone at `calendar-location-name'.
-For example, \"EST\" in New York City, \"PST\" for Los Angeles.
+For example, \"EST\" in New York City, \"PST\" for Los Angeles.")
 
-If this is nil, it will be set for the local time zone when the calendar
-package loads.")
-;;; If the user has given this a value, don't wipe it out.
-(or calendar-standard-time-zone-name
-    (setq calendar-standard-time-zone-name
-          (car (nthcdr 2 (calendar-current-time-zone)))))
-
-;;;###autoload
-(defvar calendar-daylight-time-zone-name nil
+(defvar calendar-daylight-time-zone-name
+  (car (nthcdr 3 (calendar-current-time-zone)))
   "*Abbreviated name of daylight-savings time zone at `calendar-location-name'.
-For example, \"EDT\" in New York City, \"PDT\" for Los Angeles.
-
-If this is nil, it will be set for the local time zone when the calendar
-package loads.")
-;;; If the user has given this a value, don't wipe it out.
-(or calendar-daylight-time-zone-name
-    (setq calendar-daylight-time-zone-name
-          (car (nthcdr 3 (calendar-current-time-zone)))))
+For example, \"EDT\" in New York City, \"PDT\" for Los Angeles.")
   
-;;;###autoload
-(defvar calendar-daylight-savings-starts nil
+(defvar calendar-daylight-savings-starts
+  (if (not (eq calendar-daylight-time-offset 0))
+      '(calendar-nth-named-day 1 0 4 year))
   "*A sexp in the variable `year' that gives the Gregorian date, in the form
 of a list (month day year), on which daylight savings time starts.  This is
 used to determine the starting date of daylight savings time for the holiday
@@ -594,30 +577,26 @@ to
 
 because Nisan is the first month in the Hebrew calendar.
 
-If this is nil and the locale ever uses daylight savings time,
-it will be set to the American rule of the first Sunday in April
-when the calendar package loads.")
-;;; If the user has given this a value, don't wipe it out.
-(or calendar-daylight-savings-starts
-    (setq calendar-daylight-savings-starts
-	  (and (car (cdr (calendar-current-time-zone)))
-	       '(calendar-nth-named-day 1 0 4 year))))
+If the locale never uses daylight savings time, set this to nil.")
 
-;;;###autoload
-(defvar calendar-daylight-savings-ends nil
+(defvar calendar-daylight-savings-ends
+  (if (not (eq calendar-daylight-time-offset 0))
+      '(calendar-nth-named-day -1 0 10 year))
   "*An expression in the variable `year' that gives the Gregorian date, in the
 form of a list (month day year), on which daylight savings time ends.  This
 is used to determine the ending date of daylight savings time for the holiday
 list and for correcting times of day in the solar and lunar calculations.
-The default value is the American rule of the last Sunday in October
-if the locale ever uses daylight savings time, otherwise nil.
+
+The default value is the American rule of the last Sunday in October,
+
+If the locale never uses daylight savings time, set this to nil.
+
 See the documentation for `calendar-daylight-savings-starts' for other
 examples.")
-;;; If the user has given this a value, don't wipe it out.
-(or calendar-daylight-savings-ends
-    (setq calendar-daylight-savings-ends
-	  (and (car (cdr (calendar-current-time-zone)))
-	       '(calendar-nth-named-day -1 0 10 year))))
+
+(defvar calendar-daylight-savings-switchover-time 120
+  "*A sexp in the variable `year' that gives the number of minutes after
+midnight that daylight savings time begins and ends.")
 
 (defun european-calendar ()
   "Set the interpretation and display of dates to the European style."
@@ -904,9 +883,9 @@ See the documentation for `calendar-holidays' for details.")
 
 ;;;###autoload
 (defvar calendar-holidays
-  (append general-holidays local-holidays other-holidays
-          christian-holidays hebrew-holidays islamic-holidays
-          solar-holidays)
+  '(append general-holidays local-holidays other-holidays
+           christian-holidays hebrew-holidays islamic-holidays
+           solar-holidays)
   "*List of notable days for the command M-x holidays.
 
 Additional holidays are easy to add to the list, just put them in the list
@@ -1759,8 +1738,10 @@ To find the times of sunrise and sunset and lunar phases use
 The times given will be at latitude `solar-latitude', longitude
 `solar-longitude' in time zone `solar-time-zone'.  These variables, and the
 variables `solar-location-name', `solar-standard-time-zone-name',
-`solar-daylight-time-zone-name', `solar-daylight-savings-starts', and
-`solar-daylight-savings-ends', should be set for your location.
+`solar-daylight-time-zone-name', `solar-daylight-savings-starts',
+`solar-daylight-savings-ends', `calendar-daylight-time-offset',
+and `calendar-daylight-savings-switchover-time' should be set for
+your location.
 
 To exit from the calendar use
 
@@ -3102,7 +3083,7 @@ the date of death is taken from the cursor position."
 shown by cursor."
   (interactive)
   (message
-   "Astronomical (Julian) day number after noon Universal Time: %d"
+   "Astronomical (Julian) day number after noon UTC: %d"
    (+ 1721425
       (calendar-absolute-from-gregorian
        (or (calendar-cursor-to-date)
