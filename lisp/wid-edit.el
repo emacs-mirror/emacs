@@ -124,28 +124,30 @@ This exists as a variable so it can be set locally in certain buffers.")
 ;; the gray colors defined for other displays cause black text on a black
 ;; background, at least on light-background TTYs.
 (defface widget-field-face '((((type tty))
-			      (:background "yellow3"))
+			      :background "yellow3"
+			      :foreground "black")
 			     (((class grayscale color)
 			       (background light))
-			      (:background "gray85"))
+			      :background "gray85")
 			     (((class grayscale color)
 			       (background dark))
-			      (:background "dim gray"))
+			      :background "dim gray")
 			     (t
-			      (:slant italic)))
+			      :slant italic))
   "Face used for editable fields."
   :group 'widget-faces)
 
 (defface widget-single-line-field-face '((((type tty))
-					  (:background "green3"))
+					  :background "green3"
+					  :foreground "black")
 					 (((class grayscale color)
 					   (background light))
-					  (:background "gray85"))
+					  :background "gray85")
 					 (((class grayscale color)
 					   (background dark))
-					  (:background "dim gray"))
+					  :background "dim gray")
 					 (t
-					  (:slant italic)))
+					  :slant italic))
   "Face used for editable fields spanning only a single line."
   :group 'widget-faces)
 
