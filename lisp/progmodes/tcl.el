@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.45 $
+;; Version: $Revision: 1.46 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1995/07/23 23:51:25 $|$Revision: 1.45 $|~/modes/tcl.el.Z|
+;; $Date: 1995/08/07 16:02:01 $|$Revision: 1.46 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,10 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.46  1995/08/07  16:02:01  tromey
+;; (tcl-do-auto-fill): Only fill past fill-column; for 19.29.
+;; (tcl-auto-fill-mode): Use force-mode-line-update.
+;;
 ;; Revision 1.45  1995/07/23  23:51:25  tromey
 ;; (tcl-word-no-props): New function.
 ;; (tcl-figure-type): Use it.
@@ -278,6 +282,7 @@
 ;; T. V. Raman <raman@crl.dec.com>
 ;; Jesper Pedersen <blackie@imada.ou.dk>
 ;; dfarmer@evolving.com (Doug Farmer)
+;; "Chris Alfeld" <calfeld@math.utah.edu>
 
 ;; KNOWN BUGS:
 ;; * indent-region should skip blank lines.  (It does in v19, so I'm
@@ -350,7 +355,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.45 $")
+(defconst tcl-version "$Revision: 1.46 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -1011,6 +1016,10 @@ Commands:
   (if (and tcl-using-xemacs-19 (boundp 'mode-popup-menu))
       (setq mode-popup-menu
 	    (cons (concat mode-name " Mode Commands") tcl-xemacs-menu)))
+
+  ;; If hilit19 is loaded, add our stuff.
+  (if (featurep 'hilit19)
+      (tcl-hilit))
 
   (run-hooks 'tcl-mode-hook))
 
@@ -1963,6 +1972,20 @@ Prefix argument means switch to the Tcl buffer afterwards."
 		'tcl-do-auto-fill
 	      nil))
     (force-mode-line-update)))
+
+;; hilit19 support from "Chris Alfeld" <calfeld@math.utah.edu>
+(defun tcl-hilit ()
+  (hilit-set-mode-patterns
+   '(tcl-mode)
+   '(
+     ("\\(^ *\\|\; *\\)#.*$" nil comment)
+     ("[^\\]\\(\\$[A-Za-z0-9\\-\\_./\\(\\)]+\\)" 1 label)
+     ("[^_]\\<\\(append\\|array\\|auto_execok\\|auto_load\\|auto_mkindex\\|auto_reset\\|break\\|case\\|catch\\|cd\\|close\\|concat\\|continue\\|eof\\|error\\|eval\\|exec\\|exit\\|expr\\|file\\|flush\\|for\\|foreach\\|format\\|gets\\|glob\\|global\\|history\\|if\\|incr\\|info\\|join\\|lappend\\|lindex\\|linsert\\|list\\|llength\\|lrange\\|lreplace\\|lsearch\\|lsort\\|open\\|pid\\|proc\\|puts\\|pwd\\|read\\|regexp\\|regsub\\|rename\\|return\\|scan\\|seek\\|set\\|source\\|split\\|string\\|switch\\|tell\\|time\\|trace\\|unknown\\|unset\\|uplevel\\|upvar\\|while\\)\\>[^_]" 1 keyword) ; tcl keywords
+     ("[^_]\\<\\(after\\|bell\\|bind\\|bindtags\\|clipboard\\|destroy\\|fileevent\\|focus\\|grab\\|image\\|lower\\|option\\|pack\\|place\\|raise\\|scale\\|selection\\|send\\|subst\\|tk\\|tk_popup\\|tkwait\\|update\\|winfo\\|wm\\)\\>[^_]" 1 define) ; tk keywords
+     ("[^_]\\<\\(button\\|canvas\\|checkbutton\\|entry\\|frame\\|label\\|listbox\\|menu\\|menubutton\\|message\\|radiobutton\\|scrollbar\\|text\\|toplevel\\)\\>[^_]" 1 decl) ; tk widgets
+     ("[^_]\\<\\(tix\\((ButtonBox\\|Baloon\\|Control\\|DirList\\|ExFileSelectBox\\|ExFileSelectDialog\\|FileEntry\\|HList\\|LabelEntry\\|LabelFrame\\|NoteBook\\|OptionMenu\\|PanedWindow\\|PopupMenu\\|ScrolledHList\\|ScrolledText\\|ScrolledWindow\\|Select\\|StdButtonBox\\)\\)\\>[^_]" 1 defun) ; tix widgets
+     ("[{}\\\"\\(\\)]" nil include) ; misc punctuation
+     )))
 
 (defun tcl-electric-hash (&optional count)
   "Insert a `#' and quote if it does not start a real comment.
