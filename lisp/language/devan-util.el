@@ -19,15 +19,18 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; Commentary:
 
 ;; History:
 ;; 1996.10.18 written by KAWABATA, Taichi <kawabata@is.s.u-tokyo.ac.jp>
 ;; 1997.1.20 fixed some bugs.
+;; 1997.3.24 fixed some bugs.
+
+;; Future work ::
+;; Decompose the input characters and process them on the character basis.
 
 ;; Devanagari script composition rules and related programs.
 
@@ -36,6 +39,9 @@
 ;;;
 ;;;   Steps toward composition of Devanagari Characters.
 ;;;
+
+;;; Intersection Function will be used.
+(require 'cl)
 
 ;;; Basic functions.
 
@@ -65,7 +71,8 @@
   (save-restriction 
     (narrow-to-region from to)
     (goto-char (point-min))
-    (while (re-search-forward "\\cd" nil t)
+;   (while (re-search-forward "\\cd" nil t)
+    (while (re-search-forward "." nil t)
       (let* ((devanagari-char (indian-to-devanagari (preceding-char))))
 	(delete-char -1)
 	(insert devanagari-char)))))
@@ -77,7 +84,8 @@
   (save-restriction
     (narrow-to-region from to)
     (goto-char (point-min))
-    (while (re-search-forward "\\cD" nil t) ; Devanagari Character Code.
+;   (while (re-search-forward "\\cD" nil t) ; Devanagari Character Code.
+    (while (re-search-forward "." nil t) 
       (let* ((indian-char (devanagari-to-indian (preceding-char))))
 	(delete-char -1)
 	(insert indian-char)))))
@@ -117,25 +125,27 @@
 ;; H - Halant($(5!h(B) or Virama
 ;; V - Vowel ($(5!$!%!&!'!(!)!*!+!,!-!.!/!0!1!2#&#'#*(B)
 ;;     ("$(5#&#'#*(B" can be obtained by IS13194 vowels with nukta.)
-;; D - Vowel Modifiers, i.e. Anuswar, Chandrabindu, Visarga  ($(5!!!"!#(B)
+;; D - Vowel Modifiers, i.e. Anuswar, Chandrabindu  ($(5!!!"(B) 
+;;     (Visaraga ($(5!#(B) is excluded.)
 ;; M - Matra ($(5!Z![!\!]!^!_!`!a!b!c!d!e!f!g#K#L#M(B)
 ;;     ("$(5#K#L#M(B" can be obtained by IS13194 matras with nukta.)
 ;;
-;; In Emacs, one syllable of Indian language is considered to be one 
-;; composite glyph.  If we expand the above expression, it would be:
+;; In Emacs, one syllable of Indian language is considered to be one
+;; composite glyph.  If we expand the above expression for
+;; cons-vowel-syllable, it would be:
 ;;
-;; [[C [N] H] [C [N] H] [C [N] H] C [N] H] C [N] [M] [D] | V [D]
+;; [[C [N] H] [C [N] H] [C [N] H] C [N] H] C [N] [M] [D]
 ;; 
-;; Therefore, in worst case, the consonant syllabe will consist of
+;; Therefore, in worst case, the one syllable may contain
 ;; following characters.
 ;;
 ;; C N H C N H C N H C N H C N M D
 ;;
-;; The example is a sanskrit word "kaurtsnya", where five consecutive
-;; consonant appears.
+;; The example is a sanskrit word "kArtsnya", where five consecutive
+;; consonants appear.
 ;;
-;; On the other hand, incomplete consonant syllable before inputting
-;; base consonant must satisfy the following condition:
+;; On the other hand, consonant-syllable, which appears at the end of 
+;; the word, would have the following expression:
 ;;
 ;; [C [N] H] [C [N] H] [C [N] H] C [N] H
 ;;
@@ -151,18 +161,47 @@
 ;;
 ;; However, to make editing possible even in this condition, we will
 ;; not consider about this case.
+;;
+;; Note:
+;; Currently, it seems that the only following consonants would have
+;; Nukta sign attatched.
+;; ($(5!3!4!5!:!?!@!I(B)
+;; Therefore, [$(5!3(B-$(5!X(B]$(5!i(B? can be re-written as 
+;; \\([$(5!3!4!5!:!?!@!I(B]$(5!i(B\\)\\|[$(5!3(B-$(5!X(B]
 
-(defconst devanagari-cons-syllable-examine
-  "\\(\\([$(5!3(B-$(5!X(B]$(5!i(B?$(5!h(B\\)?\\([$(5!3(B-$(5!X(B]$(5!i(B?$(5!h(B\\)?[$(5!3(B-$(5!X(B]$(5!i(B?$(5!h(B\\)?[$(5!3(B-$(5!X(B]$(5!i(B?\\([$(5!Z(B-$(5!g#K#L#M(B]\\|\\($(5!_!i(B\\)\\|\\($(5![!i(B\\)\\|\\($(5!\!i(B\\)\\)?[$(5!!!"!#(B]?"
-  "Regexp matching to one Devanagari consonant syllable.")
+(defconst devanagari-full-cons
+  "\\(\\([$(5!3!4!5!:!?!@!I(B]$(5!i(B\\)\\|[$(5!3(B-$(5!X$.$E"%(B]\\)"
+  "Devanagari full consonant")
 
-(defconst devanagari-cons-syllable-incomplete-examine
-  "\\([$(5!3(B-$(5!X(B]$(5!i(B?$(5!h(B\\)?\\([$(5!3(B-$(5!X(B]$(5!i(B?$(5!h(B\\)?\\([$(5!3(B-$(5!X(B]$(5!i(B?$(5!h(B\\)?[$(5!3(B-$(5!X(B]$(5!i(B?$(5!h(B$"
-  "Regexp matching to one Devanagari incomplete consonant syllable.")
+(defconst devanagari-pure-cons
+  (concat "\\(" devanagari-full-cons "$(5!h(B\\)")
+  "Devanagari pure consonant")
 
-(defconst devanagari-vowel-syllable-examine
-  "\\([$(5!$(B-$(5!2#&#'#*(B]\\|\\($(5!*!i(B\\)\\|\\($(5!&!i(B\\)\\|\\($(5!'!i(B\\)\\)[$(5!!!"!#(B]?"
-  "Regexp matching to one Devanagari vowel syllable.")
+(defconst devanagari-matra
+  "\\(\\([$(5!_![!\(B]$(5!i(B\\)\\|[$(5!Z(B-$(5!g#K#L#M(B]\\)"
+  "Devanagari Matra Signs.  '$(5#K#L#M(B' can also be created from the combination 
+of '$(5!_![!\(B' and nukta sign.")
+
+(defconst devanagari-vowel
+  "\\(\\([$(5!*!&!'(B]$(5!i(B\\)\\|[$(5!$(B-$(5!2#&#'#*(B]\\)"
+  "Devanagari Vowels.  '$(5#&#'#*(B' can also be created from the combination 
+of '$(5!*!&!'(B' and nukta sign.")
+  
+(defconst devanagari-vowel-syllable
+  (concat devanagari-vowel "[$(5!!!"(B]?")
+  "Devanagari vowel syllable.")
+
+(defconst devanagari-cons-syllable
+  (concat devanagari-pure-cons "?" devanagari-pure-cons "?" 
+	  devanagari-pure-cons "?" devanagari-pure-cons "$")
+  "Devanagari consonant syllable")
+
+(defconst devanagari-cons-vowel-syllable
+  (concat "\\(" 
+	  devanagari-pure-cons "?" devanagari-pure-cons "?" 
+	  devanagari-pure-cons "?" devanagari-pure-cons "\\)?"
+	  devanagari-full-cons devanagari-matra "?[$(5!!!"(B]?")
+  "Devanagari consonant vowel syllable.")
 
 ;;
 ;; Also, digits and virams should be processed other than syllables.
@@ -170,17 +209,18 @@
 ;; In IS 13194, Avagrah is obtained by Nukta after Viram, and
 ;; OM is obtained by Nukta after Chandrabindu
 ;;
-(defconst devanagari-digit-viram-examine 
-  "[$(5!q(B-$(5!z!j(B]")
-(defconst devanagari-other-sign-examine
+
+(defconst devanagari-digit-viram-visarga
+  "[$(5!q(B-$(5!z!j!#(B]")
+(defconst devanagari-other-sign
   "\\([$(5!!!j(B]$(5!i(B\\)\\|\\([$(5#!#J(B]\\)")
 
-(defconst devanagari-composite-glyph-unit-examine
-  (concat "\\(" devanagari-cons-syllable-incomplete-examine 
-	  "\\)\\|\\(" devanagari-vowel-syllable-examine 
-	  "\\)\\|\\(" devanagari-digit-viram-examine
-	  "\\)\\|\\(" devanagari-cons-syllable-examine
-	  "\\)\\|\\(" devanagari-other-sign-examine"\\)")
+(defconst devanagari-composite-glyph-unit
+  (concat "\\(" devanagari-cons-syllable
+	  "\\)\\|\\(" devanagari-vowel-syllable
+	  "\\)\\|\\(" devanagari-digit-viram-visarga
+	  "\\)\\|\\(" devanagari-cons-vowel-syllable
+	  "\\)\\|\\(" devanagari-other-sign "\\)")
   "Regexp matching to Devanagari string to be composed form one glyph.")
 
 ;;(put-charset-property charset-devanagari-1-column
@@ -190,13 +230,13 @@
 
 ;; Sample
 ;;
-;;(string-match devanagari-cons-syllable-examine "$(5!X![(B") => 0
-;;(string-match devanagari-cons-syllable-examine "$(5!F!h!D!\(B") => 0
-;;(string-match devanagari-cons-syllable-examine "$(5!X![!F!h!D!\(B") => 0
+;;(string-match devanagari-cons-vowel-syllable-examine "$(5!X![(B") => 0
+;;(string-match devanagari-cons-vowel-syllable-examine "$(5!F!h!D!\(B") => 0
+;;(string-match devanagari-cons-vowel-syllable-examine "$(5!X![!F!h!D!\(B") => 0
 
 ;;
 ;; Steps toward the composition
-;;  Converting Character Code to Composite Glyph.
+;;  Converting Character Codes to Composite Glyph.
 ;;
 ;; Example : $(5!X![(B/$(5!F!h!D!\(B
 ;; 
@@ -238,324 +278,344 @@
 
 (defconst devanagari-char-to-glyph-rules
   '(
-    ;; special form for "ru".
-    ("\\($(5!O!](B\\)" . "$(5",(B")
-    ("\\($(5!O!^(B\\)" . "$(5"-(B")
-    ("\\($(5!P!](B\\)" . "$(5".(B")
-    ("\\($(5!P!^(B\\)" . "$(5"/(B")
 
     ;; `r' at the top of syllable and followed by other consonants.
-    ;; ("[^$(5!h(B]\\($(5!O!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"p(B")
-    ("^\\($(5!O!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"p(B")
-
-    ;; Half Form Ligature
-    ;; Here is the half-form ligature which has higher priority than
-    ;; the common ligature rules listed below.
-    ;; special forms.
-    ("\\($(5!3!h!V!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"l(B")
-    ("\\($(5!:!h!<!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"m(B")
-    ;; Ordinary forms.
-    ("\\($(5!B!h!B!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"c(B")
-    ("\\($(5!F!h!F!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"k(B")
-
-    ;; If "r" is preceded by the vowel-suppressed consonant
-    ;; (especially those with vertical line), it will be written as
-    ;; slanted line below the preceding consonant character.  Some of
-    ;; them are pre-composed as one glyph.
-
-    ("\\($(5!:!i!h!O(B\\)" . "$(5"!(B")
-    ("\\($(5!I!i!h!O(B\\)" . "$(5""(B")
-    ("\\($(5!3!h!O(B\\)" . "$(5"#(B")
-    ("\\($(5!5!h!O(B\\)" . "$(5"$(B")
-    ("\\($(5!B!h!O(B\\)" . "$(5"%(B")
-    ("\\($(5!H!h!O(B\\)" . "$(5"&(B")
-    ("\\($(5!I!h!O(B\\)" . "$(5"'(B")
-    ("\\($(5!U!h!O(B\\)" . "$(5")(B")
-
-    ;; Special Rules
-    ;; In the following case, "$(5!<!h!:(B" ligature does not occur.
-    ("\\($(5!<!h(B\\)$(5!:!h!<!h(B" . "$(5"<(B")
+    ;; ("[^$(5!h(B]\\($(5!O!h(B\\)[$(5!3(B-$(5!X(B]" "$(5"p(B")
+    ("^\\($(5!O!h(B\\)[$(5!3(B-$(5!X(B]" "$(5"p(B")
 
     ;; Ligature Rules 
-    ("\\($(5!3!h!B!h!O!h!M(B\\)" . "$(5$!(B")
-    ("\\($(5!3!h!B!h!T(B\\)" . "$(5$"(B")
-    ("\\($(5!3!h!B!h!M(B\\)" . "$(5$#(B")
-    ("\\($(5!3!h!F!h!M(B\\)" . "$(5$$(B")
-    ("\\($(5!3!h!O!h!M(B\\)" . "$(5$%(B")
-    ("\\($(5!3!h!T!h!M(B\\)" . "$(5$&(B")
-    ("\\($(5!3!h!3(B\\)" . "$(5$'(B")
-    ("\\($(5!3!h!B(B\\)" . "$(5$((B")
-    ("\\($(5!3!h!F(B\\)" . "$(5$)(B")
-    ("\\($(5!3!h!L(B\\)" . "$(5$*(B")
-    ("\\($(5!3!h!M(B\\)" . "$(5$+(B")
-    ("\\($(5!3!h!Q(B\\)" . "$(5$,(B")
-    ("\\($(5!3!h!T(B\\)" . "$(5$-(B")
-    ("\\($(5!3!h!V(B\\)" . "$(5$.(B")
-    ("\\($(5!6!h!F(B\\)" . "$(5$/(B")
-    ("\\($(5!7!h!3!h!B!h!M(B\\)" . "$(5$0(B")
-    ("\\($(5!7!h!3!h!V!h!T(B\\)" . "$(5$1(B")
-    ("\\($(5!7!h!3!h!B(B\\)" . "$(5$2(B")
-    ("\\($(5!7!h!3!h!V(B\\)" . "$(5$3(B")
-    ("\\($(5!7!h!6!h!O(B\\)" . "$(5$4(B")
-    ("\\($(5!7!h!3!h!M(B\\)" . "$(5$5(B")
-    ("\\($(5!7!h!4!h!M(B\\)" . "$(5$6(B")
-    ("\\($(5!7!h!5!h!M(B\\)" . "$(5$7(B")
-    ("\\($(5!7!h!6!h!M(B\\)" . "$(5$8(B")
-    ("\\($(5!7!h!3(B\\)" . "$(5$9(B")
-    ("\\($(5!7!h!4(B\\)" . "$(5$:(B")
-    ("\\($(5!7!h!5(B\\)" . "$(5$;(B")
-    ("\\($(5!7!h!6(B\\)" . "$(5$<(B")
-    ("\\($(5!7!h!7(B\\)" . "$(5$=(B")
-    ("\\($(5!7!h!F(B\\)" . "$(5$>(B")
-    ("\\($(5!7!h!L(B\\)" . "$(5$?(B")
-    ("\\($(5!7!h!M(B\\)" . "$(5$@(B")
-    ("\\($(5!8!h!8(B\\)" . "$(5$A(B")
-    ("\\($(5!8!h!<(B\\)" . "$(5$B(B")
-    ("\\($(5!9!h!M(B\\)" . "$(5$C(B")
-    ("\\($(5!:!h!O(B\\)" . "$(5$D(B")
-    ("\\($(5!:!h!<(B\\)" . "$(5$E(B")
-    ("\\($(5!<!h!8(B\\)" . "$(5$F(B")
-    ("\\($(5!<!h!:(B\\)" . "$(5$G(B")
-    ("\\($(5!=!h!3(B\\)" . "$(5$H(B")
-    ("\\($(5!=!h!=(B\\)" . "$(5$I(B")
-    ("\\($(5!=!h!>(B\\)" . "$(5$J(B")
-    ("\\($(5!=!h!M(B\\)" . "$(5$K(B")
-    ("\\($(5!>!h!M(B\\)" . "$(5$L(B")
-    ("\\($(5!?!h!5!h!M(B\\)" . "$(5$M(B")
-    ("\\($(5!?!h!6!h!O(B\\)" . "$(5$N(B")
-    ("\\($(5!?!h!O!h!M(B\\)" . "$(5$O(B")
-    ("\\($(5!?!h!5(B\\)" . "$(5$P(B")
-    ("\\($(5!?!h!6(B\\)" . "$(5$Q(B")
-    ("\\($(5!?!h!?(B\\)" . "$(5$R(B")
-    ("\\($(5!?!h!L(B\\)" . "$(5$S(B")
-    ("\\($(5!?!h!M(B\\)" . "$(5$T(B")
-    ("\\($(5!@!h!M(B\\)" . "$(5$`(B")
-    ("\\($(5!B!h!B(B\\)" . "$(5$a(B")
-    ("\\($(5!B!h!F(B\\)" . "$(5$b(B")
-    ("\\($(5!D!h!D!h!M(B\\)" . "$(5$c(B")
-    ("\\($(5!D!h!E!h!M(B\\)" . "$(5$d(B")
-    ("\\($(5!D!h!K!h!M(B\\)" . "$(5$e(B")
-    ("\\($(5!D!h!O!h!M(B\\)" . "$(5$f(B")
-    ("\\($(5!D!h!T!h!M(B\\)" . "$(5$g(B")
-    ("\\($(5!D!h!5!h!O(B\\)" . "$(5$h(B")
-    ("\\($(5!D!h!6!h!O(B\\)" . "$(5$i(B")
-    ("\\($(5!D!h!D!h!T(B\\)" . "$(5$j(B")
-    ("\\($(5!D!h!E!h!T(B\\)" . "$(5$k(B")
-    ("\\($(5!D!h!5(B\\)" . "$(5$l(B")
-    ("\\($(5!D!h!6(B\\)" . "$(5$m(B")
-    ("\\($(5!D!h!D(B\\)" . "$(5$n(B")
-    ("\\($(5!D!h!E(B\\)" . "$(5$o(B")
-    ("\\($(5!D!h!F(B\\)" . "$(5$p(B")
-    ("\\($(5!D!h!J(B\\)" . "$(5$q(B")
-    ("\\($(5!D!h!K(B\\)" . "$(5$r(B")
-    ("\\($(5!D!h!L(B\\)" . "$(5$s(B")
-    ("\\($(5!D!h!M(B\\)" . "$(5$t(B")
-    ("\\($(5!D!h!T(B\\)" . "$(5$u(B")
-    ("\\($(5!E!h!F(B\\)" . "$(5$v(B")
-    ("\\($(5!F!h!F(B\\)" . "$(5$w(B")
-    ("\\($(5!H!h!B(B\\)" . "$(5$x(B")
-    ("\\($(5!H!h!F(B\\)" . "$(5$y(B")
-    ("\\($(5!H!h!Q(B\\)" . "$(5$z(B")
-    ("\\($(5!J!h!F(B\\)" . "$(5${(B")
-    ("\\($(5!J!h!J(B\\)" . "$(5$|(B")
-    ("\\($(5!J!h!T(B\\)" . "$(5$}(B")
-    ("\\($(5!K!h!F(B\\)" . "$(5$~(B")
-    ("\\($(5!L!h!F(B\\)" . "$(5#P(B")
-    ("\\($(5!L!h!Q(B\\)" . "$(5#Q(B")
-    ("\\($(5!Q!h!Q(B\\)" . "$(5#`(B")
-    ("\\($(5!T!h!F(B\\)" . "$(5#a(B")
-    ("\\($(5!T!h!T(B\\)" . "$(5#b(B")
-    ("\\($(5!U!h!8(B\\)" . "$(5#c(B")
-    ("\\($(5!U!h!F(B\\)" . "$(5#d(B")
-    ("\\($(5!U!h!J(B\\)" . "$(5#e(B")
-    ("\\($(5!U!h!Q(B\\)" . "$(5#f(B")
-    ("\\($(5!U!h!T(B\\)" . "$(5#g(B")
-    ("\\($(5!V!h!=!h!O!h!M(B\\)" . "$(5#h(B")
-    ("\\($(5!V!h!=!h!M(B\\)" . "$(5#i(B")
-    ("\\($(5!V!h!=!h!T(B\\)" . "$(5#j(B")
-    ("\\($(5!V!h!=(B\\)" . "$(5#k(B")
-    ("\\($(5!V!h!>(B\\)" . "$(5#l(B")
-    ("\\($(5!W!h!F(B\\)" . "$(5#m(B")
-    ("\\($(5!W!h!O(B\\)" . "$(5#n(B")
-    ("\\($(5!X!h!A(B\\)" . "$(5#p(B")
-    ("\\($(5!X!h!F(B\\)" . "$(5#q(B")
-    ("\\($(5!X!h!L(B\\)" . "$(5#r(B")
-    ("\\($(5!X!h!M(B\\)" . "$(5#s(B")
-    ("\\($(5!X!h!O(B\\)" . "$(5#t(B")
-    ("\\($(5!X!h!Q(B\\)" . "$(5#u(B")
-    ("\\($(5!X!h!T(B\\)" . "$(5#v(B")
-    ;; Special Ligature Rules 
-    ("\\($(5!X!_(B\\)" . "$(5#R(B")
-
-    ;; Half form with ligature.  Special "r" case is included.  "r"
-    ;; connection which is not listed here has not been examined yet.
-    ;; I don't know what to do with them.
+    ("\\($(5!3!h!B!h!O!h!M(B\\)" "$(5$!(B" sanskrit)
+    ("\\($(5!3!h!B!h!T(B\\)" "$(5$"(B" sanskrit)
+    ("\\($(5!3!h!B!h!M(B\\)" "$(5$#(B" sanskrit)
+    ("\\($(5!3!h!F!h!M(B\\)" "$(5$$(B") 
+    ("\\($(5!3!h!O!h!M(B\\)" "$(5$%(B")
+    ("\\($(5!3!h!O(B\\)" "$(5"#(B")                  ;                     Post "r"
+    ("\\($(5!3!h!T!h!M(B\\)" "$(5$&(B" sanskrit)
+    ("\\($(5!3!h(B\\)$(5!3!h(B[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"3(B")    ; Special Half Form
+    ("\\($(5!3!h!3(B\\)" "$(5$'(B")
+    ("\\($(5!3!h(B\\)$(5!B!h!O(B" "$(5"3(B")              ; Special Rules for "k-tr"
+    ("\\($(5!3!h!B(B\\)" "$(5$((B")
+    ("\\($(5!3!h!F(B\\)" "$(5$)(B")
+    ("\\($(5!3!h!L(B\\)" "$(5$*(B")
+    ("\\($(5!3!h!M(B\\)" "$(5$+(B")
+    ("\\($(5!3!h!Q(B\\)" "$(5$,(B")
+    ("\\($(5!3!h!T(B\\)" "$(5$-(B")
+    ("\\($(5!3!h!V!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"l(B")    ;         Half Form
+    ("\\($(5$.!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"l(B")        ;         Half Form
+    ("\\($(5!3!h!V(B\\)" "$(5$.(B")
+    ("\\($(5!3!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"3(B")        ;         Half Form
+    ("\\($(5!3!i!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"s(B")      ; Nukta   Half Form
+    ("\\($(5!3!i(B\\)" "$(5#3(B")                    ; Nukta
+    ("\\($(5!4!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"4(B")        ;         Half Form
+    ("\\($(5!4!i!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"t(B")      ; Nukta   Half Form
+    ("\\($(5!4!i(B\\)" "$(5#4(B")                    ; Nukta
+    ("\\($(5!5!h!O!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"`(B")    ;         Half Form
+    ("\\($(5!5!h!O(B\\)" "$(5"$(B")                  ;                     Post "r"
+    ("\\($(5!5!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"5(B")        ;         Half Form
+    ("\\($(5!5!i!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"u(B")      ; Nukta   Half Form
+    ("\\($(5!5!i(B\\)" "$(5#5(B")                    ; Nukta
+    ("\\($(5!6!h!F!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"a(B")    ;         Half Form
+    ("\\($(5!6!h!F(B\\)" "$(5$/(B")
+    ; Slot
+    ("\\($(5!6!h!O(B\\)" "$(5!6"q(B")                ;                     Post "r"
+    ("\\($(5!6!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"6(B")        ;         Half Form
+    ("\\($(5!7!h!3!h!B!h!M(B\\)" "$(5$0(B" sanskrit)
+    ("\\($(5!7!h!3!h!V!h!T(B\\)" "$(5$1(B" sanskrit)
+    ("\\($(5!7!h!3!h!B(B\\)" "$(5$2(B" sanskrit)
+    ("\\($(5!7!h!3!h!V(B\\)" "$(5$3(B" sanskrit)
+    ("\\($(5!7!h!3!h!O(B\\)" "$(5$9"q(B")            ; Special Rule. May be precomposed font needed.
+    ("\\($(5!7!h!6!h!O(B\\)" "$(5$4(B" sanskrit)
+    ("\\($(5!7!h!3!h!M(B\\)" "$(5$5(B" sanskrit)
+    ("\\($(5!7!h!4!h!M(B\\)" "$(5$6(B" sanskrit)
+    ("\\($(5!7!h!5!h!M(B\\)" "$(5$7(B" sanskrit)
+    ("\\($(5!7!h!6!h!M(B\\)" "$(5$8(B" sanskrit)
+    ("\\($(5!7!h!3(B\\)" "$(5$9(B")
+    ("\\($(5!7!h!4(B\\)" "$(5$:(B")
+    ("\\($(5!7!h!5!h!O(B\\)" "$(5$;"q(B")            ; Special Rule. May be precomposed font needed.
+    ("\\($(5!7!h!5(B\\)" "$(5$;(B")
+    ("\\($(5!7!h!6(B\\)" "$(5$<(B")
+    ("\\($(5!7!h!7(B\\)" "$(5$=(B")
+    ("\\($(5!7!h!F(B\\)" "$(5$>(B")
+    ("\\($(5!7!h!L(B\\)" "$(5$?(B")
+    ("\\($(5!7!h!M(B\\)" "$(5$@(B")
+    ("\\($(5!8!h(B\\)[$(5!8!<(B]$(5!h(B" "$(5"8(B")            ;         Half Form
+    ("\\($(5!8!h!8(B\\)" "$(5$A(B")
+    ("\\($(5!8!h!<(B\\)" "$(5$B(B")
+    ("\\($(5!8!h!O!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"8"q(B")  ;         Half Form   Post "r"
+    ("\\($(5!8!h!O(B\\)" "$(5!8"q(B")                ;                     Post "r"
+    ("\\($(5!8!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"8(B")        ;         Half Form
+    ("\\($(5!9!h!M(B\\)" "$(5$C(B")
+    ("\\($(5!:!h!O(B\\)" "$(5$D(B")
+    ("\\($(5!:!h!<!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"m(B")    ;         Half Form
+    ("\\($(5!:!h!<(B\\)" "$(5$E(B")
+    ("\\($(5!:!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5":(B")        ;         Half Form
+    ("\\($(5!:!i!h!O(B\\)" "$(5"!(B")                ; Nukta               Post "r"
+    ("\\($(5!:!i!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"z(B")      ; Nukta   Half Form
+    ("\\($(5!:!i(B\\)" "$(5#:(B")                    ; Nukta
+    ("\\($(5!;!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5";(B")        ;         Half Form
+    ("\\($(5!<!h(B\\)$(5!8!h(B[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"<(B")    ; Special Half Form
+    ("\\($(5!<!h!8(B\\)" "$(5$F(B")
+    ("\\($(5!<!h(B\\)$(5!:!h(B[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"<(B")    ; Special Half Form
+    ("\\($(5!<!h!:(B\\)" "$(5$G(B")
+    ("\\($(5!<!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"<(B")        ;         Half Form
+    ("\\($(5!=!h!3(B\\)" "$(5$H(B")
+    ("\\($(5!=!h!=(B\\)" "$(5$I(B")
+    ("\\($(5!=!h!>(B\\)" "$(5$J(B")
+    ("\\($(5!=!h!M(B\\)" "$(5$K(B")
+    ("\\($(5!>!h!M(B\\)" "$(5$L(B")
+    ("\\($(5!?!h!5!h!M(B\\)" "$(5$M(B" sanskrit)
+    ("\\($(5!?!h!6!h!O(B\\)" "$(5$N(B" sanskrit)
+    ("\\($(5!?!h!O!h!M(B\\)" "$(5$O(B")
+    ("\\($(5!?!h!5(B\\)" "$(5$P(B")
+    ("\\($(5!?!h!6(B\\)" "$(5$Q(B")
+    ("\\($(5!?!h!?(B\\)" "$(5$R(B")
+    ("\\($(5!?!h!L(B\\)" "$(5$S(B")
+    ("\\($(5!?!h!M(B\\)" "$(5$T(B")
+    ("\\($(5!?!i(B\\)" "$(5#?(B")                    ; Nukta
+    ("\\($(5!@!h!M(B\\)" "$(5$`(B")
+    ("\\($(5!@!i(B\\)" "$(5#@(B")                    ; Nukta
+    ("\\($(5!A!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"A(B")        ;         Half Form
+    ("\\($(5!B!h(B\\)$(5!B!h!O(B" "$(5"B(B")              ; Special Rule for "t-tr"
+    ("\\($(5!B!h!B!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"c(B")    ;         Half Form
+    ("\\($(5!B!h!B(B\\)" "$(5$a(B")
+    ("\\($(5!B!h!F(B\\)" "$(5$b(B")
+    ("\\($(5!B!h!O!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"d(B")    ;         Half Form   Post "r"
+    ("\\($(5!B!h!O(B\\)" "$(5"%(B")                  ;                     Post "r"
+    ("\\($(5!B!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"B(B")        ;         Half Form
+    ("\\($(5!C!h!O(B\\)" "$(5!C"q(B")                ;                     Post "r"
+    ("\\($(5!C!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"C(B")        ;         Half Form
+    ("\\($(5!D!h!D!h!M(B\\)" "$(5$c(B")
+    ("\\($(5!D!h!E!h!M(B\\)" "$(5$d(B")
+    ("\\($(5!D!h!K!h!M(B\\)" "$(5$e(B")
+    ("\\($(5!D!h!K!h!O(B\\)" "$(5$r"r(B")            ; Special Case for "dbhr" ; ***
+    ("\\($(5!D!h!O!h!M(B\\)" "$(5$f(B")
+    ("\\($(5!D!h!T!h!M(B\\)" "$(5$g(B")
+    ("\\($(5!D!h!5!h!O(B\\)" "$(5$h(B")
+    ("\\($(5!D!h!6!h!O(B\\)" "$(5$i(B")
+    ("\\($(5!D!h!D!h!T(B\\)" "$(5$j(B")
+    ("\\($(5!D!h!E!h!T(B\\)" "$(5$k(B")
+    ("\\($(5!D!h(B\\)$(5!E!h(B[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5!D!h(B")  ; Special Half Form (for ddhra)
+    ("\\($(5!D!h!5(B\\)" "$(5$l(B")
+    ("\\($(5!D!h!6(B\\)" "$(5$m(B")
+    ("\\($(5!D!h!D(B\\)" "$(5$n(B")
+    ("\\($(5!D!h!E(B\\)" "$(5$o(B")
+    ("\\($(5!D!h!F(B\\)" "$(5$p(B")
+    ("\\($(5!D!h(B\\)$(5!J!h(B" "$(5!D!h(B")              ; Suppressing "db-"
+    ("\\($(5!D!h!J(B\\)" "$(5$q(B")
+    ("\\($(5!D!h!K(B\\)" "$(5$r(B")
+    ("\\($(5!D!h!L(B\\)" "$(5$s(B")
+    ("\\($(5!D!h!M(B\\)" "$(5$t(B")
+    ("\\($(5!D!h!T(B\\)" "$(5$u(B")
+    ("\\($(5!E!h!F!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"e(B")    ;         Half Form
+    ("\\($(5!E!h!F(B\\)" "$(5$v(B")
+    ("\\($(5!E!h!O!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"f(B")    ;         Half Form     Post "r"
+    ("\\($(5!E!h!O(B\\)" "$(5!E"q(B")                ;                       Post "r"
+    ("\\($(5!E!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"E(B")        ;         Half Form
+    ("\\($(5!F!h!F!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"k(B")    ;         Half Form
+    ("\\($(5!F!h!F(B\\)" "$(5$w(B")
+    ("\\($(5!F!h!O(B\\)" "$(5!F"q(B")
+    ("\\($(5!F!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"F(B")        ;         Half Form
+    ("\\($(5!G!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"G(B")        ; Nukta   Half Form
+    ("\\($(5!H!h(B\\)$(5!B!h!O(B" "$(5"H(B")              ; Special Rule for "p-tr"
+    ("\\($(5!H!h!B!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"g(B")    ;         Half Form
+    ("\\($(5!H!h!B(B\\)" "$(5$x(B")
+    ("\\($(5!H!h!F(B\\)" "$(5$y(B")
+    ("\\($(5!H!h!Q(B\\)" "$(5$z(B")
+    ("\\($(5!H!h!O(B\\)" "$(5"&(B")                  ;                     Post "r"
+    ("\\($(5!H!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"H(B")        ;         Half Form
+    ("\\($(5!I!h!O(B\\)" "$(5"'(B")                  ;                     Post "r"
+    ("\\($(5!I!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"I(B")        ;         Half Form
+    ("\\($(5!I!i!h!O(B\\)" "$(5""(B")                ; Nukta               Post "r"
+    ("\\($(5!I!i!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"y(B")      ; Nukta   Half Form
+    ("\\($(5!I!i(B\\)" "$(5#I(B")                    ; Nukta
+    ("\\($(5!J!h(B\\)$(5!F!h(B[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"J(B")    ; Special Half Form
+    ("\\($(5!J!h!F(B\\)" "$(5${(B")
+    ("\\($(5!J!h(B\\)$(5!J!h(B[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"J(B")    ; Special Half Form
+    ("\\($(5!J!h!J(B\\)" "$(5$|(B")
+    ("\\($(5!J!h(B\\)$(5!T!h(B[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"J(B")    ; Special Half Form
+    ("\\($(5!J!h!T(B\\)" "$(5$}(B")
+    ("\\($(5!J!h!O(B\\)" "$(5!J"q(B")                ;                     Post "r"
+    ("\\($(5!J!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"J(B")        ;         Half Form
+    ("\\($(5!K!h!F(B\\)" "$(5$~(B")
+    ("\\($(5!K!h!O(B\\)" "$(5!K"q(B")                ;                     Post "r"
+    ("\\($(5!K!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"K(B")        ;         Half Form
+    ("\\($(5!L!h!F(B\\)" "$(5#P(B")
+    ("\\($(5!L!h!Q(B\\)" "$(5#Q(B")
+    ("\\($(5!L!h!O(B\\)" "$(5!L"q(B")                ;                     Post "r"
+    ("\\($(5!L!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"L(B")        ;         Half Form
+    ("\\($(5!M!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"M(B")        ;         Half Form
+    ("\\($(5!N!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"N(B")        ;         Half Form
+    ;; special form for "ru".
+    ("\\($(5!O!](B\\)" "$(5",(B")
+    ("\\($(5!O!^(B\\)" "$(5"-(B")
+    ("\\($(5!P!](B\\)" "$(5".(B")
+    ("\\($(5!P!^(B\\)" "$(5"/(B")
     ;;
-    ;; ordinary forms 
-    ("\\($(5!5!h!O!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"`(B")
-    ("\\($(5!6!h!F!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"a(B")
-    ;; ("\\($(5!<!h!8!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"c(B") ; Mistake, must check later.
-    ("\\($(5!B!h!O!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"d(B")
-    ("\\($(5!E!h!F!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"e(B")
-    ("\\($(5!E!h!O!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"f(B")
-    ("\\($(5!H!h!B!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"g(B")
-    ("\\($(5!U!h!8!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"h(B")
-    ("\\($(5!U!h!O!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"i(B")
-    ("\\($(5!U!h!T!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"j(B")
-    ;; ("\\($(5!U!h!T!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"k(B") ; must check later.
-    ;; Conjunction form associated with Nukta sign.
-    ("\\($(5!3!i!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"s(B")
-    ("\\($(5!4!i!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"t(B")
-    ("\\($(5!5!i!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"u(B")
-    ("\\($(5!:!i!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"z(B")
-    ("\\($(5!I!i!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"y(B")
+    ("\\($(5!Q!h!Q(B\\)" "$(5#`(B" sanskrit)
+    ("\\($(5!Q!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"Q(B")        ;         Half Form
+    ("\\($(5!R!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"R(B")        ;         Half Form
+    ("\\($(5!S!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"S(B")        ;         Half Form
+    ("\\($(5!T!h!F(B\\)" "$(5#a(B")
+    ("\\($(5!T!h!T(B\\)" "$(5#b(B")
+    ("\\($(5!T!h!O(B\\)" "$(5!T"q(B")                ;                     Post "r"
+    ("\\($(5!T!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"T(B")        ;         Half Form
+    ("\\($(5!U!h!8!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"h(B")    ;         Half Form
+    ("\\($(5!U!h!8(B\\)" "$(5#c(B")
+    ("\\($(5!U!h!F(B\\)" "$(5#d(B")
+    ("\\($(5!U!h!J(B\\)" "$(5#e(B")
+    ("\\($(5!U!h!Q(B\\)" "$(5#f(B")
+    ("\\($(5!U!h(B\\)$(5!T!h!O(B" "$(5"U(B")              ; Special Half Form
+    ("\\($(5!U!h!T!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"j(B")    ;         Half Form
+;   ("\\($(5!U!h!T(B\\)" "$(5#g(B")
+    ("\\($(5!U!h!O!h!T(B\\)" "$(5#g(B")
+    ("\\($(5!U!h!O!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"i(B")    ;         Half Form
+    ("\\($(5!U!h!O(B\\)" "$(5")(B")             ;                     Post "r"
+    ("\\($(5!U!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"U(B")        ;         Half Form
+    ("\\($(5!V!h!=!h!O!h!M(B\\)" "$(5#h(B")
+    ("\\($(5!V!h!=!h!M(B\\)" "$(5#i(B")
+    ("\\($(5!V!h!=!h!T(B\\)" "$(5#j(B")
+    ("\\($(5!V!h!=(B\\)" "$(5#k(B")
+    ("\\($(5!V!h!>(B\\)" "$(5#l(B")
+    ("\\($(5!V!h!O(B\\)" "$(5!V"q(B")                ;                     Post "r"
+    ("\\($(5!V!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"V(B")        ;         Half Form
+    ("\\($(5!W!h!F!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"W"F(B")  ; Special Half Form
+    ("\\($(5!W!h!F(B\\)" "$(5#m(B")
+    ("\\($(5!W!h!O(B\\)" "$(5#n(B")
+    ("\\($(5!W!h(B\\)[$(5!3(B-$(5!N!P(B-$(5!X(B]" "$(5"W(B")        ;         Half Form
+    ("\\($(5!X!h!A(B\\)" "$(5#p(B")
+    ("\\($(5!X!h!F(B\\)" "$(5#q(B")
+    ("\\($(5!X!h!L(B\\)" "$(5#r(B")
+    ("\\($(5!X!h!M(B\\)" "$(5#s(B")
+    ("\\($(5!X!h!O(B\\)" "$(5#t(B")
+    ("\\($(5!X!h!Q(B\\)" "$(5#u(B")
+    ("\\($(5!X!h!T(B\\)" "$(5#v(B")
+    ;; Special Ligature Rules 
+    ("\\($(5!X!_(B\\)" "$(5#R(B")
 
     ;; For consonants other than listed above, glyph-composition will
     ;; be applied.  If the consonant which is preceding "$(5!O(B" does not
     ;; have the vertical line (such as "$(5!?(B"), "$(5"r(B" is put beneath the
     ;; consonant.
     ;;
-    ("[$(5!7!9!=!>!?!@!D!O!P!R!S!X(B]\\($(5!h!O(B\\)" . "$(5"r(B")
-    ("\\($(5!J!h!O(B\\)" . "$(5!J"r(B") ; Protect from Half form conversion.
-    ("\\($(5!E!h!O(B\\)" . "$(5!E"r(B") ; Will be replaced with precomposed font.
-    ("\\($(5!6!h!O(B\\)" . "$(5!6"r(B")
-    ("\\($(5!K!h!O(B\\)" . "$(5!K"r(B")
-    ("\\($(5!T!h!O(B\\)" . "$(5!T"r(B")
-    ("\\($(5!L!h!O(B\\)" . "$(5!L"r(B")
-    ("\\($(5!7!h!5!h!O(B\\)" . "$(5$;"r(B") ; Ggr
-    ("\\($(5!7!h!3!h!O(B\\)" . "$(5$9"r(B") ; Gkr
+    ("[$(5!7!9!=!>!?!@!D!O!P!R!S!X(B]\\($(5!h!O(B\\)" "$(5"r(B")
+    ("[$(5!6!8!C!E!F!H!J!K!L!M!T!V(B]\\($(5!h!O(B\\)" "$(5"q(B")
+    ("$(5!?!i(B\\($(5!h!O(B\\)" "$(5"r(B")
+    ("$(5!@!i(B\\($(5!h!O(B\\)" "$(5"r(B")
 
-    ("$(5!?!i(B\\($(5!h!O(B\\)" . "$(5"r(B")
-    ("$(5!@!i(B\\($(5!h!O(B\\)" . "$(5"r(B")
+    ;; Nukta with Non-Consonants
+    ("\\($(5!!!i(B\\)" "$(5#!(B")
+    ("\\($(5!&!i(B\\)" "$(5#&(B")
+    ("\\($(5!'!i(B\\)" "$(5#'(B")
+    ("\\($(5!*!i(B\\)" "$(5#*(B")
+    ("\\($(5![!i(B\\)" "$(5#L(B")
+    ("\\($(5!\!i(B\\)" "$(5#M(B")
+    ("\\($(5!_!i(B\\)" "$(5#K(B")
+    ("\\($(5!j!i(B\\)" "$(5#J(B")
 
-    ;; Nukta 
-    ("\\($(5!!!i(B\\)" . "$(5#!(B")
-    ("\\($(5!&!i(B\\)" . "$(5#&(B")
-    ("\\($(5!'!i(B\\)" . "$(5#'(B")
-    ("\\($(5!*!i(B\\)" . "$(5#*(B")
-    ("\\($(5![!i(B\\)" . "$(5#L(B")
-    ("\\($(5!\!i(B\\)" . "$(5#M(B")
-    ("\\($(5!_!i(B\\)" . "$(5#K(B")
-    ("\\($(5!3!i(B\\)" . "$(5#3(B")
-    ("\\($(5!4!i(B\\)" . "$(5#4(B")
-    ("\\($(5!5!i(B\\)" . "$(5#5(B")
-    ("\\($(5!:!i(B\\)" . "$(5#:(B")
-    ("\\($(5!?!i(B\\)" . "$(5#?(B")
-    ("\\($(5!@!i(B\\)" . "$(5#@(B")
-    ("\\($(5!I!i(B\\)" . "$(5#I(B")
-    ("\\($(5!j!i(B\\)" . "$(5#J(B")
-
-    ;; Half forms.
-    ("\\($(5!3!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"3(B")
-    ("\\($(5!4!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"4(B")
-    ("\\($(5!5!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"5(B")
-    ("\\($(5!6!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"6(B")
-    ("\\($(5!8!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"8(B")
-    ("\\($(5!:!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5":(B")
-    ("\\($(5!;!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5";(B")
-    ("\\($(5!<!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"<(B")
-    ("\\($(5!A!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"A(B")
-    ("\\($(5!B!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"B(B")
-    ("\\($(5!C!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"C(B")
-    ("\\($(5!E!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"E(B")
-    ("\\($(5!F!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"F(B")
-    ("\\($(5!G!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"G(B")
-    ("\\($(5!H!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"H(B")
-    ("\\($(5!I!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"I(B")
-    ("\\($(5!J!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"J(B")
-    ("\\($(5!K!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"K(B")
-    ("\\($(5!L!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"L(B")
-    ("\\($(5!M!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"M(B")
-    ("\\($(5!N!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"N(B")
-    ("\\($(5!Q!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"Q(B")
-    ("\\($(5!R!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"R(B")
-    ("\\($(5!S!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"S(B")
-    ("\\($(5!T!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"T(B")
-    ("\\($(5!U!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"U(B")
-    ("\\($(5!V!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"V(B")
-    ("\\($(5!W!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"W(B")
-
-    ;; Special rule for "rR"
-    ("\\($(5!O!_(B\\)" . "$(5!*"p(B")
+    ;; Special rule for "r + some vowels"
+    ("\\($(5!O!_(B\\)" "$(5!*"p(B")
+    ("\\($(5!O#L(B\\)" "$(5#&"p(B")
+    ("\\($(5!O#K(B\\)" "$(5#*"p(B")
+    ("\\($(5!O#M(B\\)" "$(5#'"p(B")
     ;; If everything fails, "y" will connect to the front consonant.
-    ("\\($(5!h!M(B\\)" . "$(5"](B")
+    ("\\($(5!h!M(B\\)" "$(5"](B")
     )
   "Alist of regexps of Devanagari character sequences vs composed characters.")
-
-;; Example:
-;;("\\($(5!F!h(B\\)[$(5!3(B-$(5!X(B]" . "$(5"F(B")
-;;(string-match "\\($(5!F!h(B\\)[$(5!3(B-$(5!X(B]" "$(5!X![!F!h!D!\(B") => 8
-;;(match-end 1) => 16
-
-;;
-;; Defining character properties : char-to-glyph, glyph-to-char
-;;
-;; *  If char-to-glyph is non-nil, it would be one of the following forms.
-;;
-;;  (("character-regexp" . "glyphs")
-;;   .....) or
-;;  (("character-regexp" . ?glyph)
-;;   .....) or
-;;  ("characters-regexp" . "glyphs")
-;;  or
-;;  ?glyph
-;;
-;; *  If glyph-to-char is non-nil, it would be one of the following forms.
-;;
-;;  (("glyph-regexp" . "characters")  ;; This is the only case in Devanagari
-;;   ....) or
-;;  (("glyph-regexp" . ?character)
-;;   ....) or
-;;  ("glyph-regexp" . "characters")
-;;    or
-;;  "characters"
-;;    or
-;;  ?character  
-;;
 
 (let ((rules devanagari-char-to-glyph-rules))
   (while rules
     (let ((rule (car rules)) 
-	  (chars) (char) (glyph))
+	  (chars) (char) (glyphs) (glyph))
       (setq rules (cdr rules))
       (string-match "\\\\(\\(.+\\)\\\\)" (car rule))
       (setq chars (substring (car rule) (match-beginning 1) (match-end 1)))
       (setq char (string-to-char chars))
-      (setq glyph (string-to-char (cdr rule))) ; assume one glyph in devan.
+      (setq glyphs (cdr rule))
+      (setq glyph (string-to-char (car glyphs)))
       (put-char-code-property 
-         char 'char-to-glyph 
-	 (append (get-char-code-property char 'char-to-glyph) (list rule)))
-      (put-char-code-property glyph 'glyph-to-char chars))))
+       char 'char-to-glyph 
+       ;; We don't "cons" it since priority is top to down.
+       (append (get-char-code-property char 'char-to-glyph) (list rule)))
+
+      (if (and (< ?(5z(B glyph) ; Glyphs only.
+	       (null (get-char-code-property glyph 'glyph-to-char)))
+	       ; One glyph may corresponds to multiple characters, 
+	       ; e.g., surrounding vowel in Tamil, etc.
+	       ; but for Devanagari, we put this restriction
+	       ; to make sure the fact that one glyph corresponds to one char.
+	  (put-char-code-property 
+	   glyph 'glyph-to-char 
+	   (cons (list (car glyphs) chars)
+		 (get-char-code-property glyph 'glyph-to-char)
+	   ))))))
 
 ;;
-;; Convert Character Code to Glyph Code
+;; Function used in both characters-to-glyphs conversion and
+;; glyphs-to-characters conversion.
 ;;
 
-;;;###autoload
-(defun char-to-glyph-devanagari (src-str)
-  "Convert Devanagari characters in the string to Devanagari glyphs.  
-Ligatures and special rules are processed."
+(defun max-match-len (regexp-str)
+  "This returns the possible length of matched string of given regexp.
+   Only [...] pattern of regexp is recognized.  The last character of
+   inside of [....] is used for its length."
+  (let ((dest-str regexp-str))
+    (while (string-match "\\[\\([^\]]\\)+\\]" dest-str)
+      (setq dest-str 
+	    (concat (substring dest-str 0 (match-beginning 0))
+		    (substring dest-str (match-beginning 1) (match-end 1))
+		    (substring dest-str (match-end 0)))))
+    (length dest-str)))
+
+(defun string-conversion-by-rule (src-str symbol &rest specs)
+  " This function converts the SRC-STR to the new string according to
+the rules described in the each character's SYMBOL property.  The
+rules are described in the forms of '((regexp str <specs>) ...), and
+the character sequence in the string which matches to 'regexp' are
+replaced with str.  If SPECS are not specified, only rules with no
+<specs> would be applied.  If SPECS are specified, then rules with no
+<specs> specified and rules with <spec> matches with SPECS would be
+applied.  Rules are tested in the order of the list, thus more
+specific rules should be placed in front of less important rules.  No
+composite character is supported, thus such must be converted by
+decompose-char before applying to this function.  If rule is given in
+the forms of regexp '...\\(...\\)...', then inside the parenthesis is
+the subject of the match.  Otherwise, the entire expression is the
+subject of the match."
   (let ((pos 0) 
 	(dst-str ""))
     (while (< pos (length src-str))
       (let ((found nil)
 	    (rules (get-char-code-property 
 		    (string-to-char 
-		     ;; caution. other forms not supported for now.
-		     (substring src-str pos)) 'char-to-glyph)))
+		     (substring src-str pos)) symbol)))
 	(while rules
 	  (let* ((rule (car rules))
-		 (regexp (car rule)))
-	    (if (string-match regexp src-str)
-		(if (= (match-beginning 1) pos)
-		    (progn
-		      (setq dst-str (concat dst-str (cdr rule)))
-		      (setq rules nil) ; Get out of the loop.
-		      (setq found t)
-		      ;; proceed `pos' for replaced characters.
-		      (setq pos (match-end 1)))
-		  (setq rules (cdr rules)))
-	      (setq rules (cdr rules)))))
+		 (regexp (car rule))
+		 (replace-str (car (cdr rule)))
+		 (rule-specs (cdr (cdr rule)))
+		 search-pos)
+	    (if (not (or (null rule-specs)
+			 (intersection specs rule-specs)))
+		(setq rules (cdr rules))
+	      (if (null (string-match "\\\\(.+\\\\)" regexp))
+		  (progn
+		    (setq regexp (concat "\\(" regexp "\\)"))
+		    (setq search-pos pos))
+		(setq search-pos (- pos (max-match-len 
+					 (substring regexp
+						    (string-match "^[^\\\\]*" regexp)
+						    (match-end 0))))))
+	      (if (< search-pos 0) (setq search-pos 0))
+	      (if (string-match regexp src-str search-pos)
+		  (if (= (match-beginning 1) pos)
+		      (progn
+			(setq dst-str (concat dst-str replace-str))
+			(setq rules nil) ; Get out of the loop.
+			(setq found t)
+			;; proceed `pos' for replaced characters.
+			(setq pos (match-end 1)))
+		    (setq rules (cdr rules)))
+		(setq rules (cdr rules))))))
 	;; proceed to next position
 	(if (not found)
 	    (let ((nextchar (string-to-char (substring src-str pos))))
@@ -563,6 +623,19 @@ Ligatures and special rules are processed."
 			   (char-bytes (string-to-char (substring src-str pos)))))
 	      (setq dst-str (concat dst-str (char-to-string nextchar)))))))
     dst-str))
+
+
+;;
+;; Convert Character Code to Glyph Code
+;;
+
+;;;###autoload
+(defun char-to-glyph-devanagari (src-str &rest langs)
+  "Convert Devanagari characters in the string to Devanagari glyphs.  
+Ligatures and special rules are processed."
+  (apply 
+   'string-conversion-by-rule 
+   (append (list src-str 'char-to-glyph) langs)))
 
 ;; Example:
 ;;(char-to-glyph-devanagari "$(5!X![!F!h!D!\(B") => "$(5!X!["F!D!\(B"
@@ -577,16 +650,11 @@ Ligatures and special rules are processed."
 ;; Glyphs will be ordered from low priority number to high priority number.
 ;; If application-priority is omitted, it is assumed to be 0.
 ;; If application-direction is omitted, it is asumbed to be '(mr . ml).
-;;
-;; Priority
-;;          Base Glyphs = {$(5!h!i(B} = Misc > 
-;;          {$(5"p"q"r(B} > Matras > {$(5!!!"!#(B}
-;; Question Halant and '$(5"q"r(B' priority problem.
 
 (defconst devanagari-composition-rules
-  '((?$(5!!(B 70 (tr . br))
-    (?$(5!"(B 70 (mr . mr))
-    (?$(5!#(B 70)
+  '((?$(5!!(B 0 (tr . br))
+    (?$(5!"(B 0 (mr . mr))
+    (?$(5!#(B 0)
     (?$(5!$(B 0)
     (?$(5!%(B 0)
     (?$(5!&(B 0)
@@ -641,20 +709,20 @@ Ligatures and special rules are processed."
     (?$(5!W(B 0)
     (?$(5!X(B 0)
     (?$(5!Y(B 0)
-    (?$(5!Z(B 40)
-    (?$(5![(B 40 (ml . mr))
-    (?$(5!\(B 40)
-    (?$(5!](B 40 (bc . tc))
-    (?$(5!^(B 40 (bc . tc))
-    (?$(5!_(B 40 (bc . tc))
-    (?$(5!`(B 40 (mr . mr))  ; (tc . bc)
-    (?$(5!a(B 40 (mr . mr))
-    (?$(5!b(B 40 (mr . mr))
-    (?$(5!c(B 40 (mr . mr))
-    (?$(5!d(B 40)
-    (?$(5!e(B 40)
-    (?$(5!f(B 40)
-    (?$(5!g(B 40)
+    (?$(5!Z(B 0)
+    (?$(5![(B 0 (ml . mr))
+    (?$(5!\(B 0)
+    (?$(5!](B 0 (br . tr))
+    (?$(5!^(B 0 (br . tr))
+    (?$(5!_(B 0 (br . tr))
+    (?$(5!`(B 0 (mr . mr))  ; (tc . bc)
+    (?$(5!a(B 0 (mr . mr))
+    (?$(5!b(B 0 (mr . mr))
+    (?$(5!c(B 0 (mr . mr))
+    (?$(5!d(B 0)
+    (?$(5!e(B 0)
+    (?$(5!f(B 0)
+    (?$(5!g(B 0)
     (?$(5!h(B 0 (br . tr))
     (?$(5!i(B 0 (br . tr))
     (?$(5!j(B 0)
@@ -757,9 +825,9 @@ Ligatures and special rules are processed."
     (?$(5"m(B 0)
     (?$(5"n(B 0)
     (?$(5"o(B 0)
-    (?$(5"p(B 30 (mr . mr))
-    (?$(5"q(B 30 (br . tr))
-    (?$(5"r(B 30 (br . tr))
+    (?$(5"p(B 10 (mr . mr))
+    (?$(5"q(B 0 (br . br))
+    (?$(5"r(B 0 (br . tr))
     (?$(5"s(B 0)
     (?$(5"t(B 0)
     (?$(5"u(B 0)
@@ -814,9 +882,9 @@ Ligatures and special rules are processed."
     (?$(5#H(B 0)
     (?$(5#I(B 0)
     (?$(5#J(B 0)
-    (?$(5#K(B 40 (bc . tc))
-    (?$(5#L(B 40 (bc . tc))
-    (?$(5#M(B 40 (bc . tc))
+    (?$(5#K(B 0 (br . tr))
+    (?$(5#L(B 0 (br . tr))
+    (?$(5#M(B 0 (br . tr))
     (?$(5#N(B 0)
     (?$(5#O(B 0)
     (?$(5#P(B 0)
@@ -965,7 +1033,7 @@ Ligatures and special rules are processed."
 ;; Determine composition priority and rule of the array of Glyphs.
 ;; Sort the glyphs with their priority.
 
-(defun devanagari-reorder-glyph-for-composition (glyph-alist)
+(defun devanagari-reorder-glyphs-for-composition (glyph-alist)
   (let* ((pos 0)
 	 (ordered-glyphs '()))
     (while (< pos (length glyph-alist))
@@ -978,7 +1046,7 @@ Ligatures and special rules are processed."
 ;;(devanagari-compose-to-one-glyph "$(5"5!X![(B") => "2$(6!XP"5@![1(B"
 
 (defun devanagari-compose-to-one-glyph (devanagari-string)
-  (let* ((o-glyph-list (devanagari-reorder-glyph-for-composition
+  (let* ((o-glyph-list (devanagari-reorder-glyphs-for-composition
 			(string-to-vector devanagari-string)))
 	 ;; List of glyphs to be composed.
 	 (cmp-glyph-list (list (car (car o-glyph-list)))) 
@@ -1075,36 +1143,6 @@ Ligatures and special rules are processed."
 ;; Summary
 ;; 
 
-;;;###autoload
-(defun devanagari-compose-string (str)
-  (let ((len (length str))
-	(src str) (dst "") rest match-b match-e)
-    (while (string-match devanagari-composite-glyph-unit-examine src)
-      (setq match-b (match-beginning 0) match-e (match-end 0))
-      (setq dst 
-	    (concat dst 
-		    (substring src 0 match-b)
-		    (devanagari-compose-to-one-glyph 
-		     (char-to-glyph-devanagari
-		      (substring src match-b match-e)))))
-      (setq src (substring src match-e)))
-    (setq dst (concat dst src))
-    dst))
-
-;;;###autoload
-(defun devanagari-compose-region (from to)
-  (interactive "r")
-  (save-restriction
-    (narrow-to-region from to)
-    (goto-char (point-min))
-    (while (re-search-forward devanagari-composite-glyph-unit-examine nil t)
-      (let* ((match-b (match-beginning 0)) (match-e (match-end 0))
-	     (cmps (devanagari-compose-to-one-glyph
-		    (char-to-glyph-devanagari
-		     (buffer-substring match-b match-e)))))
-	(delete-region match-b match-e)
-	(insert cmps)))))
-
 ;;
 ;; Decomposition of composite font.
 ;;
@@ -1117,12 +1155,12 @@ Ligatures and special rules are processed."
 
 (defvar devanagari-decomposition-rules
   '(
-    (?$(5"p(B -20)
+    (?$(5"p(B -10)
     )
   )
 
-(defun devanagari-reorder-glyph-for-decomposition (glyphlist)
-  "This function re-orders glyph list."
+(defun devanagari-reorder-glyphs-for-decomposition (glyphlist)
+  "This function re-orders glyph list for decomposition."
   (sort glyphlist 
 	'(lambda (x y) 
 	   (let ((xx (assoc x devanagari-decomposition-rules))
@@ -1131,18 +1169,17 @@ Ligatures and special rules are processed."
 	     (if (null yy) (setq yy 0))
 	     (< xx yy)))))
 
-(defun devanagari-decompose-char (char)
-  "This function decomposes one Devanagari composite character to 
-   basic Devanagari character."
-  (let ((glyphlist (decompose-composite-char char)))
-    (if (not (listp glyphlist)) 
-	(setq glyphlist (list glyphlist)))
+(defun devanagari-decompose-char (glyph)
+  "This function decomposes one Devanagari composite glyph to 
+   basic Devanagari characters as a string."
+  (let ((glyphlist 
+	 (if (eq (car (split-char glyph)) 'composition) 
+	     (string-to-list (decompose-composite-char glyph))
+	   (list glyph))))
     (setq glyphlist (devanagari-normalize-narrow-glyph glyphlist))
-    (mapconcat '(lambda (x) (let ((char (get-char-code-property 
-					 x 'glyph-to-char)))
-			   (if (null char) (char-to-string x) char)))
-	       (devanagari-reorder-glyph-for-decomposition glyphlist)
-	       "")))
+    (setq glyphlist (devanagari-reorder-glyphs-for-decomposition glyphlist))
+    (string-conversion-by-rule 
+     (mapconcat 'char-to-string glyphlist "") 'glyph-to-char)))
 
 ;;;###autoload
 (defun devanagari-decompose-string (str)
@@ -1169,7 +1206,43 @@ basic Devanagari character string."
 	(delete-char -1)
 	(insert decmps)))))
 
+;;;
+;;; Composition
+;;;
 
+;;;###autoload
+(defun devanagari-compose-string (str &rest langs)
+  (let ((len (length str))
+	(src (devanagari-decompose-string str)) (dst "") rest match-b match-e)
+    (while (string-match devanagari-composite-glyph-unit src)
+      (setq match-b (match-beginning 0) match-e (match-end 0))
+      (setq dst 
+	    (concat dst 
+		    (substring src 0 match-b)
+		    (devanagari-compose-to-one-glyph 
+		     (apply 
+		      'char-to-glyph-devanagari
+		      (cons (substring src match-b match-e)
+			    langs)))))
+      (setq src (substring src match-e)))
+    (setq dst (concat dst src))
+    dst))
+
+;;;###autoload
+(defun devanagari-compose-region (from to &rest langs)
+  (interactive "r")
+  (save-restriction
+    (narrow-to-region from to)
+    (goto-char (point-min))
+    (while (re-search-forward devanagari-composite-glyph-unit nil t)
+      (let* ((match-b (match-beginning 0)) (match-e (match-end 0))
+	     (cmps (devanagari-compose-to-one-glyph
+		    (apply 
+		     'char-to-glyph-devanagari
+		     (cons (buffer-substring match-b match-e)
+			   langs)))))
+	(delete-region match-b match-e)
+	(insert cmps)))))
 
 ;; For pre-write and post-read conversion
 
@@ -1191,10 +1264,29 @@ basic Devanagari character string."
     (devanagari-decompose-region (point-min) (point-max))
     (devanagari-to-indian-region (point-min) (point-max))))
 
+
+;; For input/output of ITRANS
+
+;;;###autoload
+(defun devanagari-encode-itrans-region (from to)
+  (interactive "r")
+  (save-restriction
+    (narrow-to-region from to)
+    (devanagari-decompose-to-is13194-region (point-min) (point-max))
+    (indian-encode-itrans-region (point-min) (point-max))))
+
+;;;###autoload
+(defun devanagari-decode-itrans-region (from to)
+  (interactive "r")
+  (save-restriction
+    (narrow-to-region from to)
+    (indian-decode-itrans-region (point-min) (point-max))
+    (devanagari-compose-from-is13194-region (point-min) (point-max))))
+
 ;;
 (provide 'language/devan-util)
 
 ;;; Local Variables:
 ;;; generated-autoload-file: "../loaddefs.el"
 ;;; End:
-;;; devan-util.el ends here
+;;; devan-util.el end here

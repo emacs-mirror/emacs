@@ -19,9 +19,8 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; Commentary:
 
@@ -268,11 +267,12 @@
 (defvar itrans-indian-regexp
   (let ((vowel "[(5$(B-(52(B]")
 	(consonant "[(53(B-(5X(B]")
-	(vowel-sign "[(5Z(B-(5g(B]")
+	(matra "[(5Z(B-(5g(B]")
 	(misc "[(5q(B-(5z(B]")
 	(lpre "\\(") (rpre "\\)") (orre "\\|"))
-    nil)) ; not yet prepared.
-
+    (concat misc orre
+	    lpre consonant matra "?" rpre orre
+	    vowel)))
 
 ;;
 ;; IS13194 - ITRANS conversion table for string matching above regexp.
@@ -324,6 +324,19 @@ positions (integers or markers) specifying the stretch of the region."
 ;; Utility program to convert from IS 13194 to ITRANS in specified region.
 ;;
 
-;;;;;;  not yet prepared.
-
+(defun indian-encode-itrans-region (from to)
+  "Convert indian region to ITRANS mnemonics."
+  (interactive "r")
+  (save-restriction
+    (narrow-to-region from to)
+    (goto-char (point-min))
+    (while (re-search-forward itrans-indian-regexp nil t)
+      (let* ((indian (buffer-substring (match-beginning 0) (match-end 0)))
+	     (ch (car (rassoc indian indian-itrans-alist))))
+	(if ch
+	    (progn
+	      (delete-region (match-beginning 0) (match-end 0))
+	      (insert ch)))))
+    (goto-char (point-min))))
+  
 ;;; indian.el ends here
