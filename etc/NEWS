@@ -2983,7 +2983,8 @@ bitmap of the display line.
 Format is 'display '(left-fringe BITMAP [FACE]), where BITMAP is a
 symbol identifying a fringe bitmap, either built-in or defined with
 `define-fringe-bitmap', and FACE is an optional face name to be used
-for displaying the bitmap.
+for displaying the bitmap instead of the default `fringe' face.
+When specified, FACE is automatically merged with the `fringe' face.
 
 *** New function `fringe-bitmaps-at-pos' returns the current fringe
 bitmaps in the display line at a given buffer position.

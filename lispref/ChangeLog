@@ -1,3 +1,11 @@
+2005-03-23  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Standard Faces): Other faces used in the fringe
+	implicitly inherits from the fringe face.
+	(Fringe Bitmaps): FACE in right-fringe and left-fringe display
+	properties implicitly inherits from fringe face.
+	(Customizing Bitmaps): Likewise for set-fringe-bitmap-face.
+
 2005-03-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Invisible Text): State default value of
