@@ -1,6 +1,6 @@
 /* impl.c.amcsshe: POOL CLASS AMC STRESS TEST WITH HEADER
  *
- * $HopeName: MMsrc!amcsshe.c(trunk.2) $
+ * $HopeName: MMsrc!amcsshe.c(trunk.3) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
@@ -24,6 +24,7 @@
 #define avLEN             3
 #define exactRootsCOUNT   300
 #define ambigRootsCOUNT   50
+#define bogusRootsCOUNT   4096
 #define collectionsCOUNT  18
 #define rampSIZE          5
 #define initTestFREQ      6000
@@ -35,6 +36,7 @@ static mps_pool_t pool;
 static mps_ap_t ap;
 static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
+static mps_addr_t bogusRoots[bogusRootsCOUNT];
 
 
 
@@ -157,7 +159,7 @@ static void *test(void *arg, size_t s)
 {
   mps_arena_t arena;
   mps_fmt_t format;
-  mps_root_t exactRoot, ambigRoot;
+  mps_root_t exactRoot, ambigRoot, bogusRoot;
   unsigned long objs; size_t i;
   mps_word_t collections, rampSwitch;
   mps_alloc_pattern_t ramp = mps_alloc_pattern_ramp();
@@ -190,6 +192,10 @@ static void *test(void *arg, size_t s)
                             MPS_RANK_AMBIG, (mps_rm_t)0,
                             &ambigRoots[0], ambigRootsCOUNT),
       "root_create_table(ambig)");
+  die(mps_root_create_table(&bogusRoot, arena,
+                            MPS_RANK_AMBIG, (mps_rm_t)0,
+                            &bogusRoots[0], bogusRootsCOUNT),
+      "root_create_table(bogus)");
 
   /* create an ap, and leave it busy */
   die(mps_reserve(&busy_init, busy_ap, 64), "mps_reserve busy");
@@ -227,6 +233,14 @@ static void *test(void *arg, size_t s)
           ramping = 1;
         }
       }
+      /*  fill bogusRoots with variations of a real pointer */
+      r = rnd() % exactRootsCOUNT;
+      if(exactRoots[i] != objNULL) {
+        char *p = (char*)exactRoots[i];
+
+        for(i = 0; i < bogusRootsCOUNT; ++i, ++p)
+          bogusRoots[i] = (mps_addr_t)p;
+      }
     }
 
     r = rnd();
@@ -261,6 +275,7 @@ static void *test(void *arg, size_t s)
   mps_ap_destroy(ap);
   mps_root_destroy(exactRoot);
   mps_root_destroy(ambigRoot);
+  mps_root_destroy(bogusRoot);
   mps_pool_destroy(pool);
   mps_fmt_destroy(format);
 
