@@ -26,14 +26,18 @@
 
 ;; This code defines a ring data structure. A ring is a 
 ;;     (hd-index length . vector) 
-;; list. You can insert to, remove from, and rotate a ring. When the ring
+;; list.  You can insert to, remove from, and rotate a ring.  When the ring
 ;; fills up, insertions cause the oldest elts to be quietly dropped.
 ;;
 ;; In ring-ref, 0 is the index of the newest element.  Higher indexes
-;; correspond to older elements until they wrap.
+;; correspond to older elements; when the index equals the ring length,
+;; it wraps to the newest element again.
 ;;
-;; hd-index = index of the newest item on the ring.
-;; length = number of ring items.
+;; hd-index = vector index of the oldest ring item.
+;;         Newer items follow this item; at the end of the vector,
+;;	   they wrap around to the start of the vector.
+;; length = number of items currently in the ring.
+;;	   This never exceeds the length of the vector itself.
 ;;
 ;; These functions are used by the input history mechanism, but they can
 ;; be used for other purposes as well.
@@ -53,7 +57,7 @@
   (cons 0 (cons 0 (make-vector size nil))))
 
 (defun ring-insert-at-beginning (ring item)
-  "Add to RING the item ITEM.  Add it at the front (the early end)."
+  "Add to RING the item ITEM.  Add it at the front, as the oldest item."
   (let* ((vec (cdr (cdr ring))) 
 	 (veclen (length vec))
 	 (hd (car ring))
@@ -65,16 +69,16 @@
     (setcar (cdr ring) ln)))
 
 (defun ring-plus1 (index veclen)
-  "INDEX+1, with wraparound"
+  "INDEX+1, with wraparound."
   (let ((new-index (+ index 1)))
     (if (= new-index veclen) 0 new-index)))
 
 (defun ring-minus1 (index veclen)
-  "INDEX-1, with wraparound"
+  "INDEX-1, with wraparound."
   (- (if (= 0 index) veclen index) 1))
 
 (defun ring-length (ring)
-  "Number of elements in the ring."
+  "Number of elements in the ring RING."
   (car (cdr ring)))
 
 (defun ring-empty-p (ring)
@@ -122,11 +126,12 @@ numeric, remove the element indexed."
 
 (defun ring-ref (ring index)
   "Returns RING's INDEX element.
+INDEX = 0 is the most recently inserted; higher indices
+correspond to older elements.
 INDEX need not be <= the ring length, the appropriate modulo operation
-will be performed.  Element 0 is the most recently inserted; higher indices
-correspond to older elements until they wrap."
+will be performed."
   (if (ring-empty-p ring)
-      (error "indexed empty ring")
+      (error "Accessing an empty ring")
     (let* ((hd (car ring))  (ln (car (cdr ring)))  (vec (cdr (cdr ring))))
       (aref vec (ring-index index hd ln (length vec))))))
 
