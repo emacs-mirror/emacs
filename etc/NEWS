@@ -832,6 +832,21 @@ appropriate for C-style escape sequences in strings.
 
 ** New modes and packages
 
+*** The new command M-x re-builder offers a convenient interface for
+authoring regular expressions with immediate visual feedback.
+
+The buffer from which the command was called becomes the target for
+the regexp editor popping up in a separate window.  Matching text in
+the target buffer is immediately color marked during the editing.
+Each sub-expression of the regexp will show up in a different face so
+even complex regexps can be edited and verified on target data in a
+single step.
+
+On displays not supporting faces the matches instead blink like
+matching parens to make them stand out.  On such a setup you will
+probably also want to use the sub-expression mode when the regexp
+contains such to get feedback about their respective limits.
+
 *** glasses-mode is a minor mode that makes
 unreadableIdentifiersLikeThis readable.  It works as glasses, without
 actually modifying content of a buffer.

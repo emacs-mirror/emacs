@@ -1,3 +1,8 @@
+2000-03-12  Detlev Zundel <detlev.zundel@stud.uni-karlsruhe.de>
+
+	* emacs-lisp/re-builder.el (reb-re-syntax): Fix typo in `:type'.
+	Fix comment.
+
 2000-03-10  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* font-lock.el (font-lock-keywords): Fix the doc now that

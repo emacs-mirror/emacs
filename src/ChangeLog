@@ -1,3 +1,8 @@
+2000-03-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (x_defined_color): Rewritten to use
+	x_allocate_nearest_color.
+
 2000-03-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (vga_installed): New function, code moved from
