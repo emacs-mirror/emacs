@@ -1495,7 +1495,7 @@ decode_coding_utf_16 (coding)
 	    {
 	      c = ((surrogate - 0xD800) << 10) | (c - 0xDC00);
 	      CODING_UTF_16_SURROGATE (coding) = surrogate = 0;
-	      *charbuf++ = c;
+	      *charbuf++ = 0x10000 + c;
 	    }
 	}
       else
