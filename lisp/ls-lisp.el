@@ -106,7 +106,8 @@ file names.
 
 Not all `ls' switches are supported.  The switches that work
 are: A a c i r S s t u"
-  (let ((handler (find-file-name-handler file 'insert-directory)))
+  (let ((handler (find-file-name-handler file 'insert-directory))
+	fattr)
     (if handler
 	(funcall handler 'insert-directory file switches
 		 wildcard full-directory-p)
@@ -180,10 +181,15 @@ are: A a c i r S s t u"
 	;; if not full-directory-p, FILE *must not* end in /, as
 	;; file-attributes will not recognize a symlink to a directory
 	;; must make it a relative filename as ls does:
-	(setq file (file-name-nondirectory file))
-	(insert (ls-lisp-format file (file-attributes file)
-				(nth 7 (file-attributes file)) switches
-				(current-time)))))))
+	(if (eq (aref file (1- (length file))) ?/)
+	    (setq file (substring file 0 (1- (length file)))))
+	(setq fattr (file-attributes file))
+	(if fattr
+	    (insert (ls-lisp-format file fattr (nth 7 fattr)
+				    switches (current-time)))
+	  (message "%s: doesn't exist or is inaccessible" file)
+	  (ding)
+	  (sit-for 2))))))
 
 (defun ls-lisp-delete-matching (regexp list)
   ;; Delete all elements matching REGEXP from LIST, return new list.

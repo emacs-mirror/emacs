@@ -1,3 +1,14 @@
+1999-12-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* ls-lisp.el (ls-lisp-insert-directory): Print an explicit message
+	if one of the files specified cannot be accessed by
+	file-attributes.  Do not strip any leading directories from the
+	file names, to behave more like `ls' does.
+
+	* dired.el (dired-get-filename): Handle absolute file names.
+	(dired-readin-insert): If argument is a cons, don't print
+	"wildcard" on the ``total'' line.
+
 1999-12-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* faces.el (face-read-integer, read-face-attribute)

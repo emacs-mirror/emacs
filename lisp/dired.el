@@ -651,9 +651,10 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	;; unless it is an explicit list of files.
 	(dired-insert-directory dir-or-list dired-actual-switches
 				(not (listp dir-or-list)))
-	(save-excursion		;; insert wildcard instead of total line:
-	  (goto-char (point-min))
-	  (insert "wildcard " (file-name-nondirectory dirname) "\n"))))))
+	(or (consp dir-or-list)
+	    (save-excursion	;; insert wildcard instead of total line:
+	      (goto-char (point-min))
+	      (insert "wildcard " (file-name-nondirectory dirname) "\n")))))))
 
 (defun dired-insert-directory (dir-or-list switches &optional wildcard full-p)
   ;; Do the right thing whether dir-or-list is atomic or not.  If it is,
@@ -1314,7 +1315,7 @@ Optional arg LOCALP with value `no-dir' means don't include directory
   `default-directory', which still may contain slashes if in a subdirectory.
 Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
   this line, otherwise an error occurs."
-  (let (case-fold-search file p1 p2)
+  (let (case-fold-search file p1 p2 already-absolute)
     (save-excursion
       (if (setq p1 (dired-move-to-filename (not no-error-if-not-filep)))
 	  (setq p2 (dired-move-to-end-of-filename no-error-if-not-filep))))
@@ -1335,13 +1336,19 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
 			      "\\([^\\]\\|\\`\\)\"" file "\\1\\\\\"" nil t)
 			     file)
 			 "\"")))))
+    (and (file-name-absolute-p file)
+	 (setq already-absolute t))
     (and file buffer-file-coding-system
 	 (not file-name-coding-system)
 	 (not default-file-name-coding-system)
 	 (setq file (encode-coding-string file buffer-file-coding-system)))
-    (if (eq localp 'no-dir)
-	file
-      (and file (concat (dired-current-directory localp) file)))))
+    (cond
+     ((and (eq localp 'no-dir) already-absolute)
+      (file-name-nondirectory file))
+     ((or already-absolute (eq localp 'no-dir))
+      file)
+     (t
+      (and file (concat (dired-current-directory localp) file))))))
 
 (defun dired-string-replace-match (regexp string newtext
 					  &optional literal global)
