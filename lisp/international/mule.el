@@ -1388,7 +1388,7 @@ function by default."
 	  (goto-char head-start)
 	  (setq head-end (set-auto-mode-1))
 	  (setq head-start (point))
-	  (when (< head-found head-end)
+	  (when (and head-end (< head-found head-end))
 	    (goto-char head-start)
 	    (when (and set-auto-coding-for-load
 		       (re-search-forward
