@@ -274,6 +274,84 @@ current_column ()
   return col;
 }
 
+/* Return the width in columns of the part of STRING from BEG to END.
+   If BEG is nil, that stands for the beginning of STRING.
+   If END is nil, that stands for the end of STRING.  */
+
+static int
+string_width (string, beg, end)
+     Lisp_Object string, beg, end;
+{
+  register int col;
+  register unsigned char *ptr, *stop;
+  register int tab_seen;
+  int post_tab;
+  register int c;
+  register int tab_width = XINT (current_buffer->tab_width);
+  int ctl_arrow = !NILP (current_buffer->ctl_arrow);
+  register struct Lisp_Vector *dp = buffer_display_table ();
+  int b, e;
+
+  if (NILP (end))
+    e = XSTRING (string)->size;
+  else
+    {
+      CHECK_NUMBER (end, 0);
+      e = XINT (end);
+    }
+
+  if (NILP (beg))
+    b = 0;
+  else
+    {
+      CHECK_NUMBER (beg, 0);
+      b = XINT (beg);
+    }
+
+  /* Make a pointer for decrementing through the chars before point.  */
+  ptr = XSTRING (string)->data + e;
+  /* Make a pointer to where consecutive chars leave off,
+     going backwards from point.  */
+  stop = XSTRING (string)->data + b;
+
+  if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
+
+  col = 0, tab_seen = 0, post_tab = 0;
+
+  while (1)
+    {
+      if (ptr == stop)
+	break;
+
+      c = *--ptr;
+      if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
+	col += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
+      else if (c >= 040 && c < 0177)
+	col++;
+      else if (c == '\n')
+	break;
+      else if (c == '\t')
+	{
+	  if (tab_seen)
+	    col = ((col + tab_width) / tab_width) * tab_width;
+
+	  post_tab += col;
+	  col = 0;
+	  tab_seen = 1;
+	}
+      else
+	col += (ctl_arrow && c < 0200) ? 2 : 4;
+    }
+
+  if (tab_seen)
+    {
+      col = ((col + tab_width) / tab_width) * tab_width;
+      col += post_tab;
+    }
+
+  return col;
+}
+
 DEFUN ("indent-to", Findent_to, Sindent_to, 1, 2, "NIndent to column: ",
   "Indent from point with tabs and spaces until COLUMN is reached.\n\
 Optional second argument MIN says always do at least MIN spaces\n\
@@ -1009,7 +1087,15 @@ vmotion (from, vtarget, width, hscroll, window)
          && marker_position (XWINDOW (window)->start) == BEG
      here is deliberate; I think we want to measure from the prompt
      position even if the minibuffer window has scrolled.  */
-  int start_hpos = (EQ (window, minibuf_window) ? minibuf_prompt_width : 0);
+  int start_hpos = 0;
+
+  if (EQ (window, minibuf_window))
+    {
+      if (minibuf_prompt_width == 0)
+	minibuf_prompt_width = string_width (minibuf_prompt, Qnil, Qnil);
+
+      start_hpos = minibuf_prompt_width;
+    }
 
  retry:
   if (vtarget > vpos)
