@@ -23,12 +23,11 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;; Installation:
+;;; Commentary:
 
+;; Installation:
 ;; To get the functions in this package bound to keys, do
 ;; (iswitchb-default-keybindings)
-
-;;; Commentary:
 
 ;; As you type in a substring, the list of buffers currently matching
 ;; the substring are displayed as you type.  The list is ordered so
@@ -42,7 +41,7 @@
 ;; common to all of the matching buffers as you type.
 
 ;; This code is similar to a couple of other packages.  Michael R Cook
-;; <mcook@cognex.com wrote a similar buffer switching package, but
+;; <mcook@cognex.com> wrote a similar buffer switching package, but
 ;; does exact matching rather than substring matching on buffer names.
 ;; I also modified a couple of functions from icomplete.el to provide
 ;; the completion feedback in the minibuffer.
@@ -159,8 +158,12 @@
 
 ;; iswitchb-read-buffer has been written to be a drop in replacement
 ;; for the normal buffer selection routine `read-buffer'.  To use
-;; iswitch for all buffer selections, add:
+;; iswitch for all buffer selections in Emacs, add:
 ;; (setq read-buffer-function 'iswitchb-read-buffer)
+;; (This variable should be present in Emacs 20.3+)
+;; XEmacs users can get the same behaviour by doing:
+;; (defalias 'read-buffer 'iswitchb-read-buffer) 
+;; since `read-buffer' is defined in lisp.
 
 ;;; TODO
 
@@ -171,6 +174,10 @@
 ;; others for testing earlier versions.
 
 ;;; Code:
+
+
+;; CL needed for cadr and last
+(require 'cl) 
 
 ;; Set up the custom library.
 ;; taken from http://www.dina.kvl.dk/~abraham/custom/
@@ -191,7 +198,7 @@
 ;; These are some things you might want to change.
 
 (defgroup iswitchb nil
-  "switch between buffers using substrings."
+  "Switch between buffers using substrings."
   :group 'extensions
   ;; These links are to be added in later versions of custom and
   ;; so are currently commented out.
@@ -235,14 +242,14 @@ Possible values:
 `maybe-frame'	If a buffer is visible in another frame, prompt to ask if you
 		you want to see the buffer in the same window of the current
   		frame or in the other frame.
-`always-frame'   If a buffer is visible in another frame, raise that
+`always-frame'  If a buffer is visible in another frame, raise that
 		frame.  Otherwise, visit the buffer in the same window."
-    :type '(choice (const :tag "samewindow" samewindow) 
-		   (const :tag "otherwindow" otherwindow)
-		   (const :tag "display" display)
-		   (const :tag "otherframe" otherframe) 
-		   (const :tag "maybe-frame" maybe-frame)
-		   (const :tag "always-frame" always-frame))
+    :type '(choice (const samewindow) 
+		   (const otherwindow)
+		   (const display)
+		   (const otherframe) 
+		   (const maybe-frame)
+		   (const always-frame))
     :group 'iswitchb)
 
 
@@ -448,7 +455,7 @@ in a separate window.
 
 	  (t
 	   ;; View the buffer
-	   (message "go to buf %s" buf)
+	   ;;(message "go to buf %s" buf)
 	   ;; Check buf is non-nil.
 	   (if buf
 	       (if (get-buffer buf)
@@ -482,7 +489,10 @@ If REQUIRE-MATCH is non-nil, an existing-buffer must be selected."
     (setq iswitchb-exit nil)
     (setq iswitchb-rescan t)
     (setq iswitchb-text "")
-    (iswitchb-make-buflist default)
+    (iswitchb-make-buflist 
+     (if (bufferp default)
+	 (buffer-name default)
+       default))
     (iswitchb-set-matches)
     (let 
 	((minibuffer-local-completion-map iswitchb-mode-map)
