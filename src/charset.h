@@ -573,7 +573,7 @@ if (1)									   \
     CHARIDX++;								   \
     if (STRING_MULTIBYTE (STRING))					   \
       {									   \
-	unsigned char *ptr = SDATA (STRING) + BYTEIDX;			   \
+	const unsigned char *ptr = SDATA (STRING) + BYTEIDX;		   \
 	int space_left = SBYTES (STRING) - BYTEIDX;			   \
 	int actual_len;							   \
 									   \
@@ -590,7 +590,7 @@ else
 #define FETCH_STRING_CHAR_ADVANCE_NO_CHECK(OUTPUT, STRING, CHARIDX, BYTEIDX)  \
 if (1)									      \
   {									      \
-    unsigned char *fetch_string_char_ptr = SDATA (STRING) + BYTEIDX;	      \
+    const unsigned char *fetch_string_char_ptr = SDATA (STRING) + BYTEIDX;    \
     int fetch_string_char_space_left = SBYTES (STRING) - BYTEIDX;	      \
     int actual_len;							      \
     									      \
@@ -794,16 +794,17 @@ extern int char_to_string_1 P_ ((int, unsigned char *));
 extern int string_to_char P_ ((const unsigned char *, int, int *));
 extern int char_printable_p P_ ((int c));
 extern int multibyte_form_length P_ ((const unsigned char *, int));
-extern void parse_str_as_multibyte P_ ((unsigned char *, int, int *, int *));
+extern void parse_str_as_multibyte P_ ((const unsigned char *, int, int *,
+					int *));
 extern int str_as_multibyte P_ ((unsigned char *, int, int, int *));
 extern int parse_str_to_multibyte P_ ((unsigned char *, int));
 extern int str_to_multibyte P_ ((unsigned char *, int, int));
 extern int str_as_unibyte P_ ((unsigned char *, int));
 extern int get_charset_id P_ ((Lisp_Object));
-extern int find_charset_in_text P_ ((unsigned char *, int, int, int *,
+extern int find_charset_in_text P_ ((const unsigned char *, int, int, int *,
 				    Lisp_Object));
 extern int strwidth P_ ((unsigned char *, int));
-extern int c_string_width P_ ((unsigned char *, int, int, int *, int *));
+extern int c_string_width P_ ((const unsigned char *, int, int, int *, int *));
 extern int lisp_string_width P_ ((Lisp_Object, int, int *, int *));
 extern int char_bytes P_ ((int));
 extern int char_valid_p P_ ((int, int));
