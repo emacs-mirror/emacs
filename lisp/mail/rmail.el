@@ -358,6 +358,23 @@ until a user explicitly requires it."
   "Feature to require to load MIME support in Rmail.
 When starting Rmail, if `rmail-enable-mime' is non-nil,
 this feature is required with `require'.")
+
+;;;###autoload
+(defvar rmail-decode-mime-charset t
+  "*Non-nil means a message is decoded by MIME's charset specification.
+If this variable is nil, or the message has not MIME specification,
+the message is decoded as normal way.
+
+If the variable `rmail-enable-mime' is non-nil, this variables is
+ignored, and all the decoding work is done by a feature specified by
+the variable `rmail-mime-feature'.")
+
+;;;###autoload
+(defvar rmail-mime-charset-pattern
+  "^content-type:[ ]*text/plain;[ ]*charset=\\([^ \t\n]+\\)"
+  "Regexp to match MIME-charset specification in a header of message.
+The first parenthesized expression should match the MIME-charset name.")
+
 
 ;;; Regexp matching the delimiter of messages in UNIX mail format
 ;;; (UNIX From lines), minus the initial ^.  Note that if you change
@@ -1448,6 +1465,13 @@ Optional DEFAULT is password to start with."
     (message nil)
     pass))
 
+;; Decode the region specified by FROM and TO by CODING.
+;; If CODING is nil or an invalid coding system, decode by `undecided'.
+(defun rmail-decode-region (from to coding)
+  (if (or (not coding) (not (coding-system-p coding)))
+      (setq coding 'undecided))
+  (decode-coding-region from to coding))
+
 ;; the  rmail-break-forwarded-messages  feature is not implemented
 (defun rmail-convert-to-babyl-format ()
   (let ((count 0) start
@@ -1605,7 +1629,17 @@ Optional DEFAULT is password to start with."
 	       (setq last-coding-system-used nil)
 	       (or rmail-enable-mime
 		   (not rmail-enable-multibyte)
-		   (decode-coding-region start (point) 'undecided))
+		   (let ((mime-charset
+			  (if (and rmail-decode-mime-charset
+				   (save-excursion
+				     (goto-char start)
+				     (search-forward "\n\n" nil t)
+				     (let ((case-fold-search t))
+				       (re-search-backward
+					rmail-mime-charset-pattern
+					start t))))
+			      (intern (downcase (match-string 1))))))
+		     (rmail-decode-region start (point) mime-charset)))
 	       (save-excursion
 		 (goto-char start)
 		 (forward-line 3)
