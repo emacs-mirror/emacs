@@ -1059,7 +1059,7 @@ command_loop_1 ()
 	call0 (Qrecompute_lucid_menubar);
 
       /* Read next key sequence; i gets its length.  */
-      i = read_key_sequence (keybuf, (sizeof keybuf / sizeof (keybuf[0])), Qnil);
+      i = read_key_sequence (keybuf, (sizeof keybuf / sizeof (keybuf[0])), Qnil, 0);
 
       ++num_input_keys;
 
@@ -4463,10 +4463,11 @@ follow_key (key, nmaps, current, defs, next)
    read_char will return it.  */
 
 static int
-read_key_sequence (keybuf, bufsize, prompt)
+read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last)
      Lisp_Object *keybuf;
      int bufsize;
      Lisp_Object prompt;
+     int dont_downcase_last;
 {
   int count = specpdl_ptr - specpdl;
 
@@ -4542,8 +4543,11 @@ read_key_sequence (keybuf, bufsize, prompt)
   Lisp_Object first_event;
 #endif
 
+  Lisp_Object original_uppercase;
+  int original_uppercase_position = -1;
+
   /* Gets around Microsoft compiler limitations.  */
-  int dummyFlag = 0;
+  int dummyflag = 0;
 
   struct buffer *starting_buffer;
 
@@ -4742,7 +4746,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	      t = 0;
 	      /* The Microsoft C compiler can't handle the goto that
 		 would go here.  */
-	      dummyFlag = 1;
+	      dummyflag = 1;
 	      break;
 	    }
 	  
@@ -4949,7 +4953,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	      last_nonmenu_event = key;
 	      /* The Microsoft C compiler can't handle the goto that
 		 would go here.  */
-	      dummyFlag = 1;
+	      dummyflag = 1;
 	      break;
 	    }
 
@@ -5291,6 +5295,9 @@ read_key_sequence (keybuf, bufsize, prompt)
 	       && UPPERCASEP (XINT (key) & 0x3ffff))
 	      || (XINT (key) & shift_modifier)))
 	{
+	  original_uppercase = key;
+	  original_uppercase_position = t - 1;
+
 	  if (XINT (key) & shift_modifier)
 	    XSETINT (key, XINT (key) & ~shift_modifier);
 	  else
@@ -5312,6 +5319,9 @@ read_key_sequence (keybuf, bufsize, prompt)
 	  Lisp_Object breakdown;
 	  int modifiers;
 
+	  original_uppercase = key;
+	  original_uppercase_position = t - 1;
+
 	  breakdown = parse_modifiers (key);
 	  modifiers = XINT (XCONS (XCONS (breakdown)->cdr)->car);
 	  if (modifiers & shift_modifier)
@@ -5327,13 +5337,16 @@ read_key_sequence (keybuf, bufsize, prompt)
 	}
     }
 
-  if (!dummyFlag)
+  if (!dummyflag)
     read_key_sequence_cmd = (first_binding < nmaps
 			     ? defs[first_binding]
 			     : Qnil);
 
   unread_switch_frame = delayed_switch_frame;
   unbind_to (count, Qnil);
+
+  if (dont_downcase_last && t - 1 == original_uppercase_position)
+    keybuf[t - 1] = original_uppercase;
 
   /* Occasionally we fabricate events, perhaps by expanding something
      according to function-key-map, or by adding a prefix symbol to a
@@ -5365,6 +5378,12 @@ First arg PROMPT is a prompt string.  If nil, do not prompt specially.\n\
 Second (optional) arg CONTINUE-ECHO, if non-nil, means this key echos\n\
 as a continuation of the previous key.\n\
 \n\
+The third (optional) arg DONT-DOWNCASE-LAST, if non-nil, means do not\n\
+convert the last event to lower case.  (Normally any upper case event\n\
+is converted to lower case if the original event is undefined and the lower\n\
+case equivalent is defined.)  A non-nil value is appropriate for reading\n\
+a key sequence to be defined.\n\
+\n\
 A C-g typed while in this function is treated like any other character,\n\
 and `quit-flag' is not set.\n\
 \n\
@@ -5392,10 +5411,10 @@ sequences, where they wouldn't conflict with ordinary bindings.  See\n\
   (prompt, continue_echo)
 #endif
 
-DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 2, 0,
+DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 3, 0,
   0)
-  (prompt, continue_echo)
-     Lisp_Object prompt, continue_echo;
+  (prompt, continue_echo, dont_downcase_last)
+     Lisp_Object prompt, continue_echo, dont_downcase_last;
 {
   Lisp_Object keybuf[30];
   register int i;
@@ -5412,7 +5431,8 @@ DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 2, 0,
   if (NILP (continue_echo))
     this_command_key_count = 0;
 
-  i = read_key_sequence (keybuf, (sizeof keybuf/sizeof (keybuf[0])), prompt);
+  i = read_key_sequence (keybuf, (sizeof keybuf/sizeof (keybuf[0])),
+			 prompt, ! NILP (dont_downcase_last));
 
   if (i == -1)
     {
