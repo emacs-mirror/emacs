@@ -5605,8 +5605,8 @@ for its argument.");
   DEFVAR_LISP ("set-auto-coding-function",
 	       &Vset_auto_coding_function,
     "If non-nil, a function to call to decide a coding system of file.\n\
-One argument is passed to this function: the string of concatination\n\
-or the heading 1K-byte and the tailing 3K-byte of a file to be read.\n\
+One argument is passed to this function: the length of a file contents\n\
+following the point.\n\
 This function should return a coding system to decode the file contents\n\
 specified in the heading lines with the format:\n\
 	-*- ... coding: CODING-SYSTEM; ... -*-\n\
