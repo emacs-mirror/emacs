@@ -3107,15 +3107,16 @@ on a DOS/Windows machine, it returns FILENAME on expanded form."
   "Save current buffer in visited file if modified.  Variations are described below.
 By default, makes the previous version into a backup file
  if previously requested or if this is the first save.
-Combined with one \\[universal-argument], marks this version
+Prefixed with one \\[universal-argument], marks this version
  to become a backup when the next save is done.
-Combined with two \\[universal-argument]'s,
+Prefixed with two \\[universal-argument]'s,
  unconditionally makes the previous version into a backup file.
-Combined with three \\[universal-argument]'s, marks this version
+Prefixed with three \\[universal-argument]'s, marks this version
  to become a backup when the next save is done,
  and unconditionally makes the previous version into a backup file.
 
-With argument of 0, never make the previous version into a backup file.
+With a numeric argument of 0, never make the previous version
+into a backup file.
 
 If a file's name is FOO, the names of its numbered backup versions are
  FOO.~i~ for various integers i.  A non-numbered backup file is called FOO~.
