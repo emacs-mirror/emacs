@@ -888,7 +888,7 @@ and selects that window."
 (defun font-menu-add-default ()
   (let* ((default (cdr (assq 'font (frame-parameters (selected-frame)))))
 	 (font-alist x-fixed-font-alist)
-	 (elt (assoc "Misc" font-alist)))
+	 (elt (or (assoc "Misc" font-alist) (nth 1 font-alist))))
     (if (assoc "Default" elt)
 	(delete (assoc "Default" elt) elt))
     (setcdr elt
