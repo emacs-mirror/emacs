@@ -1,3 +1,18 @@
+2001-04-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (best_matching_font): Remove unused parameter PATTERN.
+	(first_font_matching): Removed unused function.
+	(x_face_list_fonts): Remove unused parameter SCALABLE_P.
+	(may_use_scalable_font_p): Remove parameter FONT; rename
+	parameter NAME to FONT.
+	(x_face_list_fonts): Fix missing bounds check.
+	(realizing_default_face_p): New variable.
+	(realize_default_face): Set and clear that flag.
+	(x_face_list_fonts): When called during the realization of the
+	default face, and no matching fonts are found when ignoring
+	scalable fonts and fonts matching a regexp from
+	face-ignored-fonts, try without ignoring fonts.
+
 2001-04-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (postprocess_image): New function.
