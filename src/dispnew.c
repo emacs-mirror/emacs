@@ -4071,7 +4071,6 @@ update_window (w, force_p)
 
   /* Check that W's frame doesn't have glyph matrices.  */
   xassert (FRAME_WINDOW_P (f));
-  xassert (updating_frame != NULL);
 
   /* Check pending input the first time so that we can quickly return.  */
   if (redisplay_dont_pause)

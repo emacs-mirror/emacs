@@ -2796,8 +2796,7 @@ x_clear_area (dpy, window, x, y, width, height, exposures)
 }
 
 
-/* Clear entire frame.  If updating_frame is non-null, clear that
-   frame.  Otherwise clear the selected frame.  */
+/* Clear an entire frame.  */
 
 static void
 x_clear_frame (struct frame *f)
@@ -7390,8 +7389,7 @@ x_draw_window_cursor (w, glyph_row, x, y, cursor_type, cursor_width, on_p, activ
     }
 
 #ifndef XFlush
-  if (updating_frame != f)
-    XFlush (FRAME_X_DISPLAY (f));
+  XFlush (FRAME_X_DISPLAY (f));
 #endif
 }
 

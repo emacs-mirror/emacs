@@ -2,9 +2,8 @@
 GOAL
 ----
 
-The goal of this branch is to implement support for opening multiple,
-different tty devices and simultaneous X and tty frames from a single
-Emacs session.
+This branch implements support for opening multiple, different tty
+devices and simultaneous X and tty frames from a single Emacs session.
 
 Some use cases:
 Emacs is notoriously slow at startup, so most people use another
@@ -27,6 +26,34 @@ I'm Károly Lőrentey.  My address: lorentey@elte.hu.
 
 Comments, bug reports, suggestions and patches are welcome; send them
 to multi-tty@lists.fnord.hu.
+
+The following is a (sadly incomplete) list of people who have
+contributed to the project by testing, submitting patches, bug
+reports, and suggestions.  Thanks!
+
+ARISAWA Akihiro <ari at mbf dot ocn dot ne dot jp>
+Han Boetes <han at mijncomputer dot nl>
+Robert J. Chassell <bob at rattlesnake dot com>
+Romain Francoise <romain at orebokech dot com>
+Ami Fischman <ami at fischman dot org>
+Friedrich Delgado Friedrichs <friedel at nomaden dot org>
+IRIE Tetsuya <irie at t dot email dot ne dot jp>
+Yoshiaki Kasahara <kasahara at nc dot kyushu-u dot ac dot jp>
+Jurej Kubelka <Juraj dot Kubelka at email dot cz>
+David Lichteblau <david at lichteblau dot com>
+Istvan Marko <mi-mtty at kismala dot com>
+Ted Morse <morse at ciholas dot com>
+Dan Nicolaescu <dann at ics dot uci dot edu>
+Gergely Nagy <algernon at debian dot org>
+Mark Plaksin <happy at mcplaksin dot org>
+Francisco Borges <borges at let dot rug dot nl>
+Frank Ruell <stoerte at dreamwarrior dot net>
+Dan Waber <dwaber at logolalia dot com>
+and many others.
+
+Richard Stallman was kind enough to review an earlier version of my
+patches.
+
 
 MAILING LISTS
 -------------
@@ -64,8 +91,42 @@ few tricky test cases for you.
 
 Known problems:
 
-	* Mac, Windows and DOS support is broken, probably doesn't
-	  even compile -- this will be solved later.
+        * The single-kboard mode.
+
+	  If your multi-tty Emacs session seems to be frozen, you
+	  probably have a recursive editing session or a pending
+	  minibuffer prompt (which is a kind of recursive editing) on
+	  another display.  To unfreeze your session, switch to that
+	  display and complete the recursive edit, for example by
+	  pressing C-] (`abort-recursive-edit').
+
+	  I am sorry to say that currently there is no way to break
+	  out of this "single-kboard mode" from a frozen display.  If
+	  you are unable to switch to the display that locks the
+	  others (for example because it is on a remote computer),
+	  then you can use emacsclient to break out of all recursive
+	  editing sessions:
+
+		emacsclient -e '(top-level)'
+
+	  Note that this (perhaps) unintuitive behaviour is by design.
+	  Single-kboard mode is required because of an intrinsic Emacs
+	  limitation that is very hard to eliminate.  (This limitation
+	  is related to the single-threaded nature of Emacs.)
+
+	  I plan to implement better user notification and support for
+	  breaking out of single-kboard mode from locked displays.
+
+	* Mac, Windows and DOS support is broken, doesn't even
+  	  compile.  Multiple display support will probably not provide
+  	  new Emacs features on these systems, but the multi-tty
+  	  branch changed a few low-level interfaces, and the
+  	  system-dependent source files need to be adapted
+  	  accordingly.  The changes are mostly trivial, so almost
+  	  anyone can help, if only by compiling the branch and
+  	  reporting the compiler errors.  (It is not worth to do this
+  	  yet, though.)
+
 
 HOW TO GET THE BRANCH
 ---------------------
@@ -86,17 +147,17 @@ probably want to you use the Arch supermirror instead:
 
 (I use a recent tla development snapshot, but any of the released
 versions of arch will do fine, I think.)  My GPG key id is 0FB27A3F;
-it is available from hkp://wwwkeys.eu.pgp.net/, or my homepage at
+it is available from hkp://wwwkeys.eu.pgp.net/, or from my homepage at
 http://lorentey.hu/rolam/gpg.html)
 
-To update your source tree to the latest revision after the first
-checkout, simply use the following command:
+Don't worry if the above checkout takes a few minutes to complete;
+once you have a source tree, updating it to the latest revision will
+be _much_ faster.  Use the following command for the update:
 
-	tla replay lorentey@elte.hu--2004/emacs--multi-tty--0
+	tla replay
 
-If you are interested, you can find more information about Arch on
-http://wiki.gnuarch.org/.  It's a wonderful source control system, I
-highly recommend it.
+You can find more information about Arch on http://wiki.gnuarch.org/.
+It's a wonderful source control system, I highly recommend it.
 
 If you don't have tla, the branch has a homepage from which you can
 download conventional patches against Emacs CVS HEAD:
@@ -146,10 +207,10 @@ Creating new frames on the same tty with C-x 5 2 works, and they
 behave the same way as in previous Emacs versions.  If you exit emacs,
 all terminals should be restored to their previous states.
 
-This is work in progress, and probably full of bugs.  You should
-always run emacs from gdb, so that you'll have a live instance to
-debug if something goes wrong.  Please send me
-(multi-tty@lists.fnord.hu) your bug reports.
+This is work in progress, and probably full of bugs.  It is a good
+idea to run emacs from gdb, so that you'll have a live instance to
+debug if something goes wrong.  Please send me your bug reports on our
+mailing list: multi-tty@lists.fnord.hu
 
 TIPS & TRICKS
 -------------
@@ -267,36 +328,6 @@ For the NEWS file:  (Needs work)
 *** The new `initial-window-system' variable contains the
     `window-system' value for the first frame.
 
-THANKS
-------
-
-The following is a (sadly incomplete) list of people who have
-contributed to the project by testing, submitting patches, bug
-reports, and suggestions.  Thanks!
-
-ARISAWA Akihiro <ari at mbf dot ocn dot ne dot jp>
-Han Boetes <han at mijncomputer dot nl>
-Robert J. Chassell <bob at rattlesnake dot com>
-Romain Francoise <romain at orebokech dot com>
-Ami Fischman <ami at fischman dot org>
-Friedrich Delgado Friedrichs <friedel at nomaden dot org>
-IRIE Tetsuya <irie at t dot email dot ne dot jp>
-Yoshiaki Kasahara <kasahara at nc dot kyushu-u dot ac dot jp>
-Jurej Kubelka <Juraj dot Kubelka at email dot cz>
-David Lichteblau <david at lichteblau dot com>
-Istvan Marko <mi-mtty at kismala dot com>
-Ted Morse <morse at ciholas dot com>
-Dan Nicolaescu <dann at ics dot uci dot edu>
-Gergely Nagy <algernon at debian dot org>
-Mark Plaksin <happy at mcplaksin dot org>
-Francisco Borges <borges at let dot rug dot nl>
-Frank Ruell <stoerte at dreamwarrior dot net>
-Dan Waber <dwaber at logolalia dot com>
-and many others.
-
-Richard Stallman was kind enough to review an earlier version of my
-patches.
-
 CHANGELOG
 ---------
 
@@ -310,11 +341,36 @@ is probably not very interesting for anyone else.)
 THINGS TO DO
 ------------
 
-** rif->flush_display_optional (NULL) calls should be replaced by a
-   new global function.
+** The single-keyboard mode of MULTI_KBOARD is extremely confusing
+   sometimes; Emacs does not respond to stimuli from other keyboards.
+   At least a beep or a message would be important, if the single-mode
+   is still required to prevent interference.  (Reported by Dan
+   Nicolaescu.)  
+
+   Update: selecting a region with the mouse enables single_kboard
+   under X.  This is very confusing.
+
+   Update: After discussions with Richard, this will be resolved by
+   having locked displays warn the user to wait, and introducing a
+   complex protocol to remotely bail out of single-kboard mode by
+   pressing C-g.
+
+   Update: Warning the user is not trivial to implement, as Emacs has
+   only one echo area.  Ideally the warning should not be displayed on
+   the display that is locking the others.  Perhaps the high
+   probability of user confusion caused by single_kboard mode deserves
+   a special case in the display code.  Alternatively, it might be
+   good enough to signal single_kboard mode by changing the modelines
+   or some other frame-local display element on the locked out displays.
+
+** normal-erase-is-backspace-mode in simple.el needs to be updated for
+   multi-tty (rep. by Dan Waber).
 
 ** Hunt down display-related functions in frame.el and extend them all
    to accept display ids.
+
+** rif->flush_display_optional (NULL) calls should be replaced by a
+   new global function.
 
 ** Have a look at fatal_error_hook.
 
@@ -331,21 +387,6 @@ THINGS TO DO
 ** Fix set-input-mode for multi-tty.  It's a truly horrible interface;
    what if we'd blow it up into several separate functions (with a
    compatibility definition)?
-
-** Lisp-level stuff that needs to be updated for multi-tty:
-
-	- normal-erase-is-backspace-mode (simple.el)  (rep. by Dan Waber)
-
-
-** The single-keyboard mode of MULTI_KBOARD is extremely confusing
-   sometimes; Emacs does not respond to stimuli from other keyboards.
-   At least a beep or a message would be important, if the single-mode
-   is still required to prevent interference.  (Reported by Dan
-   Nicolaescu.)  (Update: selecting a region with the mouse enables
-   single_kboard under X.  This is very confusing.)  Update:
-   After discussions with Richard, this will be resolved by having
-   locked displays warn the user to wait, and introducing a complex
-   protocol to remotely bail out of single-kboard mode by pressing C-g.
 
 ** The terminal customization files in term/*.el tend to change global
    parameters, which may confuse Emacs with multiple displays.  Change
@@ -364,11 +405,6 @@ THINGS TO DO
 ** Gergely Nagy suggests that C-x # should only kill the current
    frame, not any other emacsclient frame that may have the same file
    opened for editing.  I think I agree with him.
-
-** Miles Bader suggests that C-x C-c on an emacsclient frame should
-   only close the frame, not exit the entire Emacs session.  Update:
-   see above for a function that does this.  Maybe this should be the
-   new default?
 
 ** Very strange bug: visible-bell does not work on secondary
    terminals in xterm and konsole.  The screen does flicker a bit,
@@ -939,5 +975,13 @@ DIARY OF CHANGES
    accessible as a Lisp-level object.
 
    (Done.)
+
+-- Miles Bader suggests that C-x C-c on an emacsclient frame should
+   only close the frame, not exit the entire Emacs session.  Update:
+   see above for a function that does this.  Maybe this should be the
+   new default?  
+
+   (Done.  This is the new default.  No complaints so far.)
+
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
