@@ -33,8 +33,8 @@
 ;; In `iso-accents-mode', pseudo accent characters are used to
 ;; introduce accented keys.  The pseudo-accent characters are:
 ;;
-;;   '  (minute)    -> grave accent
-;;   `  (backtick)  -> acute accent
+;;   '  (minute)    -> actue accent
+;;   `  (backtick)  -> grave accent
 ;;   "  (second)    -> diaeresis
 ;;   ^  (caret)     -> circumflex
 ;;   ~  (tilde)     -> tilde over the character
@@ -114,7 +114,7 @@
           (?e . ?\353) (?i . ?\357)
 	  (?\  . ?\"))
      (?~ (?< . ?\253) (?> . ?\273) (?C . ?\307) (?c . ?\347)
-	 (?,  . ?,))
+	 (?\  . ?~))
      (?, (?C . ?\307) (?c . ?\347) (?\  . ?\,)))
 
     ("german"
