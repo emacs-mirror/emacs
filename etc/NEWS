@@ -13,6 +13,16 @@ For older news, see the file ONEWS
 
 * Changes in Emacs 21.2
 
+** Emacs now supports ICCCM Extended Segments in X selections.
+
+Some versions of X, notably XFree86, use Extended Segments to encode
+in X selections characters that belong to character sets which are not
+part of the list of standard charsets supported by the ICCCM spec.
+Examples of such non-standard character sets include ISO 8859-14, ISO
+8859-15, KOI8-R, and BIG5.  To paste selections with such characters
+into Emacs, use the new coding system compound-text-with-extensions as
+the value of selection-coding-system.
+
 ** The default values of `tooltip-delay' and `tooltip-hide-delay'
 were changed.
 
