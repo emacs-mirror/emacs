@@ -196,12 +196,12 @@ Understands the following styles:
 	  )
     (when year
       (setq year (match-string year date))
-      ;; Guess ambiguous years.  Assume years < 70 don't predate the
+      ;; Guess ambiguous years.  Assume years < 69 don't predate the
       ;; Unix Epoch, so are 2000+.  Three-digit years -- do they ever
       ;; occur? -- are (arbitrarily) assumed to be 21st century.
       (if (< (length year) 4)
 	  (let ((y (string-to-int year)))
-	    (if (< y 70)
+	    (if (< y 69)
 		(setq y (+ y 100)))
 	    (setq year (int-to-string (+ 1900 y)))))
       (setq month
