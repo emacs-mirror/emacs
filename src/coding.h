@@ -541,6 +541,10 @@ struct coding_system
 
 #endif /* !WINDOWSNT */
 
+/* Used by the gtk menu code.  Note that this encodes utf-8, not
+   utf-8-emacs, so it's not a no-op.  */
+#define ENCODE_UTF_8(str) code_convert_string_norecord (str, Qutf_8, 1)
+
 /* Extern declarations.  */
 extern Lisp_Object make_conversion_work_buffer P_ ((int, int));
 extern int decoding_buffer_size P_ ((struct coding_system *, int));
