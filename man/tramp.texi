@@ -10,6 +10,7 @@
 
 
 @c Entries for @command{install-info} to use
+@dircategory Emacs
 @direntry
 * TRAMP: (tramp).                Transparent Remote Access, Multiple Protocol
                                  Emacs remote file access via rsh and rcp.
@@ -21,36 +22,33 @@
 @end macro
 
 @c Copying permissions, et al
-@ifinfo
+@copying
 This file documents @tramp{}, a remote file editing package for Emacs and
 XEmacs.
      
 Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software
 Foundation, Inc.
-     
-Permission is granted to make and distribute verbatim copies of this
-manual provided the copyright notice and this permission notice are
-preserved on all copies.
-     
-@ignore 
-Permission is granted to process this file through TeX and print the
-results, provided the printed document carries a copying permission
-notice identical to this one except for the removal of this paragraph
-(this paragraph not being relevant to the printed manual).
-   
-@end ignore
-Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided also that the
-sections entitled ``Copying'' and ``GNU General Public License'' are
-included exactly as in the original, and provided that the entire
-resulting derived work is distributed under the terms of a permission
-notice identical to this one.
-     
-Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions,
-except that this permission notice may be stated in a translation
-approved by the Free Software Foundation.
-@end ifinfo
+
+@quotation     
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover texts being ``A GNU
+Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License'' in the Emacs manual.
+
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
+
+This document is part of a collection distributed under the GNU Free
+Documentation License.  If you want to distribute this document
+separately from the collection, you can do so by adding a copy of the
+license to the document, as described in section 6 of the license.
+@end quotation
+@end copying
+
 
 @tex
 
@@ -61,37 +59,20 @@ approved by the Free Software Foundation.
 @author based on documentation by Kai Gro@ss{}johann
 @page
 
-@vskip 0pt plus 1filll
-Permission is granted to make and distribute verbatim copies of this
-manual provided the copyright notice and this permission notice are
-preserved on all copies.
-     
-Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided also that the
-sections entitled ``Copying'' and ``GNU General Public License'' are
-included exactly as in the original, and provided that the entire
-resulting derived work is distributed under the terms of a permission
-notice identical to this one.
-     
-Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions,
-except that this permission notice may be stated in a translation
-approved by the Free Software Foundation.
-
 @end titlepage
 @page
 
 @end tex
 
 @ifnottex
-@node Top, Copying, (dir), (dir)
+@node Top, Overview, (dir), (dir)
 @top @tramp{} User Manual
 
 @tramp{} stands for `Transparent Remote (file) Access, Multiple
 Protocol'.  This package provides remote file editing, similar to
-@cite{ange-ftp} and @cite{EFS}.
+@cite{Ange-FTP} and @cite{EFS}.
 
-The difference is that ange-ftp uses FTP to transfer files between the
+The difference is that Ange-FTP uses FTP to transfer files between the
 local and the remote host, whereas @tramp{} uses a combination of
 @command{rsh} and @command{rcp} or other work-alike programs, such as
 @command{ssh}/@command{scp}.
@@ -120,7 +101,6 @@ well as the usual Savannah archives.
 @end ifnottex
 
 @menu
-* Copying::                     @tramp{} Copying conditions.
 * Overview::                    What @tramp{} can and cannot do.
 
 For the end user:
@@ -177,68 +157,50 @@ How file names, directories and paths are mangled and managed.
 @end detailmenu
 @end menu
 
-@node Copying
-@chapter @tramp{} Copying conditions
-
-Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
-
-tramp.el is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free
-Software Foundation; either version 2, or (at your option) any later
-version.
-
-tramp.el is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-more details.
-
-You should have received a copy of the GNU General Public License along
-with GNU Emacs; see the file COPYING. If not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
-USA.
-
 
 @node Overview
 @chapter An overview of @tramp
+@cindex overview
 
-After the installation of @tramp{} into your Emacs, you will be able to
-access files on remote machines as though they were local. Access to the
-remote file system for editing files, version control, and
+After the installation of @tramp{} into your Emacs, you will be able
+to access files on remote machines as though they were local.  Access
+to the remote file system for editing files, version control, and
 @command{dired} are transparently enabled.
 
 Your access to the remote machine can be with the @command{rsh},
 @command{rlogin}, @command{telnet} programs or with any similar
-connection method. This connection must pass ASCII successfully to be
+connection method.  This connection must pass ASCII successfully to be
 usable but need not be 8-bit clean.
 
 The package provides support for @command{ssh} connections out of the
-box, one of the more common uses of the package. This allows relatively
-secure access to machines, especially if @command{ftp} access is
-disabled.
+box, one of the more common uses of the package.  This allows
+relatively secure access to machines, especially if @command{ftp}
+access is disabled.
 
-The majority of activity carried out by @tramp{} requires only that the
-remote login is possible and is carried out at the terminal. In order to
-access remote files @tramp{} needs to transfer their content to the local
-machine temporarily.
+The majority of activity carried out by @tramp{} requires only that
+the remote login is possible and is carried out at the terminal.  In
+order to access remote files @tramp{} needs to transfer their content
+to the local machine temporarily.
 
-@tramp{} can transfer files between the machines in a variety of ways. The
-details are easy to select, depending on your needs and the machines in
-question.
+@tramp{} can transfer files between the machines in a variety of ways.
+The details are easy to select, depending on your needs and the
+machines in question.
 
-The fastest transfer methods rely on a remote file transfer package such
-as @command{rcp}, @command{scp} or @command{rsync}. The use of these
-methods is only possible if the file copy command does not ask for a
-password for the remote machine.
+The fastest transfer methods (for large files) rely on a remote file
+transfer package such as @command{rcp}, @command{scp} or
+@command{rsync}.  The use of these methods is only possible if the
+file copy command does not ask for a password for the remote machine.
 
 If the remote copy methods are not suitable for you, @tramp{} also
-supports the use of encoded transfers directly through the shell. This
-requires that the @command{mimencode} or @command{uuencode} tools are
-available on the remote machine.
+supports the use of encoded transfers directly through the shell.
+This requires that the @command{mimencode} or @command{uuencode} tools
+are available on the remote machine.  These methods are generally
+faster for small files.
 
-Within these limitations, @tramp{} is quite powerful. It is worth noting
-that, as of the time of writing, it is far from a polished end-user
-product. For a while yet you should expect to run into rough edges and
-problems with the code now and then.
+Within these limitations, @tramp{} is quite powerful.  It is worth
+noting that, as of the time of writing, it is far from a polished
+end-user product.  For a while yet you should expect to run into rough
+edges and problems with the code now and then.
 
 It is finished enough that the developers use it for day to day work but
 the installation and setup can be a little difficult to master, as can
@@ -250,6 +212,7 @@ trivial or major, should be reported to the @tramp{} developers.
 
 
 @subsubheading Behind the scenes
+@cindex behind the scenes
 
 This section tries to explain what goes on behind the scenes when you
 access a remote file through @tramp{}.
@@ -261,11 +224,11 @@ what happens:
 
 @itemize
 @item
-@tramp{} discovers that it needs a connection to the host. So it invokes
-@command{telnet HOST} or @command{rsh HOST -l USER} or a similar tool to
-connect to the remote host. Communication with this process happens
-through an Emacs buffer, that is, the output from the remote end goes
-into a buffer.
+@tramp{} discovers that it needs a connection to the host.  So it
+invokes @samp{telnet @var{host}} or @samp{rsh @var{host} -l
+@var{user}} or a similar tool to connect to the remote host.
+Communication with this process happens through an Emacs buffer, that
+is, the output from the remote end goes into a buffer.
 
 @item
 The remote host may prompt for a login name (for @command{telnet}).  The
@@ -297,7 +260,7 @@ Suppose that the login was successful and @tramp{} sees the shell prompt
 from the remote host.  Now @tramp{} invokes @command{/bin/sh} because
 Bourne shells and C shells have different command
 syntaxes.@footnote{Invoking @command{/bin/sh} will fail if your login
-shell doesn't recognize @command{exec /bin/sh} as a valid command.
+shell doesn't recognize @samp{exec /bin/sh} as a valid command.
 Maybe you use the Scheme shell @command{scsh}@dots{}}
 
 After the Bourne shell has come up, @tramp{} sends a few commands to
@@ -323,12 +286,12 @@ that you can edit them.
 
 See above for an explanation of how @tramp{} transfers the file contents.
 
-For inline transfers, @tramp{} issues a command like @command{mimencode -b
+For inline transfers, @tramp{} issues a command like @samp{mimencode -b
 /path/to/remote/file}, waits until the output has accumulated in the
 buffer that's used for communication, then decodes that output to
 produce the file contents.
 
-For out-of-band transfers, @tramp{} issues a command like @command{rcp
+For out-of-band transfers, @tramp{} issues a command like @samp{rcp
 user@@host:/path/to/remote/file /tmp/tramp.4711} and then reads the local
 temporary file @file{/tmp/tramp.4711} into a buffer and deletes the
 temporary file.
@@ -352,14 +315,18 @@ behind the scenes when you open a file with @tramp{}.
 @c For the end user
 @node Obtaining @tramp{}
 @chapter Obtaining @tramp{}.
+@cindex obtaining Tramp
 
 @tramp{} is freely available on the Internet and the latest release may be
 downloaded from
 @uref{ftp://ls6-ftp.cs.uni-dortmund.de/pub/src/emacs/tramp.tar.gz}. This
 release includes the full documentation and code for @tramp{}, suitable
-for installation.
+for installation.  But Emacs (21.4 or later) includes @tramp{}
+already, and there is a @tramp{} package for XEmacs, as well.  So
+maybe it is easier to just use those.  But if you want the bleeding
+edge, read on@dots{...}
 
-For the especially brave, @tramp{} is available from CVS. The CVS version
+For the especially brave, @tramp{} is available from CVS.  The CVS version
 is the latest version of the code and may contain incomplete features or
 new issues. Use these versions at your own risk.
 
@@ -392,24 +359,30 @@ by issuing the command:
 
 @node History
 @chapter History of @tramp{}
+@cindex history
+@cindex development history
 
 Development was started end of November 1998.  The package was called
-`rssh.el', back then.  It only provided one method to access a file,
-using @command{ssh} to log in to a remote host and using @command{scp}
-to transfer the file contents.  After a while, the name was changed to
-`rcp.el', and now it's @tramp{}.  Along the way, many more methods for
-getting a remote shell and for transferring the file contents were
-added.  Support for VC was added.
+@file{rssh.el}, back then.  It only provided one method to access a
+file, using @command{ssh} to log in to a remote host and using
+@command{scp} to transfer the file contents.  After a while, the name
+was changed to @file{rcp.el}, and now it's @tramp{}.  Along the way,
+many more methods for getting a remote shell and for transferring the
+file contents were added.  Support for VC was added.
 
-The most recent addition of a major feature was the multi-hop methods
-added in April 2000.
+The most recent addition of major features were the multi-hop methods
+added in April 2000 and the unification of @tramp{} and Ange-FTP
+filenames in July 2002.
 
 
 @node Installation
 @chapter Installing @tramp{} into Emacs or XEmacs
+@cindex installation
 
-Installing @tramp{} into your Emacs or XEmacs is a relatively easy
-process, at least compared to rebuilding your machine from scratch. ;)
+If you use the version that comes with your Emacs or the XEmacs
+package, the following information is not necessary.  Installing
+@tramp{} into your Emacs or XEmacs is a relatively easy process, at
+least compared to rebuilding your machine from scratch. ;)
 
 Seriously though, the installation should be a fairly simple matter.
 
@@ -438,12 +411,12 @@ If you run into problems running the example @command{make}
 commands, don't dispare.  You can still byte compile the
 @file{*.el} files by opening emacs in @command{dired}
 (@command{C-x d}) mode, at @file{~/tramp/lisp}.  Mark the lisp
-files with @command{m}, then press @command{B} to byte compile
+files with @kbd{m}, then press @kbd{B} to byte compile
 your selections.
 
 Something similar can be done to create the info manual.  
 Just cd to @file{~/emacs/tramp/texi} and load the @file{tramp.texi}
-file in emacs.  Then press @command{M-x makeinfo-buffer <RET>}
+file in emacs.  Then press @kbd{M-x makeinfo-buffer <RET>}
 to generate @file{tramp.info}.
 @end example     
 
@@ -467,11 +440,11 @@ NOTE:
 On systems using `gnu' @command{install-info}, the
 @command{install-info} syntax is very direct and simple.  One can 
 cd to @file{~/emacs/tramp/texi} and type:
-    @command{install-info tramp.info dir}
+    @kbd{install-info tramp.info dir}
 and a @file{dir} file will be created with the @tramp{}
 entry.  The info reader will know how to interpret it, but must
 be told where to find it (see below).  If you want anything fancier
-you'll need to look through @command{man install-info}.
+you'll need to look through @kbd{man install-info}.
 
 Debian gnu/linux doesn't default to `gnu' @command{install-info} and
 uses its own version.  This version does not create a @file{dir} file
@@ -486,7 +459,7 @@ in the @file{texi} directroy of this distribution.  See
 Once a @file{dir} file is in place, this command will make the entry.
      install-info --infodir=. tramp.info
 If you want it in a specific category
-   (see @command{man install-info} for further details)
+   (see @kbd{man install-info} for further details)
 @end example
 
 If the environment variable @env{INFOPATH} is set, add the directory
@@ -501,7 +474,7 @@ XEmacs 21 users should use @code{Info-directory-list} rather than
 @end itemize
 
 
-For XEmacs users, the package @command{fsf-compat} must be installed.
+For XEmacs users, the package @file{fsf-compat} must be installed.
 For details on package installation, see @ref{Packages, , ,xemacs}.
 @ifhtml
 (If the previous link doesn't work, try the XEmacs documentation at
@@ -511,19 +484,24 @@ site}.)
 
 @node Configuration
 @chapter Configuring @tramp{} for use
+@cindex configuration
 
+@cindex default configuration
 @tramp{} is (normally) fully functional when it is initially
-installed. It is initially configured to use the @command{rsh} and
-@command{rcp} programs to connect to the remote host.
+installed.  It is initially configured to use the @command{sh} program
+to connect to the remote host and to use base-64 encoding (on the
+remote host, via @command{mimencode}, and on the local host via the
+built-in support for base-64 encoding in Emacs).
 
 On some hosts, there are problems with opening a connection.  These are
 related to the behavior of the remote shell.  See @xref{Remote shell
 setup}, for details on this.
 
-If you do not wish to use these commands to connect to the remote host,
-you should change the default connection and transfer method that @tramp
-uses. There are several different methods that @tramp{} can use to
-connect to remote machines and transfer files (@pxref{Connection types}).
+If you do not wish to use these commands to connect to the remote
+host, you should change the default connection and transfer method
+that @tramp uses.  There are several different methods that @tramp{}
+can use to connect to remote machines and transfer files
+(@pxref{Connection types}).
 
 
 @menu
@@ -541,9 +519,10 @@ connect to remote machines and transfer files (@pxref{Connection types}).
 
 @node Connection types
 @section Types of connections made to remote machines.
+@cindex connection types, overview
 
 There are two basic types of transfer methods, each with its own
-advantages and limitations. Both types of connection make use of a
+advantages and limitations.  Both types of connection make use of a
 remote shell access program such as @command{rsh}, @command{ssh} or
 @command{telnet} to connect to the remote machine.
 
@@ -552,17 +531,26 @@ requires to make the remote file system transparently accessible from
 the local machine. It is only when visiting files that the methods
 differ.
 
-Loading or saving a remote file requires that the content of the file be
-transfered between the two machines. The content of the file can be
-transfered over the same connection used to log in to the remote machine
-or the file can be transfered through another connection using a remote
-copy program such as @command{rcp}, @command{scp} or @command{rsync}.
-The former are called @dfn{inline methods}, the latter are called
-@dfn{external transfer methods}.
+@cindex inline methods
+@cindex external transfer methods
+@cindex external methods
+@cindex out-of-band methods
+@cindex methods, inline
+@cindex methods, external transfer
+@cindex methods, out-of-band
+Loading or saving a remote file requires that the content of the file
+be transfered between the two machines. The content of the file can be
+transfered over the same connection used to log in to the remote
+machine or the file can be transfered through another connection using
+a remote copy program such as @command{rcp}, @command{scp} or
+@command{rsync}.  The former are called @dfn{inline methods}, the
+latter are called @dfn{out-of-band methods} or @dfn{external transfer
+methods} (@dfn{external methods} for short).
 
 The performance of the external transfer methods is generally better
-than that of the inline methods.  This is caused by the need to encode
-and decode the data when transferring inline.
+than that of the inline methods, at least for large files.  This is
+caused by the need to encode and decode the data when transferring
+inline.
 
 The one exception to this rule are the @command{scp} based transfer
 methods.  While these methods do see better performance when actually
@@ -574,6 +562,8 @@ interactive --- that is, the command does not prompt you for a password.
 If you cannot perform remote copies without a password, you will need to
 use an inline transfer method to work with @tramp{}.
 
+@cindex multi-hop methods
+@cindex methods, multi-hop
 A variant of the inline methods are the @dfn{multi-hop methods}.
 These methods allow you to connect a remote host using a number `hops',
 each of which connects to a different host.  This is useful if you are
@@ -583,6 +573,8 @@ connect to the outside world.
 
 @node Inline methods
 @section Inline methods
+@cindex inline methods
+@cindex methods, inline
 
 The inline methods in @tramp{} are quite powerful and can work in
 situations where you cannot use an external transfer program to connect.
@@ -592,23 +584,29 @@ allow you to transfer files between @emph{user identities} rather than
 hosts, see below.)
 
 These methods depend on the existence of a suitable encoding and
-decoding command on remote machine. Locally, @tramp{} may be able to use
+decoding command on remote machine.  Locally, @tramp{} may be able to use
 features of Emacs to decode and encode the files or it may require
 access to external commands to perform that task.
 
-@tramp{} supports the use of @command{uuencode} to transfer files. This is
-@emph{not} recommended. The @command{uuencode} and @command{uudecode}
-commands are not well standardized and may not function correctly or at
-all on some machines, notably AIX and IRIX. These systems do not work
-with @command{uuencode} at all.  (But do see the note about AIX in the
-documentation for @var{tramp-methods}.)
+@cindex uuencode
+@tramp{} supports the use of @command{uuencode} to transfer files.
+This is @emph{not} recommended.  The @command{uuencode} and
+@command{uudecode} commands are not well standardized and may not
+function correctly or at all on some machines, notably AIX and IRIX.
+These systems do not work with @command{uuencode} at all.  (But do see
+the note about AIX in the documentation for @var{tramp-methods}.)
 
+@cindex mimencode
+@cindex base-64 encoding
 In summary, if possible use the @command{mimencode} methods to transfer
 the data base64 encoded. This has the advantage of using a built-in
 command in every modern Emacs, improving performance.
 
-@itemize
+@table @asis
 @item @option{rm}  ---  @command{rsh} with @command{mimencode}
+@cindex method rm
+@cindex rm method
+@cindex method using rsh
 
 Connect to the remote host with @command{rsh} and use base64 encoding to
 transfer files between the machines.
@@ -619,6 +617,12 @@ machines.
 
 
 @item @option{sm}  ---  @command{ssh} with @command{mimencode}
+@cindex method sm
+@cindex sm method
+@cindex method using ssh
+@cindex ssh
+@cindex mimencode
+@cindex base-64 encoding
 
 Connect to the remote host with @command{ssh} and use base64 encoding to
 transfer files between the machines.
@@ -638,6 +642,12 @@ arguments to the @command{ssh} command.
 
 
 @item @option{tm}  ---  @command{telnet} with @command{mimencode}
+@cindex method tm
+@cindex tm method
+@cindex method using telnet
+@cindex telnet
+@cindex mimencode
+@cindex base-64 encoding
 
 Connect to the remote host with @command{telnet} and use base64 encoding
 to transfer files between the machines.
@@ -647,6 +657,11 @@ This requires the @command{mimencode} command that is part of the
 
 
 @item @option{ru}  ---  @command{rsh} with @command{uuencode}
+@cindex method ru
+@cindex ru method
+@cindex method using rsh
+@cindex rsh
+@cindex uuencode
 
 Connect to the remote host with @command{rsh} and use the
 @command{uuencode} and @command{uudecode} commands to transfer files
@@ -654,6 +669,11 @@ between the machines.
 
 
 @item @option{su}  ---  @command{ssh} with @command{uuencode}
+@cindex method su
+@cindex su method
+@cindex method using ssh
+@cindex ssh
+@cindex uuencode
 
 Connect to the remote host with @command{ssh} and use the
 @command{uuencode} and @command{uudecode} commands to transfer files
@@ -666,10 +686,15 @@ select an ssh version.
 Note that this method does not invoke the @command{su} program, see
 below for methods which use that.
 
-This supports the @command{-p} kludge.
+This supports the @samp{-p} kludge.
 
 
 @item @option{tu}  ---  @command{telnet} with @command{uuencode}
+@cindex tu method
+@cindex method tu
+@cindex method using telnet
+@cindex telnet
+@cindex uuencode
 
 Connect to the remote host with @command{telnet} and use the
 @command{uuencode} and @command{uudecode} commands to transfer files
@@ -677,6 +702,12 @@ between the machines.
 
 
 @item @option{sum} --- @command{su} with @command{mimencode}
+@cindex method sum
+@cindex sum method
+@cindex method using su
+@cindex su
+@cindex mimencode
+@cindex base-64 encoding
 
 This method does not connect to a remote host at all, rather it uses the
 @command{su} program to allow you to edit files as another user.  Uses
@@ -684,6 +715,11 @@ base64 encoding to transfer the file contents.
 
 
 @item @option{suu} --- @command{su} with @command{uuencode}
+@cindex method suu
+@cindex suu method
+@cindex method using su
+@cindex su
+@cindex uuencode
 
 Like @option{sum}, this uses the @command{su} program to allow you to
 edit files on the local host as another user.  Uses @command{uuencode}
@@ -691,6 +727,12 @@ and @command{uudecode} to transfer the file contents.
 
 
 @item @option{sudm} --- @command{sudo} with @command{mimencode}
+@cindex method sudm
+@cindex sudm method
+@cindex method using sudo
+@cindex sudo
+@cindex mimencode
+@cindex base-64 encoding
 
 This is similar to the @option{sum} method, but it uses @command{sudo}
 rather than @command{su} to become a different user.
@@ -702,20 +744,33 @@ to implement, so I haven't got around to it, yet.
 
 
 @item @option{sudu} --- @command{sudo} with @command{uuencode}
+@cindex method sudu
+@cindex sudu method
+@cindex method using sudo
+@cindex sudo
+@cindex uuencode
 
 This is similar to the @option{suu} method, but it uses @command{sudo}
 rather than @command{su} to become a different user.
 
 
 @item @option{smx} --- @command{ssh} with @command{mimencode}
+@cindex method smx
+@cindex smx method
+@cindex method using ssh
+@cindex ssh
+@cindex mimencode
+@cindex base-64 encoding
+@cindex Cygwin
 
 As you expect, this is similar to @option{sm}, only a little
 different.  Whereas @option{sm} opens a normal interactive shell on
-the remote host, this option uses @command{ssh -t -t HOST -l USER
-/bin/sh} tp open a connection.  This is useful for users where the
-normal login shell is set up to ask them a number of questions when
-logging in.  This procedure avoids these questions, and just gives
-@tramp{} a more-or-less `standard' login shell to work with.
+the remote host, this option uses @samp{ssh -t -t @var{host} -l
+@var{user} /bin/sh} tp open a connection.  This is useful for users
+where the normal login shell is set up to ask them a number of
+questions when logging in.  This procedure avoids these questions, and
+just gives @tramp{} a more-or-less `standard' login shell to work
+with.
 
 Note that this procedure does not eliminate questions asked by
 @command{ssh} itself.  For example, @command{ssh} might ask ``Are you
@@ -727,39 +782,62 @@ in without such questions.
 This is also useful for Windows users where @command{ssh}, when
 invoked from an Emacs buffer, tells them that it is not allocating a
 pseudo tty.  When this happens, the login shell is wont to not print
-any shell prompt, which confuses @tramp{} mightily.
+any shell prompt, which confuses @tramp{} mightily.  For reasons
+unknown, some Windows ports for @command{ssh} (maybe the Cygwin one)
+require the doubled @samp{-t} option.
 
-This supports the @command{-p} kludge.
+This supports the @samp{-p} kludge.
 
 
 @item @option{km} --- @command{krlogin} with @command{mimencode}
+@cindex method km
+@cindex km method
+@cindex krlogin
+@cindex Kerberos
+@cindex mimencode
+@cindex base-64 encoding
 
 This method is also similar to @option{sm}.  It only uses the
 @command{krlogin -x} command to log in to the remote host.
 
 
 @item @option{plinku} --- @command{plink} with @command{uuencode}
+@cindex method plinku
+@cindex plinku method
+@cindex method using plink
+@cindex plink
+@cindex uuencode
 
 This method is mostly interesting for Windows users using the PuTTY
-implementation of SSH.  It uses @command{plink -ssh} to log in to the
+implementation of SSH.  It uses @samp{plink -ssh} to log in to the
 remote host.
 
 CCC: Do we have to connect to the remote host once from the command
 line to accept the SSH key?  Maybe this can be made automatic?
 
-CCC: Does @command{plink} support the @command{-p} option?  Tramp
+CCC: Does @command{plink} support the @samp{-p} option?  Tramp
 will support that, anyway.
 
 @item @option{plinkm} --- @command{plink} with @command{mimencode}
+@cindex method plinkm
+@cindex plinkm method
+@cindex method using plink
+@cindex plink
+@cindex mimencode
+@cindex base-64 encoding
 
 Like @option{plinku}, but uses base64 encoding instead of uu encoding.
 
-@end itemize
+@end table
 
 
 
 @node External transfer methods
 @section External transfer methods
+@cindex methods, external transfer
+@cindex methods, out-of-band
+@cindex external transfer methods
+@cindex out-of-band methods
 
 The external transfer methods operate through multiple channels, using
 the remote shell connection for many actions while delegating file
@@ -772,6 +850,7 @@ If you want to use an external transfer method you @emph{must} be able
 to execute the transfer utility to copy files to and from the remote
 machine without any interaction.
 
+@cindex ssh-agent
 This means that you will need to use @command{ssh-agent} if you use the
 @command{scp} program for transfers, or maybe your version of
 @command{scp} accepts a password on the command line.@footnote{PuTTY's
@@ -784,8 +863,12 @@ would still like to use @command{ssh} to secure your connection, have a
 look at the @command{ssh} based inline methods.
 
 
-@itemize
+@table @asis
 @item @option{rcp}  ---  @command{rsh} and @command{rcp}
+@cindex method rcp
+@cindex rcp method
+@cindex rcp
+@cindex rsh
 
 This method uses the @command{rsh} and @command{rcp} commands to connect
 to the remote machine and transfer files. This is probably the fastest
@@ -793,6 +876,10 @@ connection method available.
 
 
 @item @option{scp}  ---  @command{ssh} and @command{scp}
+@cindex method scp
+@cindex scp method
+@cindex scp
+@cindex ssh
 
 Using @command{ssh} to connect to the remote host and @command{scp} to
 transfer files between the machines is the best method for securely
@@ -804,13 +891,17 @@ The cost of the cryptographic handshake at the start of an @command{scp}
 session can begin to absorb the advantage that the lack of encoding and
 decoding presents.
 
-All the @command{ssh} based methods support the kludgy @command{-p}
+All the @command{ssh} based methods support the kludgy @samp{-p}
 feature where you can specify a port number to connect to in the host
 name.  For example, the host name @file{host#42} tells Tramp to
-specify @command{-p 42} in the argument list for @command{ssh}.
+specify @samp{-p 42} in the argument list for @command{ssh}.
 
 
 @item @option{rsync}  ---  @command{ssh} and @command{rsync}
+@cindex method rsync
+@cindex rsync method
+@cindex rsync
+@cindex ssh
 
 Using the @command{ssh} command to connect securely to the remote
 machine and the @command{rsync} command to transfer files is almost
@@ -824,38 +915,54 @@ The @command{rsync} based method may be considerably faster than the
 @command{rcp} based methods when writing to the remote system. Reading
 files to the local machine is no faster than with a direct copy. 
 
-This method supports the @command{-p} hack.
+This method supports the @samp{-p} hack.
 
 
 @item @option{scpx} --- @command{ssh} and @command{scp}
+@cindex method scpx
+@cindex scpx method
+@cindex scp
+@cindex ssh
+@cindex Cygwin
 
 As you expect, this is similar to @option{scp}, only a little
-different.  Whereas @option{scp} opens a normal interactive shell on the
-remote host, this option uses @command{ssh -t -t HOST -l USER /bin/sh} to
-open a connection.  This is useful for users where the normal login
-shell is set up to ask them a number of questions when logging in.  This
-procedure avoids these questions, and just gives @tramp{} a more-or-less
-`standard' login shell to work with. 
+different.  Whereas @option{scp} opens a normal interactive shell on
+the remote host, this option uses @samp{ssh -t -t @var{host} -l
+@var{user} /bin/sh} to open a connection.  This is useful for users
+where the normal login shell is set up to ask them a number of
+questions when logging in.  This procedure avoids these questions, and
+just gives @tramp{} a more-or-less `standard' login shell to work
+with.
 
 This is also useful for Windows users where @command{ssh}, when
 invoked from an Emacs buffer, tells them that it is not allocating a
 pseudo tty.  When this happens, the login shell is wont to not print
-any shell prompt, which confuses @tramp{} mightily.
+any shell prompt, which confuses @tramp{} mightily.  Maybe this
+applies to the Cygwin port of SSH.
 
-This method supports the @command{-p} hack.
+This method supports the @samp{-p} hack.
 
 
 @item @option{pscp} --- @command{plink} and @command{pscp}
+@cindex method pscp
+@cindex pscp method
+@cindex pscp
+@cindex plink
+@cindex PuTTY
 
 This method is similar to @option{scp}, but it uses the
 @command{plink} command to connect to the remote host, and it uses
 @command{pscp} for transferring the files.  These programs are part
 of PuTTY, an SSH implementation for Windows.
 
-CCC: Does @command{plink} support the @command{-p} hack?
+CCC: Does @command{plink} support the @samp{-p} hack?
 
 
 @item @option{fcp} --- @command{fsh} and @command{fcp}
+@cindex method fcp
+@cindex fcp method
+@cindex fsh
+@cindex fcp
 
 This method is similar to @option{scp}, but it uses the @command{fsh}
 command to connect to the remote host, and it uses @command{fcp} for
@@ -866,14 +973,21 @@ for submitting several commands.  This avoids the startup overhead of
 is called).  Note, however, that you can also use one of the inline
 methods to achieve a similar effect.
 
-This method uses the command @command{fsh HOST -l USER /bin/sh -i} to
-establish the connection, it does not work to just say @command{fsh
-HOST -l USER}.
+This method uses the command @samp{fsh @var{host} -l @var{user}
+/bin/sh -i} to establish the connection, it does not work to just say
+@command{fsh @var{host} -l @var{user}}.
 
-@end itemize
+There is no inline method using @command{fsh} as the multiplexing
+provided by the program is not very useful in our context.  @tramp{}
+opens just one connection to the remote host and then keeps it open,
+anyway.
+
+@end table
 
 @node Multi-hop Methods
 @section Connecting to a remote host using multiple hops
+@cindex multi-hop methods
+@cindex methods, multi-hop
 
 Sometimes, the methods described before are not sufficient.  Sometimes,
 it is not possible to connect to a remote host using a simple command.
@@ -888,43 +1002,58 @@ name on the remote system.  The method specifies how the file is
 transferred through the inline connection.  The following two multi-hop
 methods are available:
 
-@itemize
+@table @asis
 @item @option{multi} --- base64 encoding with @command{mimencode}
+@cindex method multi
+@cindex multi method
+@cindex base-64 encoding
+@cindex mimencode
 
 The file is transferred through the connection in base64 encoding.  Uses
 the @command{mimencode} program for doing encoding and decoding, but
 uses an Emacs internal implementation on the local host if available.
 
 @item @option{multiu} --- use commands @command{uuencode} and @command{uudecode}
+@cindex method multiu
+@cindex multiu method
+@cindex uuencode
 
 The file is transferred through the connection in `uu' encoding.  Uses
 the @command{uuencode} and @command{uudecode} programs for encoding and
 decoding, but uses a Lisp implementation for decoding on the local host
 if available.
 
-@end itemize
+@end table
 
 Each hop consists of a @dfn{hop method} specification, a user name and a
 host name.  The following hop methods are (currently) available:
 
-@itemize
-@item @option{telnet}
+@table @option
+@item telnet
+@cindex hop method telnet
+@cindex telnet hop method
 
 Uses the well-known @command{telnet} program to connect to the host.
 Whereas user name and host name are supplied in the file name, the
 user is queried for the password.
 
-@item @option{rsh}
+@item rsh
+@cindex hop method rsh
+@cindex rsh hop method
 
 This uses @command{rsh} to connect to the host.  You do not need to
 enter a password unless @command{rsh} explicitly asks for it.
 
-@item @option{ssh}
+@item ssh
+@cindex hop method ssh
+@cindex ssh hop method
 
 This uses @command{ssh} to connect to the host.  You might have to enter
 a password or a pass phrase.
 
-@item @option{su}
+@item su
+@cindex hop method su
+@cindex su hop method
 
 This method does not actually contact a different host, but it allows
 you to become a different user on the host you're currently on.  This
@@ -939,18 +1068,21 @@ Even though you @emph{must} specify both user and host with a
 @option{su} hop, the host name is ignored and only the user name is
 used.
 
-@item @option{sudo}
+@item sudo
+@cindex hop method sudo
+@cindex sudo hop method
 
 This is similar to the @option{su} hop, except that it uses
 @command{sudo} rather than @command{su} to become a different user.
 
-@end itemize
+@end table
 
-Some people might wish to use port forwarding with @code{ssh} or maybe
-they have to use a nonstandard port.  This can be accomplished by
-putting a stanza in @file{~/.ssh/config} for the account which specifies
-a different port number for a certain host name.  But it can also be
-accomplished within Tramp, by adding a multi-hop method.  For example:
+Some people might wish to use port forwarding with @command{ssh} or
+maybe they have to use a nonstandard port.  This can be accomplished
+by putting a stanza in @file{~/.ssh/config} for the account which
+specifies a different port number for a certain host name.  But it can
+also be accomplished within Tramp, by adding a multi-hop method.  For
+example:
 
 @lisp
 (add-to-list 'tramp-multi-connection-function-alist
@@ -963,15 +1095,37 @@ the standard port.
 
 @node Default Method
 @section Selecting a default method
+@cindex default method
 
+@vindex tramp-default-method
 When you select an appropriate transfer method for your typical usage
 you should set the variable @var{tramp-default-method} to reflect that
-choice. This variable controls which method will be used when a method
+choice.  This variable controls which method will be used when a method
 is not specified in the @tramp{} file path.  For example:
 
 @lisp
 (setq tramp-default-method "scp")
 @end lisp
+
+@vindex tramp-default-method-alist
+You can also specify different methods for certain user/host
+combinations, via the variable @var{tramp-default-method-alist}.  For
+example, the following two lines specify to use the @option{sm}
+method for all user names matching @samp{john} and the @option{rsync}
+method for all host names matching @samp{lily}.  The third line
+specifies to use the @option{sum} method for the user @samp{root} on
+the machine @samp{localhost}.
+
+@lisp
+(add-to-list 'tramp-default-method-alist '("" "john" "sm"))
+(add-to-list 'tramp-default-method-alist '("lily" "" "rsync"))
+(add-to-list 'tramp-default-method-alist
+             '("\\`root\\'" "\\`localhost\\'" "sum"))
+@end lisp
+
+@noindent
+See the documentation for the variable
+@var{tramp-default-method-alist} for more details.
 
 External transfer methods are normally preferable to inline transfer
 methods, giving better performance. They may not be useful if you use
@@ -998,6 +1152,9 @@ read the content of the files you are editing.
 
 @node Customizing Methods
 @section Using Non-Standard Methods
+@cindex customizing methods
+@cindex using non-standard methods
+@cindex create your own methods
 
 There is a variable @code{tramp-methods} which you can change if the
 predefined methods don't seem right.
@@ -1022,6 +1179,7 @@ Certain other tools, such as @command{perl} (or @command{perl5}) and
 available, they are used to improve the performance and accuracy of
 remote file access.
 
+@vindex tramp-remote-path
 When @tramp{} connects to the remote machine, it searches for the
 programs that it can use. The variable @var{tramp-remote-path} controls
 the directories searched on the remote machine.
@@ -1043,13 +1201,17 @@ as:
 (require 'tramp)                @i{; @tramp{} must be loaded before this}
                                 @i{; happens.}
 
-@i{; We have @command{perl} in "/usr/local/perl"}
-(add-to-list 'tramp-remote-path "/usr/local/perl")
+@i{; We have @command{perl} in "/usr/local/perl/bin"}
+(add-to-list 'tramp-remote-path "/usr/local/perl/bin")
 @end example
 
 @node Remote shell setup
 @comment  node-name,  next,  previous,  up
 @section Remote shell setup hints
+@cindex remote shell setup
+@cindex .profile file
+@cindex .login file
+@cindex shell init files
 
 As explained in the @ref{Overview} section, @tramp{} connects to the
 remote host and talks to the shell it finds there.  Of course, when you
@@ -1079,10 +1241,10 @@ the right way to do this.)
 Below you find a discussion of a few things that @tramp{} does not deal
 with, and that you therefore have to set up correctly.
 
-@itemize
-@item @code{shell-prompt-pattern}
-
+@table @asis
+@item @var{shell-prompt-pattern}
 @vindex shell-prompt-pattern
+
 After logging in to the remote host, @tramp{} has to wait for the remote
 shell startup to finish before it can send commands to the remote
 shell.  The strategy here is to wait for the shell prompt.  In order to
@@ -1097,6 +1259,8 @@ recognizes the @code{>} character as the end of the prompt, but it is
 not at the end of the buffer.
 
 @item @code{tset} and other questions
+@cindex Unix command tset
+@cindex tset Unix command
 
 Some people invoke the @code{tset} program from their shell startup
 scripts which asks the user about the terminal type of the shell.  Maybe
@@ -1114,14 +1278,17 @@ connecting.
 The variable @code{tramp-terminal-type} can be used to change this value
 @code{dumb}.
 
-@end itemize
+@end table
 
 
 @node Windows setup hints
 @section Issues with Cygwin ssh
+@cindex Cygwin
 
 This section needs a lot of work!  Please help.
 
+@cindex method smx with Cygwin
+@cindex smx method with Cygwin
 If you use the Cygwin installation of ssh (you have to explicitly select
 it in the installer), then it should work out of the box to just select
 @code{smx} as the connection method.  You can find information about
@@ -1130,14 +1297,15 @@ setting up Cygwin in their FAQ at @uref{http://cygwin.com/faq/}.
 
 @node Usage
 @chapter Using @tramp
+@cindex using @tramp
 
 Once you have installed @tramp{} it will operate fairly transparently. You
 will be able to access files on any remote machine that you can log in
 to as though they were local.
 
 Files are specified to @tramp{} using a formalized syntax specifying the
-details of the system to connect to. This is similar to the syntax used
-by the @command{EFS} and @command{ange-ftp} packages.
+details of the system to connect to.  This is similar to the syntax used
+by the @command{EFS} and @command{Ange-FTP} packages.
 
 
 @menu
@@ -1149,6 +1317,8 @@ by the @command{EFS} and @command{ange-ftp} packages.
 
 @node Filename Syntax
 @section @tramp{} filename conventions
+@cindex filename syntax
+@cindex filename examples
 
 On Emacs, the Ange-FTP and Tramp filenames use a unified syntax.  On
 XEmacs, EFS and Tramp use different formats for the filenames.
@@ -1227,6 +1397,8 @@ in my home directory I would specify the filename
 
 @node Multi-hop filename syntax
 @section Multi-hop filename conventions
+@cindex filename syntax for multi-hop files
+@cindex multi-hop filename syntax
 
 The syntax of multi-hop file names is necessarily slightly different
 than the syntax of other @tramp{} file names.  Here's an example multi-hop
@@ -1271,6 +1443,8 @@ want to add your own.
 
 @node Dired
 @section Dired and filename completion
+@cindex dired
+@cindex filename completion
 
 @tramp{} works transparently with dired, enabling you to use this powerful
 file management tool to manage files on any machine you have access to
@@ -1281,17 +1455,18 @@ although there is no completion for user names or machine names at this
 stage.
 
 As filename completion needs to fetch the listing of files from the
-remote machine, this feature is sometimes fairly slow. As @tramp{} does not
+remote machine, this feature is sometimes fairly slow.  As @tramp{} does not
 yet cache the results of directory listing, there is no gain in
 performance the second time you complete filenames.
 
 If you need to browse a directory tree, Dired is a better choice, at
-present, than filename completion. Dired has its own cache mechanism
+present, than filename completion.  Dired has its own cache mechanism
 and will only fetch the directory listing once.
 
 
 @node Bug Reports
 @chapter Reporting Bugs and Problems
+@cindex bug reports
 
 Bugs and problems with @tramp{} are actively worked on by the development
 team. Feature requests and suggestions are also more than welcome.
@@ -1322,9 +1497,12 @@ development team to analyze and correct the problem.
 
 @node Frequently Asked Questions
 @chapter Frequently Asked Questions
+@cindex frequently asked questions
+@cindex FAQ
 
 @itemize @bullet
-@item Where can I get the latest @tramp{}?
+@item
+Where can I get the latest @tramp{}?
 
 @tramp{} is available at
 @uref{ftp://ls6-ftp.cs.uni-dortmund.de/pub/src/emacs/tramp.tar.gz}.
@@ -1332,7 +1510,8 @@ There is also a Savannah project page, at
 @uref{https://savannah.gnu.org/projects/tramp/}.
 
 
-@item Which systems does it work on?
+@item
+Which systems does it work on?
 
 The package has been used successfully on Emacs 20 and Emacs 21, as well
 as XEmacs 21.  XEmacs 20 is more problematic, see the notes in
@@ -1356,7 +1535,8 @@ Web page with instructions:
 Emacs?  I think there was some issue with @command{ssh}?
 
 
-@item I can't stop EFS starting with XEmacs
+@item
+I can't stop EFS starting with XEmacs
 
 Not all the older versions of @tramp{} supported XEmacs correctly. The
 first thing to do is to make sure that you have the latest version of
@@ -1369,7 +1549,8 @@ report would make it easier for the developers to work out what is going
 wrong.
 
 
-@item File name completion does not work with @tramp{}
+@item
+File name completion does not work with @tramp{}
 
 When you log in to the remote machine, do you see the output of
 @command{ls} in color? If so, this may be the cause of your problems.
@@ -1387,7 +1568,8 @@ display the output of @command{ls} in color. If you still cannot use
 filename completion, report a bug to the @tramp{} developers.
 
 
-@item File name completion does not work in large directories
+@item
+File name completion does not work in large directories
 
 @tramp{} uses globbing for some operations.  (Globbing means to use the
 shell to expand wildcards such as `*.c'.)  This might create long
@@ -1396,20 +1578,22 @@ choke on long command lines, or don't cope well with the globbing
 itself.
 
 If you have a large directory on the remote end, you may wish to execute
-a command like @command{ls -d * ..?* > /dev/null} and see if it hangs.
+a command like @samp{ls -d * ..?* > /dev/null} and see if it hangs.
 Note that you must first start the right shell, which might be
 @command{/bin/sh}, @command{ksh} or @command{bash}, depending on which
 of those supports tilde expansion.
 
 
-@item What kinds of systems does @tramp{} work on
+@item
+What kinds of systems does @tramp{} work on
 
 @tramp{} really expects the remote system to be a Unix-like system.  The
 local system should preferably be Unix-like, as well, but @tramp{} might
 work on NT with some tweaking.
 
 
-@item How can I get notified when @tramp{} file transfers are complete?
+@item
+How can I get notified when @tramp{} file transfers are complete?
 
 The following snippet can be put in your @file{~/.emacs} file.  It makes
 Emacs beep after reading from or writing to the remote host.
@@ -1433,8 +1617,9 @@ Emacs beep after reading from or writing to the remote host.
 @end lisp
 
 
-@item There's this @file{~/.sh_history} file on the remote host which
-  keeps growing and growing.  What's that?
+@item
+There's this @file{~/.sh_history} file on the remote host which keeps
+growing and growing.  What's that?
 
 Sometimes, @tramp{} starts @code{ksh} on the remote host for tilde
 expansion.  Maybe @code{ksh} saves the history by default.  @tramp{}
@@ -1460,7 +1645,7 @@ fi
 @node Version Control
 @chapter The inner workings of remote version control
 
-Unlike EFS and ange-ftp, @tramp{} has full shell access to the remote
+Unlike EFS and Ange-FTP, @tramp{} has full shell access to the remote
 machine. This makes it possible to provide version control for files
 accessed under @tramp{}.
 
