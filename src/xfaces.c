@@ -396,7 +396,7 @@ load_color (f, name)
   return (unsigned long) color.pixel;
 }
 
-static void
+void
 unload_color (f, pixel)
      struct frame *f;
      unsigned long pixel;
