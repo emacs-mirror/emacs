@@ -332,8 +332,8 @@ etags: ${srcdir}/etags.c $(GETOPTDEPS) $(REGEXPDEPS) ../src/config.h
 
 /* We depend on etags to assure that parallel makes don't write two
    etags.o files on top of each other.  */
-ctags: ${srcdir}/etags.c $(GETOPTDEPS) etags
-	$(CC) ${ALL_CFLAGS} -DCTAGS -DVERSION="\"${version}\"" ${srcdir}/etags.c $(GETOPTOBJS) $(LOADLIBES) -o ctags
+ctags: etags
+	$(CC) ${ALL_CFLAGS} -DCTAGS -DVERSION="\"${version}\"" -DETAGS_REGEXPS ${srcdir}/etags.c $(GETOPTOBJS) $(REGEXPOBJ) $(LOADLIBES) -o ctags
 
 wakeup: ${srcdir}/wakeup.c
 	$(CC) ${ALL_CFLAGS} ${srcdir}/wakeup.c $(LOADLIBES) -o wakeup
