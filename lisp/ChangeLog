@@ -1,3 +1,8 @@
+2005-01-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* ebuff-menu.el (Electric-buffer-menu-mode):
+	Preserve value of buffer-local var header-line-format.
+
 2005-01-09  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el (calc-mode-var-list-restore-saved-values):
