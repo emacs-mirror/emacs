@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
-;; Version: 2.1.1
+;; Version: 2.1.2
 ;; Keywords: comm processes
 
 ;; This file is part of GNU Emacs.
@@ -118,7 +118,7 @@ This function can be added to `comint-preoutput-filter-functions'."
 	(result)
 	(params))
     ;; find the next escape sequence
-    (while (setq end (string-match "\033\\[\\([01347][01234567]?;\\)*[01347][01234567]?m" string start))
+    (while (setq end (string-match "\033\\[\\([013457][01234567]?;\\)*[013457][01234567]?m" string start))
       ;; store escape sequence
       (setq escape (match-string 0 string))
       ;; colorize the old block from start to end using old face
@@ -127,7 +127,7 @@ This function can be added to `comint-preoutput-filter-functions'."
       (setq result (concat result (substring string start end)))
       ;; create new face by applying all the parameters in the escape sequence
       (let ((i 0))
-	(while (setq i (string-match "[01347][01234567]?[;m]" escape i))
+	(while (setq i (string-match "[013457][01234567]?[;m]" escape i))
 	  (setq face (ansi-color-make-face face
 					   (aref escape i)
 					   (aref escape (1+ i))))
