@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.90) $
+ * $HopeName: MMsrc!mpmst.h(trunk.91) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: This header file crosses module boundaries.  The relevant
@@ -60,7 +60,6 @@ typedef struct PoolClassStruct {
   PoolFreeMethod free;          /* free memory to pool */
   PoolBufferFillMethod bufferFill;      /* out-of-line reserve */
   PoolBufferEmptyMethod bufferEmpty;    /* out-of-line commit */
-  PoolTraceBeginMethod traceBegin;      /* no idea what this does @@@@ */
   PoolAccessMethod access;      /* handles read/write accesses */
   PoolWhitenMethod whiten;      /* whiten objects in a segment */
   PoolGreyMethod grey;          /* grey non-white objects */
@@ -69,8 +68,6 @@ typedef struct PoolClassStruct {
   PoolFixMethod fix;            /* referent reachable during tracing */
   PoolFixEmergencyMethod fixEmergency;  /* as fix, no failure allowed */
   PoolReclaimMethod reclaim;    /* reclaim dead objects after tracing */
-  PoolBenefitMethod benefit;    /* calculate benefit of action */
-  PoolActMethod act;            /* do an action */
   PoolRampBeginMethod rampBegin;/* begin a ramp pattern */
   PoolRampEndMethod rampEnd;    /* end a ramp pattern */
   PoolFramePushMethod framePush; /* push an allocation frame */
@@ -106,8 +103,6 @@ typedef struct PoolStruct {     /* generic structure */
   RingStruct bufferRing;        /* allocation buffers are attached to pool */
   Serial bufferSerial;          /* serial of next buffer */
   RingStruct segRing;           /* segs are attached to pool */
-  RingStruct actionRing;        /* actions are attached to pool */
-  Serial actionSerial;          /* serial of next action */
   Align alignment;              /* alignment for units */
   Format format;                /* format only if class->attr&AttrFMT */
   PoolFixMethod fix;            /* fix method */
@@ -613,21 +608,6 @@ typedef struct TraceStruct {
   STATISTIC_DECL(Count reclaimCount); /* segments reclaimed */
   STATISTIC_DECL(Count reclaimSize); /* bytes reclaimed */
 } TraceStruct;
-
-
-/* ActionStruct -- action structure
- *
- * See design.mps.action.
- */
-
-#define ActionSig       ((Sig)0x519AC209)
-
-typedef struct ActionStruct {
-  Sig sig;                      /* design.mps.sig */
-  Serial serial;                /* from pool->actionSerial */
-  Pool pool;                    /* owning pool */
-  RingStruct poolRing;          /* link in list of actions in pool */
-} ActionStruct;
 
 
 /* ChunkCacheEntryStruct */
