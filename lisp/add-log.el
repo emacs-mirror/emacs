@@ -273,13 +273,15 @@ Has a preference of looking backwards."
 		       (forward-line -1))
 		     ;; See if this is using the DEFUN macro used in Emacs,
 		     ;; or the DEFUN macro used by the C library.
-		     (if (and (save-excursion
-				(forward-line 1)
-				(backward-sexp 1)
-				(beginning-of-line)
-				(setq tem (point))
-				(looking-at "DEFUN\\b"))
-			      (>= location tem))
+		     (if (condition-case nil
+			     (and (save-excursion
+				    (forward-line 1)
+				    (backward-sexp 1)
+				    (beginning-of-line)
+				    (setq tem (point))
+				    (looking-at "DEFUN\\b"))
+				  (>= location tem))
+			   (error nil))
 			 (progn
 			   (goto-char tem)
 			   (down-list 1)
