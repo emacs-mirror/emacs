@@ -5,7 +5,7 @@
 ;; Author: Oliver Seidel <os10000@seidel-space.de>
 ;;   [Not clear the above works, July 2000]
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.48 2001/11/13 04:11:15 rms Exp $
+;; Version: $Id: todo-mode.el,v 1.49 2001/11/17 04:01:31 rms Exp $
 ;; Keywords: calendar, todo
 
 ;; This file is part of GNU Emacs.
@@ -97,7 +97,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.48 2001/11/13 04:11:15 rms Exp $
+;;      $Id: todo-mode.el,v 1.49 2001/11/17 04:01:31 rms Exp $
 ;;
 ;;  Pre-Requisites
 ;;
@@ -264,6 +264,9 @@
 
 ;;; Code:
 
+(require 'time-stamp)
+
+
 ;; User-configurable variables:
 
 (defgroup todo nil
@@ -371,8 +374,6 @@ For details see the variable `time-stamp-format'."
   "*Initials of todo item author."
   :type 'string
   :group 'todo)
-
-(autoload 'time-stamp-string "time-stamp")
 
 (defun todo-entry-timestamp-initials ()
   "Prepend timestamp and your initials to the head of a TODO entry."
