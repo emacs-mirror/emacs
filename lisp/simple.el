@@ -1324,7 +1324,7 @@ and it reactivates the mark."
 
 (defun transient-mark-mode (arg)
   "Toggle Transient Mark mode.
-With arg, turn Transient Mark mode on if and only if arg is positive.
+With arg, turn Transient Mark mode on if arg is positive, off otherwise.
 
 In Transient Mark mode, changing the buffer \"deactivates\" the mark.
 While the mark is active, the region is highlighted."
