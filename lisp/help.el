@@ -53,39 +53,50 @@
 
 (define-key help-map "\C-c" 'describe-copying)
 (define-key help-map "\C-d" 'describe-distribution)
-(define-key help-map "\C-w" 'describe-no-warranty)
+(define-key help-map "\C-e" 'view-emacs-problems)
+(define-key help-map "\C-f" 'view-emacs-FAQ)
+(define-key help-map "\C-h" 'view-hello-file)
+(define-key help-map "\C-m" 'view-order-manuals)
+(define-key help-map "\C-n" 'view-emacs-news)
 (define-key help-map "\C-p" 'describe-project)
+(define-key help-map "\C-w" 'describe-no-warranty)
+
+;; This does not fit the pattern, but it is natural given the C-\ command.
+(define-key help-map "\C-\\" 'describe-input-method)
+
+(define-key help-map "C" 'describe-coding-system)
+(define-key help-map "F" 'Info-goto-emacs-command-node)
+(define-key help-map "I" 'describe-input-method)
+(define-key help-map "K" 'Info-goto-emacs-key-command-node)
+(define-key help-map "L" 'describe-language-environment)
+(define-key help-map "S" 'info-lookup-symbol)
+
 (define-key help-map "a" 'apropos-command)
 
 (define-key help-map "b" 'describe-bindings)
 
 (define-key help-map "c" 'describe-key-briefly)
-(define-key help-map "k" 'describe-key)
 
-(define-key help-map "d" 'describe-function)
+(define-key help-map "e" 'view-echo-area-messages)
+
 (define-key help-map "f" 'describe-function)
 
-(define-key help-map "F" 'view-emacs-FAQ)
+(define-key help-map "h" 'view-hello-file)
 
 (define-key help-map "i" 'info)
 (define-key help-map "4i" 'info-other-window)
-(define-key help-map "\C-f" 'Info-goto-emacs-command-node)
-(define-key help-map "\C-k" 'Info-goto-emacs-key-command-node)
-(define-key help-map "\C-i" 'info-lookup-symbol)
+
+(define-key help-map "k" 'describe-key)
 
 (define-key help-map "l" 'view-lossage)
 
 (define-key help-map "m" 'describe-mode)
-(define-key help-map "\C-m" 'view-order-manuals)
 
-(define-key help-map "\C-n" 'view-emacs-news)
 (define-key help-map "n" 'view-emacs-news)
 
 (define-key help-map "p" 'finder-by-keyword)
 (autoload 'finder-by-keyword "finder"
   "Find packages matching a given keyword." t)
-
-(define-key help-map "P" 'view-emacs-problems)
 
 (define-key help-map "s" 'describe-syntax)
 
@@ -163,7 +174,7 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 
 (defalias 'help 'help-for-help)
 (make-help-screen help-for-help
-  "a b c C f F C-f i I k C-k l L m n p s t v w C-c C-d C-n C-p C-w; ? for help:"
+  "a b c C e f F C-f i I k C-k l L m p s t v w C-c C-d C-n C-p C-w or ? :"
   "You have typed %THIS-KEY%, the help character.  Type a Help option:
 \(Use SPC or DEL to scroll through this text.  Type \\<help-map>\\[help-quit] to exit the Help command.)
 
@@ -176,17 +187,16 @@ c  describe-key-briefly.  Type a command key sequence;
 C  describe-coding-system.  This describes either a specific coding system
         (if you type its name) or the coding systems currently in use
 	(if you type just RET).
+e  view-echo-area-messages.  Show the `*Messages*' buffer.
 f  describe-function.  Type a function name and get documentation of it.
-C-f Info-goto-emacs-command-node.  Type a function name;
+F  Info-goto-emacs-command-node.  Type a function name;
 	it takes you to the Info node for that command.
 i  info. The  info  documentation reader.
 I  describe-input-method.  Describe a specific input method (if you type
 	its name) or the current input method (if you type just RET).
-C-i  info-lookup-symbol.  Display the definition of a specific symbol
-        as found in the manual for the language this buffer is written in.
 k  describe-key.  Type a command key sequence;
 	it displays the full documentation.
-C-k Info-goto-emacs-key-command-node.  Type a command key sequence;
+K Info-goto-emacs-key-command-node.  Type a command key sequence;
 	it takes you to the Info node for the command bound to that key.
 l  view-lossage.  Show last 100 characters you typed.
 L  describe-language-environment.  This describes either a
@@ -194,23 +204,34 @@ L  describe-language-environment.  This describes either a
 	or the current language environment (if you type just RET).
 m  describe-mode.  Print documentation of current minor modes,
 	and the current major mode, including their special commands.
-n  view-emacs-news.  Display news of recent Emacs changes.
 p  finder-by-keyword. Find packages matching a given topic keyword.
 s  describe-syntax.  Display contents of syntax table, plus explanations.
+S  info-lookup-symbol.  Display the definition of a specific symbol
+        as found in the manual for the language this buffer is written in.
 t  help-with-tutorial.  Select the Emacs learn-by-doing tutorial.
 v  describe-variable.  Type name of a variable;
 	it displays the variable's documentation and value.
 w  where-is.  Type command name; it prints which keystrokes
 	invoke that command.
 
-F  Display the frequently asked questions file.
-h  Display the HELLO file which illustrates various scripts.
-C-c Display Emacs copying permission (General Public License).
+C-c Display Emacs copying permission (GNU General Public License).
 C-d Display Emacs ordering information.
+C-e Display info about Emacs problems.
+C-f Display the Emacs FAQ.
+C-h Display the HELLO file which illustrates various scripts.
+C-m Display how to order printed Emacs manuals.
 C-n Display news of recent Emacs changes.
 C-p Display information about the GNU project.
 C-w Display information on absence of warranty for GNU Emacs."
   help-map)
+
+
+
+(define-key help-map "F" 'Info-goto-emacs-command-node)
+(define-key help-map "K" 'Info-goto-emacs-key-command-node)
+(define-key help-map "I" 'info-lookup-symbol)
+
+
 
 
 
@@ -306,6 +327,13 @@ With numeric argument, display information on correspondingly older changes."
     (if file
 	(view-file (expand-file-name file data-directory))
       (error "No such old news"))))
+
+(defun view-echo-area-messages ()
+  "View the log of recent echo-area messages: the `*Messages*' buffer.
+The number of messages retained in that buffer
+is specified by the variable `message-log-max'."
+  (interactive)
+  (switch-to-buffer (get-buffer-create "*Messages*")))
 
 (defun view-order-manuals ()
   "Display the Emacs ORDERS file."
