@@ -236,6 +236,15 @@ An end marker of NIL means the fold ends after (point-max).")
       ;; slip our fold announcement into the list
       (setcdr outl-entry (nconc foldout-entry (cdr outl-entry)))
       ))
+
+;; outline-flag-region has different `flag' values in outline.el and
+;; noutline.el for hiding and showing text.
+
+(defconst foldout-hide-flag
+  (if (featurep 'noutline) t ?\^M))
+
+(defconst foldout-show-flag
+  (if (featurep 'noutline) nil ?\n))
 
 
 (defun foldout-zoom-subtree (&optional exposure)
@@ -358,12 +367,13 @@ exited and text is left visible."
 				  (point-max))))
 	    ;; hide the subtree
 	    (if hide-fold
-		(outline-flag-region start-marker end-of-subtree ?\^M))
+		(outline-flag-region start-marker end-of-subtree
+				     foldout-hide-flag))
 
 	    ;; make sure the next heading is exposed
 	    (if end-marker
-		(outline-flag-region end-of-subtree
-				     beginning-of-heading ?\n))
+		(outline-flag-region end-of-subtree beginning-of-heading
+				     foldout-show-flag))
 	    ))
 
       ;; zap the markers so they don't slow down editing
