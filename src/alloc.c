@@ -204,12 +204,15 @@ malloc_warning_1 (str)
 }
 
 /* malloc calls this if it finds we are near exhausting storage */
+
+void
 malloc_warning (str)
      char *str;
 {
   pending_malloc_warning = str;
 }
 
+void
 display_malloc_warning ()
 {
   register Lisp_Object val;
@@ -227,6 +230,7 @@ display_malloc_warning ()
 
 /* Called if malloc returns zero */
 
+void
 memory_full ()
 {
 #ifndef SYSTEM_MALLOC
@@ -667,6 +671,8 @@ init_cons ()
 }
 
 /* Explicitly free a cons cell.  */
+
+void
 free_cons (ptr)
      struct Lisp_Cons *ptr;
 {
@@ -1045,6 +1051,7 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
 
 /* Put MARKER back on the free list after using it temporarily.  */
 
+void
 free_marker (marker)
      Lisp_Object marker;
 {
