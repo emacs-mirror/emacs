@@ -1,3 +1,9 @@
+2004-08-03  Kim F. Storm  <storm@cua.dk>
+
+	* indent.c (compute_motion): Fix check for full width window
+	in non-window case.  Do not count left truncation glyph on
+	window systems.
+
 2004-08-02  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* data.c (Finteractive_form): Doc fix.
