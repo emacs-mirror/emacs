@@ -373,9 +373,9 @@ RECORD-REGEXP specifies the textual units which should be sorted.
   For example, to sort lines RECORD-REGEXP would be \"^.*$\"
 KEY specifies the part of each record (ie each match for RECORD-REGEXP)
   is to be used for sorting.
-  If it is \"\\digit\" then the digit'th \"\\(...\\)\" match field from
+  If it is \"\\\\digit\" then the digit'th \"\\\\(...\\\\)\" match field from
   RECORD-REGEXP is used.
-  If it is \"\\&\" then the whole record is used.
+  If it is \"\\\\&\" then the whole record is used.
   Otherwise, it is a regular-expression for which to search within the record.
 If a match for KEY is not found within a record then that record is ignored.
 
@@ -383,7 +383,7 @@ With a negative prefix arg sorts in reverse order.
 
 For example: to sort lines in the region by the first word on each line
  starting with the letter \"f\",
- RECORD-REGEXP would be \"^.*$\" and KEY would be \"\\=\\<f\\w*\\>\""
+ RECORD-REGEXP would be \"^.*$\" and KEY would be \"\\\\=\\<f\\\\w*\\\\>\""
   ;; using negative prefix arg to mean "reverse" is now inconsistent with
   ;; other sort-.*fields functions but then again this was before, since it
   ;; didn't use the magnitude of the arg to specify anything.
