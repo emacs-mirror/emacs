@@ -93,9 +93,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "gnu.h"
 #include "screen.h"
 #include "disptab.h"
-#include "window.h"
 #include "buffer.h"
-#include "xfns.h"
 
 #ifdef HAVE_X11
 #define XMapWindow XMapRaised		/* Raise them when mapping. */
@@ -178,9 +176,15 @@ Display *x_current_display;
 static struct screen *updating_screen;
 
 /* The screen (if any) which has the X window that has keyboard focus.
-   Zero if none.  This is examined by Ffocus_screen in screen.c */
-
+   Zero if none.  This is examined by Ffocus_screen in screen.c.  */
 struct screen *x_focus_screen;
+
+/* The screen which currently has the visual highlight, and should get
+   keyboard input (other sorts of input have the screen encoded in the
+   event).  It points to the X focus screen's selected window's
+   screen.  It differs from x_focus_screen when we're using a global
+   minibuffer.  */
+static struct screen *x_highlight_screen;
 
 /* From .Xdefaults, the value of "emacs.WarpMouse".  If non-zero,
    mouse is moved to inside of screen when screen is de-iconified.  */
@@ -287,18 +291,11 @@ XTupdate_begin (s)
   flexlines = s->height;
   highlight = 0;
 
-#if 0
-  if (mouse_track_width != 0)
-    {
-      x_rectangle (s, s->display.x->reverse_gc,
-		   mouse_track_top, mouse_track_left, mouse_track_width, 1);
-      mouse_track_width = 0;
-    }
-#endif
   BLOCK_INPUT;
 #ifndef HAVE_X11
   dumpqueue ();
 #endif
+  x_display_cursor (s, 0);
   UNBLOCK_INPUT;
 }
 
@@ -1215,61 +1212,71 @@ dumpborder (s, always)
 }
 #endif	/* X10 */
 
+static void XTscreen_rehighlight ();
+
 /* The focus has changed.  Update the screens as necessary to reflect
    the new situation.  Note that we can't change the selected screen
    here, because the lisp code we are interrupting might become confused.
-   For that, we enqueue a screen_selected event.
+   Each event gets marked with the screen in which it occured, so the
+   lisp code can tell when the switch took place by examining the events.  */
 
-   Return the number of events stored at bufp.  */
-static int
-x_new_focus_screen (screen, bufp, buf_free)
+static void
+x_new_focus_screen (screen)
      struct screen *screen;
-     struct input_event *bufp;
-     int buf_free;
 {
   struct screen *old_focus = x_focus_screen;
   int events_enqueued = 0;
 
-  if (screen == x_focus_screen)
-    return 0;
-
-  /* Set this before calling screen_{un,}highlight, so that they see 
-     the correct value of x_focus_screen.  */
-  x_focus_screen = screen;
-
-  if (old_focus)
+  if (screen != x_focus_screen)
     {
-      if (old_focus->auto_lower)
+      /* Set this before calling other routines, so that they see 
+	 the correct value of x_focus_screen.  */
+      x_focus_screen = screen;
+
+      if (old_focus && old_focus->auto_lower)
 	x_lower_screen (old_focus);
-      screen_unhighlight (old_focus);
-    }
 
 #if 0
-  selected_screen = screen;
-  XSET (XWINDOW (selected_screen->selected_window)->screen,
-	Lisp_Screen, selected_screen);
-  Fselect_window (selected_screen->selected_window);
-  choose_minibuf_screen ();
+      selected_screen = screen;
+      XSET (XWINDOW (selected_screen->selected_window)->screen,
+	    Lisp_Screen, selected_screen);
+      Fselect_window (selected_screen->selected_window);
+      choose_minibuf_screen ();
 #endif
+
+      if (x_focus_screen && x_focus_screen->auto_raise)
+	x_raise_screen (x_focus_screen);
+    }
+
+  XTscreen_rehighlight ();
+}
+
+
+/* The focus has changed, or we have make a screen's selected window
+   point to a window on a different screen (this happens with global
+   minibuffer screens).  Shift the highlight as appropriate.  */
+static void
+XTscreen_rehighlight ()
+{
+  struct screen *old_highlight = x_highlight_screen;
 
   if (x_focus_screen)
     {
-      if (x_focus_screen->auto_raise)
-	x_raise_screen (x_focus_screen);
-      screen_highlight (x_focus_screen);
-
-      /* Enqueue an event.  It's kind of important not to drop these
-	 events, but the event queue's fixed size is a real pain
-	 anyway.  */
-      if (buf_free > 0)
-	{
-	  bufp->kind = screen_selected;
-	  bufp->screen = screen;
-	  events_enqueued++;
-	}
+      x_highlight_screen = XSCREEN (SCREEN_FOCUS_SCREEN (x_focus_screen));
+      if (x_highlight_screen->display.nothing == 0)
+	XSET (SCREEN_FOCUS_SCREEN (x_focus_screen), Lisp_Screen,
+	      (x_highlight_screen = x_focus_screen));
     }
+  else
+    x_highlight_screen = 0;
 
-  return events_enqueued;
+  if (x_highlight_screen != old_highlight)
+    {
+      if (old_highlight)
+	screen_unhighlight (old_highlight);
+      if (x_highlight_screen)
+	screen_highlight (x_highlight_screen);
+    }
 }
 
 enum window_type
@@ -1806,6 +1813,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    {
 		      bufp->kind = non_ascii_keystroke;
 		      bufp->code = (unsigned) keysym - 0xff50;
+		      bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
 		      bufp->modifiers = x_convert_modifiers (event.xkey.state);
 		      bufp++;
 		      count++;
@@ -1820,6 +1828,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			  if (event.xkey.state & Mod1Mask)
 			    *copy_buffer |= METABIT;
 			  bufp->kind = ascii_keystroke;
+			  bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
 			  XSET (bufp->code, Lisp_Int, *copy_buffer);
 			  bufp++;
 			}
@@ -1828,6 +1837,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			  {
 			    bufp->kind = ascii_keystroke;
 			    XSET (bufp->code, Lisp_Int, copy_buffer[i]);
+			    bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
 			    bufp++;
 			  }
 
@@ -1875,6 +1885,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  {
 		    bufp->kind = ascii_keystroke;
 		    XSET (bufp->code, Lisp_Int, where_mapping[i]);
+		    bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
 		    bufp++;
 		  }
 		count += nbytes;
@@ -1886,6 +1897,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 #ifdef HAVE_X11
 	case EnterNotify:
+	  s = x_window_to_screen (event.xcrossing.window);
+
 	  if (event.xcrossing.detail == NotifyInferior)	/* Left Scrollbar */
 	    ;
 	  else if (event.xcrossing.focus)		/* Entered Window */
@@ -1895,17 +1908,12 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      struct input_event emacs_event;
 	      emacs_event.kind = no_event;
 
-	      s = x_window_to_screen (event.xcrossing.window);
-
 	      /* Avoid nasty pop/raise loops. */
 	      if (s && (!(s->auto_raise)
 			|| !(s->auto_lower)
 			|| (event.xcrossing.time - enter_timestamp) > 500))
 		{
-		  int n = x_new_focus_screen (s, bufp, numchars);
-		  bufp += n;
-		  count += n;
-		  numchars -= n;
+		  x_new_focus_screen (s);
 		  enter_timestamp = event.xcrossing.time;
 		}
 #if 0
@@ -1929,6 +1937,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		}
 #endif
 	    }
+	  else if (s == x_focus_screen)
+	    x_new_focus_screen (0);
 #if 0
 	  else if (s = x_window_to_screen (event.xcrossing.window))
 	    x_mouse_screen = s;
@@ -1939,12 +1949,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	case FocusIn:
 	  s = x_window_to_screen (event.xfocus.window);
 	  if (s)
-	    {
-	      int n = x_new_focus_screen (s, bufp, numchars);
-	      bufp += n;
-	      count += n;
-	      numchars -= n;
-	    }
+	    x_new_focus_screen (s);
 	  break;
 
 	case LeaveNotify:
@@ -1952,27 +1957,18 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      && event.xcrossing.subwindow == None
 	      && event.xcrossing.mode == NotifyNormal)
 	    {
+	      s = x_window_to_screen (event.xcrossing.window);
 	      if (event.xcrossing.focus)
-		{
-		  int n;
-		  s = x_window_to_screen (event.xcrossing.window);
-		  n = x_new_focus_screen (s, bufp, numchars);
-		  bufp += n;
-		  count += n;
-		  numchars -= n;
-		}
+		x_new_focus_screen (s);
+	      else if (s == x_focus_screen)
+		x_new_focus_screen (0);
 	    }
 	  break;
 
 	case FocusOut:
 	  s = x_window_to_screen (event.xfocus.window);
 	  if (s && s == x_focus_screen)
-	    {
-	      int n = x_new_focus_screen (0, bufp, numchars);
-	      bufp += n;
-	      count += n;
-	      numchars -= n;
-	    }
+	    x_new_focus_screen (0);
 	  break;
 
 #else /* not HAVE_X11 */
@@ -1991,7 +1987,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    x_mouse_screen = s;
 
 	    if (waiting_for_input && x_focus_screen == 0)
-	      x_new_selected_screen (s);
+	      x_new_focus_screen (s);
 	  }
 	  break;
 
@@ -2140,10 +2136,12 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    {
 	      bufp->kind = ascii_keystroke;
 	      bufp->code = (char) 'X' & 037; /* C-x */
+	      bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
 	      bufp++;
 
 	      bufp->kind = ascii_keystroke;
 	      bufp->code = (char) 0; /* C-@ */
+	      bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
 	      bufp++;
 
 	      count += 2;
@@ -2397,7 +2395,7 @@ x_display_bar_cursor (s, on)
       s->phys_cursor_x = phys_x = -1;
     }
 
-  if (on && s == x_focus_screen)
+  if (on && s == x_highlight_screen)
     {
       x1 = s->cursor_x * FONT_WIDTH (s->display.x->font)
 	+ s->display.x->internal_border_width;
@@ -2493,7 +2491,7 @@ x_display_box_cursor (s, on)
 	  || s->phys_cursor_x != s->cursor_x
 	  || s->phys_cursor_y != s->cursor_y
 	  || (s->display.x->text_cursor_kind != hollow_box_cursor
-	      && (s != x_focus_screen))))
+	      && (s != x_highlight_screen))))
     {
       /* Erase the cursor by redrawing the character underneath it.  */
       x_draw_single_glyph (s, s->phys_cursor_y, s->phys_cursor_x,
@@ -2509,9 +2507,9 @@ x_display_box_cursor (s, on)
   if (on
       && (s->phys_cursor_x < 0
 	  || (s->display.x->text_cursor_kind != filled_box_cursor
-	      && s == x_focus_screen)))
+	      && s == x_highlight_screen)))
     {
-      if (s != x_focus_screen)
+      if (s != x_highlight_screen)
 	{
 	  x_draw_box (s);
 	  s->display.x->text_cursor_kind = hollow_box_cursor;
@@ -3170,16 +3168,24 @@ x_focus_on_screen (s)
      struct screen *s;
 {
   x_raise_screen (s);
+#if 0
+  /* I don't think that the ICCCM allows programs to do things like this
+     without the interaction of the window manager.  Whatever you end up
+     doing with this code, do it to x_unfocus_screen too.  */
   XSetInputFocus (x_current_display, s->display.x->window_desc,
 		  RevertToPointerRoot, CurrentTime);
+#endif
 }
 
 x_unfocus_screen (s)
      struct screen *s;
 {
+#if 0
+  /* Look at the remarks in x_focus_on_screen.  */
   if (x_focus_screen == s)
     XSetInputFocus (x_current_display, PointerRoot,
 		    RevertToPointerRoot, CurrentTime);
+#endif
 }
 
 #endif
@@ -3390,6 +3396,8 @@ x_destroy_window (s, displ)
   free (displ.x);
   if (s == x_focus_screen)
     x_focus_screen = 0;
+  if (s == x_highlight_screen)
+    x_highlight_screen = 0;
 }
 
 #ifndef HAVE_X11
@@ -3580,6 +3588,8 @@ x_term_init (display_name)
 #ifdef F_SETOWN
   extern int old_fcntl_owner;
 #endif
+  
+  x_focus_screen = x_highlight_screen = 0;
 
   x_current_display = XOpenDisplay (display_name);
   if (x_current_display == 0)
@@ -3622,8 +3632,17 @@ x_term_init (display_name)
   }
   
   dup2 (ConnectionNumber (x_current_display), 0);
+
+#ifndef SYSV_STREAMS
+  /* Streams somehow keeps track of which descriptor number
+     is being used to talk to X.  So it is not safe to substitute
+     descriptor 0.  But it is safe to make descriptor 0 a copy of it.  */
   close (ConnectionNumber (x_current_display));
-  ConnectionNumber (x_current_display) = 0;
+  ConnectionNumber (x_current_display) = 0;	/* Looks a little strange?
+						 * check the def of the macro;
+						 * it is a genuine lvalue */
+#endif /* not SYSV_STREAMS */
+
 #endif /* HAVE_X11 */
   
 #ifdef F_SETOWN
@@ -3662,6 +3681,7 @@ x_term_init (display_name)
   read_socket_hook = XTread_socket;
   cursor_to_hook = XTcursor_to;
   reassert_line_highlight_hook = XTreassert_line_highlight;
+  screen_rehighlight_hook = XTscreen_rehighlight;
   mouse_tracking_enable_hook = XTmouse_tracking_enable;
   
   scroll_region_ok = 1;		/* we'll scroll partial screens */
