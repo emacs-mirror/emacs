@@ -88,6 +88,7 @@ character set which supports the following languages:
  and Swedish.
 We also have specific language environments for the following languages:
   For Czech, \"Czech\".
+  For Polish, \"Polish\".
   For Romanian, \"Romanian\".
   For Slovak, \"Slovak\"."))
  '("European"))
@@ -164,7 +165,8 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
 	     (nonascii-translation . iso-8859-9)
 	     (unibyte-display . iso-latin-5)
 	     (input-method . "latin-5-postfix")
-	     (documentation . "Support for Turkish language."))
+	     (documentation . "Support for Latin-5.\
+See also the Turkish environment."))
  '("European"))
 
 
