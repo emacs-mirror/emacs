@@ -1730,7 +1730,20 @@ init_from_display_pos (it, w, pos)
       it->current.string_pos = pos->string_pos;
       it->method = next_element_from_string;
     }
-  else if (CHARPOS (pos->string_pos) >= 0)
+  else if (it->current.overlay_string_index >= 0)
+    {
+      /* If POS says we're already after an overlay string ending at
+	 POS, make sure to pop the iterator because it will be in
+	 front of that overlay string.  When POS is ZV, we've thereby
+	 also ``processed'' overlay strings at ZV.  */
+      pop_it (it);
+      it->current.overlay_string_index = -1;
+      it->method = next_element_from_buffer;
+      if (CHARPOS (pos->pos) == ZV)
+	it->overlay_strings_at_end_processed_p = 1;
+    }
+  
+  if (CHARPOS (pos->string_pos) >= 0)
     {
       /* Recorded position is not in an overlay string, but in another
 	 string.  This can only be a string from a `display' property.
