@@ -730,8 +730,7 @@ the user from the mailer."
 	    (y-or-n-p "Message already sent; resend? ")))
       (let ((inhibit-read-only t)
 	    (opoint (point)))
-	(when (and enable-multibyte-characters
-		   (not (memq mail-send-nonascii '(t mime))))
+	(unless (memq mail-send-nonascii '(t mime))
 	  (goto-char (point-min))
 	  (skip-chars-forward "\0-\177")
 	  (or (= (point) (point-max))
