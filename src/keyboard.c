@@ -128,6 +128,22 @@ Lisp_Object recent_keys; /* A vector, holding the last 100 keystrokes */
 Lisp_Object this_command_keys;
 int this_command_key_count;
 
+/* This vector is used as a buffer to record the events that were actually read
+   by read_key_sequence.  */
+Lisp_Object raw_keybuf;
+int raw_keybuf_count;
+
+#define GROW_RAW_KEYBUF							\
+if (raw_keybuf_count == XVECTOR (raw_keybuf)->size)			\
+  {									\
+    int newsize = 2 * XVECTOR (raw_keybuf)->size;			\
+    Lisp_Object new;							\
+    new = Fmake_vector (make_number (newsize), Qnil);			\
+    bcopy (XVECTOR (raw_keybuf)->contents, XVECTOR (new)->contents,	\
+	   raw_keybuf_count * sizeof (Lisp_Object));			\
+    raw_keybuf = new;							\
+  }
+
 /* Number of elements of this_command_keys
    that precede this key sequence.  */
 int this_single_command_key_start;
@@ -249,6 +265,14 @@ Lisp_Object last_input_char;
 /* If not Qnil, a list of objects to be read as subsequent command input.  */
 Lisp_Object Vunread_command_events;
 
+/* If not Qnil, a list of objects to be read as subsequent command input
+   including input method processing.  */
+Lisp_Object Vunread_input_method_events;
+
+/* If not Qnil, a list of objects to be read as subsequent command input
+   but NOT including input method processing.  */
+Lisp_Object Vunread_post_input_method_events;
+
 /* If not -1, an event to be read as subsequent command input.  */
 int unread_command_char;
 
@@ -339,6 +363,10 @@ extern Lisp_Object Vfunction_key_map;
 /* Another keymap that maps key sequences into key sequences.
    This one takes precedence over ordinary definitions.  */
 extern Lisp_Object Vkey_translation_map;
+
+/* If non-nil, this implements the current input method.  */
+Lisp_Object Vinput_method_function;
+Lisp_Object Qinput_method_function;
 
 /* Non-nil means deactivate the mark at end of this command.  */
 Lisp_Object Vdeactivate_mark;
@@ -1149,6 +1177,8 @@ command_loop_1 ()
   if (!NILP (Vpost_command_idle_hook) && !NILP (Vrun_hooks))
     {
       if (NILP (Vunread_command_events)
+	  && NILP (Vunread_input_method_events)
+	  && NILP (Vunread_post_input_method_events)
 	  && NILP (Vexecuting_macro)
 	  && !NILP (sit_for (0, post_command_idle_delay, 0, 1, 1)))
 	safe_run_hooks (Qpost_command_idle_hook);
@@ -1466,6 +1496,8 @@ command_loop_1 ()
       if (!NILP (Vpost_command_idle_hook) && !NILP (Vrun_hooks))
 	{
 	  if (NILP (Vunread_command_events)
+	      && NILP (Vunread_input_method_events)
+	      && NILP (Vunread_post_input_method_events)
 	      && NILP (Vexecuting_macro)
 	      && !NILP (sit_for (0, post_command_idle_delay, 0, 1, 1)))
 	    safe_run_hooks (Qpost_command_idle_hook);
@@ -1757,6 +1789,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   int key_already_recorded = 0;
   Lisp_Object tem, save;
   Lisp_Object also_record;
+  int reread;
   struct gcpro gcpro1;
 
   also_record = Qnil;
@@ -1768,6 +1801,33 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   GCPRO1 (c);
 
  retry:
+
+  reread = 0;
+  if (CONSP (Vunread_post_input_method_events))
+    {
+      c = XCONS (Vunread_post_input_method_events)->car;
+      Vunread_post_input_method_events
+	= XCONS (Vunread_post_input_method_events)->cdr;
+
+      /* Undo what read_char_x_menu_prompt did when it unread
+	 additional keys returned by Fx_popup_menu.  */
+      if (CONSP (c)
+	  && (SYMBOLP (XCONS (c)->car) || INTEGERP (XCONS (c)->car))
+	  && NILP (XCONS (c)->cdr))
+	c = XCONS (c)->car;
+
+      reread = 1;
+      goto reread_first;
+    }
+
+  if (unread_command_char != -1)
+    {
+      XSETINT (c, unread_command_char);
+      unread_command_char = -1;
+
+      reread = 1;
+      goto reread_first;
+    }
 
   if (CONSP (Vunread_command_events))
     {
@@ -1781,21 +1841,23 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  && NILP (XCONS (c)->cdr))
 	c = XCONS (c)->car;
 
-      if (this_command_key_count == 0)
-	goto reread_first;
-      else
-	goto reread;
+      reread = 1;
+      goto reread_for_input_method;
     }
 
-  if (unread_command_char != -1)
+  if (CONSP (Vunread_input_method_events))
     {
-      XSETINT (c, unread_command_char);
-      unread_command_char = -1;
+      c = XCONS (Vunread_input_method_events)->car;
+      Vunread_input_method_events = XCONS (Vunread_input_method_events)->cdr;
 
-      if (this_command_key_count == 0)
-	goto reread_first;
-      else
-	goto reread;
+      /* Undo what read_char_x_menu_prompt did when it unread
+	 additional keys returned by Fx_popup_menu.  */
+      if (CONSP (c)
+	  && (SYMBOLP (XCONS (c)->car) || INTEGERP (XCONS (c)->car))
+	  && NILP (XCONS (c)->cdr))
+	c = XCONS (c)->car;
+      reread = 1;
+      goto reread_for_input_method;
     }
 
   /* If there is no function key translated before
@@ -1842,7 +1904,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       unread_switch_frame = Qnil;
 
       /* This event should make it into this_command_keys, and get echoed
-	 again, so we go to reread_first, rather than reread.  */
+	 again, so we do not set `reread'.  */
       goto reread_first;
     }
 
@@ -2263,36 +2325,61 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	}
     }
 
+  /* Store these characters into recent_keys, the dribble file if any,
+     and the keyboard macro being defined, if any.  */
   record_char (c);
   if (! NILP (also_record))
     record_char (also_record);
 
+ reread_for_input_method:
  from_macro:
- reread_first:
-
-  before_command_key_count = this_command_key_count;
-  before_command_echo_length = echo_length ();
-
-  /* Don't echo mouse motion events.  */
-  if (echo_keystrokes
-      && ! (EVENT_HAS_PARAMETERS (c)
-	    && EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_movement)))
+  /* Pass this to the input method, if appropriate.  */
+  if (INTEGERP (c))
     {
-      echo_char (c);
-      if (! NILP (also_record))
-	echo_char (also_record);
-      /* Once we reread a character, echoing can happen
-	 the next time we pause to read a new one.  */
-      ok_to_echo_at_next_pause = echo_area_glyphs;
+      /* If this is a printing character, run the input method.  */
+      if (! NILP (Vinput_method_function)
+	  && (unsigned) XINT (c) >= ' '
+	  && (unsigned) XINT (c) < 127)
+	{
+	  int saved = current_kboard->immediate_echo;
+	  tem = call1 (Vinput_method_function, c);
+	  current_kboard->immediate_echo = saved;
+	  /* The input method can return no events.  */
+	  if (! CONSP (tem))
+	    goto retry;
+	  /* It returned one event or more.  */
+	  c = XCONS (tem)->car;
+	  Vunread_post_input_method_events
+	    = nconc2 (XCONS (tem)->cdr, Vunread_post_input_method_events);
+	}
     }
 
-  /* Record this character as part of the current key.  */
-  add_command_key (c);
-  if (! NILP (also_record))
-    add_command_key (also_record);
+ reread_first:
 
-  /* Re-reading in the middle of a command */
- reread:
+  if (this_command_key_count == 0 || ! reread)
+    {
+      before_command_key_count = this_command_key_count;
+      before_command_echo_length = echo_length ();
+
+      /* Don't echo mouse motion events.  */
+      if (echo_keystrokes
+	  && ! (EVENT_HAS_PARAMETERS (c)
+		&& EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_movement)))
+	{
+	  echo_char (c);
+	  if (! NILP (also_record))
+	    echo_char (also_record);
+	  /* Once we reread a character, echoing can happen
+	     the next time we pause to read a new one.  */
+	  ok_to_echo_at_next_pause = echo_area_glyphs;
+	}
+
+      /* Record this character as part of the current key.  */
+      add_command_key (c);
+      if (! NILP (also_record))
+	add_command_key (also_record);
+    }
+
   last_input_char = c;
   num_input_events++;
 
@@ -6565,6 +6652,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
   int junk;
 
+  raw_keybuf_count = 0;
+
   last_nonmenu_event = Qnil;
 
   delayed_switch_frame = Qnil;
@@ -6608,6 +6697,10 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 #endif /* GOBBLE_FIRST_EVENT */
 
   orig_local_map = get_local_map (PT, current_buffer);
+
+  /* Bind input-method-function so that we can set it to nil
+     temporarily after the first input event.  */
+  specbind (Qinput_method_function, Vinput_method_function);
 
   /* We jump here when the key sequence has been thoroughly changed, and
      we need to rescan it starting from the beginning.  When we jump here,
@@ -6780,12 +6873,18 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 #endif
 	    key = read_char (NILP (prompt), nmaps, submaps, last_nonmenu_event,
 			     &used_mouse_menu);
+
+	    /* Turn off input methods after a prefix character.  */
+	    Vinput_method_function = Qnil;
 	  }
 
 	  /* read_char returns t when it shows a menu and the user rejects it.
 	     Just return -1.  */
 	  if (EQ (key, Qt))
-	    return -1;
+	    {
+	      unbind_to (count, Qnil);
+	      return -1;
+	    }
 
 	  /* read_char returns -1 at the end of a macro.
 	     Emacs 18 handles this by returning immediately with a
@@ -6821,6 +6920,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	     replay to get the right keymap.  */
 	  if (XINT (key) == quit_char && current_buffer != starting_buffer)
 	    {
+	      GROW_RAW_KEYBUF;
+	      XVECTOR (raw_keybuf)->contents[raw_keybuf_count++] = key;
 	      keybuf[t++] = key;
 	      mock_input = t;
 	      Vquit_flag = Qnil;
@@ -6829,6 +6930,22 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    }
 
 	  Vquit_flag = Qnil;
+
+	  if (EVENT_HAS_PARAMETERS (key)
+	      && EQ (EVENT_HEAD_KIND (EVENT_HEAD (key)), Qswitch_frame))
+	    {
+	      /* If we're at the beginning of a key sequence, and the caller
+		 says it's okay, go ahead and return this event.  If we're
+		 in the midst of a key sequence, delay it until the end. */
+	      if (t > 0 || !can_return_switch_frame)
+		{
+		  delayed_switch_frame = key;
+		  goto replay_key;
+		}
+	    }
+
+	  GROW_RAW_KEYBUF;
+	  XVECTOR (raw_keybuf)->contents[raw_keybuf_count++] = key;
 	}
 
       /* Clicks in non-text areas get prefixed by the symbol
@@ -6874,6 +6991,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		  && BUFFERP (XWINDOW (window)->buffer)
 		  && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
 		{
+		  XVECTOR (raw_keybuf)->contents[raw_keybuf_count++] = key;
 		  keybuf[t] = key;
 		  mock_input = t + 1;
 
@@ -6935,17 +7053,6 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		     expanded it, and don't try to do so again.  */
 		  POSN_BUFFER_POSN (EVENT_START (key))
 		    = Fcons (posn, Qnil);
-		  goto replay_key;
-		}
-	    }
-	  else if (EQ (kind, Qswitch_frame))
-	    {
-	      /* If we're at the beginning of a key sequence, and the caller
-		 says it's okay, go ahead and return this event.  If we're
-		 in the midst of a key sequence, delay it until the end. */
-	      if (t > 0 || !can_return_switch_frame)
-		{
-		  delayed_switch_frame = key;
 		  goto replay_key;
 		}
 	    }
@@ -7455,6 +7562,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	echo_char (keybuf[t]);
       add_command_key (keybuf[t]);
     }
+
+  
 
   return t;
 }
@@ -7970,6 +8079,18 @@ The value is always a vector.")
 		  - this_single_command_key_start,
 		  (XVECTOR (this_command_keys)->contents
 		   + this_single_command_key_start));
+}
+
+DEFUN ("this-single-command-raw-keys", Fthis_single_command_raw_keys,
+       Sthis_single_command_raw_keys, 0, 0, 0,
+  "Return the raw events that were read for this command.\n\
+Unlike `this-single-command-keys', this function's value\n\
+shows the events before all translations (except for input methods).\n\
+The value is always a vector.")
+  ()
+{
+  return Fvector (raw_keybuf_count,
+		  (XVECTOR (raw_keybuf)->contents));
 }
 
 DEFUN ("reset-this-command-lengths", Freset_this_command_lengths,
@@ -8711,6 +8832,9 @@ syms_of_keyboard ()
   Qpolling_period = intern ("polling-period");
   staticpro (&Qpolling_period);
 
+  Qinput_method_function = intern ("input-method-function");
+  staticpro (&Qinput_method_function);
+
   {
     struct event_head *p;
 
@@ -8744,6 +8868,9 @@ syms_of_keyboard ()
 
   this_command_keys = Fmake_vector (make_number (40), Qnil);
   staticpro (&this_command_keys);
+
+  raw_keybuf = Fmake_vector (make_number (30), Qnil);
+  staticpro (&raw_keybuf);
 
   Qextended_command_history = intern ("extended-command-history");
   Fset (Qextended_command_history, Qnil);
@@ -8792,6 +8919,7 @@ syms_of_keyboard ()
   defsubr (&Sthis_command_keys);
   defsubr (&Sthis_command_keys_vector);
   defsubr (&Sthis_single_command_keys);
+  defsubr (&Sthis_single_command_raw_keys);
   defsubr (&Sreset_this_command_lengths);
   defsubr (&Ssuspend_emacs);
   defsubr (&Sabort_recursive_edit);
@@ -8823,10 +8951,24 @@ so that you can determine whether the command was run by mouse or not.");
     "Last input event.");
 
   DEFVAR_LISP ("unread-command-events", &Vunread_command_events,
-    "List of objects to be read as next command input events.");
+    "List of events to be read as the command input.\n\
+These events are processed first, before actual keyboard input.");
+  Vunread_command_events = Qnil;
 
   DEFVAR_INT ("unread-command-char", &unread_command_char,
     "If not -1, an object to be read as next command input event.");
+
+  DEFVAR_LISP ("unread-post-input-method-events", &Vunread_post_input_method_events,
+    "List of events to be processed as input by input methods.\n\
+These events are processed after `unread-command-events', but\n\
+before actual keyboard input.");
+  Vunread_post_input_method_events = Qnil;
+
+  DEFVAR_LISP ("unread-input-method-events", &Vunread_input_method_events,
+    "List of events to be processed as input by input methods.\n\
+These events are processed after `unread-command-events', but\n\
+before actual keyboard input.");
+  Vunread_input_method_events = Qnil;
 
   DEFVAR_LISP ("meta-prefix-char", &meta_prefix_char,
     "Meta-prefix character code.  Meta-foo as command input\n\
@@ -9084,6 +9226,20 @@ If the value is non-nil and not a number, we wait 2 seconds.");
   DEFVAR_LISP ("timer-idle-list", &Vtimer_idle_list,
     "List of active idle-time timers in order of increasing time");
   Vtimer_idle_list = Qnil;
+
+  DEFVAR_LISP ("input-method-function", &Vinput_method_function,
+    "If non-nil, the function that implements the current input method.\n\
+It's called with one argument, a printing character that was just read.\n\
+\(That means a character with code 040...0176.)\n\
+Typically this function uses `read-event' to read additional events.\n\
+When it does so, it should first bind `input-method-function' to nil\n\
+so it will not be called recursively.\n\
+\n\
+The function should return a list of zero or more events\n\
+to be used as input.  If it wants to put back some events\n\
+to be reconsidered, separately, by the input method,\n\
+it can add them to the beginning of `unread-command-events'.");
+  Vinput_method_function = Qnil;
 }
 
 void
