@@ -4663,7 +4663,8 @@ x_set_glyph_string_background_width (s, start, last_x)
   
   if (start == s->row->used[s->area]
       && s->hl == DRAW_NORMAL_TEXT
-      && ((s->area == TEXT_AREA && s->row->fill_line_p)
+      && s->area == TEXT_AREA
+      && (s->row->fill_line_p
 	  || s->face->background != default_face->background
 	  || s->face->stipple != default_face->stipple))
     s->extends_to_end_of_line_p = 1;
@@ -5184,7 +5185,7 @@ x_insert_glyphs (start, len)
 			  - shift_by_width);
 
   /* Shift right.  */
-  frame_x = WINDOW_TO_FRAME_PIXEL_X (w, output_cursor.x);
+  frame_x = window_box_left (w, updated_area) + output_cursor.x;
   frame_y = WINDOW_TO_FRAME_PIXEL_Y (w, output_cursor.y);
   BitBlt (hdc, frame_x + shift_by_width, frame_y,
           shifted_region_width, line_height,
@@ -8229,7 +8230,7 @@ w32_read_socket (sd, bufp, numchars, expected)
             {
               /* If we move outside the frame, then we're
                  certainly no longer on any text in the frame.  */
-              clear_mouse_face (FRAME_W32_DISPLAY_INFO (f));
+              clear_mouse_face (dpyinfo);
             }
 
           /* If the contents of the global variable help_echo
