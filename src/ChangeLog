@@ -1,3 +1,23 @@
+2000-06-20  Dave Love  <fx@gnu.org>
+
+	* keyboard.h (poll_for_input_1): Declare.
+
+	* getloadavg.c: Don't define NLIST_STRUCT (handled by configure).
+
+	* alloc.c (xmalloc, xrealloc, xfree): Define using POINTER_TYPE.
+
+	* doprnt.c: Don't declare xmalloc, xrealloc.
+
+	* lisp.h (x_set_tool_bar_lines, free_frame_xic, compose_text)
+	(getenv, ctime, getwd): Removed.
+	(xmalloc, xrealloc, xfree): Declare using POINTER_TYPE.
+
+	* xterm.h: Remove duplicate prototypes.  Declare free_frame_xic,
+	x_set_tool_bar_lines.
+
+	* config.in: Add HAVE_GETWD.  Move some definitions above
+	machine/system includes.
+
 2000-06-20  Kenichi Handa  <handa@etl.go.jp>
 
 	* s/bsd386.h (HAVE_GETLOADAVG): Define it as 1.
