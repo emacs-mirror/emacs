@@ -1,3 +1,13 @@
+2004-12-11  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* play/zone.el (zone-programs): Add `zone-pgm-random-life'.
+	(zone-fill-out-screen): New func.
+	(zone-pgm-drip): Use `zone-fill-out-screen'.
+	Also, no longer go to point-min on every cycle.
+	(zone-pgm-paragraph-spaz): Allow spazzing for texinfo-mode.
+	(zone-pgm-random-life-wait): New user var.
+	(zone-pgm-random-life): New func.
+
 2004-12-10  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* files.el (auto-mode-alist): Map .com to DCL mode.
