@@ -446,7 +446,8 @@ case "${canonical}" in
     machine=ns16000 opsys=umax
   ;;
 
-  ## The GEC 93 - apparently, this port isn't really finished yet.
+  ## The GEC 63 - apparently, this port isn't really finished yet.
+  #  I'm sure we finished off the last of the machines, though.  -- fx
 
   ## Gould Power Node and NP1
   pn-gould-bsd4.2* )
@@ -1165,6 +1166,7 @@ AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
 AC_HEADER_STDC
 AC_HEADER_TIME
 AC_DECL_SYS_SIGLIST
+AC_HEADER_SYS_WAIT
 
 dnl Some systems have utime.h but don't declare the struct anyplace.
 AC_CACHE_CHECK(for struct utimbuf, emacs_cv_struct_utimbuf,
