@@ -100,7 +100,7 @@ Also see `live-frame-p'.")
   (object)
      Lisp_Object object;
 {
-  if (XTYPE (object) != Lisp_Frame)
+  if (!FRAMEP (object))
     return Qnil;
   switch (XFRAME (object)->output_method)
     {
@@ -251,7 +251,7 @@ make_frame_without_minibuffer (mini_window)
   /* Choose the minibuffer window to use.  */
   if (NILP (mini_window))
     {
-      if (XTYPE (Vdefault_minibuffer_frame) != Lisp_Frame)
+      if (!FRAMEP (Vdefault_minibuffer_frame))
 	error ("default-minibuffer-frame must be set when creating minibufferless frames");
       if (! FRAME_LIVE_P (XFRAME (Vdefault_minibuffer_frame)))
 	error ("default-minibuffer-frame must be a live frame");
@@ -373,13 +373,12 @@ do_switch_frame (frame, no_enter, track)
 	{
 	  Lisp_Object focus;
 
-	  if (XTYPE (XCONS (tail)->car) != Lisp_Frame)
+	  if (!FRAMEP (XCONS (tail)->car))
 	    abort ();
 
 	  focus = FRAME_FOCUS_FRAME (XFRAME (XCONS (tail)->car));
 
-	  if (XTYPE (focus) == Lisp_Frame
-	      && XFRAME (focus) == selected_frame)
+	  if (FRAMEP (focus) && XFRAME (focus) == selected_frame)
 	    Fredirect_frame_focus (XCONS (tail)->car, frame);
 	}
     }
@@ -657,7 +656,7 @@ prev_frame (frame, minibuf)
       Lisp_Object f;
 
       f = XCONS (tail)->car;
-      if (XTYPE (f) != Lisp_Frame)
+      if (!FRAMEP (f))
 	abort ();
 
       if (EQ (frame, f) && !NILP (prev))
@@ -944,7 +943,7 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 	  Lisp_Object this;
 
 	  this = XCONS (frames)->car;
-	  if (XTYPE (this) != Lisp_Frame)
+	  if (!FRAMEP (this))
 	    abort ();
 	  f = XFRAME (this);
 
@@ -1224,7 +1223,7 @@ DEFUN ("visible-frame-list", Fvisible_frame_list, Svisible_frame_list,
   for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
     {
       frame = XCONS (tail)->car;
-      if (XTYPE (frame) != Lisp_Frame)
+      if (!FRAMEP (frame))
 	continue;
       f = XFRAME (frame);
       if (FRAME_VISIBLE_P (f))
@@ -1376,8 +1375,7 @@ store_frame_param (f, prop, val)
   else
     Fsetcdr (tem, val);
 
-  if (EQ (prop, Qminibuffer)
-      && XTYPE (val) == Lisp_Window)
+  if (EQ (prop, Qminibuffer) && WINDOWP (val))
     {
       if (! MINI_WINDOW_P (XWINDOW (val)))
 	error ("Surrogate minibuffer windows must be minibuffer windows.");
