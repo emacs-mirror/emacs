@@ -134,6 +134,8 @@ install:	all batch_files
 		- $(ADDPM) $(INSTALL_DIR)
 		- $(DEL) ..\same-dir.tst
 		- $(DEL) $(INSTALL_DIR)\same-dir.tst
+		- mkdir $(INSTALL_DIR)\etc\icons
+		- $(CP_DIR) icons $(INSTALL_DIR)\etc\icons
 		echo SameDirTest > $(INSTALL_DIR)\same-dir.tst
 		if not exist ..\same-dir.tst $(MAKE) -f makefile.nt real_install
 		- $(DEL) ..\same-dir.tst
@@ -168,6 +170,8 @@ real_install:
 		- mkdir $(INSTALL_DIR)\lock
 		- mkdir $(INSTALL_DIR)\data
 		- mkdir $(INSTALL_DIR)\site-lisp
+		- mkdir $(INSTALL_DIR)\etc\icons
+		- $(CP_DIR) icons $(INSTALL_DIR)\etc\icons
 		if not exist ..\same-dir.tst $(CP_DIR) ..\etc $(INSTALL_DIR)\etc
 		if not exist ..\same-dir.tst $(CP_DIR) ..\info $(INSTALL_DIR)\info
 		- $(DEL) ..\same-dir.tst
