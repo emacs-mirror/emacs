@@ -74,26 +74,19 @@
   (setq blackbox-mode-map (make-keymap))
   (suppress-keymap blackbox-mode-map t)
   (define-key blackbox-mode-map "\C-f" 'bb-right)
+  (define-key blackbox-mode-map [right] 'bb-right)
   (define-key blackbox-mode-map "\C-b" 'bb-left)
+  (define-key blackbox-mode-map [left] 'bb-left)
   (define-key blackbox-mode-map "\C-p" 'bb-up)
+  (define-key blackbox-mode-map [up] 'bb-up)
   (define-key blackbox-mode-map "\C-n" 'bb-down)
+  (define-key blackbox-mode-map [down] 'bb-down)
   (define-key blackbox-mode-map "\C-e" 'bb-eol)
   (define-key blackbox-mode-map "\C-a" 'bb-bol)
   (define-key blackbox-mode-map " " 'bb-romp)
   (define-key blackbox-mode-map [insert] 'bb-romp)
   (define-key blackbox-mode-map "\C-m" 'bb-done)
-  (define-key blackbox-mode-map [kp-enter] 'bb-done)
-
-  ;; This is a kludge.  What we really want is a general
-  ;; feature for reminding terminal keys to the functions
-  ;; corresponding to them in local maps.
-  (mapcar (function
-	   (lambda (funk)
-	     (mapcar (function
-		      (lambda (key)
-			(define-key blackbox-mode-map key funk)))
-		     (where-is-internal funk))))
-	  '(previous-line next-line backward-character forward-character)))
+  (define-key blackbox-mode-map [kp-enter] 'bb-done))
 
 ;; Blackbox mode is suitable only for specially formatted data.
 (put 'blackbox-mode 'mode-class 'special)
