@@ -923,6 +923,14 @@ extern struct glyph_row scratch_glyph_row;
       ? MATRIX_HEADER_LINE_ROW (MATRIX)->height	\
       : 0)
 
+/* Return the desired face id for the mode line of window W.
+   This depends on whether the window is selected or not.  */
+
+#define CURRENT_MODE_LINE_FACE_ID(W)		\
+     ((W) == selected_window			\
+      ? MODE_LINE_FACE_ID			\
+      : MODE_LINE_INACTIVE_FACE_ID)
+
 /* Return the current height of the mode line of window W.  If not
    known from current_mode_line_height, look at W's current glyph
    matrix, or return a default based on the height of the font of the
@@ -934,7 +942,7 @@ extern struct glyph_row scratch_glyph_row;
       : (MATRIX_MODE_LINE_HEIGHT ((W)->current_matrix)		\
 	 ? MATRIX_MODE_LINE_HEIGHT ((W)->current_matrix)	\
 	 : estimate_mode_line_height (XFRAME ((W)->frame),	\
-				      MODE_LINE_FACE_ID)))
+				      CURRENT_MODE_LINE_FACE_ID (W))))
 
 /* Return the current height of the header line of window W.  If not
    known from current_header_line_height, look at W's current glyph
@@ -1353,6 +1361,7 @@ enum face_id
 {
   DEFAULT_FACE_ID,
   MODE_LINE_FACE_ID,
+  MODE_LINE_INACTIVE_FACE_ID,
   TOOL_BAR_FACE_ID,
   FRINGE_FACE_ID,
   HEADER_LINE_FACE_ID,
