@@ -1,3 +1,9 @@
+2002-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* progmodes/etags.el (find-tag-noselect, find-tag) 
+	(find-tag-other-window, find-tag-other-frame, find-tag-regexp):
+	Fix a typo in doc strings.
+
 2002-02-20  Deepak Goel  <deego@glue.umd.edu>
 
 	* play/snake.el (snake-velocity-queue, snake-update-velocity)
