@@ -11,7 +11,7 @@
 	* emacs-lisp/easymenu.el (easy-menu-make-symbol):
 	Don't treat (lambda () ...) as an expression.
 
-2002-05-15  John Paul Wallington <jpw@shootybangbang.com>
+2002-05-15  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* replace.el (occur-read-primary-args): Handle a bare 'C-u' correctly.
 
@@ -319,7 +319,7 @@
 	(filesets-member): Replaces cl's `member*'.  Calls changed.
 	(filesets-ormap): New function.
 
-2002-05-07  John Paul Wallington <jpw@shootybangbang.com>
+2002-05-07  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* ibuffer.el (toplevel): Specialize `ibuffer-mode-groups-popup'
 	menu items.
@@ -391,7 +391,7 @@
 	(ibuffer-mode-view-menu): Unused variables; deleted.
 	(ibuffer-find-file): Pass wildcard flag to `find-file' correctly.
 
-2002-05-04  John Paul Wallington <jpw@shootybangbang.com>
+2002-05-04  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* ibuffer.el (ibuffer-mode-groups-popup): New variable.
 	(toplevel): Bind filter group menu entries in it.  Add :enable
@@ -680,7 +680,7 @@
 	* ibuffer.el (ibuffer-mode): Additional documentation on filter
 	groups.
 
-2002-04-28  John Paul Wallington <jpw@shootybangbang.com>
+2002-04-28  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* ibuf-ext.el (ibuffer-set-filter-groups-by-mode): Don't make an
 	ibuffer-mode filter group if `ibuffer-view-ibuffer' is nil.
