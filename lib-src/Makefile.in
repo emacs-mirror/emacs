@@ -98,7 +98,9 @@ SOURCES = COPYING ChangeLog Makefile.in README aixcc.lex emacs.csh \
 ### HAVE_CONFIG_H #defined before they know they can take advantage of
 ### the information in ../src/config.h.
 ALL_CFLAGS = ${C_SWITCH_SYSTEM} -Demacs -DHAVE_CONFIG_H \
-   -I. -I../src -I${srcdir} -I${srcdir}/../src ${CFLAGS}
+   -I. -I../src -I${srcdir} -I${srcdir}/../src ${LDFLAGS} ${CPPFLAGS} ${CFLAGS}
+LINK_CFLAGS = ${C_SWITCH_SYSTEM} -Demacs -DHAVE_CONFIG_H \
+   -I. -I../src -I${srcdir} -I${srcdir}/../src ${LDFLAGS} ${CFLAGS}
 CPP_CFLAGS = ${C_SWITCH_SYSTEM} -Demacs -DHAVE_CONFIG_H \
    -I. -I../src -I${srcdir} -I${srcdir}/../src ${CPPFLAGS} ${CFLAGS}
 # This is the default compilation command.
@@ -186,51 +188,51 @@ getopt1.o: ${srcdir}/getopt1.c ${srcdir}/getopt.h
 	${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt1.c
 
 etags: ${srcdir}/etags.c $(GETOPTDEPS) ../src/config.h
-	$(CC) ${CPP_CFLAGS} -DETAGS ${srcdir}/etags.c $(GETOPTOBJS) $(LOADLIBES) -o etags
+	$(CC) ${ALL_CFLAGS} -DETAGS ${srcdir}/etags.c $(GETOPTOBJS) $(LOADLIBES) -o etags
 
 # We depend on etags to assure that parallel makes don't write two
 # etags.o files on top of each other.
 ctags: ${srcdir}/etags.c $(GETOPTDEPS) etags
-	$(CC) ${CPP_CFLAGS} -DCTAGS ${srcdir}/etags.c $(GETOPTOBJS) $(LOADLIBES) -o ctags
+	$(CC) ${ALL_CFLAGS} -DCTAGS ${srcdir}/etags.c $(GETOPTOBJS) $(LOADLIBES) -o ctags
 
 wakeup: ${srcdir}/wakeup.c
-	$(CC) ${CPP_CFLAGS} ${srcdir}/wakeup.c $(LOADLIBES) -o wakeup
+	$(CC) ${ALL_CFLAGS} ${srcdir}/wakeup.c $(LOADLIBES) -o wakeup
 
 make-docfile: ${srcdir}/make-docfile.c
-	$(CC) ${CPP_CFLAGS} ${srcdir}/make-docfile.c $(LOADLIBES) -o make-docfile
+	$(CC) ${ALL_CFLAGS} ${srcdir}/make-docfile.c $(LOADLIBES) -o make-docfile
 
 digest-doc: ${srcdir}/digest-doc.c
-	$(CC) ${CPP_CFLAGS} ${srcdir}/digest-doc.c $(LOADLIBES) -o digest-doc 
+	$(CC) ${ALL_CFLAGS} ${srcdir}/digest-doc.c $(LOADLIBES) -o digest-doc 
 
 sorted-doc: ${srcdir}/sorted-doc.c ${ALLOCA}
-	$(CC) ${CPP_CFLAGS} ${srcdir}/sorted-doc.c ${ALLOCA} $(LOADLIBES) -o sorted-doc
+	$(CC) ${ALL_CFLAGS} ${srcdir}/sorted-doc.c ${ALLOCA} $(LOADLIBES) -o sorted-doc
 
 b2m: ${srcdir}/b2m.c ../src/config.h
-	$(CC) ${CPP_CFLAGS} ${srcdir}/b2m.c $(LOADLIBES) -o b2m 
+	$(CC) ${ALL_CFLAGS} ${srcdir}/b2m.c $(LOADLIBES) -o b2m 
 
 movemail: ${srcdir}/movemail.c ../src/config.h
-	$(CC) ${CPP_CFLAGS} ${srcdir}/movemail.c $(LOADLIBES) -o movemail
+	$(CC) ${ALL_CFLAGS} ${srcdir}/movemail.c $(LOADLIBES) -o movemail
 
 cvtmail: ${srcdir}/cvtmail.c
-	$(CC) ${CPP_CFLAGS} ${srcdir}/cvtmail.c $(LOADLIBES) -o cvtmail
+	$(CC) ${ALL_CFLAGS} ${srcdir}/cvtmail.c $(LOADLIBES) -o cvtmail
 
 fakemail: ${srcdir}/fakemail.c ../src/config.h
-	$(CC) ${CPP_CFLAGS} ${srcdir}/fakemail.c $(LOADLIBES) -o fakemail
+	$(CC) ${ALL_CFLAGS} ${srcdir}/fakemail.c $(LOADLIBES) -o fakemail
 
 yow: ${srcdir}/yow.c ../src/paths.h
-	$(CC) ${CPP_CFLAGS} ${srcdir}/yow.c $(LOADLIBES) -o yow
+	$(CC) ${ALL_CFLAGS} ${srcdir}/yow.c $(LOADLIBES) -o yow
 
 env: ${srcdir}/env.c ../src/config.h
-	$(CC) -DEMACS ${CPP_CFLAGS} ${srcdir}/env.c $(LOADLIBES) -o env
+	$(CC) -DEMACS ${ALL_CFLAGS} ${srcdir}/env.c $(LOADLIBES) -o env
 
 emacsserver: ${srcdir}/emacsserver.c ../src/config.h
-	$(CC) ${CPP_CFLAGS} ${srcdir}/emacsserver.c $(LOADLIBES) -o emacsserver
+	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsserver.c $(LOADLIBES) -o emacsserver
 
 emacsclient: ${srcdir}/emacsclient.c ../src/config.h
-	$(CC) ${CPP_CFLAGS} ${srcdir}/emacsclient.c $(LOADLIBES) -o emacsclient
+	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsclient.c $(LOADLIBES) -o emacsclient
 
 hexl: ${srcdir}/hexl.c
-	$(CC) ${CPP_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
+	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
 
 TIMEROBJS=getdate.o timer.o $(ALLOCA)
 getdate.o: ${srcdir}/getdate.y ../src/config.h
@@ -240,34 +242,34 @@ getdate.o: ${srcdir}/getdate.y ../src/config.h
 timer.o: ${srcdir}/timer.c ../src/config.h
 	$(CC) -c $(CPP_CFLAGS) ${srcdir}/timer.c
 timer: ${TIMEROBJS}
-	$(CC) $(ALL_CFLAGS) ${TIMEROBJS} $(LOADLIBES) -o timer
+	$(CC) $(LINK_CFLAGS) ${TIMEROBJS} $(LOADLIBES) -o timer
 
 make-path: ${srcdir}/make-path.c ../src/config.h
-	$(CC) $(CPP_CFLAGS) ${srcdir}/make-path.c -o make-path
+	$(CC) $(ALL_CFLAGS) ${srcdir}/make-path.c -o make-path
 
 # These are NOT included in INSTALLABLES or UTILITIES.
 # See ../src/ymakefile.
 emacstool: ${srcdir}/emacstool.c
-	$(CC) ${srcdir}/emacstool.c -o emacstool ${CPP_CFLAGS} \
+	$(CC) ${srcdir}/emacstool.c -o emacstool ${ALL_CFLAGS} \
 	  -lsuntool -lsunwindow -lpixrect $(LOADLIBES)
 
 # For SUN Japanese Language Environment
 nemacstool: ${srcdir}/emacstool.c
-	$(CC) -o nemacstool -DJLE ${CPP_CFLAGS} ${srcdir}/emacstool.c \
+	$(CC) -o nemacstool -DJLE ${ALL_CFLAGS} ${srcdir}/emacstool.c \
 	  -lsuntool -lmle -lsunwindow -lpixrect $(LOADLIBES)
 
 xvetool: ${srcdir}/emacstool.c
-	$(CC) -o xvetool -DXVIEW ${CPP_CFLAGS} ${srcdir}/emacstool.c \
+	$(CC) -o xvetool -DXVIEW ${ALL_CFLAGS} ${srcdir}/emacstool.c \
 	  -lxview -lX -I$(OPENWINHOME)/include -L$(OPENWINHOME)/lib \
 	  $(LOADLIBES)
 
 xveterm: ${srcdir}/emacstool.c
-	$(CC) -o xveterm -DXVIEW -DTTERM ${CPP_CFLAGS} ${srcdir}/emacstool.c \
+	$(CC) -o xveterm -DXVIEW -DTTERM ${ALL_CFLAGS} ${srcdir}/emacstool.c \
 	  -lxview -lolgx -lX  -I$(OPENWINHOME)/include -L$(OPENWINHOME)/lib \
 	  $(LOADLIBES)
 
 aixcc: ${srcdir}/aixcc.c
-	$(CC) $(CPP_CFLAGS) -o aixcc ${srcdir}/aixcc.c
+	$(CC) $(ALL_CFLAGS) -o aixcc ${srcdir}/aixcc.c
 
 aixcc.c: ${srcdir}/aixcc.lex
 	lex ${srcdir}/aixcc.lex
