@@ -1651,6 +1651,7 @@ which is made by replacing the part of STRING that was matched.")
 	    {
 	      int substart = -1;
 	      int subend;
+	      int delbackslash = 0;
 
 	      c = XSTRING (newtext)->data[pos];
 	      if (c == '\\')
@@ -1669,11 +1670,15 @@ which is made by replacing the part of STRING that was matched.")
 			  subend = search_regs.end[c - '0'];
 			}
 		    }
+		  else if (c == '\\')
+		    delbackslash = 1;
 		}
 	      if (substart >= 0)
 		{
 		  if (pos - 1 != lastpos + 1)
-		    middle = Fsubstring (newtext, lastpos + 1, pos - 1);
+		    middle = Fsubstring (newtext,
+					 make_number (lastpos + 1),
+					 make_number (pos - 1));
 		  else
 		    middle = Qnil;
 		  accum = concat3 (accum, middle,
@@ -1681,10 +1686,18 @@ which is made by replacing the part of STRING that was matched.")
 					       make_number (subend)));
 		  lastpos = pos;
 		}
+	      else if (delbackslash)
+		{
+		  middle = Fsubstring (newtext, make_number (lastpos + 1),
+				       make_number (pos));
+		  accum = concat2 (accum, middle);
+		  lastpos = pos;
+		}
 	    }
 
 	  if (pos != lastpos + 1)
-	    middle = Fsubstring (newtext, lastpos + 1, pos);
+	    middle = Fsubstring (newtext, make_number (lastpos + 1),
+				 make_number (pos));
 	  else
 	    middle = Qnil;
 
