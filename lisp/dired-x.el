@@ -947,11 +947,11 @@ dired."
    '("\\.shar.Z$" "zcat * | unshar")
    '("\\.shar.g?z$" "gunzip -qc * | unshar")
 
-   '("\\.ps$" "ghostview" "xv" "lpr")
-   (list "\\.ps.g?z$" "gunzip -qc * | ghostview -"
+   '("\\.e?ps$" "ghostview" "xv" "lpr")
+   (list "\\.e?ps.g?z$" "gunzip -qc * | ghostview -"
          ;; Optional decompression.
          '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
-   (list "\\.ps.Z$" "zcat * | ghostview -"
+   (list "\\.e?ps.Z$" "zcat * | ghostview -"
          ;; Optional conversion to gzip format.
          '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
                   " " dired-guess-shell-znew-switches))
