@@ -452,7 +452,6 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	       (setq rmail-enable-mime nil))))
   (let* ((file-name (expand-file-name (or file-name-arg rmail-file-name)))
 	 (existed (get-file-buffer file-name))
-	 (coding-system-for-read 'no-conversion)
 	 run-mail-hook msg-shown)
     ;; Like find-file, but in the case where a buffer existed
     ;; and the file was reverted, recompute the message-data.
@@ -460,22 +459,19 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	(progn
 	  ;; Don't be confused by apparent local-variables spec
 	  ;; in the last message in the RMAIL file.
-	  (let ((enable-local-variables nil))
-	    (find-file file-name))
+	  (find-file file-name)
 	  (if (and (verify-visited-file-modtime existed)
 		   (eq major-mode 'rmail-mode))
 	      (progn (rmail-forget-messages)
 		     (rmail-set-message-counters))))
-      (let ((enable-local-variables nil))
-	(find-file file-name)))
+      (find-file file-name))
     (if (eq major-mode 'rmail-edit-mode)
-	(error "Exit Rmail Edit mode before getting new mail."))
+	(error "Exit Rmail Edit mode before getting new mail"))
     (if (and existed (> (buffer-size) 0))
 	;; Buffer not new and not empty; ensure in proper mode, but that's all.
 	(or (eq major-mode 'rmail-mode)
 	    (progn (rmail-mode-2)
 		   (setq run-mail-hook t)))
-      (kill-local-variable 'enable-multibyte-characters)
       (setq run-mail-hook t)
       (rmail-mode-2)
       ;; Convert all or part to Babyl file if possible.
@@ -901,10 +897,7 @@ Instead, these commands are available:
     (if (revert-buffer arg noconfirm)
 	;; If the user said "yes", and we changed something,
 	;; reparse the messages.
-	;; But, we don't have to convert coding system because backup
-	;; files should have been saved by Emacs' internal format.
-	(let ((rmail-file-coding-system nil)
-	      (enable-multibyte-characters nil))
+	(progn
 	  (rmail-convert-file)
 	  (goto-char (point-max))
 	  (rmail-mode)))))
@@ -2609,9 +2602,9 @@ which is an element of rmail-msgref-vector."
 	       (if date
 		   (concat field "'s message of " date)
 		   field)))))
-        ((let* ((foo "[^][\000-\037\177-\377()<>@,;:\\\" ]+")
-                (bar "[^][\000-\037\177-\377()<>@,;:\\\"]+"))
-           ;; Can't use format because format loses on \000 (unix *^&%*^&%$!!)
+        ((let* ((foo "[^][\000-\037()<>@,;:\\\" ]+")
+                (bar "[^][\000-\037()<>@,;:\\\"]+"))
+	   ;; These strings both match all non-ASCII characters.
            (or (string-match (concat "\\`[ \t]*\\(" bar
                                      "\\)\\(<" foo "@" foo ">\\)?[ \t]*\\'")
                              ;; "Unix Loser <Foo@bar.edu>" => "Unix Loser"
