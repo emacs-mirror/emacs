@@ -1457,30 +1457,31 @@ examine the brightness for you."
 
 (defun frame-set-background-mode (frame)
   "Set up the `background-mode' and `display-type' frame parameters for FRAME."
-  (let ((bg-resource (x-get-resource ".backgroundMode"
-				     "BackgroundMode"))
-	(params (frame-parameters frame))
-	(bg-mode))
-    (setq bg-mode
-	  (cond (frame-background-mode)
-		(bg-resource (intern (downcase bg-resource)))
-		((< (apply '+ (x-color-values
-			       (cdr (assq 'background-color params))
-			       frame))
-		    ;; Just looking at the screen,
-		    ;; colors whose values add up to .6 of the white total
-		    ;; still look dark to me.
-		    (* (apply '+ (x-color-values "white" frame)) .6))
-		 'dark)
-		(t 'light)))
-    (modify-frame-parameters frame
-			     (list (cons 'background-mode bg-mode)
-				   (cons 'display-type
-					 (cond ((x-display-color-p frame)
-						'color)
-					       ((x-display-grayscale-p frame)
-						'grayscale)
-					       (t 'mono)))))))
+  (unless (memq (framep frame) '(t pc))
+    (let ((bg-resource (x-get-resource ".backgroundMode"
+				       "BackgroundMode"))
+	  (params (frame-parameters frame))
+	  (bg-mode))
+      (setq bg-mode
+	    (cond (frame-background-mode)
+		  (bg-resource (intern (downcase bg-resource)))
+		  ((< (apply '+ (x-color-values
+				 (cdr (assq 'background-color params))
+				 frame))
+		      ;; Just looking at the screen,
+		      ;; colors whose values add up to .6 of the white total
+		      ;; still look dark to me.
+		      (* (apply '+ (x-color-values "white" frame)) .6))
+		   'dark)
+		  (t 'light)))
+      (modify-frame-parameters frame
+			       (list (cons 'background-mode bg-mode)
+				     (cons 'display-type
+					   (cond ((x-display-color-p frame)
+						  'color)
+						 ((x-display-grayscale-p frame)
+						  'grayscale)
+						 (t 'mono))))))))
 
 ;; Update a frame's faces when we change its default font.
 (defun frame-update-faces (frame) nil)
