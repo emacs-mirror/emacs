@@ -1,5 +1,5 @@
 /* X Communication module for terminals which understand the X protocol.
-   Copyright (C) 1986, 88, 93, 94, 96, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1986, 88, 93, 94, 96, 99, 2000 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -708,7 +708,8 @@ cached information about equivalent key sequences.")
 
       /* Decode the first argument: find the window and the coordinates.  */
       if (EQ (position, Qt)
-	  || (CONSP (position) && EQ (XCAR (position), Qmenu_bar)))
+	  || (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
+				   || EQ (XCAR (position), Qtool_bar))))
 	{
 	  /* Use the mouse's current position.  */
 	  FRAME_PTR new_f = SELECTED_FRAME ();
@@ -906,7 +907,8 @@ on the left of the dialog box and all following items on the right.\n\
 
   /* Decode the first argument: find the window or frame to use.  */
   if (EQ (position, Qt)
-      || (CONSP (position) && EQ (XCAR (position), Qmenu_bar)))
+      || (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
+			       || EQ (XCAR (position), Qtool_bar))))
     {
 #if 0 /* Using the frame the mouse is on may not be right.  */
       /* Use the mouse's current position.  */
