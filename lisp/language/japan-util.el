@@ -31,9 +31,9 @@
 (defun setup-japanese-environment-internal ()
   ;; By default, we use 'japanese-iso-8bit for file names.  But, the
   ;; following prefer-coding-system will override it.
-  (setq default-file-name-coding-system 'japanese-iso-8bit)
   (if (memq system-type '(windows-nt ms-dos cygwin))
-      (prefer-coding-system 'japanese-shift-jis)))
+      (prefer-coding-system 'japanese-shift-jis)
+    (prefer-coding-system 'japanese-iso-8bit)))
 
 (defconst japanese-kana-table
   '((?あ ?ア ?ｱ) (?い ?イ ?ｲ) (?う ?ウ ?ｳ) (?え ?エ ?ｴ) (?お ?オ ?ｵ)
