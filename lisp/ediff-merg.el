@@ -281,7 +281,7 @@ Combining is done according to the specifications in variable
 	    reg-a-beg reg-a-end reg-b-beg reg-b-end reg-c-beg reg-c-end)
 	
 	(if combined
-	    (ediff-eval-in-buffer ediff-buffer-C
+	    (ediff-with-current-buffer ediff-buffer-C
 	      (goto-char reg-beg)
 	      (search-forward pat1 reg-end 'noerror)
 	      (setq reg-a-beg (match-beginning 0))
@@ -300,8 +300,8 @@ Combining is done according to the specifications in variable
 
 ;;; Local Variables:
 ;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
-;;; eval: (put 'ediff-eval-in-buffer 'lisp-indent-hook 1)
-;;; eval: (put 'ediff-eval-in-buffer 'edebug-form-spec '(form body))
+;;; eval: (put 'ediff-with-current-buffer 'lisp-indent-hook 1)
+;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
 ;; ediff-merg.el ends here

@@ -155,7 +155,7 @@ program."
 ;; no longer used
 ;; return the number of matches of regexp in buf starting from the beginning
 (defun ediff-count-matches (regexp buf)
-  (ediff-eval-in-buffer buf
+  (ediff-with-current-buffer buf
     (let ((count 0) opoint)
       (save-excursion
 	(goto-char (point-min))
@@ -174,7 +174,7 @@ program."
 ;; it for the end. This list is then assigned to ediff-patch-map.
 ;; Returns the number of elements in the list ediff-patch-map
 (defun ediff-map-patch-buffer (buf)
-  (ediff-eval-in-buffer buf
+  (ediff-with-current-buffer buf
     (let ((count 0)
 	  (mark1 (move-marker (make-marker) (point-min)))
 	  (mark1-end (point-min))
@@ -403,7 +403,7 @@ Else, read patch file into a new buffer."
 	     (read-file-name "Which file contains the patch? "
 			     dir nil 'must-match))))
     
-    (ediff-eval-in-buffer patch-buf
+    (ediff-with-current-buffer patch-buf
       (goto-char (point-min))
       (or (ediff-get-visible-buffer-window patch-buf)
 	  (progn
@@ -418,7 +418,7 @@ Else, read patch file into a new buffer."
 ;; Should return either the ctl buffer or the meta-buffer
 (defun ediff-dispatch-file-patching-job (patch-buf filename
 						   &optional startup-hooks)
-  (ediff-eval-in-buffer patch-buf
+  (ediff-with-current-buffer patch-buf
     ;; relativize names in the patch with respect to source-file
     (ediff-fixup-patch-map filename)
     (if (< (length ediff-patch-map) 2)
@@ -438,7 +438,7 @@ Else, read patch file into a new buffer."
   (let* ((buf-to-patch (get-buffer buf-to-patch-name))
 	 (file-name-ok (if buf-to-patch (buffer-file-name  buf-to-patch)))
 	 (buf-mod-status (buffer-modified-p buf-to-patch))
-	 (multifile-patch-p (> (length (ediff-eval-in-buffer patch-buf
+	 (multifile-patch-p (> (length (ediff-with-current-buffer patch-buf
 					 ediff-patch-map)) 1))
 	 default-dir file-name ctl-buf)
     (if file-name-ok
@@ -446,7 +446,7 @@ Else, read patch file into a new buffer."
       (if multifile-patch-p
 	  (error
 	   "Can't apply multi-file patches to buffers that visit no files"))
-      (ediff-eval-in-buffer buf-to-patch
+      (ediff-with-current-buffer buf-to-patch
 	(setq default-dir default-directory)
 	(setq file-name (ediff-make-temp-file buf-to-patch))
 	(set-visited-file-name file-name)
@@ -466,15 +466,15 @@ Else, read patch file into a new buffer."
 	()
       ;; buffer wasn't visiting any file,
       ;; so we will not run meta-level ediff here
-      (ediff-eval-in-buffer ctl-buf
+      (ediff-with-current-buffer ctl-buf
 	(delete-file (buffer-file-name ediff-buffer-A))
 	(delete-file (buffer-file-name ediff-buffer-B))
-	(ediff-eval-in-buffer ediff-buffer-A
+	(ediff-with-current-buffer ediff-buffer-A
 	  (if default-dir (setq default-directory default-dir))
 	  (set-visited-file-name nil)
 	  (rename-buffer buf-to-patch-name)
 	  (set-buffer-modified-p buf-mod-status))
-	(ediff-eval-in-buffer ediff-buffer-B
+	(ediff-with-current-buffer ediff-buffer-B
 	  (setq buffer-auto-save-file-name nil) ; don't create auto-save file
 	  (if default-dir (setq default-directory default-dir))
 	  (set-visited-file-name nil)
@@ -496,7 +496,7 @@ Else, read patch file into a new buffer."
 	 (true-source-filename source-filename)
 	 (target-filename source-filename)
 	 target-buf buf-to-patch file-name-magic-p 
-	 patch-return-code ctl-buf backup-style)
+	 patch-return-code ctl-buf backup-style aux-wind)
 	  
     (if (string-match "-V" ediff-patch-options)
 	(error
@@ -520,7 +520,7 @@ Else, read patch file into a new buffer."
     ;; could be checked back in.
     (ediff-maybe-checkout buf-to-patch)
 
-    (ediff-eval-in-buffer patch-diagnostics
+    (ediff-with-current-buffer patch-diagnostics
       (insert-buffer patch-buf)
       (message "Applying patch ... ")
       ;; fix environment for gnu patch, so it won't make numbered extensions
@@ -593,7 +593,7 @@ In particular, check the documentation for `ediff-backup-specs'. "
     ;; old-name_orig) and the result of patching will have the same name as
     ;; the original.
     (if (not file-name-magic-p)
-	(ediff-eval-in-buffer buf-to-patch
+	(ediff-with-current-buffer buf-to-patch
 	  (set-visited-file-name
 	   (concat source-filename ediff-backup-extension))
 	  (set-buffer-modified-p nil))
@@ -626,7 +626,7 @@ In particular, check the documentation for `ediff-backup-specs'. "
 	  (ediff-buffers-internal
 	   buf-to-patch target-buf nil
 	   startup-hooks 'epatch))
-    (ediff-eval-in-buffer ctl-buf
+    (ediff-with-current-buffer ctl-buf
       (setq ediff-patchbufer patch-buf
 	    ediff-patch-diagnostics patch-diagnostics))
   
@@ -648,7 +648,7 @@ In particular, check the documentation for `ediff-backup-specs'. "
 		startup-hooks))
     (setq meta-buf (ediff-prepare-meta-buffer 
 		    'ediff-filegroup-action
-		    (ediff-eval-in-buffer patch-buf
+		    (ediff-with-current-buffer patch-buf
 		      ;; nil replaces a regular expression
 		      (cons (list nil (format "%S" patch-buf))
 			    ediff-patch-map))
@@ -664,8 +664,8 @@ In particular, check the documentation for `ediff-backup-specs'. "
 
 ;;; Local Variables:
 ;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
-;;; eval: (put 'ediff-eval-in-buffer 'lisp-indent-hook 1)
-;;; eval: (put 'ediff-eval-in-buffer 'edebug-form-spec '(form body))
+;;; eval: (put 'ediff-with-current-buffer 'lisp-indent-hook 1)
+;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
 ;;; ediff-ptch.el ends here

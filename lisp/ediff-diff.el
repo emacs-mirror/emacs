@@ -212,7 +212,7 @@ one optional arguments, diff-number to refine.")
 				 ediff-diff-options file1 file2)
 	     ;;(message "Computing differences ... done")
 	     (message "")
-	     (ediff-eval-in-buffer diff-buffer
+	     (ediff-with-current-buffer diff-buffer
 	       (buffer-size))))))
   
 
@@ -283,15 +283,15 @@ one optional arguments, diff-number to refine.")
       (setq ediff-error-buffer
 	    (get-buffer-create (ediff-unique-buffer-name
 				"*ediff-errors" "*"))))
-  (ediff-eval-in-buffer ediff-error-buffer
+  (ediff-with-current-buffer ediff-error-buffer
     (erase-buffer)
-    (insert (ediff-eval-in-buffer diff-buff (buffer-string)))
+    (insert (ediff-with-current-buffer diff-buff (buffer-string)))
     (goto-char (point-min))
     (delete-matching-lines ok-regexp)
     (if (memq system-type '(vax-vms axp-vms))
 	(delete-matching-lines "^$")))
   ;; If diff reports errors, show them then quit.
-  (if (/= 0 (ediff-eval-in-buffer ediff-error-buffer (buffer-size)))
+  (if (/= 0 (ediff-with-current-buffer ediff-error-buffer (buffer-size)))
       (let ((ctl-buf ediff-control-buffer)
 	    (error-buf ediff-error-buffer))
 	(ediff-skip-unsuitable-frames)
@@ -328,15 +328,15 @@ one optional arguments, diff-number to refine.")
 	       (ediff-get-value-according-to-buffer-type 'B bounds))))
     
     ;; reset point in buffers A/B/C
-    (ediff-eval-in-buffer A-buffer
+    (ediff-with-current-buffer A-buffer
       (goto-char (if shift-A shift-A (point-min))))
-    (ediff-eval-in-buffer B-buffer
+    (ediff-with-current-buffer B-buffer
       (goto-char (if shift-B shift-B (point-min))))
     (if (ediff-buffer-live-p C-buffer)
-	(ediff-eval-in-buffer C-buffer
+	(ediff-with-current-buffer C-buffer
 	  (goto-char (point-min))))
     
-    (ediff-eval-in-buffer diff-buffer
+    (ediff-with-current-buffer diff-buffer
       (goto-char (point-min))
       (while (re-search-forward ediff-match-diff-line nil t)
        (let* ((a-begin (string-to-int (buffer-substring (match-beginning 1)
@@ -404,20 +404,20 @@ one optional arguments, diff-number to refine.")
 		   b-prev b-end
 		   c-prev c-end)
 	   ;; else convert lines to points
-	   (ediff-eval-in-buffer A-buffer
+	   (ediff-with-current-buffer A-buffer
 	     (forward-line (- a-begin a-prev))
 	     (setq a-begin-pt (point))
 	     (forward-line (- a-end a-begin))
 	     (setq a-end-pt (point)
 		   a-prev a-end))
-	   (ediff-eval-in-buffer B-buffer
+	   (ediff-with-current-buffer B-buffer
 	     (forward-line (- b-begin b-prev))
 	     (setq b-begin-pt (point))
 	     (forward-line (- b-end b-begin))
 	     (setq b-end-pt (point)
 		   b-prev b-end))
 	   (if (ediff-buffer-live-p C-buffer)
-	       (ediff-eval-in-buffer C-buffer
+	       (ediff-with-current-buffer C-buffer
 		 (forward-line (- c-begin c-prev))
 		 (setq c-begin-pt (point))
 		 (forward-line (- c-end c-begin))
@@ -447,7 +447,7 @@ one optional arguments, diff-number to refine.")
 			     ))) 
 		  )))
 		  
-	 ))) ; end ediff-eval-in-buffer
+	 ))) ; end ediff-with-current-buffer
     diff-list
     ))
     
@@ -495,7 +495,7 @@ one optional arguments, diff-number to refine.")
     (setq total-diffs (length diff-list))
       
     ;; shift, if necessary
-    (ediff-eval-in-buffer buff (setq pt-saved shift))
+    (ediff-with-current-buffer buff (setq pt-saved shift))
 	   
     (while diff-list
       (setq current-diff (1+ current-diff)
@@ -524,12 +524,12 @@ one optional arguments, diff-number to refine.")
       ;; convert word numbers to points, if necessary
       (if (eq diff-list-type 'words)
 	  (progn
-	    (ediff-eval-in-buffer buff (goto-char pt-saved))
+	    (ediff-with-current-buffer buff (goto-char pt-saved))
 	    (setq begin (ediff-goto-word (1+ begin) buff)
 		  end (ediff-goto-word end buff 'end))
 	    (if (> end limit) (setq end limit))
 	    (if (> begin end) (setq begin end))
-	    (setq pt-saved (ediff-eval-in-buffer buff (point)))))
+	    (setq pt-saved (ediff-with-current-buffer buff (point)))))
       (setq overlay (ediff-make-bullet-proof-overlay begin end buff))
       
       (ediff-overlay-put overlay 'priority ediff-shadow-overlay-priority)
@@ -553,7 +553,7 @@ one optional arguments, diff-number to refine.")
 	    (cdr diff-list))
       ) ; while
       
-    (set (intern (format "ediff-difference-vector-%S" buf-type))
+    (set (ediff-get-symbol-from-alist buf-type ediff-difference-vector-alist)
 	 (vconcat diff-overlay-list))
     ))
 
@@ -761,14 +761,15 @@ one optional arguments, diff-number to refine.")
 	(face (if default 
 		  'default
 		(face-name
-		 (intern (format "ediff-fine-diff-face-%S" buf-type)))))
+		 (ediff-get-symbol-from-alist
+		  buf-type ediff-fine-diff-face-alist))))
 	(priority (if default
 		      0
 		    (1+ (or (ediff-overlay-get
 			     (symbol-value
-			      (intern
-			       (format
-				"ediff-current-diff-overlay-%S" buf-type)))
+			      (ediff-get-symbol-from-alist
+			       buf-type
+			       ediff-current-diff-overlay-alist))
 			     'priority)
 			    0)))))
     (mapcar
@@ -806,7 +807,7 @@ one optional arguments, diff-number to refine.")
 
     (ediff-clear-fine-differences-in-one-buffer region-num buf-type)
     (setq diff-list (cdr diff-list)) ; discard list type (words or points)
-    (ediff-eval-in-buffer buff (goto-char reg-start))
+    (ediff-with-current-buffer buff (goto-char reg-start))
     
     ;; if it is a combined merge then set overlays in buff C specially
     (if (and ediff-merge-job (eq buf-type 'C)
@@ -909,18 +910,18 @@ one optional arguments, diff-number to refine.")
 		   (ediff-get-value-according-to-buffer-type 'C bounds)))))
     
     ;; reset point in buffers A, B, C
-    (ediff-eval-in-buffer A-buffer
+    (ediff-with-current-buffer A-buffer
       (goto-char (if shift-A shift-A (point-min))))
-    (ediff-eval-in-buffer B-buffer
+    (ediff-with-current-buffer B-buffer
       (goto-char (if shift-B shift-B (point-min))))
     (if three-way-comp
-	(ediff-eval-in-buffer C-buffer
+	(ediff-with-current-buffer C-buffer
 	  (goto-char (if shift-C shift-C (point-min)))))
     (if (ediff-buffer-live-p anc-buffer)
-	(ediff-eval-in-buffer anc-buffer
+	(ediff-with-current-buffer anc-buffer
 	  (goto-char (point-min))))
     
-    (ediff-eval-in-buffer diff-buffer
+    (ediff-with-current-buffer diff-buffer
       (goto-char (point-min))
       (while (re-search-forward ediff-match-diff3-line nil t)
 	;; leave point after matched line
@@ -983,26 +984,26 @@ one optional arguments, diff-number to refine.")
 			 b-prev b-end
 			 c-prev c-end)
 		 ;; else convert lines to points
-		 (ediff-eval-in-buffer A-buffer
+		 (ediff-with-current-buffer A-buffer
 		   (forward-line (- a-begin a-prev))
 		   (setq a-begin-pt (point))
 		   (forward-line (- a-end a-begin))
 		   (setq a-end-pt (point)
 			 a-prev a-end))
-		 (ediff-eval-in-buffer B-buffer
+		 (ediff-with-current-buffer B-buffer
 		   (forward-line (- b-begin b-prev))
 		   (setq b-begin-pt (point))
 		   (forward-line (- b-end b-begin))
 		   (setq b-end-pt (point)
 			 b-prev b-end))
-		 (ediff-eval-in-buffer C-buffer
+		 (ediff-with-current-buffer C-buffer
 		   (forward-line (- c-begin c-prev))
 		   (setq c-begin-pt (point))
 		   (forward-line (- c-end c-begin))
 		   (setq c-end-pt (point)
 			 c-prev c-end))
 		 (if (ediff-buffer-live-p anc-buffer)
-		     (ediff-eval-in-buffer anc-buffer
+		     (ediff-with-current-buffer anc-buffer
 		       (forward-line (- c-or-anc-begin anc-prev))
 		       (setq anc-begin-pt (point))
 		       (forward-line (- c-or-anc-end c-or-anc-begin))
@@ -1034,7 +1035,7 @@ one optional arguments, diff-number to refine.")
 			)))
 	       ))
 	       
-	 ))) ; end ediff-eval-in-buffer
+	 ))) ; end ediff-with-current-buffer
     diff-list
     ))
     
@@ -1065,15 +1066,15 @@ one optional arguments, diff-number to refine.")
    
 
 ;; Execute PROGRAM asynchronously, unless OS/2, Windows-*, or DOS, or unless
-;; SYNCH is non-nil.  BUFFER must be a buffer object, and must be alive.  All
-;; arguments in ARGS must be strings. The first arg may be a blank string, in
-;; which case we delete it from ARGS list. We also delete nil from args.
-(defun ediff-exec-process (program buffer synch &rest args)
-  (let ((data (match-data)))
-    (if (string-match "^[ \t]*$" (car args)) ; delete blank string
-	(setq args (cdr args)))
-    (setq args (delq nil args)) ; delete nil from arguments
-    (setq args (ediff-split-string (mapconcat 'identity args " ")))
+;; SYNCH is non-nil.  BUFFER must be a buffer object, and must be alive.  The
+;; OPTIONS arg is a list of options to pass to PROGRAM. It may be a blank
+;; string.  All elements in FILES must be strings.  We also delete nil from
+;; args.
+(defun ediff-exec-process (program buffer synch options &rest files)
+  (let ((data (match-data))
+	args)
+    (setq args (append (split-string options) files))
+    (setq args (delete "" (delq nil args))) ; delete nil and "" from arguments
     (unwind-protect
 	(let ((directory default-directory)
 	      proc)
@@ -1191,7 +1192,7 @@ argument to `skip-chars-forward'."
   (let (sv-point string)
     (save-excursion
      (set-buffer in-buffer)
-     (setq string (buffer-substring beg end))
+     (setq string (buffer-substring-no-properties beg end))
 
      (set-buffer out-buffer)
      (erase-buffer)
@@ -1205,7 +1206,7 @@ argument to `skip-chars-forward'."
        ;; different invocations
        (if control-buf
 	   (funcall 
-	    (ediff-eval-in-buffer control-buf ediff-forward-word-function))
+	    (ediff-with-current-buffer control-buf ediff-forward-word-function))
 	 (funcall ediff-forward-word-function))
        (setq sv-point (point))
        (skip-chars-forward ediff-whitespace)
@@ -1232,7 +1233,7 @@ argument to `skip-chars-forward'."
 (defun ediff-goto-word (n buf &optional flag)
   ;; remember val ediff-forward-word-function has in ctl buf
   (let ((fwd-word-fun ediff-forward-word-function))
-    (ediff-eval-in-buffer buf
+    (ediff-with-current-buffer buf
       (skip-chars-forward ediff-whitespace)
       (while (> n 1)
 	(funcall fwd-word-fun)
@@ -1245,8 +1246,8 @@ argument to `skip-chars-forward'."
 
 ;;; Local Variables:
 ;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
-;;; eval: (put 'ediff-eval-in-buffer 'lisp-indent-hook 1)
-;;; eval: (put 'ediff-eval-in-buffer 'edebug-form-spec '(form body))
+;;; eval: (put 'ediff-with-current-buffer 'lisp-indent-hook 1)
+;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
 

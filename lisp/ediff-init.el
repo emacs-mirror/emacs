@@ -97,6 +97,13 @@ that Ediff doesn't know about.")
 ;; The Ediff control buffer
 (ediff-defvar-local ediff-control-buffer nil "")
 
+
+;; Association between buff-type and ediff-buffer-*
+(defconst ediff-buffer-alist
+  '((?A . ediff-buffer-A)
+    (?B . ediff-buffer-B)
+    (?C . ediff-buffer-C)))
+
 ;;; Macros
 (defmacro ediff-odd-p (arg)
   (` (eq (logand (, arg) 1) 1)))
@@ -123,11 +130,26 @@ that Ediff doesn't know about.")
 	   ((memq (, arg) '(?c ?C)) 'C)
 	   )
   ))
+
+;; A-list is supposed to be of the form (A . symb) (B . symb)...)
+;; where the first part of any association is a buffer type and the second is
+;; an appropriate symbol. Given buffer-type, this function returns the
+;; symbol. This is used to avoid using `intern'
+(defsubst ediff-get-symbol-from-alist (buf-type alist)
+  (cdr (assoc buf-type alist)))
   
+(defconst ediff-difference-vector-alist
+  '((A . ediff-difference-vector-A)
+    (B . ediff-difference-vector-B)
+    (C . ediff-difference-vector-C)
+    (Ancestor . ediff-difference-vector-Ancestor)))
+
 (defmacro ediff-get-difference (n buf-type)
   (` (aref
       (symbol-value
-       (intern (format "ediff-difference-vector-%S" (, buf-type)))) (, n))))
+       (ediff-get-symbol-from-alist
+	(, buf-type) ediff-difference-vector-alist))
+      (, n))))
   
 ;; Tell if it has been previously determined that the region has
 ;; no diffs other than the white space and newlines
@@ -189,21 +211,18 @@ that Ediff doesn't know about.")
   (` (ediff-get-fine-diff-vector-from-diff-record
       (ediff-get-difference (, n) (, buf-type)))))
   
-;; Macro to switch to BUFFER, evaluate FORMS, returns to original buffer.
-;; Differs from `save-excursion' in that it doesn't save the point and mark.
-;; This is essentially `emerge-eval-in-buffer' with the test for live buffers."
-(defmacro ediff-eval-in-buffer (buffer &rest forms)
-  (` (let ((StartBuffer (current-buffer)))
-       (if (ediff-buffer-live-p (, buffer))
-	   (unwind-protect
-	       (progn
-		 (set-buffer (, buffer))
-		 (,@ forms))
-	     (set-buffer StartBuffer))
-	 (or (eq this-command 'ediff-quit)
-	     (error ediff-KILLED-VITAL-BUFFER))
-	 ))))
-	 
+;; Macro to switch to BUFFER, evaluate BODY, returns to original buffer.
+;; Doesn't save the point and mark.
+;; This is `with-current-buffer' with the added test for live buffers."
+(defmacro ediff-with-current-buffer (buffer &rest body)
+  (` (if (ediff-buffer-live-p (, buffer))
+       (save-current-buffer
+	 (set-buffer (, buffer))
+	 (,@ body))
+     (or (eq this-command 'ediff-quit)
+	 (error ediff-KILLED-VITAL-BUFFER))
+     )))
+     
 
 (defsubst ediff-multiframe-setup-p ()
   (and (ediff-window-display-p) ediff-multiframe))
@@ -561,6 +580,13 @@ ediff-toggle-hilit. Use `setq-default' to set it.")
 ;; The original values of ediff-protected-variables for buffer Ancestor
 (ediff-defvar-local ediff-buffer-values-orig-Ancestor nil "")
 
+;; association between buff-type and ediff-buffer-values-orig-*
+(defconst ediff-buffer-values-orig-alist
+  '((A . ediff-buffer-values-orig-A)
+    (B . ediff-buffer-values-orig-B)
+    (C . ediff-buffer-values-orig-C)
+    (Ancestor . ediff-buffer-values-orig-Ancestor)))
+
 ;; Buffer-local variables to be saved then restored during Ediff sessions
 (defconst ediff-protected-variables '(
 				      ;;buffer-read-only 
@@ -585,6 +611,12 @@ ediff-toggle-hilit. Use `setq-default' to set it.")
 (ediff-defvar-local ediff-difference-vector-B nil "")
 (ediff-defvar-local ediff-difference-vector-C nil "")
 (ediff-defvar-local ediff-difference-vector-Ancestor nil "")
+;; A-list of diff vector types associated with buffer types
+(defconst ediff-difference-vector-alist
+  '((A . ediff-difference-vector-A)
+    (B . ediff-difference-vector-B)
+    (C . ediff-difference-vector-C)
+    (Ancestor . ediff-difference-vector-Ancestor)))
 
 ;; [ status status status ...]
 ;; Each status: [state-of-merge state-of-ancestor]
@@ -743,14 +775,30 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
       (fset 'ediff-display-pixel-height
 	    (symbol-function 'x-display-pixel-height))))
       
+;; A-list of current-diff-overlay symbols asssociated with buf types
+(defconst ediff-current-diff-overlay-alist
+  '((A . ediff-current-diff-overlay-A)
+    (B . ediff-current-diff-overlay-B)
+    (C . ediff-current-diff-overlay-C)
+    (Ancestor . ediff-current-diff-overlay-Ancestor)))
+  
+;; A-list of current-diff-face-* symbols asssociated with buf types
+(defconst ediff-current-diff-face-alist
+  '((A . ediff-current-diff-face-A)
+    (B . ediff-current-diff-face-B)
+    (C . ediff-current-diff-face-C)
+    (Ancestor . ediff-current-diff-face-Ancestor)))
+  
 
 (defun ediff-make-current-diff-overlay (type)
   (if (ediff-has-face-support-p)
-      (let ((overlay (intern (format "ediff-current-diff-overlay-%S" type)))
+      (let ((overlay (ediff-get-symbol-from-alist
+		      type ediff-current-diff-overlay-alist))
 	    (buffer (ediff-get-buffer type))
 	    (face (face-name
 		   (symbol-value
-		    (intern (format "ediff-current-diff-face-%S" type))))))
+		    (ediff-get-symbol-from-alist
+		     type ediff-current-diff-face-alist)))))
 	(set overlay
 	     (ediff-make-bullet-proof-overlay (point-max) (point-max) buffer))
 	(ediff-set-overlay-face (symbol-value overlay) face)
@@ -1032,7 +1080,14 @@ ancestor buffer.")
 				     ediff-even-diff-pixmap)))
 	'ediff-even-diff-face-Ancestor))
   "Face highlighting even-numbered differences in the ancestor buffer.")
-  
+
+;; Association between buffer types and even-diff-face symbols
+(defconst ediff-even-diff-face-alist
+  '((A . ediff-even-diff-face-A)
+    (B . ediff-even-diff-face-B)
+    (C . ediff-even-diff-face-C)
+    (Ancestor . ediff-even-diff-face-Ancestor)))
+
 (defvar ediff-odd-diff-face-A
   (if (ediff-has-face-support-p)
       (progn
@@ -1097,6 +1152,20 @@ ancestor buffer.")
 	'ediff-odd-diff-face-Ancestor))
   "Face used to highlight even-numbered differences in the ancestor buffer.")
 
+;; Association between buffer types and odd-diff-face symbols
+(defconst ediff-odd-diff-face-alist
+  '((A . ediff-odd-diff-face-A)
+    (B . ediff-odd-diff-face-B)
+    (C . ediff-odd-diff-face-C)
+    (Ancestor . ediff-odd-diff-face-Ancestor)))
+  
+;; A-list of fine-diff face symbols associated with buffer types
+(defconst ediff-fine-diff-face-alist
+  '((A . ediff-fine-diff-face-A)
+    (B . ediff-fine-diff-face-B)
+    (C . ediff-fine-diff-face-C)
+    (Ancestor . ediff-fine-diff-face-Ancestor)))
+
 ;; Help echo
 (put 'ediff-fine-diff-face-A 'ediff-help-echo
      "A `refinement' of the current difference region")
@@ -1118,14 +1187,14 @@ ancestor buffer.")
   "Overlay for the current difference region in buffer C.")
 (ediff-defvar-local ediff-current-diff-overlay-Ancestor nil
   "Overlay for the current difference region in the ancestor buffer.")
-  
+
 ;; Compute priority of ediff overlay.
 (defun ediff-highest-priority (start end buffer)
   (let ((pos (max 1 (1- start)))
 	ovr-list)
     (if ediff-xemacs-p
 	(1+ ediff-shadow-overlay-priority)
-      (ediff-eval-in-buffer buffer
+      (ediff-with-current-buffer buffer
 	(while (< pos (min (point-max) (1+ end)))
 	  (setq ovr-list (append (overlays-at pos) ovr-list))
 	  (setq pos (next-overlay-change pos)))
@@ -1240,16 +1309,18 @@ More precisely, a regexp to match any one such character.")
 (defsubst ediff-background-face (buf-type dif-num)
   ;; The value of dif-num is always 1- the one that user sees.
   ;; This is why even face is used when dif-num is odd.
-  (intern (format (if (ediff-odd-p dif-num)
-		      "ediff-even-diff-face-%S"
-		    "ediff-odd-diff-face-%S")
-		  buf-type)))
+  (ediff-get-symbol-from-alist
+   buf-type (if (ediff-odd-p dif-num)
+		ediff-even-diff-face-alist
+	      ediff-odd-diff-face-alist)
+   ))
 
 
 ;; activate faces on diff regions in buffer
 (defun ediff-paint-background-regions-in-one-buffer (buf-type unhighlight)
   (let ((diff-vector 
-	 (eval (intern (format "ediff-difference-vector-%S" buf-type))))
+	 (eval (ediff-get-symbol-from-alist
+		buf-type ediff-difference-vector-alist)))
 	overl diff-num)
     (mapcar (function
 	     (lambda (rec)
@@ -1279,14 +1350,15 @@ More precisely, a regexp to match any one such character.")
 (defun ediff-highlight-diff-in-one-buffer (n buf-type)
   (if (ediff-buffer-live-p (ediff-get-buffer buf-type))
       (let* ((buff (ediff-get-buffer buf-type))
-	     (last (ediff-eval-in-buffer buff (point-max)))
+	     (last (ediff-with-current-buffer buff (point-max)))
 	     (begin (ediff-get-diff-posn buf-type 'beg n))
 	     (end (ediff-get-diff-posn buf-type 'end n))
 	     (xtra (if (equal begin end) 1 0))
 	     (end-hilit (min last (+ end xtra)))
 	     (current-diff-overlay 
 	      (symbol-value
-	       (intern (format "ediff-current-diff-overlay-%S" buf-type)))))
+	       (ediff-get-symbol-from-alist
+		buf-type ediff-current-diff-overlay-alist))))
 	
 	(if ediff-xemacs-p
 	    (ediff-move-overlay current-diff-overlay begin end-hilit)
@@ -1305,7 +1377,8 @@ More precisely, a regexp to match any one such character.")
   (if (ediff-buffer-live-p (ediff-get-buffer buf-type))
       (let ((current-diff-overlay 
 	     (symbol-value
-	      (intern (format "ediff-current-diff-overlay-%S" buf-type))))
+	      (ediff-get-symbol-from-alist
+	       buf-type ediff-current-diff-overlay-alist)))
 	    (overlay
 	     (ediff-get-diff-overlay ediff-current-difference buf-type))
 	    )
@@ -1326,7 +1399,8 @@ More precisely, a regexp to match any one such character.")
   (if (and (ediff-has-face-support-p) ediff-use-faces)
       (let* ((inhibit-quit t)
 	     (current-diff-overlay-var
-	      (intern (format "ediff-current-diff-overlay-%S" buf-type)))
+	      (ediff-get-symbol-from-alist
+	       buf-type ediff-current-diff-overlay-alist))
 	     (current-diff-overlay (symbol-value current-diff-overlay-var)))
 	(ediff-paint-background-regions 'unhighlight)
 	(if (ediff-overlayp current-diff-overlay)
@@ -1557,7 +1631,7 @@ Checks if overlay's buffer exists."
       (ediff-empty-diff-region-p n buf-type)
       (let ((beg (ediff-get-diff-posn buf-type 'beg n))
 	    (end (ediff-get-diff-posn buf-type 'end n)))
-	(ediff-eval-in-buffer (ediff-get-buffer buf-type)
+	(ediff-with-current-buffer (ediff-get-buffer buf-type)
 	  (save-excursion
 	    (goto-char beg)
 	    (skip-chars-forward ediff-whitespace)
@@ -1632,8 +1706,8 @@ Checks if overlay's buffer exists."
 
     
 (defsubst ediff-get-region-contents (n buf-type ctrl-buf &optional start end)
-  (ediff-eval-in-buffer 
-      (ediff-eval-in-buffer ctrl-buf (ediff-get-buffer buf-type))
+  (ediff-with-current-buffer 
+      (ediff-with-current-buffer ctrl-buf (ediff-get-buffer buf-type))
     (buffer-substring
      (or start (ediff-get-diff-posn buf-type 'beg n ctrl-buf))
      (or end (ediff-get-diff-posn buf-type 'end n ctrl-buf)))))
@@ -1678,8 +1752,8 @@ Checks if overlay's buffer exists."
 
 ;;; Local Variables:
 ;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
-;;; eval: (put 'ediff-eval-in-buffer 'lisp-indent-hook 1)
-;;; eval: (put 'ediff-eval-in-buffer 'edebug-form-spec '(form body))
+;;; eval: (put 'ediff-with-current-buffer 'lisp-indent-hook 1)
+;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
      
 (provide 'ediff-init)

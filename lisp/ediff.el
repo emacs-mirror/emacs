@@ -6,8 +6,8 @@
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, version control.
 
-(defconst ediff-version "2.66" "The current version of Ediff")
-(defconst ediff-date "July 9, 1997" "Date of last update")  
+(defconst ediff-version "2.67" "The current version of Ediff")
+(defconst ediff-date "July 31, 1997" "Date of last update")  
 
 
 ;; This file is part of GNU Emacs.
@@ -158,7 +158,7 @@
 
 ;; Used as a startup hook to set `_orig' patch file read-only.
 (defun ediff-set-read-only-in-buf-A ()
-  (ediff-eval-in-buffer ediff-buffer-A
+  (ediff-with-current-buffer ediff-buffer-A
     (toggle-read-only 1)))
 
 ;; Return a plausible default for ediff's first file:
@@ -291,7 +291,7 @@
     ;; Setup the buffer
     (set buffer-name (find-file-noselect file))
   
-    (ediff-eval-in-buffer (symbol-value buffer-name)
+    (ediff-with-current-buffer (symbol-value buffer-name)
       (widen) ; Make sure the entire file is seen
       (cond (file-magic  ;   file has a handler, such as jka-compr-handler or
 	     		 ;;; ange-ftp-hook-function--arrange for temp file
@@ -888,10 +888,10 @@ lines. For small regions, use `ediff-regions-wordwise'."
 	file-A file-B)
 	
     ;; in case beg/end-A/B aren't markers--make them into markers
-    (ediff-eval-in-buffer buffer-A
+    (ediff-with-current-buffer buffer-A
       (setq beg-A (move-marker (make-marker) beg-A)
 	    end-A (move-marker (make-marker) end-A)))
-    (ediff-eval-in-buffer buffer-B
+    (ediff-with-current-buffer buffer-B
       (setq beg-B (move-marker (make-marker) beg-B)
 	    end-B (move-marker (make-marker) end-B)))
 	
@@ -949,7 +949,7 @@ Continue anyway? (y/n) "))
   
 (defsubst ediff-merge-on-startup ()
   (ediff-do-merge 0)
-  (ediff-eval-in-buffer ediff-buffer-C
+  (ediff-with-current-buffer ediff-buffer-C
     (set-buffer-modified-p nil)))
 
 ;;;###autoload
@@ -1293,8 +1293,8 @@ With optional NODE, goes to that node."
 
 ;;; Local Variables:
 ;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
-;;; eval: (put 'ediff-eval-in-buffer 'lisp-indent-hook 1)
-;;; eval: (put 'ediff-eval-in-buffer 'edebug-form-spec '(form body))
+;;; eval: (put 'ediff-with-current-buffer 'lisp-indent-hook 1)
+;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
 (require 'ediff-util)

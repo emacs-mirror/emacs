@@ -559,7 +559,7 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
   (let* ((meta-buffer-name 
 	  (ediff-unique-buffer-name meta-buffer-name "*"))
 	 (meta-buffer (get-buffer-create meta-buffer-name)))
-    (ediff-eval-in-buffer meta-buffer
+    (ediff-with-current-buffer meta-buffer
 
       ;; comes first
       (ediff-meta-mode)
@@ -662,7 +662,7 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
 	regexp elt session-buf f1 f2 f3 pt 
 	merge-autostore-dir
 	point tmp-list buffer-read-only)
-    (ediff-eval-in-buffer meta-buf
+    (ediff-with-current-buffer meta-buf
       (setq point (point))
       (erase-buffer)
       (insert (format ediff-meta-buffer-message
@@ -828,7 +828,7 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
     ;; skip the directory part
     (setq diff-list (cdr diff-list))
     (setq ediff-dir-diffs-buffer (get-buffer-create buf-name))
-    (ediff-eval-in-buffer ediff-dir-diffs-buffer
+    (ediff-with-current-buffer ediff-dir-diffs-buffer
       (use-local-map ediff-dir-diffs-buffer-map)
       (erase-buffer)
       (setq ediff-meta-buffer meta-buf)
@@ -938,7 +938,7 @@ Useful commands:
 
 ;; argument is ignored
 (defun ediff-redraw-registry-buffer (&optional ignore)
-  (ediff-eval-in-buffer ediff-registry-buffer
+  (ediff-with-current-buffer ediff-registry-buffer
     (let ((point (point))
 	  elt bufAname bufBname bufCname cur-diff total-diffs pt
 	  job-name meta-list registry-list buffer-read-only)
@@ -975,7 +975,7 @@ Useful commands:
 	      registry-list (cdr registry-list))
 	
 	(if (ediff-buffer-live-p elt)
-	    (if (ediff-eval-in-buffer elt
+	    (if (ediff-with-current-buffer elt
 		  (setq job-name ediff-metajob-name
 			meta-list ediff-meta-list)
 		  (and ediff-metajob-name
@@ -1000,7 +1000,7 @@ Useful commands:
 				       ""))))
 		  (ediff-set-meta-overlay pt (point) elt))
 	      (progn
-		(ediff-eval-in-buffer elt
+		(ediff-with-current-buffer elt
 		  (setq bufAname (if (ediff-buffer-live-p ediff-buffer-A)
 				     (buffer-name ediff-buffer-A)
 				   "!!!killed buffer!!!")
@@ -1143,7 +1143,7 @@ Useful commands:
 	(metajob ediff-metajob-name)
 	tmp-buf custom-diff-buf)
     (if (ediff-buffer-live-p session-buf)
-	(ediff-eval-in-buffer session-buf
+	(ediff-with-current-buffer session-buf
 	  (if (eq ediff-control-buffer session-buf) ; individual session
 	      (progn
 		(ediff-compute-custom-diffs-maybe)
@@ -1191,7 +1191,7 @@ all marked sessions must be active."
       (setq ediff-meta-diff-buffer
 	    (get-buffer-create
 	     (ediff-unique-buffer-name "*Ediff Multifile Diffs" "*"))))
-  (ediff-eval-in-buffer ediff-meta-diff-buffer
+  (ediff-with-current-buffer ediff-meta-diff-buffer
     (erase-buffer))
   (if (> (ediff-operate-on-marked-sessions 'ediff-append-custom-diff) 0)
       ;; did something
@@ -1207,7 +1207,7 @@ all marked sessions must be active."
 	 (info (ediff-get-meta-info meta-buf pos 'noerror))
 	 (patchbuffer ediff-meta-patchbufer))
     (if (ediff-buffer-live-p patchbuffer)
-	(ediff-eval-in-buffer patchbuffer
+	(ediff-with-current-buffer patchbuffer
 	  (save-restriction
 	    (if (not info)
 		(widen)
@@ -1249,7 +1249,7 @@ all marked sessions must be active."
 		(ediff-update-meta-buffer meta-buf))
 	    (error "Aborted"))))
 
-    (ediff-eval-in-buffer meta-buf
+    (ediff-with-current-buffer meta-buf
       (setq merge-autostore-dir
 	    (ediff-get-group-merge-autostore-dir ediff-meta-list))
       (goto-char pos) ; if the user clicked on session--move point there
@@ -1299,7 +1299,7 @@ all marked sessions must be active."
 
 	    ;; handle an individual session with a live control buffer
 	    ((ediff-buffer-live-p session-buf)
-	     (ediff-eval-in-buffer session-buf
+	     (ediff-with-current-buffer session-buf
 	       (setq ediff-mouse-pixel-position (mouse-pixel-position))
 	       (ediff-recenter 'no-rehighlight)))
 
@@ -1387,18 +1387,18 @@ all marked sessions must be active."
 
     (if (ediff-buffer-live-p ctl-buf)
 	;; check if this is ediff-control-buffer or ediff-meta-buffer
-	(if (ediff-eval-in-buffer ctl-buf
+	(if (ediff-with-current-buffer ctl-buf
 	      (eq (key-binding "q") 'ediff-quit-meta-buffer))
 	    ;; it's a meta-buffer -- last action should just display it
 	    (ediff-show-meta-buffer ctl-buf)
 	  ;; it's a session buffer -- invoke go back to session
-	  (ediff-eval-in-buffer ctl-buf
+	  (ediff-with-current-buffer ctl-buf
 	    (setq ediff-mouse-pixel-position (mouse-pixel-position))
 	    (ediff-recenter 'no-rehighlight)))
       (beep)
       (message "You've selected a stale session --- try again")
       (ediff-update-registry))
-    (ediff-eval-in-buffer buf
+    (ediff-with-current-buffer buf
       (goto-char pos))
     ))
 
@@ -1417,7 +1417,7 @@ all marked sessions must be active."
 	    "Can't find this session's group panel -- session itself is ok")))
 
     (ediff-cleanup-meta-buffer meta-buf)
-    (ediff-eval-in-buffer meta-buf
+    (ediff-with-current-buffer meta-buf
       (save-excursion
 	(cond ((setq wind (ediff-get-visible-buffer-window meta-buf))
 	       (or silent
@@ -1461,7 +1461,7 @@ all marked sessions must be active."
 	 (meta-buf (ediff-event-buffer last-command-event))
 	 (info (ediff-get-meta-info meta-buf pos))
 	 (meta-or-session-buf info))
-    (ediff-eval-in-buffer meta-or-session-buf
+    (ediff-with-current-buffer meta-or-session-buf
       (ediff-show-meta-buffer))))
 
 ;;;###autoload
@@ -1474,7 +1474,7 @@ all marked sessions must be active."
   (let (wind frame)
     ;; for some reason, point moves in ediff-registry-buffer, so we preserve it
     ;; explicitly
-    (ediff-eval-in-buffer ediff-registry-buffer
+    (ediff-with-current-buffer ediff-registry-buffer
       (save-excursion
 	(cond  ((setq wind
 		      (ediff-get-visible-buffer-window ediff-registry-buffer))
@@ -1516,14 +1516,14 @@ all marked sessions must be active."
 ;; parent meta-buf
 ;; Check if META-BUF exists before calling this function
 (defun ediff-update-meta-buffer (meta-buf)
-  (ediff-eval-in-buffer (current-buffer)
+  (ediff-with-current-buffer (current-buffer)
     (if (ediff-buffer-live-p meta-buf)
-	(ediff-eval-in-buffer meta-buf
+	(ediff-with-current-buffer meta-buf
 	  (funcall ediff-meta-redraw-function ediff-meta-list))
       )))
 
 (defun ediff-update-registry ()
-  (ediff-eval-in-buffer (current-buffer)
+  (ediff-with-current-buffer (current-buffer)
     (if (ediff-buffer-live-p ediff-registry-buffer)
 	(ediff-redraw-registry-buffer)
       (ediff-prepare-meta-buffer 
@@ -1538,7 +1538,7 @@ all marked sessions must be active."
 ;; Otherwise, nothing happens.
 (defun ediff-cleanup-meta-buffer (meta-buffer)
   (if (ediff-buffer-live-p meta-buffer)
-      (ediff-eval-in-buffer meta-buffer
+      (ediff-with-current-buffer meta-buffer
 	(ediff-update-meta-buffer meta-buffer)
 	(if (ediff-buffer-live-p ediff-parent-meta-buffer)
 	    (ediff-update-meta-buffer ediff-parent-meta-buffer)))))
@@ -1550,7 +1550,7 @@ all marked sessions must be active."
 	    (cont t)
 	    buffer-read-only)
 	(ediff-update-meta-buffer meta-buffer)
-	(ediff-eval-in-buffer meta-buffer
+	(ediff-with-current-buffer meta-buffer
 	  (setq lis (cdr lis)) ; discard the description part of meta-list
 	  (while (and cont lis)
 	    (if (ediff-buffer-live-p
@@ -1596,7 +1596,7 @@ If this is a session registry buffer then just bury it."
 
 (defun ediff-dispose-of-meta-buffer (buf)
   (setq ediff-session-registry (delq buf ediff-session-registry))
-  (ediff-eval-in-buffer buf
+  (ediff-with-current-buffer buf
     (if (ediff-buffer-live-p ediff-dir-diffs-buffer)
 	(kill-buffer ediff-dir-diffs-buffer)))
   (kill-buffer buf))
@@ -1609,7 +1609,7 @@ If this is a session registry buffer then just bury it."
 (defun ediff-get-meta-info (buf point &optional noerror)
   (let (result olist tmp)
     (if (and point (ediff-buffer-live-p buf))
-	(ediff-eval-in-buffer buf
+	(ediff-with-current-buffer buf
 	  (if ediff-xemacs-p
 	      (setq result
 		    (if (setq tmp (extent-at point buf 'ediff-meta-info))
@@ -1702,7 +1702,7 @@ If this is a session registry buffer then just bury it."
 	(error
 	 "Patch has been already applied to this file--cannot be repeated!"))
 
-    (ediff-eval-in-buffer meta-patchbuf
+    (ediff-with-current-buffer meta-patchbuf
       (save-restriction
 	(widen)
 	(narrow-to-region beg-marker end-marker)
@@ -1747,8 +1747,8 @@ This is used only for sessions that involve 2 or 3 files at the same time."
 
 ;;; Local Variables:
 ;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
-;;; eval: (put 'ediff-eval-in-buffer 'lisp-indent-hook 1)
-;;; eval: (put 'ediff-eval-in-buffer 'edebug-form-spec '(form body))
+;;; eval: (put 'ediff-with-current-buffer 'lisp-indent-hook 1)
+;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
 
 ;;; ediff-mult.el ends here
