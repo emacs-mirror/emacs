@@ -1279,7 +1279,6 @@ If ARG is zero, move to the beginning of the current line."
     (if (get-text-property (point) 'invisible)
 	(goto-char (next-single-property-change (point) 'invisible))
       (goto-char (next-overlay-change (point))))
-    (forward-char 1)
     (end-of-line)))
 
 ;;;; Window system cut and paste hooks.
