@@ -1736,39 +1736,14 @@ The arguments must be numbers or markers.")
 
 DEFUN ("%", Frem, Srem, 2, 2, 0,
   "Returns remainder of first arg divided by second.\n\
-Both must be numbers or markers.")
+Both must be integers or markers.")
   (num1, num2)
      register Lisp_Object num1, num2;
 {
   Lisp_Object val;
 
-#ifdef LISP_FLOAT_TYPE
-  CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (num1, 0);
-  CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (num2, 0);
-
-  if (XTYPE (num1) == Lisp_Float || XTYPE (num2) == Lisp_Float)
-    {
-      double f1, f2;
-
-      f1 = XTYPE (num1) == Lisp_Float ? XFLOAT (num1)->data : XINT (num1);
-      f2 = XTYPE (num2) == Lisp_Float ? XFLOAT (num2)->data : XINT (num2);
-      if (f2 == 0)
-	Fsignal (Qarith_error, Qnil);
-
-#if defined (USG) || defined (sun) || defined (ultrix) || defined (hpux)
-      f1 = fmod (f1, f2);
-#else
-      f1 = drem (f1, f2);
-#endif
-      /* If the "remainder" comes out with the wrong sign, fix it.  */
-      if ((f1 < 0) != (f2 < 0))
-	f1 += f2;
-      return (make_float (f1));
-    }
-#else /* not LISP_FLOAT_TYPE */
   CHECK_NUMBER_COERCE_MARKER (num1, 0);
   CHECK_NUMBER_COERCE_MARKER (num2, 1);
-#endif /* not LISP_FLOAT_TYPE */
 
   if (XFASTINT (num2) == 0)
     Fsignal (Qarith_error, Qnil);
