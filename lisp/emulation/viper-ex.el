@@ -329,7 +329,7 @@ Don't put `-c' here, as it is added automatically."
   :group 'viper-ex)
 
 (defcustom ex-compile-command "make"
-  "The comand to run when the user types :make."
+  "The command to run when the user types :make."
   :type 'string
   :group 'viper-ex)
 
