@@ -237,7 +237,11 @@ You should set this to t when using a non-system shell.\n\n"))))
 Does not consider `auto-save-visited-file-name' as that variable is checked
 before calling this function.  You can redefine this for customization.
 See also `auto-save-file-name-p'."
-  (convert-standard-filename (original-make-auto-save-file-name)))
+  (let ((filename (original-make-auto-save-file-name)))
+    ;; Don't modify remote (ange-ftp) filenames
+    (if (string-match "^/\\w+@[-A-Za-z0-9._]+:" filename)
+	filename
+      (convert-standard-filename filename))))
 
 (defun convert-standard-filename (filename)
   "Convert a standard file's name to something suitable for the current OS.
