@@ -1563,7 +1563,7 @@ typedef unsigned char UCHAR;
   struct Lisp_Subr sname =						\
     { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
       fnname, minargs, maxargs, lname, prompt, 0};			\
-  Lisp_Object fnname args
+  Lisp_Object fnname
 
 #else
 
