@@ -22,7 +22,7 @@
 #						  9-6-94
 !include makefile.def
 
-ALL		= $(BLD)\addpm.exe $(BLD)\ddeclient.exe $(BLD)\runemacs.exe $(BLD)\cmdproxy.exe
+ALL		= addpm ddeclient runemacs cmdproxy addsection
 !if $(MSVCNT11)
 TRES		= $(BLD)\emacs.res
 !else
@@ -53,6 +53,12 @@ cmdproxy:	  $(BLD) $(BLD)\cmdproxy.exe
 $(BLD)\cmdproxy.obj: cmdproxy.c
 $(BLD)\cmdproxy.exe: $(BLD)\cmdproxy.obj
 		  $(LINK) -out:$@ -subsystem:console -entry:mainCRTStartup \
+		  $(SYS_LDFLAGS) $** $(BASE_LIBS) user32.lib
+
+addsection:	  $(BLD) $(BLD)\addsection.exe
+$(BLD)\addsection.obj: addsection.c
+$(BLD)\addsection.exe: $(BLD)\addsection.obj
+		  $(LINK) -debug:full -out:$@ -subsystem:console -entry:mainCRTStartup \
 		  $(SYS_LDFLAGS) $** $(BASE_LIBS) user32.lib
 
 #
@@ -124,6 +130,7 @@ install:	all batch_files
 		- $(CP) $(BLD)\ddeclient.exe $(INSTALL_DIR)\bin
 		- $(CP) $(BLD)\cmdproxy.exe $(INSTALL_DIR)\bin
 		- $(CP) $(BLD)\runemacs.exe $(INSTALL_DIR)\bin
+		- $(CP) ..\lib-src\fns-*.el $(INSTALL_DIR)\bin
 		- $(ADDPM) $(INSTALL_DIR)
 		- $(DEL) ..\same-dir.tst
 		- $(DEL) $(INSTALL_DIR)\same-dir.tst
