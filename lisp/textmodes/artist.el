@@ -446,7 +446,7 @@ strangely.")
   "Char to use when filling.")
 (make-variable-buffer-local 'artist-fill-char)
 
-(defvar artist-erase-char ?\
+(defvar artist-erase-char ?\s
   "Char to use when erasing.")
 (make-variable-buffer-local 'artist-erase-char)
 
