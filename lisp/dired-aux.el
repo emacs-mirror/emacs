@@ -2004,7 +2004,7 @@ To continue searching for next match, use command \\[tags-loop-continue]."
 (defun dired-do-query-replace-regexp (from to &optional delimited)
   "Do `query-replace-regexp' of FROM with TO, on all marked files.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
-If you exit (\\[keyboard-quit] or ESC), you can resume the query replace
+If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[tags-loop-continue]."
   (interactive
    "sQuery replace in marked files (regexp): \nsQuery replace %s by: \nP")
