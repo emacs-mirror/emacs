@@ -610,7 +610,9 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
   return &val_compute_motion;
 }
 
-DEFUN ("compute-motion", Fcompute_motion, Scompute_motion, 6, 6, 0,
+#if 0 /* The doc string is too long for some compilers,
+	 but make-docfile can find it in this comment.  */
+DEFUN ("compute-motion", Ffoo, Sfoo, 6, 6, 0,
   "Scan through the current buffer, calculating screen position.\n\
 Scan the current buffer forward from offset FROM,\n\
 assuming it is at position FROMPOS--a cons of the form (HPOS . VPOS)--\n\
@@ -621,7 +623,8 @@ There are two additional arguments:\n\
 \n\
 WIDTH is the number of columns available to display text;\n\
 this affects handling of continuation lines.\n\
-Use the value returned by `window-width' for the window of your choice.\n\
+This is usually the value returned by `window-width', less one (to allow\n\
+for the continuation glyph).\n\
 \n\
 OFFSETS is either nil or a cons cell (HSCROLL . TAB-OFFSET).\n\
 HSCROLL is the number of columns not being displayed at the left\n\
@@ -644,6 +647,10 @@ of a certain window, pass the window's starting location as FROM\n\
 and the window's upper-left coordinates as FROMPOS.\n\
 Pass the buffer's (point-max) as TO, to limit the scan to the end of the\n\
 visible section of the buffer, and pass LINE and COL as TOPOS.")
+#endif
+
+DEFUN ("compute-motion", Ffoo, Sfoo, 6, 6, 0,
+  0)
   (from, frompos, to, topos, width, offsets)
      Lisp_Object from, frompos, to, topos;
      Lisp_Object width, offsets;
