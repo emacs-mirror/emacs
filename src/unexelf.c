@@ -422,6 +422,10 @@ Filesz      Memsz       Flags       Align
 #include <fcntl.h>
 #include <elf.h>
 #include <sys/mman.h>
+#if defined (__sony_news) && defined (_SYSTYPE_SYSV)
+#include <sys/elf_mips.h>
+#include <sym.h>
+#endif /* __sony_news && _SYSTYPE_SYSV */
 
 #ifdef __alpha__
 # include <sym.h>	/* get COFF debugging symbol table declaration */
@@ -539,6 +543,9 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   ElfW(Addr) new_data2_addr;
 
   int n, nn, old_bss_index, old_data_index, new_data2_index;
+#if defined ( __sony_news) && defined (_SYSTYPE_SYSV)
+  int old_sbss_index, old_mdebug_index;
+#endif /* __sony_news && _SYSTYPE_SYSV */
   struct stat stat_buf;
 
   /* Open the old file & map it into the address space. */
@@ -587,8 +594,51 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   if (old_bss_index == old_file_h->e_shnum)
     fatal ("Can't find .bss in %s.\n", old_name, 0);
 
+#if defined (__sony_news) && defined (_SYSTYPE_SYSV)
+  for (old_sbss_index = 1; old_sbss_index < (int) old_file_h->e_shnum;
+       old_sbss_index++)
+    {
+#ifdef DEBUG
+      fprintf (stderr, "Looking for .sbss - found %s\n",
+	       old_section_names + OLD_SECTION_H (old_sbss_index).sh_name);
+#endif
+      if (!strcmp (old_section_names + OLD_SECTION_H (old_sbss_index).sh_name,
+		   ".sbss"))
+	break;
+    }
+  if (old_sbss_index == old_file_h->e_shnum)
+    {
+      old_bss_addr = OLD_SECTION_H(old_bss_index).sh_addr;
+      old_bss_size = OLD_SECTION_H(old_bss_index).sh_size;
+      new_data2_offset = OLD_SECTION_H(old_bss_index).sh_offset;
+      new_data2_index = old_bss_index;
+    }
+  else
+    {
+      old_bss_addr = OLD_SECTION_H(old_sbss_index).sh_addr;
+      old_bss_size = OLD_SECTION_H(old_bss_index).sh_size
+	+ OLD_SECTION_H(old_sbss_index).sh_size;
+      new_data2_offset = OLD_SECTION_H(old_sbss_index).sh_offset;
+      new_data2_index = old_sbss_index;
+    }
+
+  for (old_mdebug_index = 1; old_mdebug_index < (int) old_file_h->e_shnum;
+       old_mdebug_index++)
+    {
+#ifdef DEBUG
+      fprintf (stderr, "Looking for .mdebug - found %s\n",
+	       old_section_names + OLD_SECTION_H (old_mdebug_index).sh_name);
+#endif
+      if (!strcmp (old_section_names + OLD_SECTION_H (old_mdebug_index).sh_name,
+		   ".mdebug"))
+	break;
+    }
+    if (old_mdebug_index == old_file_h->e_shnum)
+	old_mdebug_index = 0;
+#else /* not (__sony_news && _SYSTYPE_SYSV) */	    
   old_bss_addr = OLD_SECTION_H (old_bss_index).sh_addr;
   old_bss_size = OLD_SECTION_H (old_bss_index).sh_size;
+#endif /* not (__sony_news && _SYSTYPE_SYSV) */	    
 #if defined(emacs) || !defined(DEBUG)
   new_bss_addr = (ElfW(Addr)) sbrk (0);
 #else
@@ -596,7 +646,9 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 #endif
   new_data2_addr = old_bss_addr;
   new_data2_size = new_bss_addr - old_bss_addr;
+#if !defined (__sony_news) || !defined (_SYSTYPE_SYSV)
   new_data2_offset = OLD_SECTION_H (old_bss_index).sh_offset;
+#endif /*  not (__sony_news && _SYSTYPE_SYSV) */
 
 #ifdef DEBUG
   fprintf (stderr, "old_bss_index %d\n", old_bss_index);
@@ -681,8 +733,14 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
       if ((OLD_SECTION_H (old_bss_index)).sh_addralign > alignment)
 	alignment = OLD_SECTION_H (old_bss_index).sh_addralign;
 
+#if defined (__sony_news) && defined (_SYSTYPE_SYSV)
+      if (NEW_PROGRAM_H (n).p_vaddr + NEW_PROGRAM_H (n).p_filesz
+	  > round_up (old_bss_addr, alignment))
+	fatal ("Program segment above .bss in %s\n", old_name, 0);
+#else /* not (__sony_news && _SYSTYPE_SYSV) */
       if (NEW_PROGRAM_H (n).p_vaddr + NEW_PROGRAM_H (n).p_filesz > old_bss_addr)
 	fatal ("Program segment above .bss in %s\n", old_name, 0);
+#endif /* not (__sony_news && _SYSTYPE_SYSV) */
 
       if (NEW_PROGRAM_H (n).p_type == PT_LOAD
 	  && (round_up ((NEW_PROGRAM_H (n)).p_vaddr
@@ -728,8 +786,17 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   for (n = 1, nn = 1; n < (int) old_file_h->e_shnum; n++, nn++)
     {
       caddr_t src;
-      /* If it is bss section, insert the new data2 section before it. */
-      if (n == old_bss_index)
+      int temp_index;
+#if defined (__sony_news) && defined (_SYSTYPE_SYSV)
+      /* If it is (s)bss section, insert the new data2 section before it.  */
+      /* new_data2_index is the index of either old_sbss or old_bss, that was
+	 chosen as a section for new_data2.   */
+      temp_index = new_data2_index;
+#else /* not (__sony_news && _SYSTYPE_SYSV) */
+      /* If it is bss section, insert the new data2 section before it.  */
+      temp_index = old_bss_index;
+#endif /* not (__sony_news && _SYSTYPE_SYSV) */
+      if (n == temp_index)
 	{
 	  /* Steal the data section header for this data2 section. */
 	  memcpy (&NEW_SECTION_H (nn), &OLD_SECTION_H (old_data_index),
@@ -752,10 +819,14 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 
       memcpy (&NEW_SECTION_H (nn), &OLD_SECTION_H (n),
 	      old_file_h->e_shentsize);
-
-      /* The new bss section's size is zero, and its file offset and virtual
-	 address should be off by NEW_DATA2_SIZE. */
-      if (n == old_bss_index)
+      
+      if (n == old_bss_index
+#if defined (__sony_news) && defined (_SYSTYPE_SYSV)
+	  /* The new bss and sbss section's size is zero, and its file offset
+	     and virtual address should be off by NEW_DATA2_SIZE.  */
+	  || n == old_sbss_index
+#endif /* __sony_news and _SYSTYPE_SYSV */
+	  )
 	{
 	  /* NN should be `old_bss_index + 1' at this point. */
 	  NEW_SECTION_H (nn).sh_offset += new_data2_size;
@@ -815,6 +886,18 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	 ".data" in the strings table) get copied from the current process
 	 instead of the old file.  */
       if (!strcmp (old_section_names + NEW_SECTION_H (n).sh_name, ".data")
+#ifdef _nec_ews_svr4				/* hir, 1994.6.13 */
+	  || !strcmp ((old_section_names + NEW_SECTION_H(n).sh_name),
+		      ".sdata")
+#endif
+#if defined (__sony_news) && defined (_SYSTYPE_SYSV)
+	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
+		      ".sdata")
+	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
+		      ".lit4")
+	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
+		      ".lit8")
+#endif /* __sony_news && _SYSTYPE_SYSV */
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
 		      ".data1"))
 	src = (caddr_t) OLD_SECTION_H (n).sh_addr;
@@ -845,6 +928,29 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	}
 #endif /* __alpha__ */
 
+#if defined (__sony_news) && defined (_SYSTYPE_SYSV)
+      if (NEW_SECTION_H (nn).sh_type == SHT_MIPS_DEBUG && old_mdebug_index) 
+        {
+	  int diff = NEW_SECTION_H(nn).sh_offset 
+	 	- OLD_SECTION_H(old_mdebug_index).sh_offset;
+	  HDRR *phdr = (HDRR *)(NEW_SECTION_H (nn).sh_offset + new_base);
+
+	  if (diff)
+	    {
+	      phdr->cbLineOffset += diff;
+	      phdr->cbDnOffset   += diff;
+	      phdr->cbPdOffset   += diff;
+	      phdr->cbSymOffset  += diff;
+	      phdr->cbOptOffset  += diff;
+	      phdr->cbAuxOffset  += diff;
+	      phdr->cbSsOffset   += diff;
+	      phdr->cbSsExtOffset += diff;
+	      phdr->cbFdOffset   += diff;
+	      phdr->cbRfdOffset  += diff;
+	      phdr->cbExtOffset  += diff;
+	    }
+	}
+#endif /* __sony_news && _SYSTYPE_SYSV */
       /* If it is the symbol table, its st_shndx field needs to be patched.  */
       if (NEW_SECTION_H (nn).sh_type == SHT_SYMTAB
 	  || NEW_SECTION_H (nn).sh_type == SHT_DYNSYM)
