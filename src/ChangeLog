@@ -1,3 +1,7 @@
+2001-01-19  Kenichi Handa  <handa@etl.go.jp>
+
+	* indent.c (check_composition): Check validity of composition.
+
 2001-01-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (Qcancel_timer): New variable.
