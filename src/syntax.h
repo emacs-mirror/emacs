@@ -83,7 +83,7 @@ enum syntaxcode
       matcher = RAW_SYNTAX_MATCH (Vstandard_syntax_table, character);	    \
     else								    \
       matcher = RAW_SYNTAX_MATCH (current_buffer->syntax_table, character); \
-    syntax; })
+    matcher; })
 #else
 #define SYNTAX_MATCH(c)						\
  (RAW_SYNTAX (current_buffer->syntax_table, c) == Sinherit	\
