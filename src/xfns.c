@@ -28,7 +28,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "config.h"
 #include "lisp.h"
 #include "xterm.h"
-#include "screen.h"
+#include "frame.h"
 #include "window.h"
 #include "buffer.h"
 #include "dispextern.h"
@@ -38,7 +38,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef HAVE_X_WINDOWS
 extern void abort ();
 
-void x_set_screen_param ();
+void x_set_frame_param ();
 
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #define max(a,b) ((a) > (b) ? (a) : (b))
@@ -194,7 +194,7 @@ char minibuffer_iconidentity[MAXICID];
 Time mouse_timestamp;
 
 Lisp_Object Qundefined_color;
-Lisp_Object Qx_screen_parameter;
+Lisp_Object Qx_frame_parameter;
 
 extern Lisp_Object Vwindow_system_version;
 
@@ -204,112 +204,112 @@ extern Lisp_Object Vglobal_mouse_map;
 /* Points to table of defined typefaces.  */
 struct face *x_face_table[MAX_FACES_AND_GLYPHS];
 
-/* Return the Emacs screen-object corresponding to an X window.
-   It could be the screen's main window or an icon window.  */
+/* Return the Emacs frame-object corresponding to an X window.
+   It could be the frame's main window or an icon window.  */
 
-struct screen *
-x_window_to_screen (wdesc)
+struct frame *
+x_window_to_frame (wdesc)
      int wdesc;
 {
-  Lisp_Object tail, screen;
-  struct screen *s;
+  Lisp_Object tail, frame;
+  struct frame *f;
 
-  for (tail = Vscreen_list; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
     {
-      screen = XCONS (tail)->car;
-      if (XTYPE (screen) != Lisp_Screen)
+      frame = XCONS (tail)->car;
+      if (XTYPE (frame) != Lisp_Frame)
         continue;
-      s = XSCREEN (screen);
-      if (s->display.x->window_desc == wdesc
-          || s->display.x->icon_desc == wdesc)
-        return s;
+      f = XFRAME (frame);
+      if (f->display.x->window_desc == wdesc
+          || f->display.x->icon_desc == wdesc)
+        return f;
     }
   return 0;
 }
 
-/* Map an X window that implements a scroll bar to the Emacs screen it
+/* Map an X window that implements a scroll bar to the Emacs frame it
    belongs to.  Also store in *PART a symbol identifying which part of
    the scroll bar it is.  */
 
-struct screen *
+struct frame *
 x_window_to_scrollbar (wdesc, part_ptr, prefix_ptr)
      int wdesc;
      Lisp_Object *part_ptr;
      enum scroll_bar_prefix *prefix_ptr;
 {
-  Lisp_Object tail, screen;
-  struct screen *s;
+  Lisp_Object tail, frame;
+  struct frame *f;
 
-  for (tail = Vscreen_list; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
     {
-      screen = XCONS (tail)->car;
-      if (XTYPE (screen) != Lisp_Screen)
+      frame = XCONS (tail)->car;
+      if (XTYPE (frame) != Lisp_Frame)
         continue;
 
-      s = XSCREEN (screen);
+      f = XFRAME (frame);
       if (part_ptr == 0 && prefix_ptr == 0)
-        return s;
+        return f;
 
-      if (s->display.x->v_scrollbar == wdesc)
+      if (f->display.x->v_scrollbar == wdesc)
         {
 	  *part_ptr = Qvscrollbar_part;
           *prefix_ptr = VSCROLL_BAR_PREFIX;
-          return s;
+          return f;
         }
-      else if (s->display.x->v_slider == wdesc)
+      else if (f->display.x->v_slider == wdesc)
         {
           *part_ptr = Qvslider_part;
           *prefix_ptr = VSCROLL_SLIDER_PREFIX;
-          return s;
+          return f;
         }
-      else if (s->display.x->v_thumbup == wdesc)
+      else if (f->display.x->v_thumbup == wdesc)
         {
           *part_ptr = Qvthumbup_part;
           *prefix_ptr = VSCROLL_THUMBUP_PREFIX;
-          return s;
+          return f;
         }
-      else if (s->display.x->v_thumbdown == wdesc)
+      else if (f->display.x->v_thumbdown == wdesc)
         {
           *part_ptr = Qvthumbdown_part;
           *prefix_ptr = VSCROLL_THUMBDOWN_PREFIX;
-          return s;
+          return f;
         }
-      else if (s->display.x->h_scrollbar == wdesc)
+      else if (f->display.x->h_scrollbar == wdesc)
         {
           *part_ptr = Qhscrollbar_part;
           *prefix_ptr = HSCROLL_BAR_PREFIX;
-          return s;
+          return f;
         }
-      else if (s->display.x->h_slider == wdesc)
+      else if (f->display.x->h_slider == wdesc)
         {
           *part_ptr = Qhslider_part;
           *prefix_ptr = HSCROLL_SLIDER_PREFIX;
-          return s;
+          return f;
         }
-      else if (s->display.x->h_thumbleft == wdesc)
+      else if (f->display.x->h_thumbleft == wdesc)
         {
           *part_ptr = Qhthumbleft_part;
           *prefix_ptr = HSCROLL_THUMBLEFT_PREFIX;
-          return s;
+          return f;
         }
-      else if (s->display.x->h_thumbright == wdesc)
+      else if (f->display.x->h_thumbright == wdesc)
         {
           *part_ptr = Qhthumbright_part;
           *prefix_ptr = HSCROLL_THUMBRIGHT_PREFIX;
-          return s;
+          return f;
         }
     }
   return 0;
 }
 
-/* Connect the screen-parameter names for X screens
+/* Connect the frame-parameter names for X frames
    to the ways of passing the parameter values to the window system.
 
    The name of a parameter, as a Lisp symbol,
-   has an `x-screen-parameter' property which is an integer in Lisp
-   but can be interpreted as an `enum x_screen_parm' in C.  */
+   has an `x-frame-parameter' property which is an integer in Lisp
+   but can be interpreted as an `enum x_frame_parm' in C.  */
 
-enum x_screen_parm
+enum x_frame_parm
 {
   X_PARM_FOREGROUND_COLOR,
   X_PARM_BACKGROUND_COLOR,
@@ -328,10 +328,10 @@ enum x_screen_parm
 };
 
 
-struct x_screen_parm_table
+struct x_frame_parm_table
 {
   char *name;
-  void (*setter)( /* struct screen *screen, Lisp_Object val, oldval */ );
+  void (*setter)( /* struct frame *frame, Lisp_Object val, oldval */ );
 };
 
 void x_set_foreground_color ();
@@ -349,7 +349,7 @@ void x_set_autolower ();
 void x_set_vertical_scrollbar ();
 void x_set_horizontal_scrollbar ();
 
-static struct x_screen_parm_table x_screen_parms[] =
+static struct x_frame_parm_table x_frame_parms[] =
 {
   "foreground-color", x_set_foreground_color,
   "background-color", x_set_background_color,
@@ -367,21 +367,21 @@ static struct x_screen_parm_table x_screen_parms[] =
   "horizontal-scrollbar", x_set_horizontal_scrollbar,
 };
 
-/* Attach the `x-screen-parameter' properties to
+/* Attach the `x-frame-parameter' properties to
    the Lisp symbol names of parameters relevant to X.  */
 
 init_x_parm_symbols ()
 {
   int i;
 
-  Qx_screen_parameter = intern ("x-screen-parameter");
+  Qx_frame_parameter = intern ("x-frame-parameter");
 
-  for (i = 0; i < sizeof (x_screen_parms)/sizeof (x_screen_parms[0]); i++)
-    Fput (intern (x_screen_parms[i].name), Qx_screen_parameter,
+  for (i = 0; i < sizeof (x_frame_parms)/sizeof (x_frame_parms[0]); i++)
+    Fput (intern (x_frame_parms[i].name), Qx_frame_parameter,
 	  make_number (i));
 }
 
-/* Report to X that a screen parameter of screen S is being set or changed.
+/* Report to X that a frame parameter of frame F is being set or changed.
    PARAM is the symbol that says which parameter.
    VAL is the new value.
    OLDVAL is the old value.
@@ -389,45 +389,45 @@ init_x_parm_symbols ()
    otherwise the `x_set_...' function for this parameter.  */
 
 void
-x_set_screen_param (s, param, val, oldval)
-     register struct screen *s;
+x_set_frame_param (f, param, val, oldval)
+     register struct frame *f;
      Lisp_Object param;
      register Lisp_Object val;
      register Lisp_Object oldval;
 {
   register Lisp_Object tem;
-  tem = Fget (param, Qx_screen_parameter);
+  tem = Fget (param, Qx_frame_parameter);
   if (XTYPE (tem) == Lisp_Int
       && XINT (tem) >= 0
-      && XINT (tem) < sizeof (x_screen_parms)/sizeof (x_screen_parms[0]))
-    (*x_screen_parms[XINT (tem)].setter)(s, val, oldval);
+      && XINT (tem) < sizeof (x_frame_parms)/sizeof (x_frame_parms[0]))
+    (*x_frame_parms[XINT (tem)].setter)(f, val, oldval);
 }
 
-/* Insert a description of internally-recorded parameters of screen X
+/* Insert a description of internally-recorded parameters of frame X
    into the parameter alist *ALISTPTR that is to be given to the user.
    Only parameters that are specific to the X window system
-   and whose values are not correctly recorded in the screen's
+   and whose values are not correctly recorded in the frame's
    param_alist need to be considered here.  */
 
-x_report_screen_params (s, alistptr)
-     struct screen *s;
+x_report_frame_params (f, alistptr)
+     struct frame *f;
      Lisp_Object *alistptr;
 {
   char buf[16];
 
-  store_in_alist (alistptr, "left", make_number (s->display.x->left_pos));
-  store_in_alist (alistptr, "top", make_number (s->display.x->top_pos));
+  store_in_alist (alistptr, "left", make_number (f->display.x->left_pos));
+  store_in_alist (alistptr, "top", make_number (f->display.x->top_pos));
   store_in_alist (alistptr, "border-width",
-       	   make_number (s->display.x->border_width));
+       	   make_number (f->display.x->border_width));
   store_in_alist (alistptr, "internal-border-width",
-       	   make_number (s->display.x->internal_border_width));
-  sprintf (buf, "%d", s->display.x->window_desc);
+       	   make_number (f->display.x->internal_border_width));
+  sprintf (buf, "%d", f->display.x->window_desc);
   store_in_alist (alistptr, "window-id",
        	   build_string (buf));
 }
 
 /* Decide if color named COLOR is valid for the display
-   associated with the selected screen. */
+   associated with the selected frame. */
 int
 defined_color (color, color_def)
      char *color;
@@ -456,8 +456,8 @@ defined_color (color, color_def)
 }
 
 /* Given a string ARG naming a color, compute a pixel value from it
-   suitable for screen S.
-   If S is not a color screen, return DEF (default) regardless of what
+   suitable for screen F.
+   If F is not a color screen, return DEF (default) regardless of what
    ARG says.  */
 
 int
@@ -488,112 +488,112 @@ x_decode_color (arg, def)
     Fsignal (Qundefined_color, Fcons (arg, Qnil));
 }
 
-/* Functions called only from `x_set_screen_param'
+/* Functions called only from `x_set_frame_param'
    to set individual parameters.
 
-   If s->display.x->window_desc is 0,
-   the screen is being created and its X-window does not exist yet.
+   If f->display.x->window_desc is 0,
+   the frame is being created and its X-window does not exist yet.
    In that case, just record the parameter's new value
    in the standard place; do not attempt to change the window.  */
 
 void
-x_set_foreground_color (s, arg, oldval)
-     struct screen *s;
+x_set_foreground_color (f, arg, oldval)
+     struct frame *f;
      Lisp_Object arg, oldval;
 {
-  s->display.x->foreground_pixel = x_decode_color (arg, BLACK_PIX_DEFAULT);
-  if (s->display.x->window_desc != 0)
+  f->display.x->foreground_pixel = x_decode_color (arg, BLACK_PIX_DEFAULT);
+  if (f->display.x->window_desc != 0)
     {
 #ifdef HAVE_X11
       BLOCK_INPUT;
-      XSetForeground (x_current_display, s->display.x->normal_gc,
-		      s->display.x->foreground_pixel);
-      XSetBackground (x_current_display, s->display.x->reverse_gc,
-		      s->display.x->foreground_pixel);
-      if (s->display.x->v_scrollbar)
+      XSetForeground (x_current_display, f->display.x->normal_gc,
+		      f->display.x->foreground_pixel);
+      XSetBackground (x_current_display, f->display.x->reverse_gc,
+		      f->display.x->foreground_pixel);
+      if (f->display.x->v_scrollbar)
         {
           Pixmap  up_arrow_pixmap, down_arrow_pixmap, slider_pixmap;
 
-          XSetWindowBorder (x_current_display, s->display.x->v_scrollbar,
-			    s->display.x->foreground_pixel);
+          XSetWindowBorder (x_current_display, f->display.x->v_scrollbar,
+			    f->display.x->foreground_pixel);
 
           slider_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY s->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
 					 gray_bits, 16, 16,
-					 s->display.x->foreground_pixel,
-					 s->display.x->background_pixel,
+					 f->display.x->foreground_pixel,
+					 f->display.x->background_pixel,
 					 DefaultDepth (x_current_display,
 						       XDefaultScreen (x_current_display)));
           up_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY s->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
 					 up_arrow_bits, 16, 16,
-					 s->display.x->foreground_pixel,
-					 s->display.x->background_pixel,
+					 f->display.x->foreground_pixel,
+					 f->display.x->background_pixel,
 					 DefaultDepth (x_current_display,
 						       XDefaultScreen (x_current_display)));
           down_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY s->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
 					 down_arrow_bits, 16, 16,
-					 s->display.x->foreground_pixel,
-					 s->display.x->background_pixel,
+					 f->display.x->foreground_pixel,
+					 f->display.x->background_pixel,
 					 DefaultDepth (x_current_display,
 						       XDefaultScreen (x_current_display)));
 
-          XSetWindowBackgroundPixmap (XDISPLAY s->display.x->v_thumbup,
+          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->v_thumbup,
 				      up_arrow_pixmap);
-          XSetWindowBackgroundPixmap (XDISPLAY s->display.x->v_thumbdown,
+          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->v_thumbdown,
 				      down_arrow_pixmap);
-          XSetWindowBackgroundPixmap (XDISPLAY s->display.x->v_slider,
+          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->v_slider,
 				      slider_pixmap);
 
-          XClearWindow (XDISPLAY s->display.x->v_thumbup);
-          XClearWindow (XDISPLAY s->display.x->v_thumbdown);
-          XClearWindow (XDISPLAY s->display.x->v_slider);
+          XClearWindow (XDISPLAY f->display.x->v_thumbup);
+          XClearWindow (XDISPLAY f->display.x->v_thumbdown);
+          XClearWindow (XDISPLAY f->display.x->v_slider);
 
           XFreePixmap (x_current_display, down_arrow_pixmap);
           XFreePixmap (x_current_display, up_arrow_pixmap);
           XFreePixmap (x_current_display, slider_pixmap);
         }
-      if (s->display.x->h_scrollbar)
+      if (f->display.x->h_scrollbar)
         {
           Pixmap left_arrow_pixmap, right_arrow_pixmap, slider_pixmap;
 
-          XSetWindowBorder (x_current_display, s->display.x->h_scrollbar,
-			    s->display.x->foreground_pixel);
+          XSetWindowBorder (x_current_display, f->display.x->h_scrollbar,
+			    f->display.x->foreground_pixel);
 
           slider_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY s->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
 					 gray_bits, 16, 16,
-					 s->display.x->foreground_pixel,
-					 s->display.x->background_pixel,
+					 f->display.x->foreground_pixel,
+					 f->display.x->background_pixel,
 					 DefaultDepth (x_current_display,
 						       XDefaultScreen (x_current_display)));
 
           left_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY s->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
 					 up_arrow_bits, 16, 16,
-					 s->display.x->foreground_pixel,
-					 s->display.x->background_pixel,
+					 f->display.x->foreground_pixel,
+					 f->display.x->background_pixel,
 					 DefaultDepth (x_current_display,
 						       XDefaultScreen (x_current_display)));
           right_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY s->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
 					 down_arrow_bits, 16, 16,
-					 s->display.x->foreground_pixel,
-					 s->display.x->background_pixel,
+					 f->display.x->foreground_pixel,
+					 f->display.x->background_pixel,
 					 DefaultDepth (x_current_display,
 						       XDefaultScreen (x_current_display)));
 
-          XSetWindowBackgroundPixmap (XDISPLAY s->display.x->h_slider,
+          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->h_slider,
 				      slider_pixmap);
-          XSetWindowBackgroundPixmap (XDISPLAY s->display.x->h_thumbleft,
+          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->h_thumbleft,
 				      left_arrow_pixmap);
-          XSetWindowBackgroundPixmap (XDISPLAY s->display.x->h_thumbright,
+          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->h_thumbright,
 				      right_arrow_pixmap);
 
-          XClearWindow (XDISPLAY s->display.x->h_thumbleft);
-          XClearWindow (XDISPLAY s->display.x->h_thumbright);
-          XClearWindow (XDISPLAY s->display.x->h_slider);
+          XClearWindow (XDISPLAY f->display.x->h_thumbleft);
+          XClearWindow (XDISPLAY f->display.x->h_thumbright);
+          XClearWindow (XDISPLAY f->display.x->h_slider);
 
           XFreePixmap (x_current_display, slider_pixmap);
           XFreePixmap (x_current_display, left_arrow_pixmap);
@@ -601,150 +601,150 @@ x_set_foreground_color (s, arg, oldval)
         }
       UNBLOCK_INPUT;
 #endif				/* HAVE_X11 */
-      if (s->visible)
-        redraw_screen (s);
+      if (f->visible)
+        redraw_frame (f);
     }
 }
 
 void
-x_set_background_color (s, arg, oldval)
-     struct screen *s;
+x_set_background_color (f, arg, oldval)
+     struct frame *f;
      Lisp_Object arg, oldval;
 {
   Pixmap temp;
   int mask;
 
-  s->display.x->background_pixel = x_decode_color (arg, WHITE_PIX_DEFAULT);
+  f->display.x->background_pixel = x_decode_color (arg, WHITE_PIX_DEFAULT);
 
-  if (s->display.x->window_desc != 0)
+  if (f->display.x->window_desc != 0)
     {
       BLOCK_INPUT;
 #ifdef HAVE_X11
-      /* The main screen. */
-      XSetBackground (x_current_display, s->display.x->normal_gc,
-		      s->display.x->background_pixel);
-      XSetForeground (x_current_display, s->display.x->reverse_gc,
-		      s->display.x->background_pixel);
-      XSetWindowBackground (x_current_display, s->display.x->window_desc,
-			    s->display.x->background_pixel);
+      /* The main frame area. */
+      XSetBackground (x_current_display, f->display.x->normal_gc,
+		      f->display.x->background_pixel);
+      XSetForeground (x_current_display, f->display.x->reverse_gc,
+		      f->display.x->background_pixel);
+      XSetWindowBackground (x_current_display, f->display.x->window_desc,
+			    f->display.x->background_pixel);
 
       /* Scroll bars. */
-      if (s->display.x->v_scrollbar)
+      if (f->display.x->v_scrollbar)
         {
           Pixmap  up_arrow_pixmap, down_arrow_pixmap, slider_pixmap;
 
-          XSetWindowBackground (x_current_display, s->display.x->v_scrollbar,
-				s->display.x->background_pixel);
+          XSetWindowBackground (x_current_display, f->display.x->v_scrollbar,
+				f->display.x->background_pixel);
 
           slider_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY s->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
 					 gray_bits, 16, 16,
-					 s->display.x->foreground_pixel,
-					 s->display.x->background_pixel,
+					 f->display.x->foreground_pixel,
+					 f->display.x->background_pixel,
 					 DefaultDepth (x_current_display,
 						       XDefaultScreen (x_current_display)));
           up_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY s->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
 					 up_arrow_bits, 16, 16,
-					 s->display.x->foreground_pixel,
-					 s->display.x->background_pixel,
+					 f->display.x->foreground_pixel,
+					 f->display.x->background_pixel,
 					 DefaultDepth (x_current_display,
 						       XDefaultScreen (x_current_display)));
           down_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY s->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
 					 down_arrow_bits, 16, 16,
-					 s->display.x->foreground_pixel,
-					 s->display.x->background_pixel,
+					 f->display.x->foreground_pixel,
+					 f->display.x->background_pixel,
 					 DefaultDepth (x_current_display,
 						       XDefaultScreen (x_current_display)));
 
-          XSetWindowBackgroundPixmap (XDISPLAY s->display.x->v_thumbup,
+          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->v_thumbup,
 				      up_arrow_pixmap);
-          XSetWindowBackgroundPixmap (XDISPLAY s->display.x->v_thumbdown,
+          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->v_thumbdown,
 				      down_arrow_pixmap);
-          XSetWindowBackgroundPixmap (XDISPLAY s->display.x->v_slider,
+          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->v_slider,
 				      slider_pixmap);
 
-          XClearWindow (XDISPLAY s->display.x->v_thumbup);
-          XClearWindow (XDISPLAY s->display.x->v_thumbdown);
-          XClearWindow (XDISPLAY s->display.x->v_slider);
+          XClearWindow (XDISPLAY f->display.x->v_thumbup);
+          XClearWindow (XDISPLAY f->display.x->v_thumbdown);
+          XClearWindow (XDISPLAY f->display.x->v_slider);
 
           XFreePixmap (x_current_display, down_arrow_pixmap);
           XFreePixmap (x_current_display, up_arrow_pixmap);
           XFreePixmap (x_current_display, slider_pixmap);
         }
-      if (s->display.x->h_scrollbar)
+      if (f->display.x->h_scrollbar)
         {
           Pixmap left_arrow_pixmap, right_arrow_pixmap, slider_pixmap;
 
-          XSetWindowBackground (x_current_display, s->display.x->h_scrollbar,
-				s->display.x->background_pixel);
+          XSetWindowBackground (x_current_display, f->display.x->h_scrollbar,
+				f->display.x->background_pixel);
 
           slider_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY s->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
 					 gray_bits, 16, 16,
-					 s->display.x->foreground_pixel,
-					 s->display.x->background_pixel,
+					 f->display.x->foreground_pixel,
+					 f->display.x->background_pixel,
 					 DefaultDepth (x_current_display,
 						       XDefaultScreen (x_current_display)));
 
           left_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY s->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
 					 up_arrow_bits, 16, 16,
-					 s->display.x->foreground_pixel,
-					 s->display.x->background_pixel,
+					 f->display.x->foreground_pixel,
+					 f->display.x->background_pixel,
 					 DefaultDepth (x_current_display,
 						       XDefaultScreen (x_current_display)));
           right_arrow_pixmap =
-            XCreatePixmapFromBitmapData (XDISPLAY s->display.x->window_desc,
+            XCreatePixmapFromBitmapData (XDISPLAY f->display.x->window_desc,
 					 down_arrow_bits, 16, 16,
-					 s->display.x->foreground_pixel,
-					 s->display.x->background_pixel,
+					 f->display.x->foreground_pixel,
+					 f->display.x->background_pixel,
 					 DefaultDepth (x_current_display,
 						       XDefaultScreen (x_current_display)));
 
-          XSetWindowBackgroundPixmap (XDISPLAY s->display.x->h_slider,
+          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->h_slider,
 				      slider_pixmap);
-          XSetWindowBackgroundPixmap (XDISPLAY s->display.x->h_thumbleft,
+          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->h_thumbleft,
 				      left_arrow_pixmap);
-          XSetWindowBackgroundPixmap (XDISPLAY s->display.x->h_thumbright,
+          XSetWindowBackgroundPixmap (XDISPLAY f->display.x->h_thumbright,
 				      right_arrow_pixmap);
 
-          XClearWindow (XDISPLAY s->display.x->h_thumbleft);
-          XClearWindow (XDISPLAY s->display.x->h_thumbright);
-          XClearWindow (XDISPLAY s->display.x->h_slider);
+          XClearWindow (XDISPLAY f->display.x->h_thumbleft);
+          XClearWindow (XDISPLAY f->display.x->h_thumbright);
+          XClearWindow (XDISPLAY f->display.x->h_slider);
 
           XFreePixmap (x_current_display, slider_pixmap);
           XFreePixmap (x_current_display, left_arrow_pixmap);
           XFreePixmap (x_current_display, right_arrow_pixmap);
         }
 #else
-      temp = XMakeTile (s->display.x->background_pixel);
-      XChangeBackground (s->display.x->window_desc, temp);
+      temp = XMakeTile (f->display.x->background_pixel);
+      XChangeBackground (f->display.x->window_desc, temp);
       XFreePixmap (temp);
 #endif				/* not HAVE_X11 */
       UNBLOCK_INPUT;
 
-      if (s->visible)
-        redraw_screen (s);
+      if (f->visible)
+        redraw_frame (f);
     }
 }
 
 void
-x_set_mouse_color (s, arg, oldval)
-     struct screen *s;
+x_set_mouse_color (f, arg, oldval)
+     struct frame *f;
      Lisp_Object arg, oldval;
 {
   Cursor cursor, nontext_cursor, mode_cursor;
   int mask_color;
 
   if (!EQ (Qnil, arg))
-    s->display.x->mouse_pixel = x_decode_color (arg, BLACK_PIX_DEFAULT);
-  mask_color = s->display.x->background_pixel;
+    f->display.x->mouse_pixel = x_decode_color (arg, BLACK_PIX_DEFAULT);
+  mask_color = f->display.x->background_pixel;
 				/* No invisible pointers. */
-  if (mask_color == s->display.x->mouse_pixel
-	&& mask_color == s->display.x->background_pixel)
-    s->display.x->mouse_pixel = s->display.x->foreground_pixel;
+  if (mask_color == f->display.x->mouse_pixel
+	&& mask_color == f->display.x->background_pixel)
+    f->display.x->mouse_pixel = f->display.x->foreground_pixel;
 
   BLOCK_INPUT;
 #ifdef HAVE_X11
@@ -777,7 +777,7 @@ x_set_mouse_color (s, arg, oldval)
   {
     XColor fore_color, back_color;
 
-    fore_color.pixel = s->display.x->mouse_pixel;
+    fore_color.pixel = f->display.x->mouse_pixel;
     back_color.pixel = mask_color;
     XQueryColor (x_current_display,
 		 DefaultColormap (x_current_display,
@@ -797,29 +797,29 @@ x_set_mouse_color (s, arg, oldval)
 #else /* X10 */
   cursor = XCreateCursor (16, 16, MouseCursor, MouseMask,
 			  0, 0,
-			  s->display.x->mouse_pixel,
-			  s->display.x->background_pixel,
+			  f->display.x->mouse_pixel,
+			  f->display.x->background_pixel,
 			  GXcopy);
 #endif /* X10 */
 
-  if (s->display.x->window_desc != 0)
+  if (f->display.x->window_desc != 0)
     {
-      XDefineCursor (XDISPLAY s->display.x->window_desc, cursor);
+      XDefineCursor (XDISPLAY f->display.x->window_desc, cursor);
     }
 
-  if (cursor != s->display.x->text_cursor && s->display.x->text_cursor != 0)
-      XFreeCursor (XDISPLAY s->display.x->text_cursor);
-  s->display.x->text_cursor = cursor;
+  if (cursor != f->display.x->text_cursor && f->display.x->text_cursor != 0)
+      XFreeCursor (XDISPLAY f->display.x->text_cursor);
+  f->display.x->text_cursor = cursor;
 #ifdef HAVE_X11
-  if (nontext_cursor != s->display.x->nontext_cursor
-      && s->display.x->nontext_cursor != 0)
-      XFreeCursor (XDISPLAY s->display.x->nontext_cursor);
-  s->display.x->nontext_cursor = nontext_cursor;
+  if (nontext_cursor != f->display.x->nontext_cursor
+      && f->display.x->nontext_cursor != 0)
+      XFreeCursor (XDISPLAY f->display.x->nontext_cursor);
+  f->display.x->nontext_cursor = nontext_cursor;
 
-  if (mode_cursor != s->display.x->modeline_cursor
-      && s->display.x->modeline_cursor != 0)
-      XFreeCursor (XDISPLAY s->display.x->modeline_cursor);
-  s->display.x->modeline_cursor = mode_cursor;
+  if (mode_cursor != f->display.x->modeline_cursor
+      && f->display.x->modeline_cursor != 0)
+      XFreeCursor (XDISPLAY f->display.x->modeline_cursor);
+  f->display.x->modeline_cursor = mode_cursor;
 #endif	/* HAVE_X11 */
 
   XFlushQueue ();
@@ -827,8 +827,8 @@ x_set_mouse_color (s, arg, oldval)
 }
 
 void
-x_set_cursor_color (s, arg, oldval)
-     struct screen *s;
+x_set_cursor_color (f, arg, oldval)
+     struct frame *f;
      Lisp_Object arg, oldval;
 {
   unsigned long fore_pixel;
@@ -836,40 +836,40 @@ x_set_cursor_color (s, arg, oldval)
   if (!EQ (Vx_cursor_fore_pixel, Qnil))
     fore_pixel = x_decode_color (Vx_cursor_fore_pixel, WHITE_PIX_DEFAULT);
   else
-    fore_pixel = s->display.x->background_pixel;
-  s->display.x->cursor_pixel = x_decode_color (arg, BLACK_PIX_DEFAULT);
+    fore_pixel = f->display.x->background_pixel;
+  f->display.x->cursor_pixel = x_decode_color (arg, BLACK_PIX_DEFAULT);
 				/* No invisible cursors */
-  if (s->display.x->cursor_pixel == s->display.x->background_pixel)
+  if (f->display.x->cursor_pixel == f->display.x->background_pixel)
     {
-      s->display.x->cursor_pixel == s->display.x->mouse_pixel;
-      if (s->display.x->cursor_pixel == fore_pixel)
-	fore_pixel = s->display.x->background_pixel;
+      f->display.x->cursor_pixel == f->display.x->mouse_pixel;
+      if (f->display.x->cursor_pixel == fore_pixel)
+	fore_pixel = f->display.x->background_pixel;
     }
 
-  if (s->display.x->window_desc != 0)
+  if (f->display.x->window_desc != 0)
     {
 #ifdef HAVE_X11
       BLOCK_INPUT;
-      XSetBackground (x_current_display, s->display.x->cursor_gc,
-		      s->display.x->cursor_pixel);
-      XSetForeground (x_current_display, s->display.x->cursor_gc,
+      XSetBackground (x_current_display, f->display.x->cursor_gc,
+		      f->display.x->cursor_pixel);
+      XSetForeground (x_current_display, f->display.x->cursor_gc,
 		      fore_pixel);
       UNBLOCK_INPUT;
 #endif /* HAVE_X11 */
 
-      if (s->visible)
+      if (f->visible)
 	{
-	  x_display_cursor (s, 0);
-	  x_display_cursor (s, 1);
+	  x_display_cursor (f, 0);
+	  x_display_cursor (f, 1);
 	}
     }
 }
 
-/* Set the border-color of screen S to value described by ARG.
+/* Set the border-color of frame F to value described by ARG.
    ARG can be a string naming a color.
    The border-color is used for the border that is drawn by the X server.
    Note that this does not fully take effect if done before
-   S has an x-window; it must be redone when the window is created.
+   F has an x-window; it must be redone when the window is created.
 
    Note: this is done in two routines because of the way X10 works.
 
@@ -877,8 +877,8 @@ x_set_cursor_color (s, arg, oldval)
    and so emacs' border colors may be overridden. */
 
 void
-x_set_border_color (s, arg, oldval)
-     struct screen *s;
+x_set_border_color (f, arg, oldval)
+     struct frame *f;
      Lisp_Object arg, oldval;
 {
   unsigned char *str;
@@ -896,33 +896,33 @@ x_set_border_color (s, arg, oldval)
 
     pix = x_decode_color (arg, BLACK_PIX_DEFAULT);
 
-  x_set_border_pixel (s, pix);
+  x_set_border_pixel (f, pix);
 }
 
-/* Set the border-color of screen S to pixel value PIX.
+/* Set the border-color of frame F to pixel value PIX.
    Note that this does not fully take effect if done before
-   S has an x-window.  */
+   F has an x-window.  */
 
-x_set_border_pixel (s, pix)
-     struct screen *s;
+x_set_border_pixel (f, pix)
+     struct frame *f;
      int pix;
 {
-  s->display.x->border_pixel = pix;
+  f->display.x->border_pixel = pix;
 
-  if (s->display.x->window_desc != 0 && s->display.x->border_width > 0)
+  if (f->display.x->window_desc != 0 && f->display.x->border_width > 0)
     {
       Pixmap temp;
       int mask;
 
       BLOCK_INPUT;
 #ifdef HAVE_X11
-      XSetWindowBorder (x_current_display, s->display.x->window_desc,
+      XSetWindowBorder (x_current_display, f->display.x->window_desc,
        		 pix);
-      if (s->display.x->h_scrollbar)
-        XSetWindowBorder (x_current_display, s->display.x->h_slider,
+      if (f->display.x->h_scrollbar)
+        XSetWindowBorder (x_current_display, f->display.x->h_slider,
        		   pix);
-      if (s->display.x->v_scrollbar)
-        XSetWindowBorder (x_current_display, s->display.x->v_slider,
+      if (f->display.x->v_scrollbar)
+        XSetWindowBorder (x_current_display, f->display.x->v_slider,
        		   pix);
 #else
       if (pix < 0)
@@ -930,19 +930,19 @@ x_set_border_pixel (s, pix)
        		     BLACK_PIX_DEFAULT, WHITE_PIX_DEFAULT);
       else
         temp = XMakeTile (pix);
-      XChangeBorder (s->display.x->window_desc, temp);
+      XChangeBorder (f->display.x->window_desc, temp);
       XFreePixmap (XDISPLAY temp);
 #endif /* not HAVE_X11 */
       UNBLOCK_INPUT;
 
-      if (s->visible)
-        redraw_screen (s);
+      if (f->visible)
+        redraw_frame (f);
     }
 }
 
 void
-x_set_icon_type (s, arg, oldval)
-     struct screen *s;
+x_set_icon_type (f, arg, oldval)
+     struct frame *f;
      Lisp_Object arg, oldval;
 {
   Lisp_Object tem;
@@ -953,9 +953,9 @@ x_set_icon_type (s, arg, oldval)
 
   BLOCK_INPUT;
   if (NILP (arg))
-    result = x_text_icon (s, 0);
+    result = x_text_icon (f, 0);
   else
-    result = x_bitmap_icon (s, 0);
+    result = x_bitmap_icon (f, 0);
 
   if (result)
     {
@@ -965,16 +965,16 @@ x_set_icon_type (s, arg, oldval)
 
   /* If the window was unmapped (and its icon was mapped),
      the new icon is not mapped, so map the window in its stead.  */
-  if (s->visible)
-    XMapWindow (XDISPLAY s->display.x->window_desc);
+  if (f->visible)
+    XMapWindow (XDISPLAY f->display.x->window_desc);
 
   XFlushQueue ();
   UNBLOCK_INPUT;
 }
 
 void
-x_set_font (s, arg, oldval)
-     struct screen *s;
+x_set_font (f, arg, oldval)
+     struct frame *f;
      Lisp_Object arg, oldval;
 {
   unsigned char *name;
@@ -984,7 +984,7 @@ x_set_font (s, arg, oldval)
   name = XSTRING (arg)->data;
 
   BLOCK_INPUT;
-  result = x_new_font (s, name);
+  result = x_new_font (f, name);
   UNBLOCK_INPUT;
   
   if (result)
@@ -992,62 +992,62 @@ x_set_font (s, arg, oldval)
 }
 
 void
-x_set_border_width (s, arg, oldval)
-     struct screen *s;
+x_set_border_width (f, arg, oldval)
+     struct frame *f;
      Lisp_Object arg, oldval;
 {
   CHECK_NUMBER (arg, 0);
 
-  if (XINT (arg) == s->display.x->border_width)
+  if (XINT (arg) == f->display.x->border_width)
     return;
 
-  if (s->display.x->window_desc != 0)
+  if (f->display.x->window_desc != 0)
     error ("Cannot change the border width of a window");
 
-  s->display.x->border_width = XINT (arg);
+  f->display.x->border_width = XINT (arg);
 }
 
 void
-x_set_internal_border_width (s, arg, oldval)
-     struct screen *s;
+x_set_internal_border_width (f, arg, oldval)
+     struct frame *f;
      Lisp_Object arg, oldval;
 {
   int mask;
-  int old = s->display.x->internal_border_width;
+  int old = f->display.x->internal_border_width;
 
   CHECK_NUMBER (arg, 0);
-  s->display.x->internal_border_width = XINT (arg);
-  if (s->display.x->internal_border_width < 0)
-    s->display.x->internal_border_width = 0;
+  f->display.x->internal_border_width = XINT (arg);
+  if (f->display.x->internal_border_width < 0)
+    f->display.x->internal_border_width = 0;
 
-  if (s->display.x->internal_border_width == old)
+  if (f->display.x->internal_border_width == old)
     return;
 
-  if (s->display.x->window_desc != 0)
+  if (f->display.x->window_desc != 0)
     {
       BLOCK_INPUT;
-      x_set_window_size (s, s->width, s->height);
+      x_set_window_size (f, f->width, f->height);
 #if 0
-      x_set_resize_hint (s);
+      x_set_resize_hint (f);
 #endif
       XFlushQueue ();
       UNBLOCK_INPUT;
-      SET_SCREEN_GARBAGED (s);
+      SET_FRAME_GARBAGED (f);
     }
 }
 
 void
-x_set_name (s, arg, oldval)
-     struct screen *s;
+x_set_name (f, arg, oldval)
+     struct frame *f;
      Lisp_Object arg, oldval;
 {
   CHECK_STRING (arg, 0);
 
   /* Don't change the name if it's already ARG.  */
-  if (! NILP (Fstring_equal (arg, s->name)))
+  if (! NILP (Fstring_equal (arg, f->name)))
     return;
 
-  if (s->display.x->window_desc)
+  if (f->display.x->window_desc)
     {
 #ifdef HAVE_X11
       XTextProperty prop;
@@ -1056,43 +1056,43 @@ x_set_name (s, arg, oldval)
       prop.format = 8;
       prop.nitems = XSTRING (arg)->size;
       BLOCK_INPUT;
-      XSetWMName (XDISPLAY s->display.x->window_desc, &prop);
-      XSetWMIconName (XDISPLAY s->display.x->window_desc, &prop);
+      XSetWMName (XDISPLAY f->display.x->window_desc, &prop);
+      XSetWMIconName (XDISPLAY f->display.x->window_desc, &prop);
       UNBLOCK_INPUT;
 #else
       BLOCK_INPUT;
-      XStoreName (XDISPLAY s->display.x->window_desc,
+      XStoreName (XDISPLAY f->display.x->window_desc,
 		  (char *) XSTRING (arg)->data);
-      XSetIconName (XDISPLAY s->display.x->window_desc,
+      XSetIconName (XDISPLAY f->display.x->window_desc,
 		    (char *) XSTRING (arg)->data);
       UNBLOCK_INPUT;
 #endif
     }
 
-  s->name = arg;
+  f->name = arg;
 }
 
 void
-x_set_autoraise (s, arg, oldval)
-     struct screen *s;
+x_set_autoraise (f, arg, oldval)
+     struct frame *f;
      Lisp_Object arg, oldval;
 {
-  s->auto_raise = !EQ (Qnil, arg);
+  f->auto_raise = !EQ (Qnil, arg);
 }
 
 void
-x_set_autolower (s, arg, oldval)
-     struct screen *s;
+x_set_autolower (f, arg, oldval)
+     struct frame *f;
      Lisp_Object arg, oldval;
 {
-  s->auto_lower = !EQ (Qnil, arg);
+  f->auto_lower = !EQ (Qnil, arg);
 }
 
 #ifdef HAVE_X11
 int n_faces;
 
 x_set_face (scr, font, background, foreground, stipple)
-     struct screen *scr;
+     struct frame *scr;
      XFontStruct *font;
      unsigned long background, foreground;
      Pixmap stipple;
@@ -1166,15 +1166,15 @@ DEFUN ("x-set-face-font", Fx_set_face_font, Sx_set_face_font, 4, 2, 0,
   XGCValues gc_values;
 
   /* Need to do something about this. */
-  Drawable drawable = selected_screen->display.x->window_desc;
+  Drawable drawable = selected_frame->display.x->window_desc;
 
   CHECK_NUMBER (face_code, 1);
   CHECK_STRING (font_name,  2);
 
   if (EQ (foreground, Qnil) || EQ (background, Qnil))
     {
-      fg = selected_screen->display.x->foreground_pixel;
-      bg = selected_screen->display.x->background_pixel;
+      fg = selected_frame->display.x->foreground_pixel;
+      bg = selected_frame->display.x->background_pixel;
     }
   else
     {
@@ -1318,7 +1318,7 @@ The value is a list (FONT FG-COLOR BG-COLOR).")
 }
 #endif /* 0 */
 
-/* Subroutines of creating an X screen.  */
+/* Subroutines of creating an X frame.  */
 
 #ifdef HAVE_X11
 extern char *x_get_string_resource ();
@@ -1422,7 +1422,7 @@ enum resource_types
 
 /* Return the value of parameter PARAM.
 
-   First search ALIST, then Vdefault_screen_alist, then the X defaults
+   First search ALIST, then Vdefault_frame_alist, then the X defaults
    database, using ATTRIBUTE as the attribute name.
 
    Convert the resource to the type specified by desired_type.
@@ -1439,7 +1439,7 @@ x_get_arg (alist, param, attribute, type)
 
   tem = Fassq (param, alist);
   if (EQ (tem, Qnil))
-    tem = Fassq (param, Vdefault_screen_alist);
+    tem = Fassq (param, Vdefault_frame_alist);
   if (EQ (tem, Qnil) && attribute)
     {
       tem = Fx_get_resource (build_string (attribute), Qnil, Qnil);
@@ -1470,15 +1470,15 @@ x_get_arg (alist, param, attribute, type)
   return Fcdr (tem);
 }
 
-/* Record in screen S the specified or default value according to ALIST
+/* Record in frame F the specified or default value according to ALIST
    of the parameter named PARAM (a Lisp symbol).
    If no value is specified for PARAM, look for an X default for XPROP
-   on the screen named NAME.
+   on the frame named NAME.
    If that is not found either, use the value DEFLT.  */
 
 static Lisp_Object
-x_default_parameter (s, alist, propname, deflt, xprop, type)
-     struct screen *s;
+x_default_parameter (f, alist, propname, deflt, xprop, type)
+     struct frame *f;
      Lisp_Object alist;
      char *propname;
      Lisp_Object deflt;
@@ -1491,8 +1491,8 @@ x_default_parameter (s, alist, propname, deflt, xprop, type)
   tem = x_get_arg (alist, propsym, xprop, type);
   if (EQ (tem, Qnil))
     tem = deflt;
-  store_screen_param (s, propsym, tem);
-  x_set_screen_param (s, propsym, tem, Qnil);
+  store_frame_param (f, propsym, tem);
+  x_set_frame_param (f, propsym, tem, Qnil);
   return tem;
 }
 
@@ -1558,8 +1558,8 @@ Returns an alist of the form ((top . TOP), (left . LEFT) ... ).")
 #define DEFAULT_COLS 80
 
 static
-x_figure_window_size (s, parms)
-     struct screen *s;
+x_figure_window_size (f, parms)
+     struct frame *f;
      Lisp_Object parms;
 {
   register Lisp_Object tem0, tem1;
@@ -1570,10 +1570,10 @@ x_figure_window_size (s, parms)
   /* Default values if we fall through.
      Actually, if that happens we should get
      window manager prompting. */
-  s->width = DEFAULT_COLS;
-  s->height = DEFAULT_ROWS;
-  s->display.x->top_pos = 1;
-  s->display.x->left_pos = 1;
+  f->width = DEFAULT_COLS;
+  f->height = DEFAULT_ROWS;
+  f->display.x->top_pos = 1;
+  f->display.x->left_pos = 1;
 
   tem0 = x_get_arg (parms, intern ("height"), 0, 0);
   tem1 = x_get_arg (parms, intern ("width"), 0, 0);
@@ -1581,17 +1581,17 @@ x_figure_window_size (s, parms)
     {
       CHECK_NUMBER (tem0, 0);
       CHECK_NUMBER (tem1, 0);
-      s->height = XINT (tem0);
-      s->width = XINT (tem1);
+      f->height = XINT (tem0);
+      f->width = XINT (tem1);
       window_prompting |= USSize;
     }
   else if (! EQ (tem0, Qnil) || ! EQ (tem1, Qnil))
     error ("Must specify *both* height and width");
 
-  s->display.x->pixel_width = (FONT_WIDTH (s->display.x->font) * s->width
-			       + 2 * s->display.x->internal_border_width);
-  s->display.x->pixel_height = (FONT_HEIGHT (s->display.x->font) * s->height
-				+ 2 * s->display.x->internal_border_width);
+  f->display.x->pixel_width = (FONT_WIDTH (f->display.x->font) * f->width
+			       + 2 * f->display.x->internal_border_width);
+  f->display.x->pixel_height = (FONT_HEIGHT (f->display.x->font) * f->height
+				+ 2 * f->display.x->internal_border_width);
 
   tem0 = x_get_arg (parms, intern ("top"), 0, 0);
   tem1 = x_get_arg (parms, intern ("left"), 0, 0);
@@ -1599,9 +1599,9 @@ x_figure_window_size (s, parms)
     {
       CHECK_NUMBER (tem0, 0);
       CHECK_NUMBER (tem1, 0);
-      s->display.x->top_pos = XINT (tem0);
-      s->display.x->left_pos = XINT (tem1);
-      x_calc_absolute_position (s);
+      f->display.x->top_pos = XINT (tem0);
+      f->display.x->left_pos = XINT (tem1);
+      x_calc_absolute_position (f);
       window_prompting |= USPosition;
     }
   else if (! EQ (tem0, Qnil) || ! EQ (tem1, Qnil))
@@ -1636,15 +1636,15 @@ x_figure_window_size (s, parms)
 }
 
 static void
-x_window (s)
-     struct screen *s;
+x_window (f)
+     struct frame *f;
 {
   XSetWindowAttributes attributes;
   unsigned long attribute_mask;
   XClassHint class_hints;
 
-  attributes.background_pixel = s->display.x->background_pixel;
-  attributes.border_pixel = s->display.x->border_pixel;
+  attributes.background_pixel = f->display.x->background_pixel;
+  attributes.border_pixel = f->display.x->border_pixel;
   attributes.bit_gravity = StaticGravity;
   attributes.backing_store = NotUseful;
   attributes.save_under = True;
@@ -1656,26 +1656,26 @@ x_window (s)
 		    | CWEventMask);
 
   BLOCK_INPUT;
-  s->display.x->window_desc
+  f->display.x->window_desc
     = XCreateWindow (x_current_display, ROOT_WINDOW,
-		     s->display.x->left_pos,
-		     s->display.x->top_pos,
-		     PIXEL_WIDTH (s), PIXEL_HEIGHT (s),
-		     s->display.x->border_width,
+		     f->display.x->left_pos,
+		     f->display.x->top_pos,
+		     PIXEL_WIDTH (f), PIXEL_HEIGHT (f),
+		     f->display.x->border_width,
 		     CopyFromParent, /* depth */
 		     InputOutput, /* class */
 		     screen_visual, /* set in Fx_open_connection */
 		     attribute_mask, &attributes);
 
-  class_hints.res_name = (char *) XSTRING (s->name)->data;
+  class_hints.res_name = (char *) XSTRING (f->name)->data;
   class_hints.res_class = EMACS_CLASS;
-  XSetClassHint (x_current_display, s->display.x->window_desc, &class_hints);
+  XSetClassHint (x_current_display, f->display.x->window_desc, &class_hints);
 
-  XDefineCursor (XDISPLAY s->display.x->window_desc,
-		 s->display.x->text_cursor);
+  XDefineCursor (XDISPLAY f->display.x->window_desc,
+		 f->display.x->text_cursor);
   UNBLOCK_INPUT;
 
-  if (s->display.x->window_desc == 0)
+  if (f->display.x->window_desc == 0)
     error ("Unable to create window.");
 }
 
@@ -1684,8 +1684,8 @@ x_window (s)
    well. */
 
 static void
-x_icon (s, parms)
-     struct screen *s;
+x_icon (f, parms)
+     struct frame *f;
      Lisp_Object parms;
 {
   register Lisp_Object tem0,tem1;
@@ -1706,8 +1706,8 @@ x_icon (s, parms)
     error ("Both left and top icon corners of icon must be specified");
   else
     {
-      hints.icon_x = s->display.x->left_pos;
-      hints.icon_y = s->display.x->top_pos;
+      hints.icon_x = f->display.x->left_pos;
+      hints.icon_y = f->display.x->top_pos;
     }
 
   /* Start up iconic or window? */
@@ -1720,7 +1720,7 @@ x_icon (s, parms)
 
   BLOCK_INPUT;
   hints.flags = StateHint | IconPositionHint | InputHint;
-  XSetWMHints (x_current_display, s->display.x->window_desc, &hints);
+  XSetWMHints (x_current_display, f->display.x->window_desc, &hints);
   UNBLOCK_INPUT;
 }
 
@@ -1729,8 +1729,8 @@ x_icon (s, parms)
    mouse cursor and the gray border tile.  */
 
 static void
-x_make_gc (s)
-     struct screen *s;
+x_make_gc (f)
+     struct frame *f;
 {
   XGCValues gc_values;
   GC temp_gc;
@@ -1743,53 +1743,53 @@ x_make_gc (s)
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
     };
 
-  /* Create the GC's of this screen.
+  /* Create the GC's of this frame.
      Note that many default values are used. */
 
   /* Normal video */
-  gc_values.font = s->display.x->font->fid;
-  gc_values.foreground = s->display.x->foreground_pixel;
-  gc_values.background = s->display.x->background_pixel;
+  gc_values.font = f->display.x->font->fid;
+  gc_values.foreground = f->display.x->foreground_pixel;
+  gc_values.background = f->display.x->background_pixel;
   gc_values.line_width = 0;	/* Means 1 using fast algorithm. */
-  s->display.x->normal_gc = XCreateGC (x_current_display,
-				       s->display.x->window_desc,
+  f->display.x->normal_gc = XCreateGC (x_current_display,
+				       f->display.x->window_desc,
 				       GCLineWidth | GCFont
 				       | GCForeground | GCBackground,
 				       &gc_values);
 
   /* Reverse video style. */
-  gc_values.foreground = s->display.x->background_pixel;
-  gc_values.background = s->display.x->foreground_pixel;
-  s->display.x->reverse_gc = XCreateGC (x_current_display,
-					s->display.x->window_desc,
+  gc_values.foreground = f->display.x->background_pixel;
+  gc_values.background = f->display.x->foreground_pixel;
+  f->display.x->reverse_gc = XCreateGC (x_current_display,
+					f->display.x->window_desc,
 					GCFont | GCForeground | GCBackground
 					| GCLineWidth,
 					&gc_values);
 
   /* Cursor has cursor-color background, background-color foreground. */
-  gc_values.foreground = s->display.x->background_pixel;
-  gc_values.background = s->display.x->cursor_pixel;
+  gc_values.foreground = f->display.x->background_pixel;
+  gc_values.background = f->display.x->cursor_pixel;
   gc_values.fill_style = FillOpaqueStippled;
   gc_values.stipple
     = XCreateBitmapFromData (x_current_display, ROOT_WINDOW,
 			     cursor_bits, 16, 16);
-  s->display.x->cursor_gc
-    = XCreateGC (x_current_display, s->display.x->window_desc,
+  f->display.x->cursor_gc
+    = XCreateGC (x_current_display, f->display.x->window_desc,
 		 (GCFont | GCForeground | GCBackground
 		  | GCFillStyle | GCStipple | GCLineWidth),
 		 &gc_values);
 
   /* Create the gray border tile used when the pointer is not in
-     the screen.  Since this depends on the screen's pixel values,
-     this must be done on a per-screen basis. */
-  s->display.x->border_tile =
+     the frame.  Since this depends on the frame's pixel values,
+     this must be done on a per-frame basis. */
+  f->display.x->border_tile =
     XCreatePixmap (x_current_display, ROOT_WINDOW, 16, 16,
 		   DefaultDepth (x_current_display,
 				 XDefaultScreen (x_current_display)));
-  gc_values.foreground = s->display.x->foreground_pixel;
-  gc_values.background = s->display.x->background_pixel;
+  gc_values.foreground = f->display.x->foreground_pixel;
+  gc_values.background = f->display.x->background_pixel;
   temp_gc = XCreateGC (x_current_display,
-		       (Drawable) s->display.x->border_tile,
+		       (Drawable) f->display.x->border_tile,
 		       GCForeground | GCBackground, &gc_values);
 
   /* These are things that should be determined by the server, in
@@ -1805,27 +1805,27 @@ x_make_gc (s)
   tileimage.bitmap_pad = 8;
   tileimage.bytes_per_line = (16 + 7) >> 3;
   tileimage.depth = 1;
-  XPutImage (x_current_display, s->display.x->border_tile, temp_gc,
+  XPutImage (x_current_display, f->display.x->border_tile, temp_gc,
 	     &tileimage, 0, 0, 0, 0, 16, 16);
   XFreeGC (x_current_display, temp_gc);
 }
 #endif /* HAVE_X11 */
 
-DEFUN ("x-create-screen", Fx_create_screen, Sx_create_screen,
+DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
-  "Make a new X window, which is called a \"screen\" in Emacs terms.\n\
-Return an Emacs screen object representing the X window.\n\
-ALIST is an alist of screen parameters.\n\
-If the parameters specify that the screen should not have a minibuffer,\n\
+  "Make a new X window, which is called a \"frame\" in Emacs terms.\n\
+Return an Emacs frame object representing the X window.\n\
+ALIST is an alist of frame parameters.\n\
+If the parameters specify that the frame should not have a minibuffer,\n\
 and do not specify a specific minibuffer window to use,\n\
-then `default-minibuffer-screen' must be a screen whose minibuffer can\n\
-be shared by the new screen.")
+then `default-minibuffer-frame' must be a frame whose minibuffer can\n\
+be shared by the new frame.")
   (parms)
      Lisp_Object parms;
 {
 #ifdef HAVE_X11
-  struct screen *s;
-  Lisp_Object screen, tem;
+  struct frame *f;
+  Lisp_Object frame, tem;
   Lisp_Object name;
   int minibuffer_only = 0;
   long window_prompting = 0;
@@ -1838,92 +1838,92 @@ be shared by the new screen.")
   if (NILP (name))
     name = build_string (x_id_name);
   if (XTYPE (name) != Lisp_String)
-    error ("x-create-screen: name parameter must be a string");
+    error ("x-create-frame: name parameter must be a string");
 
   tem = x_get_arg (parms, intern ("minibuffer"), 0, 0);
   if (EQ (tem, intern ("none")))
-    s = make_screen_without_minibuffer (Qnil);
+    f = make_frame_without_minibuffer (Qnil);
   else if (EQ (tem, intern ("only")))
     {
-      s = make_minibuffer_screen ();
+      f = make_minibuffer_frame ();
       minibuffer_only = 1;
     }
   else if (EQ (tem, Qnil) || EQ (tem, Qt))
-    s = make_screen (1);
+    f = make_frame (1);
   else
-    s = make_screen_without_minibuffer (tem);
+    f = make_frame_without_minibuffer (tem);
 
-  /* Set the name; the functions to which we pass s expect the
+  /* Set the name; the functions to which we pass f expect the
      name to be set.  */
-  XSET (s->name, Lisp_String, name);
+  XSET (f->name, Lisp_String, name);
 
-  XSET (screen, Lisp_Screen, s);
-  s->output_method = output_x_window;
-  s->display.x = (struct x_display *) xmalloc (sizeof (struct x_display));
-  bzero (s->display.x, sizeof (struct x_display));
+  XSET (frame, Lisp_Frame, f);
+  f->output_method = output_x_window;
+  f->display.x = (struct x_display *) xmalloc (sizeof (struct x_display));
+  bzero (f->display.x, sizeof (struct x_display));
 
-  /* Note that the screen has no physical cursor right now.  */
-  s->phys_cursor_x = -1;
+  /* Note that the frame has no physical cursor right now.  */
+  f->phys_cursor_x = -1;
 
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
-  x_default_parameter (s, parms, "font",
+  x_default_parameter (f, parms, "font",
 		       build_string ("9x15"), "font", string);
-  x_default_parameter (s, parms, "background-color",
+  x_default_parameter (f, parms, "background-color",
 		      build_string ("white"), "background", string);
-  x_default_parameter (s, parms, "border-width",
+  x_default_parameter (f, parms, "border-width",
 		      make_number (2), "BorderWidth", number);
   /* This defaults to 2 in order to match XTerms.  */
-  x_default_parameter (s, parms, "internal-border-width",
+  x_default_parameter (f, parms, "internal-border-width",
 		      make_number (2), "InternalBorderWidth", number);
 
   /* Also do the stuff which must be set before the window exists. */
-  x_default_parameter (s, parms, "foreground-color",
+  x_default_parameter (f, parms, "foreground-color",
 		       build_string ("black"), "foreground", string);
-  x_default_parameter (s, parms, "mouse-color",
+  x_default_parameter (f, parms, "mouse-color",
 		      build_string ("black"), "mouse", string);
-  x_default_parameter (s, parms, "cursor-color",
+  x_default_parameter (f, parms, "cursor-color",
 		      build_string ("black"), "cursor", string);
-  x_default_parameter (s, parms, "border-color",
+  x_default_parameter (f, parms, "border-color",
 		      build_string ("black"), "border", string);
 
   /* Need to do icon type, auto-raise, auto-lower. */
 
-  s->display.x->parent_desc = ROOT_WINDOW;
-  window_prompting = x_figure_window_size (s, parms);
+  f->display.x->parent_desc = ROOT_WINDOW;
+  window_prompting = x_figure_window_size (f, parms);
 
-  x_window (s);
-  x_icon (s, parms);
-  x_make_gc (s);
+  x_window (f);
+  x_icon (f, parms);
+  x_make_gc (f);
 
-  /* Dimensions, especially s->height, must be done via change_screen_size.
+  /* Dimensions, especially f->height, must be done via change_frame_size.
      Change will not be effected unless different from the current
-     s->height. */
-  width = s->width;
-  height = s->height;
-  s->height = s->width = 0;
-  change_screen_size (s, height, width, 1);
+     f->height. */
+  width = f->width;
+  height = f->height;
+  f->height = f->width = 0;
+  change_frame_size (f, height, width, 1);
   BLOCK_INPUT;
-  x_wm_set_size_hint (s, window_prompting);
+  x_wm_set_size_hint (f, window_prompting);
   UNBLOCK_INPUT;
 
   tem = x_get_arg (parms, intern ("unsplittable"), 0, 0);
-  s->no_split = minibuffer_only || EQ (tem, Qt);
+  f->no_split = minibuffer_only || EQ (tem, Qt);
 
   /* Now handle the rest of the parameters. */
-  x_default_parameter (s, parms, "horizontal-scroll-bar",
+  x_default_parameter (f, parms, "horizontal-scroll-bar",
 		       Qnil, "?HScrollBar", string);
-  x_default_parameter (s, parms, "vertical-scroll-bar",
+  x_default_parameter (f, parms, "vertical-scroll-bar",
 		       Qnil, "?VScrollBar", string);
 
-  /* Make the window appear on the screen and enable display.  */
+  /* Make the window appear on the frame and enable display.  */
   if (!EQ (x_get_arg (parms, intern ("suppress-initial-map"), 0, 0), Qt))
-    x_make_screen_visible (s);
+    x_make_frame_visible (f);
 
-  return screen;
+  return frame;
 #else /* X10 */
-  struct screen *s;
-  Lisp_Object screen, tem;
+  struct frame *f;
+  Lisp_Object frame, tem;
   Lisp_Object name;
   int pixelwidth, pixelheight;
   Cursor cursor;
@@ -1940,37 +1940,37 @@ be shared by the new screen.")
 
   tem = x_get_arg (parms, intern ("minibuffer"), 0, 0);
   if (EQ (tem, intern ("none")))
-    s = make_screen_without_minibuffer (Qnil);
+    f = make_frame_without_minibuffer (Qnil);
   else if (EQ (tem, intern ("only")))
     {
-      s = make_minibuffer_screen ();
+      f = make_minibuffer_frame ();
       minibuffer_only = 1;
     }
   else if (! EQ (tem, Qnil))
-    s = make_screen_without_minibuffer (tem);
+    f = make_frame_without_minibuffer (tem);
   else
-    s = make_screen (1);
+    f = make_frame (1);
 
   parent = ROOT_WINDOW;
 
-  XSET (screen, Lisp_Screen, s);
-  s->output_method = output_x_window;
-  s->display.x = (struct x_display *) xmalloc (sizeof (struct x_display));
-  bzero (s->display.x, sizeof (struct x_display));
+  XSET (frame, Lisp_Frame, f);
+  f->output_method = output_x_window;
+  f->display.x = (struct x_display *) xmalloc (sizeof (struct x_display));
+  bzero (f->display.x, sizeof (struct x_display));
 
   /* Some temprorary default values for height and width. */
   width = 80;
   height = 40;
-  s->display.x->left_pos = -1;
-  s->display.x->top_pos = -1;
+  f->display.x->left_pos = -1;
+  f->display.x->top_pos = -1;
 
-  /* Give the screen a default name (which may be overridden with PARMS).  */
+  /* Give the frame a default name (which may be overridden with PARMS).  */
 
   strncpy (iconidentity, ICONTAG, MAXICID);
   if (gethostname (&iconidentity[sizeof (ICONTAG) - 1],
 		   (MAXICID - 1) - sizeof (ICONTAG)))
     iconidentity[sizeof (ICONTAG) - 2] = '\0';
-  s->name = build_string (iconidentity);
+  f->name = build_string (iconidentity);
 
   /* Extract some window parameters from the supplied values.
      These are the parameters that affect window geometry.  */
@@ -1978,29 +1978,29 @@ be shared by the new screen.")
   tem = x_get_arg (parms, intern ("font"), "BodyFont", string);
   if (EQ (tem, Qnil))
     tem = build_string ("9x15");
-  x_set_font (s, tem);
-  x_default_parameter (s, parms, "border-color",
+  x_set_font (f, tem);
+  x_default_parameter (f, parms, "border-color",
 		      build_string ("black"), "Border", string);
-  x_default_parameter (s, parms, "background-color",
+  x_default_parameter (f, parms, "background-color",
 		      build_string ("white"), "Background", string);
-  x_default_parameter (s, parms, "foreground-color",
+  x_default_parameter (f, parms, "foreground-color",
 		      build_string ("black"), "Foreground", string);
-  x_default_parameter (s, parms, "mouse-color",
+  x_default_parameter (f, parms, "mouse-color",
 		      build_string ("black"), "Mouse", string);
-  x_default_parameter (s, parms, "cursor-color",
+  x_default_parameter (f, parms, "cursor-color",
 		      build_string ("black"), "Cursor", string);
-  x_default_parameter (s, parms, "border-width",
+  x_default_parameter (f, parms, "border-width",
 		      make_number (2), "BorderWidth", number);
-  x_default_parameter (s, parms, "internal-border-width",
+  x_default_parameter (f, parms, "internal-border-width",
 		      make_number (4), "InternalBorderWidth", number);
-  x_default_parameter (s, parms, "auto-raise",
+  x_default_parameter (f, parms, "auto-raise",
 		       Qnil, "AutoRaise", boolean);
 
   hscroll = x_get_arg (parms, intern ("horizontal-scroll-bar"), 0, 0);
   vscroll = x_get_arg (parms, intern ("vertical-scroll-bar"), 0, 0);
 
-  if (s->display.x->internal_border_width < 0)
-    s->display.x->internal_border_width = 0;
+  if (f->display.x->internal_border_width < 0)
+    f->display.x->internal_border_width = 0;
 
   tem = x_get_arg (parms, intern ("window-id"), 0, 0);
   if (!EQ (tem, Qnil))
@@ -2010,23 +2010,23 @@ be shared by the new screen.")
       Window *children, root;
 
       CHECK_STRING (tem, 0);
-      s->display.x->window_desc = (Window) atoi (XSTRING (tem)->data);
+      f->display.x->window_desc = (Window) atoi (XSTRING (tem)->data);
 
       BLOCK_INPUT;
-      XGetWindowInfo (s->display.x->window_desc, &wininfo);
-      XQueryTree (s->display.x->window_desc, &parent, &nchildren, &children);
+      XGetWindowInfo (f->display.x->window_desc, &wininfo);
+      XQueryTree (f->display.x->window_desc, &parent, &nchildren, &children);
       free (children);
       UNBLOCK_INPUT;
 
-      height = (wininfo.height - 2 * s->display.x->internal_border_width)
-	/ FONT_HEIGHT (s->display.x->font);
-      width = (wininfo.width - 2 * s->display.x->internal_border_width)
-	/ FONT_WIDTH (s->display.x->font);
-      s->display.x->left_pos = wininfo.x;
-      s->display.x->top_pos = wininfo.y;
-      s->visible = wininfo.mapped != 0;
-      s->display.x->border_width = wininfo.bdrwidth;
-      s->display.x->parent_desc = parent;
+      height = (wininfo.height - 2 * f->display.x->internal_border_width)
+	/ FONT_HEIGHT (f->display.x->font);
+      width = (wininfo.width - 2 * f->display.x->internal_border_width)
+	/ FONT_WIDTH (f->display.x->font);
+      f->display.x->left_pos = wininfo.x;
+      f->display.x->top_pos = wininfo.y;
+      f->visible = wininfo.mapped != 0;
+      f->display.x->border_width = wininfo.bdrwidth;
+      f->display.x->parent_desc = parent;
     }
   else
     {
@@ -2036,7 +2036,7 @@ be shared by the new screen.")
 	  CHECK_STRING (tem, 0);
 	  parent = (Window) atoi (XSTRING (tem)->data);
 	}
-      s->display.x->parent_desc = parent;
+      f->display.x->parent_desc = parent;
       tem = x_get_arg (parms, intern ("height"), 0, 0);
       if (EQ (tem, Qnil))
 	{
@@ -2053,12 +2053,12 @@ be shared by the new screen.")
       if (EQ (tem, Qnil))
 	{
 	  tem = x_get_arg (parms, intern ("geometry"), 0, 0);
-	  x_rubber_band (s,
-			 &s->display.x->left_pos, &s->display.x->top_pos,
+	  x_rubber_band (f,
+			 &f->display.x->left_pos, &f->display.x->top_pos,
 			 &width, &height,
 			 (XTYPE (tem) == Lisp_String
 			  ? (char *) XSTRING (tem)->data : ""),
-			 XSTRING (s->name)->data,
+			 XSTRING (f->name)->data,
 			 !NILP (hscroll), !NILP (vscroll));
 	}
       else
@@ -2081,128 +2081,128 @@ be shared by the new screen.")
 	  if (EQ (tem, Qnil))
 	    error ("Top position not specified");
 	  CHECK_NUMBER (tem, 0);
-	  s->display.x->left_pos = XINT (tem);
+	  f->display.x->left_pos = XINT (tem);
 
 	  tem = x_get_arg (parms, intern ("left"), 0, 0);
 	  if (EQ (tem, Qnil))
 	    error ("Left position not specified");
 	  CHECK_NUMBER (tem, 0);
-	  s->display.x->top_pos = XINT (tem);
+	  f->display.x->top_pos = XINT (tem);
 	}
 
-      pixelwidth = (width * FONT_WIDTH (s->display.x->font)
-		    + 2 * s->display.x->internal_border_width
+      pixelwidth = (width * FONT_WIDTH (f->display.x->font)
+		    + 2 * f->display.x->internal_border_width
 		    + (!NILP (vscroll) ? VSCROLL_WIDTH : 0));
-      pixelheight = (height * FONT_HEIGHT (s->display.x->font)
-		     + 2 * s->display.x->internal_border_width
+      pixelheight = (height * FONT_HEIGHT (f->display.x->font)
+		     + 2 * f->display.x->internal_border_width
 		     + (!NILP (hscroll) ? HSCROLL_HEIGHT : 0));
       
       BLOCK_INPUT;
-      s->display.x->window_desc
+      f->display.x->window_desc
 	= XCreateWindow (parent,
-			 s->display.x->left_pos,   /* Absolute horizontal offset */
-			 s->display.x->top_pos,    /* Absolute Vertical offset */
+			 f->display.x->left_pos,   /* Absolute horizontal offset */
+			 f->display.x->top_pos,    /* Absolute Vertical offset */
 			 pixelwidth, pixelheight,
-			 s->display.x->border_width,
+			 f->display.x->border_width,
 			 BLACK_PIX_DEFAULT, WHITE_PIX_DEFAULT);
       UNBLOCK_INPUT;
-      if (s->display.x->window_desc == 0)
+      if (f->display.x->window_desc == 0)
 	error ("Unable to create window.");
     }
 
   /* Install the now determined height and width
      in the windows and in phys_lines and desired_lines.  */
   /* ??? jla version had 1 here instead of 0.  */
-  change_screen_size (s, height, width, 1);
-  XSelectInput (s->display.x->window_desc, KeyPressed | ExposeWindow
+  change_frame_size (f, height, width, 1);
+  XSelectInput (f->display.x->window_desc, KeyPressed | ExposeWindow
 		| ButtonPressed | ButtonReleased | ExposeRegion | ExposeCopy
 		| EnterWindow | LeaveWindow | UnmapWindow );
-  x_set_resize_hint (s);
+  x_set_resize_hint (f);
 
   /* Tell the server the window's default name.  */
 #ifdef HAVE_X11
   {
     XTextProperty prop;
-    prop.value = XSTRING (s->name)->data;
+    prop.value = XSTRING (f->name)->data;
     prop.encoding = XA_STRING;
     prop.format = 8;
-    prop.nitems = XSTRING (s->name)->size;
-    XSetWMName (XDISPLAY s->display.x->window_desc, &prop);
+    prop.nitems = XSTRING (f->name)->size;
+    XSetWMName (XDISPLAY f->display.x->window_desc, &prop);
   }
 #else
-  XStoreName (XDISPLAY s->display.x->window_desc, XSTRING (s->name)->data);
+  XStoreName (XDISPLAY f->display.x->window_desc, XSTRING (f->name)->data);
 #endif
 
   /* Now override the defaults with all the rest of the specified
      parms.  */
   tem = x_get_arg (parms, intern ("unsplittable"), 0, 0);
-  s->no_split = minibuffer_only || EQ (tem, Qt);
+  f->no_split = minibuffer_only || EQ (tem, Qt);
 
   /* Do not create an icon window if the caller says not to */
   if (!EQ (x_get_arg (parms, intern ("suppress-icon"), 0, 0), Qt)
-      || s->display.x->parent_desc != ROOT_WINDOW)
+      || f->display.x->parent_desc != ROOT_WINDOW)
     {
-      x_text_icon (s, iconidentity);
-      x_default_parameter (s, parms, "icon-type", Qnil,
+      x_text_icon (f, iconidentity);
+      x_default_parameter (f, parms, "icon-type", Qnil,
 			   "BitmapIcon", boolean);
     }
 
   /* Tell the X server the previously set values of the
      background, border and mouse colors; also create the mouse cursor.  */
   BLOCK_INPUT;
-  temp = XMakeTile (s->display.x->background_pixel);
-  XChangeBackground (s->display.x->window_desc, temp);
+  temp = XMakeTile (f->display.x->background_pixel);
+  XChangeBackground (f->display.x->window_desc, temp);
   XFreePixmap (temp);
   UNBLOCK_INPUT;
-  x_set_border_pixel (s, s->display.x->border_pixel);
+  x_set_border_pixel (f, f->display.x->border_pixel);
 
-  x_set_mouse_color (s, Qnil, Qnil);
+  x_set_mouse_color (f, Qnil, Qnil);
 
   /* Now override the defaults with all the rest of the specified parms.  */
 
-  Fmodify_screen_parameters (screen, parms);
+  Fmodify_frame_parameters (frame, parms);
 
   if (!NILP (vscroll))
-    install_vertical_scrollbar (s, pixelwidth, pixelheight);
+    install_vertical_scrollbar (f, pixelwidth, pixelheight);
   if (!NILP (hscroll))
-    install_horizontal_scrollbar (s, pixelwidth, pixelheight);
+    install_horizontal_scrollbar (f, pixelwidth, pixelheight);
 
-  /* Make the window appear on the screen and enable display.  */
+  /* Make the window appear on the frame and enable display.  */
 
   if (!EQ (x_get_arg (parms, intern ("suppress-initial-map"), 0, 0), Qt))
-    x_make_window_visible (s);
-  SCREEN_GARBAGED (s);
+    x_make_window_visible (f);
+  FRAME_GARBAGED (f);
 
-  return screen;
+  return frame;
 #endif /* X10 */
 }
 
-DEFUN ("focus-screen", Ffocus_screen, Sfocus_screen, 1, 1, 0,
-  "Set the focus on SCREEN.")
-  (screen)
-     Lisp_Object screen;
+DEFUN ("focus-frame", Ffocus_frame, Sfocus_frame, 1, 1, 0,
+  "Set the focus on FRAME.")
+  (frame)
+     Lisp_Object frame;
 {
-  CHECK_LIVE_SCREEN (screen, 0);
+  CHECK_LIVE_FRAME (frame, 0);
 
-  if (SCREEN_IS_X (XSCREEN (screen)))
+  if (FRAME_IS_X (XFRAME (frame)))
     {
       BLOCK_INPUT;
-      x_focus_on_screen (XSCREEN (screen));
+      x_focus_on_frame (XFRAME (frame));
       UNBLOCK_INPUT;
-      return screen;
+      return frame;
     }
 
   return Qnil;
 }
 
-DEFUN ("unfocus-screen", Funfocus_screen, Sunfocus_screen, 0, 0, 0,
-  "If a screen has been focused, release it.")
+DEFUN ("unfocus-frame", Funfocus_frame, Sunfocus_frame, 0, 0, 0,
+  "If a frame has been focused, release it.")
   ()
 {
-  if (x_focus_screen)
+  if (x_focus_frame)
     {
       BLOCK_INPUT;
-      x_unfocus_screen (x_focus_screen);
+      x_unfocus_frame (x_focus_frame);
       UNBLOCK_INPUT;
     }
 
@@ -2213,7 +2213,7 @@ DEFUN ("unfocus-screen", Funfocus_screen, Sunfocus_screen, 0, 0, 0,
 /* Computes an X-window size and position either from geometry GEO
    or with the mouse.
 
-   S is a screen.  It specifies an X window which is used to
+   F is a frame.  It specifies an X window which is used to
    determine which display to compute for.  Its font, borders
    and colors control how the rectangle will be displayed.
 
@@ -2225,8 +2225,8 @@ DEFUN ("unfocus-screen", Funfocus_screen, Sunfocus_screen, 0, 0, 0,
    HSCROLL and VSCROLL say whether we have horiz and vert scroll bars.  */
 
 int
-x_rubber_band (s, x, y, width, height, geo, str, hscroll, vscroll)
-     struct screen *s;
+x_rubber_band (f, x, y, width, height, geo, str, hscroll, vscroll)
+     struct frame *f;
      int *x, *y, *width, *height;
      char *geo;
      char *str;
@@ -2242,20 +2242,20 @@ x_rubber_band (s, x, y, width, height, geo, str, hscroll, vscroll)
 
   BLOCK_INPUT;
 
-  background_color = s->display.x->background_pixel;
-  border_color = s->display.x->border_pixel;
+  background_color = f->display.x->background_pixel;
+  border_color = f->display.x->border_pixel;
 
-  frame.bdrwidth = s->display.x->border_width;
+  frame.bdrwidth = f->display.x->border_width;
   frame.border = XMakeTile (border_color);
   frame.background = XMakeTile (background_color);
   tempwindow = XCreateTerm (str, "emacs", geo, default_window, &frame, 10, 5,
-			    (2 * s->display.x->internal_border_width
+			    (2 * f->display.x->internal_border_width
 			     + (vscroll ? VSCROLL_WIDTH : 0)),
-			    (2 * s->display.x->internal_border_width
+			    (2 * f->display.x->internal_border_width
 			     + (hscroll ? HSCROLL_HEIGHT : 0)),
-			    width, height, s->display.x->font,
-			    FONT_WIDTH (s->display.x->font),
-			    FONT_HEIGHT (s->display.x->font));
+			    width, height, f->display.x->font,
+			    FONT_WIDTH (f->display.x->font),
+			    FONT_HEIGHT (f->display.x->font));
   XFreePixmap (frame.border);
   XFreePixmap (frame.background);
 
@@ -2270,7 +2270,7 @@ x_rubber_band (s, x, y, width, height, geo, str, hscroll, vscroll)
   /* Coordinates we got are relative to the root window.
      Convert them to coordinates relative to desired parent window
      by scanning from there up to the root.  */
-  tempwindow = s->display.x->parent_desc;
+  tempwindow = f->display.x->parent_desc;
   while (tempwindow != ROOT_WINDOW)
     {
       int nchildren;
@@ -2287,114 +2287,114 @@ x_rubber_band (s, x, y, width, height, geo, str, hscroll, vscroll)
 }
 #endif /* not HAVE_X11 */
 
-/* Set whether screen S has a horizontal scroll bar.
+/* Set whether frame F has a horizontal scroll bar.
    VAL is t or nil to specify it. */
 
 static void
-x_set_horizontal_scrollbar (s, val, oldval)
-     struct screen *s;
+x_set_horizontal_scrollbar (f, val, oldval)
+     struct frame *f;
      Lisp_Object val, oldval;
 {
   if (!NILP (val))
     {
-      if (s->display.x->window_desc != 0)
+      if (f->display.x->window_desc != 0)
 	{
 	  BLOCK_INPUT;
-	  s->display.x->h_scrollbar_height = HSCROLL_HEIGHT;
-	  x_set_window_size (s, s->width, s->height);
-	  install_horizontal_scrollbar (s);
-	  SET_SCREEN_GARBAGED (s);
+	  f->display.x->h_scrollbar_height = HSCROLL_HEIGHT;
+	  x_set_window_size (f, f->width, f->height);
+	  install_horizontal_scrollbar (f);
+	  SET_FRAME_GARBAGED (f);
 	  UNBLOCK_INPUT;
 	}
     }
   else
-    if (s->display.x->h_scrollbar)
+    if (f->display.x->h_scrollbar)
       {
 	BLOCK_INPUT;
-	s->display.x->h_scrollbar_height = 0;
-	XDestroyWindow (XDISPLAY s->display.x->h_scrollbar);
-	s->display.x->h_scrollbar = 0;
-	x_set_window_size (s, s->width, s->height);
-	s->garbaged++;
-	screen_garbaged++;
+	f->display.x->h_scrollbar_height = 0;
+	XDestroyWindow (XDISPLAY f->display.x->h_scrollbar);
+	f->display.x->h_scrollbar = 0;
+	x_set_window_size (f, f->width, f->height);
+	f->garbaged++;
+	frame_garbaged++;
 	BLOCK_INPUT;
       }
 }
 
-/* Set whether screen S has a vertical scroll bar.
+/* Set whether frame F has a vertical scroll bar.
    VAL is t or nil to specify it. */
 
 static void
-x_set_vertical_scrollbar (s, val, oldval)
-     struct screen *s;
+x_set_vertical_scrollbar (f, val, oldval)
+     struct frame *f;
      Lisp_Object val, oldval;
 {
   if (!NILP (val))
     {
-      if (s->display.x->window_desc != 0)
+      if (f->display.x->window_desc != 0)
 	{
 	  BLOCK_INPUT;
-	  s->display.x->v_scrollbar_width = VSCROLL_WIDTH;
-	  x_set_window_size (s, s->width, s->height);
-	  install_vertical_scrollbar (s);
-	  SET_SCREEN_GARBAGED (s);
+	  f->display.x->v_scrollbar_width = VSCROLL_WIDTH;
+	  x_set_window_size (f, f->width, f->height);
+	  install_vertical_scrollbar (f);
+	  SET_FRAME_GARBAGED (f);
 	  UNBLOCK_INPUT;
 	}
     }
   else
-    if (s->display.x->v_scrollbar != 0)
+    if (f->display.x->v_scrollbar != 0)
       {
 	BLOCK_INPUT;
-	s->display.x->v_scrollbar_width = 0;
-	XDestroyWindow (XDISPLAY s->display.x->v_scrollbar);
-	s->display.x->v_scrollbar = 0;
-	x_set_window_size (s, s->width, s->height);
-	SET_SCREEN_GARBAGED (s);
+	f->display.x->v_scrollbar_width = 0;
+	XDestroyWindow (XDISPLAY f->display.x->v_scrollbar);
+	f->display.x->v_scrollbar = 0;
+	x_set_window_size (f, f->width, f->height);
+	SET_FRAME_GARBAGED (f);
 	UNBLOCK_INPUT;
       }
 }
 
 /* Create the X windows for a vertical scroll bar
-   for a screen X that already has an X window but no scroll bar.  */
+   for a frame X that already has an X window but no scroll bar.  */
 
 static void
-install_vertical_scrollbar (s)
-     struct screen *s;
+install_vertical_scrollbar (f)
+     struct frame *f;
 {
-  int ibw = s->display.x->internal_border_width;
+  int ibw = f->display.x->internal_border_width;
   Window parent;
   XColor fore_color, back_color;
   Pixmap up_arrow_pixmap, down_arrow_pixmap, slider_pixmap;
   int pix_x, pix_y, width, height, border;
 
-  height = s->display.x->pixel_height - ibw - 2;
+  height = f->display.x->pixel_height - ibw - 2;
   width = VSCROLL_WIDTH - 2;
-  pix_x = s->display.x->pixel_width - ibw/2;
+  pix_x = f->display.x->pixel_width - ibw/2;
   pix_y = ibw / 2;
   border = 1;
 
 #ifdef HAVE_X11
   up_arrow_pixmap =
-    XCreatePixmapFromBitmapData (x_current_display, s->display.x->window_desc,
+    XCreatePixmapFromBitmapData (x_current_display, f->display.x->window_desc,
 				 up_arrow_bits, 16, 16,
-				 s->display.x->foreground_pixel,
-				 s->display.x->background_pixel,
+				 f->display.x->foreground_pixel,
+				 f->display.x->background_pixel,
 				 DefaultDepth (x_current_display,
 					       XDefaultScreen (x_current_display)));
 
   down_arrow_pixmap =
-    XCreatePixmapFromBitmapData (x_current_display, s->display.x->window_desc,
+    XCreatePixmapFromBitmapData (x_current_display, f->display.x->window_desc,
 				 down_arrow_bits, 16, 16,
-				 s->display.x->foreground_pixel,
-				 s->display.x->background_pixel,
+				 f->display.x->foreground_pixel,
+				 f->display.x->background_pixel,
 				 DefaultDepth (x_current_display,
 					       XDefaultScreen (x_current_display)));
 
   slider_pixmap =
-    XCreatePixmapFromBitmapData (x_current_display, s->display.x->window_desc,
+    XCreatePixmapFromBitmapData (x_current_display, f->display.x->window_desc,
 				 gray_bits, 16, 16,
-				 s->display.x->foreground_pixel,
-				 s->display.x->background_pixel,
+				 f->display.x->foreground_pixel,
+				 f->display.x->background_pixel,
 				 DefaultDepth (x_current_display,
 					       XDefaultScreen (x_current_display)));
 
@@ -2405,54 +2405,54 @@ install_vertical_scrollbar (s)
   down_arrow_cursor = XCreateFontCursor (x_current_display, XC_sb_down_arrow);
   v_double_arrow_cursor = XCreateFontCursor (x_current_display, XC_sb_v_double_arrow);
 
-  s->display.x->v_scrollbar =
-    XCreateSimpleWindow (x_current_display, s->display.x->window_desc,
+  f->display.x->v_scrollbar =
+    XCreateSimpleWindow (x_current_display, f->display.x->window_desc,
 			 pix_x, pix_y, width, height, border,
-			 s->display.x->foreground_pixel,
-			 s->display.x->background_pixel);
+			 f->display.x->foreground_pixel,
+			 f->display.x->background_pixel);
   XFlush (x_current_display);
-  XDefineCursor (x_current_display, s->display.x->v_scrollbar,
+  XDefineCursor (x_current_display, f->display.x->v_scrollbar,
 		 v_double_arrow_cursor);
   
   /* Create slider window */
-  s->display.x->v_slider =
-    XCreateSimpleWindow (x_current_display, s->display.x->v_scrollbar,
+  f->display.x->v_slider =
+    XCreateSimpleWindow (x_current_display, f->display.x->v_scrollbar,
 			 0, VSCROLL_WIDTH - 2,
 			 VSCROLL_WIDTH - 4, VSCROLL_WIDTH - 4,
-			 1, s->display.x->border_pixel,
-			 s->display.x->foreground_pixel);
+			 1, f->display.x->border_pixel,
+			 f->display.x->foreground_pixel);
   XFlush (x_current_display);
-  XDefineCursor (x_current_display, s->display.x->v_slider,
+  XDefineCursor (x_current_display, f->display.x->v_slider,
 		 v_double_arrow_cursor);
-  XSetWindowBackgroundPixmap (x_current_display, s->display.x->v_slider,
+  XSetWindowBackgroundPixmap (x_current_display, f->display.x->v_slider,
 			      slider_pixmap);
 
-  s->display.x->v_thumbup =
-    XCreateSimpleWindow (x_current_display, s->display.x->v_scrollbar,
+  f->display.x->v_thumbup =
+    XCreateSimpleWindow (x_current_display, f->display.x->v_scrollbar,
 			 0, 0,
 			 VSCROLL_WIDTH - 2, VSCROLL_WIDTH - 2,
-			 0, s->display.x->foreground_pixel,
-			 s->display.x-> background_pixel);
+			 0, f->display.x->foreground_pixel,
+			 f->display.x-> background_pixel);
   XFlush (x_current_display);
-  XDefineCursor (x_current_display, s->display.x->v_thumbup,
+  XDefineCursor (x_current_display, f->display.x->v_thumbup,
 		 up_arrow_cursor);
-  XSetWindowBackgroundPixmap (x_current_display, s->display.x->v_thumbup,
+  XSetWindowBackgroundPixmap (x_current_display, f->display.x->v_thumbup,
 			      up_arrow_pixmap);
 
-  s->display.x->v_thumbdown =
-    XCreateSimpleWindow (x_current_display, s->display.x->v_scrollbar,
+  f->display.x->v_thumbdown =
+    XCreateSimpleWindow (x_current_display, f->display.x->v_scrollbar,
 			 0, height - VSCROLL_WIDTH + 2,
 			 VSCROLL_WIDTH - 2, VSCROLL_WIDTH - 2,
-			 0, s->display.x->foreground_pixel,
-			 s->display.x->background_pixel);
+			 0, f->display.x->foreground_pixel,
+			 f->display.x->background_pixel);
   XFlush (x_current_display);
-  XDefineCursor (x_current_display, s->display.x->v_thumbdown,
+  XDefineCursor (x_current_display, f->display.x->v_thumbdown,
 		 down_arrow_cursor);
-  XSetWindowBackgroundPixmap (x_current_display, s->display.x->v_thumbdown,
+  XSetWindowBackgroundPixmap (x_current_display, f->display.x->v_thumbdown,
 			      down_arrow_pixmap);
   
-  fore_color.pixel = s->display.x->mouse_pixel;
-  back_color.pixel = s->display.x->background_pixel;
+  fore_color.pixel = f->display.x->mouse_pixel;
+  back_color.pixel = f->display.x->background_pixel;
   XQueryColor (x_current_display,
 	       DefaultColormap (x_current_display,
 				DefaultScreen (x_current_display)),
@@ -2473,21 +2473,21 @@ install_vertical_scrollbar (s)
   XFreePixmap (x_current_display, down_arrow_pixmap);
   XFlush (x_current_display);
 
-  XSelectInput (x_current_display, s->display.x->v_scrollbar,
+  XSelectInput (x_current_display, f->display.x->v_scrollbar,
 		ButtonPressMask | ButtonReleaseMask
 		| PointerMotionMask | PointerMotionHintMask
 		| EnterWindowMask);
-  XSelectInput (x_current_display, s->display.x->v_slider,
+  XSelectInput (x_current_display, f->display.x->v_slider,
 		ButtonPressMask | ButtonReleaseMask);
-  XSelectInput (x_current_display, s->display.x->v_thumbdown,
+  XSelectInput (x_current_display, f->display.x->v_thumbdown,
 		ButtonPressMask | ButtonReleaseMask);
-  XSelectInput (x_current_display, s->display.x->v_thumbup,
+  XSelectInput (x_current_display, f->display.x->v_thumbup,
 		ButtonPressMask | ButtonReleaseMask);
   XFlush (x_current_display);
 
   /* This should be done at the same time as the main window. */
-  XMapWindow (x_current_display, s->display.x->v_scrollbar);
-  XMapSubwindows (x_current_display, s->display.x->v_scrollbar);
+  XMapWindow (x_current_display, f->display.x->v_scrollbar);
+  XMapSubwindows (x_current_display, f->display.x->v_scrollbar);
   XFlush (x_current_display);
 #else /* not HAVE_X11 */
   Bitmap b;
@@ -2503,66 +2503,66 @@ install_vertical_scrollbar (s)
     0x7ffe, 0x3ffc, 0x1ff8, 0x0ff0,
     0x07e0, 0x03c0, 0x0180, 0x0000};
 
-  fore_tile = XMakeTile (s->display.x->foreground_pixel);
-  back_tile = XMakeTile (s->display.x->background_pixel);
-  bord_tile = XMakeTile (s->display.x->border_pixel);
+  fore_tile = XMakeTile (f->display.x->foreground_pixel);
+  back_tile = XMakeTile (f->display.x->background_pixel);
+  bord_tile = XMakeTile (f->display.x->border_pixel);
 
   b = XStoreBitmap (VSCROLL_WIDTH - 2, VSCROLL_WIDTH - 2, up_arrow_bits);
   up_arrow_pixmap = XMakePixmap (b, 
-				 s->display.x->foreground_pixel,
-				 s->display.x->background_pixel);
+				 f->display.x->foreground_pixel,
+				 f->display.x->background_pixel);
   XFreeBitmap (b);
 
   b = XStoreBitmap (VSCROLL_WIDTH - 2, VSCROLL_WIDTH - 2, down_arrow_bits);
   down_arrow_pixmap = XMakePixmap (b,
-				   s->display.x->foreground_pixel,
-				   s->display.x->background_pixel);
+				   f->display.x->foreground_pixel,
+				   f->display.x->background_pixel);
   XFreeBitmap (b);
 
-  ibw = s->display.x->internal_border_width;
+  ibw = f->display.x->internal_border_width;
 
-  s->display.x->v_scrollbar = XCreateWindow (s->display.x->window_desc,
+  f->display.x->v_scrollbar = XCreateWindow (f->display.x->window_desc,
 					     width - VSCROLL_WIDTH - ibw/2,
 					     ibw/2,
 					     VSCROLL_WIDTH - 2,
 					     height - ibw - 2,
 					     1, bord_tile, back_tile);
 
-  s->display.x->v_scrollbar_width = VSCROLL_WIDTH;
+  f->display.x->v_scrollbar_width = VSCROLL_WIDTH;
 
-  s->display.x->v_thumbup = XCreateWindow (s->display.x->v_scrollbar,
+  f->display.x->v_thumbup = XCreateWindow (f->display.x->v_scrollbar,
 					   0, 0,
 					   VSCROLL_WIDTH - 2,
 					   VSCROLL_WIDTH - 2,
 					   0, 0, up_arrow_pixmap);
-  XTileAbsolute (s->display.x->v_thumbup);
+  XTileAbsolute (f->display.x->v_thumbup);
 
-  s->display.x->v_thumbdown = XCreateWindow (s->display.x->v_scrollbar,
+  f->display.x->v_thumbdown = XCreateWindow (f->display.x->v_scrollbar,
 					     0,
 					     height - ibw - VSCROLL_WIDTH,
 					     VSCROLL_WIDTH - 2,
 					     VSCROLL_WIDTH - 2,
 					     0, 0, down_arrow_pixmap);
-  XTileAbsolute (s->display.x->v_thumbdown);
+  XTileAbsolute (f->display.x->v_thumbdown);
 
-  s->display.x->v_slider = XCreateWindow (s->display.x->v_scrollbar,
+  f->display.x->v_slider = XCreateWindow (f->display.x->v_scrollbar,
 					  0, VSCROLL_WIDTH - 2,
 					  VSCROLL_WIDTH - 4,
 					  VSCROLL_WIDTH - 4,
 					  1, back_tile, fore_tile);
 
-  XSelectInput (s->display.x->v_scrollbar,
+  XSelectInput (f->display.x->v_scrollbar,
 		(ButtonPressed | ButtonReleased | KeyPressed));
-  XSelectInput (s->display.x->v_thumbup,
-		(ButtonPressed | ButtonReleased | KeyPressed));
-
-  XSelectInput (s->display.x->v_thumbdown,
+  XSelectInput (f->display.x->v_thumbup,
 		(ButtonPressed | ButtonReleased | KeyPressed));
 
-  XMapWindow (s->display.x->v_thumbup);
-  XMapWindow (s->display.x->v_thumbdown);
-  XMapWindow (s->display.x->v_slider);
-  XMapWindow (s->display.x->v_scrollbar);
+  XSelectInput (f->display.x->v_thumbdown,
+		(ButtonPressed | ButtonReleased | KeyPressed));
+
+  XMapWindow (f->display.x->v_thumbup);
+  XMapWindow (f->display.x->v_thumbdown);
+  XMapWindow (f->display.x->v_slider);
+  XMapWindow (f->display.x->v_scrollbar);
 
   XFreePixmap (fore_tile);
   XFreePixmap (back_tile);
@@ -2572,43 +2572,43 @@ install_vertical_scrollbar (s)
 }				       
 
 static void
-install_horizontal_scrollbar (s)
-     struct screen *s;
+install_horizontal_scrollbar (f)
+     struct frame *f;
 {
-  int ibw = s->display.x->internal_border_width;
+  int ibw = f->display.x->internal_border_width;
   Window parent;
   Pixmap left_arrow_pixmap, right_arrow_pixmap, slider_pixmap;
   int pix_x, pix_y;
   int width;
 
   pix_x = ibw;
-  pix_y = PIXEL_HEIGHT (s) - HSCROLL_HEIGHT - ibw ;
-  width = PIXEL_WIDTH (s) - 2 * ibw;
-  if (s->display.x->v_scrollbar_width)
-    width -= (s->display.x->v_scrollbar_width + 1);
+  pix_y = PIXEL_HEIGHT (f) - HSCROLL_HEIGHT - ibw ;
+  width = PIXEL_WIDTH (f) - 2 * ibw;
+  if (f->display.x->v_scrollbar_width)
+    width -= (f->display.x->v_scrollbar_width + 1);
 
 #ifdef HAVE_X11
   left_arrow_pixmap =
-    XCreatePixmapFromBitmapData (x_current_display, s->display.x->window_desc,
+    XCreatePixmapFromBitmapData (x_current_display, f->display.x->window_desc,
 				 left_arrow_bits, 16, 16,
-				 s->display.x->foreground_pixel,
-				 s->display.x->background_pixel,
+				 f->display.x->foreground_pixel,
+				 f->display.x->background_pixel,
 				 DefaultDepth (x_current_display,
 					       XDefaultScreen (x_current_display)));
 
   right_arrow_pixmap =
-    XCreatePixmapFromBitmapData (x_current_display, s->display.x->window_desc,
+    XCreatePixmapFromBitmapData (x_current_display, f->display.x->window_desc,
 				 right_arrow_bits, 16, 16,
-				 s->display.x->foreground_pixel,
-				 s->display.x->background_pixel,
+				 f->display.x->foreground_pixel,
+				 f->display.x->background_pixel,
 				 DefaultDepth (x_current_display,
 					       XDefaultScreen (x_current_display)));
 
   slider_pixmap =
-    XCreatePixmapFromBitmapData (x_current_display, s->display.x->window_desc,
+    XCreatePixmapFromBitmapData (x_current_display, f->display.x->window_desc,
 				 gray_bits, 16, 16,
-				 s->display.x->foreground_pixel,
-				 s->display.x->background_pixel,
+				 f->display.x->foreground_pixel,
+				 f->display.x->background_pixel,
 				 DefaultDepth (x_current_display,
 					       XDefaultScreen (x_current_display)));
 
@@ -2616,65 +2616,65 @@ install_horizontal_scrollbar (s)
   right_arrow_cursor = XCreateFontCursor (x_current_display, XC_sb_right_arrow);
   h_double_arrow_cursor = XCreateFontCursor (x_current_display, XC_sb_h_double_arrow);
 
-  s->display.x->h_scrollbar =
-    XCreateSimpleWindow (x_current_display, s->display.x->window_desc,
+  f->display.x->h_scrollbar =
+    XCreateSimpleWindow (x_current_display, f->display.x->window_desc,
 			 pix_x, pix_y,
 			 width - ibw - 2, HSCROLL_HEIGHT - 2, 1,
-			 s->display.x->foreground_pixel,
-			 s->display.x->background_pixel);
-  XDefineCursor (x_current_display, s->display.x->h_scrollbar,
+			 f->display.x->foreground_pixel,
+			 f->display.x->background_pixel);
+  XDefineCursor (x_current_display, f->display.x->h_scrollbar,
 		 h_double_arrow_cursor);
 
-  s->display.x->h_slider =
-    XCreateSimpleWindow (x_current_display, s->display.x->h_scrollbar,
+  f->display.x->h_slider =
+    XCreateSimpleWindow (x_current_display, f->display.x->h_scrollbar,
 			 0, 0,
 			 HSCROLL_HEIGHT - 4, HSCROLL_HEIGHT - 4,
-			 1, s->display.x->foreground_pixel,
-			 s->display.x->background_pixel);
-  XDefineCursor (x_current_display, s->display.x->h_slider,
+			 1, f->display.x->foreground_pixel,
+			 f->display.x->background_pixel);
+  XDefineCursor (x_current_display, f->display.x->h_slider,
 		 h_double_arrow_cursor);
-  XSetWindowBackgroundPixmap (x_current_display, s->display.x->h_slider,
+  XSetWindowBackgroundPixmap (x_current_display, f->display.x->h_slider,
 			      slider_pixmap);
 
-  s->display.x->h_thumbleft =
-    XCreateSimpleWindow (x_current_display, s->display.x->h_scrollbar,
+  f->display.x->h_thumbleft =
+    XCreateSimpleWindow (x_current_display, f->display.x->h_scrollbar,
 			 0, 0,
 			 HSCROLL_HEIGHT - 2, HSCROLL_HEIGHT - 2,
-			 0, s->display.x->foreground_pixel,
-			 s->display.x->background_pixel);
-  XDefineCursor (x_current_display, s->display.x->h_thumbleft,
+			 0, f->display.x->foreground_pixel,
+			 f->display.x->background_pixel);
+  XDefineCursor (x_current_display, f->display.x->h_thumbleft,
 		 left_arrow_cursor);
-  XSetWindowBackgroundPixmap (x_current_display, s->display.x->h_thumbleft,
+  XSetWindowBackgroundPixmap (x_current_display, f->display.x->h_thumbleft,
 			      left_arrow_pixmap);
 
-  s->display.x->h_thumbright =
-    XCreateSimpleWindow (x_current_display, s->display.x->h_scrollbar,
+  f->display.x->h_thumbright =
+    XCreateSimpleWindow (x_current_display, f->display.x->h_scrollbar,
 			 width - ibw - HSCROLL_HEIGHT, 0,
 			 HSCROLL_HEIGHT - 2, HSCROLL_HEIGHT -2,
-			 0, s->display.x->foreground_pixel,
-			 s->display.x->background_pixel);
-  XDefineCursor (x_current_display, s->display.x->h_thumbright,
+			 0, f->display.x->foreground_pixel,
+			 f->display.x->background_pixel);
+  XDefineCursor (x_current_display, f->display.x->h_thumbright,
 		 right_arrow_cursor);
-  XSetWindowBackgroundPixmap (x_current_display, s->display.x->h_thumbright,
+  XSetWindowBackgroundPixmap (x_current_display, f->display.x->h_thumbright,
 			      right_arrow_pixmap);
 
   XFreePixmap (x_current_display, slider_pixmap);
   XFreePixmap (x_current_display, left_arrow_pixmap);
   XFreePixmap (x_current_display, right_arrow_pixmap);
 
-  XSelectInput (x_current_display, s->display.x->h_scrollbar,
+  XSelectInput (x_current_display, f->display.x->h_scrollbar,
 		ButtonPressMask | ButtonReleaseMask
 		| PointerMotionMask | PointerMotionHintMask
 		| EnterWindowMask);
-  XSelectInput (x_current_display, s->display.x->h_slider,
+  XSelectInput (x_current_display, f->display.x->h_slider,
 		ButtonPressMask | ButtonReleaseMask);
-  XSelectInput (x_current_display, s->display.x->h_thumbright,
+  XSelectInput (x_current_display, f->display.x->h_thumbright,
 		ButtonPressMask | ButtonReleaseMask);
-  XSelectInput (x_current_display, s->display.x->h_thumbleft,
+  XSelectInput (x_current_display, f->display.x->h_thumbleft,
 		ButtonPressMask | ButtonReleaseMask);
 
-  XMapWindow (x_current_display, s->display.x->h_scrollbar);
-  XMapSubwindows (x_current_display, s->display.x->h_scrollbar);
+  XMapWindow (x_current_display, f->display.x->h_scrollbar);
+  XMapSubwindows (x_current_display, f->display.x->h_scrollbar);
 #else /* not HAVE_X11 */
   Bitmap b;
   Pixmap fore_tile, back_tile, bord_tile;
@@ -2688,18 +2688,18 @@ install_horizontal_scrollbar (s)
 /* Adjust the displayed position in the scroll bar for window W.  */
 
 void
-adjust_scrollbars (s)
-     struct screen *s;
+adjust_scrollbars (f)
+     struct frame *f;
 {
   int pos;
   int first_char_in_window, char_beyond_window, chars_in_window;
   int chars_in_buffer, buffer_size;
-  struct window *w = XWINDOW (SCREEN_SELECTED_WINDOW (s));
+  struct window *w = XWINDOW (FRAME_SELECTED_WINDOW (f));
 
-  if (! SCREEN_IS_X (s))
+  if (! FRAME_IS_X (f))
     return;
 
-  if (s->display.x->v_scrollbar != 0)
+  if (f->display.x->v_scrollbar != 0)
     {
       int h, height;
       struct buffer *b = XBUFFER (w->buffer);
@@ -2712,9 +2712,9 @@ adjust_scrollbars (s)
 
       /* Calculate height of scrollbar area */
 
-      height = s->height * FONT_HEIGHT (s->display.x->font)
-	+ s->display.x->internal_border_width
-	  - 2 * (s->display.x->v_scrollbar_width);
+      height = f->height * FONT_HEIGHT (f->display.x->font)
+	+ f->display.x->internal_border_width
+	  - 2 * (f->display.x->v_scrollbar_width);
 
       /* Figure starting position for the scrollbar slider */
 
@@ -2737,27 +2737,27 @@ adjust_scrollbars (s)
 
       /* Add thumbup offset to starting position of slider */
 
-      pos += (s->display.x->v_scrollbar_width - 2);
+      pos += (f->display.x->v_scrollbar_width - 2);
 
       XMoveResizeWindow (XDISPLAY
-			 s->display.x->v_slider,
+			 f->display.x->v_slider,
 			 0, pos,
-			 s->display.x->v_scrollbar_width - 4, h);
+			 f->display.x->v_scrollbar_width - 4, h);
     }
       
-  if (s->display.x->h_scrollbar != 0)
+  if (f->display.x->h_scrollbar != 0)
     {
       int l, length;      /* Length of the scrollbar area */
 
-      length = s->width * FONT_WIDTH (s->display.x->font)
-	+ s->display.x->internal_border_width
-	  - 2 * (s->display.x->h_scrollbar_height);
+      length = f->width * FONT_WIDTH (f->display.x->font)
+	+ f->display.x->internal_border_width
+	  - 2 * (f->display.x->h_scrollbar_height);
 
       /* Starting position for horizontal slider */
       if (! w->hscroll)
 	pos = 0;
       else
-	pos = (w->hscroll * length) / (w->hscroll + s->width);
+	pos = (w->hscroll * length) / (w->hscroll + f->width);
       pos = max (0, pos);
       pos = min (pos, length - 2);
 
@@ -2765,81 +2765,81 @@ adjust_scrollbars (s)
       l = length - pos;
 
       /* Add thumbup offset */
-      pos += (s->display.x->h_scrollbar_height - 2);
+      pos += (f->display.x->h_scrollbar_height - 2);
 
       XMoveResizeWindow (XDISPLAY
-			 s->display.x->h_slider,
+			 f->display.x->h_slider,
 			 pos, 0,
-			 l, s->display.x->h_scrollbar_height - 4);
+			 l, f->display.x->h_scrollbar_height - 4);
     }
 }
 
-/* Adjust the size of the scroll bars of screen S,
-   when the screen size has changed.  */
+/* Adjust the size of the scroll bars of frame F,
+   when the frame size has changed.  */
 
 void
-x_resize_scrollbars (s)
-     struct screen *s;
+x_resize_scrollbars (f)
+     struct frame *f;
 {
-  int ibw = s->display.x->internal_border_width;
+  int ibw = f->display.x->internal_border_width;
   int pixelwidth, pixelheight;
 
-  if (s == 0
-      || s->display.x == 0
-      || (s->display.x->v_scrollbar == 0
-	  && s->display.x->h_scrollbar == 0))
+  if (f == 0
+      || f->display.x == 0
+      || (f->display.x->v_scrollbar == 0
+	  && f->display.x->h_scrollbar == 0))
     return;
 
-  /* Get the size of the screen.  */
-  pixelwidth = (s->width * FONT_WIDTH (s->display.x->font)
-		+ 2 * ibw + s->display.x->v_scrollbar_width);
-  pixelheight = (s->height * FONT_HEIGHT (s->display.x->font)
-		 + 2 * ibw + s->display.x->h_scrollbar_height);
+  /* Get the size of the frame.  */
+  pixelwidth = (f->width * FONT_WIDTH (f->display.x->font)
+		+ 2 * ibw + f->display.x->v_scrollbar_width);
+  pixelheight = (f->height * FONT_HEIGHT (f->display.x->font)
+		 + 2 * ibw + f->display.x->h_scrollbar_height);
 
-  if (s->display.x->v_scrollbar_width && s->display.x->v_scrollbar)
+  if (f->display.x->v_scrollbar_width && f->display.x->v_scrollbar)
     {
       BLOCK_INPUT;
       XMoveResizeWindow (XDISPLAY
-			 s->display.x->v_scrollbar,
-			 pixelwidth - s->display.x->v_scrollbar_width - ibw/2,
+			 f->display.x->v_scrollbar,
+			 pixelwidth - f->display.x->v_scrollbar_width - ibw/2,
 			 ibw/2,
-			 s->display.x->v_scrollbar_width - 2,
+			 f->display.x->v_scrollbar_width - 2,
 			 pixelheight - ibw - 2);
       XMoveWindow (XDISPLAY
-		   s->display.x->v_thumbdown, 0,
-		   pixelheight - ibw - s->display.x->v_scrollbar_width);
+		   f->display.x->v_thumbdown, 0,
+		   pixelheight - ibw - f->display.x->v_scrollbar_width);
       UNBLOCK_INPUT;
     }
 
-  if (s->display.x->h_scrollbar_height && s->display.x->h_scrollbar)
+  if (f->display.x->h_scrollbar_height && f->display.x->h_scrollbar)
     {
-      if (s->display.x->v_scrollbar_width)
-	pixelwidth -= s->display.x->v_scrollbar_width + 1;
+      if (f->display.x->v_scrollbar_width)
+	pixelwidth -= f->display.x->v_scrollbar_width + 1;
 
       BLOCK_INPUT;
       XMoveResizeWindow (XDISPLAY
-			 s->display.x->h_scrollbar,
+			 f->display.x->h_scrollbar,
 			 ibw / 2,
-			 pixelheight - s->display.x->h_scrollbar_height - ibw / 2,
+			 pixelheight - f->display.x->h_scrollbar_height - ibw / 2,
 			 pixelwidth - ibw - 2,
-			 s->display.x->h_scrollbar_height - 2);
+			 f->display.x->h_scrollbar_height - 2);
       XMoveWindow (XDISPLAY
-		   s->display.x->h_thumbright,
-		   pixelwidth - ibw - s->display.x->h_scrollbar_height, 0);
+		   f->display.x->h_thumbright,
+		   pixelwidth - ibw - f->display.x->h_scrollbar_height, 0);
       UNBLOCK_INPUT;
     }
 }
 
-x_pixel_width (s)
-     register struct screen *s;
+x_pixel_width (f)
+     register struct frame *f;
 {
-  return PIXEL_WIDTH (s);
+  return PIXEL_WIDTH (f);
 }
 
-x_pixel_height (s)
-     register struct screen *s;
+x_pixel_height (f)
+     register struct frame *f;
 {
-  return PIXEL_HEIGHT (s);
+  return PIXEL_HEIGHT (f);
 }
 
 DEFUN ("x-defined-color", Fx_defined_color, Sx_defined_color, 1, 1, 0,
@@ -2878,64 +2878,64 @@ DEFUN ("x-color-display-p", Fx_color_display_p, Sx_color_display_p, 0, 0, 0,
 }
 
 DEFUN ("x-pixel-width", Fx_pixel_width, Sx_pixel_width, 1, 1, 0,
-  "Return the width in pixels of screen S.")
-  (screen)
-     Lisp_Object screen;
+  "Return the width in pixels of FRAME.")
+  (frame)
+     Lisp_Object frame;
 {
-  CHECK_LIVE_SCREEN (screen, 0);
-  return make_number (XSCREEN (screen)->display.x->pixel_width);
+  CHECK_LIVE_FRAME (frame, 0);
+  return make_number (XFRAME (frame)->display.x->pixel_width);
 }
 
 DEFUN ("x-pixel-height", Fx_pixel_height, Sx_pixel_height, 1, 1, 0,
-  "Return the height in pixels of screen S.")
-  (screen)
-     Lisp_Object screen;
+  "Return the height in pixels of FRAME.")
+  (frame)
+     Lisp_Object frame;
 {
-  CHECK_LIVE_SCREEN (screen, 0);
-  return make_number (XSCREEN (screen)->display.x->pixel_height);
+  CHECK_LIVE_FRAME (frame, 0);
+  return make_number (XFRAME (frame)->display.x->pixel_height);
 }
 
 #if 0  /* These no longer seem like the right way to do things.  */
 
-/* Draw a rectangle on the screen with left top corner including
+/* Draw a rectangle on the frame with left top corner including
    the character specified by LEFT_CHAR and TOP_CHAR.  The rectangle is
    CHARS by LINES wide and long and is the color of the cursor. */
 
 void
-x_rectangle (s, gc, left_char, top_char, chars, lines)
-     register struct screen *s;
+x_rectangle (f, gc, left_char, top_char, chars, lines)
+     register struct frame *f;
      GC gc;
      register int top_char, left_char, chars, lines;
 {
   int width;
   int height;
-  int left = (left_char * FONT_WIDTH (s->display.x->font)
-		    + s->display.x->internal_border_width);
-  int top = (top_char *  FONT_HEIGHT (s->display.x->font)
-		   + s->display.x->internal_border_width);
+  int left = (left_char * FONT_WIDTH (f->display.x->font)
+		    + f->display.x->internal_border_width);
+  int top = (top_char *  FONT_HEIGHT (f->display.x->font)
+		   + f->display.x->internal_border_width);
 
   if (chars < 0)
-    width = FONT_WIDTH (s->display.x->font) / 2;
+    width = FONT_WIDTH (f->display.x->font) / 2;
   else
-    width = FONT_WIDTH (s->display.x->font) * chars;
+    width = FONT_WIDTH (f->display.x->font) * chars;
   if (lines < 0)
-    height = FONT_HEIGHT (s->display.x->font) / 2;
+    height = FONT_HEIGHT (f->display.x->font) / 2;
   else
-    height = FONT_HEIGHT (s->display.x->font) * lines;
+    height = FONT_HEIGHT (f->display.x->font) * lines;
 
-  XDrawRectangle (x_current_display, s->display.x->window_desc,
+  XDrawRectangle (x_current_display, f->display.x->window_desc,
 		  gc, left, top, width, height);
 }
 
 DEFUN ("x-draw-rectangle", Fx_draw_rectangle, Sx_draw_rectangle, 5, 5, 0,
-  "Draw a rectangle on SCREEN between coordinates specified by\n\
+  "Draw a rectangle on FRAME between coordinates specified by\n\
 numbers X0, Y0, X1, Y1 in the cursor pixel.")
-  (screen, X0, Y0, X1, Y1)
-     register Lisp_Object screen, X0, X1, Y0, Y1;
+  (frame, X0, Y0, X1, Y1)
+     register Lisp_Object frame, X0, X1, Y0, Y1;
 {
   register int x0, y0, x1, y1, top, left, n_chars, n_lines;
 
-  CHECK_LIVE_SCREEN (screen, 0);
+  CHECK_LIVE_FRAME (frame, 0);
   CHECK_NUMBER (X0, 0);
   CHECK_NUMBER (Y0, 1);
   CHECK_NUMBER (X1, 2);
@@ -2969,7 +2969,7 @@ numbers X0, Y0, X1, Y1 in the cursor pixel.")
     }
 
   BLOCK_INPUT;
-  x_rectangle (XSCREEN (screen), XSCREEN (screen)->display.x->cursor_gc,
+  x_rectangle (XFRAME (frame), XFRAME (frame)->display.x->cursor_gc,
 	       left, top, n_chars, n_lines);
   UNBLOCK_INPUT;
 
@@ -2977,14 +2977,14 @@ numbers X0, Y0, X1, Y1 in the cursor pixel.")
 }
 
 DEFUN ("x-erase-rectangle", Fx_erase_rectangle, Sx_erase_rectangle, 5, 5, 0,
-  "Draw a rectangle drawn on SCREEN between coordinates\n\
+  "Draw a rectangle drawn on FRAME between coordinates\n\
 X0, Y0, X1, Y1 in the regular background-pixel.")
-  (screen, X0, Y0, X1, Y1)
-  register Lisp_Object screen, X0, Y0, X1, Y1;
+  (frame, X0, Y0, X1, Y1)
+  register Lisp_Object frame, X0, Y0, X1, Y1;
 {
   register int x0, y0, x1, y1, top, left, n_chars, n_lines;
 
-  CHECK_SCREEN (screen, 0);
+  CHECK_FRAME (frame, 0);
   CHECK_NUMBER (X0, 0);
   CHECK_NUMBER (Y0, 1);
   CHECK_NUMBER (X1, 2);
@@ -3018,7 +3018,7 @@ X0, Y0, X1, Y1 in the regular background-pixel.")
     }
 
   BLOCK_INPUT;
-  x_rectangle (XSCREEN (screen), XSCREEN (screen)->display.x->reverse_gc,
+  x_rectangle (XFRAME (frame), XFRAME (frame)->display.x->reverse_gc,
 	       left, top, n_chars, n_lines);
   UNBLOCK_INPUT;
 
@@ -3029,17 +3029,17 @@ X0, Y0, X1, Y1 in the regular background-pixel.")
    TOP_X, TOP_Y and ending at BOTTOM_X and BOTTOM_Y.  GC specifies the
    pixel and line characteristics. */
 
-#define line_len(line) (SCREEN_CURRENT_GLYPHS (s)->used[(line)])
+#define line_len(line) (FRAME_CURRENT_GLYPHS (f)->used[(line)])
 
 static void
-outline_region (s, gc, top_x, top_y, bottom_x, bottom_y)
-     register struct screen *s;
+outline_region (f, gc, top_x, top_y, bottom_x, bottom_y)
+     register struct frame *f;
      GC gc;
      int  top_x, top_y, bottom_x, bottom_y;
 {
-  register int ibw = s->display.x->internal_border_width;
-  register int font_w = FONT_WIDTH (s->display.x->font);
-  register int font_h = FONT_HEIGHT (s->display.x->font);
+  register int ibw = f->display.x->internal_border_width;
+  register int font_w = FONT_WIDTH (f->display.x->font);
+  register int font_h = FONT_HEIGHT (f->display.x->font);
   int y = top_y;
   int x = line_len (y);
   XPoint *pixel_points = (XPoint *)
@@ -3104,19 +3104,19 @@ outline_region (s, gc, top_x, top_y, bottom_x, bottom_y)
   this_point->x = pixel_points->x;
   this_point->y = pixel_points->y;
 
-  XDrawLines (x_current_display, s->display.x->window_desc,
+  XDrawLines (x_current_display, f->display.x->window_desc,
 	      gc, pixel_points,
 	      (this_point - pixel_points + 1), CoordModeOrigin);
 }
 
 DEFUN ("x-contour-region", Fx_contour_region, Sx_contour_region, 1, 1, 0,
   "Highlight the region between point and the character under the mouse\n\
-selected screen.")
+selected frame.")
   (event)
      register Lisp_Object event;
 {
   register int x0, y0, x1, y1;
-  register struct screen *s = selected_screen;
+  register struct frame *f = selected_frame;
   register int p1, p2;
 
   CHECK_CONS (event, 0);
@@ -3128,22 +3128,22 @@ selected screen.")
   /* If the mouse is past the end of the line, don't that area. */
   /* ReWrite this... */
 
-  x1 = s->cursor_x;
-  y1 = s->cursor_y;
+  x1 = f->cursor_x;
+  y1 = f->cursor_y;
 
   if (y1 > y0)			/* point below mouse */
-    outline_region (s, s->display.x->cursor_gc,
+    outline_region (f, f->display.x->cursor_gc,
 		    x0, y0, x1, y1);
   else if (y1 < y0)		/* point above mouse */
-    outline_region (s, s->display.x->cursor_gc,
+    outline_region (f, f->display.x->cursor_gc,
 		    x1, y1, x0, y0);
   else				/* same line: draw horizontal rectangle */
     {
       if (x1 > x0)
-	x_rectangle (s, s->display.x->cursor_gc,
+	x_rectangle (f, f->display.x->cursor_gc,
 		     x0, y0, (x1 - x0 + 1), 1);
       else if (x1 < x0)
-	  x_rectangle (s, s->display.x->cursor_gc,
+	  x_rectangle (f, f->display.x->cursor_gc,
 		       x1, y1, (x0 - x1 + 1), 1);
     }
 
@@ -3155,32 +3155,32 @@ selected screen.")
 
 DEFUN ("x-uncontour-region", Fx_uncontour_region, Sx_uncontour_region, 1, 1, 0,
   "Erase any highlighting of the region between point and the character\n\
-at X, Y on the selected screen.")
+at X, Y on the selected frame.")
   (event)
      register Lisp_Object event;
 {
   register int x0, y0, x1, y1;
-  register struct screen *s = selected_screen;
+  register struct frame *f = selected_frame;
 
   BLOCK_INPUT;
   x0 = XINT (Fcar (Fcar (event)));
   y0 = XINT (Fcar (Fcdr (Fcar (event))));
-  x1 = s->cursor_x;
-  y1 = s->cursor_y;
+  x1 = f->cursor_x;
+  y1 = f->cursor_y;
 
   if (y1 > y0)			/* point below mouse */
-    outline_region (s, s->display.x->reverse_gc,
+    outline_region (f, f->display.x->reverse_gc,
 		      x0, y0, x1, y1);
   else if (y1 < y0)		/* point above mouse */
-    outline_region (s, s->display.x->reverse_gc,
+    outline_region (f, f->display.x->reverse_gc,
 		      x1, y1, x0, y0);
   else				/* same line: draw horizontal rectangle */
     {
       if (x1 > x0)
-	x_rectangle (s, s->display.x->reverse_gc,
+	x_rectangle (f, f->display.x->reverse_gc,
 		     x0, y0, (x1 - x0 + 1), 1);
       else if (x1 < x0)
-	x_rectangle (s, s->display.x->reverse_gc,
+	x_rectangle (f, f->display.x->reverse_gc,
 		     x1, y1, (x0 - x1 + 1), 1);
     }
   UNBLOCK_INPUT;
@@ -3203,7 +3203,7 @@ clip_contour_top (y_pos, x_pos)
   register XPoint *begin = contour_lines[y_pos].top_left;
   register XPoint *end;
   register int npoints;
-  register struct display_line *line = selected_screen->phys_lines[y_pos + 1];
+  register struct display_line *line = selected_frame->phys_lines[y_pos + 1];
 
   if (x_pos >= line->len - 1)	/* Draw one, straight horizontal line. */
     {
@@ -3268,9 +3268,9 @@ DEFUN ("x-select-region", Fx_select_region, Sx_select_region, 1, 1, "e",
   (event)
      Lisp_Object event;
 {
- register struct screen *s = selected_screen;
- register int point_x = s->cursor_x;
- register int point_y = s->cursor_y;
+ register struct frame *f = selected_frame;
+ register int point_x = f->cursor_x;
+ register int point_y = f->cursor_y;
  register int mouse_below_point;
  register Lisp_Object obj;
  register int x_contour_x, x_contour_y;
@@ -3281,13 +3281,13 @@ DEFUN ("x-select-region", Fx_select_region, Sx_select_region, 1, 1, "e",
 			       && x_contour_x > point_x))
    {
      mouse_below_point = 1;
-     outline_region (s, s->display.x->cursor_gc, point_x, point_y,
+     outline_region (f, f->display.x->cursor_gc, point_x, point_y,
 		     x_contour_x, x_contour_y);
    }
  else
    {
      mouse_below_point = 0;
-     outline_region (s, s->display.x->cursor_gc, x_contour_x, x_contour_y,
+     outline_region (f, f->display.x->cursor_gc, x_contour_x, x_contour_y,
 		     point_x, point_y);
    }
 
@@ -3303,9 +3303,9 @@ DEFUN ("x-select-region", Fx_select_region, Sx_select_region, 1, 1, "e",
 	   {
 	     mouse_below_point = 0;
 
-	     outline_region (s, s->display.x->reverse_gc, point_x, point_y,
+	     outline_region (f, f->display.x->reverse_gc, point_x, point_y,
 			     x_contour_x, x_contour_y);
-	     outline_region (s, s->display.x->cursor_gc, x_mouse_x, x_mouse_y,
+	     outline_region (f, f->display.x->cursor_gc, x_mouse_x, x_mouse_y,
 			     point_x, point_y);
 	   }
 	 else if (x_mouse_y < x_contour_y)	  /* Bottom clipped. */
@@ -3326,9 +3326,9 @@ DEFUN ("x-select-region", Fx_select_region, Sx_select_region, 1, 1, "e",
 	   {
 	     mouse_below_point = 1;
 
-	     outline_region (s, s->display.x->reverse_gc,
+	     outline_region (f, f->display.x->reverse_gc,
 			     x_contour_x, x_contour_y, point_x, point_y);
-	     outline_region (s, s->display.x->cursor_gc, point_x, point_y,
+	     outline_region (f, f->display.x->cursor_gc, point_x, point_y,
 			     x_mouse_x, x_mouse_y);
 	   }
 	 else if (x_mouse_y > x_contour_y)	  /* Top clipped. */
@@ -3366,42 +3366,42 @@ DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
      Lisp_Object event;
 {
   register Lisp_Object obj;
-  struct screen *s = selected_screen;
+  struct frame *f = selected_frame;
   register struct window *w = XWINDOW (selected_window);
-  register GC line_gc = s->display.x->cursor_gc;
-  register GC erase_gc = s->display.x->reverse_gc;
+  register GC line_gc = f->display.x->cursor_gc;
+  register GC erase_gc = f->display.x->reverse_gc;
 #if 0
   char dash_list[] = {6, 4, 6, 4};
   int dashes = 4;
   XGCValues gc_values;
 #endif
   register int previous_y;
-  register int line = (x_mouse_y + 1) * FONT_HEIGHT (s->display.x->font)
-    + s->display.x->internal_border_width;
-  register int left = s->display.x->internal_border_width
+  register int line = (x_mouse_y + 1) * FONT_HEIGHT (f->display.x->font)
+    + f->display.x->internal_border_width;
+  register int left = f->display.x->internal_border_width
     + (w->left
-       * FONT_WIDTH (s->display.x->font));
+       * FONT_WIDTH (f->display.x->font));
   register int right = left + (w->width
-			       * FONT_WIDTH (s->display.x->font))
-    - s->display.x->internal_border_width;
+			       * FONT_WIDTH (f->display.x->font))
+    - f->display.x->internal_border_width;
 
 #if 0
   BLOCK_INPUT;
-  gc_values.foreground = s->display.x->cursor_pixel;
-  gc_values.background = s->display.x->background_pixel;
+  gc_values.foreground = f->display.x->cursor_pixel;
+  gc_values.background = f->display.x->background_pixel;
   gc_values.line_width = 1;
   gc_values.line_style = LineOnOffDash;
   gc_values.cap_style = CapRound;
   gc_values.join_style = JoinRound;
 
-  line_gc = XCreateGC (x_current_display, s->display.x->window_desc,
+  line_gc = XCreateGC (x_current_display, f->display.x->window_desc,
 		       GCLineStyle | GCJoinStyle | GCCapStyle
 		       | GCLineWidth | GCForeground | GCBackground,
 		       &gc_values);
   XSetDashes (x_current_display, line_gc, 0, dash_list, dashes);
-  gc_values.foreground = s->display.x->background_pixel;
-  gc_values.background = s->display.x->foreground_pixel;
-  erase_gc = XCreateGC (x_current_display, s->display.x->window_desc,
+  gc_values.foreground = f->display.x->background_pixel;
+  gc_values.background = f->display.x->foreground_pixel;
+  erase_gc = XCreateGC (x_current_display, f->display.x->window_desc,
 		       GCLineStyle | GCJoinStyle | GCCapStyle
 		       | GCLineWidth | GCForeground | GCBackground,
 		       &gc_values);
@@ -3415,9 +3415,9 @@ DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
 	  && x_mouse_y < XINT (w->top) + XINT (w->height) - 1)
 	{
 	  previous_y = x_mouse_y;
-	  line = (x_mouse_y + 1) * FONT_HEIGHT (s->display.x->font)
-	    + s->display.x->internal_border_width;
-	  XDrawLine (x_current_display, s->display.x->window_desc,
+	  line = (x_mouse_y + 1) * FONT_HEIGHT (f->display.x->font)
+	    + f->display.x->internal_border_width;
+	  XDrawLine (x_current_display, f->display.x->window_desc,
 		     line_gc, left, line, right, line);
 	}
       XFlushQueue ();
@@ -3432,7 +3432,7 @@ DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
 	      || x_mouse_grabbed)
 	    {
 	      BLOCK_INPUT;
-	      XDrawLine (x_current_display, s->display.x->window_desc,
+	      XDrawLine (x_current_display, f->display.x->window_desc,
 			 erase_gc, left, line, right, line);
 	      UNBLOCK_INPUT;
 	      unread_command_char = obj;
@@ -3446,7 +3446,7 @@ DEFUN ("x-horizontal-line", Fx_horizontal_line, Sx_horizontal_line, 1, 1, "e",
       while (x_mouse_y == previous_y);
 
       BLOCK_INPUT;
-      XDrawLine (x_current_display, s->display.x->window_desc,
+      XDrawLine (x_current_display, f->display.x->window_desc,
 		 erase_gc, left, line, right, line);
       UNBLOCK_INPUT;
     }
@@ -3465,29 +3465,29 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 0, 0, 0,
   ()
 {
   static Cursor current_pointer_shape;
-  SCREEN_PTR s = x_mouse_screen;
+  FRAME_PTR f = x_mouse_frame;
 
   BLOCK_INPUT;
-  if (EQ (Vmouse_screen_part, Qtext_part)
-      && (current_pointer_shape != s->display.x->nontext_cursor))
+  if (EQ (Vmouse_frame_part, Qtext_part)
+      && (current_pointer_shape != f->display.x->nontext_cursor))
     {
       unsigned char c;
       struct buffer *buf;
 
-      current_pointer_shape = s->display.x->nontext_cursor;
+      current_pointer_shape = f->display.x->nontext_cursor;
       XDefineCursor (x_current_display,
-		     s->display.x->window_desc,
+		     f->display.x->window_desc,
 		     current_pointer_shape);
 
       buf = XBUFFER (XWINDOW (Vmouse_window)->buffer);
       c = *(BUF_CHAR_ADDRESS (buf, mouse_buffer_offset));
     }
-  else if (EQ (Vmouse_screen_part, Qmodeline_part)
-	   && (current_pointer_shape != s->display.x->modeline_cursor))
+  else if (EQ (Vmouse_frame_part, Qmodeline_part)
+	   && (current_pointer_shape != f->display.x->modeline_cursor))
     {
-      current_pointer_shape = s->display.x->modeline_cursor;
+      current_pointer_shape = f->display.x->modeline_cursor;
       XDefineCursor (x_current_display,
-		     s->display.x->window_desc,
+		     f->display.x->window_desc,
 		     current_pointer_shape);
     }
 
@@ -3503,7 +3503,7 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
      Lisp_Object event;
 {
   struct window *w = XWINDOW (Vmouse_window);
-  struct screen *s = XSCREEN (WINDOW_SCREEN (w));
+  struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct buffer *b = XBUFFER (w->buffer);
   Lisp_Object obj;
 
@@ -3514,7 +3514,7 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
     {
       int x, y;
 
-      x_read_mouse_position (selected_screen, &x, &y);
+      x_read_mouse_position (selected_frame, &x, &y);
     }
 
   BLOCK_INPUT;
@@ -3529,29 +3529,29 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
 	  || x_mouse_y != mouse_track_top)
 	{
 	  int hp = 0;		/* Horizontal position */
-	  int len = SCREEN_CURRENT_GLYPHS (s)->used[x_mouse_y];
-	  int p = SCREEN_CURRENT_GLYPHS (s)->bufp[x_mouse_y];
+	  int len = FRAME_CURRENT_GLYPHS (f)->used[x_mouse_y];
+	  int p = FRAME_CURRENT_GLYPHS (f)->bufp[x_mouse_y];
 	  int tab_width = XINT (b->tab_width);
 	  int ctl_arrow_p = !NILP (b->ctl_arrow);
 	  unsigned char c;
 	  int mode_line_vpos = XFASTINT (w->height) + XFASTINT (w->top) - 1;
 	  int in_mode_line = 0;
 
-	  if (! SCREEN_CURRENT_GLYPHS (s)->enable[x_mouse_y])
+	  if (! FRAME_CURRENT_GLYPHS (f)->enable[x_mouse_y])
 	    break;
 
 	  /* Erase previous rectangle. */
 	  if (mouse_track_width)
 	    {
-	      x_rectangle (s, s->display.x->reverse_gc,
+	      x_rectangle (f, f->display.x->reverse_gc,
 			   mouse_track_left, mouse_track_top,
 			   mouse_track_width, 1);
 
-	      if ((mouse_track_left == s->phys_cursor_x
-		   || mouse_track_left == s->phys_cursor_x - 1)
-		  && mouse_track_top == s->phys_cursor_y)
+	      if ((mouse_track_left == f->phys_cursor_x
+		   || mouse_track_left == f->phys_cursor_x - 1)
+		  && mouse_track_top == f->phys_cursor_y)
 		{
-		  x_display_cursor (s, 1);
+		  x_display_cursor (f, 1);
 		}
 	    }
 
@@ -3572,7 +3572,7 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
 	  do
 	    {
 	      c = FETCH_CHAR (p);
-	      if (len == s->width && hp == len - 1 && c != '\n')
+	      if (len == f->width && hp == len - 1 && c != '\n')
 		goto draw_or_not;
 
 	      switch (c)
@@ -3622,20 +3622,20 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
 	  if (mouse_track_width) /* Over text; use text pointer shape. */
 	    {
 	      XDefineCursor (x_current_display,
-			     s->display.x->window_desc,
-			     s->display.x->text_cursor);
-	      x_rectangle (s, s->display.x->cursor_gc,
+			     f->display.x->window_desc,
+			     f->display.x->text_cursor);
+	      x_rectangle (f, f->display.x->cursor_gc,
 			   mouse_track_left, mouse_track_top,
 			   mouse_track_width, 1);
 	    }
 	  else if (in_mode_line)
 	    XDefineCursor (x_current_display,
-			   s->display.x->window_desc,
-			   s->display.x->modeline_cursor);
+			   f->display.x->window_desc,
+			   f->display.x->modeline_cursor);
 	  else
 	    XDefineCursor (x_current_display,
-			   s->display.x->window_desc,
-			   s->display.x->nontext_cursor);
+			   f->display.x->window_desc,
+			   f->display.x->nontext_cursor);
 	}
 
       XFlush (x_current_display);
@@ -3648,26 +3648,26 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
 	 && EQ (Fcar (Fcdr (Fcdr (obj))), Qnil)	   /* Not scrollbar */
 	 && EQ (Vmouse_depressed, Qnil)              /* Only motion events */
 	 && EQ (Vmouse_window, selected_window)	   /* In this window */
-	 && x_mouse_screen);
+	 && x_mouse_frame);
 
   unread_command_char = obj;
 
   if (mouse_track_width)
     {
-      x_rectangle (s, s->display.x->reverse_gc,
+      x_rectangle (f, f->display.x->reverse_gc,
 		   mouse_track_left, mouse_track_top,
 		   mouse_track_width, 1);
       mouse_track_width = 0;
-      if ((mouse_track_left == s->phys_cursor_x
-	   || mouse_track_left - 1 == s->phys_cursor_x)
-	  && mouse_track_top == s->phys_cursor_y)
+      if ((mouse_track_left == f->phys_cursor_x
+	   || mouse_track_left - 1 == f->phys_cursor_x)
+	  && mouse_track_top == f->phys_cursor_y)
 	{
-	  x_display_cursor (s, 1);
+	  x_display_cursor (f, 1);
 	}
     }
   XDefineCursor (x_current_display,
-		 s->display.x->window_desc,
-		 s->display.x->nontext_cursor);
+		 f->display.x->window_desc,
+		 f->display.x->nontext_cursor);
   XFlush (x_current_display);
   UNBLOCK_INPUT;
 
@@ -3679,20 +3679,20 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
 #include "glyphs.h"
 
 /* Draw a pixmap specified by IMAGE_DATA of dimensions WIDTH and HEIGHT
-   on the screen S at position X, Y. */
+   on the frame F at position X, Y. */
 
-x_draw_pixmap (s, x, y, image_data, width, height)
-     struct screen *s;
+x_draw_pixmap (f, x, y, image_data, width, height)
+     struct frame *f;
      int x, y, width, height;
      char *image_data;
 {
   Pixmap image;
 
   image = XCreateBitmapFromData (x_current_display,
-				 s->display.x->window_desc, image_data,
+				 f->display.x->window_desc, image_data,
 				 width, height);
-  XCopyPlane (x_current_display, image, s->display.x->window_desc,
-	      s->display.x->normal_gc, 0, 0, width, height, x, y);
+  XCopyPlane (x_current_display, image, f->display.x->window_desc,
+	      f->display.x->normal_gc, 0, 0, width, height, x, y);
 }
 #endif
 
@@ -3745,16 +3745,16 @@ DEFUN ("x-get-mouse-event", Fx_get_mouse_event, Sx_get_mouse_event,
   "Get next mouse event out of mouse event buffer.\n\
 Optional ARG non-nil means return nil immediately if no pending event;\n\
 otherwise, wait for an event.  Returns a four-part list:\n\
-  ((X-POS Y-POS) WINDOW SCREEN-PART KEYSEQ TIMESTAMP).\n\
-Normally X-POS and Y-POS are the position of the click on the screen\n\
+  ((X-POS Y-POS) WINDOW FRAME-PART KEYSEQ TIMESTAMP).\n\
+Normally X-POS and Y-POS are the position of the click on the frame\n\
  (measured in characters and lines), and WINDOW is the window clicked in.\n\
 KEYSEQ is a string, the key sequence to be looked up in the mouse maps.\n\
-If SCREEN-PART is non-nil, the event was on a scrollbar;\n\
+If FRAME-PART is non-nil, the event was on a scrollbar;\n\
 then Y-POS is really the total length of the scrollbar, while X-POS is\n\
 the relative position of the scrollbar's value within that total length,\n\
 and a third element OFFSET appears in that list: the height of the thumb-up\n\
 area at the top of the scroll bar.\n\
-SCREEN-PART is one of the following symbols:\n\
+FRAME-PART is one of the following symbols:\n\
  `vertical-scrollbar', `vertical-thumbup', `vertical-thumbdown',\n\
  `horizontal-scrollbar', `horizontal-thumbleft', `horizontal-thumbright'.\n\
 TIMESTAMP is the lower 23 bits of the X-server's timestamp for\n\
@@ -3768,7 +3768,7 @@ the mouse event.")
   register Lisp_Object tempy;
   Lisp_Object part, pos, timestamp;
   int prefix;
-  struct screen *s;
+  struct frame *f;
   
   int tem;
   
@@ -3788,26 +3788,26 @@ the mouse event.")
 	      com_letter = encode_mouse_button (xrep);
 	      mouse_timestamp = xrep.MouseTime;
 
-	      if ((s = x_window_to_screen (xrep.MouseWindow)) != 0)
+	      if ((f = x_window_to_frame (xrep.MouseWindow)) != 0)
 		{
-		  Lisp_Object screen;
+		  Lisp_Object frame;
 		  
-		  if (s->display.x->icon_desc == xrep.MouseWindow)
+		  if (f->display.x->icon_desc == xrep.MouseWindow)
 		    {
-		      x_make_screen_visible (s);
+		      x_make_frame_visible (f);
 		      continue;
 		    }
 
 		  XSET (tempx, Lisp_Int,
-			min (s->width-1, max (0, (xrep.MouseX - s->display.x->internal_border_width)/FONT_WIDTH (s->display.x->font))));
+			min (f->width-1, max (0, (xrep.MouseX - f->display.x->internal_border_width)/FONT_WIDTH (f->display.x->font))));
 		  XSET (tempy, Lisp_Int,
-			min (s->height-1, max (0, (xrep.MouseY - s->display.x->internal_border_width)/FONT_HEIGHT (s->display.x->font))));
+			min (f->height-1, max (0, (xrep.MouseY - f->display.x->internal_border_width)/FONT_HEIGHT (f->display.x->font))));
 		  XSET (timestamp, Lisp_Int, (xrep.MouseTime & 0x7fffff));
-		  XSET (screen, Lisp_Screen, s);
+		  XSET (frame, Lisp_Frame, f);
 		  
 		  pos = Fcons (tempx, Fcons (tempy, Qnil));
 		  Vmouse_window
-		    = Flocate_window_from_coordinates (screen, pos);
+		    = Flocate_window_from_coordinates (frame, pos);
 		  
 		  Vmouse_event
 		    = Fcons (pos,
@@ -3817,7 +3817,7 @@ the mouse event.")
 						  Fcons (timestamp, Qnil)))));
 		  return Vmouse_event;
 		}
-	      else if ((s = x_window_to_scrollbar (xrep.MouseWindow, &part, &prefix)) != 0)
+	      else if ((f = x_window_to_scrollbar (xrep.MouseWindow, &part, &prefix)) != 0)
 		{
 		  int pos, len;
 		  Lisp_Object keyseq;
@@ -3826,17 +3826,17 @@ the mouse event.")
 		  keyseq = concat2 (Fchar_to_string (make_number (prefix)),
 				    Fchar_to_string (make_number (com_letter)));
 		  
-		  pos = xrep.MouseY - (s->display.x->v_scrollbar_width - 2);
+		  pos = xrep.MouseY - (f->display.x->v_scrollbar_width - 2);
 		  XSET (tempx, Lisp_Int, pos);
-		  len = ((FONT_HEIGHT (s->display.x->font) * s->height)
-			 + s->display.x->internal_border_width
-			 - (2 * (s->display.x->v_scrollbar_width - 2)));
+		  len = ((FONT_HEIGHT (f->display.x->font) * f->height)
+			 + f->display.x->internal_border_width
+			 - (2 * (f->display.x->v_scrollbar_width - 2)));
 		  XSET (tempy, Lisp_Int, len);
 		  XSET (timestamp, Lisp_Int, (xrep.MouseTime & 0x7fffff));
-		  Vmouse_window = s->selected_window;
+		  Vmouse_window = f->selected_window;
 		  Vmouse_event
 		    = Fcons (Fcons (tempx, Fcons (tempy, 
-						  Fcons (make_number (s->display.x->v_scrollbar_width - 2),
+						  Fcons (make_number (f->display.x->v_scrollbar_width - 2),
 							 Qnil))),
 			     Fcons (Vmouse_window,
 				    Fcons (intern (part),
@@ -3851,25 +3851,25 @@ the mouse event.")
 	    case MotionNotify:
 
 	      com_letter = x11_encode_mouse_button (xrep);
-	      if ((s = x_window_to_screen (xrep.MouseWindow)) != 0)
+	      if ((f = x_window_to_frame (xrep.MouseWindow)) != 0)
 		{
-		  Lisp_Object screen;
+		  Lisp_Object frame;
 		  
 		  XSET (tempx, Lisp_Int,
-			min (s->width-1,
-			     max (0, (xrep.MouseX - s->display.x->internal_border_width)
-				  / FONT_WIDTH (s->display.x->font))));
+			min (f->width-1,
+			     max (0, (xrep.MouseX - f->display.x->internal_border_width)
+				  / FONT_WIDTH (f->display.x->font))));
 		  XSET (tempy, Lisp_Int,
-			min (s->height-1,
-			     max (0, (xrep.MouseY - s->display.x->internal_border_width)
-				  / FONT_HEIGHT (s->display.x->font))));
+			min (f->height-1,
+			     max (0, (xrep.MouseY - f->display.x->internal_border_width)
+				  / FONT_HEIGHT (f->display.x->font))));
 		  		  
-		  XSET (screen, Lisp_Screen, s);
+		  XSET (frame, Lisp_Frame, f);
 		  XSET (timestamp, Lisp_Int, (xrep.MouseTime & 0x7fffff));
 		  
 		  pos = Fcons (tempx, Fcons (tempy, Qnil));
 		  Vmouse_window
-		    = Flocate_window_from_coordinates (screen, pos);
+		    = Flocate_window_from_coordinates (frame, pos);
 		  
 		  Vmouse_event
 		    = Fcons (pos,
@@ -3884,10 +3884,10 @@ the mouse event.")
 #endif /* HAVE_X11 */
 
 	    default:
-	      if (s = x_window_to_screen (xrep.MouseWindow))
-		Vmouse_window = s->selected_window;
-	      else if (s = x_window_to_scrollbar (xrep.MouseWindow, &part, &prefix))
-		Vmouse_window = s->selected_window;
+	      if (f = x_window_to_frame (xrep.MouseWindow))
+		Vmouse_window = f->selected_window;
+	      else if (f = x_window_to_scrollbar (xrep.MouseWindow, &part, &prefix))
+		Vmouse_window = f->selected_window;
 	      return Vmouse_event = Qnil;
 	    }
 	}
@@ -3912,8 +3912,8 @@ DEFUN ("x-store-cut-buffer", Fx_store_cut_buffer, Sx_store_cut_buffer,
   int mask;
 
   CHECK_STRING (string, 1);
-  if (SCREEN_IS_X (selected_screen))
-    error ("Selected screen does not understand X protocol.");
+  if (! FRAME_IS_X (selected_frame))
+    error ("Selected frame does not understand X protocol.");
 
   BLOCK_INPUT;
   XStoreBytes ((char *) XSTRING (string)->data, XSTRING (string)->size);
@@ -4400,9 +4400,9 @@ Values can be the symbols Always, WhenMapped, or NotUseful.");
   defsubr (&Sx_set_face);
 #endif
   defsubr (&Sx_geometry);
-  defsubr (&Sx_create_screen);
-  defsubr (&Sfocus_screen);
-  defsubr (&Sunfocus_screen);
+  defsubr (&Sx_create_frame);
+  defsubr (&Sfocus_frame);
+  defsubr (&Sunfocus_frame);
 #if 0
   defsubr (&Sx_horizontal_line);
 #endif

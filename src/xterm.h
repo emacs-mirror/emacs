@@ -166,12 +166,12 @@ extern int x_pending_input;
 
 extern Display *x_current_display;
 
-extern struct screen *x_window_to_screen ();
+extern struct frame *x_window_to_frame ();
 
-/* The screen (if any) which has the X window that has keyboard focus.
-   Zero if none.  This is examined by Ffocus_screen in xfns.c */
+/* The frame (if any) which has the X window that has keyboard focus.
+   Zero if none.  This is examined by Ffocus_frame in xfns.c */
 
-struct screen *x_focus_screen;
+struct frame *x_focus_frame;
 
 #ifdef HAVE_X11
 /* Variables associated with the X display screen this emacs is using. */
@@ -218,7 +218,7 @@ enum text_cursor_kinds {
 #define PIXEL_WIDTH(s) ((s)->display.x->pixel_width)
 #define PIXEL_HEIGHT(s) ((s)->display.x->pixel_height)
 
-/* Each X screen object points to its own struct x_display object
+/* Each X frame object points to its own struct x_display object
    in the display.x field.  The x_display structure contains all
    the information that is specific to X windows.  */
 
@@ -235,7 +235,7 @@ struct x_display
   int pixel_height, pixel_width;
 
 #ifdef HAVE_X11
-  /* The tiled border used when the mouse is out of the screen. */
+  /* The tiled border used when the mouse is out of the frame. */
   Pixmap border_tile;
 
   /* Here are the Graphics Contexts for the default font. */
@@ -245,12 +245,12 @@ struct x_display
 #endif /* HAVE_X11 */
 
   /* Width of the internal border.  This is a line of background color
-     just inside the window's border.  When the screen is selected,
+     just inside the window's border.  When the frame is selected,
      a highlighting is displayed inside the internal border.  */
   int internal_border_width;
 
-  /* The X window used for this screen.
-     May be zero while the screen object is being created
+  /* The X window used for this frame.
+     May be zero while the frame object is being created
      and the X window has not yet been created.  */
   Window window_desc;
 
@@ -302,7 +302,7 @@ struct x_display
 
   /* The name that was associated with the icon, the last time
      it was refreshed.  Usually the same as the name of the
-     buffer in the currently selected window in the screen */
+     buffer in the currently selected window in the frame */
   char *icon_label;
 
   /* Flag to set when the X window needs to be completely repainted. */
@@ -324,7 +324,7 @@ struct x_display
    fixed width, and to have the same height and width. */
 
 #ifdef HAVE_X11
-/* Table of GC's used for this screen. */
+/* Table of GC's used for this frame. */
 GC *gc_table;
 
 /* How many GCs are in the table. */
