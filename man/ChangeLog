@@ -1,3 +1,12 @@
+2004-05-28  Simon Josefsson  <jas@extundo.com>
+
+	* smtpmail.texi (Authentication): Improve STARTTLS discussion.
+
+2004-05-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dired.texi (Dired and Find): `find-ls-option' does not apply to
+	`M-x locate'.
+
 2004-05-16  Karl Berry  <karl@gnu.org>
 
 	* emacs.texi (ack.texi) [@ifnottex]: Change condition; with @ifinfo,

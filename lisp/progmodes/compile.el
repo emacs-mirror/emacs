@@ -329,7 +329,7 @@ be added."
 			  (list 'const (car elt)))
 			compilation-error-regexp-alist-alist))
   :link `(file-link :tag "example file"
-		    ,(concat doc-directory "compilation.txt"))
+		    ,(expand-file-name "compilation.txt" data-directory))
   :group 'compilation)
 
 (defvar compilation-directory nil

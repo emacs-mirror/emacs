@@ -1012,11 +1012,11 @@ version."
 
 ;;;###autoload
 (defun customize-face (&optional face)
-  "Customize SYMBOL, which should be a face name or nil.
-If SYMBOL is nil, customize all faces.
+  "Customize FACE, which should be a face name or nil.
+If FACE is nil, customize all faces.
 
 Interactively, when point is on text which has a face specified,
-suggest to customized that face, if it's customizable."
+suggest to customize that face, if it's customizable."
   (interactive
    (list (read-face-name "Customize face" "all faces" t)))
   (if (member face '(nil ""))
@@ -1038,10 +1038,10 @@ suggest to customized that face, if it's customizable."
 
 ;;;###autoload
 (defun customize-face-other-window (&optional face)
-  "Show customization buffer for face SYMBOL in other window.
+  "Show customization buffer for face FACE in other window.
 
 Interactively, when point is on text which has a face specified,
-suggest to customized that face, if it's customizable."
+suggest to customize that face, if it's customizable."
   (interactive
    (list (read-face-name "Customize face" "all faces" t)))
   (if (member face '(nil ""))
@@ -1093,7 +1093,7 @@ suggest to customized that face, if it's customizable."
 				(get symbol 'standard-value))))
 		  (when (and cval 	;Declared with defcustom.
 			     (default-boundp symbol) ;Has a value.
-			     (not (equal (eval (car cval)) 
+			     (not (equal (eval (car cval))
 					 ;; Which does not match customize.
 					 (default-value symbol))))
 		    (push (list symbol 'custom-variable) found)))))
@@ -1876,7 +1876,7 @@ and `face'."
   (custom-load-symbol (widget-value widget)))
 
 (defun custom-unloaded-symbol-p (symbol)
-  "Return non-nil if the dependencies of SYMBOL has not yet been loaded."
+  "Return non-nil if the dependencies of SYMBOL have not yet been loaded."
   (let ((found nil)
 	(loads (get symbol 'custom-loads))
 	load)
@@ -1894,7 +1894,7 @@ and `face'."
     found))
 
 (defun custom-unloaded-widget-p (widget)
-  "Return non-nil if the dependencies of WIDGET has not yet been loaded."
+  "Return non-nil if the dependencies of WIDGET have not yet been loaded."
   (custom-unloaded-symbol-p (widget-value widget)))
 
 (defun custom-toggle-hide (widget)
@@ -2646,7 +2646,7 @@ Also change :reverse-video to :inverse-video."
 	(widget-setup)))))
 
 (defun custom-face-edit-delete (widget)
-  "Remove widget from the buffer."
+  "Remove WIDGET from the buffer."
   (let ((inactive (widget-get widget :inactive))
 	(inhibit-read-only t)
 	(inhibit-modification-hooks t))

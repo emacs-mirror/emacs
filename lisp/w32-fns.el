@@ -1,6 +1,6 @@
 ;;; w32-fns.el --- Lisp routines for Windows NT
 
-;; Copyright (C) 1994, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001, 2004 Free Software Foundation, Inc.
 
 ;; Author: Geoff Voelker <voelker@cs.washington.edu>
 ;; Keywords: internal
@@ -54,7 +54,8 @@ numbers, and the build number."
   (x-server-version))
 
 (defun w32-using-nt ()
-  "Return non-nil if literally running on Windows NT (i.e., not Windows 9X)."
+  "Return non-nil if running on a 32-bit Windows system.
+That includes all Windows systems except for 9X/Me."
   (and (eq system-type 'windows-nt) (getenv "SystemRoot")))
 
 (defun w32-shell-name ()
@@ -71,7 +72,7 @@ numbers, and the build number."
 	       w32-system-shells)))
 
 (defun w32-shell-dos-semantics ()
-  "Return t if the interactive shell being used expects msdos shell semantics."
+  "Return non-nil if the interactive shell being used expects MSDOS shell semantics."
   (or (w32-system-shell-p (w32-shell-name))
       (and (member (downcase (file-name-nondirectory (w32-shell-name)))
 		   '("cmdproxy" "cmdproxy.exe"))
@@ -265,13 +266,13 @@ with a definition that really does change some file names."
   (get 'x-selections type))
 
 (defun set-w32-system-coding-system (coding-system)
-  "Set the coding system used by the Windows System to CODING-SYSTEM.
+  "Set the coding system used by the Windows system to CODING-SYSTEM.
 This is used for things like passing font names with non-ASCII
 characters in them to the system. For a list of possible values of
 CODING-SYSTEM, use \\[list-coding-systems].
 
 This function is provided for backward compatibility, since
-w32-system-coding-system is now an alias for `locale-coding-system'."
+`w32-system-coding-system' is now an alias for `locale-coding-system'."
   (interactive
    (list (let ((default locale-coding-system))
            (read-coding-system

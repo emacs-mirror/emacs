@@ -533,8 +533,7 @@ those sub directories of DIR."
 	  (files
 	   (read-string (concat "Search for \"" regexp "\" in files (default "   grep-tree-last-files  "): ")))
 	  (dir
-	   (file-name-as-directory
-	    (read-directory-name "Base directory: " nil default-directory t))))
+	   (read-directory-name "Base directory: " nil default-directory t)))
      (list regexp files dir)))
   (unless grep-tree-command
     (grep-compute-defaults))
@@ -556,7 +555,7 @@ those sub directories of DIR."
 			 nil)  ;; we change default-directory to dir
 		       (and grep-tree-ignore-CVS-directories "-path '*/CVS' -prune -o ")
 		       grep-tree-ignore-case))
-	(default-directory dir)
+	(default-directory (file-name-as-directory (expand-file-name dir)))
 	(null-device nil))		; see grep
     (grep command-args regexp)))
 

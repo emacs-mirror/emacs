@@ -1,3 +1,115 @@
+2004-05-29  Pavel Kobiakov  <pk_at_work@yahoo.com>
+
+	* flymake.el: New file.
+
+2004-05-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (find-file-noselect-1): Do not bind
+	`inhibit-read-only' to t during execution of
+	`find-file-not-found-functions'.
+
+2004-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-mcvs.el (vc-mcvs-print-log, vc-mcvs-diff):
+	* vc-arch.el (vc-arch-diff): Add optional `buffer' arg.
+
+2004-05-28  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (eval-expression-print-format): New fun.
+
+	* simple.el (eval-expression):
+	* emacs-lisp/lisp-mode.el (eval-last-sexp-print-value):
+	* emacs-lisp/edebug.el (edebug-compute-previous-result)
+	(edebug-eval-expression): Print additionally the value returned by
+	`eval-expression-print-format'.
+
+	* emacs-lisp/lisp.el (insert-pair-alist): New var.
+	(insert-pair): Make arguments optional.  Find character pair
+	from `insert-pair-alist' according to the last input event.
+	(insert-parentheses): Make arguments optional.
+	(raise-sexp, delete-pair): New funs.
+
+	* emacs-lisp/lisp-mode.el (indent-pp-sexp): New fun.
+	(emacs-lisp-mode-map, lisp-interaction-mode-map):
+	Bind C-M-q to `indent-pp-sexp'.
+
+	* emacs-lisp/pp.el (pp-buffer): New fun created from the code in
+	`pp-to-string' modified to be able to format text with newlines.
+	(pp-to-string): Move the buffer-formatting part of the code to
+	`pp-buffer'.  Call `pp-buffer'.
+
+	* info.el (Info-desktop-buffer-misc-data): Don't save information
+	about virtual files.
+	(Info-restore-desktop-buffer): Restore Info buffers in prepared
+	buffers with names obtained from the desktop file instead of the
+	default *info* buffer.
+
+2004-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (with-selected-window): Only save/restore the selected window.
+
+	* progmodes/compile.el (compilation-error-regexp-alist):
+	Use expand-file-name and data-directory.
+
+	* progmodes/grep.el (grep-tree): Rework previous fix.
+
+	* mouse.el (mouse-set-region-1): Use temporary transient-mark-mode
+	after the user marked text with the mouse.
+
+	* startup.el (command-line): Keep the first regexp of
+	auto-save-file-name-transforms intact.
+
+2004-05-28  Juanma Barranquero  <lektu@terra.es>
+
+	* cus-edit.el (customize-face, customize-face-other-window)
+	(custom-face-edit-delete): Make arguments match their use in docstring.
+	(custom-unloaded-symbol-p, custom-unloaded-widget-p): Docstring typo.
+
+	* cvs-status.el (cvs-tree-merge, cvs-tags->tree): Use `butlast',
+	not `cvs-butlast'.
+
+	* pcvs-util.el (cvs-butlast, cvs-nbutlast): Remove (`butlast' and
+	`nbutlast' are in subr.el).
+
+	* w32-fns.el (w32-using-nt, w32-shell-dos-semantics)
+	(set-w32-system-coding-system): Doc fixes.
+
+	* textmodes/artist.el (artist-last, artist-remove-nulls): Simplify.
+	(artist-draw-ellipse-general, artist-draw-ellipse-with-0-height):
+	Make arguments match their use in docstring.
+	(artist-draw-region-trim-line-endings)
+	(artist-mouse-choose-operation): Fix typo in docstring.
+	(artist-key-set-point-common): Doc fix.
+
+2004-05-28  Simon Josefsson  <jas@extundo.com>
+
+	* mail/smtpmail.el (smtpmail-open-stream):
+	Bind starttls-extra-arguments too, if starttls.el uses GNUTLS.
+
+2004-05-26  Simon Josefsson  <jas@extundo.com>
+
+	* starttls.el: Merge with my GNUTLS based starttls.el.
+	(starttls-gnutls-program, starttls-use-gnutls)
+	(starttls-extra-arguments, starttls-process-connection-type)
+	(starttls-connect, starttls-failure, starttls-success): New variables.
+	(starttls-program, starttls-extra-args): Doc fix.
+	(starttls-negotiate-gnutls, starttls-open-stream-gnutls): New funs.
+	(starttls-negotiate, starttls-open-stream): Check `starttls-use-gnutls'
+	and pass on to corresponding *-gnutls function if it is set.
+
+2004-05-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-handler): Disable auto-reverting of
+	remote files.
+
+2004-05-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (file-name-non-special): There are more operations
+	which need handling: `find-backup-file-name',
+	`insert-file-contents', `verify-visited-file-modtime',
+	`write-region'.  Rename t value of method to `add'.  Add new
+	methods `quote' and `unquote-then-quote' to file-arg-indices.
+
 2004-05-25  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-toc): Call Info-mode on intermediate buffer.
@@ -83,8 +195,7 @@
 	* descr-text.el (describe-property-list): Add [show] button for
 	`syntax-table' property with action to pp to a separate buffer.
 	(describe-char): Replace search-forward by re-search-forward with
-	whitespace regexp after "character:" to not fail in too narrow
-	windows.
+	whitespace regexp after "character:" to not fail in too narrow windows.
 
 	* simple.el (next-error-find-buffer): Add a rule to return
 	next-error capable buffer if one window on the selected frame
@@ -96,11 +207,11 @@
 	(gud-watch, gdb-send-item, gdb-breakpoints-mode, gdb-frames-mode)
 	(gdb-locals-mode, gdb-send-item, gdb-toggle-breakpoint)
 	(gdb-delete-breakpoint, gdb-frames-select, gdb-threads-buffer)
-	(gdb-registers-buffer, gdb-reset, gdb-assembler-buffer): Handle
-	new value for gud-minor-mode (gdbmi).
+	(gdb-registers-buffer, gdb-reset, gdb-assembler-buffer):
+	Handle new value for gud-minor-mode (gdbmi).
 	(gdb-buffer-type, gdb-input-queue, gdb-prompting)
-	(gdb-output-sink, gdb-current-item, gdb-pending-triggers): Change
-	from local to global gdb variable set.
+	(gdb-output-sink, gdb-current-item, gdb-pending-triggers):
+	Change from local to global gdb variable set.
 	(gdb-ann3): Initialise above gdb variable set.
 	(gdb-var-update, gdb-var-update-handler, gdb-enqueue-input)
 	(gdb-dequeue-input, gdb-source, gdb-pre-prompt, gdb-prompt)
@@ -185,8 +296,7 @@
 
 2004-05-21  Masatake YAMATO  <jet@gyve.org>
 
-	* progmodes/etags.el (tags-apropos, list-tags): Require
-	apropos.
+	* progmodes/etags.el (tags-apropos, list-tags): Require apropos.
 	(etags-tags-completion-table): Show parsing progress.
 
 2004-05-20  Luc Teirlinck  <teirllm@auburn.edu>

@@ -785,6 +785,23 @@ If nil, don't change the value of `debug-on-error'."
   :type 'boolean
   :version "21.1")
 
+(defun eval-expression-print-format (value)
+  "Format VALUE as a result of evaluated expression.
+Return a formatted string which is displayed in the echo area
+in addition to the value printed by prin1 in functions which
+display the result of expression evaluation."
+  (if (and (integerp value)
+           (or (not (eq this-command 'eval-last-sexp))
+               (eq this-command last-command)
+               (and (boundp 'edebug-active) edebug-active)))
+      (let ((char-string
+             (if (or (and (boundp 'edebug-active) edebug-active)
+                     (eq this-command 'eval-last-sexp))
+                 (prin1-char value))))
+        (if char-string
+            (format " (0%o, 0x%x) = %s" value value char-string)
+          (format " (0%o, 0x%x)" value value)))))
+
 ;; We define this, rather than making `eval' interactive,
 ;; for the sake of completion of names like eval-region, eval-current-buffer.
 (defun eval-expression (eval-expression-arg
@@ -819,7 +836,10 @@ the echo area."
 	(with-no-warnings
 	 (let ((standard-output (current-buffer)))
 	   (eval-last-sexp-print-value (car values))))
-      (prin1 (car values) t))))
+      (prog1
+          (prin1 (car values) t)
+        (let ((str (eval-expression-print-format (car values))))
+          (if str (princ str t)))))))
 
 (defun edit-and-eval-command (prompt command)
   "Prompting with PROMPT, let user edit COMMAND and eval result.

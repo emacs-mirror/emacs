@@ -1365,33 +1365,35 @@ that are visiting the various files."
       (kill-local-variable 'buffer-file-coding-system)
       (kill-local-variable 'cursor-type)
       (let ((inhibit-read-only t))
-	(erase-buffer)
-	(and (default-value 'enable-multibyte-characters)
-	     (not rawfile)
-	     (set-buffer-multibyte t))
-	(if rawfile
-	    (condition-case ()
-		(insert-file-contents-literally filename t)
-	      (file-error
-	       (when (and (file-exists-p filename)
-			  (not (file-readable-p filename)))
-		 (kill-buffer buf)
-		 (signal 'file-error (list "File is not readable"
-					   filename)))
-	       ;; Unconditionally set error
-	       (setq error t)))
+	(erase-buffer))
+      (and (default-value 'enable-multibyte-characters)
+	   (not rawfile)
+	   (set-buffer-multibyte t))
+      (if rawfile
 	  (condition-case ()
-	      (insert-file-contents filename t)
+	      (let ((inhibit-read-only t))
+		(insert-file-contents-literally filename t))
 	    (file-error
 	     (when (and (file-exists-p filename)
 			(not (file-readable-p filename)))
 	       (kill-buffer buf)
 	       (signal 'file-error (list "File is not readable"
 					 filename)))
-	     ;; Run find-file-not-found-hooks until one returns non-nil.
-	     (or (run-hook-with-args-until-success 'find-file-not-found-functions)
-		 ;; If they fail too, set error.
-		 (setq error t))))))
+	     ;; Unconditionally set error
+	     (setq error t)))
+	(condition-case ()
+	    (let ((inhibit-read-only t))
+	      (insert-file-contents filename t))
+	  (file-error
+	   (when (and (file-exists-p filename)
+		      (not (file-readable-p filename)))
+	     (kill-buffer buf)
+	     (signal 'file-error (list "File is not readable"
+				       filename)))
+	   ;; Run find-file-not-found-hooks until one returns non-nil.
+	   (or (run-hook-with-args-until-success 'find-file-not-found-functions)
+	       ;; If they fail too, set error.
+	       (setq error t)))))
       ;; Record the file's truename, and maybe use that as visited name.
       (if (equal filename buffer-file-name)
 	  (setq buffer-file-truename truename)
@@ -4481,7 +4483,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 	;; Get a list of the indices of the args which are file names.
 	(file-arg-indices
 	 (cdr (or (assq operation
-			;; The first five are special because they
+			;; The first six are special because they
 			;; return a file name.  We want to include the /:
 			;; in the return value.
 			;; So just avoid stripping it in the first place.
@@ -4490,13 +4492,21 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 			  (file-name-as-directory . nil)
 			  (directory-file-name . nil)
 			  (file-name-sans-versions . nil)
+			  (find-backup-file-name . nil)
 			  ;; `identity' means just return the first arg
 			  ;; not stripped of its quoting.
 			  (substitute-in-file-name identity)
+			  ;; `add' means add "/:" to the result.
+			  (file-truename add 0)
+			  ;; `quote' means add "/:" to buffer-file-name.
+			  (insert-file-contents quote 0)
+			  ;; `unquote-then-quote' means set buffer-file-name
+			  ;; temporarily to unquoted filename.
+			  (verify-visited-file-modtime unquote-then-quote)
+			  ;; List the arguments which are filenames.
 			  (file-name-completion 1)
 			  (file-name-all-completions 1)
-			  ;; t means add "/:" to the result.
-			  (file-truename t 0)
+			  (write-region 2 5)
 			  (rename-file 0 1)
 			  (copy-file 0 1)
 			  (make-symbolic-link 0 1)
@@ -4522,8 +4532,17 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 	(setq file-arg-indices (cdr file-arg-indices))))
     (cond ((eq method 'identity)
 	   (car arguments))
-	  (method
+	  ((eq method 'add)
 	   (concat "/:" (apply operation arguments)))
+	  ((eq method 'quote)
+	   (prog1 (apply operation arguments)
+	     (setq buffer-file-name (concat "/:" buffer-file-name))))
+	  ((eq method 'unquote-then-quote)
+	   (let (res)
+	     (setq buffer-file-name (substring buffer-file-name 2))
+	     (setq res (apply operation arguments))
+	     (setq buffer-file-name (concat "/:" buffer-file-name))
+	     res))
 	  (t
 	   (apply operation arguments)))))
 

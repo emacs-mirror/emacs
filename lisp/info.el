@@ -3871,7 +3871,8 @@ BUFFER is the buffer speedbar is requesting buttons for."
 
 (defun Info-desktop-buffer-misc-data (desktop-dirname)
   "Auxiliary information to be saved in desktop file."
-  (list Info-current-file Info-current-node))
+  (if (not (member Info-current-file '("apropos" "history" "toc")))
+      (list Info-current-file Info-current-node)))
 
 ;;;###autoload
 (defun Info-restore-desktop-buffer (desktop-buffer-file-name
@@ -3881,6 +3882,9 @@ BUFFER is the buffer speedbar is requesting buttons for."
   (let ((first (nth 0 desktop-buffer-misc))
         (second (nth 1 desktop-buffer-misc)))
   (when (and first second)
+    (when desktop-buffer-name
+      (set-buffer (get-buffer-create desktop-buffer-name))
+      (Info-mode))
     (Info-find-node first second)
     (current-buffer))))
 
