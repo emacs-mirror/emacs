@@ -1,3 +1,7 @@
+2002-04-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* term.el (term-emulate-terminal): Fix last change.
+
 2002-04-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* bindings.el (mode-line-mode-menu): Update names to reflect
