@@ -572,7 +572,7 @@ XMENU_OBJ = xmenu.o
 /* lastfile must follow all files
    whose initialized data areas should be dumped as pure by dump-emacs.  */
 obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
-	charset.o coding.o category.o ccl.o\
+	charset.o coding.o category.o ccl.o \
 	cm.o term.o xfaces.o $(XOBJ) \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
 	buffer.o filelock.o insdel.o marker.o \
@@ -703,7 +703,7 @@ lisp= \
 	${lispsource}facemenu.elc \
 	MOUSE_SUPPORT \
 	${lispsource}float-sup.elc \
-	${lispsource}frame.elc\
+	${lispsource}frame.elc \
 	${lispsource}help.elc \
 	${lispsource}indent.elc \
 	${lispsource}isearch.elc \
@@ -1112,7 +1112,7 @@ getloadavg.o: getloadavg.c $(config_h)
 indent.o: indent.c frame.h window.h indent.h buffer.h $(config_h) termchar.h \
    termopts.h disptab.h region-cache.h charset.h composite.h dispextern.h \
    keyboard.h
-insdel.o: insdel.c window.h buffer.h $(INTERVAL_SRC) blockinput.h charset.h\
+insdel.o: insdel.c window.h buffer.h $(INTERVAL_SRC) blockinput.h charset.h \
    dispextern.h atimer.h systime.h $(config_h)
 keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h charset.h \
    commands.h frame.h window.h macros.h disptab.h keyboard.h syssignal.h \
@@ -1204,7 +1204,7 @@ eval.o: eval.c commands.h keyboard.h blockinput.h atimer.h systime.h \
 floatfns.o: floatfns.c $(config_h)
 fns.o: fns.c commands.h $(config_h) frame.h buffer.h charset.h keyboard.h \
  frame.h window.h dispextern.h $(INTERVAL_SRC) coding.h
-print.o: print.c process.h frame.h window.h buffer.h keyboard.h charset.h\
+print.o: print.c process.h frame.h window.h buffer.h keyboard.h charset.h \
    $(config_h) dispextern.h msdos.h composite.h
 lread.o: lread.c commands.h keyboard.h buffer.h epaths.h charset.h $(config_h) \
  termhooks.h coding.h msdos.h
@@ -1253,7 +1253,7 @@ ${emacsapp}Contents/Resources/English.lproj/InfoPlist.strings: ${emacsappsrc}Con
 endif
 
 macosx-bundle: ${emacsapp}Contents/Resources/English.lproj \
-	${emacsapp}Contents/Info.plist ${emacsapp}Contents/PkgInfo\
+	${emacsapp}Contents/Info.plist ${emacsapp}Contents/PkgInfo \
 	${emacsapp}Contents/Resources/Emacs.icns \
 	${emacsapp}Contents/Resources/English.lproj/InfoPlist.strings
 macosx-app: macosx-bundle ${emacsapp}Contents/MacOS/Emacs \
