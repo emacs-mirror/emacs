@@ -1,3 +1,8 @@
+2001-03-05  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-conf.el (emacs-mule, raw-text): Docstring
+	modified.
+
 2001-03-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* term/internal.el: Update copyright notice.
