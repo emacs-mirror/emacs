@@ -349,4 +349,21 @@ strerror (errnum)
 
 #endif /* ! HAVE_STRERROR */
 
+long *
+xmalloc (size)
+     int size;
+{
+  register long *val;
+
+  val = (long *) malloc (size);
+
+  if (!val && size)
+    {
+      fprintf (stderr, "timer: virtual memory exceeded\n");
+      exit (1);
+    }
+    
+  return val;
+}
+
 /* timer.c ends here */
