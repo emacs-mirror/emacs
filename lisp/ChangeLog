@@ -1,3 +1,8 @@
+2000-05-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* international/mule-cmds.el (set-language-environment): Don't
+	concat an integer (dos-codepage), use format instead.
+
 2000-05-02  Dave Love  <fx@gnu.org>
 
 	* help.el (help-xref-on-pp): Check for constant symbols.
