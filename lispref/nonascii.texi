@@ -25,7 +25,7 @@ characters and how they are stored in strings and buffers.
 * Translation of Characters::   Translation tables are used for conversion.
 * Coding Systems::          Coding systems are conversions for saving files.
 * Input Methods::           Input methods allow users to enter various
-                                non-ASCII characters without speciak keyboards.
+                                non-ASCII characters without special keyboards.
 * Locales::                 Interacting with the POSIX locale.
 @end menu
 
