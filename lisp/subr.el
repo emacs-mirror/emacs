@@ -236,7 +236,7 @@ The normal global definition of the character C-x indirects to this keymap.")
       (append key nil)
     (mapcar (function (lambda (c)
 			(if (> c 127)
-			    (logxor c 8388736)
+			    (logxor c ?\M-\200)
 			  c)))
 	    (append key nil))))
 
