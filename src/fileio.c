@@ -6174,6 +6174,23 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
   return Ffile_exists_p (string);
 }
 
+DEFUN ("next-read-file-uses-dialog-p", Fnext_read_file_uses_dialog_p,
+       Snext_read_file_uses_dialog_p, 0, 0, 0,
+       doc: /* Return t if a call to `read-file-name' will use a dialog.
+The return value is only relevant for a call to `read-file-name' that happens
+before any other event (mouse or keypress) is handeled.  */)
+  ()
+{
+#if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK) || defined (TARGET_API_MAC_CARBON)
+  if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
+      && use_dialog_box
+      && use_file_dialog
+      && have_menus_p ())
+    return Qt;
+#endif
+  return Qnil;
+}
+       
 DEFUN ("read-file-name", Fread_file_name, Sread_file_name, 1, 6, 0,
        doc: /* Read file name, prompting with PROMPT and completing in directory DIR.
 Value is not expanded---you must call `expand-file-name' yourself.
@@ -6306,10 +6323,7 @@ and `read-file-name-function'.  */)
   GCPRO2 (insdef, default_filename);
 
 #if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK) || defined (TARGET_API_MAC_CARBON)
-  if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
-      && use_dialog_box
-      && use_file_dialog
-      && have_menus_p ())
+  if (! NILP (Fnext_read_file_uses_dialog_p ()))
     {
       /* If DIR contains a file name, split it.  */
       Lisp_Object file;
@@ -6694,6 +6708,7 @@ a non-nil value.  */);
 
   defsubr (&Sread_file_name_internal);
   defsubr (&Sread_file_name);
+  defsubr (&Snext_read_file_uses_dialog_p);
 
 #ifdef unix
   defsubr (&Sunix_sync);
