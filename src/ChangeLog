@@ -1,3 +1,8 @@
+2002-08-08  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (Fdefine_coding_system_internal): Fix category setting
+	for a coding system of type iso-2022.
+
 2002-08-02  Kenichi Handa  <handa@etl.go.jp>
 
 	* fontset.h (FS_LOAD_FONT): Call fs_load_font with the arg CHARSET

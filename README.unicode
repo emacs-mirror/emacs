@@ -27,7 +27,11 @@ existing support and the extra stuff at
    presence of small-repertoire 10646-encoded fonts in XFree 4 is a
    pain, not currently worked round.
 
-	The work is almost finished, and soon to be commited.
+	With the change on 2002-07-26, multiple fonts can be
+	specified in a fontset for a specific range of characters.
+	Each range can also be specified by script.  Before using
+	ISO10646 fonts, Emacs checks their repertories to avoid such
+	fonts that don't have a glyph for a specific character.
 
  * Work is also needed on charset and coding system priorities.
 
@@ -53,6 +57,11 @@ existing support and the extra stuff at
  * Check up on definitions of tcvn and alternativnj.
 
  * Lazy-load tables for unify-charset somehow?
+
+	Actually, Emacs clear out all charset maps and unify-map just
+	before dumping, and their are loaded again on demand the
+	dumped emacs.  But, those maps (char tables) generated while
+	temacs is running can't be get rid of from the dumped emacs.
 
  * Translation tables for {en,de}code currently aren't supported.
 

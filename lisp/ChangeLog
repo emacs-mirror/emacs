@@ -1,3 +1,7 @@
+2002-08-08  Kenichi Handa  <handa@etl.go.jp>
+
+	* tar-mode.el (tar-extract): Fix previous change.
+
 2002-08-02  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/characters.el (next-word-boundary-han): Don't
