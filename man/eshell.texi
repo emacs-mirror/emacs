@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 
-@c "@(#)$Name:  $:$Id: eshell.texi,v 1.7 2000/12/06 20:02:30 fx Exp $"
+@c "@(#)$Name:  $:$Id: eshell.texi,v 1.8 2001/01/26 06:19:25 johnw Exp $"
 
 @c Documentation for Eshell: The Emacs Shell.
 @c Copyright (C) 1999, 2000  Free Software Foundation, Inc.
@@ -498,13 +498,13 @@ Eshell recognizes several different kinds of command arguments:
 @item Emacs process handles
 @end enumerate
 
-Most users need worry only about the first two.  The third, Lisp lists,
+Most users need to worry only about the first two.  The third, Lisp lists,
 occur very frequently, but almost always behind the scenes.
 
 Strings are the most common type of argument, and consist of nearly any
 character.  Special characters---those used by Eshell
-specifically---must be preceded by a backslash (\).  When in doubt, it
-safe to add backslashes anywhere and everywhere.
+specifically---must be preceded by a backslash (@samp{\}).  When in doubt, it
+is safe to add backslashes anywhere and everywhere.
 
 Here is a more complicated @command{echo} example:
 
