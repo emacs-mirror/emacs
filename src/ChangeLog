@@ -1,3 +1,13 @@
+2000-03-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (PER_CHAR_METRIC): Removed.
+	(x_per_char_metric_1, x_default_char): New functions.
+	(x_per_char_metric): If font's default char is invalid, return
+	metrics of a suitably chosen usable default char.
+	(x_draw_glyph_string_foreground): If font has an invalid default
+	char, replace occurrences of that char with a suitably chosen
+	usable default char.
+
 2000-03-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (note_mouse_highlight): Return quickly if frame's
