@@ -85,7 +85,7 @@ against the file name, and TYPE is nil for text, t for binary.")
 	      ((and (symbolp code) (fboundp code))
 	       (funcall code filename)))))))
 
-(defun find-buffer-file-type-coding-system (command args)
+(defun find-buffer-file-type-coding-system (command)
   "Choose a coding system for a file operation.
 If COMMAND is `insert-file-contents', the coding system is chosen based
 upon the filename, the contents of `untranslated-filesystem-list' and
@@ -212,7 +212,7 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 
 ;; Process I/O decoding and encoding.
 
-(defun find-binary-process-coding-system (op args)
+(defun find-binary-process-coding-system (command)
   "Choose a coding system for process I/O.
 The coding system for decode is 'no-conversion' if 'binary-process-output'
 is non-nil, and 'undecided-dos' otherwise.  Similarly, the coding system 
