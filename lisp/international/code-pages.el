@@ -4468,6 +4468,7 @@ Return an updated `non-iso-charset-alist'."
   ?Ь ?Э ?Ю ?Я ?а ?б ?в ?г ?д ?е ?ж ?з ?и ?й ?к ?л ?м ?н ?о ?п ?р ?с ?т
   ?у ?ф ?х ?ц ?ч ?ш ?щ ?ъ ?ы ?ь ?э ?ю ?я])
   
+;;;###autoload(autoload-coding-system 'iso-8859-11 '(require 'code-pages))
 (cp-make-coding-system
  iso-8859-11
  [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
