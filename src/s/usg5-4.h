@@ -18,7 +18,8 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* This file written by James Van Artsdalen of Dell Computer Corporation.
- * james@bigtex.cactus.org.
+ * james@bigtex.cactus.org.  Subsequently improved for Dell 2.2 by Eric
+ * S. Raymond <esr@snark.thyrsus.com>.
  */
 
 /* Use the SysVr3 file for at least base configuration. */
@@ -34,10 +35,17 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define LIBS_SYSTEM -lsocket -lnsl -lelf
 #define ORDINARY_LINK
 
-#if 0 /* These should be unnecessary now because of ORDINARY_LINK.  */
+#ifdef ORDINARY_LINK
+#define LIB_STANDARD -lc /usr/ucblib/libucb.a
+#else
 #define START_FILES pre-crt0.o /usr/ccs/lib/crt1.o /usr/ccs/lib/crti.o /usr/ccs/lib/values-Xt.o
 #define LIB_STANDARD -lc /usr/ucblib/libucb.a /usr/ccs/lib/crtn.o
 #endif
+
+/* there are no -lg libraries on this system, and no libPW */
+
+#define LIBS_DEBUG
+#define LIBS_STANDARD -lc
 
 /* No <sioctl.h> */
 
@@ -64,6 +72,15 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/stropts.h>
 #include <sys/termios.h>
 #undef SIGIO
+#endif
+
+/* Some SVr4s don't define NSIG in sys/signal.h for ANSI environments;
+ * instead, there's a system variable _sys_nsig.  Unfortunately, we need the
+ * constant to dimension an array.  So wire in the appropriate value here.
+ */
+
+#ifndef NSIG
+#define NSIG	32
 #endif
 
 /* libc has this stuff, but not utimes. */
@@ -93,7 +110,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define HAVE_PTYS
 #define HAVE_SETSID
-#define HAVE_TCATTR
+#define HAVE_TERMIOS
 
 /* It is possible to receive SIGCHLD when there are no children
    waiting, because a previous waitsys(2) cleaned up the carcass of child
@@ -152,6 +169,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
     fatal ("ioctl I_PUSH ldterm", errno);	\
   if (ioctl (xforkin, I_PUSH, "ttcompat") == -1) \
     fatal ("ioctl I_PUSH ttcompat", errno);
+
+/* Undo the SVr3 X11 library definition */
+#undef LIB_X11_LIB -lX11
 
 /* The definition of this in s-usg5-3.h is not needed in 5.4.  */
 /* liblnsl_s should never be used.  The _s suffix implies a shared
