@@ -1223,7 +1223,7 @@ See also the function `condition-case'.")
 
   /* This hook is used by edebug.  */
   if (! NILP (Vsignal_hook_function))
-    Ffuncall (Vsignal_hook_function, error_symbol, data);
+    call2 (Vsignal_hook_function, error_symbol, data);
 
   conditions = Fget (error_symbol, Qerror_conditions);
 
