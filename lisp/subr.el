@@ -923,7 +923,7 @@ It can also be nil, if the definition is not associated with any file."
 	   (eq 'autoload (car-safe (symbol-function function))))
       (nth 1 (symbol-function function))
     (let ((files load-history)
-	  file functions)
+	  file)
       (while files
 	(if (memq function (cdr (car files)))
 	    (setq file (car (car files)) files nil))

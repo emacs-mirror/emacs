@@ -1,3 +1,7 @@
+2002-11-20  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* subr.el (symbol-file): Remove unused variable `functions'.
+
 2002-11-20   Markus Rost  <rost@math.ohio-state.edu>
 
 	* Makefile.in (setwins_almost): Renamed from finder_setwins.
