@@ -130,8 +130,8 @@ BYTE (integer) is the length of multi-byte form of a character in
 WIDTH (integer) is the number of columns a character in the charset
   occupies on the screen: one of 0, 1, and 2.
 DIRECTION (integer) is the rendering direction of characters in the
-  charset when rendering.  If 0, render from right to left, else
-  render from left to right.
+  charset when rendering.  If 0, render from left to right, else
+  render from right to left.
 LEADING-CODE-BASE (integer) is the base leading-code for the
   charset.
 LEADING-CODE-EXT (integer) is the extended leading-code for the
