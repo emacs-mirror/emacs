@@ -885,10 +885,11 @@ Each element in the list should be a list of strings or pairs
   :type 'integer)
 
 
-(defcustom fancy-splash-image "splash.xpm"
-  "*The image to show in the splash screens."
+(defcustom fancy-splash-image nil
+  "*The image to show in the splash screens, or nil for defaults."
   :group 'fancy-splash-screen
-  :type 'file)
+  :type '(choice (const :tag "Default" nil)
+		 (file :tag "File")))
 
 
 (defun fancy-splash-insert (&rest args)
@@ -906,14 +907,17 @@ where FACE is a valid face specification, as it can be used with
 
 (defun fancy-splash-head ()
   "Insert the head part of the splash screen into the current buffer."
-  (let* ((img (create-image fancy-splash-image))
+  (let* ((img (create-image (or fancy-splash-image
+				(if (display-color-p)
+				    "splash.xpm" "splash.xbm"))))
 	 (image-width (and img (car (image-size img))))
 	 (window-width (window-width (selected-window))))
     (when img
       (when (> window-width image-width)
 	(let ((pos (/ (- window-width image-width) 2)))
 	  (insert (propertize " " 'display `(space :align-to ,pos))))
-	(when (eq (frame-parameter nil 'background-mode) 'dark)
+	(when (and (memq 'xpm img)
+		   (eq (frame-parameter nil 'background-mode) 'dark))
 	  (setq img (append img '(:color-symbols (("#000000" . "gray"))))))
 	(insert-image img)
 	(insert "\n"))))
@@ -936,6 +940,7 @@ where FACE is a valid face specification, as it can be used with
 
 
 (defun fancy-splash-screens ()
+  "Display splash screens when Emacs starts."
   (let* ((old-cursor-type cursor-type)
 	 stop)
     (unwind-protect
@@ -1035,8 +1040,9 @@ where FACE is a valid face specification, as it can be used with
 			   (insert ", one component of a Linux-based GNU system."))
 		       (insert "\n")
 		       (if (assq 'display (frame-parameters))
-			   (if (and (display-color-p)
-				    (image-type-available-p 'xpm))
+			   (if (or (and (display-color-p)
+					(image-type-available-p 'xpm))
+				   (image-type-available-p 'xbm))
 			       (fancy-splash-screens)
 			     (progn
 			       (insert "\
