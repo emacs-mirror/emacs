@@ -1,3 +1,10 @@
+2002-02-23  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* w32term.c (enter_timestamp): Remove unused static variable to
+	prevent warning.
+
+	* xterm.c (enter_timestamp): Put in #if 0 to prevent warning.
+
 2002-02-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* w16select.c (Fw16_get_clipboard_data): Fix last change.
