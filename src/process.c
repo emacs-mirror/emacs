@@ -1524,6 +1524,10 @@ deactivate_process (proc)
       close (inchannel);
       if (outchannel >= 0 && outchannel != inchannel)
  	close (outchannel);
+#ifdef SYSV4_PTYS
+      if (!NILP (p->subtty))
+        close (XINT (p->subtty));
+#endif
 #endif
 
       XSET (p->infd, Lisp_Int, -1);
