@@ -1,3 +1,11 @@
+2003-05-04  Nick Roberts  <nick@nick.uklinux.net>
+
+	* toolbar/gud-break.pbm, toolbar/gud-cont.pbm, toolbar/gud-display.pbm,
+	toolbar/gud-down.pbm, toolbar/gud-finish.pbm, toolbar/gud-until.pbm,
+	toolbar/gud-next.pbm, toolbar/gud-print.pbm, toolbar/gud-remove.pbm,
+	toolbar/gud-run.pbm, toolbar/gud-step.pbm, toolbar/gud-up.pbm:
+	Correct size for cleaner bitmaps.
+
 2003-05-03  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (breakpoint-enabled-icon, breakpoint-disabled-icon): 
