@@ -1,3 +1,9 @@
+2002-09-06  Simon Marshall  <simon@gnu.org>
+
+	* progmodes/etags.el (find-tag-tag, complete-tag): Bind
+	completion-ignore-case based on tags-case-fold-search, so that
+	case-sensitivity of tag completion matches that of tag search.
+
 2002-09-06  Juanma Barranquero  <lektu@terra.es>
 
 	* calendar/solar.el (calendar-time-display-form): Fix spacing.
