@@ -1860,6 +1860,9 @@ sit_for (sec, usec, reading, display)
   if (display)
     redisplay_preserve_echo_area ();
 
+  if (sec == 0 && usec == 0)
+    return Qt;
+
 #ifdef SIGIO
   gobble_input ();
 #endif
@@ -1906,10 +1909,6 @@ Value is t if waited the full time with no input arriving.")
   int sec = 0;
 
   CHECK_NUMBER (arg, 0);
-
-  sec = XINT (arg);
-  if (sec <= 0)
-    return Qt;
 
   if (!NILP (millisec))
     {

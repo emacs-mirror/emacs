@@ -513,21 +513,21 @@ point remains at the end of the last character read from the buffer.")
   int count = specpdl_ptr - specpdl;
   Lisp_Object tem, buf;
 
-  if (NIL_P (bufname))
+  if (NILP (bufname))
     buf = Fcurrent_buffer ();
   else
     buf = Fget_buffer (bufname);
-  if (NIL_P (buf))
+  if (NILP (buf))
     error ("No such buffer.");
 
-  if (NIL_P (printflag))
+  if (NILP (printflag))
     tem = Qsymbolp;
   else
     tem = printflag;
   specbind (Qstandard_output, tem);
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
   BUF_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
-  readevalloop (buf, 0, Feval, !NIL_P (printflag));
+  readevalloop (buf, 0, Feval, !NILP (printflag));
   unbind_to (count);
 
   return Qnil;
