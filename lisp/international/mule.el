@@ -1041,6 +1041,7 @@ a value of `safe-charsets' in PLIST."
       (setq coding-category (plist-get plist 'coding-category))
       (aset coding-spec coding-spec-plist-idx plist))
     (put coding-system 'coding-system coding-spec)
+    (put coding-system 'coding-system-define-form nil)
     (put coding-category 'coding-systems
 	 (cons coding-system (get coding-category 'coding-systems))))
 
@@ -1102,6 +1103,7 @@ a value of `safe-charsets' in PLIST."
 (defun define-coding-system-alias (alias coding-system)
   "Define ALIAS as an alias for coding system CODING-SYSTEM."
   (put alias 'coding-system (coding-system-spec coding-system))
+  (put alias 'coding-system-define-form nil)
   (add-to-coding-system-list alias)
   (setq coding-system-alist (cons (list (symbol-name alias))
 				  coding-system-alist))
