@@ -4009,6 +4009,8 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       coding->produced = len_byte;
       if (multibyte)
 	{
+	  adjust_before_replace (from, from_byte, to, to_byte);
+
 	  /* We still may have to combine byte at the head and the
              tail of the text in the region.  */
 	  if (GPT != to)
@@ -4019,9 +4021,9 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	  GPT_BYTE -= len_byte;
 	  ZV_BYTE -= len_byte;
 	  Z_BYTE -= len_byte;
-	  GPT -= len_byte;
-	  ZV -= len_byte;
-	  Z -= len_byte;
+	  GPT -= len;
+	  ZV -= len;
+	  Z -= len;
 	  adjust_after_replace (from, from_byte, to, to_byte,
 				coding->produced_char, len_byte, replace);
 	}
