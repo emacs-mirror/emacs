@@ -150,8 +150,10 @@ more, a non-@code{nil} @var{rawfile} value suppresses coding system
 conversion (@pxref{Coding Systems}) and format conversion (@pxref{Format
 Conversion}).
 
-The @code{find-file-noselect} function returns the buffer that is
-visiting the file @var{filename}.
+The @code{find-file-noselect} function usually returns the buffer that
+is visiting the file @var{filename}.  But, if wildcards are actually
+used and expanded, it returns a list of buffer tha are visiting the
+various files.
 
 @example
 @group
