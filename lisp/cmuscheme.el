@@ -1,6 +1,6 @@
 ;;; cmuscheme.el --- Scheme process in a buffer. Adapted from tea.el.
 
-;; Copyright (C) 1988, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 1997 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <olin.shivers@cs.cmu.edu>
 ;; Maintainer: FSF
@@ -99,6 +99,32 @@
 (define-key scheme-mode-map "\C-c\C-z" 'switch-to-scheme)
 (define-key scheme-mode-map "\C-c\C-l" 'scheme-load-file)
 (define-key scheme-mode-map "\C-c\C-k" 'scheme-compile-file) ;k for "kompile"
+
+(let ((map (lookup-key scheme-mode-map [menu-bar scheme])))
+  (define-key map [separator-eval] '("--"))
+  (define-key map [compile-file]
+    '("Compile Scheme File" . scheme-compile-file))
+  (define-key map [load-file]
+    '("Load Scheme File" . scheme-load-file))
+  (define-key map [switch]
+    '("Switch to Scheme" . switch-to-scheme))
+  (define-key map [com-def-go]
+    '("Compile Definitiion & Go" . scheme-compile-definition-and-go))
+  (define-key map [com-def]
+    '("Compile Definitiion" . scheme-compile-definition))
+  (define-key map [send-def-go]
+    '("Evaluate Last Definition & Go" . scheme-send-definition-and-go))
+  (define-key map [send-def]
+    '("Evaluate Last Definition" . scheme-send-definition))
+  (define-key map [send-region-go]
+    '("Evaluate Region & Go" . scheme-send-region-and-go))
+  (define-key map [send-region-go]
+    '("Evaluate Region" . scheme-send-region))
+  (define-key map [send-region]
+    '("Evaluate Region" . scheme-send-region))
+  (define-key map [send-sexp]
+    '("Evaluate Last S-expression" . scheme-send-last-sexp))
+)
 
 (defvar scheme-buffer)
 
