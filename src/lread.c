@@ -1637,7 +1637,10 @@ read_integer (readcharfun, radix)
 	  else if (c >= 'A' && c <= 'Z')
 	    digit = c - 'A' + 10;
 	  else
-	    break;
+	    {
+	      UNREAD (c);
+	      break;
+	    }
 
 	  if (digit < 0 || digit >= radix)
 	    invalid_p = 1;
