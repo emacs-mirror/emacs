@@ -650,15 +650,15 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     }
   if (!IS_DIRECTORY_SEP (tempfile[strlen (tempfile) - 1]))
     strcat (tempfile, "/");
+  if ('/' == DIRECTORY_SEP)
+    dostounix_filename (tempfile);
+  else
+    unixtodos_filename (tempfile);
 #ifdef WINDOWSNT
   strcat (tempfile, "emXXXXXX");
 #else
   strcat (tempfile, "detmp.XXX");
 #endif
-  if ('/' == DIRECTORY_SEP)
-    dostounix_filename (tempfile);
-  else
-    unixtodos_filename (tempfile);
 #else /* not DOS_NT */
 
 #ifdef VMS
