@@ -493,7 +493,7 @@ found."
 					      key))
 		       key)
 		     item ", "))
-		 (insert "(not bound to any keys)"))))
+		 (insert "(not bound to any keys)")))
 	  (terpri)
 	  ;; only now so we don't propagate text attributes all over
 	  (put-text-property point1 point2 'item
