@@ -760,8 +760,9 @@ CHARSET should be defined by `defined-charset' in advance.")
 
 /* Return information about charsets in the text at PTR of NBYTES
    bytes, which are NCHARS characters.  The value is:
-	0: No multibyte characters (including 8-bit code of range 0x80..0x9F)
-	   are found.
+
+	0: Each character is represented by one byte.  This is alwasy
+	   true for unibyte text.
 	1: No charsets other than ascii eight-bit-control,
 	   eight-bit-graphic, and latin-1 are found.
 	2: Otherwise.
