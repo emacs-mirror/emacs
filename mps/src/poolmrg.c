@@ -2,7 +2,7 @@
  * 
  * MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName$
+ * $HopeName: MMsrc!poolmrg.c(trunk.1) $
  * Copyright(C) 1995,1997 Harlequin Group, all rights reserved
  *
  * READERSHIP
@@ -35,7 +35,7 @@
 #include "poolmrg.h"
 
 
-SRCID(poolmrg, "$HopeName$");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.1) $");
 
 #define MRGSig          ((Sig)0x519B0349)
 
@@ -134,7 +134,7 @@ static Res MRGGroupCreate(MRGGroup *groupReturn, MRG mrg)
 
   guardians = mrg->extendBy / sizeof(Addr);	/* per seg */
   linksegsize = guardians * sizeof(RingStruct);
-  linksegsize = SizeAlignUp(linksegsize, VMAlign());
+  linksegsize = SizeAlignUp(linksegsize, ArenaAlign(space));
   res = PoolSegAlloc(&linkseg, pool, linksegsize);
   if(res != ResOK)
     goto failLinkSegAlloc;
