@@ -91,8 +91,8 @@ int load_in_progress;
 /* Directory in which the sources were found.  */
 Lisp_Object Vsource_directory;
 
-/* Search path for files to be loaded. */
-Lisp_Object Vload_path;
+/* Search path and suffixes for files to be loaded. */
+Lisp_Object Vload_path, Vload_suffixes, default_suffixes;
 
 /* File name of user's init file.  */
 Lisp_Object Vuser_init_file;
@@ -646,13 +646,19 @@ Return t if file exists.")
   CHECK_STRING (file, 0);
 
   /* If file name is magic, call the handler.  */
-  handler = Ffind_file_name_handler (file, Qload);
-  if (!NILP (handler))
-    return call5 (handler, Qload, file, noerror, nomessage, nosuffix);
+  /* This shouldn't be necessary any more now that `openp' handles it right.
+    handler = Ffind_file_name_handler (file, Qload);
+    if (!NILP (handler))
+      return call5 (handler, Qload, file, noerror, nomessage, nosuffix); */
 
   /* Do this after the handler to avoid
      the need to gcpro noerror, nomessage and nosuffix.
-     (Below here, we care only whether they are nil or not.)  */
+     (Below here, we care only whether they are nil or not.)
+     The presence of this call is the result of a historical accident:
+     it used to be in every file-operations and when it got removed
+     everywhere, it accidentally stayed here.  Since then, enough people
+     supposedly have things like (load "$PROJECT/foo.el") in their .emacs
+     that it seemed risky to remove.  */
   file = Fsubstitute_in_file_name (file);
 
   /* Avoid weird lossage with null string as arg,
@@ -660,6 +666,7 @@ Return t if file exists.")
   if (XSTRING (file)->size > 0)
     {
       int size = STRING_BYTES (XSTRING (file));
+      Lisp_Object tmp[2];
 
       GCPRO1 (file);
 
@@ -679,9 +686,11 @@ Return t if file exists.")
 	}
 
       fd = openp (Vload_path, file,
-		  (!NILP (nosuffix) ? ""
-		   : ! NILP (must_suffix) ? ".elc.gz:.elc:.el.gz:.el"
-		   : ".elc:.elc.gz:.el.gz:.el:"),
+		  (!NILP (nosuffix) ? Qnil
+		   : !NILP (must_suffix) ? Vload_suffixes
+		   : Fappend (2, (tmp[0] = Vload_suffixes,
+				  tmp[1] = default_suffixes,
+				  tmp))),
 		  &found, 0);
       UNGCPRO;
     }
@@ -918,8 +927,10 @@ complete_filename_p (pathname)
 
 /* Search for a file whose name is STR, looking in directories
    in the Lisp list PATH, and trying suffixes from SUFFIX.
-   SUFFIX is a string containing possible suffixes separated by colons.
    On success, returns a file descriptor.  On failure, returns -1.
+
+   SUFFIXES is a list of strings containing possible suffixes.
+   The empty suffix is automatically added iff the list is empty.
 
    EXEC_ONLY nonzero means don't open the files,
    just look for one that is executable.  In this case,
@@ -934,9 +945,9 @@ complete_filename_p (pathname)
    We do not check for remote files if EXEC_ONLY is nonzero.  */
 
 int
-openp (path, str, suffix, storeptr, exec_only)
+openp (path, str, suffixes, storeptr, exec_only)
      Lisp_Object path, str;
-     char *suffix;
+     Lisp_Object suffixes;
      Lisp_Object *storeptr;
      int exec_only;
 {
@@ -948,11 +959,19 @@ openp (path, str, suffix, storeptr, exec_only)
   int want_size;
   Lisp_Object filename;
   struct stat st;
-  struct gcpro gcpro1, gcpro2, gcpro3;
-  Lisp_Object string;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
+  Lisp_Object string, tail;
+  int max_suffix_len = 0;
+
+  for (tail = suffixes; CONSP (tail); tail = XCDR (tail))
+    {
+      CHECK_STRING (XCAR (tail), 0);
+      max_suffix_len = max (max_suffix_len,
+			    STRING_BYTES (XSTRING (XCAR (tail))));
+    }
 
   string = filename = Qnil;
-  GCPRO3 (str, string, filename);
+  GCPRO5 (str, string, filename, path, suffixes);
   
   if (storeptr)
     *storeptr = Qnil;
@@ -960,11 +979,9 @@ openp (path, str, suffix, storeptr, exec_only)
   if (complete_filename_p (str))
     absolute = 1;
 
-  for (; !NILP (path); path = Fcdr (path))
+  for (; CONSP (path); path = XCDR (path))
     {
-      char *nsuffix;
-
-      filename = Fexpand_file_name (str, Fcar (path));
+      filename = Fexpand_file_name (str, XCAR (path));
       if (!complete_filename_p (filename))
 	/* If there are non-absolute elts in PATH (eg ".") */
 	/* Of course, this could conceivably lose if luser sets
@@ -978,17 +995,15 @@ openp (path, str, suffix, storeptr, exec_only)
 
       /* Calculate maximum size of any filename made from
 	 this path element/specified file name and any possible suffix.  */
-      want_size = strlen (suffix) + STRING_BYTES (XSTRING (filename)) + 1;
+      want_size = max_suffix_len + STRING_BYTES (XSTRING (filename)) + 1;
       if (fn_size < want_size)
 	fn = (char *) alloca (fn_size = 100 + want_size);
 
-      nsuffix = suffix;
-
       /* Loop over suffixes.  */
-      while (1)
+      for (tail = NILP (suffixes) ? default_suffixes : suffixes;
+	   CONSP (tail); tail = XCDR (tail))
 	{
-	  char *esuffix = (char *) index (nsuffix, ':');
-	  int lsuffix = esuffix ? esuffix - nsuffix : strlen (nsuffix);
+	  int lsuffix = STRING_BYTES (XSTRING (XCAR (tail)));
 	  Lisp_Object handler;
 
 	  /* Concatenate path element/specified name with the suffix.
@@ -1009,22 +1024,24 @@ openp (path, str, suffix, storeptr, exec_only)
 	    }
 
 	  if (lsuffix != 0)  /* Bug happens on CCI if lsuffix is 0.  */
-	    strncat (fn, nsuffix, lsuffix);
-
+	    strncat (fn, XSTRING (XCAR (tail))->data, lsuffix);
+	  
 	  /* Check that the file exists and is not a directory.  */
-	  if (absolute)
-	    handler = Qnil;
-	  else
-	    handler = Ffind_file_name_handler (filename, Qfile_exists_p);
-	  if (! NILP (handler) && ! exec_only)
+	  /* We used to only check for handlers on non-absolute file names:
+	        if (absolute)
+	          handler = Qnil;
+	        else
+		  handler = Ffind_file_name_handler (filename, Qfile_exists_p);
+	     It's not clear why that was the case and it breaks things like
+	     (load "/bar.el") where the file is actually "/bar.el.gz".  */
+	  handler = Ffind_file_name_handler (filename, Qfile_exists_p);
+	  if (!NILP (handler) && !exec_only)
 	    {
 	      int exists;
 
 	      string = build_string (fn);
-	      exists = ! NILP (exec_only ? Ffile_executable_p (string)
-			       : Ffile_readable_p (string));
-	      if (exists
-		  && ! NILP (Ffile_directory_p (build_string (fn))))
+	      exists = !NILP (Ffile_readable_p (string));
+	      if (exists && !NILP (Ffile_directory_p (build_string (fn))))
 		exists = 0;
 
 	      if (exists)
@@ -1058,11 +1075,6 @@ openp (path, str, suffix, storeptr, exec_only)
 		    }
 		}
 	    }
-
-	  /* Advance to next suffix.  */
-	  if (esuffix == 0)
-	    break;
-	  nsuffix += lsuffix + 1;
 	}
       if (absolute)
 	break;
@@ -2454,16 +2466,16 @@ substitute_object_recurse (object, placeholder, subtree)
     case Lisp_Cons:
       {
 	SUBSTITUTE (Fcar_safe (subtree),
-		    Fsetcar (subtree, true_value)); 
+		    Fsetcar (subtree, true_value));
 	SUBSTITUTE (Fcdr_safe (subtree),
-		    Fsetcdr (subtree, true_value)); 
+		    Fsetcdr (subtree, true_value));
 	return subtree;
       }
 
     case Lisp_String:
       {
 	/* Check for text properties in each interval.
-	   substitute_in_interval contains part of the logic. */ 
+	   substitute_in_interval contains part of the logic. */
 
 	INTERVAL    root_interval = XSTRING (subtree)->intervals;
 	Lisp_Object arg           = Fcons (object, placeholder);
@@ -3530,6 +3542,14 @@ See documentation of `read' for possible values.");
 Each element is a string (directory name) or nil (try default directory).\n\
 Initialized based on EMACSLOADPATH environment variable, if any,\n\
 otherwise to default specified by file `epaths.h' when Emacs was built.");
+
+  DEFVAR_LISP ("load-suffixes", &Vload_suffixes,
+    "*List of suffixes to try for files to load.
+This list should not include the empty string.");
+  Vload_suffixes = Fcons (build_string (".elc"),
+			  Fcons (build_string (".el"), Qnil));
+  default_suffixes = Fcons (empty_string, Qnil);
+  staticpro (&default_suffixes);
 
   DEFVAR_BOOL ("load-in-progress", &load_in_progress,
     "Non-nil iff inside of `load'.");
