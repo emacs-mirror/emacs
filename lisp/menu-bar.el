@@ -107,7 +107,15 @@
      '(or revert-buffer-function revert-buffer-insert-file-contents-function
 	  (and (buffer-file-name)
 	       (not (verify-visited-file-modtime (current-buffer))))))
-(put 'delete-frame 'menu-enable '(cdr (visible-frame-list)))
+;; Permit deleting frame if it would leave a visible or iconified frame.
+(put 'delete-frame 'menu-enable
+     '(let ((frames (frame-list))
+	    (count 0))
+	(while frames
+	  (if (cdr (assq 'visibility (frame-parameters (car frames))))
+	      (setq count (1+ count)))
+	  (setq frames (cdr frames)))
+	(> count 1)))
 (put 'kill-this-buffer 'menu-enable '(kill-this-buffer-enabled-p))
 
 (put 'advertised-undo 'menu-enable
