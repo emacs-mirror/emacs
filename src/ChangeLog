@@ -1,3 +1,8 @@
+2002-03-11  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (produce_chars): Set the variable `multibytep' correctly.
+	(decode_coding_gap): Set coding->dst_multibyte correctly.
+
 2002-03-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (encode_coding_utf_8): Initialize produced_chars to 0.
@@ -26,6 +31,8 @@
 
 	* chartab.c (sub_char_table_set_range): Optimized for the case
 	DEPTH == 3.  Add workaround code for a GCC optimization bug.
+
+	* charset.c (parse_charset_map): Remove an unused variable.
 
 	* coding.c: Delete unused variables.
 
