@@ -1,3 +1,8 @@
+2002-09-12  Richard M. Stallman  <rms@gnu.org>
+
+	* international/mule-cmds.el (universal-coding-system-argument):
+	Read the coding system inside `interactive' spec, for command-history.
+
 2002-09-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/find-func.el (find-library-name): Don't forget
