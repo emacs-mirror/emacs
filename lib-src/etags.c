@@ -441,14 +441,13 @@ print_help ()
   printf ("These are the options accepted by %s.  You may use unambiguous\n\
 abbreviations for the long option names.\n\n", progname);
 
-  fputs ("\
--a, --append\n\
-        Append tag entries to existing tags file.\n\
--C, --c++\n\
+  puts ("-a, --append\n\
+        Append tag entries to existing tags file.");
+  puts ("-C, --c++\n\
         Treat files with `.c' and `.h' extensions as C++ code, not C\n\
         code.  Files with `.C', `.H', `.cxx', `.hxx', or `.cc'\n\
-        extensions are always assumed to be C++ code.\n\
--d, --defines\n\
+        extensions are always assumed to be C++ code.");
+  fputs ("-d, --defines\n\
         Create tag entries for #defines, too.", stdout);
 
 #ifdef ETAGS
@@ -472,11 +471,11 @@ abbreviations for the long option names.\n\n", progname);
         Don't rely on indentation quite as much as normal.  Currently,\n\
         this means not to assume that a closing brace in the first\n\
         column is the final brace of a function or structure\n\
-        definition.\n\
--t, --typedefs\n\
+        definition.");
+  puts ("-t, --typedefs\n\
         Generate tag entries for typedefs.  This is the default\n\
-        behavior.\n\
--T, --typedefs-and-c++\n\
+        behavior.");
+  puts ("-T, --typedefs-and-c++\n\
         Generate tag entries for typedefs, struct/enum/union tags, and\n\
         C++ member functions.");
 
@@ -490,27 +489,27 @@ abbreviations for the long option names.\n\n", progname);
 #ifdef CTAGS
   puts ("-B, --backward-search\n\
         Write the search commands for the tag entries using '?', the\n\
-        backward-search command.\n\
--F, --forward-search\n\
+        backward-search command.");
+  puts ("-F, --forward-search\n\
         Write the search commands for the tag entries using '/', the\n\
-        forward-search command.\n\
--u, --update\n\
+        forward-search command.");
+  puts ("-u, --update\n\
         Update the tag entries for the given files, leaving tag\n\
         entries for other files in place.  Currently, this is\n\
         implemented by deleting the existing entries for the given\n\
         files and then rewriting the new entries at the end of the\n\
         tags file.  It is often faster to simply rebuild the entire\n\
-        tag file than to use this.\n\
--v, --vgrind\n\
+        tag file than to use this.");
+  puts ("-v, --vgrind\n\
         Generates an index of items intended for human consumption,\n\
         similar to the output of vgrind.  The index is sorted, and\n\
-        gives the page number of each item.\n\
--x, --cxref\n\
+        gives the page number of each item.");
+  puts ("-x, --cxref\n\
         Like --vgrind, but in the style of cxref, rather than vgrind.\n\
         The output uses line numbers instead of page numbers, but\n\
         beyond that the differences are cosmetic; try both to see\n\
-        which you like.\n\
--w, --no-warn\n\
+        which you like.");
+  puts ("-w, --no-warn\n\
         Suppress warning messages about entries defined in multiple\n\
         files.");
 #endif
