@@ -2,7 +2,7 @@
 
 ;; Copyright 1999, 2000, 2001 by Free Software Foundation, Inc.
 
-;; Author: Benjamin Drieu <drieu@bocal.cs.univ-paris8.fr>
+;; Author: Benjamin Drieu <bdrieu@april.org>
 ;; Keywords: games
 
 ;; This file is part of GNU Emacs.

@@ -1,3 +1,13 @@
+2001-07-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* emacs-lisp/easy-mmode.el: Add Keywords header.
+
+	* play/pong.el: Author has new address.
+
+	* play/landmark.el: Author is no more reachable.
+
+	* play/handwrite.el: Author is no more reachable.
+
 2001-07-16  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* progmodes/tcl.el (tcl-fill-mode-map): Use tcl-indent-exp.

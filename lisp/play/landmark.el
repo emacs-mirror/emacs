@@ -2,7 +2,7 @@
 
 ;; Copyright (c) 1996, 1997, 2000 Free Software Foundation, Inc.
 
-;; Author: Terrence Brannon <brannon@rana.usc.edu>
+;; Author: Terrence Brannon (was: <brannon@rana.usc.edu>)
 ;; Created: December 16, 1996 - first release to usenet
 ;; Keywords: gomoku neural network adaptive search chemotaxis
 

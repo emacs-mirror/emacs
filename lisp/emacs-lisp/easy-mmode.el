@@ -2,8 +2,10 @@
 
 ;; Copyright (C) 1997,2000  Free Software Foundation, Inc.
 
-;; Author:  Georges Brun-Cottan <Georges.Brun-Cottan@inria.fr>
-;; Maintainer:  Stefan Monnier <monnier@gnu.org>
+;; Author: Georges Brun-Cottan <Georges.Brun-Cottan@inria.fr>
+;; Maintainer: Stefan Monnier <monnier@gnu.org>
+
+;; Keywords: extensions lisp
 
 ;; This file is part of GNU Emacs.
 

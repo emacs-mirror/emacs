@@ -2,7 +2,7 @@
 
 ;; (C) Copyright 1996 Free Software Foundation, Inc.
 
-;; Author: Danny Roozendaal <danny@tvs.kun.nl>
+;; Author: Danny Roozendaal (was: <danny@tvs.kun.nl>)
 ;; Created: October 21 1996
 ;; Keywords: wp, print, postscript, cursive writing
 
