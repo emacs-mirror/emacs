@@ -212,7 +212,9 @@ int line_number_display_limit;
    t means infinite.  nil means don't log at all.  */
 Lisp_Object Vmessage_log_max;
 
-/* Add a string to the message log, optionally terminated with a newline.  */
+/* Add a string to the message log, optionally terminated with a newline.
+   This function calls low-level routines in order to bypass text property
+   hooks, etc. which might not be safe to run.  */
 
 void
 message_dolog (m, len, nlflag)
@@ -229,6 +231,8 @@ message_dolog (m, len, nlflag)
       oldpoint = PT;
       oldbegv = BEGV;
       oldzv = ZV;
+      BEGV = BEG;
+      ZV = Z;
       if (oldpoint == Z)
 	oldpoint += len + nlflag;
       if (oldzv == Z)
@@ -240,13 +244,12 @@ message_dolog (m, len, nlflag)
 	insert_1 ("\n", 1, 1, 0);
       if (NATNUMP (Vmessage_log_max))
 	{
-	  Lisp_Object n;
-	  XSETINT (n, -XFASTINT (Vmessage_log_max));
-	  Fforward_line (n);
-	  oldpoint -= min (PT, oldpoint) - BEG;
-	  oldbegv -= min (PT, oldbegv) - BEG;
-	  oldzv -= min (PT, oldzv) - BEG;
-	  del_range (BEG, PT);
+	  int pos = scan_buffer ('\n', PT, 0,
+				 -XFASTINT (Vmessage_log_max) - 1, 0, 1);
+	  oldpoint -= min (pos, oldpoint) - BEG;
+	  oldbegv -= min (pos, oldbegv) - BEG;
+	  oldzv -= min (pos, oldzv) - BEG;
+	  del_range_1 (BEG, pos, 0);
 	}
       BEGV = oldbegv;
       ZV = oldzv;
