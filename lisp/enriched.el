@@ -142,6 +142,7 @@ Any property that is neither on this list nor dealt with by
 (defvar enriched-mode nil
   "True if Enriched mode is in use.")
 (make-variable-buffer-local 'enriched-mode)
+(put 'enriched-mode 'permanent-local t)
 
 (if (not (assq 'enriched-mode minor-mode-alist))
     (setq minor-mode-alist
