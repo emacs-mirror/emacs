@@ -757,6 +757,7 @@ is converted into a string by expressing it in decimal."
 (defalias 'search-backward-regexp (symbol-function 're-search-backward))
 (defalias 'int-to-string 'number-to-string)
 (defalias 'store-match-data 'set-match-data)
+(defalias 'make-variable-frame-localizable 'make-variable-frame-local)
 ;; These are the XEmacs names:
 (defalias 'point-at-eol 'line-end-position)
 (defalias 'point-at-bol 'line-beginning-position)
