@@ -2498,11 +2498,13 @@ w32_mouse_position (fp, insist, bar_window, part, x, y, time)
 	if (FRAME_W32_DISPLAY_INFO (*fp)->grabbed && last_mouse_frame
 	    && FRAME_LIVE_P (last_mouse_frame))
 	  {
+	    /* If mouse was grabbed on a frame, give coords for that frame
+	       even if the mouse is now outside it.  */
 	    f1 = last_mouse_frame;
 	  }
 	else
 	  {
-	    /* Is win one of our frames?  */
+	    /* Is window under mouse one of our frames?  */
 	    f1 = x_window_to_frame (FRAME_W32_DISPLAY_INFO (*fp), WindowFromPoint(pt));
 	  }
 
@@ -3763,8 +3765,12 @@ w32_read_socket (sd, bufp, numchars, expected)
 	  else if (f == dpyinfo->w32_focus_frame)
 	    {
 	      x_new_focus_frame (dpyinfo, 0);
+
+	      if (f == dpyinfo->mouse_face_mouse_frame)
+		clear_mouse_face (dpyinfo);
 	    }
 
+	  dpyinfo->grabbed = 0;
 	  check_visibility = 1;
 	  break;
 
