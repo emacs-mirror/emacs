@@ -3690,7 +3690,7 @@ Return the result of the last expression."
 
 (defun edebug-compute-previous-result (edebug-previous-value)
   (setq edebug-previous-result
-	(if (and (numberp edebug-previous-value)
+	(if (and (integerp edebug-previous-value)
 		 (< edebug-previous-value 256)
 		 (>= edebug-previous-value 0))
 	    (format "Result: %s = %s" edebug-previous-value
