@@ -575,8 +575,23 @@ case "${configuration}" in
   rs6000-ibm-aix3.2 | rs6000-ibm-aix* )
     machine=ibmrs6000 opsys=aix3-2
   ;;
-  romp-ibm-bsd* )
+  romp-ibm-bsd4-3 )
+    machine=ibmrt opsys=bsd4-3
+  ;;	
+  romp-ibm-bsd4-2 )
     machine=ibmrt opsys=bsd4-2
+  ;;
+  romp-ibm-aos4-3 )
+    machine=ibmrt opsys=bsd4-3
+  ;;	
+  romp-ibm-aos4-2 )
+    machine=ibmrt opsys=bsd4-2
+  ;;
+  romp-ibm-aos* )
+    machine=ibmrt opsys=bsd4-3
+  ;;
+  romp-ibm-bsd* )
+    machine=ibmrt opsys=bsd4-3
   ;;
   romp-ibm-aix* )
     machine=ibmrt-aix opsys=usg5-2-2
