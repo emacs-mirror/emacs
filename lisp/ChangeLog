@@ -1,3 +1,13 @@
+2000-11-29  Dave Love  <fx@gnu.org>
+
+	* cus-edit.el (face): Fix :format.
+
+	* mail/feedmail.el: Require smtpmail when compiling.
+	(mail-do-fcc): Autoload.
+	(feedmail) <defgroup>: Fix :link.
+	(feedmail-nuke-body-in-fcc): Fix :type.
+	(feedmail-send-it): Add autoload cookie.
+
 2000-11-29  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* newcomment.el (comment-indent): Save excursion around call to
