@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.7) $
+/* $HopeName: MMQA_harness!testlib:testlib.h(trunk.8) $
 test_lib.h
    various handy things for running tests, reporting errors &c
 */
@@ -108,6 +108,13 @@ union log_event {
 };
 
 int read_event(log_event*);
+
+/*
+The MPS doens't provide this useful function
+*/
+
+size_t arena_committed_and_used(mps_arena_t);
+
 
 /* time-based queue
    (use for killing objects at the right time)
