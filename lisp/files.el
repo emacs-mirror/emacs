@@ -631,8 +631,10 @@ The buffer is not selected, just returned to the caller."
       ;; Let user know if there is a buffer with the same truename.
       (if other
 	  (progn
-	    (or nowarn (message "%s and %s are the same file"
-				filename (buffer-file-name other)))
+	    (or nowarn
+		(string-equal filename (buffer-file-name other))
+		(message "%s and %s are the same file"
+			 filename (buffer-file-name other)))
 	    ;; Optionally also find that buffer.
 	    (if (or find-file-existing-other-name find-file-visit-truename)
 		(setq buf other))))
