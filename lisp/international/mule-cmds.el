@@ -58,20 +58,20 @@
 
 (setq menu-bar-final-items (cons 'mule menu-bar-final-items))
 
-(defvar describe-language-environment-map nil)
-(define-prefix-command 'describe-language-environment-map)
+(defvar describe-language-environment-map
+  (make-sparse-keymap "Describe Language Environment"))
 
-(defvar setup-language-environment-map nil)
-(define-prefix-command 'setup-language-environment-map)
+(defvar setup-language-environment-map
+  (make-sparse-keymap "Set Language Environment"))
 
-(defvar set-coding-system-map nil)
-(define-prefix-command 'set-coding-system-map)
+(defvar set-coding-system-map
+  (make-sparse-keymap "Set Coding System"))
 
 (define-key-after mule-menu-keymap [describe-language-environment]
-  '("Describe Language Environment" . describe-language-environment-map)
+  (cons "Describe Language Environment" describe-language-environment-map)
   t)
 (define-key-after mule-menu-keymap [set-language-environment]
-  '("Set Language Environment" . setup-language-environment-map)
+  (cons "Set Language Environment" setup-language-environment-map)
   t)
 (define-key-after mule-menu-keymap [mouse-set-font]
   '("Set Font/Fontset" . mouse-set-font)
@@ -95,7 +95,7 @@
   '("Describe Coding Systems" . describe-coding-system)
   t)
 (define-key-after mule-menu-keymap [set-various-coding-system]
-  '("Set Coding System" . set-coding-system-map)
+  (cons "Set Coding System" set-coding-system-map)
   t)
 (define-key-after mule-menu-keymap [separator-coding-system]
   '("--")
