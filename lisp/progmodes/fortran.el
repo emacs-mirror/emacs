@@ -139,9 +139,11 @@ You might want to change this to \"*\", for instance."
   :type 'regexp
   :group 'fortran-comment)
 
-(defcustom fortran-preprocessor-re
+(defcustom fortran-directive-re
   "^[ \t]*#.*"
-  "*Regexp to match the whole of a preprocessor line."
+  "*Regexp to match a directive line.
+The matching text will be fontified with `font-lock-keyword-face'.
+The matching line will be given zero indentation."
   :version "21.4"
   :type 'regexp
   :group 'fortran-indent)
@@ -376,7 +378,7 @@ These get fixed-format comments fontified.")
 	 (list
 	  ;; cpp stuff (ugh)
 ;;;	  '("^# *[a-z]+" . font-lock-keyword-face))
-          `(,fortran-preprocessor-re (0 font-lock-keyword-face t)))
+          `(,fortran-directive-re (0 font-lock-keyword-face t)))
          ;; The list `fortran-font-lock-keywords-2' less that for types
          ;; (see above).
          (cdr (nthcdr (length fortran-font-lock-keywords-1)
@@ -980,21 +982,21 @@ Auto-indent does not happen if a numeric ARG is used."
   "Move point to beginning of the previous Fortran statement.
 Returns 'first-statement if that statement is the first
 non-comment Fortran statement in the file, and nil otherwise.
-Preprocessor lines are treated as comments."
+Directive lines are treated as comments."
   (interactive)
   (let (not-first-statement continue-test)
     (beginning-of-line)
     (setq continue-test
 	  (and
 	   (not (looking-at fortran-comment-line-start-skip))
-           (not (looking-at fortran-preprocessor-re))
+           (not (looking-at fortran-directive-re))
 	   (or (looking-at
 	        (concat "[ \t]*"
 			(regexp-quote fortran-continuation-string)))
 	       (looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]"))))
     (while (and (setq not-first-statement (= (forward-line -1) 0))
 		(or (looking-at fortran-comment-line-start-skip)
-                    (looking-at fortran-preprocessor-re)
+                    (looking-at fortran-directive-re)
 		    (looking-at "[ \t]*$\\| \\{5\\}[^ 0\n]\\|\t[1-9]")
 		    (looking-at (concat "[ \t]*" comment-start-skip)))))
     (cond ((and continue-test
@@ -1009,7 +1011,7 @@ Preprocessor lines are treated as comments."
   "Move point to beginning of the next Fortran statement.
 Returns 'last-statement if that statement is the last
 non-comment Fortran statement in the file, and nil otherwise.
-Preprocessor lines are treated as comments."
+Directive lines are treated as comments."
   (interactive)
   (let (not-last-statement)
     (beginning-of-line)
@@ -1017,7 +1019,7 @@ Preprocessor lines are treated as comments."
 		      (and (= (forward-line 1) 0)
 			   (not (eobp))))
  		(or (looking-at fortran-comment-line-start-skip)
-                    (looking-at fortran-preprocessor-re)
+                    (looking-at fortran-directive-re)
  		    (looking-at "[ \t]*$\\|     [^ 0\n]\\|\t[1-9]")
  		    (looking-at (concat "[ \t]*" comment-start-skip)))))
     (if (not not-last-statement)
@@ -1357,6 +1359,9 @@ Return point or nil."
     (save-excursion
       (beginning-of-line)
       (cond ((looking-at "[ \t]*$"))
+            ;; Check for directive before comment, so as not to indent.
+	    ((looking-at fortran-directive-re)
+	     (setq fortran-minimum-statement-indent 0 icol 0))
 	    ((looking-at fortran-comment-line-start-skip)
 	     (cond ((eq fortran-comment-indent-style 'relative)
 		    (setq icol (+ icol fortran-comment-line-extra-indent)))
@@ -1369,8 +1374,6 @@ Return point or nil."
 				      fortran-continuation-string)))
 		 (looking-at " \\{5\\}[^ 0\n]\\|\t[1-9]"))
 	     (setq icol (+ icol fortran-continuation-indent)))
-	    ((looking-at fortran-preprocessor-re) ; Check for cpp directive.
-	     (setq fortran-minimum-statement-indent 0 icol 0))
 	    (first-statement)
 	    ((and fortran-check-all-num-for-matching-do
 		  (looking-at "[ \t]*[0-9]+")
