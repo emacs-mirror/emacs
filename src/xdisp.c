@@ -5507,12 +5507,24 @@ resize_mini_window (w, exact_p)
 	  || BEGV == ZV)
 	{
 	  Lisp_Object old_selected_window;
+	  Lisp_Object fix_window;
 	  int old_height = XFASTINT (w->height);
 	      
 	  freeze_window_starts (f, height > XFASTINT (w->height));
+
+	  /* If the mini-buffer is selected, try to not change
+	     the height of Vminibuf_scroll_window.  Otherwise try
+	     to not change the height of the selected window.  */
+	  if (MINI_WINDOW_P (XWINDOW (selected_window)))
+	    fix_window = Vminibuf_scroll_window;
+	  else
+	    fix_window = selected_window;
+	  
 	  old_selected_window = selected_window;
 	  XSETWINDOW (selected_window, w);
+	  XWINDOW (fix_window)->height_fixed_p = 1;
 	  change_window_height (height - XFASTINT (w->height), 0);
+	  XWINDOW (fix_window)->height_fixed_p = 0;
 	  selected_window = old_selected_window;
 	  window_height_changed_p = XFASTINT (w->height) != old_height;
 	}
