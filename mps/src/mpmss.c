@@ -1,7 +1,7 @@
-/*  impl.c.mpmss: MPM STRESS TEST
+/* impl.c.mpmss: MPM STRESS TEST
  *
- * $HopeName: MMsrc!mpmss.c(MMdevel_drj_arena_hysteresis.2) $
- * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
+ * $HopeName$
+ * Copyright (C) 1998 Harlequin Group plc. All rights reserved.
  */
 
 
@@ -12,10 +12,6 @@
 #endif
 #include <stdlib.h>
 #include <stdarg.h>
-#ifdef MPS_OS_IA
-struct itimerspec; /* stop complaints from time.h */
-#endif
-#include <time.h>
 
 #include "mpscmv.h"
 #include "mpslib.h"
@@ -32,8 +28,6 @@ extern mps_class_t PoolClassMFS(void);
 #define smallArenaSIZE  ((((size_t)1)<<20) - 4)
 #define testSetSIZE 200
 #define testLOOPS 10
-
-static int mpmss_random;
 
 
 static mps_res_t stress(mps_class_t class, mps_arena_t arena,
@@ -152,21 +146,8 @@ static int testInArena(mps_arena_t arena)
 int main(int argc, char **argv)
 {
   mps_arena_t arena;
-  int i;
 
-  testlib_unused(argv);
-
-  if(argc > 1) {
-    mpmss_random = 0;
-  } else {
-    mpmss_random = 1;
-  }
-
-  if(mpmss_random) {
-    /* Randomize the random number generator a bit. */
-    for (i = time(NULL) % 67; i > 0; --i)
-      rnd();
-  }
+  randomize(argc, argv);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
