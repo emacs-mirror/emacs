@@ -1,7 +1,7 @@
 /* impl.c.format: OBJECT FORMATS
  *
- * $HopeName: MMsrc!format.c(trunk.19) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!format.c(trunk.20) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
  *
@@ -10,16 +10,19 @@
 
 #include "mpm.h"
 
-SRCID(format, "$HopeName: MMsrc!format.c(trunk.19) $");
+SRCID(format, "$HopeName: MMsrc!format.c(trunk.20) $");
 
+
+/* FormatCheck -- check a format */
 
 Bool FormatCheck(Format format)
 {
   CHECKS(Format, format);
   CHECKU(Arena, format->arena);
   CHECKL(format->serial < format->arena->formatSerial);
-  CHECKL(format->variety == FormatVarietyA || 
-	 format->variety == FormatVarietyB);
+  CHECKL(format->variety == FormatVarietyA
+         || format->variety == FormatVarietyB
+         || format->variety == FormatVarietyAutoHeader);
   CHECKL(RingCheck(&format->arenaRing));
   CHECKL(AlignCheck(format->alignment));
   /* @@@@ alignment should be less than maximum allowed */
@@ -27,12 +30,13 @@ Bool FormatCheck(Format format)
   CHECKL(FUNCHECK(format->skip));
   CHECKL(FUNCHECK(format->move));
   CHECKL(FUNCHECK(format->isMoved));
-  CHECKL(FUNCHECK(format->copy));
+  /* Ignore unused copy field. */
   CHECKL(FUNCHECK(format->pad));
   CHECKL(FUNCHECK(format->class));
 
   return TRUE;
 }
+
 
 static Addr FormatDefaultClass(Addr object) 
 {
@@ -40,6 +44,9 @@ static Addr FormatDefaultClass(Addr object)
 
   return ((Addr *)object)[0];
 }
+
+
+/* FormatCreate -- create a format */
 
 Res FormatCreate(Format *formatReturn, Arena arena,
                  Align alignment,
@@ -50,7 +57,8 @@ Res FormatCreate(Format *formatReturn, Arena arena,
                  FormatIsMovedMethod isMoved,
                  FormatCopyMethod copy,
                  FormatPadMethod pad,
-		 FormatClassMethod class)
+		 FormatClassMethod class,
+                 Size headerSize)
 {
   Format format;
   Res res;
@@ -75,10 +83,16 @@ Res FormatCreate(Format *formatReturn, Arena arena,
   format->copy = copy;
   format->pad = pad;
   if(class == NULL) {
-    AVER(variety == FormatVarietyA); 
     format->class = &FormatDefaultClass;
   } else {
+    AVER(variety == FormatVarietyB); 
     format->class = class;
+  }
+  if(headerSize != 0) {
+    AVER(variety == FormatVarietyAutoHeader);
+    format->headerSize = headerSize;
+  } else {
+    format->headerSize = 0;
   }
 
   format->sig = FormatSig;
@@ -106,6 +120,7 @@ void FormatDestroy(Format format)
 
   ControlFree(format->arena, format, sizeof(FormatStruct));
 }
+
 
 /* Must be thread safe.  See design.mps.interface.c.thread-safety. */
 Arena FormatArena(Format format)
