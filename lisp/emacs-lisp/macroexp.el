@@ -3,7 +3,7 @@
 ;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
-;; Keywords: lisp
+;; Keywords: lisp, macros, compiler
 
 ;; This file is part of GNU Emacs.
 
@@ -41,31 +41,58 @@
       original-cons
     (cons car cdr)))
 
+;; We use this special macro to iteratively process forms and share list
+;; structure of the result with the input.  Doing so recursively using
+;; `maybe-cons' results in excessively deep recursion for very long
+;; input forms.
+(defmacro macroexp-accumulate (#1=#:\(var\ list\) &rest body)
+  "Return a list of the results of evaluating BODY for each element of LIST.
+Evaluate BODY with VAR bound to each `car' from LIST, in turn.
+Return a list of the values of the final form in BODY.
+The list structure of the result will share as much with LIST as
+possible (for instance, when BODY just returns VAR unchanged, the
+result will be eq to LIST)."
+  (let ((var (car #1#))
+	(list (cadr #1#))
+	(shared (make-symbol "shared"))
+	(unshared (make-symbol "unshared"))
+	(tail (make-symbol "tail"))
+	(new-el (make-symbol "new-el")))
+    `(let* ((,shared ,list)
+	    (,unshared nil)
+	    (,tail ,shared)
+	    ,var ,new-el)
+       (while ,tail
+	 (setq ,var (car ,tail)
+	       ,new-el (progn ,@body))
+	 (unless (eq ,var ,new-el)
+	   (while (not (eq ,shared ,tail))
+	     (push (pop ,shared) ,unshared))
+	   (setq ,shared (cdr ,shared))
+	   (push ,new-el ,unshared))
+	 (setq ,tail (cdr ,tail)))
+       (nconc (nreverse ,unshared) ,shared))))
+(put 'macroexp-accumulate 'lisp-indent-function 1)
+
 (defun macroexpand-all-forms (forms &optional skip)
   "Return FORMS with macros expanded.  FORMS is a list of forms.
 If SKIP is non-nil, then don't expand that many elements at the start of
 FORMS."
-  (and forms
-       (maybe-cons
-	(if (and (integerp skip) (> skip 0))
-	    (car forms)
-	  (macroexpand-all-1 (car forms)))
-	(macroexpand-all-forms (cdr forms)
-			       (and (integerp skip) (> skip 0) (1- skip)))
-	forms)))
+  (macroexp-accumulate (form forms)
+    (if (or (null skip) (zerop skip))
+	(macroexpand-all-1 form)
+      (setq skip (1- skip))
+      form)))
 
 (defun macroexpand-all-clauses (clauses &optional skip)
   "Return CLAUSES with macros expanded.
 CLAUSES is a list of lists of forms; any clause that's not a list is ignored.
 If SKIP is non-nil, then don't expand that many elements at the start of
 each clause."
-  (and clauses
-       (maybe-cons
-	(if (listp (car clauses))
-	    (macroexpand-all-forms (car clauses) skip)
-	  (car clauses))
-	(macroexpand-all-clauses (cdr clauses) skip)
-	clauses)))
+  (macroexp-accumulate (clause clauses) 
+    (if (listp clause)
+	(macroexpand-all-forms clause skip)
+      clause)))
 
 (defun macroexpand-all-1 (form)
   "Expand all macros in FORM.
