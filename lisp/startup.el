@@ -872,8 +872,8 @@ Emacs FAQ		Frequently asked questions and answers
 	   :face (variable-pitch :slant oblique)
 	   "ABSOLUTELY NO WARRANTY\n"
 	   :face variable-pitch
-	   "Copying Conditions	Conditions for redistributing and \
-changing Emacs\n"))
+	   "\
+Copying Conditions	Conditions for redistributing and changing Emacs\n"))
   "A list of texts to show in the middle part of splash screens.
 Each element in the list should be a list of strings or pairs
 `:face FACE', like `fancy-splash-insert' accepts them.")
