@@ -1,5 +1,5 @@
 /* Indentation functions.
-   Copyright (C) 1985,86,87,88,93,94,95,98, 2000, 2001
+   Copyright (C) 1985,86,87,88,93,94,95,98, 2000, 2001, 2002
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2018,7 +2018,17 @@ whether or not it is currently displayed in some window.  */)
       
   SET_TEXT_POS (pt, PT, PT_BYTE);
   start_display (&it, w, pt);
-  move_it_by_lines (&it, XINT (lines), 0);
+
+  /* Move to the start of the line containing PT.  If we don't do
+     this, we start moving with IT->current_x == 0, while PT is really
+     at some x > 0.  The effect is, in continuation lines, that we end
+     up with the iterator placed at where it thinks X is 0, while the
+     end position is really at some X > 0, the same X that PT had.  */
+  move_it_by_lines (&it, 0, 0);
+
+  if (XINT (lines) !+ 0)
+    move_it_by_lines (&it, XINT (lines), 0);
+  
   SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
 
   if (BUFFERP (old_buffer))
