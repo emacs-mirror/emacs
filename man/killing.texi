@@ -35,6 +35,13 @@ text in the buffer.)  If you do a kill or delete command by mistake, you
 can use the @kbd{C-x u} (@code{undo}) command to undo it
 (@pxref{Undo}).
 
+@vindex kill-read-only-ok
+@cindex read-only text, killing
+  By default, Emacs does not allow to kill text in read-only buffers.
+Setting the variable @code{kill-read-only-ok} to a non-@code{nil} value
+overrides that.  To alert you to the fact that you killed read-only
+text, Emacs prints a message to that effect in the echo area.
+
   The delete commands include @kbd{C-d} (@code{delete-char}) and
 @key{DEL} (@code{delete-backward-char}), which delete only one character at
 a time, and those commands that delete only spaces or newlines.  Commands
