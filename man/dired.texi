@@ -20,7 +20,7 @@ line); other commands operate on the marked files or on the flagged
 files.
 
   The Dired-X package provides various extra features for Dired mode.
-@xref{Dired-X,,,dired-x, Dired Extra Version 2 User's Manual}.
+@xref{Top, Dired-X,,dired-x, Dired Extra Version 2 User's Manual}.
 
 @menu
 * Enter: Dired Enter.         How to invoke Dired.
