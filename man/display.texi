@@ -990,6 +990,46 @@ the value of @code{truncate-lines}.  For information about side-by-side
 windows, see @ref{Split Window}.  See also @ref{Display,, Display,
 elisp, The Emacs Lisp Reference Manual}.
 
+@vindex overflow-newline-into-fringe
+  If the variable @code{overflow-newline-into-fringe} is
+non-@code{nil} on a window system, it specifies that lines which are
+exactly as wide as the window (not counting the final newline
+character) shall not be broken into two lines on the display (with
+just the newline on the second line).  Instead, the newline
+overflows into the right fringe, and the cursor will be displayed in
+the fringe when positioned on that newline.
+@end defvar
+
+@vindex indicate-buffer-boundaries
+  On a window system, Emacs may indicate the buffer boundaries in the
+fringes.  The buffer boundaries, i.e. first and last line in the
+buffer, can be marked with angle bitmaps in the left or right fringe.
+This can be combined with up and down arrow bitmaps shown at the top
+and bottom of the left or right fringe if the window can be scrolled
+in either direction.
+
+The buffer-local variable @code{indicate-buffer-boundaries} controls
+how the buffer boundaries and window scrolling is indicated in the
+fringes.
+
+If the value is @code{left} or @code{right}, both angle and arrow
+bitmaps are displayed in the left or right fringe, respectively.
+Any other non-@code{nil} value causes the bitmap on the top line to be
+displayed in the left fringe, and the bitmap on the bottom line in the
+right fringe.
+
+If value is a cons @code{(angles . arrows)}, the car specifies the
+position of the angle bitmaps, and the cdr specifies the position of
+the arrow bitmaps.  For example, @code{(t .  right)} places the top
+angle bitmap in left fringe, the bottom angle bitmap in right fringe,
+and both arrow bitmaps in right fringe.  To show just the angle
+bitmaps in the left fringe, but no arrow bitmaps, use @code{(left . nil)}.
+
+@vindex default-indicate-buffer-boundaries
+  The value of the variable @code{default-indicate-buffer-boundaries}
+is the default value for @code{indicate-buffer-boundaries} in buffers
+that do not override it.
+
 @vindex baud-rate
   The variable @code{baud-rate} holds the output speed of the
 terminal, as far as Emacs knows.  Setting this variable does not
