@@ -1451,6 +1451,7 @@ A frame-local binding is actual a frame parameter value;\n\
 thus, any given frame has a local binding for VARIABLE\n\
 if it has a value for the frame parameter named VARIABLE.\n\
 See `modify-frame-parameters'.")
+  (variable)
      register Lisp_Object variable;
 {
   register Lisp_Object tem, valcontents, newval;
