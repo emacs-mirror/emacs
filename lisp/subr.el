@@ -180,21 +180,31 @@ Accept any number of arguments, but ignore them."
 (fset 'search-forward-regexp (symbol-function 're-search-forward))
 (fset 'search-backward-regexp (symbol-function 're-search-backward))
 
+;;; global-map, esc-map, and ctl-x-map have their values set up
+;;; in keymap.c.
 (defvar global-map nil
   "Default global keymap mapping Emacs keyboard input into commands.
 The value is a keymap which is usually (but not necessarily) Emacs's
 global map.")
 
-(defvar ctl-x-map nil
-  "Default keymap for C-x commands.
-The normal global definition of the character C-x indirects to this keymap.")
-
 (defvar esc-map nil
   "Default keymap for ESC (meta) commands.
 The normal global definition of the character ESC indirects to this keymap.")
 
-(defvar mouse-map nil
-  "Keymap for mouse commands from the X window system.")
+(defvar ctl-x-map nil
+  "Default keymap for C-x commands.
+The normal global definition of the character C-x indirects to this keymap.")
+
+(defvar ctl-x-4-map (make-sparse-keymap)
+  "Keymap for subcommands of C-x 4")
+(fset 'ctl-x-4-prefix ctl-x-4-map)
+(define-key ctl-x-map "4" 'ctl-x-4-prefix)
+
+(defvar ctl-x-3-map (make-sparse-keymap)
+  "Keymap for screen commands.")
+(fset 'ctl-x-3-prefix ctl-x-3-map)
+(define-key ctl-x-map "3" 'ctl-x-3-prefix)
+
 
 (defun run-hooks (&rest hooklist)
   "Takes hook names and runs each one in turn.  Major mode functions use this.
