@@ -316,9 +316,9 @@ printchar (ch, fun)
     call1 (fun, make_number (ch));
   else
     {
-      unsigned char work[4], *str;
-      int len = CHAR_STRING (ch, work, str);
-    
+      unsigned char str[MAX_MULTIBYTE_LENGTH];
+      int len = CHAR_STRING (ch, str);
+
       QUIT;
       
       if (NILP (fun))
