@@ -2204,6 +2204,10 @@ and selects that window."
 (global-set-key [double-mouse-1] 'mouse-set-point)
 (global-set-key [triple-mouse-1] 'mouse-set-point)
 
+;; Clicking on the fringes causes hscrolling:
+(global-set-key [left-fringe mouse-1]	'mouse-set-point)
+(global-set-key [right-fringe mouse-1]	'mouse-set-point)
+
 (global-set-key [mouse-2]	'mouse-yank-at-click)
 (global-set-key [mouse-3]	'mouse-save-then-kill)
 
