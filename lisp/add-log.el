@@ -779,9 +779,28 @@ Has a preference of looking backwards."
 		   (forward-line 1))
 		 (or (eobp)
 		     (forward-char 1))
-		 (beginning-of-defun)
-		 (when (progn (end-of-defun)
-			      (< location (point)))
+		 (let (maybe-beg)
+		   ;; Try to find the containing defun.
+		   (beginning-of-defun)
+		   (end-of-defun)
+		   ;; If the defun we found ends before the desired position,
+		   ;; see if there's a DEFUN construct
+		   ;; between that end and the desired position.
+		   (when (save-excursion
+			   (and (> location (point))
+				(re-search-forward "^DEFUN" 
+						   (save-excursion
+						     (goto-char location)
+						     (line-end-position))
+						   t)
+				(re-search-forward "^{" nil t)
+				(setq maybe-beg (point))))
+		     ;; If so, go to the end of that instead.
+		     (goto-char maybe-beg)
+		     (end-of-defun)))
+		 ;; If the desired position is within the defun we found,
+		 ;; find the function name.
+		 (when (< location (point))
 		   (backward-sexp 1)
 		   (let (beg tem)
 
