@@ -749,6 +749,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
   ;; Entry is always for files, even if they happen to also be directories
   (let ((opoint (point))
 	(cur-dir (dired-current-directory))
+	(orig-file-name filename)
 	(directory (file-name-directory filename))
 	reason)
     (setq filename (file-name-nondirectory filename)
@@ -783,6 +784,20 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 	      (let ((default-directory directory))
 		(insert-directory filename
 				  (concat dired-actual-switches "d")))
+	      ;; Compensate for a bug in ange-ftp.
+	      ;; It inserts the file's absolute name, rather than
+	      ;; the relative one.  That may be hard to fix since it
+	      ;; is probably controlled by something in ftp.
+	      (goto-char opoint)	
+	      (let ((inserted-name (dired-get-filename 'no-dir)))
+		(if (file-name-directory inserted-name)
+		    (progn
+		      (end-of-line)
+		      (delete-char (- (length inserted-name)))
+		      (insert filename)
+		      (forward-char 1))
+		  (forward-line 1)))
+	      ;; Give each line a text property recording info about it.
 	      (dired-insert-set-properties opoint (point))
 	      (forward-line -1)
 	      (if dired-after-readin-hook;; the subdir-alist is not affected...
