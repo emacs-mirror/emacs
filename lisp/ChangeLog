@@ -1,3 +1,17 @@
+2001-04-10  John Wiegley  <johnw@gnu.org>
+
+	* calendar/timeclock.el (timeclock-completing-read): new function.
+	(timeclock-ask-for-project, timeclock-ask-for-reason): Call
+	`timeclock-completing-read'.
+
+	* eshell/em-alias.el (eshell-command-aliased-p): `assoc' was
+	required where `member' was being used.
+
+2001-04-09  Colin Walters  <walters@cis.ohio-state.edu>
+
+	* eshell/em-hist.el (eshell-previous-matching-input): Don't
+	display "History item" if the the minibuffer is active.
+
 2001-04-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (command-line): Output a newline after printing
