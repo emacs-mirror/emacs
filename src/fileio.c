@@ -1856,7 +1856,7 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
 }
 
 DEFUN ("delete-directory", Fdelete_directory, Sdelete_directory, 1, 1, "FDelete directory: ",
-  "Delete a directory.  One argument, a file name string.")
+  "Delete a directory.  One argument, a file name or directory name string.")
   (dirname)
      Lisp_Object dirname;
 {
@@ -1864,7 +1864,7 @@ DEFUN ("delete-directory", Fdelete_directory, Sdelete_directory, 1, 1, "FDelete 
   Lisp_Object handler;
 
   CHECK_STRING (dirname, 0);
-  dirname = Fexpand_file_name (dirname, Qnil);
+  dirname = Fdirectory_file_name (Fexpand_file_name (dirname, Qnil));
   dir = XSTRING (dirname)->data;
 
   handler = Ffind_file_name_handler (dirname, Qdelete_directory);
