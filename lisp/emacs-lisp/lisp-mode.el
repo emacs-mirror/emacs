@@ -1055,26 +1055,56 @@ ENDPOS is encountered."
 
 ;;;; Lisp paragraph filling commands.
 
+(defcustom emacs-lisp-docstring-fill-column 65
+  "Value of `fill-column' to use when filling a docstring.
+Any non-integer value means do not use a different value of
+`fill-column' when filling docstrings."
+  :type '(choice (integer)
+                 (const :tag "Use the current `fill-column'" t))
+  :group 'lisp)
+
 (defun lisp-fill-paragraph (&optional justify)
-  "Like \\[fill-paragraph], but handle Emacs Lisp comments.
+  "Like \\[fill-paragraph], but handle Emacs Lisp comments and docstrings.
 If any of the current line is a comment, fill the comment or the
 paragraph of it that point is in, preserving the comment's indentation
 and initial semicolons."
   (interactive "P")
   (or (fill-comment-paragraph justify)
-      ;; `paragraph-start' is set here (not in the buffer-local
-      ;; variable so that `forward-paragraph' et al work as
-      ;; expected) so that filling (doc) strings works sensibly.
-      ;; Adding the opening paren to avoid the following sexp being
-      ;; filled means that sexps generally aren't filled as normal
-      ;; text, which is probably sensible.  The `;' and `:' stop the
-      ;; filled para at following comment lines and keywords
-      ;; (typically in `defcustom').
+      ;; Point is on a program line (a line no comment); we are interested
+      ;; particularly in docstring lines.
+      ;;
+      ;; We bind `paragraph-start' and `paragraph-separate' temporarily.  They
+      ;; are buffer-local, but we avoid changing them so that they can be set
+      ;; to make `forward-paragraph' and friends do something the user wants.
+      ;;
+      ;; `paragraph-start': The `(' in the character alternative and the
+      ;; left-singlequote plus `(' sequence after the \\| alternative prevent
+      ;; sexps and backquoted sexps that follow a docstring from being filled
+      ;; with the docstring.  This setting has the consequence of inhibiting
+      ;; filling many program lines that are not docstrings, which is sensible,
+      ;; because the user probably asked to fill program lines by accident, or
+      ;; expecting indentation (perhaps we should try to do indenting in that
+      ;; case).  The `;' and `:' stop the paragraph being filled at following
+      ;; comment lines and at keywords (e.g., in `defcustom').  Left parens are
+      ;; escaped to keep font-locking, filling, & paren matching in the source
+      ;; file happy.
+      ;;
+      ;; `paragraph-separate': A clever regexp distinguishes the first line of
+      ;; a docstring and identifies it as a paragraph separator, so that it
+      ;; won't be filled.  (Since the first line of documentation stands alone
+      ;; in some contexts, filling should not alter the contents the author has
+      ;; chosen.)  Only the first line of a docstring begins with whitespace
+      ;; and a quotation mark and ends with a period or (rarely) a comma.
+      ;;
+      ;; The `fill-column' is temporarily bound to
+      ;; `emacs-lisp-docstring-fill-column' if that value is an integer.
       (let ((paragraph-start (concat paragraph-start
-				     "\\|\\s-*[\(;:\"]"))
-	    ;; Avoid filling the first line of docstring.
+				     "\\|\\s-*\\([\(;:\"]\\|`\(\\)"))
 	    (paragraph-separate
-	     (concat paragraph-separate "\\|\\s-*\".*\\.$")))
+	     (concat paragraph-separate "\\|\\s-*\".*[,\\.]$"))
+            (fill-column (if (integerp emacs-lisp-docstring-fill-column)
+                             emacs-lisp-docstring-fill-column
+                           fill-column)))
 	(fill-paragraph justify))
       ;; Never return nil.
       t))
