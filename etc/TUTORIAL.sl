@@ -1,4 +1,3 @@
-Prvo berilo za Emacs
 Prvo berilo za Emacs. Pogoji uporabe in raz¹irjanja so navedeni na koncu.
 Copyright (c) 1985, 1996, 1997, 2001, 2002 Free Software Foundation, Inc.
 

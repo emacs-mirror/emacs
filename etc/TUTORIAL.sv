@@ -1,7 +1,5 @@
-användarhandledningen till Emacs
-Detta är den Svenska användarhandledningen till Emacs. I slutet finns
-kopieringsvillkoren. Copyright (c) 1985, 1996, 1998, 2001, 2002 Free
-Software Foundation, Inc.
+användarhandledningen till Emacs. I slutet finns kopieringsvillkoren.
+Copyright (c) 1985, 1996, 1998, 2001, 2002 Free Software Foundation, Inc.
 
 Emacs-kommandon innebär ofta användning av kontrolltangenten (vanligen
 märkt CTRL eller CTL) eller META-tangenten (på vissa tangentbord märkt

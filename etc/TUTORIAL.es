@@ -1,5 +1,4 @@
-Tutorial de Emacs
-Usted esta viendo el tutorial de Emacs. Vea al final las condiciones
+Tutorial de Emacs. Vea al final las condiciones
 de copiado. Copyright (c) 1985, 1996, 1998, 2001, 2002 Free Software
 Foundation.
 

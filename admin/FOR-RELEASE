@@ -264,23 +264,23 @@ names of the people who have checked it.
 SECTION                  READERS
 ----------------------------------
 etc/TUTORIAL             rms
-etc/TUTORIAL.bg
+etc/TUTORIAL.bg          Ognyan Kulev <ogi@fmi.uni-sofia.bg>
 etc/TUTORIAL.cn
 etc/TUTORIAL.cs
 etc/TUTORIAL.de
-etc/TUTORIAL.es
+etc/TUTORIAL.es          Marcelo Toledo
 etc/TUTORIAL.fr
 etc/TUTORIAL.it
 etc/TUTORIAL.ja
 etc/TUTORIAL.ko
 etc/TUTORIAL.nl		 Lute Kamstra
 etc/TUTORIAL.pl
-etc/TUTORIAL.pt_BR
+etc/TUTORIAL.pt_BR       Marcelo Toledo
 etc/TUTORIAL.ro
 etc/TUTORIAL.ru
 etc/TUTORIAL.sk
 etc/TUTORIAL.sl
-etc/TUTORIAL.sv
+etc/TUTORIAL.sv          Mats Lidell <matsl@contactor.se>
 etc/TUTORIAL.th
 etc/TUTORIAL.zh
 

@@ -1,4 +1,4 @@
-учебник Emacs
+учебник Emacs.
 Вы читаете учебник Emacs.  Условия копирования в конце файла.
 Copyright (c) 1985, 1996, 2004 Free Software Foundation, Inc.
 
