@@ -105,19 +105,14 @@ DEFUN ("documentation", Fdocumentation, Sdocumentation, 1, 2, 0,
   "Return the documentation string of FUNCTION.\n\
 Unless a non-nil second argument is given, the\n\
 string is passed through `substitute-command-keys'.")
-  (fun1, raw)
-     Lisp_Object fun1, raw;
+  (function, raw)
+     Lisp_Object function, raw;
 {
   Lisp_Object fun;
   Lisp_Object funcar;
   Lisp_Object tem, doc;
 
-  fun = fun1;
-  while (XTYPE (fun) == Lisp_Symbol)
-    {
-      QUIT;
-      fun = Fsymbol_function (fun);
-    }
+  fun = Findirect_function (function);
 
   switch (XTYPE (fun))
     {
@@ -149,11 +144,11 @@ string is passed through `substitute-command-keys'.")
       funcar = Fcar (fun);
       if (XTYPE (funcar) != Lisp_Symbol)
 	return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
-      if (XSYMBOL (funcar) == XSYMBOL (Qkeymap))
+      else if (EQ (funcar, Qkeymap))
 	return build_string ("Prefix command (definition is a keymap associating keystrokes with\n\
 subcommands.)");
-      if (XSYMBOL (funcar) == XSYMBOL (Qlambda)
-	  || XSYMBOL (funcar) == XSYMBOL (Qautoload))
+      else if (EQ (funcar, Qlambda)
+	       || EQ (funcar, Qautoload))
 	{
 	  tem = Fcar (Fcdr (Fcdr (fun)));
 	  if (XTYPE (tem) == Lisp_String)
@@ -162,10 +157,12 @@ subcommands.)");
 	    doc = get_doc_string (XFASTINT (tem));
 	  else
 	    return Qnil;
+
+	  break;
 	}
-      if (XSYMBOL (funcar) == XSYMBOL (Qmocklisp))
+      else if (EQ (funcar, Qmocklisp))
 	return Qnil;
-      if (XSYMBOL (funcar) == XSYMBOL (Qmacro))
+      else if (EQ (funcar, Qmacro))
 	return Fdocumentation (Fcdr (fun), raw);
 
       /* Fall through to the default to report an error.  */

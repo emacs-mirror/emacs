@@ -1,11 +1,11 @@
 /* Simple built-in editing commands.
-   Copyright (C) 1985 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -94,7 +94,8 @@ With positive ARG, a non-empty line at the end counts as one line\n\
   pos = scan_buffer ('\n', pos2, count - negp, &shortage);
   if (shortage > 0
       && (negp
-	  || (ZV >= BEGV
+	  || (ZV > BEGV
+	      && pos != pos2
 	      && FETCH_CHAR (pos - 1) != '\n')))
     shortage--;
   SET_PT (pos);

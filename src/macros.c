@@ -1,11 +1,11 @@
 /* Keyboard macros.
-   Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -201,9 +201,7 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
     prefixarg = Fprefix_numeric_value (prefixarg),
     repeat = XINT (prefixarg);
 
-  final = macro;
-  while (XTYPE (final) == Lisp_Symbol && !EQ (final, Qunbound))
-    final = XSYMBOL (final)->function;
+  final = indirect_function (macro);
   if (XTYPE (final) != Lisp_String
       && XTYPE (final) != Lisp_Vector)
     error ("Keyboard macros must be strings or vectors.");
