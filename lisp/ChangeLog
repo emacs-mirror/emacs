@@ -1,3 +1,7 @@
+2003-02-07  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* language/european.el ("French", "Slovenian"): Fix doc strings.
+
 2003-02-06  John Paul Wallington  <jpw@gnu.org>
 
 	* mail/rmailsum.el (rmail-summary-previous-msg): Add docstring.
