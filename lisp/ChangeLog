@@ -1,3 +1,12 @@
+2002-09-11  Kim F. Storm  <storm@cua.dk>
+
+	* kmacro.el (kmacro-call-macro): Rephrase repeat prompt.
+	(kmacro-step-edit-map): Bind "A" to `append-end'.
+	(kmacro-step-edit-prompt): Fix prompt.
+	(kmacro-step-edit-query): Handle `append-end' response.
+	(kmacro-step-edit-pre-command): Activate `append-end' at end of
+	macro when required.
+
 2002-09-10  Dave Love  <fx@gnu.org>
 
 	* international/utf-8.el (ucs-mule-to-mule-unicode): Define

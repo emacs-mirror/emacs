@@ -818,7 +818,8 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 			  (if kmacro-step-edit-help "\
  Step: y/SPC: execute next,  d/n/DEL: skip next,  f: skip but keep
        TAB: execute while same,  ?: toggle help
- Edit: i: insert,  a: append,  r: replace, I/A/R: one sequence
+ Edit: i: insert,  r: replace,  a: append,  A: append at end,
+       I/R: insert/replace with one sequence,
  End:  !/c: execute rest,  C-k: skip rest and save,  q/C-g: quit
 ----------------------------------------------------------------
 " "")
