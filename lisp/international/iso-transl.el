@@ -37,25 +37,27 @@
   '((?\' . mute-acute)
     (?\` . mute-grave)
     (?\" . mute-diaeresis)
-    (?^ . mute-asciicircum)  ;; Don't use \, since \^ is special.
-    (?\~ . mute-asciitilde))
+    (?^ . mute-asciicircum)
+    (?\~ . mute-asciitilde)
+    (?\' . dead-acute)
+    (?\` . dead-grave)
+    (?\" . dead-diaeresis)
+    (?^ . dead-asciicircum)
+    (?\~ . dead-asciitilde)
+    (?^ . dead-circum)
+    (?^ . dead-circumflex)
+    (?\~ . dead-tilde)
+    ;; Someone reports that these keys don't work if shifted.
+    ;; This might fix it--no word yet.
+    (?\' . S-dead-acute)
+    (?\` . S-dead-grave)
+    (?\" . S-dead-diaeresis)
+    (?^ . S-dead-asciicircum)
+    (?\~ . S-dead-asciitilde)
+    (?^ . S-dead-circum)
+    (?^ . S-dead-circumflex)
+    (?\~ . S-dead-tilde))
   "Mapping of ASCII characters to their corresponding dead-key symbols.")
-
-;; Some X servers use these alternate names.
-(or key-translation-map
-    (setq key-translation-map (make-sparse-keymap)))
-(define-key key-translation-map [dead-acute] [mute-acute])
-(define-key key-translation-map [dead-grave] [mute-grave])
-(define-key key-translation-map [dead-diaeresis] [mute-diaeresis])
-(define-key key-translation-map [dead-asciicircum] [mute-asciicircum])
-(define-key key-translation-map [dead-asciitilde] [mute-asciitilde])
-;; Someone reports that these keys don't work if shifted.
-;; This might fix it--no word yet.
-(define-key key-translation-map [S-dead-acute] [mute-acute])
-(define-key key-translation-map [S-dead-grave] [mute-grave])
-(define-key key-translation-map [S-dead-diaeresis] [mute-diaeresis])
-(define-key key-translation-map [S-dead-asciicircum] [mute-asciicircum])
-(define-key key-translation-map [S-dead-asciitilde] [mute-asciitilde])
 
 ;; The two-character mnemonics are intended to be available in all languages.
 ;; The ones beginning with `*' have one-character synonyms, but a
@@ -213,20 +215,23 @@ sequence VECTOR.  (VECTOR is normally one character long.)")
 ;; character associated with the string "~n" can be input with `C-x 8 ~ n'
 ;; or `Alt-~ n' or `mute-asciitilde n'.
 (defun iso-transl-define-keys (alist)
-    (while alist
-      (define-key iso-transl-ctl-x-8-map (car (car alist)) (cdr (car alist)))
-      (let ((vec      (vconcat (car (car alist))))
-	    (deadpair (assq (aref (car (car alist)) 0)
-			    iso-transl-dead-key-alist)))
-	(aset vec 0 (logior (aref vec 0) ?\A-\^@))
-	(define-key key-translation-map vec (cdr (car alist)))
-	(define-key isearch-mode-map (vector (aref vec 0)) nil)
-	(if deadpair
-	    (let ((deadvec (copy-sequence vec)))
-	      (aset deadvec 0 (cdr deadpair))
-	      (define-key isearch-mode-map (vector (aref deadvec 0)) nil)
-	      (define-key key-translation-map deadvec (cdr (car alist))))))
-      (setq alist (cdr alist))))
+  (while alist
+    (define-key iso-transl-ctl-x-8-map (car (car alist)) (cdr (car alist)))
+    (let ((inchar (aref (car (car alist)) 0))
+	  (vec (vconcat (car (car alist))))
+	  (tail iso-transl-dead-key-alist))
+      (aset vec 0 (logior (aref vec 0) ?\A-\^@))
+      (define-key key-translation-map vec (cdr (car alist)))
+      (define-key isearch-mode-map (vector (aref vec 0)) nil)
+      (while tail
+	(if (eq (car (car tail)) inchar)
+	    (let ((deadvec (copy-sequence vec))
+		  (deadkey (cdr (car tail))))
+	      (aset deadvec 0 deadkey)
+	      (define-key isearch-mode-map (vector deadkey) nil)
+	      (define-key key-translation-map deadvec (cdr (car alist)))))
+	(setq tail (cdr tail)))))
+  (setq alist (cdr alist)))
 
 (defun iso-transl-set-language (lang)
   (interactive (list (let ((completion-ignore-case t))
