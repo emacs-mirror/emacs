@@ -1,3 +1,16 @@
+2002-04-14  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (pop-to-mark-command, push-mark-command): New commands.
+	(set-mark-command): Use them.
+	Enhanced functionality when command is repeated:
+	- If first command set the mark (no prefix arg), repeat temporarily
+	enables transient-mark-mode.
+	- If first command jumped to mark off ring (with argument), 
+	repeat (with or without arg) jump to next mark off ring.
+	- Use C-u C-u prefix to set mark after jump.
+	(exchange-point-and-mark): Temporarily enable transient-mark-mode
+	if prefix arg.
+
 2002-04-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* speedbar.el (speedbar-tag-hierarchy-method)
