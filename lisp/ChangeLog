@@ -1,3 +1,7 @@
+2000-11-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* textmodes/artist.el: New file.
+
 2000-11-19  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-rcs.el (vc-rcs-state): Call vc-workfile-unchanged-p only here, 

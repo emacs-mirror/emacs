@@ -1,8 +1,16 @@
 2000-11-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* sysdep.c (emacs_ospeed): New variable.
+	(toplevel): Don't declare ospeed extern.
+	(init_baud_rate): Use emacs_ospeed instead of ospeed.
+
+	* termcap.c (ospeed): Remove.
+	(tputs) [!emacs]: Remove unused code.
+	(tgetent): Avoid a compiler warning.
+
 	* xterm.c (x_set_toolkit_scroll_bar_thumb, x_scroll_bar_create)
 	(x_scroll_bar_remove, XTset_vertical_scroll_bar): Call
-	SCROLL_BAR_X_WIDGET with addtional argument DPY.
+	SCROLL_BAR_X_WIDGET with additional argument DPY.
 
 	* xterm.h (struct scroll_bar): Members x_widget_low, x_widget_high
 	removed.
