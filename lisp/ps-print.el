@@ -721,8 +721,8 @@ and the text it contains, both in the vertical and horizontal directions.")
   "*Non-nil means print a header at the top of each page.
 By default, the header displays the buffer name, page number, and, if
 the buffer is visiting a file, the file's directory.  Headers are
-customizable by changing variables `ps-header-left' and
-`ps-header-right'.")
+customizable by changing variables `ps-left-header' and
+`ps-right-header'.")
 
 (defvar ps-print-header-frame t
   "*Non-nil means draw a gaudy frame around the header.")
