@@ -1,3 +1,12 @@
+2003-01-27  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (kill-new): Improve doc string for yank-handler.
+	Signal args-out-of-range error if yank-handler is specified for
+	an empty string.
+
+	* subr.el (insert-for-yank): Remove COMMAND element from yank
+	handler.
+
 2003-01-27  Dave Love  <fx@gnu.org>
 
 	* dired-x.el (dired-filename-at-point): Fix last change and tidy up.
