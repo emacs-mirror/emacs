@@ -290,7 +290,9 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
 
     ;; Perl -w:
     ;; syntax error at automake line 922, near "':'"
-    (".* at \\([^ ]+\\) line \\([0-9]+\\)," 1 2)
+    ;; Perl debugging traces
+    ;; store::odrecall('File_A', 'x2') called at store.pm line 90
+    (".* at \\([^ \n]+\\) line \\([0-9]+\\)[,.\n]" 1 2)
 
     ;; Oracle pro*c:
     ;; Semantic error at line 528, column 5, file erosacqdb.pc:
