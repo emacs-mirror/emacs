@@ -25,6 +25,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "commands.h"
 #include "buffer.h"
 #include "keyboard.h"
+#include "termhooks.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
@@ -506,6 +507,7 @@ the front of KEYMAP.")
   register Lisp_Object tem;
   register Lisp_Object cmd;
   int metized = 0;
+  int meta_bit;
   int length;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
@@ -521,13 +523,18 @@ the front of KEYMAP.")
 
   GCPRO3 (keymap, key, def);
 
+  if (XTYPE (key) == Lisp_Vector)
+    meta_bit = meta_modifier;
+  else
+    meta_bit = 0x80;
+
   idx = 0;
   while (1)
     {
       c = Faref (key, make_number (idx));
 
       if (XTYPE (c) == Lisp_Int
-	  && XINT (c) >= 0200
+	  && (XINT (c) & meta_bit)
 	  && !metized)
 	{
 	  c = meta_prefix_char;
@@ -595,6 +602,7 @@ recognize the default bindings, just as `read-key-sequence' does.")
   int metized = 0;
   int length;
   int t_ok = ! NILP (accept_default);
+  int meta_bit;
 
   keymap = get_keymap (keymap);
 
@@ -606,13 +614,18 @@ recognize the default bindings, just as `read-key-sequence' does.")
   if (length == 0)
     return keymap;
 
+  if (XTYPE (key) == Lisp_Vector)
+    meta_bit = meta_modifier;
+  else
+    meta_bit = 0x80;
+
   idx = 0;
   while (1)
     {
       c = Faref (key, make_number (idx));
 
       if (XTYPE (c) == Lisp_Int
-	  && XINT (c) >= 0200
+	  && (XINT (c) & meta_bit)
 	  && !metized)
 	{
 	  c = meta_prefix_char;
@@ -621,7 +634,7 @@ recognize the default bindings, just as `read-key-sequence' does.")
       else
 	{
 	  if (XTYPE (c) == Lisp_Int)
-	    XSETINT (c, XINT (c) & 0177);
+	    XSETINT (c, XINT (c) & ~meta_bit);
 
 	  metized = 0;
 	  idx++;
@@ -1112,6 +1125,22 @@ spaces are put between sequence elements, etc.")
   (keys)
      Lisp_Object keys;
 {
+  if (XTYPE (keys) == Lisp_String)
+    {
+      Lisp_Object vector;
+      int i;
+      vector = Fmake_vector (Flength (keys), Qnil);
+      for (i = 0; i < XSTRING (keys)->size; i++)
+	{
+	  if (XSTRING (keys)->data[i] & 0x80)
+	    XFASTINT (XVECTOR (vector)->contents[i])
+	      = meta_modifier | (XSTRING (keys)->data[i] & ~0x80);
+	  else
+	    XFASTINT (XVECTOR (vector)->contents[i])
+	      = XSTRING (keys)->data[i];
+	}
+      keys = vector;
+    }
   return Fmapconcat (Qsingle_key_description, keys, build_string (" "));
 }
 
@@ -1120,11 +1149,41 @@ push_key_description (c, p)
      register unsigned int c;
      register char *p;
 {
-  if (c >= 0200)
+  if (c & alt_modifier)
+    {
+      *p++ = 'A';
+      *p++ = '-';
+      c -= alt_modifier;
+    }
+  if (c & ctrl_modifier)
+    {
+      *p++ = 'C';
+      *p++ = '-';
+      c -= ctrl_modifier;
+    }
+  if (c & hyper_modifier)
+    {
+      *p++ = 'H';
+      *p++ = '-';
+      c -= hyper_modifier;
+    }
+  if (c & meta_modifier)
     {
       *p++ = 'M';
       *p++ = '-';
-      c -= 0200;
+      c -= meta_modifier;
+    }
+  if (c & shift_modifier)
+    {
+      *p++ = 'S';
+      *p++ = '-';
+      c -= shift_modifier;
+    }
+  if (c & super_modifier)
+    {
+      *p++ = 's';
+      *p++ = '-';
+      c -= super_modifier;
     }
   if (c < 040)
     {
@@ -1134,7 +1193,7 @@ push_key_description (c, p)
 	  *p++ = 'S';
 	  *p++ = 'C';
 	}
-      else if (c == Ctl('I'))
+      else if (c == '\t')
 	{
 	  *p++ = 'T';
 	  *p++ = 'A';
@@ -1174,8 +1233,18 @@ push_key_description (c, p)
       *p++ = 'P';
       *p++ = 'C';
     }
-  else
+  else if (c < 256)
     *p++ = c;
+  else
+    {
+      *p++ = '\\';
+      *p++ = (7 & (c >> 15)) + '0';
+      *p++ = (7 & (c >> 12)) + '0';
+      *p++ = (7 & (c >> 9)) + '0';
+      *p++ = (7 & (c >> 6)) + '0';
+      *p++ = (7 & (c >> 3)) + '0';
+      *p++ = (7 & (c >> 0)) + '0';
+    }
 
   return p;  
 }
@@ -1186,16 +1255,14 @@ Control characters turn into C-whatever, etc.")
   (key)
      Lisp_Object key;
 {
-  register unsigned char c;
-  char tem[6];
+  char tem[20];
 
   key = EVENT_HEAD (key);
 
   switch (XTYPE (key))
     {
     case Lisp_Int:		/* Normal character */
-      c = XINT (key) & 0377;
-      *push_key_description (c, tem) = 0;
+      *push_key_description (XUINT (key), tem) = 0;
       return build_string (tem);
 
     case Lisp_Symbol:		/* Function key or event-symbol */
