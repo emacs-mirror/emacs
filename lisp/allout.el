@@ -1,11 +1,11 @@
-;;;_* allout.el --- Extensive outline mode for use alone and with other modes.
+;;; allout.el --- Extensive outline mode for use alone and with other modes.
 
 ;; Copyright (C) 1992, 1993, 1994, 2001 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <klm@python.org>
 ;; Maintainer: Ken Manheimer <klm@python.org>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 1.26 2001/02/26 12:01:50 gerd Exp $||
+;; Version: $Id: allout.el,v 1.27 2001/02/26 12:07:48 gerd Exp $||
 ;; Keywords: outline mode wp languages
 
 ;; This file is part of GNU Emacs.
@@ -507,7 +507,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = outline-version
 (defvar outline-version
-  (let ((rcs-rev "$Revision: 1.26 $"))
+  (let ((rcs-rev "$Revision: 1.27 $"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
