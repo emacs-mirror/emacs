@@ -2306,10 +2306,8 @@ use \\[mail-yank-original] to yank the original message into it."
 			 (if msgnum
 			     (rmail-set-attribute "answered" t msgnum)))))))
       nil
-      (cons (cons "References" message-id)
-	    (mapcar (function (lambda (elt) 
-				(cons "References" elt)))
-		    references)))
+      (list (cons "References" (concat (mapconcat 'identity references " ")
+				       " " message-id))))
     ;; We keep the rmail buffer and message number in these 
     ;; buffer-local vars in the sendmail buffer,
     ;; so that rmail-only-expunge can relocate the message number.
