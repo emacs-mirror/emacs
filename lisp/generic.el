@@ -2,7 +2,7 @@
 ;;
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 ;;
-;; Author:  Peter Breton <pbreton@i-kinetics.com>
+;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Fri Sep 27 1996
 ;; Keywords: generic, comment, font-lock
 
@@ -48,13 +48,13 @@
 ;;
 ;; * List of keywords to font-lock.  Each keyword should be a string.
 ;;   If you have additional keywords which should be highlighted in a face
-;;   different from 'font-lock-keyword-face', you can use the convenience
-;;   function 'generic-make-keywords-list' (which see), and add the
+;;   different from `font-lock-keyword-face', you can use the convenience
+;;   function `generic-make-keywords-list' (which see), and add the
 ;;   result to the following list:
 ;; 
 ;; * Additional expressions to font-lock.  This should be a list of
 ;;   expressions, each of which should be of the same form
-;;   as those in 'font-lock-defaults-alist'.
+;;   as those in `font-lock-defaults-alist'.
 ;;   
 ;; * List of regular expressions to be placed in auto-mode-alist.
 ;;
@@ -76,10 +76,10 @@
 ;;   
 ;; DEFINING NEW GENERIC MODES:
 ;;
-;; Use the 'define-generic-mode' function to define new modes.
+;; Use the `define-generic-mode' function to define new modes.
 ;; For example:
 ;;
-;;   (require 'generic-mode)
+;;   (require 'generic)
 ;;   (define-generic-mode 'foo-generic-mode
 ;;                        (list ?% )
 ;;                        (list "keyword")
@@ -87,20 +87,20 @@
 ;;			  (list "\.FOO")
 ;;			  (list 'foo-setup-function))
 ;;
-;; defines a new generic-mode 'foo-generic-mode', which has '%' as a
-;; comment character, and "keyword" as a keyword.  When files which end in
+;; defines a new generic-mode `foo-generic-mode', which has '%' as a
+;; comment character, and "keyword" as a keyword. When files which end in
 ;; '.FOO' are loaded, Emacs will go into foo-generic-mode and call
-;; foo-setup-function.  You can also use the function 'foo-generic-mode'
+;; foo-setup-function.  You can also use the function `foo-generic-mode'
 ;; (which is interactive) to put a buffer into foo-generic-mode.
 ;;
 ;; AUTOMATICALLY ENTERING GENERIC MODE:
 ;;
 ;; Generic-mode provides a hook which automatically puts a
 ;; file into default-generic-mode if the first few lines of a file in
-;; fundamental mode start with a hash comment character.  To disable
-;; this functionality, set the variable 'generic-use-find-file-hook'
-;; to nil BEFORE loading generic-mode.  See the variables
-;; 'generic-lines-to-scan' and 'generic-find-file-regexp' for customization
+;; fundamental mode start with a hash comment character. To disable
+;; this functionality, set the variable `generic-use-find-file-hook'
+;; to nil BEFORE loading generic-mode. See the variables
+;; `generic-lines-to-scan' and `generic-find-file-regexp' for customization
 ;; options.
 ;; 
 ;; GOTCHAS:
