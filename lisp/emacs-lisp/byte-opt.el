@@ -1,6 +1,6 @@
 ;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler
 
-;;; Copyright (c) 1991, 1994, 2000, 2001 Free Software Foundation, Inc.
+;;; Copyright (c) 1991, 1994, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -1198,7 +1198,7 @@
 	 length local-variable-if-set-p local-variable-p log log10 logand
 	 logb logior lognot logxor lsh
 	 make-list make-string make-symbol
-	 marker-buffer max member memq min mod
+	 marker-buffer max member memq min mod multibyte-char-to-unibyte
 	 next-window nth nthcdr number-to-string
 	 parse-colon-path plist-get plist-member
 	 prefix-numeric-value previous-window prin1-to-string propertize
@@ -1206,7 +1206,8 @@
 	 region-beginning region-end reverse round
 	 sin sqrt string string< string= string-equal string-lessp string-to-char
 	 string-to-int string-to-number substring sxhash symbol-function
-	 symbol-name symbol-plist symbol-value
+	 symbol-name symbol-plist symbol-value string-make-unibyte
+	 string-make-multibyte string-as-multibyte string-as-unibyte
 	 tan truncate
 	 unibyte-char-to-multibyte upcase user-full-name
 	 user-login-name user-original-login-name user-variable-p
