@@ -84,7 +84,8 @@ Anything else means restrict to the selected frame."
 	      (cons walk-windows-current walk-windows-already-seen))
 	(funcall proc walk-windows-current)))))
 
-(defun some-window (predicate &optional minibuf all-frames default)
+(defun get-window-with-predicate (predicate &optional minibuf
+					    all-frames default)
   "Return a window satisfying PREDICATE.
 
 This function cycles through all visible windows using `walk-windows',
@@ -118,6 +119,8 @@ Anything else means restrict to the selected frame."
 			(throw 'found window)))
 		  minibuf all-frames)
     default))
+
+(defalias 'some-window 'get-window-with-predicate)
 
 (defun minibuffer-window-active-p (window)
   "Return t if WINDOW (a minibuffer window) is now active."
