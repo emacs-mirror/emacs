@@ -1202,7 +1202,13 @@ queries the server for the existing fields and displays a corresponding form."
    ((and eudc-xemacs-p (featurep 'menubar))
     (add-submenu '("Tools") (eudc-menu)))
    (eudc-emacs-p
-    (cond 
+    (cond
+     ((fboundp 'easy-menu-create-menu)
+      (define-key
+	global-map
+	[menu-bar tools directory-search]
+	(cons "Directory Search"
+	      (easy-menu-create-menu "Directory Search" (cdr (eudc-menu)))))) 
      ((fboundp 'easy-menu-add-item)
       (let ((menu (eudc-menu)))
 	(easy-menu-add-item nil '("tools") (easy-menu-create-menu (car menu)
