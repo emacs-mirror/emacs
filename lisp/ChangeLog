@@ -1,5 +1,9 @@
 2002-04-30  Richard M. Stallman  <rms@gnu.org>
 
+	* language/tibetan.el (tibetan-obsolete-glyphs): Now in tibet-util.el.
+
+	* language/tibet-util.el (tibetan-obsolete-glyphs): From tibetan.el.
+
 	* align.el (align-region): Fix call to `message'.
 	Check that (car rule) is a symbol.
 
