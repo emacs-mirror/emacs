@@ -1,6 +1,32 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* Segfault on GNU/Linux using certain recent versions of the Linux kernel.
+
+With certain recent Linux kernels (like the one of Redhat Fedora Core
+1), the new "Exec-shield" functionality is enabled by default, which
+creates a different memory layout that breaks the emacs dumper.
+
+You can check the Exec-shield state like this:
+
+    cat /proc/sys/kernel/exec-shield
+
+It returns 1 or 2 when Exec-shield is enabled, 0 otherwise.  Please
+read your system documentation for more details on Exec-shield and
+associated commands.
+
+When Exec-shield is enabled, building Emacs will segfault during the
+execution of this command:
+
+temacs --batch --load loadup [dump|bootstrap]
+
+To work around this problem, it is necessary to temporarily disable
+Exec-shield while building Emacs, using the `setarch' command like
+this:
+
+    setarch i386 ./configure <configure parameters>
+    setarch i386 make <make parameters>
+
 * Characters are displayed as empty boxes or with wrong font under X.
 
 This can occur when two different versions of FontConfig are used.
