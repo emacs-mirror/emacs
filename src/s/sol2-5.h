@@ -27,3 +27,7 @@
    We can optimize this later.  */
 
 #undef USE_MMAP_FOR_BUFFERS
+
+/* Probably OK also on earlier versions.  */
+#define GC_SETJMP_WORKS 1
+#define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
