@@ -6458,7 +6458,7 @@ display_echo_area_1 (a1, a2, a3, a4)
    currently displayed message, if there is one.  */
 
 void
-resize_echo_area_axactly ()
+resize_echo_area_exactly ()
 {
   if (BUFFERP (echo_area_buffer[0])
       && WINDOWP (echo_area_window))
@@ -6479,7 +6479,7 @@ resize_echo_area_axactly ()
 
 
 /* Callback function for with_echo_area_buffer, when used from
-   resize_echo_area_axactly.  A1 contains a pointer to the window to
+   resize_echo_area_exactly.  A1 contains a pointer to the window to
    resize, A2 to A4 are not used.  Value is what resize_mini_window
    returns.  */
 
