@@ -22,6 +22,9 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 
 #include <stdio.h>
+#ifdef BOEHM_GC
+#include <gc.h>
+#endif
 #include "lisp.h"
 #include "charset.h"
 #ifdef HAVE_X_WINDOWS
@@ -485,7 +488,7 @@ make_terminal_frame ()
 #ifdef MULTI_KBOARD
   if (!initial_kboard)
     {
-      initial_kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+      initial_kboard = (KBOARD *) XGC_MALLOC (sizeof (KBOARD));
       init_kboard (initial_kboard);
       initial_kboard->next_kboard = all_kboards;
       all_kboards = initial_kboard;
