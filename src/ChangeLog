@@ -1,5 +1,9 @@
 2001-10-28  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* keyboard.c: Change doc-string comments to `new style' [w/`doc:'
+	keyword].
+	Fix typos in comments.
+	
 	* emacs.c (bug_reporting_address): New function.
 	Use it when displaying usage message.
 
