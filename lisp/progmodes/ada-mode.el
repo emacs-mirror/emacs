@@ -1408,9 +1408,7 @@ Moves to 'begin' if in a declarative part."
 	  (setq lines-remaining (1- lines-remaining)))
       ;; show line number where the error occurred
       (error
-       (error (format "line %d: %s"
-                      (1+ (count-lines (point-min) (point)))
-                      err) nil)))
+       (error "line %d: %s" (1+ (count-lines (point-min) (point))) err)))
     (message "indenting ... done")))
 
 
@@ -2501,9 +2499,7 @@ This works by two steps:
   ;; Moves point to the matching block start.
   (ada-goto-matching-start 0)
   (if (not (looking-at (concat "\\<" keyword "\\>")))
-      (error (concat
-              "matching start is not '"
-              keyword "'"))))
+      (error "matching start is not '%s'" keyword)))
 
 
 (defun ada-check-defun-name (defun-name)
@@ -2542,14 +2538,9 @@ This works by two steps:
     ;; should be looking-at the correct name
     ;;
     (if (not (looking-at (concat "\\<" defun-name "\\>")))
-        (error
-         (concat
-          "matching defun has different name: "
-          (buffer-substring
-           (point)
-           (progn
-             (forward-sexp 1)
-             (point))))))))
+        (error "matching defun has different name: %s"
+	       (buffer-substring (point)
+				 (progn (forward-sexp 1) (point)))))))
 
 
 (defun ada-goto-matching-decl-start (&optional noerror nogeneric)
