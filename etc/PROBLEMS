@@ -391,6 +391,11 @@ Windows programs if the characters are in the system codepage.
 Reportedly, a partial solution is to install the Mule-UCS package and
 set selection-coding-system to utf-16-le-dos.
 
+The %h format specifier for format-time-string does not work on Windows.
+The %b format specifier does not produce abbreviated month names with
+consistent widths for some locales on some versions of Windows. This is
+caused by a deficiency in the underlying system library function.
+
 * The `configure' script doesn't find the jpeg library.
 
 This can happen because the linker by default only looks for shared
