@@ -3613,13 +3613,13 @@ If there are no more overlay boundaries before POS, return (point-min).")
 
   CHECK_NUMBER_COERCE_MARKER (pos, 0);
 
-  len = 10;
-  overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
-
   /* At beginning of buffer, we know the answer;
      avoid bug subtracting 1 below.  */
   if (XINT (pos) == BEGV)
     return pos;
+
+  len = 10;
+  overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.
