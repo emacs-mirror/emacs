@@ -2619,7 +2619,9 @@ Match frames with dark backgrounds.")
 	   (if (eq custom-buffer-style 'face)
 	       (insert " ")
 	     (widget-specify-sample widget begin (point))
-	     (insert ": "))
+	     (if (string-match "face\\'" tag)
+		 (insert ":")
+	       (insert " face: ")))
 	   ;; Sample.
 	   (push (widget-create-child-and-convert widget 'item
 						  :format "(%{%t%})"
