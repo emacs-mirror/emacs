@@ -962,13 +962,12 @@ Instead, these commands are available:
   (interactive)
   (rmail-expunge-and-save)
   ;; Don't switch to the summary buffer even if it was recently visible.
-  (if rmail-summary-buffer
-      (progn
-	(replace-buffer-in-windows rmail-summary-buffer)
-	(bury-buffer rmail-summary-buffer)))
+  (when rmail-summary-buffer
+    (replace-buffer-in-windows rmail-summary-buffer)
+    (bury-buffer rmail-summary-buffer))
   (let ((obuf (current-buffer)))
     (replace-buffer-in-windows obuf)
-    (bury-buffer obuf)))
+    (quit-window)))
 
 (defun rmail-bury ()
   "Bury current Rmail buffer and its summary buffer."
@@ -979,10 +978,9 @@ Instead, these commands are available:
     (if (rmail-summary-exists)
 	(let (window)
 	  (while (setq window (get-buffer-window rmail-summary-buffer))
-	    (set-window-buffer window (other-buffer rmail-summary-buffer)))
+	    (quit-window nil window))
 	  (bury-buffer rmail-summary-buffer)))
-    (switch-to-buffer (other-buffer (current-buffer)))
-    (bury-buffer buffer-to-bury)))
+    (quit-window)))
 
 (defun rmail-duplicate-message ()
   "Create a duplicated copy of the current message.
@@ -2279,8 +2277,12 @@ If N is negative, go backwards instead."
 	(i rmail-current-message)
 	(case-fold-search t)
 	search-regexp found)
+    (if (string-match "\\`[ \t]+" subject)
+	(setq subject (substring subject (match-end 0))))
     (if (string-match "Re:[ \t]*" subject)
 	(setq subject (substring subject (match-end 0))))
+    (if (string-match "[ \t]+\\'" subject)
+	(setq subject (substring subject 0 (match-beginning 0))))
     (setq search-regexp (concat "^Subject: *\\(Re: *\\)?"
 				(regexp-quote subject)
 				"\n"))
