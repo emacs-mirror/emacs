@@ -86,7 +86,9 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #ifdef emacs
+#ifndef NO_FILIO_H
 #include <sys/filio.h>
+#endif
 #include <termio.h>
 #include <sys/ttold.h>
 #include <signal.h>
