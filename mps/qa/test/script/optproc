@@ -1,0 +1,126 @@
+#!/usr/local/perl
+#
+# subroutines for processing options to qa commands
+# Each command can specify which options it requires,
+# and what, if anything, they default to.
+# In no default is specified, global defaults will be
+# used, and if no global default is given, we'll get
+# an error message.
+
+1;
+
+require "options";
+
+sub options {
+ local (@req) = @_;
+
+ &parseoptions;
+ &applydefaults;
+ &requiredoptions(@req);
+}
+
+sub requiredoptions {
+ local ($pur, $missing, $report, $qa_opt) = ("", 0, "");
+
+ foreach (@_) {
+  unless (&getoption($_)) {
+   if ($missing > 0) {
+    $report = $report.",\n";
+   }
+   $missing = $missing + 1;
+   $report = $report."  MMQA_".$_;
+   if (&optioncode($_)) {
+    $qa_opt = &optioncode($_);
+    $report = $report." (specify with -".$qa_opt.")";
+   } elsif (&flagcode($_)) {
+    $qa_opt = &flagcode($_);
+    $report = $report." (set with -".$qa_opt."/-no".$qa_opt.")";
+   } else {
+    $report = $report." (but you can't set it -- oops!)";
+   }
+  }
+ }
+ if ($missing > 0) {
+  if ($missing > 1) {
+   $pur = "s";
+  }
+  die "Error: $qa_command requires the following option".
+   $pur.":\n".$report.".\n";
+ }
+}
+
+sub parseoptions {
+ local ($tem);
+
+ while ($_ = shift(@ARGV)) {
+  if (/^\-+(.*)$/i) { # allow >1 minus sign before options!
+   if ($qa_options{$1}) {
+    $qa_opt_val = shift(@ARGV);
+    &setoption($qa_options{$1}, $qa_opt_val);
+   } else {
+    if ($1 =~ /^no/) { # prefix "no" negates any flag
+     $flag = $1;
+     $flag =~ s/^no//;
+     $qa_opt_val = "off";
+    } else {
+     $qa_opt_val = "on";
+     $flag = $1;
+    }
+    unless ($qa_flags{$flag}) {
+     die "Unrecognized option or flag: $1.\n";
+    }
+    &setoption($qa_flags{$flag}, $qa_opt_val);
+   }
+  } else {
+   push(@qa_args, $_);
+  }
+ }
+}
+
+sub getoption {
+ local ($opt) = @_;
+ return eval "$".$opt;
+}
+
+sub setoption {
+ local ($opt, $val) = @_;
+ if ($val) {
+  eval "$".$opt." = \$val";
+ }
+}
+
+sub flagcode {
+ local ($opt, $code) = @_;
+ foreach $code (keys %qa_flags) {
+  if ($qa_flags{$code} eq $opt) {
+   return $code
+  }
+ }
+ return 0;
+}
+
+sub optioncode {
+ local ($opt, $code) = @_;
+ foreach $code (keys %qa_options) {
+  if ($qa_options{$code} eq $opt) {
+   return $code
+  }
+ }
+ return 0;
+}
+
+sub applydefaults {
+ local ($opt, $val);
+
+ foreach (keys %qa_options) {
+  $opt = $qa_options{$_};
+  unless (&getoption($opt)) {
+   $val = $ENV{"MMQA_".$opt};
+   unless ($val) {
+    $val = $qa_defaults{$opt};
+   }
+   &setoption($opt, $val);
+  }
+ }
+}
+
