@@ -950,7 +950,9 @@ See documentation of variable `tags-file-name'."
 	;; costs about as much as searching 2000 chars.
 	(offset 1000)
 	(found nil)
-	(pat (concat "^" (regexp-quote (car tag-info)))))
+	(pat (concat (if (eq selective-display t)
+			 "\\(^\\|\^m\\)" "^")
+		     (regexp-quote (car tag-info)))))
     (or startpos
 	(setq startpos (point-min)))
     (while (and (not found)
