@@ -1000,7 +1000,7 @@ set_buffer_internal (b)
       valcontents = XSYMBOL (XCONS (XCONS (tail)->car)->car)->value;
       if ((BUFFER_LOCAL_VALUEP (valcontents)
 	   || SOME_BUFFER_LOCAL_VALUEP (valcontents))
-	  && (tem = XCONS (valcontents)->car,
+	  && (tem = XBUFFER_LOCAL_VALUE (valcontents)->car,
 	      (BOOLFWDP (tem) || INTFWDP (tem) || OBJFWDP (tem))))
 	/* Just reference the variable
 	     to cause it to become set for this buffer.  */
@@ -1015,7 +1015,7 @@ set_buffer_internal (b)
 	valcontents = XSYMBOL (XCONS (XCONS (tail)->car)->car)->value;
 	if ((BUFFER_LOCAL_VALUEP (valcontents)
 	     || SOME_BUFFER_LOCAL_VALUEP (valcontents))
-	    && (tem = XCONS (valcontents)->car,
+	    && (tem = XBUFFER_LOCAL_VALUE (valcontents)->car,
 		(BOOLFWDP (tem) || INTFWDP (tem) || OBJFWDP (tem))))
 	  /* Just reference the variable
                to cause it to become set for this buffer.  */
