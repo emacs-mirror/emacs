@@ -76,4 +76,6 @@ MD5 is defined in RFC 1321."
       ;; Don't return the newline that follows them!
       (buffer-substring 1 33))))
 
+(provide 'md5)
+
 ;;; md5.el ends here
