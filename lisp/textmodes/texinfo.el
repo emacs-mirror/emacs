@@ -624,10 +624,16 @@ value of `texinfo-mode-hook'."
   "Regexp for environment-like TexInfo list commands.
    Subexpression 1 is what goes into the corresponding `@end' statement.")
 
+(defvar texinfo-block-default "example")
+
 (define-skeleton texinfo-insert-block
   "Create a matching pair @<cmd> .. @end <cmd> at point.
 Puts point on a blank line between them."
-  (completing-read "Block name: " (mapcar 'list texinfo-environments))
+  (setq texinfo-block-default
+	(completing-read (format "Block name [%s]: " texinfo-block-default)
+			 (mapcar 'list texinfo-environments)
+			 nil nil nil nil texinfo-block-default))
+  (unless (save-excursion (beginning-of-line) (looking-at "[ \t]*$")) '\n)
   "@" str \n _ \n "@end " str \n)
 
 (defun texinfo-inside-macro-p (macro &optional bound)
