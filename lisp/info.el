@@ -2151,17 +2151,17 @@ If no reference to follow, moves to the next node, or up if none."
 
 (defvar info-tool-bar-map
   (if (display-graphic-p)
-      (let ((tool-bar-map (make-sparse-keymap)))
-	(tool-bar-add-item-from-menu 'Info-exit "close" Info-mode-map)
-	(tool-bar-add-item-from-menu 'Info-prev "left_arrow" Info-mode-map)
-	(tool-bar-add-item-from-menu 'Info-next "right_arrow" Info-mode-map)
-	(tool-bar-add-item-from-menu 'Info-up "up_arrow" Info-mode-map)
-	(tool-bar-add-item-from-menu 'Info-last "undo" Info-mode-map)
-	(tool-bar-add-item-from-menu 'Info-top-node "home" Info-mode-map)
-	(tool-bar-add-item-from-menu 'Info-index "index" Info-mode-map)
-	(tool-bar-add-item-from-menu 'Info-goto-node "jump_to" Info-mode-map)
-	(tool-bar-add-item-from-menu 'Info-search "search" Info-mode-map)
-	tool-bar-map)))
+      (let ((map (make-sparse-keymap)))
+	(tool-bar-local-item-from-menu 'Info-exit "close" map Info-mode-map)
+	(tool-bar-local-item-from-menu 'Info-prev "left_arrow" map Info-mode-map)
+	(tool-bar-local-item-from-menu 'Info-next "right_arrow" map Info-mode-map)
+	(tool-bar-local-item-from-menu 'Info-up "up_arrow" map Info-mode-map)
+	(tool-bar-local-item-from-menu 'Info-last "undo" map Info-mode-map)
+	(tool-bar-local-item-from-menu 'Info-top-node "home" map Info-mode-map)
+	(tool-bar-local-item-from-menu 'Info-index "index" map Info-mode-map)
+	(tool-bar-local-item-from-menu 'Info-goto-node "jump_to" map Info-mode-map)
+	(tool-bar-local-item-from-menu 'Info-search "search" map Info-mode-map)
+	map)))
 
 (defvar Info-menu-last-node nil)
 ;; Last node the menu was created for.
