@@ -1,3 +1,7 @@
+2005-03-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debug-on-entry-1): Fix handling of macros.
+
 2005-03-07  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (move-beginning-of-line): New command.
@@ -100,14 +104,12 @@
 
 	* calendar/icalendar.el (icalendar-version): Increase to 0.11.
 	(icalendar-export-file, icalendar-export-region)
-	(icalendar-import-file, icalendar-import-buffer): Add autoload
-	cookies.
+	(icalendar-import-file, icalendar-import-buffer): Add autoload cookies.
 	(icalendar--convert-ical-to-diary): Fix problem with DURATION.
 
 2005-03-04  Lute Kamstra  <lute@gnu.org>
 
-	* emacs-lisp/debug.el (debugger-step-after-exit): Make it a
-	defvar.
+	* emacs-lisp/debug.el (debugger-step-after-exit): Make it a defvar.
 	(debug-function-list): Ditto.
 
 2005-03-04  Robert J. Chassell  <bob@rattlesnake.com>
@@ -117,7 +119,7 @@
 	is not appended by replacing a search for `@refill\\|@bye' with
 	`@refill\\|^[ \t]*@'.  The intent is to solve both the `@end
 	itemize@refill' bug and the unfilled long lines bug.
-	(texinfmt-version): update number and date.
+	(texinfmt-version): Update number and date.
 
 2005-03-04  Reiner Steib  <Reiner.Steib@gmx.de>
 

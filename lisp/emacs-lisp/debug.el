@@ -693,25 +693,24 @@ If argument is nil or an empty string, cancel for all functions."
 	  (fset function (cons 'lambda (cons (car contents) body)))))))
 
 (defun debug-on-entry-1 (function defn flag)
-  (if (subrp defn)
-      (error "%s is a built-in function" function)
-    (if (eq (car defn) 'macro)
-	(debug-on-entry-1 function (cdr defn) flag)
-      (or (eq (car defn) 'lambda)
-	  (error "%s not user-defined Lisp function" function))
-      (let ((tail (cdr defn)))
-	;; Skip the docstring.
-	(when (and (stringp (cadr tail)) (cddr tail))
-	  (setq tail (cdr tail)))
-	;; Skip the interactive form.
-	(when (eq 'interactive (car-safe (cadr tail)))
-	  (setq tail (cdr tail)))
-	(unless (eq flag (equal (cadr tail) debug-entry-code))
-	  ;; Add/remove debug statement as needed.
-	  (if flag
-	      (setcdr tail (cons debug-entry-code (cdr tail)))
-	    (setcdr tail (cddr tail))))
-	defn))))
+  (let ((tail defn))
+    (if (subrp tail)
+	(error "%s is a built-in function" function)
+      (if (eq (car tail) 'macro) (setq tail (cdr tail)))
+      (if (eq (car tail) 'lambda) (setq tail (cdr tail))
+	(error "%s not user-defined Lisp function" function))
+      ;; Skip the docstring.
+      (when (and (stringp (cadr tail)) (cddr tail))
+	(setq tail (cdr tail)))
+      ;; Skip the interactive form.
+      (when (eq 'interactive (car-safe (cadr tail)))
+	(setq tail (cdr tail)))
+      (unless (eq flag (equal (cadr tail) debug-entry-code))
+	;; Add/remove debug statement as needed.
+	(if flag
+	    (setcdr tail (cons debug-entry-code (cdr tail)))
+	  (setcdr tail (cddr tail))))
+      defn)))
 
 (defun debugger-list-functions ()
   "Display a list of all the functions now set to debug on entry."
