@@ -1162,13 +1162,14 @@ command_loop_1 ()
 			  Lisp_Object obj;
 
 			  obj = DISP_CHAR_VECTOR (dp, lose);
-			  if (NILP (obj)
-			      || (XTYPE (obj) == Lisp_Vector
-				  && XVECTOR (obj)->size == 1
-				  && (XTYPE (obj = XVECTOR (obj)->contents[0])
-				      == Lisp_Int)
-				  /* Insist face not specified in glyph.  */
-				  && (XINT (obj) & ((-1) << 8)) == 0))
+			  if (NILP (obj))
+			    no_redisplay = direct_output_for_insert (lose);
+			  else if (XTYPE (obj) == Lisp_Vector
+				   && XVECTOR (obj)->size == 1
+				   && (XTYPE (obj = XVECTOR (obj)->contents[0])
+				       == Lisp_Int)
+				   /* Insist face not specified in glyph.  */
+				   && (XINT (obj) & ((-1) << 8)) == 0)
 			    no_redisplay
 			      = direct_output_for_insert (XINT (obj));
 			}
