@@ -2332,7 +2332,6 @@ and put SIZE columns in the first of the pair.")
 
   o = XWINDOW (window);
   fo = XFRAME (WINDOW_FRAME (o));
-  width = XFASTINT (o->width);
 
   if (NILP (size))
     {
