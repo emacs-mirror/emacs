@@ -33,16 +33,16 @@ Boston, MA 02111-1307, USA.  */
 #define DISP_INVIS_VECTOR(dp) ((dp)->extras[4])
 #define DISP_BORDER_GLYPH(dp) ((dp)->extras[5])
 
-extern Lisp_Object disp_char_vector ();
+extern Lisp_Object disp_char_vector P_ ((struct Lisp_Char_Table *, int));
 
 #define DISP_CHAR_VECTOR(dp, c) \
   (SINGLE_BYTE_CHAR_P(c) ? (dp)->contents[c] : disp_char_vector ((dp), (c)))
 
 /* Defined in window.c.  */
-extern struct Lisp_Char_Table *window_display_table ();
+extern struct Lisp_Char_Table *window_display_table P_ ((struct window *));
 
 /* Defined in indent.c.  */
-extern struct Lisp_Char_Table *buffer_display_table ();
+extern struct Lisp_Char_Table *buffer_display_table P_ ((void));
 
 /* Display table to use for vectors that don't specify their own.  */
 extern Lisp_Object Vstandard_display_table;
@@ -99,8 +99,3 @@ extern Lisp_Object Vglyph_table;
 #define NULL_GLYPH 00
 
 #define GLYPH_FROM_CHAR(c) (c)
-
-extern int glyphlen ();
-extern void str_to_glyph_cpy ();
-extern void str_to_glyph_ncpy ();
-extern void glyph_to_str_cpy ();
