@@ -2134,7 +2134,14 @@ verify_overlay_modification (start, end)
 {
   Lisp_Object prop, overlay, tail;
   int insertion = EQ (start, end);
+  int tail_copied;
+  struct gcpro gcpro1, gcpro2;
 
+  overlay = Qnil;
+  tail = Qnil;
+  GCPRO2 (overlay, tail);
+
+  tail_copied = 0;
   for (tail = current_buffer->overlays_before;
        CONSP (tail);
        tail = XCONS (tail)->cdr)
@@ -2156,7 +2163,9 @@ verify_overlay_modification (start, end)
 	  if (!NILP (prop))
 	    {
 	      /* Copy TAIL in case the hook recenters the overlay lists.  */
-	      tail = Fcopy_sequence (tail);
+	      if (!tail_copied)
+		tail = Fcopy_sequence (tail);
+	      tail_copied = 1;
 	      call_overlay_mod_hooks (prop, overlay, start, end);
 	    }
 	}
@@ -2165,7 +2174,9 @@ verify_overlay_modification (start, end)
 	  prop = Foverlay_get (overlay, Qinsert_behind_hooks);
 	  if (!NILP (prop))
 	    {
-	      tail = Fcopy_sequence (tail);
+	      if (!tail_copied)
+		tail = Fcopy_sequence (tail);
+	      tail_copied = 1;
 	      call_overlay_mod_hooks (prop, overlay, start, end);
 	    }
 	}
@@ -2176,12 +2187,15 @@ verify_overlay_modification (start, end)
 	  prop = Foverlay_get (overlay, Qmodification_hooks);
 	  if (!NILP (prop))
 	    {
-	      tail = Fcopy_sequence (tail);
+	      if (!tail_copied)
+		tail = Fcopy_sequence (tail);
+	      tail_copied = 1;
 	      call_overlay_mod_hooks (prop, overlay, start, end);
 	    }
 	}
     }
 
+  tail_copied = 0;
   for (tail = current_buffer->overlays_after;
        CONSP (tail);
        tail = XCONS (tail)->cdr)
@@ -2202,7 +2216,9 @@ verify_overlay_modification (start, end)
 	  prop = Foverlay_get (overlay, Qinsert_in_front_hooks);
 	  if (!NILP (prop))
 	    {
-	      tail = Fcopy_sequence (tail);
+	      if (!tail_copied)
+		tail = Fcopy_sequence (tail);
+	      tail_copied = 1;
 	      call_overlay_mod_hooks (prop, overlay, start, end);
 	    }
 	}
@@ -2211,7 +2227,9 @@ verify_overlay_modification (start, end)
 	  prop = Foverlay_get (overlay, Qinsert_behind_hooks);
 	  if (!NILP (prop))
 	    {
-	      tail = Fcopy_sequence (tail);
+	      if (!tail_copied)
+		tail = Fcopy_sequence (tail);
+	      tail_copied = 1;
 	      call_overlay_mod_hooks (prop, overlay, start, end);
 	    }
 	}
@@ -2222,11 +2240,15 @@ verify_overlay_modification (start, end)
 	  prop = Foverlay_get (overlay, Qmodification_hooks);
 	  if (!NILP (prop))
 	    {
-	      tail = Fcopy_sequence (tail);
+	      if (!tail_copied)
+		tail = Fcopy_sequence (tail);
+	      tail_copied = 1;
 	      call_overlay_mod_hooks (prop, overlay, start, end);
 	    }
 	}
     }
+
+  UNGCPRO;
 }
 
 static void
