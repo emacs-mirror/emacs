@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc/!nti3mv.nmk(trunk.6)$
+# $HopeName: MMsrc/!nti3mv.nmk(trunk.7)$
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -20,7 +20,7 @@ TESTLIB = <testlib>
 
 # ==== ALMOST GENERIC PRODUCT BUILD FOR NMAKE ====
 #
-# $HopeName: MMsrc/!nti3mv.nmk(trunk.6)$
+# $HopeName: MMsrc/!nti3mv.nmk(trunk.7)$
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -218,13 +218,13 @@ TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 # %%TARGET: Add the target  to the all dependencies
 
 all: dwstress.exe amcdev.exe lockutnt.exe lockcov.exe stdcover.exe \
-    mpmstres.exe std.lib mpm.lib protcv.exe
+    mpmstres.exe protcv.exe poolncv.exe std.lib mpm.lib
 
 # Convenience targets
 # %%TARGET: Add a pseudo-target for the new part
 
 dwstress.exe amcdev.exe lockutnt.exe lockcov.exe stdcover.exe \
-	mpmstres.exe std.lib mpm.lib protcv.exe:
+	mpmstres.exe protcv.exe poolncv.exe std.lib mpm.lib:
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ target
 
 amcdev.cov:
@@ -288,6 +288,9 @@ $(PFM)\$(VARIETY)\dwstress.exe:  $(PFM)\$(VARIETY)\dwstress.obj \
 
 $(PFM)\$(VARIETY)\protcv.exe:  $(PFM)\$(VARIETY)\protcv.obj \
 	$(MPMOBJ) $(STDOBJ)
+
+$(PFM)\$(VARIETY)\poolncv.exe:  $(PFM)\$(VARIETY)\poolncv.obj \
+	$(MPMOBJ) $(STDOBJ) $(TESTLIBOBJ) $(PFM)\$(VARIETY)\pooln.obj
 
 $(PFM)\$(VARIETY)\std.lib: $(STDOBJ)
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
