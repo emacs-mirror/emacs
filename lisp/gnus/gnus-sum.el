@@ -620,12 +620,22 @@ is not run if `gnus-visual' is nil."
   :type 'hook)
 
 ;; 1997/5/4 by MORIOKA Tomohiko <morioka@jaist.ac.jp>
-(defcustom gnus-structured-field-decoder 'identity
+(defcustom gnus-structured-field-decoder
+  (if (featurep 'mule)
+      (lambda (string)
+	(if gnus-mule-coding-system
+	    (decode-coding-string string gnus-mule-coding-system)
+	  )))
   "Function to decode non-ASCII characters in structured field for summary."
   :group 'gnus-various
   :type 'function)
 
-(defcustom gnus-unstructured-field-decoder 'identity
+(defcustom gnus-unstructured-field-decoder
+  (if (featurep 'mule)
+      (lambda (string)
+	(if gnus-mule-coding-system 
+	    (decode-coding-string string gnus-mule-coding-system)
+	  )))
   "Function to decode non-ASCII characters in unstructured field for summary."
   :group 'gnus-various
   :type 'function)
