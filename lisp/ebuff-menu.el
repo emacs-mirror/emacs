@@ -68,14 +68,19 @@ Calls value of `electric-buffer-menu-mode-hook' on entry if non-nil.
 			    ?\ )
 			(progn (setq unread-command-events nil)
 			       (throw 'electric-buffer-menu-select nil)))
-		    (let ((first (progn (goto-char (point-min))
+		    (let ((start-point (point))
+			  (first (progn (goto-char (point-min))
 					(forward-line 2)
 					(point)))
 			  (last (progn (goto-char (point-max))
 				       (forward-line -1)
 				       (point)))
 			  (goal-column 0))
-		      (goto-char first)
+		      ;; Use start-point if it is meaningful.
+		      (goto-char (if (or (< start-point first)
+					 (> start-point last))
+				     first
+				   start-point))
 		      (Electric-command-loop 'electric-buffer-menu-select
 					     nil
 					     t
