@@ -142,11 +142,15 @@ Defaults to `vm-folder-directory' if bound else to ~/MAIL/."
   :type 'directory
   :group 'mspools)
 
-(defcustom mspools-vm-system-mail (getenv "MAIL")
+(defcustom mspools-vm-system-mail (or (getenv "MAIL")
+				      (concat rmail-spool-directory
+					      (user-login-name)))
   "*Spool file for main mailbox.  Only used by VM.
 This needs to be set to your primary mail spool - mspools will not run
 without it.  By default this will be set to the environment variable
-$MAIL.  Otherwise set it to something like /usr/spool/mail/login-name."
+$MAIL.  Otherwise it will use `rmail-spool-directory' to guess where
+your primary spool is.  If this fails, set it to something like
+/usr/spool/mail/login-name."
   :type 'file
   :group 'mspools)
 
@@ -179,7 +183,7 @@ $MAIL.  Otherwise set it to something like /usr/spool/mail/login-name."
 
 (defun mspools-set-vm-spool-files ()
   "Set value of `vm-spool-files'.  Only needed for VM."
-  (if (null mspools-vm-system-mail)
+  (if (not (file-readable-p mspools-vm-system-mail))
       (error "Need to set mspools-vm-system-mail to the spool for primary inbox"))
   (if (null mspools-folder-directory)
       (error "Set `mspools-folder-directory' to where the spool files are"))
