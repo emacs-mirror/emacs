@@ -1650,10 +1650,6 @@ of buffer-file-coding-system set by this function."
 
 (defvar locale-language-names
   '(
-    ;; UTF-8 is not yet implemented.
-    ;; Put this first, so that e.g. "ko.UTF-8" does not match "ko" below.
-    (".*[._]utf" . nil)
-
     ;; Locale names of the form LANGUAGE[_TERRITORY][.CODESET][@MODIFIER]
     ;; as specified in the Single Unix Spec, Version 2.
     ;; LANGUAGE is a language code taken from ISO 639:1988 (E/F)
@@ -1849,7 +1845,7 @@ the language name that would otherwise be used for this locale.")
     ("ja.*[._]jis7" . iso-2022-jp)
     ("ja.*[._]pck" . japanese-shift-jis)
     ("ja.*[._]sjis" . japanese-shift-jis)
-    )
+    (".*[._]utf" . utf-8))
   "List of pairs of locale regexps and preferred coding systems.
 The first element whose locale regexp matches the start of a downcased locale
 specifies the coding system to prefer when using that locale.")
