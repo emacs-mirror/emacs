@@ -3,6 +3,10 @@
 	* calc/calc-store.el (calc-copy-variable):  Fix mistyped variable
 	name.  Change the way a variable is displayed in a message.
 
+	* calc/calc-prog.el (calc-user-define-edit, calc-finish-macro-edit)
+	(calc-user-define-permanent, calc-execute-kbd-macro):
+	Replace old function MacEdit-parse-keys with edmacro-parse-keys.
+
 2004-12-30  Kenichi Handa  <handa@m17n.org>
 
 	* files.el (basic-save-buffer-1): Set
