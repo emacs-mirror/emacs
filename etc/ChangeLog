@@ -1,3 +1,8 @@
+2004-09-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* enriched.doc: `enriched-annotation-alist' is now called
+	`enriched-translations'.
+
 2004-09-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* e/eterm.ti: Comment out smcup, rmcup. Add kbs, kdch1, rc, sc.
