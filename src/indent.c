@@ -270,9 +270,7 @@ skip_invisible (pos, next_boundary_p, to, window)
     prop = Fget_char_property (position, Qinvisible, window);
   else
     prop = Fget_char_property (position, Qinvisible, buffer);
-  if (NILP (window)
-      ? TEXT_PROP_MEANS_INVISIBLE_NOELLIPSIS (prop)
-      : TEXT_PROP_MEANS_INVISIBLE (prop))
+  if (TEXT_PROP_MEANS_INVISIBLE (prop) > NILP (window))
     return *next_boundary_p;
   return pos;
 }
