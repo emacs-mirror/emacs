@@ -264,7 +264,7 @@ The value is never nil.")
   reset_buffer_local_variables (b);
 
   /* Put this in the alist of all live buffers.  */
-  XSET (buf, Lisp_Buffer, b);
+  XSETBUFFER (buf, b);
   Vbuffer_alist = nconc2 (Vbuffer_alist, Fcons (Fcons (name, buf), Qnil));
 
   b->mark = Fmake_marker ();
@@ -611,7 +611,7 @@ This does not change the name of the visited file (if any).")
      any windows displaying current_buffer will stay unchanged.  */
   update_mode_lines++;
 
-  XSET (buf, Lisp_Buffer, current_buffer);
+  XSETBUFFER (buf, current_buffer);
   Fsetcar (Frassq (buf, Vbuffer_alist), name);
   if (NILP (current_buffer->filename)
       && !NILP (current_buffer->auto_save_file_name))
@@ -663,7 +663,7 @@ No argument or nil as argument means do this for the current buffer.")
   Lisp_Object real_buffer;
 
   if (NILP (buffer))
-    XSET (real_buffer, Lisp_Buffer, current_buffer);
+    XSETBUFFER (real_buffer, current_buffer);
   else
     {
       real_buffer = Fget_buffer (buffer);
@@ -686,7 +686,7 @@ No argument or nil as argument means do this for the current buffer.")
   Lisp_Object real_buffer;
 
   if (NILP (buffer))
-    XSET (real_buffer, Lisp_Buffer, current_buffer);
+    XSETBUFFER (real_buffer, current_buffer);
   else
     {
       real_buffer = Fget_buffer (buffer);
@@ -934,7 +934,7 @@ DEFUN ("current-buffer", Fcurrent_buffer, Scurrent_buffer, 0, 0, 0,
   ()
 {
   register Lisp_Object buf;
-  XSET (buf, Lisp_Buffer, current_buffer);
+  XSETBUFFER (buf, current_buffer);
   return buf;
 }
 
@@ -1031,7 +1031,7 @@ selected window if it is displayed there.")
   /* Figure out what buffer we're going to bury.  */
   if (NILP (buf))
     {
-      XSET (buf, Lisp_Buffer, current_buffer);
+      XSETBUFFER (buf, current_buffer);
 
       /* If we're burying the current buffer, unshow it.  */
       Fswitch_to_buffer (Fother_buffer (buf, Qnil), Qnil);
@@ -1782,7 +1782,7 @@ BEG and END may be integers or markers.")
   struct buffer *b;
 
   if (NILP (buffer))
-    XSET (buffer, Lisp_Buffer, current_buffer);
+    XSETBUFFER (buffer, current_buffer);
   else
     CHECK_BUFFER (buffer, 2);
   if (MARKERP (beg)
@@ -1841,7 +1841,7 @@ buffer.")
   if (NILP (buffer))
     buffer = Fmarker_buffer (OVERLAY_START (overlay));
   if (NILP (buffer))
-    XSET (buffer, Lisp_Buffer, current_buffer);
+    XSETBUFFER (buffer, current_buffer);
   CHECK_BUFFER (buffer, 3);
 
   if (MARKERP (beg)
@@ -2445,8 +2445,8 @@ init_buffer_once ()
   reset_buffer_local_variables (&buffer_defaults);
   reset_buffer (&buffer_local_symbols);
   reset_buffer_local_variables (&buffer_local_symbols);
-  XSET (Vbuffer_defaults, Lisp_Buffer, &buffer_defaults);
-  XSET (Vbuffer_local_symbols, Lisp_Buffer, &buffer_local_symbols);
+  XSETBUFFER (Vbuffer_defaults, &buffer_defaults);
+  XSETBUFFER (Vbuffer_local_symbols, &buffer_local_symbols);
 
   /* Set up the default values of various buffer slots.  */
   /* Must do these before making the first buffer! */
