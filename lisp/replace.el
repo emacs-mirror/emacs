@@ -64,6 +64,27 @@ strings or patterns."
   :group 'matching
   :version "21.4")
 
+(defcustom query-replace-highlight t
+  "*Non-nil means to highlight matches during query replacement."
+  :type 'boolean
+  :group 'matching)
+
+(defcustom query-replace-lazy-highlight t
+  "*Controls the lazy-highlighting during query replacements.
+When non-nil, all text in the buffer matching the current match
+is highlighted lazily using isearch lazy highlighting (see
+`lazy-highlight-initial-delay' and `lazy-highlight-interval')."
+  :type 'boolean
+  :group 'lazy-highlight
+  :group 'matching
+  :version "21.4")
+
+(defface query-replace
+  '((t (:inherit isearch)))
+  "Face for highlighting query replacement matches."
+  :group 'matching
+  :version "21.4")
+
 (defun query-replace-descr (string)
   (mapconcat 'isearch-text-char-description string ""))
 
@@ -1257,27 +1278,6 @@ passed in.  If LITERAL is set, no checking is done, anyway."
   (set-match-data match-data)
   (replace-match newtext fixedcase literal)
   noedit)
-
-(defcustom query-replace-highlight t
-  "*Non-nil means to highlight matches during query replacement."
-  :type 'boolean
-  :group 'matching)
-
-(defcustom query-replace-lazy-highlight t
-  "*Controls the lazy-highlighting during query replacements.
-When non-nil, all text in the buffer matching the current match
-is highlighted lazily using isearch lazy highlighting (see
-`lazy-highlight-initial-delay' and
-`lazy-highlight-interval')."
-  :type 'boolean
-  :group 'matching
-  :version "21.4")
-
-(defface query-replace
-  '((t (:inherit isearch)))
-  "Face for highlighting query replacement matches."
-  :group 'matching
-  :version "21.4")
 
 (defun perform-replace (from-string replacements
 		        query-flag regexp-flag delimited-flag
