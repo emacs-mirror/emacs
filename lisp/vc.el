@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc.el,v 1.6 1992/09/27 02:42:08 roland Exp rms $	
+;;	$Id: vc.el,v 1.7 1992/09/28 13:01:53 rms Exp roland $	
 
 ;; This file is part of GNU Emacs.
 
@@ -72,6 +72,9 @@ The value is only computed when needed to avoid an expensive search.")
   "*Display run messages from back-end commands.")
 (defvar vc-mistrust-permissions 'file-symlink-p
   "*Don't assume that permissions and ownership track version-control status.")
+
+(defvar vc-checkin-switches nil
+  "*Extra switches passed to the checkin program by \\[vc-checkin].")
 
 ;;;###autoload
 (defvar vc-checkin-hook nil
@@ -1061,13 +1064,15 @@ Return nil if there is no such person."
    (progn
      (vc-do-command 0 "delta" file
 		    (if rev (concat "-r" rev))
-		    (concat "-y" comment))
+		    (concat "-y" comment)
+		    vc-checkin-switches)
      (if vc-keep-workfiles
 	 (vc-do-command 0 "get" file))
      )
    (vc-do-command 0 "ci" file
 		  (concat (if vc-keep-workfiles "-u" "-r") rev)
-		  (concat "-m" comment))
+		  (concat "-m" comment)
+		  vc-checkin-switches)
    )
   (vc-file-setprop file 'vc-locking-user nil)
   (message "Checking in %s...done" file)
