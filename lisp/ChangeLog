@@ -1,3 +1,7 @@
+1999-12-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* bindings.el (completion-ignored-extensions): Add .pdf.
+
 1999-12-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* version.el: Put the version info into binary on MS-DOS as well.
