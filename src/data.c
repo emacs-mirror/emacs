@@ -37,6 +37,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <math.h>
 #endif /* LISP_FLOAT_TYPE */
 
+#if !defined (atof)
+extern double atof ();
+#endif /* !atof */
+
 Lisp_Object Qnil, Qt, Qquote, Qlambda, Qsubr, Qunbound;
 Lisp_Object Qerror_conditions, Qerror_message, Qtop_level;
 Lisp_Object Qerror, Qquit, Qwrong_type_argument, Qargs_out_of_range;
