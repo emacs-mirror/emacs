@@ -27,7 +27,6 @@ SHELL = /bin/sh
 CC=@CC@
 CFLAGS=@CFLAGS@
 ALLOCA=@ALLOCA@
-YACC=@YACC@
 version=@version@
 configuration=@configuration@
 
