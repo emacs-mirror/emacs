@@ -32,6 +32,9 @@
 
 #define SYSV_SYSTEM_DIR
 
+#define HAVE_TERMIOS
+#define NO_TERMIO
+
 /* this silences a few compilation warnings */
 #undef BSD
 #define BSD 199103
@@ -45,3 +48,4 @@
 #ifndef WCOREDUMP
 #define WCOREDUMP(w) ((w) & 0200)
 #endif
+
