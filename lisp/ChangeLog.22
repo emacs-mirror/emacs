@@ -1,5 +1,8 @@
 2004-04-09  Kenichi Handa  <handa@m17n.org>
 
+	* language/japanese.el (japanese-iso-8bit): Fix order of
+	:charset-list.
+
 	* mail/rmail.el (rmail-decode-babyl-format): Use
 	with-coding-priority instead of detect-coding-with-priority.
 
