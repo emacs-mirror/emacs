@@ -159,6 +159,8 @@ Boston, MA 02111-1307, USA.  */
   (! NULL_INTERVAL_P (i) && ! NILP (textget ((i)->plist, Qfront_sticky)))
 #define END_NONSTICKY_P(i) \
   (! NULL_INTERVAL_P (i) && ! NILP (textget ((i)->plist, Qrear_nonsticky)))
+#define FRONT_NONSTICKY_P(i) \
+  (! NULL_INTERVAL_P (i) && ! EQ (Qt, textget ((i)->plist, Qfront_sticky)))
 
 
 /* If PROP is the `invisible' property of a character,
