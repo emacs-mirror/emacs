@@ -70,6 +70,8 @@
 (require 'frame)
 (require 'mouse)
 (require 'scroll-bar)
+(require 'faces)
+(require 'select)
 
 (setq command-switch-alist
       (append '(("-bw" .	x-handle-numeric-switch)
@@ -503,13 +505,11 @@ This returns ARGS with the arguments that have been processed removed."
 (x-open-connection (or x-display-name
 		       (setq x-display-name (getenv "DISPLAY"))))
 
-(setq frame-creation-function 'x-create-frame)
+(setq frame-creation-function 'x-create-frame-with-faces)
 
 (defun x-win-suspend-error ()
   (error "Suspending an emacs running under X makes no sense"))
 (add-hook 'suspend-hook 'x-win-suspend-error)
-
-(require 'select)
 
 ;;; Arrange for the kill and yank functions to set and check the clipboard.
 (setq interprogram-cut-function 'x-select-text)
