@@ -54,58 +54,56 @@ Boston, MA 02111-1307, USA.  */
 #endif /* emacs */
 #endif /* NOT_C_CODE */
 
+#if defined HAVE_GRANTPT
+#define UNIX98_PTYS
+
+/* Run only once.  We need a `for'-loop because the code uses
+   `continue'.  */
+
+#define PTY_ITERATION	for (i = 0; i < 1; i++)
+
+#ifdef HAVE_GETPT
+#define PTY_NAME_SPRINTF
+#define PTY_OPEN fd = getpt ()
+#else /* not HAVE_GETPT */
+#define PTY_NAME_SPRINTF strcpy (pty_name, "/dev/ptmx");
+#endif /* not HAVE_GETPT */
+
+/* Note that grantpt and unlockpt may fork.  We must block SIGCHLD to
+   prevent sigchld_handler from intercepting the child's death.  */
+
+#define PTY_TTY_NAME_SPRINTF				\
+  {							\
+    char *ptyname;					\
+							\
+    sigblock (sigmask (SIGCHLD));			\
+    if (grantpt (fd) == -1 || unlockpt (fd) == -1	\
+        || !(ptyname = ptsname(fd)))			\
+      {							\
+	sigunblock (sigmask (SIGCHLD));			\
+	close (fd);					\
+	return -1;					\
+      }							\
+    strncpy (pty_name, ptyname, sizeof (pty_name));	\
+    pty_name[sizeof (pty_name) - 1] = 0;		\
+    sigunblock (sigmask (SIGCHLD));			\
+  }
+
+#else /* not HAVE_GRANDPT */
+
 /* Letter to use in finding device name of first pty,
-  if system supports pty's.  'p' means it is /dev/ptyp0  */
+   if system supports pty's.  'p' means it is /dev/ptyp0  */
 
 #define FIRST_PTY_LETTER 'p'
 
-#ifdef HAVE_DEV_PTMX
+#endif  /* not HAVE_GRANDPT */
 
-/* This is the same definition as in usg5-4.h, but with sigblock/sigunblock
-   rather than sighold/sigrelse, which appear to be BSD4.1 specific and won't
-   work if POSIX_SIGNALS is defined.  It may also be appropriate for SVR4.x
-   (x<2) but I'm not sure.   fnf@cygnus.com */
-/* This sets the name of the slave side of the PTY.  On SysVr4,
-   grantpt(3) forks a subprocess, so keep sigchld_handler() from
-   intercepting that death.  If any child but grantpt's should die
-   within, it should be caught after sigrelse(2). */
-
-#undef FIRST_PTY_LETTER
-#define FIRST_PTY_LETTER 'z'
-
-/* This sets the name of the master side of the PTY. */
-#define PTY_NAME_SPRINTF strcpy (pty_name, "/dev/ptmx");
-
-#undef PTY_TTY_NAME_SPRINTF
-/* This used to use SIGCLD, but that doesn't appear in glibc 2.1.  */
-#define PTY_TTY_NAME_SPRINTF			\
-  {						\
-    char *ptsname (), *ptyname;			\
-						\
-    sigblock (sigmask (SIGCHLD));		\
-    if (grantpt (fd) == -1)			\
-      { close (fd); return -1; }		\
-    sigunblock (sigmask (SIGCHLD));		\
-    if (unlockpt (fd) == -1)			\
-      { close (fd); return -1; }		\
-    if (!(ptyname = ptsname (fd)))		\
-      { close (fd); return -1; }		\
-    strncpy (pty_name, ptyname, sizeof (pty_name)); \
-    pty_name[sizeof (pty_name) - 1] = 0;	\
-  }
-
-#endif /* HAVE_DEV_PTMX */
-
-/*
- *	Define HAVE_TERMIOS if the system provides POSIX-style
- *	functions and macros for terminal control.
- */
+/*  Define HAVE_TERMIOS if the system provides POSIX-style
+    functions and macros for terminal control.  */
 
 #define HAVE_TERMIOS
 
-/*
- *	Define HAVE_PTYS if the system supports pty devices.
- */
+/* Define HAVE_PTYS if the system supports pty devices. */
 
 #define HAVE_PTYS
 
@@ -249,7 +247,7 @@ Boston, MA 02111-1307, USA.  */
 /* alane@wozzle.linet.org says that -lipc is not a separate library,
    since libc-4.4.1.  So -lipc was deleted.  */
 #define LIBS_SYSTEM
-#define C_SWITCH_SYSTEM -D_BSD_SOURCE
+#define C_SWITCH_SYSTEM -D_BSD_SOURCE -D_XOPEN_SOURCE
 #endif
 
 /* Paul Abrahams <abrahams@equinox.shaysnet.com> says this is needed.  */
