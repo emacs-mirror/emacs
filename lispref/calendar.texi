@@ -830,13 +830,25 @@ Pay rent
 @noindent
 on the last Monday of every month.
 
-  The generality of sexp diary entries lets you specify any diary entry
-that you can describe algorithmically.  A sexp diary entry contains an
-expression that computes whether the entry applies to any given date.
-If its value is non-@code{nil}, the entry applies to that date;
-otherwise, it does not.  The expression can use the variable  @code{date}
-to find the date being considered; its value is a list (@var{month}
-@var{day} @var{year}) that refers to the Gregorian calendar.
+  The generality of sexp diary entries lets you specify any diary
+entry that you can describe algorithmically.  A sexp diary entry
+contains an expression that computes whether the entry applies to any
+given date.  If its value is non-@code{nil}, the entry applies to that
+date; otherwise, it does not.  The expression can use the variable
+@code{date} to find the date being considered; its value is a list
+(@var{month} @var{day} @var{year}) that refers to the Gregorian
+calendar.
+
+  The sexp diary entry applies to a date when the expression's value
+is non-@code{nil}, but some values have more specific meanings.  If
+the value is a string, that string is a description of the event which
+occurs on that date.  The value can also have the form
+@code{(@var{mark} . @var{string})}; then @var{mark} specifies how to
+mark the date in the calendar, and @var{string} is the description of
+the event.  If @var{mark} is a single-character string, that character
+appears next to the date in the calendar.  If @var{mark} is a face
+name, the date is displayed in that face.  If @var{mark} is
+@code{nil}, that specifies no particular highlighting for the date.
 
   Suppose you get paid on the 21st of the month if it is a weekday, and
 on the Friday before if the 21st is on a weekend.  Here is how to write
@@ -932,6 +944,11 @@ on the proper Hebrew calendar anniversary and on the day before.  (In
 the European style, the order of the parameters is changed to @var{day},
 @var{month}, @var{year}.)
 @end table
+
+  All the functions documented above take an optional argument
+@var{mark} which specifies how to mark the date in the calendar display.
+If one of these functions decides that it applies to a certain date,
+it returns a value that contains @var{mark}.
 
 @node Appt Customizing
 @section Customizing Appointment Reminders
