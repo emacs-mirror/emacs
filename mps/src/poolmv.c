@@ -1,6 +1,6 @@
 /* impl.c.poolmv: MANUAL VARIABLE POOL
  *
- * $HopeName: MMsrc!poolmv.c(trunk.33) $
+ * $HopeName: MMsrc!poolmv.c(trunk.34) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
@@ -30,7 +30,7 @@
 #include "poolmfs.h"
 #include "mpm.h"
 
-SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.33) $");
+SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.34) $");
 
 
 #define BLOCKPOOL(mv)   (MFSPool(&(mv)->blockPoolStruct))
@@ -584,6 +584,7 @@ static void MVFree(Pool pool, Addr old, Size size)
     /* both blocks are the trivial sentinel blocks */
     AVER(span->base.limit == span->base.base);
     AVER(span->limit.limit == span->limit.base);
+    mv->space -= span->space;
     SegFree(span->seg);
     RingRemove(&span->spans);
     RingFinish(&span->spans);
@@ -616,11 +617,10 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
   char c;
   Ring spans, node = NULL, nextNode; /* gcc whinge stop */
 
-  AVERT(Pool, pool);
+  if(!CHECKT(Pool, pool)) return ResFAIL;
   mv = PoolPoolMV(pool);
-  AVERT(MV, mv);
-
-  AVER(stream != NULL);
+  if(!CHECKT(MV, mv)) return ResFAIL;
+  if(stream == NULL) return ResFAIL;
 
   res = WriteF(stream,
                "  blockPool $P ($U)\n",
@@ -674,7 +674,6 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
     if(res != ResOK) return res;
 
     block = span->blocks;
-    AVER(block == &span->base); /* should be start sentinel */
 
     for(i = span->base.base; i < span->limit.limit; i = AddrAdd(i, length)) {
       res = WriteF(stream, "    $A ", i, NULL);
@@ -684,23 +683,22 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
           j < AddrAdd(i, length) && j < span->limit.limit;
           j = AddrAdd(j, step)) {
 
+        if(j >= block->limit) {
+          block = block->next;
+          if(block == NULL) return ResFAIL; /* shouldn't pass limit */
+        }
+
         if(j == block->base) {
           if(AddrAdd(j, step) == block->limit)
             c = 'O';
           else
             c = '[';
-        } else if(AddrAdd(j, step) == block->limit)
-          c = ']';
-        else if(j > block->base && j < block->limit)
-          c = '=';
-        else
+        } else if(j < block->base)
           c = '.';
-
-        if(j >= block->limit) {
-          block = block->next;
-          AVER(block != NULL);  /* shouldn't pass limit sentinel */
-        }
-        
+        else if(AddrAdd(j, step) == block->limit)
+          c = ']';
+        else /* j > block->base && j < block->limit */
+          c = '=';
         res = WriteF(stream, "$C", c, NULL);
         if(res != ResOK) return res;
       }
@@ -717,34 +715,34 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
 
 static PoolClassStruct poolClassMVStruct = {
   PoolClassSig,
-  "MV",                                 /* name */
+  "MV",
   sizeof(MVStruct),                     /* size */
   offsetof(MVStruct, poolStruct),       /* offset */
   NULL,                                 /* super */
-  AttrALLOC | AttrFREE | AttrBUF,       /* attr */
-  MVInit,                               /* init */
-  MVFinish,                             /* finish */
-  MVAlloc,                              /* alloc */
-  MVFree,                               /* free */
-  PoolTrivBufferInit,                   /* bufferInit */
-  PoolTrivBufferFill,                   /* bufferFill */
-  PoolTrivBufferEmpty,                  /* bufferEmpty */
-  PoolTrivBufferFinish,                 /* bufferFinish */
-  PoolNoTraceBegin,                     /* traceBegin */
-  PoolNoAccess,                         /* access */
-  PoolNoWhiten,                         /* whiten */
-  PoolNoGrey,                           /* mark */
-  PoolNoBlacken,                        /* blacken */
-  PoolNoScan,                           /* scan */
+  AttrALLOC | AttrFREE | AttrBUF,
+  MVInit,
+  MVFinish,
+  MVAlloc,
+  MVFree,
+  PoolTrivBufferInit,
+  PoolTrivBufferFill,
+  PoolTrivBufferEmpty,
+  PoolTrivBufferFinish,
+  PoolNoTraceBegin,
+  PoolNoAccess,
+  PoolNoWhiten,                         /* whiten/condemn */
+  PoolNoGrey,
+  PoolNoBlacken,
+  PoolNoScan,
   PoolNoFix,                            /* fix */
-  PoolNoFix,                            /* fix */
-  PoolNoReclaim,                        /* relcaim */
-  PoolNoBenefit,                        /* benefit */
-  PoolNoAct,                            /* act */
+  PoolNoFix,                            /* emergency fix */
+  PoolNoReclaim,
+  PoolNoBenefit,
+  PoolNoAct,
   PoolNoRampBegin,
   PoolNoRampEnd,
-  PoolNoWalk,                           /* walk */
-  MVDescribe,                           /* describe */
+  PoolNoWalk,
+  MVDescribe,
   PoolNoDebugMixin,
   PoolClassSig                          /* impl.h.mpmst.class.end-sig */
 };
