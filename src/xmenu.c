@@ -1925,6 +1925,12 @@ xdialog_show (f, menubarp, keymaps, title, error)
     }
  pop_down:
 
+  /* State that no mouse buttons are now held.
+     That is not necessarily true, but the fiction leads to reasonable
+     results, and it is a pain to ask which are actually held now
+     or track this in the loop above.  */
+  x_mouse_grabbed = 0;
+
   /* Unread any events that we got but did not handle.  */
   while (queue != NULL) 
     {
@@ -2228,6 +2234,13 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
       break;
     }
   XMenuDestroy (XDISPLAY menu);
+
+  /* State that no mouse buttons are now held.
+     (The oldXMenu code doesn't track this info for us.)
+     That is not necessarily true, but the fiction leads to reasonable
+     results, and it is a pain to ask which are actually held now.  */
+  x_mouse_grabbed = 0;
+
   return entry;
 }
 #endif /* not USE_X_TOOLKIT */
