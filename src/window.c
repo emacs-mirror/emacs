@@ -275,6 +275,7 @@ make_window ()
   bzero (&p->phys_cursor, sizeof (p->phys_cursor));
   p->desired_matrix = p->current_matrix = 0;
   p->phys_cursor_type = -1;
+  p->phys_cursor_width = -1;
   p->must_be_updated_p = 0;
   XSETFASTINT (p->window_end_vpos, 0);
   XSETFASTINT (p->window_end_pos, 0);
@@ -1144,6 +1145,7 @@ replace_window (old, replacement)
   bzero (&p->last_cursor, sizeof (p->last_cursor));
   bzero (&p->phys_cursor, sizeof (p->phys_cursor));
   p->phys_cursor_type = -1;
+  p->phys_cursor_width = -1;
   p->must_be_updated_p = 0;
   p->pseudo_window_p = 0;
   XSETFASTINT (p->window_end_vpos, 0);
