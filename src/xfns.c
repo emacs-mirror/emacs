@@ -5453,70 +5453,144 @@ See the documentation of `x-rebind-key' for more information.")
 }
 #endif /* HAVE_X11 */
 #endif /* 0 */
+
 
+/************************************************************************
+			      X Displays
+ ************************************************************************/
+
+
+/* Mapping visual names to visuals.  */
+
+static struct visual_class
+{
+  char *name;
+  int class;
+}
+visual_classes[] =
+{
+  {"StaticGray",	StaticGray},
+  {"GrayScale",		GrayScale},
+  {"StaticColor",	StaticColor},
+  {"PseudoColor",	PseudoColor},
+  {"TrueColor",		TrueColor},
+  {"DirectColor",	DirectColor},
+  NULL
+};
+
+
 #ifndef HAVE_XSCREENNUMBEROFSCREEN
+
+/* Value is the screen number of screen SCR.  This is a substitute for
+   the X function with the same name when that doesn't exist.  */
+
 int
 XScreenNumberOfScreen (scr)
     register Screen *scr;
 {
-  register Display *dpy;
-  register Screen *dpyscr;
-  register int i;
+  Display *dpy = scr->display;
+  int i;
 
-  dpy = scr->display;
-  dpyscr = dpy->screens;
+  for (i = 0; i < dpy->nscreens; ++i)
+    if (scr == dpy->screens[i])
+      break;
 
-  for (i = 0; i < dpy->nscreens; i++, dpyscr++)
-    if (scr == dpyscr)
-      return i;
-
-  return -1;
+  return i;
 }
+
 #endif /* not HAVE_XSCREENNUMBEROFSCREEN */
 
-Visual *
-select_visual (dpy, screen, depth)
-     Display *dpy;
-     Screen *screen;
-     unsigned int *depth;
+
+/* Select the visual that should be used on display DPYINFO.  Set
+   members of DPYINFO appropriately.  Called from x_term_init.  */
+
+void
+select_visual (dpyinfo)
+     struct x_display_info *dpyinfo;
 {
-  Visual *v;
-  XVisualInfo *vinfo, vinfo_template;
-  int n_visuals;
+  Display *dpy = dpyinfo->display;
+  Screen *screen = dpyinfo->screen;
+  Lisp_Object value;
 
-  v = DefaultVisualOfScreen (screen);
+  /* See if a visual is specified.  */
+  value = display_x_get_resource (dpyinfo,
+				  build_string ("visualClass"),
+				  build_string ("VisualClass"),
+				  Qnil, Qnil);
+  if (STRINGP (value))
+    {
+      /* VALUE should be of the form CLASS-DEPTH, where CLASS is one
+	 of `PseudoColor', `TrueColor' etc. and DEPTH is the color
+	 depth, a decimal number.  NAME is compared with case ignored.  */
+      char *s = (char *) alloca (STRING_BYTES (XSTRING (value)) + 1);
+      char *dash;
+      int i, class = -1;
+      XVisualInfo vinfo;
 
-#ifdef HAVE_X11R4
-  vinfo_template.visualid = XVisualIDFromVisual (v);
-#else
-  vinfo_template.visualid = v->visualid;
-#endif
+      strcpy (s, XSTRING (value)->data);
+      dash = index (s, '-');
+      if (dash)
+	{
+	  dpyinfo->n_planes = atoi (dash + 1);
+	  *dash = '\0';
+	}
+      else
+	/* We won't find a matching visual with depth 0, so that
+	   an error will be printed below.  */
+	dpyinfo->n_planes = 0;
 
-  vinfo_template.screen = XScreenNumberOfScreen (screen);
+      /* Determine the visual class.  */
+      for (i = 0; visual_classes[i].name; ++i)
+	if (xstricmp (s, visual_classes[i].name) == 0)
+	  {
+	    class = visual_classes[i].class;
+	    break;
+	  }
 
-  vinfo = XGetVisualInfo (dpy,
-			  VisualIDMask | VisualScreenMask, &vinfo_template,
-			  &n_visuals);
-  if (n_visuals != 1)
-    fatal ("Can't get proper X visual info");
-
-  if ((1 << vinfo->depth) == vinfo->colormap_size)
-    *depth = vinfo->depth;
+      /* Look up a matching visual for the specified class.  */
+      if (class == -1
+	  || !XMatchVisualInfo (dpy, XScreenNumberOfScreen (screen),
+				dpyinfo->n_planes, class, &vinfo))
+	fatal ("Invalid visual specification `%s'", XSTRING (value)->data);
+      
+      dpyinfo->visual = vinfo.visual;
+    }
   else
     {
-      int i = 0;
-      int n = vinfo->colormap_size - 1;
-      while (n)
-	{
-	  n = n >> 1;
-	  i++;
-	}
-      *depth = i;
-    }
+      int n_visuals;
+      XVisualInfo *vinfo, vinfo_template;
+      
+      dpyinfo->visual = DefaultVisualOfScreen (screen);
 
-  XFree ((char *) vinfo);
-  return v;
+#ifdef HAVE_X11R4
+      vinfo_template.visualid = XVisualIDFromVisual (dpyinfo->visual);
+#else
+      vinfo_template.visualid = dpyinfo->visual->visualid;
+#endif
+      vinfo_template.screen = XScreenNumberOfScreen (screen);
+      vinfo = XGetVisualInfo (dpy, VisualIDMask | VisualScreenMask,
+			      &vinfo_template, &n_visuals);
+      if (n_visuals != 1)
+	fatal ("Can't get proper X visual info");
+
+      if ((1 << vinfo->depth) == vinfo->colormap_size)
+	dpyinfo->n_planes = vinfo->depth;
+      else
+	{
+	  int i = 0;
+	  int n = vinfo->colormap_size - 1;
+	  while (n)
+	    {
+	      n = n >> 1;
+	      i++;
+	    }
+	  dpyinfo->n_planes = i;
+	}
+
+      XFree ((char *) vinfo);
+    }
 }
+
 
 /* Return the X display structure for the display named NAME.
    Open a new connection if necessary.  */
@@ -5559,6 +5633,7 @@ x_display_info_for_name (name)
 
   return dpyinfo;
 }
+
 
 DEFUN ("x-open-connection", Fx_open_connection, Sx_open_connection,
        1, 3, 0, "Open a connection to an X server.\n\
