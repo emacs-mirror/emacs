@@ -1,4 +1,4 @@
-2002-09-10  Kim F. Storm  <no-spam@cua.dk>
+2002-09-10  Kim F. Storm  <storm@cua.dk>
 
 	* macros.el (apply-macro-to-region-lines): Let-bind mark-active to
 	nil while executing macro to avoid triggering delete-selection-mode.

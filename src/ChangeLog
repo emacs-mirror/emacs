@@ -1,4 +1,4 @@
-2002-09-10  Kim F. Storm  <no-spam@cua.dk>
+2002-09-10  Kim F. Storm  <storm@cua.dk>
 
 	* macros.c (end_kbd_macro): New function.
 	(Fend_kbd_macro): Use it.
