@@ -416,8 +416,9 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 
 (defun mpuz-congratulate ()
   "Build a congratulation message when puzzle is solved."
-  (format "Puzzle solved with %d errors. %s"
+  (format "Puzzle solved with %d error%s. %s"
 	   mpuz-nb-errors
+	   (if (= mpuz-nb-errors 1) "" "s")
 	   (cond ((= mpuz-nb-errors 0)	      "That's perfect !")
 		 ((= mpuz-nb-errors 1)	      "That's very good !")
 		 ((= mpuz-nb-errors 2)	      "That's good.")
