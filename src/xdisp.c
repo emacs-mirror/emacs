@@ -4023,31 +4023,48 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
      register char *buf;
      int eol_flag;
 {
-  register Lisp_Object val = coding_system;
+  Lisp_Object val;
+
+  val = coding_system;
 
   if (NILP (val))		/* Not yet decided.  */
     {
       *buf++ = '-';
-      if (eol_flag) *buf++ = eol_mnemonic_undecided;
+      *buf++ = eol_mnemonic_undecided;
+      /* Don't mention EOL conversion if it isn't decided.  */
     }
   else
     {
+      Lisp_Object eolvalue;
+
+      eolvalue = Fget (coding_system, Qeol_type);
+
       while (!NILP (val) && SYMBOLP (val))
-	val = Fget (val, Qcoding_system);
+	{
+	  val = Fget (val, Qcoding_system);
+	  if (NILP (eolvalue))
+	    eolvalue = Fget (coding_system, Qeol_type);
+	}
+
       *buf++ = XFASTINT (XVECTOR (val)->contents[1]);
       if (eol_flag)
 	{
-	  val = Fget (coding_system, Qeol_type);
+	  /* The EOL conversion we are using.  */
+	  int eoltype;
+	  /* The EOL conversion that is normal on this system.  */
 
-	  if (NILP (val))	/* Not yet decided.  */
-	    *buf++ = eol_mnemonic_undecided;
-	  else if (VECTORP (val)) /* Not yet decided.  */
-	    *buf++ = eol_mnemonic_undecided;
-	  else			/* INTEGERP (val) -- 1:LF, 2:CRLF, 3:CR */
-	    *buf++ = (XFASTINT (val) == 1
-		      ? eol_mnemonic_unix
-		      : (XFASTINT (val) == 2
-			 ? eol_mnemonic_dos : eol_mnemonic_mac));
+	  if (NILP (eolvalue))	/* Not yet decided.  */
+	    eoltype = eol_mnemonic_undecided;
+	  else if (VECTORP (eolvalue)) /* Not yet decided.  */
+	    eoltype = eol_mnemonic_undecided;
+	  else			/* INTEGERP (eolvalue) -- 0:LF, 1:CRLF, 2:CR */
+	    eoltype = (XFASTINT (eolvalue) == 0
+		       ? eol_mnemonic_unix
+		       : (XFASTINT (eolvalue) == 1
+			  ? eol_mnemonic_dos : eol_mnemonic_mac));
+
+	  /* Mention the EOL conversion if it is not the usual one.  */
+	  *buf++ = eoltype;
 	}
     }
   return buf;
