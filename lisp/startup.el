@@ -780,8 +780,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	      (and (memq window-system '(x))
 		   (fboundp 'x-backspace-delete-keys-p)
 		   (x-backspace-delete-keys-p)))
-      (setq-default delete-key-deletes-forward t)
-      (delete-key-deletes-forward-mode 1)))
+      (setq-default normal-erase-is-backspace t)
+      (normal-erase-is-backspace-mode 1)))
 
   (when (and (not noninteractive)
 	     (display-graphic-p)
