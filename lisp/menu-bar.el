@@ -104,6 +104,33 @@
 	       (and (boundp 'pending-undo-list)
 		    pending-undo-list)
 	     buffer-undo-list)))
+
+(defvar yank-menu-length 100
+  "*Maximum length of an item in the menu for \
+\\[mouse-menu-choose-yank].")
+
+(defun mouse-menu-choose-yank (event)
+  "Pop up a menu of the kill-ring for selection with the mouse.
+The kill-ring-yank-pointer is moved to the selected element.
+A subsequent \\[yank] yanks the choice just selected."
+  (interactive "e")
+  (let* ((count 0)
+	 (menu (mapcar (lambda (string)
+			 (if (> (length string) yank-menu-length)
+			     (setq string (substring string
+						     0 yank-menu-length)))
+			 (prog1 (cons string count)
+			   (setq count (1+ count))))
+		       kill-ring)))
+    (rotate-yank-pointer (x-popup-menu event 
+				       (list "Yank Menu"
+					     (cons "Pick Selection" menu))))
+    (if (interactive-p)
+	(message "The next yank will insert the selected text.")
+      (current-kill 0))))
+
+(define-key menu-bar-edit-menu [choose-selection]
+  '("Choose Pasting Selection" . mouse-menu-choose-yank))
 
 (define-key global-map [menu-bar buffer] '("Buffers" . mouse-menu-bar-buffers))
 
