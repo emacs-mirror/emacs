@@ -87,7 +87,7 @@ This variable is buffer-local.")
 (defvar ielm-header 
   (concat
    "*** Welcome to IELM version "
-   (substring "$Revision: 1.2 $" 11 -2)
+   (substring "$Revision: 1.3 $" 11 -2)
    " ***  Type (describe-mode) for help.\n"
    "IELM has ABSOLUTELY NO WARRANTY; type (describe-no-warranty) for details.\n")
   "Message to display when IELM is started.")
@@ -441,15 +441,18 @@ Customised bindings may be defined in `ielm-map', which currently contains:
 
 ;;; User command
 
+;;;###autoload (add-hook 'same-window-buffer-names "*ielm*")
+
 ;;;###autoload
 (defun ielm nil
   "Interactively evaluate Emacs Lisp expressions.
-Switches to the buffer *ielm*, or creates it if it does not exist."
+Switches to the buffer `*ielm*', or creates it if it does not exist."
   (interactive)
-  (if (comint-check-proc "*ielm*") nil
-    (progn
+  (if (comint-check-proc "*ielm*")
+      nil
+    (save-excursion
       (set-buffer (get-buffer-create "*ielm*"))
       (inferior-emacs-lisp-mode)))
-  (switch-to-buffer "*ielm*"))
+  (pop-to-buffer "*ielm*"))
 
 ;;; ielm.el ends here
