@@ -1,5 +1,5 @@
 /* Tags file maker to go with GNU Emacs           -*- coding: latin-1 -*-
-   Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2001
+   Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2001, 2002
    Free Software Foundation, Inc. and Ken Arnold
 
 This file is not considered part of GNU Emacs.
@@ -33,7 +33,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 15.2";
+char pot_etags_version[] = "@(#) pot revision number is 15.10";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -228,29 +228,43 @@ typedef void Lang_function __P((FILE *));
 
 typedef struct
 {
-  char *suffix;
-  char *command;		/* Takes one arg and decompresses to stdout */
+  char *suffix;			/* file name suffix for this compressor */
+  char *command;		/* takes one arg and decompresses to stdout */
 } compressor;
 
 typedef struct
 {
-  char *name;
-  Lang_function *function;
-  char **filenames;
-  char **suffixes;
-  char **interpreters;
+  char *name;			/* language name */
+  bool metasource;		/* source used to generate other sources */
+  Lang_function *function;	/* parse function */
+  char **filenames;		/* names of this language's files */
+  char **suffixes;		/* name suffixes of this language's files */
+  char **interpreters;		/* interpreters for this language */
 } language;
 
+typedef struct fdesc
+{
+  struct fdesc *next;		/* for the linked list */
+  char *infname;		/* uncompressed input file name */
+  char *infabsname;		/* absolute uncompressed input file name */
+  char *infabsdir;		/* absolute dir of input file */
+  char *taggedfname;		/* file name to write in tagfile */
+  language *lang;		/* language of file */
+  char *prop;			/* file properties to write in tagfile */
+  bool usecharno;		/* etags tags shall contain char number */
+} fdesc;
+
 typedef struct node_st
-{				/* sorting structure		*/
-  char *name;			/* function or type name	*/
-  char *file;			/* file name			*/
-  bool is_func;			/* use pattern or line no	*/
-  bool been_warned;		/* set if noticed dup		*/
-  int lno;			/* line number tag is on	*/
+{				/* sorting structure */
+  struct node_st *left, *right;	/* left and right sons */
+  fdesc *fdp;			/* description of file to whom tag belongs */
+  char *name;			/* tag name */
+  char *pat;			/* search pattern */
+  bool valid;			/* write this tag on the tag file */
+  bool is_func;			/* function tag: use pattern in CTAGS mode */
+  bool been_warned;		/* warning already given for duplicated tag */
+  int lno;			/* line number tag is on */
   long cno;			/* character number line starts on */
-  char *pat;			/* search pattern		*/
-  struct node_st *left, *right;	/* left and right sons		*/
 } node;
 
 /*
@@ -266,6 +280,35 @@ typedef struct
   int len;
   char *buffer;
 } linebuffer;
+
+/* Used to support mixing of --lang and file names. */
+typedef struct
+{
+  enum {
+    at_language,		/* a language specification */
+    at_regexp,			/* a regular expression */
+    at_icregexp,		/* same, but with case ignored */
+    at_filename			/* a file name */
+  } arg_type;			/* argument type */
+  language *lang;		/* language associated with the argument */
+  char *what;			/* the argument itself */
+} argument;
+
+#ifdef ETAGS_REGEXPS
+/* Structure defining a regular expression. */
+typedef struct pattern
+{
+  struct pattern *p_next;
+  language *lang;
+  char *regex;
+  struct re_pattern_buffer *pat;
+  struct re_registers regs;
+  char *name_pattern;
+  bool error_signaled;
+  bool ignore_case;
+} pattern;
+#endif /* ETAGS_REGEXPS */
+
 
 /* Many compilers barf on this:
 	Lang_function Ada_funcs;
@@ -322,11 +365,12 @@ static void add_node __P((node *, node **));
 
 static void init __P((void));
 static void initbuffer __P((linebuffer *));
-static void find_entries __P((char *, FILE *));
+static void process_file __P((char *, language *));
+static void find_entries __P((FILE *));
 static void free_tree __P((node *));
 static void pfnote __P((char *, bool, char *, int, int, long));
 static void new_pfnote __P((char *, int, bool, char *, int, int, long));
-static void process_file __P((char *));
+static void invalidate_nodes __P((fdesc *, node *));
 static void put_entries __P((node *));
 
 static char *concat __P((char *, char *, char *));
@@ -355,19 +399,16 @@ static char *cwd;		/* current working directory */
 static char *tagfiledir;	/* directory of tagfile */
 static FILE *tagf;		/* ioptr for tags file */
 
-static char *curfile;		/* current input uncompressed file name */
-static char *curfiledir;	/* absolute dir of curfile */
-static char *curtagfname;	/* current file name to write in tagfile */
-static language *curlang;	/* current language */
-
+static fdesc *fdhead;		/* head of file description list */
+static fdesc *curfdp;		/* current file description */
 static int lineno;		/* line number of current line */
 static long charno;		/* current character number */
 static long linecharno;		/* charno of start of current line */
 static char *dbp;		/* pointer to start of current tag */
-static bool nocharno;		/* only use line number when making tag  */
+
 static const int invalidcharno = -1;
 
-static node *head;		/* the head of the binary tree of tags */
+static node *nodehead;		/* the head of the binary tree of tags */
 
 static linebuffer lb;		/* the current line */
 
@@ -386,7 +427,7 @@ static char
   *midtk = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz$0123456789";
 
 static bool append_to_tagfile;	/* -a: append to tags */
-/* The following four default to TRUE for etags, but to FALSE for ctags.  */
+/* The next four default to TRUE for etags, but to FALSE for ctags.  */
 static bool typedefs;		/* -t: create tags for C and Ada typedefs */
 static bool typedefs_or_cplusplus; /* -T: create tags for C typedefs, level */
 				/* 0 struct/enum/union decls, and C++ */
@@ -394,10 +435,10 @@ static bool typedefs_or_cplusplus; /* -T: create tags for C typedefs, level */
 static bool constantypedefs;	/* -d: create tags for C #define, enum */
 				/* constants and variables. */
 				/* -D: opposite of -d.  Default under ctags. */
-static bool declarations;	/* --declarations: tag them and extern in C&Co*/
 static bool globals;		/* create tags for global variables */
-static bool no_line_directive;	/* ignore #line directives */
+static bool declarations;	/* --declarations: tag them and extern in C&Co*/
 static bool members;		/* create tags for C member variables */
+static bool no_line_directive;	/* ignore #line directives */
 static bool update;		/* -u: update tags */
 static bool vgrind_style;	/* -v: create vgrind style index output */
 static bool no_warnings;	/* -w: suppress warnings */
@@ -406,65 +447,57 @@ static bool cplusplus;		/* .[hc] means C++, not C */
 static bool noindentypedefs;	/* -I: ignore indentation in C */
 static bool packages_only;	/* --packages-only: in Ada, only tag packages*/
 
-#ifdef LONG_OPTIONS
-static struct option longopts[] =
-{
-  { "packages-only",      no_argument,	     &packages_only, 	 TRUE  },
-  { "append",		  no_argument,	     NULL,	     	 'a'   },
-  { "backward-search",	  no_argument,	     NULL,	     	 'B'   },
-  { "c++",		  no_argument,	     NULL,	     	 'C'   },
-  { "cxref",		  no_argument,	     NULL,	     	 'x'   },
-  { "defines",		  no_argument,	     NULL,	     	 'd'   },
-  { "declarations",	  no_argument,	     &declarations,  	 TRUE  },
-  { "no-defines",	  no_argument,	     NULL,	     	 'D'   },
-  { "globals",		  no_argument,	     &globals, 	     	 TRUE  },
-  { "no-globals",	  no_argument,	     &globals, 	     	 FALSE },
-  { "no-line-directive",  no_argument,	     &no_line_directive, TRUE  },
-  { "help",		  no_argument,	     NULL,     	     	 'h'   },
-  { "help",		  no_argument,	     NULL,     	     	 'H'   },
-  { "ignore-indentation", no_argument,	     NULL,     	     	 'I'   },
-  { "include",		  required_argument, NULL,     	     	 'i'   },
-  { "language",           required_argument, NULL,     	     	 'l'   },
-  { "members",		  no_argument,	     &members, 	     	 TRUE  },
-  { "no-members",	  no_argument,	     &members, 	     	 FALSE },
-  { "no-warn",		  no_argument,	     NULL,	     	 'w'   },
-  { "output",		  required_argument, NULL,	     	 'o'   },
 #ifdef ETAGS_REGEXPS
-  { "regex",		  required_argument, NULL,	     	 'r'   },
-  { "no-regex",		  no_argument,	     NULL,	     	 'R'   },
-  { "ignore-case-regex",  required_argument, NULL,	     	 'c'   },
-#endif /* ETAGS_REGEXPS */
-  { "typedefs",		  no_argument,	     NULL,	     	 't'   },
-  { "typedefs-and-c++",	  no_argument,	     NULL,     	     	 'T'   },
-  { "update",		  no_argument,	     NULL,     	     	 'u'   },
-  { "version",		  no_argument,	     NULL,     	     	 'V'   },
-  { "vgrind",		  no_argument,	     NULL,     	     	 'v'   },
-  { NULL }
-};
-#endif /* LONG_OPTIONS */
-
-#ifdef ETAGS_REGEXPS
-/* Structure defining a regular expression.  Elements are
-   the compiled pattern, and the name string. */
-typedef struct pattern
-{
-  struct pattern *p_next;
-  language *lang;
-  char *regex;
-  struct re_pattern_buffer *pat;
-  struct re_registers regs;
-  char *name_pattern;
-  bool error_signaled;
-} pattern;
-
 /* List of all regexps. */
-static pattern *p_head = NULL;
+static pattern *p_head;
 
 /* How many characters in the character set.  (From regex.c.)  */
 #define CHAR_SET_SIZE 256
 /* Translation table for case-insensitive matching. */
 static char lc_trans[CHAR_SET_SIZE];
 #endif /* ETAGS_REGEXPS */
+
+#ifdef LONG_OPTIONS
+static struct option longopts[] =
+{
+  { "packages-only",      no_argument,	     &packages_only, 	 TRUE  },
+  { "c++",		  no_argument,	     NULL,	     	 'C'   },
+  { "declarations",	  no_argument,	     &declarations,  	 TRUE  },
+  { "no-line-directive",  no_argument,	     &no_line_directive, TRUE  },
+  { "help",		  no_argument,	     NULL,     	     	 'h'   },
+  { "help",		  no_argument,	     NULL,     	     	 'H'   },
+  { "ignore-indentation", no_argument,	     NULL,     	     	 'I'   },
+  { "language",           required_argument, NULL,     	     	 'l'   },
+  { "members",		  no_argument,	     &members, 	     	 TRUE  },
+  { "no-members",	  no_argument,	     &members, 	     	 FALSE },
+  { "output",		  required_argument, NULL,	     	 'o'   },
+#ifdef ETAGS_REGEXPS
+  { "regex",		  required_argument, NULL,	     	 'r'   },
+  { "no-regex",		  no_argument,	     NULL,	     	 'R'   },
+  { "ignore-case-regex",  required_argument, NULL,	     	 'c'   },
+#endif /* ETAGS_REGEXPS */
+  { "version",		  no_argument,	     NULL,     	     	 'V'   },
+
+#if CTAGS /* Etags options */
+  { "backward-search",	  no_argument,	     NULL,	     	 'B'   },
+  { "cxref",		  no_argument,	     NULL,	     	 'x'   },
+  { "defines",		  no_argument,	     NULL,	     	 'd'   },
+  { "globals",		  no_argument,	     &globals, 	     	 TRUE  },
+  { "typedefs",		  no_argument,	     NULL,	     	 't'   },
+  { "typedefs-and-c++",	  no_argument,	     NULL,     	     	 'T'   },
+  { "update",		  no_argument,	     NULL,     	     	 'u'   },
+  { "vgrind",		  no_argument,	     NULL,     	     	 'v'   },
+  { "no-warn",		  no_argument,	     NULL,	     	 'w'   },
+
+#else /* Ctags options */
+  { "append",		  no_argument,	     NULL,	     	 'a'   },
+  { "no-defines",	  no_argument,	     NULL,	     	 'D'   },
+  { "no-globals",	  no_argument,	     &globals, 	     	 FALSE },
+  { "include",		  required_argument, NULL,     	     	 'i'   },
+#endif
+  { NULL }
+};
+#endif /* LONG_OPTIONS */
 
 static compressor compressors[] =
 {
@@ -479,9 +512,6 @@ static compressor compressors[] =
 /*
  * Language stuff.
  */
-
-/* Non-NULL if language fixed. */
-static language *forced_lang = NULL;
 
 /* Ada code */
 static char *Ada_suffixes [] =
@@ -582,31 +612,31 @@ static char *Yacc_suffixes [] =
 
 static language lang_names [] =
 {
-  { "ada",     	  Ada_funcs,           	NULL, Ada_suffixes,        	NULL },
-  { "asm",     	  Asm_labels,          	NULL, Asm_suffixes,        	NULL },
-  { "c",       	  default_C_entries,   	NULL, default_C_suffixes,  	NULL },
-  { "c++",     	  Cplusplus_entries,   	NULL, Cplusplus_suffixes,  	NULL },
-  { "c*",      	  Cstar_entries,       	NULL, Cstar_suffixes,      	NULL },
-  { "cobol",   	  Cobol_paragraphs,    	NULL, Cobol_suffixes,      	NULL },
-  { "erlang",  	  Erlang_functions,    	NULL, Erlang_suffixes,     	NULL },
-  { "fortran", 	  Fortran_functions,   	NULL, Fortran_suffixes,    	NULL },
-  { "java",    	  Cjava_entries,       	NULL, Cjava_suffixes,      	NULL },
-  { "lisp",    	  Lisp_functions,      	NULL, Lisp_suffixes,       	NULL },
-  { "makefile",   Makefile_targets,     Makefile_filenames, NULL,     	NULL },
-  { "pascal",  	  Pascal_functions,    	NULL, Pascal_suffixes,     	NULL },
-  { "perl",    	  Perl_functions,     NULL, Perl_suffixes, Perl_interpreters },
-  { "php",  	  PHP_functions,    	NULL, PHP_suffixes,     	NULL },
-  { "postscript", Postscript_functions, NULL, Postscript_suffixes, 	NULL },
-  { "proc",    	  plain_C_entries,     	NULL, plain_C_suffixes,    	NULL },
-  { "prolog",  	  Prolog_functions,    	NULL, Prolog_suffixes,     	NULL },
-  { "python",  	  Python_functions,    	NULL, Python_suffixes,     	NULL },
-  { "scheme",  	  Scheme_functions,    	NULL, Scheme_suffixes,     	NULL },
-  { "tex",     	  TeX_commands,        	NULL, TeX_suffixes,        	NULL },
-  { "texinfo", 	  Texinfo_nodes,       	NULL, Texinfo_suffixes,    	NULL },
-  { "yacc",    	  Yacc_entries,        	NULL, Yacc_suffixes,       	NULL },
-  { "auto", NULL },             /* default guessing scheme */
-  { "none", just_read_file },   /* regexp matching only */
-  { NULL, NULL }                /* end of list */
+  { "ada",      FALSE, Ada_funcs,            NULL, Ada_suffixes,        NULL },
+  { "asm",      FALSE, Asm_labels,           NULL, Asm_suffixes,        NULL },
+  { "c",        FALSE, default_C_entries,    NULL, default_C_suffixes,  NULL },
+  { "c++",      FALSE, Cplusplus_entries,    NULL, Cplusplus_suffixes,  NULL },
+  { "c*",       FALSE, Cstar_entries,        NULL, Cstar_suffixes,      NULL },
+  { "cobol",    FALSE, Cobol_paragraphs,     NULL, Cobol_suffixes,      NULL },
+  { "erlang",   FALSE, Erlang_functions,     NULL, Erlang_suffixes,     NULL },
+  { "fortran",  FALSE, Fortran_functions,    NULL, Fortran_suffixes,    NULL },
+  { "java",     FALSE, Cjava_entries,        NULL, Cjava_suffixes,      NULL },
+  { "lisp",     FALSE, Lisp_functions,       NULL, Lisp_suffixes,       NULL },
+  { "makefile", FALSE, Makefile_targets,     Makefile_filenames, NULL,  NULL },
+  { "pascal",   FALSE, Pascal_functions,     NULL, Pascal_suffixes,     NULL },
+  { "perl",     FALSE, Perl_functions,NULL, Perl_suffixes, Perl_interpreters },
+  { "php",      FALSE, PHP_functions,        NULL, PHP_suffixes,        NULL },
+  { "postscript",FALSE, Postscript_functions,NULL, Postscript_suffixes, NULL },
+  { "proc",     FALSE, plain_C_entries,      NULL, plain_C_suffixes,    NULL },
+  { "prolog",   FALSE, Prolog_functions,     NULL, Prolog_suffixes,     NULL },
+  { "python",   FALSE, Python_functions,     NULL, Python_suffixes,     NULL },
+  { "scheme",   FALSE, Scheme_functions,     NULL, Scheme_suffixes,     NULL },
+  { "tex",      FALSE, TeX_commands,         NULL, TeX_suffixes,        NULL },
+  { "texinfo",  FALSE, Texinfo_nodes,        NULL, Texinfo_suffixes,    NULL },
+  { "yacc",      TRUE, Yacc_entries,         NULL, Yacc_suffixes,       NULL },
+  { "auto", FALSE, NULL },             /* default guessing scheme */
+  { "none", FALSE, just_read_file },   /* regexp matching only */
+  { NULL, FALSE, NULL }                /* end of list */
 };
 
 
@@ -649,7 +679,7 @@ static void
 print_version ()
 {
   printf ("%s (%s %s)\n", (CTAGS) ? "ctags" : "etags", EMACS_NAME, VERSION);
-  puts ("Copyright (C) 1999 Free Software Foundation, Inc. and Ken Arnold");
+  puts ("Copyright (C) 2002 Free Software Foundation, Inc. and Ken Arnold");
   puts ("This program is distributed under the same terms as Emacs");
 
   exit (GOOD);
@@ -667,17 +697,16 @@ These are the options accepted by %s.\n", progname, progname);
   puts ("Long option names do not work with this executable, as it is not\n\
 linked with GNU getopt.");
 #endif /* LONG_OPTIONS */
-  puts ("A - as file name means read names from stdin (one per line).");
-  if (!CTAGS)
-    printf ("  Absolute names are stored in the output file as they are.\n\
-Relative ones are stored relative to the output file's directory.");
-  puts ("\n");
+  puts ("  A - as file name means read names from stdin (one per line).\n\
+Absolute names are stored in the output file as they are.\n\
+Relative ones are stored relative to the output file's directory.\n");
 
-  puts ("-a, --append\n\
+  if (!CTAGS)
+    puts ("-a, --append\n\
         Append tag entries to existing tags file.");
 
   puts ("--packages-only\n\
-        For Ada files, only generate tags for packages .");
+        For Ada files, only generate tags for packages.");
 
   if (CTAGS)
     puts ("-B, --backward-search\n\
@@ -709,15 +738,14 @@ Relative ones are stored relative to the output file's directory.");
 	This makes the tags file smaller.");
 
   if (!CTAGS)
-    {
-      puts ("-i FILE, --include=FILE\n\
+    puts ("-i FILE, --include=FILE\n\
         Include a note in tag file indicating that, when searching for\n\
         a tag, one should also consult the tags file FILE after\n\
         checking the current file.");
-      puts ("-l LANG, --language=LANG\n\
+
+  puts ("-l LANG, --language=LANG\n\
         Force the following files to be considered as written in the\n\
 	named language up to the next --language=LANG option.");
-    }
 
   if (CTAGS)
     puts ("--globals\n\
@@ -758,13 +786,19 @@ Relative ones are stored relative to the output file's directory.");
       puts ("-T, --typedefs-and-c++\n\
         Generate tag entries for C typedefs, C struct/enum/union tags,\n\
         and C++ member functions.");
-      puts ("-u, --update\n\
+    }
+
+  if (CTAGS)
+    puts ("-u, --update\n\
         Update the tag entries for the given files, leaving tag\n\
         entries for other files in place.  Currently, this is\n\
         implemented by deleting the existing entries for the given\n\
         files and then rewriting the new entries at the end of the\n\
         tags file.  It is often faster to simply rebuild the entire\n\
         tag file than to use this.");
+
+  if (CTAGS)
+    {
       puts ("-v, --vgrind\n\
         Generates an index of items intended for human consumption,\n\
         similar to the output of vgrind.  The index is sorted, and\n\
@@ -793,22 +827,6 @@ Relative ones are stored relative to the output file's directory.");
 }
 
 
-enum argument_type
-{
-  at_language,
-  at_regexp,
-  at_filename,
-  at_icregexp
-};
-
-/* This structure helps us allow mixing of --lang and file names. */
-typedef struct
-{
-  enum argument_type arg_type;
-  char *what;
-  language *lang;		/* language of the regexp */
-} argument;
-
 #ifdef VMS			/* VMS specific functions */
 
 #define	EOS	'\0'
@@ -942,7 +960,6 @@ main (argc, argv)
   int i;
   unsigned int nincluded_files;
   char **included_files;
-  char *this_file;
   argument *argbuffer;
   int current_arg, file_count;
   linebuffer filename_lb;
@@ -981,24 +998,24 @@ main (argc, argv)
     {
       typedefs = typedefs_or_cplusplus = constantypedefs = TRUE;
       globals = TRUE;
-      declarations = FALSE;
-      members = FALSE;
     }
 
   while (1)
     {
       int opt;
-      char *optstring;
+      char *optstring = "-";
 
 #ifdef ETAGS_REGEXPS
-      optstring = "-aCdDf:Il:o:r:c:RStTi:BuvxwVhH";
-#else
-      optstring = "-aCdDf:Il:o:StTi:BuvxwVhH";
+      optstring = "-r:Rc:";
 #endif /* ETAGS_REGEXPS */
 
 #ifndef LONG_OPTIONS
       optstring = optstring + 1;
 #endif /* LONG_OPTIONS */
+
+      optstring = concat (optstring,
+			  "Cf:Il:o:SVhH",
+			  (CTAGS) ? "BxdtTuvw" : "aDi:");
 
       opt = getopt_long (argc, argv, optstring, longopts, 0);
       if (opt == EOF)
@@ -1020,10 +1037,7 @@ main (argc, argv)
 	  break;
 
 	  /* Common options. */
-	case 'a': append_to_tagfile = TRUE;	break;
 	case 'C': cplusplus = TRUE;		break;
-	case 'd': constantypedefs = TRUE;	break;
-	case 'D': constantypedefs = FALSE;	break;
 	case 'f':		/* for compatibility with old makefiles */
 	case 'o':
 	  if (tagfile)
@@ -1070,22 +1084,21 @@ main (argc, argv)
 	case 'H':
 	  print_help ();
 	  break;
-	case 't':
-	  typedefs = TRUE;
-	  break;
-	case 'T':
-	  typedefs = typedefs_or_cplusplus = TRUE;
-	  break;
+
 	  /* Etags options */
-	case 'i':
-	  included_files[nincluded_files++] = optarg;
-	  break;
+	case 'a': append_to_tagfile = TRUE;			break;
+	case 'D': constantypedefs = FALSE;			break;
+	case 'i': included_files[nincluded_files++] = optarg;	break;
+
 	  /* Ctags options. */
-	case 'B': searchar = '?';	break;
-	case 'u': update = TRUE;	break;
-	case 'v': vgrind_style = TRUE;	/*FALLTHRU*/
-	case 'x': cxref_style = TRUE;	break;
-	case 'w': no_warnings = TRUE;	break;
+	case 'B': searchar = '?';				break;
+	case 'd': constantypedefs = TRUE;			break;
+	case 't': typedefs = TRUE;				break;
+	case 'T': typedefs = typedefs_or_cplusplus = TRUE;	break;
+	case 'u': update = TRUE;				break;
+	case 'v': vgrind_style = TRUE;			  /*FALLTHRU*/
+	case 'x': cxref_style = TRUE;				break;
+	case 'w': no_warnings = TRUE;				break;
 	default:
 	  suggest_asking_for_help ();
 	}
@@ -1147,10 +1160,13 @@ main (argc, argv)
    */
   for (i = 0; i < current_arg; ++i)
     {
+      static language *lang;	/* non-NULL if language is forced */
+      char *this_file;
+
       switch (argbuffer[i].arg_type)
 	{
 	case at_language:
-	  forced_lang = argbuffer[i].lang;
+	  lang = argbuffer[i].lang;
 	  break;
 #ifdef ETAGS_REGEXPS
 	case at_regexp:
@@ -1180,9 +1196,9 @@ main (argc, argv)
 		 (one per line) and use them. */
 	      if (streq (this_file, "-"))
 		while (readline_internal (&filename_lb, stdin) > 0)
-		  process_file (filename_lb.buffer);
+		  process_file (filename_lb.buffer, lang);
 	      else
-		process_file (this_file);
+		process_file (this_file, lang);
 #ifdef VMS
 	    }
 #endif
@@ -1196,9 +1212,9 @@ main (argc, argv)
 
   if (!CTAGS || cxref_style)
     {
-      put_entries (head);
-      free_tree (head);
-      head = NULL;
+      put_entries (nodehead);
+      free_tree (nodehead);
+      nodehead = NULL;
       if (!CTAGS)
 	while (nincluded_files-- > 0)
 	  fprintf (tagf, "\f\n%s,include\n", *included_files++);
@@ -1227,21 +1243,20 @@ main (argc, argv)
   tagf = fopen (tagfile, append_to_tagfile ? "a" : "w");
   if (tagf == NULL)
     pfatal (tagfile);
-  put_entries (head);
-  free_tree (head);
-  head = NULL;
+  put_entries (nodehead);
+  free_tree (nodehead);
+  nodehead = NULL;
   if (fclose (tagf) == EOF)
     pfatal (tagfile);
 
   if (update)
     {
       char cmd[BUFSIZ];
-      sprintf (cmd, "sort -o %s %s", tagfile, tagfile);
+      sprintf (cmd, "sort %s -o %s", tagfile, tagfile);
       exit (system (cmd));
     }
   return GOOD;
 }
-
 
 
 /*
@@ -1362,17 +1377,19 @@ get_language_from_filename (file)
   return NULL;
 }
 
-
-
+
 /*
  * This routine is called on each file argument.
  */
 static void
-process_file (file)
+process_file (file, lang)
      char *file;
+     language *lang;
 {
   struct stat stat_buf;
   FILE *inf;
+  static const fdesc emptyfdesc;
+  fdesc *fdp;
   compressor *compr;
   char *compressed_name, *uncompressed_name;
   char *ext, *real_name;
@@ -1396,25 +1413,20 @@ process_file (file)
       uncompressed_name = savenstr (file, ext - file);
     }
 
-  /* If the canonicalized uncompressed name has already be dealt with,
-     skip it silently, else add it to the list. */
-  {
-    typedef struct processed_file
+  /* If the canonicalized uncompressed name
+     has already been dealt with, skip it silently. */
+  for (fdp = fdhead; fdp != NULL; fdp = fdp->next)
     {
-      char *filename;
-      struct processed_file *next;
-    } processed_file;
-    static processed_file *pf_head = NULL;
-    register processed_file *fnp;
+      assert (fdp->infname != NULL);
+      if (streq (uncompressed_name, fdp->infname))
+	goto cleanup;
+    }
 
-    for (fnp = pf_head; fnp != NULL; fnp = fnp->next)
-      if (streq (uncompressed_name, fnp->filename))
-	goto exit;
-    fnp = pf_head;
-    pf_head = xnew (1, struct processed_file);
-    pf_head->filename = savestr (uncompressed_name);
-    pf_head->next = fnp;
-  }
+  /* Create a new input file description entry. */
+  fdp = fdhead;
+  fdhead = xnew (1, fdesc);
+  *fdhead = emptyfdesc;
+  fdhead->next = fdp;
 
   if (stat (real_name, &stat_buf) != 0)
     {
@@ -1461,14 +1473,14 @@ process_file (file)
       if (real_name == NULL)
 	{
 	  perror (file);
-	  goto exit;
+	  goto cleanup;
 	}
     } /* try with a different name */
 
   if (!S_ISREG (stat_buf.st_mode))
     {
       error ("skipping %s: it is not a regular file.", real_name);
-      goto exit;
+      goto cleanup;
     }
   if (real_name == compressed_name)
     {
@@ -1481,26 +1493,31 @@ process_file (file)
   if (inf == NULL)
     {
       perror (real_name);
-      goto exit;
+      goto cleanup;
     }
 
-  curfile = uncompressed_name;
-  curfiledir = absolute_dirname (curfile, cwd);
-  if (filename_is_absolute (curfile))
+  fdhead->infname = savestr (uncompressed_name);
+  fdhead->lang = lang;
+  fdhead->infabsname = absolute_filename (uncompressed_name, cwd);
+  fdhead->infabsdir = absolute_dirname (uncompressed_name, cwd);
+  if (filename_is_absolute (uncompressed_name))
     {
       /* file is an absolute file name.  Canonicalize it. */
-      curtagfname = absolute_filename (curfile, NULL);
+      fdhead->taggedfname = absolute_filename (uncompressed_name, NULL);
     }
   else
     {
       /* file is a file name relative to cwd.  Make it relative
 	 to the directory of the tags file. */
-      curtagfname = relative_filename (curfile, tagfiledir);
+      fdhead->taggedfname = relative_filename (uncompressed_name, tagfiledir);
     }
-  nocharno = FALSE;		/* use char position when making tags */
-  find_entries (curfile, inf);
+  fdhead->usecharno = TRUE;	/* use char position when making tags */
+  fdhead->prop = NULL;
 
-  free (curfiledir);
+  curfdp = fdhead;		/* the current file description */
+
+  find_entries (inf);
+
   if (real_name == compressed_name)
     retval = pclose (inf);
   else
@@ -1508,9 +1525,10 @@ process_file (file)
   if (retval < 0)
     pfatal (file);
 
- exit:
-  if (compressed_name) free(compressed_name);
-  if (uncompressed_name) free(uncompressed_name);
+ cleanup:
+  /* XXX if no more useful, delete head of file description list */
+  if (compressed_name) free (compressed_name);
+  if (uncompressed_name) free (uncompressed_name);
   return;
 }
 
@@ -1548,34 +1566,34 @@ init ()
 static node *last_node = NULL;
 
 static void
-find_entries (file, inf)
-     char *file;
+find_entries (inf)
      FILE *inf;
 {
   char *cp;
-  language *lang;
   node *old_last_node;
+  language *lang = curfdp->lang;
+  Lang_function *parser = NULL;
 
   /* If user specified a language, use it. */
-  lang = forced_lang;
   if (lang != NULL && lang->function != NULL)
     {
-      curlang = lang;
-      lang->function (inf);
-      return;
+      parser = lang->function;
     }
 
-  /* Try to guess the language given the file name. */
-  lang = get_language_from_filename (file);
-  if (lang != NULL && lang->function != NULL)
+  /* Else try to guess the language given the file name. */
+  if (parser == NULL)
     {
-      curlang = lang;
-      lang->function (inf);
-      return;
+      lang = get_language_from_filename (curfdp->infname);
+      if (lang != NULL && lang->function != NULL)
+	{
+	  curfdp->lang = lang;
+	  parser = lang->function;
+	}
     }
 
-  /* Look for sharp-bang as the first two characters. */
-  if (readline_internal (&lb, inf) > 0
+  /* Else look for sharp-bang as the first two characters. */
+  if (parser == NULL
+      && readline_internal (&lb, inf) > 0
       && lb.len >= 2
       && lb.buffer[0] == '#'
       && lb.buffer[1] == '!')
@@ -1598,29 +1616,72 @@ find_entries (file, inf)
 	  lang = get_language_from_interpreter (lp);
 	  if (lang != NULL && lang->function != NULL)
 	    {
-	      curlang = lang;
-	      lang->function (inf);
-	      return;
+	      curfdp->lang = lang;
+	      parser = lang->function;
 	    }
 	}
     }
+
+  if (!no_line_directive
+      && curfdp->lang != NULL && curfdp->lang->metasource)
+    /* It may be that this is an xxx.y file, and we already parsed an xxx.c
+       file, or anyway we parsed a file that is automatically generated from
+       this one.  If this is the case, the xxx.c file contained #line
+       directives that generated tags pointing to this file.  Let's delete
+       them all before parsing this file, which is the real source. */
+    {
+      fdesc **fdpp = &fdhead;
+      while (*fdpp != NULL)
+	if (*fdpp != curfdp
+	    && streq ((*fdpp)->taggedfname, curfdp->taggedfname))
+	  /* We found one of those!  We must delete both the file description
+	     and all tags referring to it. */
+	  {
+	    fdesc *badfdp = *fdpp;
+
+	    *fdpp = badfdp->next; /* remove the bad description from the list */
+	    fdpp = &badfdp->next; /* advance the list pointer */
+
+	    fprintf (stderr, "Removing references to \"%s\" obtained from \"%s\"\n",
+		     badfdp->taggedfname, badfdp->infname);
+	    /* Delete the tags referring to badfdp. */
+	    invalidate_nodes (badfdp, nodehead);
+
+	    /* Delete badfdp. */
+	    if (badfdp->infname != NULL) free (badfdp->infname);
+	    if (badfdp->infabsname != NULL) free (badfdp->infabsname);
+	    if (badfdp->infabsdir != NULL) free (badfdp->infabsdir);
+	    if (badfdp->taggedfname != NULL) free (badfdp->taggedfname);
+	    if (badfdp->prop != NULL) free (badfdp->prop);
+	    free (badfdp);
+	  }
+	else
+	  fdpp = &(*fdpp)->next; /* advance the list pointer */
+    }
+
+  if (parser != NULL)
+    {
+      parser (inf);
+      return;
+    }
+
   /* We rewind here, even if inf may be a pipe.  We fail if the
      length of the first line is longer than the pipe block size,
      which is unlikely. */
   rewind (inf);
 
-  /* Try Fortran. */
+  /* Else try Fortran. */
   old_last_node = last_node;
-  curlang = get_language_from_langname ("fortran");
+  curfdp->lang = get_language_from_langname ("fortran");
   Fortran_functions (inf);
 
-  /* No Fortran entries found.  Try C. */
   if (old_last_node == last_node)
+    /* No Fortran entries found.  Try C. */
     {
       /* We do not tag if rewind fails.
 	 Only the file name will be recorded in the tags file. */
       rewind (inf);
-      curlang = get_language_from_langname (cplusplus ? "c++" : "c");
+      curfdp->lang = get_language_from_langname (cplusplus ? "c++" : "c");
       default_C_entries (inf);
     }
   return;
@@ -1647,27 +1708,28 @@ pfnote (name, is_func, linestart, linelen, lno, cno)
   /* If ctags mode, change name "main" to M<thisfilename>. */
   if (CTAGS && !cxref_style && streq (name, "main"))
     {
-      register char *fp = etags_strrchr (curtagfname, '/');
-      np->name = concat ("M", fp == NULL ? curtagfname : fp + 1, "");
+      register char *fp = etags_strrchr (curfdp->taggedfname, '/');
+      np->name = concat ("M", fp == NULL ? curfdp->taggedfname : fp + 1, "");
       fp = etags_strrchr (np->name, '.');
       if (fp != NULL && fp[1] != '\0' && fp[2] == '\0')
 	fp[0] = '\0';
     }
   else
     np->name = name;
+  np->valid = TRUE;
   np->been_warned = FALSE;
-  np->file = curtagfname;
+  np->fdp = curfdp;
   np->is_func = is_func;
   np->lno = lno;
-  if (nocharno)
-    np->cno = invalidcharno;
-  else
+  if (np->fdp->usecharno)
     /* Our char numbers are 0-base, because of C language tradition?
        ctags compatibility?  old versions compatibility?   I don't know.
        Anyway, since emacs's are 1-base we expect etags.el to take care
        of the difference.  If we wanted to have 1-based numbers, we would
        uncomment the +1 below. */
     np->cno = cno /* + 1 */ ;
+  else
+    np->cno = invalidcharno;
   np->left = np->right = NULL;
   if (CTAGS && !cxref_style)
     {
@@ -1679,7 +1741,7 @@ pfnote (name, is_func, linestart, linelen, lno, cno)
   else
     np->pat = savenstr (linestart, linelen);
 
-  add_node (np, &head);
+  add_node (np, &nodehead);
 }
 
 /*
@@ -1789,13 +1851,13 @@ add_node (np, cur_node_p)
 	 pointer.  The first tags of different files are a linked list
 	 on the left pointer.  last_node points to the end of the last
 	 used sublist. */
-      if (last_node->file == np->file)
+      if (last_node->fdp == np->fdp)
 	{
 	  /* Let's use the same sublist as the last added node. */
 	  last_node->right = np;
 	  last_node = np;
 	}
-      else if (streq (cur_node->file, np->file))
+      else if (cur_node->fdp == np->fdp)
 	{
 	  /* Scanning the list we found the head of a sublist which is
 	     good for us.  Let's scan this sublist. */
@@ -1817,12 +1879,12 @@ add_node (np, cur_node_p)
        */
       if (!dif)
 	{
-	  if (streq (np->file, cur_node->file))
+	  if (np->fdp == cur_node->fdp)
 	    {
 	      if (!no_warnings)
 		{
 		  fprintf (stderr, "Duplicate entry in file %s, line %d: %s\n",
-			   np->file, lineno, np->name);
+			   np->fdp->infname, lineno, np->name);
 		  fprintf (stderr, "Second entry ignored\n");
 		}
 	    }
@@ -1831,7 +1893,7 @@ add_node (np, cur_node_p)
 	      fprintf
 		(stderr,
 		 "Duplicate entry in files %s and %s: %s (Warning only)\n",
-		 np->file, cur_node->file, np->name);
+		 np->fdp->infname, cur_node->fdp->infname, np->name);
 	      cur_node->been_warned = TRUE;
 	    }
 	  return;
@@ -1842,11 +1904,29 @@ add_node (np, cur_node_p)
     }
 }
 
+/*
+ * invalidate_nodes ()
+ *	Scan the node tree and invalidate all nodes pointing to the
+ *	given file description.
+ */
+static void
+invalidate_nodes (badfdp, np)
+     fdesc *badfdp;
+     node *np;
+{
+  if (np->left != NULL)
+    invalidate_nodes (badfdp, np->left);
+  if (np->fdp == badfdp)
+    np-> valid = FALSE;
+  if (np->right != NULL)
+    invalidate_nodes (badfdp, np->right);
+}
+
 
 static int total_size_of_entries __P((node *));
 static int number_len __P((long));
 
-/* Length of a number's decimal representation. */
+/* Length of a non-negative number's decimal representation. */
 static int
 number_len (num)
      long num;
@@ -1888,7 +1968,7 @@ put_entries (np)
      register node *np;
 {
   register char *sp;
-  static char *file = NULL;
+  static fdesc *fdp = NULL;
 
   if (np == NULL)
     return;
@@ -1898,69 +1978,69 @@ put_entries (np)
     put_entries (np->left);
 
   /* Output this entry */
-  if (!CTAGS)
+  if (np->valid)
     {
-      /* Etags mode */
-      if (file != np->file
-	  && (file == NULL || !streq (file, np->file)))
+      if (!CTAGS)
 	{
-	  file = np->file;
-	  fprintf (tagf, "\f\n%s,%d\n",
-		   file, total_size_of_entries (np));
+	  /* Etags mode */
+	  if (fdp != np->fdp)
+	    {
+	      fdp = np->fdp;
+	      fprintf (tagf, "\f\n%s,%d\n",
+		       fdp->taggedfname, total_size_of_entries (np));
+	    }
+	  fputs (np->pat, tagf);
+	  fputc ('\177', tagf);
+	  if (np->name != NULL)
+	    {
+	      fputs (np->name, tagf);
+	      fputc ('\001', tagf);
+	    }
+	  fprintf (tagf, "%d,", np->lno);
+	  if (np->cno != invalidcharno)
+	    fprintf (tagf, "%ld", np->cno);
+	  fputs ("\n", tagf);
 	}
-      fputs (np->pat, tagf);
-      fputc ('\177', tagf);
-      if (np->name != NULL)
-	{
-	  fputs (np->name, tagf);
-	  fputc ('\001', tagf);
-	}
-      fprintf (tagf, "%d,", np->lno);
-      if (np->cno == invalidcharno)
-	fputc ('\n', tagf);
       else
-	fprintf (tagf, "%ld\n", np->cno);
-    }
-  else
-    {
-      /* Ctags mode */
-      if (np->name == NULL)
-	error ("internal error: NULL name in ctags mode.", (char *)NULL);
-
-      if (cxref_style)
 	{
-	  if (vgrind_style)
-	    fprintf (stdout, "%s %s %d\n",
-		     np->name, np->file, (np->lno + 63) / 64);
+	  /* Ctags mode */
+	  if (np->name == NULL)
+	    error ("internal error: NULL name in ctags mode.", (char *)NULL);
+
+	  if (cxref_style)
+	    {
+	      if (vgrind_style)
+		fprintf (stdout, "%s %s %d\n",
+			 np->name, np->fdp->taggedfname, (np->lno + 63) / 64);
+	      else
+		fprintf (stdout, "%-16s %3d %-16s %s\n",
+			 np->name, np->lno, np->fdp->taggedfname, np->pat);
+	    }
 	  else
-	    fprintf (stdout, "%-16s %3d %-16s %s\n",
-		     np->name, np->lno, np->file, np->pat);
-	}
-      else
-	{
-	  fprintf (tagf, "%s\t%s\t", np->name, np->file);
+	    {
+	      fprintf (tagf, "%s\t%s\t", np->name, np->fdp->taggedfname);
 
-	  if (np->is_func)
-	    {			/* a function */
-	      putc (searchar, tagf);
-	      putc ('^', tagf);
+	      if (np->is_func)
+		{		/* function or #define macro with args */
+		  putc (searchar, tagf);
+		  putc ('^', tagf);
 
-	      for (sp = np->pat; *sp; sp++)
-		{
-		  if (*sp == '\\' || *sp == searchar)
-		    putc ('\\', tagf);
-		  putc (*sp, tagf);
+		  for (sp = np->pat; *sp; sp++)
+		    {
+		      if (*sp == '\\' || *sp == searchar)
+			putc ('\\', tagf);
+		      putc (*sp, tagf);
+		    }
+		  putc (searchar, tagf);
 		}
-	      putc (searchar, tagf);
+	      else
+		{		/* anything else; text pattern inadequate */
+		  fprintf (tagf, "%d", np->lno);
+		}
+	      putc ('\n', tagf);
 	    }
-	  else
-	    {			/* a typedef; text pattern inadequate */
-	      fprintf (tagf, "%d", np->lno);
-	    }
-	  putc ('\n', tagf);
 	}
-    }
-
+    } /* if this node contains a valid tag */
 
   /* Output subentries that follow this one */
   put_entries (np->right);
@@ -5247,6 +5327,7 @@ add_regex (regexp_pattern, ignore_case, lang)
   p_head->pat = patbuf;
   p_head->name_pattern = savestr (name);
   p_head->error_signaled = FALSE;
+  p_head->ignore_case = ignore_case;
 }
 
 /*
@@ -5444,44 +5525,118 @@ readline (lbp, stream)
   long result = readline_internal (lbp, stream);
 
   /* Honour #line directives. */
-  if (!no_line_directive
-      && result > 12 && strneq (lbp->buffer, "#line ", 6))
+  if (!no_line_directive)
     {
-      int start, lno;
+      static bool discard_until_line_directive;
 
-      if (sscanf (lbp->buffer, "#line %d \"%n", &lno, &start) == 1)
+      /* Check whether this is a #line directive. */
+      if (result > 12 && strneq (lbp->buffer, "#line ", 6))
 	{
-	  char *endp = lbp->buffer + start;
+	  int start, lno;
 
-	  while ((endp = etags_strchr (endp, '"')) != NULL
-		 && endp[-1] == '\\')
-	    endp++;
-	  if (endp != NULL)
+	  if (DEBUG) start = 0;	/* shut up the compiler */
+	  if (sscanf (lbp->buffer, "#line %d \"%n", &lno, &start) == 1)
 	    {
-	      char *absname, *name = lbp->buffer + start;
-	      *endp = '\0';
+	      char *endp = lbp->buffer + start;
 
-	      canonicalize_filename(name); /* for DOS */
-	      absname = absolute_filename (name, curfiledir);
-	      if (filename_is_absolute (name)
-		  || filename_is_absolute (curfile))
-		name = absname;
-	      else
+	      assert (start > 0);
+	      while ((endp = etags_strchr (endp, '"')) != NULL
+		     && endp[-1] == '\\')
+		endp++;
+	      if (endp != NULL)
+		/* Ok, this is a real #line directive.  Let's deal with it. */
 		{
-		  name = relative_filename (absname, tagfiledir);
-		  free (absname);
-		}
+		  char *taggedabsname;	/* absolute name of original file */
+		  char *taggedfname;	/* name of original file as given */
+		  char *name;		/* temp var */
 
-	      if (streq (curtagfname, name))
-		free (name);
-	      else
-		curtagfname = name;
-	      lineno = lno;
-	      nocharno = TRUE;	/* do not use char position for tags */
-	      return readline (lbp, stream);
-	    }
+		  discard_until_line_directive = FALSE; /* found it */
+		  name = lbp->buffer + start;
+		  *endp = '\0';
+		  canonicalize_filename (name); /* for DOS */
+		  taggedabsname = absolute_filename (name, curfdp->infabsdir);
+		  if (filename_is_absolute (name)
+		      || filename_is_absolute (curfdp->infname))
+		    taggedfname = savestr (taggedabsname);
+		  else
+		    taggedfname = relative_filename (taggedabsname,tagfiledir);
+
+		  if (streq (curfdp->taggedfname, taggedfname))
+		    /* The #line directive is only a line number change.  We
+		       deal with this afterwards. */
+		    free (taggedfname);
+		  else
+		    /* The tags following this #line directive should be
+		       attributed to taggedfname.  In order to do this, set
+		       curfdp accordingly. */
+		    {
+		      fdesc *fdp; /* file description pointer */
+
+		      /* Go look for a file description already set up for the
+			 file indicated in the #line directive.  If there is
+			 one, use it from now until the next #line
+			 directive. */
+		      for (fdp = fdhead; fdp != NULL; fdp = fdp->next)
+			if (streq (fdp->infname, curfdp->infname)
+			    && streq (fdp->taggedfname, taggedfname))
+			  /* If we remove the second test above (after the &&)
+			     then all entries pertaining to the same file are
+			     coalesced in the tags file.  If we use it, then
+			     entries pertaining to the same file but generated
+			     from different files (via #line directives) will
+			     go into separate sections in the tags file.  These
+			     alternatives look equivalent.  The first one
+			     destroys some apparently useless information. */
+			  {
+			    curfdp = fdp;
+			    free (taggedfname);
+			    break;
+			  }
+		      /* Else, if we already tagged the real file, skip all
+			 input lines until the next #line directive. */
+		      if (fdp == NULL) /* not found */
+			for (fdp = fdhead; fdp != NULL; fdp = fdp->next)
+			  if (streq (fdp->infabsname, taggedabsname))
+			    {
+			      discard_until_line_directive = TRUE;
+			      free (taggedfname);
+			      break;
+			    }
+		      /* Else create a new file description and use that from
+			 now on, until the next #line directive. */
+		      if (fdp == NULL) /* not found */
+			{
+			  fdp = fdhead;
+			  fdhead = xnew (1, fdesc);
+			  *fdhead = *curfdp; /* copy curr. file description */
+			  fdhead->next = fdp;
+			  fdhead->infname = savestr (curfdp->infname);
+			  fdhead->infabsname = savestr (curfdp->infabsname);
+			  fdhead->infabsdir = savestr (curfdp->infabsdir);
+			  fdhead->taggedfname = taggedfname;
+			  fdhead->usecharno = FALSE;
+			  curfdp = fdhead;
+			}
+		    }
+		  free (taggedabsname);
+		  lineno = lno;
+		  return readline (lbp, stream);
+		} /* if a real #line directive */
+	    } /* if #line is followed by a a number */
+	} /* if line begins with "#line " */
+
+      /* If we are here, no #line directive was found. */
+      if (discard_until_line_directive)
+	{
+	  if (result > 0)
+	    /* Do a tail recursion on ourselves, thus discarding the contents
+	       of the line buffer. */
+	    return readline (lbp, stream);
+	  /* End of file. */
+	  discard_until_line_directive = FALSE;
+	  return 0;
 	}
-    }
+    } /* if #line directives should be considered */
 
 #ifdef ETAGS_REGEXPS
   {
@@ -5493,7 +5648,7 @@ readline (lbp, stream)
       for (pp = p_head; pp != NULL; pp = pp->p_next)
 	{
 	  /* Only use generic regexps or those for the current language. */
-	  if (pp->lang != NULL && pp->lang != curlang)
+	  if (pp->lang != NULL && pp->lang != fdhead->lang)
 	    continue;
 
 	  match = re_match (pp->pat, lbp->buffer, lbp->len, 0, &pp->regs);
@@ -5931,6 +6086,7 @@ xrealloc (ptr, size)
  * c-indentation-style: gnu
  * indent-tabs-mode: t
  * tab-width: 8
- * c-font-lock-extra-types: ("FILE" "bool" "language" "linebuffer")
+ * fill-column: 79
+ * c-font-lock-extra-types: ("FILE" "bool" "language" "linebuffer" "fdesc")
  * End:
  */
