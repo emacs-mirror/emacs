@@ -29,6 +29,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <sys/param.h>
 #include <sys/time.h>
 #include <dos.h>
@@ -331,6 +332,8 @@ static int startup_screen_size_Y;
 static int startup_pos_X;
 static int startup_pos_Y;
 static unsigned char startup_screen_attrib;
+
+static clock_t startup_time;
 
 static int term_setup_done;
 
@@ -993,7 +996,7 @@ IT_reset_terminal_modes (void)
   /* Leave the video system in the same state as we found it,
      as far as the blink/bright-background bit is concerned.  */
   maybe_enable_blinking ();
- 
+
   /* We have a situation here.
      We cannot just do ScreenUpdate(startup_screen_buffer) because
      the luser could have changed screen dimensions inside Emacs
@@ -1007,27 +1010,34 @@ IT_reset_terminal_modes (void)
      is also restored within the visible dimensions.  */
 
   ScreenAttrib = startup_screen_attrib;
-  ScreenClear ();
-  if (screen_virtual_segment)
-    dosv_refresh_virtual_screen (0, screen_size);
 
-  if (update_row_len > saved_row_len)
-    update_row_len = saved_row_len;
-  if (current_rows > startup_screen_size_Y)
-    current_rows = startup_screen_size_Y;
-
-  if (termscript)
-    fprintf (termscript, "<SCREEN RESTORED (dimensions=%dx%d)>\n",
-             update_row_len / 2, current_rows);
-
-  while (current_rows--)
+  /* Don't restore the screen if we are exiting less than 2 seconds
+     after startup: we might be crashing, and the screen might show
+     some vital clues to what's wrong.  */
+  if (clock () - startup_time >= 2*CLOCKS_PER_SEC)
     {
-      dosmemput (saved_row, update_row_len, display_row_start);
+      ScreenClear ();
       if (screen_virtual_segment)
-	dosv_refresh_virtual_screen (display_row_start - ScreenPrimary,
-				     update_row_len / 2);
-      saved_row         += saved_row_len;
-      display_row_start += to_next_row;
+	dosv_refresh_virtual_screen (0, screen_size);
+
+      if (update_row_len > saved_row_len)
+	update_row_len = saved_row_len;
+      if (current_rows > startup_screen_size_Y)
+	current_rows = startup_screen_size_Y;
+
+      if (termscript)
+	fprintf (termscript, "<SCREEN RESTORED (dimensions=%dx%d)>\n",
+		 update_row_len / 2, current_rows);
+
+      while (current_rows--)
+	{
+	  dosmemput (saved_row, update_row_len, display_row_start);
+	  if (screen_virtual_segment)
+	    dosv_refresh_virtual_screen (display_row_start - ScreenPrimary,
+					 update_row_len / 2);
+	  saved_row         += saved_row_len;
+	  display_row_start += to_next_row;
+	}
     }
   if (startup_pos_X < cursor_pos_X)
     cursor_pos_X = startup_pos_X;
@@ -2889,6 +2899,12 @@ init_environment (argc, argv, skip_args)
 	      Fcons (build_string ("no usable temporary directories found!!"),
 		     Qnil)),
        "While setting TMPDIR: ");
+
+  /* Note the startup time, so we know not to clear the screen if we
+     exit immediately; see IT_reset_terminal_modes.
+     (Yes, I know `clock' returns zero the first time it's called, but
+     I do this anyway, in case some wiseguy changes that at some point.)  */
+  startup_time = clock ();
 
   /* Find our root from argv[0].  Assuming argv[0] is, say,
      "c:/emacs/bin/emacs.exe" our root will be "c:/emacs".  */
