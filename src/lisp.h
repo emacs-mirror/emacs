@@ -2435,7 +2435,7 @@ extern void malloc_warning P_ ((char *));
 extern void memory_full P_ ((void));
 extern void buffer_memory_full P_ ((void));
 extern int survives_gc_p P_ ((Lisp_Object));
-extern void mark_object P_ ((Lisp_Object *));
+extern void mark_object P_ ((Lisp_Object));
 extern Lisp_Object Vpurify_flag;
 extern Lisp_Object Vmemory_full;
 EXFUN (Fcons, 2);
