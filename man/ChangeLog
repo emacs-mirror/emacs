@@ -1,3 +1,21 @@
+2005-03-26  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Simplifying Formulas, Rewrite Rules): Change
+	description of top and bottom of fraction.
+	(Modulo Forms): Move description of how to create modulo forms to
+	earlier in the section.
+	(Fraction Mode): Suggest using : to get a fraction by dividing.
+	(Basic Arithmetic): Adjust placement of command name.
+	(Truncating the Stack): Emphasize that "hidden" entries are still
+	visible.
+	(Installation): Move discussion of printing manual to "About This
+	Manual".
+	(About This Manual): Mention how to print the manual.
+	(Reporting Bugs): Remove first person.
+	(Building Vectors): Add algebraic version of append.
+	(Manipulating Vectors): Fix algebraic version of calc-reverse-vector.
+	(Grouping Digits): Fix typo.
+
 2005-03-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xresources.texi (X Resources): GTK options documented too.
