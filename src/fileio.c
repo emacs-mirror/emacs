@@ -101,6 +101,10 @@ extern char *strerror ();
 #define O_WRONLY 1
 #endif
 
+#ifndef O_RDONLY
+#define O_RDONLY 0
+#endif
+
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
@@ -1706,9 +1710,12 @@ barf_or_query_if_file_exists (absname, querystring, interactive)
      int interactive;
 {
   register Lisp_Object tem;
+  struct stat statbuf;
   struct gcpro gcpro1;
 
-  if (access (XSTRING (absname)->data, 4) >= 0)
+  /* stat is a good way to tell whether the file exists,
+     regardless of what access permissions it has.  */
+  if (stat (XSTRING (absname)->data, &statbuf) >= 0)
     {
       if (! interactive)
 	Fsignal (Qfile_already_exists,
@@ -1769,7 +1776,7 @@ A prefix arg makes KEEP-TIME non-nil.")
     barf_or_query_if_file_exists (newname, "copy to it",
 				  XTYPE (ok_if_already_exists) == Lisp_Int);
 
-  ifd = open (XSTRING (filename)->data, 0);
+  ifd = open (XSTRING (filename)->data, O_RDONLY);
   if (ifd < 0)
     report_file_error ("Opening input file", Fcons (filename, Qnil));
 
@@ -2168,6 +2175,7 @@ See also `file-readable-p' and `file-attributes'.")
 {
   Lisp_Object abspath;
   Lisp_Object handler;
+  struct stat statbuf;
 
   CHECK_STRING (filename, 0);
   abspath = Fexpand_file_name (filename, Qnil);
@@ -2178,7 +2186,7 @@ See also `file-readable-p' and `file-attributes'.")
   if (!NILP (handler))
     return call2 (handler, Qfile_exists_p, abspath);
 
-  return (access (XSTRING (abspath)->data, 0) >= 0) ? Qt : Qnil;
+  return (stat (XSTRING (abspath)->data, &statbuf) >= 0) ? Qt : Qnil;
 }
 
 DEFUN ("file-executable-p", Ffile_executable_p, Sfile_executable_p, 1, 1, 0,
@@ -2211,6 +2219,7 @@ See also `file-exists-p' and `file-attributes'.")
 {
   Lisp_Object abspath;
   Lisp_Object handler;
+  int desc;
 
   CHECK_STRING (filename, 0);
   abspath = Fexpand_file_name (filename, Qnil);
@@ -2221,7 +2230,11 @@ See also `file-exists-p' and `file-attributes'.")
   if (!NILP (handler))
     return call2 (handler, Qfile_readable_p, abspath);
 
-  return (access (XSTRING (abspath)->data, 4) >= 0) ? Qt : Qnil;
+  desc = open (XSTRING (abspath)->data, O_RDONLY);
+  if (desc < 0)
+    return Qnil;
+  close (desc);
+  return Qt;
 }
 
 DEFUN ("file-symlink-p", Ffile_symlink_p, Sfile_symlink_p, 1, 1, 0,
@@ -2608,7 +2621,7 @@ and (2) it puts less data in the undo list.")
 #ifndef APOLLO
   if (stat (XSTRING (filename)->data, &st) < 0)
 #else
-  if ((fd = open (XSTRING (filename)->data, 0)) < 0
+  if ((fd = open (XSTRING (filename)->data, O_RDONLY)) < 0
       || fstat (fd, &st) < 0)
 #endif /* not APOLLO */
     {
@@ -2632,7 +2645,7 @@ and (2) it puts less data in the undo list.")
 #endif
 
   if (fd < 0)
-    if ((fd = open (XSTRING (filename)->data, 0)) < 0)
+    if ((fd = open (XSTRING (filename)->data, O_RDONLY)) < 0)
       goto badopen;
 
   /* Replacement should preserve point as it preserves markers.  */
