@@ -1,3 +1,12 @@
+2002-10-30  Kenichi Handa  <handa@m17n.org>
+
+	* language/devan-util.el: Delete the superfluous autoload cookie
+	near the head of the file.
+	(devanagari-compose-region): Add autoload cookie.
+
+	* language/ind-util.el (indian-2-column-to-ucs-region): Add
+	autoload cookie.
+
 2002-10-29  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el ("fontset-default"): Add an entry for
@@ -261,7 +270,7 @@
 
 2002-09-05  Dave Love  <fx@gnu.org>
 
-	* international/characters.el: Make ,_/(B and ,A(B a case pair.
+	* international/characters.el: Make (ÿ/(B and (ÿ(B a case pair.
 
 2002-09-03  Kenichi Handa  <handa@etl.go.jp>
 
