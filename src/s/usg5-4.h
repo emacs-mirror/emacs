@@ -35,11 +35,21 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define LIBS_SYSTEM -lsocket -lnsl -lelf
 #define ORDINARY_LINK
 
+#if 0
 #ifdef ORDINARY_LINK
 #define LIB_STANDARD -lc /usr/ucblib/libucb.a
 #else
 #define START_FILES pre-crt0.o /usr/ccs/lib/crt1.o /usr/ccs/lib/crti.o /usr/ccs/lib/values-Xt.o
 #define LIB_STANDARD -lc /usr/ucblib/libucb.a /usr/ccs/lib/crtn.o
+#endif
+#else
+
+#ifdef ORDINARY_LINK
+#define LIB_STANDARD
+#else
+#define START_FILES pre-crt0.o /usr/ccs/lib/crt1.o /usr/ccs/lib/crti.o /usr/ccs/lib/values-Xt.o
+#define LIB_STANDARD -lc /usr/ccs/lib/crtn.o
+#endif
 #endif
 
 /* there are no -lg libraries on this system, and no libPW */
@@ -185,3 +195,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* This definition was suggested for next release.
    So give it a try.  */
 #define HAVE_SOCKETS
+
+#define bcopy(src,dst,n)	memcpy(dst,src,n)
+#define bcmp(src,dst,n)		memcmp(src,dst,n)
+#define bzero(s,n)		memset(s,0,n)
