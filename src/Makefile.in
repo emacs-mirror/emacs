@@ -805,6 +805,7 @@ emacs: temacs ${etc}DOC ${lisp}
 	./temacs -batch -l loadup dump
 #endif /* ! defined (HAVE_SHM) */
 #endif /* ! defined (CANNOT_DUMP) */
+	./emacs -q -batch -f list-load-path-shadows
 
 /* We run make-docfile twice because the command line may get too long
    on some systems.  */
