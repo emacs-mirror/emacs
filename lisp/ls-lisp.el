@@ -159,7 +159,8 @@ current year. The OLD-TIME-FORMAT is used for older files.  To use ISO
 \(setq ls-lisp-format-time-list
        '(\"%Y-%m-%d %H:%M\"
          \"%Y-%m-%d      \"))"
-  :type  '(list string)
+  :type '(list (string :tag "Early time format")
+	       (string :tag "Old time format"))
   :group 'ls-lisp)
 
 ;; Remember the original insert-directory function
