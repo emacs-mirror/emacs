@@ -1,3 +1,47 @@
+2004-11-10  Jay Belanger  <belanger@truman.edu>
+	* calc/calc-aent.el (calc-do-quick-calc):  Use kill-new to append
+	string to kill-ring. 
+
+	* calc/calc-aent.el (calc-alg-exp, math-toks)
+	(math-exp-pos,math-exp-old-pos, math-exp-token)
+	(math-exp-keep-spaces, math-exp-str):  New variables. 
+	(calc-do-alg-entry, calcAlg-equals, calcAlg-edit)	
+	(calcAlg-enter):  Use declared variable calc-alg-exp.
+	(math-build-parse-table, math-find-user-token):  Use declared
+	variable math-toks. 
+	(math-read-exprs, math-read-token, calc-check-user-syntax)
+	(calc-match-user-syntax, match-factor-after, math-read-factor):
+	Use declared variables math-exp-pos math-exp-old-pos.
+	(math-read-exprs, math-read-token, math-read-expr-level)
+	(calc-check-user-syntax, calc-match-user-syntax)
+	(match-factor-after, math-read-factor):  Use declared variable
+	math-exp-token. 
+	(math-read-exprs, math-read-expr-list, math-read-token)
+	(math-read-factor):  Use declared variable math-exp-keep-spaces. 
+	(math-read-exprs, math-read-token):  Use declared variable
+	math-exp-str.
+	(calc-match-user-syntax):  Made m a local variable.
+
+	* calc/calc-ext.el (math-read-expr):  Use declared variables
+	math-exp-pos, math-exp-old-pos, math-exp-str, math-exp-token, 
+	math-exp-keep-spaces.
+
+	* calc/calc-forms.el (math-read-angle-bracket):  Use declared
+	variables math-exp-pos, math-exp-str. 
+
+	* calc/calc-lang.el (math-parse-tex-sum):  Use declared variable
+	math-exp-old-pos. 
+	(math-parse-fortran-vector, math-parse-fortran-vector-end)
+	(math-parse-eqn-prime):  Use declared variable math-exp-token.
+
+	* calc/calc-vec.el (math-read-brackets, math-check-for-commas):
+	Use declared variable math-exp-pos. 
+	(math-check-for-commas):  Use declared variable math-exp-str.
+	(math-read-brackets):  Use declared variables math-exp-old-pos,
+	math-exp-keep-spaces.
+	(math-read-brackets, math-read-vector, math-read-matrix):  Use
+	declared variable math-exp-token.
+
 2004-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (magic-mode-alist): Reduce backtracking in the HTML regexp.
