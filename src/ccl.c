@@ -1248,6 +1248,16 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		  goto ccl_read_multibyte_character_suspend;
 		}
 	      
+	      if (!ccl->multibyte)
+		{
+		  int bytes;
+		  if (!UNIBYTE_STR_AS_MULTIBYTE_P (src, src_end - src, bytes))
+		    {
+		      reg[RRR] = CHARSET_8_BIT_CONTROL;
+		      reg[rrr] = *src++;
+		      break;
+		    }
+		}
 	      i = *src++;
 	      if (i == '\n' && ccl->eol_type != CODING_EOL_LF)
 		{
@@ -1335,6 +1345,12 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	      break;
 
 	    ccl_read_multibyte_character_suspend:
+	      if (src <= src_end && !ccl->multibyte && ccl->last_block)
+		{
+		  reg[RRR] = CHARSET_8_BIT_CONTROL;
+		  reg[rrr] = i;
+		  break;
+		}
 	      src--;
 	      if (ccl->last_block)
 		{
