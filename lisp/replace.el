@@ -612,7 +612,8 @@ If the value is nil, don't highlight the buffer names specially."
 	  (if (equal input "")
 	      default
 	    input))
-	current-prefix-arg))
+	(when current-prefix-arg
+	  (prefix-numeric-value current-prefix-arg))))
 
 (defun occur (regexp &optional nlines)
   "Show all lines in the current buffer containing a match for REGEXP.
