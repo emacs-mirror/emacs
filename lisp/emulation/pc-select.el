@@ -2,7 +2,7 @@
 ;;;		     (or MAC GUI or MS-windoze (bah)) look-and-feel
 ;;;		     including key bindings.
 
-;; Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 2000 Free Software Foundation, Inc.
 
 ;; Author: Michael Staats <michael@thp.Uni-Duisburg.DE>
 ;; Keywords: convenience 
@@ -743,7 +743,7 @@ but before calling pc-selection-mode):
 	(global-set-key [f6] 'other-window)	; KNextPane     F6
 	(global-set-key [delete] 'delete-char)	; KDelete       Del
 	(global-set-key [C-delete] 'kill-line)	; KEraseEndLine cDel
-	(global-set-key [M-backspace] 'undo)	; KUndo         aBS
+	(global-set-key "\M-\d" 'undo)		; KUndo         aBS
 
 	;; The following bindings are taken from pc-mode.el
 	;; as suggested by RMS.
