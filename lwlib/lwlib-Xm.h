@@ -1,7 +1,7 @@
 #ifndef LWLIB_XM_H
 #define LWLIB_XM_H
 
-#include "lwlib-internal.h"
+#include "lwlib-int.h"
 
 extern widget_creation_entry xm_creation_table [];
 

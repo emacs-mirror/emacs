@@ -1,7 +1,7 @@
 #ifndef LWLIB_XLW_H
 #define LWLIB_XLW_H
 
-#include "lwlib-internal.h"
+#include "lwlib-int.h"
 
 extern widget_creation_entry xlw_creation_table [];
 extern widget_creation_function xlw_create_dialog;
