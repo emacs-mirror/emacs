@@ -1993,7 +1993,7 @@ Use \\[dired-hide-subdir] to (un)hide a particular subdirectory."
 Stops when a match is found.
 To continue searching for next match, use command \\[tags-loop-continue]."
   (interactive "sSearch marked files (regexp): ")
-  (tags-search regexp '(dired-get-marked-files)))
+  (tags-search regexp '(dired-get-marked-files nil nil 'dired-nondirectory-p)))
 
 ;;;###autoload
 (defun dired-do-query-replace-regexp (from to &optional delimited)
@@ -2003,7 +2003,11 @@ If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[tags-loop-continue]."
   (interactive
    "sQuery replace in marked files (regexp): \nsQuery replace %s by: \nP")
-  (tags-query-replace from to delimited '(dired-get-marked-files)))
+  (tags-query-replace from to delimited
+		      '(dired-get-marked-files nil nil 'dired-nondirectory-p)))
+
+(defun dired-nondirectory-p (file)
+  (not (file-directory-p file)))
 
 ;;;###autoload
 (defun dired-show-file-type (file &optional deref-symlinks)
