@@ -49,7 +49,7 @@ Include an external link after the documentation string for this item.
 This is a sentence containing an active field which references some
 other documentation.
 
-There are three alternatives you can use for @var{link-data}:
+There are four alternatives you can use for @var{link-data}:
 
 @table @code
 @item (custom-manual @var{info-node})
