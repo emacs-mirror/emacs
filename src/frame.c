@@ -22,12 +22,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <config.h>
 #include "lisp.h"
 #include "frame.h"
+#include "termhooks.h"
 
 #ifdef MULTI_FRAME
 
 #include "buffer.h"
 #include "window.h"
-#include "termhooks.h"
 
 /* These help us bind and responding to switch-frame events.  */
 #include "commands.h"
@@ -1715,6 +1715,35 @@ but that the idea of the actual width of the screen should not be changed.")
   return Qnil;
 }
 
+DEFUN ("mouse-position", Fmouse_position, Smouse_position, 0, 0, 0,
+  "Return a list (FRAME X . Y) giving the current mouse frame and position.\n\
+The position is given in character cells, where (0, 0) is the\n\
+upper-left corner.\n\
+If Emacs is running on a mouseless terminal or hasn't been programmed\n\
+to read the mouse position, it returns the selected frame for FRAME\n\
+and nil for X and Y.")
+  ()
+{
+  FRAME_PTR f;
+  Lisp_Object lispy_dummy;
+  enum scroll_bar_part party_dummy;
+  Lisp_Object x, y;
+  unsigned long long_dummy;
+
+  f = selected_frame;
+  x = y = Qnil;
+
+  /* It's okay for the hook to refrain from storing anything.  */
+  if (mouse_position_hook)
+    (*mouse_position_hook) (&f,
+			    &lispy_dummy, &party_dummy,
+			    &x, &y,
+			    &long_dummy);
+
+  /* Always return nil for frame.  */
+  return Fcons (Qnil, Fcons (x, y));
+}
+
 syms_of_frame ()
 {
   defsubr (&Sselected_frame);
@@ -1732,6 +1761,7 @@ syms_of_frame ()
   Ffset (intern ("screen-height"), intern ("frame-height"));
   defsubr (&Sframe_width);
   Ffset (intern ("screen-width"), intern ("frame-width"));
+  defsubr (&Smouse_position);
 }
 
 keys_of_frame ()
