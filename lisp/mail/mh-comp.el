@@ -26,7 +26,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-comp.el,v 1.9 1997/04/12 19:24:23 rms Exp rms $
+;; $Id: mh-comp.el,v 1.10 1997/04/29 01:36:06 rms Exp rms $
 
 ;;; Code:
 
@@ -67,7 +67,7 @@ And each hook function should leave point and mark around the citation
 text as modified.
 
 This is a normal hook, misnamed for historical reasons.
-It is semi-obsolete and is only used if mail-citation-hook is nil.")
+It is semi-obsolete and is only used if `mail-citation-hook' is nil.")
 
 (defvar mail-citation-hook nil
   "*Hook for modifying a citation just inserted in the mail buffer.
@@ -76,9 +76,9 @@ And each hook function should leave point and mark around the citation
 text as modified.
 
 If this hook is entirely empty (nil), the text of the message is inserted
-with mh-ins-buf-prefix prefixed to each line.
+with `mh-ins-buf-prefix' prefixed to each line.
 
-See also the variable mh-yank-from-start-of-msg, which controls how
+See also the variable `mh-yank-from-start-of-msg', which controls how
 much of the message passed to the hook.")
 
 ;;; Copied from sendmail.el for Hyperbole
@@ -135,13 +135,13 @@ message and the original subject line."
 
 (defvar mh-comp-formfile "components"
   "Name of file to be used as a skeleton for composing messages.
-Default is \"components\".  If not a complete path name, the file
+Default is \"components\".  If not an absolute file name, the file
 is searched for first in the user's MH directory, then in the
 system MH lib directory.")
 
 (defvar mh-repl-formfile "replcomps"
   "Name of file to be used as a skeleton for replying to messages.
-Default is \"replcomps\".  If not a complete path name, the file
+Default is \"replcomps\".  If not an absolute file name, the file
 is searched for first in the user's MH directory, then in the
 system MH lib directory.")
 
@@ -251,7 +251,7 @@ See also documentation for `\\[mh-send]' function."
 
 (defun mh-extract-rejected-mail (msg)
   "Extract a letter returned by the mail system and make it resendable.
-Default is the current message.  The variable mh-new-draft-cleaned-headers
+Default is the current message.  The variable `mh-new-draft-cleaned-headers'
 gives the headers to clean out of the original message.
 See also documentation for `\\[mh-send]' function."
   (interactive (list (mh-get-msg-num t)))
@@ -353,7 +353,7 @@ See documentation of `\\[mh-send]' for more details on composing mail."
 (defun mh-redistribute (to cc &optional msg)
   "Redistribute a letter.
 Depending on how your copy of MH was compiled, you may need to change the
-setting of the variable mh-redist-full-contents.  See its documentation."
+setting of the variable `mh-redist-full-contents'.  See its documentation."
   (interactive (list (mh-read-address "Redist-To: ")
 		     (mh-read-address "Redist-Cc: ")
 		     (mh-get-msg-num t)))
@@ -395,7 +395,7 @@ setting of the variable mh-redist-full-contents.  See its documentation."
 (defun mh-reply (message &optional includep)
   "Reply to MESSAGE (default: current message).
 If optional prefix argument INCLUDEP provided, then include the message
-in the reply using filter mhl.reply in your MH directory.
+in the reply using filter `mhl.reply' in your MH directory.
 Prompts for type of addresses to reply to:
    from    sender only,
    to      sender and primary recipients,
@@ -453,7 +453,7 @@ Do not call this function from outside mh-e; use \\[mh-smail] instead.
 
 The letter is composed in mh-letter-mode; see its documentation for more
 details.  If `mh-compose-letter-function' is defined, it is called on the
-draft and passed three arguments: to, subject, and cc."
+draft and passed three arguments: TO, SUBJECT, and CC."
   (interactive (list
 		(mh-read-address "To: ")
 		(mh-read-address "Cc: ")
@@ -695,8 +695,7 @@ Variables controlling this mode (defaults in parentheses):
  mh-signature-file-name (\"~/.signature\")
     File to be inserted into message by \\[mh-insert-signature].
 
-Upon invoking mh-letter-mode, text-mode-hook and mh-letter-mode-hook are
-invoked with no args, if those values are non-nil."
+This command runs the normal hooks `text-mode-hook' and `mh-letter-mode-hook'."
 
   (interactive)
   (or mh-user-path (mh-find-path))
@@ -749,7 +748,7 @@ invoked with no args, if those values are non-nil."
 (defun mh-to-field ()
   "Move point to the end of a specified header field.
 The field is indicated by the previous keystroke (the last keystroke
-of the command) according to the list in the variable mh-to-field-choices.
+of the command) according to the list in the variable `mh-to-field-choices'.
 Create the field if it does not exist.  Set the mark to point before moving."
   (interactive)
   (expand-abbrev)
@@ -799,7 +798,7 @@ Prompt for the field name with a completion list of the current folders."
 
 
 (defun mh-insert-signature ()
-  "Insert the file named by mh-signature-file-name at the current point."
+  "Insert the file named by `mh-signature-file-name' at point."
   (interactive)
   (insert-file-contents mh-signature-file-name)
   (force-mode-line-update))
@@ -860,14 +859,20 @@ Prompt for the field name with a completion list of the current folders."
 (defun mh-send-letter (&optional arg)
   "Send the draft letter in the current buffer.
 If optional prefix argument is provided, monitor delivery.
-Run mh-before-send-letter-hook before doing anything."
+Run `mh-before-send-letter-hook' before actually doing anything."
   (interactive "P")
   (run-hooks 'mh-before-send-letter-hook)
   (save-buffer)
   (message "Sending...")
   (let ((draft-buffer (current-buffer))
 	(file-name buffer-file-name)
-	(config mh-previous-window-config))
+	(config mh-previous-window-config)
+	(coding-system-for-write
+	 (if (local-variable-p 'buffer-file-coding-system)
+	     buffer-file-coding-system
+	   (or sendmail-coding-system
+	       default-buffer-file-coding-system
+	       'iso-latin-1))))
     (cond (arg
 	   (pop-to-buffer "MH mail delivery")
 	   (erase-buffer)
@@ -900,8 +905,8 @@ Run mh-before-send-letter-hook before doing anything."
 
 (defun mh-insert-letter (folder message verbatim)
   "Insert a message into the current letter.
-Removes the message's headers using mh-invisible-headers.  Prefixes
-each non-blank line with mh-ins-buf-prefix.  Prompts for FOLDER and
+Removes the message's headers using `mh-invisible-headers'.  Prefixes
+each non-blank line with `mh-ins-buf-prefix'.  Prompts for FOLDER and
 MESSAGE.  If prefix argument VERBATIM provided, do not indent and do
 not delete headers.  Leaves the mark before the letter and point after it."
   (interactive
@@ -1064,7 +1069,7 @@ using directives already inserted in the draft, fills in
 all the MIME components and header fields.
 This step should be done last just before sending the message.
 The mhn program is part of MH version 6.8 or later.
-The `\\[mh-revert-mhn-edit]' command undoes this command.
+The \\[mh-revert-mhn-edit] command undoes this command.
 For assistance with creating mhn directives to insert
 various types of components in a message, see
 \\[mh-mhn-compose-insertion] (generic insertion from a file),
