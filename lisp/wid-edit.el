@@ -1243,10 +1243,12 @@ Unlike (get-char-property POS 'field) this, works with empty fields too."
 	  (to-field (widget-field-find to)))
       (cond ((not (eq from-field to-field))
 	     (add-hook 'post-command-hook 'widget-add-change nil t)
-	     (error "Change should be restricted to a single field"))
+	     (signal 'text-read-only
+		     '("Change should be restricted to a single field")))
 	    ((null from-field)
 	     (add-hook 'post-command-hook 'widget-add-change nil t)
-	     (error "Attempt to change text outside editable field"))
+	     (signal 'text-read-only
+		     '("Attempt to change text outside editable field")))
 	    (widget-field-use-before-change
 	     (condition-case nil
 		 (widget-apply from-field :notify from-field)
