@@ -1759,6 +1759,7 @@ LEIM is a library of Emacs input method."
 	    (setq pkg-buf (find-file-noselect (car pkg-list) t t))
 	    (save-excursion
 	      (set-buffer pkg-buf)
+	      (goto-char (point-min))
 	      (while (search-forward "(quail-define-package" nil t)
 		(goto-char (match-beginning 0))
 		(let ((form (read (current-buffer))))
