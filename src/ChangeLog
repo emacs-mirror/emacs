@@ -2470,9 +2470,472 @@
 	* lread.c (Fload): Don't assume that message_with_string uses the
 	string it is given like a C string.
 
-2002-03-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2002-03-10  Jan D.  <Jan.Djarv@mbox200.swipnet.se>
 
-	* xterm.h (x_session_check_input, x_sess
+	* xterm.h: Extern declare x_session_check_input () and
+ 	x_session_initialize ().
+
+	* xterm.c: Added calls to x_session_check_input () and
+ 	x_session_initialize ().
+
+	* termhooks.h (enum event_kind): Added save_session_event.
+
+	* keyboard.c: Added Emacs event save_session_event.
+
+	* emacs.c (main): Added call to syms_of_xsmfns ().
+
+	* lisp.h: Extern declare syms_of_xsmfns ().
+
+	* config.in: Added HAVE_X_SM
+
+	* Makefile.in: Added test for HAVE_X_SM and added new file xsmfns.c
+
+	* xsmfns.c: New file for X session management.
+
+2002-03-09  Jason Rumney  <jasonr@gnu.org>
+
+	* fileio.c (Fcopy_file) [WINDOWS_NT]: Ensure file is not
+	read-only when setting modified time.
+
+2002-03-08  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (move_it_vertically_backward): At the end of the
+	function, when moving forward by lines, treat terminal frames
+	specially.
+
+	* keyboard.c (echo_char): Make sure to add a separator between
+	keys even if echo_dash hasn't been called.
+
+	* xdisp.c: Use new string macros.
+	(update_echo_area): Pass number of bytes to message3 instead of
+	number of chars.
+	(set_message_1): Don't access a string's size_byte directly.
+	(decode_mode_spec_coding): Use number of bytes of eoltype string
+	instead number of chars.
+
+	* lisp.h (SREF, SDATA, SCHARS, SBYTES, SMBP): New macros.
+
+2002-03-08  Juanma Barranquero  <lektu@terra.es>
+
+	* w32fns.c (Fx_display_color_cells): Force 24+ bit color depths to
+	24-bit.
+
+2002-03-06  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_draw_hollow_cursor): Draw same size as block cursor.
+
+2002-03-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* keyboard.c (echo_prompt, echo_char, echo_dash, echo_now)
+	(cancel_echoing, echo_length, echo_truncate): Changed to
+	work with new kboard definition.
+	(echo_now): Use message3_nolog instead of message2_nolog.
+
+	* alloc.c (mark_kboards): Mark echo_string.
+
+	* keyboard.h (ECHOBUFSIZE): Removed.
+	(struct kboard): Member echoptr removed, member echobuf renamed
+	to echo_string.
+
+	* xdisp.c (message_with_string): Use Fformat instead of doprnt and
+	message3 instead of message2 to display the message using STRING's
+	text properties.
+
+2002-03-05  Andreas Schwab  <schwab@suse.de>
+
+	* xdisp.c (hscroll_margin): Change to EMACS_INT.
+
+2002-03-05  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* frame.c (default-frame-alist): Explain that setting it doesn't
+	affect existing frames.
+
+2002-03-05  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* indent.c (skip_invisible): Fix my brain fart.
+
+	* dispnew.c (sit_for): Don't wait if executing a kbd macro.
+
+2002-03-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* dosfns.c, dosfns.h, dispnew.c, dispextern.h, commands.h, charset.c,
+	* alloc.c, abbrev.c, emacs.c, eval.c, keyboard.c, keyboard.h,
+	* lisp.h, lread.c, sysdep.c, termcap.c, termchar.h, w32term.c,
+	* window.c, xdisp.c, xselect.c, xterm.c: Change defvar_int definition
+	and variables to use EMACS_INT instead of just int.
+
+	* buffer.c (syms_of_buffer): Allow non-string `mode-name'.
+
+2002-03-04  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sysdep.c (sys_subshell) [MSDOS]: If PWD is set in the
+	environment, pass it down with corrected value.
+
+2002-03-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* lread.c (read_filtered_event): Do not call start_hourglass
+	before returning.
+
+2002-03-04  Juanma Barranquero  <lektu@terra.es>
+
+	* w32term.c (x_display_and_set_cursor): Fix typo.
+
+2002-03-03  Richard M. Stallman  <rms@gnu.org>
+
+	* fileio.c (Fmake_temp_name): Doc fix.
+
+2002-03-03  Gary Wong  <gtw@gnu.org>
+
+	* termcap.c [!emacs]: Replace ospeed for building standalone
+	libtermcap, for binary compatibility.
+
+	* tparam.c [!emacs]: Move #define of bcopy to after string.h.
+
+2002-03-03  Richard M. Stallman  <rms@gnu.org>
+
+	* xrdb.c (file_p): Rename arg `path' to `filename'.
+
+	* abbrev.c (Fexpand_abbrev): Increment plist as use count
+	only if it is an integer.
+
+	* xfns.c (png_load): Set screen_gamma based on f->gamma.
+	If png_get_sRGB gives an answer, call png_set_gamma
+	using the default image gamma value.
+
+	* lread.c (read1): When reading from a file, default string to
+	multibyte only if it has some multibyte characters.
+
+	* print.c (print_object): Output multibyte chars 128...255
+	using \x even if ! print_escape_multibyte.
+
+	* xdisp.c (display_mode_element): Move the places where
+	bytepos, charpos, this, and lisp_string are set.
+	Use lisp_string to set bytepos.
+
+	* xdisp.c (redisplay_internal):
+	Call clear_image_cache only if HAVE_WINDOW_SYSTEM.
+
+	* xdisp.c (display_mode_element): Merge properties specified with
+	:propertize onto those that come with the string.
+
+2002-03-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* xdisp.c (syms_of_xdisp) <auto-hscroll-mode>: Renamed from
+	automatic-hscrolling.  Users changed.
+	<hscroll-margin>: Renamed from automatic-hscroll-margin.
+	Users changed.
+	<hscroll-step>: Renamed from automatic-hscroll-step.  Users changed.
+
+2002-03-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* buffer.c (syms_of_buffer) <buffer-file-coding-system>: Doc fix.
+
+2002-03-02  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (Fminibuffer_selected_window): New function.
+	(syms_of_window): Defsubr it.
+
+2002-03-01  Kim F. Storm  <storm@cua.dk>
+
+	* window.h (struct window): New member phys_cursor_width.
+
+	* window.c (make_window, replace_window): Init phys_cursor_width.
+
+	* xterm.c (x_display_and_set_cursor): Blink box cursor using
+	hollow box cursor.  Blink bar cursor using 1 pixel wide bar.
+
+	* w32term.c (x_display_and_set_cursor): Blink box cursor using
+	hollow box cursor.  Blink bar cursor using 1 pixel wide bar.
+
+	* lisp.h (GCPRO6): New macro.
+
+	* process.c (Fopen_network_stream): Use GCPRO6.
+
+2002-03-01  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (Qconnect, Qfailed): New variables.
+	(syms_of_process): Intern and staticpro them.
+	(Fprocess_status): Document connect and failed return values.
+	[NON_BLOCKING_CONNECT]: New conditional.
+	(connect_wait_mask, num_pending_connects): New variables.
+	(status_message): Convert Qfailed status.
+	(Fopen_network_stream): Added support for non-blocking connect.
+	New optional args: filter, sentinel, non_blocking.  Doc updated.
+	[HAVE_GETADDRINFO, !HAVE_GETADDRINFO]:  Merged common code.
+	(deactivate_process): Handle pending non-blocking connect.
+	(wait_reading_process_input): Poll for status of non-blocking
+	connects.  Exec sentinel directly when connect succeeds.
+	(status_notify): Don't read process output if not yet connected.
+
+2002-02-28  Kim F. Storm  <storm@cua.dk>
+
+	* window.c: (minibuf_selected_window): Renamed from
+	Vminibuf_selected_window.  Users changed.
+	(syms_of_window): Staticpro it.
+
+2002-02-26  Kim F. Storm  <storm@cua.dk>
+
+	The following changes add a new Vminibuf_selected_window variable
+	which is similar to Vminibuf_scroll_window, but which is only set
+	on entry to the minibuffer (from a non-minibuffer window):
+
+	* window.c: (Vminibuf_selected_window): New variable.
+	(struct save_window_data): New member minibuf_selected_window.
+	(Fset_window_configuration): Restore Vminibuf_selected_window.
+	(Fcurrent_window_configuration): Save Vminibuf_selected_window.
+	Set minibuf_scroll_window member to nil if minibuf_level is 0.
+	(compare_window_configurations): Compare minibuf_selected_window.
+
+	* window.h: (Vminibuf_selected_window): Declare extern.
+
+	* minibuf.c (read_minibuf): Set Vminibuf_selected_window on first
+	entry to minibuffer or on entry from a non-minibuffer window.
+
+	* dispextern.h (CURRENT_MODE_LINE_FACE_ID_3): Compare with
+	Vminibuf_selected_window instead of Vminibuf_scroll_window.
+
+	* xdisp.c (init_iterator): Compare with Vminibuf_selected_window
+	instead of Vminibuf_scroll_window when deciding in which window
+	the region should be highlighted.  Consequently, the region remains
+	highlighteded even when a completion buffer is also displayed.
+
+2002-02-26  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* fileio.c (Fsubstitute_in_file_name): Fix the change from
+	2002-02-08.
+
+	* xselect.c (Qcompound_text_with_extensions): Renamed from
+	Qcompound_text_no_extensions.
+	(lisp_data_to_selection_data, syms_of_xselect): Use the new name.
+
+2002-02-26  Juanma Barranquero  <lektu@terra.es>
+
+	* w32proc.c (syms_of_ntproc): Doc fix.
+
+2002-02-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* intervals.h: Include "dispextern.h" unconditionally.
+
+2002-02-24  Jason Rumney  <jasonr@gnu.org>
+
+	* Makefile.in (WINNT_SUPPORT) [WINDOWSNT]: Add w32-vars.elc
+	and disp-table.elc.
+	(lisp): Add emacs-lisp/backquote.elc.
+
+2002-02-24  Kim F. Storm  <storm@cua.dk>
+
+	* keymap.c (Flookup_key): Fixed problem in 2001-12-28 patch:
+	The validation of the event type was too strict as it didn't
+	allow string events; buffer names are used in bindings for
+	menu-bar-select-buffer (see `menu-bar-update-buffers').
+
+2002-02-23  Kim F. Storm  <storm@cua.dk>
+
+	The following changes rework my patch of 2002-02-06 which
+	added command remapping by entering the commands directly into
+	the keymaps.  Now, command remapping uses an explicit `remap'
+	prefix in the keymaps, i.e. [remap COMMAND].
+
+	* keymap.c (Qremap, remap_command_vector): New variables.
+	(is_command_symbol): Removed function.
+	(Fdefine_key): No longer accept a symbol for KEY.
+	Added validation of [remap COMMAND] argument for KEY.
+	The DEF is no longer required to be a symbol when remapping a command.
+	(Fremap_command): New function to remap command through keymaps.
+	(Flookup_key): Perform command remapping initiated by
+	Fremap_command directly for speed.
+	(Fkey_binding): Use Fremap_command for command remapping.
+	(where_is_internal): Handle new command remapping representation.
+	(syms_of_keymap): Intern Qremap, initialize remap_command_vector,
+	staticpro them.  Defsubr Fremap_command.
+
+	* keymap.h (Fremap_command): Declare extern.
+	(is_command_symbol): Remove extern.
+
+	* keyboard.c (command_loop_1): Use Fremap_command for command
+	remapping; now try command remapping for all symbols.
+
+2002-02-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* coding.h (run_pre_post_conversion_on_str): Add prototype.
+
+2002-02-23  Jason Rumney  <jasonr@gnu.org>
+
+	* w32select.c (Fw32_set_clipboard_data): Run pre-write-conversion
+	on the string before encoding it.
+	(Fw32_get_clipboard_data): Run post-read-conversion on the string
+	after decoding it.
+
+	* w32fns.c (w32_wnd_proc) <WM_TIMER>: Fix last change.
+
+2002-02-23  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* w32term.c (enter_timestamp): Remove unused static variable to
+	prevent warning.
+
+	* xterm.c (enter_timestamp): Put in #if 0 to prevent warning.
+
+2002-02-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* w16select.c (Fw16_get_clipboard_data): Fix last change.
+
+	* xselect.c (selection_data_to_lisp_data): Fix last change.
+
+2002-02-22  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.h (struct w32_output): New member menu_command_in_progress.
+
+	* w32menu.c (menubar_selection_callback): Free the menu and
+	clear the menu_command_in_progress flag.
+
+	* w32fns.c (mouse_move_timer, mouse_button_timer): Initialize.
+	(menu_free_timer): New variable.
+	(MENU_FREE_ID, MENU_FREE_DELAY): New constants.
+	(w32_wnd_proc) <WM_TIMER>: Handle menu_free_timer.
+	<WM_EXITMENULOOP>: Delay before freeing menu.  Do nothing if a
+	menu command is in progress.
+	<WM_COMMAND>: Set the menu_command_in_progress flag.
+	Kill any menu_free_timer that is running.
+
+	* w32term.c (w32_text_out): Renamed from W32_TEXTOUT.
+	Call ExtTextOutA rather than ExtTextOut.
+
+2002-02-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* puresize.h (BASE_PURESIZE): Increase to 755000.
+
+2002-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* w16select.c (Fw16_set_clipboard_data): Run pre-write-conversion
+	on the string before encoding it.
+	(Fw16_get_clipboard_data): Run post-read-conversion on the string
+	after decoding it.
+
+2002-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	Support for ICCCM  Extended Segments in X selections:
+
+	* xselect.c <Qcompound_text_no_extensions>: New variable.
+	(syms_of_xselect): Intern and staticpro it.
+	(selection_data_to_lisp_data): Run post-read-conversion on decoded
+	selection text.
+	(lisp_data_to_selection_data): If next-selection-coding-system is
+	compound-text-no-extensions, set the type of selection to be
+	compound-text.
+
+	* xterm.h (x_encode_text): Update prototype.
+
+	* xfns.c (x_encode_text): Accept additional arg SELECTIONP; all
+	callers changed.  If SELECTIONP is non-zero, run the
+	pre-write-conversion function before encoding the selection text.
+
+2002-02-21  Kim F. Storm  <storm@cua.dk>
+
+	* frame.c (syms_of_frame): Change mouse-highlight default to t.
+
+	* keyboard.c (kbd_buffer_get_event) [WINDOWSNT]:
+	Correct composing of language-change event.
+
+2002-02-20  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (menu_bar_items): Don't include keymap or local-map
+	bindings at PT when building menu (the menu is not updated often
+	enough for this to work reliable).
+	(tool_bar_items): Likewise.
+	(current_active_maps): Removed unused (and buggy) function.
+
+2002-02-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* xfns.c (gif_load): Use correct width and height for GIF images.
+
+2002-02-19  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* floatfns.c (Fatan): Accept an optional second arg and call
+	atan2 if passed 2 args.
+
+2002-02-18  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (glyph_rect): Determine the row and glyph more precisely.
+
+2002-02-17  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_autoselect_window_p): New variable.
+	(syms_of_w32term): DEFVAR_BOOL and initialize it.
+	(note_mouse_movement): Use it.
+
+	* w32fns.c (w32_load_system_font): Never set fonts_changed_p to zero.
+
+	* w32bdf.c (w32_load_bdf_font): Maybe set fonts_changed_p.
+
+	* w32fns.c (Qfullscreen, Qfullwidth, Qfullheight, Qfullboth):
+	New variables.
+	(syms_of_w32fns): Intern and staticpro them.
+	(x_frame_parms) <"fullscreen">: New parameter.
+	(x_fullscreen_move, x_set_fullscreen): New functions.
+	(x_set_frame_parameters): Support Qfullscreen.
+	(x_real_positions): Save x/y_pixels_diff frame params.
+	(x_figure_window_size): Support full-screen frames.
+	(Fx_create_frame): Default the fullscreen parameter.
+
+	* w32term.c (x_check_fullscreen, x_check_fullscreen_move)
+	(x_fullscreen_adjust): New functions.
+	(w32_read_socket) <WM_WINDOWPOSCHANGED>:  Don't	resize to
+	fullscreen.  Call x_check_fullscreen_move, and set the
+	want_fullscreen member of output_data.w32
+	<WM_ACTIVATE, WM_ACTIVATEAPP>: Call x_check_fullscreen.
+
+	* w32term.h: New enum for FULLSCREEN_* constants.
+	(struct w32_output): New members want_fullscreen, x_pixels_diff,
+	y_pixels_diff, x_pixels_outer_diff, and y_pixels_outer_diff.
+	(x-fullscreen-adjust): New prototype.
+
+2002-02-17  Kim F. Storm  <storm@cua.dk>
+
+	* frame.c: (Vmouse_highlight): New variable.
+	(syms_of_frame): DEFVAR_LISP it.
+
+	* frame.h: (Vmouse_highlight): Declare extern.
+
+	* xterm.h (struct x_display_info): Add mouse_face_hidden.
+
+	* xterm.c (disable_mouse_highlight): Removed variable.
+	(note_mouse_highlight): Don't highlight if Vmouse_highlight is nil.
+	(show_mouse_face): Don't show highlight if mouse_face_hidden is	set.
+	(XTread_socket): Turn mouse_face_hidden off after mouse movement,
+	and on after keyboard input.
+	(x_term_init): Initialize mouse_face_hidden.
+
+	* msdos.h (struct display_info): Add mouse_face_hidden.
+
+	* msdos.c (disable_mouse_highlight): Removed variable.
+	(show_mouse_face): Don't show highlight if mouse_face_hidden is	set.
+	(IT_note_mouse_highlight): Don't highlight if Vmouse_highlight is nil.
+	(internal_terminal_init): Initialize mouse_face_hidden.
+	(dos_rawgetc): Turn mouse_face_hidden off after mouse movement,
+	and on after keyboard input.
+
+	* w32term.h (struct w32_display_info): Add mouse_face_hidden.
+
+	* w32term.c (disable_mouse_highlight): Removed variable.
+	(note_mouse_highlight): Disable highlight if Vmouse_highlight is nil.
+	(show_mouse_face): Don't show highlight if mouse_face_hidden is	set.
+	(w32_read_socket): Turn mouse_face_hidden off after mouse movement,
+	and on after keyboard input.
+	(w32_initialize_display_info): Initialize mouse_face_hidden.
+
+2002-02-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (last_mouse_window): New variable.
+	(dos_rawgetc): Fix last change--if the mouse is in the same window
+	as recorded in last_mouse_window, don't select this window.
+
+	* Makefile.in (lisp, shortlisp): Use cus-start.elc, not cus-start.el.
+
+	* msdos.c (x_autoselect_window_p): New variable.
+	(syms_of_msdos): Defvar it.
+	(dos_rawgetc): If x_autoselect_window_p is set, select the window
+	in which the last mouse movement occured, unless it is already
+	selected.
 
 	* xdisp.c (automatic_hscroll_margin, Vautomatic_hscroll_step):
 	New variables.
