@@ -429,8 +429,8 @@ Return value is \(begin end name positive-p), or nil if none was found."
 	(delete-char 1)
       ;; A single < that does not start an annotation is an error,
       ;; which we note and then ignore.
-      (message (format "Warning: malformed annotation in file at %s" 
-		       (1- (point))))))
+      (message "Warning: malformed annotation in file at %s" 
+	       (1- (point)))))
   (if (not (eobp))
       (let* ((beg (match-beginning 0))
 	     (end (match-end 0))
