@@ -42,4 +42,10 @@
 #define DYNAMIC_OPTION -Bdynamic
 #endif
 
+/* There have problems reported with mmap at least on Solaris 2.6
+   and 2.7.  For simplicity, let's not use mmap for anything >= 2.5.
+   We can optimize this later.  */
+
+#undef USE_MMAP_FOR_BUFFERS
+
 #endif /* 0 */
