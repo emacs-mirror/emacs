@@ -706,6 +706,7 @@ static void restore_getcjmp P_ ((jmp_buf));
 static Lisp_Object apply_modifiers P_ ((int, Lisp_Object));
 static void clear_event P_ ((struct input_event *));
 static void any_kboard_state P_ ((void));
+static SIGTYPE interrupt_signal P_ ((int signalnum));
 
 /* Nonzero means don't try to suspend even if the operating system seems
    to support it.  */
@@ -3466,7 +3467,6 @@ kbd_buffer_store_event (event)
 
       if (c == quit_char)
 	{
-	  static SIGTYPE interrupt_signal P_ ((int));
 #ifdef MULTI_KBOARD
 	  KBOARD *kb;
 	  struct input_event *sp;
