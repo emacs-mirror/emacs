@@ -56,7 +56,7 @@
 ;;;###autoload
 (defvar rmail-dont-reply-to-names nil "\
 *A regexp specifying names to prune of reply to messages.
-nil means dont reply to yourself.")
+A value of nil means exclude your own name only.")
 
 ;;;###autoload
 (defvar rmail-default-dont-reply-to-names "info-" "\
@@ -64,7 +64,7 @@ A regular expression specifying part of the value of the default value of
 the variable `rmail-dont-reply-to-names', for when the user does not set
 `rmail-dont-reply-to-names' explicitly.  (The other part of the default
 value is the user's name.)
-It is useful to set this variable in the site customisation file.")
+It is useful to set this variable in the site customization file.")
 
 ;;;###autoload
 (defvar rmail-ignored-headers "^via:\\|^mail-from:\\|^origin:\\|^status:\\|^received:\\|^message-id:\\|^summary-line:" "\
