@@ -398,14 +398,14 @@ property of the major mode name.")
 ;*    Highlighting                                                     */
 ;*---------------------------------------------------------------------*/
 (defface flyspell-incorrect-face
-  '((((class color)) (:foreground "OrangeRed" :bold t :underline t))
-    (t (:bold t)))
+  '((((class color)) (:foreground "OrangeRed" :weight bold :underline t))
+    (t (:weight bold)))
   "Face used for marking a misspelled word in Flyspell."
   :group 'flyspell)
 
 (defface flyspell-duplicate-face
-  '((((class color)) (:foreground "Gold3" :bold t :underline t))
-    (t (:bold t)))
+  '((((class color)) (:foreground "Gold3" :weight bold :underline t))
+    (t (:weight bold)))
   "Face used for marking a misspelled word that appears twice in the buffer.
 See also `flyspell-duplicate-distance'."
   :group 'flyspell)

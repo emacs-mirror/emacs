@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: rcs sccs cvs log version-control
-;; Revision: $Id: log-view.el,v 1.11 2001/11/26 16:08:51 spiegel Exp $
+;; Revision: $Id: log-view.el,v 1.12 2001/12/16 16:28:59 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -65,8 +65,8 @@
 
 (defface log-view-file-face
   '((((class color) (background light))
-     (:background "grey70" :bold t))
-    (t (:bold t)))
+     (:background "grey70" :weight bold))
+    (t (:weight bold)))
   "Face for the file header line in `log-view-mode'."
   :group 'log-view)
 (defvar log-view-file-face 'log-view-file-face)
@@ -74,7 +74,7 @@
 (defface log-view-message-face
   '((((class color) (background light))
      (:background "grey85"))
-    (t (:bold t)))
+    (t (:weight bold)))
   "Face for the message header line in `log-view-mode'."
   :group 'log-view)
 (defvar log-view-message-face 'log-view-message-face)

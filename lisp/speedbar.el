@@ -4146,7 +4146,7 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
 			       (:foreground "cyan4"))
 			      (((class color) (background dark))
 			       (:foreground "cyan"))
-			      (t (:bold t)))
+			      (t (:weight bold)))
   "Face used for file names."
   :group 'speedbar-faces)
 

@@ -1646,20 +1646,20 @@ you must reload generic-x to enable the specified modes."
        ("\t+" . 'show-tabs-tab-face)))
 
 (defface show-tabs-tab-face
-  '((((class grayscale) (background light)) (:foreground "LightGray" :bold t))
-    (((class grayscale) (background dark))  (:foreground "DimGray"   :bold t))
+  '((((class grayscale) (background light)) (:foreground "LightGray" :weight bold))
+    (((class grayscale) (background dark))  (:foreground "DimGray"   :weight bold))
     (((class color)     (background light)) (:foreground "red"))
     (((class color)     (background dark))  (:foreground "red"))
-    (t (:bold t)))
+    (t (:weight bold)))
   "Font Lock mode face used to highlight TABs."
   :group 'show-tabs)
 
 (defface show-tabs-space-face
-  '((((class grayscale) (background light)) (:foreground "LightGray" :bold t))
-    (((class grayscale) (background dark))  (:foreground "DimGray"   :bold t))
+  '((((class grayscale) (background light)) (:foreground "LightGray" :weight bold))
+    (((class grayscale) (background dark))  (:foreground "DimGray"   :weight bold))
     (((class color)     (background light)) (:foreground "yellow"))
     (((class color)     (background dark))  (:foreground "yellow"))
-    (t (:bold t)))
+    (t (:weight bold)))
   "Font Lock mode face used to highlight spaces."
   :group 'show-tabs)
 

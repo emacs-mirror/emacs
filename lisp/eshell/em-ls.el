@@ -107,21 +107,21 @@ faster and conserves more memory."
   :group 'eshell-ls)
 
 (defface eshell-ls-directory-face
-  '((((class color) (background light)) (:foreground "Blue" :bold t))
-    (((class color) (background dark)) (:foreground "SkyBlue" :bold t))
-    (t (:bold t)))
+  '((((class color) (background light)) (:foreground "Blue" :weight bold))
+    (((class color) (background dark)) (:foreground "SkyBlue" :weight bold))
+    (t (:weight bold)))
   "*The face used for highlight directories."
   :group 'eshell-ls)
 
 (defface eshell-ls-symlink-face
-  '((((class color) (background light)) (:foreground "Dark Cyan" :bold t))
-    (((class color) (background dark)) (:foreground "Cyan" :bold t)))
+  '((((class color) (background light)) (:foreground "Dark Cyan" :weight bold))
+    (((class color) (background dark)) (:foreground "Cyan" :weight bold)))
   "*The face used for highlight symbolic links."
   :group 'eshell-ls)
 
 (defface eshell-ls-executable-face
-  '((((class color) (background light)) (:foreground "ForestGreen" :bold t))
-    (((class color) (background dark)) (:foreground "Green" :bold t)))
+  '((((class color) (background light)) (:foreground "ForestGreen" :weight bold))
+    (((class color) (background dark)) (:foreground "Green" :weight bold)))
   "*The face used for highlighting executables (not directories, though)."
   :group 'eshell-ls)
 
@@ -138,14 +138,14 @@ faster and conserves more memory."
   :group 'eshell-ls)
 
 (defface eshell-ls-special-face
-  '((((class color) (background light)) (:foreground "Magenta" :bold t))
-    (((class color) (background dark)) (:foreground "Magenta" :bold t)))
+  '((((class color) (background light)) (:foreground "Magenta" :weight bold))
+    (((class color) (background dark)) (:foreground "Magenta" :weight bold)))
   "*The face used for highlighting non-regular files."
   :group 'eshell-ls)
 
 (defface eshell-ls-missing-face
-  '((((class color) (background light)) (:foreground "Red" :bold t))
-    (((class color) (background dark)) (:foreground "Red" :bold t)))
+  '((((class color) (background light)) (:foreground "Red" :weight bold))
+    (((class color) (background dark)) (:foreground "Red" :weight bold)))
   "*The face used for highlighting non-existant file names."
   :group 'eshell-ls)
 
@@ -159,8 +159,8 @@ files."
   :group 'eshell-ls)
 
 (defface eshell-ls-archive-face
-  '((((class color) (background light)) (:foreground "Orchid" :bold t))
-    (((class color) (background dark)) (:foreground "Orchid" :bold t)))
+  '((((class color) (background light)) (:foreground "Orchid" :weight bold))
+    (((class color) (background dark)) (:foreground "Orchid" :weight bold)))
   "*The face used for highlighting archived and compressed file names."
   :group 'eshell-ls)
 
@@ -199,8 +199,8 @@ really need to stick around for very long."
   :group 'eshell-ls)
 
 (defface eshell-ls-clutter-face
-  '((((class color) (background light)) (:foreground "OrangeRed" :bold t))
-    (((class color) (background dark)) (:foreground "OrangeRed" :bold t)))
+  '((((class color) (background light)) (:foreground "OrangeRed" :weight bold))
+    (((class color) (background dark)) (:foreground "OrangeRed" :weight bold)))
   "*The face used for highlighting junk file names."
   :group 'eshell-ls)
 

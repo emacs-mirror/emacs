@@ -766,12 +766,12 @@ See `sh-feature'.")
 (defface sh-heredoc-face
   '((((class color)
       (background dark))
-     (:foreground "yellow" :bold t))
+     (:foreground "yellow" :weight bold))
     (((class color)
       (background light))
      (:foreground "tan" ))
     (t
-     (:bold t)))
+     (:weight bold)))
   "Face to show a here-document"
   :group 'sh-indentation)
 (defvar sh-heredoc-face 'sh-heredoc-face)

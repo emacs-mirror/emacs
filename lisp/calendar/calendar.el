@@ -211,7 +211,7 @@ If nil, make an icon of the frame.  If non-nil, delete the frame."
     (((class color) (background dark))
      :foreground "yellow")
     (t
-     :bold t))
+     :weight bold))
   "Face for highlighting diary entries."
   :group 'diary)
 

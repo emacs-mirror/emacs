@@ -4,7 +4,7 @@
 ;; Author: Chris Chase <chase@att.com>
 ;; Maintainer: John-David Smith <jdsmith@astro.cornell.edu>
 ;; Version: 4.7
-;; Date: $Date: 2001/12/20 18:14:39 $
+;; Date: $Date: 2001/12/30 22:18:30 $
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -445,7 +445,7 @@ definition is displayed instead."
 
 (defface idlwave-help-link-face
   '((((class color)) (:foreground "Blue"))
-    (t (:bold t)))
+    (t (:weight bold)))
   "Face for highlighting links into IDLWAVE online help."
   :group 'idlwave-online-help)
 
