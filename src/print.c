@@ -226,6 +226,9 @@ void print_interval ();
        if (NILP (current_buffer->enable_multibyte_characters)		\
 	   && ! print_escape_multibyte)					\
          specbind (Qprint_escape_multibyte, Qt);			\
+       if (! NILP (current_buffer->enable_multibyte_characters)		\
+	   && ! print_escape_nonascii)					\
+         specbind (Qprint_escape_nonascii, Qt);				\
        if (print_buffer != 0)						\
 	 {								\
 	   string = make_string_from_bytes (print_buffer,		\
@@ -1427,7 +1430,7 @@ print_object (obj, printcharfun, escapeflag)
 		  PRINTCHAR ('f');
 		}
 	      else if (multibyte && ! ASCII_BYTE_P (c)
-		       && (print_escape_multibyte || print_escape_nonascii))
+		       && print_escape_multibyte)
 		{
 		  /* When multibyte is disabled,
 		     print multibyte string chars using hex escapes.  */
