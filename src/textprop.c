@@ -102,7 +102,7 @@ validate_interval_range (object, begin, end, force)
 
   /* If we are asked for a point, but from a subr which operates
      on a range, then return nothing. */
-  if (*begin == *end && begin != end)
+  if (EQ (*begin, *end) && begin != end)
     return NULL_INTERVAL;
 
   if (XINT (*begin) > XINT (*end))
@@ -248,7 +248,7 @@ interval_has_some_properties (plist, i)
 
 /* Return the value of PROP in property-list PLIST, or Qunbound if it
    has none.  */
-static int
+static Lisp_Object
 property_value (plist, prop)
      Lisp_Object plist, prop;
 {
@@ -529,7 +529,7 @@ overlays are considered only if they are associated with OBJECT.")
   if (WINDOWP (object))
     {
       w = XWINDOW (object);
-      XSET (object, Lisp_Buffer, w->buffer);
+      object = w->buffer;
     }
   if (BUFFERP (object))
     {
@@ -603,7 +603,8 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
   if (! NILP (limit) && !(next->position < XFASTINT (limit)))
     return limit;
 
-  return next->position - (XTYPE (object) == Lisp_String);
+  XFASTINT (pos) = next->position - (XTYPE (object) == Lisp_String);
+  return pos;
 }
 
 /* Return 1 if there's a change in some property between BEG and END.  */
@@ -677,7 +678,8 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
   if (! NILP (limit) && !(next->position < XFASTINT (limit)))
     return limit;
 
-  return next->position - (XTYPE (object) == Lisp_String);
+  XFASTINT (pos) = next->position - (XTYPE (object) == Lisp_String);
+  return pos;
 }
 
 DEFUN ("previous-property-change", Fprevious_property_change,
@@ -720,8 +722,9 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
       && !(previous->position + LENGTH (previous) > XFASTINT (limit)))
     return limit;
 
-  return (previous->position + LENGTH (previous)
-	  - (XTYPE (object) == Lisp_String));
+  XFASTINT (pos) = (previous->position + LENGTH (previous)
+		    - (XTYPE (object) == Lisp_String));
+  return pos;
 }
 
 DEFUN ("previous-single-property-change", Fprevious_single_property_change,
@@ -769,8 +772,9 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
       && !(previous->position + LENGTH (previous) > XFASTINT (limit)))
     return limit;
 
-  return (previous->position + LENGTH (previous)
-	  - (XTYPE (object) == Lisp_String));
+  XFASTINT (pos) = (previous->position + LENGTH (previous)
+		    - (XTYPE (object) == Lisp_String));
+  return pos;
 }
 
 DEFUN ("add-text-properties", Fadd_text_properties,
