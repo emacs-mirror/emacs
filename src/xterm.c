@@ -5559,6 +5559,13 @@ x_destroy_window (f)
     {
       if (f->output_data.x->icon_desc != 0)
 	XDestroyWindow (FRAME_X_DISPLAY (f), f->output_data.x->icon_desc);
+#ifdef HAVE_X_I18N
+      if (FRAME_XIM (f))
+	{
+	  XDestroyIC (FRAME_XIC (f));
+	  XCloseIM (FRAME_XIM (f));
+	}
+#endif
       XDestroyWindow (FRAME_X_DISPLAY (f), f->output_data.x->window_desc);
 #ifdef USE_X_TOOLKIT
       XtDestroyWidget (f->output_data.x->widget);
