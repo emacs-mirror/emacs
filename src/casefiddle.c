@@ -236,21 +236,29 @@ casify_region (flag, b, e)
 	    }
 	  else if (ASCII_CHAR_P (c2) && ASCII_CHAR_P (c))
 	    FETCH_BYTE (start_byte) = c;
-	  else if (len == CHAR_BYTES (c))
+	  else
 	    {
+	      int tolen = CHAR_BYTES (c);
 	      int j;
 	      unsigned char str[MAX_MULTIBYTE_LENGTH];
 
 	      CHAR_STRING (c, str);
-	      for (j = 0; j < len; ++j)
-		FETCH_BYTE (start_byte + j) = str[j];
-	    }
-	  else
-	    {
-	      TEMP_SET_PT_BOTH (start, start_byte);
-	      del_range_2 (start, start_byte, start + 1, start_byte + len, 0);
-	      insert_char (c);
-	      len = CHAR_BYTES (c);
+	      if (len == tolen)
+		{
+		  /* Length is unchanged.  */
+		  for (j = 0; j < len; ++j)
+		    FETCH_BYTE (start_byte + j) = str[j];
+		}
+	      else
+		{
+		  /* Replace one character with the other,
+		     keeping text properties the same.  */
+		  replace_range_2 (start, start_byte,
+				   start + 1, start_byte + len,
+				   str, 1, tolen,
+				   0);
+		  len = tolen;
+		}
 	    }
 	}
       start++;
