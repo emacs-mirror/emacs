@@ -362,7 +362,7 @@ character, @samp{/}, does have the @samp{b} flag.
 
 @item @samp{*/}
 This is a comment-end sequence for ``a'' style because the first
-character, @samp{*}, does not have the @samp{b} flag
+character, @samp{*}, does not have the @samp{b} flag.
 
 @item newline
 This is a comment-end sequence for ``b'' style, because the newline
@@ -542,10 +542,8 @@ This function moves point forward across characters having syntax classes
 mentioned in @var{syntaxes}.  It stops when it encounters the end of
 the buffer, or position @var{limit} (if specified), or a character it is
 not supposed to skip.
-@ignore @c may want to change this.
 The return value is the distance traveled, which is a nonnegative
 integer.
-@end ignore
 @end defun
 
 @defun skip-syntax-backward syntaxes &optional limit
@@ -553,10 +551,9 @@ This function moves point backward across characters whose syntax
 classes are mentioned in @var{syntaxes}.  It stops when it encounters
 the beginning of the buffer, or position @var{limit} (if specified), or a
 character it is not supposed to skip.
-@ignore @c may want to change this.
+
 The return value indicates the distance traveled.  It is an integer that
 is zero or less.
-@end ignore
 @end defun
 
 @defun backward-prefix-chars
@@ -598,7 +595,7 @@ stops when it comes to any character that starts a sexp.  If
 @var{stop-comment} is non-@code{nil}, parsing stops when it comes to the
 start of a comment.  If @var{stop-comment} is the symbol
 @code{syntax-table}, parsing stops after the start of a comment or a
-string, or the of a comment or a string, whichever comes first.
+string, or the end of a comment or a string, whichever comes first.
 
 @cindex parse state
 The fifth argument @var{state} is a nine-element list of the same form
@@ -893,7 +890,7 @@ in category table @var{table}.
 @defun get-unused-category table
 This function returns a category name (a character) which is not
 currently defined in @var{table}.  If all possible categories are in use
-in @var{table}, it returns @code{nil},
+in @var{table}, it returns @code{nil}.
 @end defun
 
 @defun category-table

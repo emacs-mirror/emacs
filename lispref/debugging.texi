@@ -124,7 +124,7 @@ the debugger gets a chance.
 If you set @code{debug-on-signal} to a non-@code{nil} value, then the
 debugger gets the first chance at every error; an error will invoke the
 debugger regardless of any @code{condition-case}, if it fits the
-criterion specified by the values of @code{debug-on-error} and
+criteria specified by the values of @code{debug-on-error} and
 @code{debug-ignored-errors}.
 
 @strong{Warning:} This variable is strong medicine!  Various parts of
@@ -139,9 +139,9 @@ enter the debugger.
 
   To debug an error that happens during loading of the @file{.emacs}
 file, use the option @samp{--debug-init}, which binds
-@code{debug-on-error} to @code{t} while @file{.emacs} is loaded, and
+@code{debug-on-error} to @code{t} while loading @file{.emacs}, and
 bypasses the @code{condition-case} which normally catches errors in the
-init-file.
+init file.
 
   If your @file{.emacs} file sets @code{debug-on-error}, the effect may
 not last past the end of loading @file{.emacs}.  (This is an undesirable
@@ -737,7 +737,7 @@ the old indentation actually fit the intended nesting of parentheses,
 and you have put back those parentheses, @kbd{C-M-q} should not change
 anything.
 
-@node Compilation Errors, Edebug, Syntax Errors, Debugging
+@node Compilation Errors
 @section Debugging Problems in Compilation
 
   When an error happens during byte compilation, it is normally due to

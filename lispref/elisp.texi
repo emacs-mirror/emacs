@@ -66,11 +66,10 @@ instead of in the original English.
 
 @titlepage
 @title GNU Emacs Lisp Reference Manual
-@subtitle GNU Emacs Version 20
-@subtitle for Unix Users
+@subtitle For Emacs Version 20.3
 @c The edition number appears in several places in this file
 @c and also in the file intro.texi.
-@subtitle Revision 2.5, February 1998
+@subtitle Revision 2.5, May 1998
 
 @author by Bil Lewis, Dan LaLiberte, Richard Stallman
 @author and the GNU Manual Group
@@ -81,9 +80,9 @@ Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998 Free Softw
 @sp 2
 Edition 2.5 @*
 Revised for Emacs Version 20.3,@*
-February 1998.@*
+May 1998.@*
 @sp 2
-ISBN 1-882114-71-X
+ISBN 1-882114-72-8
 
 @sp 2
 Published by the Free Software Foundation @*
@@ -271,7 +270,7 @@ Editing Types
 * Process Type::            A process running on the underlying OS.
 * Stream Type::             Receive or send characters.
 * Keymap Type::             What function a keystroke invokes.
-* Overlay Type::        How an overlay is represented.
+* Overlay Type::            How an overlay is represented.
 
 Numbers
 
@@ -292,7 +291,7 @@ Strings and Characters
 * Creating Strings::        Functions to allocate new strings.
 * Text Comparison::         Comparing characters or strings.
 * String Conversion::       Converting characters or strings and vice versa.
-* Formatting Strings::      @code{format}: Emacs's analog of @code{printf}.
+* Formatting Strings::      @code{format}: Emacs's analogue of @code{printf}.
 * Case Conversion::         Case conversion functions.
 
 Lists
@@ -454,7 +453,7 @@ Advising Functions
 * Enabling Advice::         You can enable or disable each piece of advice.
 * Preactivation::           Preactivation is a way of speeding up the
                               loading of compiled advice.
-* Argument Access::         How advice can access the function's arguments.
+* Argument Access in Advice:: How advice can access the function's arguments.
 * Subr Arguments::          Accessing arguments when advising a primitive.
 * Combined Definition::     How advice is implemented.
 
@@ -692,14 +691,14 @@ Frames
 * Input Focus::		    Specifying the selected frame.
 * Visibility of Frames::    Frames may be visible or invisible, or icons.
 * Raising and Lowering::    Raising a frame makes it hide other X windows;
-			      lowering it makes the others hide them.
+			      lowering it puts it underneath the others.
 * Frame Configurations::    Saving the state of all frames.
 * Mouse Tracking::	    Getting events that say when the mouse moves.
 * Mouse Position::	    Asking where the mouse is, or moving it.
 * Pop-Up Menus::	    Displaying a menu for the user to select from.
 * Dialog Boxes::            Displaying a box to ask yes or no.
 * Pointer Shapes::          Specifying the shape of the mouse pointer.
-* Window System Selections::Transferring text to and from other X clients.
+* Window System Selections::Transferring text to and from other window.
 * Color Names::	            Getting the definitions of color names.
 * Resources::		    Getting resource values from the server.
 * Server Data::		    Getting info about the X server.

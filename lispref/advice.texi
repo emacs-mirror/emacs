@@ -12,10 +12,12 @@ function, by @dfn{advising the function}.  This is a clean method for a
 library to customize functions defined by other parts of Emacs---cleaner
 than redefining the whole function.
 
-  Each piece of advice can be enabled or disabled explicitly.  The
-enabled pieces of advice for any given function actually take effect
-when you activate advice for that function, or when that function is
-subsequently defined or redefined.
+@cindex piece of advice
+  Each function can have multiple @dfn{pieces of advice}, separately
+defined.  Each defined piece of advice can be enabled or disabled
+explicitly.  The enabled pieces of advice for any given function
+actually take effect when you @dfn{activate} advice for that function, or when
+that function is subsequently defined or redefined.
 
   @strong{Usage Note:} Advice is useful for altering the behavior of
 existing calls to an existing function.  If you want the new behavior
@@ -25,12 +27,13 @@ function (or a new command) which uses the existing function.
 @menu
 * Simple Advice::           A simple example to explain the basics of advice.
 * Defining Advice::         Detailed description of @code{defadvice}.
+* Around-Advice::           Wrapping advice around a function's definition.
 * Computed Advice::         ...is to @code{defadvice} as @code{fset} is to @code{defun}.
 * Activation of Advice::    Advice doesn't do anything until you activate it.
 * Enabling Advice::         You can enable or disable each piece of advice.
 * Preactivation::           Preactivation is a way of speeding up the
                               loading of compiled advice.
-* Argument Access::         How advice can access the function's arguments.
+* Argument Access in Advice:: How advice can access the function's arguments.
 * Subr Arguments::          Accessing arguments when advising a primitive.
 * Combined Definition::     How advice is implemented.
 @end menu
@@ -63,7 +66,6 @@ this:
         (newline))))
 @end example
 
-@cindex piece of advice
   This expression defines a @dfn{piece of advice} for the function
 @code{previous-line}.  This piece of advice is named
 @code{next-line-at-end}, and the symbol @code{before} says that it is
@@ -100,10 +102,12 @@ expression to wrap around the invocation of the base definition.
 
 @node Defining Advice
 @section Defining Advice
+@cindex defining advice
+@cindex advice, defining
 
   To define a piece of advice, use the macro @code{defadvice}.  A call
 to @code{defadvice} has the following syntax, which is based on the
-syntax of @code{defun}/@code{defmacro} but adds more:
+syntax of @code{defun} and @code{defmacro}, but adds more:
 
 @findex defadvice
 @example
@@ -132,14 +136,13 @@ wrapped around the execution of the function itself.  After-advice and
 around-advice can override the return value by setting
 @code{ad-return-value}.
 
-Around-advice specifies where the ``original'' function definition
-should go by means of the special symbol @code{ad-do-it}.  Where this
-symbol occurs inside the around-advice body, it is replaced with a
-@code{progn} containing the forms of the surrounded code.  If the
-around-advice does not use @code{ad-do-it}, then the original function
-definition is never run.  This provides a way to override the original
-definition completely.  (It also overrides lower-positioned pieces of
-around-advice).
+@defvar ad-return-value
+While advice is executing, after the function's original definition has
+been executed, this variable holds its return value, which will
+ultimately be returned to the caller after finishing all the advice.
+After-advice and around-advice can arrange to return some other value
+by storing it in this variable.
+@end defvar
 
 The argument @var{name} is the name of the advice, a non-@code{nil}
 symbol.  The advice name uniquely identifies one piece of advice, within all
@@ -152,11 +155,12 @@ definition calls for several different pieces of information.
 
 The optional @var{position} specifies where, in the current list of
 advice of the specified @var{class}, this new advice should be placed.
-It should be either @code{first}, @code{last} or a number that
-specifies a zero-based position (@code{first} is equivalent to 0).  If
-no position is specified, the default is @code{first}.  The
-@var{position} value is ignored when redefining an existing piece of
-advice.
+It should be either @code{first}, @code{last} or a number that specifies
+a zero-based position (@code{first} is equivalent to 0).  If no position
+is specified, the default is @code{first}.  Position values outside the
+range of existing positions in this class are mapped to the beginning or
+the end of the range, whichever is closer.  The @var{position} value is
+ignored when redefining an existing piece of advice.
 
 The optional @var{arglist} can be used to define the argument list for
 the sake of advice.  This becomes the argument list of the combined
@@ -168,12 +172,11 @@ This argument list must be compatible with the argument list of the
 original function, so that it can handle the ways the function is
 actually called.  If more than one piece of advice specifies an argument
 list, then the first one (the one with the smallest position) found in
-the list of all classes of advice is used.  Numbers outside the range
-are mapped to the beginning or the end, whichever is closer.
+the list of all classes of advice is used.
 
-The remaining elements, @var{flags}, is a list of symbols that specify
-further information about how to use this piece of advice.  Here are the
-valid symbols and their meanings:
+The remaining elements, @var{flags}, are symbols that specify further
+information about how to use this piece of advice.  Here are the valid
+symbols and their meanings:
 
 @table @code
 @item activate
@@ -190,8 +193,8 @@ activate an undefined function's advice.  However, defining
 
 @item protect
 Protect this piece of advice against non-local exits and errors in
-preceding code and advice.  Protecting advice makes it a cleanup in an
-@code{unwind-protect} form, so that it will execute even if the
+preceding code and advice.  Protecting advice places it as a cleanup in
+an @code{unwind-protect} form, so that it will execute even if the
 previous code gets an error or uses @code{throw}.  @xref{Cleanups}.
 
 @item compile
@@ -233,6 +236,38 @@ expanded when a program is compiled, not when a compiled program is run.
 All subroutines used by the advice need to be available when the byte
 compiler expands the macro.
 
+@node Around-Advice
+@section Around-Advice
+
+  Around-advice lets you ``wrap'' a Lisp expression ``around'' the
+original function definition.  You specify where the original function
+definition should go by means of the special symbol @code{ad-do-it}.
+Where this symbol occurs inside the around-advice body, it is replaced
+with a @code{progn} containing the forms of the surrounded code.  Here
+is an example:
+
+@example
+(defadvice foo (around foo-around)
+  "Ignore case in `foo'."
+  (let ((case-fold-search t))
+    ad-do-it))
+@end example
+
+@noindent
+Its effect is to make sure that case is ignored in
+searches when the original definition of @code{foo} is run.
+
+@defvar ad-do-it
+This is not really a variable, but it is somewhat used like one
+in around-advice.  It specifies the place to run the function's
+original definition and other ``earlier'' around-advice.
+@end defvar
+
+If the around-advice does not use @code{ad-do-it}, then it does not run
+the original function definition.  This provides a way to override the
+original definition completely.  (It also overrides lower-positioned
+pieces of around-advice).
+
 @node Computed Advice
 @section Computed Advice
 
@@ -270,6 +305,7 @@ replaced with the new one.
 @node Activation of Advice
 @section Activation of Advice
 @cindex activating advice
+@cindex advice, activating
 
 By default, advice does not take effect when you define it---only when
 you @dfn{activate} advice for the function that was advised.  You can
@@ -302,10 +338,13 @@ This command activates the advice for @var{function}.
 
 To activate advice for a function whose advice is already active is not
 a no-op.  It is a useful operation which puts into effect any changes in
-advice since the previous activation of that function's advice.
+that function's advice since the previous activation of advice for that
+function.
 
 @deffn Command ad-deactivate function
 This command deactivates the advice for @var{function}.
+@cindex deactivating advice
+@cindex advice, deactivating
 @end deffn
 
 @deffn Command ad-activate-all &optional compile
@@ -323,7 +362,7 @@ which has at least one piece of advice that matches @var{regexp}.
 @end deffn
 
 @deffn Command ad-deactivate-regexp regexp
-This command deactivates the advice for all functions whose names match
+This command deactivates all pieces of advice whose names match
 @var{regexp}.  More precisely, it deactivates all advice for any
 function which has at least one piece of advice that matches
 @var{regexp}.
@@ -332,6 +371,7 @@ function which has at least one piece of advice that matches
 @deffn Command ad-update-regexp regexp &optional compile
 This command activates pieces of advice whose names match @var{regexp},
 but only those for functions whose advice is already activated.
+@cindex reactivating advice
 
 Reactivating a function's advice is useful for putting into effect all
 the changes that have been made in its advice (including enabling and
@@ -355,17 +395,20 @@ This variable controls whether to compile the combined definition
 that results from activating advice for a function.
 @end defopt
 
-  If the advised definition was constructed during ``preactivation'' (see
-below), then that definition must already be compiled, because it was
-constructed during byte-compilation of the file that contained the
-@code{defadvice} with the @code{preactivate} flag.
+  If the advised definition was constructed during ``preactivation''
+(@pxref{Preactivation}), then that definition must already be compiled,
+because it was constructed during byte-compilation of the file that
+contained the @code{defadvice} with the @code{preactivate} flag.
 
 @node Enabling Advice
 @section Enabling and Disabling Advice
+@cindex enabling advice
+@cindex advice, enabling and disabling
+@cindex disabling advice
 
   Each piece of advice has a flag that says whether it is enabled or
-not.  By enabling or disabling a piece of advice, you can turn it off
-and on without having to undefine and redefine it.  For example, here is
+not.  By enabling or disabling a piece of advice, you can turn it on
+and off without having to undefine and redefine it.  For example, here is
 how to disable a particular piece of advice named @code{my-advice} for
 the function @code{foo}:
 
@@ -373,7 +416,7 @@ the function @code{foo}:
 (ad-disable-advice 'foo 'before 'my-advice)
 @end example
 
-This function by itself only changes the enable flag for a piece of
+  This function by itself only changes the enable flag for a piece of
 advice.  To make the change take effect in the advised definition, you
 must activate the advice for @code{foo} again:
 
@@ -408,6 +451,8 @@ This command enables all pieces of advice whose names match
 
 @node Preactivation
 @section Preactivation
+@cindex preactivating advice
+@cindex advice, preactivating
 
   Constructing a combined definition to execute advice is moderately
 expensive.  When a library advises many functions, this can make loading
@@ -486,7 +531,7 @@ for that function.
   A more robust method is to use macros that are translated into the
 proper access forms at activation time, i.e., when constructing the
 advised definition.  Access macros access actual arguments by position
-regardless of how these actual argument get distributed onto the
+regardless of how these actual arguments get distributed onto the
 argument variables of a function.  This is robust because in Emacs Lisp
 the meaning of an argument is strictly determined by its position in the
 argument list.

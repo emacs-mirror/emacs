@@ -1073,7 +1073,7 @@ and/or frames is an important customization method.
 
   This section describes buffer-local bindings; for frame-local
 bindings, see the following section, @ref{Frame-Local Variables}.  (A few
-variables have bindings that are local to each X terminal; see
+variables have bindings that are local to each terminal; see
 @ref{Multiple Displays}.)
 
 @menu

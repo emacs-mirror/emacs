@@ -42,6 +42,7 @@ buffer, together with their properties (when relevant).
 			How to control how much information is kept.
 * Filling::          Functions for explicit filling.
 * Margins::          How to specify margins for filling commands.
+* Adaptive Fill:     Adaptive Fill mode chooses a fill prefix from context.
 * Auto Filling::     How auto-fill mode is implemented to break lines.
 * Sorting::          Functions for sorting parts of the buffer.
 * Columns::          Computing horizontal positions, and using them.
@@ -62,11 +63,12 @@ buffer, together with their properties (when relevant).
 Several simple functions are described here.  See also @code{looking-at}
 in @ref{Regexp Search}.
 
-@defun char-after position
+@defun char-after &optional position
 This function returns the character in the current buffer at (i.e.,
 immediately after) position @var{position}.  If @var{position} is out of
 range for this purpose, either before the beginning of the buffer, or at
-or beyond the end, then the value is @code{nil}.
+or beyond the end, then the value is @code{nil}.  The default for
+@var{position} is point.
 
 In the following example, assume that the first character in the
 buffer is @samp{@@}:
@@ -79,11 +81,12 @@ buffer is @samp{@@}:
 @end example
 @end defun
 
-@defun char-before position
+@defun char-before &optional position
 This function returns the character in the current buffer immediately
 before position @var{position}.  If @var{position} is out of range for
 this purpose, either before the beginning of the buffer, or at or beyond
-the end, then the value is @code{nil}.
+the end, then the value is @code{nil}.  The default for
+@var{position} is point.
 @end defun
 
 @defun following-char
@@ -449,9 +452,12 @@ Programs hardly ever use this function.
 @end deffn
 
 @defvar overwrite-mode
-This variable controls whether overwrite mode is in effect: a
-non-@code{nil} value enables the mode.  It is automatically made
-buffer-local when set in any fashion.
+This variable controls whether overwrite mode is in effect.  The value
+should be @code{overwrite-mode-textual}, @code{overwrite-mode-binary},
+or @code{nil}.  @code{overwrite-mode-textual} specifies textual
+overwrite mode (treats newlines and tabs specially), and
+@code{overwrite-mode-binary} specifies binary overwrite mode (treats
+newlines and tabs like any other characters).
 @end defvar
 
 @node Deletion
@@ -467,7 +473,7 @@ cases.
   All of the deletion functions operate on the current buffer, and all
 return a value of @code{nil}.
 
-@defun erase-buffer
+@deffn Command erase-buffer
 This function deletes the entire text of the current buffer, leaving it
 empty.  If the buffer is read-only, it signals a @code{buffer-read-only}
 error.  Otherwise, it deletes the text without asking for any
@@ -478,7 +484,7 @@ auto-saving of that buffer ``because it has shrunk''.  However,
 @code{erase-buffer} does not do this, the idea being that the future
 text is not really related to the former text, and its size should not
 be compared with that of the former text.
-@end defun
+@end deffn
 
 @deffn Command delete-region start end
 This command deletes the text in the current buffer in the region
@@ -779,6 +785,12 @@ is convenient because it lets the user use all the kill commands to copy
 text into the kill ring from a read-only buffer.
 @end deffn
 
+@defopt kill-read-only-ok
+If this option is non-@code{nil}, @code{kill-region} does not get an
+error if the buffer is read-only.  Instead, it simply returns, updating
+the kill ring but not changing the buffer.
+@end defopt
+
 @deffn Command copy-region-as-kill start end
 This command saves the region defined by @var{start} and @var{end} on
 the kill ring (including text properties), but does not delete the text
@@ -1000,10 +1012,11 @@ A value of @code{t} disables the recording of undo information.
 Here are the kinds of elements an undo list can have:
 
 @table @code
-@item @var{integer}
-This kind of element records a previous value of point.  Ordinary cursor
-motion does not get any sort of undo record, but deletion operations use
-these entries to record where point was before the command.
+@item @var{position}
+This kind of element records a previous value of point; undoing this
+element moves point to @var{position}.  Ordinary cursor motion does not
+make any sort of undo record, but deletion operations use these entries
+to record where point was before the command.
 
 @item (@var{beg} . @var{end})
 This kind of element indicates how to delete text that was inserted.
@@ -1036,11 +1049,6 @@ This kind of element records the fact that the marker @var{marker} was
 relocated due to deletion of surrounding text, and that it moved
 @var{adjustment} character positions.  Undoing this element moves
 @var{marker} @minus{} @var{adjustment} characters.
-
-@item @var{position}
-This element indicates where point was at an earlier time.  Undoing this
-element sets point to @var{position}.  Deletion normally creates an
-element of this kind as well as a reinsertion element.
 
 @item nil
 This element is a boundary.  The elements between two boundaries are
@@ -1185,10 +1193,15 @@ It uses the ordinary paragraph motion commands to find paragraph
 boundaries.  @xref{Paragraphs,,, emacs, The Emacs Manual}.
 @end deffn
 
-@deffn Command fill-region start end &optional justify
+@deffn Command fill-region start end &optional justify nosqueeze
 This command fills each of the paragraphs in the region from @var{start}
 to @var{end}.  It justifies as well if @var{justify} is
 non-@code{nil}.
+
+If @var{nosqueeze} is non-@code{nil}, that means to leave whitespace
+other than line breaks untouched.  If @var{to-eop} is non-@code{nil},
+that means to keep filling to the end of the paragraph---or next hard
+newline, if @code{use-hard-newlines} is enabled (see below).
 
 The variable @code{paragraph-separate} controls how to distinguish
 paragraphs.  @xref{Standard Regexps}.
@@ -1220,7 +1233,7 @@ This variable alters the action of @code{fill-individual-paragraphs} as
 described above.
 @end defopt
 
-@deffn Command fill-region-as-paragraph start end &optional justify
+@deffn Command fill-region-as-paragraph start end &optional justify nosqueeze squeeze-after
 This command considers a region of text as a single paragraph and fills
 it.  If the region was made up of many paragraphs, the blank lines
 between paragraphs are removed.  This function justifies as well as
@@ -1228,11 +1241,13 @@ filling when @var{justify} is non-@code{nil}.
 
 In an interactive call, any prefix argument requests justification.
 
-@cindex Adaptive Fill mode
-In Adaptive Fill mode, which is enabled by default, calling the function
-@code{fill-region-as-paragraph} on an indented paragraph when there is
-no fill prefix uses the indentation of the second line of the paragraph
-as the fill prefix.
+If @var{nosqueeze} is non-@code{nil}, that means to leave whitespace
+other than line breaks untouched.  If @var{squeeze-after} is
+non-@code{nil}, specifies a position in the region, and means don't
+canonicalize spaces before that position.
+
+In Adaptive Fill mode, this command calls @code{fill-context-prefix} to
+choose a fill prefix by default.  @xref{Adaptive Fill}.
 @end deffn
 
 @deffn Command justify-current-line how eop nosqueeze
@@ -1266,6 +1281,12 @@ values are @code{left}, @code{right}, @code{full}, @code{center}, or
 This function returns the proper justification style to use for filling
 the text around point.
 @end defun
+
+@defopt sentence-end-double-space
+If this variable is non-@code{nil}, a period followed by just one space
+does not count as the end of a sentence, and the filling functions
+avoid breaking the line at such a place.
+@end defopt
 
 @defvar fill-paragraph-function
 This variable provides a way for major modes to override the filling of
@@ -1306,7 +1327,7 @@ together.  The resulting filled lines also start with the fill prefix.
 The fill prefix follows the left margin whitespace, if any.
 @end defopt
 
-@defvar fill-column
+@defopt fill-column
 This buffer-local variable specifies the maximum width of filled lines.
 Its value should be an integer, which is a number of columns.  All the
 filling, justification, and centering commands are affected by this
@@ -1316,7 +1337,7 @@ As a practical matter, if you are writing text for other people to
 read, you should set @code{fill-column} to no more than 70.  Otherwise
 the line will be too long for people to read comfortably, and this can
 make the text seem clumsy.
-@end defvar
+@end defopt
 
 @defvar default-fill-column
 The value of this variable is the default value for @code{fill-column} in
@@ -1391,6 +1412,50 @@ called during filling, with no arguments and with point located at the
 place where a break is being considered.  If the function returns
 non-@code{nil}, then the line won't be broken there.
 @end defvar
+
+@node Adaptive Fill
+@section Adaptive Fill Mode
+@cindex Adaptive Fill mode
+
+  Adaptive Fill mode chooses a fill prefix automatically from the text
+in each paragraph being filled.
+
+@defopt adaptive-fill-mode
+Adaptive Fill mode is enabled when this variable is non-@code{nil}.
+It is @code{t} by default.
+@end defopt
+
+@defun fill-context-prefix from to
+This function implements the heart of Adaptive Fill mode; it chooses a
+fill prefix based on the text between @var{from} and @var{to}.  It does
+this by looking at the first two lines of the paragraph, based on the
+variables described below.
+@end defun
+
+@defopt adaptive-fill-regexp
+This variable holds a regular expression to control Adaptive Fill mode.
+Whichever characters starting after the line's left margin match this
+regular expression, those are the candidate for the fill prefix.
+@end defopt
+
+@defopt adaptive-fill-first-line-regexp
+In a one-line paragraph, if the candidate fill prefix matches
+this regular expression, or if it matches @code{comment-start-skip},
+then it is used---otherwise, it is replaced with an equivalent
+number of spaces.
+
+However, the fill prefix is never taken from a one-line paragraph
+if it would act as a paragraph starter on subsequent lines.
+@end defopt
+
+@defopt adaptive-fill-function
+You can specify more complex ways of choosing a fill prefix
+automatically by setting this variable to a function.  The function is
+called when @code{adaptive-fill-regexp} does not match, with point after
+the left margin of a line, and it should return the appropriate fill
+prefix based on that line.  If it returns @code{nil}, that means it sees
+no fill prefix in that line.
+@end defopt
 
 @node Auto Filling
 @comment  node-name,  next,  previous,  up
@@ -1513,10 +1578,11 @@ the sort order.
 @end group
 @group
   (interactive "P\nr")
-  (save-restriction
-    (narrow-to-region beg end)
-    (goto-char (point-min))
-    (sort-subr reverse 'forward-line 'end-of-line)))
+  (save-excursion
+    (save-restriction
+      (narrow-to-region beg end)
+      (goto-char (point-min))
+      (sort-subr reverse 'forward-line 'end-of-line))))
 @end group
 @end example
 
@@ -1531,8 +1597,11 @@ its @code{sort-subr} call looks like this:
 @example
 @group
 (sort-subr reverse
-           (function 
-            (lambda () (skip-chars-forward "\n \t\f")))
+           (function
+             (lambda ()
+               (while (and (not (eobp))
+                      (looking-at paragraph-separate))
+                 (forward-line 1))))
            'forward-paragraph)
 @end group
 @end example
@@ -1540,6 +1609,11 @@ its @code{sort-subr} call looks like this:
 Markers pointing into any sort records are left with no useful
 position after @code{sort-subr} returns.
 @end defun
+
+@defopt sort-fold-case
+If this variable is non-@code{nil}, @code{sort-subr} and the other
+buffer sorting functions ignore case when comparing strings.
+@end defopt
 
 @deffn Command sort-regexp-fields reverse record-regexp key-regexp start end
 This command sorts the region between @var{start} and @var{end}
@@ -1823,7 +1897,7 @@ but in some text modes, where @key{TAB} inserts a tab,
 @deffn Command reindent-then-newline-and-indent
 @comment !!SourceFile simple.el
 This command reindents the current line, inserts a newline at point,
-and then reindents the new line (the one following the newline just
+and then indents the new line (the one following the newline just
 inserted).
 
 This command does indentation on both lines according to the current
@@ -3177,7 +3251,7 @@ end of the region just changed, and the length of the text that existed
 before the change.  All three arguments are integers.  The buffer that's
 about to change is always the current buffer.
 
-The length of the old text the difference between the buffer positions
+The length of the old text is the difference between the buffer positions
 before and after that text as it was before the change.  As for the
 changed text, its length is simply the difference between the first two
 arguments.

@@ -491,10 +491,6 @@ mail @emph{will} be acted on in due time.  If you want to contact the
 Emacs maintainers more quickly, send mail to
 @code{bug-gnu-emacs@@gnu.org}.
 
-@display
- --Bil Lewis, Dan LaLiberte, Richard Stallman
-@end display
-
 @node Lisp History
 @section Lisp History
 @cindex Lisp history

@@ -99,15 +99,15 @@ Help, emacs, The GNU Emacs Manual}.
 @c Wordy to prevent overfull hbox.  --rjc 15mar92
   The @file{emacs/lib-src} directory contains two utilities that you can
 use to print nice-looking hardcopy for the file
-@file{emacs/etc/DOC-@var{version}}.  These are @file{sorted-doc.c} and
-@file{digest-doc.c}.
+@file{emacs/etc/DOC-@var{version}}.  These are @file{sorted-doc} and
+@file{digest-doc}.
 
 @node Accessing Documentation
 @section Access to Documentation Strings
 
 @defun documentation-property symbol property &optional verbatim
 This function returns the documentation string that is recorded
-@var{symbol}'s property list under property @var{property}.  It
+in @var{symbol}'s property list under property @var{property}.  It
 retrieves the text from a file if necessary, and runs
 @code{substitute-command-keys} to substitute actual key bindings.  (This
 substitution is not done if @var{verbatim} is non-@code{nil}.)
@@ -116,7 +116,7 @@ substitution is not done if @var{verbatim} is non-@code{nil}.)
 @group
 (documentation-property 'command-line-processed
    'variable-documentation)
-     @result{} "t once command line has been processed"
+     @result{} "Non-nil once command line has been processed"
 @end group
 @group
 (symbol-plist 'command-line-processed)
@@ -218,7 +218,7 @@ goal-column     Option
 @c That makes them incorrect.
 
 @group
-set-goal-column Command: C-x C-n
+set-goal-column Keys: C-x C-n
 Set the current horizontal position as a goal for C-n and C-p.
 @end group
 @c DO NOT put a blank line here!  That is factually inaccurate!
@@ -496,7 +496,7 @@ stands for @kbd{C-h}.  When Emacs reads this character, if
 @code{help-form} is a non-@code{nil} Lisp expression, it evaluates that
 expression, and displays the result in a window if it is a string.
 
-Usually the value of @code{help-form}'s value is @code{nil}.  Then the
+Usually the value of @code{help-form} is @code{nil}.  Then the
 help character has no special meaning at the level of command input, and
 it becomes part of a key sequence in the normal way.  The standard key
 binding of @kbd{C-h} is a prefix key for several general-purpose help

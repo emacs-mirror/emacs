@@ -11,7 +11,6 @@ that Emacs presents to the user.
 
 @menu
 * Refresh Screen::      Clearing the screen and redrawing everything on it.
-* Screen Size::         How big is the Emacs screen.
 * Truncation::          Folding or wrapping long text lines.
 * The Echo Area::       Where messages are displayed.
 * Invisible Text::      Hiding part of the buffer text.
@@ -33,7 +32,7 @@ that Emacs presents to the user.
 @section Refreshing the Screen
 
 The function @code{redraw-frame} redisplays the entire contents of a
-given frame.  @xref{Frames}.
+given frame (@pxref{Frames}).
 
 @c Emacs 19 feature
 @defun redraw-frame frame
@@ -64,65 +63,6 @@ This variable controls whether Emacs redraws the entire screen after it
 has been suspended and resumed.  Non-@code{nil} means there is no need
 to redraw, @code{nil} means redrawing is needed.  The default is @code{nil}.
 @end defvar
-
-@node Screen Size
-@section Screen Size
-@cindex size of screen
-@cindex screen size
-@cindex display lines
-@cindex display columns
-@cindex resize redisplay
-
-  The screen size functions access or specify the height or width of
-the terminal.  When you are using multiple frames, they apply to the
-selected frame (@pxref{Frames}).
-
-@defun screen-height
-This function returns the number of lines on the screen that are
-available for display.
-
-@example
-@group
-(screen-height)
-     @result{} 50
-@end group
-@end example
-@end defun
-
-@defun screen-width
-This function returns the number of columns on the screen that are
-available for display.
-
-@example
-@group
-(screen-width)
-     @result{} 80
-@end group
-@end example
-@end defun
-
-@defun set-screen-height lines &optional not-actual-size
-This function declares that the terminal can display @var{lines} lines.
-The sizes of existing windows are altered proportionally to fit.
-
-If @var{not-actual-size} is non-@code{nil}, then Emacs displays
-@var{lines} lines of output, but does not change its value for the
-actual height of the screen.  (Knowing the correct actual size may be
-necessary for correct cursor positioning.)  Using a smaller height than
-the terminal actually implements may be useful to reproduce behavior
-observed on a smaller screen, or if the terminal malfunctions when using
-its whole screen.
-
-If @var{lines} is different from what it was previously, then the
-entire screen is cleared and redisplayed using the new size.
-
-This function returns @code{nil}.
-@end defun
-
-@defun set-screen-width columns &optional not-actual-size
-This function declares that the terminal can display @var{columns}
-columns.  The details are as in @code{set-screen-height}.
-@end defun
 
 @node Truncation
 @section Truncation
@@ -173,7 +113,7 @@ a window, that forces truncation.
   You can override the glyphs that indicate continuation or truncation
 using the display table; see @ref{Display Tables}.
 
-  If your buffer contains @strong{very} long lines, and you use
+  If your buffer contains @emph{very} long lines, and you use
 continuation to display them, just thinking about them can make Emacs
 redisplay slow.  The column computation and indentation functions also
 become slow.  Then you might find it advisable to set
@@ -395,7 +335,7 @@ overlaps the overlay on exit from the search.
 
   During the search, such overlays are made temporarily visible by
 temporarily modifying their invisible and intangible properties.  If you
-want this to be done differently for a certain overlays, give it a
+want this to be done differently for a certain overlay, give it a
 @code{isearch-open-invisible-temporary} property which is a function.
 The function is called with two arguments: the first is the overlay, and
 the second is @code{t} to make the overlay visible, or @code{nil} to
@@ -1093,7 +1033,7 @@ subsequent elements of @var{spec} are never used.  Normally
 @code{t} is used in the last (or only) element of @var{spec}.
 
 @item a list
-If @var{display} is alist, each elements should have the form
+If @var{display} is a list, each element should have the form
 @code{(@var{characteristic} @var{value}@dots{})}.  Here
 @var{characteristic} specifies a way of classifying frames, and the
 @var{value}s are possible classifications which @var{display} should
@@ -1110,7 +1050,7 @@ What kinds of colors the frame supports---either @code{color},
 @code{grayscale}, or @code{mono}.
 
 @item background
-The kind of background--- either @code{light} or @code{dark}.
+The kind of background---either @code{light} or @code{dark}.
 @end table
 
 If an element of @var{display} specifies more than one @var{value} for a
@@ -1138,6 +1078,15 @@ with @code{defface}:
 @code{defface}, @code{saved-face} for the attributes saved by the user
 with the customization buffer, and @code{face-documentation} for the
 documentation string.
+
+@tindex frame-background-mode
+@defopt frame-background-mode
+This option, if non-@code{nil}, specifies the background type to use for
+interpreting face definitions.  If it is @code{dark}, then Emacs treats
+all frames as if they had a dark background, regardless of their actual
+background colors.  If it is @code{light}, then Emacs treats all frames
+as if they had a light background.
+@end defopt
 
 @node Merging Faces
 @subsection Merging Faces for Display
@@ -1339,6 +1288,12 @@ for more information about Transient Mark mode.
 Normally, the value is the face number of the face named @code{region}.
 @end defvar
 
+@tindex frame-update-face-colors
+@defun frame-update-face-colors frame
+This function updates the way faces display on @var{frame}, for a change
+in @var{frame}'s foreground or background color.
+@end defun
+
 @node Blinking
 @section Blinking Parentheses
 @cindex parenthesis matching
@@ -1356,23 +1311,23 @@ The value of @code{blink-paren-function} may be @code{nil}, in which
 case nothing is done.
 @end defvar
 
-@defvar blink-matching-paren
+@defopt blink-matching-paren
 If this variable is @code{nil}, then @code{blink-matching-open} does
 nothing.
-@end defvar
+@end defopt
 
-@defvar blink-matching-paren-distance
+@defopt blink-matching-paren-distance
 This variable specifies the maximum distance to scan for a matching
 parenthesis before giving up.
-@end defvar
+@end defopt
 
-@defvar blink-matching-paren-delay
+@defopt blink-matching-delay
 This variable specifies the number of seconds for the cursor to remain
 at the matching parenthesis.  A fraction of a second often gives
 good results, but the default is 1, which works on all systems.
-@end defvar
+@end defopt
 
-@defun blink-matching-open
+@deffn Command blink-matching-open
 This function is the default value of @code{blink-paren-function}.  It
 assumes that point follows a character with close parenthesis syntax and
 moves the cursor momentarily to the matching opening character.  If that
@@ -1398,7 +1353,7 @@ Here is an example of calling this function explicitly.
     (blink-matching-open)))
 @end group
 @end smallexample
-@end defun
+@end deffn
 
 @node Inverse Video
 @section Inverse Video
@@ -1655,13 +1610,13 @@ below).
 
   Here are the possible types of elements in the glyph table:
 
-@table @var
-@item string
+@table @asis
+@item @var{string}
 Send the characters in @var{string} to the terminal to output
 this glyph.  This alternative is available on character terminals,
 but not under a window system.
 
-@item integer
+@item @var{integer}
 Define this glyph code as an alias for glyph code @var{integer}.  You
 can use an alias to specify a face code for the glyph; see below.
 
@@ -1705,13 +1660,13 @@ It also terminates any keyboard macro currently executing unless
 This is a synonym for @code{ding}.
 @end defun
 
-@defvar visible-bell
+@defopt visible-bell
 This variable determines whether Emacs should flash the screen to
 represent a bell.  Non-@code{nil} means yes, @code{nil} means no.  This
 is effective on a window system, and on a character-only terminal
 provided the terminal's Termcap entry defines the visible bell
 capability (@samp{vb}).
-@end defvar
+@end defopt
 
 @defvar ring-bell-function
 @tindex ring-bell-function
@@ -1728,11 +1683,20 @@ differently.  An Emacs frame is a single window as far as X is
 concerned; the individual Emacs windows are not known to X at all.
 
 @defvar window-system
-@cindex X Window System
 This variable tells Lisp programs what window system Emacs is running
-under.  Its value should be a symbol such as @code{x} (if Emacs is
-running under X) or @code{nil} (if Emacs is running on an ordinary
-terminal).
+under.  The possible values are
+
+@table @code
+@item x
+@cindex X Window System
+Emacs is displaying using X.
+@item pc
+Emacs is displaying using MSDOS.
+@item w32
+Emacs is displaying using Windows NT or Windows 95.
+@item nil
+Emacs is using a character-based terminal.
+@end table
 @end defvar
 
 @defvar window-setup-hook

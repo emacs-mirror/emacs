@@ -372,9 +372,9 @@ The value must be a directory name, and you can do completion with
 @item hook
 The value must be a list of functions (or a single function, but that is
 obsolete usage).  This customization type is used for hook variables.
-You can use the @code{:option} in the @code{defcustom} for a hook
-variable to specify functions recommended for use in the hook;
-see @ref{Variable Definitions}.
+You can use the @code{:options} keyword in a hook variable's
+@code{defcustom} to specify a list of functions recommended for use in
+the hook; see @ref{Variable Definitions}.
 
 @item symbol
 The value must be a symbol.  It appears in the customization buffer as

@@ -38,7 +38,7 @@ minibuffer.  However, many operations for managing buffers do not apply
 to minibuffers.  The name of a minibuffer always has the form @w{@samp{
 *Minibuf-@var{number}}}, and it cannot be changed.  Minibuffers are
 displayed only in special windows used only for minibuffers; these
-windows always appear at the bottom of a frame.  (Sometime frames have
+windows always appear at the bottom of a frame.  (Sometimes frames have
 no minibuffer window, and sometimes a special kind of frame contains
 nothing but a minibuffer window; see @ref{Minibuffers and Frames}.)
 
@@ -136,10 +136,10 @@ properties were present in the minibuffer.  Otherwise all the text
 properties are stripped when the value is returned.
 
 If the argument @var{inherit-input-method} is non-@code{nil}, then the
-minibuffer inherits the current buffer's input method (@pxref{Input
-Methods}) and the setting of @code{enable-multibyte-characters}
-(@pxref{Text Representations}) from whichever buffer was current before
-entering the minibuffer.
+minibuffer inherits the current input method (@pxref{Input Methods}) and
+the setting of @code{enable-multibyte-characters} (@pxref{Text
+Representations}) from whichever buffer was current before entering the
+minibuffer.
 
 If @var{initial-contents} is a string, @code{read-from-minibuffer}
 inserts it into the minibuffer, leaving point at the end, before the
@@ -191,10 +191,13 @@ This function is a simplified interface to the
 @end defun
 
 @defvar minibuffer-allow-text-properties
-If this variable is non-@code{nil}, then @code{read-from-minibuffer}
-strips all text properties from the string before returning the string.
+If this variable is @code{nil}, then @code{read-from-minibuffer} strips
+all text properties from the minibuffer input before returning it.
 Since all minibuffer input uses @code{read-from-minibuffer}, this
 variable applies to all minibuffer input.
+
+Note that the completion functions discard text properties unconditionally,
+regardless of the value of this variable.
 @end defvar
 
 @defvar minibuffer-local-map
@@ -679,7 +682,7 @@ edit the input, providing several commands to attempt completion.
 In most cases, we recommend using @var{default}, and not @var{initial}.
 
 If the argument @var{inherit-input-method} is non-@code{nil}, then the
-minibuffer inherits the current buffer's input method (@pxref{Input
+minibuffer inherits the current input method (@pxref{Input
 Methods}) and the setting of @code{enable-multibyte-characters}
 (@pxref{Text Representations}) from whichever buffer was current before
 entering the minibuffer.
@@ -1003,7 +1006,7 @@ predicate @code{user-variable-p} instead of @code{commandp}:
 @end defun
 
   See also the functions @code{read-coding-system} and
-@code{read-non-nil-coding-system}, in @ref{Lisp and Coding Systems}.
+@code{read-non-nil-coding-system}, in @ref{User-Chosen Coding Systems}.
 
 @node Reading File Names
 @subsection Reading File Names
@@ -1035,7 +1038,7 @@ initial input.  It defaults to the current buffer's value of
 
 @c Emacs 19 feature
 If you specify @var{initial}, that is an initial file name to insert in
-the buffer (after with @var{directory}, if that is inserted).  In this
+the buffer (after @var{directory}, if that is inserted).  In this
 case, point goes at the beginning of @var{initial}.  The default for
 @var{initial} is @code{nil}---don't insert any file name.  To see what
 @var{initial} does, try the command @kbd{C-x C-v}.  @strong{Note:} we

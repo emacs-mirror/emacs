@@ -316,9 +316,9 @@ relocating a marker to point after the inserted text.
 @defun set-marker-insertion-type marker type
 @tindex set-marker-insertion-type
 This function sets the insertion type of marker @var{marker} to
-@var{type}.  If @var{type} is @code{t}, @var{marker} will advances when
-text is inserted at it.  If @var{type} is @code{nil}, @var{marker} does
-not advance when text is inserted there.
+@var{type}.  If @var{type} is @code{t}, @var{marker} will advance when
+text is inserted at its position.  If @var{type} is @code{nil},
+@var{marker} does not advance when text is inserted there.
 @end defun
 
 @defun marker-insertion-type marker

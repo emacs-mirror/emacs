@@ -46,13 +46,14 @@ character set by setting the variable @code{nonascii-insert-offset}).
 
 @cindex leading code
 @cindex multibyte text
+@cindex trailing codes
   In multibyte representation, a character may occupy more than one
 byte, and as a result, the full range of Emacs character codes can be
 stored.  The first byte of a multibyte character is always in the range
 128 through 159 (octal 0200 through 0237).  These values are called
 @dfn{leading codes}.  The second and subsequent bytes of a multibyte
 character are always in the range 160 through 255 (octal 0240 through
-0377).
+0377); these values are @dfn{trailing codes}.
 
   In a buffer, the buffer-local value of the variable
 @code{enable-multibyte-characters} specifies the representation used.
@@ -156,14 +157,14 @@ If this is non-@code{nil}, it overrides @code{nonascii-insert-offset}.
 @defun string-make-unibyte string
 @tindex string-make-unibyte
 This function converts the text of @var{string} to unibyte
-representation, if it isn't already, and return the result.  If
+representation, if it isn't already, and returns the result.  If
 @var{string} is a unibyte string, it is returned unchanged.
 @end defun
 
 @defun string-make-multibyte string
 @tindex string-make-multibyte
 This function converts the text of @var{string} to multibyte
-representation, if it isn't already, and return the result.  If
+representation, if it isn't already, and returns the result.  If
 @var{string} is a multibyte string, it is returned unchanged.
 @end defun
 
@@ -280,18 +281,18 @@ set that @var{character} belongs to.
 @cindex dimension (of character set)
   In multibyte representation, each character occupies one or more
 bytes.  Each character set has an @dfn{introduction sequence}, which is
-one or two bytes long.  The introduction sequence is the beginning of
-the byte sequence for any character in the character set.  (The
-@sc{ASCII} character set has a zero-length introduction sequence.)  The
-rest of the character's bytes distinguish it from the other characters
-in the same character set.  Depending on the character set, there are
-either one or two distinguishing bytes; the number of such bytes is
-called the @dfn{dimension} of the character set.
+normally one or two bytes long.  (Exception: the @sc{ASCII} character
+set has a zero-length introduction sequence.)  The introduction sequence
+is the beginning of the byte sequence for any character in the character
+set.  The rest of the character's bytes distinguish it from the other
+characters in the same character set.  Depending on the character set,
+there are either one or two distinguishing bytes; the number of such
+bytes is called the @dfn{dimension} of the character set.
 
 @defun charset-dimension charset
 @tindex charset-dimension
 This function returns the dimension of @var{charset};
-At present, the dimension is always 1 or 2.
+at present, the dimension is always 1 or 2.
 @end defun
 
   This is the simplest way to determine the byte length of a character
@@ -481,6 +482,7 @@ by a particular @dfn{coding system}.
 * Coding System Basics::
 * Encoding and I/O::
 * Lisp and Coding Systems::
+* User-Chosen Coding Systems::
 * Default Coding Systems::
 * Specifying Coding Systems::
 * Explicit Encoding::
@@ -559,7 +561,7 @@ as an alias for the coding system.
 @node Encoding and I/O
 @subsection Encoding and I/O
 
-  The principal purpose coding systems is for use in reading and
+  The principal purpose of coding systems is for use in reading and
 writing files.  The function @code{insert-file-contents} uses
 a coding system for decoding the file data, and @code{write-region}
 uses one to encode the buffer contents.
@@ -632,7 +634,7 @@ Otherwise it signals an error with condition @code{coding-system-error}.
 @defun coding-system-change-eol-conversion coding-system eol-type
 @tindex coding-system-change-eol-conversion
 This function returns a coding system which is like @var{coding-system}
-except for its in eol conversion, which is specified by @code{eol-type}.
+except for its eol conversion, which is specified by @code{eol-type}.
 @var{eol-type} should be @code{unix}, @code{dos}, @code{mac}, or
 @code{nil}.  If it is @code{nil}, the returned coding system determines
 the end-of-line conversion from the data.
@@ -694,6 +696,31 @@ This function is like @code{detect-coding-region} except that it
 operates on the contents of @var{string} instead of bytes in the buffer.
 @end defun
 
+  @xref{Process Information}, for how to examine or set the coding
+systems used for I/O to a subprocess.
+
+@node User-Chosen Coding Systems
+@subsection User-Chosen Coding Systems
+
+@tindex select-safe-coding-system
+@defun select-safe-coding-system from to &optional preferred-coding-system
+This function selects a coding system for encoding the between
+@var{from} and @var{to}, asking the user to choose if necessary.
+
+The optional argument @var{preferred-coding-system} specifies a coding
+system try first.  If it can handle the text in the specified region,
+then it is used.  If this argument is omitted, the current buffer's
+value of @code{buffer-file-coding-system} is tried first.
+
+If the region contains some multibyte characters that the preferred
+coding system cannot encode, this function asks the user to choose from
+a list of coding systems which can encode the text, and returns the
+user's choice.
+
+One other kludgy feature: if @var{from} is a string, the string is the
+target text, and @var{to} is ignored.
+@end defun
+
   Here are two functions you can use to let the user specify a coding
 system, with completion.  @xref{Completion}.
 
@@ -713,15 +740,12 @@ the user tries to enter null input, it asks the user to try again.
 @xref{Coding Systems}.
 @end defun
 
-  @xref{Process Information}, for how to examine or set the coding
-systems used for I/O to a subprocess.
-
 @node Default Coding Systems
 @subsection Default Coding Systems
 
   This section describes variables that specify the default coding
 system for certain files or when running certain subprograms, and the
-function which which I/O operations use to access them.
+function that I/O operations use to access them.
 
   The idea of these variables is that you set them once and for all to the
 defaults you want, and then do not change them again.  To specify a
@@ -738,7 +762,7 @@ reading and writing particular files.  Each element has the form
 expression that matches certain file names.  The element applies to file
 names that match @var{pattern}.
 
-The @sc{cdr} of the element, @var{val}, should be either a coding
+The @sc{cdr} of the element, @var{coding}, should be either a coding
 system, a cons cell containing two coding systems, or a function symbol.
 If @var{val} is a coding system, that coding system is used for both
 reading the file and writing it.  If @var{val} is a cons cell containing
@@ -763,7 +787,7 @@ other coding systems later using @code{set-process-coding-system}.
 
   @strong{Warning:} Coding systems such as @code{undecided} which
 determine the coding system from the data do not work entirely reliably
-with asynchronous subprocess output.  This is because Emacs processes
+with asynchronous subprocess output.  This is because Emacs handles
 asynchronous subprocess output in batches, as it arrives.  If the coding
 system leaves the character code conversion unspecified, or leaves the
 end-of-line conversion unspecified, Emacs must try to detect the proper
@@ -916,6 +940,15 @@ encoding text is to copy them to a file or process---for example, to
 write them with @code{write-region} (@pxref{Writing to Files}), and
 suppress encoding for that @code{write-region} call by binding
 @code{coding-system-for-write} to @code{no-conversion}.
+
+  Raw bytes sometimes contain overlong byte-sequences that look like a
+proper multibyte character plus extra bytes containing trailing codes.
+For most purposes, Emacs treats such a sequence in a buffer or string as
+a single character, and if you look at its character code, you get the
+value that corresponds to the multibyte character sequence---the extra
+bytes are disregarded.  This behavior is not quite clean, but raw bytes
+are used only in limited places in Emacs, so as a practical matter
+problems can be avoided.
 
 @defun encode-coding-region start end coding-system
 @tindex encode-coding-region
@@ -1092,12 +1125,14 @@ This variable defines all the supported input methods.
 Each element defines one input method, and should have the form:
 
 @example
-(@var{input-method} @var{language-env} @var{activate-func} @var{title} @var{description} @var{args}...)
+(@var{input-method} @var{language-env} @var{activate-func}
+ @var{title} @var{description} @var{args}...)
 @end example
 
-Here @var{input-method} is the input method name, a string; @var{env} is
-another string, the name of the language environment this input method
-is recommended for.  (That serves only for documentation purposes.)
+Here @var{input-method} is the input method name, a string;
+@var{language-env} is another string, the name of the language
+environment this input method is recommended for.  (That serves only for
+documentation purposes.)
 
 @var{title} is a string to display in the mode line while this method is
 active.  @var{description} is a string describing this method and what
@@ -1107,6 +1142,6 @@ it is good for.
 @var{args}, if any, are passed as arguments to @var{activate-func}.  All
 told, the arguments to @var{activate-func} are @var{input-method} and
 the @var{args}.
-@end defun
+@end defvar
 
 

@@ -9,7 +9,7 @@
 
 @c , Bugs and Todo List, Top, Top
 
-@node Edebug,, Compilation Errors, Debugging
+@node Edebug, Syntax Errors, Debugger, Debugging
 @section Edebug
 @cindex Edebug mode
 
@@ -583,10 +583,12 @@ position (@code{edebug-bounce-point}).  With a prefix argument @var{n},
 pause for @var{n} seconds instead.
 
 @item w
-Move point back to the current stop point (@code{edebug-where}) in the
-source code buffer.  Also, if you use this command in a different window
-displaying the same buffer, that window will be used instead to display
-the current definition in the future.
+Move point back to the current stop point in the source code buffer
+(@code{edebug-where}).
+
+If you use this command in a different window displaying the same
+buffer, that window will be used instead to display the current
+definition in the future.
 
 @item W
 @c Its function is not simply to forget the saved configuration -- dan
@@ -842,11 +844,10 @@ with @code{(apply 'format @var{format-string} @var{format-args})}.
 It also appends a newline to separate entries.
 @end defun
 
-  @code{edebug-tracing} and @code{edebug-trace} insert lines in the trace
-buffer even if Edebug is not active.
-
-  Adding text to the trace buffer also scrolls its window to show the
-last lines inserted.
+  @code{edebug-tracing} and @code{edebug-trace} insert lines in the
+trace buffer whenever they are called, even if Edebug is not active.
+Adding text to the trace buffer also scrolls its window to show the last
+lines inserted.
 
 @node Coverage Testing
 @subsection Coverage Testing
@@ -855,18 +856,22 @@ last lines inserted.
 @cindex frequency counts
 @cindex performance analysis
 Edebug provides rudimentary coverage testing and display of execution
-frequency.  Coverage testing works by comparing the result of each
-expression with the previous result; coverage is considered OK if two
-different results are found.  Thus, to sufficiently test the coverage of
-your code, try to execute it under conditions that evaluate all
-expressions more than once, and produce different results for each
-expression.  Coverage testing makes execution slower, so it is only done
-if @code{edebug-test-coverage} is non-@code{nil}.  Whether or not
-coverage testing is enabled, frequency counting is performed for all
-execution of an instrumented function, even if the execution mode is
-Go-nonstop.
+frequency.
 
-Use @kbd{M-x edebug-display-freq-count} to display both the
+  Coverage testing works by comparing the result of each expression with
+the previous result; each form in the program is considered ``covered''
+if it has returned two different values since you began testing coverage
+in the current Emacs session.  Thus, to do coverage testing on your
+program, execute it under various conditions and note whether it behaves
+correctly; Edebug will tell you when you have tried enough different
+conditions that each form has returned two different values.
+
+  Coverage testing makes execution slower, so it is only done if
+@code{edebug-test-coverage} is non-@code{nil}.  Whether or not coverage
+testing is enabled, frequency counting is performed for all execution of
+an instrumented function, even if the execution mode is Go-nonstop.
+
+  Use @kbd{M-x edebug-display-freq-count} to display both the
 coverage information and the frequency counts for a definition.
 
 @deffn Command edebug-display-freq-count
@@ -882,7 +887,7 @@ count of an earlier expression on the same line.
 
 The character @samp{=} following the count for an expression says that
 the expression has returned the same value each time it was evaluated.
-This is the only coverage information that Edebug records.
+In other words, it is not yet ``covered'' for coverage testing purposes.
 
 To clear the frequency count and coverage data for a definition,
 simply reinstrument it with @code{eval-defun}.
@@ -1073,7 +1078,7 @@ name.
 @end deffn
 
 Here is a simple example that defines the specification for the
-@code{for} example macro (@code{Argument Evaluation}), followed by an
+@code{for} example macro (@pxref{Argument Evaluation}), followed by an
 alternative, equivalent specification.
 
 @example
@@ -1143,7 +1148,7 @@ their meanings:
 
 @table @code
 @item sexp
-A single unevaluated expression, which is not instrumented.
+A single unevaluated Lisp object, which is not instrumented.
 @c an "expression" is not necessarily intended for evaluation.
 
 @item form
@@ -1180,8 +1185,8 @@ elements must all match or none, use @code{&optional
 @item &rest
 @kindex &rest @r{(Edebug)}
 All following elements in the specification list are repeated zero or
-more times.  All the elements need not match in the last repetition,
-however.
+more times.  In the last repetition, however, it is ok if the expression
+runs out before matching all of the elements of the specification list.
 
 To repeat only a few elements, use @code{[&rest @var{specs}@dots{}]}.
 To specify several elements that must all match on every repetition, use

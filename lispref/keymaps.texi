@@ -338,7 +338,8 @@ For example, @kbd{C-x} is a prefix key, and it uses a keymap that is
 also stored in the variable @code{ctl-x-map}.  This keymap defines
 bindings for key sequences starting with @kbd{C-x}.
 
-  Here is a list of the standard prefix keys of Emacs and their keymaps:
+  Some of the standard Emacs prefix keys use keymaps that are
+also found in Lisp variables:
 
 @itemize @bullet
 @item
@@ -370,6 +371,12 @@ This map is found via the function cell of the symbol
 @code{Control-X-prefix}.
 
 @item
+@cindex @kbd{C-x @key{RET}}
+@vindex mule-keymap
+@code{mule-keymap} is the global keymap used for the @kbd{C-x @key{RET}}
+prefix key.
+
+@item
 @cindex @kbd{C-x 4}
 @vindex ctl-x-4-map
 @code{ctl-x-4-map} is the global keymap used for the @kbd{C-x 4} prefix
@@ -384,11 +391,28 @@ key.
 
 @c Emacs 19 feature
 @item
-@cindex @kbd{C-x n}
-@cindex @kbd{C-x r}
-@cindex @kbd{C-x a}
-The prefix keys @kbd{C-x n}, @kbd{C-x r} and @kbd{C-x a} use keymaps
-that have no special names.
+@cindex @kbd{C-x 6}
+@vindex 2C-mode-map
+@code{2C-mode-map} is the global keymap used for the @kbd{C-x 6} prefix
+key.
+
+@item
+@cindex @kbd{C-x v}
+@vindex vc-prefix-map
+@code{vc-prefix-map} is the global keymap used for the @kbd{C-x v} prefix
+key.
+
+@item
+@cindex @kbd{M-g}
+@vindex facemenu-keymap
+@code{facemenu-keymap} is the global keymap used for the @kbd{M-g}
+prefix key.
+
+@c Emacs 19 feature
+@item
+The other Emacs prefix keys are @kbd{C-x @@}, @kbd{C-x a i}, @kbd{C-x
+@key{ESC}} and @kbd{@key{ESC} @key{ESC}}.  They use keymaps that have no
+special names.
 @end itemize
 
   The keymap binding of a prefix key is used for looking up the event
@@ -615,7 +639,7 @@ particular minor modes.  The elements of this alist look like the
 elements of @code{minor-mode-map-alist}: @code{(@var{variable}
 . @var{keymap})}.
 
-If a variable appears an element of
+If a variable appears as an element of
 @code{minor-mode-overriding-map-alist}, the map specified by that
 element totally replaces any map specified for the same variable in
 @code{minor-mode-map-alist}.
@@ -1179,16 +1203,15 @@ Dired mode is set up:
 
 @smallexample
 @group
-  @dots{}
-  (setq dired-mode-map (make-keymap))
-  (suppress-keymap dired-mode-map)
-  (define-key dired-mode-map "r" 'dired-rename-file)
-  (define-key dired-mode-map "\C-d" 'dired-flag-file-deleted)
-  (define-key dired-mode-map "d" 'dired-flag-file-deleted)
-  (define-key dired-mode-map "v" 'dired-view-file)
-  (define-key dired-mode-map "e" 'dired-find-file)
-  (define-key dired-mode-map "f" 'dired-find-file)
-  @dots{}
+(setq dired-mode-map (make-keymap))
+(suppress-keymap dired-mode-map)
+(define-key dired-mode-map "r" 'dired-rename-file)
+(define-key dired-mode-map "\C-d" 'dired-flag-file-deleted)
+(define-key dired-mode-map "d" 'dired-flag-file-deleted)
+(define-key dired-mode-map "v" 'dired-view-file)
+(define-key dired-mode-map "e" 'dired-find-file)
+(define-key dired-mode-map "f" 'dired-find-file)
+@dots{}
 @end group
 @end smallexample
 @end defun

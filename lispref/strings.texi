@@ -439,9 +439,9 @@ the string).  The specified part of @var{string2} runs from index
 @var{start2} up to index @var{end2} (default, the end of the string).
 
 The strings are both converted to multibyte for the comparison
-(@pxref{Text Representations}) so that a unibyte string can be usefully
-compared with a multibyte string.  If @var{ignore-case} is
-non-@code{nil}, then case is ignored as well.
+(@pxref{Text Representations}) so that a unibyte string can be equal to
+a multibyte string.  If @var{ignore-case} is non-@code{nil}, then case
+is ignored, so that upper case letters can be equal to lower case letters.
 
 If the specified portions of the two strings match, the value is
 @code{t}.  Otherwise, the value is an integer which indicates how many

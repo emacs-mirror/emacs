@@ -148,7 +148,8 @@ Normally, the variable's value is @code{nil}, which means those
 functions should use @code{read}.
 @end defvar
 
-  For how @code{load} is used to build Emacs, see @ref{Building Emacs}.
+  For information about how @code{load} is used in building Emacs, see
+@ref{Building Emacs}.
 
 @node Library Search
 @section Library Search
@@ -176,16 +177,15 @@ directory names, and @samp{.} is used for the current default directory.
 Here is an example of how to set your @code{EMACSLOADPATH} variable from
 a @code{csh} @file{.login} file:
 
-@c This overfull hbox is OK.  --rjc 16mar92
 @smallexample
-setenv EMACSLOADPATH .:/user/bil/emacs:/usr/local/lib/emacs/lisp
+setenv EMACSLOADPATH .:/user/bil/emacs:/usr/local/lib/emacs/20.3/lisp
 @end smallexample
 
   Here is how to set it using @code{sh}:
 
 @smallexample
 export EMACSLOADPATH
-EMACSLOADPATH=.:/user/bil/emacs:/usr/local/lib/emacs/lisp
+EMACSLOADPATH=.:/user/bil/emacs:/usr/local/lib/emacs/20.3/lisp
 @end smallexample
 
   Here is an example of code you can place in a @file{.emacs} file to add

@@ -354,7 +354,7 @@ compiled specially (@pxref{Array Functions}):
 @end example
 
 @item
-If calling a small function accounts for a  substantial part of your
+If calling a small function accounts for a substantial part of your
 program's running time, make the function inline.  This eliminates
 the function call overhead.  Since making a function inline reduces
 the flexibility of changing the program, don't do it unless it gives
@@ -396,7 +396,7 @@ that looks good.
 
 @item
 For consistency, phrase the verb in the first sentence of a
-documentation string as an infinitive with ``to'' omitted.  For
+function's documentation string as an infinitive with ``to'' omitted.  For
 instance, use ``Return the cons of A and B.'' in preference to ``Returns
 the cons of A and B@.''  Usually it looks good to do likewise for the
 rest of the first paragraph.  Subsequent paragraphs usually look better
@@ -478,8 +478,8 @@ t and nil without single-quotes.  (In this manual, we use a different
 convention, with single-quotes for all symbols.)
 @end ifinfo
 
-Help mode automatically creates hyperlinks when documentation strings
-use symbol names inside single quotes, when the symbol has either a
+Help mode automatically creates a hyperlink when a documentation string
+uses a symbol name inside single quotes, if the symbol has either a
 function or a variable definition.  You do not need to do anything
 special to make use of this feature.  However, when a symbol has both a
 function definition and a variable definition, and you want to refer to

@@ -1589,7 +1589,7 @@ buffer position.  Here's how to do that:
       (- (point-max) (point-min))))
 @end example
 
-Recall that scroll bar events have two integers forming ratio in place
+Recall that scroll bar events have two integers forming a ratio, in place
 of a pair of x and y coordinates.
 @end defun
 
@@ -1652,7 +1652,8 @@ and such numbers cannot be included in a string.
 
   To support programs with @samp{\M-} in string constants, there are
 special rules for including certain meta characters in a string.
-Here are the rules for interpreting keyboard
+Here are the rules for interpreting a string as a sequence of input
+characters:
 
 @itemize @bullet
 @item
@@ -1854,7 +1855,7 @@ If @code{cursor-in-echo-area} is non-@code{nil}, then @code{read-event}
 moves the cursor temporarily to the echo area, to the end of any message
 displayed there.  Otherwise @code{read-event} does not move the cursor.
 
-If @code{read-event} gets an event is defined as a help character, in
+If @code{read-event} gets an event that is defined as a help character, in
 some cases @code{read-event} processes the event directly without
 returning.  @xref{Help Functions}.  Certain other events, called
 @dfn{special events}, are also processed directly within
@@ -1948,7 +1949,8 @@ What character-@kbd{177}
 
 This section describes how to ``peek ahead'' at events without using
 them up, how to check for pending input, and how to discard pending
-input.
+input.  See also the function @code{read-passwd} (@pxref{Reading a
+Password}).
 
 @defvar unread-command-events
 @cindex next input

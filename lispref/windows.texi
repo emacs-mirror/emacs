@@ -252,10 +252,13 @@ characters; see @ref{Display Tables}.
 @end deffn
 
 @deffn Command split-window-vertically size
-This function splits the selected window into two windows, one above
-the other, leaving the selected window with @var{size} lines.
+This function splits the selected window into two windows, one above the
+other, leaving the upper of the two window selected, with @var{size}
+lines.  (If @var{size} is negative, then the lower of the two windows
+gets @minus{} @var{size} lines and the upper window gets the rest, but
+the upper window is still the one selected.)
 
-This function is simply an interface to @code{split-windows}.
+This function is simply an interface to @code{split-window}.
 Here is the complete function definition for it:
 
 @smallexample
@@ -272,7 +275,7 @@ Here is the complete function definition for it:
 This function splits the selected window into two windows
 side-by-side, leaving the selected window with @var{size} columns.
 
-This function is simply an interface to @code{split-windows}.  Here is
+This function is simply an interface to @code{split-window}.  Here is
 the complete definition for @code{split-window-horizontally} (except for
 part of the documentation string):
 
@@ -366,16 +369,20 @@ where there is only one window), then the frame reverts to having a
 single window showing another buffer chosen with @code{other-buffer}.
 @xref{The Buffer List}.
 
-The argument @var{frame} controls which frames to operate on:
+The argument @var{frame} controls which frames to operate on.  This
+function does not use it in quite the same way as the other functions
+which scan all windows; specifically, the values @code{t} and @code{nil}
+have the opposite of their meanings in other functions.  Here are the
+full details:
 
 @itemize @bullet
 @item
-If it is @code{nil}, operate on the selected frame.
+If it is @code{nil}, operate on all frames.
 @item
-If it is @code{t}, operate on all frames.
+If it is @code{t}, operate on the selected frame.
 @item
 If it is @code{visible}, operate on all visible frames.
-@item 0
+@item
 If it is 0, operate on all visible or iconified frames.
 @item
 If it is a frame, operate on that frame.
@@ -463,8 +470,8 @@ If there are two windows of the same size, then the function returns
 the window that is first in the cyclic ordering of windows (see
 following section), starting from the selected window.
 
-The argument @var{frame} controls which set of windows are
-considered.  See @code{get-lru-window}, above.
+The argument @var{frame} controls which set of windows to
+consider.  See @code{get-lru-window}, above.
 @end defun
 
 @node Cyclic Window Ordering
@@ -677,7 +684,7 @@ This variable records the time at which a buffer was last made visible
 in a window.  It is always local in each buffer; each time
 @code{set-window-buffer} is called, it sets this variable to
 @code{(current-time)} in the specified buffer (@pxref{Time of Day}).
-When a buffer is first created, @code{buffer-display-count} starts out
+When a buffer is first created, @code{buffer-display-time} starts out
 with the value @code{nil}.
 @end defvar
 
@@ -704,9 +711,9 @@ functions work by calling @code{set-window-buffer}.
 current so that a Lisp program can access or modify it; they are too
 drastic for that purpose, since they change the display of buffers in
 windows, which would be gratuitous and surprise the user.  Instead, use
-@code{set-buffer} (@pxref{Current Buffer}) and @code{save-excursion}
-(@pxref{Excursions}), which designate buffers as current for programmed
-access without affecting the display of buffers in windows.
+@code{set-buffer} and @code{save-current-buffer} (@pxref{Current
+Buffer}), which designate buffers as current for programmed access
+without affecting the display of buffers in windows.
 
 @deffn Command switch-to-buffer buffer-or-name &optional norecord
 This function makes @var{buffer-or-name} the current buffer, and also
@@ -824,11 +831,23 @@ function does nothing.
 @var{buffer-or-name}.
 
 If the argument @var{frame} is non-@code{nil}, it specifies which frames
-to check when deciding whether the buffer is already displayed.  Its
-value means the same thing as in functions @code{get-buffer-window}
-(@pxref{Buffers and Windows}).  If the buffer is already displayed
-in some window on one of these frames, @code{display-buffer} simply
-returns that window.
+to check when deciding whether the buffer is already displayed.  If the
+buffer is already displayed in some window on one of these frames,
+@code{display-buffer} simply returns that window.  Here are the possible
+values of @var{frame}:
+
+@itemize @bullet
+@item
+If it is @code{nil}, consider windows on the selected frame.
+@item
+If it is @code{t}, consider windows on all frames.
+@item
+If it is @code{visible}, consider windows on all visible frames.
+@item
+If it is 0, consider windows on all visible or iconified frames.
+@item
+If it is a frame, consider windows on that frame.
+@end itemize
 
 Precisely how @code{display-buffer} finds or creates a window depends on
 the variables described below.
@@ -882,7 +901,7 @@ This variable holds an alist specifying frame parameters used when
 more information about frame parameters.
 @end defvar
 
-@defvar special-display-buffer-names
+@defopt special-display-buffer-names
 A list of buffer names for buffers that should be displayed specially.
 If the buffer's name is in this list, @code{display-buffer} handles the
 buffer specially.
@@ -895,9 +914,9 @@ frame.  There are two possibilities for the rest of the list.  It can be
 an alist, specifying frame parameters, or it can contain a function and
 arguments to give to it.  (The function's first argument is always the
 buffer to be displayed; the arguments from the list come after that.)
-@end defvar
+@end defopt
 
-@defvar special-display-regexps
+@defopt special-display-regexps
 A list of regular expressions that specify buffers that should be
 displayed specially.  If the buffer's name matches any of the regular
 expressions in this list, @code{display-buffer} handles the buffer
@@ -908,7 +927,7 @@ By default, special display means to give the buffer a dedicated frame.
 If an element is a list, instead of a string, then the @sc{car} of the
 list is the regular expression, and the rest of the list says how to
 create the frame.  See above, under @code{special-display-buffer-names}.
-@end defvar
+@end defopt
 
 @defvar special-display-function
 This variable holds the function to call to display a buffer specially.
@@ -1084,7 +1103,7 @@ If the last redisplay of @var{window} was preempted, and did not finish,
 Emacs does not know the position of the end of display in that window.
 In that case, this function returns @code{nil}.
 
-If you @var{update} is non-@code{nil}, @code{window-end} always returns
+If @var{update} is non-@code{nil}, @code{window-end} always returns
 an up-to-date value for where the window ends.  If the saved value is
 valid, @code{window-end} returns that; otherwise it computes the correct
 value by scanning the buffer text.
@@ -1253,13 +1272,38 @@ If this variable is non-@code{nil}, it tells @code{scroll-other-window}
 which buffer to scroll.
 @end defvar
 
-@defopt scroll-step
+@tindex scroll-margin
+@defopt scroll-margin
+This option specifies the size of the scroll margin---a minimum number
+of lines between point and the top or bottom of a window.  Whenever
+point gets within this many lines of the top or bottom of the window,
+the window scrolls automatically (if possible) to move point out of the
+margin, closer to the center of the window.
+@end defopt
+
+@tindex scroll-conservatively
+@defopt scroll-conservatively
 This variable controls how scrolling is done automatically when point
-moves off the screen.  If the value is zero, then redisplay scrolls the
-text to center point vertically in the window.  If the value is a
-positive integer @var{n}, then redisplay brings point back on screen by
-scrolling @var{n} lines in either direction, if possible; otherwise, it
-centers point.  The default value is zero.
+moves off the screen (or into the scroll margin).  If the value is zero,
+then redisplay scrolls the text to center point vertically in the
+window.  If the value is a positive integer @var{n}, then redisplay
+scrolls the window up to @var{n} lines in either direction, if that will
+bring point back into view.  Otherwise, it centers point.  The default
+value is zero.
+@end defopt
+
+@defopt scroll-step
+This variable is an older variant of @code{scroll-conservatively}.  The
+difference is that it if its value is @var{n}, that permits scrolling
+only by precisely @var{n} lines, not a smaller number.  This feature
+does not work with @code{scroll-margin}.  The default value is zero.
+@end defopt
+
+@tindex scroll-preserve-screen-position
+@defopt scroll-preserve-screen-position
+If this option is non-@code{nil}, the scroll functions move point so
+that the vertical position of the cursor is unchanged, when that is
+possible.
 @end defopt
 
 @defopt next-screen-context-lines
@@ -1608,6 +1652,17 @@ It could be defined as follows:
 @end example
 @end deffn
 
+@deffn Command shrink-window-if-larger-than-buffer window
+This command shrinks @var{window} to be as small as possible while still
+showing the full contents of its buffer---but not less than
+@code{window-min-height} lines.
+
+However, the command does nothing if the window is already too small to
+display the whole text of the buffer, or if part of the contents are
+currently scrolled off screen, or if the window is not the full width of
+its frame, or if the window is the only window in its frame.
+@end deffn
+
 @cindex minimum window size
   The following two variables constrain the window-size-changing
 functions to a minimum height and width.
@@ -1624,7 +1679,7 @@ less than two.  The default value is 4.
 
 @defopt window-min-width
 The value of this variable determines how narrow a window may become
-before it automatically deleted.  Making a window smaller than
+before it is automatically deleted.  Making a window smaller than
 @code{window-min-width} automatically deletes it, and no window may be
 created narrower than this.  The absolute minimum width is one; any
 value below that is ignored.  The default value is 10.
@@ -1813,12 +1868,9 @@ display-start position.
 
 Displaying a different buffer in the window also runs these functions.
 
-These functions cannot expect @code{window-end} (@pxref{Window Start})
-to return a meaningful value, because that value is updated only by
-redisplaying the buffer.  So if one of these functions needs to know the
-last character that will fit in the window with its current
-display-start position, it has to find that character using
-@code{vertical-motion} (@pxref{Screen Lines}).
+These functions must be careful in using @code{window-end}
+(@pxref{Window Start}); if you need an up-to-date value, you must use
+the @var{update} argument to ensure you get it.
 @end defvar
 
 @defvar window-size-change-functions
@@ -1846,7 +1898,7 @@ Windows}) is what you need here.
 
 @defvar redisplay-end-trigger-functions
 @tindex redisplay-end-trigger-functions
-This abnormal hook is run whenever redisplay in window uses text that
+This abnormal hook is run whenever redisplay in a window uses text that
 extends past a specified end trigger position.  You set the end trigger
 position with the function @code{set-window-redisplay-end-trigger}.  The
 functions are called with two arguments: the window, and the end trigger

@@ -60,7 +60,7 @@ definition is distinct from that of Text mode, but was derived from it.
 
   Rmail Edit mode offers an example of changing the major mode
 temporarily for a buffer, so it can be edited in a different way (with
-ordinary Emacs commands rather than Rmail).  In such cases, the
+ordinary Emacs commands rather than Rmail commands).  In such cases, the
 temporary major mode usually has a command to switch back to the
 buffer's usual mode (Rmail mode, in this case).  You might be tempted to
 present the temporary redefinitions inside a recursive edit and restore
@@ -823,11 +823,11 @@ minor modes.
 Make a variable whose name ends in @samp{-mode} to control the minor
 mode.  We call this the @dfn{mode variable}.  The minor mode command
 should set this variable (@code{nil} to disable; anything else to
-enable.)
+enable).
 
 If it is possible, implement the mode so that setting the variable
 automatically enables or disables the mode.  Then the minor mode command
-does not need to do anything except the variable.
+does not need to do anything except set the variable.
 
 This variable is used in conjunction with the @code{minor-mode-alist} to
 display the minor mode name in the mode line.  It can also enable
@@ -886,6 +886,9 @@ check for an existing element, to avoid duplication.  For example:
 @end group
 @end smallexample
 @end itemize
+
+  You can also use @code{add-to-list} to add an element to this list
+just once (@pxref{Setting Variables}).
 
 @node Keymaps and Minor Modes
 @subsection Keymaps and Minor Modes
@@ -1135,6 +1138,11 @@ directory.
 @end group
 @end example
 
+@noindent
+(The variables @code{line-number-mode}, @code{column-number-mode}
+and @code{which-func-mode} enable particular minor modes; as usual,
+these variable names are also the minor mode command names.)
+
 @node Mode Line Variables
 @subsection Variables Used in the Mode Line
 
@@ -1174,12 +1182,8 @@ frame at a time.
 
 @defvar mode-line-buffer-identification
 This variable identifies the buffer being displayed in the window.  Its
-default value is @code{("%12b")}, which means that it usually
-displays @samp{Emacs:} followed by seventeen characters of the buffer
-name.  (In a terminal frame, it displays the frame name instead of
-@samp{Emacs}; this has the effect of showing the frame number.)  You may
-want to change this in modes such as Rmail that do not behave like a
-``normal'' Emacs.
+default value is @code{("%12b")}, which means that it usually displays
+twelve characters of the buffer name.
 @end defvar
 
 @defvar global-mode-string
@@ -1240,7 +1244,7 @@ This buffer-local variable contains the mode line information on process
 status in modes used for communicating with subprocesses.  It is
 displayed immediately following the major mode name, with no intervening
 space.  For example, its value in the @samp{*shell*} buffer is
-@code{(":@: %s")}, which allows the shell to display its status along
+@code{(":%s")}, which allows the shell to display its status along
 with the major mode as: @samp{(Shell:@: run)}.  Normally this variable
 is @code{nil}.
 @end defvar
@@ -1456,8 +1460,8 @@ Setting this variable makes it buffer-local in the current buffer.
 
 @defvar imenu-syntax-alist
 This variable is an alist of syntax table modifiers to use while
-executing @code{imenu--generic-function} to override the syntax table of
-the current buffer.  Each element should have this form:
+processing @code{imenu-generic-expression}, to override the syntax table
+of the current buffer.  Each element should have this form:
 
 @example
 (@var{characters} . @var{syntax-description})
@@ -1478,7 +1482,7 @@ For example, Fortran mode uses it this way:
 @end example
 
 The @code{imenu-generic-expression} patterns can then use @samp{\\sw+}
-instead of @samp{\\(\\sw\\|\\s_\\)\\}.  Note that this technique may be
+instead of @samp{\\(\\sw\\|\\s_\\)+}.  Note that this technique may be
 inconvenient to use when the mode needs to limit the initial character
 of a name to a smaller set of characters
 
@@ -2081,7 +2085,9 @@ each of them the arguments @var{args}.
 This function is the way to run an abnormal hook which passes arguments
 to the hook functions, and stops as soon as any hook function fails.  It
 calls each of the hook functions, passing each of them the arguments
-@var{args}, until some hook function returns @code{nil}.  Then it stops.
+@var{args}, until some hook function returns @code{nil}.  Then it stops,
+and returns @code{nil} if some hook function did, and otherwise
+returns a non-@code{nil} value.
 @end defun
 
 @defun run-hook-with-args-until-success hook &rest args
@@ -2089,7 +2095,8 @@ This function is the way to run an abnormal hook which passes arguments
 to the hook functions, and stops as soon as any hook function succeeds.
 It calls each of the hook functions, passing each of them the arguments
 @var{args}, until some hook function returns non-@code{nil}.  Then it
-stops.
+stops, and returns whatever was returned by the last hook function
+that was called.
 @end defun
 
 @defun add-hook hook function &optional append local

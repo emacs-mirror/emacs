@@ -234,7 +234,7 @@ backtracking loops.  For example, it could take hours for the regular
 expression @samp{\(x+y*\)*a} to try to match the sequence
 @samp{xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxz}, before it ultimately fails.
 The slowness is because Emacs must try each imaginable way of grouping
-the 35 @samp{x}'s before concluding that none of them can work.  To make
+the 35 @samp{x}s before concluding that none of them can work.  To make
 sure your regular expressions run fast, check nested repetitions
 carefully.
 
@@ -266,9 +266,9 @@ matches @samp{cr}, @samp{car}, @samp{cdr}, @samp{caddaar}, etc.
 
 You can also include character ranges in a character alternative, by
 writing the starting and ending characters with a @samp{-} between them.
-Thus, @samp{[a-z]} matches any lower-case ASCII letter.  Ranges may be
+Thus, @samp{[a-z]} matches any lower-case @sc{ASCII} letter.  Ranges may be
 intermixed freely with individual characters, as in @samp{[a-z$%.]},
-which matches any lower case ASCII letter or @samp{$}, @samp{%} or
+which matches any lower case @sc{ASCII} letter or @samp{$}, @samp{%} or
 period.
  
 You cannot always match all non-@sc{ASCII} characters with the regular
@@ -280,9 +280,9 @@ does match all non-@sc{ASCII} characters, in both multibyte and unibyte
 representations, because only the @sc{ASCII} characters are excluded.
 
 The beginning and end of a range must be in the same character set
-(@pxref{Character Sets}).  Thus, @samp{[a-\x8c0]} is invalid because
-@samp{a} is in the @sc{ASCII} character set but the character 0x8c0
-(@samp{A} with grave accent) is in the Emacs character set for Latin-1.
+(@pxref{Character Sets}).  Thus, @samp{[a-\x8e0]} is invalid because
+@samp{a} is in the @sc{ASCII} character set but the character 0x8e0
+(@samp{a} with grave accent) is in the Emacs character set for Latin-1.
 
 Note that the usual regexp special characters are not special inside a
 character alternative.  A completely different set of characters are
@@ -1286,7 +1286,7 @@ that shows the problem that arises if you fail to save the match data:
   You can save and restore the match data with @code{save-match-data}:
 
 @defmac save-match-data body@dots{}
-This special form executes @var{body}, saving and restoring the match
+This macro executes @var{body}, saving and restoring the match
 data around it.
 @end defmac
 

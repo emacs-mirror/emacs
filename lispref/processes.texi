@@ -79,12 +79,12 @@ Expansion}).
 
   Each of the subprocess-creating functions has a @var{buffer-or-name}
 argument which specifies where the standard output from the program will
-go.  It should be a buffer or a buffer name (which will create the
-buffer if it does not already exist).  It can also be @code{nil}, which
-says to discard the output unless a filter function handles it.
-(@xref{Filter Functions}, and @ref{Read and Print}.)  Normally, you
-should avoid having multiple processes send output to the same buffer
-because their output would be intermixed randomly.
+go.  It should be a buffer or a buffer name; if it is a buffer name,
+that will create the buffer if it does not already exist.  It can also
+be @code{nil}, which says to discard the output unless a filter function
+handles it.  (@xref{Filter Functions}, and @ref{Read and Print}.)
+Normally, you should avoid having multiple processes send output to the
+same buffer because their output would be intermixed randomly.
 
 @cindex program arguments
   All three of the subprocess-creating functions have a @code{&rest}
@@ -102,14 +102,14 @@ must use @var{args} to provide those.
 @code{default-directory} (@pxref{File Name Expansion}).
 
 @cindex environment variables, subprocesses
-  The subprocess inherits its environment from Emacs; but you can
+  The subprocess inherits its environment from Emacs, but you can
 specify overrides for it with @code{process-environment}.  @xref{System
 Environment}.
 
 @defvar exec-directory 
 @pindex movemail
 The value of this variable is the name of a directory (a string) that
-contains programs that come with GNU Emacs, that are intended for Emacs
+contains programs that come with GNU Emacs, programs intended for Emacs
 to invoke.  The program @code{movemail} is an example of such a program;
 Rmail uses it to fetch new mail from an inbox.
 @end defvar
@@ -224,7 +224,7 @@ parallel with Emacs; but you can think of it as synchronous in that
 Emacs is essentially finished with the subprocess as soon as this
 function returns.
 
-@item (@var{real-destination} @var{error-destination})
+@item @code{(@var{real-destination} @var{error-destination})}
 Keep the standard output stream separate from the standard error stream;
 deal with the ordinary output as specified by @var{real-destination},
 and dispose of the error output according to @var{error-destination}.
@@ -365,8 +365,8 @@ then returns the command's output as a string.
 @section Creating an Asynchronous Process
 @cindex asynchronous subprocess
 
-  After an @dfn{asynchronous process} is created, Emacs and the Lisp
-program both continue running immediately.  The process thereafter runs
+  After an @dfn{asynchronous process} is created, Emacs and the subprocess
+both continue running immediately.  The process thereafter runs
 in parallel with Emacs, and the two can communicate with each other
 using the functions described in following sections.  However,
 communication is only partially asynchronous: Emacs sends data to the
@@ -484,13 +484,13 @@ deleted automatically after they terminate, but not necessarily right
 away.  If you delete a terminated process explicitly before it is
 deleted automatically, no harm results.
 
-@defvar delete-exited-processes
+@defopt delete-exited-processes
 This variable controls automatic deletion of processes that have
 terminated (due to calling @code{exit} or to a signal).  If it is
 @code{nil}, then they continue to exist until the user runs
 @code{list-processes}.  Otherwise, they are deleted immediately after
 they exit.
-@end defvar
+@end defopt
 
 @defun delete-process name
 This function deletes the process associated with @var{name}, killing it
@@ -505,10 +505,15 @@ the name of a process, a buffer, or the name of a buffer.
 @end smallexample
 @end defun
 
-@defun process-kill-without-query process
-This function declares that Emacs need not query the user if
-@var{process} is still running when Emacs is exited.  The process will
-be deleted silently.  The value is @code{t}.
+@defun process-kill-without-query process &optional do-query
+This function specifies whether Emacs should query the user if
+@var{process} is still running when Emacs is exited.  If @var{do-query}
+is @code{nil}, the process will be deleted silently.
+Otherwise, Emacs will query about killing it.
+
+The value is @code{t} if the process was formerly set up to require
+query.  @code{nil} otherwise.  A newly-created process always requires
+query.
 
 @smallexample
 @group
@@ -1145,9 +1150,7 @@ subprocess output.
 The argument @var{seconds} need not be an integer.  If it is a floating
 point number, this function waits for a fractional number of seconds.
 Some systems support only a whole number of seconds; on these systems,
-@var{seconds} is rounded down.  If the system doesn't support waiting
-fractions of a second, you get an error if you specify nonzero
-@var{millisec}.
+@var{seconds} is rounded down.
 
 Not all operating systems support waiting periods other than multiples
 of a second; on those that do not, you get an error if you specify

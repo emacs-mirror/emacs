@@ -50,12 +50,15 @@ This predicate returns @code{t} if @var{object} is a frame, and
 * Pointer Shapes::              Specifying the shape of the mouse pointer.
 * Window System Selections::    Transferring text to and from other X clients.
 * Font Names::                  Looking up font names.
+* Fontsets::                    A fontset is a collection of fonts
+                                  for displaying various character sets.
 * Color Names::	                Getting the definitions of color names.
 * Resources::		        Getting resource values from the server.
 * Server Data::		        Getting info about the X server.
 @end menu
 
-  @xref{Display}, for related information.
+  @xref{Display}, for information about the related topic of 
+controlling Emacs redisplay.
 
 @node Creating Frames
 @section Creating Frames
@@ -92,11 +95,10 @@ frame just created.
 
 @node Multiple Displays
 @section Multiple Displays
-@cindex multiple displays
-@cindex multiple X terminals
+@cindex multiple X displays
 @cindex displays, multiple
 
-  A single Emacs can talk to more than one X Window display.
+  A single Emacs can talk to more than one X display.
 Initially, Emacs uses just one display---the one chosen with the
 @code{DISPLAY} environment variable or with the @samp{--display} option
 (@pxref{Initial Options,,, emacs, The GNU Emacs Manual}).  To connect to
@@ -104,16 +106,18 @@ another display, use the command @code{make-frame-on-display} or specify
 the @code{display} frame parameter when you create the frame.
 
   Emacs treats each X server as a separate terminal, giving each one its
-own selected frame and its own minibuffer windows.  A few Lisp variables
-have values local to the current terminal (that is, the terminal
-corresponding to the currently selected frame): these are
-@code{default-minibuffer-frame}, @code{defining-kbd-macro},
-@code{last-kbd-macro}, and @code{system-key-alist}.  These variables are
-always terminal-local and can never be buffer-local or frame-local
-(@pxref{Buffer-Local Variables}).
+own selected frame and its own minibuffer windows.
+
+  A few Lisp variables are @dfn{terminal-local}; that is, they have a
+separate binding for each terminal.  The binding in effect at any time
+is the one for the terminal that the currently selected frame belongs
+to.  These variables include @code{default-minibuffer-frame},
+@code{defining-kbd-macro}, @code{last-kbd-macro}, and
+@code{system-key-alist}.  They are always terminal-local, and can never
+be buffer-local (@pxref{Buffer-Local Variables}) or frame-local.
 
   A single X server can handle more than one screen.  A display name
-@samp{@var{host}.@var{server}.@var{screen}} has three parts; the last
+@samp{@var{host}:@var{server}.@var{screen}} has three parts; the last
 part specifies the screen number for a given server.  When you use two
 screens belonging to one server, Emacs knows by the similarity in their
 names that they share a single keyboard, and it treats them as a single
@@ -164,8 +168,8 @@ Just what parameters a frame has depends on what display mechanism it
 uses.
 
 Frame parameters exist for the sake of window systems.  A terminal frame
-has a few parameters, mostly for compatibility's sake; only the height,
-width, @code{name}, @code{title}, @code{buffer-list} and
+has a few parameters, mostly for compatibility's sake; only the @code{height},
+@code{width}, @code{name}, @code{title}, @code{buffer-list} and
 @code{buffer-predicate} parameters do something special.
 
 @menu
@@ -418,8 +422,19 @@ appears.  If this is @code{nil}, the frame's title is used.
 The color to use for the image of a character.  This is a string; the
 window system defines the meaningful color names.
 
+If you set the @code{foreground-color} frame parameter, you should
+call @code{frame-update-face-colors} to update faces accordingly.
+
 @item background-color
 The color to use for the background of characters.
+
+If you set the @code{background-color} frame parameter, you should
+call @code{frame-update-face-colors} to update faces accordingly.
+@xref{Face Functions}.
+
+@item background-mode
+This parameter is either @code{dark} or @code{light}, according
+to whether the background color is a light one or a dark one.
 
 @item mouse-color
 The color for the mouse pointer.
@@ -429,6 +444,11 @@ The color for the cursor that shows point.
 
 @item border-color
 The color for the border of the frame.
+
+@item display-type
+This parameter describes the range of possible colors that can be used
+in this frame.  Its value is @code{color}, @code{grayscale} or
+@code{mono}.
 
 @item cursor-type
 The way to display the cursor.  The legitimate values are @code{bar},
@@ -470,6 +490,10 @@ it and see if it works.)
 
 @node Size and Position
 @subsection Frame Size And Position
+@cindex size of frame
+@cindex screen size
+@cindex frame size
+@cindex resize frame
 
   You can read or change the size and position of a frame using the
 frame parameters @code{left}, @code{top}, @code{height}, and
@@ -481,15 +505,28 @@ by the window manager in its usual fashion.
 @defun set-frame-position frame left top
 This function sets the position of the top left corner of @var{frame} to
 @var{left} and @var{top}.  These arguments are measured in pixels, and
-count from the top left corner of the screen.  Negative parameter values
-count up or rightward from the top left corner of the screen.
+normally count from the top left corner of the screen.
+
+Negative parameter values position the bottom edge of the window up from
+the bottom edge of the screen, or the right window edge to the left of
+the right edge of the screen.  It would probably be better if the values
+were always counted from the left and top, so that negative arguments
+would position the frame partly off the top or left edge of the screen,
+but it seems inadvisable to change that now.
 @end defun
 
 @defun frame-height &optional frame
 @defunx frame-width &optional frame
 These functions return the height and width of @var{frame}, measured in
-characters.  If you don't supply @var{frame}, they use the selected
-frame.
+lines and columns.  If you don't supply @var{frame}, they use the
+selected frame.
+@end defun
+
+@defun screen-height
+@defunx screen-width
+These functions are old aliases for @code{frame-height} and
+@code{frame-width}.  When you are using a non-window terminal, the size
+of the frame is normally the same as the size of the terminal screen.
 @end defun
 
 @defun frame-pixel-height &optional frame
@@ -515,15 +552,38 @@ To set the size based on values measured in pixels, use
 them to units of characters.
 @end defun
 
+@defun set-frame-height frame lines &optional pretend
+This function resizes @var{frame} to a height of @var{lines} lines.  The
+sizes of existing windows in @var{frame} are altered proportionally to
+fit.
+
+If @var{pretend} is non-@code{nil}, then Emacs displays @var{lines}
+lines of output in @var{frame}, but does not change its value for the
+actual height of the frame.  This is only useful for a terminal frame.
+Using a smaller height than the terminal actually implements may be
+useful to reproduce behavior observed on a smaller screen, or if the
+terminal malfunctions when using its whole screen.  Setting the frame
+height ``for real'' does not always work, because knowing the correct
+actual size may be necessary for correct cursor positioning on a
+terminal frame.
+@end defun
+
+@defun set-frame-width frame width &optional pretend
+This function sets the width of @var{frame}, measured in characters.
+The argument @var{pretend} has the same meaning as in
+@code{set-frame-height}.
+@end defun
+
+@findex set-screen-height
+@findex set-screen-width
   The old-fashioned functions @code{set-screen-height} and
 @code{set-screen-width}, which were used to specify the height and width
 of the screen in Emacs versions that did not support multiple frames,
-are still usable.  They apply to the selected frame.  @xref{Screen
-Size}.
+are still usable.  They apply to the selected frame.
 
 @defun x-parse-geometry geom
 @cindex geometry specification
-The function @code{x-parse-geometry} converts a standard X Windows
+The function @code{x-parse-geometry} converts a standard X window
 geometry string to an alist that you can use as part of the argument to
 @code{make-frame}.
 
@@ -562,16 +622,10 @@ Here is an example:
 
 @example
 (x-parse-geometry "35x70+0-0")
-     @result{} ((width . 35) (height . 70)
-         (left . 0) (top - 0))
+     @result{} ((height . 70) (width . 35)
+         (top - 0) (left . 0))
 @end example
 @end defun
-
-@ignore
-New functions @code{set-frame-height} and @code{set-frame-width} set the
-size of a specified frame.  The frame is the first argument; the size is
-the second.
-@end ignore
 
 @node Frame Titles
 @section Frame Titles
@@ -768,8 +822,7 @@ actually displayed on the terminal.  @code{switch-frame} is the only way
 to switch frames, and the change lasts until overridden by a subsequent
 call to @code{switch-frame}.  Each terminal screen except for the
 initial one has a number, and the number of the selected frame appears
-in the mode line after the word @samp{Emacs} (@pxref{Mode Line
-Variables}).
+in the mode line before the buffer name (@pxref{Mode Line Variables}).
 
 @c ??? This is not yet implemented properly.
 @defun select-frame frame
@@ -1283,7 +1336,7 @@ just as fonts do, and you can use a fontset name in place of a font name
 when you specify the ``font'' for a frame or a face.  Here is
 information about defining a fontset under Lisp program control.
 
-@defun create-fontset-from-fontset-spec fontset-spec &optional style noerror
+@defun create-fontset-from-fontset-spec fontset-spec &optional style-variant-p noerror
 This function defines a new fontset according to the specification
 string @var{fontset-spec}.  The string should have this format:
 
@@ -1298,21 +1351,22 @@ The first part of the string, @var{fontpattern}, should have the form of
 a standard X font name, except that the last two fields should be
 @samp{fontset-@var{alias}}.
 
-Each fontset has two names, one long and one short.  The long name is
+The new fontset has two names, one long and one short.  The long name is
 @var{fontpattern} in its entirety.  The short name is
 @samp{fontset-@var{alias}}.  You can refer to the fontset by either
 name.  If a fontset with the same name already exists, an error is
 signaled, unless @var{noerror} is non-@code{nil}, in which case this
 function does nothing.
 
+If optional argument @var{style-variant-p} is non-@code{nil}, that says
+to create bold, italic and bold-italic variants of the fontset as well.
+These variant fontsets do not have a short name, only a long one, which
+is made by altering @var{fontpattern} to indicate the bold or italic
+status.
+
 The specification string also says which fonts to use in the fontset.
 See below for the details.
 @end defun
-
-  If optional argument @var{style} is specified, it specifies a way to
-modify the fontset.  It should be one of @code{bold}, @code{italic}, and
-@code{bold-italic}, and it says to find the bold, italic or bold-italic
-version of each font if possible.
 
   The construct @samp{@var{charset}:@var{font}} specifies which font to
 use (in this fontset) for one particular character set.  Here,
@@ -1354,7 +1408,7 @@ and the font specification for Chinese GB2312 characters would be this:
 
   You may not have any Chinese font matching the above font
 specification.  Most X distributions include only Chinese fonts that
-have @samp{song ti} or @samp{fangsong ti} in @var{family} field.  In
+have @samp{song ti} or @samp{fangsong ti} in the @var{family} field.  In
 such a case, @samp{Fontset-@var{n}} can be specified as below:
 
 @smallexample
@@ -1415,7 +1469,7 @@ defined, the value is @code{nil}.
 @end example
 
 The color values are returned for @var{frame}'s display.  If @var{frame}
-is omitted or @code{nil}, the information is return for the selected
+is omitted or @code{nil}, the information is returned for the selected
 frame's display.
 @end defun
 

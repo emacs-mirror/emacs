@@ -180,13 +180,15 @@ whether a given character is part of a word.  @xref{Syntax Tables}.
 
 @deffn Command forward-word count
 This function moves point forward @var{count} words (or backward if
-@var{count} is negative).  More precisely, it keeps moving until it
-moves across a word-constituent character and encounters a
-word-separator character, then returns @code{t}.
+@var{count} is negative).  ``Moving one word'' means moving until point
+crosses a word-constituent character and then encounters a
+word-separator character (or the boundary of the accessible part of the
+buffer).
 
-If this motion encounters the beginning or end of the buffer, or the
-limits of the accessible portion when narrowing is in effect, point
-stops there and the value is @code{nil}.
+If it is possible to move @var{count} words, without being stopped by
+the buffer boundary (except perhaps after the last word), the value is
+@code{t}.  Otherwise, the return value is @code{nil} and point stops
+at the buffer boundary.
 
 In an interactive call, @var{count} is set to the numeric prefix
 argument.
@@ -657,7 +659,7 @@ This function moves point in the current buffer forward, skipping over a
 given set of characters.  It examines the character following point,
 then advances point if the character matches @var{character-set}.  This
 continues until it reaches a character that does not match.  The
-function returns @code{nil}.
+function returns the number of characters moved over.
 
 The argument @var{character-set} is like the inside of a
 @samp{[@dots{}]} in a regular expression except that @samp{]} is never
@@ -699,6 +701,9 @@ comes back" twice.
 This function moves point backward, skipping characters that match
 @var{character-set}, until @var{limit}.  It is just like
 @code{skip-chars-forward} except for the direction of motion.
+
+The return value indicates the distance traveled.  It is an integer that
+is zero or less.
 @end defun
 
 @node Excursions
@@ -765,7 +770,7 @@ The value returned by @code{save-excursion} is the result of the last of
   @strong{Warning:} Ordinary insertion of text adjacent to the saved
 point value relocates the saved value, just as it relocates all markers.
 Therefore, when the saved point value is restored, it normally comes
-after the inserted text.
+before the inserted text.
 
   Although @code{save-excursion} saves the location of the mark, it does
 not prevent functions which modify the buffer from setting

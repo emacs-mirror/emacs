@@ -73,7 +73,7 @@ or the strings are not equal.
 or specified padding.
 
 @item
-The functions @code{split-string} and @code{concat-chars} no longer exist.
+The functions @code{split-string} and @code{string} no longer exist.
 Neither does @code{store-substring} or @code{sref}.
 
 @item

@@ -577,7 +577,7 @@ HHeshvan 25 Happy Hebrew birthday!
 
 @noindent
 and would appear in the diary for any date that corresponds to Heshvan 25
-on the Hebrew calendar.  And here is  Islamic-date diary entry  that matches
+on the Hebrew calendar.  And here is an Islamic-date diary entry that matches
 Dhu al-Qada 25:
 
 @smallexample
@@ -668,7 +668,7 @@ shown in the fancy diary buffer, set the variable
 @cindex sorting diary entries
   If you use the fancy diary display, you can use the normal hook
 @code{list-diary-entries-hook} to sort each day's diary entries by their
-time of day.  Here's how
+time of day.  Here's how:
 
 @findex sort-diary-entries
 @example

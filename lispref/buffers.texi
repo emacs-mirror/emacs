@@ -213,7 +213,7 @@ If the buffer that used to be current has been killed by the time of
 exit from @code{save-current-buffer}, then it is not made current again,
 of course.  Instead, whichever buffer was current just before exit
 remains current.
-@end defmac
+@end defspec
 
 @defmac with-current-buffer buffer body...
 @tindex with-current-buffer
@@ -427,7 +427,7 @@ the same file name.  In such cases, this function returns the first
 such buffer in the buffer list.
 @end defun
 
-@deffn Command set-visited-file-name filename
+@deffn Command set-visited-file-name filename &optional no-query along-with-file
 If @var{filename} is a non-empty string, this function changes the
 name of the file visited in current buffer to @var{filename}.  (If the
 buffer had no visited file, this gives it one.)  The @emph{next time}
@@ -439,6 +439,13 @@ former visited file.
 If @var{filename} is @code{nil} or the empty string, that stands for
 ``no visited file''.  In this case, @code{set-visited-file-name} marks
 the buffer as having no visited file.
+
+Normally, this function asks the user for confirmation if the specified
+file already exists.  If @var{no-query} is non-@code{nil}, that prevents
+asking this question.
+
+If @var{along-with-file} is non-@code{nil}, that means to assume that the
+former visited file has been renamed to @var{filename}.
 
 @c Wordy to avoid overfull hbox.  --rjc 16mar92
 When the function @code{set-visited-file-name} is called interactively, it
@@ -723,21 +730,21 @@ live buffer.
 @code{buffer-list} frame parameter with @code{modify-frame-parameters}
 (@pxref{Parameter Access}).
 
-@defun other-buffer &optional buffer visible-ok
+@defun other-buffer &optional buffer visible-ok frame
 This function returns the first buffer in the buffer list other than
-@var{buffer}.  Usually this is the buffer selected most recently (in the
-currently selected frame), aside from @var{buffer}.  Buffers whose names
-start with a space are not considered at all.
+@var{buffer}.  Usually this is the buffer selected most recently (in
+frame @var{frame} or else the currently selected frame), aside from
+@var{buffer}.  Buffers whose names start with a space are not considered
+at all.
 
 If @var{buffer} is not supplied (or if it is not a buffer), then
 @code{other-buffer} returns the first buffer in the selected frame's
 buffer list that is not now visible in any window in a visible frame.
 
-If the selected frame has a non-@code{nil} @code{buffer-predicate}
-parameter, then @code{other-buffer} uses that predicate to decide which
-buffers to consider.  It calls the predicate once for each buffer, and
-if the value is @code{nil}, that buffer is ignored.  @xref{Window Frame
-Parameters}.
+If @var{frame} has a non-@code{nil} @code{buffer-predicate} parameter,
+then @code{other-buffer} uses that predicate to decide which buffers to
+consider.  It calls the predicate once for each buffer, and if the value
+is @code{nil}, that buffer is ignored.  @xref{Window Frame Parameters}.
 
 @c Emacs 19 feature
 If @var{visible-ok} is @code{nil}, @code{other-buffer} avoids returning
