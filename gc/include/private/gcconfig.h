@@ -26,8 +26,10 @@
 
 # define GCCONFIG_H
 
+/* #define GET_MEM(bytes) HBLKPTR((size_t) callocx(1, (size_t)bytes + GC_page_size) + GC_page_size-1) */
+
 /* Machine dependent parameters.  Some tuning parameters can be found	*/
-/* near the top of gc_private.h.					*/
+/* near the top of gc_priv.h.					*/
 
 /* Machine specific parts contributed by various people.  See README file. */
 
@@ -2020,6 +2022,7 @@
 	/* though we should perhaps take advantage of the case in which */
 	/* does.							*/
 	struct hblk;	/* See gc_priv.h.	*/
+# ifndef GET_MEM
 # ifdef PCR
 	    char * real_malloc();
 #   define GET_MEM(bytes) HBLKPTR(real_malloc((size_t)bytes + GC_page_size) \
@@ -2079,6 +2082,7 @@
 #     endif
 #   endif
 # endif
+# endif /* GET_MEM */
 
 #endif /* GC_PRIVATE_H */
 
