@@ -101,7 +101,7 @@ is run on the Mac.  It displays characters in the @code{mac-roman}
 coding system using 12-point Monaco.
 
   To insert characters directly in the @code{mac-roman} coding system,
-type @kbd{C-x @key{RET} k mac-roman @key{RET}}, customize the option
+type @kbd{C-x @key{RET} k mac-roman @key{RET}}, customize the variable
 @code{keyboard-coding-system}, or put this in your init file:
 
 @lisp

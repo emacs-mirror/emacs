@@ -1208,6 +1208,18 @@ Here's how you might undo the change:
 (put-text-property @var{beg} @var{end} @var{property} @var{value})
 @end example
 
+@item (apply @var{funname} . @var{args})
+This kind of element records a change that can be undone by evaluating
+(@code{apply} @var{funname} @var{args}).
+
+@item (apply @var{delta} @var{beg} @var{end} @var{funname} . @var{args})
+This kind of element records a change that can be undone by evaluating
+(@code{apply} @var{funname} @var{args}).  The integer values @var{beg}
+and @var{end} is buffer positions of the range affected by this change
+and @var{delta} is an integer value which is the number of bytes added
+or deleted in that range by this change.  This kind of element
+supports undo in an active region
+
 @item (@var{marker} . @var{adjustment})
 This kind of element records the fact that the marker @var{marker} was
 relocated due to deletion of surrounding text, and that it moved
@@ -1309,20 +1321,27 @@ preferred name is @code{buffer-disable-undo}.
 them from using up all available memory space, garbage collection trims
 them back to size limits you can set.  (For this purpose, the ``size''
 of an undo list measures the cons cells that make up the list, plus the
-strings of deleted text.)  Two variables control the range of acceptable
-sizes: @code{undo-limit} and @code{undo-strong-limit}.
+strings of deleted text.)  Three variables control the range of acceptable
+sizes: @code{undo-limit}, @code{undo-strong-limit} and
+@code{undo-outer-limit}.
 
-@defvar undo-limit
+@defopt undo-limit
 This is the soft limit for the acceptable size of an undo list.  The
 change group at which this size is exceeded is the last one kept.
-@end defvar
+@end defopt
 
-@defvar undo-strong-limit
+@defopt undo-strong-limit
 This is the upper limit for the acceptable size of an undo list.  The
 change group at which this size is exceeded is discarded itself (along
 with all older change groups).  There is one exception: the very latest
-change group is never discarded no matter how big it is.
-@end defvar
+change group is only discarded if it exceeds @code{undo-outer-limit}.
+@end defopt
+
+@defopt undo-outer-limit
+If at garbage collection time the undo info for the current command
+exceeds this limit, Emacs discards the info and prints a warning
+message.  This is a last ditch limit to prevent memory overflow.
+@end defopt
 
 @node Filling
 @comment  node-name,  next,  previous,  up
@@ -2892,10 +2911,10 @@ Manual}).
 
 If the value of the @code{help-echo} property is a function, that
 function is called with three arguments, @var{window}, @var{object} and
-@var{position} and should return a help string or @var{nil} for
+@var{pos} and should return a help string or @code{nil} for
 none.  The first argument, @var{window} is the window in which
 the help was found.  The second, @var{object}, is the buffer, overlay or
-string which had the @code{help-echo} property.  The @var{position}
+string which had the @code{help-echo} property.  The @var{pos}
 argument is as follows:
 
 @itemize @bullet{}

@@ -219,7 +219,7 @@ Font Lock mode whenever you edit a C file, you can do this:
 @findex global-font-lock-mode
 @vindex global-font-lock-mode
   To turn on Font Lock mode automatically in all modes which support
-it, customize the user option @code{global-font-lock-mode} or use the
+it, customize the variable @code{global-font-lock-mode} or use the
 function @code{global-font-lock-mode} in your @file{.emacs} file, like
 this:
 
@@ -327,9 +327,9 @@ portion of a buffer.  As you scroll through the buffer, each portion
 that becomes visible is fontified as soon as it is displayed.  The
 parts of the buffer that are not displayed are fontified
 ``stealthily'', in the background, i.e.@: when Emacs is idle.  You can
-control this background fontification, called @dfn{Just-In-Time}, or
-@dfn{JIT} Font Lock, by customizing various options in the
-customization group @samp{jit-lock}.  @xref{Specific Customization}.
+control this background fontification, also called @dfn{Just-In-Time}
+(or @dfn{JIT}) Lock, by customizing variables in the customization
+group @samp{jit-lock}.  @xref{Specific Customization}.
 
 @node Highlight Changes
 @section Highlight Changes Mode
@@ -1087,7 +1087,7 @@ the variable @code{blink-cursor-alist}.
 state, with the same appearance as when the blinking cursor blinks
 ``off''.  For a box cursor, this is a hollow box; for a bar cursor,
 this is a thinner bar.  To turn off cursors in non-selected windows,
-customize the option @code{cursor-in-non-selected-windows} and assign
+customize the variable @code{cursor-in-non-selected-windows} and assign
 it a @code{nil} value.
 
 @vindex x-stretch-cursor

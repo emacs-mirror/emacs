@@ -985,8 +985,9 @@ Returns the compilation buffer created."
 	  (setq mode-line-process ":run")
 	  (force-mode-line-update)
 	  (sit-for 0)			; Force redisplay
-	  (let ((status (call-process shell-file-name nil outbuf nil "-c"
-				      command)))
+	  (let* ((buffer-read-only nil)	; call-process needs to modify outbuf
+		 (status (call-process shell-file-name nil outbuf nil "-c"
+				       command)))
 	    (cond ((numberp status)
 		   (compilation-handle-exit 'exit status
 					    (if (zerop status)
@@ -1003,6 +1004,7 @@ exited abnormally with code %d\n"
 	  ;; fontified, so fontify it now.
 	  (let ((font-lock-verbose nil)) ; shut up font-lock messages
 	    (font-lock-fontify-buffer))
+	  (set-buffer-modified-p nil)
 	  (message "Executing `%s'...done" command)))
       ;; Now finally cd to where the shell started make/grep/...
       (setq default-directory thisdir))

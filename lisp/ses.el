@@ -515,7 +515,7 @@ for this spreadsheet."
 
 (defun ses-create-cell-variable-range (minrow maxrow mincol maxcol)
   "Create buffer-local variables for cells.  This is undoable."
-  (push `(ses-destroy-cell-variable-range ,minrow ,maxrow ,mincol ,maxcol)
+  (push `(apply ses-destroy-cell-variable-range ,minrow ,maxrow ,mincol ,maxcol)
 	buffer-undo-list)
   (let (sym xrow xcol)
     (dotimes (row (1+ (- maxrow minrow)))
@@ -536,16 +536,16 @@ for this spreadsheet."
       (dotimes (col (1+ (- maxcol mincol)))
 	(setq sym (ses-create-cell-symbol (+ row minrow) (+ col mincol)))
 	(if (boundp sym)
-	    (push `(ses-set-with-undo ,sym ,(symbol-value sym))
+	    (push `(apply ses-set-with-undo ,sym ,(symbol-value sym))
 		  buffer-undo-list))
 	(kill-local-variable sym))))
-  (push `(ses-create-cell-variable-range ,minrow ,maxrow ,mincol ,maxcol)
+  (push `(apply ses-create-cell-variable-range ,minrow ,maxrow ,mincol ,maxcol)
 	buffer-undo-list))
 
 (defun ses-reset-header-string ()
   "Flags the header string for update.  Upon undo, the header string will be
 updated again."
-  (push '(ses-reset-header-string) buffer-undo-list)
+  (push '(apply ses-reset-header-string) buffer-undo-list)
   (setq ses--header-hscroll -1))
 
 ;;Split this code off into a function to avoid coverage-testing difficulties
@@ -1279,38 +1279,39 @@ to each symbol."
 ;; Undo control
 ;;----------------------------------------------------------------------------
 
-(defadvice undo-more (around ses-undo-more activate preactivate)
-  "Define a meaning for conses in buffer-undo-list whose car is a symbol
-other than t or nil.  To undo these, apply the car--a function--to the
-cdr--its arglist."
-  (let ((ses-count (ad-get-arg 0)))
-    (catch 'undo
-      (dolist (ses-x pending-undo-list)
-	(unless ses-x
-	  ;;End of undo boundary
-	  (setq ses-count (1- ses-count))
-	  (if (<= ses-count 0)
-	      ;;We've seen enough boundaries - stop undoing
-	      (throw 'undo nil)))
-	(and (consp ses-x) (symbolp (car ses-x)) (fboundp (car ses-x))
-	     ;;Undo using apply
-	     (apply (car ses-x) (cdr ses-x)))))
-    (if (not (eq major-mode 'ses-mode))
-	ad-do-it
-      ;;Here is some extra code for SES mode.
-      (setq ses--deferred-narrow
-	    (or ses--deferred-narrow (ses-narrowed-p)))
-      (widen)
-      (condition-case x
-	  ad-do-it
-	(error
-	 ;;Restore narrow if appropriate
-	 (ses-command-hook)
-	 (signal (car x) (cdr x)))))))
+;; This should be unnecessary, because the feature is now built in.
+
+;;; (defadvice undo-more (around ses-undo-more activate preactivate)
+;;;   "Define a meaning for conses in buffer-undo-list whose car is a symbol
+;;; other than t or nil.  To undo these, apply the car--a function--to the
+;;; cdr--its arglist."
+;;;   (let ((ses-count (ad-get-arg 0)))
+;;;     (catch 'undo
+;;;       (dolist (ses-x pending-undo-list)
+;;; 	(unless ses-x
+;;; 	  ;;End of undo boundary
+;;; 	  (setq ses-count (1- ses-count))
+;;; 	  (if (<= ses-count 0)
+;;; 	      ;;We've seen enough boundaries - stop undoing
+;;; 	      (throw 'undo nil)))
+;;; 	(and (consp ses-x) (symbolp (car ses-x)) (fboundp (car ses-x))
+;;; 	     ;;Undo using apply
+;;; 	     (apply (car ses-x) (cdr ses-x)))))
+;;;     (if (not (eq major-mode 'ses-mode))
+;;; 	ad-do-it
+;;;       ;;Here is some extra code for SES mode.
+;;;       (setq ses--deferred-narrow
+;;; 	    (or ses--deferred-narrow (ses-narrowed-p)))
+;;;       (widen)
+;;;       (condition-case x
+;;; 	  ad-do-it
+;;; 	(error
+;;; 	 ;;Restore narrow if appropriate
+;;; 	 (ses-command-hook)
+;;; 	 (signal (car x) (cdr x)))))))
 
 (defun ses-begin-change ()
-  "For undo, remember current buffer-position before we start changing hidden
-stuff."
+  "For undo, remember point before we start changing hidden stuff."
   (let ((inhibit-read-only t))
     (insert-and-inherit "X")
     (delete-region (1- (point)) (point))))
@@ -1324,8 +1325,8 @@ stuff."
 	       (equal (symbol-value sym) newval)
 	       (not (stringp newval)))
     (push (if (boundp sym)
-	      `(ses-set-with-undo ,sym ,(symbol-value sym))
-	    `(ses-unset-with-undo ,sym))
+	      `(apply ses-set-with-undo ,sym ,(symbol-value sym))
+	    `(apply ses-unset-with-undo ,sym))
 	  buffer-undo-list)
     (set sym newval)
     t))
@@ -1333,13 +1334,13 @@ stuff."
 (defun ses-unset-with-undo (sym)
   "Set SYM to be unbound.  This is undoable."
   (when (1value (boundp sym)) ;;Always bound, except after a programming error
-    (push `(ses-set-with-undo ,sym ,(symbol-value sym)) buffer-undo-list)
+    (push `(apply ses-set-with-undo ,sym ,(symbol-value sym)) buffer-undo-list)
     (makunbound sym)))
 
 (defun ses-aset-with-undo (array idx newval)
   "Like aset, but undoable.  Result is t if element has changed"
   (unless (equal (aref array idx) newval)
-    (push `(ses-aset-with-undo ,array ,idx ,(aref array idx)) buffer-undo-list)
+    (push `(apply ses-aset-with-undo ,array ,idx ,(aref array idx)) buffer-undo-list)
     (aset array idx newval)
     t))
 
@@ -2065,7 +2066,7 @@ before current one."
       (dotimes (col ses--numcols)
 	(aset newrow col (ses-make-cell)))
       (setq ses--cells (ses-vector-insert ses--cells row newrow))
-      (push `(ses-vector-delete ses--cells ,row 1) buffer-undo-list)
+      (push `(apply ses-vector-delete ses--cells ,row 1) buffer-undo-list)
       (insert ses--blank-line))
     ;;Insert empty lines in cell data area (will be replaced by
     ;;ses-relocate-all)

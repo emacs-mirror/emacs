@@ -4323,11 +4323,15 @@ show_hourglass (timer)
 		    {
 		      unsigned long mask = CWCursor;
 		      XSetWindowAttributes attrs;
-
+#ifdef USE_GTK
+                      Window parent = FRAME_X_WINDOW (f);
+#else
+                      Window parent = FRAME_OUTER_WINDOW (f);
+#endif
 		      attrs.cursor = f->output_data.x->hourglass_cursor;
 
 		      f->output_data.x->hourglass_window
-			= XCreateWindow (dpy, FRAME_OUTER_WINDOW (f),
+			= XCreateWindow (dpy, parent,
 					 0, 0, 32000, 32000, 0, 0,
 					 InputOnly,
 					 CopyFromParent,

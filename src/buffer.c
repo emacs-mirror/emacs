@@ -5798,6 +5798,14 @@ An entry (nil PROPERTY VALUE BEG . END) indicates that a text property
 was modified between BEG and END.  PROPERTY is the property name,
 and VALUE is the old value.
 
+An entry (apply FUN-NAME . ARGS) means undo the change with
+\(apply FUN-NAME ARGS).
+
+An entry (apply DELTA BEG END FUN-NAME . ARGS) supports selective undo
+in the active region.  BEG and END is the range affected by this entry
+and DELTA is the number of bytes added or deleted in that range by
+this change.
+
 An entry (MARKER . DISTANCE) indicates that the marker MARKER
 was adjusted in position by the offset DISTANCE (an integer).
 

@@ -1,3 +1,37 @@
+2005-01-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* basic.texi (Undo): Update description of `undo-outer-limit'.
+
+2005-02-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi: Update documentation relating to GDB Graphical
+	Interface.
+
+2005-01-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.texi (Easy Customization): Adapt menu to node name change.
+
+2005-01-30  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.texi (Easy Customization): Defn of "User Option" now
+	includes faces.  Don't say just "option" when talking about variables.
+	Do say just "options" to mean "anything customizable".
+	(Specific Customization): Describe `customize-variable',
+	not `customize-option'.
+
+	* glossary.texi (Glossary) <Faces>: Add xref.
+	<User Option>: Change definition--include faces.  Change xref.
+
+	* picture.texi (Picture): Mention artist.el.
+
+	* sending.texi, screen.texi, programs.texi, misc.texi:
+	* mini.texi, major.texi, maintaining.texi, macos.texi:
+	* help.texi, frames.texi, files.texi:
+	Don't say just "option" when talking about variables.
+
+	* display.texi, mule.texi: Don't say just "option" when talking
+	about variables.  Other minor cleanups.
+
 2005-01-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi: Some edits based on comments from David Abrahams.

@@ -18,9 +18,10 @@ parentheses (@pxref{Mode Line}).
   The least specialized major mode is called @dfn{Fundamental mode}.
 This mode has no mode-specific redefinitions or variable settings, so
 that each Emacs command behaves in its most general manner, and each
-option is in its default state.  For editing text of a specific type
-that Emacs knows about, such as Lisp code or English text, you should
-switch to the appropriate major mode, such as Lisp mode or Text mode.
+user option variable is in its default state.  For editing text of a
+specific type that Emacs knows about, such as Lisp code or English
+text, you should switch to the appropriate major mode, such as Lisp
+mode or Text mode.
 
   Selecting a major mode changes the meanings of a few keys to become
 more specifically adapted to the language being edited.  The ones that

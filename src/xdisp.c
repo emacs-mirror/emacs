@@ -4799,6 +4799,7 @@ back_to_previous_visible_line_start (it)
 	int beg, end;
 	Lisp_Object val, overlay;
 
+	it2.sp = 0;
 	if (handle_display_prop (&it2) == HANDLED_RETURN
 	    && !NILP (val = get_char_property_and_overlay
 		      (make_number (pos), Qdisplay, Qnil, &overlay))

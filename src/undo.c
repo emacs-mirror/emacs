@@ -40,6 +40,10 @@ Lisp_Object last_undo_buffer;
 
 Lisp_Object Qinhibit_read_only;
 
+/* Marker for function call undo list elements.  */
+
+Lisp_Object Qapply;
+
 /* The first time a command records something for undo.
    it also allocates the undo-boundary object
    which will be added to the list at the end of the command.
@@ -519,7 +523,7 @@ Return what remains of the list.  */)
 		}
 	      else if (EQ (car, Qnil))
 		{
-		  /* Element (nil prop val beg . end) is property change.  */
+		  /* Element (nil PROP VAL BEG . END) is property change.  */
 		  Lisp_Object beg, end, prop, val;
 
 		  prop = Fcar (cdr);
@@ -542,6 +546,26 @@ Return what remains of the list.  */)
 		     does not send point back to where it is now.  */
 		  Fgoto_char (car);
 		  Fdelete_region (car, cdr);
+		}
+	      else if (EQ (car, Qapply))
+		{
+		  Lisp_Object oldlist = current_buffer->undo_list;
+		  /* Element (apply FUNNAME . ARGS) means call FUNNAME to undo.  */
+		  car = Fcar (cdr);
+		  if (INTEGERP (car))
+		    {
+		      /* Long format: (apply DELTA START END FUNNAME . ARGS).  */
+		      cdr = Fcdr (Fcdr (Fcdr (cdr)));
+		      car = Fcar (cdr);
+		    }
+		  cdr = Fcdr (cdr);
+		  apply1 (car, cdr);
+		  /* Make sure this produces at least one undo entry,
+		     so the test in `undo' for continuing an undo series
+		     will work right.  */
+		  if (EQ (oldlist, current_buffer->undo_list))
+		    current_buffer->undo_list
+		      = Fcons (list2 (Qcdr, Qnil), current_buffer->undo_list);
 		}
 	      else if (STRINGP (car) && INTEGERP (cdr))
 		{
@@ -589,12 +613,15 @@ Return what remains of the list.  */)
   UNGCPRO;
   return unbind_to (count, list);
 }
-
+
 void
 syms_of_undo ()
 {
   Qinhibit_read_only = intern ("inhibit-read-only");
   staticpro (&Qinhibit_read_only);
+
+  Qapply = intern ("apply");
+  staticpro (&Qapply);
 
   pending_boundary = Qnil;
   staticpro (&pending_boundary);
@@ -627,17 +654,19 @@ which includes both saved text and other data.  */);
   DEFVAR_LISP ("undo-outer-limit", &Vundo_outer_limit,
 	      doc: /* Outer limit on size of undo information for one command.
 At garbage collection time, if the current command has produced
-more than this much undo information, it asks you whether to delete
-the information.  This is a last-ditch limit to prevent memory overflow.
+more than this much undo information, it discards the info and displays
+a warning.  This is a last-ditch limit to prevent memory overflow.
 
-The size is counted as the number of bytes occupied,
-which includes both saved text and other data.
+The size is counted as the number of bytes occupied, which includes
+both saved text and other data.  A value of nil means no limit.  In
+this case, accumulating one huge undo entry could make Emacs crash as
+a result of memory overflow.
 
 In fact, this calls the function which is the value of
 `undo-outer-limit-function' with one argument, the size.
 The text above describes the behavior of the function
 that variable usually specifies.  */);
-  Vundo_outer_limit = make_number (300000);
+  Vundo_outer_limit = make_number (3000000);
 
   DEFVAR_LISP ("undo-outer-limit-function", &Vundo_outer_limit_function,
 	       doc: /* Function to call when an undo list exceeds `undo-outer-limit'.

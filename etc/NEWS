@@ -250,8 +250,8 @@ modes do.
 
 +++
 ** When the undo information of the current command gets really large
-(beyond the value of `undo-outer-limit'), Emacs asks you whether to
-discard it or keep it.
+(beyond the value of `undo-outer-limit'), Emacs discards it and warns
+you about it.
 
 ** line-move-ignore-invisible now defaults to t.
 
@@ -2561,6 +2561,11 @@ the command `undefined'.  (In earlier Emacs versions, it used
 `risky-local-variable' property is nil.
 
 * Lisp Changes in Emacs 21.4
+
+** An element of buffer-undo-list can now have the form (FUNNAME .
+ARGS), where FUNNAME is a symbol other than t or nil.  That stands for
+a high-level change that should be undone by evaluating (apply FUNNAME
+ARGS).
 
 +++
 ** The line-move, scroll-up, and scroll-down functions will now

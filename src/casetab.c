@@ -18,7 +18,7 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* Written by Howard Gayle.  See chartab.c for details. */
+/* Written by Howard Gayle.  */
 
 #include <config.h>
 #include "lisp.h"

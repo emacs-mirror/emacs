@@ -97,7 +97,7 @@ selected window's cursor is solid or blinking, and the other cursors
 are just hollow.  Thus, the most striking cursor always shows you
 the selected window, on all kinds of terminals.
 
-  @xref{Cursor Display}, for customization options that control display
+  @xref{Cursor Display}, for customizable variables that control display
 of the cursor or cursors.
 
   The term ``point'' comes from the character @samp{.}, which was the
