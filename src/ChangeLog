@@ -1,3 +1,7 @@
+2003-05-18  Richard M. Stallman  <rms@gnu.org>
+
+	* callproc.c (Fcall_process_region): Doc fix.
+
 2003-05-17  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* lread.c (Fload): Print a message if package is obsolete.
