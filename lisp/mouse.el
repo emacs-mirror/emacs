@@ -840,6 +840,29 @@ and selects that window."
 ;;;!! 		(- (car relative-coordinate) (current-column)) " "))
 ;;;!! 	      ((= (current-column) (car relative-coordinate)) (ding))))))
 
+;; Choose a completion with the mouse.
+
+(defun mouse-choose-completion (event)
+  (interactive "e")
+  (let (choice)
+    (save-excursion
+      (set-buffer (window-buffer (posn-window (event-start event))))
+      (save-excursion
+	(goto-char (posn-point (event-start event)))
+	(skip-chars-backward "^ \t\n")
+	(let ((beg (point)))
+	  (skip-chars-forward "^ \t\n")
+	  (setq choice (buffer-substring beg (point))))))
+    (save-excursion
+      (set-buffer (window-buffer (minibuffer-window)))
+      (goto-char (max (point-min) (- (point-max) (length choice))))
+      (while (and (not (eobp))
+		  (let ((tail (buffer-substring (point) (point-max))))
+		    (not (string= tail (substring choice 0 (length tail))))))
+	(forward-char 1))
+      (insert choice)
+      (delete-region (point) (point-max)))))
+
 ;; Font selection.
 
 (defvar x-fixed-font-alist
