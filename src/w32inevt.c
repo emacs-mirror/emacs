@@ -33,6 +33,8 @@ Boston, MA 02111-1307, USA.
 #include "frame.h"
 #include "blockinput.h"
 #include "termhooks.h"
+#include "w32heap.h"
+#include "w32term.h"
 
 /* stdin, from ntterm */
 extern HANDLE keyboard_handle;
@@ -49,10 +51,20 @@ extern int change_frame_size (FRAME_PTR, int, int, int, int);
 
 /* from w32fns.c */
 extern Lisp_Object Vw32_alt_is_meta;
+extern unsigned int map_keypad_keys (unsigned int, unsigned int);
 
 /* from w32term */
 extern Lisp_Object Vw32_capslock_is_shiftlock;
+extern Lisp_Object Vw32_enable_caps_lock;
+extern Lisp_Object Vw32_enable_num_lock;
 extern Lisp_Object Vw32_recognize_altgr;
+extern Lisp_Object Vw32_pass_lwindow_to_system;
+extern Lisp_Object Vw32_pass_rwindow_to_system;
+extern Lisp_Object Vw32_lwindow_modifier;
+extern Lisp_Object Vw32_rwindow_modifier;
+extern Lisp_Object Vw32_apps_modifier;
+extern Lisp_Object Vw32_scroll_lock_modifier;
+extern unsigned int w32_key_to_modifier (int key);
 
 /* Event queue */
 #define EVENT_QUEUE_SIZE 50
@@ -105,7 +117,7 @@ w32_kbd_mods_to_emacs (DWORD mods, WORD key)
   int retval = 0;
 
   /* If we recognize right-alt and left-ctrl as AltGr, and it has been
-     pressed, remove the modifiers.  */
+     pressed, first remove those modifiers.  */
   if (!NILP (Vw32_recognize_altgr) 
       && (mods & (RIGHT_ALT_PRESSED | LEFT_CTRL_PRESSED)) 
       == (RIGHT_ALT_PRESSED | LEFT_CTRL_PRESSED))
@@ -122,39 +134,56 @@ w32_kbd_mods_to_emacs (DWORD mods, WORD key)
 	retval |= meta_modifier;
     }
 
+  if (mods & LEFT_WIN_PRESSED)
+    retval |= w32_key_to_modifier (VK_LWIN);
+  if (mods & RIGHT_WIN_PRESSED)
+    retval |= w32_key_to_modifier (VK_RWIN);
+  if (mods & APPS_PRESSED)
+    retval |= w32_key_to_modifier (VK_APPS);
+  if (mods & SCROLLLOCK_ON)
+    retval |= w32_key_to_modifier (VK_SCROLL);
+
   /* Just in case someone wanted the original behaviour, make it
      optional by setting w32-capslock-is-shiftlock to t.  */
-  if (NILP (Vw32_capslock_is_shiftlock) &&
-#if 1
-      ( (key == VK_BACK) ||
-	(key == VK_TAB) ||
-	(key == VK_CLEAR) ||
-	(key == VK_RETURN) ||
-	(key == VK_ESCAPE) ||
-	( (key >= VK_SPACE) && (key <= VK_HELP)) ||
-	( (key >= VK_NUMPAD0) && (key <= VK_F24))
-	)
-#else
-      /* Perhaps easier to say which keys we *do* always want affected
-	 by capslock.  Not sure how this affects "alphabetic" keyboard
-	 input in non-English languages though - what virtual key codes
-	 are returned for accented letters, for instance?  */
-      !( (key >= '0' && key <= '9') || (key >= 'A' && key <= 'Z') )
-#endif
-      )
+  if (NILP (Vw32_capslock_is_shiftlock)
+      /* Keys that should _not_ be affected by CapsLock.  */
+      && (    (key == VK_BACK)
+	   || (key == VK_TAB)
+	   || (key == VK_CLEAR)
+	   || (key == VK_RETURN)
+	   || (key == VK_ESCAPE)
+	   || ((key >= VK_SPACE) && (key <= VK_HELP))
+	   || ((key >= VK_NUMPAD0) && (key <= VK_F24))
+	   || ((key >= VK_NUMPAD_CLEAR) && (key <= VK_NUMPAD_DELETE))
+	 ))
     {
-      if ( (mods & SHIFT_PRESSED) == SHIFT_PRESSED)
+      /* Only consider shift state.  */
+      if ((mods & SHIFT_PRESSED) != 0)
 	retval |= shift_modifier;
     }
   else
     {
-  if (((mods & (SHIFT_PRESSED | CAPSLOCK_ON)) == SHIFT_PRESSED)
-      || ((mods & (SHIFT_PRESSED | CAPSLOCK_ON)) == CAPSLOCK_ON))
-    retval |= shift_modifier;
+      /* Ignore CapsLock state if not enabled.  */
+      if (NILP (Vw32_enable_caps_lock))
+	mods &= ~CAPSLOCK_ON;
+      if ((mods & (SHIFT_PRESSED | CAPSLOCK_ON)) != 0)
+	retval |= shift_modifier;
     }
 
   return retval;
 }
+
+#if 0
+/* Return nonzero if the virtual key is a dead key.  */
+static int
+is_dead_key (int wparam)
+{
+  unsigned int code = MapVirtualKey (wparam, 2);
+
+  /* Windows 95 returns 0x8000, NT returns 0x80000000.  */
+  return (code & 0x80008000) ? 1 : 0;
+}
+#endif
 
 /* The return code indicates key code size. */
 int
@@ -176,6 +205,7 @@ w32_kbd_patch_key (KEY_EVENT_RECORD *event)
     return 1;
 
   memset (keystate, 0, sizeof (keystate));
+  keystate[key_code] = 0x80;
   if (mods & SHIFT_PRESSED) 
     keystate[VK_SHIFT] = 0x80;
   if (mods & CAPSLOCK_ON) 
@@ -191,235 +221,226 @@ w32_kbd_patch_key (KEY_EVENT_RECORD *event)
       keystate[VK_RMENU] = 0x80;
     }
 
-  isdead = ToAscii (event->wVirtualKeyCode, event->wVirtualScanCode,
-		    keystate, (LPWORD) ansi_code, 0);
+#if 0
+  /* Because of an OS bug, ToAscii corrupts the stack when called to
+     convert a dead key in console mode on NT4.  Unfortunately, trying
+     to check for dead keys using MapVirtualKey doesn't work either -
+     these functions apparently use internal information about keyboard
+     layout which doesn't get properly updated in console programs when
+     changing layout (though apparently it gets partly updated,
+     otherwise ToAscii wouldn't crash).  */
+  if (is_dead_key (event->wVirtualKeyCode))
+    return 0;
+#endif
+
+  /* On NT, call ToUnicode instead and then convert to the current
+     locale's default codepage.  */
+  if (os_subtype == OS_NT)
+    {
+      WCHAR buf[128];
+
+      isdead = ToUnicode (event->wVirtualKeyCode, event->wVirtualScanCode,
+			  keystate, buf, 128, 0);
+      if (isdead > 0)
+	{
+          char cp[20];
+          int cpId;
+
+          GetLocaleInfo (GetThreadLocale (),
+			 LOCALE_IDEFAULTANSICODEPAGE, cp, 20);
+          cpId = atoi (cp);
+          isdead = WideCharToMultiByte (cpId, 0, buf, isdead,
+					ansi_code, 4, NULL, NULL);
+	}
+      else
+	isdead = 0;
+    }
+  else
+    {
+      isdead = ToAscii (event->wVirtualKeyCode, event->wVirtualScanCode,
+                        keystate, (LPWORD) ansi_code, 0);
+    }
+
   if (isdead == 0) 
     return 0;
   event->uChar.AsciiChar = ansi_code[0];
   return isdead;
 }
 
-/* Map virtual key codes into:
-   -1 - Ignore this key
-   -2 - ASCII char
-   Other - Map non-ASCII keys into X keysyms so that they are looked up
-   correctly in keyboard.c
 
-   Return, escape and tab are mapped to ASCII rather than coming back
-   as non-ASCII to be more compatible with old-style keyboard support.  */
-
-static int map_virt_key[256] =
-{
-#ifdef MULE
-  -3,
-#else
-  -1,
-#endif
-  -1,                 /* VK_LBUTTON */
-  -1,                 /* VK_RBUTTON */
-  0x69,               /* VK_CANCEL */
-  -1,                 /* VK_MBUTTON */
-  -1, -1, -1,
-  8,                  /* VK_BACK */
-  -2,                 /* VK_TAB */
-  -1, -1,
-  11,                 /* VK_CLEAR */
-  -2,                 /* VK_RETURN */
-  -1, -1,
-  -1,                 /* VK_SHIFT */
-  -1,                 /* VK_CONTROL */
-  -1,                 /* VK_MENU */
-  0x13,               /* VK_PAUSE */
-  -1,                 /* VK_CAPITAL */
-  -1, -1, -1, -1, -1, -1,
-  -2,                 /* VK_ESCAPE */
-  -1, -1, -1, -1,
-  -2,                 /* VK_SPACE */
-  0x55,               /* VK_PRIOR */
-  0x56,               /* VK_NEXT */
-  0x57,               /* VK_END */
-  0x50,               /* VK_HOME */
-  0x51,               /* VK_LEFT */
-  0x52,               /* VK_UP */
-  0x53,               /* VK_RIGHT */
-  0x54,               /* VK_DOWN */
-  0x60,               /* VK_SELECT */
-  0x61,               /* VK_PRINT */
-  0x62,               /* VK_EXECUTE */
-  -1,                 /* VK_SNAPSHOT */
-  0x63,               /* VK_INSERT */
-  0xff,               /* VK_DELETE */
-  0x6a,               /* VK_HELP */
-  -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,     /* 0 - 9 */
-  -1, -1, -1, -1, -1, -1, -1,
-  -2, -2, -2, -2, -2, -2, -2, -2,             /* A - Z */
-  -2, -2, -2, -2, -2, -2, -2, -2,
-  -2, -2, -2, -2, -2, -2, -2, -2,
-  -2, -2,
-  -1, -1, -1, -1, -1,
-  0xb0,               /* VK_NUMPAD0 */
-  0xb1,               /* VK_NUMPAD1 */
-  0xb2,               /* VK_NUMPAD2 */
-  0xb3,               /* VK_NUMPAD3 */
-  0xb4,               /* VK_NUMPAD4 */
-  0xb5,               /* VK_NUMPAD5 */
-  0xb6,               /* VK_NUMPAD6 */
-  0xb7,               /* VK_NUMPAD7 */
-  0xb8,               /* VK_NUMPAD8 */
-  0xb9,               /* VK_NUMPAD9 */
-  0xaa,               /* VK_MULTIPLY */
-  0xab,               /* VK_ADD */
-  0xac,               /* VK_SEPARATOR */
-  0xad,               /* VK_SUBTRACT */
-  0xae,               /* VK_DECIMAL */
-  0xaf,               /* VK_DIVIDE */
-  0xbe,               /* VK_F1 */
-  0xbf,               /* VK_F2 */
-  0xc0,               /* VK_F3 */
-  0xc1,               /* VK_F4 */
-  0xc2,               /* VK_F5 */
-  0xc3,               /* VK_F6 */
-  0xc4,               /* VK_F7 */
-  0xc5,               /* VK_F8 */
-  0xc6,               /* VK_F9 */
-  0xc7,               /* VK_F10 */
-  0xc8,               /* VK_F11 */
-  0xc9,               /* VK_F12 */
-  0xca,               /* VK_F13 */
-  0xcb,               /* VK_F14 */
-  0xcc,               /* VK_F15 */
-  0xcd,               /* VK_F16 */
-  0xce,               /* VK_F17 */
-  0xcf,               /* VK_F18 */
-  0xd0,               /* VK_F19 */
-  0xd1,               /* VK_F20 */
-  0xd2,               /* VK_F21 */
-  0xd3,               /* VK_F22 */
-  0xd4,               /* VK_F23 */
-  0xd5,               /* VK_F24 */
-  -1, -1, -1, -1, -1, -1, -1, -1,
-  0x7f,               /* VK_NUMLOCK */
-      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* 0x9f */
-  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* 0xaf */
-  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* 0xb9 */
-  -2,                 /* ; */
-  -2,                 /* = */
-  -2,                 /* , */
-  -2,                 /* \ */
-  -2,                 /* . */
-  -2,                 /* / */
-  -2,                 /* ` */
-      -2, /* 0xc1: on Brazilian keyboards, this is the /(?) key. */
-          -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* 0xcf */
-  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /* 0xda */
-                                              -2, -2, -2, -2, -2, /* 0xdf */
-  -2, -2, -2, -2, -2,
-                      -1, /* 0xe5 */
-                          -2, /* oxe6 */
-                              -1, -1, /* 0xe8 */
-                                      -2, -2, -2, -2, -2, -2, -2, /* 0xef */
-  -2, -2, -2, -2, -2, -2,
-                          -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 /* 0xff */
-};
+extern char *lispy_function_keys[];
 
 /* return code -1 means that event_queue_ptr won't be incremented. 
    In other word, this event makes two key codes.   (by himi)       */
 int 
 key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 {
-  int map;
-  int key_flag = 0;
-  static BOOL map_virt_key_init_done;
+  static int faked_key = 0;
+  static int mod_key_state = 0;
+  int wParam;
 
   *isdead = 0;
-  
+
   /* Skip key-up events.  */
   if (!event->bKeyDown)
-    return 0;
-  
-  if (event->wVirtualKeyCode > 0xff)
     {
-      printf ("Unknown key code %d\n", event->wVirtualKeyCode);
+      switch (event->wVirtualKeyCode)
+	{
+	case VK_LWIN:
+	  mod_key_state &= ~LEFT_WIN_PRESSED;
+	  break;
+	case VK_RWIN:
+	  mod_key_state &= ~RIGHT_WIN_PRESSED;
+	  break;
+	case VK_APPS:
+	  mod_key_state &= ~APPS_PRESSED;
+	  break;
+	}
       return 0;
     }
 
-  /* Patch needed for German keyboard. Ulrich Leodolter (1/11/95).  */
-  if (! map_virt_key_init_done) 
+  /* Ignore keystrokes we fake ourself; see below.  */
+  if (faked_key == event->wVirtualKeyCode)
     {
-      short vk;
-
-      if ((vk = VkKeyScan (0x3c)) >= 0 && vk < 256) map_virt_key[vk] = -2; /* less */
-      if ((vk = VkKeyScan (0x3e)) >= 0 && vk < 256) map_virt_key[vk] = -2; /* greater */
-
-      map_virt_key_init_done = TRUE;
-    }
-  
-  /* BUGBUG - Ignores the repeat count
-     It's questionable whether we want to obey the repeat count anyway
-     since keys usually aren't repeated unless key events back up in
-     the queue.  If they're backing up then we don't generally want
-     to honor them later since that leads to significant slop in
-     cursor motion when the system is under heavy load.  */
-
-  map = map_virt_key[event->wVirtualKeyCode];
-  if (map == -1)
-    {
+      faked_key = 0;
       return 0;
     }
-  else if (map == -2)
+
+  /* To make it easier to debug this code, ignore modifier keys!  */
+  switch (event->wVirtualKeyCode)
     {
-      /* ASCII */
-      emacs_ev->kind = ascii_keystroke;
-      key_flag = w32_kbd_patch_key (event); /* 95.7.25 by himi */
-      if (key_flag == 0) 
+    case VK_LWIN:
+      if (NILP (Vw32_pass_lwindow_to_system))
+	{
+	  /* Prevent system from acting on keyup (which opens the Start
+	     menu if no other key was pressed) by simulating a press of
+	     Space which we will ignore.  */
+	  if ((mod_key_state & LEFT_WIN_PRESSED) == 0)
+	    {
+	      faked_key = VK_SPACE;
+	      keybd_event (VK_SPACE, (BYTE) MapVirtualKey (VK_SPACE, 0), 0, 0);
+	    }
+	}
+      mod_key_state |= LEFT_WIN_PRESSED;
+      if (!NILP (Vw32_lwindow_modifier))
 	return 0;
-      if (key_flag < 0)
-	*isdead = 1;
+      break;
+    case VK_RWIN:
+      if (NILP (Vw32_pass_rwindow_to_system))
+	{
+	  if ((mod_key_state & RIGHT_WIN_PRESSED) == 0)
+	    {
+	      faked_key = VK_SPACE;
+	      keybd_event (VK_SPACE, (BYTE) MapVirtualKey (VK_SPACE, 0), 0, 0);
+	    }
+	}
+      mod_key_state |= RIGHT_WIN_PRESSED;
+      if (!NILP (Vw32_rwindow_modifier))
+	return 0;
+      break;
+    case VK_APPS:
+      mod_key_state |= APPS_PRESSED;
+      if (!NILP (Vw32_apps_modifier))
+	return 0;
+      break;
+    case VK_CAPITAL:
+      /* Decide whether to treat as modifier or function key.  */
+      if (NILP (Vw32_enable_caps_lock))
+	goto disable_lock_key;
+      return 0;
+    case VK_NUMLOCK:
+      /* Decide whether to treat as modifier or function key.  */
+      if (NILP (Vw32_enable_num_lock))
+	goto disable_lock_key;
+      return 0;
+    case VK_SCROLL:
+      /* Decide whether to treat as modifier or function key.  */
+      if (NILP (Vw32_scroll_lock_modifier))
+	goto disable_lock_key;
+      return 0;
+    disable_lock_key:
+      /* Ensure the appropriate lock key state is off (and the
+	 indicator light as well).  */
+      wParam = event->wVirtualKeyCode;
+      if (GetAsyncKeyState (wParam) & 0x8000)
+	{
+	  /* Fake another press of the relevant key.  Apparently, this
+	     really is the only way to turn off the indicator.  */
+	  faked_key = wParam;
+	  keybd_event ((BYTE) wParam, (BYTE) MapVirtualKey (wParam, 0),
+		       KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+	  keybd_event ((BYTE) wParam, (BYTE) MapVirtualKey (wParam, 0),
+		       KEYEVENTF_EXTENDEDKEY | 0, 0);
+	  keybd_event ((BYTE) wParam, (BYTE) MapVirtualKey (wParam, 0),
+		       KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+	}
+      break;
+    case VK_MENU:
+    case VK_CONTROL:
+    case VK_SHIFT:
+      return 0;
+    }
+
+  /* Recognize state of Windows and Apps keys.  */
+  event->dwControlKeyState |= mod_key_state;
+
+  /* Distinguish numeric keypad keys from extended keys.  */
+  event->wVirtualKeyCode =
+    map_keypad_keys (event->wVirtualKeyCode,
+		     (event->dwControlKeyState & ENHANCED_KEY));
+
+  if (lispy_function_keys[event->wVirtualKeyCode] == 0)
+    {
+      emacs_ev->kind = ascii_keystroke;
+
+      if (!NILP (Vw32_recognize_altgr)
+	  && (event->dwControlKeyState & LEFT_CTRL_PRESSED)
+	  && (event->dwControlKeyState & RIGHT_ALT_PRESSED))
+	{
+	  /* Don't try to interpret AltGr key chords; ToAscii seems not
+	     to process them correctly.  */
+	}
+      /* Handle key chords including any modifiers other than shift
+         directly, in order to preserve as much modifier information as
+         possible.  */
+      else if (event->dwControlKeyState
+	       & (  RIGHT_CTRL_PRESSED | LEFT_CTRL_PRESSED
+		  | RIGHT_ALT_PRESSED | LEFT_ALT_PRESSED
+		  | (!NILP (Vw32_lwindow_modifier) ? LEFT_WIN_PRESSED : 0)
+		  | (!NILP (Vw32_rwindow_modifier) ? RIGHT_WIN_PRESSED : 0)
+		  | (!NILP (Vw32_apps_modifier) ? APPS_PRESSED : 0)
+		  | (!NILP (Vw32_scroll_lock_modifier) ? SCROLLLOCK_ON : 0)))
+	{
+	  /* Don't translate modified alphabetic keystrokes, so the user
+	     doesn't need to constantly switch layout to type control or
+	     meta keystrokes when the normal layout translates
+	     alphabetic characters to non-ascii characters.  */
+	  if ('A' <= event->wVirtualKeyCode && event->wVirtualKeyCode <= 'Z')
+	    {
+	      event->uChar.AsciiChar = event->wVirtualKeyCode;
+	      if ((event->dwControlKeyState & SHIFT_PRESSED) == 0)
+		event->uChar.AsciiChar += ('a' - 'A');
+	    }
+	  /* Try to handle unrecognized keystrokes by determining the
+             base character (ie. translating the base key plus shift
+             modifier).  */
+	  else if (event->uChar.AsciiChar == 0)
+	    w32_kbd_patch_key (event);
+	}
+      if (event->uChar.AsciiChar == 0)
+	return 0;
       XSETINT (emacs_ev->code, event->uChar.AsciiChar);
     }
-#ifdef MULE
-  /* for IME */
-  else if (map == -3)
-    {
-      if ((event->dwControlKeyState & NLS_IME_CONVERSION)
-	  && !(event->dwControlKeyState & RIGHT_ALT_PRESSED)
-	  && !(event->dwControlKeyState & LEFT_ALT_PRESSED)
-	  && !(event->dwControlKeyState & RIGHT_CTRL_PRESSED)
-	  && !(event->dwControlKeyState & LEFT_CTRL_PRESSED))
-	{
-	  emacs_ev->kind = ascii_keystroke;
-	  XSETINT (emacs_ev->code, event->uChar.AsciiChar);
-	}
-      else
-	return 0;
-    }
-#endif
   else
     {
-      /* non-ASCII */
       emacs_ev->kind = non_ascii_keystroke;
-#ifdef HAVE_NTGUI
-      /* use Windows keysym map */
       XSETINT (emacs_ev->code, event->wVirtualKeyCode);
-#else
-      /*
-       * make_lispy_event () now requires non-ascii codes to have
-       * the full X keysym values (2nd byte is 0xff).  add it on.
-       */
-      map |= 0xff00;
-      XSETINT (emacs_ev->code, map);
-#endif /* HAVE_NTGUI */
     }
-/* for Mule 2.2 (Based on Emacs 19.28) */
-#ifdef MULE
-  XSET (emacs_ev->frame_or_window, Lisp_Frame, get_frame ());
-#else
+
   XSETFRAME (emacs_ev->frame_or_window, get_frame ());
-#endif
   emacs_ev->modifiers = w32_kbd_mods_to_emacs (event->dwControlKeyState,
 					       event->wVirtualKeyCode);
   emacs_ev->timestamp = GetTickCount ();
-  if (key_flag == 2) return -1; /* 95.7.25 by himi */
   return 1;
 }
 
