@@ -95,6 +95,7 @@
 ;;; Code:
 
 (require 'assoc)
+(require 'button)
 
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ;; empty defvars (keep the compiler quiet)
@@ -210,6 +211,12 @@ the associated section number."
 		       (string :tag "Real Section")))
   :group 'man)
 
+(defcustom Man-header-file-path
+  '("/usr/include" "/usr/local/include")
+  "C Header file search path used in Man."
+  :type '(repeat string)
+  :group 'man)
+
 (defvar manual-program "man"
   "The name of the program that produces man pages.")
 
@@ -263,6 +270,34 @@ This regular expression should start with a `^' character.")
 (defvar Man-reference-regexp
   (concat "\\(" Man-name-regexp "\\)(\\(" Man-section-regexp "\\))")
   "Regular expression describing a reference to another manpage.")
+
+(defvar Man-synopsis-regexp "SYNOPSIS"
+  "Regular expression for SYNOPSIS heading (or your equivalent).
+This regexp should not start with a `^' character.")
+
+(defvar Man-files-regexp "FILES"
+  "Regular expression for FILES heading (or your equivalent).
+This regexp should not start with a `^' character.")
+
+(defvar Man-include-regexp "#[ \t]*include[ \t]*"
+  "Regular expression describing the #include (directive of cpp).")
+
+(defvar Man-file-name-regexp "[^<>\" \t\n]+"
+  "Regular expression describing <> in #include line (directive of cpp).")
+
+(defvar Man-normal-file-prefix-regexp "[/~$]"
+  "Regular expression describing a file path appeared in FILES section.")
+
+(defvar Man-header-regexp
+  (concat "\\(" Man-include-regexp "\\)"
+          "[<\"]"
+          "\\(" Man-file-name-regexp "\\)"
+          "[>\"]")
+  "Regular expression describing references to header files.")
+
+(defvar Man-normal-file-regexp
+  (concat Man-normal-file-prefix-regexp Man-file-name-regexp)
+  "Regular expression describing references to normal files.")
 
 ;; This includes the section as an optional part to catch hyphenated
 ;; refernces to manpages.
@@ -333,7 +368,7 @@ make -a one of the switches, if your `man' program supports it.")
 
 (if Man-mode-map
     nil
-  (setq Man-mode-map (make-keymap))
+  (setq Man-mode-map (copy-keymap button-buffer-map))
   (suppress-keymap Man-mode-map)
   (define-key Man-mode-map " "    'scroll-up)
   (define-key Man-mode-map "\177" 'scroll-down)
@@ -350,10 +385,30 @@ make -a one of the switches, if your `man' program supports it.")
   (define-key Man-mode-map "k"    'Man-kill)
   (define-key Man-mode-map "q"    'Man-quit)
   (define-key Man-mode-map "m"    'man)
-  (define-key Man-mode-map "\r"   'man-follow)
-  (define-key Man-mode-map [mouse-2]   'man-follow-mouse)
   (define-key Man-mode-map "?"    'describe-mode)
   )
+
+;; buttons
+(define-button-type 'Man-xref-man-page
+  'action (lambda (button) (man-follow (button-label button)))
+  'help-echo "RET, mouse-2: display this man page")
+
+(define-button-type 'Man-xref-header-file
+  'action (lambda (button)
+	    (unless (Man-view-header-file (button-get button 'Man-target-string))
+	      (error "Cannot find header file: %s" w)))
+  'help-echo "mouse-2: display this header file")
+
+(define-button-type 'Man-xref-normal-file
+  'action (lambda (button)
+	    (let ((f (substitute-in-file-name
+		      (button-get button 'Man-target-string))))
+	      (if (file-exists-p f)
+		  (if (file-readable-p f)
+		      (view-file f)
+		    (error "Cannot read a file: %s" f))
+		(error "Cannot find a file: %s" f))))
+  'help-echo "mouse-2: mouse-2: display this file")
 
 
 ;; ======================================================================
@@ -562,13 +617,6 @@ all sections related to a subject, put something appropriate into the
       (error "No item under point")
     (man man-args)))
 
-(defun man-follow-mouse (e)
-  "Get a Un*x manual page of the item under the mouse and put it in a buffer."
-  (interactive "e")
-  (save-excursion
-    (mouse-set-point e)
-    (call-interactively 'man-follow)))
-
 (defun Man-getpage-in-background (topic)
   "Use TOPIC to build and fire off the manpage and cleaning command."
   (let* ((man-args topic)
@@ -737,11 +785,40 @@ Same for the ANSI bold and normal escape sequences."
     (put-text-property (1- (point)) (point) 'face 'bold))
   (goto-char (point-min))
   ;; Try to recognize common forms of cross references.
-  (while (re-search-forward "\\w+([0-9].?)" nil t)
-    (put-text-property (match-beginning 0) (match-end 0)
-		       'mouse-face 'highlight))
+  (Man-highlight-references)
   (Man-softhyphen-to-minus)
   (message "%s man page made up" Man-arguments))
+
+(defun Man-highlight-references ()
+  "Highlight the references on mouse-over.
+references include items in the SEE ALSO section,
+header file(#include <foo.h>) and files in FILES"
+  (let ((dummy 0))
+    (Man-highlight-references0
+     Man-see-also-regexp Man-reference-regexp 1 dummy
+     'Man-xref-man-page)
+    (Man-highlight-references0
+     Man-synopsis-regexp Man-header-regexp 0 2
+     'Man-xref-header-file)
+    (Man-highlight-references0
+     Man-files-regexp Man-normal-file-regexp 0 0
+     'Man-xref-normal-file)))
+
+(defun Man-highlight-references0 (start-section regexp button-pos target-pos type)
+  ;; Based on `Man-build-references-alist'
+  (when (Man-find-section start-section)
+    (forward-line 1)
+    (let ((end (save-excursion
+                 (Man-next-section 1)
+                 (point))))
+      (back-to-indentation)
+      (while (re-search-forward regexp end t)
+	(make-text-button
+	 (match-beginning button-pos)
+	 (match-end button-pos)
+	 'type type
+	 'Man-target-string (match-string target-pos)
+	 )))))
 
 (defun Man-cleanup-manpage ()
   "Remove overstriking and underlining from the current buffer."
@@ -1193,6 +1270,20 @@ Specify which REFERENCE to use; default is based on word at point."
     (if Man-circular-pages-flag
 	(Man-goto-page (length Man-page-list))
       (error "You're looking at the first manpage in the buffer"))))
+
+;; Header file support
+(defun Man-view-header-file (file)
+  "View a header file specified by FILE from `Man-header-file-path'."
+  (let ((path Man-header-file-path)
+        complete-path)
+    (while path
+      (setq complete-path (concat (car path) "/" file)
+            path (cdr path))
+      (if (file-readable-p complete-path)
+          (progn (view-file complete-path)
+                 (setq path nil))
+        (setq complete-path nil)))
+    complete-path))
 
 ;; Init the man package variables, if not already done.
 (Man-init-defvars)
