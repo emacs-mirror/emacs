@@ -1,6 +1,6 @@
 /* impl.c.bt: BIT TABLES
  *
- * $HopeName: MMsrc!bt.c(trunk.18) $
+ * $HopeName: MMsrc!bt.c(trunk.19) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * READERSHIP
@@ -15,7 +15,7 @@
 #include "mpm.h"
 
 
-SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.18) $");
+SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.19) $");
 
 
 /* is the whole word of bits at this index set? */
@@ -574,7 +574,7 @@ static Bool BTFindResRange(Index *baseReturn, Index *limitReturn,
   AVER(maxLength <= searchLimit - searchBase);
 
   resBase = searchBase;
-  resLimit = searchLimit - minLength;
+  resLimit = searchLimit - minLength +1;
   while (resBase < resLimit) {
     Bool foundRes = FALSE;
     /* Look for the start of a range */
