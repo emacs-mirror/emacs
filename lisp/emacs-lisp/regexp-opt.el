@@ -205,7 +205,10 @@ so we can use character sets rather than grouping parenthesis."
 	    (if (> (length xiffus) 0)
 		;; common suffix: take it and recurse on the prefixes.
 		(let* ((n (- (length xiffus)))
-		       (prefixes (mapcar (lambda (s) (substring s 0 n)) strings)))
+		       (prefixes
+			;; Sorting is necessary in cases such as ("ad" "d").
+			(sort (mapcar (lambda (s) (substring s 0 n)) strings)
+			      'string-lessp)))
 		  (concat open-group
 			  (regexp-opt-group prefixes t t)
 			  (regexp-quote
