@@ -5627,8 +5627,13 @@ provides a file dialog box..")
   /* If dir starts with user's homedir, change that to ~. */
   homedir = (char *) egetenv ("HOME");
 #ifdef DOS_NT
-  homedir = strcpy (alloca (strlen (homedir) + 1), homedir);
-  CORRECT_DIR_SEPS (homedir);
+  /* homedir can be NULL in temacs, since Vprocess_environment is not
+     yet set up.  We shouldn't crash in that case.  */
+  if (homedir != 0)
+    {
+      homedir = strcpy (alloca (strlen (homedir) + 1), homedir);
+      CORRECT_DIR_SEPS (homedir);
+    }
 #endif
   if (homedir != 0
       && STRINGP (dir)
