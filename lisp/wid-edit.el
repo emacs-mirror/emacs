@@ -300,6 +300,7 @@ minibuffer."
 	 (let* ((overriding-terminal-local-map
 		 (make-sparse-keymap))
 		map choice (next-digit ?0)
+		some-choice-enabled
 		value)
 	   ;; Define SPC as a prefix char to get to this menu.
 	   (define-key overriding-terminal-local-map " "
@@ -314,11 +315,14 @@ minibuffer."
 		   (let* ((name (car choice))
 			 (function (cdr choice)))
 		     (insert (format "%c = %s\n" next-digit name))
-		     (define-key map (vector next-digit) function)))
+		     (define-key map (vector next-digit) function)
+		     (setq some-choice-enabled t)))
 	       ;; Allocate digits to disabled alternatives
 	       ;; so that the digit of a given alternative never varies.
 	       (setq next-digit (1+ next-digit)))
 	     (insert "\nC-g = Quit"))
+	   (or some-choice-enabled
+	       (error "None of the choices is currently meaningful"))
 	   (define-key map [?\C-g] 'keyboard-quit)
 	   (define-key map [t] 'keyboard-quit)
 	   (setcdr map (nreverse (cdr map)))
@@ -375,10 +379,10 @@ size field."
 
 (defcustom widget-field-use-before-change
   (or (> emacs-minor-version 34)
-      (> emacs-major-version 20)
+      (>= emacs-major-version 20)
       (string-match "XEmacs" emacs-version))
   "Non-nil means use `before-change-functions' to track editable fields.
-This enables the use of undo, but doesn'f work on Emacs 19.34 and earlier. 
+This enables the use of undo, but doesn't work on Emacs 19.34 and earlier. 
 Using before hooks also means that the :notify function can't know the
 new value."
   :type 'boolean
