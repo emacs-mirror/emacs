@@ -50,7 +50,11 @@ static void (*warn_function) ();
 static void
 check_memory_limits ()
 {
+#ifdef REL_ALLOC
+  extern POINTER (*real_morecore) ();
+#endif
   extern POINTER (*__morecore) ();
+
 
   register POINTER cp;
   unsigned long five_percent;
@@ -61,6 +65,11 @@ check_memory_limits ()
   five_percent = lim_data / 20;
 
   /* Find current end of memory and issue warning if getting near max */
+#ifdef REL_ALLOC
+  if (real_morecore)
+    cp = (char *) (*real_morecore) (0);
+  else
+#endif
   cp = (char *) (*__morecore) (0);
   data_size = (char *) cp - (char *) data_space_start;
 
