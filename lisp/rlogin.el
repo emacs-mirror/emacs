@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; Support for remote logins using `rlogin'.
-;; $Id: rlogin.el,v 1.15 1993/12/01 13:04:24 friedman Exp roland $
+;; $Id: rlogin.el,v 1.16 1994/02/05 21:00:13 roland Exp roland $
 
 ;;; Todo:
 
@@ -209,11 +209,11 @@ If `rlogin-mode-hook' is set, run it."
   (send-string nil "\C-\\"))
 
 (defun rlogin-delchar-or-send-Ctrl-D (arg)
-  "Delete ARG characters forward, or send a C-d to process if at end of
-buffer."  
+  "\
+Delete ARG characters forward, or send a C-d to process if at end of buffer."  
   (interactive "p") 
   (if (eobp)
-      (send-string nil "\C-d")
+      (rlogin-send-Ctrl-D)
     (delete-char arg)))
 
 ;;; rlogin.el ends here
