@@ -1265,4 +1265,6 @@ paste (in addition to the normal emacs bindings)."
 ;;;###autoload  "To correct this, remove the loading and customization of the\n"
 ;;;###autoload  "old version from the " user-init-file " file.\n\n")))
 
+(provide 'cua)
+
 ;;; cua-base.el ends here
