@@ -3053,10 +3053,6 @@ use \\[mail-yank-original] to yank the original message into it."
 	     (msgnum rmail-current-message))
     (save-excursion
       (save-restriction
-	;; If rmail-enable-mime is non-nil, we are in a
-	;; rmail-view-buffer which doesn't contain any lines specific
-	;; to BABYL format (e.g. "*** EOOH ***").  Thus, there's no
-	;; need of narrowing in such a case.
 	(if rmail-enable-mime
 	    (narrow-to-region
 	     (goto-char (point-min))
