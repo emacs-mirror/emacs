@@ -25,6 +25,15 @@
 
 ;;; Commentary:
 
+;;; This file has been censored by the Communications Decency Act.
+;;; That law was passed under the guise of a ban on pornography, but
+;;; it bans far more than that.  This file did not contain pornography,
+;;; but it was censored nonetheless.
+
+;;; For information on US government censorship of the Internet, and
+;;; what you can do to bring back freedom of the press, see the web
+;;; site http://www.vtw.org/
+
 ;; ========================================================================
 ;; "No matter how hard you try, you can't make a racehorse out of a pig.
 ;; You can, however, make a faster pig."
@@ -1285,7 +1294,7 @@
      byte-member byte-assq byte-quo byte-rem)
    byte-compile-side-effect-and-error-free-ops))
 
-;;; This piece of shit is because of the way DEFVAR_BOOL() variables work.
+;;; This crock is because of the way DEFVAR_BOOL variables work.
 ;;; Consider the code
 ;;;
 ;;;	(defun foo (flag)

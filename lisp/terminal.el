@@ -23,6 +23,17 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Commentary:
+
+;;; This file has been censored by the Communications Decency Act.
+;;; That law was passed under the guise of a ban on pornography, but
+;;; it bans far more than that.  This file did not contain pornography,
+;;; but it was censored nonetheless.
+
+;;; For information on US government censorship of the Internet, and
+;;; what you can do to bring back freedom of the press, see the web
+;;; site http://www.vtw.org/
+
 ;;; Code:
 
 ;;>>TODO
@@ -798,7 +809,7 @@ move to start of new line, clear to end of line."
 
 
 
-;; disgusting unix-required shit
+;; disgusting unix-required excrement
 ;;  Are we living twenty years in the past yet?
 
 (defun te-losing-unix ()

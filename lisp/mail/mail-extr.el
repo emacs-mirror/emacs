@@ -26,6 +26,15 @@
 
 ;;; Commentary:
 
+;;; This file has been censored by the Communications Decency Act.
+;;; That law was passed under the guise of a ban on pornography, but
+;;; it bans far more than that.  This file did not contain pornography,
+;;; but it was censored nonetheless.
+
+;;; For information on US government censorship of the Internet, and
+;;; what you can do to bring back freedom of the press, see the web
+;;; site http://www.vtw.org/
+
 ;; The entry point of this code is
 ;;
 ;;    mail-extract-address-components: (address)
@@ -1308,9 +1317,9 @@ If ADDRESS contains more than one RFC-822 address, only the first is
 		   (cond
 		    
 		    ;; Handle X.400 addresses encoded in RFC-822.
-		    ;; *** Shit!  This has to handle the case where it is
+		    ;; *** This has to handle the case where it is
 		    ;; *** embedded in a quote too!
-		    ;; *** Shit!  The input is being broken up into atoms
+		    ;; *** The input is being broken up into atoms
 		    ;; *** by periods!
 		    ((looking-at mail-extr-x400-encoded-address-pattern)
 		     
