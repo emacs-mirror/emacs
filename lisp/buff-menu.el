@@ -83,7 +83,9 @@ restore window configuration when only one buffer is selected.")
   (define-key Buffer-menu-mode-map "?" 'describe-mode)
   (define-key Buffer-menu-mode-map "u" 'Buffer-menu-unmark)
   (define-key Buffer-menu-mode-map "m" 'Buffer-menu-mark)
-  (define-key Buffer-menu-mode-map "t" 'Buffer-menu-visit-tags-table))
+  (define-key Buffer-menu-mode-map "t" 'Buffer-menu-visit-tags-table)
+  (define-key Buffer-menu-mode-map "%" 'Buffer-menu-toggle-read-only)
+)
 
 ;; Buffer Menu mode is suitable only for specially formatted data.
 (put 'Buffer-menu-mode 'mode-class 'special)
@@ -111,7 +113,8 @@ Letters do not insert themselves; instead, they are commands.
 \\[Buffer-menu-execute] -- delete or save marked buffers.
 \\[Buffer-menu-unmark] -- remove all kinds of marks from current line.
   With prefix argument, also move up one line.
-\\[Buffer-menu-backup-unmark] -- back up a line and remove marks."
+\\[Buffer-menu-backup-unmark] -- back up a line and remove marks.
+\\[Buffer-menu-toggle-read-only] -- toggle read-only status of buffer on this line."
   (kill-all-local-variables)
   (use-local-map Buffer-menu-mode-map)
   (setq truncate-lines t)
@@ -354,5 +357,21 @@ The current window remains selected."
     (switch-to-buffer (other-buffer))
     (pop-to-buffer buff)
     (bury-buffer menu)))
+
+(defun Buffer-menu-toggle-read-only ()
+  "Toggle read-only status of buffer on this line."
+  (interactive)
+  (let (char)
+    (save-excursion
+      (set-buffer (Buffer-menu-buffer t))
+      (toggle-read-only)
+      (setq char (if buffer-read-only ?% ? )))
+    (save-excursion
+      (beginning-of-line)
+      (forward-char 2)
+      (if (/= (following-char) char)
+          (let (buffer-read-only)
+            (delete-char 1)
+            (insert char))))))
 
 ;;; buff-menu.el ends here
