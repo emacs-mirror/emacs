@@ -894,6 +894,8 @@ struct window;
 struct glyph_matrix;
 struct frame;
 struct input_event;
+struct face;
+struct image;
 
 /* From xselect.c.  */
 
@@ -920,6 +922,7 @@ Lisp_Object display_x_get_resource P_ ((struct x_display_info *,
 struct frame *check_x_frame P_ ((Lisp_Object));
 EXFUN (Fx_display_color_p, 1);
 EXFUN (Fx_display_grayscale_p, 1);
+int image_ascent P_ ((struct image *, struct face *));
 
 /* From xrdb.c.  */
 
