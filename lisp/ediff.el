@@ -7,7 +7,7 @@
 ;; Keywords: comparing, merging, patching, version control.
 
 (defconst ediff-version "2.67" "The current version of Ediff")
-(defconst ediff-date "August 7, 1997" "Date of last update")  
+(defconst ediff-date "September 3, 1997" "Date of last update")  
 
 
 ;; This file is part of GNU Emacs.
@@ -275,7 +275,7 @@
 ;; deleted.
 (defun ediff-find-file (file-var buffer-name &optional last-dir hooks-var)
   (let* ((file (symbol-value file-var))
-	 (file-magic (find-file-name-handler file 'find-file-noselect))
+	 (file-magic (ediff-filename-magic-p file))
 	 (temp-file-name-prefix (file-name-nondirectory file)))
     (cond ((not (file-readable-p file))
 	   (error "File `%s' does not exist or is not readable" file))
@@ -1182,7 +1182,8 @@ file and then run `run-ediff-from-cvs-buffer'."
 			   (t default-directory)))
     (setq source-file
 	  ;; the default is the directory, not the visited file name
-	  (ediff-read-file-name "Which file to patch? " source-dir source-dir))
+	  (ediff-read-file-name 
+	   "Which file to patch? " source-dir (ediff-get-default-file-name)))
     (ediff-dispatch-file-patching-job patch-buf source-file)))
 
 ;;;###autoload
@@ -1196,7 +1197,7 @@ file and then run `run-ediff-from-cvs-buffer'."
      patch-buf
      (read-buffer "Which buffer to patch? "
 		  (cond ((eq patch-buf (current-buffer))
-			 (window-buffer (other-window 1)))
+			 (ediff-other-buffer (current-buffer)))
 			(t (current-buffer)))
 		  'must-match))))
   

@@ -68,8 +68,7 @@ to a shell that you are not using or, better, fix your shell's startup file."
   "*Options to pass to `ediff-diff-program'. 
 If diff\(1\) is used as `ediff-diff-program', then the most useful options are
 `-w', to ignore space, and `-i', to ignore case of letters.
-At present, the option `-c' is ignored, since Ediff doesn't understand this
-type of output."
+At present, the option `-c' is not allowed."
   :type 'string
   :group 'ediff-diff)
 
@@ -158,9 +157,8 @@ one optional arguments, diff-number to refine.")
 ;; ediff-setup-diff-regions-function, which can also have the value
 ;; ediff-setup-diff-regions3, which takes 4 arguments.
 (defun ediff-setup-diff-regions (file-A file-B file-C)
-;;;  ;; Force all minibuffers to display ediff's messages.
-;;;  ;; When xemacs implements minibufferless frames, this won't be necessary
-;;;  (if ediff-xemacs-p (setq synchronize-minibuffers t))
+  (if (string-match "c" ediff-diff-options)
+      (error "Option `-c' is not allowed in `ediff-diff-options'"))
 						  
   ;; create, if it doesn't exist
   (or (ediff-buffer-live-p ediff-diff-buffer)
@@ -210,7 +208,6 @@ one optional arguments, diff-number to refine.")
 				 diff-buffer
 				 'synchronize
 				 ediff-diff-options file1 file2)
-	     ;;(message "Computing differences ... done")
 	     (message "")
 	     (ediff-with-current-buffer diff-buffer
 	       (buffer-size))))))
@@ -1043,11 +1040,6 @@ one optional arguments, diff-number to refine.")
 ;; File-C is either the third file to compare (in case of 3-way comparison)
 ;; or it is the ancestor file.
 (defun ediff-setup-diff-regions3 (file-A file-B file-C)
-  
-;;;  ;; force all minibuffers to display ediff's messages.
-;;;  ;; when xemacs implements minibufferless frames, this won't be necessary
-;;;  (if ediff-xemacs-p (setq synchronize-minibuffers t))
-						  
   (or (ediff-buffer-live-p ediff-diff-buffer)
       (setq ediff-diff-buffer
 	    (get-buffer-create (ediff-unique-buffer-name "*ediff-diff" "*"))))

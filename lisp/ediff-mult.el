@@ -155,10 +155,15 @@ directories.")
 ;; history var to use for filtering groups
 (defvar ediff-filtering-regexp-history nil "")
 
-;; This has the form ((ctl-buf file1 file2) (stl-buf file1 file2) ...)
-;; If ctl-buf is nil, the file-pair wasn't processed yet. If it is
+;; This has the form ((meta-buf regexp dir1 dir2 dir3 merge-auto-store-dir)
+;; (ctl-buf session-status (file1 . eq-status) (file2 . eq-status) (file3
+;; . eq-status)) (ctl-buf session-status (file1 . eq-status) (file2
+;; . eq-status)) ...)
+;; If ctl-buf is nil, the file-pair hasn't processed yet. If it is
 ;; killed-buffer object, the file pair has been processed. If it is a live
-;; buffer, this means ediff is still working on the pair
+;; buffer, this means ediff is still working on the pair.
+;; Eq-status of a file is t if the file equals some other file in the same
+;; group.
 (ediff-defvar-local ediff-meta-list nil "")
 
 
@@ -204,46 +209,55 @@ buffers."
 ;;; API for ediff-meta-list
 
 ;; group buffer/regexp
-(defun ediff-get-group-buffer (meta-list)
+(defsubst ediff-get-group-buffer (meta-list)
   (nth 0 (car meta-list)))
 
-(defun ediff-get-group-regexp (meta-list)
+(defsubst ediff-get-group-regexp (meta-list)
   (nth 1 (car meta-list)))
 ;; group objects
-(defun ediff-get-group-objA (meta-list)
+(defsubst ediff-get-group-objA (meta-list)
   (nth 2 (car meta-list)))
-(defun ediff-get-group-objB (meta-list)
+(defsubst ediff-get-group-objB (meta-list)
   (nth 3 (car meta-list)))
-(defun ediff-get-group-objC (meta-list)
+(defsubst ediff-get-group-objC (meta-list)
   (nth 4 (car meta-list)))
-(defun ediff-get-group-merge-autostore-dir (meta-list)
+(defsubst ediff-get-group-merge-autostore-dir (meta-list)
   (nth 5 (car meta-list)))
 
 ;; session buffer
-(defun ediff-get-session-buffer (elt)
+(defsubst ediff-get-session-buffer (elt)
   (nth 0 elt))
-(defun ediff-get-session-status (elt)
+(defsubst ediff-get-session-status (elt)
   (nth 1 elt))
-(defun ediff-set-session-status (session-info new-status)
+(defsubst ediff-set-session-status (session-info new-status)
   (setcar (cdr session-info) new-status))
 ;; session objects
-(defun ediff-get-session-objA (elt)
+(defsubst ediff-get-session-objA (elt)
   (nth 2 elt))
-(defun ediff-get-session-objB (elt)
+(defsubst ediff-get-session-objB (elt)
   (nth 3 elt))
-(defun ediff-get-session-objC (elt)
+(defsubst ediff-get-session-objC (elt)
   (nth 4 elt))
-(defun ediff-get-session-objA-name (elt)
+(defsubst ediff-get-session-objA-name (elt)
   (car (nth 2 elt)))
-(defun ediff-get-session-objB-name (elt)
+(defsubst ediff-get-session-objB-name (elt)
   (car (nth 3 elt)))
-(defun ediff-get-session-objC-name (elt)
+(defsubst ediff-get-session-objC-name (elt)
   (car (nth 4 elt)))
 ;; equality indicators
 (defsubst ediff-get-file-eqstatus (elt)
   (nth 1 elt))
 (defsubst ediff-set-file-eqstatus (elt value)
   (setcar (cdr elt) value))
+
+;; checks if the session is a meta session
+(defun ediff-meta-session-p (session-info)
+  (and (stringp (ediff-get-session-objA-name session-info))
+       (file-directory-p (ediff-get-session-objA-name session-info)) 
+       (stringp (ediff-get-session-objB-name session-info))
+       (file-directory-p (ediff-get-session-objB-name session-info))
+       (if (stringp (ediff-get-session-objC-name session-info))
+	   (file-directory-p (ediff-get-session-objC-name session-info)) t)))
 
 ;; set up the keymap in the meta buffer
 (defun ediff-setup-meta-map()
@@ -1122,22 +1136,33 @@ Useful commands:
 	(marksym ?*)
 	(numMarked 0)
 	(sessionNum 0)
-	elt)
+	(diff-buffer ediff-meta-diff-buffer)
+	session-buf elt)
     (while meta-list
       (setq elt (car meta-list)
 	    meta-list (cdr meta-list)
 	    sessionNum (1+ sessionNum))
-      (if (eq (ediff-get-session-status elt) marksym)
-	  (save-excursion
-	    (setq numMarked (1+ numMarked))
-	    (funcall operation elt sessionNum))))
+      (cond ((eq (ediff-get-session-status elt) marksym)
+	     (save-excursion
+	       (setq numMarked (1+ numMarked))
+	       (funcall operation elt sessionNum)))
+	    ((and  (ediff-meta-session-p elt) 
+		   (ediff-buffer-live-p 
+		    (setq session-buf (ediff-get-session-buffer elt))))
+	     (setq numMarked
+		   (+ numMarked 
+		      (ediff-with-current-buffer session-buf
+			;; pass meta-diff along
+			(setq ediff-meta-diff-buffer diff-buffer)
+			;; collect diffs in child group
+			(ediff-operate-on-marked-sessions operation)))))))
     (ediff-update-meta-buffer grp-buf) ; just in case
     numMarked
     ))
 
 (defun ediff-append-custom-diff (session sessionNum)
   (or (ediff-collect-diffs-metajob)
-      (error "Sorry, I don't do this for everyone..."))
+      (error "Hmm, I'd hate to do it to you ..."))
   (let ((session-buf (ediff-get-session-buffer session))
 	(meta-diff-buff ediff-meta-diff-buffer)
 	(metajob ediff-metajob-name)
@@ -1256,9 +1281,7 @@ all marked sessions must be active."
       ;; First handle sessions involving directories (which are themselves
       ;; session groups)
       ;; After that handle individual sessions
-      (cond ((and (file-directory-p file1) 
-		  (stringp file2) (file-directory-p file2)
-		  (if (stringp file3) (file-directory-p file1) t))
+      (cond ((ediff-meta-session-p info)
 	     ;; do ediff/ediff-merge on subdirectories
 	     (if (ediff-buffer-live-p session-buf)
 		 (ediff-show-meta-buffer session-buf)
