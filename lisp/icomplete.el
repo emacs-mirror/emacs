@@ -276,7 +276,7 @@ and `minibuffer-setup-hook'."
 		    ;; Delay - give some grace time for next keystroke, before
 		    ;; embarking on computing completions:
 		    (sit-for icomplete-compute-delay)))
-	      (insert-string
+	      (insert
 	       (icomplete-completions contents
 				      minibuffer-completion-table
 				      minibuffer-completion-predicate
