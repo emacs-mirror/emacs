@@ -1,3 +1,8 @@
+2004-08-07  Satyaki Das  <satyaki@theforce.stanford.edu>  (tiny change)
+
+	* simple.el (completion-root-regexp): New defvar.
+	(completion-setup-function): Use it instead of a literal string.
+
 2004-08-07  John Paul Wallington  <jpw@gnu.org>
 
 	* emacs-lisp/re-builder.el (reb-re-syntax): Add `rx' syntax.
