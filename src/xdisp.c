@@ -20120,6 +20120,7 @@ erase_phys_cursor (w)
     {
       int x, y;
       int header_line_height = WINDOW_HEADER_LINE_HEIGHT (w);
+      int width;
 
       cursor_glyph = get_phys_cursor_glyph (w);
       if (cursor_glyph == NULL)
@@ -20127,9 +20128,10 @@ erase_phys_cursor (w)
 
       x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
       y = WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height, cursor_row->y));
+      width = min (cursor_glyph->pixel_width,
+		   window_box_width (w, TEXT_AREA) - w->phys_cursor.x);
 
-      rif->clear_frame_area (f, x, y,
-			     cursor_glyph->pixel_width, cursor_row->visible_height);
+      rif->clear_frame_area (f, x, y, width, cursor_row->visible_height);
     }
 
   /* Erase the cursor by redrawing the character underneath it.  */
