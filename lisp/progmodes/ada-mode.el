@@ -6,7 +6,7 @@
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.36 $
+;; Ada Core Technologies's version:   $Revision: 1.37 $
 ;; Keywords: languages ada
 
 ;; This file is not part of GNU Emacs
@@ -311,7 +311,8 @@ not to 'begin'."
 (defcustom ada-popup-key '[down-mouse-3]
   "*Key used for binding the contextual menu.
 If nil, no contextual menu is available."
-  :type '(choice vector string) :group 'ada)
+  :type '(restricted-regexp :match-alternatives '(stringp vectorp))
+  :group 'ada)
 
 (defcustom ada-search-directories
   '("." "$ADA_INCLUDE_PATH" "/usr/adainclude" "/usr/local/adainclude"
