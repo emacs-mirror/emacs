@@ -1,7 +1,11 @@
+2002-09-23  Juanma Barranquero  <lektu@terra.es>
+
+	* net/tramp.el (tramp-unified-filenames): Autoload it.
+
 2002-09-23  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
+
 	* ediff-init.el (ediff-get-next-window): bug fix.
-	
+
 2002-09-22  Richard M. Stallman  <rms@gnu.org>
 
 	* international/mule-cmds.el (select-safe-coding-system): Cope if
@@ -234,7 +238,7 @@
 	(tramp-parse-passwd): Added exception handling for "root", because
 	`tramp-get-completion-su' (the previous place for this stuff)
 	doesn't exist any longer.
-	
+
 2002-09-07  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-enter-password): Use
@@ -357,7 +361,7 @@
 	(tramp-get-completion-user-host): New function.
 	(tramp-get-completion-rsh)
 	(tramp-get-completion-ssh): Apply it.
-	
+
 2002-08-29  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* net/tramp.el (tramp-completion-file-name-handler-alist): Add
@@ -448,7 +452,7 @@
 	to `inhibit-file-name-handlers'.
 	(tramp-completion-handle-file-name-all-completions)
 	(tramp-completion-handle-file-name-completion): New functions.
-	
+
 2002-08-12  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* net/tramp.el (tramp-invoke-ange-ftp): `tramp-disable-ange-ftp'
@@ -575,7 +579,7 @@
 2002-09-18  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* ielm.el: (*1, *2, *3): New variables.
-	(ielm-eval-input): Make temporary buffers current on entry and 
+	(ielm-eval-input): Make temporary buffers current on entry and
         exit to the let bindings for *, ** and ***.
 	(inferior-emacs-lisp-mode): Mention *1, *2 and *3 in the docstring.
         Do not overrule global bindings for *, ** and ***.
@@ -744,7 +748,7 @@
 	update indentation, insert headerline and "wildcard" info.
 	Pass --dired arg if appropriate; put info in dired-filename props.
 	Don't expand file names here.
-	
+
 	* warnings.el (display-warning): In batch mode,
 	exclude the final newline from the arg to `message'.
 
