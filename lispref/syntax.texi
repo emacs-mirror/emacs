@@ -56,7 +56,7 @@ mode, the character @samp{;} begins a comment, but in C mode, it
 terminates a statement.  To support these variations, Emacs makes the
 choice of syntax table local to each buffer.  Typically, each major
 mode has its own syntax table and installs that table in each buffer
-which uses that mode.  Changing this table alters the syntax in all
+that uses that mode.  Changing this table alters the syntax in all
 those buffers as well as in any buffers subsequently put in that mode.
 Occasionally several similar modes share one syntax table.
 @xref{Example Major Modes}, for an example of how to set up a syntax
@@ -92,14 +92,14 @@ puts each character into one class.  There is no necessary relationship
 between the class of a character in one syntax table and its class in
 any other table.
 
-  Each class is designated by a mnemonic character which serves as the
+  Each class is designated by a mnemonic character, which serves as the
 name of the class when you need to specify a class.  Usually the
-designator character is one which is frequently put in that class;
-however, its meaning as a designator is unvarying and independent of
-what syntax that character currently has.
+designator character is one that is frequently in that class; however,
+its meaning as a designator is unvarying and independent of what syntax
+that character currently has.
 
 @cindex syntax descriptor
-  A syntax descriptor is a Lisp string which specifies a syntax class, a
+  A syntax descriptor is a Lisp string that specifies a syntax class, a
 matching character (used only for the parenthesis classes) and flags.
 The first character is the designator for a syntax class.  The second
 character is the character to match; if it is unused, put a space there.
@@ -121,7 +121,7 @@ comment-starter, second character of a comment-ender).
 @node Syntax Class Table
 @subsection Table of Syntax Classes
 
-  Here is a table syntax classes, the characters that stand for them,
+  Here is a table of syntax classes, the characters that stand for them,
 their meanings, and examples of their use.
 
 @deffn {Syntax class} @w{whitespace character}
@@ -135,7 +135,7 @@ newline and formfeed are almost always classified as whitespace.
 @deffn {Syntax class} @w{word constituent}
 @dfn{Word constituents} (designated with @samp{w}) are parts of normal
 English words and are typically used in variable and command names in
-programs.  All upper and lower case letters and the digits are typically
+programs.  All upper- and lower-case letters, and the digits, are typically
 word constituents.
 @end deffn
 
@@ -227,8 +227,8 @@ This class is not currently used in any standard Emacs modes.
 @dfn{Paired delimiter characters} (designated with @samp{$}) are like
 string quote characters except that the syntactic properties of the
 characters between the delimiters are not suppressed.  Only @TeX{} mode
-uses a paired identical delimiter presently---the @samp{$} that both
-enters and leaves math mode.
+uses a paired delimiter presently---the @samp{$} that both enters and
+leaves math mode.
 @end deffn
 
 @deffn {Syntax class} @w{expression prefix}
@@ -278,14 +278,14 @@ The flags for a character @var{c} are:
 
 @itemize @bullet
 @item
-@samp{1} means @var{c} is the start of a two-character comment start
+@samp{1} means @var{c} is the start of a two-character comment-start
 sequence.
 
 @item
 @samp{2} means @var{c} is the second character of such a sequence.
 
 @item
-@samp{3} means @var{c} is the start of a two-character comment end
+@samp{3} means @var{c} is the start of a two-character comment-end
 sequence.
 
 @item
@@ -305,7 +305,7 @@ comment-end sequence of style ``b''.
 
 The two comment-start sequences must begin with the same character; only
 the second character may differ.  Mark the second character of the
-``b''-style comment start sequence with the @samp{b} flag.
+``b''-style comment-start sequence with the @samp{b} flag.
 
 A comment-end sequence (one or two characters) applies to the ``b''
 style if its first character has the @samp{b} flag set; otherwise, it
@@ -322,10 +322,25 @@ The appropriate comment syntax settings for C++ are as follows:
 @samp{>b}
 @end table
 
-Thus @samp{/*} is a comment-start sequence for ``a'' style, @samp{//}
-is a comment-start sequence for ``b'' style, @samp{*/} is a
-comment-end sequence for ``a'' style, and newline is a comment-end
-sequence for ``b'' style.
+This defines four comment-delimiting sequences:
+
+@table @asis
+@item @samp{/*}
+This is a comment-start sequence for ``a'' style because the
+second character, @samp{*}, does not have the @samp{b} flag.
+
+@item @samp{//}
+This is a comment-start sequence for ``b'' style because the second
+character, @samp{/}, does have the @samp{b} flag.
+
+@item @samp{*/}
+This is a comment-end sequence for ``a'' style because the first
+character, @samp{*}, does not have the @samp{b} flag
+
+@item newline
+This is a comment-end sequence for ``b'' style, because the newline
+character has the @samp{b} flag.
+@end table
 
 @item
 @c Emacs 19 feature
@@ -347,7 +362,7 @@ altering syntax tables.
 
 @defun make-syntax-table
 This function creates a new syntax table.  Character codes 0 through
-31, and 128 through 255, are set up to inherit from the standard syntax
+31 and 128 through 255 are set up to inherit from the standard syntax
 table.  The other character codes are set up by copying what the
 standard syntax table says about them.
 
@@ -405,7 +420,7 @@ signaled if @var{char} is not a character.
 ;;   @r{the first character of a start-comment sequence,}
 ;;   @r{and the second character of an end-comment sequence.}
 ;;   @r{This is used in C mode.}
-(modify-syntax-entry ?/ ".13")
+(modify-syntax-entry ?/ ". 14")
      @result{} nil
 @end group
 @end example
@@ -421,8 +436,8 @@ An error is signaled if @var{char} is not a character.
 The following examples apply to C mode.  The first example shows that
 the syntax class of space is whitespace (represented by a space).  The
 second example shows that the syntax of @samp{/} is punctuation.  This
-does not show the fact that it is also part of comment start and end
-sequence.  The third example shows that open parenthesis is in the class
+does not show the fact that it is also part of comment-start and -end
+sequences.  The third example shows that open parenthesis is in the class
 of open parentheses.  This does not show the fact that it has a matching
 character, @samp{)}.
 
@@ -464,7 +479,7 @@ version 18 or earlier.
 @defun skip-syntax-forward syntaxes &optional limit
 This function moves point forward across characters having syntax classes
 mentioned in @var{syntaxes}.  It stops when it encounters the end of
-the buffer, or position @var{lim} (if specified), or a character it is
+the buffer, or position @var{limit} (if specified), or a character it is
 not supposed to skip.
 @ignore @c may want to change this.
 The return value is the distance traveled, which is a nonnegative
@@ -475,7 +490,7 @@ integer.
 @defun skip-syntax-backward syntaxes &optional limit
 This function moves point backward across characters whose syntax
 classes are mentioned in @var{syntaxes}.  It stops when it encounters
-the beginning of the buffer, or position @var{lim} (if specified), or a
+the beginning of the buffer, or position @var{limit} (if specified), or a
 character it is not supposed to skip.
 @ignore @c may want to change this.
 The return value indicates the distance traveled.  It is an integer that
@@ -501,10 +516,10 @@ higher-level functions for moving over balanced expressions.
 
 @defun parse-partial-sexp start limit &optional target-depth stop-before state stop-comment
 This function parses a sexp in the current buffer starting at
-@var{start}, not scanning past @var{limit}.  It stops at @var{limit} or
-when certain criteria described below are met, and sets to the location
-where parsing stops.  It returns a value describing the status of the
-parse at the point where it stops.
+@var{start}, not scanning past @var{limit}.  It stops at position
+@var{limit} or when certain criteria described below are met, and sets
+point to the location where parsing stops.  It returns a value
+describing the status of the parse at the point where it stops.
 
 If @var{state} is @code{nil}, @var{start} is assumed to be at the top
 level of parenthesis structure, such as the beginning of a function
@@ -537,8 +552,8 @@ The depth in parentheses, counting from 0.
 
 @item 
 @cindex innermost containing parentheses
-The character position of the start of the innermost containing
-parenthetical grouping; @code{nil} if none.
+The character position of the start of the innermost parenthetical
+grouping containing the stopping point; @code{nil} if none.
 
 @item 
 @cindex previous complete subexpression
@@ -552,7 +567,7 @@ character that will terminate the string.
 
 @item 
 @cindex inside comment
-@code{t} if inside a comment.
+@code{t} if inside a comment (of either style).
 
 @item 
 @cindex quote character
@@ -581,14 +596,15 @@ If @var{depth} is nonzero, parenthesis depth counting begins from that
 value.  The only candidates for stopping are places where the depth in
 parentheses becomes zero; @code{scan-lists} counts @var{count} such
 places and then stops.  Thus, a positive value for @var{depth} means go
-out levels of parenthesis.
+out @var{depth} levels of parenthesis.
 
 Scanning ignores comments if @code{parse-sexp-ignore-comments} is
 non-@code{nil}.
 
-If scan reaches the beginning or end of the buffer (or its accessible
-portion), and the depth is not zero, an error is signaled.  If the depth
-is zero but the count is not used up, @code{nil} is returned.
+If the scan reaches the beginning or end of the buffer (or its
+accessible portion), and the depth is not zero, an error is signaled.
+If the depth is zero but the count is not used up, @code{nil} is
+returned.
 @end defun
 
 @defun scan-sexps from count
@@ -598,7 +614,7 @@ This function scans forward @var{count} sexps from character position
 Scanning ignores comments if @code{parse-sexp-ignore-comments} is
 non-@code{nil}.
 
-If scan reaches the beginning or end of (the accessible part of) the
+If the scan reaches the beginning or end of (the accessible part of) the
 buffer in the middle of a parenthetical grouping, an error is signaled.
 If it reaches the beginning or end between groupings but before count is
 used up, @code{nil} is returned.
@@ -628,7 +644,7 @@ It also stops after satisfying @var{count}.
 
 To move forward over all comments and whitespace following point, use
 @code{(forward-comment (buffer-size))}.  @code{(buffer-size)} is a good
-argument to use, because the number of comments to in the buffer cannot
+argument to use, because the number of comments in the buffer cannot
 exceed that many.
 
 @node Standard Syntax Tables

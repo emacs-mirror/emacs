@@ -533,8 +533,8 @@ deciphered as follows:
 
 @table @code
 @item [.?!]
-The first part of the pattern consists of three characters, a period, a
-question mark and an exclamation mark, within square brackets.  The
+The first part of the pattern is a character set that matches any one of
+three characters: period, question mark, and exclamation mark.  The
 match must begin with one of these three characters.
 
 @item []\"')@}]*
@@ -545,11 +545,11 @@ a string.  The @samp{*} at the end indicates that the immediately
 preceding regular expression (a character set, in this case) may be
 repeated zero or more times.
 
-@item \\($\\|@ \\|\t\\|@ @ \\)
+@item \\($\\|@ $\\|\t\\|@ @ \\)
 The third part of the pattern matches the whitespace that follows the
 end of a sentence: the end of a line, or a tab, or two spaces.  The
 double backslashes mark the parentheses and vertical bars as regular
-expression syntax; the parentheses mark the group and the vertical bars
+expression syntax; the parentheses delimit a group and the vertical bars
 separate alternatives.  The dollar sign is used to match the end of a
 line.
 
@@ -624,14 +624,14 @@ This function searches backward in the current buffer for a string of
 text that is matched by the regular expression @var{regexp}, leaving
 point at the beginning of the first text found.
 
-This function is analogous to @code{re-search-forward}, but they are
-not simple mirror images.  @code{re-search-forward} finds the match
-whose beginning is as close as possible.  If @code{re-search-backward}
-were a perfect mirror image, it would find the match whose end is as
-close as possible.  However, in fact it finds the match whose beginning
-is as close as possible.  The reason is that matching a regular
-expression at a given spot always works from beginning to end, and is
-done at a specified beginning position.
+This function is analogous to @code{re-search-forward}, but they are not
+simple mirror images.  @code{re-search-forward} finds the match whose
+beginning is as close as possible to the starting point.  If
+@code{re-search-backward} were a perfect mirror image, it would find the
+match whose end is as close as possible.  However, in fact it finds the
+match whose beginning is as close as possible.  The reason is that
+matching a regular expression at a given spot always works from
+beginning to end, and starts at a specified beginning position.
 
 A true mirror-image of @code{re-search-forward} would require a special
 feature for matching regexps from end to beginning.  It's not worth the
@@ -804,8 +804,8 @@ number of occurrences to consider.  In this case, @code{perform-replace}
 returns after considering that many occurrences.
 
 Normally, the keymap @code{query-replace-map} defines the possible user
-responses.  The argument @var{map}, if non-@code{nil}, is a keymap to
-use instead of @code{query-replace-map}.
+responses for queries.  The argument @var{map}, if non-@code{nil}, is a
+keymap to use instead of @code{query-replace-map}.
 @end defun
 
 @defvar query-replace-map
@@ -837,10 +837,12 @@ Do take the action being considered---in other words, ``yes.''
 Do not take action for this question---in other words, ``no.''
 
 @item exit
-Answer this question ``no,'' and don't ask any more.
+Answer this question ``no,'' and give up on the entire series of
+questions, assuming that the answers will be ``no.''
 
 @item act-and-exit
-Answer this question ``yes,'' and don't ask any more.
+Answer this question ``yes,'' and give up on the entire series of
+questions, assuming that subsequent answers will be ``no.''
 
 @item act-and-show
 Answer this question ``yes,'' but show the results---don't advance yet
@@ -908,19 +910,18 @@ expression.
 This function returns the position of the start of text matched by the
 last regular expression searched for, or a subexpression of it.
 
-The argument @var{count}, a number, specifies a subexpression whose
-start position is the value.  If @var{count} is zero, then the value is
-the position of the text matched by the whole regexp.  If @var{count} is
-greater than zero, then the value is the position of the beginning of
-the text matched by the @var{count}th subexpression.
+If @var{count} is zero, then the value is the position of the start of
+the text matched by the whole regexp.  Otherwise, @var{count}, specifies
+a subexpression in the regular expresion.  The value of the function is
+the starting position of the match for that subexpression.
 
 Subexpressions of a regular expression are those expressions grouped
-inside of parentheses, @samp{\(@dots{}\)}.  The @var{count}th
+with escaped parentheses, @samp{\(@dots{}\)}.  The @var{count}th
 subexpression is found by counting occurrences of @samp{\(} from the
 beginning of the whole regular expression.  The first subexpression is
 numbered 1, the second 2, and so on.
 
-The value is @code{nil} for a parenthetical grouping inside of a
+The value is @code{nil} for a subexpression inside a
 @samp{\|} alternative that wasn't used in the match.
 @end defun
 
@@ -972,7 +973,7 @@ subexpression is at the 13th character (@samp{c}).
   (re-search-forward "The \\(cat \\)")
   (match-beginning 0)
   (match-beginning 1))
-    @result{} (t 9 13)
+    @result{} (9 9 13)
 @end group
 
 @group
@@ -1011,6 +1012,9 @@ If the original text contains just one word, and that word is a capital
 letter, @code{replace-match} considers this a capitalized first word
 rather than all upper case.
 
+If @code{case-replace} is @code{nil}, then case conversion is not done,
+regardless of the value of @var{fixed-case}.  @xref{Searching and Case}.
+
 If @var{literal} is non-@code{nil}, then @var{replacement} is inserted
 exactly as it is, the only alterations being case changes as needed.
 If it is @code{nil} (the default), then the character @samp{\} is treated
@@ -1024,9 +1028,9 @@ part of one of the following sequences:
 
 @item @samp{\@var{n}}
 @cindex @samp{\@var{n}} in replacement
-@samp{\@var{n}} stands for the text that matched the @var{n}th
-subexpression in the original regexp.  Subexpressions are those
-expressions grouped inside of @samp{\(@dots{}\)}.  @var{n} is a digit.
+@samp{\@var{n}}, where @var{n} is a digit, stands for the text that
+matched the @var{n}th subexpression in the original regexp.
+Subexpressions are those expressions grouped inside @samp{\(@dots{}\)}.
 
 @item @samp{\\}
 @cindex @samp{\} in replacement
@@ -1182,8 +1186,8 @@ particular character sets, are included: thus, @samp{[aB]} would match
 
   If you do not want this feature, set the variable
 @code{case-fold-search} to @code{nil}.  Then all letters must match
-exactly, including case.  This is a per-buffer-local variable; altering
-the variable affects only the current buffer.  (@xref{Intro to
+exactly, including case.  This is a buffer-local variable; altering the
+variable affects only the current buffer.  (@xref{Intro to
 Buffer-Local}.)  Alternatively, you may change the value of
 @code{default-case-fold-search}, which is the default value of
 @code{case-fold-search} for buffers that do not override it.
@@ -1195,9 +1199,13 @@ for an upper case letter only.  But this has nothing to do with the
 searching functions Lisp functions use.
 
 @defopt case-replace
-This variable determines whether @code{query-replace} should preserve
-case in replacements.  If the variable is @code{nil}, then
-@code{replace-match} should not try to convert case.
+This variable determines whether the replacement functions should
+preserve case.  If the variable is @code{nil}, that means to use the
+replacement text verbatim.  A non-@code{nil} value means to convert the
+case of the replacement text according to the text being replaced.
+
+The function @code{replace-match} is where this variable actually has
+its effect.  @xref{Replacing Match}.
 @end defopt
 
 @defopt case-fold-search
@@ -1222,21 +1230,22 @@ used for certain purposes in editing:
 
 @defvar page-delimiter
 This is the regexp describing line-beginnings that separate pages.  The
-default value is @code{"^\014"} (i.e., @code{"^^L"} or @code{"^\C-l"}).
+default value is @code{"^\014"} (i.e., @code{"^^L"} or @code{"^\C-l"});
+this matches a line that starts with a formfeed character.
 @end defvar
 
 @defvar paragraph-separate
 This is the regular expression for recognizing the beginning of a line
 that separates paragraphs.  (If you change this, you may have to
-change @code{paragraph-start} also.)  The default value is @code{"^[
-\t\f]*$"}, which is a line that consists entirely of spaces, tabs, and
-form feeds.
+change @code{paragraph-start} also.)  The default value is
+@w{@code{"^[@ \t\f]*$"}}, which matches a line that consists entirely of
+spaces, tabs, and form feeds.
 @end defvar
 
 @defvar paragraph-start
 This is the regular expression for recognizing the beginning of a line
 that starts @emph{or} separates paragraphs.  The default value is
-@code{"^[ \t\n\f]"}, which matches a line starting with a space, tab,
+@w{@code{"^[@ \t\n\f]"}}, which matches a line starting with a space, tab,
 newline, or form feed.
 @end defvar
 
@@ -1246,11 +1255,12 @@ paragraph boundaries also end sentences, regardless.)  The default value
 is:
 
 @example
-"[.?!][]\"')@}]*\\($\\|\t\\| \\)[ \t\n]*"
+"[.?!][]\"')@}]*\\($\\| $\\|\t\\| \\)[ \t\n]*"
 @end example
 
-This means a period, question mark or exclamation mark, followed by a
-closing brace, followed by tabs, spaces or new lines.
+This means a period, question mark or exclamation mark, followed
+optionally by a closing parenthetical character, followed by tabs,
+spaces or new lines.
 
 For a detailed explanation of this regular expression, see @ref{Regexp
 Example}.
