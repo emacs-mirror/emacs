@@ -93,9 +93,16 @@
       (search-forward "\n<<")
       (beginning-of-line)
       (delete-region (point) (progn (end-of-line) (point)))
-      (newline (- (window-height (selected-window))
+      (let ((n (- (window-height (selected-window))
 		  (count-lines (point-min) (point))
-		  6))
+		  6)))
+	(if (< n 20)
+	    (newline n)
+	  ;; Some people get confused by the large gap.
+	  (newline (/ n 2))
+	  (insert "[Middle of page left blank for didactic purposes.  "
+		  "Text continues below]")
+	  (newline (- n (/ n 2)))))
       (goto-char (point-min))
       (set-buffer-modified-p nil))))
 
