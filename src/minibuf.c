@@ -1726,10 +1726,9 @@ Return nil if there is no valid completion, else t.")
 	if (i <= 0) i = 1;
 	start_pos= i;
 	buffer_nchars -= i;
-	while (1)
+	while (i > 0)
 	  {
-	    tem1 = Fcompare_strings (tem, make_number (start_pos),
-				     make_number (buffer_nchars + start_pos),
+	    tem1 = Fcompare_strings (tem, make_number (start_pos), Qnil,
 				     completion, make_number (0),
 				     make_number (buffer_nchars),
 				     completion_ignore_case ? Qt : Qnil);
@@ -1737,6 +1736,7 @@ Return nil if there is no valid completion, else t.")
 	    if (EQ (tem1, Qt))
 	      break;
 	    i++;
+	    buffer_nchars--;
 	  }
 	del_range (1, i + 1);
 	SET_PT_BOTH (ZV, ZV_BYTE);
