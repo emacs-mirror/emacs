@@ -28,6 +28,8 @@
 ;; makes the string STRING appear starting at VPOS, HPOS
 ;; by having each letter swoop into place from random starting position.
 
+;; animate-birthday-present was the first application of this program.
+
 ;;; Code:
 
 ;;; STRING is the string to be displayed,
@@ -165,4 +167,3 @@ in the current window."
   (animate-string "to stay!" 19 34))
 
 ;;; animate.el ends here
-
