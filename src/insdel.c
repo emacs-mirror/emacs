@@ -1552,7 +1552,7 @@ del_range_1 (from, to, prepare, ret_string)
     {
       int range_length = to - from;
       prepare_to_modify_buffer (from, to, &from);
-      to = from + range_length;
+      to = min (ZV, from + range_length);
     }
 
   from_byte = CHAR_TO_BYTE (from);
@@ -1595,7 +1595,12 @@ del_range_byte (from_byte, to_byte, prepare)
 
       if (old_from != from)
 	from_byte = CHAR_TO_BYTE (from);
-      if (old_to == Z - to)
+      if (to > ZV)
+	{
+	  to = ZV;
+	  to_byte = ZV_BYTE;
+	}
+      else if (old_to == Z - to)
 	to_byte = CHAR_TO_BYTE (to);
     }
 
@@ -1634,7 +1639,12 @@ del_range_both (from, from_byte, to, to_byte, prepare)
 
       if (old_from != from)
 	from_byte = CHAR_TO_BYTE (from);
-      if (old_to == Z - to)
+      if (to > ZV)
+	{
+	  to = ZV;
+	  to_byte = ZV_BYTE;
+	}
+      else if (old_to == Z - to)
 	to_byte = CHAR_TO_BYTE (to);
     }
 
