@@ -1,3 +1,8 @@
+2002-05-20  Richard M. Stallman  <rms@gnu.org>
+
+	* keyboard.c (read_char_minibuf_menu_prompt): Don't list
+	equivalent key bindings here.
+
 2002-05-20  Ken Raeburn  <raeburn@gnu.org>
 
 	Change symbol structure to contain a lisp object for the symbol
