@@ -989,6 +989,9 @@ A handler is applicable to an error\n\
 if CONDITION-NAME is one of the error's condition names.\n\
 If an error happens, the first applicable handler is run.\n\
 \n\
+The car of a handler may be a list of condition names\n\
+instead of a single condition name.\n\
+\n\
 When a handler handles an error,\n\
 control returns to the condition-case and the handler BODY... is executed\n\
 with VAR bound to (SIGNALED-CONDITIONS . SIGNAL-DATA).\n\
