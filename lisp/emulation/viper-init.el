@@ -97,7 +97,7 @@ In all likelihood, you don't need to bother with this setting."
 (defun viper-has-face-support-p ()
   (cond ((viper-window-display-p))
 	(viper-force-faces)
-	(viper-emacs-p (memq (viper-device-type) '(pc)))
+	(viper-emacs-p (memq (viper-device-type) '(nil pc)))
 	(viper-xemacs-p (memq (viper-device-type) '(tty pc)))))
 
 
