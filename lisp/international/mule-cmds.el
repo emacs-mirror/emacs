@@ -30,7 +30,9 @@
 
 ;;; Code:
 
-(eval-when-compile (defvar dos-codepage))
+(eval-when-compile
+  (defvar dos-codepage)
+  (require 'wid-edit))
 
 ;;; MULE related key bindings and menus.
 
@@ -1929,7 +1931,7 @@ start of KEY, or nil if there is no match."
     (cdr element)))
 
 (defun locale-charset-match-p (charset1 charset2)
-  "Whether charset names CHARSET1 and CHARSET2 are equivalent.
+  "Whether charset names (strings) CHARSET1 and CHARSET2 are equivalent.
 Matching is done ignoring case and any hyphens and underscores in the
 names.  E.g. `ISO_8859-1' and `iso88591' both match `iso-8859-1'."
   (setq charset1 (replace-regexp-in-string "[-_]" "" charset1))
@@ -2051,10 +2053,15 @@ See also `locale-charset-language-names', `locale-language-names',
 	(let ((codeset (langinfo 'codeset))
 	      (coding-system (car (coding-system-priority-list))))
 	  (when codeset
-	    (unless (locale-charset-match-p (symbol-name coding-system)
-					    (langinfo 'codeset))
-	      (message "Warning: Default coding system `%s' doesn't agree with
-the system code set `%s' for this locale." coding-system codeset))))))))
+	    (let ((cs (coding-system-aliases coding-system))
+		  result)
+	      (while (and cs (not result))
+		(setq result
+		      (locale-charset-match-p (symbol-name (pop cs))
+					      (langinfo 'codeset))))
+	      (unless result
+		(message "Warning: Default coding system `%s' doesn't agree with
+the system code set `%s' for this locale." coding-system codeset)))))))))
 
 ;;; Character code property
 (put 'char-code-property-table 'char-table-extra-slots 0)
