@@ -1154,11 +1154,16 @@ START and END specify the portion of the current buffer to be copied."
       (save-excursion
 	(insert-buffer-substring oldbuf start end)))))
 
-(defun mark ()
-  "Return this buffer's mark value as integer, or nil if no mark.
+(defun mark (&optional force)
+  "Return this buffer's mark value as integer, or nil if no active mark now.
+If optional argument FORCE is non-nil, access the mark value
+even if the mark is not currently active.
+
 If you are using this in an editing command, you are most likely making
 a mistake; see the documentation of `set-mark'."
-  (marker-position (mark-marker)))
+  (if (or force mark-active)
+      (marker-position (mark-marker))
+    (error "The mark is not currently active")))
 
 (defun set-mark (pos)
   "Set this buffer's mark to POS.  Don't use this function!
@@ -1177,6 +1182,8 @@ store it in a Lisp variable.  Example:
 
    (let ((beg (point))) (forward-line 1) (delete-region beg (point)))."
 
+  (setq mark-active t)
+  (run-hooks 'activate-mark-hook)
   (set-marker (mark-marker) pos (current-buffer)))
 
 (defvar mark-ring nil
@@ -1197,7 +1204,7 @@ purposes.  See the documentation of `set-mark' for more information."
   (interactive "P")
   (if (null arg)
       (push-mark)
-    (if (null (mark))
+    (if (null (mark t))
 	(error "No mark set in this buffer")
       (goto-char (mark))
       (pop-mark))))
@@ -1208,7 +1215,7 @@ Displays \"Mark set\" unless the optional second arg NOMSG is non-nil.
 
 Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  See the documentation of `set-mark' for more information."
-  (if (null (mark))
+  (if (null (mark t))
       nil
     (setq mark-ring (cons (copy-marker (mark-marker)) mark-ring))
     (if (> (length mark-ring) mark-ring-max)
@@ -1233,9 +1240,11 @@ Does not set point.  Does nothing if mark ring is empty."
 
 (fset 'exchange-dot-and-mark 'exchange-point-and-mark)
 (defun exchange-point-and-mark ()
-  "Put the mark where point is now, and point where the mark is now."
+  "Put the mark where point is now, and point where the mark is now.
+This command works even when the mark is not active,
+and it reactivates the mark."
   (interactive nil)
-  (let ((omark (mark)))
+  (let ((omark (mark t)))
     (if (null omark)
 	(error "No mark set in this buffer"))
     (set-mark (point))
@@ -1869,7 +1878,9 @@ when close-paren is inserted.")
 ; this is just something for the luser to see in a keymap -- this is not
 ;  how quitting works normally!
 (defun keyboard-quit ()
-  "Signal a  quit  condition."
+  "Signal a  quit  condition.
+During execution of Lisp code, this character causes a quit directly.
+At top-level, as an editor command, this simply beeps."
   (interactive)
   (signal 'quit nil))
 
