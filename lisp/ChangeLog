@@ -1,3 +1,7 @@
+2004-04-25  Jesper Harder  <harder@ifa.au.dk>
+
+	* info.el (info-apropos): Reset Info-complete-cache.
+
 2004-04-25  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):

@@ -2467,7 +2467,8 @@ Build a menu of the possible matches."
 	  (dolist (entry matches)
 	    (insert "* " (car entry) " [" (nth 2 entry)
 		    "]: (" (nth 2 entry) ")" (nth 1 entry) ".\n")))
-	(Info-find-node "apropos" "top")))))
+	(Info-find-node "apropos" "top")
+	(setq Info-complete-cache nil)))))
 
 (defun Info-undefined ()
   "Make command be undefined in Info."
