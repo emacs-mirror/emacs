@@ -2935,9 +2935,10 @@ you need to explicitly load that file for the settings to take effect."
   :group 'customize)
 
 (defun custom-save-delete (symbol)
-  "Delete the call to SYMBOL form `custom-file'.
+  "Delete the call to SYMBOL from `custom-file'.
 Leave point at the location of the call, or after the last expression."
-  (set-buffer (find-file-noselect (or custom-file user-init-file)))
+  (let ((default-major-mode))
+    (set-buffer (find-file-noselect (or custom-file user-init-file))))
   (goto-char (point-min))
   (catch 'found
     (while t
@@ -3044,7 +3045,8 @@ Leave point at the location of the call, or after the last expression."
     (custom-save-variables)
     (custom-save-faces)
     (save-excursion
-      (set-buffer (find-file-noselect (or custom-file user-init-file)))
+      (let ((default-major-mode nil))
+	(set-buffer (find-file-noselect (or custom-file user-init-file))))
       (save-buffer))))
 
 ;;; The Customize Menu.
