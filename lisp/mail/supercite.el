@@ -1866,10 +1866,11 @@ Note on function names in this list: all functions of the form
 
 (define-minor-mode sc-minor-mode
   "Supercite minor mode."
-  nil (" SC" (sc-auto-fill-region-p
-	      (":f" (sc-fixup-whitespace-p "w"))
-	      (sc-fixup-whitespace-p ":w")))
-  `((,sc-mode-map-prefix . ,sc-mode-map)))
+  :group 'supercite
+  :lighter (" SC" (sc-auto-fill-region-p
+		   (":f" (sc-fixup-whitespace-p "w"))
+		   (sc-fixup-whitespace-p ":w")))
+  :keymap `((,sc-mode-map-prefix . ,sc-mode-map)))
 
 ;;;###autoload
 (defun sc-cite-original ()
