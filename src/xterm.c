@@ -10432,10 +10432,12 @@ x_term_init (display_name, xrm_option, resource_name)
     int screen_number = XScreenNumberOfScreen (dpyinfo->screen);
     double pixels = DisplayHeight (dpyinfo->display, screen_number);
     double mm = DisplayHeightMM (dpyinfo->display, screen_number);
-    dpyinfo->resy = pixels * 25.4 / mm;
+    /* Mac OS X 10.3's Xserver sometimes reports 0.0mm.  */
+    dpyinfo->resy = (mm < 1) ? 100 : pixels * 25.4 / mm;
     pixels = DisplayWidth (dpyinfo->display, screen_number);
+    /* Mac OS X 10.3's Xserver sometimes reports 0.0mm.  */
     mm = DisplayWidthMM (dpyinfo->display, screen_number);
-    dpyinfo->resx = pixels * 25.4 / mm;
+    dpyinfo->resx = (mm < 1) ? 100 : pixels * 25.4 / mm;
   }
 
   dpyinfo->Xatom_wm_protocols
