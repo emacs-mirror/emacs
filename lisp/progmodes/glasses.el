@@ -235,7 +235,7 @@ recognized according to the current value of the variable `glasses-separator'."
   nil)
 
 
-(defun glasses-change (beg end old-len)
+(defun glasses-change (beg end &optional old-len)
   "After-change function updating glass overlays."
   (let ((beg-line (save-excursion (goto-char beg) (line-beginning-position)))
 	(end-line (save-excursion (goto-char end) (line-end-position))))
@@ -246,45 +246,26 @@ recognized according to the current value of the variable `glasses-separator'."
 ;;; Minor mode definition
 
 
-(defvar glasses-mode nil
-  "Mode variable for `glasses-mode'.")
-(make-variable-buffer-local 'glasses-mode)
-
-(add-to-list 'minor-mode-alist
-	     (list 'glasses-mode
-		   (propertize " o^o"
-			       'local-map (make-mode-line-mouse2-map
-					   'glasses-mode)
-			       'help-echo "mouse-2: turn off Glasses mode")))
-
 ;;;###autoload
-(defun glasses-mode (&optional arg)
+(define-minor-mode glasses-mode
   "Minor mode for making identifiers likeThis readable.
 When this mode is active, it tries to add virtual separators (like underscores)
 at places they belong to."
-  (interactive "P")
-  (let ((new-flag (if (null arg)
-		       (not glasses-mode)
-		    (> (prefix-numeric-value arg) 0))))
-    (unless (eq new-flag glasses-mode)
-      (save-excursion
-	(save-restriction
-	  (widen)
-	  ;; We erase the all overlays anyway, to avoid dual sight in some
-	  ;; circumstances
-	  (glasses-make-unreadable (point-min) (point-max))
-	  (if new-flag
-	      (progn
-		(glasses-make-readable (point-min) (point-max))
-		(make-local-hook 'after-change-functions)
-		(add-hook 'after-change-functions 'glasses-change nil t)
-		(add-hook 'local-write-file-hooks
-			  'glasses-convert-to-unreadable nil t))
-	    (remove-hook 'after-change-functions 'glasses-change t)
-	    (remove-hook 'local-write-file-hooks
-			 'glasses-convert-to-unreadable t))))
-      (setq glasses-mode new-flag)
-      (force-mode-line-update))))
+  nil " o^o" nil
+  (save-excursion
+    (save-restriction
+      (widen)
+      ;; We erase all the overlays anyway, to avoid dual sight in some
+      ;; circumstances
+      (glasses-make-unreadable (point-min) (point-max))
+      (if glasses-mode
+	  (progn
+	    (jit-lock-register 'glasses-change)
+	    (add-hook 'local-write-file-hooks
+		      'glasses-convert-to-unreadable nil t))
+	(jit-lock-unregister 'glasses-change)
+	(remove-hook 'local-write-file-hooks
+		     'glasses-convert-to-unreadable t)))))
 
 
 ;;; Announce
