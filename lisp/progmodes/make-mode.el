@@ -201,7 +201,8 @@ not be enclosed in { } or ( ).")
   "\\(^\\..*\\)\\|\\(.*~$\\)\\|\\(.*,v$\\)\\|\\(\\.[chy]\\)"
   "Regex for filenames that will NOT be included in the target list.")
 
-(add-to-list 'facemenu-unlisted-faces 'makefile-space-face)
+(if (fboundp 'facemenu-unlisted-faces)
+    (add-to-list 'facemenu-unlisted-faces 'makefile-space-face))
 (defvar makefile-space-face 'makefile-space-face
   "Face to use for highlighting leading spaces in Font-Lock mode.")
 
