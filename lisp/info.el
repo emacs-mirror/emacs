@@ -136,7 +136,7 @@ to read a file name from the minibuffer."
 		  Info-history)))
   ;; Go into info buffer.
   (switch-to-buffer "*info*")
-  (buffer-flush-undo (current-buffer))
+  (buffer-disable-undo (current-buffer))
   (or (eq major-mode 'Info-mode)
       (Info-mode))
   (widen)
@@ -173,7 +173,7 @@ to read a file name from the minibuffer."
 			(save-excursion
 			  (let ((buf (current-buffer)))
 			    (set-buffer (get-buffer-create " *info tag table*"))
-                            (buffer-flush-undo (current-buffer))
+                            (buffer-disable-undo (current-buffer))
 			    (setq case-fold-search t)
 			    (erase-buffer)
 			    (insert-buffer-substring buf)
@@ -525,10 +525,11 @@ NAME may be an abbreviation of the reference name."
       (aset str i ?\ ))
     str))
 
-(defun Info-menu-item-sequence (list)
-  (while list
-    (Info-menu-item (car list))
-    (setq list (cdr list))))
+;; No one calls this and Info-menu-item doesn't exist.
+;;(defun Info-menu-item-sequence (list)
+;;  (while list
+;;    (Info-menu-item (car list))
+;;    (setq list (cdr list))))
 
 (defun Info-menu (menu-item)
   "Go to node for menu item named (or abbreviated) NAME.
@@ -823,12 +824,11 @@ SIG optional fourth argument, controls action on no match
 Like \\[Info-menu], \\[Info-follow-reference], \\[Info-next], \\[Info-prev] or \\[Info-up] command, depending on where you click.
 At end of the node's text, moves to the next node."
   (interactive "e")
-  (let* ((relative-coordinates (coordinates-in-window-p (mouse-coords click)
-							(selected-window)))
-	 (rel-x (car relative-coordinates))
-	 (rel-y (cdr relative-coordinates)))
-    (move-to-window-line rel-y)
-    (move-to-column rel-x))
+  (let* ((start (event-start click))
+	 (window (car start))
+	 (pos (car (cdr start))))
+    (select-window window)
+    (goto-char pos))
   (let (node)
     (cond
      ((setq node (Info-get-token (point) "\\*note[ \n]" "\\*note[ \n]\\([^:]*\\):" t))
@@ -1055,7 +1055,7 @@ Interactively, if the binding is execute-extended-command, a command is read."
   (interactive "kFind documentation for key:")
   (let ((command (key-binding key)))
     (cond ((null command)
-	   (message "%s is undefined" (key-description keys)))
+	   (message "%s is undefined" (key-description key)))
 	  ((and (interactive-p)
 		(eq command 'execute-extended-command))
 	   (Info-goto-emacs-command-node
