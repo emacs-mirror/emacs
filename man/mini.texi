@@ -134,20 +134,19 @@ the argument.  You can kill text in another window, return to the
 minibuffer window, and then yank the text to use it in the argument.
 @xref{Windows}.
 
-@findex resize-minibuffer-mode
-@cindex Resize-Minibuffer mode
-@cindex mode, Resize-Minibuffer
 @cindex height of minibuffer
 @cindex size of minibuffer
 @cindex growing minibuffer
+@cindex resizing minibuffer
+@vindex max-mini-window-height
   There are some restrictions on the use of the minibuffer window,
 however.  You cannot switch buffers in it---the minibuffer and its
 window are permanently attached.  Also, you cannot split or kill the
 minibuffer window.  But you can make it taller in the normal fashion
-with @kbd{C-x ^}.  If you enable Resize-Minibuffer mode, then the
-minibuffer window expands vertically as necessary to hold the text that
-you put in the minibuffer.  Use @kbd{M-x resize-minibuffer-mode} to
-enable or disable this minor mode (@pxref{Minor Modes}).
+with @kbd{C-x ^}.  The minibuffer window expands vertically as necessary
+to hold the text that you put in the minibuffer.  Customize the variable
+@code{max-mini-window-height} to control the maximum height for resizing
+the minibuffer window.
 
 @vindex minibuffer-scroll-overlap
   Scrolling works specially in the minibuffer window.  When the
