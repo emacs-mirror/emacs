@@ -467,12 +467,13 @@ XClearWindow (display, w)
 /* Mac replacement for XCopyArea.  */
 
 static void
-mac_draw_bitmap (display, w, gc, x, y, bitmap)
+mac_draw_bitmap (display, w, gc, x, y, bitmap, overlay_p)
      Display *display;
      WindowPtr w;
      GC gc;
      int x, y;
      BitMap *bitmap;
+     int overlay_p;
 {
   Rect r;
 
@@ -491,11 +492,13 @@ mac_draw_bitmap (display, w, gc, x, y, bitmap)
 
     LockPortBits (GetWindowPort (w));
     pmh = GetPortPixMap (GetWindowPort (w));
-    CopyBits (bitmap, (BitMap *) *pmh, &(bitmap->bounds), &r, srcCopy, 0);
+    CopyBits (bitmap, (BitMap *) *pmh, &(bitmap->bounds), &r,
+	      overlay_p ? srcOr : srcCopy, 0);
     UnlockPortBits (GetWindowPort (w));
   }
 #else /* not TARGET_API_MAC_CARBON */
-  CopyBits (bitmap, &(w->portBits), &(bitmap->bounds), &r, srcCopy, 0);
+  CopyBits (bitmap, &(w->portBits), &(bitmap->bounds), &r,
+	    overlay_p ? srcOr : srcCopy, 0);
 #endif /* not TARGET_API_MAC_CARBON */
 }
 
@@ -1345,39 +1348,16 @@ x_draw_fringe_bitmap (w, row, p)
       BitMap bitmap;
 
       mac_create_bitmap_from_bitmap_data (&bitmap, bits, p->wd, p->h);
-      gcv.foreground = face->foreground;
-      gcv.background = face->background;
 
-#if 0  /* TODO: fringe overlay_p and cursor_p */
       gcv.foreground = (p->cursor_p
 			? (p->overlay_p ? face->background
 			   : f->output_data.mac->cursor_pixel)
-			: face->foreground));
+			: face->foreground);
+      gcv.background = face->background;
 
-      if (p->overlay_p)
-	{
-	  clipmask = XCreatePixmapFromBitmapData (display, 
-						  FRAME_X_DISPLAY_INFO (f)->root_window,
-						  bits, p->wd, p->h, 
-						  1, 0, 1);
-	  gcv.clip_mask = clipmask;
-	  gcv.clip_x_origin = p->x;
-	  gcv.clip_y_origin = p->y; 
-	  XChangeGC (display, gc, GCClipMask | GCClipXOrigin | GCClipYOrigin, &gcv);
-	}
-#endif
-
-      mac_draw_bitmap (display, window, &gcv, p->x, p->y, &bitmap);
+      mac_draw_bitmap (display, window, &gcv, p->x, p->y, &bitmap,
+		       p->overlay_p);
       mac_free_bitmap (&bitmap);
-
-#if 0  /* TODO: fringe overlay_p and cursor_p */
-      if (p->overlay_p)
-	{
-	  gcv.clip_mask = (Pixmap) 0;
-	  XChangeGC (display, gc, GCClipMask, &gcv);
-	  XFreePixmap (display, clipmask);
-	}
-#endif
     }
 
   mac_reset_clipping (display, window);
