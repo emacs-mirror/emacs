@@ -1,3 +1,14 @@
+2004-04-12  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuffer.el (ibuffer-delete-window-on-quit): Remove.
+	(ibuffer-restore-window-config-on-quit): New variable to replace
+	`ibuffer-delete-window-on-quit'.  Update all references.
+	(ibuffer-prev-window-config): New variable.
+	(ibuffer-quit): Restore previous window configuration instead of
+	deleting window.
+	(ibuffer): Save window configuration before showing Ibuffer
+	buffer.
+
 2004-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation-mode-font-lock-keywords): Fix test
