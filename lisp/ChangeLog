@@ -1,3 +1,13 @@
+2002-03-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* international/ucs-tables.el (ucs-unify-8859, ucs-fragment-8859):
+	Use unify-8859-on-decoding-mode.
+	(unify-8859-on-decoding-mode): Also set translation-table-for-input.
+	(ucs-insert): Give an error if the unicode char can't be created.
+
+	* pcvs-parse.el (cvs-parse-table): Be a bit more lenient.
+	(cvs-parse-status): Handle the "used to have a conflict" marker.
+
 2002-03-17  Kim F. Storm  <storm@cua.dk>
 
 	The following changes are related to the enhanced network process
@@ -5,12 +15,11 @@
 
 	* simple.el: Update copyright.
 	(clone-process): Use make-network-process to clone network
-	processes. Get command list via (process-contact ... t).
+	processes.  Get command list via (process-contact ... t).
 	Use set-process-query-on-exit-flag and process-query-on-exit-flag
 	instead of process-kill-without-query.
 	(open-network-stream): Replaces C-version from process.c.
-	(open-network-stream-nowait, open-network-stream-server): New
-	functions.
+	(open-network-stream-nowait, open-network-stream-server): New funs.
 	(process-kill-without-query): Replaces C-version from process.c.
 
 	* files.el: Update copyright.
@@ -50,6 +59,11 @@
 	* bindings.el (mode-line-mule-info): In computing help-echo prop,
 	avoid using save-window-excursion.  And compile the function.
 
+2002-03-15  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* files.el (load-completion): New function.
+	(load-library): Use it.
+
 2002-03-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* calendar/cal-french.el (calendar-goto-french-date): Fix prompt
@@ -57,8 +71,8 @@
 
 2002-03-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* textmodes/po.el (po-find-file-coding-system-guts): Use
-	with-temp-buffer instead of po-with-temp-buffer.
+	* textmodes/po.el (po-find-file-coding-system-guts):
+	Use with-temp-buffer instead of po-with-temp-buffer.
 
 	* international/mule-conf.el (file-coding-system-alist): Add an
 	association for PO files.
@@ -77,9 +91,9 @@
 2002-03-14  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/picture.el (picture-insert)
-	(picture-clear-column, picture-draw-rectangle): 
+	(picture-clear-column, picture-draw-rectangle):
 	Use move-to-column, not move-to-column-force.
-	
+
 	* dired.el (dired-readin): Clear out undo list.
 	(dired-fun-in-all-buffers): Definition moved from dired-aux.el.
 	(dired-delete-entry): New function.
@@ -87,12 +101,12 @@
 	and dired-delete-entry, to update this buffer (and others).
 
 	* dired-aux.el (dired-fun-in-all-buffers): Moved to dired.el.
-	
+
 	* facemenu.el (facemenu-add-new-face):
 	Pass region args to facemenu-set-face, when there is a region.
 	(facemenu-set-foreground, facemenu-set-background)
 	(facemenu-add-face): Doc fixes.
-	
+
 	* progmodes/cperl-mode.el (cperl-outline-regexp): Move definition up.
 
 2002-03-14  Miles Bader  <miles@gnu.org>
@@ -105,9 +119,29 @@
 	(rlogin): Don't install the `rlogin-carriage-filter' filter, as
 	comint removes carriage returns itself now.
 
-	* rfn-eshadow.el (rfn-eshadow-update-overlay): Bind
-	`inhibit-point-motion-hooks' to t while messing around, to avoid
+	* rfn-eshadow.el (rfn-eshadow-update-overlay):
+	Bind `inhibit-point-motion-hooks' to t while messing around, to avoid
 	getting hosed by our own intangible property.
+
+2002-03-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/fortran.el (fortran-mode): Set comment-padding to "$$$".
+	Add fortran-comment-line-start-skip to comment-start-skip.
+	(fortran-comment-indent): Keep whole-line comments in column 0.
+	(fortran-find-comment-start-skip): New arg `all'.
+	If ALL is nil, make sure we only match comment-start-skip if we
+	can't match fortran-comment-line-start-skip.
+	Fix bug that made it return t but without moving point when
+	matching '!'! (a false-comment followed by a real comment).
+	(fortran-indent-comment): Use new `all' argument above.
+	Be careful not to add an incorrect comment-starter like "C"
+	in comment-column.
+	(fortran-split-line): When splitting a comment, reuse the comment
+	starter from the current line rather than fortran-comment-line-start.
+	(fortran-indent-line, fortran-auto-fill): Simplify thanks to the
+	cleaner behavior of fortran-find-comment-start-skip.
+	(fortran-fill): Don't be confused by ! inside a comment.
+	(fortran-break-line): Minor cleanup and simplification.
 
 2002-03-13  Francesco Potorti`  <pot@gnu.org>
 
@@ -132,10 +166,9 @@
 2002-03-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/cl-indent.el (lisp-loop-keyword-indentation)
-	(lisp-loop-forms-indentation, lisp-simple-loop-indentation): New
-	user options.
-	(extended-loop-p, common-lisp-loop-part-indentation): New
-	functions.
+	(lisp-loop-forms-indentation, lisp-simple-loop-indentation):
+	New user options.
+	(extended-loop-p, common-lisp-loop-part-indentation): New functions.
 	(common-lisp-indent-function-1): Renamed from
 	common-lisp-indent-function.
 	(common-lisp-indent-function): Handle loop forms specially.
@@ -145,9 +178,9 @@
 2002-03-12  Francesco Potorti`  <pot@gnu.org>
 
 	* progmodes/etags.el (tag-exact-file-name-match-p)
-	(tag-file-name-match-p, tag-partial-file-name-match-p): Assume
-	that the header of a tags section has either a number or nothing
-	after the last comma.
+	(tag-file-name-match-p, tag-partial-file-name-match-p):
+	Assume that the header of a tags section has either a number
+	or nothing after the last comma.
 
 2002-03-11  Richard M. Stallman  <rms@gnu.org>
 
@@ -228,8 +261,7 @@
 	(mpuz-trivial-face, mpuz-text-face, mpuz-solve-when-trivial)
 	(mpuz-allow-double-multiplicator): New options for nicer look and
 	new features.
-	(mpuz-put-number-on-board, mpuz-paint-number, mpuz-solve): New
-	functions.
+	(mpuz-put-number-on-board, mpuz-paint-number, mpuz-solve): New funs.
 	(mpuz-check-all-solved, mpuz-random-puzzle)
 	(mpuz-paint-statistics, mpuz-paint-digit, mpuz-close-game)
 	(mpuz-show-solution): Functions streamlined and removed french
