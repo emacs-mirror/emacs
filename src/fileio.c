@@ -23,7 +23,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
 
-#if defined (USG5) || defined (BSD_SYSTEM) || defined (LINUX)
+#if defined (USG5) || defined (BSD_SYSTEM) || defined (GNU_LINUX)
 #include <fcntl.h>
 #endif
 

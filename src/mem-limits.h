@@ -118,7 +118,7 @@ get_lim_data ()
   lim_data = -1;
 
   /* Use the ulimit call, if we seem to have it.  */
-#if !defined (ULIMIT_BREAK_VALUE) || defined (LINUX)
+#if !defined (ULIMIT_BREAK_VALUE) || defined (GNU_LINUX)
   lim_data = ulimit (3, 0);
 #endif
 

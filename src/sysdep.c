@@ -245,7 +245,7 @@ static int baud_convert[] =
 #else
 #if defined (HAVE_LIBNCURSES) && ! defined (NCURSES_OSPEED_T)
 #else
-#if defined (HAVE_TERMIOS_H) && defined (LINUX)
+#if defined (HAVE_TERMIOS_H) && defined (GNU_LINUX)
 #include <termios.h>
 #endif
 #endif
@@ -476,7 +476,7 @@ wait_for_termination (pid)
 	break;
       wait (0);
 #else /* neither BSD_SYSTEM nor UNIPLUS: random sysV */
-#ifdef POSIX_SIGNALS    /* would this work for LINUX as well? */
+#ifdef POSIX_SIGNALS    /* would this work for GNU/Linux as well? */
       sigblock (sigmask (SIGCHLD));
       errno = 0;
       if (kill (pid, 0) == -1 && errno == ESRCH)

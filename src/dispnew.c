@@ -101,7 +101,7 @@ Boston, MA 02111-1307, USA.  */
 #endif
 #endif /* not __GNU_LIBRARY__ */
 
-#if defined(HAVE_TERM_H) && defined (LINUX) && defined (HAVE_LIBNCURSES)
+#if defined(HAVE_TERM_H) && defined (GNU_LINUX) && defined (HAVE_LIBNCURSES)
 #include <term.h>		/* for tgetent */
 #endif
 
@@ -6397,7 +6397,7 @@ init_display ()
 #else
       Vwindow_system_version = make_number (10);
 #endif
-#if defined (LINUX) && defined (HAVE_LIBNCURSES)
+#if defined (GNU_LINUX) && defined (HAVE_LIBNCURSES)
       /* In some versions of ncurses,
 	 tputs crashes if we have not called tgetent.
 	 So call tgetent.  */

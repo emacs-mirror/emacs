@@ -4276,7 +4276,7 @@ sigchld_handler (signo)
 	 Otherwise (on systems that have WNOHANG), loop around
 	 to use up all the processes that have something to tell us.  */
 #if (defined WINDOWSNT \
-     || (defined USG && !defined LINUX \
+     || (defined USG && !defined GNU_LINUX \
          && !(defined HPUX && defined WNOHANG)))
 #if defined (USG) && ! defined (POSIX_SIGNALS)
       signal (signo, sigchld_handler);
