@@ -418,7 +418,12 @@
 
 (setq file-coding-system-alist
       '(("\\.elc\\'" . (emacs-mule . emacs-mule))
-	("\\(\\`\\|/\\)loaddefs.el\\'" . (no-conversion . no-conversion))
+	;; We use raw-text for reading loaddefs.el so that if it
+	;; happens to have DOS or Mac EOLs, they are converted to
+	;; newlines.  This is required to make the special treatment
+	;; of the "\ newline" combination in loaddefs.el, which marks
+	;; the beginning of a doc string, work.
+	("\\(\\`\\|/\\)loaddefs.el\\'" . (raw-text . raw-text-unix))
 	("\\.tar\\'" . (no-conversion . no-conversion))
 	("" . (undecided . nil))))
 
