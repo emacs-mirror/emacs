@@ -1,3 +1,8 @@
+2003-10-20  John Paul Wallington  <jpw@gnu.org>
+
+	* emacs-lisp/elint.el (elint-check-defcustom-form): Don't use
+	`evenp'	so we don't implicitly require cl library at runtime.
+
 2003-10-18  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* help-mode.el (help-xref-symbol-regexp): Treat newlines as
