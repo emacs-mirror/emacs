@@ -2795,27 +2795,41 @@ See also `comint-dynamic-complete-filename'."
 (defun comint-dynamic-list-completions (completions)
   "List in help buffer sorted COMPLETIONS.
 Typing SPC flushes the help buffer."
-  (let ((conf (current-window-configuration)))
-    (with-output-to-temp-buffer "*Completions*"
-      (display-completion-list (sort completions 'string-lessp)))
-    (message "Hit space to flush")
-    (let (key first)
-      (if (save-excursion
-	    (set-buffer (get-buffer "*Completions*"))
-	    (setq key (read-key-sequence nil)
-		  first (aref key 0))
-	    (and (consp first) (consp (event-start first))
-		 (eq (window-buffer (posn-window (event-start first)))
-		     (get-buffer "*Completions*"))
-		 (eq (key-binding key) 'mouse-choose-completion)))
-	  ;; If the user does mouse-choose-completion with the mouse,
-	  ;; execute the command, then delete the completion window.
-	  (progn
-	    (mouse-choose-completion first)
-	    (set-window-configuration conf))
-	(if (eq first ?\ )
-	    (set-window-configuration conf)
-	  (setq unread-command-events (listify-key-sequence key)))))))
+  (let ((window (get-buffer-window "*Completions*")))
+    (if (and (eq last-command this-command)
+	     window (window-live-p window) (window-buffer window)
+	     (buffer-name (window-buffer window)))
+	;; If this command was repeated, and
+	;; there's a fresh completion window with a live buffer,
+	;; and this command is repeated, scroll that window.
+	(with-current-buffer (window-buffer window)
+	  (if (pos-visible-in-window-p (point-max) window)
+	      (set-window-start window (point-min))
+	    (save-selected-window
+	      (select-window window)
+	      (scroll-up))))
+
+      (let ((conf (current-window-configuration)))
+	(with-output-to-temp-buffer "*Completions*"
+	  (display-completion-list (sort completions 'string-lessp)))
+	(message "Type space to flush; repeat completion command to scroll")
+	(let (key first)
+	  (if (save-excursion
+		(set-buffer (get-buffer "*Completions*"))
+		(setq key (read-key-sequence nil)
+		      first (aref key 0))
+		(and (consp first) (consp (event-start first))
+		     (eq (window-buffer (posn-window (event-start first)))
+			 (get-buffer "*Completions*"))
+		     (eq (key-binding key) 'mouse-choose-completion)))
+	      ;; If the user does mouse-choose-completion with the mouse,
+	      ;; execute the command, then delete the completion window.
+	      (progn
+		(mouse-choose-completion first)
+		(set-window-configuration conf))
+	    (if (eq first ?\ )
+		(set-window-configuration conf)
+	      (setq unread-command-events (listify-key-sequence key)))))))))
 
 
 (defun comint-get-next-from-history ()
