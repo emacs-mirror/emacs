@@ -28,6 +28,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "lwlib-utils.h"
 #include <X11/StringDefs.h>
 
+#ifdef __osf__
+#include <string.h>
+#include <stdlib.h>
+extern long *xmalloc();
+#endif
+
 #if defined (USE_LUCID)
 #include "lwlib-Xlw.h"
 #endif
