@@ -232,6 +232,12 @@ and supplying that file name (@code{dired-find-file}).  @xref{Visiting}.
 @kindex RET @r{(Dired)}
 Equivalent to @kbd{f}.
 
+@item a
+@kindex a @r{(Dired)}
+@findex dired-find-alternate-file
+Like @kbd{f}, but replaces the contents of the Dired buffer with
+that of an alternate file or directory.
+
 @item o
 @kindex o @r{(Dired)}
 @findex dired-find-file-other-window
