@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.40) $
+ * $HopeName: MMsrc!arenavm.c(trunk.41) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -29,7 +29,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.40) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.41) $");
 
 
 typedef struct VMArenaStruct *VMArena;
@@ -381,11 +381,17 @@ static Index indexOfAddr(VMArena vmArena, Addr addr)
  *
  * Search for a free run of pages in the free table, but between
  * base and limit.
+ *
+ * downwards basically governs whether we use BTFindShortResRange
+ * (if downwards is FALSE) or BTFindShortResRangeHigh (if downwards
+ * is TRUE).  This _roughly_ corresponds to allocating segments from
+ * top down (when downwards is TRUE), at least within an interval.
  */
 
 static Bool findFreeInArea(Index *baseReturn,
                            VMArena vmArena, Size size,
-                           Addr base, Addr limit)
+                           Addr base, Addr limit,
+			   Bool downwards)
 {
   Word pages;                   /* number of pages equiv. to size */
   Index basePage, limitPage;	/* Index equiv. to base and limit */
@@ -401,16 +407,27 @@ static Bool findFreeInArea(Index *baseReturn,
   AVER(size <= AddrOffset(base, limit));
   AVER(size > (Size)0);
   AVER(SizeIsAligned(size, vmArena->pageSize));
+  AVER(BoolCheck(downwards));
 
   basePage = indexOfAddr(vmArena, base);
   limitPage = indexOfAddr(vmArena, limit);
   pages = size >> vmArena->pageShift;
 
-  if(!BTFindShortResRange(&start, &end,
-                          vmArena->allocTable,
-                          basePage, limitPage,
-                          pages))
-    return FALSE;
+  if(downwards) {
+    if(!BTFindShortResRangeHigh(&start, &end,
+			        vmArena->allocTable,
+			        basePage, limitPage,
+			        pages)) {
+      return FALSE;
+    }
+  } else {
+    if(!BTFindShortResRange(&start, &end,
+			    vmArena->allocTable,
+			    basePage, limitPage,
+			    pages)) {
+      return FALSE;
+    }
+  }
 
   *baseReturn = start;
   return TRUE;
@@ -425,10 +442,15 @@ static Bool findFreeInArea(Index *baseReturn,
  *
  * In other words, it finds space for a segment whose RefSet (see
  * RefSetOfSeg) will be a subset of the specified RefSet.
+ *
+ * @@@@ For meaning of downwards arg see findFreeInArea.  This
+ * should be improved so that it allocates segments from top down
+ * globally, as opposed to (currently) just within an interval.
  */
 
 static Bool findFreeInRefSet(Index *baseReturn,
-			     VMArena vmArena, Size size, RefSet refSet)
+			     VMArena vmArena, Size size, RefSet refSet,
+			     Bool downwards)
 {
   Arena arena;
   Addr arenaBase, base, limit;
@@ -437,7 +459,8 @@ static Bool findFreeInRefSet(Index *baseReturn,
   AVER(baseReturn != NULL);
   AVERT(VMArena, vmArena);
   AVER(size > 0);
-  /* Can't check refSet */
+  AVER(RefSetCheck(refSet));
+  AVER(BoolCheck(downwards));
 
   arena = VMArenaArena(vmArena);
   zoneSize = (Size)1 << arena->zoneShift;
@@ -473,7 +496,8 @@ static Bool findFreeInRefSet(Index *baseReturn,
 
       /* Try to allocate a segment in the area. */
       if(AddrOffset(base, limit) >= size &&
-         findFreeInArea(baseReturn, vmArena, size, base, limit))
+         findFreeInArea(baseReturn,
+			vmArena, size, base, limit, downwards))
         return TRUE;
       
       base = limit;
@@ -621,14 +645,14 @@ static Bool unusedTablePages(Addr *pagesBaseReturn, Addr *pagesLimitReturn,
 static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
 		      Pool pool)
 {
-  VMArena vmArena;
+  Addr addr, unmappedPagesBase, unmappedPagesLimit;
   Arena arena;
   Index i, pages, base;
-  Addr addr, unmappedPagesBase, unmappedPagesLimit;
-  Seg seg;
-  Res res;
   RefSet refSet, segRefSet;
+  Res res;
+  Seg seg;
   Serial gen = (Serial)0; /* avoids incorrect warning */
+  VMArena vmArena;
 
   AVER(segReturn != NULL);
   AVERT(SegPref, pref);
@@ -653,7 +677,7 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
   } else {
     refSet = pref->refSet;
   }
-   
+
   /* @@@@ Some of these tests might be duplicates.  If we're about */
   /* to run out of virtual address space, then slow allocation is */
   /* probably the least of our worries. */
@@ -669,14 +693,17 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
     /* Note that each is a superset of the previous, unless blacklisted */
     /* zones have been allocated (or the default is used). */
     if(!findFreeInRefSet(&base, vmArena, size, 
-			 RefSetDiff(refSet, vmArena->blacklist)) &&
+			 RefSetDiff(refSet, vmArena->blacklist),
+			 pref->high) &&
        !findFreeInRefSet(&base, vmArena, size, 
                          RefSetUnion(refSet,
 				     RefSetDiff(vmArena->freeSet, 
-						vmArena->blacklist))) && 
+						vmArena->blacklist)),
+						pref->high) && 
        !findFreeInRefSet(&base, vmArena, size, 
-			 RefSetDiff(RefSetUNIV, vmArena->blacklist)) && 
-       !findFreeInRefSet(&base, vmArena, size, RefSetUNIV)) {
+			 RefSetDiff(RefSetUNIV, vmArena->blacklist),
+			 pref->high) && 
+       !findFreeInRefSet(&base, vmArena, size, RefSetUNIV, pref->high)) {
       /* .improve.alloc-fail: This could be because the request was */
       /* too large, or perhaps the arena is fragmented.  We could return a */
       /* more meaningful code. */
@@ -691,11 +718,13 @@ static Res VMSegAlloc(Seg *segReturn, SegPref pref, Size size,
     /* Note that each is a superset of the previous, unless blacklisted */
     /* zones have been allocated. */
     if(!findFreeInRefSet(&base, vmArena, size, 
-			 RefSetInter(refSet, vmArena->blacklist)) &&
-       !findFreeInRefSet(&base, vmArena, size, refSet) && 
+			 RefSetInter(refSet, vmArena->blacklist),
+			 pref->high) &&
+       !findFreeInRefSet(&base, vmArena, size, refSet, pref->high) && 
        !findFreeInRefSet(&base, vmArena, size, 
-			 RefSetUnion(refSet, vmArena->blacklist)) && 
-       !findFreeInRefSet(&base, vmArena, size, RefSetUNIV)) {
+			 RefSetUnion(refSet, vmArena->blacklist),
+			 pref->high) && 
+       !findFreeInRefSet(&base, vmArena, size, RefSetUNIV, pref->high)) {
       return ResRESOURCE;
     }
   }
