@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.309 2001/09/17 09:59:41 spiegel Exp $
+;; $Id: vc.el,v 1.310 2001/09/22 20:04:21 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1514,9 +1514,9 @@ Runs the normal hook `vc-checkin-hook'."
       file
       ;; Change buffers to get local value of vc-checkin-switches.
       (with-current-buffer (or (get-file-buffer file) (current-buffer))
-	(let ((backup-file (vc-version-backup-file file)))
+	(progn
 	  (vc-call checkin file rev comment)
-	  (if backup-file (delete-file backup-file))))
+	  (vc-delete-automatic-version-backups file)))
       `((vc-state . up-to-date)
 	(vc-checkout-time . ,(nth 5 (file-attributes file)))
 	(vc-workfile-version . nil)))
