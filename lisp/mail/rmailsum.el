@@ -780,7 +780,8 @@ Commands for sorting the summary:
   (if (consp n) (setq n (prefix-numeric-value n)))
   (if (eobp) (forward-line -1))
   (beginning-of-line)
-  (let ((buf rmail-buffer)
+  (let ((obuf (current-buffer))
+	(buf rmail-buffer)
 	(cur (point))
 	message-not-found
 	(curmsg (string-to-int
@@ -832,7 +833,9 @@ Commands for sorting the summary:
 	(unwind-protect
 	    (progn (pop-to-buffer buf)
 		   (rmail-show-message n))
-	  (select-window selwin))))))
+	  (select-window selwin)
+	  ;; The actions above can alter the current buffer.  Preserve it.
+	  (set-buffer obuf))))))
 
 (defun rmail-summary-scroll-msg-up (&optional dist)
   "Scroll the Rmail window forward."
