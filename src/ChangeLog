@@ -1,3 +1,13 @@
+2001-10-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* frame.c (Fset_mouse_position): Improve style of comment to
+	follow other comments.
+	(Fset_mouse_pixel_position): Improve style of comment to follow
+	other comments.
+	(Fmake_frame_visible): Doc fix and typo in comment.
+	(Fmake_frame_invisible): Doc fix and typo in comment.
+	(Ficonify_frame): Fix typo in comment.
+
 2001-10-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c, dispnew.c, xterm.c, xdisp.c, xfaces.c, xmenu.c
