@@ -381,7 +381,7 @@ The following variables control appointment notification:
   (if (equal (selected-window) (minibuffer-window))
       (if (other-window 1) 
 	  (select-window (other-window 1))
-	(if window-system
+	(if (display-multi-frame-p)
 	    (select-frame (other-frame 1)))))
       
   (let* ((this-buffer (current-buffer))
