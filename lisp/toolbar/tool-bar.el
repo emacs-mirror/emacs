@@ -51,7 +51,9 @@ conveniently adding tool bar items."
     (let ((elt (assq 'tool-bar-lines default-frame-alist)))
       (if elt
 	  (setcdr elt lines)
-	(add-to-list 'default-frame-alist (cons 'tool-bar-lines lines))))))
+	(add-to-list 'default-frame-alist (cons 'tool-bar-lines lines)))))
+  (if (and tool-bar-mode (display-graphic-p))
+      (tool-bar-setup)))
 
 (defvar tool-bar-global-map (let ((map (make-sparse-keymap)))
 			     (global-set-key [tool-bar] map))
@@ -121,53 +123,44 @@ PROPS is a list of additional properties to add to the binding."
 
 ;;; Set up some global items.  Additions/deletions up for grabs.
 
-(tool-bar-add-item-from-menu 'save-buffers-kill-emacs "exit")
-(tool-bar-add-item-from-menu 'find-file "new")
-(tool-bar-add-item-from-menu 'dired "open")
-(tool-bar-add-item-from-menu 'kill-this-buffer "close")
-(tool-bar-add-item-from-menu 'save-buffer "save" nil
-			     :visible '(not (eq 'special (get major-mode
-							      'mode-class))))
-(tool-bar-add-item-from-menu 'write-file "saveas" nil
-			     :visible '(not (eq 'special (get major-mode
-							      'mode-class))))
-(tool-bar-add-item-from-menu 'undo "undo" nil
-			     :visible '(not (eq 'special (get major-mode
-							      'mode-class))))
-(tool-bar-add-item-from-menu 'kill-region "cut" nil
-			     :visible '(not (eq 'special (get major-mode
-							      'mode-class))))
-(tool-bar-add-item-from-menu 'menu-bar-kill-ring-save "copy")
-(tool-bar-add-item-from-menu 'yank "paste" nil
-			     :visible '(not (eq 'special (get major-mode
-							      'mode-class))))
-(tool-bar-add-item-from-menu 'nonincremental-search-forward "search")
-;;(tool-bar-add-item-from-menu 'ispell-buffer "spell")
+(defun tool-bar-setup ()
+  (tool-bar-add-item-from-menu 'save-buffers-kill-emacs "exit")
+  (tool-bar-add-item-from-menu 'find-file "new")
+  (tool-bar-add-item-from-menu 'dired "open")
+  (tool-bar-add-item-from-menu 'kill-this-buffer "close")
+  (tool-bar-add-item-from-menu 'save-buffer "save" nil
+			       :visible '(not (eq 'special (get major-mode
+								'mode-class))))
+  (tool-bar-add-item-from-menu 'write-file "saveas" nil
+			       :visible '(not (eq 'special (get major-mode
+								'mode-class))))
+  (tool-bar-add-item-from-menu 'undo "undo" nil
+			       :visible '(not (eq 'special (get major-mode
+								'mode-class))))
+  (tool-bar-add-item-from-menu 'kill-region "cut" nil
+			       :visible '(not (eq 'special (get major-mode
+								'mode-class))))
+  (tool-bar-add-item-from-menu 'menu-bar-kill-ring-save "copy")
+  (tool-bar-add-item-from-menu 'yank "paste" nil
+			       :visible '(not (eq 'special (get major-mode
+								'mode-class))))
+  (tool-bar-add-item-from-menu 'nonincremental-search-forward "search")
+  ;;(tool-bar-add-item-from-menu 'ispell-buffer "spell")
 
-;; There's no icon appropriate for News and we need a command rather
-;; than a lambda for Read Mail.
-;;(tool-bar-add-item-from-menu 'compose-mail "mail_compose")
+  ;; There's no icon appropriate for News and we need a command rather
+  ;; than a lambda for Read Mail.
+  ;;(tool-bar-add-item-from-menu 'compose-mail "mail_compose")
 
-(tool-bar-add-item-from-menu 'print-buffer "print")
-(tool-bar-add-item "preferences" 'customize 'customize nil
-		   :help "Edit preferences (customize)")
+  (tool-bar-add-item-from-menu 'print-buffer "print")
+  (tool-bar-add-item "preferences" 'customize 'customize nil
+		     :help "Edit preferences (customize)")
 
-(defun tool-bar-help ()
-  "Pop up the help menu from the tool-bar."
-  (interactive)
-  (let* ((p (mouse-pixel-position))
-	 (menu menu-bar-help-menu)
-	 (selection (x-popup-menu (list (list (cadr p) (cddr p)) (car p))
-				  menu))
-	 binding)
-    (while selection
-      (setq binding (lookup-key (or binding menu) (vector (car selection)))
-	    selection (cdr selection)))
-    (when binding
-      (call-interactively binding))))
-
-(tool-bar-add-item "help" 'tool-bar-help
-		   'help nil :help "Pop up the Help menu")
+  (tool-bar-add-item "help"
+		     (lambda ()
+		       (interactive)
+		       (popup-menu menu-bar-help-menu))
+		     'help nil :help "Pop up the Help menu")
+  )
 
 (provide 'tool-bar)
 
