@@ -3814,7 +3814,7 @@ handle_composition_prop (it)
      struct it *it;
 {
   Lisp_Object prop, string;
-  int pos, pos_byte, end;
+  EMACS_INT pos, pos_byte, end;
   enum prop_handled handled = HANDLED_NORMALLY;
 
   if (STRINGP (it->string))
@@ -9503,7 +9503,7 @@ check_point_in_composition (prev_buf, prev_pt, buf, pt)
      struct buffer *prev_buf, *buf;
      int prev_pt, pt;
 {
-  int start, end;
+  EMACS_INT start, end;
   Lisp_Object prop;
   Lisp_Object buffer;
 
