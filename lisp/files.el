@@ -742,6 +742,9 @@ run `normal-mode' explicitly."
 				  ("\\.lex\\'" . c-mode)
 				  ("\\.oak\\'" . scheme-mode)
 				  ("\\.scm.[0-9]*\\'" . scheme-mode)
+				  ("\\.sgm\\'" sgml-mode)
+				  ("\\.sgml\\'" sgml-mode)
+				  ("\\.dtd\\'" sgml-mode)
 				  ;; .emacs following a directory delimiter
 				  ;; in either Unix or VMS syntax.
 				  ("[]>:/]\\..*emacs\\'" . emacs-lisp-mode)
