@@ -1,3 +1,28 @@
+2004-12-05  Richard M. Stallman  <rms@gnu.org>
+
+	* misc.texi (Term Mode): Correcty describe C-c.
+
+	* custom.texi (Easy Customization): Move up to section level,
+	before Variables.  Avoid using the term "variable"; say "option".
+	New initial explanation.
+	(Variables): In initial explanation, connect "variable" to the
+	already-explained "user option".
+
+	* emacs.texi (Top): Fix ref to Command Line.
+	Move reference to Easy Customization.
+
+	* xresources.texi (X Resources): Fix From link.
+
+	* doclicense.texi (GNU Free Documentation License): Fix To link.
+
+	* entering.texi (Entering Emacs): Fix xref, now to Command Line.
+
+	* cmdargs.texi (Command Line): Node renamed from Command Arguments.
+
+2004-12-03  Richard M. Stallman  <rms@gnu.org>
+
+	* cmdargs.texi (Initial Options): Clarify batch mode i/o.
+
 2004-12-01  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* kmacro.texi: Several small changes in addition to the following.
