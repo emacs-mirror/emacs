@@ -506,7 +506,6 @@ remove_process (proc)
 
   pair = Frassq (proc, Vprocess_alist);
   Vprocess_alist = Fdelq (pair, Vprocess_alist);
-  Fset_marker (XPROCESS (proc)->mark, Qnil, Qnil);
 
   deactivate_process (proc);
 }
