@@ -518,7 +518,7 @@ See the documentation of `diary-date-forms' for an explanation."
 (defcustom european-date-diary-pattern
   '((day "/" month "[^/0-9]")
     (day "/" month "/" year "[^0-9]")
-    (backup day " *" monthname "\\W+\\<[^*0-9]")
+    (backup day " *" monthname "\\W+\\<\\([^*0-9]\\|\\([0-9]+[:aApP]\\)\\)")
     (day " *" monthname " *" year "[^0-9]")
     (dayname "\\W"))
   "*List of pseudo-patterns describing the European patterns of date used.
