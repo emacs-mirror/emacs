@@ -62,12 +62,12 @@ asterisk (@samp{*}).
 @vindex calendar-holiday-marker
 @vindex diary-entry-marker
   The variable @code{calendar-holiday-marker} specifies how to mark a
-date as being a holiday.  Its value may be a character to insert next to
-the date, or a face name to use for displaying the date.  Likewise, the
-variable @code{diary-entry-marker} specifies how to mark a date that has
-diary entries.  The calendar creates faces named @code{holiday-face} and
-@code{diary-face} for these purposes; those symbols are the default
-values of these variables.
+date as being a holiday.  Its value may be a single-character string
+to insert next to the date, or a face name to use for displaying the
+date.  Likewise, the variable @code{diary-entry-marker} specifies how
+to mark a date that has diary entries.  The calendar creates faces
+named @code{holiday-face} and @code{diary-face} for these purposes;
+those symbols are the default values of these variables.
 
 @vindex calendar-load-hook
   The variable @code{calendar-load-hook} is a normal hook run when the
@@ -103,11 +103,11 @@ changing its face or by adding an asterisk.  Here's how to use it:
 
 @noindent
 @vindex calendar-today-marker
-The variable @code{calendar-today-marker} specifies how to mark today's
-date.  Its value should be a character to insert next to the date or a
-face name to use for displaying the date.  A face named
-@code{calendar-today-face} is provided for this purpose; that symbol is
-the default for this variable.
+The variable @code{calendar-today-marker} specifies how to mark
+today's date.  Its value should be a single-character string to insert
+next to the date or a face name to use for displaying the date.  A
+face named @code{calendar-today-face} is provided for this purpose;
+that symbol is the default for this variable.
 
 @vindex today-invisible-calendar-hook
 @noindent
@@ -130,7 +130,7 @@ You can customize these lists of holidays to your own needs, adding or
 deleting holidays.  The lists of holidays that Emacs uses are for
 general holidays (@code{general-holidays}), local holidays
 (@code{local-holidays}), Christian holidays (@code{christian-holidays}),
-Hebrew (Jewish) holidays (@code{hebrew-holidays}), Islamic (Moslem)
+Hebrew (Jewish) holidays (@code{hebrew-holidays}), Islamic (Muslim)
 holidays (@code{islamic-holidays}), and other holidays
 (@code{other-holidays}).
 

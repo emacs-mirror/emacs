@@ -350,7 +350,7 @@ an optional alist of possible values."
   "*When non-nil, tag insertion functions will be XML-compliant.
 If this variable is customized, the custom value is used always.
 Otherwise, it is set to be buffer-local when the file has
- a DOCTYPE or an XML declaration."
+a DOCTYPE or an XML declaration."
   :type 'boolean
   :version "22.1"
   :group 'sgml)
@@ -629,7 +629,7 @@ skeleton-transformation RET upcase RET, or put this in your `.emacs':
       (backward-char)
       '(("") " [ " _ " ]]"))
      ((and (eq v2 t) sgml-xml-mode (member ,str sgml-empty-tags))
-      '(("") -1 "/>"))
+      '(("") -1 " />"))
      ((or (and (eq v2 t) (not sgml-xml-mode)) (string-match "^[/!?]" ,str))
       nil)
      ((symbolp v2)
@@ -818,7 +818,8 @@ With prefix argument ARG, repeat this ARG times."
 	      (goto-char close)
 	      (kill-sexp 1))
 	  (setq open (point))
-	  (when (sgml-skip-tag-forward 1)
+	  (when (and (sgml-skip-tag-forward 1)
+		     (not (looking-back "/>")))
 	    (kill-sexp -1)))
 	;; Delete any resulting empty line.  If we didn't kill-sexp,
 	;; this *should* do nothing, because we're right after the tag.
@@ -1572,7 +1573,7 @@ This takes effect when first loading the library.")
       ("dir" ,@list)
       ("font" nil "size" ("-1") ("+1") ("-2") ("+2") ,@1-7)
       ("form" (\n _ \n "<input type=\"submit\" value=\"\""
-	       (if sgml-xml-mode "/>" ">"))
+	       (if sgml-xml-mode " />" ">"))
        ("action" ,@(cdr href)) ("method" ("get") ("post")))
       ("h1" ,@align)
       ("h2" ,@align)
@@ -1891,13 +1892,15 @@ Can be used as a value for `html-mode-hook'."
 (define-skeleton html-href-anchor
   "HTML anchor tag with href attribute."
   "URL: "
-  '(setq input "http:")
+  ;; '(setq input "http:")
   "<a href=\"" str "\">" _ "</a>")
 
 (define-skeleton html-name-anchor
   "HTML anchor tag with name attribute."
   "Name: "
-  "<a name=\"" str "\">" _ "</a>")
+  "<a name=\"" str "\""
+  (if sgml-xml-mode (concat " id=\"" str "\""))
+  ">" _ "</a>")
 
 (define-skeleton html-headline-1
   "HTML level 1 headline tags."
@@ -1932,18 +1935,18 @@ Can be used as a value for `html-mode-hook'."
 (define-skeleton html-horizontal-rule
   "HTML horizontal rule tag."
   nil
-  (if sgml-xml-mode "<hr/>" "<hr>") \n)
+  (if sgml-xml-mode "<hr />" "<hr>") \n)
 
 (define-skeleton html-image
   "HTML image tag."
-  nil
-  "<img src=\"" _ "\""
-  (if sgml-xml-mode "/>" ">"))
+  "Image URL: "
+  "<img src=\"" str "\" alt=\"" _ "\""
+  (if sgml-xml-mode " />" ">"))
 
 (define-skeleton html-line
   "HTML line break tag."
   nil
-  (if sgml-xml-mode "<br/>" "<br>") \n)
+  (if sgml-xml-mode "<br />" "<br>") \n)
 
 (define-skeleton html-ordered-list
   "HTML ordered list tags."
@@ -1969,7 +1972,7 @@ Can be used as a value for `html-mode-hook'."
   "HTML paragraph tag."
   nil
   (if (bolp) nil ?\n)
-  \n "<p>" _ (if sgml-xml-mode "</p>"))
+  "<p>" _ (if sgml-xml-mode "</p>"))
 
 (define-skeleton html-checkboxes
   "Group of connected checkbox inputs."
@@ -1981,12 +1984,13 @@ Can be used as a value for `html-mode-hook'."
    "\" name=\"" (or v1 (setq v1 (skeleton-read "Name: ")))
    "\" value=\"" str ?\"
    (when (y-or-n-p "Set \"checked\" attribute? ")
-     (funcall skeleton-transformation " checked"))
-   (if sgml-xml-mode "/>" ">")
+     (funcall skeleton-transformation
+	      (if sgml-xml-mode " checked=\"checked\"" " checked")))
+   (if sgml-xml-mode " />" ">")
    (skeleton-read "Text: " (capitalize str))
    (or v2 (setq v2 (if (y-or-n-p "Newline after text? ")
 		       (funcall skeleton-transformation
-                                (if sgml-xml-mode "<br/>" "<br>"))
+                                (if sgml-xml-mode "<br />" "<br>"))
 		     "")))
    \n))
 
@@ -2000,12 +2004,13 @@ Can be used as a value for `html-mode-hook'."
    "\" name=\"" (or (car v2) (setcar v2 (skeleton-read "Name: ")))
    "\" value=\"" str ?\"
    (when (and (not v1) (setq v1 (y-or-n-p "Set \"checked\" attribute? ")))
-     (funcall skeleton-transformation " checked"))
-   (if sgml-xml-mode "/>" ">")
+     (funcall skeleton-transformation
+	      (if sgml-xml-mode " checked=\"checked\"" " checked")))
+   (if sgml-xml-mode " />" ">")
    (skeleton-read "Text: " (capitalize str))
    (or (cdr v2) (setcdr v2 (if (y-or-n-p "Newline after text? ")
 			       (funcall skeleton-transformation
-                                        (if sgml-xml-mode "<br/>" "<br>"))
+                                        (if sgml-xml-mode "<br />" "<br>"))
 			     "")))
    \n))
 

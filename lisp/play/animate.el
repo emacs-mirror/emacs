@@ -80,9 +80,11 @@
 ;;; Place the character CHAR at position VPOS, HPOS in the current buffer.
 (defun animate-place-char (char vpos hpos)
   (goto-char (window-start))
-  (let ((next-line-add-newlines t))
+  (let (abbrev-mode)
     (dotimes (i vpos)
-      (next-line 1)))
+      (end-of-line)
+      (if (= (forward-line 1) 1)
+	  (insert "\n"))))
   (beginning-of-line)
   (move-to-column (floor hpos) t)
   (unless (eolp) (delete-char 1))

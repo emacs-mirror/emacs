@@ -466,13 +466,13 @@ The possible settings for `align-region-separate' are:
      (repeat   . t)
      (modes    . align-c++-modes)
      (run-if   . ,(function (lambda () current-prefix-arg))))
-;      (valid
-;       . ,(function
-;	  (lambda ()
-;	    (memq (caar (c-guess-basic-syntax))
-;		  '(brace-list-intro
-;		    brace-list-entry
-;		    brace-entry-open))))))
+					;      (valid
+					;       . ,(function
+					;	  (lambda ()
+					;	    (memq (caar (c-guess-basic-syntax))
+					;		  '(brace-list-intro
+					;		    brace-list-entry
+					;		    brace-entry-open))))))
 
     ;; With a prefix argument, comma delimiter will be aligned.  Since
     ;; perl-mode doesn't give us enough syntactic information (and we
@@ -525,11 +525,11 @@ The possible settings for `align-region-separate' are:
      (regexp   . "\\(\\s-*\\)\\\\$")
      (modes    . align-c++-modes)
      (column   . c-backslash-column))
-;      (valid
-;       . ,(function
-;	  (lambda ()
-;	    (memq (caar (c-guess-basic-syntax))
-;		  '(cpp-macro cpp-macro-cont))))))
+					;      (valid
+					;       . ,(function
+					;	  (lambda ()
+					;	    (memq (caar (c-guess-basic-syntax))
+					;		  '(cpp-macro cpp-macro-cont))))))
 
     (basic-line-continuation
      (regexp   . "\\(\\s-*\\)\\\\$")
@@ -578,7 +578,12 @@ The possible settings for `align-region-separate' are:
      (justify  . t)
      (run-if   . ,(function
 		   (lambda ()
-		     (eq '- current-prefix-arg))))))
+		     (eq '- current-prefix-arg)))))
+
+    (css-declaration
+     (regexp . "^\\s-*\\w+:\\(\\s-*\\).*;")
+     (group . (1))
+     (modes . '(css-mode html-mode))))
   "*A list describing all of the available alignment rules.
 The format is:
 

@@ -1,7 +1,7 @@
 ;;; pcvs-util.el --- utility functions for PCL-CVS  -*- byte-compile-dynamic: t -*-
 
 ;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2004  Free Software Foundation, Inc.
+;;   2000, 2001, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
@@ -205,8 +205,8 @@ It understands elisp style quoting within STRING such that
 The SEPARATOR regexp defaults to \"\\s-+\"."
   (let ((sep (or separator "\\s-+"))
 	(i (string-match "[\"]" string)))
-    (if (null i) (split-string string sep)	; no quoting:  easy
-      (append (unless (eq i 0) (split-string (substring string 0 i) sep))
+    (if (null i) (split-string string sep t)	; no quoting:  easy
+      (append (unless (eq i 0) (split-string (substring string 0 i) sep t))
 	      (let ((rfs (read-from-string string i)))
 		(cons (car rfs)
 		      (cvs-string->strings (substring string (cdr rfs))

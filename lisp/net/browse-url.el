@@ -815,8 +815,9 @@ the effect of `browse-url-new-window-flag'.
 When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'.
 
-The order attempted is gnome-moz-remote, Mozilla, Galeon, Netscape,
-Mosaic, IXI Mosaic, Lynx in an xterm, MMM, Konqueror, and then W3."
+The order attempted is gnome-moz-remote, Mozilla, Galeon,
+Konqueror, Netscape, Mosaic, IXI Mosaic, Lynx in an xterm, MMM,
+and then W3."
   (apply
     (cond
      ((executable-find browse-url-gnome-moz-program) 'browse-url-gnome-moz)

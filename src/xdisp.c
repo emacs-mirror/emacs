@@ -1294,6 +1294,7 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
   /* Note that we may overshoot because of invisible text.  */
   if (IT_CHARPOS (it) >= charpos)
     {
+      int top_x = it.current_x;
       int top_y = it.current_y;
       int bottom_y = (last_height = 0, line_bottom_y (&it));
       int window_top_y = WINDOW_HEADER_LINE_HEIGHT (w);
@@ -1302,15 +1303,12 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
 	visible_p = bottom_y > window_top_y;
       else if (top_y < it.last_visible_y)
 	  visible_p = 1;
-      if (visible_p && x)
+      if (visible_p)
 	{
-	  *x = it.current_x;
+	  *x = top_x;
 	  *y = max (top_y + max (0, it.max_ascent - it.ascent), window_top_y);
-	  if (rtop)
-	    {
-	      *rtop = max (0, window_top_y - top_y);
-	      *rbot = max (0, bottom_y - it.last_visible_y);
-	    }
+	  *rtop = max (0, window_top_y - top_y);
+	  *rbot = max (0, bottom_y - it.last_visible_y);
 	}
     }
   else
@@ -1323,18 +1321,12 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
       if (charpos < IT_CHARPOS (it))
 	{
 	  visible_p = 1;
-	  if (x)
-	    {
-	      move_it_to (&it2, charpos, -1, -1, -1, MOVE_TO_POS);
-	      *x = it2.current_x;
-	      *y = it2.current_y + it2.max_ascent - it2.ascent;
-	      if (rtop)
-		{
-		  *rtop = max (0, -it2.current_y);
-		  *rbot = max (0, ((it2.current_y + it2.max_ascent + it2.max_descent)
-				   - it.last_visible_y));
-		}
-	    }
+	  move_it_to (&it2, charpos, -1, -1, -1, MOVE_TO_POS);
+	  *x = it2.current_x;
+	  *y = it2.current_y + it2.max_ascent - it2.ascent;
+	  *rtop = max (0, -it2.current_y);
+	  *rbot = max (0, ((it2.current_y + it2.max_ascent + it2.max_descent)
+			   - it.last_visible_y));
 	}
     }
 

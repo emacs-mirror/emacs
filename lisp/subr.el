@@ -37,27 +37,6 @@ Each element of this list holds the arguments to one call to `defcustom'.")
 	(cons arguments custom-declare-variable-list)))
 
 
-(defun macro-declaration-function (macro decl)
-  "Process a declaration found in a macro definition.
-This is set as the value of the variable `macro-declaration-function'.
-MACRO is the name of the macro being defined.
-DECL is a list `(declare ...)' containing the declarations.
-The return value of this function is not used."
-  ;; We can't use `dolist' or `cadr' yet for bootstrapping reasons.
-  (let (d)
-    ;; Ignore the first element of `decl' (it's always `declare').
-    (while (setq decl (cdr decl))
-      (setq d (car decl))
-      (cond ((and (consp d) (eq (car d) 'indent))
-	     (put macro 'lisp-indent-function (car (cdr d))))
-	    ((and (consp d) (eq (car d) 'debug))
-	     (put macro 'edebug-form-spec (car (cdr d))))
-	    (t
-	     (message "Unknown declaration %s" d))))))
-
-(setq macro-declaration-function 'macro-declaration-function)
-
-
 ;;;; Lisp language features.
 
 (defalias 'not 'null)

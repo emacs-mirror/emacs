@@ -94,15 +94,8 @@ This is to optimize `debugger-make-xrefs'.")
 
 (defvar debugger-jumping-flag nil
   "Non-nil means that debug-on-entry is disabled.
-This variable is used by `debugger-jump' and `debugger-reenable'.")
-
-;; When you change this, you may also need to change the number of
-;; frames that the debugger skips.
-(defconst debug-entry-code
-  '(if (or inhibit-debug-on-entry debugger-jumping-flag)
-       nil
-     (debug 'debug))
-  "Code added to a function to cause it to call the debugger upon entry.")
+This variable is used by `debugger-jump', `debugger-step-through',
+and `debugger-reenable' to temporarily disable debug-on-entry.")
 
 ;;;###autoload
 (setq debugger 'debug)
@@ -177,7 +170,14 @@ first will be printed into the backtrace buffer."
 	    (save-excursion
 	      (save-window-excursion
 		(with-no-warnings
-		 (setq unread-command-char -1))
+		  (setq unread-command-char -1))
+		(when (eq (car debugger-args) 'debug)
+		  ;; Skip the frames for backtrace-debug, byte-code,
+		  ;; and implement-debug-on-entry.
+		  (backtrace-debug 4 t)
+		  ;; Place an extra debug-on-exit for macro's.
+		  (when (eq 'lambda (car-safe (cadr (backtrace-frame 4))))
+		    (backtrace-debug 5 t)))
 		(pop-to-buffer debugger-buffer)
 		(debugger-mode)
 		(debugger-setup-buffer debugger-args)
@@ -197,10 +197,6 @@ first will be printed into the backtrace buffer."
 		  (goto-char (point-min))
 		  (message "%s" (buffer-string))
 		  (kill-emacs))
-		(if (eq (car debugger-args) 'debug)
-		    ;; Skip the frames for backtrace-debug, byte-code,
-		    ;; and debug-entry-code.
-		    (backtrace-debug 4 t))
 		(message "")
 		(let ((standard-output nil)
 		      (buffer-read-only t))
@@ -232,7 +228,7 @@ first will be printed into the backtrace buffer."
       (setq last-command debugger-outer-last-command)
       (setq this-command debugger-outer-this-command)
       (with-no-warnings
-       (setq unread-command-char debugger-outer-unread-command-char))
+	(setq unread-command-char debugger-outer-unread-command-char))
       (setq unread-command-events debugger-outer-unread-command-events)
       (setq unread-post-input-method-events
 	    debugger-outer-unread-post-input-method-events)
@@ -263,19 +259,14 @@ That buffer should be current already."
 		 (progn
 		   (search-forward "\n  debug(")
 		   (forward-line (if (eq (car debugger-args) 'debug)
-				     2	; Remove debug-entry-code frame.
+				     2	; Remove implement-debug-on-entry frame.
 				   1))
 		   (point)))
   (insert "Debugger entered")
   ;; lambda is for debug-on-call when a function call is next.
   ;; debug is for debug-on-entry function called.
   (cond ((memq (car debugger-args) '(lambda debug))
-	 (insert "--entering a function:\n")
-	 (if (eq (car debugger-args) 'debug)
-	     (progn
-	       (delete-char 1)
-	       (insert ?*)
-	       (beginning-of-line))))
+	 (insert "--entering a function:\n"))
 	;; Exiting a function.
 	((eq (car debugger-args) 'exit)
 	 (insert "--returning value: ")
@@ -311,7 +302,7 @@ That buffer should be current already."
   (debugger-make-xrefs))
 
 (defun debugger-make-xrefs (&optional buffer)
-  "Attach cross-references to symbol names in the `*Backtrace*' buffer."
+  "Attach cross-references to function names in the `*Backtrace*' buffer."
   (interactive "b")
   (save-excursion
     (set-buffer (or buffer (current-buffer)))
@@ -362,6 +353,7 @@ That buffer should be current already."
       ;; Scan the new part of the backtrace, inserting xrefs.
       (goto-char (point-min))
       (while (progn
+	       (goto-char (+ (point) 2))
 	       (skip-syntax-forward "^w_")
 	       (not (eobp)))
 	(let* ((beg (point))
@@ -373,8 +365,8 @@ That buffer should be current already."
 	    (goto-char beg)
 	    ;; help-xref-button needs to operate on something matched
 	    ;; by a regexp, so set that up for it.
-	    (re-search-forward "\\(\\(\\sw\\|\\s_\\)+\\)")
-	    (help-xref-button 1 'help-function-def sym file)))
+	    (re-search-forward "\\(\\sw\\|\\s_\\)+")
+	    (help-xref-button 0 'help-function-def sym file)))
 	(forward-line 1))
       (widen))
     (setq debugger-previous-backtrace (buffer-string))))
@@ -384,6 +376,8 @@ That buffer should be current already."
 Enter another debugger on next entry to eval, apply or funcall."
   (interactive)
   (setq debugger-step-after-exit t)
+  (setq debugger-jumping-flag t)
+  (add-hook 'post-command-hook 'debugger-reenable)
   (message "Proceeding, will debug on next eval or call.")
   (exit-recursive-edit))
 
@@ -429,8 +423,8 @@ removes itself from that hook."
 	  (count 0))
       (while (not (eq (cadr (backtrace-frame count)) 'debug))
 	(setq count (1+ count)))
-      ;; Skip debug-entry-code frame.
-      (when (member '(debug (quote debug)) (cdr (backtrace-frame (1+ count))))
+      ;; Skip implement-debug-on-entry frame.
+      (when (eq 'implement-debug-on-entry (cadr (backtrace-frame (1+ count))))
 	(setq count (1+ count)))
       (goto-char (point-min))
       (when (looking-at "Debugger entered--\\(Lisp error\\|returning value\\):")
@@ -513,12 +507,12 @@ Applies to the frame whose line point is on in the backtrace."
 	    (unwind-protect
 		(progn
 		  (with-no-warnings
-		   (setq unread-command-char debugger-outer-unread-command-char))
+		    (setq unread-command-char debugger-outer-unread-command-char))
 		  (prog1 (progn ,@body)
 		    (with-no-warnings
-		     (setq debugger-outer-unread-command-char unread-command-char))))
+		      (setq debugger-outer-unread-command-char unread-command-char))))
 	      (with-no-warnings
-	       (setq unread-command-char save-ucc))))
+		(setq unread-command-char save-ucc))))
         (setq debugger-outer-match-data (match-data))
         (setq debugger-outer-load-read-function load-read-function)
         (setq debugger-outer-overriding-terminal-local-map
@@ -620,6 +614,16 @@ Complete list of commands:
   (use-local-map debugger-mode-map)
   (run-mode-hooks 'debugger-mode-hook))
 
+;; When you change this, you may also need to change the number of
+;; frames that the debugger skips.
+(defun implement-debug-on-entry ()
+  "Conditionally call the debugger.
+A call to this function is inserted by `debug-on-entry' to cause
+functions to break on entry."
+  (if (or inhibit-debug-on-entry debugger-jumping-flag)
+      nil
+    (funcall debugger 'debug)))
+
 ;;;###autoload
 (defun debug-on-entry (function)
   "Request FUNCTION to invoke debugger each time it is called.
@@ -644,7 +648,7 @@ Redefining FUNCTION also cancels it."
       (debug-convert-byte-code function))
   (or (consp (symbol-function function))
       (error "Definition of %s is not a list" function))
-  (fset function (debug-on-entry-1 function (symbol-function function) t))
+  (fset function (debug-on-entry-1 function t))
   (or (memq function debug-function-list)
       (push function debug-function-list))
   function)
@@ -661,7 +665,7 @@ If argument is nil or an empty string, cancel for all functions."
 	   (if name (intern name)))))
   (if (and function (not (string= function "")))
       (progn
-	(let ((f (debug-on-entry-1 function (symbol-function function) nil)))
+	(let ((f (debug-on-entry-1 function nil)))
 	  (condition-case nil
 	      (if (and (equal (nth 1 f) '(&rest debug-on-entry-args))
 		       (eq (car (nth 3 f)) 'apply))
@@ -692,8 +696,9 @@ If argument is nil or an empty string, cancel for all functions."
 	      (setq body (cons (documentation function) body)))
 	  (fset function (cons 'lambda (cons (car contents) body)))))))
 
-(defun debug-on-entry-1 (function defn flag)
-  (let ((tail defn))
+(defun debug-on-entry-1 (function flag)
+  (let* ((defn (symbol-function function))
+	 (tail defn))
     (if (subrp tail)
 	(error "%s is a built-in function" function)
       (if (eq (car tail) 'macro) (setq tail (cdr tail)))
@@ -705,10 +710,10 @@ If argument is nil or an empty string, cancel for all functions."
       ;; Skip the interactive form.
       (when (eq 'interactive (car-safe (cadr tail)))
 	(setq tail (cdr tail)))
-      (unless (eq flag (equal (cadr tail) debug-entry-code))
+      (unless (eq flag (equal (cadr tail) '(implement-debug-on-entry)))
 	;; Add/remove debug statement as needed.
 	(if flag
-	    (setcdr tail (cons debug-entry-code (cdr tail)))
+	    (setcdr tail (cons '(implement-debug-on-entry) (cdr tail)))
 	  (setcdr tail (cddr tail))))
       defn)))
 

@@ -1,3 +1,8 @@
+2005-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xlwmenuP.h:
+	* xlwmenu.h: Add missing copyright and license notice.
+
 2004-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xlwmenu.c (xlwMenuActionsList): Install MenuGadgetEscape as an
@@ -19,11 +24,11 @@
 
 2004-08-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* lwlib.h (_widget_value): Added lname and lkey.
+	* lwlib.h (_widget_value): Add lname and lkey.
 
 2004-01-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xlwmenuP.h (_XlwMenu_part): Added top_depth.
+	* xlwmenuP.h (_XlwMenu_part): Add top_depth.
 
 	* xlwmenu.h: Removed declaration of pop_up_menu
 
@@ -56,8 +61,8 @@
 
 	* lwlib-Xlw.c: Include lisp.h, not ../src/lisp.h.
 	(lw_lucid_widget_p): Remove unused `mw'.
-	(xlw_update_one_widget, xlw_pop_instance) [PROTOTYPES]: Provide
-	ISO C arglists.
+	(xlw_update_one_widget, xlw_pop_instance) [PROTOTYPES]:
+	Provide ISO C arglists.
 
 2003-04-30  Lute Kamstra  <lute@gnu.org>
 
@@ -84,8 +89,7 @@
 2002-11-20  Dave Love  <fx@gnu.org>
 
 	* lwlib.c: Remove obsolete USE_OLIT code.
-	[PROTOTYPES]: Provide ISO C arglists for functions with Boolean
-	args.
+	[PROTOTYPES]: Provide ISO C arglists for functions with Boolean args.
 	(lwlib_memset): Declare length arg as size_t.
 	(malloc_widget_value): Cast arg of lwlib_memset.
 
@@ -248,7 +252,7 @@
 
 	* lwlib-Xm.c (make_menu_in_widget): Add an XmNpopdownCallback
 	instead of an XmNunmapCallback.
-	(xm_unmap_callback): Removed.
+	(xm_unmap_callback): Remove.
 
 	* lwlib-Xm.c (make_menubar): Take out code in #if 0.
 

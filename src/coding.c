@@ -7819,7 +7819,10 @@ updated by the functions `make-coding-system' and
 On detecting a coding system, Emacs tries code detection algorithms
 associated with each coding-category one by one in this order.  When
 one algorithm agrees with a byte sequence of source text, the coding
-system bound to the corresponding coding-category is selected.  */);
+system bound to the corresponding coding-category is selected.
+
+When you modify this variable, `update-coding-systems-internal' must
+be called.  */);
   {
     int i;
 

@@ -3321,6 +3321,7 @@ x_set_font (f, arg, oldval)
     error ("The characters of the given font have varying widths");
   else if (STRINGP (result))
     {
+      set_default_ascii_font (result);
       if (STRINGP (fontset_name))
 	{
 	  /* Fontset names are built from ASCII font names, so the

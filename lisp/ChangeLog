@@ -1,3 +1,270 @@
+2005-03-15  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-error): New variable.
+	(isearch-invalid-regexp, isearch-within-brackets): Remove.
+	(isearch-error-state): Renamed from `isearch-invalid-regexp-state'.
+	(isearch-within-brackets-state): Remove.
+	(isearch-case-fold-search-state, isearch-pop-fun-state):
+	Decrease frame index.
+	(isearch-mode, isearch-top-state, isearch-push-state)
+	(isearch-edit-string, isearch-abort, isearch-search-and-update)
+	(isearch-fallback, isearch-message-prefix, isearch-message-suffix)
+	(isearch-search, isearch-lazy-highlight-new-loop):
+	Replace `isearch-invalid-regexp' with `isearch-error'.
+	Remove `isearch-within-brackets'.
+	(isearch-search): Add `search-failed' handler to `condition-case'.
+	(isearch-lazy-highlight-search): Add `condition-case' to catch
+	errors and allow `isearch-lazy-highlight-update' to try
+	highlighting from the beginning of the window.
+	(isearch-repeat): Move up code to set isearch-wrapped to t
+	before calling isearch-wrap-function.
+
+	* info.el (Info-isearch-initial-node): New internal variable.
+	(Info-search): Signal an error in isearch mode when search leaves
+	the initial node.  Signal an error when `bound' is non-nil and
+	nothing was found in the current subfile.
+	(Info-isearch-search): Remove `condition-case'.
+	(Info-isearch-wrap): Don't wrap when search failed during leaving
+	the initial node.  If `Info-isearch-search' is nil, wrap around
+	the current node.
+	(Info-isearch-start): New fun.
+	(Info-mode): Add buffer-local hook `Info-isearch-start' to
+	`isearch-mode-hook'.
+
+2005-03-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* simple.el (normal-erase-is-backspace): Set default to t if
+	running on Mac.
+
+	* term/mac-win.el (function-key-map): Sync with x-win.el.
+
+2005-03-15  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (locale-language-names): Modify the
+	format of elements and add more entries.
+	(locale-preferred-coding-systems): Add more entries.
+	(set-locale-environment): Adjusted for the change of
+	locale-language-names.
+
+2005-03-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (smerge-ediff): Remove bogus autoload.
+
+2005-03-14  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (debugger-make-xrefs): Docstring fix.
+	Ignore a `*' at the beginning of a line.
+
+	* subr.el (macro-declaration-function): Move to emacs-lisp/byte-run.el.
+	* emacs-lisp/byte-run.el (macro-declaration-function): Move from
+	subr.el.
+	(dont-compile, eval-when-compile, eval-and-compile): Use declare
+	to specify indentation.
+
+	* generic.el (define-generic-mode): Let generic-mode-list be a
+	list of strings; test membership with equal.
+
+2005-03-14  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (next-line, previous-line): Add optional try-vscroll
+	arg to recognize interactive use.  Pass it on to line-move.
+	(line-move): Don't perform auto-window-vscroll when defining or
+	executing keyboard macro to ensure consistent behaviour.
+
+2005-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-util.el (cvs-string->strings): Strip trailing whitespace.
+
+2005-03-13  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (debug): Set debug-on-exit before calling
+	debugger-setup-buffer so that backtrace marks the frames set to
+	debug-on-exit and we don't have to do it manually.  Set an extra
+	debug-on-exit for macro's.
+	(debugger-setup-buffer): Don't mark the top frame manually.
+
+2005-03-12  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/byte-run.el: Replace lisp-indent-hook with
+	lisp-indent-function throughout.
+	(with-no-warnings): Set lisp-indent-function property.
+
+2005-03-12  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/dcl-mode.el (dcl-mode-syntax-table):
+	Add entry for backslash.
+
+2005-03-12  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-search): Four fixes for backward search.
+
+2005-03-11  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-language-alist): New variable.
+	* calc/calc-embed.el (calc-embedded-language-alist): Remove.
+	(calc-embedded-find-modes): Use calc-language-alist instead of
+	calc-embedded-language-alist.
+
+2005-03-11  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/calendar.el (calendar-redrawing): New internal
+	variable.
+	(redraw-calendar): Remove bogus save-excursion from previous
+	change.  Bind calendar-redrawing to t for mark-diary-entries.
+	* calendar/diary-lib.el (mark-diary-entries): No need to redraw
+	calendar if that is why we were called.
+
+2005-03-11  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (make-coding-system): Set property
+	'coding-system-define-form to nil.
+	(define-coding-system-alias): Likewise.
+
+2005-03-11  Kenichi Handa  <handa@m17n.org>
+
+	These changes are suggested by Dave Love <fx@gnu.org>.
+
+	* textmodes/fill.el: Change encoding to iso-2022-7bit and add
+	coding: tag.
+	(adaptive-fill-regexp): Add more bullets.
+	(fill-french-nobreak-p): Add Latin-1 and Latin-9 guillemets in
+	regexps.
+
+2005-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help.el (describe-mode): Properly handle non-trivial lighters.
+	Don't ignore minor modes that are not listed in minor-mode-list.
+
+	* tooltip.el (tooltip-mode): Don't complain that you can't turn the
+	feature ON when the user requests to turn it OFF.
+
+2005-03-10  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (debug-entry-code): Delete it.
+	(implement-debug-on-entry): New function to replace debug-entry-code.
+	(debug-on-entry-1): Use implement-debug-on-entry.  Delete the
+	second argument as the 2005-03-07 change makes it obsolete.
+	(debug-on-entry, cancel-debug-on-entry): Update call to
+	debug-on-entry-1.
+	(debug, debugger-setup-buffer): Comment update.
+	(debugger-frame-number): Update to work with implement-debug-on-entry.
+
+2005-03-10  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed.el (math-ms-args): Declare it.
+	(calc-embedded-eval-expr, calc-embedded-eval-get-var): Use variable
+	math-ms-args.
+	(calc-embedded-subst): Use math-multi-subst-rec to substitute
+	variables.
+
+2005-03-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-create-handler, gdb-get-location):
+	Use message-box.
+
+	* tooltip.el (tooltip-mode): Use define-minor-mode and simplify.
+	(tooltip-activate-mouse-motions-if-enabled): Use dolist.
+	(tooltip-gud-tips): Simplify.
+	(tooltip-gud-tips-p): Remove superflouous :set.
+	(tooltip-gud-modes): Add fortran-mode.
+	(gdb-tooltip-print): Remove newline for tooltip-use-echo-area.
+
+	* bindings.el (mode-line-mode-menu): Add tooltip-mode to mode-line.
+
+2005-03-09  Kim F. Storm  <storm@cua.dk>
+
+	* play/animate.el (animate-place-char): Use forward-line instead
+	of next-line to improve performance.
+
+2005-03-09  Simon Josefsson  <jas@extundo.com>
+
+	* net/browse-url.el (browse-url-default-browser): Doc fix.
+
+2005-03-09  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-variable-ref)
+	(byte-compile-obsolete): Change " since VER" to " (as of Emacs VER)".
+
+2005-03-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/latin-1.el: Set case and syntax for 255 only if
+	set-case-syntax-set-multibyte is nil.
+
+	* textmodes/ispell.el (ispell-insert-word): New function.
+	(ispell-word): Use ispell-insert-word to insert a new word.
+	(ispell-process-line): Likewise.
+	(ispell-complete-word): Likewise.
+
+2005-03-09  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/calendar.el (redraw-calendar): Preserve point.
+	Reported by Matt Hodges <MPHodges@member.fsf.org>.
+	(calendar-week-start-day): Move after definition of
+	redraw-calendar.  Delete buffer test, since redraw-calendar has
+	that now.
+
+	* calendar/diary-lib.el (mark-diary-entries): Only call
+	redraw-calendar in the first of any recursive calls.
+	Reported by Alan Shutko <ats@acm.org>.
+
+2005-03-08  Juri Linkov  <juri@jurta.org>
+
+	* textmodes/sgml-mode.el (sgml-tag, html-tag-alist)
+	(html-horizontal-rule, html-line, html-image, html-checkboxes)
+	(html-radio-buttons): Add a space before the trailing `/>' where
+	sgml-xml-mode is non-nil.
+	(sgml-delete-tag): Check if the tag ends with `/>' to not delete
+	the subsequent tag of the empty XML tag.
+	(html-href-anchor): Don't set initial input to "http:".
+	(html-image): Ask for the image URL and set point inside alt="".
+	(html-name-anchor): Duplicate the name in the `id' attribute when
+	sgml-xml-mode is non-nil.
+	(html-paragraph): Remove \n before <p>.
+	(html-checkboxes, html-radio-buttons): Insert `checked="checked"'
+	instead of `checked' when sgml-xml-mode is non-nil.
+
+	* facemenu.el (list-colors-print): Print #RRGGBB in default face.
+	Remove 1 space before #RRGGBB to not truncate it on terminal
+	windows w/o fringes.  Remove 1 space between bg and fg examples
+	to get more space.
+	(list-colors-duplicates): Replace `and' with `if' for `boundp' to
+	avoid byte-compile warnings.
+
+	* image-file.el (image-file-handler): Put `safe-magic' property to
+	`image-file-handler'.
+
+	* info.el (Info-isearch-search): Emulate word search in
+	isearching through multiple Info nodes with Info-search.
+	(Info-isearch-wrap): Allow isearch-word.
+
+2005-03-08  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (debugger-step-through): Make sure that
+	stepping into the debugger's code is not possible.
+	(debugger-jumping-flag): Docstring update.
+
+2005-03-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed.el (calc-do-embedded): Reset mode line when
+	embedded mode begins.
+	(calc-embedded-language-alist): New variable.
+	(calc-embedded-find-modes): Use calc-embedded-language-alist to
+	set default language mode.
+
+2005-03-08  Kenichi Handa  <handa@m17n.org>
+
+	* international/ccl.el (define-ccl-program): Fix docstring about
+	extra 256 bytes assured for the output buffer.
+
+	* international/utf-16.el (ccl-encode-mule-utf-16le-with-signature):
+	Fix BUFFER_MAGNIFICATION to 2.
+	(ccl-encode-mule-utf-16be-with-signature): Likewise.
+
+2005-03-07  Karl Chen  <quarl@cs.berkeley.edu>
+
+	* align.el (align-rules-list): Added an alignment rule for CSS
+	declarations (applies to css-mode and html-mode buffers).
+
 2005-03-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/debug.el (debug-on-entry-1): Fix handling of macros.
@@ -191,8 +458,7 @@
 	that debug-entry-code can be safely removed from a function while
 	this code is being evaluated.  Revert the 2005-02-27 change as the
 	new implementation no longer requires it.  Make sure that a
-	function body containing just a string is not mistaken for a
-	docstring.
+	function body containing just a string is not mistaken for a docstring.
 	(debug): Skip one more frame in case of debug on entry.
 	(debugger-setup-buffer): Delete one more frame line in case of
 	debug on entry.

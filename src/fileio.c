@@ -1,6 +1,6 @@
 /* File IO for GNU Emacs.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996, 1997, 1998,
-     1999, 2000, 2001, 2003, 2004  Free Software Foundation, Inc.
+     1999, 2000, 2001, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2693,7 +2693,11 @@ This is what happens in interactive use with M-x.  */)
   CHECK_STRING (file);
   CHECK_STRING (newname);
   file = Fexpand_file_name (file, Qnil);
-  newname = Fexpand_file_name (newname, Qnil);
+
+  if (!NILP (Ffile_directory_p (newname)))
+    newname = Fexpand_file_name (Ffile_name_nondirectory (file), newname);
+  else
+    newname = Fexpand_file_name (newname, Qnil);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -2776,7 +2780,11 @@ This is what happens in interactive use with M-x.  */)
   CHECK_STRING (file);
   CHECK_STRING (newname);
   file = Fexpand_file_name (file, Qnil);
-  newname = Fexpand_file_name (newname, Qnil);
+
+  if (!NILP (Ffile_directory_p (newname)))
+    newname = Fexpand_file_name (Ffile_name_nondirectory (file), newname);
+  else
+    newname = Fexpand_file_name (newname, Qnil);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -2843,7 +2851,11 @@ This happens for interactive use with M-x.  */)
      we want to permit links to relative file names.  */
   if (SREF (filename, 0) == '~')
     filename = Fexpand_file_name (filename, Qnil);
-  linkname = Fexpand_file_name (linkname, Qnil);
+
+  if (!NILP (Ffile_directory_p (linkname)))
+    linkname = Fexpand_file_name (Ffile_name_nondirectory (filename), linkname);
+  else
+    linkname = Fexpand_file_name (linkname, Qnil);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -4505,12 +4517,12 @@ actually used.  */)
 	     this way, we can run Lisp program safely before decoding
 	     the inserted text.  */
 	  Lisp_Object unwind_data;
-	      int count = SPECPDL_INDEX ();
+	  int count = SPECPDL_INDEX ();
 
 	  unwind_data = Fcons (current_buffer->enable_multibyte_characters,
 			       Fcons (current_buffer->undo_list,
 				      Fcurrent_buffer ()));
-	      current_buffer->enable_multibyte_characters = Qnil;
+	  current_buffer->enable_multibyte_characters = Qnil;
 	  current_buffer->undo_list = Qt;
 	  record_unwind_protect (decide_coding_unwind, unwind_data);
 
@@ -4532,7 +4544,6 @@ actually used.  */)
 	      if (CONSP (coding_systems))
 		val = XCAR (coding_systems);
 	    }
-
 	  unbind_to (count, Qnil);
 	  inserted = Z_BYTE - BEG_BYTE;
 	}
@@ -4543,7 +4554,7 @@ actually used.  */)
 	 on some system.  */
       {
 	struct coding_system temp_coding;
-	setup_coding_system (val, &temp_coding);
+	setup_coding_system (Fcheck_coding_system (val), &temp_coding);
 	bcopy (&temp_coding, &coding, sizeof coding);
       }
       /* Ensure we set Vlast_coding_system_used.  */

@@ -1,3 +1,64 @@
+2005-03-15  Lute Kamstra  <lute@gnu.org>
+
+	* edebug.texi (Instrumenting Macro Calls): Fix typos.
+
+2005-03-08  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Specified Space): Property :width is support on
+	non-graphic terminals, :height is not.
+
+2005-03-07  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Overlay Arrow, Fringe Bitmaps, Customizing Bitmaps):
+	Now subnodes of Fringes.
+	(Overlay Arrow): Document overlay-arrow-variable-list.
+	(Fringe Size/Pos): New node, broken out of Fringes.
+	(Display): Explain clearing vs redisplay better.
+	(Truncation): Clarify use of bitmaps.
+	(The Echo Area): Clarify the uses of the echo area.
+	Add max-mini-window-height.
+	(Progress): Clarify.
+	(Invisible Text): Explain that main loop moves point out.
+	(Selective Display): Say "hidden", not "invisible".
+	(Managing Overlays): Moved up.  Describe relation to Undo here.
+	(Overlay Properties): Clarify intro.
+	(Finding Overlays): Explain return values when nothing found.
+	(Width): truncate-string-to-width has added arg.
+	(Displaying Faces): Clarify and update mode line face handling.
+	(Face Functions): Minor cleanup.
+	(Conditional Display): Merged into Other Display Specs.
+	(Pixel Specification, Other Display Specs): Minor cleanups.
+	(Images, Image Descriptors): Minor cleanups.
+	(GIF Images): Patents have expired.
+	(Showing Images): Explain default text for insert-image.
+	(Manipulating Button Types): Merged into Manipulating Buttons.
+	(Making Buttons): Explain return values.
+	(Button Buffer Commands): Add xref.
+	(Inverse Video): Update mode-line-inverse-video.
+	(Display Table Format): Clarify.
+	(Active Display Table): Give defaults for window-display-table.
+
+	* calendar.texi (Calendar Customizing): calendar-holiday-marker
+	and calendar-today-marker are strings, not chars.
+	(Holiday Customizing): Minor fix.
+
+	* nonascii.texi (Text Representations): Clarify position-bytes.
+	(Character Sets): Add list-charset-chars.
+	(Scanning Charsets): Add charset-after.
+	(Encoding and I/O): Minor fix.
+
+	* internals.texi (Writing Emacs Primitives): Update `or' example.
+	Update limit on # args of subr.
+
+	* edebug.texi (Using Edebug): Arrow is in fringe.
+	(Instrumenting): Arg to eval-defun works without loading edebug.
+	(Edebug Execution Modes): Add xref.
+
+	* customize.texi (Common Keywords): Clarify :require.
+	Mention :version here.
+	(Variable Definitions, Group Definitions): Not here.
+	(Variable Definitions): Clarify symbol arg to :initialize and :set fns.
+
 2005-03-06  Richard M. Stallman  <rms@gnu.org>
 
 	* windows.texi (Vertical Scrolling): Get rid of "Emacs 21".
@@ -14,9 +75,9 @@
 	* os.texi (Translating Input): Replace flow-control example
 	with a less obsolete example that uses `keyboard-translate'.
 
-	* objects.texi (Hash Table Type, Circular Objects): 
+	* objects.texi (Hash Table Type, Circular Objects):
 	Get rid of "Emacs 21".
-	
+
 	* modes.texi (Mode Line Format): Get rid of "Emacs 21".
 	(Mode Line Data, Properties in Mode, Header Lines): Likewise.
 

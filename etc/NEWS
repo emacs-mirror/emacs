@@ -103,6 +103,13 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 22.1
 
+** The commands copy-file, rename-file, make-symbolic-link and
+add-name-to-file, when given a directory as the "new name" argument,
+convert it to a file name by merging in the within-directory part of
+the existing file's name.  (This is the same convention that shell
+commands cp, mv, and ln follow.)  Thus, M-x copy-file RET ~/foo RET
+/tmp RET copies ~/foo to /tmp/foo.
+
 ** C-u M-x goto-line now switches to the most recent previous buffer,
 and goes to the specified line in that buffer.
 
@@ -2445,7 +2452,11 @@ connection using base64 or uu encoding) and the `out-of-band' methods
 `rsync' to do the copying).
 
 Shell connections can be acquired via `rsh', `ssh', `telnet' and also
-`su' and `sudo'.
+`su' and `sudo'.  Ange-FTP is still supported via the `ftp' method.
+
+If you want to disable Tramp you should set
+
+  (setq tramp-default-method "ftp")
 
 ---
 ** The new global minor mode `file-name-shadow-mode' modifies the way

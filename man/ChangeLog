@@ -1,3 +1,17 @@
+2005-03-14  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Commands of GUD): Move paragraph on setting
+	breakpoints with mouse to the GDB Graphical Interface node.
+
+2005-03-07  Richard M. Stallman  <rms@gnu.org>
+
+	* url.texi: Fix usage of "e.g.".
+	(HTTP language/coding): Explain the rules for these strings.
+
+	* misc.texi (Single Shell, Shell Options): Fix previous change.
+
+	* building.texi (Debugger Operation): Update GUD tooltip enable info.
+
 2005-03-06  Richard M. Stallman  <rms@gnu.org>
 
 	* building.texi (Starting GUD): Don't explain text vs graphical

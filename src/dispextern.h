@@ -2808,6 +2808,7 @@ EXFUN (Fx_show_tip, 6);
 EXFUN (Fx_hide_tip, 0);
 extern void start_hourglass P_ ((void));
 extern void cancel_hourglass P_ ((void));
+extern int hourglass_started P_ ((void));
 extern int display_hourglass_p;
 
 /* Returns the background color of IMG, calculating one heuristically if

@@ -154,6 +154,7 @@
  ("_+" ?,A1(B)
  ("_y" ?,A%(B)
  ("_:" ?,Aw(B)
+ ("__" ?_)
  ("/c" ?,A"(B)
  ("/\\" ?,AW(B)
  ("/2" ?,A=(B)
@@ -834,6 +835,8 @@ For example, the character named `aogonek' is obtained by `/a'."
  ("_+" ?,b1(B)
  ("_y" ?,b%(B)
  ("_:" ?,bw(B)
+ ("_ " ?,b (B)
+ ("__" ?_)
  ("/c" ?,b"(B)
  ("/\\" ?,bW(B)
  ("/o" ?,b=(B)				; clash with ,bx(B, but ,bf(B uses /

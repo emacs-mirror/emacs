@@ -145,24 +145,6 @@
   "Name of the buffer used for the calendar.")
 
 ;;;###autoload
-(defcustom calendar-week-start-day 0
-  "*The day of the week on which a week in the calendar begins.
-0 means Sunday (default), 1 means Monday, and so on.
-
-If you change this variable directly (without using customize)
-after starting `calendar', you should call `redraw-calendar' to
-update the calendar display to reflect the change, otherwise
-movement commands will not work correctly."
-  :type 'integer
-  :set (lambda (sym val)
-         (set sym val)
-         (let ((buffer (get-buffer calendar-buffer)))
-           (when (buffer-live-p buffer)
-             (with-current-buffer buffer
-               (redraw-calendar)))))
-  :group 'calendar)
-
-;;;###autoload
 (defcustom calendar-offset 0
   "*The offset of the principal month from the center of the calendar window.
 0 means the principal month is in the center (default), -1 means on the left,
@@ -2168,14 +2150,33 @@ the inserted text.  Value is always t."
 	  (forward-line 1))))
   t)
 
+(defvar calendar-redrawing nil
+  "Internal calendar variable, non-nil if inside redraw-calendar.")
+
 (defun redraw-calendar ()
   "Redraw the calendar display, if `calendar-buffer' is live."
   (interactive)
   (if (get-buffer calendar-buffer)
       (with-current-buffer calendar-buffer
-        (let ((cursor-date (calendar-cursor-to-nearest-date)))
+        (let ((cursor-date (calendar-cursor-to-nearest-date))
+              (calendar-redrawing t))
           (generate-calendar-window displayed-month displayed-year)
           (calendar-cursor-to-visible-date cursor-date)))))
+
+;;;###autoload
+(defcustom calendar-week-start-day 0
+  "*The day of the week on which a week in the calendar begins.
+0 means Sunday (default), 1 means Monday, and so on.
+
+If you change this variable directly (without using customize)
+after starting `calendar', you should call `redraw-calendar' to
+update the calendar display to reflect the change, otherwise
+movement commands will not work correctly."
+  :type 'integer
+  :set (lambda (sym val)
+         (set sym val)
+         (redraw-calendar))
+  :group 'calendar)
 
 (defcustom calendar-debug-sexp nil
   "*Turn debugging on when evaluating a sexp in the diary or holiday list."
@@ -2920,40 +2921,40 @@ MARK defaults to `diary-entry-marker'."
       (save-excursion
         (set-buffer calendar-buffer)
         (calendar-cursor-to-visible-date date)
-	(let ((mark (or (and (stringp mark) (= (length mark) 1) mark) ; single-char
-			(and (listp mark) (> (length mark) 0) mark) ; attr list
-			(and (facep mark) mark) ; face-name
-			diary-entry-marker)))
-	  (if (facep mark)
-	      (progn ; face or an attr-list that contained a face
-		(overlay-put
-		 (make-overlay (1- (point)) (1+ (point))) 'face mark))
-	    (if (and (stringp mark)
-		     (= (length mark) 1)) ; single-char
-		(let ((buffer-read-only nil))
-		  (forward-char 1)
-		  (delete-char 1)
-		  (insert mark)
-		  (forward-char -2))
-              (let ; attr list 
-                  ((temp-face 
-                    (make-symbol (apply 'concat "temp-face-" 
-                                        (mapcar '(lambda (sym) 
+        (let ((mark (or (and (stringp mark) (= (length mark) 1) mark) ; single-char
+                        (and (listp mark) (> (length mark) 0) mark) ; attr list
+                        (and (facep mark) mark) ; face-name
+                        diary-entry-marker)))
+          (if (facep mark)
+              (progn      ; face or an attr-list that contained a face
+                (overlay-put
+                 (make-overlay (1- (point)) (1+ (point))) 'face mark))
+            (if (and (stringp mark)
+                     (= (length mark) 1)) ; single-char
+                (let ((buffer-read-only nil))
+                  (forward-char 1)
+                  (delete-char 1)
+                  (insert mark)
+                  (forward-char -2))
+              (let                      ; attr list
+                  ((temp-face
+                    (make-symbol (apply 'concat "temp-face-"
+                                        (mapcar '(lambda (sym)
                                                    (cond ((symbolp sym) (symbol-name sym))
                                                          ((numberp sym) (int-to-string sym))
                                                          (t sym))) mark))))
                    (faceinfo mark))
-		(make-face temp-face)
-		;; Remove :face info from the mark, copy the face info into temp-face
-		(while (setq faceinfo (memq :face faceinfo))
-		  (copy-face (read (nth 1 faceinfo)) temp-face)
-		  (setcar faceinfo nil)
-		  (setcar (cdr faceinfo) nil))
-		(setq mark (delq nil mark))
-		;; Apply the font aspects
-		(apply 'set-face-attribute temp-face nil mark)
-		(overlay-put
-		 (make-overlay (1- (point)) (1+ (point))) 'face temp-face))))))))
+                (make-face temp-face)
+                ;; Remove :face info from the mark, copy the face info into temp-face
+                (while (setq faceinfo (memq :face faceinfo))
+                  (copy-face (read (nth 1 faceinfo)) temp-face)
+                  (setcar faceinfo nil)
+                  (setcar (cdr faceinfo) nil))
+                (setq mark (delq nil mark))
+                ;; Apply the font aspects
+                (apply 'set-face-attribute temp-face nil mark)
+                (overlay-put
+                 (make-overlay (1- (point)) (1+ (point))) 'face temp-face))))))))
 
 (defun calendar-star-date ()
   "Replace the date under the cursor in the calendar window with asterisks.
