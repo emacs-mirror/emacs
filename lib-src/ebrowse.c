@@ -528,7 +528,7 @@ int globals P_ ((int));
 void
 yyerror (format, a1, a2, a3, a4, a5)
      char *format;
-     int a1, a2, a3, a4, a5;
+     long a1, a2, a3, a4, a5;
 {
   fprintf (stderr, "%s:%d: ", filename, yyline);
   fprintf (stderr, format, a1, a2, a3, a4, a5);
@@ -1142,7 +1142,8 @@ enter_namespace (name)
   if (namespace_sp == namespace_stack_size)
     {
       int size = max (10, 2 * namespace_stack_size);
-      namespace_stack = (struct sym **) xrealloc (namespace_stack, size);
+      namespace_stack = (struct sym **) xrealloc ((void *)namespace_stack,
+						  size);
       namespace_stack_size = size;
     }
   
@@ -3623,7 +3624,7 @@ main (argc, argv)
 	  if (n_input_files == input_filenames_size)
 	    {
 	      input_filenames_size = max (10, 2 * input_filenames_size);
-	      input_filenames = (char **) xrealloc (input_filenames,
+	      input_filenames = (char **) xrealloc ((void *)input_filenames,
 						    input_filenames_size);
 	    }
           input_filenames[n_input_files++] = xstrdup (optarg);
@@ -3695,7 +3696,7 @@ main (argc, argv)
       yyout = fopen (out_filename, f_append ? "a" : "w");
       if (yyout == NULL)
 	{
-	  yyerror ("cannot open output file `%s'", out_filename);
+	  yyerror ("cannot open output file `%s'", (long)out_filename);
 	  exit (1);
 	}
     }
@@ -3723,7 +3724,7 @@ main (argc, argv)
           FILE *fp = fopen (input_filenames[i], "r");
           
           if (fp == NULL)
-            yyerror ("cannot open input file `%s'", input_filenames[i]);
+            yyerror ("cannot open input file `%s'", (long)input_filenames[i]);
           else
             {
 	      char *file;
