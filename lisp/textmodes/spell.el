@@ -44,7 +44,7 @@ as its \"correct\" spelling; then the query replace is skipped."
 (defun spell-word ()
   "Check spelling of word at or before point.
 If it is not correct, ask user for the correct spelling
-and query-replace the entire buffer to substitute it."
+and `query-replace' the entire buffer to substitute it."
   (interactive)
   (let (beg end spell-filter)
     (save-excursion
@@ -57,7 +57,7 @@ and query-replace the entire buffer to substitute it."
 
 ;;;###autoload
 (defun spell-region (start end &optional description)
-  "Like spell-buffer but applies only to region.
+  "Like `spell-buffer' but applies only to region.
 Used in a program, applies from START to END.
 DESCRIPTION is an optional string naming the unit being checked:
 for example, \"word\"."
