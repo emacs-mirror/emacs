@@ -700,6 +700,7 @@ language you are using."
 (define-key global-map "\C-n" 'next-line)
 (define-key global-map "\C-p" 'previous-line)
 (define-key ctl-x-map "\C-n" 'set-goal-column)
+(define-key global-map "\C-a" 'move-beginning-of-line)
 (define-key global-map "\C-e" 'move-end-of-line)
 (define-key esc-map "g" 'goto-line)
 

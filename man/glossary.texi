@@ -1077,7 +1077,7 @@ The selected frame is the one your input currently operates on.
 
 @item Selected Window
 The selected frame is the one your input currently operates on.
-@xref{Basic Windows}.
+@xref{Basic Window}.
 
 @item Selecting a Buffer
 Selecting a buffer means making it the current (q.v.@:) buffer.

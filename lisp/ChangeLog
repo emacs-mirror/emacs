@@ -1,3 +1,31 @@
+2005-03-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debug-on-entry-1): Fix handling of macros.
+
+2005-03-07  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (move-beginning-of-line): New command.
+
+	* bindings.el (global-map): Bind C-a to move-beginning-of-line.
+
+	* reveal.el (reveal-mode-map): Bind C-a to beginning-of-line.
+
+	* emulation/cua-base.el: Put CUA move property on move-end-of-line
+	and move-beginning-of-line.
+
+	* apropos.el (apropos-print): Omit command from M-x ... RET.
+
+2005-03-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-create-handler): Handle just MI case.
+	(gdb-send, gdb-send-item): Log items sent from gdb-send too.
+
+2005-03-06  Richard M. Stallman  <rms@gnu.org>
+
+	* bindings.el (esc-map): Bind M-g to goto-line.
+
+	* facemenu.el (global-map): Bind M-o, not M-g.
+
 2005-03-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* menu-bar.el (menu-bar-file-menu): Add the same :enable to
@@ -26,7 +54,7 @@
 
 2005-03-03  Stephan Stahl  <stahl@eos.franken.de> (tiny change)
 
-	* progmodes/which-func.el (which-function): 
+	* progmodes/which-func.el (which-function):
 	Specify NOERROR when calling imenu--make-index-alist.
 
 2005-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -76,14 +104,12 @@
 
 	* calendar/icalendar.el (icalendar-version): Increase to 0.11.
 	(icalendar-export-file, icalendar-export-region)
-	(icalendar-import-file, icalendar-import-buffer): Add autoload
-	cookies.
+	(icalendar-import-file, icalendar-import-buffer): Add autoload cookies.
 	(icalendar--convert-ical-to-diary): Fix problem with DURATION.
 
 2005-03-04  Lute Kamstra  <lute@gnu.org>
 
-	* emacs-lisp/debug.el (debugger-step-after-exit): Make it a
-	defvar.
+	* emacs-lisp/debug.el (debugger-step-after-exit): Make it a defvar.
 	(debug-function-list): Ditto.
 
 2005-03-04  Robert J. Chassell  <bob@rattlesnake.com>
@@ -93,7 +119,7 @@
 	is not appended by replacing a search for `@refill\\|@bye' with
 	`@refill\\|^[ \t]*@'.  The intent is to solve both the `@end
 	itemize@refill' bug and the unfilled long lines bug.
-	(texinfmt-version): update number and date.
+	(texinfmt-version): Update number and date.
 
 2005-03-04  Reiner Steib  <Reiner.Steib@gmx.de>
 

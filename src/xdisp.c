@@ -781,6 +781,13 @@ enum move_it_result
 #define CLEAR_FACE_CACHE_COUNT	500
 static int clear_face_cache_count;
 
+/* Similarly for the image cache.  */
+
+#ifdef HAVE_WINDOW_SYSTEM
+#define CLEAR_IMAGE_CACHE_COUNT	101
+static int clear_image_cache_count;
+#endif
+
 /* Non-zero while redisplay_internal is in progress.  */
 
 int redisplaying_p;
@@ -10360,7 +10367,9 @@ redisplay_internal (preserve_echo_area)
   CHARPOS (this_line_start_pos) = 0;
   consider_all_windows_p |= buffer_shared > 1;
   ++clear_face_cache_count;
-
+#ifdef HAVE_WINDOW_SYSTEM
+  ++clear_image_cache_count;
+#endif
 
   /* Build desired matrices, and update the display.  If
      consider_all_windows_p is non-zero, do it for all windows on all
@@ -10372,13 +10381,6 @@ redisplay_internal (preserve_echo_area)
       int i, n = 0, size = 50;
       struct frame **updated
 	= (struct frame **) alloca (size * sizeof *updated);
-
-      /* Clear the face cache eventually.  */
-      if (clear_face_cache_count > CLEAR_FACE_CACHE_COUNT)
-	{
-	  clear_face_cache (0);
-	  clear_face_cache_count = 0;
-	}
 
       /* Recompute # windows showing selected buffer.  This will be
 	 incremented each time such a window is displayed.  */
@@ -10394,12 +10396,6 @@ redisplay_internal (preserve_echo_area)
 		/* Select the frame, for the sake of frame-local
 		   variables.  */
 		select_frame_for_redisplay (frame);
-
-#ifdef HAVE_WINDOW_SYSTEM
-	      if (clear_face_cache_count % 50 == 0
-		  && FRAME_WINDOW_P (f))
-		clear_image_cache (f, 0);
-#endif /* HAVE_WINDOW_SYSTEM */
 
 	      /* Mark all the scroll bars to be removed; we'll redeem
 		 the ones we want when we redisplay their windows.  */
@@ -10603,6 +10599,29 @@ redisplay_internal (preserve_echo_area)
      visible frames, redisplay again.  */
   if (windows_or_buffers_changed && !pause)
     goto retry;
+
+  /* Clear the face cache eventually.  */
+  if (consider_all_windows_p)
+    {
+      if (clear_face_cache_count > CLEAR_FACE_CACHE_COUNT)
+	{
+	  clear_face_cache (0);
+	  clear_face_cache_count = 0;
+	}
+#ifdef HAVE_WINDOW_SYSTEM
+      if (clear_image_cache_count > CLEAR_IMAGE_CACHE_COUNT)
+	{
+	  Lisp_Object tail, frame;
+	  FOR_EACH_FRAME (tail, frame)
+	    {
+	      struct frame *f = XFRAME (frame);
+	      if (FRAME_WINDOW_P (f))
+		clear_image_cache (f, 0);
+	    }
+	  clear_image_cache_count = 0;
+	}
+#endif /* HAVE_WINDOW_SYSTEM */
+    }
 
  end_of_redisplay:
   unbind_to (count, Qnil);
@@ -20202,8 +20221,10 @@ notice_overwritten_cursor (w, area, x0, x1, y0, y1)
   if (area != TEXT_AREA)
     return;
 
-  row = w->current_matrix->rows + w->phys_cursor.vpos;
-  if (!row->displays_text_p)
+  if (w->phys_cursor.vpos < 0
+      || w->phys_cursor.vpos >= w->current_matrix->nrows
+      || (row = w->current_matrix->rows + w->phys_cursor.vpos,
+	  !(row->enabled_p && row->displays_text_p)))
     return;
 
   if (row->cursor_in_fringe_p)

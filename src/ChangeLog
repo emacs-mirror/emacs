@@ -1,3 +1,19 @@
+2005-03-07  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (CLEAR_IMAGE_CACHE_COUNT): New const.
+	(clear_image_cache_count): New var.
+	(redisplay_internal): Don't clear face and image caches in the
+	middle of redisplay; do it afterwards.
+
+	* blockinput.h (TOTALLY_UNBLOCK_INPUT): Avoid dangling else.
+
+	* xdisp.c (notice_overwritten_cursor): Check that phys_cursor.vpos
+	is valid.  If not, clear phys_cursor_on_p and return.
+
+2005-03-07  Andreas Schwab  <schwab@suse.de>
+
+	* blockinput.h (UNBLOCK_INPUT_TO): Always call UNBLOCK_INPUT.
+
 2005-03-06  Richard M. Stallman  <rms@gnu.org>
 
 	* keyboard.c (Ftop_level): Let Fthrow deal with UNBLOCK_INPUT.

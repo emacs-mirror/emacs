@@ -3521,6 +3521,33 @@ boundaries bind `inhibit-field-text-motion' to t."
 	      (setq arg 1)
 	    (setq done t)))))))
 
+(defun move-beginning-of-line (arg)
+  "Move point to beginning of current display line.
+With argument ARG not nil or 1, move forward ARG - 1 lines first.
+If point reaches the beginning or end of buffer, it stops there.
+To ignore intangibility, bind `inhibit-point-motion-hooks' to t.
+
+This command does not move point across a field boundary unless doing so
+would move beyond there to a different line; if ARG is nil or 1, and
+point starts at a field boundary, point does not move.  To ignore field
+boundaries bind `inhibit-field-text-motion' to t."
+  (interactive "p")
+  (or arg (setq arg 1))
+  (if (/= arg 1)
+      (line-move (1- arg) t))
+  (let (done pos)
+    (while (not done)
+      (beginning-of-line 1)
+      ;; (not bolp) means that it stopped at a field boundary.
+      (if (or (bobp) (not (bolp)))
+	  (setq done t)
+	(sit-for 0)
+	(if (and (consp (setq pos (pos-visible-in-window-p (point) nil t)))
+		 (= (car pos) 0))
+	    (setq done t)
+	  (backward-char 1))))))
+
+
 ;;; Many people have said they rarely use this feature, and often type
 ;;; it by accident.  Maybe it shouldn't even be on a key.
 (put 'set-goal-column 'disabled t)

@@ -341,8 +341,12 @@ detailed description of this mode.
 	  (speedbar 1)
 	  (if (equal (nth 2 var) "0")
 	      (gdb-enqueue-input
-	       (list (concat "server interpreter mi \"-var-evaluate-expression "
-			     (nth 1 var) "\"\n")
+	       (list
+		(if (with-current-buffer
+			gud-comint-buffer (eq gud-minor-mode 'gdba))
+		    (concat "server interpreter mi \"-var-evaluate-expression "
+			    (nth 1 var) "\"\n")
+		  (concat "-var-evaluate-expression " (nth 1 var) "\n"))
 		     `(lambda () (gdb-var-evaluate-expression-handler
 				  ,(nth 1 var) nil))))
 	    (setq gdb-var-changed t)))
@@ -368,8 +372,8 @@ detailed description of this mode.
 
 (defun gdb-var-list-children (varnum)
   (gdb-enqueue-input
-   (list (concat "server interpreter mi \"-var-list-children "  varnum "\"\n")
-	     `(lambda () (gdb-var-list-children-handler ,varnum)))))
+   (list (concat "server interpreter mi \"-var-list-children " varnum "\"\n")
+	 `(lambda () (gdb-var-list-children-handler ,varnum)))))
 
 (defconst gdb-var-list-children-regexp
   "name=\"\\(.*?\\)\",exp=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\"")
@@ -674,9 +678,12 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 (defun gdb-send (proc string)
   "A comint send filter for gdb.
 This filter may simply queue input for a later time."
-  (if gud-running
-      (process-send-string proc (concat string "\n"))
-    (gdb-enqueue-input (concat string "\n"))))
+  (let ((item (concat string "\n")))
+    (if gud-running
+      (progn
+	(if gdb-enable-debug-log (push (cons 'send item) gdb-debug-log))
+	(process-send-string proc item))
+      (gdb-enqueue-input item))))
 
 ;; Note: Stuff enqueued here will be sent to the next prompt, even if it
 ;; is a query, or other non-top-level prompt.
@@ -697,7 +704,7 @@ This filter may simply queue input for a later time."
 
 (defun gdb-send-item (item)
   (setq gdb-flush-pending-output nil)
-  (if gdb-enable-debug-log (push (cons 'send item) gdb-debug-log))
+  (if gdb-enable-debug-log (push (cons 'send-item item) gdb-debug-log))
   (setq gdb-current-item item)
   (with-current-buffer gud-comint-buffer
     (if (eq gud-minor-mode 'gdba)
