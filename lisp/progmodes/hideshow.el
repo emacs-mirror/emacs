@@ -124,7 +124,7 @@ you do `hs-show-block'."
   "Hook called when `hs-minor-mode' is installed.
 A good value for this would be `hs-hide-initial-comment-block' to
 hide all the comments at the beginning of the file."
-  :type 'integer
+  :type 'hook
   :group 'hideshow)
 
 (defcustom hs-isearch-open 'block
