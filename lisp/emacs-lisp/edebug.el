@@ -265,7 +265,7 @@ edebug-print-trace-exit.")
     (beginning-of-defun)
     (down-list 1)
     (if (not (memq (read (current-buffer)) '(defun defmacro)))
-	(error "Not in defun or defmacro."))
+	(error "Not in defun or defmacro"))
     (read (current-buffer))))
 
 (defun edebug-last-sexp ()
@@ -1323,8 +1323,8 @@ This is to avoid spurious recentering.")
 	;; any others??
 	)
     (if (not (buffer-name edebug-buffer))
-	(let (debug-on-error nil)
-	  (error "Buffer defining %s not found." edebug-func)))
+	(let ((debug-on-error nil))
+	  (error "Buffer defining %s not found" edebug-func)))
     
       ;; Save windows now before we modify them.
       (if edebug-save-windows
@@ -1660,7 +1660,7 @@ become the same as the current configuration."
   "Show the debug windows and where we stopped in the program."
   (interactive)
   (if (not edebug-active)
-      (error "edebug is not active."))
+      (error "edebug is not active"))
   (edebug-pop-to-buffer edebug-buffer)
   (goto-char edebug-point)  ; from edebug
   )
@@ -1669,7 +1669,7 @@ become the same as the current configuration."
   "Change to the outside window configuration."
   (interactive)
   (if (not edebug-active)
-      (error "edebug is not active."))
+      (error "edebug is not active"))
   (setq edebug-inside-windows (edebug-current-window-configuration))
   (edebug-set-window-configuration edebug-outside-windows)
   (goto-char edebug-outside-point)
@@ -1681,7 +1681,7 @@ become the same as the current configuration."
   "Bounce the point in the outside current buffer."
   (interactive)
   (if (not edebug-active)
-      (error "edebug is not active."))
+      (error "edebug is not active"))
   (save-excursion
     ;; If the buffer's currently displayed, avoid the set-window-configuration.
     (save-window-excursion
@@ -1807,7 +1807,7 @@ Set the current screen to be the head of SC."
 	 (edebug-data
 	  (or (get def-name 'edebug)
 	      (error
-	       "%s must first be evaluated with edebug-defun." def-name)))
+	       "%s must first be evaluated with edebug-defun" def-name)))
 	 ;; pull out parts of edebug-data.
 	 (edebug-func-mark (car edebug-data))
 	 (edebug-breakpoints (car (cdr edebug-data)))
@@ -2036,7 +2036,7 @@ too late.  One side effect of using edebug-step-in is that the next
 time the function is called, edebug will be called there as well."
   (interactive)
   (if (not (eq 'enter edebug-arg-mode))
-      (error "You must be in front of a function or macro call."))
+      (error "You must be in front of a function or macro call"))
   (let* ((func (car edebug-exp))
 	 (func-marker (get func 'edebug)))
     (cond
@@ -2048,7 +2048,7 @@ time the function is called, edebug will be called there as well."
      ((listp func-marker)
       ;; its already been evaluated for edebug
       nil)
-     (t (error "You must first evaluate %s in a buffer." func))))
+     (t (error "You must first evaluate %s in a buffer" func))))
   (exit-recursive-edit))
 
 
@@ -2106,7 +2106,7 @@ edebug-mode."
 	  (put this-function 'edebug-initial-mode mode)
 	  (message "Initial mode for %s is now: %s"
 		   this-function mode))
-      (error "Key must map to one of the mode changing commands.")
+      (error "Key must map to one of the mode changing commands")
       )))
 
 
@@ -2128,7 +2128,7 @@ edebug-mode."
 (defun edebug-eval (expr)
   "Evaluate EXPR in the outside environment."
   (if (not edebug-active)
-      (error "edebug is not active."))
+      (error "edebug is not active"))
   (edebug-outside-excursion
    (eval expr)))
 
