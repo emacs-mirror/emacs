@@ -353,7 +353,12 @@ make_terminal_frame ()
 }
 
 DEFUN ("make-terminal-frame", Fmake_terminal_frame, Smake_terminal_frame,
-       1, 1, 0, "")
+       1, 1, 0, "Create an additional terminal frame.\n\
+You can create multiple frames on a text-only terminal in this way.\n\
+Only the selected terminal frame is actually displayed.\n\
+This function takes one argument, an alist specifying frame parameters.\n\
+In practice, generally you don't need to specify any parameters.\n\
+Note that changing the size of one terminal frame automatically affects all.")
   (parms)
      Lisp_Object parms;
 {
