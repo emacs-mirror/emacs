@@ -2,6 +2,7 @@
 # Copyright (C) 2001, 2002
 #   National Institute of Advanced Industrial Science and Technology (AIST)
 #   Registration Number H13PRO009
+# Copyright (C) 2002 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -25,18 +26,23 @@
 
 Each line contains a code point and the corresponding Unicode
 character code separated by a space.  Both code points and Unicode
-character codes are in hexadecimal preceded by "0x".
+character codes are in hexadecimal preceded by "0x".  Comments may be
+used, starting with "#".  Code ranges may also be used, with endpoints
+separated by "-", covering the same number of codepoints and
+unicodes.
 
-Example:
-0x80 0x0080
+Examples:
+0xA0 0x00A0  # no-break space
+
+0x81308130-0x81308435	0x0080-0x00A3 # map onto a Unicode range
 
 
 (2) Source of mapping files
 
-All mapping files are generated from the data files distributed with
+Most mapping files are generated from the data files distributed with
 glibc (under the sub-directory "localedata/charmaps").  This list
-shows the correspondence of the data files, the mapping files, and
-which charset uses it.
+shows the correspondence of the data file, the mapping file, and which
+charset uses it.
 
 DATA-FILE			MAP-FILE		CHARSET
 =========			========		=======
@@ -70,3 +76,16 @@ VISCII				viscii-upper.map	vietnamese-viscii-upper
 VISCII				vscii.map		vscii
 KOI8-R				koi8-r.map		koi8-r
 IBM866				ibm866.map		alternativnyj
+CP1251				windows-1251.map	windows-1251
+CP1250				windows-1250.map	windows-1250
+GEORGIAN-PS			georgian-ps.map		georgian-ps
+KOI8-U				koi8-u.map		koi8-u
+KOI8-T				koi8-t.map		koi8-t
+EBCDIC-US			ebcdic.us.map		ebcdic-us
+EBCDIC-UK			ebcdic.uk.map		ebcdic-uk
+CP1250				windows-1250.map	windows-1250
+CP1251				windows-1251.map	windows-1251
+CP1252				windows-1252.map	windows-1252
+
+From ICU:
+				cp1125.map		cp1125

@@ -1,3 +1,7 @@
+2002-05-16  Dave Love  <fx@gnu.org>
+
+	* s/osf5-0.h (C_SWITCH_SYSTEM) [!__GNUC__]: Remove -nointrinsics.
+
 2002-05-16  Kenichi Handa  <handa@etl.go.jp>
 
 	* character.c (string_escape_byte8): Make multibyte string with
@@ -21,10 +25,10 @@
 	(encode_coding_iso_2022): Setup coding->safe_charsets in advance.
 	(decode_coding_object): Move point to coding->dst_pos before
 	calling post-read-conversion function.
-	(encode_coding_object): Give correct arguments ot
+	(encode_coding_object): Give correct arguments to
 	pre-write-conversion.  Ignore the return value of
 	pre-write-conversion function.  Pay attention to the case that
-	pre-write-conversion change the current buffer.  If dst_object is
+	pre-write-conversion changes the current buffer.  If dst_object is
 	Qt, even if coding->src_bytes is zero, allocate at least one byte
 	to coding->destination.
 

@@ -1,3 +1,24 @@
+2002-05-16  Dave Love  <fx@gnu.org>
+
+	* international/mule-diag.el: Doc fixes.
+	(sort-charset-list, charset-multibyte-form-string): Removed.
+	(list-character-sets, list-character-sets-1)
+	(list-character-sets-2): Re-written.
+	(non-iso-charset-alist): Set to nil and made obsolete.
+	(decode-codepage-char): Re-written and made obsolete.
+	(read-charset, describe-character-set): Don't use
+	non-iso-charset-alist.
+	(describe-coding-system): Use keyword properties.
+	
+	* international/mule-conf.el (koi8-u, koi8-t, georgian-ps) 
+	(windows-1250, windows-1251, windows-1252, cp1125, ebcdic-us) 
+	(ebcdic-uk): New charsets.
+
+	* language/cyrillic.el (koi8-u, koi8-t, windows-1251, cp1125): New
+	coding systems.
+
+	* language/european.el (windows-1252): New coding system.
+
 2002-05-16  Kenichi Handa  <handa@etl.go.jp>
 
 	* Makefile.in: By sure to run emacs with LC_ALL=C.

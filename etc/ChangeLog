@@ -1,3 +1,10 @@
+2002-05-16  Dave Love  <fx@gnu.org>
+
+	* charsets/cp1125.map, charsets/ebcdic-us, charsets/georgian-ps.map:
+	* charsets/koi8-t.map, charsets/koi8-u.map:
+	* charsets/windows-1250.map, charsets/windows-1251.map:
+	* charsets/windows-1252.map: 	New file.
+
 2002-05-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* charsets/Makefile (MAPS): Add gbk.map and gb18030-bmp.map.
