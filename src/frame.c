@@ -163,6 +163,7 @@ make_frame (mini_p)
   f->param_alist = Qnil;
   f->scroll_bars = Qnil;
   f->condemned_scroll_bars = Qnil;
+  f->face_alist = Qnil;
 
   root_window = make_window ();
   if (mini_p)
