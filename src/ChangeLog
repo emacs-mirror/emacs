@@ -1,5 +1,11 @@
 2003-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* lisp.h (VALBITS): Don't remove 1 for the markbit.
+	(union Lisp_Object): Use unsigned int for types.  Remove markbit.
+	(MARKBIT): Remove 1 from VALBITS so we still use same old val.
+	(XTYPE): Use unsigned right-shift.
+	(XMARKBIT, XMARK, XUNMARK): Remove.
+
 	* alloc.c (init_intervals, init_symbol, init_marker):
 	Don't preallocate anything.
 	(Fgarbage_collect, mark_object): Ignore the markbit.
