@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 
-@c "@(#)$Name:  $:$Id: eshell.texi,v 1.11 2001/04/19 15:07:55 gerd Exp $"
+@c "@(#)$Name:  $:$Id: eshell.texi,v 1.12 2001/04/19 15:10:31 gerd Exp $"
 
 @c Documentation for Eshell: The Emacs Shell.
 @c Copyright (C) 1999, 2000  Free Software Foundation, Inc.
@@ -102,8 +102,8 @@ license to the document, as described in section 6 of the license.
 @c                   The real text starts here
 @c ================================================================
 
-@node Top, What is Eshell?, (dir), (dir)
 @ifinfo
+@node Top, What is Eshell?, (dir), (dir)
 @top Eshell
 
 This manual documents Eshell, a shell-like command interpretor
@@ -131,7 +131,7 @@ handling the sort of tasks accomplished by those tools.
 * Key Index::                   
 @end menu
 
-@node What is Eshell?, Installation, Top, Top
+@node What is Eshell?
 @chapter What is Eshell?
 @cindex what is Eshell?
 @cindex Eshell, what it is
@@ -189,7 +189,7 @@ As of Emacs 21, Eshell is part of the standard Emacs distribution.
 * Contributors to Eshell::      People who have helped out!
 @end menu
 
-@node Contributors to Eshell,  , What is Eshell?, What is Eshell?
+@node Contributors to Eshell
 @section Contributors to Eshell
 @cindex contributors
 @cindex authors
@@ -229,7 +229,7 @@ Apart from these, a lot of people have sent suggestions, ideas,
 requests, bug reports and encouragement.  Thanks a lot!  Without you
 there would be no new releases of Eshell.
 
-@node Installation, Command basics, What is Eshell?, Top
+@node Installation
 @chapter Installation
 @cindex installation
 
@@ -419,7 +419,7 @@ you can use.  For other printers, use a suitable DVI driver,
 e.g., @code{dvilj4} for LaserJet-compatible printers.
 @end enumerate
 
-@node Command basics, Commands, Installation, Top
+@node Command basics
 @chapter Basic overview
 
 A command shell is a means of entering verbally-formed commands.  This
@@ -433,7 +433,7 @@ things.
 * Command arguments::           Some verbs require arguments.
 @end menu
 
-@node Commands verbs, Command arguments, Command basics, Command basics
+@node Commands verbs
 @section Commands verbs
 
 Commands are expressed using @dfn{script}, a special shorthand language
@@ -476,7 +476,7 @@ textual arguments, numerical arguments---even Lisp arguments.
 Distinguishing these different types of arguments requires special
 typing, for the computer to know exactly what you mean.
 
-@node Command arguments,  , Commands verbs, Command basics
+@node Command arguments
 @section Command arguments
 
 Eshell recognizes several different kinds of command arguments:
@@ -511,7 +511,7 @@ with Eshell as a basic command invocation tool, and learn more about the
 commands on your system; then come back when it all sits more familiarly
 on your mind.  Have fun!
 
-@node Commands, Arguments, Command basics, Top
+@node Commands
 @chapter Commands
 
 @menu
@@ -520,13 +520,14 @@ on your mind.  Have fun!
 * Aliases::                     
 * History::                     
 * Scripts::                     
+* Built-ins::
 @end menu
 
 Essentially, a command shell is all about invoking commands---and
 everything that entails.  So understanding how Eshell invokes commands
 is the key to comprehending how it all works.
 
-@node Invocation, Completion, Commands, Commands
+@node Invocation
 @section Invocation
 
 Unlike regular system shells, Eshell never invokes kernel functions
@@ -545,20 +546,62 @@ command, follows these steps:
 @item 
 @end enumerate
 
-@node Completion, Aliases, Invocation, Commands
+@node Completion
 @section Completion
 
-@node Aliases, History, Completion, Commands
+@node Aliases
 @section Aliases
 
-@node History, Scripts, Aliases, Commands
+@node History
 @section History
 
-@node Scripts,  , History, Commands
+Eshell knows a few built-in variables:
+
+@table @code
+
+@item $+
+@vindex $+
+This variable always contains the current working directory.
+
+@item $-
+@vindex $-
+This variable always contains the previous working directory (the
+current working directory from before the last @code{cd} command).
+
+@end table
+
+@node Scripts
 @section Scripts
 
 
-@node Arguments, Input/Output, Commands, Top
+@node Built-ins
+@section Built-in commands
+
+Here is a list of built-in commands that Eshell knows about:
+
+@table @code
+
+@item cd
+@findex cd
+This command changes the current working directory.  Usually, it is
+invoked as @samp{cd foo} where @file{foo} is the new working
+directory.  But @code{cd} knows about a few special arguments:
+
+When it receives no argument at all, it changes to the home directory.
+
+Giving the command @samp{cd -} changes back to the previous working
+directory (this is the same as @samp{cd $-}).
+
+The command @samp{cd =} shows the directory stack.
+
+With @samp{cd =foo}, Eshell searches the directory stack for a
+directory matching the regular expression @samp{foo} and changes to
+that directory.
+
+@end table
+
+
+@node Arguments
 @chapter Arguments
 
 @menu
@@ -569,30 +612,30 @@ command, follows these steps:
 * Predicates::                  
 @end menu
 
-@node The Parser, Variables, Arguments, Arguments
+@node The Parser
 @section The Parser
 
-@node Variables, Substitution, The Parser, Arguments
+@node Variables
 @section Variables
 
-@node Substitution, Globbing, Variables, Arguments
+@node Substitution
 @section Substitution
 
-@node Globbing, Predicates, Substitution, Arguments
+@node Globbing
 @section Globbing
 
-@node Predicates,  , Globbing, Arguments
+@node Predicates
 @section Predicates
 
 
-@node Input/Output, Process control, Arguments, Top
+@node Input/Output
 @chapter Input/Output
 
-@node Process control, Extension modules, Input/Output, Top
+@node Process control
 @chapter Process control
 
 
-@node Extension modules, Extras and Goodies, Process control, Top
+@node Extension modules
 @chapter Extension modules
 
 @menu
@@ -605,32 +648,32 @@ command, follows these steps:
 * Built-in UNIX commands::      
 @end menu
 
-@node Writing a module, Module testing, Extension modules, Extension modules
+@node Writing a module
 @section Writing a module
 
-@node Module testing, Directory handling, Writing a module, Extension modules
+@node Module testing
 @section Module testing
 
-@node Directory handling, Key rebinding, Module testing, Extension modules
+@node Directory handling
 @section Directory handling
 
-@node Key rebinding, Smart scrolling, Directory handling, Extension modules
+@node Key rebinding
 @section Key rebinding
 
-@node Smart scrolling, Terminal emulation, Key rebinding, Extension modules
+@node Smart scrolling
 @section Smart scrolling
 
-@node Terminal emulation, Built-in UNIX commands, Smart scrolling, Extension modules
+@node Terminal emulation
 @section Terminal emulation
 
-@node Built-in UNIX commands,  , Terminal emulation, Extension modules
+@node Built-in UNIX commands
 @section Built-in UNIX commands
 
 
-@node Extras and Goodies, Bugs and ideas, Extension modules, Top
+@node Extras and Goodies
 @chapter Extras and Goodies
 
-@node Bugs and ideas, Concept Index, Extras and Goodies, Top
+@node Bugs and ideas
 @chapter Bugs and ideas
 @cindex reporting bugs and ideas
 @cindex bugs, how to report them
@@ -652,7 +695,7 @@ find this package useful!
 * Known problems::              
 @end menu
 
-@node Known problems,  , Bugs and ideas, Bugs and ideas
+@node Known problems
 @section Known problems
 @cindex known bugs
 @cindex bugs, known
@@ -1103,17 +1146,17 @@ Since it keeps the cursor up where the command was invoked.
 
 @end table
 
-@node Concept Index, Function and Variable Index, Bugs and ideas, Top
+@node Concept Index
 @unnumbered Concept Index
 
 @printindex cp
 
-@node Function and Variable Index, Key Index, Concept Index, Top
+@node Function and Variable Index
 @unnumbered Function and Variable Index
 
 @printindex fn
 
-@node Key Index,  , Function and Variable Index, Top
+@node Key Index
 @unnumbered Key Index
 
 @printindex ky
