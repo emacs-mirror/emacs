@@ -1,5 +1,8 @@
 2000-11-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* Makefile.in (install-arch-indep): Also install info/eshell*
+	and info/speedbar*.
+
 	* configure.in (HAVE_PNG): Check for the presence of
 	png_get_channels to rule out older PNG libs.
 

@@ -1,5 +1,8 @@
 2000-11-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* bytecode.c (Fbyte_code) <Bvarbind, Bunwind_protect>: Add
+	BEFORE/AFTER_POTENTIAL_GC.
+
 	* s/hpux10.h (_FILE_OFFSET_BITS): Undef.
 
 	* buffer.c (mmap_free_1): Avoid a compiler warning.
