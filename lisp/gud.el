@@ -106,7 +106,7 @@ we're in the GUD buffer)."
 		  (list 'quote func)))
 	(if key
 	    (list 'global-set-key
-		  (concat gud-key-prefix key)
+		  (list 'concat 'gud-key-prefix key)
 		  (list 'quote func)))))
 
 ;; Where gud-display-frame should put the debugging arrow.  This is
