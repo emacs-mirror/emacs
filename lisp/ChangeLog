@@ -1,3 +1,15 @@
+2002-09-14  Dave Love  <d.love@dl.ac.uk>
+
+	* Makefile.in (DONTCOMPILE): Add indian.el.
+
+	* language/ind-util.el:
+	(ucs-bengali-to-is13194-alist, ucs-assamese-to-is13194-alist)
+	(ucs-gurmukhi-to-is13194-alist, ucs-gujarati-to-is13194-alist)
+	(ucs-oriya-to-is13194-alist, ucs-tamil-to-is13194-alist)
+	(ucs-telugu-to-is13194-alist, ucs-malayalam-to-is13194-alist))):
+	Remove declarations and let-bind them in re-written top-level loop
+	over scripts, including ucs-devanagari-to-is13194-alist.
+
 2002-09-14  Dave Love  <fx@gnu.org>
 
 	* international/mule-cmds.el (charset): Move.
