@@ -425,14 +425,15 @@ buffer and try again."
         (dired dir))
       (if file
           (or (dired-goto-file file)
-              ;; Toggle omitting, if necessary, and try again.
-              (progn
-                (dired-omit-toggle t)
-                (dired-goto-file file))
               ;; refresh and try again
               (progn
                 (dired-insert-subdir (file-name-directory file))
-                (dired-goto-file file)))))))
+                (dired-goto-file file))
+              ;; Toggle omitting, if it is on, and try again.
+	      (if dired-omit-files-p
+		  (progn
+		    (dired-omit-toggle)
+		    (dired-goto-file file))))))))
 
 (defun dired-jump-other-window ()
   "Like \\[dired-jump] (dired-jump) but in other window."
