@@ -1,10 +1,17 @@
 2000-03-10  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* font-lock.el (font-lock-keywords): Fix the doc now that
+	regexp-opt-depth is unnecessary.
+	(save-buffer-state): Set an edebug spec.
+	(font-lock-fontify-anchored-keywords): Properly handle the case when
+	the matcher goes past the limit.
+
 	* cvs-status, log-edit.el, log-view.el, pcvs-defs.el, pcvs-info.el,
 	pcvs-parse.el, pcvs-util.el, pcvs.el: New files.
 
-	* emacs-lisp/ewoc.el: New file.  This is a merge of elib-node.el, dll.el
-	and cookie.el (from Elib) with heavy renaming and other massaging.
+	* emacs-lisp/ewoc.el: New file.  This is a merge of elib-node.el,
+	dll.el and cookie.el (from Elib) with heavy renaming and other
+	massaging.
 
 	* emacs-lisp/easy-mmode.el (easy-mmode-defmap, easy-mmode-defsyntax):
 	Autoload the functions used.
@@ -20,9 +27,8 @@
 
 	* emacs-lisp/easy-mmode.el (easy-mmode-define-keymap): Extend to allow
 	more flexibility.
-	(easy-mmode-set-keymap-parents, easy-mmode-define-syntax): New functions.
-	(easy-mmode-defmap, easy-mmode-defsyntax, easy-mmode-define-derived-mode):
-	New macros.
+	(easy-mmode-set-keymap-parents, easy-mmode-define-syntax): New funs.
+	(easy-mmode-def(map|syntax|ine-derived-mode)): New macros.
 
 2000-03-09  Didier Verna  <didier@xemacs.org>
 
