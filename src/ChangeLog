@@ -1,3 +1,7 @@
+2003-02-22  David Ponce  <david@dponce.com>
+
+	* lread.c (Fload): Don't check STRING_MULTIBYTE.
+
 2003-02-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* process.h: Removed subtty field from struct Lisp_Process.
