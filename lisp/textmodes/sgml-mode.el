@@ -48,7 +48,7 @@
 ;; sensitively confirm the syntax of characters, we have to live with this
 ;; kludgy kind of tradeoff.
 (defvar sgml-specials '(?\")
-  "List of characters that have a special meaning for sgml-mode.
+  "List of characters that have a special meaning for SGML mode.
 This list is used when first loading the sgml-mode library.
 The supported characters and potential disadvantages are:
 
@@ -64,8 +64,8 @@ Including ?- has the problem of affecting dashes that have nothing to do
 with comments, so we normally turn it off.")
 
 (defvar sgml-quick-keys nil
-  "Use <, >, &, SPC and `sgml-specials' keys ``electrically'' when non-nil.
-This takes effect when first loading the library.")
+  "Use <, >, &, SPC and `sgml-specials' keys \"electrically\" when non-nil.
+This takes effect when first loading the sgml-mode library.")
 
 
 (defvar sgml-mode-map
@@ -136,7 +136,7 @@ This takes effect when first loading the library.")
 
 
 (defcustom sgml-name-8bit-mode nil
-  "*When non-`nil' insert 8 bit characters with their names."
+  "*When non-nil, insert 8 bit characters with their names."
   :type 'boolean
   :group 'sgml)
 
@@ -195,14 +195,14 @@ separated by a space."
 ;;; I doubt that null end tags are used much for large elements,
 ;;; so use a small distance here.
 (defcustom sgml-slash-distance 1000
-  "*If non-nil, is the maximum distance to search for matching /."
+  "*If non-nil, is the maximum distance to search for matching `/'."
   :type '(choice (const nil) integer)
   :group 'sgml)
 
 (defconst sgml-start-tag-regex
   "<[A-Za-z]\\([-.A-Za-z0-9= \n\t]\\|\"[^\"]*\"\\|'[^']*'\\)*"
   "Regular expression that matches a non-empty start tag.
-Any terminating > or / is not matched.")
+Any terminating `>' or `/' is not matched.")
 
 
 (defvar sgml-font-lock-keywords
@@ -354,12 +354,12 @@ Makes > match <.  Makes / blink matching /.
 Keys <, &, SPC within <>, \" and ' can be electric depending on
 `sgml-quick-keys'.
 
-An argument of N to a tag-inserting command means that the next N
-words should be wrapped.  When the region is highlighted, N defaults
-to -1, which means the current region.
+An argument of N to a tag-inserting command means to wrap it around
+the next N words.  In Transient Mark mode, when the mark is active,
+N defaults to -1, which means to wrap it around the current region.
 
 If you like upcased tags, put (setq sgml-transformation 'upcase) in
-your .emacs file.
+your `.emacs' file.
 
 Use \\[sgml-validate] to validate your document with an SGML parser.
 
@@ -386,9 +386,9 @@ Do \\[describe-key] on the following bindings to discover what they do.
 
 
 (defun sgml-slash (arg)
-  "Insert / and display any previous matching /.
-Two /s are treated as matching if the first / ends a net-enabling
-start tag, and the second / is the corresponding null end tag."
+  "Insert `/' and display any previous matching `/'.
+Two `/'s are treated as matching if the first `/' ends a net-enabling
+start tag, and the second `/' is the corresponding null end tag."
   (interactive "p")
   (insert-char ?/ arg)
   (if (> arg 0)
@@ -469,17 +469,17 @@ or M-- for a soft hyphen."
 	   (if sgml-name-8bit-mode "ON" "OFF")))
 
 
-; When an element of a skeleton is a string "str", it is passed
-; through skeleton-transformation and inserted.  If "str" is to be
-; inserted literally, one should obtain it as the return value of a
-; function, e.g. (identity "str").
+;; When an element of a skeleton is a string "str", it is passed
+;; through skeleton-transformation and inserted.  If "str" is to be
+;; inserted literally, one should obtain it as the return value of a
+;; function, e.g. (identity "str").
 
 (define-skeleton sgml-tag
-  "Insert a tag you are prompted for, optionally with attributes.
-Completion and configuration is done according to `sgml-tag-alist'.
+  "Prompt for a tag and insert it, optionally with attributes.
+Completion and configuration are done according to `sgml-tag-alist'.
 If you like tags and attributes in uppercase do \\[set-variable]
-skeleton-transformation RET upcase RET, or put this in your .emacs
-  (setq sgml-transformation 'upcase)."
+skeleton-transformation RET upcase RET, or put this in your `.emacs':
+  (setq sgml-transformation 'upcase)"
   (funcall skeleton-transformation
 	   (completing-read "Tag: " sgml-tag-alist))
   ?< (setq v1 (eval str)) |
@@ -502,10 +502,10 @@ skeleton-transformation RET upcase RET, or put this in your .emacs
 (autoload 'skeleton-read "skeleton")
 
 (defun sgml-attributes (tag &optional quiet)
-  "When at toplevel of a tag, interactively insert attributes.
+  "When at top level of a tag, interactively insert attributes.
 
-Completion and configuration of TAG is done according to `sgml-tag-alist'.
-If QUIET, does not print a message when there are no attributes for TAG."
+Completion and configuration of TAG are done according to `sgml-tag-alist'.
+If QUIET, do not print a message when there are no attributes for TAG."
   (interactive (list (save-excursion (sgml-beginning-of-tag t))))
   (or (stringp tag) (error "Wrong context for adding attribute"))
   (if tag
@@ -540,8 +540,8 @@ If QUIET, does not print a message when there are no attributes for TAG."
 	car)))
 
 (defun sgml-auto-attributes (arg)
-  "Self insert, except, when at top level of tag, prompt for attributes.
-With prefix ARG only self insert."
+  "Self insert the character typed; at top level of tag, prompt for attributes.
+With prefix argument, only self insert."
   (interactive "*P")
   (let ((point (point))
 	tag)
@@ -557,7 +557,7 @@ With prefix ARG only self insert."
 
 
 (defun sgml-tag-help (&optional tag)
-  "Display description of optional TAG or tag at point."
+  "Display description of tag TAG.  If TAG is omitted, use the tag at point."
   (interactive)
   (or tag
       (save-excursion
@@ -591,7 +591,7 @@ With prefix ARG only self insert."
 
 (defun sgml-skip-tag-backward (arg)
   "Skip to beginning of tag or matching opening tag if present.
-With prefix ARG, repeat that many times."
+With prefix argument ARG, repeat this ARG times."
   (interactive "p")
   (while (>= arg 1)
     (search-backward "<" nil t)
@@ -607,7 +607,7 @@ With prefix ARG, repeat that many times."
 
 (defun sgml-skip-tag-forward (arg &optional return)
   "Skip to end of tag or matching closing tag if present.
-With prefix ARG, repeat that many times.
+With prefix argument ARG, repeat this ARG times.
 Return t iff after a closing tag."
   (interactive "p")
   (setq return t)
@@ -638,7 +638,7 @@ Return t iff after a closing tag."
 
 (defun sgml-delete-tag (arg)
   "Delete tag on or after cursor, and matching closing or opening tag.
-With prefix ARG, repeat that many times."
+With prefix argument ARG, repeat this ARG times."
   (interactive "p")
   (while (>= arg 1)
     (save-excursion
@@ -744,7 +744,7 @@ With prefix ARG, repeat that many times."
 (defun sgml-validate (command)
   "Validate an SGML document.
 Runs COMMAND, a shell command, in a separate process asynchronously
-with output going to the buffer *compilation*.
+with output going to the buffer `*compilation*'.
 You can then use the command \\[next-error] to find the next error message
 and move to the line in the SGML document that caused it."
   (interactive
@@ -764,7 +764,7 @@ and move to the line in the SGML document that caused it."
 
 (defun sgml-beginning-of-tag (&optional top-level)
   "Skip to beginning of tag and return its name.
-Else `t'."
+If this can't be done, return t."
   (or (if top-level
 	  (condition-case nil
 	      (up-list -1)
@@ -782,8 +782,8 @@ Else `t'."
 	t)))
 
 (defun sgml-value (alist)
-  "Interactively insert value taken from ALIST, which is an
-`attributerule' as described in sgml-tag-alist."
+  "Interactively insert value taken from attributerule ALIST.
+See `sgml-tag-alist' for info about attributerules.."
   (setq alist (cdr alist))
   (if (stringp (car alist))
       (insert "=\"" (car alist) ?\")
@@ -1155,15 +1155,15 @@ Edit/Text Properties/Face commands.
 Pages can have <a name=\"SOMENAME\">named points</a> and can link other points
 to them with <a href=\"#SOMENAME\">see also somename</a>.  In the same way <a
 href=\"URL\">see also URL</a> where URL is a filename relative to current
-directory or something like http://www.cs.indiana.edu/elisp/w3/docs.html.
+directory, or absolute as in `http://www.cs.indiana.edu/elisp/w3/docs.html'.
 
 Images in many formats can be inlined with <img src=\"URL\">.
 
-If you mainly create your own documents, `sgml-specials' might be interesting.
-But note that some HTML 2 browsers can't handle &apos;.  To work around that
-do:
+If you mainly create your own documents, `sgml-specials' might be
+interesting.  But note that some HTML 2 browsers can't handle `&apos;'.
+To work around that, do:
+   (eval-after-load \"sgml-mode\" '(aset sgml-char-names ?' nil))
 
-\(eval-after-load \"sgml-mode\" '(aset sgml-char-names ?' nil))
 \\{html-mode-map}"
   (interactive)
   (sgml-mode-common html-tag-face-alist html-display-text)
