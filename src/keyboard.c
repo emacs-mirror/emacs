@@ -3010,7 +3010,7 @@ record_char (c)
       if (EQ (XCAR (c), Qhelp_echo))
 	{
 	  /* Don't record `help-echo' in recent_keys unless it shows some help
-	     message, and a different help than the previoiusly recorded
+	     message, and a different help than the previously recorded
 	     event.  */
 	  Lisp_Object help, last_help;
 
