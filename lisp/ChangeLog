@@ -1,3 +1,107 @@
+2001-06-05  Dave Love  <fx@gnu.org>
+
+	* language/cyrillic.el (cyrillic-koi8-r-decode-table)
+	(cyrillic-alternativnyj-decode-table): Fill it out with Unicode.
+	(ccl-encode-koi8): Generalize for use by unification code.
+	(cyrillic-koi8): Doc fix.
+	(cp878, cp866): New coding system alias.
+	(cyrillic-koi8-u-decode-table): New variable.
+	(koi8-u, font-ccl-encoder-alist, ccl-encode-koi8-u-font): New ccl
+	program.
+	(koi8-u"): New coding system.
+	("Cyrillic-KOI8-U"): New language environment.
+	(cyrillic-alternativnyj): Define mime-charset.
+
+	* international/utf-8.el: Add coding tag.
+	(ccl-encode-mule-utf-8): Translate using
+	ucs-mule-8859-to-mule-unicode.
+	(ucs-mule-8859-to-mule-unicode): New translation table.
+	(utf-8-untranslated-to-ucs, utf-8-help-echo, utf-8-compose)
+	(utf-8-post-read-conversion, utf-8-pre-write-conversion): New
+	function.
+	(utf-8-subst-table): New variable.
+	(mule-utf-8): Modify coding system definition to use post-read and
+	pre-write functions.
+
+	* international/mule-diag.el (list-charset-chars): Set
+	indent-tabs-mode to nil
+	(describe-character-set): Capitalize output.
+	(describe-char-after): Maybe character's Unicode.
+	(list-input-methods): Put xrefs in the output.
+	(dump-charsets, dump-codings): Deleted.
+
+	* international/ucs-tables.el: Modify the set of tables
+	constructed.  Make encoding translation tables to unify 8859.
+	(ucs-ucs-to-mule-8859-table, ucs-preferred-8859-set)
+	(ucs-latin-1-unification-table):  Deleted.
+	(ucs-mule-8859-to-mule-unicode, ucs-mule-8859-to-mule-unicode):
+	Commented out.
+	(ucs-8859-1-encode-table, ucs-8859-2-encode-table)
+	(ucs-8859-3-encode-table, ucs-8859-4-encode-table)
+	(ucs-8859-5-encode-table, ucs-8859-7-encode-table)
+	(ucs-8859-8-encode-table, ucs-8859-9-encode-table)
+	(ucs-8859-14-encode-table, ucs-8859-15-encode-table): New
+	variable.
+	(ucs-unify-8859): New function.
+	(ucs-translate-region): Deleted.
+	(ucs-insert): New command.
+
+	* international/latin1-disp.el (latin1-display-reset):
+	Special-case arabic.
+	(latin1-char-displayable-p): Doc fix.
+
+	* international/codepages.el, international/utf-8-subst.el: New
+	file.
+
+2001-03-01  Dave Love  <fx@gnu.org>
+
+	* cus-edit.el (customize-face): Default to face at point.
+	(hook): Use functionp, not fboundp.
+	(custom-hook-convert-widget): Allow symbols as well as (defined)
+	functions.
+
+2001-02-28  Dave Love  <fx@gnu.org>
+
+	* international/utf-8.el (ucs-tables): Don't require when
+	compiling.
+	(ucs-mule-8859-to-mule-unicode): Add dummy definition.
+
+2001-02-20  Dave Love  <fx@gnu.org>
+
+	* international/utf-8.el: Add i18n to keywords.
+	(ccl-decode-mule-utf-8, ccl-encode-mule-utf-8, mule-utf-8): Doc
+	fix.
+	(internal-require-ucs-tables): Fix args, return value.
+
+2001-02-14  Dave Love  <fx@gnu.org>
+
+	* info-look.el: Add automake bits to makefile-mode spec.
+
+	* server.el (server-process-filter): Run pre-command-hook,
+	post-command-hook.
+
+	* international/utf-8.el (mule-utf-8): Fix backquoting.
+
+2001-02-12  Dave Love  <fx@gnu.org>
+
+	* international/utf-8.el (ucs-tables): Require when compiling.
+	(ccl-encode-mule-utf-8): Translate using
+	ucs-mule-8859-to-mule-unicode.  Adjust safe-charsets.  Add
+	pre-write-conversion kluge.
+
+	* international/latin1-disp.el (ucs-tables): Require.
+	(latin1-display-sets, latin1-display-setup): Add arabic.
+	(latin1-display) <variable>: Use function latin1-display.
+	(latin1-display) <function>: Add mule-unicode stuff.
+	(latin1-display-check-font): Don't lose if `info' is nil.
+
+2001-02-10  Dave Love  <fx@gnu.org>
+
+	* cus-edit.el (customize-face): Default to face of text at point.
+	(hook): Use functionp, not fboundp.
+	(custom-hook-convert-widget): Allow symbols (functions not
+	necessarily defined).
+
 2001-02-05  Dave Love  <fx@gnu.org>
 
 	* loadup.el: Revert last two changes -- bootstrapping works with
