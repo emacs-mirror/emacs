@@ -1538,14 +1538,14 @@ static struct dos_keyboard_map fr_keyboard = {
  */
 
 static struct kbd_translate it_kbd_translate_table[] = {
-  { 0x56, 0x3c, Map | 13 },
-  { 0x56, 0x3e, Map | 13 },
+  { 0x56, 0x3c, Normal | 13 },
+  { 0x56, 0x3e, Normal | 27 },
   { 0, 0, 0 }
 };
 static struct dos_keyboard_map it_keyboard = {
 /* 0          1         2         3         4         5     */
 /* 0 123456789012345678901234567890123456789012345678901234 */
-  "\\1234567890'ç< qwertyuiopä+   asdfghjklïÖó   zxcvbnm,.-  ",
+  "\\1234567890'ç< qwertyuiopä+>  asdfghjklïÖó   zxcvbnm,.-  ",
 /* 01 23456789012345678901234567890123456789012345678901234 */
   "|!\"ú$%&/()=?^> QWERTYUIOPÇ*   ASDFGHJKLá¯ı   ZXCVBNM;:_  ",
 /* 0123456789012345678901234567890123456789012345678901234 */
@@ -1569,6 +1569,7 @@ static struct kbd_translate jp_kbd_translate_table[] = {
   { 0x73, 0x5f, Normal | 0 },
   { 0x7d, 0x5c, Normal | 13 },
   { 0x7d, 0x7c, Normal | 13 },
+  { 0x7d, 0x1c, Map | 13 },
   { 0, 0, 0 }
 };
 static struct dos_keyboard_map jp_keyboard = {
@@ -2131,8 +2132,6 @@ dos_rawgetc ()
 	    }
 	  
 	case Map:
-	  if (keyboard->translate_table)
-	    c = 0;	/* so key gets mapped through country-specific kbd */
 	  if (c && !(mask & ALT_P) && !((mask & SHIFT_P) && (mask & CTRL_P)))
 	    if (!keyboard_map_all)
 	      return c;
