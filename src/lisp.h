@@ -1422,6 +1422,9 @@ typedef unsigned char UCHAR;
 #define CHECK_STRING(x) \
   do { if (!STRINGP ((x))) x = wrong_type_argument (Qstringp, (x)); } while (0)
 
+#define CHECK_STRING_CAR(x) \
+  do { if (!STRINGP (XCAR (x))) XSETCAR (x, wrong_type_argument (Qstringp, XCAR (x))); } while (0)
+
 #define CHECK_CONS(x) \
   do { if (!CONSP ((x))) x = wrong_type_argument (Qconsp, (x)); } while (0)
 
