@@ -144,11 +144,15 @@
 (require 'comint)
 
 ;;;###autoload
-(defvar shell-prompt-pattern "^[^#$%>]*[#$%>] *"
+(defvar shell-prompt-pattern "^[^#$%>\n]*[#$%>] *"
   "Regexp to match prompts in the inferior shell.
-Defaults to \"^[^#$%>]*[#$%>] *\", which works pretty well.
+Defaults to \"^[^#$%>\\n]*[#$%>] *\", which works pretty well.
 This variable is used to initialise `comint-prompt-regexp' in the 
 shell buffer.
+
+The pattern should probably not match more than one line.  If it does,
+shell-mode may become confused trying to distinguish prompt from input
+on lines which don't start with a prompt.
 
 This is a fine thing to set in your `.emacs' file.")
 
@@ -414,7 +418,8 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 				      (cons old (cdr shell-dirstack)))
 				(shell-dirstack-message))
 			      (message "Directory stack empty."))
-	(message "Couldn't cd."))
+	(error
+	 (message "Couldn't cd.")))
 
       (let ((num (shell-extract-num arg)))
 	(if num				; pushd +n
