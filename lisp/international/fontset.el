@@ -429,8 +429,9 @@ Valid elements include `bold', `demibold'; `italic', `oblique';
 and combinations of one from each group,
 such as `bold-italic' and `demibold-oblique'."
   :group 'faces
-  :type '(set bold demibold italic oblique bold-italic bold-oblique
-	      demibold-italic demibold-oblique))
+  :type '(set (const bold) (const demibold) (const italic) (const oblique)
+	      (const bold-italic) (const bold-oblique) (const demibold-italic)
+	      (const demibold-oblique)))
 
 (defun x-modify-font-name (fontname style)
   "Substitute style specification part of FONTNAME for STYLE.
