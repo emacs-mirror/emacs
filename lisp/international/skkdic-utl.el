@@ -25,23 +25,31 @@
 ;;; Commentary:
 
 ;; SKK is a free Japanese input method running on Mule created by
-;; Masahiko Sato <masahiko@sato.riec.tohoku.ac.jp>.  A dictionary of
-;; SKK can be converted by `skkdic-convert' (skkdic-conv.el) to a file
-;; "skkdic.el" in which the dictionary entries are defined in the
-;; format which can be handled by the following functions.
+;; Masahiko Sato <masahiko@sato.riec.tohoku.ac.jp>.  The Emacs Lisp
+;; library kkc.el provides a facility to convert a Japanese kana
+;; string to a kanji-kana-mixed string by using a SKK dictionary.
+;;
+;; This file provides a generic function to look up a SKK dictionary.
+;;
+;; The original SKK dictionary SKK-JISYO.L is converted to skkdic.el.
+;; We get entries of the dictionary in four variables (listed below)
+;; by loadig this file (or byte-compiled version skkdic.elc).
 
 ;;; Code:
 
+;; The following four variables are set by loading skkdic.el[c].
 (defvar skkdic-okuri-ari nil
-  "OKURI-ARI entries of SKK dictionary.")
-(defvar skkdic-postfix nil
-  "POSTFIX entries of SKK dictionary.")
-(defvar skkdic-prefix nil
-  "PREFIX entries of SKK dictionary.")
-(defvar skkdic-okuri-nasi nil
-  "OKURI-NASI entries of SKK dictionary.")
+  "Nested alist for OKURI-ARI entries of SKK dictionary.")
 
-;; Alist of Okuriganas vs trailing ASCII letters in OKURI-ARI entry.
+(defvar skkdic-postfix nil
+  "Nested alist for SETSUBIJI (postfix) entries of SKK dictionary.")
+
+(defvar skkdic-prefix nil
+  "Nested alist SETTOUJI (prefix) entries of SKK dictionary.")
+
+(defvar skkdic-okuri-nasi nil
+  "Nested alist for OKURI-NASI entries of SKK dictionary.")
+
 (defconst skkdic-okurigana-table
   '((?ぁ . ?a) (?あ . ?a) (?ぃ . ?i) (?い . ?i) (?ぅ . ?u)
     (?う . ?u) (?ぇ . ?e) (?え . ?e) (?ぉ . ?o) (?お . ?o)
@@ -60,7 +68,8 @@
     (?ら . ?r) (?り . ?r) (?る . ?r) (?れ . ?r) (?ろ . ?r)
     (?わ . ?w) (?ゐ . ?w) (?ゑ . ?w) (?を . ?w)
     (?ん . ?n)
-    ))
+    )
+  "Alist of Okuriganas vs trailing ASCII letters in OKURI-ARI entry.")
 
 (defconst skkdic-jbytes
   (charset-bytes 'japanese-jisx0208))
@@ -82,14 +91,18 @@
 
 (defconst skkdic-jisx0208-hiragana-block (nth 1 (split-char ?あ)))
 
-(defun skkdic-lookup-key (seq len &optional postfix)
+(defun skkdic-lookup-key (seq len &optional postfix prefer-noun)
   "Return a list of conversion string for sequence SEQ of length LEN.
 
 SEQ is a vector of Kana characters to be converted by SKK dictionary.
 If LEN is shorter than the length of KEYSEQ, the first LEN keys in SEQ
 are took into account.
 
-Postfixes are handled only if the optional argument POSTFIX is non-nil."
+Optional 3rd arg POSTFIX non-nil means SETSUBIJI (postfix) are also
+considered to find conversion strings.
+
+Optional 4th arg PREFER-NOUN non-nil means that the conversions
+without okurigana are placed at the head of the returned list."
   (or skkdic-okuri-nasi
       (condition-case err
 	  (load-library "skk/skkdic")
@@ -111,9 +124,9 @@ LEIM is available from the same ftp directory as Emacs."))
     ;; alists.  Nth element in VEC corresponds to Nth element in SEQ.
     ;; The values are decided as follows.
     ;;   If SEQ[N] is `ー', VEC[N] is 0,
-    ;;   Else if SEQ[N] is a Hiragana character, VEC[N] is:
-    ;;     ((The 2nd position code o SEQ[N]) - 32),
-    ;;   ELse VEC[N] is 128.
+    ;;   else if SEQ[N] is a Hiragana character, VEC[N] is:
+    ;;     ((The 2nd position code of SEQ[N]) - 32),
+    ;;   else VEC[N] is 128.
     (while (< i len)
       (let ((ch (aref seq i))
 	    elts)
@@ -164,9 +177,10 @@ LEIM is available from the same ftp directory as Emacs."))
 		 (consp (car entry-tail))
 		 (setq entry2 (skkdic-merge-head-and-tail
 			       (car entry-prefix) (car entry-tail) nil)))
-	    (if entry
-		(nconc entry entry2)
-	      (setq entry entry2)))
+	    (progn
+	      (if entry
+		  (nconc entry entry2)
+		(setq entry entry2))))
 	(setq break (1- break))))
 
     ;; Search OKURI-ARI entries.
@@ -187,8 +201,12 @@ LEIM is available from the same ftp directory as Emacs."))
 		      (setcar l (concat (car l) okuri))
 		      (setq l (cdr l)))
 		    (if entry
-			(nconc entry entry2)
-		      (setq entry entry2)))))
+			(if prefer-noun
+			    (nconc entry entry2)
+			  (setq entry2 (nreverse entry2))
+			  (nconc entry2 entry)
+			  (setq entry entry2))
+		      (setq entry (nreverse entry2))))))
 	    (aset vec (1- len) orig-element))))
 
     entry))
