@@ -1,6 +1,6 @@
 ;;; comint.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988, 90, 92, 93, 94, 95, 96, 97 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 90, 92, 93, 94, 95, 96, 97, 98 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu> then
 ;;	Simon Marshall <simon@gnu.ai.mit.edu>
@@ -657,7 +657,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	(default-directory
 	  (if (file-accessible-directory-p default-directory)
 	      default-directory
-	    "/")))
+	    (char-to-string directory-sep-char))))
     (apply 'start-process name buffer command switches)))
 
 ;; Input history processing in a buffer
@@ -1865,13 +1865,13 @@ See `comint-prompt-regexp'."
       ;; Try to position the proc window so you can see the answer.
       ;; This is bogus code. If you delete the (sit-for 0), it breaks.
       ;; I don't know why. Wizards invited to improve it.
-      (if (not (pos-visible-in-window-p proc-pt proc-win))
-	  (let ((opoint (window-point proc-win)))
-	    (set-window-point proc-win proc-mark)
-	    (sit-for 0)
-	    (if (not (pos-visible-in-window-p opoint proc-win))
-		(push-mark opoint)
-	      (set-window-point proc-win opoint)))))))
+      (unless (pos-visible-in-window-p proc-pt proc-win)
+	(let ((opoint (window-point proc-win)))
+	  (set-window-point proc-win proc-mark)
+	  (sit-for 0)
+	  (if (not (pos-visible-in-window-p opoint proc-win))
+	      (push-mark opoint)
+	    (set-window-point proc-win opoint)))))))
 
 
 ;; Filename/command/history completion in a buffer
@@ -1971,12 +1971,12 @@ plus all non-ASCII characters."
 		      (eq (preceding-char) ?\\)))
 	(backward-char 1))
       ;; Don't go forward over a word-char (this can happen if we're at bob).
-      (if (or (not (bobp)) (looking-at non-word-chars))
-	  (forward-char 1))
+      (when (or (not (bobp)) (looking-at non-word-chars))
+	(forward-char 1))
       ;; Set match-data to match the entire string.
-      (if (< (point) here)
-	  (progn (store-match-data (list (point) here))
-		 (match-string 0))))))
+      (when (< (point) here)
+	(store-match-data (list (point) here))
+	(match-string 0)))))
 
 (defun comint-substitute-in-file-name (filename)
   "Return FILENAME with environment variables substituted.
@@ -2053,13 +2053,10 @@ completions listing is dependent on the value of `comint-completion-autolist'.
 
 Returns t if successful."
   (interactive)
-  (if (comint-match-partial-filename)
-      (let ((directory-sep-char (if (memq system-type '(ms-dos windows-nt))
-				    ?\\
-				  ?/)))
-	(prog2 (or (window-minibuffer-p (selected-window))
-		   (message "Completing file name..."))
-	    (comint-dynamic-complete-as-filename)))))
+  (when (comint-match-partial-filename)
+    (unless (window-minibuffer-p (selected-window))
+      (message "Completing file name..."))
+    (comint-dynamic-complete-as-filename)))
 
 (defun comint-dynamic-complete-as-filename ()
   "Dynamically complete at point as a filename.
@@ -2072,12 +2069,18 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 	 ;;(file-name-handler-alist nil)
 	 (minibuffer-p (window-minibuffer-p (selected-window)))
 	 (success t)
-	 (dirsuffix (cond ((not comint-completion-addsuffix) "")
-			  ((not (consp comint-completion-addsuffix)) "/")
-			  (t (car comint-completion-addsuffix))))
-	 (filesuffix (cond ((not comint-completion-addsuffix) "")
-			   ((not (consp comint-completion-addsuffix)) " ")
-			   (t (cdr comint-completion-addsuffix))))
+	 (dirsuffix (cond ((not comint-completion-addsuffix)
+			   "")
+			  ((not (consp comint-completion-addsuffix))
+			   (char-to-string directory-sep-char))
+			  (t
+			   (car comint-completion-addsuffix))))
+	 (filesuffix (cond ((not comint-completion-addsuffix)
+			    "")
+			   ((not (consp comint-completion-addsuffix))
+			    " ")
+			   (t
+			    (cdr comint-completion-addsuffix))))
 	 (filename (or (comint-match-partial-filename) ""))
 	 (pathdir (file-name-directory filename))
 	 (pathnondir (file-name-nondirectory filename))
@@ -2088,7 +2091,8 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 	   (setq success nil))
           ((eq completion t)            ; Means already completed "file".
            (insert filesuffix)
-           (or minibuffer-p (message "Sole completion")))
+           (unless minibuffer-p
+	     (message "Sole completion")))
           ((string-equal completion "") ; Means completion on "directory/".
            (comint-dynamic-list-filename-completions))
           (t                            ; Completion string returned.
@@ -2099,19 +2103,22 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
              (cond ((symbolp (file-name-completion completion directory))
                     ;; We inserted a unique completion.
 		    (insert (if (file-directory-p file) dirsuffix filesuffix))
-                    (or minibuffer-p (message "Completed")))
+                    (unless minibuffer-p
+		      (message "Completed")))
                    ((and comint-completion-recexact comint-completion-addsuffix
                          (string-equal pathnondir completion)
                          (file-exists-p file))
                     ;; It's not unique, but user wants shortest match.
                     (insert (if (file-directory-p file) dirsuffix filesuffix))
-                    (or minibuffer-p (message "Completed shortest")))
+                    (unless minibuffer-p
+		      (message "Completed shortest")))
                    ((or comint-completion-autolist
                         (string-equal pathnondir completion))
                     ;; It's not unique, list possible completions.
                     (comint-dynamic-list-filename-completions))
                    (t
-                    (or minibuffer-p (message "Partially completed")))))))
+                    (unless minibuffer-p
+		      (message "Partially completed")))))))
     success))
 
 
