@@ -3778,11 +3778,11 @@ Return non-nil iff we received any output before the timeout expired.  */)
     seconds = NILP (process) ? -1 : 0;
 
   return
-    (wait_reading_process_input (seconds, useconds, 0, 0,
-				 Qnil,
-				 !NILP (process) ? XPROCESS (process) : NULL,
-				 NILP (just_this_one) ? 0 :
-				 !INTEGERP (just_this_one) ? 1 : -1)
+    (wait_reading_process_output (seconds, useconds, 0, 0,
+				  Qnil,
+				  !NILP (process) ? XPROCESS (process) : NULL,
+				  NILP (just_this_one) ? 0 :
+				  !INTEGERP (just_this_one) ? 1 : -1)
      ? Qt : Qnil);
 }
 
@@ -3982,12 +3982,12 @@ server_accept_connection (server, channel)
    lisp code is being evalled.
    This is also used in record_asynch_buffer_change.
    For that purpose, this must be 0
-   when not inside wait_reading_process_input.  */
+   when not inside wait_reading_process_output.  */
 static int waiting_for_user_input_p;
 
 /* This is here so breakpoints can be put on it.  */
 static void
-wait_reading_process_input_1 ()
+wait_reading_process_output_1 ()
 {
 }
 
@@ -4029,8 +4029,8 @@ wait_reading_process_input_1 ()
    Otherwise, return true iff we received input from any process.  */
 
 int
-wait_reading_process_input (time_limit, microsecs, read_kbd, do_display,
-			    wait_for_cell, wait_proc, just_wait_proc)
+wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
+			     wait_for_cell, wait_proc, just_wait_proc)
      int time_limit, microsecs, read_kbd, do_display;
      Lisp_Object wait_for_cell;
      struct Lisp_Process *wait_proc;
@@ -4168,7 +4168,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display,
 	  else if (time_limit != -1)
 	    {
 	      /* This is so a breakpoint can be put here.  */
-	      wait_reading_process_input_1 ();
+	      wait_reading_process_output_1 ();
 	    }
 	}
 
@@ -4411,9 +4411,9 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display,
       /* If we are using polling for input,
 	 and we see input available, make it get read now.
 	 Otherwise it might not actually get read for a second.
-	 And on hpux, since we turn off polling in wait_reading_process_input,
+	 And on hpux, since we turn off polling in wait_reading_process_output,
 	 it might never get read at all if we don't spend much time
-	 outside of wait_reading_process_input.  */
+	 outside of wait_reading_process_output.  */
       if (read_kbd && interrupt_input
 	  && keyboard_bit_set (&Available)
 	  && input_polling_used ())
@@ -5346,9 +5346,9 @@ send_process (proc, buf, len, object)
 			offset = buf - SDATA (object);
 
 #ifdef EMACS_HAS_USECS
-		      wait_reading_process_input (0, 20000, 0, 0, Qnil, NULL, 0);
+		      wait_reading_process_output (0, 20000, 0, 0, Qnil, NULL, 0);
 #else
-		      wait_reading_process_input (1, 0, 0, 0, Qnil, NULL, 0);
+		      wait_reading_process_output (1, 0, 0, 0, Qnil, NULL, 0);
 #endif
 
 		      if (BUFFERP (object))
@@ -6210,7 +6210,7 @@ sigchld_handler (signo)
 	      FD_CLR (XINT (p->infd), &non_keyboard_wait_mask);
 	    }
 
-	  /* Tell wait_reading_process_input that it needs to wake up and
+	  /* Tell wait_reading_process_output that it needs to wake up and
 	     look around.  */
 	  if (input_available_clear_time)
 	    EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
@@ -6228,7 +6228,7 @@ sigchld_handler (signo)
 	  else if (WIFSIGNALED (w))
             synch_process_termsig = WTERMSIG (w);
 
-	  /* Tell wait_reading_process_input that it needs to wake up and
+	  /* Tell wait_reading_process_output that it needs to wake up and
 	     look around.  */
 	  if (input_available_clear_time)
 	    EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
@@ -6880,8 +6880,8 @@ Lisp_Object QCtype;
    Return true iff we received input from any process.  */
 
 int
-wait_reading_process_input (time_limit, microsecs, read_kbd, do_display,
-			    wait_for_cell, wait_proc, just_wait_proc)
+wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
+			     wait_for_cell, wait_proc, just_wait_proc)
      int time_limit, microsecs, read_kbd, do_display;
      Lisp_Object wait_for_cell;
      struct Lisp_Process *wait_proc;
