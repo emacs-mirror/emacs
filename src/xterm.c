@@ -7150,7 +7150,7 @@ x_clip_to_row (w, row, area, gc)
   window_box (w, area, &window_x, &window_y, &window_width, 0);
 
   clip_rect.x = window_x;
-  clip_rect.y = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
+  clip_rect.y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, row->y));
   clip_rect.y = max (clip_rect.y, window_y);
   clip_rect.width = window_width;
   clip_rect.height = row->visible_height;
@@ -7180,29 +7180,10 @@ x_draw_hollow_cursor (w, row)
   if (cursor_glyph == NULL)
     return;
 
-  /* Compute the width of the rectangle to draw.  If on a stretch
-     glyph, and `x-stretch-block-cursor' is nil, don't draw a
-     rectangle as wide as the glyph, but use a canonical character
-     width instead.  */
-  wd = cursor_glyph->pixel_width - 1;
-  if (cursor_glyph->type == STRETCH_GLYPH
-      && !x_stretch_cursor_p)
-    wd = min (FRAME_COLUMN_WIDTH (f), wd);
-  w->phys_cursor_width = wd;
-
-  /* Compute frame-relative coordinates from window-relative
-     coordinates.  */
+  /* Compute frame-relative coordinates for phys cursor.  */
   x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
-  y = WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y);
-
-  /* Compute the proper height and ascent of the rectangle, based
-     on the actual glyph.  Using the full height of the row looks
-     bad when there are tall images on that row.  */
-  h = max (min (FRAME_LINE_HEIGHT (f), row->height),
-	   cursor_glyph->ascent + cursor_glyph->descent);
-  if (h < row->height)
-    y += row->ascent /* - w->phys_cursor_ascent */ + cursor_glyph->descent - h;
-  h--;
+  y = get_phys_cursor_geometry (w, row, cursor_glyph, &h);
+  wd = w->phys_cursor_width;
 
   /* The foreground of cursor_gc is typically the same as the normal
      background color, which can cause the cursor box to be invisible.  */
