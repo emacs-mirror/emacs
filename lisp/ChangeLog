@@ -1,9 +1,17 @@
+2000-05-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* msb.el (msb-menu-cond): Add choice `user'.
+
+2000-05-18  Espen Skoglund  <esk@ira.uka.de>
+
+	* pascal.el (pascal-indent-alist, pascal-indent-comment): Changed
+	the indent-comment function to just return the appropriate indent.
+
 2000-05-18  Eric M. Ludlam  <zappo@ultranet.com>
 
 	* sb-dir+.xpm, sb-dir-.xpm, sb-dir.xpm, sb-file+.xpm, sb-file-.xpm,
 	sb-file.xpm, sb-mail.xpm, sb-tag+.xpm, sb-tag-.xpm, sb-tag-gt.xpm,
 	sb-tag-type.xpm, sb-tag-v.xpm, sb-tag.xpm: New Files
-
 
 2000-05-18  Dave Love  <fx@gnu.org>
 
