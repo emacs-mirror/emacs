@@ -1,3 +1,8 @@
+2002-05-13  Richard M. Stallman  <rms@gnu.org>
+
+	* search.c (search_buffer): Give up boyer moore search if inverse
+	translation change charset_base.
+
 2002-05-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* coding.c (decode_coding) <coding_type_ccl>: If a lone CR
