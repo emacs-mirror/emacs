@@ -564,7 +564,7 @@ A string means the machine exists, but does not respond for some reason."
   ;; (ffap-file-remote-p "/foo.dom://path")
   (or (and ffap-ftp-regexp
 	   (string-match ffap-ftp-regexp filename)
-	   ;; Convert "/host://path" to "/host:/path", to handle a dieing
+	   ;; Convert "/host://path" to "/host:/path", to handle a dying
 	   ;; practice of advertising ftp paths as "host.dom://path".
 	   (if (string-match "//" filename)
 	       (concat (substring filename 0 (match-beginning 0))
@@ -677,7 +677,7 @@ Variable `ffap-ftp-default-user' overrides or suppresses \"anonymous\"."
 
 (defun ffap-list-env (env &optional empty)
   ;; Replace this with parse-colon-path (lisp/files.el)?
-  "Directory list parsed from \":\"-separated ENVinronment variable.
+  "Directory list parsed from \":\"-separated ENVironment variable.
 Optional EMPTY is default if (getenv ENV) is undefined, and is also
 substituted for the first empty-string component, if there is one."
   ;; Derived from psg-list-env in RHOGEE's ff-paths and
