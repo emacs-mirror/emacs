@@ -1091,7 +1091,8 @@ Obsolete."
 If you want to search for just a space, type C-q SPC."
   (interactive)
   (if isearch-regexp 
-      (if (and search-whitespace-regexp (not isearch-within-brackets))
+      (if (and search-whitespace-regexp (not isearch-within-brackets)
+	       (not isearch-invalid-regexp))
 	  (isearch-process-search-string search-whitespace-regexp " ")
 	(isearch-printing-char))
     (progn
