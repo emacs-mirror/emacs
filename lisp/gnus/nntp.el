@@ -397,8 +397,10 @@ noticing asynchronous data.")
       (set-buffer (nntp-find-connection-buffer nntp-server-buffer))
       (erase-buffer)))
   (nntp-encode-text)
-  (process-send-region (nntp-find-connection nntp-server-buffer)
-		       (point-min) (point-max))
+  (mm-with-unibyte-current-buffer
+    ;; Some encoded unicode text contains character 0x80-0x9f e.g. Euro.
+    (process-send-region (nntp-find-connection nntp-server-buffer)
+			 (point-min) (point-max)))
   (nntp-retrieve-data
    nil nntp-address nntp-port-number nntp-server-buffer
    wait-for nnheader-callback-function))

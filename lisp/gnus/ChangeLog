@@ -1,6 +1,9 @@
 2002-01-03  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* mm-util.el (mm-charset-to-coding-system): Don't setq charset.
+	* mm-util.el (mm-use-find-coding-systems-region): New variable.
+	(mm-find-mime-charset-region): Use it.
+	* nntp.el (nntp-send-buffer): Use mm-with-unibyte-current-buffer.
 
 2002-01-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
 

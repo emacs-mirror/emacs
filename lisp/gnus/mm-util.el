@@ -281,6 +281,10 @@ prefer iso-2022-jp to japanese-shift-jis:
   '(iso-2022-jp iso-2022-jp-2 japanese-shift-jis utf-8))
 ")
 
+(defvar mm-use-find-coding-systems-region
+  (fboundp 'find-coding-systems-region)
+  "Use `find-coding-systems-region' to find proper coding systems.")
+
 ;;; Internal variables:
 
 ;;; Functions:
@@ -494,7 +498,7 @@ charset, and a longer list means no appropriate charset."
   (let (charsets)
     ;; The return possibilities of this function are a mess...
     (or (and (mm-multibyte-p)
-	     (fboundp 'find-coding-systems-region)
+	     mm-use-find-coding-systems-region
 	     ;; Find the mime-charset of the most preferred coding
 	     ;; system that has one.
 	     (let ((systems (find-coding-systems-region b e)))
