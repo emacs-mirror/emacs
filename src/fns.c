@@ -1998,15 +1998,19 @@ See also the documentation of make-char.")
 
   c = XINT (ch);
   SPLIT_NON_ASCII_CHAR (c, charset, code1, code2);
-  if (! CHARSET_DEFINED_P (charset))
-    invalid_character (c);
+
+  /* Since we may want to set the default value for a character set
+     not yet defined, we check only if the character set is in the
+     valid range or not, instead of it is already defined or not.  */
+  if (! CHARSET_VALID_P (charset))
+       invalid_character (c);
 
   if (charset == CHARSET_ASCII)
     return (XCHAR_TABLE (char_table)->defalt = value);
 
   /* Even if C is not a generic char, we had better behave as if a
      generic char is specified.  */
-  if (CHARSET_DIMENSION (charset) == 1)
+  if (charset == CHARSET_COMPOSITION || CHARSET_DIMENSION (charset) == 1)
     code1 = 0;
   temp = XCHAR_TABLE (char_table)->contents[charset + 128];
   if (!code1)
