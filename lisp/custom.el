@@ -1,6 +1,6 @@
 ;;; custom.el --- tools for declaring and initializing options
 ;;
-;; Copyright (C) 1996, 1997, 1999, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2001, 2002 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -173,6 +173,33 @@ The following keywords are meaningful:
 :options VALUE should be a list of valid members of the widget type.
 :group  VALUE should be a customization group.
         Add SYMBOL to that group.
+:link LINK-DATA'
+        Include an external link after the documentation string for this
+        item.  This is a sentence containing an active field which
+        references some other documentation.
+   
+        There are three alternatives you can use for LINK-DATA:
+   
+        `(custom-manual INFO-NODE)'
+             Link to an Info node; INFO-NODE is a string which specifies
+             the node name, as in `\"(emacs)Top\"'.  The link appears as
+             `[manual]' in the customization buffer.
+   
+        `(info-link INFO-NODE)'
+             Like `custom-manual' except that the link appears in the
+             customization buffer with the Info node name.
+   
+        `(url-link URL)'
+             Link to a web page; URL is a string which specifies the URL.
+             The link appears in the customization buffer as URL.
+   
+        You can specify the text to use in the customization buffer by
+        adding `:tag NAME' after the first element of the LINK-DATA; for
+        example, `(info-link :tag \"foo\" \"(emacs)Top\")' makes a link to the
+        Emacs manual which appears in the buffer as `foo'.
+   
+        An item can have more than one external link; however, most items
+        have none at all.
 :initialize
 	VALUE should be a function used to initialize the
 	variable.  It takes two arguments, the symbol and value
@@ -193,6 +220,13 @@ The following keywords are meaningful:
         VALUE should be a string specifying that the variable was
         first introduced, or its default value was changed, in Emacs
         version VERSION.
+:tag LABEL
+        Use LABEL, a string, instead of the item's name, to label the item
+        a  in customization menus and buffers.
+:load FILE
+        Load file FILE (a string) before displaying this customization
+        item.  Loading is done with `load-library', and only if the file is
+        not already loaded.
 :set-after VARIABLE
 	Specifies that SYMBOL should be set after VARIABLE when
 	both have been customized.
