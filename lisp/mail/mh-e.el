@@ -63,7 +63,7 @@
 ;;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;;; Modified by Stephen Gildea 1988.  gildea@lcs.mit.edu
-(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.8 1995/04/25 22:28:04 kwzh Exp kwzh $")
+(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.9 1995/11/03 02:28:26 kwzh Exp kwzh $")
 
 ;;; Code:
 
@@ -140,7 +140,7 @@ A directory name string, or nil to use current directory.")
 ;;; the line are the message number, followed by two places for notations.
 
 (defvar mh-good-msg-regexp  "^....[^D^]"
-  "Regexp specifiying the scan lines that are 'good' messages.")
+  "Regexp specifying the scan lines that are 'good' messages.")
 
 (defvar mh-deleted-msg-regexp "^....D"
   "Regexp matching scan lines of deleted messages.")
