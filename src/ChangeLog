@@ -1,3 +1,11 @@
+2002-02-01  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (x_erase_phys_cursor): Don't erase cursor if cursor row
+	is invisible.  This can happen if cursor is on top line of a
+	window, and we switch to a buffer with a header line.
+
+	* w32term.c (x_erase_phys_cursor): ditto.
+
 2002-02-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* coding.c (decode_composition_emacs_mule): Give up if NCOMPONENT

@@ -9383,6 +9383,12 @@ x_erase_phys_cursor (w)
   if (!cursor_row->enabled_p)
     goto mark_cursor_off;
   
+  /* If row is completely invisible, don't attempt to delete a cursor which
+     isn't there.  This can happen if cursor is at top of a window, and
+     we switch to a buffer with a header line in that window.  */
+  if (cursor_row->visible_height <= 0)
+    goto mark_cursor_off;
+  
   /* This can happen when the new row is shorter than the old one.
      In this case, either x_draw_glyphs or clear_end_of_line
      should have cleared the cursor.  Note that we wouldn't be
