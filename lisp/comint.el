@@ -779,10 +779,9 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	   (process-mark (get-buffer-process (current-buffer))))
        (point))
       ;; Insert the clicked-upon input
-      (insert-buffer-substring
-       (current-buffer)
-       (previous-single-char-property-change (1+ pos) 'field)
-       (next-single-char-property-change pos 'field)))))
+      (insert (buffer-substring-no-properties
+	       (previous-single-char-property-change (1+ pos) 'field)
+	       (next-single-char-property-change pos 'field))))))
 
 
 
