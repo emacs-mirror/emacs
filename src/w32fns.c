@@ -12621,6 +12621,28 @@ static struct image_type tiff_type =
   NULL
 };
 
+/* TIFF library details.  */
+DEF_IMGLIB_FN (TIFFSetErrorHandler);
+DEF_IMGLIB_FN (TIFFSetWarningHandler);
+DEF_IMGLIB_FN (TIFFOpen);
+DEF_IMGLIB_FN (TIFFClientOpen);
+DEF_IMGLIB_FN (TIFFGetField);
+DEF_IMGLIB_FN (TIFFReadRGBAImage);
+DEF_IMGLIB_FN (TIFFClose);
+
+static int
+init_tiff_functions (library)
+     HMODULE library;
+{
+  LOAD_IMGLIB_FN (library, TIFFSetErrorHandler);
+  LOAD_IMGLIB_FN (library, TIFFSetWarningHandler);
+  LOAD_IMGLIB_FN (library, TIFFOpen);
+  LOAD_IMGLIB_FN (library, TIFFClientOpen);
+  LOAD_IMGLIB_FN (library, TIFFGetField);
+  LOAD_IMGLIB_FN (library, TIFFReadRGBAImage);
+  LOAD_IMGLIB_FN (library, TIFFClose);
+  return 1;
+}
 
 /* Return non-zero if OBJECT is a valid TIFF image specification.  */
 
@@ -12800,8 +12822,8 @@ tiff_load (f, img)
   file = Qnil;
   GCPRO1 (file);
 
-  TIFFSetErrorHandler (tiff_error_handler);
-  TIFFSetWarningHandler (tiff_warning_handler);
+  fn_TIFFSetErrorHandler (tiff_error_handler);
+  fn_TIFFSetWarningHandler (tiff_warning_handler);
 
   if (NILP (specified_data))
     {
@@ -12815,7 +12837,7 @@ tiff_load (f, img)
 	}
 
       /* Try to open the image file.  */
-      tiff = TIFFOpen (SDATA (file), "r");
+      tiff = fn_TIFFOpen (SDATA (file), "r");
       if (tiff == NULL)
 	{
 	  image_error ("Cannot open `%s'", file, Qnil);
@@ -12830,14 +12852,14 @@ tiff_load (f, img)
       memsrc.len = SBYTES (specified_data);
       memsrc.index = 0;
 
-      tiff = TIFFClientOpen ("memory_source", "r", &memsrc,
-			     (TIFFReadWriteProc) tiff_read_from_memory,
-			     (TIFFReadWriteProc) tiff_write_from_memory,
-			     tiff_seek_in_memory,
-			     tiff_close_memory,
-			     tiff_size_of_memory,
-			     tiff_mmap_memory,
-			     tiff_unmap_memory);
+      tiff = fn_TIFFClientOpen ("memory_source", "r", &memsrc,
+                                (TIFFReadWriteProc) tiff_read_from_memory,
+                                (TIFFReadWriteProc) tiff_write_from_memory,
+                                tiff_seek_in_memory,
+                                tiff_close_memory,
+                                tiff_size_of_memory,
+                                tiff_mmap_memory,
+                                tiff_unmap_memory);
 
       if (!tiff)
 	{
@@ -12849,12 +12871,12 @@ tiff_load (f, img)
 
   /* Get width and height of the image, and allocate a raster buffer
      of width x height 32-bit values.  */
-  TIFFGetField (tiff, TIFFTAG_IMAGEWIDTH, &width);
-  TIFFGetField (tiff, TIFFTAG_IMAGELENGTH, &height);
+  fn_TIFFGetField (tiff, TIFFTAG_IMAGEWIDTH, &width);
+  fn_TIFFGetField (tiff, TIFFTAG_IMAGELENGTH, &height);
   buf = (uint32 *) xmalloc (width * height * sizeof *buf);
 
-  rc = TIFFReadRGBAImage (tiff, width, height, buf, 0);
-  TIFFClose (tiff);
+  rc = fn_TIFFReadRGBAImage (tiff, width, height, buf, 0);
+  fn_TIFFClose (tiff);
   if (!rc)
     {
       image_error ("Error reading TIFF image `%s'", img->spec, Qnil);
@@ -12871,8 +12893,10 @@ tiff_load (f, img)
       return 0;
     }
 
+#if 0 /* TODO: Color tables.  */
   /* Initialize the color table.  */
   init_color_table ();
+#endif
 
   /* Process the pixel raster.  Origin is in the lower-left corner.  */
   for (y = 0; y < height; ++y)
@@ -12882,16 +12906,22 @@ tiff_load (f, img)
       for (x = 0; x < width; ++x)
 	{
 	  uint32 abgr = row[x];
-	  int r = TIFFGetR (abgr) << 8;
-	  int g = TIFFGetG (abgr) << 8;
-	  int b = TIFFGetB (abgr) << 8;
+	  int r = TIFFGetR (abgr);
+	  int g = TIFFGetG (abgr);
+	  int b = TIFFGetB (abgr);
+#if 0 /* TODO: Color tables.  */
 	  XPutPixel (ximg, x, height - 1 - y, lookup_rgb_color (f, r, g, b));
+#else
+          XPutPixel (ximg, x, height - 1 - y, PALETTERGB (r, g, b));
+#endif
 	}
     }
 
+#if 0 /* TODO: Color tables.  */
   /* Remember the colors allocated for the image.  Free the color table.  */
   img->colors = colors_in_color_table (&img->ncolors);
   free_color_table ();
+#endif
 
   img->width = width;
   img->height = height;
@@ -15719,7 +15749,11 @@ init_external_image_libraries ()
 #endif
 
 #if HAVE_TIFF
-  define_image_type (&tiff_type);
+  if (library = LoadLibrary ("libtiff.dll"))
+    {
+      if (init_tiff_functions (library))
+        define_image_type (&tiff_type);
+    }
 #endif
 
 #if HAVE_GIF
