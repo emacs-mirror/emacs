@@ -1,3 +1,8 @@
+2004-11-01  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-frac.el (calc-over-notation): Replaced
+	`completing-read' with `interactive "s"'.
+
 2004-11-2  Pavel Kobiakov <pk_at_work@yahoo.com>
 	
 	* progmodes/flymake.el (flymake-err-line-patterns): Use 
