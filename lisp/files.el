@@ -2676,7 +2676,7 @@ After saving the buffer, this function runs `after-save-hook'."
 	(cond ((and tempsetmodes (not setmodes))
 	       ;; Change the mode back, after writing.
 	       (setq setmodes (file-modes buffer-file-name))
-	       (set-file-modes buffer-file-name 511)))
+	       (set-file-modes buffer-file-name (logior setmodes 128))))
 	(write-region (point-min) (point-max)
 		      buffer-file-name nil t buffer-file-truename)))
     setmodes))
