@@ -436,8 +436,9 @@ FLAGS specifies more precise information of each TYPE.
 	   (make-subsidiary-coding-system coding-system)
 	 0)))
 
-(defun define-coding-system-alias (coding-system alias)
-  "Define ALIAS as an alias coding system of CODING-SYSTEM."
+(defun define-coding-system-alias (alias coding-system)
+  "Define ALIAS as an alias for coding system
+ CODING-SYSTEM."
   (check-coding-system coding-system)
   (let ((parent (coding-system-parent coding-system)))
     (if parent
