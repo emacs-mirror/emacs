@@ -352,7 +352,8 @@ TYPE is an integer value indicating the type of coding-system as follows:
   1: Shift-JIS (or MS-Kanji) used mainly on Japanese PC,
   2: ISO-2022 including many variants,
   3: Big5 used mainly on Chinese PC,
-  4: private, CCL programs provide encoding/decoding algorithm.
+  4: private, CCL programs provide encoding/decoding algorithm,
+  5: Raw-text, which means that text contains random 8-bit codes. 
 MNEMONIC is a character to be displayed on mode line for the coding-system.
 DOC-STRING is a documentation string for the coding-system.
 FLAGS specifies more precise information of each TYPE.
@@ -393,7 +394,7 @@ FLAGS specifies more precise information of each TYPE.
   ;; At first, set a value of `coding-system' property.
   (let ((coding-spec (make-vector 5 nil))
 	coding-category)
-    (if (or (not (integerp type)) (< type 0) (> type 4))
+    (if (or (not (integerp type)) (< type 0) (> type 5))
 	(error "TYPE argument must be 0..4"))
     (if (or (not (integerp mnemonic)) (<= mnemonic ? ) (> mnemonic 127))
 	(error "MNEMONIC arguemnt must be a printable character."))
@@ -461,7 +462,9 @@ FLAGS specifies more precise information of each TYPE.
 		    (vectorp (car flags))
 		    (vectorp (cdr flags)))
 	       (aset coding-spec 4 flags)
-	     (error "Invalid FLAGS argument for TYPE 4 (CCL)"))))
+	     (error "Invalid FLAGS argument for TYPE 4 (CCL)")))
+	  (t				; i.e. (= type 5)
+	   (setq coding-category 'coding-category-raw-text)))
     (put coding-system 'coding-system coding-spec)
     (put coding-system 'coding-category coding-category)
     (put coding-category 'coding-systems
@@ -471,7 +474,7 @@ FLAGS specifies more precise information of each TYPE.
   ;; of subsidiary coding systems, each corresponds to a coding system
   ;; for the detected end-of-line format.
   (put coding-system 'eol-type
-       (if (<= type 3)
+       (if (or (<= type 3) (= type 5))
 	   (make-subsidiary-coding-system coding-system)
 	 0)))
 
@@ -648,6 +651,12 @@ function by default."
 	    (modified-p (buffer-modified-p)))
 	(if coding-system
 	    (set-buffer-file-coding-system coding-system))
+	(if (or (eq coding-system 'no-conversion)
+		(eq (coding-system-type coding-system) 5))
+	    ;; It seems that random 8-bit codes are read.  We had
+	    ;; better edit this buffer without multibyte character
+	    ;; facility.
+	    (setq enable-multibyte-characters nil))
 	(set-buffer-modified-p modified-p)))
   nil)
 
