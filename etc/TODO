@@ -149,3 +149,6 @@
 
 * Integrate Vroonhof's Custom themes code and make it do useful
   things.
+
+* Provide an optional feature which computes a scroll bar slider's
+  size and its position from lines instead of characters.

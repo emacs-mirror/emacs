@@ -20,7 +20,7 @@
 	* xdisp.c (insert_left_trunc_glyphs): Overwrite padding glyphs by
 	truncation glyphs.
 	(display_line): Optimize for wide characters.
-	(display_string): Don't try to display a multi-column characters
+	(display_string): Don't try to display a multi-column character
 	partially.  On ttys, produce more than one truncation glyph for
 	multi-column characters that don't fit on the line.
 
