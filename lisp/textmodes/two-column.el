@@ -198,6 +198,12 @@
 
 ;;;;; variable declarations ;;;;;
 
+(defgroup two-column nil
+  "Minor mode for editing of two-column text"
+  :prefix "2C-"
+  :group 'frames)
+
+
 ;; Markers seem to be the only buffer-id not affected by renaming a buffer.
 ;; This nevertheless loses when a buffer is killed.  The variable-name is
 ;; required by `describe-mode'.
@@ -213,40 +219,52 @@
 
 
 ;; rearranged, so that the pertinent info will show in 40 columns
-(defvar 2C-mode-line-format
+(defcustom 2C-mode-line-format
 	'("-%*- %15b --"  (-3 . "%p")  "--%[("  mode-name
 	  minor-mode-alist  "%n"  mode-line-process  ")%]%-")
-  "*Value of mode-line-format for a buffer in two-column minor mode.")
+  "*Value of mode-line-format for a buffer in two-column minor mode."
+  :type 'sexp
+  :group 'two-column)
 
 
-(defvar 2C-other-buffer-hook 'text-mode
-  "*Hook run in new buffer when it is associated with current one.")
+(defcustom 2C-other-buffer-hook 'text-mode
+  "*Hook run in new buffer when it is associated with current one."
+  :type 'function
+  :group 'two-column)
 
 
-(defvar 2C-separator ""
+(defcustom 2C-separator ""
   "*A string inserted between the two columns when merging.
-This gets set locally by \\[2C-split].")
+This gets set locally by \\[2C-split]."
+  :type 'string
+  :group 'two-column)
 (put '2C-separator 'permanent-local t)
 
 
 
-(defvar 2C-window-width 40
+(defcustom 2C-window-width 40
   "*The width of the first column.  (Must be at least `window-min-width')
-This value is local for every buffer that sets it.")
+This value is local for every buffer that sets it."
+  :type 'integer
+  :group 'two-column)
 (make-variable-buffer-local '2C-window-width)
 (put '2C-window-width 'permanent-local t)
 
 
 
-(defvar 2C-beyond-fill-column 4
+(defcustom 2C-beyond-fill-column 4
   "*Base for calculating `fill-column' for a buffer in two-column minor mode.
 The value of `fill-column' becomes `2C-window-width' for this buffer
-minus this value.")
+minus this value."
+  :type 'integer
+  :group 'two-column)
 
 
 
-(defvar 2C-autoscroll t
-  "If non-nil, Emacs attempts to keep the two column's buffers aligned.")
+(defcustom 2C-autoscroll t
+  "If non-nil, Emacs attempts to keep the two column's buffers aligned."
+  :type 'boolean
+  :group 'two-column)
 
 
 

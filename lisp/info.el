@@ -29,27 +29,39 @@
 
 ;;; Code:
 
+(defgroup info nil
+  "Info subsystem"
+  :group 'help
+  :group 'docs)
+
+
 (defvar Info-history nil
   "List of info nodes user has visited.
 Each element of list is a list (FILENAME NODENAME BUFFERPOS).")
 
-(defvar Info-enable-edit nil
+(defcustom Info-enable-edit nil
   "*Non-nil means the \\<Info-mode-map>\\[Info-edit] command in Info can edit the current node.
 This is convenient if you want to write info files by hand.
 However, we recommend that you not do this.
 It is better to write a Texinfo file and generate the Info file from that,
-because that gives you a printed manual as well.")
+because that gives you a printed manual as well."
+  :type 'boolean
+  :group 'info)
 
 (defvar Info-enable-active-nodes nil
   "Non-nil allows Info to execute Lisp code associated with nodes.
 The Lisp code is executed when the node is selected.")
 (put 'Info-enable-active-nodes 'risky-local-variable t)
 
-(defvar Info-fontify t
-  "*Non-nil enables highlighting and fonts in Info nodes.")
+(defcustom Info-fontify t
+  "*Non-nil enables highlighting and fonts in Info nodes."
+  :type 'boolean
+  :group 'info)
 
-(defvar Info-fontify-maximum-menu-size 30000
-  "*Maximum size of menu to fontify if `Info-fontify' is non-nil.")
+(defcustom Info-fontify-maximum-menu-size 30000
+  "*Maximum size of menu to fontify if `Info-fontify' is non-nil."
+  :type 'integer
+  :group 'info)
 
 (defvar Info-directory-list
   (let ((path (getenv "INFOPATH"))
@@ -99,9 +111,11 @@ source tree, the `info' directory in the source tree is used as the last
 element, in place of the installation Info directory.  This is useful
 when you run a version of Emacs without installing it.")
 
-(defvar Info-additional-directory-list nil
+(defcustom Info-additional-directory-list nil
   "List of additional directories to search for Info documentation files.
-These directories are not searched for merging the `dir' file.")
+These directories are not searched for merging the `dir' file."
+  :type '(repeat directory)
+  :group 'info)
 
 (defvar Info-current-file nil
   "Info file that Info is now looking at, or nil.
@@ -1936,12 +1950,14 @@ the variable `Info-file-list-for-emacs'."
 	  (t
 	   (Info-goto-emacs-command-node command)))))
 
-(defvar Info-title-face-alist
+(defcustom Info-title-face-alist
   '((?* bold underline)
     (?= bold-italic underline)
     (?- italic underline))
   "*Alist of face or list of faces to use for pseudo-underlined titles.
-The alist key is the character the title is underlined with (?*, ?= or ?-).")
+The alist key is the character the title is underlined with (?*, ?= or ?-)."
+  :type '(repeat (list character face face))
+  :group 'info)
 
 (defun Info-fontify-node ()
   (save-excursion

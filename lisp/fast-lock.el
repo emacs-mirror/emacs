@@ -226,7 +226,12 @@
 
 ;; User Variables:
 
-(defvar fast-lock-cache-directories '("." "~/.emacs-flc")
+(defgroup fast-lock nil
+  "Automagic text properties caching for fast Font Lock mode"
+  :group 'faces)
+
+
+(defcustom fast-lock-cache-directories '("." "~/.emacs-flc")
 ; - `internal', keep each file's Font Lock cache file in the same file.
 ; - `external', keep each file's Font Lock cache file in the same directory.
   "*Directories in which Font Lock cache files are saved and read.
@@ -244,9 +249,11 @@ For example:
  ((\"^/your/true/home/directory/\" . \".\") \"~/.emacs-flc\")
 
 would cause a file's current directory to be used if the file is under your
-home directory hierarchy, or otherwise the absolute directory `~/.emacs-flc'.")
+home directory hierarchy, or otherwise the absolute directory `~/.emacs-flc'."
+  :type '(repeat (choice (cons regexp directory) directory))
+  :group 'fast-lock)
 
-(defvar fast-lock-minimum-size (* 25 1024)
+(defcustom fast-lock-minimum-size (* 25 1024)
   "*Minimum size of a buffer for cached fontification.
 Only buffers more than this can have associated Font Lock cache files saved.
 If nil, means cache files are never created.
@@ -254,18 +261,25 @@ If a list, each element should be a cons pair of the form (MAJOR-MODE . SIZE),
 where MAJOR-MODE is a symbol or t (meaning the default).  For example:
  ((c-mode . 25600) (c++-mode . 25600) (rmail-mode . 1048576))
 means that the minimum size is 25K for buffers in C or C++ modes, one megabyte
-for buffers in Rmail mode, and size is irrelevant otherwise.")
+for buffers in Rmail mode, and size is irrelevant otherwise."
+  :type '(choice (integer :tag "Size") (repeat (cons (symbol :tag "Major Mode")
+						    (integer :tag "Size"))))
+  :group 'fast-lock)
 
-(defvar fast-lock-save-events '(kill-buffer kill-emacs)
+(defcustom fast-lock-save-events '(kill-buffer kill-emacs)
   "*Events under which caches will be saved.
 Valid events are `save-buffer', `kill-buffer' and `kill-emacs'.
 If concurrent editing sessions use the same associated cache file for a file's
-buffer, then you should add `save-buffer' to this list.")
+buffer, then you should add `save-buffer' to this list."
+  :type '(set (const kill-buffer) (const save-buffer) (const kill-emacs))
+  :group 'fast-lock)
 
-(defvar fast-lock-save-others t
+(defcustom fast-lock-save-others t
   "*If non-nil, save Font Lock cache files irrespective of file owner.
 If nil, means only buffer files known to be owned by you can have associated
-Font Lock cache files saved.  Ownership may be unknown for networked files.")
+Font Lock cache files saved.  Ownership may be unknown for networked files."
+  :type 'boolean
+  :group 'fast-lock)
 
 (defvar fast-lock-save-faces
   (when (save-match-data (string-match "XEmacs" (emacs-version)))
@@ -274,9 +288,11 @@ Font Lock cache files saved.  Ownership may be unknown for networked files.")
   "Faces that will be saved in a Font Lock cache file.
 If nil, means information for all faces will be saved.")
 
-(defvar fast-lock-verbose font-lock-verbose
+(defcustom fast-lock-verbose font-lock-verbose
   "*If non-nil, means show status messages for cache processing.
-If a number, only buffers greater than this size have processing messages.")
+If a number, only buffers greater than this size have processing messages."
+  :type '(choice integer boolean)
+  :group 'fast-lock)
 
 ;; User Functions:
 
