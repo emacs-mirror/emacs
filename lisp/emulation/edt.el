@@ -4,6 +4,7 @@
 ;; Maintainer: FSF
 ;; Created: 27 Aug 1986
 ;; Last-Modified: 09 May 1991
+;; Keywords: emulations
 
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
 ;;  It started from public domain code by Mike Clarkson

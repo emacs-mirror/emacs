@@ -3,6 +3,7 @@
 ;; Author: James Larus <larus@ginger.berkeley.edu>
 ;; Version: 3.7
 ;; Last-Modified: 30 Jun 1992
+;; Keywords: mail
 
 (defvar mh-e-RCS-id)
 (setq mh-e-RCS-id "$Header: /var/home/larus/lib/emacs/RCS/mh-e.el,v 3.1 90/09/28 15:47:58 larus Exp Locker: larus $")

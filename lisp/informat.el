@@ -2,6 +2,7 @@
 
 ;; Maintainer: FSF
 ;; Last-Modified: 09 May 1991
+;; Keywords: help
 
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
 

@@ -4,6 +4,7 @@
 ;;	Roland McGrath <roland@gnu.ai.mit.edu>
 ;; Created: 19 Oct 90
 ;; Last-Modified: 13 Jun 92
+;; Keywords: mail
 
 ;;; ??? We must get papers for this or delete it.
 ;;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.

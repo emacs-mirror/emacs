@@ -2,6 +2,7 @@
 
 ;; Author: Dick King (king@kestrel).
 ;; Last-Modified: 16 Mar 1992
+;; Keywords: extensions
 
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 

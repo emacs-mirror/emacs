@@ -2,6 +2,7 @@
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Last-Modified: 10 Jun 1992
+;; Keywords: news
 
 ;; $Header: gnus.el,v 3.13 90/03/23 13:24:27 umerin Locked $
 

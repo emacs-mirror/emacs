@@ -4,6 +4,7 @@
 ;; Maintainer: FSF
 ;; Created: 13 Jan 1986
 ;; Last-Modified: 30 May 1992
+;; Keywords: mail
 
 ;; This is in the public domain
 ;; since Delp distributed it without a copyright notice in 1986.

@@ -2,6 +2,7 @@
 
 ;; Author: Joe Wells <jbw@bigbird.bu.edu>
 ;; Last-Modified: 5 May 1989
+;; Keyword: help
 
 ;; Copyright (C) 1989 Free Software Foundation, Inc.
 

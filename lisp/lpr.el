@@ -2,6 +2,7 @@
 
 ;; Maintainer: FSF
 ;; Last-Modified: 19 Apr 1992
+;; Keywords: unix
 
 ;; Copyright (C) 1985, 1988, 1992 Free Software Foundation, Inc.
 

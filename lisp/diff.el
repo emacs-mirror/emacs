@@ -4,6 +4,7 @@
 ;; Maintainer: FSF
 ;; Created: 27 Jan 1989
 ;; Last-Modified: 21 Dec 1992
+;; Keyword: unix, tools
 
 ;; Copyright (C) 1990 Free Software Foundation, Inc.
 

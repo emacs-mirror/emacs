@@ -3,6 +3,7 @@
 ;; Author: Roland McGrath <roland@prep.ai.mit.edu>
 ;; Maintainer: FSF
 ;; Last-Modified: 05 Jul 1992
+;; Keyword: tools, processes
 
 ;;;!!! dup removal is broken.
 

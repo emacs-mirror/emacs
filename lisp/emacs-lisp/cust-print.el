@@ -1,9 +1,10 @@
-;; cus-print.el -- handles print-level and print-circle.
+;; cust-print.el -- handles print-level and print-circle.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Version: 1.0
 ;; Last-Modified: 17 Mar 1992
 ;; Adapted-By: ESR
+;; Keyword: extensions
 
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
@@ -569,4 +570,4 @@ Otherwise, print normally."
  (uninstall-custom-print-funcs)
  )
 
-;;; cus-print.el ends here
+;;; cust-print.el ends here

@@ -2,6 +2,7 @@
 
 ;; Maintainer: FSF
 ;; Last-Modified: 08 Jan 1992
+;; Keyword: lisp, tools
 
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 

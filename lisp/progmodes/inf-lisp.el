@@ -2,6 +2,7 @@
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;; Last-Modified: 16 Jul 1993
+;; Keyword: processes, lisp
 
 ;;; Copyright Olin Shivers (1988).
 ;;; Please imagine a long, tedious, legalistic 5-page gnu-style copyright

@@ -1,4 +1,11 @@
 ;;; calendar.el --- Calendar functions.
+
+;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
+;; Last-Modified: 30 Jun 1992
+;; Keyword: calendar
+
+(defconst calendar-version "Version 4.02, released June 14, 1992")
+
 ;;; Copyright (C) 1988, 1989, 1990, 1991 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -17,6 +24,8 @@
 ;; can know your rights and responsibilities.  It should be in a
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
+
+;;; Commentary:
 
 ;; This collection of functions implements a calendar window.  It generates
 ;; generates a calendar for the current month, together with the previous and
@@ -66,7 +75,7 @@
 ;; Software--Practice and Experience, Volume 20, Number 9 (September, 1990),
 ;; pages 899-928.
 
-(defconst calendar-version "Version 4.02, released June 14, 1992")
+;;; Code:
 
 (defvar view-diary-entries-initially nil
   "*If T, the diary entries for the current date will be displayed on entry.
@@ -996,7 +1005,7 @@ holidays are found, nil if not."
      (if today-visible today (list displayed-month 1 displayed-year)))
     (set-buffer-modified-p nil)
     (or (one-window-p t)
-        (/= (screen-width) (window-width))
+        (/= (frame-width) (window-width))
         (shrink-window (- (window-height) 9)))
     (sit-for 0)
     (and mark-holidays-in-calendar

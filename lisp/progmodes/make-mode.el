@@ -2,7 +2,7 @@
 
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
 ;; Adapted-By: ESR
-;; Keywords: unix tools
+;; Keywords: unix, tools
 
 ;; $Id: makefile.el,v 1.7.1.17 1992/07/15 20:05:15 tom Exp tom $
 

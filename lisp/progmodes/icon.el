@@ -3,6 +3,7 @@
 ;; Author: Chris Smith <convex!csmith>
 ;; Created: 15 Feb 89
 ;; Last-Modified: 06 Mar 1991
+;; Keywords: languages
 
 ;; Copyright (C) 1989 Free Software Foundation, Inc.
 

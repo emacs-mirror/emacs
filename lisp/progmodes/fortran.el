@@ -4,6 +4,7 @@
 ;; Maintainer: bug-fortran-mode@erl.mit.edu
 ;; Version 1.28.3
 ;; Last-Modified: 15 Jul 1991
+;; Keywords: languages
 
 ;;; Copyright (c) 1991 Free Software Foundation, Inc.
 

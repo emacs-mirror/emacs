@@ -1,5 +1,7 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
+;; Maintainer: FSF
+
 ;; Copyright (C) 1985, 86, 87, 88, 89, 90, 91, 1992
 ;;	Free Software Foundation, Inc.
 
@@ -7,7 +9,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -19,6 +21,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Code:
 
 ;;;###autoload
 (defvar change-log-default-name nil
@@ -169,12 +172,16 @@ Interactively, with a prefix argument, the file name is prompted for."
 
 (defun change-log-mode ()
   "Major mode for editting change logs; like Indented Text Mode.
+Prevents numeric backups and sets `left-margin' to 8 and `fill-column'
+to 74.
 New log entries are usually made with \\[add-change-log-entry]."
   (interactive)
   (kill-all-local-variables)
   (indented-text-mode)
   (setq major-mode 'change-log-mode)
   (setq mode-name "Change Log")
+  (setq left-margin 8)
+  (setq fill-column 74)
   ;; Let each entry behave as one paragraph:
   (set (make-local-variable 'paragraph-start) "^\\s *$\\|^^L")
   (set (make-local-variable 'paragraph-separate) "^\\s *$\\|^^L\\|^\\sw")
@@ -248,3 +255,5 @@ Has a preference of looking backwards."
 				     t)
 		 (buffer-substring (match-beginning 1)
 				   (match-end 1))))))))
+
+;;; add-log.el ends here

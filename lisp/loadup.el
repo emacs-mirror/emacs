@@ -2,6 +2,7 @@
 
 ;; Maintainer: FSF
 ;; Last-Modified: 14 Jul 1992
+;; Keywords: internal
 
 ;; This is loaded into a bare Emacs to make a dumpable one.
 ;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.

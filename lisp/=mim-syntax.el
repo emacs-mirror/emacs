@@ -3,6 +3,7 @@
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
 ;; Last-Modified: 31 Oct 1989
+;; Keywords: languages
 
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 

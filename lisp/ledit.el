@@ -2,6 +2,7 @@
 
 ;; Maintainer: FSF
 ;; Last-Modified: 13 May 1991
+;; Keyord: languages
 
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 

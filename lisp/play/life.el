@@ -2,6 +2,7 @@
 
 ;; Author: Kyle Jones <talos!kjones@uunet.uu.net>
 ;; Last-Modified: 16 Mar 1992
+;; Keyword: games
 
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 

@@ -3,6 +3,7 @@
 ;; Author: Bill Rosenblatt
 ;; Maintainer: FSF
 ;; Last-Modified: 16 Mar 1992
+;; Keywords: extensions
 
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
 

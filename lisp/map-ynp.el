@@ -2,6 +2,7 @@
 
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
 ;; Last-Modified: 14 Mar 1992
+;; Keywords: lisp, extensions
 
 ;;; Copyright (C) 1991, 1992 Free Software Foundation, Inc.
 ;;;

@@ -2,6 +2,7 @@
 
 ;; Maintainer: FSF
 ;; Last-Modified: 30 Jun 1992
+;; Keywords: help, internal
 
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 

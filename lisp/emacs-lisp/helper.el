@@ -3,6 +3,7 @@
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
 ;; Last-Modified: 16 Mar 1991
+;; Keywords: help
 
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 

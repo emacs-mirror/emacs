@@ -3,6 +3,7 @@
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Maintainer: FSF
 ;; Last-Modified: 16 Mar 1992
+;; Keywords: mail, news
 
 ;; $Header: mhspool.el,v 1.5 90/03/23 13:25:23 umerin Locked $
 

@@ -4,6 +4,7 @@
 ;;	Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Maintainer: Roland McGrath <roland@gnu.ai.mit.edu>
 ;; Last-Modified: 16 Mar 1992
+;; Keywords: unix
 
 (defconst find-dired-version (substring "$Revision: 1.9 $" 11 -2)
   "$Id: find-dired.el,v 1.9 1991/11/11 13:24:31 sk Exp $")

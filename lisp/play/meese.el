@@ -2,6 +2,7 @@
 
 ;; Maintainer: FSF
 ;; Last-Modified: 20 May 1988
+;; Keywords: games
 
 (defun protect-innocence-hook ()
   (if (and (equal (file-name-nondirectory buffer-file-name) "sex.6")

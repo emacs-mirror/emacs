@@ -4,6 +4,7 @@
 ;; Maintainer: FSF
 ;; Last-Modified: 03 Jun 1992
 ;; Adapted-By: ESR
+;; Keywords: hardware
 
 ;;; Copyright (C) 1990 Free Software Foundation, Inc.
 ;;; Copyright (C) 1991 Kevin Gallagher

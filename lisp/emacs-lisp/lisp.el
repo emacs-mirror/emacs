@@ -2,6 +2,7 @@
 
 ;; Maintainer: FSF
 ;; Last-Modified: 12 Mar 1992
+;; Keyword: lisp, languages
 
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 
