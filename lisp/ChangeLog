@@ -56,7 +56,7 @@
 
 1999-12-07  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* diff-mode.el (diff-mode-shared-map): fset'd and doc change.
+	* diff-mode.el (diff-mode-shared-map): Fset'd and doc change.
 	(diff-minor-mode, diff-minor-mode-prefix, diff-minor-mode-map):
 	New code to support the minor mode version.
 	(diff-recenter): New function.
@@ -80,9 +80,9 @@
 1999-12-06  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* viper-cmd.el (viper-minibuffer-standard-hook,
-	viper-minibuffer-real-start): new functions.
+	viper-minibuffer-real-start): Mew functions.
 	(viper-read-string-with-history,viper-file-add-suffix,
-	viper-trim-replace-chars-to-delete-if-necessary): adapt to the
+	viper-trim-replace-chars-to-delete-if-necessary): Adapt to the
 	change in the status of the minibuffer prompt.
 	
 1999-12-06  Gerd Moellmann  <gerd@gnu.org>
@@ -606,10 +606,10 @@
 1999-02-22  Sam Steingold  <sds@goems.com>
 
 	* goto-addr.el (goto-address-at-mouse,
-	goto-address-find-address-at-point): use compose-mail.
-	(goto-address-mail-method): removed variable.
+	goto-address-find-address-at-point): Use compose-mail.
+	(goto-address-mail-method): Removed variable.
 	(goto-address-send-using-mh-e, goto-address-send-using-mhe,
-	goto-address-send-using-mail): removed functions.
+	goto-address-send-using-mail): Removed functions.
 
 1998-11-03  Sam Steingold  <sds@goems.com>
 
@@ -1176,7 +1176,7 @@
 	(EL): Unused.
 	(temacs): Removed (unused).
 	(cus-load.el, finder-inf.el, loaddefs.el): New targets to build a dummy
-	  version of the file (necessary for the update to work properly).
+	version of the file (necessary for the update to work properly).
 	(autoloads): Force the use of `pwd`/loaddefs.el.
 	(updates); Redefined in terms of other targets to reduce redundancy.
 	(.el.elc): New default rule, just in case you want it.
@@ -1378,11 +1378,11 @@
 1999-10-13  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* international/mule-cmds.el (select-safe-coding-system)
-	(leim-list-header): avoid the use of strings that start with backslash
-	  newline since lread.c:read1 has a hack to turn those strings into
-	  integer 0 during the loadup.el process.
+	(leim-list-header): Avoid the use of strings that start with backslash
+	newline since lread.c:read1 has a hack to turn those strings into
+	integer 0 during the loadup.el process.
 
-	* diff-mode.el (diff-find-file-name): use `Index:' preferentially.
+	* diff-mode.el (diff-find-file-name): Use `Index:' preferentially.
 
 1999-10-13  Dave Love  <fx@gnu.org>
 
@@ -1402,9 +1402,9 @@
 	hook into it.
 	(Info-current-file, Info-set-mode-line, Info-up):
 	Info-current-file can now be t.
-	(Info-clone-buffer-hook): function for `clone-buffer'.
+	(Info-clone-buffer-hook): Function for `clone-buffer'.
 	(Info-goto-node, Info-menu, Info-mode-map, Info-mode):
-	`clone-buffer' available in various ways to the user.
+	Make `clone-buffer' available in various ways to the user.
 
 1999-10-12  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -1487,16 +1487,16 @@
 
 1999-10-11  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* diff-mode.el (vc-backend-diff): get rid of the autoloaded advice.
+	* diff-mode.el (vc-backend-diff): Get rid of the autoloaded advice.
 
 1999-10-09  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* Makefile (setwins): abstract out the command to find subdirectories
+	* Makefile (setwins): Abstract out the command to find subdirectories
 	and fix it to also ignore subdirectories of CVS (f.ex. CVS/Base).
 	(custom-deps, finder-data, autoloads, update-subdirs, updates)
-	(autoloads-with-other-emacs): use it.
+	(autoloads-with-other-emacs): Use it.
 
-	* diff-mode.el: new file.  A mode for viewing/editing context diffs.
+	* diff-mode.el: New file.  A mode for viewing/editing context diffs.
 
 1999-10-09  Gerd Moellmann  <gerd@gnu.org>
 
@@ -1627,7 +1627,7 @@
 
 1999-09-29  Alex Schroeder  <alex@gnu.org>
 
-	* sql.el (sql-imenu-generic-expression): new, used to set
+	* sql.el (sql-imenu-generic-expression): Aew, used to set
 	imenu-generic-expression.
 	(sql-mode): Use ?_ and ?. instead of 95 and 46 when setting
 	font-lock-defaults' SYNTAX-ALIST.  Set imenu-generic-expression,
@@ -1838,7 +1838,7 @@
 	documentation.
 
 	* whitespace.el (whitespace-display-unchecked-whitespaces):
-	new function to update modeline with untested whitespaces.
+	New function to update modeline with untested whitespaces.
 
 	* whitespace.el (whitespace-buffer): Test only whitespaces whose
 	checking is turned on, and update modeline using the newly created
@@ -1931,7 +1931,7 @@
 
 	* custom.el: Don't define-widget-keywords.
 	Change from Didier Verna:
-	(custom-set-variables): the arguments can now have a
+	(custom-set-variables): The arguments can now have a
 	custom comment as fifth element.
 
 1999-09-13  Richard Stallman  <rms@gnu.org>
@@ -2378,10 +2378,10 @@
 
 	* time-stamp.el: Put quote-backquote around all symbol names
 	in doc strings,	for mousing.
-	(time-stamp): support multi-line patterns.
-	(time-stamp-inserts-lines): new variable.
-	(time-stamp-count): new variable.
-	(time-stamp-string-preprocess): fixed bug where "%%a" becomes
+	(time-stamp): Support multi-line patterns.
+	(time-stamp-inserts-lines): New variable.
+	(time-stamp-count): New variable.
+	(time-stamp-string-preprocess): Fixed bug where "%%a" becomes
 	"Thu" instead of "%a".
 
 1999-08-25  Gerd Moellmann  <gerd@gnu.org>
@@ -2408,7 +2408,7 @@
 1999-08-24  Alex Schroeder  <alex@gnu.org>
 
 	* sql.el: Doc changes.
-	(sql-sybase): use sql-server instead of sql-database.
+	(sql-sybase): Use sql-server instead of sql-database.
 
 1999-08-23  Dave Love  <fx@gnu.org>
 
@@ -2530,14 +2530,14 @@
 	conflict with pop-up-frames.
 	(reftex-special-environment-parsers): New constant.
 	(reftex-label-alist): car of an entry can also be a function.
-	(reftex-what-special-env): new function.
+	(reftex-what-special-env): Cew function.
 	(reftex-label-location): Call `reftex-what-special-env'.
 	(reftex-compile-variables): Check for symbol in
 	`reftex-label-alist'.
-	(reftex-what-environment): fixed bug with stacked environments of
+	(reftex-what-environment): Fixed bug with stacked environments of
 	same kind (e.g. enumerate).
 	(reftex-process-string): Preserve default directory.
-        (reftex-label-alist-builtin): changed prefixes of endnote and
+        (reftex-label-alist-builtin): Changed prefixes of endnote and
 	footnote.  Also the magic words.
 	(reftex-reference): Interprete new option
 	`reftex-fref-is-default'.
@@ -2547,7 +2547,7 @@
 	(reftex-nearest-match): Made better.
 	(reftex-toc-find-section): Use new version of
 	`reftex-nearest-match'.
-	(reftex-insert-docstruct): adapted to work with the index stuff.
+	(reftex-insert-docstruct): Adapted to work with the index stuff.
 	(reftex-parse-from-file): Find index entries as well.
 	(reftex-toc-toggle-index): New function
 	(reftex-toc-map): `i' is now used to togle the index, File
@@ -3632,7 +3632,7 @@
 	(face-fill-in): Set relief from data.
 	(internal-make-face): Init relief to zero.
 
-	* faces.el (face-spec-set): call modify-face with additional
+	* faces.el (face-spec-set): Call modify-face with additional
 	parameters for relief and fixed-p.
 
 1999-07-21  Gerd Moellmann  <gerd@acm.org>
@@ -3893,9 +3893,9 @@
 
 	* emacs-lisp/lisp-mode.el (eval-defun): Doc fix.
 
-1999-06-27  Stefan Monnier  <monnier@tequila.cs.yale.edu>
+1999-06-27  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* textmodes/reftex.el (reftex-pop-to-bibtex-entry): don't pop up
+	* textmodes/reftex.el (reftex-pop-to-bibtex-entry): Don't pop up
 	a frame when `return' is requested (even if pop-up-frames = t)
 	* textmodes/bibtex.el (bibtex-mode): `font-lock-mark-block-function'
 	should only be set for the bibtex buffer.
@@ -4374,7 +4374,7 @@
 1999-05-07  Michael Ernst  <mernst@alum.mit.edu>
 
 	* gud.el (gud-format-command): "%F" means file sans extension.
-	(jdb): use %F, not %f, for gud-break.
+	(jdb): Use %F, not %f, for gud-break.
 
 1999-05-07  Joel N. Weber II  <devnull@melange.gnu.org>
 
@@ -5493,7 +5493,7 @@
 
 	* time-stamp.el (time-stamp-format): Format doc tighter.
 	(time-stamp-line-limit): 0 searches the entire buffer (careful!).
-	(time-stamp): don't re-write the time stamp if it didn't change.
+	(time-stamp): Don't re-write the time stamp if it didn't change.
 
 1999-02-05  Alex Schroeder  <asc@bsiag.com>
 
@@ -5814,7 +5814,7 @@
 
 1999-01-22  Sam Steingold  <sds@goems.com>
 
-	* midnight.el (clean-buffer-list): do not kill a buffer if it has
+	* midnight.el (clean-buffer-list): Do not kill a buffer if it has
 	a process associated with it.
 
 1999-01-22  Jason Rumney <jasonr@altavista.net>
@@ -5922,7 +5922,7 @@
 
 1999-01-17  Sam Steingold  <sds@goems.com>
 
-	* mail/rmail.el (rmail-quit): run `rmail-quit-hook'.
+	* mail/rmail.el (rmail-quit): Run `rmail-quit-hook'.
 
 1999-01-17  Markus Rost  <markus.rost@mathematik.uni-regensburg.de>
 
@@ -6047,7 +6047,7 @@
 
 1998-01-14  Felix Lee  <flee@cygnus.com>
 
-	* textmodes/flyspell.el (make-flyspell-overlay): fix front stickiness.
+	* textmodes/flyspell.el (make-flyspell-overlay): Fix front stickiness.
 
 1999-01-14  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
@@ -6528,10 +6528,10 @@
 	compilable in text-mode).
 	(cperl-dark-background):	Disable without window-system.
 	Do `defface' only if window-system.
-	(cperl-fix-line-spacing):	sped up to bail out early.
-	(x-color-defined-p): was not compiling on XEmacs
+	(cperl-fix-line-spacing):	Sped up to bail out early.
+	(x-color-defined-p): Was not compiling on XEmacs
 	Was defmacro'ed with a tick.  Remove another def.
-	(cperl-clobber-lisp-bindings): if set, C-c variants are the old ones
+	(cperl-clobber-lisp-bindings): If set, C-c variants are the old ones
 	(cperl-unwind-to-safe):	New function.
 	(cperl-fontify-syntaxically): Use `cperl-unwind-to-safe' to start at reasonable position.
 	(cperl-fontify-syntaxically): Unwinds start and end to go out of
@@ -6554,9 +6554,9 @@
 	(cperl-make-regexp-x):	Misprint in a message.
 	(cperl-syntaxify-unwind): New configuration variable
 	(cperl-fontify-m-as-s):	New configuration variable
-	(cperl-electric-pod):	check for after-expr was performed
+	(cperl-electric-pod):	Check for after-expr was performed
 	inside of POD too.
-	(cperl-backward-to-noncomment):	better treatment of PODs and HEREs.
+	(cperl-backward-to-noncomment):	Cetter treatment of PODs and HEREs.
 	(cperl-clobber-mode-lists): New configuration variable.
 	(cperl-not-bad-style-regexp):	Updated.
 	Init:			`cperl-is-face' was busted.
@@ -6565,15 +6565,15 @@
 	(font-lock-other-type-face): Done via `defface' too.
 	(cperl-nonoverridable-face):	New face.  Renamed from
 	`font-lock-other-type-face'.
-	(cperl-init-faces-weak):	use `cperl-force-face'.
+	(cperl-init-faces-weak):	Use `cperl-force-face'.
 	(cperl-comment-indent):	Commenting __END__ was not working.
 	(cperl-indent-for-comment):	Likewise.
 	(cperl-write-tags):	Correct for XEmacs's `visit-tags-table-buffer'.
 	When removing old TAGS info was not relativizing filename.
 	(cperl-tags-hier-init):	Gross hack to pretend we work (are we?).
 	Another try to work around XEmacs problems.  Better progress messages.
-	(toplevel):		require custom unprotected => failure on 19.28.
-	(cperl-xemacs-p):	defined when compile too
+	(toplevel):		Require custom unprotected => failure on 19.28.
+	(cperl-xemacs-p):	Defined when compile too
 	(cperl-find-tags):	Was writing line/pos in a wrong order,
 	pos off by 1 and not at beg-of-line.
 	(cperl-etags-snarf-tag): New macro
@@ -7288,7 +7288,7 @@
 
 1998-11-16  Sam Steingold  <sds@goems.com>
 
-	* emacs-lisp/cl-indent.el: indent `with-output-to-string' as a CL
+	* emacs-lisp/cl-indent.el: Indent `with-output-to-string' as a CL
 	macro, not ELisp one.
 
 1998-11-16  Kenichi Handa  <handa@etl.go.jp>
@@ -7980,7 +7980,7 @@
 1998-10-11  Reto Zimmermann  <zimmi@iis.ee.ethz.ch>
 
 	* progmodes/vhdl-mode.el
-	(vhdl-add-index-menu): reverse order in imenu-generic-expression.
+	(vhdl-add-index-menu): Reverse order in imenu-generic-expression.
 	(vhdl-template-assert, vhdl-block, vhdl-configuration-spec)
 	(vhdl-elsif, vhdl-generate, vhdl-if, vhdl-map)
 	(vhdl-selected-signal-assignment, vhdl-use, vhdl-while-loop)
@@ -8173,7 +8173,7 @@
 
 1998-10-06  Markus Rost  <markus.rost@mathematik.uni-regensburg.de>
 
-	* apropos.el (apropos-print): control invalid characters.
+	* apropos.el (apropos-print): Control invalid characters.
 
 	* play/landmark.el (lm-font-lock-face-O, lm-font-lock-face-X):
 	Renamed from lm-font-lock-O-face, lm-font-lock-X-face to avoid
@@ -8576,7 +8576,7 @@
 
 1998-09-10  Noah Friedman  <friedman@splode.com>
 
-	* rsz-mini.el (resize-minibuffer-mode): remove :version field from
+	* rsz-mini.el (resize-minibuffer-mode): Remove :version field from
 	defcustom declaration.  It's wreaking too much havoc with XEmacs
 	and older versions of Emacs, which share this code.
 
@@ -8616,7 +8616,7 @@
 
 1998-09-10  E. Jay Berkenbilt  <ejb@ql.org>
 
-	* textmodes/flyspell.el (flyspell-mode-on): fix kill-buffer-hook
+	* textmodes/flyspell.el (flyspell-mode-on): Fix kill-buffer-hook
 	to make killing of ispell process work even if
 	kill-all-local-variables has been run.
 
@@ -9055,7 +9055,7 @@
 
 1998-08-23  Eric Ludlam  <zappo@gnu.org>
 
-	* speedbar.el: (speedbar-with-writable): remove `toggle-read-only'.
+	* speedbar.el: (speedbar-with-writable): Remove `toggle-read-only'.
 	(speedbar-mode): Set buffer to read only.
 	(speedbar-temp-buffer-show-function): For emacs don't call hook
 	with arguments.

@@ -1156,7 +1156,7 @@
 
 1999-10-08  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* fileio.c (Fmake_temp_name): add a reference to `make-temp-file'
+	* fileio.c (Fmake_temp_name): Add a reference to `make-temp-file'
 	in the docstring.
 
 1999-10-08  Gerd Moellmann  <gerd@gnu.org>
@@ -9061,7 +9061,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* xterm.c (XTclear_end_of_line): Respect right_to_left_p.
 
-	* xdisp.c (try_window_id): clear desired matrix if not successul.
+	* xdisp.c (try_window_id): Clear desired matrix if not successul.
 
 	* xdisp.c (try_window_id): Call update_window_begin_hook/end_hook.
 
@@ -9155,7 +9155,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 
 	* window.h: Comments for window_end_pos/vpos.
 
-	* xdisp.c (skip_to): assert current_buffer is the buffer
+	* xdisp.c (skip_to): Assert current_buffer is the buffer
 	of the window in which we are skipping.
 
 	* dispnew.c (update_window_line): Optimized clear_end_of_line.
@@ -9231,7 +9231,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	* xterm.c (XTmouse_position): Calculate LAST_MOUSE_GLYPH 
 	rectangle based on minimum character bounds.
 
-	* keyboard.c (make_lispy_event): mouse clicks; don't do frame
+	* keyboard.c (make_lispy_event): Mouse clicks; don't do frame
 	glyph position calculations.
 	(make_lispy_movement): Use buffer_posn_from_coords and window
 	relative coordinates.
@@ -9260,7 +9260,7 @@ Sun Jan  3 08:41:10 1999  Masatake Yamato  <masata-y@is.aist-nara.ac.jp>
 	cursor positioning on partially visible lines.
 	(set_window_cursor_after_update): Ditto.
 
-	* dispextern.h (MATRIX_ROW_PARTIALLY_VISIBLE_P): bug fix.
+	* dispextern.h (MATRIX_ROW_PARTIALLY_VISIBLE_P): Bug fix.
 
 	* window.h (struct window): start_y removed.
 
@@ -9384,7 +9384,7 @@ Fri Aug 22 18:46:43 1997  Gerd Moellmann  <gerd@acm.org>
 
 	* xterm.c (do_line_dance): Only one parameter.
 
-	* xdisp.c (display_line): set continued_p.
+	* xdisp.c (display_line): Set continued_p.
 
 	* dispextern.h (struct glyph_row): New flag continued_p.
 	Fix truncated_on_left_p and truncated_on_right_p to be bits.
@@ -9427,7 +9427,7 @@ Wed Aug 20 11:23:28 1997  Gerd Moellmann  <gerd@acm.org>
 	* dispnew.c (update_window_line): If rows have different height
 	or y, write entire line.
 
-	* xdisp.c (compute_line_metrics): reset max_ascent and max_descent
+	* xdisp.c (compute_line_metrics): Reset max_ascent and max_descent
 	of info struct.
 
 	* xfaces.c (Fset_face_attribute_internal): Don't call 
@@ -9520,7 +9520,7 @@ Sat Aug 16 13:13:32 1997  Gerd Moellmann  <gerd@acm.org>
 	(get_leaf_windows): Build vector of leaf windows.
 	Corrupted archive restored from v77.
 
-	* xdisp.c (display_string): stop at >= last_visible_x if truncating
+	* xdisp.c (display_string): Stop at >= last_visible_x if truncating
 	like display_line does.
 
 	* xdisp.c (display_mode_line): Don't hscroll mode line.
@@ -9535,7 +9535,7 @@ Sat Aug 16 13:13:32 1997  Gerd Moellmann  <gerd@acm.org>
 	* dispextern.h (struct display_cursor): New member string_length.
 
 	* xdisp.c (next_display_element): Return padding spaces.
-	(init_string_cursor): take precision and field_width
+	(init_string_cursor): Take precision and field_width
 	(display_string): Use string cursor, skip over invisible text.
 
 Thu Aug 14 10:41:41 1997  Gerd Moellmann  <gerd@acm.org>
@@ -9558,13 +9558,13 @@ Thu Aug 14 10:41:41 1997  Gerd Moellmann  <gerd@acm.org>
 	* dispnew.c (direct_output_for_insert): Give up for hscrolled 
 	mini window.
 
-	* xdisp.c (display_line): don't scroll mini prompt.
+	* xdisp.c (display_line): Don't scroll mini prompt.
 
 	* xdisp.c (echo_area_display): Call update_single_window if 
 	possible. 
 
 	* dispnew.c (update_window_line):  Call scrolling_window.
-	(scrolling_window): work on enabled desired lines only.
+	(scrolling_window): Work on enabled desired lines only.
 	(update_single_window): Update a single window like update_frame
 	does for all windows.
 	(update_window, update_window_tree): Additional argument 
@@ -9577,23 +9577,23 @@ Thu Aug 14 10:41:41 1997  Gerd Moellmann  <gerd@acm.org>
 	(x_display_and_set_cursor): Do nothing if cursor glyph row 
 	not enabled.  Draw bar cursor 1 pixel smaller.
 
-	* dispnew.c (adjust_frame_glyphs): don't set frame garbaged
+	* dispnew.c (adjust_frame_glyphs): Don't set frame garbaged
 	since update will follow soon.
 
 	* xdisp.c (echo_area_display): Unitialized variable.
 
-	* xterm.c (draw_bitmap): previously draw_truncation; draw
+	* xterm.c (draw_bitmap): Previously draw_truncation; draw
 	overlay arrow bitmap.
 
-	* xdisp.c (display_line): for truncated lines, consider everything
+	* xdisp.c (display_line): For truncated lines, consider everything
 	up to the final \n as part of the line for cursor positioning. 
 
-	* xterm.c (draw_truncation): take FRAME_X_TRUNC_WIDTH into account.
-	(x_after_update_window_line): clear trunc marks.
+	* xterm.c (draw_truncation): Take FRAME_X_TRUNC_WIDTH into account.
+	(x_after_update_window_line): Clear trunc marks.
 
 	* xterm.h (FRAME_X_TRUNC_WIDTH).
 
-	* frame.h (FRAME_TRUNC_WIDTH):  width of area at the left margin
+	* frame.h (FRAME_TRUNC_WIDTH):  Width of area at the left margin
 	of a window reserved for truncation mark.
 
 	* dispextern.h: Take FRAME_TRUNC_WIDTH into account. 
@@ -9615,7 +9615,7 @@ Thu Aug 14 10:41:41 1997  Gerd Moellmann  <gerd@acm.org>
 	(x_display_cursor): Use default font width if width not
 	known. 
 
-	* xdisp.c (echo_area_display): set row->y.
+	* xdisp.c (echo_area_display): Set row->y.
 
 	* dispnew.c (set_window_cursor_after_update): Don't assume
 	all rows are enabled.
@@ -10514,7 +10514,7 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	* alloc.c: Include dispextern.h
 	(mark_object): Mark objects referenced from glyphs.
 
-	* frame.c (make_frame): initialize DECODE_MODE_SPEC_BUFFER.
+	* frame.c (make_frame): Initialize DECODE_MODE_SPEC_BUFFER.
 
 	* scroll.c (do_direct_scrolling): Remove TEMP_MATRIX.
 	(do_scrolling): Ditto.
@@ -10542,9 +10542,9 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	(Fdelete_frame): Free glyphs.
 	(make_frame): Initialize matrix fields in frame.
 
-	* config.in (PROTO): added.
+	* config.in (PROTO): Added.
 
-	* emacs.c (shut_down_emacs): check glyph memory.
+	* emacs.c (shut_down_emacs): Check glyph memory.
 
 	* window.c (Fdelete_window): Free window matrices.
 	(Fset_window_configuration): Ditto.
