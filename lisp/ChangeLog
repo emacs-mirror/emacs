@@ -1,4 +1,4 @@
-2003-11-25  Stephen Eglen  <stephen@bushmills.inf.ed.ac.uk>
+2003-11-25  Stephen Eglen  <stephen@gnu.org>
 
 	* iswitchb.el (iswitchb-read-buffer,iswitchb-exit-minibuffer):
 	iswitchb-exit is set to 'usefirst when user selects buffer at head
