@@ -27,11 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-alg () nil)
 
 ;;; Algebra commands.
 
@@ -333,9 +331,19 @@
       aa)))
 
 
-;; Placeholder, to synchronize autoloading.
-(defun math-need-std-simps ()
-  nil)
+(defmacro math-defsimplify (funcs &rest code)
+  (append '(progn)
+          (mapcar (function
+                   (lambda (func)
+                     (list 'put (list 'quote func) ''math-simplify
+                           (list 'nconc
+                                 (list 'get (list 'quote func) ''math-simplify)
+                                 (list 'list
+                                       (list 'function
+                                             (append '(lambda (math-simplify-expr))
+                                                     code)))))))
+                  (if (symbolp funcs) (list funcs) funcs))))
+(put 'math-defsimplify 'lisp-indent-hook 1)
 
 ;; The function created by math-defsimplify uses the variable
 ;; math-simplify-expr, and so is used by functions in math-defsimplify
@@ -1691,6 +1699,8 @@
 		    (math-make-frac (nth 1 f)
 				    (math-scale-int 1 (- (nth 2 f)))))))
       f))
+
+(provide 'calc-alg)
 
 ;;; arch-tag: 52e7dcdf-9688-464d-a02b-4bbe789348d0
 ;;; calc-alg.el ends here
