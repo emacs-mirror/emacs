@@ -2829,9 +2829,9 @@ See `term-prompt-regexp'."
 			   ((eq char ?\032)
 			    (let ((end (string-match "\r?$" str i)))
 			      (if end
-				  (progn (funcall term-command-hook
-						  (substring str (1+ i) end))
-					 (setq i (match-end 0)))
+				  (funcall term-command-hook
+					   (prog1 (substring str (1+ i) end)
+					     (setq i (match-end 0))))
 				(setq term-terminal-parameter
 				      (substring str i))
 				(setq term-terminal-state 4)
