@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; Provides a mode where paragraphs are refilled after changes in them
-;; (using `after-change-hooks').  This gives something akin to typical
+;; (using `after-change-functions').  This gives something akin to typical
 ;; word processor-style filling.  We restrict refilling due to
 ;; self-insertion to the characters which trigger auto-fill.
 
@@ -45,12 +45,12 @@
 
 ;; The work is done in a local post-command hook but only if
 ;; `refill-doit' has been set by the after-change function.  Using
-;; `post-command-hooks' ensures simply that refilling only happens
+;; `post-command-hook' ensures simply that refilling only happens
 ;; once per command.
 
 ;; [Per Abrahamsen's maniac.el does a similar thing, but operates from
 ;; post-command-hook.  I don't understand the statement in it that
-;; after-change-hooks don't work for this purpose; perhaps there was
+;; after-change-functions don't work for this purpose; perhaps there was
 ;; some Emacs bug at the time.  ISTR maniac has problems with
 ;; whitespace at the end of paragraphs.]
 
@@ -74,8 +74,8 @@
 
 (defvar refill-doit nil
   "Non-nil means that `refill-post-command-function' does its processing.
-Set by `refill-after-change-function' in `after-change-hooks' and
-unset by `refill-post-command-function' in `post-command-hooks'.  This
+Set by `refill-after-change-function' in `after-change-functions' and
+unset by `refill-post-command-function' in `post-command-hook'.  This
 ensures refilling is only done once per command that causes a change,
 regardless of the number of after-change calls from commands doing
 complex processing.")
@@ -140,13 +140,12 @@ refilling if they would cause auto-filling."
   ;; This provides the test for recursive paragraph filling.
   (make-local-variable 'fill-paragraph-function)
   (if refill-mode
-      (progn (add-hook (make-local-hook 'after-change-functions)
-		       'refill-after-change-function nil t)
-	     (add-hook (make-local-hook 'post-command-hook)
-		       'refill-post-command-function nil t)
-	     (set (make-local-variable 'fill-paragraph-function)
-		  'refill-fill-paragraph)
-	     (auto-fill-mode 0))
+      (progn
+	(add-hook 'after-change-functions 'refill-after-change-function nil t)
+	(add-hook 'post-command-hook 'refill-post-command-function nil t)
+	(set (make-local-variable 'fill-paragraph-function)
+	     'refill-fill-paragraph)
+	(auto-fill-mode 0))
     (remove-hook 'after-change-functions 'refill-after-change-function t)
     (remove-hook 'post-command-hook 'refill-post-command-function t)
     (setq fill-paragraph-function nil)))
