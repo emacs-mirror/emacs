@@ -28,9 +28,15 @@
 
 ;;; Commentary:
 
-;; Don't byte-compile this file.
+;; This file defines the Emacs charsets and some basic coding systems.
+;; Other coding systems are defined in the files in directory
+;; lisp/language.
 
 ;;; Code:
+
+;; The ISO-IR registry is at http://www.itscj.ipsj.or.jp/ISO-IR/.
+;; Standards docs equivalent to iso-2022 and iso-8859 are at
+;; http://www.ecma.ch/.
 
 ;;; Definitions of character sets.
 
@@ -154,9 +160,13 @@
 (define-iso-single-byte-charset 'iso-8859-9 'latin-iso8859-9
   "ISO/IEC 8859/9" "Latin-5" 148 ?M 141 "8859-9")
 
-;; Fixme: final char
+(define-iso-single-byte-charset 'iso-8859-10 'latin-iso8859-10
+  "ISO/IEC 8859/9" "Latin-6" 157 ?V nil "8859-10")
+
+;; 8859-11, 12 don't (yet?) exist.
+
 (define-iso-single-byte-charset 'iso-8859-13 'latin-iso8859-13
-  "ISO/IEC 8859/13" "Latin-7" nil nil nil "8859-13")
+  "ISO/IEC 8859/13" "Latin-7" 179 ?Y nil "8859-13")
 
 (define-iso-single-byte-charset 'iso-8859-14 'latin-iso8859-14
   "ISO/IEC 8859/14" "Latin-8" 199 ?_ 143 "8859-14")
@@ -739,6 +749,36 @@
   :mime-charset 'ebcdic-uk
   :map "ebcdic-uk")
 
+(define-charset 'hp-roman8
+  "Encoding used by Hewlet-Packard printer software"
+  :short-name "HP-ROMAN8"
+  :long-name "HP-ROMAN8"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :map "hp-roman8")
+
+(define-charset 'adobe-standard-encoding
+  "Adobe `standard encoding' used in PostScript"
+  :short-name "ADOBE-STANDARD-ENCODING"
+  :long-name "ADOBE-STANDARD-ENCODING"
+  :code-space [0 255]
+  :map "stdenc")
+
+(define-charset 'symbol
+  "Adobe symbol encoding used in PostScript"
+  :short-name "ADOBE-SYMBOL"
+  :long-name "ADOBE-SYMBOL"
+  :code-space [0 255]
+  :map "symbol")
+
+(define-charset 'ibm850
+  "DOS codepage 850"
+  :short-name "IBM850"
+  :long-name "IBM850"
+  :code-space [0 255]
+  :map "ibm850")
+(define-charset-alias 'cp850 'ibm850)
+
 (unify-charset 'chinese-gb2312)
 (unify-charset 'chinese-gbk)
 (unify-charset 'chinese-cns11643-1)
@@ -993,6 +1033,11 @@ for decoding and encoding files, process I/O, etc."
 (setq file-coding-system-alist
       '(("\\.elc\\'" . (emacs-mule . emacs-mule))
 	("\\.utf\\(-8\\)?\\'" . utf-8)
+	;; This is the defined default for XML documents.  It may be
+	;; overridden by a charset specification in the header.  That
+	;; should be grokked by the auto-coding mechanism, but rms
+	;; vetoed that.  -- fx
+	("\\.xml\\'" . utf-8)
 	;; We use raw-text for reading loaddefs.el so that if it
 	;; happens to have DOS or Mac EOLs, they are converted to
 	;; newlines.  This is required to make the special treatment
@@ -1025,5 +1070,9 @@ for decoding and encoding files, process I/O, etc."
 		      'self-insert-command)
 
 (aset latin-extra-code-table ?\222 t)
+
+;; Local variables:
+;; no-byte-compile: t
+;; End:
 
 ;;; mule-conf.el ends here
