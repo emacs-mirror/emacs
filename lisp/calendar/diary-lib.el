@@ -1,6 +1,6 @@
 ;;; diary-lib.el --- diary functions
 
-;; Copyright (C) 1989, 1990, 1992, 1993, 1994, 1995, 2003
+;; Copyright (C) 1989, 1990, 1992, 1993, 1994, 1995, 2003, 2004
 ;;           Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -52,8 +52,8 @@ If so, return the expanded file name, otherwise signal an error."
 (defun diary (&optional arg)
   "Generate the diary window for ARG days starting with the current date.
 If no argument is provided, the number of days of diary entries is governed
-by the variable `number-of-diary-entries'.  This function is suitable for
-execution in a `.emacs' file."
+by the variable `number-of-diary-entries'.  A value of ARG less than 1
+does nothing.  This function is suitable for execution in a `.emacs' file."
   (interactive "P")
   (diary-check-diary-file)
   (let ((date (calendar-current-date)))
@@ -284,7 +284,7 @@ Only used if `diary-header-line-flag' is non-nil."
   "Create and display a buffer containing the relevant lines in diary-file.
 The arguments are DATE and NUMBER; the entries selected are those
 for NUMBER days starting with date DATE.  The other entries are hidden
-using selective display.
+using selective display.  If NUMBER is less than 1, this function does nothing.
 
 Returns a list of all relevant diary entries found, if any, in order by date.
 The list entries have the form ((month day year) string specifier) where
@@ -314,29 +314,29 @@ These hooks have the following distinct roles:
     `diary-hook' is run last.  This can be used for an appointment
         notification function."
 
-  (if (< 0 number)
-      (let ((original-date date);; save for possible use in the hooks
-            old-diary-syntax-table
-            diary-entries-list
-            file-glob-attrs
-            (date-string (calendar-date-string date))
-            (d-file (substitute-in-file-name diary-file)))
-        (message "Preparing diary...")
-        (save-excursion
-          (let ((diary-buffer (find-buffer-visiting d-file)))
-	    (if (not diary-buffer)
-		(set-buffer (find-file-noselect d-file t))
-	      (set-buffer diary-buffer)
-	      (or (verify-visited-file-modtime diary-buffer)
-		  (revert-buffer t t))))
-	  (setq file-glob-attrs (nth 1 (diary-pull-attrs nil "")))
-          (setq selective-display t)
-          (setq selective-display-ellipses nil)
-          (if diary-header-line-flag
-              (setq header-line-format diary-header-line-format))
-          (setq old-diary-syntax-table (syntax-table))
-          (set-syntax-table diary-syntax-table)
-          (unwind-protect
+  (when (> number 0)
+    (let ((original-date date);; save for possible use in the hooks
+          old-diary-syntax-table
+          diary-entries-list
+          file-glob-attrs
+          (date-string (calendar-date-string date))
+          (d-file (substitute-in-file-name diary-file)))
+      (message "Preparing diary...")
+      (save-excursion
+        (let ((diary-buffer (find-buffer-visiting d-file)))
+          (if (not diary-buffer)
+              (set-buffer (find-file-noselect d-file t))
+            (set-buffer diary-buffer)
+            (or (verify-visited-file-modtime diary-buffer)
+                (revert-buffer t t))))
+        (setq file-glob-attrs (nth 1 (diary-pull-attrs nil "")))
+        (setq selective-display t)
+        (setq selective-display-ellipses nil)
+        (if diary-header-line-flag
+            (setq header-line-format diary-header-line-format))
+        (setq old-diary-syntax-table (syntax-table))
+        (set-syntax-table diary-syntax-table)
+        (unwind-protect
             (let ((buffer-read-only nil)
                   (diary-modified (buffer-modified-p))
                   (mark (regexp-quote diary-nonmarking-symbol)))
@@ -635,10 +635,10 @@ This function is provided for optional use as the `diary-display-hook'."
                                                      sym
                                                    (symbol-name sym)))
                                               marks))))
-                         faceinfo)
+                         (faceinfo marks))
+                    (make-face temp-face)
                     ;; Remove :face info from the marks,
                     ;; copy the face info into temp-face
-                    (setq faceinfo marks)
                     (while (setq faceinfo (memq :face faceinfo))
                       (copy-face (read (nth 1 faceinfo)) temp-face)
                       (setcar faceinfo nil)
@@ -715,7 +715,8 @@ This function gets rid of the selective display of the diary file so that
 all entries, not just some, are visible.  If there is no diary buffer, one
 is created."
   (interactive)
-  (let ((d-file (diary-check-diary-file)))
+  (let ((d-file (diary-check-diary-file))
+        (pop-up-frames (window-dedicated-p (selected-window))))
     (save-excursion
       (set-buffer (or (find-buffer-visiting d-file)
                       (find-file-noselect d-file t)))
@@ -1100,8 +1101,8 @@ For example, returns 1325 for 1:25pm.
 
 Returns `diary-unknown-time' (default value -9999) if no time is recognized.
 The recognized forms are XXXX, X:XX, or XX:XX (military time), and XXam,
-XXAM, XXpm, XXPM, XX:XXam, XX:XXAM XX:XXpm, or XX:XXPM.  We also try to
-accept time in the form XX[.XX][am/pm/AM/PM]]."
+XXAM, XXpm, XXPM, XX:XXam, XX:XXAM XX:XXpm, or XX:XXPM.  A period (.) can
+be used instead of a colon (:) to separate the hour and minute parts."
   (let ((case-fold-search nil))
     (cond ((string-match        ; Military time
 	    "\\`[ \t\n\\^M]*\\([0-9]?[0-9]\\)[:.]?\\([0-9][0-9]\\)\\(\\>\\|[^ap]\\)"
