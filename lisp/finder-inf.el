@@ -619,7 +619,7 @@
         "Maintain last change time stamps in files edited by Emacs"
         (tools))
     ("time.el"
-        "display time, load and mail indicator in mode line of Emacs."
+        "display time, load and mail indicator in mode line of Emacs."
         nil)
     ("timer.el"
         "run a function with args at some time in future."
@@ -972,9 +972,6 @@
     ("pp.el"
         "pretty printer for Emacs Lisp"
         nil)
-    ("profile.el"
-        "Emacs profiler (OBSOLETE; use elp.el instead)"
-        (lisp  tools))
     ("re-builder.el"
         "Building Regexps with visual feedback"
         (matching  lisp  tools))
@@ -1764,30 +1761,6 @@
     ("vms-pmail.el"
         "use Emacs as the editor within VMS mail."
         (vms))
-    ("auto-show.el"
-        "perform automatic horizontal scrolling as point moves"
-        (scroll display convenience))
-    ("c-mode.el"
-        "C code editing commands for Emacs"
-        (c))
-    ("cplus-md.el"
-        "old C++ code editing mode for Emacs"
-        (c))
-    ("hilit19.el"
-        "customizable highlighting for Emacs19"
-        (faces))
-    ("hscroll.el"
-        "automatically scroll truncated lines horizontally"
-        (display))
-    ("ooutline.el"
-        "outline mode commands for Emacs"
-        (outlines))
-    ("rnews.el"
-        "USENET news reader for gnu emacs"
-        (news))
-    ("rnewspost.el"
-        "USENET news poster/mailer for GNU Emacs"
-        (mail  news))
     ("5x5.el"
         "Simple little puzzle game."
         (games puzzles))
