@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-info.el,v 1.9 2002/04/03 16:56:36 kai Exp $
+;; Revision: $Id: pcvs-info.el,v 1.10 2002/06/15 19:04:57 walters Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -309,16 +309,14 @@ FI-OR-TYPE can either be a symbol (a fileinfo-type) or a fileinfo."
     (and (not (eq type 'MESSAGE))
 	 (eq (car (memq func (cdr (assq type cvs-states)))) func))))
 
-(defun cvs-add-face (str face &optional keymap &rest properties)
-  (add-text-properties 0 (length str)
-		       (append
-			(list* 'font-lock-face face
-			       (when keymap
-				 (list* 'mouse-face 'highlight
-					(when (keymapp keymap)
-					  (list 'keymap keymap)))))
-			properties)
-		       str)
+(defun cvs-add-face (str face &optional keymap &rest props)
+  (when cvs-highlight
+    (when keymap
+      (when (keymapp keymap)
+	(setq props (list* 'keymap keymap props)))
+      (setq props (list* 'mouse-face 'highlight props)))
+    (setq props (list* 'font-lock-face face props)))
+  (when props (add-text-properties 0 (length str) props str))
   str)
 
 (defun cvs-fileinfo-pp (fileinfo)
@@ -331,7 +329,8 @@ For use by the cookie package."
      (case type
        (DIRCHANGE (concat "In directory "
 			  (cvs-add-face (cvs-fileinfo->full-path fileinfo)
-					'cvs-header-face t)
+					'cvs-header-face t
+					'cvs-goal-column t)
 			  ":"))
        (MESSAGE
 	(cvs-add-face (format "Message: %s" (cvs-fileinfo->full-log fileinfo))
