@@ -69,10 +69,6 @@
 
 ;;;; user defined variables
 
-(defvar remote-compile-rsh-command
-  (if (eq system-type 'usg-unix-v) "remsh" "rsh")
-  "*Name of remote shell command: `rsh' for BSD or `remsh' for SYSV.")
-
 (defvar remote-compile-host nil
   "*Host for remote compilations.")
 
@@ -146,7 +142,7 @@ See \\[compile]."
                       (ange-ftp-ftp-name default-directory)))
          (compile-command
           (format "%s %s -l %s \"(%scd %s; %s)\""
-		  remote-compile-rsh-command
+		  remote-shell-program
                   host
                   remote-compile-user
                   (if remote-compile-run-before
