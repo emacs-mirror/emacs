@@ -643,7 +643,7 @@ This does a lot more highlighting.")
 	'("[ \t]\\([+-][^ \t\n]+\\)" 1 font-lock-comment-face)
 	'("^[^ \t]+:.*$" . font-lock-string-face)
 	'("^\\[[1-9][0-9]*\\]" . font-lock-string-face))
-  "Additional expressions to highlight in TeXinfo mode.")
+  "Additional expressions to highlight in Shell mode.")
 
 (provide 'font-lock)
 
