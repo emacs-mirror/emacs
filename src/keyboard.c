@@ -3110,7 +3110,7 @@ menu_bar_items ()
   for (mapno = 0; mapno < nmaps; mapno++)
     {
       if (! NILP (maps[mapno]))
-	def = get_keyelt (access_keymap (maps[mapno], Qmenu_bar, 1));
+	def = get_keyelt (access_keymap (maps[mapno], Qmenu_bar, 1, 0));
       else
 	def = Qnil;
 
@@ -3445,7 +3445,7 @@ follow_key (key, nmaps, current, defs, next)
 	if (! NILP (current[i]))
 	  {
 	    next[i] =
-	      get_keyelt (access_keymap (current[i], meta_prefix_char, 1));
+	      get_keyelt (access_keymap (current[i], meta_prefix_char, 1, 0));
 
 	    /* Note that since we pass the resulting bindings through
 	       get_keymap_1, non-prefix bindings for meta-prefix-char
@@ -3464,7 +3464,7 @@ follow_key (key, nmaps, current, defs, next)
     {
       if (! NILP (current[i]))
 	{
-	  defs[i] = get_keyelt (access_keymap (current[i], key, 1));
+	  defs[i] = get_keyelt (access_keymap (current[i], key, 1, 0));
 	  if (! NILP (defs[i]))
 	    first_binding = i;
 	}
@@ -3492,7 +3492,7 @@ follow_key (key, nmaps, current, defs, next)
 	{
 	  if (! NILP (current[i]))
 	    {
-	      defs[i] = get_keyelt (access_keymap (current[i], key, 1));
+	      defs[i] = get_keyelt (access_keymap (current[i], key, 1, 0));
 	      if (! NILP (defs[i]))
 		first_binding = i;
 	    }
@@ -3997,19 +3997,18 @@ read_key_sequence (keybuf, bufsize, prompt)
 		 with meta_prefix_char.  I hate this.  */
 	      if (XTYPE (key) == Lisp_Int && XINT (key) & meta_modifier)
 		{
-		  fkey_next =
-		    get_keymap_1
+		  fkey_next
+		    = get_keymap_1
 		      (get_keyelt
-		       (access_keymap
-			(fkey_map, meta_prefix_char, 1)),
+		       (access_keymap (fkey_map, meta_prefix_char, 1, 0)),
 		       0, 1);
 		  XFASTINT (key) = XFASTINT (key) & ~meta_modifier;
 		}
 	      else
 		fkey_next = fkey_map;
 
-	      fkey_next =
-		get_keyelt (access_keymap (fkey_next, key, 1));
+	      fkey_next
+		= get_keyelt (access_keymap (fkey_next, key, 1, 0));
 
 	      /* If keybuf[fkey_start..fkey_end] is bound in the
 		 function key map and it's a suffix of the current
