@@ -1,5 +1,6 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985,86,87,93,94,95,97,98,1999 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2000
+     Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -591,7 +592,7 @@ struct Lisp_String
     EMACS_INT size;
     EMACS_INT size_byte;
     DECLARE_INTERVALS		/* `data' field must be last.  */
-    unsigned char data[1];
+    unsigned char *data;
   };
 
 /* If a struct is made to look like a vector, this macro returns the length
@@ -2077,6 +2078,7 @@ extern void memory_warnings P_ ((char *, void (*warnfun) ()));
 #endif
 				
 /* Defined in alloc.c */
+extern void allocate_string_data P_ ((struct Lisp_String *, int, int));
 extern void uninterrupt_malloc P_ ((void));
 extern void malloc_warning P_ ((char *));
 extern void memory_full P_ ((void));
