@@ -612,10 +612,9 @@ else
 
 /* Return the length of the multi-byte form at string STR of length LEN.  */
 
-#define MULTIBYTE_FORM_LENGTH(str, len)			     	\
-  ((BYTES_BY_CHAR_HEAD (*(unsigned char *)(str)) == 1	     	\
-    || BYTES_BY_CHAR_HEAD (*(unsigned char *)(str)) > (len))	\
-   ? 1							     	\
+#define MULTIBYTE_FORM_LENGTH(str, len)			\
+  (BYTES_BY_CHAR_HEAD (*(unsigned char *)(str)) == 1	\
+   ? 1							\
    : multibyte_form_length (str, len))
 
 /* Set C a (possibly multibyte) character at P.  P points into a
