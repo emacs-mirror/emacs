@@ -743,6 +743,7 @@ appear on disk when you save the tar-file's buffer."
 				 (min (+ (point-min) 16384) (point-max)) t)))
 		  (if coding
 		      (or (numberp (coding-system-eol-type coding))
+			  (vectorp (coding-system-eol-type detected))
 			  (setq coding (coding-system-change-eol-conversion
 					coding
 					(coding-system-eol-type detected))))
