@@ -215,8 +215,13 @@ makes the comment easier to read.  Default is 1.  nil means 0."
 
 ;;;###autoload
 (defcustom comment-multi-line nil
-  "*Non-nil means \\[comment-indent-new-line] continues comments, with no new terminator or starter.
-This is obsolete because you might as well use \\[newline-and-indent]."
+  "*Non-nil means `comment-indent-new-line' continues comments.
+That is, it inserts no new terminator or starter.
+This affects `auto-fill-mode', which is the main reason to
+customize this variable.
+
+It also affects \\[indent-new-comment-line].  However, if you want this
+behavior for explicit filling, you might as well use \\[newline-and-indent]."
   :type 'boolean)
 
 (defcustom comment-empty-lines nil
