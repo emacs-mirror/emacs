@@ -420,7 +420,7 @@ LIBXT=
 /* LD_SWITCH_X_DEFAULT comes after everything else that specifies
    options for where to find X libraries, but before those libraries.  */
 X11_LDFLAGS = LD_SWITCH_X_SITE LD_SWITCH_X_DEFAULT
-LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) LIB_X11_LIB LIBX11_MACHINE LIBX11_SYSTEM LIBXPM LIBJPEG LIBPNG LIBTIFF LIBGIF
+LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) LIB_X11_LIB LIBX11_MACHINE LIBX11_SYSTEM LIBXPM LIBTIFF LIBJPEG LIBPNG LIBGIF
 #else /* not HAVE_X11 */
 LIBX= $(LIBXMENU) LD_SWITCH_X_SITE -lX10 LIBX10_MACHINE LIBX10_SYSTEM
 #endif /* not HAVE_X11 */
@@ -1146,7 +1146,7 @@ xselect.o: xselect.c dispextern.h frame.h xterm.h blockinput.h charset.h \
 xrdb.o: xrdb.c $(config_h) epaths.h
 hftctl.o: hftctl.c $(config_h)
 sound.o: sound.c dispextern.h $(config_h)
-atimer.o: atimer.h systime.h $(config_h)
+atimer.o: atimer.c atimer.h systime.h $(config_h)
 
 /* The files of Lisp proper */
 
