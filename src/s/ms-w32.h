@@ -262,7 +262,7 @@ Boston, MA 02111-1307, USA.  */
 #undef  HAVE_RES_INIT /* For -lresolv on Suns.  */
 #undef  HAVE_SETSID
 #undef  HAVE_FPATHCONF
-#undef  HAVE_SELECT
+#define HAVE_SELECT 1
 #define HAVE_MKTIME 1
 #undef  HAVE_EUIDACCESS
 #define HAVE_GETPAGESIZE 1
