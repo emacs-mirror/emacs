@@ -5,6 +5,8 @@
 
 2001-12-17  Richard M. Stallman  <rms@gnu.org>
 
+	* editfns.c (Fcompare_buffer_substrings): Add QUIT to main loop.
+
 	* coding.c (code_convert_region): Update coding->cmp_data->char_offset
 	before calling decode_coding.
 
