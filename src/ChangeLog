@@ -1,3 +1,14 @@
+2003-05-23  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* lisp.h (Vfundamental_mode_abbrev_table): Don't declare.
+
+	* buffer.c (reset_buffer_local_variables): Remove redundant setting.
+
+2003-05-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* intervals.c (get_local_map): Don't get char-property of previous
+	point any more: get_pos_property already does it and better.
+
 2003-05-21  Dave Love  <fx@gnu.org>
 
 	[Merged from unicode branch.]
