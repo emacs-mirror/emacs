@@ -7,15 +7,15 @@
 	(EMACS_NAME): New constant macro.
 	(print_version): Use it.
 	(P_) [__STDC__]: Macro for defining function prototypes.
-	(all functions): Made them static.
 
-2000-01-31  Fabrice Popineau  <Fabrice.Popineau@supelec.fr>
+2000-01-18  Fabrice Popineau  <Fabrice.Popineau@supelec.fr>
 
 	* etags.c [WINDOWSNT]: #include <direct.h>
 
-2000-01-31  Martin Buchholz  <martin@xemacs.org>
+2000-01-18  Martin Buchholz  <martin@xemacs.org>
 
-	* etags.c: Prototypes and static for all the functions.
+	* etags.c (all functions): Made them static.
+	(all functions): Write prototypes.
 
 2000-01-29  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
