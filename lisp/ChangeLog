@@ -1,7 +1,8 @@
 2002-04-25  Colin Walters  <walters@verbum.org>
 
 	* replace.el (multi-occur-by-filename-regexp): Doc fix.
-	(occur-engine): Go to `point-min'.
+	(occur-engine): Go to `point-min'.  Make nlines argument actually
+	mean number of context lines.  Handle it.
 
 	* ibuf-ext.el (ibuffer-filtering-groups): Renamed to
 	`ibuffer-filter-groups'.  All users updated.
