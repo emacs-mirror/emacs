@@ -1,3 +1,8 @@
+2001-09-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (Fx_window_property): Handle case that property gets
+	deleted between the two calls to XGetWindowProperty.
+
 2001-09-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* minibuf.c (read_minibuf_unwind): Bind inhibit-modification-hooks.
