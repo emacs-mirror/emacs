@@ -19,10 +19,23 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/* Kbd macro currently being executed (a string) */
+/* Kbd macro currently being executed (a string or vector).  */
 
 extern Lisp_Object Vexecuting_macro;
 
-/* Index of next character to fetch from that macro */
+/* Index of next character to fetch from that macro.  */
 
 extern int executing_macro_index;
+
+/* Number of successful iterations so far
+   for innermost keyboard macro.
+   This is not bound at each level,
+   so after an error, it describes the innermost interrupted macro.  */
+
+extern int executing_macro_iterations;
+
+/* This is the macro that was executing.
+   This is not bound at each level,
+   so after an error, it describes the innermost interrupted macro.  */
+
+extern Lisp_Object executing_macro;
