@@ -570,7 +570,7 @@ DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
   register Lisp_Object val;
   register int size;
 
-  if (XTYPE (length) != Lisp_Int || XINT (length) < 0)
+  if (!INTEGERP (length) || XINT (length) < 0)
     length = wrong_type_argument (Qnatnump, length);
   size = XINT (length);
 
@@ -594,7 +594,7 @@ See also the function `vector'.")
   register Lisp_Object vector;
   register struct Lisp_Vector *p;
 
-  if (XTYPE (length) != Lisp_Int || XINT (length) < 0)
+  if (!INTEGERP (length) || XINT (length) < 0)
     length = wrong_type_argument (Qnatnump, length);
   sizei = XINT (length);
 
@@ -875,7 +875,7 @@ Both LENGTH and INIT must be numbers.")
   register Lisp_Object val;
   register unsigned char *p, *end, c;
 
-  if (XTYPE (length) != Lisp_Int || XINT (length) < 0)
+  if (!INTEGERP (length) || XINT (length) < 0)
     length = wrong_type_argument (Qnatnump, length);
   CHECK_NUMBER (init, 1);
   val = make_uninit_string (XINT (length));
@@ -975,7 +975,7 @@ make_event_array (nargs, args)
     /* The things that fit in a string
        are characters that are in 0...127,
        after discarding the meta bit and all the bits above it.  */
-    if (XTYPE (args[i]) != Lisp_Int
+    if (!INTEGERP (args[i])
 	|| (XUINT (args[i]) & ~(-CHAR_META)) >= 0200)
       return Fvector (nargs, args);
 
