@@ -455,6 +455,10 @@ int update_mode_lines;
 
 int windows_or_buffers_changed;
 
+/* Nonzero means a frame's cursor type has been changed.  */
+
+int cursor_type_changed;
+
 /* Nonzero after display_mode_line if %l was used and it displayed a
    line number.  */
 
@@ -7022,6 +7026,7 @@ clear_garbaged_frames ()
   if (frame_garbaged)
     {
       Lisp_Object tail, frame;
+      int changed_count = 0;
       
       FOR_EACH_FRAME (tail, frame)
 	{
@@ -7032,13 +7037,15 @@ clear_garbaged_frames ()
 	      if (f->resized_p)
 		Fredraw_frame (frame);
 	      clear_current_matrices (f);
+	      changed_count++;
 	      f->garbaged = 0;
 	      f->resized_p = 0;
 	    }
 	}
 
       frame_garbaged = 0;
-      ++windows_or_buffers_changed;
+      if (changed_count)
+	++windows_or_buffers_changed;
     }
 }
 
@@ -8575,7 +8582,8 @@ redisplay_internal (preserve_echo_area)
   /* The variable buffer_shared is set in redisplay_window and
      indicates that we redisplay a buffer in different windows.  See
      there.  */
-  consider_all_windows_p = update_mode_lines || buffer_shared > 1;
+  consider_all_windows_p = (update_mode_lines || buffer_shared > 1
+			    || cursor_type_changed);
 
   /* If specs for an arrow have changed, do thorough redisplay
      to ensure we remove any arrow that should no longer exist.  */
@@ -9052,6 +9060,7 @@ redisplay_internal (preserve_echo_area)
 
       update_mode_lines = 0;
       windows_or_buffers_changed = 0;
+      cursor_type_changed = 0;
     }
 
   /* Start SIGIO interrupts coming again.  Having them off during the
@@ -9860,6 +9869,7 @@ try_cursor_movement (window, startp, scroll_step)
 	 cases.  */
       && !update_mode_lines
       && !windows_or_buffers_changed
+      && !cursor_type_changed
       /* Can't use this case if highlighting a region.  When a 
          region exists, cursor movement has to do more than just
          set the cursor.  */
@@ -10501,6 +10511,7 @@ redisplay_window (window, just_this_one_p)
   /* Redisplay the window.  */
   if (!current_matrix_up_to_date_p
       || windows_or_buffers_changed
+      || cursor_type_changed
       /* Don't use try_window_reusing_current_matrix in this case
 	 because it can have changed the buffer.  */
       || !NILP (Vwindow_scroll_functions)
@@ -10793,7 +10804,8 @@ try_window_reusing_current_matrix (w)
       !FRAME_WINDOW_P (f)
       /* Don't try to reuse the display if windows have been split
 	 or such.  */
-      || windows_or_buffers_changed)
+      || windows_or_buffers_changed
+      || cursor_type_changed)
     return 0;
 
   /* Can't do this if region may have changed.  */
@@ -11465,7 +11477,7 @@ try_window_id (w)
     GIVE_UP (1);
   
   /* This flag is used to prevent redisplay optimizations.  */
-  if (windows_or_buffers_changed)
+  if (windows_or_buffers_changed || cursor_type_changed)
     GIVE_UP (2);
   
   /* Verify that narrowing has not changed.  This flag is also set to prevent
