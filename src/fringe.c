@@ -1160,10 +1160,11 @@ init_fringe_bitmap (which, fb, once_p)
 
   if (!once_p)
     {
-      destroy_fringe_bitmap (which);
-
       /* XXX Is SELECTED_FRAME OK here? */
       struct redisplay_interface *rif = FRAME_RIF (SELECTED_FRAME ());
+
+      destroy_fringe_bitmap (which);
+
       if (rif && rif->define_fringe_bitmap)
 	rif->define_fringe_bitmap (which, fb->bits, fb->height, fb->width);
 
