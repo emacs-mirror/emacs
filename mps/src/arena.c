@@ -641,7 +641,7 @@ Res ArenaCollect(Arena arena)
     }
   }
  
-  TraceStart(trace);
+  res = TraceStart(trace);
   if(res != ResOK)
     goto failStart;
  
