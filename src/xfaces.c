@@ -200,6 +200,7 @@ Boston, MA 02111-1307, USA.  */
 #include "charset.h"
 #include "keyboard.h"
 #include "frame.h"
+#include "termhooks.h"
 
 #ifdef HAVE_WINDOW_SYSTEM
 #include "fontset.h"
@@ -5407,7 +5408,7 @@ substitution of a `dim' face for italic.  */)
   /* See if the capabilities we selected above are supported, with the
      given colors.  */
   if (test_caps != 0 &&
-      ! tty_capable_p (FRAME_TTY (SELECTED_FRAME ()), test_caps, fg_tty_color.pixel, bg_tty_color.pixel))
+      ! tty_capable_p (FRAME_TTY (f), test_caps, fg_tty_color.pixel, bg_tty_color.pixel))
     return Qnil;
 
 

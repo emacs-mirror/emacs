@@ -29,7 +29,6 @@ Boston, MA 02111-1307, USA.  */
 
 #include "cm.h"
 #include "termhooks.h"
-#include "systty.h" /* For emacs_tty in termchar.h */
 #include "termchar.h"
 
 

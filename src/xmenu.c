@@ -39,10 +39,10 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 
 #include "lisp.h"
-#include "termhooks.h"
 #include "keyboard.h"
 #include "keymap.h"
 #include "frame.h"
+#include "termhooks.h"
 #include "window.h"
 #include "blockinput.h"
 #include "buffer.h"

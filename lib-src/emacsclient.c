@@ -283,14 +283,14 @@ char _sobuf[BUFSIZ];
 #endif
 
 SIGTYPE
-window_change_signal (int signalnum)
+pass_signal_to_emacs (int signalnum)
 {
   int old_errno = errno;
 
   if (emacs_pid)
-    kill (emacs_pid, SIGWINCH);
+    kill (emacs_pid, signalnum);
 
-  signal (SIGWINCH, window_change_signal);
+  signal (signalnum, pass_signal_to_emacs);
   errno = old_errno;
 }
 
@@ -298,7 +298,9 @@ void
 init_signals (void)
 {
   /* Set up signal handlers. */
-  signal (SIGWINCH, window_change_signal);
+  signal (SIGWINCH, pass_signal_to_emacs);
+  signal (SIGINT, pass_signal_to_emacs);
+  signal (SIGQUIT, pass_signal_to_emacs);
 }
 
 

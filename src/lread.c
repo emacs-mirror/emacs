@@ -33,6 +33,7 @@ Boston, MA 02111-1307, USA.  */
 #include <epaths.h>
 #include "commands.h"
 #include "keyboard.h"
+#include "frame.h"
 #include "termhooks.h"
 #include "coding.h"
 

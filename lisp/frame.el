@@ -583,11 +583,12 @@ terminal resizes only on the controlling terminal, so we need
 emacsclient to sit on the real terminal device, create SIGIO
 signals upon terminal input, and forward SIGWINCH signals to
 us.)"
+  (interactive "fOpen frame on tty device: \nsTerminal type of %s: ")
   (unless device
     (error "Invalid terminal device"))
   (unless type
     (error "Invalid terminal type"))
-  (make-terminal-frame (append (list (cons 'tty device) (cons 'tty-type type)) parameters)))
+  (tty-create-frame-with-faces (append (list (cons 'tty device) (cons 'tty-type type)) parameters)))
 
 (defun make-frame-command ()
   "Make a new frame, and select it if the terminal displays only one frame."

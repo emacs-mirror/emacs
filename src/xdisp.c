@@ -173,7 +173,6 @@ Boston, MA 02111-1307, USA.  */
 #include "keyboard.h"
 #include "frame.h"
 #include "window.h"
-#include "systty.h" /* For emacs_tty in termchar.h */
 #include "termchar.h"
 #include "dispextern.h"
 #include "buffer.h"
@@ -6458,8 +6457,8 @@ message2_nolog (m, nbytes, multibyte)
       do_pending_window_change (0);
       echo_area_display (1);
       do_pending_window_change (0);
-      if (frame_up_to_date_hook != 0 && ! gc_in_progress)
-	(*frame_up_to_date_hook) (f);
+      if (FRAME_DISPLAY (f)->frame_up_to_date_hook != 0 && ! gc_in_progress)
+	(*FRAME_DISPLAY (f)->frame_up_to_date_hook) (f);
     }
 }
 
@@ -6544,8 +6543,8 @@ message3_nolog (m, nbytes, multibyte)
       do_pending_window_change (0);
       echo_area_display (1);
       do_pending_window_change (0);
-      if (frame_up_to_date_hook != 0 && ! gc_in_progress)
-	(*frame_up_to_date_hook) (f);
+      if (FRAME_DISPLAY (f)->frame_up_to_date_hook != 0 && ! gc_in_progress)
+	(*FRAME_DISPLAY (f)->frame_up_to_date_hook) (f);
     }
 }
 
@@ -7616,11 +7615,11 @@ echo_area_display (update_frame_p)
 /* The terminal frame is used as the first Emacs frame on the Mac OS.  */
 #ifndef MAC_OS8
 #ifdef HAVE_WINDOW_SYSTEM
-  /* When Emacs starts, selected_frame may be a visible terminal
-     frame, even if we run under a window system.  If we let this
-     through, a message would be displayed on the terminal.  */
-  if (!FRAME_WINDOW_P (XFRAME (selected_frame))
-      && !NILP (Vwindow_system))
+  /* When Emacs starts, selected_frame may be the initial terminal
+     frame.  If we let this through, a message would be displayed on
+     the terminal.  */
+  if (FRAME_TERMCAP_P (XFRAME (selected_frame))
+      && FRAME_TTY (XFRAME (selected_frame))->type == NULL)
     return 0;
 #endif /* HAVE_WINDOW_SYSTEM */
 #endif
@@ -10100,16 +10099,16 @@ redisplay_internal (preserve_echo_area)
 
 	      /* Mark all the scroll bars to be removed; we'll redeem
 		 the ones we want when we redisplay their windows.  */
-	      if (condemn_scroll_bars_hook)
-		condemn_scroll_bars_hook (f);
+	      if (FRAME_DISPLAY (f)->condemn_scroll_bars_hook)
+		FRAME_DISPLAY (f)->condemn_scroll_bars_hook (f);
 
 	      if (FRAME_VISIBLE_P (f) && !FRAME_OBSCURED_P (f))
 		redisplay_windows (FRAME_ROOT_WINDOW (f));
 
 	      /* Any scroll bars which redisplay_windows should have
 		 nuked should now go away.  */
-	      if (judge_scroll_bars_hook)
-		judge_scroll_bars_hook (f);
+	      if (FRAME_DISPLAY (f)->judge_scroll_bars_hook)
+		FRAME_DISPLAY (f)->judge_scroll_bars_hook (f);
 
 	      /* If fonts changed, display again.  */
 	      /* ??? rms: I suspect it is a mistake to jump all the way
@@ -10161,8 +10160,8 @@ redisplay_internal (preserve_echo_area)
 	    {
 	      struct frame *f = updated[i];
 	      mark_window_display_accurate (f->root_window, 1);
-	      if (frame_up_to_date_hook)
-		frame_up_to_date_hook (f);
+	      if (FRAME_DISPLAY (f)->frame_up_to_date_hook)
+		FRAME_DISPLAY (f)->frame_up_to_date_hook (f);
 	    }
 	}
     }
@@ -10251,8 +10250,8 @@ redisplay_internal (preserve_echo_area)
 	  last_arrow_position = COERCE_MARKER (Voverlay_arrow_position);
 	  last_arrow_string = Voverlay_arrow_string;
 
-	  if (frame_up_to_date_hook != 0)
-	    frame_up_to_date_hook (sf);
+	  if (FRAME_DISPLAY (sf)->frame_up_to_date_hook != 0)
+	    FRAME_DISPLAY (sf)->frame_up_to_date_hook (sf);
 	}
 
       update_mode_lines = 0;
@@ -11390,7 +11389,9 @@ set_vertical_scroll_bar (w)
     start = end = whole = 0;
 
   /* Indicate what this scroll bar ought to be displaying now.  */
-  set_vertical_scroll_bar_hook (w, end - start, whole, start);
+  if (FRAME_DISPLAY (XFRAME (w->frame))->set_vertical_scroll_bar_hook)
+    (*FRAME_DISPLAY (XFRAME (w->frame))->set_vertical_scroll_bar_hook)
+      (w, end - start, whole, start);
 }
 
 /* Redisplay leaf window WINDOW.  JUST_THIS_ONE_P non-zero means only
@@ -12091,7 +12092,8 @@ redisplay_window (window, just_this_one_p)
 
       /* Note that we actually used the scroll bar attached to this
 	 window, so it shouldn't be deleted at the end of redisplay.  */
-      redeem_scroll_bar_hook (w);
+      if (FRAME_DISPLAY (f)->redeem_scroll_bar_hook)
+        (*FRAME_DISPLAY (f)->redeem_scroll_bar_hook) (w);
     }
 
   /* Restore current_buffer and value of point in it.  */

@@ -179,10 +179,6 @@ struct tty_display_info
   /* Nonzero means use ^S/^Q for flow control.  */
   int flow_control;
 
-  /* This is a copy of struct frame's display_method value; needed for
-     freeing up memory when deleting the tty. */
-  struct display_method *display_method;
-
 #ifdef MULTI_KBOARD
   /* The terminal's keyboard object. */
   struct kboard *kboard;
@@ -195,7 +191,7 @@ extern struct tty_display_info *tty_list;
 
 #define FRAME_TTY(f)                            \
   ((f)->output_method == output_termcap         \
-   ? (f)->output_data.tty->display_info         \
+   ? (f)->display->display_info.tty             \
    : (abort(), (struct tty_display_info *) 0))
 
 #define CURTTY() FRAME_TTY (SELECTED_FRAME())

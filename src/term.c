@@ -29,7 +29,6 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/file.h>
 
 #include "lisp.h"
-#include "systty.h" /* For emacs_tty in termchar.h */
 #include "termchar.h"
 #include "termopts.h"
 #include "charset.h"
@@ -72,9 +71,9 @@ static void turn_off_face P_ ((struct frame *, int face_id));
 static void tty_show_cursor P_ ((struct tty_display_info *));
 static void tty_hide_cursor P_ ((struct tty_display_info *));
 
-void delete_tty P_ ((struct tty_display_info *));
-static void delete_tty_1 P_ ((struct tty_display_info *));
-
+void delete_tty P_ ((struct display *));
+void create_tty_output P_ ((struct frame *));
+void delete_tty_output P_ ((struct frame *));
 
 #define OUTPUT(tty, a)                                          \
   emacs_tputs ((tty), a,                                        \
@@ -103,8 +102,10 @@ Lisp_Object Vring_bell_function;
 /* Functions to call after a tty was deleted. */
 Lisp_Object Vdelete_tty_after_functions;
 
-/* Terminal characteristics that higher levels want to look at. */
+/* Chain of all displays currently in use. */
+struct display *display_list;
 
+/* Chain of all tty device parameters. */
 struct tty_display_info *tty_list;
 
 /* Nonzero means no need to redraw the entire frame on resuming a
@@ -115,133 +116,6 @@ int no_redraw_on_reenter;
 
 Lisp_Object Qframe_tty_name, Qframe_tty_type;
 
-/* Hook functions that you can set to snap out the functions in this file.
-   These are all extern'd in termhooks.h  */
-
-void (*cursor_to_hook) P_ ((int, int));
-void (*raw_cursor_to_hook) P_ ((int, int));
-void (*clear_to_end_hook) P_ ((void));
-void (*clear_frame_hook) P_ ((void));
-void (*clear_end_of_line_hook) P_ ((int));
-
-void (*ins_del_lines_hook) P_ ((int, int));
-
-void (*delete_glyphs_hook) P_ ((int));
-
-void (*ring_bell_hook) P_ ((void));
-
-void (*reset_terminal_modes_hook) P_ ((void));
-void (*set_terminal_modes_hook) P_ ((void));
-void (*update_begin_hook) P_ ((struct frame *));
-void (*update_end_hook) P_ ((struct frame *));
-void (*set_terminal_window_hook) P_ ((int));
-void (*insert_glyphs_hook) P_ ((struct glyph *, int));
-void (*write_glyphs_hook) P_ ((struct glyph *, int));
-void (*delete_glyphs_hook) P_ ((int));
-
-int (*read_socket_hook) P_ ((struct input_event *, int, int));
-
-void (*frame_up_to_date_hook) P_ ((struct frame *));
-
-/* Return the current position of the mouse.
-
-   Set *f to the frame the mouse is in, or zero if the mouse is in no
-   Emacs frame.  If it is set to zero, all the other arguments are
-   garbage.
-
-   If the motion started in a scroll bar, set *bar_window to the
-   scroll bar's window, *part to the part the mouse is currently over,
-   *x to the position of the mouse along the scroll bar, and *y to the
-   overall length of the scroll bar.
-
-   Otherwise, set *bar_window to Qnil, and *x and *y to the column and
-   row of the character cell the mouse is over.
-
-   Set *time to the time the mouse was at the returned position.
-
-   This should clear mouse_moved until the next motion
-   event arrives.  */
-
-void (*mouse_position_hook) P_ ((FRAME_PTR *f, int insist,
-				 Lisp_Object *bar_window,
-				 enum scroll_bar_part *part,
-				 Lisp_Object *x,
-				 Lisp_Object *y,
-				 unsigned long *time));
-
-/* When reading from a minibuffer in a different frame, Emacs wants
-   to shift the highlight from the selected frame to the mini-buffer's
-   frame; under X, this means it lies about where the focus is.
-   This hook tells the window system code to re-decide where to put
-   the highlight.  */
-
-void (*frame_rehighlight_hook) P_ ((FRAME_PTR f));
-
-/* If we're displaying frames using a window system that can stack
-   frames on top of each other, this hook allows you to bring a frame
-   to the front, or bury it behind all the other windows.  If this
-   hook is zero, that means the device we're displaying on doesn't
-   support overlapping frames, so there's no need to raise or lower
-   anything.
-
-   If RAISE is non-zero, F is brought to the front, before all other
-   windows.  If RAISE is zero, F is sent to the back, behind all other
-   windows.  */
-
-void (*frame_raise_lower_hook) P_ ((FRAME_PTR f, int raise));
-
-/* Set the vertical scroll bar for WINDOW to have its upper left corner
-   at (TOP, LEFT), and be LENGTH rows high.  Set its handle to
-   indicate that we are displaying PORTION characters out of a total
-   of WHOLE characters, starting at POSITION.  If WINDOW doesn't yet
-   have a scroll bar, create one for it.  */
-
-void (*set_vertical_scroll_bar_hook)
-     P_ ((struct window *window,
-	  int portion, int whole, int position));
-
-
-/* The following three hooks are used when we're doing a thorough
-   redisplay of the frame.  We don't explicitly know which scroll bars
-   are going to be deleted, because keeping track of when windows go
-   away is a real pain - can you say set-window-configuration?
-   Instead, we just assert at the beginning of redisplay that *all*
-   scroll bars are to be removed, and then save scroll bars from the
-   fiery pit when we actually redisplay their window.  */
-
-/* Arrange for all scroll bars on FRAME to be removed at the next call
-   to `*judge_scroll_bars_hook'.  A scroll bar may be spared if
-   `*redeem_scroll_bar_hook' is applied to its window before the judgment.
-
-   This should be applied to each frame each time its window tree is
-   redisplayed, even if it is not displaying scroll bars at the moment;
-   if the HAS_SCROLL_BARS flag has just been turned off, only calling
-   this and the judge_scroll_bars_hook will get rid of them.
-
-   If non-zero, this hook should be safe to apply to any frame,
-   whether or not it can support scroll bars, and whether or not it is
-   currently displaying them.  */
-
-void (*condemn_scroll_bars_hook) P_ ((FRAME_PTR frame));
-
-/* Unmark WINDOW's scroll bar for deletion in this judgement cycle.
-   Note that it's okay to redeem a scroll bar that is not condemned.  */
-
-void (*redeem_scroll_bar_hook) P_ ((struct window *window));
-
-/* Remove all scroll bars on FRAME that haven't been saved since the
-   last call to `*condemn_scroll_bars_hook'.
-
-   This should be applied to each frame after each time its window
-   tree is redisplayed, even if it is not displaying scroll bars at the
-   moment; if the HAS_SCROLL_BARS flag has just been turned off, only
-   calling this and condemn_scroll_bars_hook will get rid of them.
-
-   If non-zero, this hook should be safe to apply to any frame,
-   whether or not it can support scroll bars, and whether or not it is
-   currently displaying them.  */
-
-void (*judge_scroll_bars_hook) P_ ((FRAME_PTR FRAME));
 
 
 /* Meaning of bits in no_color_video.  Each bit set means that the
@@ -269,10 +143,6 @@ int max_frame_cols;
 /* The largest frame height in any call to calculate_costs.  */
 
 int max_frame_lines;
-
-/* A template for tty display methods, with common values
-   preinitialized. */
-static struct display_method tty_display_method_template;
 
 /* Frame currently being redisplayed; 0 if not currently redisplaying.
    (Direct output does not count).  */
@@ -323,8 +193,8 @@ ring_bell ()
 
       Vring_bell_function = function;
     }
-  else if (!FRAME_TERMCAP_P (f))
-    (*ring_bell_hook) ();
+  else if (FRAME_DISPLAY (f)->ring_bell_hook)
+    (*FRAME_DISPLAY (f)->ring_bell_hook) ();
   else {
     struct tty_display_info *tty = FRAME_TTY (f);
     OUTPUT (tty, tty->TS_visible_bell && visible_bell ? tty->TS_visible_bell : tty->TS_bell);
@@ -343,10 +213,10 @@ void
 set_terminal_modes ()
 {
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-  if (FRAME_TERMCAP_P (f))
+  if (FRAME_DISPLAY (f)->set_terminal_modes_hook)
+    (*FRAME_DISPLAY (f)->set_terminal_modes_hook) ();
+  else 
     tty_set_terminal_modes (FRAME_TTY (f));
-  else
-    (*set_terminal_modes_hook) ();
 }
 
 void tty_reset_terminal_modes (struct tty_display_info *tty)
@@ -366,10 +236,10 @@ void
 reset_terminal_modes ()
 {
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-  if (FRAME_TERMCAP_P (f))
+  if (FRAME_DISPLAY (f)->reset_terminal_modes_hook)
+    (*FRAME_DISPLAY (f)->reset_terminal_modes_hook) ();
+  else
     tty_reset_terminal_modes (FRAME_TTY (f));
-  else if (reset_terminal_modes_hook)
-    (*reset_terminal_modes_hook) ();
 }
 
 void
@@ -377,15 +247,17 @@ update_begin (f)
      struct frame *f;
 {
   updating_frame = f;
-  if (!FRAME_TERMCAP_P (f))
-    update_begin_hook (f);
+  if (FRAME_DISPLAY (f)->update_begin_hook)
+    (*FRAME_DISPLAY (f)->update_begin_hook) (f);
 }
 
 void
 update_end (f)
      struct frame *f;
 {
-  if (FRAME_TERMCAP_P (f))
+  if (FRAME_DISPLAY (f)->update_end_hook)
+    (*FRAME_DISPLAY (f)->update_end_hook) (f);
+  else if (FRAME_TERMCAP_P (f))
     {
       struct tty_display_info *tty = FRAME_TTY (f);
       if (!XWINDOW (selected_window)->cursor_off_p)
@@ -393,8 +265,6 @@ update_end (f)
       turn_off_insert (tty);
       background_highlight (tty);
     }
-  else
-    update_end_hook (f);
 
   updating_frame = NULL;
 }
@@ -404,15 +274,15 @@ set_terminal_window (size)
      int size;
 {
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-  if (FRAME_TERMCAP_P (f))
+  if (FRAME_DISPLAY (f)->set_terminal_window_hook)
+    (*FRAME_DISPLAY (f)->set_terminal_window_hook) (size);
+  else if (FRAME_TERMCAP_P (f))
     {
       struct tty_display_info *tty = FRAME_TTY (f);
       tty->specified_window = size ? size : FRAME_LINES (f);
       if (FRAME_SCROLL_REGION_OK (f))
 	set_scroll_region (0, tty->specified_window);
     }
-  else
-    set_terminal_window_hook (size);
 }
 
 void
@@ -545,9 +415,9 @@ cursor_to (vpos, hpos)
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
   struct tty_display_info *tty;
 
-  if (! FRAME_TERMCAP_P (f) && cursor_to_hook)
+  if (FRAME_DISPLAY (f)->cursor_to_hook)
     {
-      (*cursor_to_hook) (vpos, hpos);
+      (*FRAME_DISPLAY (f)->cursor_to_hook) (vpos, hpos);
       return;
     }
 
@@ -576,9 +446,9 @@ raw_cursor_to (row, col)
 {
   struct frame *f = updating_frame ? updating_frame : XFRAME (selected_frame);
   struct tty_display_info *tty;
-  if (! FRAME_TERMCAP_P (f))
+  if (FRAME_DISPLAY (f)->raw_cursor_to_hook)
     {
-      (*raw_cursor_to_hook) (row, col);
+      (*FRAME_DISPLAY (f)->raw_cursor_to_hook) (row, col);
       return;
     }
   tty = FRAME_TTY (f);
@@ -603,9 +473,9 @@ clear_to_end ()
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
   struct tty_display_info *tty;
 
-  if (clear_to_end_hook && ! FRAME_TERMCAP_P (f))
+  if (FRAME_DISPLAY (f)->clear_to_end_hook)
     {
-      (*clear_to_end_hook) ();
+      (*FRAME_DISPLAY (f)->clear_to_end_hook) ();
       return;
     }
   tty = FRAME_TTY (f);
@@ -632,9 +502,9 @@ clear_frame ()
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
   struct tty_display_info *tty;
 
-  if (clear_frame_hook && ! FRAME_TERMCAP_P (f))
+  if (FRAME_DISPLAY (f)->clear_frame_hook)
     {
-      (*clear_frame_hook) ();
+      (*FRAME_DISPLAY (f)->clear_frame_hook) ();
       return;
     }
   tty = FRAME_TTY (f);
@@ -663,9 +533,9 @@ clear_end_of_line (first_unused_hpos)
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
   struct tty_display_info *tty;
 
-  if (clear_end_of_line_hook && ! FRAME_TERMCAP_P (f))
+  if (FRAME_DISPLAY (f)->clear_end_of_line_hook)
     {
-      (*clear_end_of_line_hook) (first_unused_hpos);
+      (*FRAME_DISPLAY (f)->clear_end_of_line_hook) (first_unused_hpos);
       return;
     }
 
@@ -828,9 +698,9 @@ write_glyphs (string, len)
   unsigned char conversion_buffer[1024];
   int conversion_buffer_size = sizeof conversion_buffer;
 
-  if (write_glyphs_hook && ! FRAME_TERMCAP_P (f))
+  if (FRAME_DISPLAY (f)->write_glyphs_hook)
     {
-      (*write_glyphs_hook) (string, len);
+      (*FRAME_DISPLAY (f)->write_glyphs_hook) (string, len);
       return;
     }
 
@@ -935,9 +805,9 @@ insert_glyphs (start, len)
 
   f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
-  if (insert_glyphs_hook && ! FRAME_TERMCAP_P (f))
+  if (FRAME_DISPLAY (f)->insert_glyphs_hook)
     {
-      (*insert_glyphs_hook) (start, len);
+      (*FRAME_DISPLAY (f)->insert_glyphs_hook) (start, len);
       return;
     }
 
@@ -1024,9 +894,9 @@ delete_glyphs (n)
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
   struct tty_display_info *tty = FRAME_TTY (f);
 
-  if (delete_glyphs_hook && ! FRAME_TERMCAP_P (f))
+  if (FRAME_DISPLAY (f)->delete_glyphs_hook)
     {
-      (*delete_glyphs_hook) (n);
+      (*FRAME_DISPLAY (f)->delete_glyphs_hook) (n);
       return;
     }
 
@@ -1061,9 +931,9 @@ ins_del_lines (vpos, n)
      int vpos, n;
 {
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-  if (ins_del_lines_hook && ! FRAME_TERMCAP_P (f))
+  if (FRAME_DISPLAY (f)->ins_del_lines_hook)
     {
-      (*ins_del_lines_hook) (vpos, n);
+      (*FRAME_DISPLAY (f)->ins_del_lines_hook) (vpos, n);
       return;
     }
   else
@@ -1948,7 +1818,12 @@ DEFUN ("tty-display-color-p", Ftty_display_color_p, Stty_display_color_p,
      (display)
      Lisp_Object display;
 {
-  struct tty_display_info *tty = FRAME_TTY (SELECTED_FRAME ());
+  struct tty_display_info *tty;
+
+  if (! FRAMEP (display))
+    return Qnil;
+  
+  tty = FRAME_TTY (XFRAME (display));
   return tty->TN_max_colors > 0 ? Qt : Qnil;
 }
 
@@ -1959,7 +1834,12 @@ DEFUN ("tty-display-color-cells", Ftty_display_color_cells,
      (display)
      Lisp_Object display;
 {
-  struct tty_display_info *tty = FRAME_TTY (SELECTED_FRAME ());
+  struct tty_display_info *tty;
+
+  if (! FRAMEP (display))
+    return Qnil;
+  
+  tty = FRAME_TTY (XFRAME (display));
   return make_number (tty->TN_max_colors);
 }
 
@@ -2102,17 +1982,18 @@ set_tty_color_mode (f, val)
 
 
 
-struct tty_display_info *
-get_named_tty (name)
+static struct display *
+get_named_tty_display (name)
      char *name;
 {
-  struct tty_display_info *tty = tty_list;
+  struct display *d;
 
-  while (tty) {
-    if ((tty->name == 0 && name == 0)
-        || (name && tty->name && !strcmp (tty->name, name)))
-      return tty;
-    tty = tty->next;
+  for (d = display_list; d; d = d->next_display) {
+    if (d->type == output_termcap
+        && ((d->display_info.tty->name == 0 && name == 0)
+            || (name && d->display_info.tty->name
+                && !strcmp (d->display_info.tty->name, name))))
+      return d;
   };
 
   return 0;
@@ -2177,11 +2058,13 @@ DEFUN ("frame-tty-type", Fframe_tty_type, Sframe_tty_type, 0, 1, 0,
 			    Initialization
  ***********************************************************************/
 
-struct tty_display_info *
-term_dummy_init (void)
+struct display *
+initial_term_init (void)
 {
-  if (initialized || tty_list)
-    error ("tty already initialized");
+  if (initialized || display_list || tty_list)
+    abort ();
+
+  display_list = create_display ();
 
   tty_list = xmalloc (sizeof (struct tty_display_info));
   bzero (tty_list, sizeof (struct tty_display_info));
@@ -2189,14 +2072,19 @@ term_dummy_init (void)
   tty_list->input = stdin;
   tty_list->output = stdout;
   tty_list->Wcm = (struct cm *) xmalloc (sizeof (struct cm));
-  tty_list->display_method = (struct display_method *) xmalloc (sizeof (struct display_method));
+#ifdef MULTI_KBOARD
   tty_list->kboard = initial_kboard;
-  return tty_list;
+#endif
+  
+  display_list->type = output_termcap;
+  display_list->display_info.tty = tty_list;
+  
+  return display_list;
 }
 
 
-struct tty_display_info *
-term_init (Lisp_Object frame, char *name, char *terminal_type)
+struct display *
+term_init (char *name, char *terminal_type)
 {
   char *area;
   char **address = &area;
@@ -2204,52 +2092,45 @@ term_init (Lisp_Object frame, char *name, char *terminal_type)
   int buffer_size = 4096;
   register char *p;
   int status;
-  struct frame *f = XFRAME (frame);
   struct tty_display_info *tty;
+  struct display *display;
 
-  tty = get_named_tty (name);
-  if (tty)
+  display = get_named_tty_display (name);
+  if (display)
     {
+      tty = display->display_info.tty;
+
       /* Return the previously initialized terminal, except if it is
          the dummy terminal created for the initial frame. */
       if (tty->type)
-        return tty;
+        return display;
 
       /* Free up temporary structures. */
       if (tty->Wcm)
         xfree (tty->Wcm);
-      if (tty->display_method)
-        xfree (tty->display_method);
       if (tty->kboard != initial_kboard)
         abort ();
       tty->kboard = 0;
     }
   else
     {
+      display = create_display ();
       tty = (struct tty_display_info *) xmalloc (sizeof (struct tty_display_info));
       bzero (tty, sizeof (struct tty_display_info));
       tty->next = tty_list;
       tty_list = tty;
+
+      display->type = output_termcap;
+      display->display_info.tty = tty;
     }
 
   tty->Wcm = (struct cm *) xmalloc (sizeof (struct cm));
   Wcm_clear (tty);
 
-  /* Each termcap frame has its own display method. */
-  tty->display_method = (struct display_method *) xmalloc (sizeof (struct display_method));
-  bzero (tty->display_method, sizeof (struct display_method));
-
-  /* Initialize the common members in the new display method with our
-     predefined template. */
-  *tty->display_method = tty_display_method_template;
-  f->display_method = tty->display_method;
-
-  /* Make sure the frame is live; if an error happens, it must be
-     deleted. */
-  f->output_method = output_termcap;
-  if (! f->output_data.tty)
-    abort ();
-  f->output_data.tty->display_info = tty;
+  display->rif = 0; /* ttys don't support window-based redisplay. */
+  display->delete_frame_hook = &delete_tty_output;
+  display->delete_display_hook = &delete_tty;
+  
   if (name)
     {
       int fd;
@@ -2257,7 +2138,7 @@ term_init (Lisp_Object frame, char *name, char *terminal_type)
       fd = emacs_open (name, O_RDWR, 0);
       if (fd < 0)
         {
-          delete_tty (tty);
+          delete_tty (display);
           error ("Could not open file: %s", name);
         }
       file = fdopen (fd, "w+");
@@ -2283,29 +2164,29 @@ term_init (Lisp_Object frame, char *name, char *terminal_type)
 
   area = (char *) xmalloc (2044);
 
-  FrameRows (tty) = FRAME_LINES (f);
-  FrameCols (tty) = FRAME_COLS (f);
-  tty->specified_window = FRAME_LINES (f);
+  FrameRows (tty) = FRAME_LINES (f); /* XXX */
+  FrameCols (tty) = FRAME_COLS (f);  /* XXX */
+  tty->specified_window = FRAME_LINES (f); /* XXX */
 
-  tty->display_method->delete_in_insert_mode = 1;
+  tty->display->delete_in_insert_mode = 1;
 
   UseTabs (tty) = 0;
-  FRAME_SCROLL_REGION_OK (f) = 0;
+  display->scroll_region_ok = 0;
 
   /* Seems to insert lines when it's not supposed to, messing
      up the display.  In doing a trace, it didn't seem to be
      called much, so I don't think we're losing anything by
      turning it off.  */
-  FRAME_LINE_INS_DEL_OK (f) = 0;
-  FRAME_CHAR_INS_DEL_OK (f) = 1;
+  display->line_ins_del_ok = 0;
+  display->char_ins_del_ok = 1;
 
   baud_rate = 19200;
 
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
-  FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
+  FRAME_CAN_HAVE_SCROLL_BARS (f) = 0; /* XXX */
+  FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none; /* XXX */
   TN_max_colors = 16;  /* Required to be non-zero for tty-display-color-p */
 
-  return tty;
+  return display;
 #else  /* not WINDOWSNT */
 
   Wcm_clear (tty);
@@ -2318,7 +2199,7 @@ term_init (Lisp_Object frame, char *name, char *terminal_type)
       if (name)
         {
           xfree (buffer);
-          delete_tty (tty);
+          delete_tty (display);
           error ("Cannot open terminfo database file");
         }
       else
@@ -2327,7 +2208,7 @@ term_init (Lisp_Object frame, char *name, char *terminal_type)
       if (name)
         {
           xfree (buffer);
-          delete_tty (tty);
+          delete_tty (display);
           error ("Cannot open termcap database file");
         }
       else
@@ -2340,7 +2221,7 @@ term_init (Lisp_Object frame, char *name, char *terminal_type)
       if (name)
         {
           xfree (buffer);
-          delete_tty (tty);
+          delete_tty (display);
           error ("Terminal type %s is not defined", terminal_type);
         }
       else
@@ -2354,7 +2235,7 @@ to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.",
       if (name)
         {
           xfree (buffer);
-          delete_tty (tty);
+          delete_tty (display);
           error ("Terminal type %s is not defined", terminal_type);
         }
       else
@@ -2478,9 +2359,9 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   /* Since we make MagicWrap terminals look like AutoWrap, we need to have
      the former flag imply the latter.  */
   AutoWrap (tty) = MagicWrap (tty) || tgetflag ("am");
-  FRAME_MEMORY_BELOW_FRAME (f) = tgetflag ("db");
+  display->memory_below_frame = tgetflag ("db");
   tty->TF_hazeltine = tgetflag ("hz");
-  FRAME_MUST_WRITE_SPACES (f) = tgetflag ("in");
+  display->must_write_spaces = tgetflag ("in");
   tty->meta_key = tgetflag ("km") || tgetflag ("MT");
   tty->TF_insmode_motion = tgetflag ("mi");
   tty->TF_standout_motion = tgetflag ("ms");
@@ -2506,7 +2387,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
     {
       if (initialized)
         {
-          delete_tty (tty);
+          delete_tty (display);
           error ("Screen size %dx%d is too small",
                  FrameCols (tty), FrameRows (tty));
         }
@@ -2518,7 +2399,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
     }
 
 #if 0  /* This is not used anywhere. */
-  tty->display_method->min_padding_speed = tgetnum ("pb");
+  tty->display->min_padding_speed = tgetnum ("pb");
 #endif
 
   TabWidth (tty) = tgetnum ("tw");
@@ -2596,7 +2477,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   if (!strcmp (terminal_type, "supdup"))
     {
-      FRAME_MEMORY_BELOW_FRAME (f) = 1;
+      display->memory_below_frame = 1;
       tty->Wcm->cm_losewrap = 1;
     }
   if (!strncmp (terminal_type, "c10", 3)
@@ -2623,7 +2504,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 	    tty->TS_set_window = "\033v%C %C %C %C ";
 	}
       /* Termcap entry often fails to have :in: flag */
-      FRAME_MUST_WRITE_SPACES (f) = 1;
+      display->must_write_spaces = 1;
       /* :ti string typically fails to have \E^G! in it */
       /* This limits scope of insert-char to one line.  */
       strcpy (area, tty->TS_termcap_modes);
@@ -2646,7 +2527,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   if (Wcm_init (tty) == -1)	/* can't do cursor motion */
     if (name)
       {
-        delete_tty (tty);
+        delete_tty (display);
         error ("Terminal type \"%s\" is not powerful enough to run Emacs",
                terminal_type);
       }
@@ -2683,7 +2564,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
     {
       if (name)
         {
-          delete_tty (tty);
+          delete_tty (display);
           error ("The frame size has not been specified");
         }
       else
@@ -2700,36 +2581,35 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   UseTabs (tty) = tabs_safe_p (fileno (TTY_INPUT (tty))) && TabWidth (tty) == 8;
 
-  FRAME_SCROLL_REGION_OK (f)
+  display->scroll_region_ok
     = (tty->Wcm->cm_abs
        && (tty->TS_set_window || tty->TS_set_scroll_region || tty->TS_set_scroll_region_1));
 
-  FRAME_LINE_INS_DEL_OK (f)
+  display->line_ins_del_ok
     = (((tty->TS_ins_line || tty->TS_ins_multi_lines)
         && (tty->TS_del_line || tty->TS_del_multi_lines))
-       || (FRAME_SCROLL_REGION_OK (f)
+       || (display->scroll_region_ok
            && tty->TS_fwd_scroll && tty->TS_rev_scroll));
 
-  FRAME_CHAR_INS_DEL_OK (f)
+  display->char_ins_del_ok
     = ((tty->TS_ins_char || tty->TS_insert_mode
         || tty->TS_pad_inserted_char || tty->TS_ins_multi_chars)
        && (tty->TS_del_char || tty->TS_del_multi_chars));
 
-  FRAME_FAST_CLEAR_END_OF_LINE (f) = tty->TS_clr_line != 0;
+  display->fast_clear_end_of_line = tty->TS_clr_line != 0;
 
   init_baud_rate (fileno (TTY_INPUT (tty)));
-  if (read_socket_hook)		/* Baudrate is somewhat
-                                   meaningless in this case */
-    baud_rate = 9600;
 
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
-  FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
+  /* XXX This condition sounds bogus. */
+  if (display->read_socket_hook) /* Baudrate is somewhat
+                                             meaningless in this case */
+    baud_rate = 9600;
 
 #ifdef AIXHFT
   /* The HFT system on AIX doesn't optimize for scrolling, so it's
      really ugly at times.  */
-  FRAME_LINE_INS_DEL_OK (f) = 0;
-  FRAME_CHAR_INS_DEL_OK (f) = 0;
+  display->line_ins_del_ok = 0;
+  display->char_ins_del_ok = 0;
 #endif
 
 #ifdef MULTI_KBOARD
@@ -2748,13 +2628,10 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   /* Don't do this.  I think termcap may still need the buffer. */
   /* xfree (buffer); */
 
-  /* Set the top frame to the first frame on this display. */
-  tty->top_frame = frame;
-
   /* Init system terminal modes (RAW or CBREAK, etc.).  */
   init_sys_modes (tty);
 
-  return tty;
+  return display;
 #endif /* not WINDOWSNT */
 }
 
@@ -2781,7 +2658,7 @@ tty.  The functions are run with one arg, the frame to be deleted.  */)
   (tty)
      Lisp_Object tty;
 {
-  struct tty_display_info *t;
+  struct display *d;
   char *name = 0;
 
   CHECK_STRING (tty);
@@ -2793,29 +2670,35 @@ tty.  The functions are run with one arg, the frame to be deleted.  */)
       name[SBYTES (tty)] = 0;
     }
 
-  t = get_named_tty (name);
+  d = get_named_tty_display (name);
 
-  if (! t)
-    error ("No such tty device: %s", name);
+  if (! d)
+    error ("No such terminal device: %s", name);
 
-  delete_tty (t);
+  delete_tty (d);
 }
 
 static int deleting_tty = 0;
 
 void
-delete_tty (struct tty_display_info *tty)
+delete_tty (struct display *display)
 {
+  struct tty_display_info *tty;
   Lisp_Object tail, frame;
   char *tty_name;
   
   if (deleting_tty)
     /* We get a recursive call when we delete the last frame on this
-       tty. */
+       display. */
     return;
 
   deleting_tty = 1;
 
+  if (display->type != output_termcap)
+    abort ();
+
+  tty = display->display_info.tty;
+  
   if (tty == tty_list)
     tty_list = tty->next;
   else
@@ -2842,6 +2725,8 @@ delete_tty (struct tty_display_info *tty)
         }
     }
 
+  delete_display (display);
+
   reset_sys_modes (tty);
 
   tty_name = tty->name;
@@ -2864,9 +2749,6 @@ delete_tty (struct tty_display_info *tty)
 
   if (tty->Wcm)
     xfree (tty->Wcm);
-
-  if (tty->display_method)
-    xfree (tty->display_method);
 
 #ifdef MULTI_KBOARD
   if (tty->kboard && --tty->kboard->reference_count > 0)
@@ -2895,6 +2777,34 @@ delete_tty (struct tty_display_info *tty)
     }
 }
 
+
+
+/* Initialize the tty-dependent part of frame F.  The frame must
+   already have its display initialized. */
+void
+create_tty_output (struct frame *f)
+{
+  if (! FRAME_TERMCAP_P (f))
+    abort ();
+
+  struct tty_output *t = xmalloc (sizeof (struct tty_output));
+  bzero (t, sizeof (struct tty_output));
+
+  t->display_info = FRAME_DISPLAY (f)->display_info.tty;
+
+  f->output_data.tty = t;
+}
+
+/* Delete the tty-dependent part of frame F. */
+void
+delete_tty_output (struct frame *f)
+{
+  if (! FRAME_TERMCAP_P (f))
+    abort ();
+
+  xfree (f->output_data.tty);
+}
+
 
 
 
@@ -2910,6 +2820,35 @@ mark_ttys ()
       if (tty->top_frame)
         mark_object (tty->top_frame);
     }
+}
+
+
+
+/* Create a new display object and add it to the display list. */
+struct display *
+create_display (void)
+{
+  struct display *dev = (struct display *) xmalloc (sizeof (struct display));
+  
+  bzero (dev, sizeof (struct display));
+  dev->next_display = display_list;
+  display_list = dev;
+
+  return dev;
+}
+
+/* Remove a display from the display list and free its memory. */
+void
+delete_display (struct display *dev)
+{
+  struct display **dp;
+  for (dp = &display_list; *dp != dev; dp = &(*dp)->next_display)
+    if (! *dp)
+      abort ();
+  *dp = dev->next_display;
+
+  bzero (dev, sizeof (struct display));
+  xfree (dev);
 }
 
 
@@ -2950,11 +2889,6 @@ See `delete-tty'.  */);
   defsubr (&Sdelete_tty);
 
   Fprovide (intern ("multi-tty"), Qnil);
-
-  /* Initialize the display method template. */
-  
-  /* Termcap-based displays don't support window-based redisplay. */
-  tty_display_method_template.rif = 0;
 
 }
 

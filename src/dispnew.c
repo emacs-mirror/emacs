@@ -29,10 +29,8 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #include "lisp.h"
-#include "systty.h"             /* For emacs_tty in termchar.h */
 #include "termchar.h"
 #include "termopts.h"
-#include "termhooks.h"
 /* cm.h must come after dispextern.h on Windows.  */
 #include "dispextern.h"
 #include "cm.h"
@@ -40,6 +38,7 @@ Boston, MA 02111-1307, USA.  */
 #include "charset.h"
 #include "keyboard.h"
 #include "frame.h"
+#include "termhooks.h"
 #include "window.h"
 #include "commands.h"
 #include "disptab.h"
@@ -6634,10 +6633,11 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
 #endif /* VMS */
 
   {
-    struct tty_display_info *tty;
+    struct display *d;
     
-    tty = term_init (selected_frame, 0, terminal_type);
-    change_frame_size (XFRAME (selected_frame), FrameRows (tty), FrameCols (tty), 0, 0, 1);
+    d = term_init (0, terminal_type);
+    d->display_info.tty->top_frame = selected_frame;
+    change_frame_size (XFRAME (selected_frame), FrameRows (d->display_info.tty), FrameCols (d->display_info.tty), 0, 0, 1);
   }
   
   {

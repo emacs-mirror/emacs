@@ -905,7 +905,7 @@ an integer value."
   (let ((valid
          (case attribute
            (:family
-            (if window-system
+            (if (window-system frame)
                 (mapcar #'(lambda (x) (cons (car x) (car x)))
                         (x-font-family-list))
 	      ;; Only one font on TTYs.
@@ -914,7 +914,7 @@ an integer value."
             (mapcar #'(lambda (x) (cons (symbol-name x) x))
                     (internal-lisp-face-attribute-values attribute)))
            ((:underline :overline :strike-through :box)
-            (if window-system
+            (if (window-system frame)
                 (nconc (mapcar #'(lambda (x) (cons (symbol-name x) x))
                                (internal-lisp-face-attribute-values attribute))
                        (mapcar #'(lambda (c) (cons c c))
@@ -927,7 +927,7 @@ an integer value."
            ((:height)
             'integerp)
            (:stipple
-            (and (memq window-system '(x w32 mac))
+            (and (memq (window-system frame) '(x w32 mac))
                  (mapcar #'list
                          (apply #'nconc
                                 (mapcar (lambda (dir)
@@ -1045,7 +1045,7 @@ of a global face.  Value is the new attribute value."
 	       ;; explicitly in VALID, using color approximation code
 	       ;; in tty-colors.el.
 	       (when (and (memq attribute '(:foreground :background))
-			  (not (memq window-system '(x w32 mac)))
+			  (not (memq (window-system frame) '(x w32 mac)))
 			  (not (member new-value
 				       '("unspecified"
 					 "unspecified-fg" "unspecified-bg"))))
@@ -1298,14 +1298,14 @@ If FRAME is nil, the current FRAME is used."
 	    req (car conjunct)
 	    options (cdr conjunct)
 	    match (cond ((eq req 'type)
-			 (or (memq window-system options)
+			 (or (memq (window-system frame) options)
 			     ;; FIXME: This should be revisited to use
 			     ;; display-graphic-p, provided that the
 			     ;; color selection depends on the number
 			     ;; of supported colors, and all defface's
 			     ;; are changed to look at number of colors
 			     ;; instead of (type graphic) etc.
-			     (and (null window-system)
+			     (and (null (window-system frame))
 				  (memq 'tty options))
 			     (and (memq 'motif options)
 				  (featurep 'motif))
@@ -1537,14 +1537,14 @@ this won't have the expected effect."
 Display-dependent faces are those which have different definitions
 according to the `background-mode' and `display-type' frame parameters."
   (let* ((bg-resource
-	  (and window-system
+	  (and (window-system frame)
 	       (x-get-resource "backgroundMode" "BackgroundMode")))
 	 (bg-color (frame-parameter frame 'background-color))
 	 (bg-mode
 	  (cond (frame-background-mode)
 		(bg-resource
 		 (intern (downcase bg-resource)))
-		((and (null window-system) (null bg-color))
+		((and (null (window-system frame)) (null bg-color))
 		 ;; No way to determine this automatically (?).
 		 'dark)
 		;; Unspecified frame background color can only happen
@@ -1561,7 +1561,7 @@ according to the `background-mode' and `display-type' frame parameters."
 		 'light)
 		(t 'dark)))
 	 (display-type
-	  (cond ((null window-system)
+	  (cond ((null (window-system frame))
 		 (if (tty-display-color-p frame) 'color 'mono))
 		((x-display-color-p frame)
 		 'color)
@@ -1696,7 +1696,7 @@ Initialize colors of certain faces from frame parameters."
 	(when (not (equal face 'default))
 	  (face-spec-set face (face-user-default-spec face) frame)
 	  (internal-merge-in-global-face face frame)
-	  (when (and (memq window-system '(x w32 mac))
+	  (when (and (memq (window-system frame) '(x w32 mac))
 		     (or (not (boundp 'inhibit-default-face-x-resources))
 			 (not (eq face 'default))))
 	    (make-face-x-resource-internal face frame)))

@@ -23,13 +23,12 @@ Boston, MA 02111-1307, USA.  */
 #include <signal.h>
 #include <stdio.h>
 #include "lisp.h"
-#include "systty.h" /* This must be included befor termchar.h. */
 #include "termchar.h"
 #include "termopts.h"
+#include "frame.h"
 #include "termhooks.h"
 #include "macros.h"
 #include "keyboard.h"
-#include "frame.h"
 #include "window.h"
 #include "commands.h"
 #include "buffer.h"
@@ -2065,7 +2064,10 @@ void
 start_polling ()
 {
 #ifdef POLL_FOR_INPUT
-  if (read_socket_hook && !interrupt_input)
+  /* XXX This condition was (read_socket_hook && !interrupt_input),
+     but read_socket_hook is not global anymore.  Let's pretend that
+     it's always set. */
+  if (!interrupt_input)
     {
       /* Turn alarm handling on unconditionally.  It might have
 	 been turned off in process.c.  */
@@ -2099,7 +2101,10 @@ int
 input_polling_used ()
 {
 #ifdef POLL_FOR_INPUT
-  return read_socket_hook && !interrupt_input;
+  /* XXX This condition was (read_socket_hook && !interrupt_input),
+     but read_socket_hook is not global anymore.  Let's pretend that
+     it's always set. */
+  return !interrupt_input;
 #else
   return 0;
 #endif
@@ -2111,7 +2116,10 @@ void
 stop_polling ()
 {
 #ifdef POLL_FOR_INPUT
-  if (read_socket_hook && !interrupt_input)
+  /* XXX This condition was (read_socket_hook && !interrupt_input),
+     but read_socket_hook is not global anymore.  Let's pretend that
+     it's always set. */
+  if (!interrupt_input)
     ++poll_suppress_count;
 #endif
 }
@@ -4081,7 +4089,8 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	 If there is no valid info, it does not store anything
 	 so x remains nil.  */
       x = Qnil;
-      (*mouse_position_hook) (&f, 0, &bar_window, &part, &x, &y, &time);
+      if (f && FRAME_DISPLAY (f)->mouse_position_hook) /* XXX Can f or mouse_position_hook be NULL here? */
+        (*FRAME_DISPLAY (f)->mouse_position_hook) (&f, 0, &bar_window, &part, &x, &y, &time);
 
       obj = Qnil;
 
@@ -6516,7 +6525,10 @@ gobble_input (expected)
     }
   else
 #ifdef POLL_FOR_INPUT
-  if (read_socket_hook && !interrupt_input && poll_suppress_count == 0)
+  /* XXX This condition was (read_socket_hook && !interrupt_input),
+     but read_socket_hook is not global anymore.  Let's pretend that
+     it's always set. */
+  if (!interrupt_input && poll_suppress_count == 0)
     {
       SIGMASKTYPE mask;
       mask = sigblock (sigmask (SIGALRM));
@@ -6600,11 +6612,21 @@ read_avail_input (expected)
   for (i = 0; i < KBD_BUFFER_SIZE; i++)
     EVENT_INIT (buf[i]);
 
-  if (read_socket_hook)
-    /* No need for FIONREAD or fcntl; just say don't wait.  */
-    nread = (*read_socket_hook) (buf, KBD_BUFFER_SIZE, expected);
+  {
+    struct display *d;
 
-  if (!nread && tty_list)
+    for (d = display_list; d; d = d->next_display)
+      {
+        if (d->read_socket_hook)
+          /* No need for FIONREAD or fcntl; just say don't wait.  */
+          nread = (*d->read_socket_hook) (buf, KBD_BUFFER_SIZE, expected);
+        
+        if (nread > 0)
+          break;
+      }
+  }
+
+  if (nread <= 0 && tty_list)
     {
       /* Using KBD_BUFFER_SIZE - 1 here avoids reading more than
 	 the kbd_buffer can really hold.  That may prevent loss
@@ -10426,6 +10448,11 @@ See also `current-input-mode'.  */)
      (interrupt, flow, meta, quit)
      Lisp_Object interrupt, flow, meta, quit;
 {
+  /* XXX This function needs to be revised for multi-device support.
+     Currently it compiles fine, but its semantics are wrong.  It sets
+     global parameters (e.g. interrupt_input) based on only the
+     current frame's device. */
+  
   if (!NILP (quit)
       && (!INTEGERP (quit) || XINT (quit) < 0 || XINT (quit) > 0400))
     error ("set-input-mode: QUIT must be an ASCII character");
@@ -10442,7 +10469,7 @@ See also `current-input-mode'.  */)
 
 #ifdef SIGIO
 /* Note SIGIO has been undef'd if FIONREAD is missing.  */
-  if (read_socket_hook)
+  if (FRAME_DISPLAY (SELECTED_FRAME ())->read_socket_hook)
     {
       /* When using X, don't give the user a real choice,
 	 because we haven't implemented the mechanisms to support it.  */

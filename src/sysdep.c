@@ -272,11 +272,6 @@ discard_tty_input ()
   if (noninteractive)
     return;
 
-  /* Discarding input is not safe when the input could contain
-     replies from the X server.  So don't do it.  */
-  if (read_socket_hook)
-    return;
-
 #ifdef VMS
   end_kbd_input ();
   SYS$QIOW (0, fileno (TTY_INPUT (CURTTY())), IO$_READVBLK|IO$M_PURGE, input_iosb, 0, 0,
@@ -322,7 +317,7 @@ discard_tty_input ()
 void
 stuff_char (char c)
 {
-  if (read_socket_hook)
+  if (! FRAME_TERMCAP_P (SELECTED_FRAME ()))
     return;
 
 /* Should perhaps error if in batch mode */
@@ -961,13 +956,17 @@ reset_sigio (fd)
 }
 
 #ifdef FASYNC		/* F_SETFL does not imply existence of FASYNC */
-/* XXX Uhm, this FASYNC is not used anymore here. */
+/* XXX Uhm, FASYNC is not used anymore here. */
 
 void
 request_sigio ()
 {
+  /* XXX read_socket_hook is not global anymore.  Is blocking SIGIO
+     bad under X? */
+#if 0
   if (read_socket_hook)
     return;
+#endif
 
 #ifdef SIGWINCH
   sigunblock (sigmask (SIGWINCH));
@@ -979,10 +978,14 @@ request_sigio ()
 
 void
 unrequest_sigio (void)
-{
+{ 
+  /* XXX read_socket_hook is not global anymore.  Is blocking SIGIO
+     bad under X? */
+#if 0
   if (read_socket_hook)
     return;
-
+#endif
+  
 #ifdef SIGWINCH
   sigblock (sigmask (SIGWINCH));
 #endif
@@ -1388,15 +1391,18 @@ nil means don't delete them until `list-processes' is run.  */);
 #endif /* VMS */
 
 #ifdef BSD_PGRPS
+#if 0
+  /* read_socket_hook is not global anymore.  I think doing this
+     unconditionally will not cause any problems. */
   if (! read_socket_hook && EQ (Vwindow_system, Qnil))
+#endif
     narrow_foreground_group (fileno (TTY_INPUT (tty_out)));
 #endif
 
 #ifdef HAVE_WINDOW_SYSTEM
   /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
      needs the initialization code below.  */
-  /* XXX This need to be revised for X+tty session support. */
-  if (tty_out->input != stdin || (!read_socket_hook && EQ (Vwindow_system, Qnil)))
+  if (tty_out->input != stdin || EQ (Vwindow_system, Qnil))
 #endif
     {
       if (! tty_out->old_tty)
@@ -1642,7 +1648,7 @@ nil means don't delete them until `list-processes' is run.  */);
 #ifndef F_SETOWN_BUG
 #ifdef F_GETOWN		/* F_SETFL does not imply existence of F_GETOWN */
   if (interrupt_input
-      && ! read_socket_hook && EQ (Vwindow_system, Qnil))
+      && (tty_out->input != stdin || EQ (Vwindow_system, Qnil)))
     {
       old_fcntl_owner[fileno (TTY_INPUT (tty_out))] =
         fcntl (fileno (TTY_INPUT (tty_out)), F_GETOWN, 0);

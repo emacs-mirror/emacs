@@ -48,6 +48,7 @@ Boston, MA 02111-1307, USA.  */
 #include "systime.h"
 #include "sysselect.h"
 #include "lisp.h"
+#include "frame.h"
 #include "termhooks.h"
 #include "termopts.h"
 #include "xterm.h"

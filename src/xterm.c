@@ -54,7 +54,6 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/ioctl.h>
 #endif /* ! defined (BSD_SYSTEM) */
 
-#include "systty.h"
 #include "systime.h"
 
 #ifndef INCLUDED_FCNTL
@@ -183,10 +182,6 @@ static Lisp_Object last_window;
 /* Non-zero means make use of UNDERLINE_POSITION font properties.  */
 
 int x_use_underline_position_properties;
-
-/* Generic display parameters for X displays. */
-
-struct display_method x_display_method;
 
 /* This is a chain of structures for all the X displays currently in
    use.  */
@@ -329,6 +324,8 @@ void x_raise_frame P_ ((struct frame *));
 void x_set_window_size P_ ((struct frame *, int, int, int));
 void x_wm_set_window_state P_ ((struct frame *, int));
 void x_wm_set_icon_pixmap P_ ((struct frame *, int));
+struct display *x_create_frame_display P_ ((struct x_display_info *));
+void x_delete_frame_display P_ ((struct display *));
 void x_initialize P_ ((void));
 static void x_font_min_bounds P_ ((XFontStruct *, int *, int *));
 static int x_compute_min_glyph_bounds P_ ((struct frame *));
@@ -10232,6 +10229,7 @@ x_term_init (display_name, xrm_option, resource_name)
 {
   int connection;
   Display *dpy;
+  struct display *display;
   struct x_display_info *dpyinfo;
   XrmDatabase xrdb;
 
@@ -10365,6 +10363,8 @@ x_term_init (display_name, xrm_option, resource_name)
 
   dpyinfo = (struct x_display_info *) xmalloc (sizeof (struct x_display_info));
   bzero (dpyinfo, sizeof *dpyinfo);
+
+  display = x_create_frame_display (dpyinfo);
 
 #ifdef MULTI_KBOARD
   {
@@ -10716,7 +10716,18 @@ x_delete_display (dpyinfo)
      struct x_display_info *dpyinfo;
 {
   int i;
-
+  
+  {
+    /* Delete the generic struct display for this X display. */
+    struct display *d;
+    for (d = display_list; d; d = d->next_display)
+      if (d->type == output_x_window && d->display_info.x != dpyinfo)
+        {
+          delete_display (d);
+          break;
+        }
+  }
+    
   delete_keyboard_wait_descriptor (dpyinfo->connection);
 
   /* Discard this display from x_display_name_list and x_display_list.
@@ -10846,35 +10857,63 @@ static struct redisplay_interface x_redisplay_interface =
     x_shift_glyphs_for_insert
   };
 
+
+/* This function is called when the last frame on a display is deleted. */
+void
+x_delete_frame_display (struct display *display)
+{
+  /* We don't do anything, the connection to the X server must remain
+     open. */
+}
+
+
+struct display *
+x_create_frame_display (struct x_display_info *dpyinfo)
+{
+  struct display *display;
+  
+  display = create_display ();
+
+  display->type = output_x_window;
+  display->display_info.x = dpyinfo;
+  dpyinfo->frame_display = display;
+  
+  display->clear_frame_hook = x_clear_frame;
+  display->ins_del_lines_hook = x_ins_del_lines;
+  display->delete_glyphs_hook = x_delete_glyphs;
+  display->ring_bell_hook = XTring_bell;
+  display->reset_terminal_modes_hook = XTreset_terminal_modes;
+  display->set_terminal_modes_hook = XTset_terminal_modes;
+  display->update_begin_hook = x_update_begin;
+  display->update_end_hook = x_update_end;
+  display->set_terminal_window_hook = XTset_terminal_window;
+  display->read_socket_hook = XTread_socket;
+  display->frame_up_to_date_hook = XTframe_up_to_date;
+  display->mouse_position_hook = XTmouse_position;
+  display->frame_rehighlight_hook = XTframe_rehighlight;
+  display->frame_raise_lower_hook = XTframe_raise_lower;
+  display->set_vertical_scroll_bar_hook = XTset_vertical_scroll_bar;
+  display->condemn_scroll_bars_hook = XTcondemn_scroll_bars;
+  display->redeem_scroll_bar_hook = XTredeem_scroll_bar;
+  display->judge_scroll_bars_hook = XTjudge_scroll_bars;
+
+  display->delete_frame_hook = x_destroy_window;
+  display->delete_display_hook = x_delete_frame_display;
+  
+  display->rif = &x_redisplay_interface;
+  display->scroll_region_ok = 1; /* We'll scroll partial frames. */
+  display->char_ins_del_ok = 1;
+  display->line_ins_del_ok = 1;        /* We'll just blt 'em. */
+  display->fast_clear_end_of_line = 1; /* X does this well. */
+  display->memory_below_frame = 0; /* We don't remember what scrolls
+                                        off the bottom. */
+
+  return display;
+}
+
 void
 x_initialize ()
 {
-  clear_frame_hook = x_clear_frame;
-  ins_del_lines_hook = x_ins_del_lines;
-  delete_glyphs_hook = x_delete_glyphs;
-  ring_bell_hook = XTring_bell;
-  reset_terminal_modes_hook = XTreset_terminal_modes;
-  set_terminal_modes_hook = XTset_terminal_modes;
-  update_begin_hook = x_update_begin;
-  update_end_hook = x_update_end;
-  set_terminal_window_hook = XTset_terminal_window;
-  read_socket_hook = XTread_socket;
-  frame_up_to_date_hook = XTframe_up_to_date;
-  mouse_position_hook = XTmouse_position;
-  frame_rehighlight_hook = XTframe_rehighlight;
-  frame_raise_lower_hook = XTframe_raise_lower;
-  set_vertical_scroll_bar_hook = XTset_vertical_scroll_bar;
-  condemn_scroll_bars_hook = XTcondemn_scroll_bars;
-  redeem_scroll_bar_hook = XTredeem_scroll_bar;
-  judge_scroll_bars_hook = XTjudge_scroll_bars;
-
-  x_display_method.rif = &x_redisplay_interface;
-  x_display_method.scroll_region_ok = 1; /* We'll scroll partial frames. */
-  x_display_method.char_ins_del_ok = 1;
-  x_display_method.line_ins_del_ok = 1; /* We'll just blt 'em. */
-  x_display_method.fast_clear_end_of_line = 1; /* X does this well. */
-  x_display_method.memory_below_frame = 0; /* We don't remember what scrolls off the
-                                              bottom. */
   baud_rate = 19200;
 
   x_noop_count = 0;

@@ -27,6 +27,7 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 #include "charset.h"
 #include "keyboard.h"
+#include "frame.h"
 #include "termhooks.h"
 #include "blockinput.h"
 #include "puresize.h"

@@ -48,7 +48,6 @@ Boston, MA 02111-1307, USA.  */
 #include "systime.h"
 #include "termhooks.h"
 #include "atimer.h"
-#include "systty.h"
 #include "termchar.h"
 
 #ifdef HAVE_X_WINDOWS
@@ -1762,10 +1761,10 @@ x_set_scroll_bar_foreground (f, value, oldval)
   if (FRAME_X_WINDOW (f) && FRAME_VISIBLE_P (f))
     {
       /* Remove all scroll bars because they have wrong colors.  */
-      if (condemn_scroll_bars_hook)
-	(*condemn_scroll_bars_hook) (f);
-      if (judge_scroll_bars_hook)
-	(*judge_scroll_bars_hook) (f);
+      if (FRAME_DISPLAY (f)->condemn_scroll_bars_hook)
+	(*FRAME_DISPLAY (f)->condemn_scroll_bars_hook) (f);
+      if (FRAME_DISPLAY (f)->judge_scroll_bars_hook)
+	(*FRAME_DISPLAY (f)->judge_scroll_bars_hook) (f);
 
       update_face_from_frame_parameter (f, Qscroll_bar_foreground, value);
       redraw_frame (f);
@@ -1811,10 +1810,10 @@ x_set_scroll_bar_background (f, value, oldval)
   if (FRAME_X_WINDOW (f) && FRAME_VISIBLE_P (f))
     {
       /* Remove all scroll bars because they have wrong colors.  */
-      if (condemn_scroll_bars_hook)
-	(*condemn_scroll_bars_hook) (f);
-      if (judge_scroll_bars_hook)
-	(*judge_scroll_bars_hook) (f);
+      if (FRAME_DISPLAY (f)->condemn_scroll_bars_hook)
+	(*FRAME_DISPLAY (f)->condemn_scroll_bars_hook) (f);
+      if (FRAME_DISPLAY (f)->judge_scroll_bars_hook)
+	(*FRAME_DISPLAY (f)->judge_scroll_bars_hook) (f);
 
       update_face_from_frame_parameter (f, Qscroll_bar_background, value);
       redraw_frame (f);
@@ -3245,7 +3244,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* Note that X Windows does support scroll bars.  */
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
 
-  f->display_method = &x_display_method;
+  f->display = dpyinfo->frame_display;
+  f->display->reference_count++;
+
   f->output_method = output_x_window;
   f->output_data.x = (struct x_output *) xmalloc (sizeof (struct x_output));
   bzero (f->output_data.x, sizeof (struct x_output));
@@ -9981,7 +9982,8 @@ x_create_tip_frame (dpyinfo, parms, text)
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   record_unwind_protect (unwind_create_tip_frame, frame);
 
-  f->display_method = &x_display_method;
+  f->display = dpyinfo->frame_display;
+  f->display->reference_count++;
 
   /* By setting the output method, we're essentially saying that
      the frame is live, as per FRAME_LIVE_P.  If we get a signal

@@ -68,7 +68,7 @@ enum text_cursor_kinds
 #define FRAME_FOREGROUND_PIXEL(f) ((f)->foreground_pixel)
 #define FRAME_BACKGROUND_PIXEL(f) ((f)->background_pixel)
 
-struct device;
+struct display;
 
 struct frame
 {
@@ -256,26 +256,24 @@ struct frame
   /* Canonical Y unit.  Height of a line, in pixels.  */
   int line_height;
 
-  /* The display hooks to use with this frame. */
-  struct display_method *display_method;
-  
-  /* The output method says how the contents of this frame
-     are displayed.  It could be using termcap, or using an X window.  */
+  /* The output method says how the contents of this frame are
+     displayed.  It could be using termcap, or using an X window.
+     This must be the same as the display->type. */
   enum output_method output_method;
 
-  /* A structure of auxiliary data used for displaying the contents.
-     struct tty_output is used for termcap frames;
-     it is defined in term.h.
-     struct x_output is used for X window frames;
-     it is defined in xterm.h.
-     struct w32_output is used for W32 window frames;
-     it is defined in w32term.h.  */
+  /* The display that this frame uses.  If this is NULL, then the
+     frame is deleted. */
+  struct display *display;
+  
+  /* Display-dependent, frame-local auxiliary data used for displaying
+     the contents.  When the frame is deleted, this data is deleted as
+     well. */
   union output_data
   {
-    struct tty_output *tty;
-    struct x_output *x;
-    struct w32_output *w32;
-    struct mac_output *mac;
+    struct tty_output *tty;     /* termchar.h */
+    struct x_output *x;         /* xterm.h */
+    struct w32_output *w32;     /* w32term.h */
+    struct mac_output *mac;     /* macterm.h */
     EMACS_INT nothing;
   }
   output_data;
@@ -291,11 +289,12 @@ struct frame
   int left_fringe_width, right_fringe_width;
 
 #ifdef MULTI_KBOARD
+  /* XXX Maybe this should be moved to struct display, too. */
   /* A pointer to the kboard structure associated with this frame.
      For termcap frames, it will be the same as
-     output_data.tty->display_info->kboard.
+     display->display_info.tty->kboard.
      For X frames, it will be the same as
-     output_data.x->display_info->kboard.  */
+     display->display_info.x->kboard.  */
   struct kboard *kboard;
 #endif
 
@@ -486,7 +485,7 @@ typedef struct frame *FRAME_PTR;
 #endif
 
 /* Nonzero if frame F is still alive (not deleted).  */
-#define FRAME_LIVE_P(f) ((f)->output_data.nothing != 0)
+#define FRAME_LIVE_P(f) ((f)->display != 0)
 
 /* Nonzero if frame F is a minibuffer-only frame.  */
 #define FRAME_MINIBUF_ONLY_P(f) \

@@ -31,7 +31,6 @@ Boston, MA 02111-1307, USA.  */
 #include "window.h"
 #include "commands.h"
 #include "indent.h"
-#include "systty.h" /* For emacs_tty in termchar.h */
 #include "termchar.h"
 #include "disptab.h"
 #include "dispextern.h"

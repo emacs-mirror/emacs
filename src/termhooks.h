@@ -1,5 +1,4 @@
-/* Hooks by which low level terminal operations
-   can be made to call other routines.
+/* Parameters and display hooks for output devices
    Copyright (C) 1985,86,93,94,2003  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -30,75 +29,6 @@ struct frame;
 #define P_(X) ()
 #endif
 
-/* Device-local parameters. */
-struct display_method
-{
-  /* Terminal characteristics. */
-  
-  int must_write_spaces;	/* Nonzero means spaces in the text must
-				   actually be output; can't just skip over
-				   some columns to leave them blank.  */
-  int fast_clear_end_of_line;   /* Nonzero means terminal has a `ce' string */
-  
-  int line_ins_del_ok;          /* Terminal can insert and delete lines */
-  int char_ins_del_ok;          /* Terminal can insert and delete chars */
-  int scroll_region_ok;         /* Terminal supports setting the scroll
-                                   window */
-  int scroll_region_cost;	/* Cost of setting the scroll window,
-                                   measured in characters. */
-  int memory_below_frame;	/* Terminal remembers lines scrolled
-                                   off bottom */
-
-#if 0  /* These are not used anywhere. */
-  /* EMACS_INT baud_rate; */	/* Output speed in baud */
-  int min_padding_speed;	/* Speed below which no padding necessary. */
-  int dont_calculate_costs;     /* Nonzero means don't bother computing
-                                   various cost tables; we won't use them. */
-#endif
-
-  /* Window-based redisplay interface for this frame (0 for termcap
-     frames). */
-  struct redisplay_interface *rif;
-  
-  /* XXX Display hooks will go here. */
-};
-
-#define FRAME_MUST_WRITE_SPACES(f) ((f)->display_method->must_write_spaces)
-#define FRAME_FAST_CLEAR_END_OF_LINE(f) ((f)->display_method->fast_clear_end_of_line)
-#define FRAME_LINE_INS_DEL_OK(f) ((f)->display_method->line_ins_del_ok)
-#define FRAME_CHAR_INS_DEL_OK(f) ((f)->display_method->char_ins_del_ok)
-#define FRAME_SCROLL_REGION_OK(f) ((f)->display_method->scroll_region_ok)
-#define FRAME_SCROLL_REGION_COST(f) ((f)->display_method->scroll_region_cost)
-#define FRAME_MEMORY_BELOW_FRAME(f) ((f)->display_method->memory_below_frame)
-
-#define FRAME_RIF(f) ((f)->display_method->rif)
-
-/* Text display hooks.  */
-
-extern void (*cursor_to_hook) P_ ((int vpos, int hpos));
-extern void (*raw_cursor_to_hook) P_ ((int, int));
-
-extern void (*clear_to_end_hook) P_ ((void));
-extern void (*clear_frame_hook) P_ ((void));
-extern void (*clear_end_of_line_hook) P_ ((int));
-
-extern void (*ins_del_lines_hook) P_ ((int, int));
-
-extern void (*insert_glyphs_hook) P_ ((struct glyph *s, int n));
-extern void (*write_glyphs_hook) P_ ((struct glyph *s, int n));
-extern void (*delete_glyphs_hook) P_ ((int));
-
-extern void (*ring_bell_hook) P_ ((void));
-
-extern void (*reset_terminal_modes_hook) P_ ((void));
-extern void (*set_terminal_modes_hook) P_ ((void));
-extern void (*update_begin_hook) P_ ((struct frame *));
-extern void (*update_end_hook) P_ ((struct frame *));
-extern void (*set_terminal_window_hook) P_ ((int));
-
-
-
-/* Multi-frame and mouse support hooks.  */
 
 enum scroll_bar_part {
   scroll_bar_above_handle,
@@ -111,125 +41,6 @@ enum scroll_bar_part {
   scroll_bar_end_scroll,
   scroll_bar_move_ratio
 };
-
-/* Return the current position of the mouse.
-
-   Set *f to the frame the mouse is in, or zero if the mouse is in no
-   Emacs frame.  If it is set to zero, all the other arguments are
-   garbage.
-
-   If the motion started in a scroll bar, set *bar_window to the
-   scroll bar's window, *part to the part the mouse is currently over,
-   *x to the position of the mouse along the scroll bar, and *y to the
-   overall length of the scroll bar.
-
-   Otherwise, set *bar_window to Qnil, and *x and *y to the column and
-   row of the character cell the mouse is over.
-
-   Set *time to the time the mouse was at the returned position.
-
-   This should clear mouse_moved until the next motion
-   event arrives.  */
-extern void (*mouse_position_hook) P_ ((struct frame **f, int,
-					Lisp_Object *bar_window,
-					enum scroll_bar_part *part,
-					Lisp_Object *x,
-					Lisp_Object *y,
-					unsigned long *time));
-
-/* The window system handling code should set this if the mouse has
-   moved since the last call to the mouse_position_hook.  Calling that
-   hook should clear this.  */
-extern int mouse_moved;
-
-/* When a frame's focus redirection is changed, this hook tells the
-   window system code to re-decide where to put the highlight.  Under
-   X, this means that Emacs lies about where the focus is.  */
-extern void (*frame_rehighlight_hook) P_ ((struct frame *));
-
-/* If we're displaying frames using a window system that can stack
-   frames on top of each other, this hook allows you to bring a frame
-   to the front, or bury it behind all the other windows.  If this
-   hook is zero, that means the device we're displaying on doesn't
-   support overlapping frames, so there's no need to raise or lower
-   anything.
-
-   If RAISE is non-zero, F is brought to the front, before all other
-   windows.  If RAISE is zero, F is sent to the back, behind all other
-   windows.  */
-extern void (*frame_raise_lower_hook) P_ ((struct frame *f, int raise));
-
-
-/* Scroll bar hooks.  */
-
-/* The representation of scroll bars is determined by the code which
-   implements them, except for one thing: they must be represented by
-   lisp objects.  This allows us to place references to them in
-   Lisp_Windows without worrying about those references becoming
-   dangling references when the scroll bar is destroyed.
-
-   The window-system-independent portion of Emacs just refers to
-   scroll bars via their windows, and never looks inside the scroll bar
-   representation; it always uses hook functions to do all the
-   scroll bar manipulation it needs.
-
-   The `vertical_scroll_bar' field of a Lisp_Window refers to that
-   window's scroll bar, or is nil if the window doesn't have a
-   scroll bar.
-
-   The `scroll_bars' and `condemned_scroll_bars' fields of a Lisp_Frame
-   are free for use by the scroll bar implementation in any way it sees
-   fit.  They are marked by the garbage collector.  */
-
-
-/* Set the vertical scroll bar for WINDOW to have its upper left corner
-   at (TOP, LEFT), and be LENGTH rows high.  Set its handle to
-   indicate that we are displaying PORTION characters out of a total
-   of WHOLE characters, starting at POSITION.  If WINDOW doesn't yet
-   have a scroll bar, create one for it.  */
-extern void (*set_vertical_scroll_bar_hook)
-            P_ ((struct window *window,
-	         int portion, int whole, int position));
-
-
-/* The following three hooks are used when we're doing a thorough
-   redisplay of the frame.  We don't explicitly know which scroll bars
-   are going to be deleted, because keeping track of when windows go
-   away is a real pain - can you say set-window-configuration?
-   Instead, we just assert at the beginning of redisplay that *all*
-   scroll bars are to be removed, and then save scroll bars from the
-   fiery pit when we actually redisplay their window.  */
-
-/* Arrange for all scroll bars on FRAME to be removed at the next call
-   to `*judge_scroll_bars_hook'.  A scroll bar may be spared if
-   `*redeem_scroll_bar_hook' is applied to its window before the judgement.
-
-   This should be applied to each frame each time its window tree is
-   redisplayed, even if it is not displaying scroll bars at the moment;
-   if the HAS_SCROLL_BARS flag has just been turned off, only calling
-   this and the judge_scroll_bars_hook will get rid of them.
-
-   If non-zero, this hook should be safe to apply to any frame,
-   whether or not it can support scroll bars, and whether or not it is
-   currently displaying them.  */
-extern void (*condemn_scroll_bars_hook) P_ ((struct frame *frame));
-
-/* Unmark WINDOW's scroll bar for deletion in this judgement cycle.
-   Note that it's okay to redeem a scroll bar that is not condemned.  */
-extern void (*redeem_scroll_bar_hook) P_ ((struct window *window));
-
-/* Remove all scroll bars on FRAME that haven't been saved since the
-   last call to `*condemn_scroll_bars_hook'.
-
-   This should be applied to each frame after each time its window
-   tree is redisplayed, even if it is not displaying scroll bars at the
-   moment; if the HAS_SCROLL_BARS flag has just been turned off, only
-   calling this and condemn_scroll_bars_hook will get rid of them.
-
-   If non-zero, this hook should be safe to apply to any frame,
-   whether or not it can support scroll bars, and whether or not it is
-   currently displaying them.  */
-extern void (*judge_scroll_bars_hook) P_ ((struct frame *FRAME));
 
 
 /* Input queue declarations and hooks.  */
@@ -413,13 +224,6 @@ struct input_event
 
 #define EVENT_INIT(event) bzero (&(event), sizeof (struct input_event))
 
-/* Called to read input events.  */
-extern int (*read_socket_hook) P_ ((struct input_event *, int, int));
-
-/* Called when a frame's display becomes entirely up to date.  */
-extern void (*frame_up_to_date_hook) P_ ((struct frame *));
-
-
 /* Bits in the modifiers member of the input_event structure.
    Note that reorder_modifiers assumes that the bits are in canonical
    order.
@@ -470,6 +274,259 @@ enum {
 };
 
 #endif /* CONSP */
+
+
+/* Display-local parameters. */
+struct display
+{
+  /* Chain of all displays. */
+  struct display *next_display;
+
+  /* The number of frames that are on this display. */
+  int reference_count;
+  
+  /* The type of the display. */
+  enum output_method type;
+
+  /* Display-type dependent data shared amongst all frames on this display. */
+  union display_info
+  {
+    struct tty_display_info *tty;     /* termchar.h */
+    struct x_display_info *x;         /* xterm.h */
+  } display_info;
+
+
+  /* Terminal characteristics. */
+  /* XXX Are these really used on non-termcap displays? */
+  
+  int must_write_spaces;	/* Nonzero means spaces in the text must
+				   actually be output; can't just skip over
+				   some columns to leave them blank.  */
+  int fast_clear_end_of_line;   /* Nonzero means terminal has a `ce' string */
+  
+  int line_ins_del_ok;          /* Terminal can insert and delete lines */
+  int char_ins_del_ok;          /* Terminal can insert and delete chars */
+  int scroll_region_ok;         /* Terminal supports setting the scroll
+                                   window */
+  int scroll_region_cost;	/* Cost of setting the scroll window,
+                                   measured in characters. */
+  int memory_below_frame;	/* Terminal remembers lines scrolled
+                                   off bottom */
+
+#if 0  /* These are not used anywhere. */
+  /* EMACS_INT baud_rate; */	/* Output speed in baud */
+  int min_padding_speed;	/* Speed below which no padding necessary. */
+  int dont_calculate_costs;     /* Nonzero means don't bother computing
+                                   various cost tables; we won't use them. */
+#endif
+
+
+  /* Window-based redisplay interface for this device (0 for tty
+     devices). */
+  struct redisplay_interface *rif;
+
+  /* Frame-based redisplay interface. */
+  
+  /* Text display hooks.  */
+
+  void (*cursor_to_hook) P_ ((int vpos, int hpos));
+  void (*raw_cursor_to_hook) P_ ((int, int));
+  
+  void (*clear_to_end_hook) P_ ((void));
+  void (*clear_frame_hook) P_ ((void));
+  void (*clear_end_of_line_hook) P_ ((int));
+  
+  void (*ins_del_lines_hook) P_ ((int, int));
+  
+  void (*insert_glyphs_hook) P_ ((struct glyph *s, int n));
+  void (*write_glyphs_hook) P_ ((struct glyph *s, int n));
+  void (*delete_glyphs_hook) P_ ((int));
+  
+  void (*ring_bell_hook) P_ ((void));
+  
+  void (*reset_terminal_modes_hook) P_ ((void));
+  void (*set_terminal_modes_hook) P_ ((void));
+  void (*update_begin_hook) P_ ((struct frame *));
+  void (*update_end_hook) P_ ((struct frame *));
+  void (*set_terminal_window_hook) P_ ((int));
+
+  /* Multi-frame and mouse support hooks.  */
+
+  /* Return the current position of the mouse.
+
+     Set *f to the frame the mouse is in, or zero if the mouse is in no
+     Emacs frame.  If it is set to zero, all the other arguments are
+     garbage.
+  
+     If the motion started in a scroll bar, set *bar_window to the
+     scroll bar's window, *part to the part the mouse is currently over,
+     *x to the position of the mouse along the scroll bar, and *y to the
+     overall length of the scroll bar.
+
+     Otherwise, set *bar_window to Qnil, and *x and *y to the column and
+     row of the character cell the mouse is over.
+
+     Set *time to the time the mouse was at the returned position.
+     
+     This should clear mouse_moved until the next motion
+     event arrives.  */
+  void (*mouse_position_hook) P_ ((struct frame **f, int,
+                                   Lisp_Object *bar_window,
+                                   enum scroll_bar_part *part,
+                                   Lisp_Object *x,
+                                   Lisp_Object *y,
+                                   unsigned long *time));
+
+  /* The window system handling code should set this if the mouse has
+     moved since the last call to the mouse_position_hook.  Calling that
+     hook should clear this.  */
+  int mouse_moved;
+
+  /* When a frame's focus redirection is changed, this hook tells the
+     window system code to re-decide where to put the highlight.  Under
+     X, this means that Emacs lies about where the focus is.  */
+  void (*frame_rehighlight_hook) P_ ((struct frame *));
+
+  /* If we're displaying frames using a window system that can stack
+     frames on top of each other, this hook allows you to bring a frame
+     to the front, or bury it behind all the other windows.  If this
+     hook is zero, that means the device we're displaying on doesn't
+     support overlapping frames, so there's no need to raise or lower
+     anything.
+     
+     If RAISE is non-zero, F is brought to the front, before all other
+     windows.  If RAISE is zero, F is sent to the back, behind all other
+     windows.  */
+  void (*frame_raise_lower_hook) P_ ((struct frame *f, int raise));
+
+  
+  /* Scroll bar hooks.  */
+
+  /* The representation of scroll bars is determined by the code which
+     implements them, except for one thing: they must be represented by
+     lisp objects.  This allows us to place references to them in
+     Lisp_Windows without worrying about those references becoming
+     dangling references when the scroll bar is destroyed.
+     
+     The window-system-independent portion of Emacs just refers to
+     scroll bars via their windows, and never looks inside the scroll bar
+     representation; it always uses hook functions to do all the
+     scroll bar manipulation it needs.
+     
+     The `vertical_scroll_bar' field of a Lisp_Window refers to that
+     window's scroll bar, or is nil if the window doesn't have a
+     scroll bar.
+     
+     The `scroll_bars' and `condemned_scroll_bars' fields of a Lisp_Frame
+     are free for use by the scroll bar implementation in any way it sees
+     fit.  They are marked by the garbage collector.  */
+  
+  
+  /* Set the vertical scroll bar for WINDOW to have its upper left corner
+     at (TOP, LEFT), and be LENGTH rows high.  Set its handle to
+     indicate that we are displaying PORTION characters out of a total
+     of WHOLE characters, starting at POSITION.  If WINDOW doesn't yet
+     have a scroll bar, create one for it.  */
+  void (*set_vertical_scroll_bar_hook) P_ ((struct window *window,
+                                            int portion, int whole,
+                                            int position));
+
+
+  /* The following three hooks are used when we're doing a thorough
+     redisplay of the frame.  We don't explicitly know which scroll bars
+     are going to be deleted, because keeping track of when windows go
+     away is a real pain - can you say set-window-configuration?
+     Instead, we just assert at the beginning of redisplay that *all*
+     scroll bars are to be removed, and then save scroll bars from the
+     fiery pit when we actually redisplay their window.  */
+  
+  /* Arrange for all scroll bars on FRAME to be removed at the next call
+     to `*judge_scroll_bars_hook'.  A scroll bar may be spared if
+     `*redeem_scroll_bar_hook' is applied to its window before the judgement.
+     
+     This should be applied to each frame each time its window tree is
+     redisplayed, even if it is not displaying scroll bars at the moment;
+     if the HAS_SCROLL_BARS flag has just been turned off, only calling
+     this and the judge_scroll_bars_hook will get rid of them.
+     
+     If non-zero, this hook should be safe to apply to any frame,
+     whether or not it can support scroll bars, and whether or not it is
+     currently displaying them.  */
+  void (*condemn_scroll_bars_hook) P_ ((struct frame *frame));
+
+  /* Unmark WINDOW's scroll bar for deletion in this judgement cycle.
+     Note that it's okay to redeem a scroll bar that is not condemned.  */
+  void (*redeem_scroll_bar_hook) P_ ((struct window *window));
+
+  /* Remove all scroll bars on FRAME that haven't been saved since the
+     last call to `*condemn_scroll_bars_hook'.
+
+     This should be applied to each frame after each time its window
+     tree is redisplayed, even if it is not displaying scroll bars at the
+     moment; if the HAS_SCROLL_BARS flag has just been turned off, only
+     calling this and condemn_scroll_bars_hook will get rid of them.
+     
+     If non-zero, this hook should be safe to apply to any frame,
+     whether or not it can support scroll bars, and whether or not it is
+     currently displaying them.  */
+  void (*judge_scroll_bars_hook) P_ ((struct frame *FRAME));
+
+
+  /* Called to read input events.  */
+  int (*read_socket_hook) P_ ((struct input_event *, int, int));
+
+  /* Called when a frame's display becomes entirely up to date.  */
+  void (*frame_up_to_date_hook) P_ ((struct frame *));
+
+
+  /* Called to delete the device-specific portions of a frame that is
+     on this display. */
+  void (*delete_frame_hook) P_ ((struct frame *));
+
+  /* Called after the last frame on this display is deleted.
+     If this is NULL, then the generic delete_frame() is called.
+
+     Fdelete_frame ensures that there are no live frames on the
+     display when it calls this hook. */
+  void (*delete_display_hook) P_ ((struct display *));
+
+};
+
+
+/* Chain of all displays currently in use. */
+extern struct display *display_list;
+
+#define FRAME_MUST_WRITE_SPACES(f) ((f)->display->must_write_spaces)
+#define FRAME_FAST_CLEAR_END_OF_LINE(f) ((f)->display->fast_clear_end_of_line)
+#define FRAME_LINE_INS_DEL_OK(f) ((f)->display->line_ins_del_ok)
+#define FRAME_CHAR_INS_DEL_OK(f) ((f)->display->char_ins_del_ok)
+#define FRAME_SCROLL_REGION_OK(f) ((f)->display->scroll_region_ok)
+#define FRAME_SCROLL_REGION_COST(f) ((f)->display->scroll_region_cost)
+#define FRAME_MEMORY_BELOW_FRAME(f) ((f)->display->memory_below_frame)
+
+#define FRAME_RIF(f) ((f)->display->rif)
+
+#define FRAME_DISPLAY(f) ((f)->display)
+
+/* FRAME_WINDOW_P tests whether the frame is a window, and is
+   defined to be the predicate for the window system being used.  */
+
+#ifdef HAVE_X_WINDOWS
+#define FRAME_WINDOW_P(f) FRAME_X_P (f)
+#endif
+#ifdef HAVE_NTGUI
+#define FRAME_WINDOW_P(f) FRAME_W32_P (f)
+#endif
+#ifdef MAC_OS
+#define FRAME_WINDOW_P(f) FRAME_MAC_P (f)
+#endif
+#ifndef FRAME_WINDOW_P
+#define FRAME_WINDOW_P(f) (0)
+#endif
+
+
+extern struct display *create_display P_ ((void));
+extern void delete_display P_ ((struct display *));
 
 /* arch-tag: 33a00ecc-52b5-4186-a410-8801ac9f087d
    (do not change this comment) */

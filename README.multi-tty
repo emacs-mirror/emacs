@@ -127,15 +127,13 @@ See arch logs.
 THINGS TO DO
 ------------
 
-** Something with (maybe) multi-keyboard support broke function keys
-   and arrows on ttys during X+tty combo sessions.  Debug this.
+** Fix color handling during X+tty combo sessions.  (It seems that tty
+   sessions automatically convert the face colors to terminal colors
+   when the face is loaded.  This conversion must happen instead on
+   the fly in write_glyphs, which might be problematic, as color
+   approximation is done in lisp (term/tty-colors.el).)
 
-** Fix faces on tty frames during X-tty combo sessions.  There is an
-   init_frame_faces call in init_sys_modes, see if there is a problem
-   with it.
-
-** During an X-tty combo session, a (message "Hello") from a tty frame
-   goes to the X frame.  Fix this.
+** The command `emacsclient -t -e '(delete-frame)'' fails to exit.
 
 ** Find out the best way to support suspending Emacs with multiple
    ttys.  My guess: disable it on the controlling tty, but from other
@@ -143,15 +141,16 @@ THINGS TO DO
    extend emacsclient to handle suspend/resume.  A `kill -STOP' almost
    works right now.)
 
-** Move baud_rate to tty_output.
+** During an X session, Emacs seems to read from stdin.
 
-** Do tty output through term_hooks, like graphical display backends.
+** Move baud_rate to struct display.
+
+** Do tty output through struct display, like graphical display
+   backends.
 
 ** Implement support for starting an interactive Emacs session without
    an initial frame.  (The user would connect to it and open frames
    later, with emacsclient.)  Not necessarily a good idea.
-
-** Fix input from raw ttys (again).
 
 ** Fix Mac support (I can't do this myself).
 
@@ -162,15 +161,14 @@ THINGS TO DO
 ** Do a grep on XXX and ?? for more issues.
 
 ** Understand Emacs's low-level input system (it seems complicated) :-)
-
-** What does interrupt_input do?  I tried to disable it for raw
+   What does interrupt_input do?  I tried to disable it for raw
    secondary tty support, but it does not seem to do anything useful.
    (Update: Look again. X unconditionally enables this, maybe that's
    why raw terminal support is broken again.  I really do need to
    understand input.)
 
-** Make sure C-g goes to the right frame.  This is hard, as SIGINT
-   doesn't have a tty parameter. :-(
+** Make sure C-g goes to the right frame with ttys.  This is hard, as
+   SIGINT doesn't have a tty parameter. :-(
 
 ** I have seen a case when Emacs with multiple ttys fell into a loop
    eating 100% of CPU time.  Strace showed this loop:
@@ -191,19 +189,19 @@ THINGS TO DO
    I have seen something similar with a single X frame, but have not
    been able to reproduce it for debugging.
 
-** Define a output_initial value for output_method for the initial
+   Update: This may have been caused by checking for nread != 0
+   instead of nread > 0 after calling read_socket_hook in
+   read_avail_input.
+
+** Define an output_initial value for output_method for the initial
    frame that is dumped with Emacs.  Checking for this frame (e.g. in
    cmd_error_internal) is ugly.
 
 ** emacsclient -t from an Emacs term buffer does not work, complains
    about face problems.  This can even lock up Emacs (if the recursive
-   frame sets single_kboard).
-
-** Clean up the source of emacsclient.  It is a mess.
-
-** C-x 5 2, C-x 5 o, C-x 5 0 on an emacsclient frame unexpectedly
-   exits emacsclient.  This is a result of trying to be clever with
-   delete-frame-functions.
+   frame sets single_kboard).  Update: the face problems are caused by
+   bugs in term.el, not in multi-tty.  The lockup is caused by
+   single_kboard mode.
 
 DIARY OF CHANGES
 ----------------
@@ -448,5 +446,39 @@ DIARY OF CHANGES
 -- Add multi-tty support to talk.el.
 
    (Done.)
+
+-- Clean up the source of emacsclient.  It is a mess.
+
+   (Done, eliminated stupid proxy-pty kludge.)
+
+-- Fix faces on tty frames during X-tty combo sessions.  There is an
+   init_frame_faces call in init_sys_modes, see if there is a problem
+   with it.
+
+   (Done, there was a stupid mistake in
+   Ftty_supports_face_attributes_p. Colors are broken, though.)
+
+-- C-x 5 2, C-x 5 o, C-x 5 0 on an emacsclient frame unexpectedly
+   exits emacsclient.  This is a result of trying to be clever with
+   delete-frame-functions.
+
+   (Fixed, added delete-tty-after-functions, and changed server.el to
+   use it.)
+
+-- Something with (maybe) multi-keyboard support broke function keys
+   and arrows on ttys during X+tty combo sessions.  Debug this.
+
+   (I can't reproduce it, maybe the terminal type was wrong.)
+
+-- Fix input from raw ttys (again).
+
+   (Now it seems to work all right.)
+
+-- During an X-tty combo session, a (message "Hello") from a tty frame
+   goes to the X frame.  Fix this.
+
+   (Done.  There was a safeguard against writing to the initial
+   terminal frame during bootstrap which prevented echo_area_display
+   from working correctly on a tty frame during a combo session.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d

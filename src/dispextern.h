@@ -1249,7 +1249,7 @@ struct glyph_string
 	DESCENT = FONT->descent
 	HEIGHT = FONT_HEIGHT (FONT)
 	F_DESCENT = (FRAME_FONT (F)->descent
-		     - F->output_data.x->baseline_offset)
+		     - F->device->output_data.x->baseline_offset)
 	F_HEIGHT = FRAME_LINE_HEIGHT (F)
 */
 
@@ -2748,8 +2748,8 @@ extern int per_line_cost P_ ((char *));
 extern void calculate_costs P_ ((struct frame *));
 extern void set_tty_color_mode P_ ((struct frame *, Lisp_Object));
 extern void tty_setup_colors P_ ((struct tty_display_info *, int));
-extern struct tty_display_info *term_init P_ ((Lisp_Object, char *, char *));
-extern struct tty_display_info *term_dummy_init P_ ((void));
+extern struct display *term_init P_ ((char *, char *));
+extern struct display *initial_term_init P_ ((void));
 extern void fatal P_ ((/* char *, ... */));
 void cursor_to P_ ((int, int));
 extern int tty_capable_p P_ ((struct tty_display_info *, unsigned, unsigned long, unsigned long));

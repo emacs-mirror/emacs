@@ -134,9 +134,6 @@ struct x_bitmap_record
   int height, width, depth;
 };
 
-/* Generic parameters for X displays. */
-extern struct display_method x_display_method;
-
 /* For each X display, we have a structure that records
    information about it.  */
 
@@ -385,6 +382,9 @@ struct x_display_info
       X_WMTYPE_A,
       X_WMTYPE_B
     } wm_type;
+
+  /* The generic display parameters corresponding to this X display. */
+  struct display *frame_display;
 };
 
 #ifdef HAVE_X_I18N
