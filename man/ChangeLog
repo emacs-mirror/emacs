@@ -1,3 +1,7 @@
+2000-06-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* reftex.texi: @setfilename to ../info/reftex.
+
 2000-06-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* autotype.texi, cl.texi, eudc.texi, gnus.texi, idlwave.texi

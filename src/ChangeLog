@@ -10,6 +10,17 @@
 
 2000-06-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (adjust_point_for_property): Check if display
+	property should be treated as intangible by looking at its
+	value.
+
+	* xdisp.c (single_display_prop_intangible_p) 
+	(display_prop_intangible_p): New functions.
+
+	* dispextern.h (display_prop_intangible_p): Add prototype.
+
+	* xdisp.c (dump_glyph_row): Show type of glyph->object.
+	
 	* s/isc4-0.h (sigblock): Redefined to pass a pointer as second
 	argument to sigprocmask.
 
@@ -29,7 +40,6 @@
 	* xrdb.c: Don't declare xmalloc, xrealloc.
 
 2000-06-20  Stefan Monnier  <monnier@cs.yale.edu>
-	Based on a patch by Larry Jones <larry.jones@sdrc.com>.
 
 	* regex.c (re_match, re_match_2): Protect calls to alloca (0).
 	(re_comp): Cast gettext return value to avoid complaints when
