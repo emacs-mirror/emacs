@@ -49,12 +49,27 @@
   :type 'boolean
   :group 'ielm)
 
-(defcustom ielm-prompt "ELISP> "
-  "Prompt used in IELM."
-  :type 'string
+(defcustom ielm-prompt-read-only t
+  "If non-nil, the IELM prompt is read only.
+Setting this variable does not affect existing IELM runs.
+
+You can give the IELM prompt more highly customized read-only
+type properties, by setting this option to nil, and then setting
+`ielm-prompt', outside of Custom, to a string with the desired
+text properties."
+  :type 'boolean
   :group 'ielm
-  :get #'(lambda (symbol) (substring-no-properties (symbol-value symbol)))
-  :set #'(lambda (symbol value) (set symbol (propertize value 'read-only t 'rear-nonsticky t))))
+  :version "21.4")
+
+(defcustom ielm-prompt "ELISP> "
+  "Prompt used in IELM.
+Setting the default value does not affect existing IELM runs.
+The command `inferior-emacs-lisp-mode' converts this into a
+buffer-local variable in IELM buffers.  Do not try to set the
+buffer-local value yourself in any way, unless you really know
+what you are doing."
+  :type 'string
+  :group 'ielm)
 
 (defcustom ielm-dynamic-return t
   "*Controls whether \\<ielm-map>\\[ielm-return] has intelligent behaviour in IELM.
@@ -429,6 +444,8 @@ Expressions evaluated by IELM are not subject to `debug-on-quit' or
 The behaviour of IELM may be customized with the following variables:
 * To stop beeping on error, set `ielm-noisy' to nil.
 * If you don't like the prompt, you can change it by setting `ielm-prompt'.
+* If you do not like that the prompt is (by default) read-only, set
+  `ielm-prompt-read-only' to nil.
 * Set `ielm-dynamic-return' to nil for bindings like `lisp-interaction-mode'.
 * Entry to this mode runs `comint-mode-hook' and `ielm-mode-hook'
  (in that order).
@@ -443,6 +460,13 @@ Customized bindings may be defined in `ielm-map', which currently contains:
   (setq comint-input-sender 'ielm-input-sender)
   (setq comint-process-echoes nil)
   (make-local-variable 'comint-dynamic-complete-functions)
+  (set (make-local-variable 'ielm-prompt)
+       (if ielm-prompt-read-only
+	   (propertize ielm-prompt
+		       'read-only t
+		       'rear-nonsticky t
+		       'front-sticky '(read-only))
+	 ielm-prompt))
   (setq comint-dynamic-complete-functions
 	'(ielm-tab comint-replace-by-expanded-history ielm-complete-filename ielm-complete-symbol))
   (setq comint-get-old-input 'ielm-get-old-input)
