@@ -1783,6 +1783,7 @@ The third `match-string' will be the used in the menu.")
 With positive prefix ARG always turns viewing on, with negative ARG always off.
 Can be used as a value for `html-mode-hook'."
   nil nil nil
+  :group 'sgml
   (if html-autoview-mode
       (add-hook 'after-save-hook 'browse-url-of-buffer nil t)
     (remove-hook 'after-save-hook 'browse-url-of-buffer t)))
