@@ -1900,6 +1900,10 @@ to phrases and to highlight entire lines containing a match.
 *** The new package zone.el plays games with Emacs' display when
 Emacs is idle.
 
++++
+*** The new package tildify.el allows to add hard spaces or other text
+fragments in accordance with the current major mode.
+
 *** The new package xml.el provides a simple but generic XML
 parser. It doesn't parse the DTDs however.
 
