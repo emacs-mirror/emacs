@@ -335,14 +335,14 @@ internal_self_insert (c1, noautofill)
       && current_column () > XFASTINT (current_buffer->fill_column))
     {
       if (c1 != '\n')
-	insert (&c1, 1);
+	insert_and_inherit (&c1, 1);
       call0 (current_buffer->auto_fill_function);
       if (c1 == '\n')
-	insert (&c1, 1);
+	insert_and_inherit (&c1, 1);
       hairy = 2;
     }
   else
-    insert (&c1, 1);
+    insert_and_inherit (&c1, 1);
   synt = SYNTAX (c);
   if ((synt == Sclose || synt == Smath)
       && !NILP (Vblink_paren_function) && INTERACTIVE)
