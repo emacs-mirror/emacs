@@ -21,14 +21,6 @@ Boston, MA 02111-1307, USA.  */
 
 
 #include <config.h>
-/* The following feature selections should be in config.h, but that
-   causes at best a host of warnings on some systems.  */
-#undef _XOPEN_SOURCE		/* Avoid warnings about redefinition
-				   in some cases.  */
-#define _XOPEN_SOURCE 500	/* for Unix 98 ftello on GNU */
-#undef __EXTENSIONS__
-#define __EXTENSIONS__		/* Keep Solaris 2.6 happy with the
-				   above, else things we need are hidden.  */
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
