@@ -95,6 +95,14 @@ the section of autoloads for a file.")
 (put 'defconst 'doc-string-elt 3)
 (put 'defmacro 'doc-string-elt 3)
 
+(defun autoload-trim-file-name (file)
+  ;; Returns a relative pathname of FILE including the last directory.
+  (setq file (expand-file-name file))
+  (file-relative-name file
+ 		      (file-name-directory
+ 		       (directory-file-name
+ 			(file-name-directory file)))))
+
 (defun generate-file-autoloads (file)
   "Insert at point a loaddefs autoload section for FILE.
 autoloads are generated for defuns and defmacros in FILE
@@ -109,6 +117,7 @@ are used."
 			 (substring name 0 (match-beginning 0))
 		       name)))
 	(print-length nil)
+	(print-readably t)		; This does something in Lucid Emacs.
 	(float-output-format nil)
 	(done-any nil)
 	(visited (get-file-buffer file))
@@ -146,55 +155,76 @@ are used."
 		    (search-forward generate-autoload-cookie)
 		    (skip-chars-forward " \t")
 		    (setq done-any t)
-		    (if (eolp)
-			;; Read the next form and make an autoload.
-			(let* ((form (prog1 (read (current-buffer))
-				       (forward-line 1)))
-			       (autoload (make-autoload form load-name))
-			       (doc-string-elt (get (car-safe form)
-						    'doc-string-elt)))
-			  (if autoload
-			      (setq autoloads-done (cons (nth 1 form)
-							 autoloads-done))
-			    (setq autoload form))
-			  (if (and doc-string-elt
-				   (stringp (nth doc-string-elt autoload)))
-			      ;; We need to hack the printing because the
-			      ;; doc-string must be printed specially for
-			      ;; make-docfile (sigh).
-			      (let* ((p (nthcdr (1- doc-string-elt)
-						autoload))
-				     (elt (cdr p)))
-				(setcdr p nil)
-				(princ "\n(" outbuf)
-				(let ((print-escape-newlines t))
-				  (mapcar (function (lambda (elt)
-						      (prin1 elt outbuf)
-						      (princ " " outbuf)))
-					  autoload))
-				(princ "\"\\\n" outbuf)
-				(princ (substring
-					(prin1-to-string (car elt)) 1)
-				       outbuf)
-				(if (null (cdr elt))
-				    (princ ")" outbuf)
-				  (princ " " outbuf)
+		    (let ((begin (save-excursion (set-buffer outbuf)
+						 (point))))
+		      (if (eolp)
+			  ;; Read the next form and make an autoload.
+			  (let* ((form (prog1 (read (current-buffer))
+					 (forward-line 1)))
+				 (autoload (make-autoload form load-name))
+				 (doc-string-elt (get (car-safe form)
+						      'doc-string-elt)))
+			    (if autoload
+				(setq autoloads-done (cons (nth 1 form)
+							   autoloads-done))
+			      (setq autoload form))
+			    (if (and doc-string-elt
+				     (stringp (nth doc-string-elt autoload)))
+				;; We need to hack the printing because the
+				;; doc-string must be printed specially for
+				;; make-docfile (sigh).
+				(let* ((p (nthcdr (1- doc-string-elt)
+						  autoload))
+				       (elt (cdr p)))
+				  (setcdr p nil)
+				  (princ "\n(" outbuf)
+				  (let ((print-escape-newlines t))
+				    (mapcar (function (lambda (elt)
+							(prin1 elt outbuf)
+							(princ " " outbuf)))
+					    autoload))
+				  (princ "\"\\\n" outbuf)
+				  (let ((begin (save-excursion
+						 (set-buffer outbuf)
+						 (point))))
 				  (princ (substring
-					  (prin1-to-string (cdr elt))
-					  1)
-					 outbuf))
-				(terpri outbuf))
-			    (print autoload outbuf)))
-		      ;; Copy the rest of the line to the output.
-		      (let ((begin (point)))
-			(forward-line 1)
-			(princ (buffer-substring begin (point)) outbuf))))
-			((looking-at ";")
-			 ;; Don't read the comment.
-			 (forward-line 1))
-			(t
-			 (forward-sexp 1)
-			 (forward-line 1)))))))
+					  (prin1-to-string (car elt)) 1)
+					 outbuf)
+				  ;; Insert a backslash before each ( that
+				  ;; appears at the beginning of a line in
+				  ;; the doc string.
+				  (save-excursion
+				    (set-buffer outbuf)
+				    (save-excursion
+				      (while (search-backward "\n(" begin t)
+					(forward-char 1)
+					(insert "\\"))))
+				  (if (null (cdr elt))
+				      (princ ")" outbuf)
+				    (princ " " outbuf)
+				    (princ (substring
+					    (prin1-to-string (cdr elt))
+					    1)
+					   outbuf))
+				  (terpri outbuf))
+			      (print autoload outbuf)))
+			;; Copy the rest of the line to the output.
+			(let ((begin (point)))
+			  (forward-line 1)
+			  (princ (buffer-substring begin (point)) outbuf)))
+		      (save-excursion
+			(set-buffer outbuf)
+			;; Replace literal ^Ls with \f in what we just wrote.
+			(save-excursion
+			  (while (search-backward "\f" begin t)
+			    (delete-char 1)
+			    (insert "\\f"))))))
+		   ((looking-at ";")
+		    ;; Don't read the comment.
+		    (forward-line 1))
+		   (t
+		    (forward-sexp 1)
+		    (forward-line 1)))))))
 	(or visited
 	    ;; We created this buffer, so we should kill it.
 	    (kill-buffer (current-buffer)))
@@ -203,11 +233,13 @@ are used."
     (if done-any
 	(progn
 	  (insert generate-autoload-section-header)
-	  (prin1 (list 'autoloads autoloads-done load-name file
+	  (prin1 (list 'autoloads autoloads-done load-name
+		       (autoload-trim-file-name file)
 		       (nth 5 (file-attributes file)))
 		 outbuf)
 	  (terpri outbuf)
-	  (insert ";;; Generated autoloads from " file "\n")
+	  (insert ";;; Generated autoloads from "
+		  (autoload-trim-file-name file) "\n")
 	  (goto-char output-end)
 	  (insert generate-autoload-section-trailer)))
     (message "Generating autoloads for %s...done" file)))
@@ -269,8 +301,23 @@ autoloads go somewhere else.")
 		     ;; there must be no section for LOAD-NAME.  We will
 		     ;; insert one before the section here.
 		     (goto-char (match-beginning 0))
-		     (setq found t)))))
-	  (if (eq found t)
+		     (setq found 'new)))))
+	  (or (eq found 'up-to-date)
+	      (and (eq found 'new)
+		   ;; Check that FILE has any cookies before generating a
+		   ;; new section for it.
+		   (save-excursion
+		     (set-buffer (find-file-noselect file))
+		     (save-excursion
+		       (widen)
+		       (goto-char (point-min))
+		       (if (search-forward (concat "\n"
+						   generate-autoload-cookie)
+					   nil t)
+			   nil
+			 (if (interactive-p)
+			     (message file " has no autoloads"))
+			 t))))
 	      (generate-file-autoloads file))
 	  (setq done t)))
       (if (interactive-p) (save-buffer))
@@ -316,7 +363,7 @@ file \"%s\") doesn't exist.  Remove its autoload section? "
   "Run \\[update-file-autoloads] on each .el file in DIR."
   (interactive "DUpdate autoloads for directory: ")
   (mapcar 'update-file-autoloads
-	  (directory-files dir nil "\\.el$"))
+	  (directory-files dir t "\\.el$"))
   (if (interactive-p)
       (save-excursion
 	(set-buffer (find-file-noselect generated-autoload-file))
@@ -332,18 +379,30 @@ For example, invoke \"emacs -batch -f batch-update-autoloads *.el\""
   (if (not noninteractive)
       (error "batch-update-autoloads is to be used only with -batch"))
   (let ((lost nil)
-	(args command-line-args-left))
-    (while args
-      (catch 'file
-	(condition-case lossage
-	    (if (file-directory-p (expand-file-name (car args)))
-		(update-directory-autoloads (car args))
-	      (update-file-autoloads (car args)))
-	  (error (progn (message ">>Error processing %s: %s"
-				 (car args) lossage)
-			(setq lost t)
-			(throw 'file nil)))))
-      (setq args (cdr args)))
+	(args command-line-args-left)
+	(enable-local-eval nil))	;Don't query in batch mode.
+    (message "Updating autoloads in %s..." generated-autoload-file)
+    (let ((frob (function
+ 		 (lambda (file)
+ 		   (condition-case lossage
+ 		       (update-file-autoloads file)
+ 		     (error
+ 		      (princ ">>Error processing ")
+ 		      (princ file)
+ 		      (princ ": ")
+ 		      (if (fboundp 'display-error)
+ 			  (display-error lossage nil)
+ 			(prin1 lossage))
+ 		      (princ "\n")
+ 		      (setq lost t)))))))
+      (while args
+ 	(if (file-directory-p (expand-file-name (car args)))
+ 	    (let ((rest (directory-files (car args) t "\\.el$")))
+ 	      (while rest
+ 		(funcall frob (car rest))
+ 		(setq rest (cdr rest))))
+ 	  (funcall frob (car args)))
+ 	(setq args (cdr args)))
     (save-some-buffers t)
     (message "Done")
     (kill-emacs (if lost 1 0))))
