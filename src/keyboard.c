@@ -6838,23 +6838,7 @@ input_available_signal (signo)
   interrupt_input_pending = 1;
 #else
 
-# if !defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD)
-  extern pthread_t main_thread;
-  if (pthread_self () != main_thread)
-    {
-      /* POSIX says any thread can receive the signal.  On GNU/Linux that is
-         not true, but for other systems (FreeBSD at least) it is.  So direct
-         the signal to the correct thread and block it from this thread.  */
-      sigset_t new_mask;
-
-      sigemptyset (&new_mask);
-      sigaddset (&new_mask, SIGIO);
-      pthread_sigmask (SIG_BLOCK, &new_mask, 0);
-      pthread_kill (main_thread, SIGIO);
-      return;
-    }
-# endif /* HAVE_GTK_AND_PTHREAD */
-
+  SIGNAL_THREAD_CHECK (signo);
   handle_async_input ();
 #endif
 
@@ -10270,6 +10254,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
     }
 #endif /* USG */
 
+  SIGNAL_THREAD_CHECK (signalnum);
   cancel_echoing ();
 
   if (!NILP (Vquit_flag)

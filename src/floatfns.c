@@ -981,6 +981,7 @@ float_error (signo)
   signal (SIGILL, float_error);
 #endif /* BSD_SYSTEM */
 
+  SIGNAL_THREAD_CHECK (signo);
   in_float = 0;
 
   Fsignal (Qarith_error, Fcons (float_error_arg, Qnil));

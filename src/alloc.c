@@ -99,7 +99,7 @@ extern __malloc_size_t __malloc_extra_blocks;
    If Emacs sets malloc hooks (! SYSTEM_MALLOC) and the emacs_blocked_*
    functions below are called from malloc, there is a chance that one
    of these threads preempts the Emacs main thread and the hook variables
-   end up in a inconsistent state.  So we have a mutex to prevent that (note
+   end up in an inconsistent state.  So we have a mutex to prevent that (note
    that the backend handles concurrent access to malloc within its own threads
    but Emacs code running in the main thread is not included in that control).
 
@@ -109,7 +109,6 @@ extern __malloc_size_t __malloc_extra_blocks;
    To prevent that, we only call BLOCK/UNBLOCK from the main thread.  */
 
 static pthread_mutex_t alloc_mutex;
-pthread_t main_thread;
 
 #define BLOCK_INPUT_ALLOC                       \
   do                                            \
@@ -1310,8 +1309,6 @@ uninterrupt_malloc ()
   pthread_mutexattr_init (&attr);
   pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE);
   pthread_mutex_init (&alloc_mutex, &attr);
-
-  main_thread = pthread_self ();
 #endif /* HAVE_GTK_AND_PTHREAD */
 
   if (__free_hook != emacs_blocked_free)

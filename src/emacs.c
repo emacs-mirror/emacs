@@ -342,6 +342,14 @@ int fatal_error_in_progress;
 
 void (*fatal_error_signal_hook) P_ ((void));
 
+#ifdef HAVE_GTK_AND_PTHREAD
+/* When compiled with GTK and running under Gnome, multiple threads meay be
+   created.  Keep track of our main thread to make sure signals are delivered
+   to it (see syssignal.h).  */
+
+pthread_t main_thread;
+#endif
+
 
 #ifdef SIGUSR1
 SIGTYPE
@@ -350,6 +358,7 @@ handle_USR1_signal (sig)
 {
   struct input_event buf;
 
+  SIGNAL_THREAD_CHECK (sig);
   bzero (&buf, sizeof buf);
   buf.kind = USER_SIGNAL_EVENT;
   buf.frame_or_window = selected_frame;
@@ -365,6 +374,7 @@ handle_USR2_signal (sig)
 {
   struct input_event buf;
 
+  SIGNAL_THREAD_CHECK (sig);
   bzero (&buf, sizeof buf);
   buf.kind = USER_SIGNAL_EVENT;
   buf.code = 1;
@@ -379,6 +389,7 @@ SIGTYPE
 fatal_error_signal (sig)
      int sig;
 {
+  SIGNAL_THREAD_CHECK (sig);
   fatal_error_code = sig;
   signal (sig, SIG_DFL);
 
@@ -418,6 +429,7 @@ memory_warning_signal (sig)
      int sig;
 {
   signal (sig, memory_warning_signal);
+  SIGNAL_THREAD_CHECK (sig);
 
   malloc_warning ("Operating system warns that virtual memory is running low.\n");
 
@@ -1028,6 +1040,10 @@ main (argc, argv
   uninterrupt_malloc ();
 # endif /* not SYNC_INPUT */
 #endif	/* not SYSTEM_MALLOC */
+
+#ifdef HAVE_GTK_AND_PTHREAD
+  main_thread = pthread_self ();
+#endif /* HAVE_GTK_AND_PTHREAD */
 
 #if defined (MSDOS) || defined (WINDOWSNT)
   /* We do all file input/output as binary files.  When we need to translate

@@ -3366,6 +3366,7 @@ arith_error (signo)
   sigsetmask (SIGEMPTYMASK);
 #endif /* not BSD4_1 */
 
+  SIGNAL_THREAD_CHECK (signo);
   Fsignal (Qarith_error, Qnil);
 }
 

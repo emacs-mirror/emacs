@@ -20,6 +20,11 @@ Boston, MA 02111-1307, USA.  */
 
 extern void init_signals P_ ((void));
 
+#ifdef HAVE_GTK_AND_PTHREAD
+#include <pthread.h>
+extern pthread_t main_thread;
+#endif
+
 #ifdef POSIX_SIGNALS
 
 /* Don't #include <signal.h>.  That header should always be #included
@@ -198,5 +203,27 @@ extern SIGMASKTYPE sigprocmask_set;
 char *strsignal ();
 #endif
 
+#ifdef HAVE_GTK_AND_PTHREAD
+#define SIGNAL_THREAD_CHECK(signo)                                      \
+  do {                                                                  \
+    if (pthread_self () != main_thread)                                 \
+      {                                                                 \
+        /* POSIX says any thread can receive the signal.  On GNU/Linux  \
+           that is not true, but for other systems (FreeBSD at least)   \
+           it is.  So direct the signal to the correct thread and block \
+           it from this thread.  */                                     \
+        sigset_t new_mask;                                              \
+                                                                        \
+        sigemptyset (&new_mask);                                        \
+        sigaddset (&new_mask, signo);                                   \
+        pthread_sigmask (SIG_BLOCK, &new_mask, 0);                      \
+        pthread_kill (main_thread, signo);                              \
+        return;                                                         \
+      }                                                                 \
+   } while (0)
+
+#else /* not HAVE_GTK_AND_PTHREAD */
+#define SIGNAL_THREAD_CHECK(signo)
+#endif /* not HAVE_GTK_AND_PTHREAD */
 /* arch-tag: 4580e86a-340d-4574-9e11-a742b6e1a152
    (do not change this comment) */

@@ -5104,6 +5104,7 @@ Lisp_Object process_sent_to;
 SIGTYPE
 send_process_trap ()
 {
+  SIGNAL_THREAD_CHECK (SIGPIPE);
 #ifdef BSD4_1
   sigrelse (SIGPIPE);
   sigrelse (SIGALRM);
@@ -6145,6 +6146,8 @@ sigchld_handler (signo)
   Lisp_Object proc;
   register struct Lisp_Process *p;
   extern EMACS_TIME *input_available_clear_time;
+
+  SIGNAL_THREAD_CHECK (signo);
 
 #ifdef BSD4_1
   extern int sigheld;

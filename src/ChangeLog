@@ -1,5 +1,32 @@
 2004-12-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* syssignal.h: Declare main_thread.
+	(SIGNAL_THREAD_CHECK): New macro.
+
+	* keyboard.c (input_available_signal): Move thread checking code
+	to macro SIGNAL_THREAD_CHECK and call that macro.
+	(interrupt_signal): Call SIGNAL_THREAD_CHECK.
+
+	* alloc.c (uninterrupt_malloc): Move main_thread to emacs.c.
+
+	* emacs.c: Define main_thread.
+	(main): Initialize main_thread.
+	(handle_USR1_signal, handle_USR2_signal, fatal_error_signal)
+	(memory_warning_signal): Call SIGNAL_THREAD_CHECK.
+
+	* floatfns.c (float_error): Call SIGNAL_THREAD_CHECK.
+
+	* dispnew.c (window_change_signal): Call SIGNAL_THREAD_CHECK.
+
+	* sysdep.c (select_alarm): Call SIGNAL_THREAD_CHECK.
+
+	* process.c (send_process_trap, sigchld_handler): Call 
+	SIGNAL_THREAD_CHECK.
+
+	* data.c (arith_error): Call SIGNAL_THREAD_CHECK.
+
+	* atimer.c (alarm_signal_handler): Call SIGNAL_THREAD_CHECK.
+
 	* xterm.c (xg_scroll_callback): Update XG_LAST_SB_DATA before
 	returning when xg_ignore_gtk_scrollbar is true.
 
