@@ -1,3 +1,11 @@
+2001-07-06  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Use locale dependant date to print date in header.  Doc
+	fix.
+	(ps-print-version): New version number (6.5.3).
+	(ps-right-header, ps-right-footer): Initialization and doc fix.
+	(ps-time-stamp-locale-default): New fun.
+
 2001-07-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* bindings.el (mode-line-mule-info): Don't show the tip with
