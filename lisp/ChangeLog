@@ -1,3 +1,8 @@
+2002-04-19  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* files.el (file-name-non-special): Don't mangle the 0'th arg and the
+	return value of file-name-completion and file-name-all-completions.
+
 2002-04-19  Glenn Morris <gmorris@ast.cam.ac.uk>
 
 	* progmodes/f90.el: Update maintainer.
@@ -22,7 +27,7 @@
 	* register.el (insert-register): Use insert-for-yank.
 	(describe-register-1): Discard text props in yank-excluded-properties.
 
-	* toolbar/tool-bar.el (tool-bar-local-item-from-menu): 
+	* toolbar/tool-bar.el (tool-bar-local-item-from-menu):
 	Fix parts in construction of `menu-item' item at end.
 
 	* mail/mailabbrev.el (mail-mode-abbrev-table): Delete defvar.
@@ -50,15 +55,14 @@
 
 	* ibuffer.el (ibuffer-visit-buffer): Optionally allow reducing to
 	one window.
-	(ibuffer-visit-buffer-1-window): Simply call
-	`ibuffer-visit-buffer'.
+	(ibuffer-visit-buffer-1-window): Simply call `ibuffer-visit-buffer'.
 	(ibuffer-current-state-list): Reinstate optional argument; now
 	just call `point' inside the mapping function.
 
 2002-04-17  Francesco Potorti`  <pot@gnu.org>
 
-	* dired-aux.el (dired-star-subst-regexp,
-	dired-quark-subst-regexp): New constants.
+	* dired-aux.el (dired-star-subst-regexp)
+	(dired-quark-subst-regexp): New constants.
 	(dired-do-shell-command, dired-shell-stuff-it): Use them.
 	(dired-do-shell-command): Raise an error if both `*' and `?'
 	substitution marks are used in the same command.
@@ -96,15 +100,15 @@
 	(ex-print): New function.
 	(ex-print-display-lines): New function.
 
-	* viper.el (viper-set-hooks): add window-setup-hook, which sets
+	* viper.el (viper-set-hooks): Add window-setup-hook, which sets
 	the cursor color.
 
-	* ediff-util.el (ediff-cleanup-mess): delete ctl window on exit
+	* ediff-util.el (ediff-cleanup-mess): Delete ctl window on exit
 	when the window is not in its own frame.
-	(ediff-clone-buffer-for-region-comparison): more robust window
+	(ediff-clone-buffer-for-region-comparison): More robust window
 	arrangement while prompting for regions to compare.
-	(ediff-make-cloned-buffer): use generate-new-buffer-name.
-	(ediff-inferior-compare-regions): deleted unused vars
+	(ediff-make-cloned-buffer): Use generate-new-buffer-name.
+	(ediff-inferior-compare-regions): Deleted unused vars
 	ctl-buf and quit-now.
 
 2002-04-15  Richard M. Stallman  <rms@gnu.org>
@@ -177,8 +181,7 @@
 	arguments; the other two were unused.
 	(ibuffer-redisplay, ibuffer-update): Always skip special areas.
 
-	* ibuf-macs.el, ibuf-ext.el: Update callers of
-	`ibuffer-map-lines'.
+	* ibuf-macs.el, ibuf-ext.el: Update callers of `ibuffer-map-lines'.
 
 	* calc/calc-bin.el (math-format-radix-float): Use `when'.
 
@@ -200,8 +203,7 @@
 2002-04-12  John Wiegley  <johnw@gnu.org>
 
 	* eshell/esh-ext.el (eshell-script-interpreter): Fix for CRLF
-	operating systems to the regexp used to detect a script's
-	interpretor.
+	operating systems to the regexp used to detect a script's interpreter.
 
 2002-04-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
