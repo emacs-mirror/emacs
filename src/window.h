@@ -132,6 +132,9 @@ struct window
     Lisp_Object optional_new_start;
     /* Number of columns display within the window is scrolled to the left.  */
     Lisp_Object hscroll;
+    /* Minimum hscroll for automatic hscrolling.  This is the value
+       the user has set, by set-window-hscroll for example.  */
+    Lisp_Object min_hscroll;
     /* Number saying how recently window was selected */
     Lisp_Object use_time;
     /* Unique number of window assigned when it was created */
