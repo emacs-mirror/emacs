@@ -1,15 +1,19 @@
-;;; feedmail.el --- assist other email packages to massage outgoing messages 
-;;; A replacement for parts of GNUemacs' sendmail.el (specifically,
-;;; it's what handles your outgoing mail after you hit C-c C-c in mail
-;;; mode).  See below for a list of additional features, including the
-;;; ability to queue messages for later sending.  If you are using
-;;; fakemail as a subprocess, you can switch to feedmail and eliminate
-;;; the use of fakemail.  feedmail works with recent versions of
-;;; GNUemacs (mostly, but not exclusively, tested against 19.34 on
-;;; Win95; some testing on 20.x) and XEmacs (tested with 20.4 and
-;;; later betas).  It probably no longer works with GNUemacs v18,
-;;; though I haven't tried that in a long time.  Sorry, no manual yet
-;;; in this release.  Look for one with the next release.
+;;; feedmail.el --- assist other email packages to massage outgoing messages
+;;; This file is in the public domain.
+
+;;; Commentary:
+
+;; A replacement for parts of Emacs' sendmail.el (specifically,
+;; it's what handles your outgoing mail after you hit C-c C-c in mail
+;; mode).  See below for a list of additional features, including the
+;; ability to queue messages for later sending.  If you are using
+;; fakemail as a subprocess, you can switch to feedmail and eliminate
+;; the use of fakemail.  feedmail works with recent versions of
+;; Emacs (mostly, but not exclusively, tested against 19.34 on
+;; Win95; some testing on 20.x) and XEmacs (tested with 20.4 and
+;; later betas).  It probably no longer works with Emacs 18,
+;; though I haven't tried that in a long time.  Sorry, no manual yet
+;; in this release.  Look for one with the next release.
 
 ;; As far as I'm concerned, anyone can do anything they want with
 ;; this specific piece of code.  No warranty or promise of support is
@@ -25,8 +29,6 @@
 ;;    but that doesn't correlate well with the list of folks who have
 ;;    actually helped me along the way.
 
-;;; Commentary:
-;;
 ;; If you use feedmail, I invite you to send me some email about it.
 ;; I appreciate feedback about problems you find or suggestions for
 ;; improvements or added features (even though I can't predict when
@@ -35,11 +37,11 @@
 ;; tried feedmail and didn't find it useful, so I stopped using it".
 ;;
 ;; It is most useful, when sending a bug report, if you tell me what
-;; version of emacs you are using, what version of feedmail you are
+;; version of Emacs you are using, what version of feedmail you are
 ;; using, and what versions of other email-related elisp packages you
 ;; are using.  If in doubt about any of that, send the bug report
 ;; anyhow.
-;; 
+;;
 ;; =====
 ;; A NOTE TO THOSE WHO WOULD CHANGE THIS CODE...  Since it is PD,
 ;; you're within your rights to do whatever you want.  If you do
@@ -142,7 +144,7 @@
 ;;     (autoload 'feedmail-run-the-queue-no-prompts "feedmail")
 ;;     (setq auto-mode-alist (cons '("\\.fqm$" . mail-mode) auto-mode-alist))
 ;;
-;; If you are using the desktop.el library to restore your sessions, you might 
+;; If you are using the desktop.el library to restore your sessions, you might
 ;; like to add the suffix ".fqm" to the list of non-saved things via the variable
 ;; desktop-files-not-to-save.
 ;;
@@ -182,7 +184,7 @@
 ;; patchlevel 1,   5 April 1991
 ;; patchlevel 2,  24 May   1991
 ;; 5-may-92  jwz	Conditionalized calling expand-mail-aliases, since that
-;;			function doesn't exist in Lucid GNU Emacs or when using
+;;			function doesn't exist in Lucid Emacs or when using
 ;;			mail-abbrevs.el.
 ;; patchlevel 3,   3 October 1996
 ;;         added queue stuff; still works in v18
@@ -190,7 +192,7 @@
 ;; patchlevel 5, issued by someone else
 ;; patchlevel 6, not issued as far as I know
 ;; patchlevel 7,  20 May 1997
-;;         abandon futile support of GNUemacs v18 (sorry if that hurts you)
+;;         abandon futile support of Emacs 18 (sorry if that hurts you)
 ;;         provide a DATE: header by default
 ;;         provide a default for generating MESSAGE-ID: header contents
 ;;            and use it by default (slightly changed API)
@@ -223,7 +225,7 @@
 ;;            any other way
 ;;         cleanup some of my sloppiness about case-fold-search (a strange
 ;;            variable)
-;;         best effort following coding conventions from GNUemacs
+;;         best effort following coding conventions from Emacs
 ;;            elisp manual appendix
 ;;         "customize" (see custom.el)
 ;;         when user selects "immediate send", clear action prompt since
@@ -335,8 +337,8 @@ feedmail-confirm-outgoing-timeout."
   "*If non-nil, a timeout in seconds at the send confirmation prompt.
 If a positive number, it's a timeout before sending.  If a negative
 number, it's a timeout before not sending.  This will not work if your
-version of emacs doesn't include the function y-or-n-p-with-timeout
-(e.g., some versions of XEmacs)."
+version of Emacs doesn't include the function y-or-n-p-with-timeout
+\(e.g., some versions of XEmacs\)."
   :group 'feedmail-misc
   :type '(choice (const nil) integer)
 )
@@ -346,7 +348,7 @@ version of emacs doesn't include the function y-or-n-p-with-timeout
   "*If non-nil remove BCC: lines from the message headers.
 In any case, the BCC: lines do participate in the composed address
 list.  You may want to leave them in if you're using sendmail
-(see feedmail-buffer-eating-function)."
+\(see feedmail-buffer-eating-function\)."
   :group 'feedmail-headers
   :type 'boolean
 )
@@ -356,20 +358,20 @@ list.  You may want to leave them in if you're using sendmail
   "*If non-nil remove RESENT-BCC: lines from the message headers.
 In any case, the RESENT-BCC: lines do participate in the composed
 address list.  You may want to leave them in if you're using sendmail
-(see feedmail-buffer-eating-function)."
+\(see feedmail-buffer-eating-function\)."
   :group 'feedmail-headers
   :type 'boolean
 )
 
 
 (defcustom feedmail-deduce-bcc-where nil
-  "*Where should BCC:/RESENT-BCC: addresses appear in the envelope list?
+  "*Where Bcc:/Resent-Bcc: addresses should appear in the envelope list.
 Addresses for the message envelope are deduced by examining
 appropriate address headers in the message.  Generally, they will show
 up in the list of deduced addresses in the order that the headers
 happen to appear (duplicate addresses are eliminated in any case).
 This variable can be set to the symbol 'first, in which case the
-BCC:/RESENT-BCC: addresses will appear at the beginning in the list;
+Bcc:/Resent-Bcc: addresses will appear at the beginning in the list;
 or, it can be set to the symbol 'last, in which case they will appear
 at the end of the list.
 
@@ -430,9 +432,9 @@ message log."
 
 
 (defcustom feedmail-force-expand-mail-aliases nil
-  "*If non-nil force the calling of expand-mail-aliases.
+  "*If non-nil, force the calling of `expand-mail-aliases'.
 Normally, feedmail tries to figure out if you're using mailalias or
-mailabbrevs and only calls expand-mail-aliases if it thinks you're
+mailabbrevs and only calls `expand-mail-aliases' if it thinks you're
 using the mailalias package.  This user option can be used to force
 the issue since there are configurations which fool the figuring
 out."
@@ -487,9 +489,9 @@ header is fiddled after the FROM: header is fiddled."
 
 
 (defcustom feedmail-force-binary-write t
-  "*If non-nil, force writing file as binary.  Applies to queues and FCC:.
+  "*If non-nil, force writing file as binary (this applies to queues and FCC:).
 On systems where there is a difference between binary and text files,
-feedmail will temporarily manipulate the values of buffer-file-type
+feedmail will temporarily manipulate the values of `buffer-file-type'
 and/or default-buffer-file-type to make the writing as binary.  If
 nil, writing will be in text mode.  On systems where there is no
 distinction or where it is controlled by other variables or other
@@ -520,8 +522,8 @@ by feedmail to either \"X-From\" or \"X-Resent-From\".
 A good value would be a string fully-qualified domain name form of
 your address.  For example, \"bill@bubblegum.net (WJCarpenter)\".  The
 default value of this variable uses the standard elisp variable
-user-mail-address which should be set on every system but has a decent
-chance of being wrong.  It also honors mail-from-style.  Better to set
+`user-mail-address' which should be set on every system but has a decent
+chance of being wrong.  It also honors `mail-from-style'.  Better to set
 this variable explicitly to the string you want or find some other way
 to arrange for the message to get a FROM: line."
   :group 'feedmail-headers
@@ -532,7 +534,7 @@ to arrange for the message to get a FROM: line."
 (defcustom feedmail-deduce-envelope-from t
   "*If non-nil, deduce message envelope \"from\" from header FROM: or SENDER:.
 In other words, if there is a SENDER: header in the message, temporarily
-change the value of user-mail-address to be the same while the message
+change the value of `user-mail-address' to be the same while the message
 is being sent.  If there is no SENDER: header, use the FROM: header,
 if any.  Address values are taken from the actual message just before
 it is sent, and the process is independent of the values of
@@ -550,7 +552,7 @@ some normal way for yourself.  If for some reason you want to send a
 message with another FROM: line, you can just type it at the top of
 the message, and feedmail will take care of \"fixing up\" the envelope
 \"from\".  This only works for mail senders which make use of
-user-mail-address as the envelope \"from\" value.  For some mail
+`user-mail-address' as the envelope \"from\" value.  For some mail
 senders (e.g., feedmail-buffer-to-bin-mail), there is no simple way to
 influence what they will use as the envelope."
   :group 'feedmail-headers
@@ -578,7 +580,7 @@ If t, an X-MAILER: header of a predetermined format is produced,
 combining its efforts with any existing X-MAILER: header.  If you want
 to take the default construct and just add a little blob of your own
 at the end, define the variable feedmail-x-mailer-line-user-appendage
-as that blob string.  A value of t is equivalent to using the function 
+as that blob string.  A value of t is equivalent to using the function
 feedmail-default-x-mailer-generator.
 
 If neither nil nor t, it may be a string, a fiddle-plex, or a function
@@ -626,13 +628,14 @@ in the saved message if you use FCC:."
 
 
 (defcustom feedmail-message-id-suffix nil
-  "*If non-nil, used as a suffix in generated MESSAGE-ID: headers for uniqueness.
-The function feedmail-default-message-id-generator creates its work based
+  "*If non-nil, used as a suffix for generating unique Message-Id: headers.
+The function `feedmail-default-message-id-generator' creates its work based
 on a formatted date-time string, a random number, and a domain-looking suffix.
-You can control the suffix used by assigning a string value to this variable.  If
-you don't supply one, the value of the variable user-mail-address will be used.
-If the value of feedmail-message-id-suffix contains an \"@\" character, the string
-will be used verbatim, else an \"@\" character will be prepended automatically."
+You can control the suffix used by assigning a string value to this variable.
+If you don't supply one, the value of the variable `user-mail-address' will be
+used.  If the value of `feedmail-message-id-suffix' contains an \"@\" character,
+the string will be used verbatim, else an \"@\" character will be prepended
+automatically."
   :group 'feedmail-headers
   :type 'string
 )
@@ -674,7 +677,7 @@ in the saved message if you use FCC:."
 
 
 (defcustom feedmail-fiddle-headers-upwardly t
-  "*Non-nil means fiddled header fields should be inserted at the top of the header.
+  "*Non-nil means fiddled header fields should go at the top of the header.
 Nil means insert them at the bottom.  This is mostly a novelty issue since
 the standards define the ordering of header fields to be immaterial and it's
 fairly likely that some MTA along the way will have its own idea of what the
@@ -709,11 +712,11 @@ along with that list to a buffer-eating function which expects any number
 of addressees.  If this variable is non-nil, however, feedmail will
 repeatedly call the same buffer-eating function.  Each time, the list of
 addressees will be just one item from the original list.  This only affects
-the message envelope addresses and doesn't affect what appears in the 
+the message envelope addresses and doesn't affect what appears in the
 message headers except as noted.
 
 Spray mode is usually pointless, and if you can't think of a good reason for
-it, you should avoid it since it is inherently less efficient than normal 
+it, you should avoid it since it is inherently less efficient than normal
 multiple delivery.  One reason to use it is to overcome mis-featured mail
 transports which betray your trust by revealing BCC: addressees in the
 headers of a message.  Another use is to do a crude form of mailmerge, for
@@ -732,9 +735,9 @@ what happens next is carelessly defined, so beware."
   "User-supplied specification for a crude form of mailmerge capability.
 When spraying is enabled, feedmail composes a list of envelope addresses.
 In turn, feedmail-spray-this-address is temporarily set to each address
-(stripped of any comments and angle brackets) and calls a function which 
-fiddles message headers according to this variable.  For an overview of
-fiddle-plex data structures, see the documentation for feedmail-fiddle-plex-blurb.
+\(stripped of any comments and angle brackets\) and calls a function which
+fiddles message headers according to this variable.  See the documentation for
+`feedmail-fiddle-plex-blurb', for an overview of fiddle-plex data structures.
 
 May be nil, in which case nothing in particular is done about message
 headers for specific addresses.
@@ -768,7 +771,7 @@ function should return an embellished form of the address.
 
 The recipe for sending form letters is:  (1) create a message with all
 addressees on BCC: headers; (2) tell feedmail to remove BCC: headers
-before sending the message; (3) create a function which will embellish 
+before sending the message; (3) create a function which will embellish
 stripped addresses, if desired; (4) define feedmail-spray-address-fiddle-plex-list
 appropriately; (5) send the message with feedmail-enable-spray set
 non-nil; (6) stand back and watch co-workers wonder at how efficient
@@ -1042,7 +1045,7 @@ any."
 
 (defcustom feedmail-queue-default-file-slug t
   "*Indicates what to use for subject-less messages when forming a file name.
-When feedmail queues a message, it creates a unique file name.  By default, 
+When feedmail queues a message, it creates a unique file name.  By default,
 the file name is based in part on the subject of the message being queued.
 If there is no subject, consult this variable.  See documentation for the
 function feedmail-queue-subject-slug-maker.
@@ -1093,7 +1096,7 @@ message buffers."
 Normally, feedmail will notice such files when you send a message in
 immediate mode (i.e., not when you're running the queue) and will ask if
 you want to delete them.  Since the answer is usually yes, setting this
-variable to non-nil will tell feedmail to skip the prompt and just delete 
+variable to non-nil will tell feedmail to skip the prompt and just delete
 the file without bothering you."
   :group 'feedmail-queue
   :type 'boolean
@@ -1101,10 +1104,10 @@ the file without bothering you."
 
 
 ;; defvars to make byte-compiler happy(er)
-(defvar feedmail-error-buffer        nil "not a user option variable")
-(defvar feedmail-prepped-text-buffer nil "not a user option variable")
-(defvar feedmail-raw-text-buffer     nil "not a user option variable")
-(defvar feedmail-address-list        nil "not a user option variable")
+(defvar feedmail-error-buffer        nil)
+(defvar feedmail-prepped-text-buffer nil)
+(defvar feedmail-raw-text-buffer     nil)
+(defvar feedmail-address-list        nil)
 
 
 (defun feedmail-mail-send-hook-splitter ()
@@ -1185,15 +1188,15 @@ internal buffers will be reused and things will get confused."
 
 (defcustom feedmail-queue-runner-mode-setter
   '(lambda (&optional arg) (mail-mode))
-  "*A function to set the proper mode of a message file.  Called when
-the message is read back out of the queue directory with a single
+  "*A function to set the proper mode of a message file.
+Called when the message is read back out of the queue directory with a single
 argument, the optional argument used in the call to
 feedmail-run-the-queue or feedmail-run-the-queue-no-prompts.
 
-Most people want mail-mode, so the default value is an anonymous
+Most people want `mail-mode', so the default value is an anonymous
 function which is just a wrapper to ignore the supplied argument when
 calling it, but here's your chance to have something different.
-Called with funcall, not call-interactively."
+Called with funcall, not `call-interactively'."
   :group 'feedmail-queue
   :type 'function
 )
@@ -1201,15 +1204,15 @@ Called with funcall, not call-interactively."
 
 (defcustom feedmail-queue-alternative-mail-header-separator nil
   "*Alternative header demarcation for queued messages.
-If you sometimes get alternative values for mail-header-separator in
+If you sometimes get alternative values for `mail-header-separator' in
 queued messages, set the value of this variable to whatever it is.
-For example, rmail-resend uses a mail-header-separator value of empty
+For example, `rmail-resend' uses a `mail-header-separator' value of empty
 string (\"\") when you send/queue a message.
 
 When trying to send a queued message, if the value of this variable is
 non-nil, feedmail will first try to send the message using the value
-of mail-header-separator.  If it can't find that, it will temporarily
-set mail-header-separator to the value of
+of `mail-header-separator'.  If it can't find that, it will temporarily
+set `mail-header-separator' to the value of
 feedmail-queue-alternative-mail-header-separator and try again."
   :group 'feedmail-queue
   :type 'string
@@ -1234,20 +1237,19 @@ call-interactively."
   '(lambda (fqm-file &optional arg)
 	 (delete-file fqm-file)
 	 (if (and arg feedmail-queue-chatty) (message "FQM: Nuked %s" fqm-file)))
-  "*Function that will be called after a message has been sent.  It's
-not called in the case of errors.  This function is called with two
-arguments, the name of the message queue file for the message just
-sent, and the optional argument used in the call to
-feedmail-run-the-queue or feedmail-run-the-queue-no-prompts.
-Interactively, that argument will be the prefix argument.  In any
-case, the affiliated buffer is killed elsewhere, so don't do that
+  "*Function that will be called after a message has been sent.
+Not called in the case of errors.  This function is called with two
+arguments: the name of the message queue file for the message just sent,
+and the optional argument used in the call to `feedmail-run-the-queue'
+or `feedmail-run-the-queue-no-prompts' (prefix arg if interactive).
+In any case, the affiliated buffer is killed elsewhere, so don't do that
 inside this function.  Return value is ignored.
 
 The default action is an anonymous function which gets rid of the file
 from the queue directory.  With a non-nil second argument, a brief
 message is give for each file deleted.  You could replace this
 function, for example, to archive all of your sent messages someplace
-(though there are better ways to get that particular result)."
+\(though there are better ways to get that particular result\)."
   :group 'feedmail-queue
   :type 'function
 )
@@ -1295,7 +1297,7 @@ Used in feedmail-buffer-to-binmail to form the shell command which
 will receive the contents of the prepped buffer as stdin.  If you'd
 like your errors to come back as mail instead of immediately in a
 buffer, try /bin/rmail instead of /bin/mail (this can be accomplished
-by keeping the default nil setting of mail-interactive).  You might
+by keeping the default nil setting of `mail-interactive').  You might
 also like to consult local mail experts for any other interesting
 command line possibilities."
   :group 'feedmail-misc
@@ -1364,27 +1366,27 @@ complicated cases."
 
 ;; just a place to park a docstring
 (defconst feedmail-fiddle-plex-blurb nil
-  "A fiddle-plex is a concise way of specifying how to fiddle with a header field.
+  "A fiddle-plex is a concise way of specifying header field fiddling.
 It is a list of up to 4 elements: NAME, VALUE, ACTION, FOLDING.  The element
 VALUE can also be a list sometimes.
 
-NAME is the name of the header field to be fiddled with.  Although case doesn't
-matter in looking for headers, case of NAME is preserved when a header is inserted
-via fiddling.  It shouldn't include the trailing colon.
+NAME is the name of the header field to be fiddled with.  Although case
+doesn't matter in looking for headers, case of NAME is preserved when a header
+is inserted via fiddling.  It shouldn't include the trailing colon.
 
 VALUE is either nil, a simple string, a function returning nil or a string, or,
-as described below for ACTION 'combine, a list of up to three values.
+as described below for ACTION `combine', a list of up to three values.
 
 ACTION describes the nature of the fiddling to be done.  Possibilities
-for ACTION (default is 'supplement):
+for ACTION (default is `supplement'):
 
-  'supplement   Leave other like fields as-is, insert this one.
+  `supplement'  Leave other like fields as-is, insert this one.
 
-  'replace      Delete other like fields, if any, and insert this one.
+  `replace'     Delete other like fields, if any, and insert this one.
 
-  'create       Insert this one only if no like field exists.
+  `create'      Insert this one only if no like field exists.
 
-  'combine      Combine aggregate values of like fields with this one.
+  `combine'     Combine aggregate values of like fields with this one.
                 In this case, VALUE has a special form.  It is a list
                 of three items: VAL-PRE, VAL-LIKE, and VAL-POST.
                 VAL-PRE and VAL-POST are strings or nil.  VAL-LIKE may
@@ -1397,7 +1399,7 @@ for ACTION (default is 'supplement):
                 fields, or the aggregate value is an empty string,
                 VAL-LIKE is not used.  Else, if VAL-LIKE is a function,
                 it is called with two arguments: NAME and the
-                aggregate like values.  Else, if VAL-LIKE is a string, it is 
+                aggregate like values.  Else, if VAL-LIKE is a string, it is
                 used as a format string where a single \%s will be
                 replaced by the aggregate values of like fields.
 
@@ -1416,12 +1418,11 @@ for ACTION (default is 'supplement):
 
 FOLDING can be nil, in which case VALUE is used as-is.  If FOLDING is
 non-nil, feedmail \"smart filling\" is done on VALUE just before
-insertion.
-")
+insertion.")
 
 
 (defun feedmail-send-it ()
-  "A function which is a suitable value for send-mail-function.
+  "A function which is a suitable value for `send-mail-function'.
 To use it, you probably want something like this in your .emacs or
 similar place:
 
@@ -1523,7 +1524,7 @@ similar place:
 ;;;###autoload
 (defun feedmail-run-the-queue-global-prompt (&optional arg)
   "Like feedmail-run-the-queue, but with a global confirmation prompt.
-This is generally most useful if run non-interactively, since you can 
+This is generally most useful if run non-interactively, since you can
 bail out with an appropriate answer to the global confirmation prompt."
   (interactive "p")
   (let ((feedmail-queue-runner-confirm-global t)) (feedmail-run-the-queue arg)))
@@ -1573,7 +1574,7 @@ backup file names and the like)."
 		 '(lambda (blobby)
 			(setq maybe-file (expand-file-name blobby feedmail-queue-directory))
 			(cond
-			 ((file-directory-p maybe-file) nil) ; don't care about subdirs	
+			 ((file-directory-p maybe-file) nil) ; don't care about subdirs
 			 ((feedmail-fqm-p blobby)
 			  (setq blobby-buffer (generate-new-buffer (concat "FQM " blobby)))
 			   (setq already-buffer
@@ -1604,7 +1605,7 @@ backup file names and the like)."
 			   ;; if M-H-S not found and (a-M-H-S is nil or not found)
 			   (if (and (not (feedmail-find-eoh t))
 						(or (not feedmail-queue-alternative-mail-header-separator)
-							(not 
+							(not
 							 (let ((mail-header-separator feedmail-queue-alternative-mail-header-separator))
 							   (feedmail-find-eoh t)))))
 				   (let ((file-name-buffer-file-type-alist nil) (default-buffer-file-type nil))
@@ -1645,7 +1646,7 @@ backup file names and the like)."
 					 (sit-for feedmail-queue-chatty-sit-for))))))
 		  list-of-possible-fqms)))
 	(if feedmail-queue-chatty
-		(progn 
+		(progn
 		  (message "FQM: %d sent, %d skipped (%d other files ignored)"
 				   messages-sent messages-skipped q-oth)
 		  (sit-for feedmail-queue-chatty-sit-for)
@@ -1670,8 +1671,8 @@ internally by feedmail):
 
 WHAT-EVENT is used as a key into the table feedmail-queue-reminder-alist.  If
 the associated value is a function, it is called without arguments and is expected
-to perform the reminder activity.  You can supply your own reminder functions 
-by redefining feedmail-queue-reminder-alist.  If you don't want any reminders, 
+to perform the reminder activity.  You can supply your own reminder functions
+by redefining feedmail-queue-reminder-alist.  If you don't want any reminders,
 you can set feedmail-queue-reminder-alist to nil."
   (interactive "p")
   (let ((key (if (and what-event (symbolp what-event)) what-event 'on-demand)) entry reminder)
@@ -1735,9 +1736,11 @@ you can set feedmail-queue-reminder-alist to nil."
 			  (setq answer '(^ . feedmail-message-action-help))
 			(if (or (eq user-sez ?\C-m) (eq user-sez ?\C-j) (eq user-sez ?y))
 				(setq user-sez d-char))
-			;; these char-to-int things because of some incomprensible difference
-			;; between the two in byte-compiled stuff between GNUemacs and XEmacs
-			;; (well, I'm sure someone could comprehend it, but I say 'uncle')
+			;; these char-to-int things are because of some
+			;; incomprensible difference between the two in
+			;; byte-compiled stuff between Emacs and XEmacs
+			;; (well, I'm sure someone could comprehend it,
+			;; but I say 'uncle')
 			(setq answer (or (assoc user-sez feedmail-prompt-before-queue-user-alist)
 							 (and (fboundp 'char-to-int)
 								  (assoc (char-to-int user-sez) feedmail-prompt-before-queue-user-alist))
@@ -1831,7 +1834,7 @@ the counts."
 	(list q-cnt q-oth high-water)))
 
 (defun feedmail-tidy-up-slug (slug)
-  "Utility for mapping out suspect characters in a potential filename"
+  "Utility for mapping out suspect characters in a potential filename."
   ;; even programmers deserve a break sometimes, so cover nil for them
   (if (null slug) (setq slug ""))
   ;; replace all non-alphanumerics with hyphen for safety
@@ -1843,7 +1846,7 @@ the counts."
   ;; for tidyness, peel off trailing hyphens
   (if (string-match "-*$" slug) (setq slug (replace-match "" nil nil slug)))
   slug
-)  
+)
 
 (defun feedmail-queue-subject-slug-maker (&optional queue-directory)
   "Create a name for storing the message in the queue.
@@ -2077,7 +2080,7 @@ mapped to mostly alphanumerics for safety."
 								(y-or-n-p (format "FQM: Delete message file %s? " also-file)))
 							(save-excursion
 							  ;; if we delete the affiliated file, get rid
-							  ;; of the file name association and make sure we 
+							  ;; of the file name association and make sure we
 							  ;; don't annoy people with a prompt on exit
 							  (delete-file also-file)
 							  (set-buffer feedmail-raw-text-buffer)
@@ -2194,7 +2197,7 @@ feedmail-fiddle-plex-blurb."
 		(mapcar
 		 '(lambda (feedmail-spray-this-address)
 			(let ((spray-buffer (get-buffer-create " *FQM Outgoing Email Spray*")))
-			  (save-excursion 
+			  (save-excursion
 				(set-buffer spray-buffer)
 				(erase-buffer)
 				;; not life's most efficient methodology, but spraying isn't
@@ -2225,8 +2228,8 @@ feedmail-fiddle-plex-blurb."
 
 
 (defun feedmail-envelope-deducer (eoh-marker)
-  "If feedmail-deduce-envelope-from is false, simply return
-user-mail-address.  Else, look for SENDER: or FROM: (or RESENT-*) and
+  "If feedmail-deduce-envelope-from is false, simply return `user-mail-address'.
+Else, look for SENDER: or FROM: (or RESENT-*) and
 return that value."
   (if (not feedmail-deduce-envelope-from)
 	  user-mail-address
@@ -2254,7 +2257,7 @@ return that value."
    ;; improvement using user-mail-address suggested by
    ;;   gray@austin.apc.slb.com (Douglas Gray Stephens)
    ((eq t feedmail-from-line)
-	(let ((feedmail-from-line 
+	(let ((feedmail-from-line
 		   (let ((at-stuff
 				  (if user-mail-address user-mail-address (concat (user-login-name) "@" (system-name)))))
 			 (cond
@@ -2353,7 +2356,7 @@ return that value."
 (defun feedmail-default-message-id-generator (maybe-file)
   "Default function for generating MESSAGE-ID: header contents.
 Based on a date and a sort of random number for tie breaking.  Unless
-feedmail-message-id-suffix is defined, uses user-mail-address, so be
+feedmail-message-id-suffix is defined, uses `user-mail-address', so be
 sure it's set."
   (let ((date-time)
 		(end-stuff (if feedmail-message-id-suffix feedmail-message-id-suffix user-mail-address)))
@@ -2474,34 +2477,34 @@ sure it's set."
   "Fiddling based on a list of fiddle-plexes for spraying."
   ;; default is to fall off the end of the list and do nothing
   (let ((lofp list-of-fiddle-plexes) fp)
-	(if (listp lofp)
-		(while lofp
-		  (setq fp (car lofp))
-		  (setq lofp (cdr lofp))
-		  (feedmail-fiddle-spray-address fp))
-	  (feedmail-fiddle-spray-address lofp))))
+    (if (listp lofp)
+	(while lofp
+	  (setq fp (car lofp))
+	  (setq lofp (cdr lofp))
+	  (feedmail-fiddle-spray-address fp))
+      (feedmail-fiddle-spray-address lofp))))
 
 
 (defun feedmail-fiddle-list-of-fiddle-plexes (list-of-fiddle-plexes)
   "Fiddling based on a list of fiddle-plexes.  Values t, nil, and string are pointless."
   ;; default is to fall off the end of the list and do nothing
   (let ((lofp list-of-fiddle-plexes) fp)
-	(while lofp
-	  (setq fp (car lofp))
-	  (setq lofp (cdr lofp))
-	  (cond
+    (while lofp
+      (setq fp (car lofp))
+      (setq lofp (cdr lofp))
+      (cond
 
-	   ;; if it's a function, call it and recurse with the resulting value
-	   ((and (symbolp fp) (fboundp fp))
-		(let ((lofp (list (funcall fp)))) (feedmail-fiddle-list-of-fiddle-plexes lofp)))
+       ;; if it's a function, call it and recurse with the resulting value
+       ((and (symbolp fp) (fboundp fp))
+	(let ((lofp (list (funcall fp)))) (feedmail-fiddle-list-of-fiddle-plexes lofp)))
 
-	   ;; if it's a list, it must be a fiddle-plex -- so fiddle, man, fiddle
-	   ((listp fp)
-		(feedmail-fiddle-header
-		 (nth 0 fp)
-		 (nth 1 fp)        ;; value
-		 (nth 2 fp)        ;; action
-		 (nth 3 fp)))))))  ;; folding
+       ;; if it's a list, it must be a fiddle-plex -- so fiddle, man, fiddle
+       ((listp fp)
+	(feedmail-fiddle-header
+	 (nth 0 fp)
+	 (nth 1 fp);; value
+	 (nth 2 fp);; action
+	 (nth 3 fp)))))));; folding
 
 
 (defun feedmail-accume-n-nuke-header (header-end header-regexp)
@@ -2510,18 +2513,18 @@ There may be multiple such lines, and each may have arbitrarily
 many continuation lines.  Return an accumulation of the deleted
 headers, including the intervening newlines."
   (let ((case-fold-search t) (dropout))
-	(save-excursion
-	  (goto-char (point-min))
-	  ;; iterate over all matching lines
-	  (while (re-search-forward header-regexp header-end t)
-		(forward-line 1)
-		(setq dropout (concat dropout (buffer-substring (match-beginning 0) (point))))
-		(delete-region (match-beginning 0) (point))
-		;; get rid of any continuation lines
-		(while (and (looking-at "^[ \t].*\n") (< (point) header-end))
-		  (forward-line 1)
-		  (setq dropout (concat dropout (buffer-substring (match-beginning 0) (point))))
-		  (replace-match ""))))
+    (save-excursion
+      (goto-char (point-min))
+      ;; iterate over all matching lines
+      (while (re-search-forward header-regexp header-end t)
+	(forward-line 1)
+	(setq dropout (concat dropout (buffer-substring (match-beginning 0) (point))))
+	(delete-region (match-beginning 0) (point))
+	;; get rid of any continuation lines
+	(while (and (looking-at "^[ \t].*\n") (< (point) header-end))
+	  (forward-line 1)
+	  (setq dropout (concat dropout (buffer-substring (match-beginning 0) (point))))
+	  (replace-match ""))))
 	(identity dropout)))
 
 (defun feedmail-fill-to-cc-function (header-end)
