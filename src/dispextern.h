@@ -240,7 +240,7 @@ enum glyph_type
 /* Glyphs.
 
    Be extra careful when changing this structure!  Esp. make sure that
-   functions producing glyphs, like x_append_glyph, fill ALL of the
+   functions producing glyphs, like append_glyph, fill ALL of the
    glyph structure, and that GLYPH_EQUAL_P compares all
    display-relevant members of glyphs (not to imply that these are the
    only things to check when you add a member).  */
@@ -302,15 +302,13 @@ struct glyph
   unsigned glyph_not_available_p : 1;
 
   /* Face of the glyph.  */
-  unsigned face_id : 22;
+  unsigned face_id : 21;
 
-#ifdef WINDOWSNT
-  /* Type of font used to display the character glyph. Used to
+  /* Type of font used to display the character glyph.  May be used to
      determine which set of functions to use to obtain font metrics
-     for the glyph. Value should be an enumerator of the type
-     w32_char_font_type.  */
-  unsigned w32_font_type : 2;
-#endif
+     for the glyph.  On W32, value should be an enumerator of the type
+     w32_char_font_type.  Otherwise it equals FONT_TYPE_UNKNOWN.  */
+  unsigned font_type : 3;
 
   /* A union of sub-structures for different glyph types.  */
   union
@@ -340,6 +338,10 @@ struct glyph
   } u;
 };
 
+
+/* Default value of the glyph font_type field.  */
+
+#define FONT_TYPE_UNKNOWN	0
 
 /* Is GLYPH a space?  */
 
@@ -911,6 +913,142 @@ extern int redisplay_performed_directly_p;
    direct_output_for_insert.  */
 
 extern struct glyph_row scratch_glyph_row;
+
+
+
+/************************************************************************
+			  Glyph Strings
+ ************************************************************************/
+
+/* Enumeration for overriding/changing the face to use for drawing
+   glyphs in x_draw_glyphs.  */
+
+enum draw_glyphs_face
+{
+  DRAW_NORMAL_TEXT,
+  DRAW_INVERSE_VIDEO,
+  DRAW_CURSOR,
+  DRAW_MOUSE_FACE,
+  DRAW_IMAGE_RAISED,
+  DRAW_IMAGE_SUNKEN
+};
+
+/* A sequence of glyphs to be drawn in the same face.  */
+
+struct glyph_string
+{
+  /* X-origin of the string.  */
+  int x;
+
+  /* Y-origin and y-position of the base line of this string.  */
+  int y, ybase;
+
+  /* The width of the string, not including a face extension.  */
+  int width;
+
+  /* The width of the string, including a face extension.  */
+  int background_width;
+
+  /* The height of this string.  This is the height of the line this
+     string is drawn in, and can be different from the height of the
+     font the string is drawn in.  */
+  int height;
+
+  /* Number of pixels this string overwrites in front of its x-origin.
+     This number is zero if the string has an lbearing >= 0; it is
+     -lbearing, if the string has an lbearing < 0.  */
+  int left_overhang;
+
+  /* Number of pixels this string overwrites past its right-most
+     nominal x-position, i.e. x + width.  Zero if the string's
+     rbearing is <= its nominal width, rbearing - width otherwise.  */
+  int right_overhang;
+
+  /* The frame on which the glyph string is drawn.  */
+  struct frame *f;
+
+  /* The window on which the glyph string is drawn.  */
+  struct window *w;
+
+  /* X display and window for convenience.  */
+  Display *display;
+  Window window;
+
+  /* The glyph row for which this string was built.  It determines the
+     y-origin and height of the string.  */
+  struct glyph_row *row;
+
+  /* The area within row.  */
+  enum glyph_row_area area;
+
+  /* Characters to be drawn, and number of characters.  */
+  XChar2b *char2b;
+  int nchars;
+
+  /* A face-override for drawing cursors, mouse face and similar.  */
+  enum draw_glyphs_face hl;
+
+  /* Face in which this string is to be drawn.  */
+  struct face *face;
+
+  /* Font in which this string is to be drawn.  */
+  XFontStruct *font;
+
+  /* Font info for this string.  */
+  struct font_info *font_info;
+
+  /* Non-null means this string describes (part of) a composition.
+     All characters from char2b are drawn composed.  */
+  struct composition *cmp;
+
+  /* Index of this glyph string's first character in the glyph
+     definition of CMP.  If this is zero, this glyph string describes
+     the first character of a composition.  */
+  int gidx;
+
+  /* 1 means this glyph strings face has to be drawn to the right end
+     of the window's drawing area.  */
+  unsigned extends_to_end_of_line_p : 1;
+
+  /* 1 means the background of this string has been drawn.  */
+  unsigned background_filled_p : 1;
+
+  /* 1 means glyph string must be drawn with 16-bit functions.  */
+  unsigned two_byte_p : 1;
+
+  /* 1 means that the original font determined for drawing this glyph
+     string could not be loaded.  The member `font' has been set to
+     the frame's default font in this case.  */
+  unsigned font_not_found_p : 1;
+
+  /* 1 means that the face in which this glyph string is drawn has a
+     stipple pattern.  */
+  unsigned stippled_p : 1;
+
+  /* 1 means only the foreground of this glyph string must be drawn,
+     and we should use the physical height of the line this glyph
+     string appears in as clip rect.  */
+  unsigned for_overlaps_p : 1;
+
+  /* The GC to use for drawing this glyph string.  */
+#if defined(HAVE_X_WINDOWS) || defined(HAVE_CARBON)
+  GC gc;
+#endif
+#if defined(HAVE_NTGUI)
+  XGCValues *gc;
+  HDC hdc;
+#endif
+
+  /* A pointer to the first glyph in the string.  This glyph
+     corresponds to char2b[0].  Needed to draw rectangles if
+     font_not_found_p is 1.  */
+  struct glyph *first_glyph;
+
+  /* Image, if any.  */
+  struct image *img;
+
+  struct glyph_string *next, *prev;
+};
 
 
 
@@ -1799,7 +1937,7 @@ struct it
 
   /* The character to display, possibly translated to multibyte
      if unibyte_display_via_language_environment is set.  This
-     is set after x_produce_glyphs has been called.  */
+     is set after produce_glyphs has been called.  */
   int char_to_display;
 
   /* If what == IT_IMAGE, the id of the image to display.  */
@@ -2026,6 +2164,24 @@ struct redisplay_interface
   void (*draw_fringe_bitmap) P_ ((struct window *w, struct glyph_row *row,
 				  struct draw_fringe_bitmap_params *p));
 
+/* Get metrics of character CHAR2B in FONT of type FONT_TYPE.
+   Value is null if CHAR2B is not contained in the font.  */
+  XCharStruct * (*per_char_metric) P_ ((XFontStruct *font, XChar2b *char2b,
+					int font_type));
+
+/* Encode CHAR2B using encoding information from FONT_INFO.  CHAR2B is
+   the two-byte form of C.  Encoding is returned in *CHAR2B.  If
+   TWO_BYTE_P is non-null, return non-zero there if font is two-byte.  */
+  int (*encode_char) P_ ((int c, XChar2b *char2b,
+			  struct font_info *font_into, int *two_byte_p));
+
+/* Compute left and right overhang of glyph string S.  
+   A NULL pointer if platform does not support this. */
+  void (*compute_glyph_string_overhangs) P_ ((struct glyph_string *s));
+
+/* Draw a glyph string S.  */
+  void (*draw_glyph_string) P_ ((struct glyph_string *s));
+
 };
 
 /* The current interface for window-based redisplay.  */
@@ -2036,6 +2192,41 @@ extern struct redisplay_interface *rif;
 
 extern int (* estimate_mode_line_height_hook) P_ ((struct frame *,
                                                    enum face_id));
+
+
+/* Return proper value to be used as baseline offset of font that has
+   ASCENT and DESCENT to draw characters by the font at the vertical
+   center of the line of frame F.
+
+   Here, out task is to find the value of BOFF in the following figure;
+
+	-------------------------+-----------+-
+	 -+-+---------+-+        |           |
+	  | |         | |        |           |
+	  | |         | |        F_ASCENT    F_HEIGHT
+	  | |         | ASCENT   |           |
+     HEIGHT |         | |        |           |
+	  | |         |-|-+------+-----------|------- baseline
+	  | |         | | BOFF   |           |
+	  | |---------|-+-+      |           |
+	  | |         | DESCENT  |           |
+	 -+-+---------+-+        F_DESCENT   |
+	-------------------------+-----------+-
+
+	-BOFF + DESCENT + (F_HEIGHT - HEIGHT) / 2 = F_DESCENT
+	BOFF = DESCENT +  (F_HEIGHT - HEIGHT) / 2 - F_DESCENT
+	DESCENT = FONT->descent
+	HEIGHT = FONT_HEIGHT (FONT)
+	F_DESCENT = (F->output_data.x->font->descent
+		     - F->output_data.x->baseline_offset)
+	F_HEIGHT = FRAME_LINE_HEIGHT (F)
+*/
+
+#define VCENTER_BASELINE_OFFSET(FONT, F)			\
+  (FONT_DESCENT (FONT)						\
+   + (FRAME_LINE_HEIGHT ((F)) - FONT_HEIGHT ((FONT))		\
+      + (FRAME_LINE_HEIGHT ((F)) > FONT_HEIGHT ((FONT)))) / 2	\
+   - (FONT_DESCENT (FRAME_FONT (F)) - FRAME_BASELINE_OFFSET (F)))
 
 
 /***********************************************************************
@@ -2342,6 +2533,21 @@ extern Lisp_Object Vimage_types;
 extern void add_to_log P_ ((char *, Lisp_Object, Lisp_Object));
 extern int help_echo_showing_p;
 extern int current_mode_line_height, current_header_line_height;
+
+#if GLYPH_DEBUG
+extern void dump_glyph_string P_ ((struct glyph_string *));
+#endif
+
+extern void x_get_glyph_overhangs P_ ((struct glyph *, struct frame *,
+				       int *, int *));
+extern void x_produce_glyphs P_ ((struct it *));
+extern int x_draw_glyphs P_ ((struct window *, int , struct glyph_row *,
+			      enum glyph_row_area, int, int,
+			      enum draw_glyphs_face, int));
+
+extern void notice_overwritten_cursor P_ ((struct window *,
+					   enum glyph_row_area,
+					   int, int, int, int));
 
 /* Defined in sysdep.c */
 
