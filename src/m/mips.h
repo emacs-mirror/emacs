@@ -137,6 +137,7 @@ NOTE-END  */
 
 /* Alter some of the options used when linking.  */
 
+#ifndef NEWSOS5
 #ifdef BSD
 
 /* DECstations don't have this library.
@@ -148,23 +149,6 @@ NOTE-END  */
 #define LINKER /bsd43/bin/ld
   
 #else /* not BSD */
-#ifdef NEWSOS5
-
-#define LIBS_MACHINE -lmld
-#define START_FILES pre-crt0.o /usr/ccs/lib/crt1.o
-#define LIB_STANDARD -lsocket -lnsl -lc /usr/ccs/lib/crtn.o /usr/ccs/lib/values-Xt.o
-
-#ifdef __GNUC__
-#define C_DEBUG_SWITCH -g
-#define C_OPTIMIZE_SWITCH -g -O
-#define LD_SWITCH_MACHINE -g -Xlinker -D -Xlinker 800000
-#else
-#define C_DEBUG_SWITCH -g3
-#define C_OPTIMIZE_SWITCH -g3
-#define LD_SWITCH_MACHINE -g3 -D 800000
-#endif
-
-#else /* not NEWSOS5 */
 
 #define LIBS_MACHINE -lmld
 #define LD_SWITCH_MACHINE -D 800000 -g3
@@ -179,8 +163,8 @@ NOTE-END  */
 #define HAVE_VFORK		/* Graciously provided by libX.a */
 #endif
 
-#endif /* not NEWSOS5 */
 #endif /* not BSD */
+#endif /* not NEWSOS5 */
 
 /* The standard definitions of these macros would work ok,
    but these are faster because the constants are short.  */
