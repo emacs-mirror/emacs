@@ -1,3 +1,15 @@
+2004-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (interactive-form): Delete.  Now implemented in C.
+
+	* pcvs.el (cvs-parse-process): Workaround for Darwin.
+
+	* vc.el (vc-version-diff, vc-default-diff-tree): Change `rel' -> `rev'.
+	(vc-diff-label): New fun.
+	(vc-diff-internal): Use it.
+
+	* progmodes/gdb-ui.el (gdb-post-prompt): Fix test.
+
 2004-03-28  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el (pr-update-menus): Modify interactive declaration.

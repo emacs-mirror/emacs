@@ -1,3 +1,14 @@
+2004-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fcommandp): Simplify.
+
+	* data.c (Finteractive_form): Rename from Fsubr_interactive_form.
+	Extend to handle all kinds of functions.
+
+	* lisp.h (Finteractive_form): Declare.
+
+	* callint.c (Fcall_interactively): Use it.
+
 2004-03-26  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (syms_of_xdisp): Include `void-variable' in list_of_error
@@ -39,7 +50,7 @@
 	* image.c (Qcenter): Move to xdisp.c.
 
 	* xdisp.c (Qcenter): Declare here.
-	(syms_of_xdisp): intern and staticpro it.
+	(syms_of_xdisp): Intern and staticpro it.
 	(handle_single_display_prop): Allow space display property on all
 	platforms.
 	(display_mode_line): Set mode_line_p before displaying line.
