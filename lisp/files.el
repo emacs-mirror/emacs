@@ -880,9 +880,9 @@ run `normal-mode' explicitly."
 				  ("\\.ml\\'" . lisp-mode)))
   "\
 Alist of filename patterns vs corresponding major mode functions.
-Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION).
+Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION t).
 Visiting a file whose name matches REGEXP causes FUNCTION to be called.
-If the element has the form (REGEXP FUNCTION), then after calling
+If the element has the form (REGEXP FUNCTION t), then after calling
 FUNCTION, we delete the suffix that matched REGEXP and search the list
 again for another match.")
 
