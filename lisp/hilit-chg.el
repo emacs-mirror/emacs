@@ -197,6 +197,7 @@
 ;; ====================== Customization =======================
 (defgroup highlight-changes nil
   "Highlight Changes mode."
+  :version "20.4"
   :group 'faces)
 
 
