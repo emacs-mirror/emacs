@@ -171,11 +171,14 @@ nil means they are ignored; anything else means query.
 The command \\[normal-mode] always obeys local-variables lists
 and ignores this variable.")
 
-(defconst ignore-local-eval nil
-  "*Non-nil means ignore the \"variable\" `eval' in a file's local variables.
-This applies when the local-variables list is scanned automatically
-after you find a file.  If you explicitly request such a scan with
-\\[normal-mode], there is no query, regardless of this variable.")
+(defconst enable-local-eval nil
+  "*Control processing of the \"variable\" `eval' in a file's local variables.
+The value can be t, nil or something else.
+A value of t means obey `eval' variables;
+nil means ignore them; anything else means query.
+
+The command \\[normal-mode] always obeys local-variables lists
+and ignores this variable.")
 
 ;; Avoid losing in versions where CLASH_DETECTION is disabled.
 (or (fboundp 'lock-buffer)
@@ -644,10 +647,18 @@ for current buffer."
 		       (funcall (intern (concat (downcase (symbol-name val))
 						"-mode"))))
 		      ((eq var 'eval)
-		       (if (or ignore-local-eval
-			       (string= (user-login-name) "root"))
-			   (message "Ignoring `eval:' in file's local variables")
-			 (save-excursion (eval val))))
+		       (if (and (not (string= (user-login-name) "root"))
+				(or (eq enable-local-eval t)
+				    (and enable-local-eval
+					 (save-window-excursion
+					   (switch-to-buffer (current-buffer))
+					   (save-excursion
+					     (beginning-of-line)
+					     (set-window-start (selected-window) (point)))
+					   (y-or-n-p (format "Process `eval' local variable in file %s? "
+							     (file-name-nondirectory buffer-file-name)))))))
+			   (save-excursion (eval val))
+			 (message "Ignoring `eval:' in file's local variables")))
 		      (t (make-local-variable var)
 			 (set var val))))))))))
 

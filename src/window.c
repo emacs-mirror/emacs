@@ -540,12 +540,13 @@ See also `set-window-buffer-dedicated'.")
   return decode_window (window)->dedicated;
 }
 
-DEFUN ("set-window-buffer-dedicated", Fset_window_buffer_dedicated,
-       Sset_window_buffer_dedicated, 2, 2, 0,
-  "Make WINDOW display BUFFER and be dedicated to that buffer.\n\
-Then Emacs will not automatically change which buffer appears in WINDOW.\n\
-If BUFFER is nil, make WINDOW not be dedicated (but don't change which\n\
-buffer appears in it currently).")
+DEFUN ("set-window-dedicated-p", Fset_window_dedicated_p,
+       Sset_window_dedicated_p, 2, 2, 0,
+  "Control whether WINDOW is dedicated to the buffer it displays.\n\
+If it is dedicated, Emacs will not automatically change\n\
+which buffer appears in it.\n\
+The second argument is the new value for the dedication flag;\n\
+non-nil means yes.")
   (window, arg)
        Lisp_Object window, arg;
 {
@@ -554,10 +555,7 @@ buffer appears in it currently).")
   if (NILP (arg))
     w->dedicated = Qnil;
   else
-    {
-      Fset_window_buffer (window, Fget_buffer_create (arg));
-      w->dedicated = Qt;
-    }
+    w->dedicated = Qt;
 
   return w->dedicated;
 }
@@ -2752,7 +2750,7 @@ If there is only one window, it is split regardless of this value.");
   defsubr (&Sset_window_point);
   defsubr (&Sset_window_start);
   defsubr (&Swindow_dedicated_p);
-  defsubr (&Sset_window_buffer_dedicated);
+  defsubr (&Sset_window_dedicated_p);
   defsubr (&Swindow_display_table);
   defsubr (&Sset_window_display_table);
   defsubr (&Snext_window);
