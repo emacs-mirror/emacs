@@ -34,6 +34,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "buffer.h"
 #include "charset.h"
+#include "composite.h"
 #include "coding.h"
 #include "disptab.h"
 
@@ -1261,6 +1262,44 @@ strwidth (str, len)
   return width;
 }
 
+int
+lisp_string_width (str)
+     Lisp_Object str;
+{
+  int len = XSTRING (str)->size, len_byte = STRING_BYTES (XSTRING (str));
+  int i = 0, i_byte;
+  int width = 0;
+  int start, end, start_byte;
+  Lisp_Object prop;
+  int cmp_id;
+
+  while (i < len)
+    {
+      if (find_composition (i, len, &start, &end, &prop, str))
+	{
+	  start_byte = string_char_to_byte (str, start);
+	  if (i < start)
+	    {
+	      i_byte = string_char_to_byte (str, i);
+	      width += strwidth (XSTRING (str)->data + i_byte,
+				 start_byte - i_byte);
+	    }
+	  cmp_id
+	    = get_composition_id (start, start_byte, end - start, prop, str);
+	  if (cmp_id >= 0)
+	    width += composition_table[cmp_id]->width;
+	  i = end;
+	}
+      else
+	{
+	  i_byte = string_char_to_byte (str, i);
+	  width += strwidth (XSTRING (str)->data + i_byte, len_byte - i_byte);
+	  i = len;
+	}
+    }
+  return width;
+}
+
 DEFUN ("string-width", Fstring_width, Sstring_width, 1, 1, 0,
   "Return width of STRING when displayed in the current buffer.\n\
 Width is measured by how many columns it occupies on the screen.\n\
@@ -1274,8 +1313,7 @@ taken to occupy `tab-width' columns.")
   Lisp_Object val;
 
   CHECK_STRING (str, 0);
-  XSETFASTINT (val, strwidth (XSTRING (str)->data,
-			      STRING_BYTES (XSTRING (str))));
+  XSETFASTINT (val, lisp_string_width (str));
   return val;
 }
 
