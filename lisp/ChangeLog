@@ -1,3 +1,8 @@
+2005-03-09  Kim F. Storm  <storm@cua.dk>
+
+	* play/animate.el (animate-place-char): Use forward-line instead
+	of next-line to improve performance.
+
 2005-03-09  Simon Josefsson  <jas@extundo.com>
 
 	* net/browse-url.el (browse-url-default-browser): Doc fix.
@@ -12,7 +17,7 @@
 	* international/latin-1.el: Set case and syntax for 255 only if
 	set-case-syntax-set-multibyte is nil.
 
-	* textmodes/ispell.el (ispell-insert-word): New function. 
+	* textmodes/ispell.el (ispell-insert-word): New function.
 	(ispell-word): Use ispell-insert-word to isnert a new word.
 	(ispell-process-line): Likewise
 	(ispell-complete-word): Likewise.
