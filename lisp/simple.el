@@ -524,18 +524,21 @@ addition, the encoding is fully shown."
 	(if (or (not coding)
 		(eq (coding-system-type coding) t))
 	    (setq coding default-buffer-file-coding-system))
-	(setq encoded (and (>= char 128) (encode-coding-char char coding)))
-	(setq encoding-msg
-	      (if encoded
-		  (format "(0%o, %d, 0x%x, ext %s)"
-			  char char char
-			  (if (and (not detail)
-				   (> (length encoded) 1))
-			      "..."
-			    (concat
-			     (encoded-string-description encoded coding)
-			     (if (cmpcharp char) "..." ""))))
-		(format "(0%o, %d, 0x%x)" char char char)))
+	(if (not (char-valid-p char))
+	    (setq encoding-msg
+		  (format "(0%o, %d, 0x%x, invalid)" char char char))
+	  (setq encoded (and (>= char 128) (encode-coding-char char coding)))
+	  (setq encoding-msg
+		(if encoded
+		    (format "(0%o, %d, 0x%x, ext %s)"
+			    char char char
+			    (if (and (not detail)
+				     (> (length encoded) 1))
+				"..."
+			      (concat
+			       (encoded-string-description encoded coding)
+			       (if (cmpcharp char) "..." ""))))
+		  (format "(0%o, %d, 0x%x)" char char char))))
 	(if detail
 	    ;; We show the detailed information of CHAR.
 	    (let ((internal
@@ -549,18 +552,18 @@ addition, the encoding is fully shown."
 	      (message "Char: %s %s %s"
 		       (if (< char 256)
 			   (single-key-description char)
-			 (char-to-string char))
+			 (buffer-substring (point) (1+ (point))))
 		       encoding-msg internal))
 	  (if (or (/= beg 1) (/= end (1+ total)))
 	      (message "Char: %s %s point=%d of %d(%d%%) <%d - %d>  column %d %s"
 		       (if (< char 256)
 			   (single-key-description char)
-			 (char-to-string char))
+			 (buffer-substring (point) (1+ (point))))
 		       encoding-msg pos total percent beg end col hscroll)
 	    (message "Char: %s %s point=%d of %d(%d%%)  column %d %s"
 		     (if (< char 256)
 			 (single-key-description char)
-		       (char-to-string char))
+		       (buffer-substring (point) (1+ (point))))
 		     encoding-msg pos total percent col hscroll)))))))
 
 (defun fundamental-mode ()
