@@ -1988,9 +1988,12 @@ expressions; a `progn' form will be returned enclosing these forms."
 (def-edebug-spec defmacro
   (&define name lambda-list def-body))
 (def-edebug-spec define-derived-mode
-  (&define name name stringp [&optional stringp] def-body))
+  (&define name symbolp stringp [&optional stringp] def-body))
 (def-edebug-spec define-minor-mode
-  (&define name stringp def-body))
+  (&define name stringp
+	   [&optional sexp sexp &or consp symbolp]
+	   [&rest [keywordp sexp]]
+	   def-body))
 ;; This plain doesn't work ;-(   -sm
 ;; (def-edebug-spec define-skeleton
 ;;   (&define name stringp def-body))
@@ -2135,8 +2138,6 @@ expressions; a `progn' form will be returned enclosing these forms."
 (def-edebug-spec with-custom-print body)
 
 (def-edebug-spec sregexq (&rest sexp))
-
-(def-edebug-spec define-minor-mode (symbolp stringp body))
 
 ;;; The debugger itself
 
