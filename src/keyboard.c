@@ -159,6 +159,9 @@ int quit_char;
 extern Lisp_Object current_global_map;
 extern int minibuf_level;
 
+/* If non-nil, this is a map that overrides all other local maps.  */
+Lisp_Object Voverriding_local_map;
+
 /* Current depth in recursive edits.  */
 int command_loop_level;
 
@@ -3463,14 +3466,23 @@ menu_bar_items ()
   { 
     Lisp_Object *tmaps;
 
-    nmaps = current_minor_maps (0, &tmaps) + 2;
-    maps = (Lisp_Object *) alloca (nmaps * sizeof (maps[0]));
-    bcopy (tmaps, maps, (nmaps - 2) * sizeof (maps[0]));
+    if (!NILP (Voverriding_local_map))
+      {
+	nmaps = 2;
+	maps = (Lisp_Object *) alloca (nmaps * sizeof (maps[0]));
+	maps[0] = Voverriding_local_map;
+      }
+    else
+      {
+	nmaps = current_minor_maps (0, &tmaps) + 2;
+	maps = (Lisp_Object *) alloca (nmaps * sizeof (maps[0]));
+	bcopy (tmaps, maps, (nmaps - 2) * sizeof (maps[0]));
 #ifdef USE_TEXT_PROPERTIES
-    maps[nmaps-2] = get_local_map (PT, current_buffer);
+	maps[nmaps-2] = get_local_map (PT, current_buffer);
 #else
-    maps[nmaps-2] = current_buffer->keymap;
+	maps[nmaps-2] = current_buffer->keymap;
 #endif
+      }
     maps[nmaps-1] = current_global_map;
   }
 
@@ -4133,19 +4145,33 @@ read_key_sequence (keybuf, bufsize, prompt)
   { 
     Lisp_Object *maps;
 
-    nmaps = current_minor_maps (0, &maps) + 2;
-    if (nmaps > nmaps_allocated)
+    if (!NILP (Voverriding_local_map))
       {
-	submaps = (Lisp_Object *) alloca (nmaps * sizeof (submaps[0]));
-	defs    = (Lisp_Object *) alloca (nmaps * sizeof (defs[0]));
-	nmaps_allocated = nmaps;
+	nmaps = 2;
+	if (nmaps > nmaps_allocated)
+	  {
+	    submaps = (Lisp_Object *) alloca (nmaps * sizeof (submaps[0]));
+	    defs    = (Lisp_Object *) alloca (nmaps * sizeof (defs[0]));
+	    nmaps_allocated = nmaps;
+	  }
+	submaps[0] = Voverriding_local_map;
       }
-    bcopy (maps, submaps, (nmaps - 2) * sizeof (submaps[0]));
+    else
+      {
+	nmaps = current_minor_maps (0, &maps) + 2;
+	if (nmaps > nmaps_allocated)
+	  {
+	    submaps = (Lisp_Object *) alloca (nmaps * sizeof (submaps[0]));
+	    defs    = (Lisp_Object *) alloca (nmaps * sizeof (defs[0]));
+	    nmaps_allocated = nmaps;
+	  }
+	bcopy (maps, submaps, (nmaps - 2) * sizeof (submaps[0]));
 #ifdef USE_TEXT_PROPERTIES
-    submaps[nmaps-2] = get_local_map (PT, current_buffer);
+	submaps[nmaps-2] = get_local_map (PT, current_buffer);
 #else
-    submaps[nmaps-2] = current_buffer->keymap;
+	submaps[nmaps-2] = current_buffer->keymap;
 #endif
+      }
     submaps[nmaps-1] = current_global_map;
   }
 
@@ -5794,6 +5820,12 @@ Buffer modification stores t in this variable.");
     "List of menu bar items to move to the end of the menu bar.\n\
 The elements of the list are event types that may have menu bar bindings.");
   Vmenu_bar_final_items = Qnil;
+
+  DEFVAR_LISP ("overriding-local-map", &Voverriding_local_map,
+    "Keymap that overrides all other local keymaps.\n\
+If this variable is non-nil, it is used as a keymap instead of the\n\
+buffer's local map, and the minor mode keymaps and text property keymaps.");
+  Voverriding_local_map = Qnil;
 
   DEFVAR_BOOL ("track-mouse", &do_mouse_tracking,
 	       "*Non-nil means generate motion events for mouse motion.");
