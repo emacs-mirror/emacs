@@ -1148,7 +1148,7 @@ menubar_selection_callback (widget, id, client_data)
      LWLIB_ID id;
      XtPointer client_data;
 {
-  Lisp_Object prefix;
+  Lisp_Object prefix, entry;
   FRAME_PTR f = XFRAME (XVECTOR (frame_vector)->contents[id]);
   Lisp_Object vector;
   Lisp_Object *subprefix_stack;
@@ -1163,8 +1163,6 @@ menubar_selection_callback (widget, id, client_data)
   i = 0;
   while (i < f->menu_bar_items_used)
     {
-      Lisp_Object entry;
-
       if (EQ (XVECTOR (vector)->contents[i], Qnil))
 	{
 	  subprefix_stack[submenu_depth++] = prefix;
@@ -1840,14 +1838,12 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
      the proper value.  */
   if (menu_item_selection != 0)
     {
-      Lisp_Object prefix;
+      Lisp_Object prefix, entry;
 
       prefix = Qnil;
       i = 0;
       while (i < menu_items_used)
 	{
-	  Lisp_Object entry;
-
 	  if (EQ (XVECTOR (menu_items)->contents[i], Qnil))
 	    {
 	      subprefix_stack[submenu_depth++] = prefix;
