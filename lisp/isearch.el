@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/05/27 03:33:12 $|$Revision: 1.37 $
+;; |$Date: 1993/05/29 06:27:47 $|$Revision: 1.38 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -524,7 +524,9 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   ;; isearch-mode can be made modal (in the sense of not returning to 
   ;; the calling function until searching is completed) by entering 
   ;; a recursive-edit and exiting it when done isearching.
-  (if recursive-edit (recursive-edit))
+  (if recursive-edit
+      (let ((isearch-recursive-edit t))
+	(recursive-edit)))
   )
 
 
