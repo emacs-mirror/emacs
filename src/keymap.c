@@ -296,16 +296,15 @@ access_keymap (map, idx, t_ok, noinherit)
 	Lisp_Object binding;
 
 	binding = XCONS (tail)->car;
-	switch (XTYPE (binding))
+	if (SYMBOLP (binding))
 	  {
-	  case Lisp_Symbol:
 	    /* If NOINHERIT, stop finding prefix definitions
 	       after we pass a second occurrence of the `keymap' symbol.  */
 	    if (noinherit && EQ (binding, Qkeymap) && ! EQ (tail, map))
 	      noprefix = 1;
-	    break;
-
-	  case Lisp_Cons:
+	  }
+	else if (CONSP (binding))
+	  {
 	    if (EQ (XCONS (binding)->car, idx))
 	      {
 		val = XCONS (binding)->cdr;
@@ -315,17 +314,16 @@ access_keymap (map, idx, t_ok, noinherit)
 	      }
 	    if (t_ok && EQ (XCONS (binding)->car, Qt))
 	      t_binding = XCONS (binding)->cdr;
-	    break;
-
-	  case Lisp_Vector:
+	  }
+	else if (VECTORP (binding))
+	  {
 	    if (NATNUMP (idx) && XFASTINT (idx) < XVECTOR (binding)->size)
 	      {
-		val = XVECTOR (binding)->contents[XINT (idx)];
+		val = XVECTOR (binding)->contents[XFASTINT (idx)];
 		if (noprefix && CONSP (val) && EQ (XCONS (val)->car, Qkeymap))
 		  return Qnil;
 		return val;
 	      }
-	    break;
 	  }
 
 	QUIT;
@@ -432,33 +430,31 @@ store_in_keymap (keymap, idx, def)
 	Lisp_Object elt;
 
 	elt = XCONS (tail)->car;
-	switch (XTYPE (elt))
+	if (VECTORP (elt))
 	  {
-	  case Lisp_Vector:
 	    if (NATNUMP (idx) && XFASTINT (idx) < XVECTOR (elt)->size)
 	      {
 		XVECTOR (elt)->contents[XFASTINT (idx)] = def;
 		return def;
 	      }
 	    insertion_point = tail;
-	    break;
-
-	  case Lisp_Cons:
+	  }
+	else if (CONSP (elt))
+	  {
 	    if (EQ (idx, XCONS (elt)->car))
 	      {
 		XCONS (elt)->cdr = def;
 		return def;
 	      }
-	    break;
-
-	  case Lisp_Symbol:
+	  }
+	else if (SYMBOLP (elt))
+	  {
 	    /* If we find a 'keymap' symbol in the spine of KEYMAP,
                then we must have found the start of a second keymap
                being used as the tail of KEYMAP, and a binding for IDX
                should be inserted before it.  */
 	    if (EQ (elt, Qkeymap))
 	      goto keymap_end;
-	    break;
 	  }
 
 	QUIT;
