@@ -169,9 +169,9 @@ The following %-sequences are provided:
 	seconds minutes hours remaining-time buffer tem)
     (unwind-protect
 	(save-excursion
-	  (setq buffer (generate-new-buffer " *battery*"))
-	  (buffer-disable-undo buffer)
+	  (setq buffer (get-buffer-create " *battery*"))
 	  (set-buffer buffer)
+	  (erase-buffer)
 	  (battery-insert-file-contents "/proc/apm")
 	  (re-search-forward battery-linux-proc-apm-regexp)
 	  (setq driver-version (match-string 1))
@@ -205,8 +205,7 @@ The following %-sequences are provided:
 	      (setq minutes (/ seconds 60)
 		    hours (/ seconds 3600))
 	      (setq remaining-time
-		    (format "%d:%02d" hours (- minutes (* 60 hours)))))))
-      (and buffer (kill-buffer buffer)))
+		    (format "%d:%02d" hours (- minutes (* 60 hours))))))))
     (list (cons ?v (or driver-version "N/A"))
 	  (cons ?V (or bios-version "N/A"))
 	  (cons ?I (or bios-interface "N/A"))
@@ -249,6 +248,7 @@ The following %-sequences are provided:
 FILE-NAME can be a non-ordinary file, for example, a named pipe.
 Return t if file exists."
   (let ((load-read-function 'battery-read-function)
+	(load-source-file-function nil)
 	(load-path '("."))
 	(load-history nil))
     (save-excursion
