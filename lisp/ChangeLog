@@ -1,6 +1,10 @@
-2001-10-11  Gerd Moellmann  <gerd@gnu.org>
+2001-10-11  Dave Love  <fx@gnu.org>
 
-	* emacs-lisp/byte-opt.el: Downcase error messages.
+	* emacs-lisp/byte-opt.el (byte-optimize-lapcode)
+	<byte-constref-ops>: Consider byte-constant2 and clarify the code.
+	<const-C varset-X const-C>: Fix car/cdr typo.
+
+2001-10-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-display-log-head-p): New
 	function extracted from byte-compile-log-1.

@@ -42,6 +42,10 @@ settings.
 
 * Lisp Changes in Emacs 21.2
 
+** Functions `user-uid' and `user-real-uid' now return floats if the
+user UID doesn't fit in a Lisp integer.  Function `user-full-name'
+accepts a float as UID parameter.
+
 ** `define-key-after' now accepts keys longer than 1.
 
 ** `define-derived-mode' now accept nil as the parent.
