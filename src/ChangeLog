@@ -1,3 +1,27 @@
+2004-11-23  Kim F. Storm  <storm@cua.dk>
+
+	* xfaces.c (lookup_named_face): Add signal_p arg.  Return -1 if
+	signal_p is zero and face name is unknown.
+	(Fx_list_fonts): Don't signal error in lookup_named_face.
+	(Fface_font): Signal error in lookup_named_face.
+	(ascii_face_of_lisp_face): Likewise.
+
+	* dispextern.h (lookup_named_face): Fix prototype.
+
+	* xdisp.c (handle_single_display_prop): Don't signal error in
+	lookup_named_face for unknown fringe face name.
+	(highlight_trailing_whitespace): Don't signal error in
+	lookup_named_face if trailing-whitespace face unknown.
+	(calc_line_height_property): Don't signal error in
+	lookup_named_face if specified face name is unknown.
+
+	* fringe.c (update_window_fringes): Show top row indicator if
+	window has header-line.  Don't show arrow at bob and eob
+	if the boundary indicators are not used.
+	(Fset_fringe_bitmap_face): Signal error in lookup_named_face.
+
+	* window.c (set_window_buffer): Clear display_error_modiff.
+
 2004-11-22  Kim F. Storm  <storm@cua.dk>
 
 	* fringe.c (update_window_fringes): Provide sensible fall-back
