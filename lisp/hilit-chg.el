@@ -130,8 +130,8 @@
 ;;   an example,  if the value is 'buffer-file-name then all buffers
 ;;   who are visiting files are suitable, but others (like dired
 ;;   buffers) are not;
-;; * a list -- then if the buufer is suitable iff its mode is in the
-;;   list,  exccept if the first element is nil in which case the test
+;; * a list -- then the buffer is suitable iff its mode is in the
+;;   list,  except if the first element is `not', in which case the test
 ;;   is reversed (i.e. it is a list of unsuitable modes).
 ;; * Otherwise,  the buffer is suitable if its name does not begin with
 ;;   ` ' or `*' and if `buffer-file-name' returns true.
