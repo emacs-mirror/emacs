@@ -3023,35 +3023,6 @@ rename (from, to)
 
 #endif
 
-int
-set_file_times (path, atime, mtime)
-     char *path;
-     EMACS_TIME atime, mtime;
-{
-#ifdef HAVE_UTIMES
-  struct timeval tv[2];
-  tv[0] = atime;
-  tv[1] = mtime;
-  return utimes (path, tv);
-#else
-#ifdef HAVE_UTIME
-#ifndef HAVE_STRUCT_UTIMBUF
-  struct utimbuf {
-    long actime;
-    long modtime;
-  };
-#endif
-  struct utimbuf utb;
-  utb.actime = EMACS_SECS (atime);
-  utb.modtime = EMACS_SECS (mtime);
-  return utime (path, &utb);
-#else /* !HAVE_UTIMES && !HAVE_UTIME */
-  /* Should we set errno here?  If so, set it to what?  */
-  return -1;
-#endif
-#endif
-}
-
 
 #ifdef HPUX
 #ifndef HAVE_PERROR
@@ -3390,6 +3361,35 @@ readdirver (dirp)
 
 #endif /* NONSYSTEM_DIR_LIBRARY */
 
+
+int
+set_file_times (path, atime, mtime)
+     char *path;
+     EMACS_TIME atime, mtime;
+{
+#ifdef HAVE_UTIMES
+  struct timeval tv[2];
+  tv[0] = atime;
+  tv[1] = mtime;
+  return utimes (path, tv);
+#else
+#ifdef HAVE_UTIME
+#ifndef HAVE_STRUCT_UTIMBUF
+  struct utimbuf {
+    long actime;
+    long modtime;
+  };
+#endif
+  struct utimbuf utb;
+  utb.actime = EMACS_SECS (atime);
+  utb.modtime = EMACS_SECS (mtime);
+  return utime (path, &utb);
+#else /* !HAVE_UTIMES && !HAVE_UTIME */
+  /* Should we set errno here?  If so, set it to what?  */
+  return -1;
+#endif
+#endif
+}
 
 /* mkdir and rmdir functions, for systems which don't have them.  */
 
