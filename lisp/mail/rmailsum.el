@@ -720,6 +720,7 @@ Commands for sorting the summary:
   (setq rmail-summary-mode-map (make-keymap))
   (suppress-keymap rmail-summary-mode-map)
   (define-key rmail-summary-mode-map "a"      'rmail-summary-add-label)
+  (define-key rmail-summary-mode-map "b"      'rmail-summary-bury)
   (define-key rmail-summary-mode-map "c"      'rmail-summary-continue)
   (define-key rmail-summary-mode-map "d"      'rmail-summary-delete-forward)
   (define-key rmail-summary-mode-map "\C-d"   'rmail-summary-delete-backward)
@@ -1040,6 +1041,17 @@ advance to the previous message."
   (pop-to-buffer rmail-buffer)
   (beginning-of-buffer)
   (pop-to-buffer rmail-summary-buffer))
+
+(defun rmail-summary-bury ()
+  "Bury the Rmail buffer and the Rmail summary buffer."
+  (interactive)
+  (let ((buffer-to-bury (current-buffer)))
+    (let (window)
+      (while (setq window (get-buffer-window rmail-buffer))
+	(set-window-buffer window (other-buffer rmail-buffer)))
+      (bury-buffer rmail-buffer))
+    (switch-to-buffer (other-buffer buffer-to-bury))
+    (bury-buffer buffer-to-bury)))
 
 (defun rmail-summary-quit ()
   "Quit out of Rmail and Rmail summary."
