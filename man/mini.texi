@@ -147,7 +147,10 @@ minibuffer window.  But you can make it taller in the normal fashion
 with @kbd{C-x ^}.  The minibuffer window expands vertically as necessary
 to hold the text that you put in the minibuffer.  Customize the variable
 @code{max-mini-window-height} to control the maximum height for resizing
-the minibuffer window.
+the minibuffer window: if a floating-point number, it specifies a
+fraction of the frame's height; if an integer, it specifies the maximum
+number of lines; if nil, the minibuffer window is not resized.  The
+default value is 0.25.
 
 @vindex minibuffer-scroll-overlap
   Scrolling works specially in the minibuffer window.  When the
