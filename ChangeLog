@@ -1,5 +1,7 @@
 2001-11-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* Makefile.in (uninstall): Fix previous change.
+
 	* configure: Regenerated.
 
 	* configure.in, Makefile.in: Add support for --program-prefix,

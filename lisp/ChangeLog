@@ -1,3 +1,7 @@
+2001-11-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* derived.el: Fix autoload cookie.
+
 2001-11-15  Richard M. Stallman  <rms@gnu.org>
 
 	* jka-compr.el (jka-compr-partial-uncompress): Fix previous change.
