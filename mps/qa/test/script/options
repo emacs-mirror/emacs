@@ -32,9 +32,11 @@ if ($ENV{"OS"} eq "Windows_NT") {
 );
 
 %qa_flags = (
+ "debug", "DEBUG_INFO"
 );
 
 %qa_defaults = (
- "PLATFORM", $platform_class
+ "PLATFORM", $platform_class,
+ "DEBUG_INFO", "off"
 );
 
