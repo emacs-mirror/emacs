@@ -158,6 +158,9 @@ set_case_table (table, standard)
       XCHAR_TABLE (table)->extras[2] = eqv;
     }
 
+  /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
+  XCHAR_TABLE (canon)->extras[2] = eqv;
+
   if (standard)
     Vascii_downcase_table = table;
   else
