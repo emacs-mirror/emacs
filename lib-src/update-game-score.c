@@ -213,7 +213,8 @@ main (argc, argv)
   if (strlen (newdata) > MAX_DATA_LEN)
     newdata[MAX_DATA_LEN] = '\0';
 
-  if ((user_id = get_user_id ()) == NULL)
+  user_id = get_user_id ();
+  if (user_id == NULL)
     lose_syserr ("Couldn't determine user id");
   
   if (stat (scorefile, &buf) < 0)
@@ -345,7 +346,7 @@ read_scores (filename, scores, count)
     return -1;
   scorecount = 0;
   cursize = 16;
-  ret = malloc (sizeof (struct score_entry) * cursize);
+  ret = (struct score_entry *) malloc (sizeof (struct score_entry) * cursize);
   if (!ret) 
     return -1;
   while ((readval = read_score (f, &ret[scorecount])) == 0)
@@ -356,7 +357,7 @@ read_scores (filename, scores, count)
       scorecount++;
       if (scorecount >= cursize)
 	{
-	  ret = realloc (ret, cursize *= 2);
+	  ret = (struct score_entry *) realloc (ret, cursize *= 2);
 	  if (!ret)
 	    return -1;
 	}
@@ -394,8 +395,8 @@ push_score (scores, count, newscore, username, newdata)
      char *newdata;
 {
  struct score_entry *newscores
-   = realloc (*scores,
-	      sizeof (struct score_entry) * ((*count) + 1));
+   = (struct score_entry *) realloc (*scores,
+				     sizeof (struct score_entry) * ((*count) + 1));
   if (!newscores)
     return -1;
   newscores[*count].score = newscore;
@@ -469,7 +470,8 @@ lock_file (filename, state)
   if (stat (lockpath, &buf) == 0
       && (difftime (buf.st_ctime, time (NULL) > 60*60)))
     unlink (lockpath);
-  if ((fd = open (lockpath, O_CREAT | O_EXCL, 0600)) < 0)
+  fd = open (lockpath, O_CREAT | O_EXCL, 0600);
+  if (fd < 0)
     {
       if (errno == EEXIST)
 	{
