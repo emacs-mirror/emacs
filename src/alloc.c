@@ -756,6 +756,11 @@ lisp_align_malloc (nbytes, type)
 #else
       base = malloc (ABLOCKS_BYTES);
       abase = ALIGN (base, BLOCK_ALIGN);
+      if (base == 0)
+	{
+	  UNBLOCK_INPUT;
+	  memory_full ();
+	}
 #endif
 
       aligned = (base == abase);
