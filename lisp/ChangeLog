@@ -1,3 +1,11 @@
+2003-04-23  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/scheme.el (scheme-mode-syntax-table):
+	Use prefix syntax for ', `, comma, @ and #.
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-syntax-table):
+	Give @ prefix syntax.
+
 2003-04-23  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-cvs.el (vc-cvs-stay-local): Keep the old default.  Simplify
@@ -252,8 +260,7 @@
 	strings broken over lines.
 	(fortran-fill): Handle long strings that must be broken.
 
-2003-04-13  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
-	From Michael Albinus <Michael.Albinus@alcatel.de>.
+2003-04-13  Michael Albinus  <Michael.Albinus@alcatel.de>  (tiny change)
 
 	* net/ange-ftp.el (ange-ftp-expand-symlink): If result of
 	expansion is a symlink, expand again.
