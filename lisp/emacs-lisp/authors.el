@@ -2,6 +2,10 @@
 
 ;; Copyright (C) 2000 Free Software Foundation, Inc.
 
+;; Author: Gerd Moellmann <gerd@gnu.org>
+;; Maintainer: FSF
+;; Keywords: maint
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -418,7 +422,6 @@ CHANGES is an alist of entries (FILE ACTION...), as produced by
 	    (insert author " (changed) " file "\n"))))))))
 
 
-;;;###autoload
 (defun authors (root)
   "Extract author information from change logs and Lisp source files.
 ROOT is the root directory under which to find the files.  If called
@@ -451,7 +454,6 @@ buffer *Authors* containing authorship information."
       (pop-to-buffer buffer-name))))
 
 
-;;;###autoload
 (defun batch-update-authors ()
   "Produce an AUTHORS file.
 Call this function in batch mode with two command line arguments FILE
