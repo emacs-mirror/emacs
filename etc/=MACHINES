@@ -514,23 +514,19 @@ Iris 2500 Turbo (-machine=irist; -opsystem=iris3-5 or -opsystem=iris3-6)
   18.49 works.  Use -opsystem=iris3-6 for system versions 3.6 and up.
   Note that the 3030 is the same machine as this.
 
-Iris 4D (-machine=iris4d; -opsystem=irix3-3)
+Iris 4D (-machine=iris4d; -opsystem=irix3-3 or irix4-0)
 
-  18.56 is known to work on 4D series machines with Irix 3.3 or later.
+  18.58 is known to work on Silicon Graphics 4D series machines
+  with IRIX 3.3 or IRIX 4.0.
 
-  If you use the X menu facility, you must edit oldXmenu/Makefile
-  to add the line 
+  Most irix3.3 systems do not have an ANSI C compiler, but a few do.
+  If you are using the ANSI C compiler, you may need to add
+      #define C_SWITCH_MACHINE -cckr
+  to config.h.
 
-    RANLIB=true
-
-  Someone said that with the yellow pages you must change two definitions
-  in -machine=iris4d as follows:
-
-    #define LIBS_MACHINE -lsun -lbsd -lPW -lmld
-    #define C_SWITCH_MACHINE -I/usr/include/sun -I/usr/include/bsd
-
-  jg@bambi.esd.sgi.com says this isn't true anymore, 
-  but the info might as well be here just in case.
+  There is a bug in IRIX that can sometimes leave ptys owned by
+  root with a permission of 622.  This causes malfunctions in use
+  of subprocesses of Emacs.  This may be fixed in IRIX 4.0.5.
 
 Macintosh
 
