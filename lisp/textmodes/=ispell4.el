@@ -957,10 +957,32 @@ an interior word fragment.  `ispell-have-new-look' should be t."
 (defvar ispell-message-cite-regexp "^   \\|^\t"
   "*Regular expression to match lines cited from one message into another.")
 
+(defvar ispell-message-text-end
+  (concat "^\\(" (mapconcat (function identity)
+				'(
+				  ;; Matches postscript files.
+				  "%!PS-Adobe-2.0"
+				  ;; Matches uuencoded text
+				  "begin [0-9][0-9][0-9] .*\nM.*\nM.*\nM"
+				  ;; Matches shell files (esp. auto-decoding)
+				  "#! /bin/sh"
+				  ;; Matches difference listing
+				  "diff -c .*\n\\*\\*\\* .*\n--- "
+				  ;; Matches "--------------------- cut here"
+				  "[-=]+\\s cut here")
+				"\\|")
+	      "\\)")
+  "*End of text which will be checked in ispell-message.
+If it is a string, limit at first occurence of that regular expression.
+Otherwise, it must be a function which is called to get the limit.")
+
+(defvar ispell-message-limit (* 100 80)
+  "*Ispell-message will check no more than this number of characters.")
+
 ;;;###autoload
 (defun ispell-message ()
   "Check the spelling of a mail message or news post.
-Don't check spelling of message headers or included messages.
+Don't check spelling of message headers (except subject) or included messages.
 
 To spell-check whenever a message is sent, include this line in .emacs:
    (setq news-inews-hook (setq mail-send-hook 'ispell-message))
@@ -983,7 +1005,7 @@ Or you can bind the function to C-c i in gnus or mail with:
 	  (forward-line 1))
 	(setq non-internal-message t)
 	)
-      (let ((cite-regexp		;Prefix of inserted text
+      (let* ((cite-regexp		;Prefix of inserted text
 	     (cond
 	      ((featurep 'supercite)	; sc 3.0
 	       (concat "\\(" (sc-cite-regexp) "\\)" "\\|"
@@ -1009,19 +1031,52 @@ Or you can bind the function to C-c i in gnus or mail with:
 	      (mail-yank-prefix			; vanilla mail message.
 	       (ispell-non-empty-string mail-yank-prefix))
 	      (t ispell-message-cite-regexp)))
-	    (continue t))
+	    (continue t)
+	    (limit
+	     (min
+	      (+ (point-min) ispell-message-limit)
+	      (point-max)
+	      (save-excursion
+ 		(cond
+ 		 ((not ispell-message-text-end) (point-max))
+ 		 ((char-or-string-p ispell-message-text-end)
+ 		  (if (re-search-forward ispell-message-text-end nil 'end)
+ 		      (match-beginning 0)
+ 		    (point-max)))
+ 		 (t (funcall ispell-message-text-end))))))
+	    (search-limit ; Search limit which won't stop in middle of citation
+	     (+ limit (length cite-regexp)))
+	    )
+ 	;; Check the subject
+ 	(save-excursion
+ 	  (let ((case-fold-search t)
+ 		(message-begin (point)))
+ 	    (goto-char (point-min))
+ 	    ;; "\\s *" matches newline if subject is empty
+ 	    (if (and (re-search-forward "^Subject:[\t ]*" message-begin t)
+ 		     (not (looking-at "re\\>")))
+ 		(setq continue
+ 		      (ispell-region (- (point) 1)
+ 				     (progn
+				       (end-of-line)
+				       (while (looking-at "\n[ \t]")
+					 (end-of-line 2))
+				       (point))))
+ 	      )))
 
-	(while (and (not (eobp)) continue)
+	;; Check the body.
+	(while (and (< (point) limit) continue)
 	  ;; Skip across text cited from other messages.
 	  (while (and (looking-at (concat "^[ \t]*$\\|" cite-regexp))
-		      (not (eobp)))
+		      (< (point) limit))
 	    (forward-line 1))
-	  (if (not (eobp))
+	  (if (< (point) limit)
 	      ;; Check the next batch of lines that *aren't* cited.
 	      (let ((start (point)))
-	       (if (re-search-forward
-		    (concat "^\\(" cite-regexp "\\)") nil 'end)
-		   (beginning-of-line))
+		(if (re-search-forward
+		     (concat "^\\(" cite-regexp "\\)") search-limit 'end)
+		    (beginning-of-line))
+		(if (> (point) limit) (goto-char limit))
 		(let ((case-fold-search old-case-fold-search))
 		  (save-excursion
 		    (setq continue (ispell-region (- start 1) (point))))))))))))
