@@ -139,7 +139,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define HAVE_PTYS
 #define SYSV_PTYS
 #define HAVE_SELECT
-#define HAVE_SOCKETS		/***** only if NSE has been installed *****/
+#ifdef HAVE_INET_SOCKETS	/* this comes from autoconf  */
+# define HAVE_SOCKETS		/* NSE may or may not have been installed */
+#endif
 #define HAVE_TIMEVAL
 #define SIGNALS_VIA_CHARACTERS
 #define BROKEN_CLOSEDIR		/* builtin closedir is interruptible */
@@ -204,8 +206,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 # ifdef __STDC__
  /* Compiling with gnucc (not through ccd).  This means -traditional is
-    not set.  Let us set it, because (as of emacs 19.21) gmalloc.c
-    includes <stddef.h>, and we don't have that (as of SYSV68 R3V7).
+    not set.  Let us set it, because gmalloc.c includes <stddef.h>,
+    and we don't have that (as of SYSV68 R3V7).
     Removing the -finline-functions option to gnucc causes an
     executable emacs smaller by about 10%. */
 #  define C_SWITCH_MACHINE -mfp0ret -m68881 -traditional -Dconst= -fdelayed-branch -fstrength-reduce -finline-functions -fcaller-saves
