@@ -2452,12 +2452,14 @@ in @code{data-directory}.
 @item :data @var{data}
 The @code{:data} property specifies the actual contents of the image.
 Each image must use either @code{:data} or @code{:file}, but not both.
-However, only certain image types support @code{:data}; for other types,
-you must use @code{:file}.
+For most image types, the value of the @code{:data} property should be a
+string containing the image data; we recommend using a unibyte string.
 
-The formats that support @code{:data} include XBM and XPM.
-Before using @code{:data}, see the section describing the specific
-format you wish to use for further information.
+Before using @code{:data}, look for further information in the section
+below describing the specific image format.  For some image types,
+@code{:data} may not be supported; for some, it allows other data types;
+for some, @code{:data} alone is not enough, so you need to use other
+image properties along with @code{:data}.
 @end table
 
 @node XBM Images
@@ -2482,9 +2484,8 @@ background color.  This color is used for each pixel in the XBM that is
 0.  The default is the frame's background color.
 @end table
 
-  You can specify an XBM image using data within Emacs instead
-of an external file.  To do this, don't use @code{:file}; instead,
-use the following three properties (all of them):
+  If you specify an XBM image using data within Emacs instead of an
+external file, use the following three properties (all of them):
 
 @table @code
 @item :width @var{width}
@@ -2494,9 +2495,9 @@ The value, @var{width}, specifies the width the image in pixels.
 The value, @var{height}, specifies the height of the image in pixels.
 
 @item :data @var{data}
-The value, @var{data}, is normally a string or a bool-vector.  Either
-way, it must contain enough bits for the area of the image: at least
-@var{width} * @code{height}.
+The value, @var{data}, should normally be a string or a bool-vector.
+Either way, it must contain enough bits for the area of the image: at
+least @var{width} * @code{height} bits.
 
 Alternatively, @var{data} can be a vector of strings or bool-vectors,
 each specifying one line of the image.
@@ -2506,9 +2507,9 @@ each specifying one line of the image.
 @subsection XPM Images
 @cindex XPM
 
-  To use XPM format, specify @code{xpm} as the image type.  These
-additional image properties are meaningful with the @code{xpm} image
-type:
+  To use XPM format, specify @code{xpm} as the image type.  The
+additional image property @code{:color-symbols} is also meaningful with
+the @code{xpm} image type:
 
 @table @code
 @item :color-symbols @var{symbols}
@@ -2516,13 +2517,6 @@ The value, @var{symbols}, should be an alist whose elements have the
 form @code{(@var{name} . @var{color})}.  In each element, @var{name} is
 the name of a color as it appears in the image file, and @var{color}
 specifies the actual color to use for displaying that name.
-
-@item :data @var{data}
-XPM images can be displayed from data instead of files.  In that case,
-use the @code{:data} property instead of the @code{:file} property.
-
-The value @var{data} must be a string containing an XPM image.  The
-contents of the string have same format as an external XPM file.
 @end table
 
 @node GIF Images
@@ -2593,6 +2587,10 @@ specifying the bounding box of the Postscript image, analogous to the
 @end example
 @end table
 
+  Displaying Postscript images from Lisp data is not currently
+implemented, but it may be implemented by the time you read this.
+See the @file{etc/NEWS} file to make sure.
+
 @node Other Image Types
 @subsection Other Image Types
 @cindex PBM
@@ -2600,8 +2598,7 @@ specifying the bounding box of the Postscript image, analogous to the
   For PBM images, specify image type @code{pbm}.  Color, gray-scale and
 monochromatic images are supported.
 
-  For JPEG images, specify image type @code{jpeg}.  There are no
-additional image properties defined.
+  For JPEG images, specify image type @code{jpeg}.
 
   For TIFF images, specify image type @code{tiff}.
 

@@ -3133,6 +3133,22 @@ as a string, discarding text properties.
 This function deletes the text of the field specified by @var{pos}.
 @end defun
 
+@deffn beginning-of-line-or-field &optional count
+@tindex beginning-of-line-or-field
+Like @code{beginning-of-line}, except that this function does not move
+across a field boundary (@pxref{Fields}), unless it moves to another
+line beyond the one that contains the field boundary.  Therefore, if
+@var{count} is zero, and point is initially at a field boundary, point
+does not move.
+@end deffn
+
+@deffn end-of-line-or-field &optional count
+@tindex end-of-line-or-field
+Like @code{end-of-line}, except that this function does not move
+across a field boundary (@pxref{Fields}), unless it moves to another
+line beyond the one that contains the field boundary.
+@end deffn
+
 @defun constrain-to-field new-pos old-pos &optional escape-from-edge only-in-line
 @tindex constrain-to-field
 This function ``constrains'' @var{new-pos} to the field that

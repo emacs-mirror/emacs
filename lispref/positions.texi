@@ -198,6 +198,9 @@ prematurely by the buffer boundary or a field boundary, the value is
 @code{t}.  Otherwise, the return value is @code{nil} and point stops at
 the buffer boundary or field boundary.
 
+If @code{inhibit-field-text-motion} is non-@code{nil},
+this function ignores field boundaries.
+
 In an interactive call, @var{count} is specified by the numeric prefix
 argument.
 @end deffn
@@ -219,6 +222,13 @@ This variable affects the behavior of @code{forward-word} and everything
 that uses it.  If it is non-@code{nil}, then characters in the
 ``escape'' and ``character quote'' syntax classes count as part of
 words.  Otherwise, they do not.
+@end defvar
+
+@defvar inhibit-field-text-motion
+@tindex inhibit-field-text-motion
+If this variable is non-@code{nil}, certain motion functions including
+@code{forward-word}, @code{forward-sentence}, and
+@codef{forward-paragraph} ignore field boundaries.
 @end defvar
 
 @node Buffer End Motion
@@ -318,11 +328,6 @@ argument @var{count} not @code{nil} or 1, it moves forward
 If this function reaches the end of the buffer (or of the accessible
 portion, if narrowing is in effect), it positions point there.  No error
 is signaled.
-
-This function does not move across a field boundary (@pxref{Fields}),
-unless it moves to another line beyond the one that contains the field
-boundary.  If @var{count} is zero, and point starts at a field boundary,
-then point does not move.
 @end deffn
 
 @defun line-beginning-position &optional count
@@ -339,11 +344,6 @@ argument @var{count} not @code{nil} or 1, it moves forward
 If this function reaches the end of the buffer (or of the accessible
 portion, if narrowing is in effect), it positions point there.  No error
 is signaled.
-
-This function does not move across a field boundary, unless it moves to
-another line beyond the one that contains the field boundary.  If
-@var{count} is zero, and point starts at a field boundary, then point
-does not move.
 @end deffn
 
 @defun line-end-position &optional count

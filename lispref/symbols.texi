@@ -77,6 +77,13 @@ the specified name before it creates a new one.  (In GNU Emacs Lisp,
 this lookup uses a hashing algorithm and an obarray; see @ref{Creating
 Symbols}.)
 
+  The value cell holds the symbol's value as a variable
+(@pxref{Variables}).  That is what you get if you evaluate the symbol as
+a Lisp expression (@pxref{Evaluation}).  Any Lisp object is a legitimate
+value.  Certain symbols have values that cannot be changed; these
+include @code{nil} and @code{t}, and any symbol whose name starts with
+@samp{:} (those are called @dfn{keywords}).  @xref{Constant Variables}.
+
   In normal usage, the function cell usually contains a function
 (@pxref{Functions}) or a macro (@pxref{Macros}), as that is what the
 Lisp interpreter expects to see there (@pxref{Evaluation}).  Keyboard

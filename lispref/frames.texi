@@ -1405,18 +1405,10 @@ which frame's display to ask about; if @var{frame} is omitted or
 Note that this does not tell you whether the display you are using
 really supports that color.  When using X, you can ask for any defined
 color on any kind of display, and you will get some result---typically,
-the best it knows how to do.  Here's an approximate way to test whether
-your display supports the color @var{color}:
+the closest it can do.  To determine whether a frame can really display
+a certain color, use @code{color-supported-p} (see below).
 
-@example
-(defun x-color-supported-p (color &optional frame)
-  (and (color-defined-p color frame)
-       (or (x-display-color-p frame)
-           (member color '("black" "white"))
-           (and (> (x-display-planes frame) 1)
-                (equal color "gray")))))
-@end example
-
+@findex x-color-defined-p
 This function used to be called @code{x-color-defined-p},
 and that name is still supported as an alias.
 @end defun
@@ -1426,8 +1418,31 @@ and that name is still supported as an alias.
 This function returns a list of the color names that are defined
 and supported on frame @var{frame} (default, the selected frame).
 
+@findex x-defined-colors
 This function used to be called @code{x-defined-colors},
 and that name is still supported as an alias.
+@end defun
+
+@defun color-supported-p color &optional frame background-p
+@tindex color-supported-p
+This returns @code{t} if @var{frame} can really display the color
+@var{color} (or at least something close to it).  If @var{frame} is
+omitted or @code{nil}, the question applies to the selected frame.
+
+Some terminals support a different set of colors for foreground and
+background.  If @var{background-p} is non-@code{nil}, that means you are
+asking whether @var{color} can be used as a background; otherwise you
+are asking whether it can be used as a foreground.
+
+The argument @var{color} must be a valid color name.
+@end defun
+
+@defun color-gray-p color &optional frame
+@tindex color-gray-p
+This returns @code{t} if @var{color} is a shade of gray, as defined on
+@var{frame}'s display.  If @var{frame} is omitted or @code{nil}, the
+question applies to the selected frame.  The argument @var{color} must
+be a valid color name.
 @end defun
 
 @defun color-values color &optional frame
@@ -1458,8 +1473,17 @@ The color values are returned for @var{frame}'s display.  If @var{frame}
 is omitted or @code{nil}, the information is returned for the selected
 frame's display.
 
+@findex x-color-values
 This function used to be called @code{x-color-values},
 and that name is still supported as an alias.
+@end defun
+
+@defun display-color-p &optional display
+@tindex display-color-p
+@findex x-display-color-p
+This function returns @code{t} if the screen is a color screen.
+It used to be called @code{x-display-color-p}, and that name
+is still supported as an alias.
 @end defun
 
 @node Text Terminal Colors
@@ -1481,8 +1505,14 @@ amount of green, and the amount of blue.  Each integer ranges in
 principle from 0 to 65535, but in practice the largest value used is
 65280.
 
-@defun tty-define-color name number &optional rgb
-@tindex tty-define-color
+  These functions accept a frame as an optional argument.  We hope in
+the future to make Emacs support multiple text-only terminals; then
+this'argument will specify which terminal to operate on (the default
+being the selected frame).  At present, though, the @var{frame} argument
+has no effect.
+
+@defun tty-color-define name number &optional rgb frame
+@tindex tty-color-define
 This function associates the color name @var{name} with
 color number @var{number} on the terminal.
 
@@ -1493,37 +1523,39 @@ approximate other colors, because Emacs does not know what it looks
 like.
 @end defun
 
-@defun tty-clear-colors
-@tindex tty-clear-colors
+@defun tty-color-clear &optional frame
+@tindex tty-color-clear
 This function clears the table of defined colors for a text-only terminal.
 @end defun
 
-@defvar tty-color-alist
+@defun tty-color-alist &optional frame
 @tindex tty-color-alist
-This variable holds an alist recording the colors supported by the
-terminal.
+This function returns an alist recording the known colors supported by a
+text-only terminal.
 
 Each element has the form @code{(@var{name} @var{number} . @var{rgb})}
 or @code{(@var{name} @var{number})}.  Here, @var{name} is the color
 name, @var{number} is the number used to specify it to the terminal.
 If present, @var{rgb} is an rgb value that says what the color
 actually looks like.
-@end defvar
-
-@defun tty-color-approximate rgb
-@tindex tty-color-approximate
-This function finds the closest available color, among those in
-@code{tty-color-alist}, to that described by the rgb value @var{rgb}.
 @end defun
 
-@defun tty-color-translate color
-@tindex tty-color-translate
-This function finds the closest available color, among those in
-@code{tty-color-alist}, to the name @var{color}.  If that name
-is not defined, the value is @code{nil}.
+@defun tty-color-approximate rgb &optional frame
+@tindex tty-color-approximate
+This function finds the closest color, among the known colors supported
+for @var{frame}'s terminal, to that described by the rgb value
+@var{rgb}.
+@end defun
 
-@var{color} can be an X-style @code{#@var{xxxyyyzzz}} specification
-instead of an actual name.
+@defun tty-color-translate color &optional frame
+@tindex tty-color-translate
+This function finds the closest color to @var{color} among the known
+colors supported for @var{frame}'s terminal.  If the name @var{color} is
+not defined, the value is @code{nil}.
+
+@var{color} can be an X-style @code{"#@var{xxxyyyzzz}"} specification
+instead of an actual name.  The format
+@code{"RGB:@var{xx}/@var{yy}/@var{zz}"} is also supported.
 @end defun
 
 @node Resources
@@ -1619,10 +1651,6 @@ of the symbols @code{static-gray}, @code{gray-scale},
 
 @defun x-display-grayscale-p &optional display
 This function returns @code{t} if the screen can display shades of gray.
-@end defun
-
-@defun x-display-color-p &optional display
-This function returns @code{t} if the screen is a color screen.
 @end defun
 
 @defun x-display-color-cells &optional display

@@ -614,15 +614,14 @@ too short).  Both of those begin with the string @samp{foobar}.
 
 @defun all-completions string collection &optional predicate nospace
 This function returns a list of all possible completions of
-@var{string}.  The arguments to this function are the same as those of
-@code{try-completion}.
+@var{string}.  The arguments to this function (aside from @var{nospace})
+are the same as those of @code{try-completion}.  If @var{nospace} is
+non-@code{nil}, completions that start with a space are ignored unless
+@var{string} also starts with a space.
 
 If @var{collection} is a function, it is called with three arguments:
 @var{string}, @var{predicate} and @code{t}; then @code{all-completions}
 returns whatever the function returns.  @xref{Programmed Completion}.
-
-If @var{nospace} is non-@code{nil}, completions that start with a space
-are ignored unless @var{string} also starts with a space.
 
 Here is an example, using the function @code{test} shown in the
 example for @code{try-completion}:
