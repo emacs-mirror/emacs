@@ -1,5 +1,7 @@
 2001-07-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* vc.el (vc-switch-backend): Fix autoload cookie.
+
 	* desktop.el (desktop-save): Add `-*- coding: emacs-mule -*-' to
 	the desktop file.
 
