@@ -4162,10 +4162,14 @@ window_scroll_pixel_based (window, n, whole, noerror)
 
   if (! vscrolled)
     {
+      int pos = IT_CHARPOS (it);
+      int bytepos;
       /* Set the window start, and set up the window for redisplay.  */
-      set_marker_restricted (w->start, make_number (IT_CHARPOS (it)),
+      set_marker_restricted (w->start, make_number (pos),
 			     w->buffer);
-      w->start_at_line_beg = Fbolp ();
+      bytepos = XMARKER (w->start)->bytepos;
+      w->start_at_line_beg = ((pos == BEGV || FETCH_BYTE (bytepos - 1) == '\n')
+			      ? Qt : Qnil);
       w->update_mode_line = Qt;
       XSETFASTINT (w->last_modified, 0);
       XSETFASTINT (w->last_overlay_modified, 0);
