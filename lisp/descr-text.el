@@ -446,13 +446,15 @@ as well as widgets, buttons, overlays, and text properties."
   (if (>= pos (point-max))
       (error "No character follows specified position"))
   (let* ((char (char-after pos))
-	 (charset (char-charset char))
+	 (charset (get-char-property pos 'charset))
 	 (buffer (current-buffer))
 	 (composition (find-composition pos nil nil t))
 	 (composed (if composition (buffer-substring (car composition)
 						     (nth 1 composition))))
 	 (multibyte-p enable-multibyte-characters)
-	 item-list max-width)
+	 code item-list max-width)
+    (or (and (charsetp charset) (encode-char char charset))
+	(setq charset (char-charset char)))
     (if (eq charset 'eight-bit)
 	(setq item-list
 	      `(("character"
@@ -460,6 +462,7 @@ as well as widgets, buttons, overlays, and text properties."
 			  (char-to-string char) char char char
 			  (multibyte-char-to-unibyte char)))))
 
+      (setq code (encode-char char charset))
       (setq item-list
 	    `(("character"
 	       ,(format "%s (0%o, %d, 0x%x)" (if (< char 256)
@@ -470,8 +473,7 @@ as well as widgets, buttons, overlays, and text properties."
 	       ,(symbol-name charset)
 	       ,(format "(%s)" (charset-description charset)))
 	      ("code point"
- 	       ,(let ((split (split-char char)))
-		  (mapconcat #'number-to-string (cdr split) " ")))
+ 	       ,(format (if (< code 256) "0x%02X" "0x%04X") code))
 	      ("syntax"
  	       ,(let ((syntax (syntax-after pos)))
 		  (with-temp-buffer
