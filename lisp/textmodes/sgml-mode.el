@@ -872,26 +872,29 @@ If non-nil LIMIT is a nearby position before point outside of any tag."
   ;; any string or tag or comment or ...
   (save-excursion
     (let ((pos (point))
-	  (state nil)
-	  textstart)
+	  text-start cdata-start state)
       (if limit (goto-char limit)
 	;; Hopefully this regexp will match something that's not inside
 	;; a tag and also hopefully the match is nearby.
 	(re-search-backward "^[ \t]*<[_:[:alpha:]/%!?#]" nil 'move))
-      (setq textstart (point))
+      ;; (setq text-start (point))
       (with-syntax-table sgml-tag-syntax-table
 	(while (< (point) pos)
 	  ;; When entering this loop we're inside text.
-	  (setq textstart (point))
+	  (setq text-start (point))
 	  (skip-chars-forward "^<" pos)
-	  ;; We skipped text and reached a tag.  Parse it.
-	  ;; FIXME: Handle net-enabling start-tags and <![CDATA[ ...]]>.
-	  (setq state (parse-partial-sexp (point) pos 0)))
+          (setq cdata-start (if (looking-at "<!\\[CDATA\\[") (point)))
+          ;; We skipped text and reached a tag.  Parse it.
+          ;; FIXME: Handle net-enabling start-tags
+          (if cdata-start
+              (search-forward "]]>" pos 'limit)
+            (setq state (parse-partial-sexp (point) pos 0))))
 	(cond
+         (cdata-start  (cons 'cdata cdata-start))
 	 ((nth 3 state) (cons 'string (nth 8 state)))
 	 ((nth 4 state) (cons 'comment (nth 8 state)))
 	 ((and state (> (nth 0 state) 0)) (cons 'tag (nth 1 state)))
-	 (t (cons 'text textstart)))))))
+	 (t (cons 'text text-start)))))))
 
 (defun sgml-beginning-of-tag (&optional top-level)
   "Skip to beginning of tag and return its name.
@@ -961,8 +964,9 @@ With prefix argument, unquote the region."
    (point) (progn (skip-syntax-forward "w_") (point))))
 
 (defsubst sgml-looking-back-at (s)
-  (let ((limit (max (- (point) (length s)) (point-min))))
-    (equal s (buffer-substring-no-properties limit (point)))))
+  (let ((start (- (point) (length s))))
+    (and (>= start (point-min))
+         (equal s (buffer-substring-no-properties start (point))))))
 
 (defun sgml-parse-tag-backward ()
   "Parse an SGML tag backward, and return information about the tag.
@@ -1150,6 +1154,9 @@ If FULL is non-nil, parse back to the beginning of the buffer."
 	 (when (and (not mark) (looking-at "--"))
 	   (forward-char 2) (skip-chars-forward " \t"))
 	 (current-column)))
+
+      (cdata
+       (current-column))
 
       (tag
        (goto-char (1+ (cdr lcon)))
