@@ -1,3 +1,7 @@
+2003-01-11  Kenichi Handa  <handa@m17n.org>
+
+	* xterm.c (x_new_fontset): Fix previous change.
+
 2003-01-10  Dave Love  <fx@gnu.org>
 
 	* composite.c (syms_of_composite): Make composition_hash_table
