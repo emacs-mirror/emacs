@@ -350,9 +350,9 @@ allowed.  GUD assumes that the first argument not starting with a
 for its ordinary input and output.  This is called the GUD buffer.  The
 debugger displays the source files of the program by visiting them in
 Emacs buffers.  An arrow (@samp{=>}) in one of these buffers indicates
-the current execution line.@footnote{Under a window system the arrow is
-displayed in the marginal area of the Emacs window, called @dfn{the
-fringe}.}  Moving point in this buffer does not move the arrow.
+the current execution line.@footnote{Under a window system, the arrow
+appears in the left fringe of the Emacs window.}  Moving point in this
+buffer does not move the arrow.
 
   You can start editing these source files at any time in the buffers
 that display them.  The arrow is not part of the file's
