@@ -1,5 +1,8 @@
 2000-05-21  Dave Love  <fx@gnu.org>
 
+	* edmacro.el (edmacro-parse-keys): Return vector if any elements
+	are invalid characters.
+
 	* international/mule-util.el (detect-coding-with-priority): Use
 	mapc.  Remove redundant lambda.
 
