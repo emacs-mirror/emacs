@@ -124,6 +124,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef HAVE_LIBPTHREADS
 #undef HAVE_LIBRESOLV
 #undef HAVE_LIBXMU
+#undef HAVE_NCURSES
 
 #undef HAVE_ALLOCA_H
 
