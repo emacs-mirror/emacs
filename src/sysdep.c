@@ -1344,7 +1344,9 @@ init_sys_modes ()
 #else
   setbuf (stdout, _sobuf);
 #endif
-  set_terminal_modes ();
+  if (! read_socket_hook && EQ (Vwindow_system, Qnil))
+    set_terminal_modes ();
+
   if (term_initted && no_redraw_on_reenter)
     {
       if (display_completed)
