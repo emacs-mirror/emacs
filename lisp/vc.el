@@ -706,7 +706,7 @@ merge in the changes into your working copy."
     (set (make-local-variable 'vc-parent-buffer) parent)
     (set (make-local-variable 'vc-parent-buffer-name)
 	 (concat " from " (buffer-name vc-parent-buffer)))
-    (vc-mode-line (or file " (no file)"))
+    (if file (vc-mode-line file))
     (vc-log-mode)
     (make-local-variable 'vc-log-after-operation-hook)
     (if after-hook
