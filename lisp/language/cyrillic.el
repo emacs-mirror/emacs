@@ -140,6 +140,9 @@
     ((loop
       (read-multibyte-character r0 r1)
       (translate-character cyrillic-koi8-r-encode-table r0 r1)
+      (if (r0 != ,(charset-id 'eight-bit-graphic))
+	  (if (r0 != ,(charset-id 'eight-bit-control))
+	      (r1 = ??)))
       (write-repeat r1))))
   "CCL program to encode KOI8-R.")
 
@@ -277,6 +280,9 @@ This works whether or not the table is Unicode-based or
     ((loop
       (read-multibyte-character r0 r1)
       (translate-character cyrillic-koi8-u-encode-table r0 r1)
+      (if (r0 != ,(charset-id 'eight-bit-graphic))
+	  (if (r0 != ,(charset-id 'eight-bit-control))
+	      (r1 = ??)))
       (write-repeat r1))))
   "CCL program to encode KOI8-U.")
 
@@ -375,6 +381,9 @@ This works whether or not the table is Unicode-based or
     ((loop
       (read-multibyte-character r0 r1)
       (translate-character cyrillic-alternativnyj-encode-table r0 r1)
+      (if (r0 != ,(charset-id 'eight-bit-graphic))
+	  (if (r0 != ,(charset-id 'eight-bit-control))
+	      (r1 = ??)))
       (write-repeat r1))))
   "CCL program to encode Alternativnyj.")
 
