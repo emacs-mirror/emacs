@@ -27,88 +27,76 @@ function decode_hex(str) {
   return n;
 }
 
-function gb_to_index(b0,b1,b2,b3) {
-  return ((((b0 - 129) * 10 + (b1 - 48)) * 126 + (b2 - 129)) * 10 + b3 - 48);
+function gb_to_index(gb) {
+  b0 = int(gb / 256);
+  b1 = gb % 256;
+  idx = (((b0 - 129)) * 191 + b1 - 64); 
+#  if (b1 >= 127)
+#    idx--;
+  return idx
 }
 
 function index_to_gb(idx) {
   b3 = (idx % 10) + 48;
-  idx /= 10;
+  idx = int(idx / 10);
   b2 = (idx % 126) + 129;
-  idx /= 126;
+  idx = int(idx / 126);
   b1 = (idx % 10) + 48;
-  b0 = (idx / 10) + 129;
+  b0 = int(idx / 10) + 129;
   return sprintf("%02X%02X%02X%02X", b0, b1, b2, b3);
 }
 
-function decode_gb(str) {
-  b0 = decode_hex(substr(str, 3, 2));
-  b1 = decode_hex(substr(str, 7, 2));
-  b2 = decode_hex(substr(str, 11, 2));
-  b3 = decode_hex(substr(str, 15, 2));
-  return gb_to_index(b0, b1, b2, b3);
+/^\#/ {
+  print;
+  next;
 }
 
-function printline(from, to) {
-  fromgb = index_to_gb(from);
-  fromuni = gbtable[from];
-  if (from == to)
-    printf ("0x%s		0x%04X\n", fromgb, fromuni);
-  else
-    printf ("0x%s-0x%s	0x%04X\n", fromgb, index_to_gb(to), fromuni);
+/0x....-0x..../ {
+  gb_from = gb_to_index(decode_hex(substr($1, 3, 4)));
+  gb_to = gb_to_index(decode_hex(substr($1, 10, 4)));
+  unicode = decode_hex(substr($2, 3, 4));
+  while (gb_from <= gb_to)
+    {
+      table[unicode++] = 1;
+      gb_from++;
+    }
+  next;
 }
 
-/^<U[0-9A-F][0-9A-F][0-9A-F][0-9A-F]>/ {
-  unicode = decode_hex(substr($1, 3, 4));
-  if ($2 ~ /\\x8[1-4]\\x3[0-9]\\x[8-9A-F][0-9A-F]\\x3[0-9]/)
-    unitable[unicode] = decode_gb($2);
-  else
-    unitable[unicode] = -1;
+{
+  gb = decode_hex(substr($1, 3, 4));
+  unicode = decode_hex(substr($2, 3, 4));
+  table[unicode] = 1;
 }
 
 END {
-  lastgb = 0;
-  surrogate_min = decode_hex("D800");
-  surrogate_max = decode_hex("DFFF");
-  lastgb = unitable[128];
-  gbtable[lastgb] = 128;
-  for (i = 129; i < 65536; i++)
+  from_gb = -1;
+  to_gb = 0;
+  from_i = 0;
+  table[65536] = 1;
+  for (i = 128; i <= 65536; i++)
     {
-      if (unitable[i] == 0 && (i < surrogate_min || i > surrogate_max))
+      if (table[i] == 0)
 	{
-	  lastgb++;
-	  gbtable[lastgb] = i;
-	  unitable[i] = lastgb;
-	}
-      else if (unitable[i] > 0)
-	{
-	  lastgb = unitable[i];
-	  gbtable[lastgb] = i;
-	}
-    }
-
-  fromgb = lastgb = unitable[128];
-  for (i = 129; i < 65536; i++)
-    {
-      if (unitable[i] > 0)
-	{
-	  if (lastgb + 1 == unitable[i])
+	  if (i < 55296 || i >= 57344)
 	    {
-	      lastgb++;
+	      if (from_gb < 0)
+		{
+		  from_gb = to_gb;
+		  from_i = i;
+		}
+	      to_gb++;
 	    }
+	}
+      else if (from_gb >= 0)
+	{
+	  if (from_gb + 1 == to_gb)
+	    printf "0x%s\t\t0x%04X\n",
+	      index_to_gb(from_gb), from_i;
 	  else
-	    {
-	      if (lastgb >= 0)
-		printline(fromgb, lastgb);
-	      fromgb = lastgb = unitable[i];
-	    }
-	}
-      else			# i.e. (unitable[i] < 0)
-	{
-	  if (lastgb >= 0)
-	    printline(fromgb, lastgb);
-	  lastgb = -1;
+	    printf "0x%s-0x%s\t0x%04X\n",
+	      index_to_gb(from_gb), index_to_gb(to_gb - 1), from_i;
+	  from_gb = -1;
 	}
     }
-  printline(fromgb, unitable[65535]);
 }
