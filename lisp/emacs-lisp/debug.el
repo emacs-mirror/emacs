@@ -1,6 +1,6 @@
 ;;; debug.el --- debuggers and related commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1994, 2001 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, tools, maint
@@ -27,6 +27,8 @@
 ;; This is a major mode documented in the Emacs manual.
 
 ;;; Code:
+
+(require 'button)
 
 (defgroup debugger nil
   "Debuggers and related commands for Emacs."
@@ -526,6 +528,7 @@ Applies to the frame whose line point is on in the backtrace."
 (unless debugger-mode-map
   (let ((loop ? ))
     (setq debugger-mode-map (make-keymap))
+    (set-keymap-parent debugger-mode-map button-buffer-map)
     (suppress-keymap debugger-mode-map)
     (define-key debugger-mode-map "-" 'negative-argument)
     (define-key debugger-mode-map "b" 'debugger-frame)
