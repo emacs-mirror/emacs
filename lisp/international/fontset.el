@@ -228,14 +228,14 @@ PATTERN.  If no full XLFD name is gotten, return nil."
     (setq name (replace-match "-*-" t t name)))
   name)
 
-(defun x-compose-font-name (xlfd-fields &optional reduce)
+(defun x-compose-font-name (fields &optional reduce)
   "Compose X's fontname from FIELDS.
-FIELDS is a vector of XLFD fields.
+FIELDS is a vector of XLFD fields, the length 14.
 If a field is nil, wild-card letter `*' is embedded.
 Optional argument REDUCE non-nil means consecutive wild-cards are
 reduced to be one."
   (let ((name
-	 (concat "-" (mapconcat (lambda (x) (or x "*")) xlfd-fields "-"))))
+	 (concat "-" (mapconcat (lambda (x) (or x "*")) fields "-"))))
     (if reduce
 	(x-reduce-font-name name)
       name)))
@@ -290,12 +290,17 @@ FONTLIST is an alist of charsets vs the corresponding font names.
 Font names for charsets not listed in FONTLIST are generated from
 XLFD-FIELDS and a property of x-charset-registry of each charset
 automatically."
-  (let ((charsets charset-list))
+  (let ((charsets charset-list)
+	(xlfd-fields-non-ascii (copy-sequence xlfd-fields))
+	(new-fontlist nil))
+    (aset xlfd-fields-non-ascii xlfd-regexp-foundry-subnum nil)
+    (aset xlfd-fields-non-ascii xlfd-regexp-family-subnum nil)
+    (aset xlfd-fields-non-ascii xlfd-regexp-adstyle-subnum nil)
+    (aset xlfd-fields-non-ascii xlfd-regexp-avgwidth-subnum nil)
     (while charsets
       (let ((charset (car charsets)))
 	(unless (assq charset fontlist)
-	  (let ((registry (get-charset-property charset
-						'x-charset-registry))
+	  (let ((registry (get-charset-property charset 'x-charset-registry))
 		registry-val encoding-val fontname)
 	    (if (string-match "-" registry)
 		;; REGISTRY contains `CHARSET_ENCODING' field.
@@ -303,29 +308,38 @@ automatically."
 		      encoding-val (substring registry (match-end 0)))
 	      (setq registry-val (concat registry "*")
 		    encoding-val "*"))
-	    (aset xlfd-fields xlfd-regexp-registry-subnum registry-val)
-	    (aset xlfd-fields xlfd-regexp-encoding-subnum encoding-val)
-	    (setq fontname (downcase (x-compose-font-name xlfd-fields)))
-	    (setq fontlist (cons (cons charset fontname) fontlist))
+	    (let ((xlfd (if (eq charset 'ascii) xlfd-fields
+			  xlfd-fields-non-ascii)))
+	      (aset xlfd xlfd-regexp-registry-subnum registry-val)
+	      (aset xlfd xlfd-regexp-encoding-subnum encoding-val)
+	      (setq fontname (downcase (x-compose-font-name xlfd))))
+	    (setq new-fontlist (cons (cons charset fontname) new-fontlist))
 	    (register-alternate-fontnames fontname))))
-      (setq charsets (cdr charsets))))
+      (setq charsets (cdr charsets)))
 
-  ;; If the font for ASCII can also be used for another charsets, use
-  ;; that font instead of what generated based on x-charset-registery
-  ;; in the previous code.
-  (let ((ascii-font (cdr (assq 'ascii fontlist)))
-	(l x-font-name-charset-alist))
-    (while l
-      (if (string-match (car (car l)) ascii-font)
-	  (let ((charsets (cdr (car l))))
-	    (while charsets
-	      (if (not (eq (car charsets) 'ascii))
-		  (setcdr (assq (car charsets) fontlist) ascii-font))
-	      (setq charsets (cdr charsets)))
-	    (setq l nil))
-	(setq l (cdr l)))))
-
-  fontlist)
+    ;; Be sure that ASCII font is avairable.
+    (let ((slot (or (assq 'ascii fontlist) (assq 'ascii new-fontlist)))
+	  ascii-font)
+      (if (setq ascii-font (condition-case nil
+			       (x-resolve-font-name (cdr slot))
+			     (error nil)))
+	  (setcdr slot ascii-font))
+      (if ascii-font
+	  (let ((l x-font-name-charset-alist))
+	    ;; If the ASCII font can also be used for another
+	    ;; charsets, use that font instead of what generated based
+	    ;; on x-charset-registery in the previous code.
+	    (while l
+	      (if (string-match (car (car l)) ascii-font)
+		  (let ((charsets (cdr (car l))))
+		    (while charsets
+		      (if (and (not (eq (car charsets) 'ascii))
+			       (setq slot (assq (car charsets) new-fontlist)))
+			  (setcdr slot ascii-font))
+		      (setq charsets (cdr charsets)))
+		    (setq l nil))
+		(setq l (cdr l))))
+	    (append fontlist new-fontlist))))))
 
 (defun fontset-name-p (fontset)
   "Return non-nil if FONTSET is valid as fontset name.
@@ -389,32 +403,49 @@ STYLE is a style of FONTSET, one of the followings:
 FONTLIST is an alist of charsets vs font names to be used in FONSET.")
 
 (defconst x-style-funcs-alist
-  '((bold x-make-font-bold)
-    (demibold x-make-font-demibold)
-    (italic x-make-font-italic)
-    (oblique x-make-font-oblique)
-    (bold-italic x-make-font-bold x-make-font-italic)
-    (demibold-italic x-make-font-demibold x-make-font-italic)
-    (demibold-oblique x-make-font-demibold x-make-font-oblique)
-    (bold-oblique x-make-font-bold x-make-font-oblique))
-  "Alist of font style vs functions to generate a X font name of the style.")
+  `((bold . x-make-font-bold)
+    (demibold . x-make-font-demibold)
+    (italic . x-make-font-italic)
+    (oblique . x-make-font-oblique)
+    (bold-italic . x-make-font-bold-italic)
+    (demibold-italic
+     . ,(function (lambda (x) (x-make-font-italic (x-make-font-demibold x)))))
+    (demibold-oblique
+     . ,(function (lambda (x) (x-make-font-oblique (x-make-font-demibold x)))))
+    (bold-oblique
+     . ,(function (lambda (x) (x-make-font-oblique (x-make-font-bold x))))))
+  "Alist of font style vs function to generate a X font name of the style.
+The function is called with one argument, a font name.")
+
+(defun x-modify-font-name (fontname style)
+  "Substitute style specification part of FONTNAME for STYLE.
+STYLE should be listed in the variable `x-style-funcs-alist'."
+  (let ((func (cdr (assq style x-style-funcs-alist))))
+    (if func
+	(funcall func fontname))))
 
 ;;;###autoload
 (defun create-fontset-from-fontset-spec (fontset-spec
-					 &optional style-variant-p noerror)
+					 &optional style-variant noerror)
   "Create a fontset from fontset specification string FONTSET-SPEC.
 FONTSET-SPEC is a string of the format:
 	FONTSET-NAME,CHARSET-NAME0:FONT-NAME0,CHARSET-NAME1:FONT-NAME1, ...
 Any number of SPACE, TAB, and NEWLINE can be put before and after commas.
-If optional argument STYLE-VARIANT-P is specified, it also creates
-fontsets which differs from FONTSET-NAME in styles (e.g. bold, italic).
+
+Optional 2nd argument STYLE-VARIANT is a list of font styles
+\(e.g. bold, italic) or the symbol t to specify all available styles.
+If this argument is specified, fontsets which differs from
+FONTSET-NAME in styles are also created.  An element of STYLE-VARIANT
+may be cons of style and a font name.  In this case, the style variant
+fontset uses the font for ASCII character set.
+
 If this function attempts to create already existing fontset, error is
 signaled unless the optional 3rd argument NOERROR is non-nil."
   (if (not (string-match "^[^,]+" fontset-spec))
       (error "Invalid fontset spec: %s" fontset-spec))
   (let ((idx (match-end 0))
 	(name (match-string 0 fontset-spec))
-	fontlist charset)
+	fontlist full-fontlist ascii-font charset)
     (if (query-fontset name)
 	(or noerror 
 	    (error "Fontset \"%s\" already exists"))
@@ -425,88 +456,111 @@ signaled unless the optional 3rd argument NOERROR is non-nil."
 	(if (charsetp charset)
 	    (setq fontlist (cons (cons charset (match-string 2 fontset-spec))
 				 fontlist))))
-
-      (if style-variant-p
-	  ;; Generate fontset names of style variants and set them in
-	  ;; uninstantiated-fontset-alist.
-	  (let ((style-funcs-alist x-style-funcs-alist)
-		new-name style funcs)
-	    (while style-funcs-alist
-	      (setq style (car (car style-funcs-alist))
-		    funcs (cdr (car style-funcs-alist)))
-	      (setq new-name name)
-	      (while funcs
-		(setq new-name (funcall (car funcs) new-name))
-		(setq funcs (cdr funcs)))
-	      (setq uninstantiated-fontset-alist
-		    (cons (list new-name style fontlist)
-			  uninstantiated-fontset-alist))
-	      (setq style-funcs-alist (cdr style-funcs-alist)))))
+      ;; Remember the specified ASCII font name now because it will be
+      ;; replaced by resolved font name by x-complement-fontset-spec.
+      (setq ascii-font (cdr (assq 'ascii fontlist)))
 
       ;; If NAME conforms to XLFD, complement FONTLIST for charsets
       ;; which are not specified in FONTSET-SPEC.
-      (let ((xlfd-fields (x-decompose-font-name name)))
-	(if xlfd-fields
-	    (setq fontlist
-		  (x-complement-fontset-spec xlfd-fields fontlist))))
+      (let ((fields (x-decompose-font-name name)))
+	(if fields
+	    (setq full-fontlist (x-complement-fontset-spec fields fontlist))))
       
-      ;; Create the fontset.
-      (new-fontset name fontlist)
+      (when full-fontlist
+	;; Create the fontset.
+	(new-fontset name full-fontlist)
 
-      ;; Define the alias (short name) if appropriate.
-      (if (and (not (assoc name fontset-alias-alist))
-	       (string-match "fontset-.*$" name))
-	  (let ((alias (match-string 0 name)))
-	    (or (rassoc alias fontset-alias-alist)
-		(setq fontset-alias-alist
-		      (cons (cons name alias) fontset-alias-alist))))))))
+	;; Define aliases: short name (if appropriate) and ASCII font name.
+	(if (and (string-match "fontset-.*$" name)
+		 (not (assoc name fontset-alias-alist)))
+	    (let ((alias (match-string 0 name)))
+	      (or (rassoc alias fontset-alias-alist)
+		  (setq fontset-alias-alist
+			(cons (cons name alias) fontset-alias-alist)))))
+	(let ((resolved-ascii-font (cdr (assq 'ascii full-fontlist))))
+	  (setq fontset-alias-alist
+		(cons (cons name resolved-ascii-font)
+		      fontset-alias-alist))
+	  (or (equal ascii-font resolved-ascii-font)
+	      (setq fontset-alias-alist
+		    (cons (cons name ascii-font)
+			  fontset-alias-alist))))
+
+	;; At last, handle style variants.
+	(if (eq style-variant t)
+	    (setq style-variant (mapcar 'car x-style-funcs-alist)))
+
+	(if style-variant
+	    ;; Generate fontset names of style variants and set them
+	    ;; in uninstantiated-fontset-alist.
+	    (let* (nonascii-fontlist
+		   new-name new-ascii-font style font)
+	      (if ascii-font
+		  (setq nonascii-fontlist (delete (cons 'ascii ascii-font)
+						  (copy-sequence fontlist)))
+		(setq ascii-font (cdr (assq 'ascii full-fontlist))
+		      nonascii-fontlist fontlist))
+	      (while style-variant
+		(setq style (car style-variant))
+		(if (symbolp style)
+		    (setq font nil)
+		  (setq font (cdr style)
+			style (car style)))
+		(setq new-name (x-modify-font-name name style))
+		(when new-name
+		  ;; Modify ASCII font name for the style...
+		  (setq new-ascii-font
+			(or font (x-modify-font-name ascii-font style)))
+		  ;; but leave fonts for the other charsets unmodified
+		  ;; for the momemnt.  They are modified for the style
+		  ;; in instantiate-fontset.
+		  (setq uninstantiated-fontset-alist
+			(cons (list new-name
+				    style
+				    (cons (cons 'ascii new-ascii-font)
+					  nonascii-fontlist))
+			      uninstantiated-fontset-alist))
+		  (setq fontset-alias-alist
+			(cons (cons new-name new-ascii-font)
+			      fontset-alias-alist)))
+		(setq style-variant (cdr style-variant)))))))))
 
 (defun instantiate-fontset (fontset)
   "Make FONTSET be readly to use.
 FONTSET should be in the variable `uninstantiated-fontset-alist' in advance.
 Return FONTSET if it is created successfully, else return nil."
   (let ((fontset-data (assoc fontset uninstantiated-fontset-alist)))
-    (if (null fontset-data)
-	nil
-      (let* ((xlfd-fields (x-decompose-font-name fontset))
-	     (fontlist (x-complement-fontset-spec xlfd-fields
-						  (nth 2 fontset-data)))
-	     (funcs (cdr (assq (nth 1 fontset-data) x-style-funcs-alist)))
-	     ascii-font font font2)
-	(setq uninstantiated-fontset-alist
-	      (delete fontset-data uninstantiated-fontset-alist))
-	(setq fontlist (x-complement-fontset-spec xlfd-fields fontlist))
+    (when fontset-data
+      (setq uninstantiated-fontset-alist
+	    (delete fontset-data uninstantiated-fontset-alist))
 
-	;; At first, check if ASCII font of this style is surely available.
-	(setq ascii-font (cdr (assq 'ascii fontlist)))
-	(if (= (length funcs) 1)
-	    (and (setq font (funcall (car funcs) ascii-font))
-		 (setq font (x-resolve-font-name font 'default)))
-	  (and (setq font (funcall (car funcs) ascii-font))
-	       (not (equal font ascii-font))
-	       (setq font2 (funcall (nth 1 funcs) font))
-	       (not (equal font2 font))
-	       (setq font (x-resolve-font-name font2 'default))))
-
-	;; If ASCII font is available, instantiate the fontset.
+      (let* ((fields (x-decompose-font-name fontset))
+	     (style (nth 1 fontset-data))
+	     (fontlist (x-complement-fontset-spec fields (nth 2 fontset-data)))
+	     (font (cdr (assq 'ascii fontlist))))
+	;; If ASCII font is available, instantiate this fontset.
 	(when font
 	  (let ((new-fontlist (list (cons 'ascii font))))
+	    ;; Fonts for non-ascii charsets should be modified for
+	    ;; this style now.
 	    (while fontlist
 	      (setq font (cdr (car fontlist)))
 	      (or (eq (car (car fontlist)) 'ascii)
-		  (if (if (= (length funcs) 1)
-			  (setq font (funcall (car funcs) font))
-			(and (setq font (funcall (car funcs) font))
-			     (not (equal font (cdr (car fontlist))))
-			     (setq font2 (funcall (nth 1 funcs) font))
-			     (not (equal font2 font))
-			     (setq font font2)))
-		      (setq new-fontlist
-			    (cons (cons (car fontlist) font) new-fontlist))))
+		  (setq new-fontlist
+			(cons (cons (car (car fontlist))
+				    (x-modify-font-name font style))
+			      new-fontlist)))
 	      (setq fontlist (cdr fontlist)))
-	    (new-fontset fontset (x-complement-fontset-spec xlfd-fields
-							    fontlist))
+	    (new-fontset fontset new-fontlist)
 	    fontset))))))
+
+(defun resolve-fontset-name (pattern)
+  "Return a fontset name matching PATTERN."
+  (let ((fontset (car (rassoc pattern fontset-alias-alist))))
+    (or fontset (setq fontset pattern))
+    (if (assoc fontset uninstantiated-fontset-alist)
+	(instantiate-fontset fontset)
+      (query-fontset fontset))))
 
 ;; Create standard fontset from 16 dots fonts which are the most widely
 ;; installed fonts.  Fonts for Chinese-GB, Korean, and Chinese-CNS are
