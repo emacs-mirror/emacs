@@ -143,6 +143,8 @@ Other features we would like:
 
 * Update the FAQ.
 
+* Make update-game-score work on systems that don't have strerror and difftime.
+
 * Allow auto-compression-mode to use zlib calls if zlib is available.
   [It's required for PNG, so may be linked anyhow.]
 
@@ -214,6 +216,9 @@ Other features we would like:
   this.]
 
 * Use the XIE X extension, if available, for image display.
+
+* Make monochrome images display using the foreground and background
+  colors of the applicable faces.
 
 * Add support for rendering antialiased text, probably using
   XRender/Freetype.

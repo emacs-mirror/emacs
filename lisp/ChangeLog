@@ -1,3 +1,18 @@
+2003-04-14  Richard M. Stallman  <rms@gnu.org>
+
+	* derived.el (define-derived-mode): Make generated code work in
+	Emacs versions that do not have run-mode-hooks.
+
+	* emacs-lisp/lisp-mode.el (last-sexp-toggle-display):
+	At end of buffer, run the global binding of the same key.
+
+	* international/mule.el (after-insert-file-set-coding):
+	Properly treat INSERTED as number of characters, for both
+	for both the argument and the value.
+
+	* desktop.el (desktop-base-file-name):
+	Renamed from desktop-basefilename.  Add defvaralias.
+
 2003-04-14  John Paul Wallington  <jpw@gnu.org>
 
 	* international/fontset.el (create-fontset-from-ascii-font): Doc fix.
