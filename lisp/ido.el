@@ -489,6 +489,15 @@ Value can be toggled within `ido' using `ido-toggle-prefix'."
   :type 'boolean
   :group 'ido)
 
+(defcustom ido-cannot-complete-command 'ido-completion-help
+  "*Command run when `ido-complete' can't complete any more.
+The most useful values are `ido-completion-help', which pops up a
+window with completion alternatives, or `ido-next-match' or
+`ido-prev-match', which cycle the buffer list."
+  :type 'function
+  :group 'ido)
+
+
 (defcustom ido-record-commands t
   "*Non-nil means that `ido' will record commands in command history.
 Note that the non-ido equivalent command is recorded."
@@ -1928,8 +1937,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 
      ((not ido-matches)
       (when ido-completion-buffer
-	(setq this-command 'ido-completion-help)
-	(ido-completion-help)))
+	(call-interactively (setq this-command ido-cannot-complete-command))))
 	  
      ((= 1 (length ido-matches))
       ;; only one choice, so select it.
@@ -1946,7 +1954,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 	    (delete-region (minibuffer-prompt-end) (point))
 	    (insert res))
 	;; else nothing to complete
-	(ido-completion-help)
+	(call-interactively (setq this-command ido-cannot-complete-command))
 	)))))
 
 (defun ido-complete-space ()
