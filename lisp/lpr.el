@@ -24,15 +24,17 @@
 
 ;;; Commentary:
 
-;; Commands to send the region or a buffer your printer.  Entry points
+;; Commands to send the region or a buffer to your printer.  Entry points
 ;; are `lpr-buffer', `print-buffer', lpr-region', or `print-region'; option
 ;; variables include `printer-name', `lpr-switches' and `lpr-command'.
 
 ;;; Code:
 
+;;;###autoload
 (defvar lpr-windows-system
   (memq system-type '(emx win32 w32 mswindows ms-dos windows-nt)))
 
+;;;###autoload
 (defvar lpr-lp-system
   (memq system-type '(usg-unix-v dgux hpux irix)))
 
