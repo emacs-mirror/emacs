@@ -20201,9 +20201,14 @@ notice_overwritten_cursor (w, area, x0, x1, y0, y1)
   if (area != TEXT_AREA)
     return;
 
-  row = w->current_matrix->rows + w->phys_cursor.vpos;
-  if (!row->displays_text_p)
-    return;
+  if (w->phys_cursor.vpos < 0
+      || w->phys_cursor.vpos >= w->current_matrix->nrows
+      || (row = w->current_matrix->rows + w->phys_cursor.vpos,
+	  !(row->enabled_p && row->displays_text_p)))
+    {
+      w->phys_cursor_on_p = 0;
+      return;
+    }
 
   if (row->cursor_in_fringe_p)
     {
