@@ -76,21 +76,21 @@
      (eval-and-compile
        (put ',name 'byte-optimizer 'byte-compile-inline-expand))))
 
-(defun make-obsolete (fn new &optional when)
+(defun make-obsolete (function new &optional when)
   "Make the byte-compiler warn that FUNCTION is obsolete.
 The warning will say that NEW should be used instead.
 If NEW is a string, that is the `use instead' message.
 If provided, WHEN should be a string indicating when the function
 was first made obsolete, for example a date or a release number."
   (interactive "aMake function obsolete: \nxObsoletion replacement: ")
-  (let ((handler (get fn 'byte-compile)))
+  (let ((handler (get function 'byte-compile)))
     (if (eq 'byte-compile-obsolete handler)
-	(setq handler (nth 1 (get fn 'byte-obsolete-info)))
-      (put fn 'byte-compile 'byte-compile-obsolete))
-    (put fn 'byte-obsolete-info (list new handler when)))
-  fn)
+	(setq handler (nth 1 (get function 'byte-obsolete-info)))
+      (put function 'byte-compile 'byte-compile-obsolete))
+    (put function 'byte-obsolete-info (list new handler when)))
+  function)
 
-(defun make-obsolete-variable (var new &optional when)
+(defun make-obsolete-variable (variable new &optional when)
   "Make the byte-compiler warn that VARIABLE is obsolete.
 The warning will say that NEW should be used instead.
 If NEW is a string, that is the `use instead' message.
@@ -102,8 +102,8 @@ was first made obsolete, for example a date or a release number."
       (if (equal str "") (error ""))
       (intern str))
     (car (read-from-string (read-string "Obsoletion replacement: ")))))
-  (put var 'byte-obsolete-variable (cons new when))
-  var)
+  (put variable 'byte-obsolete-variable (cons new when))
+  variable)
 
 (put 'dont-compile 'lisp-indent-hook 0)
 (defmacro dont-compile (&rest body)
