@@ -442,12 +442,12 @@ This is the opposite of `hilit-chg-hide-changes'."
 
 
 (defun hilit-chg-make-ov (prop start end)
+  (or prop
+      (error "hilit-chg-make-ov: prop is nil"))
   ;; for the region make change overlays corresponding to
   ;; the text property 'hilit-chg
   (let ((ov (make-overlay start end))
 	face)
-    (or prop
-	(error "hilit-chg-make-ov: prop is nil"))
     (if (eq prop 'hilit-chg-delete)
 	(setq face 'highlight-changes-delete-face)
       (setq face (nth 1 (member prop hilit-chg-list))))
@@ -487,30 +487,28 @@ This is the opposite of `hilit-chg-display-changes'."
 Ensure the overlays agree with the changes as determined from
 the text properties of type `hilit-chg' ."
   ;; Remove or alter overlays in region beg..end
-  (let (p ov ov-start ov-end
-	 props q)
-    (setq p (overlays-in beg end))
+  (let (ov-start ov-end	 props q)
     ;; temp for debugging:
     ;; (or (eq highlight-changes-mode 'active)
     ;;	 (error "hilit-chg-fixup called but Highlight Changes mode not active"))
-    (while p
-      (setq ov (car p))
-      (setq ov-start (overlay-start ov))
-      (setq ov-end (overlay-end ov))
-      (if (< ov-start beg)
-	  (progn
-	    (move-overlay ov ov-start beg)
+    (dolist (ov (overlays-in beg end))
+      ;; Don't alter overlays that are not ours.
+      (when (overlay-get ov 'hilit-chg)
+	(let ((ov-start (overlay-start ov))
+	      (ov-end (overlay-end ov)))
+	  (if (< ov-start beg)
+	      (progn
+		(move-overlay ov ov-start beg)
+		(if (> ov-end end)
+		    (progn
+		      (setq props (overlay-properties ov))
+		      (setq ov (make-overlay end ov-end))
+		      (while props
+			(overlay-put ov (car props)(car (cdr props)))
+			(setq props (cdr (cdr props)))))))
 	    (if (> ov-end end)
-		(progn
-		  (setq props (overlay-properties ov))
-		  (setq ov (make-overlay end ov-end))
-		  (while props
-		    (overlay-put ov (car props)(car (cdr props)))
-		    (setq props (cdr (cdr props)))))))
-	(if (> ov-end end)
-	    (move-overlay ov end ov-end)
-	  (delete-overlay ov)))
-      (setq p (cdr p)))
+		(move-overlay ov end ov-end)
+	      (delete-overlay ov))))))
     (hilit-chg-display-changes beg end)))
 
 ;;;###autoload
@@ -523,7 +521,7 @@ This allows you to manually remove highlighting from uninteresting changes."
     (hilit-chg-fixup beg end)))
 
 (defun hilit-chg-set-face-on-change (beg end leng-before 
-	&optional no-proerty-change)
+					 &optional no-property-change)
   "Record changes and optionally display them in a distinctive face.
 `hilit-chg-set' adds this function to the `after-change-functions' hook."
   ;;
@@ -569,9 +567,9 @@ This allows you to manually remove highlighting from uninteresting changes."
 		(put-text-property end (+ end 1) 'hilit-chg 'hilit-chg)
 		(if (eq highlight-changes-mode 'active)
 		    (hilit-chg-fixup beg (+ end 1))))))
-	(unless no-proerty-change
+	(unless no-property-change
 		(put-text-property beg end 'hilit-chg type))
-	(if (or (eq highlight-changes-mode 'active) no-proerty-change)
+	(if (or (eq highlight-changes-mode 'active) no-property-change)
 	    (hilit-chg-make-ov type beg end))))))
 
 (defun hilit-chg-set (value)
