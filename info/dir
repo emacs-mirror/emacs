@@ -47,9 +47,11 @@ Emacs
 * Message: (message).	Mail and news composition mode that goes with Gnus.
 * MH-E: (mh-e).		Emacs interface to the MH mail system.
 * MIME: (emacs-mime).   Emacs MIME de/composition library.
+* PGG: (pgg).   	Emacs interface to various PGP implementations.
 * SC: (sc).		Supercite lets you cite parts of messages you're
 			  replying to, in flexible ways.
 * SMTP: (smtpmail).     Emacs library for sending mail via SMTP.
+* Sieve: (sieve).       Managing Sieve scripts in Emacs.
 
 * Autotype: (autotype). Convenient features for text that you enter frequently
                           in Emacs.
