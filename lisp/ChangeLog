@@ -1,3 +1,13 @@
+2004-04-01  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* compile.el (compilation-current-error): New var.
+	(compilation-setup, compile-mouse-goto-error)
+	(compile-goto-error, next-error): Use it.
+	(compilation-skip-to-next-location): Default to t, which gives
+	contiguous skipping like old compile (where this was redundant).
+	(compilation-next-error): Prevent previous-* commands from moving
+	back to message at or just before point.
+
 2004-04-01  Nick Roberts  <nick@nick.uklinux.net>
 
 	* progmodes/gdb-ui.el (gdb-view-source-function, gdb-view-assembler)
