@@ -76,8 +76,8 @@ appropriate keyboard coding system (@pxref{Specify Coding}), and Emacs
 will accept those characters.  Latin-1 characters can also be input by
 using the @kbd{C-x 8} prefix, see @ref{Single-Byte Character Support,
 C-x 8}.  On X Window systems, your locale should be set to an
-appropriate value to make sure keyboard input is interpreted
-correctly by Emacs, see @ref{Language Environments, locales}.
+appropriate value to make sure Emacs interprets keyboard input
+correctly, see @ref{Language Environments, locales}.
 @end itemize
 
   The rest of this chapter describes these issues in detail.
