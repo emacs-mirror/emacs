@@ -1,6 +1,6 @@
 # impl.gmk.iam4cc: BUILD FOR IRIX 6 N32/MIPS IV/CC PLATFORM
 #
-# $HopeName: MMsrc!iam4cc.gmk(trunk.8) $
+# $HopeName: MMsrc!iam4cc.gmk(trunk.9) $
 # Copyright (C) 1998 Harlequin Limited.  All rights reserved.
 #
 # This is the GNU makefile for platform.iam4cc.
@@ -15,5 +15,7 @@ SWPF = than.c vmi5.c protsw.c prmcan.c ssan.c
 LIBS = -lm
 
 LINKFLAGS = -n32
+ARFLAGSPFM = s
 
+AR=/bin/ar
 include i6cc.gmk
