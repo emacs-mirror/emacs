@@ -715,12 +715,12 @@ StandardEncoding 46 82 getinterval aload pop
 %*** NOTE: the following are missing in the Adobe documentation,
 %*** but appear in the displayed table:
 %*** macron at 0225, dieresis at 0230, cedilla at 0233, space at 0240.
-% \20x
+% ^Px
     /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
     /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
     /dotlessi /grave /acute /circumflex /tilde /macron /breve /dotaccent
     /dieresis /.notdef /ring /cedilla /.notdef /hungarumlaut /ogonek /caron
-% \24x
+% ^Tx
     /space /exclamdown /cent /sterling
 	/currency /yen /brokenbar /section
     /dieresis /copyright /ordfeminine /guillemotleft
@@ -729,7 +729,7 @@ StandardEncoding 46 82 getinterval aload pop
 	/acute /mu /paragraph /periodcentered
     /cedilla /onesuperior /ordmasculine /guillemotright
 	/onequarter /onehalf /threequarters /questiondown
-% \30x
+% ^Xx
     /Agrave /Aacute /Acircumflex /Atilde
 	/Adieresis /Aring /AE /Ccedilla
     /Egrave /Eacute /Ecircumflex /Edieresis
@@ -738,7 +738,7 @@ StandardEncoding 46 82 getinterval aload pop
 	/Ocircumflex /Otilde /Odieresis /multiply
     /Oslash /Ugrave /Uacute /Ucircumflex
 	/Udieresis /Yacute /Thorn /germandbls
-% \34x
+% ^\\x
     /agrave /aacute /acircumflex /atilde
 	/adieresis /aring /ae /ccedilla
     /egrave /eacute /ecircumflex /edieresis
