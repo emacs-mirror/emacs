@@ -4,8 +4,7 @@
 
 ;; Author: Ilya Zakharevich <ilya@math.mps.ohio-state.edu>
 
-;; This file will soon be a part of GNU Emacs, and is made available under
-;; the same conditions.
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
