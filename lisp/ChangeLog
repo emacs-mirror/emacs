@@ -1,3 +1,7 @@
+2000-10-09  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mouse.el ([header-line mouse-1]): Bind to mouse-select-window.
+
 2000-10-09  Miles Bader  <miles@gnu.org>
 
 	* toolbar/up_arrow.xpm: Flip to put highlight in correct place.
