@@ -159,7 +159,12 @@ This is local in each buffer, once it is used.")
 
 (or (assq 'view-mode minor-mode-alist)
     (setq minor-mode-alist
-	  (cons '(view-mode " View") minor-mode-alist)))
+	  (cons (list 'view-mode
+		      (propertize " View"
+				  'help-echo "mouse-2: exit View mode"
+				  'keymap (make-mode-line-mouse2-map
+					   #'view-mode)))
+		minor-mode-alist)))
 
 ;; Define keymap inside defvar to make it easier to load changes.
 ;; Some redundant "less"-like key bindings below have been commented out.
