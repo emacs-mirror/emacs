@@ -1,3 +1,7 @@
+2001-10-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in: Use $MAKE for `make' if set.
+
 2001-10-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (install-arch-indep): Add -h (follow symlinks)
