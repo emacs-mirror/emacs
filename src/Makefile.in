@@ -655,6 +655,7 @@ lisp= \
 	${lispsource}language/indian.elc \
 	${lispsource}language/japanese.elc \
 	${lispsource}language/korean.elc \
+	${lispsource}language/lao.elc \
 	${lispsource}language/thai.elc \
 	${lispsource}language/vietnamese.elc \
 	${lispsource}language/misc-lang.elc \
@@ -708,6 +709,7 @@ shortlisp= \
 	../lisp/language/indian.elc \
 	../lisp/language/japanese.elc \
 	../lisp/language/korean.elc \
+	../lisp/language/lao.elc \
 	../lisp/language/thai.elc \
 	../lisp/language/vietnamese.elc \
 	../lisp/language/misc-lang.elc \
