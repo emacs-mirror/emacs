@@ -1,3 +1,9 @@
+2002-09-29  Richard M. Stallman  <rms@gnu.org>
+
+	* startup.el (user-mail-address): Initialize to a useful value
+	once Emacs is started up; initialize to "" at loadup time.
+	(command-line): "", not nil, means user-mail-address not set yet.
+
 2002-09-29  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.24 released.

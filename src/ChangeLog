@@ -1,5 +1,8 @@
 2002-09-29  Richard M. Stallman  <rms@gnu.org>
 
+	* search.c (Freplace_match): Adjust match data for the substitution
+	just made in the buffer.
+
 	* xdisp.c (STOP_POLLING, RESUME_POLLING): New macros.
 	(redisplay_internal): Use them.  Do RESUME_POLLING at end of function.
 
