@@ -1,3 +1,16 @@
+2000-03-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* progmodes/awk-mode.el (awk-font-lock-keywords): All `else'.
+
+	* simple.el (append-to-buffer): Update point of windows after
+	insertion.
+
+	* abbrev.el (inverse-add-abbrev): Identify word by first moving
+	forward then moving backward.  Reindent.
+
+	* frame.el (other-frame): Call x-focus-frame only if
+	focus-follows-mouse is off.
+
 2000-03-17  Dave Love  <fx@gnu.org>
 
 	* pcvs-util.el (cvs-strings->string): Rename
@@ -9,7 +22,7 @@
 	regexp for labels cannot span several lines.
 
 	* emacs-lisp/cl-macs.el (cl-do-arglist): Don't add useless
-	(setq :<key> ':<key>) to the macro expansion.
+	`(setq :<key> ':<key>)' to the macro expansion.
 
 2000-03-16  Dave Love  <fx@gnu.org>
 
