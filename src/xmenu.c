@@ -1885,16 +1885,20 @@ free_frame_menubar (f)
       BLOCK_INPUT;
 
 #ifdef USE_MOTIF
-      XtVaGetValues (f->output_data.x->widget, XtNx, &x0, XtNy, &y0, NULL);
+      if (f->output_data.x->widget)
+	XtVaGetValues (f->output_data.x->widget, XtNx, &x0, XtNy, &y0, NULL);
 #endif
       
       lw_destroy_all_widgets ((LWLIB_ID) f->output_data.x->id);
       f->output_data.x->menubar_widget = NULL;
 
 #ifdef USE_MOTIF
-      XtVaGetValues (f->output_data.x->widget, XtNx, &x1, XtNy, &y1, NULL);
-      if (x1 == 0 && y1 == 0)
-	XtVaSetValues (f->output_data.x->widget, XtNx, x0, XtNy, y0, NULL);
+      if (f->output_data.x->widget)
+	{
+	  XtVaGetValues (f->output_data.x->widget, XtNx, &x1, XtNy, &y1, NULL);
+	  if (x1 == 0 && y1 == 0)
+	    XtVaSetValues (f->output_data.x->widget, XtNx, x0, XtNy, y0, NULL);
+	}
 #endif
       
       UNBLOCK_INPUT;
