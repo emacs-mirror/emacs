@@ -108,6 +108,7 @@ which smileys to operate on and which images to use for them."
       (smiley-update-cache))
     (save-excursion
       (let ((beg (or start (point-min)))
+	    (inhibit-point-motion-hooks t)
 	    group overlay image)
 	(dolist (entry smiley-cached-regexp-alist)
 	  (setq group (nth 1 entry)
