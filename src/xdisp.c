@@ -219,7 +219,7 @@ Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
 Lisp_Object Qredisplay_end_trigger_functions;
 Lisp_Object Qinhibit_point_motion_hooks;
-Lisp_Object QCeval, Qwhen, QCfile;
+Lisp_Object QCeval, Qwhen, QCfile, QCdata;
 Lisp_Object Qfontified;
 
 /* Functions called to fontify regions of text.  */
@@ -12837,6 +12837,8 @@ syms_of_xdisp ()
   staticpro (&Qinhibit_point_motion_hooks);
   Qinhibit_point_motion_hooks = intern ("inhibit-point-motion-hooks");
 
+  QCdata = intern (":data");
+  staticpro (&QCdata);
   Qdisplay = intern ("display");
   staticpro (&Qdisplay);
   Qspace_width = intern ("space-width");
