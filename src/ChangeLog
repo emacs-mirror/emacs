@@ -1,3 +1,10 @@
+2003-03-03  Richard M. Stallman  <rms@gnu.org>
+
+	* buffer.c (Fkill_buffer): Use Frun_hook_with_args_until_failure
+	to run kill-buffer-query-functions.
+	(Qkill_buffer_query_functions): New var.
+	(syms_of_buffer): Init and staticpro it.
+
 2003-03-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.h (XSync): Define as gdk_window_process_all_updates for GTK.
