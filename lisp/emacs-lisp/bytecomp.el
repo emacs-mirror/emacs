@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.97 $")
+(defconst byte-compile-version "$Revision: 2.98 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1309,12 +1309,13 @@ Files in subdirectories of DIRECTORY are processed also."
 This is if a `.elc' file exists but is older than the `.el' file.
 Files in subdirectories of DIRECTORY are processed also.
 
-If the `.elc' file does not exist, normally the `.el' file is *not* compiled.
-But a prefix argument (optional second arg) means ask user,
-for each such `.el' file, whether to compile it.  Prefix argument 0 means
-don't ask and compile the file anyway.
+If the `.elc' file does not exist, normally this function *does not*
+compile the corresponding `.el' file.  However,
+if ARG (the prefix argument) is 0, that means do compile all those files.
+A nonzero ARG means ask the user, for each such `.el' file,
+whether to compile it.
 
-A nonzero prefix argument also means ask about each subdirectory.
+A nonzero ARG also means ask about each subdirectory before scanning it.
 
 If the third argument FORCE is non-nil,
 recompile every `.el' file that already has a `.elc' file."
@@ -3748,7 +3749,7 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
   (or command-line-args-left
       (setq command-line-args-left '(".")))
   (while command-line-args-left
-    (byte-recompile-directory (car command-line-args-left) 0)
+    (byte-recompile-directory (car command-line-args-left))
     (setq command-line-args-left (cdr command-line-args-left)))
   (kill-emacs 0))
 
