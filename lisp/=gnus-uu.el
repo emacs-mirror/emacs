@@ -2784,9 +2784,9 @@ to post the entire encoded files.
   (setq mode-name "Gnus UU News")
   (make-local-variable 'paragraph-separate)
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "^" mail-header-separator "$\\|"
+  (setq paragraph-start (concat mail-header-separator "$\\|"
 				paragraph-start))
-  (setq paragraph-separate (concat "^" mail-header-separator "$\\|"
+  (setq paragraph-separate (concat mail-header-separator "$\\|"
 				   paragraph-separate))
   (run-hooks 'text-mode-hook 'gnus-uu-post-reply-mode-hook))
 
