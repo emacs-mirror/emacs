@@ -236,21 +236,10 @@
        (calc-unary-op "coth" 'calcFunc-coth arg)
      (calc-unary-op "cot" 'calcFunc-cot arg))))
 
-(defun calc-arctan (arg)
-  (interactive "P")
-  (calc-invert-func)
-  (calc-tan arg))
-
-(defun calc-tanh (arg)
+(defun calc-coth (arg)
   (interactive "P")
   (calc-hyperbolic-func)
-  (calc-tan arg))
-
-(defun calc-arctanh (arg)
-  (interactive "P")
-  (calc-invert-func)
-  (calc-hyperbolic-func)
-  (calc-tan arg))
+  (calc-cot arg))
 
 (defun calc-arctan2 ()
   (interactive)
@@ -991,11 +980,11 @@
 	 (or (math-with-extra-prec 2
 	       (let* ((xx (math-to-radians (math-float x)))
 		      (na (math-floor (math-div (nth 2 xx) (math-pi))))
-		      (nb (math-floor (math-div (nth 3 xx) (math-pi))))
+		      (nb (math-floor (math-div (nth 3 xx) (math-pi)))))
 		 (and (equal na nb)
 		      (math-sort-intv (nth 1 x)
 				      (math-cot-raw (nth 2 xx))
-				      (math-cot-raw (nth 3 xx)))))))
+				      (math-cot-raw (nth 3 xx))))))
 	     '(intv 3 (neg (var inf var-inf)) (var inf var-inf))))
 	((equal x '(var nan var-nan))
 	 x)
