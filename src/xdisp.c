@@ -1331,11 +1331,15 @@ update:
       FOR_EACH_FRAME (tail, frame)
 	{
 	  int this_is_visible = 0;
-	  if (XFRAME (frame)->visible)
-	    this_is_visible = 1;
-	  FRAME_SAMPLE_VISIBILITY (XFRAME (frame));
-	  if (XFRAME (frame)->visible)
-	    this_is_visible = 1;
+	  if (FRAME_WINDOW_P (XFRAME (frame))
+	      || XFRAME (frame) == selected_frame)
+	    {
+	      if (XFRAME (frame)->visible)
+		this_is_visible = 1;
+	      FRAME_SAMPLE_VISIBILITY (XFRAME (frame));
+	      if (XFRAME (frame)->visible)
+		this_is_visible = 1;
+	    }
 
 	  if (this_is_visible)
 	    new_count++;
