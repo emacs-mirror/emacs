@@ -419,11 +419,14 @@ DEFUN ("win16-set-clipboard-data", Fwin16_set_clipboard_data, Swin16_set_clipboa
   
   close_clipboard ();
   
-  if (ok) goto done;
+  if (ok) goto unblock;
 
  error:
   
   ok = 0;
+
+ unblock:
+  UNBLOCK_INPUT;
 
   /* Notify user if the text is too large to fit into DOS memory.
      (This will happen somewhere after 600K bytes (470K in DJGPP v1.x),
@@ -437,7 +440,6 @@ DEFUN ("win16-set-clipboard-data", Fwin16_set_clipboard_data, Swin16_set_clipboa
     }
   
  done:
-  UNBLOCK_INPUT;
 
   return (ok ? string : Qnil);
 }
@@ -464,7 +466,7 @@ DEFUN ("win16-get-clipboard-data", Fwin16_get_clipboard_data, Swin16_get_clipboa
   BLOCK_INPUT;
   
   if (!open_clipboard ())
-    goto done;
+    goto unblock;
 
   if ((data_size = get_clipboard_data_size (CF_TEXT)) == 0 ||
       (htext = (unsigned char *)xmalloc (data_size)) == 0)
@@ -481,9 +483,11 @@ DEFUN ("win16-get-clipboard-data", Fwin16_get_clipboard_data, Swin16_get_clipboa
 
  closeclip:
   close_clipboard ();
+
+ unblock:
+  UNBLOCK_INPUT;
   
  done:
-  UNBLOCK_INPUT;
   
   return (ret);
 }
