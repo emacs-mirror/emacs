@@ -1155,7 +1155,11 @@ list_buffers_1 (files)
       write_string (b == old ? "." : " ", -1);
       /* Identify modified buffers */
       write_string (BUF_MODIFF (b) > b->save_modified ? "*" : " ", -1);
-      write_string (NILP (b->read_only) ? "  " : "% ", -1);
+      /* The current buffer is special-cased to be marked read-only.
+	 It is actually made read-only by the call to
+	 Buffer-menu-mode, below. */
+      write_string ((b != current_buffer && NILP (b->read_only))
+		    ? "  " : "% ", -1);
       Fprinc (b->name, Qnil);
       Findent_to (col1, make_number (2));
       XSETFASTINT (tem, BUF_Z (b) - BUF_BEG (b));
