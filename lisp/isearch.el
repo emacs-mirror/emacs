@@ -4,7 +4,7 @@
 ;; LCD Archive Entry:
 ;; isearch-mode|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A minor mode replacement for isearch.el.
-;; |$Date: 1993/02/17 21:30:25 $|$Revision: 1.19 $|~/modes/isearch-mode.el
+;; |$Date: 1993/03/06 06:15:05 $|$Revision: 1.20 $|~/modes/isearch-mode.el
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -88,8 +88,15 @@
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.19 1993/02/17 21:30:25 rms Exp rms $
+;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.20 1993/03/06 06:15:05 rms Exp rms $
 ;;; $Log: isearch-mode.el,v $
+; Revision 1.20  1993/03/06  06:15:05  rms
+; (isearch-unread): Handle multiple args.
+; For Emacs 19, use listify-key-sequence.
+; If not Emacs 19, assume they are a meta sequence.
+; (isearch-other-meta-char): Pass the whole key sequence.
+; (isearch-other-control-char): Make this alias for ...-meta-char.
+;
 ; Revision 1.19  1993/02/17  21:30:25  rms
 ; Fix minor bugs in previous change.
 ;
@@ -1436,7 +1443,10 @@ have special meaning in a regexp."
   (if isearch-gnu-emacs-events
       (setq unread-command-events (listify-key-sequence char-or-events))
     (let ((char (if (cdr char-or-events)
-		    (+ 128 (car (last char-or-events)))
+		    (progn
+		      (while (cdr char-or-events)
+			(setq char-or-events (cdr char-or-events)))
+		      (+ 128 (car char-or-events)))
 		  (car char-or-events))))
       (if isearch-event-data-type
 	  (setq unread-command-event char)
