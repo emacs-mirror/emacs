@@ -147,10 +147,6 @@
   (define-key hide-ifdef-mode-map hide-ifdef-mode-prefix-key
     hide-ifdef-mode-submap))
 
-(defun hif-update-mode-line ()
-  "Update mode-line by setting buffer-modified to itself."
-  (set-buffer-modified-p (buffer-modified-p)))
-
 (defvar hide-ifdef-mode nil
   "Non-nil when hide-ifdef-mode is activated.")
 
@@ -893,7 +889,7 @@ is first activated.")
 	   (if hide-ifdef-read-only "ON" "OFF"))
   (if hide-ifdef-hiding
       (setq buffer-read-only (or hide-ifdef-read-only hif-outside-read-only)))
-  (hif-update-mode-line))
+  (force-mode-line-update))
 
 (defun hide-ifdef-toggle-outside-read-only ()
   "Replacement for `toggle-read-only' within Hide Ifdef mode."
@@ -905,7 +901,7 @@ is first activated.")
 	(or (and hide-ifdef-hiding hide-ifdef-read-only)
 	    hif-outside-read-only)
 	)
-  (hif-update-mode-line))
+  (force-mode-line-update))
 
       
 (defun hide-ifdef-define (var)
