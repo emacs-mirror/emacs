@@ -6,6 +6,12 @@
 
 	* simple.el (backward-word): Doc fix.
 
+2001-09-03  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+
+	* emacs-lisp/levents.el, emacs-lisp/lucid.el, emacs-lisp/pp.el
+	* uncompress.el, uniquify.el, vc.el, view.el, window.el
+	* w32-fns.el: Add Keywords header.
+
 2001-09-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* menu-bar.el: Fix separators in the Edit menu.  Bring "Fill" near
