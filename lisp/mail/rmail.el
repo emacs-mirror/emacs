@@ -222,14 +222,6 @@ that file, but does not copy any new mail into the file."
 	(or (eq major-mode 'rmail-mode)
 	    (rmail-mode-2))
       (rmail-mode-2)
-      ;; Provide default set of inboxes for primary mail file ~/RMAIL.
-      (and (null rmail-inbox-list)
-	   (null file-name-arg)
-	   (setq rmail-inbox-list
-		 (or rmail-primary-inbox-list
-		     (list (or (getenv "MAIL")
-			       (concat rmail-spool-directory
-				       (user-original-login-name)))))))
       ;; Convert all or part to Babyl file if possible.
       (rmail-convert-file)
       (goto-char (point-max))
@@ -450,6 +442,14 @@ Instead, these commands are available:
   (make-local-variable 'rmail-last-file)
   (make-local-variable 'rmail-inbox-list)
   (setq rmail-inbox-list (rmail-parse-file-inboxes))
+  ;; Provide default set of inboxes for primary mail file ~/RMAIL.
+  (and (null rmail-inbox-list)
+       (equal buffer-file-name (expand-file-name rmail-file-name))
+       (setq rmail-inbox-list
+	     (or rmail-primary-inbox-list
+		 (list (or (getenv "MAIL")
+			   (concat rmail-spool-directory
+				   (user-original-login-name)))))))
   (make-local-variable 'rmail-keywords)
   ;; this gets generated as needed
   (setq rmail-keywords nil))
