@@ -30,8 +30,8 @@
   "Keymap for MULE (Multilingual environment) specific commands.")
 (fset 'mule-prefix mule-keymap)
 
-;; Keep "C-x C-k ..." for mule specific commands.
-(define-key ctl-x-map "\C-k" 'mule-prefix)
+;; Keep "C-x C-m ..." for mule specific commands.
+(define-key ctl-x-map "\C-m" 'mule-prefix)
 
 (define-key global-map [menu-bar mule] (cons "Mule" mule-keymap))
 
@@ -119,7 +119,10 @@ With arg, make them enable iff arg is positive."
 (defun view-hello-file ()
   "Display the HELLO file which list up many languages and characters."
   (interactive)
-  (find-file-read-only (expand-file-name "HELLO" data-directory)))
+  ;; We have to decode the file in any environment.
+  (let ((default-enable-multibyte-characters t)
+	(coding-system-for-read 'iso-2022-7))
+    (find-file-read-only (expand-file-name "HELLO" data-directory))))
 
 
 ;;; Language support staffs.
