@@ -94,13 +94,18 @@ DONTCOMPILE = \
 	$(lisp)/term/xterm.el \
 	$(lisp)/version.el
 
-# Files to compile before others during a bootstrap.  This is done
-# to speed up the bootstrap process.
+# Files to compile before others during a bootstrap.  This is done to
+# speed up the bootstrap process.  The CC files are compiled first
+# because CC mode tweaks the compilation process, and requiring
+# cc-mode when it is not compiled doesn't work during the
+# bootstrapping.
 
 COMPILE_FIRST = \
 	$(lisp)/emacs-lisp/byte-opt.el \
 	$(lisp)/emacs-lisp/bytecomp.el \
-	$(lisp)/subr.el
+	$(lisp)/subr.el \
+	$(lisp)/progmodes/cc-mode.el \
+	$(lisp)/progmodes/cc-vars.el
 
 # The actual Emacs command run in the targets below.
 
