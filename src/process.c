@@ -2833,6 +2833,8 @@ read_process_output (proc, channel)
   chars = buf;
 #endif /* not VMS */
 
+  XSETINT (p->decoding_carryover, 0);
+
   /* At this point, NBYTES holds number of characters just received
      (including the one in proc_buffered_char[channel]).  */
   if (nbytes <= 0) return nbytes;
@@ -2851,6 +2853,18 @@ read_process_output (proc, channel)
       result = decode_coding (coding, chars, XSTRING (p->decoding_buf)->data,
 			      nbytes, STRING_BYTES (XSTRING (p->decoding_buf)));
       carryover = nbytes - coding->consumed;
+      if (carryover > 0)
+	{
+	  /* We must move the data carried over to the tail of
+	     decoding buffer.  We are sure that the size of decoding
+	     buffer (decided by decoding_buffer_size) is large enough
+	     to contain them.  */
+	  bcopy (chars + nbytes - carryover,
+		 (XSTRING (p->decoding_buf)->data
+		  + STRING_BYTES (XSTRING (p->decoding_buf)) - carryover),
+		 carryover);
+	  XSETINT (p->decoding_carryover, carryover);
+	}
 
       /* A new coding system might be found by `decode_coding'.  */
       if (!EQ (p->decode_coding_system, coding->symbol))
@@ -2904,11 +2918,9 @@ read_process_output (proc, channel)
       chars = XSTRING (p->decoding_buf)->data;
       nchars = multibyte_chars_in_text (chars, nbytes);
       chars_in_decoding_buf = 1;
-      carryover = 0;
     }
 #endif
 
-  XSETINT (p->decoding_carryover, carryover);
   Vlast_coding_system_used = coding->symbol;
 
   /* If the caller required, let the process associated buffer
