@@ -897,10 +897,11 @@ on a buffer attached to the file named in the current Dired buffer line."
 (defun vc-directory-18 (verbose)
   "Show version-control status of all files under the current directory."
   (interactive "P")
-  (let (nonempty)
+  (let (nonempty (dir default-directory))
     (save-excursion
       (set-buffer (get-buffer-create "*vc-status*"))
       (erase-buffer)
+      (cd dir)
       (vc-file-tree-walk
        (function (lambda (f)
 		   (if (vc-registered f)
