@@ -4204,8 +4204,7 @@ update_text_area (w, vpos)
       /* If the desired row extends its face to the text area end,
 	 make sure we write at least one glyph, so that the face
 	 extension actually takes place.  */
-      if (MATRIX_ROW_EXTENDS_FACE_P (desired_row)
-	  && !w->pseudo_window_p)
+      if (MATRIX_ROW_EXTENDS_FACE_P (desired_row))
 	--desired_stop_pos;
 #endif
       
