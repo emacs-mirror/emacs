@@ -116,10 +116,12 @@ These supercede the values given in `default-frame-alist'.")
 		  (let ((params (frame-parameters frame-initial-frame)))
 		    (modify-frame-parameters
 		     frame-initial-frame
-		     (list (cons 'foreground-color (cdr (assq 'background-color params)))
+		     ;; Must set cursor-color after background color.
+		     ;; So put it first.
+		     (list (cons 'cursor-color (cdr (assq 'background-color params)))
+			   (cons 'foreground-color (cdr (assq 'background-color params)))
 			   (cons 'background-color (cdr (assq 'foreground-color params)))
 			   (cons 'mouse-color (cdr (assq 'background-color params)))
-			   (cons 'cursor-color (cdr (assq 'background-color params)))
 			   (cons 'border-color (cdr (assq 'background-color params)))))))))
 
 	;; At this point, we know that we have a frame open, so we 
