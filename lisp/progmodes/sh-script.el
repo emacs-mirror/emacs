@@ -169,7 +169,8 @@ shell it really is.")
 
 (defvar sh-abbrevs
   '((csh eval sh-abbrevs shell
-	 "switch" 'sh-case)
+	 "switch" 'sh-case
+	 "getopts" 'sh-while-getopts)
 
     (es eval sh-abbrevs shell
 	"function" 'sh-function)
@@ -361,6 +362,11 @@ The actual command ends at the end of the first \\(grouping\\).")
 (defvar sh-here-document-word "EOF"
   "Word to delimit here documents.")
 
+(defvar sh-test
+  '((sh "[  ]" . 3)
+    (ksh88 "[[  ]]" . 4))
+  "Initial input in Bourne if, while and until skeletons.  See `sh-feature'.")
+
 
 (defvar sh-builtins
   '((bash eval sh-append sh
@@ -376,7 +382,7 @@ The actual command ends at the end of the first \\(grouping\\).")
 	    "until")
 
     (csh eval sh-append shell
-	 "alias" "breaksw" "chdir" "default" "end" "endif" "endsw" "foreach"
+	 "alias" "breaksw" "chdir" "default:" "end" "endif" "endsw" "foreach"
 	 "glob" "goto" "history" "limit" "logout" "nice" "nohup" "onintr"
 	 "rehash" "repeat" "setenv" "source" "switch" "time" "unalias"
 	 "unhash")
@@ -532,15 +538,13 @@ See `sh-feature'.")
 (defvar sh-font-lock-keywords
   '((csh eval sh-append shell
 	 '("\\${?[#?]?\\([A-Za-z_][A-Za-z0-9_]*\\|0\\)" 1
-	   font-lock-function-name-face)
-	'("\\(^\\|[ \t]\\)\\(default\\):" 2
-	  font-lock-keyword-face t))
+	   font-lock-variable-name-face))
 
     (dtksh eval identity wksh)
 
     (es eval sh-append executable-font-lock-keywords
 	'("\\$#?\\([A-Za-z_][A-Za-z0-9_]*\\|[0-9]+\\)" 1
-	  font-lock-function-name-face))
+	  font-lock-variable-name-face))
 
     (rc eval sh-append es
 	'("\\(^\\|[ \t]\\)\\(else\\( if\\)?\\)\\>" 2
@@ -548,14 +552,14 @@ See `sh-feature'.")
 
     (sh eval sh-append shell
 	'("\\$\\({#?\\)?\\([A-Za-z_][A-Za-z0-9_]*\\|[-#?@!]\\)" 2
-	  font-lock-function-name-face)
+	  font-lock-variable-name-face)
 	" in\\([ \t]\\|$\\)")
 
     ;; The next entry is only used for defining the others
     (shell eval sh-append executable-font-lock-keywords
 	   '("\\\\." 0 font-lock-string-face)
 	   '("\\${?\\([A-Za-z_][A-Za-z0-9_]*\\|[0-9]+\\|[$*_]\\)" 1
-	     font-lock-function-name-face))
+	     font-lock-variable-name-face))
 
     (wksh eval sh-append ksh88
 	  '("\\(^\\|[^-._A-Za-z0-9]\\)\\(Xt[A-Z][A-Za-z]*\\)\\($\\|[^-._A-Za-z0-9]\\)" 2 font-lock-keyword-face)))
@@ -679,26 +683,23 @@ Calls the value of `sh-set-shell-hook' if set."
 	  (sh-feature
 	   sh-font-lock-keywords
 	   (lambda (list)
-	     (sh-append list
-			(cons (concat (sh-feature sh-comment-prefix)
-				      "\\(#.*\\)")
-			      '(2 font-lock-comment-face t))
-			;; first grouping should include all keywords such
-			;; as while, do ... that may be followed by a
-			;; command, but neither t nor keep will fontify it
-			(cons (concat "\\(^\\|[|&;()]\\)[ \t]*\\(\\(\\("
-				      (mapconcat 'identity
-						 (sh-feature
-						  sh-leading-keywords)
-						 "\\|")
-				      "\\)[ \t]+\\)?\\("
-				      (mapconcat 'identity
-						 (sh-feature sh-builtins)
-						 "\\|")
-				      "\\)\\)\\($\\|[ \t|&;()]\\)")
-			      '(2 font-lock-keyword-face 'keep))
-			(cons (sh-feature sh-assignment-regexp)
-			      '(1 font-lock-function-name-face)))))
+	     `((,(concat (sh-feature sh-comment-prefix) "\\(#.*\\)")
+		2 font-lock-comment-face t)
+	       (,(sh-feature sh-assignment-regexp)
+		1 font-lock-variable-name-face)
+	       ,@(if font-lock-maximum-decoration
+		     `((,(concat "\\(^\\|[|&;()]\\)[ \t]*\\(\\(\\("
+				 (mapconcat 'identity
+					    (sh-feature sh-leading-keywords)
+					    "\\|")
+				 "\\)[ \t]+\\)?\\("
+				 (mapconcat 'identity
+					    (sh-feature sh-builtins)
+					    "\\|")
+				 "\\)\\)\\($\\|[ \t|&;()]\\)")
+			2 font-lock-keyword-face 'keep)
+		       ,@list)
+		   list))))
 	comment-start-skip (concat (sh-feature sh-comment-prefix) "#+[\t ]*")
 	mode-line-process (format "[%s]" sh-shell)
 	process-environment (default-value 'process-environment)
@@ -1074,10 +1075,11 @@ region, clear header."
       10 "} else {"
       17 ?})
   (sh "condition: "
-      "if [ " str " ]; then" \n
+      '(setq input (sh-feature sh-test))
+      "if " str "; then" \n
       > _ \n
       ( "other condition, %s: "
-	< "elif [ " str " ]; then" \n
+	< "elif " str "; then" \n
 	> _ \n)
       < "else" \n
       > _ \n
@@ -1144,7 +1146,8 @@ region, clear header."
 (define-skeleton sh-until
   "Insert an until loop.  See `sh-feature'."
   (sh "condition: "
-      "until [ " str " ]; do" \n
+      '(setq input (sh-feature sh-test))
+      "until " str "; do" \n
       > _ \n
       < "done"))
 (put 'sh-until 'menu-enable '(sh-feature sh-until))
@@ -1164,7 +1167,8 @@ region, clear header."
       3 " ) {"
       9 ?})
   (sh "condition: "
-      "while [ " str " ]; do" \n
+      '(setq input (sh-feature sh-test))
+      "while " str "; do" \n
       > _ \n
       < "done"))
 
@@ -1176,6 +1180,29 @@ Prompts for an options string which consists of letters for each recognized
 option followed by a colon `:' if the option accepts an argument."
   (bash eval sh-modify sh
 	18 "${0##*/}")
+  (csh nil
+       "while( 1 )" \n
+       > "switch( \"$1\" )" \n
+       '(setq input '("- x" . 2))
+       > >
+       ( "option, %s: "
+	 < "case " '(eval str)
+	 '(if (string-match " +" str)
+	      (setq v1 (substring str (match-end 0))
+		    str (substring str 0 (match-beginning 0)))
+	    (setq v1 nil))
+	 str ?: \n
+	 > "set " v1 & " = $2" | -4 & _ \n
+	 (if v1 "shift") & \n
+	 "breaksw" \n)
+       < "case --:" \n
+       > "shift" \n
+       < "default:" \n
+       > "break" \n
+       resume:
+       < < "endsw" \n
+       "shift" \n
+       < "end")
   (ksh88 eval sh-modify sh
 	 16 "print"
 	 18 "${0##*/}"
