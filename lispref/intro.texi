@@ -269,7 +269,7 @@ evaluating the form (here @code{bar}) follows on a separate line with
 
 @example
 @group
-(progn (prin1 'foo) (princ "\n") (print 'bar))
+(progn (prin1 'foo) (princ "\n") (prin1 'bar))
      @print{} foo
      @print{} bar
      @result{} bar
