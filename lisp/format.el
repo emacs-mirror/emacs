@@ -64,10 +64,7 @@
 (put 'buffer-file-format 'permanent-local t)
 
 (defvar format-alist 
-  '((compressed "compressed" 
-	   "^\037\213"                       ; magic number for gzip
-	   "gunzip -f" "gzip -f" t nil)
-    (text/enriched "Extended MIME text/enriched format."
+  '((text/enriched "Extended MIME text/enriched format."
 		   "Content-[Tt]ype:[ \t]*text/enriched"
 		   enriched-decode enriched-encode t enriched-mode)
     (plain "ISO 8859-1 standard format, no text properties."
@@ -106,7 +103,7 @@
 	   iso-german iso-cvt-read-only t nil)
     (esnet "net Spanish" 
 	   "1\\(^\\)"
-	   iso-spanish iso-cvt-read-onlyt nil))
+	   iso-spanish iso-cvt-read-only t nil))
   "List of information about understood file formats.
 Elements are of the form \(NAME DOC-STR REGEXP FROM-FN TO-FN MODIFY MODE-FN).
 NAME    is a symbol, which is stored in `buffer-file-format'.
