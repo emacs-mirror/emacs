@@ -100,7 +100,7 @@ Quoting cannot be used, so the arguments cannot themselves contain spaces."
 (defun hexl-mode (&optional arg)
   "\\<hexl-mode-map>A mode for editing binary files in hex dump format.
 This is not an ordinary major mode; it alters some aspects
-if the current mode's behavior, but not all; also, you can exit
+of the current mode's behavior, but not all; also, you can exit
 Hexl mode and return to the previous mode using `hexl-mode-exit'.
 
 This function automatically converts a buffer into the hexl format
