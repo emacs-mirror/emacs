@@ -537,28 +537,27 @@ Does not examine containing directories for links,
 unlike `file-truename'."
   (let (tem (count 100) (newname filename))
     (while (setq tem (file-symlink-p newname))
-      (if (= count 0)
-	  (error "Apparent cycle of symbolic links for %s" filename))
-      ;; In the context of a link, `//' doesn't mean what Emacs thinks.
-      (while (string-match "//+" tem)
-	(setq tem (concat (substring tem 0 (1+ (match-beginning 0)))
-			  (substring tem (match-end 0)))))
-      ;; Handle `..' by hand, since it needs to work in the
-      ;; target of any directory symlink.
-      ;; This code is not quite complete; it does not handle
-      ;; embedded .. in some cases such as ./../foo and foo/bar/../../../lose.
-      (while (string-match "\\`\\.\\./" tem)
-	(setq tem (substring tem 3))
-	(setq newname (file-name-as-directory
-		       ;; Do the .. by hand.
-		       (directory-file-name
-			(file-name-directory
-			 ;; Chase links in the default dir of the symlink.
-			 (file-chase-links
-			  (directory-file-name
-			   (file-name-directory newname))))))))
-      (setq newname (expand-file-name tem (file-name-directory newname)))
-      (setq count (1- count)))
+      (save-match-data
+	(if (= count 0)
+	    (error "Apparent cycle of symbolic links for %s" filename))
+	;; In the context of a link, `//' doesn't mean what Emacs thinks.
+	(while (string-match "//+" tem)
+	  (setq tem (replace-match "/" nil nil tem)))
+	;; Handle `..' by hand, since it needs to work in the
+	;; target of any directory symlink.
+	;; This code is not quite complete; it does not handle
+	;; embedded .. in some cases such as ./../foo and foo/bar/../../../lose.
+	(while (string-match "\\`\\.\\./" tem)
+	  (setq tem (substring tem 3))
+	  (setq newname (expand-file-name newname))
+	  ;; Chase links in the default dir of the symlink.
+	  (setq newname
+		(file-chase-links
+		 (directory-file-name (file-name-directory newname))))
+	  ;; Now find the parent of that dir.
+	  (setq newname (file-name-directory newname)))
+	(setq newname (expand-file-name tem (file-name-directory newname)))
+	(setq count (1- count))))
     newname))
 
 (defun switch-to-buffer-other-window (buffer &optional norecord)
@@ -1964,11 +1963,26 @@ then it returns FILENAME."
 	       (not (string-equal (substring fname  0 2)
 				  (substring directory 0 2))))
 	  filename
-	(let ((ancestor ""))
-	  (while (not (string-match (concat "^" (regexp-quote directory)) fname))
+	(let ((ancestor ".")
+	      (fname-dir (file-name-as-directory fname)))
+	  (while (and (not (string-match (concat "^" (regexp-quote directory)) fname-dir))
+		      (not (string-match (concat "^" (regexp-quote directory)) fname)))
 	    (setq directory (file-name-directory (substring directory 0 -1))
-		  ancestor (concat "../" ancestor)))
-	  (concat ancestor (substring fname (match-end 0))))))))
+		  ancestor (if (equal ancestor ".")
+			       ".."
+			     (concat "../" ancestor))))
+	  ;; Now ancestor is empty, or .., or ../.., etc.
+	  (if (string-match (concat "^" (regexp-quote directory)) fname)
+	      ;; We matched within FNAME's directory part.
+	      ;; Add the rest of FNAME onto ANCESTOR.
+	      (let ((rest (substring fname (match-end 0))))
+		(if (and (equal ancestor ".")
+			 (not (equal rest "")))
+		    ;; But don't bother with ANCESTOR if it would give us `./'.
+		    rest
+		  (concat (file-name-as-directory ancestor) rest)))
+	    ;; We matched FNAME's directory equivalent.
+	    ancestor))))))
 
 (defun save-buffer (&optional args)
   "Save current buffer in visited file if modified.  Versions described below.
