@@ -1241,6 +1241,9 @@ the faces: please specify bold, italic, underline, shadow and box.)
 The expansion is entirely correct because it uses the C preprocessor."
   t)
 
+(defvar cperl-outline-regexp
+  (concat cperl-imenu--function-name-regexp-perl "\\|" "\\`"))
+
 (defvar cperl-mode-syntax-table nil
   "Syntax table in use in Cperl-mode buffers.")
 
@@ -4469,9 +4472,6 @@ indentation and initial hashes.  Behaves usually outside of comment."
     (cperl-imenu-addback index-alist)))
 
 
-(defvar cperl-outline-regexp
-  (concat cperl-imenu--function-name-regexp-perl "\\|" "\\`"))
-
 ;; Suggested by Mark A. Hershberger
 (defun cperl-outline-level ()
   (looking-at outline-regexp)
