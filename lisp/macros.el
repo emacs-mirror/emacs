@@ -104,4 +104,5 @@ C-l -- redisplay screen and ask again."
 		   (let (executing-macro defining-kbd-macro)
 		     (recursive-edit))))))))))
 
-;;;###autoload (define-key ctl-x-map "q" 'kbd-macro-query)
+;;;###autoload
+(define-key ctl-x-map "q" 'kbd-macro-query)

@@ -18,8 +18,9 @@
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-;;;###autoload (defconst case-replace t "\
-;;;###autoload *Non-nil means query-replace should preserve case in replacements.")
+;;;###autoload
+(defconst case-replace t "\
+*Non-nil means query-replace should preserve case in replacements.")
 
 ;;;###autoload
 (defun query-replace (from-string to-string &optional arg)
@@ -34,7 +35,8 @@ only matches surrounded by word boundaries."
   (interactive "sQuery replace: \nsQuery replace %s with: \nP")
   (perform-replace from-string to-string t nil arg)
   (message "Done"))
-;;;###autoload (define-key esc-map "%" 'query-replace)
+;;;###autoload
+(define-key esc-map "%" 'query-replace)
 
 ;;;###autoload
 (defun query-replace-regexp (regexp to-string &optional arg)

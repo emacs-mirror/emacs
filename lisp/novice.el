@@ -23,8 +23,9 @@
 ;; The command is found in this-command
 ;; and the keys are returned by (this-command-keys).
 
-;;;###autoload (setq disabled-command-hook 'disabled-command-hook)
 ;;;###autoload
+(setq disabled-command-hook 'disabled-command-hook)
+
 (defun disabled-command-hook (&rest ignore)
   (let (char)
     (save-window-excursion
