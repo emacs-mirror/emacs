@@ -3284,7 +3284,7 @@ This does code conversion according to the value of\n\
      But if we discover the need for conversion, we give up on this method
      and let the following if-statement handle the replace job.  */
   if (!NILP (replace)
-      && CODING_MAY_REQUIRE_NO_CONVERSION (&coding))
+      && ! CODING_REQUIRE_DECODING (&coding))
     {
       int same_at_start = BEGV;
       int same_at_end = ZV;
@@ -3318,9 +3318,7 @@ This does code conversion according to the value of\n\
 
 	  if (coding.type == coding_type_undecided)
 	    detect_coding (&coding, buffer, nread);
-	  if (coding.type != coding_type_undecided
-	      && coding.type != coding_type_no_conversion
-	      && coding.type != coding_type_emacs_mule)
+	  if (CODING_REQUIRE_DECODING (&coding))
 	    /* We found that the file should be decoded somehow.
                Let's give up here.  */
 	    {
@@ -3406,7 +3404,8 @@ This does code conversion according to the value of\n\
 	      if (same_at_end > same_at_start
 		  && FETCH_BYTE (same_at_end - 1) >= 0200
 		  && ! NILP (current_buffer->enable_multibyte_characters)
-		  && ! CODING_REQUIRE_NO_CONVERSION (&coding))
+		  && (CODING_REQUIRE_DECODING (&coding)
+		      || CODING_REQUIRE_DETECTION (&coding)))
 		giveup_match_end = 1;
 	      break;
 	    }
@@ -3500,7 +3499,8 @@ This does code conversion according to the value of\n\
 
 	  how_much += this;
 
-	  if (! CODING_REQUIRE_NO_CONVERSION (&coding))
+	  if (CODING_REQUIRE_DECODING (&coding)
+	      || CODING_REQUIRE_DETECTION (&coding))
 	    {
 	      int require, produced, consumed;
 
@@ -3646,7 +3646,8 @@ This does code conversion according to the value of\n\
     {
 	/* try is reserved in some compilers (Microsoft C) */
       int trytry = min (total - how_much, READ_BUF_SIZE - unprocessed);
-      char *destination = (CODING_REQUIRE_NO_CONVERSION (&coding)
+      char *destination = (! (CODING_REQUIRE_DECODING (&coding)
+			      || CODING_REQUIRE_DETECTION (&coding))
 			   ? (char *) (POS_ADDR (PT + inserted - 1) + 1)
 			   : read_buf + unprocessed);
       int this;
@@ -3671,7 +3672,8 @@ This does code conversion according to the value of\n\
       if (! not_regular)
 	how_much += this;
 
-      if (! CODING_REQUIRE_NO_CONVERSION (&coding))
+      if (CODING_REQUIRE_DECODING (&coding)
+	  || CODING_REQUIRE_DETECTION (&coding))
 	{
 	  int require, produced, consumed;
 
@@ -4224,7 +4226,7 @@ to the file, instead of any buffer contents, and END is ignored.")
       save_errno = errno;
     }
 
-  if (coding.require_flushing && !coding.last_block)
+  if (CODING_REQUIRE_FLUSHING (&coding) && !coding.last_block)
     {
       /* We have to flush out a data. */
       coding.last_block = 1;
