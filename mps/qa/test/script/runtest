@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:runtest(trunk.16) $
+# $HopeName: MMQA_harness!script:runtest(trunk.17) $
 #
 # provides subroutines to run tests and testsets
 #
@@ -24,16 +24,16 @@ sub mpslibvers {
  if (open(STRINGS, $_)) {
   while (<STRINGS>) {
    if (/HQNMPS/) {
-    if (/product\.(\w+)/) { $mpslibvers{product} = $1; }
-    if (/variety\.(\w+)/) { $mpslibvers{variety} = $1; }
-    if (/platform\.(\w+)/) { $mpslibvers{platform} = $1; }
-    if (/(release\.[A-Za-z0-9_.:-]*\w)/) { $mpslibvers{release} = $1; }
+    if (/product\.(\w+)/) { $mpslibvers{"product"} = $1; }
+    if (/variety\.(\w+)/) { $mpslibvers{"variety"} = $1; }
+    if (/platform\.(\w+)/) { $mpslibvers{"platform"} = $1; }
+    if (/(release\.[A-Za-z0-9_.:-]*\w)/) { $mpslibvers{"release"} = $1; }
 # the \b in the next line is just to stop hope from expanding the RCS keyword
     if (/\$\bHopeName:\s+([^\$]+)\s*\$\s*([^,]+)/) {
-     $mpslibvers{hopeversion} = $1;
-     $mpslibvers{release}     = $2; 
+     $mpslibvers{"hopeversion"} = $1;
+     $mpslibvers{"release"}     = $2; 
     }
-    if (/compiled on (.+)$/) { $mpslibvers{compilation} = $1; }
+    if (/compiled on (.+)$/) { $mpslibvers{"compilation"} = $1; }
    }
   }
   close STRINGS;
@@ -99,7 +99,7 @@ sub run_test {
  &readheader($testfile, 1);
 
  unless (vleq($test_header{"harness"}, $HARNESS_VERSION)) {
-  die "This test requires version $test_header{harness} or later of the MMQA harness.
+  die "This test requires version $test_header{\"harness\"} or later of the MMQA harness.
 (You are using version $HARNESS_VERSION.)\n";
  }
 
