@@ -1,3 +1,7 @@
+2001-10-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* rect.el: Update maintainer's email address.
+
 2001-10-02  Andreas Schwab  <schwab@suse.de>
 
 	* net/ange-ftp.el (ange-ftp-skip-msgs): Add 227 and 228 for Long
