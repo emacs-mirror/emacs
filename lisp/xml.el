@@ -39,9 +39,9 @@
 ;; in the XML file.
 ;;
 ;; The XML file should have the following format:
-;;    <node1 attr1="name1" attr2="name2" ...> value
-;;       <node2 attr3="name3" attr4="name4"> value2 </node2>
-;;       <node3 attr5="name5" attr6="name6"> value3 </node3>
+;;    <node1 attr1="name1" attr2="name2" ...>value
+;;       <node2 attr3="name3" attr4="name4">value2</node2>
+;;       <node3 attr5="name5" attr6="name6">value3</node3>
 ;;    </node1>
 ;; Of course, the name of the nodes and attributes can be anything. There can
 ;; be any number of attributes (or none), as well as any number of children
@@ -118,15 +118,24 @@ An empty string is returned if the attribute was not found."
 
 (defun xml-parse-file (file &optional parse-dtd)
   "Parse the well-formed XML FILE.
+If FILE is already edited, this will keep the buffer alive.
 Returns the top node with all its children.
 If PARSE-DTD is non-nil, the DTD is parsed rather than skipped."
-  (find-file file)
-  (let ((xml (xml-parse-region (point-min)
-			       (point-max)
-			       (current-buffer)
-			       parse-dtd)))
-    (kill-buffer (current-buffer))
-    xml))
+  (let ((keep))
+    (if (get-file-buffer file)
+	(progn
+	  (set-buffer (get-file-buffer file))
+	  (setq keep (point)))
+      (find-file file))
+    
+    (let ((xml (xml-parse-region (point-min)
+				 (point-max)
+				 (current-buffer)
+				 parse-dtd)))
+      (if keep
+	  (goto-char keep)
+	(kill-buffer (current-buffer)))
+      xml)))
 
 (defun xml-parse-region (beg end &optional buffer parse-dtd)
   "Parse the region from BEG to END in BUFFER.
@@ -206,6 +215,7 @@ Returns one of:
    ((looking-at "<\\([^/> \t\n]+\\)")
     (let* ((node-name (match-string 1))
 	   (children (list (intern node-name)))
+	   (case-fold-search nil) ;; XML is case-sensitive
 	   pos)
       (goto-char (match-end 1))
 
@@ -224,13 +234,15 @@ Returns one of:
 	    (progn
 	      (forward-char 1)
 	      (skip-chars-forward " \t\n")
-	      (while (not (looking-at (concat "</" node-name ">")))
+	      ;;  Now check that we have the right end-tag. Note that this one might
+	      ;;  contain spaces after the tag name
+	      (while (not (looking-at (concat "</" node-name "[ \t\n]*>")))
 		(cond
 		 ((looking-at "</")
 		  (error (concat
 			  "XML: invalid syntax -- invalid end tag (expecting "
 			  node-name
-			  ")")))
+			  ") at pos " (number-to-string (point)))))
 		 ((= (char-after) ?<)
 		  (set 'children (append children (list (xml-parse-tag end)))))
 		 (t
@@ -269,7 +281,7 @@ Leaves the point on the first non-blank character after the tag."
   (let ((attlist '())
 	name)
     (skip-chars-forward " \t\n")
-    (while (looking-at "\\([a-zA-Z_:][a-zA-Z0-9.-_:]*\\)[ \t\n]*=[ \t\n]*")
+    (while (looking-at "\\([a-zA-Z_:][-a-zA-Z0-9._:]*\\)[ \t\n]*=[ \t\n]*")
       (set 'name (intern (match-string 1)))
       (goto-char (match-end 0))
 
@@ -284,7 +296,7 @@ Leaves the point on the first non-blank character after the tag."
 	  (error "XML: each attribute must be unique within an element."))
       
       (set 'attlist (append attlist
-			    (list (cons name (match-string 1)))))
+			    (list (cons name (match-string-no-properties 1)))))
       (goto-char (match-end 0))
       (skip-chars-forward " \t\n")
       (if (> (point) end)
