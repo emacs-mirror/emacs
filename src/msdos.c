@@ -1013,8 +1013,8 @@ mouse_get_pos (f, bar_window, part, x, y, time)
   *f = selected_frame;
   *bar_window = Qnil;
   gettimeofday (&tv, NULL);
-  *x = make_number (regs.x.cx / 8);
-  *y = make_number (regs.x.dx / 8);
+  *x = make_number (regs.x.cx);
+  *y = make_number (regs.x.dx);
   *time = tv.tv_usec;
   mouse_moved = 0;
 }
