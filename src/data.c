@@ -1632,10 +1632,10 @@ DEFUN ("make-variable-frame-local", Fmake_variable_frame_local, Smake_variable_f
        doc: /* Enable VARIABLE to have frame-local bindings.
 When a frame-local binding exists in the current frame,
 it is in effect whenever the current buffer has no buffer-local binding.
-A frame-local binding is actual a frame parameter value;
+A frame-local binding is actually a frame parameter value;
 thus, any given frame has a local binding for VARIABLE
 if it has a value for the frame parameter named VARIABLE.
-See `modify-frame-parameters'.  */)
+See `modify-frame-parameters' for how to set frame parameters.  */)
      (variable)
      register Lisp_Object variable;
 {
