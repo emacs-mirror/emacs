@@ -29,6 +29,7 @@
 
 (eval-when-compile
   (autoload 'widget-convert "wid-edit")
+  (autoload 'shell-mode "shell")
   (require 'cl))
 
 
@@ -3184,7 +3185,8 @@ use either M-x customize or the function `set-input-mode'."
 
 (defcustom read-mail-command 'rmail
   "*Your preference for a mail reading package.
-This is used by some keybindings which support reading mail."
+This is used by some keybindings which support reading mail.
+See also `mail-user-agent' concerning sending mail."
   :type '(choice (function-item rmail)
 		 (function-item gnus)
 		 (function-item mh-rmail)
@@ -3194,27 +3196,38 @@ This is used by some keybindings which support reading mail."
 
 (defcustom mail-user-agent 'sendmail-user-agent
   "*Your preference for a mail composition package.
-Various Emacs Lisp packages (e.g. reporter) require you to compose an
+Various Emacs Lisp packages (e.g. Reporter) require you to compose an
 outgoing email message.  This variable lets you specify which
 mail-sending package you prefer.
 
 Valid values include:
 
-    `sendmail-user-agent' -- use the default Emacs Mail package
-    `mh-e-user-agent'     -- use the Emacs interface to the MH mail system
-    `message-user-agent'  -- use the Gnus mail sending package
+  `sendmail-user-agent' -- use the default Emacs Mail package.
+                           See Info node `(emacs)Sending Mail'.
+  `mh-e-user-agent'     -- use the Emacs interface to the MH mail system.
+                           See Info node `(mh-e)'.
+  `message-user-agent'  -- use the Gnus Message package.
+                           See Info node `(message)'.
+  `gnus-user-agent'     -- like `message-user-agent', but with Gnus
+                           paraphernalia, particularly the Gcc: header for
+                           archiving.
 
 Additional valid symbols may be available; check with the author of
-your package for details."
+your package for details.
+
+See also `read-mail-command' concerning reading mail."
   :type '(radio (function-item :tag "Default Emacs mail"
 			       :format "%t\n"
 			       sendmail-user-agent)
 		(function-item :tag "Emacs interface to MH"
 			       :format "%t\n"
 			       mh-e-user-agent)
-		(function-item :tag "Gnus mail sending package"
+		(function-item :tag "Gnus Message package"
 			       :format "%t\n"
 			       message-user-agent)
+		(function-item :tag "Gnus Message with full Gnus features"
+			       :format "%t\n"
+			       gnus-user-agent)
 		(function :tag "Other"))
   :group 'mail)
 
