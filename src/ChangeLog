@@ -1,6 +1,7 @@
 2005-01-29  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* undo.c (syms_of_undo) <undo-outer-limit>: Doc update.
+	Increase value to 3 Meg.
 
 2005-01-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
