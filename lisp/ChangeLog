@@ -7,6 +7,16 @@
 	(generic-mode-internal): Don't call generic-mode-set-font-lock.
 	(generic-bracket-support): Add docstring.
 
+	* generic-x.el: Rename generic-font-lock-defaults to
+	generic-font-lock-keywords throughout.
+	(mailagent-rules-setup-function): Delete it.
+	(mailagent-rules-generic-mode): Use anonymous function instead.
+	(show-tabs-generic-mode-font-lock-defaults-1)
+	(show-tabs-generic-mode-font-lock-defaults-2): Make them constants.
+	Quote faces.
+	(show-tabs-tab-face, show-tabs-space-face): Specify background,
+	not foreground.
+
 2005-03-23  Miles Bader  <miles@gnu.org>
 
 	* progmodes/gdb-ui.el (breakpoint-enabled, breakpoint-disabled):
