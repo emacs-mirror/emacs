@@ -779,8 +779,12 @@ an integer value."
 	    (:stipple
 	     (and (memq window-system '(x w32))
 		  (mapcar #'list
-			  (apply #'nconc (mapcar #'directory-files
-						 x-bitmap-file-path)))))
+			  (apply #'nconc
+				 (mapcar (lambda (dir)
+					   (and (file-readable-p dir)
+						(file-directory-p dir)
+						(directory-files dir)))
+					 x-bitmap-file-path)))))
 	    (:inherit
 	     (cons '("none" . nil)
 		   (mapcar #'(lambda (c) (cons (symbol-name c) c))
