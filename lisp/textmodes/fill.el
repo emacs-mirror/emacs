@@ -57,6 +57,9 @@ for the paragraph.")
 Prefix arg means justify too.
 From program, pass args FROM, TO and JUSTIFY-FLAG."
   (interactive "r\nP")
+  ;; Arrange for undoing the fill to restore point.
+  (if (and buffer-undo-list (not (eq buffer-undo-list t)))
+      (setq buffer-undo-list (cons (point) buffer-undo-list)))
   ;; Don't let Adaptive Fill mode alter the fill prefix permanently.
   (let ((fill-prefix fill-prefix))
     ;; Figure out how this paragraph is indented, if desired.
@@ -195,12 +198,14 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 (defun fill-paragraph (arg)
   "Fill paragraph at or after point.  Prefix arg means justify as well."
   (interactive "P")
-  (save-excursion
-    (forward-paragraph)
-    (or (bolp) (newline 1))
-    (let ((end (point)))
-      (backward-paragraph)
-      (fill-region-as-paragraph (point) end arg))))
+  (let ((before (point)))
+    (save-excursion
+      (forward-paragraph)
+      (or (bolp) (newline 1))
+      (let ((end (point))
+	    (beg (progn (backward-paragraph) (point))))
+	(goto-char before)
+	(fill-region-as-paragraph beg end arg)))))
 
 (defun fill-region (from to &optional justify-flag)
   "Fill each of the paragraphs in the region.
