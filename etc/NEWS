@@ -731,6 +731,12 @@ the difference that the command will be run on each file individually.
 replaces the Dired buffer with the buffer for an alternate file or
 directory.
 
+*** The new command `dired-show-file-type' (usually bound to `w') shows
+a message in the echo area describing what type of file the point is on.
+This command invokes the external program `file' do its work, and so
+will only work on systems with that program, and will be only as
+accurate or inaccurate as it is.
+
 ** The variable mail-specify-envelope-from controls whether to
 use the -f option when sending mail.
 
