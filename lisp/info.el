@@ -1210,12 +1210,17 @@ Give a blank topic name to go to the Index node itself."
     (or (re-search-forward "\n\\* \\(.*\\<Index\\>\\)" nil t)
 	(error "No index"))
     (goto-char (match-beginning 1))
-    (let ((Info-keeping-history nil))
+    ;; Here, and subsequently in this function,
+    ;; we bind Info-history to nil for internal node-switches
+    ;; so that we don't put junk in the history.
+    ;; In the first Info-goto-node call, above, we do update the history
+    ;; because that is what the user's previous node choice into it.
+    (let ((Info-history nil))
       (Info-goto-node (Info-extract-menu-node-name)))
     (or (equal topic "")
 	(let ((matches nil)
 	      (exact nil)
-	      (Info-keeping-history nil)
+	      (Info-history nil)
 	      found)
 	  (while
 	      (progn
