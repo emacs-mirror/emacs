@@ -1,4 +1,4 @@
-Copyright (c) 1985, 2001 Free Software Foundation, Inc.
+Copyright (c) 1985, 2001, 2002 Free Software Foundation, Inc.
 Voir la fin de ce document pour les conditions.
 
 Ce document est le didacticiel d'Emacs. Cette traduction française a
@@ -23,7 +23,8 @@ une session Emacs.
 
 Dans ce didacticiel, les caractères ">>" en marge gauche indiquent les
 directions à suivre pour essayer une commande. Ainsi :
-<<Lignes blanches insérées par le lancement de help-with-tutorial>>
+<<Lignes blanches insérées après cette ligne par help-with-tutorial>>
+[Centre de page vide pour les essais. Le texte continue ci-dessous.]
 >>  Tapez C-v (Voir l'écran suivant) pour passer à l'écran suivant
     (faites-le, pressez la touche CTRL tout en pressant la touche v).
     À partir de maintenant, vous devrez le faire à chaque fois que
@@ -41,6 +42,9 @@ touche META, EDIT ou ALT).
 
 >>  Faites M-v, puis C-v plusieurs fois.
 
+Si votre terminal en dispose, vous pouvez également utiliser les
+touches PgUp et PgDn pour monter ou descendre d'un écran, bien les
+combinaisons C-v et M-v soient plus efficaces.
 
 * RÉSUMÉ
 --------
@@ -65,11 +69,10 @@ Les commandes suivantes servent à manipuler des écrans :
 Passer d'un écran à l'autre est pratique, mais comment se déplacer à
 un endroit précis du texte dans un écran ?
 
-Il existe plusieurs façons de le faire. La plus simple consiste à
-utiliser les commandes C-p, C-b, C-f, et C-n.  Chacune d'elles déplace
-le curseur d'une ligne ou d'une colonne dans une direction précise sur
-l'écran. Voici un tableau montrant ces quatre commandes et les
-directions de leurs déplacements :
+Il existe plusieurs façons de faire. Vous pouvez utiliser les touches
+du curseur, mais il est plus efficace de garder vos mains dans la même
+position et d'utiliser les commandes C-p, C-b, C-f, et C-n.  Ces
+combinaisons sont équivalentes aux quatre touches du curseur :
  
 			  Ligne précédente, C-p
 				  :
@@ -86,9 +89,7 @@ directions de leurs déplacements :
 Si vous connaissez un peu l'anglais, vous aurez sûrement constaté
 qu'il était facile de se rappeler que P signifiait Previous
 (précédent), N Next (suivant), B Backward (en arrière) et F Forward
-(vers l'avant). Ce sont les commandes de base pour le positionnement
-du curseur et vous les utiliserez TOUT le temps : il est donc
-fortement conseillé de les apprendre maintenant.
+(vers l'avant). 
 
 >> Faites quelques C-n pour amener le curseur sur cette ligne.
 
@@ -609,13 +610,37 @@ liste des tampons existants dans votre session Emacs, faites
 >> Faites C-x C-b
 
 Vous noterez que chaque tampon a un nom et qu'il peut également avoir
-un nom de fichier pour le fichier qu'il contient. Certains tampons ne
-correspondent pas à des fichiers ; « *Buffer List* », par exemple, ne
-contient aucun fichier : c'est le tampon qui contient la liste créée
-par C-x C-b. TOUT texte que vous pouvez voir dans une fenêtre Emacs
-fait toujours partie d'un tampon.
+un nom de fichier pour le fichier qu'il contient. TOUT texte que vous
+pouvez voir dans une fenêtre Emacs fait toujours partie d'un tampon.
 
 >> Faites C-x 1 pour faire disparaître la liste des tampons.
+
+Lorsque vous avez plusieurs tampons, seul l'un d'entre eux est le
+tampon "courant" à un instant donné : c'est celui que vous éditez. Si
+vous souhaitez éditer un autre tampon, vous devez "basculer" vers
+lui. Pour basculer vers un tampon correspondant à un fichier, vous
+pouvez le recharger avec C-x C-f mais il y a plus simple : utilisez la
+commande C-x b en lui passant le nom du tampon.
+
+>> Faites C-x b truc <Entrée> pour revenir au tampon "truc", qui
+   contient le texte du fichier "truc". 
+   Puis, faites C-x b TUTORIAL <Entrée> pour revenir à ce didacticiel.
+
+La plupart du temps, le nom d'un tampon est le même que celui du
+fichier qu'il contient (sans le chemin), mais ce n'est pas toujours
+vrai. La liste obtenue lorsque vous faites C-x C-b montre toujours les
+noms de tous les tampons.
+
+TOUT texte que vous visualisez dans une fenêtre Emacs fait toujours
+partie d'un tampon, mais certains tampons ne correspondent pas à des
+fichiers : le tampon "*Buffer List*", par exemple, ne contient pas de
+fichiers mais la liste obtenue par C-x C-b. Le tampon "*Messages*" ne
+correspond pas non plus à un fichier ; il contient la liste des
+messages apparus dans la ligne d'état pendant votre session Emacs.
+
+>> Faites C-x C-b *Messages* <Entrée> pour visualiser le tampon des
+   messages.  
+   Puis, faites C-x b TUTORIAL <Entrée> pour revenir à ce didacticiel.
 
 Si vous modifiez le texte d'un fichier, puis que vous chargez un autre
 fichier, le premier ne sera pas sauvegardé. Ses modifications restent
@@ -1096,6 +1121,32 @@ leur correspondent, comme find-file.
 		d'Emacs devrait être votre source de documentation
 		essentielle. 
 
+
+* FONCTIONNALITÉS SUPPLÉMENTAIRES
+---------------------------------
+
+Vous pouvez en apprendre plus en lisant le manuel d'Emacs, qu'il soit
+imprimé ou en ligne avec le système Info (utilisez le menu Help, ou
+faites F10 h r). Les deux fonctionnalités que vous apprécierez
+particulièrement sont la complétion, qui permet d'économiser la
+frappe, et dired, qui simplifie la manipulation des fichiers.
+
+La complétion permet d'éviter les frappes inutiles. Si, par exemple,
+vous voulez basculer vers le tampon *Messages*, tapez simplement
+C-x b *M<Tab> et Emacs complètera le nom du tampon s'il peut le
+déterminer à partir de ce que vous avez saisi avant la tabulation. La
+complétion est décrite dans la version Info du manuel Emacs, à la
+rubrique "Completion".
+
+Dired vous permet de consulter la liste des fichiers d'un répertoire
+(et, éventuellement, de ses sous-répertoires), de vous déplacer dans
+cette liste, d'ouvrir, de renommer, de supprimer et, de façon
+générale, de manipuler ces fichiers.  Dired est décrit dans la version
+Info du manuel Emacs, à la rubrique "Dired".
+
+Le manuel décrit également les nombreuses autres fonctionnalités
+d'Emacs.
+
 * CONCLUSION
 ------------
 
@@ -1120,7 +1171,7 @@ Cette version du didacticiel, comme GNU Emacs, est placée sous
 copyright, et vous pouvez en distribuer des copies sous certaines
 conditions :
  
-Copyright (c) 1985, 1996, 2001 Free Software Foundation
+Copyright (c) 1985, 1996, 2001, 2002 Free Software Foundation
 
    Chacun peut créer ou distribuer des copies de ce document tel qu'il
    l'a reçu, sur n'importe quel support, pourvu que la note de
@@ -1138,7 +1189,3 @@ dans le même esprit. Lisez le fichier COPYING et donnez ensuite des
 copies de GNU Emacs à vos amis. Participez à l'éradication de
 l'obstructionnisme du logiciel (sa « propriétarisation ») en
 utilisant, écrivant et partagent des logiciels libres !
-
-;;; Local Variables:
-;;;   coding: latin-1
-;;; End:
