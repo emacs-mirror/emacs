@@ -1728,15 +1728,15 @@ This arrangement depends on the value of `gdb-many-windows'."
   "Exit a debugging session cleanly by killing the gdb buffers and resetting
  the source buffers."
   (dolist (buffer (buffer-list))
-    (if (not (eq buffer gud-comint-buffer))
-	(with-current-buffer buffer
-	  (if (memq gud-minor-mode '(gdba pdb))
-	      (if (string-match "^\*.+*$" (buffer-name))
-		  (kill-buffer nil)
-		(gdb-remove-breakpoint-icons (point-min) (point-max) t)
-		(setq gud-minor-mode nil)
-		(kill-local-variable 'tool-bar-map)
-		(setq gud-running nil))))))
+    (unless (eq buffer gud-comint-buffer)
+      (with-current-buffer buffer
+	(if (memq gud-minor-mode '(gdba pdb))
+	    (if (string-match "\\`\\*.+\\*\\'" (buffer-name))
+		(kill-buffer nil)
+	      (gdb-remove-breakpoint-icons (point-min) (point-max) t)
+	      (setq gud-minor-mode nil)
+	      (kill-local-variable 'tool-bar-map)
+	      (setq gud-running nil))))))
   (when (markerp gdb-overlay-arrow-position)
     (move-marker gdb-overlay-arrow-position nil)
     (setq gdb-overlay-arrow-position nil))
@@ -2013,5 +2013,5 @@ BUFFER nil or omitted means use the current buffer."
 
 (provide 'gdb-ui)
 
-;;; arch-tag: e9fb00c5-74ef-469f-a088-37384caae352
+;; arch-tag: e9fb00c5-74ef-469f-a088-37384caae352
 ;;; gdb-ui.el ends here
