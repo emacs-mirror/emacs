@@ -202,7 +202,8 @@ not available."
             (setq l (cons ["Mark Holidays" mark-calendar-holidays t]
                           (cons ["Unmark Calendar" calendar-unmark t]
                                 (cons ["--" '("--") t] l))))
-            (easy-menu-change nil "Holidays" (nreverse l))
+            (define-key calendar-mode-map [menu-bar Holidays]
+	      (cons "Holidays" (easy-menu-create-menu "Holidays" (nreverse l))))
             (define-key calendar-mode-map [menu-bar Holidays separator]
               '("--"))
             (define-key calendar-mode-map [menu-bar Holidays today]
