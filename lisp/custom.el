@@ -102,10 +102,12 @@ not using the standard setting.  Otherwise, use the `set-default'."
 	(t
 	 (set-default symbol (eval value)))))
 
-(defun custom-declare-variable (symbol value doc &rest args)
-  "Like `defcustom', but SYMBOL and VALUE are evaluated as normal arguments."
+(defun custom-declare-variable (symbol default doc &rest args)
+  "Like `defcustom', but SYMBOL and DEFAULT are evaluated as normal arguments.
+DEFAULT should be an expression to evaluate to compute the default value,
+not the default value itself."
   ;; Remember the standard setting.
-  (put symbol 'standard-value (list value))
+  (put symbol 'standard-value (list default))
   ;; Maybe this option was rogue in an earlier version.  It no longer is.
   (when (get symbol 'force-value)
     ;; It no longer is.    
@@ -147,7 +149,7 @@ not using the standard setting.  Otherwise, use the `set-default'."
 					'custom-variable))))))
     (put symbol 'custom-requests requests)
     ;; Do the actual initialization.
-    (funcall initialize symbol value))
+    (funcall initialize symbol default))
   (run-hooks 'custom-define-hook)
   symbol)
 
