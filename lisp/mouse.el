@@ -1202,12 +1202,13 @@ and selects that window."
 			    elt)
 			   head))))
 	      (setq tail (cdr tail)))
-	    head))
+	    ;; Compensate for the reversal that the above loop does.
+	    (nreverse head)))
 	 (menu
 	  ;; If we have lots of buffers, divide them into groups of 20
 	  ;; and make a pane (or submenu) for each one.
 	  (if (> (length buffers) (/ (* mouse-menu-buffer-maxlen 3) 2))
-	      (let ((buffers (reverse buffers)) sublists next
+	      (let ((buffers buffers) sublists next
 		    (i 1))
 		(while buffers
 		  ;; Pull off the next mouse-menu-buffer-maxlen buffers
