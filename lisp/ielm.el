@@ -348,9 +348,9 @@ simply inserts a newline."
 		(setq ielm-output (concat ielm-output "*** " ielm-error-type " ***  "))
 		(setq ielm-output (concat ielm-output ielm-result)))
 	    ;; There was no error, so shift the ::: values
-	    (setq ::: ::)
-	    (setq :: :)
-	    (setq : ielm-result))
+	    (setq *** **)
+	    (setq ** *)
+	    (setq * ielm-result))
 	  (setq ielm-output (concat ielm-output "\n"))))
     (setq ielm-output (concat ielm-output ielm-prompt))
     (comint-output-filter (ielm-process) ielm-output)))
