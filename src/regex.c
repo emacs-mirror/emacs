@@ -503,8 +503,6 @@ static int debug = 0;
   if (debug) print_double_string (w, s1, sz1, s2, sz2)
 
 
-extern void printchar ();
-
 /* Print the fastmap in human-readable form.  */
 
 void
@@ -519,7 +517,7 @@ print_fastmap (fastmap)
       if (fastmap[i++])
 	{
 	  was_a_range = 0;
-          printchar (i - 1);
+          putchar (i - 1);
           while (i < (1 << BYTEWIDTH)  &&  fastmap[i])
             {
               was_a_range = 1;
@@ -528,7 +526,7 @@ print_fastmap (fastmap)
 	  if (was_a_range)
             {
               printf ("-");
-              printchar (i - 1);
+              putchar (i - 1);
             }
         }
     }
@@ -571,7 +569,7 @@ print_partial_compiled_pattern (start, end)
           do
 	    {
               putchar ('/');
-	      printchar (*p++);
+	      putchar (*p++);
             }
           while (--mcnt);
           break;
@@ -618,18 +616,18 @@ print_partial_compiled_pattern (start, end)
 		  /* Have we broken a range?  */
 		  else if (last + 1 != c && in_range)
               {
-		      printchar (last);
+		      putchar (last);
 		      in_range = 0;
 		    }
                 
 		  if (! in_range)
-		    printchar (c);
+		    putchar (c);
 
 		  last = c;
               }
 
 	    if (in_range)
-	      printchar (last);
+	      putchar (last);
 
 	    putchar (']');
 
@@ -814,13 +812,13 @@ print_double_string (where, string1, size1, string2, size2)
       if (FIRST_STRING_P (where))
         {
           for (this_char = where - string1; this_char < size1; this_char++)
-            printchar (string1[this_char]);
+            putchar (string1[this_char]);
 
           where = string2;    
         }
 
       for (this_char = where - string2; this_char < size2; this_char++)
-        printchar (string2[this_char]);
+        putchar (string2[this_char]);
     }
 }
 
@@ -1562,7 +1560,7 @@ regex_compile (pattern, size, syntax, bufp)
       unsigned debug_count;
       
       for (debug_count = 0; debug_count < size; debug_count++)
-        printchar (pattern[debug_count]);
+        putchar (pattern[debug_count]);
       putchar ('\n');
     }
 #endif /* DEBUG */
