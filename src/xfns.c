@@ -2078,7 +2078,7 @@ x_set_scroll_bar_background (f, value, oldval)
 }
 
 
-/* Encode Lisp string STRINT as a text in a format appropriate for
+/* Encode Lisp string STRING as a text in a format appropriate for
    XICCC (X Inter Client Communication Conventions).
 
    If STRING contains only ASCII characters, do no conversion and
