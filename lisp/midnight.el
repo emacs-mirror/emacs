@@ -178,8 +178,8 @@ the current date/time, buffer name, how many seconds ago it was
 displayed (can be nil if the buffer was never displayed) and its
 lifetime, i.e., its \"age\" when it will be purged."
   (interactive)
-  (let ((tm (midnight-float-time)) bts (ts (format-time-string "%Y-%m-%d %T")) bn
-        (bufs (buffer-list)) buf delay cbld)
+  (let ((tm (midnight-float-time)) bts (ts (format-time-string "%Y-%m-%d %T"))
+        (bufs (buffer-list)) buf delay cbld bn)
     (while (setq buf (pop bufs))
       (setq bts (midnight-buffer-display-time buf) bn (buffer-name buf)
             delay (if bts (- tm bts) 0) cbld (clean-buffer-list-delay bn))
@@ -188,6 +188,7 @@ lifetime, i.e., its \"age\" when it will be purged."
                                  'string-match)
                   (midnight-find bn clean-buffer-list-kill-never-buffer-names
                                  'string-equal)
+                  (get-buffer-process buf)
                   (and (buffer-file-name buf) (buffer-modified-p buf))
                   (get-buffer-window buf 'visible) (< delay cbld))
         (message "[%s] killing `%s'" ts bn)
