@@ -1822,6 +1822,12 @@ but the contents viewed as characters do change.")
 
 	  tail = XMARKER (tail)->chain;
 	}
+
+      /* Make sure no markers were put on the chain
+	 while the chain value was incorrect.  */
+      if (! EQ (BUF_MARKERS (current_buffer), Qnil))
+	abort ();
+
       BUF_MARKERS (current_buffer) = markers;
 
       /* Do this last, so it can calculate the new correspondences
