@@ -124,7 +124,6 @@ so disable it for them.  */
 #define HAVE_SELECT
 #define HAVE_TIMEVAL
 #define HAVE_VFORK
-#define HAVE_SETSID
 #undef  HAVE_TERMIO
 #define HAVE_TERMIOS
 

@@ -131,9 +131,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
     -e__start -L /usr/lib \
     '-A__iob=___ap$$iob' '-A_use_libc_sema=___ap$$use_libc_sema'
 
-/* Use setsid when starting up inferiors. */
-#define HAVE_SETSID
-
 /* Use <dirent.h>. */
 #define SYSV_SYSTEM_DIR
 

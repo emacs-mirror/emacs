@@ -25,6 +25,3 @@
 
 /* Reread the time zone on startup.  */
 #define LOCALTIME_CACHE
-
-/* rich@lamprey.utmb.edu says needed for job control in subshells.  */
-#define HAVE_SETSID

@@ -90,13 +90,6 @@ is to define BROKEN_FIONREAD and not use INTERRUPT_INPUT.
 #define HAVE_SELECT
 
 /*
- *	Define HAVE_SETSID if the system supports POSIX disassociate
- *      terminal.
- */
-
-#define HAVE_SETSID
-
-/*
  *	Define HAVE_SOCKETS if the system supports sockets.
  */
 

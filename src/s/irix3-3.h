@@ -177,9 +177,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define HAVE_SYSVIPC
 
-/* Use setsid to handle terminals for subprocesses.  */
-#define HAVE_SETSID
-
 /* sioctl.h should be included where appropriate.  */
 
 #define NEED_SIOCTL

@@ -131,7 +131,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define START_FILES
 #define HAVE_SYSVIPC
-#define HAVE_SETSID
 #define HAVE_GETWD
 /*** BUILD 9008 - FIONREAD problem still exists in X-Windows. ***/
 #define BROKEN_FIONREAD

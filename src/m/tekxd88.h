@@ -108,7 +108,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define HAVE_SELECT	/* XD88 has select(). */
 #define BROKEN_FIONREAD /* is this needed ? */
 #define BSTRING		/* its in libc but not declared in any header file. */
-#define HAVE_SETSID
 #undef sigsetmask	/* XD88 has sigsetmask() */
 
 #undef LIB_X11_LIB	/* Don't use shared libraries defined in usg5-3.h */

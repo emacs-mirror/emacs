@@ -20,8 +20,6 @@
 #define A_TEXT_OFFSET(x) (sizeof (struct exec))
 #define A_TEXT_SEEK(hdr) (N_TXTOFF(hdr) + A_TEXT_OFFSET(hdr))
 
-#define HAVE_SETSID
-
 #define LIBS_DEBUG
 /* -lutil is not needed for NetBSD >0.9.  */
 #define LIBS_SYSTEM -lutil
