@@ -16,7 +16,9 @@
    so we might as well try getting rid of -traditional.  */
 #undef C_SWITCH_SYSTEM
 
-/* Martin Tomes <mt00@controls.eurotherm.co.uk> says that ISC has no
-   libX11_s, as specified in s/usg5-3.h.  */
+/* We indirectly #include s/usg5-3.h, which says to use libX11_s and
+   libc_s.  Martin Tomes <mt00@controls.eurotherm.co.uk> says that ISC
+   has no libX11_s, and that linking with libc_s causes sbrk not to work.  */
 #undef LIB_X11_LIB
-
+#undef LIBX11_SYSTEM
+#define LIBX11_SYSTEM -lpt -lnls -lnsl_s -lc
