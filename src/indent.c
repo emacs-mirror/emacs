@@ -447,7 +447,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
     = XTYPE (current_buffer->selective_display) == Lisp_Int
       ? XINT (current_buffer->selective_display)
 	: !NILP (current_buffer->selective_display) ? -1 : 0;
-  int prev_vpos, prev_hpos;
+  int prev_vpos, prev_hpos = 0;
   int selective_rlen
     = (selective && dp && XTYPE (DISP_INVIS_VECTOR (dp)) == Lisp_Vector
        ? XVECTOR (DISP_INVIS_VECTOR (dp))->size : 0);
@@ -605,6 +605,76 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
   return &val_compute_motion;
 }
 
+DEFUN ("compute-motion", Fcompute_motion, Scompute_motion, 6, 6, 0,
+  "Scan through the current buffer, calculating screen position.\n\
+Scan the current buffer forward from offset FROM,\n\
+assuming it is at position FROMPOS--a cons of the form (HPOS . VPOS)--\n\
+to position TO or position TOPOS--another cons of the form (HPOS . VPOS)--\n\
+and return the ending buffer position and screen location.\n\
+\n\
+There are two additional arguments:\n\
+\n\
+WIDTH is the number of columns available to display text;\n\
+this affects handling of continuation lines.\n\
+Use the value returned by `window-width' for the window of your choice.\n\
+\n\
+OFFSETS is either nil or a cons cell (HSCROLL . TAB-OFFSET).\n\
+HSCROLL is the number of columns not being displayed at the left\n\
+margin; this is usually taken from a window's hscroll member.\n\
+TAB-OFFSET is the number of columns of the first tab that aren't\n\
+being displayed, perhaps because the line was continued within it.\n\
+\n\
+The value is a list of five elements:\n\
+  (POS VPOS HPOS PREVHPOS CONTIN)\n\
+POS is the buffer position where the scan stopped.\n\
+VPOS is the vertical position where the scan stopped.\n\
+HPOS is the horizontal position where the scan stopped.\n\
+\n\
+PREVHPOS is the horizontal position one character back from POS.\n\
+CONTIN is t if a line was continued after (or within) the previous character.\n\
+\n\
+For example, to find the buffer position of column COL of line LINE\n\
+of a certain window, pass the window's starting location as FROM\n\
+and the window's upper-left coordinates as FROMPOS.\n\
+Pass the buffer's (point-max) as TO, to limit the scan to the end of the\n\
+visible section of the buffer, and pass LINE and COL as TOPOS.")
+  (from, frompos, to, topos, width, offsets)
+     Lisp_Object from, frompos, to, topos;
+     Lisp_Object width, offsets;
+{
+  Lisp_Object bufpos, hpos, vpos, prevhpos, contin;
+  struct position *pos;
+  int hscroll, tab_offset;
+
+  CHECK_CONS (frompos, 0);
+  CHECK_CONS (topos, 0);
+  if (!NILP (offsets))
+    {
+      CHECK_CONS (offsets, 0);
+      hscroll = XINT (XCONS (offsets)->car);
+      tab_offset = XINT (XCONS (offsets)->cdr);
+    }
+  else
+    hscroll = tab_offset = 0;
+
+  pos = compute_motion (XINT (from), XINT (XCONS (frompos)->cdr),
+			XINT (XCONS (frompos)->car),
+			XINT (to), XINT (XCONS (topos)->cdr),
+			XINT (XCONS (topos)->car),
+			XINT (width), hscroll, tab_offset);
+
+  XFASTINT (bufpos) = pos->bufpos;
+  XFASTINT (hpos) = pos->hpos;
+  XSET (vpos, Lisp_Int, pos->vpos);
+  XFASTINT (prevhpos) = pos->prevhpos;
+
+  return Fcons (bufpos,
+		Fcons (hpos,
+		       Fcons (vpos,
+			      Fcons (prevhpos,
+				     Fcons (pos->contin ? Qt : Qnil, Qnil)))));
+
+}
 
 /* Return the column of position POS in window W's buffer,
    rounded down to a multiple of the internal width of W.
@@ -771,4 +841,5 @@ Setting this variable automatically makes it local to the current buffer.");
   defsubr (&Scurrent_column);
   defsubr (&Smove_to_column);
   defsubr (&Svertical_motion);
+  defsubr (&Scompute_motion);
 }
