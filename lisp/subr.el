@@ -792,7 +792,7 @@ See also `with-temp-file' and `with-output-to-string'."
 If BODY makes changes in the buffer, they are recorded
 and the functions on `after-change-functions' are called several times
 when BODY is finished.
-The return value is rthe value of the last form in BODY.
+The return value is the value of the last form in BODY.
 
 If `before-change-functions' is non-nil, then calls to the after-change
 functions can't be deferred, so in that case this macro has no effect.
@@ -892,6 +892,22 @@ syntax table; other characters are copied from the standard syntax table."
 	(aset table i nil)
 	(setq i (1+ i)))
       table)))
+
+(defun add-to-invisibility-spec (arg)
+  "Add elements to `buffer-invisibility-spec'.
+See documentation for `buffer-invisibility-spec' for the kind of elements
+that can be added."
+  (cond
+   ((or (null buffer-invisibility-spec) (eq buffer-invisibility-spec t))
+	(setq buffer-invisibility-spec (list arg)))
+   (t
+    (setq buffer-invisibility-spec 
+	  (nconc buffer-invisibility-spec (list arg))))))
+
+(defun remove-from-invisibility-spec (arg)
+  "Remove elements from `buffer-invisibility-spec'."
+  (if buffer-invisibility-spec
+    (setq buffer-invisibility-spec (delete* arg buffer-invisibility-spec))))
 
 (defun global-set-key (key command)
   "Give KEY a global binding as COMMAND.
@@ -968,4 +984,3 @@ configuration."
 ;  alist)
 
 ;;; subr.el ends here
-
