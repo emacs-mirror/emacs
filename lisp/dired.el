@@ -2012,8 +2012,7 @@ A prefix argument says to unflag those files instead."
   "Flag all backup files (names ending with `~') for deletion.
 With prefix argument, unflag these files."
   (interactive "P")
-  (let ((dired-marker-char (if unflag-p ?\  dired-del-marker))
-	(last-c (if (eq system-type 'ms-dos) ?k ?~)))
+  (let ((dired-marker-char (if unflag-p ?\  dired-del-marker)))
     (dired-mark-if
      ;; Don't call backup-file-name-p unless the last character looks like
      ;; it might be the end of a backup file name.  This isn't very general,
@@ -2025,7 +2024,7 @@ With prefix argument, unflag these files."
 			  ;; appear on real backup files.
 			  (if (eq (preceding-char) ?*)
 			      (forward-char -1))
-			  (eq (preceding-char) last-c))
+			  (eq (preceding-char) ?~))
 	  (not (looking-at dired-re-dir))
 	  (let ((fn (dired-get-filename t t)))
 	    (if fn (backup-file-name-p fn))))
