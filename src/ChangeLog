@@ -1,3 +1,7 @@
+2002-01-26  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* keyboard.c (parse_tool_bar_item): Remove duplicated prototypes.
+
 2002-01-25  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textprop.c (Fnext_property_change, Fnext_single_property_change)
