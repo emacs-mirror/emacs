@@ -26,7 +26,10 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef HAVE_X_WINDOWS
 #include <X11/Xlib.h>
-#endif
+#ifdef USE_X_TOOLKIT
+#include <X11/Intrinsic.h>
+#endif /* USE_X_TOOLKIT */
+#endif /* HAVE_X_WINDOWS */
 
 #ifdef MSDOS
 #include "msdos.h"
@@ -1271,6 +1274,7 @@ enum face_id
   BORDER_FACE_ID,
   CURSOR_FACE_ID,
   MOUSE_FACE_ID,
+  MENU_FACE_ID,
   BASIC_FACE_ID_SENTINEL
 };
 
@@ -2080,7 +2084,11 @@ int tabs_safe_p P_ ((void));
 void init_baud_rate P_ ((void));
 void init_sigio P_ ((int));
 
-/* Defined in xface.c */
+/* Defined in xfaces.c */
+
+#ifdef USE_X_TOOLKIT
+void x_set_menu_resources_from_menu_face P_ ((struct frame *, Widget));
+#endif
 
 void update_face_from_frame_parameter P_ ((struct frame *, Lisp_Object,
 					   Lisp_Object));
