@@ -772,62 +772,6 @@ is nil.
 			but as non-ASCII characters in this language
 			environment.")
 
-(define-widget 'charset 'symbol
-  :complete-function (lambda ()
-		       (interactive)
-		       (lisp-complete-symbol 'charsetp))
-  :completion-ignore-case t
-  :value 'ascii
-  :validate (lambda (widget)
-	      (unless (charsetp (widget-value widget))
-		(widget-put widget :error (format "Invalid charset: %S"
-						  (widget-value widget)))
-		widget))
-  :prompt-history 'charset-history)
-
-(defcustom language-info-custom-alist nil
-  "Customizations of language environment parameters.
-Value is an alist with elements like those of `language-info-alist'.
-These are used to set values in `language-info-alist' which replace
-the defaults.  A typical use is replacing the default input method for
-the environment.  Use \\[describe-language-environment] to find the environment's
-settings.
-
-Setting this variable directly does not take effect.  See
-`set-language-info-alist' for use in programs."
-  :group 'mule
-  :version "22.1"
-  :set (lambda (s v)
-	 (custom-set-default s v)
-	 ;; modify language-info-alist
-	 (dolist (elt v)
-	   (set-language-info-alist (car elt) (cdr elt)))
-	 ;; re-set the environment in case its parameters changed
-	 (set-language-environment current-language-environment))
-  :type `(alist
-	  :key-type (string :tag "Language environment"
-			    :completion-ignore-case t
-			    :complete-function widget-string-complete
-			    :completion-alist language-info-alist)
-	  :value-type
-	  (alist :key-type symbol
-		 :options ((documentation string)
-			   (charset (repeat charset))
-			   (sample-text string)
-			   (setup-function function)
-			   (exit-function function)
-			   (coding-system (repeat coding-system))
-			   (coding-priority (repeat coding-system))
-			   (nonascii-translation charset)
-			   (input-method
-			    (string
-			     :completion-ignore-case t
-			     :complete-function widget-string-complete
-			     :completion-alist input-method-alist
-			     :prompt-history input-method-history))
-			   (features (repeat symbol))
-			   (unibyte-display coding-system)))))
-
 (defun get-language-info (lang-env key)
   "Return information listed under KEY for language environment LANG-ENV.
 KEY is a symbol denoting the kind of information.
@@ -1543,6 +1487,66 @@ specifies the character set for the major languages of Western Europe."
 	(funcall func)))
   (run-hooks 'set-language-environment-hook)
   (force-mode-line-update t))
+
+(define-widget 'charset 'symbol
+  :complete-function (lambda ()
+		       (interactive)
+		       (lisp-complete-symbol 'charsetp))
+  :completion-ignore-case t
+  :value 'ascii
+  :validate (lambda (widget)
+	      (unless (charsetp (widget-value widget))
+		(widget-put widget :error (format "Invalid charset: %S"
+						  (widget-value widget)))
+		widget))
+  :prompt-history 'charset-history)
+
+(defcustom language-info-custom-alist nil
+  "Customizations of language environment parameters.
+Value is an alist with elements like those of `language-info-alist'.
+These are used to set values in `language-info-alist' which replace
+the defaults.  A typical use is replacing the default input method for
+the environment.  Use \\[describe-language-environment] to find the environment's settings.
+
+This option is intended for use at startup.  Removing items doesn't
+remove them from the language info until you next restart Emacs.
+
+Setting this variable directly does not take effect.  See
+`set-language-info-alist' for use in programs."
+  :group 'mule
+  :version "22.1"
+  :set (lambda (s v)
+	 (custom-set-default s v)
+	 ;; Can't do this before language environments are set up.
+	 (when v
+	   ;; modify language-info-alist
+	   (dolist (elt v)
+	     (set-language-info-alist (car elt) (cdr elt)))
+	   ;; re-set the environment in case its parameters changed
+	   (set-language-environment current-language-environment)))
+  :type `(alist
+	  :key-type (string :tag "Language environment"
+			    :completion-ignore-case t
+			    :complete-function widget-string-complete
+			    :completion-alist language-info-alist)
+	  :value-type
+	  (alist :key-type symbol
+		 :options ((documentation string)
+			   (charset (repeat charset))
+			   (sample-text string)
+			   (setup-function function)
+			   (exit-function function)
+			   (coding-system (repeat coding-system))
+			   (coding-priority (repeat coding-system))
+			   (nonascii-translation charset)
+			   (input-method
+			    (string
+			     :completion-ignore-case t
+			     :complete-function widget-string-complete
+			     :completion-alist input-method-alist
+			     :prompt-history input-method-history))
+			   (features (repeat symbol))
+			   (unibyte-display coding-system)))))
 
 (defun standard-display-european-internal ()
   ;; Actually set up direct output of non-ASCII characters.
