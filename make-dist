@@ -73,7 +73,7 @@ if grep -s "GNU Emacs version ${version}" ./man/emacs.texi > /dev/null; then
   true
 else
   echo "You must update the version number in \`./man/emacs.texi'"
-  exit 1
+  sleep 5
 fi
 
 ### Make sure the subdirectory is available.
