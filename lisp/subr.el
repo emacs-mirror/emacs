@@ -32,7 +32,9 @@ function, i.e., stored as the function value of a symbol, passed to
 funcall or mapcar, etc.
 
 ARGS should take the same form as an argument list for a `defun'.
-DOCSTRING should be a string, as described for `defun'.  It may be omitted.
+DOCSTRING is an optional documentation string.
+ If present, it should describe how to call the function.
+ But documentation strings are usually not useful in nameless functions.
 INTERACTIVE should be a call to the function `interactive', which see.
 It may also be omitted.
 BODY should be a list of lisp expressions."
