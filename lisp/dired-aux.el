@@ -319,7 +319,7 @@ with a prefix argument."
 ;; The in-background argument is only needed in Emacs 18 where
 ;; shell-command doesn't understand an appended ampersand `&'.
 ;;;###autoload
-(defun dired-do-shell-command (command &optional arg)
+(defun dired-do-shell-command (command &optional arg file-list)
   "Run a shell command COMMAND on the marked files.
 If no files are marked or a specific numeric prefix arg is given,
 the next ARG files are used.  Just \\[universal-argument] means the current file.
@@ -339,16 +339,17 @@ The shell command has the top level directory as working directory, so
 output files usually are created there instead of in a subdir."
 ;;Functions dired-run-shell-command and dired-shell-stuff-it do the
 ;;actual work and can be redefined for customization.
-  (interactive (list
-		;; Want to give feedback whether this file or marked files are used:
-		(dired-read-shell-command (concat "! on "
-						  "%s: ")
-					  current-prefix-arg
-					  (dired-get-marked-files
-					   t current-prefix-arg))
-		current-prefix-arg))
-  (let* ((on-each (not (string-match "\\*" command)))
-	 (file-list (dired-get-marked-files t arg)))
+  (interactive
+   (let ((files (dired-get-marked-files t current-prefix-arg)))
+     (list
+      ;; Want to give feedback whether this file or marked files are used:
+      (dired-read-shell-command (concat "! on "
+					"%s: ")
+				current-prefix-arg
+				files)
+      current-prefix-arg
+      files)))
+  (let* ((on-each (not (string-match "\\*" command))))
     (if on-each
 	(dired-bunch-files
 	 (- 10000 (length command))
