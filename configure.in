@@ -23,7 +23,7 @@ dnl  along with GNU Emacs; see the file COPYING.  If not, write to the
 dnl  Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 dnl  Boston, MA 02111-1307, USA.
 
-AC_PREREQ(2.8)dnl
+AC_PREREQ(2.50)dnl
 AC_INIT(src/lisp.h)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 
@@ -1106,8 +1106,9 @@ SPECIFIED_CFLAGS="$CFLAGS"
 case ${with_gcc} in
   "yes" ) CC="gcc" GCC=yes ;;
   "no"  ) : ${CC=cc} ;;
-  * ) AC_PROG_CC
+  * )
 esac
+AC_PROG_CC
 
 # On Suns, sometimes $CPP names a directory.
 if test -n "$CPP" && test -d "$CPP"; then
@@ -1355,7 +1356,7 @@ AC_TYPE_SIGNAL
 dnl Check for speed_t typedef.
 AC_CACHE_CHECK(for speed_t, emacs_cv_speed_t,
 AC_TRY_COMPILE([#include <termios.h>], [speed_t x = 1;],
-  emacs_cv_speed_t=yes))
+  emacs_cv_speed_t=yes, emacs_cv_speed_t=no))
 if test $emacs_cv_speed_t = yes; then
   AC_DEFINE(HAVE_SPEED_T)
 fi
@@ -1528,9 +1529,9 @@ AC_CHECK_FUNC(malloc_get_state, ,doug_lea_malloc=no)
 AC_CHECK_FUNC(malloc_set_state, ,doug_lea_malloc=no)
 AC_CACHE_CHECK(whether __after_morecore_hook exists,
 	       emacs_cv_var___after_morecore_hook,
-AC_TRY_LINK([extern void (* __after_morecore_hook)();],[__after_morecore_hook = 0],
+[AC_TRY_LINK([extern void (* __after_morecore_hook)();],[__after_morecore_hook = 0],
   emacs_cv_var___after_morecore_hook=yes,
-  emacs_cv_var___after_morecore_hook=no))
+  emacs_cv_var___after_morecore_hook=no)])
 if test $emacs_cv_var___after_morecore_hook = no; then
   doug_lea_malloc=no
 fi
@@ -1658,11 +1659,11 @@ fi
 if test "${window_system}" = "x11"; then
   AC_MSG_CHECKING(X11 version 6)
   AC_CACHE_VAL(emacs_cv_x11_version_6,
-  AC_TRY_LINK([#include <X11/Xlib.h>],
+  [AC_TRY_LINK([#include <X11/Xlib.h>],
 [#if XlibSpecificationRelease < 6
 fail;
 #endif
-], emacs_cv_x11_version_6=yes, emacs_cv_x11_version_6=no))
+], emacs_cv_x11_version_6=yes, emacs_cv_x11_version_6=no)])
   if test $emacs_cv_x11_version_6 = yes; then
     AC_MSG_RESULT(6 or newer)
     AC_DEFINE(HAVE_X11R6)
@@ -1674,11 +1675,11 @@ fi
 if test "${window_system}" = "x11"; then
   AC_MSG_CHECKING(X11 version 5)
   AC_CACHE_VAL(emacs_cv_x11_version_5,
-  AC_TRY_LINK([#include <X11/Xlib.h>],
+  [AC_TRY_LINK([#include <X11/Xlib.h>],
 [#if XlibSpecificationRelease < 5
 fail;
 #endif
-], emacs_cv_x11_version_5=yes, emacs_cv_x11_version_5=no))
+], emacs_cv_x11_version_5=yes, emacs_cv_x11_version_5=no)])
   if test $emacs_cv_x11_version_5 = yes; then
     AC_MSG_RESULT(5 or newer)
     HAVE_X11R5=yes
@@ -1695,12 +1696,12 @@ if test x"${USE_X_TOOLKIT}" = xmaybe; then
   if test x"${HAVE_X11R5}" = xyes; then
     AC_MSG_CHECKING(X11 version 5 with Xaw)
     AC_CACHE_VAL(emacs_cv_x11_version_5_with_xaw,
-    AC_TRY_LINK([
+    [AC_TRY_LINK([
 #include <X11/Intrinsic.h>
 #include <X11/Xaw/Simple.h>],
       [],
       emacs_cv_x11_version_5_with_xaw=yes,
-      emacs_cv_x11_version_5_with_xaw=no))
+      emacs_cv_x11_version_5_with_xaw=no)])
     if test $emacs_cv_x11_version_5_with_xaw = yes; then
       AC_MSG_RESULT([5 or newer, with Xaw; use toolkit by default])
       USE_X_TOOLKIT=LUCID
@@ -1718,11 +1719,11 @@ X_TOOLKIT_TYPE=$USE_X_TOOLKIT
 if test "${USE_X_TOOLKIT}" != "none"; then
   AC_MSG_CHECKING(X11 toolkit version)
   AC_CACHE_VAL(emacs_cv_x11_toolkit_version_6,
-  AC_TRY_LINK([#include <X11/Intrinsic.h>],
+  [AC_TRY_LINK([#include <X11/Intrinsic.h>],
 [#if XtSpecificationRelease < 6
 fail;
 #endif
-], emacs_cv_x11_toolkit_version_6=yes, emacs_cv_x11_toolkit_version_6=no))
+], emacs_cv_x11_toolkit_version_6=yes, emacs_cv_x11_toolkit_version_6=no)])
   HAVE_X11XTR6=$emacs_cv_x11_toolkit_version_6
   if test $emacs_cv_x11_toolkit_version_6 = yes; then
     AC_MSG_RESULT(6 or newer)
@@ -1752,13 +1753,13 @@ fi
 
 if test "${USE_X_TOOLKIT}" = "MOTIF"; then
   AC_CACHE_CHECK(for Motif version 2.1, emacs_cv_motif_version_2_1,
-  AC_TRY_COMPILE([#include <Xm/Xm.h>],
+  [AC_TRY_COMPILE([#include <Xm/Xm.h>],
     [#if XmVERSION > 2 || (XmVERSION == 2 && XmREVISION >= 1)
 int x = 5;
 #else
 Motif version prior to 2.1.
 #endif],
-    emacs_cv_motif_version_2_1=yes, emacs_cv_motif_version_2_1=no))
+    emacs_cv_motif_version_2_1=yes, emacs_cv_motif_version_2_1=no)])
   HAVE_MOTIF_2_1=$emacs_cv_motif_version_2_1
   if test $emacs_cv_motif_version_2_1 = yes; then
     HAVE_LIBXP=no
@@ -1895,9 +1896,9 @@ fi
 # If netdb.h doesn't declare h_errno, we must declare it by hand.
 AC_CACHE_CHECK(whether netdb declares h_errno,
 	       emacs_cv_netdb_declares_h_errno,
-AC_TRY_LINK([#include <netdb.h>],
+[AC_TRY_LINK([#include <netdb.h>],
   [return h_errno;],
-  emacs_cv_netdb_declares_h_errno=yes, emacs_cv_netdb_declares_h_errno=no))
+  emacs_cv_netdb_declares_h_errno=yes, emacs_cv_netdb_declares_h_errno=no)])
 if test $emacs_cv_netdb_declares_h_errno = yes; then
   AC_DEFINE(HAVE_H_ERRNO)
 fi
@@ -2039,7 +2040,7 @@ if test "x$HAVE_TIMEVAL" = xyes; then
   AC_CHECK_FUNCS(gettimeofday)
   AC_CACHE_CHECK(whether gettimeofday can accept two arguments,
 		 emacs_cv_gettimeofday_two_arguments,
-  AC_TRY_COMPILE([
+  [AC_TRY_COMPILE([
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
 #include <time.h>
@@ -2053,7 +2054,7 @@ if test "x$HAVE_TIMEVAL" = xyes; then
     [struct timeval time;
      gettimeofday (&time, 0);],
     emacs_cv_gettimeofday_two_arguments=yes,
-    emacs_cv_gettimeofday_two_arguments=no))
+    emacs_cv_gettimeofday_two_arguments=no)])
   if test $emacs_cv_gettimeofday_two_arguments = no; then
     AC_DEFINE(GETTIMEOFDAY_ONE_ARGUMENT)
   fi
@@ -2290,7 +2291,7 @@ echo creating lib-src/Makefile
   sed -e '1,/start of cpp stuff/d'\
       -e 's,/\*\*/#\(.*\)$,/* \1 */,' \
       < Makefile.c > junk.c
-  $CPP $undefs -I. -I$top_srcdir/src $CPPFLAGS junk.c | \
+  $CPP $undefs -I. -I$srcdir/src $CPPFLAGS junk.c | \
       sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > junk2.c
   cat junk1.c junk2.c > Makefile.new
   rm -f junk.c junk1.c junk2.c
@@ -2306,7 +2307,7 @@ echo creating src/Makefile
   sed -e '1,/start of cpp stuff/d'\
       -e 's,/\*\*/#\(.*\)$,/* \1 */,' \
       < Makefile.c > junk.c
-  $CPP $undefs -I. -I$top_srcdir/src $CPPFLAGS junk.c | \
+  $CPP $undefs -I. -I$srcdir/src $CPPFLAGS junk.c | \
       sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > junk2.c
   cat junk1.c junk2.c > Makefile.new
   rm -f junk.c junk1.c junk2.c
@@ -2314,9 +2315,9 @@ echo creating src/Makefile
   mv -f Makefile.new Makefile
 )
 
-if test ! -f src/.gdbinit && test -f $top_srcdir/src/.gdbinit; then
+if test ! -f src/.gdbinit && test -f $srcdir/src/.gdbinit; then
   echo creating src/.gdbinit
-  echo source $top_srcdir/src/.gdbinit > src/.gdbinit
+  echo source $srcdir/src/.gdbinit > src/.gdbinit
 fi
 
 # This is how we know whether to re-run configure in certain cases.
