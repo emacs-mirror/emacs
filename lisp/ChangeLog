@@ -1,5 +1,7 @@
 2001-11-11  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* subdirs.el: Regenerated.
+
 	* menu-bar.el (menu-bar-edit-menu): Don't use x-selection-exists-p if
 	it is not fboundp.
 	(clipboard-yank): Ditto.
