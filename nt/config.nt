@@ -239,6 +239,8 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_GETCWD
 #undef HAVE_SHUTDOWN
 #undef HAVE_STRFTIME
+/* Standard Windows strftime does not support POSIX.2 extensions.  */
+#define STRFTIME_NO_POSIX2 1
 
 #define LOCALTIME_CACHE
 #undef HAVE_INET_SOCKETS
