@@ -1,3 +1,12 @@
+1999-12-12  Dave Love  <fx@gnu.org>
+
+	* footnote.el: Require cl when compiling.  Don't autoload kemap
+	and minor-mode-alist stuff.  Don't set zmacs-region-stays.
+	(footnote-insert-text-marker, Footnote-insert-pointer-marker):
+	Avoid `acons'.
+	(footnote-mode-line-string, Footnote-add-footnote): Remove
+	autoload cookie.
+
 1999-12-12  Richard Sharman  <rsharman@pobox.com>
 
 	* sh-script.el: Fix for when font-lock mode is active.
