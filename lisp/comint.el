@@ -226,7 +226,7 @@ appears in the buffer.
 This variable is buffer-local.")
 
 (defvar comint-password-prompt-regexp
-  "\\(^[Pp]assword\\|pass phrase\\):\\s *\\'"
+  "\\(^\\(Old \\|New \\|\\)[Pp]assword\\|pass phrase\\):\\s *\\'"
   "*Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'.")
 
