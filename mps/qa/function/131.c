@@ -1,9 +1,14 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!131.c(trunk.2) $
  summary = allocation shouldn't fail if there's garbage to collect (2)
  language = c
  link = testlib.o rankfmt.o
+ harness = 2.0
+OUTPUT_SPEC
+ predie = COMMIT_LIMIT
+ postdie = OK
+ completed = yes
 END_HEADER
 */
 
