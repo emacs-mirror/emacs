@@ -1107,7 +1107,7 @@ Return point or nil."
 				(fortran-check-end-prog-re))))
 	    (skip-chars-forward " \t0-9")
 	    (cond ((looking-at
-		    "\\(\\(\\sw\\|\\s_\\)+:[ \t]*\\)?do[ \t]+[0-9]")
+		    "\\(\\(\\sw\\|\\s_\\)+:[ \t]*\\)?do[ \t]+")
 		   (setq count (1- count)))
 		  ((looking-at "end[ \t]*do\\b")
 		   (setq count (1+ count)))))
