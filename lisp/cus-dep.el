@@ -113,7 +113,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 		    (insert "))\n"))))))
   (insert "\
 ;;; These are for handling :version.  We need to have a minimum of
-;;; information so `custom-changed-variables' could do its job.  
+;;; information so `customize-changed-options' could do its job.  
 ;;; For both groups and variables we have to set `custom-version'.
 ;;; For variables we also set the `standard-value' and for groups
 ;;; `group-documentation' (which is shown in the customize buffer), so
