@@ -4237,6 +4237,8 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       goto dflt;
 
     case WM_INITMENU:
+      button_state = 0;
+      ReleaseCapture ();
       /* We must ensure menu bar is fully constructed and up to date
 	 before allowing user interaction with it.  To achieve this
 	 we send this message to the lisp thread and wait for a
@@ -4382,6 +4384,8 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       goto command;
     case WM_KILLFOCUS:
       unregister_hot_keys (hwnd);
+      button_state = 0;
+      ReleaseCapture ();
     case WM_MOVE:
     case WM_SIZE:
     case WM_COMMAND:
