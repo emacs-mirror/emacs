@@ -1,5 +1,5 @@
 # Makefile for GNU Emacs.
-# Copyright (C) 1985, 87, 88, 93, 94, 95, 99, 2000, 2001
+# Copyright (C) 1985, 87, 88, 93, 94, 95, 99, 2000, 2001, 2003
 # Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -37,6 +37,7 @@ CFLAGS=@CFLAGS@
 CPPFLAGS=@CPPFLAGS@
 LDFLAGS=@LDFLAGS@
 LN_S=@LN_S@
+EXEEXT=@EXEEXT@
 # Substitute an assignment for the MAKE variable, because
 # BSD doesn't have it as a default.
 @SET_MAKE@
@@ -887,12 +888,12 @@ LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) \
 #define OBJECTS_MACHINE
 #endif
 
-all: emacs@EXEEXT@ OTHER_FILES
+all: emacs${EXEEXT} OTHER_FILES
 
-emacs@EXEEXT@: temacs@EXEEXT@ ${etc}DOC ${lisp}
+emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp}
 #ifdef CANNOT_DUMP
-	rm -f emacs@EXEEXT@
-	ln temacs@EXEEXT@ emacs@EXEEXT@
+	rm -f emacs${EXEEXT}
+	ln temacs${EXEEXT} emacs${EXEEXT}
 #else
 #ifdef HAVE_SHM
 	LC_ALL=C ./temacs -nl -batch -l loadup dump
@@ -915,15 +916,15 @@ ${etc}DOC: ${libsrc}make-docfile ${obj} ${shortlisp} ${SOME_MACHINE_LISP}
 	${libsrc}make-docfile -d ${srcdir} ${SOME_MACHINE_OBJECTS} ${obj} > ${etc}DOC
 	${libsrc}make-docfile -a ${etc}DOC -d ${srcdir} ${SOME_MACHINE_LISP} ${shortlisp}
 
-${libsrc}make-docfile@EXEEXT@:
-	cd ${libsrc}; ${MAKE} ${MFLAGS} make-docfile@EXEEXT@
+${libsrc}make-docfile${EXEEXT}:
+	cd ${libsrc}; ${MAKE} ${MFLAGS} make-docfile${EXEEXT}
 
 /* Some systems define this to cause parallel Make-ing.  */
 #ifndef MAKE_PARALLEL
 #define MAKE_PARALLEL
 #endif
 
-temacs@EXEEXT@: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args@EXEEXT@
+temacs${EXEEXT}: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args${EXEEXT}
 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${TEMACS_LDFLAGS}) $(LDFLAGS) \
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
     OBJECTS_MACHINE ${LIBES}
@@ -931,7 +932,7 @@ temacs@EXEEXT@: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${
 /* We don't use ALL_LDFLAGS because LD_SWITCH_SYSTEM and LD_SWITCH_MACHINE
    often contain options that have to do with using Emacs's crt0,
    which are only good with temacs.  */
-prefix-args@EXEEXT@: prefix-args.c $(config_h)
+prefix-args${EXEEXT}: prefix-args.c $(config_h)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) ${srcdir}/prefix-args.c -o prefix-args
 
 /* Don't lose if this was not defined.  */
@@ -1253,25 +1254,25 @@ macosx-bundle: ${emacsapp}Contents/Resources/English.lproj \
 	${emacsapp}Contents/Resources/English.lproj/InfoPlist.strings
 macosx-app: macosx-bundle ${emacsapp}Contents/MacOS/Emacs \
   ${emacsapp}Contents/Resources/Emacs.rsrc
-${emacsapp}Contents/MacOS/Emacs: emacs@EXEEXT@
+${emacsapp}Contents/MacOS/Emacs: emacs${EXEEXT}
 	mkdir -p ${emacsapp}Contents/MacOS/;
-	cd ${emacsapp}Contents/MacOS/; cp ../../../../src/emacs@EXEEXT@ Emacs@EXEEXT@
+	cd ${emacsapp}Contents/MacOS/; cp ../../../../src/emacs${EXEEXT} Emacs${EXEEXT}
 ${emacsapp}Contents/Resources/Emacs.rsrc: ../mac/src/Emacs.r
 	/Developer/Tools/Rez -useDF \
 	-o ${emacsapp}Contents/Resources/Emacs.rsrc \
 	/System/Library/Frameworks/Carbon.framework/Headers/Carbon.r $<
 #endif
 
-${libsrc}emacstool@EXEEXT@: ${libsrc}emacstool.c
-	cd ${libsrc}; ${MAKE} ${MFLAGS} emacstool@EXEEXT@
+${libsrc}emacstool${EXEEXT}: ${libsrc}emacstool.c
+	cd ${libsrc}; ${MAKE} ${MFLAGS} emacstool${EXEEXT}
 bootstrapclean:
-	rm -f bootstrap-emacs@EXEEXT@
+	rm -f bootstrap-emacs${EXEEXT}
 mostlyclean:
-	rm -f temacs@EXEEXT@ prefix-args@EXEEXT@ core *.core \#* *.o libXMenu11.a liblw.a
+	rm -f temacs${EXEEXT} prefix-args${EXEEXT} core *.core \#* *.o libXMenu11.a liblw.a
 	rm -f ../etc/DOC
-	rm -f bootstrap-emacs@EXEEXT@
+	rm -f bootstrap-emacs${EXEEXT}
 clean: mostlyclean
-	rm -f emacs-*@EXEEXT@ emacs@EXEEXT@
+	rm -f emacs-*${EXEEXT} emacs${EXEEXT}
 /**/# This is used in making a distribution.
 /**/# Do not use it on development directories!
 distclean: clean
@@ -1284,7 +1285,7 @@ maintainer-clean: distclean
 	@echo "it deletes files that may require special tools to rebuild."
 	rm -f TAGS
 versionclean:
-	-rm -f emacs@EXEEXT@ emacs-* ../etc/DOC*
+	-rm -f emacs${EXEEXT} emacs-* ../etc/DOC*
 extraclean: distclean
 	-rm -f *~ \#* m/?*~ s/?*~
 
@@ -1322,20 +1323,20 @@ tags: TAGS TAGS-LISP $(lwlibdir)TAGS
 
 /* Bootstrapping.  */
 
-bootstrap: bootstrap-emacs@EXEEXT@
+bootstrap: bootstrap-emacs${EXEEXT}
 
 /* Dump an Emacs executable named bootstrap-emacs containing the
    files from loadup.el in source form.  */
 
-bootstrap-emacs@EXEEXT@: temacs@EXEEXT@
+bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
 #ifdef CANNOT_DUMP
-	ln temacs@EXEEXT@ bootstrap-emacs@EXEEXT@
+	ln temacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #else
 #ifdef HAVE_SHM
 	./temacs -nl -batch -l loadup bootstrap
 #else /* ! defined (HAVE_SHM) */
 	./temacs --batch --load loadup bootstrap
 #endif /* ! defined (HAVE_SHM) */
-	mv -f emacs@EXEEXT@ bootstrap-emacs@EXEEXT@
+	mv -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #endif /* ! defined (CANNOT_DUMP) */
 

@@ -1,5 +1,6 @@
 # Makefile for lib-src subdirectory in GNU Emacs.
-# Copyright (C) 1985, 1987, 1988, 1993, 1994, 2002 Free Software Foundation, Inc.
+# Copyright (C) 1985, 1987, 1988, 1993, 1994, 2002, 2003
+#  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -29,6 +30,7 @@ CFLAGS=@CFLAGS@
 ALLOCA=@ALLOCA@
 version=@version@
 configuration=@configuration@
+EXEEXT=@EXEEXT@
 
 # Program name transformation.
 TRANSFORM = @program_transform_name@
@@ -100,15 +102,15 @@ INSTALL_STRIP =
 
 # Things that a user might actually run,
 # which should be installed in bindir.
-INSTALLABLES = etags@EXEEXT@ ctags@EXEEXT@ emacsclient@EXEEXT@ b2m@EXEEXT@ ebrowse@EXEEXT@
+INSTALLABLES = etags${EXEEXT} ctags${EXEEXT} emacsclient${EXEEXT} b2m${EXEEXT} ebrowse${EXEEXT}
 INSTALLABLE_SCRIPTS = rcs-checkin grep-changelog
 
 # Things that Emacs runs internally, or during the build process,
 #  which should not be installed in bindir.
-UTILITIES=  profile@EXEEXT@ digest-doc@EXEEXT@ sorted-doc@EXEEXT@ movemail@EXEEXT@ cvtmail@EXEEXT@ fakemail@EXEEXT@ \
-            yow@EXEEXT@ hexl@EXEEXT@ update-game-score@EXEEXT@
+UTILITIES=  profile${EXEEXT} digest-doc${EXEEXT} sorted-doc${EXEEXT} movemail${EXEEXT} cvtmail${EXEEXT} fakemail${EXEEXT} \
+            yow${EXEEXT} hexl${EXEEXT} update-game-score${EXEEXT}
 
-DONT_INSTALL= test-distrib@EXEEXT@ make-docfile@EXEEXT@
+DONT_INSTALL= test-distrib${EXEEXT} make-docfile${EXEEXT}
 
 # Like UTILITIES, but they're not system-dependent, and should not be
 #  deleted by the distclean target.
@@ -286,12 +288,12 @@ blessmail:
 maybe-blessmail: BLESSMAIL
 #ifdef MOVEMAIL_NEEDS_BLESSING
 /* Don\'t charge ahead and do it!  Let the installer decide.
-	  ./blessmail ${archlibdir}/movemail@EXEEXT@  */
+	  ./blessmail ${archlibdir}/movemail${EXEEXT}  */
 	@if [ `wc -l <blessmail` != 2 ] ; then \
 	  dir=`sed -n -e 's/echo mail directory = \(.*\)/\1/p' blessmail`; \
 	  echo Assuming $$dir is really the mail spool directory, you should; \
-	  echo run  lib-src/blessmail ${archlibdir}/movemail@EXEEXT@; \
-	  echo as root, to give  movemail@EXEEXT@  appropriate permissions.; \
+	  echo run  lib-src/blessmail ${archlibdir}/movemail${EXEEXT}; \
+	  echo as root, to give  movemail${EXEEXT}  appropriate permissions.; \
 	  echo Do that after running  make install.; \
 	fi
 #endif
@@ -372,14 +374,14 @@ check:
 	@echo "We don't have any tests for GNU Emacs yet."
 
 tags: TAGS
-TAGS: etags@EXEEXT@
+TAGS: etags${EXEEXT}
 	etags *.[ch]
 
 /* This verifies that the non-ASCII characters in the file \`testfile\'
    have not been clobbered by whatever means were used to copy and
    distribute Emacs.  If they were clobbered, all the .elc files were
    clobbered too.  */
-test-distrib@EXEEXT@: ${srcdir}/test-distrib.c
+test-distrib${EXEEXT}: ${srcdir}/test-distrib.c
 	$(CC) ${ALL_CFLAGS} -o test-distrib ${srcdir}/test-distrib.c
 	./test-distrib ${srcdir}/testfile
 
@@ -403,34 +405,34 @@ REGEXPDEPS = $(REGEXPOBJ) $(srcdir)/../src/regex.h
 regex.o: $(srcdir)/../src/regex.c $(srcdir)/../src/regex.h ../src/config.h
 	${CC} -c ${BASE_CFLAGS} -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER ${srcdir}/../src/regex.c
 
-etags@EXEEXT@: ${srcdir}/etags.c $(GETOPTDEPS) $(REGEXPDEPS) ../src/config.h
+etags${EXEEXT}: ${srcdir}/etags.c $(GETOPTDEPS) $(REGEXPDEPS) ../src/config.h
 	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" ${srcdir}/etags.c $(GETOPTOBJS) $(REGEXPOBJ) $(LOADLIBES) -o etags
 
-ebrowse@EXEEXT@: ${srcdir}/ebrowse.c $(GETOPTDEPS) ../src/config.h
+ebrowse${EXEEXT}: ${srcdir}/ebrowse.c $(GETOPTDEPS) ../src/config.h
 	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" ${srcdir}/ebrowse.c $(GETOPTOBJS) $(LOADLIBES) -o ebrowse
 
 /* We depend on etags to assure that parallel makes don\'t write two
    etags.o files on top of each other.  */
-ctags@EXEEXT@: etags@EXEEXT@
+ctags${EXEEXT}: etags${EXEEXT}
 	$(CC) ${ALL_CFLAGS} -DCTAGS -DVERSION="\"${version}\"" ${srcdir}/etags.c $(GETOPTOBJS) $(REGEXPOBJ) $(LOADLIBES) -o ctags
 
-profile@EXEEXT@: ${srcdir}/profile.c ../src/config.h
+profile${EXEEXT}: ${srcdir}/profile.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/profile.c $(LOADLIBES) -o profile
 
-make-docfile@EXEEXT@: ${srcdir}/make-docfile.c ../src/config.h
+make-docfile${EXEEXT}: ${srcdir}/make-docfile.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/make-docfile.c $(LOADLIBES) -o make-docfile
 
-digest-doc@EXEEXT@: ${srcdir}/digest-doc.c
+digest-doc${EXEEXT}: ${srcdir}/digest-doc.c
 	$(CC) ${ALL_CFLAGS} ${srcdir}/digest-doc.c $(LOADLIBES) -o digest-doc
 
-sorted-doc@EXEEXT@: ${srcdir}/sorted-doc.c ${ALLOCA}
+sorted-doc${EXEEXT}: ${srcdir}/sorted-doc.c ${ALLOCA}
 	$(CC) ${ALL_CFLAGS} ${srcdir}/sorted-doc.c ${ALLOCA} $(LOADLIBES) -o sorted-doc
 
-b2m@EXEEXT@: ${srcdir}/b2m.c ../src/config.h $(GETOPTDEPS)
+b2m${EXEEXT}: ${srcdir}/b2m.c ../src/config.h $(GETOPTDEPS)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/b2m.c  -DVERSION="\"${version}\"" \
 	   $(GETOPTOBJS) $(LOADLIBES) -o b2m
 
-movemail@EXEEXT@: movemail.o pop.o $(GETOPTDEPS)
+movemail${EXEEXT}: movemail.o pop.o $(GETOPTDEPS)
 	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o $(GETOPTOBJS) $(LOADLIBES) $(LIBS_MAIL) $(LIBS_MOVE) -o movemail
 
 movemail.o: ${srcdir}/movemail.c ../src/config.h
@@ -439,45 +441,45 @@ movemail.o: ${srcdir}/movemail.c ../src/config.h
 pop.o: ${srcdir}/pop.c  ../src/config.h
 	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/pop.c
 
-cvtmail@EXEEXT@: ${srcdir}/cvtmail.c
+cvtmail${EXEEXT}: ${srcdir}/cvtmail.c
 	$(CC) ${ALL_CFLAGS} ${srcdir}/cvtmail.c $(LOADLIBES) -o cvtmail
 
-fakemail@EXEEXT@: ${srcdir}/fakemail.c ../src/config.h
+fakemail${EXEEXT}: ${srcdir}/fakemail.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/fakemail.c $(LOADLIBES) -o fakemail
 
-yow@EXEEXT@: ${srcdir}/yow.c ../src/epaths.h
+yow${EXEEXT}: ${srcdir}/yow.c ../src/epaths.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/yow.c $(LOADLIBES) -o yow
 
-emacsclient@EXEEXT@: ${srcdir}/emacsclient.c ../src/config.h $(GETOPTDEPS)
+emacsclient${EXEEXT}: ${srcdir}/emacsclient.c ../src/config.h $(GETOPTDEPS)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsclient.c $(GETOPTOBJS)  \
 	   -DVERSION=`sed -n -e '/(defconst emacs-version/ s/^[^"]*\("[^"]*"\).*/\1/p' ${srcdir}/../lisp/version.el` \
 	   $(LOADLIBES) -o emacsclient
 
-hexl@EXEEXT@: ${srcdir}/hexl.c ../src/config.h
+hexl${EXEEXT}: ${srcdir}/hexl.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
 
-update-game-score@EXEEXT@: ${srcdir}/update-game-score.c ../src/config.h
+update-game-score${EXEEXT}: ${srcdir}/update-game-score.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/update-game-score.c \
 	  -DHAVE_SHARED_GAME_DIR="\"$(gamedir)\"" \
 	  $(LOADLIBES) -o update-game-score
 
 /* These are NOT included in INSTALLABLES or UTILITIES.
    See ../src/Makefile.in.  */
-emacstool@EXEEXT@: ${srcdir}/emacstool.c
+emacstool${EXEEXT}: ${srcdir}/emacstool.c
 	$(CC) ${srcdir}/emacstool.c -o emacstool ${ALL_CFLAGS} \
 	  -lsuntool -lsunwindow -lpixrect $(LOADLIBES)
 
 /* For SUN Japanese Language Environment.  */
-nemacstool@EXEEXT@: ${srcdir}/emacstool.c
+nemacstool${EXEEXT}: ${srcdir}/emacstool.c
 	$(CC) -o nemacstool -DJLE ${ALL_CFLAGS} ${srcdir}/emacstool.c \
 	  -lsuntool -lmle -lsunwindow -lpixrect $(LOADLIBES)
 
-xvetool@EXEEXT@: ${srcdir}/emacstool.c
+xvetool${EXEEXT}: ${srcdir}/emacstool.c
 	$(CC) -o xvetool -DXVIEW ${ALL_CFLAGS} ${srcdir}/emacstool.c \
 	  -lxview -lX -I$(OPENWINHOME)/include -L$(OPENWINHOME)/lib \
 	  $(LOADLIBES)
 
-xveterm@EXEEXT@: ${srcdir}/emacstool.c
+xveterm${EXEEXT}: ${srcdir}/emacstool.c
 	$(CC) -o xveterm -DXVIEW -DTTERM ${ALL_CFLAGS} ${srcdir}/emacstool.c \
 	  -lxview -lolgx -lX  -I$(OPENWINHOME)/include -L$(OPENWINHOME)/lib \
 	  $(LOADLIBES)

@@ -3,7 +3,7 @@
 # DIST: that first.
 
 # Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-#  2000, 2001, 2002 Free Software Foundation, Inc.
+#  2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -69,6 +69,7 @@ CPPFLAGS=@CPPFLAGS@
 C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
 LD_SWITCH_X_SITE=@LD_SWITCH_X_SITE@
 YACC=@YACC@
+EXEEXT=@EXEEXT@
 
 ### These help us choose version- and architecture-specific directories
 ### to install files in.
@@ -215,8 +216,8 @@ INSTALL_STRIP =
 TRANSFORM = @program_transform_name@
 
 # What emacs should be called when installed.
-EMACS = `echo emacs@EXEEXT@ | sed '$(TRANSFORM)'`
-EMACSFULL = `echo emacs-${version}@EXEEXT@ | sed '$(TRANSFORM)'`
+EMACS = `echo emacs${EXEEXT} | sed '$(TRANSFORM)'`
+EMACSFULL = `echo emacs-${version}${EXEEXT} | sed '$(TRANSFORM)'`
 
 # Subdirectories to make recursively.  `lisp' is not included
 # because the compiled lisp files are part of the distribution.
@@ -358,7 +359,7 @@ install-arch-dep: mkdir
 	    exec_prefix=${exec_prefix} bindir=${bindir} \
 	    libexecdir=${libexecdir} archlibdir=${archlibdir} \
 	    INSTALL_STRIP=${INSTALL_STRIP})
-	${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs@EXEEXT@ ${bindir}/$(EMACSFULL)
+	${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} ${bindir}/$(EMACSFULL)
 	-chmod 1755  ${bindir}/$(EMACSFULL)
 	rm -f ${bindir}/$(EMACS)
 	-ln ${bindir}/$(EMACSFULL) ${bindir}/$(EMACS)
@@ -735,7 +736,7 @@ maybe_bootstrap:
 bootstrap: bootstrap-clean-before info FRC
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-clean)
 	(cd src; $(MAKE) $(MFLAGS) bootstrap)
-	(cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/bootstrap-emacs@EXEEXT@)
+	(cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/bootstrap-emacs${EXEEXT})
 	(cd src; $(MAKE) $(MFLAGS) mostlyclean)
 	$(MAKE) $(MFLAGS) all
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-after)
