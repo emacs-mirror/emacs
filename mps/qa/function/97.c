@@ -51,7 +51,11 @@ mps_ap_t apamc, aplo, apawl;
 static void tracegraph(mycell *obj) {
  int i;
 
- asserts(obj->tag & 3 == MCdata, "odd check at %p", obj);
+ if (obj == NULL) {
+  return;
+ }
+
+ asserts((obj->tag & 3) == MCdata, "odd check at %p (%p)", obj, obj->tag);
 
  if (obj->data.checkedflag == oldstamp) {
   obj->data.checkedflag = newstamp;
@@ -85,7 +89,6 @@ static void stepper(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool,
           "III/IV. step on object again at %p", a);
   commentif(a->data.checkedflag != oldstamp,
           "*. step on unreachable object at %p", a);
-  comment("step %i at %p", newstamp, a);
   a->data.checkedflag = newstamp;
  } else {
   apppadcount +=1;
@@ -156,7 +159,7 @@ static void test(void) {
 
   comment("%i of 100", j);
 
-  for (i=0; i<1000; i++) {
+  for (i=0; i<10000; i++) {
    k = ranint(4);
    die(allocrdumb(&a[k], aplo, 64, MPS_RANK_EXACT), "alloc failed");
    k = ranint(4);
@@ -170,6 +173,8 @@ static void test(void) {
   comment("walking...");
 
   mps_arena_park(space);
+  mps_arena_collect(space);
+
   oldstamp = newstamp;
   newstamp += 1;
   mps_arena_formatted_objects_walk(space, stepper,
