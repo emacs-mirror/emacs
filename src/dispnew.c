@@ -400,8 +400,7 @@ remake_frame_glyphs (frame)
   FRAME_CURRENT_GLYPHS (frame) = make_frame_glyphs (frame, 0);
   FRAME_DESIRED_GLYPHS (frame) = make_frame_glyphs (frame, 0);
   FRAME_TEMP_GLYPHS (frame) = make_frame_glyphs (frame, 1);
-  if (! FRAME_TERMCAP_P (frame) && ! FRAME_MSDOS_P (frame)
-      || frame == selected_frame)
+  if (FRAME_WINDOW_P (frame) || frame == selected_frame)
     SET_FRAME_GARBAGED (frame);
 }
 
@@ -2105,12 +2104,12 @@ change_frame_size (f, newheight, newwidth, pretend, delay)
      int newheight, newwidth, pretend;
 {
   Lisp_Object tail, frame;
-  if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
+  if (! FRAME_WINDOW_P (f))
     {
       /* When using termcap, or on MS-DOS, all frames use
 	 the same screen, so a change in size affects all frames.  */
       FOR_EACH_FRAME (tail, frame)
-	if (FRAME_TERMCAP_P (XFRAME (frame)) || FRAME_MSDOS_P (XFRAME (frame)))
+	if (! FRAME_WINDOW_P (XFRAME (frame)))
 	  change_frame_size_1 (XFRAME (frame), newheight, newwidth,
 			       pretend, delay);
     }
