@@ -833,7 +833,12 @@ See the command `imenu' for more information."
 
 (defun imenu--menubar-select (item)
   "Use Imenu to select the function or variable named in this menu item."
-  (imenu item))
+  (if (equal item '("*Rescan*" . -99))
+      (progn
+	(imenu--cleanup)
+	(setq imenu--index-alist nil)
+	(imenu-update-menubar))
+    (imenu item)))
 
 ;;;###autoload
 (defun imenu (index-item)
