@@ -172,6 +172,9 @@ directory @file{/u2/emacs/man/}.  You can list only buffers that are
 visiting files by giving the command a prefix; for instance, by typing
 @kbd{C-u C-x C-b}.
 
+@code{list-buffers} omits buffers whose name begins with a blank,
+unless they visit files: such buffers are used internally by Emacs.
+
 @need 2000
 @node Misc Buffer
 @section Miscellaneous Buffer Operations
@@ -316,10 +319,15 @@ them.
 @table @kbd
 @item M-x buffer-menu
 Begin editing a buffer listing all Emacs buffers.
+@item M-x buffer-menu-other-window.
+Similar, but do it in another window.
 @end table
 
 @findex buffer-menu
-  The command @code{buffer-menu} writes a list of all Emacs buffers into
+@findex buffer-menu-other-window
+  The command @code{buffer-menu} writes a list of all Emacs
+buffers@footnote{Buffers which don't visit files and whose names begin
+with a space are omitted: these are used internally by Emacs.} into
 the buffer @samp{*Buffer List*}, and selects that buffer in Buffer Menu
 mode.  The buffer is read-only, and can be changed only through the
 special commands described in this section.  The usual Emacs cursor
@@ -419,6 +427,10 @@ buffers are created and killed; its contents are just text.  If you have
 created, deleted or renamed buffers, the way to update @samp{*Buffer
 List*} to show what you have done is to type @kbd{g}
 (@code{revert-buffer}) or repeat the @code{buffer-menu} command.
+
+  The command @code{buffer-menu-other-window} works the same as
+@code{buffer-menu}, except that it displays the buffers list in
+another window.
 
 @node Indirect Buffers
 @section Indirect Buffers
