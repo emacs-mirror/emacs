@@ -5,7 +5,7 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -43,16 +43,16 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "intervals.h"
 #include "buffer.h"
 
-/* The rest of the file is within this conditional. */
+/* The rest of the file is within this conditional.  */
 #ifdef USE_TEXT_PROPERTIES
 
-/* Factor for weight-balancing interval trees. */
+/* Factor for weight-balancing interval trees.  */
 Lisp_Object interval_balance_threshold;
 
-/* Utility functions for intervals. */
+/* Utility functions for intervals.  */
 
 
-/* Create the root interval of some object, a buffer or string. */
+/* Create the root interval of some object, a buffer or string.  */
 
 INTERVAL
 create_root_interval (parent)
@@ -125,7 +125,7 @@ merge_properties (source, target)
 }
 
 /* Return 1 if the two intervals have the same properties,
-   0 otherwise. */
+   0 otherwise.  */
 
 int
 intervals_equal (i0, i1)
@@ -147,27 +147,27 @@ intervals_equal (i0, i1)
   i0_cdr = i0->plist;
   while (!NILP (i0_cdr))
     {
-      /* Lengths of the two plists were unequal */
+      /* Lengths of the two plists were unequal.  */
       if (i1_len == 0)
 	return 0;
 
       i0_sym = Fcar (i0_cdr);
       i1_val = Fmemq (i0_sym, i1->plist);
 
-      /* i0 has something i1 doesn't */
+      /* i0 has something i1 doesn't.  */
       if (EQ (i1_val, Qnil))
 	return 0;
 
-      /* i0 and i1 both have sym, but it has different values in each */
+      /* i0 and i1 both have sym, but it has different values in each.  */
       i0_cdr = Fcdr (i0_cdr);
-      if (! EQ (i1_val, Fcar (i0_cdr)))
+      if (! EQ (Fcar (Fcdr (i1_val)), Fcar (i0_cdr)))
 	return 0;
 
       i0_cdr = Fcdr (i0_cdr);
       i1_len--;
     }
 
-  /* Lengths of the two plists were unequal */
+  /* Lengths of the two plists were unequal.  */
   if (i1_len > 0)
     return 0;
 
@@ -200,7 +200,7 @@ traverse_intervals (tree, position, depth, function, arg)
 }
 
 #if 0
-/* These functions are temporary, for debugging purposes only. */
+/* These functions are temporary, for debugging purposes only.  */
 
 INTERVAL search_interval, found_interval;
 
@@ -279,7 +279,7 @@ rotate_right (interval)
   INTERVAL B = interval->left;
   int len = LENGTH (interval);
 
-  /* Deal with any Parent of A;  make it point to B. */
+  /* Deal with any Parent of A;  make it point to B.  */
   if (! ROOT_INTERVAL_P (interval))
     if (AM_LEFT_CHILD (interval))
       interval->parent->left = interval->left;
@@ -287,15 +287,15 @@ rotate_right (interval)
       interval->parent->right = interval->left;
   interval->left->parent = interval->parent;
 
-  /* B gets the same length as A, since it get A's position in the tree. */
+  /* B gets the same length as A, since it get A's position in the tree.  */
   interval->left->total_length = interval->total_length;
 
-  /* B becomes the parent of A. */
+  /* B becomes the parent of A.  */
   i = interval->left->right;
   interval->left->right = interval;
   interval->parent = interval->left;
 
-  /* A gets c as left child. */
+  /* A gets c as left child.  */
   interval->left = i;
   if (! NULL_INTERVAL_P (i))
     i->parent = interval;
@@ -322,7 +322,7 @@ rotate_left (interval)
   INTERVAL B = interval->right;
   int len = LENGTH (interval);
 
-  /* Deal with the parent of A. */
+  /* Deal with the parent of A.  */
   if (! ROOT_INTERVAL_P (interval))
     if (AM_LEFT_CHILD (interval))
       interval->parent->left = interval->right;
@@ -330,7 +330,7 @@ rotate_left (interval)
       interval->parent->right = interval->right;
   interval->right->parent = interval->parent;
 
-  /* B must have the same total length of A. */
+  /* B must have the same total length of A.  */
   interval->right->total_length = interval->total_length;
 
   /* Make B the parent of A */
@@ -359,7 +359,7 @@ rotate_left (interval)
    result.
 
    Note that this does not change the position of INTERVAL;  if it is a root,
-   it is still a root after this operation. */
+   it is still a root after this operation.  */
 
 INTERVAL
 split_interval_right (interval, offset)
@@ -381,7 +381,7 @@ split_interval_right (interval, offset)
       return new;
     }
 
-  /* Insert the new node between INTERVAL and its right child. */
+  /* Insert the new node between INTERVAL and its right child.  */
   new->right = interval->right;
   interval->right->parent = new;
   interval->right = new;
@@ -402,7 +402,7 @@ split_interval_right (interval, offset)
    result.
 
    Note that this does not change the position of INTERVAL;  if it is a root,
-   it is still a root after this operation. */
+   it is still a root after this operation.  */
 
 INTERVAL
 split_interval_left (interval, offset)
@@ -425,7 +425,7 @@ split_interval_left (interval, offset)
       return new;
     }
 
-  /* Insert the new node between INTERVAL and its left child. */
+  /* Insert the new node between INTERVAL and its left child.  */
   new->left = interval->left;
   new->left->parent = new;
   interval->left = new;
@@ -441,7 +441,7 @@ split_interval_left (interval, offset)
 
    The `position' field, which is a cache of an interval's position,
    is updated in the interval found.  Other functions (e.g., next_interval)
-   will update this cache based on the result of find_interval. */
+   will update this cache based on the result of find_interval.  */
 
 INLINE INTERVAL
 find_interval (tree, position)
@@ -485,7 +485,7 @@ find_interval (tree, position)
 
 /* Find the succeeding interval (lexicographically) to INTERVAL.
    Sets the `position' field based on that of INTERVAL (see
-   find_interval). */
+   find_interval).  */
 
 INTERVAL
 next_interval (interval)
@@ -525,7 +525,7 @@ next_interval (interval)
 
 /* Find the preceding interval (lexicographically) to INTERVAL.
    Sets the `position' field based on that of INTERVAL (see
-   find_interval). */
+   find_interval).  */
 
 INTERVAL
 previous_interval (interval)
@@ -574,7 +574,7 @@ previous_interval (interval)
    finding the interval at position (don't add length going down),
    if it's the beginning of the interval, get the previous interval
    and check the hugry bits of both.  Then add the length going back up
-   to the root. */
+   to the root.  */
 
 static INTERVAL
 adjust_intervals_for_insertion (tree, position, length)
@@ -612,7 +612,7 @@ adjust_intervals_for_insertion (tree, position, length)
       else
 	{
 	  /* If we are to use zero-length intervals as buffer pointers,
-	     then this code will have to change. */
+	     then this code will have to change.  */
 	  this->total_length += length;
 	  this->position = LEFT_TOTAL_LENGTH (this)
 	                   + position - relative_position + 1;
@@ -633,7 +633,7 @@ adjust_intervals_for_insertion (tree, position, length)
 
    If both intervals are "sticky", then make them belong to the left-most
    interval.  Another possibility would be to create a new interval for
-   this text, and make it have the merged properties of both ends. */
+   this text, and make it have the merged properties of both ends.  */
 
 static INTERVAL
 adjust_intervals_for_insertion (tree, position, length)
@@ -641,42 +641,179 @@ adjust_intervals_for_insertion (tree, position, length)
      int position, length;
 {
   register INTERVAL i;
-
+  register INTERVAL temp;
+  int eobp = 0;
+  
   if (TOTAL_LENGTH (tree) == 0)	/* Paranoia */
     abort ();
 
   /* If inserting at point-max of a buffer, that position will be out
      of range.  Remember that buffer positions are 1-based.  */
-  if (position > BEG + TOTAL_LENGTH (tree))
+  if (position >= BEG + TOTAL_LENGTH (tree)){
     position = BEG + TOTAL_LENGTH (tree);
+    eobp = 1;
+  }
 
   i = find_interval (tree, position);
+
   /* If we are positioned between intervals, check the stickiness of
-     both of them. */
-  if (position == i->position
-      && position != BEG)
+     both of them.  We have to do this too, if we are at BEG or Z.  */
+  if (position == i->position || eobp)
     {
-      register INTERVAL prev = previous_interval (i);
+      register INTERVAL prev;
 
-      /* If both intervals are sticky here, then default to the
-         left-most one.  But perhaps we should create a new
-	 interval here instead... */
-      if (END_STICKY_P (prev) || ! FRONT_STICKY_P (i))
-	i = prev;
+      if (position == BEG)
+	prev = 0;
+      else if (eobp)
+	{
+	  prev = i;
+	  i = 0;
+	}
+      else
+	prev = previous_interval (i);
+
+      /* Even if we are positioned between intervals, we default
+	 to the left one if it exists.  We extend it now and split
+	 off a part later, if stickyness demands it.  */
+      for (temp = prev ? prev : i; ! NULL_INTERVAL_P (temp); temp = temp->parent)
+	temp->total_length += length;
+      
+      /* If at least one interval has sticky properties,
+	 we check the stickyness property by property.  */
+      if (END_NONSTICKY_P (prev) || FRONT_STICKY_P (i))
+	{
+	  Lisp_Object pleft = NULL_INTERVAL_P (prev) ? Qnil : prev->plist;
+	  Lisp_Object pright = NULL_INTERVAL_P (i) ? Qnil : i->plist;
+	  struct interval newi;
+
+	  newi.plist = merge_properties_sticky (pleft, pright);
+
+	  if(! prev) /* i.e. position == BEG */
+	    {
+	      if (! intervals_equal (i, &newi))
+		{
+		  i = split_interval_left (i, length);
+		  i->plist = newi.plist;
+		}
+	    }
+	  else if (! intervals_equal (prev, &newi))
+	    {
+	      prev = split_interval_right (prev,
+					   position - prev->position);
+	      prev->plist = newi.plist;
+	      if (! NULL_INTERVAL_P (i)
+		  && intervals_equal (prev, i))
+		merge_interval_right (prev);
+	    }
+
+	  /* We will need to update the cache here later.  */
+	}
+      else if (! prev && ! NILP (i->plist))
+        {
+	  /* Just split off a new interval at the left.
+	     Since I wasn't front-sticky, the empty plist is ok.  */
+	  i = split_interval_left (i, length);
+        }
     }
 
-  while (! NULL_INTERVAL_P (i))
+  /* Otherwise just extend the interval.  */
+  else
     {
-      i->total_length += length;
-      i = i->parent;
+      for (temp = i; ! NULL_INTERVAL_P (temp); temp = temp->parent)
+	temp->total_length += length;
     }
-
+      
   return tree;
 }
+
+Lisp_Object
+merge_properties_sticky (pleft, pright)
+     Lisp_Object pleft, pright;
+{
+  register Lisp_Object props = Qnil, front = Qnil, rear = Qnil;
+  
+  Lisp_Object lfront = textget (pleft, Qfront_sticky);
+  Lisp_Object lrear = textget (pleft, Qrear_nonsticky);
+  Lisp_Object rfront = textget (pright, Qfront_sticky);
+  Lisp_Object rrear = textget (pright, Qrear_nonsticky);
+
+  register Lisp_Object tail1, tail2, sym;
+
+  /* Go through each element of PLEFT.  */
+  for (tail1 = pleft; ! NILP (tail1); tail1 = Fcdr (Fcdr (tail1)))
+    {
+      sym = Fcar (tail1);
+
+      /* Sticky properties get special treatment.  */
+      if (EQ (sym, Qrear_nonsticky) || EQ (sym, Qfront_sticky))
+	continue;
+      
+      if (NILP (Fmemq (sym, lrear)))
+	{
+	  /* rear-sticky is dominant, we needn't search in PRIGHT.  */
+	  
+	  props = Fcons (sym, Fcons (Fcar (Fcdr (tail1)), props));
+	  if (! NILP (Fmemq (sym, lfront)))
+	    front = Fcons (sym, front);
+	}
+      else
+	{
+	  /* Go through PRIGHT, looking for sym.  */
+	  for (tail2 = pright; ! NILP (tail2); tail2 = Fcdr (Fcdr (tail2)))
+	    if (EQ (sym, Fcar (tail2)))
+	      {
+		
+		if (! NILP (Fmemq (sym, rfront)))
+		  {
+		    /* Nonsticky at the left and sticky at the right,
+		       so take the right one.  */
+		    props = Fcons (sym, Fcons (Fcar (Fcdr (tail2)), props));
+		    front = Fcons (sym, front);
+		    if (! NILP (Fmemq (sym, rrear)))
+		      rear = Fcons (sym, rear);
+		  }
+		break;
+	      }
+	}
+    }
+  /* Now let's see what to keep from PRIGHT.  */
+  for (tail2 = pright; ! NILP (tail2); tail2 = Fcdr (Fcdr (tail2)))
+    {
+      sym = Fcar (tail2);
+
+      /* Sticky properties get special treatment.  */
+      if (EQ (sym, Qrear_nonsticky) || EQ (sym, Qfront_sticky))
+	continue;
+
+      /* If it ain't sticky, we don't take it.  */
+      if (NILP (Fmemq (sym, rfront)))
+	continue;
+      
+      /* If sym is in PLEFT we already got it.  */
+      for (tail1 = pleft; ! NILP (tail1); tail1 = Fcdr (Fcdr (tail1)))
+	if (EQ (sym, Fcar (tail1)))
+	  break;
+      
+      if (NILP (tail1))
+	{
+	  props = Fcons (sym, Fcons (Fcar (Fcdr (tail2)), props));
+	  front = Fcons (sym, front);
+	  if (! NILP (Fmemq (sym, rrear)))
+	    rear = Fcons (sym, rear);
+	}
+    }
+  if (! NILP (front))
+    props = Fcons (Qfront_sticky, Fcons (front, props));
+  if (! NILP (rear))
+    props = Fcons (Qrear_nonsticky, Fcons (rear, props));
+  return props;
+  
+}
+
 
 /* Delete an node I from its interval tree by merging its subtrees
    into one subtree which is then returned.  Caller is responsible for
-   storing the resulting subtree into its parent. */
+   storing the resulting subtree into its parent.  */
 
 static INTERVAL
 delete_node (i)
@@ -709,7 +846,7 @@ delete_node (i)
    and properly connecting the resultant subtree.
 
    I is presumed to be empty; that is, no adjustments are made
-   for the length of I. */
+   for the length of I.  */
 
 void
 delete_interval (i)
@@ -718,7 +855,7 @@ delete_interval (i)
   register INTERVAL parent;
   int amt = LENGTH (i);
 
-  if (amt > 0)			/* Only used on zero-length intervals now. */
+  if (amt > 0)			/* Only used on zero-length intervals now.  */
     abort ();
 
   if (ROOT_INTERVAL_P (i))
@@ -763,7 +900,7 @@ delete_interval (i)
    recursively on subtrees.
 
    Do this by recursing down TREE to the interval in question, and
-   deleting the appropriate amount of text. */
+   deleting the appropriate amount of text.  */
 
 static int
 interval_deletion_adjustment (tree, from, amount)
@@ -798,7 +935,7 @@ interval_deletion_adjustment (tree, from, amount)
       tree->total_length -= subtract;
       return subtract;
     }
-  /* Here -- this node */
+  /* Here -- this node.  */
   else
     {
       /* How much can we delete from this interval?  */
@@ -816,13 +953,13 @@ interval_deletion_adjustment (tree, from, amount)
       return amount;
     }
 
-  /* Never reach here */
+  /* Never reach here.  */
 }
 
 /* Effect the adjustments necessary to the interval tree of BUFFER to
    correspond to the deletion of LENGTH characters from that buffer
    text.  The deletion is effected at position START (which is a
-   buffer position, i.e. origin 1). */
+   buffer position, i.e. origin 1).  */
 
 static void
 adjust_intervals_for_deletion (buffer, start, length)
@@ -870,7 +1007,7 @@ adjust_intervals_for_deletion (buffer, start, length)
 /* Make the adjustments necessary to the interval tree of BUFFER to
    represent an addition or deletion of LENGTH characters starting
    at position START.  Addition or deletion is indicated by the sign
-   of LENGTH. */
+   of LENGTH.  */
 
 INLINE void
 offset_intervals (buffer, start, length)
@@ -893,7 +1030,7 @@ offset_intervals (buffer, start, length)
 
    IMPORTANT:
    The caller must verify that this is not the last (rightmost)
-   interval. */
+   interval.  */
 
 INTERVAL
 merge_interval_right (i)
@@ -902,12 +1039,12 @@ merge_interval_right (i)
   register int absorb = LENGTH (i);
   register INTERVAL successor;
 
-  /* Zero out this interval. */
+  /* Zero out this interval.  */
   i->total_length -= absorb;
 
-  /* Find the succeeding interval. */
+  /* Find the succeeding interval.  */
   if (! NULL_RIGHT_CHILD (i))      /* It's below us.  Add absorb
-				      as we descend. */
+				      as we descend.  */
     {
       successor = i->right;
       while (! NULL_LEFT_CHILD (successor))
@@ -923,7 +1060,7 @@ merge_interval_right (i)
 
   successor = i;
   while (! NULL_PARENT (successor))	   /* It's above us.  Subtract as
-					      we ascend. */
+					      we ascend.  */
     {
       if (AM_LEFT_CHILD (successor))
 	{
@@ -937,7 +1074,7 @@ merge_interval_right (i)
     }
 
   /* This must be the rightmost or last interval and cannot
-     be merged right.  The caller should have known. */
+     be merged right.  The caller should have known.  */
   abort ();
 }
 
@@ -946,7 +1083,7 @@ merge_interval_right (i)
    The properties of I are lost.  Interval node I is removed from the tree.
 
    IMPORTANT:
-   The caller must verify that this is not the first (leftmost) interval. */
+   The caller must verify that this is not the first (leftmost) interval.  */
 
 INTERVAL
 merge_interval_left (i)
@@ -955,12 +1092,12 @@ merge_interval_left (i)
   register int absorb = LENGTH (i);
   register INTERVAL predecessor;
 
-  /* Zero out this interval. */
+  /* Zero out this interval.  */
   i->total_length -= absorb;
 
-  /* Find the preceding interval. */
+  /* Find the preceding interval.  */
   if (! NULL_LEFT_CHILD (i))	/* It's below us. Go down,
-				   adding ABSORB as we go. */
+				   adding ABSORB as we go.  */
     {
       predecessor = i->left;
       while (! NULL_RIGHT_CHILD (predecessor))
@@ -976,7 +1113,7 @@ merge_interval_left (i)
 
   predecessor = i;
   while (! NULL_PARENT (predecessor))	/* It's above us.  Go up,
-				   subtracting ABSORB. */
+				   subtracting ABSORB.  */
     {
       if (AM_RIGHT_CHILD (predecessor))
 	{
@@ -990,14 +1127,14 @@ merge_interval_left (i)
     }
 
   /* This must be the leftmost or first interval and cannot
-     be merged left.  The caller should have known. */
+     be merged left.  The caller should have known.  */
   abort ();
 }
 
 /* Make an exact copy of interval tree SOURCE which descends from
    PARENT.  This is done by recursing through SOURCE, copying
    the current interval and its properties, and then adjusting
-   the pointers of the copy. */
+   the pointers of the copy.  */
 
 static INTERVAL
 reproduce_tree (source, parent)
@@ -1024,7 +1161,7 @@ reproduce_tree (source, parent)
    Returns the new interval.
 
    Generate an error if the new positions would overlap an existing
-   interval. */
+   interval.  */
 
 static INTERVAL
 make_new_interval (intervals, start, length)
@@ -1042,19 +1179,19 @@ make_new_interval (intervals, start, length)
 
   if (slot->position == start)
     {
-      /* New right node. */
+      /* New right node.  */
       split_interval_right (slot, length);
       return slot;
     }
 
   if (slot->position + LENGTH (slot) == start + length)
     {
-      /* New left node. */
+      /* New left node.  */
       split_interval_left (slot, LENGTH (slot) - length);
       return slot;
     }
 
-  /* Convert interval SLOT into three intervals. */
+  /* Convert interval SLOT into three intervals.  */
   split_interval_left (slot, start - slot->position);
   split_interval_right (slot, length);
   return slot;
@@ -1091,7 +1228,7 @@ make_new_interval (intervals, start, length)
    intervals to the new text are "sticky", then the new text retains
    only its properties, as if neither sticky property were set.  Perhaps
    we should consider merging all three sets of properties onto the new
-   text... */
+   text...  */
 
 void
 graft_intervals_into_buffer (source, position, buffer)
@@ -1104,26 +1241,26 @@ graft_intervals_into_buffer (source, position, buffer)
   int middle;
 
   /* If the new text has no properties, it becomes part of whatever
-     interval it was inserted into. */
+     interval it was inserted into.  */
   if (NULL_INTERVAL_P (source))
     return;
 
   if (NULL_INTERVAL_P (tree))
     {
       /* The inserted text constitutes the whole buffer, so
-	 simply copy over the interval structure. */
+	 simply copy over the interval structure.  */
       if ((BUF_Z (buffer) - BUF_BEG (buffer)) == TOTAL_LENGTH (source))
 	{
 	  Lisp_Object buf;
 	  XSET (buf, Lisp_Buffer, buffer);
 	  buffer->intervals = reproduce_tree (source, buf);
-	  /* Explicitly free the old tree here. */
+	  /* Explicitly free the old tree here.  */
 
 	  return;
 	}
 
       /* Create an interval tree in which to place a copy
-	 of the intervals of the inserted string. */
+	 of the intervals of the inserted string.  */
       {
 	Lisp_Object buf;
 	XSET (buf, Lisp_Buffer, buffer);
@@ -1135,16 +1272,16 @@ graft_intervals_into_buffer (source, position, buffer)
       /* If the buffer contains only the new string, but
 	 there was already some interval tree there, then it may be
 	 some zero length intervals.  Eventually, do something clever
-	 about inserting properly.  For now, just waste the old intervals. */
+	 about inserting properly.  For now, just waste the old intervals.  */
       {
 	buffer->intervals = reproduce_tree (source, tree->parent);
-	/* Explicitly free the old tree here. */
+	/* Explicitly free the old tree here.  */
 
 	return;
       }
     else
       /* Paranoia -- the text has already been added, so this buffer
-	 should be of non-zero length. */
+	 should be of non-zero length.  */
       if (TOTAL_LENGTH (tree) == 0)
 	abort ();
 
@@ -1169,31 +1306,32 @@ graft_intervals_into_buffer (source, position, buffer)
   else
     {
       prev = previous_interval (under);
-      if (prev && !END_STICKY_P (prev))
+      if (prev && !END_NONSTICKY_P (prev))
 	prev = 0;
     }
 
   /* Insertion is now at beginning of UNDER.  */
 
   /* The inserted text "sticks" to the interval `under',
-     which means it gets those properties. */
+     which means it gets those properties.
+     The properties of under are the result of
+     adjust_intervals_for_insertion, so stickyness has
+     already been taken care of.  */
+     
   while (! NULL_INTERVAL_P (over))
     {
       if (LENGTH (over) + 1 < LENGTH (under))
-	this = split_interval_left (under, LENGTH (over));
+	{
+	  this = split_interval_left (under, LENGTH (over));
+	  copy_properties (under, this);
+	}
       else
 	this = under;
       copy_properties (over, this);
-      /* Insertion at the end of an interval, PREV,
-	 inherits from PREV if PREV is sticky at the end.  */
-      if (prev && ! FRONT_STICKY_P (under)
-	  && MERGE_INSERTIONS (prev))
-	merge_properties (prev, this);
-      /* Maybe it inherits from the following interval
-	 if that is sticky at the front.  */
-      else if ((FRONT_STICKY_P (under) || middle)
-	       && MERGE_INSERTIONS (under))
-	merge_properties (under, this);
+      if (MERGE_INSERTIONS (this))
+	merge_properties (over, this);
+      else
+	copy_properties (over, this);
       over = next_interval (over);
     }
 
@@ -1224,6 +1362,26 @@ textget (plist, prop)
     }
 
   return fallback;
+}
+
+/* Get the value of property PROP from PLIST,
+   which is the plist of an interval.
+   We check for direct properties only! */
+
+Lisp_Object
+textget_direct (plist, prop)
+     Lisp_Object plist;
+     register Lisp_Object prop;
+{
+  register Lisp_Object tail;
+
+  for (tail = plist; !NILP (tail); tail = Fcdr (Fcdr (tail)))
+    {
+      if (EQ (prop, Fcar (tail)))
+	return Fcar (Fcdr (tail));
+    }
+
+  return Qnil;
 }
 
 /* Set point in BUFFER to POSITION.  If the target position is 
@@ -1274,9 +1432,9 @@ set_point (position, buffer)
   /* Set FROM to the interval containing the char after PT,
      and FROMPREV to the interval containing the char before PT.
      Either one may be null.  They may be equal.  */
-  /* We could cache this and save time. */
+  /* We could cache this and save time.  */
   from = find_interval (buffer->intervals, buffer_point);
-  if (from->position == BUF_BEGV (buffer))
+  if (buffer_point == BUF_BEGV (buffer))
     fromprev = 0;
   else if (from->position == BUF_PT (buffer))
     fromprev = previous_interval (from);
@@ -1285,17 +1443,18 @@ set_point (position, buffer)
   else
     fromprev = from;
 
-  /* Moving within an interval */
+  /* Moving within an interval.  */
   if (to == from && toprev == fromprev && INTERVAL_VISIBLE_P (to))
     {
       buffer->text.pt = position;
       return;
     }
 
-  /* If the new position is before an invisible character,
+  /* If the new position is before an invisible character
+     that has an `invisible' property of value `hidden',
      move forward over all such.  */
   while (! NULL_INTERVAL_P (to)
-	 && ! INTERVAL_VISIBLE_P (to)
+	 && EQ (textget (to->plist, Qinvisible), Qhidden)
 	 && ! DISPLAY_INVISIBLE_GLYPH (to))
     {
       toprev = to;
@@ -1347,7 +1506,7 @@ set_point (position, buffer)
     }
 }
 
-/* Set point temporarily, without checking any text properties. */
+/* Set point temporarily, without checking any text properties.  */
 
 INLINE void
 temp_set_point (position, buffer)
@@ -1372,7 +1531,7 @@ get_local_map (position, buffer)
   if (NULL_INTERVAL_P (buffer->intervals))
     return current_buffer->keymap;
 
-  /* Perhaps we should just change `position' to the limit. */
+  /* Perhaps we should just change `position' to the limit.  */
   if (position > BUF_Z (buffer) || position < BUF_BEG (buffer))
     abort ();
 
@@ -1410,7 +1569,7 @@ call_mod_hooks (list, start, end)
    (but not including) TO.  Create a list of all these hooks in
    lexicographic order, eliminating consecutive extra copies of the
    same hook.  Then call those hooks in order, with START and END - 1
-   as arguments. */
+   as arguments.  */
 
 void
 verify_interval_modification (buf, start, end)
@@ -1451,32 +1610,73 @@ verify_interval_modification (buf, start, end)
 
       if (start == BUF_BEGV (buf))
 	prev = 0;
-      if (i->position == start)
+      else if (i->position == start)
 	prev = previous_interval (i);
       else if (i->position < start)
 	prev = i;
       if (start == BUF_ZV (buf))
 	i = 0;
 
-      if (NULL_INTERVAL_P (prev))
+      /* If Vinhibit_read_only is set and is not a list, we can
+	 skip the read_only checks.  */
+      if (NILP (Vinhibit_read_only) || CONSP (Vinhibit_read_only))
 	{
-	  if (! INTERVAL_WRITABLE_P (i))
-	    error ("Attempt to insert within read-only text");
-	}
-      else if (NULL_INTERVAL_P (i))
-	{
-	  if (! INTERVAL_WRITABLE_P (prev))
-	    error ("Attempt to insert within read-only text");
-	}
-      else
-	{
-	  before = textget (prev->plist, Qread_only);
-	  after = textget (i->plist, Qread_only);
-	  if (! NILP (before) && EQ (before, after)
-	      /* This checks Vinhibit_read_only properly
-		 for the common value of the read-only property.  */
-	      && ! INTERVAL_WRITABLE_P (i))
-	    error ("Attempt to insert within read-only text");
+	  /* If I and PREV differ we need to check for the read-only
+	     property together with its stickyness. If either I or
+	     PREV are 0, this check is all we need.
+	     We have to take special care, since read-only may be
+	     indirectly defined via the category property.  */
+	  if (i != prev)
+	    {
+	      if (! NULL_INTERVAL_P (i))
+		{
+		  after = textget (i->plist, Qread_only);
+		  
+		  /* If interval I is read-only and read-only is
+		     front-sticky, inhibit insertion.
+		     Check for read-only as well as category.  */
+		  if (! NILP (after)
+		      && NILP (Fmemq (after, Vinhibit_read_only))
+		      && (! NILP (Fmemq (Qread_only,
+					 textget (i->plist, Qfront_sticky)))
+			  || (NILP (textget_direct (i->plist, Qread_only))
+			      && ! NILP (Fmemq (Qcategory,
+						textget (i->plist,
+							 Qfront_sticky))))))
+		    error ("Attempt to insert within read-only text");
+		}
+	      else
+		after = Qnil;
+	      if (! NULL_INTERVAL_P (prev))
+		{
+		  before = textget (prev->plist, Qread_only);
+		  
+		  /* If interval PREV is read-only and read-only isn't
+		     rear-nonsticky, inhibit insertion.
+		     Check for read-only as well as category.  */
+		  if (! NILP (before)
+		      && NILP (Fmemq (before, Vinhibit_read_only))
+		      && NILP (Fmemq (Qread_only,
+				      textget (prev->plist, Qrear_nonsticky)))
+		      && (! NILP (textget_direct (prev->plist,Qread_only))
+			  || NILP (Fmemq (Qcategory,
+					  textget (prev->plist,
+						   Qrear_nonsticky)))))
+		    error ("Attempt to insert within read-only text");
+		}
+	      else
+		before = Qnil;
+	    }
+	  else if (! NULL_INTERVAL_P (i))
+	    before = after = textget (i->plist, Qread_only);
+	  if (! NULL_INTERVAL_P (i) && ! NULL_INTERVAL_P (prev))
+	    {
+	      /* If I and PREV differ, neither of them has a sticky
+		 read-only property. It only remains to check, whether
+		 they have a common read-only property.  */
+	      if (! NILP (before) && EQ (before, after))
+		error ("Attempt to insert within read-only text");
+	    }
 	}
 
       /* Run both insert hooks (just once if they're the same).  */
@@ -1529,7 +1729,7 @@ verify_interval_modification (buf, start, end)
 
 /* Balance an interval node if the amount of text in its left and right
    subtrees differs by more than the percentage specified by
-   `interval-balance-threshold'. */
+   `interval-balance-threshold'.  */
 
 static INTERVAL
 balance_an_interval (i)
@@ -1569,7 +1769,7 @@ balance_an_interval (i)
 }
 
 /* Balance the interval tree TREE.  Balancing is by weight
-   (the amount of text). */
+   (the amount of text).  */
 
 INTERVAL
 balance_intervals (tree)
@@ -1592,7 +1792,7 @@ balance_intervals (tree)
 }
 
 /* Produce an interval tree reflecting the intervals in
-   TREE from START to START + LENGTH. */
+   TREE from START to START + LENGTH.  */
 
 INTERVAL
 copy_intervals (tree, start, length)
@@ -1609,7 +1809,7 @@ copy_intervals (tree, start, length)
   if (NULL_INTERVAL_P (i) || LENGTH (i) == 0)
     abort ();
 
-  /* If there is only one interval and it's the default, return nil. */
+  /* If there is only one interval and it's the default, return nil.  */
   if ((start - i->position + 1 + length) < LENGTH (i)
       && DEFAULT_INTERVAL_P (i))
     return NULL_INTERVAL;
@@ -1634,7 +1834,7 @@ copy_intervals (tree, start, length)
   return balance_intervals (new);
 }
 
-/* Give STRING the properties of BUFFER from POSITION to LENGTH. */
+/* Give STRING the properties of BUFFER from POSITION to LENGTH.  */
 
 INLINE void
 copy_intervals_to_string (string, buffer, position, length)
