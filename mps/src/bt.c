@@ -1,7 +1,7 @@
 /* impl.c.bt: BIT TABLES
  *
- * $HopeName: MMsrc!bt.c(trunk.22) $
- * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!bt.c(trunk.23) $
+ * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
  *
@@ -15,7 +15,7 @@
 #include "mpm.h"
 
 
-SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.22) $");
+SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.23) $");
 
 
 /* BTIndexAlignUp, BTIndexAlignDown -- Align bit-table indices
@@ -181,7 +181,8 @@ Res BTCreate(BT *btReturn, Arena arena, Count length)
   AVERT(Arena, arena);
   AVER(length > 0);
 
-  res = ArenaAlloc(&p, arena, BTSize(length));
+  res = ControlAlloc(&p, arena, BTSize(length), 
+                     /* withReservoirPermit */ FALSE);
   if (res != ResOK)
     return res;
   bt = (BT)p;
@@ -202,7 +203,7 @@ void BTDestroy(BT bt, Arena arena, Count length)
   AVERT(Arena, arena);
   AVER(length > 0);
   
-  ArenaFree(arena, bt, BTSize(length));
+  ControlFree(arena, bt, BTSize(length));
 }
 
 

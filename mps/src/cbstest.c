@@ -1,7 +1,7 @@
 /*  impl.c.cbstest: COALESCING BLOCK STRUCTURE TEST
  *
- *  $HopeName: MMsrc!cbstest.c(trunk.6) $
- * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
+ *  $HopeName: MMsrc!cbstest.c(trunk.7) $
+ * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  */
 
 #include "cbs.h"
@@ -15,7 +15,7 @@
 #include <stdarg.h>
 #include <time.h>
 
-SRCID(cbstest, "$HopeName: MMsrc!cbstest.c(trunk.6) $");
+SRCID(cbstest, "$HopeName: MMsrc!cbstest.c(trunk.7) $");
 
 
 #define ArraySize ((Size)123456)
@@ -575,7 +575,8 @@ extern int main(int argc, char *argv[])
 
   /* We're not going to use this block, but I feel unhappy just */
   /* inventing addresses. */
-  die((mps_res_t)ArenaAlloc(&p, arena, ArraySize * Alignment), 
+  die((mps_res_t)ControlAlloc(&p, arena, ArraySize * Alignment, 
+                              /* withReservoirPermit */ FALSE), 
       "failed to allocate block");
   dummyBlock = (Addr)p; /* avoid pun */
 

@@ -1,7 +1,7 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.39) $
- * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!poolams.c(trunk.40) $
+ * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  * 
  * .readership: any MPS developer.
  * 
@@ -20,7 +20,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.39) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.40) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -176,7 +176,7 @@ static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
   if(res != ResOK)
     goto failSize;
 
-  res = ArenaAlloc(&p, arena, ams->groupSize);
+  res = ControlAlloc(&p, arena, ams->groupSize, withReservoirPermit);
   if(res != ResOK)
     goto failGroup;
   /* p is the address of the subclass-specific group structure. */
@@ -216,7 +216,7 @@ static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
 failInit:
   SegFree(seg);
 failSeg:
-  ArenaFree(arena, group, ams->groupSize);
+  ControlFree(arena, group, ams->groupSize);
 failGroup:
 failSize:
   return res;
@@ -265,7 +265,7 @@ void AMSGroupDestroy(AMSGroup group)
 
   /* keep the destructions in step with AMSGroupCreate failure cases */
   SegFree(group->seg);
-  ArenaFree(arena, group, ams->groupSize);
+  ControlFree(arena, group, ams->groupSize);
 }  
 
 
@@ -428,7 +428,7 @@ Res AMSBufferInit(Pool pool, Buffer buffer, va_list args)
   AVERT(AMS, PoolPoolAMS(pool));
   AVERT(Rank, rank);
 
-  buffer->rankSet = RankSetSingle(rank);
+  BufferSetRankSet(buffer, RankSetSingle(rank));
   return ResOK;
 }
 
@@ -439,7 +439,7 @@ Res AMSBufferInit(Pool pool, Buffer buffer, va_list args)
  * design.mps.poolams.fill.
  */
 
-Res AMSBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
+Res AMSBufferFill(Addr *baseReturn, Addr *limitReturn,
                   Pool pool, Buffer buffer, Size size,
                   Bool withReservoirPermit)
 {
@@ -452,7 +452,6 @@ Res AMSBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   Bool b;                       /* the return value of AMSGroupAlloc */
   SegPrefStruct segPrefStruct;
 
-  AVER(segReturn != NULL);
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
   AVERT(Pool, pool);
@@ -495,7 +494,6 @@ Res AMSBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
 
 found:
   AVER(b);
-  *segReturn = group->seg;
   *baseReturn = AMS_INDEX_ADDR(group, base);
   *limitReturn = AMS_INDEX_ADDR(group, limit);
   return ResOK;
@@ -508,11 +506,12 @@ found:
  * need to be changed.  See design.mps.poolams.empty.
  */
 
-void AMSBufferEmpty(Pool pool, Buffer buffer, Seg seg)
+void AMSBufferEmpty(Pool pool, Buffer buffer, 
+                    Addr init, Addr limit)
 {
   AMS ams;
-  Addr init, limit;
   Index initIndex, limitIndex;
+  Seg seg;
   AMSGroup group;
 
   AVERT(Pool, pool);
@@ -520,17 +519,15 @@ void AMSBufferEmpty(Pool pool, Buffer buffer, Seg seg)
   AVERT(AMS, ams);
   AVERT(Buffer,buffer);
   AVER(BufferIsReady(buffer));
+  seg = BufferSeg(buffer);
   AVER(SegCheck(seg));
+  AVER(init <= limit);
+  AVER(AddrIsAligned(init, PoolAlignment(pool)));
+  AVER(AddrIsAligned(limit, PoolAlignment(pool)));
 
   group = AMSSegGroup(seg);
   AVERT(AMSGroup, group);
   AVER(group->seg == seg);
-
-  init = BufferGetInit(buffer);
-  limit = BufferLimit(buffer);
-
-  AVER(AddrIsAligned(init, PoolAlignment(pool)));
-  AVER(AddrIsAligned(limit, PoolAlignment(pool)));
 
   if(init == limit)
     return;
@@ -1219,7 +1216,7 @@ Bool AMSCheck(AMS ams)
 {
   CHECKS(AMS, ams);
   CHECKD(Pool, AMSPool(ams));
-  CHECKL(IsSubclass(AMSPool(ams)->class, EnsureAMSPoolClass()));
+  CHECKL(IsSubclassPoly(AMSPool(ams)->class, EnsureAMSPoolClass()));
   CHECKL(PoolAlignment(AMSPool(ams)) == ((Size)1 << ams->grainShift));
   CHECKL(PoolAlignment(AMSPool(ams)) == AMSPool(ams)->format->alignment);
   CHECKD(Action, AMSAction(ams));
