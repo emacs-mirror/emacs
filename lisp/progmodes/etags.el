@@ -331,10 +331,10 @@ Returns non-nil iff it is a valid table."
 
 ;; Subroutine of visit-tags-table-buffer.  Search the current tags tables
 ;; for one that has tags for THIS-FILE (or that includes a table that
-;; does).  Returns the tail of `tags-table-computed-list' whose car is a
-;; table listing THIS-FILE; if the table is one included by another table,
-;; it is the master table that we return.  If CORE-ONLY is non-nil, check
-;; only tags tables that are already in buffers--don't visit any new files.
+;; does).  Return the name of the first table table listing THIS-FILE; if
+;; the table is one included by another table, it is the master table that
+;; we return.  If CORE-ONLY is non-nil, check only tags tables that are
+;; already in buffers--don't visit any new files.
 (defun tags-table-including (this-file core-only)
   (let ((tables tags-table-computed-list)
 	(found nil))
@@ -439,12 +439,12 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 		;; be frobnicated, and CONT will be set non-nil so we don't
 		;; do it below.
 		(and buffer-file-name
-		     (car (or 
-			   ;; First check only tables already in buffers.
-			   (tags-table-including buffer-file-name t)
-			   ;; Since that didn't find any, now do the
-			   ;; expensive version: reading new files.
-			   (tags-table-including buffer-file-name nil))))
+		     (or 
+		      ;; First check only tables already in buffers.
+		      (tags-table-including buffer-file-name t)
+		      ;; Since that didn't find any, now do the
+		      ;; expensive version: reading new files.
+		      (tags-table-including buffer-file-name nil)))
 		;; Fourth, use the user variable tags-file-name, if it is
 		;; not already in the current list.
 		(and tags-file-name
