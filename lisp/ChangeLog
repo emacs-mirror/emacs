@@ -1,3 +1,21 @@
+2003-01-24  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuffer.el (ibuffer-window-list): Remove.
+	(ibuffer-confirm-operation-on): Use `window-list' instead.
+	(ibuffer-load-hook): New customizable variable.
+	(toplevel): Run it.
+	(ibuffer-customize): New command.
+	(ibuffer-mode-map): Bind it.
+	(ibuffer-mode-map): Add menu seperator in View>Sort menu.
+	(ibuffer-mode): Tidy.
+	(ibuffer-fontification-alist, ibuffer-always-show-last-buffer)
+	(ibuffer-default-directory, ibuffer-default-sorting-mode)
+	(ibuffer-maybe-show-predicates, ibuffer-hook, ibuffer-mode-hook)
+	(ibuffer-map-lines): Doc fixes.
+
+	* ibuf-ext.el (ibuffer-copy-filename-as-kill): C-u means relative
+	filenames.  Use `kill-new'.
+
 2003-01-23  Dave Love  <fx@gnu.org>
 
 	* abbrev.el (write-abbrev-file): Simplify, and put a coding cookie
