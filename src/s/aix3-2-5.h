@@ -23,3 +23,6 @@
 #undef sigsetmask
 #undef _setjmp
 #undef _longjmp
+
+/* The character-composition stuff is broken in X11R5.  */
+#define X11R5_INHIBIT_I18N
