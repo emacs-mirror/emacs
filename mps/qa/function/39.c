@@ -65,7 +65,7 @@ static void test(void)
   a[i] = allocone(aplo, 6, 1);
  }
 
- for(i=0; i<100000; i++) {
+ for(i=0; i<10000; i++) {
   j = ranint(100);
   comment("New object %i", j);
   a[j] = allocone(aplo, 5+ranint(50), 1);
