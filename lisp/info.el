@@ -2285,15 +2285,6 @@ the variable `Info-file-list-for-emacs'."
   "Face for Info titles at level 3."
   :group 'info)
 
-(defcustom Info-title-face-alist
-  '((?* (face (variable-pitch bold) display (height (+ 4))))
-    (?= (face (variable-pitch bold) display (height (+ 3))))
-    (?- (face (variable-pitch bold) display (height (+ 2)))))
-  "*Alist of face or list of faces to use for pseudo-underlined titles.
-The alist key is the character the title is underlined with (?*, ?= or ?-)."
-  :type '(repeat (list character face face))
-  :group 'info)
-
 (defun Info-fontify-node ()
   (save-excursion
     (let ((buffer-read-only nil)
