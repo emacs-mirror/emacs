@@ -273,6 +273,9 @@ To this end, run "infocmp linux > linux-term", edit the file
 the sequence "\E[?25h\E[?17;0;64c", and then run "tic linux-term" to
 produce a modified terminfo entry.
 
+Alternatively, if you want a blinking underscore as your Emacs cursor,
+change the "cvvis" capability to send the "\E[?25h\E[?0c" command.
+
 * Problems in Emacs built with LessTif.
 
 The problems seem to depend on the version of LessTif and the Motif
