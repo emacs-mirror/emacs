@@ -63,7 +63,7 @@ main (argc, argv)
 {
   char system_name[32];
   int s, i;
-  FILE *out;
+  FILE *out, *in;
   struct sockaddr_un server;
   char *homedir, *cwd, *str;
   char string[BUFSIZ];
@@ -132,7 +132,21 @@ main (argc, argv)
       perror ("connect");
       exit (1);
     }
+
+  /* We use the stream OUT to send our command to the server.  */
   if ((out = fdopen (s, "r+")) == NULL)
+    {
+      fprintf (stderr, "%s: ", argv[0]);
+      perror ("fdopen");
+      exit (1);
+    }
+
+  /* We use the stream IN to read the response.
+     We used to use just one stream for both output and input
+     on the socket, but reversing direction works nonportably:
+     on some systems, the output appears as the first input;
+     on other systems it does not.  */
+  if ((in = fdopen (s, "r+")) == NULL)
     {
       fprintf (stderr, "%s: ", argv[0]);
       perror ("fdopen");
@@ -170,15 +184,14 @@ main (argc, argv)
   printf ("Waiting for Emacs...");
   fflush (stdout);
 
-  rewind (out); /* re-read the output */
-  str = fgets (string, BUFSIZ, out); 
-  printf ("\n");
-
-  /* Now, wait for an answer and print any messages.  */
+  /* Now, wait for an answer and print any messages.  On some systems,
+     the first line we read will actually be the output we just sent.
+     We can't predict whether that will happen, so if it does, we
+     detect it by recognizing `Client: ' at the beginning.  */
   
-  while (str = fgets (string, BUFSIZ, out))
+  while (str = fgets (string, BUFSIZ, in))
     printf ("%s", str);
-  
+
   return 0;
 }
 
