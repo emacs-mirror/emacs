@@ -292,7 +292,8 @@ value of this flag.")
 		     (list "status" file)))
 	(cond ((> exec-status 0)
 	       (switch-to-buffer (get-file-buffer file))
-	       (display-buffer "*vc-info*")
+	       (shrink-window-if-larger-than-buffer
+		(display-buffer "*vc-info*"))
 	       (error "Couldn't find version control information"))))
       (set-buffer (get-buffer "*vc-info*"))
       (set-buffer-modified-p nil)
@@ -315,6 +316,8 @@ value of this flag.")
 	       (vc-file-setprop file 'vc-cvs-status 'locally-modified))
 	      ((string-match "Needs Merge" status)
 	       (vc-file-setprop file 'vc-cvs-status 'needs-merge))
+	      ((string-match "Needs Checkout" status)
+	       (vc-file-setprop file 'vc-cvs-status 'needs-checkout))
 	      (t (vc-file-setprop file 'vc-cvs-status nil))))))
     (if (get-buffer "*vc-info*")
 	(kill-buffer (get-buffer "*vc-info*")))))
@@ -490,7 +493,8 @@ value of this flag.")
       (cond
        ;; in the CVS case, check the status
        ((eq (vc-backend file) 'CVS)
-	(if (eq (vc-cvs-status file) 'up-to-date)
+	(if (and (not (eq (vc-cvs-status file) 'locally-modified))
+		 (not (eq (vc-cvs-status file) 'needs-merge)))
 	    (vc-file-setprop file 'vc-locking-user 'none)
 	  ;; The expression below should return the username of the owner
 	  ;; of the file.  It doesn't.  It returns the username if it is
@@ -617,8 +621,9 @@ value of this flag.")
 	((eq (vc-backend file) 'CVS)
 	 (if (vc-consult-rcs-headers file)   ;; CVS
 	     (vc-file-getprop file 'vc-workfile-version)
-	   (vc-find-cvs-master (file-name-directory file)
-			       (file-name-nondirectory file))
+	   (catch 'found
+	     (vc-find-cvs-master (file-name-directory file)
+				 (file-name-nondirectory file)))
 	   (vc-file-getprop file 'vc-workfile-version)))))
 
 ;;; actual version-control code starts here
@@ -724,25 +729,21 @@ The value is set in the current buffer, which should be the buffer
 visiting FILE.  Second optional arg LABEL is put in place of version
 control system name."
   (interactive (list buffer-file-name nil))
-  (let ((vc-type (vc-backend file))
-	(vc-status-string (and vc-display-status (vc-status file))))
+  (let ((vc-type (vc-backend file)))
     (setq vc-mode
-	  (concat " " (or label (symbol-name vc-type)) vc-status-string))
-    ;; Make the buffer read-only if the file is not locked
-    ;; (or unchanged, in the CVS case).
-    ;; Determine this by looking at the mode string, 
-    ;; so that no further external status query is necessary
-    (if vc-status-string
-	(if (eq (elt vc-status-string 0) ?-)
-	    (setq buffer-read-only t))
-      (if (not (vc-locking-user file))
-	  (setq buffer-read-only t)))
-    ;; Even root shouldn't modify a registered file without
-    ;; locking it first.
-    (and vc-type
+	  (and vc-type
+	       (concat " " (or label (symbol-name vc-type)) 
+		       (and vc-display-status (vc-status file)))))
+    (and vc-type 
+	 (equal file (buffer-file-name))
+	 ;; Make the buffer read-only if the file is not locked
+	 ;; (or unchanged, in the CVS case).
+	 (if (not (vc-locking-user file))
+	     (setq buffer-read-only t))
+	 ;; Even root shouldn't modify a registered file without
+	 ;; locking it first.
 	 (not buffer-read-only)
 	 (zerop (user-uid))
-	 (require 'vc)
 	 (not (equal (user-login-name) (vc-locking-user file)))
 	 (setq buffer-read-only t))
     (and (null vc-type)
