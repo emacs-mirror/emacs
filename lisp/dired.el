@@ -1462,16 +1462,17 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
 			 (or (dired-string-replace-match
 			      "\\([^\\]\\|\\`\\)\"" file "\\1\\\\\"" nil t)
 			     file)
-			 "\"")))))
+			 "\"")))
+	  ;; The above `read' will return a unibyte string if FILE
+	  ;; contains eight-bit-control/graphic characters.
+	  (if (and enable-multibyte-characters
+		   (not (multibyte-string-p file)))
+	      (setq file (string-to-multibyte file)))))
     (and file (file-name-absolute-p file)
 	 ;; A relative file name can start with ~.
 	 ;; Don't treat it as absolute in this context.
 	 (not (eq (aref file 0) ?~))
 	 (setq already-absolute t))
-    (and file buffer-file-coding-system
-	 (not file-name-coding-system)
-	 (not default-file-name-coding-system)
-	 (setq file (encode-coding-string file buffer-file-coding-system)))
     (cond
      ((null file)
       nil)
