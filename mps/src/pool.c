@@ -1,14 +1,10 @@
-/*  ==== POOLS ====
+/* impl.c.pool: POOL IMPLEMENTATION
  *
- *  $HopeName: MMsrc!pool.c(trunk.8) $
+ * $HopeName: MMsrc!pool.c(trunk.9) $
+ * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
  *
- *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
- *
- *  This is the implementation of the generic pool interface.  The
- *  functions here dispatch to pool-specific methods.
- *
- *  Notes
- *   2. Some explanatory comments would be nice.  richard 1994-08-25
+ * This is the implementation of the generic pool interface.  The
+ * functions here dispatch to pool-specific methods.
  */
 
 #include "std.h"
@@ -23,14 +19,11 @@
 #include <stddef.h>
 #include <stdarg.h>
 
-SRCID("$HopeName$");
+SRCID("$HopeName: MMsrc!pool.c(trunk.9) $");
 
 
 static SigStruct PoolSigStruct;
 
-
-
-#ifdef DEBUG
 
 Bool PoolIsValid(Pool pool, ValidationType validParam)
 {
@@ -43,8 +36,6 @@ Bool PoolIsValid(Pool pool, ValidationType validParam)
   AVER(IsPoT(pool->alignment));
   return TRUE;
 }
-
-#endif /* DEBUG */
 
 
 void PoolInit(Pool pool, Space space, PoolClass class)
@@ -120,9 +111,10 @@ Error (PoolAlloc)(Addr *pReturn, Pool pool, Size size)
   /* Make sure that the allocated address was in the pool's memory. */  
   AVER(PoolHasAddr(pool, (Addr)*pReturn));
 
+  SpacePoll(PoolSpace(pool));
+
   return ErrSUCCESS;
 }
-
 
 void PoolFree(Pool pool, Addr old, Size size)
 {
@@ -141,13 +133,11 @@ Error PoolCondemn(Pool pool, Trace trace)
   return (*pool->class->condemn)(pool, trace);
 }
 
-
 void PoolMark(Pool pool, Trace trace)
 {
   if(pool->class->mark != NULL)
     (*pool->class->mark)(pool, trace);
 }
-
 
 Error PoolScan(Pool pool, Trace trace)
 {
@@ -169,10 +159,19 @@ void PoolReclaim(Pool pool, Trace trace)
   (*pool->class->reclaim)(pool, trace);
 }
 
+
 void PoolAccess(Pool pool, Addr seg, ProtMode mode)
 {
   if(pool->class->access != NULL)
     (*pool->class->access)(pool, seg, mode);
+}
+
+
+Size PoolPoll(Pool pool)
+{
+  if(pool->class->poll != NULL)
+    return (*pool->class->poll)(pool);
+  return SPACE_POLL_MAX;
 }
 
 
