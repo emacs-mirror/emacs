@@ -4,7 +4,7 @@
 
 ;; Author: Simon Marshall <simon@gnu.ai.mit.edu>
 ;; Keywords: faces files
-;; Version: 3.12.02
+;; Version: 3.12.03
 
 ;;; This file is part of GNU Emacs.
 
@@ -219,7 +219,7 @@
 ;  "Submit via mail a bug report on fast-lock.el."
 ;  (interactive)
 ;  (let ((reporter-prompt-for-summary-p t))
-;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "fast-lock 3.12.02"
+;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "fast-lock 3.12.03"
 ;     '(fast-lock-cache-directories fast-lock-minimum-size
 ;       fast-lock-save-others fast-lock-save-events fast-lock-save-faces
 ;       fast-lock-verbose)
@@ -237,6 +237,28 @@
 (defvar fast-lock-cache-filename nil)	; For deleting.
 
 ;; User Variables:
+
+(defcustom fast-lock-minimum-size (* 25 1024)
+  "*Minimum size of a buffer for cached fontification.
+Only buffers more than this can have associated Font Lock cache files saved.
+If nil, means cache files are never created.
+If a list, each element should be a cons pair of the form (MAJOR-MODE . SIZE),
+where MAJOR-MODE is a symbol or t (meaning the default).  For example:
+ ((c-mode . 25600) (c++-mode . 25600) (rmail-mode . 1048576))
+means that the minimum size is 25K for buffers in C or C++ modes, one megabyte
+for buffers in Rmail mode, and size is irrelevant otherwise."
+  :type '(choice (const :tag "none" nil)
+		 (integer :tag "size")
+		 (repeat :menu-tag "mode specific" :tag "mode specific"
+			 :value ((t . nil))
+			 (cons :tag "Instance"
+			       (radio :tag "Mode"
+				      (const :tag "all" t)
+				      (symbol :tag "name"))
+			       (radio :tag "Size"
+				      (const :tag "none" nil)
+				      (integer :tag "size")))))
+  :group 'fast-lock)
 
 (defcustom fast-lock-cache-directories '("." "~/.emacs-flc")
 ; - `internal', keep each file's Font Lock cache file in the same file.
@@ -261,28 +283,6 @@ home directory hierarchy, or otherwise the absolute directory `~/.emacs-flc'."
 			(cons :tag "Matching"
 			      (regexp :tag "regexp")
 			      (directory :tag "directory"))))
-  :group 'fast-lock)
-
-(defcustom fast-lock-minimum-size (* 25 1024)
-  "*Minimum size of a buffer for cached fontification.
-Only buffers more than this can have associated Font Lock cache files saved.
-If nil, means cache files are never created.
-If a list, each element should be a cons pair of the form (MAJOR-MODE . SIZE),
-where MAJOR-MODE is a symbol or t (meaning the default).  For example:
- ((c-mode . 25600) (c++-mode . 25600) (rmail-mode . 1048576))
-means that the minimum size is 25K for buffers in C or C++ modes, one megabyte
-for buffers in Rmail mode, and size is irrelevant otherwise."
-  :type '(choice (const :tag "none" nil)
-		 (integer :tag "size")
-		 (repeat :menu-tag "mode specific" :tag "mode specific"
-			 :value ((t . nil))
-			 (cons :tag "Instance"
-			       (radio :tag "Mode"
-				      (const :tag "all" t)
-				      (symbol :tag "name"))
-			       (radio :tag "Size"
-				      (const :tag "none" nil)
-				      (integer :tag "size")))))
   :group 'fast-lock)
 
 (defcustom fast-lock-save-events '(kill-buffer kill-emacs)
