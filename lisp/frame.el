@@ -72,8 +72,11 @@ These supercede the values given in `default-frame-alist'.")
 ;;; 3) Once the init file is done, we apply any newly set parameters
 ;;; in initial-frame-alist to the frame.
 
-(add-hook 'before-init-hook 'frame-initialize)
-(add-hook 'window-setup-hook 'frame-notice-user-settings)
+;; These are now called explicitly at the proper times, 
+;; since that is easier to understand.
+;; Actually using hooks within Emacs is bad for future maintenance. --rms.
+;; (add-hook 'before-init-hook 'frame-initialize)
+;; (add-hook 'window-setup-hook 'frame-notice-user-settings)
 
 ;;; If we create the initial frame, this is it.
 (defvar frame-initial-frame nil)
