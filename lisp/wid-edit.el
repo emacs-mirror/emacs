@@ -327,6 +327,7 @@ new value.")
   (let ((keymap (widget-get widget :keymap))
 	(face (or (widget-get widget :value-face) 'widget-field-face))
 	(help-echo (widget-get widget :help-echo))
+	(follow-link (widget-get widget :follow-link))
 	(rear-sticky
 	 (or (not widget-field-add-space) (widget-get widget :size))))
     (if (functionp help-echo)
@@ -345,6 +346,7 @@ new value.")
 	;; works in the field when, say, Custom uses `suppress-keymap'.
 	(overlay-put overlay 'local-map keymap)
 	(overlay-put overlay 'face face)
+	(overlay-put overlay 'follow-link follow-link)
 	(overlay-put overlay 'help-echo help-echo))
       (setq to (1- to))
       (setq rear-sticky t))
@@ -354,6 +356,7 @@ new value.")
       (overlay-put overlay 'field widget)
       (overlay-put overlay 'local-map keymap)
       (overlay-put overlay 'face face)
+      (overlay-put overlay 'follow-link follow-link)
       (overlay-put overlay 'help-echo help-echo)))
   (widget-specify-secret widget))
 
@@ -378,6 +381,7 @@ new value.")
 (defun widget-specify-button (widget from to)
   "Specify button for WIDGET between FROM and TO."
   (let ((overlay (make-overlay from to nil t nil))
+	(follow-link (widget-get widget :follow-link))
 	(help-echo (widget-get widget :help-echo)))
     (widget-put widget :button-overlay overlay)
     (if (functionp help-echo)
@@ -389,6 +393,7 @@ new value.")
     (unless (widget-get widget :suppress-face)
       (overlay-put overlay 'face (widget-apply widget :button-face-get)))
     (overlay-put overlay 'pointer 'hand)
+    (overlay-put overlay 'follow-link follow-link)
     (overlay-put overlay 'help-echo help-echo)))
 
 (defun widget-mouse-help (window overlay point)
@@ -1705,6 +1710,7 @@ If END is omitted, it defaults to the length of LIST."
   "An embedded link."
   :button-prefix 'widget-link-prefix
   :button-suffix 'widget-link-suffix
+  :follow-link "\C-m"
   :help-echo "Follow the link."
   :format "%[%t%]")
 
