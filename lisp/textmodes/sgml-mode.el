@@ -178,16 +178,17 @@ This takes effect when first loading the sgml-mode library.")
   "Vector of symbolic character names without `&' and `;'.")
 
 
-;; sgmls is a free SGML parser available from
-;; ftp.uu.net:pub/text-processing/sgml
+;; nsgmls is a free SGML parser in the SP suite available from
+;; ftp.jclark.com and otherwise packaged for GNU systems.
 ;; Its error messages can be parsed by next-error.
 ;; The -s option suppresses output.
 
-(defcustom sgml-validate-command "sgmls -s"
+(defcustom sgml-validate-command "nsgmls -s" ; replaced old `sgmls'
   "*The command to validate an SGML document.
 The file name of current buffer file name will be appended to this,
 separated by a space."
   :type 'string
+  :version "20.5"
   :group 'sgml)
 
 (defvar sgml-saved-validate-command nil
