@@ -1161,7 +1161,7 @@ With prefix arg (noninteractively: 2nd arg), load the file after compiling."
     ;; It is important that input-buffer not be current at this call,
     ;; so that the value of point set in input-buffer
     ;; within byte-compile-from-buffer lingers in that buffer.
-    (setq output-buffer (byte-compile-from-buffer input-buffer))
+    (setq output-buffer (byte-compile-from-buffer input-buffer filename))
     (if byte-compiler-error-flag
 	nil
       (kill-buffer input-buffer)
@@ -1221,7 +1221,7 @@ With prefix arg (noninteractively: 2nd arg), load the file after compiling."
 ;;  (let* ((filename (or (buffer-file-name buffer)
 ;;		       (concat "#<buffer " (buffer-name buffer) ">")))
 ;;	 (byte-compile-current-file buffer))
-;;    (byte-compile-from-buffer buffer t))
+;;    (byte-compile-from-buffer buffer nil))
 ;;  (message "Compiling %s...done" (buffer-name buffer))
 ;;  t)
 
@@ -1275,8 +1275,8 @@ With argument, insert value in current buffer after the form."
 	 (if defmacro-active-p
 	     (ad-activate 'defmacro))))))
 
-(defun byte-compile-from-buffer (inbuffer &optional eval)
-  ;; buffer --> output-buffer, or buffer --> eval form, return nil
+(defun byte-compile-from-buffer (inbuffer &optional filename)
+  ;; Filename is used for the loading-into-Emacs-18 error message.
   (byte-compile-protect-from-advice
    (let (outbuffer)
      (let (;; Prevent truncation of flonums and lists as we read and print them
@@ -1322,7 +1322,7 @@ With argument, insert value in current buffer after the form."
 	     (byte-compile-file-form (read inbuffer)))
 	   ;; Compile pending forms at end of file.
 	   (byte-compile-flush-pending)
-	   (and (not eval) (byte-compile-insert-header))
+	   (and filename (byte-compile-insert-header filename))
 	   (byte-compile-warn-about-unresolved-functions)
 	   ;; always do this?  When calling multiple files, it
 	   ;; would be useful to delay this warning until all have
@@ -1331,17 +1331,18 @@ With argument, insert value in current buffer after the form."
 	(save-excursion
 	  (set-buffer outbuffer)
 	  (goto-char (point-min)))))
-     (if (not eval)
-	 outbuffer
-       (while (condition-case nil
-		  (progn (setq form (read outbuffer))
-			 t)
-		(end-of-file nil))
-	 (eval form))
-       (kill-buffer outbuffer)
-       nil))))
+     outbuffer)))
+;;;     (if (not eval)
+;;;         outbuffer
+;;;       (while (condition-case nil
+;;;		  (progn (setq form (read outbuffer))
+;;;			 t)
+;;;		(end-of-file nil))
+;;;	 (eval form))
+;;;       (kill-buffer outbuffer)
+;;;       nil))))
 
-(defun byte-compile-insert-header ()
+(defun byte-compile-insert-header (filename)
   (save-excursion
     (set-buffer outbuffer)
     (goto-char 1)
@@ -1380,7 +1381,7 @@ With argument, insert value in current buffer after the form."
 	       "\n(if (and (boundp 'emacs-version)\n"
 	       "\t (or (and (boundp 'epoch::version) epoch::version)\n"
 	       "\t     (string-lessp emacs-version \"19\")))\n"
-	       "    (error \"This file was compiled for Emacs 19\"))\n"
+	       "    (error \"`" filename "' was compiled for Emacs 19\"))\n"
 	       ))
    ))
 
