@@ -1,6 +1,6 @@
 ;;; texinfo.el --- major mode for editing Texinfo files
 
-;; Copyright (C) 1985,88,89,90,91,92,93,96,97,2000,01,03, 04
+;; Copyright (C) 1985,88,89,90,91,92,93,96,97,2000,01,03,04
 ;;           Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
@@ -616,7 +616,7 @@ value of `texinfo-mode-hook'."
        (mapcar (lambda (x) (cons (concat "@" (car x)) (cadr x)))
 	       texinfo-section-list))
   (set (make-local-variable 'outline-regexp)
-       (concat "^" (regexp-opt (mapcar 'car outline-heading-alist) t)
+       (concat (regexp-opt (mapcar 'car outline-heading-alist) t)
 	       "\\>"))
 
   (make-local-variable 'tex-start-of-header)
@@ -904,9 +904,8 @@ to jump to the corresponding spot in the Texinfo source file."
     ;; Second, create and format an *Occur* buffer
     (save-excursion
       (goto-char (point-min))
-      (if nodes-too
-          (occur (concat "^@node\\>\\|" outline-regexp))
-        (occur outline-regexp)))
+      (occur (concat "^\\(?:" (if nodes-too "@node\\>\\|")
+		     outline-regexp "\\)")))
     (pop-to-buffer "*Occur*")
     (goto-char (point-min))
     (let ((inhibit-read-only t))
