@@ -127,7 +127,7 @@ SECS may be a fraction."
 
 (defun timer-inc-time (timer secs &optional usecs)
   "Increment the time set in TIMER by SECS seconds and USECS microseconds.
-SECS may be a fraction."
+SECS may be a fraction.  If USECS is omitted, that means it is zero."
   (let ((time (timer-relative-time
 	       (list (aref timer 1) (aref timer 2) (aref timer 3))
 	       secs
