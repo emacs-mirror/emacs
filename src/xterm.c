@@ -3907,7 +3907,7 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
   for (i = 0; i < width; ++i)
     XDrawLine (dpy, window, gc,
 	       left_x + i * left_p, bottom_y - i,
-	       right_x + 2 - i * right_p, bottom_y - i);
+	       right_x + 1 - i * right_p, bottom_y - i);
   
   /* Right.  */
   if (right_p)
@@ -4004,7 +4004,7 @@ x_draw_glyph_string_box (s)
 	     || (s->hl == DRAW_MOUSE_FACE
 		 && (s->next == NULL
 		     || s->next->hl != s->hl)));
-  
+
   x_get_glyph_string_clip_rect (s, &clip_rect);
 
   if (s->face->box == FACE_SIMPLE_BOX)
@@ -4826,7 +4826,9 @@ x_set_glyph_string_background_width (s, start, last_x)
 	       || s->face->background != default_face->background
 	       || s->face->stipple != default_face->stipple
 	       || s->row->mouse_face_p))
-	  || s->hl == DRAW_MOUSE_FACE))
+	  || s->hl == DRAW_MOUSE_FACE
+	  || ((s->hl == DRAW_IMAGE_RAISED || s->hl == DRAW_IMAGE_SUNKEN)
+	      && s->row->fill_line_p)))
       s->extends_to_end_of_line_p = 1;
   
   /* If S extends its face to the end of the line, set its
