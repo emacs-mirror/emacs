@@ -1938,6 +1938,7 @@ nominal         alternate\n\
   describe_map_tree (current_global_map, 0, shadow, prefix,
 		     "Global Bindings", 0);
 
+  call0 (intern ("help-mode"));
   Fset_buffer (descbuf);
   UNGCPRO;
   return Qnil;
