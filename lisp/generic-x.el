@@ -679,7 +679,7 @@ you must reload generic-x to enable the specified modes."
      (1 font-lock-reference-face)
      (2 font-lock-variable-name-face nil t))
    ;; indirect string constants
-   '("\\(@[A-Za-z][A-Za-z0-9_]+\\)" 1 font-lock-emphasized-face)
+   '("\\(@[A-Za-z][A-Za-z0-9_]+\\)" 1 font-lock-builtin-face)
    ;; gotos
    '("[ \t]*\\(\\sw+:\\)" 1 font-lock-reference-face)
    '("\\<\\(goto\\)\\>[ \t]*\\(\\sw+\\)?" 
