@@ -583,12 +583,12 @@ Do the same for the keys of the same name."
 (defvar menu-bar-showhide-menu (make-sparse-keymap "Show/Hide"))
 
 (define-key menu-bar-showhide-menu [column-number-mode]
-  (menu-bar-make-toggle column-number-mode column-number-mode
+  (menu-bar-make-toggle toggle-column-number-mode column-number-mode
 			"Show Column Number" "Column number mode %s"
 			"Show the current column number in the mode-line"))
 
 (define-key menu-bar-showhide-menu [line-number-mode]
-  (menu-bar-make-toggle line-number-mode line-number-mode
+  (menu-bar-make-toggle toggle-line-number-mode line-number-mode
 			"Show Line Number" "Line number mode %s"
 			"Show the current line number in the mode-line"))
 
