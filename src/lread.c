@@ -1663,7 +1663,7 @@ See documentation of `read' for possible values.");
     "*List of directories to search for files to load.\n\
 Each element is a string (directory name) or nil (try default directory).\n\
 Initialized based on EMACSLOADPATH environment variable, if any,\n\
-otherwise to default specified in by file `paths.h' when Emacs was built.");
+otherwise to default specified by file `paths.h' when Emacs was built.");
 
   DEFVAR_BOOL ("load-in-progress", &load_in_progress,
     "Non-nil iff inside of `load'.");
