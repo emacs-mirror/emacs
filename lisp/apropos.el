@@ -462,7 +462,7 @@ found."
 		    "(not bound to any keys)")))
 	    (terpri)
 	    ;; only now so we don't propagate text attributes all over
-	    (put-text-property point1 (1+ point1) 'item
+	    (put-text-property point1 point2 'item
 			       (if (eval `(or ,@(cdr apropos-item)))
 				   (car apropos-item)
 				 apropos-item))
@@ -524,20 +524,14 @@ found."
 (defun apropos-follow (&optional other)
   (interactive)
   (let ((point (point))
-	(item (get-text-property (point) 'item))
+	(item
+	 (or (and (not (eobp)) (get-text-property (point) 'item))
+	     (and (not (bobp)) (get-text-property (1- (point)) 'item))))
 	action action-point)
-    (or item
-	(setq item (if (bobp)
-		       ()
-		     (previous-single-property-change (point) 'item))
-	      item (get-text-property
-		    (1- (goto-char
-			 (if item
-			     item
-			   (1+ (next-single-property-change (point) 'item)))))
-		    'item)))
+    (if (null item)
+	(error "There is nothing to follow here"))
     (if (consp item)
-	(error "%s is just a lonely symbol" (car item)))
+	(error "There is nothing to follow in `%s'" (car item)))
     (while (if (setq action-point
 		     (next-single-property-change (point) 'action))
 	       (<= action-point point))
