@@ -192,3 +192,71 @@ against the file name, and TYPE is nil for text, t for binary.")
 (defun select-frame (frame &optional no-enter)
   "Select FRAME for input events."
   (selected-frame))
+
+;; Support for printing under MS-DOS, see lpr.el and ps-print.el.
+(defvar dos-printer "PRN"
+  "*The name of a local MS-DOS device to which data is sent for printing.
+\(Note that PostScript files are sent to `dos-ps-printer', which see.\)
+
+Typical non-default settings would be \"LPT1\" to \"LPT3\" for
+parallel printers, or \"COM1\" to \"COM4\" or \"AUX\" for serial
+printers.  You can also set it to a name of a file, in which
+case the output gets appended to that file.
+If you want to discard the printed output, set this to \"NUL\".")
+
+(defun dos-print-region-function (start end
+					&optional lpr-prog
+					delete-text buf display rest)
+  "MS-DOS-specific function to print the region on a printer.
+Writes the region to the device or file which is a value of
+`dos-printer' \(which see\).  Ignores any arguments beyond
+START and END."
+
+  (write-region start end dos-printer t 0)
+  ;; Make each print-out start on a new page, but don't waste
+  ;; paper if there was a form-feed at the end of this file.
+  (if (not (char-equal (char-after (1- end)) ?\C-l))
+      (write-region "\f" nil dos-printer t 0)))
+
+;; Set this to nil if you have a port of the `lpr' program and
+;; you want to use it for printing.  If the default setting is
+;; in effect, `lpr-command' and its switches are ignored when
+;; printing with `lpr-xxx' and `print-xxx'.
+(setq print-region-function 'dos-print-region-function)
+
+;; Set this to nil if you have a port of the `pr' program
+;; (e.g., from GNU Textutils), or if you have an `lpr'
+;; program (see above) that can print page headers.
+;; If `lpr-headers-switches' is non-nil (the default) and
+;; `print-region-function' is set to `dos-print-region-function',
+;; then requests to print page headers will be silently
+;; ignored, and `print-buffer' and `print-region' produce
+;; the same output as `lpr-buffer' and `lpr-region', accordingly.
+(setq lpr-headers-switches "(page headers are not supported)")
+
+(defvar dos-ps-printer "PRN"
+  "*Method for printing PostScript files under MS-DOS.
+
+If the value is a string, then it is taken as the name of the
+device to which PostScript files are written.  By default it
+is the default printer device; typical non-default settings
+would be \"LPT1\" to \"LPT3\" for parallel printers, or \"COM1\"
+to \"COM4\" or \"AUX\" for serial printers.  You can also set it
+to a name of a file, in which case the output gets appended
+to that file.  \(Note that `ps-print' package already has
+facilities for printing to a file, so you might as well use
+them instead of changing the setting of this variable.\)  If
+you want to silently discard the printed output, set this to \"NUL\".
+
+If the value is anything but a string, PostScript files will be
+piped to the program given by `ps-lpr-command', with switches
+given by `ps-lpr-switches', which see.")
+
+(setq ps-lpr-command "gs")
+
+(setq ps-lpr-switches '("-q" "-dNOPAUSE" "-sDEVICE=epson" "-r240x60"
+			  "-sOutputFile=LPT1" "-"))
+
+(provide 'dos-fns)
+
+; dos-fns.el ends here
