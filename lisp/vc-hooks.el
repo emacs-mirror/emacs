@@ -280,15 +280,20 @@ value of this flag.")
       ;; command, because that would change its default directory
       (save-excursion (set-buffer (get-buffer-create "*vc-info*"))
 		      (erase-buffer))
-      (let ((exec-path (append vc-path exec-path))
+      (let ((exec-path (append vc-path exec-path)) exec-status
 	    ;; Add vc-path to PATH for the execution of this command.
 	    (process-environment
 	     (cons (concat "PATH=" (getenv "PATH")
 			   path-separator 
 			   (mapconcat 'identity vc-path path-separator))
 		   process-environment)))
-	(apply 'call-process "cvs" nil "*vc-info*" nil 
-	       (list "status" file)))
+	(setq exec-status 
+	      (apply 'call-process "cvs" nil "*vc-info*" nil 
+		     (list "status" file)))
+	(cond ((> exec-status 0)
+	       (switch-to-buffer (get-file-buffer file))
+	       (display-buffer "*vc-info*")
+	       (error "Couldn't find version control information"))))
       (set-buffer (get-buffer "*vc-info*"))
       (set-buffer-modified-p nil)
       (auto-save-mode nil)
