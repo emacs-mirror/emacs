@@ -1,3 +1,7 @@
+2000-11-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in: Initialize HAVE_LIBXP to no.
+
 2000-11-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in: Use m/macppc.h instead of the non-existent 
