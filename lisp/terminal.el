@@ -975,9 +975,10 @@ move to start of new line, clear to end of line."
 		 (progn (goto-char (point-max))
 			(recenter -1)))))))
 
-(defvar te-stty-string "stty -nl new dec echo"
-  "Command string (to be interpreted by \"sh\") which sets the modes
-of the virtual terminal to be appropriate for interactive use.")
+(defvar te-stty-string "stty -nl dec echo"
+  "Shell command to set terminal modes for terminal emulator.")
+;; This used to have `new' in it, but that loses outside BSD
+;; and it's apparently not needed in BSD.
 
 (defvar explicit-shell-file-name nil
   "*If non-nil, is file name to use for explicitly requested inferior shell.")

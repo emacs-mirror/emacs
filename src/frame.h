@@ -70,6 +70,12 @@ struct screen
   /* Name of this screen: a Lisp string.  */
   Lisp_Object name;
 
+  /* The screen which should recieve keystrokes that occur in this
+     screen.  This is usually the screen itself, but if the screen is
+     minibufferless, this points to the minibuffer screen when it is
+     active.  */
+  Lisp_Object focus_screen;
+
   /* This screen's root window.  Every screen has one.
      If the screen has only a minibuffer window, this is it.
      Otherwise, if the screen has a minibuffer window, this is its sibling.  */
@@ -174,12 +180,14 @@ typedef struct screen *SCREEN_PTR;
 #define SCREEN_DELETEN_COST(s) (s)->delete_n_lines_cost
 #define SCREEN_MESSAGE_BUF(s) (s)->message_buf
 #define SCREEN_SCROLL_BOTTOM_VPOS(s) (s)->scroll_bottom_vpos
+#define SCREEN_FOCUS_SCREEN(s) (s)->focus_screen
 
 #define CHECK_SCREEN(x, i) \
   { if (XTYPE ((x)) != Lisp_Screen) x = wrong_type_argument (Qscreenp, (x)); }
 extern Lisp_Object Qscreenp;
 
 extern struct screen *selected_screen;
+extern struct screen *last_nonminibuf_screen;
 
 extern struct screen *make_terminal_screen ();
 extern struct screen *make_screen ();
@@ -198,6 +206,7 @@ extern Lisp_Object Vterminal_screen;
 #define SCREEN_PTR int
 
 extern int selected_screen;
+#define last_nonminibuf_screen selected_screen
 
 #define XSCREEN(s) selected_screen
 #define WINDOW_SCREEN(w) selected_screen
@@ -228,7 +237,9 @@ extern int selected_screen;
 #define SCREEN_INSERTN_COST(screen) insert_n_lines_cost
 #define SCREEN_DELETEN_COST(screen) delete_n_lines_cost
 #define SCREEN_MESSAGE_BUF(s) message_buf
-#define SCREEN_SCROLL_BOTTOM_VPOS scroll_bottom_vpos;
+#define SCREEN_SCROLL_BOTTOM_VPOS(s) scroll_bottom_vpos
+
+#define CHECK_SCREEN(x, i) { ; }
 
 extern int screen_width, screen_height;
 extern int cursX, cursY;
