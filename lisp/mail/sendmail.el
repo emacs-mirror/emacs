@@ -88,6 +88,10 @@ This file typically should be in same format as the `.mailrc' file used by
 the `Mail' or `mailx' program.
 This file need not actually exist.")
 
+(defvar mail-setup-hook nil
+  "Normal hook, run each time a new outgoing mail message is initialized.
+The function `mail-setup' runs this hook.")
+
 (defvar mail-aliases t
   "Alist of mail address aliases,
 or t meaning should be initialized from your mail aliases file.
@@ -929,8 +933,8 @@ a Reply-to: field with that address is inserted.
 If `mail-archive-file-name' is non-nil, an FCC field with that file name
 is inserted.
 
-If `mail-setup-hook' is bound, its value is called with no arguments
-after the message is initialized.  It can add more default fields.
+The normal hook `mail-setup-hook' is run after the message is
+initialized.  It can add more default fields to the message.
 
 When calling from a program, the first argument if non-nil says
 not to erase the existing contents of the `*mail*' buffer.
