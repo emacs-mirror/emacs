@@ -4429,15 +4429,11 @@ xm_set_menu_resources_from_menu_face (f, widget)
 	  || !UNSPECIFIEDP (LFACE_SLANT (lface))
 	  || !UNSPECIFIEDP (LFACE_HEIGHT (lface))))
     {
-#ifndef LESSTIF_VERSION
-      /* Setting the font leads to an infinite loop somewhere
-	 in LessTif during geometry computation.  */
       XmFontListEntry fe;
       fe = XmFontListEntryCreate ("menu_font", XmFONT_IS_FONT, face->font);
       fl = XmFontListAppendEntry (NULL, fe);
       XtSetArg (av[ac], XmNfontList, fl);
       ++ac;
-#endif
     }
 
   xassert (ac <= sizeof av / sizeof *av);
@@ -4449,6 +4445,7 @@ xm_set_menu_resources_from_menu_face (f, widget)
       XtSetValues (widget, av, ac);
       res.av = av, res.ac = ac;
       XtApplyToWidgets (widget, xm_apply_resources, &res);
+      
       if (fl)
 	XmFontListFree (fl);
     }
