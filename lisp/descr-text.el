@@ -474,6 +474,7 @@ as well as widgets, buttons, overlays, and text properties."
 			    standard-display-table))
 	 (disp-vector (and display-table (aref display-table char)))
 	 (multibyte-p enable-multibyte-characters)
+	 text-prop-description
 	 code item-list max-width)
     (or (and (charsetp charset) (encode-char char charset))
 	(setq charset (char-charset char)))
@@ -574,8 +575,17 @@ as well as widgets, buttons, overlays, and text properties."
 						 (length (car x))
 					       0))
 					 item-list)))
-    (when (eq (current-buffer) (get-buffer "*Help*"))
-      (error "Can't describe char in Help buffer"))
+
+    (setq text-prop-description
+	  (with-temp-buffer
+	    (let ((buf (current-buffer)))
+	      (save-excursion
+		(set-buffer buffer)
+		(describe-text-properties pos buf)))
+	    (buffer-string)))
+
+    ;;(when (eq (current-buffer) (get-buffer "*Help*"))
+    ;;(error "Can't describe char in Help buffer"))
     (with-output-to-temp-buffer "*Help*"
       (with-current-buffer standard-output
 	(set-buffer-multibyte multibyte-p)
@@ -614,6 +624,7 @@ as well as widgets, buttons, overlays, and text properties."
 		      (or (cdr (aref disp-vector i)) "-- not encodable --")
 		      "\n"))))
 
+	(setq pos (point))
 	(when composition
 	  (insert "\nComposed")
 	  (if (car composition)
@@ -649,11 +660,11 @@ as well as widgets, buttons, overlays, and text properties."
 		      (or (cdr elt) "-- not encodable --"))))
 	  (insert "\nSee the variable `reference-point-alist' for "
 		  "the meaning of the rule.\n"))
+	(put-text-property pos (point) 'auto-composed t)
 
-	(let ((output (current-buffer)))
-	  (with-current-buffer buffer
-	    (describe-text-properties pos output))
-	  (describe-text-mode))))))
+	(insert text-prop-description)
+	(describe-text-mode)))))
+
 
 (defalias 'describe-char-after 'describe-char)
 (make-obsolete 'describe-char-after 'describe-char "21.5")
