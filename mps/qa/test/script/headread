@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl
-# $HopeName: MMQA_harness!script:headread(trunk.10) $
+# $HopeName: MMQA_harness!script:headread(trunk.11) $
 #
 # subroutines to assist in
 #  1. reading test headers
@@ -34,7 +34,7 @@
 # 
 
 sub readheader {
- local($infile) = @_;
+ local($infile, $parms) = @_;
  
  unless (open(IN, $infile)) {
   die "File ".$infile." not found.";
@@ -71,7 +71,9 @@ sub readheader {
  %spec_rel    = %keyrelations;
 
  close(IN);
- &get_parmdefs();
+ if ($parms) {
+  &get_parmdefs();
+ }
 }
 
 sub readvals {
