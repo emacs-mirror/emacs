@@ -295,19 +295,20 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
 	(and window-setup-hook
 	     (run-hooks 'window-setup-hook))
 	(or menubar-bindings-done
-	    (precompute-menubar-bindings))))))
+	    (if (eq window-system 'x)
+		(precompute-menubar-bindings)))))))
 
 ;; Precompute the keyboard equivalents in the menu bar items.
 (defun precompute-menubar-bindings ()
-  (if (eq window-system 'x)
-      (let ((submap (lookup-key global-map [menu-bar])))
-	(while submap
-	  (and (consp (car submap))
-	       (symbolp (car (car submap)))
-	       (stringp (car-safe (cdr (car submap))))
-	       (keymapp (cdr (cdr (car submap))))
-	       (x-popup-menu nil (cdr (cdr (car submap)))))
-	  (setq submap (cdr submap))))))
+  (let ((submap (lookup-key global-map [menu-bar])))
+    (while submap
+      (and (consp (car submap))
+	   (symbolp (car (car submap)))
+	   (stringp (car-safe (cdr (car submap))))
+	   (keymapp (cdr (cdr (car submap))))
+	   (x-popup-menu nil (cdr (cdr (car submap)))))
+      (setq submap (cdr submap))))
+  (setq define-key-rebound-commands t))
 
 (defun command-line ()
   (setq command-line-default-directory default-directory)
@@ -590,7 +591,8 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
 	     (setq window-setup-hook nil)
 	     ;; Do this now to avoid an annoying delay if the user
 	     ;; clicks the menu bar during the sit-for.
-	     (precompute-menubar-bindings)
+	     (if (eq window-system 'x)
+		 (precompute-menubar-bindings))
 	     (setq menubar-bindings-done t)
 	     (unwind-protect
 		 (progn
