@@ -296,9 +296,11 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 	    (princ " runs the command ")
 	    (prin1 defn)
 	    (princ ":\n")
-	    (if (documentation defn)
-		(princ (documentation defn))
-	      (princ "not documented"))
+	    (let ((doc (documentation defn)))
+	      (if doc
+		  (progn (terpri)
+			 (princ doc))
+		(princ "not documented")))
 	    (save-excursion
 	      (set-buffer standard-output)
 	      (help-mode))
@@ -567,11 +569,11 @@ C-w print information on absence of warranty for GNU Emacs."
 				       (intern (upcase (symbol-name arg)))))
 				   arglist)))
 	      (terpri))))
-      (if (documentation function)
-	  (progn (terpri)
-		 (princ (documentation function)))
-	(princ "not documented"))
-      )
+      (let ((doc (documentation function)))
+	(if doc
+	    (progn (terpri)
+		   (princ doc))
+	  (princ "not documented"))))
     (print-help-return-message)
     (save-excursion
       (set-buffer standard-output)
