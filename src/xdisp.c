@@ -505,6 +505,8 @@ prepare_menu_bars ()
    See Fcall_process; if you called it from here, it could be
    entered recursively.  */
 
+static int do_verify_charstarts;
+
 void
 redisplay ()
 {
@@ -623,7 +625,10 @@ redisplay ()
 	  if (cursor_vpos >= 0 && this_line_bufpos
 	      && this_line_endpos == tlendpos)
 	    {
-	      if (this_line_vpos < XFASTINT (w->top) + window_internal_height (w))
+	      /* If this is not the window's last line,
+		 we must adjust the charstarts of the lines below.  */
+	      if (this_line_vpos + 1
+		  < XFASTINT (w->top) + window_internal_height (w))
 		{
 		  int left = XFASTINT (w->left);
 		  int *charstart_next_line
@@ -832,7 +837,8 @@ update:
 	  w->window_end_valid = Qt;
 	  last_arrow_position = Voverlay_arrow_position;
 	  last_arrow_string = Voverlay_arrow_string;
-	  verify_charstarts (w);
+	  if (do_verify_charstarts)
+	    verify_charstarts (w);
 	  if (frame_up_to_date_hook != 0)
 	    (*frame_up_to_date_hook) (selected_frame);
 	}
@@ -1601,7 +1607,14 @@ try_window_id (window)
 	  blank_end_of_window = 1;
 	}
       else if (!scroll_amount)
-	{}
+	{
+	  /* Even if we don't need to scroll, we must adjust the
+	     charstarts of subsequent lines (that we won't redisplay)
+	     according to the amount of text inserted or deleted.  */
+	  int oldpos = FRAME_CURRENT_GLYPHS (f)->charstarts[ep.vpos + top][0];
+	  int adjust = ep.bufpos - oldpos;
+	  adjust_window_charstarts (w, ep.vpos + top - 1, adjust);
+	}
       else if (bp.bufpos == Z - end_unchanged)
 	{
 	  /* If reprinting everything is nearly as fast as scrolling,
