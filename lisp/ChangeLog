@@ -1,3 +1,7 @@
+2001-06-21  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dabbrev.el (dabbrev--select-buffers): Fix last change.
+
 2001-06-20  Richard M. Stallman  <rms@gnu.org>
 
 	* dabbrev.el (dabbrev--make-friend-buffer-list): New function,
