@@ -1,3 +1,9 @@
+2001-01-05  Andrew Innes  <andrewi@gnu.org>
+
+	* term.c (update_end): Don't check updating_frame; for some reason
+	this can be 0 sometimes, such as after dismissing a popup menu,
+	and isn't necessary given the explicit frame argument.
+
 2001-01-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* sysdep.c: Don't prototype srandom; it takes an unsigned argument
