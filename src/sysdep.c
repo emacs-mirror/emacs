@@ -637,8 +637,11 @@ child_setup_tty (out)
 struct save_signal
 {
   int code;
-  SIGTYPE (*handler) ();
+  SIGTYPE (*handler) P_ ((int));
 };
+
+static void save_signal_handlers P_ ((struct save_signal *));
+static void restore_signal_handlers P_ ((struct save_signal *));
 
 /* Suspend the Emacs process; give terminal to its superior.  */
 
@@ -831,17 +834,19 @@ sys_subshell ()
 #endif /* !VMS */
 }
 
+static void
 save_signal_handlers (saved_handlers)
      struct save_signal *saved_handlers;
 {
   while (saved_handlers->code)
     {
       saved_handlers->handler
-	= (SIGTYPE (*) ()) signal (saved_handlers->code, SIG_IGN);
+	= (SIGTYPE (*) P_ ((int))) signal (saved_handlers->code, SIG_IGN);
       saved_handlers++;
     }
 }
 
+static void
 restore_signal_handlers (saved_handlers)
      struct save_signal *saved_handlers;
 {
