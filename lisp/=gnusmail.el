@@ -1,6 +1,6 @@
 ;;; gnusmail.el --- mail reply commands for GNUS newsreader
 
-;; Copyright (C) 1990 Free Software Foundation
+;; Copyright (C) 1990 Free Software Foundation, Inc.
 ;; $Header: gnusmail.el,v 1.1 90/03/23 13:24:39 umerin Locked $
 
 ;; This file is part of GNU Emacs.
