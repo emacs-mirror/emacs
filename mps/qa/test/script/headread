@@ -33,7 +33,7 @@
 # 
 
 sub readheader {
- local($infile, $loud) = @_;
+ local($infile) = @_;
  
  unless (open(IN, $infile)) {
   die "File ".$infile." not found.";
@@ -57,9 +57,7 @@ sub readheader {
   $header = $1;
   $outspec = $2;
  } else {
-  if ($loud) {
-   print "No output specification -- assuming result=pass required.\n";
-  }
+  &debug("No output specification -- assuming result=pass required.");
   $header = $line;
   $outspec = "result=pass";
  }
@@ -129,7 +127,7 @@ sub read_results {
    $_=<LOGFILE>; /Condition:\s*(.*)$/;
    $real_output{"assertcond"} = $1;
    $_ = "%";
-  } elsif (/^Abort/) {
+  } elsif (/^Abort|^abnormal program termination/ ) {
 # abort for other reason
    $real_output{"abort"} = "true";
   } elsif (/^%/ || /^\s$/) {
@@ -153,14 +151,15 @@ sub verdict {
 
  foreach $key (keys %spec_output) {
   $act = ($real_output{$key} || "NONE");
+  $acn = ($real_output{$key} || 0);
   $ope = $spec_rel{$key};
   $spe = $spec_output{$key};
 &debug("require: $key: $act $ope $spe");
   if ($ope eq "=" && $spe ne $act
-   || $ope eq "<" && $spe <= $act
-   || $ope eq ">" && $spe >= $act
-   || $ope eq "<=" && $spe < $act
-   || $ope eq ">=" && $spe > $act) {
+   || $ope eq "<" && $spe <= $acn
+   || $ope eq ">" && $spe >= $acn
+   || $ope eq "<=" && $spe < $acn
+   || $ope eq ">=" && $spe > $acn) {
    $testconclusion = "FAIL";
    $testconcreason = "failed on $key: wanted $ope $spe, was $act";
    last;
