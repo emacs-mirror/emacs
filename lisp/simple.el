@@ -780,7 +780,7 @@ If there's a number in the buffer at point, it is the default for ARG."
     (goto-char 1)
     (if (eq selective-display t)
 	(re-search-forward "[\n\C-m]" nil 'end (1- arg))
-      (forward-line (1- arg))))))
+      (forward-line (1- arg)))))
 
 (defun count-lines-region (start end)
   "Print number of lines and characters in the region."
