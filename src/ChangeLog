@@ -1,3 +1,7 @@
+2004-07-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* widget.c (EmacsFrameDestroy): Don't abort if normal_gc is 0.
+
 2004-07-19  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* window.c (Fpos_visible_in_window_p, Fset_window_hscroll)
