@@ -400,6 +400,46 @@ you must reload generic-x to enable the specified modes."
   (defvar bat-generic-mode-syntax-table nil
     "Syntax table in use in bat-generic-mode buffers.")
 
+  (defvar bat-generic-mode-keymap (make-sparse-keymap)
+    "Keymap for bet-generic-mode.")
+
+  (defun bat-generic-mode-compile ()
+    "Run the current BAT file in a compilation buffer."
+    (interactive)
+    (let ((compilation-buffer-name-function
+	   (function
+	    (lambda(ign)
+	      (concat "*" (buffer-file-name) "*")))
+	      )
+	    )
+      (compile
+       (concat (w32-shell-name) " -c " (buffer-file-name)))))
+
+  (defun bat-generic-mode-run-as-comint ()
+    "Run the current BAT file in a comint buffer."
+    (interactive)
+    (require 'comint)
+    (let* ((file (buffer-file-name))
+	   (buf-name (concat "*" file "*")))
+      (save-excursion
+	(set-buffer
+	 (get-buffer-create buf-name))
+	(erase-buffer)
+	(comint-mode)
+	(comint-exec
+	 buf-name
+	 file
+	 (w32-shell-name)
+	 nil
+	 (list
+	  "-c"
+	  file
+	  )
+	 )
+	(display-buffer buf-name))))
+
+  (define-key bat-generic-mode-keymap "\C-c\C-c" 'bat-generic-mode-compile)
+
   ;; Make underscores count as words
   (if bat-generic-mode-syntax-table
       nil
@@ -423,6 +463,7 @@ you must reload generic-x to enable the specified modes."
     (set-syntax-table	      bat-generic-mode-syntax-table)
     ;; Make keywords case-insensitive
     (setq font-lock-defaults (list 'generic-font-lock-defaults nil t))
+    (use-local-map bat-generic-mode-keymap)
     )
   )
 
