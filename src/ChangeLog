@@ -1,3 +1,9 @@
+2000-12-21  Kenichi Handa  <handa@etl.go.jp>
+
+	* charset.c (Fmake_char_internal): If CHARSET doesn't have a
+	generic character and CODE1 is nil, return the smallest character
+	in CHARSET.
+
 2000-12-20  Dave Love  <fx@gnu.org>
 
 	* s/osf5-0.h (NSIG): Don't redefine.

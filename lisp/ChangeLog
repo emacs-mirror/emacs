@@ -1,3 +1,8 @@
+2000-12-21  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule.el (make-char): Docstring adjusted for the
+	change of make-char-internal.
+
 2000-12-20  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* international/iso-cvt.el: Docstrings fix.
