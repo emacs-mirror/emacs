@@ -279,6 +279,10 @@ struct frame
 
   /* The baud rate that was used to calculate costs for this frame.  */
   int cost_calculation_baud_rate;
+
+  /* Nonzero if the mouse has moved on this display
+     since the last time we checked.  */
+  char mouse_moved;
 };
 
 #ifdef MULTI_KBOARD  /* Note that MULTI_KBOARD implies MULTI_FRAME */
