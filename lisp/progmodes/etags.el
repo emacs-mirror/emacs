@@ -237,8 +237,9 @@ file the tag was in."
 		  (if (tags-included-tables)
 		      ;; Insert the included tables into the list we
 		      ;; are processing.
-		      (setcdr tables (append (tags-included-tables)
-					     (cdr tables)))))
+		      (setcdr tables (nconc (mapcar 'tags-expand-table-name
+						    (tags-included-tables))
+					    (cdr tables)))))
 	      ;; This table is not in core yet.  Insert a placeholder
 	      ;; saying we must read it into core to check for included
 	      ;; tables before searching the next table in the list.
