@@ -1616,11 +1616,13 @@ It is normally @code{nil}, so that ordinary buffers have no header line.
 @cindex Imenu
   @dfn{Imenu} is a feature that lets users select a definition or
 section in the buffer, from a menu which lists all of them, to go
-directly to that location in the buffer.  Imenu works by constructing a
-buffer index which lists the names and buffer positions of the
+directly to that location in the buffer.  Imenu works by constructing
+a buffer index which lists the names and buffer positions of the
 definitions, or other named portions of the buffer; then the user can
-choose one of them and move point to it.  This section explains how to
-customize how Imenu finds the definitions or buffer portions for a
+choose one of them and move point to it.  The user-level commands for
+using Imenu are described in the Emacs Manual (@pxref{Imenu,, Imenu,
+emacs, the Emacs Manual}).  This section explains how to customize
+Imenu's method of finding definitions or buffer portions for a
 particular major mode.
 
   The usual and simplest way is to set the variable
@@ -1708,7 +1710,7 @@ normally have symbol syntax, and thus to simplify
 For example, Fortran mode uses it this way:
 
 @example
-  (setq imenu-syntax-alist '(("_$" . "w")))
+(setq imenu-syntax-alist '(("_$" . "w")))
 @end example
 
 The @code{imenu-generic-expression} patterns can then use @samp{\\sw+}
