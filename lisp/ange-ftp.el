@@ -2669,12 +2669,12 @@ NO-ERROR, if a listing for DIRECTORY cannot be obtained."
 	       ;; will simply send back the ls
 	       ;; error message.
 	       (ange-ftp-get-hash-entry "." ent))
-	  ;; Child lookup failed. Try the parent. If this bombs,
-	  ;; we are at wits end -- signal an error.
-	  ;; Problem: If this signals an error, the error message
-	  ;; may  not have a lot to do with what went wrong.
-	  (ange-ftp-hash-entry-exists-p file
-					(ange-ftp-get-files dir))))))
+	  ;; Child lookup failed, so try the parent.
+	  (let ((table (ange-ftp-get-files dir)))
+	    ;; If the dir doesn't exist, don't use it as a hash table.
+	    (and table
+		 (ange-ftp-hash-entry-exists-p file
+					       table)))))))
 
 (defun ange-ftp-get-file-entry (name)
   "Given NAME, return the given file entry.
