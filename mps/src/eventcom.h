@@ -1,9 +1,8 @@
 /* impl.h.eventcom -- Event Logging Common Definitions
  *
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
- * $HopeName: MMsrc!eventcom.h(trunk.19) $
+ * $HopeName: MMsrc!eventcom.h(trunk.20) $
  *
- * .readership: MPS developers
  * .sources: mps.design.telemetry
  */
 
@@ -82,7 +81,6 @@ typedef EventUnion *Event;
 #define EventAMCFixInPlace  ((EventType)0xEFA3CF8A) /* AMC FiX Ambig */
 #define EventAMCFixForward  ((EventType)0xEFA3CF8F) /* AMC FiX Forward */
 #define EventAMCReclaim     ((EventType)0xEFA3C6EC) /* AMC REClaim */
-#define EventAMCTraceEnd    ((EventType)0xEFA3C26E) /* AMC TRace End */
 #define EventTraceStart     ((EventType)0xEF26AC52) /* TRACe STart */
 #define EventTraceCreate    ((EventType)0xEF26ACC6) /* TRACe CReate */
 #define EventTraceDestroy   ((EventType)0xEF26ACDE) /* TRACe DEstroy */
@@ -90,7 +88,6 @@ typedef EventUnion *Event;
 #define EventTraceFlipBegin ((EventType)0xEF26AF7B) /* TRAce FLip Begin */
 #define EventTraceFlipEnd   ((EventType)0xEF26AF7E) /* TRAce FLip End */
 #define EventTraceReclaim   ((EventType)0xEF26A6EC) /* TRAce REClaim */
-#define EventTraceScan      ((EventType)0xEF26AC5C) /* TRACe SCan */
 #define EventTraceScanSeg   ((EventType)0xEF26A559) /* TRAce ScanSeG */
 #define EventTraceScanSingleRef \
                             ((EventType)0xEF26A556) /* TRAce ScanSingleRef */
@@ -119,7 +116,6 @@ typedef EventUnion *Event;
 #define EventBufferInitRank ((EventType)0xEFB0F16A) /* BUFFer Init RAnk */
 #define EventBufferInitEPVM ((EventType)0xEFB0F1EF) /* BUFfer Init EpVm */
 #define EventBufferFinish   ((EventType)0xEFB0FFF1) /* BUFFer FInish */
-#define EventMV2Finish      ((EventType)0xEF3F2F14) /* MV2 FINish */
 #define EventBufferFill     ((EventType)0xEFB0FFF7) /* BUFFer FilL */
 #define EventBufferEmpty    ((EventType)0xEFB0FFE3) /* BUFFer EMpty */
 #define EventArenaAllocFail ((EventType)0xEFA64A7F) /* AReNa ALloc Fail */
@@ -143,7 +139,7 @@ typedef EventUnion *Event;
 #define EventPoolInitAWL    ((EventType)0xEFB071A3) /* POoL Init AWl */
 #define EventPoolInitLO     ((EventType)0xEFB07170) /* POoL Init LO */
 #define EventPoolInitSNC    ((EventType)0xEFB07154) /* POoL Init SNc */
-#define EventPoolInitMV2    ((EventType)0xEFB07132) /* POoL Init Mv2 */
+#define EventPoolInitMVT    ((EventType)0xEFB07132) /* POoL Init MvT */
 #define EventPoolPush       ((EventType)0xEFB07B58) /* POoL PuSH */
 #define EventPoolPop        ((EventType)0xEFB07B0B) /* POoL POP */
 #define EventReservoirLimitSet ((EventType)0xEF6E5713) /* REServoir LIMit set */
