@@ -10210,6 +10210,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		  x_real_positions (f, &x, &y);
 		  f->output_data.x->left_pos = x;
 		  f->output_data.x->top_pos = y;
+                  goto OTHER;
 		}
 	      break;
 
@@ -10853,16 +10854,6 @@ XTread_socket (sd, bufp, numchars, expected)
 		      f->output_data.x->win_gravity = NorthWestGravity;
 		      x_wm_set_size_hint (f, (long) 0, 0);
 		    }
-#ifdef USE_MOTIF
-		  /* Some window managers pass (0,0) as the location of
-		     the window, and the Motif event handler stores it
-		     in the emacs widget, which messes up Motif menus.  */
-		  if (event.xconfigure.x == 0 && event.xconfigure.y == 0)
-		    {
-		      event.xconfigure.x = f->output_data.x->widget->core.x;
-		      event.xconfigure.y = f->output_data.x->widget->core.y;
-		    }
-#endif /* USE_MOTIF */
 		}
 	      goto OTHER;
 

@@ -1,3 +1,11 @@
+2002-10-09  Jan D.  <jan.h.d@swipnet.se>
+
+	* xterm.c (XTread_socket):  Pass ReparentNotify to Xt.
+	The shell widget interprets ConfigureNotify differently depending
+	on if it has been reparented or not.  This fixes the bug
+	that Motif-menus are misplaced under some windowmanagers
+	(CDE an WindowMaker at least).
+
 2002-10-08  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (code_convert_region): When we need more GAP for
