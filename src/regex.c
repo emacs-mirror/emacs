@@ -1327,7 +1327,8 @@ static const char *re_error_msgid[] =
 /* Roughly the maximum number of failure points on the stack.  Would be
    exactly that if always used TYPICAL_FAILURE_SIZE items each time we failed.
    This is a variable only so users of regex can assign to it; we never
-   change it ourselves.  */
+   change it ourselves.  We always multiply it by TYPICAL_FAILURE_SIZE
+   before using it, so it should probably be a byte-count instead.  */
 # if defined MATCH_MAY_ALLOCATE
 /* Note that 4400 was enough to cause a crash on Alpha OSF/1,
    whose default stack limit is 2mb.  In order for a larger
@@ -1579,7 +1580,7 @@ do {									\
 /* Estimate the size of data pushed by a typical failure stack entry.
    An estimate is all we need, because all we use this for
    is to choose a limit for how big to make the failure stack.  */
-
+/* BEWARE, the value `20' is hard-coded in emacs.c:main().  */
 #define TYPICAL_FAILURE_SIZE 20
 
 /* How many items can still be added to the stack without overflowing it.  */
@@ -1966,9 +1967,10 @@ typedef int re_wchar_t;
 
 /* Map a string to the char class it names (if any).  */
 static re_wctype_t
-re_wctype (string)
-     re_char *string;
+re_wctype (str)
+     re_char *str;
 {
+  const char *string = str;
   if      (STREQ (string, "alnum"))	return RECC_ALNUM;
   else if (STREQ (string, "alpha"))	return RECC_ALPHA;
   else if (STREQ (string, "word"))	return RECC_WORD;
@@ -5837,8 +5839,8 @@ re_exec (s)
 
 int
 regcomp (preg, pattern, cflags)
-    regex_t *preg;
-    const char *pattern;
+    regex_t *__restrict preg;
+    const char *__restrict pattern;
     int cflags;
 {
   reg_errcode_t ret;
@@ -5922,8 +5924,8 @@ WEAK_ALIAS (__regcomp, regcomp)
 
 int
 regexec (preg, string, nmatch, pmatch, eflags)
-    const regex_t *preg;
-    const char *string;
+    const regex_t *__restrict preg;
+    const char *__restrict string;
     size_t nmatch;
     regmatch_t pmatch[];
     int eflags;
