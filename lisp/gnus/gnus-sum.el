@@ -491,11 +491,13 @@ It uses the same syntax as the `gnus-split-methods' variable."
 	gnus-low-score-mark gnus-ancient-mark gnus-read-mark
 	gnus-souped-mark gnus-duplicate-mark)
   "*The list of marks converted into expiration if a group is auto-expirable."
+  :version "21.1"
   :group 'gnus-summary
   :type '(repeat character))
 
 (defcustom gnus-inhibit-user-auto-expire t
   "*If non-nil, user marking commands will not mark an article as expirable, even if the group has auto-expire turned on."
+  :version "21.1"
   :group 'gnus-summary
   :type 'boolean)
 
@@ -556,6 +558,7 @@ with some simple extensions:
 (defcustom gnus-list-identifiers nil
   "Regexp that matches list identifiers to be removed from subject.
 This can also be a list of regexps."
+  :version "21.1"
   :group 'gnus-summary-format
   :group 'gnus-article-hiding
   :type '(choice (const :tag "none" nil)
@@ -810,12 +813,14 @@ which it may alter in any way.")
 
 (defcustom gnus-extra-headers nil
   "*Extra headers to parse."
+  :version "21.1"
   :group 'gnus-summary
   :type '(repeat symbol))
 
 (defcustom gnus-ignored-from-addresses
   (and user-mail-address (regexp-quote user-mail-address))
   "*Regexp of From headers that may be suppressed in favor of To headers."
+  :version "21.1"
   :group 'gnus-summary
   :type 'regexp)
 
@@ -842,6 +847,7 @@ which it may alter in any way.")
   "List of charsets that should be ignored.
 When these charsets are used in the \"charset\" parameter, the
 default charset will be used instead."
+  :version "21.1"
   :type '(repeat symbol)
   :group 'gnus-charset)
 
@@ -857,6 +863,7 @@ default charset will be used instead."
 (defcustom gnus-group-highlight-words-alist nil
   "Alist of group regexps and highlight regexps.
 This variable uses the same syntax as `gnus-emphasis-alist'."
+  :version "21.1"
   :type '(repeat (cons (regexp :tag "Group")
 		       (repeat (list (regexp :tag "Highlight regexp")
 				     (number :tag "Group for entire word" 0)
@@ -871,12 +878,14 @@ This variable uses the same syntax as `gnus-emphasis-alist'."
 The article will be shown with the charset corresponding to the
 numbered argument.
 For example: ((1 . cn-gb-2312) (2 . big5))."
+  :version "21.1"
   :type '(repeat (cons (number :tag "Argument" 1)
 		       (symbol :tag "Charset")))
   :group 'gnus-charset)
 
 (defcustom gnus-preserve-marks t
   "Whether marks are preserved when moving, copying and respooling messages."
+  :version "21.1"
   :type 'boolean
   :group 'gnus-summary-marks)
 
