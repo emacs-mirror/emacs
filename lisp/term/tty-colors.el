@@ -956,3 +956,22 @@ NAME is not necessarily the same string as the argument COLOR, because
 the latter might need to be approximated if it is not supported directly."
   (let ((idx (tty-color-translate color frame)))
     (tty-color-by-index idx frame)))
+
+(defun tty-color-gray-shades (&optional display)
+  "Return the number of gray colors supported by DISPLAY's terminal.
+A color is considered gray if the 3 components of its RGB value are equal."
+  (let* ((frame (if (framep display) display
+		  ;; FIXME: this uses an arbitrary frame from DISPLAY!
+		  (car (frames-on-display-list display))))
+	 (colors (tty-color-alist frame))
+	 (count 0)
+	 desc r g b)
+    (while colors
+      (setq desc (cddr (car colors))
+	    r (car desc)
+	    g (cadr desc)
+	    b (car (cddr desc)))
+      (and (eq r g) (eq g b)
+	   (setq count (1+ count)))
+      (setq colors (cdr colors)))
+    count))
