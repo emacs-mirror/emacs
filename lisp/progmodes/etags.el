@@ -223,7 +223,11 @@ file the tag was in."
 	  (while tables
 	    (setq computed (cons (car tables) computed)
 		  table-buffer (get-file-buffer (car tables)))
-	    (if table-buffer
+	    (if (and table-buffer 
+		     ;; There is a buffer visiting the file.  Now make sure
+		     ;; it is initialized as a tag table buffer.
+		     (save-excursion
+		       (tags-verify-table (buffer-file-name table-buffer))))
 		(save-excursion
 		  (set-buffer table-buffer)
 		  (if (tags-included-tables)
