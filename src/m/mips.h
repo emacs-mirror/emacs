@@ -120,6 +120,7 @@ NOTE-END  */
 /* This machine requires completely different unexec code
    which lives in a separate file.  Specify the file name.  */
 
+#undef UNEXEC
 #define UNEXEC unexmips.o
 
 /* Describe layout of the address space in an executing process.  */
