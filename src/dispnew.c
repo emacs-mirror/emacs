@@ -550,6 +550,7 @@ adjust_glyph_matrix (w, matrix, x, y, dim)
       if (!marginal_areas_changed_p
 	  && !fonts_changed_p
 	  && !header_line_changed_p
+	  && matrix->window_left_x == XFASTINT (w->left)
 	  && matrix->window_top_y == XFASTINT (w->top)
 	  && matrix->window_height == window_height
 	  && matrix->window_vscroll == w->vscroll
@@ -686,6 +687,7 @@ adjust_glyph_matrix (w, matrix, x, y, dim)
          upper window).  Invalidate all rows that are no longer part
          of the window.  */
       if (!marginal_areas_changed_p
+	  && matrix->window_left_x == XFASTINT (w->left)
 	  && matrix->window_top_y == XFASTINT (w->top)
 	  && matrix->window_width == window_box_width (w, -1))
 	{
@@ -721,6 +723,7 @@ adjust_glyph_matrix (w, matrix, x, y, dim)
      was last adjusted.  This is used to optimize redisplay above.  */
   if (w)
     {
+      matrix->window_left_x = XFASTINT (w->left);
       matrix->window_top_y = XFASTINT (w->top);
       matrix->window_height = window_height;
       matrix->window_width = window_width;
