@@ -851,23 +851,26 @@ buffer.
   (setq buffer-read-only t)
   (gnus-run-hooks 'gnus-browse-mode-hook))
 
-(defun gnus-browse-read-group (&optional no-article)
-  "Enter the group at the current line."
-  (interactive)
+(defun gnus-browse-read-group (&optional no-article number)
+  "Enter the group at the current line.
+If NUMBER, fetch this number of articles."
+  (interactive "P")
   (let ((group (gnus-browse-group-name)))
     (if (or (not (gnus-get-info group))
 	    (gnus-ephemeral-group-p group))
 	(unless (gnus-group-read-ephemeral-group
 		 group gnus-browse-current-method nil
-		 (cons (current-buffer) 'browse))
+		 (cons (current-buffer) 'browse)
+		 nil nil nil number)
 	  (error "Couldn't enter %s" group))
       (unless (gnus-group-read-group nil no-article group)
 	(error "Couldn't enter %s" group)))))
 
-(defun gnus-browse-select-group ()
-  "Select the current group."
-  (interactive)
-  (gnus-browse-read-group 'no))
+(defun gnus-browse-select-group (&optional number)
+  "Select the current group.
+If NUMBER, fetch this number of articles."
+  (interactive "P")
+  (gnus-browse-read-group 'no number))
 
 (defun gnus-browse-next-group (n)
   "Go to the next group."

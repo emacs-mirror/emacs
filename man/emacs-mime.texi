@@ -387,15 +387,15 @@ The program used to start an external terminal.
 
 @item mm-enable-external
 @vindex mm-enable-external
-Indicate whether external MIME handlers should be used.
+Indicate whether external @acronym{MIME} handlers should be used.
 
-If @code{t}, all defined external MIME handlers are used.  If
+If @code{t}, all defined external @acronym{MIME} handlers are used.  If
 @code{nil}, files are saved to disk (@code{mailcap-save-binary-file}).
 If it is the symbol @code{ask}, you are prompted before the external
 @acronym{MIME} handler is invoked.
 
 When you launch an attachment through mailcap (@pxref{mailcap}) an
-attempt is made to use a safe viewer with the safest options--this isn't
+attempt is made to use a safe viewer with the safest options---this isn't
 the case if you save it to disk and launch it in a different way
 (command line or double-clicking).  Anyhow, if you want to be sure not
 to launch any external programs, set this variable to @code{nil} or
@@ -1327,14 +1327,19 @@ RFC2047 specifies two forms of encoding---@code{Q} (a
 Quoted-Printable-like encoding) and @code{B} (base64).  This alist
 specifies which charset should use which encoding.
 
-@item rfc2047-encoding-function-alist
-@vindex rfc2047-encoding-function-alist
+@item rfc2047-encode-function-alist
+@vindex rfc2047-encode-function-alist
 This is an alist of encoding / function pairs.  The encodings are
 @code{Q}, @code{B} and @code{nil}.
 
 @item rfc2047-encoded-word-regexp
 @vindex rfc2047-encoded-word-regexp
 When decoding words, this library looks for matches to this regexp.
+
+@item rfc2047-encode-encoded-words
+@vindex rfc2047-encode-encoded-words
+The boolean variable specifies whether encoded words
+(e.g. @samp{=?hello?=}) should be encoded again.
 
 @end table
 
@@ -1365,6 +1370,24 @@ Decode the encoded words in the region.
 @item rfc2047-decode-string
 @findex rfc2047-decode-string
 Decode a string and return the results.
+
+@item rfc2047-encode-parameter
+@findex rfc2047-encode-parameter
+Encode a parameter in the RFC2047-like style.  This is a replacement for
+the @code{rfc2231-encode-string} function.  @xref{rfc2231}.
+
+When attaching files as @acronym{MIME} parts, we should use the RFC2231
+encoding to specify the file names containing non-@acronym{ASCII}
+characters.  However, many mail softwares don't support it in practice
+and recipients won't be able to extract files with correct names.
+Instead, the RFC2047-like encoding is acceptable generally.  This
+function provides the very RFC2047-like encoding, resigning to such a
+regrettable trend.  To use it, put the following line in your
+@file{~/.gnus.el} file:
+
+@lisp
+(defalias 'mail-header-encode-parameter 'rfc2047-encode-parameter)
+@end lisp
 
 @end table
 

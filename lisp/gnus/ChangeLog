@@ -1,3 +1,94 @@
+2005-03-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-resend): Bind rfc2047-encode-encoded-words.
+
+	* mm-util.el (mm-replace-in-string): New function.
+	(mm-xemacs-find-mime-charset-1): Ignore errors while loading
+	latin-unity, which cannot be used with XEmacs 21.1.
+
+	* rfc2047.el (rfc2047-encode-function-alist): Rename from
+	rfc2047-encoding-function-alist in order to avoid conflicting with
+	the old version.
+	(rfc2047-encode-message-header): Remove useless goto-char.
+	(rfc2047-encodable-p): Don't move point.
+	(rfc2047-syntax-table): Treat `(' and `)' as is.
+	(rfc2047-encode-region): Concatenate words containing non-ASCII
+	characters in structured fields; don't encode space-delimited
+	ASCII words even in unstructured fields; don't break words at
+	char-category boundaries; encode encoded words in structured
+	fields; treat text within parentheses as special; show the
+	original text when error has occurred; move point to the end of
+	the region after encoding, suggested by IRIE Tetsuya
+	<irie@t.email.ne.jp>; treat backslash-quoted characters as
+	non-special; check carefully whether to encode special characters;
+	fix some kind of misconfigured headers; signal a real error if
+	debug-on-quit or debug-on-error is non-nil; don't infloop,
+	suggested by Hiroshi Fujishima <pooh@nature.tsukuba.ac.jp>; assume
+	the close parenthesis may be included in the encoded word; encode
+	bogus delimiters.
+	(rfc2047-encode-string): Use mm-with-multibyte-buffer.
+	(rfc2047-encode-max-chars): New variable.
+	(rfc2047-encode-1): New function.
+	(rfc2047-encode): Use it; encode text so that it occupies the
+	maximum width within 76-column; work correctly on Q encoding for
+	iso-2022-* charsets; fold the line before encoding; don't append a
+	space if the encoded word includes close parenthesis.
+	(rfc2047-fold-region): Use existing whitespace for LWSP; make it
+	sure not to break a line just after the header name.
+	(rfc2047-b-encode-region): Remove.
+	(rfc2047-b-encode-string): New function.
+	(rfc2047-q-encode-region): Remove.
+	(rfc2047-q-encode-string): New function.
+	(rfc2047-encode-parameter): New function.
+	(rfc2047-encoded-word-regexp): Don't use shy group.
+	(rfc2047-decode-region): Follow rfc2047-encoded-word-regexp change.
+	(rfc2047-parse-and-decode): Ditto.
+	(rfc2047-decode): Treat the ascii coding-system as raw-text by
+	default.
+
+2005-03-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* rfc2047.el (rfc2047-encode-encoded-words): New variable.
+	(rfc2047-field-value): Strip props.
+	(rfc2047-encode-message-header): Disabled header folding -- not
+	all headers can be folded, and this should be done by the message
+	composition mode.  Probably.  I think.
+	(rfc2047-encodable-p): Say that =? needs encoding.
+	(rfc2047-encode-region): Encode =? strings.
+
+2005-03-25  Jesper Harder  <harder@ifa.au.dk>
+
+	* rfc2047.el (rfc2047-encoded-word-regexp): Support RFC 2231
+	language tags; remove unnecessary '+'.  Reported by Stefan Wiens
+	<s.wi@gmx.net>.
+	(rfc2047-decode-string): Don't cons a string unnecessarily.
+	(rfc2047-parse-and-decode, rfc2047-decode): Use a character for
+	the encoding to avoid consing a string.
+	(rfc2047-decode): Use mm-subst-char-in-string instead of
+	mm-replace-chars-in-string.
+
+2005-03-25  TSUCHIYA Masatoshi  <tsuchiya@namazu.org>
+
+	* rfc2047.el (rfc2047-encode): Use uppercase letters to specify
+	encodings of MIME-encoded words, in order to improve
+	interoperability with several broken MUAs.
+
+2005-03-21  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-srvr.el (gnus-browse-select-group): Add NUMBER argument and
+	pass it to `gnus-browse-read-group'.
+	(gnus-browse-read-group): Add NUMBER argument and pass it to
+	`gnus-group-read-ephemeral-group'.
+
+	* gnus-group.el (gnus-group-read-ephemeral-group): Add NUMBER
+	argument and pass it to `gnus-group-read-group'.
+
+2005-03-19  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* mm-util.el (mm-xemacs-find-mime-charset): Only call
+	mm-xemacs-find-mime-charset-1 if we have the mule feature
+	available at runtime.
+
 2005-03-25  Werner Lemberg  <wl@gnu.org>
 
 	* nnmaildir.el: Replace `illegal' with `invalid'.
