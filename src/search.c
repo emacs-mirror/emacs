@@ -502,9 +502,10 @@ search_command (string, bound, noerror, count, direction, RE)
 	{
 	  if (lim < BEGV || lim > ZV)
 	    abort ();
-	  SET_PT (lim);
+	  np = lim;
 	}
-      return Qnil;
+      else
+	return Qnil;
     }
 
   if (np < BEGV || np > ZV)
