@@ -1513,6 +1513,17 @@ If it matches, mode MODE is selected.")
 When checking `inhibit-first-line-modes-regexps', we first discard
 from the end of the file name anything that matches one of these regexps.")
 
+(defvar auto-mode-interpreter-regexp 
+  "#![ \t]?\\([^ \t\n]*\
+/bin/env[ \t]\\)?\\([^ \t\n]+\\)"
+  "Regular expression matching interpreters, for file mode determination.
+This regular expression is matched against the first line of a file
+to determine the file's mode in `set-auto-mode' when Emacs can't deduce
+a mode from the file's name.  If it matches, the file is assumed to
+be interpreted by the interpreter matched by the second group of the
+regular expression.  The mode is then determined as the mode associated
+with that interpreter in `interpreter-mode-alist'.")
+
 (defun set-auto-mode (&optional just-from-file-name)
   "Select major mode appropriate for current buffer.
 This checks for a -*- mode tag in the buffer's text,
@@ -1634,8 +1645,7 @@ and we don't even do that unless it would come from the file name."
 		(let ((interpreter
 		       (save-excursion
 			 (goto-char (point-min))
-			 (if (looking-at "#![ \t]?\\([^ \t\n]*\
-/bin/env[ \t]\\)?\\([^ \t\n]+\\)")
+			 (if (looking-at auto-mode-interpreter-regexp)
 			     (match-string 2)
 			   "")))
 		      elt)
