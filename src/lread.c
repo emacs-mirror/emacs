@@ -3550,7 +3550,7 @@ from the file, and matches them against this regular expression.\n\
 When the regular expression matches, the file is considered to be safe\n\
 to load.  See also `load-dangerous-libraries'.");
   Vbytecomp_version_regexp
-    = build_string ("^;;;.\\(in Emacs\\|emacs\\) version");
+    = build_string ("^;;;.\\(in Emacs version\\|bytecomp version FSF\\)");
 
   /* Vsource_directory was initialized in init_lread.  */
 
