@@ -75,6 +75,9 @@ WinMain (_hinst, _hPrevInst, _lpCmdLine, _nCmdShow)
      LPSTR _lpCmdLine;
      int _nCmdShow;
 {
+  int i, j, new_argc;
+  char **new_argv;
+
   /* Need to parse command line */
     
   hinst = _hinst;
@@ -82,7 +85,26 @@ WinMain (_hinst, _hPrevInst, _lpCmdLine, _nCmdShow)
   lpCmdLine = _lpCmdLine;
   nCmdShow = _nCmdShow;
 
-  return (main (__argc,__argv,_environ));
+  new_argc = __argc;
+  new_argv = (char **) xmalloc (sizeof (char *) * new_argc);
+  if (!new_argv)
+    return main (__argc, __argv, _environ);
+
+  for (i = j = 0; i < __argc; i++) 
+    {
+      /* Allocate a console window for stdout and stderr if requested.
+	 We want to allocate as soon as we possibly can to catch
+	 debugging output.  */
+      if (!strcmp ("-output_console", __argv[i]))
+	{
+	  AllocConsole ();
+	  new_argc--;
+	  continue;
+	}
+      new_argv[j++] = __argv[i];
+    }
+
+  return main (new_argc, new_argv, _environ);
 }
 #endif /* HAVE_NTGUI */
 
