@@ -130,14 +130,14 @@ scribe-electric-parenthesis
   (make-local-variable 'comment-end)
   (setq comment-end "]")
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "\\(^[\n\f]\\)\\|\\(^@\\w+["
+  (setq paragraph-start (concat "\\([\n\f]\\)\\|\\(@\\w+["
 				 scribe-open-parentheses
 				"].*["
 				 scribe-close-parentheses
 				"]$\\)"))
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate (if scribe-fancy-paragraphs
-			       paragraph-start "^$"))
+			       paragraph-start "$"))
   (make-local-variable 'sentence-end)
   (setq sentence-end "\\([.?!]\\|@:\\)[]\"')}]*\\($\\| $\\|\t\\|  \\)[ \t\n]*")
   (make-local-variable 'compile-command)
