@@ -1,10 +1,10 @@
 ;;; sql.el --- specialized comint.el for SQL interpreters
 
-;; Copyright (C) 1998  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999  Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <a.schroeder@bsiag.ch>
 ;; Maintainer: Alex Schroeder <a.schroeder@bsiag.ch>
-;; Version: 1.1.6
+;; Version: 1.2.1
 ;; Keywords: processes SQL
 
 ;; This file is part of GNU Emacs.
@@ -99,6 +99,7 @@
 ;; <ibalaban@dalet.com>
 ;; Yair Friedman <yfriedma@JohnBryce.Co.Il>
 ;; Gregor Zych <zych@pool.informatik.rwth-aachen.de>
+;; nino <nino@inform.dk>
 
 
 ;;; Code:
@@ -146,7 +147,9 @@ Currently, this is only used by MS isql."
 
 After a call to `sql-send-region' or `sql-send-buffer',
 the window is split and the SQLi buffer is shown.  If this
-variable is not nil, that buffer's window will be selected."
+variable is not nil, that buffer's window will be selected
+by calling `pop-to-buffer'.  If this variable is nil, that
+buffer is shown using `display-buffer'."
   :type 'string
   :group 'SQL)
 
@@ -172,6 +175,17 @@ Starts `sql-interactive-mode' after doing some setup.
 Under NT, \"sqlplus\" usually starts the sqlplus \"GUI\".  In order to
 start the sqlplus console, use \"plus33\" or something similar.  You
 will find the file in your Orant\\bin directory.
+
+The program can also specify a TCP connection.  See `make-comint'."
+  :type 'file
+  :group 'SQL)
+
+;; Customisation for MySql
+
+(defcustom sql-mysql-program "mysql"
+  "*Command to start mysql by TcX.
+
+Starts `sql-interactive-mode' after doing some setup.
 
 The program can also specify a TCP connection.  See `make-comint'."
   :type 'file
@@ -255,6 +269,11 @@ The program can also specify a TCP connection.  See `make-comint'."
 
 You can change `comint-prompt-regexp' on `sql-interactive-mode-hook'.")
 
+(defvar sql-prompt-length 0
+  "Prompt used to set `left-margin' in `sql-interactive-mode'.
+
+You can change it on `sql-interactive-mode-hook'.")
+
 ;; Keymap for sql-interactive-mode, based on comint-mode-map.
 
 (if (not (string-match "XEmacs\\|Lucid" emacs-version))
@@ -323,6 +342,8 @@ You can change `comint-prompt-regexp' on `sql-interactive-mode-hook'.")
     ;; newline and formfeed end coments
     (modify-syntax-entry ?\n "> b" table)
     (modify-syntax-entry ?\f "> b" table)
+    ;; single quotes (') quotes delimit strings
+    (modify-syntax-entry ?' "\"" table)
     table)
   "Syntax table used in `sql-mode' and `sql-interactive-mode'.")
 
@@ -520,11 +541,12 @@ usually named *SQL*.  The name of the major mode is SQLi.
 Use the following commands to start a specific SQL interpreter:
 
 psql by PostGres: \\[sql-postgres]
-SQL*Plus: \\[sql-oracle]
-dbaccess: \\[sql-informix]
-isql (Sybase): \\[sql-sybase]
-sql (Ingres): \\[sql-ingres]
-isql (Microsoft): \\[sql-ms]
+mysql by TcX: \\[sql-mysql]
+SQL*Plus by Oracle: \\[sql-oracle]
+dbaccess by Informix: \\[sql-informix]
+isql by Sybase: \\[sql-sybase]
+sql by Ingres: \\[sql-ingres]
+isql by Microsoft: \\[sql-ms]
 
 Once you have the SQLi buffer, you can enter SQL statements in the
 buffer.  The output generated is appended to the buffer and a new prompt
@@ -635,6 +657,7 @@ Inserts SELECT or commas if appropriate."
 	(if (string-match "\n$" (buffer-substring start end))
 	    ()
 	  (comint-send-string sql-buffer "\n"))
+	(message "Sent string to buffer %s." (buffer-name sql-buffer))
 	(if sql-pop-to-buffer-after-send-region 
 	    (pop-to-buffer sql-buffer)
 	  (display-buffer sql-buffer)))
@@ -685,6 +708,8 @@ Here is an example for your .emacs file.  It opens every file ending in
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(sql-mode-font-lock-keywords 
 			     nil t ((95 . "w") (46 . "w"))))
+  (make-local-variable 'comment-start)
+  (setq comment-start "--")
   (setq local-abbrev-table sql-mode-abbrev-table)
   (setq abbrev-all-caps 1)
   (run-hooks 'sql-mode-hook))
@@ -748,13 +773,20 @@ you entered, right above the output it created.
        \(function (lambda (STR) (comint-show-output))))"
   (comint-mode)
   (setq comint-prompt-regexp sql-prompt-regexp)
+  (setq left-margin sql-prompt-length)
   (setq major-mode 'sql-interactive-mode)
   (setq mode-name "SQLi")
   (use-local-map sql-interactive-mode-map)
   (set-syntax-table sql-mode-syntax-table)
   (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(sql-mode-font-lock-keywords t t ((95 . "w") (46 . "w"))))
-  (setq left-margin 5)
+  ;; Note that making KEYWORDS-ONLY nil will cause havoc if you try
+  ;; SELECT 'x' FROM DUAL with SQL*Plus, because the title of the
+  ;; column will have just one quote.  Therefore syntactic hilighting
+  ;; is disabled for interactive buffers.
+  (setq font-lock-defaults '(sql-mode-font-lock-keywords 
+			     t t ((95 . "w") (46 . "w"))))
+  (make-local-variable 'comment-start)
+  (setq comment-start "--")
   (setq local-abbrev-table sql-mode-abbrev-table)
   (setq abbrev-all-caps 1)
   (set-process-sentinel (get-buffer-process sql-buffer) 'sql-stop)
@@ -821,6 +853,7 @@ The default comes from `process-coding-system-alist' and
 	  (set-buffer (make-comint "SQL" sql-oracle-program nil parameter))
 	(set-buffer (make-comint "SQL" sql-oracle-program nil))))
     (setq sql-prompt-regexp "^SQL> ")
+    (setq sql-prompt-length 5)
     (setq sql-buffer (current-buffer))
     ;; set sql-mode-font-lock-keywords to something different before
     ;; calling sql-interactive-mode.
@@ -872,6 +905,7 @@ The default comes from `process-coding-system-alist' and
       (set-buffer (apply 'make-comint "SQL" sql-sybase-program 
 			 nil params)))
     (setq sql-prompt-regexp "^SQL> ")
+    (setq sql-prompt-length 5)
     (setq sql-buffer (current-buffer))
     (sql-interactive-mode)
     (message "Login...done")
@@ -910,6 +944,53 @@ The default comes from `process-coding-system-alist' and
 	(set-buffer (make-comint "SQL" sql-informix-program nil))
       (set-buffer (make-comint "SQL" sql-informix-program nil sql-database)))
     (setq sql-prompt-regexp "^SQL> ")
+    (setq sql-prompt-length 5)
+    (setq sql-buffer (current-buffer))
+    (sql-interactive-mode)
+    (message "Login...done")
+    (pop-to-buffer sql-buffer)))
+
+
+
+(defun sql-mysql ()
+  "Run mysql by TcX as an inferior process.
+
+If buffer *SQL* exists but no process is running, make a new process.
+If buffer exists and a process is running, just switch to buffer
+`*SQL*'.
+
+Interpreter used comes from variable `sql-mysql-program'.  Login uses
+the variable `sql-database' as default, if set.
+
+The buffer is put in sql-interactive-mode, giving commands for sending
+input.  See `sql-interactive-mode'.
+
+To specify a coding system for converting non-ASCII characters
+in the input and output to the process, use \\[universal-coding-system-argument]
+before \\[sql-informix].  You can also specify this with \\[set-buffer-process-coding-system]
+in the SQL buffer, after you start the process.
+The default comes from `process-coding-system-alist' and
+`default-process-coding-system'.
+
+\(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
+  (interactive)
+  (if (comint-check-proc "*SQL*")
+      (pop-to-buffer "*SQL*")
+    (sql-get-login 'user 'password 'database)
+    (message "Login...")
+    ;; Put all parameters to the program (if defined) in a list and call
+    ;; make-comint.
+    (let ((params))
+      (if (not (string= "" sql-database))
+	  (setq params (append (list (concat "--host=" sql-database)) params)))
+      (if (not (string= "" sql-password))
+	  (setq params (append (list (concat "--password=" sql-password)) params)))
+      (if (not (string= "" sql-user))
+	  (setq params (append (list (concat "--user=" sql-user)) params)))
+      (set-buffer (apply 'make-comint "SQL" sql-mysql-program 
+			 nil params)))
+    (setq sql-prompt-regexp "^mysql>")
+    (setq sql-prompt-length 6)
     (setq sql-buffer (current-buffer))
     (sql-interactive-mode)
     (message "Login...done")
@@ -948,6 +1029,7 @@ The default comes from `process-coding-system-alist' and
 	(set-buffer (make-comint "SQL" sql-ingres-program nil))
       (set-buffer (make-comint "SQL" sql-ingres-program nil sql-database)))
     (setq sql-prompt-regexp "^\* ")
+    (setq sql-prompt-length 2)
     (setq sql-buffer (current-buffer))
     (sql-interactive-mode)
     (message "Login...done")
@@ -999,6 +1081,7 @@ The default comes from `process-coding-system-alist' and
       (set-buffer (apply 'make-comint "SQL" sql-ms-program
 			 nil params)))
     (setq sql-prompt-regexp "^[0-9]*>")
+    (setq sql-prompt-length 5)
     (setq sql-buffer (current-buffer))
     (sql-interactive-mode)
     (message "Login...done")
@@ -1044,6 +1127,7 @@ Try to set `comint-output-filter-functions' like this:
 	(set-buffer (make-comint "SQL" sql-postgres-program nil))
       (set-buffer (make-comint "SQL" sql-postgres-program nil sql-database)))
     (setq sql-prompt-regexp "^.*> *")
+    (setq sql-prompt-length 5)
     ;; This is a lousy hack to prevent psql from truncating it's output
     ;; and giving stupid warnings. If s.o. knows a way to prevent psql 
     ;; from acting this way, then I would be very thankful to
