@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.113) $
+ * $HopeName: MMsrc!mpm.h(trunk.114) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -1034,8 +1034,8 @@ extern Addr (CBSBlockLimit)(CBSBlock block);
     (AddrOffset(CBSBlockBase((block)), CBSBlockLimit((block)))))
 extern Size (CBSBlockSize)(CBSBlock block);
 extern Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
-                         CBS cbs, Size size);
+                         CBS cbs, Size size, CBSFindDelete findDelete);
 extern Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
-                        CBS cbs, Size size);
+                        CBS cbs, Size size, CBSFindDelete findDelete);
 
 #endif /* mpm_h */

@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.67) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.68) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -115,6 +115,13 @@ typedef void (*CBSChangeSizeMethod)(CBS cbs, CBSBlock block,
               Size oldSize, Size newSize);
 typedef Bool (*CBSIterateMethod)(CBS cbs, CBSBlock block,
                                  void *closureP, unsigned long closureS);
+typedef unsigned CBSFindDelete;
+enum {
+  CBSFindDeleteNONE,    /* don't delete after finding */
+  CBSFindDeleteLOW,     /* delete precise size from low end */
+  CBSFindDeleteHIGH,    /* delete precise size from high end */
+  CBSFindDeleteENTIRE   /* delete entire range */
+};
 
 
 /* Arena*Method -- see @@@@ */
