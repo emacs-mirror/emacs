@@ -1,5 +1,9 @@
 2001-01-04  Dave Love  <fx@gnu.org>
 
+	* gnus-util.el (nnmail-pathname-coding-system): Defvar when
+	compiling.
+	(gnus-make-directory): Require nnmail.
+
 	* mm-decode.el (mm-inline-media-tests): Add
 	image/x-portable-bitmap.
 	(mm-get-image): Grok pbm.
