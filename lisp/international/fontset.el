@@ -74,13 +74,15 @@
     (indian-2-column . "MuleIndian-2")
     (indian-1-column . "MuleIndian-1")
     (lao . "lao.mule-1")
-;;    (tibetan . "Mule.Tibetan-0")
-;;    (tibetan-1-column . "Mule.Tibetan-1")
+    (tibetan . "Mule.Tibetan-0")
+    (tibetan-1-column . "Mule.Tibetan-1")
     ))
 
 (let ((l x-charset-registries))
   (while l
-    (put-charset-property (car (car l)) 'x-charset-registry (cdr (car l)))
+    (condition-case nil
+	(put-charset-property (car (car l)) 'x-charset-registry (cdr (car l)))
+      (error nil))
     (setq l (cdr l))))
 
 ;; Set arguments in `font-encoding-alist' (which see).
