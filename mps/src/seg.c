@@ -1,7 +1,7 @@
 /* impl.c.seg: SEGMENTS
  *
- * $HopeName: MMsrc!seg.c(trunk.21) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!seg.c(trunk.22) $
+ * Copyright (C) 2000.  Harlequin Limited.  All rights reserved.
  *
  * .design: The design for this module is design.mps.seg.
  *
@@ -28,7 +28,7 @@
 
 #include "mpm.h"
 
-SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.21) $");
+SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.22) $");
 
 
 /* SegGCSeg -- convert generic Seg to GCSeg */
@@ -208,7 +208,7 @@ failInit:
 }
 
 
-/* SegFinish -- finish the generic part of a segment */
+/* SegFinish -- finish a segment */
 
 static void SegFinish(Seg seg)
 {
@@ -496,8 +496,7 @@ Bool SegNext(Seg *segReturn, Arena arena, Addr addr)
 
 /* SegMerge -- Merge two adjacent segments
  *
- * The lo segment is updated to merge the two, and then returned.
- * The hi segment is discarded.
+ * See design.mps.seg.merge
  */
 
 Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
@@ -522,8 +521,7 @@ Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
   AVER(BoolCheck(withReservoirPermit));
   arena = PoolArena(SegPool(segLo));
 
-  /* See impl.c.shield.shield.flush */
-  ShieldFlush(arena);
+  ShieldFlush(arena);  /* see design.mps.seg.split-merge.shield */
 
   /* Invoke class-specific methods to do the merge */
   va_start(args, withReservoirPermit);
@@ -550,8 +548,7 @@ failMerge:
 /* SegSplit -- Split a segment
  *
  * The segment is split at the indicated position.
- * The original segment is modified to be the new low segment.
- * A new segment is allocated as the hi segment.
+ * See design.mps.seg.split
  */
 
 Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
@@ -577,8 +574,7 @@ Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
   AVER(at < limit);
   AVER(BoolCheck(withReservoirPermit));
 
-  /* See impl.c.shield.shield.flush */
-  ShieldFlush(arena);
+  ShieldFlush(arena);  /* see design.mps.seg.split-merge.shield */
 
   /* Allocate the new segment object from the control pool */
   res = ControlAlloc((void **)&segNew, arena, class->size,
@@ -862,7 +858,7 @@ static Res segTrivMerge(Seg seg, Seg segHi,
   AVER(seg->sm == segHi->sm);
   AVER(seg->depth == segHi->depth);
   /* Neither segment may be exposed, or in the shield cache */
-  /* (see impl.c.shield.def.depth). */
+  /* See design.mps.seg.split-merge.shield & impl.c.shield.def.depth */
   AVER(seg->depth == 0);
 
   /* Update main fields of seg. Finish segHi. */
@@ -932,7 +928,7 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   UNUSED(args);
 
   /* Segment may not be exposed, or in the shield cache */
-  /* (see impl.c.shield.def.depth). */
+  /* See design.mps.seg.split-merge.shield & impl.c.shield.def.depth */
   AVER(seg->depth == 0);
   
   /* Full initialization for segHi. Just modify seg. */
@@ -1143,28 +1139,23 @@ static void gcSegFinish(Seg seg)
 }
 
 
-/* gcSegSetGrey -- GCSeg method to change the greyness of a segment
+/* gcSegSetGreyInternal -- change the greyness of a segment
  *
- * Sets the segment greyness to the trace set grey and adjusts
- * the shielding on the segment appropriately.
+ * Internal method for updating the greyness of a GCSeg.
+ * Updates the grey ring and the grey seg count.
+ * Doesn't affect the shield (so it can be used by split
+ * & merge methods).
  */
 
-static void gcSegSetGrey(Seg seg, TraceSet grey)
+static void gcSegSetGreyInternal(Seg seg, TraceSet oldGrey, TraceSet grey)
 {
   GCSeg gcseg;
   Arena arena;
-  TraceSet oldGrey, flippedTraces;
   Rank rank;
   
-  AVERT_CRITICAL(Seg, seg);            /* .seg.method.check */
-  AVER_CRITICAL(TraceSetCheck(grey));  /* .seg.method.check */
-  AVER(seg->rankSet != RankSetEMPTY);
+  /* Internal method. Parameters are checked by caller */
   gcseg = SegGCSeg(seg);
-  AVERT_CRITICAL(GCSeg, gcseg);
-  AVER_CRITICAL(&gcseg->segStruct == seg);
-
   arena = PoolArena(SegPool(seg));
-  oldGrey = seg->grey;
   seg->grey = grey;
 
   /* If the segment is now grey and wasn't before, add it to the */
@@ -1203,6 +1194,33 @@ static void gcSegSetGrey(Seg seg, TraceSet grey)
          --trace->greySegCount;
        TRACE_SET_ITER_END(ti, trace, diff, arena);
      });
+
+}
+
+
+/* gcSegSetGrey -- GCSeg method to change the greyness of a segment
+ *
+ * Sets the segment greyness to the trace set grey and adjusts
+ * the shielding on the segment appropriately.
+ */
+
+static void gcSegSetGrey(Seg seg, TraceSet grey)
+{
+  GCSeg gcseg;
+  TraceSet oldGrey, flippedTraces;
+  Arena arena;
+  
+  AVERT_CRITICAL(Seg, seg);            /* .seg.method.check */
+  AVER_CRITICAL(TraceSetCheck(grey));  /* .seg.method.check */
+  AVER(seg->rankSet != RankSetEMPTY);
+  gcseg = SegGCSeg(seg);
+  AVERT_CRITICAL(GCSeg, gcseg);
+  AVER_CRITICAL(&gcseg->segStruct == seg);
+  UNUSED(gcseg);
+
+  arena = PoolArena(SegPool(seg));
+  oldGrey = seg->grey;
+  gcSegSetGreyInternal(seg, oldGrey, grey); /* do the work */
 
   /* The read barrier is raised when the segment is grey for */
   /* some _flipped_ trace, i.e., is grey for a trace for which */
@@ -1311,6 +1329,7 @@ static RefSet gcSegSummary(Seg seg)
 
   return gcseg->summary;
 }
+
 
 /* gcSegSetSummary -- GCSeg method to change the summary on a segment
  *
@@ -1441,6 +1460,7 @@ static Res gcSegMerge(Seg seg, Seg segHi,
   SegClass super;
   GCSeg gcseg, gcsegHi;
   TraceSet grey;
+  RefSet summary;
   Buffer buf;
   Res res;
 
@@ -1471,21 +1491,14 @@ static Res gcSegMerge(Seg seg, Seg segHi,
     goto failSuper;
 
   /* Update fields of gcseg. Finish gcsegHi. */
-  gcseg->summary = RefSetUnion(gcseg->summary, gcsegHi->summary);
-  if(grey != TraceSetEMPTY) {
-    RingRemove(&gcsegHi->greyRing);
-    segHi->grey = TraceSetEMPTY;
-
-    STATISTIC_STAT
-      ({
-        TraceId ti; Trace trace;
-        Arena arena = PoolArena(SegPool(seg));
-        
-        TRACE_SET_ITER(ti, trace, grey, arena)
-          --trace->greySegCount;
-        TRACE_SET_ITER_END(ti, trace, grey, arena);
-      });
+  summary = RefSetUnion(gcseg->summary, gcsegHi->summary);
+  if (summary != gcseg->summary) {
+    gcSegSetSummary(seg, summary);
+    /* design.mps.seg.split-merge.shield.re-flush */
+    ShieldFlush(PoolArena(SegPool(seg)));
   }
+
+  gcSegSetGreyInternal(segHi, grey, TraceSetEMPTY);
   gcsegHi->summary = RefSetEMPTY;
   gcsegHi->sig = SigInvalid;
   RingFinish(&gcsegHi->greyRing);
@@ -1552,32 +1565,9 @@ static Res gcSegSplit(Seg seg, Seg segHi,
   /* Full initialization for segHi. */
   gcsegHi->summary = gcseg->summary;
   gcsegHi->buffer = NULL;
-  segHi->grey = grey;
   RingInit(&gcsegHi->greyRing);
   gcsegHi->sig = GCSegSig;
-  if (grey != TraceSetEMPTY) {
-    /* segHi is grey. Add to appropriate grey list */
-    Rank rank;
-    Arena arena = PoolArena(SegPool(seg));
-    AVER(RankSetIsSingle(segHi->rankSet));
-    for(rank = 0; rank < RankMAX; ++rank)
-      if(RankSetIsMember(segHi->rankSet, rank)) {
-        RingInsert(ArenaGreyRing(arena, rank), &gcsegHi->greyRing);
-        break;
-      }
-    AVER(rank != RankMAX); /* there should've been a match */
-
-    STATISTIC_STAT
-      ({
-        TraceId ti; Trace trace;
-        
-        TRACE_SET_ITER(ti, trace, grey, arena)
-          ++trace->greySegCount;
-          if(trace->greySegCount > trace->greySegMax)
-            trace->greySegMax = trace->greySegCount;
-        TRACE_SET_ITER_END(ti, trace, grey, arena);
-      });
-  }
+  gcSegSetGreyInternal(segHi, TraceSetEMPTY, grey);
 
   /* Reassign buffer if it's now connected to segHi  */
   if (NULL != buf) {
