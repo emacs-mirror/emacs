@@ -6172,8 +6172,10 @@ realize_default_face (f)
       LFACE_FAMILY (lface) = build_string ("default");
       LFACE_SWIDTH (lface) = Qnormal;
       LFACE_HEIGHT (lface) = make_number (1);
-      LFACE_WEIGHT (lface) = Qnormal;
-      LFACE_SLANT (lface) = Qnormal;
+      if (UNSPECIFIEDP (LFACE_WEIGHT (lface)))
+	LFACE_WEIGHT (lface) = Qnormal;
+      if (UNSPECIFIEDP (LFACE_SLANT (lface)))
+	LFACE_SLANT (lface) = Qnormal;
       LFACE_AVGWIDTH (lface) = Qunspecified;
     }
 
