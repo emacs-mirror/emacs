@@ -1,3 +1,41 @@
+2000-06-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* pcvs.el (cvs-parse-process): Don't blindly refresh all cookies.
+	(cvs-cleanup-removed): New function.
+	(cvs-cleanup-functions): New var.
+	(cvs-cleanup-collection): Use cvs-cleanup-functions to allow the user
+	some flexibility in specifying additional entries to auto-cleanup.
+	(cvs-quickdir): New function.
+	(cvs-mode-insert): Use cvs-fileinfo-from-entries.
+	(cvs-mode-imerge): Use smerge-ediff rather than vc-resolve-conflicts.
+	(cvs-mode-find-file): Check that we are on a filename or dirname
+	when invoked through a mouse-click.
+	(cvs-full-path): Remove.
+	(cvs-dired-action): Re-introduced.
+	(cvs-dired-noselect): Use it.
+	(vc-post-command-functions): use this new hook if available.
+
+	* pcvs-info.el (cvs-fi-up-to-date-face, cvs-fi-unknown-face): New vars.
+	(cvs-status-map): Don't inherit from cvs-mode-map anymore.
+	(cvs-filename-map, cvs-dirname-map): Remove.
+	(cvs-default-action): Remove.
+	(cvs-add-face): Use `keymap' rather than `local-map' property, and only
+	if the arg is really a keymap.
+	(cvs-fileinfo-pp): Don't use any special map for file and dir names.
+	Don't hardcode the mapping from state (aka type) to face, but check
+	the var cvs-fi-<type>-face instead.
+	(cvs-fileinfo-from-entries): New function.
+
+	* pcvs-defs.el (cvs-default-ignore-marks, cvs-diff-ignore-marks):
+	Docstring fix.
+	(cvs-find-file-and-jump): Change default to be safer.
+	(cvs-mode-diff-map): Define it as a function as well.
+	(cvs-mode-map): Refer to the function variant of cvs-mode-diff-map.
+	Bind mouse-2 in this global map rather than with text-properties.
+
+	* pcvs-parse.el (cvs-parse-table): Look for conflict markers in the
+	file to resolve the ambiguity between C(conflict) and C(need-merge).
+
 2000-06-12  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (set-buffer-file-coding-system): If
