@@ -1,3 +1,15 @@
+2003-06-17  Kenichi Handa  <handa@m17n.org>
+
+	* term/x-win.el (x-select-request-type): New variable.
+	(x-select-utf8-or-ctext): New function.
+	(x-selection-value): New function.
+	(x-cut-buffer-or-selection-value): Call x-selection-value to get
+	a selection data.  Set next-selection-coding-system to nil.
+
+	* select.el (x-get-selection): If the string returned by
+	x-get-selection-internal has text property `foreign-selection',
+	decode it while preserving that property.
+
 2003-06-16  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* simple.el (vis-mode): New function.

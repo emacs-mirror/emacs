@@ -364,6 +364,11 @@ these extensions, and is now used by default for encoding and decoding
 X selections.  If you don't want this support, set
 `selection-coding-system' to `compound-text'.
 
+** The new variable `x-select-request-type' controls how Emacs
+requests X selection.  The default value is nil, which means that
+Emacs requests X selection with types COMPOUND_TEXT and UTF8_STRING,
+and use the more appropriately result.
+
 +++
 ** The parameters of automatic hscrolling can now be customized.
 The variable `hscroll-margin' determines how many columns away from

@@ -1,3 +1,14 @@
+2003-06-17  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (xselect.o): Don't depend on charset.h, coding.h,
+	composite.h.
+
+	* xselect.c: Don't include charset.h, coding.h, composite.h.
+	(Qforeign_selection): New variable.
+	(syms_of_xselect): Intern and static it.
+	(selection_data_to_lisp_data): Return a unibyte string made from
+	data with `foreign-selection' text property.
+
 2003-06-15  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* termhooks.h (EVENT_INIT): New macro.
