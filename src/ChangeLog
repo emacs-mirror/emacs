@@ -1,3 +1,9 @@
+2004-09-18  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (try_window_reusing_current_matrix):
+	Handle the case where we reach the old displayed text,
+	out of sync with the old line boundary.
+
 2004-09-14  Stefan  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Finsert_file_contents): Fix case of replacement in a
