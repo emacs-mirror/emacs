@@ -98,7 +98,10 @@ With prefix arg, prompt for argument SWITCHES which is options for `diff'."
     (setq failures
 	  (dired-bunch-files 10000
 			     (function dired-check-process)
-			     (list operation program new-attribute "--")
+			     (append 
+			      (list operation program new-attribute)
+			      (if (string-match "gnu" system-configuration)
+				  '("--") nil))
 			     files))
     (dired-do-redisplay arg);; moves point if ARG is an integer
     (if failures
