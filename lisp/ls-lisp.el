@@ -302,15 +302,17 @@ are: A a c i r S s t u"
 	 (diff (+ (ash diff16 16) (- (car (cdr time)) (car (cdr now)))))
 	 (past-cutoff (- (* 6 30 24 60 60)))	; 6 30-day months
 	 (future-cutoff (* 60 60)))		; 1 hour
-    (format-time-string
-     (if (and
-	  (<= past-cutoff diff) (<= diff future-cutoff)
-	  ;; Sanity check in case `diff' computation overflowed.
-	  (<= (1- (ash past-cutoff -16)) diff16)
-	  (<= diff16 (1+ (ash future-cutoff -16))))
-	 "%b %e %H:%M"
-       "%b %e  %Y")
-     time)))
+    (condition-case nil
+	(format-time-string
+	 (if (and
+	      (<= past-cutoff diff) (<= diff future-cutoff)
+	      ;; Sanity check in case `diff' computation overflowed.
+	      (<= (1- (ash past-cutoff -16)) diff16)
+	      (<= diff16 (1+ (ash future-cutoff -16))))
+	     "%b %e %H:%M"
+	   "%b %e  %Y")
+	 time)
+      (error "??? ??  ????"))))
 
 (provide 'ls-lisp)
 
