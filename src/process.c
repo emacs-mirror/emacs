@@ -2774,7 +2774,7 @@ read_process_output (proc, channel)
 #endif
       if (produced == 0)
 	return 0;
-      chars = XSTRING (p->decoding_buf)->data;
+      chars = (char *) XSTRING (p->decoding_buf)->data;
       nchars = produced;
       chars_in_decoding_buf = 1;
     }
