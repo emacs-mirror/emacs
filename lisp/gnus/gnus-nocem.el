@@ -86,7 +86,7 @@ matches an previously scanned and verified nocem message."
   :group 'gnus-nocem
   :type 'boolean)
 
-(defcustom gnus-nocem-check-article-limit nil
+(defcustom gnus-nocem-check-article-limit 500
   "*If non-nil, the maximum number of articles to check in any NoCeM group."
   :group 'gnus-nocem
   :version "21.1"
