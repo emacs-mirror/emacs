@@ -69,6 +69,10 @@
 					(file :format "%v"))))
 	     ;; coding.c
 	     (inhibit-eol-conversion mule boolean)
+	     (eol-mnemonic-undecided mule string)
+	     (eol-mnemonic-unix mule string)
+	     (eol-mnemonic-dos mule string)
+	     (eol-mnemonic-mac mule string)
 	     ;; dired.c
 	     (completion-ignored-extensions dired 
 					    (repeat (string :format "%v")))
