@@ -1509,8 +1509,8 @@ COLORREF
 x_to_w32_color (colorname)
      char * colorname;
 {
-  register Lisp_Object tail, ret = Qnil;
-  
+  register Lisp_Object ret = Qnil;
+
   BLOCK_INPUT;
 
   if (colorname[0] == '#')
@@ -2347,8 +2347,6 @@ x_set_icon_name (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  int result;
-
   if (STRINGP (arg))
     {
       if (STRINGP (oldval) && EQ (Fstring_equal (oldval, arg), Qt))
@@ -3832,7 +3830,7 @@ w32_msg_pump (deferred_msg * msg_buf)
                    immediate values.  */
 		if (NILP (new_state)
 		    || (NUMBERP (new_state)
-			&& (XUINT (new_state)) & 1 != cur_state))
+			&& ((XUINT (new_state)) & 1) != cur_state))
 		  {
 		    one_w32_display_info.faked_key = vk_code;
 
@@ -5517,9 +5515,10 @@ char * xlfd_charset_of_font (char * fontname)
 
 struct font_info *w32_load_bdf_font (struct frame *f, char *fontname,
                                      int size, char* filename);
+static Lisp_Object w32_list_bdf_fonts (Lisp_Object pattern, int max_names);
 BOOL w32_to_x_font (LOGFONT * lplf, char * lpxstr, int len, char * charset);
 
-struct font_info *
+static struct font_info *
 w32_load_system_font (f,fontname,size)
      struct frame *f;
      char * fontname;
@@ -5729,7 +5728,7 @@ int size;
   Lisp_Object bdf_fonts;
   struct font_info *retval = NULL;
 
-  bdf_fonts = w32_list_bdf_fonts (build_string (fontname));
+  bdf_fonts = w32_list_bdf_fonts (build_string (fontname), 1);
 
   while (!retval && CONSP (bdf_fonts))
     {
@@ -5790,7 +5789,7 @@ w32_unload_font (dpyinfo, font)
  *      )
  */
 
-LONG 
+static LONG 
 x_to_w32_weight (lpw)
      char * lpw;
 {
@@ -5811,7 +5810,7 @@ x_to_w32_weight (lpw)
 }
 
 
-char * 
+static char * 
 w32_to_x_weight (fnweight)
      int fnweight;
 {
@@ -5828,7 +5827,7 @@ w32_to_x_weight (fnweight)
     return "*";
 }
 
-LONG
+static LONG
 x_to_w32_charset (lpcs)
     char * lpcs;
 {
@@ -5899,7 +5898,7 @@ x_to_w32_charset (lpcs)
 }
 
 
-char *
+static char *
 w32_to_x_charset (fncharset)
     int fncharset;
 {
@@ -6109,7 +6108,7 @@ w32_codepage_for_font (char *fontname)
 }
 
 
-BOOL 
+static BOOL 
 w32_to_x_font (lplogfont, lpxstr, len, specific_charset)
      LOGFONT * lplogfont;
      char * lpxstr;
@@ -6197,7 +6196,7 @@ w32_to_x_font (lplogfont, lpxstr, len, specific_charset)
   return (TRUE);
 }
 
-BOOL 
+static BOOL 
 x_to_w32_font (lpxstr, lplogfont)
      char * lpxstr;
      LOGFONT * lplogfont;
@@ -6369,9 +6368,10 @@ x_to_w32_font (lpxstr, lplogfont)
    one from the point height, or if that isn't defined either, return
    0 (which usually signifies a scalable font).
 */
-int xlfd_strip_height (char *fontname)
+static int
+xlfd_strip_height (char *fontname)
 {
-  int pixel_height, point_height, dpi, field_number;
+  int pixel_height, field_number;
   char *read_from, *write_to;
 
   xassert (fontname);
@@ -6484,7 +6484,7 @@ int xlfd_strip_height (char *fontname)
 }
 
 /* Assume parameter 1 is fully qualified, no wildcards. */
-BOOL 
+static BOOL 
 w32_font_match (fontname, pattern)
     char * fontname;
     char * pattern;
@@ -6556,7 +6556,7 @@ typedef struct enumfont_t
   Lisp_Object *tail;
 } enumfont_t;
 
-int CALLBACK 
+static int CALLBACK 
 enum_font_cb2 (lplf, lptm, FontType, lpef)
     ENUMLOGFONT * lplf;
     NEWTEXTMETRIC * lptm;
@@ -6630,7 +6630,7 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
   return (1);
 }
 
-int CALLBACK 
+static int CALLBACK 
 enum_font_cb1 (lplf, lptm, FontType, lpef)
      ENUMLOGFONT * lplf;
      NEWTEXTMETRIC * lptm;
@@ -6644,7 +6644,7 @@ enum_font_cb1 (lplf, lptm, FontType, lpef)
 }
 
 
-int CALLBACK
+static int CALLBACK
 enum_fontex_cb2 (lplf, lptm, font_type, lpef)
      ENUMLOGFONTEX * lplf;
      NEWTEXTMETRICEX * lptm;
@@ -6658,7 +6658,7 @@ enum_fontex_cb2 (lplf, lptm, font_type, lpef)
                         font_type, lpef);
 }
 
-int CALLBACK
+static int CALLBACK
 enum_fontex_cb1 (lplf, lptm, font_type, lpef)
      ENUMLOGFONTEX * lplf;
      NEWTEXTMETRICEX * lptm;
@@ -6681,7 +6681,7 @@ enum_fontex_cb1 (lplf, lptm, font_type, lpef)
 /* Interface to fontset handler. (adapted from mw32font.c in Meadow
    and xterm.c in Emacs 20.3) */
 
-Lisp_Object w32_list_bdf_fonts (Lisp_Object pattern, int max_names)
+static Lisp_Object w32_list_bdf_fonts (Lisp_Object pattern, int max_names)
 {
   char *fontname, *ptnstr;
   Lisp_Object list, tem, newlist = Qnil;
@@ -6712,8 +6712,9 @@ Lisp_Object w32_list_bdf_fonts (Lisp_Object pattern, int max_names)
   return newlist;
 }
 
-Lisp_Object w32_list_synthesized_fonts (FRAME_PTR f, Lisp_Object pattern,
-                                        int size, int max_names);
+static Lisp_Object w32_list_synthesized_fonts (FRAME_PTR f,
+                                               Lisp_Object pattern,
+                                               int size, int max_names);
 
 /* Return a list of names of available fonts matching PATTERN on frame
    F.  If SIZE is not 0, it is the size (maximum bound width) of fonts
@@ -6920,7 +6921,7 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
   return newlist;
 }
 
-Lisp_Object
+static Lisp_Object
 w32_list_synthesized_fonts (f, pattern, size, max_names)
      FRAME_PTR f;
      Lisp_Object pattern;
@@ -6930,7 +6931,7 @@ w32_list_synthesized_fonts (f, pattern, size, max_names)
   int fields;
   char *full_pattn, *new_pattn, foundary[50], family[50], *pattn_part2;
   char style[20], slant;
-  Lisp_Object matches, match, tem, synthed_matches = Qnil;
+  Lisp_Object matches, tem, synthed_matches = Qnil;
 
   full_pattn = XSTRING (pattern)->data;
 
@@ -7032,6 +7033,29 @@ w32_find_ccl_program (fontp)
 }
 
 
+/* Find BDF files in a specified directory.  (use GCPRO when calling,
+   as this calls lisp to get a directory listing).  */
+static Lisp_Object
+w32_find_bdf_fonts_in_dir (Lisp_Object directory)
+{
+  Lisp_Object filelist, list = Qnil;
+  char fontname[100];
+
+  if (!STRINGP(directory))
+    return Qnil;
+
+  filelist = Fdirectory_files (directory, Qt,
+                              build_string (".*\\.[bB][dD][fF]"), Qt);
+
+  for ( ; CONSP(filelist); filelist = XCDR (filelist))
+    {
+      Lisp_Object filename = XCAR (filelist);
+      if (w32_BDF_to_x_font (XSTRING (filename)->data, fontname, 100))
+          store_in_alist (&list, build_string (fontname), filename);
+    }
+  return list;
+}
+
 DEFUN ("w32-find-bdf-fonts", Fw32_find_bdf_fonts, Sw32_find_bdf_fonts,
        1, 1, 0,
        "Return a list of BDF fonts in DIR, suitable for appending to\n\
@@ -7055,28 +7079,6 @@ will not be included in the list. DIR may be a list of directories.")
       pair[1] = w32_find_bdf_fonts_in_dir( XCAR (directory) );
       list = Fnconc( 2, pair );
       UNGCPRO;
-    }
-  return list;
-}
-
-/* Find BDF files in a specified directory.  (use GCPRO when calling,
-   as this calls lisp to get a directory listing).  */
-Lisp_Object w32_find_bdf_fonts_in_dir( Lisp_Object directory )
-{
-  Lisp_Object filelist, list = Qnil;
-  char fontname[100];
-
-  if (!STRINGP(directory))
-    return Qnil;
-
-  filelist = Fdirectory_files (directory, Qt,
-                              build_string (".*\\.[bB][dD][fF]"), Qt);
-
-  for ( ; CONSP(filelist); filelist = XCDR (filelist))
-    {
-      Lisp_Object filename = XCAR (filelist);
-      if (w32_BDF_to_x_font (XSTRING (filename)->data, fontname, 100))
-          store_in_alist (&list, build_string (fontname), filename);
     }
   return list;
 }
@@ -7720,6 +7722,7 @@ enum image_value_type
   IMAGE_STRING_VALUE,
   IMAGE_SYMBOL_VALUE,
   IMAGE_POSITIVE_INTEGER_VALUE,
+  IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,
   IMAGE_NON_NEGATIVE_INTEGER_VALUE,
   IMAGE_ASCENT_VALUE,
   IMAGE_INTEGER_VALUE,
@@ -7823,6 +7826,15 @@ parse_image_spec (spec, keywords, nkeywords, type)
 	  if (!INTEGERP (value) || XINT (value) <= 0)
 	    return 0;
 	  break;
+
+	case IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR:
+	  if (INTEGERP (value) && XINT (value) >= 0)
+	    break;
+	  if (CONSP (value)
+	      && INTEGERP (XCAR (value)) && INTEGERP (XCDR (value))
+	      && XINT (XCAR (value)) >= 0 && XINT (XCDR (value)) >= 0)
+	    break;
+	  return 0;
 
         case IMAGE_ASCENT_VALUE:
 	  if (SYMBOLP (value) && EQ (value, Qcenter))
@@ -8003,7 +8015,7 @@ image_ascent (img, face)
      struct image *img;
      struct face *face;
 {
-  int height = img->height + img->margin;
+  int height = img->height + img->vmargin;
   int ascent;
 
   if (img->ascent == CENTERED_IMAGE_ASCENT)
@@ -8268,10 +8280,10 @@ lookup_image (f, spec)
   /* If not found, create a new image and cache it.  */
   if (img == NULL)
     {
+      BLOCK_INPUT;
       img = make_image (spec, hash);
       cache_image (f, img);
       img->load_failed_p = img->type->load (f, img) == 0;
-      xassert (!interrupt_input_blocked);
 
       /* If we can't load the image, and we don't have a width and
 	 height, use some arbitrary width and height so that we can
@@ -8291,8 +8303,7 @@ lookup_image (f, spec)
 	{
 	  /* Handle image type independent image attributes
 	     `:ascent PERCENT', `:margin MARGIN', `:relief RELIEF'.  */
-	  Lisp_Object ascent, margin, relief, algorithm, heuristic_mask;
-	  Lisp_Object file;
+	  Lisp_Object ascent, margin, relief;
 
 	  ascent = image_spec_value (spec, QCascent, NULL);
 	  if (INTEGERP (ascent))
@@ -8302,25 +8313,94 @@ lookup_image (f, spec)
 
 	  margin = image_spec_value (spec, QCmargin, NULL);
 	  if (INTEGERP (margin) && XINT (margin) >= 0)
-	    img->margin = XFASTINT (margin);
+	    img->vmargin = img->hmargin = XFASTINT (margin);
+	  else if (CONSP (margin) && INTEGERP (XCAR (margin))
+		   && INTEGERP (XCDR (margin)))
+	    {
+	      if (XINT (XCAR (margin)) > 0)
+		img->hmargin = XFASTINT (XCAR (margin));
+	      if (XINT (XCDR (margin)) > 0)
+		img->vmargin = XFASTINT (XCDR (margin));
+	    }
 	  
 	  relief = image_spec_value (spec, QCrelief, NULL);
 	  if (INTEGERP (relief))
 	    {
 	      img->relief = XINT (relief);
-	      img->margin += abs (img->relief);
+	      img->hmargin += abs (img->relief);
+	      img->vmargin += abs (img->relief);
 	    }
 
-	  /* Should we apply a Laplace edge-detection algorithm?  */
-	  algorithm = image_spec_value (spec, QCalgorithm, NULL);
-	  if (img->pixmap && EQ (algorithm, Qlaplace))
-	    x_laplace (f, img);
+#if 0 /* TODO: image mask and algorithm.  */
+	  /* Manipulation of the image's mask.  */
+	  if (img->pixmap)
+	    {
+	      /* `:heuristic-mask t'
+		 `:mask heuristic'
+			means build a mask heuristically.
+		 `:heuristic-mask (R G B)'
+		 `:mask (heuristic (R G B))'
+			means build a mask from color (R G B) in the
+			image.
+		 `:mask nil'
+			means remove a mask, if any.  */
+	      
+	      Lisp_Object mask;
 
-	  /* Should we built a mask heuristically?  */
-	  heuristic_mask = image_spec_value (spec, QCheuristic_mask, NULL);
-	  if (img->pixmap && !img->mask && !NILP (heuristic_mask))
-	      x_build_heuristic_mask (f, img, heuristic_mask);
+	      mask = image_spec_value (spec, QCheuristic_mask, NULL);
+	      if (!NILP (mask))
+		x_build_heuristic_mask (f, img, mask);
+	      else
+		{
+		  int found_p;
+		    
+		  mask = image_spec_value (spec, QCmask, &found_p);
+		  
+		  if (EQ (mask, Qheuristic))
+		    x_build_heuristic_mask (f, img, Qt);
+		  else if (CONSP (mask)
+			   && EQ (XCAR (mask), Qheuristic))
+		    {
+		      if (CONSP (XCDR (mask)))
+			x_build_heuristic_mask (f, img, XCAR (XCDR (mask)));
+		      else
+			x_build_heuristic_mask (f, img, XCDR (mask));
+		    }
+		  else if (NILP (mask) && found_p && img->mask)
+		    {
+		      XFreePixmap (FRAME_X_DISPLAY (f), img->mask);
+		      img->mask = None;
+		    }
+    		}
+	    }
+	  
+	  /* Should we apply an image transformation algorithm?  */
+	  if (img->pixmap)
+	    {
+	      Lisp_Object algorithm;
+
+	      algorithm = image_spec_value (spec, QCalgorithm, NULL);
+	      if (EQ (algorithm, Qdisabled))
+		x_disable_image (f, img);
+	      else if (EQ (algorithm, Qlaplace))
+		x_laplace (f, img);
+	      else if (EQ (algorithm, Qemboss))
+		x_emboss (f, img);
+	      else if (CONSP (algorithm)
+		       && EQ (XCAR (algorithm), Qedge_detection))
+		{
+		  Lisp_Object tem;
+		  tem = XCDR (algorithm);
+		  if (CONSP (tem))
+		    x_edge_detection (f, img,
+				      Fplist_get (tem, QCmatrix),
+				      Fplist_get (tem, QCcolor_adjustment));
+		}
+	    }
+#endif /* TODO.  */
 	}
+      UNBLOCK_INPUT;
+      xassert (!interrupt_input_blocked);
     }
 
   /* We're using IMG, so set its timestamp to `now'.  */
@@ -8572,7 +8652,7 @@ static struct image_keyword xbm_format[XBM_LAST] =
   {":foreground",	IMAGE_STRING_VALUE,			0},
   {":background",	IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
@@ -9162,7 +9242,7 @@ static struct image_keyword xpm_format[XPM_LAST] =
   {":file",		IMAGE_STRING_VALUE,			0},
   {":data",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -9852,7 +9932,7 @@ static struct image_keyword pbm_format[PBM_LAST] =
   {":file",		IMAGE_STRING_VALUE,			0},
   {":data",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
@@ -10208,7 +10288,7 @@ static struct image_keyword png_format[PNG_LAST] =
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
@@ -10694,7 +10774,7 @@ static struct image_keyword jpeg_format[JPEG_LAST] =
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
@@ -11057,7 +11137,7 @@ static struct image_keyword tiff_format[TIFF_LAST] =
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
@@ -11376,7 +11456,7 @@ static struct image_keyword gif_format[GIF_LAST] =
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -11691,7 +11771,7 @@ static struct image_keyword gs_format[GS_LAST] =
   {":loader",		IMAGE_FUNCTION_VALUE,			0},
   {":bounding-box",	IMAGE_DONT_CHECK_VALUE_TYPE,		1},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":algorithm",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0}
@@ -12772,7 +12852,6 @@ selection dialog's entry field, if MUSTMATCH is non-nil.")
   if (use_dialog_p)
     {
       OPENFILENAME file_details;
-      char *filename_file;
 
       /* Prevent redisplay.  */
       specbind (Qinhibit_redisplay, Qt);
@@ -12911,7 +12990,6 @@ If optional parameter FRAME is not specified, use selected frame.")
   (command, frame)
      Lisp_Object command, frame;
 {
-  WPARAM code;
   FRAME_PTR f = check_x_frame (frame);
 
   CHECK_NUMBER (command, 0);
@@ -13164,7 +13242,6 @@ is set to off if the low bit of NEW-STATE is zero, otherwise on.")
      Lisp_Object key, new_state;
 {
   int vk_code;
-  int cur_state;
 
   if (EQ (key, intern ("capslock")))
     vk_code = VK_CAPITAL;
