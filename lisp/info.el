@@ -464,6 +464,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 			    Info-dir-file-attributes
 			    (cons (cons file attrs)
 				  Info-dir-file-attributes))))))
+	  (or (cdr dirs) (setq Info-dir-contents-directory (car dirs)))
 	  (setq dirs (cdr dirs))))
       
       (or buffers
@@ -474,13 +475,10 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
       (setq buffer (car buffers)
 	    others (cdr buffers))
 
-      ;; Insert the entire original dir file as a start; use its
-      ;; default directory as the default directory for the whole
-      ;; concatenation.
+      ;; Insert the entire original dir file as a start; note that we've
+      ;; already saved its default directory to use as the default
+      ;; directory for the whole concatenation.
       (insert-buffer buffer)
-      (setq Info-dir-contents-directory (save-excursion
-					  (set-buffer buffer)
-					  default-directory))
 
       ;; Look at each of the other buffers one by one.
       (while others
