@@ -724,7 +724,7 @@ before count is used up, @code{nil} is returned.
 @defvar multibyte-syntax-as-symbol
 @tindex multibyte-syntax-as-symbol
 If this variable is non-@code{nil}, @code{scan-sexps} treats all
-non-@sc{ASCII} characters as symbol constituents regardless
+non-@sc{ascii} characters as symbol constituents regardless
 of what the syntax table says about them.  (However, text properties
 can still override the syntax.)
 @end defvar
