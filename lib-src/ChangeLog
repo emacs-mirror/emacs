@@ -1,3 +1,7 @@
+2001-10-19  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* b2m.c: Properly spell the name of Emacs.
+
 2001-10-17  Miles Bader  <miles@gnu.org>
 
 	* make-docfile.c (put_char): New function.
