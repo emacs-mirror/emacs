@@ -25,7 +25,3 @@ extern Lisp_Object Vexecuting_macro;
 /* Index of next character to fetch from that macro */
 
 extern int executing_macro_index;
-
-/* Nonzero while defining a kbd macro */
-
-extern int defining_kbd_macro;
