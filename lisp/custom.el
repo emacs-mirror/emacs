@@ -235,7 +235,7 @@ ATTS is a list of face attributes followed by their values:
 
 The possible attributes are `:family', `:width', `:height', `:weight',
 `:slant', `:underline', `:overline', `:strike-through', `:box',
-`:foreground', `:background', `:stipple', and `:inverse-video'.
+`:foreground', `:background', `:stipple', `:inverse-video', and `:inherit'.
 
 DISPLAY can either be the symbol t, which will match all frames, or an
 alist of the form \((REQ ITEM...)...).  For the DISPLAY to match a
