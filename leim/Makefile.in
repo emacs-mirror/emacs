@@ -226,7 +226,7 @@ clean mostlyclean:
 	rm -f ${TIT} ${NON-TIT} ${WORLD} ${TIT:.elc=.el} \
 	  ${MISC-DIC} ${MISC-DIC:.elc=.el} leim-list.el
 
-distclean maintainer-clean:
+distclean maintainer-clean: clean
 	if test -f stamp-subdir; then rm -rf ${SUBDIRS} stamp-subdir; fi
 	rm -f Makefile
 
