@@ -2091,8 +2091,8 @@ a Meta character, as in @samp{\M-a} for @kbd{Meta-A} or @samp{\M-\C-a} for
 @cindex international characters in @file{.emacs}
 @cindex non-ASCII characters in @file{.emacs}
 If you want to include non-ASCII characters in strings in your init
-file, you should consider putting a @samp{-*-coding:
-@var{coding-system}-*-} tag on the first line which states the coding
+file, you should consider putting a @w{@samp{-*-coding:
+@var{coding-system}-*-}} tag on the first line which states the coding
 system used to save your @file{.emacs}, as explained in @ref{Recognize
 Coding}.  This is because the defaults for decoding non-ASCII text might
 not yet be set up by the time Emacs reads those parts of your init file
@@ -2105,6 +2105,9 @@ either a character or an escape sequence starting with @samp{\}.
 Examples: @code{?x}, @code{?\n}, @code{?\"}, @code{?\)}.  Note that
 strings and characters are not interchangeable in Lisp; some contexts
 require one and some contexts require the other.
+
+@xref{Non-ASCII Rebinding}, for information about binding commands to
+keys which send non-ASCII characters.
 
 @item True:
 @code{t} stands for `true'.
@@ -2227,6 +2230,24 @@ Load the compiled Lisp file @file{foo.elc} from your home directory.
 @end example
 
 Here an absolute file name is used, so no searching is done.
+
+@item
+@cindex loading Lisp libraries automatically
+@cindex autoload Lisp libraries
+Tell Emacs to automatically load a Lisp library named @file{mypackage}
+(i.e.@: a file @file{mypackage.elc} or @file{mypackage.el}) when you
+the function @code{myfunction} in that library is called:
+
+@example
+(autoload 'myfunction "mypackage" "Do what I say." t)
+@end example
+
+@noindent
+Here the string @code{"Do what I say."} is the function's documentation
+string made available to Emacs even when the package is not loaded
+(e.g., for commands such as @kbd{C-h a}), and @code{t} tells Emacs this
+function is interactive, that is, it can be invoked interactively by
+typing @kbd{M-x myfunction @key{RET}} or by binding it to a key.
 
 @item
 Rebind the key @kbd{C-x l} to run the function @code{make-symbolic-link}.
