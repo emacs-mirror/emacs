@@ -51,7 +51,7 @@
     ("^.....-.*" . font-lock-type-face)				; Unread.
     ;; Neither of the below will be highlighted if either of the above are:
     ("^.....[^D-] \\(......\\)" 1 font-lock-keyword-face)	; Date.
-    ("{ \\([^\n}]+\\),}" 1 font-lock-comment-face))		; Labels.
+    ("{ \\([^\n}]+\\) }" 1 font-lock-comment-face))		; Labels.
   "Additional expressions to highlight in Rmail Summary mode.")
 
 ;; Entry points for making a summary buffer.
@@ -300,8 +300,12 @@ By default, `identity' is set."
 		 ""
 	       (concat "{"
 		       (buffer-substring (point)
-					 (progn (end-of-line) (point)))
-		       "} ")))))
+					 (progn (end-of-line)
+						(backward-char)
+						(if (looking-at ",")
+						    (point)
+						  (1+ (point)))))
+		       " } ")))))
 	 (line
 	  (progn
 	    (forward-line 1)
