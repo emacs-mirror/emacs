@@ -159,6 +159,14 @@ struct window
     Lisp_Object display_table;
     /* Non-nil means window is marked as dedicated.  */
     Lisp_Object dedicated;
+    /* Line number and position of a line somewhere above the
+       top of the screen.  */
+    /* If this field is nil, it means we don't have a base line.  */
+    Lisp_Object base_line_number;
+    /* If this field is nil, it means we don't have a base line.
+       If it is a buffer, it means don't display the line number
+       as long as the window shows that buffer.  */
+    Lisp_Object base_line_pos;
   };
 
 /* 1 if W is a minibuffer window.  */
