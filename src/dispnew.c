@@ -5916,7 +5916,7 @@ window_change_signal (signalnum) /* If we don't have an argument, */
 #endif
   int old_errno = errno;
 
-  struct tty_output *tty;
+  struct tty_display_info *tty;
   
   /* The frame size change obviously applies to a single
      termcap-controlled terminal, but we can't decide which.
@@ -6625,7 +6625,7 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
 #endif /* VMS */
 
   {
-    struct tty_output *tty;
+    struct tty_display_info *tty;
     
     tty = term_init (selected_frame, 0, terminal_type);
     change_frame_size (XFRAME (selected_frame), FrameRows (tty), FrameCols (tty), 0, 0, 0);

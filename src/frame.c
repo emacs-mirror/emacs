@@ -544,20 +544,27 @@ make_terminal_frame (tty_name, tty_type)
   make_mac_terminal_frame (f);
 #else
   {
-    struct tty_output *tty;
+    struct tty_display_info *tty;
     f->output_method = output_termcap;
+
+    f->output_data.tty = (struct tty_output *) xmalloc (sizeof (struct tty_output));
+    bzero (f->output_data.tty, sizeof (struct tty_output));
+
+    FRAME_FOREGROUND_PIXEL (f) = FACE_TTY_DEFAULT_FG_COLOR;
+    FRAME_BACKGROUND_PIXEL (f) = FACE_TTY_DEFAULT_BG_COLOR;
     
     if (initialized)
       {
         /* Note that term_init may signal an error, but then it is its
            responsibility to make sure this frame is deleted. */
-        f->output_data.tty = term_init (frame, tty_name, tty_type);
+        f->output_data.tty->display_info = term_init (frame, tty_name, tty_type);
       }
     else
       {
         /* init_display() will reinitialize the terminal with correct values after dump. */
-        f->output_data.tty = term_dummy_init ();
+        f->output_data.tty->display_info = term_dummy_init ();
       }
+    FRAME_TTY (f)->reference_count++;
   }
   
 #ifdef CANNOT_DUMP
@@ -1390,28 +1397,17 @@ The functions are run with one arg, the frame to be deleted.  */)
 
   if (FRAME_TERMCAP_P (f))
     {
-      Lisp_Object tail, frame1;
       int delete = 1;
-      struct tty_output *tty = FRAME_TTY (f);
+      struct tty_display_info *tty = FRAME_TTY (f);
 
-      /* delete_tty will call us recursively, so better kill the
-         frame now. */
-      f->output_data.nothing = 0;
-      
-      /* See if the terminal needs to be closed. */
-      FOR_EACH_FRAME (tail, frame1)
+      if (! --tty->reference_count)
         {
-          if (frame1 != frame
-              && FRAME_LIVE_P (XFRAME (frame1))
-              && FRAME_TERMCAP_P (XFRAME (frame1))
-              && FRAME_TTY (XFRAME (frame1)) == FRAME_TTY (f))
-            {
-              delete = 0;
-              break;
-            }
+          /* delete_tty would call us recursively if we don't kill the
+             frame now. */
+          xfree (f->output_data.tty);
+          f->output_data.nothing = 0;
+          delete_tty (tty);
         }
-      if (delete)
-        delete_tty (tty);
     }
   else
     {

@@ -65,34 +65,10 @@ enum text_cursor_kinds
   HBAR_CURSOR
 };
 
-#if !defined(MSDOS) && !defined(WINDOWSNT) && !defined(MAC_OS)
+#define FRAME_FOREGROUND_PIXEL(f) ((f)->foreground_pixel)
+#define FRAME_BACKGROUND_PIXEL(f) ((f)->background_pixel)
 
-#if !defined(HAVE_X_WINDOWS)
-
-#define PIX_TYPE unsigned long
-
-/* A (mostly empty) x_output structure definition for building Emacs
-   on Unix and GNU/Linux without X support.  */
-struct x_output
-{
-  PIX_TYPE background_pixel;
-  PIX_TYPE foreground_pixel;
-};
-
-#endif /* ! HAVE_X_WINDOWS */
-
-
-#define FRAME_FOREGROUND_PIXEL(f)             \
-  (((f)->output_method == output_termcap)     \
-   ? ((f)->output_data.tty->foreground_pixel) \
-   : ((f)->output_data.x->foreground_pixel))
-
-#define FRAME_BACKGROUND_PIXEL(f)             \
-  (((f)->output_method == output_termcap)     \
-   ? ((f)->output_data.tty->background_pixel) \
-   : ((f)->output_data.x->background_pixel))
-
-#endif /* ! MSDOS && ! WINDOWSNT && ! MAC_OS */
+struct device;
 
 struct frame
 {
@@ -280,12 +256,15 @@ struct frame
   /* Canonical Y unit.  Height of a line, in pixels.  */
   int line_height;
 
+  /* The display hooks to use with this frame. */
+  struct display *display;
+  
   /* The output method says how the contents of this frame
      are displayed.  It could be using termcap, or using an X window.  */
   enum output_method output_method;
 
   /* A structure of auxiliary data used for displaying the contents.
-     struct tty_output is used for terminal frames;
+     struct tty_output is used for termcap frames;
      it is defined in term.h.
      struct x_output is used for X window frames;
      it is defined in xterm.h.
@@ -457,6 +436,10 @@ struct frame
      Clear the frame in clear_garbaged_frames if set.  */
   unsigned resized_p : 1;
 
+  /* All display backends seem to need these two pixel values. */
+  unsigned long background_pixel;
+  unsigned long foreground_pixel;
+  
   /* Set to non-zero if the default face for the frame has been
      realized.  Reset to zero whenever the default face changes.
      Used to see the difference between a font change and face change.  */

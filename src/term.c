@@ -69,11 +69,11 @@ extern int tgetnum P_ ((char *id));
 
 static void turn_on_face P_ ((struct frame *, int face_id));
 static void turn_off_face P_ ((struct frame *, int face_id));
-static void tty_show_cursor P_ ((struct tty_output *));
-static void tty_hide_cursor P_ ((struct tty_output *));
+static void tty_show_cursor P_ ((struct tty_display_info *));
+static void tty_hide_cursor P_ ((struct tty_display_info *));
 
-void delete_tty P_ ((struct tty_output *));
-static void delete_tty_1 P_ ((struct tty_output *));
+void delete_tty P_ ((struct tty_display_info *));
+static void delete_tty_1 P_ ((struct tty_display_info *));
 
 
 #define OUTPUT(tty, a)                                          \
@@ -102,7 +102,7 @@ Lisp_Object Vring_bell_function;
 
 /* Terminal characteristics that higher levels want to look at. */
 
-struct tty_output *tty_list;
+struct tty_display_info *tty_list;
 
 /* Nonzero means no need to redraw the entire frame on resuming a
    suspended Emacs.  This is useful on terminals with multiple
@@ -319,12 +319,12 @@ ring_bell ()
   else if (!FRAME_TERMCAP_P (f))
     (*ring_bell_hook) ();
   else {
-    struct tty_output *tty = FRAME_TTY (f);
+    struct tty_display_info *tty = FRAME_TTY (f);
     OUTPUT (tty, tty->TS_visible_bell && visible_bell ? tty->TS_visible_bell : tty->TS_bell);
   }
 }
 
-void tty_set_terminal_modes (struct tty_output *tty)
+void tty_set_terminal_modes (struct tty_display_info *tty)
 {
   OUTPUT_IF (tty, tty->TS_termcap_modes);
   OUTPUT_IF (tty, tty->TS_cursor_visible);
@@ -342,7 +342,7 @@ set_terminal_modes ()
     (*set_terminal_modes_hook) ();
 }
 
-void tty_reset_terminal_modes (struct tty_output *tty)
+void tty_reset_terminal_modes (struct tty_display_info *tty)
 {
   turn_off_highlight (tty);
   turn_off_insert (tty);
@@ -380,7 +380,7 @@ update_end (f)
 {
   if (FRAME_TERMCAP_P (f))
     {
-      struct tty_output *tty = FRAME_TTY (f);
+      struct tty_display_info *tty = FRAME_TTY (f);
       if (!XWINDOW (selected_window)->cursor_off_p)
 	tty_show_cursor (tty);
       turn_off_insert (tty);
@@ -399,7 +399,7 @@ set_terminal_window (size)
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
   if (FRAME_TERMCAP_P (f))
     {
-      struct tty_output *tty = FRAME_TTY (f);
+      struct tty_display_info *tty = FRAME_TTY (f);
       tty->specified_window = size ? size : FRAME_LINES (f);
       if (TTY_SCROLL_REGION_OK (tty))
 	set_scroll_region (0, tty->specified_window);
@@ -414,7 +414,7 @@ set_scroll_region (start, stop)
 {
   char *buf;
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-  struct tty_output *tty = FRAME_TTY (f);
+  struct tty_display_info *tty = FRAME_TTY (f);
 
   if (tty->TS_set_scroll_region)
     buf = tparam (tty->TS_set_scroll_region, 0, 0, start, stop - 1);
@@ -433,7 +433,7 @@ set_scroll_region (start, stop)
 
 
 static void
-turn_on_insert (struct tty_output *tty)
+turn_on_insert (struct tty_display_info *tty)
 {
   if (!tty->insert_mode)
     OUTPUT (tty, tty->TS_insert_mode);
@@ -441,7 +441,7 @@ turn_on_insert (struct tty_output *tty)
 }
 
 void
-turn_off_insert (struct tty_output *tty)
+turn_off_insert (struct tty_display_info *tty)
 {
   if (tty->insert_mode)
     OUTPUT (tty, tty->TS_end_insert_mode);
@@ -451,7 +451,7 @@ turn_off_insert (struct tty_output *tty)
 /* Handle highlighting.  */
 
 void
-turn_off_highlight (struct tty_output *tty)
+turn_off_highlight (struct tty_display_info *tty)
 {
   if (tty->standout_mode)
     OUTPUT_IF (tty, tty->TS_end_standout_mode);
@@ -459,7 +459,7 @@ turn_off_highlight (struct tty_output *tty)
 }
 
 static void
-turn_on_highlight (struct tty_output *tty)
+turn_on_highlight (struct tty_display_info *tty)
 {
   if (!tty->standout_mode)
     OUTPUT_IF (tty, tty->TS_standout_mode);
@@ -467,7 +467,7 @@ turn_on_highlight (struct tty_output *tty)
 }
 
 static void
-toggle_highlight (struct tty_output *tty)
+toggle_highlight (struct tty_display_info *tty)
 {
   if (tty->standout_mode)
     turn_off_highlight (tty);
@@ -479,7 +479,7 @@ toggle_highlight (struct tty_output *tty)
 /* Make cursor invisible.  */
 
 static void
-tty_hide_cursor (struct tty_output *tty)
+tty_hide_cursor (struct tty_display_info *tty)
 {
   if (tty->cursor_hidden == 0)
     {
@@ -492,7 +492,7 @@ tty_hide_cursor (struct tty_output *tty)
 /* Ensure that cursor is visible.  */
 
 static void
-tty_show_cursor (struct tty_output *tty)
+tty_show_cursor (struct tty_display_info *tty)
 {
   if (tty->cursor_hidden)
     {
@@ -508,7 +508,7 @@ tty_show_cursor (struct tty_output *tty)
    depends on the user option inverse-video.  */
 
 void
-background_highlight (struct tty_output *tty)
+background_highlight (struct tty_display_info *tty)
 {
   if (inverse_video)
     turn_on_highlight (tty);
@@ -519,7 +519,7 @@ background_highlight (struct tty_output *tty)
 /* Set standout mode to the mode specified for the text to be output.  */
 
 static void
-highlight_if_desired (struct tty_output *tty)
+highlight_if_desired (struct tty_display_info *tty)
 {
   if (inverse_video)
     turn_on_highlight (tty);
@@ -536,7 +536,7 @@ cursor_to (vpos, hpos)
      int vpos, hpos;
 {
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-  struct tty_output *tty;
+  struct tty_display_info *tty;
   
   if (! FRAME_TERMCAP_P (f) && cursor_to_hook)
     {
@@ -568,7 +568,7 @@ raw_cursor_to (row, col)
      int row, col;
 {
   struct frame *f = updating_frame ? updating_frame : XFRAME (selected_frame);
-  struct tty_output *tty;
+  struct tty_display_info *tty;
   if (! FRAME_TERMCAP_P (f))
     {
       (*raw_cursor_to_hook) (row, col);
@@ -594,7 +594,7 @@ clear_to_end ()
   register int i;
 
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-  struct tty_output *tty;
+  struct tty_display_info *tty;
   
   if (clear_to_end_hook && ! FRAME_TERMCAP_P (f))
     {
@@ -623,7 +623,7 @@ void
 clear_frame ()
 {
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-  struct tty_output *tty;
+  struct tty_display_info *tty;
   
   if (clear_frame_hook && ! FRAME_TERMCAP_P (f))
     {
@@ -654,7 +654,7 @@ clear_end_of_line (first_unused_hpos)
      int first_unused_hpos;
 {
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-  struct tty_output *tty;
+  struct tty_display_info *tty;
   
   if (clear_end_of_line_hook
       && ! FRAME_TERMCAP_P (f))
@@ -667,7 +667,7 @@ clear_end_of_line (first_unused_hpos)
 }
 
 void
-tty_clear_end_of_line (struct tty_output *tty, int first_unused_hpos)
+tty_clear_end_of_line (struct tty_display_info *tty, int first_unused_hpos)
 {
   register int i;
   /* Detect the case where we are called from reset_sys_modes
@@ -818,7 +818,7 @@ write_glyphs (string, len)
 {
   int produced, consumed;
   struct frame *f = updating_frame ? updating_frame : XFRAME (selected_frame);
-  struct tty_output *tty;
+  struct tty_display_info *tty;
   unsigned char conversion_buffer[1024];
   int conversion_buffer_size = sizeof conversion_buffer;
 
@@ -923,7 +923,7 @@ insert_glyphs (start, len)
   char *buf;
   struct glyph *glyph = NULL;
   struct frame *f;
-  struct tty_output *tty;
+  struct tty_display_info *tty;
   
   if (len <= 0)
     return;
@@ -1016,7 +1016,7 @@ delete_glyphs (n)
   char *buf;
   register int i;
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
-  struct tty_output *tty = FRAME_TTY (f);
+  struct tty_display_info *tty = FRAME_TTY (f);
 
   if (delete_glyphs_hook && ! FRAME_TERMCAP_P (f))
     {
@@ -1062,7 +1062,7 @@ ins_del_lines (vpos, n)
     }
   else
     {
-      struct tty_output *tty = FRAME_TTY (f);
+      struct tty_display_info *tty = FRAME_TTY (f);
       char *multi = n > 0 ? tty->TS_ins_multi_lines : tty->TS_del_multi_lines;
       char *single = n > 0 ? tty->TS_ins_line : tty->TS_del_line;
       char *scroll = n > 0 ? tty->TS_rev_scroll : tty->TS_fwd_scroll;
@@ -1181,7 +1181,7 @@ static void
 calculate_ins_del_char_costs (f)
      FRAME_PTR f;
 {
-  struct tty_output *tty = FRAME_TTY (f);
+  struct tty_display_info *tty = FRAME_TTY (f);
   int ins_startup_cost, del_startup_cost;
   int ins_cost_per_char, del_cost_per_char;
   register int i;
@@ -1243,7 +1243,7 @@ void
 calculate_costs (frame)
      FRAME_PTR frame;
 {
-  struct tty_output *tty = FRAME_TTY (frame);
+  struct tty_display_info *tty = FRAME_TTY (frame);
   register char *f = (tty->TS_set_scroll_region
 		      ? tty->TS_set_scroll_region
 		      : tty->TS_set_scroll_region_1);
@@ -1251,7 +1251,7 @@ calculate_costs (frame)
   FRAME_COST_BAUD_RATE (frame) = baud_rate;
 
   if (FRAME_TERMCAP_P (frame))
-    TTY_SCROLL_REGION_COST (frame->output_data.tty) = string_cost (f);
+    TTY_SCROLL_REGION_COST (FRAME_TTY (frame)) = string_cost (f);
 
   /* These variables are only used for terminal stuff.  They are allocated
      once for the terminal frame of X-windows emacs, but not used afterwards.
@@ -1761,7 +1761,7 @@ turn_on_face (f, face_id)
   struct face *face = FACE_FROM_ID (f, face_id);
   long fg = face->foreground;
   long bg = face->background;
-  struct tty_output *tty = FRAME_TTY (f);
+  struct tty_display_info *tty = FRAME_TTY (f);
 
   /* Do this first because TS_end_standout_mode may be the same
      as TS_exit_attribute_mode, which turns all appearances off. */
@@ -1859,7 +1859,7 @@ turn_off_face (f, face_id)
      int face_id;
 {
   struct face *face = FACE_FROM_ID (f, face_id);
-  struct tty_output *tty = FRAME_TTY (f);
+  struct tty_display_info *tty = FRAME_TTY (f);
 
   xassert (face != NULL);
 
@@ -1910,7 +1910,7 @@ turn_off_face (f, face_id)
 
 int
 tty_capable_p (tty, caps, fg, bg)
-     struct tty_output *tty;
+     struct tty_display_info *tty;
      unsigned caps;
      unsigned long fg, bg;
 {
@@ -1938,7 +1938,7 @@ DEFUN ("tty-display-color-p", Ftty_display_color_p, Stty_display_color_p,
      (display)
      Lisp_Object display;
 {
-  struct tty_output *tty = FRAME_TTY (SELECTED_FRAME ());
+  struct tty_display_info *tty = FRAME_TTY (SELECTED_FRAME ());
   return tty->TN_max_colors > 0 ? Qt : Qnil;
 }
 
@@ -1949,7 +1949,7 @@ DEFUN ("tty-display-color-cells", Ftty_display_color_cells,
      (display)
      Lisp_Object display;
 {
-  struct tty_output *tty = FRAME_TTY (SELECTED_FRAME ());
+  struct tty_display_info *tty = FRAME_TTY (SELECTED_FRAME ());
   return make_number (tty->TN_max_colors);
 }
 
@@ -1958,7 +1958,7 @@ DEFUN ("tty-display-color-cells", Ftty_display_color_cells,
 /* Save or restore the default color-related capabilities of this
    terminal.  */
 static void
-tty_default_color_capabilities (struct tty_output *tty, int save)
+tty_default_color_capabilities (struct tty_display_info *tty, int save)
 {
   static char
     *default_orig_pair, *default_set_foreground, *default_set_background;
@@ -2000,7 +2000,7 @@ tty_default_color_capabilities (struct tty_output *tty, int save)
    support; zero means set up for the default capabilities, the ones
    we saw at term_init time; -1 means turn off color support.  */
 void
-tty_setup_colors (struct tty_output *tty, int mode)
+tty_setup_colors (struct tty_display_info *tty, int mode)
 {
   /* Canonicalize all negative values of MODE.  */
   if (mode < -1)
@@ -2092,11 +2092,11 @@ set_tty_color_mode (f, val)
 
 
 
-struct tty_output *
+struct tty_display_info *
 get_named_tty (name)
      char *name;
 {
-  struct tty_output *tty = tty_list;
+  struct tty_display_info *tty = tty_list;
 
   while (tty) {
     if ((tty->name == 0 && name == 0)
@@ -2130,8 +2130,8 @@ DEFUN ("frame-tty-name", Fframe_tty_name, Sframe_tty_name, 0, 1, 0,
   if (f->output_method != output_termcap)
     wrong_type_argument (Qframe_tty_name, frame);
 
-  if (f->output_data.tty->name)
-    return build_string (f->output_data.tty->name);
+  if (FRAME_TTY (f)->name)
+    return build_string (FRAME_TTY (f)->name);
   else
     return Qnil;
 }
@@ -2156,8 +2156,8 @@ DEFUN ("frame-tty-type", Fframe_tty_type, Sframe_tty_type, 0, 1, 0,
   if (f->output_method != output_termcap)
     wrong_type_argument (Qframe_tty_type, frame);
 
-  if (f->output_data.tty->type)
-    return build_string (f->output_data.tty->type);
+  if (FRAME_TTY (f)->type)
+    return build_string (FRAME_TTY (f)->type);
   else
     return Qnil;
 }
@@ -2167,22 +2167,22 @@ DEFUN ("frame-tty-type", Fframe_tty_type, Sframe_tty_type, 0, 1, 0,
 			    Initialization
  ***********************************************************************/
 
-struct tty_output *
+struct tty_display_info *
 term_dummy_init (void)
 {
   if (initialized || tty_list)
     error ("tty already initialized");
 
-  tty_list = xmalloc (sizeof (struct tty_output));
-  bzero (tty_list, sizeof (struct tty_output));
-  TTY_NAME (tty_list) = 0;
-  TTY_INPUT (tty_list) = stdin;
-  TTY_OUTPUT (tty_list) = stdout;
+  tty_list = xmalloc (sizeof (struct tty_display_info));
+  bzero (tty_list, sizeof (struct tty_display_info));
+  tty_list->name = 0;
+  tty_list->input = stdin;
+  tty_list->input = stdout;
   return tty_list;
 }
 
 
-struct tty_output *
+struct tty_display_info *
 term_init (Lisp_Object frame, char *name, char *terminal_type)
 {
   char *area;
@@ -2192,7 +2192,7 @@ term_init (Lisp_Object frame, char *name, char *terminal_type)
   register char *p;
   int status;
   struct frame *f = XFRAME (frame);
-  struct tty_output *tty;
+  struct tty_display_info *tty;
 
   tty = get_named_tty (name);
   if (tty)
@@ -2204,8 +2204,8 @@ term_init (Lisp_Object frame, char *name, char *terminal_type)
     }
   else
     {
-      tty = (struct tty_output *) xmalloc (sizeof (struct tty_output));
-      bzero (tty, sizeof (struct tty_output));
+      tty = (struct tty_display_info *) xmalloc (sizeof (struct tty_display_info));
+      bzero (tty, sizeof (struct tty_display_info));
       tty->next = tty_list;
       tty_list = tty;
     }
@@ -2216,7 +2216,9 @@ term_init (Lisp_Object frame, char *name, char *terminal_type)
   /* Make sure the frame is live; if an error happens, it must be
      deleted. */
   f->output_method = output_termcap;
-  f->output_data.tty = tty;
+  if (! f->output_data.tty)
+    abort ();
+  f->output_data.tty->display_info = tty;
   
   if (name)
     {
@@ -2229,18 +2231,18 @@ term_init (Lisp_Object frame, char *name, char *terminal_type)
           error ("Could not open file: %s", name);
         }
       file = fdopen (fd, "w+");
-      TTY_NAME (tty) = xstrdup (name);
-      TTY_INPUT (tty) = file;
-      TTY_OUTPUT (tty) = file;
+      tty->name = xstrdup (name);
+      tty->input = file;
+      tty->output = file;
     }
   else
     {
-      TTY_NAME (tty) = 0;
-      TTY_INPUT (tty) = stdin;
-      TTY_OUTPUT (tty) = stdout;
+      tty->name = 0;
+      tty->input = stdin;
+      tty->output = stdout;
     }
 
-  TTY_TYPE (tty) = xstrdup (terminal_type);
+  tty->type = xstrdup (terminal_type);
 
   add_keyboard_wait_descriptor (fileno (tty->input));
   
@@ -2699,9 +2701,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   tty->top_frame = frame;
   
-  tty->foreground_pixel = FACE_TTY_DEFAULT_FG_COLOR;
-  tty->background_pixel = FACE_TTY_DEFAULT_BG_COLOR;
-  
   /* Init system terminal modes (RAW or CBREAK, etc.).  */
   init_sys_modes (tty);
   
@@ -2730,7 +2729,7 @@ DEFUN ("delete-tty", Fdelete_tty, Sdelete_tty, 0, 1, 0,
   (tty)
      Lisp_Object tty;
 {
-  struct tty_output *t;
+  struct tty_display_info *t;
   char *name = 0;
 
   CHECK_STRING (tty);
@@ -2753,7 +2752,7 @@ DEFUN ("delete-tty", Fdelete_tty, Sdelete_tty, 0, 1, 0,
 static int deleting_tty = 0;
 
 void
-delete_tty (struct tty_output *tty)
+delete_tty (struct tty_display_info *tty)
 {
   Lisp_Object tail, frame;
   
@@ -2768,7 +2767,7 @@ delete_tty (struct tty_output *tty)
     tty_list = tty->next;
   else
     {
-      struct tty_output *p;
+      struct tty_display_info *p;
       for (p = tty_list; p && p->next != tty; p = p->next)
         ;
 
@@ -2814,7 +2813,7 @@ delete_tty (struct tty_output *tty)
   if (tty->Wcm)
     xfree (tty->Wcm); 
   
-  bzero (tty, sizeof (struct tty_output));
+  bzero (tty, sizeof (struct tty_display_info));
   xfree (tty);
   deleting_tty = 0;
 }
@@ -2822,12 +2821,12 @@ delete_tty (struct tty_output *tty)
 
 
 
-/* Mark the pointers in the tty_output objects.
+/* Mark the pointers in the tty_display_info objects.
    Called by the Fgarbage_collector.  */
 void
 mark_ttys ()
 {
-  struct tty_output *tty;
+  struct tty_display_info *tty;
   Lisp_Object *p;
   for (tty = tty_list; tty; tty = tty->next)
     {

@@ -18,11 +18,22 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* Each termcap frame points to its own struct tty_output object in the
-   output_data.tty field.  The tty_output structure contains the information
-   that is specific to terminals. */
+/* Each termcap frame points to its own struct tty_output object in
+   the output_data.tty field.  The tty_output structure contains the
+   information that is specific to termcap frames. */
 struct tty_output
 {
+  /* The Emacs structure for the tty device this frame is on. */
+  struct tty_display_info *display_info;
+
+  /* There is nothing else here at the moment... */
+};
+
+/* Parameters that are shared between frames on the same tty device. */
+struct tty_display_info
+{
+  struct tty_display_info *next; /* Chain of all tty devices. */
+  
   char *name;                   /* The name of the device file or 0 if
                                    stdin/stdout. */
   char *type;                   /* The type of the tty. */
@@ -40,8 +51,9 @@ struct tty_output
   int term_initted;             /* 1 if we have been through init_sys_modes. */
 
 
-  /* Structure for info on cursor positioning.  */
-
+  int reference_count;          /* Number of frames that are on this display. */
+  
+  /* Info on cursor positioning.  */
   struct cm *Wcm;
 
   /* Redisplay. */
@@ -51,12 +63,6 @@ struct tty_output
   
   /* The previous terminal frame we displayed on this tty.  */
   struct frame *previous_terminal_frame;
-
-  /* Pixel values.
-     XXX What are these used for? */
-  
-  unsigned long background_pixel;
-  unsigned long foreground_pixel;
 
   /* Terminal characteristics. */
   
@@ -192,22 +198,18 @@ struct tty_output
   /* Flag used in tty_show/hide_cursor.  */
 
   int cursor_hidden;
-
-
-  struct tty_output *next;
 };
 
-extern struct tty_output *tty_list;
+/* A chain of structures for all tty devices currently in use. */
+extern struct tty_display_info *tty_list;
 
 
-#define FRAME_TTY(f) \
-  ((f)->output_method == output_termcap \
-   ? (f)->output_data.tty : (abort(), (struct tty_output *) 0))
-  
+#define FRAME_TTY(f)                            \
+  ((f)->output_method == output_termcap         \
+   ? (f)->output_data.tty->display_info         \
+   : (abort(), (struct tty_display_info *) 0))
+
 #define CURTTY() FRAME_TTY (SELECTED_FRAME())
-
-#define TTY_NAME(t) ((t)->name)
-#define TTY_TYPE(t) ((t)->type)
 
 #define TTY_INPUT(t) ((t)->input)
 #define TTY_OUTPUT(t) ((t)->output)
@@ -220,12 +222,6 @@ extern struct tty_output *tty_list;
 #define TTY_SCROLL_REGION_OK(t) ((t)->scroll_region_ok)
 #define TTY_SCROLL_REGION_COST(t) ((t)->scroll_region_cost)
 #define TTY_MEMORY_BELOW_FRAME(t) ((t)->memory_below_frame)
-
-#if 0
-/* These are not used anywhere. */
-#define TTY_MIN_PADDING_SPEED(t) ((t)->min_padding_speed)
-#define TTY_DONT_CALCULATE_COSTS(t) ((t)->dont_calculate_costs)
-#endif
 
 /* arch-tag: bf9f0d49-842b-42fb-9348-ec8759b27193
    (do not change this comment) */

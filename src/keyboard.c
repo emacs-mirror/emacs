@@ -6612,7 +6612,7 @@ read_avail_input (expected)
 	 of characters on some systems when input is stuffed at us.  */
       unsigned char cbuf[KBD_BUFFER_SIZE - 1];
       int n_to_read;
-      struct tty_output *tty;
+      struct tty_display_info *tty;
       Lisp_Object frame;
       
 #ifdef WINDOWSNT

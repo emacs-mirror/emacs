@@ -62,7 +62,7 @@ evalcost (c)
 }
 
 /* The terminal to use for low-level output. */
-struct tty_output * current_tty;
+struct tty_display_info *current_tty;
 
 int
 cmputc (c)
@@ -135,7 +135,7 @@ addcol (tty, n) {
  * after we reach the last column; this takes us to a known state.
  */
 void
-cmcheckmagic (struct tty_output *tty)
+cmcheckmagic (struct tty_display_info *tty)
 {
   if (curX (tty) == FrameCols (tty))
     {
@@ -160,7 +160,7 @@ cmcheckmagic (struct tty_output *tty)
  */
 
 void
-cmcostinit (struct tty_output *tty)
+cmcostinit (struct tty_display_info *tty)
 {
     char *p;
 
@@ -200,7 +200,8 @@ cmcostinit (struct tty_output *tty)
  */
 
 static int
-calccost (struct tty_output *tty, int srcy, int srcx, int dsty, int dstx, int doit)
+calccost (struct tty_display_info *tty,
+          int srcy, int srcx, int dsty, int dstx, int doit)
 {
     register int    deltay,
                     deltax,
@@ -336,7 +337,7 @@ losecursor ()
 
 void
 cmgoto (tty, row, col)
-     struct tty_output *tty;
+     struct tty_display_info *tty;
      int row, col;
 {
     int     homecost,
@@ -441,7 +442,7 @@ cmgoto (tty, row, col)
  */
 
 void
-Wcm_clear (struct tty_output *tty)
+Wcm_clear (struct tty_display_info *tty)
 {
   bzero (tty->Wcm, sizeof (struct cm));
   UP = 0;
@@ -456,7 +457,7 @@ Wcm_clear (struct tty_output *tty)
  */
 
 int
-Wcm_init (struct tty_output *tty)
+Wcm_init (struct tty_display_info *tty)
 {
 #if 0
   if (tty->Wcm->cm_abs && !tty->Wcm->cm_ds)

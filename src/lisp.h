@@ -2937,7 +2937,10 @@ EXFUN (Fx_popup_dialog, 2);
 extern void syms_of_xmenu P_ ((void));
 
 /* defined in termchar.h */
-struct tty_output;
+struct tty_display_info;
+
+/* defined in termhooks.h */
+struct display;
 
 /* defined in sysdep.c */
 extern void stuff_char P_ ((char c));
@@ -2945,8 +2948,8 @@ extern void init_sigio P_ ((int));
 extern void sys_subshell P_ ((void));
 extern void sys_suspend P_ ((void));
 extern void discard_tty_input P_ ((void));
-extern void init_sys_modes P_ ((struct tty_output *));
-extern void reset_sys_modes P_ ((struct tty_output *));
+extern void init_sys_modes P_ ((struct tty_display_info *));
+extern void reset_sys_modes P_ ((struct tty_display_info *));
 extern void init_all_sys_modes P_ ((void));
 extern void reset_all_sys_modes P_ ((void));
 extern void wait_for_termination P_ ((int));

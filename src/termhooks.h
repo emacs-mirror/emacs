@@ -30,6 +30,12 @@ struct frame;
 #define P_(X) ()
 #endif
 
+/* Device-local parameters. */
+struct device
+{
+  /* XXX Display hooks will go here. */
+};
+
 /* Text display hooks.  */
 
 extern void (*cursor_to_hook) P_ ((int vpos, int hpos));

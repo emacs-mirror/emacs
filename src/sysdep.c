@@ -252,8 +252,8 @@ int emacs_ospeed;
 void croak P_ ((char *));
 
 #ifdef AIXHFT
-void hft_init P_ ((struct tty_output *));
-void hft_reset P_ ((struct tty_output *));
+void hft_init P_ ((struct tty_display_info *));
+void hft_reset P_ ((struct tty_display_info *));
 #endif
 
 /* Temporary used by `sigblock' when defined in terms of signprocmask.  */
@@ -285,7 +285,7 @@ discard_tty_input ()
 #else /* not VMS */
 #ifdef APOLLO
   {
-    struct tty_output *tty;
+    struct tty_display_info *tty;
     for (tty = tty_list; tty; tty = tty->next)
       {
         int zero = 0;
@@ -298,7 +298,7 @@ discard_tty_input ()
     ;
 #else /* not MSDOS */
   {
-    struct tty_output *tty;
+    struct tty_display_info *tty;
     for (tty = tty_list; tty; tty = tty->next)
       {
         EMACS_GET_TTY (fileno (TTY_INPUT (tty)), &buf);
@@ -1295,14 +1295,14 @@ static struct tchars new_tchars = {-1,-1,-1,-1,-1,-1};
 void
 init_all_sys_modes (void)
 {
-  struct tty_output *tty;
+  struct tty_display_info *tty;
   for (tty = tty_list; tty; tty = tty->next)
     init_sys_modes (tty);
 }
 
 void
 init_sys_modes (tty_out)
-     struct tty_output *tty_out;
+     struct tty_display_info *tty_out;
 {
   struct emacs_tty tty;
 
@@ -1796,7 +1796,7 @@ set_window_size (fd, height, width)
 void
 reset_all_sys_modes (void)
 {
-  struct tty_output *tty;
+  struct tty_display_info *tty;
   for (tty = tty_list; tty; tty = tty->next)
     reset_sys_modes (tty);
 }
@@ -1805,7 +1805,7 @@ reset_all_sys_modes (void)
    bottom of the frame, turn off interrupt-driven I/O, etc.  */
 void
 reset_sys_modes (tty_out)
-     struct tty_output *tty_out;
+     struct tty_display_info *tty_out;
 {
   if (noninteractive)
     {
@@ -5110,7 +5110,7 @@ srandom (seed)
 
 /* Called from init_sys_modes.  */
 void
-hft_init (struct tty_output *tty_out)
+hft_init (struct tty_display_info *tty_out)
 {
   int junk;
 
@@ -5165,7 +5165,7 @@ hft_init (struct tty_output *tty_out)
 /* Reset the rubout key to backspace.  */
 
 void
-hft_reset (struct tty_output *tty_out)
+hft_reset (struct tty_display_info *tty_out)
 {
   struct hfbuf buf;
   struct hfkeymap keymap;
