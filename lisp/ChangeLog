@@ -1,3 +1,7 @@
+2001-01-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* simple.el (delete-trailing-whitespace): Don't delete formfeeds.
+
 2001-01-29  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* pcvs.el (cvs-mark-fis-dead): New function.
