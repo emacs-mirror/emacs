@@ -1,7 +1,7 @@
 2002-05-05  Markus Rost  <rost@math.ohio-state.edu>
 
-	* time-stamp.el (time-stamp-format): Escape open parenthesis in
-	column 0.
+	* time-stamp.el (time-stamp-format):  Doc fix: escape open
+	parenthesis in column 0.
 
 2002-05-04  Richard M. Stallman  <rms@gnu.org>
 
