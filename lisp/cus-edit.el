@@ -3649,7 +3649,7 @@ to the new custom file.  This will preserve your existing customizations."
   "Visit `custom-file' and delete all calls to SYMBOL from it.
 Leave point at the old location of the first such call,
 or (if there were none) at the end of the buffer."
-  (let ((default-major-mode))
+  (let ((default-major-mode 'emacs-lisp-mode))
     (set-buffer (find-file-noselect (custom-file))))
   (goto-char (point-min))
   ;; Skip all whitespace and comments.
