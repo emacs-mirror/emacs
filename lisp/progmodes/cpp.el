@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1994, 1995 Free Software Foundation
 
-;; Author: Per Abrahamsen <abraham@iesd.auc.dk>
+;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: c, faces, tools
 
 ;; This file is part of GNU Emacs.
