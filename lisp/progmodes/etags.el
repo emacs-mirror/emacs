@@ -69,19 +69,19 @@ Use the `etags' program to make a tags table file."
   "*List of extensions tried by etags when jka-compr is used.
 An empty string means search the non-compressed file.
 These extensions will be tried only if jka-compr was activated
-(i.e. via customize of auto-compression-mode or by calling the function
-auto-compression-mode)."
-  :type  'sexp ;;; what should be put here to have a list of strings ?
+\(i.e. via customize of `auto-compression-mode' or by calling the function
+`auto-compression-mode')."
+  :type  '(repeat string)
   :group 'etags)
 
-;;; !!! tags-compression-info-list should probably be replaced by access
-;;; to directory list and matching jka-compr-compression-info-list. Currently,
-;;; this implementation forces each modification of
-;;; jka-compr-compression-info-list to be reflected in this var.
-;;; An alternative could be to say that introducing a special
-;;; element in this list (e.g. t) means : try at this point
-;;; using directory listing and regexp matching using
-;;; jka-compr-compression-info-list.
+;; !!! tags-compression-info-list should probably be replaced by access
+;; to directory list and matching jka-compr-compression-info-list. Currently,
+;; this implementation forces each modification of
+;; jka-compr-compression-info-list to be reflected in this var.
+;; An alternative could be to say that introducing a special
+;; element in this list (e.g. t) means : try at this point
+;; using directory listing and regexp matching using
+;; jka-compr-compression-info-list.
 
 
 ;;;###autoload
@@ -1503,25 +1503,25 @@ where they were found."
        (save-excursion (backward-char (length tag))
 		       (looking-at "\\b"))))
 
-;;; exact file name match, i.e. searched tag must match complete file
-;;; name including directories parts if there are some.
+;; exact file name match, i.e. searched tag must match complete file
+;; name including directories parts if there are some.
 (defun tag-exact-file-name-match-p (tag)
   (and (looking-at ",")
        (save-excursion (backward-char (+ 2 (length tag)))
 		       (looking-at "\f\n"))))
-;;; file name match as above, but searched tag must match the file
-;;; name not including the directories if there are some.
+;; file name match as above, but searched tag must match the file
+;; name not including the directories if there are some.
 (defun tag-file-name-match-p (tag)
   (and (looking-at ",")
        (save-excursion (backward-char (1+ (length tag)))
 		       (looking-at "/"))))
-;;; this / to detect we are after a directory separator is ok for unix,
-;;; is there a variable that contains the regexp for directory separator
-;;; on whatever operating system ?
-;;; Looks like ms-win will lose here :).
+;; this / to detect we are after a directory separator is ok for unix,
+;; is there a variable that contains the regexp for directory separator
+;; on whatever operating system ?
+;; Looks like ms-win will lose here :).
 
-;;; partial file name match, i.e. searched tag must match a substring
-;;; of the file name (potentially including a directory separator).
+;; partial file name match, i.e. searched tag must match a substring
+;; of the file name (potentially including a directory separator).
 (defun tag-partial-file-name-match-p (tag)
   (and (looking-at ".*,")
        (save-excursion (beginning-of-line)
@@ -1802,7 +1802,7 @@ directory specification."
     (setq buffer-read-only t)
     (apropos-mode)))
 
-;;; XXX Kludge interface.
+;; XXX Kludge interface.
 
 ;; XXX If a file is in multiple tables, selection may get the wrong one.
 ;;;###autoload
@@ -1890,7 +1890,7 @@ see the doc of that variable if you want to add names to the list."
   (interactive)
   (quit-window t (selected-window)))
 
-;;; Note, there is another definition of this function in bindings.el.
+;; Note, there is another definition of this function in bindings.el.
 ;;;###autoload
 (defun complete-tag ()
   "Perform tags completion on the text around point.
