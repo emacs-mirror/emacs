@@ -1480,7 +1480,7 @@ unsigned long
 cons_to_long (c)
      Lisp_Object c;
 {
-  int top, bot;
+  Lisp_Object top, bot;
   if (INTEGERP (c))
     return XINT (c);
   top = XCONS (c)->car;
