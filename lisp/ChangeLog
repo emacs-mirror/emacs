@@ -1,3 +1,8 @@
+2000-09-05  Dave Love  <fx@gnu.org>
+
+	* help.el (help-manyarg-func-alist): Add ml-prefix-argument-loop,
+	insert-before-markers-and-inherit.  Now checked systematically!
+
 2000-09-05  Alex Schroeder  <alex@gnu.org>
 
 	* sql.el (sql-postgres): Use sql-postgres-options.
