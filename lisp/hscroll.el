@@ -1,4 +1,4 @@
-;;; hscroll.el: Minor mode to automatically scroll truncated lines horizontally
+;;; hscroll.el --- automatically scroll truncated lines horizontally
 ;;; Copyright (C) 1992, 1993, 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author: Wayne Mesard <wmesard@esd.sgi.com>
