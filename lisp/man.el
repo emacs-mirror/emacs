@@ -559,7 +559,8 @@ The following key bindings are currently in effect in the buffer:
   (use-local-map Man-mode-map)
   (goto-char (point-min))
   (Man-build-page-list)
-  (Man-goto-page 1))
+  (Man-goto-page 1)
+  (run-hooks 'Man-mode-hook))
 
 (defun Man-build-section-alist ()
   "Build the association list of manpage sections."
