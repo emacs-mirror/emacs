@@ -7,3 +7,4 @@ myfmt.c
 newfmt.c
 platform.c
 testlib.c
+epvmfmt.c
