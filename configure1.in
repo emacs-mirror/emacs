@@ -1046,9 +1046,18 @@ AC_CONFIG_HEADER(src/config.h)
 [
 
 #### Choose a compiler.
+if [ "x$CC" = x ]
+then cc_specified=1
+fi
+
 case ${with_gcc} in
   "yes" ) CC="gcc" GCC=1 ;;
-  "no"  ) CC=${CC:-"cc"} ;;
+  "no"  )
+    if [ "x$CC" = x ]
+    then true;
+    else CC=cc;
+    fi
+    ;;
   * )
     ] AC_PROG_CC [
 esac
@@ -1056,7 +1065,7 @@ esac
 #### Some systems specify a CPP to use unless we are using GCC.
 #### Now that we know whether we are using GCC, we can decide whether
 #### to use that one.
-if [ "x$NON_GNU_CPP" = x ] || [ x$GCC = x1 ]
+if [ "x$NON_GNU_CPP" = x ] || [ x$GCC = x1 ] || [ "x$CPP" = x ]
 then true
 else
   CPP="$NON_GNU_CPP"
@@ -1065,10 +1074,10 @@ fi
 #### Some systems specify a CC to use unless we are using GCC.
 #### Now that we know whether we are using GCC, we can decide whether
 #### to use that one.
-if [ x$NON_GNU_CC = x ] || [ x$GCC = x1 ]
+if [ "x$NON_GNU_CC" = x ] || [ x$GCC = x1 ] || [ x$cc_specified = x1 ]
 then true
 else
-  CC=$NON_GNU_CC
+  CC="$NON_GNU_CC"
 fi
 
 #### Some other nice autoconf tests.  If you add a test here which
