@@ -115,7 +115,7 @@ Default to the Edit menu if the major mode doesn't define a menu."
 	(if (eq submap t)
 	    menubar
 	  (setq mouse-major-mode-menu-prefix (list (car submap)))
-	  (cdr (cdr submap))))))
+	  (lookup-key menubar (vector (car submap)))))))
 
 ;; Commands that operate on windows.
 
@@ -309,7 +309,7 @@ MODE-LINE-P non-nil means a mode line is dragged."
 		 ;;
 		 ;; if size change caused space to be stolen
 		 ;; from a window above this one, rescind the
-		 ;; change, but only if we didn't grow/srhink
+		 ;; change, but only if we didn't grow/shrink
 		 ;; the minibuffer.  minibuffer size changes
 		 ;; can cause all windows to shrink... no way
 		 ;; around it.
