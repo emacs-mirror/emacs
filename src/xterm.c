@@ -261,7 +261,7 @@ static XRectangle last_mouse_glyph;
    to Qnil, to tell XTmouse_position to return an ordinary motion event.  */
 static Lisp_Object last_mouse_scroll_bar;
 
-/* Record which buttons are currently pressed. */
+/* Record which buttons are currently pressed.  */
 unsigned int x_mouse_grabbed;
 
 /* This is a hack.  We would really prefer that XTmouse_position would
@@ -5182,7 +5182,7 @@ x_set_offset (f, xoff, yoff, change_gravity)
   if (change_gravity)
     f->display.x->win_gravity = NorthWestGravity;
 
-  x_wm_set_size_hint (f, 0, 1);
+  x_wm_set_size_hint (f, 0, 0);
 #endif /* ! defined (HAVE_X11) */
   UNBLOCK_INPUT;
 }
@@ -5218,7 +5218,8 @@ x_set_window_size (f, change_gravity, cols, rows)
   pixelheight = CHAR_TO_PIXEL_HEIGHT (f, rows);
 
 #ifdef HAVE_X11
-  x_wm_set_size_hint (f, 0, change_gravity);
+  f->display.x->win_gravity = NorthWestGravity;
+  x_wm_set_size_hint (f, 0, 0);
 #endif /* ! defined (HAVE_X11) */
   XSync (x_current_display, False);
   XChangeWindowSize (FRAME_X_WINDOW (f), pixelwidth, pixelheight);
@@ -5386,7 +5387,9 @@ x_make_frame_visible (f)
   if (! FRAME_VISIBLE_P (f))
     {
 #ifdef HAVE_X11
+#ifndef USE_X_TOOLKIT
       x_set_offset (f, f->display.x->left_pos, f->display.x->top_pos, 0);
+#endif
 
       if (! EQ (Vx_no_window_manager, Qt))
 	x_wm_set_window_state (f, NormalState);
@@ -5438,6 +5441,13 @@ x_make_frame_invisible (f)
 #endif
 
   BLOCK_INPUT;
+
+  /* Before unmapping the window, update the WM_SIZE_HINTS property to claim
+     that the current position of the window is user-specified, rather than
+     program-specified, so that when the window is mapped again, it will be
+     placed at the same location, without forcing the user to position it
+     by hand again (they have already done that once for this window.)  */
+  x_wm_set_size_hint (f, 0, 1);
 
 #ifdef HAVE_X11R4
 
@@ -5713,14 +5723,16 @@ mouse_event_pending_p ()
 
 #ifdef HAVE_X11
 
-/* SPEC_X and SPEC_Y are the specified positions.
-   We look only at their sign, to decide the gravity.
-   If CHANGE_GRAVITY is 0, we may set PWinGravity.  */
+/* Set the normal size hints for the window manager, for frame F.
+   FLAGS is the flags word to use--or 0 meaning preserve the flags
+   that the window now has.
+   If USER_POSITION is nonzero, we set the USPosition
+   flag (this is useful when FLAGS is 0).  */
 
-x_wm_set_size_hint (f, prompting, change_gravity)
+x_wm_set_size_hint (f, flags, user_position)
      struct frame *f;
-     long prompting;
-     int change_gravity;
+     long flags;
+     int user_position;
 {
   XSizeHints size_hints;
 
@@ -5740,6 +5752,19 @@ x_wm_set_size_hint (f, prompting, change_gravity)
 
   size_hints.x = f->display.x->left_pos;
   size_hints.y = f->display.x->top_pos;
+
+  /* Treat negative positions as relative to the leftmost bottommost
+     position that fits on the screen.  */
+  if (flags & XNegative)
+    size_hints.x = (x_screen_width 
+		    - 2 * f->display.x->border_width
+		    - PIXEL_WIDTH (f)
+		    + f->display.x->left_pos);
+  if (flags & YNegative)
+    size_hints.y = (x_screen_height
+		    - 2 * f->display.x->border_width
+		    - PIXEL_HEIGHT (f)
+		    + f->display.x->top_pos);
 
 #ifdef USE_X_TOOLKIT
   XtSetArg (al[ac], XtNwidth, &widget_width); ac++;
@@ -5788,13 +5813,22 @@ x_wm_set_size_hint (f, prompting, change_gravity)
 #endif
   }
 
-  if (prompting)
-    size_hints.flags |= prompting;
+  if (flags)
+    size_hints.flags |= flags;
   else
     {
       XSizeHints hints;		/* Sometimes I hate X Windows... */
+      long supplied_return;
+      int value;
+
+#ifdef HAVE_X11R4
+      value = XGetWMNormalHints (x_current_display, window, &hints,
+				 &supplied_return);
+#else
+      value = XGetNormalHints (x_current_display, window, &hints);
+#endif
       
-      if (XGetNormalHints (x_current_display, window, &hints) == 0)
+      if (value == 0)
 	hints.flags = 0;
       if (hints.flags & PSize)
 	size_hints.flags |= PSize;
@@ -5806,13 +5840,14 @@ x_wm_set_size_hint (f, prompting, change_gravity)
 	size_hints.flags |= USSize;
     }
 
-#if defined (PWinGravity)
+#ifdef PWinGravity
   size_hints.win_gravity = f->display.x->win_gravity;
+  size_hints.flags |= PWinGravity;
 
-  if (change_gravity)
+  if (user_position)
     {
-      if (! (size_hints.flags & USPosition))
-	size_hints.flags |= PWinGravity;
+      size_hints.flags &= ~ PPosition;
+      size_hints.flags |= USPosition;
     }
 #endif /* PWinGravity */
 
