@@ -1,3 +1,12 @@
+2001-12-06  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/fill.el (set-justification): Rename arg VALUE to STYLE.
+	(set-justification-left, set-justification-right): Doc fix.
+
+	* progmodes/f90.el (f90-break-line): Use (newline 1)
+	to insert newlines.
+	(bug-f90-mode): Variable deleted.
+
 2001-12-06  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* indent.el (indent-line-function): Default is indent-relative again.
