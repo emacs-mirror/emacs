@@ -1,3 +1,7 @@
+2005-01-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* emacs-lisp/elint.el: Fixed typo in Commentary section.
+
 2005-01-12  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-help.el (calc-describe-key): Use temporary info buffer
