@@ -39,6 +39,7 @@ Boston, MA 02111-1307, USA.  */
 #include "region-cache.h"
 #include "indent.h"
 #include "blockinput.h"
+#include "frame.h"
 
 struct buffer *current_buffer;		/* the current buffer */
 
@@ -179,11 +180,34 @@ Value is nil if OBJECT is not a buffer or if it has been killed.")
 	  ? Qt : Qnil);
 }
 
-DEFUN ("buffer-list", Fbuffer_list, Sbuffer_list, 0, 0, 0,
-  "Return a list of all existing live buffers.")
-  ()
+DEFUN ("buffer-list", Fbuffer_list, Sbuffer_list, 0, 1, 0,
+  "Return a list of all existing live buffers.\n\
+If the optional arg FRAME is a frame, we return that frame's buffer list.")
+  (frame)
+     Lisp_Object frame;
 {
-  return Fmapcar (Qcdr, Vbuffer_alist);
+  Lisp_Object framelist, general;
+  general = Fmapcar (Qcdr, Vbuffer_alist);
+
+  if (FRAMEP (frame))
+    {
+      Lisp_Object tail;
+
+      CHECK_FRAME (frame, 1);
+
+      framelist = Fcopy_sequence (XFRAME (frame)->buffer_list);
+
+      /* Remove from GENERAL any buffer that duplicates one in FRAMELIST.  */
+      tail = framelist;
+      while (! NILP (tail))
+	{
+	  general = Fdelq (XCONS (tail)->car, general);
+	  tail = XCONS (tail)->cdr;
+	}
+      return nconc2 (framelist, general);
+    }
+
+  return general;
 }
 
 /* Like Fassoc, but use Fstring_equal to compare
