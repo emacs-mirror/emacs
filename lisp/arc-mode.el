@@ -127,18 +127,6 @@
   :type 'directory
   :group 'archive)
 
-(defvar archive-file-name-invalid-regexp
-  (cond ((and (eq system-type 'ms-dos) (not (msdos-long-file-names)))
-	 (concat "\\(^\\([A-z]:\\)?/?.*:\\)\\|"   ; colon except after drive
-		 "[+, ;=|<>\"?*]\\|\\[\\|\\]\\|"  ; invalid characters
-		 "\\(/\\.\\.?[^/]\\)\\|"	  ; leading dots
-		 "\\(/[^/.]+\\.[^/.]*\\.\\)"))	  ; more than a single dot
-	((memq system-type '(ms-dos windows-nt))
-	 (concat "\\(^\\([A-z]:\\)?/?.*:\\)\\|"   ; colon except after drive
-		 "[|<>\"?*]"))			  ; invalid characters
-	(t "[\000]"))
-  "Regexp recognizing file names which aren't allowed by the filesystem.")
-
 (defcustom archive-remote-regexp "^/[^/:]*[^/:.]:"
   "*Regexp recognizing archive files names that are not local.
 A non-local file is one whose file name is not proper outside Emacs.
@@ -544,7 +532,7 @@ archive.
 	(setq archive-read-only
 	      (or (not (file-writable-p (buffer-file-name)))
 		  (and archive-subfile-mode
-		       (string-match archive-file-name-invalid-regexp
+		       (string-match file-name-invalid-regexp
 				     (aref archive-subfile-mode 0)))))
 
 	;; Should we use a local copy when accessing from outside Emacs?
@@ -555,7 +543,7 @@ archive.
 	(or archive-remote
 	    (setq archive-remote
 		  (or (string-match archive-remote-regexp (buffer-file-name))
-		      (string-match archive-file-name-invalid-regexp
+		      (string-match file-name-invalid-regexp
 				    (buffer-file-name)))))
 
 	(setq major-mode 'archive-mode)
@@ -770,7 +758,7 @@ If FNAME is something our underlying filesystem can't grok, or if another
 file by that name already exists in DIR, a unique new name is generated
 using `make-temp-name', and the generated name is returned."
   (let ((fullname (expand-file-name fname dir))
-	(alien (string-match archive-file-name-invalid-regexp fname)))
+	(alien (string-match file-name-invalid-regexp fname)))
     (if (or alien (file-exists-p fullname))
 	(make-temp-name
 	 (expand-file-name
@@ -865,7 +853,7 @@ using `make-temp-name', and the generated name is returned."
 	 ;; underlying filesystem, are treated as read-only.
          (read-only-p (or archive-read-only
 			  view-p
-			  (string-match archive-file-name-invalid-regexp ename)))
+			  (string-match file-name-invalid-regexp ename)))
          (buffer (get-buffer bufname))
          (just-created nil))
       (if buffer
