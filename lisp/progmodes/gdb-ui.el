@@ -257,6 +257,7 @@ detailed description of this mode.
   (if (eq window-system 'w32)
       (gdb-enqueue-input (list "set new-console off\n" 'ignore)))
   (gdb-enqueue-input (list "set height 0\n" 'ignore))
+  (gdb-enqueue-input (list "set width 0\n" 'ignore))
   ;; find source file and compilation directory here
   (gdb-enqueue-input (list "server list main\n"   'ignore))   ; C program
   (gdb-enqueue-input (list "server list MAIN__\n" 'ignore))   ; Fortran program
