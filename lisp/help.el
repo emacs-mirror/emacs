@@ -135,11 +135,14 @@ A tutorial written in the current primary language is selected.
 If there's no tutorial in the language, \"TUTORIAL\" is selected.
 With arg, users are asked to select language."
   (interactive "P")
-  (let* ((filename
-	  (let ((lang (if arg (read-language-name 'tutorial "Language: ")
-			primary-language)))
-	    (get-language-info lang 'tutorial)))
-	 (file (expand-file-name (concat "~/" filename))))
+  (let (lang filename file)
+    (if arg
+	(or (setq lang (read-language-name 'tutorial "Language: "))
+	    (error "No tutorial file of the specified language"))
+      (setq lang primary-language))
+    (setq filename (or (get-language-info lang 'tutorial)
+		       "TUTORIAL"))
+    (setq file (expand-file-name (concat "~/" filename)))
     (delete-other-windows)
     (if (get-file-buffer file)
 	(switch-to-buffer (get-file-buffer file))
