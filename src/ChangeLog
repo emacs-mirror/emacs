@@ -1,5 +1,7 @@
 2000-11-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* s/hpux10.h (_FILE_OFFSET_BITS): Undef.
+
 	* buffer.c (mmap_free_1): Avoid a compiler warning.
 
 	* term.c, cm.c: Don't try to include termcap.h; see comment there.
