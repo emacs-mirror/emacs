@@ -484,13 +484,15 @@ and the greater of them is not at the start of a line."
 
 (defun what-cursor-position (&optional detail)
   "Print info on cursor position (on screen and within buffer).
-With prefix argument, print detailed info of a character on cursor position.
+Also describe the character after point, and give its character code
+in octal, decimal and hex.  For a non-ASCII multibyte character,
+also give its encoding in the buffer's selected coding system,
+if any.
 
-For the detailed information, Emacs internal character code, Emacs
-internal character components (the character set name and position
-code(s)), and the corresponding external character components (the
-external character set name and external character code(s)) are shown
-in this order.
+With prefix argument, print additional details about that character,
+instead of the cursor position.  This includes the character set name,
+the codes that identify the character within that character set,
+and the corresponding external character components.
 
 Each language environment may show different external character components."
   (interactive "P")
@@ -525,10 +527,8 @@ Each language environment may show different external character components."
 		  (format "(0%o, %d, 0x%x, ext %s)"
 			  char char char
 			  encoding-string-hex)
-		(format "(%s, %s, %s)"
-			encoding-string-oct
-			  encoding-string-dec
-			  encoding-string-hex))))
+		(format "(0%o, %d, 0x%x)"
+			char char char))))
 	(if detail
 	    (let* ((internal (split-char char))
 		   (charset (char-charset char))
