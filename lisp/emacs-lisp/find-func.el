@@ -82,7 +82,7 @@ default."
 ;;; Functions:
 
 (defun find-function-noselect (function &optional path)
-  "Returns list `(buffer point)' pointing to the definition of FUNCTION.
+  "Returns list (BUFFER POINT) pointing to the definition of FUNCTION.
 
 Finds the Emacs Lisp library containing the definition of FUNCTION
 in a buffer and places point before the definition.  The buffer is
@@ -189,7 +189,7 @@ default function."
 	      fn (intern val)))))
 
 (defun find-function-do-it (function path switch-fn)
-  "find elisp FUNCTION in PATH and display it with SWITCH-FN.
+  "Find Emacs Lisp FUNCTION in PATH and display it with SWITCH-FN.
 Point is saved if FUNCTION is in the current buffer."
   (let ((orig-point (point))
 	(buffer-point (find-function-noselect function path)))
@@ -248,12 +248,38 @@ defined is searched in PATH instead of `load-path'"
   "Find the function that KEY invokes.  KEY is a string.
 Point is saved if FUNCTION is in the current buffer."
   (interactive "kFind function on key: ")
-  (let ((defn (key-binding key)))
-    (if (or (null defn) (integerp defn))
-        (message "%s is undefined" (key-description key))
-      (if (and (consp defn) (not (eq 'lambda (car-safe defn))))
-	  (message "runs %s" (prin1-to-string defn))
-	(find-function-other-window defn)))))
+  ;; If this key seq ends with a down event, discard the
+  ;; following click or drag event.  Otherwise that would
+  ;; erase an eventual message.
+  (let ((type (aref key (1- (length key)))))
+    (if (listp type) (setq type (car type)))
+    (and (symbolp type)
+	 (memq 'down (event-modifiers type))
+	 (read-event)))
+  (save-excursion
+    (let ((modifiers (event-modifiers (aref key 0)))
+          window position)
+      ;; For a mouse button event, go to the button it applies to
+      ;; to get the right key bindings.  And go to the right place
+      ;; in case the keymap depends on where you clicked.
+      (if (or (memq 'click modifiers) (memq 'down modifiers)
+              (memq 'drag modifiers))
+          (setq window (posn-window (event-start (aref key 0)))
+                position (posn-point (event-start (aref key 0)))))
+      (if (windowp window)
+          (progn
+            (set-buffer (window-buffer window))
+            (goto-char position)))
+      ;; Ok, now look up the key and name the command.
+      (let ((defn (key-binding key)))
+        (if (or (null defn) (integerp defn))
+            (message "%s is undefined" (key-description key))
+          (if (consp defn)
+              (message (if (windowp window)
+			   "%s at that spot runs %s"
+			 "%s runs %s")
+		       (key-description key) (prin1-to-string defn))
+            (find-function-other-window defn)))))))
 
 (provide 'find-func)
 
