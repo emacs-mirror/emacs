@@ -2281,20 +2281,27 @@ DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
 /* Run the modification-hooks of overlays that include
    any part of the text in START to END.
    Run the insert-before-hooks of overlay starting at END,
-   and the insert-after-hooks of overlay ending at START.  */
+   and the insert-after-hooks of overlay ending at START.
+
+   This is called both before and after the modification.
+   AFTER is nonzero when we call after the modification.
+
+   ARG1, ARG2, ARG3 are arguments to pass to the hook functions.  */
 
 void
-verify_overlay_modification (start, end)
+report_overlay_modification (start, end, after, arg1, arg2, arg3)
      Lisp_Object start, end;
+     int after;
+     Lisp_Object arg1, arg2, arg3;
 {
   Lisp_Object prop, overlay, tail;
   int insertion = EQ (start, end);
   int tail_copied;
-  struct gcpro gcpro1, gcpro2;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
   overlay = Qnil;
   tail = Qnil;
-  GCPRO2 (overlay, tail);
+  GCPRO5 (overlay, tail, arg1, arg2, arg3);
 
   tail_copied = 0;
   for (tail = current_buffer->overlays_before;
@@ -2321,7 +2328,7 @@ verify_overlay_modification (start, end)
 	      if (!tail_copied)
 		tail = Fcopy_sequence (tail);
 	      tail_copied = 1;
-	      call_overlay_mod_hooks (prop, overlay, start, end);
+	      call_overlay_mod_hooks (prop, overlay, after, arg1, arg2, arg3);
 	    }
 	}
       if (XFASTINT (start) == endpos && insertion)
@@ -2332,7 +2339,7 @@ verify_overlay_modification (start, end)
 	      if (!tail_copied)
 		tail = Fcopy_sequence (tail);
 	      tail_copied = 1;
-	      call_overlay_mod_hooks (prop, overlay, start, end);
+	      call_overlay_mod_hooks (prop, overlay, after, arg1, arg2, arg3);
 	    }
 	}
       /* Test for intersecting intervals.  This does the right thing
@@ -2345,7 +2352,7 @@ verify_overlay_modification (start, end)
 	      if (!tail_copied)
 		tail = Fcopy_sequence (tail);
 	      tail_copied = 1;
-	      call_overlay_mod_hooks (prop, overlay, start, end);
+	      call_overlay_mod_hooks (prop, overlay, after, arg1, arg2, arg3);
 	    }
 	}
     }
@@ -2374,7 +2381,7 @@ verify_overlay_modification (start, end)
 	      if (!tail_copied)
 		tail = Fcopy_sequence (tail);
 	      tail_copied = 1;
-	      call_overlay_mod_hooks (prop, overlay, start, end);
+	      call_overlay_mod_hooks (prop, overlay, after, arg1, arg2, arg3);
 	    }
 	}
       if (XFASTINT (start) == endpos && insertion)
@@ -2385,7 +2392,7 @@ verify_overlay_modification (start, end)
 	      if (!tail_copied)
 		tail = Fcopy_sequence (tail);
 	      tail_copied = 1;
-	      call_overlay_mod_hooks (prop, overlay, start, end);
+	      call_overlay_mod_hooks (prop, overlay, after, arg1, arg2, arg3);
 	    }
 	}
       /* Test for intersecting intervals.  This does the right thing
@@ -2398,7 +2405,7 @@ verify_overlay_modification (start, end)
 	      if (!tail_copied)
 		tail = Fcopy_sequence (tail);
 	      tail_copied = 1;
-	      call_overlay_mod_hooks (prop, overlay, start, end);
+	      call_overlay_mod_hooks (prop, overlay, after, arg1, arg2, arg3);
 	    }
 	}
     }
@@ -2407,14 +2414,19 @@ verify_overlay_modification (start, end)
 }
 
 static void
-call_overlay_mod_hooks (list, overlay, start, end)
-     Lisp_Object list, overlay, start, end;
+call_overlay_mod_hooks (list, overlay, after, arg1, arg2, arg3)
+     Lisp_Object list, overlay;
+     int after;
+     Lisp_Object arg1, arg2, arg3;
 {
-  struct gcpro gcpro1;
-  GCPRO1 (list);
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  GCPRO4 (list, arg1, arg2, arg3);
   while (!NILP (list))
     {
-      call3 (Fcar (list), overlay, start, end);
+      if (NILP (arg3))
+	call4 (Fcar (list), overlay, after ? Qt : Qnil, arg1, arg2);
+      else
+	call5 (Fcar (list), overlay, after ? Qt : Qnil, arg1, arg2, arg3);
       list = Fcdr (list);
     }
   UNGCPRO;
