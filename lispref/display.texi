@@ -1629,7 +1629,7 @@ to the corresponding values.
 @defun face-attribute face attribute &optional frame
 This returns the value of the @var{attribute} attribute of face
 @var{face} on @var{frame}.  If @var{frame} is @code{nil},
-that means the selected frame.
+that means the selected frame (@pxref{Input Focus}).
 
 If @var{frame} is @code{t}, the value is the default for
 @var{face} for new frames.
@@ -2049,7 +2049,8 @@ available fonts.  Otherwise, @var{family} must be a string; it may
 contain the wildcards @samp{?} and @samp{*}.
 
 The list describes the display that @var{frame} is on; if @var{frame} is
-omitted or @code{nil}, it applies to the selected frame's display.
+omitted or @code{nil}, it applies to the selected frame's display
+(@pxref{Input Focus}).
 
 The list contains a vector of the following form for each font:
 
@@ -2073,7 +2074,7 @@ The result list is sorted according to the current face font sort order.
 @tindex x-font-family-list
 This function returns a list of the font families available for
 @var{frame}'s display.  If @var{frame} is omitted or @code{nil}, it
-describes the selected frame's display.
+describes the selected frame's display (@pxref{Input Focus}).
 
 The value is a list of elements of this form:
 
@@ -2609,7 +2610,8 @@ in some formats include a mask which can be removed by specifying
 @tindex image-mask-p
 This function returns @code{t} if image @var{spec} has a mask bitmap.
 @var{frame} is the frame on which the image will be displayed.
-@var{frame} @code{nil} or omitted means to use the selected frame.
+@var{frame} @code{nil} or omitted means to use the selected frame
+(@pxref{Input Focus}).
 @end defun
 
 @node XBM Images
@@ -2922,7 +2924,8 @@ specification.  @var{pixels} non-nil means return sizes measured in
 pixels, otherwise return sizes measured in canonical character units
 (fractions of the width/height of the frame's default font).
 @var{frame} is the frame on which the image will be displayed.
-@var{frame} null or omitted means use the selected frame.
+@var{frame} null or omitted means use the selected frame (@pxref{Input
+Focus}).
 @end defun
 
 @node Image Cache
