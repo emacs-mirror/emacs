@@ -1,3 +1,7 @@
+2004-09-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (next-error-follow-minor-mode): Fix last change.
+
 2004-09-05  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* textmodes/paragraphs.el (use-hard-newlines): Make it into a
