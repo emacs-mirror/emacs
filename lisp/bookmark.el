@@ -198,7 +198,10 @@ bookmark-file, which is `~/.emacs-bkmrks' by default.")
 (defvar bookmark-alist-modification-count 0
   "Number of modifications to bookmark list since it was last saved.")
 
-(defvar bookmark-file "~/.emacs-bkmrks" 
+(defvar bookmark-file
+  (if (eq system-type 'ms-dos)
+      "~/emacs.bmk" ; Cannot have initial dot [Yuck!]
+    "~/.emacs-bkmrks") 
   "*File in which to save bookmarks by default.")
 
 (defvar bookmark-version-control 'nospecial
