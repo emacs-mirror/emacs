@@ -1,3 +1,17 @@
+2003-03-18  Kenichi Handa  <handa@etlken2>
+
+	* coding.c (Vchar_coding_system_table): Remove this variable.
+	(Vcoding_system_safe_chars): New variable.
+	(intersection): Remove this function.
+	(find_safe_codings): Don't use Vchar_coding_system_table, but try
+	all codings in SAFE_CODINGS.
+	(Ffind_coding_systems_region_internal): Adjusted for the change of
+	find_safe_codings.  Get generic coding systems from
+	Vcoding_system_safe_chars.
+	(Fdefine_coding_system_internal): New function.
+	(syms_of_coding): Defsubr Sdefine_coding_system_internal.
+	Initialize and staticpro Vcoding_system_safe_chars.
+
 2003-03-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_set_toolkit_scroll_bar_thumb): Check if new values

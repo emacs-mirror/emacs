@@ -1,3 +1,36 @@
+2003-03-18  Kenichi Handa  <handa@etlken2>
+
+	* international/utf-8.el (utf-fragment-on-decoding): Don't call
+	register-char-codings.
+	(utf-fragment-on-decoding): Don't update char-coding-system-table.
+	(utf-translate-cjk): Don't call register-char-codings nor
+	optimize-char-coding-system-table.  Don't update
+	char-coding-system-table.
+
+	* international/ucs-tables.el (ucs-unify-8859): Don't call
+	register-char-codings.
+	(ucs-unify-8859): Don't call optimize-char-coding-system-table.
+	(ucs-fragment-8859): Don't update char-coding-system-table.  Don't
+	call register-char-codings nor optimize-char-coding-system-table.
+
+	* international/mule.el (optimize-char-coding-system-table):
+	Remove this function.
+	(register-char-codings): Make it obsolete.
+	(char-coding-system-table): Defconst it here.
+	(make-coding-system): Don't call register-char-codings, call
+	define-coding-system-internal.
+
+	* international/mule-conf.el (no-conversion): Call
+	define-coding-system-internal on this coding system instead of
+	calling register-char-codings.
+
+	* international/mule-cmds.el (find-coding-systems-for-charsets):
+	Use find-coding-systems-string instead of looking up
+	char-coding-system-table.
+
+	* international/code-pages.el (cp-fix-safe-chars): Make it obsolete.
+	(cp-make-coding-system): Don't call cp-fix-safe-chars.
+
 2003-03-17  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* buff-menu.el (list-buffers-noselect): Use the display property
