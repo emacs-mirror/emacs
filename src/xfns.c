@@ -9034,24 +9034,22 @@ png_load (f, img)
       || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
     png_set_gray_to_rgb (png_ptr);
 
-  /* The value 2.2 is a guess for PC monitors from PNG example.c.  */
-  gamma_str = getenv ("SCREEN_GAMMA");
-  screen_gamma = gamma_str ? atof (gamma_str) : 2.2;
+  screen_gamma = (f->gamma ? 1 / f->gamma / 0.45455 : 2.2);
 
   /* Tell the PNG lib to handle gamma correction for us.  */
 
 #if defined(PNG_READ_sRGB_SUPPORTED) || defined(PNG_WRITE_sRGB_SUPPORTED)
   if (png_get_sRGB (png_ptr, info_ptr, &intent))
-    /* There is a special chunk in the image specifying the gamma.  */
-    png_set_sRGB (png_ptr, info_ptr, intent);
+    /* The libpng documentation says this is right in this case.  */
+    png_set_gamma (png_ptr, screen_gamma, 0.45455);
   else
 #endif
   if (png_get_gAMA (png_ptr, info_ptr, &image_gamma))
     /* Image contains gamma information.  */
     png_set_gamma (png_ptr, screen_gamma, image_gamma);
   else
-    /* Use a default of 0.5 for the image gamma.  */
-    png_set_gamma (png_ptr, screen_gamma, 0.5);
+    /* Use the standard default for the image gamma.  */
+    png_set_gamma (png_ptr, screen_gamma, 0.45455);
 
   /* Handle alpha channel by combining the image with a background
      color.  Do this only if a real alpha channel is supplied.  For
