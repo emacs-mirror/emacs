@@ -1,3 +1,22 @@
+2001-09-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* server.el (server-switch-buffer): Use get-window-with-predicate.
+
+	* textmodes/refer.el (refer-find-entry-internal): Use
+	get-window-with-predicate.
+
+	* term/sup-mouse.el (sup-pos-to-window): Use
+	get-window-with-predicate.
+
+	* term/bg-mouse.el (bg-window-from-x-y): Use
+	get-window-with-predicate.
+
+	* emacs-lisp/edebug.el (edebug-window-live-p): Use
+	get-window-with-predicate.
+
+	* window.el (get-window-with-predicate): Renamed from some-window.
+	(some-window): Make it an alias.
+
 2001-09-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* simple.el (undo): Remove positions from buffer-undo-list up to
