@@ -1373,14 +1373,11 @@ character)")
 					parts " "))
 			   (concat info parts))))
 	       (list "Decimal digit value"
-		     (if (nth 5 fields)
-			 (string-to-number (nth 5 fields))))
+		     (nth 5 fields))
 	       (list "Digit value"
-		     (if (nth 6 fields)
-			 (string-to-number (nth 6 fields))))
+		     (nth 6 fields))
 	       (list "Numeric value"
-		     (if (nth 7 fields)
-			 (string-to-number (nth 6 fields))))
+		     (nth 7 fields))
 	       (list "Mirrored"
 		     (if (equal "Y" (nth 8 fields))
 			 "yes"))
