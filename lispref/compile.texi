@@ -86,9 +86,9 @@ the @code{byte-compile} function.  You can compile a whole file with
 @code{byte-compile-file}, or several files with
 @code{byte-recompile-directory} or @code{batch-byte-compile}.
 
-  When you run the byte compiler, you may get warnings in a buffer called
-@samp{*Compile-Log*}.  These report usage in your program that suggest a
-problem, but are not necessarily erroneous.
+  When you run the byte compiler, you may get warnings in a buffer
+called @samp{*Compile-Log*}.  These report things in your program that
+suggest a problem but are not necessarily erroneous.
 
 @cindex macro compilation
   Be careful when byte-compiling code that uses macros.  Macro calls are
@@ -97,7 +97,7 @@ for proper compilation.  For more details, see @ref{Compiling Macros}.
 
   Normally, compiling a file does not evaluate the file's contents or
 load the file.  But it does execute any @code{require} calls at
-top-level in the file.  One way to ensure that necessary macro
+top level in the file.  One way to ensure that necessary macro
 definitions are available during compilation is to require the file that
 defines them.  @xref{Features}.
 
@@ -201,7 +201,7 @@ The returned value of this command is unpredictable.
 This function runs @code{byte-compile-file} on files specified on the
 command line.  This function must be used only in a batch execution of
 Emacs, as it kills Emacs on completion.  An error in one file does not
-prevent processing of subsequent files.  (The file which gets the error
+prevent processing of subsequent files.  (The file that gets the error
 will not, of course, produce any compiled code.)
 
 @example
@@ -238,12 +238,13 @@ this way.
 @end defspec
 
 @defspec eval-when-compile body
-This form marks @var{body} to be evaluated at compile time @emph{only}.
-The result of evaluation by the compiler becomes a constant which
-appears in the compiled program.  When the program is interpreted, not
-compiled at all, @var{body} is evaluated normally.
+This form marks @var{body} to be evaluated at compile time and not when
+the compiled program is loaded.  The result of evaluation by the
+compiler becomes a constant which appears in the compiled program.  When
+the program is interpreted, not compiled at all, @var{body} is evaluated
+normally.
 
-At top-level, this is analogous to the Common Lisp idiom
+At top level, this is analogous to the Common Lisp idiom
 @code{(eval-when (compile eval) @dots{})}.  Elsewhere, the Common Lisp
 @samp{#.} reader macro (but not when interpreting) is closer to what
 @code{eval-when-compile} does.
@@ -279,7 +280,8 @@ The list of argument symbols.
 The string containing the byte-code instructions.
 
 @item constants
-The vector of constants referenced by the byte code.
+The vector of Lisp objects referenced by the byte code.  These include
+symbols used as function names and variable names.
 
 @item stacksize
 The maximum stack size this function needs.
@@ -318,7 +320,7 @@ with @var{elements} as its elements.
 
   You should not try to come up with the elements for a byte-code
 function yourself, because if they are inconsistent, Emacs may crash
-when you call the function.  Always leave it to the byte-compiler to
+when you call the function.  Always leave it to the byte compiler to
 create these objects; it makes the elements consistent (we hope).
 
   You can access the elements of a byte-code object using @code{aref};
@@ -336,11 +338,11 @@ form.
 
   The byte-code interpreter is implemented as a simple stack machine.
 It pushes values onto a stack of its own, then pops them off to use them
-in calculations and push the result back on the stack.  When a byte-code
-function returns, it pops a value off the stack and returns it as the
-value of the function.
+in calculations whose results are themselves pushed back on the stack.
+When a byte-code function returns, it pops a value off the stack and
+returns it as the value of the function.
 
-  In addition to the stack, byte-code functions can use, bind and set
+  In addition to the stack, byte-code functions can use, bind, and set
 ordinary Lisp variables, by transferring values between variables and
 the stack.
 
@@ -442,7 +444,7 @@ they still serve their purpose.
 
 @group
                             ; @r{Stack now contains:}
-                            ;   @minus{} @r{result of result of recursive}
+                            ;   @minus{} @r{result of recursive}
                             ;        @r{call to @code{factorial}}
                             ;   @minus{} @r{value of @code{integer}}
                             ;   @minus{} @r{@code{*}}
@@ -537,10 +539,10 @@ The @code{silly-loop} function is somewhat more complex:
 @end group
 
 @group
-9   goto-if-nil-else-pop 17 ; @r{Goto 17 if @code{n} > 0}
+9   goto-if-nil-else-pop 17 ; @r{Goto 17 if @code{n} <= 0}
+                            ;   @r{(this exits the while loop).}
                             ;   @r{else pop top of stack}
                             ;   @r{and continue}
-                            ;   @r{(this exits the while loop).}
 @end group
 
 @group
@@ -563,6 +565,8 @@ The @code{silly-loop} function is somewhat more complex:
 @group
 17  discard                 ; @r{Discard result of while loop}
                             ;   @r{by popping top of stack.}
+                            ;   @r{This result is the value @code{nil} that}
+                            ;   @r{was not popped by the goto at 9.}
 @end group
 
 @group

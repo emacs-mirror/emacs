@@ -21,8 +21,8 @@ in an Emacs buffer.
 
 @cindex top-level form
   The loaded file must contain Lisp expressions, either as source code
-or, optionally, as byte-compiled code.  Each form in the file is called
-a @dfn{top-level form}.  There is no special format for the forms in a
+or as byte-compiled code.  Each form in the file is called a
+@dfn{top-level form}.  There is no special format for the forms in a
 loadable file; any form in a file may equally well be typed directly
 into a buffer and evaluated there.  (Indeed, most code is tested this
 way.)  Most often, the forms are function definitions and variable
@@ -61,7 +61,7 @@ To find the file, @code{load} first looks for a file named
 @file{@var{filename}.elc}, that is, for a file whose name is
 @var{filename} with @samp{.elc} appended.  If such a file exists, it is
 loaded.  If there is no file by that name, then @code{load} looks for a
-file names @file{@var{filename}.el}.  If that file exists, it is loaded.
+file named @file{@var{filename}.el}.  If that file exists, it is loaded.
 Finally, if neither of those names is found, @code{load} looks for a
 file named @var{filename} with nothing appended, and loads it if it
 exists.  (The @code{load} function is not clever about looking at
@@ -92,8 +92,8 @@ non-@code{nil}.
 
 @cindex load errors
 Any unhandled errors while loading a file terminate loading.  If the
-load was done for the sake of @code{autoload}, certain kinds of
-top-level forms, those which define functions, are undone.
+load was done for the sake of @code{autoload}, any function definitions
+made during the loading are undone.
 
 @kindex file-error
 If @code{load} can't find the file to load, then normally it signals the
@@ -166,11 +166,12 @@ followed then by the @file{/user/bil/emacs} directory and then by
 the @file{/usr/local/lisplib} directory,
 which are then followed by the standard directories for Lisp code.
 
-The command line options @samp{-l} or @samp{-load} specify Lispa library
-to load.  Since this file might be in the current directory, Emacs 18
-temporarily adds the current directory to the front of @code{load-path}
-so the file can be found there.  Newer Emacs versions also find such
-files in the current directory, but without altering @code{load-path}.
+The command line options @samp{-l} or @samp{-load} specify a Lisp
+library to load as part of Emacs startup.  Since this file might be in
+the current directory, Emacs 18 temporarily adds the current directory
+to the front of @code{load-path} so the file can be found there.  Newer
+Emacs versions also find such files in the current directory, but
+without altering @code{load-path}.
 @end defopt
 
 @defvar load-in-progress
@@ -202,8 +203,8 @@ for the command @code{update-file-autoloads}, which constructs calls to
 comments are the most convenient way to make a function autoload, but
 only for packages installed along with Emacs.
 
-@defun autoload symbol filename &optional docstring interactive type
-This function defines the function (or macro) named @var{symbol} so as
+@defun autoload function filename &optional docstring interactive type
+This function defines the function (or macro) named @var{function} so as
 to load automatically from @var{filename}.  The string @var{filename}
 specifies the file to load to get the real definition of @var{function}.
 
@@ -227,9 +228,9 @@ keymap.  Various parts of Emacs need to know this information without
 loading the real definition.
 
 @cindex function cell in autoload
-If @var{symbol} already has a non-void function definition that is not
+If @var{function} already has a non-void function definition that is not
 an autoload object, @code{autoload} does nothing and returns @code{nil}.
-If the function cell of @var{symbol} is void, or is already an autoload
+If the function cell of @var{function} is void, or is already an autoload
 object, then it is defined as an autoload object like this:
 
 @example
@@ -278,11 +279,11 @@ autoloads for all files in the current directory.
   The same magic comment can copy any kind of form into
 @file{loaddefs.el}.  If the form following the magic comment is not a
 function definition, it is copied verbatim.  You can also use a magic
-comment to execute a form at build time executing it when the file
-itself is loaded.  To do this, write the form @dfn{on the same line} as
-the magic comment.  Since it is in a comment, it does nothing when you
-load the source file; but @code{update-file-autoloads} copies it to
-@file{loaddefs.el}, where it is executed while building Emacs.
+comment to execute a form at build time @emph{without} executing it when
+the file itself is loaded.  To do this, write the form @dfn{on the same
+line} as the magic comment.  Since it is in a comment, it does nothing
+when you load the source file; but @code{update-file-autoloads} copies
+it to @file{loaddefs.el}, where it is executed while building Emacs.
 
   The following example shows how @code{doctor} is prepared for
 autoloading with a magic comment:
@@ -367,7 +368,9 @@ has been loaded before:
 @noindent
 If the library uses @code{provide} to provide a named feature, you can
 use @code{featurep} to test whether the library has been loaded.
+@ifinfo
 @xref{Features}.
+@end ifinfo
 
 @node Features
 @section Features
@@ -391,7 +394,7 @@ hasn't been loaded already.
 feature name as argument.  @code{require} looks in the global variable
 @code{features} to see whether the desired feature has been provided
 already.  If not, it loads the feature from the appropriate file.  This
-file should call @code{provide} at the top-level to add the feature to
+file should call @code{provide} at the top level to add the feature to
 @code{features}; if it fails to do so, @code{require} signals an error.
 @cindex load error with require
 
@@ -427,7 +430,7 @@ This adds @code{comint} to the global @code{features} list, so that
 done.
 
 @cindex byte-compiling @code{require}
-  When @code{require} is used at top-level in a file, it takes effect
+  When @code{require} is used at top level in a file, it takes effect
 when you byte-compile that file (@pxref{Byte Compilation}) as well as
 when you load it.  This is in case the required package contains macros
 that the byte compiler must know about.
@@ -445,6 +448,12 @@ feature, as in the following example.
 (require 'my-feature)  ; @r{Evaluated by byte compiler.}
 @end group
 @end smallexample
+
+@noindent
+The compiler ignores the @code{provide}, then processes the
+@code{require} by loading the file in question.  Loading the file does
+execute the @code{provide} call, so the subsequent @code{require} call
+does nothing while loading.
 
 @defun provide feature
 This function announces that @var{feature} is now loaded, or being
@@ -508,10 +517,10 @@ reclaim memory for other Lisp objects.  To do this, use the function
 
 @deffn Command unload-feature feature
 This command unloads the library that provided feature @var{feature}.
-It undefines all functions and variables defined with @code{defvar},
-@code{defmacro}, @code{defconst}, @code{defsubst} and @code{defalias} by
-that library.  It then restores any autoloads associated with those
-symbols.
+It undefines all functions, macros, and variables defined in that
+library with @code{defconst}, @code{defvar}, @code{defun},
+@code{defmacro}, @code{defsubst} and @code{defalias}.  It then restores
+any autoloads formerly associated with those symbols.
 @end deffn
 
   The @code{unload-feature} function is written in Lisp; its actions are
@@ -528,7 +537,7 @@ composed of these kinds of objects:
 
 @itemize @bullet
 @item
-Symbols, which were defined as functions or variables.
+Symbols that were defined by this library.
 @item
 Lists of the form @code{(require . @var{feature})} indicating
 features that were required.
