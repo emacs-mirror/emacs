@@ -1,3 +1,8 @@
+2003-08-23  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-ignore-vc-files, vc-master-templates): Better 
+	explain obsolescence, and what to use instead.
+
 2003-08-23  Masatake YAMATO  <jet@gyve.org>
 
 	* pcvs.el (cvs-do-removal): Show the deleted file name
