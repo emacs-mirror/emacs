@@ -3762,6 +3762,7 @@ If VISIT is a string, it is a second file name;\n\
 If VISIT is neither t nor nil nor a string,\n\
   that means do not print the \"Wrote file\" message.\n\
 The optional sixth arg LOCKNAME, if non-nil, specifies the name to\n\
+  use for locking and unlocking, overriding FILENAME and VISIT.\n\
 Kludgy feature: if START is a string, then that string is written\n\
 to the file, instead of any buffer contents, and END is ignored.")
   (start, end, filename, append, visit, lockname)
