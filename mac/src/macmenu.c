@@ -33,6 +33,7 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 #include "charset.h"
 #include "coding.h"
+#include "keymap.h"
 
 #include <MacTypes.h>
 #include <Menus.h>
@@ -735,7 +736,7 @@ cached information about equivalent key sequences.")
 
       /* Search for a string appearing directly as an element of the keymap.
 	 That string is the title of the menu.  */
-      prompt = map_prompt (keymap);
+      prompt = Fkeymap_prompt (keymap);
       if (NILP (title) && !NILP (prompt))
 	title = prompt;
 
@@ -763,7 +764,7 @@ cached information about equivalent key sequences.")
 
 	  maps[i++] = keymap = get_keymap (Fcar (tem));
 
-	  prompt = map_prompt (keymap);
+	  prompt = Fkeymap_prompt (keymap);
 	  if (NILP (title) && !NILP (prompt))
 	    title = prompt;
 	}
