@@ -250,7 +250,12 @@ The returned value is a list of strings, one per line."
 	   (looking-at lm-header-prefix)
 	   (progn (goto-char (match-end 0))
 		  (looking-at "[^ ]+[ \t]+--+[ \t]+\\(.*\\)")))
-	  (buffer-substring-no-properties (match-beginning 1) (match-end 1)))
+	  (let ((summary (buffer-substring-no-properties (match-beginning 1)
+							 (match-end 1))))
+	    ;; Strip off -*- specifications.
+	    (if (string-match "[ \t]*-\\*-.*-\\*-" summary)
+		(substring summary 0 (match-beginning 0))
+	      summary)))
       (if file
 	  (kill-buffer (current-buffer)))
       )))
