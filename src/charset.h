@@ -463,6 +463,16 @@ extern int width_by_char_head[256];
    ? (c1)					 	\
    : MAKE_NON_ASCII_CHAR ((charset), (c1) & 0x7F, (c2) & 0x7F))
 
+/* 1 if C is in the range of possible character code Emacs can have.  */
+#define VALID_CHAR_P(c)							\
+  ((c) >= 0								\
+   && (SINGLE_BYTE_CHAR_P (c)						\
+       || ((c) < MIN_CHAR_COMPOSITION					\
+	   ? ((c) & CHAR_FIELD1_MASK					\
+	      ? (CHAR_FIELD2 (c) >= 32 && CHAR_FIELD3 (c) >= 32)	\
+	      : (CHAR_FIELD2 (c) >= 16 && CHAR_FIELD3 (c) >= 32))	\
+	   : (c) < MIN_CHAR_COMPOSITION + n_cmpchars)))
+
 /* The charset of non-ASCII character C is set to CHARSET, and the
    position-codes of C are set to C1 and C2.  C2 of DIMENSION1 character
    is -1.  */
@@ -517,7 +527,7 @@ extern int iso_charset_table[2][2][128];
    is not a composite character, the multi-byte form is set in WORKBUF
    and STR points WORKBUF.  The caller should allocate at least 4-byte
    area at WORKBUF in advance.  Returns the length of the multi-byte
-   form.  */
+   form.  If C is an invalid character code, signal an error.  */
 
 #define CHAR_STRING(c, workbuf, str)		 	\
   (SINGLE_BYTE_CHAR_P (c)			 	\
