@@ -96,7 +96,7 @@ unsuccessful after disturbing the status quo, it removes config.status."
 config_h_opts=" \
 HAVE_X_WINDOWS HAVE_X11 HAVE_X_MENU \
 SIGTYPE GNU_MALLOC REL_ALLOC LISP_FLOAT_TYPE HAVE_CONST\
-LD_SWITCH_X_SITE C_SWITCH_X_SITE"
+LD_SWITCH_X_SITE C_SWITCH_X_SITE HAVE_XFREE386"
 
 ### Record all the arguments, so we can save them in config.status.
 arguments="$@"
@@ -792,7 +792,9 @@ case "${window_system}" in
   "" )
     echo "  No window system specifed.  Looking for X Windows."
     window_system=none
-    if [ -r /usr/lib/libX11.a -o -d /usr/include/X11 ]; then
+    if [ -r /usr/lib/libX11.a \
+	 -o -d /usr/include/X11 \
+         -o -d /usr/X386/include]; then
       window_system=x11
     fi
   ;;
@@ -828,6 +830,17 @@ case ${HAVE_X11} in
   ;;
 esac
 
+### Check for XFree386.  It needs special hacks.
+case ${window_system} in
+  x11 )
+    if [ -d /usr/X386/include ]; then
+      HAVE_XFREE386=yes
+      if [ "${C_SWITCH_X_SITE}" = "" ]; then
+	C_SWITCH_X_SITE="-I/usr/X386/include
+      fi
+    fi
+  ;;
+esac
 
 #### Choose a compiler.
 echo "Checking compilers."
@@ -936,8 +949,8 @@ echo '
 #endif
 ' > ${tempcname}
 eval `${default_cc} -E ${tempcname} \
-      | grep '@configure@' \
-      | sed -e 's/^@configure@//'`
+       | grep '@configure@' \
+       | sed -e 's/^@configure@ \([^=]*=\)\(.*\)$/\1"\2"/'`
 rm ${tempcname}
 
 # Do the opsystem or machine files prohibit the use of the GNU malloc?
