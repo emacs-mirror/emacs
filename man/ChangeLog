@@ -1,5 +1,9 @@
 2002-01-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* calc.texi: Place under GFDL.  Fix copyright years.
+	(Installation): Update instructions.  Comment out the description
+	of the \bumpoddpages macro which was deleted
+
 	* Makefile.in (DVI_TARGETS): Add calc.dvi.
 	(calc.dvi): Uncomment.
 
