@@ -1431,50 +1431,32 @@ test -n "${prefix}" &&
 test -n "${exec_prefix}" &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`
 ]
-AC_OUTPUT(Makefile lib-src/Makefile oldXMenu/Makefile src/Makefile.in) [
+AC_OUTPUT(Makefile lib-src/Makefile oldXMenu/Makefile src/Makefile.in, [
 # Build src/Makefile from ${srcdir}/src/Makefile.in.  This must be done
-# after src/config.h is built, since we rely on that file.  Only do the
-# build if "config.status" is present, since it's non-presence indicates
-# an error occured.
-status=$?
-if [ ! -f ./config.status ]; then
-   exit $status
-fi
-topsrcdir=${srcdir}
-  # We discard all lines in Makefile.in that start with `# Generated' or /**/#
-  # because some cpps get confused by them.
-  # Really we should preserve them somehow into Makefile,
-  # but that is beyond my level of shell programming.
-makefile_command='echo "creating src/Makefile";
-  topsrcdir='"${topsrcdir}"';
-( cd ./src;
-  rm -f junk.c;
-  sed -e '\''s/^# Generated.*//'\'' -e '\''s%/\*\*/#.*%%'\'' < Makefile.in > junk.c;
-  eval `echo ${CPP} -I. -I${topsrcdir}/src ${CPPFLAGS} junk.c \>junk.cpp`;
-  < junk.cpp							'\
-'    sed -e '\''s/^#.*//'\''					'\
-'	-e '\''s/^[ \f\t][ \f\t]*$//'\''			'\
-'	-e '\''s/^ /	/'\'' 					'\
-'	| sed -n -e '\''/^..*$/p'\''				'\
-'	> Makefile.new;
-    chmod 444 Makefile.new;
-    mv -f Makefile.new Makefile;
-    rm -f junk.c junk.cpp;
-)'
-eval `echo $makefile_command`
-# AC-OUTPUT has created `config.status' already.  We need to add the above
-# commands to re-create `src/Makefile', and we need to insert them before
-# the final "exit 0" which appears at the end of `config.status'.
-<config.status sed -e 's/^exit 0$//' >config.new
-echo $makefile_command >>config.new
-echo exit 0 >>config.new
-mv -f config.new config.status
-chmod +x config.status
-# Don't let the fact that we just rewrote config.status make Makefile think
-# that it is now newer.  We have just rewritten all of the Makefiles as well.
-MFS="Makefile src/Makefile src/Makefile.in lib-src/Makefile oldXMenu/Makefile"
-for file in $MFS; do
-   chmod a+w $file; touch $file; chmod 444 $file
-done
-exit 0
-]
+# after src/config.h is built, since we rely on that file.
+
+changequote(,)dnl The horror, the horror.
+# Now get this: Some word that is part of the ${srcdir} directory name
+# might, just might, happen to be an identifier like `i386' or something,
+# and be predefined by the C preprocessor to some helpful value like 1, or
+# maybe the empty string.  Needless to say consequent macro substitutions
+# are less than conducive to the makefile finding the correct directory.
+srcdir_undefs="`echo $top_srcdir | 
+sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/  */ -U/g'  \
+    -e 's/ -U$//' -e 's/^[^ ]/-U/' \
+    -e 's/-U[0-9][^ ]*//' \
+`"
+changequote([,])dnl
+
+echo creating src/Makefile
+( cd src
+  rm -f junk.c
+  sed -e 's@^# \(Generated.*\)$@/* \1 */@' \
+      -e 's@/\*\*/#\(.*\)$@/* \1 */@' \
+      < Makefile.in > junk.c
+  $CPP $srcdir_undefs -I. -I$top_srcdir/src $CPPFLAGS junk.c |
+  sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	][ 	]*$/d' > Makefile.new
+  rm -f junk.c
+  chmod 444 Makefile.new;
+  mv -f Makefile.new Makefile;
+)])
