@@ -1,3 +1,11 @@
+2000-11-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* startup.el (command-line): Set the default tooltip-mode
+	to t for graphical displays which implement x-show-tip.
+
+	* tooltip.el (tooltip-mode): Add a comment about startup.el
+	setting the default value of this user-option.
+
 2000-11-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* simple.el (byte-compiling-files-p): New function.
