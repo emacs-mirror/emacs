@@ -29,7 +29,7 @@
 
 ;; * Commands provided
 ;;
-;; This file provides Hideshow Minor Mode.  When active, eight commands
+;; This file provides Hideshow Minor Mode.  When active, nine commands
 ;; are available, implementing block hiding and showing.  They (and their
 ;; keybindings) are:
 ;;
@@ -39,6 +39,7 @@
 ;;   hs-show-all                        C-c S
 ;;   hs-show-region                     C-c R
 ;;   hs-hide-level                      C-c L
+;;   hs-toggle-hiding
 ;;   hs-mouse-toggle-hiding             [(shift button-2)]
 ;;   hs-hide-initial-comment-block
 ;;
@@ -105,8 +106,7 @@
 ;;
 ;; where X = {emacs-lisp,c,c++,perl,...}.  You can also manually toggle
 ;; hideshow minor mode by typing `M-x hs-minor-mode'.  After hideshow is
-;; activated, `hs-minor-mode-hook' is run w/ `run-hooks'.  A good hook
-;; to add is `hs-hide-initial-comment-block'.
+;; activated or deactivated, `hs-minor-mode-hook' is run w/ `run-hooks'.
 
 ;; * Bugs
 ;;
@@ -183,7 +183,7 @@
   :group 'hideshow)
 
 (defcustom hs-minor-mode-hook nil
-  "*Hook called when hideshow minor mode is activated."
+  "*Hook called when hideshow minor mode is activated or deactivated."
   :type 'hook
   :group 'hideshow)
 
@@ -395,7 +395,6 @@ on what kind of block it is suppose to hide."
     (when flag
       (let ((overlay (make-overlay from to)))
         (overlay-put overlay 'invisible 'hs)
-        (overlay-put overlay 'intangible t)
         (overlay-put overlay 'hs flag)
         (when (or (eq hs-isearch-open t) (eq hs-isearch-open flag))
 	  (overlay-put overlay 'isearch-open-invisible 'hs-isearch-show)
@@ -766,6 +765,15 @@ The hook `hs-hide-hook' is run; see `run-hooks'."
    (hs-safety-is-job-n)
    (run-hooks 'hs-hide-hook)))
 
+(defun hs-toggle-hiding ()
+  "Toggle hiding/showing of a block.
+See `hs-hide-block' and `hs-show-block'."
+  (interactive)
+  (hs-life-goes-on
+   (if (hs-already-hidden-p)
+       (hs-show-block)
+     (hs-hide-block))))
+
 (defun hs-mouse-toggle-hiding (e)
   "Toggle hiding/showing of a block.
 This command should be bound to a mouse key.
@@ -774,9 +782,7 @@ See `hs-hide-block' and `hs-show-block'."
   (interactive "@e")
   (hs-life-goes-on
    (mouse-set-point e)
-   (if (hs-already-hidden-p)
-       (hs-show-block)
-     (hs-hide-block))))
+   (hs-toggle-hiding)))
 
 (defun hs-hide-initial-comment-block ()
   "Hide the first block of comments in a file.
@@ -800,7 +806,6 @@ With ARG, turn hideshow minor mode on if ARG is positive, off otherwise.
 When hideshow minor mode is on, the menu bar is augmented with hideshow
 commands and the hideshow commands are enabled.
 The value '(hs . t) is added to `buffer-invisibility-spec'.
-Last, the normal hook `hs-minor-mode-hook' is run; see `run-hooks'.
 
 The main commands are: `hs-hide-all', `hs-show-all', `hs-hide-block',
 `hs-show-block', `hs-hide-level' and `hs-show-region'.  There is also
@@ -808,6 +813,8 @@ The main commands are: `hs-hide-all', `hs-show-all', `hs-hide-block',
 
 Turning hideshow minor mode off reverts the menu bar and the
 variables to default values and disables the hideshow commands.
+
+Lastly, the normal hook `hs-minor-mode-hook' is run using `run-hooks'.
 
 Key bindings:
 \\{hs-minor-mode-map}"
@@ -819,14 +826,14 @@ Key bindings:
 			(> (prefix-numeric-value arg) 0)))
   (if hs-minor-mode
       (progn
+        (hs-grok-mode-type)
         (easy-menu-add hs-minor-mode-menu)
         (make-variable-buffer-local 'line-move-ignore-invisible)
         (setq line-move-ignore-invisible t)
-        (add-to-invisibility-spec '(hs . t))            ; hs invisible
-        (hs-grok-mode-type)
-        (run-hooks 'hs-minor-mode-hook))
+        (add-to-invisibility-spec '(hs . t)))
     (easy-menu-remove hs-minor-mode-menu)
-    (remove-from-invisibility-spec '(hs . t))))
+    (remove-from-invisibility-spec '(hs . t)))
+  (run-hooks 'hs-minor-mode-hook))
 
 ;;---------------------------------------------------------------------------
 ;; load-time actions
