@@ -81,16 +81,16 @@ under that name.\n\
 With numeric arg, repeat macro now that many times,\n\
 counting the definition just completed as the first repetition.\n\
 An argument of zero means repeat until error.")
-  (arg)
-     Lisp_Object arg;
+  (repeat)
+     Lisp_Object repeat;
 {
   if (NILP (current_kboard->defining_kbd_macro))
     error ("Not defining kbd macro.");
 
-  if (NILP (arg))
-    XSETFASTINT (arg, 1);
+  if (NILP (repeat))
+    XSETFASTINT (repeat, 1);
   else
-    CHECK_NUMBER (arg, 0);
+    CHECK_NUMBER (repeat, 0);
 
   if (!NILP (current_kboard->defining_kbd_macro))
     {
@@ -103,13 +103,13 @@ An argument of zero means repeat until error.")
       message("Keyboard macro defined");
     }
 
-  if (XFASTINT (arg) == 0)
-    Fexecute_kbd_macro (current_kboard->Vlast_kbd_macro, arg);
+  if (XFASTINT (repeat) == 0)
+    Fexecute_kbd_macro (current_kboard->Vlast_kbd_macro, repeat);
   else
     {
-      XSETINT (arg, XINT (arg)-1);
-      if (XINT (arg) > 0)
-	Fexecute_kbd_macro (current_kboard->Vlast_kbd_macro, arg);
+      XSETINT (repeat, XINT (repeat)-1);
+      if (XINT (repeat) > 0)
+	Fexecute_kbd_macro (current_kboard->Vlast_kbd_macro, repeat);
     }
   return Qnil;
 }
@@ -203,8 +203,8 @@ DEFUN ("execute-kbd-macro", Fexecute_kbd_macro, Sexecute_kbd_macro, 1, 2, 0,
   "Execute MACRO as string of editor command characters.\n\
 If MACRO is a symbol, its function definition is used.\n\
 COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
-  (macro, prefixarg)
-     Lisp_Object macro, prefixarg;
+  (macro, count)
+     Lisp_Object macro, count;
 {
   Lisp_Object final;
   Lisp_Object tem;
@@ -212,9 +212,9 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
   int repeat = 1;
   struct gcpro gcpro1;
 
-  if (!NILP (prefixarg))
-    prefixarg = Fprefix_numeric_value (prefixarg),
-    repeat = XINT (prefixarg);
+  if (!NILP (count))
+    count = Fprefix_numeric_value (count),
+    repeat = XINT (count);
 
   final = indirect_function (macro);
   if (!STRINGP (final) && !VECTORP (final))
