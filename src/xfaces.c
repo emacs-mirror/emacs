@@ -412,7 +412,6 @@ static int load_pixmap P_ ((struct frame *, Lisp_Object, unsigned *, unsigned *)
 static char *xstrdup P_ ((char *));
 static unsigned char *xstrlwr P_ ((unsigned char *));
 static void signal_error P_ ((char *, Lisp_Object));
-static void add_to_log P_ ((struct frame *, char *, Lisp_Object, Lisp_Object));
 static struct frame *frame_or_selected_frame P_ ((Lisp_Object, int));
 static void load_face_font_or_fontset P_ ((struct frame *, struct face *, char *, int));
 static void load_face_colors P_ ((struct frame *, struct face *, Lisp_Object *));
@@ -590,50 +589,6 @@ signal_error (s, arg)
      Lisp_Object arg;
 {
   Fsignal (Qerror, Fcons (build_string (s), Fcons (arg, Qnil)));
-}
-
-
-/* Display a message with format string FORMAT and arguments ARG1 and
-   ARG2 on frame F.  Used to display errors if fonts, bitmaps, colors 
-   etc. for a realized face on frame F cannot be loaded.  (If we would
-   signal an error in these cases, we would end up in an infinite
-   recursion because this would stop realization, and the redisplay
-   triggered by the signal would try to realize that same face again.)
-
-   If basic faces of F are not realized, just add the message to the
-   messages buffer "*Messages*".  Because Fmessage calls
-   echo_area_display which tries to realize basic faces again, we would
-   otherwise also end in an infinite recursion.  */
-
-static void
-add_to_log (f, format, arg1, arg2)
-     struct frame *f;
-     char *format;
-     Lisp_Object arg1, arg2;
-{
-  Lisp_Object args[3];
-  Lisp_Object nargs;
-  Lisp_Object msg;
-  char *buffer;
-  extern int waiting_for_input;
-
-  /* Function note_mouse_highlight calls face_at_buffer_position which
-     may realize a face.  If some attribute of that face is invalid,
-     say an invalid color, don't display an error to avoid calling
-     Lisp from XTread_socket.  */
-  if (waiting_for_input)
-    return;
-
-  nargs = make_number (DIM (args));
-  args[0] = build_string (format);
-  args[1] = arg1;
-  args[2] = arg2;
-  msg = Fformat (nargs, args);
-
-  /* Log the error, but don't display it in the echo area.  This
-     proves to be annoying in many cases.  */
-  buffer = LSTRDUPA (msg);
-  message_dolog (buffer, strlen (buffer), 1, 0);
 }
 
 
@@ -954,7 +909,7 @@ load_pixmap (f, name, w_ptr, h_ptr)
 
   if (bitmap_id < 0)
     {
-      add_to_log (f, "Invalid or undefined bitmap %s", name, Qnil);
+      add_to_log ("Invalid or undefined bitmap %s", name, Qnil);
       bitmap_id = 0;
 
       if (w_ptr)
@@ -1072,10 +1027,10 @@ load_face_font_or_fontset (f, face, font_name, fontset)
 	}
     }
   else if (fontset >= 0)
-    add_to_log (f, "Unable to load ASCII font of fontset %d",
+    add_to_log ("Unable to load ASCII font of fontset %d",
 		make_number (fontset), Qnil);
   else if (font_name)
-    add_to_log (f, "Unable to load font %s",
+    add_to_log ("Unable to load font %s",
 		build_string (font_name), Qnil);
 }
 
@@ -1197,7 +1152,7 @@ load_color (f, face, name, target_index)
      to the values in an existing cell. */
   if (!defined_color (f, XSTRING (name)->data, &color, 1))
     {
-      add_to_log (f, "Unable to load color %s", name, Qnil);
+      add_to_log ("Unable to load color %s", name, Qnil);
       
       switch (target_index)
 	{
@@ -1418,7 +1373,7 @@ load_color (f, face, name, target_index)
       if (INTEGERP (color))
 	return (unsigned long)XINT (color);
 
-      add_to_log (f, "Unable to load color %s", name, Qnil);
+      add_to_log ("Unable to load color %s", name, Qnil);
       
       switch (target_index)
 	{
@@ -2852,7 +2807,7 @@ merge_face_vector_with_property (f, to, prop)
 		to[LFACE_BACKGROUND_INDEX] = color_name;
 	    }
 	  else
-	    add_to_log (f, "Invalid face color", color_name, Qnil);
+	    add_to_log ("Invalid face color", color_name, Qnil);
 	}
       else if (SYMBOLP (first)
 	       && *XSYMBOL (first)->name->data == ':')
@@ -2868,14 +2823,14 @@ merge_face_vector_with_property (f, to, prop)
 		  if (STRINGP (value))
 		    to[LFACE_FAMILY_INDEX] = value;
 		  else
-		    add_to_log (f, "Illegal face font family", value, Qnil);
+		    add_to_log ("Illegal face font family", value, Qnil);
 		}
 	      else if (EQ (keyword, QCheight))
 		{
 		  if (INTEGERP (value))
 		    to[LFACE_HEIGHT_INDEX] = value;
 		  else
-		    add_to_log (f, "Illegal face font height", value, Qnil);
+		    add_to_log ("Illegal face font height", value, Qnil);
 		}
 	      else if (EQ (keyword, QCweight))
 		{
@@ -2883,7 +2838,7 @@ merge_face_vector_with_property (f, to, prop)
 		      && face_numeric_weight (value) >= 0)
 		    to[LFACE_WEIGHT_INDEX] = value;
 		  else
-		    add_to_log (f, "Illegal face weight", value, Qnil);
+		    add_to_log ("Illegal face weight", value, Qnil);
 		}
 	      else if (EQ (keyword, QCslant))
 		{
@@ -2891,7 +2846,7 @@ merge_face_vector_with_property (f, to, prop)
 		      && face_numeric_slant (value) >= 0)
 		    to[LFACE_SLANT_INDEX] = value;
 		  else
-		    add_to_log (f, "Illegal face slant", value, Qnil);
+		    add_to_log ("Illegal face slant", value, Qnil);
 		}
 	      else if (EQ (keyword, QCunderline))
 		{
@@ -2900,7 +2855,7 @@ merge_face_vector_with_property (f, to, prop)
 		      || STRINGP (value))
 		    to[LFACE_UNDERLINE_INDEX] = value;
 		  else
-		    add_to_log (f, "Illegal face underline", value, Qnil);
+		    add_to_log ("Illegal face underline", value, Qnil);
 		}
 	      else if (EQ (keyword, QCoverline))
 		{
@@ -2909,7 +2864,7 @@ merge_face_vector_with_property (f, to, prop)
 		      || STRINGP (value))
 		    to[LFACE_OVERLINE_INDEX] = value;
 		  else
-		    add_to_log (f, "Illegal face overline", value, Qnil);
+		    add_to_log ("Illegal face overline", value, Qnil);
 		}
 	      else if (EQ (keyword, QCstrike_through))
 		{
@@ -2918,7 +2873,7 @@ merge_face_vector_with_property (f, to, prop)
 		      || STRINGP (value))
 		    to[LFACE_STRIKE_THROUGH_INDEX] = value;
 		  else
-		    add_to_log (f, "Illegal face strike-through", value, Qnil);
+		    add_to_log ("Illegal face strike-through", value, Qnil);
 		}
 	      else if (EQ (keyword, QCbox))
 		{
@@ -2930,7 +2885,7 @@ merge_face_vector_with_property (f, to, prop)
 		      || NILP (value))
 		    to[LFACE_BOX_INDEX] = value;
 		  else
-		    add_to_log (f, "Illegal face box", value, Qnil);
+		    add_to_log ("Illegal face box", value, Qnil);
 		}
 	      else if (EQ (keyword, QCinverse_video)
 		       || EQ (keyword, QCreverse_video))
@@ -2938,21 +2893,21 @@ merge_face_vector_with_property (f, to, prop)
 		  if (EQ (value, Qt) || NILP (value))
 		    to[LFACE_INVERSE_INDEX] = value;
 		  else
-		    add_to_log (f, "Illegal face inverse-video", value, Qnil);
+		    add_to_log ("Illegal face inverse-video", value, Qnil);
 		}
 	      else if (EQ (keyword, QCforeground))
 		{
 		  if (STRINGP (value))
 		    to[LFACE_FOREGROUND_INDEX] = value;
 		  else
-		    add_to_log (f, "Illegal face foreground", value, Qnil);
+		    add_to_log ("Illegal face foreground", value, Qnil);
 		}
 	      else if (EQ (keyword, QCbackground))
 		{
 		  if (STRINGP (value))
 		    to[LFACE_BACKGROUND_INDEX] = value;
 		  else
-		    add_to_log (f, "Illegal face background", value, Qnil);
+		    add_to_log ("Illegal face background", value, Qnil);
 		}
 	      else if (EQ (keyword, QCstipple))
 		{
@@ -2961,7 +2916,7 @@ merge_face_vector_with_property (f, to, prop)
 		  if (!NILP (pixmap_p))
 		    to[LFACE_STIPPLE_INDEX] = value;
 		  else
-		    add_to_log (f, "Illegal face stipple", value, Qnil);
+		    add_to_log ("Illegal face stipple", value, Qnil);
 #endif
 		}
 	      else if (EQ (keyword, QCwidth))
@@ -2970,10 +2925,10 @@ merge_face_vector_with_property (f, to, prop)
 		      && face_numeric_swidth (value) >= 0)
 		    to[LFACE_SWIDTH_INDEX] = value;
 		  else
-		    add_to_log (f, "Illegal face width", value, Qnil);
+		    add_to_log ("Illegal face width", value, Qnil);
 		}
 	      else
-		add_to_log (f, "Invalid attribute %s in face property",
+		add_to_log ("Invalid attribute %s in face property",
 			    keyword, Qnil);
 
 	      prop = XCDR (XCDR (prop));
@@ -2996,7 +2951,7 @@ merge_face_vector_with_property (f, to, prop)
       /* PROP ought to be a face name.  */
       Lisp_Object lface = lface_from_face_name (f, prop, 0);
       if (NILP (lface))
-	add_to_log (f, "Invalid face text property value: %s", prop, Qnil);
+	add_to_log ("Invalid face text property value: %s", prop, Qnil);
       else
 	merge_face_vectors (XVECTOR (lface)->contents, to);
     }
