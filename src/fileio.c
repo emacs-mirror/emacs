@@ -44,7 +44,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <ctype.h>
 
 #ifdef VMS
-#include "dir.h"
+#include "vmsdir.h"
 #include <perror.h>
 #include <stddef.h>
 #include <string.h>
