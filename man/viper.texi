@@ -624,10 +624,10 @@ to case-insensitive and back.
 @cindex Ex commands
 The current working directory of a buffer is automatically inserted in the
 minibuffer if you type @kbd{:e} then space.  Absolute filenames are
-required less often in Viper.  For path names, Emacs uses a convention that
-is slightly different from that of Unix.  It is designed to minimize the
-need for deleting path names that Emacs provides in its prompts.  (This is
-usually convenient, but occasionally the prompt may suggest a wrong path
+required less often in Viper.  For file names, Emacs uses a convention that
+is slightly different from other programs.  It is designed to minimize the
+need for deleting file names that Emacs provides in its prompts.  (This is
+usually convenient, but occasionally the prompt may suggest a wrong file
 name for you.)  If you see a prompt @kbd{/usr/foo/} and you wish to edit the
 file @kbd{~/.viper}, you don't have to erase the prompt.  Instead, simply
 continue typing what you need.  Emacs will interpret @kbd{/usr/foo/~/.viper}
@@ -865,7 +865,7 @@ newly deleted text could be put back separately from the previously deleted
 text, you should perform a non-deleting action, e.g., move the cursor one
 character in any direction.
 @item Absolute Filenames
-@cindex absolute paths
+@cindex absolute file names
 The current directory name for a file is automatically prepended to the
 file name in any
 @kbd{:e}, @kbd{:r}, @kbd{:w}, etc., command (in Emacs, each buffer has a
@@ -879,8 +879,8 @@ often in Viper.
 
 You should be aware that Emacs interprets @kbd{/foo/bar//bla} as
 @kbd{/bla} and @kbd{/foo/~/bar} as @kbd{~/bar}.  This is designed to
-minimize the need for erasing path names that Emacs suggests in its
-prompts, if a suggested path name is not what you wanted.
+minimize the need for erasing file names that Emacs suggests in its
+prompts, if a suggested file name is not what you wanted.
 
 The command @kbd{:cd} will change the default directory for the
 current Emacs buffer.  The Ex command @kbd{:e} will interpret the
@@ -1135,8 +1135,8 @@ Viper also provides Vi-style macros.  @xref{Vi Macros}, for details.
 @cindex completion
 
 Completion is done when you type @key{TAB}.  The Emacs completer does not
-grok wildcards in filenames.  Once you type a wildcard, the completer will
-no longer work for that path.  Remember that Emacs interprets a file name
+grok wildcards in file names.  Once you type a wildcard, the completer will
+no longer work for that file name.  Remember that Emacs interprets a file name
 of the form @kbd{/foo//bar} as @kbd{/bar} and @kbd{/foo/~/bar} as
 @kbd{~/bar}.
 
@@ -1791,7 +1791,7 @@ Function used by the command @kbd{#c<move>} to spell.
 @item viper-glob-function
 The value of this variable is the function symbol used to expand wildcard
 symbols. This is platform-dependent. The default tries to set this variable
-to work with most Unix shells, MS Windows, OS/2, etc. However, if it
+to work with most shells, MS Windows, OS/2, etc. However, if it
 doesn't work the way you expect, you should write your own.
 Use @code{viper-glob-unix-files} and @code{viper-glob-mswindows-files} in
 @file{viper-util.el} as examples.
