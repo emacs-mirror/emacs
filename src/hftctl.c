@@ -114,7 +114,7 @@ static void hft_alrm(int sig);
 #else
 static GT_ACK ();
 static WR_REQ ();
-static hft_alrm ();
+static void hft_alrm ();
 #endif
 
 /*************** HFTCTL FUNCTION *******************************/
@@ -282,7 +282,7 @@ hft_alrm (sig)                  /* Function hft_alrm - handle */
   signal (SIGALRM, sav_alrm);	/* reset to previous          */
 
   if (is_ack_vtd)		/* has ack vtd arrived ?      */
-    return(0);			/* yes, then continue         */
+    return;			/* yes, then continue         */
   else				/* no, then return with error */
     longjmp (hftenv, -1);
 
