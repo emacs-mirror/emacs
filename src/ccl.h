@@ -52,6 +52,7 @@ struct ccl_program {
   int buf_magnification;	/* Output buffer magnification.  How
 				   many times bigger the output buffer
 				   should be than the input buffer.  */
+  int stack_idx;		/* How deep the call of CCL_Call is nested.  */
 };
 
 /* This data type is used for the spec field of the structure
