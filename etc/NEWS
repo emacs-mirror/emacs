@@ -991,6 +991,11 @@ compatibility.
 *** The new function `comint-add-to-input-history' adds commands to the input
 ring (history).
 
+*** The new variable `comint-input-history-ignore' is a regexp for
+identifying history lines that should be ignored, like tcsh inserts in
+time-stamp strings starting a `#'.  The default value of this variable
+is "^#".
+
 ** Changes to Rmail mode
 
 *** The new user-option rmail-user-mail-address-regexp can be
