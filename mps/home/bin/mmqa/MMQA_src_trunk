@@ -2,17 +2,17 @@
 #
 # Build the MMsrc compound at tip of the trunk, and run QA tests
 # 
-# $HopeName: HOMEmm!bin:mmqa:MMQA_src_trunk(trunk.5) $
+# $HopeName: HOMEmm!bin:mmqa:MMQA_src_trunk(trunk.6) $
 
 
-script="`basename $0`"
+prog="`basename $0`"
 platform=$1
 shift
 varieties=$*
 
 
 msg () {
-  echo "$script $platform: $*" 1>&2
+  echo "$prog $platform: $*" 1>&2
 }
 
 die () {
@@ -81,7 +81,7 @@ build_lib mpsplan.a
 
 cd $mmqa &&
 mmqa_tests testsets/dailysw mmsw.a &&
-mmqa_tests testsets/dailyswa mmsw.a we
+mmqa_tests testsets/dailyswa mmsw.a we ci
 
 
 ### Then clean up and do the others.
