@@ -23,3 +23,6 @@ s!^	\./!	go32 ./!
 /^UTILITIES=/s/ movemail//
 /^UTILITIES=/s/ emacsserver//
 /^UTILITIES=/s/ timer//
+/-o make-docfile/a\
+	coff2exe make-docfile\
+.
