@@ -6,7 +6,7 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.20 2001/05/03 14:02:33 karl Exp $
+@comment $Id: info.texi,v 1.13 2001/05/03 14:03:33 karl Exp $
 
 @dircategory Texinfo documentation system
 @direntry
@@ -144,7 +144,7 @@ the screen.
 * Help-P::              Returning to the Previous node
 * Help-^L::             The Space, Rubout, B and ^L commands.
 * Help-M::              Menus
-* Help-Adv::            Some advanced Info commands
+* Help-Int::            Some intermediate Info commands
 * Help-Q::              Quitting Info
 @end menu
 
@@ -429,7 +429,7 @@ the same size screen, it would be impossible to warn you anyway.
    see the description of the @kbd{m} command.
 @end format
 
-@node Help-M, Help-Adv, Help-^L, Getting Started
+@node Help-M, Help-Int, Help-^L, Getting Started
 @comment  node-name,  next,  previous,  up
 @section Menus and the @kbd{m} command
 
@@ -658,11 +658,12 @@ the header line (provided that you have a mouse).
 >> Now type @kbd{u} to move back up to @samp{Help-M}.
 @end format
 
-@node Help-Adv, Help-Q, Help-M, Getting Started
+@node Help-Int, Help-Q, Help-M, Getting Started
 @comment  node-name,  next,  previous,  up
-@section Some advanced Info commands
+@section Some intermediate Info commands
 
-  The course is almost over, so please stick with it to the end.
+  The introductory course is almost over; please continue
+a little longer to learn some intermediate-level commands.
 
 @kindex l @r{(Info mode)}
 @findex Info-last
@@ -768,6 +769,8 @@ underlying text and the mouse pointer change in response.
 >> Now type @kbd{n} to see the last node of the course.
 @end format
 
+  @xref{Advanced Info}, for more advanced Info features.
+
 @c If a menu appears at the end of this node, remove it.
 @c It is an accident of the menu updating command.
 
@@ -811,7 +814,7 @@ Here are some more Info commands that make it easier to move around.
   If you know a node's name, you can go there by typing @kbd{g}, the
 name, and @key{RET}.  Thus, @kbd{gTop@key{RET}} would go to the node
 called @samp{Top} in this file.  (This is equivalent to @kbd{t}, see
-@ref{Help-Adv}.)  @kbd{gExpert@key{RET}} would come back here.
+@ref{Help-Int}.)  @kbd{gExpert@key{RET}} would come back here.
 @kbd{g} in Emacs runs the command @code{Info-goto-node}.
 
   Unlike @kbd{m}, @kbd{g} does not allow the use of abbreviations.
@@ -1123,7 +1126,7 @@ cannot expect this node to have a @samp{Next}, @samp{Previous} or
 >> Type @kbd{l} to return to the node where the cross reference was.
 @end format
 
-@node Help-Q,  , Help-Adv, Getting Started
+@node Help-Q,  , Help-Int, Getting Started
 @comment  node-name,  next,  previous,  up
 @section Quitting Info
 
