@@ -1,3 +1,11 @@
+2000-11-27  Miles Bader  <miles@gnu.org>
+
+	* dired.el (dired-get-filename): Return filename verbatim if
+	LOCALP is `verbatim'.
+	* dired-aux.el (dired-add-entry): Call `dired-get-filename' with
+	`verbatim' so that we don't inadvertently delete a non-existant
+	directory name.
+
 2000-11-27  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/characters.el: Specify cases and syntaxes for
