@@ -147,23 +147,41 @@ Any other non-nil version means case is not significant."
 
 (defcustom dabbrev-upcase-means-case-search nil
   "*The significance of an uppercase character in an abbreviation.
-nil means case fold search, non-nil means case sensitive search.
+nil means case fold search when searching for possible expansions;
+non-nil means case sensitive search.
 
 This variable has an effect only when the value of
 `dabbrev-case-fold-search' says to ignore case."
   :type 'boolean
   :group 'dabbrev)
 
-(defcustom dabbrev-case-replace 'case-replace
-  "*Controls whether dabbrev preserves case when expanding the abbreviation.
-A value of nil means preserve case.
-A value of `case-replace' means preserve case if `case-replace' is nil.
-Any other non-nil version means do not preserve case.
+(defcustom dabbrev-case-distinction 'case-replace
+  "*Whether dabbrev treats expansions as the same if they differ in case.
+
+A value of nil means treat them as different.
+A value of `case-replace' means distinguish them if `case-replace' is nil.
+Any other non-nil value means to treat them as the same.
 
 This variable has an effect only when the value of
 `dabbrev-case-fold-search' specifies to ignore case."
   :type '(choice (const :tag "off" nil)
-		 (const :tag "like M-x query-replace" case-replace)
+		 (const :tag "based on `case-replace'" case-replace)
+		 (other :tag "on" t))
+  :group 'dabbrev
+  :version "21.4")
+
+(defcustom dabbrev-case-replace 'case-replace
+  "*Whether dabbrev applies the abbreviations's case pattern to the expansion.
+
+A value of nil means preserve the expansion's case pattern.
+A value of `case-replace' means preserve it if `case-replace' is nil.
+Any other non-nil value means modify the expansion
+by applying the abbreviation's case pattern to it.
+
+This variable has an effect only when the value of
+`dabbrev-case-fold-search' specifies to ignore case."
+  :type '(choice (const :tag "off" nil)
+		 (const :tag "based on `case-replace'" case-replace)
 		 (other :tag "on" t))
   :group 'dabbrev)
 
@@ -689,7 +707,11 @@ of the expansion in `dabbrev--last-expansion-location'."
 	  (while (and (> count 0)
 		      (setq expansion (dabbrev--search abbrev
 						       reverse
-						       ignore-case)))
+						       (and ignore-case
+							    (if (eq dabbrev-case-distinction 'case-replace)
+								case-replace
+							      dabbrev-case-distinction))
+						       )))
 	    (setq count (1- count))))
 	(and expansion
 	     (setq dabbrev--last-expansion-location (point)))
@@ -950,7 +972,7 @@ Leaves point at the location of the start of the expansion."
 			    "\\(" dabbrev--abbrev-char-regexp "\\)"))
 	  (pattern2 (concat (regexp-quote abbrev)
 			   "\\(\\(" dabbrev--abbrev-char-regexp "\\)+\\)"))
-	  (found-string nil))
+	  found-string result)
       ;; Limited search.
       (save-restriction
 	(and dabbrev-limit
@@ -974,7 +996,8 @@ Leaves point at the location of the start of the expansion."
 	    ;; We have a truly valid match.  Find the end.
 	    (re-search-forward pattern2)
 	    (setq found-string (buffer-substring-no-properties
-				(match-beginning 1) (match-end 1)))
+				(match-beginning 0) (match-end 0)))
+	    (setq result found-string)
 	    (and ignore-case (setq found-string (downcase found-string)))
 	    ;; Ignore this match if it's already in the table.
 	    (if (dabbrev-filter-elements
@@ -986,16 +1009,12 @@ Leaves point at the location of the start of the expansion."
 	      (goto-char (match-beginning 0))
 	    (goto-char (match-end 0))))
 	;; If we found something, use it.
-	(if found-string
-	    ;; Put it into `dabbrev--last-table'
-	    ;; and return it (either downcased, or as is).
-	    (let ((result (buffer-substring-no-properties
-			   (match-beginning 0) (match-end 0))))
-	      (setq dabbrev--last-table
-		    (cons found-string dabbrev--last-table))
-	      (if (and ignore-case (eval dabbrev-case-replace))
-		  result
-		result)))))))
+	(when found-string
+	  ;; Put it into `dabbrev--last-table'
+	  ;; and return it (either downcased, or as is).
+	  (setq dabbrev--last-table
+		(cons found-string dabbrev--last-table))
+	  result)))))
 
 (dolist (mess '("^No dynamic expansion for .* found$"
 		"^No further dynamic expansion for .* found$"
