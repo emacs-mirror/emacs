@@ -1,0 +1,25 @@
+#!/usr/local/perl
+#
+
+#
+# global options for qa commands
+#
+
+%qa_options = (
+ "v", "INTERFACE_VERSION",
+ "i", "MPS_INCLUDE_DIR",
+ "l", "MPS_LINK_OBJ",
+ "p", "PLATFORM"
+);
+
+%qa_flags = (
+);
+
+$platform_class = `class`;
+chop($platform_class);
+
+%qa_defaults = (
+ "INTERFACE_VERSION", "MO",
+ "PLATFORM", $platform_class
+);
+
