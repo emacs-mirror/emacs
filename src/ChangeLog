@@ -1,3 +1,8 @@
+2001-01-29  Kenichi Handa  <handa@etl.go.jp>
+
+	* w32fns.c (w32_font_match): Allocate three more bytes to regex
+	for '^', '$', and '\0'.
+
 2001-01-28  Andrew Choi  <akochoi@i-cable.com>
 
 	* fontset.c (fontset_pattern_regexp): Allocate three more bytes to
