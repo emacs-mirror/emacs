@@ -1,6 +1,6 @@
 ;;; cwarn.el --- highlight suspicious C and C++ constructions
 
-;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren <andersl@andersl.com>
 ;; Keywords: c, languages, faces
@@ -168,7 +168,7 @@ keyword list."
   :type '(alist :key-type (choice (const assign)
 				  (const semicolon)
 				  (const reference))
-		:value-type face)
+		:value-type (sexp :tag "Value"))
   :group 'cwarn)
 
 (defcustom cwarn-verbose t
