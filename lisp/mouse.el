@@ -594,8 +594,15 @@ remains active.  Otherwise, it remains until the next input event."
 		    (push-mark region-commencement t t)
 		    (goto-char region-termination)
 		    (copy-region-as-kill (point) (mark t))
-		    (mouse-show-mark)
-		    (mouse-set-region-1))
+		    (let ((buffer (current-buffer)))
+		      (mouse-show-mark)
+		      ;; mouse-show-mark can call read-event,
+		      ;; and that means the Emacs server could switch buffers
+		      ;; under us.  If that happened, 
+		      ;; avoid trying to use the region.
+		      (and (mark t) mark-active
+			   (eq buffer (current-buffer))
+			   (mouse-set-region-1))))
 		(goto-char (overlay-end mouse-drag-overlay))
 		(setq this-command 'mouse-set-point)
 		(delete-overlay mouse-drag-overlay))))
