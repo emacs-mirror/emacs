@@ -225,8 +225,8 @@ a symbol as a valid THING."
 
 ;;  Buffer 
 
-(put 'buffer 'end-op 'end-of-buffer)
-(put 'buffer 'beginning-op 'beginning-of-buffer)
+(put 'buffer 'end-op '(lambda () (goto-char (point-max))))
+(put 'buffer 'beginning-op '(lambda () (goto-char (point-min))))
 
 ;;  Symbols 
 
