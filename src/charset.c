@@ -1502,44 +1502,45 @@ is specified.  */)
       if (XFASTINT (code1) >= 0x100)
 	args_out_of_range (make_number (0xFF), code1);
       code = XFASTINT (code1);
-    }
-  if (dimension > 1)
-    {
-      code <<= 8;
-      if (NILP (code2))
-	code |= charsetp->code_space[(dimension - 2) * 4];
-      else
-	{
-	  CHECK_NATNUM (code2);
-	  if (XFASTINT (code2) >= 0x100)
-	    args_out_of_range (make_number (0xFF), code2);
-	  code |= XFASTINT (code2);
-	}
 
-      if (dimension > 2)
+      if (dimension > 1)
 	{
 	  code <<= 8;
-	  if (NILP (code3))
-	    code |= charsetp->code_space[(dimension - 3) * 4];
+	  if (NILP (code2))
+	    code |= charsetp->code_space[(dimension - 2) * 4];
 	  else
 	    {
-	      CHECK_NATNUM (code3);
-	      if (XFASTINT (code3) >= 0x100)
-		args_out_of_range (make_number (0xFF), code3);
-	      code |= XFASTINT (code3);
+	      CHECK_NATNUM (code2);
+	      if (XFASTINT (code2) >= 0x100)
+		args_out_of_range (make_number (0xFF), code2);
+	      code |= XFASTINT (code2);
 	    }
 
-	  if (dimension > 3)
+	  if (dimension > 2)
 	    {
 	      code <<= 8;
-	      if (NILP (code4))
-		code |= charsetp->code_space[0];
+	      if (NILP (code3))
+		code |= charsetp->code_space[(dimension - 3) * 4];
 	      else
 		{
-		  CHECK_NATNUM (code4);
-		  if (XFASTINT (code4) >= 0x100)
-		    args_out_of_range (make_number (0xFF), code4);
-		  code |= XFASTINT (code4);
+		  CHECK_NATNUM (code3);
+		  if (XFASTINT (code3) >= 0x100)
+		    args_out_of_range (make_number (0xFF), code3);
+		  code |= XFASTINT (code3);
+		}
+
+	      if (dimension > 3)
+		{
+		  code <<= 8;
+		  if (NILP (code4))
+		    code |= charsetp->code_space[0];
+		  else
+		    {
+		      CHECK_NATNUM (code4);
+		      if (XFASTINT (code4) >= 0x100)
+			args_out_of_range (make_number (0xFF), code4);
+		      code |= XFASTINT (code4);
+		    }
 		}
 	    }
 	}
