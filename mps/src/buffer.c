@@ -1,7 +1,7 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.38) $
- * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!buffer.c(trunk.39) $
+ * Copyright (C) 1997,1998.  Harlequin Group plc.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
  *
@@ -25,7 +25,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.38) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.39) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -311,7 +311,7 @@ void BufferDetach(Buffer buffer, Pool pool)
     buffer->apStruct.alloc = (Addr)0;
     buffer->apStruct.limit = (Addr)0;
     buffer->poolLimit = (Addr)0;
-    buffer->mode &= ~BufferModeATTACHED;
+    buffer->mode &= ~(BufferModeATTACHED|BufferModeFLIPPED);
   }
 }
 
