@@ -1,3 +1,8 @@
+2000-06-12  Dave Love  <fx@gnu.org>
+
+	* wid-edit.el (widget-specify-button): Really suppress the face if
+	required.
+
 2000-06-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* term/x-win.el (x-colors): Add colors from recent rgb.txt.
