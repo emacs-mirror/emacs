@@ -124,7 +124,7 @@ extern int errno;
 #endif /* VMS */
 
 #ifndef BSD4_1
-#ifdef BSD /* this is done this way to avoid defined (BSD) || defined (USG)
+#ifdef BSD_SYSTEM /* avoid writing defined (BSD_SYSTEM) || defined (USG)
 	      because the vms compiler doesn't grok `defined' */
 #include <fcntl.h>
 #endif
@@ -138,6 +138,7 @@ extern int errno;
 #ifndef MSDOS
 #include <sys/ioctl.h>
 #endif
+
 #include "systty.h"
 #include "syswait.h"
 
@@ -225,8 +226,7 @@ static int baud_convert[] =
   };
 #endif
 
-#ifdef HAVE_TERMIOS_H
-#include <termios.h>
+#ifdef HAVE_TERMIOS
 extern speed_t ospeed;
 #else
 extern short ospeed;
@@ -377,7 +377,7 @@ set_exclusive_use (fd)
 
 wait_without_blocking ()
 {
-#ifdef BSD
+#ifdef BSD_SYSTEM
   wait3 (0, WNOHANG | WUNTRACED, 0);
 #else
   croak ("wait_without_blocking");
@@ -409,7 +409,7 @@ wait_for_termination (pid)
       status = SYS$FORCEX (&pid, 0, 0);
       break;
 #else /* not VMS */
-#if defined (BSD) || (defined (HPUX) && !defined (HPUX_5))
+#if defined (BSD_SYSTEM) || (defined (HPUX) && !defined (HPUX_5))
       /* Note that kill returns -1 even if the process is just a zombie now.
 	 But inevitably a SIGCHLD interrupt should be generated
 	 and child_sig will do wait3 and make the process go away. */
@@ -428,12 +428,12 @@ wait_for_termination (pid)
 	sleep (1);
       else
 	sigpause (SIGEMPTYMASK);
-#else /* not BSD, and not HPUX version >= 6 */
+#else /* not BSD_SYSTEM, and not HPUX version >= 6 */
 #if defined (UNIPLUS)
       if (0 > kill (pid, 0))
 	break;
       wait (0);
-#else /* neither BSD nor UNIPLUS: random sysV */
+#else /* neither BSD_SYSTEM nor UNIPLUS: random sysV */
 #ifdef POSIX_SIGNALS    /* would this work for LINUX as well? */
       sigblock (sigmask (SIGCHLD));
       if (0 > kill (pid, 0))
@@ -466,7 +466,7 @@ wait_for_termination (pid)
 #endif /* not HAVE_SYSV_SIGPAUSE */
 #endif /* not POSIX_SIGNALS */
 #endif /* not UNIPLUS */
-#endif /* not BSD, and not HPUX version >= 6 */
+#endif /* not BSD_SYSTEM, and not HPUX version >= 6 */
 #endif /* not VMS */
 #else /* not subprocesses */
 #if __DJGPP__ > 1
@@ -1671,7 +1671,7 @@ reset_sys_modes ()
 
   reset_terminal_modes ();
   fflush (stdout);
-#ifdef BSD
+#ifdef BSD_SYSTEM
 #ifndef BSD4_1
   /* Avoid possible loss of output when changing terminal modes.  */
   fsync (fileno (stdout));
@@ -2758,7 +2758,7 @@ sys_sigsetmask (sigset_t new_mask)
 #      define random rand
 #     else
 #      define random() (rand () >> 16)
-#     endif /* !BSD */
+#     endif /* !USG */
 #    endif /* RAND_MAX != 2147483647 */
 #   endif /* RAND_MAX != 32767 */
 #  endif /* !HAVE_LRAND48 */
