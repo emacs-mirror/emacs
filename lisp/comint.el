@@ -924,10 +924,11 @@ See `comint-replace-by-expanded-history'.  Returns t if successful."
 			     (comint-previous-matching-input-string-position
 			      (concat pref (regexp-quote exp)) 1))))
 		 (if (null pos)
-		     (or silent
-			 (progn (message "Not found")
-				(goto-char (match-end 0))
-				(ding)))
+		     (progn
+		       (goto-char (match-end 0))
+		       (or silent
+			   (progn (message "Not found")
+				  (ding))))
 		   (setq comint-input-ring-index pos)
 		   (replace-match
 		    (comint-args (ring-ref comint-input-ring pos)
