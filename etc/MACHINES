@@ -76,7 +76,10 @@ Alpha (DEC) running OSF/1 or GNU/Linux (alpha-dec-osf1, alpha-dec-linux-gnu)
       configure --x-includes=/usr/include --x-libraries=/usr/shlib
 
   For 4.0 revision 564, and 4.0A and 4.0B, Emacs 20 seems to work
-  with no special configuration options.
+  with no special configuration options.  However, if you use GCC as
+  your compiler, you will need version 2.8.1 or later, as older
+  versions fail to build with a message "Invalid dimension for the
+  charset-ID 160".
 
   Note that the X11 libraries on GNU/Linux systems for the Alpha are
   said to have bugs that prevent Emacs from working with X (as of
@@ -529,6 +532,10 @@ IBM RS/6000 (rs6000-ibm-aix*)
 
   Emacs 19.26 is believed to work; its pretest was tested.
 
+  Compiling with the system's `cc' and CFLAGS containing `-O5' might
+  fail because libXbsd isn't found.  This is a compiler bug;
+  re-configure Emacs so that it isn't compiled with `-O5'.
+
   At last report, Emacs didn't run well on terminals.  Informed
   persons say that the tty VMIN and VTIME settings have been
   corrupted; if you have a fix, please send it to us.
@@ -706,6 +713,13 @@ Iris 4D (mips-sgi-irix[456].*)
   on Irix 6.5 by specifying the 64-bit ABI using the `-64' compiler
   flag or otherwise (see cc(1)).  This may work on earlier Irix 6
   systems if you edit src/s/irix6-0.h following irix6-5.h.
+
+  If compiling with GCC on Irix 6 yields an error "conflicting types
+  for `initstate'", install GCC 2.95 or a newer version, and this
+  problem should go away.  It is possible that this problem results
+  from upgrading the operating system without reinstalling GCC; so you
+  could also try reinstalling the same version of GCC, and telling us
+  whether that fixes the problem.
 
   The 19.26 pretest was reported to work on IRIX 4.0.5 and 5.2.
   19.23 was reported to work on IRIX 5.2, but you may need to install
@@ -978,6 +992,13 @@ Sun 3, Sun 4 (sparc), Sun 386 (m68k-sun-sunos, sparc-sun-sunos, i386-sun-sunos,
 
   As of version 2.95, GCC doesn't support the 64-bit ABI properly, but
   later releases may.
+
+  On Solaris 2.7, building Emacs with WorkShop Compilers 5.0 98/12/15
+  C 5.0 failed, apparently with non-default CFLAGS, most probably due to
+  compiler bugs.  Using Sun Solaris 2.7 Sun WorkShop 6 update 1 C
+  release was reported to work without problems.  It worked OK on
+  another system with Solaris 8 using apparently the same 5.0 compiler
+  and the default CFLAGS.
 
   Emacs 20.5 and later work on SPARC GNU/Linux with the 32-bit ABI.
   As of release 2.95, GCC doesn't work properly with the 64-bit ABI
