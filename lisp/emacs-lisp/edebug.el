@@ -2541,4 +2541,6 @@ You must include newlines in FMT to break lines."
       )
     (select-window selected-window)))
 
+(provide 'edebug)
+
 ;;; edebug.el ends here
