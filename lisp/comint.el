@@ -1058,7 +1058,7 @@ than the logical beginning of line."
 		   (replace-match new t t)
 		   (message "History item: substituted"))))
 	      (t
-	       (goto-char (match-end 0))))))))
+	       (forward-char 1)))))))
 
 
 (defun comint-magic-space (arg)
