@@ -439,12 +439,6 @@ most input methods---some disable this feature).  If
 possible characters to type next is displayed in the echo area (but
 not when you are in the minibuffer).
 
-@cindex Leim package
-  Input methods are implemented in the separate Leim package: they are
-available only if the system administrator used Leim when building
-Emacs.  If Emacs was built without Leim, you will find that no input
-methods are defined.
-
 @node Select Input Method
 @section Selecting an Input Method
 
@@ -527,6 +521,11 @@ remapping the keyboard to emulate various keyboard layouts commonly used
 for those scripts.  How to do this remapping properly depends on your
 actual keyboard layout.  To specify which layout your keyboard has, use
 the command @kbd{M-x quail-set-keyboard-layout}.
+
+@findex quail-show-key
+  You can use the command @kbd{M-x quail-show-key} to show what key
+(or key sequence) to type in order to input the character following
+point, using the selected keyboard layout.
 
 @findex list-input-methods
   To display a list of all the supported input methods, type @kbd{M-x
@@ -903,6 +902,9 @@ file in the current buffer.
 Specify coding system @var{coding} for the immediately following
 command.
 
+@item C-x @key{RET} r @var{coding} @key{RET}
+Revisit the current file using the coding system @var{coding}.
+
 @item C-x @key{RET} k @var{coding} @key{RET}
 Use coding system @var{coding} for keyboard input.
 
@@ -974,6 +976,12 @@ when you find a new file, and when you create a buffer and then save it
 in a file.  Selecting a language environment typically sets this
 variable to a good choice of default coding system for that language
 environment.
+
+@kindex C-x RET r
+@findex revert-buffer-with-coding-system
+  If you visit a file with a wrong coding system, you can correct this
+with @kbd{C-x @key{RET} r} (@code{revert-buffer-with-coding-system}).
+This visits the current file again, using a coding system you specify.
 
 @kindex C-x RET t
 @findex set-terminal-coding-system
