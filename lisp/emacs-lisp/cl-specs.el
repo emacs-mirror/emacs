@@ -7,7 +7,7 @@
 ;; LCD Archive Entry:
 ;; cl-specs.el|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |Edebug specs for cl.el
-;; |$Date: 1996/01/05 21:56:25 $|1.1|
+;; |$Date: 1996/01/14 07:34:30 $|1.1|
 
 ;; This file is part of GNU Emacs.
 
@@ -281,7 +281,7 @@
   ;; form at the end could also handle "function",
   ;; but recognize it specially to avoid wrapping function forms.
   (&or ([&or "quote" "function"] &or symbolp lambda-expr) 
-       ("function*" cl-lambda-expr)
+       ("function*" function*)
        form))
 
 ;;======================================================
