@@ -832,77 +832,79 @@ section of the file; for that, use `hack-local-variables'.
 If `enable-local-variables' is nil, this function does not check for a
 -*- mode tag."
   ;; Look for -*-MODENAME-*- or -*- ... mode: MODENAME; ... -*-
-  (let (beg end mode)
+  (let (beg end done)
     (save-excursion
       (goto-char (point-min))
       (skip-chars-forward " \t\n")
-      (if (and enable-local-variables
-	       ;; Don't look for -*- if this file name matches any
-	       ;; of the regexps in inhibit-local-variables-regexps.
-	       (let ((temp inhibit-local-variables-regexps))
-		 (while (and temp
-			     (not (string-match (car temp)
-						buffer-file-name)))
-		   (setq temp (cdr temp)))
-		 (not temp))
-	       (search-forward "-*-" (save-excursion
-				       ;; If the file begins with "#!"
-				       ;; (exec interpreter magic), look
-				       ;; for mode frobs in the first two
-				       ;; lines.  You cannot necessarily
-				       ;; put them in the first line of
-				       ;; such a file without screwing up
-				       ;; the interpreter invocation.
-				       (end-of-line (and (looking-at "^#!") 2))
-				       (point)) t)
-	       (progn
-		 (skip-chars-forward " \t")
-		 (setq beg (point))
-		 (search-forward "-*-"
-				 (save-excursion (end-of-line) (point))
-				 t))
-	       (progn
-		 (forward-char -3)
-		 (skip-chars-backward " \t")
-		 (setq end (point))
-		 (goto-char beg)
-		 (if (search-forward ":" end t)
-		     (progn
-		       (goto-char beg)
-		       (if (let ((case-fold-search t))
-			     (search-forward "mode:" end t))
-			   (progn
-			     (skip-chars-forward " \t")
-			     (setq beg (point))
-			     (if (search-forward ";" end t)
-				 (forward-char -1)
-			       (goto-char end))
-			     (skip-chars-backward " \t")
-			     (setq mode (buffer-substring beg (point))))))
-		   (setq mode (buffer-substring beg end)))))
-	  (setq mode (intern (concat (downcase mode) "-mode")))
-	(if buffer-file-name
-	    (let ((alist auto-mode-alist)
-		  (name buffer-file-name))
-	      (let ((case-fold-search (eq system-type 'vax-vms)))
-		;; Remove backup-suffixes from file name.
-		(setq name (file-name-sans-versions name))
-		;; Find first matching alist entry.
-		(while (and (not mode) alist)
-		  (if (string-match (car (car alist)) name)
-		      (setq mode (cdr (car alist))))
-		  (setq alist (cdr alist))))))))
-    (if mode (funcall mode))))
+      (and enable-local-variables
+	   ;; Don't look for -*- if this file name matches any
+	   ;; of the regexps in inhibit-local-variables-regexps.
+	   (let ((temp inhibit-local-variables-regexps))
+	     (while (and temp
+			 (not (string-match (car temp)
+					    buffer-file-name)))
+	       (setq temp (cdr temp)))
+	     (not temp))
+	   (search-forward "-*-" (save-excursion
+				   ;; If the file begins with "#!"
+				   ;; (exec interpreter magic), look
+				   ;; for mode frobs in the first two
+				   ;; lines.  You cannot necessarily
+				   ;; put them in the first line of
+				   ;; such a file without screwing up
+				   ;; the interpreter invocation.
+				   (end-of-line (and (looking-at "^#!") 2))
+				   (point)) t)
+	   (progn
+	     (skip-chars-forward " \t")
+	     (setq beg (point))
+	     (search-forward "-*-"
+			     (save-excursion (end-of-line) (point))
+			     t))
+	   (progn
+	     (forward-char -3)
+	     (skip-chars-backward " \t")
+	     (setq end (point))
+	     (goto-char beg)
+	     (if (save-excursion (search-forward ":" end t))
+		 ;; Find all specifications for the `mode:' variable
+		 ;; and execute hem left to right.
+		 (while (let ((case-fold-search t))
+			  (search-forward "mode:" end t))
+		   (skip-chars-forward " \t")
+		   (setq beg (point))
+		   (if (search-forward ";" end t)
+		       (forward-char -1)
+		     (goto-char end))
+		   (skip-chars-backward " \t")
+		   (funcall (intern (concat (downcase (buffer-substring beg (point))) "-mode"))))
+	       ;; Simple -*-MODE-*- case.
+	       (funcall (intern (concat (downcase (buffer-substring beg end)) "-mode"))))
+	     (setq done t)))
+      ;; If we didn't find a mode from a -*- line, try using the file name.
+      (if (and (not done) buffer-file-name)
+	  (let ((alist auto-mode-alist)
+		(name buffer-file-name)
+		mode)
+	    (let ((case-fold-search (eq system-type 'vax-vms)))
+	      ;; Remove backup-suffixes from file name.
+	      (setq name (file-name-sans-versions name))
+	      ;; Find first matching alist entry.
+	      (while (and (not mode) alist)
+		(if (string-match (car (car alist)) name)
+		    (setq mode (cdr (car alist))))
+		(setq alist (cdr alist))))
+	    (if mode (funcall mode)))))))
 
 (defun hack-local-variables-prop-line ()
   ;; Set local variables specified in the -*- line.
-  ;; Returns t if mode was set.
+  ;; Ignore any specification for `mode:';
+  ;; set-auto-mode should already have handled that.
   (save-excursion
     (goto-char (point-min))
     (skip-chars-forward " \t\n\r")
     (let ((result '())
-	  (end (save-excursion (end-of-line) (point)))
-	  mode-p)
+	  (end (save-excursion (end-of-line) (point))))
       ;; Parse the -*- line into the `result' alist.
       (cond ((not (search-forward "-*-" end t))
 	     ;; doesn't have one.
@@ -934,13 +936,6 @@ If `enable-local-variables' is nil, this function does not check for a
 		 (setq result (cons (cons key val) result))
 		 (skip-chars-forward " \t;")))
 	     (setq result (nreverse result))))
-
-      ;; Mode is magic.
-      (let (mode)
-	(while (setq mode (assq 'mode result))
-	  (setq mode-p t result (delq mode result))
-	  (funcall (intern (concat (downcase (symbol-name (cdr mode)))
-				   "-mode")))))
       
       (if (and result
 	       (or (eq enable-local-variables t)
@@ -952,10 +947,9 @@ If `enable-local-variables' is nil, this function does not check for a
 	  (while result
 	    (let ((key (car (car result)))
 		  (val (cdr (car result))))
-	      ;; 'mode has already been removed from this list.
-	      (hack-one-local-variable key val))
-	    (setq result (cdr result))))
-      mode-p)))
+	      (or (eq key 'mode)
+		  (hack-one-local-variable key val)))
+	    (setq result (cdr result)))))))
 
 (defun hack-local-variables ()
   "Parse and put into effect this buffer's local variables spec."
