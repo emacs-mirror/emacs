@@ -1,5 +1,8 @@
 1999-10-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* textmodes/sgml-mode.el (sgml-char-names): Change "half" to
+	"frac12".
+
 	* emacs-lisp/advice.el (ad-activate-on): Make it an alias for
 	ad-activate.
 
