@@ -1011,26 +1011,23 @@ Numeric argument means justify as well."
 				justifyp
 				t)))
 
-(defun mail-indent-citation (beg end)
+(defun mail-indent-citation ()
   "Modify text just inserted from a message to be cited.
 The inserted text should be the region.
 When this function returns, the region is again around the modified text.
 
 Normally, indent each nonblank line `mail-indentation-spaces' spaces.
 However, if `mail-yank-prefix' is non-nil, insert that prefix on each line."
-  (if (> beg end)
-      (let ((temp beg))
-	(setq beg end end temp)))
-  (mail-yank-clear-headers beg end)
+  (mail-yank-clear-headers (region-beginning) (region-end))
   (if (null mail-yank-prefix)
-      (indent-rigidly beg end mail-indentation-spaces)
+      (indent-rigidly (region-beginning) (region-end)
+		      mail-indentation-spaces)
     (save-excursion
-      (goto-char beg)
-      (setq end (set-marker (make-marker) end))
-      (while (< (point) end)
-	(insert mail-yank-prefix)
-	(forward-line 1))
-      (set-marker end nil))))
+      (let ((end (set-marker (make-marker) (region-end))))
+	(goto-char (region-beginning))
+	(while (< (point) end)
+	  (insert mail-yank-prefix)
+	  (forward-line 1))))))
 
 (defun mail-yank-original (arg)
   "Insert the message being replied to, if any (in rmail).
@@ -1062,7 +1059,7 @@ and don't delete any header fields."
 		(run-hooks 'mail-citation-hook)
 	      (if mail-yank-hooks
 		  (run-hooks 'mail-yank-hooks)
-		(mail-indent-citation (point) (mark))))))
+		(mail-indent-citation)))))
 	;; This is like exchange-point-and-mark, but doesn't activate the mark.
 	;; It is cleaner to avoid activation, even though the command
 	;; loop would deactivate the mark because we inserted text.
@@ -1115,7 +1112,7 @@ and don't delete any header fields."
 		 (run-hooks 'mail-citation-hook)
 	       (if mail-yank-hooks
 		   (run-hooks 'mail-yank-hooks)
-		 (mail-indent-citation (point) (mark)))))))))
+		 (mail-indent-citation))))))))
 
 (defun mail-attach-file (&optional file)
   "Insert a file at the end of the buffer, with separator lines around it."
