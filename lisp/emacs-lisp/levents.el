@@ -56,15 +56,6 @@
 (put 'menu 'event-symbol-elements '(eval))
 (put 'timeout 'event-symbol-elements '(eval))
 
-(defsubst eventp (obj)
-  "True if the argument is an event object."
-  (or (integerp obj)
-      (and (symbolp obj)
-	   (get obj 'event-symbol-elements))
-      (and (consp obj)
-	   (symbolp (car obj))
-	   (get (car obj) 'event-symbol-elements))))
-
 (defun allocate-event ()
   "Returns an empty event structure.
 In this emulation, it returns nil."
