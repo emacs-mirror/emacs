@@ -1111,8 +1111,10 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
 (defun rmail-sort-from-summary (sortfun reverse)
   "Sort Rmail messages from Summary buffer and update it after sorting."
   (require 'rmailsort)
-  (pop-to-buffer rmail-buffer)
-  (funcall sortfun reverse)
-  (rmail-summary))
+  (let ((selwin (selected-window)))
+    (unwind-protect
+	(progn (pop-to-buffer rmail-buffer)
+	       (funcall sortfun reverse))
+      (select-window selwin))))
 
 ;;; rmailsum.el ends here
