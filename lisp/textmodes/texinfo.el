@@ -220,7 +220,7 @@ chapter."
     ("@\\(samp\\|code\\|var\\|math\\){\\([^}]+\\)"
      2 font-lock-variable-name-face)
     ("@\\(cite\\|xref\\|pxref\\){\\([^}]+\\)" 2 font-lock-reference-face)
-    ("@\\(end\\|item\\) *\\(.+\\)" 2 font-lock-function-name-face keep)
+    ("@\\(end\\|itemx?\\) +\\(.+\\)" 2 font-lock-function-name-face keep)
     )
   "Additional expressions to highlight in TeXinfo mode.")
 
