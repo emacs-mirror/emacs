@@ -1279,6 +1279,20 @@ This function should be in the list `comint-output-filter-functions'."
 	     nil t))
       (set-buffer current))))
 
+(defun comint-strip-ctrl-m (&optional string)
+  "Strip trailing `^M' characters from the current output group.
+
+This function could be in the list `comint-output-filter-functions' or bound to
+a key."
+  (interactive)
+  (let ((pmark (process-mark (get-buffer-process (current-buffer)))))
+    (save-excursion
+      (goto-char
+       (if (interactive-p) comint-last-input-end comint-last-output-start))
+      (while (re-search-forward "\r+$" pmark t)
+	(replace-match "" t t)))))
+(defalias 'shell-strip-ctrl-m 'comint-strip-ctrl-m)
+
 (defun comint-show-maximum-output ()
   "Put the end of the buffer at the bottom of the window."
   (interactive)
