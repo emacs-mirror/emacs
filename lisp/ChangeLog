@@ -1,3 +1,21 @@
+2003-05-03  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/cperl-mode.el (cperl-nonoverridable-face): Doc fix.
+
+	* mail/sendmail.el (mail-dont-send, mail-bury): Make ARG optional.
+
+	* view.el (Helper-return-blurb): Add defvar.  (Also rearrange defuns.)
+
+	* uniquify.el (uniquify-ignore-buffers-re): Change default
+	to match some Gnus buffers.
+
+	* newcomment.el (comment-search-forward): Add autoload cookie.
+
+	* isearch.el (isearch-complete): Update isearch-message.
+
+	* filesets.el (filesets-data): Add another defvar.
+	(filesets-verbosity): Doc fix.
+
 2003-05-02  Tak Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
 
 	* recentf.el (recentf-cleanup): Swap tests for exclusion and
