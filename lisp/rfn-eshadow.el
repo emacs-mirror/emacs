@@ -207,10 +207,10 @@ been set up by `rfn-eshadow-setup-minibuffer'."
 ;;; functions be already defined.  [This is arguably a bug in d-m-m]
 ;;;###autoload
 (define-minor-mode file-name-shadow-mode
-  "Toggle Read-File-Name Electric Shadow mode.
-When active, any part of the filename being read in the minibuffer
-that would be ignored because the result is passed through
-`substitute-in-file-name' is given the properties in
+  "Toggle File-Name Shadow mode.
+When active, any part of a filename being read in the minibuffer
+that would be ignored (because the result is passed through
+`substitute-in-file-name') is given the properties in
 `file-name-shadow-properties', which can be used to make
 that portion dim, invisible, or otherwise less visually noticeable.
 
@@ -232,6 +232,7 @@ Returns non-nil if the new state is enabled."
 ;; backwards compatibility
 (make-obsolete 'read-file-name-electric-shadow-mode 'file-name-shadow-mode
 	       "21.4")
+;;;###autoload
 (defalias 'read-file-name-electric-shadow-mode 'file-name-shadow-mode)
 (make-obsolete-variable 'read-file-name-electric-shadow-mode
 			'file-name-shadow-mode "21.4")
