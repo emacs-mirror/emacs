@@ -10,12 +10,12 @@
 ;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;;	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, print, PostScript
-;; Time-stamp: <2001/06/19 11:01:09 vinicius>
-;; Version: 6.5.3
+;; Time-stamp: <2001/08/07 13:22:04 vinicius>
+;; Version: 6.5.4
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.5.3"
-  "ps-print.el, v 6.5.3 <2001/06/19 vinicius>
+(defconst ps-print-version "6.5.4"
+  "ps-print.el, v 6.5.4 <2001/08/07 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -3587,9 +3587,6 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 
   (cond ((eq ps-print-emacs-type 'emacs) ; emacs
 
-	 ;; to avoid XEmacs compilation gripes
-	 (defvar coding-system-for-write nil)
-
 	 (defun ps-color-values (x-color)
 	   (cond
 	    ((fboundp 'color-values)
@@ -3613,6 +3610,11 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 					; xemacs
 					; lucid
 	(t				; epoch
+
+	 ;; to avoid XEmacs compilation gripes
+	 (defvar coding-system-for-write   nil)
+	 (defvar coding-system-for-read    nil)
+	 (defvar buffer-file-coding-system nil)
 
 	 (and (fboundp 'find-coding-system)
 	      (or (ps-x-find-coding-system 'raw-text-unix)
