@@ -135,6 +135,7 @@
      (?\~ (?A . ?\303) (?C . ?\307) (?D . ?\320) (?N . ?\321) (?O . ?\325)
 	  (?T . ?\336) (?a . ?\343) (?c . ?\347) (?d . ?\360) (?n . ?\361)
 	  (?o . ?\365) (?t . ?\376) (?> . ?\273) (?< . ?\253) (?\~ . ?\270)
+	  (?! . ?\241) (?? . ?\277)
 	  (?\  . ?\~))
      (?\/ (?A . ?\305) (?E . ?\306) (?O . ?\330) (?a . ?\345) (?e . ?\346)
 	  (?o . ?\370) (?\/ . ?\260) (?\  . ?\/))))
@@ -347,5 +348,15 @@ Noninteractively, this operates on text from START to END."
 
 ;; Set up the default settings.
 (iso-accents-customize "latin-1")
+
+;; Use Iso-Accents mode in the minibuffer
+;; if it was in use in the previous buffer.
+(defun iso-acc-minibuf-setup ()
+  (setq iso-accents-mode
+	(save-excursion
+	  (set-buffer (window-buffer minibuffer-scroll-window))
+	  iso-accents-mode)))
+
+(add-hook 'minibuf-setup-hook 'iso-acc-minibuf-setup)
 
 ;;; iso-acc.el ends here
