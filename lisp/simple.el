@@ -2091,7 +2091,7 @@ and KILLP is t if a prefix arg was specified."
 	      (let ((col (current-column)))
 		(forward-char -1)
 		(setq col (- col (current-column)))
-		(insert-char ?\ col)
+		(insert-char ?\  col)
 		(delete-char 1)))
 	  (forward-char -1)
 	  (setq count (1- count))))))
