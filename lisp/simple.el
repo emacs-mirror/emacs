@@ -372,7 +372,7 @@ If BACKWARD-ONLY is non-nil, only delete spaces before point."
      (progn
        (skip-chars-forward " \t")
        (constrain-to-field nil orig-pos t)))))
-
+
 (defun beginning-of-buffer (&optional arg)
   "Move point to the beginning of the buffer; leave mark at previous position.
 With arg N, put point N/10 of the way from the beginning.
@@ -433,7 +433,7 @@ that uses or sets the mark."
   (push-mark (point))
   (push-mark (point-max) nil t)
   (goto-char (point-min)))
-
+
 
 ;; Counting lines, one way or another.
 
@@ -559,7 +559,7 @@ in *Help* buffer.  See also the command `describe-char-after'."
 		       (single-key-description char)
 		     (buffer-substring-no-properties (point) (1+ (point))))
 		   encoding-msg pos total percent col hscroll))))))
-
+
 (defvar read-expression-map
   (let ((m (make-sparse-keymap)))
     (define-key m "\M-\t" 'lisp-complete-symbol)
@@ -675,7 +675,7 @@ to get different commands to edit and resubmit."
 	      (setq command-history (cons newcmd command-history)))
 	  (eval newcmd))
       (ding))))
-
+
 (defvar minibuffer-history nil
   "Default minibuffer history list.
 This is used for all minibuffer input
@@ -886,7 +886,7 @@ Return 0 if current buffer is not a mini-buffer."
   ;; Return the width of everything before the field at the end of
   ;; the buffer; this should be 0 for normal buffers.
   (1- (minibuffer-prompt-end)))
-
+
 ;Put this on C-x u, so we can force that rather than C-_ into startup msg
 (defalias 'advertised-undo 'undo)
 
@@ -1519,7 +1519,7 @@ specifies the value of ERROR-BUFFER."
     (with-current-buffer
       standard-output
       (call-process shell-file-name nil t nil shell-command-switch command))))
-
+
 (defvar universal-argument-map
   (let ((map (make-sparse-keymap)))
     (define-key map [t] 'universal-argument-other-key)
@@ -1635,7 +1635,7 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
 		  unread-command-events)))
   (reset-this-command-lengths)
   (setq overriding-terminal-local-map nil))
-
+
 ;;;; Window system cut and paste hooks.
 
 (defvar interprogram-cut-function nil
@@ -1672,7 +1672,7 @@ most recent string, the function should return nil.  If it is
 difficult to tell whether Emacs or some other program provided the
 current string, it is probably good enough to return nil if the string
 is equal (according to `string=') to the last text Emacs provided.")
-
+
 
 
 ;;;; The kill ring data structure.
@@ -1948,7 +1948,7 @@ See also the command \\[yank-pop]."
 With argument, rotate that many kills forward (or backward, if negative)."
   (interactive "p")
   (current-kill arg))
-
+
 ;; Some kill commands.
 
 ;; Internal subroutine of delete-char
@@ -2129,7 +2129,7 @@ If ARG is zero, move to the beginning of the current line."
 	(goto-char (next-single-property-change (point) 'invisible))
       (goto-char (next-overlay-change (point))))
     (end-of-line)))
-
+
 (defun insert-buffer (buffer)
   "Insert after point the contents of BUFFER.
 Puts mark after the inserted text.
@@ -2211,7 +2211,7 @@ START and END specify the portion of the current buffer to be copied."
       (erase-buffer)
       (save-excursion
 	(insert-buffer-substring oldbuf start end)))))
-
+
 (put 'mark-inactive 'error-conditions '(mark-inactive error))
 (put 'mark-inactive 'error-message "The mark is not active now")
 
@@ -2416,7 +2416,7 @@ the Transient Mark mode."
 	(widen))
     (goto-char position)
     (switch-to-buffer buffer)))
-
+
 (defcustom next-line-add-newlines nil
   "*If non-nil, `next-line' inserts newline to avoid `end of buffer' error."
   :type 'boolean
@@ -2681,7 +2681,7 @@ The goal column is stored in the variable `goal-column'."
 	      "Goal column %d (use \\[set-goal-column] with an arg to unset it)")
 	     goal-column))
   nil)
-
+
 
 (defun scroll-other-window-down (lines)
   "Scroll the \"other window\" down.
@@ -2727,7 +2727,7 @@ With arg N, put point N/10 of the way from the true end."
 	  (end-of-buffer arg)
 	  (recenter '(t)))
       (select-window orig-window))))
-
+
 (defun transpose-chars (arg)
   "Interchange characters around point, moving forward one character.
 With prefix arg ARG, effect is to take character before point
@@ -2811,7 +2811,7 @@ With argument 0, interchanges line point is in with line mark is in."
      (insert (delete-and-extract-region (car pos1) (cdr pos1)))
      (goto-char (car pos1))
      (insert word2))))
-
+
 (defun backward-word (arg)
   "Move backward until encountering the beginning of a word.
 With argument, do this that many times."
@@ -2880,7 +2880,7 @@ or adjacent to a word."
 		   (setq start (point)))
 		 (buffer-substring-no-properties start end)))
 	(buffer-substring-no-properties start end)))))
-
+
 (defcustom fill-prefix nil
   "*String for filling to insert at front of new line, or nil for none."
   :type '(choice (const :tag "None" nil)
@@ -3083,7 +3083,7 @@ Just \\[universal-argument] as argument means to use the current column."
       (error "set-fill-column requires an explicit argument")
     (message "Fill column set to %d (was %d)" arg fill-column)
     (setq fill-column arg)))
-
+
 (defun set-selective-display (arg)
   "Set `selective-display' to ARG; clear it if no arg.
 When the value of `selective-display' is a number > 0,
@@ -3183,7 +3183,7 @@ in the mode line."
 	(if (null arg) (not column-number-mode)
 	  (> (prefix-numeric-value arg) 0)))
   (force-mode-line-update))
-
+
 (defgroup paren-blinking nil
   "Blinking matching of parens and expressions."
   :prefix "blink-matching-"
@@ -3298,7 +3298,7 @@ when it is off screen)."
 
 ;Turned off because it makes dbx bomb out.
 (setq blink-paren-function 'blink-matching-open)
-
+
 ;; This executes C-g typed while Emacs is waiting for a command.
 ;; Quitting out of a program does not go through here;
 ;; that happens in the QUIT macro at the C code level.
@@ -3341,6 +3341,19 @@ or go back to just one window (by deleting all but the selected window)."
 	 (delete-other-windows))
 	((string-match "^ \\*" (buffer-name (current-buffer)))
 	 (bury-buffer))))
+
+(defun play-sound-file (file &optional volume device)
+  "Play sound stored in FILE.
+VOLUME and DEVICE correspond to the keywords of the sound
+specification for `play-sound'."
+  (interactive "fPlay sound file: ")
+  (let ((sound (list :file file)))
+    (if volume
+	(plist-put sound :volume volume))
+    (if device
+	(plist-put sound :device device))
+    (push 'sound sound)
+    (play-sound sound)))
 
 (define-key global-map "\e\e\e" 'keyboard-escape-quit)
 
