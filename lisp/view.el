@@ -28,6 +28,10 @@
 
 ;;; Code:
 
+;;;###autoload
+(defvar view-highlight-face 'highlight
+   "*The overlay face used for highlighting the match found by View mode search.")
+
 (defvar view-mode nil "Non-nil if View mode is enabled.")
 (make-variable-buffer-local 'view-mode)
 
@@ -54,7 +58,8 @@
 (make-variable-buffer-local 'view-exit-position)
 
 (defvar view-overlay nil
-  "Overlay used to display where a search operation found its match.")
+  "Overlay used to display where a search operation found its match.
+This is local in each buffer, once it is used.")
 (make-variable-buffer-local 'view-overlay)
 
 (or (assq 'view-mode minor-mode-alist)
@@ -425,7 +430,7 @@ invocations return to earlier marks."
 	      (move-overlay view-overlay (match-beginning 0) (match-end 0))
 	    (setq view-overlay
 		  (make-overlay (match-beginning 0) (match-end 0))))
-	  (overlay-put view-overlay 'face 'highlight)
+	  (overlay-put view-overlay 'face view-highlight-face)
 	  (beginning-of-line)
 	  (recenter (/ (view-window-size) 2)))
       (message "Can't find occurrence %d of %s" times regexp)
