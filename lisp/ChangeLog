@@ -1,3 +1,8 @@
+2001-02-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* newcomment.el (comment-forward): Skip the comment-start before
+	searching for the comment-end.
+
 2001-02-21  Dave Love  <fx@gnu.org>
 
 	* custom.el (custom-initialize-changed, defcustom): Doc fix.
