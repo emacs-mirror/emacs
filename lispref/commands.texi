@@ -2063,10 +2063,10 @@ returns the key sequence as a vector, never as a string.
 
 @cindex upper case key sequence
 @cindex downcasing in @code{lookup-key}
-If an input character is an upper-case letter and has no key binding,
-but its lower-case equivalent has one, then @code{read-key-sequence}
-converts the character to lower case.  Note that @code{lookup-key} does
-not perform case conversion in this way.
+If an input character is upper-case (or has the shift modifier) and
+has no key binding, but its lower-case equivalent has one, then
+@code{read-key-sequence} converts the character to lower case.  Note
+that @code{lookup-key} does not perform case conversion in this way.
 
 The function @code{read-key-sequence} also transforms some mouse events.
 It converts unbound drag events into click events, and discards unbound
