@@ -797,6 +797,17 @@ this sets the local binding in that buffer instead."
 	(set variable value))
     (set-default variable value)))
 
+(defun custom-set-minor-mode (variable value)
+  ":set function for minor mode variables.
+Normally, this sets the default value of VARIABLE to nil if VALUE
+is nil and to t otherwise,
+but if `custom-local-buffer' is non-nil,
+this sets the local binding in that buffer instead."
+  (if custom-local-buffer
+      (with-current-buffer custom-local-buffer
+	(funcall variable (or value 0)))
+    (funcall variable (or value 0))))
+
 (defun custom-quote (sexp)
   "Quote SEXP iff it is not self quoting."
   (if (or (memq sexp '(t nil))
