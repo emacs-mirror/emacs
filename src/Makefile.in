@@ -683,7 +683,7 @@ lisp= \
 	${lispsource}international/latin-9.el \
 	${lispsource}case-table.elc \
 	${lispsource}language/chinese.elc \
-	${lispsource}language/cyrillic.elc \
+	${lispsource}language/cyrillic.el \
 	${lispsource}language/indian.elc \
 	${lispsource}language/devanagari.el \
 	${lispsource}language/english.el \
@@ -699,7 +699,7 @@ lisp= \
 	${lispsource}language/lao.el \
 	${lispsource}language/thai.el \
 	${lispsource}language/tibetan.elc \
-	${lispsource}language/vietnamese.elc \
+	${lispsource}language/vietnamese.el \
 	${lispsource}language/misc-lang.el \
 	${lispsource}language/utf-8-lang.el \
 	${lispsource}language/georgian.el \
@@ -764,7 +764,7 @@ shortlisp= \
 	../lisp/international/latin-9.el \
 	../lisp/case-table.elc \
 	../lisp/language/chinese.elc \
-	../lisp/language/cyrillic.elc \
+	../lisp/language/cyrillic.el \
 	../lisp/language/indian.elc \
 	../lisp/language/devanagari.el \
 	../lisp/language/english.el \
@@ -780,7 +780,7 @@ shortlisp= \
 	../lisp/language/lao.el \
 	../lisp/language/thai.el \
 	../lisp/language/tibetan.elc \
-	../lisp/language/vietnamese.elc \
+	../lisp/language/vietnamese.el \
 	../lisp/language/misc-lang.el \
 	../lisp/language/utf-8-lang.el \
 	../lisp/language/georgian.el \
