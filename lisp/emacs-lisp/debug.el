@@ -170,7 +170,14 @@ first will be printed into the backtrace buffer."
 	    (save-excursion
 	      (save-window-excursion
 		(with-no-warnings
-		 (setq unread-command-char -1))
+		  (setq unread-command-char -1))
+		(when (eq (car debugger-args) 'debug)
+		  ;; Skip the frames for backtrace-debug, byte-code,
+		  ;; and implement-debug-on-entry.
+		  (backtrace-debug 4 t)
+		  ;; Place an extra debug-on-exit for macro's.
+		  (when (eq 'lambda (car-safe (cadr (backtrace-frame 4))))
+		    (backtrace-debug 5 t)))
 		(pop-to-buffer debugger-buffer)
 		(debugger-mode)
 		(debugger-setup-buffer debugger-args)
@@ -190,10 +197,6 @@ first will be printed into the backtrace buffer."
 		  (goto-char (point-min))
 		  (message "%s" (buffer-string))
 		  (kill-emacs))
-		(if (eq (car debugger-args) 'debug)
-		    ;; Skip the frames for backtrace-debug, byte-code,
-		    ;; and implement-debug-on-entry.
-		    (backtrace-debug 4 t))
 		(message "")
 		(let ((standard-output nil)
 		      (buffer-read-only t))
@@ -225,7 +228,7 @@ first will be printed into the backtrace buffer."
       (setq last-command debugger-outer-last-command)
       (setq this-command debugger-outer-this-command)
       (with-no-warnings
-       (setq unread-command-char debugger-outer-unread-command-char))
+	(setq unread-command-char debugger-outer-unread-command-char))
       (setq unread-command-events debugger-outer-unread-command-events)
       (setq unread-post-input-method-events
 	    debugger-outer-unread-post-input-method-events)
@@ -263,12 +266,7 @@ That buffer should be current already."
   ;; lambda is for debug-on-call when a function call is next.
   ;; debug is for debug-on-entry function called.
   (cond ((memq (car debugger-args) '(lambda debug))
-	 (insert "--entering a function:\n")
-	 (if (eq (car debugger-args) 'debug)
-	     (progn
-	       (delete-char 1)
-	       (insert ?*)
-	       (beginning-of-line))))
+	 (insert "--entering a function:\n"))
 	;; Exiting a function.
 	((eq (car debugger-args) 'exit)
 	 (insert "--returning value: ")
@@ -508,12 +506,12 @@ Applies to the frame whose line point is on in the backtrace."
 	    (unwind-protect
 		(progn
 		  (with-no-warnings
-		   (setq unread-command-char debugger-outer-unread-command-char))
+		    (setq unread-command-char debugger-outer-unread-command-char))
 		  (prog1 (progn ,@body)
 		    (with-no-warnings
-		     (setq debugger-outer-unread-command-char unread-command-char))))
+		      (setq debugger-outer-unread-command-char unread-command-char))))
 	      (with-no-warnings
-	       (setq unread-command-char save-ucc))))
+		(setq unread-command-char save-ucc))))
         (setq debugger-outer-match-data (match-data))
         (setq debugger-outer-load-read-function load-read-function)
         (setq debugger-outer-overriding-terminal-local-map

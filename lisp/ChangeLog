@@ -1,3 +1,69 @@
+2005-03-14  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (next-line, previous-line): Add optional try-vscroll
+	arg to recognize interactive use.  Pass it on to line-move.
+	(line-move): Don't perform auto-window-vscroll when defining or
+	executing keyboard macro to ensure consistent behaviour.
+
+2005-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-util.el (cvs-string->strings): Strip trailing whitespace.
+
+2005-03-13  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (debug): Set debug-on-exit before calling
+	debugger-setup-buffer so that backtrace marks the frames set to
+	debug-on-exit and we don't have to do it manually.  Set an extra
+	debug-on-exit for macro's.
+	(debugger-setup-buffer): Don't mark the top frame manually.
+
+2005-03-12  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/byte-run.el: Replace lisp-indent-hook with
+	lisp-indent-function throughout.
+	(with-no-warnings): Set lisp-indent-function property.
+
+2005-03-12  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/dcl-mode.el (dcl-mode-syntax-table):
+	Add entry for backslash.
+
+2005-03-12  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-search): Four fixes for backward search.
+
+2005-03-11  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-language-alist): New variable.
+	* calc/calc-embed.el (calc-embedded-language-alist): Remove.
+	(calc-embedded-find-modes): Use calc-language-alist instead of
+	calc-embedded-language-alist.
+
+2005-03-11  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/calendar.el (calendar-redrawing): New internal
+	variable.
+	(redraw-calendar): Remove bogus save-excursion from previous
+	change.  Bind calendar-redrawing to t for mark-diary-entries.
+	* calendar/diary-lib.el (mark-diary-entries): No need to redraw
+	calendar if that is why we were called.
+
+2005-03-11  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (make-coding-system): Set property
+	'coding-system-define-form to nil.
+	(define-coding-system-alias): Likewise.
+
+2005-03-11  Kenichi Handa  <handa@m17n.org>
+
+	These changes are suggested by Dave Love <fx@gnu.org>.
+
+	* textmodes/fill.el: Change encoding to iso-2022-7bit and add
+	coding: tag.
+	(adaptive-fill-regexp): Add more bullets.
+	(fill-french-nobreak-p): Add Latin-1 and Latin-9 guillemets in
+	regexps.
+
 2005-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help.el (describe-mode): Properly handle non-trivial lighters.

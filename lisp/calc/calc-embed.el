@@ -677,18 +677,6 @@ The command \\[yank] can retrieve it from there."
     (setq calc-embedded-globals (cons t modes))
     (goto-char save-pt)))
 
-(defvar calc-embedded-language-alist
-  '((latex-mode . latex)
-    (tex-mode   . tex)
-    (plain-tex-mode . tex)
-    (context-mode . tex)
-    (nroff-mode . eqn)
-    (pascal-mode . pascal)
-    (c-mode . c)
-    (c++-mode . c)
-    (fortran-mode . fortran)
-    (f90-mode . fortran)))
-
 (defun calc-embedded-find-modes ()
   (let ((case-fold-search nil)
 	(save-pt (point))
@@ -737,7 +725,7 @@ The command \\[yank] can retrieve it from there."
       (backward-char 6))
     (goto-char save-pt)
     (unless (assq 'the-language modes)
-      (let ((lang (assoc major-mode calc-embedded-language-alist)))
+      (let ((lang (assoc major-mode calc-language-alist)))
         (if lang
             (setq modes (cons (cons 'the-language (cdr lang))
                               modes)))))

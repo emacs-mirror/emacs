@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
-   Copyright (C) 1986, 1988, 1993, 1994, 1996, 1999, 2000, 2001, 2003, 2004
-   Free Software Foundation, Inc.
+   Copyright (C) 1986, 1988, 1993, 1994, 1996, 1999, 2000, 2001, 2003, 2004,
+   2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -138,12 +138,7 @@ static Lisp_Object xdialog_show P_ ((FRAME_PTR, int, Lisp_Object, char **));
 /* gtk just uses utf-8.  */
 # define ENCODE_MENU_STRING(str) ENCODE_UTF_8 (str)
 #else
-/* I'm not convinced ENCODE_SYSTEM is defined correctly, or maybe
-   something else should be used here.  Except under MS-Windows it
-   just converts to unibyte, but encoding with `locale-coding-system'
-   seems better -- X may actually display the result correctly, and
-   it's not necessarily equivalent to the unibyte text.  -- fx  */
-# define ENCODE_MENU_STRING(str) ENCODE_SYSTEM (str)
+# define ENCODE_MENU_STRING(str) string_make_unibyte (str)
 #endif
 
 static void push_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
@@ -645,10 +640,10 @@ list_of_panes (menu)
 
   init_menu_items ();
 
-  for (tail = menu; !NILP (tail); tail = Fcdr (tail))
+  for (tail = menu; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object elt, pane_name, pane_data;
-      elt = Fcar (tail);
+      elt = XCAR (tail);
       pane_name = Fcar (elt);
       CHECK_STRING (pane_name);
       push_menu_pane (ENCODE_MENU_STRING (pane_name), Qnil);
@@ -668,22 +663,22 @@ list_of_items (pane)
 {
   Lisp_Object tail, item, item1;
 
-  for (tail = pane; !NILP (tail); tail = Fcdr (tail))
+  for (tail = pane; CONSP (tail); tail = XCDR (tail))
     {
-      item = Fcar (tail);
+      item = XCAR (tail);
       if (STRINGP (item))
 	push_menu_item (ENCODE_MENU_STRING (item), Qnil, Qnil, Qt,
 			Qnil, Qnil, Qnil, Qnil);
-      else if (NILP (item))
-	push_left_right_boundary ();
-      else
+      else if (CONSP (item))
 	{
-	  CHECK_CONS (item);
-	  item1 = Fcar (item);
+	  item1 = XCAR (item);
 	  CHECK_STRING (item1);
-	  push_menu_item (ENCODE_MENU_STRING (item1), Qt, Fcdr (item),
+	  push_menu_item (ENCODE_MENU_STRING (item1), Qt, XCDR (item),
 			  Qt, Qnil, Qnil, Qnil, Qnil);
 	}
+      else
+	push_left_right_boundary ();
+
     }
 }
 
@@ -802,8 +797,8 @@ cached information about equivalent key sequences.  */)
 	  if (CONSP (tem))
 	    {
 	      window = Fcar (Fcdr (position));
-	      x = Fcar (tem);
-	      y = Fcar (Fcdr (tem));
+	      x = XCAR (tem);
+	      y = Fcar (XCDR (tem));
 	    }
 	  else
 	    {
@@ -931,11 +926,11 @@ cached information about equivalent key sequences.  */)
 
       /* The first keymap that has a prompt string
 	 supplies the menu title.  */
-      for (tem = menu, i = 0; CONSP (tem); tem = Fcdr (tem))
+      for (tem = menu, i = 0; CONSP (tem); tem = XCDR (tem))
 	{
 	  Lisp_Object prompt;
 
-	  maps[i++] = keymap = get_keymap (Fcar (tem), 1, 0);
+	  maps[i++] = keymap = get_keymap (XCAR (tem), 1, 0);
 
 	  prompt = Fkeymap_prompt (keymap);
 	  if (NILP (title) && !NILP (prompt))
@@ -1750,7 +1745,7 @@ digest_single_submenu (start, end, top_level_items)
 #ifndef HAVE_MULTILINGUAL_MENU
 	  if (STRINGP (pane_name) && STRING_MULTIBYTE (pane_name))
 	    {
-	      pane_name = ENCODE_SYSTEM (pane_name);
+	      pane_name = ENCODE_MENU_STRING (pane_name);
 	      AREF (menu_items, i + MENU_ITEMS_PANE_NAME) = pane_name;
 	    }
 #endif
@@ -2695,7 +2690,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 #ifndef HAVE_MULTILINGUAL_MENU
 	  if (STRINGP (pane_name) && STRING_MULTIBYTE (pane_name))
 	    {
-	      pane_name = ENCODE_SYSTEM (pane_name);
+	      pane_name = ENCODE_MENU_STRING (pane_name);
 	      AREF (menu_items, i + MENU_ITEMS_PANE_NAME) = pane_name;
 	    }
 #endif

@@ -284,13 +284,13 @@ See `imenu-generic-expression' for details."
 
 (defvar dcl-mode-syntax-table nil
   "Syntax table used in DCL-buffers.")
-(if dcl-mode-syntax-table
-    ()
+(unless dcl-mode-syntax-table
   (setq dcl-mode-syntax-table (make-syntax-table))
   (modify-syntax-entry ?!  "<" dcl-mode-syntax-table) ; comment start
   (modify-syntax-entry ?\n ">" dcl-mode-syntax-table) ; comment end
   (modify-syntax-entry ?< "(>" dcl-mode-syntax-table) ; < and ...
   (modify-syntax-entry ?> ")<" dcl-mode-syntax-table) ; > is a matching pair
+  (modify-syntax-entry ?\\ "_" dcl-mode-syntax-table) ; not an escape
 )
 
 

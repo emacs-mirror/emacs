@@ -3177,8 +3177,9 @@ commands which are sensitive to the Transient Mark mode."
   :version "21.1"
   :group 'editing-basics)
 
-(defun next-line (&optional arg)
+(defun next-line (&optional arg try-vscroll)
   "Move cursor vertically down ARG lines.
+Interactively, vscroll tall lines if `auto-window-vscroll' is enabled.
 If there is no character in the target line exactly under the current column,
 the cursor is positioned after the character in that line which spans this
 column, or at the end of the line if it is not long enough.
@@ -3197,7 +3198,7 @@ when there is no goal column.
 If you are thinking of using this in a Lisp program, consider
 using `forward-line' instead.  It is usually easier to use
 and more reliable (no dependence on goal column, etc.)."
-  (interactive "p")
+  (interactive "p\np")
   (or arg (setq arg 1))
   (if (and next-line-add-newlines (= arg 1))
       (if (save-excursion (end-of-line) (eobp))
@@ -3205,16 +3206,17 @@ and more reliable (no dependence on goal column, etc.)."
 	  (let ((abbrev-mode nil))
 	    (end-of-line)
 	    (insert "\n"))
-	(line-move arg nil nil t))
+	(line-move arg nil nil try-vscroll))
     (if (interactive-p)
 	(condition-case nil
-	    (line-move arg nil nil t)
+	    (line-move arg nil nil try-vscroll)
 	  ((beginning-of-buffer end-of-buffer) (ding)))
-      (line-move arg nil nil t)))
+      (line-move arg nil nil try-vscroll)))
   nil)
 
-(defun previous-line (&optional arg)
+(defun previous-line (&optional arg try-vscroll)
   "Move cursor vertically up ARG lines.
+Interactively, vscroll tall lines if `auto-window-vscroll' is enabled.
 If there is no character in the target line exactly over the current column,
 the cursor is positioned after the character in that line which spans this
 column, or at the end of the line if it is not long enough.
@@ -3229,13 +3231,13 @@ when there is no goal column.
 If you are thinking of using this in a Lisp program, consider using
 `forward-line' with a negative argument instead.  It is usually easier
 to use and more reliable (no dependence on goal column, etc.)."
-  (interactive "p")
+  (interactive "p\np")
   (or arg (setq arg 1))
   (if (interactive-p)
       (condition-case nil
-	  (line-move (- arg) nil nil t)
+	  (line-move (- arg) nil nil try-vscroll)
 	((beginning-of-buffer end-of-buffer) (ding)))
-    (line-move (- arg) nil nil t))
+    (line-move (- arg) nil nil try-vscroll))
   nil)
 
 (defcustom track-eol nil
@@ -3274,8 +3276,11 @@ Outline mode sets this."
 	  (assq prop buffer-invisibility-spec)))))
 
 ;; Perform vertical scrolling of tall images if necessary.
+;; Don't vscroll in a keyboard macro.
 (defun line-move (arg &optional noerror to-end try-vscroll)
-  (if (and auto-window-vscroll try-vscroll)
+  (if (and auto-window-vscroll try-vscroll
+	   (not defining-kbd-macro)
+	   (not executing-kbd-macro))
       (let ((forward (> arg 0))
 	    (part (nth 2 (pos-visible-in-window-p (point) nil t))))
 	(if (and (consp part)

@@ -2150,15 +2150,18 @@ the inserted text.  Value is always t."
 	  (forward-line 1))))
   t)
 
+(defvar calendar-redrawing nil
+  "Internal calendar variable, non-nil if inside redraw-calendar.")
+
 (defun redraw-calendar ()
   "Redraw the calendar display, if `calendar-buffer' is live."
   (interactive)
   (if (get-buffer calendar-buffer)
-      (save-excursion
-        (with-current-buffer calendar-buffer
-          (let ((cursor-date (calendar-cursor-to-nearest-date)))
-            (generate-calendar-window displayed-month displayed-year)
-            (calendar-cursor-to-visible-date cursor-date))))))
+      (with-current-buffer calendar-buffer
+        (let ((cursor-date (calendar-cursor-to-nearest-date))
+              (calendar-redrawing t))
+          (generate-calendar-window displayed-month displayed-year)
+          (calendar-cursor-to-visible-date cursor-date)))))
 
 ;;;###autoload
 (defcustom calendar-week-start-day 0
@@ -2918,40 +2921,40 @@ MARK defaults to `diary-entry-marker'."
       (save-excursion
         (set-buffer calendar-buffer)
         (calendar-cursor-to-visible-date date)
-	(let ((mark (or (and (stringp mark) (= (length mark) 1) mark) ; single-char
-			(and (listp mark) (> (length mark) 0) mark) ; attr list
-			(and (facep mark) mark) ; face-name
-			diary-entry-marker)))
-	  (if (facep mark)
-	      (progn ; face or an attr-list that contained a face
-		(overlay-put
-		 (make-overlay (1- (point)) (1+ (point))) 'face mark))
-	    (if (and (stringp mark)
-		     (= (length mark) 1)) ; single-char
-		(let ((buffer-read-only nil))
-		  (forward-char 1)
-		  (delete-char 1)
-		  (insert mark)
-		  (forward-char -2))
-              (let ; attr list 
-                  ((temp-face 
-                    (make-symbol (apply 'concat "temp-face-" 
-                                        (mapcar '(lambda (sym) 
+        (let ((mark (or (and (stringp mark) (= (length mark) 1) mark) ; single-char
+                        (and (listp mark) (> (length mark) 0) mark) ; attr list
+                        (and (facep mark) mark) ; face-name
+                        diary-entry-marker)))
+          (if (facep mark)
+              (progn      ; face or an attr-list that contained a face
+                (overlay-put
+                 (make-overlay (1- (point)) (1+ (point))) 'face mark))
+            (if (and (stringp mark)
+                     (= (length mark) 1)) ; single-char
+                (let ((buffer-read-only nil))
+                  (forward-char 1)
+                  (delete-char 1)
+                  (insert mark)
+                  (forward-char -2))
+              (let                      ; attr list
+                  ((temp-face
+                    (make-symbol (apply 'concat "temp-face-"
+                                        (mapcar '(lambda (sym)
                                                    (cond ((symbolp sym) (symbol-name sym))
                                                          ((numberp sym) (int-to-string sym))
                                                          (t sym))) mark))))
                    (faceinfo mark))
-		(make-face temp-face)
-		;; Remove :face info from the mark, copy the face info into temp-face
-		(while (setq faceinfo (memq :face faceinfo))
-		  (copy-face (read (nth 1 faceinfo)) temp-face)
-		  (setcar faceinfo nil)
-		  (setcar (cdr faceinfo) nil))
-		(setq mark (delq nil mark))
-		;; Apply the font aspects
-		(apply 'set-face-attribute temp-face nil mark)
-		(overlay-put
-		 (make-overlay (1- (point)) (1+ (point))) 'face temp-face))))))))
+                (make-face temp-face)
+                ;; Remove :face info from the mark, copy the face info into temp-face
+                (while (setq faceinfo (memq :face faceinfo))
+                  (copy-face (read (nth 1 faceinfo)) temp-face)
+                  (setcar faceinfo nil)
+                  (setcar (cdr faceinfo) nil))
+                (setq mark (delq nil mark))
+                ;; Apply the font aspects
+                (apply 'set-face-attribute temp-face nil mark)
+                (overlay-put
+                 (make-overlay (1- (point)) (1+ (point))) 'face temp-face))))))))
 
 (defun calendar-star-date ()
   "Replace the date under the cursor in the calendar window with asterisks.
