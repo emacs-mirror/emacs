@@ -488,6 +488,7 @@ Lisp_Object Qfunction_key;
 Lisp_Object Qmouse_click;
 #ifdef WINDOWSNT
 Lisp_Object Qmouse_wheel;
+Lisp_Object Qlanguage_change;
 #endif
 Lisp_Object Qdrag_n_drop;
 /* Lisp_Object Qmouse_movement; - also an event header */
@@ -3079,6 +3080,17 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	    x_activate_menubar (XFRAME (event->frame_or_window));
 	}
 #endif
+#ifdef WINDOWSNT
+      else if (event->kind == language_change_event)
+	{
+	  /* Make an event (language-change (FRAME CHARSET LCID)).  */
+	  obj = Fcons (event->modifiers, Qnil);
+	  obj = Fcons (event->code, Qnil);
+	  obj = Fcons (event->frame_or_window, obj);
+	  obj = Fcons (Qlanguage_change, Fcons (obj, Qnil));
+	  kbd_fetch_ptr = event + 1;
+	}
+#endif
       /* Just discard these, by returning nil.
 	 With MULTI_KBOARD, these events are used as placeholders
 	 when we need to randomly delete events from the queue.
@@ -3620,15 +3632,15 @@ char *lispy_function_keys[] =
     
     0, 0,             /*    0x0E .. 0x0F        */
   
-    "shift",          /* VK_SHIFT          0x10 */
-    "control",        /* VK_CONTROL        0x11 */
-    "menu",           /* VK_MENU           0x12 */
+    0,                /* VK_SHIFT          0x10 */
+    0,                /* VK_CONTROL        0x11 */
+    0,                /* VK_MENU           0x12 */
     "pause",          /* VK_PAUSE          0x13 */
-    "capital",        /* VK_CAPITAL        0x14 */
+    "capslock",       /* VK_CAPITAL        0x14 */
     
     0, 0, 0, 0, 0, 0, /*    0x15 .. 0x1A        */
     
-    0,                /* VK_ESCAPE         0x1B */
+    "escape",         /* VK_ESCAPE         0x1B */
     
     0, 0, 0, 0,       /*    0x1C .. 0x1F        */
     
@@ -3755,6 +3767,7 @@ char *lispy_function_keys[] =
     "noname",        /* VK_NONAME         0xFC */
     "pa1",           /* VK_PA1            0xFD */
     "oem_clear",     /* VK_OEM_CLEAR      0xFE */
+    0 /* 0xFF */
   };
 
 #else /* not HAVE_NTGUI */
@@ -4789,7 +4802,7 @@ lispy_modifier_list (modifiers)
    SYMBOL's Qevent_symbol_element_mask property, and maintains the
    Qevent_symbol_elements property.  */
 
-static Lisp_Object
+Lisp_Object
 parse_modifiers (symbol)
      Lisp_Object symbol;
 {
@@ -8917,6 +8930,8 @@ syms_of_keyboard ()
 #ifdef WINDOWSNT
   Qmouse_wheel = intern ("mouse-wheel");
   staticpro (&Qmouse_wheel);
+  Qlanguage_change = intern ("language-change");
+  staticpro (&Qlanguage_change);
 #endif
   Qdrag_n_drop = intern ("drag-n-drop");
   staticpro (&Qdrag_n_drop);
