@@ -512,8 +512,8 @@ as returned by the `event-start' and `event-end' functions."
 (defalias 'define-function 'defalias)
 
 (defun sref (string byte-index)
-  "Obsolete function returning a characater in STRING at BYTE-INDEX.
-Please convert your programs to use `aref' witha character-base index."
+  "Obsolete function returning a character in STRING at BYTE-INDEX.
+Please convert your programs to use `aref' with character-base index."
   (let ((byte 0) (char 0))
     (while (< byte byte-index)
       (setq byte (+ byte (char-bytes (aref string byte)))))
