@@ -346,8 +346,8 @@ Here is a more realistic example of using @code{and}:
 Note that @code{(car foo)} is not executed if @code{(consp foo)} returns
 @code{nil}, thus avoiding an error.
 
-@code{and} can be expressed in terms of either @code{if} or @code{cond}.
-For example:
+@code{and} expressions can also be written using either @code{if} or
+@code{cond}.  Here's how:
 
 @example
 @group
@@ -476,11 +476,11 @@ write two common kinds of loops.
 
 @defmac dolist (var list [result]) body@dots{}
 @tindex dolist
-This construct executes @var{body} once for each element of @var{list},
-using the variable @var{var} to hold the current element.  Then it
-returns the value of evaluating @var{result}, or @code{nil} if
-@var{result} is omitted.  For example, here is how you could use
-@code{dolist} to define the @code{reverse} function:
+This construct executes @var{body} once for each element of
+@var{list}, binding the variable @var{var} locally to hold the current
+element.  Then it returns the value of evaluating @var{result}, or
+@code{nil} if @var{result} is omitted.  For example, here is how you
+could use @code{dolist} to define the @code{reverse} function:
 
 @example
 (defun reverse (list)
@@ -493,8 +493,8 @@ returns the value of evaluating @var{result}, or @code{nil} if
 @defmac dotimes (var count [result]) body@dots{}
 @tindex dotimes
 This construct executes @var{body} once for each integer from 0
-(inclusive) to @var{count} (exclusive), using the variable @var{var} to
-hold the integer for the current iteration.  Then it returns the value
+(inclusive) to @var{count} (exclusive), binding the variable @var{var}
+to the integer for the current iteration.  Then it returns the value
 of evaluating @var{result}, or @code{nil} if @var{result} is omitted.
 Here is an example of using @code{dotimes} to do something 100 times:
 
@@ -1167,7 +1167,10 @@ and their conditions.
 
   The @code{unwind-protect} construct is essential whenever you
 temporarily put a data structure in an inconsistent state; it permits
-you to make the data consistent again in the event of an error or throw.
+you to make the data consistent again in the event of an error or
+throw.  (Another more specific cleanup construct that is used only for
+changes in buffer contents is the atomic change group; @ref{Atomic
+Changes}.)
 
 @defspec unwind-protect body-form cleanup-forms@dots{}
 @cindex cleanup forms
