@@ -3939,9 +3939,14 @@ x_new_font (f, fontname)
       XFontStruct *font;
 
       /* Try to find a character-cell font in the list.  */
+#if 0 
+      /* A laudable goal, but this isn't how to do it.  */
       for (i = 0; i < n_matching_fonts; i++)
 	if (! font_info[i].per_char)
 	  break;
+#else
+      i = 0;
+#endif
 
       if (i >= n_matching_fonts)
 	return 2;
