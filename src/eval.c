@@ -1296,6 +1296,13 @@ See also the function `condition-case'.")
   for (; handlerlist; handlerlist = handlerlist->next)
     {
       register Lisp_Object clause;
+      
+      if (lisp_eval_depth + 20 > max_lisp_eval_depth)
+	max_lisp_eval_depth = lisp_eval_depth + 20;
+  
+      if (specpdl_size + 40 > max_specpdl_size)
+	max_specpdl_size = specpdl_size + 40;
+  
       clause = find_handler_clause (handlerlist->handler, conditions,
 				    error_symbol, data, &debugger_value);
 
