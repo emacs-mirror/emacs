@@ -2044,19 +2044,32 @@ verify_overlay_modification (start, end)
       if (XFASTINT (end) == startpos && insertion)
 	{
 	  prop = Foverlay_get (overlay, Qinsert_in_front_hooks);
-	  call_overlay_mod_hooks (prop, overlay, start, end);
+	  if (!NILP (prop))
+	    {
+	      /* Copy TAIL in case the hook recenters the overlay lists.  */
+	      tail = Fcopy_sequence (tail);
+	      call_overlay_mod_hooks (prop, overlay, start, end);
+	    }
 	}
       if (XFASTINT (start) == endpos && insertion)
 	{
 	  prop = Foverlay_get (overlay, Qinsert_behind_hooks);
-	  call_overlay_mod_hooks (prop, overlay, start, end);
+	  if (!NILP (prop))
+	    {
+	      tail = Fcopy_sequence (tail);
+	      call_overlay_mod_hooks (prop, overlay, start, end);
+	    }
 	}
       if (insertion
 	  ? (XFASTINT (start) > startpos && XFASTINT (end) < endpos)
 	  : (XFASTINT (start) >= startpos && XFASTINT (end) <= endpos))
 	{
 	  prop = Foverlay_get (overlay, Qmodification_hooks);
-	  call_overlay_mod_hooks (prop, overlay, start, end);
+	  if (!NILP (prop))
+	    {
+	      tail = Fcopy_sequence (tail);
+	      call_overlay_mod_hooks (prop, overlay, start, end);
+	    }
 	}
     }
 
@@ -2078,19 +2091,31 @@ verify_overlay_modification (start, end)
       if (XFASTINT (end) == startpos && insertion)
 	{
 	  prop = Foverlay_get (overlay, Qinsert_in_front_hooks);
-	  call_overlay_mod_hooks (prop, overlay, start, end);
+	  if (!NILP (prop))
+	    {
+	      tail = Fcopy_sequence (tail);
+	      call_overlay_mod_hooks (prop, overlay, start, end);
+	    }
 	}
       if (XFASTINT (start) == endpos && insertion)
 	{
 	  prop = Foverlay_get (overlay, Qinsert_behind_hooks);
-	  call_overlay_mod_hooks (prop, overlay, start, end);
+	  if (!NILP (prop))
+	    {
+	      tail = Fcopy_sequence (tail);
+	      call_overlay_mod_hooks (prop, overlay, start, end);
+	    }
 	}
       if (insertion
 	  ? (XFASTINT (start) > startpos && XFASTINT (end) < endpos)
 	  : (XFASTINT (start) >= startpos && XFASTINT (end) <= endpos))
 	{
 	  prop = Foverlay_get (overlay, Qmodification_hooks);
-	  call_overlay_mod_hooks (prop, overlay, start, end);
+	  if (!NILP (prop))
+	    {
+	      tail = Fcopy_sequence (tail);
+	      call_overlay_mod_hooks (prop, overlay, start, end);
+	    }
 	}
     }
 }
