@@ -1724,6 +1724,7 @@ Example: (defsetf nth (n x) (v) (list 'setcar (list 'nthcdr n x) v))."
 (defsetf process-buffer set-process-buffer)
 (defsetf process-filter set-process-filter)
 (defsetf process-sentinel set-process-sentinel)
+(defsetf process-get process-put)
 (defsetf read-mouse-position (scr) (store)
   (list 'set-mouse-position scr (list 'car store) (list 'cdr store)))
 (defsetf screen-height set-screen-height t)
