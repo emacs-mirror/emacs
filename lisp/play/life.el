@@ -188,7 +188,7 @@ generations (this defaults to 1)."
 (defun life-grim-reaper ()
   ;; Clear the match information.  Later we check to see if it
   ;; is still clear, if so then all the cells have died.
-  (store-match-data nil)
+  (set-match-data nil)
   (goto-char (point-min))
   ;; For speed declare all local variable outside the loop.
   (let (point char pivot living-neighbors list)
