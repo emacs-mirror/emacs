@@ -159,6 +159,10 @@ extern int use_dialog_box;
 #  define lstat stat
 #endif
 
+#ifndef FILE_SYSTEM_CASE
+#define FILE_SYSTEM_CASE(filename)  (filename)
+#endif
+
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
@@ -394,9 +398,7 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.")
   if (!NILP (handler))
     return call2 (handler, Qfile_name_directory, filename);
 
-#ifdef FILE_SYSTEM_CASE
   filename = FILE_SYSTEM_CASE (filename);
-#endif
   beg = XSTRING (filename)->data;
 #ifdef DOS_NT
   beg = strcpy (alloca (strlen (beg) + 1), beg);
@@ -1100,10 +1102,7 @@ See also the function `substitute-in-file-name'.")
   /* Filenames on VMS are always upper case.  */
   name = Fupcase (name);
 #endif
-#ifdef FILE_SYSTEM_CASE
   name = FILE_SYSTEM_CASE (name);
-#endif
-
   nm = XSTRING (name)->data;
 
 #ifdef DOS_NT
