@@ -3,6 +3,7 @@
 	* simple.el (shell-command-on-region): Handle errors and signals
 	from shell command execution.
 	(display-message-or-buffer): Fix last change.
+	(shell-command-default-error-buffer): Doc fix.
 
 	* dired.el (dired-view-file): Quote file name for
 	dired-run-shell-command.
