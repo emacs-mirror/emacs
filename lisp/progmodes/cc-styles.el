@@ -584,26 +584,13 @@ offset for that syntactic element.  Optional ADD says to add SYMBOL to
   (c-initialize-cc-mode t)
   (or (assoc "cc-mode" c-style-alist)
       (assoc "user" c-style-alist)
-      (let (copyfunc)
-	;; use built-in copy-tree if its there.
-	(if (and (fboundp 'copy-tree)
-		 (functionp (symbol-function 'copy-tree)))
-	    (setq copyfunc (symbol-function 'copy-tree))
-	  (setq copyfunc (lambda (tree)
-			   (if (consp tree)
-			       (cons (funcall copyfunc (car tree))
-				     (funcall copyfunc (cdr tree)))
-			     tree))))
+      (progn
 	(c-add-style "user"
 		     (mapcar
 		      (function
 		       (lambda (var)
 			 (let ((val (symbol-value var)))
-			   (cons var (if (atom val)
-					 val
-				       (funcall copyfunc val)
-  				       ))
-			   )))
+			   (cons var (c-copy-tree val)))))
 		      '(c-backslash-column
 			c-basic-offset
 			c-cleanup-list
@@ -622,6 +609,15 @@ offset for that syntactic element.  Optional ADD says to add SYMBOL to
   (if c-style-variables-are-local-p
       (c-make-styles-buffer-local)))
 
+(defun c-copy-tree (tree)
+  (if (consp tree)
+      (if (consp (cdr tree))
+	  (cons (c-copy-tree (car tree))
+		(cons (c-copy-tree (cadr tree))
+		      (c-copy-tree (cddr tree))))
+	(cons (c-copy-tree (car tree))
+	      (c-copy-tree (cdr tree))))
+    tree))
 
 (defun c-make-styles-buffer-local (&optional this-buf-only-p)
   "Make all CC Mode style variables buffer local.
