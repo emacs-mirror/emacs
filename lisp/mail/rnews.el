@@ -151,7 +151,7 @@ Not currently used.")
 (defmacro news-cdadr (x) (list 'cdr (list 'car (list 'cdr x))))
 
 (defmacro news-wins (pfx index)
-  (` (file-exists-p (concat (, pfx) "/" (int-to-string (, index))))))
+  `(file-exists-p (concat ,pfx "/" (int-to-string ,index))))
 
 (defvar news-max-plausible-gap 2
 	"* In an rnews directory, the maximum possible gap size.
@@ -166,10 +166,10 @@ An empty file does not contribute to a gap -- it ends one.")
 (defmacro news-/ (a1 a2)
 ;; a form of / that guarantees that (/ -1 2) = 0
   (if (zerop (/ -1 2))
-      (` (/ (, a1) (, a2)))
-    (` (if (< (, a1) 0)
-	   (- (/ (- (, a1)) (, a2)))
-	 (/ (, a1) (, a2))))))
+      `(/ ,a1 ,a2)
+    `(if (< ,a1 0)
+	 (- (/ (- ,a1) ,a2))
+       (/ ,a1 ,a2))))
 
 (defun news-find-first-or-last (pfx base dirn)
   ;; first use powers of two to find a plausible ceiling

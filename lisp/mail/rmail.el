@@ -465,25 +465,25 @@ The first parenthesized expression should match the MIME-charset name.")
 ;; Perform BODY in the summary buffer
 ;; in such a way that its cursor is properly updated in its own window.
 (defmacro rmail-select-summary (&rest body)
-  (` (let ((total rmail-total-messages))
-       (if (rmail-summary-displayed)
-	   (let ((window (selected-window)))
-	     (save-excursion
-	       (unwind-protect
-		   (progn
-		     (pop-to-buffer rmail-summary-buffer)
-		     ;; rmail-total-messages is a buffer-local var
-		     ;; in the rmail buffer.
-		     ;; This way we make it available for the body
-		     ;; even tho the rmail buffer is not current.
-		     (let ((rmail-total-messages total))
-		       (,@ body)))
-		 (select-window window))))
-	 (save-excursion
-	   (set-buffer rmail-summary-buffer)
-	   (let ((rmail-total-messages total))
-	     (,@ body))))
-       (rmail-maybe-display-summary))))
+  `(let ((total rmail-total-messages))
+     (if (rmail-summary-displayed)
+	 (let ((window (selected-window)))
+	   (save-excursion
+	     (unwind-protect
+		 (progn
+		   (pop-to-buffer rmail-summary-buffer)
+		   ;; rmail-total-messages is a buffer-local var
+		   ;; in the rmail buffer.
+		   ;; This way we make it available for the body
+		   ;; even tho the rmail buffer is not current.
+		   (let ((rmail-total-messages total))
+		     ,@body))
+	       (select-window window))))
+       (save-excursion
+	 (set-buffer rmail-summary-buffer)
+	 (let ((rmail-total-messages total))
+	   ,@body)))
+     (rmail-maybe-display-summary)))
 
 ;;;; *** Rmail Mode ***
 

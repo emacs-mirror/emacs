@@ -64,48 +64,48 @@
 
 ;; Some macros are needed for `defcustom'
 (if (fboundp 'eval-when-compile)
-   (eval-when-compile
+    (eval-when-compile
       (defconst cperl-xemacs-p (string-match "XEmacs\\|Lucid" emacs-version))
       (defmacro cperl-is-face (arg)	; Takes quoted arg
-	    (cond ((fboundp 'find-face)
-		   (` (find-face (, arg))))
-		  (;;(and (fboundp 'face-list)
-		   ;;	(face-list))
-		   (fboundp 'face-list)
-		   (` (member (, arg) (and (fboundp 'face-list)
-					   (face-list)))))
-		  (t
-		   (` (boundp (, arg))))))
+	(cond ((fboundp 'find-face)
+	       `(find-face ,arg))
+	      (;;(and (fboundp 'face-list)
+	       ;;	(face-list))
+	       (fboundp 'face-list)
+	       `(member ,arg (and (fboundp 'face-list)
+				  (face-list))))
+	      (t
+	       `(boundp ,arg))))
       (defmacro cperl-make-face (arg descr) ; Takes unquoted arg
 	(cond ((fboundp 'make-face)
-	       (` (make-face (quote (, arg)))))
+	       `(make-face (quote ,arg)))
 	      (t
-	       (` (defconst (, arg) (quote (, arg)) (, descr))))))
+	       `(defconst ,arg (quote ,arg) ,descr))))
       (defmacro cperl-force-face (arg descr) ; Takes unquoted arg
-	(` (progn
-	     (or (cperl-is-face (quote (, arg)))
-		 (cperl-make-face (, arg) (, descr)))
-	     (or (boundp (quote (, arg))) ; We use unquoted variants too
-		 (defconst (, arg) (quote (, arg)) (, descr))))))
+	`(progn
+	   (or (cperl-is-face (quote ,arg))
+	       (cperl-make-face ,arg ,descr))
+	   (or (boundp (quote ,arg))	; We use unquoted variants too
+	       (defconst ,arg (quote ,arg) ,descr))))
       (if cperl-xemacs-p
 	  (defmacro cperl-etags-snarf-tag (file line)
-	    (` (progn
-		 (beginning-of-line 2)
-		 (list (, file) (, line)))))
+	    `(progn
+	       (beginning-of-line 2)
+	       (list ,file ,line)))
 	(defmacro cperl-etags-snarf-tag (file line)
-	  (` (etags-snarf-tag))))
+	  `(etags-snarf-tag)))
       (if cperl-xemacs-p
 	  (defmacro cperl-etags-goto-tag-location (elt)
-	    (` ;;(progn
-		 ;; (switch-to-buffer (get-file-buffer (elt (, elt) 0)))
-		 ;; (set-buffer (get-file-buffer (elt (, elt) 0)))
-		 ;; Probably will not work due to some save-excursion???
-		 ;; Or save-file-position?
-		 ;; (message "Did I get to line %s?" (elt (, elt) 1))
-		 (goto-line (string-to-int (elt (, elt) 1)))))
-	    ;;)
+	    ;;(progn
+	    ;; (switch-to-buffer (get-file-buffer (elt (, elt) 0)))
+	    ;; (set-buffer (get-file-buffer (elt (, elt) 0)))
+	    ;; Probably will not work due to some save-excursion???
+	    ;; Or save-file-position?
+	    ;; (message "Did I get to line %s?" (elt (, elt) 1))
+	    `(goto-line (string-to-int (elt ,elt 1))))
+	;;)
 	(defmacro cperl-etags-goto-tag-location (elt)
-	  (` (etags-goto-tag-location (, elt)))))))
+	  `(etags-goto-tag-location ,elt)))))
 
 (defun cperl-choose-color (&rest list)
   (let (answer)
@@ -518,41 +518,41 @@ when syntaxifying a chunk of buffer."
 	(cperl-choose-color "orchid1" "orange"))
 
       (defface cperl-nonoverridable-face
-	(` ((((class grayscale) (background light))
-	     (:background "Gray90" :italic t :underline t))
-	    (((class grayscale) (background dark))
-	     (:foreground "Gray80" :italic t :underline t :bold t))
-	    (((class color) (background light)) 
-	     (:foreground "chartreuse3"))
-	    (((class color) (background dark)) 
-	     (:foreground (, cperl-dark-foreground)))
-	    (t (:bold t :underline t))))
+	`((((class grayscale) (background light))
+	   (:background "Gray90" :italic t :underline t))
+	  (((class grayscale) (background dark))
+	   (:foreground "Gray80" :italic t :underline t :bold t))
+	  (((class color) (background light)) 
+	   (:foreground "chartreuse3"))
+	  (((class color) (background dark)) 
+	   (:foreground ,cperl-dark-foreground))
+	  (t (:bold t :underline t)))
 	"Font Lock mode face used to highlight array names."
 	:group 'cperl-faces)
 
       (defface cperl-array-face
-	(` ((((class grayscale) (background light))
-	     (:background "Gray90" :bold t))
-	    (((class grayscale) (background dark))
-	     (:foreground "Gray80" :bold t))
-	    (((class color) (background light)) 
-	     (:foreground "Blue" :background "lightyellow2" :bold t))
-	    (((class color) (background dark)) 
-	     (:foreground "yellow" :background (, cperl-dark-background) :bold t))
-	    (t (:bold t))))
+	`((((class grayscale) (background light))
+	   (:background "Gray90" :bold t))
+	  (((class grayscale) (background dark))
+	   (:foreground "Gray80" :bold t))
+	  (((class color) (background light)) 
+	   (:foreground "Blue" :background "lightyellow2" :bold t))
+	  (((class color) (background dark)) 
+	   (:foreground "yellow" :background ,cperl-dark-background :bold t))
+	  (t (:bold t)))
 	"Font Lock mode face used to highlight array names."
 	:group 'cperl-faces)
 
       (defface cperl-hash-face
-	(` ((((class grayscale) (background light))
-	     (:background "Gray90" :bold t :italic t))
-	    (((class grayscale) (background dark))
-	     (:foreground "Gray80" :bold t :italic t))
-	    (((class color) (background light)) 
-	     (:foreground "Red" :background "lightyellow2" :bold t :italic t))
-	    (((class color) (background dark)) 
-	     (:foreground "Red" :background (, cperl-dark-background) :bold t :italic t))
-	    (t (:bold t :italic t))))
+	`((((class grayscale) (background light))
+	   (:background "Gray90" :bold t :italic t))
+	  (((class grayscale) (background dark))
+	   (:foreground "Gray80" :bold t :italic t))
+	  (((class color) (background light)) 
+	   (:foreground "Red" :background "lightyellow2" :bold t :italic t))
+	  (((class color) (background dark)) 
+	   (:foreground "Red" :background ,cperl-dark-background :bold t :italic t))
+	  (t (:bold t :italic t)))
 	"Font Lock mode face used to highlight hash names."
 	:group 'cperl-faces)))
 
@@ -883,11 +883,11 @@ the faces: please specify bold, italic, underline, shadow and box.)
 (defconst cperl-xemacs-p (string-match "XEmacs\\|Lucid" emacs-version))
 
 (defmacro cperl-define-key (emacs-key definition &optional xemacs-key)
-  (` (define-key cperl-mode-map
-       (, (if xemacs-key
-	      (` (if cperl-xemacs-p (, xemacs-key) (, emacs-key)))
-	    emacs-key))
-       (, definition))))
+  `(define-key cperl-mode-map
+     ,(if xemacs-key
+	  `(if cperl-xemacs-p ,xemacs-key ,emacs-key)
+	emacs-key)
+     ,definition))
 
 (defvar cperl-del-back-ch
   (car (append (where-is-internal 'delete-backward-char)
@@ -986,9 +986,9 @@ the faces: please specify bold, italic, underline, shadow and box.)
 	(error nil))
       (if (fboundp 'ps-extend-face-list)
 	  (defmacro cperl-ps-extend-face-list (arg)
-	    (` (ps-extend-face-list (, arg))))
+	    `(ps-extend-face-list ,arg))
 	(defmacro cperl-ps-extend-face-list (arg)
-	  (` (error "This version of Emacs has no `ps-extend-face-list'."))))
+	  `(error "This version of Emacs has no `ps-extend-face-list'.")))
       ;; Calling `cperl-enable-font-lock' below doesn't compile on XEmacs,
       ;; macros instead of defsubsts don't work on Emacs, so we do the
       ;; expansion manually.  Any other suggestions?

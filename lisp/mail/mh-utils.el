@@ -217,16 +217,16 @@ also show it in a separate Show window."
   ;; If SAVE-MODIFICATION-FLAG-P is non-nil, the buffer's modification
   ;; flag is unchanged, otherwise it is cleared.
   (setq save-modification-flag-p (car save-modification-flag-p)) ; CL style
-  (` (prog1
-	 (let ((mh-folder-updating-mod-flag (buffer-modified-p))
-	       (buffer-read-only nil)
-	       (buffer-file-name nil))	;don't let the buffer get locked
-	   (prog1
-	       (progn
-		 (,@ body))
-	     (mh-set-folder-modified-p mh-folder-updating-mod-flag)))
-       (,@ (if (not save-modification-flag-p)
-	       '((mh-set-folder-modified-p nil)))))))
+  `(prog1
+       (let ((mh-folder-updating-mod-flag (buffer-modified-p))
+	     (buffer-read-only nil)
+	     (buffer-file-name nil))	;don't let the buffer get locked
+	 (prog1
+	     (progn
+	       ,@body)
+	   (mh-set-folder-modified-p mh-folder-updating-mod-flag)))
+     ,@(if (not save-modification-flag-p)
+	   '((mh-set-folder-modified-p nil)))))
 
 (put 'with-mh-folder-updating 'lisp-indent-hook 1)
 
@@ -235,13 +235,13 @@ also show it in a separate Show window."
   ;; Display buffer SHOW-BUFFER in other window and execute BODY in it.
   ;; Stronger than save-excursion, weaker than save-window-excursion.
   (setq show-buffer (car show-buffer))	; CL style
-  (` (let ((mh-in-show-buffer-saved-window (selected-window)))
-       (switch-to-buffer-other-window (, show-buffer))
-       (if mh-bury-show-buffer (bury-buffer (current-buffer)))
-       (unwind-protect
-	   (progn
-	     (,@ body))
-	 (select-window mh-in-show-buffer-saved-window)))))
+  `(let ((mh-in-show-buffer-saved-window (selected-window)))
+     (switch-to-buffer-other-window ,show-buffer)
+     (if mh-bury-show-buffer (bury-buffer (current-buffer)))
+     (unwind-protect
+	 (progn
+           ,@body)
+       (select-window mh-in-show-buffer-saved-window))))
 
 (put 'mh-in-show-buffer 'lisp-indent-hook 1)
 
