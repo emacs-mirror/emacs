@@ -2614,7 +2614,18 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  /* Did we hit the end of the visible region of the buffer?
 	     Stop here.  */
 	  if (pos >= ZV)
-	    break;
+	    {
+	      /* Update charstarts for the end of this line.  */
+	      /* Do nothing if off the left edge or at the right edge.  */
+	      if (p1 >= leftmargin && p1 + 1 != endp)
+		{
+		  int *p2x = &charstart[(p1 < leftmargin
+					 ? leftmargin : p1)
+					- p1start];
+		  *p2x++ = pos;
+		}
+	      break;
+	    }
 
 #ifdef HAVE_FACES
 	  /* Did we hit a face change?  Figure out what face we should
