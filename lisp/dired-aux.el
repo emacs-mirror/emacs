@@ -1466,7 +1466,12 @@ Type SPC or `y' to %s one match, DEL or `n' to skip to next,
 
 ;;;###autoload
 (defun dired-do-rename-regexp (regexp newname &optional arg whole-path)
-  "Rename marked files containing REGEXP to NEWNAME.
+  "Rename selected files whose names match REGEXP to NEWNAME.
+
+With non-zero prefix argument ARG, the command operates on the next ARG
+files.  Otherwise, it operates on all the marked files, or the current
+file if none are marked.
+
 As each match is found, the user must type a character saying
   what to do with it.  For directions, type \\[help-command] at that time.
 NEWNAME may contain \\=\\<n> or \\& as in `query-replace-regexp'.
@@ -1481,7 +1486,7 @@ Normally, only the non-directory part of the file name is used and changed."
 
 ;;;###autoload
 (defun dired-do-copy-regexp (regexp newname &optional arg whole-path)
-  "Copy all marked files containing REGEXP to NEWNAME.
+  "Copy selected files whose names match REGEXP to NEWNAME.
 See function `dired-do-rename-regexp' for more info."
   (interactive (dired-mark-read-regexp "Copy"))
   (let ((dired-recursive-copies nil))	; No recursive copies.
@@ -1492,7 +1497,7 @@ See function `dired-do-rename-regexp' for more info."
 
 ;;;###autoload
 (defun dired-do-hardlink-regexp (regexp newname &optional arg whole-path)
-  "Hardlink all marked files containing REGEXP to NEWNAME.
+  "Hardlink selected files whose names match REGEXP to NEWNAME.
 See function `dired-do-rename-regexp' for more info."
   (interactive (dired-mark-read-regexp "HardLink"))
   (dired-do-create-files-regexp
@@ -1501,7 +1506,7 @@ See function `dired-do-rename-regexp' for more info."
 
 ;;;###autoload
 (defun dired-do-symlink-regexp (regexp newname &optional arg whole-path)
-  "Symlink all marked files containing REGEXP to NEWNAME.
+  "Symlink selected files whose names match REGEXP to NEWNAME.
 See function `dired-do-rename-regexp' for more info."
   (interactive (dired-mark-read-regexp "SymLink"))
   (dired-do-create-files-regexp
