@@ -7,7 +7,7 @@
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.46 $
+;; Ada Core Technologies's version:   $Revision: 1.47 $
 ;; Keywords: languages ada
 
 ;; This file is part of GNU Emacs.
@@ -814,7 +814,6 @@ as numbers instead of gnatprep comments."
       ;;  Setting this only if font-lock is not set won't work
       ;;  if the user activates or deactivates font-lock-mode,
       ;;  but will make things faster most of the time
-      (make-local-hook 'after-change-functions)
       (add-hook 'after-change-functions 'ada-after-change-function nil t)
       )))
 
@@ -1177,7 +1176,6 @@ If you use ada-xref.el:
 
   (unless ada-xemacs
     (ada-initialize-properties)
-    (make-local-hook 'font-lock-mode-hook)
     (add-hook 'font-lock-mode-hook 'ada-deactivate-properties nil t))
 
   ;; the following has to be done after running the ada-mode-hook
