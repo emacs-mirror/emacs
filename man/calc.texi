@@ -33912,7 +33912,7 @@ While I cannot guarantee that I will have time to work on your bug,
 I do try to fix bugs quickly whenever I can.
 
 The latest version of Calc is available from Savannah, in the Emacs
-CVS tree.  See @url{http://savannah.gnu.org/projects/emacs}.
+CVS tree.  See @uref{http://savannah.gnu.org/projects/emacs}.
 
 There is an automatic command @kbd{M-x report-calc-bug} which helps
 you to report bugs.  This command prompts you for a brief subject
