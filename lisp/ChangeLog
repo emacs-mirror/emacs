@@ -1,3 +1,10 @@
+2003-02-13  Juanma Barranquero  <lektu@terra.es>
+
+	* international/characters.el: Use new ?\s syntax instead of "? "
+	followed by a comment.
+
+	* ruler-mode.el (ruler-mode-margins-char): Likewise.
+
 2003-02-13  Dave Love  <fx@gnu.org>
 
 	* newcomment.el (comment-indent): Ensure space before added comment.
