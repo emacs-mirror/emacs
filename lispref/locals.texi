@@ -132,7 +132,8 @@ Does not work yet.
 @xref{Display Margins}.
 
 @item line-spacing
-@c @xref{Yet to be written}.
+@c Cause an error so we will fix this.
+@xref{Yet to be written}.
 
 @item local-abbrev-table
 @xref{Abbrevs}.
@@ -145,9 +146,6 @@ Does not work yet.
 
 @item mark-ring
 @xref{The Mark}.
-
-@item minor-modes
-@xref{Minor Modes}.
 
 @item mode-line-buffer-identification
 @xref{Mode Line Variables}.
@@ -167,26 +165,14 @@ Does not work yet.
 @item overwrite-mode
 @xref{Insertion}.
 
-@item paragraph-separate
-@xref{Standard Regexps}.
-
-@item paragraph-start
-@xref{Standard Regexps}.
-
 @item point-before-scroll
 Used for communication between mouse commands and scroll-bar commands.
-
-@item require-final-newline
-@xref{Insertion}.
 
 @item right-fringe-width
 @xref{Fringes}.
 
 @item right-margin-width
 @xref{Display Margins}.
-
-@item scroll-bar-mode
-@xref{Scroll Bars}.
 
 @item scroll-bar-width
 @xref{Scroll Bars}.
@@ -213,7 +199,7 @@ Used for communication between mouse commands and scroll-bar commands.
 @xref{Mode Line Variables}.
 
 @item vertical-scroll-bar
-@c @xref{Yet to be written}.
+@xref{Yet to be written}.
 @end table
 
 @ignore
