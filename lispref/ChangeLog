@@ -1,3 +1,29 @@
+2004-08-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* minibuf.texi (High-Level Completion): Add anchor for definition
+	of `read-variable'.
+
+	* commands.texi: Various changes in addition to:
+	(Using Interactive): Clarify description of `interactive-form'.
+	(Interactive Call): Mention default for KEYS argument to
+	`call-interactively'.
+	(Command Loop Info): Clarify description of `this-command-keys'.
+	Mention KEEP-RECORD argument to `clear-this-command-keys'.
+	Value of `last-event-frame' can be `macro'.
+	(Repeat Events): `double-click-fuzz' is also used to distinguish
+	clicks and drags.
+	(Classifying Events): Clarify descriptions of `event-modifiers'
+	`event-basic-type' and `event-convert-list'.
+	(Accessing Events): `posn-timestamp' takes POSITION argument.
+	(Quoted Character Input): Clarify description of
+	`read-quoted-char' and fix example.
+	(Quitting): Add `with-local-quit'.
+	(Disabling Commands):  Correct and clarify descriptions of
+	`enable-command' and `disable-command'.
+	Mention what happens if `disabled-command-hook' is nil.
+	(Keyboard Macros): Mention LOOPFUNC arg to `execute-kbd-macro'.
+	Describe `executing-kbd-macro' instead of obsolete `executing-macro'.
+
 2004-07-24  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* frames.texi: Various changes in addition to:
