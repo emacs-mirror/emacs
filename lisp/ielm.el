@@ -429,8 +429,8 @@ The current working buffer may be changed (with a call to
 `set-buffer', or with \\[ielm-change-working-buffer]), and its value
 is preserved between successive evaluations.  In this way, expressions
 may be evaluated in a different buffer than the *ielm* buffer.
-Display the name of the working buffer with \\[ielm-print-working-buffer],
-or the buffer itself with \\[ielm-display-working-buffer].
+By default, its name is shown on the mode line; you can always display
+it with \\[ielm-print-working-buffer], or the buffer itself with \\[ielm-display-working-buffer].
 
 During evaluations, the values of the variables `*', `**', and `***'
 are the results of the previous, second previous and third previous
@@ -476,6 +476,7 @@ Customized bindings may be defined in `ielm-map', which currently contains:
 
   (setq major-mode 'inferior-emacs-lisp-mode)
   (setq mode-name "IELM")
+  (setq mode-line-process '(":%s on " (:eval (buffer-name ielm-working-buffer))))
   (use-local-map ielm-map)
   (set-syntax-table emacs-lisp-mode-syntax-table)
 
@@ -518,9 +519,10 @@ Customized bindings may be defined in `ielm-map', which currently contains:
     (insert ielm-header)
     (ielm-set-pm (point-max))
     (unless comint-use-prompt-regexp-instead-of-fields
-      (add-text-properties
-       (point-min) (point-max)
-       '(rear-nonsticky t field output inhibit-line-move-field-capture t)))
+      (let ((inhibit-read-only t))
+        (add-text-properties
+         (point-min) (point-max)
+         '(rear-nonsticky t field output inhibit-line-move-field-capture t))))
     (comint-output-filter (ielm-process) ielm-prompt)
     (set-marker comint-last-input-start (ielm-pm))
     (set-process-filter (get-buffer-process (current-buffer)) 'comint-output-filter))
@@ -550,7 +552,8 @@ Switches to the buffer `*ielm*', or creates it if it does not exist."
     (save-excursion
       (set-buffer (get-buffer-create "*ielm*"))
       (inferior-emacs-lisp-mode)))
-  (pop-to-buffer "*ielm*"))
+  (pop-to-buffer "*ielm*")
+  (goto-char (point-max)))
 
 (provide 'ielm)
 
