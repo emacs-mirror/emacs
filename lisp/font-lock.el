@@ -1562,17 +1562,17 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
      (:foreground "DimGray" :weight bold :slant italic))
     (((class grayscale) (background dark))
      (:foreground "LightGray" :weight bold :slant italic))
-    (((class color) (min-colors 88) (background light)) 
+    (((class color) (min-colors 88) (background light))
      (:foreground "Firebrick"))
-    (((class color) (min-colors 88) (background dark)) 
+    (((class color) (min-colors 88) (background dark))
      (:foreground "chocolate1"))
-    (((class color) (min-colors 16) (background light)) 
+    (((class color) (min-colors 16) (background light))
      (:foreground "red"))
-    (((class color) (min-colors 16) (background dark)) 
+    (((class color) (min-colors 16) (background dark))
      (:foreground "red1"))
-    (((class color) (min-colors 8) (background light)) 
+    (((class color) (min-colors 8) (background light))
      (:foreground "red"))
-    (((class color) (min-colors 8) (background dark)) 
+    (((class color) (min-colors 8) (background dark))
      (:foreground "red1"))
     (t (:weight bold :slant italic)))
   "Font Lock mode face used to highlight comments."
@@ -1673,13 +1673,14 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   '((((class color) (min-colors 88) (background light)) (:foreground "Red" :weight bold))
     (((class color) (min-colors 88) (background dark)) (:foreground "Pink" :weight bold))
     (((class color) (min-colors 16) (background light)) (:foreground "Red" :weight bold))
-    (((class color) (min-colors 16) (background dark)) (:foreground "Pink" :weight bold))    (((class color) (min-colors 8)) (:foreground "red"))
+    (((class color) (min-colors 16) (background dark)) (:foreground "Pink" :weight bold))
+    (((class color) (min-colors 8)) (:foreground "red"))
     (t (:inverse-video t :weight bold)))
   "Font Lock mode face used to highlight warnings."
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-preprocessor-face
-  '((t :inherit 'font-lock-builtin-face))
+  '((t :inherit font-lock-builtin-face))
   "Font Lock mode face used to highlight preprocessor directives."
   :group 'font-lock-highlighting-faces)
 
