@@ -926,6 +926,19 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 
 ;;; Copy, move/rename, making hard and symbolic links
 
+(defcustom dired-recursive-copies nil
+  "*Decide whether recursive copies are allowed.
+Nil means no recursive copies.
+`always' means copy recursively without asking.
+`top' means ask for each directory at top level.
+Anything else means ask for each directory."
+  :type '(choice :tag "Copy directories"
+		 (const :tag "No recursive copies" nil)
+		 (const :tag "Ask for each directory" t)
+		 (const :tag "Ask for each top directory only" top)
+		 (const :tag "Copy directories without asking" always))
+  :group 'dired)
+
 (defcustom dired-backup-overwrite nil
   "*Non-nil if Dired should ask about making backups before overwriting files.
 Special value `always' suppresses confirmation."
@@ -946,7 +959,8 @@ Special value `always' suppresses confirmation."
 	     (setq backup (car (find-backup-file-name to)))
 	     (or (eq 'always dired-backup-overwrite)
 		 (dired-query 'overwrite-backup-query
-			      (format "Make backup for existing file `%s'? " to))))
+			      (format "Make backup for existing file `%s'? "
+				      to))))
 	(progn
 	  (rename-file to backup 0)	; confirm overwrite of old backup
 	  (dired-relist-entry backup)))))
@@ -955,9 +969,30 @@ Special value `always' suppresses confirmation."
 (defun dired-copy-file (from to ok-flag)
   (dired-handle-overwrite to)
   (condition-case ()
-      (copy-file from to ok-flag dired-copy-preserve-time)
+      (dired-copy-file-recursive from to ok-flag dired-copy-preserve-time t
+				 dired-recursive-copies)
     (file-date-error (message "Can't set date")
 		     (sit-for 1))))
+
+(defun dired-copy-file-recursive (from to ok-flag &optional
+				       preserve-time top recursive)
+  (if (and recursive
+	   (eq t (car (file-attributes from))) ; A directory, no symbolic link.
+	   (or (eq recursive 'always)
+	       (yes-or-no-p (format "Recursive copies of %s " from))))
+      (let ((files (directory-files from nil dired-re-no-dot)))
+	(if (eq recursive 'top) (setq recursive 'always)) ; Don't ask any more.
+	(if (file-exists-p to)
+	    (or top (dired-handle-overwrite to))
+	  (make-directory to))
+	(while files
+	  (dired-copy-file-recursive
+	   (expand-file-name (car files) from)
+	   (expand-file-name (car files) to)
+	   ok-flag preserve-time nil recursive)
+	  (setq files (cdr files))))
+    (or top (dired-handle-overwrite to)) ; Just a file.
+    (copy-file from to ok-flag dired-copy-preserve-time)))
 
 ;;;###autoload
 (defun dired-rename-file (from to ok-flag)
@@ -1152,17 +1187,28 @@ ESC or `q' to not overwrite any of the remaining files,
   ;;   will determine whether pop-ups are appropriate for this OP-SYMBOL.
   ;; FILE-CREATOR and OPERATION as in dired-create-files.
   ;; ARG as in dired-get-marked-files.
+  ;; Optional arg MARKER-CHAR as in dired-create-files.
   ;; Optional arg OP1 is an alternate form for OPERATION if there is
   ;;   only one file.
-  ;; Optional arg MARKER-CHAR as in dired-create-files.
-  ;; Optional arg HOW-TO determines how to treat target:
-  ;;   If HOW-TO is not given (or nil), and target is a directory, the
-  ;;     file(s) are created inside the target directory.  If target
-  ;;     is not a directory, there must be exactly one marked file,
-  ;;     else error.
-  ;;   If HOW-TO is t, then target is not modified.  There must be
-  ;;     exactly one marked file, else error.
-  ;; Else HOW-TO is assumed to be a function of one argument, target,
+  ;; Optional arg HOW-TO is used to set the value of the into-dir variable
+  ;;   which determines how to treat target.
+  ;;   If into-dir is set to nil then target is not regarded as a directory,
+  ;;     there must be exactly one marked file, else error.
+  ;;   Else if into-dir is set to a list, then target is a genearlized
+  ;;     directory (e.g. some sort of archive).  The first element of into-dir
+  ;;     must be a function with at least four arguments:
+  ;;       operation as OPERATION above.
+  ;;       rfn-list a list of the relative names for the marked files.
+  ;;       fn-list a list of the absolute names for the marked files.
+  ;;       target.
+  ;;       The rest of into-dir are optional arguments.
+  ;;   Else into-dir is not a list.  Target is a directory.
+  ;;     The marked file(s) are created inside the target directory.
+  ;;
+  ;;   If HOW-TO is not given (or nil), then into-dir is set to true if
+  ;;     target is a directory and otherwise to nil.
+  ;;   Else if HOW-TO is t, then into-dir is set to nil.
+  ;;   Else HOW-TO is assumed to be a function of one argument, target,
   ;;     that looks at target and returns a value for the into-dir
   ;;     variable.  The function dired-into-dir-with-symlinks is provided
   ;;     for the case (common when creating symlinks) that symbolic
@@ -1170,29 +1216,33 @@ ESC or `q' to not overwrite any of the remaining files,
   ;;     (as file-directory-p would if HOW-TO had been nil).
   (or op1 (setq op1 operation))
   (let* ((fn-list (dired-get-marked-files nil arg))
-	 (fn-count (length fn-list))
-	 (target (expand-file-name
+	 (rfn-list (mapcar (function dired-make-relative) fn-list))
+	 (dired-one-file	; fluid variable inside dired-create-files
+	  (and (consp fn-list) (null (cdr fn-list)) (car fn-list)))
+	 (target (expand-file-name ; fluid variable inside dired-create-files
 		   (dired-mark-read-file-name
-		    (concat (if (= 1 fn-count) op1 operation) " %s to: ")
+		    (concat (if dired-one-file op1 operation) " %s to: ")
 		    (dired-dwim-target-directory)
-		    op-symbol arg (mapcar (function dired-make-relative) fn-list))))
+		    op-symbol arg rfn-list)))
 	 (into-dir (cond ((null how-to) (file-directory-p target))
 			 ((eq how-to t) nil)
 			 (t (funcall how-to target)))))
-    (if (and (> fn-count 1)
-	     (not into-dir))
-	(error "Marked %s: target must be a directory: %s" operation target))
-    ;; rename-file bombs when moving directories unless we do this:
-    (or into-dir (setq target (directory-file-name target)))
-    (dired-create-files
-     file-creator operation fn-list
-     (if into-dir			; target is a directory
-	 ;; This function uses fluid vars into-dir and target when called
-	 ;; inside dired-create-files:
-	 (function (lambda (from)
-		     (expand-file-name (file-name-nondirectory from) target)))
-       (function (lambda (from) target)))
-     marker-char)))
+    (if (and (consp into-dir) (functionp (car into-dir)))
+	(apply (car into-dir) operation rfn-list fn-list target (cdr into-dir))
+      (if (not (or dired-one-file into-dir))
+	  (error "Marked %s: target must be a directory: %s" operation target))
+      ;; rename-file bombs when moving directories unless we do this:
+      (or into-dir (setq target (directory-file-name target)))
+      (dired-create-files
+       file-creator operation fn-list
+       (if into-dir			; target is a directory
+	   ;; This function uses fluid variable target when called
+	   ;; inside dired-create-files:
+	   (function
+	    (lambda (from)
+	      (expand-file-name (file-name-nondirectory from) target)))
+	 (function (lambda (from) target)))
+       marker-char))))
 
 ;; Read arguments for a marked-files command that wants a file name,
 ;; perhaps popping up the list of marked files.
@@ -1249,6 +1299,10 @@ ESC or `q' to not overwrite any of the remaining files,
 ;; just have to remove that symlink by hand before making your marked
 ;; symlinks.
 
+(defvar dired-copy-how-to-fn nil
+  "Nil or a function used by `dired-do-copy' to determine target.
+See HOW-TO argument for `dired-do-create-files'.")
+
 ;;;###autoload
 (defun dired-do-copy (&optional arg)
   "Copy all marked (or next ARG) files, or copy the current file.
@@ -1258,9 +1312,11 @@ When operating on multiple or marked files, you specify a directory,
 and new copies of these files are made in that directory
 with the same names that the files currently have."
   (interactive "P")
-  (dired-do-create-files 'copy (function dired-copy-file)
-			   (if dired-copy-preserve-time "Copy [-p]" "Copy")
-			   arg dired-keep-marker-copy))
+n  (let ((dired-recursive-copies dired-recursive-copies))
+    (dired-do-create-files 'copy (function dired-copy-file)
+			     (if dired-copy-preserve-time "Copy [-p]" "Copy")
+			     arg dired-keep-marker-copy
+			     nil dired-copy-how-to-fn)))
 
 ;;;###autoload
 (defun dired-do-symlink (&optional arg)
@@ -1387,10 +1443,11 @@ Normally, only the non-directory part of the file name is used and changed."
   "Copy all marked files containing REGEXP to NEWNAME.
 See function `dired-do-rename-regexp' for more info."
   (interactive (dired-mark-read-regexp "Copy"))
-  (dired-do-create-files-regexp
-   (function dired-copy-file)
-   (if dired-copy-preserve-time "Copy [-p]" "Copy")
-   arg regexp newname whole-path dired-keep-marker-copy))
+  (let ((dired-recursive-copies nil))	; No recursive copies.
+    (dired-do-create-files-regexp
+     (function dired-copy-file)
+     (if dired-copy-preserve-time "Copy [-p]" "Copy")
+     arg regexp newname whole-path dired-keep-marker-copy)))
 
 ;;;###autoload
 (defun dired-do-hardlink-regexp (regexp newname &optional arg whole-path)
