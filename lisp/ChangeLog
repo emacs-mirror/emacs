@@ -1,3 +1,11 @@
+2003-08-28  Eli Zaretskii  <eliz@elta.co.il>
+
+	* mail/rmail.el (rmail-convert-to-babyl-format): Detect
+	quoted-printable- and base64-encoded messages and decode them
+	automatically.  Set the message's encoding from the charset=
+	header, if any.  Decode base64-encoded messages in Mail format as
+	well.
+
 2003-08-26  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* mail/smtpmail.el Fix previous change:
