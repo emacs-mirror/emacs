@@ -25,12 +25,7 @@
 ;;; Code:
 
 (require 'quail)
-
-(defun quail-hangul-switch-to-symbol-ksc (&rest ignore)
-  "Swith to `korean-symbol' package."
-  (quail-delete-region)
-  (activate-input-method "korean-symbol")
-  (throw 'quail-tag nil))
+(require 'korea-util)
 
 (quail-define-package
  "korean-hangul" "Korean" "한2"
@@ -60,8 +55,6 @@ For instance, typing \"S\" followed by TAB will tell you
  nil t t nil nil nil t)
 
 (quail-define-rules
- ("\\" quail-hangul-switch-to-symbol-ksc)
-
  ("r"	?ㄱ)
  ("s"	?ㄴ)
  ("e"	?ㄷ)

@@ -25,12 +25,7 @@
 ;;; Code:
 
 (require 'quail)
-
-(defun quail-hangul-switch-to-symbol-ksc (&rest ignore)
-  "Swith to `korean-symbol' package."
-  (quail-delete-region)
-  (activate-input-method "korean-symbol")
-  (throw 'quail-tag nil))
+(require 'korea-util)
 
 (quail-define-package
  "korean-hangul3" "Korean" "한3"
@@ -72,8 +67,6 @@
  nil t t)
 
 (quail-define-rules
- ("\\" quail-hangul-switch-to-symbol-ksc)
-
  ("k" ?ㄱ)
  ("kk" ?ㄲ)
  ("h" ?ㄴ)
