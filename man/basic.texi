@@ -49,6 +49,17 @@ is on top of or under; that is the character @var{after} the cursor).  The
 cursor and all characters after it move backwards.  Therefore, if you type
 a printing character and then type @key{DEL}, they cancel out.
 
+@kindex BS
+@kindex backspace
+   Note that many keyboards label the @key{DEL} key as @key{BS} or
+@key{<-}, and you might be used to refer to it as the ``backspace key''.
+In addition, many modern keyboards have a separate function key labeled
+@key{Delete} or @key{Del}, which is normally bound to the
+@code{delete-char} command and deletes the character @emph{after} the
+cursor (@pxref{Deletion}).  Do not confuse @key{Delete} with
+@key{DEL}---these are two different keys!  @xref{Named ASCII Chars}, for
+more details about special function keys recognized by Emacs.
+
 @kindex RET
 @cindex newline
    To end a line and start typing a new one, type @key{RET}.  This
