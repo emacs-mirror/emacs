@@ -52,7 +52,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 Lisp_Object Qread_char, Qget_file_char, Qstandard_input, Qcurrent_load_list;
 Lisp_Object Qvariable_documentation, Vvalues, Vstandard_input, Vafter_load_alist;
-Lisp_Object Qascii_character;
+Lisp_Object Qascii_character, Qload;
 
 extern Lisp_Object Qevent_symbol_element_mask;
 
@@ -318,9 +318,24 @@ Return t if file exists.")
   Lisp_Object found;
   /* 1 means inhibit the message at the beginning.  */
   int nomessage1 = 0;
+  Lisp_Object handler;
 
   CHECK_STRING (str, 0);
   str = Fsubstitute_in_file_name (str);
+
+  /* If file name is magic, call the handler.  */
+  handler = Ffind_file_name_handler (str);
+  if (!NILP (handler))
+    {
+      Lisp_Object args[6];
+      args[0] = handler;
+      args[1] = Qload;
+      args[2] = str;
+      args[3] = noerror;
+      args[4] = nomessage;
+      args[5] = nosuffix;
+      return Ffuncall (6, args);
+    }
 
   /* Avoid weird lossage with null string as arg,
      since it would try to load a directory as a Lisp file */
@@ -1893,4 +1908,7 @@ or variables, and cons cells `(provide . FEATURE)' and `(require . FEATURE)'.");
 
   Qascii_character = intern ("ascii-character");
   staticpro (&Qascii_character);
+
+  Qload = intern ("load");
+  staticpro (&Qload);
 }
