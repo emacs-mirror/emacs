@@ -4016,6 +4016,8 @@ actually used.")
 	      /* Convert this batch with results in CONVERSION_BUFFER.  */
 	      if (how_much >= total)  /* This is the last block.  */
 		coding.mode |= CODING_MODE_LAST_BLOCK;
+	      if (coding.composing != COMPOSITION_DISABLED)
+		coding_allocate_composition_data (&coding, BEGV);
 	      result = decode_coding (&coding, read_buf,
 				      conversion_buffer + inserted,
 				      this, bufsize - inserted);
@@ -4124,6 +4126,10 @@ actually used.")
       SET_PT_BOTH (temp, same_at_start);
       insert_1 (conversion_buffer + same_at_start - BEG_BYTE, inserted,
 		0, 0, 0);
+      if (coding.cmp_data && coding.cmp_data->used)
+	coding_restore_composition (&coding, Fcurrent_buffer ());
+      coding_free_composition_data (&coding);
+  
       /* Set `inserted' to the number of inserted characters.  */
       inserted = PT - temp;
 
