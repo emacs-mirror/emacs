@@ -1256,7 +1256,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		}
 	    }
 
-	  if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
+	  if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c))
+	      && ! (multibyte && BASE_LEADING_CODE_P (c)))
 	    hpos += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
 	  else if (c >= 040 && c < 0177)
 	    hpos++;
