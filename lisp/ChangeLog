@@ -1,3 +1,7 @@
+2004-07-19  John Paul Wallington  <jpw@gnu.org>
+
+	* dired-aux.el (dired-file-set-difference): Don't use `caddr'.
+
 2004-07-18  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* dired-aux.el (dired-do-kill-lines): Expand docstring.
