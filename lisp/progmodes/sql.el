@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
-;; Version: 1.4.23
+;; Version: 1.4.24
 ;; Keywords: comm languages processes
 
 ;; This file is part of GNU Emacs.
@@ -273,7 +273,9 @@ The program can also specify a TCP connection.  See `make-comint'."
   :group 'SQL)
 
 (defcustom sql-mysql-options nil
-  "*List of additional options for `sql-mysql-program'."
+  "*List of additional options for `sql-mysql-program'.
+The following list of options is reported to make things work
+on Windows: \"-C\" \"-t\" \"-f\" \"-n\"."
   :type '(repeat string)
   :version "20.8"
   :group 'SQL)
@@ -351,10 +353,11 @@ The program can also specify a TCP connection.  See `make-comint'."
   :type 'file
   :group 'SQL)
 
-(defcustom sql-postgres-options '("--pset" "pager=off")
+(defcustom sql-postgres-options '("-P" "pager=off")
   "*List of additional options for `sql-postgres-program'.
-The default setting includes the --pset option which breaks
+The default setting includes the -P option which breaks
 older versions of the psql client (such as version 6.5.3).
+The -P option is equivalent to the --pset option.
 If you want the psql to prompt you for a user name, add the
 string \"-u\" to the list of options."
   :type '(repeat string)
@@ -1188,8 +1191,6 @@ you entered, right above the output it created.
 
 Writes the input history to a history file using
 `comint-write-input-ring' and inserts a short message in the SQL buffer.
-`comint-comint-input-ring-file-name' is temporarily bound to
-`sql-input-ring-file-name'.
 
 This function is a sentinel watching the SQL interpreter process.
 Sentinels will always get the two parameters PROCESS and EVENT."
