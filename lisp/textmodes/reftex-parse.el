@@ -198,7 +198,6 @@ of master file."
         toc-entry index-entry next-buf buf)
 
     (catch 'exit
-      (debug)
       (setq file-found (reftex-locate-file file "tex" master-dir))
       (if (and (not file-found)
 	       (setq buf (reftex-get-buffer-visiting file)))
