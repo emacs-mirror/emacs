@@ -256,22 +256,20 @@ Normally nil in most modes, since there is no process to display.")
 (defvar mode-line-modes nil
   "Mode-line control for displaying major and minor modes.")
 
-(defvar mode-line-major-mode-keymap nil "\
+(defvar mode-line-major-mode-keymap 
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line mouse-2] 'describe-mode)
+    (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
+    map) "\
 Keymap to display on major mode.")
 
-(defvar mode-line-minor-mode-keymap nil "\
+(defvar mode-line-minor-mode-keymap 
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line mouse-2] 'mode-line-minor-mode-help)
+    (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
+    (define-key map [header-line down-mouse-3] 'mode-line-mode-menu-1)
+    map) "\
 Keymap to display on minor modes.")
-
-(let ((map (make-sparse-keymap)))
-  (define-key map [mode-line mouse-2] 'describe-mode)
-  (setq mode-line-major-mode-keymap map))
-
-;; Menu of minor modes.
-(let ((map (make-sparse-keymap)))
-  (define-key map [mode-line mouse-2] 'mode-line-minor-mode-help)
-  (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
-  (define-key map [header-line down-mouse-3] 'mode-line-mode-menu-1)
-  (setq mode-line-minor-mode-keymap map))
 
 (let* ((help-echo
 	;; The multi-line message doesn't work terribly well on the
@@ -302,7 +300,8 @@ Keymap to display on minor modes.")
      (propertize "%[(" 'help-echo help-echo)
      `(:propertize ("" mode-name)
 		   help-echo "mouse-2: help for current major mode"
-		   local-map ,mode-line-major-mode-keymap)
+		   local-map ,mode-line-major-mode-keymap
+		   mouse-face bold)
      `(:propertize ("" mode-line-process))
      `(:propertize ("" minor-mode-alist)
 		   help-echo "mouse-2: help for minor modes, mouse-3: minor mode menu"

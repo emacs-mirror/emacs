@@ -612,72 +612,90 @@ For minor modes, see following pages.\n\n"))
       (print-help-return-message))))
 
 (defun describe-minor-mode (minor-mode)
-  "Display documentation of a minor mode given as MINOR-MODE."
-  (interactive (list (intern (completing-read 
-			      "Minor mode: "
-			      (delete nil (mapcar
-					   (function (lambda (x)
-						       (if (eval (car x))
-							   (symbol-name (car x)))))
-					   minor-mode-alist))))))
-  (if (fboundp minor-mode)
-      (describe-function minor-mode)
-    (describe-variable minor-mode)))
+  "Display documentation of a minor mode given as MINOR-MODE.
+MINOR-MODE can be a minor mode symbol or a minor mode indicator string
+appeared on the mode-line."
+  (interactive (list (completing-read 
+		      "Minor mode: "
+			      (nconc
+			       (describe-minor-mode-completion-table-for-symbol)
+			       (describe-minor-mode-completion-table-for-indicator)
+			       ))))
+  (if (symbolp minor-mode)
+      (setq minor-mode (symbol-name minor-mode)))
+  (let ((symbols (describe-minor-mode-completion-table-for-symbol))
+	(indicators (describe-minor-mode-completion-table-for-indicator)))
+    (cond
+     ((member minor-mode symbols)
+      (describe-minor-mode-from-symbol (intern minor-mode)))
+     ((member minor-mode indicators)
+      (describe-minor-mode-from-indicator minor-mode))
+     (t
+      (error "No such minor mode: %s" minor-mode)))))
 
+;; symbol    
+(defun describe-minor-mode-completion-table-for-symbol ()
+  ;; In order to list up all minor modes, minor-mode-list
+  ;; is used here instead of minor-mode-alist.
+  (delq nil (mapcar 'symbol-name minor-mode-list)))
+(defun describe-minor-mode-from-symbol (symbol)
+  "Display documentation of a minor mode given as a symbol, SYMBOL"
+  (interactive (list (intern (completing-read 
+			      "Minor mode symbol: "
+			      (describe-minor-mode-completion-table-for-symbol)))))
+  (if (fboundp symbol)
+      (describe-function symbol)
+    (describe-variable symbol)))
+
+;; indicator
+(defun describe-minor-mode-completion-table-for-indicator ()
+  (delq nil 
+	(mapcar (lambda (x)
+		  (let ((i (format-mode-line x)))
+		    ;; remove first space if existed
+		    (cond
+		     ((= 0 (length i))
+		      nil)
+		     ((eq (aref i 0) ?\ )
+		      (substring i 1))
+		     (t 
+		      i))))
+		minor-mode-alist)))
 (defun describe-minor-mode-from-indicator (indicator)
-  "Display documentation of a minor mode specified by INDICATOR."
+  "Display documentation of a minor mode specified by INDICATOR.
+If you call this function interactively, you can give indicator which
+is currently activated with completion."
   (interactive (list 
 		(completing-read 
 		 "Minor mode indicator: "
-		 (delete nil 
-			 (mapcar
-			  #'(lambda (x)
-			      (if (eval (car x))
-				  (let ((i (expand-minor-mode-indicator-object (cadr x))))
-				    (if (and (< 0 (length i))
-					     (string= " " (substring i 0 1)))
-					(substring i 1)
-				      i))))
-			  minor-mode-alist)))))
+		 (describe-minor-mode-completion-table-for-indicator))))
   (let ((minor-mode (lookup-minor-mode-from-indicator indicator)))
     (if minor-mode
-	(describe-minor-mode minor-mode)
+	(describe-minor-mode-from-symbol minor-mode)
       (error "Cannot find minor mode for `%s'" indicator))))
 
 (defun lookup-minor-mode-from-indicator (indicator)
   "Return a minor mode symbol from its indicator on the modeline."
+  ;; remove first space if existed
   (if (and (< 0 (length indicator)) 
-	   (not (string= " " (substring indicator 0 1))))
-      (setq indicator (concat " " indicator)))
+	   (eq (aref indicator 0) ?\ ))
+      (setq indicator (substring indicator 1)))
   (let ((minor-modes minor-mode-alist)
 	result)
     (while minor-modes
       (let* ((minor-mode (car (car minor-modes)))
-	     (anindicator (car (cdr (car minor-modes)))))
-	(setq anindicator (expand-minor-mode-indicator-object anindicator))
+	     (anindicator (format-mode-line 
+			   (car (cdr (car minor-modes))))))
+	;; remove first space if existed
 	(if (and (stringp anindicator) 
-		 (string= anindicator indicator))
+		 (> (length anindicator) 0)
+		 (eq (aref anindicator 0) ?\ ))
+	    (setq anindicator (substring anindicator 1)))
+	(if (equal indicator anindicator)
 	    (setq result minor-mode
 		  minor-modes nil)
 	  (setq minor-modes (cdr minor-modes)))))
     result))
-
-(defun expand-minor-mode-indicator-object (obj)
-  "Expand OBJ that represents a minor-mode indicator.
-cdr part of a `minor-mode-alist' element(indicator object) is the
-indicator of minor mode that is in car part.  Normally indicator
-object is a string. However, in some case it is more compound object
-like cons cell. This function tries to make the compound object a string."
-  ;; copied from describe-mode
-  (while (and obj (symbolp obj)
-	      (boundp obj)
-	      (not (eq obj (symbol-value obj))))
-    (setq obj (symbol-value obj)))
-  (when (and (consp obj) 
-	     (keywordp (car obj))
-	     (eq :eval (car obj)))
-    (setq obj (eval (cadr obj))))
-  obj)
 
 
 ;;; Automatic resizing of temporary buffers.

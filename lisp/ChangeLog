@@ -1,3 +1,27 @@
+2003-04-13  Masatake YAMATO  <jet@gyve.org>
+
+	* help.el (describe-minor-mode): New function implementation.
+	Accept both minor mode string and minor mode indicator.
+	(describe-minor-mode-completion-table-for-indicator)
+	(describe-minor-mode-completion-table-for-symbol): New functions.
+	minor-mode-list is used here.
+	(describe-minor-mode-from-symbol): renamed
+	from (old) describe-minor-mode. Use 
+	describe-minor-mode-completion-table-for-symbol.
+	Don't use eval. Just use symbol-name.
+	(describe-minor-mode-from-indicator): Document is updated.
+	Use `format-mode-line'. Use
+	describe-minor-mode-from-symbol instead of
+	describe-minor-mode. 
+	Use describe-minor-mode-completion-table-for-indicator.
+	(expand-minor-mode-indicator-object): removed.
+	(lookup-minor-mode-from-indicator): remove the fist white
+	space from both indicator and anindicator before comparing them.
+
+	* bindings.el (mode-line-major-mode-keymap)
+	(mode-line-minor-mode-keymap): defined keys for the maps
+	here in `defvar'.
+
 2003-04-12  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* play/gomoku.el (gomoku-buffer-name): New constant.
