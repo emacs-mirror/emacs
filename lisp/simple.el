@@ -769,7 +769,7 @@ Repeating \\[universal-argument] without digits or minus sign
     (if (= (length key) 1)
 	;; Make sure self-insert-command finds the proper character;
 	;; unread the character and let the command loop process it.
-	(setq unread-command-event (string-to-char key))
+	(setq unread-command-event (aref key 0))
       ;; We can't push back a longer string, so we'll emulate the
       ;; command loop ourselves.
       (command-execute (key-binding key)))))
@@ -950,10 +950,12 @@ Any command that calls this function is a \"kill command\".
 If the previous command was also a kill command,
 the text killed this time appends to the text killed last time
 to make one entry in the kill ring."
-  (interactive "r")
+  (interactive "*r")
   (cond
-   (buffer-read-only
-    (copy-region-as-kill beg end))
+   ;; If the buffer was read-only, we used to just do a
+   ;; copy-region-as-kill.  This was never what I wanted - usually I
+   ;; was making a mistake and trying to edit a file checked into RCS -
+   ;; so I've taken the code out.
    ((not (or (eq buffer-undo-list t)
 	     (eq last-command 'kill-region)
 	     (eq beg end)))
@@ -1150,8 +1152,8 @@ most recent first.")
 
 (defun set-mark-command (arg)
   "Set mark at where point is, or jump to mark.
-With no prefix argument, set mark, and push previous mark on mark ring.
-With argument, jump to mark, and pop into mark off the mark ring.
+With no prefix argument, set mark, and push old mark position on mark ring.
+With argument, jump to mark, and pop a new position for mark off the ring.
 
 Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  See the documentation of `set-mark' for more information."
