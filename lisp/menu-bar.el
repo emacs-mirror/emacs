@@ -68,6 +68,10 @@ A large number or nil slows down menu responsiveness."
 
 ;; This alias is for compatibility with 19.28 and before.
 (defvar menu-bar-file-menu menu-bar-files-menu)
+
+;; This is referenced by some code below; it is defined in uniquify.el
+(defvar uniquify-buffer-name-style)
+
 
 ;; The "File" menu items
 (define-key menu-bar-files-menu [exit-emacs]
@@ -1260,27 +1264,23 @@ key (or menu-item)"))
   (select-frame frame)))
 
 (defun menu-bar-update-buffers-1 (elt)
-  (cons (format
- 	 ;; (format "%%%ds  %%s%%s  %%s" menu-bar-update-buffers-maxbuf)
-	 "%s  %s%s  --  %s"
-	 (cdr elt)
-	 (if (buffer-modified-p (car elt))
-	     "*" " ")
-	 (save-excursion
-	   (set-buffer (car elt))
-	   (if buffer-read-only "%" " "))
-	 (let ((file
-		(or (buffer-file-name (car elt))
-		    (save-excursion
-		      (set-buffer (car elt))
-		      list-buffers-directory)
-		    "")))
-	   (setq file (or (file-name-directory file)
-			  ""))
-	   (if (> (length file) 20)
-	       (setq file (concat "..." (substring file -17))))
-	   file))
-	(car elt)))
+  ;; (format "%%%ds  %%s%%s  %%s" menu-bar-update-buffers-maxbuf)
+  (let* ((buf (car elt))
+	 (file
+	  (and (null uniquify-buffer-name-style)
+	       (or (buffer-file-name buf)
+		   (buffer-local-value 'list-buffers-directory buf))))
+	 (mod (if (buffer-modified-p buf) "*" ""))
+	 (ro (if (buffer-local-value 'buffer-read-only buf) "%" "")))
+    (when file
+      (setq file (file-name-directory file)))
+    (when (and file (> (length file) 20))
+      (setq file (concat "..." (substring file -17))))
+    (cons (if file
+	      (format "%s  %s%s  --  %s" (cdr elt) mod ro file)
+	    (format "%s  %s%s" (cdr elt) mod ro))
+	  buf)))
+
 
 ;; Used to cache the menu entries for commands in the Buffers menu
 (defvar menu-bar-buffers-menu-command-entries nil)
