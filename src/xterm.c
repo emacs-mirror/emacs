@@ -211,6 +211,8 @@ extern int errno;
 /* A mask of extra modifier bits to put into every keyboard char.  */
 extern int extra_keyboard_modifiers;
 
+static Lisp_Object Qvendor_specific_keysyms;
+
 extern XrmDatabase x_load_resources ();
 
 void x_delete_display ();
@@ -5624,9 +5626,14 @@ x_term_init (display_name, xrm_option, resource_name)
       {
 	dpyinfo->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
 	init_kboard (dpyinfo->kboard);
-	/* Change this after lisp/term/x-win.el is prepared to initialize
-	   this var in a server-dependent manner.  */
-	dpyinfo->kboard->Vsystem_key_alist = initial_kboard->Vsystem_key_alist;
+	if (!EQ (XSYMBOL (Qvendor_specific_keysyms)->function, Qunbound))
+	  {
+	    char *vendor = ServerVendor (dpy);
+	    dpyinfo->kboard->Vsystem_key_alist
+	      = call1 (Qvendor_specific_keysyms,
+		       build_string (vendor ? vendor : ""));
+	  }
+
 	dpyinfo->kboard->next_kboard = all_kboards;
 	all_kboards = dpyinfo->kboard;
 	/* Don't let the initial kboard remain current longer than necessary.
@@ -5896,5 +5903,8 @@ syms_of_xterm ()
 
   staticpro (&last_mouse_scroll_bar);
   last_mouse_scroll_bar = Qnil;
+
+  staticpro (&Qvendor_specific_keysyms);
+  Qvendor_specific_keysyms = intern ("vendor-specific-keysyms");
 }
 #endif /* ! defined (HAVE_X_WINDOWS) */
