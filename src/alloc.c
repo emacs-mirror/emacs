@@ -3468,6 +3468,7 @@ live_float_p (m, p)
       /* P must point to the start of a Lisp_Float and not be
 	 one of the unused cells in the current float block.  */
       return (offset >= 0
+	      && offset < (FLOAT_BLOCK_SIZE * sizeof b->floats[0])
 	      && offset % sizeof b->floats[0] == 0
 	      && (b != float_block
 		  || offset / sizeof b->floats[0] < float_block_index));
