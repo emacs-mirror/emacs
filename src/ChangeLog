@@ -1,3 +1,40 @@
+2003-01-22  Jason Rumney  <jasonr@gnu.org>
+
+	Sync changes with xterm.c and xfns.c.
+
+	* w32term.c (x_draw_glyph_string_foreground)
+	(x_draw_composite_glyph_string_foreground): Implement overstriking.
+
+	* w32term.c (x_write_glyphs): Clear phys_cursor_on_p if current
+	phys_cursor's hpos is overwritten.  This is still not completely
+	correct, as it doesn't really make sense to use hpos at all to
+	get the cursor glyph (as that is relative to the width of the
+	characters on the line, which may have changed during the update).
+
+	* w32term.c (notice_overwritten_cursor): Handle the special case
+	of the cursor being in the first blank non-text line at the
+	end of a window.
+
+	* w32term.c (x_draw_hollow_cursor, x_draw_bar_cursor)
+	(x_draw_phys_cursor_glyph): Set phys_cursor_width here.
+	Compute from the x position returned by x_draw_glyphs.
+
+	(x_display_and_set_cursor): Don't set phys_cursor_width here,
+	except for NO_CURSOR and system caret, to make phys_cursor_width
+	contain what its name suggests.
+	(notice_overwritten_cursor): Consider the cursor image erased if
+	the output area intersects the cursor image in y-direction.
+
+	* w32term.c (note_mode_line_or_margin_highlight): Renamed from
+	note_mode_line_highlight and extended.
+
+	* w32term.c (last_window): New variable.
+	(w32_read_socket) <WM_MOUSEMOVE>: Generate SELECT_WINDOW_EVENTs.
+	(note_mouse_movement): Remove reimplemented code in #if 0.
+
+	* w32fns.c (x_set_cursor_type): Set cursor_type_changed,
+	not update_mode_lines, and always set it to 1.
+
 2003-01-21  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (IDC_HAND): Define it if system headers don't.
