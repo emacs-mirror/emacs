@@ -156,8 +156,10 @@ make_frame (mini_p)
   f->no_split = 0;
   f->garbaged = 0;
   f->has_minibuffer = mini_p;
-  f->focus_frame = frame;
+  f->focus_frame = Qnil;
   f->explicit_name = 0;
+  f->can_have_scrollbars = 0;
+  f->has_vertical_scrollbars = 0;
 
   f->param_alist = Qnil;
 
@@ -314,8 +316,7 @@ make_terminal_frame ()
   Vframe_list = Qnil;
   f = make_frame (1);
   f->name = build_string ("terminal");
-  f->async_visible = 1;
-  f->visible = 1;
+  FRAME_SET_VISIBLE (f, 1);
   f->display.nothing = 1;   /* Nonzero means frame isn't deleted.  */
   XSET (Vterminal_frame, Lisp_Frame, f);
   return f;
@@ -329,7 +330,10 @@ focus on that frame.\n\
 This function is interactive, and may be bound to the ``switch-frame''\n\
 event; when invoked this way, it switches to the frame named in the\n\
 event.  When called from lisp, FRAME may be a ``switch-frame'' event;\n\
-if it is, select the frame named in the event.")
+if it is, select the frame named in the event.\n\
+\n\
+Changing the selected frame can change focus redirections.  See\n\
+`redirect-frame-focus' for details.")
   (frame, no_enter)
      Lisp_Object frame, no_enter;
 {
@@ -344,6 +348,31 @@ if it is, select the frame named in the event.")
 
   if (selected_frame == XFRAME (frame))
     return frame;
+
+  /* If a frame's focus has been redirected toward the currently
+     selected frame, we should change the redirection to point to the
+     newly selected frame.  This means that if the focus is redirected
+     from a minibufferless frame to a surrogate minibuffer frame, we
+     can use `other-window' to switch between all the frames using
+     that minibuffer frame, and the focus redirection will follow us
+     around.  */
+  {
+    Lisp_Object tail;
+
+    for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
+      {
+	Lisp_Object focus;
+
+	if (XTYPE (XCONS (tail)->car) != Lisp_Frame)
+	  abort ();
+
+	focus = FRAME_FOCUS_FRAME (XFRAME (XCONS (tail)->car));
+
+	if (XTYPE (focus) == Lisp_Frame
+	    && XFRAME (focus) == selected_frame)
+	  Fredirect_frame_focus (XCONS (tail)->car, frame);
+      }
+  }
 
   selected_frame = XFRAME (frame);
   if (! FRAME_MINIBUF_ONLY_P (selected_frame))
@@ -535,7 +564,7 @@ prev_frame (frame, minibuf)
 
 DEFUN ("next-frame", Fnext_frame, Snext_frame, 0, 2, 0,
   "Return the next frame in the frame list after FRAME.\n\
-By default, skip minibuffer-only frames.
+By default, skip minibuffer-only frames.\n\
 If omitted, FRAME defaults to the selected frame.\n\
 If optional argument MINIFRAME is non-nil, include minibuffer-only frames.\n\
 If MINIFRAME is a window, include only frames using that window for their\n\
@@ -623,7 +652,7 @@ A frame may not be deleted if its minibuffer is used by other frames.")
   f->root_window = Qnil;
 
   Vframe_list = Fdelq (frame, Vframe_list);
-  f->visible = 0;
+  FRAME_SET_VISIBLE (f, 0);
   displ = f->display;
   f->display.nothing = 0;
 
@@ -867,9 +896,9 @@ Return the symbol `icon' if frame is visible only as an icon.")
 {
   CHECK_LIVE_FRAME (frame, 0);
 
-  if (XFRAME (frame)->visible)
+  if (FRAME_VISIBLE_P (XFRAME (frame)))
     return Qt;
-  if (XFRAME (frame)->iconified)
+  if (FRAME_ICONIFIED_P (XFRAME (frame)))
     return Qicon;
   return Qnil;
 }
@@ -890,7 +919,7 @@ DEFUN ("visible-frame-list", Fvisible_frame_list, Svisible_frame_list,
       if (XTYPE (frame) != Lisp_Frame)
 	continue;
       f = XFRAME (frame);
-      if (f->visible)
+      if (FRAME_VISIBLE_P (f))
 	value = Fcons (frame, value);
     }
   return value;
@@ -901,25 +930,34 @@ DEFUN ("visible-frame-list", Fvisible_frame_list, Svisible_frame_list,
 DEFUN ("redirect-frame-focus", Fredirect_frame_focus, Sredirect_frame_focus,
        1, 2, 0,
   "Arrange for keystrokes typed at FRAME to be sent to FOCUS-FRAME.\n\
-This means that, after reading a keystroke typed at FRAME,\n\
-`last-event-frame' will be FOCUS-FRAME.\n\
+In other words, switch-frame events caused by events in FRAME will\n\
+request a switch to FOCUS-FRAME, and `last-event-frame' will be\n\
+FOCUS-FRAME after reading an event typed at FRAME.\n\
 \n\
-If FOCUS-FRAME is omitted or eq to FRAME, any existing redirection is\n\
+If FOCUS-FRAME is omitted or nil, any existing redirection is\n\
 cancelled, and the frame again receives its own keystrokes.\n\
 \n\
-The redirection lasts until the next call to `redirect-frame-focus'\n\
-or `select-frame'.\n\
+Focus redirection is useful for temporarily redirecting keystrokes to\n\
+a surrogate minibuffer frame when a frame doesn't have its own\n\
+minibuffer window.\n\
 \n\
-This is useful for temporarily redirecting keystrokes to the minibuffer\n\
-window when a frame doesn't have its own minibuffer.")
+A frame's focus redirection can be changed by select-frame.  If frame\n\
+FOO is selected, and then a different frame BAR is selected, any\n\
+frames redirecting their focus to FOO are shifted to redirect their\n\
+focus to BAR.  This allows focus redirection to work properly when the\n\
+user switches from one frame to another using `select-window'.\n\
+\n\
+This means that a frame whose focus is redirected to itself is treated\n\
+differently from a frame whose focus is redirected to nil; the former\n\
+is affected by select-frame, while the latter is not.\n\
+\n\
+The redirection lasts until `redirect-frame-focus' is called to change it.")
   (frame, focus_frame)
     Lisp_Object frame, focus_frame;
 {
   CHECK_LIVE_FRAME (frame, 0);
 
-  if (NILP (focus_frame))
-    focus_frame = frame;
-  else
+  if (! NILP (focus_frame))
     CHECK_LIVE_FRAME (focus_frame, 1);
 
   XFRAME (frame)->focus_frame = focus_frame;
@@ -933,11 +971,13 @@ window when a frame doesn't have its own minibuffer.")
 
 DEFUN ("frame-focus", Fframe_focus, Sframe_focus, 1, 1, 0,
   "Return the frame to which FRAME's keystrokes are currently being sent.\n\
+This returns nil if FRAME's focus is not redirected.\n\
 See `redirect-frame-focus'.")
   (frame)
     Lisp_Object frame;
 {
   CHECK_LIVE_FRAME (frame, 0);
+
   return FRAME_FOCUS_FRAME (XFRAME (frame));
 }
 
