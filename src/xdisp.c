@@ -2504,7 +2504,10 @@ display_text_line (w, start, vpos, hpos, taboffset)
          them when the scroll bar windows are flickering around to be
          reconfigured.  */
       *p1++ = (FRAME_HAS_VERTICAL_SCROLL_BARS (f)
-	       ? ' ' : '|');
+	       ? ' '
+	       : (dp && INTEGERP (DISP_BORDER_GLYPH (dp))
+		  ? DISP_BORDER_GLYPH (dp)
+		  : '|'));
     }
   desired_glyphs->used[vpos] = max (desired_glyphs->used[vpos],
 				   p1 - desired_glyphs->glyphs[vpos]);

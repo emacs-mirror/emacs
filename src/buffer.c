@@ -2776,7 +2776,7 @@ The display table is a vector created with `make-display-table'.\n\
 The first 256 elements control how to display each possible text character.\n\
 Each value should be a vector of characters or nil;\n\
 nil means display the character in the default fashion.\n\
-The remaining five elements control the display of\n\
+The remaining six elements control the display of\n\
   the end of a truncated screen line (element 256, a single character);\n\
   the end of a continued line (element 257, a single character);\n\
   the escape character used to display character codes in octal\n\
@@ -2784,7 +2784,9 @@ The remaining five elements control the display of\n\
   the character used as an arrow for control characters (element 259,\n\
     a single character);\n\
   the decoration indicating the presence of invisible lines (element 260,\n\
-    a vector of characters).\n\
+    a vector of characters);\n\
+  the character used to draw the border between side-by-side windows\n\
+    (element 261, a single character).;\n\
 If this variable is nil, the value of `standard-display-table' is used.\n\
 Each window can have its own, overriding display table.");
 #endif
