@@ -2,7 +2,8 @@
 
 	* Makefile (setwins): abstract out the command to find subdirectories
 	and fix it to also ignore subdirectories of CVS (f.ex. CVS/Base).
-	(custom-deps, finder-data, autoloads, update-subdirs, updates): use it.
+	(custom-deps, finder-data, autoloads, update-subdirs, updates)
+	(autoloads-with-other-emacs): use it.
 
 	* diff-mode.el: new file.  A mode for viewing/editing context diffs.
 
