@@ -464,6 +464,7 @@ detailed meanings of these arguments."
   (interactive (list (read-charset "Character set: ")))
   (with-output-to-temp-buffer "*Help*"
     (with-current-buffer standard-output
+      (setq indent-tabs-mode nil)
       (set-buffer-multibyte t)
       (cond ((charsetp charset)
 	     (list-iso-charset-chars charset))
@@ -487,21 +488,21 @@ detailed meanings of these arguments."
 	(insert "Character set: " (symbol-name charset)
 		(format " (ID:%d)\n\n" (aref info 0)))
 	(insert (aref info 13) "\n\n")	; description
-	(insert "number of contained characters: "
+	(insert "Number of contained characters: "
 		(if (= (aref info 2) 1)
 		    (format "%d\n" (aref info 3))
 		  (format "%dx%d\n" (aref info 3) (aref info 3))))
-	(insert "the final char of ISO2022's designation sequence: ")
+	(insert "Final char of ISO2022 designation sequence: ")
 	(if (>= (aref info 8) 0)
 	    (insert (format "`%c'\n" (aref info 8)))
 	  (insert "not assigned\n"))
-	(insert (format "width (how many columns on screen): %d\n"
+	(insert (format "Width (how many columns on screen): %d\n"
 			(aref info 4)))
-	(insert (format "internal multibyte sequence: %s\n"
+	(insert (format "Internal multibyte sequence: %s\n"
 			(charset-multibyte-form-string charset)))
 	(let ((coding (plist-get (aref info 14) 'preferred-coding-system)))
 	  (when coding
-	    (insert (format "preferred coding system: %s\n" coding))
+	    (insert (format "Preferred coding system: %s\n" coding))
 	    (search-backward (symbol-name coding))
 	    (help-xref-button 0 #'describe-coding-system coding
 			      "mouse-2, RET: describe this coding system")))
@@ -570,6 +571,15 @@ which font is being used for displaying the character."
 			     (format "(encoded by coding system %S)" coding))
 		     (list "not encodable by coding system"
 			   (symbol-name coding)))))
+	      ,@(if (or (memq 'mule-utf-8
+			  (find-coding-systems-region (point) (1+ (point))))
+			(get-char-property (point) 'untranslated-utf-8))
+		    (let ((uc (or (get-char-property (point)
+						     'untranslated-utf-8)
+				  (encode-char (char-after) 'ucs))))
+		      (if uc
+			  (list (list "Unicode"
+				      (format "%04X" uc))))))
 	      ,(if (display-graphic-p (selected-frame))
 		   (list "font" (or (internal-char-font (point))
 				    "-- none --"))
@@ -1196,7 +1206,16 @@ see the function `describe-fontset' for the format of the list."
   "Display information about all input methods."
   (interactive)
   (with-output-to-temp-buffer "*Help*"
-    (list-input-methods-1)))
+    (list-input-methods-1)
+    (with-current-buffer standard-output
+      (save-excursion
+	(goto-char (point-min))
+	(while (re-search-forward
+		"^  \\([^ ]+\\) (`.*' in mode line)$" nil t)
+	  (help-xref-button 1 #'describe-input-method
+				(match-string 1)
+				"mouse-2: describe this method")))
+      (help-setup-xref '(list-input-methods) (interactive-p)))))
 
 (defun list-input-methods-1 ()
   (if (not input-method-alist)
@@ -1326,56 +1345,5 @@ system which uses fontsets)."
 	    (print-fontset (car fontsets) t)
 	    (setq fontsets (cdr fontsets)))))
       (print-help-return-message))))
-
-
-;;; DUMP DATA FILE
-
-;;;###autoload
-(defun dump-charsets ()
-  "Dump information about all charsets into the file `CHARSETS'.
-The file is saved in the directory `data-directory'."
-  (let ((file (expand-file-name "CHARSETS" data-directory))
-	buf)
-    (or (file-writable-p file)
-	(error "Can't write to file %s" file))
-    (setq buf (find-file-noselect file))
-    (save-window-excursion
-      (save-excursion
-	(set-buffer buf)
-	(setq buffer-read-only nil)
-	(erase-buffer)
-	(list-character-sets-2)
-	(insert-buffer-substring "*Help*")
-	(let (make-backup-files
-	      coding-system-for-write)
-	  (save-buffer))))
-    (kill-buffer buf))
-  (if noninteractive
-      (kill-emacs)))
-
-;;;###autoload
-(defun dump-codings ()
-  "Dump information about all coding systems into the file `CODINGS'.
-The file is saved in the directory `data-directory'."
-  (let ((file (expand-file-name "CODINGS" data-directory))
-	buf)
-    (or (file-writable-p file)
-	(error "Can't write to file %s" file))
-    (setq buf (find-file-noselect file))
-    (save-window-excursion
-      (save-excursion
-	(set-buffer buf)
-	(setq buffer-read-only nil)
-	(erase-buffer)
-	(list-coding-systems t)
-	(insert-buffer-substring "*Help*")
-	(list-coding-categories)
-	(insert-buffer-substring "*Help*")
-	(let (make-backup-files
-	      coding-system-for-write)
-	  (save-buffer))))
-    (kill-buffer buf))
-  (if noninteractive
-      (kill-emacs)))
 
 ;;; mule-diag.el ends here
