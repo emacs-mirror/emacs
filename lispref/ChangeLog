@@ -1,3 +1,10 @@
+2004-07-04  Alan Mackenzie  <acm@muc.de>
+
+	* frames.texi (Input Focus): Add documentation for
+	`select-frame-set-input-focus'.  Replace refs to non-existent
+	`switch-frame' with `select-frame'.  Minor corrections and tidying
+	up of text-only terminal stuff.
+
 2004-07-02  Richard M. Stallman  <rms@gnu.org>
 
 	* files.texi (Saving Buffers): Cleanup write-contents-function.
