@@ -1,13 +1,13 @@
 ;;; vc.el --- drive a version-control system from within Emacs
 
-;; Copyright (C) 1992,93,94,95,96,97,98,2000,01,2003
+;; Copyright (C) 1992,93,94,95,96,97,98,2000,01,2003,2004
 ;;           Free Software Foundation, Inc.
 
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.365 2004/01/23 11:20:55 uid65624 Exp $
+;; $Id: vc.el,v 1.366 2004/02/07 00:37:13 uid65598 Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -804,11 +804,11 @@ somebody else, signal error."
   (let ((filevar (make-symbol "file")))
     `(let ((,filevar (expand-file-name ,file)))
        (or (vc-backend ,filevar)
-           (error (format "File not under version control: `%s'" file)))
+           (error "File not under version control: `%s'" file))
        (unless (vc-editable-p ,filevar)
          (let ((state (vc-state ,filevar)))
            (if (stringp state)
-               (error (format "`%s' is locking `%s'" state ,filevar))
+               (error "`%s' is locking `%s'" state ,filevar)
              (vc-checkout ,filevar t))))
        (save-excursion
          ,@body)
@@ -2487,7 +2487,7 @@ A prefix argument NOREVERT means do not revert the buffer afterwards."
      ((not (vc-call latest-on-branch-p file))
       (error "This is not the latest version; VC cannot cancel it"))
      ((not (vc-up-to-date-p file))
-      (error (substitute-command-keys "File is not up to date; use \\[vc-revert-buffer] to discard changes"))))
+      (error "%s" (substitute-command-keys "File is not up to date; use \\[vc-revert-buffer] to discard changes"))))
     (if (null (yes-or-no-p (format "Remove version %s from master? " target)))
 	(error "Aborted")
       (setq norevert (or norevert (not
