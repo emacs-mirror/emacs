@@ -1,3 +1,8 @@
+2000-01-11  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* array.el (array-mode): Don't use make-variable-buffer-local.
+	Use make-local-variable for `truncate-lines'.
+
 2000-01-11  Jari Aalto  <jari.aalto@poboxes.com>
 
 	* add-log.el (add-log-current-defun): Handle user-defined
