@@ -1,3 +1,17 @@
+2004-12-26  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/hideshow.el (hs-set-up-overlay): New user var.
+	(hs-make-overlay): New function.
+	(hs-isearch-show-temporary): Handle `display' overlay prop specially.
+	(hs-flag-region): Delete function.
+	(hs-hide-comment-region): No longer use `hs-flag-region'.
+	Instead, use `hs-discard-overlays' and `hs-make-overlay'.
+	(hs-hide-block-at-point): Likewise.
+	(hs-hide-level-recursive): Use `hs-discard-overlays'.
+	(hs-hide-all, hs-show-all): Likewise.
+	(hs-show-block): Likewise.
+	Also, use overlay prop `hs-b-offset', not `hs-ofs'.
+
 2004-12-24  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/hideshow.el: Require `cl' when compiling.
