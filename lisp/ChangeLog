@@ -1,5 +1,7 @@
 2000-12-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* progmodes/idlw-shell.el, progmodes/idlwave.el: Update copyright.
+
 	* bindings.el (mode-line-mode-menu): Add glasses-mode.
 	
 	* bindings.el (mode-line-mode-menu): Reverse the order
