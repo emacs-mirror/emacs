@@ -1,5 +1,5 @@
 ;;; rfc2047.el --- functions for encoding and decoding rfc2047 messages
-;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -27,7 +27,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile
+  (require 'cl)
+  (defvar message-posting-charset))
 
 (require 'qp)
 (require 'mm-util)
@@ -41,6 +43,8 @@
 (defvar rfc2047-header-encoding-alist
   '(("Newsgroups" . nil)
     ("Message-ID" . nil)
+    ("\\(Resent-\\)?\\(From\\|Cc\\|To\\|Bcc\\|Reply-To\\|Sender\\)" .
+     address-mime)
     (t . mime))
   "*Header/encoding method alist.
 The list is traversed sequentially.  The keys can either be
@@ -50,8 +54,10 @@ The values can be:
 
 1) nil, in which case no encoding is done;
 2) `mime', in which case the header will be encoded according to RFC2047;
-3) a charset, in which case it will be encoded as that charset;
-4) `default', in which case the field will be encoded as the rest
+3) `address-mime', like `mime', but takes account of the rules for address
+   fields (where quoted strings and comments must be treated separately);
+4) a charset, in which case it will be encoded as that charset;
+5) `default', in which case the field will be encoded as the rest
    of the article.")
 
 (defvar rfc2047-charset-encoding-alist
@@ -62,7 +68,7 @@ The values can be:
     (iso-8859-4 . Q)
     (iso-8859-5 . B)
     (koi8-r . B)
-    (iso-8859-7 . Q)
+    (iso-8859-7 . B)
     (iso-8859-8 . B)
     (iso-8859-9 . Q)
     (iso-8859-14 . Q)
@@ -88,7 +94,8 @@ quoted-printable and base64 respectively.")
   "Alist of RFC2047 encodings to encoding functions.")
 
 (defvar rfc2047-q-encoding-alist
-  '(("\\(From\\|Cc\\|To\\|Bcc\||Reply-To\\):" . "-A-Za-z0-9!*+/")
+  '(("\\(Resent-\\)?\\(From\\|Cc\\|To\\|Bcc\\|Reply-To\\|Sender\\):"
+     . "-A-Za-z0-9!*+/" )
     ;; = (\075), _ (\137), ? (\077) are used in the encoded word.
     ;; Avoid using 8bit characters.
     ;; Equivalent to "^\000-\007\011\013\015-\037\200-\377=_?"
@@ -142,21 +149,26 @@ Should be called narrowed to the head of the message."
 			(eq (car elem) t))
 		(setq alist nil
 		      method (cdr elem))))
+	    (goto-char (point-min))
+	    (re-search-forward "^[^:]+: *" nil t)
 	    (cond
+	     ((eq method 'address-mime)
+	      (rfc2047-encode-region (point) (point-max)))
 	     ((eq method 'mime)
-	      (rfc2047-encode-region (point-min) (point-max)))
+	      (let (rfc2047-special-chars)
+		(rfc2047-encode-region (point) (point-max))))
 	     ((eq method 'default)
 	      (if (and (featurep 'mule)
 		       (if (boundp 'default-enable-multibyte-characters)
 			   default-enable-multibyte-characters)
 		       mail-parse-charset)
-		  (mm-encode-coding-region (point-min) (point-max)
+		  (mm-encode-coding-region (point) (point-max)
 					   mail-parse-charset)))
 	     ((mm-coding-system-p method)
 	      (if (and (featurep 'mule)
 		       (if (boundp 'default-enable-multibyte-characters)
 			   default-enable-multibyte-characters))
-		  (mm-encode-coding-region (point-min) (point-max) method)))
+		  (mm-encode-coding-region (point) (point-max) method)))
 	     ;; Hm.
 	     (t)))
 	  (goto-char (point-max)))))))
@@ -173,74 +185,72 @@ The buffer may be narrowed."
 	 (mm-find-mime-charset-region (point-min) (point-max))))
     (and charsets (not (equal charsets (list message-posting-charset))))))
 
-(defun rfc2047-dissect-region (b e)
-  "Dissect the region between B and E into words."
-  (let ((word-chars "-A-Za-z0-9!*+/")
-	;; Not using ietf-drums-specials-token makes life simple.
-	mail-parse-mule-charset
-	words point nonascii
-	result word)
-    (save-restriction
-      (narrow-to-region b e)
-      (goto-char (point-min))
-      (skip-chars-forward "\000-\177")
-      ;; Fixme: This loop used to check charsets when it found
-      ;; non-ASCII characters.  That's removed, since it doesn't make
-      ;; much sense in Emacs 22 and doesn't seem necessary in Emacs
-      ;; 21, even.  I'm not sure exactly what it should be doing, and
-      ;; it needs another look, especially for efficiency's sake.  -- fx
-      (while (not (eobp))
-	(setq point (point)
-	      nonascii nil)
-	(skip-chars-backward word-chars b)
-	(unless (eq b (point))
-	  (push (cons (buffer-substring b (point)) nil) words))
-	(setq b (point)
-	      nonascii t)
-	(goto-char point)
-	(forward-char 1)
-	(skip-chars-forward word-chars)
-	(while (not (eobp))
-	  (forward-char 1)
-	  (skip-chars-forward word-chars))
-	(unless (eq b (point))
-	  (push (cons (buffer-substring b (point)) nonascii) words))
-	(setq b (point))
-	(skip-chars-forward "\000-\177"))
-      (unless (eq b (point))
-	(push (cons (buffer-substring b (point)) nil) words)))
-    ;; merge adjacent words
-    (setq word (pop words))
-    (while word
-      (if (and (cdr word)
-	       (caar words)
-	       (not (cdar words))
-	       (not (string-match "[^ \t]" (caar words))))
-	  (if (eq (cdr (nth 1 words)) (cdr word))
-	      (progn
-		(setq word (cons (concat
-				  (car (nth 1 words)) (caar words)
-				  (car word))
-				 (cdr word)))
-		(pop words)
-		(pop words))
-	    (push (cons (concat (caar words) (car word)) (cdr word))
-		  result)
-	    (pop words)
-	    (setq word (pop words)))
-	(push word result)
-	(setq word (pop words))))
-    result))
+;; ietf-drums-specials-token less \ . @
+(defconst rfc2047-special-chars (append "()<>[]:;,\"" nil)
+  "List of characters treated as special when rfc207-encoding address fields.
+When encoding other sorts of fields, bin it to nil to avoid treating
+RFC 2822 quoted words and comments specially.")
 
+(defconst rfc2047-non-special-chars (concat "^" rfc2047-special-chars))
+
+(defun rfc2047-dissect-region (b e)
+  "Dissect the region between B and E into tokens.
+The tokens comprise sequences of atoms, quoted strings, special
+characters and whitespace."
+  (save-restriction
+    (narrow-to-region b e)
+    (if (null rfc2047-special-chars)
+	;; simple `mime' case -- no need to tokenize
+	(list (buffer-substring b e))
+      ;; `address-mime' case -- take care of quoted words, comments
+      (with-syntax-table ietf-drums-syntax-table
+	(let ((start (point))
+	      words)
+	  (goto-char (point-min))
+	  (condition-case nil	      ; in case of unbalanced specials
+	      ;; Dissect into: sequences of atoms, quoted strings,
+	      ;; specials, whitespace.  (Specials mustn't be encoded.)
+	      (while (not (eobp))
+		(setq start (point))
+		(unless (= 0 (skip-chars-forward ietf-drums-wsp-token))
+		  (push (buffer-substring start (point)) words)
+		  (setq start (point)))
+		(cond
+		 ((memq (char-after) rfc2047-special-chars)
+		  ;; Grab string or special char.
+		  (if (eq ?\" (char-after))
+		      (progn
+			(forward-sexp)
+			(push (buffer-substring start (point)) words))
+		    (push (string (char-after)) words)
+		    (forward-char)))
+		 ((not (char-after)))	; eob
+		 (t		    ; normal token/whitespace sequence
+		  (skip-chars-forward rfc2047-non-special-chars)
+		  (skip-chars-backward ietf-drums-wsp-token)
+		  (push (buffer-substring start (point)) words))))
+	    (error (error "Invalid data for rfc2047 encoding: %s"
+			  (buffer-substring b e))))
+	  (nreverse words))))))
+
+;; Fixme: why does this cons a list of words and insert them, rather
+;; than encoding in place?
 (defun rfc2047-encode-region (b e)
-  "Encode all encodable words in region B to E."
+  "Encode all encodable words in region B to E.
+By default, the region is treated as containing addresses (see
+`rfc2047-special-chars')."
   (let ((words (rfc2047-dissect-region b e)) word)
     (save-restriction
       (narrow-to-region b e)
       (delete-region (point-min) (point-max))
-      (while (setq word (pop words))
-	(if (not (cdr word))
-	    (insert (car word))
+      (dolist (word words)
+	;; Quoted strings can't contain encoded words.  Strip the
+	;; quotes.
+	(if rfc2047-special-chars
+	    (if (eq ?\" (aref word 0))
+		(setq word (substring word 1 -1))))
+	(if (string-match "\\`[\0-\177]*\\'" word) ; including whitespace
+	    (insert word)
 	  (rfc2047-fold-region (gnus-point-at-bol) (point))
 	  (goto-char (point-max))
 	  (if (> (- (point) (save-restriction
@@ -250,56 +260,63 @@ The buffer may be narrowed."
 	  ;; Insert blank between encoded words
 	  (if (eq (char-before) ?=) (insert " "))
 	  (rfc2047-encode (point)
-			  (progn (insert (car word)) (point)))))
+			  (progn (insert word) (point)))))
       (rfc2047-fold-region (point-min) (point-max)))))
 
 (defun rfc2047-encode-string (string)
-  "Encode words in STRING."
+  "Encode words in STRING.
+By default, the string is treated as containing addresses (see
+`rfc2047-special-chars')."
   (with-temp-buffer
     (insert string)
     (rfc2047-encode-region (point-min) (point-max))
     (buffer-string)))
 
 (defun rfc2047-encode (b e)
-  "Encode the word in the region B to E."
-  (let* ((buff (current-buffer))
-	 (mime-charset (with-temp-buffer
-			 (insert-buffer-substring buff b e)
-			 (mm-find-mime-charset-region 1 (point-max))))
+  "Encode the word(s) in the region B to E.
+By default, the region is treated as containing addresses (see
+`rfc2047-special-chars')."
+  (let* ((mime-charset (mm-find-mime-charset-region b e))
 	 (cs (if (> (length mime-charset) 1)
-		 (error "Can't encode word: %s" (buffer-substring b e))
+		 ;; Fixme: instead of this, try to break region into
+		 ;; parts that can be encoded separately.
+		 (error "Can't rfc2047-encode `%s'"
+			(buffer-substring b e))
 	       (setq mime-charset (car mime-charset))
 	       (mm-charset-to-coding-system mime-charset)))
-	 (encoding (or (cdr (assq mime-charset
+	 (encoding (if (assq mime-charset
+			     rfc2047-charset-encoding-alist)
+		       (cdr (assq mime-charset
 				  rfc2047-charset-encoding-alist))
-		       'B))
+		     'B))
 	 (start (concat
 		 "=?" (downcase (symbol-name mime-charset)) "?"
 		 (downcase (symbol-name encoding)) "?"))
 	 (first t))
-    (save-restriction
-      (narrow-to-region b e)
-      (when (eq encoding 'B)
-	;; break into lines before encoding
-	(goto-char (point-min))
-	(while (not (eobp))
-	  (goto-char (min (point-max) (+ 15 (point))))
-	  (unless (eobp)
-	    (insert "\n"))))
-      (if (and (mm-multibyte-p)
-	       (mm-coding-system-p cs))
-	  (mm-encode-coding-region (point-min) (point-max) cs))
-      (funcall (cdr (assq encoding rfc2047-encoding-function-alist))
-	       (point-min) (point-max))
-      (goto-char (point-min))
-      (while (not (eobp))
-	(unless first
-	  (insert " "))
-	(setq first nil)
-	(insert start)
-	(end-of-line)
-	(insert "?=")
-	(forward-line 1)))))
+    (if mime-charset
+	(save-restriction
+	  (narrow-to-region b e)
+	  (when (eq encoding 'B)
+	    ;; break into lines before encoding
+	    (goto-char (point-min))
+	    (while (not (eobp))
+	      (goto-char (min (point-max) (+ 15 (point))))
+	      (unless (eobp)
+		(insert "\n"))))
+	  (if (and (mm-multibyte-p)
+		   (mm-coding-system-p cs))
+	      (mm-encode-coding-region (point-min) (point-max) cs))
+	  (funcall (cdr (assq encoding rfc2047-encoding-function-alist))
+		   (point-min) (point-max))
+	  (goto-char (point-min))
+	  (while (not (eobp))
+	    (unless first
+	      (insert " "))
+	    (setq first nil)
+	    (insert start)
+	    (end-of-line)
+	    (insert "?=")
+	    (forward-line 1))))))
 
 (defun rfc2047-fold-region (b e)
   "Fold long lines in region B to E."
