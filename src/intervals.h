@@ -288,6 +288,12 @@ EXFUN (Fprevious_single_char_property_change, 4);
 extern Lisp_Object copy_text_properties P_ ((Lisp_Object, Lisp_Object,
 					     Lisp_Object, Lisp_Object,
 					     Lisp_Object, Lisp_Object));
+extern Lisp_Object set_text_properties P_ ((Lisp_Object, Lisp_Object,
+					    Lisp_Object, Lisp_Object,
+					    Lisp_Object));
+extern void set_text_properties_1 P_ ((Lisp_Object, Lisp_Object,
+				       Lisp_Object, Lisp_Object, INTERVAL));
+
 Lisp_Object text_property_list P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 				    Lisp_Object));
 int add_text_properties_from_list P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
