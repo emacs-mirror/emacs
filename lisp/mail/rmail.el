@@ -515,7 +515,10 @@ argument causes us to read a file name and use that file as the inbox."
     (while files
       (setq file (expand-file-name (substitute-in-file-name (car files)))
 	    ;;>> un*x specific <<
-	    tofile (concat file "~"))
+	    ;; The "+" used to be "~", which is an extremely poor choice;
+	    ;; it might accidentally be deleted when space is low
+	    ;; (as happened to me!).
+	    tofile (concat file "+"))
       ;; If getting from mail spool directory,
       ;; use movemail to move rather than just renaming,
       ;; so as to interlock with the mailer.
