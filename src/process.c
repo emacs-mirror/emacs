@@ -1,5 +1,6 @@
 /* Asynchronous subprocess control for GNU Emacs.
-   Copyright (C) 1985, 86, 87, 88, 93, 94, 95 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 1996
+      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1290,9 +1291,11 @@ create_process (process, new_argv, current_dir)
 
 #ifdef O_NONBLOCK
   fcntl (inchannel, F_SETFL, O_NONBLOCK);
+  fcntl (outchannel, F_SETFL, O_NONBLOCK);
 #else
 #ifdef O_NDELAY
   fcntl (inchannel, F_SETFL, O_NDELAY);
+  fcntl (outchannel, F_SETFL, O_NDELAY);
 #endif
 #endif
 
