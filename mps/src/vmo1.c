@@ -1,7 +1,7 @@
 /* impl.c.vmo1: VIRTUAL MEMORY MAPPING FOR DIGITAL UNIX
  *
- * $HopeName: MMsrc!vmo1.c(trunk.3) $
- * Copyright (C) 1995,1997 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!vmo1.c(trunk.4) $
+ * Copyright (C) 1995, 1997, 1998 Harlequin Group, all rights reserved
  *
  * Readership: Any MPS developer
  *
@@ -62,14 +62,15 @@
 /* for getpagesize(2),close(2) */
 #include <unistd.h>
 
-SRCID(vmo1, "$HopeName: MMsrc!vmo1.c(trunk.3) $");
+SRCID(vmo1, "$HopeName: MMsrc!vmo1.c(trunk.4) $");
 
 
 /* Fix unprototyped system calls
  *
- * For some bizarre reason DEC go out of there way to not prototype
+ * For some bizarre reason DEC go out of their way to not prototype
  * these calls when using gcc.  See /usr/include/standards.h and
- * /usr/include/unistd.h for the very gory details. */
+ * /usr/include/unistd.h for the very gory details.
+ */
 #ifdef MPS_BUILD_GC
 extern int close(int);
 extern int getpagesize(void);
@@ -90,14 +91,9 @@ typedef struct VMStruct {
 } VMStruct;
 
 
-Align VMAlign(void)
+Align VMAlign(VM vm)
 {
-  Align align;
-
-  align = (Align)getpagesize();
-  AVER(SizeIsP2(align));
-
-  return align;
+  return vm->align;
 }
 
 
@@ -125,10 +121,11 @@ Res VMCreate(VM *vmReturn, Size size)
   int none_fd;
   VM vm;
 
-  align = VMAlign();
-
   AVER(vmReturn != NULL);
-  AVER(SizeIsAligned(size, align));
+
+  align = (Align)getpagesize();
+  AVER(SizeIsP2(align));
+  size = SizeAlignUp(size, align);
   AVER(size != 0);
 
   none_fd = open("/etc/passwd", O_RDONLY);
@@ -257,7 +254,8 @@ Res VMMap(VM vm, Addr base, Addr limit)
   if(mmap((void *)base, (size_t)size,
           PROT_READ | PROT_WRITE | PROT_EXEC,
           MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED,
-          -1, 0) == (void *)-1) {
+          -1, 0)
+     == (void *)-1) {
     AVER(errno == ENOMEM); /* .assume.mmap.err */
     return ResMEMORY;
   }
@@ -292,4 +290,3 @@ void VMUnmap(VM vm, Addr base, Addr limit)
 
   vm->mapped -= size;
 }
-
