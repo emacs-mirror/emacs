@@ -1,7 +1,12 @@
+2001-03-29  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* generic.el (generic-mode-set-comments): Use "" rather than nil
+	for comment-end.
+
 2001-03-29  Gerd Moellmann  <gerd@gnu.org>
 
-	* emacs-lisp/advice.el (ad-make-advised-definition): Call
-	interactive-form to obtain the interactive spec of subrs.
+	* emacs-lisp/advice.el (ad-make-advised-definition):
+	Call interactive-form to obtain the interactive spec of subrs.
 
 	* subr.el (interactive-form): New function.
 
