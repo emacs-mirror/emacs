@@ -71,7 +71,7 @@ This must be bound to a mouse click."
   (mouse-minibuffer-check click)
   (let* ((window (posn-window (event-start click)))
 	 (buf (window-buffer window))
-	 (frame (new-frame)))
+	 (frame (make-frame)))
     (select-frame frame)
     (switch-to-buffer buf)
     (delete-window window)))
