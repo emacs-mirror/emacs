@@ -51,7 +51,7 @@ static int get_leaf_windows P_ ((struct window *, struct window **, int));
 static void window_scroll P_ ((Lisp_Object, int, int, int));
 static void window_scroll_pixel_based P_ ((Lisp_Object, int, int, int));
 static void window_scroll_line_based P_ ((Lisp_Object, int, int, int));
-     
+static int window_min_size P_ ((struct window *, int));
 
 
 /* This is the window in which the terminal's cursor should
@@ -1884,6 +1884,33 @@ check_frame_size (frame, rows, cols)
     *cols = MIN_SAFE_WINDOW_WIDTH;
 }
 
+
+/* Return the minimum size of window W.  WIDTH_P non-zero means
+   return the minimum width, otherwise return the minimum height.  */
+
+static INLINE int
+window_min_size (w, width_p)
+     struct window *w;
+     int width_p;
+{
+  int size;
+  
+  if (width_p)
+    size = window_min_width;
+  else
+    {
+      if (MINI_WINDOW_P (w)
+	  || (!WINDOW_WANTS_MODELINE_P (w)
+	      && !WINDOW_WANTS_TOP_LINE_P (w)))
+	size = 1;
+      else
+	size = window_min_height;
+    }
+
+  return size;
+}
+
+
 /* Normally the window is deleted if it gets too small.  nodelete
    nonzero means do not do this.  (The caller should check later and
    do so if appropriate) */
@@ -1902,14 +1929,14 @@ set_window_height (window, height, nodelete)
 
   check_min_window_sizes ();
 
-  if (!nodelete
-      && ! NILP (w->parent)
-      && (MINI_WINDOW_P (w)
-	  ? height < 1
-	  : height < window_min_height))
+  if (!nodelete && !NILP (w->parent))
     {
-      delete_window (window);
-      return;
+      int min_height = window_min_size (w, 0);
+      if (height < min_height)
+	{
+	  delete_window (window);
+	  return;
+	}
     }
 
   XSETFASTINT (w->last_modified, 0);
@@ -2755,11 +2782,7 @@ window_width (window)
   return XFASTINT (p->width);
 }
 
-#define MINSIZE(w)						\
-  (widthflag							\
-   ? window_min_width						\
-   : (MINI_WINDOW_P (XWINDOW (w)) ? 1 : window_min_height))
-
+	
 #define CURBEG(w) \
   *(widthflag ? (int *) &(XWINDOW (w)->left) : (int *) &(XWINDOW (w)->top))
 
@@ -2811,8 +2834,12 @@ change_window_height (delta, widthflag)
     register int maxdelta;
 
     maxdelta = (!NILP (parent) ? (*sizefun) (parent) - *sizep
-		: !NILP (p->next) ? (*sizefun) (p->next) - MINSIZE (p->next)
-		: !NILP (p->prev) ? (*sizefun) (p->prev) - MINSIZE (p->prev)
+		: !NILP (p->next) ? ((*sizefun) (p->next)
+				     - window_min_size (XWINDOW (p->next),
+							widthflag))
+		: !NILP (p->prev) ? ((*sizefun) (p->prev)
+				     - window_min_size (XWINDOW (p->prev),
+							widthflag))
 		/* This is a frame with only one window, a minibuffer-only
 		   or a minibufferless frame.  */
 		: (delta = 0));
@@ -2824,7 +2851,7 @@ change_window_height (delta, widthflag)
       delta = maxdelta;
   }
 
-  if (*sizep + delta < MINSIZE (window))
+  if (*sizep + delta < window_min_size (XWINDOW (window), widthflag))
     {
       delete_window (window);
       return;
@@ -2836,9 +2863,11 @@ change_window_height (delta, widthflag)
   /* Find the total we can get from other siblings.  */
   maximum = 0;
   for (next = p->next; ! NILP (next); next = XWINDOW (next)->next)
-    maximum += (*sizefun) (next) - MINSIZE (next);
+    maximum += (*sizefun) (next) - window_min_size (XWINDOW (next),
+						    widthflag);
   for (prev = p->prev; ! NILP (prev); prev = XWINDOW (prev)->prev)
-    maximum += (*sizefun) (prev) - MINSIZE (prev);
+    maximum += (*sizefun) (prev) - window_min_size (XWINDOW (prev),
+						    widthflag);
 
   /* If we can get it all from them, do so.  */
   if (delta <= maximum)
@@ -2858,7 +2887,8 @@ change_window_height (delta, widthflag)
 	    break;
 	  if (! NILP (next))
 	    {
-	      int this_one = (*sizefun) (next) - MINSIZE (next);
+	      int this_one = ((*sizefun) (next)
+			      - window_min_size (XWINDOW (next), widthflag));
 	      if (this_one > delta)
 		this_one = delta;
 
@@ -2872,7 +2902,8 @@ change_window_height (delta, widthflag)
 	    break;
 	  if (! NILP (prev))
 	    {
-	      int this_one = (*sizefun) (prev) - MINSIZE (prev);
+	      int this_one = ((*sizefun) (prev)
+			      - window_min_size (XWINDOW (prev), widthflag));
 	      if (this_one > delta)
 		this_one = delta;
 
@@ -2935,7 +2966,7 @@ change_window_height (delta, widthflag)
   /* Adjust glyph matrices. */
   adjust_glyphs (XFRAME (WINDOW_FRAME (XWINDOW (window))));
 }
-#undef MINSIZE
+
 #undef CURBEG
 #undef CURSIZE
 
