@@ -1176,7 +1176,7 @@ unwind_to_catch (catch, value)
 
   /* Restore certain special C variables.  */
   set_poll_suppress_count (catch->poll_suppress_count);
-  interrupt_input_blocked = catch->interrupt_input_blocked;
+  UNBLOCK_INPUT_TO (catch->interrupt_input_blocked);
   handling_signal = 0;
   immediate_quit = 0;
 
@@ -2067,6 +2067,8 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
       args_left = original_args;
       numargs = Flength (args_left);
 
+      CHECK_CONS_LIST ();
+
       if (XINT (numargs) < XSUBR (fun)->min_args ||
 	  (XSUBR (fun)->max_args >= 0 && XSUBR (fun)->max_args < XINT (numargs)))
 	return Fsignal (Qwrong_number_of_arguments, Fcons (fun, Fcons (numargs, Qnil)));
@@ -2190,6 +2192,8 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 	return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
     }
  done:
+  CHECK_CONS_LIST ();
+
   lisp_eval_depth--;
   if (backtrace.debug_on_exit)
     val = call_debugger (Fcons (Qexit, Fcons (val, Qnil)));
@@ -2746,6 +2750,8 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 
   if (SUBRP (fun))
     {
+      CHECK_CONS_LIST ();
+
       if (numargs < XSUBR (fun)->min_args
 	  || (XSUBR (fun)->max_args >= 0 && XSUBR (fun)->max_args < numargs))
 	{
@@ -2844,6 +2850,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
     }
  done:
+  CHECK_CONS_LIST ();
   lisp_eval_depth--;
   if (backtrace.debug_on_exit)
     val = call_debugger (Fcons (Qexit, Fcons (val, Qnil)));
