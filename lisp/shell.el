@@ -340,7 +340,8 @@ buffer."
 	      (cond ((string-equal shell "bash") "~/.bash_history")
 		    ((string-equal shell "ksh") "~/.sh_history")
 		    (t "~/.history"))))
-    (if (equal (file-truename comint-input-ring-file-name) "/dev/null")
+    (if (or (equal comint-input-ring-file-name "")
+	    (equal (file-truename comint-input-ring-file-name) "/dev/null"))
 	(setq comint-input-ring-file-name nil))
     (setq shell-dirstack-query
 	  (if (string-match "^k?sh$" shell) "pwd" "dirs")))
