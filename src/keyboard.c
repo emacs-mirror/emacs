@@ -900,10 +900,7 @@ cmd_error_internal (data, context)
      Lisp_Object data;
      char *context;
 {
-  Lisp_Object errmsg, tail, errname, file_error;
   Lisp_Object stream;
-  struct gcpro gcpro1;
-  int i;
 
   Vquit_flag = Qnil;
   Vinhibit_quit = Qt;
@@ -925,49 +922,7 @@ cmd_error_internal (data, context)
   if (context != 0)
     write_string_1 (context, -1, stream);
 
-  errname = Fcar (data);
-
-  if (EQ (errname, Qerror))
-    {
-      data = Fcdr (data);
-      if (!CONSP (data)) data = Qnil;
-      errmsg = Fcar (data);
-      file_error = Qnil;
-    }
-  else
-    {
-      errmsg = Fget (errname, Qerror_message);
-      file_error = Fmemq (Qfile_error,
-			  Fget (errname, Qerror_conditions));
-    }
-
-  /* Print an error message including the data items.
-     This is done by printing it into a scratch buffer
-     and then making a copy of the text in the buffer. */
-
-  if (!CONSP (data)) data = Qnil;
-  tail = Fcdr (data);
-  GCPRO1 (tail);
-
-  /* For file-error, make error message by concatenating
-     all the data items.  They are all strings.  */
-  if (!NILP (file_error) && !NILP (tail))
-    errmsg = XCONS (tail)->car, tail = XCONS (tail)->cdr;
-
-  if (STRINGP (errmsg))
-    Fprinc (errmsg, stream);
-  else
-    write_string_1 ("peculiar error", -1, stream);
-
-  for (i = 0; CONSP (tail); tail = Fcdr (tail), i++)
-    {
-      write_string_1 (i ? ", " : ": ", 2, stream);
-      if (!NILP (file_error))
-	Fprinc (Fcar (tail), stream);
-      else
-	Fprin1 (Fcar (tail), stream);
-    }
-  UNGCPRO;
+  print_error_message (data, stream);
 
   /* If the window system or terminal frame hasn't been initialized
      yet, or we're in -batch mode, this error should cause Emacs to exit.  */
@@ -6445,7 +6400,8 @@ when reading the arguments; if it is nil, (this_command_key_count) is used.")
 	}
     }
 
-  while (1)
+  while (! CONSP (cmd) || EQ (XCONS (cmd)->car, Qlambda)
+	 || EQ (XCONS (cmd)->car, Qautoload))
     {
       final = Findirect_function (cmd);
 
