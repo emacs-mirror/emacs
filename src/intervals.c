@@ -1975,38 +1975,69 @@ set_point_both (buffer, charpos, bytepos)
 	 or end of the buffer, so don't bother checking in that case.  */
       && charpos != BEGV && charpos != ZV)
     {
-      Lisp_Object intangible_propval;
+      Lisp_Object intangible_propval, invisible_propval;
       Lisp_Object pos;
+      int invis_p;
 
       XSETINT (pos, charpos);
 
       if (backwards)
 	{
-	  intangible_propval = Fget_char_property (make_number (charpos),
-						   Qintangible, Qnil);
+	  /* If the preceding char is both invisible and intangible,
+	     start backing up from just before that one.  */
+
+	  intangible_propval
+	    = Fget_char_property (make_number (charpos - 1),
+				  Qintangible, Qnil);
+	  invisible_propval
+	    = Fget_char_property (make_number (charpos - 1), Qinvisible, Qnil);
+	  invis_p = TEXT_PROP_MEANS_INVISIBLE (invisible_propval);
+
+	  if (! NILP (intangible_propval) && invis_p)
+	    XSETINT (pos, --charpos);
 
 	  /* If following char is intangible,
 	     skip back over all chars with matching intangible property.  */
+
+	  intangible_propval = Fget_char_property (pos, Qintangible, Qnil);
+
 	  if (! NILP (intangible_propval))
-	    while (XINT (pos) > BUF_BEGV (buffer)
-		   && EQ (Fget_char_property (make_number (XINT (pos) - 1),
-					      Qintangible, Qnil),
-			  intangible_propval))
-	      pos = Fprevious_char_property_change (pos, Qnil);
+	    {
+	      while (XINT (pos) > BUF_BEGV (buffer)
+		     && EQ (Fget_char_property (make_number (XINT (pos) - 1),
+						Qintangible, Qnil),
+			    intangible_propval))
+		pos = Fprevious_char_property_change (pos, Qnil);
+	    }
 	}
       else
 	{
+	  /* If preceding char is intangible,
+	     skip forward over all chars with matching intangible property.  */
+
 	  intangible_propval = Fget_char_property (make_number (charpos - 1),
 						   Qintangible, Qnil);
 
-	  /* If following char is intangible,
-	     skip forward over all chars with matching intangible property.  */
 	  if (! NILP (intangible_propval))
-	    while (XINT (pos) < BUF_ZV (buffer)
-		   && EQ (Fget_char_property (pos, Qintangible, Qnil),
-			  intangible_propval))
-	      pos = Fnext_char_property_change (pos, Qnil);
+	    {
+	      while (XINT (pos) < BUF_ZV (buffer)
+		     && EQ (Fget_char_property (pos, Qintangible, Qnil),
+			    intangible_propval))
+		pos = Fnext_char_property_change (pos, Qnil);
 
+	      /* Is the last one invisible as well as intangible?  */
+
+	      invisible_propval
+		= Fget_char_property (make_number (XINT (pos) - 1),
+				      Qinvisible, Qnil);
+	      invis_p = TEXT_PROP_MEANS_INVISIBLE (invisible_propval);
+
+	      /* If so, advance one character more:
+		 don't stop after an invisible, intangible character.  */
+
+	      if (invis_p && XINT (pos) < BUF_ZV (buffer))
+		XSETINT (pos, XINT (pos) + 1);
+	    }
 	}
 
       charpos = XINT (pos);
