@@ -532,9 +532,20 @@ main (argc, argv, envp)
   /* We do all file input/output as binary files.  When we need to translate
      newlines, we do that manually.  */
   _fmode = O_BINARY;
+
+#if __DJGPP__ >= 2
+  if (!isatty (fileno (stdin)))
+    setmode (fileno (stdin), O_BINARY);
+  if (!isatty (fileno (stdout)))
+    {
+      fflush (stdout);
+      setmode (fileno (stdout), O_BINARY);
+    }
+#else  /* not __DJGPP__ >= 2 */
   (stdin)->_flag &= ~_IOTEXT;
   (stdout)->_flag &= ~_IOTEXT;
   (stderr)->_flag &= ~_IOTEXT;
+#endif /* not __DJGPP__ >= 2 */
 #endif /* MSDOS */
 
 #ifdef SET_EMACS_PRIORITY
@@ -776,9 +787,17 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
   /* Call early 'cause init_environment needs it.  */
   init_dosfns ();
   /* Set defaults for several environment variables.  */
-  if (initialized) init_environment (argc, argv, skip_args);
-  else init_gettimeofday ();
+  if (initialized)
+    init_environment (argc, argv, skip_args);
+  else
+    {
+#if __DGJPP__ >= 2
+      tzset ();
+#else
+      init_gettimeofday ();
 #endif
+    }
+#endif /* MSDOS */
 
 #ifdef WINDOWSNT
   /* Initialize environment from registry settings.  */

@@ -89,8 +89,15 @@ main (argc, argv)
 
 #ifdef MSDOS
   _fmode = O_BINARY;		/* all of files are treated as binary files */
+#if __DJGPP__ > 1
+  if (!isatty (fileno (stdout)))
+    setmode (fileno (stdout), O_BINARY);
+  if (!isatty (fileno (stdin)))
+    setmode (fileno (stdin), O_BINARY);
+#else /* not __DJGPP__ > 1 */
   (stdout)->_flag &= ~_IOTEXT;
   (stdin)->_flag &= ~_IOTEXT;
+#endif /* not __DJGPP__ > 1 */
 #endif
   progname = argv[0];
 
