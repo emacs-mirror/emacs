@@ -1045,6 +1045,12 @@ counter to the specified source line (the one where point is).
 
   Minor Improvements
 
+*** The STARTTLS elisp wrapper (starttls.el) can now use GNUTLS
+instead of the OpenSSL based "starttls" tool.  For backwards
+compatibility, it will prefer "starttls", but you can toggle
+`starttls-use-gnutls' to switch to GNUTLS (or simply remove the
+"starttls" tool).
+
 *** Do not allow debugger output history variable to grow without bounds.
 
 +++
