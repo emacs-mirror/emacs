@@ -190,7 +190,7 @@ Type SPC to scroll through this section and its subsections.")))
 	      (save-excursion
 		(goto-char (point-min))
 		(let ((enable-multibyte-characters nil)
-		      (pattern (format "[%c-%c]" 128 255))
+		      (pattern (format "[^%c-%c]" 0 127))
 		      ch)
 		  (while (re-search-forward pattern nil t)
 		    (setq ch (preceding-char))
