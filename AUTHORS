@@ -1158,6 +1158,7 @@ Sam Dooley (changed) keyboard.c
 Sam Falkner (changed) nntp.el
 Sam Steingold (changed) [changes in more than 20 files]
 Sam Steingold (wrote) gulp.el
+Sam Steingold (wrote) midnight.el
 Scott Byer (changed) gnus-sum.el
 Scott Byer (wrote) nnfolder.el
 Scott Draves (wrote) tq.el
