@@ -63,6 +63,9 @@ Lisp_Object Vw32_pass_alt_to_system;
    to alt_modifier.  */
 Lisp_Object Vw32_alt_is_meta;
 
+/* If non-zero, the windows virtual key code for an alternative quit key. */
+Lisp_Object Vw32_quit_key;
+
 /* Non nil if left window key events are passed on to Windows (this only
    affects whether "tapping" the key opens the Start menu).  */
 Lisp_Object Vw32_pass_lwindow_to_system;
@@ -3619,7 +3622,9 @@ post_character_message (hwnd, msg, wParam, lParam, modifiers)
     int c = wParam;
     if (isalpha (c) && wmsg.dwModifiers == ctrl_modifier)
       c = make_ctrl_char (c) & 0377;
-    if (c == quit_char)
+    if (c == quit_char
+	|| (wmsg.dwModifiers == 0 &&
+	    XFASTINT (Vw32_quit_key) && wParam == XFASTINT (Vw32_quit_key)))
       {
 	Vquit_flag = Qt;
 
@@ -7223,6 +7228,10 @@ open the System menu.  When nil, Emacs silently swallows alt key events.");
 	       "Non-nil if the alt key is to be considered the same as the meta key.\n\
 When nil, Emacs will translate the alt key to the Alt modifier, and not Meta.");
   Vw32_alt_is_meta = Qt;
+
+  DEFVAR_INT ("w32-quit-key", &Vw32_quit_key,
+	       "If non-zero, the virtual key code for an alternative quit key.");
+  XSETINT (Vw32_quit_key, 0);
 
   DEFVAR_LISP ("w32-pass-lwindow-to-system", 
 	       &Vw32_pass_lwindow_to_system,
