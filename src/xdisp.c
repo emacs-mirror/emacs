@@ -427,6 +427,34 @@ echo_area_display ()
 
   previous_echo_glyphs = echo_area_glyphs;
 }
+
+#ifdef HAVE_X_WINDOWS
+/* I'm trying this out because I saw Unimpress use it, but it's
+   possible that this may mess adversely with some window managers.  -jla
+
+   Wouldn't it be nice to use something like mode-line-format to
+   describe frame titles?  -JimB  */
+
+/* Change the title of the frame to the name of the buffer displayed
+   in the currently selected window.  Don't do this for minibuffer frames,
+   and don't do it when there's only one non-minibuffer frame.  */
+static void
+x_consider_frame_title (frame)
+     Lisp_Object frame;
+{
+  FRAME_PTR f = XFRAME (frame);
+
+  if (FRAME_X_P (f) && ! FRAME_MINIBUF_ONLY_P (f))
+    {
+      Lisp_Object title = Qnil;
+
+      if (! EQ (Fnext_frame (frame, Qnil), frame))
+	title = XBUFFER (XWINDOW (f->selected_window)->buffer)->name;
+
+      x_implicitly_set_name (f, title, Qnil);
+    }
+}
+#endif
 
 /* Prepare for redisplay by updating menu-bar item lists when appropriate.
    This can't be done in `redisplay' itself because it can call eval.  */
@@ -705,6 +733,10 @@ redisplay ()
 
 	  if (FRAME_VISIBLE_P (f))
 	    redisplay_windows (FRAME_ROOT_WINDOW (f));
+#ifdef HAVE_X_WINDOWS
+	  else if (FRAME_ICONIFIED_P (f))
+	    x_consider_frame_title (frame);
+#endif
 
 	  /* Any scroll bars which redisplay_windows should have nuked
 	     should now go away.  */
@@ -2471,23 +2503,8 @@ display_mode_line (w)
     }
 
 #ifdef HAVE_X_WINDOWS
-  /* I'm trying this out because I saw Unimpress use it, but it's
-     possible that this may mess adversely with some window managers.  -jla
-
-     Wouldn't it be nice to use something like mode-line-format to
-     describe frame titles?  -JimB  */
-
-  /* Change the title of the frame to the name of the buffer displayed
-     in the currently selected window.  Don't do this for minibuffer frames,
-     and don't do it when there's only one non-minibuffer frame.  */
-  if (FRAME_X_P (f)
-      && ! FRAME_MINIBUF_ONLY_P (f)
-      && w == XWINDOW (f->selected_window))
-    x_implicitly_set_name (f, (EQ (Fnext_frame (WINDOW_FRAME (w), Qnil),
-				   WINDOW_FRAME (w))
-			       ? Qnil
-			       : XBUFFER (w->buffer)->name),
-			   Qnil);
+  if (w == XWINDOW (f->selected_window))
+    x_consider_frame_title (WINDOW_FRAME (w));
 #endif
 }
 
