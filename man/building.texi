@@ -804,7 +804,8 @@ Delete the breakpoint at the current line (@code{gdb-delete-breakpoint}).
 @kindex RET @r{(GDB breakpoints buffer)}
 @findex gdb-goto-breakpoint
 Display the file in the source buffer at the breakpoint specified at
-the current line (@code{gdb-goto-breakpoint}).  Alternatively, click @kbd{Mouse-2} on the breakpoint that you wish to visit.
+the current line (@code{gdb-goto-breakpoint}).  Alternatively, click
+@kbd{Mouse-2} on the breakpoint that you wish to visit.
 @end table
 
 @node Stack Buffer
@@ -814,12 +815,12 @@ The stack buffer displays a @dfn{call stack}, with one line for each
 of the nested subroutine calls (@dfn{stack frames}) now active in the
 program.  @xref{Backtrace,,info stack, gdb, The GNU debugger}.
 
-Move point to any frame in the stack and type @key{RET} to make it
-become the current frame (@code{gdb-frames-select}) and display the
-associated source in the source buffer.  Alternatively, click
-@kbd{Mouse-2} to make the selected frame become the current one.  If the
-locals buffer is displayed then its contents update to display the
-variables that are local to the new frame.
+The selected frame is displayed in reverse contrast.  Move point to
+any frame in the stack and type @key{RET} to select it (@code{gdb-frames-select})
+and display the associated source in the source buffer. Alternatively,
+click @kbd{Mouse-2} to make the selected frame become the current one.
+If the locals buffer is displayed then its contents update to display
+the variables that are local to the new frame.
 
 @node Watch Expressions
 @subsubsection Watch Expressions
