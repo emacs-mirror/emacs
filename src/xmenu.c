@@ -885,12 +885,14 @@ free_menubar_widget_value_tree (wv)
   UNBLOCK_INPUT;
 }
 
+extern void EmacsFrameSetCharSize ();
+
 static void
 update_one_frame_psheets (f)
      FRAME_PTR f;
 {
   struct x_display *x = f->display.x;
-  
+  int columns, rows;
   int menubar_changed;
   
   menubar_changed = (x->menubar_widget
@@ -900,6 +902,12 @@ update_one_frame_psheets (f)
     return;
 
   BLOCK_INPUT;
+  /* Save the size of the frame because the pane widget doesn't accept to
+     resize itself. So force it.  */
+  columns = f->width;
+  rows = f->height;
+
+
   XawPanedSetRefigureMode (x->column_widget, 0);
   
   /* the order in which children are managed is the top to
@@ -924,6 +932,10 @@ update_one_frame_psheets (f)
 
   /* and now thrash the sizes */
   XawPanedSetRefigureMode (x->column_widget, 1);
+
+  /* Force the pane widget to resize itself with the right values.  */
+  EmacsFrameSetCharSize (x->edit_widget, columns, rows);
+
   UNBLOCK_INPUT;
 }
 
@@ -1284,6 +1296,9 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
     pop_up_menu (mw, &dummy);
   }
 
+  /* No need to check a second time since this is done in the XEvent loop.
+     This slows done the execution.  */
+#if 0
   /* Check again whether the mouse has moved to another menu bar item.  */
   if (check_mouse_other_menu_bar (f))
     {
@@ -1297,6 +1312,7 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
       lw_destroy_all_widgets (menu_id); 
       goto pop_down;
     }
+#endif
 
   /* Process events that apply to the menu.  */
   while (1)
