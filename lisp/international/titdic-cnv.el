@@ -1084,7 +1084,7 @@ To input symbols and punctuations, type `/' followed by one of `a' to
  Originally converted from CTCPS3.tit
  Last modified: June 2, 1993.
 
- Some infrequent GB characters are accessed by typing \, followed by
+ Some infrequent GB characters are accessed by typing \\, followed by
  the Cantonese romanization of the respective radical ($A2?JW(B)."))
 
 (defun ctlau-b5-converter (dicbuf name title)
@@ -1098,7 +1098,7 @@ To input symbols and punctuations, type `/' followed by one of `a' to
  Originally converted from CTCPS3.tit
  Last modified: June 2, 1993.
 
- Some infrequent characters are accessed by typing \, followed by
+ Some infrequent characters are accessed by typing \\, followed by
  the Cantonese romanization of the respective radical ($(0?f5}(B)."))
 
 (defun miscdic-convert (filename &optional dirname)
