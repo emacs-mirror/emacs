@@ -1,6 +1,6 @@
 ;;; holidays.el --- holiday functions for the calendar package
 
-;;; Copyright (C) 1989, 1990, 1992 Free Software Foundation, Inc.
+;;; Copyright (C) 1989, 1990, 1992, 1993 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: holidays, calendar
@@ -102,8 +102,7 @@ The holidays are those in the list calendar-holidays."
   "Find holidays for the date specified by the cursor in the calendar window."
   (interactive)
   (message "Checking holidays...")
-  (let* ((date (or (calendar-cursor-to-date)
-                   (error "Cursor is not on a date!")))
+  (let* ((date (calendar-cursor-to-date t))
          (date-string (calendar-date-string date))
          (holiday-list (check-calendar-holidays date))
          (holiday-string (mapconcat 'identity holiday-list ";  "))
