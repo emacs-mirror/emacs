@@ -17,9 +17,6 @@
 	It's instead taken care of by the default value for
 	c-default-style.
 
-	* cc-mode.texi: Updated the mentions of the "java" style
-	special case for Java mode.
-
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* cc-align.el (c-lineup-math): Fix bug where lineup was
@@ -233,17 +230,11 @@
 	(c-set-offset): Added absolute indentation column settings by
 	using the vector type.
 
-	* cc-mode.texi: Documented the new vector setting for offsets.
-
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* cc-cmds.el, cc-vars.el (c-electric-paren, c-cleanup-list):
 	Implemented two new cleanups `space-before-funcall' and
 	`compact-empty-funcall'.
-
-	* cc-mode.texi: Documented the two new cleanups
-	space-before-funcall and compact-empty-funcall on
-	c-cleanup-list.
 
 2000-03-21  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
@@ -10957,10 +10948,6 @@
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-mode.texi Documented the change of cpp-macro.
-
-2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
-
 	* cc-align.el (c-lineup-multi-inher): Handle lines with
 	leading comma nicely. Extended to handle member initializers
 	too.
@@ -10968,8 +10955,6 @@
 	* cc-engine.el: (c-beginning-of-inheritance-list,
 	c-guess-basic-syntax): Fixed recognition of inheritance lists
 	when the lines begins with a comma.
-
-	* cc-mode.texi: Updated doc for c-lineup-multi-inher.
 
 	* cc-vars.el (c-offsets-alist): Changed default for
 	member-init-cont to c-lineup-multi-inher since it now handles
@@ -11113,11 +11098,6 @@
 	when using global style variables.
 	* cc-mode.el (c-initialize-cc-mode): Handling of obsolete
 	variables moved here.
-
-	* cc-mode.texi: Documented the special behavior of
-	c-special-indent-hook as a style variable.  Don't talk about
-	doing (c-make-styles-buffer-local t) in a mode hook, since
-	that's already too late to work right.
 
 	* cc-styles.el (c-make-styles-buffer-local): Flag style
 	variable localness in c-style-variables-are-local-p to make
