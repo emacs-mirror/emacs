@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.127) $
+ * $HopeName: MMsrc!mpm.h(trunk.128) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  */
 
@@ -299,6 +299,11 @@ extern Bool BTFindLongResRangeHigh(Index *baseReturn, Index *limitReturn,
 extern Bool BTRangesSame(BT BTx, BT BTy, Index base, Index limit);
 extern void BTCopyInvertRange(BT fromBT, BT toBT,
                               Index base, Index limit);
+extern void BTCopyRange(BT fromBT, BT toBT,
+                        Index base, Index limit);
+extern void BTCopyOffsetRange(BT fromBT, BT toBT,
+                              Index fromBase, Index fromLimit,
+                              Index toBase, Index toLimit);
 
 
 
@@ -801,6 +806,10 @@ extern void SegSetWhite(Seg seg, TraceSet white);
 extern void SegSetGrey(Seg seg, TraceSet grey);
 extern void SegSetRankSet(Seg seg, RankSet rankSet);
 extern void SegSetRankAndSummary(Seg seg, RankSet rankSet, RefSet summary);
+extern Res SegMerge(Seg *mergedSegReturn, Seg segLo, Seg segHi,
+                    Bool withReservoirPermit, ...);
+extern Res SegSplit(Seg *segLoReturn, Seg *segHiReturn, Seg seg, Addr at,
+                    Bool withReservoirPermit, ...);
 extern Res SegDescribe(Seg seg, mps_lib_FILE *stream);
 extern RefSet SegSummary(Seg seg);
 extern void SegSetSummary(Seg seg, RefSet summary);
@@ -811,6 +820,7 @@ extern Bool GCSegCheck(GCSeg gcseg);
 extern Bool SegClassCheck(SegClass class);
 extern SegClass EnsureSegClass(void);
 extern SegClass EnsureGCSegClass(void);
+extern void SegClassMixInNoSplitMerge(SegClass class);
 
 
 /* DEFINE_SEG_CLASS
@@ -906,6 +916,7 @@ extern Addr (BufferAlloc)(Buffer buffer);
 #define BufferAlloc(buffer)     (BufferAP(buffer)->alloc)
 extern Addr (BufferLimit)(Buffer buffer);
 #define BufferLimit(buffer)     ((buffer)->poolLimit)
+extern void BufferReassignSeg(Buffer buffer, Seg seg);
 extern Bool BufferIsTrapped(Buffer buffer);
 extern Bool BufferIsTrappedByMutator(Buffer buffer);
 extern void BufferRampBegin(Buffer buffer, AllocPattern pattern);
