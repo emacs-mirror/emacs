@@ -1,11 +1,11 @@
 2004-11-13  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el: Doc fix.  Insert :version tag into all defcustom.
-	Handle interactive-p as is recommended in Emacs Lisp Reference.  Set
-	the file permission bits for newly created files.  Reported by Glenn
-	Morris <gmorris+emacs@ast.cam.ac.uk>.  The printing menu
-	specification (in `pr-menu-spec') was merged.  Suggested by Stefan
-	Monnier <monnier@iro.umontreal.ca>.
+	Handle interactive-p as is recommended in Emacs Lisp Reference.
+	Set the file permission bits for newly created files.
+	Reported by Glenn Morris <gmorris+emacs@ast.cam.ac.uk>.
+	The printing menu specification (in `pr-menu-spec') was merged.
+	Suggested by Stefan Monnier <monnier@iro.umontreal.ca>.
 	(pr-version): New version number (6.8.3).
 	(pr-file-modes): New option.
 	(pr-interactive-p): New var.
@@ -37,6 +37,14 @@
 	(pr-set-outfilename, pr-interface-ps-print, pr-interface-preview):
 	Handle interactive-p as is recommended.
 
+2004-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-opt.el (byte-optimize-inline-handler): Simplify.
+	(byte-decompile-bytecode-1): Remove unused vars `tag' and `retcount'.
+
+	* font-lock.el (font-lock-fontify-syntactically-region): Fix last fix
+	so it doesn't forget to highlight the beginning of the region either.
+
 2004-11-13  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/cc-mode.el (c-basic-common-initc-font-lock-init)
@@ -64,12 +72,10 @@
 	(calc-graph-lookup):  Made `varname' a local variable.
 	(var-DUMMY, var-DUMMY2, var-PlotRejects, calc-gnuplot-trail-mark):
 	Declare them.
-	(calc-graph-format-data):  Don't check if var-PlotRejects is
-	bound.
+	(calc-graph-format-data):  Don't check if var-PlotRejects is bound.
 	(calc-graph-plot, calc-graph-compute-3d):  Remove references to
 	the unused variable y3vec.
-	(calc-graph-show-dumb):  Remove reference to unused variable
-	found-pt.
+	(calc-graph-show-dumb):  Remove reference to unused variable found-pt.
 	(calc-graph-kill-hook, calc-graph-plot):  Remove reference to
 	calc-graph-prev-kill-hook.
 	(calc-graph-yvalue, calc-graph-yvec, calc-graph-numsteps)

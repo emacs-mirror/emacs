@@ -4245,9 +4245,9 @@
 	before translation thru function-key-map, and use that for unreading.
 
 	* shadowfile.el (shadow-parse-fullname):
-	Renamed from shadow-parse-fullpath.
-	(shadow-parse-name): Renamed from shadow-parse-path.
-	(shadow-make-fullname): Renamed from shadow-make-fullpath.
+	Rename from shadow-parse-fullpath.
+	(shadow-parse-name): Rename from shadow-parse-path.
+	(shadow-make-fullname): Rename from shadow-make-fullpath.
 	(shadow-replace-name-component): Was shadow-replace-path-component.
 	Callers of the above functions changed.
 	(shadow-expand-cluster-in-file-name): Doc fix.
@@ -14522,7 +14522,7 @@
 
 2002-05-25  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* progmodes/cc-engine.el (c-add-stmt-syntax): Fixed some cases
+	* progmodes/cc-engine.el (c-add-stmt-syntax): Fix some cases
 	of wrong anchoring, e.g. for else-if compounds.
 
 2002-05-25  Miles Bader  <miles@gnu.org>
@@ -14651,13 +14651,13 @@
 	* loadup.el: Add font-core.el.
 
 	* replace.el (occur-mode-hook): New variable.
-	(occur-fontify-region-function): Deleted.
+	(occur-fontify-region-function): Delete.
 	(occur-mode): Don't use it.  Set up `font-lock-category-alist'
 	instead.
-	(occur-fontify-on-property): Deleted.
+	(occur-fontify-on-property): Delete.
 	(occur-engine): Use categories from `font-lock-category-alist'.
 
-	* info.el (Info-fontify): Deleted.
+	* info.el (Info-fontify): Delete.
 	(Info-select-node): Don't use it.
 	(Info-mode-hook): New variable.
 	(Info-mode): Set up categories.
@@ -14855,7 +14855,7 @@
 
 2002-05-16  Colin Walters  <walters@debian.org>
 
-	* menu-bar.el (menu-bar-tools-menu) <calculator>: Renamed to
+	* menu-bar.el (menu-bar-tools-menu) <calculator>: Rename to
 	"Simple Calculator".
 	(menu-bar-tools-menu) <calc>: New.
 
@@ -14897,9 +14897,9 @@
 	Don't highlight empty lines in rectangles.
 
 	* emulation/keypad.el: Improved commentary.
-	(keypad-setup, keypad-shifted-setup): Added choice to setup
+	(keypad-setup, keypad-shifted-setup): Add choice to setup
 	Numeric keypad with decimal key; value is selected character.
-	(keypad-decimal-key, keypad-shifted-decimal-key): Removed options.
+	(keypad-decimal-key, keypad-shifted-decimal-key): Remove options.
 	(keypad-numlock-setup, keypad-numlock-shifted-setup): New options.
 	(keypad-setup): Arg list changed to support the new options.
 
@@ -15035,7 +15035,7 @@
 2002-05-10  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua-enable-cua-keys)
-	(cua-enable-register-prefix): Added value for `other' choice.
+	(cua-enable-register-prefix): Add value for `other' choice.
 
 2002-05-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -15133,7 +15133,7 @@
 
 2002-05-08  Simon Marshall  <simon@gnu.org>
 
-	* msb.el (msb-menu-bar-update-buffers): Fixed frame menu to use
+	* msb.el (msb-menu-bar-update-buffers): Fix frame menu to use
 	the frame name as the car of a menu entry, rather than the frame.
 
 2002-05-08  Juanma Barranquero  <lektu@terra.es>
@@ -15222,7 +15222,7 @@
 	Handle both cases: when the menu item has cached info
 	and when it doesn't.
 
-	* filesets.el (filesets-browse-dir-function): Renamed from ...-fn.
+	* filesets.el (filesets-browse-dir-function): Rename from ...-fn.
 	(filesets-open-file-function, filesets-save-buffer-function): Likewise.
 	(filesets-tree-max-level): Doc fix.
 	(filesets-commands, filesets-external-viewers)
@@ -15243,13 +15243,13 @@
 	"Default" group earlier.  Push killed group on
 	`ibuffer-filter-group-kill-ring'.
 	(ibuffer-kill-line): Document.  Don't push killed group ourselves.
-	(ibuffer-yank-filter-group): Renamed from `ibuffer-yank'.
+	(ibuffer-yank-filter-group): Rename from `ibuffer-yank'.
 	(ibuffer-insert-filter-group-before): New function, broken out
 	from `ibuffer-yank'.
 	(ibuffer-yank): Now just call `ibuffer-yank-filter-group'.
 
 	* ibuffer.el (ibuffer-mode-operate-menu, ibuffer-mode-mark-menu)
-	(ibuffer-mode-view-menu): Unused variables; deleted.
+	(ibuffer-mode-view-menu): Unused variables; delete.
 	(ibuffer-find-file): Pass wildcard flag to `find-file' correctly.
 
 2002-05-04  John Paul Wallington  <jpw@shootybangbang.com>
@@ -15271,7 +15271,7 @@
 	(mouse-wheel-scroll-screen): Remove.
 	([mouse-wheel], [C-mouse-wheel], [S-mouse-wheel]): Use mwheel-scroll.
 
-	* w32-vars.el: (mouse-wheel-scroll-amount): Removed.
+	* w32-vars.el: (mouse-wheel-scroll-amount): Remove.
 
 2002-05-04  Markus Rost  <rost@math.ohio-state.edu>
 
@@ -15328,13 +15328,12 @@
 
 2002-05-02  Kim F. Storm  <storm@cua.dk>
 
-	* menu-bar.el (menu-bar-make-toggle): Added optional PROPS arg.
-	(menu-bar-options-save): Added cua-mode.
-	(menu-bar-options-menu): Added toggle for cua-mode.
+	* menu-bar.el (menu-bar-make-toggle): Add optional PROPS arg.
+	(menu-bar-options-save): Add cua-mode.
+	(menu-bar-options-menu): Add toggle for cua-mode.
 	Disable toggle for transient-mark-mode if cua-mode is enabled.
 
-	* emulation/cua-base.el (cua-inhibit-cua-keys): New buffer-local
-	variable.
+	* emulation/cua-base.el (cua-inhibit-cua-keys): New buffer-local var.
 
 2002-05-01  Richard M. Stallman  <rms@gnu.org>
 
@@ -15371,7 +15370,7 @@
 
 	* emulation/cua-base.el (cua--pre-command-handler):
 	Only interpret delete-selection property if mark-active.
-	(cua-mode): Fixed require in defcustom.
+	(cua-mode): Fix require in defcustom.
 
 2002-05-01  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
@@ -15387,7 +15386,7 @@
 
 2002-04-30  John Wiegley  <johnw@gnu.org>
 
-	* align.el (align-region): Fixed the fix to align-region, because
+	* align.el (align-region): Fix the fix to align-region, because
 	the "name" argument was appearing twice.
 
 2002-05-01  Martin Stjernholm  <bug-cc-mode@gnu.org>
@@ -15423,7 +15422,7 @@
 
 	* autoinsert.el (auto-insert-directory): Doc fix.
 
-	* facemenu.el (describe-text-at and stuff): Moved to descr-text.el.
+	* facemenu.el (describe-text-at and stuff): Move to descr-text.el.
 
 	* descr-text.el: New file, broken out of facemenu.el.
 
@@ -15442,10 +15441,10 @@
 	if the user edits the Emacs version number in the text.
 
 	* filesets.el (filesets-running-xemacs): Make defvar unconditional.
-	(filesets-ingroup-files): Renamed from filesets-ingroup-paths.
+	(filesets-ingroup-files): Rename from filesets-ingroup-paths.
 	(filesets-error): Simplify definition and make conditional
 	on filesets-running-xemacs.
-	(filesets-find-file-using): Renamed from fsfind-file-using.
+	(filesets-find-file-using): Rename from fsfind-file-using.
 
 2002-04-29  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -15583,10 +15582,10 @@
 
 2002-04-27  Richard M. Stallman  <rms@gnu.org>
 
-	* custom.el (custom-load-symbol): Moved from cus-edit.el.
+	* custom.el (custom-load-symbol): Move from cus-edit.el.
 	(custom-load-recursion): Likewise.
 
-	* cus-edit.el (custom-load-symbol): Moved to custom.el.
+	* cus-edit.el (custom-load-symbol): Move to custom.el.
 	(custom-load-recursion): Likewise.
 
 	* progmodes/ada-xref.el (ada-add-ada-menu): Menu pseudo-keys
@@ -15689,21 +15688,21 @@
 	(occur-engine): Go to `point-min'.  Make nlines argument actually
 	mean number of context lines.  Handle it.  Pad digits to the right.
 
-	* ibuf-ext.el (ibuffer-filtering-groups): Renamed to
-	`ibuffer-filter-groups'.  All users updated.
+	* ibuf-ext.el (ibuffer-filtering-groups): Rename to
+	`ibuffer-filter-groups'.  Update all users.
 	(ibuffer-show-empty-filter-groups): New variable.
 	(ibuffer-saved-filter-groups): New variable.
-	(ibuffer-maybe-save-stuff): Renamed from
-	`ibuffer-maybe-save-saved-filters'.  Callers updated.
+	(ibuffer-maybe-save-stuff): Rename from
+	`ibuffer-maybe-save-saved-filters'.  Update callers.
 	Handle `ibuffer-saved-filter-groups'.
-	(ibuffer-hidden-filtering-groups): Renamed to
+	(ibuffer-hidden-filtering-groups): Rename to
 	`ibuffer-hidden-filter-groups'.
 	(ibuffer-filter-group-kill-ring): New variable.
 	(ibuffer-save-with-custom): Doc fix.
 	(ibuffer-set-filter-groups-by-mode): New function.
 	(ibuffer-clear-filter-groups): New function.
-	(ibuffer-current-filter-groups-with-position): Renamed from
-	`ibuffer-current-filter-groups'.  Callers updated.
+	(ibuffer-current-filter-groups-with-position): Rename from
+	`ibuffer-current-filter-groups'.  Update callers.
 	(ibuffer-kill-filter-group): New function.
 	(ibuffer-kill-line): New function.
 	(ibuffer-yank): New function.
@@ -15723,7 +15722,7 @@
 	(ibuffer-mark-forward, ibuffer-unmark-forward)
 	(ibuffer-mark-for-delete, ibuffer-unmark-backward)
 	(ibuffer-mark-for-delete-backwards): Update docs.
-	(ibuffer-current-filter-groups): Moved to ibuf-ext.el, and renamed
+	(ibuffer-current-filter-groups): Move to ibuf-ext.el, and renamed
 	to `ibuffer-current-filter-groups-with-position'.
 	(ibuffer-redisplay-engine): Handle `ibuffer-show-empty-filter-groups'.
 	(ibuffer-mode): Add some documentation about filter groups.
@@ -15745,22 +15744,21 @@
 
 2002-04-25  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
-	* progmodes/f90.el: General tidy-up of commentary and some doc
-	strings.
+	* progmodes/f90.el: General tidy-up of commentary and some doc strings.
 
 2002-04-24  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* scroll-all.el (scroll-all-function-all) New function to do the
 	actual work.
-	(scroll-all-scroll-down-all, scroll-all-scroll-up-all,
-	scroll-all-page-down-all, scroll-all-page-up-all,
-	scroll-all-beginning-of-buffer-all, scroll-all-end-of-buffer-all):
+	(scroll-all-scroll-down-all, scroll-all-scroll-up-all)
+	(scroll-all-page-down-all, scroll-all-page-up-all)
+	(scroll-all-beginning-of-buffer-all, scroll-all-end-of-buffer-all):
 	Make them use scroll-all-function-all.
 
-	* progmodes/f90.el (f90-get-beg-of-line): Removed and replaced
+	* progmodes/f90.el (f90-get-beg-of-line): Remove and replace
 	with line-beginning-position.
-	(f90-get-end-of-line): Removed and replaced with line-end-position.
-	(f90-match-piece): Removed and replaced with match-string.
+	(f90-get-end-of-line): Remove and replace with line-end-position.
+	(f90-match-piece): Remove and replace with match-string.
 	(f90-current-indentation): Remove `current-column'.
 	(f90-get-present-comment-type): Use match-string rather than
 	buffer-substring.
@@ -15813,7 +15811,7 @@
 	(ibuffer-sort-bufferlist): New function, taken from
 	`ibuffer-insert-buffers-and-marks'.
 	(ibuffer-insert-filter-group): New function.
-	(ibuffer-redisplay-engine): Renamed from
+	(ibuffer-redisplay-engine): Rename from
 	`ibuffer-insert-buffers-and-marks'.  Handle new filtering groups.
 	(ibuffer): Add filter-groups argument.  Handle it.
 	Use `save-selected-window'.
