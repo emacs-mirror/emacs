@@ -266,6 +266,9 @@
 Used by the `browse-url-at-point', `browse-url-at-mouse', and
 `browse-url-of-file' commands.")
 
+(defvar browse-url-netscape-program "netscape"
+  "*The name for invoking Netscape.")
+
 (defvar browse-url-netscape-arguments nil
   "*A list of strings to pass to Netscape as arguments.")
 
@@ -274,6 +277,9 @@ Used by the `browse-url-at-point', `browse-url-at-mouse', and
 Passing an interactive argument to \\[browse-url-netscape] or
 \\[browse-url-cci] reverses the effect of this variable.  Requires
 Netscape version 1.1N or later or XMosaic version 2.5 or later.")
+
+(defvar browse-url-mosaic-program "xmosaic"
+  "*The name for invoking Mosaic.")
 
 (defvar browse-url-mosaic-arguments nil
   "*A list of strings to pass to Mosaic as arguments.")
@@ -487,7 +493,7 @@ used instead of browse-url-new-window-p."
                        (list (not (eq (null browse-url-new-window-p)
                                       (null current-prefix-arg))))))
   (let ((res
-	 (apply 'call-process "netscape" nil nil nil
+	 (apply 'call-process browse-url-netscape-program nil nil nil
 		(append browse-url-netscape-arguments
 			(if new-window '("-noraise"))
 			(list "-remote" 
@@ -500,7 +506,7 @@ used instead of browse-url-new-window-p."
       (or (zerop res)
 	  (progn			; Netscape not running - start it
 	    (message "Starting Netscape...")
-	    (apply 'start-process "netscape" nil "netscape"
+	    (apply 'start-process "netscape" nil browse-url-netscape-program
 		   (append browse-url-netscape-arguments (list url))))))))
 
 (defun browse-url-netscape-reload ()
@@ -541,7 +547,7 @@ Default to the URL around or before point."
           )
       ;; Mosaic not running - start it
       (message "Starting Mosaic...")
-      (apply 'start-process "xmosaic" nil "xmosaic"
+      (apply 'start-process "xmosaic" nil browse-url-mosaic-program
              (append browse-url-mosaic-arguments (list url)))
       (message "Starting Mosaic...done"))))
 
