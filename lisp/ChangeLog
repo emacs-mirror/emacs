@@ -1,5 +1,16 @@
 2001-11-20  Richard M. Stallman  <rms@gnu.org>
 
+	* emacs-lisp/lisp-mode.el (lisp-interaction-mode):
+	Set local-abbrev-table to lisp-mode-abbrev-table.
+
+	* emacs-lisp/re-builder.el (reb-mode): 
+	Don't use define-derived-mode.  Call kill-all-local-variables.
+	
+	* emacs-lisp/lisp-mode.el (lisp-mode, emacs-lisp-mode):
+	Don't use define-derived-mode.
+
+	* help-mode.el (help-mode): Undo 2001-10-07 change.
+
 	* replace.el (occur-mode): Undo 2001-5-20 change.
 
 2001-11-20  Eli Zaretskii  <eliz@is.elta.co.il>
