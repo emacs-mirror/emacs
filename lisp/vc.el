@@ -668,6 +668,10 @@ If nil, uses `change-log-default-name'."
 	    (setq vc-comment-ring (make-ring vc-maximum-comment-ring-size)))
 	(ring-insert vc-comment-ring (buffer-string))
 	))
+  ;; Sync parent buffer in case the user modified it while editing the comment.
+  (save-excursion
+    (set-buffer vc-parent-buffer)
+    (vc-buffer-sync))
   ;; OK, do it to it
   (if vc-log-operation
       (save-excursion
