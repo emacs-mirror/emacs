@@ -33,10 +33,10 @@
 ;; To enable Flyspell in text representing computer programs, type
 ;; M-x flyspell-prog-mode.
 ;; In that mode only text inside comments is checked.
-;;                                                                  
+;;
 ;; Note: consider setting the variable ispell-parser to `tex' to
 ;; avoid TeX command checking; use `(setq ispell-parser 'tex)'.
-;;                                                                  
+;;
 ;; Some user variables control the behavior of flyspell.  They are
 ;; those defined under the `User variables' comment.
 
@@ -201,7 +201,7 @@ http://strw.leidenuniv.nl/~dominik/Tools"
   :group 'flyspell
   :version "21.1"
   :type 'boolean)
-  
+
 ;;;###autoload
 (defcustom flyspell-mode-line-string " Fly"
   "*String displayed on the modeline when flyspell is active.
@@ -424,7 +424,7 @@ Ispell is automatically spawned on background for each entered words.
 The default flyspell behavior is to highlight incorrect words.
 With no argument, this command toggles Flyspell mode.
 With a prefix argument ARG, turn Flyspell minor mode on iff ARG is positive.
-  
+
 Bindings:
 \\[ispell-word]: correct words (using Ispell).
 \\[flyspell-auto-correct-word]: automatically correct word.
@@ -485,7 +485,7 @@ flyspell-buffer checks the whole buffer."
 ;*    For remembering buffers running flyspell                         */
 ;*---------------------------------------------------------------------*/
 (defvar flyspell-buffers nil)
- 
+
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-minibuffer-p ...                                        */
 ;*---------------------------------------------------------------------*/
@@ -558,7 +558,7 @@ flyspell-buffer checks the whole buffer."
 	     (format "Welcome to flyspell. Use %s or Mouse-2 to correct words."
 		     (key-description binding))
 	   "Welcome to flyspell. Use Mouse-2 to correct words."))))
-  
+
   ;; Use this so that we can still get major mode bindings at a
   ;; misspelled word (unless they're overridden by
   ;; `flyspell-mouse-map').
@@ -797,7 +797,7 @@ Mostly we check word delimiters."
       (insert (format "  cache-start: %S\n" flyspell-word-cache-start))
       (insert (format "  cache-end  : %S\n" flyspell-word-cache-end))
       (goto-char (point-max)))))
-    
+
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-debug-signal-word-checked ...                           */
 ;*---------------------------------------------------------------------*/
@@ -1136,7 +1136,7 @@ this function changes the last char of the `ispell-casechars' string."
       (setq flyspell-ispell-casechars-cache ispell-casechars)
       (setq flyspell-casechars-cache ispell-casechars)
       flyspell-casechars-cache))))
-	
+
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-get-not-casechars-cache ...                             */
 ;*---------------------------------------------------------------------*/
@@ -1299,7 +1299,7 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
     ;; have to kill the temporary buffer
     (kill-buffer flyspell-external-ispell-buffer)
     (setq flyspell-external-ispell-buffer nil)))
-  
+
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-large-region ...                                        */
 ;*---------------------------------------------------------------------*/
@@ -1463,7 +1463,7 @@ FLYSPELL-BUFFER."
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-properties-at-p ...                                     */
 ;*    -------------------------------------------------------------    */
-;*    Is there an highlight properties at position pos?                */
+;*    Is there a highlight properties at position pos?                 */
 ;*---------------------------------------------------------------------*/
 (defun flyspell-properties-at-p (pos)
   "Return t if there is a text property at POS, not counting `local-map'.
@@ -1495,7 +1495,7 @@ for the overlay."
 		     flyspell-overlay-keymap-property-name
 		     flyspell-local-mouse-map))
     flyspell-overlay))
-    
+
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-highlight-incorrect-region ...                          */
 ;*---------------------------------------------------------------------*/
@@ -1731,7 +1731,7 @@ or \\[ispell-region] to update the Ispell process."
   (if (eq flyspell-emacs 'xemacs)
       (flyspell-correct-word/mouse-keymap event)
       (flyspell-correct-word/local-keymap event)))
-    
+
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-correct-word/local-keymap ...                           */
 ;*---------------------------------------------------------------------*/
@@ -1765,7 +1765,7 @@ consequence is that we can not use overlay map with flyspell."
 	  (let ((flyspell-mode nil))
 	    (if (key-binding (this-command-keys))
 		(command-execute (key-binding (this-command-keys))))))))))
-  
+
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-correct-word/mouse-keymap ...                           */
 ;*---------------------------------------------------------------------*/
@@ -2092,7 +2092,7 @@ This function is meant to be added to 'flyspell-incorrect-hook'."
 ;*---------------------------------------------------------------------*/
 (defun flyspell-change-abbrev (table old new)
   (set (abbrev-symbol old table) new))
-  
+
 (provide 'flyspell)
 
 ;;; flyspell.el ends here

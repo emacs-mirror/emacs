@@ -1178,7 +1178,7 @@ Note that this handles the case when the cache has been set to nil."
     res))
 
 
-;; Make sure WIN always starts at the beginning of an whole screen
+;; Make sure WIN always starts at the beginning of a whole screen
 ;; line. If WIN is not aligned the start is updated which probably
 ;; will lead to a redisplay of the screen later on.
 ;;

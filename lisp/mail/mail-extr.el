@@ -29,11 +29,11 @@
 ;; The entry point of this code is
 ;;
 ;;    mail-extract-address-components: (address &optional all)
-;;  
+;;
 ;;    Given an RFC-822 ADDRESS, extract full name and canonical address.
 ;;    Returns a list of the form (FULL-NAME CANONICAL-ADDRESS).
 ;;    If no name can be extracted, FULL-NAME will be nil.
-;;    ADDRESS may be a string or a buffer.  If it is a buffer, the visible 
+;;    ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 ;;     (narrowed) portion of the buffer will be interpreted as the address.
 ;;     (This feature exists so that the clever caller might be able to avoid
 ;;     consing a string.)
@@ -61,10 +61,10 @@
 ;; make sure you're not breaking functionality.  The test cases aren't included
 ;; because they are over 100K.
 ;;
-;; If you find an address that mail-extr fails on, please send it to the 
+;; If you find an address that mail-extr fails on, please send it to the
 ;; maintainer along with what you think the correct results should be.  We do
 ;; not consider it a bug if mail-extr mangles a comment that does not
-;; correspond to a real human full name, although we would prefer that 
+;; correspond to a real human full name, although we would prefer that
 ;; mail-extr would return the comment as-is.
 ;;
 ;; Features:
@@ -121,8 +121,8 @@
 ;; * insert documentation strings!
 ;; * handle X.400-gatewayed addresses according to RFC 1148.
 
-;;; Change Log: 
-;; 
+;;; Change Log:
+;;
 ;; Thu Feb 17 17:57:33 1994  Jamie Zawinski (jwz@lucid.com)
 ;;
 ;;	* merged with jbw's latest version
@@ -140,26 +140,26 @@
 ;;      * some more cleanup, doc, added provide
 ;;
 ;; Tue Mar 23 21:23:18 1993  Joe Wells  (jbw at csd.bu.edu)
-;; 
+;;
 ;; 	* Made mail-full-name-prefixes a user-customizable variable.
 ;;        Allow passing the address as a buffer as well as as a string.
 ;;        Allow [ and ] as name characters (Finnish character set).
-;; 
+;;
 ;; Mon Mar 22 21:20:56 1993  Joe Wells  (jbw at bigbird.bu.edu)
-;; 
+;;
 ;; 	* Handle "null" addresses.  Handle = used for spacing in mailbox
 ;; 	  name.  Fix bug in handling of ROUTE-ADDR-type addresses that are
 ;; 	  missing their brackets.  Handle uppercase "JR".  Extract full
 ;; 	  names from X.400 addresses encoded in RFC-822.  Fix bug in
 ;;        handling of multiple addresses where first has trailing comment.
 ;;        Handle more kinds of telephone extension lead-ins.
-;; 
+;;
 ;; Mon Mar 22 20:16:57 1993  Joe Wells  (jbw at bigbird.bu.edu)
-;; 
+;;
 ;; 	* Handle HZ encoding for embedding GB encoded chinese characters.
-;; 
+;;
 ;; Mon Mar 22 00:46:12 1993  Joe Wells  (jbw at bigbird.bu.edu)
-;; 
+;;
 ;; 	* Fixed too broad matching of ham radio call signs.  Fixed bug in
 ;; 	  handling an unmatched ' in a name string.  Enhanced recognition
 ;; 	  of when . in the mailbox name terminates the name portion.
@@ -169,40 +169,40 @@
 ;; 	  introduced in switching last name order.  Fixed bug in handling
 ;; 	  address with ! and % but no @.  Narrowed the cases in which
 ;; 	  certain trailing words are discarded.
-;; 
+;;
 ;; Sun Mar 21 21:41:06 1993  Joe Wells  (jbw at bigbird.bu.edu)
-;; 
+;;
 ;; 	* Fixed bugs in handling GROUP addresses.  Certain words in the
 ;; 	  middle of a name no longer terminate it.  Handle LISTSERV list
 ;;        names.  Ignore comment field containing mailbox name.
-;; 
+;;
 ;; Sun Mar 21 14:39:38 1993  Joe Wells  (jbw at bigbird.bu.edu)
-;; 
+;;
 ;; 	* Moved variant-method code back into main function.  Handle
 ;; 	underscores as spaces in comments.  Handle leading nickname.  Add
 ;; 	flag to ignore single-word names.  Other changes.
-;; 
+;;
 ;; Mon Feb  1 22:23:31 1993  Joe Wells  (jbw at bigbird.bu.edu)
-;; 
+;;
 ;; 	* Added in changes by Rod Whitby and Jamie Zawinski.  This
 ;;        includes the flag mail-extr-guess-middle-initial and the fix for
 ;;        handling multiple addresses correctly.  (Whitby just changed
 ;;	  a > to a <.)
-;; 
+;;
 ;; Mon Apr  6 23:59:09 1992  Joe Wells  (jbw at bigbird.bu.edu)
-;; 
+;;
 ;; 	* Cleaned up some more.  Release version 1.0 to world.
-;; 
+;;
 ;; Sun Apr  5 19:39:08 1992  Joe Wells  (jbw at bigbird.bu.edu)
-;; 
+;;
 ;; 	* Cleaned up full name extraction extensively.
-;; 
+;;
 ;; Sun Feb  2 14:45:24 1992  Joe Wells  (jbw at bigbird.bu.edu)
-;; 
+;;
 ;; 	* Total rewrite.  Integrated mail-canonicalize-address into
 ;; 	mail-extract-address-components.  Now handles GROUP addresses more
 ;; 	or less correctly.  Better handling of lots of different cases.
-;; 
+;;
 ;; Fri Jun 14 19:39:50 1991
 ;;	* Created.
 
@@ -319,16 +319,16 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
 (defconst mail-extr-leading-garbage
   (purecopy (format "[^%s]+" mail-extr-first-letters)))
 
-;; (defconst mail-extr-non-name-chars 
+;; (defconst mail-extr-non-name-chars
 ;;   (purecopy (concat "^" mail-extr-all-letters ".")))
 ;; (defconst mail-extr-non-begin-name-chars
 ;;   (purecopy (concat "^" mail-extr-first-letters)))
 ;; (defconst mail-extr-non-end-name-chars
 ;;   (purecopy (concat "^" mail-extr-last-letters)))
 
-;; Matches an initial not followed by both a period and a space. 
+;; Matches an initial not followed by both a period and a space.
 ;; (defconst mail-extr-bad-initials-pattern
-;;   (purecopy 
+;;   (purecopy
 ;;    (format "\\(\\([^%s]\\|\\`\\)[%s]\\)\\(\\.\\([^ ]\\)\\| \\|\\([^%s .]\\)\\|\\'\\)"
 ;;            mail-extr-all-letters mail-extr-first-letters mail-extr-all-letters)))
 
@@ -364,7 +364,7 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
 ;; Must not match a trailing uppercase last name or trailing initial
 (defconst mail-extr-weird-acronym-pattern
   (purecopy "\\([A-Z]+[-_/]\\|[A-Z][A-Z][A-Z]?\\b\\)"))
-      
+
 ;; Matches a mixed-case or lowercase name (not an initial).
 ;; #### Match Latin1 lower case letters here too?
 ;; (defconst mail-extr-mixed-case-name-pattern
@@ -377,7 +377,7 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
 
 ;; Matches a trailing alternative address.
 ;; #### Match Latin1 letters here too?
-;; #### Match _ before @ here too?  
+;; #### Match _ before @ here too?
 (defconst mail-extr-alternative-address-pattern
   (purecopy "\\(aka *\\)?[a-zA-Z.]+[!@][a-zA-Z.]"))
 
@@ -436,7 +436,7 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
 ;; Matches a single word name.
 ;; (defconst mail-extr-one-name-pattern
 ;;   (purecopy (concat "\\`" mail-extr-normal-name-pattern "\\'")))
-  
+
 ;; Matches normal two names with missing middle initial
 ;; The first name is not allowed to have a hyphen because this can cause
 ;; false matches where the "middle initial" is actually the first letter
@@ -460,12 +460,12 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
 ;; encountered. The character '~' is an escape character. By convention, it
 ;; must be immediately followed ONLY by '~', '{' or '\n' (<LF>), with the
 ;; following special meaning.
-;; 
+;;
 ;; o The escape sequence '~~' is interpreted as a '~'.
 ;; o The escape-to-GB sequence '~{' switches the mode from ASCII to GB.
 ;; o The escape sequence '~\n' is a line-continuation marker to be consumed
 ;;   with no output produced.
-;; 
+;;
 ;; In GB mode, characters are interpreted two bytes at a time as (pure) GB
 ;; codes until the escape-from-GB code '~}' is read. This code switches the
 ;; mode from GB back to ASCII.  (Note that the escape-from-GB code '~}'
@@ -742,7 +742,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
       (widen)
       (erase-buffer)
       (setq case-fold-search nil)
-      
+
       ;; Insert extra space at beginning to allow later replacement with <
       ;; without having to move markers.
       (insert ?\ )
@@ -762,12 +762,12 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 	(buffer-disable-undo canonicalization-buffer)
 	(setq case-fold-search nil))
 
-      
+
       ;; Unfold multiple lines.
       (goto-char (point-min))
       (while (re-search-forward "\\([^\\]\\(\\\\\\\\\\)*\\)\n[ \t]" nil t)
 	(replace-match "\\1 " t))
-      
+
       ;; Loop over addresses until we have as many as we want.
       (while (and (or all (null value-list))
 		  (progn (goto-char (point-min))
@@ -1023,7 +1023,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 
 	  ;; Any commas must be between < and : of ROUTE-ADDR.  Nuke any
 	  ;; others.
-	  ;; Hell, go ahead an nuke all of the commas.
+	  ;; Hell, go ahead and nuke all of the commas.
 	  ;; **** This will cause problems when we start handling commas in
 	  ;; the PHRASE part .... no it won't ... yes it will ... ?????
 	  (mail-extr-nuke-outside-range comma-pos 1 1)
@@ -1156,7 +1156,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 				  (setq %-pos (cons (point) %-pos))
 				  (insert-before-markers "% ")))
 			   (backward-char 1)
-			   (insert-buffer-substring 
+			   (insert-buffer-substring
 			    (current-buffer)
 			    (if (nth 1 !-pos)
 				(1+ (nth 1 !-pos))
@@ -1512,7 +1512,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 	      (if (bobp)
 		  (delete-region (point) cbeg)
 		(just-one-space))))))
-      
+
       ;; This was moved above.
       ;; Fix . used as space
       ;; But it belongs here because it occurs not only as
@@ -1541,7 +1541,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
       ;; Loop over the words (and other junk) in the name.
       (goto-char (point-min))
       (while (not name-done-flag)
-	
+
 	(cond (word-found-flag
 	       ;; Last time through this loop we skipped over a word.
 	       (setq last-word-beg this-word-beg)
@@ -1561,22 +1561,22 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 ;;	       (setq upper-case-flag nil)
 	       (setq begin-again-flag nil)
 	       ))
-	
+
 	;; Initialize for this iteration of the loop.
 	(mail-extr-skip-whitespace-forward)
 	(if (eq word-count 0) (narrow-to-region (point) (point-max)))
 	(setq this-word-beg (point))
 	(setq drop-this-word-if-trailing-flag nil)
-	
+
 	;; Decide what to do based on what we are looking at.
 	(cond
-	 
+
 	 ;; Delete title
 	 ((and (eq word-count 0)
 	       (looking-at mail-extr-full-name-prefixes))
 	  (goto-char (match-end 0))
 	  (narrow-to-region (point) (point-max)))
-	 
+
 	 ;; Stop after name suffix
 	 ((and (>= word-count 2)
 	       (looking-at mail-extr-full-name-suffix-pattern))
@@ -1598,13 +1598,13 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 		 (upcase-word 1)))
 	  (setq word-found-flag t)
 	  (setq name-done-flag t))
-	 
+
 	 ;; Handle SCA names
 	 ((looking-at "MKA \\(.+\\)")	; "Mundanely Known As"
 	  (goto-char (match-beginning 1))
 	  (narrow-to-region (point) (point-max))
 	  (setq begin-again-flag t))
-	 
+
 	 ;; Check for initial last name followed by comma
 	 ((and (eq ?, (following-char))
 	       (eq word-count 1))
@@ -1612,13 +1612,13 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 	  (setq last-name-comma-flag t)
 	  (or (eq ?\  (following-char))
 	      (insert ?\ )))
-	 
+
 	 ;; Stop before trailing comma-separated comment
 	 ;; THIS CASE MUST BE AFTER THE PRECEDING CASES.
 	 ;; *** This case is redundant???
 	 ;;((eq ?, (following-char))
 	 ;; (setq name-done-flag t))
-	 
+
 	 ;; Delete parenthesized/quoted comment/nickname
 	 ((memq (following-char) '(?\( ?\{ ?\[ ?\" ?\' ?\`))
 	  (setq cbeg (point))
@@ -1650,16 +1650,16 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 	    (delete-region cbeg cend)
 	    (if initial
 		(insert initial ". ")))))
-	 
+
 	 ;; Handle *Stupid* VMS date stamps
 	 ((looking-at mail-extr-stupid-vms-date-stamp-pattern)
 	  (replace-match "" t))
-	 
+
 	 ;; Handle Chinese characters.
 	 ((looking-at mail-extr-hz-embedded-gb-encoded-chinese-pattern)
 	  (goto-char (match-end 0))
 	  (setq word-found-flag t))
-	 
+
 	 ;; Skip initial garbage characters.
 	 ;; THIS CASE MUST BE AFTER THE PRECEDING CASES.
 	 ((and (eq word-count 0)
@@ -1668,32 +1668,32 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 	  ;; *** Skip backward over these???
 	  ;; (skip-chars-backward "& \"")
 	  (narrow-to-region (point) (point-max)))
-	 
+
 	 ;; Various stopping points
 	 ((or
-	   
+
 	   ;; Stop before ALL CAPS acronyms, if preceded by mixed-case
 	   ;; words.  Example: XT-DEM.
 	   (and (>= word-count 2)
 		mixed-case-flag
 		(looking-at mail-extr-weird-acronym-pattern)
 		(not (looking-at mail-extr-roman-numeral-pattern)))
-	   
+
 	   ;; Stop before trailing alternative address
 	   (looking-at mail-extr-alternative-address-pattern)
-	   
+
 	   ;; Stop before trailing comment not introduced by comma
 	   ;; THIS CASE MUST BE AFTER AN EARLIER CASE.
 	   (looking-at mail-extr-trailing-comment-start-pattern)
-	   
+
 	   ;; Stop before telephone numbers
 	   (looking-at mail-extr-telephone-extension-pattern))
 	  (setq name-done-flag t))
-	 
+
 	 ;; Delete ham radio call signs
 	 ((looking-at mail-extr-ham-call-sign-pattern)
 	  (delete-region (match-beginning 0) (match-end 0)))
-	 
+
 	 ;; Fixup initials
 	 ((looking-at mail-extr-initial-pattern)
 	  (or (eq (following-char) (upcase (following-char)))
@@ -1705,14 +1705,14 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 	  (or (eq ?\  (following-char))
 	      (insert ?\ ))
 	  (setq word-found-flag t))
-	 
+
 	 ;; Handle BITNET LISTSERV list names.
 	 ((and (eq word-count 0)
 	       (looking-at mail-extr-listserv-list-name-pattern))
 	  (narrow-to-region (match-beginning 1) (match-end 1))
 	  (setq word-found-flag t)
 	  (setq name-done-flag t))
-	 
+
 	 ;; Handle & substitution, when & is last and is not first.
 	 ((and (> word-count 0)
 	       (eq ?\  (preceding-char))
@@ -1739,7 +1739,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 	 ((looking-at mail-extr-name-pattern)
 	  (setq name-beg (point))
 	  (setq name-end (match-end 0))
-	  
+
 	  ;; Certain words will be dropped if they are at the end.
 	  (and (>= word-count 2)
 	       (not lower-case-flag)
@@ -1750,7 +1750,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 		;; Drop a trailing word which is terminated with a period.
 		(eq ?. (char-after (1- name-end))))
 	       (setq drop-this-word-if-trailing-flag t))
-	  
+
 	  ;; Set the flags that indicate whether we have seen a lowercase
 	  ;; word, a mixed case word, and an uppercase word.
 	  (if (re-search-forward "[a-z]" name-end t)
@@ -1761,18 +1761,18 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 		(setq lower-case-flag t))
 ;;	    (setq upper-case-flag t)
 	    )
-	  
+
 	  (goto-char name-end)
 	  (setq word-found-flag t))
 
 	 (t
 	  (setq name-done-flag t)
 	  ))
-	
+
 	;; Count any word that we skipped over.
 	(if word-found-flag
 	    (setq word-count (1+ word-count))))
-      
+
       ;; If the last thing in the name is 2 or more periods, or one or more
       ;; other sentence terminators (but not a single period) then keep them
       ;; and the preceding word.  This is for the benefit of whole sentences
@@ -1787,7 +1787,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 			(or (and drop-last-word-if-trailing-flag
 				 last-word-beg)
 			    (point)))
-      
+
       ;; Xerox's mailers SUCK!!!!!!
       ;; We simply refuse to believe that any last name is PARC or ADOC.
       ;; If it looks like that is the last name, that there is no meaningful
@@ -1812,7 +1812,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 	     (goto-char name-end)
 	     (skip-chars-forward "\t ,")
 	     (narrow-to-region (point) (point-max))))
-      
+
       ;; Delete leading and trailing junk characters.
       ;; *** This is probably completely unneeded now.
       ;;(goto-char (point-max))
@@ -1824,7 +1824,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
       ;;                    (goto-char (point-min))
       ;;                    (skip-chars-forward mail-extr-non-begin-name-chars)
       ;;                    (point)))
-      
+
       ;; Compress whitespace
       (goto-char (point-min))
       (while (re-search-forward "[ \t\n]+" nil t)
@@ -2128,7 +2128,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 
 ;(let ((all nil))
 ;  (mapatoms #'(lambda (x)
-;		(if (and (boundp x) 
+;		(if (and (boundp x)
 ;			 (string-match "^mail-extr-" (symbol-name x)))
 ;		    (setq all (cons x all)))))
 ;  (setq all (sort all #'string-lessp))

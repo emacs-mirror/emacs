@@ -233,7 +233,7 @@
 
 ;; If REG is a CCL register symbol (e.g. r0, r1...), the register
 ;; number is embedded.  If OP is one of unconditional jumps, DATA is
-;; changed to an relative jump address.
+;; changed to a relative jump address.
 
 (defun ccl-embed-code (op reg data &optional reg2)
   (if (and (> data 0) (get op 'jump-flag))
@@ -505,7 +505,7 @@
 	      (ccl-embed-data op)
 	      (ccl-embed-data arg))
 	  (ccl-check-register arg cmd)
-	  (ccl-embed-code (if read-flag 'read-jump-cond-expr-register 
+	  (ccl-embed-code (if read-flag 'read-jump-cond-expr-register
 			    'jump-cond-expr-register)
 			  rrr 0)
 	  (ccl-embed-data op)
@@ -703,7 +703,7 @@
 	   (error "CCL: Invalid argument %s: %s" arg cmd)))
     (ccl-embed-code 'read-jump rrr ccl-loop-head))
   t)
-			    
+
 ;; Compile READ statement.
 (defun ccl-compile-read (cmd)
   (if (< (length cmd) 2)
@@ -855,7 +855,7 @@
 			add 1))
 		(setq arg (cdr arg)
 		      len (+ len add)))
-	      (if mp 
+	      (if mp
 		  (cons (- len) result)
 		result))))
     (setq arg (append (list (nth 0 cmd) (nth 1 cmd) (nth 2 cmd))
@@ -946,7 +946,7 @@
 	 (rrr (ash (logand code 255) -5))
 	 (cc (ash code -8)))
     (insert (format "%5d:[%s] " (1- ccl-current-ic) cmd))
-    (funcall (get cmd 'ccl-dump-function) rrr cc))) 
+    (funcall (get cmd 'ccl-dump-function) rrr cc)))
 
 (defun ccl-dump-set-register (rrr cc)
   (insert (format "r%d = r%d\n" rrr cc)))
@@ -1221,7 +1221,7 @@
     (insert (format "map-single r%d r%d map(%S)\n" RRR rrr id))))
 
 
-;; CCL emulation staffs 
+;; CCL emulation staffs
 
 ;; Not yet implemented.
 
@@ -1420,7 +1420,7 @@ ASSIGNMENT_OPERATOR :=
 	;; (REG <8= ARG) is the same as:
 	;;	((REG <<= 8)
 	;;	 (REG |= ARG))
-	| <8= 
+	| <8=
 
 	;; (REG >8= ARG) is the same as:
 	;;	((r7 = (REG & 255))
