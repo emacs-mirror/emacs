@@ -2408,6 +2408,8 @@ w32_read_socket (sd, bufp, numchars, waitp, expected)
 		  }
 		else
 		  {
+		    /* Erase background again for safety.  */
+		    win32_clear_rect (f, NULL, &msg.rect);
 		    dumprectangle (f,
 				   msg.rect.left,
 				   msg.rect.top,
