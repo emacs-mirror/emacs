@@ -1,3 +1,8 @@
+2001-10-25  Sam Steingold  <sds@gnu.org>
+
+	* add-log.el (add-log-always-start-new-record): New user option.
+	(add-change-log-entry): Use it.
+
 2001-10-25  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/etags.el (tags-query-replace): Make tags-loop-scan

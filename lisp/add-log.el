@@ -117,6 +117,12 @@ this variable."
   :type 'boolean
   :group 'change-log)
 
+(defcustom add-log-always-start-new-record nil
+  "*If non-nil, `add-change-log-entry' will always start a new record."
+  :version "21.2"
+  :type 'boolean
+  :group 'change-log)
+
 (defcustom add-log-buffer-file-name-function nil
   "*If non-nil, function to call to identify the full filename of a buffer.
 This function is called with no argument.  If this is nil, the default is to
@@ -182,7 +188,7 @@ Note: The search is conducted only within 10%, at the beginning of the file."
   "Face for highlighting parenthesized lists of functions or variables."
   :version "21.1"
   :group 'change-log)
-  
+
 (defface change-log-conditionals-face
   '((t (:inherit font-lock-variable-name-face)))
   "Face for highlighting conditionals of the form `[...]'."
@@ -415,6 +421,10 @@ Fourth arg NEW-ENTRY non-nil means always create a new entry at the front;
 never append to an existing entry.  Option `add-log-keep-changes-together'
 otherwise affects whether a new entry is created.
 
+Option `add-log-always-start-new-record' non-nil means always create a
+new record, even when the last record was made on the same date and by
+the same person.
+
 The change log file can start with a copyright notice and a copying
 permission notice.  The first blank line indicates the end of these
 notices.
@@ -469,7 +479,8 @@ non-nil, otherwise in local time."
     (let ((new-entry (concat (funcall add-log-time-format)
 			     "  " add-log-full-name
 			     "  <" add-log-mailing-address ">")))
-      (if (looking-at (regexp-quote new-entry))
+      (if (and (not add-log-always-start-new-record)
+               (looking-at (regexp-quote new-entry)))
 	  (forward-line 1)
 	(insert new-entry "\n\n")
 	(forward-line -1)))
