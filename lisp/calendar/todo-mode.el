@@ -1,27 +1,36 @@
-;; todomode.el -- major mode for editing TODO list files
-
-;; $Id: todomode.el,v 1.10 1997/08/06 08:56:03 os10000 Exp os10000 $
+;;; todomode.el -- Major mode for editing TODO list files
+;;; Copyright (C) 1997 by Oliver Seidel
 
 ;; ---------------------------------------------------------------------------
 
-;; Copyright (C) 1997 Oliver Seidel
+;;
+;; Author:       Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
+;; Created:      August 2, 1997
+;; Version:      $Id: todomode.el,v 1.11 1997/08/06 09:14:25 os10000 Exp os10000 $
+;; Keywords:     Categorised TODO list editor, todo-mode
+;; Availability: newsgroup "gnu.emacs.sources" and archives thereof
+;;
 
-;; Keywords: todo-mode
+;; ---------------------------------------------------------------------------
 
-;; todomode.el is free software; you can redistribute it and/or modify
+;;
+;; This program is intended for use with GNU Emacs.
+;;
+;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
-
-;; todomode.el is distributed in the hope that it will be useful,
+;;
+;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+;;
 
 ;; ---------------------------------------------------------------------------
 
@@ -74,11 +83,11 @@
 ;;                                                 comment and timestamp
 ;; i                          to insert a new entry
 ;; k                          to kill the current entry
-;; l                          lower the current entry's priority
+;; l                          to lower the current entry's priority
 ;; n                          for the next entry
 ;; p                          for the previous entry
 ;; q                          to save the list and exit the buffer
-;; r                          raise current entryk's priority
+;; r                          to raise the current entry's priority
 ;; s                          to save the list
 ;;
 ;; When you add a new entry, you are asked for the text and then for the
@@ -152,6 +161,10 @@
 ;; History and Gossip:
 ;; ===================
 ;;
+;; Many thanks to all the ones who have contributed to the evolution of this
+;; package!  I hope I have listed all of you somewhere in the documentation
+;; or at least in the RCS history!
+;;
 ;; Just for the case that you are wondering about the ugly name of this
 ;; package: I am one of those unfortunate people who have DOS, LINUX and
 ;; OS/2 on one of their computers, so part of my home-filespace is shared
@@ -160,24 +173,22 @@
 ;; command near the end of this package) to something more aisthetically
 ;; (please don't argue about this spelling ...) pleasing, like i.e. todo-mode.
 ;;
-;; Enjoy this package and express your gratitude by sending valuables
-;; to my parents' address as listed above!!!
+;; Enjoy this package and express your gratitude by sending nice things
+;; to my parents' address!
 ;;
 ;; Oliver Seidel
 ;;
-;;
-;;
-;; Contact information:
-;; ====================
-;;
-;; address ....:  O Seidel, Lessingstr 8, Eschborn, FRG
-;; e-mail .....:  Oliver.Seidel@cl.cam.ac.uk (was valid on 2 Aug 1997)
+;; (O Seidel, Lessingstr. 8, 65760 Eschborn, Federal Republic of Germany)
 ;;
 
 ;; ---------------------------------------------------------------------------
 
 ;;
 ;; $Log: todomode.el,v $
+;; Revision 1.11  1997/08/06  09:14:25  os10000
+;; Applied patch from Istvan Marko <istvan@cmdmail.amd.com>
+;; to make menus work anywhere.
+;;
 ;; Revision 1.10  1997/08/06  08:56:03  os10000
 ;; Acted upon suggestion from Shane Holder <holder@rsn.hp.com>:
 ;; Cancelling the editing of an entry will not delete it any more.
@@ -220,11 +231,11 @@
 
 ;; User-configurable variables:
 
-(defvar todo-prefix "*/*" "TODO mode prefix when creating entries")
-(defvar todo-file-do "~/.todo-do" "TODO mode filename of list file")
-(defvar todo-file-done "~/.todo-done" "TODO mode filename of archive file")
-(defvar todo-mode-hook nil "Hooks invoked when the TODO mode is entered.")
-(defvar todo-ins-thresh 0 "TODO mode insertion accuracy.")
+(defvar todo-prefix	"*/*"		"TODO mode prefix for entries.")
+(defvar todo-file-do	"~/.todo-do"	"TODO mode list file.")
+(defvar todo-file-done	"~/.todo-done"	"TODO mode archive file.")
+(defvar todo-mode-hook	nil		"TODO mode hooks.")
+(defvar todo-ins-thresh	0		"TODO mode insertion accuracy.")
 
 ;; ---------------------------------------------------------------------------
 
@@ -235,7 +246,16 @@
 
 ;; ---------------------------------------------------------------------------
 
-(defvar todo-mode-map nil "TODO mode keymap.  See `todo-mode'")
+;; Set up some helpful context ...
+
+(defvar todo-cats		nil	"TODO categories.")
+(defvar todo-prv-lne		0	"previous line that I asked about.")
+(defvar todo-prv-ans		0	"previous answer that I got.")
+(defvar todo-mode-map		nil	"TODO mode keymap.")
+(defvar todo-category-number	0	"TODO category number.")
+
+;; ---------------------------------------------------------------------------
+
 (if todo-mode-map
     nil
   (let ((map (make-keymap)))
@@ -264,46 +284,37 @@
     (setq begin (+ (point-at-eol) 1))
     (search-forward "--- End")
     (narrow-to-region begin (point-at-bol))
-    (goto-char (point-min))
-    )
-)
+    (goto-char (point-min))))
 
 (defun todo-cmd-forw () "Go forward to TODO list of next category."
   (interactive)
   (let ((todo-cat-cnt (- (length todo-cats) 1)))
     (setq todo-category-number (if (< todo-category-number todo-cat-cnt)
 				   (+ todo-category-number 1) 0))
-    (todo-cat-slct)
-    )
-  )
+    (todo-cat-slct)))
 
 (defun todo-cmd-back () "Go back to TODO list of previous category."
   (interactive)
   (let ((todo-cat-cnt (- (length todo-cats) 1)))
     (setq todo-category-number (if (> todo-category-number 0)
 				   (- todo-category-number 1) todo-cat-cnt))
-    (todo-cat-slct)
-    )
-  )
+    (todo-cat-slct)))
 
 (defun todo-cmd-prev () "Select previous entry of TODO list."
   (interactive)
   (forward-line -1)
   (beginning-of-line nil)
-  (message "")
-  )
+  (message ""))
 
 (defun todo-cmd-next () "Select next entry of TODO list."
   (interactive)
   (forward-line 1)
   (beginning-of-line nil)
-  (message "")
-  )
+  (message ""))
 
 (defun todo-cmd-save () "Save the TODO list."
   (interactive)
-  (save-buffer)
-  )
+  (save-buffer))
 
 (defun todo-cmd-done () "Done with TODO list for now."
   (interactive)
@@ -311,8 +322,7 @@
   (save-buffer)
   (beginning-of-line nil)
   (message "")
-  (bury-buffer)
-  )
+  (bury-buffer))
 
 (defun todo-line () "Find current line in buffer."
   (buffer-substring (point-at-bol) (point-at-eol)))
@@ -324,9 +334,6 @@
     (insert todo-entry)
     (beginning-of-line nil)
     (message "")))
-
-(defvar todo-prv-lne 0 "previous line that I asked about.")
-(defvar todo-prv-ans 0 "previous answer that I got.")
 
 (defun todo-add-category (cat) "Add a new category to the TODO list."
   (interactive)
@@ -345,10 +352,8 @@
     (insert (format "todo-cats: %S; -*-" todo-cats))
     (forward-char 1)
     (insert (format "%s --- %s\n--- End\n%s %s\n"
-		    todo-prefix cat todo-prefix (make-string 75 ?-)))
-    )
-  0
-  )
+		    todo-prefix cat todo-prefix (make-string 75 ?-))))
+  0)
 
 (defun todo-cmd-inst ()
   "Insert new TODO list entry."
@@ -385,7 +390,6 @@
 	(setq todo-fst (/ (+ todo-fst todo-lst) 2))
         ;; goto-line doesn't have the desired behavior in a narrowed buffer
         (goto-char (point-min))
-	(message (format "todo-fst=%d" todo-fst))
         (forward-line (- todo-fst 1)))
       
       (insert (concat todo-entry "\n"))
@@ -415,16 +419,10 @@
 	  (if todo-answer
 	      (progn
 		(delete-region (point-at-bol) (+ 1 (point-at-eol))) 
-		(forward-line -1)
-		)
-	    )
-	  )
-	(message "")
-	)
-    (message "No TODO list entry to delete.")
-    )
-  (beginning-of-line nil)
-  )
+		(forward-line -1))))
+	(message ""))
+    (message "No TODO list entry to delete."))
+  (beginning-of-line nil))
 
 (defun todo-cmd-rais () "Raise priority of current entry."
   (interactive)
@@ -435,12 +433,9 @@
 	(forward-line -1)
 	(insert (concat todo-entry "\n"))
 	(forward-line -1)
-	(message "")
-	)
-    (message "No TODO list entry to raise.")
-    )
-  (beginning-of-line nil)
-  )
+	(message ""))
+    (message "No TODO list entry to raise."))
+  (beginning-of-line nil))
 
 (defun todo-cmd-lowr () "Lower priority of current entry."
   (interactive)
@@ -451,12 +446,9 @@
 	(forward-line 1)
 	(insert (concat todo-entry "\n"))
 	(forward-line -1)
-	(message "")
-	)
-    (message "No TODO list entry to raise.")
-    )
-  (beginning-of-line nil)
-  )
+	(message ""))
+    (message "No TODO list entry to raise."))
+  (beginning-of-line nil))
 
 (defun todo-cmd-file () "File away the current TODO list entry."
   (interactive)
@@ -470,14 +462,10 @@
 	  (insert (concat " (" (read-from-minibuffer "Comment: ") ")"))
 	  (append-to-file (point-at-bol) (+ 1 (point-at-eol)) todo-file-done)
 	  (delete-region (point-at-bol) (+ 1 (point-at-eol)))
-	  (forward-line -1)
-	  )
-	(message "")
-	)
-    (message "No TODO list entry to delete.")
-    )
-  (beginning-of-line nil)
-  )
+	  (forward-line -1))
+	(message ""))
+    (message "No TODO list entry to delete."))
+  (beginning-of-line nil))
 
 ;; ---------------------------------------------------------------------------
 
@@ -518,9 +506,6 @@
               ["Quit"                 todo-cmd-done t]
               ))
 
-(defvar todo-cats nil "TODO categories.")
-(defvar todo-category-number 0 "TODO category number.")
-
 (defun todo-mode () "Major mode for editing TODO lists.\n\n\\{todo-mode-map}"
   (interactive)
   (setq major-mode 'todo-mode)
@@ -543,17 +528,12 @@
 		 (mrkr (buffer-substring bol eol)))
 	    (delete-region bol eol)
 	    (goto-char (point-max))
-	    (insert mrkr)
-	    )
-	  )
+	    (insert mrkr)))
 	(save-buffer)
 	(kill-buffer (current-buffer))
-	(find-file todo-file-do)
-	)
-    )
+	(find-file todo-file-do)))
   (beginning-of-line nil)
-  (todo-cat-slct)
-  )
+  (todo-cat-slct))
 
 (provide 'todomode)
 
