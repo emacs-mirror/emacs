@@ -1,3 +1,8 @@
+2002-02-26  Miles Bader  <miles@gnu.org>
+
+	* mwheel.el (mouse-wheel-mode): Pass vectors instead of symbols
+	to `define-key', since it no longer accepts the latter.
+
 2002-02-25  Jason Rumney  <jasonr@gnu.org>
 
 	* term/w32-win.el (mouse-wheel-scroll-line): Use car of
