@@ -165,6 +165,9 @@ Boston, MA 02111-1307, USA.  */
    which most machines don't have.  We use the name .inp instead of .imp
    because .inp is a better convention to use in make-dist for naming
    random input files.  */
+#ifdef emacs /* Prevent this from being used in configure.
+		This also makes it not be used in lib-src,
+		but that is probably ok.  */
 #ifdef AIX4
 #define LD_SWITCH_MACHINE -Wl,-bnodelcsect
 #else /* not AIX4 */
@@ -174,6 +177,7 @@ Boston, MA 02111-1307, USA.  */
 #define LD_SWITCH_MACHINE -Wl,-bnso,-bnodelcsect,-bI:/lib/syscalls.exp,-bI:$(srcdir)/m/ibmrs6000.inp
 #endif
 #endif /* not AIX4 */
+#endif
 
 /* Avoid gcc 2.7.x collect2 bug by using /bin/ld instead.  */
 #if __GNUC__ == 2 && __GNUC_MINOR__ == 7
