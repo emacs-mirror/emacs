@@ -629,7 +629,7 @@ when Emacs starts.");
 
 #ifndef VMS
   defsubr (&Scall_process);
-#endif
   defsubr (&Sgetenv);
+#endif
   defsubr (&Scall_process_region);
 }

@@ -117,7 +117,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 	 catching and signalling our own errors, we just call
 	 compile_pattern to do the work for us.  */
 #ifdef VMS
-      compile_pattern (match, &searchbuf, 0
+      compile_pattern (match, &searchbuf, 0,
 		       buffer_defaults.downcase_table->contents);
 #else
       compile_pattern (match, &searchbuf, 0, 0);

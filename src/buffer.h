@@ -378,6 +378,12 @@ whatever you like.  */
 #define R_ALLOC_DECLARE(var,data)
 #endif
 
+/* VAX C is non-ANSI wrt extern declarations and requires the struct
+   re_pattern_buffer to completely defined for searchbuf's declaration.  */
+#ifdef VMS
+#include "regex.h"
+#endif /* VMS */
+
 /* A search buffer, with a fastmap allocated and ready to go.  */
 extern struct re_pattern_buffer searchbuf;
 

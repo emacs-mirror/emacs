@@ -51,6 +51,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef open
 #endif /* `open' is a macro */
 
+/* Does anyone other than VMS need this? */
+#ifndef fwrite
+#define sys_fwrite fwrite
+#else
+#undef fwrite
+#endif
+
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -167,44 +174,6 @@ extern short ospeed;
    under VMS, we place the input channel number here.
    This allows us to write more code that works for both VMS and Unix.  */
 static int input_fd;
-
-#ifdef VMS
-static struct iosb
-{
-  short status;
-  short offset;
-  short termlen;
-  short term;
-} input_iosb;
-
-int kbd_input_ast ();
-
-int waiting_for_ast;
-int stop_input;
-int input_ef = 0;
-int timer_ef = 0;
-int process_ef = 0;
-int input_eflist;
-int timer_eflist;
-
-static $DESCRIPTOR (input_dsc, "TT");
-static int terminator_mask[2] = { 0, 0 };
-
-static struct sensemode {
-  short status;
-  unsigned char xmit_baud;
-  unsigned char rcv_baud;
-  unsigned char crfill;
-  unsigned char lffill;
-  unsigned char parity;
-  unsigned char unused;
-  char class;
-  char type;
-  short scr_wid;
-  unsigned long tt_char : 24, scr_len : 8;
-  unsigned long tt2_char;
-} sensemode_iosb;
-#endif /* VMS */
 
 discard_tty_input ()
 {
@@ -341,7 +310,7 @@ wait_for_termination (pid)
 #ifdef VMS
       int status;
 
-      status = sys$forcex (&pid, 0, 0);
+      status = SYS$FORCEX (&pid, 0, 0);
       break;
 #else /* not VMS */
 
@@ -535,7 +504,7 @@ sys_suspend ()
       } d_prompt;
       d_prompt.l = sizeof ("Emacs: ");		/* Our special prompt */
       d_prompt.a = "Emacs: ";			/* Just a reminder */
-      lib$spawn (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, &d_prompt, 0);
+      LIB$SPAWN (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, &d_prompt, 0);
       return 1;
     }
   return -1;
@@ -876,7 +845,7 @@ init_sys_modes ()
 #ifdef VMS
       tty.main.tt_char |= TT$M_NOECHO;
       if (meta_key)
-	tty.main.tt_char |= TT$M_EIGHTBIT
+	tty.main.tt_char |= TT$M_EIGHTBIT;
       if (flow_control)
 	tty.main.tt_char |= TT$M_TTSYNC;
       else
@@ -1263,6 +1232,8 @@ kbd_input_ast ()
 #endif
   if (! stop_input)
     queue_kbd_input ();
+/* I don't know what this is doing!  The variables buf, cbuf and i are
+   not declared.  This is new from version 18, what does it do?
   if (c >= 0)
     {
       struct input_event e;
@@ -1271,7 +1242,7 @@ kbd_input_ast ()
       e.frame = selected_frame;
       kbd_buffer_store_event (&e);
     }
-
+*/
   if (input_available_clear_time)
     EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
   errno = old_errno;
@@ -2112,7 +2083,7 @@ sys_getenv (name)
 
   d_name.dsc$w_length = strlen (name);
   d_name.dsc$a_pointer = name;
-  if (lib$sys_trnlog (&d_name, &eqlen, &equiv) == 1)
+  if (LIB$SYS_TRNLOG (&d_name, &eqlen, &equiv) == 1)
     {
       char *str = (char *) xmalloc (eqlen + 1);
       bcopy (buf, str, eqlen);
@@ -2901,7 +2872,7 @@ sys_access (filename, type)
 #define	WRITEABLE(field)  (! ((xab.xab$w_pro >> field) & XAB$M_NOWRITE))
 
   /* Find privilege bits */
-  status = sys$setprv (0, 0, 0, prvmask);
+  status = SYS$SETPRV (0, 0, 0, prvmask);
   if (! (status & 1))
     error ("Unable to find privileges: %s", vmserrstr (status));
   if (CHECKPRIV (PRV$V_BYPASS))
@@ -2914,10 +2885,10 @@ sys_access (filename, type)
   xab = cc$rms_xabpro;
   xab.xab$l_aclbuf = aclbuf;
   xab.xab$w_aclsiz = sizeof (aclbuf);
-  status = sys$open (&fab, 0, 0);
+  status = SYS$OPEN (&fab, 0, 0);
   if (! (status & 1))
     return -1;
-  sys$close (&fab, 0, 0);
+  SYS$CLOSE (&fab, 0, 0);
   /* Check system access */
   if (CHECKPRIV (PRV$V_SYSPRV) && WRITEABLE (XAB$V_SYS))
     return 0;
@@ -3246,9 +3217,9 @@ creat_copy_attrs (old, new)
       xabpro.xab$l_aclbuf = aclbuf;
       xabpro.xab$w_aclsiz = sizeof aclbuf;
       /* Call $OPEN to fill in the fab & xabpro fields. */
-      if (sys$open (&fab, 0, 0) & 1)
+      if (SYS$OPEN (&fab, 0, 0) & 1)
 	{
-	  sys$close (&fab, 0, 0);
+	  SYS$CLOSE (&fab, 0, 0);
 	  fab.fab$l_alq = 0;	/* zero the allocation quantity */
 	  if (xabpro.xab$w_acllen > 0)
 	    {
@@ -3259,8 +3230,8 @@ creat_copy_attrs (old, new)
 		{
 		  xabpro.xab$l_aclbuf = (char *) alloca (xabpro.xab$w_acllen);
 		  xabpro.xab$w_aclsiz = xabpro.xab$w_acllen;
-		  if (sys$open (&fab, 0, 0) & 1)
-		    sys$close (&fab, 0, 0);
+		  if (SYS$OPEN (&fab, 0, 0) & 1)
+		    SYS$CLOSE (&fab, 0, 0);
 		  else
 		    old = 0;
 		}
@@ -3286,14 +3257,14 @@ creat_copy_attrs (old, new)
   if (old)
     fab_final_pro = xabpro.xab$w_pro;
   else
-    sys$setdfprot (0, &fab_final_pro);
+    SYS$SETDFPROT (0, &fab_final_pro);
   xabpro.xab$w_pro &= 0xff0f; /* set O:rewd for now. This is set back later. */
 
   /* Create the new file with either default attrs or attrs copied
      from old file. */
   if (!(SYS$CREATE (&fab, 0, 0) & 1))
     return -1;
-  sys$close (&fab, 0, 0);
+  SYS$CLOSE (&fab, 0, 0);
   /* As this is a "replacement" for creat, return a file descriptor
      opened for writing. */
   return open (new, O_WRONLY);
@@ -3462,18 +3433,18 @@ vms_truncate (fn)
 
   /* This gibberish opens the file, positions to the first record, and
      deletes all records from there until the end of file. */
-  if ((sys$open (&xfab) & 01) == 01)
+  if ((SYS$OPEN (&xfab) & 01) == 01)
     {
-      if ((sys$connect (&xrab) & 01) == 01 &&
-	  (sys$find (&xrab) & 01) == 01 &&
-	  (sys$truncate (&xrab) & 01) == 01)
+      if ((SYS$CONNECT (&xrab) & 01) == 01 &&
+	  (SYS$FIND (&xrab) & 01) == 01 &&
+	  (SYS$TRUNCATE (&xrab) & 01) == 01)
 	status = 0;
       else
 	status = -1;
     }
   else
     status = -1;
-  sys$close (&xfab);
+  SYS$CLOSE (&xfab);
   return status;
 }
 
@@ -3509,14 +3480,14 @@ get_uaf_name (uname)
   /* initialize rab fields */
   uaf_rab.rab$l_fab = &uaf_fab;
   /* open the User Authorization File */
-  status = sys$open (&uaf_fab);
+  status = SYS$OPEN (&uaf_fab);
   if (!(status&1))
     {
       errno = EVMSERR;
       vaxc$errno = status;
       return 0;
     }
-  status = sys$connect (&uaf_rab);
+  status = SYS$CONNECT (&uaf_rab);
   if (!(status&1))
     {
       errno = EVMSERR;
@@ -3529,7 +3500,7 @@ get_uaf_name (uname)
   uaf_rab.rab$b_rac = RAB$C_KEY;
   uaf_rab.rab$l_ubf = (char *)&retuaf;
   uaf_rab.rab$w_usz = sizeof retuaf;
-  status = sys$get (&uaf_rab);
+  status = SYS$GET (&uaf_rab);
   if (!(status&1))
     {
       errno = EVMSERR;
@@ -3537,14 +3508,14 @@ get_uaf_name (uname)
       return 0;
     }
   /* close the User Authorization File */
-  status = sys$disconnect (&uaf_rab);
+  status = SYS$DISCONNECT (&uaf_rab);
   if (!(status&1))
     {
       errno = EVMSERR;
       vaxc$errno = status;
       return 0;
     }
-  status = sys$close (&uaf_fab);
+  status = SYS$CLOSE (&uaf_fab);
   if (!(status&1))
     {
       errno = EVMSERR;
@@ -3573,14 +3544,14 @@ get_uaf_uic (uic)
   /* initialize rab fields */
   uaf_rab.rab$l_fab = &uaf_fab;
   /* open the User Authorization File */
-  status = sys$open (&uaf_fab);
+  status = SYS$OPEN (&uaf_fab);
   if (!(status&1))
     {
       errno = EVMSERR;
       vaxc$errno = status;
       return 0;
     }
-  status = sys$connect (&uaf_rab);
+  status = SYS$CONNECT (&uaf_rab);
   if (!(status&1))
     {
       errno = EVMSERR;
@@ -3594,7 +3565,7 @@ get_uaf_uic (uic)
   uaf_rab.rab$b_rac = RAB$C_KEY;
   uaf_rab.rab$l_ubf = (char *)&retuaf;
   uaf_rab.rab$w_usz = sizeof retuaf;
-  status = sys$get (&uaf_rab);
+  status = SYS$GET (&uaf_rab);
   if (!(status&1))
     {
       errno = EVMSERR;
@@ -3602,14 +3573,14 @@ get_uaf_uic (uic)
       return 0;
     }
   /* close the User Authorization File */
-  status = sys$disconnect (&uaf_rab);
+  status = SYS$DISCONNECT (&uaf_rab);
   if (!(status&1))
     {
       errno = EVMSERR;
       vaxc$errno = status;
       return 0;
     }
-  status = sys$close (&uaf_fab);
+  status = SYS$CLOSE (&uaf_fab);
   if (!(status&1))
     {
       errno = EVMSERR;
@@ -3887,25 +3858,25 @@ rename_sans_version (from,to)
   to_fab.fab$b_fns = strlen (vms_file_written);
 
   /* Now set the file protection to the correct value */
-  sys$open (&to_fab, 0, 0);	/* This fills in the nam$w_fid fields */
+  SYS$OPEN (&to_fab, 0, 0);	/* This fills in the nam$w_fid fields */
 
   /* Copy these fields into the fib */
   fib.fib$r_fid_overlay.fib$w_fid[0] = to_nam.nam$w_fid[0];
   fib.fib$r_fid_overlay.fib$w_fid[1] = to_nam.nam$w_fid[1];
   fib.fib$r_fid_overlay.fib$w_fid[2] = to_nam.nam$w_fid[2];
 
-  sys$close (&to_fab, 0, 0);
+  SYS$CLOSE (&to_fab, 0, 0);
 
-  stat = sys$assign (&disk, &chan, 0, 0); /* open a channel to the disk */
+  stat = SYS$ASSIGN (&disk, &chan, 0, 0); /* open a channel to the disk */
   if (!stat)
-    lib$signal (stat);
-  stat = sys$qiow (0, chan, IO$_MODIFY, iosb, 0, 0, &fib_d,
+    LIB$SIGNAL (stat);
+  stat = SYS$QIOW (0, chan, IO$_MODIFY, iosb, 0, 0, &fib_d,
 		   0, 0, 0, &fib_attr, 0);
   if (!stat)
-    lib$signal (stat);
-  stat = sys$dassgn (chan);
+    LIB$SIGNAL (stat);
+  stat = SYS$DASSGN (chan);
   if (!stat)
-    lib$signal (stat);
+    LIB$SIGNAL (stat);
   strcpy (vms_file_written, to_esn); /* We will write this to the terminal*/
   return 0;
 }
