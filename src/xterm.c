@@ -1832,8 +1832,8 @@ construct_mouse_click (result, event, f)
     XFASTINT (result->x) = column;
     XFASTINT (result->y) = row;
 #endif
-    XFASTINT (result->x) = event->x;
-    XFASTINT (result->y) = event->y;
+    XSET (result->x, Lisp_Int, event->x);
+    XSET (result->y, Lisp_Int, event->y);
     XSET (result->frame_or_window, Lisp_Frame, f);
   }
 }
@@ -1856,8 +1856,8 @@ construct_menu_click (result, event, f)
 			  ? up_modifier 
 			  : down_modifier));
 
-  XFASTINT (result->x) = event->x;
-  XSETINT (result->y, -1);
+  XSET (result->x, Lisp_Int, event->x);
+  XSET (result->y, Lisp_Int, -1);
   XSET (result->frame_or_window, Lisp_Frame, f);
 }
 
@@ -1965,6 +1965,11 @@ note_mouse_highlight (f, x, y)
 	  Lisp_Object *overlay_vec;
 	  int len, noverlays, ignor1;
 
+	  /* Make the window's buffer temporarily current for
+	     overlays_at and compute_char_face.  */
+	  struct buffer *obuf = current_buffer;
+	  current_buffer = XBUFFER (w->buffer);
+
 	  /* Yes.  Clear the display of the old active region, if any.  */
 	  clear_mouse_face ();
 
@@ -1977,7 +1982,7 @@ note_mouse_highlight (f, x, y)
 	  /* Put all the overlays we want in a vector in overlay_vec.
 	     Store the length in len.  */
 	  noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len, &ignor1);
-	  sort_overlays (overlay_vec, noverlays, w);
+	  noverlays = sort_overlays (overlay_vec, noverlays, w);
 
 	  /* Find the highest priority overlay that has a mouse-face prop.  */
 	  overlay = Qnil;
@@ -2025,7 +2030,7 @@ note_mouse_highlight (f, x, y)
 
 	      beginning = Fmarker_position (w->start);
 	      XSET (end, Lisp_Int,
-		    (BUF_ZV (XBUFFER (w->buffer))
+		    (BUF_Z (XBUFFER (w->buffer))
 		     - XFASTINT (w->window_end_pos)));
 	      before
 		= Fprevious_single_property_change (make_number (pos + 1),
@@ -2045,6 +2050,7 @@ note_mouse_highlight (f, x, y)
 	      /* Display it as active.  */
 	      show_mouse_face (1);
 	    }
+	  current_buffer = obuf;
 	}
       else if (pos <= 0)
 	clear_mouse_face ();
