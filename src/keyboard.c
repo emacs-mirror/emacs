@@ -398,19 +398,10 @@ static volatile struct input_event *kbd_store_ptr;
    dequeuing functions?  Such a flag could be screwed up by interrupts
    at inopportune times.  */
 
-/* If this flag is a frame, we check mouse_moved to see when the
+/* If this flag is non-nil, we check mouse_moved to see when the
    mouse moves, and motion events will appear in the input stream.
    Otherwise, mouse motion is ignored.  */
 static Lisp_Object do_mouse_tracking;
-
-#ifdef HAVE_MOUSE
-/* The window system handling code should set this if the mouse has
-   moved since the last call to the mouse_position_hook.  Calling that
-   hook should clear this.  Code assumes that if this is set, it can
-   call mouse_position_hook to get the promised position, so don't set
-   it unless you're prepared to substantiate the claim!  */
-int mouse_moved;
-#endif /* HAVE_MOUSE */
 
 /* Symbols to head events.  */
 Lisp_Object Qmouse_movement;
@@ -2273,10 +2264,27 @@ Normally, mouse motion is ignored.")
 
   record_unwind_protect (tracking_off, do_mouse_tracking);
 
-  XSETFRAME (do_mouse_tracking, selected_frame);
+  do_mouse_tracking = Qt;
 
   val = Fprogn (args);
   return unbind_to (count, val);
+}
+
+/* If mouse has moved on some frame, return one of those frames.
+   Return 0 otherwise.  */
+
+static FRAME_PTR
+some_mouse_moved ()
+{
+  Lisp_Object tail, frame;
+
+  FOR_EACH_FRAME (tail, frame)
+    {
+      if (XFRAME (frame)->mouse_moved)
+	return XFRAME (frame);
+    }
+
+  return 0;
 }
 
 #endif	/* HAVE_MOUSE */
@@ -2295,7 +2303,7 @@ readable_events ()
   if (kbd_fetch_ptr != kbd_store_ptr)
     return 1;
 #ifdef HAVE_MOUSE
-  if (FRAMEP (do_mouse_tracking) && mouse_moved)
+  if (!NILP (do_mouse_tracking) && some_mouse_moved ())
     return 1;
 #endif
   if (single_kboard)
@@ -2480,7 +2488,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
       if (kbd_fetch_ptr != kbd_store_ptr)
 	break;
 #ifdef HAVE_MOUSE
-      if (FRAMEP (do_mouse_tracking) && mouse_moved)
+      if (!NILP (do_mouse_tracking) && some_mouse_moved ())
 	break;
 #endif
 
@@ -2502,7 +2510,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
       if (kbd_fetch_ptr != kbd_store_ptr)
 	break;
 #ifdef HAVE_MOUSE
-      if (FRAMEP (do_mouse_tracking) && mouse_moved)
+      if (!NILP (do_mouse_tracking) && some_mouse_moved ())
 	break;
 #endif
       {
@@ -2565,8 +2573,8 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
       else if (event->kind == selection_clear_event)
 	{
 #ifdef HAVE_X11
-	  x_handle_selection_clear (event);
 	  kbd_fetch_ptr = event + 1;
+	  x_handle_selection_clear (event);
 #else
 	  /* We're getting selection request events, but we don't have
              a window system.  */
@@ -2663,9 +2671,9 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
     }
 #ifdef HAVE_MOUSE
   /* Try generating a mouse motion event.  */
-  else if (FRAMEP (do_mouse_tracking) && mouse_moved)
+  else if (!NILP (do_mouse_tracking) && some_mouse_moved ())
     {
-      FRAME_PTR f = XFRAME (do_mouse_tracking);
+      FRAME_PTR f = some_mouse_moved ();
       Lisp_Object bar_window;
       enum scroll_bar_part part;
       Lisp_Object x, y;
