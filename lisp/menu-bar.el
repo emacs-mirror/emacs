@@ -904,9 +904,12 @@ Do the same for the keys of the same name."
   '(menu-item "5x5" 5x5
 	      :help "Fill in all the squares on a 5x5 board"))
 
-(define-key menu-bar-tools-menu [calculator]
-  '(menu-item "Calculator" calculator
-	      :help "Invoke the Emacs built-in scientific calculator"))
+(define-key menu-bar-tools-menu [simple-calculator]
+  '(menu-item "Simple Calculator" calculator
+	      :help "Invoke the Emacs built-in quick calculator"))
+(define-key menu-bar-tools-menu [calc]
+  '(menu-item "Programmable Calculator" calc
+	      :help "Invoke the Emacs built-in full scientific calculator"))
 (define-key menu-bar-tools-menu [calendar]
   '(menu-item "Display Calendar" calendar))
 
