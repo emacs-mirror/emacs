@@ -1,3 +1,8 @@
+2002-01-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* sound.c (Fplay_sound): Initialize header_size also for :data
+        case.
+
 2002-01-14  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	Support for the --color command-line argument and tty-color-mode
