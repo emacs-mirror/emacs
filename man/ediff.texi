@@ -899,26 +899,14 @@ child Ediff session for comparing current Emacs regions in buffers A, B, or
 C as follows:
 
 @emph{If you are comparing 2 files or buffers:}
-Ediff would compare current Emacs regions in buffers A and B.
+Ediff will ask you to select regions in buffers A and B.
 
-@emph{If you are comparing 3 files or buffers simultaneously:} Ediff would
-compare the current Emacs regions in the buffers of your choice (you will
-be asked which two of the three buffers to use).
+@emph{If you are comparing 3 files or buffers simultaneously:} Ediff will
+ask you to choose buffers and then select regions inside those buffers.
 
 @emph{If you are merging files or buffers (with or without ancestor):}
-Ediff would take the current region in the merge buffer and compare
-it to the current region in the buffer of your choice (A or B).
-
-@emph{Note: In all these cases you must first switch to the appropriate
-Emacs buffers and manually set the regions that you want to compare.}
-
-Highlighting set by the parent Ediff session is removed, to avoid interference
-with highlighting of the child session.  When done with the child session, type
-@kbd{C-l} in the parent's control panel to restore the original highlighting.
-
-If you temporarily switch to the parent session, parent highlighting will be
-restored.  If you then come back to the child session, you may want to remove
-parent highlighting, so it won't interfere.  Typing @kbd{h} may help here.
+Ediff will ask you to choose which buffer (A or B) to compare with the
+merge buffer and then select regions in those buffers.
 
 @end table
 
@@ -1050,9 +1038,20 @@ memorize them.
 
 In directory comparison or merging, a session group panel displays only the
 files common to all directories involved.  The differences are kept in a
-separate buffer and are conveniently displayed by typing @kbd{D} to the
-corresponding session group panel.  Thus, as an added benefit, Ediff can be
-used to compare the contents of up to three directories.
+separate @emph{directory difference buffer} and are conveniently displayed
+by typing @kbd{D} to the corresponding session group panel.  Thus, as an
+added benefit, Ediff can be used to compare the contents of up to three
+directories.
+
+@cindex Directory difference buffer
+Sometimes it is desirable to copy some files from one directory to another
+without exiting Ediff. The @emph{directory difference buffer}, which is
+displayed by typing @kbd{D} as discussed above, can be used for this
+purpose. If a file is, say, in Ediff's Directory A, but is missing in
+Ediff's Directory B (Ediff will refuse to override existing files), then
+typing @kbd{C} or clicking mouse button 2 over that file (which must be
+displayed in directory difference buffer) will copy that file from
+Directory A to Directory B.
 
 Session records in session group panels are also marked with @kbd{+}, for
 active sessions, and with @kbd{-}, for finished sessions.
@@ -2440,6 +2439,7 @@ Francois Pinard (pinard@@iro.umontreal.ca),
 Tibor Polgar (tlp00@@spg.amdahl.com),
 David Prince (dave0d@@fegs.co.uk),
 Paul Raines (raines@@slac.stanford.edu),
+Stefan Reicher (xsteve@@riic.at),
 Bill Richter (richter@@math.nwu.edu),
 C.S.@: Roberson (roberson@@aur.alcatel.com),
 Kevin Rodgers (kevin.rodgers@@ihs.com),
