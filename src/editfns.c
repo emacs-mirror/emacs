@@ -1056,16 +1056,22 @@ It may contain %s or %d or %c to print successive following arguments.\n\
 %s means print an argument as a string, %d means print as number in decimal,\n\
 %c means print a number as a single character.\n\
 The argument used by %s must be a string or a symbol;\n\
-the argument used by %d or %c must be a number.")
+the argument used by %d or %c must be a number.\n\
+If the first argument is nil, clear any existing message; let the\n\
+minibuffer contents show.")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
 {
-  register Lisp_Object val;
-
-  val = Fformat (nargs, args);
-  message ("%s", XSTRING (val)->data);
-  return val;
+  if (NILP (args[0]))
+    message (0);
+  else
+    {
+      register Lisp_Object val;
+      val = Fformat (nargs, args);
+      message ("%s", XSTRING (val)->data);
+      return val;
+    }
 }
 
 DEFUN ("format", Fformat, Sformat, 1, MANY, 0,
