@@ -72,7 +72,10 @@ munge_doc_file_name (name)
 /* Extract a doc string from a file.  FILEPOS says where to get it.
    If it is an integer, use that position in the standard DOC-... file.
    If it is (FILE . INTEGER), use FILE as the file name
-   and INTEGER as the position in that file.  */
+   and INTEGER as the position in that file.
+   But if INTEGER is negative, make it positive.
+   (A negative integer is used for user variables, so we can distinguish
+   them without actually fetching the doc string.)  */
 
 static Lisp_Object
 get_doc_string (filepos)
@@ -99,6 +102,8 @@ get_doc_string (filepos)
     {
       file = XCONS (filepos)->car;
       position = XINT (XCONS (filepos)->cdr);
+      if (position < 0)
+	position = - position;
     }
   else
     return Qnil;
