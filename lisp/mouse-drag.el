@@ -205,6 +205,7 @@ To test this function, evaluate:
 	 col mouse-col-delta window-last-col
 	 (scroll-col-delta 0)
 	 adjusted-mouse-col-delta
+	 adjusted-mouse-delta
 	 ;; be conservative about allowing horizontal scrolling
 	 (col-scrolling-p (mouse-drag-should-do-col-scrolling)))
     (select-window start-window)
