@@ -2293,7 +2293,7 @@ typically for purposes of moderating a list."
 	  (set-buffer tembuf)
 	  (insert-buffer-substring mailbuf)
 	  (goto-char (point-min))
-	  ;; Delete any Sender field, since that's not specifyable.
+	  ;; Delete any Sender field, since that's not specifiable.
 	  ; Only delete Sender fields in the actual header.
 	  (re-search-forward "^$" nil 'move)
 	  ; Using "while" here rather than "if" because some buggy mail
@@ -2446,7 +2446,9 @@ specifying headers which should not be copied into the new message."
       (if (rmail-start-mail nil nil nil nil nil rmail-buffer
 			    (list (list action)))
 	  ;; Insert original text as initial text of new draft message.
-	  (progn
+	  ;; Bind inhibit-read-only since the header delimiter
+	  ;; of the previous message was probably read-only.
+	  (let ((inhibit-read-only t))
 	    ;; We keep the rmail buffer and message number in these 
 	    ;; buffer-local vars in the sendmail buffer,
 	    ;; so that the rmail-only-expunge can relocate the message number.
