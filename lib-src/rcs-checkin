@@ -1,0 +1,75 @@
+#!/bin/sh
+
+case $# in
+0)
+	echo "rcs-checkin: usage: rcs-checkin file ..."
+	echo "rcs-checkin: function: checks file.~*~ and file into a new RCS file"
+	echo "rcs-checkin: function: uses the file's first line for the description"
+esac
+
+# expr pattern to extract owner from ls -l output
+ls_owner_pattern='[^ ][^ ]*  *[^ ][^ ]*  *\([^ ][^ ]*\)'
+
+for file
+do
+	# Check that file is readable.
+	<$file || exit
+
+	# Make it easier to say `rcs-checkin *'
+	# by ignoring file names that already contain `~', or end in `,v'.
+	case $file in
+	*~* | *,v) continue
+	esac
+	# Ignore non-files too.
+	test -f "$file" || continue
+
+	# If the RCS file does not already exist,
+	# initialize it with a description from $file's first line.
+	rlog -R "$file" >/dev/null 2>&1 ||
+	rcs -i -q -t-"`sed 1q $file`" "$file" || exit
+
+	# Get list of old files.
+	oldfiles=`
+		ls $file.~[0-9]*~ 2>/dev/null |
+		sort -t~ -n +1
+	`
+
+	# Check that they are properly sorted by date.
+	case $oldfiles in
+	?*)
+		oldfiles_by_date=`ls -rt $file $oldfiles`
+		test " $oldfiles
+$file" = " $oldfiles_by_date" || {
+			echo >&2 "rcs-checkin: skipping $file, because its mod times are out of order.
+
+Sorted by mod time:
+$oldfiles_by_date
+
+Sorted by name:
+$oldfiles
+$file"
+			continue
+		}
+	esac
+
+	echo >&2 rcs-checkin: checking in: $oldfiles $file
+
+	# Save $file as $file.~-~ temporarily.
+	mv "$file" "$file.~-~" || exit
+
+	# Rename each old file to $file, and check it in.
+	for oldfile in $oldfiles
+	do
+		mv "$oldfile" "$file" || exit
+		ls_l=`ls -l "$file"` || exit
+		owner=-w`expr " $ls_l" : " $ls_owner_pattern"` || owner=
+		ci -d -l -q $owner "$file" </dev/null || exit
+	done
+
+	# Bring $file back from $file.~-~, and check it in.
+	mv "$file.~-~" "$file" || exit
+	ls_l=`ls -l "$file"` || exit
+	owner=-w`expr " $ls_l" : " $ls_owner_pattern"` || owner=
+	ci -d -q -u $owner -m"entered into RCS" "$file" || exit
+done
+
