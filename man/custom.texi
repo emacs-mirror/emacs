@@ -178,10 +178,11 @@ region highlighted (currently only when using X).  @xref{Mark}.
 
 @cindex user option
   Emacs has many @dfn{user options} which have values that you can set
-in order to customize various commands.  Most user options are
-documented in this manual.  Each user option is actually a Lisp
-variable (@pxref{Variables}), so their names appear in the Variable
-Index (@pxref{Variable Index}).
+in order to customize various commands.  Many user options are
+documented in this manual.  Most user options are actually Lisp
+variables (@pxref{Variables}), so their names appear in the Variable
+Index (@pxref{Variable Index}).  The rest are faces and their
+attributes (@pxref{Faces}).
 
 @findex customize
 @cindex customization buffer
@@ -203,7 +204,7 @@ the active fields and other features.
 * Saving Customizations::    Details of saving customizations.
 * Face Customization::       How to edit the attributes of a face.
 * Specific Customization::   Making a customization buffer for specific
-                                options, faces, or groups.
+                                variables, faces, or groups.
 @end menu
 
 @node Customization Groups
@@ -266,7 +267,7 @@ link to another group.
 mainly it contains other groups, which contain more groups, which
 contain the user options.  By browsing the hierarchy of groups, you
 will eventually find the feature you are interested in customizing.
-Then you can use the customization buffer to set the options and faces
+Then you can use the customization buffer to set the options
 pertaining to that feature.  You can also go straight to a particular
 group by name, using the command @kbd{M-x customize-group}.
 
@@ -274,45 +275,45 @@ group by name, using the command @kbd{M-x customize-group}.
   You can view the structure of customization groups on a larger scale
 with @kbd{M-x customize-browse}.  This command creates a special kind of
 customization buffer which shows only the names of the groups (and
-options and faces), and their structure.
+variables and faces), and their structure.
 
   In this buffer, you can show the contents of a group by invoking
 @samp{[+]}.  When the group contents are visible, this button changes to
 @samp{[-]}; invoking that hides the group contents.
 
-  Each group, option or face name in this buffer has an active field
-which says @samp{[Group]}, @samp{[Option]} or @samp{[Face]}.  Invoking
+  Each group, variable, or face name in this buffer has an active field
+which says @samp{[Group]}, @samp{[Variable]} or @samp{[Face]}.  Invoking
 that active field creates an ordinary customization buffer showing just
-that group and its contents, just that option, or just that face.
+that group and its contents, just that variable, or just that face.
 This is the way to set values in it.
 
-@node Changing an Option
-@subsection Changing an Option
+@node Changing a Variable
+@subsection Changing a Variable
 
-  Here is an example of what a user option looks like in the
+  Here is an example of what a variable looks like in the
 customization buffer:
 
 @smallexample
 Kill Ring Max: [Hide] 60
-   [State]: this option is unchanged from its standard setting.
+   [State]: this variable is unchanged from its standard setting.
 Maximum length of kill ring before oldest elements are thrown away.
 @end smallexample
 
   The text following @samp{[Hide]}, @samp{60} in this case, indicates
-the current value of the option.  If you see @samp{[Show]} instead of
+the current value of the variable.  If you see @samp{[Show]} instead of
 @samp{[Hide]}, it means that the value is hidden; the customization
 buffer initially hides values that take up several lines.  Invoke
 @samp{[Show]} to show the value.
 
   The line after the option name indicates the @dfn{customization state}
-of the option: in the example above, it says you have not changed the
+of the variable: in the example above, it says you have not changed the
 option yet.  The word @samp{[State]} at the beginning of this line is
 active; you can get a menu of various operations by invoking it with
 @kbd{Mouse-1} or @key{RET}.  These operations are essential for
-customizing the user option.
+customizing the variable.
 
   The line after the @samp{[State]} line displays the beginning of the
-option's documentation string.  If there are more lines of
+variable's documentation string.  If there are more lines of
 documentation, this line ends with @samp{[More]}; invoke this to show
 the full documentation string.
 
@@ -324,22 +325,22 @@ another number.
 change to say that you have edited the value:
 
 @smallexample
-[State]: you have edited the value as text, but not set the option.
+[State]: you have edited the value as text, but not set the variable.
 @end smallexample
 
 @cindex setting option value
-  Editing the value does not actually set the option.  To do
-that, you must @dfn{set} the option.  To do this, invoke the word
+  Editing the value does not actually set the variable.  To do
+that, you must @dfn{set} it.  To do this, invoke the word
 @samp{[State]} and choose @samp{Set for Current Session}.
 
-  The state of the option changes visibly when you set it:
+  The state of the variable changes visibly when you set it:
 
 @smallexample
-[State]: you have set this option, but not saved it for future sessions.
+[State]: you have set this variable, but not saved it for future sessions.
 @end smallexample
 
    You don't have to worry about specifying a value that is not valid;
-setting the option checks for validity and will not really install an
+setting the variable checks for validity and will not really install an
 unacceptable value.
 
 @kindex M-TAB @r{(customization buffer)}
@@ -348,15 +349,15 @@ unacceptable value.
 command name, or anything else for which completion is defined, you can
 type @kbd{M-@key{TAB}} (@code{widget-complete}) to do completion.
 
-  Some options have a small fixed set of possible legitimate values.
-These options don't let you edit the value textually.  Instead, an
+  Some variables have a small fixed set of possible legitimate values.
+These variables don't let you edit the value textually.  Instead, an
 active field @samp{[Value Menu]} appears before the value; invoke this
 field to edit the value.  For a boolean ``on or off'' value, the active
 field says @samp{[Toggle]}, and it changes to the other value.
 @samp{[Value Menu]} and @samp{[Toggle]} edit the buffer; the changes
 take effect when you use the @samp{Set for Current Session} operation.
 
-  Some options have values with complex structure.  For example, the
+  Some variables have values with complex structure.  For example, the
 value of @code{file-coding-system-alist} is an association list.  Here
 is how it appears in the customization buffer:
 
@@ -379,7 +380,7 @@ File Coding System Alist: [Hide]
             Decoding: undecided
             Encoding: nil
 [INS]
-   [State]: this option is unchanged from its standard setting.
+   [State]: this variable is unchanged from its standard setting.
 Alist to decide a coding system to use for a file I/O operation. [Hide]
 The format is ((PATTERN . VAL) ...),
 where PATTERN is a regular expression matching a file name,
@@ -415,37 +416,37 @@ previous active or editable field.
 when they are finished editing a field.  To insert a newline within an
 editable field, use @kbd{C-o} or @kbd{C-q C-j}.
 
-@cindex saving option value
-@cindex customized options, saving
-  Setting the option changes its value in the current Emacs session;
+@cindex saving variable value
+@cindex customized variables, saving
+  Setting the variable changes its value in the current Emacs session;
 @dfn{saving} the value changes it for future sessions as well.  To
-save the option, invoke @samp{[State]} and select the @samp{Save for
+save the variable, invoke @samp{[State]} and select the @samp{Save for
 Future Sessions} operation.  This works by writing code so as to set
-the option again, each time you start Emacs (@pxref{Saving
+the variable again, each time you start Emacs (@pxref{Saving
 Customizations}).
 
-  You can also restore the option to its standard value by invoking
+  You can also restore the variable to its standard value by invoking
 @samp{[State]} and selecting the @samp{Erase Customization} operation.
 There are actually three reset operations:
 
 @table @samp
 @item Reset
-If you have made some modifications and not yet set the option,
+If you have made some modifications and not yet set the variable,
 this restores the text in the customization buffer to match
 the actual value.
 
 @item Reset to Saved
-This restores the value of the option to the last saved value,
+This restores the value of the variable to the last saved value,
 and updates the text accordingly.
 
 @item Erase Customization
-This sets the option to its standard value, and updates the text
+This sets the variable to its standard value, and updates the text
 accordingly.  This also eliminates any saved value for the option,
 so that you will get the standard value in future Emacs sessions.
 
 @item Use Backup Value
-This sets the option to a previous value that was set in the
-customization buffer in this session.  If you customize an option
+This sets the variable to a previous value that was set in the
+customization buffer in this session.  If you customize a variable
 and then reset it, which discards the customized value,
 you can get the customized value back again with this operation.
 @end table
@@ -455,7 +456,7 @@ you can get the customized value back again with this operation.
 customization.  Use the @samp{Add Comment} item from the
 @samp{[State]} menu to create a field for entering the comment.  The
 comment you enter will be saved, and displayed again if you again view
-the same option in a customization buffer, even in another session.
+the same variable in a customization buffer, even in another session.
 
   The state of a group indicates whether anything in that group has been
 edited, set or saved.  You can select @samp{Set for Current Session},
@@ -477,8 +478,9 @@ Invoking @samp{[Finish]} either buries or kills this customization
 buffer according to the setting of the option
 @code{custom-buffer-done-function}; the default is to bury the buffer.
 Each of the other fields performs an operation---set, save or
-reset---on each of the items in the buffer that could meaningfully be
-set, saved or reset.
+reset---on each of the options in the buffer that could meaningfully
+be set, saved or reset.  They do not operate on options whose values
+are hidden.
 
 @node Saving Customizations
 @subsection Saving Customizations
@@ -525,8 +527,8 @@ customizations you might have on your init file.
 @cindex italic font
 @cindex fonts and faces
 
-  In addition to user options, some customization groups also include
-faces.  When you show the contents of a group, both the user options and
+  In addition to variables, some customization groups also include
+faces.  When you show the contents of a group, both the variables and
 the faces in the group appear in the customization buffer.  Here is an
 example of how a face looks:
 
@@ -568,7 +570,7 @@ black-and-white display, the colors you can use for the background are
 stipple patterns instead of a color.
 
   Setting, saving and resetting a face work like the same operations for
-options (@pxref{Changing an Option}).
+variables (@pxref{Changing a Variable}).
 
   A face can specify different appearances for different types of
 display.  For example, a face can make text red on a color display, but
@@ -588,37 +590,37 @@ to clear out the attribute.
 @subsection Customizing Specific Items
 
   Instead of finding the options you want to change by moving down
-through the structure of groups, you can specify the particular option,
-face or group that you want to customize.
+through the structure of groups, you can specify the particular variable,
+face, or group that you want to customize.
 
 @table @kbd
-@item M-x customize-option @key{RET} @var{option} @key{RET}
-Set up a customization buffer with just one option, @var{option}.
+@item M-x customize-variable @key{RET} @var{variable} @key{RET}
+Set up a customization buffer with just one variable, @var{variable}.
 @item M-x customize-face @key{RET} @var{face} @key{RET}
 Set up a customization buffer with just one face, @var{face}.
 @item M-x customize-group @key{RET} @var{group} @key{RET}
 Set up a customization buffer with just one group, @var{group}.
 @item M-x customize-apropos @key{RET} @var{regexp} @key{RET}
-Set up a customization buffer with all the options, faces and groups
+Set up a customization buffer with all the variables, faces and groups
 that match @var{regexp}.
 @item M-x customize-changed-options @key{RET} @var{version} @key{RET}
-Set up a customization buffer with all the options, faces and groups
+Set up a customization buffer with all the variables, faces and groups
 whose meaning has changed since Emacs version @var{version}.
 @item M-x customize-saved
-Set up a customization buffer containing all options and faces that you
+Set up a customization buffer containing all variables and faces that you
 have saved with customization buffers.
 @item M-x customize-customized
-Set up a customization buffer containing all options and faces that you
+Set up a customization buffer containing all variables and faces that you
 have customized but not saved.
 @end table
 
-@findex customize-option
-  If you want to alter a particular user option with the
-customization buffer, and you know its name, you can use the command
-@kbd{M-x customize-option} and specify the option name.  This sets up
-the customization buffer with just one option---the one that you asked
-for.  Editing, setting and saving the value work as described above, but
-only for the specified option.
+@findex customize-variable
+  If you want to alter a particular variable with the customization
+buffer, and you know its name, you can use the command @kbd{M-x
+customize-variable} and specify the variable name.  This sets up the
+customization buffer with just one variable---the one that you asked
+for.  Editing, setting and saving the value work as described above,
+but only for the specified variable.
 
 @findex customize-face
   Likewise, you can modify a specific face, chosen by name, using
@@ -650,11 +652,11 @@ definitions have been changed since the specified version.
 
 @findex customize-saved
 @findex customize-customized
-  If you change option values and then decide the change was a mistake,
-you can use two special commands to revisit your previous changes.  Use
-@kbd{M-x customize-saved} to look at the options and faces that you have
-saved.  Use @kbd{M-x customize-customized} to look at the options and
-faces that you have set but not saved.
+  If you change option values and then decide the change was a
+mistake, you can use two special commands to revisit your previous
+changes.  Use @kbd{M-x customize-saved} to look at the options that
+you have saved.  Use @kbd{M-x customize-customized} to look at the
+options that you have set but not saved.
 
 @node Variables
 @section Variables
@@ -679,14 +681,14 @@ turn on the feature---since you have to pick one particular value when you
 set the variable---is @code{t}.
 
   Emacs uses many Lisp variables for internal record keeping, but the
-most interesting variables for a non-programmer user are the @dfn{user
-options}, the variables that are meant for users to change.  Each user
-option that you can set with the customization buffer is, in fact, a
-Lisp variable.  Emacs does not (usually) change the values of these
-variables; instead, you set the values, and thereby alter and control
-the behavior of certain Emacs commands.  Use of the customization
-buffer is explained above; here we describe other aspects of Emacs
-variables.
+most interesting variables for a non-programmer user are those that
+are also @dfn{user options}, the variables that are meant for users to
+change.  Each user option that you can set with the customization
+buffer is (if it is not a face) in fact a Lisp variable.  Emacs does
+not (usually) change the values of these variables; instead, you set
+the values, and thereby alter and control the behavior of certain
+Emacs commands.  Use of the customization buffer is explained above;
+here we describe other aspects of Emacs variables.
 
 @menu
 * Examining::	        Examining or setting one variable's value.
@@ -734,10 +736,10 @@ variable is a user option.  @kbd{C-h v} is not restricted to user
 options; it allows any variable name.
 
 @findex set-variable
-  The most convenient way to set a specific user option is with @kbd{M-x
-set-variable}.  This reads the variable name with the minibuffer (with
-completion), and then reads a Lisp expression for the new value using
-the minibuffer a second time.  For example,
+  The most convenient way to set a specific user option variable is
+with @kbd{M-x set-variable}.  This reads the variable name with the
+minibuffer (with completion), and then reads a Lisp expression for the
+new value using the minibuffer a second time.  For example,
 
 @example
 M-x set-variable @key{RET} fill-column @key{RET} 75 @key{RET}
@@ -1092,10 +1094,10 @@ so you can judge.
   The @code{eval} ``variable,'' and certain actual variables, create a
 special risk; when you visit someone else's file, local variable
 specifications for these could affect your Emacs in arbitrary ways.
-Therefore, the option @code{enable-local-eval} controls whether Emacs
+Therefore, the variable @code{enable-local-eval} controls whether Emacs
 processes @code{eval} variables, as well variables with names that end
 in @samp{-hook}, @samp{-hooks}, @samp{-function} or @samp{-functions},
-and certain other variables.  The three possibilities for the option's
+and certain other variables.  The three possibilities for the variable's
 value are @code{t}, @code{nil}, and anything else, just as for
 @code{enable-local-variables}.  The default is @code{maybe}, which is
 neither @code{t} nor @code{nil}, so normally Emacs does ask for
