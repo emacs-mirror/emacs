@@ -314,11 +314,13 @@ and the buffer that is killed or buried is the one in that window."
     (save-selected-window
       (if window
 	  (select-window window))
-      (switch-to-buffer (other-buffer)))
+      (or (window-minibuffer-p)
+	  (window-dedicated-p (selected-window))
+	  (switch-to-buffer (other-buffer))))
 
     ;; Get rid of the frame, if it has just one dedicated window
     ;; and other visible frames exist.
-    (and (window-dedicated-p window)
+    (and (or (window-minibuffer-p) (window-dedicated-p window))
 	 (delq frame (visible-frame-list))
 	 window-solitary
 	 (if (and (eq default-minibuffer-frame frame)
