@@ -215,9 +215,9 @@ this rationaliztion."
 		   (uniquify-item-buffer (car items))))
 	    ;; This shouldn't happen, but maybe there' no dirname any more.
 	    (unless (uniquify-item-dirname (car items))
-	      (setq items nil)
 	      (with-current-buffer (uniquify-item-buffer (car items))
-		(setq uniquify-managed nil))))
+		(setq uniquify-managed nil))
+	      (setq items nil)))
 	  (setq fix-list (append fix-list items))))
       ;; selects buffers whose names may need changing, and others that
       ;; may conflict, then bring conflicting names together
