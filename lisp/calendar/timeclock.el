@@ -1127,7 +1127,7 @@ identical to what would be return if `timeclock-relative' were nil."
 	(if (timeclock-currently-in-p)
 	    (insert "Working on "))
 	(if html-p
-	    (insert "</b><br>\n")
+	    (insert project "</b><br>\n")
 	  (insert project "*\n"))
 	(let ((proj-data (cdr (assoc project (timeclock-project-alist log))))
 	      (two-weeks-ago (timeclock-seconds-to-time
