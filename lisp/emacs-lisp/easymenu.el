@@ -479,8 +479,9 @@ NAME should be a string, the name of the element to be removed."
   ;; Return a sparse keymap in which to add or remove an item.
   ;; MAP and PATH are as defined in `easy-menu-add-item'.
   (if (null map)
-      (let ((local (lookup-key (current-local-map)
-			       (vconcat '(menu-bar) (mapcar 'intern path))))
+      (let ((local (and (current-local-map)
+			(lookup-key (current-local-map)
+				    (vconcat '(menu-bar) (mapcar 'intern path)))))
 	    (global (lookup-key global-map
 				(vconcat '(menu-bar) (mapcar 'intern path)))))
 	(if (and local (not (integerp local)))
