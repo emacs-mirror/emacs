@@ -722,9 +722,7 @@ cached information about equivalent key sequences.")
 
 	      /* Determine whether this menu is handling a menu bar click.  */
 	      tem = Fcar (Fcdr (Fcar (Fcdr (position))));
-	      if (XTYPE (Fcar (position)) != Lisp_Cons
-		  && CONSP (tem)
-		  && EQ (Fcar (tem), Qmenu_bar))
+	      if (CONSP (tem) && EQ (Fcar (tem), Qmenu_bar))
 		menubarp = 1;
 	    }
 	}
@@ -1400,19 +1398,21 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
     {
       int xbeg;
       int xend = 0;
+      widget_value *mb_item = 0;
 
-      for (menubar_item = menubar->menu.old_stack[0]->contents;
-	   menubar_item;
-	   menubar_item = menubar_item->next)
+      for (mb_item = menubar->menu.old_stack[0]->contents;
+	   mb_item;
+	   mb_item = mb_item->next)
 	{
 	  xbeg = xend;
-	  xend += (string_width (menubar, menubar_item->name) 
+	  xend += (string_width (menubar, mb_item->name) 
 		   + 2 * (menubar->menu.horizontal_spacing
 			  + menubar->menu.shadow_thickness));
 	  if (x >= xbeg && x < xend)
 	    {
 	      x = xbeg + 4;
 	      y = 0;
+	      menubar_item = mb_item;
 	      /* Arrange to show a different menu if we move in the menu bar
 		 to a different item.  */
 	      this_menu_bar_item_beg = xbeg;
