@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.134.4.1 2001/11/09 15:11:14 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.134.4.2 2001/12/14 08:19:06 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -216,8 +216,9 @@ It is usually called via the `vc-call' macro."
 
 Optional argument LIMIT is a regexp.  If present, the file is inserted
 in chunks of size BLOCKSIZE (default 8 kByte), until the first
-occurrence of LIMIT is found.  The function returns non-nil if FILE 
-exists and its contents were successfully inserted."
+occurrence of LIMIT is found.  Anything from the start of that occurence
+to the end of the buffer is then deleted.  The function returns
+non-nil if FILE exists and its contents were successfully inserted."
   (erase-buffer)
   (when (file-exists-p file)
     (if (not limit)
@@ -228,7 +229,10 @@ exists and its contents were successfully inserted."
 	    (and (< 0 (cadr (insert-file-contents
 			     file nil filepos (incf filepos blocksize))))
 		 (progn (beginning-of-line)
-			(not (re-search-forward limit nil 'move)))))))
+                        (let ((pos (re-search-forward limit nil 'move)))
+                          (if pos (delete-region (match-beginning 0)
+                                                 (point-max)))
+                          (not pos)))))))
     (set-buffer-modified-p nil)
     t))
 
