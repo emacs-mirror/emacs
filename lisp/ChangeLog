@@ -1,3 +1,13 @@
+2004-04-20  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gdb-ui.el (gdb-frame-parameters): New constant.
+	(gdb-frame-breakpoints-buffer, gdb-frame-stack-buffer) 
+	(gdb-frame-threads-buffer, gdb-frame-registers-buffer) 
+	(gdb-frame-locals-buffer, gdb-frame-gdb-buffer)
+	(gdb-frame-assembler-buffer): Improve behaviour with
+	multiple frames.
+	(gdb-display-buffer): Extend search to all visible frames.
+
 2004-04-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format): Don't remove ^M
