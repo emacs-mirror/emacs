@@ -2276,7 +2276,7 @@ is made in the original file's directory.
 On MS-DOS filesystems without long names this variable is always
 ignored."
   :group 'backup
-  :type '(repeat (cons (regexp :tag "Regexp macthing filename")
+  :type '(repeat (cons (regexp :tag "Regexp matching filename")
 		       (directory :tag "Backup directory name"))))
 
 (defun make-backup-file-name (file)
