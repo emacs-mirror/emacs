@@ -1,5 +1,8 @@
 2003-06-04  Richard M. Stallman  <rms@gnu.org>
 
+	* emacs-lisp/lisp-mnt.el (lm-keywords-finder-p):
+	Use with-no-warnings.
+
 	* gud.el (gud-minor-mode-type): Move defvar up.
 
 	* progmodes/compile.el (compilation-next-error): When moving fwd,
