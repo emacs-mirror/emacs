@@ -6737,6 +6737,9 @@ syms_of_xfaces ()
   Qtty_color_by_index = intern ("tty-color-by-index");
   staticpro (&Qtty_color_by_index);
 
+  Vface_alternative_font_family_alist = Qnil;
+  staticpro (&Vface_alternative_font_family_alist);
+
   defsubr (&Sinternal_make_lisp_face);
   defsubr (&Sinternal_lisp_face_p);
   defsubr (&Sinternal_set_lisp_face_attribute);
@@ -6782,10 +6785,6 @@ This stipple pattern is used on monochrome displays\n\
 instead of shades of gray for a face background color.\n\
 See `set-face-stipple' for possible values for this variable.");
   Vface_default_stipple = build_string ("gray3");
-
-  DEFVAR_LISP ("face-alternative-font-family-alist",
-	       &Vface_alternative_font_family_alist, "");
-  Vface_alternative_font_family_alist = Qnil;
 
 #if SCALABLE_FONTS
 
