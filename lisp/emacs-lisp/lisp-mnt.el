@@ -125,7 +125,7 @@
 For example, you can write the 1st line synopsis string and headers like this
 in your Lisp package:
 
-   ;; @(#) package.el -- pacakge description
+   ;; @(#) package.el -- package description
    ;;
    ;; @(#) $Maintainer:   Person Foo Bar $
 
