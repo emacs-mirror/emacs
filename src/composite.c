@@ -453,7 +453,7 @@ run_composition_function (from, to, prop)
      int from, to;
      Lisp_Object prop;
 {
-  Lisp_Object func, val;
+  Lisp_Object func;
   int start, end;
 
   func = COMPOSITION_MODIFICATION_FUNC (prop);
@@ -485,7 +485,7 @@ void
 update_compositions (from, to, check_mask)
      int from, to;
 {
-  Lisp_Object prop, hook;
+  Lisp_Object prop;
   int start, end;
 
   /* If FROM and TO are not in a valid range, do nothing.  */
