@@ -1,6 +1,6 @@
 /* impl.c.sacss: SAC MANUAL ALLOC STRESS TEST
  *
- * $HopeName: MMsrc!sacss.c(MM_epcore_brisling.3) $
+ * $HopeName: MMsrc!sacss.c(trunk.2) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  */
 
@@ -67,7 +67,7 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
   die(mps_sac_create(&sac, pool, classes_count, classes), "SACCreate");
 
   /* allocate a load of objects */
-  for (i=0; i<testSetSIZE; ++i) {
+  for (i = 0; i < testSetSIZE; ++i) {
     ss[i] = (*size)(i);
 
     res = make((mps_addr_t *)&ps[i], sac, ss[i]);
@@ -75,18 +75,14 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
       return res;
     if (ss[i] >= sizeof(ps[i]))
       *ps[i] = 1; /* Write something, so it gets swap. */
-
-    if (i && i%4==0) putchar('\n');
-    printf("%8lX %6lX ", (unsigned long)ps[i], (unsigned long)ss[i]);
   }
-  putchar('\n');
 
   mps_pool_check_fenceposts(pool);
 
-  for (k=0; k<testLOOPS; ++k) {
+  for (k = 0; k < testLOOPS; ++k) {
     /* shuffle all the objects */
     for (i=0; i<testSetSIZE; ++i) {
-      int j = rand()%(testSetSIZE-i);
+      int j = rnd()%(testSetSIZE-i);
       void *tp;
       size_t ts;
       
@@ -120,10 +116,7 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
       } break;
       }      
       if (res != MPS_RES_OK) return res;
-      if (i && i%4==0) putchar('\n');
-      printf("%8lX %6lX ", (unsigned long)ps[i], (unsigned long)ss[i]);
     }
-    putchar('\n');
   }
     
   mps_sac_destroy(sac);
@@ -135,7 +128,6 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
 
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
-#define alignUp(w, a)       (((w) + (a) - 1) & ~((size_t)(a) - 1))
 
 static size_t randomSize8(int i)
 {
@@ -150,7 +142,7 @@ static size_t randomSize8(int i)
 
 static mps_pool_debug_option_s debugOptions = { (void *)"postpost", 8 };
 
-static mps_sac_classes_t classes = { {8, 1, 1}, {16, 1, 1}, {136, 9, 5},
+static mps_sac_classes_t classes = { {8, 1, 1}, {16, 1, 2}, {136, 9, 5},
                                      {topClassSIZE, 9, 4} };
 
 static int testInArena(mps_arena_t arena)
@@ -171,22 +163,18 @@ static int testInArena(mps_arena_t arena)
 }
 
 
-int main(void)
+int main(int argc, char **argv)
 {
   mps_arena_t arena;
-  int i;
-  static int randomTweak;
 
-  /* Randomize the random number generator a bit. */
-  randomTweak = time(NULL) % 67;
-  for (i = randomTweak; i > 0; --i) rnd();
+  randomize(argc, argv);
 
   die(mps_arena_create(&arena, mps_arena_class_vmnz(), testArenaSIZE),
       "mps_arena_create");
-
   testInArena(arena);
-
   mps_arena_destroy(arena);
 
+  fflush(stdout); /* synchronize */
+  fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
   return 0;
 }
