@@ -1,3 +1,10 @@
+2000-12-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in: Test for XkbGetKeyboard with an AC_TRY_LINK whose
+	source file includes XKBlib.h.  On some broken Solaris systems,
+	there is an XKBlib.h, reportedly, but header files included by
+	XKBlib.h are missing.
+
 2000-12-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in: AC_CHECK_FUNC XkbGetKeyboard.

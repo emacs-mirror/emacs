@@ -1,3 +1,9 @@
+2000-12-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* bytecode.c (toplevel) [CHECK_FRAME_FONT]: Include frame.h and
+	xterm.h.
+	(Fbyte_code) [CHECK_FRAME_FONT]: Check the selected frame's font.
+
 2000-12-18  Andrew Innes  <andrewi@gnu.org>
 
 	* w32.c (w32_strerror): New function.
