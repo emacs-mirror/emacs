@@ -222,10 +222,10 @@ static int keyboard_descriptor;
 static int delete_exited_processes;
 
 /* Indexed by descriptor, gives the process (if any) for that descriptor */
-static Lisp_Object chan_process[MAXDESC];
+Lisp_Object chan_process[MAXDESC];
 
 /* Alist of elements (NAME . PROCESS) */
-static Lisp_Object Vprocess_alist;
+Lisp_Object Vprocess_alist;
 
 /* Buffered-ahead input char from process, indexed by channel.
    -1 means empty (no char is buffered).
