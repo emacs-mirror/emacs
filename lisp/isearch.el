@@ -1871,7 +1871,8 @@ since they have special meaning in a regexp."
 	(if (and regexp-flag (eq char ?\\))
 	    (setq quote-flag (not quote-flag))
 	  (if (and (not quote-flag) (not (eq char (downcase char))))
-	      (setq found t))))
+	      (setq found t))
+	  (setq quote-flag nil)))
       (setq i (1+ i)))
     (not found)))
 
