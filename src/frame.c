@@ -81,6 +81,7 @@ Lisp_Object Qvisible;
 Lisp_Object Qbuffer_predicate;
 
 Lisp_Object Vterminal_frame;
+Lisp_Object Vdefault_frame_alist;
 
 Lisp_Object Qmouse_leave_buffer_hook;
 
@@ -121,6 +122,19 @@ syms_of_frame_1 ()
 
   Qmouse_leave_buffer_hook = intern ("mouse-leave-buffer-hook");
   staticpro (&Qmouse_leave_buffer_hook);
+
+  DEFVAR_LISP ("default-frame-alist", &Vdefault_frame_alist,
+    "Alist of default values for frame creation.\n\
+These may be set in your init file, like this:\n\
+  (setq default-frame-alist '((width . 80) (height . 55) (menu-bar-lines . 1))\n\
+These override values given in window system configuration data,\n\
+ including X Windows' defaults database.\n\
+For values specific to the first Emacs frame, see `initial-frame-alist'.\n\
+For values specific to the separate minibuffer frame, see\n\
+ `minibuffer-frame-alist'.\n\
+The `menu-bar-lines' element of the list controls whether new frames\n\
+ have menu bars; `menu-bar-mode' works by altering this element.");
+  Vdefault_frame_alist = Qnil;
 }
 
 static void
@@ -185,7 +199,6 @@ set_menu_bar_lines (f, value, oldval)
 
 Lisp_Object Vemacs_iconified;
 Lisp_Object Vframe_list;
-Lisp_Object Vdefault_frame_alist;
 
 extern Lisp_Object Vminibuffer_list;
 extern Lisp_Object get_minibuffer ();
@@ -1999,19 +2012,6 @@ minibuffer, no matter what this variable is set to.  This means that\n\
 this variable doesn't necessarily say anything meaningful about the\n\
 current set of frames, or where the minibuffer is currently being\n\
 displayed.");
-
-  DEFVAR_LISP ("default-frame-alist", &Vdefault_frame_alist,
-    "Alist of default values for frame creation.\n\
-These may be set in your init file, like this:\n\
-  (setq default-frame-alist '((width . 80) (height . 55) (menu-bar-lines . 1))\n\
-These override values given in window system configuration data,\n\
- including X Windows' defaults database.\n\
-For values specific to the first Emacs frame, see `initial-frame-alist'.\n\
-For values specific to the separate minibuffer frame, see\n\
- `minibuffer-frame-alist'.\n\
-The `menu-bar-lines' element of the list controls whether new frames\n\
- have menu bars; `menu-bar-mode' works by altering this element.");
-  Vdefault_frame_alist = Qnil;
 
   defsubr (&Sactive_minibuffer_window);
   defsubr (&Sframep);
