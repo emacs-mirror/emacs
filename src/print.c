@@ -640,11 +640,17 @@ float_to_string (buf, data)
       sprintf (buf, XSTRING (Vfloat_output_format)->data, data);
     }
 
-  /* Make sure there is a decimal point or an exponent,
+  /* Make sure there is a decimal point with digit after, or an exponent,
      so that the value is readable as a float.  */
   for (cp = buf; *cp; cp++)
     if (*cp < '0' || *cp > '9')
       break;
+
+  if (*cp == '.' && cp[1] == 0)
+    {
+      cp[1] = '0';
+      cp[2] = 0;
+    }
 
   if (*cp == 0)
     {
