@@ -1069,10 +1069,10 @@ done:
       if (! MINI_WINDOW_P (w)
 	  || (w == XWINDOW (minibuf_window) && ! echo_area_glyphs))
 	{
-	  start = startp;
+	  start = startp - BEGV;
 	  /* I don't think this is guaranteed to be right.  For the
 	     moment, we'll pretend it is.  */
-	  end = Z - XINT (w->window_end_pos);
+	  end = Z - XINT (w->window_end_pos) - BEGV;
 	  whole = ZV - BEGV;
 
 	  if (end < start) end = start;
