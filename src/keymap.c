@@ -2623,11 +2623,12 @@ describe_vector (vector, elt_prefix, elt_describer,
 	  if (i >= CHAR_TABLE_SINGLE_BYTE_SLOTS
 	      && !CHARSET_DEFINED_P (i - 128))
 	    continue;
-	  definition = get_keyelt (XCHAR_TABLE (vector)->contents[i]);
-	  if (NILP (definition)) continue;      
+	  definition = get_keyelt (XCHAR_TABLE (vector)->contents[i], 0);
 	}
       else
 	definition = get_keyelt (XVECTOR (vector)->contents[i], 0);
+
+      if (NILP (definition)) continue;      
 
       /* Don't mention suppressed commands.  */
       if (SYMBOLP (definition) && partial)
