@@ -191,7 +191,7 @@ Prefix arg means just kill any existing server communications subprocess."
       ;; Remove this line from STRING.
       (setq string (substring string (match-end 0)))	  
       (if (string-match "^Error: " request)
-	  (message (concat "Server error: " (substring request (match-end 0))))
+	  (message "Server error: %s" (substring request (match-end 0)))
 	(if (string-match "^Client: " request)
 	    (progn
 	      (setq request (substring request (match-end 0)))
