@@ -1,5 +1,9 @@
 2004-05-02  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* editfns.c: Include stdio.h.
+
+2004-05-02  Thien-Thi Nguyen  <ttn@gnu.org>
+
 	* syssignal.h (init_signals): Move decl outside `#ifdef POSIX_SIGNALS'.
 
 2004-05-02  Thien-Thi Nguyen  <ttn@gnu.org>
