@@ -412,6 +412,7 @@
   :iso-final-char ?0
   :emacs-mule-id 160
   :code-space [33 126]
+  :unify-map "sisheng"
   :code-offset #x200000)
 
 (define-charset 'ipa
@@ -419,6 +420,7 @@
   :short-name "IPA"
   :iso-final-char ?0
   :emacs-mule-id  161
+  :unify-map "ipa"
   :code-space [32 127]
   :code-offset #x200080)
 
@@ -767,6 +769,7 @@
   :iso-final-char ?5
   :emacs-mule-id 225
   :code-space [33 126]
+  :unify-map "is13194"
   :code-offset #x180000)
 
 (define-charset  'indian-glyph
@@ -804,6 +807,7 @@
   :long-name "Tibetan 2 column"
   :iso-final-char ?7
   :emacs-mule-id 252
+  :unify-map "tibetan"
   :code-space [33 126 33 126]
   :code-offset #x190000)
 
@@ -850,6 +854,7 @@
   :long-name "Ethiopic characters"
   :iso-final-char ?3
   :emacs-mule-id  245
+  :unify-map "ethiopic"
   :code-space [33 126 33 126]
   :code-offset #x1A0000)
 
@@ -961,6 +966,14 @@
 (unify-charset 'chinese-big5-2)
 (unify-charset 'vietnamese-viscii-lower)
 (unify-charset 'vietnamese-viscii-upper)
+;; (unify-charset 'chinese-sisheng)
+;; (unify-charset 'ipa)
+;; (unify-charset 'indian-is13194)
+;; (unify-charset 'tibetan)
+;; (unify-charset 'ethiopic)
+;; (unify-charset 'japanese-jisx0208-1978)
+;; (unify-charset 'japanese-jisx0208)
+;; (unify-charset 'japanese-jisx0212)
 
 
 ;; These are tables for translating characters on decoding and
