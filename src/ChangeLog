@@ -1,3 +1,11 @@
+2002-09-26  Kenichi Handa  <handa@etl.go.jp>
+
+	* xfaces.c (try_font_list): New arg PREFER_FACE_FAMILY.  If it is
+	nonzero, try face's family at first.  Otherwise try FAMILY at
+	first.
+	(choose_face_font): If C is a single byte char or latin-1, call
+	try_font_list with PREFER_FACE_FAMILY 1.
+
 2002-09-21  Richard M. Stallman  <rms@gnu.org>
 
 	* window.c (select_window_1): Don't select frame.
