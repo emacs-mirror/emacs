@@ -6404,10 +6404,10 @@ Type this character while in a menu prompt to rotate around the lines of it.");
     "A mask of additional modifier keys to use with every keyboard character.\n\
 Emacs applies the modifiers of the character stored here to each keyboard\n\
 character it reads.  For example, after evaluating the expression\n\
-    (setq extra-keyboard-modifiers ?\C-x)\n\
+    (setq extra-keyboard-modifiers ?\\C-x)\n\
 all input characters will have the control modifier applied to them.\n\
 \n\
-Note that the character ?\C-@, equivalent to the integer zero, does\n\
+Note that the character ?\\C-@, equivalent to the integer zero, does\n\
 not count as a control character; rather, it counts as a character\n\
 with no modifiers; thus, setting `extra-keyboard-modifiers' to zero\n\
 cancels any modification.");
