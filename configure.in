@@ -1253,6 +1253,15 @@ if test "${HAVE_X11}" = "yes"; then
   LIBS="$LIBX $LIBS"
   CFLAGS="$C_SWITCH_X_SITE $CFLAGS"
 
+  # On Solaris, arrange for LD_RUN_PATH to point to the X libraries for tests.
+  # This is handled by LD_SWITCH_X_SITE_AUX during the real build,
+  # but it's more convenient here to set LD_RUN_PATH
+  # since this also works on hosts that don't understand LD_SWITCH_X_SITE_AUX.
+  if test "${x_libraries}" != NONE && test -n "${x_libraries}"; then
+    LD_RUN_PATH=$x_libraries${LD_RUN_PATH+:}$LD_RUN_PATH
+    export LD_RUN_PATH
+  fi
+
   if test "${opsys}" = "linux"; then
     AC_MSG_CHECKING(whether X on GNU/Linux needs -b to link)
     AC_TRY_LINK([],
