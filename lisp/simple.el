@@ -1959,7 +1959,6 @@ move back first.  Otherwise, if point precedes a word constituent,
 move forward first.  Otherwise, move backwards until a word constituent
 is found and get that word; if you reach a newline first, move forward
 instead."
-  (interactive)
   (save-excursion
     (let ((oldpoint (point)) (start (point)) (end (point)))
       (skip-syntax-backward "w_") (setq start (point))
