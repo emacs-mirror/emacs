@@ -1,3 +1,8 @@
+2001-11-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (tool_bar_item_info): Avoid calling Fget_text_property
+	with invalid position.
+
 2001-11-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* syswait.h (HAVE_SYS_WAIT_H): Undef for ISC 4.1.  Reported by
