@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.7 2000/05/10 22:12:46 monnier Exp $
+;; Revision: $Id: diff-mode.el,v 1.8 2000/06/05 07:30:09 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -40,21 +40,25 @@
 
 ;; Bugs:
 
-;; - reverse doesn't work with normal diffs.
-;; - (nitpick) the mark is not always quite right in diff-goto-source.
+;; - Reverse doesn't work with normal diffs.
+;; - (nitpick) The mark is not always quite right in diff-goto-source.
+;; - diff-apply-hunk only works on unified diffs.
 
 ;; Todo:
 
-;; - spice up the minor-mode with font-lock support
-;; - improve narrowed-view support
-;; - improve the `compile' support (?)
-;; - recognize pcl-cvs' special string for `cvs-execute-single'
-;; - support for # comments in context->unified
-;; - diff-apply-hunk
-;; - do a fuzzy search in diff-goto-source
-;; - allow diff.el to use diff-mode
-;; - imenu support
-;; - handle `diff -b' output in context->unified
+;; - Add change-log support.
+;; - Spice up the minor-mode with font-lock support.
+;; - Improve narrowed-view support.
+;; - Improve the `compile' support (?).
+;; - Recognize pcl-cvs' special string for `cvs-execute-single'.
+;; - Support for # comments in context->unified.
+;; - Do a fuzzy search in diff-goto-source.
+;; - Allow diff.el to use diff-mode.
+;;   This mostly means ability to jump from half-hunk to half-hunk
+;;   in context (and normal) diffs and to jump to the corresponding
+;;   (i.e. new or old) file.
+;; - imenu support.
+;; - Handle `diff -b' output in context->unified.
 
 ;;; Code:
 
@@ -93,18 +97,18 @@ when editing big diffs)."
 ;;;; 
 
 (easy-mmode-defmap diff-mode-shared-map
-  '(;; from Pavel Machek's patch-mode
+  '(;; From Pavel Machek's patch-mode.
     ("n" . diff-hunk-next)
     ("N" . diff-file-next)
     ("p" . diff-hunk-prev)
     ("P" . diff-file-prev)
     ("k" . diff-hunk-kill)
     ("K" . diff-file-kill)
-    ;; from compilation-minor-mode
+    ;; From compilation-minor-mode.
     ("}" . diff-file-next)
     ("{" . diff-file-prev)
     ("\C-m" . diff-goto-source)
-    ;; from XEmacs' diff-mode
+    ;; From XEmacs' diff-mode.
     ("W" . widen)
     ;;("." . diff-goto-source)		;display-buffer
     ;;("f" . diff-goto-source)		;find-file
@@ -116,7 +120,7 @@ when editing big diffs)."
     ;;("q" . diff-quit)
     (" " . scroll-up)
     ("\177" . scroll-down)
-    ;; our very own bindings
+    ;; Our very own bindings.
     ("A" . diff-ediff-patch)
     ("r" . diff-restrict-view)
     ("R" . diff-reverse-direction)
@@ -126,8 +130,10 @@ when editing big diffs)."
 
 (easy-mmode-defmap diff-mode-map
   `(("\e" . ,diff-mode-shared-map)
-    ;; from compilation-minor-mode
-    ("\C-c\C-c" . diff-goto-source))
+    ;; From compilation-minor-mode.
+    ("\C-c\C-c" . diff-goto-source)
+    ;; Misc operations.
+    ("\C-cda" . diff-apply-hunk))
   "Keymap for `diff-mode'.  See also `diff-mode-shared-map'.")
 
 (easy-menu-define diff-mode-menu diff-mode-map
@@ -420,42 +426,51 @@ Non-nil OLD means that we want the old file."
 	      (cons (cons fs file) diff-remembered-files-alist))
 	 file)))))
 
+(defun diff-find-source-location (&optional other-file)
+  "Find out (FILE LINE SPAN)."
+  (save-excursion
+    (diff-beginning-of-hunk)
+    (let* ((old (if (not other-file) diff-jump-to-old-file-flag
+		  (not diff-jump-to-old-file-flag)))
+	   ;; Find the location specification.
+	   (loc (if (not (looking-at "\\(?:\\*\\{15\\}.*\n\\)?[-@* ]*\\([0-9,]+\\)\\([ acd+]+\\([0-9,]+\\)\\)?"))
+		    (error "Can't find the hunk header")
+		  (if old (match-string 1)
+		    (if (match-end 3) (match-string 3)
+		      (unless (re-search-forward "^--- \\([0-9,]+\\)" nil t)
+			(error "Can't find the hunk separator"))
+		      (match-string 1)))))
+	   ;; Extract the actual line number.
+	   (lines (if (string-match "^\\([0-9]*\\),\\([0-9]*\\)" loc)
+		      (cons (string-to-number (match-string 1 loc))
+			    (string-to-number (match-string 2 loc)))
+		    (cons (string-to-number loc) nil)))
+	   (file (diff-find-file-name old))
+	   (line (car lines))
+	   (span (if (or (null (cdr lines)) (< (cdr lines) 0)) 0
+		   ;; Bad hack.
+		   (if (< (cdr lines) line) (cdr lines)
+		     (- (cdr lines) line)))))
+      ;; Update the user preference if he so wished.
+      (when (> (prefix-numeric-value other-file) 8)
+	(setq diff-jump-to-old-file-flag old))
+      (if (null file) (error "Can't find the file")
+	(list file line span)))))
+
 (defun diff-goto-source (&optional other-file)
   "Jump to the corresponding source line.
 `diff-jump-to-old-file-flag' (or its opposite if the OTHER-FILE prefix arg
 is give) determines whether to jump to the old or the new file.
 If the prefix arg is bigger than 8 (for example with \\[universal-argument] \\[universal-argument])
-  then `diff-jump-to-old-file-flag' is also set, for the next invokations."
+  then `diff-jump-to-old-file-flag' is also set, for the next invocations."
   (interactive "P")
   (save-excursion
-    (let ((old (if (not other-file) diff-jump-to-old-file-flag
-		 (not diff-jump-to-old-file-flag))))
-      (when (> (prefix-numeric-value other-file) 8)
-	(setq diff-jump-to-old-file-flag old))
-      (diff-beginning-of-hunk)
-      (let* ((loc (if (not (looking-at "\\(?:\\*\\{15\\}.*\n\\)?[-@* ]*\\([0-9,]+\\)\\([ acd+]+\\([0-9,]+\\)\\)?"))
-		      (error "Can't find the hunk header")
-		    (if old (match-string 1)
-		      (if (match-end 3) (match-string 3)
-			(unless (re-search-forward "^--- \\([0-9,]+\\)" nil t)
-			  (error "Can't find the hunk separator"))
-			(match-string 1)))))
-	     (lines (if (string-match "^\\([0-9]*\\),\\([0-9]*\\)" loc)
-			(cons (string-to-number (match-string 1 loc))
-			      (string-to-number (match-string 2 loc)))
-		      (cons (string-to-number loc) nil)))
-	     (file (diff-find-file-name old)))
-	(unless file (error "Can't find the file"))
-	(pop-to-buffer (find-file-noselect file))
-	(let* ((line (car lines))
-	       (span (if (or (null (cdr lines)) (< (cdr lines) 0)) 0
-		       (if (< (cdr lines) line) (cdr lines)
-			 (- (cdr lines) line)))))
-	  (ignore-errors
-	    (goto-line line)
-	    (forward-line span)
-	    (push-mark (point) t t)
-	    (goto-line line)))))))
+    (let ((loc (diff-find-source-location other-file)))
+      (pop-to-buffer (find-file-noselect (car loc)))
+      (ignore-errors
+	(goto-line (+ (cadr loc) (caddr loc)))
+	(push-mark (point) t t)
+	(goto-line (cadr loc))))))
 
 
 (defun diff-ediff-patch ()
@@ -836,50 +851,76 @@ This mode runs `diff-mode-hook'.
 	      'diff-post-command-hook nil t)))
 
 
+;;;
+;;; Misc operations that have proved useful at some point.
+;;;
+
+(defun diff-next-complex-hunk ()
+  "Jump to the next \"complex\" hunk.
+\"Complex\" is approximated by \"the hunk changes the number of lines\".
+Only works for unified diffs."
+  (interactive)
+  (while
+      (and (re-search-forward "^@@ [-0-9]+,\\([0-9]+\\) [+0-9]+,\\([0-9]+\\) @@"
+			      nil t)
+	   (equal (match-string 1) (match-string 2)))))
+
+
+(defun diff-filter-lines (char)
+  (goto-char (point-min))
+  (while (not (eobp))
+    (if (eq (char-after) char)
+	(delete-region (point) (progn (forward-line 1) (point)))
+      (delete-char 1)
+      (forward-line 1))))
+
+(defun diff-apply-hunk (&optional reverse)
+  "Apply the current hunk.
+With a prefix argument, REVERSE the hunk.
+FIXME: Only works for unified diffs."
+  (interactive "P")
+  (save-excursion
+    (let ((loc (diff-find-source-location nil)))
+      (diff-beginning-of-hunk)
+      (unless (looking-at diff-hunk-header-re) (error "Help! Mom!"))
+      (goto-char (1+ (match-end 0)))
+      ;; Extract the SRC and DEST strings.
+      (let ((text (buffer-substring (point) (progn (diff-end-of-hunk) (point))))
+	    src dest)
+	(with-temp-buffer
+	  (insert text)
+	  (diff-filter-lines ?+)
+	  (setq src (buffer-string))
+	  (erase-buffer)
+	  (insert text)
+	  (diff-filter-lines ?-)
+	  (setq dest (buffer-string)))
+	;; Exchange the two strings if we're reversing the patch.
+	(if reverse (let ((tmp src)) (setq src dest) (setq dest tmp)))
+	;; Look for SRC in the file.
+	(pop-to-buffer (find-file-noselect (car loc)))
+	(goto-line (cadr loc))
+	(let* ((pos (point))
+	       (forw (and (search-forward src nil t)
+			  (match-beginning 0)))
+	       (back (and (goto-char (+ pos (length src)))
+			  (search-backward src nil t)
+			  (match-beginning 0))))
+	  ;; Choose the closest match.
+	  (setq pos (if (and forw back)
+			(if (> (- forw pos) (- pos back)) back forw)
+		      (or back forw)))
+	  (unless pos (error "Can't find the text to patch"))
+	  ;; Do it!
+	  (goto-char pos)
+	  (delete-char (length src))
+	  (insert dest))))))
+      
+
 ;; provide the package
 (provide 'diff-mode)
 
-;;; Change Log:
-;; $Log: diff-mode.el,v $
-;; Revision 1.7  2000/05/10 22:12:46  monnier
-;; (diff-font-lock-keywords): Recognize comments.
-;; (diff-font-lock-defaults): Explicitly turn off multiline.
-;; (diff-end-of-hunk): Handle comments and fix end-of-buffer bug.
-;; (diff-ediff-patch): Fix call to ediff-patch-file.
-;; (diff-end-of-file, diff-reverse-direction, diff-fixup-modifs):
-;; Handle comments.
-;;
-;; Revision 1.6  2000/03/21 16:59:17  monnier
-;; (diff-mode-*-map): use `easy-mmode-defmap'.
-;; (diff-end-of-hunk): Return the end position for use in
-;; `easy-mmode-define-navigation'.
-;; (diff-recenter): Remove.
-;; (diff-(next|prev)-*): Rename `diff-*-(prev|next)' and defined in terms
-;; of `easy-mmode-define-navigation'.
-;; (diff-kill-*): Rename `diff-*-kill' (for consistency with the
-;; previous renaming) and fix to use new names.
-;; (diff-merge-strings): Use \n as separator: simpler, faster.
-;; (diff-mode): Use `define-derived-mode'.
-;;
-;; Revision 1.5  2000/02/07 02:01:07  monnier
-;; (diff-kill-junk): New interactive function.
-;; (diff-reverse-direction): Use delete-and-extract-region.
-;; (diff-post-command-hook): Restrict the area so that the hook also works
-;; outside of any diff hunk.  This is necessary for the minor-mode.
-;; (diff-mode): Use toggle-read-only and minor-mode-overriding-map-alist.
-;; (diff-minor-mode): Setup the hooks for header-hunk rewriting.
-;;
-;; Revision 1.4  1999/12/07 07:04:03  monnier
-;; * diff-mode.el (diff-mode-shared-map): fset'd and doc change.
-;; (diff-minor-mode, diff-minor-mode-prefix, diff-minor-mode-map):
-;; New code to support the minor mode version.
-;; (diff-recenter): New function.
-;; (diff-next-hunk, diff-next-file): Use it.
-;; (diff-remembered-files-alist): New var.
-;; (diff-merge-strings): New function.
-;; (diff-find-file-name): Make it smarter and use the user's input more.
-;; (diff-mode): Cosmetic changes.
-;;
+;;; Old Change Log from when diff-mode wasn't part of Emacs:
 ;; Revision 1.11  1999/10/09 23:38:29  monnier
 ;; (diff-mode-load-hook): dropped.
 ;; (auto-mode-alist): also catch *.diffs.
