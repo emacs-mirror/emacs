@@ -763,20 +763,21 @@
   "Adobe `standard encoding' used in PostScript"
   :short-name "ADOBE-STANDARD-ENCODING"
   :long-name "ADOBE-STANDARD-ENCODING"
-  :code-space [0 255]
+  :code-space [#x20 255]
   :map "stdenc")
 
 (define-charset 'symbol
   "Adobe symbol encoding used in PostScript"
   :short-name "ADOBE-SYMBOL"
   :long-name "ADOBE-SYMBOL"
-  :code-space [0 255]
+  :code-space [#x20 255]
   :map "symbol")
 
 (define-charset 'ibm850
   "DOS codepage 850"
   :short-name "IBM850"
   :long-name "IBM850"
+  :ascii-compatible-p t
   :code-space [0 255]
   :map "ibm850")
 (define-charset-alias 'cp850 'ibm850)
