@@ -1105,7 +1105,12 @@ the buffer, just like for the local files.
 
 ** New modes and packages
 
-*** THe new package hi-lock.el, text matching interactively entered
+*** The new package timeclock.el is a mode is for keeping track of time
+intervals.  You can use it for whatever purpose you like, but the
+typical scenario is to keep track of how much time you spend working
+on certain projects.
+
+*** The new package hi-lock.el, text matching interactively entered
 regexp's can be highlighted.  For example, 
 
   M-x highlight-regexp RET clearly RET RET 

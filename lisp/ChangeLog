@@ -1,3 +1,18 @@
+2000-08-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* calendar/timeclock.el: New file.
+
+2000-08-14  David Ponce  <david@dponce.com>
+
+	* recentf.el (recent-dialog-mode-map): Bind down-mouse-1 to
+	`widget-button-click'. so that one can use left mouse button to
+	click on dialog buttons.
+
+2000-08-14  Emmanuel Briot  <briot@gnat.com>
+
+	* xml.el (xml-parse-tag, xml-parse-attlist): Do not downcase
+        identifiers, since XML is case sensitive
+	
 2000-08-12  Miles Bader  <miles@gnu.org>
 	
 	* comint.el (comint-output-filter): Don't bother frobbing
