@@ -520,7 +520,8 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
 
 #ifdef MULTI_FRAME
 #define FRAME_SUPPORT ${lispdir}frame.elc ${lispdir}menu-bar.elc \
-  ${lispdir}mouse.elc ${lispdir}select.elc ${lispdir}scroll-bar.elc
+  ${lispdir}mouse.elc ${lispdir}select.elc ${lispdir}scroll-bar.elc \
+  ${lispdir}faces.elc
 #else
 #define FRAME_SUPPORT
 #endif
