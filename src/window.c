@@ -1,6 +1,6 @@
 /* Window creation, deletion and examination for GNU Emacs.
    Does not include redisplay.
-   Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1992, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -225,9 +225,7 @@ POS defaults to point; WINDOW, to the selected window.")
 
       /* If that info is not correct, calculate afresh */
       posval = *compute_motion (top, 0, 0, posint, height, 0,
-				XFASTINT (w->width) - 1
-				- (XFASTINT (w->width) + XFASTINT (w->left)
-				   != FRAME_WIDTH (XFRAME (w->frame))),
+				window_internal_width (w) - 1,
 				XINT (w->hscroll), 0);
 
       return posval.vpos < height ? Qt : Qnil;
@@ -269,11 +267,7 @@ DEFUN ("window-width", Fwindow_width, Swindow_width, 0, 1, 0,
   register struct window *w = decode_window (window);
   register int width = XFASTINT (w->width);
 
-  /* If this window does not end at the right margin,
-     must deduct one column for the border */
-  if ((width + XFASTINT (w->left)) == FRAME_WIDTH (XFRAME (WINDOW_FRAME (w))))
-    return make_number (width);
-  return make_number (width - 1);
+  return make_number (window_internal_width (w));
 }
 
 DEFUN ("window-hscroll", Fwindow_hscroll, Swindow_hscroll, 0, 1, 0,
@@ -424,34 +418,6 @@ window_from_coordinates (frame, x, y, part)
 	  *part = found - 1;
 	  return tem;
 	}
-
-      tem = Fnext_window (tem, Qt, Qlambda);
-    }
-  while (! EQ (tem, first));
-  
-  return Qnil;
-}
-
-/* Find the window containing the scrollbar BAR on FRAME.  We need to
-   search for scrollbars, rather than just having a field in the
-   scrollbar saying what window it's attached to, because scrollbars
-   may be deallocated before the events which occurred on them are
-   dequeued.  We can't dereference a scrollbar pointer until we know
-   it's live by finding it in a window structure.  */
-
-Lisp_Object
-window_from_scrollbar (frame, bar)
-     FRAME_PTR frame;
-     struct scrollbar *bar;
-{
-  register Lisp_Object tem, first;
-
-  tem = first = FRAME_SELECTED_WINDOW (frame);
-
-  do
-    {
-      if (WINDOW_VERTICAL_SCROLLBAR (XWINDOW (tem)) == bar)
-	return tem;
 
       tem = Fnext_window (tem, Qt, Qlambda);
     }
@@ -1676,9 +1642,8 @@ Returns the window displaying BUFFER.")
 
       if (!NILP (window)
 	  && window_height (window) >= split_height_threshold
-	  &&
-	  (XFASTINT (XWINDOW (window)->width)
-	   == FRAME_WIDTH (XFRAME (WINDOW_FRAME (XWINDOW (window))))))
+	  && (XFASTINT (XWINDOW (window)->width)
+	      == FRAME_WIDTH (XFRAME (WINDOW_FRAME (XWINDOW (window))))))
 	window = Fsplit_window (window, Qnil, Qnil);
       else
 	{
@@ -2055,6 +2020,36 @@ window_internal_height (w)
   return ht;
 }
 
+
+/* Return the number of columns in W.
+   Don't count columns occupied by scrollbars or the vertical bar
+   separating W from the sibling to its right.  */
+int
+window_internal_width (w)
+     struct window *w;
+{
+  FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
+  int left = XINT (w->left);
+  int width = XINT (w->width);
+
+  /* If this window is flush against the right edge of the frame, its
+     internal width is its full width.  */
+  if (left + width >= FRAME_WIDTH (f))
+    return width;
+
+  /* If we are not flush right, then our rightmost columns are
+     occupied by some sort of separator.  */
+
+  /* Scrollbars occupy a few columns.  */
+  if (FRAME_HAS_VERTICAL_SCROLLBARS (f))
+    return width - VERTICAL_SCROLLBAR_WIDTH;
+
+  /* The column of `|' characters separating side-by-side windows
+     occupies one column only.  */
+  return width - 1;
+}
+
+
 /* Scroll contents of window WINDOW up N lines.  */
 
 void
@@ -2252,7 +2247,7 @@ Default for ARG is window width minus 2.")
 {
 
   if (NILP (arg))
-    XFASTINT (arg) = XFASTINT (XWINDOW (selected_window)->width) - 2;
+    XFASTINT (arg) = window_internal_width (selected_window) - 2;
   else
     arg = Fprefix_numeric_value (arg);
 
@@ -2269,7 +2264,7 @@ Default for ARG is window width minus 2.")
      register Lisp_Object arg;
 {
   if (NILP (arg))
-    XFASTINT (arg) = XFASTINT (XWINDOW (selected_window)->width) - 2;
+    XFASTINT (arg) = window_internal_width (selected_window) - 2;
   else
     arg = Fprefix_numeric_value (arg);
 
