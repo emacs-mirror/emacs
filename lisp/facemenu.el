@@ -113,7 +113,7 @@
     (italic      . "i")
     (bold-italic . "l") ; {bold} intersect {italic} = {l}
     (underline   . "u"))
-  "Alist of interesting faces and keybindings. 
+  "Alist of interesting faces and keybindings.
 Each element is itself a list: the car is the name of the face,
 the next element is the key to use as a keyboard equivalent of the menu item;
 the binding is made in `facemenu-keymap'.
