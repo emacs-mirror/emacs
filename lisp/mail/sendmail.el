@@ -450,6 +450,7 @@ the user from the mailer."
 	      (delete-auto-save-file-if-necessary t))))))
 
 (defun sendmail-send-it ()
+  (require 'mail-utils)
   (let ((errbuf (if mail-interactive
 		    (generate-new-buffer " sendmail errors")
 		  0))
@@ -489,7 +490,6 @@ the user from the mailer."
 	    (if (re-search-forward "^FCC:" delimline t)
 		(mail-do-fcc delimline))
 	    (goto-char (point-min))
-	    (require 'mail-utils)
 	    (while (re-search-forward "^Resent-to:" delimline t)
 	      (setq resend-to-addresses
 		    (save-restriction
@@ -609,16 +609,6 @@ the user from the mailer."
       (kill-buffer tembuf)
       (if (bufferp errbuf)
 	  (kill-buffer errbuf)))))
-
-;; Return non-nil if file FILE is an Rmail file.
-(defun mail-file-babyl-p (file)
-  (unwind-protect
-      (save-excursion
-	(set-buffer (get-buffer-create " mail-temp"))
-	(erase-buffer)
-	(insert-file-contents file nil 0 20)
-	(looking-at "BABYL OPTIONS:"))
-  (kill-buffer " mail-temp")))
 
 (defun mail-do-fcc (header-end)
   (let (fcc-list
