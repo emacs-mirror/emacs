@@ -1,5 +1,5 @@
 ;;; gnus-art.el --- article mode commands for Gnus
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -1457,7 +1457,7 @@ Initialized from `text-mode-syntax-table.")
   `(save-excursion
      (set-buffer gnus-article-buffer)
      (save-restriction
-       (let ((buffer-read-only nil)
+       (let ((inhibit-read-only t)
 	     (inhibit-point-motion-hooks t)
 	     (case-fold-search t))
 	 (article-narrow-to-head)
@@ -1469,7 +1469,7 @@ Initialized from `text-mode-syntax-table.")
 (defmacro gnus-with-article-buffer (&rest forms)
   `(save-excursion
      (set-buffer gnus-article-buffer)
-     (let ((buffer-read-only nil))
+     (let ((inhibit-read-only t))
        ,@forms)))
 
 (put 'gnus-with-article-buffer 'lisp-indent-function 0)
@@ -1557,7 +1557,7 @@ Initialized from `text-mode-syntax-table.")
   (unless gnus-inhibit-hiding
     (save-excursion
       (save-restriction
-	(let ((buffer-read-only nil)
+	(let ((inhibit-read-only t)
 	      (case-fold-search t)
 	      (max (1+ (length gnus-sorted-header-list)))
 	      (ignored (when (not gnus-visible-headers)
@@ -1615,7 +1615,7 @@ always hide."
 	     (not gnus-show-all-headers))
     (save-excursion
       (save-restriction
-	(let ((buffer-read-only nil)
+	(let ((inhibit-read-only t)
 	      (list gnus-boring-article-headers)
 	      (inhibit-point-motion-hooks t)
 	      elem)
@@ -1769,7 +1769,7 @@ always hide."
 (defun article-normalize-headers ()
   "Make all header lines 40 characters long."
   (interactive)
-  (let ((buffer-read-only nil)
+  (let ((inhibit-read-only t)
 	column)
     (save-excursion
       (save-restriction
@@ -1813,7 +1813,7 @@ FROM is a string of characters to translate from; to is a string of
 characters to translate to."
   (save-excursion
     (when (article-goto-body)
-      (let ((buffer-read-only nil)
+      (let ((inhibit-read-only t)
 	    (x (make-string 225 ?x))
 	    (i -1))
 	(while (< (incf i) (length x))
@@ -1829,7 +1829,7 @@ characters to translate to."
 MAP is an alist where the elements are on the form (\"from\" \"to\")."
   (save-excursion
     (when (article-goto-body)
-      (let ((buffer-read-only nil)
+      (let ((inhibit-read-only t)
 	    elem)
 	(while (setq elem (pop map))
 	  (save-excursion
@@ -1841,7 +1841,7 @@ MAP is an alist where the elements are on the form (\"from\" \"to\")."
   (interactive)
   (save-excursion
     (when (article-goto-body)
-      (let ((buffer-read-only nil))
+      (let ((inhibit-read-only t))
 	(while (search-forward "\b" nil t)
 	  (let ((next (char-after))
 		(previous (char-after (- (point) 2))))
@@ -1949,7 +1949,7 @@ unfolded."
   "Fill lines that are wider than the window width."
   (interactive)
   (save-excursion
-    (let ((buffer-read-only nil)
+    (let ((inhibit-read-only t)
 	  (width (window-width (get-buffer-window (current-buffer)))))
       (save-restriction
 	(article-goto-body)
@@ -1969,7 +1969,7 @@ unfolded."
   "Capitalize the first word in each sentence."
   (interactive)
   (save-excursion
-    (let ((buffer-read-only nil)
+    (let ((inhibit-read-only t)
 	  (paragraph-start "^[\n\^L]"))
       (article-goto-body)
       (while (not (eobp))
@@ -1980,7 +1980,7 @@ unfolded."
   "Remove trailing CRs and then translate remaining CRs into LFs."
   (interactive)
   (save-excursion
-    (let ((buffer-read-only nil))
+    (let ((inhibit-read-only t))
       (goto-char (point-min))
       (while (re-search-forward "\r+$" nil t)
 	(replace-match "" t t))
@@ -1992,7 +1992,7 @@ unfolded."
   "Remove all trailing blank lines from the article."
   (interactive)
   (save-excursion
-    (let ((buffer-read-only nil))
+    (let ((inhibit-read-only t))
       (goto-char (point-max))
       (delete-region
        (point)
@@ -2113,7 +2113,7 @@ unfolded."
   (save-excursion
     (set-buffer gnus-article-buffer)
     (let ((inhibit-point-motion-hooks t)
-	  buffer-read-only
+	  (inhibit-read-only t)
 	  (mail-parse-charset gnus-newsgroup-charset)
 	  (mail-parse-ignored-charsets
 	   (save-excursion (set-buffer gnus-summary-buffer)
@@ -2125,7 +2125,7 @@ unfolded."
 If PROMPT (the prefix), prompt for a coding system to use."
   (interactive "P")
   (let ((inhibit-point-motion-hooks t) (case-fold-search t)
-	buffer-read-only
+	(inhibit-read-only t)
 	(mail-parse-charset gnus-newsgroup-charset)
 	(mail-parse-ignored-charsets
 	 (save-excursion (condition-case nil
@@ -2175,7 +2175,7 @@ If PROMPT (the prefix), prompt for a coding system to use."
 			     (set-buffer gnus-summary-buffer)
 			   (error))
 			 gnus-newsgroup-ignored-charsets))
-	buffer-read-only)
+	(inhibit-read-only t))
     (save-restriction
       (article-narrow-to-head)
       (funcall gnus-decode-header-function (point-min) (point-max)))))
@@ -2183,7 +2183,7 @@ If PROMPT (the prefix), prompt for a coding system to use."
 (defun article-decode-group-name ()
   "Decode group names in `Newsgroups:'."
   (let ((inhibit-point-motion-hooks t)
-	buffer-read-only
+	(inhibit-read-only t)
 	(method (gnus-find-method-for-group gnus-newsgroup-name)))
     (when (and (or gnus-group-name-charset-method-alist
 		   gnus-group-name-charset-group-alist)
@@ -2227,7 +2227,7 @@ If PROMPT (the prefix), prompt for a coding system to use."
   (when gnus-use-idna
     (save-restriction
       (let ((inhibit-point-motion-hooks t)
-	    buffer-read-only)
+	    (inhibit-read-only t))
 	(article-narrow-to-head)
 	(goto-char (point-min))
 	(while (re-search-forward "\\(xn--[-A-Za-z0-9.]*\\)[ \t\n\r,>]" nil t)
@@ -2250,7 +2250,7 @@ or not.
 If READ-CHARSET, ask for a coding system."
   (interactive (list 'force current-prefix-arg))
   (save-excursion
-    (let ((buffer-read-only nil) type charset)
+    (let ((inhibit-read-only t) type charset)
       (if (gnus-buffer-live-p gnus-original-article-buffer)
 	  (with-current-buffer gnus-original-article-buffer
 	    (setq type
@@ -2280,7 +2280,7 @@ If FORCE, decode the article whether it is marked as base64 not.
 If READ-CHARSET, ask for a coding system."
   (interactive (list 'force current-prefix-arg))
   (save-excursion
-    (let ((buffer-read-only nil) type charset)
+    (let ((inhibit-read-only t) type charset)
       (if (gnus-buffer-live-p gnus-original-article-buffer)
 	  (with-current-buffer gnus-original-article-buffer
 	    (setq type
@@ -2315,14 +2315,14 @@ If READ-CHARSET, ask for a coding system."
   (interactive)
   (require 'rfc1843)
   (save-excursion
-    (let ((buffer-read-only nil))
+    (let ((inhibit-read-only t))
       (rfc1843-decode-region (point-min) (point-max)))))
 
 (defun article-unsplit-urls ()
   "Remove the newlines that some other mailers insert into URLs."
   (interactive)
   (save-excursion
-    (let ((buffer-read-only nil))
+    (let ((inhibit-read-only t))
       (goto-char (point-min))
       (while (re-search-forward
 	      "^\\(\\(https?\\|ftp\\)://\\S-+\\) *\n\\(\\S-+\\)" nil t)
@@ -2336,7 +2336,7 @@ If READ-CHARSET, ask for a coding system."
 If READ-CHARSET, ask for a coding system."
   (interactive "P")
   (save-excursion
-    (let ((buffer-read-only nil)
+    (let ((inhibit-read-only t)
 	  charset)
       (when (gnus-buffer-live-p gnus-original-article-buffer)
 	(with-current-buffer gnus-original-article-buffer
@@ -2401,7 +2401,7 @@ The `gnus-list-identifiers' variable specifies what to do."
 	(regexp (if (consp gnus-list-identifiers)
 		    (mapconcat 'identity gnus-list-identifiers " *\\|")
 		  gnus-list-identifiers))
-	buffer-read-only)
+	(inhibit-read-only))
     (when regexp
       (save-excursion
 	(save-restriction
@@ -2423,7 +2423,7 @@ always hide."
   (interactive (gnus-article-hidden-arg))
   (unless (gnus-article-check-hidden-text 'pem arg)
     (save-excursion
-      (let (buffer-read-only end)
+      (let ((inhibit-read-only t) end)
 	(goto-char (point-min))
 	;; Hide the horrendously ugly "header".
 	(when (and (search-forward
@@ -2473,7 +2473,7 @@ always hide."
     (save-restriction
       (let ((inhibit-point-motion-hooks t)
 	    (gnus-signature-limit nil)
-	    buffer-read-only)
+	    (inhibit-read-only t))
 	(article-goto-body)
 	(cond
 	 ((eq banner 'signature)
@@ -2496,7 +2496,7 @@ always hide."
   (save-excursion
     (set-buffer gnus-article-buffer)
     (when (article-goto-body)
-      (let* ((buffer-read-only nil)
+      (let* ((inhibit-read-only t)
 	     (start (point))
 	     (end (point-max))
 	     (orig (buffer-substring start end))
@@ -2514,7 +2514,7 @@ always hide."
   (unless (gnus-article-check-hidden-text 'signature arg)
     (save-excursion
       (save-restriction
-	(let ((buffer-read-only nil))
+	(let ((inhibit-read-only t))
 	  (when (gnus-article-narrow-to-signature)
 	    (gnus-article-hide-text-type
 	     (point-min) (point-max) 'signature))))))
@@ -2534,7 +2534,7 @@ always hide."
   (interactive)
   (save-excursion
     (let ((inhibit-point-motion-hooks t)
-	  buffer-read-only)
+	  (inhibit-read-only t))
       (when (article-goto-body)
 	(while (and (not (eobp))
 		    (looking-at "[ \t]*$"))
@@ -2569,7 +2569,7 @@ Point is left at the beginning of the narrowed-to region."
   (interactive)
   (save-excursion
     (let ((inhibit-point-motion-hooks t)
-	  buffer-read-only)
+	  (inhibit-read-only t))
       ;; First make all blank lines empty.
       (article-goto-body)
       (while (re-search-forward "^[ \t]+$" nil t)
@@ -2588,7 +2588,7 @@ Point is left at the beginning of the narrowed-to region."
   (interactive)
   (save-excursion
     (let ((inhibit-point-motion-hooks t)
-	  buffer-read-only)
+	  (inhibit-read-only t))
       (article-goto-body)
       (while (re-search-forward "^[ \t]+" nil t)
 	(replace-match "" t t)))))
@@ -2598,7 +2598,7 @@ Point is left at the beginning of the narrowed-to region."
   (interactive)
   (save-excursion
     (let ((inhibit-point-motion-hooks t)
-	  buffer-read-only)
+	  (inhibit-read-only t))
       (article-goto-body)
       (while (re-search-forward "[ \t]+$" nil t)
 	(replace-match "" t t)))))
@@ -2615,7 +2615,7 @@ Point is left at the beginning of the narrowed-to region."
   (interactive)
   (save-excursion
     (let ((inhibit-point-motion-hooks t)
-	  buffer-read-only)
+	  (inhibit-read-only t))
       (article-goto-body)
       (while (re-search-forward "^[ \t]*\n" nil t)
 	(replace-match "" t t)))))
@@ -2704,7 +2704,7 @@ means show, 0 means toggle."
 (defun gnus-article-show-hidden-text (type &optional dummy)
   "Show all hidden text of type TYPE.
 Originally it is hide instead of DUMMY."
-  (let ((buffer-read-only nil)
+  (let ((inhibit-read-only t)
 	(inhibit-point-motion-hooks t))
     (gnus-remove-text-properties-when
      'article-type type
@@ -2769,7 +2769,7 @@ should replace the \"Date:\" one, or should be added below it."
 	  (forward-line 1))
 	(when (and date (not (string= date "")))
 	  (goto-char (point-min))
-	  (let ((buffer-read-only nil))
+	  (let ((inhibit-read-only t))
 	    ;; Delete any old Date headers.
 	    (while (re-search-forward date-regexp nil t)
 	      (if pos
@@ -2988,7 +2988,7 @@ This format is defined by the `gnus-article-time-format' variable."
 ;;   "Show all hidden text in the article buffer."
 ;;   (interactive)
 ;;   (save-excursion
-;;     (let ((buffer-read-only nil))
+;;     (let ((inhibit-read-only t))
 ;;       (gnus-article-unhide-text (point-min) (point-max)))))
 
 (defun article-remove-leading-whitespace ()
@@ -2996,7 +2996,7 @@ This format is defined by the `gnus-article-time-format' variable."
   (interactive)
   (save-excursion
     (save-restriction
-      (let ((buffer-read-only nil))
+      (let ((inhibit-read-only t))
 	(article-narrow-to-head)
 	(goto-char (point-min))
 	(while (re-search-forward "^[^ :]+: \\([ \t]+\\)" nil t)
@@ -3013,7 +3013,7 @@ This format is defined by the `gnus-article-time-format' variable."
 			  gnus-article-emphasis-alist)
 		      (error))
 		    gnus-emphasis-alist))
-	    (buffer-read-only nil)
+	    (inhibit-read-only t)
 	    (props (append '(article-type emphasis)
 			   gnus-hidden-properties))
 	    regexp elem beg invisible visible face)
@@ -3413,7 +3413,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 			(mm-handle-multipart-ctl-parameter
 			 mm-security-handle 'gnus-info)))))
 	  (when info
-	    (let (buffer-read-only bface eface)
+	    (let ((inhibit-read-only t) bface eface)
 	      (save-restriction
 		(message-narrow-to-head)
 		(goto-char (point-max))
@@ -3718,7 +3718,7 @@ If ALL-HEADERS is non-nil, no headers are hidden."
 	(when (and (boundp 'transient-mark-mode)
 		   transient-mark-mode)
 	  (setq mark-active nil))
-	(if (not (setq result (let ((buffer-read-only nil))
+	(if (not (setq result (let ((inhibit-read-only t))
 				(gnus-request-article-this-buffer
 				 article group))))
 	    ;; There is no such article.
@@ -3813,7 +3813,8 @@ If ALL-HEADERS is non-nil, no headers are hidden."
   ;; Hooks for getting information from the article.
   ;; This hook must be called before being narrowed.
   (let ((gnus-article-buffer (current-buffer))
-	buffer-read-only)
+	buffer-read-only
+	(inhibit-read-only t))
     (unless (eq major-mode 'gnus-article-mode)
       (gnus-article-mode))
     (setq buffer-read-only nil
@@ -3933,7 +3934,7 @@ General format specifiers can also be used.  See Info node
 	(mm-remove-parts handles)
 	(goto-char (point-min))
 	(or (search-forward "\n\n") (goto-char (point-max)))
-	(let (buffer-read-only)
+	(let ((inhibit-read-only t))
 	  (delete-region (point) (point-max))
 	  (mm-display-parts handles))))))
 
@@ -4231,7 +4232,7 @@ are decompressed."
   (let* ((handle (or handle (get-text-property (point) 'gnus-data)))
 	 contents charset
 	 (b (point))
-	 buffer-read-only)
+	 (inhibit-read-only t))
     (when handle
       (if (and (not arg) (mm-handle-undisplayer handle))
 	  (mm-remove-part handle)
@@ -4266,7 +4267,7 @@ specified charset."
   (let* ((handle (or handle (get-text-property (point) 'gnus-data)))
 	 contents charset
 	 (b (point))
-	 buffer-read-only)
+	 (inhibit-read-only t))
     (when handle
       (if (mm-handle-undisplayer handle)
 	  (mm-remove-part handle))
@@ -4305,7 +4306,7 @@ If no internal viewer is available, use an external viewer."
 	 (mail-parse-ignored-charsets
 	  (save-excursion (set-buffer gnus-summary-buffer)
 			  gnus-newsgroup-ignored-charsets))
-	 buffer-read-only)
+	 (inhibit-read-only t))
     (when handle
       (if (mm-handle-undisplayer handle)
 	  (mm-remove-part handle)
@@ -4410,7 +4411,7 @@ N is the numerical prefix."
   "Display HANDLE and fix MIME button."
   (let ((id (get-text-property (point) 'gnus-part))
 	(point (point))
-	buffer-read-only)
+	(inhibit-read-only t))
     (forward-line 1)
     (prog1
 	(let ((window (selected-window))
@@ -4541,7 +4542,7 @@ N is the numerical prefix."
 			  (mm-dissect-buffer nil gnus-article-loose-mime)
 			  (and gnus-article-emulate-mime
 			       (mm-uu-dissect))))
-	     buffer-read-only handle name type b e display)
+	     (inhibit-read-only t) handle name type b e display)
 	(when (and (not ihandles)
 		   (not gnus-displaying-mime))
 	  ;; Top-level call; we clean up.
@@ -4736,7 +4737,7 @@ If displaying \"text/html\" is discouraged \(see
   (let* ((preferred (or preferred (mm-preferred-alternative handles)))
 	 (ihandles handles)
 	 (point (point))
-	 handle buffer-read-only from props begend not-pref)
+	 handle (inhibit-read-only t) from props begend not-pref)
     (save-window-excursion
       (save-restriction
 	(when ibegend
@@ -4939,7 +4940,7 @@ If given a numerical ARG, move forward ARG pages."
     (widen)
     ;; Remove any old next/prev buttons.
     (when (gnus-visual-p 'page-marker)
-      (let ((buffer-read-only nil))
+      (let ((inhibit-read-only t))
 	(gnus-remove-text-with-property 'gnus-prev)
 	(gnus-remove-text-with-property 'gnus-next)))
     (if
@@ -4959,7 +4960,7 @@ If given a numerical ARG, move forward ARG pages."
 	   (match-beginning 0)
 	 (point)))
       (when (and (gnus-visual-p 'page-marker)
-		 (not (= (point-min) 1)))
+		 (> (point-min) (save-restriction (widen) (point-min))))
 	(save-excursion
 	  (goto-char (point-min))
 	  (gnus-insert-prev-page-button)))
@@ -5411,7 +5412,7 @@ If given a prefix, show the hidden text instead."
 		  (backend (car (gnus-find-method-for-group
 				 gnus-newsgroup-name)))
 		  result
-		  (buffer-read-only nil))
+		  (inhibit-read-only t))
 	      (if (or (not (listp methods))
 		      (and (symbolp (car methods))
 			   (assq (car methods) nnoo-definition-alist)))
@@ -5463,7 +5464,7 @@ If given a prefix, show the hidden text instead."
 	    (buffer-disable-undo)
 	    (setq major-mode 'gnus-original-article-mode)
 	    (setq buffer-read-only t))
-	  (let (buffer-read-only)
+	  (let ((inhibit-read-only t))
 	    (erase-buffer)
 	    (insert-buffer-substring gnus-article-buffer))
 	  (setq gnus-original-article (cons group article)))
@@ -5562,7 +5563,7 @@ If given a prefix, show the hidden text instead."
     ["Body" message-goto-body t]
     ["Signature" message-goto-signature t]))
 
-(define-derived-mode gnus-article-edit-mode text-mode "Article Edit"
+(define-derived-mode gnus-article-edit-mode message-mode "Article Edit"
   "Major mode for editing articles.
 This is an extended text-mode.
 
@@ -6285,7 +6286,7 @@ do the highlighting.  See the documentation for those functions."
     (set-buffer gnus-article-buffer)
     (save-restriction
       (let ((alist gnus-header-face-alist)
-	    (buffer-read-only nil)
+	    (inhibit-read-only t)
 	    (case-fold-search t)
 	    (inhibit-point-motion-hooks t)
 	    entry regexp header-face field-face from hpoints fpoints)
@@ -6324,7 +6325,7 @@ It does this by highlighting everything after
   (interactive)
   (save-excursion
     (set-buffer gnus-article-buffer)
-    (let ((buffer-read-only nil)
+    (let ((inhibit-read-only t)
 	  (inhibit-point-motion-hooks t))
       (save-restriction
 	(when (and gnus-signature-face
@@ -6349,7 +6350,7 @@ specified by `gnus-button-alist'."
   (interactive (list 'force))
   (save-excursion
     (set-buffer gnus-article-buffer)
-    (let ((buffer-read-only nil)
+    (let ((inhibit-read-only t)
 	  (inhibit-point-motion-hooks t)
 	  (case-fold-search t)
 	  (alist gnus-button-alist)
@@ -6394,7 +6395,7 @@ specified by `gnus-button-alist'."
   (save-excursion
     (set-buffer gnus-article-buffer)
     (save-restriction
-      (let ((buffer-read-only nil)
+      (let ((inhibit-read-only t)
 	    (inhibit-point-motion-hooks t)
 	    (case-fold-search t)
 	    (alist gnus-header-button-alist)
@@ -6452,7 +6453,7 @@ specified by `gnus-button-alist'."
 (defun gnus-signature-toggle (end)
   (save-excursion
     (set-buffer gnus-article-buffer)
-    (let ((buffer-read-only nil)
+    (let ((inhibit-read-only t)
 	  (inhibit-point-motion-hooks t))
       (if (text-property-any end (point-max) 'article-type 'signature)
 	  (progn
@@ -6679,7 +6680,7 @@ specified by `gnus-button-alist'."
 
 (defun gnus-insert-prev-page-button ()
   (let ((b (point))
-	(buffer-read-only nil))
+	(inhibit-read-only t))
     (gnus-eval-format
      gnus-prev-page-line-format nil
      `(,@(gnus-local-map-property gnus-prev-page-map)
@@ -6730,7 +6731,7 @@ specified by `gnus-button-alist'."
 
 (defun gnus-insert-next-page-button ()
   (let ((b (point))
-	(buffer-read-only nil))
+	(inhibit-read-only t))
     (gnus-eval-format gnus-next-page-line-format nil
 		      `(,@(gnus-local-map-property gnus-next-page-map)
 			  gnus-next t
@@ -6765,7 +6766,7 @@ specified by `gnus-button-alist'."
   "List of methods used to decode headers.
 
 This variable is a list of FUNCTION or (REGEXP . FUNCTION).  If item
-is FUNCTION, FUNCTION will be apply to all newsgroups.  If item is a
+is FUNCTION, FUNCTION will be applied to all newsgroups.  If item is a
 \(REGEXP . FUNCTION), FUNCTION will be only apply to the newsgroups
 whose names match REGEXP.
 
@@ -6904,7 +6905,7 @@ For example:
 	  (setq references
 	      (or (mail-header-references gnus-current-headers) ""))
 	  (set-buffer gnus-article-buffer)
-	  (let* ((buffer-read-only nil)
+	  (let* ((inhibit-read-only t)
 		 (headers
 		  (mapcar (lambda (field)
 			    (and (save-restriction
@@ -6984,7 +6985,7 @@ For example:
 (defun gnus-mime-security-verify-or-decrypt (handle)
   (mm-remove-parts (cdr handle))
   (let ((region (mm-handle-multipart-ctl-parameter handle 'gnus-region))
-	point buffer-read-only)
+	point (inhibit-read-only t))
     (if region
 	(goto-char (car region)))
     (save-restriction
@@ -7014,7 +7015,7 @@ For example:
 		 (not (get-text-property (point) 'gnus-mime-details)))
 		(gnus-mime-security-button-line-format
 		 (get-text-property (point) 'gnus-line-format))
-		buffer-read-only)
+		(inhibit-read-only t))
 	    (forward-char -1)
 	    (while (eq (get-text-property (point) 'gnus-line-format)
 		       gnus-mime-security-button-line-format)

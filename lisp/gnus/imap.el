@@ -1977,7 +1977,9 @@ Return nil if no complete line has arrived."
 	(when (eq (char-after) ?\))
 	  (imap-forward)
 	  (nreverse addresses)))
-    (assert (imap-parse-nil) t "In imap-parse-address-list")))
+    ;; With assert, the code might not be eval'd.
+    ;; (assert (imap-parse-nil) t "In imap-parse-address-list")
+    (imap-parse-nil)))
 
 ;;   mailbox         = "INBOX" / astring
 ;;                       ; INBOX is case-insensitive.  All case variants of
@@ -2540,7 +2542,9 @@ Return nil if no complete line has arrived."
 	      (imap-forward)
 	      (push (imap-parse-string-list) dsp)
 	      (imap-forward))
-	  (assert (imap-parse-nil) t "In imap-parse-body-ext"))
+	  ;; With assert, the code might not be eval'd.
+	  ;; (assert (imap-parse-nil) t "In imap-parse-body-ext")
+	  (imap-parse-nil))
 	(push (nreverse dsp) ext))
       (when (eq (char-after) ?\ ) ;; body-fld-lang
 	(imap-forward)
