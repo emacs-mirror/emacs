@@ -255,13 +255,9 @@ have enabled one.
 
 Currently, the following actions have been defined:
 
-- Mouse-1 on the buffer name in the mode line switches between two
-buffers.
+- Mouse-1 on the buffer name in the mode line goes to the next buffer.
 
-- Mouse-2 on the buffer-name switches to the next buffer, and
-M-mouse-2 switches to the previous buffer in the buffer list.
-
-- Mouse-3 on the buffer-name displays a buffer menu.
+- Mouse-3 on the buffer-name goes to the previous buffer.
 
 - Mouse-2 on the read-only or modified status in the mode line (`%' or
 `*') toggles the status.
