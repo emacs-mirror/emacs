@@ -153,6 +153,10 @@ NOTE-END
 
 #define ORDINARY_LINK
 
+#ifdef OSF1
+#define LD_SWITCH_MACHINE      -non_shared
+#endif
+
 #define LIBS_DEBUG
 #define START_FILES pre-crt0.o
 
