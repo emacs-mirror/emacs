@@ -130,7 +130,7 @@ You might want to change this to \"*\", for instance."
 ;; This used to match preprocessor lines too, but that messes up
 ;; filling and doesn't seem to be necessary.
 (defcustom fortran-comment-line-start-skip
-  "^[CcDd*!]\\(\\([^ \t\n]\\)\\2\\2*\\)?[ \t]*"
+  "^[CcDd*!]\\(\\([^ \t\n]\\)\\2+\\)?[ \t]*"
   "*Regexp to match the start of a full-line comment."
   :version "21.1"
   :type 'regexp
@@ -636,10 +636,8 @@ with no args, if that value is non-nil."
   (setq comment-indent-function 'fortran-comment-indent)
   (make-local-variable 'comment-start-skip)
   (setq comment-start-skip "![ \t]*")
-  (setq fortran-comment-line-start-skip
-	"^[Cc*]\\(\\([^ \t\n]\\)\\2\\2*\\)?[ \t]*\\|^#.*")
   (make-local-variable 'comment-start)
-  (setq fortran-comment-line-start "c")
+  (setq comment-start fortran-comment-line-start)
   (make-local-variable 'require-final-newline)
   (setq require-final-newline t)
   (make-local-variable 'abbrev-all-caps)
@@ -1737,8 +1735,7 @@ Intended as the value of `fill-paragraph-function'."
 	;; comments.  (Get positions as markers, since the
 	;; `indent-region' below can shift the block's end).
 	(let* ((non-empty-comment 
-		(concat "\\(" fortran-comment-line-start-skip "\\)"
-			"[^ \t\n]"))
+		(concat fortran-comment-line-start-skip "[^ \t\n]"))
 	       (start (save-excursion
 			;; Find (start of) first line.
 			(while (and (zerop (forward-line -1))
