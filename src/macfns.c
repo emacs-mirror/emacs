@@ -4391,22 +4391,6 @@ Chinese, Japanese, and Korean.  */);
   set_frame_fontset_func = x_set_font;
   check_window_system_func = check_mac;
 
-  Qjpeg = intern ("jpeg");
-  staticpro (&Qjpeg);
-
-  Qtiff = intern ("tiff");
-  staticpro (&Qtiff);
-
-  Qgif = intern ("gif");
-  staticpro (&Qgif);
-
-  Qpng = intern ("png");
-  staticpro (&Qpng);
-
-  defsubr (&Sclear_image_cache);
-  defsubr (&Simage_size);
-  defsubr (&Simage_mask_p);
-
   hourglass_atimer = NULL;
   hourglass_shown_p = 0;
 

@@ -1,3 +1,9 @@
+2004-03-11  Steven Tamm <steventamm@mac.com>
+	* image.c [MAC_OSX]: Include sys/stat.h
+
+	* macfns.c (syms_of_macfns): Remove definitions of things now
+	defined in image.c
+
 2004-03-11  Kim F. Storm  <storm@cua.dk>
 
 	The following changes consolidates the identical/similar image

@@ -92,6 +92,7 @@ typedef HDC XImagePtr_or_DC;
 #include <alloca.h>
 #endif
 #ifdef MAC_OSX
+#include <sys/stat.h>
 #include <QuickTime/QuickTime.h>
 #else /* not MAC_OSX */
 #include <Windows.h>
