@@ -704,7 +704,10 @@ This function accepts any number of arguments, but ignores them."
   nil)
 
 (defun error (&rest args)
-  "Signal an error, making error message by passing all args to `format'."
+  "Signal an error, making error message by passing all args to `format'.
+In Emacs, the convention is that error messages start with a capital
+letter but *do not* end with a period.  Please follow this convention
+for the sake of consistency."
   (while t
     (signal 'error (list (apply 'format args)))))
 
