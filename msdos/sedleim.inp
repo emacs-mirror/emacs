@@ -23,7 +23,7 @@ MAKESHELL=/xyzzy/command
 /^version=/d
 /^prefix=/d
 /^datadir=/s|@datadir@|../..|
-/^srcdir=/s|@srcdir@|.|
+/^srcdir=/s|srcdir=@srcdir@|srcdir := $(subst \\,/,$(shell cd))|
 
 /^INSTALLDIR=/c\
 INSTALLDIR=.
