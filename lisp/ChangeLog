@@ -1,13 +1,16 @@
 2005-01-01  Jay Belanger  <belanger@truman.edu>
 
 	* calc-yank.el (calc-edit-mode): Change default header.
-
+	(calc-edit-finish, calc-show-edit-buffer): Adjust to handle new
+	header. 
+	
 	* calc-store.el (calc-edit-variable): Change title to match new
 	header.
 
-	* calc/calc-prog.el (calc-edit-user-syntax): Change title to edit
+	* calc/calc-prog.el (calc-edit-user-syntax): Change title in edit
 	mode to match new header.
 	(calc-user-define-edit): Change titles to include names of commands.
+	(calc-finish-formula-edit): Adjust to handle new header.
 	(calc-finish-macro-edit): Remove.
 	(calc-edit-macro-repeats, calc-edit-macro-adjust-buffer)
 	(calc-edit-macro-command, calc-edit-macro-command-type)
