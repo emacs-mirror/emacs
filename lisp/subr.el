@@ -1804,7 +1804,9 @@ configuration."
 (defun functionp (object)
   "Non-nil iff OBJECT is a type of object that can be called as a function."
   (or (and (symbolp object) (fboundp object)
-	   (setq object (indirect-function object))
+	   (condition-case nil
+	       (setq object (indirect-function object))
+	     (error nil))
 	   (eq (car-safe object) 'autoload)
 	   (not (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe object)))))))
       (subrp object) (byte-code-function-p object)
