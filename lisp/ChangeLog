@@ -1,3 +1,13 @@
+2000-07-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* info-look.el (info-lookup): If *info* is shown in another frame
+	on the same display, select that frame, instead of switching to
+	the Info buffer in another window of the selected frame.
+
+	* simple.el (universal-argument-map): Bind numeric keypad keys
+	kp-0 to kp-9 and kp-subtract.
+	(digit-argument): Handle these keys.
+
 2000-07-20  Dave Love  <fx@gnu.org>
 
 	* net/goto-addr.el (goto-address-fontify): Don't bother with
