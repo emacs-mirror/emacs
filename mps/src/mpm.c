@@ -1,6 +1,6 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.12) $
+ * $HopeName: MMsrc!mpm.c(trunk.13) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -13,7 +13,7 @@
 
 #include "mpm.h"
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.12) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.13) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -87,16 +87,6 @@ Bool AttrCheck(Attr attr)
   AVER(((attr) & ~AttrMASK) == 0);
   /* Could check for legal combinations of attributes. */
   return TRUE;
-}
-
-
-/* .rootvarcheck: RootVarCheck -- check a Root union discriminator */
-
-Bool RootVarCheck(RootVar rootVar)
-{
-  AVER(rootVar == RootTABLE || rootVar == RootFUN || rootVar == RootFMT ||
-    rootVar == RootREG);
-  return(TRUE);
 }
 
 
