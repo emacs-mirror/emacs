@@ -5092,7 +5092,6 @@ produce_chars (coding)
     }
   else
     {
-      int multibytep = coding->src_multibyte;
       unsigned char *src = coding->source;
       unsigned char *src_end = src + coding->src_bytes;
       Lisp_Object eol_type;
@@ -5103,6 +5102,7 @@ produce_chars (coding)
 	{
 	  if (coding->src_multibyte)
 	    {
+	      int multibytep = 1;
 	      int consumed_chars;
 
 	      while (1)
@@ -5141,6 +5141,7 @@ produce_chars (coding)
 	  else
 	    while (src < src_end)
 	      {
+		int multibytep = 1;
 		int c = *src++;
 
 		if (c == '\r')
@@ -5706,6 +5707,7 @@ decode_coding_gap (coding, chars, bytes)
   coding->dst_object = coding->src_object;
   coding->dst_pos = PT;
   coding->dst_pos_byte = PT_BYTE;
+  coding->dst_multibyte = ! NILP (current_buffer->enable_multibyte_characters);
 
   if (CODING_REQUIRE_DETECTION (coding))
     detect_coding (coding);
