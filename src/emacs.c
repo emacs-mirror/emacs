@@ -1133,7 +1133,10 @@ main (argc, argv
   /* Handle the -batch switch, which means don't do interactive display.  */
   noninteractive = 0;
   if (argmatch (argv, argc, "-batch", "--batch", 5, NULL, &skip_args))
-    noninteractive = 1;
+    {
+      noninteractive = 1;
+      Vundo_outer_limit = Qnil;
+    }
   if (argmatch (argv, argc, "-script", "--script", 3, &junk, &skip_args))
     {
       noninteractive = 1;	/* Set batch mode.  */
