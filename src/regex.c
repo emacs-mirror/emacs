@@ -1944,7 +1944,8 @@ struct range_table_work_area
  do { if (p != pend)							\
      {									\
        PATFETCH (c);							\
-       while (c == ' ') PATFETCH (c);					\
+       if (c == ' ')							\
+	 FREE_STACK_RETURN (REG_BADBR);					\
        while ('0' <= c && c <= '9')					\
 	 {								\
            int prev;							\
@@ -1958,7 +1959,8 @@ struct range_table_work_area
 	     break;							\
 	   PATFETCH (c);						\
 	 }								\
-       while (c == ' ') PATFETCH (c);					\
+       if (c == ' ')							\
+	 FREE_STACK_RETURN (REG_BADBR);					\
        }								\
     } while (0)
 
