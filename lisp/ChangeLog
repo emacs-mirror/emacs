@@ -4,6 +4,10 @@
 
 2001-01-29  Dave Love  <fx@gnu.org>
 
+	* eshell/esh-ext.el (eshell-windows-shell-file): Fix :type.
+
+	* eshell/em-ls.el (eshell-ls-exclude-regexp): Fix :type.
+
 	* progmodes/tcl.el (outline, dabbrev, add-log): Require when
 	compiling.
 	(tcl-using-emacs-19-23): Consider Emacs 21+.
