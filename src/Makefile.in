@@ -285,7 +285,7 @@ ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAG) -I. -I${srcdi
 #endif
 
 #ifdef HAVE_X_WINDOWS
-#ifdef HAVE_X_MENU
+#ifdef HAVE_MENUS
 
 /* Include xmenu.o in the list of X object files.  */
 XOBJ= xterm.o xfns.o xfaces.o xmenu.o xselect.o xrdb.o
@@ -305,13 +305,13 @@ LIBXMENU= $(OLDXMENU)
 LIBXMENU= -lXMenu
 #endif /* not HAVE_X11 */
 
-#else /* not HAVE_X_MENU */
+#else /* not HAVE_MENUS */
 
 /* Otherwise, omit xmenu.o from the list of X object files, and
    don't worry about the menu library at all.  */
 XOBJ= xterm.o xfns.o xfaces.o xselect.o xrdb.o
 LIBXMENU=
-#endif /* not HAVE_X_MENU */
+#endif /* not HAVE_MENUS */
 
 #ifdef USE_X_TOOLKIT
 #define @X_TOOLKIT_TYPE@
@@ -829,7 +829,7 @@ really-lwlib:
 	@true  /* make -t should not create really-lwlib.  */
 .PHONY: really-lwlib
 #else /* not USE_X_TOOLKIT */
-#ifdef HAVE_X_MENU
+#ifdef HAVE_MENUS
 $(OLDXMENU): really-oldXMenu
 
 /* Encode the values of these two macros in Make variables,
@@ -851,7 +851,7 @@ really-oldXMenu:
     "C_SWITCH_SYSTEM=$(C_SWITCH_SYSTEM_1)"
 	@true  /* make -t should not create really-oldXMenu.  */
 .PHONY: really-oldXMenu
-#endif /* HAVE_X_MENU */
+#endif /* HAVE_MENUS */
 #endif /* not USE_X_TOOLKIT */
 #endif /* HAVE_X11 */
 #endif /* HAVE_X_WINDOWS */
