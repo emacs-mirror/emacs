@@ -583,32 +583,43 @@ DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
 
 struct Lisp_Vector *all_vectors;
 
+struct Lisp_Vector *
+allocate_vectorlike (len)
+     EMACS_INT len;
+{
+  struct Lisp_Vector *p;
+
+  p = (struct Lisp_Vector *)xmalloc (sizeof (struct Lisp_Vector)
+				     + (len - 1) * sizeof (Lisp_Object));
+  VALIDATE_LISP_STORAGE (p, 0);
+  consing_since_gc += (sizeof (struct Lisp_Vector)
+		       + (len - 1) * sizeof (Lisp_Object));
+
+  p->next = all_vectors;
+  all_vectors = p;
+  return p;
+}
+
 DEFUN ("make-vector", Fmake_vector, Smake_vector, 2, 2, 0,
   "Return a newly created vector of length LENGTH, with each element being INIT.\n\
 See also the function `vector'.")
   (length, init)
      register Lisp_Object length, init;
 {
-  register int sizei, index;
-  register Lisp_Object vector;
+  Lisp_Object vector;
+  register EMACS_INT sizei;
+  register int index;
   register struct Lisp_Vector *p;
 
   CHECK_NATNUM (length, 0);
   sizei = XFASTINT (length);
 
-  p = (struct Lisp_Vector *) xmalloc (sizeof (struct Lisp_Vector) + (sizei - 1) * sizeof (Lisp_Object));
-  VALIDATE_LISP_STORAGE (p, 0);
-
-  XSETVECTOR (vector, p);
-  consing_since_gc += sizeof (struct Lisp_Vector) + (sizei - 1) * sizeof (Lisp_Object);
-
+  p = allocate_vectorlike (sizei);
   p->size = sizei;
-  p->next = all_vectors;
-  all_vectors = p;
-
   for (index = 0; index < sizei; index++)
     p->contents[index] = init;
 
+  XSETVECTOR (vector, p);
   return vector;
 }
 
