@@ -59,7 +59,15 @@ Stefan Monnier
 	lisp/textmodes/outline.el
 
 Miles Bader
-	???
+	src/xfaces.c
+	field-property related stuff
+	lisp/comint.el
+	lisp/shell.el
+	[other comint-related packages]
+	lisp/button.el
+	lisp/image-file.el
+	lisp/minibuf-eldef.el
+	lisp/rfn-eshadow.el
 
 ==============================================================================
 2.
@@ -89,6 +97,12 @@ Stefan Monnier
 	lisp/progmodes/perl-mode.el
 	lisp/progmodes/tcl.el
 
+Miles Bader
+	src/eval.c
+	src/bytecode.c
+	src/editfns.c
+	lisp/textmodes/refill.el
+
 ==============================================================================
 3.
 ==============================================================================
@@ -101,7 +115,6 @@ src/alloca.s
 src/atimer.c
 src/bitmaps/
 src/buffer.c
-src/bytecode.c
 src/callint.c
 src/callproc.c
 src/casefiddle.c
@@ -120,10 +133,8 @@ src/dispnew.c
 src/doc.c
 src/doprnt.c
 src/ecrt0.c
-src/editfns.c
 src/emacs.c
 src/epaths.in
-src/eval.c
 src/fileio.c
 src/filelock.c
 src/filemode.c
