@@ -4,7 +4,7 @@
 
 ;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.13 1997/08/19 14:00:36 seidel Exp os10000 $
+;; Version: $Id: todo-mode.el,v 1.14 1997/10/09 09:24:50 os10000 Exp os10000 $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -225,6 +225,26 @@
 ;;; Change Log:
 
 ;; $Log: todo-mode.el,v $
+;; Revision 1.14  1997/10/09  09:24:50  os10000
+;; Harald Meland <harald.meland@usit.uio.no> asked for
+;; the latest version, got 1.13, and returned this.
+;; He writes:
+;;
+;; Thanks a lot for the new version of todo-mode.el.  As you will see I
+;; have messed it up a bit, hopefully for the better -- I don't like
+;; short, cryptic names for variables and functions, so I renamed most of
+;; them, and `defalias'ed the old function names.  I hope you don't mind
+;; too much, I just kinda couldn't stop myself.
+;;
+;; Additionally, I included some support for multiline entries, cleaned
+;; up (IMHO :) a lot of the code, included completion-support for which
+;; category to install a new entry in, and possibly some other changes I
+;; can't remember :)
+;;
+;; It's getting rather late, and I have just done some preliminary
+;; testing on whether all of this really works, but so far it looks
+;; good.
+;;
 ;; Revision 1.13  1997/08/19  14:00:36  seidel
 ;; - changed name to todo-mode
 ;; - fixed menu descriptions
@@ -407,8 +427,9 @@ For details see the variable `time-stamp-format'.")
   "Set up a buffer for editing a multiline TODO list entry."
   (interactive)
   (let ((buffer-name (generate-new-buffer-name todo-edit-buffer)))
-    (pop-to-buffer (make-indirect-buffer (file-name-nondirectory todo-file-do)
+    (switch-to-buffer (make-indirect-buffer (file-name-nondirectory todo-file-do)
 					 buffer-name))
+    (message "To exit, simply kill this buffer and return to list.")
     (todo-edit-mode)
     (narrow-to-region (todo-item-start) (todo-item-end))))
 
@@ -604,6 +625,23 @@ For details see the variable `time-stamp-format'.")
       (save-excursion
 	(end-of-line)
 	(point))))
+
+;; splits at a white space, returns a list
+(if (not (fboundp 'split-string))
+    (defun split-string (string regex)
+      (let ((start 0)
+	    (result '())
+	    substr)
+	(while (string-match regex string start)
+	  (let ((match (string-match regex string start)))
+	    (setq substr (substring string start match))
+	    (if (> (length substr) 0)
+		(setq result (cons substr result)))
+	    (setq start (match-end 0))))
+	(setq substr (substring string start nil))
+	(if (> (length substr) 0)
+	    (setq result (cons substr result)))
+	(nreverse result))))
 
 ;; ---------------------------------------------------------------------------
 
