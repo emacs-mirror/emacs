@@ -48,7 +48,7 @@ usually produces a similar-looking object.  For example, printing the
 symbol @code{foo} produces the text @samp{foo}, and reading that text
 returns the symbol @code{foo}.  Printing a list whose elements are
 @code{a} and @code{b} produces the text @samp{(a b)}, and reading that
-text produces a list (but not the same list) with elements are @code{a}
+text produces a list (but not the same list) with elements @code{a}
 and @code{b}.
 
   However, these two operations are not precisely inverses.  There are
@@ -127,7 +127,7 @@ A symbol as input stream is equivalent to the symbol's function
 definition (if any).
 @end table
 
-  Here is an example of reading from a stream which is a buffer, showing
+  Here is an example of reading from a stream that is a buffer, showing
 where point is located before and after:
 
 @example
@@ -154,8 +154,8 @@ This is the@point{} contents of foo.
 @end example
 
 @noindent
-Note that the first read skips a space at the beginning of the buffer.
-Reading skips any amount of whitespace preceding the significant text.
+Note that the first read skips a space.  Reading skips any amount of
+whitespace preceding the significant text.
 
   In Emacs 18, reading a symbol discarded the delimiter terminating the
 symbol.  Thus, point would end up at the beginning of @samp{contents}
@@ -164,7 +164,7 @@ it correctly handles input such as @samp{bar(foo)}, where the delimiter
 that ends one object is needed as the beginning of another object.
 
   Here is an example of reading from a stream that is a marker,
-initialized to point at the beginning of the buffer shown.  The value
+initially positioned at the beginning of the buffer shown.  The value
 read is the symbol @code{This}.
 
 @example
@@ -185,7 +185,7 @@ This is the contents of foo.
 @end group
 @group
 m
-     @result{} #<marker at 6 in foo>   ;; @r{After the first space.}
+     @result{} #<marker at 5 in foo>   ;; @r{Before the first space.}
 @end group
 @end example
 
@@ -216,7 +216,7 @@ Lisp expression: @kbd{23 @key{RET}}
   Finally, here is an example of a stream that is a function, named
 @code{useless-stream}.  Before we use the stream, we initialize the
 variable @code{useless-list} to a list of characters.  Then each call to
-the function @code{useless-stream} obtains the next characters in the list
+the function @code{useless-stream} obtains the next character in the list
 or unreads a character by adding it to the front of the list.
 
 @example
@@ -246,15 +246,15 @@ Now we read using the stream thus constructed:
 
 @group
 useless-list
-     @result{} (41)
+     @result{} (40 41)
 @end group
 @end example
 
 @noindent
-Note that the close parenthesis remains in the list.  The reader has
-read it, discovered that it ended the input, and unread it.  Another
-attempt to read from the stream at this point would get an error due to
-the unmatched close parenthesis.
+Note that the open and close parentheses remains in the list.  The Lisp
+reader encountered the open parenthesis, decided that it ended the
+input, and unread it.  Another attempt to read from the stream at this
+point would read @samp{()} and return @code{nil}.
 
 @defun get-file-char
 This function is used internally as an input stream to read from the
@@ -274,7 +274,7 @@ defaults to the value of @code{standard-input}.
 
 @kindex end-of-file
   An @code{end-of-file} error is signaled if reading encounters an
-unterminated list, vector or string.
+unterminated list, vector, or string.
 
 @defun read &optional stream
 This function reads one textual Lisp expression from @var{stream},
@@ -288,10 +288,10 @@ This function reads the first textual Lisp expression from the text in
 and whose @sc{cdr} is an integer giving the position of the next
 remaining character in the string (i.e., the first one not read).
 
-If @var{start} is supplied, then reading begins at index @var{start} in the
-string (where the first character is at index 0).  If @var{end} is also
-supplied, then reading stops at that index as if the rest of the string
-were not there.
+If @var{start} is supplied, then reading begins at index @var{start} in
+the string (where the first character is at index 0).  If @var{end} is
+also supplied, then reading stops just before that index, as if the rest
+of the string were not there.
 
 For example:
 
@@ -313,7 +313,7 @@ For example:
 @group
 ;; @r{Read starting at the second character.}
 (read-from-string "(list 112)" 1)
-     @result{} (list . 6)
+     @result{} (list . 5)
 @end group
 @group
 ;; @r{Read starting at the seventh character,}
@@ -347,7 +347,7 @@ Point advances as characters are inserted.
 @item @var{marker}
 @cindex marker output stream
 The output characters are inserted into the buffer that @var{marker}
-points into, at the marker position.  The position advances as
+points into, at the marker position.  The marker position advances as
 characters are inserted.  The value of point in the buffer has no effect
 on printing when the stream is a marker.
 
@@ -372,6 +372,10 @@ stream}, and must be a non-@code{nil} output stream.
 A symbol as output stream is equivalent to the symbol's function
 definition (if any).
 @end table
+
+  Many of the valid output streams are also valid as input streams.  The
+difference between input and output streams is therefore mostly one of
+how you use a Lisp object, not a distinction of types of object.
 
   Here is an example of a buffer used as an output stream.  Point is
 initially located as shown immediately before the @samp{h} in
@@ -399,11 +403,11 @@ This is t
 @end example
 
   Now we show a use of a marker as an output stream.  Initially, the
-marker points in buffer @code{foo}, between the @samp{t} and the
-@samp{h} in the word @samp{the}.  At the end, the marker has been
-advanced over the inserted text so that it still points before the same
-@samp{h}.  Note that the location of point, shown in the usual fashion, 
-has no effect.
+marker is in buffer @code{foo}, between the @samp{t} and the @samp{h} in
+the word @samp{the}.  At the end, the marker has advanced over the
+inserted text so that it remains positioned before the same @samp{h}.
+Note that the location of point, shown in the usual fashion, has no
+effect.
 
 @example
 @group
@@ -490,6 +494,10 @@ Now we can put the output in the proper order by reversing the list:
 @end group
 @end example
 
+@noindent
+Calling @code{concat} converts the list to a string so you can see its
+contents more clearly.
+
 @node Output Functions
 @section Output Functions
 
@@ -503,9 +511,9 @@ Now we can put the output in the proper order by reversing the list:
 output when necessary so that it can be read properly.  The quoting
 characters used are @samp{"} and @samp{\}; they distinguish strings from
 symbols, and prevent punctuation characters in strings and symbols from
-being taken as delimiters.  @xref{Printed Representation}, for full
-details.  You specify quoting or no quoting by the choice of printing
-function.
+being taken as delimiters when reading.  @xref{Printed Representation},
+for full details.  You specify quoting or no quoting by the choice of
+printing function.
 
   If the text is to be read back into Lisp, then it is best to print
 with quoting characters to avoid ambiguity.  Likewise, if the purpose is
@@ -558,9 +566,9 @@ characters are used.  @code{print} returns @var{object}.  For example:
 
 @defun prin1 object &optional stream
 This function outputs the printed representation of @var{object} to
-@var{stream}.  It does not print any spaces or newlines to separate
-output as @code{print} does, but it does use quoting characters just
-like @code{print}.  It returns @var{object}.
+@var{stream}.  It does not print newlines to separate output as
+@code{print} does, but it does use quoting characters just like
+@code{print}.  It returns @var{object}.
 
 @example
 @group
@@ -686,7 +694,7 @@ In the second expression, the local binding of
 @cindex printing limits
 The value of this variable is the maximum number of elements of a list
 that will be printed.  If a list being printed has more than this many
-elements, then it is abbreviated with an ellipsis.
+elements, it is abbreviated with an ellipsis.
 
 If the value is @code{nil} (the default), then there is no limit.
 
@@ -705,7 +713,7 @@ If the value is @code{nil} (the default), then there is no limit.
 
 @defvar print-level
 The value of this variable is the maximum depth of nesting of
-parentheses that will be printed.  Any list or vector at a depth
+parentheses and brackets when printed.  Any list or vector at a depth
 exceeding this limit is abbreviated with an ellipsis.  A value of
 @code{nil} (which is the default) means no limit.
 
