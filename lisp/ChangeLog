@@ -1,3 +1,10 @@
+2002-09-01  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el (f90-menu): Remove ":active" keyword where not
+	needed.
+	(f90-menu, f90-add-imenu-menu): Use lookup-key.
+	Remove (eval-when-compile) for free variables.
+
 2002-08-31  Andreas Schwab  <schwab@suse.de>
 
 	* font-core.el (font-lock-change-mode): Avoid changing buffer
