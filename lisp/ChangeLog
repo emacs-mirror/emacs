@@ -1,3 +1,7 @@
+2000-10-21  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info.el (Info-file-list-for-emacs): Add an entry for Speedbar.
+
 2000-10-21  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* progmodes/sh-script.el (sh-mode-map): Remove bindings for
