@@ -329,7 +329,8 @@ DIMENSION defaults to the first dimension."
 	   (aref code-space (- (* 2 dimension) 2))))))
 
 (defun charset-iso-final-char (charset)
-  "Return ISO-2022 final character of CHARSET."
+  "Return ISO-2022 final character of CHARSET.
+Return -1 if charset isn't an ISO 2022 one."
   (or (plist-get (charset-plist charset) :iso-final-char)
       -1))
 
@@ -476,7 +477,7 @@ selected.  If `:coding-type' is `iso-2022', VALUE may be `iso-2022',
 which indicates that the coding system supports all ISO-2022 based
 charsets.  If `:coding-type' is `emacs-mule', VALUE may be
 `emacs-mule', which indicates that the coding system supports all
-charsets that have `:emacs-mule-id' property.
+charsets that have the `:emacs-mule-id' property.
 
 `:ascii-compatible-p'
 
