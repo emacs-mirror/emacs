@@ -1,6 +1,6 @@
 /* impl.c.finalcv: FINALIZATION COVERAGE TEST
  *
- * $HopeName: MMsrc!finalcv.c(trunk.6) $
+ * $HopeName: MMsrc!finalcv.c(trunk.7) $
  * Copyright (C) 1996,1997 Harlequin Group, all rights reserved
  *
  * READERSHIP
@@ -83,8 +83,7 @@ churn(mps_ap_t ap)
 }
 
 
-static void *
-test(void *arg, size_t s)
+static void * test(void *arg, size_t s)
 {
   int i;                        /* index */
   mps_ap_t ap;
@@ -95,7 +94,9 @@ test(void *arg, size_t s)
   mps_space_t space;
   void *p = NULL;
   mps_message_t message;
+
   space = (mps_space_t)arg;
+  (void)s;
 
   die(mps_fmt_create_A(&fmt, space, dylan_fmt_A()), "fmt_create\n");
   die(mps_pool_create(&amc, space, mps_class_amc(), fmt),
