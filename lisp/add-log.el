@@ -75,8 +75,8 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
 			 buffer-file-name)
 			(substring buffer-file-name (match-end 0))
 		      (file-name-nondirectory buffer-file-name))))
-    ;; Never want to add a change log entry for the ChangeLog buffer itself.
-    (if (equal file-name entry)
+    ;; Never want to add a change log entry for the ChangeLog file itself.
+    (if (equal entry "ChangeLog")
 	(setq entry nil
 	      defun nil))
     (if (and other-window (not (equal file-name buffer-file-name)))
@@ -115,11 +115,16 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
 				       entry-boundary
 				       t)
 				      (1- (match-end 0)))))))
+    ;; Now insert the new line for this entry.
     (cond (entry-position
 	   ;; Move to the existing entry for the same file.
 	   (goto-char entry-position)
 	   (re-search-forward "^\\s *$")
-	   (open-line 1)
+	   (beginning-of-line)
+	   (while (looking-at "^\\s *$")
+	     (delete-region (point) (save-excursion (forward-line 1) (point))))
+	   (insert "\n\n")
+	   (forward-line -2)
 	   (indent-relative-maybe))
 	  (empty-entry
 	   ;; Put this file name into the existing empty entry.
@@ -131,14 +136,13 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
 	   (forward-line 1)
 	   (while (looking-at "\\sW")
 	     (forward-line 1))
-	   (delete-region (point)
-			  (progn
-			    (skip-chars-backward "\n")
-			    (point)))
-	   (open-line 3)
-	   (forward-line 2)
+	   (while (looking-at "^\\s *$")
+	     (delete-region (point) (save-excursion (forward-line 1) (point))))
+	   (insert "\n\n\n")
+	   (forward-line -2)
 	   (indent-to left-margin)
 	   (insert "* " (or entry ""))))
+    ;; Now insert the function name, if we have one.
     ;; Point is at the entry for this file,
     ;; either at the end of the line or at the first blank line.
     (if defun
@@ -151,10 +155,11 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
 		      ""
 		    " ")
 		  "(" defun "): "))
+      ;; No function name, so put in a colon unless we have just a star.
       (if (not (save-excursion
 		 (beginning-of-line 1)
 		 (looking-at "\\s *\\(\\*\\s *\\)?$")))
-	  (insert ":")))))
+	  (insert ": ")))))
 
 ;;;###autoload
 (define-key ctl-x-4-map "a" 'add-change-log-entry-other-window)
@@ -172,8 +177,7 @@ Interactively, with a prefix argument, the file name is prompted for."
 
 (defun change-log-mode ()
   "Major mode for editting change logs; like Indented Text Mode.
-Prevents numeric backups and sets `left-margin' to 8 and `fill-column'
-to 74.
+Prevents numeric backups and sets `left-margin' to 8 and `fill-column'to 74.
 New log entries are usually made with \\[add-change-log-entry]."
   (interactive)
   (kill-all-local-variables)
@@ -213,47 +217,65 @@ identifiers followed by `:' or `=', see variable
 
 Has a preference of looking backwards."
   (save-excursion
-    (cond ((memq major-mode '(emacs-lisp-mode lisp-mode))
-	   (beginning-of-defun)
-	   (forward-word 1)
-	   (skip-chars-forward " ")
-	   (buffer-substring (point)
-			     (progn (forward-sexp 1) (point))))
-	  ((eq major-mode 'c-mode)
-	   ;; must be inside function body for this to work
-	   (beginning-of-defun)
-	   (forward-line -1)
-	   (while (looking-at "[ \t\n]") ; skip typedefs of arglist
-	     (forward-line -1))
-	   (down-list 1)		; into arglist
-	   (backward-up-list 1)
-	   (skip-chars-backward " \t")
-	   (buffer-substring (point)
-			     (progn (backward-sexp 1)
-				    (point))))
-	  ((memq major-mode
-		 '(TeX-mode plain-TeX-mode LaTeX-mode;; tex-mode.el
-			    plain-tex-mode latex-mode;; cmutex.el
-			    ))
-	   (if (re-search-backward
-		"\\\\\\(sub\\)*\\(section\\|paragraph\\|chapter\\)" nil t)
-	       (progn
-		 (goto-char (match-beginning 0))
-		 (buffer-substring (1+ (point));; without initial backslash
-				   (progn
-				     (end-of-line)
-				     (point))))))
-	  ((eq major-mode 'texinfo-mode)
-	   (if (re-search-backward "^@node[ \t]+\\([^,]+\\)," nil t)
-	       (buffer-substring (match-beginning 1)
-				 (match-end 1))))
-	  (t
-	   ;; If all else fails, try heuristics
-	   (let (case-fold-search)
-	     (if (re-search-backward add-log-current-defun-header-regexp
-				     (- (point) 10000)
-				     t)
+    (let ((location (point)))
+      (cond ((memq major-mode '(emacs-lisp-mode lisp-mode scheme-mode))
+	     ;; If we are now precisely a the beginning of a defun,
+	     ;; make sure beginning-of-defun finds that one
+	     ;; rather than the previous one.
+	     (forward-char 1)
+	     (beginning-of-defun)
+	     ;; Make sure we are really inside the defun found, not after it.
+	     (if (save-excursion (end-of-defun)
+				 (< location (point)))
+		 (progn
+		   (forward-word 1)
+		   (skip-chars-forward " ")
+		   (buffer-substring (point)
+				     (progn (forward-sexp 1) (point))))))
+	    ((or (eq major-mode 'c-mode)
+		 (eq major-mode 'c++-mode))
+	     ;; See if we are in the beginning part of a function,
+	     ;; before the open brace.  If so, advance forward.
+	     (while (not (or (looking-at "{")
+			     (looking-at "\\s *$")))
+	       (forward-line 1))
+	     (forward-char 1)
+	     (beginning-of-defun)
+	     (if (save-excursion (end-of-defun)
+				 (< location (point)))
+		 (progn
+		   (forward-line -1)
+		   (while (looking-at "[ \t\n]") ; skip typedefs of arglist
+		     (forward-line -1))
+		   (down-list 1)		; into arglist
+		   (backward-up-list 1)
+		   (skip-chars-backward " \t")
+		   (buffer-substring (point)
+				     (progn (backward-sexp 1)
+					    (point))))))
+	    ((memq major-mode
+		   '(TeX-mode plain-TeX-mode LaTeX-mode;; tex-mode.el
+			      plain-tex-mode latex-mode;; cmutex.el
+			      ))
+	     (if (re-search-backward
+		  "\\\\\\(sub\\)*\\(section\\|paragraph\\|chapter\\)" nil t)
+		 (progn
+		   (goto-char (match-beginning 0))
+		   (buffer-substring (1+ (point));; without initial backslash
+				     (progn
+				       (end-of-line)
+				       (point))))))
+	    ((eq major-mode 'texinfo-mode)
+	     (if (re-search-backward "^@node[ \t]+\\([^,]+\\)," nil t)
 		 (buffer-substring (match-beginning 1)
-				   (match-end 1))))))))
+				   (match-end 1))))
+	    (t
+	     ;; If all else fails, try heuristics
+	     (let (case-fold-search)
+	       (if (re-search-backward add-log-current-defun-header-regexp
+				       (- (point) 10000)
+				       t)
+		   (buffer-substring (match-beginning 1)
+				     (match-end 1)))))))))
 
 ;;; add-log.el ends here

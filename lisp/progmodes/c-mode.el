@@ -130,42 +130,6 @@ If you do not want a leading newline before braces then use:
   "*Non-nil means TAB in C mode should always reindent the current line,
 regardless of where in the line point is when the TAB command is used.")
 
-(defun set-c-style (&optional style)
-  "Set up the c-mode style variables from the c-style variable or if
-  STYLE argument is given, use that.  It makes the c indentation style 
-  variables buffer local."
-  (interactive)
-  (let ((c-styles (mapcar 'car c-style-alist)))
-    (if (interactive-p)
-	(setq style
-	      (let ((style-string ; get style name with completion
-		     (completing-read
-		      (format "Set c mode indentation style to (default %s): "
-			      default-c-style)
-		      (vconcat c-styles)
-		      (function (lambda (arg) (memq arg c-styles)))
-		      )))
-		(if (string-equal "" style-string)
-		    default-c-style
-		  (intern style-string))
-		)))
-    (setq style (or style c-style)) ; use c-style if style is nil
-    (make-local-variable 'c-style)
-    (if (memq style c-styles)
-	(setq c-style style)
-      (error "Bad c style: %s" style)
-      )
-    (message "c-style: %s" c-style)
-    ; finally, set the indentation style variables making each one local
-    (mapcar (function (lambda (c-style-pair)
-			(make-local-variable (car c-style-pair))
-			(set (car c-style-pair)
-			     (cdr c-style-pair))))
-	    (cdr (assq c-style c-style-alist)))
-    c-style
-    )
-  )
-
 (defun c-mode ()
   "Major mode for editing C code.
 Expression and list commands understand all C brackets.
@@ -1066,18 +1030,90 @@ ENDPOS is encountered."
       (indent-c-exp endmark)
       (set-marker endmark nil))))
 
-(defun set-c-style (style)
+(defun set-c-style (style &optional global)
   "Set C-mode variables to use one of several different indentation styles.
-Takes one argument, a string representing the desired style.
-Available styles are GNU, K&R, BSD and Whitesmith."
+The arguments are a string representing the desired style
+and a flag which, if non-nil, means to set the style globally.
+\(Interactively, the flag comes from the prefix argument.)
+Available styles are GNU, K&R, BSD and Whitesmith.
   (interactive (list (completing-read "Use which C indentation style? "
-                                      c-style-alist nil t)))
+                                      c-style-alist nil t)
+		     current-prefix-arg))
   (let ((vars (cdr (assoc style c-style-alist))))
-    (if vars
-        (if (interactive-p) (message "Using %s C indentation style" style))
-      (error "Bogus style type, \"%s\"" style))
+    (or vars
+	(error "Invalid C indentation style `%s'" style))
     (while vars
+      (or global
+	  (make-local-variable (car (car vars))))
       (set (car (car vars)) (cdr (car vars)))
       (setq vars (cdr vars)))))
+
+;;; This page handles insertion and removal of backslashes for C macros.
+
+(defvar c-backslash-column 48
+  "*Minimum column for end-of-line backslashes of macro definitions.")
+
+(defun c-backslash-region (from to delete-flag)
+  "Insert, align, or delete end-of-line backslashes on the lines in the region.
+With no argument, inserts backslashes and aligns existing backslashes.
+With an argument, deletes the backslashes.
+
+This function does not modify the last line of the region if the region ends 
+right at the start of the following line; it does not modify blank lines
+at the start of the region.  So you can put the region around an entire macro
+definition and conveniently use this command."
+  (interactive "r\nP")
+  (save-excursion
+    (goto-char from)
+    (let ((column c-backslash-column)
+	  (endmark (make-marker)))
+      (move-marker endmark to)
+      ;; Compute the smallest column number past the ends of all the lines.
+      (if (not delete-flag)
+	  (while (< (point) to)
+	    (end-of-line)
+	    (if (= (preceding-char) ?\\)
+		(progn (forward-char -1)
+		       (skip-chars-backward " \t")))
+	    (setq column (max column (1+ (current-column))))
+	    (forward-line 1)))
+      ;; Adjust upward to a tab column, if that doesn't push past the margin.
+      (if (> (% column tab-width) 0)
+	  (let ((adjusted (* (/ (+ column tab-width -1) tab-width) tab-width)))
+	    (if (< adjusted (window-width))
+		(setq column adjusted))))
+      ;; Don't modify blank lines at start of region.
+      (goto-char from)
+      (while (and (< (point) endmark) (eolp))
+	(forward-line 1))
+      ;; Add or remove backslashes on all the lines.
+      (while (and (< (point) endmark)
+		  ;; Don't backslashify the last line
+		  ;; if the region ends right at the start of the next line.
+		  (save-excursion
+		    (forward-line 1)
+		    (< (point) endmark)))
+	(if (not delete-flag)
+	    (c-append-backslash column)
+	  (c-delete-backslash))
+	(forward-line 1))
+      (move-marker endmark nil))))
+
+(defun c-append-backslash (column)
+  (end-of-line)
+  ;; Note that "\\\\" is needed to get one backslash.
+  (if (= (preceding-char) ?\\)
+      (progn (forward-char -1)
+	     (delete-horizontal-space)
+	     (indent-to column))
+    (indent-to column)
+    (insert "\\")))
+
+(defun c-delete-backslash ()
+  (end-of-line)
+  (forward-char -1)
+  (if (looking-at "\\\\")
+      (delete-region (1+ (point))
+		     (progn (skip-chars-backward " \t") (point)))))
 
 ;;; c-mode.el ends here
