@@ -1,0 +1,6 @@
+GNU Emacs 19.x and above do not compile out of the box on OpenVMS.
+Richard Levitte <levitte@lp.se> is distributing and maintaining a
+version of Emacs (currently based on version 19.28, but soon moving to
+19.34 and then 20.1) that compiles and works on OpenVMS 5.5 and above
+on both VAX and Alpha architectures.  For more information, see:
+    http://www.gnu.org/software/emacs-vms/emacs.html
