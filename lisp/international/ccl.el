@@ -882,9 +882,8 @@
     (ccl-check-register rrr cmd)
     (ccl-check-register RRR cmd)
     (cond ((symbolp Rrr)
-	   (if (not (get Rrr 'character-translation-table))
-	       (error "CCL: Invalid character translation table %s in %s"
-		      Rrr cmd))
+	   (if (not (get Rrr 'translation-table))
+	       (error "CCL: Invalid translation table %s in %s" Rrr cmd))
 	   (ccl-embed-extended-command 'translate-character-const-tbl
 				       rrr RRR 0)
 	   (ccl-embed-data Rrr))
@@ -1241,11 +1240,11 @@
   (insert (format "write-multibyte-character r%d r%d\n" RRR rrr)))
 
 (defun ccl-dump-translate-character (rrr RRR Rrr)
-  (insert (format "character translation table(r%d) r%d r%d\n" Rrr RRR rrr)))
+  (insert (format "translation table(r%d) r%d r%d\n" Rrr RRR rrr)))
 
 (defun ccl-dump-translate-character-const-tbl (rrr RRR Rrr)
   (let ((tbl (ccl-get-next-code)))
-    (insert (format "character translation table(%d) r%d r%d\n" tbl RRR rrr))))
+    (insert (format "translation table(%d) r%d r%d\n" tbl RRR rrr))))
 
 (defun ccl-dump-iterate-multiple-map (rrr RRR Rrr)
   (let ((notbl (ccl-get-next-code))

@@ -197,16 +197,16 @@
 
 ;; These are tables for translating characters on decoding and
 ;; encoding.
-(define-character-translation-table
+(define-translation-table
   'oldjis-newjis-jisroman-ascii
   (list (cons (make-char 'japanese-jisx0208-1978)
 	      (make-char 'japanese-jisx0208))
 	(cons (make-char 'latin-jisx0201) (make-char 'ascii))))
 
-(setq standard-character-translation-table-for-decode
-      (get 'oldjis-newjis-jisroman-ascii 'character-translation-table))
+(setq standard-translation-table-for-decode
+      (get 'oldjis-newjis-jisroman-ascii 'translation-table))
 
-(setq standard-character-translation-table-for-encode nil)
+(setq standard-translation-table-for-encode nil)
 
 
 ;;; Make fundamental coding systems.

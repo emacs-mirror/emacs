@@ -328,16 +328,15 @@ See also the documentation of make-char."
 ;; in `write-region-annotate-functions', i.e. FROM and TO specifying
 ;; region of a text.
 ;;
-;; o character-translation-table-for-decode
+;; o translation-table-for-decode
 ;;
-;; The value is a character translation table to be applied on
-;; decoding.  See the function `make-translation-table' for the format
-;; of translation table.
+;; The value is a translation table to be applied on decoding.  See
+;; the function `make-translation-table' for the format of translation
+;; table.
 ;;
-;; o character-translation-table-for-encode
+;; o translation-table-for-encode
 ;;
-;; The value is a character translation table to be applied on
-;; encoding.
+;; The value is a translation table to be applied on encoding.
 ;;
 ;; o safe-charsets
 ;;
@@ -987,7 +986,7 @@ or a function symbol which, when called, returns such a cons cell."
 			 network-coding-system-alist)))))))
 
 (defun make-translation-table (&rest args)
-  "Make a character translation table (char table) from arguments.
+  "Make a translation table (char table) from arguments.
 Each argument is a list of the form (FROM . TO),
 where FROM is a character to be translated to TO.
 
@@ -996,7 +995,7 @@ a generic character containing the same number of charcters or a
 oridinal character.  If FROM and TO are both generic characters, all
 characters belonging to FROM are translated to characters belonging to TO
 without changing their position code(s)."
-  (let ((table (make-char-table 'character-translation-table))
+  (let ((table (make-char-table 'translation-table))
 	revlist)
     (while args
       (let ((elts (car args)))
@@ -1045,33 +1044,32 @@ without changing their position code(s)."
     ;; Return TABLE just created.
     table))
 
-(defun define-character-translation-table (symbol &rest args)
-  "Define SYMBOL as a name of character translation table makde by ARGS.
+(defun define-translation-table (symbol &rest args)
+  "Define SYMBOL as a name of translation table makde by ARGS.
 
 See the documentation of the function `make-translation-table' for the
 meaning of ARGS.
 
-This function sets properties character-translation-table and
-character-translation-table-id of SYMBOL to the created table itself
-and identification number of the table respectively."
+This function sets properties translation-table and
+translation-table-id of SYMBOL to the created table itself and
+identification number of the table respectively."
   (let ((table (apply 'make-translation-table args))
-	(len (length character-translation-table-vector))
+	(len (length translation-table-vector))
 	(id 0)
 	(done nil))
-    (put symbol 'character-translation-table table)
+    (put symbol 'translation-table table)
     (while (not done)
       (if (>= id len)
-	  (setq character-translation-table-vector
-		(vconcat character-translation-table-vector
-			 (make-vector len nil))))
-      (let ((slot (aref character-translation-table-vector id)))
+	  (setq translation-table-vector
+		(vconcat translation-table-vector (make-vector len nil))))
+      (let ((slot (aref translation-table-vector id)))
 	(if (or (not slot)
 		(eq (car slot) symbol))
 	    (progn
-	      (aset character-translation-table-vector id (cons symbol table))
+	      (aset translation-table-vector id (cons symbol table))
 	      (setq done t))))
       (setq id (1+ id)))
-    (put symbol 'character-translation-table-id id)
+    (put symbol 'translation-table-id id)
     id))
 
 ;;; Initialize some variables.

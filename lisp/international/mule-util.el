@@ -233,12 +233,12 @@ Optional 3rd argument NIL-FOR-TOO-LONG non-nil means return nil
 ;;;###autoload
 (defun coding-system-translation-table-for-decode (coding-system)
   "Return the value of CODING-SYSTEM's translation-table-for-decode property."
-  (coding-system-get coding-system 'character-translation-table-for-decode))
+  (coding-system-get coding-system 'translation-table-for-decode))
 
 ;;;###autoload
 (defun coding-system-translation-table-for-encode (coding-system)
   "Return the value of CODING-SYSTEM's translation-table-for-encode property."
-  (coding-system-get coding-system 'character-translation-table-for-encode))
+  (coding-system-get coding-system 'translation-table-for-encode))
 
 (defun coding-system-lessp (x y)
   (cond ((eq x 'no-conversion) t)

@@ -442,8 +442,7 @@ Lisp_Object Vccl_program_table;
 					1:ExtendedCOMMNDRrrRRRrrrXXXXX  */
 
 /* Translate a character whose code point is reg[rrr] and the charset
-   ID is reg[RRR] by a character translation table whose ID is
-   reg[Rrr].
+   ID is reg[RRR] by a translation table whose ID is reg[Rrr].
 
    A translated character is set in reg[rrr] (code point) and reg[RRR]
    (charset ID).  */
@@ -452,8 +451,7 @@ Lisp_Object Vccl_program_table;
 					1:ExtendedCOMMNDRrrRRRrrrXXXXX  */
 
 /* Translate a character whose code point is reg[rrr] and the charset
-   ID is reg[RRR] by a character translation table whose ID is
-   ARGUMENT.
+   ID is reg[RRR] by a translation table whose ID is ARGUMENT.
 
    A translated character is set in reg[rrr] (code point) and reg[RRR]
    (charset ID).  */
@@ -1633,7 +1631,7 @@ resolve_symbol_ccl_program (ccl)
 	  if (EQ(result, ccl))
 	    result = Fcopy_sequence (ccl);
 
-	  prop = Fget (contents, Qcharacter_translation_table_id);
+	  prop = Fget (contents, Qtranslation_table_id);
 	  if (NUMBERP (prop))
 	    {
 	      XVECTOR (result)->contents[i] = prop;

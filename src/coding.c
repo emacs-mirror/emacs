@@ -367,18 +367,18 @@ char *coding_category_name[CODING_CATEGORY_IDX_MAX] = {
    categories.  */
 struct coding_system *coding_system_table[CODING_CATEGORY_IDX_MAX];
 
-/* Flag to tell if we look up character translation table on character
-   code conversion.  */
+/* Flag to tell if we look up translation table on character code
+   conversion.  */
 Lisp_Object Venable_character_translation;
-/* Standard character translation table to look up on decoding (reading).  */
-Lisp_Object Vstandard_character_translation_table_for_decode;
-/* Standard character translation table to look up on encoding (writing).  */
-Lisp_Object Vstandard_character_translation_table_for_encode;
+/* Standard translation table to look up on decoding (reading).  */
+Lisp_Object Vstandard_translation_table_for_decode;
+/* Standard translation table to look up on encoding (writing).  */
+Lisp_Object Vstandard_translation_table_for_encode;
 
-Lisp_Object Qcharacter_translation_table;
-Lisp_Object Qcharacter_translation_table_id;
-Lisp_Object Qcharacter_translation_table_for_decode;
-Lisp_Object Qcharacter_translation_table_for_encode;
+Lisp_Object Qtranslation_table;
+Lisp_Object Qtranslation_table_id;
+Lisp_Object Qtranslation_table_for_decode;
+Lisp_Object Qtranslation_table_for_encode;
 
 /* Alist of charsets vs revision number.  */
 Lisp_Object Vcharset_revision_alist;
@@ -1010,11 +1010,11 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
   int charset0 = CODING_SPEC_ISO_PLANE_CHARSET (coding, 0);
   int charset1 = CODING_SPEC_ISO_PLANE_CHARSET (coding, 1);
   Lisp_Object translation_table
-    = coding->character_translation_table_for_decode;
+    = coding->translation_table_for_decode;
   int result = CODING_FINISH_NORMAL;
 
   if (!NILP (Venable_character_translation) && NILP (translation_table))
-    translation_table = Vstandard_character_translation_table_for_decode;
+    translation_table = Vstandard_translation_table_for_decode;
 
   coding->produced_char = 0;
   coding->fake_multibyte = 0;
@@ -1758,11 +1758,11 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
      head of loop.  */
   unsigned char *adjusted_dst_end = dst_end - 19;
   Lisp_Object translation_table
-      = coding->character_translation_table_for_encode;
+      = coding->translation_table_for_encode;
   int result = CODING_FINISH_NORMAL;
 
   if (!NILP (Venable_character_translation) && NILP (translation_table))
-    translation_table = Vstandard_character_translation_table_for_encode;
+    translation_table = Vstandard_translation_table_for_encode;
 
   coding->consumed_char = 0;
   coding->fake_multibyte = 0;
@@ -2175,11 +2175,11 @@ decode_coding_sjis_big5 (coding, source, destination,
      head of loop.  */
   unsigned char *adjusted_dst_end = dst_end - 3;
   Lisp_Object translation_table
-      = coding->character_translation_table_for_decode;
+      = coding->translation_table_for_decode;
   int result = CODING_FINISH_NORMAL;
 
   if (!NILP (Venable_character_translation) && NILP (translation_table))
-    translation_table = Vstandard_character_translation_table_for_decode;
+    translation_table = Vstandard_translation_table_for_decode;
 
   coding->produced_char = 0;
   coding->fake_multibyte = 0;
@@ -2364,11 +2364,11 @@ encode_coding_sjis_big5 (coding, source, destination,
      head of loop.  */
   unsigned char *adjusted_dst_end = dst_end - 1;
   Lisp_Object translation_table
-      = coding->character_translation_table_for_encode;
+      = coding->translation_table_for_encode;
   int result = CODING_FINISH_NORMAL;
 
   if (!NILP (Venable_character_translation) && NILP (translation_table))
-    translation_table = Vstandard_character_translation_table_for_encode;
+    translation_table = Vstandard_translation_table_for_encode;
 
   coding->consumed_char = 0;
   coding->fake_multibyte = 0;
@@ -2816,26 +2816,23 @@ setup_coding_system (coding_system, coding)
 
   /* Initialize remaining fields.  */
   coding->composing = 0;
-  coding->character_translation_table_for_decode = Qnil;
-  coding->character_translation_table_for_encode = Qnil;
+  coding->translation_table_for_decode = Qnil;
+  coding->translation_table_for_encode = Qnil;
 
   /* Get values of coding system properties:
      `post-read-conversion', `pre-write-conversion',
-     `character-translation-table-for-decode',
-     `character-translation-table-for-encode'.  */
+     `translation-table-for-decode', `translation-table-for-encode'.  */
   plist = XVECTOR (coding_spec)->contents[3];
   coding->post_read_conversion = Fplist_get (plist, Qpost_read_conversion);
   coding->pre_write_conversion = Fplist_get (plist, Qpre_write_conversion);
-  val = Fplist_get (plist, Qcharacter_translation_table_for_decode);
+  val = Fplist_get (plist, Qtranslation_table_for_decode);
   if (SYMBOLP (val))
-    val = Fget (val, Qcharacter_translation_table_for_decode);
-  coding->character_translation_table_for_decode
-    = CHAR_TABLE_P (val) ? val : Qnil;
-  val = Fplist_get (plist, Qcharacter_translation_table_for_encode);
+    val = Fget (val, Qtranslation_table_for_decode);
+  coding->translation_table_for_decode = CHAR_TABLE_P (val) ? val : Qnil;
+  val = Fplist_get (plist, Qtranslation_table_for_encode);
   if (SYMBOLP (val))
-    val = Fget (val, Qcharacter_translation_table_for_encode);
-  coding->character_translation_table_for_encode
-    = CHAR_TABLE_P (val) ? val : Qnil;
+    val = Fget (val, Qtranslation_table_for_encode);
+  coding->translation_table_for_encode = CHAR_TABLE_P (val) ? val : Qnil;
   val = Fplist_get (plist, Qcoding_category);
   if (!NILP (val))
     {
@@ -5140,21 +5137,18 @@ syms_of_coding ()
       }
   }
 
-  Qcharacter_translation_table = intern ("character-translation-table");
-  staticpro (&Qcharacter_translation_table);
-  Fput (Qcharacter_translation_table, Qchar_table_extra_slots,
-	make_number (0));
+  Qtranslation_table = intern ("translation-table");
+  staticpro (&Qtranslation_table);
+  Fput (Qtranslation_table, Qchar_table_extra_slots, make_number (0));
 
-  Qcharacter_translation_table_id = intern ("character-translation-table-id");
-  staticpro (&Qcharacter_translation_table_id);
+  Qtranslation_table_id = intern ("translation-table-id");
+  staticpro (&Qtranslation_table_id);
 
-  Qcharacter_translation_table_for_decode
-    = intern ("character-translation-table-for-decode");
-  staticpro (&Qcharacter_translation_table_for_decode);
+  Qtranslation_table_for_decode = intern ("translation-table-for-decode");
+  staticpro (&Qtranslation_table_for_decode);
 
-  Qcharacter_translation_table_for_encode
-    = intern ("character-translation-table-for-encode");
-  staticpro (&Qcharacter_translation_table_for_encode);
+  Qtranslation_table_for_encode = intern ("translation-table-for-encode");
+  staticpro (&Qtranslation_table_for_encode);
 
   Qsafe_charsets = intern ("safe-charsets");
   staticpro (&Qsafe_charsets);
@@ -5312,18 +5306,18 @@ See also the function `find-operation-coding-system'.");
   eol_mnemonic_undecided = ':';
 
   DEFVAR_LISP ("enable-character-translation", &Venable_character_translation,
-    "Non-nil means ISO 2022 encoder/decoder do character translation.");
+    "*Non-nil enables character translation while encoding and decoding.");
   Venable_character_translation = Qt;
 
-  DEFVAR_LISP ("standard-character-translation-table-for-decode",
-    &Vstandard_character_translation_table_for_decode,
+  DEFVAR_LISP ("standard-translation-table-for-decode",
+    &Vstandard_translation_table_for_decode,
     "Table for translating characters while decoding.");
-  Vstandard_character_translation_table_for_decode = Qnil;
+  Vstandard_translation_table_for_decode = Qnil;
 
-  DEFVAR_LISP ("standard-character-translation-table-for-encode",
-    &Vstandard_character_translation_table_for_encode,
+  DEFVAR_LISP ("standard-translation-table-for-encode",
+    &Vstandard_translation_table_for_encode,
     "Table for translationg characters while encoding.");
-  Vstandard_character_translation_table_for_encode = Qnil;
+  Vstandard_translation_table_for_encode = Qnil;
 
   DEFVAR_LISP ("charset-revision-table", &Vcharset_revision_alist,
     "Alist of charsets vs revision numbers.\n\
