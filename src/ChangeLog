@@ -1,3 +1,9 @@
+2002-12-09  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+
+	* editfns.c (Fformat): Handle precision in string conversion
+	specifiers like libc functions do (ie, print at most that many
+	characters).  From Matthew Swift <swift@alum.mit.edu>.
+
 2002-12-08  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (row_containing_pos): Check more carefully

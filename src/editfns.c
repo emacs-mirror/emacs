@@ -3207,6 +3207,12 @@ usage: (format STRING &rest OBJECTS)  */)
      must consider such a situation or not.  */
   int maybe_combine_byte;
   unsigned char *this_format;
+  /* Precision for each spec, or -1, a flag value meaning no precision
+     was given in that spec.  Element 0, corresonding to the format
+     string itself, will not be used.  Element NARGS, corresponding to
+     no argument, *will* be assigned to in the case that a `%' and `.'
+     occur after the final format specifier.  */
+  int precision[nargs];
   int longest_format;
   Lisp_Object val;
   struct info
@@ -3221,9 +3227,12 @@ usage: (format STRING &rest OBJECTS)  */)
      This is not always right; sometimes the result needs to be multibyte
      because of an object that we will pass through prin1,
      and in that case, we won't know it here.  */
-  for (n = 0; n < nargs; n++)
+  for (n = 0; n < nargs; n++) {
     if (STRINGP (args[n]) && STRING_MULTIBYTE (args[n]))
       multibyte = 1;
+    /* Piggyback on this loop to initialize precision[N]. */
+    precision[n] = -1;
+  }
 
   CHECK_STRING (args[0]);
 
@@ -3247,7 +3256,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	int thissize = 0;
 	int actual_width = 0;
 	unsigned char *this_format_start = format - 1;
-	int field_width, precision;
+	int field_width = 0;
 
 	/* General format specifications look like
 
@@ -3263,12 +3272,17 @@ usage: (format STRING &rest OBJECTS)  */)
 	   the output should be padded with blanks, iff the output
 	   string is shorter than field-width.
 
-	   if precision is specified, it specifies the number of
+	   If precision is specified, it specifies the number of
 	   digits to print after the '.' for floats, or the max.
 	   number of chars to print from a string.  */
 
-	precision = field_width = 0;
-	
+	/* NOTE the handling of specifiers here differs in some ways
+           from the libc model.  There are bugs in this code that lead
+           to incorrect formatting when flags recognized by C but
+           neither parsed nor rejected here are used.  Further
+           revisions will be made soon.  */
+
+        /* incorrect list of flags to skip; will be fixed */
 	while (index ("-*# 0", *format))
 	  ++format;
 
@@ -3278,11 +3292,13 @@ usage: (format STRING &rest OBJECTS)  */)
 	      field_width = 10 * field_width + *format - '0';
 	  }
 
+	/* N is not incremented for another few lines below, so refer to
+	   element N+1 (which might be precision[NARGS]). */
 	if (*format == '.')
 	  {
 	    ++format;
-	    for (precision = 0; *format >= '0' && *format <= '9'; ++format)
-	      precision = 10 * precision + *format - '0';
+	    for (precision[n+1] = 0; *format >= '0' && *format <= '9'; ++format)
+	      precision[n+1] = 10 * precision[n+1] + *format - '0';
 	  }
 
 	if (format - this_format_start + 1 > longest_format)
@@ -3322,7 +3338,10 @@ usage: (format STRING &rest OBJECTS)  */)
 	  string:
 	    if (*format != 's' && *format != 'S')
 	      error ("Format specifier doesn't match argument type");
-	    thissize = CONVERTED_BYTE_SIZE (multibyte, args[n]);
+	    /* In the case (PRECISION[N] > 0), THISSIZE may not need
+	       to be as large as is calculated here.  Easy check for
+	       the case PRECISION = 0. */
+	    thissize = precision[n] ? CONVERTED_BYTE_SIZE (multibyte, args[n]) : 0;
 	    actual_width = lisp_string_width (args[n], -1, NULL, NULL);
 	  }
 	/* Would get MPV otherwise, since Lisp_Int's `point' to low memory.  */
@@ -3366,7 +3385,10 @@ usage: (format STRING &rest OBJECTS)  */)
 	    /* Note that we're using sprintf to print floats,
 	       so we have to take into account what that function
 	       prints.  */
-	    thissize = MAX_10_EXP + 100 + precision;
+	    /* Filter out flag value of -1.  This is a conditional with omitted
+	       operand: the value is PRECISION[N] if the conditional is >=0 and
+	       otherwise is 0. */
+	    thissize = MAX_10_EXP + 100 + (precision[n] > 0 ? : 0);
 	  }
 	else
 	  {
@@ -3416,10 +3438,14 @@ usage: (format STRING &rest OBJECTS)  */)
 	  format++;
 
 	  /* Process a numeric arg and skip it.  */
+	  /* NOTE atoi is the wrong thing to use here; will be fixed */
 	  minlen = atoi (format);
 	  if (minlen < 0)
 	    minlen = - minlen, negative = 1;
 
+	  /* NOTE the parsing here is not consistent with the first
+             pass, and neither attempt is what we want to do.  Will be
+             fixed. */
 	  while ((*format >= '0' && *format <= '9')
 		 || *format == '-' || *format == ' ' || *format == '.')
 	    format++;
@@ -3435,8 +3461,28 @@ usage: (format STRING &rest OBJECTS)  */)
 
 	  if (STRINGP (args[n]))
 	    {
-	      int padding, nbytes, start, end;
-	      int width = lisp_string_width (args[n], -1, NULL, NULL);
+	      /* handle case (precision[n] >= 0) */
+
+	      int width, padding;
+	      int nbytes, start, end;
+	      int nchars_string;
+
+	      /* lisp_string_width ignores a precision of 0, but GNU
+		 libc functions print 0 characters when the precision
+		 is 0.  Imitate libc behavior here.  Changing
+		 lisp_string_width is the right thing, and will be
+		 done, but meanwhile we work with it. */
+
+	      if (precision[n] == 0)
+		width = nchars_string = nbytes = 0;
+	      else if (precision[n] > 0)
+		width = lisp_string_width (args[n], precision[n], &nchars_string, &nbytes);
+	      else
+		{		/* no precision spec given for this argument */
+		  width = lisp_string_width (args[n], -1, NULL, NULL);
+		  nbytes = SBYTES (args[n]);
+		  nchars_string = SCHARS (args[n]);
+		}
 
 	      /* If spec requires it, pad on right with spaces.  */
 	      padding = minlen - width;
@@ -3448,19 +3494,19 @@ usage: (format STRING &rest OBJECTS)  */)
 		  }
 
 	      start = nchars;
-	      
+	      nchars += nchars_string;
+	      end = nchars;
+
 	      if (p > buf
 		  && multibyte
 		  && !ASCII_BYTE_P (*((unsigned char *) p - 1))
 		  && STRING_MULTIBYTE (args[n])
 		  && !CHAR_HEAD_P (SREF (args[n], 0)))
 		maybe_combine_byte = 1;
-	      nbytes = copy_text (SDATA (args[n]), p,
-				  SBYTES (args[n]),
-				  STRING_MULTIBYTE (args[n]), multibyte);
-	      p += nbytes;
-	      nchars += SCHARS (args[n]);
-	      end = nchars;
+
+	      p += copy_text (SDATA (args[n]), p,
+			      nbytes,
+			      STRING_MULTIBYTE (args[n]), multibyte);
 
 	      if (negative)
 		while (padding-- > 0)
