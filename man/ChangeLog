@@ -1,3 +1,7 @@
+2004-06-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* makefile.w32-in (EMACSSOURCES): Remove emacs-xtra.
+
 2004-06-29  Jesper Harder  <harder@ifa.au.dk>
 
 	* ses.texi, viper.texi, search.texi, flymake.texi, faq.texi:
