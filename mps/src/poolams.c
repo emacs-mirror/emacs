@@ -1,9 +1,7 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.10) $
+ * $HopeName: MMsrc!poolams.c(trunk.11) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
- * 
- * NOTES
  * 
  * .readership: any MPS developer.
  * 
@@ -19,7 +17,7 @@
 #include "mpm.h"
 #include "mpscams.h"
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.10) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.11) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -636,6 +634,7 @@ static Res AMSIterate(AMS ams, AMSGroup group, Seg seg, Arena arena,
   format = ams->format;
   alignment = PoolAlignment(AMSPool(ams));
   AVER(alignment == format->alignment); /* design.mps.poolams.align */
+  UNUSED(arena);
 
   p = SegBase(seg);
   limit = SegLimit(seg);
