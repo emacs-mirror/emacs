@@ -1,3 +1,17 @@
+2002-05-25  Dave Love  <fx@gnu.org>
+
+	* international/mule-diag.el (print-coding-system): Incomplete
+	updates.
+	(Describe-character-set): List more properties.
+	(Print-fontset): Fix case of vector font-spec.
+	(describe-current-coding-system): Fix iso-7, iso-7-else.
+
+	* international/mule-conf.el (ibm866): Fix alias.
+	(iso-8859-16): Fix nickname.
+
+	* international/mule.el (coding-system-iso-2022-flags): Add
+	use-roman, use-oldjis.
+
 2002-05-23  Dave Love  <fx@gnu.org>
 
 	* language/ind-util.el: Avoid decode-char.
@@ -26129,6 +26143,6 @@ See ChangeLog.8 for earlier changes.
 ;; coding: iso-2022-7bit
 ;; End:
 
-    Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+    Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
