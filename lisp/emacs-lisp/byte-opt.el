@@ -1151,6 +1151,10 @@
 ;;; state, so that constant folding them would be wrong,
 ;;; but we don't do constant folding based on this list.
 
+;;; However, at present the only optimization we normally do
+;;; is delete calls that need not occur, and we only do that
+;;; with the error-free functions.
+
 ;;; I wonder if I missed any :-\)
 (let ((side-effect-free-fns
        '(% * + - / /= 1+ 1- < <= = > >= abs acos append aref ash asin atan
