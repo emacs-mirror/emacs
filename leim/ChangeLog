@@ -1,3 +1,9 @@
+2001-11-29  Dave Love  <fx@gnu.org>
+
+	* quail/latin-ltx.el: Extra translations.  Fix some
+	latin-iso8859-4 characters.  Use Hebrew letters, not compatibility
+	symbols.
+
 2001-11-28  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in (INDIAN): Adjusted for the file name change;
