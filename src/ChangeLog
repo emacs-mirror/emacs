@@ -1,5 +1,10 @@
 1999-12-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* abbrev.c (Fexpand_abbrev): If expanding an abbrev which has only
+	a hook, and the hook has a non-nil `no-self-insert' property, let
+	the return value of the hook specify whether an expansion took
+	place.  If it returns nil, no expansion has been performed.
+
 	* xterm.c (x_make_frame_visible): Wait for frame becoming visible
 	differently.
 

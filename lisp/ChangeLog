@@ -1,3 +1,8 @@
+1999-12-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* expand.el (expand-abbrev-hook): Return t if expansion was
+	done, nil otherwise.
+
 1999-12-29  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* tar-mode.el (tar-mode-map): Bind q to quit-window, not tar-quit.
