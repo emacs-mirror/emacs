@@ -49,6 +49,12 @@
 
 (require 'ediff-init)
 
+(defcustom ediff-quit-merge-hook 'ediff-maybe-save-and-delete-merge
+  "*Hooks to run before quitting a merge job.
+The most common use is to save and delete the merge buffer."
+  :type 'hook
+  :group 'ediff-merge)
+
 
 (defcustom ediff-default-variant 'combined
   "*The variant to be used as a default for buffer C in merging.

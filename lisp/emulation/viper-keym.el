@@ -27,7 +27,7 @@
 (defvar viper-always)
 (defvar vip-current-state)
 (defvar vip-mode-string)
-(defvar vip-expert-level)
+(defvar viper-expert-level)
 (defvar vip-ex-style-editing-in-insert)
 (defvar vip-ex-style-motion)
 
@@ -59,26 +59,34 @@ This setting cannot be changed interactively.")
   
 ;;; Emacs keys in other states.  
 
-(defvar vip-want-emacs-keys-in-insert t
+(defcustom vip-want-emacs-keys-in-insert t
   "*Set to nil if you want complete Vi compatibility in insert mode.
-Complete compatibility with Vi is not recommended for power use of Viper.")
+Complete compatibility with Vi is not recommended for power use of Viper."
+  :type 'boolean
+  :group 'viper)
 
-(defvar vip-want-emacs-keys-in-vi t
+(defcustom vip-want-emacs-keys-in-vi t
   "*Set to nil if you want complete Vi compatibility in Vi mode.
-Full Vi compatibility is not recommended for power use of Viper.")
+Full Vi compatibility is not recommended for power use of Viper."
+  :type 'boolean
+  :group 'viper)
 
-(defvar vip-no-multiple-ESC  t
+(defcustom vip-no-multiple-ESC  t
   "*If true, multiple ESC in Vi mode will cause bell to ring.
 This is set to t on a windowing terminal and to 'twice on a dumb
 terminal (unless the user level is 1, 2, or 5). On a dumb terminal, this
 enables cursor keys and is generally more convenient, as terminals usually
 don't have a convenient Meta key.
 Setting vip-no-multiple-ESC to nil will allow as many multiple ESC,
-as is allowed by the major mode in effect.") 
+as is allowed by the major mode in effect."
+  :type 'boolean
+  :group 'viper) 
 
-(defvar vip-want-ctl-h-help nil
+(defcustom vip-want-ctl-h-help nil
   "*If t then C-h is bound to help-command in insert mode, if nil then it is
-bound to delete-backward-char.")
+bound to delete-backward-char."
+  :type 'boolean
+  :group 'viper)
 
 
 ;;; Keymaps
@@ -114,7 +122,7 @@ This map is global, shared by all buffers.")
 
 (defvar vip-vi-diehard-map (make-sparse-keymap)
   "This keymap is in use when the user asks Viper to simulate Vi very closely.
-This happens when vip-expert-level is 1 or 2. See vip-set-expert-level.")
+This happens when viper-expert-level is 1 or 2. See viper-set-expert-level.")
   
 
 (vip-deflocalvar vip-insert-local-user-map (make-sparse-keymap)
@@ -584,7 +592,7 @@ Arguments: (major-mode vip-state keymap)"
     (princ (format "vip-emacs-state-modifier-minor-mode:  %S\n"
 		   vip-emacs-state-modifier-minor-mode))
     
-    (princ (format "\nvip-expert-level  %S\n" vip-expert-level))
+    (princ (format "\nviper-expert-level  %S\n" viper-expert-level))
     (princ (format "vip-no-multiple-ESC  %S\n" vip-no-multiple-ESC))
     (princ (format "viper-always  %S\n" viper-always))
     (princ (format "vip-ex-style-motion  %S\n"
@@ -625,6 +633,11 @@ form ((key . function) (key . function) ... )."
    (mapcar (function (lambda (p)
 		       (define-key map (eval (car p)) (cdr p)))) 
 	   alist))
+
+
+;;; Local Variables:
+;;; eval: (put 'vip-deflocalvar 'lisp-indent-hook 'defun)
+;;; End:
 
 
 ;;;  viper-keym.el ends here

@@ -47,6 +47,11 @@
 (require 'viper-util)
 
 
+(defgroup viper-mouse nil
+  "Support for Viper special mouse-bound commands"
+  :prefix "vip-"
+  :group 'viper)
+
 
 ;;; Variables
   
@@ -58,21 +63,25 @@
 ;; Frame that was selected before the switch-frame event.
 (defconst vip-current-frame-saved (selected-frame))
   
-(defvar vip-surrounding-word-function 'vip-surrounding-word
+(defcustom vip-surrounding-word-function 'vip-surrounding-word
   "*Function that determines what constitutes a word for clicking events.
 Takes two parameters: a COUNT, indicating how many words to return, 
 and CLICK-COUNT, telling whether this is the first click, a double-click,
-or a tripple-click.")
+or a tripple-click."
+  :type 'boolean
+  :group 'viper-mouse)
        
 ;; time interval in millisecond within which successive clicks are
 ;; considered related
-(defconst vip-multiclick-timeout (if (vip-window-display-p)
-				     (if vip-xemacs-p
-					 mouse-track-multi-click-time
-				       double-click-time)
-				   500)
-  "*Time interval in millisecond within which successive clicks are
-considered related.")
+(defcustom vip-multiclick-timeout (if (vip-window-display-p)
+				      (if vip-xemacs-p
+					  mouse-track-multi-click-time
+					double-click-time)
+				    500)
+  "*Time interval in millisecond within which successive mouse clicks are
+considered related."
+  :type 'integer
+  :group 'viper-mouse)
 
 ;; current event click count; XEmacs only
 (defvar vip-current-click-count 0)
@@ -431,6 +440,10 @@ bindings in the Viper manual."
   (setq last-command 'handle-switch-frame
 	vip-current-frame-saved (selected-frame)))
 
+
+;;; Local Variables:
+;;; eval: (put 'vip-deflocalvar 'lisp-indent-hook 'defun)
+;;; End:
 
 
 ;;;  viper-mous.el ends here

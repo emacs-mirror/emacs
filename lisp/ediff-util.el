@@ -101,6 +101,7 @@ This mode is entered through one of the following commands:
 	`ediff-patch-file'
 	`ediff-patch-buffer'
 	`epatch-buffer'
+        `erevision'
 	`ediff-revision'
 
 Commands:
@@ -404,7 +405,10 @@ to invocation.")
 	(or (memq control-buffer ediff-this-buffer-ediff-sessions)
 	    (setq ediff-this-buffer-ediff-sessions
 		  (cons control-buffer ediff-this-buffer-ediff-sessions)))
+	(if ediff-make-buffers-readonly-at-startup
+	    (setq buffer-read-only t))
 	)
+
       (ediff-eval-in-buffer ediff-buffer-B
 	(ediff-nuke-selective-display)
 	(run-hooks 'ediff-prepare-buffer-hook)
@@ -414,7 +418,10 @@ to invocation.")
 	(or (memq control-buffer ediff-this-buffer-ediff-sessions)
 	    (setq ediff-this-buffer-ediff-sessions
 		  (cons control-buffer ediff-this-buffer-ediff-sessions)))
+	(if ediff-make-buffers-readonly-at-startup
+	    (setq buffer-read-only t))
 	)
+
       (if ediff-3way-job
 	  (ediff-eval-in-buffer ediff-buffer-C
 	    (ediff-nuke-selective-display)
@@ -424,6 +431,8 @@ to invocation.")
 		(setq ediff-this-buffer-ediff-sessions
 		      (cons control-buffer
 			    ediff-this-buffer-ediff-sessions))) 
+	    (if ediff-make-buffers-readonly-at-startup
+		(setq buffer-read-only t))
 	    ))
 
       (if (ediff-buffer-live-p ediff-ancestor-buffer)

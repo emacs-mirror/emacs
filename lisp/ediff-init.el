@@ -328,53 +328,79 @@ that Ediff doesn't know about.")
 
 ;; Hook variables
 
-(defvar ediff-before-setup-windows-hook nil
+(defcustom ediff-before-setup-windows-hook nil
   "*Hooks to run before Ediff sets its window configuration. 
 This can be used to save the previous window config, which can be restored
-on ediff-quit or ediff-suspend.") 
-(defvar ediff-after-setup-windows-hook nil
+on ediff-quit or ediff-suspend."
+  :type 'hook
+  :group 'ediff) 
+(defcustom ediff-after-setup-windows-hook nil
   "*Hooks to run after Ediff sets its window configuration. 
-This can be used to set up control window or icon in a desired place.")
-(defvar ediff-before-setup-control-frame-hook nil
+This can be used to set up control window or icon in a desired place."
+  :type 'hook
+  :group 'ediff)
+(defcustom ediff-before-setup-control-frame-hook nil
   "*Hooks run before setting up the frame to display Ediff Control Panel.
 Can be used to change control frame parameters to position it where it
-is desirable.")
-(defvar ediff-after-setup-control-frame-hook nil
+is desirable."
+  :type 'hook
+  :group 'ediff)
+(defcustom ediff-after-setup-control-frame-hook nil
   "*Hooks run after setting up the frame to display Ediff Control Panel.
-Can be used to move the frame where it is desired.")
-(defvar ediff-startup-hook nil
-  "*Hooks to run in the control buffer after Ediff has been set up.")
-(defvar ediff-select-hook nil
-  "*Hooks to run after a difference has been selected.")
-(defvar ediff-unselect-hook nil
-  "*Hooks to run after a difference has been unselected.")
-(defvar ediff-prepare-buffer-hook  nil
-  "*Hooks called after buffers A, B, and C are set up.")
-(defvar ediff-load-hook nil
-  "*Hook run after Ediff is loaded.  Can be used to change defaults.")
+Can be used to move the frame where it is desired."
+  :type 'hook
+  :group 'ediff)
+(defcustom ediff-startup-hook nil
+  "*Hooks to run in the control buffer after Ediff has been set up."
+  :type 'hook
+  :group 'ediff)
+(defcustom ediff-select-hook nil
+  "*Hooks to run after a difference has been selected."
+  :type 'hook
+  :group 'ediff)
+(defcustom ediff-unselect-hook nil
+  "*Hooks to run after a difference has been unselected."
+  :type 'hook
+  :group 'ediff)
+(defcustom ediff-prepare-buffer-hook  nil
+  "*Hooks called after buffers A, B, and C are set up."
+  :type 'hook
+  :group 'ediff)
+(defcustom ediff-load-hook nil
+  "*Hook run after Ediff is loaded.  Can be used to change defaults."
+  :type 'hook
+  :group 'ediff)
   
-(defvar ediff-mode-hook nil
+(defcustom ediff-mode-hook nil
   "*Hook run just after ediff-mode is set up in the control buffer. 
 This is done before any windows or frames are created. One can use it to
-set local variables that determine how the display looks like.")
-(defvar ediff-keymap-setup-hook nil
-  "*Hook run just after the default bindings in Ediff keymap are set up.")
+set local variables that determine how the display looks like."
+  :type 'hook
+  :group 'ediff)
+(defcustom ediff-keymap-setup-hook nil
+  "*Hook run just after the default bindings in Ediff keymap are set up."
+  :type 'hook
+  :group 'ediff)
   
-(defvar ediff-display-help-hook nil
-  "*Hooks run after preparing the help message.")
+(defcustom ediff-display-help-hook nil
+  "*Hooks run after preparing the help message."
+  :type 'hook
+  :group 'ediff)
 
-(defvar ediff-suspend-hook (list 'ediff-default-suspend-function)
-  "*Hooks to run in the Ediff control buffer when Ediff is suspended.")
-(defvar ediff-quit-hook (list 'ediff-cleanup-mess)
-  "*Hooks to run in the Ediff control buffer after finishing Ediff.") 
-(defvar ediff-cleanup-hook nil
+(defcustom ediff-suspend-hook (list 'ediff-default-suspend-function)
+  "*Hooks to run in the Ediff control buffer when Ediff is suspended."
+  :type 'hook
+  :group 'ediff)
+(defcustom ediff-quit-hook (list 'ediff-cleanup-mess)
+  "*Hooks to run in the Ediff control buffer after finishing Ediff."
+  :type 'hook
+  :group 'ediff) 
+(defcustom ediff-cleanup-hook nil
   "*Hooks to run on exiting Ediff but before killing the control buffer.
 This is a place to do various cleanups, such as deleting the variant buffers.
-Ediff provides a function, `ediff-janitor', as one such possible hook.")
-(defvar ediff-quit-merge-hook 'ediff-maybe-save-and-delete-merge
-  "*Hooks to run before quitting a merge job.
-The most common use is to save and delete the merge buffer.")
-
+Ediff provides a function, `ediff-janitor', as one such possible hook."
+  :type 'hook
+  :group 'ediff)
 
 ;; Error messages
 (defconst ediff-KILLED-VITAL-BUFFER
@@ -430,29 +456,39 @@ See the documentation string of `ediff-focus-on-regexp-matches' for details.")
 (ediff-defvar-local ediff-hide-regexp-connective 'and "")
   
   
-;; Copying difference regions between buffers.    
-(ediff-defvar-local ediff-killed-diffs-alist nil
-  "A list of killed diffs. 
-A diff is saved here if it is replaced by a diff
-from another buffer.  This alist has the form:
-\((num (buff-object . diff) (buff-object . diff) (buff-object . diff)) ...),
-where some buffer-objects may be missing.")
+;;; Copying difference regions between buffers.    
+
+;; A list of killed diffs. 
+;; A diff is saved here if it is replaced by a diff
+;; from another buffer.  This alist has the form:
+;; \((num (buff-object . diff) (buff-object . diff) (buff-object . diff)) ...),
+;; where some buffer-objects may be missing.
+(ediff-defvar-local ediff-killed-diffs-alist nil "")
 
 
 ;; Highlighting
-;;(defvar ediff-before-flag-bol (if ediff-emacs-p "->>\n" (make-glyph "->>\n"))
-(defvar ediff-before-flag-bol (if ediff-xemacs-p (make-glyph "->>") "->>")
-  "*Flag placed above the highlighted block of differences. 
-Must end with newline.")
-;;(defvar ediff-after-flag-eol  (if ediff-emacs-p "<<-\n" (make-glyph "<<-"))
-(defvar ediff-after-flag-eol  (if ediff-xemacs-p (make-glyph "<<-") "<<-")
-  "*Flag placed below the highlighted block of differences.
-Must end with newline.")
+(defcustom ediff-before-flag-bol (if ediff-xemacs-p (make-glyph "->>") "->>")
+  "*Flag placed before a highlighted block of differences, if block starts at beginning of a line."
+  :type 'string
+  :tag  "Region before-flag at beginning of line"
+  :group 'ediff)
 
-(defvar ediff-before-flag-mol (if ediff-xemacs-p (make-glyph "->>") "->>")
-  "*Like ediff-before-flag, used when a difference starts in mid-line.")
-(defvar ediff-after-flag-mol  (if ediff-xemacs-p (make-glyph "<<-") "<<-")
-  "*Like ediff-after-flag, used when a difference starts in mid-line.")
+(defcustom ediff-after-flag-eol  (if ediff-xemacs-p (make-glyph "<<-") "<<-")
+  "*Flag placed after a highlighted block of differences, if block ends at end of a line."
+  :type 'string
+  :tag  "Region after-flag at end of line"
+  :group 'ediff)
+
+(defcustom ediff-before-flag-mol (if ediff-xemacs-p (make-glyph "->>") "->>")
+  "*Flag placed before a highlighted block of differences, if block starts in mid-line."
+  :type 'string
+  :tag  "Region before-flag in the middle of line"
+  :group 'ediff)
+(defcustom ediff-after-flag-mol  (if ediff-xemacs-p (make-glyph "<<-") "<<-")
+  "*Flag placed after a highlighted block of differences, if block ends in mid-line."
+  :type 'string
+  :tag  "Region after-flag in the middle of line"
+  :group 'ediff)
 
   
 (ediff-defvar-local ediff-use-faces t 
@@ -490,11 +526,13 @@ Use `setq-default' if setting it in .emacs")
 (ediff-defvar-local ediff-quit-widened t
   "*Non-nil means: when finished, Ediff widens buffers A/B.
 Actually, Ediff restores the scope of visibility that existed at startup.")
-(defvar ediff-keep-variants t
-  "*Nil means that non-modified variant buffers should be removed after some
-interrogation.
+
+(defcustom ediff-keep-variants t
+  "*Nil means that non-modified variant buffers should be removed at the end of the session after some interrogation.
 Supplying a prefix argument to the quit command `q' temporarily reverses the
-meaning of this variable.")
+meaning of this variable."
+  :type 'boolean
+  :group 'ediff)
 
 (ediff-defvar-local ediff-highlight-all-diffs t
   "If nil, only the selected differences are highlighted.
@@ -522,7 +560,7 @@ ediff-toggle-hilit. Use `setq-default' to set it.")
 (ediff-defvar-local ediff-buffer-values-orig-C nil "")
 ;; The original values of ediff-protected-variables for buffer Ancestor
 (ediff-defvar-local ediff-buffer-values-orig-Ancestor nil "")
-;; Buffer-local variables to be saved then restored during Ediff sessions
+
 ;; Buffer-local variables to be saved then restored during Ediff sessions
 (defconst ediff-protected-variables '(
 				      ;;buffer-read-only 
@@ -589,12 +627,14 @@ ediff-toggle-hilit. Use `setq-default' to set it.")
 ;; Priority of non-selected overlays.
 (defvar ediff-shadow-overlay-priority  100 "")
 
-(defvar ediff-version-control-package 'vc
+(defcustom ediff-version-control-package 'vc
   "Version control package used.
 Currently, Ediff supports vc.el, rcs.el, pcl-cvs.el, and generic-sc.el. The
 standard Emacs interface to RCS, CVS, SCCS, etc., is vc.el. However, some
 people find the other two packages more convenient. Set this variable to the
-appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire.")
+appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
+  :type 'symbol
+  :group 'ediff)
 
 
 (if ediff-xemacs-p
@@ -1106,6 +1146,12 @@ If nil, Ediff tries to deduce the function from the binding of C-x C-q.
 Normally, this is the `toggle-read-only' function, but, if version
 control is used, it could be `vc-toggle-read-only' or `rcs-toggle-read-only'.")
 
+(defcustom ediff-make-buffers-readonly-at-startup nil
+  "*Make all variant buffers read-only when Ediff starts up.
+This property can be toggled interactively."
+  :type 'boolean
+  :group 'ediff)
+
 
 ;;; Misc
 
@@ -1121,9 +1167,11 @@ as `ediff-merge-directory' or `ediff-merge-directory-revisions'.")
 ;; file where the result of the merge is to be saved. used internally
 (ediff-defvar-local ediff-merge-store-file nil "")
   
-(defvar ediff-no-emacs-help-in-control-buffer nil
+(defcustom ediff-no-emacs-help-in-control-buffer nil
   "*Non-nil means C-h should not invoke Emacs help in control buffer.
-Instead, C-h jumps to previous difference.")
+Instead, C-h would jump to previous difference."
+  :type 'boolean
+  :group 'ediff)
   
 (defvar ediff-temp-file-prefix
   (let ((env (or (getenv "TMPDIR")
@@ -1155,12 +1203,13 @@ More precisely, a regexp to match any one such character.")
 (defvar ediff-H-glyph (if ediff-xemacs-p (make-glyph "H")))
 
   
-(ediff-defvar-local ediff-temp-file-A nil
-  "Temporary file used for refining difference regions in buffer A.")
-(ediff-defvar-local ediff-temp-file-B nil
-  "Temporary file used for refining difference regions in buffer B.")
-(ediff-defvar-local ediff-temp-file-C nil
-  "Temporary file used for refining difference regions in buffer C.")
+;; Temporary file used for refining difference regions in buffer A.
+(ediff-defvar-local ediff-temp-file-A nil "")
+;; Temporary file used for refining difference regions in buffer B.
+(ediff-defvar-local ediff-temp-file-B nil "")
+;; Temporary file used for refining difference regions in buffer C.
+(ediff-defvar-local ediff-temp-file-C nil "")
+
 
 ;;; In-line functions
 

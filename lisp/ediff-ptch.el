@@ -50,28 +50,62 @@
 
 (require 'ediff-init)
 
+(defcustom ediff-patch-program  "patch"
+  "*Name of the program that applies patches.
+It is recommended to use GNU-compatible versions."
+  :type 'string
+  :group 'ediff-ptch)
+(defcustom ediff-patch-options "-f"
+  "*Options to pass to ediff-patch-program.
+
+Note: the `-b' option should be specified in `ediff-backup-specs'.
+
+It is recommended to pass the `-f' option to the patch program, so it won't ask
+questions. However, some implementations don't accept this option, in which
+case the default value for this variable should be changed."
+  :type 'string
+  :group 'ediff-ptch)
+
 (defvar ediff-last-dir-patch nil
   "Last directory used by an Ediff command for file to patch.")
 
-(defvar ediff-backup-extension 
-  (if (memq system-type '(vax-vms axp-vms emx ms-dos windows-nt windows-95))
-      "_orig" ".orig")
-  "Backup extension used by the patch program.
-See also `ediff-backup-specs'.")
+;; the default backup extension
+(defconst ediff-default-backup-extension
+  (if (memq system-type '(vax-vms axp-vms emx ms-dos))
+      "_orig" ".orig"))
+  
 
-(defcustom ediff-backup-specs (format "-b %s" ediff-backup-extension)
+(defcustom ediff-backup-extension ediff-default-backup-extension
+  "Backup extension used by the patch program.
+See also `ediff-backup-specs'."
+  :type 'string
+  :group 'ediff-ptch)
+
+(defcustom ediff-backup-specs 
+  (cond
+   ((zerop (call-process ediff-patch-program nil nil nil "-z." "-b"))
+    ;; GNU `patch' v. >= 2.2
+    (format "-z%s -b" ediff-backup-extension))
+   ((zerop (call-process ediff-patch-program nil nil nil "-b"))
+    ;; POSIX `patch' -- ediff-backup-extension must be ".orig"
+    (setq ediff-backup-extension ediff-default-backup-extension)
+    "-b")
+   (t
+    ;; traditional `patch'
+    (format "-b %s" ediff-backup-extension)))
   "*Backup directives to pass to the patch program.
 Ediff requires that the old version of the file \(before applying the patch\)
-is saved in a file named `the-patch-file.extension'. Usually `extension' is
+be saved in a file named `the-patch-file.extension'. Usually `extension' is
 `.orig', but this can be changed by the user and may depend on the system.
 Therefore, Ediff needs to know the backup extension used by the patch program.
 
 Some versions of the patch program let you specify `-b backup-extension'.
-Other versions only permit `-b', which assumes some canned extension 
- \(usually `.orig'\).
+Other versions only permit `-b', which assumes the extension `.orig'
+\(in which case ediff-backup-extension MUST be also `.orig'\). The latest
+versions of GNU patch require `-b -z backup-extension'.
 
 Note that both `ediff-backup-extension' and `ediff-backup-specs'
-must be properly set. If your patch program takes the option `-b',
+must be set properly. If your patch program takes the option `-b',
 but not `-b extension', the variable `ediff-backup-extension' must
 still be set so Ediff will know which extension to use."
   :type 'string
@@ -89,24 +123,10 @@ still be set so Ediff will know which extension to use."
 	  "\\|" 	; GNU unified format diff 2-liner
 	  "^--- \\([^ \t]+\\)[\t ]+.*\n\\+\\+\\+ \\([^ \t]+\\)"
 	  "\\)")
-  "*Regexp matching filename 2-liners at the start of each context diff."
+  "*Regexp matching filename 2-liners at the start of each context diff.
+You probably don't want to change that, unless you are using an obscure patch
+program."
   :type 'regexp
-  :group 'ediff-ptch)
-
-(defcustom ediff-patch-program "patch"
-  "*Name of the program that applies patches.
-It is recommended to use GNU-compatible versions."
-  :type 'string
-  :group 'ediff-ptch)
-(defcustom ediff-patch-options "-f"
-  "*Options to pass to ediff-patch-program.
-
-Note: the `-b' option should be specified in `ediff-backup-specs'.
-
-It is recommended to pass the `-f' option to the patch program, so it won't ask
-questions. However, some implementations don't accept this option, in which
-case the default value for this variable should be changed."
-  :type 'string
   :group 'ediff-ptch)
 
 ;; The buffer of the patch file. Local to control buffer.
@@ -476,7 +496,7 @@ Else, read patch file into a new buffer."
 	 (true-source-filename source-filename)
 	 (target-filename source-filename)
 	 target-buf buf-to-patch file-name-magic-p 
-	 patch-return-code ctl-buf backup-style aux-wind)
+	 patch-return-code ctl-buf backup-style)
 	  
     (if (string-match "-V" ediff-patch-options)
 	(error
@@ -535,44 +555,33 @@ Else, read patch file into a new buffer."
 	      (concat true-source-filename ediff-backup-extension)))
 	(progn
 	  (with-output-to-temp-buffer ediff-msg-buffer
-	    (princ (format "
-Patch has failed OR the backup version of the patched file was not created by
-the patch program.
+	    (princ (format 
+		    "Patch program has failed due to a bad patch file OR
+because it couldn't create the backup for the file to be patched.
 
-One reason may be that the values of the variables
+The former could be caused by a corrupt patch file or because the %S
+program doesn't understand the format of the patch file in use.
 
+The second problem might be due to an incompatibility among these settings:
+    ediff-patch-program    = %S
     ediff-patch-options    = %S
     ediff-backup-extension = %S
     ediff-backup-specs     = %S
 
-are not appropriate for the program specified in the variable
-
-    ediff-patch-program    = %S
-
-Another reason could be that the %S program doesn't understand
-the format of the patch file you used.
-
 See Ediff on-line manual for more details on these variables.
-\(Or use a GNU-compatible patch program and stay out of trouble.\)
-
-Type any key to continue... 
-"
+In particular, check the documentation for `ediff-backup-specs'. "
+			   ediff-patch-program
+			   ediff-patch-program
 			   ediff-patch-options
 			   ediff-backup-extension
 			   ediff-backup-specs
-			   ediff-patch-program
-			   ediff-patch-program)))
+			   )))
 	  (beep 1)
 	  (if (setq aux-wind (get-buffer-window ediff-msg-buffer))
 	      (progn
 		(select-window aux-wind)
 		(goto-char (point-max))))
-	  (read-char-exclusive)
-	  (if aux-wind (bury-buffer)) ; ediff-msg-buffer
-	  (if (setq aux-wind (get-buffer-window patch-diagnostics))
-	      (progn
-		(select-window aux-wind)
-		(bury-buffer)))
+	  (switch-to-buffer-other-window patch-diagnostics)
 	  (error "Patch appears to have failed")))
     
     ;; If black magic is involved, apply patch to a temp copy of the

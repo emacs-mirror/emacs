@@ -1065,11 +1065,22 @@ to write a custom function, similar to `vip-ex-nontrivial-find-file-unix'."
 (defun vip-key-to-emacs-key (key)
   (let (key-name char-p modifiers mod-char-list base-key base-key-name)
     (cond (vip-xemacs-p key)
+
 	  ((symbolp key)
 	   (setq key-name (symbol-name key))
-	   (if (= (length key-name) 1) ; character event
-	       (string-to-char key-name)
-	     key))
+	   (cond ((= (length key-name) 1) ; character event
+		  (string-to-char key-name))
+		 ;; Emacs doesn't recognize `return' and `escape' as events on
+		 ;; dumb terminals, so we translate them into characters
+		 ((and vip-emacs-p (not (vip-window-display-p))
+		       (string= key-name "return"))
+		  ?\C-m)
+		 ((and vip-emacs-p (not (vip-window-display-p))
+		       (string= key-name "escape"))
+		  ?\e)
+		 ;; pass symbol-event as is
+		 (t key)))
+
 	  ((listp key)
 	   (setq modifiers (subseq key 0 (1- (length key)))
 		 base-key (vip-seq-last-elt key)
@@ -1129,8 +1140,13 @@ to write a custom function, similar to `vip-ex-nontrivial-find-file-unix'."
 	     ""))
 	   
     
+;; Uses different timeouts for ESC-sequences and others
 (defsubst vip-fast-keysequence-p ()
-  (not (vip-sit-for-short vip-fast-keyseq-timeout t)))
+  (not (vip-sit-for-short 
+	(if (vip-ESC-event-p last-input-event)
+	    vip-ESC-keyseq-timeout
+	  vip-fast-keyseq-timeout)
+	t)))
     
 (defun vip-read-char-exclusive ()
   (let (char
@@ -1174,7 +1190,7 @@ the `Local variables' section of a file."
 
 ;;; Movement utilities
 
-(defvar vip-syntax-preference 'strict-vi
+(defcustom vip-syntax-preference 'strict-vi
   "*Syntax type characterizing Viper's alphanumeric symbols.
 `emacs' means only word constituents are considered to be alphanumeric.
 Word constituents are symbols specified as word constituents by the current
@@ -1183,7 +1199,10 @@ syntax table.
 `reformed-vi' means Vi-ish behavior: word constituents and the symbol `_'.
 However, word constituents are determined according to Emacs syntax tables,
 which may be different from Vi in some major modes.
-`strict-vi' means Viper words are exactly as in Vi.")
+`strict-vi' means Viper words are exactly as in Vi."
+  :type '(radio (const strict-vi) (const reformed-vi) 
+		 (const extended) (const emacs))
+  :group 'viper)
 
 (vip-deflocalvar vip-ALPHA-char-class "w"
   "String of syntax classes characterizing Viper's alphanumeric symbols.
@@ -1311,7 +1330,11 @@ Must be called in order for changes to `vip-syntax-preference' to take effect."
   
 
   
-  
 (provide 'viper-util)
+  
+
+;;; Local Variables:
+;;; eval: (put 'vip-deflocalvar 'lisp-indent-hook 'defun)
+;;; End:
 
 ;;;  viper-util.el ends here

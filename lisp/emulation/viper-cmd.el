@@ -13,7 +13,8 @@
 (defvar vip-minibuffer-vi-face)
 (defvar vip-minibuffer-emacs-face)
 (defvar viper-always)
-(defvar vip-mode-string	)
+(defvar vip-mode-string)
+(defvar vip-custom-file-name)
 (defvar iso-accents-mode)
 (defvar zmacs-region-stays)
 (defvar mark-even-if-inactive)
@@ -77,14 +78,15 @@
 (defconst vip-movement-commands '(?b ?B ?e ?E ?f ?F ?G ?h ?H ?j ?k ?l
 				     ?H ?M ?L ?n ?t ?T ?w ?W ?$ ?%
 				     ?^ ?( ?) ?- ?+ ?| ?{ ?} ?[ ?] ?' ?`
-				     ?; ?, ?0 ?? ?/
+				     ?; ?, ?0 ?? ?/ ?\C-m ?\ 
 				     )
 				     "Movement commands")
 ;; define vip-movement-command-p
 (vip-test-com-defun vip-movement-command)
 
-(defconst vip-digit-commands '(?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9)
-  "Digit commands")
+;; Vi digit commands
+(defconst vip-digit-commands '(?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9))
+
 ;; define vip-digit-command-p
 (vip-test-com-defun vip-digit-command)
 
@@ -765,7 +767,7 @@ as a Meta key and any number of multiple escapes is allowed."
 (defun vip-toggle-key-action ()
   "Action bound to `vip-toggle-key'."
   (interactive)
-  (if (and (< vip-expert-level 2) (equal vip-toggle-key "\C-z"))
+  (if (and (< viper-expert-level 2) (equal vip-toggle-key "\C-z"))
       (if (vip-window-display-p)
 	  (vip-iconify)
 	(suspend-emacs))
@@ -1358,8 +1360,10 @@ If the prefix argument, ARG, is non-nil, it is used instead of `val'."
 	    (setq vip-last-insertion (nth 4 vip-d-com)
 		  vip-d-char (nth 4 vip-d-com)))
         (funcall m-com (cons val com))
-        (if (and vip-keep-point-on-repeat (< save-point (point)))
-	    (goto-char save-point)) ; go back to before repeat.
+        (cond ((and (< save-point (point)) vip-keep-point-on-repeat)
+	       (goto-char save-point)) ; go back to before repeat.
+	      ((and (< save-point (point)) vip-ex-style-editing-in-insert)
+	       (or (bolp) (backward-char 1))))
 	(if (and (eolp) (not (bolp)))
 	    (backward-char 1))
      ))
@@ -2983,9 +2987,9 @@ controlled by the sign of prefix numeric value."
 (defun vip-toggle-parse-sexp-ignore-comments ()
   (interactive)
   (setq vip-parse-sexp-ignore-comments (not vip-parse-sexp-ignore-comments))
-  (prin1 (format "`%%' will %signore parentheses inside the comments"
-	   (if vip-parse-sexp-ignore-comments "" "NOT ")))
-  )
+  (princ (format
+	  "From now on, `%%' will %signore parentheses inside comment fields"
+	  (if vip-parse-sexp-ignore-comments "" "NOT "))))
 
 
 ;; sentence ,paragraph and heading
@@ -3180,9 +3184,9 @@ the Emacs binding of `/'."
 	     (setq msg "Search becomes vanilla-style")))
 	  (t
 	   (setq msg "Search style remains unchanged")))
-    (prin1 msg t)))
+    (princ msg t)))
 
-(defun vip-set-vi-search-style-macros (unset)
+(defun vip-set-search-style-toggling-macros (unset)
   "Set the macros for toggling the search style in Viper's vi-state.
 The macro that toggles case sensitivity is bound to `//', and the one that
 toggles regexp search is bound to `///'.
@@ -3203,12 +3207,33 @@ With a prefix argument, this function unsets the macros. "
 	     't)
 	    (if (interactive-p)
 		(message
-		 "// and /// now toggle case-sensitivity and regexp search.")))
+		 "// and /// now toggle case-sensitivity and regexp search")))
 	(vip-unrecord-kbd-macro "//" 'vi-state)
 	(sit-for 2)
 	(vip-unrecord-kbd-macro "///" 'vi-state))))
 
-(defun vip-set-emacs-search-style-macros (unset &optional arg-majormode)
+
+(defun vip-set-parsing-style-toggling-macro (unset)
+  "Set `%%%' to be a macro that toggles whether comment fields should be parsed for matching parentheses.
+This is used in conjunction with the `%' command.
+
+With a prefix argument, unsets the macro."
+  (interactive "P")
+  (or noninteractive
+      (if (not unset)
+	  (progn
+	    ;; Make %%% toggle parsing comments for matching parentheses
+	    (vip-record-kbd-macro
+	     "%%%" 'vi-state
+	     [(meta x) v i p - t o g g l e - p a r s e - s e x p - i g n o r e - c o m m e n t s return]
+	     't)
+	    (if (interactive-p)
+		(message
+		 "%%%%%% now toggles whether comments should be parsed for matching parentheses")))
+	(vip-unrecord-kbd-macro "%%%" 'vi-state))))
+
+
+(defun vip-set-emacs-state-search-style-macros (unset &optional arg-majormode)
   "Set the macros for toggling the search style in Viper's emacs-state.
 The macro that toggles case sensitivity is bound to `//', and the one that
 toggles regexp search is bound to `///'.
@@ -3456,7 +3481,7 @@ Null string will repeat previous search."
       (error "Buffer not killed"))))
 
 
-(defvar vip-smart-suffix-list
+(defcustom vip-smart-suffix-list
   '("" "tex" "c" "cc" "C" "el" "java" "html" "htm" "pl" "P" "p")
   "*List of suffixes that Viper automatically tries to append to filenames ending with a `.'.
 This is useful when you the current directory contains files with the same
@@ -3469,7 +3494,9 @@ Suffixes are tried in the order given and the first suffix for which a
 corresponding file exists is selected. If no file exists for any of the
 suffixes, the user is asked to confirm.
 
-To turn this feature off, set this variable to nil.")
+To turn this feature off, set this variable to nil."
+  :type '(set string)
+  :group 'viper)
     
 ;; Try to add suffix to files ending with a `.'
 ;; Useful when the user hits RET on a non-completed file name.
@@ -3702,7 +3729,13 @@ cursor move past the beginning of line."
 		    (progn
 		      (forward-line 1)
 		      (delete-region (point) (1- (point)))
-		      (fixup-whitespace)))))))
+		      (fixup-whitespace)
+		      ;; fixup-whitespace sometimes does not leave space
+		      ;; between objects, so we insert it as in Vi
+		      (or (looking-at " ")
+			  (insert " ")
+			  (backward-char 1))
+		      ))))))
 
 
 ;; Replace state
@@ -4131,7 +4164,7 @@ One can use `` and '' to temporarily jump 1 step back."
     (pop-mark)))
 
 
-(defun vip-set-expert-level (&optional dont-change-unless)
+(defun viper-set-expert-level (&optional dont-change-unless)
   "Sets the expert level for a Viper user.
 Can be called interactively to change (temporarily or permanently) the
 current expert level.
@@ -4145,11 +4178,11 @@ sensitive for VI-style look-and-feel."
   
   (interactive)
   
-  (if (not (natnump vip-expert-level)) (setq vip-expert-level 0))
+  (if (not (natnump viper-expert-level)) (setq viper-expert-level 0))
   
   (save-window-excursion
     (delete-other-windows)
-    ;; if 0 < vip-expert-level < vip-max-expert-level
+    ;; if 0 < viper-expert-level < viper-max-expert-level
     ;;    & dont-change-unless = t -- use it; else ask
     (vip-ask-level dont-change-unless))
   
@@ -4158,7 +4191,7 @@ sensitive for VI-style look-and-feel."
 	vip-ex-style-editing-in-insert  t
 	vip-want-ctl-h-help nil)
 
-  (cond ((eq vip-expert-level 1) ; novice or beginner
+  (cond ((eq viper-expert-level 1) ; novice or beginner
 	 (global-set-key   ; in emacs-state 
 	  vip-toggle-key
 	  (if (vip-window-display-p) 'vip-iconify 'suspend-emacs))
@@ -4170,68 +4203,60 @@ sensitive for VI-style look-and-feel."
 	       vip-want-emacs-keys-in-vi     nil
 	       vip-want-emacs-keys-in-insert nil))
 	
-	((and (> vip-expert-level 1) (< vip-expert-level 5))
+	((and (> viper-expert-level 1) (< viper-expert-level 5))
 	 ;; intermediate to guru
 	 (setq vip-no-multiple-ESC           (if (vip-window-display-p)
 						 t 'twice)
 	       vip-electric-mode	     t
 	       vip-want-emacs-keys-in-vi     t
-	       vip-want-emacs-keys-in-insert (> vip-expert-level 2))
+	       vip-want-emacs-keys-in-insert (> viper-expert-level 2))
 
-	 (if (eq vip-expert-level 4) ; respect user's ex-style motion
+	 (if (eq viper-expert-level 4) ; respect user's ex-style motion
 	     	    	    	     ; and vip-no-multiple-ESC
 	     (progn
-	       (setq-default vip-ex-style-editing-in-insert
-			     (cdr (assoc 'vip-ex-style-editing-in-insert
-					 vip-saved-user-settings))
-			     vip-ex-style-motion
-			     (cdr (assoc 'vip-ex-style-motion
-					 vip-saved-user-settings)))
+	       (setq-default
+		vip-ex-style-editing-in-insert
+		(viper-standard-value 'vip-ex-style-editing-in-insert)
+		vip-ex-style-motion
+		(viper-standard-value 'vip-ex-style-motion))
 	       (setq vip-ex-style-motion 
-		     (cdr (assoc 'vip-ex-style-motion vip-saved-user-settings))
+		     (viper-standard-value 'vip-ex-style-motion)
 		     vip-ex-style-editing-in-insert
-		     (cdr (assoc 'vip-ex-style-editing-in-insert
-				 vip-saved-user-settings))
+		     (viper-standard-value 'vip-ex-style-editing-in-insert)
 		     vip-re-search
-		     (cdr (assoc 'vip-re-search vip-saved-user-settings))
+		     (viper-standard-value 'vip-re-search)
 		     vip-no-multiple-ESC 
-		     (cdr (assoc 'vip-no-multiple-ESC
-				 vip-saved-user-settings))))))
-	       
+		     (viper-standard-value 'vip-no-multiple-ESC)))))
+	
 	;; A wizard!!
 	;; Ideally, if 5 is selected, a buffer should pop up to let the
 	;; user toggle the values of variables.
 	(t (setq-default vip-ex-style-editing-in-insert
-			 (cdr (assoc 'vip-ex-style-editing-in-insert
-				     vip-saved-user-settings))
+			 (viper-standard-value 'vip-ex-style-editing-in-insert)
 			 vip-ex-style-motion
-			 (cdr (assoc 'vip-ex-style-motion
-				     vip-saved-user-settings)))
+			 (viper-standard-value 'vip-ex-style-motion))
 	   (setq  vip-want-ctl-h-help 
-		  (cdr (assoc 'vip-want-ctl-h-help vip-saved-user-settings))
+		  (viper-standard-value 'vip-want-ctl-h-help)
 		  viper-always
-		  (cdr (assoc 'viper-always vip-saved-user-settings))
+		  (viper-standard-value 'viper-always)
 		  vip-no-multiple-ESC 
-		  (cdr (assoc 'vip-no-multiple-ESC vip-saved-user-settings))
+		  (viper-standard-value 'vip-no-multiple-ESC)
 		  vip-ex-style-motion 
-		  (cdr (assoc 'vip-ex-style-motion vip-saved-user-settings))
+		  (viper-standard-value 'vip-ex-style-motion)
 		  vip-ex-style-editing-in-insert
-		  (cdr (assoc 'vip-ex-style-editing-in-insert
-			      vip-saved-user-settings))
+		  (viper-standard-value 'vip-ex-style-editing-in-insert)
 		  vip-re-search
-		  (cdr (assoc 'vip-re-search vip-saved-user-settings))
+		  (viper-standard-value 'vip-re-search)
 		  vip-electric-mode 
-		  (cdr (assoc 'vip-electric-mode
-			      vip-saved-user-settings))
+		  (viper-standard-value 'vip-electric-mode)
 		  vip-want-emacs-keys-in-vi 
-		  (cdr (assoc 'vip-want-emacs-keys-in-vi
-			      vip-saved-user-settings))
+		  (viper-standard-value 'vip-want-emacs-keys-in-vi)
 		  vip-want-emacs-keys-in-insert
-		  (cdr (assoc 'vip-want-emacs-keys-in-insert
-			      vip-saved-user-settings)))))
+		  (viper-standard-value 'vip-want-emacs-keys-in-insert))))
+  
   (vip-set-mode-vars-for vip-current-state)
   (if (or viper-always
-	  (and (> vip-expert-level 0) (> 5 vip-expert-level)))
+	  (and (> viper-expert-level 0) (> 5 viper-expert-level)))
       (vip-set-hooks)))
 
 ;; Ask user expert level.
@@ -4241,48 +4266,8 @@ sensitive for VI-style look-and-feel."
     (save-window-excursion
       (switch-to-buffer ask-buffer)
 	      
-      (or (eq this-command 'vip-set-expert-level)
-	  (and
-	   (<= vip-expert-level vip-max-expert-level)
-	   (>= vip-expert-level 1))
-	  (progn
-	    (insert "
-	      
-	      *** Important Notice for VIP users***
-	      
-			  This is VIPER
-	      
-@joke
-Viper Is a Package for Emacs Rebels,
-a VI Plan for Emacs Rescue,
-and a venomous VI PERil.
-@end joke
-
-Technically speaking, Viper is a new Vi emulator that replaces
-the old VIP package.
-
-Viper emulates Vi much better than VIP.  It also significantly
-extends and improves upon Vi in many useful ways.
-
-Although many VIP settings in your ~/.vip are compatible with Viper,
-you may have to change some of them. Please refer to the documentation,
-which can be obtained by executing
-
-:help
-
-when Viper is in Vi state.
-
-If you will be so lucky as to find a bug, report it via the command
-
-:submitReport
-
-Type any key to continue... ")
-	    
-	    (read-char)
-	    (erase-buffer)))
-	      
-      (while (or (> vip-expert-level vip-max-expert-level)
-		 (< vip-expert-level 1)
+      (while (or (> viper-expert-level viper-max-expert-level)
+		 (< viper-expert-level 1)
 		 (null dont-change-unless))
 	(erase-buffer)
 	(if repeated
@@ -4295,7 +4280,7 @@ Type any key to continue... ")
 	(insert "
 Please specify your level of familiarity with the venomous VI PERil
 (and the VI Plan for Emacs Rescue).
-You can change it at any time by typing `M-x vip-set-expert-level RET'
+You can change it at any time by typing `M-x viper-set-expert-level RET'
 	
  1 -- BEGINNER: Almost all Emacs features are suppressed.
           Feels almost like straight Vi. File name completion and
@@ -4315,7 +4300,7 @@ You can change it at any time by typing `M-x vip-set-expert-level RET'
       
 Please, specify your level now: ")
 	  
-	(setq vip-expert-level (- (vip-read-char-exclusive) ?0))
+	(setq viper-expert-level (- (vip-read-char-exclusive) ?0))
 	) ; end while
       
       ;; tell the user if level was changed
@@ -4323,12 +4308,12 @@ Please, specify your level now: ")
 	   (progn
 	     (insert
 	      (format "\n\n\n\n\n\t\tYou have selected user level %d"
-		      vip-expert-level))
+		      viper-expert-level))
 	     (if (y-or-n-p "Do you wish to make this change permanent? ")
-		 ;; save the setting for vip-expert-level
+		 ;; save the setting for viper-expert-level
 		 (vip-save-setting
-		  'vip-expert-level
-		  (format "Saving user level %d ..." vip-expert-level)
+		  'viper-expert-level
+		  (format "Saving user level %d ..." viper-expert-level)
 		  vip-custom-file-name))
 	     ))
       (bury-buffer) ; remove ask-buffer from screen
@@ -4368,7 +4353,7 @@ Please, specify your level now: ")
 (defun vip-save-kill-buffer ()
   "Save then kill current buffer. "
   (interactive)
-  (if (< vip-expert-level 2)
+  (if (< viper-expert-level 2)
       (save-buffers-kill-emacs)
     (save-buffer)
     (kill-buffer (current-buffer))))
@@ -4442,7 +4427,7 @@ Please, specify your level now: ")
 		        'vip-emacs-state-hook
 		        'ex-cycle-other-window
 		        'ex-cycle-through-non-files
-		        'vip-expert-level
+		        'viper-expert-level
 		        'major-mode
 		        'vip-device-type
 			'color-display-p

@@ -243,6 +243,7 @@
   (autoload 'ediff-buffers3 "ediff" "Compare three bufers" t)
   (autoload 'ebuffers3 "ediff" "Compare three bufers" t)
 
+  (autoload 'erevision "ediff" "Compare versions of a file" t)
   (autoload 'ediff-revision "ediff" "Compare versions of a file" t)
 
   ;; compare regions and windows
@@ -314,6 +315,10 @@
 
   ;; misc
   (autoload 'ediff-show-registry
+    "ediff-mult"
+    "Display the registry of active Ediff sessions."
+    t)
+  (autoload 'eregistry
     "ediff-mult"
     "Display the registry of active Ediff sessions."
     t)

@@ -31,7 +31,7 @@
 (defvar vip-ex-history)
 (defvar vip-related-files-and-buffers-ring)
 (defvar vip-local-search-start-marker)
-(defvar vip-expert-level)
+(defvar viper-expert-level)
 (defvar vip-custom-file-name)
 (defvar vip-case-fold-search)
 (defvar explicit-shell-file-name)
@@ -51,6 +51,12 @@
 ;; end pacifier
 
 (require 'viper-util)
+
+(defgroup viper-ex nil
+  "Viper support for Ex commands"
+  :prefix "ex-"
+  :group 'viper)
+
 
 
 ;;; Variables
@@ -112,10 +118,9 @@
 ;; Value of ex count.
 (defvar ex-count nil)
 
-;; Flag for global command.
+;; Flag indicating that :global Ex command is being executed.
 (defvar ex-g-flag nil)
-
-;; If t, global command is executed on lines not matching ex-g-pat.
+;; Flag indicating that :vglobal Ex command is being executed.
 (defvar ex-g-variant nil)
 
 ;; Save reg-exp used in substitute.
@@ -128,8 +133,7 @@
 ;; Pattern for global command.
 (defvar ex-g-pat nil)
 
-
-(defvar ex-unix-type-shell
+(defcustom ex-unix-type-shell
   (let ((case-fold-search t))
     (and (stringp shell-file-name)
 	 (string-match
@@ -146,9 +150,11 @@
 	   "bash$\\|bash.exe$"
 	   "\\)")
 	  shell-file-name)))
-  "Is the user using a unix-type shell?")
+  "Is the user using a unix-type shell under a non-OS?"
+  :type 'string
+  :group 'viper-ex)
 
-(defvar ex-unix-type-shell-options
+(defcustom ex-unix-type-shell-options
   (let ((case-fold-search t))
     (if ex-unix-type-shell
 	(cond ((string-match "\\(csh$\\|csh.exe$\\)" shell-file-name)
@@ -157,7 +163,9 @@
 	       "-noprofile") ; bash: ignore .profile
 	      )))
   "Options to pass to the Unix-style shell. 
-Don't put `-c' here, as it is added automatically.")
+Don't put `-c' here, as it is added automatically."
+  :type 'string
+  :group 'viper-ex)
 
 (defvar ex-nontrivial-find-file-function
   (cond (ex-unix-type-shell 'vip-ex-nontrivial-find-file-unix)
@@ -190,13 +198,17 @@ Don't put `-c' here, as it is added automatically.")
 ;; multiple file names. Used for :edit and :next
 (defvar vip-keep-reading-filename nil)
 
-(defconst ex-cycle-other-window t
+(defcustom ex-cycle-other-window t
   "*If t, :n and :b cycles through files and buffers in other window.
 Then :N and :B cycles in the current window. If nil, this behavior is
-reversed.")
+reversed."
+  :type 'boolean
+  :group 'viper-ex)
 
-(defconst ex-cycle-through-non-files nil
-  "*Cycle through *scratch* and other buffers that don't visit any file.")
+(defcustom ex-cycle-through-non-files nil
+  "*Cycle through *scratch* and other buffers that don't visit any file."
+  :type 'boolean
+  :group 'viper-ex)
 
 ;; Last shell command executed with :! command.
 (defvar vip-ex-last-shell-com nil)
@@ -427,7 +439,7 @@ reversed.")
 		      "*[ \t]*$"))
 	(stay-regex (concat
 		     "\\(" "^[ \t]*$"
-		     "\\|" "[?/].*[?/].*"
+		     "\\|" "[?/].*"
 		     "\\|" "[ktgjmsz][ \t]*$"
 		     "\\|" "^[ \t]*ab.*"
 		     "\\|" "tr[ansfer \t]*"
@@ -503,7 +515,6 @@ reversed.")
     
 
 ;; Read Ex commands 
-;; Ex commands themselves are implemented in viper-ex.el
 (defun vip-ex (&optional string)
   (interactive)
   (or string
@@ -613,7 +624,15 @@ reversed.")
 	    (setq ex-token
 		  (if (= (mark t) (point)) ""
 		    (buffer-substring (1- (point)) (mark t))))
-	    (backward-char 1))
+	    (backward-char 1)
+	    ;; if the user doesn't specify the final pattern delimiter, we're
+	    ;; at newline now. In this case, insert the initial delimiter
+	    ;; specified in variable c
+	    (if (looking-at "\n")
+		(progn
+		    (insert c)
+		      (backward-char 1)))
+	    )
 	(setq ex-token nil))
       c)))
 
@@ -1233,6 +1252,14 @@ reversed.")
 
 
 ;; Ex global command
+;; This is executed in response to:
+;;		:global "pattern" ex-command
+;;		:vglobal "pattern" ex-command
+;; :global executes ex-command on all lines matching <pattern>
+;; :vglobal executes ex-command on all lines that don't match <pattern>
+;;
+;; With VARIANT nil, this functions executes :global
+;; With VARIANT t, executes :vglobal
 (defun ex-global (variant)
   (let ((gcommand ex-token))
     (if (or ex-g-flag ex-g-variant)
@@ -1255,8 +1282,11 @@ reversed.")
   (if (null ex-addresses)
       (setq ex-addresses (list (point-max) (point-min)))
     (vip-default-ex-addresses))
-  (let ((marks nil) (mark-count 0)
-	com-str (end (car ex-addresses)) (beg (car (cdr ex-addresses))))
+  (let ((marks nil)
+	(mark-count 0)
+	(end (car ex-addresses))
+	(beg (car (cdr ex-addresses)))
+	com-str)
     (if (> beg end) (error vip-FirstAddrExceedsSecond))
     (save-excursion
       (vip-enlarge-region beg end)
@@ -1492,7 +1522,7 @@ reversed.")
     (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
     (set-buffer vip-ex-work-buf)
     (if (looking-at "!") (forward-char 1)))
-  (if (< vip-expert-level 3)
+  (if (< viper-expert-level 3)
       (save-buffers-kill-emacs)
     (kill-buffer (current-buffer))))
 
@@ -1984,7 +2014,7 @@ Please contact your system administrator. "
 	  (not writing-same-file)
 	  (set-buffer-modified-p t))
       (if q-flag
-	  (if (< vip-expert-level 2)
+	  (if (< viper-expert-level 2)
 	      (save-buffers-kill-emacs)
 	    (kill-buffer (current-buffer))))
       )))

@@ -177,7 +177,7 @@ responsibility."
 Expects three parameters: the control buffer, the desired width and height
 of the control frame. It returns an association list
 of the form \(\(top . <position>\) \(left . <position>\)\)"
-  :type 'boolean
+  :type 'function
   :group 'ediff-window)
 
 (defcustom ediff-control-frame-upward-shift (if ediff-xemacs-p 42 14)

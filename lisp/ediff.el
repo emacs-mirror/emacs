@@ -6,8 +6,8 @@
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, version control.
 
-(defconst ediff-version "2.65" "The current version of Ediff")
-(defconst ediff-date "May 1, 1997" "Date of last update")  
+(defconst ediff-version "2.66" "The current version of Ediff")
+(defconst ediff-date "July 9, 1997" "Date of last update")  
 
 
 ;; This file is part of GNU Emacs.
@@ -109,6 +109,10 @@
 (provide 'ediff)
 
 ;; Compiler pacifier
+(defvar cvs-cookie-handle)
+(defvar ediff-last-dir-patch)
+(defvar ediff-patch-default-directory)
+
 (and noninteractive
      (eval-when-compile
 	 (load-library "dired")
@@ -136,26 +140,20 @@
 
 
 (defcustom ediff-use-last-dir nil
-  "*If t, Ediff uses previous directory as default when reading file name."
+  "*If t, Ediff will use previous directory as default when reading file name."
   :type 'boolean
   :group 'ediff)
 
-(defvar ediff-last-dir-A nil
-  "Last directory used by an Ediff command for file-A.")
-(defvar ediff-last-dir-B nil
-  "Last directory used by an Ediff command for file-B.")
-(defvar ediff-last-dir-C nil
-  "Last directory used by an Ediff command for file-C.")
-(defvar ediff-last-dir-ancestor nil
-  "Last directory used by an Ediff command for the ancestor file.")
-(defvar ediff-last-merge-autostore-dir
-  "Last directory used by an Ediff command as the output directory for merge.")
-
-;; Some defvars to reduce the number of compiler warnings
-(defvar cvs-cookie-handle)
-(defvar ediff-last-dir-patch)
-(defvar ediff-patch-default-directory)
-;; end of compiler pacifier
+;; Last directory used by an Ediff command for file-A.
+(defvar ediff-last-dir-A nil)
+;; Last directory used by an Ediff command for file-B.
+(defvar ediff-last-dir-B nil)
+;; Last directory used by an Ediff command for file-C.
+(defvar ediff-last-dir-C nil)
+;; Last directory used by an Ediff command for the ancestor file.
+(defvar ediff-last-dir-ancestor nil)
+;; Last directory used by an Ediff command as the output directory for merge.
+(defvar ediff-last-merge-autostore-dir)
 
 
 ;; Used as a startup hook to set `_orig' patch file read-only.
@@ -878,7 +876,7 @@ lines. For small regions, use `ediff-regions-wordwise'."
     (ediff-regions-internal
      (get-buffer buffer-A) reg-A-beg reg-A-end
      (get-buffer buffer-B) reg-B-beg reg-B-end
-     startup-hooks 'ediff-regions-linewise nil))) ; no word mode
+     startup-hooks 'ediff-regions-linewise nil nil))) ; no word mode
 	
 ;; compare region beg-A to end-A of buffer-A
 ;; to regions beg-B -- end-B in buffer-B. 
@@ -1235,6 +1233,10 @@ buffer. Use `vc.el' or `rcs.el' depending on `ediff-version-control-package'."
      (intern (format "ediff-%S-internal" ediff-version-control-package))
      rev1 rev2 startup-hooks)
     ))
+
+
+;;;###autoload
+(defalias 'erevision 'ediff-revision)
    
    
 ;; Test if version control package is loaded and load if not
