@@ -1,5 +1,5 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2000, 2001
+   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2000, 2001, 2002
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -534,6 +534,14 @@ extern Lisp_Object make_number ();
 #define AREF(ARRAY, IDX)	XVECTOR ((ARRAY))->contents[IDX]
 #define ASET(ARRAY, IDX, VAL)	(AREF ((ARRAY), (IDX)) = (VAL))
 #define ASIZE(ARRAY)		XVECTOR ((ARRAY))->size
+
+/* Convenience macros for dealing with Lisp strings.  */
+
+#define SREF(string, index)	XSTRING (string)->data[index]
+#define SDATA(string)		XSTRING (string)->data
+#define SCHARS(string)		XSTRING (string)->size
+#define SBYTES(string)		XSTRING (string)->size_bytes
+#define SMBP(string)		STRING_MULTIBYTE (string)
 
 
 /* Basic data type for use of intervals.  See the macros in intervals.h.  */
