@@ -157,9 +157,19 @@ but not `C-u X' or `ESC X' since the X is not the prefix key."
 
 ;;; Mode
 
-(defvar double-mode nil)
-;; Indicator for the double mode.
-  (make-variable-buffer-local 'double-mode)
+;;;###autoload
+(defcustom double-mode nil
+  "Toggle Double mode.
+Setting this variable directly does not take effect;
+use either \\[customize] or the function `double-mode'."
+  :set (lambda (symbol value)
+	 (double-mode (if value 1 0)))
+  :initialize 'custom-initialize-default
+  :link '(emacs-commentary-link "double")
+  :type 'boolean
+  :require 'double
+  :group 'double)
+(make-variable-buffer-local 'double-mode)
 
 (or (assq 'double-mode minor-mode-alist)
     (setq minor-mode-alist
