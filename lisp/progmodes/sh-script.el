@@ -928,11 +928,13 @@ in ALIST."
 
 
 (defun sh-indent-line ()
-  "Indent as far as preceding non-empty line, then by steps of `sh-indentation'.
+  "Indent a line for Sh mode (shell script mode).
+Indent as far as preceding non-empty line, then by steps of `sh-indentation'.
 Lines containing only comments are considered empty."
   (interactive)
   (let ((previous (save-excursion
-		    (while (and (not (bobp))
+		    (while (and (progn (beginning-of-line)
+				       (not (bobp)))
 				(progn
 				  (forward-line -1)
 				  (back-to-indentation)
@@ -940,6 +942,7 @@ Lines containing only comments are considered empty."
 				      (eq (following-char) ?#)))))
 		    (current-column)))
 	current)
+    (debug)
     (save-excursion
       (indent-to (if (eq this-command 'newline-and-indent)
 		     previous
