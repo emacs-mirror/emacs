@@ -1,3 +1,14 @@
+2002-01-08  ShengHuo ZHU  <zsh@cs.rochester.edu>
+	
+	* gnus-start.el (gnus-read-init-file): Cleaned up.
+	* gnus-start.el (gnus-startup-file-coding-system): Removed.
+	(gnus-read-init-file): Don't use it.
+	* gnus-start.el (gnus-read-init-file): Don't force coding system
+	for ~/.gnus.  
+	From Lars Magne Ingebrigtsen  <larsi@gnus.org>
+	From Dave Love <fx@gnu.org>
+ 	From Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
 2002-01-03  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* mm-util.el (mm-charset-to-coding-system): Don't setq charset.

@@ -395,11 +395,8 @@ Can be used to turn version control on or off."
 
 ;;; Internal variables
 
-(defvar gnus-startup-file-coding-system 'binary
-  "*Coding system for startup file.")
-
-(defvar gnus-ding-file-coding-system 'emacs-mule
-  "*Coding system for ding file.")
+(defvar gnus-ding-file-coding-system mm-universal-coding-system
+  "Coding system for ding file.")
 
 (defvar gnus-newsrc-file-version nil)
 (defvar gnus-override-subscribe-method nil)
@@ -427,21 +424,15 @@ Can be used to turn version control on or off."
     (if gnus-init-inhibit
 	(setq gnus-init-inhibit nil)
       (setq gnus-init-inhibit inhibit-next)
-      (let ((files (list gnus-site-init-file gnus-init-file))
-	    file)
-	(while files
-	  (and (setq file (pop files))
-	       (or (and (file-exists-p file)
-			;; Don't try to load a directory.
-			(not (file-directory-p file)))
-		   (file-exists-p (concat file ".el"))
-		   (file-exists-p (concat file ".elc")))
-	       (condition-case var
-		   (let ((coding-system-for-read
-			  gnus-startup-file-coding-system))
-		     (load file nil t))
-		 (error
-		  (error "Error in %s: %s" file var)))))))))
+      (dolist (file (list gnus-site-init-file gnus-init-file))
+	(when (and file
+		   (locate-library file))
+	  (if (or debug-on-error debug-on-quit)
+	      (load file nil t)
+	    (condition-case var
+		(load file nil t)
+	      (error
+	       (error "Error in %s: %s" file var)))))))))
 
 ;; For subscribing new newsgroup
 
