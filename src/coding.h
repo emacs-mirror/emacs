@@ -343,9 +343,10 @@ struct coding_system
   /* Index number of coding category of the coding system.  */
   int category_idx;
 
-  /* How may heading bytes we can skip for decoding.  This member is
-     set by the function detect_coding.  The initial value is -1 which
-     means detect_coding has not yet been called.  */
+  /* How may heading bytes we can skip for decoding.  This is set to
+     -1 in setup_coding_system, and updated by detect_coding.  So,
+     when this is equal to the byte length of the text being
+     converted, we can skip the actual conversion process.  */
   int heading_ascii;
 
   /* The following members are set by encoding/decoding routine.  */
