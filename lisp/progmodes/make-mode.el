@@ -837,7 +837,7 @@ and adds all qualifying names to the list of known targets."
 	 (raw-filename-list (if dir
 				(file-name-all-completions "" dir)
 			      (file-name-all-completions "" ""))))
-    (mapcar '(lambda (name)
+    (mapcar (lambda (name)
 	       (if (and (not (file-directory-p name))
 			(not (string-match makefile-ignored-files-in-pickup-regex
 					   name)))
