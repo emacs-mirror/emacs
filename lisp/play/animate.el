@@ -133,11 +133,29 @@ in the current window."
     (undo-boundary)))
 
 ;;;###autoload
+(defun animate-sequence (list-of-strings space)
+  "Display strings from LIST-OF-STRING with animation in a new buffer.
+Strings will be separated from each other by SPACE lines."
+  (let ((vpos (/ (- (window-height)
+		    1 ;; For the mode-line
+		    (* (1- (length list-of-strings)) space)
+		    (length list-of-strings))
+		 2)))
+    (switch-to-buffer (get-buffer-create "*Animation*"))
+    (erase-buffer)
+    (sit-for 0)
+    (setq indent-tabs-mode nil)
+    (while list-of-strings
+      (animate-string (car list-of-strings) vpos)
+      (setq vpos (+ vpos space 1))
+      (setq list-of-strings (cdr list-of-strings)))))
+ 
+;;;###autoload
 (defun animate-birthday-present ()
-  "Display Sarah's birthday present."
+  "Display Sarah's birthday present in a new buffer."
   (interactive)
   ;; Make a suitable buffer to display the birthday present in.
-  (switch-to-buffer (get-buffer-create "Sarah"))
+  (switch-to-buffer (get-buffer-create "*Sarah*"))
   (erase-buffer)
   ;; Display the empty buffer.
   (sit-for 0)
