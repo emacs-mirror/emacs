@@ -1,3 +1,10 @@
+2001-01-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/rmail.el (rmail-ignored-headers): Add X-Sign, X-BeenThere,
+	X-Mailman-Version, Precedence, List-Help, List-Post,
+	List-Subscribe, List-Id, List-Unsubscribe, List-Archive,
+	Content-Type, Content-Length.
+
 2001-01-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* isearch.el (isearch-highlight): Don't punt if the display
