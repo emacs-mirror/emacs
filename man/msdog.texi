@@ -577,8 +577,10 @@ converted into a particular character code, specified by the variable
 
   Emacs supports many other characters sets aside from ISO 8859, but it
 cannot display them on MS-DOS.  So if one of these multibyte characters
-appears in a buffer, Emacs on MS-DOS displays a solid box instead of the
-character.
+appears in a buffer, Emacs on MS-DOS displays them as specified by the
+@code{dos-unsupported-character-glyph} variable; by default, this glyph
+is an empty triangle.  Use the @kbd{C-u C-x =} command to display the
+actual code and character set of such characters.  @xref{Position Info}.
 
 @findex codepage-setup
   By default, Emacs defines a coding system to support the current
