@@ -1,3 +1,10 @@
+2000-05-03  Dave Love  <fx@gnu.org>
+
+	* time.el (display-time-mail-face, display-time-use-mail-icon):
+	New option.
+	(display-time-mail-icon): New variable.
+	(display-time-string-forms): Use the above.  Fix the local-map.
+
 2000-05-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* replace.el (query-replace-map): Add binding for `E'.
