@@ -1,5 +1,9 @@
 2001-08-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* international/quail.el (quail-completion-1): Reverse
+	the ((CHAR . DEFN) ...) list before processing it.
+	From Kenichi Handa <handa@etl.go.jp>.
+
 	* obsolete/rsz-mini.el, obsolete/sun-curs.el, obsolete/sun-fns.el
 	* obsolete/x-apollo.el, obsolete/x-menu.el: Moved here from lisp/.
 
