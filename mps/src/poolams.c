@@ -1,7 +1,7 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.18) $
- * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!poolams.c(trunk.17) $
+ * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  * 
  * .readership: any MPS developer.
  * 
@@ -17,7 +17,7 @@
 #include "mpm.h"
 #include "mpscams.h"
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.18) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.17) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -94,7 +94,7 @@ static Bool AMSCheck(AMS ams);
 #define AMSSegGroup(seg) ((AMSGroup)SegP(seg))
 
 
-/* the different colours of grains.  See design.mps.poolams.invariant.
+/* the different colours of grains.  See design.mps.poolams.colour.
  * _MIN and _MAX are here for checking. */
 
 enum {
@@ -113,7 +113,7 @@ enum {
 
 /* AMSGrainColour -- find the colour of a single grain.
  * 
- * See design.mps.poolams.invariant
+ * See design.mps.poolams.colour
  * and design.mps.poolams.colour.slow */
 
 static int AMSGrainColour(AMSGroup group, Index index)
@@ -157,7 +157,7 @@ static int AMSGrainColour(AMSGroup group, Index index)
 
 /* AMSGroupCheck -- check the group.
  * 
- * This is slow. See design.mps.poolams.invariant.check.slow.
+ * This is slow. See design.mps.poolams.colour.check.slow.
  */
 
 static Bool AMSGroupCheck(AMSGroup group)
@@ -182,7 +182,7 @@ static Bool AMSGroupCheck(AMSGroup group)
   CHECKL(group->markTable != NULL);
   CHECKL(group->scanTable != NULL);
 
-  /* design.mps.poolams.invariant.check.slow */
+  /* design.mps.poolams.colour.check.slow */
   for (i = 0; i < group->grains; i++) {
     int colour = AMSGrainColour(group, i);
     CHECKL(colour != AMS_ILLEGAL);
@@ -257,7 +257,6 @@ static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
   res = BTCreate(&group->scanTable, arena, group->grains);
   if(res != ResOK)
     goto failScan;
-  /* design.mps.poolams.invariant.create */
   BTSetRange(group->scanTable, 0, group->grains);
 
   group->ams = ams;
@@ -299,8 +298,6 @@ static void AMSGroupDestroy(AMSGroup group)
   AVER(ams->size >= SegSize(group->seg));
 
   ams->size -= SegSize(group->seg);
-  /* design.mps.poolams.benefit.reclaim */
-  ams->lastReclaimed = ams->size;
 
   group->sig = SigInvalid;
 
@@ -413,13 +410,13 @@ static Bool AMSGroupAlloc(Index *baseReturn, Index *limitReturn,
   if(!b)
     return FALSE;
 
-  /* design.mps.poolams.invariant.free */
+  /* design.mps.poolams.colour.free */
   AVER(BTIsResRange(group->markTable, base, limit));
   AVER(BTIsSetRange(group->scanTable, base, limit));
   AVER(BTIsResRange(group->allocTable, base, limit));
 
-  /* design.mps.poolams.invariant.black, */
-  /* design.mps.poolams.invariant.alloc */
+  /* design.mps.poolams.colour.black, */
+  /* design.mps.poolams.colour.alloc */
   BTSetRange(group->allocTable, base, limit);
   BTSetRange(group->markTable, base, limit);
   group->free -= limit - base;
@@ -547,14 +544,14 @@ static void AMSBufferEmpty(Pool pool, Buffer buffer)
   initIndex = AMSAddrIndex(group, init);
   limitIndex = AMSAddrIndex(group, limit);
 
-  /* design.mps.poolams.invariant.black */
-  /* design.mps.poolams.invariant.alloc */
+  /* design.mps.poolams.colour.black */
+  /* design.mps.poolams.colour.alloc */
   AVER(BTIsSetRange(group->markTable, initIndex, limitIndex));
   AVER(BTIsSetRange(group->scanTable, initIndex, limitIndex));
   AVER(BTIsSetRange(group->allocTable, initIndex, limitIndex));
 
-  /* design.mps.poolams.invariant.free */
-  /* design.mps.poolams.invariant.empty */
+  /* design.mps.poolams.colour.free */
+  /* design.mps.poolams.colour.empty */
   BTResRange(group->markTable, initIndex, limitIndex);
   BTResRange(group->allocTable, initIndex, limitIndex);
   group->free += limitIndex - initIndex;
@@ -572,22 +569,19 @@ static void AMSRangeWhiten(AMSGroup group, Index base, Index limit)
     AVER(base < limit);
     AVER(limit <= group->grains);
     
-    /* either black or free, see design.mps.poolams.invariant */
+    /* either black or free, see design.mps.poolams.colour */
     AVER(BTIsSetRange(group->scanTable, base, limit));
     AVER(BTRangesSame(group->allocTable, group->markTable,
 		      base, limit));
     
-    /* black -> white, free -> free, see design.mps.poolams.invariant */
+    /* black -> white, free -> free, see design.mps.poolams.colour */
     BTResRange(group->markTable, base, limit);
     BTCopyInvertRange(group->allocTable, group->scanTable, base, limit);
   }
 }
 
 
-/* AMSWhiten -- the pool class segment whitening method
- * 
- * See design.mps.poolams.whiten
- */
+/* AMSWhiten -- the pool class segment whitening method */
 
 static Res AMSWhiten(Pool pool, Trace trace, Seg seg)
 {
@@ -611,7 +605,8 @@ static Res AMSWhiten(Pool pool, Trace trace, Seg seg)
   AVER(SegWhite(seg) == TraceSetEMPTY);
 
   buffer = SegBuffer(seg);
-  if(buffer != NULL) { /* design.mps.poolams.whiten.buffer */
+  if(buffer != NULL) {
+    /* Whiten everything except the buffer. @@@@ */
     Index scanLimitIndex, limitIndex;
     scanLimitIndex = AMSAddrIndex(group, BufferScanLimit(buffer));
     limitIndex = AMSAddrIndex(group, BufferLimit(buffer));
@@ -622,9 +617,6 @@ static Res AMSWhiten(Pool pool, Trace trace, Seg seg)
     AMSRangeWhiten(group, 0, group->grains);
   }
 
-  group->marked = FALSE; /* design.mps.poolams.marked.condemn */
-
-  /* design.mps.poolams.whiten.seg */
   SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace->ti));
 
   return ResOK;
@@ -632,7 +624,7 @@ static Res AMSWhiten(Pool pool, Trace trace, Seg seg)
 
 
 /* AMSObjectFunction is the type of the function which AMSIterate
- * applies to each object in a group. See design.mps.poolams.iter */
+ * applies to each object in a group. */
 
 typedef Res (*AMSObjectFunction)(
               AMSGroup group, /* the group */
@@ -648,8 +640,9 @@ typedef Res (*AMSObjectFunction)(
 
 /* AMSIterate -- applies a function to each object in a group
  * 
- * AMSIterate (ams,group,seg,arena,f,closure) applies f to all the
- * objects in the group. See design.mps.poolams.iter
+ * AMSIterate(ams, group, seg, arena, f, closure) applies f to all the
+ * objects in the group.  It skips the buffer, if any (from
+ * BufferScanLimit to BufferLimit).
  */
 
 static Res AMSIterate(AMS ams, AMSGroup group, Seg seg, Arena arena,
@@ -670,25 +663,23 @@ static Res AMSIterate(AMS ams, AMSGroup group, Seg seg, Arena arena,
 
   format = ams->format;
   alignment = PoolAlignment(AMSPool(ams));
-  AVER(alignment == format->alignment); /* design.mps.poolams.align */
   UNUSED(arena);
 
   p = SegBase(seg);
   limit = SegLimit(seg);
 
-  while (p < limit) { /* design.mps.poolams.iter.how */
+  while (p < limit) { /* loop over the objects in the group */
     Index i;
     Addr next;
     int colour;
     Buffer buffer = SegBuffer(seg);
 
-    /* design.mps.poolams.iter.align */
-    AVER(AddrIsAligned(p, alignment));
   
-    if(buffer != NULL &&
-        p == BufferScanLimit(buffer) &&
-        p != BufferLimit(buffer)) { /* design.mps.poolams.iter.buffer */
+    if(buffer != NULL
+       && p == BufferScanLimit(buffer) && p != BufferLimit(buffer)) {
+      /* skip buffer */
       next = BufferLimit(buffer); 
+      AVER(AddrIsAligned(next, alignment));
     } else {
       AVER((buffer == NULL) ||
 	   (p < BufferScanLimit(buffer)) ||
@@ -702,6 +693,7 @@ static Res AMSIterate(AMS ams, AMSGroup group, Seg seg, Arena arena,
         next = AddrAdd(p, alignment);
       } else { /* there is an object here */
         next = (*format->skip)(p);
+        AVER(AddrIsAligned(next, alignment));
 
 	/* apply the object function */
 	res = (*f)(group, i, p, next, colour, closure);
@@ -709,7 +701,7 @@ static Res AMSIterate(AMS ams, AMSGroup group, Seg seg, Arena arena,
 	  return res;
       }
     }
-    AVER(next > p); /* design.mps.poolams.iter.progress */
+    AVER(next > p); /* make sure we make progress */
     p = next;
   }
   AVER(p == limit);
@@ -720,7 +712,7 @@ static Res AMSIterate(AMS ams, AMSGroup group, Seg seg, Arena arena,
 /* AMSBlackenObject -- blacken a single object (if it is grey).
  * 
  * This is the object function passed to AMSIterate by AMSBlacken.
- * It just blackens the object if it is grey. It takes no closure.
+ * It just blackens the object if it is grey.  It takes no closure.
  */
 
 static Res AMSBlackenObject(AMSGroup group,
@@ -743,10 +735,7 @@ static Res AMSBlackenObject(AMSGroup group,
 }
 
 
-/* AMSBlacken -- the pool class segment blackening method
- *
- * See design.mps.poolams.blacken
- */
+/* AMSBlacken -- the pool class segment blackening method */
 
 static void AMSBlacken(Pool pool, TraceSet traceSet, Seg seg)
 {
@@ -759,8 +748,8 @@ static void AMSBlacken(Pool pool, TraceSet traceSet, Seg seg)
   AVER(TraceSetCheck(traceSet));
   AVER(SegCheck(seg));
 
-  /* only do anything if the bitmaps apply to one of these traces. */
-  /* see design.mps.poolams.invariant.object */
+  /* Only do anything if the bitmaps apply to one of these traces, */
+  /* see design.mps.poolams.colour.determine. */
   if(TraceSetInter(SegWhite(seg), traceSet) != TraceSetEMPTY) {
     ams = PoolPoolAMS(pool);
     AVERT(AMS, ams);
@@ -774,8 +763,9 @@ static void AMSBlacken(Pool pool, TraceSet traceSet, Seg seg)
     AVER(res == ResOK); /* AMSBlackenObject always returns ResOK */
     ShieldCover(arena, seg);
 
-    group->marked = FALSE; /* design.mps.poolams.blacken.marked */
+    group->marked = FALSE; /* nothing grey anymore */
   }
+  /* @@@@ What about SegGrey? */
 }
 
 /* The closure of the object scanning function */
@@ -826,7 +816,7 @@ static Res AMSScanObject(AMSGroup group,
   }
 
   if(colour == AMS_GREY) /* blacken the object */
-    BTSet(group->scanTable, i); /* design.mps.poolams.invariant.black */
+    BTSet(group->scanTable, i); /* design.mps.poolams.colour.black */
 
   return ResOK;
 }
@@ -857,12 +847,15 @@ static Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   group = AMSSegGroup(seg);
   AVERT(AMSGroup, group);
 
-  /* design.mps.poolams.scan.all */
+  /* Check that we're not in the grey mutator phase (see */
+  /* design.mps.poolams.not-req.grey). */
+  AVER(TraceSetSub(ss->traces, arena->flippedTraces));
+
   closureStruct.scanAllObjects =
     (TraceSetDiff(ss->traces, SegWhite(seg)) != TraceSetEMPTY);
   closureStruct.ss = ss;
 
-  if(closureStruct.scanAllObjects) { /* design.mps.poolams.scan.all */
+  if(closureStruct.scanAllObjects) {
 
     res = AMSIterate(ams, group, seg, arena, AMSScanObject,
 		     &closureStruct);
@@ -915,6 +908,10 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVERT(AMSGroup, group);
   
   arena = PoolArena(pool);
+
+  /* @@@@ We should check that we're not in the grey mutator phase */
+  /* (see design.mps.poolams.not-req.grey), but there's no way of */
+  /* doing that here (this can be called from RootScan, during flip). */
 
   ref = *refIO;
   i = AMSAddrIndex(group, ref);
@@ -987,21 +984,20 @@ static Res AMSReclaimObject(AMSGroup group,
   j = AMSAddrIndex(group, next);
   
   if(colour == AMS_WHITE) { /* then we can free it */
-    /* design.mps.poolams.invariant.free */
+    /* design.mps.poolams.colour.free */
     BTResRange(group->markTable, i, j);
     BTSetRange(group->scanTable, i, j);
     BTResRange(group->allocTable, i, j);
     group->free += j - i;
   } else { /* the object survived collection */
     AVER(colour == AMS_BLACK);
-    /* make it all black. design.mps.poolams.invariant.object.reclaim */
+    /* make it all black */
     BTSetRange(group->markTable, i, j);
     BTSetRange(group->scanTable, i, j);
     *anySurvivorsP = TRUE;
   }
   return ResOK;
 }
-
 
 
 /* AMSReclaim -- the pool class reclamation method */
@@ -1013,7 +1009,7 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
   Arena arena;
   Res res;
   Count oldFree;
-  Bool anySurvivors;            /* did anything survive */
+  Bool anySurvivors;            /* did anything survive? */
 
   AVERT(Pool, pool);
   ams = PoolPoolAMS(pool);
@@ -1023,7 +1019,7 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
 
   group = AMSSegGroup(seg);
 
-  AVER(group->marked == FALSE); /* design.mps.poolams.marked.reclaim */
+  AVER(group->marked == FALSE); /* there must be nothing grey */
 
   anySurvivors = FALSE;
   oldFree = group->free;
@@ -1034,11 +1030,12 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
 
   trace->reclaimSize += (group->free - oldFree) << ams->grainShift;
 
-  if((SegBuffer(seg) == NULL) && !anySurvivors)
-    /* design.mps.poolams.reclaim.empty */
+  if((SegBuffer(seg) == NULL) && !anySurvivors) {
+    /* No survivors */
     AMSGroupDestroy(group);
-  else
-    /* design.mps.poolams.reclaim.unwhite */
+    /* design.mps.poolams.benefit.guess */
+    ams->lastReclaimed = ams->size;
+  } else
     SegSetWhite(seg, TraceSetDel(SegWhite(seg), trace->ti));
 }
 
@@ -1046,7 +1043,7 @@ static void AMSReclaim(Pool pool, Trace trace, Seg seg)
 /* AMSBenefit -- the pool class benefit computation method.
  *
  * This does not compute a real benefit, but something which works
- * well enough to run tests. See design.mps.poolams.benefit.guess
+ * well enough to run tests.  See design.mps.poolams.benefit.guess.
  */
 
 int AMSRatioDenominator = 1;
@@ -1248,10 +1245,10 @@ static PoolClassStruct PoolClassAMSStruct = {
   AMSBufferInit,
   AMSBufferFill,             /* bufferFill */
   AMSBufferEmpty,            /* bufferEmpty */
-  PoolTrivBufferFinish,      /* design.mps.poolams.triv-buffer-finish */
-  PoolTrivTraceBegin,        /* design.mps.poolams.triv-trace-begin */
+  PoolTrivBufferFinish,
+  PoolTrivTraceBegin,
   AMSWhiten,                 /* whiten */
-  PoolTrivGrey,              /* design.mps.poolams.triv-grey */
+  PoolTrivGrey,              /* design.mps.poolams.colour.determine */
   AMSBlacken,                /* blacken */
   AMSScan,                   /* scan */
   AMSFix,                    /* fix */
@@ -1277,7 +1274,6 @@ static Bool AMSCheck(AMS ams)
   CHECKL(PoolAlignment(AMSPool(ams)) == ams->format->alignment);
   CHECKD(Action, AMSAction(ams));
   CHECKL(AMSAction(ams)->pool == AMSPool(ams));
-  CHECKL(ams->lastReclaimed <= ams->size);
   CHECKL(SizeIsAligned(ams->size, PoolAlignment(AMSPool(ams))));
   CHECKL(SizeIsAligned(ams->lastReclaimed,
 		       PoolAlignment(AMSPool(ams))));
