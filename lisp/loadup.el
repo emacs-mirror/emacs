@@ -109,6 +109,8 @@
 (load "language/tibetan")
 (load "language/vietnamese")
 (load "language/misc-lang")
+(load "language/utf-8-lang")
+(load "language/georgian")
 (update-coding-systems-internal)
 
 (load "indent")
