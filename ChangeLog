@@ -1,3 +1,8 @@
+2002-04-28  Colin Walters  <walters@verbum.org>
+
+	* configure.in: Delete configure check for access to the game
+	user.
+
 2002-04-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* make-dist: lwlib/Imakefile is removed.

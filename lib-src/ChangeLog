@@ -1,3 +1,19 @@
+2002-04-28  Colin Walters  <walters@verbum.org>
+
+	* Makefile.in (${archlibdir}): Don't conditionalize on
+	HAVE_SHARED_GAME_DIR.  Instead, test at installation time whether
+	or not we have access to the specified game user.
+ 
+	* update-game-score.c (SCORE_FILE_PREFIX): Delete.
+	(main): New argument -d, for specifying directory.
+	(usage): Document.
+	(get_user_id): Compute
+	(get_home_dir): Deleted.
+	(get_prefix): New function, taken from main.
+	(main): Check whether or not we are running setuid.  Move prefix
+	computation to get_prefix.  Don't call getpwent; we don't need to
+	any more.  Instead, move it to get_user_id().
+
 2002-04-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* ebrowse.c (skip_initializer): Return void.

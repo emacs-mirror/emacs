@@ -1,5 +1,12 @@
 2002-04-29  Colin Walters  <walters@verbum.org>
 
+	* ibuf-ext.el (ibuffer-kill-filter-group): Call `delete' function.
+	(ibuffer-kill-line): Copy the filter group data structure when
+	killing.
+	(ibuffer-yank): Handle case where we're yanking on the default
+	group correctly.
+	(ibuffer-delete-saved-filter-groups): Doc fix.
+
 	* play/gamegrid.el (gamegrid-add-score-with-update-game-score):
 	Test whether or not update-game-score is setuid, and do the right
 	thing.
