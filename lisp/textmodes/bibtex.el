@@ -1656,16 +1656,15 @@ are defined, but only for the head part of the entry
   "Make sure point is outside of a BibTeX entry."
   (let ((orig-point (point)))
     (bibtex-end-of-entry)
-    (when (<= (point) orig-point)
+    (when (< (point) orig-point)
       ;; We moved backward, so we weren't inside an entry to begin with.
       ;; Leave point at the beginning of a line, and preferably
       ;; at the beginning of a paragraph.
       (goto-char orig-point)
       (beginning-of-line 1)
-      (let ((cb (char-before (1- (point)))))
-        (unless (and cb (= ?\n cb))
-          (re-search-forward "^[ \t]*[@\n]" nil 'move)
-          (backward-char 1))))
+      (unless (= ?\n (char-before (1- (point))))
+        (re-search-forward "^[ \t]*[@\n]" nil 'move)
+        (backward-char 1)))
     (skip-chars-forward " \t\n")))
 
 (defun bibtex-beginning-of-first-entry ()
