@@ -1170,7 +1170,7 @@ static char *magick[] = {
   (setq mode-name "Breakpoints")
   (use-local-map gdb-breakpoints-mode-map)
   (setq buffer-read-only t)
-  (if (eq gud-minor-mode 'gdba)
+  (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
       (gdb-invalidate-breakpoints)
     (gdbmi-invalidate-breakpoints)))
 
@@ -1290,7 +1290,7 @@ static char *magick[] = {
   (setq buffer-read-only t)
   (use-local-map gdb-frames-mode-map)
   (font-lock-mode -1)
-  (if (eq gud-minor-mode 'gdba)
+  (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
       (gdb-invalidate-frames)
     (gdbmi-invalidate-frames)))
 
@@ -1490,7 +1490,7 @@ static char *magick[] = {
   (setq mode-name "Locals")
   (setq buffer-read-only t)
   (use-local-map gdb-locals-mode-map)
-  (if (eq gud-minor-mode 'gdba)
+  (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
       (gdb-invalidate-locals)
     (gdbmi-invalidate-locals)))
 
