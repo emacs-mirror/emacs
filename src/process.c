@@ -179,7 +179,9 @@ extern char *sys_errlist[];
 
 #ifndef VMS
 #ifndef BSD4_1
+#ifndef LINUX
 extern char *sys_siglist[];
+#endif
 #else
 char *sys_siglist[] =
   {
@@ -1253,8 +1255,10 @@ create_process (process, new_argv, current_dir)
 	setsid ();
 #ifdef TIOCSCTTY
 	/* Make the pty's terminal the controlling terminal.  */
-	if (pty_flag && (ioctl (xforkin, TIOCSCTTY, 0) < 0))
-	  abort ();
+	if (pty_flag)
+	  /* We ignore the return value
+	     because faith@cs.unc.edu says that is necessary on Linux.  */
+	  ioctl (xforkin, TIOCSCTTY, 0);
 #endif
 #else /* not HAVE_SETSID */
 #ifdef USG
