@@ -1,5 +1,11 @@
 2000-10-20  Miles Bader  <miles@lsi.nec.co.jp>
 
+	* window.el (mode-line-window-height-fudge): New variable.
+	(height-affecting-face-attributes): New variable.
+	(mode-line-window-height-fudge): New function.
+	(shrink-window-if-larger-than-buffer): Use it.
+	* help.el (resize-temp-buffer-window): Likewise.
+
 	* info.el (Info-fontify-node): Add support for @subsubsection
 	titles, which use `Info-title-4-face'.
 	(Info-title-4-face): New face.
