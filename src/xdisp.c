@@ -264,6 +264,10 @@ int mouse_autoselect_window;
 
 int auto_raise_tool_bar_buttons_p;
 
+/* Non-zero means to reposition window if cursor line is only partially visible.  */
+
+int make_cursor_line_fully_visible_p;
+
 /* Margin around tool bar buttons in pixels.  */
 
 Lisp_Object Vtool_bar_button_margin;
@@ -10887,6 +10891,9 @@ make_cursor_line_fully_visible (w, force_p)
   struct glyph_row *row;
   int window_height;
 
+  if (!make_cursor_line_fully_visible_p)
+    return 1;
+
   /* It's not always possible to find the cursor, e.g, when a window
      is full of overlay strings.  Don't do anything in that case.  */
   if (w->cursor.vpos < 0)
@@ -11474,7 +11481,8 @@ try_cursor_movement (window, startp, scroll_step)
 	      /* if PT is not in the glyph row, give up.  */
 	      rc = CURSOR_MOVEMENT_MUST_SCROLL;
 	    }
-	  else if (MATRIX_ROW_PARTIALLY_VISIBLE_P (w, row))
+	  else if (MATRIX_ROW_PARTIALLY_VISIBLE_P (w, row)
+		   && make_cursor_line_fully_visible_p)
 	    {
 	      if (PT == MATRIX_ROW_END_CHARPOS (row)
 		  && !row->ends_at_zv_p
@@ -13515,7 +13523,9 @@ try_window_id (w)
 	 && CHARPOS (start) > BEGV)
 	/* Old redisplay didn't take scroll margin into account at the bottom,
 	   but then global-hl-line-mode doesn't scroll.  KFS 2004-06-14 */
-	|| w->cursor.y + cursor_height + this_scroll_margin > it.last_visible_y)
+	|| (w->cursor.y + (make_cursor_line_fully_visible_p
+			   ? cursor_height + this_scroll_margin
+			   : 1)) > it.last_visible_y)
       {
 	w->cursor.vpos = -1;
 	clear_glyph_matrix (w->desired_matrix);
@@ -22390,6 +22400,10 @@ otherwise.  */);
   DEFVAR_BOOL ("auto-raise-tool-bar-buttons", &auto_raise_tool_bar_buttons_p,
     doc: /* *Non-nil means raise tool-bar buttons when the mouse moves over them.  */);
   auto_raise_tool_bar_buttons_p = 1;
+
+  DEFVAR_BOOL ("make-cursor-line-fully-visible", &make_cursor_line_fully_visible_p,
+    doc: /* *Non-nil means to scroll (recenter) cursor line if it is not fully visible.  */);
+  make_cursor_line_fully_visible_p = 1;
 
   DEFVAR_LISP ("tool-bar-button-margin", &Vtool_bar_button_margin,
     doc: /* *Margin around tool-bar buttons in pixels.
