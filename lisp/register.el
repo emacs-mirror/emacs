@@ -21,7 +21,8 @@
 (defvar register-alist nil
   "Alist of elements (NAME . CONTENTS), one for each Emacs register.
 NAME is a character (a number).  CONTENTS is a string, number,
-mark or list.  A list represents a rectangle; its elements are strings.")
+screen configuration, mark or list.
+A list represents a rectangle; its elements are strings.")
 
 (defun get-register (char)
   "Return contents of Emacs register named CHAR, or nil if none."
@@ -37,11 +38,13 @@ Returns VALUE."
       (setq register-alist (cons aelt register-alist)))
     value))
 
-(defun point-to-register (char)
-  "Store current location of point in a register.
+(defun point-to-register (char arg)
+  "Store current location of point in register REGISTER.
+With prefix argument, store current screen configuration.
+Use \\[jump-to-register] to go to that location or restore that configuration.
 Argument is a character, naming the register."
-  (interactive "cPoint to register: ")
-  (set-register char (point-marker)))
+  (interactive "cPoint to register: \nP")
+  (set-register char (if arg (current-screen-configuration) (point-marker))))
 
 (fset 'register-to-point 'jump-to-register)
 (defun jump-to-register (char)
@@ -49,11 +52,14 @@ Argument is a character, naming the register."
 Argument is a character, naming the register."
   (interactive "cJump to register: ")
   (let ((val (get-register char)))
-    (if (markerp val)
-	(progn
-	  (switch-to-buffer (marker-buffer val))
-	  (goto-char val))
-      (error "Register doesn't contain a buffer position"))))
+    (condition-case ()
+	(set-screen-configuration val)
+      (error
+       (if (markerp val)
+	   (progn
+	     (switch-to-buffer (marker-buffer val))
+	     (goto-char val))
+	 (error "Register doesn't contain a buffer position or screen configuration")))))
 
 ;(defun number-to-register (arg char)
 ;  "Store a number in a register.
