@@ -546,7 +546,10 @@ This command is the top-level command in the man package.  It runs a Un*x
 command to retrieve and clean a manpage in the background and places the
 results in a Man mode (manpage browsing) buffer.  See variable
 `Man-notify-method' for what happens when the buffer is ready.
-If a buffer already exists for this man page, it will display immediately."
+If a buffer already exists for this man page, it will display immediately.
+
+To specify a man page from a certain section, type SUBJECT(SECTION) or
+SECTION SUBJECT when prompted for a manual entry."
   (interactive
    (list (let* ((default-entry (Man-default-man-entry))
 		(input (read-string
