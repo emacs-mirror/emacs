@@ -1,5 +1,5 @@
 /* Define frame-object for GNU Emacs.
-   Copyright (C) 1988, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1988, 1992, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,7 +17,18 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+
+/* Miscellanea.  */
 
+/* Nonzero means don't assume anything about current
+   contents of actual terminal frame */
+extern int frame_garbaged;
+
+/* Nonzero means FRAME_MESSAGE_BUF (selected_frame) is being used by
+   print.  */
+extern int message_buf_print;
+
+
 /* The structure representing a frame.
 
    We declare this even if MULTI_FRAME is not defined, because when
@@ -111,6 +122,16 @@ struct frame
      or modified with modify-frame-parameters.  */
   Lisp_Object param_alist;
 
+  /* List of scrollbars on this frame.  
+     Actually, we don't specify exactly what is stored here at all; the
+     scrollbar implementation code can use it to store anything it likes.
+     This field is marked by the garbage collector.  It is here
+     instead of in the `display' structure so that the garbage
+     collector doesn't need to look inside the window-system-dependent
+     structure.  */
+  Lisp_Object scrollbars;
+  Lisp_Object condemned_scrollbars;
+
   /* The output method says how the contents of this frame
      are displayed.  It could be using termcap, or using an X window.  */
   enum output_method output_method;
@@ -126,6 +147,10 @@ struct frame
   /* visible is nonzero if the frame is currently displayed; we check
      it to see if we should bother updating the frame's contents.
      DON'T SET IT DIRECTLY; instead, use FRAME_SET_VISIBLE.
+
+     Note that, since invisible frames aren't updated, whenever a
+     frame becomes visible again, it must be marked as garbaged.  The
+     FRAME_SAMPLE_VISIBILITY macro takes care of this.
 
      iconified is nonzero if the frame is currently iconified.
 
@@ -240,6 +265,8 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_FOCUS_FRAME(f) (f)->focus_frame
 #define FRAME_CAN_HAVE_SCROLLBARS(f) ((f)->can_have_scrollbars)
 #define FRAME_HAS_VERTICAL_SCROLLBARS(f) ((f)->has_vertical_scrollbars)
+#define FRAME_SCROLLBARS(f) ((f)->scrollbars)
+#define FRAME_CONDEMNED_SCROLLBARS(f) ((f)->condemned_scrollbars)
 
 /* Emacs's redisplay code could become confused if a frame's
    visibility changes at arbitrary times.  For example, if a frame is
@@ -259,9 +286,14 @@ typedef struct frame *FRAME_PTR;
    which sets visible and iconified from their asynchronous
    counterparts.
 
-   Synchronous code must use the FRAME_SET_VISIBLE macro.  */
+   Synchronous code must use the FRAME_SET_VISIBLE macro.
+
+   Also, if a frame used to be invisible, but has just become visible,
+   it must be marked as garbaged, since redisplay hasn't been keeping
+   up its contents.  */
 #define FRAME_SAMPLE_VISIBILITY(f) \
-  ((f)->visible = (f)->async_visible, \
+  (((f)->async_visible && ! (f)->visible) ? SET_FRAME_GARBAGED (f) : 0, \
+   (f)->visible = (f)->async_visible, \
    (f)->iconified = (f)->async_iconified)
 
 #define CHECK_FRAME(x, i)				\
@@ -303,10 +335,6 @@ extern struct frame *make_frame ();
 extern struct frame *make_minibuffer_frame ();
 extern struct frame *make_frame_without_minibuffer ();
 
-/* Nonzero means FRAME_MESSAGE_BUF (selected_frame) is being used by
-   print.  */
-extern int message_buf_print;
-
 extern Lisp_Object Vframe_list;
 extern Lisp_Object Vdefault_frame_alist;
 
@@ -326,10 +354,6 @@ extern struct frame the_only_frame;
 
 extern int selected_frame;
 extern int last_nonminibuf_frame;
-
-/* Nonzero means FRAME_MESSAGE_BUF (selected_frame) is being used by
-   print.  */
-extern int message_buf_print;
 
 #define XFRAME(f) selected_frame
 #define WINDOW_FRAME(w) selected_frame
@@ -370,6 +394,8 @@ extern int message_buf_print;
 #define FRAME_CAN_HAVE_SCROLLBARS(f) (the_only_frame.can_have_scrollbars)
 #define FRAME_HAS_VERTICAL_SCROLLBARS(f) \
   (the_only_frame.has_vertical_scrollbars)
+#define FRAME_SCROLLBARS(f) (the_only_frame.scrollbars)
+#define FRAME_CONDEMNED_SCROLLBARS(f) (the_only_frame.condemned_scrollbars)
 
 /* See comments in definition above.  */
 #define FRAME_SAMPLE_VISIBILITY(f) (0)
@@ -397,14 +423,6 @@ extern int message_buf_print;
 
 /* The number of columns a vertical scrollbar occupies.  */
 #define VERTICAL_SCROLLBAR_WIDTH (2)
-
-/* Turn a window's scrollbar member into a `struct scrollbar *';
-   return NULL if the window doesn't have a scrollbar.  */
-#define WINDOW_VERTICAL_SCROLLBAR(w) \
-  (XTYPE ((w)->vertical_scrollbar) == Lisp_Int \
-   ? (struct scrollbar *) XPNTR ((w)->vertical_scrollbar) \
-   : (struct scrollbar *) 0)
-
 
 /* Return the starting column (zero-based) of the vertical scrollbar
    for window W.  The column before this one is the last column we can
