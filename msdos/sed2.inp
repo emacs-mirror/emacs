@@ -8,6 +8,7 @@
 #if defined(__DJGPP__) && __DJGPP__ > 1\
 /* In v2.0 and later almost everything is defined in <sys/config.h>  */\
 #include <sys/config.h>\
+#define HAVE_SETITIMER 1\
 #undef HAVE_SELECT\
 #undef _LIBC\
 #define HAVE_VFORK 1\
