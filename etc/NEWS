@@ -1502,6 +1502,27 @@ methods in Leim.
 These new environments mainly select appropriate translations
 of the tutorial.
 
+** In Ethiopic language environment, special key bindings for
+function keys are changed as follows.  This is to conform to "Emacs
+Lisp Coding Convention".
+
+    new  command                            old-binding
+    ---  -------                            -----------
+    f3   ethio-fidel-to-sera-buffer         f5
+    S-f3 ethio-fidel-to-sera-region         f5
+    C-f3 ethio-fidel-to-sera-mail-or-marker f5
+
+    f4   ethio-sera-to-fidel-buffer         unchanged
+    S-f4 ethio-sera-to-fidel-region         unchanged
+    C-f4 ethio-sera-to-fidel-mail-or-marker unchanged
+
+    S-f5 ethio-toggle-punctuation           f3
+    S-f6 ethio-modify-vowel                 f6
+    S-f7 ethio-replace-space                f7
+    S-f8 ethio-input-special-character      f8
+    S-f9 ethio-replace-space                unchanged
+    C-f9 ethio-toggle-space                 f2
+
 +++
 ** Fortran mode has a new command `fortran-strip-sequence-nos' to
 remove text past column 72.  The syntax class of `\' in Fortran is now

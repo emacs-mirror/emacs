@@ -6,6 +6,8 @@
 
 	* language/ethiopic.el ("Ethiopic"): Add documentation.
 
+2001-02-28  Kenichi Handa  <handa@etl.go.jp>
+
 	* international/utf-8.el (mule-utf-8): Set coding-category
 	property to coding-category-utf-8.
 
