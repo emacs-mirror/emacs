@@ -1496,6 +1496,30 @@ This variable is permanent-local.")
     (overlay-put comint-last-prompt-overlay 'evaporate t)
     (setq comint-last-prompt-overlay nil)))
 
+(defun comint-cr-magic (string)
+  "Handle carriage returns in comint output.
+Translate carraige return/linefeed sequences to linefeeds.
+Let single carriage returns delete to the beginning of the line."
+  (save-match-data
+    ;; CR LF -> LF
+    (while (string-match "\r\n" string)
+      (setq string (replace-match "\n" nil t string)))
+    ;; Let a single CR act like a carriage return on a real terminal.
+    ;; Delete everything from the beginning of the line to the
+    ;; insertion point.
+    (when (string-match ".*\r" string)
+      (setq string (replace-match "" nil t string))
+      (save-excursion
+	(save-restriction
+	  (widen)
+	  (let ((inhibit-field-text-motion t)
+		(buffer-read-only nil))
+	    (goto-char (process-mark (get-buffer-process (current-buffer))))
+	    (delete-region (line-beginning-position) (point))))))
+    string))
+
+(add-hook 'comint-preoutput-filter-functions 'comint-cr-magic)
+    
 ;; The purpose of using this filter for comint processes
 ;; is to keep comint-last-input-end from moving forward
 ;; when output is inserted.
