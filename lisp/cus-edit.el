@@ -412,6 +412,7 @@ Return a list suitable for use in `interactive'."
 		obarray (lambda (symbol)
 			  (and (boundp symbol)
 			       (or (get symbol 'custom-type)
+				   (get symbol 'custom-loads)
 				   (user-variable-p symbol)))) t))
      (list (if (equal val "")
 	       (if (symbolp v) v nil)
