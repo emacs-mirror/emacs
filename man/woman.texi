@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: woman.texi,v 1.7 2001/03/05 15:11:21 eliz Exp $
+@c $Id: woman.texi,v 1.8 2002/03/16 19:33:21 eliz Exp $
 @c %**start of header
 @setfilename ../info/woman
 @settitle WoMan: Browse Unix Manual Pages ``Wo (without) Man''
@@ -1550,24 +1550,18 @@ If WoMan fails completely, or formats a file incorrectly (i.e.@:
 obviously wrongly or significantly differently from @code{man}) or
 inelegantly, then please
 
-@enumerate a
+@enumerate
 @item
-check that you are running the latest version of @file{woman.el}
-available from @uref{http://centaur.maths.qmw.ac.uk/Emacs/WoMan/, my web
-site}, and
+try the latest version of @file{woman.el} from the Emacs CVS repository
+on @uref{http://savannah.gnu.org/}.  If it still fails, please
 
 @item
-check that the problem is not already described in the file
-@file{woman.status}, also available from
-@uref{http://centaur.maths.qmw.ac.uk/Emacs/WoMan/, my web site}.
+send a bug report to @email{bug-gnu-emacs@@gnu.org} and to
+@email{F.J.Wright@@qmw.ac.uk}.  Please include the entry from the
+@code{*WoMan-Log*} buffer relating to the problem file, together with
+a brief description of the problem.  Please indicate where you got the
+man source file from, but do not send it unless asked to send it.
 @end enumerate
-
-If both of the above are true then please
-@email{F.J.Wright@@qmw.ac.uk,email me} the entry from the
-@code{*WoMan-Log*} buffer relating to the problem file, together with a
-brief description of the problem.  Please indicate where you got the man
-source file from, but do not send it to me unless I ask you to!  Thanks.
-(At present WoMan has no automated bug-reporting facility.)
 
 @c ===================================================================
 
