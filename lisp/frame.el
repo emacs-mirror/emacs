@@ -1,6 +1,6 @@
 ;;; frame.el --- multi-frame management independent of window systems.
 
-;;;; Copyright (C) 1990, 1992 Free Software Foundation, Inc.
+;;;; Copyright (C) 1990, 1992, 1993 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -113,7 +113,7 @@ These supercede the values given in default-frame-alist.")
 ;;; need to see if it should go away or change.  Create a text frame
 ;;; here.
 (defun frame-notice-user-settings ()
-  (if frame-initial-frame
+  (if (live-frame-p frame-initial-frame)
       (progn
 	;; If the user wants a minibuffer-only frame, we'll have to
 	;; make a new one; you can't remove or add a root window to/from
