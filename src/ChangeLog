@@ -1,3 +1,13 @@
+2002-11-08  Juanma Barranquero  <lektu@terra.es>
+
+	* dispextern.h [!HAVE_X_WINDOWS]: Define XColor.
+
+	* w32fns.c:
+	* xfaces.c: Remove definition of XColor.
+
+	* w32term.c (w32_term_init): Pass XColor to w32_define_color, not
+	COLORREF.
+
 2002-11-08  Kenichi Handa  <handa@m17n.org>
 
 	* s/sol2-5.h (BROKEN_SIGIO): Turn off the #undef (back-porting of
