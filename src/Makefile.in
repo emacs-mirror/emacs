@@ -714,8 +714,11 @@ temacs: MAKE_PARALLEL $(LOCALCPP) $(SHORT) $(STARTFILES) $(OLDXMENU) ${obj} ${ot
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
     OBJECTS_SYSTEM OBJECTS_MACHINE ${LIBES}
 
+/* We don't use ALL_LDFLAGS because LD_SWITCH_SYSTEM and LD_SWITCH_MACHINE
+   often contain options that have to do with using Emacs's crt0,
+   which are only good with temacs.  */
 prefix-args: prefix-args.c $(config_h)
-	$(CC) $(ALL_CFLAGS) $(ALL_LDFLAGS) ${srcdir}/prefix-args.c -o prefix-args
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) ${srcdir}/prefix-args.c -o prefix-args
 
 /* These are needed for C compilation, on the systems that need them */
 #ifdef NEED_CPP
@@ -1003,7 +1006,7 @@ relock:
 ctagsfiles = [a-zA-Z]*.[hc]
 lisptagsfiles = ../lisp/[a-zA-Z]*.el
 TAGS: $(ctagsfiles)
-	export DIR=`pwd`; cd ${srcdir}; \
+	export DIR; DIR=`pwd`; cd ${srcdir}; \
 	$$DIR/../lib-src/etags --include=../lisp/TAGS \
 	--regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' $(ctagsfiles)
 ${lispsource}TAGS: ${lispsource}$(lisptagsfiles)
