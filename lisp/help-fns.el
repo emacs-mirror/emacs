@@ -282,9 +282,9 @@ and the file name is displayed in the echo area."
         (terpri)
         (princ "This function is obsolete")
         (if (nth 2 obsolete) (princ (format " since %s" (nth 2 obsolete))))
-        (princ ".") (terpri)
+        (princ ";") (terpri)
         (princ (if (stringp (car obsolete)) (car obsolete)
-                 (format "Use `%s' instead." (car obsolete))))
+                 (format "use `%s' instead." (car obsolete))))
         (terpri)))
     (let ((doc (documentation function)))
       (if doc
@@ -432,9 +432,9 @@ it is displayed along with the global value."
 	      (when obsolete
 		(princ "This variable is obsolete")
 		(if (cdr obsolete) (princ (format " since %s" (cdr obsolete))))
-		(princ ".") (terpri)
+		(princ "; ") (terpri)
 		(princ (if (stringp (car obsolete)) (car obsolete)
-			 (format "Use `%s' instead." (car obsolete))))
+			 (format "use `%s' instead." (car obsolete))))
 		(terpri)))
 	    (let ((doc (documentation-property variable 'variable-documentation)))
 	      (princ (or doc "Not documented as a variable.")))
