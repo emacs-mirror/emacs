@@ -700,7 +700,10 @@ When called interactively, prompt for the name of the color to use.
 To get the frame's current mouse color, use `frame-parameters'."
   (interactive "sColor: ")
   (modify-frame-parameters (selected-frame)
-			   (list (cons 'mouse-color color-name))))
+			   (list (cons 'mouse-color
+				       (or color-name
+					   (cdr (assq 'mouse-color
+						      (frame-parameters))))))))
 
 (defun set-border-color (color-name)
   "Set the color of the border of the selected frame to COLOR.
