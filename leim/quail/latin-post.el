@@ -1175,7 +1175,7 @@ a` -> ,A`(B    A` -> ,A@(B    e' -> ,Ai(B    << -> ,A+(B
 e` -> ,Ah(B    E` -> ,AH(B    E' -> ,AI(B    >> -> ,A;(B
 i` -> ,Al(B    I` -> ,AL(B               o_ -> ,A:(B
 o` -> ,Ar(B    O` -> ,AR(B               a_ -> ,A*(B
-u` -> ,Ay(B    U` -> ,AY(B               E= -> ,A$(B
+u` -> ,Ay(B    U` -> ,AY(B
 
 Typewriter-style italian characters.
 
@@ -1187,7 +1187,6 @@ Doubling the postfix separates the letter and postfix: e.g. a`` -> a`
  ("a`" ?,A`(B)
  ("E`" ?,AH(B)
  ("E'" ?,AI(B)
- ("E=" ?,A$(B)
  ("e`" ?,Ah(B)
  ("e'" ?,Ai(B)
  ("I`" ?,AL(B)
@@ -1205,7 +1204,6 @@ Doubling the postfix separates the letter and postfix: e.g. a`` -> a`
  ("a``" ["a`"])
  ("E``" ["E`"])
  ("E''" ["E'"])
- ("E==" ["E="])
  ("e``" ["e`"])
  ("e''" ["e'"])
  ("I``" ["I`"])
