@@ -4,6 +4,7 @@
 EMACS = emacs
 SOURCES = *.el COPYING Makefile
 lisptagsfiles = [a-zA-Z]*.el [a-zA-Z]*/[a-zA-Z]*.el
+ETAGS = ../lib-src/etags
 
 dontcompilefiles: bindings.el blessmail.el bruce.el cus-load.el cus-start.el
 dontcompilefiles: cyril-util.el forms-d2.el forms-pass.el 
@@ -66,4 +67,4 @@ updates: doit
 	$(EMACS) -batch -f batch-update-autoloads $$wins
 
 TAGS: $(lisptagsfiles)
-	../lib-src/etags $(lisptagsfiles)
+	${ETAGS} $(lisptagsfiles)
