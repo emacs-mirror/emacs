@@ -2982,28 +2982,34 @@ widget.  If FILTER is nil, ACTION is always valid.")
   "Set the state of WIDGET."
   (let* ((symbol (widget-value widget))
 	 (comment (get symbol 'face-comment))
-	 tmp temp)
-    (widget-put widget :custom-state
-		(cond ((progn
-			 (setq tmp (get symbol 'customized-face))
-			 (setq temp (get symbol 'customized-face-comment))
-			 (or tmp temp))
-		       (if (equal temp comment)
-			   'set
-			 'changed))
-		      ((progn
-			 (setq tmp (get symbol 'saved-face))
-			 (setq temp (get symbol 'saved-face-comment))
-			 (or tmp temp))
-		       (if (equal temp comment)
-			   'saved
-			 'changed))
-		      ((get symbol 'face-defface-spec)
-		       (if (equal comment nil)
-			   'standard
-			 'changed))
-		      (t
-		       'rogue)))))
+	 tmp temp
+	 (state
+	  (cond ((progn
+		   (setq tmp (get symbol 'customized-face))
+		   (setq temp (get symbol 'customized-face-comment))
+		   (or tmp temp))
+		 (if (equal temp comment)
+		     'set
+		   'changed))
+		((progn
+		   (setq tmp (get symbol 'saved-face))
+		   (setq temp (get symbol 'saved-face-comment))
+		   (or tmp temp))
+		 (if (equal temp comment)
+		     'saved
+		   'changed))
+		((get symbol 'face-defface-spec)
+		 (if (equal comment nil)
+		     'standard
+		   'changed))
+		(t
+		 'rogue))))
+    ;; If the user called set-face-attribute to change the default
+    ;; for new frames, this face is "set outside of Customize".
+    (if (and (not (eq state 'rogue))
+	     (get symbol 'face-modified))
+	(setq state 'changed))
+    (widget-put widget :custom-state state)))
 
 (defun custom-face-action (widget &optional event)
   "Show the menu for `custom-face' WIDGET.
