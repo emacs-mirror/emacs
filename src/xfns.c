@@ -1295,9 +1295,13 @@ x_report_frame_params (f, alistptr)
   store_in_alist (alistptr, Qright_fringe,
        	   make_number (f->output_data.x->right_fringe_width));
   store_in_alist (alistptr, Qscroll_bar_width,
-           make_number (FRAME_HAS_VERTICAL_SCROLL_BARS (f)
-                        ? FRAME_SCROLL_BAR_PIXEL_WIDTH(f)
-                        : 0));
+		  (! FRAME_HAS_VERTICAL_SCROLL_BARS (f)
+		   ? make_number (0)
+		   : FRAME_SCROLL_BAR_PIXEL_WIDTH (f) > 0
+		   ? make_number (FRAME_SCROLL_BAR_PIXEL_WIDTH (f))
+		   /* nil means "use default width"
+		      for non-toolkit scroll bar */
+		   : Qnil));
   sprintf (buf, "%ld", (long) FRAME_X_WINDOW (f));
   store_in_alist (alistptr, Qwindow_id,
        	   build_string (buf));
