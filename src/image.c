@@ -49,8 +49,6 @@ Boston, MA 02111-1307, USA.  */
 #define COLOR_TABLE_SUPPORT 1
 
 typedef struct x_bitmap_record Bitmap_Record;
-typedef XImage * XImagePtr;
-typedef XImagePtr XImagePtr_or_DC;
 #define GET_PIXEL(ximg, x, y) XGetPixel(ximg, x, y)
 #define NO_PIXMAP None
 #define PNG_BG_COLOR_SHIFT 0
@@ -69,8 +67,6 @@ typedef XImagePtr XImagePtr_or_DC;
 #undef COLOR_TABLE_SUPPORT
 
 typedef struct w32_bitmap_record Bitmap_Record;
-typedef XImage *XImagePtr;
-typedef HDC XImagePtr_or_DC;
 #define GET_PIXEL(ximg, x, y) GetPixel(ximg, x, y)
 #define NO_PIXMAP 0
 #define PNG_BG_COLOR_SHIFT 0
@@ -103,12 +99,9 @@ typedef HDC XImagePtr_or_DC;
 /* MAC_TODO : Color tables on Mac.  */
 #undef COLOR_TABLE_SUPPORT
 
-/* Mac equivalent of XImage.  */
-typedef Pixmap XImagePtr;
 #define ZPixmap 0 		/* arbitrary */
 typedef struct mac_bitmap_record Bitmap_Record;
 
-typedef XImagePtr XImagePtr_or_DC;
 #define GET_PIXEL(ximg, x, y) XGetPixel(ximg, x, y)
 #define NO_PIXMAP 0
 #define PNG_BG_COLOR_SHIFT 8
