@@ -286,7 +286,7 @@ This function returns a timer object which you can use in `cancel-timer'."
       (error "Invalid time format"))
 
   (or (null repeat)
-      (natnump repeat)
+      (numberp repeat)
       (error "Invalid repetition interval"))
 
   (let ((timer (timer-create)))
