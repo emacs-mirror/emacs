@@ -51,7 +51,6 @@ and be replaced by its expansion."
   "Toggle abbrev mode.
 Non-nil means automatically expand abbrevs as they are inserted.
 
-This variable automatically becomes buffer-local when set in any fashion.
 Changing it with \\[customize] sets the default value.
 Use the command `abbrev-mode' to enable or disable Abbrev mode in the current
 buffer."
