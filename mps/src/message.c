@@ -1,6 +1,6 @@
 /* impl.c.message: MPS / CLIENT MESSAGES
  *
- * $HopeName: MMsrc!message.c(trunk.3) $
+ * $HopeName: MMsrc!message.c(trunk.4) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All Rights Reserved.
  *
  * READERSHIP
@@ -20,7 +20,7 @@
 
 #include "mpm.h"
 
-SRCID(message, "$HopeName: MMsrc!message.c(trunk.3) $");
+SRCID(message, "$HopeName: MMsrc!message.c(trunk.4) $");
 
 
 /* Maps from a Ring pointer to the message */
@@ -342,6 +342,35 @@ void MessageFinalizationRef(Ref *refReturn, Arena arena,
   AVER(message->type == MessageTypeFinalization);
 
   (*message->class->finalizationRef)(refReturn, arena, message);
+
+  return;
+}
+
+Size MessageCollectionStatsLiveSize(Arena arena, Message message)
+{
+  AVERT(Arena, arena);
+  AVERT(Message, message);
+  AVER(message->type == MessageTypeCollectionStats);
+
+  return (*message->class->collectionStatsLiveSize)(arena, message);
+}
+
+Size MessageCollectionStatsCondemnedSize(Arena arena, Message message)
+{
+  AVERT(Arena, arena);
+  AVERT(Message, message);
+  AVER(message->type == MessageTypeCollectionStats);
+
+  return (*message->class->collectionStatsCondemnedSize)(arena, message);
+}
+
+Size MessageCollectionStatsNotCondemnedSize(Arena arena, Message message)
+{
+  AVERT(Arena, arena);
+  AVERT(Message, message);
+  AVER(message->type == MessageTypeCollectionStats);
+
+  return (*message->class->collectionStatsNotCondemnedSize)(arena, message);
 }
 
 
@@ -354,7 +383,36 @@ void MessageNoFinalizationRef(Ref *refReturn, Arena arena,
   AVERT(Arena, arena);
   AVERT(Message, message);
 
-  AVER(message->type == MessageTypeFinalization);
-
   NOTREACHED;
 }
+
+Size MessageNoCollectionStatsLiveSize(Arena arena, Message message)
+{
+  AVERT(Arena, arena);
+  AVERT(Message, message);
+
+  NOTREACHED;
+
+  return (Size)0;
+}
+
+Size MessageNoCollectionStatsCondemnedSize(Arena arena, Message message)
+{
+  AVERT(Arena, arena);
+  AVERT(Message, message);
+
+  NOTREACHED;
+
+  return (Size)0;
+}
+
+Size MessageNoCollectionStatsNotCondemnedSize(Arena arena, Message message)
+{
+  AVERT(Arena, arena);
+  AVERT(Message, message);
+
+  NOTREACHED;
+
+  return (Size)0;
+}
+

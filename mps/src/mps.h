@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.46) $
+ * $HopeName: MMsrc!mps.h(trunk.47) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -45,7 +45,7 @@ typedef void *mps_addr_t;       /* managed address (void *) */
 typedef size_t mps_align_t;     /* alignment (size_t) */
 typedef unsigned mps_rm_t;      /* root mode (unsigned) */
 typedef unsigned mps_rank_t;    /* ranks (unsigned) */
-typedef unsigned mps_message_type_t;	/* message type (unsigned) */
+typedef unsigned mps_message_type_t;    /* message type (unsigned) */
 
 /* Result Codes */
 /* .result-codes: Keep in sync with impl.h.mpmtypes.result-codes */
@@ -66,12 +66,15 @@ enum {
 /* .message.types: Keep in sync with impl.h.mpmtypes.message.types */
 /* Not meant to be used by clients, they should use the macros below. */
 enum {
-  MPS_MESSAGE_TYPE_FINALIZATION
+  MPS_MESSAGE_TYPE_FINALIZATION,
+  MPS_MESSAGE_TYPE_COLLECTION_STATS
 };
 
 /* Message Types
  * This is what clients should use. */
 #define mps_message_type_finalization() MPS_MESSAGE_TYPE_FINALIZATION
+#define mps_message_type_collection_stats() \
+  MPS_MESSAGE_TYPE_COLLECTION_STATS
 
 
 /* Reference Ranks
@@ -392,7 +395,18 @@ extern mps_message_type_t mps_message_type(mps_arena_t, mps_message_t);
 /* MPS_MESSAGE_TYPE_FINALIZATION */
 
 extern void mps_message_finalization_ref(mps_addr_t *,
-					 mps_arena_t, mps_message_t);
+                                         mps_arena_t, mps_message_t);
+
+/* MPS_MESSAGE_TYPE_COLLECTION_STATS */
+
+extern size_t mps_message_collection_stats_live_size(mps_arena_t, 
+                                                     mps_message_t);
+
+extern size_t mps_message_collection_stats_condemned_size(mps_arena_t, 
+                                                          mps_message_t);
+
+extern size_t mps_message_collection_stats_not_condemned_size(mps_arena_t, 
+                                                              mps_message_t);
 
 
 /* Finalization */
@@ -415,7 +429,7 @@ typedef void (*mps_formatted_objects_stepper_t)(mps_addr_t, mps_fmt_t,
                                                 void *, size_t);
 extern void mps_arena_formatted_objects_walk(mps_arena_t,
                                              mps_formatted_objects_stepper_t,
-			                     void *, size_t);
+                                             void *, size_t);
 /* Root Walking */
 
 typedef void (*mps_roots_stepper_t)(mps_addr_t *, 

@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.105) $
+ * $HopeName: MMsrc!mpm.h(trunk.106) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -416,10 +416,25 @@ extern void MessageTypeEnable(Arena arena, MessageType type);
 
 /* Message methods for MessageTypeFinalization */
 
+/* Method dispatchers */
 extern void MessageFinalizationRef(Ref *refReturn,
                                    Arena arena, Message message);
+extern Size MessageCollectionStatsLiveSize(Arena arena,
+                                           Message message);
+extern Size MessageCollectionStatsCondemnedSize(Arena arena,
+                                                Message message);
+extern Size MessageCollectionStatsNotCondemnedSize(Arena arena,
+                                                   Message message);
+
+/* Convenience methods */
 extern void MessageNoFinalizationRef(Ref *refReturn,
                                      Arena arena, Message message);
+extern Size MessageNoCollectionStatsLiveSize(Arena arena,
+                                             Message message);
+extern Size MessageNoCollectionStatsCondemnedSize(Arena arena,
+                                                  Message message);
+extern Size MessageNoCollectionStatsNotCondemnedSize(Arena arena,
+                                                     Message message);
 
 
 /* Trace Interface -- see impl.c.trace */

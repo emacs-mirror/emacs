@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.66) $
+ * $HopeName: MMsrc!mpmst.h(trunk.67) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -214,18 +214,30 @@ typedef struct NSEGStruct {     /* NSEG outer structure */
  * and design.mps.message.class).
  */
 
-#define MessageClassSig	((Sig)0x519359c1) /* SIGnature MeSsaGe CLass */
+#define MessageClassSig ((Sig)0x519359c1) /* SIGnature MeSsaGe CLass */
 
 typedef struct MessageClassStruct {
-  Sig sig;			/* design.mps.sig */
-  const char *name;		/* Human readable Class name */
-  MessageDeleteMethod delete;	/* terminates a message */
+  Sig sig;                      /* design.mps.sig */
+  const char *name;             /* Human readable Class name */
+
+  /* generic methods */
+  MessageDeleteMethod delete;   /* terminates a message */
+
+  /* methods specific to MessageTypeFinalization */
   MessageFinalizationRefMethod
-    finalizationRef; 		/* for MessageTypeFinalization */
-  Sig endSig;			/* design.mps.message.class.sig.double */
+    finalizationRef;        
+
+  /* methods specific to MessageTypeCollectionStats */
+  MessageCollectionStatsLiveSizeMethod collectionStatsLiveSize;
+  MessageCollectionStatsCondemnedSizeMethod 
+    collectionStatsCondemnedSize;
+  MessageCollectionStatsNotCondemnedSizeMethod 
+    collectionStatsNotCondemnedSize;
+
+  Sig endSig;                   /* design.mps.message.class.sig.double */
 } MessageClassStruct;
 
-#define MessageSig	((Sig)0x5193e559) /* SIG MESSaGe */
+#define MessageSig      ((Sig)0x5193e559) /* SIG MESSaGe */
 
 /* MessageStruct -- Message structure
  *
@@ -233,11 +245,11 @@ typedef struct MessageClassStruct {
  */
 
 typedef struct MessageStruct {
-  Sig sig;			/* design.mps.sig */
-  Arena arena;	                /* owning arena */
-  MessageType type;		/* Message Type */
-  MessageClass class;		/* Message Class Structure */
-  RingStruct queueRing;		/* Message queue ring */
+  Sig sig;                      /* design.mps.sig */
+  Arena arena;                  /* owning arena */
+  MessageType type;             /* Message Type */
+  MessageClass class;           /* Message Class Structure */
+  RingStruct queueRing;         /* Message queue ring */
 } MessageStruct;
 
 
@@ -322,7 +334,7 @@ typedef struct BufferStruct {
   Pool pool;                    /* owning pool */
   RingStruct poolRing;          /* buffers are attached to pools */
   Bool isMutator;               /* TRUE iff buffer used by mutator */
-  BufferMode mode;		/* Attached/Logged/Flipped/etc */
+  BufferMode mode;              /* Attached/Logged/Flipped/etc */
   double fillSize;              /* bytes filled in this buffer */
   double emptySize;             /* bytes emptied from this buffer */
   RankSet rankSet;              /* ranks of references being created */
@@ -453,8 +465,8 @@ typedef struct RootStruct {
   TraceSet grey;                /* traces for which root is grey */
   RefSet summary;               /* summary of references in root */
   RootMode mode;                /* mode */
-  Bool protectable;		/* Can protect root? */
-  Addr protBase;		/* base of protectable area */
+  Bool protectable;             /* Can protect root? */
+  Addr protBase;                /* base of protectable area */
   Addr protLimit;               /* limit of protectable area */
   AccessSet pm;                 /* Protection Mode */
   RootVar var;                  /* union discriminator */
@@ -618,7 +630,7 @@ typedef struct ArenaClassStruct {
  * which owns each group of fields is commented.
  */
 
-#define ArenaSig	((Sig)0x519A6E4A) /* SIGnature ARENA */
+#define ArenaSig        ((Sig)0x519A6E4A) /* SIGnature ARENA */
 
 typedef struct ArenaStruct {
   /* arena fields (impl.c.arena) */
@@ -647,7 +659,7 @@ typedef struct ArenaStruct {
   Size commitLimit;             /* Client configurable commit limit */
 
   Shift zoneShift;              /* see also impl.c.ref */
-  Align alignment;		/* minimum alignment of segments */
+  Align alignment;              /* minimum alignment of segments */
 
   /* pool fields (impl.c.pool) */
   RingStruct poolRing;          /* ring of pools in arena */
@@ -662,12 +674,12 @@ typedef struct ArenaStruct {
   Serial formatSerial;          /* serial of next format */
 
   /* message fields (design.mps.message, impl.c.message) */
-  RingStruct messageRing;	/* ring of pending messages */
-  BT enabledMessageTypes;	/* map of which types are enabled */
+  RingStruct messageRing;       /* ring of pending messages */
+  BT enabledMessageTypes;       /* map of which types are enabled */
 
   /* finalization fields (design.mps.finalize), impl.c.space */
-  Bool isFinalPool;		/* indicator for finalPool */
-  Pool finalPool;		/* either NULL or an MRG pool */
+  Bool isFinalPool;             /* indicator for finalPool */
+  Pool finalPool;               /* either NULL or an MRG pool */
 
   /* thread fields (impl.c.thread) */
   RingStruct threadRing;        /* ring of attached threads */
