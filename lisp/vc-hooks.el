@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc-hooks.el,v 1.44 1992/07/31 06:43:05 esr Exp $	
+;;	$Id: vc-hooks.el,v 1.2 1992/08/04 07:21:29 jimb Exp roland $	
 
 ;; This file is part of GNU Emacs.
 
@@ -96,7 +96,7 @@ the make-backup-files variable.  Otherwise, prevents backups being made.")
 	   (vc-file-setprop file 'vc-backend (cdr (vc-registered file))))))
 
 (defun vc-toggle-read-only ()
-  "If the file in the current buffer id under version control, perform the
+  "If the file in the current buffer is under version control, perform the
 logical next version-control action; otherwise, just toggle the buffer's
 read-only flag."
   (interactive)
@@ -108,6 +108,7 @@ read-only flag."
   "Set `vc-mode-string' to display type of version control for FILE.
 The value is set in the current buffer, which should be the buffer
 visiting FILE."
+  (interactive (list buffer-file-name nil))
   (let ((vc-type (vc-backend-deduce file)))
     (if vc-type
 	(progn
