@@ -1452,8 +1452,13 @@ extern void defvar_kboard P_ ((char *, int));
    If func is zero and symbol is nil, undoing this binding evaluates
       the list of forms in old_value; this implements Lisp's unwind-protect
       form.
-   Otherwise, undoing this binding stores old_value as symbol's value; this
-      undoes the bindings made by a let form or function call.  */
+
+   Otherwise, the element is a variable binding.
+   If the symbol field is a symbol, it is an ordinary variable binding.
+   Otherwise, it should be a cons cell (SYMBOL . BUFFER)
+   which represents having bound BUFFER's local value.
+   or (SYMBOL . nil), which represents having bound the default value.  */
+
 struct specbinding
   {
     Lisp_Object symbol, old_value;
@@ -1831,7 +1836,7 @@ extern void args_out_of_range_3 P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 extern Lisp_Object wrong_type_argument P_ ((Lisp_Object, Lisp_Object));
 extern void store_symval_forwarding P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 extern Lisp_Object do_symval_forwarding P_ ((Lisp_Object));
-extern Lisp_Object set_internal P_ ((Lisp_Object, Lisp_Object, int));
+extern Lisp_Object set_internal P_ ((Lisp_Object, Lisp_Object, struct buffer *, int));
 extern void syms_of_data P_ ((void));
 extern void init_data P_ ((void));
 
