@@ -1830,14 +1830,15 @@ If the value is nil, don't make a backup."
 
 (defun file-relative-name (filename &optional directory)
   "Convert FILENAME to be relative to DIRECTORY (default: default-directory)."
-  (setq filename (expand-file-name filename)
-	directory (file-name-as-directory (expand-file-name
-					   (or directory default-directory))))
-  (let ((ancestor ""))
-    (while (not (string-match (concat "^" (regexp-quote directory)) filename))
-      (setq directory (file-name-directory (substring directory 0 -1))
-	    ancestor (concat "../" ancestor)))
-    (concat ancestor (substring filename (match-end 0)))))
+  (save-match-data
+   (setq filename (expand-file-name filename)
+	 directory (file-name-as-directory
+		    (expand-file-name (or directory default-directory))))
+   (let ((ancestor ""))
+     (while (not (string-match (concat "^" (regexp-quote directory)) filename))
+       (setq directory (file-name-directory (substring directory 0 -1))
+	     ancestor (concat "../" ancestor)))
+     (concat ancestor (substring filename (match-end 0))))))
 
 (defun save-buffer (&optional args)
   "Save current buffer in visited file if modified.  Versions described below.
