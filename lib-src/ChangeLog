@@ -1,3 +1,7 @@
+2004-05-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* test-distrib.c: Conditionally include fcntl.h.
+
 2004-05-09  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* cvtmail.c: Throughout, replace 0 destined for `exit' arg
