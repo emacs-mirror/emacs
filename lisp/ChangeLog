@@ -1,3 +1,8 @@
+2001-11-05  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (eval-last-sexp-1): Return the value
+	of the evaluated form.
+
 2001-11-05  Paul Eggert  <eggert@twinsun.com>
 
 	* ls-lisp.el (ls-lisp-time-to-seconds): New function.
