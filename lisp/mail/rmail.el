@@ -2145,6 +2145,9 @@ original message into it."
   (interactive)
   (rmail-start-mail t))
 
+(put 'rmail-send-actions-rmail-buffer 'permanent-local t)
+(put 'rmail-send-actions-rmail-msg-number 'permanent-local t)
+
 (defun rmail-reply (just-sender)
   "Reply to the current message.
 Normally include CC: to all other recipients of original message;
