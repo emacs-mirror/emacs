@@ -1,3 +1,17 @@
+2002-03-20  Jason Rumney  <jasonr@gnu.org>
+
+	* w32.c (init_winsock): Dynamically load new server and UDP
+	socket functions.
+	(socket_to_fd): New function.
+	(sys_socket): Use it.
+	(sys_setsockopt, sys_listen, sys_getsockname, sys_accept) 
+	(sys_recvfrom, sys_sendto): New wrapper functions.
+
+	* process.c (QCfamily, QCfilter): Remove duplicate declaration
+	and initialization.
+
+	* makefile.w32-in (LIBS): Remove $(WSOCK32).
+
 2002-03-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* process.c (conv_sockaddr_to_lisp, conv_lisp_to_sockaddr): Don't
