@@ -1,6 +1,6 @@
 ;;; morse.el --- convert text to morse code and back             -*- coding: utf-8 -*-
 
-;; Copyright (C) 1995, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2002, 2004 Free Software Foundation, Inc.
 
 ;; Author: Rick Farnbach <rick_farnbach@MENTORG.COM>
 ;; Keywords: games
@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; Converts text to Morse code and back with M-x morese-region and
+;; Converts text to Morse code and back with M-x morse-region and
 ;; M-x unmorse-region (though Morse code is no longer official :-().
 
 ;;; Code:
@@ -88,7 +88,9 @@
 		     ("Ñ" . "--.--")
 		     ("Ö" . "---.")
 		     ("Ø" . "---.")
-		     ("Ü" . "..--"))
+		     ("Ü" . "..--")
+		     ;; Recently standardized
+		     ("@" . ".--.-."))
   "Morse code character set.")
 
 ;;;###autoload
