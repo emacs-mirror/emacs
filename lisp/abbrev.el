@@ -263,22 +263,23 @@ Expands the abbreviation after defining it."
   (inverse-add-abbrev global-abbrev-table "Global" arg))
 
 (defun inverse-add-abbrev (table type arg)
-  (let (name nameloc exp)
+  (let (name exp start end)
     (save-excursion
-     (forward-word (- arg))
-     (setq name (buffer-substring-no-properties
-		 (point) (progn (forward-word 1) (setq nameloc (point))))))
-    (set-text-properties 0 (length name) nil name)
-    (setq exp (read-string (format "%s expansion for \"%s\": "
-				   type name) nil nil nil t))
-    (if (or (not (abbrev-expansion name table))
-	    (y-or-n-p (format "%s expands to \"%s\"; redefine? "
-			      name (abbrev-expansion name table))))
-	(progn
-	 (define-abbrev table (downcase name) exp)
-	 (save-excursion
-	  (goto-char nameloc)
-	  (expand-abbrev))))))
+      (forward-word (1+ (- arg)))
+      (setq end (point))
+      (backward-word 1)
+      (setq start (point)
+	    name (buffer-substring-no-properties start end)))
+
+    (setq exp (read-string (format "%s expansion for \"%s\": " type name)
+			   nil nil nil t))
+    (when (or (not (abbrev-expansion name table))
+	      (y-or-n-p (format "%s expands to \"%s\"; redefine? "
+				name (abbrev-expansion name table))))
+      (define-abbrev table (downcase name) exp)
+      (save-excursion
+	(goto-char end)
+	(expand-abbrev)))))
 
 (defun abbrev-prefix-mark (&optional arg)
   "Mark current point as the beginning of an abbrev.
