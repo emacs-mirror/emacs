@@ -211,6 +211,9 @@ Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
   (define-key keymap [menu-bar tex tex-buffer] '("Tex Buffer" . tex-buffer))
   )
 
+(put 'tex-region 'menu-enable 'mark-active)
+(put 'tex-validate-region 'menu-enable 'mark-active)
+
 (defvar tex-mode-map nil "Keymap for TeX mode.")
 
 (if tex-mode-map 
