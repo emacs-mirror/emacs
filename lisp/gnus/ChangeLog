@@ -1,4 +1,16 @@
+2000-11-08  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-score.el (gnus-score-body): Don't score body when
+	agent-fetching.
+	(gnus-score-followup): Don't score followup either.
+	(gnus-score-use-all-scores): New variable.
+	(gnus-all-score-files): Use it.
+	(gnus-score-find-bnews): Use directory-sep-char.
+
 2000-11-08  Dave Love  <fx@gnu.org>
+
+	* gnus-score.el (gnus-score-load-file): Use expand-file-name.
+	(gnus-score-find-bnews): Don't concat "".
 
 	* cu-exit.xpm, prev-ur.xpm, next-ur.xpm, post.xpm, fuwo.xpm:
 	* followup.xpm, uu-post.xpm, uu-decode.xpm, mail-reply.xpm:
