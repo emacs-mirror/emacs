@@ -263,8 +263,8 @@ FUNCTION will be called 15 times."
 
 (defun indian-make-hash (table trans-table)
   "Indian Transliteration Hash for decode/encode"
-  (let* ((encode-hash (makehash 'equal))
-	 (decode-hash (makehash 'equal))
+  (let* ((encode-hash (make-hash-table :test 'equal))
+	 (decode-hash (make-hash-table :test 'equal))
 	 (hashtbls (cons encode-hash decode-hash))
 	 (vowels     (elt table 0))
 	 (consonants (elt table 1))
