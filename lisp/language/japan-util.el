@@ -293,8 +293,7 @@ Optional argument ASCII-ONLY non-nil means to convert only to ASCII char."
 (defun read-hiragana-string (prompt &optional initial-input)
   "Read a Hiragana string from the minibuffer, prompting with string PROMPT.
 If non-nil, second arg INITIAL-INPUT is a string to insert before reading."
-  (read-multilingual-string prompt initial-input
-			    "Japanese" "quail-ja-hiragana"))
+  (read-multilingual-string prompt initial-input "quail-ja-hiragana"))
 
 ;;
 (provide 'japan-util)
