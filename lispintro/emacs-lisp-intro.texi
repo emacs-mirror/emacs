@@ -8082,6 +8082,9 @@ string.  For example:
 @end group
 @end smallexample
 
+@ignore
+@c commented out on 2003 Nov 17, since edit-options no longer described
+
 @noindent
 This means that you could (and still can) use the @code{edit-options}
 command to change the value of
@@ -8098,6 +8101,7 @@ either by setting it manually or by using @code{customize}.
 For me, the major use of the @code{edit-options} command is to suggest
 variables that I might want to set in my @file{.emacs} file.  I urge
 you to look through the list.
+@end ignore
 
 @node copy-region-as-kill, cons & search-fwd Review, defvar, Cutting & Storing Text
 @comment  node-name,  next,  previous,  up
