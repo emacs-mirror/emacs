@@ -110,52 +110,38 @@ These should match up with `scribe-open-parenthesis'.")
   (define-key scribe-mode-map "\C-c\C-u" 'scribe-underline-word))
 
 ;;;###autoload
-(defun scribe-mode ()
+(define-derived-mode scribe-mode text-mode "Scribe"
   "Major mode for editing files of Scribe (a text formatter) source.
 Scribe-mode is similar to text-mode, with a few extra commands added.
 \\{scribe-mode-map}
 
 Interesting variables:
 
-scribe-fancy-paragraphs
+`scribe-fancy-paragraphs'
   Non-nil makes Scribe mode use a different style of paragraph separation.
 
-scribe-electric-quote
+`scribe-electric-quote'
   Non-nil makes insert of double quote use `` or '' depending on context.
 
-scribe-electric-parenthesis
+`scribe-electric-parenthesis'
   Non-nil makes an open-parenthesis char (one of `([<{')
   automatically insert its close if typed after an @Command form."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map scribe-mode-map)
-  (setq mode-name "Scribe")
-  (setq major-mode 'scribe-mode)
-  (define-abbrev-table 'scribe-mode-abbrev-table ())
-  (setq local-abbrev-table scribe-mode-abbrev-table)
-  (make-local-variable 'comment-start)
-  (setq comment-start "@Comment[")
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip (concat "@Comment[" scribe-open-parentheses "]"))
-  (make-local-variable 'comment-column)
-  (setq comment-column 0)
-  (make-local-variable 'comment-end)
-  (setq comment-end "]")
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "\\([\n\f]\\)\\|\\(@\\w+["
-				 scribe-open-parentheses
-				"].*["
-				 scribe-close-parentheses
-				"]$\\)"))
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate (if scribe-fancy-paragraphs
-			       paragraph-start "$"))
-  (make-local-variable 'sentence-end)
-  (setq sentence-end "\\([.?!]\\|@:\\)[]\"')}]*\\($\\| $\\|\t\\|  \\)[ \t\n]*")
-  (make-local-variable 'compile-command)
-  (setq compile-command (concat "scribe " (buffer-file-name)))
-  (set-syntax-table scribe-mode-syntax-table)
-  (run-hooks 'text-mode-hook 'scribe-mode-hook))
+  (set (make-local-variable 'comment-start) "@Comment[")
+  (set (make-local-variable 'comment-start-skip) (concat "@Comment[" scribe-open-parentheses "]"))
+  (set (make-local-variable 'comment-column) 0)
+  (set (make-local-variable 'comment-end) "]")
+  (set (make-local-variable 'paragraph-start)
+       (concat "\\([\n\f]\\)\\|\\(@\\w+["
+	       scribe-open-parentheses
+	       "].*["
+	       scribe-close-parentheses
+	       "]$\\)"))
+  (set (make-local-variable 'paragraph-separate)
+       (if scribe-fancy-paragraphs paragraph-start "$"))
+  (set (make-local-variable 'sentence-end)
+       "\\([.?!]\\|@:\\)[]\"')}]*\\($\\| $\\|\t\\|  \\)[ \t\n]*")
+  (set (make-local-variable 'compile-command)
+       (concat "scribe " (buffer-file-name))))
 
 (defun scribe-tab ()
   (interactive)
