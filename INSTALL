@@ -206,7 +206,8 @@ Lisp code you want Emacs to load before it is dumped out.  Use
 site-load.el for additional libraries if you arrange for their
 documentation strings to be in the etc/DOC file (see
 src/Makefile.in if you wish to figure out how to do that).  For all
-else, use site-init.el.
+else, use site-init.el.  Do not load byte-compiled code which
+was build with a non-nil value of `byte-compile-dynamic'.
 
 If you set load-path to a different value in site-init.el or
 site-load.el, Emacs will use *precisely* that value when it starts up
