@@ -3,8 +3,8 @@
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author:		Barry A. Warsaw <bwarsaw@cen.com>
-;; Last-Modified:	$Date: 1994/11/22 04:37:43 $
-;; Version:		$Revision: 1.60 $
+;; Last-Modified:	$Date: 1995/02/03 12:07:37 $
+;; Version:		$Revision: 1.61 $
 ;; Keywords:		help
 ;; Adapted-By:		ESR, pot
 
@@ -345,7 +345,6 @@ This is necessary if one wants to dump man.el with emacs."
 	 "")
        "-e '/^[\001-\032][\001-\032]*$/d'"
        "-e '/\e[789]/s///g'"
-       "-e '/[Nn]o such file or directory/d'"
        "-e '/Reformatting page.  Wait/d'"
        "-e '/Reformatting entry.  Wait/d'"
        "-e '/^[ \t]*Hewlett-Packard[ \t]Company[ \t]*-[ \t][0-9]*[ \t]-/d'"
