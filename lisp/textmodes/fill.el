@@ -540,12 +540,18 @@ The break position will be always after LINEBEG and generally before point."
 			      '(invisible t)))
   (if (or fill-prefix
 	  (not fill-indent-according-to-mode))
-      (indent-to-left-margin)
+      (fill-indent-to-left-margin)
     (indent-according-to-mode))
   ;; Insert the fill prefix after indentation.
   ;; Set prefixcol so whitespace in the prefix won't get lost.
   (and fill-prefix (not (equal fill-prefix ""))
        (insert-and-inherit fill-prefix)))
+
+(defun fill-indent-to-left-margin ()
+  "Indent current line to the column given by `current-left-margin'."
+  (let ((beg (point)))
+    (indent-line-to (current-left-margin))
+    (put-text-property beg (point) 'face 'default)))
 
 (defun fill-region-as-paragraph (from to &optional justify
 				      nosqueeze squeeze-after)
@@ -631,7 +637,7 @@ space does not end a sentence, so don't break a line there."
 	      (while (< (point) to)
 		(if (and (not (eolp))
 			 (< (current-indentation) (current-left-margin)))
-		    (indent-to-left-margin))
+		    (fill-indent-to-left-margin))
 		(forward-line 1)))
 
 	  (if use-hard-newlines
@@ -639,7 +645,7 @@ space does not end a sentence, so don't break a line there."
 	  ;; Make sure first line is indented (at least) to left margin...
 	  (if (or (memq justify '(right center))
 		  (< (current-indentation) (current-left-margin)))
-	      (indent-to-left-margin))
+	      (fill-indent-to-left-margin))
 	  ;; Delete the fill-prefix from every line.
 	  (fill-delete-prefix from to fill-prefix)
 	  (setq from (point))
