@@ -1653,7 +1653,7 @@ extern void syms_of_coding P_ ((void));
 
 /* Defined in charset.c */
 extern int nonascii_insert_offset;
-extern Lisp_Object Vnonascii_translate_table;
+extern Lisp_Object Vnonascii_translation_table;
 EXFUN (Fchar_bytes, 1);
 EXFUN (Fchar_width, 1);
 extern int chars_in_text P_ ((unsigned char *, int));
