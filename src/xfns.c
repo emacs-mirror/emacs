@@ -4358,12 +4358,11 @@ the excessive values are ignored.  */)
     {
       Lisp_Object o = XCAR (cons);
       long val;
-      char *s = 0;
 
       if (INTEGERP (o))
         val = XINT (o);
       else if (STRINGP (o))
-          val = XInternAtom (dpyinfo->display, s = SDATA (o), False);
+          val = XInternAtom (dpyinfo->display, SDATA (o), False);
 
       if (event.xclient.format == 8)
         event.xclient.data.b[i] = (char) val;
