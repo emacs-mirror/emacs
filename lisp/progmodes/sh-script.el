@@ -562,8 +562,9 @@ documents - you must insert literal tabs by hand.")
 ;; but it *did* have an asterisk in the docstring!
 (defcustom sh-builtins
   '((bash eval sh-append posix
-	  "alias" "bg" "bind" "builtin" "declare" "dirs" "enable" "fc" "fg"
-	  "help" "history" "jobs" "kill" "let" "local" "popd" "pushd" "source"
+	  "." "alias" "bg" "bind" "builtin" "compgen" "complete"
+          "declare" "dirs" "disown" "enable" "fc" "fg" "help" "history"
+          "jobs" "kill" "let" "local" "popd" "printf" "pushd" "source"
 	  "suspend" "typeset" "unalias")
 
     ;; The next entry is only used for defining the others
@@ -634,7 +635,10 @@ implemented as aliases.  See `sh-feature'."
 
 
 (defcustom sh-leading-keywords
-  '((csh "else")
+  '((bash eval sh-append sh
+          "time")
+
+    (csh "else")
 
     (es "true" "unwind-protect" "whatis")
 
@@ -695,14 +699,20 @@ See `sh-feature'."
 
 (defvar sh-variables
   '((bash eval sh-append sh
-	  "allow_null_glob_expansion" "auto_resume" "BASH" "BASH_VERSION"
-	  "cdable_vars" "ENV" "EUID" "FCEDIT" "FIGNORE" "glob_dot_filenames"
-	  "histchars" "HISTFILE" "HISTFILESIZE" "history_control" "HISTSIZE"
-	  "hostname_completion_file" "HOSTTYPE" "IGNOREEOF" "ignoreeof"
-	  "LINENO" "MAIL_WARNING" "noclobber" "nolinks" "notify"
-	  "no_exit_on_failed_exec" "NO_PROMPT_VARS" "OLDPWD" "OPTERR" "PPID"
-	  "PROMPT_COMMAND" "PS4" "pushd_silent" "PWD" "RANDOM" "REPLY"
-	  "SECONDS" "SHLVL" "TMOUT" "UID")
+	  "allow_null_glob_expansion" "auto_resume" "BASH" "BASH_ENV"
+	  "BASH_VERSINFO" "BASH_VERSION" "cdable_vars" "COMP_CWORD"
+	  "COMP_LINE" "COMP_POINT" "COMP_WORDS" "COMPREPLY" "DIRSTACK"
+	  "ENV" "EUID" "FCEDIT" "FIGNORE" "FUNCNAME"
+	  "glob_dot_filenames" "GLOBIGNORE" "GROUPS" "histchars"
+	  "HISTCMD" "HISTCONTROL" "HISTFILE" "HISTFILESIZE"
+	  "HISTIGNORE" "history_control" "HISTSIZE"
+	  "hostname_completion_file" "HOSTFILE" "HOSTTYPE" "IGNOREEOF"
+	  "ignoreeof" "INPUTRC" "LINENO" "MACHTYPE" "MAIL_WARNING"
+	  "noclobber" "nolinks" "notify" "no_exit_on_failed_exec"
+	  "NO_PROMPT_VARS" "OLDPWD" "OPTERR" "OSTYPE" "PIPESTATUS"
+	  "PPID" "POSIXLY_CORRECT" "PROMPT_COMMAND" "PS3" "PS4"
+	  "pushd_silent" "PWD" "RANDOM" "REPLY" "SECONDS" "SHELLOPTS"
+	  "SHLVL" "TIMEFORMAT" "TMOUT" "UID")
 
     (csh eval sh-append shell
 	 "argv" "cdpath" "child" "echo" "histchars" "history" "home"
@@ -3203,7 +3213,7 @@ t means to return a list of all possible completions of STRING.
 			  process-environment)
 		  sh-shell-variables))))
     (case code
-      (nil (try-completion string sh-shell-variables predicate))
+      ((nil) (try-completion string sh-shell-variables predicate))
       (lambda (test-completion string sh-shell-variables predicate))
       (t (all-completions string sh-shell-variables predicate)))))
 
