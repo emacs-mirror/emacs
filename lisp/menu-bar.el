@@ -867,7 +867,7 @@ PROPS are additional properties."
   (menu-bar-make-toggle toggle-save-place-globally save-place
 			"Save Place in Files between Sessions"
 			"Saving place in files %s"
-			"Save Emacs state for next session"))
+			"Visit files of previous session when restarting Emacs"))
 
 (define-key menu-bar-options-menu [uniquify]
   (menu-bar-make-toggle toggle-uniquify-buffer-names uniquify-buffer-name-style
