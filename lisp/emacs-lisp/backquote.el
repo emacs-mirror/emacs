@@ -114,6 +114,8 @@ Vectors work just like lists.  Nested backquotes are permitted."
       (if (= (car n) 0)
 	  (cons 0 s)
 	(cons 1 (cond
+		 ((not (listp (cdr n)))
+		  (list 'vconcat (cdr n)))
 		 ((eq (nth 1 n) 'list)
 		  (cons 'vector (nthcdr 2 n)))
 		 ((eq (nth 1 n) 'append)
