@@ -1,3 +1,8 @@
+2001-09-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* gnus-ems.el (gnus-article-display-xface): Skip over previously
+	inserted images.
+
 2001-09-19  Sam Steingold  <sds@gnu.org>
 
 	* gnus-win.el (gnus-buffer-configuration): Respect
