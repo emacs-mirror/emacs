@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.363 2004/01/21 11:05:51 uid65624 Exp $
+;; $Id: vc.el,v 1.364 2004/01/22 23:34:33 uid65624 Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2816,9 +2816,6 @@ Uses `rcs2log' which only works for RCS and CVS."
 (defvar vc-annotate-parent-file nil)
 (defvar vc-annotate-parent-rev nil)
 (defvar vc-annotate-parent-display-mode nil)
-(make-local-variable 'vc-annotate-parent-file)
-(make-local-variable 'vc-annotate-parent-rev)
-(make-local-variable 'vc-annotate-parent-display-mode)
 
 (defconst vc-annotate-font-lock-keywords
   ;; The fontification is done by vc-annotate-lines instead of font-lock.
@@ -3038,9 +3035,10 @@ colors. `vc-annotate-background' specifies the background color."
                        vc-annotate-version))
     (save-excursion
       (set-buffer temp-buffer-name)
-      (setq vc-annotate-parent-file bfn)
-      (setq vc-annotate-parent-rev vc-annotate-version)
-      (setq vc-annotate-parent-display-mode vc-annotate-display-mode))
+      (set (make-local-variable 'vc-annotate-parent-file) bfn)
+      (set (make-local-variable 'vc-annotate-parent-rev) vc-annotate-version)
+      (set (make-local-variable 'vc-annotate-parent-display-mode)
+	   vc-annotate-display-mode))
 	   
     ;; Don't use the temp-buffer-name until the buffer is created
     ;; (only after `with-output-to-temp-buffer'.)
