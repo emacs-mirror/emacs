@@ -1,4 +1,4 @@
-;; winnt.el --- Lisp routines for Windows NT.
+;;; winnt.el --- Lisp routines for Windows NT.
 
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 
