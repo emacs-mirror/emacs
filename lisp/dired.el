@@ -1146,6 +1146,37 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
     (set-marker (dired-get-subdir-min (car dired-subdir-alist)) nil)
     (setq dired-subdir-alist (cdr dired-subdir-alist))))
 
+(defun dired-subdir-index (dir)
+  ;; Return an index into alist for use with nth
+  ;; for the sake of subdir moving commands.
+  (let (found (index 0) (alist dired-subdir-alist))
+    (while alist
+      (if (string= dir (car (car alist)))
+	  (setq alist nil found t)
+	(setq alist (cdr alist) index (1+ index))))
+    (if found index nil)))
+
+(defun dired-next-subdir (arg &optional no-error-if-not-found no-skip)
+  "Go to next subdirectory, regardless of level."
+  ;; Use 0 arg to go to this directory's header line.
+  ;; NO-SKIP prevents moving to end of header line, returning whatever
+  ;; position was found in dired-subdir-alist.
+  (interactive "p")
+  (let ((this-dir (dired-current-directory))
+	pos index)
+    ;; nth with negative arg does not return nil but the first element
+    (setq index (- (dired-subdir-index this-dir) arg))
+    (setq pos (if (>= index 0)
+		  (dired-get-subdir-min (nth index dired-subdir-alist))))
+    (if pos
+	(progn
+	  (goto-char pos)
+	  (or no-skip (skip-chars-forward "^\n\r"))
+	  (point))
+      (if no-error-if-not-found
+	  nil				; return nil if not found
+	(error "%s directory" (if (> arg 0) "Last" "First"))))))
+
 (defun dired-build-subdir-alist ()
   "Build `dired-subdir-alist' by parsing the buffer.
 Returns the new value of the alist."
@@ -1163,9 +1194,9 @@ Returns the new value of the alist."
 			 (save-excursion
 			   (goto-char (match-beginning 0))
 			   (beginning-of-line)
-			   (point-marker)))
-	(message "%d" count))
-      (message "%d director%s" count (if (= 1 count) "y" "ies"))
+			   (point-marker))))
+      (if (> count 1)
+	  (message "Buffer includes %d directories" count))
       ;; We don't need to sort it because it is in buffer order per
       ;; constructionem.  Return new alist:
       dired-subdir-alist)))
