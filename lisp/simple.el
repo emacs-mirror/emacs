@@ -896,7 +896,7 @@ If `interprogram-cut-function' is non-nil, apply it to STRING."
 (defun kill-append (string before-p)
   "Append STRING to the end of the latest kill in the kill ring.
 If BEFORE-P is non-nil, prepend STRING to the kill.
-If 'interprogram-cut-function' is set, pass the resulting kill to
+If `interprogram-cut-function' is set, pass the resulting kill to
 it."
   (setcar kill-ring
 	  (if before-p
