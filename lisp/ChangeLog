@@ -1,3 +1,12 @@
+2002-12-23  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-display-number-end): Make auto-display of
+	expressions in GDB work on text-only terminals.
+	(gdb-post-prompt): Compute current frame properly.
+	(gdb-get-current-frame, gdb-frame-handler): New functions.
+	(gdb-source-info): Move last statement into if clause.
+	Tidy, improve documentation.
+
 2002-12-23  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/checkdoc.el: Don't define a name for the minor mode menu.
