@@ -943,9 +943,17 @@ Value is a list whose car is the name for the backup file
 	directory (file-name-as-directory (if directory
 					      (expand-file-name directory)
 					      default-directory)))
-  (while (not (string-match (concat "^" (regexp-quote directory)) filename))
-    (setq directory (file-name-directory (substring directory 0 -1))))
-  (substring filename (match-end 0)))
+  (let ((strip (lambda (directory)
+		 (cond ((string= directory "/")
+			filename)
+		       ((string-match (concat "^" (regexp-quote directory))
+				      filename)
+			(substring filename (match-end 0)))
+		       (t
+			(funcall strip
+				 (file-name-directory (substring directory
+								 0 -1))))))))
+    (funcall strip directory)))
 
 (defun save-buffer (&optional args)
   "Save current buffer in visited file if modified.  Versions described below.
