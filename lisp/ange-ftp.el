@@ -729,7 +729,7 @@ like this.")
 are rsh (remsh on hp-ux), telnet and rlogin.  See also the gateway variable
 above.")
 
-(defvar ange-ftp-gateway-prompt-pattern "^[^#$%>;]*[#$%>;] *"
+(defvar ange-ftp-gateway-prompt-pattern "^[^#$%>;\n]*[#$%>;] *"
   "*Regexp used to detect that the logging-in sequence is completed on the
 gateway machine and that the shell is now awaiting input.  Make this regexp as
 strict as possible; it shouldn't match *anything* at all except the user's
@@ -857,7 +857,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.36 $")
+(defconst ange-ftp-version "$Revision: 1.37 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -1851,7 +1851,7 @@ PROC is the process to the FTP-client."
 				  (cdr result)))))))
 
 (defvar ange-ftp-hash-mark-msgs
-  "[hH]ash mark [^0-9]*\\([0-9]+\\)"
+  "[hH]ash mark \\(printing on \\)?(?[^0-9]*\\([0-9]+\\)"
   "*Regexp matching the FTP client's output upon doing a HASH command.")
 
 (defun ange-ftp-guess-hash-mark-size (proc)
