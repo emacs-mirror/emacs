@@ -60,14 +60,14 @@ PREFIX is the prefix argument (if any) to pass to the command."
 		  (if filter (funcall filter (symbol-function map)) map)))))
 	 event)
     (unless position
-      (let ((mp (mouse-position)))
+      (let ((mp (mouse-pixel-position)))
 	(setq position (list (list (cadr mp) (cddr mp)) (car mp)))))
     ;; The looping behavior was taken from lmenu's popup-menu-popup
     (while (and map (setq event
 			  ;; map could be a prefix key, in which case
 			  ;; we need to get its function cell
 			  ;; definition.
-			  (x-popup-menu (or position (mouse-position)) (indirect-function map))))
+			  (x-popup-menu position (indirect-function map))))
       ;; Strangely x-popup-menu returns a list.
       ;; mouse-major-mode-menu was using a weird:
       ;; (key-binding (apply 'vector (append '(menu-bar) menu-prefix events)))
