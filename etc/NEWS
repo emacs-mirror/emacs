@@ -13,6 +13,15 @@ the --without-pop configure option, should that be necessary.
 
 * Changes in Emacs 21.1
 
+** New user option `read-mail-command' specifies a command to use to
+read mail from the menu etc.
+
+** Changes in Outline mode.
+
+There is now support for Imenu to index headings.  A new command
+`outline-headers-as-kill' copies the visible headings in the region to
+the kill ring, e.g. to produce a table of contents.
+
 ** New command M-x check-parens can be used to find unbalanced paren
 groups and strings in buffers in Lisp mode (or other modes).
 
@@ -225,7 +234,7 @@ M-mouse-2 switches to the previous buffer in the buffer list.
 
 - Mouse-3 on the buffer-name displays a buffer menu.
 
-- Mouse-1 on the read-only status in the mode line (`%' or `*')
+- Mouse-2 on the read-only status in the mode line (`%' or `*')
 toggles the read-only status.
 
 - Mouse-3 on the mode name display a minor-mode menu.
@@ -346,7 +355,14 @@ something like this in your .emacs.
 	  (lambda ()
 	    (add-to-list 'mode-line-format 'hs-headline)))
 
-** Changes to Change Log mode
+** Changes to Change Log mode and Add-Log functions
+
+If you invoke `add-change-log-entry' from a backup file, it makes an
+entry appropriate for the file's parent.  This is useful for making
+log entries by comparing a version with deleted functions.
+
+New command M-x change-log-merge merges another log into the current
+buffer, fixing old-style date formats if necessary.
 
 Change Log mode now adds a file's version number to change log entries
 if user-option `change-log-version-info-enabled' is non-nil.
@@ -745,6 +761,9 @@ appropriate for C-style escape sequences in strings.
 
 ** New modes and packages
 
+*** `paragraph-indent-minor-mode' is a new minor mode supporting
+paragraphs in the same style as `paragraph-indent-text-mode'.
+
 *** bs.el is a new package for buffer selection similar to
 list-buffers or electric-buffer-list.  Use M-x bs-show to display a
 buffer menu with this package.  You can use M-x bs-customize to
@@ -869,6 +888,9 @@ Note that +++ before an item means the Lisp manual has been updated.
 --- means that I have decided it does not need to be in the Lisp manual.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
+
+** New function `keyword-p' is an efficient type predicate for keyword
+symbols.
 
 ** Variables `beginning-of-defun' and `end-of-defun', can be used to
 define handlers for the functions of the same names.  Major modes can
