@@ -1144,4 +1144,73 @@ For the cross-reference format, see `help-make-xrefs'."
 	    (t				; be circular
 	     (goto-char (point-max)))))))
 
+
+;;; Automatic resizing of temporary buffers.
+
+(defcustom temp-buffer-window-resize-mode nil
+  "Non-nil means resize windows displaying temporary buffers.
+The window will be resized in order to fit its contents, subject to the
+constraints that it will not be higher than `temp-buffer-window-max-height'
+nor smaller than `window-min-height'.
+This applies to `help', `apropos' and `completion' buffers and possibly others.
+
+This variable must be modified via \\[customize] in order to have an effect."
+  :get (lambda (symbol)
+         (and (memq 'resize-temp-buffer-window temp-buffer-show-hook) t))
+  :set (lambda (symbol value)
+         (temp-buffer-window-resize-mode (if value 1 -1)))
+  :initialize 'custom-initialize-default
+  :type 'boolean
+  :group 'help
+  :version "20.4")
+
+(defcustom temp-buffer-window-max-height (lambda (buffer) (/ (- (frame-height) 2) 2))
+  "*Maximum height of a window displaying a temporary buffer.
+This is the maximum height (in text lines) which `resize-temp-buffer-window'
+will give to a window displaying a temporary buffer.
+It can also be a function which will be called with the object corresponding
+to the buffer to be displayed as argument and should return an integer
+positive number."
+  :type '(choice integer function)
+  :group 'help
+  :version "20.4")
+
+(defun temp-buffer-window-resize-mode (arg)
+  "Toggle the variable `temp-buffer-window-resize-mode'.
+With prefix argument ARG, turn the resizing of windows displaying temporary
+buffers on if ARG is positive or off otherwise.
+See the documentation of the variable `temp-buffer-window-resize-mode' for
+more information."
+  (interactive "P")
+  (let ((turn-it-on
+         (if (null arg)
+             (not (memq 'resize-temp-buffer-window temp-buffer-show-hook))
+           (> (prefix-numeric-value arg) 0))))
+    (if turn-it-on
+        (progn
+          ;; `help-mode-maybe' may add a `back' button and thus increase the
+          ;; text size, so `resize-temp-buffer-window' must be run *after* it.
+          (add-hook 'temp-buffer-show-hook 'resize-temp-buffer-window 'append)
+          (setq temp-buffer-window-resize-mode t))
+      (remove-hook 'temp-buffer-show-hook 'resize-temp-buffer-window)
+      (setq temp-buffer-window-resize-mode nil))))
+
+(defun resize-temp-buffer-window ()
+  "Resize the current window to fit its contents.
+Will not make it higher than `temp-buffer-window-max-height' nor smaller than
+`window-min-height'. Do nothing if it is the only window on its frame, if it
+is not as wide as the frame or if some of the window's contents are scrolled
+out of view."
+  (unless (or (one-window-p 'nomini)
+              (not (pos-visible-in-window-p (point-min)))
+              (/=  (frame-width) (window-width)))
+    (let* ((max-height (if (functionp temp-buffer-window-max-height)
+                           (funcall temp-buffer-window-max-height (current-buffer))
+                         temp-buffer-window-max-height))
+           (win-height (1- (window-height)))
+           (min-height (1- window-min-height))
+           (text-height (window-buffer-height(selected-window)))
+           (new-height (max (min text-height max-height) min-height)))
+      (enlarge-window (- new-height win-height)))))
+
 ;;; help.el ends here
