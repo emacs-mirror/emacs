@@ -1,15 +1,5 @@
-$HopeName$
+$HopeName: MMQA_harness!README(trunk.1) $
 
-This is release una of the MMQA test harness.
-
-To use, run the perl script 'qa' in this directory (this
-may involve typing 'qa' or 'perl qa', depending on your setup).
-
-The qa commands 'index' and 'help' require globbing to work
-in your version of perl. On some PCs it doesn't, so unfortunately
-you won't be able to use these commands. Try browsing the directory
-script/help instead. I will try to fix this in the next release.
-
-This test harness has itself undergone no formal QA process.
-
-rit/ 1997-08-15
+This is the trunk of the MMQA test harness.
+If you want to run tests, please use the latest
+release, by checking out MMQA_harness!(MMQA_una).
