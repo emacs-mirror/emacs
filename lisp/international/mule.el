@@ -1088,7 +1088,7 @@ function by default."
 	     (find-new-buffer-file-coding-system last-coding-system-used))
 	    (modified-p (buffer-modified-p)))
 	(when coding-system
-	  (set-buffer-file-coding-system coding-system)
+	  (set-buffer-file-coding-system coding-system t)
 	  (if (and enable-multibyte-characters
 		   (or (eq coding-system 'no-conversion)
 		       (eq (coding-system-type coding-system) 5))
