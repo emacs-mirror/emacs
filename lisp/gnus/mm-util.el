@@ -24,7 +24,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile
+  (require 'cl)
+  (defvar mm-mime-mule-charset-alist))
 (require 'mail-prsvr)
 
 (eval-and-compile
@@ -70,7 +72,11 @@
 	    string)))
      (string-as-unibyte . identity)
      (string-as-multibyte . identity)
-     (multibyte-string-p . ignore))))
+     (multibyte-string-p . ignore)
+     (point-at-bol . line-beginning-position)
+     (point-at-eol . line-end-position)
+     (insert-byte . insert-char)
+     (multibyte-char-to-unibyte . identity))))
 
 (eval-and-compile
   (defalias 'mm-char-or-char-int-p
@@ -117,6 +123,7 @@
     ,@(unless (mm-coding-system-p 'gb2312)
        '((gb2312 . cn-gb-2312)))
     ;; ISO-8859-15 is very similar to ISO-8859-1.
+    ;; But this is just wrong.  --fx
     ,@(unless (mm-coding-system-p 'iso-8859-15) ; Emacs 21 defines it.
        '((iso-8859-15 . iso-8859-1)))
     ;; Windows-1252 is actually a superset of Latin-1.  See also
@@ -128,6 +135,10 @@
     ;; Windows-1250 is a variant of Latin-2 heavily used by Microsoft
     ;; Outlook users in Czech republic. Use this to allow reading of their
     ;; e-mails. cp1250 should be defined by M-x codepage-setup.
+
+    ;; This is not TRT, the MIME name, windows-1250, should be an
+    ;; alias, and cp1250 should have a mime-charset property, per
+    ;; code-page.el. -- fx
     ,@(if (and (not (mm-coding-system-p 'windows-1250))
 	       (mm-coding-system-p 'cp1250))
 	  '((windows-1250 . cp1250)))
@@ -153,6 +164,11 @@
 
 (defvar mm-auto-save-coding-system
   (cond
+   ((mm-coding-system-p 'utf-8-emacs)
+    (if (memq system-type '(windows-nt ms-dos ms-windows))
+	(if (mm-coding-system-p 'utf-8-emacs-dos)
+	    'utf-8-emacs-dos mm-binary-coding-system)
+      'utf-8-emacs))
    ((mm-coding-system-p 'emacs-mule)
     (if (memq system-type '(windows-nt ms-dos ms-windows))
 	(if (mm-coding-system-p 'emacs-mule-dos)
@@ -231,9 +247,11 @@
 	 'nconc
 	 (mapcar
 	  (lambda (cs)
-	    (when (and (coding-system-get cs 'mime-charset)
+	    (when (and (or (coding-system-get cs :mime-charset)	; Emacs 22
+			   (coding-system-get cs 'mime-charset))
 		       (not (eq t (coding-system-get cs 'safe-charsets))))
-	      (list (cons (coding-system-get cs 'mime-charset)
+	      (list (cons (or (coding-system-get cs :mime-charset)
+			      (coding-system-get cs 'mime-charset))
 			  (delq 'ascii
 				(coding-system-get cs 'safe-charsets))))))
 	  (sort-coding-systems (coding-system-list 'base-only))))))
@@ -281,6 +299,7 @@ prefer iso-2022-jp to japanese-shift-jis:
   '(iso-2022-jp iso-2022-jp-2 japanese-shift-jis utf-8))
 ")
 
+;; Why on earth was this broken out?  -- fx
 (defvar mm-use-find-coding-systems-region
   (fboundp 'find-coding-systems-region)
   "Use `find-coding-systems-region' to find proper coding systems.")
@@ -296,7 +315,8 @@ prefer iso-2022-jp to japanese-shift-jis:
 	(dolist (cs (find-coding-systems-for-charsets (list charset)))
 	  (unless mime
 	    (when cs
-	      (setq mime (coding-system-get cs 'mime-charset)))))
+	      (setq mime (or (coding-system-get cs :mime-charset)
+			     (coding-system-get cs 'mime-charset))))))
 	mime)
     (let ((alist mm-mime-mule-charset-alist)
 	  out)
@@ -345,7 +365,8 @@ used as the line break code type of the coding system."
       ;; Do we need -lbt?
       (dolist (c (mm-get-coding-system-list))
 	(if (and (null cs)
-		 (eq charset (coding-system-get c 'mime-charset)))
+		 (eq charset (or (coding-system-get c :mime-charset)
+				 (coding-system-get c 'mime-charset))))
 	    (setq cs c)))
       cs))))
 
@@ -357,12 +378,7 @@ used as the line break code type of the coding system."
 			     (boundp 'default-enable-multibyte-characters)
 			     default-enable-multibyte-characters
 			     (fboundp 'set-buffer-multibyte))
-    "Emacs mule.")
-  
-  (defvar mm-mule4-p (and mm-emacs-mule
-			  (fboundp 'charsetp)
-			  (not (charsetp 'eight-bit-control)))
-    "Mule version 4.")
+    "True in Emacs with Mule.")
 
   (if mm-emacs-mule
       (defun mm-enable-multibyte ()
@@ -377,21 +393,7 @@ non-nil.  This is a no-op in XEmacs."
 	"Unset the multibyte flag of in the current buffer.
 This is a no-op in XEmacs."
 	(set-buffer-multibyte nil))
-    (defalias 'mm-disable-multibyte 'ignore))
-
-  (if mm-mule4-p
-      (defun mm-enable-multibyte-mule4  ()
-	"Enable multibyte in the current buffer.
-Only used in Emacs Mule 4."
-	(set-buffer-multibyte t))
-    (defalias 'mm-enable-multibyte-mule4 'ignore))
-  
-  (if mm-mule4-p
-      (defun mm-disable-multibyte-mule4 ()
-	"Disable multibyte in the current buffer.
-Only used in Emacs Mule 4."
-	(set-buffer-multibyte nil))
-    (defalias 'mm-disable-multibyte-mule4 'ignore)))
+    (defalias 'mm-disable-multibyte 'ignore)))
 
 (defun mm-preferred-coding-system (charset)
   ;; A typo in some Emacs versions.
@@ -408,7 +410,7 @@ If the charset is `composition', return the actual one."
 	(setq charset 'ascii)
       ;; charset-after is fake in some Emacsen.
       (setq charset (and (fboundp 'char-charset) (char-charset char)))
-      (if (eq charset 'composition)
+      (if (eq charset 'composition)	; Mule 4
 	  (let ((p (or pos (point))))
 	    (cadr (find-charset-region p (1+ p))))
 	(if (and charset (not (memq charset '(ascii eight-bit-control
@@ -440,8 +442,10 @@ If the charset is `composition', return the actual one."
       ;; This exists in Emacs 20.
       (or
        (and (mm-preferred-coding-system charset)
-	    (coding-system-get
-	     (mm-preferred-coding-system charset) 'mime-charset))
+	    (or (coding-system-get
+		 (mm-preferred-coding-system charset) :mime-charset)
+		(coding-system-get
+		 (mm-preferred-coding-system charset) 'mime-charset)))
        (and (eq charset 'ascii)
 	    'us-ascii)
        (mm-preferred-coding-system charset)
@@ -510,7 +514,9 @@ charset, and a longer list means no appropriate charset."
 	       (setq systems (delq 'compound-text systems))
 	       (unless (equal systems '(undecided))
 		 (while systems
-		   (let ((cs (coding-system-get (pop systems) 'mime-charset)))
+		   (let* ((head (pop systems))
+			  (cs (or (coding-system-get head :mime-charset)
+				  (coding-system-get head 'mime-charset))))
 		     (if cs
 			 (setq systems nil
 			       charsets (list cs))))))
@@ -541,7 +547,7 @@ Use unibyte mode for this."
 (put 'mm-with-unibyte-buffer 'edebug-form-spec '(body))
 
 (defmacro mm-with-unibyte-current-buffer (&rest forms)
-  "Evaluate FORMS with current current buffer temporarily made unibyte.
+  "Evaluate FORMS with current buffer temporarily made unibyte.
 Also bind `default-enable-multibyte-characters' to nil.
 Equivalent to `progn' in XEmacs"
   (let ((multibyte (make-symbol "multibyte"))
@@ -559,25 +565,6 @@ Equivalent to `progn' in XEmacs"
 	 ,@forms))))
 (put 'mm-with-unibyte-current-buffer 'lisp-indent-function 0)
 (put 'mm-with-unibyte-current-buffer 'edebug-form-spec '(body))
-
-(defmacro mm-with-unibyte-current-buffer-mule4 (&rest forms)
-  "Evaluate FORMS there like `progn' in current buffer.
-Mule4 only."
-  (let ((multibyte (make-symbol "multibyte"))
-	(buffer (make-symbol "buffer")))
-    `(if mm-mule4-p
- 	 (let ((,multibyte enable-multibyte-characters)
-	       (,buffer (current-buffer)))
-	   (unwind-protect
-	       (let (default-enable-multibyte-characters)
-		 (set-buffer-multibyte nil)
-		 ,@forms)
-	     (set-buffer ,buffer)
-	     (set-buffer-multibyte ,multibyte)))
-       (let (default-enable-multibyte-characters)
-	 ,@forms))))
-(put 'mm-with-unibyte-current-buffer-mule4 'lisp-indent-function 0)
-(put 'mm-with-unibyte-current-buffer-mule4 'edebug-form-spec '(body))
 
 (defmacro mm-with-unibyte (&rest forms)
   "Eval the FORMS with the default value of `enable-multibyte-characters' nil, ."
@@ -655,7 +642,7 @@ Mule4 only."
 A buffer may be modified in several ways after reading into the buffer due
 to advanced Emacs features, such as file-name-handlers, format decoding,
 find-file-hooks, etc.
-If INHIBIT is non-nil, inhibit mm-inhibit-file-name-handlers.
+If INHIBIT is non-nil, inhibit `mm-inhibit-file-name-handlers'.
   This function ensures that none of these modifications will take place."
   (let ((format-alist nil)
 	(auto-mode-alist (if inhibit nil (mm-auto-mode-alist)))
