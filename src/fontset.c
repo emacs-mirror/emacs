@@ -598,7 +598,8 @@ fontset_font_pattern (f, id, c)
       fontset = FONTSET_FROM_ID (id);
       xassert (!BASE_FONTSET_P (fontset));
       fontset = FONTSET_BASE (fontset);
-      elt = FONTSET_REF (fontset, c);
+      if (! EQ (fontset, Vdefault_fontset))
+	elt = FONTSET_REF (fontset, c);
     }
   if (NILP (elt))
     {
