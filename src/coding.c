@@ -1061,7 +1061,7 @@ decode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
   } while (0)
 
 
-static void encode_eol P_ ((struct coding_system *, unsigned char *,
+static void encode_eol P_ ((struct coding_system *, const unsigned char *,
 			    unsigned char *, int, int));
 
 static void
@@ -3236,12 +3236,13 @@ decode_eol (coding, source, destination, src_bytes, dst_bytes)
 static void
 encode_eol (coding, source, destination, src_bytes, dst_bytes)
      struct coding_system *coding;
-     unsigned char *source, *destination;
+     const unsigned char *source;
+     unsigned char *destination;
      int src_bytes, dst_bytes;
 {
-  unsigned char *src = source;
+  const unsigned char *src = source;
   unsigned char *dst = destination;
-  unsigned char *src_end = src + src_bytes;
+  const unsigned char *src_end = src + src_bytes;
   unsigned char *dst_end = dst + dst_bytes;
   Lisp_Object translation_table;
   /* SRC_BASE remembers the start position in source in each loop.
@@ -3249,7 +3250,8 @@ encode_eol (coding, source, destination, src_bytes, dst_bytes)
      analyze multi-byte codes (within macro ONE_MORE_CHAR), or when
      there's not enough destination area to produce encoded codes
      (within macro EMIT_BYTES).  */
-  unsigned char *src_base;
+  const unsigned char *src_base;
+  unsigned char *tmp;
   int c;
   int selective_display = coding->mode & CODING_MODE_SELECTIVE_DISPLAY;
 
@@ -3299,13 +3301,13 @@ encode_eol (coding, source, destination, src_bytes, dst_bytes)
 	}
       if (coding->eol_type == CODING_EOL_CR)
 	{
-	  for (src = destination; src < dst; src++)
-	    if (*src == '\n') *src = '\r';
+	  for (tmp = destination; tmp < dst; tmp++)
+	    if (*tmp == '\n') *tmp = '\r';
 	}
       else if (selective_display)
 	{
-	  for (src = destination; src < dst; src++)
-	    if (*src == '\r') *src = '\n';
+	  for (tmp = destination; tmp < dst; tmp++)
+	    if (*tmp == '\r') *tmp = '\n';
 	}
     }
   if (coding->src_multibyte)
@@ -4094,7 +4096,7 @@ detect_coding_mask (source, src_bytes, priorities, skip, multibytep)
 void
 detect_coding (coding, src, src_bytes)
      struct coding_system *coding;
-     unsigned char *src;
+     const unsigned char *src;
      int src_bytes;
 {
   unsigned int idx;
@@ -4267,7 +4269,7 @@ detect_eol_type_in_2_octet_form (source, src_bytes, skip, big_endian_p)
 void
 detect_eol (coding, src, src_bytes)
      struct coding_system *coding;
-     unsigned char *src;
+     const unsigned char *src;
      int src_bytes;
 {
   Lisp_Object val;
@@ -4685,7 +4687,8 @@ decode_eol_post_ccl (coding, ptr, bytes)
 int
 decode_coding (coding, source, destination, src_bytes, dst_bytes)
      struct coding_system *coding;
-     unsigned char *source, *destination;
+     const unsigned char *source;
+     unsigned char *destination;
      int src_bytes, dst_bytes;
 {
   int extra = 0;
@@ -4764,7 +4767,7 @@ decode_coding (coding, source, destination, src_bytes, dst_bytes)
   if (coding->mode & CODING_MODE_LAST_BLOCK
       && coding->result == CODING_FINISH_INSUFFICIENT_SRC)
     {
-      unsigned char *src = source + coding->consumed;
+      const unsigned char *src = source + coding->consumed;
       unsigned char *dst = destination + coding->produced;
 
       src_bytes -= coding->consumed;
@@ -4798,7 +4801,8 @@ decode_coding (coding, source, destination, src_bytes, dst_bytes)
 int
 encode_coding (coding, source, destination, src_bytes, dst_bytes)
      struct coding_system *coding;
-     unsigned char *source, *destination;
+     const unsigned char *source;
+     unsigned char *destination;
      int src_bytes, dst_bytes;
 {
   coding->produced = coding->produced_char = 0;
@@ -4840,7 +4844,7 @@ encode_coding (coding, source, destination, src_bytes, dst_bytes)
   if (coding->mode & CODING_MODE_LAST_BLOCK
       && coding->result == CODING_FINISH_INSUFFICIENT_SRC)
     {
-      unsigned char *src = source + coding->consumed;
+      const unsigned char *src = source + coding->consumed;
       unsigned char *dst = destination + coding->produced;
 
       if (coding->type == coding_type_iso2022)
@@ -6014,12 +6018,12 @@ decode_coding_string (str, coding, nocopy)
   else
     newstr = make_uninit_string (produced + shrinked_bytes);
   if (from > 0)
-    bcopy (SDATA (str), SDATA (newstr), from);
-  bcopy (buf.data, SDATA (newstr) + from, produced);
+    STRING_COPYIN (newstr, 0, SDATA (str), from);
+  STRING_COPYIN (newstr, from, buf.data, produced);
   if (shrinked_bytes > from)
-    bcopy (SDATA (str) + to_byte,
-	   SDATA (newstr) + from + produced,
-	   shrinked_bytes - from);
+    STRING_COPYIN (newstr, from + produced,
+		   SDATA (str) + to_byte,
+		   shrinked_bytes - from);
   free_conversion_buffer (&buf);
 
   if (coding->cmp_data && coding->cmp_data->used)
@@ -6114,12 +6118,12 @@ encode_coding_string (str, coding, nocopy)
 
   newstr = make_uninit_string (produced + shrinked_bytes);
   if (from > 0)
-    bcopy (SDATA (str), SDATA (newstr), from);
-  bcopy (buf.data, SDATA (newstr) + from, produced);
+    STRING_COPYIN (newstr, 0, SDATA (str), from);
+  STRING_COPYIN (newstr, from, buf.data, produced);
   if (shrinked_bytes > from)
-    bcopy (SDATA (str) + to_byte,
-	   SDATA (newstr) + from + produced,
-	   shrinked_bytes - from);
+    STRING_COPYIN (newstr, from + produced,
+		   SDATA (str) + to_byte,
+		   shrinked_bytes - from);
 
   free_conversion_buffer (&buf);
   coding_free_composition_data (coding);
@@ -6197,7 +6201,7 @@ The value of property should be a vector of length 5.  */)
 
 Lisp_Object
 detect_coding_system (src, src_bytes, highest, multibytep)
-     unsigned char *src;
+     const unsigned char *src;
      int src_bytes, highest;
      int multibytep;
 {
