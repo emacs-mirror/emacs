@@ -1639,7 +1639,7 @@ See also `with-temp-buffer'."
 	      (set-frame-selected-window (car elt) (cadr elt))))
        (if (window-live-p save-selected-window-window)
 	   ;; This is where the code differs from save-selected-window.
-	   (select-window save-selected-window-window 'norecord))))
+	   (select-window save-selected-window-window 'norecord)))))
 
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.
