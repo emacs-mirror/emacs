@@ -13,6 +13,9 @@ The solution is to make sure the preprocessor is run with the
 `-traditional' option.  (The `configure' script should do that
 automatically with Emacs 21 and later.)
 
+Note that this problem does not pertain to the MS-Windows port of
+Emacs, since it doesn't use the preprocessor to generate Makefile's.
+
 * Building the Windows port with Leim fails in the `leim' directory.
 
 The error message might be something like this:
