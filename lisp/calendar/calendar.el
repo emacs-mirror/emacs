@@ -378,7 +378,6 @@ See the documentation of diary-date-forms for an explanation.")
   "*List of pseudo-patterns describing the European patterns of date used.
 See the documentation of diary-date-forms for an explanation.")
 
-;;;###autoload
 (defvar diary-date-forms
   (if european-calendar-style
       european-date-diary-pattern
@@ -418,7 +417,6 @@ See the documentation of calendar-date-display-forms for an explanation.")
   "*Pseudo-pattern governing the way a date appears in the American style.
 See the documentation of calendar-date-display-forms for an explanation.")
 
-;;;###autoload
 (defvar calendar-date-display-form
   (if european-calendar-style
       european-calendar-display-form
@@ -497,17 +495,23 @@ diary entries from various included files, each day's entries sorted into
 lexicographic order.")
 
 ;;;###autoload
-(defvar diary-display-hook 'simple-diary-display
+(defvar diary-hook nil
+  "*List of functions called after the display of the diary.
+Can be used for appointment notification.")
+
+;;;###autoload
+(defvar diary-display-hook nil
   "*List of functions that handle the display of the diary.
+If nil (the default), `simple-diary-display' will be used.  Use `ignore' for no
+diary display.
 
 Ordinarily, this just displays the diary buffer (with holidays indicated in
 the mode line), if there are any relevant entries.  At the time these
 functions are called, the variable `diary-entries-list' is a list, in order
 by date, of all relevant diary entries in the form of ((MONTH DAY YEAR)
 STRING), where string is the diary entry for the given date.  This can be
-used, for example, to handle appointment notification, prepare a different
-buffer for display (perhaps combined with holidays), or produce hard copy
-output.
+used, for example, a different buffer for display (perhaps combined with
+holidays), or produce hard copy output.
 
 A function `fancy-diary-display' is provided as an alternative
 choice for this hook; this function prepares a special noneditable diary
