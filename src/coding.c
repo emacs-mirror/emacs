@@ -5235,7 +5235,7 @@ decode_coding_string (str, coding, nocopy)
   int require_decoding;
   int shrinked_bytes = 0;
   Lisp_Object newstr;
-  int consumed, produced, produced_char;
+  int consumed, consumed_char, produced, produced_char;
 
   from = 0;
   to = XSTRING (str)->size;
@@ -5306,16 +5306,19 @@ decode_coding_string (str, coding, nocopy)
   len = decoding_buffer_size (coding, to_byte - from);
   allocate_conversion_buffer (buf, len);
 
-  consumed = produced = produced_char = 0;
+  consumed = consumed_char = produced = produced_char = 0;
   while (1)
     {
       result = decode_coding (coding, XSTRING (str)->data + from + consumed,
 			      buf.data + produced, to_byte - from - consumed,
 			      buf.size - produced);
       consumed += coding->consumed;
+      consumed_char += coding->consumed_char;
       produced += coding->produced;
       produced_char += coding->produced_char;
-      if (result == CODING_FINISH_NORMAL)
+      if (result == CODING_FINISH_NORMAL
+	  || (result == CODING_FINISH_INSUFFICIENT_SRC
+	      && coding->consumed == 0))
 	break;
       if (result == CODING_FINISH_INSUFFICIENT_CMP)
 	coding_allocate_composition_data (coding, from + produced_char);
@@ -5350,6 +5353,11 @@ decode_coding_string (str, coding, nocopy)
 	  coding->symbol = saved_coding_symbol;
 	}
     }
+
+  coding->consumed = consumed;
+  coding->consumed_char = consumed_char;
+  coding->produced = produced;
+  coding->produced_char = produced_char;
 
   if (coding->dst_multibyte)
     newstr = make_uninit_multibyte_string (produced_char + shrinked_bytes,
@@ -5390,7 +5398,7 @@ encode_coding_string (str, coding, nocopy)
   int result;
   int shrinked_bytes = 0;
   Lisp_Object newstr;
-  int consumed, consumed_char, produced;
+  int consumed, consumed_char, produced, produced_char;
 
   if (SYMBOLP (coding->pre_write_conversion)
       && !NILP (Ffboundp (coding->pre_write_conversion)))
@@ -5403,11 +5411,15 @@ encode_coding_string (str, coding, nocopy)
   saved_coding_symbol = Qnil;
   if (! CODING_REQUIRE_ENCODING (coding))
     {
+      coding->consumed = STRING_BYTES (XSTRING (str));
+      coding->consumed_char = XSTRING (str)->size;
       if (STRING_MULTIBYTE (str))
 	{
 	  str = Fstring_as_unibyte (str);
 	  nocopy = 1;
 	}
+      coding->produced = STRING_BYTES (XSTRING (str));
+      coding->produced_char = XSTRING (str)->size;
       return (nocopy ? str : Fcopy_sequence (str));
     }
 
@@ -5432,20 +5444,27 @@ encode_coding_string (str, coding, nocopy)
   len = encoding_buffer_size (coding, to_byte - from);
   allocate_conversion_buffer (buf, len);
 
-  consumed = consumed_char = produced = 0;
-
+  consumed = consumed_char = produced = produced_char = 0;
   while (1)
     {
       result = encode_coding (coding, XSTRING (str)->data + from + consumed,
 			      buf.data + produced, to_byte - from - consumed,
 			      buf.size - produced);
       consumed += coding->consumed;
-      produced += coding->produced;
-      if (result == CODING_FINISH_NORMAL)
+      consumed_char += coding->consumed_char;
+      produced_char += coding->produced_char;
+      if (result == CODING_FINISH_NORMAL
+	  || (result == CODING_FINISH_INSUFFICIENT_SRC
+	      && coding->consumed == 0))
 	break;
       /* Now result should be CODING_FINISH_INSUFFICIENT_DST.  */
       extend_conversion_buffer (&buf);
     }
+
+  coding->consumed = consumed;
+  coding->consumed_char = consumed_char;
+  coding->produced = produced;
+  coding->produced_char = produced_char;
 
   newstr = make_uninit_string (produced + shrinked_bytes);
   if (from > 0)
