@@ -5848,9 +5848,9 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
   ((op & MOVE_TO_POS) != 0					\
    && BUFFERP (it->object)					\
    && IT_CHARPOS (*it) >= to_charpos				\
-   && (it->method == GET_FROM_BUFFER ||				\
-       (it->method == GET_FROM_DISPLAY_VECTOR &&		\
-	it->dpvec + it->current.dpvec_index + 1 >= it->dpend)))
+   && (it->method == GET_FROM_BUFFER				\
+       || (it->method == GET_FROM_DISPLAY_VECTOR		\
+	   && it->dpvec + it->current.dpvec_index + 1 >= it->dpend)))
 
 
   while (1)
@@ -20774,8 +20774,10 @@ fast_find_position (w, charpos, hpos, vpos, x, y, stop)
 
   /* If whole rows or last part of a row came from a display overlay,
      row_containing_pos will skip over such rows because their end pos
-     equals the start pos of the overlay or interval.  Backtrack if we
-     have a STOP object and previous row's end glyph came from STOP.  */
+     equals the start pos of the overlay or interval.
+
+     Move back if we have a STOP object and previous row's
+     end glyph came from STOP.  */
   if (!NILP (stop))
     {
       struct glyph_row *prev;
@@ -20783,11 +20785,11 @@ fast_find_position (w, charpos, hpos, vpos, x, y, stop)
 	     && MATRIX_ROW_END_CHARPOS (prev) == charpos
 	     && prev->used[TEXT_AREA] > 0)
 	{
-	  end = prev->glyphs[TEXT_AREA];
-	  glyph = end + prev->used[TEXT_AREA];
-	  while (--glyph >= end
+	  struct glyph *beg = prev->glyphs[TEXT_AREA];
+	  glyph = beg + prev->used[TEXT_AREA];
+	  while (--glyph >= beg
 		 && INTEGERP (glyph->object));
-	  if (glyph < end
+	  if (glyph < beg
 	      || !EQ (stop, glyph->object))
 	    break;
 	  row = prev;
@@ -22815,8 +22817,10 @@ Bind this around calls to `message' to let it take effect.  */);
   message_truncate_lines = 0;
 
   DEFVAR_LISP ("menu-bar-update-hook",  &Vmenu_bar_update_hook,
-    doc: /* Normal hook run for clicks on menu bar, before displaying a submenu.
-Can be used to update submenus whose contents should vary.  */);
+    doc: /* Normal hook run to update the menu bar definitions.
+Redisplay runs this hook before it redisplays the menu bar.
+This is used to update submenus such as Buffers,
+whose contents depend on various data.  */);
   Vmenu_bar_update_hook = Qnil;
 
   DEFVAR_BOOL ("inhibit-menubar-update", &inhibit_menubar_update,
