@@ -391,7 +391,11 @@ struct emacs_tty {
 
 #ifdef HAVE_TERMIOS
 
+#ifdef TABDLY
 #define EMACS_TTY_TABS_OK(p) (((p)->main.c_oflag & TABDLY) != TAB3)
+#else
+#define EMACS_TTY_TABS_OK(p) 1
+#endif
 
 #else /* not def HAVE_TERMIOS */
 #ifdef HAVE_TERMIO
