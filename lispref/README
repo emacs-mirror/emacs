@@ -5,12 +5,22 @@ Manual, make-permuted-index, and the latest version of texinfo.tex,
 which handles forms that cannot be handled by the older versions of
 texinfo.tex.  Also, it contains makeinfo.c.
 
-* The Emacs Lisp Reference Manual is turning out bigger than we
-expected.  It totals over 750 pages when printed on 8.5 by 11 inch
-paper and the info files total almost two megabytes.
+* Report Lisp Manual bugs to bug-lisp-manual@prep.ai.mit.edu.  We
+don't read these bug reports until it's time for a new edition.  To
+report other Emacs bugs, use bug-gnu-emacs@prep.ai.mit.edu.
+To ask questions, use the newsgroup gnu.emacs.help.
+
+* The Emacs Lisp Reference Manual is quite large.  It totals around
+700 pages in smallbook format; the info files total almost two
+megabytes.
 
 * You can format this manual either for Info or for printing hardcopy
 using TeX.  
+
+* You can buy nicely printed copies from the Free Software Foundation.
+For info, send mail to gnu@prep.ai.mit.edu or phone 617-876-3296.
+Buying a manual from the Free Software Foundation helps support our
+GNU development work.
 
 ** This distribution contains a Makefile that you can use with GNU Make.
 Otherwise, here are detailed instructions:
