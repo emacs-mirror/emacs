@@ -1,6 +1,6 @@
 /*  impl.c.bttest: BIT TABLE TEST
  *
- *  $HopeName: MMsrc!bttest.c(trunk.1) $
+ *  $HopeName: MMsrc!bttest.c(trunk.2) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -15,8 +15,12 @@
 #include "mpsaan.h" /* ANSI arena for BTCreate and BTDestroy */
 #include "testlib.h"
 
+#ifdef MPS_OS_SU
+#include "ossu.h"
+#endif /* MPS_OS_SU */
 
-SRCID(bttest, "$HopeName: MMsrc!bttest.c(trunk.1) $");
+
+SRCID(bttest, "$HopeName: MMsrc!bttest.c(trunk.2) $");
 
 
 static BT bt; /* the BT which we will use */
@@ -170,11 +174,11 @@ static void findShortResRange(void)
     } else {
       Index base, limit;
       Bool b = BTFindShortResRange(&base, &limit, bt,
-				   args[1], args[2], args[0]);
+                                   args[1], args[2], args[0]);
       if (b)
-	printf("%lu - %lu\n",base, limit);
+        printf("%lu - %lu\n",base, limit);
       else
-	printf("FALSE\n");
+        printf("FALSE\n");
     }
   }
 }
@@ -188,11 +192,11 @@ static void findShortResRangeHigh(void)
     } else {
       Index base, limit;
       Bool b = BTFindShortResRangeHigh(&base, &limit, bt,
-				       args[1], args[2], args[0]);
+                                       args[1], args[2], args[0]);
       if (b)
-	printf("%lu - %lu\n",base, limit);
+        printf("%lu - %lu\n",base, limit);
       else
-	printf("FALSE\n");
+        printf("FALSE\n");
     }
   }
 }
@@ -205,11 +209,11 @@ static void findLongResRange(void)
     } else {
       Index base, limit;
       Bool b = BTFindLongResRange(&base, &limit, bt,
-				  args[1], args[2], args[0]);
+                                  args[1], args[2], args[0]);
       if (b)
-	printf("%lu - %lu\n",base, limit);
+        printf("%lu - %lu\n",base, limit);
       else
-	printf("FALSE\n");
+        printf("FALSE\n");
     }
   }
 }
@@ -218,21 +222,21 @@ static void findLongResRange(void)
 static void help(void)
 {
   printf("c <s>             create a BT of size 's'\n"
-	 "d                 destroy the current BT\n"
-	 "s <i>             set the bit index 'i'\n"
-	 "r <i>             reset the bit index 'i'\n"
-	 "g <i>             get the bit index 'i'\n"
-	 "sr [<i> <i>]      set the specified range\n"
-	 "rr [<i> <i>]      reset the specified range\n"
-	 "is [<i> <i>]      is the specified range set?\n"
-	 "ir [<i> <i>]      is the specified range reset?\n"
-	 "f <l> [<i> <i>]   find a reset range of length 'l'.\n"
-	 "fh <l> [<i> <i>]  find a reset range length 'l', working downwards\n"
-	 "fl <l> [<i> <i>]  find a reset range of length at least 'l'\n"
-	 "q                 quit\n"
+         "d                 destroy the current BT\n"
+         "s <i>             set the bit index 'i'\n"
+         "r <i>             reset the bit index 'i'\n"
+         "g <i>             get the bit index 'i'\n"
+         "sr [<i> <i>]      set the specified range\n"
+         "rr [<i> <i>]      reset the specified range\n"
+         "is [<i> <i>]      is the specified range set?\n"
+         "ir [<i> <i>]      is the specified range reset?\n"
+         "f <l> [<i> <i>]   find a reset range of length 'l'.\n"
+         "fh <l> [<i> <i>]  find a reset range length 'l', working downwards\n"
+         "fl <l> [<i> <i>]  find a reset range of length at least 'l'\n"
+         "q                 quit\n"
          "?                 print this message\n"
-	 "\n"
-	 "No way of testing BTSize, BTRangesSame, or BTCopyInvertRange.\n");
+         "\n"
+         "No way of testing BTSize, BTRangesSame, or BTCopyInvertRange.\n");
 }
 
 
@@ -276,22 +280,28 @@ static void obeyCommand(char *command)
     if ((*csp == 0) && ((*p == '\n') || (*p == ' '))) { /* complete match */
       argCount = 0;
       while ((*p == ' ') && (argCount < shape->max_args)) {
-	/* get an argument */
-	char *newP;
-	args[argCount] = strtoul(p, &newP, 0);
-	if (newP == p) { /* strtoul failed */
-	  printf("couldn't parse an integer argument\n");
-	  return;
-	}
-	p = newP;
-	++ argCount;
+        /* get an argument */
+        char *newP;
+        long l;
+        l = strtol(p, &newP, 0);
+        if(l < 0) { /* negative integer */
+          printf("negative integer arguments are invalid\n");
+          return;
+        }
+        args[argCount] = l;
+        if (newP == p) { /* strtoul failed */
+          printf("couldn't parse an integer argument\n");
+          return;
+        }
+        p = newP;
+        ++ argCount;
       }
       if (argCount < shape->min_args) {
-	printf("insufficient arguments to command\n");
+        printf("insufficient arguments to command\n");
       } else if (*p != '\n') {
-	printf("too many arguments to command\n");
+        printf("too many arguments to command\n");
       } else { /* do the command */
-	shape->fun();
+        shape->fun();
       }
       return;
     } else {
@@ -359,7 +369,7 @@ extern int main(int argc, char *argv[])
   testlib_unused(argc); testlib_unused(argv);
 
   res = mps_arena_create((mps_arena_t *)&arena,
-			 mps_arena_class_an());
+                         mps_arena_class_an());
   if (res != MPS_RES_OK) {
     printf("failed to create ANSI arena.\n");
     return 1;
