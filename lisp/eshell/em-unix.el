@@ -955,7 +955,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
 		      (not eshell-in-subcommand-p))))
 	(throw 'eshell-replace-command
 	       (eshell-parse-command "*diff" orig-args))
-      (setq args (eshell-copy-list orig-args))
+      (setq args (copy-sequence orig-args))
       (if (< (length args) 2)
 	  (throw 'eshell-replace-command
 		 (eshell-parse-command "*diff" orig-args)))
