@@ -922,6 +922,26 @@ of replacing the current filters."
 	 (error "Ibuffer: bad qualifier %s" qualifier))
        (concat " [" (cadr type) ": " (format "%s]" (cdr qualifier)))))))
   
+
+(defun ibuffer-list-buffer-modes ()
+  "Create an alist of buffer modes currently in use.
+The list returned will be of the form ("MODE-NAME" . MODE-SYMBOL)."
+  (let ((bufs (buffer-list))
+	(modes)
+	(this-mode))
+    (while bufs
+      (setq this-mode 
+	    (with-current-buffer 
+		(car bufs)
+	      major-mode)
+	    bufs (cdr bufs))
+      (add-to-list 
+       'modes
+       `(,(symbol-name this-mode) . 
+	 ,this-mode)))
+    modes)) 
+
+
 ;;; Extra operation definitions
 
 ;;;###autoload (autoload 'ibuffer-filter-by-mode "ibuf-ext.el")
@@ -940,6 +960,25 @@ of replacing the current filters."
 			   (with-current-buffer buf
 			     (symbol-name major-mode))
 			 "")))))
+  (eq qualifier (with-current-buffer buf major-mode)))
+
+;;;###autoload (autoload 'ibuffer-filter-by-used-mode "ibuf-ext.el")
+(define-ibuffer-filter used-mode 
+  "Toggle current view to buffers with major mode QUALIFIER.
+Called interactively, this function allows selection of modes
+currently used by buffers."
+  (:description "major mode in use"
+		:reader
+		(intern 
+		 (completing-read "Filter by major mode: " 
+				  (ibuffer-list-buffer-modes)
+				  nil
+				  t
+				  (let ((buf (ibuffer-current-buffer)))
+				    (if (and buf (buffer-live-p buf))
+					(with-current-buffer buf
+					  (symbol-name major-mode))
+				      "")))))
   (eq qualifier (with-current-buffer buf major-mode)))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-name "ibuf-ext.el")
