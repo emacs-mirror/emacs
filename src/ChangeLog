@@ -4,10 +4,11 @@
 	buf array was allocated on the stack.
 	(prev_read): Remove variable.
 	(read_avail_input_buf): New static event buffer array.
-	(in_read_avail_input): New static variable to avoid re-entrancy.
+	(in_read_avail_input): New static variable to handle re-entrancy.
 	(read_avail_input): Change buf to pinter to read_avail_input_buf.
-	Use in_read_avail_input to guard against re-entry.
-	Do not initialize read_avail_input_buf here; instead assume it
+	Use in_read_avail_input to handle re-entrance; when re-entered,
+	fully initialize and use tmp_buf array instead of read_avail_input_buf.
+	Do not initialize read_avail_input_buf in full here; instead assume it
 	is always cleared on entry.  To ensure that, we clear (just) the
 	entries that were used before we return.
 	(init_keyboard): Initialize read_avail_input_buf here.
