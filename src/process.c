@@ -3441,10 +3441,49 @@ Output from processes can arrive in between bunches.")
   return Qnil;
 }
 
+DEFUN ("process-running-child-p", Fprocess_running_child_p,
+       Sprocess_running_child_p, 0, 1, 0,
+  "Return t if PROCESS has given the terminal to a child.\n\
+If the operating system does not make it possible to find out,\n\
+return t unconditionally.")
+  (process)
+     Lisp_Object process;
+{
+  /* Initialize in case ioctl doesn't exist or gives an error,
+     in a way that will cause returning t.  */
+  int gid = 0;
+  Lisp_Object proc;
+  struct Lisp_Process *p;
+
+  proc = get_process (process);
+  p = XPROCESS (proc);
+
+  if (!EQ (p->childp, Qt))
+    error ("Process %s is not a subprocess",
+	   XSTRING (p->name)->data);
+  if (XINT (p->infd) < 0)
+    error ("Process %s is not active",
+	   XSTRING (p->name)->data);
+
+#ifdef TIOCGPGRP 
+  if (!NILP (p->subtty))
+    ioctl (XFASTINT (p->subtty), TIOCGPGRP, &gid);
+  else
+    ioctl (XINT (p->infd), TIOCGPGRP, &gid);
+#endif /* defined (TIOCGPGRP ) */
+
+  if (gid == XFASTINT (p->pid))
+    return Qnil;
+  return Qt;
+}
+
 /* send a signal number SIGNO to PROCESS.
-   CURRENT_GROUP means send to the process group that currently owns
-   the terminal being used to communicate with PROCESS.
+   If CURRENT_GROUP is t, that means send to the process group
+   that currently owns the terminal being used to communicate with PROCESS.
    This is used for various commands in shell mode.
+   If CURRENT_GROUP is lambda, that means send to the process group
+   that currently owns the terminal, but only if it is NOT the shell itself.
+
    If NOMSG is zero, insert signal-announcements into process's buffers
    right away.
 
@@ -3600,6 +3639,11 @@ process_send_signal (process, signo, current_group, nomsg)
 	 the child itself heads the pgrp.  */
       gid = - XFASTINT (p->pid);
 #endif /* ! defined (TIOCGPGRP ) */
+
+      /* If current_group is lambda, and the shell owns the terminal,
+	 don't send any signal.  */
+      if (EQ (current_group, Qlambda) && gid == - XFASTINT (p->pid))
+	return;
     }
   else
     gid = - XFASTINT (p->pid);
@@ -3666,7 +3710,10 @@ Second arg CURRENT-GROUP non-nil means send signal to\n\
 the current process-group of the process's controlling terminal\n\
 rather than to the process's own process group.\n\
 If the process is a shell, this means interrupt current subjob\n\
-rather than the shell.")
+rather than the shell.\n\
+\n\
+If CURRENT-GROUP is `lambda', and if the shell owns the terminal,\n\
+don't send the signal.")
   (process, current_group)
      Lisp_Object process, current_group;
 {
@@ -4539,6 +4586,7 @@ The value takes effect when `start-process' is called.");
   defsubr (&Squit_process);
   defsubr (&Sstop_process);
   defsubr (&Scontinue_process);
+  defsubr (&Sprocess_running_child_p);
   defsubr (&Sprocess_send_eof);
   defsubr (&Ssignal_process);
   defsubr (&Swaiting_for_user_input_p);
