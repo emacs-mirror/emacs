@@ -121,13 +121,11 @@ a side-effect."
 	     nil
 	     t))))
   (if (and (multibyte-string-p variable) locale-coding-system)
-      (unless (memq (coding-system-base locale-coding-system)
-		    (find-coding-systems-string (concat variable value)))
-	(error "Can't encode `%s=%s' with `locale-coding-system'"
-	       variable (or value "")))
-    (unless (memq 'undecided (find-coding-systems-string variable))
-      (error "Can't encode `%s=%s' with unspecified `locale-coding-system'"
-	     variable (or value ""))))
+      (let ((codings (find-coding-systems-string (concat variable value))))
+	(unless (or (eq 'undecided (car codings))
+		    (memq (coding-system-base locale-coding-system) codings))
+	  (error "Can't encode `%s=%s' with `locale-coding-system'"
+		 variable (or value "")))))
   (if unset 
       (setq value nil)
     (if substitute-env-vars
