@@ -1,6 +1,6 @@
 ;;; finder.el --- topic & keyword-based code finder
 
-;; Copyright (C) 1992, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1997, 1998 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Created: 16 Jun 1992
@@ -168,19 +168,18 @@ arguments compiles from `load-path'."
 ;;; Now the retrieval code
 
 (defun finder-insert-at-column (column &rest strings)
-  "Insert list of STRINGS, at column COLUMN."
+  "Insert, at column COLUMN, other args STRINGS."
   (if (> (current-column) column) (insert "\n"))
-  (move-to-column column)
-  (let ((col (current-column)))
-    (if (< col column)
-	(indent-to column)
-      (if (and (/= col column)
-	       (= (preceding-char) ?\t))
-	  (let (indent-tabs-mode)
-	    (delete-char -1)
-            (indent-to col)
-            (move-to-column column)))))
+  (move-to-column column t)
   (apply 'insert strings))
+
+(defun finder-mouse-face-on-line ()
+  "Put a `mouse-face' property on the previous line."
+  (save-excursion
+    (previous-line 1)
+    (put-text-property (save-excursion (beginning-of-line) (point))
+		       (progn (end-of-line) (point))
+		       'mouse-face 'highlight)))
 
 (defun finder-list-keywords ()
   "Display descriptions of the keywords in the Finder buffer."
@@ -196,7 +195,7 @@ arguments compiles from `load-path'."
        (let ((keyword (car assoc)))
 	 (insert (symbol-name keyword))
 	 (finder-insert-at-column 14 (concat (cdr assoc) "\n"))
-	 (cons (symbol-name keyword) keyword)))
+	 (finder-mouse-face-on-line)))
      finder-known-keywords)
     (goto-char (point-min))
     (setq finder-headmark (point))
@@ -219,7 +218,8 @@ arguments compiles from `load-path'."
        (if (memq id (car (cdr (cdr x))))
 	   (progn
 	     (insert (car x))
-	     (finder-insert-at-column 16 (concat (car (cdr x)) "\n")))))
+	     (finder-insert-at-column 16 (concat (nth 1 x) "\n"))
+	     (finder-mouse-face-on-line))))
      finder-package-info)
     (goto-char (point-min))
     (forward-line)
@@ -239,6 +239,7 @@ arguments compiles from `load-path'."
             (locate-library (concat library "z"))))))
 
 (defun finder-commentary (file)
+  "Display FILE's commentary section."
   (interactive)
   (let* ((str (lm-commentary (finder-find-library file))))
     (if (null str)
@@ -268,6 +269,7 @@ arguments compiles from `load-path'."
       (current-word))))
 
 (defun finder-select ()
+  "Select item on current line in a finder buffer."
   (interactive)
   (let ((key (finder-current-item)))
       (if (string-match "\\.el$" key)
@@ -275,12 +277,12 @@ arguments compiles from `load-path'."
 	(finder-list-matches key))))
 
 (defun finder-mouse-select (event)
+  "Select item in a finder buffer with the mouse."
   (interactive "e")
   (save-excursion
-	(set-buffer (window-buffer (posn-window (event-start event))))
-	(goto-char (posn-point (event-start event)))
-	(let ((key (finder-current-item)))
-      (finder-select))))
+    (set-buffer (window-buffer (posn-window (event-start event))))
+    (goto-char (posn-point (event-start event)))
+    (finder-select)))
 
 (defun finder-by-keyword ()
   "Find packages matching a given keyword."
@@ -306,7 +308,9 @@ arguments compiles from `load-path'."
   (interactive)
   (message "%s"
    (substitute-command-keys
-    "\\<finder-mode-map>\\[finder-select] = select, \\[finder-mouse-select] = select, \\[finder-list-keywords] = to finder directory, \\[finder-exit] = quit, \\[finder-summary] = help")))
+    "\\<finder-mode-map>\\[finder-select] = select, \
+\\[finder-mouse-select] = select, \\[finder-list-keywords] = to \
+finder directory, \\[finder-exit] = quit, \\[finder-summary] = help")))
 
 (defun finder-exit ()
   "Exit Finder mode and kill the buffer."
