@@ -1,3 +1,11 @@
+2001-05-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (try_window_id): Cases of changes all in front of 
+	the window start or all below the window end mostly rewritten.
+	(redisplay_window): Move the tests if try_window_id is
+	applicable to try_window_id.
+	(GIVE_UP): New macro.
+
 2001-05-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (expose_window): Return int.  If W is the window
@@ -37,8 +45,9 @@
 	* term.c (toggle_highlight): New function.
 	(turn_on_face): Change handling of reverse video.
 
-	* process.c (wait_reading_process_input):
-	Call record_asynch_buffer_change only if a timer really changed buffers.
+	* process.c (wait_reading_process_input): Call
+	record_asynch_buffer_change only if a timer really changed
+	buffers.
 
 	* buffer.c (mouse_face_overlay_overlaps): Fix the computation
 	of the number of overlays to check.
@@ -72,10 +81,11 @@
 
 	* xfaces.c (Qscalable_fonts_allowed): New variable.
 	(realizing_basic_faces_p): Removed.
-	(x_face_list_fonts): Special handling for realizing_basic_faces_p removed.
+	(x_face_list_fonts): Special handling for realizing_basic_faces_p
+	removed.
 	(realize_basic_faces): Specbind Qscalable_fonts_allowed to t.
-	(syms_of_xfaces): Initialize Qscalable_fonts_allowed.  Change default
-	for scalable-fonts-allowed to t.
+	(syms_of_xfaces): Initialize Qscalable_fonts_allowed.  Change
+	default for scalable-fonts-allowed to t.
 
 	* fileio.c (Finsert_file_contents): If the file size returned from
 	stat is zero, set END to READ_BUF_SIZE.  This makes sure we can
