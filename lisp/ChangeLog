@@ -1,3 +1,16 @@
+2002-08-18  Dave Love  <d.love@dl.ac.uk>
+
+	* international/mule-diag.el (describe-coding-system): Add utf-16
+	case.
+
+	* language/viet-util.el (viet-encode-viscii-char): Use encode-char.
+
+	* language/cyrillic.el ("Tajik", "Bulgarian", "Belarusian"): Add
+	charset.
+	("Ukrainian"): New.
+
+	* language/georgian.el (georgian-ps): New coding system.
+
 2002-08-15  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-cmds.el (reset-language-environment): Don't
@@ -98,7 +111,7 @@
 	(create-fontset-from-ascii-font): Slightly tuned.
 
 	* international/mule-conf.el (devanagari-glyph): New charset.
-	Unify these charses: korean-ksc5601, ipa, tibetan, ethiopic,
+	Unify these charsets: korean-ksc5601, ipa, tibetan, ethiopic,
 	japanese-jisx0208, japanese-jisx0212, japanese-jisx0213-1,
 	japanese-jisx0213-2.
 
