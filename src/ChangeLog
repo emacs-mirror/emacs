@@ -1,3 +1,7 @@
+2003-11-22  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fns.c (Fset_char_table_parent): Doc fix.
+
 2003-11-23  Kim F. Storm  <storm@cua.dk>
 
 	* dispnew.c (buffer_posn_from_coords): Return actual row/column
@@ -6,8 +10,8 @@
 	pointers for returning actual row/column for glyph clicked on.
 	Simplify and optimize loops.
 
-	* dispextern.h (mode_line_string, marginal_area_string): 
-	Update prototypes. 
+	* dispextern.h (mode_line_string, marginal_area_string):
+	Update prototypes.
 
 	* keyboard.c (make_lispy_position): New function for generating
 	mouse click positions from frame and pixel coordinates.
@@ -35,7 +39,7 @@
 	(getgrgid): Added.
 	* mac.c (struct my_group): Added.
 	(getgrgid): Added.
-	
+
 2003-11-21  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* fns.c (Fassq, Fassoc, Frassq, Frassoc): Doc fixes.
