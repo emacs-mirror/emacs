@@ -1,5 +1,9 @@
 2001-04-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (postprocess_image): New function.
+	(lookup_image): Call it for all image types except PostScript.
+	(x_kill_gs_process): Call postprocess_image.
+
 	* xterm.c (x_use_underline_position_properties): New variable.
 	(x_draw_glyph_string): Use it.
 	(syms_of_xterm): DEFVAR_BOOL it.
