@@ -47,7 +47,7 @@
 ;*    Group ...                                                        */
 ;*---------------------------------------------------------------------*/
 (defgroup flyspell nil
-  "Spellchecking on the fly."
+  "Spell checking on the fly."
   :tag "FlySpell"
   :prefix "flyspell-"
   :group 'processes)
@@ -148,9 +148,9 @@ command was not the very same command."
   "*List of functions to be called when incorrect words are encountered.
 Each function is given three arguments: the beginning and the end
 of the incorrect region.  The third is either the symbol 'doublon' or the list
-of possible corrections returned as returned by 'ispell-parse-output'.
+of possible corrections as returned by 'ispell-parse-output'.
 
-If any of the functions return non-Nil, the word is not highligted as
+If any of the functions return non-Nil, the word is not highlighted as
 incorrect."
   :group 'flyspell
   :version "21.1"
@@ -174,7 +174,7 @@ of `flyspell-default-dictionary' to select the default dictionary."
   :type 'string)
 
 (defcustom flyspell-check-tex-math-command nil
-  "*Non nils means check even inside TeX math environement.
+  "*Non nil means check even inside TeX math environment.
 TeX math environments are discovered by the TEXMATHP that implemented
 inside the texmathp.el Emacs package.  That package may be found at:
 http://strw.leidenuniv.nl/~dominik/Tools"
@@ -588,7 +588,7 @@ flyspell-buffer checks the whole buffer."
 (defun flyspell-delay-command (command)
   "Set COMMAND to be delayed, for Flyspell.
 When flyspell `post-command-hook' is invoked because a delayed command
-as been used the current word is not immediatly checked.
+as been used the current word is not immediately checked.
 It will be checked only after `flyspell-delay' seconds."
   (interactive "SDelay Flyspell after Command: ")
   (put command 'flyspell-delayed t))
@@ -1175,7 +1175,7 @@ this function changes the last char of the `ispell-casechars' string."
 If argument FOLLOWING is non-nil or if `ispell-following-word'
 is non-nil when called interactively, then the following word
 \(rather than preceding\) is checked when the cursor is not over a word.
-Optional second argument contains otherchars that can be included in word
+Optional second argument contains other chars that can be included in word
 many times.
 
 Word syntax described by `ispell-dictionary-alist' (which see)."
@@ -1314,7 +1314,7 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
     (setq flyspell-large-region-end end)
     (set-buffer buffer)
     (erase-buffer)
-    ;; this is done, we can start ckecking...
+    ;; this is done, we can start checking...
     (message "Checking region...")
     (set-buffer curbuf)
     (let ((c (apply 'call-process-region beg
@@ -1420,7 +1420,7 @@ FLYSPELL-BUFFER."
 		      (setq ovs (cdr ovs))))
 		  (not r)))
       (setq pos (1+ pos)))
-    ;; save the current location for next invokation
+    ;; save the current location for next invocation
     (setq flyspell-old-pos-error pos)
     (setq flyspell-old-buffer-error (current-buffer))
     (goto-char pos)
@@ -1558,7 +1558,7 @@ for the overlay."
 ;*    flyspell-check-previous-highlighted-word ...                     */
 ;*---------------------------------------------------------------------*/
 (defun flyspell-check-previous-highlighted-word (&optional arg)
-  "Correct the closer mispelled word.
+  "Correct the closer misspelled word.
 This function scans a mis-spelled word before the cursor. If it finds one
 it proposes replacement for that word. With prefix arg, count that many
 misspelled words backwards."
@@ -2018,49 +2018,69 @@ The word checked is the word at the mouse position."
 		      menu))))
 
 ;*---------------------------------------------------------------------*/
-;*    Some example functions for real autocrrecting                    */
+;*    Some example functions for real autocorrecting                    */
 ;*---------------------------------------------------------------------*/
+
 (defun flyspell-maybe-correct-transposition (beg end poss)
-  "Apply 'transpose-chars' to all points in the region BEG to END.
-Return t if any those result in a possible replacement suggested by Ispell
-in POSS.  Otherwise the change is undone.
+  "Check replacements for transposed characters.
 
-This function is meant to be added to 'flyspell-incorrect-hook'."
-  (when (consp poss)    
-    (catch 'done
-      (save-excursion
-        (goto-char (1+ beg))
-        (while (< (point) end)
-          (transpose-chars 1)
-          (when (member (buffer-substring beg end) (nth 2 poss))
-            (throw 'done t))
-          (transpose-chars -1)
-          (forward-char))
-        nil))))
+If the text between BEG and END is equal to a correction suggested by
+Ispell, after transposing two adjacent characters, correct the text,
+and return t.
 
-(defun flyspell-maybe-correct-doubling (beg end poss)
-  "For each doubled charachter in the region BEG to END, remove one.
-Return t if any those result in a possible replacement suggested by
-Ispell in POSS.  Otherwise the change is undone.
+The third arg POSS is either the symbol 'doublon' or a list of
+possible corrections as returned by 'ispell-parse-output'.
 
 This function is meant to be added to 'flyspell-incorrect-hook'."
   (when (consp poss)
-    (catch 'done
+    (let ((temp-buffer (get-buffer-create " *flyspell-temp*"))
+	  found)
+    (save-excursion
+      (copy-to-buffer temp-buffer beg end)
+      (set-buffer temp-buffer)
+      (goto-char (1+ (point-min)))
+      (while (and (not (eobp)) (not found))
+	  (transpose-chars 1)
+	  (if (member (buffer-string) (nth 2 poss))
+	      (setq found (point))
+	    (transpose-chars -1)
+	    (forward-char))))
+    (when found
       (save-excursion
-        (let ((last (char-after beg))
-              this)
-          (goto-char (1+ beg))          
-          (while (< (point) end)
-            (setq this (char-after))
-            (if (not (char-equal this last))
-                (forward-char)
-              (delete-char 1)
-              (when (member (buffer-substring beg (1- end)) (nth 2 poss))
-                (throw 'done t))
-              ;; undo
-              (insert-char this 1))            
-            (setq last this))
-          nil)))))
+	(goto-char (+ beg found -1))
+	(transpose-chars -1)
+	t)))))
+
+(defun flyspell-maybe-correct-doubling (beg end poss)
+  "Check replacements for doubled characters.
+
+If the text between BEG and END is equal to a correction suggested by
+Ispell, after removing a pair of doubled characters, correct the text,
+and return t.
+
+The third arg POSS is either the symbol 'doublon' or a list of
+possible corrections as returned by 'ispell-parse-output'.
+
+This function is meant to be added to 'flyspell-incorrect-hook'."
+  (when (consp poss)
+    (let ((temp-buffer (get-buffer-create " *flyspell-temp*"))
+	  found)
+    (save-excursion
+      (copy-to-buffer temp-buffer beg end)
+      (set-buffer temp-buffer)
+      (goto-char (1+ (point-min)))
+      (while (and (not (eobp)) (not found))
+	(when (char-equal (char-after) (char-before))
+	  (delete-char 1)
+	  (if (member (buffer-string) (nth 2 poss))
+	      (setq found (point))
+	    (insert-char (char-before) 1)))
+	(forward-char)))
+    (when found
+      (save-excursion
+	(goto-char (+ beg found -1))
+	(delete-char 1)
+	t)))))
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-already-abbrevp ...                                     */
