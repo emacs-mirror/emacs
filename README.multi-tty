@@ -180,29 +180,6 @@ THINGS TO DO
    why raw terminal support is broken again.  I really do need to
    understand input.)
 
-** I have seen a case when Emacs with multiple ttys fell into a loop
-   eating 100% of CPU time.  Strace showed this loop:
-
-	getpid()                                = 30284
-	kill(30284, SIGIO)                      = 0
-	--- SIGIO (I/O possible) @ 0 (0) ---
-	ioctl(6, FIONREAD, [0])                 = -1 EIO (Input/output error)
-	ioctl(5, FIONREAD, [0])                 = -1 EIO (Input/output error)
-	ioctl(0, FIONREAD, [0])                 = 0
-	sigreturn()                             = ? (mask now [])
-	gettimeofday({1072842297, 747760}, NULL) = 0
-	gettimeofday({1072842297, 747806}, NULL) = 0
-	select(9, [0 3 5 6], NULL, NULL, {0, 0}) = 2 (in [5 6], left {0, 0})
-	select(9, [0 3 5 6], NULL, NULL, {0, 0}) = 2 (in [5 6], left {0, 0})
-	gettimeofday({1072842297, 748245}, NULL) = 0
-
-   I have seen something similar with a single X frame, but have not
-   been able to reproduce it for debugging.
-
-   Update: This may have been caused by checking for nread != 0
-   instead of nread > 0 after calling read_socket_hook in
-   read_avail_input.
-
 ** emacsclient -t from an Emacs term buffer does not work, complains
    about face problems.  This can even lock up Emacs (if the recursive
    frame sets single_kboard).  Update: the face problems are caused by
@@ -537,5 +514,35 @@ DIARY OF CHANGES
 
    (Done, the previous change fixes this as a pleasant side effect.)
 
+-- I have seen a case when Emacs with multiple ttys fell into a loop
+   eating 100% of CPU time.  Strace showed this loop:
+
+	getpid()                                = 30284
+	kill(30284, SIGIO)                      = 0
+	--- SIGIO (I/O possible) @ 0 (0) ---
+	ioctl(6, FIONREAD, [0])                 = -1 EIO (Input/output error)
+	ioctl(5, FIONREAD, [0])                 = -1 EIO (Input/output error)
+	ioctl(0, FIONREAD, [0])                 = 0
+	sigreturn()                             = ? (mask now [])
+	gettimeofday({1072842297, 747760}, NULL) = 0
+	gettimeofday({1072842297, 747806}, NULL) = 0
+	select(9, [0 3 5 6], NULL, NULL, {0, 0}) = 2 (in [5 6], left {0, 0})
+	select(9, [0 3 5 6], NULL, NULL, {0, 0}) = 2 (in [5 6], left {0, 0})
+	gettimeofday({1072842297, 748245}, NULL) = 0
+
+   I have seen something similar with a single X frame, but have not
+   been able to reproduce it for debugging.
+
+   Update: This may have been caused by checking for nread != 0
+   instead of nread > 0 after calling read_socket_hook in
+   read_avail_input.
+
+   (Fixed.  This was caused by unconditionally including stdin in
+   input_wait_mask in init_process.  The select call in
+   wait_reading_process_input always returned immediately, indicating
+   that there is pending input from stdin, which nobody read.
+
+   Note that the above strace output seems to be an unrelated but
+   similar bug.  I think that is now fixed.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d

@@ -6608,7 +6608,12 @@ init_process ()
   process_output_skip = 0;
 #endif
 
+  /* Don't do this, it caused infinite select loops.  The display
+     method should call add_keyboard_wait_descriptor on stdin if it
+     needs that.  */
+#if 0
   FD_SET (0, &input_wait_mask);
+#endif
 
   Vprocess_alist = Qnil;
   for (i = 0; i < MAXDESC; i++)
