@@ -233,7 +233,7 @@ If nil, make an icon of the frame.  If non-nil, delete the frame."
   :group 'diary)
 
 (defcustom diary-entry-marker
-  (if (not window-system)
+  (if (not (display-color-p))
       "+"
     'diary-face)
   "*How to mark dates that have diary entries.
@@ -242,7 +242,7 @@ The value can be either a single-character string or a face."
   :group 'diary)
 
 (defcustom calendar-today-marker
-  (if (not window-system)
+  (if (not (display-color-p))
       "="
     'calendar-today-face)
   "*How to mark today's date in the calendar.
@@ -253,7 +253,7 @@ to request that."
   :group 'calendar)
 
 (defcustom calendar-holiday-marker
-  (if (not window-system)
+  (if (not (display-color-p))
       "*"
     'holiday-face)
   "*How to mark notable dates in the calendar.
@@ -1894,7 +1894,7 @@ the inserted text.  Value is always t."
 (if calendar-mode-map
     nil
   (setq calendar-mode-map (make-sparse-keymap))
-  (if window-system (require 'cal-menu))
+  (if (display-popup-menus-p) (require 'cal-menu))
   (calendar-for-loop i from 0 to 9 do
        (define-key calendar-mode-map (int-to-string i) 'digit-argument))
   (let ((l (list 'narrow-to-region 'mark-word 'mark-sexp 'mark-paragraph
@@ -2091,7 +2091,7 @@ For a complete description, type \
   (setq buffer-read-only t)
   (setq indent-tabs-mode nil)
   (update-calendar-mode-line)
-  (if window-system
+  (if (display-popup-menus-p)
       (progn
         (make-local-hook 'activate-menubar-hook)
         (add-hook 'activate-menubar-hook 'cal-menu-update nil t)))
@@ -2180,12 +2180,12 @@ the STRINGS are just concatenated and the result truncated."
   (let ((buffer (if (window-live-p window) (window-buffer window))))
     (if (memq buffer (calendar-buffer-list))
         (cond
-         ((and window-system
+         ((and (display-multi-frame-p)
                (eq 'icon (cdr (assoc 'visibility
                                      (frame-parameters
                                       (window-frame window))))))
           nil)
-         ((and window-system (window-dedicated-p window))
+         ((and (display-multi-frame-p) (window-dedicated-p window))
           (if calendar-remove-frame-by-deleting
               (delete-frame (window-frame window))
               (iconify-frame (window-frame window))))
