@@ -91,7 +91,7 @@ and then returns."
 	   (let ((line-prompt
 		  (substitute-command-keys (, help-line))))
 	     (if three-step-help
-		 (message line-prompt))
+		 (message "%s" line-prompt))
 	     (let* ((help-screen (documentation (quote (, fname))))
 		    ;; We bind overriding-local-map for very small
 		    ;; sections, *excluding* where we switch buffers
