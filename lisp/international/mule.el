@@ -1893,7 +1893,7 @@ Part of the job of this function is setting `buffer-undo-list' appropriately."
 	  ;; Otherwise, if we can recognize the undo elt for the insertion,
 	  ;; remove it and get ready to replace it later.
 	  ;; In the mean time, turn off undo recording.
-	  (let ((last (car buffer-undo-list))) 
+	  (let ((last (car-safe buffer-undo-list))) 
 	    (if (and (consp last) (eql (car last) from) (eql (cdr last) to))
 		(setq undo-list-saved (cdr buffer-undo-list)
 		      buffer-undo-list t))))

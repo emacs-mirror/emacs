@@ -1,3 +1,8 @@
+2004-12-29  David Kastrup  <dak@gnu.org>
+
+	* international/mule.el (decode-coding-inserted-region): Don't
+	barf if `buffer-undo-list' is already set to `t'.
+
 2004-12-29  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-prog.el (calc-user-define-formula): Put default values
