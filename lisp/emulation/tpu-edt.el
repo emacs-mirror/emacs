@@ -2109,7 +2109,10 @@ If FILE is nil, try to load a default file.  The default file names are
 	(tpu-lucid-emacs19-p
 	 (setq file (expand-file-name "~/.tpu-lucid-keys")))
 	(tpu-emacs19-p
-	 (setq file (expand-file-name "~/.tpu-keys"))))
+	 (setq file (expand-file-name "~/.tpu-keys"))
+	 (and (not (file-exists-p file))
+	      (file-exists-p (expand-file-name "~/.tpu-gnu-keys"))
+	      (tpu-copy-keyfile (expand-file-name "~/.tpu-gnu-keys") file))))
   (cond ((file-readable-p file)
 	 (load-file file))
 	(t
@@ -2141,6 +2144,34 @@ If FILE is nil, try to load a default file.  The default file names are
 		 (t
 		  (insert "Nope, I can't seem to find it.  :-(\n\n")
 		  (sit-for 120)))))))
+
+(defun tpu-copy-keyfile (oldname newname)
+  "Copy the TPU-edt X key definitions file to the new default name."
+  (interactive "fOld name: \nFNew name: ")
+  (if (not (get-buffer "*TPU-Notice*")) (generate-new-buffer "*TPU-Notice*"))
+  (set-buffer "*TPU-Notice*")
+  (erase-buffer)
+  (insert "
+  NOTICE --
+
+  The default name of the TPU-edt key definition file has changed
+  from `~/.tpu-gnu-keys' to `~/.tpu-keys'.  With your permission,
+  your key definitions will be copied to the new file.  If you'll
+  never use older versions of Emacs, you can remove the old file.
+  If the copy fails, you'll be asked if you want to create a new
+  key definitions file.  Do you want to copy your key definition
+  file now?
+  ")
+  (save-window-excursion
+    (switch-to-buffer-other-window "*TPU-Notice*")
+    (shrink-window-if-larger-than-buffer)
+    (goto-char (point-min))
+    (beep)
+    (and (tpu-y-or-n-p "Copy key definitions to the new file now? ")
+	 (condition-case conditions
+             (copy-file oldname newname)
+	   (error (message "Sorry, couldn't copy - %s" (cdr conditions)))))
+    (kill-buffer "*TPU-Notice*")))
 
 
 ;;;
