@@ -99,9 +99,8 @@ compile_pattern (pattern, bufp, regp, translate)
   last_regexp = Qnil;
   bufp->translate = translate;
   BLOCK_INPUT;
-  val = re_compile_pattern ((char *) XSTRING (pattern)->data,
-			    XSTRING (pattern)->size,
-			    bufp);
+  val = (CONST char *) re_compile_pattern ((char *) XSTRING (pattern)->data,
+					   XSTRING (pattern)->size, bufp);
   UNBLOCK_INPUT;
   if (val)
     {
