@@ -35,15 +35,22 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "getopt.h"
 
-#ifdef	__GNUC__
-#define	alloca	__builtin_alloca
-#else
-#ifdef	sparc
+/* AIX requires this to be the first thing in the file. */
+#ifdef __GNUC__
+#ifndef alloca
+#define alloca __builtin_alloca
+#endif
+#else /* not __GNUC__ */
+#if HAVE_ALLOCA_H
 #include <alloca.h>
-#else
-extern char *alloca ();
-#endif
-#endif
+#else /* not HAVE_ALLOCA_H */
+#ifdef _AIX
+ #pragma alloca
+#else /* not _AIX */
+char *alloca ();
+#endif /* not _AIX */
+#endif /* not HAVE_ALLOCA_H */
+#endif /* not __GNUC__ */
 
 extern char *malloc (), *realloc ();
 extern char *getenv ();
