@@ -55,7 +55,8 @@ The `--x-includes=DIR' and `--x-libraries=DIR' options tell the build
 process where the compiler should look for the include files and
 object libraries used with the X Window System.  Normally, `configure'
 is able to find them; these options are necessary if you have your X
-Window System files installed in unusual places.
+Window System files installed in unusual places.  These options also
+accept a list of directories, separated with colons.
 
 To get more attractive menus, you can specify an X toolkit when you
 configure Emacs; use the option `--with-x-toolkit=TOOLKIT', where
