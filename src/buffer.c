@@ -1,11 +1,12 @@
 /* Buffer manipulation primitives for GNU Emacs.
-   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1992, 1993
+	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -973,7 +974,7 @@ selected window if it is displayed there.")
   return Qnil;
 }
 
-DEFUN ("erase-buffer", Ferase_buffer, Serase_buffer, 0, 0, 0,
+DEFUN ("erase-buffer", Ferase_buffer, Serase_buffer, 0, 0, "*",
   "Delete the entire contents of the current buffer.\n\
 Any clipping restriction in effect (see `narrow-to-region') is removed,\n\
 so the buffer is truly empty after this.")
