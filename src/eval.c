@@ -413,8 +413,11 @@ whose values are discarded.")
 
 DEFUN ("setq", Fsetq, Ssetq, 0, UNEVALLED, 0,
   "(setq SYM VAL SYM VAL ...): set each SYM to the value of its VAL.\n\
-The SYMs are not evaluated.  Thus (setq x y) sets x to the value of y.\n\
-Each SYM is set before the next VAL is computed.\n\
+The symbols SYM are variables; they are literal (not evaluated).\n\
+The values VAL are expressions; they are evaluated.\n\
+Thus, (setq x (1+ y)) sets `x' to the value of `(1+ y)'.\n\
+The second VAL is not computed until after the first SYM is set, and so on;\n\
+each VAL can use the new value of variables set earlier in the `setq'.\n\
 The return value of the `setq' form is the value of the last VAL.")
   (args)
      Lisp_Object args;
