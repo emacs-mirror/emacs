@@ -1,3 +1,26 @@
+2000-08-29  Kenichi Handa  <handa@etl.go.jp>
+
+	* help.el (help-xref-mule-regexp): New variable
+	(help-make-xrefs): Handle help-xref-mule-regexp.
+
+	* international/mule-cmds.el (help-xref-mule-regexp-template): New
+	variable.
+	(describe-input-method): Temporarily activate the specfied input
+	method to display the information.
+	(describe-language-environment): Hyperlinks to mule related items.
+
+	* international/mule-diag.el (charset-multibyte-form-string): New
+	function.
+	(list-character-sets-1): Use charset-multibyte-form-string.
+	(describe-character-set): New function.
+	(describe-coding-system): Hyperlinks to safe character sets.
+
+	* international/quail.el (quail-help): New arg PACKAGE.
+	Hyperlinks to mule related items.
+	(quail-help-insert-keymap-description): Use
+	substitute-command-keys instead of describe-bindings.
+	(quail-translation-help): Hyperlinks to mule related items.
+
 2000-08-28  John Wiegley  <johnw@gnu.org>
 
 	* eshell/esh-util.el (eshell-flatten-list): It's not too wise to
@@ -154,7 +177,7 @@
 2000-08-28  Peter Breton  <pbreton@ne.mediaone.net>
 
 	* locate.el (locate): Cleaned up locate command's interactive prompting
-	Thanks to FranÁois_Pinard <pinard@iro.umontreal.ca> for suggestions.
+	Thanks to Fran,Ag(Bois_Pinard <pinard@iro.umontreal.ca> for suggestions.
 
 	* filecache.el (file-cache-case-fold-search): New variable 
 	(file-cache-assoc-function): New variable
@@ -4085,7 +4108,7 @@
 
 2000-05-07  Dave Love  <fx@gnu.org>
 
-	* time.el: Small doc fixes from Pavel JanÅÌk ml.
+	* time.el: Small doc fixes from Pavel Jan,Am(Bk ml.
 
 2000-05-05  Dave Love  <fx@gnu.org>
 
