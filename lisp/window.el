@@ -508,9 +508,17 @@ header-line."
       (let ((end (with-current-buffer buf
 		   (save-excursion
 		     (goto-char (point-max))
-		     (if (and (bolp) (not (bobp)))
-			 (1- (point))
-		       (point))))))
+		     (when (and (bolp) (not (bobp)))
+		       ;; Don't include final newline
+		       (backward-char 1))
+		     (when truncate-lines
+		       ;; If line-wrapping is turned off, test the
+		       ;; beginning of the last line for visibility
+		       ;; instead of the end, as the end of the line
+		       ;; could be invisible by virtue of extending past
+		       ;; the edge of the window.
+		       (forward-line 0))
+		     (point)))))
 	(set-window-vscroll window 0)
 	(while (and (< desired-height max-height)
 		    (= desired-height (window-height window))
