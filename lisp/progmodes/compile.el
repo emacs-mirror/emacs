@@ -1428,8 +1428,7 @@ nil instead of raising an error if there are no more errors.
 
 The current buffer should be the desired compilation output buffer."
   (or move (setq move 1))
-  (compile-reinitialize-errors reparse nil (and (not reparse)
-						(if (< move 1) 0 (1- move))))
+  (compile-reinitialize-errors reparse nil (and (not reparse) (max 0 move)))
   (let (next-errors next-error)
     (catch 'no-next-error
       (save-excursion
