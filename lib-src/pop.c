@@ -41,12 +41,15 @@ Boston, MA 02111-1307, USA.  */
 #include "ntlib.h"
 #include <winsock.h>
 #undef SOCKET_ERROR
+#define RECV(s,buf,len,flags) recv(s,buf,len,flags)
+#define SEND(s,buf,len,flags) send(s,buf,len,flags)
+#define CLOSESOCKET(s) closesocket(s)
 #else
 #include <netinet/in.h>
 #include <sys/socket.h>
-#define recv(s,buf,len,flags) read(s,buf,len)
-#define send(s,buf,len,flags) write(s,buf,len)
-#define closesocket close
+#define RECV(s,buf,len,flags) read(s,buf,len)
+#define SEND(s,buf,len,flags) write(s,buf,len)
+#define CLOSESOCKET(s) close(s)
 #endif
 #include <pop.h>
 
@@ -1084,7 +1087,7 @@ socket_connection (host, flags)
      
   if (! *hostent->h_addr_list)
     {
-      (void) closesocket (sock);
+      CLOSESOCKET (sock);
       strcpy (pop_error, CONNECT_ERROR);
       strncat (pop_error, strerror (errno),
 	       ERROR_MAX - sizeof (CONNECT_ERROR));
@@ -1105,7 +1108,7 @@ socket_connection (host, flags)
 	  strcpy (pop_error, KRB_ERROR);
 	  strncat (pop_error, error_message (rem),
 		   ERROR_MAX - sizeof(KRB_ERROR));
-	  (void) closesocket (sock);
+	  CLOSESOCKET (sock);
 	  return (-1);
 	}
 
@@ -1162,7 +1165,7 @@ socket_connection (host, flags)
 	  if (err_ret)
 	    krb5_free_error (err_ret);
 
-	  (void) closesocket (sock);
+	  CLOSESOCKET (sock);
 	  return (-1);
 	}
 #else  /* ! KRB5 */	  
@@ -1179,7 +1182,7 @@ socket_connection (host, flags)
 	  strcpy (pop_error, KRB_ERROR);
 	  strncat (pop_error, krb_err_txt[rem],
 		   ERROR_MAX - sizeof (KRB_ERROR));
-	  (void) closesocket (sock);
+	  CLOSESOCKET (sock);
 	  return (-1);
 	}
 #endif /* KRB5 */
@@ -1271,7 +1274,7 @@ getline (server)
 	      return (0);
 	    }
 	}
-      ret = recv (server->file, server->buffer + server->data,
+      ret = RECV (server->file, server->buffer + server->data,
 		  server->buffer_size - server->data - 1, 0);
       if (ret < 0)
 	{
@@ -1377,7 +1380,7 @@ fullwrite (fd, buf, nbytes)
   int ret;
 
   cp = buf;
-  while ((ret = send (fd, cp, nbytes, 0)) > 0)
+  while ((ret = SEND (fd, cp, nbytes, 0)) > 0)
     {
       cp += ret;
       nbytes -= ret;
@@ -1496,16 +1499,15 @@ pop_trash (server)
 {
   if (server->file >= 0)
     {
-#ifdef WINDOWSNT
       /* avoid recursion; sendline can call pop_trash */
       if (server->trash_started)
 	return;
       server->trash_started = 1;
-#endif
+
       sendline (server, "RSET");
       sendline (server, "QUIT");
 
-      closesocket (server->file);
+      CLOSESOCKET (server->file);
       server->file = -1;
       if (server->buffer)
 	{
