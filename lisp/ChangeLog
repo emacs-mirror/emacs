@@ -5,6 +5,9 @@
 
 2001-12-16  Richard M. Stallman  <rms@gnu.org>
 
+	* isearch.el (isearch-edit-string): When we set isearch-string
+	to the default, also set isearch-message.
+
 	* subr.el (temp-buffer-show-hook, temp-buffer-setup-hook): Add defvars.
 
 	* startup.el (command-line-1): Display startup screen

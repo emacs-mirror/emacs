@@ -1,5 +1,7 @@
 2001-12-16  Richard M. Stallman  <rms@gnu.org>
 
+	* Makefile.in (xmenu.o, xterm.o, fontset.o): Depend on buffer.h.
+
 	* buffer.h (struct buffer): New field `display_error_modiff'.
 	* buffer.c (reset_buffer): Initialize `display_error_modiff'.
 
