@@ -447,7 +447,9 @@ Each element looks like (MACRONAME . DEFINITION).  It is
   "Alist of functions defined in the file being compiled.
 This is so we can inline them when necessary.
 Each element looks like (FUNCTIONNAME . DEFINITION).  It is
-\(FUNCTIONNAME . nil) when a function is redefined as a macro.")
+\(FUNCTIONNAME . nil) when a function is redefined as a macro.
+It is \(FUNCTIONNAME . t) when all we know is that it was defined,
+and we don't know the definition.")
 
 (defvar byte-compile-unresolved-functions nil
   "Alist of undefined functions to which calls have been compiled.
@@ -1103,6 +1105,10 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 
 ;;; sanity-checking arglists
 
+;; If a function has an entry saying (FUNCTION . t).
+;; that means we know it is defined but we don't know how.
+;; If a function has an entry saying (FUNCTION . nil),
+;; that means treat it as not defined.
 (defun byte-compile-fdefinition (name macro-p)
   (let* ((list (if macro-p
 		   byte-compile-macro-environment
@@ -1168,7 +1174,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 (defun byte-compile-callargs-warn (form)
   (let* ((def (or (byte-compile-fdefinition (car form) nil)
 		  (byte-compile-fdefinition (car form) t)))
-	 (sig (if def
+	 (sig (if (and def (not (eq def t)))
 		  (byte-compile-arglist-signature
 		   (if (eq 'lambda (car-safe def))
 		       (nth 1 def)
@@ -1198,7 +1204,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
     (byte-compile-format-warn form)
     ;; Check to see if the function will be available at runtime
     ;; and/or remember its arity if it's unknown.
-    (or (and (or sig (fboundp (car form))) ; might be a subr or autoload.
+    (or (and (or def (fboundp (car form))) ; might be a subr or autoload.
 	     (not (memq (car form) byte-compile-noruntime-functions)))
 	(eq (car form) byte-compile-current-form) ; ## this doesn't work
 					; with recursion.
@@ -1243,7 +1249,7 @@ extra args."
 ;; number of arguments.
 (defun byte-compile-arglist-warn (form macrop)
   (let ((old (byte-compile-fdefinition (nth 1 form) macrop)))
-    (if old
+    (if (and old (not (eq old t)))
 	(let ((sig1 (byte-compile-arglist-signature
 		      (if (eq 'lambda (car-safe old))
 			  (nth 1 old)
@@ -3714,17 +3720,17 @@ being undefined will be suppressed."
   (if (and (consp (cdr form)) (consp (nth 1 form))
 	   (eq (car (nth 1 form)) 'quote)
 	   (consp (cdr (nth 1 form)))
-	   (symbolp (nth 1 (nth 1 form)))
-	   (consp (nthcdr 2 form))
-	   (consp (nth 2 form))
-	   (eq (car (nth 2 form)) 'quote)
-	   (consp (cdr (nth 2 form)))
-	   (symbolp (nth 1 (nth 2 form))))
-      (progn
+	   (symbolp (nth 1 (nth 1 form))))
+      (let ((constant
+	     (and (consp (nthcdr 2 form))
+		  (consp (nth 2 form))
+		  (eq (car (nth 2 form)) 'quote)
+		  (consp (cdr (nth 2 form)))
+		  (symbolp (nth 1 (nth 2 form))))))
 	(byte-compile-defalias-warn (nth 1 (nth 1 form)))
 	(setq byte-compile-function-environment
 	      (cons (cons (nth 1 (nth 1 form))
-			  (nth 1 (nth 2 form)))
+			  (if constant (nth 1 (nth 2 form)) t))
 		    byte-compile-function-environment))))
   (byte-compile-normal-call form))
 
@@ -3928,7 +3934,7 @@ invoked interactively."
 	(while rest
 	  (or (nth 1 (car rest))
 	      (null (setq f (car (car rest))))
-	      (byte-compile-fdefinition f t)
+	      (functionp (byte-compile-fdefinition f t))
 	      (commandp (byte-compile-fdefinition f nil))
 	      (setq uncalled (cons f uncalled)))
 	  (setq rest (cdr rest)))
