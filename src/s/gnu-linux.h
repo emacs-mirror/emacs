@@ -190,7 +190,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Best not to include -lg, unless it is last on the command line */
 #define LIBS_DEBUG
-#define LIBS_TERMCAP -ltermcap -lcurses /* save some space with shared libs*/
 #ifndef __ELF__
 #define LIB_STANDARD -lc /* avoid -lPW */
 #else
