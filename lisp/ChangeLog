@@ -1,5 +1,7 @@
 2002-04-04  Richard M. Stallman  <rms@gnu.org>
 
+	* calendar/solar.el (solar-northern-spring-or-summer-season): Doc fix.
+
 	* mail/mailabbrev.el (mail-abbrev-make-syntax-table):
 	Use (syntax-table), not old-syntax-table.
 

@@ -1,3 +1,11 @@
+2002-04-04  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (display_mode_element): New arg RISKY.
+	Disregard text props found or specified within a variable
+	that isn't marked risky-local-variable.
+	(Qrisky_local_variable): New variable.
+	(syms_of_xdisp): Init and staticpro it.
+
 2002-04-03  Juanma Barranquero  <lektu@terra.es>
 
 	* doc.c (Fdocumentation): Add missing parentheses.
