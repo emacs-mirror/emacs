@@ -424,7 +424,7 @@ when @code{lpr-command} is not @code{""}.  If the variable
 @vindex ps-lpr-switches @r{(MS-DOS)}
   A parallel set of variables, @code{ps-lpr-command},
 @code{ps-lpr-switches}, and @code{ps-printer-name} (@pxref{Postscript
-variables}), defines how PostScript files should be printed.  These
+Variables}), defines how PostScript files should be printed.  These
 variables are used in the same way as the corresponding variables
 described above for non-PostScript printing.  Thus, the value of
 @code{ps-printer-name} is used as the name of the device (or file) to
