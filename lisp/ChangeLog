@@ -1,5 +1,8 @@
 2001-07-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* allout.el: Fix the header line, so that finder.el recognizes it.
+	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
+
 	* emacs-lisp/lisp-mnt.el (lm-header-prefix): Doc fix.  From Pavel
         Jan,Bm(Bk <Pavel@Janik.cz>.
 
