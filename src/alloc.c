@@ -1376,7 +1376,7 @@ make_uninit_multibyte_string (length, length_byte)
     
   string_chars_consed += fullsize;
   XSTRING (val)->size = length;
-  XSTRING (val)->size_byte = length_byte;
+  SET_STRING_BYTES (XSTRING (val), length_byte);
   XSTRING (val)->data[length_byte] = 0;
   INITIALIZE_INTERVAL (XSTRING (val), NULL_INTERVAL);
 
@@ -1442,7 +1442,7 @@ make_pure_string (data, length, length_byte)
     error ("Pure Lisp storage exhausted");
   XSETSTRING (new, PUREBEG + pureptr);
   XSTRING (new)->size = length;
-  XSTRING (new)->size_byte = length_byte;
+  SET_STRING_BYTES (XSTRING (new), length_byte);
   bcopy (data, XSTRING (new)->data, length_byte);
   XSTRING (new)->data[length_byte] = 0;
 
@@ -1548,7 +1548,7 @@ Does not copy symbols.")
 #endif /* LISP_FLOAT_TYPE */
   else if (STRINGP (obj))
     return make_pure_string (XSTRING (obj)->data, XSTRING (obj)->size,
-			     XSTRING (obj)->size_byte);
+			     STRING_BYTES (XSTRING (obj)));
   else if (COMPILEDP (obj) || VECTORP (obj))
     {
       register struct Lisp_Vector *vec;
@@ -2646,7 +2646,7 @@ compact_strings ()
 
 	  register struct Lisp_String *newaddr;
 	  register EMACS_INT size = nextstr->size;
-	  EMACS_INT size_byte = nextstr->size_byte;
+	  EMACS_INT size_byte = STRING_BYTES (nextstr);
 
 	  /* NEXTSTR is the old address of the next string.
 	     Just skip it if it isn't marked.  */

@@ -492,7 +492,7 @@ describe_category (value)
 
   mnemonics = Fcategory_set_mnemonics (value);
   insert_from_string (mnemonics, 0, 0, XSTRING (mnemonics)->size,
-		      XSTRING (mnemonics)->size_byte, 0);
+		      STRING_BYTES (XSTRING (mnemonics)), 0);
   insert_string ("\n");
   return;
 }
@@ -526,7 +526,7 @@ describe_category_1 (vector)
 	insert_char (i + 32);
 	insert (": ", 2);
 	insert_from_string (elt, 0, 0, XSTRING (elt)->size,
-			    XSTRING (elt)->size_byte, 0);
+			    STRING_BYTES (XSTRING (elt)), 0);
 	insert ("\n", 1);
       }
   }

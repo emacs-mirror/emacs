@@ -4283,7 +4283,8 @@ code_convert_string (str, coding, encodep, nocopy)
 {
   int len;
   char *buf;
-  int from = 0, to = XSTRING (str)->size, to_byte = XSTRING (str)->size_byte;
+  int from = 0, to = XSTRING (str)->size;
+  int to_byte = STRING_BYTES (XSTRING (str));
   struct gcpro gcpro1;
   Lisp_Object saved_coding_symbol = Qnil;
   int result;
@@ -4359,7 +4360,7 @@ code_convert_string (str, coding, encodep, nocopy)
     len = encoding_buffer_size (coding, to_byte - from);
   else
     len = decoding_buffer_size (coding, to_byte - from);
-  len += from + XSTRING (str)->size_byte - to_byte;
+  len += from + STRING_BYTES (XSTRING (str)) - to_byte;
   GCPRO1 (str);
   buf = get_conversion_buffer (len);
   UNGCPRO;
@@ -4381,9 +4382,9 @@ code_convert_string (str, coding, encodep, nocopy)
     }
 
   bcopy (XSTRING (str)->data + to_byte, buf + from + coding->produced,
-	 XSTRING (str)->size_byte - to_byte);
+	 STRING_BYTES (XSTRING (str)) - to_byte);
 
-  len = from + XSTRING (str)->size_byte - to_byte;
+  len = from + STRING_BYTES (XSTRING (str)) - to_byte;
   if (encodep)
     str = make_unibyte_string (buf, len + coding->produced);
   else
@@ -4565,7 +4566,7 @@ highest priority.")
   CHECK_STRING (string, 0);
 
   return detect_coding_system (XSTRING (string)->data,
-			       XSTRING (string)->size_byte,
+			       STRING_BYTES (XSTRING (string)),
 			       !NILP (highest));
 }
 

@@ -135,7 +135,7 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
   if (multibyte == STRING_MULTIBYTE (pattern))
     {
       raw_pattern = (char *) XSTRING (pattern)->data;
-      raw_pattern_size = XSTRING (pattern)->size_byte;
+      raw_pattern_size = STRING_BYTES (XSTRING (pattern));
     }
   else if (multibyte)
     {
@@ -156,7 +156,7 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
       raw_pattern_size = XSTRING (pattern)->size;
       raw_pattern = (char *) alloca (raw_pattern_size + 1);
       copy_text (XSTRING (pattern)->data, raw_pattern,
-		 XSTRING (pattern)->size_byte, 1, 0);
+		 STRING_BYTES (XSTRING (pattern)), 1, 0);
     }
 
   cp->regexp = Qnil;
@@ -368,8 +368,8 @@ string_match_1 (regexp, string, start, posix)
   re_match_object = string;
   
   val = re_search (bufp, (char *) XSTRING (string)->data,
-		   XSTRING (string)->size_byte, pos_byte,
-		   XSTRING (string)->size_byte - pos_byte,
+		   STRING_BYTES (XSTRING (string)), pos_byte,
+		   STRING_BYTES (XSTRING (string)) - pos_byte,
 		   &search_regs);
   immediate_quit = 0;
   last_thing_searched = Qt;
@@ -431,8 +431,8 @@ fast_string_match (regexp, string)
   re_match_object = string;
   
   val = re_search (bufp, (char *) XSTRING (string)->data,
-		   XSTRING (string)->size_byte, 0, XSTRING (string)->size_byte,
-		   0);
+		   STRING_BYTES (XSTRING (string)), 0,
+		   STRING_BYTES (XSTRING (string)), 0);
   immediate_quit = 0;
   return val;
 }
@@ -930,7 +930,7 @@ static int
 trivial_regexp_p (regexp)
      Lisp_Object regexp;
 {
-  int len = XSTRING (regexp)->size_byte;
+  int len = STRING_BYTES (XSTRING (regexp));
   unsigned char *s = XSTRING (regexp)->data;
   unsigned char c;
   while (--len >= 0)
@@ -1004,7 +1004,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
      int posix;
 {
   int len = XSTRING (string)->size;
-  int len_byte = XSTRING (string)->size_byte;
+  int len_byte = STRING_BYTES (XSTRING (string));
   register int i;
 
   if (running_asynch_code)
@@ -1143,7 +1143,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	{
 	  raw_pattern = (char *) XSTRING (string)->data;
 	  raw_pattern_size = XSTRING (string)->size;
-	  raw_pattern_size_byte = XSTRING (string)->size_byte;
+	  raw_pattern_size_byte = STRING_BYTES (XSTRING (string));
 	}
       else if (multibyte)
 	{
@@ -1167,7 +1167,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 	  raw_pattern_size_byte = XSTRING (string)->size;
 	  raw_pattern = (char *) alloca (raw_pattern_size + 1);
 	  copy_text (XSTRING (string)->data, raw_pattern,
-		     XSTRING (string)->size_byte, 1, 0);
+		     STRING_BYTES (XSTRING (string)), 1, 0);
 	}
 
       /* Copy and optionally translate the pattern.  */
@@ -1951,13 +1951,13 @@ wordify (string)
 
   adjust = - punct_count + 5 * (word_count - 1) + 4;
   val = make_uninit_multibyte_string (len + adjust,
-				      XSTRING (string)->size_byte + adjust);
+				      STRING_BYTES (XSTRING (string)) + adjust);
 
   o = XSTRING (val)->data;
   *o++ = '\\';
   *o++ = 'b';
 
-  for (i = 0; i < XSTRING (val)->size_byte; i++)
+  for (i = 0; i < STRING_BYTES (XSTRING (val)); i++)
     if (SYNTAX (p[i]) == Sword)
       *o++ = p[i];
     else if (i > 0 && SYNTAX (p[i-1]) == Sword && --word_count)
@@ -2283,7 +2283,7 @@ since only regular expressions have distinguished subexpressions.")
 
 	  accum = Qnil;
 
-	  for (pos_byte = 0, pos = 0; pos_byte < XSTRING (newtext)->size_byte;)
+	  for (pos_byte = 0, pos = 0; pos_byte < STRING_BYTES (XSTRING (newtext));)
 	    {
 	      int substart = -1;
 	      int subend;
@@ -2693,12 +2693,12 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
 
   CHECK_STRING (string, 0);
 
-  temp = (unsigned char *) alloca (XSTRING (string)->size_byte * 2);
+  temp = (unsigned char *) alloca (STRING_BYTES (XSTRING (string)) * 2);
 
   /* Now copy the data into the new string, inserting escapes. */
 
   in = XSTRING (string)->data;
-  end = in + XSTRING (string)->size_byte;
+  end = in + STRING_BYTES (XSTRING (string));
   out = temp; 
 
   for (; in != end; in++)

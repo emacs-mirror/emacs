@@ -1157,12 +1157,12 @@ START and END optionally delimit a substring of STRING from which to read;\n\
   CHECK_STRING (string,0);
 
   if (NILP (end))
-    endval = XSTRING (string)->size_byte;
+    endval = STRING_BYTES (XSTRING (string));
   else
     {
       CHECK_NUMBER (end, 2);
       endval = string_char_to_byte (string, XINT (end));
-      if (endval < 0 || endval > XSTRING (string)->size_byte)
+      if (endval < 0 || endval > STRING_BYTES (XSTRING (string)))
 	args_out_of_range (string, end);
     }
 
@@ -2255,7 +2255,7 @@ it defaults to the value of `obarray'.")
 
   tem = oblookup (obarray, XSTRING (string)->data,
 		  XSTRING (string)->size,
-		  XSTRING (string)->size_byte);
+		  STRING_BYTES (XSTRING (string)));
   if (!INTEGERP (tem))
     return tem;
 
@@ -2292,7 +2292,7 @@ it defaults to the value of `obarray'.")
 
   tem = oblookup (obarray, XSTRING (string)->data,
 		  XSTRING (string)->size,
-		  XSTRING (string)->size_byte);
+		  STRING_BYTES (XSTRING (string)));
   if (!INTEGERP (tem))
     return tem;
   return Qnil;
@@ -2323,7 +2323,7 @@ OBARRAY defaults to the value of the variable `obarray'.")
 
   tem = oblookup (obarray, XSTRING (string)->data,
 		  XSTRING (string)->size,
-		  XSTRING (string)->size_byte);
+		  STRING_BYTES (XSTRING (string)));
   if (INTEGERP (tem))
     return Qnil;
   /* If arg was a symbol, don't delete anything but that symbol itself.  */
@@ -2398,7 +2398,7 @@ oblookup (obarray, ptr, size, size_byte)
   else
     for (tail = bucket; ; XSETSYMBOL (tail, XSYMBOL (tail)->next))
       {
-	if (XSYMBOL (tail)->name->size_byte == size_byte
+	if (STRING_BYTES (XSYMBOL (tail)->name) == size_byte
 	    && XSYMBOL (tail)->name->size == size
 	    && !bcmp (XSYMBOL (tail)->name->data, ptr, size_byte))
 	  return tail;

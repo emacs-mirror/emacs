@@ -877,7 +877,7 @@ x_consider_frame_title (frame)
      already wasted too much time by walking through the list with
      display_mode_element, then we might need to optimize at a higher
      level than this.)  */
-  if (! STRINGP (f->name) || XSTRING (f->name)->size_byte != len
+  if (! STRINGP (f->name) || STRING_BYTES (XSTRING (f->name)) != len
       || bcmp (frame_title_buf, XSTRING (f->name)->data, len) != 0)
     x_implicitly_set_name (f, make_string (frame_title_buf, len), Qnil);
 }
@@ -3231,7 +3231,7 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 
 	  minibuf_prompt_width
 	    = (display_string (w, vpos, XSTRING (minibuf_prompt)->data,
-			       XSTRING (minibuf_prompt)->size_byte,
+			       STRING_BYTES (XSTRING (minibuf_prompt)),
 			       hpos + WINDOW_LEFT_MARGIN (w),
 			       /* Display a space if we truncate.  */
 			       ' ',
@@ -4104,7 +4104,7 @@ display_menu_bar (w)
       if (hpos < maxendcol)
 	hpos = display_string (w, vpos,
 			       XSTRING (string)->data,
-			       XSTRING (string)->size_byte,
+			       STRING_BYTES (XSTRING (string)),
 			       hpos, 0, 0, hpos, maxendcol,
 			       STRING_MULTIBYTE (string));
       /* Put a space between items.  */
@@ -4311,7 +4311,7 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 					    minendcol, maxendcol);
 		else
 		  hpos = display_string (w, vpos, XSTRING (tem)->data,
-					 XSTRING (tem)->size_byte,
+					 STRING_BYTES (XSTRING (tem)),
 					 hpos, 0, 1, minendcol, maxendcol,
 					 STRING_MULTIBYTE (tem));
 	      }
@@ -4607,7 +4607,7 @@ decode_mode_spec (w, c, spec_width, maxwidth)
     case 'b': 
       obj = b->name;
 #if 0
-      if (maxwidth >= 3 && XSTRING (obj)->size_byte > maxwidth)
+      if (maxwidth >= 3 && STRING_BYTES (XSTRING (obj)) > maxwidth)
 	{
 	  bcopy (XSTRING (obj)->data, decode_mode_spec_buf, maxwidth - 1);
 	  decode_mode_spec_buf[maxwidth - 1] = '\\';
@@ -4641,10 +4641,10 @@ decode_mode_spec (w, c, spec_width, maxwidth)
 #if 0
       if (NILP (obj))
 	return "[none]";
-      else if (STRINGP (obj) && XSTRING (obj)->size_byte > maxwidth)
+      else if (STRINGP (obj) && STRING_BYTES (XSTRING (obj)) > maxwidth)
 	{
 	  bcopy ("...", decode_mode_spec_buf, 3);
-	  bcopy (XSTRING (obj)->data + XSTRING (obj)->size_byte - maxwidth + 3,
+	  bcopy (XSTRING (obj)->data + STRING_BYTES (XSTRING (obj)) - maxwidth + 3,
 		 decode_mode_spec_buf + 3, maxwidth - 3);
 	  return decode_mode_spec_buf;
 	}

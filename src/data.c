@@ -1648,7 +1648,7 @@ or a byte-code object.  IDX starts at 0.")
       idxval_byte = string_char_to_byte (array, idxval);
 
       c = STRING_CHAR (&XSTRING (array)->data[idxval_byte],
-		       XSTRING (array)->size_byte - idxval_byte);
+		       STRING_BYTES (XSTRING (array)) - idxval_byte);
       return make_number (c);
     }
   else if (BOOL_VECTOR_P (array))
@@ -1847,7 +1847,7 @@ IDX starts at 0.")
       p = &XSTRING (array)->data[idxval_byte];
 
       actual_len
-	= MULTIBYTE_FORM_LENGTH (p, XSTRING (array)->size_byte - idxval_byte);
+	= MULTIBYTE_FORM_LENGTH (p, STRING_BYTES (XSTRING (array)) - idxval_byte);
       new_len = Fchar_bytes (newelt);
       if (actual_len != XINT (new_len))
 	error ("Attempt to change byte length of a string");

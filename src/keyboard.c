@@ -617,11 +617,11 @@ echo_char (c)
       else if (SYMBOLP (c))
 	{
 	  struct Lisp_String *name = XSYMBOL (c)->name;
-	  if ((ptr - current_kboard->echobuf) + name->size_byte + 4
+	  if ((ptr - current_kboard->echobuf) + STRING_BYTES (name) + 4
 	      > ECHOBUFSIZE)
 	    return;
-	  bcopy (name->data, ptr, name->size_byte);
-	  ptr += name->size_byte;
+	  bcopy (name->data, ptr, STRING_BYTES (name));
+	  ptr += STRING_BYTES (name);
 	}
 
       if (current_kboard->echoptr == current_kboard->echobuf
@@ -2378,7 +2378,7 @@ record_char (c)
 	    {
 	      putc ('<', dribble);
 	      fwrite (XSYMBOL (dribblee)->name->data, sizeof (char),
-		      XSYMBOL (dribblee)->name->size_byte,
+		      STRING_BYTES (XSYMBOL (dribblee)->name),
 		      dribble);
 	      putc ('>', dribble);
 	    }
@@ -4340,7 +4340,7 @@ parse_modifiers_uncached (symbol, modifier_end)
   modifiers = 0;
   name = XSYMBOL (symbol)->name;
 
-  for (i = 0; i+2 <= name->size_byte; )
+  for (i = 0; i+2 <= STRING_BYTES (name); )
     {
       int this_mod_end = 0;
       int this_mod = 0;
@@ -4387,7 +4387,8 @@ parse_modifiers_uncached (symbol, modifier_end)
 
       /* Check there is a dash after the modifier, so that it
 	 really is a modifier.  */
-      if (this_mod_end >= name->size_byte || name->data[this_mod_end] != '-')
+      if (this_mod_end >= STRING_BYTES (name)
+	  || name->data[this_mod_end] != '-')
 	break;
 
       /* This modifier is real; look for another.  */
@@ -4398,7 +4399,7 @@ parse_modifiers_uncached (symbol, modifier_end)
   /* Should we include the `click' modifier?  */
   if (! (modifiers & (down_modifier | drag_modifier
 		      | double_modifier | triple_modifier))
-      && i + 7 == name->size_byte
+      && i + 7 == STRING_BYTES (name)
       && strncmp (name->data + i, "mouse-", 6) == 0
       && ('0' <= name->data[i + 6] && name->data[i + 6] <= '9'))
     modifiers |= click_modifier;
@@ -4515,7 +4516,7 @@ parse_modifiers (symbol)
       Lisp_Object mask;
 
       unmodified = Fintern (make_string (XSYMBOL (symbol)->name->data + end,
-					 XSYMBOL (symbol)->name->size_byte - end),
+					 STRING_BYTES (XSYMBOL (symbol)->name) - end),
 			    Qnil);
 
       if (modifiers & ~(((EMACS_INT)1 << VALBITS) - 1))
@@ -4570,7 +4571,7 @@ apply_modifiers (modifiers, base)
       new_symbol = apply_modifiers_uncached (modifiers,
 					     XSYMBOL (base)->name->data,
 					     XSYMBOL (base)->name->size,
-					     XSYMBOL (base)->name->size_byte);
+					     STRING_BYTES (XSYMBOL (base)->name));
 
       /* Add the new symbol to the base's cache.  */
       entry = Fcons (index, new_symbol);
@@ -4818,11 +4819,11 @@ parse_solitary_modifier (symbol)
   switch (name->data[0])
     {
 #define SINGLE_LETTER_MOD(BIT)				\
-      if (name->size_byte == 1)				\
+      if (STRING_BYTES (name) == 1)			\
 	return BIT;
 
 #define MULTI_LETTER_MOD(BIT, NAME, LEN)		\
-      if (LEN == name->size_byte			\
+      if (LEN == STRING_BYTES (name)			\
 	  && ! strncmp (name->data, NAME, LEN))		\
 	return BIT;
 
@@ -5989,7 +5990,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 
   /* Prompt string always starts with map's prompt, and a space.  */
   strcpy (menu, XSTRING (name)->data);
-  nlength = XSTRING (name)->size_byte;
+  nlength = STRING_BYTES (XSTRING (name));
   menu[nlength++] = ':';
   menu[nlength++] = ' ';
   menu[nlength] = 0;
@@ -7608,7 +7609,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 
 	  newmessage
 	    = (char *) alloca (XSYMBOL (function)->name->size
-			       + XSTRING (binding)->size_byte
+			       + STRING_BYTES (XSTRING (binding))
 			       + 100);
 	  sprintf (newmessage, "You can run the command `%s' with %s",
 		   XSYMBOL (function)->name->data,
@@ -7928,7 +7929,7 @@ stuff_buffered_input (stuffstring)
       register int count;
 
       p = XSTRING (stuffstring)->data;
-      count = XSTRING (stuffstring)->size_byte;
+      count = STRING_BYTES (XSTRING (stuffstring));
       while (count-- > 0)
 	stuff_char (*p++);
       stuff_char ('\n');

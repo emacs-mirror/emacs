@@ -747,7 +747,7 @@ Optional arg TABLE if non-nil is a unification table to look up.")
     return Qnil;
 
   bzero (charsets, (MAX_CHARSET + 1) * sizeof (int));
-  find_charset_in_str (XSTRING (str)->data, XSTRING (str)->size_byte,
+  find_charset_in_str (XSTRING (str)->data, STRING_BYTES (XSTRING (str)),
 		       charsets, table);
   val = Qnil;
   for (i = MAX_CHARSET; i >= 0; i--)
@@ -1029,7 +1029,8 @@ the following bytes is not checked.")
   Lisp_Object val;
 
   CHECK_STRING (str, 0);
-  XSETFASTINT (val, strwidth (XSTRING (str)->data, XSTRING (str)->size_byte));
+  XSETFASTINT (val, strwidth (XSTRING (str)->data,
+			      STRING_BYTES (XSTRING (str))));
   return val;
 }
 
@@ -1519,7 +1520,7 @@ DEFUN ("compose-string", Fcompose_string, Scompose_string,
 
   buf[0] = LEADING_CODE_COMPOSITION;
   p = XSTRING (str)->data;
-  pend = p + XSTRING (str)->size_byte;
+  pend = p + STRING_BYTES (XSTRING (str));
   i = 1;
   while (p < pend)
     {

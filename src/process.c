@@ -1089,12 +1089,12 @@ Remaining arguments are strings to give program as arguments.")
 #ifdef VMS
   /* Make a one member argv with all args concatenated
      together separated by a blank.  */
-  len = XSTRING (program)->size_byte + 2;
+  len = STRING_BYTES (XSTRING (program)) + 2;
   for (i = 3; i < nargs; i++)
     {
       tem = args[i];
       CHECK_STRING (tem, i);
-      len += XSTRING (tem)->size_byte + 1;	/* count the blank */
+      len += STRING_BYTES (XSTRING (tem)) + 1;	/* count the blank */
     }
   new_argv = (unsigned char *) alloca (len);
   strcpy (new_argv, XSTRING (program)->data);
@@ -2756,7 +2756,7 @@ read_process_output (proc, channel)
       char *buf = (char *) xmalloc (nbytes + carryover);
 
       bcopy (XSTRING (p->decoding_buf)->data
-	     + XSTRING (p->decoding_buf)->size_byte - carryover,
+	     + STRING_BYTES (XSTRING (p->decoding_buf)) - carryover,
 	     buf, carryover);
       bcopy (chars, buf + carryover, nbytes);
       chars = buf;
@@ -2767,7 +2767,7 @@ read_process_output (proc, channel)
   if (carryover)
     /* See the comment above.  */
     bcopy (XSTRING (p->decoding_buf)->data
-	   + XSTRING (p->decoding_buf)->size_byte - carryover,
+	   + STRING_BYTES (XSTRING (p->decoding_buf)) - carryover,
 	   buf, carryover);
 
   if (proc_buffered_char[channel] < 0)
@@ -2799,10 +2799,10 @@ read_process_output (proc, channel)
       int require = decoding_buffer_size (coding, nbytes);
       int result;
       
-      if (XSTRING (p->decoding_buf)->size_byte < require)
+      if (STRING_BYTES (XSTRING (p->decoding_buf)) < require)
 	p->decoding_buf = make_uninit_string (require);
       result = decode_coding (coding, chars, XSTRING (p->decoding_buf)->data,
-			      nbytes, XSTRING (p->decoding_buf)->size_byte);
+			      nbytes, STRING_BYTES (XSTRING (p->decoding_buf)));
       carryover = nbytes - coding->consumed;
 
       /* A new coding system might be found by `decode_coding'.  */
@@ -3111,7 +3111,7 @@ send_process (proc, buf, len, object)
 	      offset = -1;
 	    }
 	  bcopy ((XSTRING (XPROCESS (proc)->encoding_buf)->data
-		  + XSTRING (XPROCESS (proc)->encoding_buf)->size_byte
+		  + STRING_BYTES (XSTRING (XPROCESS (proc)->encoding_buf))
 		  - carryover),
 		 temp_buf,
 		 carryover);
@@ -3119,7 +3119,7 @@ send_process (proc, buf, len, object)
 	  buf = temp_buf;
 	}
 
-      if (XSTRING (XPROCESS (proc)->encoding_buf)->size_byte < require)
+      if (STRING_BYTES (XSTRING (XPROCESS (proc)->encoding_buf)) < require)
 	{
 	  XPROCESS (proc)->encoding_buf = make_uninit_string (require);
 
@@ -3133,7 +3133,7 @@ send_process (proc, buf, len, object)
 	}
       object = XPROCESS (proc)->encoding_buf;
       encode_coding (coding, buf, XSTRING (object)->data,
-		     len, XSTRING (object)->size_byte);
+		     len, STRING_BYTES (XSTRING (object)));
       len = coding->produced;
       buf = XSTRING (object)->data;
       if (temp_buf)
@@ -3318,7 +3318,7 @@ Output from processes can arrive in between bunches.")
   CHECK_STRING (string, 1);
   proc = get_process (process);
   send_process (proc, XSTRING (string)->data,
-		XSTRING (string)->size_byte, string);
+		STRING_BYTES (XSTRING (string)), string);
   return Qnil;
 }
 

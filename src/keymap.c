@@ -3026,7 +3026,7 @@ describe_vector (vector, elt_prefix, elt_describer,
 	      tem2 = CHARSET_TABLE_INFO (i - 128, CHARSET_SHORT_NAME_IDX);
 	      if (STRINGP (tem2))
 		insert_from_string (tem2, 0, 0, XSTRING (tem2)->size,
-				    XSTRING (tem2)->size_byte, 0);
+				    STRING_BYTES (XSTRING (tem2)), 0);
 	      else
 		insert ("?", 1);
 	      insert (">", 1);

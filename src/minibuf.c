@@ -480,7 +480,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 	  /* Ignore trailing whitespace; any other trailing junk is an error.  */
 	  int i;
 	  pos = string_char_to_byte (val, pos);
-	  for (i = pos; i < XSTRING (val)->size_byte; i++)
+	  for (i = pos; i < STRING_BYTES (XSTRING (val)); i++)
 	    {
 	      int c = XSTRING (val)->data[i];
 	      if (c != ' ' && c != '\t' && c != '\n')
@@ -954,9 +954,9 @@ or the symbol from the obarray.")
       /* Is this element a possible completion? */
 
       if (STRINGP (eltstring)
-	  && XSTRING (string)->size_byte <= XSTRING (eltstring)->size_byte
+	  && STRING_BYTES (XSTRING (string)) <= STRING_BYTES (XSTRING (eltstring))
 	  && 0 > scmp (XSTRING (eltstring)->data, XSTRING (string)->data,
-		       XSTRING (string)->size_byte))
+		       STRING_BYTES (XSTRING (string))))
 	{
 	  /* Yes. */
 	  Lisp_Object regexps;
@@ -996,11 +996,11 @@ or the symbol from the obarray.")
 	  if (NILP (bestmatch))
 	    {
 	      bestmatch = eltstring;
-	      bestmatchsize = XSTRING (eltstring)->size_byte;
+	      bestmatchsize = STRING_BYTES (XSTRING (eltstring));
 	    }
 	  else
 	    {
-	      compare = min (bestmatchsize, XSTRING (eltstring)->size_byte);
+	      compare = min (bestmatchsize, STRING_BYTES (XSTRING (eltstring)));
 	      matchsize = scmp (XSTRING (bestmatch)->data,
 				XSTRING (eltstring)->data,
 				compare);
@@ -1012,8 +1012,8 @@ or the symbol from the obarray.")
 		     use it as the best match rather than one that is not an
 		     exact match.  This way, we get the case pattern
 		     of the actual match.  */
-		  if ((matchsize == XSTRING (eltstring)->size_byte
-		       && matchsize < XSTRING (bestmatch)->size_byte)
+		  if ((matchsize == STRING_BYTES (XSTRING (eltstring))
+		       && matchsize < STRING_BYTES (XSTRING (bestmatch)))
 		      ||
 		      /* If there is more than one exact match ignoring case,
 			 and one of them is exact including case,
@@ -1021,15 +1021,15 @@ or the symbol from the obarray.")
 		      /* If there is no exact match ignoring case,
 			 prefer a match that does not change the case
 			 of the input.  */
-		      ((matchsize == XSTRING (eltstring)->size_byte)
+		      ((matchsize == STRING_BYTES (XSTRING (eltstring)))
 		       ==
-		       (matchsize == XSTRING (bestmatch)->size_byte)
+		       (matchsize == STRING_BYTES (XSTRING (bestmatch)))
 		       && !bcmp (XSTRING (eltstring)->data,
 				 XSTRING (string)->data,
-				 XSTRING (string)->size_byte)
+				 STRING_BYTES (XSTRING (string)))
 		       && bcmp (XSTRING (bestmatch)->data,
 				XSTRING (string)->data,
-				XSTRING (string)->size_byte)))
+				STRING_BYTES (XSTRING (string)))))
 		    bestmatch = eltstring;
 		}
 	      bestmatchsize = matchsize;
@@ -1042,13 +1042,13 @@ or the symbol from the obarray.")
   /* If we are ignoring case, and there is no exact match,
      and no additional text was supplied,
      don't change the case of what the user typed.  */
-  if (completion_ignore_case && bestmatchsize == XSTRING (string)->size_byte
-      && XSTRING (bestmatch)->size_byte > bestmatchsize)
+  if (completion_ignore_case && bestmatchsize == STRING_BYTES (XSTRING (string))
+      && STRING_BYTES (XSTRING (bestmatch)) > bestmatchsize)
     return string;
 
   /* Return t if the supplied string is an exact match (counting case);
      it does not require any change to be made.  */
-  if (matchcount == 1 && bestmatchsize == XSTRING (string)->size_byte
+  if (matchcount == 1 && bestmatchsize == STRING_BYTES (XSTRING (string))
       && !bcmp (XSTRING (bestmatch)->data, XSTRING (string)->data,
 		bestmatchsize))
     return Qt;
@@ -1182,15 +1182,15 @@ are ignored unless STRING itself starts with a space.")
       /* Is this element a possible completion? */
 
       if (STRINGP (eltstring)
-	  && XSTRING (string)->size_byte <= XSTRING (eltstring)->size_byte
+	  && STRING_BYTES (XSTRING (string)) <= STRING_BYTES (XSTRING (eltstring))
 	  /* If HIDE_SPACES, reject alternatives that start with space
 	     unless the input starts with space.  */
-	  && ((XSTRING (string)->size_byte > 0
+	  && ((STRING_BYTES (XSTRING (string)) > 0
 	       && XSTRING (string)->data[0] == ' ')
 	      || XSTRING (eltstring)->data[0] != ' '
 	      || NILP (hide_spaces))
 	  && 0 > scmp (XSTRING (eltstring)->data, XSTRING (string)->data,
-		       XSTRING (string)->size_byte))
+		       STRING_BYTES (XSTRING (string))))
 	{
 	  /* Yes. */
 	  Lisp_Object regexps;
@@ -1356,7 +1356,7 @@ test_completion (txt)
       tem = oblookup (Vminibuffer_completion_table,
 		      XSTRING (txt)->data,
 		      XSTRING (txt)->size,
-		      XSTRING (txt)->size_byte);
+		      STRING_BYTES (XSTRING (txt)));
       if (!SYMBOLP (tem))
 	return Qnil;
       else if (!NILP (Vminibuffer_completion_predicate))
@@ -1658,13 +1658,13 @@ Return nil if there is no valid completion, else t.")
 	    tem = substituted;
 	    Ferase_buffer ();
 	    insert_from_string (tem, 0, 0, XSTRING (tem)->size,
-				XSTRING (tem)->size_byte, 0);
+				STRING_BYTES (XSTRING (tem)), 0);
 	  }
       }
     buffer_string = XSTRING (tem)->data;
     completion_string = XSTRING (completion)->data;
-    buffer_nbytes = XSTRING (tem)->size_byte; /* ie ZV_BYTE - BEGV_BYTE */
-    completion_nbytes = XSTRING (completion)->size_byte;
+    buffer_nbytes = STRING_BYTES (XSTRING (tem)); /* ie ZV_BYTE - BEGV_BYTE */
+    completion_nbytes = STRING_BYTES (XSTRING (completion));
     i_byte = buffer_nbytes - completion_nbytes;
     if (i_byte > 0 ||
 	0 <= scmp (buffer_string, completion_string, buffer_nbytes))
@@ -1716,7 +1716,7 @@ Return nil if there is no valid completion, else t.")
     int len, c;
 
     completion_string = XSTRING (completion)->data;
-    for (; i_byte < XSTRING (completion)->size_byte; i_byte += len, i++)
+    for (; i_byte < STRING_BYTES (XSTRING (completion)); i_byte += len, i++)
       {
 	c = STRING_CHAR_AND_LENGTH (completion_string + i_byte,
 				    XSTRING (completion)->size - i_byte,

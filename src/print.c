@@ -536,7 +536,7 @@ print_string (string, printcharfun)
     /* strout is safe for output to a frame (echo area) or to print_buffer.  */
     strout (XSTRING (string)->data,
 	    XSTRING (string)->size,
-	    XSTRING (string)->size_byte,
+	    STRING_BYTES (XSTRING (string)),
 	    printcharfun, STRING_MULTIBYTE (string));
   else
     {
@@ -544,7 +544,7 @@ print_string (string, printcharfun)
 	 So re-fetch the string address for each character.  */
       int i;
       int size = XSTRING (string)->size;
-      int size_byte = XSTRING (string)->size_byte;
+      int size_byte = STRING_BYTES (XSTRING (string));
       struct gcpro gcpro1;
       GCPRO1 (string);
       if (size == size_byte)
@@ -1162,7 +1162,7 @@ print (obj, printcharfun, escapeflag)
 #endif
 
 	  PRINTCHAR ('\"');
-	  size_byte = XSTRING (obj)->size_byte;
+	  size_byte = STRING_BYTES (XSTRING (obj));
 
 	  for (i = 0, i_byte = 0; i_byte < size_byte;)
 	    {
@@ -1234,7 +1234,7 @@ print (obj, printcharfun, escapeflag)
       {
 	register int confusing;
 	register unsigned char *p = XSYMBOL (obj)->name->data;
-	register unsigned char *end = p + XSYMBOL (obj)->name->size_byte;
+	register unsigned char *end = p + STRING_BYTES (XSYMBOL (obj)->name);
 	register int c;
 	int i, i_byte, size_byte;
 	Lisp_Object name;
@@ -1296,7 +1296,7 @@ print (obj, printcharfun, escapeflag)
 	    PRINTCHAR (':');
 	  }
 
-	size_byte = XSTRING (name)->size_byte;
+	size_byte = STRING_BYTES (XSTRING (name));
 
 	for (i = 0, i_byte = 0; i_byte < size_byte;)
 	  {

@@ -2364,9 +2364,9 @@ record_overlay_string (ssl, str, str2, pri, size)
     nbytes = XSTRING (str)->size;
   else if (! STRING_MULTIBYTE (str))
     nbytes = count_size_as_multibyte (XSTRING (str)->data,
-				      XSTRING (str)->size_byte);
+				      STRING_BYTES (XSTRING (str)));
   else
-    nbytes = XSTRING (str)->size_byte;
+    nbytes = STRING_BYTES (XSTRING (str));
 
   ssl->bytes += nbytes;
 
@@ -2376,9 +2376,9 @@ record_overlay_string (ssl, str, str2, pri, size)
 	nbytes = XSTRING (str2)->size;
       else if (! STRING_MULTIBYTE (str2))
 	nbytes = count_size_as_multibyte (XSTRING (str2)->data,
-					  XSTRING (str2)->size_byte);
+					  STRING_BYTES (XSTRING (str2)));
       else
-	nbytes = XSTRING (str2)->size_byte;
+	nbytes = STRING_BYTES (XSTRING (str2));
 
       ssl->bytes += nbytes;
     }
@@ -2490,7 +2490,8 @@ overlay_strings (pos, w, pstr)
 	{
 	  int nbytes;
 	  tem = overlay_tails.buf[i].string;
-	  nbytes = copy_text (XSTRING (tem)->data, p, XSTRING (tem)->size_byte,
+	  nbytes = copy_text (XSTRING (tem)->data, p,
+			      STRING_BYTES (XSTRING (tem)),
 			      STRING_MULTIBYTE (tem), multibyte);
 	  p += nbytes;
 	}
@@ -2498,14 +2499,15 @@ overlay_strings (pos, w, pstr)
 	{
 	  int nbytes;
 	  tem = overlay_heads.buf[i].string;
-	  nbytes = copy_text (XSTRING (tem)->data, p, XSTRING (tem)->size_byte,
+	  nbytes = copy_text (XSTRING (tem)->data, p,
+			      STRING_BYTES (XSTRING (tem)),
 			      STRING_MULTIBYTE (tem), multibyte);
 	  p += nbytes;
 	  tem = overlay_heads.buf[i].string2;
 	  if (STRINGP (tem))
 	    {
 	      nbytes = copy_text (XSTRING (tem)->data, p,
-				  XSTRING (tem)->size_byte,
+				  STRING_BYTES (XSTRING (tem)),
 				  STRING_MULTIBYTE (tem), multibyte);
 	      p += nbytes;
 	    }

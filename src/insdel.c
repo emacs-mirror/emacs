@@ -1189,7 +1189,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
   intervals = XSTRING (string)->intervals;
   /* Get the intervals for the part of the string we are inserting--
      not including the combined-before bytes.  */
-  if (nbytes < XSTRING (string)->size_byte)
+  if (nbytes < STRING_BYTES (XSTRING (string)))
     intervals = copy_intervals (intervals, pos, nchars);
 			       
   /* Insert those intervals.  */
@@ -1497,7 +1497,7 @@ replace_range (from, to, new, prepare, inherit, nomarkers)
      int from, to, prepare, inherit, nomarkers;
 {
   int inschars = XSTRING (new)->size;
-  int insbytes = XSTRING (new)->size_byte;
+  int insbytes = STRING_BYTES (XSTRING (new));
   int from_byte, to_byte;
   int nbytes_del, nchars_del;
   register Lisp_Object temp;

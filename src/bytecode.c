@@ -306,7 +306,7 @@ If the third argument is incorrect, Emacs may crash.")
   /* Cached address of beginning of string,
      valid if BYTESTR equals STRING_SAVED.  */
   register unsigned char *strbeg;
-  int bytestr_length = XSTRING (bytestr)->size_byte;
+  int bytestr_length = STRING_BYTES (XSTRING (bytestr));
 
   CHECK_STRING (bytestr, 0);
   if (!VECTORP (vector))

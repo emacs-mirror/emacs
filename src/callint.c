@@ -288,8 +288,9 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
     {
       /* Make a copy of string so that if a GC relocates specs,
 	 `string' will still be valid.  */
-      string = (unsigned char *) alloca (XSTRING (specs)->size_byte + 1);
-      bcopy (XSTRING (specs)->data, string, XSTRING (specs)->size_byte + 1);
+      string = (unsigned char *) alloca (STRING_BYTES (XSTRING (specs)) + 1);
+      bcopy (XSTRING (specs)->data, string,
+	     STRING_BYTES (XSTRING (specs)) + 1);
     }
   else if (string == 0)
     {

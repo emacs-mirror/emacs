@@ -63,7 +63,7 @@ casify_object (flag, obj)
 	  int multibyte = STRING_MULTIBYTE (obj);
 
 	  obj = Fcopy_sequence (obj);
-	  len = XSTRING (obj)->size_byte;
+	  len = STRING_BYTES (XSTRING (obj));
 
 	  /* Scan all single-byte characters from start of string.  */
 	  for (i = 0; i < len;)

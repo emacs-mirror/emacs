@@ -2251,11 +2251,12 @@ Control characters in STRING will have terminal-dependent effects.")
 {
   /* ??? Perhaps we should do something special for multibyte strings here.  */
   CHECK_STRING (string, 0);
-  fwrite (XSTRING (string)->data, 1, XSTRING (string)->size_byte, stdout);
+  fwrite (XSTRING (string)->data, 1, STRING_BYTES (XSTRING (string)), stdout);
   fflush (stdout);
   if (termscript)
     {
-      fwrite (XSTRING (string)->data, 1, XSTRING (string)->size_byte, termscript);
+      fwrite (XSTRING (string)->data, 1, STRING_BYTES (XSTRING (string)),
+	      termscript);
       fflush (termscript);
     }
   return Qnil;

@@ -186,7 +186,7 @@ If STRING is a multibyte string, this is greater than the length of STRING.")
      Lisp_Object string;
 {
   CHECK_STRING (string, 1);
-  return make_number (XSTRING (string)->size_byte);
+  return make_number (STRING_BYTES (XSTRING (string)));
 }
 
 DEFUN ("string-equal", Fstring_equal, Sstring_equal, 2, 2, 0,
@@ -204,8 +204,8 @@ Symbols are also allowed; their print names are used instead.")
   CHECK_STRING (s2, 1);
 
   if (XSTRING (s1)->size != XSTRING (s2)->size
-      || XSTRING (s1)->size_byte != XSTRING (s2)->size_byte
-      || bcmp (XSTRING (s1)->data, XSTRING (s2)->data, XSTRING (s1)->size_byte))
+      || STRING_BYTES (XSTRING (s1)) != STRING_BYTES (XSTRING (s2))
+      || bcmp (XSTRING (s1)->data, XSTRING (s2)->data, STRING_BYTES (XSTRING (s1))))
     return Qnil;
   return Qt;
 }
@@ -488,7 +488,7 @@ concat (nargs, args, target_type, last_special)
 	      if (STRING_MULTIBYTE (this))
 		{
 		  some_multibyte = 1;
-		  result_len_byte += XSTRING (this)->size_byte;
+		  result_len_byte += STRING_BYTES (XSTRING (this));
 		}
 	      else
 		result_len_byte += count_size_as_multibyte (XSTRING (this)->data,
@@ -542,9 +542,9 @@ concat (nargs, args, target_type, last_special)
       if (STRINGP (this) && STRINGP (val)
 	  && STRING_MULTIBYTE (this) == some_multibyte)
 	{
-	  int thislen_byte = XSTRING (this)->size_byte;
+	  int thislen_byte = STRING_BYTES (XSTRING (this));
 	  bcopy (XSTRING (this)->data, XSTRING (val)->data + toindex_byte,
-		 XSTRING (this)->size_byte);
+		 STRING_BYTES (XSTRING (this)));
 	  toindex_byte += thislen_byte;
 	  toindex += thisleni;
 	}
@@ -664,7 +664,7 @@ string_char_to_byte (string, char_index)
 
   best_below = best_below_byte = 0;
   best_above = XSTRING (string)->size;
-  best_above_byte = XSTRING (string)->size_byte;
+  best_above_byte = STRING_BYTES (XSTRING (string));
 
   if (EQ (string, string_char_byte_cache_string))
     {
@@ -730,7 +730,7 @@ string_byte_to_char (string, byte_index)
 
   best_below = best_below_byte = 0;
   best_above = XSTRING (string)->size;
-  best_above_byte = XSTRING (string)->size_byte;
+  best_above_byte = STRING_BYTES (XSTRING (string));
 
   if (EQ (string, string_char_byte_cache_string))
     {
@@ -798,11 +798,11 @@ string_make_multibyte (string)
 				    XSTRING (string)->size);
   /* If all the chars are ASCII, they won't need any more bytes
      once converted.  In that case, we can return STRING itself.  */
-  if (nbytes == XSTRING (string)->size_byte)
+  if (nbytes == STRING_BYTES (XSTRING (string)))
     return string;
 
   buf = (unsigned char *) alloca (nbytes);
-  copy_text (XSTRING (string)->data, buf, XSTRING (string)->size_byte,
+  copy_text (XSTRING (string)->data, buf, STRING_BYTES (XSTRING (string)),
 	     0, 1);
 
   return make_multibyte_string (buf, XSTRING (string)->size, nbytes);
@@ -821,7 +821,7 @@ string_make_unibyte (string)
 
   buf = (unsigned char *) alloca (XSTRING (string)->size);
 
-  copy_text (XSTRING (string)->data, buf, XSTRING (string)->size_byte,
+  copy_text (XSTRING (string)->data, buf, STRING_BYTES (XSTRING (string)),
 	     1, 0);
 
   return make_unibyte_string (buf, XSTRING (string)->size);
@@ -855,7 +855,7 @@ If STRING is unibyte, the result is STRING itself.")
   if (STRING_MULTIBYTE (string))
     {
       string = Fcopy_sequence (string);
-      XSTRING (string)->size = XSTRING (string)->size_byte;
+      XSTRING (string)->size = STRING_BYTES (XSTRING (string));
     }
   return string;
 }
@@ -870,9 +870,9 @@ If STRING is multibyte, the result is STRING itself.")
   if (! STRING_MULTIBYTE (string))
     {
       int newlen = multibyte_chars_in_text (XSTRING (string)->data,
-					    XSTRING (string)->size_byte);
+					    STRING_BYTES (XSTRING (string)));
       /* If all the chars are ASCII, STRING is already suitable.  */
-      if (newlen != XSTRING (string)->size_byte)
+      if (newlen != STRING_BYTES (XSTRING (string)))
 	{
 	  string = Fcopy_sequence (string);
 	  XSTRING (string)->size = newlen;
@@ -932,7 +932,7 @@ This function allows vectors as well as strings.")
   if (STRINGP (string))
     {
       size = XSTRING (string)->size;
-      size_byte = XSTRING (string)->size_byte;
+      size_byte = STRING_BYTES (XSTRING (string));
     }
   else
     size = XVECTOR (string)->size;
@@ -996,7 +996,7 @@ substring_both (string, from, from_byte, to, to_byte)
   if (STRINGP (string))
     {
       size = XSTRING (string)->size;
-      size_byte = XSTRING (string)->size_byte;
+      size_byte = STRING_BYTES (XSTRING (string));
     }
   else
     size = XVECTOR (string)->size;
@@ -1587,10 +1587,10 @@ internal_equal (o1, o2, depth)
     case Lisp_String:
       if (XSTRING (o1)->size != XSTRING (o2)->size)
 	return 0;
-      if (XSTRING (o1)->size_byte != XSTRING (o2)->size_byte)
+      if (STRING_BYTES (XSTRING (o1)) != STRING_BYTES (XSTRING (o2)))
 	return 0;
       if (bcmp (XSTRING (o1)->data, XSTRING (o2)->data,
-		XSTRING (o1)->size_byte))
+		STRING_BYTES (XSTRING (o1))))
 	return 0;
       return 1;
     }
@@ -2075,7 +2075,7 @@ mapcar1 (leni, vals, fn, seq)
   else if (STRINGP (seq))
     {
       /* Multi-byte string.  */
-      int len_byte = XSTRING (seq)->size_byte;
+      int len_byte = STRING_BYTES (XSTRING (seq));
       int i_byte;
 
       for (i = 0, i_byte = 0; i < leni;)

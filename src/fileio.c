@@ -375,7 +375,7 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.")
 #ifdef DOS_NT
   beg = strcpy (alloca (strlen (beg) + 1), beg);
 #endif
-  p = beg + XSTRING (filename)->size_byte;
+  p = beg + STRING_BYTES (XSTRING (filename));
 
   while (p != beg && !IS_DIRECTORY_SEP (p[-1])
 #ifdef VMS
@@ -432,7 +432,7 @@ or the entire name if it contains no slash.")
     return call2 (handler, Qfile_name_nondirectory, filename);
 
   beg = XSTRING (filename)->data;
-  end = p = beg + XSTRING (filename)->size_byte;
+  end = p = beg + STRING_BYTES (XSTRING (filename));
 
   while (p != beg && !IS_DIRECTORY_SEP (p[-1])
 #ifdef VMS
@@ -585,7 +585,7 @@ On VMS, converts \"[X]FOO.DIR\" to \"[X.FOO]\", etc.")
   if (!NILP (handler))
     return call2 (handler, Qfile_name_as_directory, file);
 
-  buf = (char *) alloca (XSTRING (file)->size_byte + 10);
+  buf = (char *) alloca (STRING_BYTES (XSTRING (file)) + 10);
   return build_string (file_name_as_directory (buf, XSTRING (file)->data));
 }
 
@@ -780,9 +780,9 @@ it returns a file name such as \"[X]Y.DIR.1\".")
   /* 20 extra chars is insufficient for VMS, since we might perform a
      logical name translation. an equivalence string can be up to 255
      chars long, so grab that much extra space...  - sss */
-  buf = (char *) alloca (XSTRING (directory)->size_byte + 20 + 255);
+  buf = (char *) alloca (STRING_BYTES (XSTRING (directory)) + 20 + 255);
 #else
-  buf = (char *) alloca (XSTRING (directory)->size_byte + 20);
+  buf = (char *) alloca (STRING_BYTES (XSTRING (directory)) + 20);
 #endif
   directory_file_name (XSTRING (directory)->data, buf);
   return build_string (buf);
@@ -1805,7 +1805,7 @@ duplicates what `expand-file-name' does.")
   CORRECT_DIR_SEPS (nm);
   substituted = (strcmp (nm, XSTRING (filename)->data) != 0);
 #endif
-  endp = nm + XSTRING (filename)->size_byte;
+  endp = nm + STRING_BYTES (XSTRING (filename));
 
   /* If /~ or // appears, discard everything through first slash.  */
 
@@ -1898,7 +1898,7 @@ duplicates what `expand-file-name' does.")
 
   /* If substitution required, recopy the string and do it */
   /* Make space in stack frame for the new copy */
-  xnm = (unsigned char *) alloca (XSTRING (filename)->size_byte + total + 1);
+  xnm = (unsigned char *) alloca (STRING_BYTES (XSTRING (filename)) + total + 1);
   x = xnm;
 
   /* Copy the rest of the name through, replacing $ constructs with values */
@@ -2017,7 +2017,7 @@ expand_and_dir_to_file (filename, defdir)
   absname = Fexpand_file_name (filename, defdir);
 #ifdef VMS
   {
-    register int c = XSTRING (absname)->data[XSTRING (absname)->size_byte - 1];
+    register int c = XSTRING (absname)->data[STRING_BYTES (XSTRING (absname)) - 1];
     if (c == ':' || c == ']' || c == '>')
       absname = Fdirectory_file_name (absname);
   }
@@ -2025,8 +2025,8 @@ expand_and_dir_to_file (filename, defdir)
   /* Remove final slash, if any (unless this is the root dir).
      stat behaves differently depending!  */
   if (XSTRING (absname)->size > 1
-      && IS_DIRECTORY_SEP (XSTRING (absname)->data[XSTRING (absname)->size_byte - 1])
-      && !IS_DEVICE_SEP (XSTRING (absname)->data[XSTRING (absname)->size_byte-2]))
+      && IS_DIRECTORY_SEP (XSTRING (absname)->data[STRING_BYTES (XSTRING (absname)) - 1])
+      && !IS_DEVICE_SEP (XSTRING (absname)->data[STRING_BYTES (XSTRING (absname))-2]))
     /* We cannot take shortcuts; they might be wrong for magic file names.  */
     absname = Fdirectory_file_name (absname);
 #endif
@@ -4240,7 +4240,7 @@ to the file, instead of any buffer contents, and END is ignored.")
   if (STRINGP (start))
     {
       failure = 0 > a_write (desc, XSTRING (start)->data,
-			     XSTRING (start)->size_byte, 0, &annotations,
+			     STRING_BYTES (XSTRING (start)), 0, &annotations,
 			     &coding);
       save_errno = errno;
     }
@@ -4510,7 +4510,7 @@ a_write (desc, addr, nbytes, bytepos, annot, coding)
       tem = Fcdr (Fcar (*annot));
       if (STRINGP (tem))
 	{
-	  if (0 > e_write (desc, XSTRING (tem)->data, XSTRING (tem)->size_byte,
+	  if (0 > e_write (desc, XSTRING (tem)->data, STRING_BYTES (XSTRING (tem)),
 			   coding))
 	    return -1;
 	}
@@ -4793,11 +4793,11 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
 	    if (!NILP (b->filename))
 	      {
 		fwrite (XSTRING (b->filename)->data, 1,
-			XSTRING (b->filename)->size_byte, stream);
+			STRING_BYTES (XSTRING (b->filename)), stream);
 	      }
 	    putc ('\n', stream);
 	    fwrite (XSTRING (b->auto_save_file_name)->data, 1,
-		    XSTRING (b->auto_save_file_name)->size_byte, stream);
+		    STRING_BYTES (XSTRING (b->auto_save_file_name)), stream);
 	    putc ('\n', stream);
 	  }
 
@@ -4931,7 +4931,7 @@ double_dollars (val)
   register int n;
   int osize, count;
 
-  osize = XSTRING (val)->size_byte;
+  osize = STRING_BYTES (XSTRING (val));
 
   /* Count the number of $ characters.  */
   for (n = osize, count = 0, old = XSTRING (val)->data; n > 0; n--)
@@ -5072,7 +5072,7 @@ DIR defaults to current buffer's directory default.")
       && IS_DIRECTORY_SEP (XSTRING (dir)->data[strlen (homedir)]))
     {
       dir = make_string (XSTRING (dir)->data + strlen (homedir) - 1,
-			 XSTRING (dir)->size_byte - strlen (homedir) + 1);
+			 STRING_BYTES (XSTRING (dir)) - strlen (homedir) + 1);
       XSTRING (dir)->data[0] = '~';
     }
 

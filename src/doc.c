@@ -562,11 +562,11 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
   if (NILP (keymap))
     keymap = Voverriding_local_map;
 
-  bsize = XSTRING (string)->size_byte;
+  bsize = STRING_BYTES (XSTRING (string));
   bufp = buf = (unsigned char *) xmalloc (bsize);
 
   strp = (unsigned char *) XSTRING (string)->data;
-  while (strp < XSTRING (string)->data + XSTRING (string)->size_byte)
+  while (strp < XSTRING (string)->data + STRING_BYTES (XSTRING (string)))
     {
       if (strp[0] == '\\' && strp[1] == '=')
 	{
@@ -577,7 +577,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  if (multibyte)
 	    {
 	      int len;
-	      int maxlen = XSTRING (string)->data + XSTRING (string)->size_byte - strp;
+	      int maxlen = XSTRING (string)->data + STRING_BYTES (XSTRING (string)) - strp;
 
 	      STRING_CHAR_AND_LENGTH (strp, maxlen, len);
 	      if (len == 1)
@@ -600,7 +600,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  start = strp;
 
 	  while ((strp - (unsigned char *) XSTRING (string)->data
-		  < XSTRING (string)->size_byte)
+		  < STRING_BYTES (XSTRING (string)))
 		 && *strp != ']')
 	    strp++;
 	  length_byte = strp - start;
@@ -685,7 +685,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	      insert_string ("\nUses keymap \"");
 	      insert_from_string (name, 0, 0,
 				  XSTRING (name)->size,
-				  XSTRING (name)->size_byte, 1);
+				  STRING_BYTES (XSTRING (name)), 1);
 	      insert_string ("\", which is not currently defined.\n");
 	      if (start[-1] == '<') keymap = Qnil;
 	    }
@@ -700,7 +700,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	subst_string:
 	  start = XSTRING (tem)->data;
 	  length = XSTRING (tem)->size;
-	  length_byte = XSTRING (tem)->size_byte;
+	  length_byte = STRING_BYTES (XSTRING (tem));
 	subst:
 	  new = (unsigned char *) xrealloc (buf, bsize += length_byte);
 	  bufp += new - buf;
@@ -716,7 +716,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
       else
 	{
 	  int len;
-	  int maxlen = XSTRING (string)->data + XSTRING (string)->size_byte - strp;
+	  int maxlen = XSTRING (string)->data + STRING_BYTES (XSTRING (string)) - strp;
 
 	  STRING_CHAR_AND_LENGTH (strp, maxlen, len);
 	  if (len == 1)
