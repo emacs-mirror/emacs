@@ -1364,7 +1364,7 @@ free_menubar_widget_value_tree (wv)
   UNBLOCK_INPUT;
 }
 
-/* Set up data i menu_items for a menu bar item
+/* Set up data in menu_items for a menu bar item
    whose event type is ITEM_KEY (with string ITEM_NAME)
    and whose contents come from the list of keymaps MAPS.  */
 
@@ -1393,8 +1393,7 @@ parse_single_submenu (item_key, item_name, maps)
      But don't make a pane that is empty--ignore that map instead.  */
   for (i = 0; i < len; i++)
     {
-      if (SYMBOLP (mapvec[i])
-	  || (CONSP (mapvec[i]) && !KEYMAPP (mapvec[i])))
+      if (!KEYMAPP (mapvec[i]))
 	{
 	  /* Here we have a command at top level in the menu bar
 	     as opposed to a submenu.  */
