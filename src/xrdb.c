@@ -400,7 +400,7 @@ x_get_resource (rdb, name, class, expected_type, ret_value)
       && (type == expected_type))
     {
       if (type == x_rm_string)
-	(char *) ret_value->addr = value.addr;
+	ret_value->addr = (char *) value.addr;
       else
 	bcopy (value.addr, ret_value->addr, ret_value->size);
 
