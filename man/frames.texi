@@ -31,8 +31,7 @@ so that you can use many of the features described in this chapter.
 
 @cindex MS Windows
   Emacs compiled for MS Windows mostly supports the same features as
-under X.  However, images and tool bars are not yet available in Emacs
-version 21.3 on MS-Windows.
+under X.
 
 @menu
 * Mouse Commands::      Moving, cutting, and pasting, with the mouse.
