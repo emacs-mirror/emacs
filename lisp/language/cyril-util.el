@@ -29,7 +29,7 @@
   "Setup multilingual environment (MULE) for Cyrillic users."
   (interactive)
   (setup-8-bit-environment "Cyrillic" 'cyrillic-iso8859-5 'cyrillic-iso-8bit
-			   "cyrillic-yawerty"))
+			   "cyrillic-yawerty")
   (setq primary-language "Cyrillic"))
 
 ;;
