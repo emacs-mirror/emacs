@@ -1,3 +1,29 @@
+2000-07-31  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* calendar/appt.el (appt-disp-window): Use display-multi-frame-p
+	instead of window-system.
+
+	* wid-edit.el (widget-choose): Use display-mouse-p instead of
+	window-system.
+	(widget-choice-mouse-down-action): Use display-popup-menus-p
+	instead of window-system.
+
+	* strokes.el (strokes-file): Run the file name through
+	convert-standard-filename.
+	(strokes-mode): Call display-mouse-p instead of looking at
+	window-system.  Change the error message accordingly.
+
+	* progmodes/cpp.el (toplevel): Support faces on tty's.
+
+	* play/landmark.el (lm-font-lock-face-O, lm-font-lock-face-X)
+	(lm-plot-square, lm-init-display): Don't use window-system.
+
+	* play/gomoku.el (gomoku-font-lock-O-face, gomoku-font-lock-X-face)
+	(gomoku-plot-square, gomoku-init-display): Don't use window-system.
+
+	* mail/rmail.el (rmail-start-mail): Use display-multi-frame-p
+	instead of looking at window-system.
+
 2000-07-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* iswitchb.el (iswitchb-entryfn-p): Test this-command instead
