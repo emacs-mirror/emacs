@@ -544,6 +544,15 @@ submatch surrounds the directive name."
 	   '("defined"))
   pike '("defined" "efun" "constant"))
 
+(c-lang-defconst c-assignment-operators
+  "List of all assignment operators."
+  t    '("=" "*=" "/=" "%=" "+=" "-=" ">>=" "<<=" "&=" "^=" "|=")
+  java (append (c-lang-const c-assignment-operators)
+	       '(">>>="))
+  c++  (append (c-lang-const c-assignment-operators)
+	       '("and_eq" "or_eq" "xor_eq"))
+  idl  nil)
+
 (c-lang-defconst c-operators
   "List describing all operators, along with their precedence and
 associativity.  The order in the list corresponds to the precedence of
@@ -686,11 +695,7 @@ since CC Mode treats every identifier as an expression."
       (right-assoc-sequence "?" ":")
 
       ;; Assignment.
-      (right-assoc "=" "*=" "/=" "%=" "+=" "-=" ">>=" "<<=" "&=" "^=" "|="
-		   ,@(when (c-major-mode-is 'java-mode)
-		       '(">>>="))
-		   ,@(when (c-major-mode-is 'c++-mode)
-		       '("and_eq" "or_eq" "xor_eq")))
+      (right-assoc ,@(c-lang-const c-assignment-operators))
 
       ;; Exception.
       ,@(when (c-major-mode-is 'c++-mode)
@@ -787,6 +792,23 @@ operators."
 			(c-lang-const c-operator-list))))))
 (c-lang-defvar c-nonsymbol-token-regexp
   (c-lang-const c-nonsymbol-token-regexp))
+
+(c-lang-defconst c-assignment-op-regexp
+  ;; Regexp matching all assignment operators and only them.  The
+  ;; beginning of the first submatch is used to detect the end of the
+  ;; token, along with the end of the whole match.
+  t (if (c-lang-const c-assignment-operators)
+	(concat
+	 ;; Need special case for "=" since it's a prefix of "==".
+	 "=\\([^=]\\|$\\)"
+	 "\\|"
+	 (c-make-keywords-re nil
+	   (set-difference (c-lang-const c-assignment-operators)
+			   '("=")
+			   :test 'string-equal)))
+      "\\<\\>"))
+(c-lang-defvar c-assignment-op-regexp
+  (c-lang-const c-assignment-op-regexp))
 
 (c-lang-defconst c-<-op-cont-regexp
   ;; Regexp matching the second and subsequent characters of all
@@ -1441,7 +1463,7 @@ assumed to be set if this isn't nil."
 
 (c-lang-defconst c-opt-<>-sexp-key
   ;; Adorned regexp matching keywords that can be followed by an angle
-  ;; bracket sexp.
+  ;; bracket sexp.  Always set when `c-recognize-<>-arglists' is.
   t (if (c-lang-const c-recognize-<>-arglists)
 	(c-make-keywords-re t (c-lang-const c-<>-sexp-kwds))))
 (c-lang-defvar c-opt-<>-sexp-key (c-lang-const c-opt-<>-sexp-key))
