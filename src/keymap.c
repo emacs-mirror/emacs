@@ -695,7 +695,6 @@ map_keymap (map, fun, args, data, autoload)
 	  /* Loop over the char values represented in the vector.  */
 	  int len = ASIZE (binding);
 	  int c;
-	  abort();
 	  for (c = 0; c < len; c++)
 	    {
 	      Lisp_Object character;
