@@ -392,23 +392,26 @@ the car and cdr are the same symbol.")
 
 
 
-(easy-mmode-defsyntax sh-mode-syntax-table
-  '((?\# . "<")
-   (?\^l . ">#")
-   (?\n . ">#")
-   (?\" . "\"\"")
-   (?\' . "\"'")
-   (?\` . "\"`")
-   (?! . "_")
-   (?% . "_")
-   (?: . "_")
-   (?. . "_")
-   (?^ . "_")
-   (?~ . "_")
-   (?< . ".")
-   (?> . "."))
-  "Syntax-table used in Shell-Script mode.")
+(defvar sh-mode-syntax-table
+  '((sh eval sh-mode-syntax-table ()
+	?\# "<"
+	?\^l ">#"
+	?\n ">#"
+	?\" "\"\""
+	?\' "\"'"
+	?\` "\"`"
+	?! "_"
+	?% "_"
+	?: "_"
+	?. "_"
+	?^ "_"
+	?~ "_"
+	?< "."
+	?> ".")
+    (csh eval identity sh)
+    (rc eval identity sh))
 
+  "Syntax-table used in Shell-Script mode.  See `sh-feature'.")
 
 (defvar sh-mode-map
   (let ((map (make-sparse-keymap))
@@ -1463,6 +1466,8 @@ Calls the value of `sh-set-shell-hook' if set."
 	sh-shell-variables-initialized nil
 	imenu-generic-expression (sh-feature sh-imenu-generic-expression)
 	imenu-case-fold-search nil)
+  (set-syntax-table (or (sh-feature sh-mode-syntax-table)
+			(standard-syntax-table)))
   (dolist (var (sh-feature sh-variables))
     (sh-remember-variable var))
   (make-local-variable 'indent-line-function)
@@ -1576,6 +1581,13 @@ in ALIST."
 ;;	  (setq list (cdr (cdr list)))))
 ;;      (symbol-value sh-shell)))
 
+
+(defun sh-mode-syntax-table (table &rest list)
+  "Copy TABLE and set syntax for successive CHARs according to strings S."
+  (setq table (copy-syntax-table table))
+  (while list
+    (modify-syntax-entry (pop list) (pop list) table))
+  table)
 
 (defun sh-append (ancestor &rest list)
   "Return list composed of first argument (a list) physically appended to rest."
