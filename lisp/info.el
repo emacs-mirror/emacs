@@ -297,7 +297,6 @@ The top-level Info directory is made by combining all the files named `dir'
 in all the directories in that path."
   (interactive (if current-prefix-arg
 		   (list (read-file-name "Info file name: " nil nil t))))
-  (info-initialize)
   (if file
       (progn
 	(pop-to-buffer "*info*")
@@ -354,6 +353,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 ;; no-going-back is non-nil if recovering from an error in this function;
 ;; it says do not attempt further (recursive) error recovery.
 (defun Info-find-node (filename nodename &optional no-going-back)
+  (info-initialize)
   ;; Convert filename to lower case if not found as specified.
   ;; Expand it.
   (if filename
@@ -865,6 +865,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 (defun Info-goto-node (nodename)
   "Go to info node named NAME.  Give just NODENAME or (FILENAME)NODENAME."
   (interactive (list (Info-read-node-name "Goto node: ")))
+  (info-initialize)
   (let (filename)
     (string-match "\\s *\\((\\s *\\([^\t)]*\\)\\s *)\\s *\\|\\)\\(.*\\)"
 		  nodename)
@@ -2077,7 +2078,8 @@ Allowed only if variable `Info-enable-edit' is non-nil."
        (message "Tags may have changed.  Use Info-tagify if necessary")))
 
 (defvar Info-file-list-for-emacs
-  '("ediff" "forms" "gnus" "info" ("mh" . "mh-e") "sc")
+  '("ediff" "forms" "gnus" "info" ("mh" . "mh-e") "sc" "message"
+    ("dired" . "dired-x") ("c" . "ccmode") "viper")
   "List of Info files that describe Emacs commands.
 An element can be a file name, or a list of the form (PREFIX . FILE)
 where PREFIX is a name prefix and FILE is the file to look in.
