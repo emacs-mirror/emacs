@@ -1,3 +1,7 @@
+2002-10-14  Dave Love  <fx@gnu.org>
+
+	* fns.c (Fstring_as_multibyte, Fstring_to_multibyte): Doc fix.
+
 2002-10-10  Dave Love  <fx@gnu.org>
 
 	* fns.c (Flanginfo): Fix typo.

@@ -1,3 +1,9 @@
+2002-10-14  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/byte-opt.el (side-effect-free-fns): Add
+	 string-make-unibyte string-make-multibyte string-to-multibyte
+	 string-as-multibyte string-as-unibyte.
+
 2002-10-11  Dave Love  <fx@gnu.org>
 
 	* language/english.el (ibm1047, cp1047): New.
@@ -6,6 +12,10 @@
 	(cp866): Define standalone, not as alias.
 	(ibm866): Change alias.
 	(ibm1047): New.
+
+	* language/cyrillic.el (cyrillic-alternativnyj): Remove
+	mime-charset.  Use alternativnj charset.
+	(cp866): Remove alias.  Define standalone.
 
 2002-10-09  Dave Love  <fx@gnu.org>
 
