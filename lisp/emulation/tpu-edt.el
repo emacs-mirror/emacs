@@ -1,6 +1,6 @@
 ;;; tpu-edt.el --- Emacs emulating TPU emulating EDT
 
-;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
@@ -911,32 +911,49 @@ direction.  If an argument is specified, don't set the search direction."
   (tpu-unset-match)
   (tpu-adjust-search)
 
-  (cond ((tpu-emacs-search tpu-search-last-string nil t)
-	 (tpu-set-match) (goto-char (tpu-match-beginning)))
+  (let ((case-fold-search
+	 (and case-fold-search (tpu-check-search-case tpu-search-last-string))))
 
-	(t
-	 (tpu-adjust-search t)
-	 (let ((found nil) (pos nil))
-	   (save-excursion
-	     (let ((tpu-searching-forward (not tpu-searching-forward)))
-	       (tpu-adjust-search)
-	       (setq found (tpu-emacs-rev-search tpu-search-last-string nil t))
-	       (setq pos (match-beginning 0))))
+    (cond ((tpu-emacs-search tpu-search-last-string nil t)
+	   (tpu-set-match) (goto-char (tpu-match-beginning)))
 
-	   (cond (found
-		  (cond ((tpu-y-or-n-p
-			  (format "Found in %s direction.  Go there? "
-				  (if tpu-searching-forward "reverse" "forward")))
-			 (goto-char pos) (tpu-set-match)
-			 (tpu-toggle-search-direction))))
+	  (t
+	   (tpu-adjust-search t)
+	   (let ((found nil) (pos nil))
+	     (save-excursion
+	       (let ((tpu-searching-forward (not tpu-searching-forward)))
+		 (tpu-adjust-search)
+		 (setq found (tpu-emacs-rev-search tpu-search-last-string nil t))
+		 (setq pos (match-beginning 0))))
 
-		 (t
-		  (if (not quiet)
-		      (message
-		       "%sSearch failed: \"%s\""
-		       (if tpu-regexp-p "RE " "") tpu-search-last-string))))))))
+	     (cond
+	      (found
+	       (cond ((tpu-y-or-n-p
+		       (format "Found in %s direction.  Go there? "
+			       (if tpu-searching-forward "reverse" "forward")))
+		      (goto-char pos) (tpu-set-match)
+		      (tpu-toggle-search-direction))))
+
+	      (t
+	       (if (not quiet)
+		   (message
+		    "%sSearch failed: \"%s\""
+		    (if tpu-regexp-p "RE " "") tpu-search-last-string)))))))))
 
 (fset 'tpu-search-internal-core (symbol-function 'tpu-search-internal))
+
+(defun tpu-check-search-case (string)
+  "Returns t if string contains upper case."
+  ;; if using regexp, elimiate upper case forms (\B \W \S.)
+  (if tpu-regexp-p
+      (let ((pat (copy-sequence string)) (case-fold-search nil) (pos 0))
+	(while (setq pos (string-match "\\\\\\\\" pat)) (aset pat (+ 1 pos) ?.))
+	(while (setq pos (string-match "\\\\B" pat)) (aset pat (+ 1 pos) ?.))
+	(while (setq pos (string-match "\\\\W" pat)) (aset pat (+ 1 pos) ?.))
+	(while (setq pos (string-match "\\\\S." pat))
+	  (aset pat (+ 1 pos) ?.) (aset pat (+ 2 pos) ?.))
+	(string-equal pat (downcase pat)))
+    (string-equal string (downcase string))))
 
 (defun tpu-adjust-search (&optional arg)
   "For forward searches, move forward a character before searching,
