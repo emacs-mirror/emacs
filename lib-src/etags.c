@@ -2,21 +2,21 @@
    Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2001, 2002
    Free Software Foundation, Inc. and Ken Arnold
 
-This file is not considered part of GNU Emacs.
+ This file is not considered part of GNU Emacs.
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software Foundation,
-Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
 
 /*
  * Authors:
@@ -34,7 +34,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 16.10";
+char pot_etags_version[] = "@(#) pot revision number is 16.19";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -288,7 +288,6 @@ typedef struct
   enum {
     at_language,		/* a language specification */
     at_regexp,			/* a regular expression */
-    at_icregexp,		/* same, but with case ignored */
     at_filename,		/* a file name */
     at_stdin			/* read from stdin here */
   } arg_type;			/* argument type */
@@ -308,6 +307,7 @@ typedef struct pattern
   char *name_pattern;
   bool error_signaled;
   bool ignore_case;
+  bool multi_line;
 } pattern;
 #endif /* ETAGS_REGEXPS */
 
@@ -355,9 +355,9 @@ static bool nocase_tail __P((char *));
 static char *get_tag __P((char *));
 
 #ifdef ETAGS_REGEXPS
-static void analyse_regex __P((char *, bool));
-static void add_regex __P((char *, bool, language *));
+static void analyse_regex __P((char *));
 static void free_patterns __P((void));
+static void regex_tag_multiline __P((void));
 #endif /* ETAGS_REGEXPS */
 static void error __P((const char *, const char *));
 static void suggest_asking_for_help __P((void));
@@ -417,6 +417,7 @@ static node *nodehead;		/* the head of the binary tree of tags */
 static node *last_node;		/* the last node created */
 
 static linebuffer lb;		/* the current line */
+static linebuffer filebuf;	/* a buffer containing the whole file */
 
 /* boolean "functions" (see init)	*/
 static bool _wht[CHARS], _nin[CHARS], _itk[CHARS], _btk[CHARS], _etk[CHARS];
@@ -457,13 +458,10 @@ static bool packages_only;	/* --packages-only: in Ada, only tag packages*/
 static bool parsing_stdin;	/* --parse-stdin used */
 
 #ifdef ETAGS_REGEXPS
-/* List of all regexps. */
-static pattern *p_head;
-
-/* How many characters in the character set.  (From regex.c.)  */
-#define CHAR_SET_SIZE 256
-/* Translation table for case-insensitive matching. */
-static char lc_trans[CHAR_SET_SIZE];
+static pattern *p_head;		/* list of all regexps */
+static bool need_filebuf;	/* some regexes are multi-line */
+#else
+# define need_filebuf FALSE
 #endif /* ETAGS_REGEXPS */
 
 #ifdef LONG_OPTIONS
@@ -680,10 +678,10 @@ Compressed files are supported using gzip and bzip2.");
 }
 
 #ifndef EMACS_NAME
-# define EMACS_NAME "GNU Emacs"
+# define EMACS_NAME "standalone"
 #endif
 #ifndef VERSION
-# define VERSION "21"
+# define VERSION "version"
 #endif
 static void
 print_version ()
@@ -775,9 +773,11 @@ Relative ones are stored relative to the output file's directory.\n");
 	REGEXP is anchored (as if preceded by ^).\n\
 	The form /REGEXP/NAME/ creates a named tag.\n\
 	For example Tcl named tags can be created with:\n\
-	--regex=\"/proc[ \\t]+\\([^ \\t]+\\)/\\1/.\"");
-  puts ("-c /REGEXP/, --ignore-case-regex=/REGEXP/ or --ignore-case-regex=@regexfile\n\
-        Like -r, --regex but ignore case when matching expressions.");
+	--regex=\"/proc[ \\t]+\\([^ \\t]+\\)/\\1/.\".");
+  puts ("In the form /REGEXP/MODS or /REGEXP/NAME/MODS, MODS are\n\
+	one-letter modifiers: `i' means to ignore case, `m' means\n\
+	allow multi-line matches, `s' implies `m' and additionally\n\
+	causes dot to match the newline character.");
   puts ("-R, --no-regex\n\
         Don't create tags from regexps for the following files.");
 #endif /* ETAGS_REGEXPS */
@@ -996,14 +996,6 @@ main (argc, argv)
      is small. */
   argbuffer = xnew (argc, argument);
 
-#ifdef ETAGS_REGEXPS
-  /* Set syntax for regular expression routines. */
-  re_set_syntax (RE_SYNTAX_EMACS | RE_INTERVALS);
-  /* Translation table for case-insensitive search. */
-  for (i = 0; i < CHAR_SET_SIZE; i++)
-    lc_trans[i] = lowcase (i);
-#endif /* ETAGS_REGEXPS */
-
   /*
    * If etags, always find typedefs and structure tags.  Why not?
    * Also default to find macro constants, enum constants and
@@ -1079,6 +1071,10 @@ main (argc, argv)
 	    }
 	}
 	break;
+      case 'c':
+	/* Backward compatibility: support obsolete --ignore-case-regexp. */
+	optarg = concat (optarg, "i", ""); /* memory leak here */
+	/* FALLTHRU */
       case 'r':
 	argbuffer[current_arg].arg_type = at_regexp;
 	argbuffer[current_arg].what = optarg;
@@ -1087,11 +1083,6 @@ main (argc, argv)
       case 'R':
 	argbuffer[current_arg].arg_type = at_regexp;
 	argbuffer[current_arg].what = NULL;
-	++current_arg;
-	break;
-      case 'c':
-	argbuffer[current_arg].arg_type = at_icregexp;
-	argbuffer[current_arg].what = optarg;
 	++current_arg;
 	break;
       case 'V':
@@ -1152,6 +1143,7 @@ main (argc, argv)
 
   initbuffer (&lb);
   initbuffer (&filename_lb);
+  initbuffer (&filebuf);
 
   if (!CTAGS)
     {
@@ -1186,10 +1178,7 @@ main (argc, argv)
 	  break;
 #ifdef ETAGS_REGEXPS
 	case at_regexp:
-	  analyse_regex (argbuffer[i].what, FALSE);
-	  break;
-	case at_icregexp:
-	  analyse_regex (argbuffer[i].what, TRUE);
+	  analyse_regex (argbuffer[i].what);
 	  break;
 #endif
 	case at_filename:
@@ -1234,6 +1223,7 @@ main (argc, argv)
 #ifdef ETAGS_REGEXPS
   free_patterns ();
 #endif /* ETAGS_REGEXPS */
+  free (filebuf.buffer);
 
   if (!CTAGS || cxref_style)
     {
@@ -1648,7 +1638,6 @@ find_entries (inf)
      FILE *inf;
 {
   char *cp;
-  node *old_last_node;
   language *lang = curfdp->lang;
   Lang_function *parser = NULL;
 
@@ -1703,7 +1692,7 @@ find_entries (inf)
   /* We rewind here, even if inf may be a pipe.  We fail if the
      length of the first line is longer than the pipe block size,
      which is unlikely. */
-    rewind (inf);
+  rewind (inf);
 
   /* Else try to guess the language given the case insensitive file name. */
   if (parser == NULL)
@@ -1714,6 +1703,26 @@ find_entries (inf)
 	  curfdp->lang = lang;
 	  parser = lang->function;
 	}
+    }
+
+  /* Else try Fortran or C. */
+  if (parser == NULL)
+    {
+      node *old_last_node = last_node;
+
+      curfdp->lang = get_language_from_langname ("fortran");
+      find_entries (inf);
+
+      if (old_last_node == last_node)
+	/* No Fortran entries found.  Try C. */
+	{
+	  /* We do not tag if rewind fails.
+	     Only the file name will be recorded in the tags file. */
+	  rewind (inf);
+	  curfdp->lang = get_language_from_langname (cplusplus ? "c++" : "c");
+	  find_entries (inf);
+	}
+      return;
     }
 
   if (!no_line_directive
@@ -1748,32 +1757,21 @@ find_entries (inf)
 	  fdpp = &(*fdpp)->next; /* advance the list pointer */
     }
 
-  if (parser != NULL)
-    {
-      /* Generic initialisations before reading from file. */
-      lineno = 0;		/* reset global line number */
-      charno = 0;		/* reset global char number */
-      linecharno = 0;		/* reset global char number of line start */
+  assert (parser != NULL);
 
-      parser (inf);
-      return;
-    }
+  /* Generic initialisations before reading from file. */
+  filebuf.len = 0;		/* reset the file buffer */
 
-  /* Else try Fortran. */
-  old_last_node = last_node;
-  curfdp->lang = get_language_from_langname ("fortran");
-  find_entries (inf);
+  /* Generic initialisations before parsing file with readline. */
+  lineno = 0;		       /* reset global line number */
+  charno = 0;		       /* reset global char number */
+  linecharno = 0;	       /* reset global char number of line start */
 
-  if (old_last_node == last_node)
-    /* No Fortran entries found.  Try C. */
-    {
-      /* We do not tag if rewind fails.
-	 Only the file name will be recorded in the tags file. */
-      rewind (inf);
-      curfdp->lang = get_language_from_langname (cplusplus ? "c++" : "c");
-      find_entries (inf);
-    }
-  return;
+  parser (inf);
+
+#ifdef ETAGS_REGEXPS
+  regex_tag_multiline ();
+#endif /* ETAGS_REGEXPS */
 }
 
 
@@ -2014,6 +2012,11 @@ add_node (np, cur_node_p)
  * invalidate_nodes ()
  *	Scan the node tree and invalidate all nodes pointing to the
  *	given file description (CTAGS case) or free them (ETAGS case).
+ *
+ * This function most likely contains a bug, but I cannot tell where.
+ * I have a case of a binary that crashes inside this function with a bus
+ * error.  Unfortunately, the binary does not contain debug information, and
+ * compiling with debugging information makes the bug disappear.
  */
 static void
 invalidate_nodes (badfdp, npp)
@@ -2030,7 +2033,7 @@ invalidate_nodes (badfdp, npp)
       if (np->left != NULL)
 	invalidate_nodes (badfdp, &np->left);
       if (np->fdp == badfdp)
-	np-> valid = FALSE;
+	np->valid = FALSE;
       if (np->right != NULL)
 	invalidate_nodes (badfdp, &np->right);
     }
@@ -5263,17 +5266,18 @@ erlang_atom (s, pos)
 #ifdef ETAGS_REGEXPS
 
 static char *scan_separators __P((char *));
-static void analyse_regex __P((char *, bool));
-static void add_regex __P((char *, bool, language *));
+static void add_regex __P((char *, language *));
 static char *substitute __P((char *, char *, struct re_registers *));
 
-/* Take a string like "/blah/" and turn it into "blah", making sure
-   that the first and last characters are the same, and handling
-   quoted separator characters.  Actually, stops on the occurrence of
-   an unquoted separator.  Also turns "\t" into a Tab character, and
-   similarly for all character escape sequences supported by Gcc.
-   Returns pointer to terminating separator.  Works in place.  Null
-   terminates name string. */
+/*
+ * Take a string like "/blah/" and turn it into "blah", verifying
+ * that the first and last characters are the same, and handling
+ * quoted separator characters.  Actually, stops on the occurrence of
+ * an unquoted separator.  Also process \t, \n, etc. and turn into
+ * appropriate characters. Works in place.  Null terminates name string.
+ * Returns pointer to terminating separator, or NULL for
+ * unterminated regexps.
+ */
 static char *
 scan_separators (name)
      char *name;
@@ -5288,15 +5292,15 @@ scan_separators (name)
 	{
 	  switch (*name)
 	    {
-	    case 'a': *copyto++ = '\007'; break;
-	    case 'b': *copyto++ = '\b'; break;
-	    case 'd': *copyto++ = 0177; break;
-	    case 'e': *copyto++ = 033; break;
-	    case 'f': *copyto++ = '\f'; break;
-	    case 'n': *copyto++ = '\n'; break;
-	    case 'r': *copyto++ = '\r'; break;
-	    case 't': *copyto++ = '\t'; break;
-	    case 'v': *copyto++ = '\v'; break;
+	    case 'a': *copyto++ = '\007'; break; /* BEL (bell)		 */
+	    case 'b': *copyto++ = '\b'; break;	 /* BS (back space)	 */
+	    case 'd': *copyto++ = 0177; break;	 /* DEL (delete)	 */
+	    case 'e': *copyto++ = 033; break;	 /* ESC (delete)	 */
+	    case 'f': *copyto++ = '\f'; break;	 /* FF (form feed)	 */
+	    case 'n': *copyto++ = '\n'; break;	 /* NL (new line)	 */
+	    case 'r': *copyto++ = '\r'; break;	 /* CR (carriage return) */
+	    case 't': *copyto++ = '\t'; break;	 /* TAB (horizontal tab) */
+	    case 'v': *copyto++ = '\v'; break;	 /* VT (vertical tab)    */
 	    default:
 	      if (*name == sep)
 		*copyto++ = sep;
@@ -5317,6 +5321,8 @@ scan_separators (name)
       else
 	*copyto++ = *name;
     }
+  if (*name != sep)
+    name = NULL;		/* signal unterminated regexp */
 
   /* Terminate copied string. */
   *copyto = '\0';
@@ -5326,9 +5332,8 @@ scan_separators (name)
 /* Look at the argument of --regex or --no-regex and do the right
    thing.  Same for each line of a regexp file. */
 static void
-analyse_regex (regex_arg, ignore_case)
+analyse_regex (regex_arg)
      char *regex_arg;
-     bool ignore_case;
 {
   if (regex_arg == NULL)
     {
@@ -5362,7 +5367,7 @@ analyse_regex (regex_arg, ignore_case)
 	  }
 	initbuffer (&regexbuf);
 	while (readline_internal (&regexbuf, regexfp) > 0)
-	  analyse_regex (regexbuf.buffer, ignore_case);
+	  analyse_regex (regexbuf.buffer);
 	free (regexbuf.buffer);
 	fclose (regexfp);
       }
@@ -5381,17 +5386,17 @@ analyse_regex (regex_arg, ignore_case)
 	      error ("unterminated language name in regex: %s", regex_arg);
 	      return;
 	    }
-	*cp = '\0';
+	*cp++ = '\0';
 	lang = get_language_from_langname (lang_name);
 	if (lang == NULL)
 	  return;
-	add_regex (cp + 1, ignore_case, lang);
+	add_regex (cp, lang);
       }
       break;
 
       /* Regexp to be used for any language. */
     default:
-      add_regex (regex_arg, ignore_case, NULL);
+      add_regex (regex_arg, NULL);
       break;
     }
 }
@@ -5399,37 +5404,91 @@ analyse_regex (regex_arg, ignore_case)
 /* Turn a name, which is an ed-style (but Emacs syntax) regular
    expression, into a real regular expression by compiling it. */
 static void
-add_regex (regexp_pattern, ignore_case, lang)
+add_regex (regexp_pattern, lang)
      char *regexp_pattern;
-     bool ignore_case;
      language *lang;
 {
   static struct re_pattern_buffer zeropattern;
-  char *name;
+  char sep, *pat, *name, *modifiers;
   const char *err;
   struct re_pattern_buffer *patbuf;
   pattern *pp;
+  bool ignore_case, multi_line, single_line;
 
 
-  if (regexp_pattern[strlen(regexp_pattern)-1] != regexp_pattern[0])
-    {
-      error ("%s: unterminated regexp", regexp_pattern);
-      return;
-    }
-  name = scan_separators (regexp_pattern);
-  if (regexp_pattern[0] == '\0')
+  if (strlen(regexp_pattern) < 3)
     {
       error ("null regexp", (char *)NULL);
       return;
     }
-  (void) scan_separators (name);
+  sep = regexp_pattern[0];
+  name = scan_separators (regexp_pattern);
+  if (name == NULL)
+    {
+      error ("%s: unterminated regexp", regexp_pattern);
+      return;
+    }
+  if (name[1] == sep)
+    {
+      error ("null name for regexp \"%s\"", regexp_pattern);
+      return;
+    }
+  modifiers = scan_separators (name);
+  if (modifiers == NULL)	/* no terminating separator --> no name */
+    {
+      modifiers = name;
+      name = "";
+    }
+  else
+    modifiers += 1;		/* skip separator */
+
+  /* Parse regex modifiers. */
+  ignore_case = FALSE;		/* case is significant */
+  multi_line = FALSE;		/* matches are done one line at a time */
+  single_line = FALSE;		/* dot does not match newline */
+  for (; modifiers[0] != '\0'; modifiers++)
+    switch (modifiers[0])
+      {
+      case 'i':
+	ignore_case = TRUE;
+	break;
+      case 's':
+	single_line = TRUE;
+	/* FALLTHRU */
+      case 'm':
+	multi_line = TRUE;
+	need_filebuf = TRUE;
+	break;
+      default:
+	modifiers[1] = '\0';
+	error ("invalid regexp modifier `%s'", modifiers);
+	return;
+      }
 
   patbuf = xnew (1, struct re_pattern_buffer);
   *patbuf = zeropattern;
   if (ignore_case)
-    patbuf->translate = lc_trans;	/* translation table to fold case  */
+    {
+      static char lc_trans[CHARS];
+      int i;
+      for (i = 0; i < CHARS; i++)
+	lc_trans[i] = lowcase (i);
+      patbuf->translate = lc_trans;	/* translation table to fold case  */
+    }
 
-  err = re_compile_pattern (regexp_pattern, strlen (regexp_pattern), patbuf);
+  if (multi_line)
+    pat = concat ("^", regexp_pattern, ""); /* anchor to beginning of line */
+  else
+    pat = regexp_pattern;
+
+  if (single_line)
+    re_set_syntax (RE_SYNTAX_EMACS | RE_DOT_NEWLINE);
+  else
+    re_set_syntax (RE_SYNTAX_EMACS);
+
+  err = re_compile_pattern (pat, strlen (regexp_pattern), patbuf);
+  if (multi_line)
+    free (pat);
   if (err != NULL)
     {
       error ("%s while compiling pattern", err);
@@ -5445,6 +5504,7 @@ add_regex (regexp_pattern, ignore_case, lang)
   p_head->name_pattern = savestr (name);
   p_head->error_signaled = FALSE;
   p_head->ignore_case = ignore_case;
+  p_head->multi_line = multi_line;
 }
 
 /*
@@ -5512,6 +5572,92 @@ free_patterns ()
     }
   return;
 }
+
+/*
+ * Reads the whole file as a single string from `filebuf' and looks for
+ * multi-line regular expressions, creating tags on matches.
+ * readline already dealt with normal regexps.
+ *
+ * Idea by Ben Wing <ben@666.com> (2002).
+ */
+static void
+regex_tag_multiline ()
+{
+  char *buffer = filebuf.buffer;
+  pattern *pp;
+
+  for (pp = p_head; pp != NULL; pp = pp->p_next)
+    {
+      int match = 0;
+
+      if (!pp->multi_line)
+	continue;		/* skip normal regexps */
+
+      /* Generic initialisations before parsing file from memory. */
+      lineno = 1;		/* reset global line number */
+      charno = 0;		/* reset global char number */
+      linecharno = 0;		/* reset global char number of line start */
+
+      /* Only use generic regexps or those for the current language. */
+      if (pp->lang != NULL && pp->lang != curfdp->lang)
+	continue;
+
+      while (match >= 0 && match < filebuf.len)
+	{
+	  match = re_search (pp->pat, buffer, filebuf.len, charno,
+			     filebuf.len - match, &pp->regs);
+	  switch (match)
+	    {
+	    case -2:
+	      /* Some error. */
+	      if (!pp->error_signaled)
+		{
+		  error ("regexp stack overflow while matching \"%s\"",
+			 pp->regex);
+		  pp->error_signaled = TRUE;
+		}
+	      break;
+	    case -1:
+	      /* No match. */
+	      break;
+	    default:
+	      if (match == pp->regs.end[0])
+		{
+		  if (!pp->error_signaled)
+		    {
+		      error ("regexp matches the empty string: \"%s\"",
+			     pp->regex);
+		      pp->error_signaled = TRUE;
+		    }
+		  match = -3;	/* exit from while loop */
+		  break;
+		}
+
+	      /* Match occurred.  Construct a tag. */
+	      while (charno < pp->regs.end[0])
+		if (buffer[charno++] == '\n')
+		  lineno++, linecharno = charno;
+	      if (pp->name_pattern[0] != '\0')
+		{
+		  /* Make a named tag. */
+		  char *name = substitute (buffer,
+					   pp->name_pattern, &pp->regs);
+		  if (name != NULL)
+		    pfnote (name, TRUE, buffer + linecharno,
+			    charno - linecharno + 1, lineno, linecharno);
+		}
+	      else
+		{
+		  /* Make an unnamed tag. */
+		  pfnote ((char *)NULL, TRUE, buffer + linecharno,
+			  charno - linecharno + 1, lineno, linecharno);
+		}
+	      break;
+	    }
+	}
+    }
+}
+
 #endif /* ETAGS_REGEXPS */
 
 
@@ -5564,10 +5710,13 @@ initbuffer (lbp)
  * newline or CR-NL, if any.  Return the number of characters read from
  * `stream', which is the length of the line including the newline.
  *
- * On DOS or Windows we do not count the CR character, if any, before the
- * NL, in the returned length; this mirrors the behavior of emacs on those
+ * On DOS or Windows we do not count the CR character, if any before the
+ * NL, in the returned length; this mirrors the behavior of Emacs on those
  * platforms (for text files, it translates CR-NL to NL as it reads in the
  * file).
+ *
+ * If multi-line regular expressions are requested, each line read is
+ * appended to `filebuf'.
  */
 static long
 readline_internal (lbp, stream)
@@ -5626,12 +5775,28 @@ readline_internal (lbp, stream)
     }
   lbp->len = p - buffer;
 
+  if (need_filebuf		/* we need filebuf for multi-line regexps */
+      && chars_deleted > 0)	/* not at EOF */
+    {
+      while (filebuf.size <= filebuf.len + lbp->len + 1) /* +1 for \n */
+	{
+	  /* Expand filebuf. */
+	  filebuf.size *= 2;
+	  xrnew (filebuf.buffer, filebuf.size, char);
+	}
+      strncpy (filebuf.buffer + filebuf.len, lbp->buffer, lbp->len);
+      filebuf.len += lbp->len;
+      filebuf.buffer[filebuf.len++] = '\n';
+      filebuf.buffer[filebuf.len] = '\0';
+    }
+
   return lbp->len + chars_deleted;
 }
 
 /*
  * Like readline_internal, above, but in addition try to match the
- * input line against relevant regular expressions.
+ * input line against relevant regular expressions and manage #line
+ * directives.
  */
 static void
 readline (lbp, stream)
@@ -5752,8 +5917,8 @@ readline (lbp, stream)
 	{
 	  if (result > 0)
 	    {
-	    /* Do a tail recursion on ourselves, thus discarding the contents
-	       of the line buffer. */
+	      /* Do a tail recursion on ourselves, thus discarding the contents
+		 of the line buffer. */
 	      readline (lbp, stream);
 	      return;
 	    }
@@ -5772,8 +5937,11 @@ readline (lbp, stream)
     if (lbp->len > 0)
       for (pp = p_head; pp != NULL; pp = pp->p_next)
 	{
-	  /* Only use generic regexps or those for the current language. */
-	  if (pp->lang != NULL && pp->lang != fdhead->lang)
+	  /* Only use generic regexps or those for the current language.
+	     Also do not use multiline regexps, which is the job of
+	     regex_tag_multiline. */
+	  if ((pp->lang != NULL && pp->lang != fdhead->lang)
+	      || pp->multi_line)
 	    continue;
 
 	  match = re_match (pp->pat, lbp->buffer, lbp->len, 0, &pp->regs);
@@ -5783,12 +5951,22 @@ readline (lbp, stream)
 	      /* Some error. */
 	      if (!pp->error_signaled)
 		{
-		  error ("error while matching \"%s\"", pp->regex);
+		  error ("regexp stack overflow while matching \"%s\"",
+			 pp->regex);
 		  pp->error_signaled = TRUE;
 		}
 	      break;
 	    case -1:
 	      /* No match. */
+	      break;
+	    case 0:
+	      /* Empty string matched. */
+	      if (!pp->error_signaled)
+		{
+		  error ("regexp matches the empty string: \"%s\"",
+			 pp->regex);
+		  pp->error_signaled = TRUE;
+		}
 	      break;
 	    default:
 	      /* Match occurred.  Construct a tag. */
@@ -6229,6 +6407,6 @@ xrealloc (ptr, size)
  * indent-tabs-mode: t
  * tab-width: 8
  * fill-column: 79
- * c-font-lock-extra-types: ("FILE" "bool" "language" "linebuffer" "fdesc" "node")
+ * c-font-lock-extra-types: ("FILE" "bool" "language" "linebuffer" "fdesc" "node" "pattern")
  * End:
  */
