@@ -1541,10 +1541,14 @@ balanced expression is found."
 	  (if (not start)
 	     (unless shutup-p
 	       (error "Cannot find start of balanced expression to indent"))
+	    (goto-char start)
+	    (forward-line)
+	    (setq start (point))
 	    (if (not end)
 		(unless shutup-p
 		  (error "Cannot find end of balanced expression to indent"))
-	      (c-indent-region start end))))
+	      (if (< start end)
+		  (c-indent-region start end)))))
       (goto-char here)
       (set-marker here nil))))
 
