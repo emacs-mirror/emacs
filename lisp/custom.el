@@ -5,7 +5,6 @@
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
 ;; Keywords: help, faces
-;; X-URL: http://www.dina.kvl.dk/~abraham/custom/ (probably obsolete)
 
 ;; This file is part of GNU Emacs.
 
@@ -110,7 +109,6 @@ not the default value itself."
   (put symbol 'standard-value (list default))
   ;; Maybe this option was rogue in an earlier version.  It no longer is.
   (when (get symbol 'force-value)
-    ;; It no longer is.
     (put symbol 'force-value nil))
   (when doc
     (put symbol 'variable-documentation doc))
