@@ -1,3 +1,14 @@
+2002-11-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xmenu.c (unuse_menu_items): New fun.
+	(menu_items_inuse): New var.
+	(syms_of_xmenu): Initialize it.
+	(init_menu_items): Use it to detect re-entrance.
+	(Fx_popup_menu, Fx_popup_dialog, set_frame_menubar): Reset it when done.
+	(Fx_popup_menu): Remove spurious XSETFRAME.
+
+	* editfns.c (find_field): Make an exception for nil fields.
+
 2002-11-01  Dave Love  <fx@gnu.org>
 
 	* m/gec63.h: Deleted.
