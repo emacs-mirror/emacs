@@ -173,6 +173,8 @@ TAGS: $(lisptagsfiles1) $(lisptagsfiles2)
 TAGS-LISP: $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
 	$(ETAGS) -o TAGS-LISP $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
 
+.SUFFIXES: .elc .el
+
 .el.elc:
 	set EMACSLOADPATH=$(lisp)
 	-$(SETLOADPATH) $(emacs) -f batch-byte-compile $<
