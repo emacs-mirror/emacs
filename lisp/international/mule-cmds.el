@@ -687,22 +687,29 @@ and turn it on for the current buffer."
 (defun toggle-input-method (&optional arg)
   "Turn on or off a multilingual text input method for the current buffer.
 
-With arg, read an input method from minibuffer and turn it on.
+With no prefix argument, if some input method is currently activated,
+turn it off.  Otherwise, activate an input method--the one most recently used,
+or the one specified in `default-input-method', or one read from the
+minibuffer.
 
-Without arg, if some input method is currently activated, turn it off,
-else turn on an input method selected last time
-or the default input method (see `default-input-method').
+With a prefix arg, read an input method from minibuffer and turn it on.
+The default is the most recent input method specified
+\(not including the currently active input method, if any).
 
 When there's no input method to turn on, turn on what read from minibuffer."
   (interactive "P")
-  (let* ((default (or (car input-method-history) default-input-method)))
-    (if (and current-input-method (not arg))
-	(inactivate-input-method)
+  (if (and current-input-method (not arg))
+      (inactivate-input-method)
+    (let ((default (or (car input-method-history) default-input-method)))
+      (if (and arg default (equal current-input-method default)
+	       (> (length input-method-history) 1))
+	  (setq default (nth 1 input-method-history)))
       (activate-input-method
        (if (or arg (not default))
-	   (read-input-method-name
-	    (if default "Input method (default %s): " "Input method: " )
-	    default t)  
+	   (progn
+	     (read-input-method-name
+	      (if default "Input method (default %s): " "Input method: " )
+	      default t))
 	 default))
       (or default-input-method
 	  (setq default-input-method current-input-method)))))
