@@ -1262,12 +1262,17 @@ read1 (readcharfun, pch, first_in_list)
 	  if (c == '"')
 	    {
 	      Lisp_Object tmp, val;
-	      int size_in_chars = ((XFASTINT (length) + BITS_PER_CHAR)
+	      int size_in_chars = ((XFASTINT (length) + BITS_PER_CHAR - 1)
 				   / BITS_PER_CHAR);
 
 	      UNREAD (c);
 	      tmp = read1 (readcharfun, pch, first_in_list);
-	      if (size_in_chars != XSTRING (tmp)->size)
+	      if (size_in_chars != XSTRING (tmp)->size
+		  /* We used to print 1 char too many
+		     when the number of bits was a multiple of 8.
+		     Accept such input in case it came from an old version.  */
+		  && ! (XFASTINT (length)
+			== (XSTRING (tmp)->size - 1) * BITS_PER_CHAR))
 		Fsignal (Qinvalid_read_syntax,
 			 Fcons (make_string ("#&...", 5), Qnil));
 		
