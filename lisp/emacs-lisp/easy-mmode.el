@@ -57,8 +57,10 @@
   "Turn the symbol MODE into a string intended for the user.
 If provided LIGHTER will be used to help choose capitalization."
   (let* ((case-fold-search t)
-	 (name (concat (capitalize (replace-regexp-in-string
-				    "-mode\\'" "" (symbol-name mode)))
+	 (name (concat (replace-regexp-in-string
+			"-Minor" " minor"
+			(capitalize (replace-regexp-in-string
+				     "-mode\\'" "" (symbol-name mode))))
 		       " mode")))
     (if (not (stringp lighter)) name
       (setq lighter (replace-regexp-in-string "\\`\\s-+\\|\\-s+\\'" "" lighter))
