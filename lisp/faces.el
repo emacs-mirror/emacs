@@ -25,7 +25,9 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl)
+  ;; Warning suppression -- can't require x-win in batch:
+  (autoload 'xw-defined-colors "x-win"))
 
 (require 'cus-face)
 
@@ -274,7 +276,7 @@ Each element has the form (ATTRIBUTE ENTRY1 ENTRY2...) where ATTRIBUTE is
 the name of a face attribute, and each ENTRY is a cons of the form
 (RESOURCE . CLASS) with RESOURCE being the resource and CLASS being the
 X resource class for the attribute."
-  :type 'sexp
+  :type '(repeat (cons symbol (repeat (cons string string))))
   :group 'faces)
 
 
@@ -1290,7 +1292,7 @@ this won't have the expected effect."
   :group 'faces
   :set #'(lambda (var value)
 	   (set-default var value)
-	   (mapcar 'frame-set-background-mode (frame-list)))
+	   (mapc 'frame-set-background-mode (frame-list)))
   :initialize 'custom-initialize-changed
   :type '(choice (choice-item dark)
 		 (choice-item light)
@@ -1568,6 +1570,7 @@ created."
      (:background "light goldenrod yellow"))
     (t (:background "gray")))
   "Basic face for highlighting the region."
+  :version "21.1"
   :group 'basic-faces)
 
 
