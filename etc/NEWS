@@ -1375,6 +1375,11 @@ it remains unchanged.
 When loading many files, for instance with `emacs *', Emacs normally
 displays a buffer menu.  This option turns the buffer menu off.
 
+** New user option `compilation-environment'.
+This option allows you to specify environment variables for inferior
+compilation processes without affecting the environment that all
+subprocesses inherit.
+
 ---
 ** Rmail now displays 5-digit message ids in its summary buffer.
 
@@ -1631,7 +1636,7 @@ to use standout mode, however they will not be able to display
 mode-lines in inverse-video.
 
 ---
-** cplus-md.el has been removed to avoid problems with Custom.  
+** cplus-md.el has been removed to avoid problems with Custom.
 
 ** New package benchmark.el contains simple support for convenient
 timing measurements of code (including the garbage collection component).
