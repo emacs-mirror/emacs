@@ -204,7 +204,6 @@ static mps_addr_t myskip(mps_addr_t object)
 static void mycopy(mps_addr_t object, mps_addr_t to)
 {
  mycell *boj = object;
- mycell *toj = to;
 
  memmove(to, object, boj->data.size);
 }
