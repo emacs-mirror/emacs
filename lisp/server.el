@@ -299,7 +299,8 @@ so don't mark these buffers specially, just visit them normally."
   "Mark BUFFER as \"done\" for its client(s).
 This buries the buffer, then returns a list of the form (NEXT-BUFFER KILLED).
 NEXT-BUFFER is another server buffer, as a suggestion for what to select next,
-or nil.  KILLED is t if we killed BUFFER (because it was a temp file)."
+or nil.  KILLED is t if we killed BUFFER
+\(typically, because it was visiting a temp file)."
   (let ((running (eq (process-status server-process) 'run))
 	(next-buffer nil)
 	(killed nil)
@@ -332,16 +333,24 @@ or nil.  KILLED is t if we killed BUFFER (because it was a temp file)."
 	  (setq server-clients (delq client server-clients))))
       (setq old-clients (cdr old-clients)))
     (if (and (bufferp buffer) (buffer-name buffer))
-	(progn
+	;; We may or may not kill this buffer;
+	;; if we do, do not call server-buffer-done recursively
+	;; from kill-buffer-hook.
+	(let ((server-kill-buffer-running t))
 	  (save-excursion
 	    (set-buffer buffer)
 	    (setq server-buffer-clients nil)
 	    (run-hooks 'server-done-hook))
-	  (if for-killing
+	  ;; Notice whether server-done-hook killed the buffer.
+	  (if (null (buffer-name buffer))
+	      (setq killed t)
+	    ;; Don't bother killing or burying the buffer
+	    ;; when we are called from kill-buffer.
+	    (unless for-killing
 	      (if (server-temp-file-p buffer)
 		  (progn (kill-buffer buffer)
 			 (setq killed t))
-		(bury-buffer buffer)))))
+		(bury-buffer buffer))))))
     (list next-buffer killed)))
 
 (defun server-temp-file-p (buffer)
@@ -358,7 +367,8 @@ are considered temporary."
   "Offer to save current buffer, mark it as \"done\" for clients.
 This buries the buffer, then returns a list of the form (NEXT-BUFFER KILLED).
 NEXT-BUFFER is another server buffer, as a suggestion for what to select next,
-or nil.  KILLED is t if we killed the BUFFER (because it was a temp file)."
+or nil.  KILLED is t if we killed BUFFER
+\(typically, because it was visiting a temp file)."
   (let ((buffer (current-buffer)))
     (if server-buffer-clients
 	(progn
@@ -400,7 +410,7 @@ or nil.  KILLED is t if we killed the BUFFER (because it was a temp file)."
 (add-hook 'kill-emacs-query-functions 'server-kill-emacs-query-function)
 
 (defvar server-kill-buffer-running nil
-  "Non-nil while `server-kill-buffer' is running.")
+  "Non-nil while `server-kill-buffer' or `server-buffer-done' is running.")
 
 ;; When a buffer is killed, inform the clients.
 (add-hook 'kill-buffer-hook 'server-kill-buffer)
@@ -408,9 +418,10 @@ or nil.  KILLED is t if we killed the BUFFER (because it was a temp file)."
   ;; Prevent infinite recursion if user has made server-done-hook
   ;; call kill-buffer.
   (or server-kill-buffer-running
-      (let ((server-kill-buffer-running t))
-	(when server-process
-	  (server-buffer-done (current-buffer) t)))))
+      (and server-buffer-clients
+	   (let ((server-kill-buffer-running t))
+	     (when server-process
+	       (server-buffer-done (current-buffer) t))))))
 
 (defun server-edit (&optional arg)
   "Switch to next server editing buffer; say \"Done\" for current buffer.
