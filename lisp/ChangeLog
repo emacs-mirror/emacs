@@ -1,3 +1,30 @@
+2004-04-21  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* simple.el (next-error-last-buffer, next-error-function):
+	New variables for the next-error framework.
+	(next-error-buffer-p): New function.
+	(next-error-find-buffer): Generalize compilation-find-buffer.
+	(next-error, previous-error, first-error, next-error-no-select)
+	(previous-error-no-select): Move from compile.el.
+
+	* replace.el (occur-next-error, occur-1): Hook into the next-error
+	framework.
+
+	* compile.el (compilation-start): Set next-error-last-buffer so
+	next-error knows where to jump.
+	(compilation-setup): Set the buffer-local variable
+	next-error-function to 'compilation-next-error-function.
+	(compilation-buffer-p, compilation-buffer-internal-p): Use an
+	alternate way to find if a buffer is a compilation buffer, for
+	next-error convenience.
+	(next-error-no-select, previous-error-no-select, next-error)
+	(previous-error, first-error): Move to simple.el.
+	(compilation-find-buffer): Move to next-error-find-buffer in simple.el.
+	(compilation-last-buffer): Remove.
+	(compilation-start, compilation-next-error, compilation-setup)
+	(compilation-next-error-function, compilation-find-buffer):
+	Remove compilation-last-buffer use.
+
 2004-04-21  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in (WINS): Add url/ directory.
