@@ -767,7 +767,9 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	      >= OLD_SECTION_H (old_bss_index-1).sh_offset)
 	    NEW_SECTION_H (nn).sh_offset += new_data2_size;
 #else
-	  if (NEW_SECTION_H (nn).sh_offset >= new_data2_offset)
+	  if (round_up (NEW_SECTION_H (nn).sh_offset,
+			OLD_SECTION_H (old_bss_index).sh_addralign)
+	      >= new_data2_offset)
 	    NEW_SECTION_H (nn).sh_offset += new_data2_size;
 #endif
 	  /* Any section that was originally placed after the section
