@@ -1141,6 +1141,9 @@ redisplay_window (window, just_this_one)
       /* Can't use this case if highlighting a region.  */
       && !(!NILP (Vtransient_mark_mode) && !NILP (current_buffer->mark_active))
       && NILP (w->region_showing)
+      /* If end pos is out of date, scroll bar and percentage will be wrong */
+      && INTEGERP (w->window_end_vpos)
+      && XFASTINT (w->window_end_vpos) < XFASTINT (w->height)
       && !EQ (window, minibuf_window))
     {
       pos = *compute_motion (startp, 0, (hscroll ? 1 - hscroll : 0),
