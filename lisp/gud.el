@@ -1217,8 +1217,7 @@ comint mode, which see."
 	       (progn
 		 ;; Write something in *compilation* and hack its mode line,
 		 (set-buffer (process-buffer proc))
-		 ;; Force mode line redisplay soon
-		 (set-buffer-modified-p (buffer-modified-p))
+		 (force-mode-line-update)
 		 (if (eobp)
 		     (insert ?\n mode-name " " msg)
 		   (save-excursion
