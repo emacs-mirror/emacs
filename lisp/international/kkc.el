@@ -167,7 +167,7 @@ Commands:
 ;; LEN.  If no conversion is found in the dictionary, don't change
 ;; kkc-current-conversions and return nil.
 ;; Postfixes are handled only if POSTFIX is non-nil. 
-(defun kkc-lookup-key (len &optional postfix)
+(defun kkc-lookup-key (len &optional postfix prefer-noun)
   ;; At first, prepare cache data if any.
   (if (not kkc-init-file-flag)
       (progn
@@ -183,7 +183,7 @@ Commands:
 	(setq kkc-length-converted len
 	      kkc-current-conversions-width nil
 	      kkc-current-conversions (car entry))
-      (setq entry (skkdic-lookup-key kkc-current-key len postfix))
+      (setq entry (skkdic-lookup-key kkc-current-key len postfix prefer-noun))
       (if entry
 	  (progn
 	    (setq kkc-length-converted len
@@ -222,7 +222,7 @@ put in KKC major mode to select a desirable conversion."
 
   ;; After updating the conversion region with the first candidate of
   ;; conversion, jump into a recursive editing environment with KKC
-  ;; mode .
+  ;; mode.
   (let ((overriding-local-map nil)
 	(previous-local-map (current-local-map))
 	(minor-mode-alist nil)
@@ -230,12 +230,14 @@ put in KKC major mode to select a desirable conversion."
 	(current-input-method-title kkc-input-method-title)
 	major-mode mode-name)
     (unwind-protect
-	(progn
+	(let (len)
 	  (setq kkc-canceled nil)
 	  (setq kkc-current-key (string-to-vector kkc-original-kana))
 	  (setq kkc-length-head (length kkc-current-key))
+	  (setq len kkc-length-head)
 	  (setq kkc-length-converted 0)
-	  (while (not (kkc-lookup-key kkc-length-head))
+	  (while (not (kkc-lookup-key kkc-length-head nil
+				      (< kkc-length-head len)))
 	    (setq kkc-length-head (1- kkc-length-head)))
 	  (goto-char to)
 	  (kkc-update-conversion 'all)
@@ -400,6 +402,7 @@ After that, handle the event which invoked this command."
 	(kkc-terminate)
       (let ((newkey (make-vector kkc-length-head 0))
 	    (idx (- (length kkc-current-key) kkc-length-head))
+	    (len kkc-length-head)
 	    (i 0))
 	;; For the moment, (setq kkc-original-kana (concat newkey))
 	;; doesn't work.
@@ -411,7 +414,8 @@ After that, handle the event which invoked this command."
 	  (setq i (1+ i)))
 	(setq kkc-current-key newkey)
 	(setq kkc-length-converted 0)
-	(while (and (not (kkc-lookup-key kkc-length-head))
+	(while (and (not (kkc-lookup-key kkc-length-head nil
+					 (< kkc-length-head len)))
 		    (> kkc-length-head 1))
 	  (setq kkc-length-head (1- kkc-length-head)))
 	(let ((pos (point))
