@@ -8,7 +8,7 @@
 ;; Maintainer: FSF
 ;; Keywords: files
 
-(defconst recentf-version "$Revision$")
+(defconst recentf-version "$Revision: 1.23 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1127,7 +1127,7 @@ Read data from the file specified by `recentf-save-file'."
   (message "Cleaning up the recentf list...")
   (let (newlist)
     (dolist (f recentf-list)
-      (if (and (file-readable-p f) (recentf-include-p f))
+      (if (and (recentf-include-p f) (file-readable-p f))
           (push f newlist)
         (message "File %s removed from the recentf list" f)))
     (setq recentf-list (nreverse newlist))
