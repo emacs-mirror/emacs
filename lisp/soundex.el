@@ -30,6 +30,14 @@
 
 ;;; Code: 
 
+(defvar soundex-alist
+  '((?A . nil) (?E . nil) (?H . nil) (?I . nil) (?O . nil) (?U . nil)
+    (?W . nil) (?Y . nil) (?B . "1") (?F . "1") (?P . "1") (?V . "1")
+    (?C . "2") (?G . "2") (?J . "2") (?K . "2") (?Q . "2") (?S . "2")
+    (?X . "2") (?Z . "2") (?D . "3") (?T . "3") (?L . "4") (?M . "5")
+    (?N . "5") (?R . "6"))
+  "Alist of chars-to-key-code for building Soundex keys.")
+
 (defun soundex (word)
   "Return a Soundex key for WORD.
 Implemented as described in:
@@ -53,14 +61,6 @@ and Searching\", Addison-Wesley (1973), pp. 391-392."
     (if (> 4 (length key))
 	(substring (concat key "000") 0 4)
       key)))
-
-(defvar soundex-alist
-  '((?A . nil) (?E . nil) (?H . nil) (?I . nil) (?O . nil) (?U . nil)
-    (?W . nil) (?Y . nil) (?B . "1") (?F . "1") (?P . "1") (?V . "1")
-    (?C . "2") (?G . "2") (?J . "2") (?K . "2") (?Q . "2") (?S . "2")
-    (?X . "2") (?Z . "2") (?D . "3") (?T . "3") (?L . "4") (?M . "5")
-    (?N . "5") (?R . "6"))
-  "Alist of chars-to-key-code for building Soundex keys.")
 
 ;(defvar soundex-test
 ;  '("Euler" "Gauss" "Hilbert" "Knuth" "Lloyd" "Lukasiewicz"
