@@ -431,6 +431,15 @@ This returns ARGS with the arguments that have been processed removed."
 
 (define-key global-map "\C-z" 'iconify-frame)
 
+;; Map certain keypad keys into ASCII characters
+;; that people usually expect.
+(define-key function-key-map [backspace] [127])
+(define-key function-key-map [delete] [127])
+(define-key function-key-map [tab] [?\t])
+(define-key function-key-map [linefeed] [?\n])
+(define-key function-key-map [clear] [11])
+(define-key function-key-map [return] [13])
+(define-key function-key-map [escape] [?\e])
 
 ;;;; Selections and cut buffers
 
