@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.324 2001/12/20 18:47:19 pj Exp $
+;; $Id: vc.el,v 1.325 2002/01/05 17:15:20 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -170,6 +170,12 @@
 ;;   and an initial description of the file, COMMENT, may be specified.
 ;;   The implementation should pass the value of vc-register-switches
 ;;   to the backend command.
+;;
+;; - init-version (file)
+;;
+;;   The initial version to use when registering FILE if one is not
+;;   specified by the user.  If not provided, the variable
+;;   vc-default-init-version is used instead.
 ;;
 ;; - responsible-p (file)
 ;;
@@ -429,7 +435,8 @@ preserve the setting."
 
 (defcustom vc-default-init-version "1.1"
   "*A string used as the default version number when a new file is registered.
-This can be overridden by giving a prefix argument to \\[vc-register]."
+This can be overridden by giving a prefix argument to \\[vc-register].  This
+can also be overridden by a particular VC backend."
   :type 'string
   :group 'vc
   :version "20.3")
@@ -1342,8 +1349,10 @@ first backend that could register the file is used."
                   (if set-version
                       (read-string (format "Initial version level for %s: "
 					   (buffer-name)))
-                    ;; TODO: Use backend-specific init version.
-                    vc-default-init-version)
+		    (let ((backend (vc-responsible-backend buffer-file-name)))
+		      (if (vc-find-backend-function backend 'init-version)
+			  (vc-call-backend backend 'init-version)
+			vc-default-init-version)))
                   (or comment (not vc-initial-comment))
 		  nil
                   "Enter initial comment."
@@ -1867,9 +1876,13 @@ actually call the backend, but performs a local diff."
   `(append
     (if (listp diff-switches) diff-switches (list diff-switches))
     (if (listp vc-diff-switches) vc-diff-switches (list vc-diff-switches))
-    (let ((backend-switches
-           (eval (intern (concat "vc-" (symbol-name ',backend)
-                                 "-diff-switches")))))
+    (let* ((backend-switches-symbol
+	    (intern (concat "vc-" (symbol-name ,backend)
+			    "-diff-switches")))
+	   (backend-switches
+	    (if (boundp backend-switches-symbol)
+		(eval backend-switches-symbol)
+	      nil)))
       (if (listp backend-switches) backend-switches (list backend-switches)))))
 
 (defun vc-default-diff-tree (backend dir rel1 rel2)
