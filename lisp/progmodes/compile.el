@@ -576,12 +576,15 @@ Compilation major mode are available.")
 (defun compilation-minor-mode (&optional arg)
   "Toggle compilation minor mode.
 With arg, turn compilation mode on if and only if arg is positive.
-See `compilation-mode'."
+See `compilation-mode'.
+Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
   (interactive "P")
   (if (setq compilation-minor-mode (if (null arg)
 				       (null compilation-minor-mode)
 				     (> (prefix-numeric-value arg) 0)))
-      (compilation-setup)))
+      (progn
+	(compilation-setup)
+	(run-hooks 'compilation-minor-mode-hook)))
 
 ;; Write msg in the current buffer and hack its mode-line-process.
 (defun compilation-handle-exit (process-status exit-status msg)
