@@ -1,3 +1,7 @@
+2002-06-26  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* FOR-RELEASE: Moved to the admin directory.
+
 2004-06-24  David Kastrup  <dak@gnu.org>
 
 	* NEWS: Move description from new paragraph-start and
