@@ -1615,7 +1615,7 @@ created."
 
 (defface mode-line
   '((((type x w32 mac) (class color))
-     (:box (:line-width 2 :style released-button)
+     (:box (:line-width -1 :style released-button)
 	   :background "grey75" :foreground "black"))
     (t
      (:inverse-video t)))
