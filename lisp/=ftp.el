@@ -252,6 +252,9 @@ USER and PASSWORD are defaulted from the values used when
 	    ((looking-at ignore)
 	     ;; Ignore status messages whose codes indicate no problem.
 	     (forward-line 1))
+	    ((looking-at "^[^0-9]")
+	     ;; Ignore any lines that don't have status codes.
+	     (forward-line 1))
 	    ((not (search-forward "\n" nil t))
 	     ;; the way asynchronous process-output works with (point)
 	     ;;  is really really disgusting.
@@ -260,9 +263,6 @@ USER and PASSWORD are defaulted from the values used when
 		 (accept-process-output process)
 	       (error nil))
 	     (goto-char p))
-	    ((looking-at "^[a-z]")
-	     ;; Ignore any lines that don't have error codes.
-	     (forward-line 1))
 	    (t
 	     (setq p nil))))
     p))
