@@ -134,6 +134,7 @@ Returns nil if FORM is not a `defun', `define-skeleton',
 (put 'defcustom 'doc-string-elt 3)
 (put 'defconst 'doc-string-elt 3)
 (put 'defmacro 'doc-string-elt 3)
+(put 'defsubst 'doc-string-elt 3)
 (put 'define-skeleton 'doc-string-elt 3)
 (put 'define-derived-mode 'doc-string-elt 3)
 (put 'easy-mmode-define-minor-mode 'doc-string-elt 3)
