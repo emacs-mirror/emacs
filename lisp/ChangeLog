@@ -1,3 +1,7 @@
+2002-05-06  Francesco Potorti`  <pot@gnu.org>
+
+	* mail/rmail.el (rmail-font-lock-keywords): Highlight Resent-[Ff]rom:.
+
 2002-05-05  Markus Rost  <rost@math.ohio-state.edu>
 
 	* time-stamp.el (time-stamp-format):  Doc fix: escape open
@@ -12,7 +16,7 @@
 	* filesets.el (filesets-browse-dir-function): Renamed from ...-fn.
 	(filesets-open-file-function, filesets-save-buffer-function): Likewise.
 	(filesets-tree-max-level): Doc fix.
-	(filesets-commands, filesets-external-viewers) 
+	(filesets-commands, filesets-external-viewers)
 	(filesets-ingroup-patterns): Mark as risky.
 	(filesets-cache-hostname-flag): Doc fix.
 	(filesets-menu-cache-file): Doc fix.  Mark as risky.
@@ -34,7 +38,7 @@
 	(ibuffer-insert-filter-group-before): New function, broken out
 	from `ibuffer-yank'.
 	(ibuffer-yank): Now just call `ibuffer-yank-filter-group'.
-	
+
 	* ibuffer.el (ibuffer-mode-operate-menu, ibuffer-mode-mark-menu)
 	(ibuffer-mode-view-menu): Unused variables; deleted.
 	(ibuffer-find-file): Pass wildcard flag to `find-file' correctly.
@@ -199,7 +203,7 @@
 
 2002-04-30  Richard M. Stallman  <rms@gnu.org>
 
-	* time.el (display-time-mail-directory) 
+	* time.el (display-time-mail-directory)
 	(display-time-mail-function): Doc fixes.
 
 	* ediff-hook.el: Remove autoload cookies.
@@ -259,7 +263,7 @@
 
 2002-04-29  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
-	* autoinsert.el (auto-insert-directory): Doc fix. 
+	* autoinsert.el (auto-insert-directory): Doc fix.
 
 	* progmodes/f90.el: Add/change doc strings for many inline
 	functions.  Whitespace changes.
@@ -538,7 +542,7 @@
 	(f90-match-piece): Removed and replaced with match-string.
 	(f90-current-indentation): Remove `current-column'.
 	(f90-get-present-comment-type): Use match-string rather than
-	buffer-substring. 
+	buffer-substring.
 	(f90-match-end): Use line-beginning-position, line-end-position
 	rather than beginning-of-line, end-of-line.
 	(f90-startup-message): Variable removed.
@@ -623,7 +627,7 @@
 	Check if any of the available selection sources has new content
 	and if so it will return that content.
 
-2002-04-24 
+2002-04-24
 
 	* international/mule-diag.el (describe-coding-system,
 	print-coding-system-briefly): Make printed output have a similar
