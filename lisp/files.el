@@ -2000,6 +2000,9 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 			    (concat (file-name-as-directory file) ".")
 			  file)))))))
 
+(defvar kill-emacs-query-functions nil
+  "Functions to call with no arguments to query about killing Emacs.")
+
 (defun save-buffers-kill-emacs (&optional arg)
   "Offer to save each buffer, then kill this Emacs process.
 With prefix arg, silently save all file-visiting buffers, then kill."
@@ -2023,6 +2026,13 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 	       (setq processes (cdr processes)))
 	     (or (not active)
 		 (yes-or-no-p "Active processes exist; kill them and exit anyway? "))))
+       ;; Query the user for other things, perhaps.
+       (let ((functions kill-emacs-query-functions)
+	     (yes t))
+	 (while (and functions yes)
+	   (setq yes (and yes (funcall (car functions))))
+	   (setq functions (cdr functions)))
+	 yes)
        (kill-emacs)))
 
 (define-key ctl-x-map "\C-f" 'find-file)
