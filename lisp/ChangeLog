@@ -1,5 +1,8 @@
 2001-11-16  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* comint.el (comint-mode): Simplify.
+	(make-comint-in-buffer): Run `comint-mode' only if necessary.
+
 	* subr.el (eval-after-load): Make it work with features as well.
 
 	* log-view.el (log-view-mode): Don't mark the buffer unmodified.

@@ -1,3 +1,13 @@
+2001-11-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* fileio.c (choose_write_coding_system): New fun, extracted
+	from Fwrite_region.
+	(Fwrite_region): Use it.
+
+	* eval.c (max_specpdl_size, max_lisp_eval_depth): Use EMACS_INT.
+	(funcall_lambda, run_hook_with_args): Make static and add prototype.
+	(ml_apply, find_handler_clause): Add prototype.
+
 2001-11-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.in: Add #undef HAVE_COFF_H.
@@ -20,43 +30,45 @@
 
 	* dispextern.h (FRINGE_FACE_ID): Renamed from BITMAP_AREA_FACE_ID.
 	Comments fixed. Use renamed symbols.
-	
+
 	* dispnew.c: Comment fix. Use renamed symbols.
-	
+
 	* frame.h (FRAME_FRINGE_COLS): Renamed from FRAME_FLAGS_AREA_COLS.
 	(FRAME_FRINGE_WIDTH): Renamed from FRAME_FLAGS_AREA_WIDTH.
 	(FRAME_LEFT_FRINGE_WIDTH): Renamed from FRAME_LEFT_FLAGS_AREA_WIDTH.
-	
+
 	* msdos.c: Comment fix.
-	
+
 	* w32fns.c: Use renamed symbols.
-	
+
 	* w32term.c: Comment fixes. Use renamed symbols.
 	(fringe_bitmap_type): Renamed from bitmap_type.
 	(NO_FRINGE_BITMAP): Renamed from NO_BITMAP.
 	(w32_draw_fringe_bitmap): Renamed from w32_draw_bitmap.
 	(x_draw_row_fringe_bitmaps): Renamed from x_draw_row_bitmaps.
-	
+
 	* w32term.h: Comment fixes. Use renamed symbols.
 	(fringes_extra): Renamed from flags_areas_extra.
 	(FRAME_FRINGE_BITMAP_WIDTH): Renamed from FRAME_FLAGS_BITMAP_WIDTH.
 	(FRAME_FRINGE_BITMAP_HEIGHT): Renamed from FRAME_FLAGS_BITMAP_HEIGHT.
 	(FRAME_X_FRINGE_COLS): Renamed from FRAME_X_FLAGS_AREA_COLS.
 	(FRAME_X_FRINGE_WIDTH): Renamed from FRAME_X_FLAGS_AREA_WIDTH.
-	(FRAME_X_LEFT_FRINGE_WIDTH): Renamed from FRAME_X_LEFT_FLAGS_AREA_WIDTH.
-	(FRAME_X_RIGHT_FRINGE_WIDTH): Renamed from FRAME_X_RIGHT_FLAGS_AREA_WIDTH.
-	
+	(FRAME_X_LEFT_FRINGE_WIDTH):
+	Renamed from FRAME_X_LEFT_FLAGS_AREA_WIDTH.
+	(FRAME_X_RIGHT_FRINGE_WIDTH):
+	Renamed from FRAME_X_RIGHT_FLAGS_AREA_WIDTH.
+
 	* widget.c: Use renamed symbols.
-	
+
 	* window.c: Comment fixes. Use renamed symbols.
 	(coordinates-in-window-p): Doc fix.
-	
+
 	* xdisp.c: Comment fixes. Use renamed symbols.
-	
+
 	* xfaces.c (realize_basic_faces): Use FRINGE_FACE_ID.
-	
+
 	* xfns.c: Use renamed symbols.
-	
+
 	* xterm.c: Comment fixes. Use renamed symbols.
 	(fringe_bitmap_type): Renamed from bitmap_type.
 	(NO_FRINGE_BITMAP): Renamed from NO_BITMAP.
@@ -69,8 +81,10 @@
 	(FRAME_FRINGE_BITMAP_HEIGHT): Renamed from FRAME_FLAGS_BITMAP_HEIGHT.
 	(FRAME_X_FRINGE_COLS): Renamed from FRAME_X_FLAGS_AREA_COLS.
 	(FRAME_X_FRINGE_WIDTH): Renamed from FRAME_X_FLAGS_AREA_WIDTH.
-	(FRAME_X_LEFT_FRINGE_WIDTH): Renamed from FRAME_X_LEFT_FLAGS_AREA_WIDTH.
-	(FRAME_X_RIGHT_FRINGE_WIDTH): Renamed from FRAME_X_RIGHT_FLAGS_AREA_WIDTH.
+	(FRAME_X_LEFT_FRINGE_WIDTH):
+	Renamed from FRAME_X_LEFT_FLAGS_AREA_WIDTH.
+	(FRAME_X_RIGHT_FRINGE_WIDTH):
+	Renamed from FRAME_X_RIGHT_FLAGS_AREA_WIDTH.
 
 2001-11-15  Jason Rumney  <jasonr@gnu.org>
 
@@ -90,7 +104,7 @@
 	* xfns.c (Fx_create_frame): Accept zero tool_bar_button_relief.
 
 	* xterm.c (x_draw_image_relief): Accept zero tool_bar_button_relief.
-	
+
 	* xterm.c (x_draw_bar_cursor): If the background color of the
 	glyph under the cursor equals the frame's cursor color, use
 	the glyph's foreground color for drawing the bar cursor.
@@ -174,14 +188,13 @@
 	* xmenu.c (x-popup-menu): Reindent.
 	(x-popup-dialog): Likewise.
 
-	* xfaces.c (Finternal_set_alternative_font_family_alist):
-	Reindent.
+	* xfaces.c (Finternal_set_alternative_font_family_alist): Reindent.
 
 	* xdisp.c (Fdump_tool_bar_row): Reindent.
 
 	* minibuf.c (Fminibuffer_complete_word): Reindent.
 	(Fminibuffer_complete_and_exit): Likewise.
-	(Fminibuffer_completion_help): Likewise.  
+	(Fminibuffer_completion_help): Likewise.
 	(Fminibuffer_message): Likewise.
 
 	* fns.c (Freverse): Reindent.
@@ -249,12 +262,11 @@
 
 	* w32fns.c (enum_font_cb2): Use leading @ on face name to detect
 	vertical fonts. Allow them if face name is explicitly specified.
-	Do not give up if we find a font that cannot be converted to an
-	xlfd.
+	Do not give up if we find a font that cannot be converted to an xlfd.
 
 2001-11-10  Gerd Moellmann  <gerd@gnu.org>
 
-	* unexelf.c (unexec): Use mmap/munmap to allocate buffers 
+	* unexelf.c (unexec): Use mmap/munmap to allocate buffers
 	instead of malloc/free.
 
 2001-11-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
