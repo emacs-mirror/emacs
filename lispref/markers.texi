@@ -302,6 +302,12 @@ This function returns the buffer that @var{marker} points into, or
 @end example
 @end defun
 
+@defun buffer-has-markers-at position
+@tindex buffer-has-markers-at
+This function returns @code{t} if one or more markers
+point at position @var{position} in the current buffer.
+@end defun
+
 @node Marker Insertion Types
 @section Marker Insertion Types
 
@@ -418,6 +424,10 @@ commands change the mark, they should normally save the old value of the
 mark on the mark ring.  The variable @code{mark-ring-max} specifies the
 maximum number of entries in the mark ring; once the list becomes this
 long, adding a new element deletes the last element.
+
+  There is also a separate global mark ring, but that is used only in a
+few particular user-level commands, and is not relevant to Lisp
+programming.  So we do not describe it here.
 
 @defun mark &optional force
 @cindex current buffer mark
