@@ -1,3 +1,7 @@
+2003-10-16  Kenichi Handa  <handa@m17n.org>
+
+	* insdel.c (insert_from_gap): Adjust intervals correctly.
+
 2003-10-12  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (GLYPHSET, WCRANGE): Define if system headers don't.
