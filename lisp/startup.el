@@ -403,7 +403,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
       ;; show user what they all are.
       (if (> file-count 2)
 	  (or (get-buffer-window first-file-buffer)
-	      (progn (other-window)
+	      (progn (other-window 1)
 		     (buffer-menu)))))))
 
 ;;; startup.el ends here
