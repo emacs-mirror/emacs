@@ -368,7 +368,7 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 
     ;; Check if buffer contents can already be considered complete
     (if (and (eq mode 'exit)
-	     (PC-is-complete-p str table pred))
+	     (test-completion str table pred))
 	'complete
 
       ;; Do substitutions in directory names
@@ -641,7 +641,7 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 		(if improved
 
 		    ;; We changed it... would it be complete without the space?
-		    (if (PC-is-complete-p (buffer-substring 1 (1- end))
+		    (if (test-completion (buffer-substring 1 (1- end))
 					  table pred)
 			(delete-region (1- end) end)))
 
@@ -649,7 +649,7 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 
 		  ;; We changed it... enough to be complete?
 		  (and (eq mode 'exit)
-		       (PC-is-complete-p (field-string) table pred))
+		       (test-completion (field-string) table pred))
 
 		;; If totally ambiguous, display a list of completions
 		(if (or (eq completion-auto-help t)
@@ -679,20 +679,6 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 			      (substitute-in-file-name (concat dirname (car poss)))
 			    (car poss)))))
 	t)))))
-
-
-(defun PC-is-complete-p (str table pred)
-  (let ((res (if (listp table)
-		 (assoc str table)
-	       (if (vectorp table)
-		   (or (equal str "nil")   ; heh, heh, heh
-		       (intern-soft str table))
-		 (funcall table str pred 'lambda)))))
-    (and res
-	 (or (not pred)
-	     (and (not (listp table)) (not (vectorp table)))
-	     (funcall pred res))
-	 res)))
 
 (defun PC-chop-word (new old)
   (let ((i -1)
