@@ -4067,8 +4067,10 @@ For more details, see `delete-key-deletes-forward'."
 	   (if delete-key-deletes-forward
 	       (progn
 		 (define-key function-key-map [delete] [?\C-d])
+		 (define-key function-key-map [kp-delete] [?\C-d])
 		 (define-key function-key-map [backspace] [?\C-?]))
 	     (define-key function-key-map [delete] [?\C-?])
+	     (define-key function-key-map [kp-delete] [?\C-?])
 	     (define-key function-key-map [backspace] [?\C-?]))
 
 	   (dolist (binding bindings)
