@@ -100,7 +100,9 @@
   (let ((w (posn-window (event-start event))))
     (and (window-minibuffer-p w)
 	 (not (minibuffer-window-active-p w))
-	 (error "Minibuffer window is not active"))))
+	 (error "Minibuffer window is not active")))
+  ;; Give temporary modes such as isearch a chance to turn off.
+  (run-hooks 'mouse-leave-buffer-hook))
 
 (defun mouse-delete-window (click)
   "Delete the window you click on.
@@ -173,6 +175,8 @@ This command must be bound to a mouse click."
 (defun mouse-drag-mode-line (start-event)
   "Change the height of a window by dragging on the mode line."
   (interactive "e")
+  ;; Give temporary modes such as isearch a chance to turn off.
+  (run-hooks 'mouse-leave-buffer-hook)
   (let ((done nil)
 	(echo-keystrokes 0)
 	(start-event-frame (window-frame (car (car (cdr start-event)))))
@@ -543,6 +547,8 @@ Prefix arguments are interpreted as with \\[yank].
 If `mouse-yank-at-point' is non-nil, insert at point
 regardless of where you click."
   (interactive "e\nP")
+  ;; Give temporary modes such as isearch a chance to turn off.
+  (run-hooks 'mouse-leave-buffer-hook)
   (or mouse-yank-at-point (mouse-set-point click))
   (setq this-command 'yank)
   (yank arg))
@@ -827,6 +833,8 @@ Move point to the end of the inserted text.
 If `mouse-yank-at-point' is non-nil, insert at point
 regardless of where you click."
   (interactive "e")
+  ;; Give temporary modes such as isearch a chance to turn off.
+  (run-hooks 'mouse-leave-buffer-hook)
   (or mouse-yank-at-point (mouse-set-point click))
   (insert (x-get-selection 'SECONDARY)))
 
@@ -1348,6 +1356,8 @@ and selects that window."
 (defun mouse-choose-completion (event)
   "Click on an alternative in the `*Completions*' buffer to choose it."
   (interactive "e")
+  ;; Give temporary modes such as isearch a chance to turn off.
+  (run-hooks 'mouse-leave-buffer-hook)
   (let ((buffer (window-buffer))
         choice
 	base-size)
