@@ -104,16 +104,20 @@ first slash in the double slash; the result is @samp{/x1/rms/foo}.
 @cindex environment variables in file names
 @cindex expansion of environment variables
 @cindex @code{$} in file names
-@anchor{File Names with $}
-  @samp{$} in a file name is used to substitute environment variables.
-For example, if you have used the shell command @command{export
+  @anchor{File Names with $}@samp{$} in a file name is used to
+substitute an environment variable.  The environment variable name
+consists of all the alphanumeric characters after the @samp{$};
+alternatively, it can be enclosed in braces after the @samp{$}.  For
+example, if you have used the shell command @command{export
 FOO=rms/hacks} to set up an environment variable named @env{FOO}, then
 you can use @file{/u/$FOO/test.c} or @file{/u/$@{FOO@}/test.c} as an
-abbreviation for @file{/u/rms/hacks/test.c}.  The environment variable
-name consists of all the alphanumeric characters after the @samp{$};
-alternatively, it may be enclosed in braces after the @samp{$}.  Note
-that shell commands to set environment variables affect Emacs only if
-done before Emacs is started.
+abbreviation for @file{/u/rms/hacks/test.c}.  If the environment
+variable is not defined, no substitution occurs: @file{/u/$notdefined}
+stands for itself (assuming the environment variable @env{notdefined}
+is not defined).
+
+  Note that shell commands to set environment variables affect Emacs
+only when done before Emacs is started.
 
 @cindex home directory shorthand
   You can use the @file{~/} in a file name to mean your home directory,
@@ -123,11 +127,12 @@ doesn't have a home directory, Emacs substitutes @file{~/} with the
 value of the environment variable @code{HOME}; see @ref{General
 Variables}.)
 
-  To access a file with @samp{$} in its name, type @samp{$$}.  This pair
-is converted to a single @samp{$} at the same time as variable
-substitution is performed for a single @samp{$}.  Alternatively, quote the
-whole file name with @samp{/:} (@pxref{Quoted File Names}).  File names
-which begin with a literal @samp{~} should also be quoted with @samp{/:}.
+  To access a file with @samp{$} in its name, if the @samp{$} causes
+expansion, type @samp{$$}.  This pair is converted to a single
+@samp{$} at the same time as variable substitution is performed for a
+single @samp{$}.  Alternatively, quote the whole file name with
+@samp{/:} (@pxref{Quoted File Names}).  File names which begin with a
+literal @samp{~} should also be quoted with @samp{/:}.
 
 @findex substitute-in-file-name
   The Lisp function that performs the substitution is called
@@ -945,11 +950,12 @@ in a buffer is calculated when auto-saving is turned on in that buffer.
 
 @cindex auto-save for remote files
 @vindex auto-save-file-name-transforms
-The variable @code{auto-save-file-name-transforms} allows a
-degree of control over the auto-save file name.  The default value is
-set up to put the auto-save files for remote files
-(@pxref{Remote Files}) into the temporary file directory on the local
-machine. 
+  The variable @code{auto-save-file-name-transforms} allows a degree
+of control over the auto-save file name.  It lets you specify a series
+of regular expressions and replacements to transform the auto save
+file name.  The default value puts the auto-save files for remote
+files (@pxref{Remote Files}) into the temporary file directory on the
+local machine.
 
   When you delete a substantial part of the text in a large buffer, auto
 save turns off temporarily in that buffer.  This is because if you
@@ -2639,6 +2645,10 @@ notified of it until you actually try to commit.  (But you can try to
 pick up any recent changes from the repository first, using @kbd{C-x v m
 @key{RET}}, @pxref{Merging}).
 
+@vindex vc-cvs-global-switches
+  The variable @code{vc-cvs-global-switches} should be a string
+specifyng switches to pass to CVS for all CVS operations.
+
   When @code{vc-cvs-stay-local} is @code{t}, VC also makes local
 version backups, so that simple diff and revert operations are
 completely local (@pxref{Version Backups}).
@@ -2702,12 +2712,20 @@ make a verbose listing including sizes, dates, and owners (like
 
 @vindex list-directory-brief-switches
 @vindex list-directory-verbose-switches
-  The text of a directory listing is obtained by running @code{ls} in an
-inferior process.  Two Emacs variables control the switches passed to
-@code{ls}: @code{list-directory-brief-switches} is a string giving the
-switches to use in brief listings (@code{"-CF"} by default), and
-@code{list-directory-verbose-switches} is a string giving the switches to
-use in a verbose listing (@code{"-l"} by default).
+  The text of a directory listing is mostly obtained by running
+@code{ls} in an inferior process.  Two Emacs variables control the
+switches passed to @code{ls}: @code{list-directory-brief-switches} is
+a string giving the switches to use in brief listings (@code{"-CF"} by
+default), and @code{list-directory-verbose-switches} is a string
+giving the switches to use in a verbose listing (@code{"-l"} by
+default).
+
+@vindex directory-free-space-program
+@vindex directory-free-space-args
+  Emacs adds information about the amount of free space on the disk
+that contains the directory.  To do this, it runs the program
+specified by @code{directory-free-space-program} with arguments
+@code{directory-free-space-args}.
 
 @node Comparing Files
 @section Comparing Files
