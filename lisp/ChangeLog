@@ -1,4 +1,12 @@
-2003-04-03  Kenichi Handa  <handa@etlken2>
+2003-04-03  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/etags.el: Require button.el.
+	(etags-tags-apropos): Use `make-text-button' instead of
+	`add-text-properties'.  Use `snarf-tag-function' and
+	`etags-goto-tag-location' instead of `find-tag-other-window' (it's
+	too simple).
+
+2003-04-03  Kenichi Handa  <handa@m17n.org>
 
 	* subr.el (number-sequence): New function.
 
