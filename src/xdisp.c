@@ -1710,7 +1710,7 @@ get_glyph_string_clip_rect (s, nr)
   CONVERT_FROM_XRECT (r, *nr);
 #else
   *nr = r;
-#endif;
+#endif
 }
 
 #endif /* HAVE_WINDOW_SYSTEM */

@@ -1,5 +1,7 @@
 2003-03-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* xdisp.c (get_glyph_string_clip_rect): Removed ; at end of #endif
+
 	* gtkutil.h: Take two more arguments to xg_update_scrollbar_pos.
 	(XG_SB_RANGE): New define.
 
