@@ -4,7 +4,7 @@
 ;; LCD Archive Entry:
 ;; isearch-mode|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A minor mode replacement for isearch.el.
-;; |$Date: 1993/01/26 01:48:27 $|$Revision: 1.17 $|~/modes/isearch-mode.el
+;; |$Date: 1993/02/17 20:34:20 $|$Revision: 1.18 $|~/modes/isearch-mode.el
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -88,8 +88,15 @@
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.17 1993/01/26 01:48:27 jimb Exp rms $
+;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.18 1993/02/17 20:34:20 rms Exp rms $
 ;;; $Log: isearch-mode.el,v $
+; Revision 1.18  1993/02/17  20:34:20  rms
+; (isearch-backward-regexp):
+; New arg no-recursive-edit, always non-nil for interactive call.
+; Rename first arg, and set it right in interactive call.
+; (isearch-forward-regexp): Likewise.
+; (isearch-forward, isearch-backward): Likewise no-recursive-edit.
+;
 ; Revision 1.17  1993/01/26  01:48:27  jimb
 ; JimB's changes since January 18th
 ;
@@ -466,7 +473,7 @@ If this function is called non-interactively, it does not return to
 the calling function until the search is done."
 
   (interactive "P\np")
-  (isearch-mode t (not (null regexp-p)) nil no-recursive-edit))
+  (isearch-mode t (not (null regexp-p)) nil (not no-recursive-edit)))
 
 (defun isearch-forward-regexp (&optional not-regexp no-recursive-edit)
   "\
@@ -475,7 +482,7 @@ With a prefix argument, do a regular string search instead.
 Like ordinary incremental search except that your input
 is treated as a regexp.  See \\[isearch-forward] for more info."
   (interactive "P\np")
-  (isearch-mode t (null not-regexp) nil no-recursive-edit))
+  (isearch-mode t (null not-regexp) nil (not no-recursive-edit)))
 
 (defun isearch-backward (&optional regexp-p no-recursive-edit)
   "\
@@ -483,7 +490,7 @@ Do incremental search backward.
 With a prefix argument, do a regular expression search instead.
 See \\[isearch-forward] for more information."
   (interactive "P\np")
-  (isearch-mode nil (not (null regexp-p)) nil no-recursive-edit))
+  (isearch-mode nil (not (null regexp-p)) nil (not no-recursive-edit)))
 
 (defun isearch-backward-regexp (&optional not-regexp no-recursive-edit)
   "\
@@ -492,7 +499,7 @@ With a prefix argument, do a regular string search instead.
 Like ordinary incremental search except that your input
 is treated as a regexp.  See \\[isearch-forward] for more info."
   (interactive "P\np")
-  (isearch-mode nil (null not-regexp) nil no-recursive-edit))
+  (isearch-mode nil (null not-regexp) nil (not no-recursive-edit)))
 
 
 (defun isearch-mode-help ()
@@ -1553,3 +1560,4 @@ have special meaning in a regexp."
 ;;	))
 
 ;;))
+
