@@ -10,14 +10,13 @@
 behavior of Emacs in minor ways.  See @cite{The Emacs Lisp Reference
 Manual} for how to make more far-reaching changes.
 
-  All kinds of customization affect only the particular Emacs session
-that you do them in.  They are completely lost when you kill the Emacs
-session, and have no effect on other Emacs sessions you may run at the
-same time or later.  The only way an Emacs session can affect anything
-outside of it is by writing a file; in particular, the only way to make
-a customization ``permanent'' is to put something in your @file{.emacs}
-file or other appropriate file to do the customization in each session.
-@xref{Init File}.
+  Customization that you do within Emacs normally affects only the
+particular Emacs session that you do it in--it does not persist
+between sessions unless you save the customization in a file such as
+@file{.emacs} or @file{.Xdefaults} that will change future sessions.
+@xref{Init File}.  In the customization buffer, if you use a
+command to save customizations for future sessions, this actually
+works by editing @file{.emacs} for you.
 
 @menu
 * Minor Modes::		Each minor mode is one feature you can turn on
@@ -61,12 +60,31 @@ off and off if it was on.  This is known as @dfn{toggling}.  A positive
 argument always turns the mode on, and an explicit zero argument or a
 negative argument always turns it off.
 
-  Enabling or disabling some minor modes applies only to the current
-buffer; each buffer is independent of the other buffers.  Therefore, you
-can enable the mode in particular buffers and disable it in others.  The
-per-buffer minor modes include Abbrev mode, Auto Fill mode, Auto Save
-mode, Font-Lock mode, ISO Accents mode, Outline minor
-mode, Overwrite mode, and Binary Overwrite mode.
+  Some minor modes are global: while enabled, they affect everything
+you do in the Emacs session, in all buffers.  Other minor modes are
+buffer-local; they apply only to the current buffer, so you can enable
+the mode in certain buffers and not others.
+
+  For most minor modes, the command name is also the name of a
+variable which directly controls the mode.  The mode is enabled
+whenever this variable's value is non-@code{nil}, and the minor-mode
+command works by setting the variable.  For example, the command
+@code{outline-minor-mode} works by setting the value of
+@code{outline-minor-mode} as a variable; it is this variable that
+directly turns Outline minor mode on and off.  To check whether a
+given minor mode works this way, use @kbd{C-h v} to ask for
+documentation on the variable name.
+
+  These minor-mode variables provide a good way for Lisp programs to turn
+minor modes on and off; they are also useful in a file's local variables
+list.  But please think twice before setting minor modes with a local
+variables list, because most minor modes are matter of user
+preference---other users editing the same file might not want the same
+minor modes you prefer.
+
+  The buffer-local minor modes include Abbrev mode, Auto Fill mode,
+Auto Save mode, Font-Lock mode, ISO Accents mode, Outline minor mode,
+Overwrite mode, and Binary Overwrite mode.
 
   Abbrev mode allows you to define abbreviations that automatically expand
 as you type them.  For example, @samp{amd} might expand to @samp{abbrev
@@ -148,23 +166,6 @@ will get an error.  This means you must either set the mark, or
 explicitly ``reactivate'' it, before each command that uses the region.
 The advantage of Transient Mark mode is that Emacs can display the
 region highlighted (currently only when using X).  @xref{Mark}.
-
-  For most minor modes, the command name is also the name of a variable
-which directly controls the mode.  The mode is enabled whenever this
-variable's value is non-@code{nil}, and the minor-mode command works by
-setting the variable.  For example, the command
-@code{outline-minor-mode} works by setting the value of
-@code{outline-minor-mode} as a variable; it is this variable that
-directly turns Outline minor mode on and off.  To check whether a given
-minor mode works this way, use @kbd{C-h v} to ask for documentation on
-the variable name.
-
-  These minor-mode variables provide a good way for Lisp programs to turn
-minor modes on and off; they are also useful in a file's local variables
-list.  But please think twice before setting minor modes with a local
-variables list, because most minor modes are matter of user
-preference---other users editing the same file might not want the same
-minor modes you prefer.
 
 @node Variables
 @section Variables
