@@ -10,8 +10,8 @@
 
 #define POSIX
 
-/* Here is how to find X Windows.  The -R option says where
-   to find X windows at run time.  */
+/* Here is how to find X Windows.  LD_SWITCH_X_SITE_AUX gives an -R option
+   says where to find X windows at run time.  */
 #ifndef __GNUC__
 #define LD_SWITCH_SYSTEM LD_SWITCH_X_SITE_AUX
 #else /* GCC */
