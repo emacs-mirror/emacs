@@ -967,7 +967,7 @@ is not copied.  */)
 /* GC is possible in this function if it autoloads a keymap.  */
 
 DEFUN ("define-key", Fdefine_key, Sdefine_key, 3, 3, 0,
-       doc: /* Args KEYMAP, KEY, DEF.  Define key sequence KEY, in KEYMAP, as DEF.
+       doc: /* In KEYMAP, define key sequence KEY as DEF.
 KEYMAP is a keymap.
 
 KEY is a string or a vector of symbols and characters meaning a
