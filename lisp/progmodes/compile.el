@@ -632,7 +632,7 @@ This variable's value takes effect when `grep-compute-defaults' is called.")
 (defvar grep-find-use-xargs nil
   "Whether \\[grep-find] uses the `xargs' utility by default.
 
-If nil, it uses `grep -exec'; if `gnu', it uses `find -print0' and `xargs -0';
+If nil, it uses `find -exec'; if `gnu', it uses `find -print0' and `xargs -0';
 if not nil and not `gnu', it uses `find -print' and `xargs'.
 
 This variable's value takes effect when `grep-compute-defaults' is called.")
@@ -922,7 +922,7 @@ those sub directories of DIR."
 			   (if (stringp subdirs)
 			       subdirs
 			     (mapconcat 'identity subdirs " "))
-			 nil)  ;; we change default-directory to dir 
+			 nil)  ;; we change default-directory to dir
 		       (and grep-tree-ignore-CVS-directories "-path '*/CVS' -prune -o ")
 		       grep-tree-ignore-case))
 	(default-directory dir)
@@ -948,9 +948,9 @@ Likewise if `compilation-buffer-name-function' is non-nil.
 If current buffer is in Compilation mode for the same mode name
 return the name of the current buffer, so that it gets reused.
 Otherwise, construct a buffer name from MODE-NAME."
-  (cond (name-function 
+  (cond (name-function
 	 (funcall name-function mode-name))
-	(compilation-buffer-name-function 
+	(compilation-buffer-name-function
 	 (funcall compilation-buffer-name-function mode-name))
 	((and (eq major-mode 'compilation-mode)
 	      (equal mode-name (nth 2 compilation-arguments)))
