@@ -98,14 +98,16 @@ x
 @vindex nil
 @vindex t
 @kindex setting-constant
+@cindex keyword symbol
 
   In Emacs Lisp, certain symbols normally evaluate to themselves.  These
 include @code{nil} and @code{t}, as well as any symbol whose name starts
-with @samp{:}.  These symbols cannot be rebound, nor can their values be
-changed.  Any attempt to set or bind @code{nil} or @code{t} signals a
-@code{setting-constant} error.  The same is true for a symbol whose name
-starts with @samp{:} (if it is interned in the standard obarray), except
-that you are allowed to set such a symbol to itself.
+with @samp{:} (these are called @dfn{keywords}).  These symbols cannot
+be rebound, nor can their values be changed.  Any attempt to set or bind
+@code{nil} or @code{t} signals a @code{setting-constant} error.  The
+same is true for a keyword (a symbol whose name starts with @samp{:}),
+if it is interned in the standard obarray, except that setting such a
+symbol to itself is not an error.
 
 @example
 @group
@@ -121,7 +123,7 @@ nil @equiv{} 'nil
 @defvar keyword-symbols-constant-flag
 @tindex keyword-symbols-constant-flag
 If this variable is @code{nil}, you are allowed to set and bind symbols
-whose names start with @samp{:} as you wish.  This is to make it
+whose names start with @samp{:} however you wish.  This is to make it
 possible to run old Lisp programs which do that.
 @end defvar
 
