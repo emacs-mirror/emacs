@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
 ;; Version: $Name:  $
-;; Revision: $Id: log-edit.el,v 1.2 2000/03/26 21:19:58 monnier Exp $
+;; Revision: $Id: log-edit.el,v 1.3 2000/03/26 23:05:12 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -114,7 +114,10 @@ can be obtained from `log-edit-files'."
 			 log-edit-add-to-changelog)))
 
 (defvar cvs-changelog-full-paragraphs t
-  "*If non-nil, include full ChangeLog paragraphs in the CVS log.
+  "Obsolete, use `log-edit-changelog-full-paragraphs'.")
+
+(defvar log-edit-changelog-full-paragraphs cvs-changelog-full-paragraphs
+  "*If non-nil, include full ChangeLog paragraphs in the log.
 This may be set in the ``local variables'' section of a ChangeLog, to
 indicate the policy for that ChangeLog.
 
@@ -123,15 +126,15 @@ a paragraph usually describes a set of changes with a single purpose,
 but perhaps spanning several functions in several files.  Changes in
 different paragraphs are unrelated.
 
-You could argue that the CVS log entry for a file should contain the
+You could argue that the log entry for a file should contain the
 full ChangeLog paragraph mentioning the change to the file, even though
 it may mention other files, because that gives you the full context you
 need to understand the change.  This is the behaviour you get when this
 variable is set to t.
 
-On the other hand, you could argue that the CVS log entry for a change
+On the other hand, you could argue that the log entry for a change
 should contain only the text for the changes which occurred in that
-file, because the CVS log is per-file.  This is the behaviour you get
+file, because the log is per-file.  This is the behaviour you get
 when this variable is set to nil.")
 
 ;;;; Internal global or buffer-local vars
@@ -184,8 +187,6 @@ commands (under C-x v for VC, for example).
 
 (defun log-edit-done ()
   "Finish editing the log message and commit the files.
-This can only be used in the *cvs-commit* buffer.
-With a prefix argument, prompt for cvs commit flags.
 If you want to abort the commit, simply delete the buffer."
   (interactive)
   (if (and (> (point-max) 1)
@@ -233,8 +234,15 @@ To select default log text, we:
   the files we're checking in, and finally
 - use those paragraphs as the log text."
   (interactive)
-  (cvs-insert-changelog-entries (log-edit-files))
-  (log-edit-delete-common-indentation))
+  (log-edit-insert-changelog-entries (log-edit-files))
+  (log-edit-delete-common-indentation)
+  (goto-char (point-min))
+  (when (looking-at "\\*\\s-+")
+    (forward-line 1)
+    (when (not (re-search-forward "^\\*\\s-+" nil t))
+      (goto-char (point-min))
+      (skip-chars-forward "^():")
+      (delete-region (point-min) (point)))))
 
 (defun log-edit-mode-help ()
   "Provide help for the `log-edit-mode-map'."
@@ -297,12 +305,12 @@ To select default log text, we:
 ;;;; Courtesy Jim Blandy
 ;;;; 
 
-(defun cvs-narrow-changelog ()
+(defun log-edit-narrow-changelog ()
   "Narrow to the top page of the current buffer, a ChangeLog file.
 Actually, the narrowed region doesn't include the date line.
 A \"page\" in a ChangeLog file is the area between two dates."
   (or (eq major-mode 'change-log-mode)
-      (error "cvs-narrow-changelog: current buffer isn't a ChangeLog"))
+      (error "log-edit-narrow-changelog: current buffer isn't a ChangeLog"))
 
   (goto-char (point-min))
 
@@ -316,7 +324,7 @@ A \"page\" in a ChangeLog file is the area between two dates."
     (narrow-to-region start (point))
     (goto-char (point-min))))
 
-(defun cvs-changelog-paragraph ()
+(defun log-edit-changelog-paragraph ()
   "Return the bounds of the ChangeLog paragraph containing point.
 If we are between paragraphs, return the previous paragraph."
   (save-excursion
@@ -331,7 +339,7 @@ If we are between paragraphs, return the previous paragraph."
               (match-beginning 0)
             (point)))))
 
-(defun cvs-changelog-subparagraph ()
+(defun log-edit-changelog-subparagraph ()
   "Return the bounds of the ChangeLog subparagraph containing point.
 A subparagraph is a block of non-blank lines beginning with an asterisk.
 If we are between sub-paragraphs, return the previous subparagraph."
@@ -346,18 +354,18 @@ If we are between sub-paragraphs, return the previous subparagraph."
                   (point-max))))
       (list (point) (point)))))
 
-(defun cvs-changelog-entry ()
+(defun log-edit-changelog-entry ()
   "Return the bounds of the ChangeLog entry containing point.
-The variable `cvs-changelog-full-paragraphs' decides whether an
+The variable `log-edit-changelog-full-paragraphs' decides whether an
 \"entry\" is a paragraph or a subparagraph; see its documentation string
 for more details."
-  (if cvs-changelog-full-paragraphs
-      (cvs-changelog-paragraph)
-    (cvs-changelog-subparagraph)))
+  (if log-edit-changelog-full-paragraphs
+      (log-edit-changelog-paragraph)
+    (log-edit-changelog-subparagraph)))
 
 (defvar user-full-name)
 (defvar user-mail-address)
-(defun cvs-changelog-ours-p ()
+(defun log-edit-changelog-ours-p ()
   "See if ChangeLog entry at point is for the current user, today.
 Return non-nil iff it is."
   ;; Code adapted from add-change-log-entry.
@@ -373,7 +381,7 @@ Return non-nil iff it is."
 		  (format-time-string "%Y-%m-%d"))))
     (looking-at (regexp-quote (format "%s  %s  <%s>" time name mail)))))
 
-(defun cvs-changelog-entries (file)
+(defun log-edit-changelog-entries (file)
   "Return the ChangeLog entries for FILE, and the ChangeLog they came from.
 The return value looks like this:
   (LOGBUFFER (ENTRYSTART . ENTRYEND) ...)
@@ -392,10 +400,10 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
       (unless (eq major-mode 'change-log-mode) (change-log-mode))
       (goto-char (point-min))
       (if (looking-at "\\s-*\n") (goto-char (match-end 0)))
-      (if (not (cvs-changelog-ours-p))
+      (if (not (log-edit-changelog-ours-p))
 	  (list (current-buffer))
 	(save-restriction
-	  (cvs-narrow-changelog)
+	  (log-edit-narrow-changelog)
 	  (goto-char (point-min))
 	  
 	  ;; Search for the name of FILE relative to the ChangeLog.  If that
@@ -411,13 +419,13 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
 
 	    (let (texts)
 	      (while (search-forward pattern nil t)
-		(let ((entry (cvs-changelog-entry)))
+		(let ((entry (log-edit-changelog-entry)))
 		  (push entry texts)
 		  (goto-char (elt entry 1))))
 
 	      (cons (current-buffer) texts))))))))
 
-(defun cvs-changelog-insert-entries (buffer regions)
+(defun log-edit-changelog-insert-entries (buffer regions)
   "Insert those regions in BUFFER specified in REGIONS.
 Sort REGIONS front-to-back first."
   (let ((regions (sort regions 'car-less-than-car))
@@ -427,14 +435,14 @@ Sort REGIONS front-to-back first."
       (setq last (elt region 1))
       (apply 'insert-buffer-substring buffer region))))
 
-(defun cvs-insert-changelog-entries (files)
+(defun log-edit-insert-changelog-entries (files)
   "Given a list of files FILES, insert the ChangeLog entries for them."
   (let ((buffer-entries nil))
 
     ;; Add each buffer to buffer-entries, and associate it with the list
     ;; of entries we want from that file.
     (dolist (file files)
-      (let* ((entries (cvs-changelog-entries file))
+      (let* ((entries (log-edit-changelog-entries file))
              (pair (assq (car entries) buffer-entries)))
         (if pair
             (setcdr pair (cvs-union (cdr pair) (cdr entries)))
@@ -443,7 +451,7 @@ Sort REGIONS front-to-back first."
     ;; Now map over each buffer in buffer-entries, sort the entries for
     ;; each buffer, and extract them as strings.
     (dolist (buffer-entry buffer-entries)
-      (cvs-changelog-insert-entries (car buffer-entry) (cdr buffer-entry))
+      (log-edit-changelog-insert-entries (car buffer-entry) (cdr buffer-entry))
       (when (cdr buffer-entry) (newline)))))
 
 (provide 'log-edit)
