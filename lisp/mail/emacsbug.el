@@ -42,11 +42,15 @@
   :group 'maint
   :group 'mail)
 
-(defvar bug-gnu-emacs "bug-gnu-emacs@prep.ai.mit.edu"
-  "Address of mailing list for GNU Emacs bugs.")
+(defcustom report-emacs-bug-address "bug-gnu-emacs@prep.ai.mit.edu"
+  "*Address of mailing list for GNU Emacs bugs."
+  :group 'emacsbug
+  :type 'string)
 
-(defvar report-emacs-bug-pretest-address "emacs-pretest-bug@gnu.ai.mit.edu"
-  "Address of mailing list for GNU Emacs pretest bugs.")
+(defcustom report-emacs-bug-pretest-address "emacs-pretest-bug@gnu.ai.mit.edu"
+  "*Address of mailing list for GNU Emacs pretest bugs."
+  :group 'emacsbug
+  :type 'string)
 
 (defvar report-emacs-bug-orig-text nil
   "The automatically-created initial text of bug report.")
@@ -76,7 +80,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 		      ;; If there are four numbers in emacs-version,
 		      ;; this is a pretest version.
 		      report-emacs-bug-pretest-address
-		    bug-gnu-emacs)
+		    report-emacs-bug-address)
 		  topic)
     ;; The rest of this does not execute
     ;; if the user was asked to confirm and said no.
