@@ -14,12 +14,15 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 21.4
 
+---
 ** Emacs can now be built without sound support.
 
+---
 ** Emacs now supports new configure options `--program-prefix',
 `--program-suffix' and `--program-transform-name' that affect the names of
 installed programs.
 
+---
 ** By default, Emacs now uses a setgid helper program to update game
 scores.  The directory ${localstatedir}/games/emacs is the normal
 place for game scores to be stored.  This may be controlled by the
@@ -49,6 +52,7 @@ Emacs with Leim.
 ** Support for MacOS X was added.
 See the files mac/README and mac/INSTALL for build instructions.
 
+---
 ** Support for GNU/Linux systems on X86-64 machines was added.
 
 * Changes in Emacs 21.4
@@ -66,6 +70,7 @@ to specify the value of `default-directory' for mail buffers.  This
 directory is used for auto-save files of mail buffers.  It defaults to
 "~/".
 
++++
 ** When you are root, and you visit a file whose modes specify
 read-only, the Emacs buffer is now read-only too.  Type C-x C-q if you
 want to make the buffer writable.  (As root, you will in fact be able
@@ -315,36 +320,17 @@ screen size.  (For now, this does not work with some window managers.)
 ---
 ** shell-mode now supports programmable completion using `pcomplete'.
 
+---
 ** Emacs now tries to set up buffer coding systems for HTML/XML files
-automatically.  This is accomplished using the general mechanism of a
-new variable called `auto-coding-functions', which you may add to.  If
-the coding system is detected incorrectly, you may use coding: tags to
-override them.
+automatically.
 
++++
 ** The new command `comint-input-previous-argument' in comint-derived
 modes (shell-mode etc) inserts arguments from previous command lines,
 like bash's `ESC .' binding.  It is bound by default to `C-c .', but
 otherwise behaves quite similarly to the bash version.
 
-** Controlling the left and right fringe widths.
-
-The left and right fringe widths can now be controlled by setting the
-`left-fringe' and `right-fringe' frame parameters to an integer value
-specifying the width in pixels.  Setting the width to 0 effectively
-removes the corresponding fringe.
-
-The actual fringe widths may deviate from the specified widths, since
-the combined fringe widths must match an integral number of columns.
-The extra width is distributed evenly between the left and right fringe.
-For force a specific fringe width, specify the width as a negative
-integer (if both widths are negative, only the left fringe gets the
-specified width).
-
-Setting the width to nil (the default), restores the default fringe
-width which is the minimum number of pixels necessary to display any
-of the currently defined fringe bitmaps.  The width of the built-in
-fringe bitmaps is 8 pixels.
-
++++
 ** Changes in C-h bindings:
 
 C-h e displays the *Messages* buffer.
@@ -379,11 +365,13 @@ to new-kill-line, these commands now report:
 - C-h w and C-h f new-kill-line reports:
   new-kill-line is on C-k
 
++++
 ** C-w in incremental search now grabs either a character or a word,
 making the decision in a heuristic way.  This new job is done by the
 command `isearch-yank-word-or-char'.  To restore the old behavior,
 bind C-w to `isearch-yank-word' in `isearch-mode-map'.
 
++++
 ** Yanking text now discards certain text properties that can
 be inconvenient when you did not expect them.  The variable
 `yank-excluded-properties' specifies which ones.  Insertion
@@ -412,9 +400,11 @@ sense for the attribute.  When an attribute is de-selected by unchecking
 its check-box, then the (now ignored, but still present temporarily in
 case you re-select the attribute) value is hidden.
 
-** In GUD mode when talking to GDB, C-x C-a C-j "jumps" the program
++++
+** In GUD mode, when talking to GDB, C-x C-a C-j "jumps" the program
 counter to the specified source line (the one where point is).
 
+---
 ** GUD mode improvements for jdb:
 
 *** Search for source files using jdb classpath and class
@@ -491,20 +481,25 @@ each time, so you can mark the next two sexps with M-C-SPC M-C-SPC,
 for example.  This feature also works for mark-end-of-sentence, if you
 bind that to a key.
 
++++
 ** Some commands do something special in Transient Mark mode when the
 mark is active--for instance, they limit their operation to the
 region.  Even if you don't normally use Transient Mark mode, you might
 want to get this behavior from a particular command.  There are two
-ways you can enable Transient Mark mode temporarily, and activate the
-mark, for one command only.
+ways you can enable Transient Mark mode and activate the mark, for one
+command only.
 
-One is to type C-SPC C-SPC; this also sets the mark.  The other is to
-type C-u C-x C-x, which does not alter the region.
+One method is to type C-SPC C-SPC; this enables Transient Mark mode
+and sets the mark at point.  The other method is to type C-u C-x C-x.
+This enables Transient Mark mode temporarily but does not alter the
+mark or the region.
 
-After these commands, Transient Mark mode remains enabled
-until you deactivate the mark--typically with a command that
-alters the buffer, or typing C-g.
+After these commands, Transient Mark mode remains enabled until you
+deactivate the mark.  That typically happens when you type a command
+that alters the buffer, but you can also deactivate the mark by typing
+C-g.
 
++++
 ** A prefix argument is no longer required to repeat a jump to a
 previous mark, i.e. C-u C-SPC C-SPC C-SPC ... will cycle through the
 mark ring.  Use C-u C-u C-SPC to set the mark immediately after a jump.
@@ -538,6 +533,7 @@ directory listing into a buffer.
 ** mouse-wheels can now scroll a specific fraction of the window
 (rather than a fixed number of lines) and the scrolling is `progressive'.
 
++++
 ** The keyboard-coding-system is now automatically set based on
 your current locale settings.  If it turns out that your terminal
 does not support the encoding implied by your locale (for example,
@@ -547,6 +543,7 @@ it inserts non-ASCII chars if you hit M-i), you will need to add
 
 to your .emacs to revert to the old behavior.
 
+---
 ** A new coding system `euc-tw' has been added for traditional Chinese
 in CNS encoding; it accepts both Big 5 and CNS as input; on saving,
 Big 5 is then converted to CNS.
@@ -567,6 +564,7 @@ appears in.
 ** The default values of `tooltip-delay' and `tooltip-hide-delay'
 were changed.
 
+---
 ** On terminals whose erase-char is ^H (Backspace), Emacs
 now uses normal-erase-is-backspace-mode.
 
@@ -677,6 +675,7 @@ C-u C-x = gives the same information and more.
 with a space, when those buffers are visiting files.  Normally buffers
 whose names begin with space are omitted.
 
++++
 ** You can now customize fill-nobreak-predicate to control where
 filling can break lines.  We provide two sample predicates,
 fill-single-word-nobreak-p and fill-french-nobreak-p.
@@ -686,6 +685,7 @@ fill-single-word-nobreak-p and fill-french-nobreak-p.
 When this option is enabled, M-x add-change-log-entry will always
 start a new record regardless of when the last record is.
 
++++
 ** SGML mode has indentation and supports XML syntax.
 The new variable `sgml-xml-mode' tells SGML mode to use XML syntax.
 When this option is enabled, SGML tags are inserted in XML style,
@@ -693,6 +693,7 @@ i.e., there is always a closing tag.
 By default, its setting is inferred on a buffer-by-buffer basis
 from the file name or buffer contents.
 
++++
 ** `xml-mode' is now an alias for `smgl-mode', which has XML support.
 
 +++
@@ -742,22 +743,6 @@ completing file names.  Elements of `completion-ignored-extensions'
 which do not end in a slash are never considered when a completion
 candidate is a directory.
 
-** The variable `safe-local-eval-forms' specifies a list of forms that
-are ok to evaluate when they appear in an `eval' local variables
-specification.  Normally Emacs asks for confirmation before evaluating
-such a form, but if the form appears in this list, no confirmation is
-needed.
-
-** If a function has a non-nil `safe-local-eval-function' property,
-that means it is ok to evaluate some calls to that function when it
-appears in an `eval' local variables specification.  If the property
-is t, then any form calling that function with constant arguments is
-ok.  If the property is a function or list of functions, they are called
-with the form as argument, and if any returns t, the form is ok to call.
-
-If the form is not "ok to call", that means Emacs asks for
-confirmation as before.
-
 +++
 ** The completion commands TAB, SPC and ? in the minibuffer apply only
 to the text before point.  If there is text in the buffer after point,
@@ -791,6 +776,7 @@ The new variable `w32-pass-extra-mouse-buttons-to-system' controls
 whether Emacs should handle the extra buttons itself (the default), or
 pass them to Windows to be handled with system-wide functions.
 
++++
 ** Under X11, it is possible to swap Alt and Meta (and Super and Hyper).
 The new variables `x-alt-keysym', `x-hyper-keysym', `x-meta-keysym',
 and `x-super-keysym' can be used to choose which keysyms Emacs should
@@ -807,11 +793,13 @@ Meta and Alt:
 
 ** New modes and packages
 
+---
 *** The new ido package is an extension of the iswitchb package
 to do interactive opening of files and directories in addition to
 interactive buffer switching.  Ido is a superset of iswitchb (with a
 few exceptions), so don't enable both packages.
 
+---
 *** The new cua package provides CUA-like keybindings using C-x for
 cut (kill), C-c for copy, C-v for paste (yank), and C-z for undo.
 With cua, the region can be set and extended using shifted movement
@@ -881,6 +869,7 @@ Emacs build procedure and installed together with the Emacs User
 Manual.  A menu item was added to the menu bar that makes it easy
 accessible (Help->More Manuals->Emacs Lisp Reference).
 
++++
 *** Tramp is now part of the distribution.
 
 This package is similar to Ange-FTP: it allows you to edit remote
@@ -905,6 +894,7 @@ together with the Emacs User Manual, into the Info directory.  A menu
 item was added to the menu bar that makes it easy accessible
 (Help->More Manuals->Introduction to Emacs Lisp).
 
+---
 *** The new global minor mode `read-file-name-electric-shadow-mode'
 modifies the way filenames being entered by the user in the minibuffer are
 displayed, so that it's clear when part of the entered filename will be
@@ -913,11 +903,13 @@ made dim, invisible, or otherwise less visually noticable.  The display
 method may be displayed by customizing the variable
 `read-file-name-electric-shadow-properties'.
 
+---
 *** The ruler-mode.el library provides a minor mode for displaying an
 "active" ruler in the header line.  You can use the mouse to visually
 change the `fill-column', `window-margins' and `tab-stop-list'
 settings.
 
+---
 *** The minor mode Reveal mode makes text visible on the fly as you
 move your cursor into hidden region of the buffer.
 It should work with any package that uses overlays to hide parts
@@ -940,6 +932,46 @@ mode-lines in inverse-video.
 
 ** When pure storage overflows while dumping, Emacs now prints how
 much pure storage it will approximately need.
+
+** The new variable `auto-coding-functions' lets you specify functions
+to examine a file being visited and deduce the proper coding system
+for it.  (If the coding system is detected incorrectly for a specific
+file, you can put a `coding:' tags to override it.)
+
+** The variable `safe-local-eval-forms' specifies a list of forms that
+are ok to evaluate when they appear in an `eval' local variables
+specification.  Normally Emacs asks for confirmation before evaluating
+such a form, but if the form appears in this list, no confirmation is
+needed.
+
+** If a function has a non-nil `safe-local-eval-function' property,
+that means it is ok to evaluate some calls to that function when it
+appears in an `eval' local variables specification.  If the property
+is t, then any form calling that function with constant arguments is
+ok.  If the property is a function or list of functions, they are called
+with the form as argument, and if any returns t, the form is ok to call.
+
+If the form is not "ok to call", that means Emacs asks for
+confirmation as before.
+
+** Controlling the left and right fringe widths.
+
+The left and right fringe widths can now be controlled by setting the
+`left-fringe' and `right-fringe' frame parameters to an integer value
+specifying the width in pixels.  Setting the width to 0 effectively
+removes the corresponding fringe.
+
+The actual fringe widths may deviate from the specified widths, since
+the combined fringe widths must match an integral number of columns.
+The extra width is distributed evenly between the left and right fringe.
+For force a specific fringe width, specify the width as a negative
+integer (if both widths are negative, only the left fringe gets the
+specified width).
+
+Setting the width to nil (the default), restores the default fringe
+width which is the minimum number of pixels necessary to display any
+of the currently defined fringe bitmaps.  The width of the built-in
+fringe bitmaps is 8 pixels.
 
 +++
 ** Renamed file hooks to follow the convention:
