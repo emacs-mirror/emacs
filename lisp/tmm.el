@@ -372,7 +372,8 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
 	      (re-search-forward
 	       (concat "\\(^\\|[ \t]\\)" (char-to-string c) tmm-mid-prompt))
 	      (choose-completion))
-	  (erase-buffer)		; In minibuffer
+	  ;; In minibuffer
+	  (delete-region (minibuffer-prompt-end) (point-max))
 	  (mapcar (lambda (elt)
 		    (if (string=
 			 (substring (car elt) 0 
