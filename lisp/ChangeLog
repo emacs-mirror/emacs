@@ -1,3 +1,8 @@
+2001-01-18  Kenichi Handa  <handa@etl.go.jp>
+
+	* mail/sendmail.el (mail-setup): Call set-buffer-multibyte because
+	kill-local-variable doesn't work for enable-multibyte-characters.
+
 2001-01-17  Dave Love  <fx@gnu.org>
 
 	* ediff-init.el (ediff-before-setup-hook)
