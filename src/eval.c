@@ -135,6 +135,12 @@ Lisp_Object Vdebug_on_error;
    do not enter the debugger even if Vdebug_on_errors says they should.  */
 Lisp_Object Vdebug_ignored_errors;
 
+/* Non-nil means call the debugger even if the error will be handled.  */
+Lisp_Object Vdebug_force;
+
+/* Hook for edebug to use.  */
+Lisp_Object Vsignal_hook_function;
+
 /* Nonzero means enter debugger if a quit signal
    is handled by the command loop's error handler. */
 int debug_on_quit;
@@ -1211,6 +1217,10 @@ See also the function `condition-case'.")
   TOTALLY_UNBLOCK_INPUT;
 #endif
 
+  /* This hook is used by edebug.  */
+  if (! NILP (Vsignal_hook_function))
+    Ffuncall (Vsignal_hook_function, error_symbol, data);
+
   conditions = Fget (error_symbol, Qerror_conditions);
 
   for (; handlerlist; handlerlist = handlerlist->next)
@@ -1335,8 +1345,15 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
 
   if (EQ (handlers, Qt))  /* t is used by handlers for all conditions, set up by C code.  */
     return Qt;
-  if (EQ (handlers, Qerror))  /* error is used similarly, but means display a backtrace too */
+  /* error is used similarly, but means print an error message
+     and run the debugger if that is enabled.  */
+  if (EQ (handlers, Qerror)
+      || !NILP (Vdebug_force)) /* This says call debugger even if
+				     there is a handler.  */
     {
+      int count = specpdl_ptr - specpdl;
+      int debugger_called = 0;
+
       if (wants_debugger (Vstack_trace_on_error, conditions))
 	internal_with_output_to_temp_buffer ("*Backtrace*", Fbacktrace, Qnil);
       if ((EQ (sig, Qquit)
@@ -1345,15 +1362,20 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
 	  && ! skip_debugger (conditions, Fcons (sig, data))
 	  && when_entered_debugger < num_nonmacro_input_chars)
 	{
-	  int count = specpdl_ptr - specpdl;
 	  specbind (Qdebug_on_error, Qnil);
 	  *debugger_value_ptr
 	    = call_debugger (Fcons (Qerror,
 				    Fcons (Fcons (sig, data),
 					   Qnil)));
-	  return unbind_to (count, Qlambda);
+	  debugger_called = 1;
 	}
-      return Qt;
+      /* If there is no handler, return saying whether we ran the debugger.  */
+      if (EQ (handlers, Qerror))
+	{
+	  if (debugger_called)
+	    return unbind_to (count, Qlambda);
+	  return Qt;
+	}
     }
   for (h = handlers; CONSP (h); h = Fcdr (h))
     {
@@ -2923,11 +2945,23 @@ If due to `apply' or `funcall' entry, one arg, `lambda'.\n\
 If due to `eval' entry, one arg, t.");
   Vdebugger = Qnil;
 
+  DEFVAR_LISP ("signal-hook-function", &Vsignal_hook_function,
+    "If non-nil, this is a function for `signal' to call.\n\
+It receives the same arguments that `signal' was given.\n\
+The Edebug package uses this to regain control.");
+  Vsignal_hook_function = Qnil;
+
   Qmocklisp_arguments = intern ("mocklisp-arguments");
   staticpro (&Qmocklisp_arguments);
   DEFVAR_LISP ("mocklisp-arguments", &Vmocklisp_arguments,
     "While in a mocklisp function, the list of its unevaluated args.");
   Vmocklisp_arguments = Qt;
+
+  DEFVAR_LISP ("debug-force", &Vdebug_force,
+    "*Non-nil means call the debugger regardless of condition handlers.\n\
+Note that `debug-on-error', `debug-on-quit' and friends\n\
+still determine whether to handle the particular condition.");
+  Vdebug_force = Qnil;
 
   Vrun_hooks = intern ("run-hooks");
   staticpro (&Vrun_hooks);
