@@ -426,8 +426,9 @@ extern Lisp_Object Vtransient_mark_mode;
 /* Return the actual buffer position for the marker P.
    We assume you know which buffer it's pointing into.  */
 
-#define OVERLAY_POSITION(P)					\
- (XGCTYPE ((P)) == Lisp_Marker ? marker_position ((P)) : (abort (), 0))
+#define OVERLAY_POSITION(P)						\
+ (XGCTYPE ((P)) == Lisp_Misc && XMISC ((P))->type == Lisp_Misc_Marker	\
+  ? marker_position ((P)) : (abort (), 0))
 
 /* Allocation of buffer text.  */
 
