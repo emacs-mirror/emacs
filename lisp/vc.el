@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.315 2001/10/22 12:13:29 spiegel Exp $
+;; $Id: vc.el,v 1.316 2001/10/29 12:21:26 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -285,13 +285,15 @@
 ;;
 ;; * diff (file &optional rev1 rev2)
 ;;
-;;   Insert the diff for FILE into the *vc-diff* buffer.  If REV1 and REV2
-;;   are non-nil, report differences from REV1 to REV2.  If REV1 is nil,
-;;   use the current workfile version (as found in the repository) as the
-;;   older version; if REV2 is nil, use the current workfile contents as
-;;   the newer version.  This function should return a status of either 0
-;;   (no differences found), or 1 (either non-empty diff or the diff is
-;;   run asynchronously).
+;;   Insert the diff for FILE into the *vc-diff* buffer.  If REV1 and
+;;   REV2 are non-nil, report differences from REV1 to REV2.  If REV1
+;;   is nil, use the current workfile version (as found in the
+;;   repository) as the older version; if REV2 is nil, use the current
+;;   workfile contents as the newer version.  This function should
+;;   pass the value of (vc-diff-switches-list BACKEND) to the backend
+;;   command.  It should return a status of either 0 (no differences
+;;   found), or 1 (either non-empty diff or the diff is run
+;;   asynchronously).
 ;;
 ;; - diff-tree (dir &optional rev1 rev2) 
 ;;
