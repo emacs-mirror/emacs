@@ -2859,7 +2859,7 @@ the variable `Info-file-list-for-emacs'."
 	  ;; on frames that can display the font above.
 	  (when (memq (framep (selected-frame)) '(x pc w32 mac))
 	    (add-text-properties (1- (match-beginning 2)) (match-end 2)
-				 '(invisible t))))
+				 '(invisible t front-sticky nil rear-nonsticky t))))
 	(goto-char (point-min))
 	(while (re-search-forward "\\(\\*Note[ \t]*\\)\n?[ \t]*\\([^:]*\\)\\(:[^.,:(]*\\(([^)]*)[^.,:]*\\)?[,:]?\n?\\)" nil t)
 	  (unless (= (char-after (1- (match-beginning 0))) ?\") ; hack
@@ -2882,7 +2882,7 @@ the variable `Info-file-list-for-emacs'."
 		(goto-char next))
 	      (if hide-tag
 		  (add-text-properties (match-beginning 1) (match-end 1)
-				       '(invisible t)))
+				       '(invisible t front-sticky nil rear-nonsticky t)))
 	      (add-text-properties
 	       (match-beginning 2) (match-end 2)
 	       (cons 'help-echo
@@ -2893,7 +2893,7 @@ the variable `Info-file-list-for-emacs'."
 			     mouse-face highlight))))
 	      (when (eq Info-hide-note-references t)
 		(add-text-properties (match-beginning 3) (match-end 3)
-				     '(invisible t)))
+				     '(invisible t front-sticky nil rear-nonsticky t)))
 	      (when other-tag
 		(save-excursion
 		  (goto-char (match-beginning 1))
@@ -2913,11 +2913,10 @@ the variable `Info-file-list-for-emacs'."
 	      (setq paragraph-markers (cdr paragraph-markers))
 	      (when (< m (point))
 		(goto-char m)
-		(move-to-left-margin)
-		(when (zerop (forward-paragraph))
-		  (let ((end (point))
-			(beg (progn (backward-paragraph) (point))))
-		    (fill-individual-paragraphs beg end nil nil)
+		(beginning-of-line)
+		(let ((beg (point)))
+		  (when (zerop (forward-paragraph))
+		    (fill-individual-paragraphs beg (point) nil nil)
 		    (goto-char beg))))
 	      (set-marker m nil))))
 
