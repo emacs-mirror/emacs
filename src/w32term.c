@@ -762,17 +762,10 @@ w32_draw_fringe_bitmap (w, row, p)
 static void
 w32_define_fringe_bitmap (which, bits, h, wd)
      int which;
-     unsigned char *bits;
+     unsigned short *bits;
      int h, wd;
 {
-  unsigned short *w32bits
-    = (unsigned short *)alloca (h * sizeof (unsigned short));
-  unsigned short *wb = w32bits;
-  int j;
-
-  for (j = 0; j < h; j++)
-    *wb++ = (unsigned short)*bits++;
-  fringe_bmp[which] = CreateBitmap (wd, h, 1, 1, w32bits);
+  fringe_bmp[which] = CreateBitmap (wd, h, 1, 1, bits);
 }
 
 static void
