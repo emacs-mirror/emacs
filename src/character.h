@@ -52,10 +52,6 @@ Boston, MA 02111-1307, USA.  */
 #define MAX_4_BYTE_CHAR 0x1FFFFF
 #define MAX_5_BYTE_CHAR 0x3FFF7F
 
-/* Leading code range of Latin-1 chars.  */
-#define LEADING_CODE_LATIN_1_MIN 0xC2
-#define LEADING_CODE_LATIN_1_MAX 0xC3
-
 /* Nonzero iff C is a character that corresponds to a raw 8-bit
    byte.  */
 #define CHAR_BYTE8_P(c) ((c) > MAX_5_BYTE_CHAR)
@@ -95,7 +91,8 @@ extern int unibyte_to_multibyte_table[256];
 /* This is the maximum byte length of multibyte form.  */
 #define MAX_MULTIBYTE_LENGTH 5
 
-/* Return a Lisp character whose character code is C. */
+/* Return a Lisp character whose character code is C.  It assumes C is
+   a valid character code.  */
 #define make_char(c) make_number (c)
 
 /* Nonzero iff C is an ASCII byte.  */
@@ -348,7 +345,7 @@ extern int unibyte_to_multibyte_table[256];
    : string_char ((p), NULL, &actual_len))
 
 
-/* Like STRING_CHAR but advacen P to the end of multibyte form.  */
+/* Like STRING_CHAR but advance P to the end of multibyte form.  */
 
 #define STRING_CHAR_ADVANCE(p)					\
   (!((p)[0] & 0x80)						\
@@ -390,7 +387,8 @@ extern int unibyte_to_multibyte_table[256];
     }									\
   else
 
-/* Like FETCH_STRING_CHAR_ADVANCE */
+/* Like FETCH_STRING_CHAR_ADVANCE but return a multibyte character eve
+   if STRING is unibyte.  */
 
 #define FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE(OUTPUT, STRING, CHARIDX, BYTEIDX) \
   if (1)								      \
@@ -452,7 +450,7 @@ extern int unibyte_to_multibyte_table[256];
   else
 
 
-/* Like FETCH_CHAR_ADVANCE but assumes STRING is multibyte.  */
+/* Like FETCH_CHAR_ADVANCE but assumes the current buffer is multibyte.  */
 
 #define FETCH_CHAR_ADVANCE_NO_CHECK(OUTPUT, CHARIDX, BYTEIDX)	\
   if (1)							\
@@ -554,6 +552,9 @@ extern int unibyte_to_multibyte_table[256];
       }									\
   } while (0)
 
+
+/* If C is a character to be unified with a Unicode character, return
+   the unified Unicode character.  */
 
 #define MAYBE_UNIFY_CHAR(c)					\
   if (c > MAX_UNICODE_CHAR					\
