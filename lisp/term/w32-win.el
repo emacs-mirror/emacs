@@ -1,6 +1,6 @@
 ;;; w32-win.el --- parse switches controlling interface with W32 window system
 
-;; Copyright (C) 1993, 1994, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallo
 ;; Keywords: terminals
@@ -76,6 +76,9 @@
 (require 'faces)
 (require 'select)
 (require 'menu-bar)
+(require 'x-dnd)
+(require 'code-pages)
+
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
 (if (fboundp 'new-fontset)
     (require 'fontset))
@@ -105,7 +108,10 @@ Switch to a buffer editing the last file dropped."
 	   (y (cdr coords)))
       (if (and (> x 0) (> y 0))
 	  (set-frame-selected-window nil window))
-    (mapcar 'find-file (car (cdr (cdr event)))))
+      (mapcar (lambda (file-name) 
+		(x-dnd-handle-one-url window 'private 
+				      (concat "file:" file-name)))
+		(car (cdr (cdr event)))))
   (raise-frame)))
 
 (defun w32-drag-n-drop-other-frame (event)
@@ -1254,6 +1260,14 @@ font dialog to get the matching FONTS. Otherwise use a pop-up menu
 	    (error (setq fonts (cdr fonts)))))
 	(if (null font)
 	    (error "Font not found")))))
+
+;;; Set default known names for image libraries
+(setq image-library-alist
+      '((xpm "libXpm-nox4.dll" "libxpm.dll")
+        (png "libpng13d.dll" "libpng13.dll" "libpng12d.dll" "libpng12.dll" "libpng.dll")
+        (jpeg "jpeg62.dll" "libjpeg.dll" "jpeg-62.dll" "jpeg.dll")
+        (tiff "libtiff3.dll" "libtiff.dll")
+        (gif "libungif.dll")))
 
 ;;; arch-tag: 69fb1701-28c2-4890-b351-3d1fe4b4f166
 ;;; w32-win.el ends here

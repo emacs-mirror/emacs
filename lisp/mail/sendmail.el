@@ -714,7 +714,12 @@ Prefix arg means don't delete this window."
     (if (and (or (window-dedicated-p (frame-selected-window))
 		 (cdr (assq 'mail-dedicated-frame (frame-parameters))))
 	     (not (null (delq (selected-frame) (visible-frame-list)))))
-	(delete-frame (selected-frame))
+	(progn
+	  (if (display-multi-frame-p)
+	      (delete-frame (selected-frame))
+	    ;; The previous frame is where normally they have the
+	    ;; RMAIL buffer displayed.
+	    (other-frame -1)))
       (let (rmail-flag summary-buffer)
 	(and (not arg)
 	     (not (one-window-p))

@@ -1,6 +1,6 @@
 ;;; rx.el --- sexp notation for regular expressions
 
-;; Copyright (C) 2001, 2003, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 03, 2004  Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: FSF
@@ -31,6 +31,22 @@
 ;; covers all regexp features, which Sregex doesn't, doesn't suffer
 ;; from the bugs mentioned in the commentary section of Sregex, and
 ;; uses a nicer syntax (IMHO, of course :-).
+
+;; This significantly extended version of the original, is almost
+;; compatible with Sregex.  The only incompatibility I (fx) know of is
+;; that the `repeat' form can't have multiple regexp args.
+
+;; Now alternative forms are provided for a degree of compatibility
+;; with Shivers' attempted definitive SRE notation
+;; <URL:http://www.ai.mit.edu/~/shivers/sre.txt>.  SRE forms not
+;; catered for include: dsm, uncase, w/case, w/nocase, ,@<exp>,
+;; ,<exp>, (word ...), word+, posix-string, and character class forms.
+;; Some forms are inconsistent with SRE, either for historical reasons
+;; or because of the implementation -- simple translation into Emacs
+;; regexp strings.  These include: any, word.  Also, case-sensitivity
+;; and greediness are controlled by variables external to the regexp,
+;; and you need to feed the forms to the `posix-' functions to get
+;; SRE's POSIX semantics.  There are probably more difficulties.
 
 ;; Rx translates a sexp notation for regular expressions into the
 ;; usual string notation.  The translation can be done at compile-time
@@ -94,62 +110,103 @@
 
 ;;; Code:
 
-
 (defconst rx-constituents
   '((and		. (rx-and 1 nil))
+    (seq		. and)		; SRE
+    (:			. and)		; SRE
+    (sequence		. and)		; sregex
     (or			. (rx-or 1 nil))
+    (|			. or)		; SRE
     (not-newline	. ".")
+    (nonl		. not-newline)	; SRE
     (anything		. ".\\|\n")
-    (any		. (rx-any 1 1 rx-check-any))
+    (any		. (rx-any 1 nil rx-check-any)) ; inconsistent with SRE
     (in			. any)
+    (char		. any)		; sregex
+    (not-char		. (rx-not-char 1 nil rx-check-any)) ; sregex
     (not		. (rx-not 1 1 rx-check-not))
+    ;; Partially consistent with sregex, whose `repeat' is like our
+    ;; `**'.  (`repeat' with optional max arg and multiple sexp forms
+    ;; is ambiguous.)
     (repeat		. (rx-repeat 2 3))
-    (submatch		. (rx-submatch 1 nil))
+    (=			. (rx-= 2 nil))	   ; SRE
+    (>=			. (rx->= 2 nil))   ; SRE
+    (**			. (rx-** 2 nil))   ; SRE
+    (submatch		. (rx-submatch 1 nil)) ; SRE
     (group		. submatch)
-    (zero-or-more	. (rx-kleene 1 1))
-    (one-or-more	. (rx-kleene 1 1))
-    (zero-or-one	. (rx-kleene 1 1))
-    (\?			. zero-or-one)
+    (zero-or-more	. (rx-kleene 1 nil))
+    (one-or-more	. (rx-kleene 1 nil))
+    (zero-or-one	. (rx-kleene 1 nil))
+    (\?			. zero-or-one)	; SRE
     (\??		. zero-or-one)
-    (*			. zero-or-more)
+    (*			. zero-or-more)	; SRE
     (*?			. zero-or-more)
     (0+			. zero-or-more)
-    (+			. one-or-more)
+    (+			. one-or-more)	; SRE
     (+?			. one-or-more)
     (1+			. one-or-more)
     (optional		. zero-or-one)
+    (opt		. zero-or-one)	; sregex
     (minimal-match	. (rx-greedy 1 1))
     (maximal-match	. (rx-greedy 1 1))
     (backref		. (rx-backref 1 1 rx-check-backref))
     (line-start		. "^")
+    (bol		. line-start)	; SRE
     (line-end		. "$")
+    (eol		. line-end)	; SRE
     (string-start	. "\\`")
+    (bos		. string-start)	; SRE
+    (bot		. string-start)	; sregex
     (string-end		. "\\'")
+    (eos		. string-end)	; SRE
+    (eot		. string-end)	; sregex
     (buffer-start	. "\\`")
     (buffer-end		. "\\'")
     (point		. "\\=")
     (word-start		. "\\<")
+    (bow		. word-start)	; SRE
     (word-end		. "\\>")
+    (eow		. word-end)	; SRE
     (word-boundary	. "\\b")
+    (not-word-boundary	. "\\B")	; sregex
     (syntax		. (rx-syntax 1 1))
+    (not-syntax		. (rx-not-syntax 1 1)) ; sregex
     (category		. (rx-category 1 1 rx-check-category))
     (eval		. (rx-eval 1 1))
     (regexp		. (rx-regexp 1 1 stringp))
     (digit		. "[[:digit:]]")
-    (control		. "[[:cntrl:]]")
-    (hex-digit		. "[[:xdigit:]]")
-    (blank		. "[[:blank:]]")
-    (graphic		. "[[:graph:]]")
-    (printing		. "[[:print:]]")
-    (alphanumeric	. "[[:alnum:]]")
+    (numeric		. digit)	; SRE
+    (num		. digit)	; SRE
+    (control		. "[[:cntrl:]]") ; SRE
+    (cntrl		. control)	 ; SRE
+    (hex-digit		. "[[:xdigit:]]") ; SRE
+    (hex		. hex-digit)	  ; SRE
+    (xdigit		. hex-digit)	  ; SRE
+    (blank		. "[[:blank:]]")  ; SRE
+    (graphic		. "[[:graph:]]")  ; SRE
+    (graph		. graphic)	  ; SRE
+    (printing		. "[[:print:]]")  ; SRE
+    (print		. printing)	  ; SRE
+    (alphanumeric	. "[[:alnum:]]")  ; SRE
+    (alnum		. alphanumeric)	  ; SRE
     (letter		. "[[:alpha:]]")
-    (ascii		. "[[:ascii:]]")
+    (alphabetic		. letter)	; SRE
+    (alpha		. letter)	; SRE
+    (ascii		. "[[:ascii:]]") ; SRE
     (nonascii		. "[[:nonascii:]]")
-    (lower		. "[[:lower:]]")
-    (punctuation	. "[[:punct:]]")
-    (space		. "[[:space:]]")
-    (upper		. "[[:upper:]]")
-    (word		. "[[:word:]]"))
+    (lower		. "[[:lower:]]") ; SRE
+    (lower-case		. lower)	 ; SRE
+    (punctuation	. "[[:punct:]]") ; SRE
+    (punct		. punctuation)	 ; SRE
+    (space		. "[[:space:]]") ; SRE
+    (whitespace		. space)	 ; SRE
+    (white		. space)	 ; SRE
+    (upper		. "[[:upper:]]") ; SRE
+    (upper-case		. upper)	 ; SRE
+    (word		. "[[:word:]]")	 ; inconsistent with SRE
+    (wordchar		. word)		 ; sregex
+    (not-wordchar	. "[^[:word:]]") ; sregex (use \\W?)
+    )
   "Alist of sexp form regexp constituents.
 Each element of the alist has the form (SYMBOL . DEFN).
 SYMBOL is a valid constituent of sexp regular expressions.
@@ -252,6 +309,8 @@ See also `rx-constituents'."
 
 (defun rx-check (form)
   "Check FORM according to its car's parsing info."
+  (unless (listp form)
+    (error "rx `%s' needs argument(s)" form))
   (let* ((rx (rx-info (car form)))
 	 (nargs (1- (length form)))
 	 (min-args (nth 1 rx))
@@ -297,53 +356,61 @@ FORM is of the form `(and FORM1 ...)'."
 	    "\\)")))
 
 
-(defun rx-quote-for-set (string)
-  "Transform STRING for use in a character set.
-If STRING contains a `]', move it to the front.
-If STRING starts with a '^', move it to the end."
-  (when (string-match "\\`\\(\\(?:.\\|\n\\)+\\)\\]\\(\\(?:.\\|\n\\)\\)*\\'"
-		      string)
-    (setq string (concat "]" (match-string 1 string)
-			 (match-string 2 string))))
-  (when (string-match "\\`^\\(\\(?:.\\|\n\\)+\\)\\'" string)
-    (setq string (concat (substring string 1) "^")))
-  string)
-
+(defvar rx-bracket)		       ; dynamically bound in `rx-any'
 
 (defun rx-check-any (arg)
    "Check arg ARG for Rx `any'."
-   (cond ((integerp arg) t)
-	 ((and (stringp arg) (zerop (length arg)))
-	  (error "String arg for rx `any' must not be empty"))
-	 ((stringp arg) t)
-	 (t
-	  (error "rx `any' requires string or character arg"))))
-
+   (if (integerp arg)
+       (setq arg (string arg)))
+   (when (stringp arg)
+     (if (zerop (length arg))
+	 (error "String arg for Rx `any' must not be empty"))
+     ;; Quote ^ at start; don't bother to check whether this is first arg.
+     (if (eq ?^ (aref arg 0))
+	 (setq arg (concat "\\" arg)))
+     ;; Remove ] and set flag for adding it to start of overall result.
+     (when (string-match "]" arg)
+       (setq arg (replace-regexp-in-string "]" "" arg)
+	     rx-bracket "]")))
+   (when (symbolp arg)
+     (let ((translation (condition-case nil
+			    (rx-to-string arg 'no-group)
+			  (error nil))))
+       (unless translation (error "Invalid char class `%s' in Rx `any'" arg))
+       (setq arg (substring translation 1 -1)))) ; strip outer brackets
+   ;; sregex compatibility
+   (when (and (integerp (car-safe arg))
+	      (integerp (cdr-safe arg)))
+     (setq arg (string (car arg) ?- (cdr arg))))
+   (unless (stringp arg)
+     (error "rx `any' requires string, character, char pair or char class args"))
+   arg)
 
 (defun rx-any (form)
-  "Parse and produce code from FORM, which is `(any STRING)'.
-STRING is optional.  If it is omitted, build a regexp that
-matches anything."
+  "Parse and produce code from FORM, which is `(any ARG ...)'.
+ARG is optional."
   (rx-check form)
-  (let ((arg (cadr form)))
-    (cond ((integerp arg)
-	   (char-to-string arg))
-	  ((= (length arg) 1)
-	   arg)
-	  (t
-	   (concat "[" (rx-quote-for-set (cadr form)) "]")))))
+  (let* ((rx-bracket nil)
+	 (args (mapcar #'rx-check-any (cdr form)))) ; side-effects `rx-bracket'
+    ;; If there was a ?- in the form, move it to the front to avoid
+    ;; accidental range.
+    (if (member "-" args)
+	(setq args (cons "-" (delete "-" args))))
+    (apply #'concat "[" rx-bracket (append args '("]")))))
 
 
 (defun rx-check-not (arg)
   "Check arg ARG for Rx `not'."
-  (unless (or (memq form
-		    '(digit control hex-digit blank graphic printing
-			    alphanumeric letter ascii nonascii lower
-			    punctuation space upper word))
-	      (and (consp form)
-		   (memq (car form) '(not any in syntax category:))))
-    (error "rx `not' syntax error: %s" form))
-    t)
+  (unless (or (and (symbolp arg)
+		   (string-match "\\`\\[\\[:[-a-z]:]]\\'"
+				 (condition-case nil
+				     (rx-to-string arg 'no-group)
+				   (error ""))))
+	      (eq arg 'word-boundary)
+	      (and (consp arg)
+		   (memq (car arg) '(not any in syntax category))))
+    (error "rx `not' syntax error: %s" arg))
+  t)
 
 
 (defun rx-not (form)
@@ -355,22 +422,65 @@ matches anything."
 	   (if (= (length result) 4)
 	       (substring result 2 3)
 	     (concat "[" (substring result 2))))
-	  ((string-match "\\`\\[" result)
+	  ((eq ?\[ (aref result 0))
 	   (concat "[^" (substring result 1)))
-	  ((string-match "\\`\\\\s." result)
-	   (concat "\\S" (substring result 2)))
-	  ((string-match "\\`\\\\S." result)
-	   (concat "\\s" (substring result 2)))
-	  ((string-match "\\`\\\\c." result)
-	   (concat "\\C" (substring result 2)))
-	  ((string-match "\\`\\\\C." result)
-	   (concat "\\c" (substring result 2)))
-	  ((string-match "\\`\\\\B" result)
-	   (concat "\\b" (substring result 2)))
-	  ((string-match "\\`\\\\b" result)
-	   (concat "\\B" (substring result 2)))
+	  ((string-match "\\`\\\\[scb]" result)
+	   (concat (capitalize (substring result 0 2)) (substring result 2)))
 	  (t
 	   (concat "[^" result "]")))))
+
+
+(defun rx-not-char (form)
+  "Parse and produce code from FORM.  FORM is `(not-char ...)'."
+  (rx-check form)
+  (rx-not `(not (in ,@(cdr form)))))
+
+
+(defun rx-not-syntax (form)
+  "Parse and produce code from FORM.  FORM is `(not-syntax SYNTAX)'."
+  (rx-check form)
+  (rx-not `(not (syntax ,@(cdr form)))))
+
+
+(defun rx-trans-forms (form &optional skip)
+  "If FORM's length is greater than two, transform it to length two.
+A form (HEAD REST ...) becomes (HEAD (and REST ...)).
+If SKIP is non-nil, allow that number of items after the head, i.e.
+`(= N REST ...)' becomes `(= N (and REST ...))' if SKIP is 1."
+  (unless skip (setq skip 0))
+  (let ((tail (nthcdr (1+ skip) form)))
+    (if (= (length tail) 1)
+	form
+      (let ((form (copy-sequence form)))
+	(setcdr (nthcdr skip form) (list (cons 'and tail)))
+	form))))
+
+
+(defun rx-= (form)
+  "Parse and produce code from FORM `(= N ...)'."
+  (rx-check form)
+  (setq form (rx-trans-forms form 1))
+  (unless (and (integerp (nth 1 form))
+	       (> (nth 1 form) 0))
+    (error "rx `=' requires positive integer first arg"))
+  (format "%s\\{%d\\}" (rx-to-string (nth 2 form)) (nth 1 form)))
+
+
+(defun rx->= (form)
+  "Parse and produce code from FORM `(>= N ...)'."
+  (rx-check form)
+  (setq form (rx-trans-forms form 1))
+  (unless (and (integerp (nth 1 form))
+	       (> (nth 1 form) 0))
+    (error "rx `>=' requires positive integer first arg"))
+  (format "%s\\{%d,\\}" (rx-to-string (nth 2 form)) (nth 1 form)))
+
+
+(defun rx-** (form)
+  "Parse and produce code from FORM `(** N M ...)'."
+  (rx-check form)
+  (setq form (cons 'repeat (cdr (rx-trans-forms form 2))))
+  (rx-to-string form))
 
 
 (defun rx-repeat (form)
@@ -419,6 +529,7 @@ If OP is one of `*?', `+?', `??', produce a non-greedy regexp.
 If OP is anything else, produce a greedy regexp if `rx-greedy-flag'
 is non-nil."
   (rx-check form)
+  (setq form (rx-trans-forms form))
   (let ((suffix (cond ((memq (car form) '(* + ? )) "")
 		      ((memq (car form) '(*? +? ??)) "?")
 		      (rx-greedy-flag "")
@@ -468,9 +579,15 @@ of all atomic regexps."
 (defun rx-syntax (form)
   "Parse and produce code from FORM, which is `(syntax SYMBOL)'."
   (rx-check form)
-  (let ((syntax (assq (cadr form) rx-syntax)))
+  (let* ((sym (cadr form))
+	 (syntax (assq sym rx-syntax)))
     (unless syntax
-      (error "Unknown rx syntax `%s'" (cadr form)))
+      ;; Try sregex compatibility.
+      (let ((name (symbol-name sym)))
+	(if (= 1 (length name))
+	    (setq syntax (rassq (aref name 0) rx-syntax))))
+      (unless syntax
+	(error "Unknown rx syntax `%s'" (cadr form))))
     (format "\\s%c" (cdr syntax))))
 
 
@@ -483,7 +600,7 @@ of all atomic regexps."
 
 
 (defun rx-category (form)
-  "Parse and produce code from FORM, which is `(category SYMBOL ...)'."
+  "Parse and produce code from FORM, which is `(category SYMBOL)'."
   (rx-check form)
   (let ((char (if (integerp (cadr form))
 		  (cadr form)
@@ -543,8 +660,9 @@ NO-GROUP non-nil means don't put shy groups around the result."
 
 
 ;;;###autoload
-(defmacro rx (regexp)
-  "Translate a regular expression REGEXP in sexp form to a regexp string.
+(defmacro rx (&rest regexps)
+  "Translate regular expressions REGEXPS in sexp form to a regexp string.
+REGEXPS is a non-empty sequence of forms of the sort listed below.
 See also `rx-to-string' for how to do such a translation at run-time.
 
 The following are valid subforms of regular expressions in sexp
@@ -556,53 +674,58 @@ STRING
 CHAR
      matches character CHAR literally.
 
-`not-newline'
+`not-newline', `nonl'
      matches any character except a newline.
 			.
 `anything'
      matches any character
 
-`(any SET)'
-     matches any character in SET.  SET may be a character or string.
+`(any SET ...)'
+`(in SET ...)'
+`(char SET ...)'
+     matches any character in SET ....  SET may be a character or string.
      Ranges of characters can be specified as `A-Z' in strings.
+     Ranges may also be specified as conses like `(?A . ?Z)'.
 
-'(in SET)'
-     like `any'.
+     SET may also be the name of a character class: `digit',
+     `control', `hex-digit', `blank', `graph', `print', `alnum',
+     `alpha', `ascii', `nonascii', `lower', `punct', `space', `upper',
+     `word', or one of their synonyms.
 
-`(not (any SET))'
-     matches any character not in SET
+`(not (any SET ...))'
+     matches any character not in SET ...
 
-`line-start'
+`line-start', `bol'
      matches the empty string, but only at the beginning of a line
      in the text being matched
 
-`line-end'
+`line-end', `eol'
      is similar to `line-start' but matches only at the end of a line
 
-`string-start'
+`string-start', `bos', `bot'
      matches the empty string, but only at the beginning of the
      string being matched against.
 
-`string-end'
+`string-end', `eos', `eot'
      matches the empty string, but only at the end of the
      string being matched against.
 
 `buffer-start'
      matches the empty string, but only at the beginning of the
-     buffer being matched against.
+     buffer being matched against.  Actually equivalent to `string-start'.
 
 `buffer-end'
      matches the empty string, but only at the end of the
-     buffer being matched against.
+     buffer being matched against.  Actually equivalent to `string-end'.
 
 `point'
      matches the empty string, but only at point.
 
-`word-start'
+`word-start', `bow'
      matches the empty string, but only at the beginning or end of a
      word.
 
-`word-end'
+`word-end', `eow'
      matches the empty string, but only at the end of a word.
 
 `word-boundary'
@@ -610,34 +733,35 @@ CHAR
      word.
 
 `(not word-boundary)'
+`not-word-boundary'
      matches the empty string, but not at the beginning or end of a
      word.
 
-`digit'
+`digit', `numeric', `num'
      matches 0 through 9.
 
-`control'
+`control', `cntrl'
      matches ASCII control characters.
 
-`hex-digit'
+`hex-digit', `hex', `xdigit'
      matches 0 through 9, a through f and A through F.
 
 `blank'
      matches space and tab only.
 
-`graphic'
+`graphic', `graph'
      matches graphic characters--everything except ASCII control chars,
      space, and DEL.
 
-`printing'
+`printing', `print'
      matches printing characters--everything except ASCII control chars
      and DEL.
 
-`alphanumeric'
+`alphanumeric', `alnum'
      matches letters and digits.  (But at present, for multibyte characters,
      it matches anything that has word syntax.)
 
-`letter'
+`letter', `alphabetic', `alpha'
      matches letters.  (But at present, for multibyte characters,
      it matches anything that has word syntax.)
 
@@ -647,25 +771,29 @@ CHAR
 `nonascii'
      matches non-ASCII (multibyte) characters.
 
-`lower'
+`lower', `lower-case'
      matches anything lower-case.
 
-`upper'
+`upper', `upper-case'
      matches anything upper-case.
 
-`punctuation'
+`punctuation', `punct'
      matches punctuation.  (But at present, for multibyte characters,
      it matches anything that has non-word syntax.)
 
-`space'
+`space', `whitespace', `white'
      matches anything that has whitespace syntax.
 
-`word'
+`word', `wordchar'
      matches anything that has word syntax.
+
+`not-wordchar'
+     matches anything that has non-word syntax.
 
 `(syntax SYNTAX)'
      matches a character with syntax SYNTAX.  SYNTAX must be one
-     of the following symbols.
+     of the following symbols, or a symbol corresponding to the syntax
+     character, e.g. `\\.' for `\\s.'.
 
      `whitespace'		(\\s- in string notation)
      `punctuation'		(\\s.)
@@ -684,7 +812,7 @@ CHAR
      `comment-delimiter'	(\\s!)
 
 `(not (syntax SYNTAX))'
-     matches a character that has not syntax SYNTAX.
+     matches a character that doesn't have syntax SYNTAX.
 
 `(category CATEGORY)'
      matches a character with category CATEGORY.  CATEGORY must be
@@ -710,7 +838,7 @@ CHAR
      `japanese-katakana-two-byte'	(\\cK)
      `korean-hangul-two-byte'		(\\cN)
      `cyrillic-two-byte'		(\\cY)
-     `combining-diacritic'              (\\c^)
+     `combining-diacritic'		(\\c^)
      `ascii'				(\\ca)
      `arabic'				(\\cb)
      `chinese'				(\\cc)
@@ -731,12 +859,16 @@ CHAR
      `can-break'			(\\c|)
 
 `(not (category CATEGORY))'
-     matches a character that has not category CATEGORY.
+     matches a character that doesn't have category CATEGORY.
 
 `(and SEXP1 SEXP2 ...)'
+`(: SEXP1 SEXP2 ...)'
+`(seq SEXP1 SEXP2 ...)'
+`(sequence SEXP1 SEXP2 ...)'
      matches what SEXP1 matches, followed by what SEXP2 matches, etc.
 
 `(submatch SEXP1 SEXP2 ...)'
+`(group SEXP1 SEXP2 ...)'
      like `and', but makes the match accessible with `match-end',
      `match-beginning', and `match-string'.
 
@@ -744,6 +876,7 @@ CHAR
      another name for `submatch'.
 
 `(or SEXP1 SEXP2 ...)'
+`(| SEXP1 SEXP2 ...)'
      matches anything that matches SEXP1 or SEXP2, etc.  If all
      args are strings, use `regexp-opt' to optimize the resulting
      regular expression.
@@ -757,47 +890,55 @@ CHAR
 `(maximal-match SEXP)'
      produce a greedy regexp for SEXP.  This is the default.
 
-`(zero-or-more SEXP)'
-     matches zero or more occurrences of what SEXP matches.
+Below, `SEXP ...' represents a sequence of regexp forms, treated as if
+enclosed in `(and ...)'.
 
-`(0+ SEXP)'
-     like `zero-or-more'.
+`(zero-or-more SEXP ...)'
+`(0+ SEXP ...)'
+     matches zero or more occurrences of what SEXP ... matches.
 
-`(* SEXP)'
-     like `zero-or-more', but always produces a greedy regexp.
+`(* SEXP ...)'
+     like `zero-or-more', but always produces a greedy regexp, independent
+     of `rx-greedy-flag'.
 
-`(*? SEXP)'
-     like `zero-or-more', but always produces a non-greedy regexp.
+`(*? SEXP ...)'
+     like `zero-or-more', but always produces a non-greedy regexp,
+     independent of `rx-greedy-flag'.
 
-`(one-or-more SEXP)'
-     matches one or more occurrences of A.
+`(one-or-more SEXP ...)'
+`(1+ SEXP ...)'
+     matches one or more occurrences of SEXP ...
 
-`(1+ SEXP)'
-     like `one-or-more'.
-
-`(+ SEXP)'
+`(+ SEXP ...)'
      like `one-or-more', but always produces a greedy regexp.
 
-`(+? SEXP)'
+`(+? SEXP ...)'
      like `one-or-more', but always produces a non-greedy regexp.
 
-`(zero-or-one SEXP)'
+`(zero-or-one SEXP ...)'
+`(optional SEXP ...)'
+`(opt SEXP ...)'
      matches zero or one occurrences of A.
 
-`(optional SEXP)'
-     like `zero-or-one'.
-
-`(? SEXP)'
+`(? SEXP ...)'
      like `zero-or-one', but always produces a greedy regexp.
 
-`(?? SEXP)'
+`(?? SEXP ...)'
      like `zero-or-one', but always produces a non-greedy regexp.
 
 `(repeat N SEXP)'
-     matches N occurrences of what SEXP matches.
+`(= N SEXP ...)'
+     matches N occurrences.
+
+`(>= N SEXP ...)'
+     matches N or more occurrences.
 
 `(repeat N M SEXP)'
-     matches N to M occurrences of what SEXP matches.
+`(** N M SEXP ...)'
+     matches N to M occurrences.
+
+`(backref N)'
+    matches what was matched previously by submatch N.
 
 `(backref N)'
      matches what was matched previously by submatch N.
@@ -811,9 +952,21 @@ CHAR
 
 `(regexp REGEXP)'
      include REGEXP in string notation in the result."
+  (cond ((null regexps)
+	 (error "No regexp"))
+	((cdr regexps)
+	 (rx-to-string `(and ,@regexps) t))
+	(t
+	 (rx-to-string (car regexps) t))))
+
+;; ;; sregex.el replacement
 
-  (rx-to-string regexp))
-
+;; ;;;###autoload (provide 'sregex)
+;; ;;;###autoload (autoload 'sregex "rx")
+;; (defalias 'sregex 'rx-to-string)
+;; ;;;###autoload (autoload 'sregexq "rx" nil nil 'macro)
+;; (defalias 'sregexq 'rx)
+
 (provide 'rx)
 
 ;;; arch-tag: 12d01a63-0008-42bb-ab8c-1c7d63be370b

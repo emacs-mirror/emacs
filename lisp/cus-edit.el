@@ -1012,11 +1012,11 @@ version."
 
 ;;;###autoload
 (defun customize-face (&optional face)
-  "Customize SYMBOL, which should be a face name or nil.
-If SYMBOL is nil, customize all faces.
+  "Customize FACE, which should be a face name or nil.
+If FACE is nil, customize all faces.
 
 Interactively, when point is on text which has a face specified,
-suggest to customized that face, if it's customizable."
+suggest to customize that face, if it's customizable."
   (interactive
    (list (read-face-name "Customize face" "all faces" t)))
   (if (member face '(nil ""))
@@ -1038,10 +1038,10 @@ suggest to customized that face, if it's customizable."
 
 ;;;###autoload
 (defun customize-face-other-window (&optional face)
-  "Show customization buffer for face SYMBOL in other window.
+  "Show customization buffer for face FACE in other window.
 
 Interactively, when point is on text which has a face specified,
-suggest to customized that face, if it's customizable."
+suggest to customize that face, if it's customizable."
   (interactive
    (list (read-face-name "Customize face" "all faces" t)))
   (if (member face '(nil ""))
@@ -1093,7 +1093,7 @@ suggest to customized that face, if it's customizable."
 				(get symbol 'standard-value))))
 		  (when (and cval 	;Declared with defcustom.
 			     (default-boundp symbol) ;Has a value.
-			     (not (equal (eval (car cval)) 
+			     (not (equal (eval (car cval))
 					 ;; Which does not match customize.
 					 (default-value symbol))))
 		    (push (list symbol 'custom-variable) found)))))
@@ -1876,7 +1876,7 @@ and `face'."
   (custom-load-symbol (widget-value widget)))
 
 (defun custom-unloaded-symbol-p (symbol)
-  "Return non-nil if the dependencies of SYMBOL has not yet been loaded."
+  "Return non-nil if the dependencies of SYMBOL have not yet been loaded."
   (let ((found nil)
 	(loads (get symbol 'custom-loads))
 	load)
@@ -1894,7 +1894,7 @@ and `face'."
     found))
 
 (defun custom-unloaded-widget-p (widget)
-  "Return non-nil if the dependencies of WIDGET has not yet been loaded."
+  "Return non-nil if the dependencies of WIDGET have not yet been loaded."
   (custom-unloaded-symbol-p (widget-value widget)))
 
 (defun custom-toggle-hide (widget)
@@ -2074,11 +2074,25 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   :group 'custom-buffer
   :version "20.3")
 
+(defun custom-variable-documentation (variable)
+  "Return documentation of VARIABLE for use in Custom buffer.
+Normally just return the docstring.  But if VARIABLE automatically
+becomes buffer local when set, append a message to that effect."
+  (if (and (local-variable-if-set-p variable)
+	   (or (not (local-variable-p variable))
+	       (with-temp-buffer
+		 (local-variable-if-set-p variable))))
+      (concat (documentation-property variable 'variable-documentation)
+	      "\n
+This variable automatically becomes buffer-local when set outside Custom.
+However, setting it through Custom sets the default value.")
+    (documentation-property variable 'variable-documentation)))
+
 (define-widget 'custom-variable 'custom
   "Customize variable."
   :format "%v"
   :help-echo "Set or reset this variable."
-  :documentation-property 'variable-documentation
+  :documentation-property #'custom-variable-documentation
   :custom-category 'option
   :custom-state nil
   :custom-menu 'custom-variable-menu-create
@@ -2646,7 +2660,7 @@ Also change :reverse-video to :inverse-video."
 	(widget-setup)))))
 
 (defun custom-face-edit-delete (widget)
-  "Remove widget from the buffer."
+  "Remove WIDGET from the buffer."
   (let ((inactive (widget-get widget :inactive))
 	(inhibit-read-only t)
 	(inhibit-modification-hooks t))
@@ -2728,6 +2742,10 @@ Match grayscale frames.")
 					   :sibling-args (:help-echo "\
 Match frames with no color support.")
 					   mono)))
+		  (group :sibling-args (:help-echo "\
+The minimum number of colors the frame should support.")
+			 (const :format "" min-colors)
+			 (integer :tag "Minimum number of colors" ))
 		  (group :sibling-args (:help-echo "\
 Only match frames with the specified intensity.")
 			 (const :format "\
@@ -4023,6 +4041,7 @@ The format is suitable for use with `easy-menu-define'."
   (suppress-keymap custom-mode-map)
   (define-key custom-mode-map " " 'scroll-up)
   (define-key custom-mode-map "\177" 'scroll-down)
+  (define-key custom-mode-map "\C-x\C-s" 'Custom-save)
   (define-key custom-mode-map "q" 'Custom-buffer-done)
   (define-key custom-mode-map "u" 'Custom-goto-parent)
   (define-key custom-mode-map "n" 'widget-forward)

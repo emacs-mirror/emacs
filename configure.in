@@ -3,7 +3,7 @@ dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.
 dnl
-dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003
+dnl  Copyright (C) 1994, 95, 96, 1999, 2000, 01, 02, 03, 2004
 dnl  Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
@@ -170,15 +170,6 @@ if test `pwd` != `(cd ${srcdir} && pwd)` \
    use GNU make.  If you do not have GNU make, then you must
    now do `make distclean' in ${srcdir},
    and then run $0 again.]])
-
-[extrasub='/^VPATH[	 ]*=/c\
-vpath %.c $(srcdir)\
-vpath %.h $(srcdir)\
-vpath %.y $(srcdir)\
-vpath %.l $(srcdir)\
-vpath %.s $(srcdir)\
-vpath %.in $(srcdir)\
-vpath %.texi $(srcdir)']
 fi
 
 #### Given the configuration name, set machfile and opsysfile to the
@@ -1280,7 +1271,7 @@ dnl Treat GCC specially since it just gives a non-fatal `unrecognized option'
 dnl if not built to support GNU ld.
 
 late_LDFLAGS=$LDFLAGS
-if test $GCC = yes; then
+if test "$GCC" = yes; then
   LDFLAGS="$LDFLAGS -Wl,-znocombreloc"
 else
   LDFLAGS="$LDFLAGS -znocombreloc"

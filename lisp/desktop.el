@@ -83,12 +83,6 @@
 
 ;;; Code:
 
-;; Make the compilation more silent
-(eval-when-compile
-  ;; We use functions from these modules
-  ;; We can't (require 'mh-e) since that wants to load something.
-  (mapcar 'require '(info dired reporter)))
-
 (defvar desktop-file-version "206"
   "Version number of desktop file format.
 Written into the desktop file and used at desktop read to provide
@@ -151,8 +145,11 @@ The base name of the file is specified in `desktop-base-file-name'."
   :group 'desktop)
 
 (defcustom desktop-missing-file-warning nil
-  "*If non-nil then `desktop-read' warns when a file no longer exists.
-Otherwise it simply ignores that file."
+  "*If non-nil then `desktop-read' asks if a non-existent file should be recreated.
+Also pause for a moment to display message about errors signaled in
+`desktop-buffer-mode-handlers'.
+
+If nil, just print error messages in the message buffer."
   :type 'boolean
   :group 'desktop)
 
@@ -250,14 +247,6 @@ The variables are saved only when they really are local."
   :type 'regexp
   :group 'desktop)
 
-(defcustom desktop-buffer-modes-to-save
-  '(Info-mode rmail-mode)
-  "If a buffer is of one of these major modes, save the buffer state.
-It is up to the functions in `desktop-buffer-handlers' to decide
-whether the buffer should be recreated or not, and how."
-  :type '(repeat symbol)
-  :group 'desktop)
-
 (defcustom desktop-modes-not-to-save nil
   "List of major modes whose buffers should not be saved."
   :type '(repeat symbol)
@@ -272,53 +261,61 @@ Possible values are:
   :type '(choice (const absolute) (const tilde) (const local))
   :group 'desktop)
 
-(defcustom desktop-buffer-misc-functions
-  '(desktop-buffer-info-misc-data
-    desktop-buffer-dired-misc-data)
-  "*Functions used to determine auxiliary information for a buffer.
-These functions are called by `desktop-save' in order, with no
-arguments.  If a function returns non-nil, its value is saved along
-with the state of the buffer for which it was called; no further
-functions will be called.
+;;;###autoload
+(defvar desktop-save-buffer nil
+  "When non-nil, save buffer status in desktop file.
+This variable becomes buffer local when set.
+
+If the value is a function, it called by `desktop-save' with argument
+DESKTOP-DIRNAME to obtain auxiliary information to saved in the desktop
+file along with the state of the buffer for which it was called.
 
 When file names are returned, they should be formatted using the call
-\"(desktop-file-name FILE-NAME dirname)\".
+\"(desktop-file-name FILE-NAME DESKTOP-DIRNAME)\".
 
-Later, when `desktop-read' restores buffers, each of the functions in
-`desktop-buffer-handlers' will have access to a buffer local variable,
-named `desktop-buffer-misc', whose value is what the function in
-`desktop-buffer-misc-functions' returned."
-  :type '(repeat function)
-  :group 'desktop)
+Later, when `desktop-read' calls a function in `desktop-buffer-mode-handlers'
+to restore the buffer, the auxiliary information is passed as the argument
+DESKTOP-BUFFER-MISC.")
+(make-variable-buffer-local 'desktop-save-buffer)
+(make-obsolete-variable 'desktop-buffer-modes-to-save
+                        'desktop-save-buffer)
+(make-obsolete-variable 'desktop-buffer-misc-functions
+                        'desktop-save-buffer)
 
-(defcustom desktop-buffer-handlers
-  '(desktop-buffer-dired
-    desktop-buffer-rmail
-    desktop-buffer-mh
-    desktop-buffer-info
-    desktop-buffer-file)
-  "*Functions called by `desktop-read' in order to create a buffer.
-The functions are called without explicit parameters but can use the
-following variables:
+(defcustom desktop-buffer-mode-handlers '(
+  (dired-mode . dired-restore-desktop-buffer)
+  (rmail-mode . rmail-restore-desktop-buffer)
+  (mh-folder-mode . mh-restore-desktop-buffer)
+  (Info-mode . Info-restore-desktop-buffer))
+  "Alist of major mode specific functions to restore a desktop buffer.
+Functions are called by `desktop-read'. List elements must have the form
+\(MAJOR-MODE . RESTORE-BUFFER-FUNCTION).
+
+Buffers with a major mode not specified here, are restored by the default
+handler `desktop-restore-file-buffer'.
+
+Handlers are called with argument list
+
+   (DESKTOP-BUFFER-FILE-NAME DESKTOP-BUFFER-NAME DESKTOP-BUFFER-MISC)
+
+Furthermore, they may use the following variables:
 
    desktop-file-version
-   desktop-buffer-file-name
-   desktop-buffer-name
    desktop-buffer-major-mode
    desktop-buffer-minor-modes
    desktop-buffer-point
    desktop-buffer-mark
    desktop-buffer-read-only
-   desktop-buffer-misc
    desktop-buffer-locals
 
-If one function returns non-nil, no further functions are called.
-If the function returns a buffer, then the saved mode settings
+If a handler returns a buffer, then the saved mode settings
 and variable values for that buffer are copied into it."
-  :type '(repeat function)
+  :type 'alist
   :group 'desktop)
 
-(put 'desktop-buffer-handlers 'risky-local-variable t)
+(put 'desktop-buffer-mode-handlers 'risky-local-variable t)
+(make-obsolete-variable 'desktop-buffer-handlers
+                        'desktop-buffer-mode-handlers)
 
 (defcustom desktop-minor-mode-table
   '((auto-fill-function auto-fill-mode)
@@ -329,7 +326,7 @@ NAME is the name of the buffer-local variable indicating that the minor
 mode is active.  RESTORE-FUNCTION is the function to activate the minor mode.
 called.  RESTORE-FUNCTION nil means don't try to restore the minor mode.
 Only minor modes for which the name of the buffer-local variable
-and the name of the minor mode function are different have to added to
+and the name of the minor mode function are different have to be added to
 this table."
   :type 'sexp
   :group 'desktop)
@@ -540,21 +537,20 @@ which means to truncate VAR's value to at most MAX-SIZE elements
 
 ;; ----------------------------------------------------------------------------
 (defun desktop-save-buffer-p (filename bufname mode &rest dummy)
-  "Return t if the desktop should record a particular buffer for next startup.
+  "Return t if buffer should have its state saved in the desktop file.
 FILENAME is the visited file name, BUFNAME is the buffer name, and
 MODE is the major mode."
   (let ((case-fold-search nil))
     (and (not (string-match desktop-buffers-not-to-save bufname))
-	 (not (memq mode desktop-modes-not-to-save))
-	 (or (and filename
-		  (not (string-match desktop-files-not-to-save filename)))
-	     (and (eq mode 'dired-mode)
-		  (save-excursion
-		    (set-buffer (get-buffer bufname))
-		    (not (string-match desktop-files-not-to-save
-				       default-directory))))
-	     (and (null filename)
-		  (memq mode desktop-buffer-modes-to-save))))))
+         (not (memq mode desktop-modes-not-to-save))
+         (or (and filename
+                  (not (string-match desktop-files-not-to-save filename)))
+             (and (eq mode 'dired-mode)
+                  (with-current-buffer bufname
+                    (not (string-match desktop-files-not-to-save
+                                       default-directory))))
+             (and (null filename)
+		  (with-current-buffer bufname desktop-save-buffer))))))
 
 ;; ----------------------------------------------------------------------------
 (defun desktop-file-name (filename dirname)
@@ -593,22 +589,25 @@ See also `desktop-base-file-name'."
                     major-mode
                     ;; minor modes
                     (let (ret)
-                      (mapcar
-                        #'(lambda (mim)
+                      (mapc
+                        #'(lambda (minor-mode)
                           (and
-                            (boundp mim)
-                            (symbol-value mim)
-                            (setq ret
-                              (cons
-                                (let ((special (assq mim desktop-minor-mode-table)))
-                                  (if special (cadr special) mim))
-                                ret))))
+                            (boundp minor-mode)
+                            (symbol-value minor-mode)
+                            (let ((special (assq minor-mode desktop-minor-mode-table)))
+                              (when (or special (functionp minor-mode))
+                                (setq ret
+                                  (cons
+                                    (if special (cadr special) minor-mode)
+                                    ret))))))
                         (mapcar #'car minor-mode-alist))
                       ret)
                     (point)
                     (list (mark t) mark-active)
                     buffer-read-only
-                    (run-hook-with-args-until-success 'desktop-buffer-misc-functions)
+                    ;; Auxiliary information
+                    (when (functionp desktop-save-buffer)
+                      (funcall desktop-save-buffer dirname))
                     (let ((locals desktop-locals-to-save)
                           (loclist (buffer-local-variables))
                           (ll))
@@ -703,7 +702,9 @@ It returns t if a desktop file was loaded, nil otherwise."
             "~"))))
     (if (file-exists-p (expand-file-name desktop-base-file-name desktop-dirname))
       ;; Desktop file found, process it.
-      (let ((desktop-first-buffer nil))
+      (let ((desktop-first-buffer nil)
+            (desktop-buffer-ok-count 0)
+            (desktop-buffer-fail-count 0))
         ;; Evaluate desktop buffer.
         (load (expand-file-name desktop-base-file-name desktop-dirname) t t t)
         ;; `desktop-create-buffer' puts buffers at end of the buffer list.
@@ -715,7 +716,12 @@ It returns t if a desktop file was loaded, nil otherwise."
         (run-hooks 'desktop-delay-hook)
         (setq desktop-delay-hook nil)
         (run-hooks 'desktop-after-read-hook)
-        (message "Desktop loaded.")
+        (message "Desktop: %d buffer%s restored%s."
+                 desktop-buffer-ok-count
+                 (if (= 1 desktop-buffer-ok-count) "" "s")
+                 (if (< 0 desktop-buffer-fail-count)
+                     (format ", %d failed to restore" desktop-buffer-fail-count)
+                   ""))
         t)
       ;; No desktop file found.
       (desktop-clear)
@@ -772,106 +778,21 @@ directory DIRNAME."
   (desktop-read desktop-dirname))
 
 ;; ----------------------------------------------------------------------------
-;; Note: the following functions use the dynamic variable binding in Lisp.
-;;
-
-(eval-when-compile ; Just to silence the byte compiler
-  (defvar desktop-file-version)
-  (defvar desktop-buffer-file-name)
-  (defvar desktop-buffer-name)
-  (defvar desktop-buffer-major-mode)
-  (defvar desktop-buffer-minor-modes)
-  (defvar desktop-buffer-point)
-  (defvar desktop-buffer-mark)
-  (defvar desktop-buffer-read-only)
-  (defvar desktop-buffer-misc)
-  (defvar desktop-buffer-locals)
-)
-
-(defun desktop-buffer-info-misc-data ()
-  (if (eq major-mode 'Info-mode)
-      (list Info-current-file
-            Info-current-node)))
-
-;; ----------------------------------------------------------------------------
-(defun desktop-buffer-dired-misc-data ()
-  (when (eq major-mode 'dired-mode)
-    (eval-when-compile (defvar dirname))
-    (cons
-     ;; Value of `dired-directory'.
-     (if (consp dired-directory)
-	 ;; Directory name followed by list of files.
-	 (cons (desktop-file-name (car dired-directory) dirname) (cdr dired-directory))
-       ;; Directory name, optionally with with shell wildcard.
-       (desktop-file-name dired-directory dirname))
-     ;; Subdirectories in `dired-subdir-alist'.
-     (cdr
-      (nreverse
-       (mapcar
-	(function (lambda (f) (desktop-file-name (car f) dirname)))
-	dired-subdir-alist))))))
-
-;; ----------------------------------------------------------------------------
-(defun desktop-buffer-info () "Load an info file."
-  (if (eq 'Info-mode desktop-buffer-major-mode)
-      (progn
-	(let ((first (nth 0 desktop-buffer-misc))
-	      (second (nth 1 desktop-buffer-misc)))
-	(when (and first second)
-	  (require 'info)
-	  (with-no-warnings
-	   (Info-find-node first second))
-	  (current-buffer))))))
-
-;; ----------------------------------------------------------------------------
-(eval-when-compile (defvar rmail-buffer)) ; Just to silence the byte compiler.
-(defun desktop-buffer-rmail () "Load an RMAIL file."
-  (if (eq 'rmail-mode desktop-buffer-major-mode)
-      (condition-case error
-	  (progn (rmail-input desktop-buffer-file-name)
-                         (if (eq major-mode 'rmail-mode)
-                             (current-buffer)
-                           rmail-buffer))
-	(file-locked
-	 (kill-buffer (current-buffer))
-	 'ignored))))
-
-;; ----------------------------------------------------------------------------
-(defun desktop-buffer-mh () "Load a folder in the mh system."
-  (if (eq 'mh-folder-mode desktop-buffer-major-mode)
-      (with-no-warnings
-	(mh-find-path)
-        (mh-visit-folder desktop-buffer-name)
-	(current-buffer))))
-
-;; ----------------------------------------------------------------------------
-(defun desktop-buffer-dired () "Load a directory using dired."
-  (if (eq 'dired-mode desktop-buffer-major-mode)
-      ;; First element of `desktop-buffer-misc' is the value of `dired-directory'.
-      ;; This value is a directory name, optionally with with shell wildcard or
-      ;; a directory name followed by list of files.
-      (let* ((dired-dir (car desktop-buffer-misc))
-	     (dir (if (consp dired-dir) (car dired-dir) dired-dir)))
-	(if (file-directory-p (file-name-directory dir))
-	    (progn
-	      (dired dired-dir)
-              ;; The following elements of `desktop-buffer-misc' are the keys
-              ;; from `dired-subdir-alist'.
-	      (mapcar 'dired-maybe-insert-subdir (cdr desktop-buffer-misc))
-	      (current-buffer))
-	  (message "Directory %s no longer exists." dir)
-	  (sit-for 1)
-	  'ignored))))
-
-;; ----------------------------------------------------------------------------
-(defun desktop-buffer-file ()
-  "Load a file."
+(defun desktop-restore-file-buffer (desktop-buffer-file-name
+                                    desktop-buffer-name
+                                    desktop-buffer-misc)
+  "Restore a file buffer."
+  (eval-when-compile ; Just to silence the byte compiler
+    (defvar desktop-buffer-major-mode)
+    (defvar desktop-buffer-locals))
   (if desktop-buffer-file-name
       (if (or (file-exists-p desktop-buffer-file-name)
-	      (and desktop-missing-file-warning
-		   (y-or-n-p (format
-			      "File \"%s\" no longer exists. Re-create? "
-			      desktop-buffer-file-name))))
+              (let ((msg (format "Desktop: File \"%s\" no longer exists."
+                                 desktop-buffer-file-name)))
+                 (if desktop-missing-file-warning
+		     (y-or-n-p (concat msg " Re-create? "))
+                   (message msg)
+                   nil)))
 	  (let* ((auto-insert nil) ; Disable auto insertion
 		 (coding-system-for-read
 		  (or coding-system-for-read
@@ -885,11 +806,11 @@ directory DIRNAME."
 		 (functionp desktop-buffer-major-mode)
 		 (funcall desktop-buffer-major-mode))
 	    buf)
-	'ignored)))
+	nil)))
 
 ;; ----------------------------------------------------------------------------
-;; Create a buffer, load its file, set is mode, ...;  called from Desktop file
-;; only.
+;; Create a buffer, load its file, set its mode, ...;
+;; called from Desktop file only.
 
 (eval-when-compile ; Just to silence the byte compiler
    (defvar desktop-first-buffer) ;; Dynamically bound in `desktop-read'
@@ -907,20 +828,32 @@ directory DIRNAME."
   desktop-buffer-misc
   &optional
   desktop-buffer-locals)
+  ;; Just to silence the byte compiler. Bound locally in `desktop-read'.
+  (eval-when-compile
+    (defvar desktop-buffer-ok-count)
+    (defvar desktop-buffer-fail-count))
   ;; To make desktop files with relative file names possible, we cannot
   ;; allow `default-directory' to change. Therefore we save current buffer.
   (save-current-buffer
     (let (
       (buffer-list (buffer-list))
-      (hlist desktop-buffer-handlers)
-      (result)
-      (handler)
+      (result
+         (condition-case err
+             (funcall (or (cdr (assq desktop-buffer-major-mode desktop-buffer-mode-handlers))
+                          'desktop-restore-file-buffer)
+                      desktop-buffer-file-name
+                      desktop-buffer-name
+                      desktop-buffer-misc)
+           (error
+             (message "Desktop: Can't load buffer %s: %s"
+                      desktop-buffer-name (error-message-string err))
+             (when desktop-missing-file-warning (sit-for 1))
+             nil)))
     )
-      ;; Call desktop-buffer-handlers to create buffer.
-      (while (and (not result) hlist)
-        (setq handler (car hlist))
-        (setq result (funcall handler))
-        (setq hlist (cdr hlist)))
+      (if (bufferp result)
+          (setq desktop-buffer-ok-count (1+ desktop-buffer-ok-count))
+        (setq desktop-buffer-fail-count (1+ desktop-buffer-fail-count))
+        (setq result nil))
       (unless (bufferp result) (setq result nil))
       ;; Restore buffer list order with new buffer at end. Don't change
       ;; the order for old desktop files (old desktop module behaviour).
@@ -947,7 +880,12 @@ directory DIRNAME."
             desktop-buffer-minor-modes)))
         ;; Even though point and mark are non-nil when written by `desktop-save'
         ;; they may be modified by handlers wanting to set point or mark themselves.
-        (when desktop-buffer-point (goto-char desktop-buffer-point))
+        (when desktop-buffer-point
+          (goto-char
+            (condition-case err
+                ;; Evaluate point. Thus point can be something like '(search-forward ...
+                (eval desktop-buffer-point)
+              (error (message "%s" (error-message-string err)) 1))))
         (when desktop-buffer-mark
           (if (consp desktop-buffer-mark)
             (progn

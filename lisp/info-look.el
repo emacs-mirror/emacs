@@ -1,7 +1,7 @@
 ;;; info-look.el --- major-mode-sensitive Info index lookup facility
 ;; An older version of this was known as libc.el.
 
-;; Copyright (C) 1995,96,97,98,99,2001,2003,2004  Free Software Foundation, Inc.
+;; Copyright (C) 1995,96,97,98,99,2001,03,04  Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;;         (did not show signs of life (Nov 2001)  -stef)
@@ -408,12 +408,11 @@ If optional argument QUERY is non-nil, query for the help mode."
 	    (message "No %s help available for `%s'" topic mode)
 	  ;; Recursively setup cross references.
 	  ;; But refer only to non-void modes.
-	  (mapcar (lambda (arg)
-		    (or (info-lookup->initialized topic arg)
-			(info-lookup-setup-mode topic arg))
-		    (and (eq (info-lookup->initialized topic arg) t)
-			 (setq refer-modes (cons arg refer-modes))))
-		  (info-lookup->other-modes topic mode))
+	  (dolist (arg (info-lookup->other-modes topic mode))
+	    (or (info-lookup->initialized topic arg)
+		(info-lookup-setup-mode topic arg))
+	    (and (eq (info-lookup->initialized topic arg) t)
+		 (setq refer-modes (cons arg refer-modes))))
 	  (setq refer-modes (nreverse refer-modes))
 	  ;; Build the full completion alist.
 	  (setq completions
@@ -887,6 +886,22 @@ Return nil if there is nothing appropriate in the buffer near point."
                        "awk")
                       ((string-equal item "gawk, versions of, information about, printing")
                        "gawk"))))))
+
+;; This misses some things which occur as node names but not in the
+;; index.  Unfortunately it also picks up the wrong one of multiple
+;; entries for the same term in some cases.  --fx
+(info-lookup-maybe-add-help
+ :mode 'cfengine-mode
+ :regexp "[[:alnum:]_]+\\(:?()\\)?"
+ :doc-spec '(("(cfengine-Reference)Variable Index"
+	      (lambda (item)
+		;; Index entries may be like `IsPlain()'
+		(if (string-match "\\([[:alnum:]_]+\\)()" item)
+		    (match-string 1 item)
+		  item))
+	      ;; This gets functions in evaluated classes.  Other
+	      ;; possible patterns don't seem to work too well.
+	      "`" "(")))
 
 (provide 'info-look)
 

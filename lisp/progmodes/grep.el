@@ -216,7 +216,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 `complation-last-buffer' rather than `grep-last-buffer'.")
 
 (defvar grep-regexp-alist
-  '(("^\\(.+?\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2)
+  '(("^\\(.+?\\)[:( \t]+\\([0-9]+\\)\\([:) \t]\\)\\(?:\\([0-9]+\\)\\(?:-\\([0-9]+\\)\\)?\\3\\)?" 1 2 (4 . 5))
     ("^Binary file \\(.+\\) matches$" 1 nil nil 1))
   "Regexp used to match grep hits.  See `compilation-error-regexp-alist'.")
 
@@ -555,7 +555,7 @@ those sub directories of DIR."
 			 nil)  ;; we change default-directory to dir
 		       (and grep-tree-ignore-CVS-directories "-path '*/CVS' -prune -o ")
 		       grep-tree-ignore-case))
-	(default-directory dir)
+	(default-directory (file-name-as-directory (expand-file-name dir)))
 	(null-device nil))		; see grep
     (grep command-args regexp)))
 

@@ -352,7 +352,7 @@ effectively converts the file to Unix EOL style, like @code{dos2unix}.
 @findex add-untranslated-filesystem
   When you use NFS or Samba to access file systems that reside on
 computers using GNU or Unix systems, Emacs should not perform
-end-of-line translation on any files in these file systems--not even
+end-of-line translation on any files in these file systems---not even
 when you create a new file.  To request this, designate these file
 systems as @dfn{untranslated} file systems by calling the function
 @code{add-untranslated-filesystem}.  It takes one argument: the file
@@ -436,7 +436,7 @@ discarded (sent to the system null device).
 
   On MS-Windows, when the Windows network software is installed, you can
 also use a printer shared by another machine by setting
-@code{printer-name} to the UNC share name for that printer--for example,
+@code{printer-name} to the UNC share name for that printer---for example,
 @code{"//joes_pc/hp4si"}.  (It doesn't matter whether you use forward
 slashes or backslashes here.)  To find out the names of shared printers,
 run the command @samp{net view} at a DOS command prompt to obtain a list

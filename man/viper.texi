@@ -314,8 +314,8 @@ x}.  Viper uses @key{ESC} to switch from Insert state to Vi state.  Therefore
 Viper defines @kbd{C-\} as its Meta key in Vi state.  @xref{Vi State}, for
 more info.@refill
 
-Emacs is structured as a lisp interpreter around a C core.  Emacs keys
-cause lisp functions to be called.  It is possible to call these
+Emacs is structured as a Lisp interpreter around a C core.  Emacs keys
+cause Lisp functions to be called.  It is possible to call these
 functions directly, by typing @kbd{M-x function-name}.
 
 @node Loading Viper, States in Viper, Emacs Preliminaries, Overview
@@ -2066,7 +2066,7 @@ To customize the binding for @kbd{C-h} in Insert state:
 @end example
 @noindent
 
-Each Emacs command key calls some lisp function.  If you have enabled the
+Each Emacs command key calls some Lisp function.  If you have enabled the
 Help, (@pxref{Rudimentary Changes}) @kbd{C-h k} will show you the function
 for each specific key; @kbd{C-h b} will show all bindings, and @kbd{C-h m}
 will provide information on the major mode in effect.  If Help is not

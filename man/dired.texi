@@ -58,7 +58,9 @@ the special commands of Dired are available.
 give to @code{ls} for listing directory; this string @emph{must} contain
 @samp{-l}.  If you use a numeric prefix argument with the @code{dired}
 command, you can specify the @code{ls} switches with the minibuffer
-before you enter the directory specification.
+before you enter the directory specification.  No matter how they are
+specified, the @code{ls} switches should all be short options (that
+is, single characters) requiring no arguments.
 
 @findex dired-other-window
 @kindex C-x 4 d
@@ -589,6 +591,12 @@ The variable @code{dired-chown-program} specifies the name of the
 program to use to do the work (different systems put @code{chown} in
 different places).
 
+@findex dired-do-touch
+@kindex T @r{(Dired)}
+@cindex changing file time (in Dired)
+@item T @var{timestamp} @key{RET}
+Change the time of the specified files (@code{dired-do-touch}).
+
 @findex dired-do-print
 @kindex P @r{(Dired)}
 @cindex printing files (in Dired)
@@ -1079,6 +1087,12 @@ minibuffer arguments, @var{directory} and @var{find-args}; it runs
 @code{find} what condition to test.  To use this command, you need to
 know how to use @code{find}.
 
+@vindex find-ls-option
+  The format of listing produced by these commands is controlled by the
+variable @code{find-ls-option}, whose default value specifies using
+options @samp{-ld} for @code{ls}.  If your listings are corrupted, you
+may need to change the value of this variable.
+
 @findex locate
 @findex locate-with-filter
 @cindex file database (locate)
@@ -1087,11 +1101,10 @@ know how to use @code{find}.
 program.  @kbd{M-x locate-with-filter} is similar, but keeps only lines
 matching a given regular expression.
 
-@vindex find-ls-option
-  The format of listing produced by these commands is controlled by the
-variable @code{find-ls-option}, whose default value specifies using
-options @samp{-ld} for @code{ls}.  If your listings are corrupted, you
-may need to change the value of this variable.
+These buffers don't work entirely like ordinary Dired buffers.  File
+operations work, but do not always automatically update the buffer.
+Reverting the buffer with @kbd{g} deletes all inserted subdirectories,
+and erases all flags and marks.
 
 @node Misc Dired Commands
 @section Other Dired Commands

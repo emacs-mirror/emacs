@@ -51,15 +51,36 @@ the @sc{car} and the @sc{cdr} is entirely a matter of convention; at the
 level of cons cells, the @sc{car} and @sc{cdr} slots have the same
 characteristics.
 
+@cindex true list
+  Since @code{nil} is the conventional value to put in the @sc{cdr} of
+the last cons cell in the list, we call that case a @dfn{true list}.
+
+  In Lisp, we consider the symbol @code{nil} a list as well as a
+symbol; it is the list with no elements.  For convenience, the symbol
+@code{nil} is considered to have @code{nil} as its @sc{cdr} (and also
+as its @sc{car}).  Therefore, the @sc{cdr} of a true list is always a
+true list.
+
+@cindex dotted list
+@cindex circular list
+  If the @sc{cdr} of a list's last cons cell is some other value,
+neither @code{nil} nor another cons cell, we call the structure a
+@dfn{dotted list}, since its printed representation would use
+@samp{.}.  There is one other possibility: some cons cell's @sc{cdr}
+could point to one of the previous cons cells in the list.  We call
+that structure a @dfn{circular list}.
+
+  For some purposes, it does not matter whether a list is true,
+circular or dotted.  If the program doesn't look far enough down the
+list to see the @sc{cdr} of the final cons cell, it won't care.
+However, some functions that operate on lists demand true lists and
+signal errors if given a dotted list.  Most functions that try to find
+the end of a list enter infinite loops if given a circular list.
+
 @cindex list structure
   Because most cons cells are used as part of lists, the phrase
 @dfn{list structure} has come to mean any structure made out of cons
 cells.
-
-  The symbol @code{nil} is considered a list as well as a symbol; it is
-the list with no elements.  For convenience, the symbol @code{nil} is
-considered to have @code{nil} as its @sc{cdr} (and also as its
-@sc{car}).
 
   The @sc{cdr} of any nonempty list @var{l} is a list containing all the
 elements of @var{l} except the first.
@@ -327,6 +348,7 @@ x
 @end example
 @end defmac
 
+@anchor{Definition of nth}
 @defun nth n list
 This function returns the @var{n}th element of @var{list}.  Elements
 are numbered starting with zero, so the @sc{car} of @var{list} is
@@ -391,13 +413,15 @@ this link is the list's last element.  If @var{list} is null,
 if @var{n} is bigger than @var{list}'s length.
 @end defun
 
+@anchor{Definition of safe-length}
 @defun safe-length list
-This function returns the length of @var{list}, with no risk
-of either an error or an infinite loop.
+This function returns the length of @var{list}, with no risk of either
+an error or an infinite loop.  It generally returns the number of
+distinct cons cells in the list.  However, for circular lists,
+the value is just an upper bound; it is often too large.
 
-If @var{list} is not really a list, @code{safe-length} returns 0.  If
-@var{list} is circular, it returns a finite value which is at least the
-number of distinct elements.
+If @var{list} is not @code{nil} or a cons cell, @code{safe-length}
+returns 0.
 @end defun
 
   The most common way to compute the length of a list, when you are not
@@ -565,7 +589,7 @@ object.  The final argument is not copied or converted; it becomes the
 @sc{cdr} of the last cons cell in the new list.  If the final argument
 is itself a list, then its elements become in effect elements of the
 result list.  If the final element is not a list, the result is a
-``dotted list'' since its final @sc{cdr} is not @code{nil} as required
+dotted list since its final @sc{cdr} is not @code{nil} as required
 in a true list.
 
 In Emacs 20 and before, the @code{append} function also allowed
@@ -708,7 +732,7 @@ x
 @end defun
 
 @defun copy-tree tree &optional vecp
-This function returns a copy the tree @code{tree}.  If @var{tree} is a
+This function returns a copy of the tree @code{tree}.  If @var{tree} is a
 cons cell, this makes a new cons cell with the same @sc{car} and
 @sc{cdr}, then recursively copies the @sc{car} and @sc{cdr} in the
 same way.
@@ -732,7 +756,7 @@ All arguments can be integers or floating point numbers.  However,
 floating point arguments can be tricky, because floating point
 arithmetic is inexact.  For instance, depending on the machine, it may
 quite well happen that @code{(number-sequence 0.4 0.6 0.2)} returns
-the one element list @code{(0.4)}, whereas 
+the one element list @code{(0.4)}, whereas
 @code{(number-sequence 0.4 0.8 0.2)} returns a list with three
 elements.  The @var{n}th element of the list is computed by the exact
 formula @code{(+ @var{from} (* @var{n} @var{separation}))}.  Thus, if

@@ -1561,7 +1561,7 @@ non-first windows in Follow Mode."
 	      (or follow-internal-force-redisplay
 		  (progn
 		    (if (eq dest (point-max))
-			;; We're at the end, we have be be careful since
+			;; We're at the end, we have to be careful since
 			;; the display can be aligned while `dest' can
 			;; be visible in several windows.
 			(cond

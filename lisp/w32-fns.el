@@ -1,6 +1,6 @@
 ;;; w32-fns.el --- Lisp routines for Windows NT
 
-;; Copyright (C) 1994, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001, 2004 Free Software Foundation, Inc.
 
 ;; Author: Geoff Voelker <voelker@cs.washington.edu>
 ;; Keywords: internal
@@ -54,7 +54,8 @@ numbers, and the build number."
   (x-server-version))
 
 (defun w32-using-nt ()
-  "Return non-nil if literally running on Windows NT (i.e., not Windows 9X)."
+  "Return non-nil if running on a 32-bit Windows system.
+That includes all Windows systems except for 9X/Me."
   (and (eq system-type 'windows-nt) (getenv "SystemRoot")))
 
 (defun w32-shell-name ()
@@ -71,7 +72,7 @@ numbers, and the build number."
 	       w32-system-shells)))
 
 (defun w32-shell-dos-semantics ()
-  "Return t if the interactive shell being used expects msdos shell semantics."
+  "Return non-nil if the interactive shell being used expects MSDOS shell semantics."
   (or (w32-system-shell-p (w32-shell-name))
       (and (member (downcase (file-name-nondirectory (w32-shell-name)))
 		   '("cmdproxy" "cmdproxy.exe"))
@@ -229,9 +230,13 @@ You should set this to t when using a non-system shell.\n\n"))))
 
 (defun convert-standard-filename (filename)
   "Convert a standard file's name to something suitable for the current OS.
-This function's standard definition is trivial; it just returns the argument.
-However, on some systems, the function is redefined
-with a definition that really does change some file names."
+This means to guarantee valid names and perhaps to canonicalize
+certain patterns.
+
+On Windows and DOS, replace invalid characters.  On DOS, make
+sure to obey the 8.3 limitations.  On Windows, turn Cygwin names
+into native names, and also turn slashes into backslashes if the
+shell requires it (see `w32-shell-dos-semantics')."
   (let ((name
          (save-match-data
            (if (string-match "\\`/cygdrive/\\([a-zA-Z]\\)/" filename)
@@ -265,13 +270,13 @@ with a definition that really does change some file names."
   (get 'x-selections type))
 
 (defun set-w32-system-coding-system (coding-system)
-  "Set the coding system used by the Windows System to CODING-SYSTEM.
+  "Set the coding system used by the Windows system to CODING-SYSTEM.
 This is used for things like passing font names with non-ASCII
 characters in them to the system. For a list of possible values of
 CODING-SYSTEM, use \\[list-coding-systems].
 
 This function is provided for backward compatibility, since
-w32-system-coding-system is now an alias for `locale-coding-system'."
+`w32-system-coding-system' is now an alias for `locale-coding-system'."
   (interactive
    (list (let ((default locale-coding-system))
            (read-coding-system

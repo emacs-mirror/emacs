@@ -108,7 +108,7 @@ If you want some other value, you must set it yourself.
 SGML mode does not handle XML syntax, and does not have indentation support.
 
 @item
-The @kbd{C-h} subcommands have been rearranged--especially those that
+The @kbd{C-h} subcommands have been rearranged---especially those that
 display specific files.  Type @kbd{C-h C-h} to see a list of these
 commands; that will show you what is different.
 

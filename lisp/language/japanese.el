@@ -97,6 +97,7 @@
 
 (define-coding-system-alias 'shift_jis 'japanese-shift-jis)
 (define-coding-system-alias 'sjis 'japanese-shift-jis)
+(define-coding-system-alias 'cp932 'japanese-shift-jis)
 
 (define-coding-system 'japanese-cp932
   "CP932 (Microsoft shift-jis)"

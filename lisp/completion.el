@@ -1,6 +1,6 @@
 ;;; completion.el --- dynamic word-completion code
 
-;; Copyright (C) 1990, 1993, 1995, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1993, 1995, 1997, 2004 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: abbrev convenience
@@ -2251,7 +2251,7 @@ The command \\[yank] can retrieve it from there.
 /(If you want to kill and then yank immediately, use \\[copy-region-as-kill].)
 
 This is the primitive for programs to kill text (as opposed to deleting it).
-Supply two arguments, character numbers indicating the stretch of text
+Supply two arguments, character positions indicating the stretch of text
  to be killed.
 Any command that calls this function is a \"kill command\".
 If the previous command was also a kill command,

@@ -23,6 +23,7 @@ Boston, MA 02111-1307, USA.  */
 #include <signal.h>
 #include <stdio.h>
 #include <math.h>
+#include <ctype.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -51,7 +52,6 @@ Boston, MA 02111-1307, USA.  */
 typedef struct x_bitmap_record Bitmap_Record;
 #define GET_PIXEL(ximg, x, y) XGetPixel(ximg, x, y)
 #define NO_PIXMAP None
-#define PNG_BG_COLOR_SHIFT 0
 
 #define RGB_PIXEL_COLOR unsigned long
 
@@ -69,7 +69,6 @@ typedef struct x_bitmap_record Bitmap_Record;
 typedef struct w32_bitmap_record Bitmap_Record;
 #define GET_PIXEL(ximg, x, y) GetPixel(ximg, x, y)
 #define NO_PIXMAP 0
-#define PNG_BG_COLOR_SHIFT 0
 
 #define RGB_PIXEL_COLOR COLORREF
 
@@ -104,7 +103,6 @@ typedef struct mac_bitmap_record Bitmap_Record;
 
 #define GET_PIXEL(ximg, x, y) XGetPixel(ximg, x, y)
 #define NO_PIXMAP 0
-#define PNG_BG_COLOR_SHIFT 8
 
 #define RGB_PIXEL_COLOR unsigned long
 
@@ -177,14 +175,19 @@ XPutPixel (ximage, x, y, pixel)
      int x, y;
      unsigned long pixel;
 {
+  CGrafPtr old_port;
+  GDHandle old_gdh;
   RGBColor color;
 
+  GetGWorld (&old_port, &old_gdh);
   SetGWorld (ximage, NULL);
 
   color.red = RED16_FROM_ULONG (pixel);
   color.green = GREEN16_FROM_ULONG (pixel);
   color.blue = BLUE16_FROM_ULONG (pixel);
   SetCPixel (x, y, &color);
+
+  SetGWorld (old_port, old_gdh);
 }
 
 static unsigned long
@@ -192,11 +195,16 @@ XGetPixel (ximage, x, y)
      XImagePtr ximage;
      int x, y;
 {
+  CGrafPtr old_port;
+  GDHandle old_gdh;
   RGBColor color;
 
+  GetGWorld (&old_port, &old_gdh);
   SetGWorld (ximage, NULL);
 
   GetCPixel (x, y, &color);
+
+  SetGWorld (old_port, old_gdh);
   return RGB_TO_ULONG (color.red >> 8, color.green >> 8, color.blue >> 8);
 }
 
@@ -206,7 +214,7 @@ XDestroyImage (ximg)
 {
   UnlockPixels (GetGWorldPixMap (ximg));
 }
-#endif
+#endif /* MAC_OS */
 
 
 /* Functions to access the contents of a bitmap, given an id.  */
@@ -598,6 +606,14 @@ x_create_bitmap_mask (f, id)
 
 static struct image_type *image_types;
 
+/* A list of symbols, one for each supported image type.  */
+
+Lisp_Object Vimage_types;
+
+/* Cache for delayed-loading image types.  */
+
+static Lisp_Object Vimage_type_cache;
+
 /* The symbol `xbm' which is used as the type symbol for XBM images.  */
 
 Lisp_Object Qxbm;
@@ -622,7 +638,7 @@ Lisp_Object Vimage_cache_eviction_delay;
 
 /* Function prototypes.  */
 
-static void define_image_type P_ ((struct image_type *type));
+static Lisp_Object define_image_type P_ ((struct image_type *type, int loaded));
 static struct image_type *lookup_image_type P_ ((Lisp_Object symbol));
 static void image_error P_ ((char *format, Lisp_Object, Lisp_Object));
 static void x_laplace P_ ((struct frame *, struct image *));
@@ -630,21 +646,37 @@ static void x_emboss P_ ((struct frame *, struct image *));
 static int x_build_heuristic_mask P_ ((struct frame *, struct image *,
 				       Lisp_Object));
 
+#define CACHE_IMAGE_TYPE(type, status) \
+  do { Vimage_type_cache = Fcons (Fcons (type, status), Vimage_type_cache); } while (0)
+
+#define ADD_IMAGE_TYPE(type) \
+  do { Vimage_types = Fcons (type, Vimage_types); } while (0)
 
 /* Define a new image type from TYPE.  This adds a copy of TYPE to
-   image_types and adds the symbol *TYPE->type to Vimage_types.  */
+   image_types and caches the loading status of TYPE.  */
 
-static void
-define_image_type (type)
+static Lisp_Object
+define_image_type (type, loaded)
      struct image_type *type;
+     int loaded;
 {
-  /* Make a copy of TYPE to avoid a bus error in a dumped Emacs.
-     The initialized data segment is read-only.  */
-  struct image_type *p = (struct image_type *) xmalloc (sizeof *p);
-  bcopy (type, p, sizeof *p);
-  p->next = image_types;
-  image_types = p;
-  Vimage_types = Fcons (*p->type, Vimage_types);
+  Lisp_Object success;
+
+  if (!loaded)
+    success = Qnil;
+  else
+    {
+      /* Make a copy of TYPE to avoid a bus error in a dumped Emacs.
+         The initialized data segment is read-only.  */
+      struct image_type *p = (struct image_type *) xmalloc (sizeof *p);
+      bcopy (type, p, sizeof *p);
+      p->next = image_types;
+      image_types = p;
+      success = Qt;
+    }
+
+  CACHE_IMAGE_TYPE(*type->type, success);
+  return success;
 }
 
 
@@ -656,6 +688,10 @@ lookup_image_type (symbol)
      Lisp_Object symbol;
 {
   struct image_type *type;
+
+  /* We must initialize the image-type if it hasn't been already.  */
+  if (NILP (Finit_image_library (symbol)))
+    return 0;			/* unimplemented */
 
   for (type = image_types; type; type = type->next)
     if (EQ (symbol, *type->type))
@@ -1079,12 +1115,20 @@ prepare_image_for_display (f, img)
    drawn in face FACE.  */
 
 int
-image_ascent (img, face)
+image_ascent (img, face, slice)
      struct image *img;
      struct face *face;
+     struct glyph_slice *slice;
 {
-  int height = img->height + img->vmargin;
+  int height;
   int ascent;
+
+  if (slice->height == img->height)
+    height = img->height + img->vmargin;
+  else if (slice->y == 0)
+    height = slice->height + img->vmargin;
+  else
+    height = slice->height;
 
   if (img->ascent == CENTERED_IMAGE_ASCENT)
     {
@@ -1172,7 +1216,7 @@ four_corners_best (ximg, width, height)
 /* Return the `background' field of IMG.  If IMG doesn't have one yet,
    it is guessed heuristically.  If non-zero, XIMG is an existing
    XImage object (or device context with the image selected on W32) to
-   use for the heuristic.  */ 
+   use for the heuristic.  */
 
 RGB_PIXEL_COLOR
 image_background (img, f, ximg)
@@ -1205,7 +1249,7 @@ image_background (img, f, ximg)
 
       if (free_ximg)
 	Destroy_Image (ximg, prev);
-      
+
       img->background_valid = 1;
     }
 
@@ -1581,6 +1625,11 @@ lookup_image (f, spec)
      Lisp_Object spec;
 {
   struct image_cache *c = FRAME_X_IMAGE_CACHE (f);
+#ifdef _MSC_VER
+  /* Work around a problem with MinGW builds of graphics libraries
+     not honoring calling conventions.  */
+  static
+#endif
   struct image *img;
   int i;
   unsigned hash;
@@ -1767,6 +1816,33 @@ forall_images_in_image_cache (f, fn)
     fn_##func = (void *) GetProcAddress (lib, #func);			\
     if (!fn_##func) return 0;						\
   }
+
+/* Load a DLL implementing an image type.
+   The `image-library-alist' variable associates a symbol,
+   identifying  an image type, to a list of possible filenames.
+   The function returns NULL if no library could be loaded for
+   the given image type, or if the library was previously loaded;
+   else the handle of the DLL.  */
+static HMODULE
+w32_delayed_load (Lisp_Object libraries, Lisp_Object type)
+{
+  HMODULE library = NULL;
+
+  if (CONSP (libraries) && NILP (Fassq (type, Vimage_type_cache)))
+    {
+      Lisp_Object dlls = Fassq (type, libraries);
+
+      if (CONSP (dlls))
+        for (dlls = XCDR (dlls); CONSP (dlls); dlls = XCDR (dlls))
+          {
+            CHECK_STRING_CAR (dlls);
+            if (library = LoadLibrary (SDATA (XCAR (dlls))))
+              break;
+          }
+    }
+
+  return library;
+}
 
 #endif /* HAVE_NTGUI */
 
@@ -2191,6 +2267,10 @@ image_load_qt_1 (f, img, type, fss, dh)
     goto error;
   if (draw_all_pixels != graphicsImporterDrawsAllPixels)
     {
+      CGrafPtr old_port;
+      GDHandle old_gdh;
+
+      GetGWorld (&old_port, &old_gdh);
       SetGWorld (ximg, NULL);
       bg_color.red = color.red;
       bg_color.green = color.green;
@@ -2202,6 +2282,7 @@ image_load_qt_1 (f, img, type, fss, dh)
 #else
       EraseRect (&(ximg->portRect));
 #endif
+      SetGWorld (old_port, old_gdh);
     }
   GraphicsImportSetGWorld (gi, ximg, NULL);
   GraphicsImportDraw (gi);
@@ -2990,7 +3071,7 @@ xbm_load_image (f, img, contents, end)
 	  non_default_colors = 1;
 	}
 
-      Create_Pixmap_From_Bitmap_Data (f, img, data, 
+      Create_Pixmap_From_Bitmap_Data (f, img, data,
 				      foreground, background,
 				      non_default_colors);
       xfree (data);
@@ -3164,28 +3245,36 @@ xbm_load (f, img)
 			      XPM images
  ***********************************************************************/
 
-#ifdef HAVE_XPM
+#if defined (HAVE_XPM) || defined (MAC_OS)
 
 static int xpm_image_p P_ ((Lisp_Object object));
 static int xpm_load P_ ((struct frame *f, struct image *img));
 static int xpm_valid_color_symbols_p P_ ((Lisp_Object));
 
+#endif /* HAVE_XPM || MAC_OS */
+
+#ifdef HAVE_XPM
 #ifdef HAVE_NTGUI
 /* Indicate to xpm.h that we don't have Xlib.  */
 #define FOR_MSW
 /* simx.h in xpm defines XColor and XImage differently than Emacs.  */
+/* It also defines Display the same way as Emacs, but gcc 3.3 still barfs.  */
 #define XColor xpm_XColor
 #define XImage xpm_XImage
+#define Display xpm_Display
 #define PIXEL_ALREADY_TYPEDEFED
 #include "X11/xpm.h"
 #undef FOR_MSW
 #undef XColor
 #undef XImage
+#undef Display
 #undef PIXEL_ALREADY_TYPEDEFED
 #else
 #include "X11/xpm.h"
 #endif /* HAVE_NTGUI */
+#endif /* HAVE_XPM */
 
+#if defined (HAVE_XPM) || defined (MAC_OS)
 /* The symbol `xpm' identifying XPM-format images.  */
 
 Lisp_Object Qxpm;
@@ -3455,13 +3544,12 @@ DEF_IMGLIB_FN (XpmCreateImageFromBuffer);
 DEF_IMGLIB_FN (XpmReadFileToImage);
 DEF_IMGLIB_FN (XImageFree);
 
-
 static int
-init_xpm_functions (void)
+init_xpm_functions (Lisp_Object libraries)
 {
   HMODULE library;
 
-  if (!(library = LoadLibrary ("libXpm.dll")))
+  if (!(library = w32_delayed_load (libraries, Qxpm)))
     return 0;
 
   LOAD_IMGLIB_FN (library, XpmFreeAttributes);
@@ -3513,9 +3601,12 @@ xpm_image_p (object)
 	      || xpm_valid_color_symbols_p (fmt[XPM_COLOR_SYMBOLS].value)));
 }
 
+#endif /* HAVE_XPM || MAC_OS */
 
 /* Load image IMG which will be displayed on frame F.  Value is
    non-zero if successful.  */
+
+#ifdef HAVE_XPM
 
 static int
 xpm_load (f, img)
@@ -3748,6 +3839,467 @@ xpm_load (f, img)
 
 #endif /* HAVE_XPM */
 
+#ifdef MAC_OS
+
+/* XPM support functions for Mac OS where libxpm is not available.
+   Only XPM version 3 (without any extensions) is supported.  */
+
+static int xpm_scan P_ ((unsigned char **, unsigned char *,
+                       unsigned char **, int *));
+static Lisp_Object xpm_make_color_table_v
+  P_ ((void (**) (Lisp_Object, unsigned char *, int, Lisp_Object),
+       Lisp_Object (**) (Lisp_Object, unsigned char *, int)));
+static void xpm_put_color_table_v P_ ((Lisp_Object, unsigned char *,
+                                     int, Lisp_Object));
+static Lisp_Object xpm_get_color_table_v P_ ((Lisp_Object,
+                                            unsigned char *, int));
+static Lisp_Object xpm_make_color_table_h
+  P_ ((void (**) (Lisp_Object, unsigned char *, int, Lisp_Object),
+       Lisp_Object (**) (Lisp_Object, unsigned char *, int)));
+static void xpm_put_color_table_h P_ ((Lisp_Object, unsigned char *,
+                                     int, Lisp_Object));
+static Lisp_Object xpm_get_color_table_h P_ ((Lisp_Object,
+                                            unsigned char *, int));
+static int xpm_str_to_color_key P_ ((char *));
+static int xpm_load_image P_ ((struct frame *, struct image *,
+                             unsigned char *, unsigned char *));
+
+/* Tokens returned from xpm_scan.  */
+
+enum xpm_token
+{
+  XPM_TK_IDENT = 256,
+  XPM_TK_STRING,
+  XPM_TK_EOF
+};
+
+/* Scan an XPM data and return a character (< 256) or a token defined
+   by enum xpm_token above.  *S and END are the start (inclusive) and
+   the end (exclusive) addresses of the data, respectively.  Advance
+   *S while scanning.  If token is either XPM_TK_IDENT or
+   XPM_TK_STRING, *BEG and *LEN are set to the start address and the
+   length of the corresponding token, respectively.  */
+
+static int
+xpm_scan (s, end, beg, len)
+     unsigned char **s, *end, **beg;
+     int *len;
+{
+  int c;
+
+  while (*s < end)
+    {
+      /* Skip white-space.  */
+      while (*s < end && (c = *(*s)++, isspace (c)))
+      ;
+
+      /* gnus-pointer.xpm uses '-' in its identifier.
+       sb-dir-plus.xpm uses '+' in its identifier.  */
+      if (isalpha (c) || c == '_' || c == '-' || c == '+')
+      {
+        *beg = *s - 1;
+        while (*s < end &&
+               (c = **s, isalnum (c) || c == '_' || c == '-' || c == '+'))
+            ++*s;
+        *len = *s - *beg;
+        return XPM_TK_IDENT;
+      }
+      else if (c == '"')
+      {
+        *beg = *s;
+        while (*s < end && **s != '"')
+          ++*s;
+        *len = *s - *beg;
+        if (*s < end)
+          ++*s;
+        return XPM_TK_STRING;
+      }
+      else if (c == '/')
+      {
+        if (*s < end && **s == '*')
+          {
+            /* C-style comment.  */
+            ++*s;
+            do
+              {
+                while (*s < end && *(*s)++ != '*')
+                  ;
+              }
+            while (*s < end && **s != '/');
+            if (*s < end)
+              ++*s;
+          }
+        else
+          return c;
+      }
+      else
+      return c;
+    }
+
+  return XPM_TK_EOF;
+}
+
+/* Functions for color table lookup in XPM data.  A Key is a string
+   specifying the color of each pixel in XPM data.  A value is either
+   an integer that specifies a pixel color, Qt that specifies
+   transparency, or Qnil for the unspecified color.  If the length of
+   the key string is one, a vector is used as a table.  Otherwise, a
+   hash table is used.  */
+
+static Lisp_Object
+xpm_make_color_table_v (put_func, get_func)
+     void (**put_func) (Lisp_Object, unsigned char *, int, Lisp_Object);
+     Lisp_Object (**get_func) (Lisp_Object, unsigned char *, int);
+{
+  *put_func = xpm_put_color_table_v;
+  *get_func = xpm_get_color_table_v;
+  return Fmake_vector (make_number (256), Qnil);
+}
+
+static void
+xpm_put_color_table_v (color_table, chars_start, chars_len, color)
+     Lisp_Object color_table;
+     unsigned char *chars_start;
+     int chars_len;
+     Lisp_Object color;
+{
+  XVECTOR (color_table)->contents[*chars_start] = color;
+}
+
+static Lisp_Object
+xpm_get_color_table_v (color_table, chars_start, chars_len)
+     Lisp_Object color_table;
+     unsigned char *chars_start;
+     int chars_len;
+{
+  return XVECTOR (color_table)->contents[*chars_start];
+}
+
+static Lisp_Object
+xpm_make_color_table_h (put_func, get_func)
+     void (**put_func) (Lisp_Object, unsigned char *, int, Lisp_Object);
+     Lisp_Object (**get_func) (Lisp_Object, unsigned char *, int);
+{
+  *put_func = xpm_put_color_table_h;
+  *get_func = xpm_get_color_table_h;
+  return make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
+                        make_float (DEFAULT_REHASH_SIZE),
+                        make_float (DEFAULT_REHASH_THRESHOLD),
+                        Qnil, Qnil, Qnil);
+}
+
+static void
+xpm_put_color_table_h (color_table, chars_start, chars_len, color)
+     Lisp_Object color_table;
+     unsigned char *chars_start;
+     int chars_len;
+     Lisp_Object color;
+{
+  struct Lisp_Hash_Table *table = XHASH_TABLE (color_table);
+  unsigned hash_code;
+  Lisp_Object chars = make_unibyte_string (chars_start, chars_len);
+
+  hash_lookup (table, chars, &hash_code);
+  hash_put (table, chars, color, hash_code);
+}
+
+static Lisp_Object
+xpm_get_color_table_h (color_table, chars_start, chars_len)
+     Lisp_Object color_table;
+     unsigned char *chars_start;
+     int chars_len;
+{
+  struct Lisp_Hash_Table *table = XHASH_TABLE (color_table);
+  int i = hash_lookup (table, make_unibyte_string (chars_start, chars_len),
+                     NULL);
+
+  return i >= 0 ? HASH_VALUE (table, i) : Qnil;
+}
+
+enum xpm_color_key {
+  XPM_COLOR_KEY_S,
+  XPM_COLOR_KEY_M,
+  XPM_COLOR_KEY_G4,
+  XPM_COLOR_KEY_G,
+  XPM_COLOR_KEY_C
+};
+
+static char xpm_color_key_strings[][4] = {"s", "m", "g4", "g", "c"};
+
+static int
+xpm_str_to_color_key (s)
+     char *s;
+{
+  int i;
+
+  for (i = 0;
+       i < sizeof xpm_color_key_strings / sizeof xpm_color_key_strings[0];
+       i++)
+    if (strcmp (xpm_color_key_strings[i], s) == 0)
+      return i;
+  return -1;
+}
+
+static int
+xpm_load_image (f, img, contents, end)
+     struct frame *f;
+     struct image *img;
+     unsigned char *contents, *end;
+{
+  unsigned char *s = contents, *beg, *str;
+  unsigned char buffer[BUFSIZ];
+  int width, height, x, y;
+  int num_colors, chars_per_pixel;
+  int len, LA1;
+  void (*put_color_table) (Lisp_Object, unsigned char *, int, Lisp_Object);
+  Lisp_Object (*get_color_table) (Lisp_Object, unsigned char *, int);
+  Lisp_Object frame, color_symbols, color_table;
+  int best_key, have_mask = 0;
+  XImagePtr ximg = NULL, mask_img = NULL;
+
+#define match() \
+     LA1 = xpm_scan (&s, end, &beg, &len)
+
+#define expect(TOKEN)         \
+     if (LA1 != (TOKEN))      \
+       goto failure;          \
+     else                     \
+       match ()
+
+#define expect_ident(IDENT)                                   \
+     if (LA1 == XPM_TK_IDENT \
+         && strlen ((IDENT)) == len && memcmp ((IDENT), beg, len) == 0)  \
+        match ();                                              \
+     else                                                     \
+       goto failure
+
+  if (!(end - s >= 9 && memcmp (s, "/* XPM */", 9) == 0))
+    goto failure;
+  s += 9;
+  match();
+  expect_ident ("static");
+  expect_ident ("char");
+  expect ('*');
+  expect (XPM_TK_IDENT);
+  expect ('[');
+  expect (']');
+  expect ('=');
+  expect ('{');
+  expect (XPM_TK_STRING);
+  if (len >= BUFSIZ)
+    goto failure;
+  memcpy (buffer, beg, len);
+  buffer[len] = '\0';
+  if (sscanf (buffer, "%d %d %d %d", &width, &height,
+            &num_colors, &chars_per_pixel) != 4
+      || width <= 0 || height <= 0
+      || num_colors <= 0 || chars_per_pixel <= 0)
+    goto failure;
+  expect (',');
+
+  XSETFRAME (frame, f);
+  if (!NILP (Fxw_display_color_p (frame)))
+    best_key = XPM_COLOR_KEY_C;
+  else if (!NILP (Fx_display_grayscale_p (frame)))
+    best_key = (XFASTINT (Fx_display_planes (frame)) > 2
+              ? XPM_COLOR_KEY_G : XPM_COLOR_KEY_G4);
+  else
+    best_key = XPM_COLOR_KEY_M;
+
+  color_symbols = image_spec_value (img->spec, QCcolor_symbols, NULL);
+  if (chars_per_pixel == 1)
+    color_table = xpm_make_color_table_v (&put_color_table,
+                                        &get_color_table);
+  else
+    color_table = xpm_make_color_table_h (&put_color_table,
+                                        &get_color_table);
+
+  while (num_colors-- > 0)
+    {
+      unsigned char *color, *max_color;
+      int key, next_key, max_key = 0;
+      Lisp_Object symbol_color = Qnil, color_val;
+      XColor cdef;
+
+      expect (XPM_TK_STRING);
+      if (len <= chars_per_pixel || len >= BUFSIZ + chars_per_pixel)
+      goto failure;
+      memcpy (buffer, beg + chars_per_pixel, len - chars_per_pixel);
+      buffer[len - chars_per_pixel] = '\0';
+
+      str = strtok (buffer, " \t");
+      if (str == NULL)
+      goto failure;
+      key = xpm_str_to_color_key (str);
+      if (key < 0)
+      goto failure;
+      do
+      {
+        color = strtok (NULL, " \t");
+        if (color == NULL)
+          goto failure;
+
+        while (str = strtok (NULL, " \t"))
+          {
+            next_key = xpm_str_to_color_key (str);
+            if (next_key >= 0)
+              break;
+            color[strlen (color)] = ' ';
+          }
+
+        if (key == XPM_COLOR_KEY_S)
+          {
+            if (NILP (symbol_color))
+              symbol_color = build_string (color);
+          }
+        else if (max_key < key && key <= best_key)
+          {
+            max_key = key;
+            max_color = color;
+          }
+        key = next_key;
+      }
+      while (str);
+
+      color_val = Qnil;
+      if (!NILP (color_symbols) && !NILP (symbol_color))
+      {
+        Lisp_Object specified_color = Fassoc (symbol_color, color_symbols);
+
+        if (CONSP (specified_color) && STRINGP (XCDR (specified_color)))
+          if (xstricmp (SDATA (XCDR (specified_color)), "None") == 0)
+            color_val = Qt;
+          else if (x_defined_color (f, SDATA (XCDR (specified_color)),
+                                    &cdef, 0))
+            color_val = make_number (cdef.pixel);
+      }
+      if (NILP (color_val) && max_key > 0)
+      if (xstricmp (max_color, "None") == 0)
+        color_val = Qt;
+      else if (x_defined_color (f, max_color, &cdef, 0))
+        color_val = make_number (cdef.pixel);
+      if (!NILP (color_val))
+      (*put_color_table) (color_table, beg, chars_per_pixel, color_val);
+
+      expect (',');
+    }
+
+  if (!x_create_x_image_and_pixmap (f, width, height, 0,
+                                  &ximg, &img->pixmap)
+      || !x_create_x_image_and_pixmap (f, width, height, 1,
+                                     &mask_img, &img->mask))
+    {
+      image_error ("Out of memory (%s)", img->spec, Qnil);
+      goto error;
+    }
+
+  for (y = 0; y < height; y++)
+    {
+      expect (XPM_TK_STRING);
+      str = beg;
+      if (len < width * chars_per_pixel)
+      goto failure;
+      for (x = 0; x < width; x++, str += chars_per_pixel)
+      {
+        Lisp_Object color_val =
+          (*get_color_table) (color_table, str, chars_per_pixel);
+
+        XPutPixel (ximg, x, y,
+                   (INTEGERP (color_val) ? XINT (color_val)
+                    : FRAME_FOREGROUND_PIXEL (f)));
+        XPutPixel (mask_img, x, y,
+                   (!EQ (color_val, Qt) ? PIX_MASK_DRAW (f)
+                    : (have_mask = 1, PIX_MASK_RETAIN (f))));
+      }
+      if (y + 1 < height)
+      expect (',');
+    }
+
+  img->width = width;
+  img->height = height;
+
+  x_put_x_image (f, ximg, img->pixmap, width, height);
+  x_destroy_x_image (ximg);
+  if (have_mask)
+    {
+      x_put_x_image (f, mask_img, img->mask, width, height);
+      x_destroy_x_image (mask_img);
+    }
+  else
+    {
+      x_destroy_x_image (mask_img);
+      Free_Pixmap (FRAME_X_DISPLAY (f), img->mask);
+      img->mask = NO_PIXMAP;
+    }
+
+  return 1;
+
+ failure:
+  image_error ("Invalid XPM file (%s)", img->spec, Qnil);
+ error:
+  x_destroy_x_image (ximg);
+  x_destroy_x_image (mask_img);
+  x_clear_image (f, img);
+  return 0;
+
+#undef match
+#undef expect
+#undef expect_ident
+}
+
+static int
+xpm_load (f, img)
+     struct frame *f;
+     struct image *img;
+{
+  int success_p = 0;
+  Lisp_Object file_name;
+
+  /* If IMG->spec specifies a file name, create a non-file spec from it.  */
+  file_name = image_spec_value (img->spec, QCfile, NULL);
+  if (STRINGP (file_name))
+    {
+      Lisp_Object file;
+      unsigned char *contents;
+      int size;
+      struct gcpro gcpro1;
+
+      file = x_find_image_file (file_name);
+      GCPRO1 (file);
+      if (!STRINGP (file))
+      {
+        image_error ("Cannot find image file `%s'", file_name, Qnil);
+        UNGCPRO;
+        return 0;
+      }
+
+      contents = slurp_file (SDATA (file), &size);
+      if (contents == NULL)
+      {
+        image_error ("Error loading XPM image `%s'", img->spec, Qnil);
+        UNGCPRO;
+        return 0;
+      }
+
+      success_p = xpm_load_image (f, img, contents, contents + size);
+      xfree (contents);
+      UNGCPRO;
+    }
+  else
+    {
+      Lisp_Object data;
+
+      data = image_spec_value (img->spec, QCdata, NULL);
+      success_p = xpm_load_image (f, img, SDATA (data),
+                                SDATA (data) + SBYTES (data));
+    }
+
+  return success_p;
+}
+
+#endif /* MAC_OS */
+
+
 
 /***********************************************************************
 			     Color table
@@ -3857,7 +4409,7 @@ lookup_rgb_color (f, r, g, b)
       /* Assemble the pixel color.  */
       return pr | pg | pb;
     }
-  
+
   for (p = ct_table[i]; p; p = p->next)
     if (p->r == r && p->g == g && p->b == b)
       break;
@@ -4968,7 +5520,7 @@ pbm_load (f, img)
   x_destroy_x_image (ximg);
 
   /* X and W32 versions did it here, MAC version above.  ++kfs
-     img->width = width;   
+     img->width = width;
      img->height = height; */
 
   UNGCPRO;
@@ -5091,21 +5643,12 @@ DEF_IMGLIB_FN (png_read_end);
 DEF_IMGLIB_FN (png_error);
 
 static int
-init_png_functions (void)
+init_png_functions (Lisp_Object libraries)
 {
   HMODULE library;
 
-  /* Ensure zlib is loaded.  Try debug version first.  */
-  if (!LoadLibrary ("zlibd.dll")
-      && !LoadLibrary ("zlib.dll"))
-    return 0;
-
   /* Try loading libpng under probable names.  */
-  if (!(library = LoadLibrary ("libpng13d.dll"))
-      && !(library = LoadLibrary ("libpng13.dll"))
-      && !(library = LoadLibrary ("libpng12d.dll"))
-      && !(library = LoadLibrary ("libpng12.dll"))
-      && !(library = LoadLibrary ("libpng.dll")))
+  if (!(library = w32_delayed_load (libraries, Qpng)))
     return 0;
 
   LOAD_IMGLIB_FN (library, png_get_io_ptr);
@@ -5196,6 +5739,12 @@ struct png_memory_storage
    PNG_PTR is a pointer to the PNG control structure.  Copy LENGTH
    bytes from the input to DATA.  */
 
+#ifdef _MSC_VER
+  /* Work around a problem with MinGW builds of graphics libraries
+     not honoring calling conventions.  */
+#pragma optimize("g", off)
+#endif
+
 static void
 png_read_from_memory (png_ptr, data, length)
      png_structp png_ptr;
@@ -5211,6 +5760,11 @@ png_read_from_memory (png_ptr, data, length)
   bcopy (tbr->bytes + tbr->index, data, length);
   tbr->index = tbr->index + length;
 }
+
+#ifdef _MSC_VER
+/* Restore normal optimization, as specified on the command line.  */
+#pragma optimize("", on)
+#endif
 
 /* Load PNG image IMG for use on frame F.  Value is non-zero if
    successful.  */
@@ -5412,9 +5966,9 @@ png_load (f, img)
 	      png_color_16 user_bg;
 
 	      bzero (&user_bg, sizeof user_bg);
-	      user_bg.red = color.red >> PNG_BG_COLOR_SHIFT;
-	      user_bg.green = color.green >> PNG_BG_COLOR_SHIFT;
-	      user_bg.blue = color.blue >> PNG_BG_COLOR_SHIFT;
+	      user_bg.red = color.red >> 8;
+	      user_bg.green = color.green >> 8;
+	      user_bg.blue = color.blue >> 8;
 
 	      fn_png_set_background (png_ptr, &user_bg,
 				     PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
@@ -5438,9 +5992,9 @@ png_load (f, img)
 	  x_query_color (f, &color);
 
 	  bzero (&frame_background, sizeof frame_background);
-	  frame_background.red = color.red;
-	  frame_background.green = color.green;
-	  frame_background.blue = color.blue;
+	  frame_background.red = color.red >> 8;
+	  frame_background.green = color.green >> 8;
+	  frame_background.blue = color.blue >> 8;
 #endif /* HAVE_X_WINDOWS */
 
 #ifdef HAVE_NTGUI
@@ -5451,9 +6005,9 @@ png_load (f, img)
 	  x_query_color (f, &color);
 #endif
 	  bzero (&frame_background, sizeof frame_background);
-	  frame_background.red = 256 * GetRValue (color);
-	  frame_background.green = 256 * GetGValue (color);
-	  frame_background.blue = 256 * GetBValue (color);
+	  frame_background.red = GetRValue (color);
+	  frame_background.green = GetGValue (color);
+	  frame_background.blue = GetBValue (color);
 #endif /* HAVE_NTGUI */
 
 #ifdef MAC_OS
@@ -5738,13 +6292,11 @@ DEF_IMGLIB_FN (jpeg_std_error);
 DEF_IMGLIB_FN (jpeg_resync_to_restart);
 
 static int
-init_jpeg_functions (void)
+init_jpeg_functions (Lisp_Object libraries)
 {
   HMODULE library;
 
-  if (!(library = LoadLibrary ("libjpeg.dll"))
-      && !(library = LoadLibrary ("jpeg-62.dll"))
-      && !(library = LoadLibrary ("jpeg.dll")))
+  if (!(library = w32_delayed_load (libraries, Qjpeg)))
     return 0;
 
   LOAD_IMGLIB_FN (library, jpeg_finish_decompress);
@@ -6175,11 +6727,11 @@ DEF_IMGLIB_FN (TIFFReadRGBAImage);
 DEF_IMGLIB_FN (TIFFClose);
 
 static int
-init_tiff_functions (void)
+init_tiff_functions (Lisp_Object libraries)
 {
   HMODULE library;
 
-  if (!(library = LoadLibrary ("libtiff.dll")))
+  if (!(library = w32_delayed_load (libraries, Qtiff)))
     return 0;
 
   LOAD_IMGLIB_FN (library, TIFFSetErrorHandler);
@@ -6595,11 +7147,11 @@ DEF_IMGLIB_FN (DGifOpen);
 DEF_IMGLIB_FN (DGifOpenFileName);
 
 static int
-init_gif_functions (void)
+init_gif_functions (Lisp_Object libraries)
 {
   HMODULE library;
 
-  if (!(library = LoadLibrary ("libungif.dll")))
+  if (!(library = w32_delayed_load (libraries, Qgif)))
     return 0;
 
   LOAD_IMGLIB_FN (library, DGifCloseFile);
@@ -6875,6 +7427,8 @@ gif_load (f, img)
   TimeValue time;
   struct gcpro gcpro1;
   int ino;
+  CGrafPtr old_port;
+  GDHandle old_gdh;
 
   specified_file = image_spec_value (img->spec, QCfile, NULL);
   specified_data = image_spec_value (img->spec, QCdata, NULL);
@@ -6992,11 +7546,13 @@ gif_load (f, img)
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
     goto error;
 
+  GetGWorld (&old_port, &old_gdh);
   SetGWorld (ximg, NULL);
   bg_color.red = color.red;
   bg_color.green = color.green;
   bg_color.blue = color.blue;
   RGBBackColor (&bg_color);
+  SetGWorld (old_port, old_gdh);
   SetMovieActive (movie, TRUE);
   SetMovieGWorld (movie, ximg, NULL);
   SampleNumToMediaTime (media, ino + 1, &time, NULL);
@@ -7368,9 +7924,81 @@ DEFUN ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0, "")
 			    Initialization
  ***********************************************************************/
 
+#ifdef HAVE_NTGUI
+/* Image types that rely on external libraries are loaded dynamically
+   if the library is available.  */
+#define CHECK_LIB_AVAILABLE(image_type, init_lib_fn) \
+  define_image_type (image_type, init_lib_fn (libraries))
+#else
+#define CHECK_LIB_AVAILABLE(image_type, init_lib_fn) \
+  define_image_type (image_type, TRUE)
+#endif /* HAVE_NTGUI */
+
+DEFUN ("init-image-library", Finit_image_library, Sinit_image_library, 2, 2, 0,
+       doc: /* Initialize image library implementing image type TYPE.
+Return non-nil if TYPE is a supported image type.
+
+Image types pbm and xbm are prebuilt; other types are loaded here.
+Libraries to load are specified in alist LIBRARIES (usually, the value
+of `image-library-alist', which see.  */)
+  (type, libraries)
+{
+  Lisp_Object tested;
+
+  /* Don't try to reload the library.  */
+  tested = Fassq (type, Vimage_type_cache);
+  if (CONSP (tested))
+    return XCDR (tested);
+
+#if defined (HAVE_XPM) || defined (MAC_OS)
+  if (EQ (type, Qxpm))
+    return CHECK_LIB_AVAILABLE(&xpm_type, init_xpm_functions);
+#endif
+
+#if defined (HAVE_JPEG) || defined (MAC_OS)
+  if (EQ (type, Qjpeg))
+    return CHECK_LIB_AVAILABLE(&jpeg_type, init_jpeg_functions);
+#endif
+
+#if defined (HAVE_TIFF) || defined (MAC_OS)
+  if (EQ (type, Qtiff))
+    return CHECK_LIB_AVAILABLE(&tiff_type, init_tiff_functions);
+#endif
+
+#if defined (HAVE_GIF) || defined (MAC_OS)
+  if (EQ (type, Qgif))
+    return CHECK_LIB_AVAILABLE(&gif_type, init_gif_functions);
+#endif
+
+#if defined (HAVE_PNG) || defined (MAC_OS)
+  if (EQ (type, Qpng))
+    return CHECK_LIB_AVAILABLE(&png_type, init_png_functions);
+#endif
+
+#ifdef HAVE_GHOSTSCRIPT
+  if (EQ (type, Qpostscript))
+    return CHECK_LIB_AVAILABLE(&gs_type, init_gs_functions);
+#endif
+
+  /* If the type is not recognized, avoid testing it ever again.  */
+  CACHE_IMAGE_TYPE(type, Qnil);
+  return Qnil;
+}
+
 void
 syms_of_image ()
 {
+  /* Must be defined now becase we're going to update it below, while
+     defining the supported image types.  */
+  DEFVAR_LISP ("image-types", &Vimage_types,
+    doc: /* List of potentially supported image types.
+Each element of the list is a symbol for a image type, like 'jpeg or 'png.
+To check whether it is really supported, use `image-type-available-p'.  */);
+  Vimage_types = Qnil;
+
+  Vimage_type_cache = Qnil;
+  staticpro (&Vimage_type_cache);
+
   QCascent = intern (":ascent");
   staticpro (&QCascent);
   QCmargin = intern (":margin");
@@ -7404,6 +8032,7 @@ syms_of_image ()
   Qpostscript = intern ("postscript");
   staticpro (&Qpostscript);
 #ifdef HAVE_GHOSTSCRIPT
+  ADD_IMAGE_TYPE(Qpostscript);
   QCloader = intern (":loader");
   staticpro (&QCloader);
   QCbounding_box = intern (":bounding-box");
@@ -7416,35 +8045,43 @@ syms_of_image ()
 
   Qpbm = intern ("pbm");
   staticpro (&Qpbm);
+  ADD_IMAGE_TYPE(Qpbm);
 
   Qxbm = intern ("xbm");
   staticpro (&Qxbm);
+  ADD_IMAGE_TYPE(Qxbm);
 
-#ifdef HAVE_XPM
+#if defined (HAVE_XPM) || defined (MAC_OS)
   Qxpm = intern ("xpm");
   staticpro (&Qxpm);
+  ADD_IMAGE_TYPE(Qxpm);
 #endif
 
 #if defined (HAVE_JPEG) || defined (MAC_OS)
   Qjpeg = intern ("jpeg");
   staticpro (&Qjpeg);
+  ADD_IMAGE_TYPE(Qjpeg);
 #endif
 
 #if defined (HAVE_TIFF) || defined (MAC_OS)
   Qtiff = intern ("tiff");
   staticpro (&Qtiff);
+  ADD_IMAGE_TYPE(Qtiff);
 #endif
 
 #if defined (HAVE_GIF) || defined (MAC_OS)
   Qgif = intern ("gif");
   staticpro (&Qgif);
+  ADD_IMAGE_TYPE(Qgif);
 #endif
 
 #if defined (HAVE_PNG) || defined (MAC_OS)
   Qpng = intern ("png");
   staticpro (&Qpng);
+  ADD_IMAGE_TYPE(Qpng);
 #endif
 
+  defsubr (&Sinit_image_library);
   defsubr (&Sclear_image_cache);
   defsubr (&Simage_size);
   defsubr (&Simage_mask_p);
@@ -7472,52 +8109,13 @@ meaning don't clear the cache.  */);
   Vimage_cache_eviction_delay = make_number (30 * 60);
 }
 
-
-#ifdef HAVE_NTGUI
-/* Image types that rely on external libraries are loaded dynamically
-   if the library is available.  */
-#define IF_LIB_AVAILABLE(init_lib_fn)  if (init_lib_fn())
-#else
-#define IF_LIB_AVAILABLE(init_func)    /* Load unconditionally */
-#endif /* HAVE_NTGUI */
-
 void
 init_image ()
 {
   image_types = NULL;
-  Vimage_types = Qnil;
 
-  define_image_type (&xbm_type);
-  define_image_type (&pbm_type);
-
-#ifdef HAVE_XPM
-  IF_LIB_AVAILABLE(init_xpm_functions)
-    define_image_type (&xpm_type);
-#endif
-
-#if defined (HAVE_JPEG) || defined (MAC_OS)
-  IF_LIB_AVAILABLE(init_jpeg_functions)
-    define_image_type (&jpeg_type);
-#endif
-
-#if defined (HAVE_TIFF) || defined (MAC_OS)
-  IF_LIB_AVAILABLE(init_tiff_functions)
-    define_image_type (&tiff_type);
-#endif
-
-#if defined (HAVE_GIF) || defined (MAC_OS)
-  IF_LIB_AVAILABLE(init_gif_functions)
-    define_image_type (&gif_type);
-#endif
-
-#if defined (HAVE_PNG) || defined (MAC_OS)
-  IF_LIB_AVAILABLE(init_png_functions)
-    define_image_type (&png_type);
-#endif
-
-#ifdef HAVE_GHOSTSCRIPT
-  define_image_type (&gs_type);
-#endif
+  define_image_type (&xbm_type, TRUE);
+  define_image_type (&pbm_type, TRUE);
 
 #ifdef MAC_OS
   /* Animated gifs use QuickTime Movie Toolbox.  So initialize it here. */

@@ -153,7 +153,7 @@
 ;;; Code:
 
 ;; TODO
-;; Support for hideshow, align.
+;; Support for align.
 ;; OpenMP, preprocessor highlighting.
 
 (defvar comment-auto-fill-only-comments)
@@ -589,6 +589,53 @@ characters long.")
 (make-variable-buffer-local 'f90-cache-position)
 
 
+;; Hideshow support.
+(defconst f90-end-block-re
+  (concat "^[ \t0-9]*\\<end\\>[ \t]*"
+          (regexp-opt '("do" "if" "forall" "function" "interface"
+                        "module" "program" "select"  "subroutine"
+                        "type" "where" ) t)
+          "[ \t]*\\sw*")
+  "Regexp matching the end of a \"block\" of F90 code.
+Used in the F90 entry in `hs-special-modes-alist'.")
+
+;; Ignore the fact that FUNCTION, SUBROUTINE, WHERE, FORALL have a
+;; following "(".  DO, CASE, IF can have labels; IF must be
+;; accompanied by THEN.
+;; A big problem is that many of these statements can be broken over
+;; lines, even with embedded comments. We only try to handle this for
+;; IF ... THEN statements, assuming and hoping it will be less common
+;; for other constructs. We match up to one new-line, provided ")
+;; THEN" appears on one line. Matching on just ") THEN" is no good,
+;; since that includes ELSE branches.
+;; For a fully accurate solution, hideshow would probably have to be
+;; modified to allow functions as well as regexps to be used to
+;; specify block start and end positions.
+(defconst f90-start-block-re
+  (concat
+   "^[ \t0-9]*"                         ; statement number
+   "\\(\\("
+   "\\(\\sw+[ \t]*:[ \t]*\\)?"          ; structure label
+   "\\(do\\|select[ \t]*case\\|if[ \t]*(.*\n?.*)[ \t]*then\\|"
+   ;; Distinguish WHERE block from isolated WHERE.
+   "\\(where\\|forall\\)[ \t]*(.*)[ \t]*\\(!\\|$\\)\\)\\)"
+   "\\|"
+   "program\\|interface\\|module\\|type\\|function\\|subroutine"
+   ;; ") THEN" at line end. Problem - also does ELSE.
+;;;   "\\|.*)[ \t]*then[ \t]*\\($\\|!\\)"
+   "\\)"
+   "[ \t]*")
+  "Regexp matching the start of a \"block\" of F90 code.
+A simple regexp cannot do this in fully correct fashion, so this
+tries to strike a compromise between complexity and flexibility.
+Used in the F90 entry in `hs-special-modes-alist'.")
+
+;; hs-special-modes-alist is autoloaded.
+(add-to-list 'hs-special-modes-alist
+             `(f90-mode ,f90-start-block-re ,f90-end-block-re
+                        "!" f90-end-of-block nil))
+
+
 ;; Imenu support.
 (defvar f90-imenu-generic-expression
   (let ((good-char "[^!\"\&\n \t]") (not-e "[^e!\n\"\& \t]")
@@ -850,14 +897,16 @@ line-number before indenting."
 
 (defsubst f90-get-present-comment-type ()
   "If point lies within a comment, return the string starting the comment.
-For example, \"!\" or \"!!\"."
+For example, \"!\" or \"!!\", followed by the appropriate amount of
+whitespace, if any."
+  ;; Include the whitespace for consistent auto-filling of comment blocks.
   (save-excursion
     (when (f90-in-comment)
       (beginning-of-line)
-      (re-search-forward "!+" (line-end-position))
+      (re-search-forward "!+[ \t]*" (line-end-position))
       (while (f90-in-string)
-        (re-search-forward "!+" (line-end-position)))
-      (match-string 0))))
+        (re-search-forward "!+[ \t]*" (line-end-position)))
+      (match-string-no-properties 0))))
 
 (defsubst f90-equal-symbols (a b)
   "Compare strings A and B neglecting case and allowing for nil value."
@@ -1519,6 +1568,7 @@ is non-nil, call `f90-update-line' after inserting the continuation marker."
   (cond ((f90-in-string)
          (insert "&\n&"))
         ((f90-in-comment)
+         (delete-horizontal-space 'backwards) ; remove trailing whitespace
          (insert "\n" (f90-get-present-comment-type)))
         (t (insert "&")
            (or no-update (f90-update-line))

@@ -1,3 +1,93 @@
+2004-06-14  Juanma Barranquero  <lektu@terra.es>
+
+	* display.texi (Images): Document new delayed library loading,
+	variable `image-library-alist' and (existing but undocumented)
+	function `image-type-available-p'.
+
+2004-06-05  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.texi (Minibuffer Completion): For INITIAL arg,
+	refer the user to the Initial Input node.
+	(Text from Minibuffer): Likewise.
+	(Initial Input): New node.  Document this feature
+	and say it is mostly deprecated.
+
+2004-05-30  Richard M. Stallman  <rms@gnu.org>
+
+	* loading.texi (Named Features): Clarify return value
+	and meaning of NOERROR.
+
+	* variables.texi (File Local Variables): Minor cleanup.
+
+2004-05-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Magic File Names): Add `file-remote-p' as operation
+	of file name handlers.
+
+2004-05-29  Richard M. Stallman  <rms@gnu.org>
+
+	* modes.texi (Minor Mode Conventions): (-) has no special meaning
+	as arg to a minor mode command.
+
+2004-05-22  Richard M. Stallman  <rms@gnu.org>
+
+	* syntax.texi (Syntax Class Table): Word syntax not just for English.
+
+	* streams.texi (Output Variables): Doc float-output-format.
+
+	* searching.texi (Regexp Special): Nested repetition can be infloop.
+
+	* eval.texi (Eval): Increasing max-lisp-eval-depth can cause
+	real stack overflow.
+
+	* compile.texi: Minor cleanups.
+
+2004-05-22  Luc Teirlinck  <teirllm@dms.auburn.edu>
+
+	* lists.texi (Cons Cells): Explain dotted lists, true lists,
+	circular lists.
+	(List Elements): Explain handling of circular and dotted lists.
+
+2004-05-19  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* modes.texi (Search-based Fontification): Fix typo.
+
+2004-05-10  Juanma Barranquero  <lektu@terra.es>
+
+	* modes.texi (Mode Line Variables): Fix description of
+	global-mode-string, which is now after which-func-mode, not the
+	buffer name.
+
+2004-05-07  Lars Hansen  <larsh@math.ku.dk>
+
+	* modes.texi (Desktop Save Mode): Add.
+	(Modes): Add menu entry Desktop Save Mode.
+
+	* hooks.texi: Add desktop-after-read-hook,
+	desktop-no-desktop-file-hook and desktop-save-hook.
+
+	* locals.texi: Add desktop-save-buffer.
+
+2004-04-30  Jesper Harder  <harder@ifa.au.dk>
+
+	* display.texi: emacs -> Emacs.
+
+2004-04-27  Matthew Mundell  <matt@mundell.ukfsn.org>
+
+	* files.texi (Changing Files): Document set-file-times.
+
+2004-04-23  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in: Add "-*- makefile -*-" mode tag.
+
+2004-04-18  Jesper Harder  <harder@ifa.au.dk>
+
+	* tips.texi (Coding Conventions): defopt -> defcustom.
+
+2004-04-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* sequences.texi: Various clarifications.
+
 2004-04-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* buffers.texi (Read Only Buffers): Mention optional ARG to

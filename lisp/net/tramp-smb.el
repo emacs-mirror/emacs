@@ -38,6 +38,19 @@
   (or (>= emacs-major-version 20)
       (load "cl-seq")))
 
+;; Avoid byte-compiler warnings if the byte-compiler supports this.
+;; Currently, XEmacs supports this.
+(eval-when-compile
+  (when (fboundp 'byte-compiler-options)
+    (let (unused-vars) ; Pacify Emacs byte-compiler
+      (defalias 'warnings 'identity) ; Pacify Emacs byte-compiler
+      (byte-compiler-options (warnings (- unused-vars))))))
+
+;; XEmacs byte-compiler raises warning abouts `last-coding-system-used'.
+(eval-when-compile
+  (unless (boundp 'last-coding-system-used)
+    (defvar last-coding-system-used nil)))
+
 ;; Define SMB method ...
 (defcustom tramp-smb-method "smb"
   "*Method to connect SAMBA and M$ SMB servers."
@@ -131,6 +144,7 @@ This variable is local to each buffer.")
     (file-executable-p . tramp-smb-handle-file-exists-p)
     (file-exists-p . tramp-smb-handle-file-exists-p)
     (file-local-copy . tramp-smb-handle-file-local-copy)
+    (file-remote-p . tramp-handle-file-remote-p)
     (file-modes . tramp-handle-file-modes)
     (file-name-all-completions . tramp-smb-handle-file-name-all-completions)
     ;; `file-name-as-directory' performed by default handler
@@ -145,7 +159,7 @@ This variable is local to each buffer.")
     (file-symlink-p . tramp-smb-not-handled)
     ;; `file-truename' performed by default handler
     (file-writable-p . tramp-smb-handle-file-writable-p)
-    ;; `find-backup-file-name' performed by default handler
+    (find-backup-file-name . tramp-handle-find-backup-file-name)
     ;; `find-file-noselect' performed by default handler
     ;; `get-file-buffer' performed by default handler
     (insert-directory . tramp-smb-handle-insert-directory)
@@ -990,7 +1004,7 @@ Domain names in USER and port numbers in HOST are acknowledged."
 		       tramp-smb-program args)))
 
 	(tramp-message 9 "Started process %s" (process-command p))
-	(process-kill-without-query p)
+	(tramp-set-process-query-on-exit-flag p nil)
 	(set-buffer buffer)
 	(setq tramp-smb-share share)
 

@@ -460,7 +460,7 @@ Menu of mode operations in the mode line.")
 FMT is a format specifier such as \"%12b\".  This function adds
 text properties for face, help-echo, and local-map to it."
   (list (propertize fmt
-		    'face '(:weight bold)
+		    'face 'Buffer-menu-buffer-face
 		    'help-echo
 		    (purecopy "mouse-1: previous buffer, mouse-3: next buffer")
 		    'local-map mode-line-buffer-identification-keymap)))
@@ -524,7 +524,9 @@ is okay.  See `mode-line-format'.")
 	 ;; files you do want to see, not just TeX stuff.  -- fx
 	 ".toc" ".aux"
 	 ".cp" ".fn" ".ky" ".pg" ".tp" ".vr"
-	 ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs")))
+	 ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs"
+	 ;; Python byte-compiled
+	 ".pyc" ".pyo")))
 
 ;; Suffixes used for executables.
 (setq exec-suffixes
@@ -542,63 +544,20 @@ is okay.  See `mode-line-format'.")
 	file-supersession
       	"^Previous command was not a yank$"
 	"^Minibuffer window is not active$"
+	"^No previous history search regexp$"
+	"^No later matching history item$"
+	"^No earlier matching history item$"
+	"^End of history; no default available$"
 	"^End of history; no next item$"
 	"^Beginning of history; no preceding item$"
 	"^No recursive edit is in progress$"
 	"^Changes to be undone are outside visible portion of buffer$"
 	"^No undo information in this buffer$"
-	"^No further undo information$"
+	"^No further undo information"
 	"^Save not confirmed$"
 	"^Recover-file cancelled\\.$"
 	"^Cannot switch buffers in a dedicated window$"
-
-	;; ediff
-	"^Errors in diff output. Diff output is in "
-	"^Hmm... I don't see an Ediff command around here...$"
-	"^Undocumented command! Type `G' in Ediff Control Panel to drop a note to the Ediff maintainer$"
-	": This command runs in Ediff Control Buffer only!$"
-	": Invalid op in ediff-check-version$"
-	"^ediff-shrink-window-C can be used only for merging jobs$"
-	"^Lost difference info on these directories$"
-	"^This command is inapplicable in the present context$"
-	"^This session group has no parent$"
-	"^Can't hide active session, $"
-	"^Ediff: something wrong--no multiple diffs buffer$"
-	"^Can't make context diff for Session $"
-	"^The patch buffer wasn't found$"
-	"^Aborted$"
-	"^This Ediff session is not part of a session group$"
-	"^No active Ediff sessions or corrupted session registry$"
-	"^No session info in this line$"
-	"^`.*' is not an ordinary file$"
-	"^Patch appears to have failed$"
-	"^Recomputation of differences cancelled$"
-	"^No fine differences in this mode$"
-	"^Lost connection to ancestor buffer...sorry$"
-	"^Not merging with ancestor$"
-	"^Don't know how to toggle read-only in buffer "
-	"Emacs is not running as a window application$"
-	"^This command makes sense only when merging with an ancestor$"
-	"^At end of the difference list$"
-	"^At beginning of the difference list$"
-	"^Nothing saved for diff .* in buffer "
-	"^Buffer is out of sync for file "
-	"^Buffer out of sync for file "
-	"^Output from `diff' not found$"
-	"^You forgot to specify a region in buffer "
-	"^All right. Make up your mind and come back...$"
-	"^Current buffer is not visiting any file$"
-	"^Failed to retrieve revision: $"
-	"^Can't determine display width.$"
-	"^File `.*' does not exist or is not readable$"
-	"^File `.*' is a directory$"
-	"^Buffer .* doesn't exist$"
-	"^Directories . and . are the same: "
-	"^Directory merge aborted$"
-	"^Merge of directory revisions aborted$"
-	"^Buffer .* doesn't exist$"
-	"^There is no file to merge$"
-	"^Version control package .*.el not found. Use vc.el instead$"))
+        ))
 
 
 (make-variable-buffer-local 'indent-tabs-mode)
@@ -938,6 +897,13 @@ language you are using."
 (global-set-key [C-backspace] 'kill-word)
 ;; This is "move to the clipboard", or as close as we come.
 (global-set-key [S-delete] 'kill-region)
+
+(global-set-key [C-M-left]  'backward-sexp)
+(global-set-key [C-M-right] 'forward-sexp)
+(global-set-key [C-M-up]    'backward-up-list)
+(global-set-key [C-M-down]  'down-list)
+(global-set-key [C-M-home]  'beginning-of-defun)
+(global-set-key [C-M-end]   'end-of-defun)
 
 (define-key esc-map "\C-f" 'forward-sexp)
 (define-key esc-map "\C-b" 'backward-sexp)

@@ -279,26 +279,57 @@ enum pvec_type
 
 /* For convenience, we also store the number of elements in these bits.  */
 #define PSEUDOVECTOR_SIZE_MASK 0x1ff
+
+/* Number of bits to put in each character in the internal representation
+   of bool vectors.  This should not vary across implementations.  */
+#define BOOL_VECTOR_BITS_PER_CHAR 8
 
 /***** Select the tagging scheme.  *****/
+/* There are basically two options that control the tagging scheme:
+   - NO_UNION_TYPE says that Lisp_Object should be an integer instead
+     of a union.
+   - USE_LSB_TAG means that we can assume the least 3 bits of pointers are
+     always 0, and we can thus use them to hold tag bits, without
+     restricting our addressing space.
+
+   If USE_LSB_TAG is not set, then we use the top 3 bits for tagging, thus
+   restricting our possible address range.  Currently USE_LSB_TAG is not
+   allowed together with a union.  This is not due to any fundamental
+   technical (or political ;-) problem: nobody wrote the code to do it yet.
+
+   USE_LSB_TAG not only requires the least 3 bits of pointers returned by
+   malloc to be 0 but also needs to be able to impose a mult-of-8 alignment
+   on the few static Lisp_Objects used: all the defsubr as well
+   as the two special buffers buffer_defaults and buffer_local_symbols.  */
 
 /* First, try and define DECL_ALIGN(type,var) which declares a static
    variable VAR of type TYPE with the added requirement that it be
    TYPEBITS-aligned. */
-#if defined USE_LSB_TAG && !defined DECL_ALIGN
+#ifndef DECL_ALIGN
 /* What compiler directive should we use for non-gcc compilers?  -stef  */
 # if defined (__GNUC__)
 #  define DECL_ALIGN(type, var) \
     type __attribute__ ((__aligned__ (1 << GCTYPEBITS))) var
-# else
-#  error "USE_LSB_TAG used without defining DECL_ALIGN"
 # endif
 #endif
 
-#ifndef USE_LSB_TAG
+/* Let's USE_LSB_TAG on systems where we know malloc returns mult-of-8.  */
+#if defined GNU_MALLOC || defined DOUG_LEA_MALLOC || defined __GLIBC__ || defined MAC_OSX
+/* We also need to be able to specify mult-of-8 alignment on static vars.  */
+# if defined DECL_ALIGN
+/* We currently do not support USE_LSB_TAG with a union Lisp_Object.  */
+#  if defined NO_UNION_TYPE
+#   define USE_LSB_TAG
+#  endif
+# endif
+#endif
+
 /* Just remove the alignment annotation if we don't use it.  */
-#undef DECL_ALIGN
-#define DECL_ALIGN(type, var) type var
+#ifndef DECL_ALIGN
+# ifdef USE_LSB_TAG
+#  error "USE_LSB_TAG used without defining DECL_ALIGN"
+# endif
+# define DECL_ALIGN(type, var) type var
 #endif
 
 
@@ -383,7 +414,7 @@ enum pvec_type
 
 #ifdef EXPLICIT_SIGN_EXTEND
 /* Make sure we sign-extend; compilers have been known to fail to do so.  */
-#define XINT(a) (((a).i << (BITS_PER_EMACS_INT - VALBITS)) \
+#define XINT(a) (((a).s.val << (BITS_PER_EMACS_INT - VALBITS)) \
 		 >> (BITS_PER_EMACS_INT - VALBITS))
 #else
 #define XINT(a) ((a).s.val)
@@ -401,7 +432,7 @@ enum pvec_type
 extern Lisp_Object make_number ();
 #endif
 
-#define EQ(x, y) ((x).s.val == (y).s.val)
+#define EQ(x, y) ((x).s.val == (y).s.val && (x).s.type == (y).s.type)
 
 #endif /* NO_UNION_TYPE */
 
@@ -2408,7 +2439,8 @@ void set_frame_cursor_types P_ ((struct frame *, Lisp_Object));
 extern void syms_of_xdisp P_ ((void));
 extern void init_xdisp P_ ((void));
 extern Lisp_Object safe_eval P_ ((Lisp_Object));
-extern int pos_visible_p P_ ((struct window *, int, int *, int));
+extern int pos_visible_p P_ ((struct window *, int, int *,
+			      int *, int *, int));
 
 /* Defined in vm-limit.c.  */
 extern void memory_warnings P_ ((POINTER_TYPE *, void (*warnfun) ()));
@@ -2779,6 +2811,7 @@ extern void syms_of_fileio P_ ((void));
 EXFUN (Fmake_temp_name, 1);
 extern void init_fileio_once P_ ((void));
 extern Lisp_Object make_temp_name P_ ((Lisp_Object, int));
+EXFUN (Fmake_symbolic_link, 3);
 
 /* Defined in abbrev.c */
 
@@ -2892,6 +2925,10 @@ extern int indented_beyond_p P_ ((int, int, double));
 extern void syms_of_indent P_ ((void));
 
 /* defined in frame.c */
+#ifdef HAVE_WINDOW_SYSTEM
+extern Lisp_Object Vx_resource_name;
+extern Lisp_Object Vx_resource_class;
+#endif /* HAVE_WINDOW_SYSTEM */
 extern Lisp_Object Qvisible;
 extern void store_frame_param P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void store_in_alist P_ ((Lisp_Object *, Lisp_Object, Lisp_Object));
@@ -3013,7 +3050,7 @@ extern void syms_of_macros P_ ((void));
 /* defined in undo.c */
 extern Lisp_Object Qinhibit_read_only;
 EXFUN (Fundo_boundary, 0);
-extern Lisp_Object truncate_undo_list P_ ((Lisp_Object, int, int));
+extern Lisp_Object truncate_undo_list P_ ((Lisp_Object, int, int, int));
 extern void record_marker_adjustment P_ ((Lisp_Object, int));
 extern void record_insert P_ ((int, int));
 extern void record_delete P_ ((int, Lisp_Object));
@@ -3115,11 +3152,12 @@ extern int getloadavg P_ ((double *, int));
 #ifdef HAVE_X_WINDOWS
 /* Defined in xfns.c */
 extern void syms_of_xfns P_ ((void));
-extern Lisp_Object Vx_resource_name;
-extern Lisp_Object Vx_resource_class;
+#endif /* HAVE_X_WINDOWS */
+#ifdef HAVE_WINDOW_SYSTEM
+/* Defined in xfns.c, w32fns.c, or macfns.c */
 EXFUN (Fxw_display_color_p, 1);
 EXFUN (Fx_file_dialog, 4);
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
 /* Defined in xsmfns.c */
 extern void syms_of_xsmfns P_ ((void));
@@ -3145,9 +3183,7 @@ extern void xfree P_ ((POINTER_TYPE *));
 
 extern char *xstrdup P_ ((const char *));
 
-#ifndef USE_CRT_DLL
 extern char *egetenv P_ ((char *));
-#endif
 
 /* Set up the name of the machine we're running on.  */
 extern void init_system_name P_ ((void));
@@ -3227,6 +3263,32 @@ extern Lisp_Object Vdirectory_sep_char;
    (FIXNUM_OVERFLOW_P (val) \
     ? make_float (val) \
     : make_number ((EMACS_INT)(val)))
+
+
+/* Checks the `cycle check' variable CHECK to see if it indicates that
+   EL is part of a cycle; CHECK must be either Qnil or a value returned
+   by an earlier use of CYCLE_CHECK.  SUSPICIOUS is the number of
+   elements after which a cycle might be suspected; after that many
+   elements, this macro begins consing in order to keep more precise
+   track of elements.
+
+   Returns nil if a cycle was detected, otherwise a new value for CHECK
+   that includes EL.
+
+   CHECK is evaluated multiple times, EL and SUSPICIOUS 0 or 1 times, so
+   the caller should make sure that's ok.  */
+
+#define CYCLE_CHECK(check, el, suspicious)	\
+  (NILP (check)					\
+   ? make_number (0)				\
+   : (INTEGERP (check)				\
+      ? (XFASTINT (check) < (suspicious)	\
+	 ? make_number (XFASTINT (check) + 1)	\
+	 : Fcons (el, Qnil))			\
+      : (!NILP (Fmemq ((el), (check)))		\
+	 ? Qnil					\
+	 : Fcons ((el), (check)))))
+
 
 #endif /* EMACS_LISP_H */
 

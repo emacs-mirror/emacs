@@ -60,6 +60,10 @@ Boston, MA 02111-1307, USA.  */
 #define READ_BINARY "r"
 #endif /* not DOS_NT */
 
+#ifndef IS_DIRECTORY_SEP
+#define IS_DIRECTORY_SEP(_c_) ((_c_) == '/')
+#endif
+
 int scan_file ();
 int scan_lisp_file ();
 int scan_c_file ();
@@ -100,7 +104,7 @@ fatal (s1, s2)
      char *s1, *s2;
 {
   error (s1, s2);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 /* Like malloc but get fatal error if memory is exhausted.  */
@@ -183,11 +187,13 @@ void
 put_filename (filename)
      char *filename;
 {
-  char *tmp = filename;
-  int len;
-  
-  while ((tmp = index (filename, '/')))
-    filename = tmp + 1;
+  char *tmp;
+
+  for (tmp = filename; *tmp; tmp++)
+    {
+      if (IS_DIRECTORY_SEP(*tmp))
+	filename = tmp + 1;
+    }
 
   putc (037, outfile);
   putc ('S', outfile);
@@ -1204,3 +1210,5 @@ scan_lisp_file (filename, mode)
 
 /* arch-tag: f7203aaf-991a-4238-acb5-601db56f2894
    (do not change this comment) */
+
+/* make-docfile.c ends here */

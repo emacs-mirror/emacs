@@ -123,8 +123,6 @@ any selection."
 (put 'newline 'delete-selection t)
 (put 'open-line 'delete-selection 'kill)
 
-(put 'insert-parentheses 'delete-selection t)
-
 ;; This is very useful for cancelling a selection in the minibuffer without
 ;; aborting the minibuffer.
 (defun minibuffer-keyboard-quit ()

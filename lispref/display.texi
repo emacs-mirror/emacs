@@ -2288,10 +2288,8 @@ same attributes for display.
 @end defun
 
 @defun face-differs-from-default-p face &optional frame
-This returns @code{t} if the face @var{face} displays differently from
-the default face.  A face is considered to be ``the same'' as the
-default face if each attribute is either the same as that of the default
-face, or unspecified (meaning to inherit from the default).
+This returns non-@code{nil} if the face @var{face} displays
+differently from the default face.
 @end defun
 
 @node Auto Faces
@@ -2877,8 +2875,13 @@ property of text that is displayed (@pxref{Display Property}).  Like the
 @code{display} property, this feature is available starting in Emacs 21.
 
   Emacs can display a number of different image formats; some of them
-are supported only if particular support libraries are installed on your
-machine.  The supported image formats include XBM, XPM (needing the
+are supported only if particular support libraries are installed on
+your machine.  In some environments, Emacs allows loading image
+libraries on demand; if so, the variable @code{image-library-alist}
+can be used to modify the set of known names for these dynamic
+libraries (though it is not posible to add new image formats).
+
+  The supported image formats include XBM, XPM (needing the
 libraries @code{libXpm} version 3.4k and @code{libz}), GIF (needing
 @code{libungif} 4.1.0), Postscript, PBM, JPEG (needing the
 @code{libjpeg} library version v6a), TIFF (needing @code{libtiff} v3.4),
@@ -2889,9 +2892,47 @@ type symbols are @code{xbm}, @code{xpm}, @code{gif}, @code{postscript},
 @code{pbm}, @code{jpeg}, @code{tiff}, and @code{png}.
 
 @defvar image-types
+@vindex image-types
 This variable contains a list of those image type symbols that are
-supported in the current configuration.
+potentially supported in the current configuration.
+@emph{Potentially} here means that Emacs knows about the image types,
+not necessarily that they can be loaded (they could depend on
+unavailable dynamic libraries, for example).
+
+To know which image types are really available, use
+@code{image-type-available-p}.
 @end defvar
+
+@defvar image-library-alist
+@vindex image-library-alist
+This in an alist of image types vs external libraries needed to
+display them.
+
+Each element is a list @code{(@var{IMAGE-TYPE} @var{LIBRARY}...)},
+where the car is a supported image format from @code{image-types}, and
+the rest are strings giving alternate filenames for the corresponding
+external libraries to load.
+
+They are tried in the order they appear on the list; if none of them
+can be loaded, the running session of Emacs won't support the image
+type.  No entries are needed for @code{pbm} and @code{xbm} images;
+they're always supported.
+
+This variable is ignored if the image libraries are statically linked
+into Emacs.
+@end defvar
+
+@defun  image-type-available-p type
+@findex image-type-available-p
+
+This function returns non-nil if image type TYPE is available, i.e.,
+if images of this type can be loaded and displayed in Emacs.  TYPE
+should be one of the types contained in @code{image-types}.
+
+For image types whose support libraries are statically linked, this
+function always returns @code{t}; for other image types, it returns
+@code{t} if the dynamic library could be loaded, @code{nil} otherwise.
+@end defun
 
 @menu
 * Image Descriptors::   How to specify an image for use in @code{:display}.
@@ -3156,7 +3197,7 @@ specifies the actual color to use for displaying that name.
   For GIF images, specify image type @code{gif}.  Because of the patents
 in the US covering the LZW algorithm, the continued use of GIF format is
 a problem for the whole Internet; to end this problem, it is a good idea
-for everyone, even outside the US, to stop using GIFS right away
+for everyone, even outside the US, to stop using GIFs right away
 (@uref{http://www.burnallgifs.org/}).  But if you still want to use
 them, Emacs can display them.
 
@@ -3433,7 +3474,7 @@ buttons in Emacs buffers, such as might be used for help hyper-links,
 etc.  Emacs uses buttons for the hyper-links in help text and the like.
 
 A button is essentially a set of properties attached (via text
-properties or overlays) to a region of text in an emacs buffer, which
+properties or overlays) to a region of text in an Emacs buffer, which
 are called its button properties.  @xref{Button Properties}.
 
 One of the these properties (@code{action}) is a function, which will
@@ -3441,7 +3482,7 @@ be called when the user invokes it using the keyboard or the mouse.
 The invoked function may then examine the button and use its other
 properties as desired.
 
-In some ways the emacs button package duplicates functionality offered
+In some ways the Emacs button package duplicates functionality offered
 by the widget package (@pxref{Top, , Introduction, widget, The Emacs
 Widget Library}), but the button package has the advantage that it is
 much faster, much smaller, and much simpler to use (for elisp
@@ -3454,7 +3495,7 @@ entries).
 @menu
 * Button Properties::      Button properties with special meanings.
 * Button Types::           Defining common properties for classes of buttons.
-* Making Buttons::         Adding buttons to emacs buffers.
+* Making Buttons::         Adding buttons to Emacs buffers.
 * Manipulating Buttons::   Getting and setting properties of buttons.
 * Button Buffer Commands:: Buffer-wide commands and bindings for buttons.
 * Manipulating Button Types:: 
@@ -3488,14 +3529,14 @@ present, mouse-clicks use @code{action} instead.
 
 @item face
 @kindex face @r{(button property)}
-This is an emacs face controlling how buttons of this type are
+This is an Emacs face controlling how buttons of this type are
 displayed; by default this is the @code{button} face.
 
 @item mouse-face
 @kindex mouse-face @r{(button property)}
 This is an additional face which controls appearance during
 mouse-overs (merged with the usual button face); by default this is
-the usual emacs @code{highlight} face.
+the usual Emacs @code{highlight} face.
 
 @item keymap
 @kindex keymap @r{(button property)}
@@ -3512,7 +3553,7 @@ usually specified using the @code{:type} keyword argument.
 
 @item help-echo
 @kindex help-index @r{(button property)}
-A string displayed by the emacs tool-tip help system; by default,
+A string displayed by the Emacs tool-tip help system; by default,
 @code{"mouse-2, RET: Push this button"}.
 
 @item button
@@ -3562,7 +3603,7 @@ doing so usually makes the resulting code clearer and more efficient.
   Buttons are associated with a region of text, using an overlay or
 text-properties to hold button-specific information, all of which are
 initialized from the button's type (which defaults to the built-in
-button type @code{button}).  Like all emacs text, the appearance of
+button type @code{button}).  Like all Emacs text, the appearance of
 the button is governed by the @code{face} property; by default (via
 the @code{face} property inherited from the @code{button} button-type)
 this is a simple underline, like a typical web-page link.
@@ -3594,7 +3635,7 @@ Make a button from @var{beg} to @var{end} in the current buffer.
 Insert a button with the label @var{label}.
 @end defun
 
-The following functions are similar, but use emacs text-properties
+The following functions are similar, but use Emacs text-properties
 (@pxref{Text Properties}) to hold the button properties, making the
 button actually part of the text instead of being a property of the
 buffer (using text-properties is usually faster than using overlays,
@@ -3683,7 +3724,7 @@ Return the button at position @var{pos} in the current buffer, or @code{nil}.
 @cindex button buffer commands
 
 These are commands and functions for locating and operating on
-buttons in an emacs buffer.
+buttons in an Emacs buffer.
 
 @code{push-button} is the command that a user uses to actually `push'
 a button, and is bound by default in the button itself to @key{RET}

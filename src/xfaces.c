@@ -464,6 +464,7 @@ int menu_face_changed_default;
 
 struct font_name;
 struct table_entry;
+struct named_merge_point;
 
 static void map_tty_color P_ ((struct frame *, struct face *,
 			       enum lface_attribute_index, int *));
@@ -519,11 +520,10 @@ static int face_numeric_weight P_ ((Lisp_Object));
 static int face_numeric_slant P_ ((Lisp_Object));
 static int face_numeric_swidth P_ ((Lisp_Object));
 static int face_fontset P_ ((Lisp_Object *));
-static void merge_face_vectors P_ ((struct frame *, Lisp_Object *, Lisp_Object*, Lisp_Object));
-static void merge_face_inheritance P_ ((struct frame *f, Lisp_Object,
-					Lisp_Object *, Lisp_Object));
-static void merge_face_vector_with_property P_ ((struct frame *, Lisp_Object *,
-						 Lisp_Object));
+static void merge_face_vectors P_ ((struct frame *, Lisp_Object *, Lisp_Object*,
+				    struct named_merge_point *));
+static int merge_face_ref P_ ((struct frame *, Lisp_Object, Lisp_Object *,
+			       int, struct named_merge_point *));
 static int set_lface_from_font_name P_ ((struct frame *, Lisp_Object,
 					 Lisp_Object, int, int));
 static Lisp_Object lface_from_face_name P_ ((struct frame *, Lisp_Object, int));
@@ -3214,6 +3214,49 @@ check_lface (lface)
 #endif /* GLYPH_DEBUG == 0 */
 
 
+
+/* Face-merge cycle checking.  */
+
+/* A `named merge point' is simply a point during face-merging where we
+   look up a face by name.  We keep a stack of which named lookups we're
+   currently processing so that we can easily detect cycles, using a
+   linked- list of struct named_merge_point structures, typically
+   allocated on the stack frame of the named lookup functions which are
+   active (so no consing is required).  */
+struct named_merge_point
+{
+  Lisp_Object face_name;
+  struct named_merge_point *prev;
+};
+
+
+/* If a face merging cycle is detected for FACE_NAME, return 0,
+   otherwise add NEW_NAMED_MERGE_POINT, which is initialized using
+   FACE_NAME, as the head of the linked list pointed to by
+   NAMED_MERGE_POINTS, and return 1.  */
+
+static INLINE int
+push_named_merge_point (struct named_merge_point *new_named_merge_point,
+			Lisp_Object face_name,
+			struct named_merge_point **named_merge_points)
+{
+  struct named_merge_point *prev;
+
+  for (prev = *named_merge_points; prev; prev = prev->prev)
+    if (EQ (face_name, prev->face_name))
+      return 0;
+
+  new_named_merge_point->face_name = face_name;
+  new_named_merge_point->prev = *named_merge_points;
+
+  *named_merge_points = new_named_merge_point;
+
+  return 1;
+}
+
+
+
+
 /* Resolve face name FACE_NAME.  If FACE_NAME is a string, intern it
    to make it a symvol.  If FACE_NAME is an alias for another face,
    return that face's name.  */
@@ -3480,6 +3523,8 @@ merge_face_heights (from, to, invalid, gcpro)
       else if (FLOATP (to))
 	/* relative X relative => relative */
 	result = make_float (XFLOAT_DATA (from) * XFLOAT_DATA (to));
+      else if (UNSPECIFIEDP (to))
+	result = from;
     }
   else if (FUNCTIONP (from))
     /* FROM is a function, which use to adjust TO.  */
@@ -3511,14 +3556,15 @@ merge_face_heights (from, to, invalid, gcpro)
    completely specified and contain only absolute attributes.  Every
    specified attribute of FROM overrides the corresponding attribute of
    TO; relative attributes in FROM are merged with the absolute value in
-   TO and replace it.  CYCLE_CHECK is used internally to detect loops in
-   face inheritance; it should be Qnil when called from other places.  */
+   TO and replace it.  NAMED_MERGE_POINTS is used internally to detect
+   loops in face inheritance; it should be 0 when called from other
+   places.  */
 
 static INLINE void
-merge_face_vectors (f, from, to, cycle_check)
+merge_face_vectors (f, from, to, named_merge_points)
      struct frame *f;
      Lisp_Object *from, *to;
-     Lisp_Object cycle_check;
+     struct named_merge_point *named_merge_points;
 {
   int i;
 
@@ -3529,7 +3575,7 @@ merge_face_vectors (f, from, to, cycle_check)
      other code uses `unspecified' as a generic value for face attributes. */
   if (!UNSPECIFIEDP (from[LFACE_INHERIT_INDEX])
       && !NILP (from[LFACE_INHERIT_INDEX]))
-    merge_face_inheritance (f, from[LFACE_INHERIT_INDEX], to, cycle_check);
+    merge_face_ref (f, from[LFACE_INHERIT_INDEX], to, 0, named_merge_points);
 
   /* If TO specifies a :font attribute, and FROM specifies some
      font-related attribute, we need to clear TO's :font attribute
@@ -3548,7 +3594,8 @@ merge_face_vectors (f, from, to, cycle_check)
     if (!UNSPECIFIEDP (from[i]))
       {
 	if (i == LFACE_HEIGHT_INDEX && !INTEGERP (from[i]))
-	  to[i] = merge_face_heights (from[i], to[i], to[i], cycle_check);
+	  to[i] = merge_face_heights (from[i], to[i], to[i],
+				      named_merge_points);
 	else
 	  to[i] = from[i];
       }
@@ -3558,87 +3605,45 @@ merge_face_vectors (f, from, to, cycle_check)
   to[LFACE_INHERIT_INDEX] = Qnil;
 }
 
+/* Merge the named face FACE_NAME on frame F, into the vector of face
+   attributes TO.  NAMED_MERGE_POINTS is used to detect loops in face
+   inheritance.  Returns true if FACE_NAME is a valid face name and
+   merging succeeded.  */
 
-/* Checks the `cycle check' variable CHECK to see if it indicates that
-   EL is part of a cycle; CHECK must be either Qnil or a value returned
-   by an earlier use of CYCLE_CHECK.  SUSPICIOUS is the number of
-   elements after which a cycle might be suspected; after that many
-   elements, this macro begins consing in order to keep more precise
-   track of elements.
-
-   Returns nil if a cycle was detected, otherwise a new value for CHECK
-   that includes EL.
-
-   CHECK is evaluated multiple times, EL and SUSPICIOUS 0 or 1 times, so
-   the caller should make sure that's ok.  */
-
-#define CYCLE_CHECK(check, el, suspicious)	\
-  (NILP (check)					\
-   ? make_number (0)				\
-   : (INTEGERP (check)				\
-      ? (XFASTINT (check) < (suspicious)	\
-	 ? make_number (XFASTINT (check) + 1)	\
-	 : Fcons (el, Qnil))			\
-      : (!NILP (Fmemq ((el), (check)))		\
-	 ? Qnil					\
-	 : Fcons ((el), (check)))))
-
-
-/* Merge face attributes from the face on frame F whose name is
-   INHERITS, into the vector of face attributes TO; INHERITS may also be
-   a list of face names, in which case they are applied in order.
-   CYCLE_CHECK is used to detect loops in face inheritance.
-   Returns true if any of the inherited attributes are `font-related'.  */
-
-static void
-merge_face_inheritance (f, inherit, to, cycle_check)
+static int
+merge_named_face (f, face_name, to, named_merge_points)
      struct frame *f;
-     Lisp_Object inherit;
+     Lisp_Object face_name;
      Lisp_Object *to;
-     Lisp_Object cycle_check;
+     struct named_merge_point *named_merge_points;
 {
-  if (SYMBOLP (inherit) && !EQ (inherit, Qunspecified))
-    /* Inherit from the named face INHERIT.  */
+  struct named_merge_point named_merge_point;
+
+  if (push_named_merge_point (&named_merge_point,
+			      face_name, &named_merge_points))
     {
-      Lisp_Object lface;
+      Lisp_Object from[LFACE_VECTOR_SIZE];
+      int ok = get_lface_attributes (f, face_name, from, 0);
 
-      /* Make sure we're not in an inheritance loop.  */
-      cycle_check = CYCLE_CHECK (cycle_check, inherit, 15);
-      if (NILP (cycle_check))
-	/* Cycle detected, ignore any further inheritance.  */
-	return;
+      if (ok)
+	merge_face_vectors (f, from, to, named_merge_points);
 
-      lface = lface_from_face_name (f, inherit, 0);
-      if (!NILP (lface))
-	merge_face_vectors (f, XVECTOR (lface)->contents, to, cycle_check);
+      return ok;
     }
-  else if (CONSP (inherit))
-    /* Handle a list of inherited faces by calling ourselves recursively
-       on each element.  Note that we only do so for symbol elements, so
-       it's not possible to infinitely recurse.  */
-    {
-      while (CONSP (inherit))
-	{
-	  if (SYMBOLP (XCAR (inherit)))
-	    merge_face_inheritance (f, XCAR (inherit), to, cycle_check);
-
-	  /* Check for a circular inheritance list.  */
-	  cycle_check = CYCLE_CHECK (cycle_check, inherit, 15);
-	  if (NILP (cycle_check))
-	    /* Cycle detected.  */
-	    break;
-
-	  inherit = XCDR (inherit);
-	}
-    }
+  else
+    return 0;
 }
 
 
-/* Given a Lisp face attribute vector TO and a Lisp object PROP that
-   is a face property, determine the resulting face attributes on
-   frame F, and store them in TO.  PROP may be a single face
-   specification or a list of such specifications.  Each face
-   specification can be
+/* Merge face attributes from the lisp `face reference' FACE_REF on
+   frame F into the face attribute vector TO.  If ERR_MSGS is non-zero,
+   problems with FACE_REF cause an error message to be shown.  Return
+   non-zero if no errors occurred (regardless of the value of ERR_MSGS).
+   NAMED_MERGE_POINTS is used to detect loops in face inheritance or
+   list structure; it may be 0 for most callers.
+
+   FACE_REF may be a single face specification or a list of such
+   specifications.  Each face specification can be:
 
    1. A symbol or string naming a Lisp face.
 
@@ -3653,22 +3658,26 @@ merge_face_inheritance (f, inherit, to, cycle_check)
    Face specifications earlier in lists take precedence over later
    specifications.  */
 
-static void
-merge_face_vector_with_property (f, to, prop)
+static int
+merge_face_ref (f, face_ref, to, err_msgs, named_merge_points)
      struct frame *f;
+     Lisp_Object face_ref;
      Lisp_Object *to;
-     Lisp_Object prop;
+     int err_msgs;
+     struct named_merge_point *named_merge_points;
 {
-  if (CONSP (prop))
+  int ok = 1;			/* Succeed without an error? */
+
+  if (CONSP (face_ref))
     {
-      Lisp_Object first = XCAR (prop);
+      Lisp_Object first = XCAR (face_ref);
 
       if (EQ (first, Qforeground_color)
 	  || EQ (first, Qbackground_color))
 	{
 	  /* One of (FOREGROUND-COLOR . COLOR) or (BACKGROUND-COLOR
 	     . COLOR).  COLOR must be a string.  */
-	  Lisp_Object color_name = XCDR (prop);
+	  Lisp_Object color_name = XCDR (face_ref);
 	  Lisp_Object color = first;
 
 	  if (STRINGP (color_name))
@@ -3679,23 +3688,28 @@ merge_face_vector_with_property (f, to, prop)
 		to[LFACE_BACKGROUND_INDEX] = color_name;
 	    }
 	  else
-	    add_to_log ("Invalid face color", color_name, Qnil);
+	    {
+	      if (err_msgs)
+		add_to_log ("Invalid face color", color_name, Qnil);
+	      ok = 0;
+	    }
 	}
       else if (SYMBOLP (first)
 	       && *SDATA (SYMBOL_NAME (first)) == ':')
 	{
 	  /* Assume this is the property list form.  */
-	  while (CONSP (prop) && CONSP (XCDR (prop)))
+	  while (CONSP (face_ref) && CONSP (XCDR (face_ref)))
 	    {
-	      Lisp_Object keyword = XCAR (prop);
-	      Lisp_Object value = XCAR (XCDR (prop));
+	      Lisp_Object keyword = XCAR (face_ref);
+	      Lisp_Object value = XCAR (XCDR (face_ref));
+	      int err = 0;
 
 	      if (EQ (keyword, QCfamily))
 		{
 		  if (STRINGP (value))
 		    to[LFACE_FAMILY_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face font family", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCheight))
 		{
@@ -3703,10 +3717,10 @@ merge_face_vector_with_property (f, to, prop)
 		    merge_face_heights (value, to[LFACE_HEIGHT_INDEX],
 					Qnil, Qnil);
 
-		  if (NILP (new_height))
-		    add_to_log ("Invalid face font height", value, Qnil);
-		  else
+		  if (! NILP (new_height))
 		    to[LFACE_HEIGHT_INDEX] = new_height;
+		  else
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCweight))
 		{
@@ -3714,7 +3728,7 @@ merge_face_vector_with_property (f, to, prop)
 		      && face_numeric_weight (value) >= 0)
 		    to[LFACE_WEIGHT_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face weight", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCslant))
 		{
@@ -3722,7 +3736,7 @@ merge_face_vector_with_property (f, to, prop)
 		      && face_numeric_slant (value) >= 0)
 		    to[LFACE_SLANT_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face slant", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCunderline))
 		{
@@ -3731,7 +3745,7 @@ merge_face_vector_with_property (f, to, prop)
 		      || STRINGP (value))
 		    to[LFACE_UNDERLINE_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face underline", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCoverline))
 		{
@@ -3740,7 +3754,7 @@ merge_face_vector_with_property (f, to, prop)
 		      || STRINGP (value))
 		    to[LFACE_OVERLINE_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face overline", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCstrike_through))
 		{
@@ -3749,7 +3763,7 @@ merge_face_vector_with_property (f, to, prop)
 		      || STRINGP (value))
 		    to[LFACE_STRIKE_THROUGH_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face strike-through", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCbox))
 		{
@@ -3761,7 +3775,7 @@ merge_face_vector_with_property (f, to, prop)
 		      || NILP (value))
 		    to[LFACE_BOX_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face box", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCinverse_video)
 		       || EQ (keyword, QCreverse_video))
@@ -3769,21 +3783,21 @@ merge_face_vector_with_property (f, to, prop)
 		  if (EQ (value, Qt) || NILP (value))
 		    to[LFACE_INVERSE_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face inverse-video", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCforeground))
 		{
 		  if (STRINGP (value))
 		    to[LFACE_FOREGROUND_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face foreground", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCbackground))
 		{
 		  if (STRINGP (value))
 		    to[LFACE_BACKGROUND_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face background", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCstipple))
 		{
@@ -3792,7 +3806,7 @@ merge_face_vector_with_property (f, to, prop)
 		  if (!NILP (pixmap_p))
 		    to[LFACE_STIPPLE_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face stipple", value, Qnil);
+		    err = 1;
 #endif
 		}
 	      else if (EQ (keyword, QCwidth))
@@ -3801,52 +3815,51 @@ merge_face_vector_with_property (f, to, prop)
 		      && face_numeric_swidth (value) >= 0)
 		    to[LFACE_SWIDTH_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face width", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCinherit))
 		{
-		  if (SYMBOLP (value))
-		    to[LFACE_INHERIT_INDEX] = value;
-		  else
-		    {
-		      Lisp_Object tail;
-		      for (tail = value; CONSP (tail); tail = XCDR (tail))
-			if (!SYMBOLP (XCAR (tail)))
-			  break;
-		      if (NILP (tail))
-			to[LFACE_INHERIT_INDEX] = value;
-		      else
-			add_to_log ("Invalid face inherit", value, Qnil);
-		    }
+		  /* This is not really very useful; it's just like a
+		     normal face reference.  */
+		  if (! merge_face_ref (f, value, to,
+					err_msgs, named_merge_points))
+		    err = 1;
 		}
 	      else
-		add_to_log ("Invalid attribute %s in face property",
-			    keyword, Qnil);
+		err = 1;
 
-	      prop = XCDR (XCDR (prop));
+	      if (err)
+		{
+		  add_to_log ("Invalid face attribute %S %S", keyword, value);
+		  ok = 0;
+		}
+
+	      face_ref = XCDR (XCDR (face_ref));
 	    }
 	}
       else
 	{
-	  /* This is a list of face specs.  Specifications at the
-	     beginning of the list take precedence over later
-	     specifications, so we have to merge starting with the
-	     last specification.  */
-	  Lisp_Object next = XCDR (prop);
-	  if (!NILP (next))
-	    merge_face_vector_with_property (f, to, next);
-	  merge_face_vector_with_property (f, to, first);
+	  /* This is a list of face refs.  Those at the beginning of the
+	     list take precedence over what follows, so we have to merge
+	     from the end backwards.  */
+	  Lisp_Object next = XCDR (face_ref);
+
+	  if (! NILP (next))
+	    ok = merge_face_ref (f, next, to, err_msgs, named_merge_points);
+
+	  if (! merge_face_ref (f, first, to, err_msgs, named_merge_points))
+	    ok = 0;
 	}
     }
   else
     {
-      /* PROP ought to be a face name.  */
-      Lisp_Object lface = lface_from_face_name (f, prop, 0);
-      if (NILP (lface))
-	add_to_log ("Invalid face text property value: %s", prop, Qnil);
-      else
-	merge_face_vectors (f, XVECTOR (lface)->contents, to, Qnil);
+      /* FACE_REF ought to be a face name.  */
+      ok = merge_named_face (f, face_ref, to, named_merge_points);
+      if (!ok && err_msgs)
+	add_to_log ("Invalid face reference: %s", face_ref, Qnil);
     }
+
+  return ok;
 }
 
 
@@ -3962,12 +3975,13 @@ Otherwise check for the existence of a global face.  */)
 DEFUN ("internal-copy-lisp-face", Finternal_copy_lisp_face,
        Sinternal_copy_lisp_face, 4, 4, 0,
        doc: /* Copy face FROM to TO.
-If FRAME it t, copy the global face definition of FROM to the
-global face definition of TO.  Otherwise, copy the frame-local
-definition of FROM on FRAME to the frame-local definition of TO
-on NEW-FRAME, or FRAME if NEW-FRAME is nil.
+If FRAME is t, copy the global face definition of FROM.
+Otherwise, copy the frame-local definition of FROM on FRAME.
+If NEW-FRAME is a frame, copy that data into the frame-local
+definition of TO on NEW-FRAME.  If NEW-FRAME is nil.
+FRAME controls where the data is copied to.
 
-Value is TO.  */)
+The value is TO.  */)
      (from, to, frame, new_frame)
      Lisp_Object from, to, frame, new_frame;
 {
@@ -3975,8 +3989,6 @@ Value is TO.  */)
 
   CHECK_SYMBOL (from);
   CHECK_SYMBOL (to);
-  if (NILP (new_frame))
-    new_frame = frame;
 
   if (EQ (frame, Qt))
     {
@@ -3988,6 +4000,8 @@ Value is TO.  */)
   else
     {
       /* Copy frame-local definition of FROM.  */
+      if (NILP (new_frame))
+	new_frame = frame;
       CHECK_LIVE_FRAME (frame);
       CHECK_LIVE_FRAME (new_frame);
       lface = lface_from_face_name (XFRAME (frame), from, 1);
@@ -4797,8 +4811,8 @@ DEFUN ("internal-get-lisp-face-attribute", Finternal_get_lisp_face_attribute,
        doc: /* Return face attribute KEYWORD of face SYMBOL.
 If SYMBOL does not name a valid Lisp face or KEYWORD isn't a valid
 face attribute name, signal an error.
-If the optional argument FRAME is given, report on face FACE in that
-frame.  If FRAME is t, report on the defaults for face FACE (for new
+If the optional argument FRAME is given, report on face SYMBOL in that
+frame.  If FRAME is t, report on the defaults for face SYMBOL (for new
 frames).  If FRAME is omitted or nil, use the selected frame.  */)
      (symbol, keyword, frame)
      Lisp_Object symbol, keyword, frame;
@@ -4995,6 +5009,40 @@ return the font name used for CHARACTER.  */)
 }
 
 
+/* Compare face-attribute values v1 and v2 for equality.  Value is non-zero if
+   all attributes are `equal'.  Tries to be fast because this function
+   is called quite often.  */
+
+static INLINE int
+face_attr_equal_p (v1, v2)
+     Lisp_Object v1, v2;
+{
+  /* Type can differ, e.g. when one attribute is unspecified, i.e. nil,
+     and the other is specified.  */
+  if (XTYPE (v1) != XTYPE (v2))
+    return 0;
+
+  if (EQ (v1, v2))
+    return 1;
+
+  switch (XTYPE (v1))
+    {
+    case Lisp_String:
+      if (SBYTES (v1) != SBYTES (v2))
+	return 0;
+
+      return bcmp (SDATA (v1), SDATA (v2), SBYTES (v1)) == 0;
+
+    case Lisp_Int:
+    case Lisp_Symbol:
+      return 0;
+
+    default:
+      return !NILP (Fequal (v1, v2));
+    }
+}
+
+
 /* Compare face vectors V1 and V2 for equality.  Value is non-zero if
    all attributes are `equal'.  Tries to be fast because this function
    is called quite often.  */
@@ -5006,38 +5054,7 @@ lface_equal_p (v1, v2)
   int i, equal_p = 1;
 
   for (i = 1; i < LFACE_VECTOR_SIZE && equal_p; ++i)
-    {
-      Lisp_Object a = v1[i];
-      Lisp_Object b = v2[i];
-
-      /* Type can differ, e.g. when one attribute is unspecified, i.e. nil,
-	 and the other is specified.  */
-      equal_p = XTYPE (a) == XTYPE (b);
-      if (!equal_p)
-	break;
-
-      if (!EQ (a, b))
-	{
-	  switch (XTYPE (a))
-	    {
-	    case Lisp_String:
-	      equal_p = ((SBYTES (a)
-			  == SBYTES (b))
-			 && bcmp (SDATA (a), SDATA (b),
-				  SBYTES (a)) == 0);
-	      break;
-
-	    case Lisp_Int:
-	    case Lisp_Symbol:
-	      equal_p = 0;
-	      break;
-
-	    default:
-	      equal_p = !NILP (Fequal (a, b));
-	      break;
-	    }
-	}
-    }
+    equal_p = face_attr_equal_p (v1[i], v2[i]);
 
   return equal_p;
 }
@@ -5333,192 +5350,6 @@ If FRAME is unspecified or nil, the current frame is used.  */)
 
 
 /***********************************************************************
-		    Face capability testing for ttys
- ***********************************************************************/
-
-
-/* If the distance (as returned by color_distance) between two colors is
-   less than this, then they are considered the same, for determining
-   whether a color is supported or not.  The range of values is 0-65535.  */
-
-#define TTY_SAME_COLOR_THRESHOLD  10000
-
-
-DEFUN ("tty-supports-face-attributes-p",
-       Ftty_supports_face_attributes_p, Stty_supports_face_attributes_p,
-       1, 2, 0,
-       doc: /* Return non-nil if all the face attributes in ATTRIBUTES are supported.
-The optional argument FRAME is the frame on which to test; if it is nil
-or unspecified, then the current frame is used.  If FRAME is not a tty
-frame, then nil is returned.
-
-The definition of `supported' is somewhat heuristic, but basically means
-that a face containing all the attributes in ATTRIBUTES, when merged
-with the default face for display, can be represented in a way that's
-
- \(1) different in appearance than the default face, and
- \(2) `close in spirit' to what the attributes specify, if not exact.
-
-Point (2) implies that a `:weight black' attribute will be satisified
-by any terminal that can display bold, and a `:foreground "yellow"' as
-long as the terminal can display a yellowish color, but `:slant italic'
-will _not_ be satisified by the tty display code's automatic
-substitution of a `dim' face for italic.  */)
-     (attributes, frame)
-     Lisp_Object attributes, frame;
-{
-  int weight, i;
-  struct frame *f;
-  Lisp_Object val, fg, bg;
-  XColor fg_tty_color, fg_std_color;
-  XColor bg_tty_color, bg_std_color;
-  Lisp_Object attrs[LFACE_VECTOR_SIZE];
-  unsigned test_caps = 0;
-
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  f = XFRAME (frame);
-
-  for (i = 0; i < LFACE_VECTOR_SIZE; i++)
-    attrs[i] = Qunspecified;
-  merge_face_vector_with_property (f, attrs, attributes);
-
-  /* This function only works on ttys.  */
-  if (!FRAME_TERMCAP_P (f) && !FRAME_MSDOS_P (f))
-    return Qnil;
-
-  /* First check some easy-to-check stuff; ttys support none of the
-     following attributes, so we can just return nil if any are requested.  */
-
-  /* stipple */
-  val = attrs[LFACE_STIPPLE_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val))
-    return Qnil;
-
-  /* font height */
-  val = attrs[LFACE_HEIGHT_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val))
-    return Qnil;
-
-  /* font width */
-  val = attrs[LFACE_SWIDTH_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val)
-      && face_numeric_swidth (val) != XLFD_SWIDTH_MEDIUM)
-    return Qnil;
-
-  /* overline */
-  val = attrs[LFACE_OVERLINE_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val))
-    return Qnil;
-
-  /* strike-through */
-  val = attrs[LFACE_STRIKE_THROUGH_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val))
-    return Qnil;
-
-  /* boxes */
-  val = attrs[LFACE_BOX_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val))
-    return Qnil;
-
-  /* slant (italics/oblique); We consider any non-default value
-     unsupportable on ttys, even though the face code actually `fakes'
-     them using a dim attribute if possible.  This is because the faked
-     result is too different from what the face specifies.  */
-  val = attrs[LFACE_SLANT_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val)
-      && face_numeric_slant (val) != XLFD_SLANT_ROMAN)
-    return Qnil;
-
-
-  /* Test for terminal `capabilities' (non-color character attributes).  */
-
-  /* font weight (bold/dim) */
-  weight = face_numeric_weight (attrs[LFACE_WEIGHT_INDEX]);
-  if (weight >= 0)
-    {
-      if (weight > XLFD_WEIGHT_MEDIUM)
-	test_caps = TTY_CAP_BOLD;
-      else if (weight < XLFD_WEIGHT_MEDIUM)
-	test_caps = TTY_CAP_DIM;
-    }
-
-  /* underlining */
-  val = attrs[LFACE_UNDERLINE_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val))
-    {
-      if (STRINGP (val))
-	return Qnil;		/* ttys don't support colored underlines */
-      else
-	test_caps |= TTY_CAP_UNDERLINE;
-    }
-
-  /* inverse video */
-  val = attrs[LFACE_INVERSE_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val))
-    test_caps |= TTY_CAP_INVERSE;
-
-
-  /* Color testing.  */
-
-  /* Default the color indices in FG_TTY_COLOR and BG_TTY_COLOR, since
-     we use them when calling `tty_capable_p' below, even if the face
-     specifies no colors.  */
-  fg_tty_color.pixel = FACE_TTY_DEFAULT_FG_COLOR;
-  bg_tty_color.pixel = FACE_TTY_DEFAULT_BG_COLOR;
-
-  /* Check if foreground color is close enough.  */
-  fg = attrs[LFACE_FOREGROUND_INDEX];
-  if (STRINGP (fg))
-    {
-      if (! tty_lookup_color (f, fg, &fg_tty_color, &fg_std_color))
-	return Qnil;
-      else if (color_distance (&fg_tty_color, &fg_std_color)
-	       > TTY_SAME_COLOR_THRESHOLD)
-	return Qnil;
-    }
-
-  /* Check if background color is close enough.  */
-  bg = attrs[LFACE_BACKGROUND_INDEX];
-  if (STRINGP (bg))
-    {
-      if (! tty_lookup_color (f, bg, &bg_tty_color, &bg_std_color))
-	return Qnil;
-      else if (color_distance (&bg_tty_color, &bg_std_color)
-	       > TTY_SAME_COLOR_THRESHOLD)
-	return Qnil;
-    }
-
-  /* If both foreground and background are requested, see if the
-     distance between them is OK.  We just check to see if the distance
-     between the tty's foreground and background is close enough to the
-     distance between the standard foreground and background.  */
-  if (STRINGP (fg) && STRINGP (bg))
-    {
-      int delta_delta
-	= (color_distance (&fg_std_color, &bg_std_color)
-	   - color_distance (&fg_tty_color, &bg_tty_color));
-      if (delta_delta > TTY_SAME_COLOR_THRESHOLD
-	  || delta_delta < -TTY_SAME_COLOR_THRESHOLD)
-	return Qnil;
-    }
-
-
-  /* See if the capabilities we selected above are supported, with the
-     given colors.  */
-  if (test_caps != 0 &&
-      ! tty_capable_p (f, test_caps, fg_tty_color.pixel, bg_tty_color.pixel))
-    return Qnil;
-
-
-  /* Hmmm, everything checks out, this terminal must support this face.  */
-  return Qt;
-}
-
-
-
-/***********************************************************************
 			      Face Cache
  ***********************************************************************/
 
@@ -5570,8 +5401,8 @@ clear_face_gcs (c)
 }
 
 
-/* Free all realized faces in face cache C, including basic faces.  C
-   may be null.  If faces are freed, make sure the frame's current
+/* Free all realized faces in face cache C, including basic faces.
+   C may be null.  If faces are freed, make sure the frame's current
    matrix is marked invalid, so that a display caused by an expose
    event doesn't try to use faces we destroyed.  */
 
@@ -5911,7 +5742,8 @@ lookup_named_face (f, symbol)
 
   get_lface_attributes (f, symbol, symbol_attrs, 1);
   bcopy (default_face->lface, attrs, sizeof attrs);
-  merge_face_vectors (f, symbol_attrs, attrs, Qnil);
+  merge_face_vectors (f, symbol_attrs, attrs, 0);
+
   return lookup_face (f, attrs);
 }
 
@@ -6049,7 +5881,7 @@ lookup_derived_face (f, symbol, face_id)
 
   get_lface_attributes (f, symbol, symbol_attrs, 1);
   bcopy (default_face->lface, attrs, sizeof attrs);
-  merge_face_vectors (f, symbol_attrs, attrs, Qnil);
+  merge_face_vectors (f, symbol_attrs, attrs, 0);
   return lookup_face (f, attrs);
 }
 
@@ -6062,12 +5894,364 @@ DEFUN ("face-attributes-as-vector", Fface_attributes_as_vector,
   Lisp_Object lface;
   lface = Fmake_vector (make_number (LFACE_VECTOR_SIZE),
 			Qunspecified);
-  merge_face_vector_with_property (XFRAME (selected_frame),
-				   XVECTOR (lface)->contents,
-				   plist);
+  merge_face_ref (XFRAME (selected_frame), plist, XVECTOR (lface)->contents,
+		  1, 0);
   return lface;
 }
 
+
+
+/***********************************************************************
+			Face capability testing
+ ***********************************************************************/
+
+
+/* If the distance (as returned by color_distance) between two colors is
+   less than this, then they are considered the same, for determining
+   whether a color is supported or not.  The range of values is 0-65535.  */
+
+#define TTY_SAME_COLOR_THRESHOLD  10000
+
+#ifdef HAVE_WINDOW_SYSTEM
+
+/* Return non-zero if all the face attributes in ATTRS are supported
+   on the window-system frame F.
+
+   The definition of `supported' is somewhat heuristic, but basically means
+   that a face containing all the attributes in ATTRS, when merged with the
+   default face for display, can be represented in a way that's
+
+    \(1) different in appearance than the default face, and
+    \(2) `close in spirit' to what the attributes specify, if not exact.  */
+
+static int
+x_supports_face_attributes_p (f, attrs, def_face)
+     struct frame *f;
+     Lisp_Object *attrs;
+     struct face *def_face;
+{
+  Lisp_Object *def_attrs = def_face->lface;
+
+  /* Check that other specified attributes are different that the default
+     face.  */
+  if ((!UNSPECIFIEDP (attrs[LFACE_UNDERLINE_INDEX])
+       && face_attr_equal_p (attrs[LFACE_UNDERLINE_INDEX],
+			     def_attrs[LFACE_UNDERLINE_INDEX]))
+      || (!UNSPECIFIEDP (attrs[LFACE_INVERSE_INDEX])
+	  && face_attr_equal_p (attrs[LFACE_INVERSE_INDEX],
+				def_attrs[LFACE_INVERSE_INDEX]))
+      || (!UNSPECIFIEDP (attrs[LFACE_FOREGROUND_INDEX])
+	  && face_attr_equal_p (attrs[LFACE_FOREGROUND_INDEX],
+				def_attrs[LFACE_FOREGROUND_INDEX]))
+      || (!UNSPECIFIEDP (attrs[LFACE_BACKGROUND_INDEX])
+	  && face_attr_equal_p (attrs[LFACE_BACKGROUND_INDEX],
+				def_attrs[LFACE_BACKGROUND_INDEX]))
+      || (!UNSPECIFIEDP (attrs[LFACE_STIPPLE_INDEX])
+	  && face_attr_equal_p (attrs[LFACE_STIPPLE_INDEX],
+				def_attrs[LFACE_STIPPLE_INDEX]))
+      || (!UNSPECIFIEDP (attrs[LFACE_OVERLINE_INDEX])
+	  && face_attr_equal_p (attrs[LFACE_OVERLINE_INDEX],
+				def_attrs[LFACE_OVERLINE_INDEX]))
+      || (!UNSPECIFIEDP (attrs[LFACE_STRIKE_THROUGH_INDEX])
+	  && face_attr_equal_p (attrs[LFACE_STRIKE_THROUGH_INDEX],
+				def_attrs[LFACE_STRIKE_THROUGH_INDEX]))
+      || (!UNSPECIFIEDP (attrs[LFACE_BOX_INDEX])
+	  && face_attr_equal_p (attrs[LFACE_BOX_INDEX],
+				def_attrs[LFACE_BOX_INDEX])))
+    return 0;
+
+  /* Check font-related attributes, as those are the most commonly
+     "unsupported" on a window-system (because of missing fonts).  */
+  if (!UNSPECIFIEDP (attrs[LFACE_FAMILY_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_HEIGHT_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_WEIGHT_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_SLANT_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_SWIDTH_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_AVGWIDTH_INDEX]))
+    {
+      int face_id;
+      struct face *face;
+      Lisp_Object merged_attrs[LFACE_VECTOR_SIZE];
+
+      bcopy (def_attrs, merged_attrs, sizeof merged_attrs);
+
+      merge_face_vectors (f, attrs, merged_attrs, 0);
+
+      face_id = lookup_face (f, merged_attrs);
+      face = FACE_FROM_ID (f, face_id);
+
+      if (! face)
+	signal_error ("cannot make face", 0);
+
+      /* If the font is the same, then not supported.  */
+      if (face->font == def_face->font)
+	return 0;
+    }
+
+  /* Everything checks out, this face is supported.  */
+  return 1;
+}
+
+#endif	/* HAVE_WINDOW_SYSTEM */
+
+/* Return non-zero if all the face attributes in ATTRS are supported
+   on the tty frame F.
+
+   The definition of `supported' is somewhat heuristic, but basically means
+   that a face containing all the attributes in ATTRS, when merged
+   with the default face for display, can be represented in a way that's
+
+    \(1) different in appearance than the default face, and
+    \(2) `close in spirit' to what the attributes specify, if not exact.
+
+   Point (2) implies that a `:weight black' attribute will be satisfied
+   by any terminal that can display bold, and a `:foreground "yellow"' as
+   long as the terminal can display a yellowish color, but `:slant italic'
+   will _not_ be satisfied by the tty display code's automatic
+   substitution of a `dim' face for italic.  */
+
+static int
+tty_supports_face_attributes_p (f, attrs, def_face)
+     struct frame *f;
+     Lisp_Object *attrs;
+     struct face *def_face;
+{
+  int weight, i;
+  Lisp_Object val, fg, bg;
+  XColor fg_tty_color, fg_std_color;
+  XColor bg_tty_color, bg_std_color;
+  unsigned test_caps = 0;
+  Lisp_Object *def_attrs = def_face->lface;
+
+
+  /* First check some easy-to-check stuff; ttys support none of the
+     following attributes, so we can just return false if any are requested
+     (even if `nominal' values are specified, we should still return false,
+     as that will be the same value that the default face uses).  We
+     consider :slant unsupportable on ttys, even though the face code
+     actually `fakes' them using a dim attribute if possible.  This is
+     because the faked result is too different from what the face
+     specifies.  */
+  if (!UNSPECIFIEDP (attrs[LFACE_FAMILY_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_STIPPLE_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_HEIGHT_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_SWIDTH_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_OVERLINE_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_STRIKE_THROUGH_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_BOX_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_SLANT_INDEX]))
+    return 0;
+
+
+  /* Test for terminal `capabilities' (non-color character attributes).  */
+
+  /* font weight (bold/dim) */
+  weight = face_numeric_weight (attrs[LFACE_WEIGHT_INDEX]);
+  if (weight >= 0)
+    {
+      int def_weight = face_numeric_weight (def_attrs[LFACE_WEIGHT_INDEX]);
+
+      if (weight > XLFD_WEIGHT_MEDIUM)
+	{
+	  if (def_weight > XLFD_WEIGHT_MEDIUM)
+	    return 0;		/* same as default */
+	  test_caps = TTY_CAP_BOLD;
+	}
+      else if (weight < XLFD_WEIGHT_MEDIUM)
+	{
+	  if (def_weight < XLFD_WEIGHT_MEDIUM)
+	    return 0;		/* same as default */
+	  test_caps = TTY_CAP_DIM;
+	}
+      else if (def_weight == XLFD_WEIGHT_MEDIUM)
+	return 0;		/* same as default */
+    }
+
+  /* underlining */
+  val = attrs[LFACE_UNDERLINE_INDEX];
+  if (!UNSPECIFIEDP (val))
+    {
+      if (STRINGP (val))
+	return 0;		/* ttys can't use colored underlines */
+      else if (face_attr_equal_p (val, def_attrs[LFACE_UNDERLINE_INDEX]))
+	return 0;		/* same as default */
+      else
+	test_caps |= TTY_CAP_UNDERLINE;
+    }
+
+  /* inverse video */
+  val = attrs[LFACE_INVERSE_INDEX];
+  if (!UNSPECIFIEDP (val))
+    {
+      if (face_attr_equal_p (val, def_attrs[LFACE_UNDERLINE_INDEX]))
+	return 0;		/* same as default */
+      else
+	test_caps |= TTY_CAP_INVERSE;
+    }
+
+
+  /* Color testing.  */
+
+  /* Default the color indices in FG_TTY_COLOR and BG_TTY_COLOR, since
+     we use them when calling `tty_capable_p' below, even if the face
+     specifies no colors.  */
+  fg_tty_color.pixel = FACE_TTY_DEFAULT_FG_COLOR;
+  bg_tty_color.pixel = FACE_TTY_DEFAULT_BG_COLOR;
+
+  /* Check if foreground color is close enough.  */
+  fg = attrs[LFACE_FOREGROUND_INDEX];
+  if (STRINGP (fg))
+    {
+      Lisp_Object def_fg = def_attrs[LFACE_FOREGROUND_INDEX];
+
+      if (face_attr_equal_p (fg, def_fg))
+	return 0;		/* same as default */
+      else if (! tty_lookup_color (f, fg, &fg_tty_color, &fg_std_color))
+	return 0;		/* not a valid color */
+      else if (color_distance (&fg_tty_color, &fg_std_color)
+	       > TTY_SAME_COLOR_THRESHOLD)
+	return 0;		/* displayed color is too different */
+      else
+	/* Make sure the color is really different than the default.  */
+	{
+	  XColor def_fg_color;
+	  if (tty_lookup_color (f, def_fg, &def_fg_color, 0)
+	      && (color_distance (&fg_tty_color, &def_fg_color)
+		  <= TTY_SAME_COLOR_THRESHOLD))
+	    return 0;
+	}
+    }
+
+  /* Check if background color is close enough.  */
+  bg = attrs[LFACE_BACKGROUND_INDEX];
+  if (STRINGP (bg))
+    {
+      Lisp_Object def_bg = def_attrs[LFACE_FOREGROUND_INDEX];
+
+      if (face_attr_equal_p (bg, def_bg))
+	return 0;		/* same as default */
+      else if (! tty_lookup_color (f, bg, &bg_tty_color, &bg_std_color))
+	return 0;		/* not a valid color */
+      else if (color_distance (&bg_tty_color, &bg_std_color)
+	       > TTY_SAME_COLOR_THRESHOLD)
+	return 0;		/* displayed color is too different */
+      else
+	/* Make sure the color is really different than the default.  */
+	{
+	  XColor def_bg_color;
+	  if (tty_lookup_color (f, def_bg, &def_bg_color, 0)
+	      && (color_distance (&bg_tty_color, &def_bg_color)
+		  <= TTY_SAME_COLOR_THRESHOLD))
+	    return 0;
+	}
+    }
+
+  /* If both foreground and background are requested, see if the
+     distance between them is OK.  We just check to see if the distance
+     between the tty's foreground and background is close enough to the
+     distance between the standard foreground and background.  */
+  if (STRINGP (fg) && STRINGP (bg))
+    {
+      int delta_delta
+	= (color_distance (&fg_std_color, &bg_std_color)
+	   - color_distance (&fg_tty_color, &bg_tty_color));
+      if (delta_delta > TTY_SAME_COLOR_THRESHOLD
+	  || delta_delta < -TTY_SAME_COLOR_THRESHOLD)
+	return 0;
+    }
+
+
+  /* See if the capabilities we selected above are supported, with the
+     given colors.  */
+  if (test_caps != 0 &&
+      ! tty_capable_p (f, test_caps, fg_tty_color.pixel, bg_tty_color.pixel))
+    return 0;
+
+
+  /* Hmmm, everything checks out, this terminal must support this face.  */
+  return 1;
+}
+
+
+DEFUN ("display-supports-face-attributes-p",
+       Fdisplay_supports_face_attributes_p, Sdisplay_supports_face_attributes_p,
+       1, 2, 0,
+       doc: /* Return non-nil if all the face attributes in ATTRIBUTES are supported.
+The optional argument DISPLAY can be a display name, a frame, or
+nil (meaning the selected frame's display)
+
+The definition of `supported' is somewhat heuristic, but basically means
+that a face containing all the attributes in ATTRIBUTES, when merged
+with the default face for display, can be represented in a way that's
+
+ \(1) different in appearance than the default face, and
+ \(2) `close in spirit' to what the attributes specify, if not exact.
+
+Point (2) implies that a `:weight black' attribute will be satisfied by
+any display that can display bold, and a `:foreground \"yellow\"' as long
+as it can display a yellowish color, but `:slant italic' will _not_ be
+satisfied by the tty display code's automatic substitution of a `dim'
+face for italic. */)
+  (attributes, display)
+     Lisp_Object attributes, display;
+{
+  int supports, i;
+  Lisp_Object frame;
+  struct frame *f;
+  struct face *def_face;
+  Lisp_Object attrs[LFACE_VECTOR_SIZE];
+
+  if (noninteractive || !initialized)
+    /* We may not be able to access low-level face information in batch
+       mode, or before being dumped, and this function is not going to
+       be very useful in those cases anyway, so just give up.  */
+    return Qnil;
+
+  if (NILP (display))
+    frame = selected_frame;
+  else if (FRAMEP (display))
+    frame = display;
+  else
+    {
+      /* Find any frame on DISPLAY.  */
+      Lisp_Object fl_tail;
+
+      frame = Qnil;
+      for (fl_tail = Vframe_list; CONSP (fl_tail); fl_tail = XCDR (fl_tail))
+	{
+	  frame = XCAR (fl_tail);
+	  if (!NILP (Fequal (Fcdr (Fassq (Qdisplay,
+					  XFRAME (frame)->param_alist)),
+			     display)))
+	    break;
+	}
+    }
+
+  CHECK_LIVE_FRAME (frame);
+  f = XFRAME (frame);
+
+  for (i = 0; i < LFACE_VECTOR_SIZE; i++)
+    attrs[i] = Qunspecified;
+  merge_face_ref (f, attributes, attrs, 1, 0);
+
+  def_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+  if (def_face == NULL)
+    {
+      if (! realize_basic_faces (f))
+	signal_error ("Cannot realize default face", 0);
+      def_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+    }
+
+  /* Dispatch to the appropriate handler.  */
+  if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
+    supports = tty_supports_face_attributes_p (f, attrs, def_face);
+#ifdef HAVE_WINDOW_SYSTEM
+  else
+    supports = x_supports_face_attributes_p (f, attrs, def_face);
+#endif
+
+  return supports ? Qt : Qnil;
+}
 
 
 /***********************************************************************
@@ -6968,7 +7152,7 @@ realize_named_face (f, symbol, id)
 
   /* Merge SYMBOL's face with the default face.  */
   get_lface_attributes (f, symbol, symbol_attrs, 1);
-  merge_face_vectors (f, symbol_attrs, attrs, Qnil);
+  merge_face_vectors (f, symbol_attrs, attrs, 0);
 
   /* Realize the face.  */
   new_face = realize_face (c, attrs, id);
@@ -7441,15 +7625,10 @@ compute_char_face (f, ch, prop)
   else
     {
       Lisp_Object attrs[LFACE_VECTOR_SIZE];
-      struct face *face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
-      bcopy (face->lface, attrs, sizeof attrs);
-      merge_face_vector_with_property (f, attrs, prop);
+      struct face *default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+      bcopy (default_face->lface, attrs, sizeof attrs);
+      merge_face_ref (f, prop, attrs, 1, 0);
       face_id = lookup_face (f, attrs);
-      if (! ASCII_CHAR_P (ch))
-	{
-	  face = FACE_FROM_ID (f, face_id);
-	  face_id = FACE_FOR_CHAR (f, face, ch, -1, Qnil);
-	}
     }
 
   return face_id;
@@ -7513,24 +7692,8 @@ face_at_buffer_position (w, pos, region_beg, region_end,
   /* Look at properties from overlays.  */
   {
     int next_overlay;
-    int len;
 
-    /* First try with room for 40 overlays.  */
-    len = 40;
-    overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-    noverlays = overlays_at (pos, 0, &overlay_vec, &len,
-			     &next_overlay, NULL, 0);
-
-    /* If there are more than 40, make enough space for all, and try
-       again.  */
-    if (noverlays > len)
-      {
-	len = noverlays;
-	overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	noverlays = overlays_at (pos, 0, &overlay_vec, &len,
-				 &next_overlay, NULL, 0);
-      }
-
+    GET_OVERLAYS_AT (pos, overlay_vec, noverlays, &next_overlay, 0);
     if (next_overlay < endpos)
       endpos = next_overlay;
   }
@@ -7550,7 +7713,7 @@ face_at_buffer_position (w, pos, region_beg, region_end,
 
   /* Merge in attributes specified via text properties.  */
   if (!NILP (prop))
-    merge_face_vector_with_property (f, attrs, prop);
+    merge_face_ref (f, prop, attrs, 1, 0);
 
   /* Now merge the overlay data.  */
   noverlays = sort_overlays (overlay_vec, noverlays, w);
@@ -7561,7 +7724,7 @@ face_at_buffer_position (w, pos, region_beg, region_end,
 
       prop = Foverlay_get (overlay_vec[i], propname);
       if (!NILP (prop))
-	merge_face_vector_with_property (f, attrs, prop);
+	merge_face_ref (f, prop, attrs, 1, 0);
 
       oend = OVERLAY_END (overlay_vec[i]);
       oendpos = OVERLAY_POSITION (oend);
@@ -7572,8 +7735,7 @@ face_at_buffer_position (w, pos, region_beg, region_end,
   /* If in the region, merge in the region face.  */
   if (pos >= region_beg && pos < region_end)
     {
-      Lisp_Object region_face = lface_from_face_name (f, Qregion, 0);
-      merge_face_vectors (f, XVECTOR (region_face)->contents, attrs, Qnil);
+      merge_named_face (f, Qregion, attrs, 0);
 
       if (region_end < endpos)
 	endpos = region_end;
@@ -7669,16 +7831,13 @@ face_at_string_position (w, string, pos, bufpos, region_beg,
 
   /* Merge in attributes specified via text properties.  */
   if (!NILP (prop))
-    merge_face_vector_with_property (f, attrs, prop);
+    merge_face_ref (f, prop, attrs, 1, 0);
 
   /* If in the region, merge in the region face.  */
   if (bufpos
       && bufpos >= region_beg
       && bufpos < region_end)
-    {
-      Lisp_Object region_face = lface_from_face_name (f, Qregion, 0);
-      merge_face_vectors (f, XVECTOR (region_face)->contents, attrs, Qnil);
-    }
+    merge_named_face (f, Qregion, attrs, 0);
 
   /* Look up a realized face with the given face attributes,
      or realize a new one for ASCII characters.  */
@@ -7946,7 +8105,7 @@ syms_of_xfaces ()
   defsubr (&Sinternal_merge_in_global_face);
   defsubr (&Sface_font);
   defsubr (&Sframe_face_alist);
-  defsubr (&Stty_supports_face_attributes_p);
+  defsubr (&Sdisplay_supports_face_attributes_p);
   defsubr (&Scolor_distance);
   defsubr (&Sinternal_set_font_selection_order);
   defsubr (&Sinternal_set_alternative_font_family_alist);

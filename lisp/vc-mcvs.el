@@ -438,17 +438,17 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 ;;; History functions
 ;;;
 
-(defun vc-mcvs-print-log (file)
+(defun vc-mcvs-print-log (file &optional buffer)
   "Get change log associated with FILE."
   (let ((default-directory (vc-mcvs-root file)))
     ;; Run the command from the root dir so that `mcvs filt' returns
     ;; valid relative names.
     (vc-mcvs-command
-     nil
+     buffer
      (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
      file "log")))
 
-(defun vc-mcvs-diff (file &optional oldvers newvers)
+(defun vc-mcvs-diff (file &optional oldvers newvers buffer)
   "Get a difference report using Meta-CVS between two versions of FILE."
   (if (string= (vc-workfile-version file) "0")
       ;; This file is added but not yet committed; there is no master file.
@@ -457,7 +457,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	;; We regard this as "changed".
 	;; Diff it against /dev/null.
 	;; Note: this is NOT a "mcvs diff".
-	(apply 'vc-do-command "*vc-diff*"
+	(apply 'vc-do-command (or buffer "*vc-diff*")
 	       1 "diff" file
 	       (append (vc-switches nil 'diff) '("/dev/null")))
 	;; Even if it's empty, it's locally modified.
@@ -467,7 +467,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	   ;; valid relative names.
 	   (default-directory (vc-mcvs-root file))
 	   (status
-	    (apply 'vc-mcvs-command "*vc-diff*"
+	    (apply 'vc-mcvs-command (or buffer "*vc-diff*")
 		   (if async 'async 1)
 		   file "diff"
 		   (and oldvers (concat "-r" oldvers))

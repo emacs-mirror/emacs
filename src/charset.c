@@ -1,8 +1,8 @@
 /* Basic character set support.
    Copyright (C) 1995, 97, 98, 2000, 2001 Electrotechnical Laboratory, JAPAN.
      Licensed to the Free Software Foundation.
-   Copyright (C) 2001 Free Software Foundation, Inc.
-   Copyright (C) 2003
+   Copyright (C) 2001, 2004 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -1267,7 +1267,7 @@ Optional third argument DEUNIFY, if non-nil, means to de-unify CHARSET.  */)
 DEFUN ("get-unused-iso-final-char", Fget_unused_iso_final_char,
        Sget_unused_iso_final_char, 2, 2, 0,
        doc: /*
-Return an unsed ISO final char for a charset of DIMENISION and CHARS.
+Return an unused ISO final char for a charset of DIMENISION and CHARS.
 DIMENSION is the number of bytes to represent a character: 1 or 2.
 CHARS is the number of characters in a dimension: 94 or 96.
 
@@ -1873,7 +1873,7 @@ CHAR in the charset.  */)
 
 
 DEFUN ("char-charset", Fchar_charset, Schar_charset, 1, 1, 0,
-       doc: /* Return the charset of highest priority that contains CHAR.  */)
+       doc: /* Return the charset of highest priority that contains CH.  */)
      (ch)
      Lisp_Object ch;
 {

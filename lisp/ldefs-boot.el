@@ -3864,24 +3864,6 @@ of `scheme-program-name').  Runs the hooks `inferior-scheme-mode-hook'
 
 ;;;***
 
-;;;### (autoloads (cp-make-coding-system) "code-pages" "international/code-pages.el"
-;;;;;;  (16271 3438))
-;;; Generated autoloads from international/code-pages.el
-
-(autoload (quote cp-make-coding-system) "code-pages" "\
-Make coding system NAME for and 8-bit, extended-ASCII character set.
-V is a 128-long vector of characters to translate the upper half of
-the character set.  DOC-STRING and MNEMONIC are used as the
-corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
-?* is used.
-Return an updated `non-iso-charset-alist'.
-
-\(fn NAME V &optional DOC-STRING MNEMONIC)" nil (quote macro))
-(autoload-coding-system 'pt154 '(require 'code-pages))
-(autoload-coding-system 'iso-8859-11 '(require 'code-pages))
-
-;;;***
-
 ;;;### (autoloads (codepage-setup cp-supported-codepages cp-offset-for-codepage
 ;;;;;;  cp-language-for-codepage cp-charset-for-codepage cp-make-coding-systems-for-codepage)
 ;;;;;;  "codepage" "international/codepage.el" (16215 28546))

@@ -1,6 +1,6 @@
 ;;; gs.el --- interface to Ghostscript
 
-;; Copyright (C) 1998, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001, 2004 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -39,12 +39,14 @@
 (defvar gs-options
   '("-q"
     ;"-dNOPAUSE"
+    "-dSAFER"
     "-dBATCH"
     "-sDEVICE=<device>"
     "<file>")
   "List of command line arguments to pass to Ghostscript.
 Arguments may contain place-holders `<file>' for the name of the
 input file, and `<device>' for the device to use.")
+(put 'gs-options 'risky-local-variable t)
 
 (defun gs-options (device file)
   "Return a list of command line options with place-holders replaced.
@@ -54,7 +56,6 @@ FILE is the value to substitute for the place-holder `<file>'."
 	      (setq option (replace-regexp-in-string "<device>" device option)
 		    option (replace-regexp-in-string "<file>" file option)))
 	  gs-options))
-
 
 ;; The GHOSTVIEW property (taken from gv 3.5.8).
 ;;
@@ -196,7 +197,7 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful."
 	(setenv "GHOSTVIEW" window-and-pixmap-id)
 	(setq gs (apply 'start-process "gs" "*GS*" gs-program
 			(gs-options gs-device file)))
-	(process-kill-without-query gs)
+	(set-process-query-on-exit-flag gs nil)
 	gs)
     nil))
 

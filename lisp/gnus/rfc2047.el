@@ -1,5 +1,5 @@
 ;;; rfc2047.el --- functions for encoding and decoding rfc2047 messages
-;; Copyright (C) 1998, 1999, 2000, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1998,1999,2000,02,03,2004  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -169,7 +169,7 @@ Should be called narrowed to the head of the message."
 	     ((eq method 'address-mime)
 	      (rfc2047-encode-region (point) (point-max)))
 	     ((eq method 'mime)
-	      (let (rfc2047-encoding-type)
+	      (let ((rfc2047-encoding-type method))
 		(rfc2047-encode-region (point) (point-max))))
 	     ((eq method 'default)
 	      (if (and (featurep 'mule)

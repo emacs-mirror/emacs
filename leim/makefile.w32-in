@@ -1,5 +1,5 @@
-# Makefile for leim subdirectory in GNU Emacs on the Microsoft W32 API.
-# Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
+# -*- Makefile -*- for leim subdirectory in GNU Emacs on the Microsoft W32 API.
+# Copyright (C) 1997, 2004 Electrotechnical Laboratory, JAPAN.
 # Licensed to the Free Software Foundation.
 
 # This file is part of GNU Emacs.
@@ -203,5 +203,3 @@ distclean clean:
 
 maintainer-clean: distclean
 	- $(FOREACH) $(WORLD) $(FORDO) $(DEL) $(FORVAR) $(ENDFOR)
-
-# arch-tag: 08250c45-fa9c-4f39-a175-a0c5c36dd67b

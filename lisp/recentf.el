@@ -1137,13 +1137,16 @@ default."
   "Save the recent list.
 Write data into the file specified by `recentf-save-file'."
   (interactive)
-  (with-temp-buffer
-    (erase-buffer)
-    (insert (format recentf-save-file-header (current-time-string)))
-    (recentf-dump-variable 'recentf-list recentf-max-saved-items)
-    (recentf-dump-variable 'recentf-filter-changer-state)
-    (write-file (expand-file-name recentf-save-file))
-    nil))
+  (condition-case error
+      (with-temp-buffer
+	(erase-buffer)
+	(insert (format recentf-save-file-header (current-time-string)))
+	(recentf-dump-variable 'recentf-list recentf-max-saved-items)
+	(recentf-dump-variable 'recentf-filter-changer-state)
+	(write-file (expand-file-name recentf-save-file))
+	nil)
+    (error
+     (warn "recentf mode: %s" (error-message-string error)))))
 
 (defun recentf-load-list ()
   "Load a previously saved recent list.

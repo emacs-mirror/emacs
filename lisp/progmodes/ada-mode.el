@@ -1466,8 +1466,8 @@ The standard casing rules will no longer apply to this word."
     ;;  If the word is already in the list, even with a different casing
     ;;  we simply want to replace it.
     (if (and (not (equal ada-case-exception '()))
-             (assoc-ignore-case word ada-case-exception))
-        (setcar (assoc-ignore-case word ada-case-exception) word)
+             (assoc-string word ada-case-exception t))
+        (setcar (assoc-string word ada-case-exception t) word)
       (add-to-list 'ada-case-exception (cons word t))
       )
 
@@ -1519,8 +1519,8 @@ word itself has a special casing."
     ;;  If the word is already in the list, even with a different casing
     ;;  we simply want to replace it.
     (if (and (not (equal ada-case-exception-substring '()))
-             (assoc-ignore-case word ada-case-exception-substring))
-        (setcar (assoc-ignore-case word ada-case-exception-substring) word)
+             (assoc-string word ada-case-exception-substring t))
+        (setcar (assoc-string word ada-case-exception-substring t) word)
       (add-to-list 'ada-case-exception-substring (cons word t))
       )
 
@@ -1548,9 +1548,9 @@ word itself has a special casing."
 	    (if (char-equal (string-to-char word) ?*)
 		(progn
 		  (setq word (substring word 1))
-		  (unless (assoc-ignore-case word ada-case-exception-substring)
+		  (unless (assoc-string word ada-case-exception-substring t)
 		    (add-to-list 'ada-case-exception-substring (cons word t))))
-	      (unless (assoc-ignore-case word ada-case-exception)
+	      (unless (assoc-string word ada-case-exception t)
 		(add-to-list 'ada-case-exception (cons word t)))))
 
           (forward-line 1))
@@ -1618,8 +1618,8 @@ the exceptions defined in `ada-case-exception-file'."
                                    (point)))
             match)
         ;;  If we have an exception, replace the word by the correct casing
-        (if (setq match (assoc-ignore-case (buffer-substring start end)
-                                           ada-case-exception))
+        (if (setq match (assoc-string (buffer-substring start end)
+				      ada-case-exception t))
 
             (progn
               (delete-region start end)

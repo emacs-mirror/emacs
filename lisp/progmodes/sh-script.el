@@ -648,7 +648,7 @@ implemented as aliases.  See `sh-feature'."
 
     (rc "else")
 
-    (sh "do" "elif" "else" "if" "then" "trap" "type" "until" "while"))
+    (sh "!" "do" "elif" "else" "if" "then" "trap" "type" "until" "while"))
   "*List of keywords that may be immediately followed by a builtin or keyword.
 Given some confusion between keywords and builtins depending on shell and
 system, the distinction here has been based on whether they influence the

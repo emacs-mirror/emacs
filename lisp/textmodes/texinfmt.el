@@ -2899,7 +2899,7 @@ Default is to leave paragraph indentation as is."
                        1))
                (symbol-value indexvar)))))
 
-(defconst texinfo-indexvar-alist
+(defvar texinfo-indexvar-alist
   '(("cp" . texinfo-cindex)
     ("fn" . texinfo-findex)
     ("vr" . texinfo-vindex)
@@ -3032,7 +3032,7 @@ Default is to leave paragraph indentation as is."
           (indent-to 54)
           (insert
            (if (nth 2 (car indexelts))
-               (format "  %d." (nth 2 (car indexelts)))
+               (format "  (line %3d)" (1+ (nth 2 (car indexelts))))
              "")
            "\n"))
       ;; index entries from @include'd file

@@ -1700,8 +1700,7 @@ If ALL is nil, only match comments that start in column > 0."
                   (while repeat
                     (setq repeat nil)
                     ;; Adapted from f90-find-breakpoint.
-                    (re-search-backward fortran-break-delimiters-re
-                                        (line-beginning-position))
+                    (re-search-backward fortran-break-delimiters-re bol)
                     (if (not fortran-break-before-delimiters)
                         (if (looking-at fortran-no-break-re)
                             ;; Deal with cases such as "**" split over

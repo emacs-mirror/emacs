@@ -80,13 +80,13 @@ main (argc, argv)
   if (argc != 2)
     {
       fprintf (stderr, "Usage: %s testfile\n", argv[0]);
-      exit (2);
+      exit (EXIT_FAILURE);
     }
   fd = open (argv[1], O_RDONLY);
   if (fd < 0)
     {
       perror (argv[1]);
-      exit (2);
+      exit (EXIT_FAILURE);
     }
   if (cool_read (fd, buf, sizeof string1) != sizeof string1 ||
       strcmp (buf, string1) ||
@@ -97,14 +97,13 @@ main (argc, argv)
 Most likely this means that many nonprinting characters\n\
 have been corrupted in the files of Emacs, and it will not work.\n",
 	       argv[1]);
-      exit (2);
+      exit (EXIT_FAILURE);
     }
   close (fd);
-#ifdef VMS
-  exit (1);			/* On VMS, success is 1.  */
-#endif
-  return (0);
+  return EXIT_SUCCESS;
 }
 
 /* arch-tag: 3a89005d-df98-4c32-aa9f-33570e16a26a
    (do not change this comment) */
+
+/* test-distrib.c ends here */

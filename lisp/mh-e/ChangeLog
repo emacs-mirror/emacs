@@ -1,3 +1,6 @@
+2004-04-26  Lars Hansen  <larsh@math.ku.dk>
+	* mh-e.el (mh-folder-mode): Bind desktop-save-buffer to t.
+
 2003-04-24  Bill Wohler  <wohler@newt.com>
 
 	* Released MH-E version 7.3.
@@ -47,6 +50,10 @@
 	runs checkdoc and lm-verify which is useful before releasing the
 	software. It can and should be expanded to do real unit tests.
 
+2004-04-22  Lars Hansen  <larsh@math.ku.dk>
+
+	* mh-e.el (mh-restore-desktop-buffer): Delete with-no-warnings.
+
 2003-04-22  Mark D Baushke  <mdb@gnu.org>
 
 	* mh-alias.el: Update Copyright.
@@ -70,6 +77,11 @@
 	split-string behaves differently in XEmacs than it does in GNU
 	Emacs.
 	(mh-exec-cmd-error): Add a comment, so that we change it later on.
+
+2004-04-21  Lars Hansen  <larsh@math.ku.dk>
+	
+	* mh-e.el (mh-restore-desktop-buffer): Move from
+	desktop.el. Add Parameters.
 
 2003-04-18  Steve Youngs  <youngs@xemacs.org>
 

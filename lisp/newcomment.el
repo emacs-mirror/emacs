@@ -356,7 +356,7 @@ in strings will not confuse Emacs.")
   "Find a comment start between point and LIMIT.
 Moves point to inside the comment and returns the position of the
 comment-starter.  If no comment is found, moves point to LIMIT
-and raises an error or returns nil of NOERROR is non-nil."
+and raises an error or returns nil if NOERROR is non-nil."
   (if (not comment-use-syntax)
       (if (re-search-forward comment-start-skip limit noerror)
 	  (or (match-end 1) (match-beginning 0))
@@ -392,7 +392,7 @@ and raises an error or returns nil of NOERROR is non-nil."
   "Find a comment start between LIMIT and point.
 Moves point to inside the comment and returns the position of the
 comment-starter.  If no comment is found, moves point to LIMIT
-and raises an error or returns nil of NOERROR is non-nil."
+and raises an error or returns nil if NOERROR is non-nil."
   ;; FIXME: If a comment-start appears inside a comment, we may erroneously
   ;; stop there.  This can be rather bad in general, but since
   ;; comment-search-backward is only used to find the comment-column (in
@@ -873,17 +873,17 @@ indentation to be kept as it was before narrowing."
 		   (setq ,bindent (- ,bindent n)))))))))))
 
 (defun comment-region-internal (beg end cs ce
-				    &optional ccs cce block lines indent)
+                                &optional ccs cce block lines indent)
   "Comment region BEG .. END.
-CS and CE are the comment start resp end string.
-CCS and CCE are the comment continuation strings for the start resp end
-of lines (default to CS and CE).
-BLOCK indicates that end of lines should be marked with either CCE, CE or CS
-\(if CE is empty) and that those markers should be aligned.
-LINES indicates that an extra lines will be used at the beginning and end
-of the region for CE and CS.
-INDENT indicates to put CS and CCS at the current indentation of the region
-rather than at left margin."
+CS and CE are the comment start string and comment end string,
+respectively.  CCS and CCE are the comment continuation strings
+for the start and end of lines, respectively (default to CS and CE).
+BLOCK indicates that end of lines should be marked with either CCE,
+CE or CS \(if CE is empty) and that those markers should be aligned.
+LINES indicates that an extra lines will be used at the beginning
+and end of the region for CE and CS.
+INDENT indicates to put CS and CCS at the current indentation of
+the region rather than at left margin."
   ;;(assert (< beg end))
   (let ((no-empty (not (or (eq comment-empty-lines t)
 			   (and comment-empty-lines (zerop (length ce)))))))
@@ -955,7 +955,7 @@ rather than at left margin."
 (defun comment-region (beg end &optional arg)
   "Comment or uncomment each line in the region.
 With just \\[universal-argument] prefix arg, uncomment each line in region BEG .. END.
-Numeric prefix arg ARG means use ARG comment characters.
+Numeric prefix ARG means use ARG comment characters.
 If ARG is negative, delete that many comment characters instead.
 By default, comments start at the left margin, are terminated on each line,
 even for syntax in which newline does not end the comment and blank lines

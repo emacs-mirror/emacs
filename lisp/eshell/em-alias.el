@@ -1,6 +1,6 @@
 ;;; em-alias.el --- creation and management of command aliases
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2004 Free Software Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -24,6 +24,7 @@
 (provide 'em-alias)
 
 (eval-when-compile (require 'esh-maint))
+(require 'eshell)
 
 (defgroup eshell-alias nil
   "Command aliases allow for easy definition of alternate commands."

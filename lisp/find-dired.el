@@ -55,6 +55,16 @@ LS-SWITCHES is a list of `ls' switches to tell dired how to parse the output."
   :group 'find-dired)
 
 ;;;###autoload
+(defcustom find-ls-subdir-switches "-al"
+  "`ls' switches for inserting subdirectories in `*Find*' buffers.
+This should contain the \"-l\" switch.
+Use the \"-F\" or \"-b\" switches if and only if you also use
+them for `find-ls-option'."
+  :type 'string
+  :group 'find-dired
+  :version "21.4")
+
+;;;###autoload
 (defcustom find-grep-options
   (if (or (eq system-type 'berkeley-unix)
 	  (string-match "solaris2" system-configuration)
@@ -89,8 +99,7 @@ as the final argument."
   (let ((dired-buffers dired-buffers))
     ;; Expand DIR ("" means default-directory), and make sure it has a
     ;; trailing slash.
-    (setq dir (abbreviate-file-name
-	       (file-name-as-directory (expand-file-name dir))))
+    (setq dir (file-name-as-directory (expand-file-name dir)))
     ;; Check that it's really a directory.
     (or (file-directory-p dir)
 	(error "find-dired needs a directory: %s" dir))
@@ -115,7 +124,7 @@ as the final argument."
     (setq buffer-read-only nil)
     (erase-buffer)
     (setq default-directory dir
-	  find-args args		; save for next interactive call
+	  find-args args	      ; save for next interactive call
 	  args (concat find-dired-find-program " . "
 		       (if (string= args "")
 			   ""
@@ -143,6 +152,7 @@ as the final argument."
       ;; this does no harm)
       (set (make-local-variable 'dired-subdir-alist)
 	   (list (cons default-directory (point-min-marker)))))
+    (set (make-local-variable 'dired-subdir-switches) find-ls-subdir-switches)
     (setq buffer-read-only nil)
     ;; Subdir headlerline must come first because the first marker in
     ;; subdir-alist points there.
@@ -267,6 +277,7 @@ Thus ARG can also contain additional grep options."
 	      (delete-process proc)
 	      (force-mode-line-update)))
 	  (message "find-dired %s finished." (current-buffer))))))
+
 
 (provide 'find-dired)
 

@@ -1,6 +1,6 @@
 #### Makefile for the Emacs Manual and other documentation.
 
-# Copyright (C) 1994, 1996, 1997, 1998, 1999, 2000, 2001, 2003
+# Copyright (C) 1994, 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004
 #  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -33,20 +33,22 @@ VPATH=@srcdir@
 
 # The makeinfo program is part of the Texinfo distribution.
 MAKEINFO = makeinfo
-INFO_TARGETS = ../info/emacs ../info/ccmode ../info/cl \
+INFO_TARGETS = ../info/emacs ../info/emacs-xtra ../info/ccmode ../info/cl \
 	        ../info/dired-x ../info/ediff ../info/forms ../info/gnus \
 		../info/info ../info/message ../info/mh-e ../info/reftex \
 		../info/sc ../info/vip ../info/viper ../info/widget \
 		../info/efaq ../info/ada-mode ../info/autotype ../info/calc \
 		../info/idlwave ../info/eudc ../info/ebrowse ../info/pcl-cvs \
 		../info/woman ../info/emacs-mime ../info/eshell \
-		../info/speedbar ../info/tramp ../info/ses ../info/smtpmail
+		../info/speedbar ../info/tramp ../info/ses ../info/smtpmail \
+		../info/flymake
 DVI_TARGETS = 	emacs.dvi calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ediff.dvi forms.dvi gnus.dvi message.dvi mh-e.dvi \
 		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
 		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
 		 pcl-cvs.dvi woman.dvi emacs-mime.dvi eshell.dvi \
-		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi
+		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi flymake.dvi \
+                 emacs-xtra.dvi
 INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
@@ -173,6 +175,11 @@ dired-x.dvi: dired-x.texi
 ediff.dvi: ediff.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/ediff.texi
 
+../info/emacs-xtra: emacs-xtra.texi
+	cd $(srcdir); $(MAKEINFO) emacs-xtra.texi
+emacs-xtra.dvi: emacs-xtra.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-xtra.texi
+
 ../info/forms: forms.texi
 	cd $(srcdir); $(MAKEINFO) forms.texi
 forms.dvi: forms.texi
@@ -287,6 +294,11 @@ ses.dvi: ses.texi
 smtpmail.dvi: smtpmail.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/smtpmail.texi
 
+../info/flymake: flymake.texi
+	cd $(srcdir); $(MAKEINFO) flymake.texi
+flymake.dvi: flymake.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/flymake.texi
+
 mostlyclean:
 	rm -f *.log *.cp *.fn *.ky *.pg *.vr core *.tp *.core gnustmp.*
 
@@ -306,5 +318,3 @@ maintainer-clean: distclean
 # That caused trouble because this is run entirely in the source directory.
 # Since we expect to get texi2dvi from elsewhere,
 # it is ok to expect texindex from elsewhere also.
-
-# arch-tag: 19cdb89e-4acb-448e-b0cc-2ddc05948ee2

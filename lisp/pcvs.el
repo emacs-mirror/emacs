@@ -764,7 +764,7 @@ before calling the real function `" (symbol-name fun-1) "'.\n")
 	     (interactive)
 	     (cvs-mode! ',fun-1)))))
 
-     (t (error "unknown style %s in `defun-cvs-mode'" style)))))
+     (t (error "Unknown style %s in `defun-cvs-mode'" style)))))
 
 (defun-cvs-mode cvs-mode-kill-process ()
   "Kill the temporary buffer and associated process."
@@ -1312,10 +1312,7 @@ If there are any marked tins, and IGNORE-MARKS is nil, return them.
 Otherwise, if the cursor selects a directory, and IGNORE-CONTENTS is
 nil, return all files in it, else return just the directory.
 Otherwise return (a list containing) the file the cursor points to, or
-an empty list if it doesn't point to a file at all.
-
-Args: &optional IGNORE-MARKS IGNORE-CONTENTS."
-
+an empty list if it doesn't point to a file at all."
   (let ((fis nil))
     (dolist (fi (if (and (boundp 'cvs-minor-current-files)
 			 (consp cvs-minor-current-files))
@@ -1568,6 +1565,12 @@ See ``cvs-mode-diff'' for more info."
   (interactive (list (cvs-flags-query 'cvs-diff-flags "cvs diff flags")))
   (cvs-mode-diff-1 (cons "-rHEAD" flags)))
 
+(defun-cvs-mode (cvs-mode-diff-yesterday . SIMPLE) (flags)
+  "Diff the selected files against yesterday's head of the current branch.
+See ``cvs-mode-diff'' for more info."
+  (interactive (list (cvs-flags-query 'cvs-diff-flags "cvs diff flags")))
+  (cvs-mode-diff-1 (cons "-Dyesterday" flags)))
+
 (defun-cvs-mode (cvs-mode-diff-vendor . SIMPLE) (flags)
   "Diff the selected files against the head of the vendor branch.
 See ``cvs-mode-diff'' for more info."
@@ -1754,7 +1757,7 @@ Signal an error if there is no backup file."
 
 
 (defun cvs-is-within-p (fis dir)
-  "Non-nil is buffer is inside one of FIS (in DIR)."
+  "Non-nil if buffer is inside one of FIS (in DIR)."
   (when (stringp buffer-file-name)
     (setq buffer-file-name (expand-file-name buffer-file-name))
     (let (ret)
@@ -1774,7 +1777,7 @@ BUF is the buffer to be used for cvs' output.
 DONT-CHANGE-DISC non-nil indicates that the command will not change the
   contents of files.  This is only used by the parser.
 POSTPROC is a list of expressions to be evaluated at the very end (after
-  parsing if applicable).  It will be prepended with `progn' is necessary."
+  parsing if applicable).  It will be prepended with `progn' if necessary."
   (let ((def-dir default-directory))
     ;; Save the relevant buffers
     (save-some-buffers nil (lambda () (cvs-is-within-p fis def-dir))))

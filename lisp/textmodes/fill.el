@@ -155,7 +155,7 @@ Leave one space between words, two at end of sentences or after colons
 and `sentence-end-without-period').
 Remove indentation from each line."
   (interactive "*r")
-  (let ((end-spc-re (concat "\\(" sentence-end "\\) *\\|  +")))
+  (let ((end-spc-re (concat "\\(" (sentence-end) "\\) *\\|  +")))
     (save-excursion
       (goto-char beg)
       ;; Nuke tabs; they get screwed up in a fill.
@@ -349,7 +349,7 @@ and `fill-nobreak-invisible'."
      (save-excursion
        (skip-chars-backward ". ")
        (and (looking-at "\\.")
-     	    (not (looking-at sentence-end))))
+     	    (not (looking-at (sentence-end)))))
      ;; Don't split a line if the rest would look like a new paragraph.
      (unless use-hard-newlines
        (save-excursion
@@ -424,10 +424,10 @@ Point is moved to just past the fill prefix on the first line."
   ;; loses on split abbrevs ("Mr.\nSmith")
   (let ((eol-double-space-re
 	 (cond
-	  ((not colon-double-space) (concat sentence-end "$"))
+	  ((not colon-double-space) (concat (sentence-end) "$"))
 	  ;; Try to add the : inside the `sentence-end' regexp.
-	  ((string-match "\\[[^][]*\\(\\.\\)[^][]*\\]" sentence-end)
-	   (concat (replace-match ".:" nil nil sentence-end 1) "$"))
+	  ((string-match "\\[[^][]*\\(\\.\\)[^][]*\\]" (sentence-end))
+	   (concat (replace-match ".:" nil nil (sentence-end) 1) "$"))
 	  ;; Can't find the right spot to insert the colon.
 	  (t "[.?!:][])}\"']*$")))
 	(sentence-end-without-space-list

@@ -1,5 +1,5 @@
 /* Minibuffer input and completion.
-   Copyright (C) 1985,86,93,94,95,96,97,98,99,2000,01,03
+   Copyright (C) 1985,86,93,94,95,96,97,98,99,2000,01,03,04
              Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -209,6 +209,7 @@ without invoking the usual minibuffer commands.  */)
 /* Actual minibuffer invocation. */
 
 static Lisp_Object read_minibuf_unwind P_ ((Lisp_Object));
+static Lisp_Object run_exit_minibuf_hook P_ ((Lisp_Object));
 static Lisp_Object read_minibuf P_ ((Lisp_Object, Lisp_Object,
 				     Lisp_Object, Lisp_Object,
 				     int, Lisp_Object,
@@ -563,6 +564,12 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   record_unwind_protect (read_minibuf_unwind, Qnil);
   minibuf_level++;
+  /* We are exiting the minibuffer one way or the other, so run the hook.
+     It should be run before unwinding the minibuf settings.  Do it
+     separately from read_minibuf_unwind because we need to make sure that
+     read_minibuf_unwind is fully executed even if exit-minibuffer-hook
+     signals an error.  --Stef  */
+  record_unwind_protect (run_exit_minibuf_hook, Qnil);
 
   /* Now that we can restore all those variables, start changing them.  */
 
@@ -822,6 +829,17 @@ get_minibuffer (depth)
   return buf;
 }
 
+static Lisp_Object
+run_exit_minibuf_hook (data)
+     Lisp_Object data;
+{
+  if (!NILP (Vminibuffer_exit_hook) && !EQ (Vminibuffer_exit_hook, Qunbound)
+      && !NILP (Vrun_hooks))
+    safe_run_hooks (Qminibuffer_exit_hook);
+
+  return Qnil;
+}
+
 /* This function is called on exiting minibuffer, whether normally or
    not, and it restores the current window, buffer, etc. */
 
@@ -831,12 +849,6 @@ read_minibuf_unwind (data)
 {
   Lisp_Object old_deactivate_mark;
   Lisp_Object window;
-
-  /* We are exiting the minibuffer one way or the other,
-     so run the hook.  */
-  if (!NILP (Vminibuffer_exit_hook) && !EQ (Vminibuffer_exit_hook, Qunbound)
-      && !NILP (Vrun_hooks))
-    safe_run_hooks (Qminibuffer_exit_hook);
 
   /* If this was a recursive minibuffer,
      tie the minibuffer window back to the outer level minibuffer buffer.  */
@@ -1195,6 +1207,7 @@ is used to further constrain the set of candidates.  */)
 			   || NILP (XCAR (alist))));
   int index = 0, obsize = 0;
   int matchcount = 0;
+  int bindcount = -1;
   Lisp_Object bucket, zero, end, tem;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
@@ -1274,16 +1287,18 @@ is used to further constrain the set of candidates.  */)
 
 	  /* Ignore this element if it fails to match all the regexps.  */
 	  {
-	    int count = SPECPDL_INDEX ();
-	    specbind (Qcase_fold_search, completion_ignore_case ? Qt : Qnil);
 	    for (regexps = Vcompletion_regexp_list; CONSP (regexps);
 		 regexps = XCDR (regexps))
 	      {
+		if (bindcount < 0) {
+		  bindcount = SPECPDL_INDEX ();
+		  specbind (Qcase_fold_search,
+			    completion_ignore_case ? Qt : Qnil);
+		}
 		tem = Fstring_match (XCAR (regexps), eltstring, zero);
 		if (NILP (tem))
 		  break;
 	      }
-	    unbind_to (count, Qnil);
 	    if (CONSP (regexps))
 	      continue;
 	  }
@@ -1297,6 +1312,10 @@ is used to further constrain the set of candidates.  */)
 		tem = Fcommandp (elt, Qnil);
 	      else
 		{
+		  if (bindcount >= 0) {
+		    unbind_to (bindcount, Qnil);
+		    bindcount = -1;
+		  }
 		  GCPRO4 (tail, string, eltstring, bestmatch);
 		  tem = type == 3
 		    ? call2 (predicate, elt,
@@ -1378,6 +1397,11 @@ is used to further constrain the set of candidates.  */)
 	}
     }
 
+  if (bindcount >= 0) {
+    unbind_to (bindcount, Qnil);
+    bindcount = -1;
+  }
+
   if (NILP (bestmatch))
     return Qnil;		/* No completions found */
   /* If we are ignoring case, and there is no exact match,
@@ -1440,6 +1464,7 @@ are ignored unless STRING itself starts with a space.  */)
 		       && (!SYMBOLP (XCAR (alist))
 			   || NILP (XCAR (alist))));
   int index = 0, obsize = 0;
+  int bindcount = -1;
   Lisp_Object bucket, tem;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
@@ -1525,16 +1550,18 @@ are ignored unless STRING itself starts with a space.  */)
 
 	  /* Ignore this element if it fails to match all the regexps.  */
 	  {
-	    int count = SPECPDL_INDEX ();
-	    specbind (Qcase_fold_search, completion_ignore_case ? Qt : Qnil);
 	    for (regexps = Vcompletion_regexp_list; CONSP (regexps);
 		 regexps = XCDR (regexps))
 	      {
+		if (bindcount < 0) {
+		  bindcount = SPECPDL_INDEX ();
+		  specbind (Qcase_fold_search,
+			    completion_ignore_case ? Qt : Qnil);
+		}
 		tem = Fstring_match (XCAR (regexps), eltstring, zero);
 		if (NILP (tem))
 		  break;
 	      }
-	    unbind_to (count, Qnil);
 	    if (CONSP (regexps))
 	      continue;
 	  }
@@ -1548,6 +1575,10 @@ are ignored unless STRING itself starts with a space.  */)
 		tem = Fcommandp (elt, Qnil);
 	      else
 		{
+		  if (bindcount >= 0) {
+		    unbind_to (bindcount, Qnil);
+		    bindcount = -1;
+		  }
 		  GCPRO4 (tail, eltstring, allmatches, string);
 		  tem = type == 3
 		    ? call2 (predicate, elt,
@@ -1561,6 +1592,11 @@ are ignored unless STRING itself starts with a space.  */)
 	  allmatches = Fcons (eltstring, allmatches);
 	}
     }
+
+  if (bindcount >= 0) {
+    unbind_to (bindcount, Qnil);
+    bindcount = -1;
+  }
 
   return Fnreverse (allmatches);
 }
@@ -1602,7 +1638,7 @@ HIST, if non-nil, specifies a history list and optionally the initial
   is the initial position (the position in the list used by the
   minibuffer history commands).  For consistency, you should also
   specify that element of the history as the value of
-  INITIAL-CONTENTS.  (This is the only case in which you should use
+  INITIAL-INPUT.  (This is the only case in which you should use
   INITIAL-INPUT instead of DEF.)  Positions are counted starting from
   1 at the beginning of the list.  The variable `history-length'
   controls the maximum length of a history list.
@@ -1772,19 +1808,20 @@ the values STRING, PREDICATE and `lambda'.  */)
     return call3 (alist, string, predicate, Qlambda);
 
   /* Reject this element if it fails to match all the regexps.  */
-  {
-    int count = SPECPDL_INDEX ();
-    specbind (Qcase_fold_search, completion_ignore_case ? Qt : Qnil);
-    for (regexps = Vcompletion_regexp_list; CONSP (regexps);
-	 regexps = XCDR (regexps))
-      {
-	if (NILP (Fstring_match (XCAR (regexps),
-				 SYMBOLP (tem) ? string : tem,
-				 Qnil)))
-	  return unbind_to (count, Qnil);
-      }
-    unbind_to (count, Qnil);
-  }
+  if (CONSP (Vcompletion_regexp_list))
+    {
+      int count = SPECPDL_INDEX ();
+      specbind (Qcase_fold_search, completion_ignore_case ? Qt : Qnil);
+      for (regexps = Vcompletion_regexp_list; CONSP (regexps);
+	   regexps = XCDR (regexps))
+	{
+	  if (NILP (Fstring_match (XCAR (regexps),
+				   SYMBOLP (tem) ? string : tem,
+				   Qnil)))
+	    return unbind_to (count, Qnil);
+	}
+      unbind_to (count, Qnil);
+    }
 
   /* Finally, check the predicate.  */
   if (!NILP (predicate))

@@ -577,13 +577,22 @@ down (this *won't* always work)."
 
 (defun browse-url-interactive-arg (prompt)
   "Read a URL from the minibuffer, prompting with PROMPT.
-Default to the URL at or before point.  If invoked with a mouse button,
-set point to the position clicked first.  Return a list for use in
-`interactive' containing the URL and `browse-url-new-window-flag' or its
-negation if a prefix argument was given."
+If `transient-mark-mode' is non-nil and the mark is active,
+it defaults to the current region, else to the URL at or before
+point.  If invoked with a mouse button, it moves point to the
+position clicked before acting.
+
+This function returns a list (URL NEW-WINDOW-FLAG)
+for use in `interactive'."
   (let ((event (elt (this-command-keys) 0)))
     (and (listp event) (mouse-set-point event)))
-  (list (read-string prompt (browse-url-url-at-point))
+  (list (read-string prompt (or (and transient-mark-mode mark-active
+				     ;; rfc2396 Appendix E.
+				     (replace-regexp-in-string
+				      "[\t\r\f\n ]+" ""
+				      (buffer-substring-no-properties
+				       (region-beginning) (region-end))))
+				(browse-url-url-at-point)))
 	(not (eq (null browse-url-new-window-flag)
 		 (null current-prefix-arg)))))
 
@@ -847,7 +856,7 @@ used instead of `browse-url-new-window-flag'."
   (or (eq (process-exit-status process) 0)
       (let* ((process-environment (browse-url-process-environment)))
 	;; Netscape not running - start it
-	(message "Starting Netscape...")
+	(message "Starting %s..." browse-url-netscape-program)
 	(apply 'start-process (concat "netscape" url) nil
 	       browse-url-netscape-program
 	       (append browse-url-netscape-startup-arguments (list url))))))
@@ -918,7 +927,7 @@ used instead of `browse-url-new-window-flag'."
   (or (eq (process-exit-status process) 0)
       (let* ((process-environment (browse-url-process-environment)))
 	;; Mozilla is not running - start it
-	(message "Starting Mozilla...")
+	(message "Starting %s..." browse-url-mozilla-program)
 	(apply 'start-process (concat "mozilla " url) nil
 	       browse-url-mozilla-program
 	       (append browse-url-mozilla-startup-arguments (list url))))))
@@ -968,7 +977,7 @@ used instead of `browse-url-new-window-flag'."
   (or (eq (process-exit-status process) 0)
       (let* ((process-environment (browse-url-process-environment)))
 	;; Galeon is not running - start it
-	(message "Starting Galeon...")
+	(message "Starting %s..." browse-url-galeon-program)
 	(apply 'start-process (concat "galeon " url) nil
 	       browse-url-galeon-program
 	       (append browse-url-galeon-startup-arguments (list url))))))
@@ -1017,7 +1026,7 @@ used instead of `browse-url-new-window-flag'."
   (or (eq (process-exit-status process) 0)
       (let* ((process-environment (browse-url-process-environment)))
 	;; Epiphany is not running - start it
-	(message "Starting Epiphany...")
+	(message "Starting %s..." browse-url-epiphany-program)
 	(apply 'start-process (concat "epiphany " url) nil
 	       browse-url-epiphany-program
 	       (append browse-url-epiphany-startup-arguments (list url))))))
@@ -1098,10 +1107,10 @@ used instead of `browse-url-new-window-flag'."
 	  (message "Signalling Mosaic...done")
 	  )
       ;; Mosaic not running - start it
-      (message "Starting Mosaic...")
+      (message "Starting %s..." browse-url-mosaic-program)
       (apply 'start-process "xmosaic" nil browse-url-mosaic-program
 	     (append browse-url-mosaic-arguments (list url)))
-      (message "Starting Mosaic...done"))))
+      (message "Starting %s...done" browse-url-mosaic-program))))
 
 ;; --- Grail ---
 

@@ -84,6 +84,9 @@ use, but we don't try to list them all here.
 @item defun-prompt-regexp
 @xref{List Motion}.
 
+@item desktop-save-buffer
+@xref{Desktop Save Mode}.
+
 @item enable-multibyte-characters
 @ref{Non-ASCII Characters}.
 

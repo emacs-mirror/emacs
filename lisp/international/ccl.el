@@ -1120,7 +1120,8 @@
   (insert (format "write r%d (%d remaining)\n" rrr cc)))
 
 (defun ccl-dump-call (ignore cc)
-  (insert (format "call subroutine #%d\n" cc)))
+  (let ((subroutine (car (ccl-get-next-code))))
+    (insert (format "call subroutine `%s'\n" subroutine))))
 
 (defun ccl-dump-write-const-string (rrr cc)
   (if (= rrr 0)

@@ -298,6 +298,29 @@ example functions that filter buffernames."
   :type '(repeat (choice regexp function))
   :group 'iswitchb)
 
+(defcustom iswitchb-max-to-show nil
+  "*If non-nil, limit the number of names shown in the minibuffer.
+If this value is N, and N is greater than the number of matching
+buffers, the first N/2 and the last N/2 matching buffers are
+shown.  This can greatly speed up iswitchb if you have a
+multitude of buffers open."
+  :type '(choice (const :tag "Show all" nil) integer)
+  :group 'iswitchb)
+
+(defcustom iswitchb-use-virtual-buffers nil
+  "*If non-nil, refer to past buffers when none match.
+This feature relies upon the `recentf' package, which will be
+enabled if this variable is configured to a non-nil value."
+  :type 'boolean
+  :require 'recentf
+  :set (function
+	(lambda (sym value)
+	  (if value (recentf-mode 1))
+	  (set sym value)))
+  :group 'iswitchb)
+
+(defvar iswitchb-virtual-buffers nil)
+
 (defcustom iswitchb-cannot-complete-hook 'iswitchb-completion-help
   "*Hook run when `iswitchb-complete' can't complete any more.
 The most useful values are `iswitchb-completion-help', which pops up a
@@ -455,7 +478,7 @@ interfere with other minibuffer usage.")
     (substitute-key-definition 'display-buffer ; C-x 4 C-o
 			       'iswitchb-display-buffer map global-map)
     map)
-  "Global keymap for `iswtichb-mode'.")
+  "Global keymap for `iswitchb-mode'.")
 
 (defvar iswitchb-history nil
   "History of buffers selected using `iswitchb-buffer'.")
@@ -562,13 +585,18 @@ in a separate window.
 		 (iswitchb-possible-new-buffer buf)))
 	   ))))
 
-;;;###autoload
-(defun iswitchb-read-buffer (prompt &optional default require-match)
+(defun iswitchb-read-buffer (prompt &optional default require-match
+				    start matches-set)
   "Replacement for the built-in `read-buffer'.
 Return the name of a buffer selected.
-PROMPT is the prompt to give to the user.  DEFAULT if given is the default
-buffer to be selected, which will go to the front of the list.
-If REQUIRE-MATCH is non-nil, an existing-buffer must be selected."
+PROMPT is the prompt to give to the user.
+DEFAULT if given is the default buffer to be selected, which will
+go to the front of the list.
+If REQUIRE-MATCH is non-nil, an existing-buffer must be selected.
+If START is a string, the selection process is started with that
+string.
+If MATCHES-SET is non-nil, the buflist is not updated before
+the selection process begins.  Used by isearchb.el."
   (let
       (
        buf-sel
@@ -581,14 +609,15 @@ If REQUIRE-MATCH is non-nil, an existing-buffer must be selected."
 
     (iswitchb-define-mode-map)
     (setq iswitchb-exit nil)
-    (setq iswitchb-rescan t)
-    (setq iswitchb-text "")
     (setq iswitchb-default
 	  (if (bufferp default)
 	      (buffer-name default)
 	    default))
-    (iswitchb-make-buflist iswitchb-default)
-    (iswitchb-set-matches)
+    (setq iswitchb-text (or start ""))
+    (unless matches-set
+      (setq iswitchb-rescan t)
+      (iswitchb-make-buflist iswitchb-default)
+      (iswitchb-set-matches))
     (let
 	((minibuffer-local-completion-map iswitchb-mode-map)
 	 ;; Record the minibuffer depth that we expect to find once
@@ -597,32 +626,41 @@ If REQUIRE-MATCH is non-nil, an existing-buffer must be selected."
 	 (iswitchb-require-match require-match))
       ;; prompt the user for the buffer name
       (setq iswitchb-final-text (completing-read
-				 prompt	;the prompt
+				 prompt		  ;the prompt
 				 '(("dummy" . 1)) ;table
-				 nil	;predicate
-				 nil	;require-match [handled elsewhere]
-				 nil	;initial-contents
+				 nil		  ;predicate
+				 nil ;require-match [handled elsewhere]
+				 start	;initial-contents
 				 'iswitchb-history)))
     (if (and (not (eq iswitchb-exit 'usefirst))
 	     (get-buffer iswitchb-final-text))
 	;; This happens for example if the buffer was chosen with the mouse.
-	(setq iswitchb-matches (list iswitchb-final-text)))
+	(setq iswitchb-matches (list iswitchb-final-text)
+	      iswitchb-virtual-buffers nil))
+
+    ;; If no buffer matched, but a virtual buffer was selected, visit
+    ;; that file now and act as though that buffer had been selected.
+    (if (and iswitchb-virtual-buffers
+	     (not (iswitchb-existing-buffer-p)))
+	(let ((virt (car iswitchb-virtual-buffers)))
+	  (find-file-noselect (cdr virt))
+	  (setq iswitchb-matches (list (car virt))
+		iswitchb-virtual-buffers nil)))
 
     ;; Handling the require-match must be done in a better way.
-    (if (and require-match (not (iswitchb-existing-buffer-p)))
+    (if (and require-match
+	     (not (iswitchb-existing-buffer-p)))
 	(error "Must specify valid buffer"))
 
-    (if (or
-	 (eq iswitchb-exit 'takeprompt)
-	 (null iswitchb-matches))
+    (if (or (eq iswitchb-exit 'takeprompt)
+	    (null iswitchb-matches))
 	(setq buf-sel iswitchb-final-text)
       ;; else take head of list
       (setq buf-sel (car iswitchb-matches)))
 
     ;; Or possibly choose the default buffer
     (if  (equal iswitchb-final-text "")
-	(setq buf-sel
-	      (car iswitchb-matches)))
+	(setq buf-sel (car iswitchb-matches)))
 
     buf-sel))
 
@@ -723,18 +761,29 @@ If no buffer exactly matching the prompt exists, maybe create a new one."
   (setq iswitchb-exit 'findfile)
   (exit-minibuffer))
 
+(eval-when-compile
+  (defvar recentf-list))
+
 (defun iswitchb-next-match ()
   "Put first element of `iswitchb-matches' at the end of the list."
   (interactive)
   (let ((next  (cadr iswitchb-matches)))
-    (setq iswitchb-buflist (iswitchb-chop iswitchb-buflist next))
+    (if (and (null next) iswitchb-virtual-buffers)
+	(setq recentf-list
+	      (iswitchb-chop recentf-list
+			     (cdr (cadr iswitchb-virtual-buffers))))
+      (setq iswitchb-buflist (iswitchb-chop iswitchb-buflist next)))
     (setq iswitchb-rescan t)))
 
 (defun iswitchb-prev-match ()
   "Put last element of `iswitchb-matches' at the front of the list."
   (interactive)
   (let ((prev  (car (last iswitchb-matches))))
-    (setq iswitchb-buflist (iswitchb-chop iswitchb-buflist prev))
+    (if (and (null prev) iswitchb-virtual-buffers)
+	(setq recentf-list
+	      (iswitchb-chop recentf-list
+			     (cdr (car (last iswitchb-virtual-buffers)))))
+      (setq iswitchb-buflist (iswitchb-chop iswitchb-buflist prev)))
     (setq iswitchb-rescan t)))
 
 (defun iswitchb-chop (list elem)
@@ -826,7 +875,8 @@ current frame, rather than all frames, regardless of value of
       (setq iswitchb-matches
 	    (let* ((buflist iswitchb-buflist))
 	      (iswitchb-get-matched-buffers iswitchb-text iswitchb-regexp
-					    buflist)))))
+					    buflist))
+	    iswitchb-virtual-buffers nil)))
 
 (defun iswitchb-get-matched-buffers (regexp
 				     &optional string-format buffer-list)
@@ -1064,7 +1114,6 @@ If BUFFER is visible in the current frame, return nil."
       (get-buffer-window buffer 0) ; better than 'visible
       )))
 
-;;;###autoload
 (defun iswitchb-default-keybindings ()
   "Set up default keybindings for `iswitchb-buffer'.
 Call this function to override the normal bindings.  This function also
@@ -1078,7 +1127,6 @@ Obsolescent.  Use `iswitchb-mode'."
   (global-set-key "\C-x4\C-o" 'iswitchb-display-buffer)
   (global-set-key "\C-x5b" 'iswitchb-buffer-other-frame))
 
-;;;###autoload
 (defun iswitchb-buffer ()
   "Switch to another buffer.
 
@@ -1091,7 +1139,6 @@ For details of keybindings, do `\\[describe-function] iswitchb'."
   (setq iswitchb-method iswitchb-default-method)
   (iswitchb))
 
-;;;###autoload
 (defun iswitchb-buffer-other-window ()
   "Switch to another buffer and show it in another window.
 The buffer name is selected interactively by typing a substring.
@@ -1100,7 +1147,6 @@ For details of keybindings, do `\\[describe-function] iswitchb'."
   (setq iswitchb-method 'otherwindow)
   (iswitchb))
 
-;;;###autoload
 (defun iswitchb-display-buffer ()
   "Display a buffer in another window but don't select it.
 The buffer name is selected interactively by typing a substring.
@@ -1109,7 +1155,6 @@ For details of keybindings, do `\\[describe-function] iswitchb'."
   (setq iswitchb-method 'display)
   (iswitchb))
 
-;;;###autoload
 (defun iswitchb-buffer-other-frame ()
   "Switch to another buffer and show it in another frame.
 The buffer name is selected interactively by typing a substring.
@@ -1185,6 +1230,19 @@ Copied from `icomplete-exhibit' with two changes:
 		   contents
 		   (not minibuffer-completion-confirm)))))))
 
+(eval-when-compile
+  (defvar most-len)
+  (defvar most-is-exact))
+
+(defun iswitchb-output-completion (com)
+  (if (= (length com) most-len)
+      ;; Most is one exact match,
+      ;; note that and leave out
+      ;; for later indication:
+      (ignore
+       (setq most-is-exact t))
+    (substring com most-len)))
+
 (defun iswitchb-completions (name require-match)
   "Return the string that is displayed after the user's text.
 Modified from `icomplete-completions'."
@@ -1209,6 +1267,35 @@ Modified from `icomplete-completions'."
 			     first)
 	  (setq comps  (cons first (cdr comps)))))
 
+    ;; If no buffers matched, and virtual buffers are being used, then
+    ;; consult the list of past visited files, to see if we can find
+    ;; the file which the user might thought was still open.
+    (when (and iswitchb-use-virtual-buffers (null comps)
+	       recentf-list)
+      (setq iswitchb-virtual-buffers nil)
+      (let ((head recentf-list) name)
+	(while head
+	  (if (and (setq name (file-name-nondirectory (car head)))
+		   (string-match (if iswitchb-regexp
+				     iswitchb-text
+				   (regexp-quote iswitchb-text)) name)
+		   (null (get-file-buffer (car head)))
+		   (not (assoc name iswitchb-virtual-buffers))
+		   (not (iswitchb-ignore-buffername-p name))
+		   (file-exists-p (car head)))
+	      (setq iswitchb-virtual-buffers
+		    (cons (cons name (car head))
+			  iswitchb-virtual-buffers)))
+	  (setq head (cdr head)))
+	(setq iswitchb-virtual-buffers (nreverse iswitchb-virtual-buffers)
+	      comps (mapcar 'car iswitchb-virtual-buffers))
+	(let ((comp comps))
+	  (while comp
+	    (put-text-property 0 (length (car comp))
+			       'face 'font-lock-builtin-face
+			       (car comp))
+	    (setq comp (cdr comp))))))
+
     (cond ((null comps) (format " %sNo match%s"
 				open-bracket-determined
 				close-bracket-determined))
@@ -1224,28 +1311,28 @@ Modified from `icomplete-completions'."
 		     "")
 		   (if (not iswitchb-use-fonts) " [Matched]")))
 	  (t				;multiple matches
+	   (if (and iswitchb-max-to-show
+		    (> (length comps) iswitchb-max-to-show))
+	       (setq comps
+		     (append
+		      (let ((res nil)
+			    (comp comps)
+			    (end (/ iswitchb-max-to-show 2)))
+			(while (>= (setq end (1- end)) 0)
+			  (setq res (cons (car comp) res)
+				comp (cdr comp)))
+			(nreverse res))
+		      (list "...")
+		      (nthcdr (- (length comps)
+				 (/ iswitchb-max-to-show 2)) comps))))
 	   (let* (
 		  ;;(most (try-completion name candidates predicate))
 		  (most nil)
 		  (most-len (length most))
 		  most-is-exact
 		  (alternatives
-		   (apply
-		    (function concat)
-		    (cdr (apply
-			  (function nconc)
-			  (mapcar '(lambda (com)
-				     (if (= (length com) most-len)
-					 ;; Most is one exact match,
-					 ;; note that and leave out
-					 ;; for later indication:
-					 (progn
-					   (setq most-is-exact t)
-					   ())
-				       (list ","
-					     (substring com
-							most-len))))
-				  comps))))))
+		   (mapconcat (if most 'iswitchb-output-completion
+				'identity) comps ",")))
 
 	     (concat
 

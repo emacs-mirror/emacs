@@ -1,14 +1,9 @@
 ;;; thumbs.el --- Thumbnails previewer for images files
-;;;
-;; Author: Jean-Philippe Theberge <jphiltheberge@videotron.ca>
-;;              
-;; Thanks: Alex Schroeder <alex@gnu.org> for maintaining the package at some time
-;;         The peoples at #emacs@freenode.net for numerous help
-;;         RMS for emacs and the GNU project.
-;;
-;; Keywords: Multimedia
 
-(defconst thumbs-version "2.0")
+;; Copyright 2004 Free Software Foundation, Inc
+
+;; Author: Jean-Philippe Theberge <jphiltheberge@videotron.ca>
+;; Keywords: Multimedia
 
 ;; This file is part of GNU Emacs.
 
@@ -26,6 +21,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+;;              
+;; Thanks: Alex Schroeder <alex@gnu.org> for maintaining the package at some time
+;;         The peoples at #emacs@freenode.net for numerous help
+;;         RMS for emacs and the GNU project.
+;;
 
 ;;; Commentary:
 
@@ -52,20 +52,11 @@
 ;; for that image.  C-h m will give you a list of available keybinding.
 
 ;;; History:
-;; 
+;;
 
 ;;; Code:
 
 (require 'dired)
-
-;; Abort if in-line imaging isn't supported (i.e. Emacs-20.7)
-
-(when (not (display-images-p))
-  (error "Your Emacs version (%S) doesn't support in-line images,
-was not compiled with image support or is run in console mode.  
-Upgrade to Emacs 21.1 or newer, compile it with image support 
-or use a window-system"  
-	 emacs-version))
 
 ;; CUSTOMIZATIONS
 
@@ -148,26 +139,26 @@ see some of your images."
   :group 'thumbs)
 
 ;; Initialize some variable, for later use.
-(defvar thumbs-temp-file 
-  (concat thumbs-temp-dir thumbs-temp-prefix) 
+(defvar thumbs-temp-file
+  (concat thumbs-temp-dir thumbs-temp-prefix)
   "Temporary filesname for images.")
 
-(defvar thumbs-current-tmp-filename 
-  nil 
+(defvar thumbs-current-tmp-filename
+  nil
   "Temporary filename of current image.")
-(defvar thumbs-current-image-filename 
+(defvar thumbs-current-image-filename
   nil
   "Filename of current image.")
-(defvar thumbs-current-image-size 
+(defvar thumbs-current-image-size
   nil
   "Size of current image.")
-(defvar thumbs-image-num 
+(defvar thumbs-image-num
   nil
   "Number of current image.")
-(defvar thumbs-current-dir 
+(defvar thumbs-current-dir
   nil
   "Current directory.")
-(defvar thumbs-markedL 
+(defvar thumbs-markedL
   nil
   "List of marked files.")
 
@@ -182,25 +173,6 @@ see some of your images."
     (make-directory thumbs-thumbsdir)
     (message "Creating thumbnails directory")))
 
-(when (not (fboundp 'ignore-errors))
-  (defmacro ignore-errors (&rest body)
-    "Execute FORMS; if anz error occurs, return nil.
-Otherwise, return result of last FORM."
-    (let ((err (thumbs-gensym)))
-      (list 'condition-case err (cons 'progn body) '(error nil))))) 
-
-(when (not (fboundp 'time-less-p))
-  (defun time-less-p (t1 t2)
-    "Say whether time T1 is less than time T2."
-    (or (< (car t1) (car t2))
-	(and (= (car t1) (car t2))
-	     (< (nth 1 t1) (nth 1 t2))))))
-
-(when (not (fboundp 'caddar))
-  (defun caddar (x)
-    "Return the `car' of the `cdr' of the `cdr' of the `car' of X."
-    (car (cdr (cdr (car x))))))
-
 (defvar thumbs-gensym-counter 0)
 
 (defun thumbs-gensym (&optional arg)
@@ -208,7 +180,7 @@ Otherwise, return result of last FORM."
 The name is made by appending a number to PREFIX, default \"Thumbs\"."
   (let ((prefix (if (stringp arg) arg "Thumbs"))
 	(num (if (integerp arg) arg
-	       (prog1 
+	       (prog1
 		   thumbs-gensym-counter
 		 (setq thumbs-gensym-counter (1+ thumbs-gensym-counter))))))
     (make-symbol (format "%s%d" prefix num))))
@@ -229,9 +201,9 @@ reached."
 	 (dirsize (apply '+ (mapcar (lambda (x) (cadr x)) filesL))))
     (while (> dirsize thumbs-thumbsdir-max-size)
       (progn
-	(message "Deleting file %s" (caddar filesL)))
-      (delete-file (caddar filesL))
-      (setq dirsize (- dirsize (cadar filesL)))
+	(message "Deleting file %s" (cadr (cdar filesL))))
+      (delete-file (cadr (cdar filesL)))
+      (setq dirsize (- dirsize (car (cdar filesL))))
       (setq filesL (cdr filesL)))))
 
 ;; Check the thumbsnail directory size and clean it if necessary.
@@ -274,7 +246,7 @@ ACTION-PREFIX is the symbol to place before the ACTION command
 					thumbs-image-resizing-step)
    (thumbs-increment-image-size-element (cdr s)
 					thumbs-image-resizing-step)))
- 
+
 (defun thumbs-decrement-image-size (s)
   "Decrement S (a cons of width x heigh)."
   (cons
@@ -289,11 +261,12 @@ if INCREMENT is set, make the image bigger, else smaller.
 Or, alternatively, a SIZE may be specified."
   (interactive)
   ;; cleaning of old temp file
-  (ignore-errors 
+  (condition-case nil
     (apply 'delete-file
 	   (directory-files
 	    thumbs-temp-dir t
-	    thumbs-temp-prefix)))
+	    thumbs-temp-prefix))
+    (error nil))
   (let ((buffer-read-only nil)
 	(x (if size
 	       size
@@ -315,7 +288,7 @@ Or, alternatively, a SIZE may be specified."
   "Resize Image interactively to specified WIDTH and HEIGHT."
   (interactive "nWidth: \nnHeight: ")
   (thumbs-resize-image nil (cons width height)))
-  
+
 (defun thumbs-resize-image-size-down ()
   "Resize image (smaller)."
   (interactive)
@@ -326,22 +299,10 @@ Or, alternatively, a SIZE may be specified."
   (interactive)
   (thumbs-resize-image t))
 
-(defun thumbs-subst-char-in-string (orig rep string)
-  "Replace occurrences of character ORIG with character REP in STRING.
-Return the resulting (new) string.  -- (defun borowed to Dave Love)"
-  (let ((string (copy-sequence string))
-	(l (length string))
-	(i 0))
-    (while (< i l)
-      (if (= (aref string i) orig)
-	  (aset string i rep))
-      (setq i (1+ i)))
-    string))
-
 (defun thumbs-thumbname (img)
   "Return a thumbnail name for the image IMG."
   (concat thumbs-thumbsdir "/"
-	  (thumbs-subst-char-in-string
+	  (subst-char-in-string
 	   ?\  ?\_
 	   (apply
 	    'concat
@@ -353,10 +314,14 @@ Return the resulting (new) string.  -- (defun borowed to Dave Love)"
   (let* ((fn (expand-file-name img))
 	 (tn (thumbs-thumbname img)))
     (if (or (not (file-exists-p tn))
-	    (not (equal (thumbs-file-size tn) thumbs-geometry)))
+	    ;;  This is not the right fix, but I don't understand
+	    ;;  the external program or why it produces a geometry
+	    ;;  unequal to the one requested -- rms.
+;;;	    (not (equal (thumbs-file-size tn) thumbs-geometry))
+	    )
 	(thumbs-call-convert fn tn "sample" thumbs-geometry))
     tn))
-  
+
 (defun thumbs-image-type (img)
   "Return image type from filename IMG."
   (cond ((string-match ".*\\.jpe?g\\'" img) 'jpeg)
@@ -372,7 +337,7 @@ Return the resulting (new) string.  -- (defun borowed to Dave Love)"
     (concat (number-to-string (round (car i)))
 	    "x"
 	    (number-to-string (round (cdr i))))))
-  
+
 ;;;###autoload
 (defun thumbs-find-thumb (img)
   "Display the thumbnail for IMG."
@@ -397,30 +362,28 @@ if MARKED is non-nil, the image is marked."
   "Insert the thumbnail for IMG at point.
 if MARKED is non-nil, the image is marked"
   (thumbs-insert-image
-   (thumbs-make-thumb img) 'jpeg thumbs-relief marked))
+   (thumbs-make-thumb img) 'jpeg thumbs-relief marked)
+  (put-text-property (1- (point)) (point)
+		     'thumb-image-file img))
 
 (defun thumbs-do-thumbs-insertion (L)
   "Insert all thumbs in list L."
-  (setq thumbs-fileL nil)
   (let ((i 0))
-    (while L
+    (dolist (img L)
+      (thumbs-insert-thumb img
+			   (member img thumbs-markedL))
       (when (= 0 (mod (setq i (1+ i)) thumbs-per-line))
-	(newline))
-      (setq thumbs-fileL (cons (cons (point)
-				     (car L))
-			       thumbs-fileL))
-      (thumbs-insert-thumb (car L)
-			   (member (car L) thumbs-markedL))
-      (setq L (cdr L)))))
+	(newline)))
+    (unless (bobp) (newline))))
 
 (defun thumbs-show-thumbs-list (L &optional buffer-name same-window)
+  (when (not (display-images-p))
+    (error "Images are not supported in this Emacs session"))
   (funcall (if same-window 'switch-to-buffer 'pop-to-buffer)
 	   (or buffer-name "*THUMB-View*"))
   (let ((inhibit-read-only t))
     (erase-buffer)
     (thumbs-mode)
-    (make-variable-buffer-local 'thumbs-fileL)
-    (setq thumbs-fileL nil)
     (thumbs-do-thumbs-insertion L)
     (goto-char (point-min))
     (setq thumbs-current-dir default-directory)
@@ -452,7 +415,7 @@ and SAME-WINDOW to show thumbs in the same window."
 ;;;###autoload
 (defalias 'thumbs 'thumbs-show-all-from-dir)
 
-(defun thumbs-find-image (img L &optional num otherwin)
+(defun thumbs-find-image (img &optional num otherwin)
   (funcall 
    (if otherwin 'switch-to-buffer-other-window 'switch-to-buffer)
    (concat "*Image: " (file-name-nondirectory img) " - "
@@ -466,8 +429,6 @@ and SAME-WINDOW to show thumbs in the same window."
     (make-variable-buffer-local 'thumbs-current-tmp-filename)
     (make-variable-buffer-local 'thumbs-current-image-size)
     (make-variable-buffer-local 'thumbs-image-num)
-    (make-variable-buffer-local 'thumbs-fileL)
-    (setq thumbs-fileL L)
     (delete-region (point-min)(point-max))
     (thumbs-insert-image img (thumbs-image-type img) 0)))
 
@@ -475,16 +436,20 @@ and SAME-WINDOW to show thumbs in the same window."
   "Display image IMG for thumbnail at point.
 use another window it OTHERWIN is t."
   (interactive)
-  (let* ((L thumbs-fileL)
-	 (n (point))
-	 (i (or img (cdr (assoc n L)))))
-    (thumbs-find-image i L n otherwin)))
+  (let* ((i (or img (thumbs-current-image))))
+    (thumbs-find-image i (point) otherwin)))
 
 (defun thumbs-find-image-at-point-other-window ()
   "Display image for thumbnail at point in the preview buffer.
 Open another window."
   (interactive)
   (thumbs-find-image-at-point nil t))
+
+(defun thumbs-mouse-find-image (event)
+  "Display image for thumbnail at mouse click EVENT."
+  (interactive "e")
+  (mouse-set-point event)
+  (thumbs-find-image-at-point))
 
 (defun thumbs-call-setroot-command (img)
   "Call the setroot program for IMG."
@@ -494,11 +459,12 @@ Open another window."
 		  (shell-quote-argument (expand-file-name img))
 		  thumbs-setroot-command nil t))
   (run-hooks 'thumbs-after-setroot-hook))
-   
+
 (defun thumbs-set-image-at-point-to-root-window ()
   "Set the image at point as the desktop wallpaper."
   (interactive)
-  (thumbs-call-setroot-command (cdr (assoc (point) thumbs-fileL))))
+  (thumbs-call-setroot-command
+   (thumbs-current-image)))
 
 (defun thumbs-set-root ()
   "Set the current image as root."
@@ -507,78 +473,158 @@ Open another window."
    (or thumbs-current-tmp-filename
        thumbs-current-image-filename)))
 
+(defun thumbs-file-alist ()
+  "Make an alist of elements (POS . FILENAME) for all images in thumb buffer."
+  (save-excursion
+    (let (list)
+      (goto-char (point-min))
+      (while (not (eobp))
+	(if (thumbs-current-image)
+	    (push (cons (point-marker)
+			(thumbs-current-image))
+		  list))
+	(forward-char 1))
+      list)))
+
+(defun thumbs-file-list ()
+  "Make a list of file names for all images in thumb buffer."
+  (save-excursion
+    (let (list)
+      (goto-char (point-min))
+      (while (not (eobp))
+	(if (thumbs-current-image)
+	    (push (thumbs-current-image) list))
+	(forward-char 1))
+      (nreverse list))))
+
 (defun thumbs-delete-images ()
   "Delete the image at point (and it's thumbnail) (or marked files if any)."
   (interactive)
-  (let ((f (or thumbs-markedL (list (cdr (assoc (point) thumbs-fileL))))))
-    (if (yes-or-no-p "Really delete %d files?" (length f))
-	(progn
-	  (mapcar (lambda (x)
-		    (setq thumbs-fileL (delete (rassoc x thumbs-fileL) thumbs-fileL))
+  (let ((files (or thumbs-markedL (list (thumbs-current-image)))))
+    (if (yes-or-no-p (format "Really delete %d files? " (length files)))
+	(let ((thumbs-fileL (thumbs-file-alist))
+	      (inhibit-read-only t))
+	  (dolist (x files)
+	    (let (failure)
+	      (condition-case ()
+		  (progn
 		    (delete-file x)
-		    (delete-file (thumbs-thumbname x))) f)
-	  (thumbs-redraw-buffer)))))
+		    (delete-file (thumbs-thumbname x)))
+		(file-error (setq failure t)))
+	      (unless failure
+		(when (rassoc x thumbs-fileL)
+		  (goto-char (car (rassoc x thumbs-fileL)))
+		  (delete-region (point) (1+ (point))))
+		(setq thumbs-markedL
+		      (delq x thumbs-markedL)))))))))
+
+(defun thumbs-rename-images (newfile)
+  "Rename the image at point (and it's thumbnail) (or marked files if any)."
+  (interactive "FRename to file or directory: ")
+  (let ((files (or thumbs-markedL (list (thumbs-current-image))))
+	failures)
+    (if (and (not (file-directory-p newfile))
+	     thumbs-markedL)
+	(if (file-exists-p newfile)
+	    (error "Renaming marked files to file name `%s'" newfile)
+	  (make-directory newfile t)))
+    (if (yes-or-no-p (format "Really rename %d files? " (length files)))
+	(let ((thumbs-fileL (thumbs-file-alist))
+	      (inhibit-read-only t))
+	  (dolist (file files)
+	    (let (failure)
+	      (condition-case ()
+		  (if (file-directory-p newfile)
+		      (rename-file file
+				   (expand-file-name
+				    (file-name-nondirectory file)
+				    newfile))
+		    (rename-file file newfile))
+		(file-error (setq failure t)
+			    (push file failures)))
+	      (unless failure
+		(when (rassoc file thumbs-fileL)
+		  (goto-char (car (rassoc file thumbs-fileL)))
+		  (delete-region (point) (1+ (point))))
+		(setq thumbs-markedL
+		      (delq file thumbs-markedL)))))))
+    (if failures
+	(display-warning 'file-error
+			 (format "Rename failures for %s into %s"
+				 failures newfile)
+			 :error))))
 
 (defun thumbs-kill-buffer ()
   "Kill the current buffer."
   (interactive)
   (let ((buffer (current-buffer)))
-    (ignore-errors (delete-window (selected-window)))
+    (condition-case nil
+	(delete-window (selected-window))
+      (error nil))
     (kill-buffer buffer)))
 
 (defun thumbs-show-image-num (num)
   "Show the image with number NUM."
-  (let ((inhibit-read-only t))
-    (delete-region (point-min)(point-max))
-    (let ((i (cdr (assoc num thumbs-fileL))))
-      (thumbs-insert-image i (thumbs-image-type i) 0)
-      (sleep-for 2)
-      (rename-buffer (concat "*Image: "
-			     (file-name-nondirectory i)
-			     " - "
-			     (number-to-string num) "*")))
-    (setq thumbs-image-num num
-	  thumbs-current-image-filename i)))
+  (let ((image-buffer (get-buffer-create "*Image*")))
+    (let ((i (thumbs-current-image)))
+      (with-current-buffer image-buffer
+	(thumbs-insert-image i (thumbs-image-type i) 0))
+      (setq thumbs-image-num num
+	    thumbs-current-image-filename i))))
 
 (defun thumbs-next-image ()
   "Show next image."
   (interactive)
   (let* ((i (1+ thumbs-image-num))
-	 (l (caar thumbs-fileL))
-	 (num
-	  (cond ((assoc i thumbs-fileL) i)
-		((>= i l) 1)
-		(t (1+ i)))))
-    (thumbs-show-image-num num)))
+	 (list (thumbs-file-alist))
+	 (l (caar list)))
+    (while (and (/= i thumbs-image-num) (not (assoc i list)))
+      (setq i (if (>= i l) 1 (1+ i))))
+    (thumbs-show-image-num i)))
 
 (defun thumbs-previous-image ()
   "Show the previous image."
   (interactive)
   (let* ((i (- thumbs-image-num 1))
-	 (l (caar thumbs-fileL))
-	 (num
-	  (cond ((assoc i thumbs-fileL) i)
-		((<= i 1) l)
-		(t (- i 1)))))
-    (thumbs-show-image-num num)))
+	 (list (thumbs-file-alist))
+	 (l (caar list)))
+    (while (and (/= i thumbs-image-num) (not (assoc i list)))
+      (setq i (if (<= i 1) l (1- i))))
+    (thumbs-show-image-num i)))
 
 (defun thumbs-redraw-buffer ()
   "Redraw the current thumbs buffer."
   (let ((p (point))
-	(inhibit-read-only t))
-    (delete-region (point-min)(point-max))
-    (thumbs-do-thumbs-insertion (reverse (mapcar 'cdr thumbs-fileL)))
-    (goto-char (1+ p))))
-  
+	(inhibit-read-only t)
+	(files (thumbs-file-list)))
+    (erase-buffer)
+    (thumbs-do-thumbs-insertion files)
+    (goto-char p)))
+
 (defun thumbs-mark ()
   "Mark the image at point."
   (interactive)
-  (setq thumbs-markedL (cons (cdr (assoc (point) thumbs-fileL)) thumbs-markedL))
-  (let ((inhibit-read-only t))
-    (delete-char 1)
-    (thumbs-insert-thumb (cdr (assoc (point) thumbs-fileL)) t))
-  (when (eolp)(forward-char)))
-  
+  (let ((elt (thumbs-current-image)))
+    (unless elt
+      (error "No image here"))
+    (push elt thumbs-markedL)
+    (let ((inhibit-read-only t))
+      (delete-char 1)
+      (thumbs-insert-thumb elt t)))
+  (when (eolp) (forward-char)))
+
+(defun thumbs-unmark ()
+  "Unmark the image at point."
+  (interactive)
+  (let ((elt (thumbs-current-image)))
+    (unless elt
+      (error "No image here"))
+    (setq thumbs-markedL (delete elt thumbs-markedL))
+    (let ((inhibit-read-only t))
+      (delete-char 1)
+      (thumbs-insert-thumb elt nil)))
+  (when (eolp) (forward-char)))
+
 ;; Image modification routines
 
 (defun thumbs-modify-image (action &optional arg)
@@ -604,8 +650,8 @@ ACTION and ARG should be legal convert command."
 (defun thumbs-emboss-image (emboss)
   "Emboss the image with value EMBOSS."
   (interactive "nEmboss value: ")
-  (if (or (< emboss 3)(> emboss 31)(evenp emboss))
-      (error "Arg must be a odd number between 3 and 31"))
+  (if (or (< emboss 3) (> emboss 31) (zerop (% emboss 2)))
+      (error "Arg must be an odd number between 3 and 31"))
   (thumbs-modify-image "emboss" (number-to-string emboss)))
 
 (defun thumbs-monochrome-image ()
@@ -628,17 +674,24 @@ ACTION and ARG should be legal convert command."
   (interactive)
   (thumbs-modify-image "rotate" "90"))
 
+(defun thumbs-current-image ()
+  "Return the name of the image file name at point."
+  (get-text-property (point) 'thumb-image-file))
+
 (defun thumbs-forward-char ()
   "Move forward one image."
   (interactive)
   (forward-char)
-  (when (eolp)(forward-char))
+  (while (and (not (eobp)) (not (thumbs-current-image)))
+    (forward-char))
   (thumbs-show-name))
 
 (defun thumbs-backward-char ()
   "Move backward one image."
   (interactive)
   (forward-char -1)
+  (while (and (not (bobp)) (not (thumbs-current-image)))
+    (forward-char -1))
   (thumbs-show-name))
 
 (defun thumbs-forward-line ()
@@ -656,15 +709,15 @@ ACTION and ARG should be legal convert command."
 (defun thumbs-show-name ()
   "Show the name of the current file."
   (interactive)
-  (let ((f (cdr (assoc (point) thumbs-fileL))))
-    (message "%s [%s]" f (thumbs-file-size f))))
+  (let ((f (thumbs-current-image)))
+    (and f (message "%s [%s]" f (thumbs-file-size f)))))
 
 (defun thumbs-save-current-image ()
   "Save the current image."
   (interactive)
   (let ((f (or thumbs-current-tmp-filename
 	       thumbs-current-image-filename))
-	(sa (read-from-minibuffer "save file as: "
+	(sa (read-from-minibuffer "Save image file as: "
 				  thumbs-current-image-filename)))
     (copy-file f sa)))
 
@@ -678,6 +731,7 @@ ACTION and ARG should be legal convert command."
 (defvar thumbs-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [return] 'thumbs-find-image-at-point)
+    (define-key map [mouse-2] 'thumbs-mouse-find-image)
     (define-key map [(meta return)] 'thumbs-find-image-at-point-other-window)
     (define-key map [(control return)] 'thumbs-set-image-at-point-to-root-window)
     (define-key map [delete] 'thumbs-delete-images)
@@ -687,15 +741,20 @@ ACTION and ARG should be legal convert command."
     (define-key map [down] 'thumbs-forward-line)
     (define-key map "d" 'thumbs-dired)
     (define-key map "m" 'thumbs-mark)
+    (define-key map "u" 'thumbs-unmark)
+    (define-key map "R" 'thumbs-rename-images)
+    (define-key map "x" 'thumbs-delete-images)
     (define-key map "s" 'thumbs-show-name)
     (define-key map "q" 'thumbs-kill-buffer)
     map)
   "Keymap for `thumbs-mode'.")
 
+(put 'thumbs-mode 'mode-class 'special)
 (define-derived-mode thumbs-mode
   fundamental-mode "thumbs"
   "Preview images in a thumbnails buffer"
   (make-variable-buffer-local 'thumbs-markedL)
+  (setq buffer-read-only t)
   (setq thumbs-markedL nil))
 
 (defvar thumbs-view-image-mode-map
@@ -715,6 +774,7 @@ ACTION and ARG should be legal convert command."
   "Keymap for `thumbs-view-image-mode'.")
 
 ;; thumbs-view-image-mode
+(put 'thumbs-view-image-mode 'mode-class 'special)
 (define-derived-mode thumbs-view-image-mode
   fundamental-mode "image-view-mode")
 

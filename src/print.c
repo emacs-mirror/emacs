@@ -1,5 +1,5 @@
 /* Lisp object printing and output streams.
-   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999, 2000, 01, 2003
+   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999, 2000, 01, 03, 2004
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -601,6 +601,8 @@ temp_output_buffer_setup (bufname)
   eassert (current_buffer->overlays_after == NULL);
   current_buffer->enable_multibyte_characters
     = buffer_defaults.enable_multibyte_characters;
+  specbind (Qinhibit_read_only, Qt);
+  specbind (Qinhibit_modification_hooks, Qt);
   Ferase_buffer ();
   XSETBUFFER (buf, current_buffer);
 
@@ -789,7 +791,7 @@ A printed representation of an object is text which describes that object.  */)
   if (SBYTES (object) == SCHARS (object))
     STRING_SET_UNIBYTE (object);
 
-  /* Note that this won't make prepare_to_modify_buffer call 
+  /* Note that this won't make prepare_to_modify_buffer call
      ask-user-about-supersession-threat because this buffer
      does not visit a file.  */
   Ferase_buffer ();
@@ -927,7 +929,7 @@ DEFUN ("redirect-debugging-output", Fredirect_debugging_output, Sredirect_debugg
        doc: /* Redirect debugging output (stderr stream) to file FILE.
 If FILE is nil, reset target to the initial stderr stream.
 Optional arg APPEND non-nil (interactively, with prefix arg) means
-append to existing target file.  */) 
+append to existing target file.  */)
      (file, append)
      Lisp_Object file, append;
 {
@@ -1218,7 +1220,6 @@ print (obj, printcharfun, escapeflag)
      register Lisp_Object printcharfun;
      int escapeflag;
 {
-  print_depth = 0;
   old_backquote_output = 0;
 
   /* Reset print_number_index and Vprint_number_table only when
@@ -1238,6 +1239,7 @@ print (obj, printcharfun, escapeflag)
       start = index = print_number_index;
       /* Construct Vprint_number_table.
 	 This increments print_number_index for the objects added.  */
+      print_depth = 0;
       print_preprocess (obj);
 
       /* Remove unnecessary objects, which appear only once in OBJ;
@@ -1262,6 +1264,7 @@ print (obj, printcharfun, escapeflag)
       print_number_index = index;
     }
 
+  print_depth = 0;
   print_object (obj, printcharfun, escapeflag);
 }
 
@@ -1278,6 +1281,26 @@ print_preprocess (obj)
 {
   int i;
   EMACS_INT size;
+  int loop_count = 0;
+  Lisp_Object halftail;
+
+  /* Avoid infinite recursion for circular nested structure
+     in the case where Vprint_circle is nil.  */
+  if (NILP (Vprint_circle))
+    {
+      for (i = 0; i < print_depth; i++)
+	if (EQ (obj, being_printed[i]))
+	  return;
+      being_printed[print_depth] = obj;
+    }
+
+  /* Give up if we go so deep that print_object will get an error.  */
+  /* See similar code in print_object.  */
+  if (print_depth >= PRINT_CIRCLE)
+    return;
+
+  print_depth++;
+  halftail = obj;
 
  loop:
   if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
@@ -1338,8 +1361,15 @@ print_preprocess (obj)
 	  break;
 
 	case Lisp_Cons:
+	  /* Use HALFTAIL and LOOP_COUNT to detect circular lists,
+	     just as in print_object.  */
+	  if (loop_count && EQ (obj, halftail))
+	    break;
 	  print_preprocess (XCAR (obj));
 	  obj = XCDR (obj);
+	  loop_count++;
+	  if (!(loop_count & 1))
+	    halftail = XCDR (halftail);
 	  goto loop;
 
 	case Lisp_Vectorlike:
@@ -1354,6 +1384,7 @@ print_preprocess (obj)
 	  break;
 	}
     }
+  print_depth--;
 }
 
 static void
@@ -1457,7 +1488,7 @@ print_object (obj, printcharfun, escapeflag)
      register Lisp_Object printcharfun;
      int escapeflag;
 {
-  char buf[30];
+  char buf[40];
 
   QUIT;
 
@@ -1511,6 +1542,7 @@ print_object (obj, printcharfun, escapeflag)
 
   print_depth++;
 
+  /* See similar code in print_preprocess.  */
   if (print_depth > PRINT_CIRCLE)
     error ("Apparently circular structure being printed");
 #ifdef MAX_PRINT_CHARS
@@ -1876,18 +1908,14 @@ print_object (obj, printcharfun, escapeflag)
 	  register unsigned char c;
 	  struct gcpro gcpro1;
 	  int size_in_chars
-	    = (XBOOL_VECTOR (obj)->size + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
+	    = ((XBOOL_VECTOR (obj)->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
+	       / BOOL_VECTOR_BITS_PER_CHAR);
 
 	  GCPRO1 (obj);
 
 	  PRINTCHAR ('#');
 	  PRINTCHAR ('&');
-	  if (sizeof (int) == sizeof (EMACS_INT))
-            sprintf (buf, "%d", XBOOL_VECTOR (obj)->size);
-	  else if (sizeof (long) == sizeof (EMACS_INT))
-            sprintf (buf, "%ld", XBOOL_VECTOR (obj)->size);
-	  else
-	    abort ();
+	  sprintf (buf, "%ld", (long) XBOOL_VECTOR (obj)->size);
 	  strout (buf, -1, -1, printcharfun, 0);
 	  PRINTCHAR ('\"');
 
@@ -1917,6 +1945,14 @@ print_object (obj, printcharfun, escapeflag)
 		  PRINTCHAR ('\\');
 		  PRINTCHAR ('f');
 		}
+	      else if (c > '\177')
+		{
+		  /* Use octal escapes to avoid encoding issues.  */
+		  PRINTCHAR ('\\');
+		  PRINTCHAR ('0' + ((c >> 6) & 3));
+		  PRINTCHAR ('0' + ((c >> 3) & 7));
+		  PRINTCHAR ('0' + (c & 7));
+		}
 	      else
 		{
 		  if (c == '\"' || c == '\\')
@@ -1937,7 +1973,7 @@ print_object (obj, printcharfun, escapeflag)
       else if (WINDOWP (obj))
 	{
 	  strout ("#<window ", -1, -1, printcharfun, 0);
-	  sprintf (buf, "%d", XFASTINT (XWINDOW (obj)->sequence_number));
+	  sprintf (buf, "%ld", (long) XFASTINT (XWINDOW (obj)->sequence_number));
 	  strout (buf, -1, -1, printcharfun, 0);
 	  if (!NILP (XWINDOW (obj)->buffer))
 	    {
@@ -1958,8 +1994,8 @@ print_object (obj, printcharfun, escapeflag)
 	      PRINTCHAR (' ');
 	      strout (SDATA (SYMBOL_NAME (h->weak)), -1, -1, printcharfun, 0);
 	      PRINTCHAR (' ');
-	      sprintf (buf, "%d/%d", XFASTINT (h->count),
-		       XVECTOR (h->next)->size);
+	      sprintf (buf, "%ld/%ld", (long) XFASTINT (h->count),
+		       (long) XVECTOR (h->next)->size);
 	      strout (buf, -1, -1, printcharfun, 0);
 	    }
 	  sprintf (buf, " 0x%lx", (unsigned long) h);
@@ -2082,7 +2118,7 @@ print_object (obj, printcharfun, escapeflag)
 	  break;
 
 	case Lisp_Misc_Intfwd:
-	  sprintf (buf, "#<intfwd to %d>", *XINTFWD (obj)->intvar);
+	  sprintf (buf, "#<intfwd to %ld>", (long) *XINTFWD (obj)->intvar);
 	  strout (buf, -1, -1, printcharfun, 0);
 	  break;
 

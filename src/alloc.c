@@ -155,6 +155,7 @@ int malloc_sbrk_unused;
 
 EMACS_INT undo_limit;
 EMACS_INT undo_strong_limit;
+EMACS_INT undo_outer_limit;
 
 /* Number of live and free conses etc.  */
 
@@ -256,6 +257,7 @@ EMACS_INT gcs_done;		/* accumulated GCs  */
 
 static void mark_buffer P_ ((Lisp_Object));
 extern void mark_kboards P_ ((void));
+extern void mark_backtrace P_ ((void));
 static void gc_sweep P_ ((void));
 static void mark_glyph_matrix P_ ((struct glyph_matrix *));
 static void mark_face_cache P_ ((struct face_cache *));
@@ -753,17 +755,20 @@ lisp_align_malloc (nbytes, type)
 #ifdef HAVE_POSIX_MEMALIGN
       {
 	int err = posix_memalign (&base, BLOCK_ALIGN, ABLOCKS_BYTES);
-	abase = err ? (base = NULL) : base;
+	if (err)
+	  base = NULL;
+	abase = base;
       }
 #else
       base = malloc (ABLOCKS_BYTES);
       abase = ALIGN (base, BLOCK_ALIGN);
+#endif
+
       if (base == 0)
 	{
 	  UNBLOCK_INPUT;
 	  memory_full ();
 	}
-#endif
 
       aligned = (base == abase);
       if (!aligned)
@@ -844,7 +849,7 @@ lisp_align_free (block)
   free_ablock = ablock;
   /* Update busy count.  */
   ABLOCKS_BUSY (abase) = (struct ablocks *) (-2 + (long) ABLOCKS_BUSY (abase));
-  
+
   if (2 > (long) ABLOCKS_BUSY (abase))
     { /* All the blocks are free.  */
       int i = 0, aligned = (long) ABLOCKS_BUSY (abase);
@@ -1893,8 +1898,9 @@ compact_small_strings ()
 
 
 DEFUN ("make-string", Fmake_string, Smake_string, 2, 2, 0,
-       doc: /* Return a newly created string of length LENGTH, with each element being INIT.
-Both LENGTH and INIT must be numbers.  */)
+       doc: /* Return a newly created string of length LENGTH, with INIT in each element.
+LENGTH must be an integer.
+INIT must be an integer that represents a character.  */)
      (length, init)
      Lisp_Object length, init;
 {
@@ -1949,10 +1955,11 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
 
   CHECK_NATNUM (length);
 
-  bits_per_value = sizeof (EMACS_INT) * BITS_PER_CHAR;
+  bits_per_value = sizeof (EMACS_INT) * BOOL_VECTOR_BITS_PER_CHAR;
 
   length_in_elts = (XFASTINT (length) + bits_per_value - 1) / bits_per_value;
-  length_in_chars = ((XFASTINT (length) + BITS_PER_CHAR - 1) / BITS_PER_CHAR);
+  length_in_chars = ((XFASTINT (length) + BOOL_VECTOR_BITS_PER_CHAR - 1)
+		     / BOOL_VECTOR_BITS_PER_CHAR);
 
   /* We must allocate one more elements than LENGTH_IN_ELTS for the
      slot `size' of the struct Lisp_Bool_Vector.  */
@@ -1969,9 +1976,9 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
     p->data[i] = real_init;
 
   /* Clear the extraneous bits in the last byte.  */
-  if (XINT (length) != length_in_chars * BITS_PER_CHAR)
+  if (XINT (length) != length_in_chars * BOOL_VECTOR_BITS_PER_CHAR)
     XBOOL_VECTOR (val)->data[length_in_chars - 1]
-      &= (1 << (XINT (length) % BITS_PER_CHAR)) - 1;
+      &= (1 << (XINT (length) % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
 
   return val;
 }
@@ -2332,7 +2339,6 @@ free_cons (ptr)
 #endif
   cons_free_list = ptr;
 }
-
 
 DEFUN ("cons", Fcons, Scons, 2, 2, 0,
        doc: /* Create a new cons, give it CAR and CDR as components, and return it.  */)
@@ -4233,18 +4239,6 @@ struct catchtag
     struct catchtag *next;
 };
 
-struct backtrace
-{
-  struct backtrace *next;
-  Lisp_Object *function;
-  Lisp_Object *args;	/* Points to vector of args.  */
-  int nargs;		/* Length of vector.  */
-  /* If nargs is UNEVALLED, args points to slot holding list of
-     unevalled args.  */
-  char evalargs;
-};
-
-
 
 /***********************************************************************
 			  Protection from GC
@@ -4279,7 +4273,6 @@ returns nil, because real GC can't be done.  */)
   register struct specbinding *bind;
   struct catchtag *catch;
   struct handler *handler;
-  register struct backtrace *backlist;
   char stack_top_variable;
   register int i;
   int message_p;
@@ -4348,7 +4341,7 @@ returns nil, because real GC can't be done.  */)
 	if (! EQ (nextb->undo_list, Qt))
 	  nextb->undo_list
 	    = truncate_undo_list (nextb->undo_list, undo_limit,
-				  undo_strong_limit);
+				  undo_strong_limit, undo_outer_limit);
 
 	/* Shrink buffer gaps, but skip indirect and dead buffers.  */
 	if (nextb->base_buffer == 0 && !NILP (nextb->name))
@@ -4408,20 +4401,23 @@ returns nil, because real GC can't be done.  */)
       mark_object (handler->handler);
       mark_object (handler->var);
     }
-  for (backlist = backtrace_list; backlist; backlist = backlist->next)
-    {
-      mark_object (*backlist->function);
-
-      if (backlist->nargs == UNEVALLED || backlist->nargs == MANY)
-	i = 0;
-      else
-	i = backlist->nargs - 1;
-      for (; i >= 0; i--)
-	mark_object (backlist->args[i]);
-    }
+  mark_backtrace ();
   mark_kboards ();
 
-  /* Look thru every buffer's undo list
+#if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
+  mark_stack ();
+#endif
+
+#ifdef USE_GTK
+  {
+    extern void xg_mark_data ();
+    xg_mark_data ();
+  }
+#endif
+
+  /* Everything is now marked, except for the things that require special
+     finalization, i.e. the undo_list.
+     Look thru every buffer's undo list
      for elements that update markers that were not marked,
      and delete them.  */
   {
@@ -4459,21 +4455,13 @@ returns nil, because real GC can't be done.  */)
 		  }
 	      }
 	  }
+	/* Now that we have stripped the elements that need not be in the
+	   undo_list any more, we can finally mark the list.  */
+	mark_object (nextb->undo_list);
 
 	nextb = nextb->next;
       }
   }
-
-#if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
-  mark_stack ();
-#endif
-
-#ifdef USE_GTK
-  {
-    extern void xg_mark_data ();
-    xg_mark_data ();
-  }
-#endif
 
   gc_sweep ();
 
@@ -5043,41 +5031,9 @@ mark_buffer (buf)
 
   MARK_INTERVAL_TREE (BUF_INTERVALS (buffer));
 
-  if (CONSP (buffer->undo_list))
-    {
-      Lisp_Object tail;
-      tail = buffer->undo_list;
-
-      /* We mark the undo list specially because
-	 its pointers to markers should be weak.  */
-
-      while (CONSP (tail))
-	{
-	  register struct Lisp_Cons *ptr = XCONS (tail);
-
-	  if (CONS_MARKED_P (ptr))
-	    break;
-	  CONS_MARK (ptr);
-	  if (GC_CONSP (ptr->car)
-	      && !CONS_MARKED_P (XCONS (ptr->car))
-	      && GC_MARKERP (XCAR (ptr->car)))
-	    {
-	      CONS_MARK (XCONS (ptr->car));
-	      mark_object (XCDR (ptr->car));
-	    }
-	  else
-	    mark_object (ptr->car);
-
-	  if (CONSP (ptr->cdr))
-	    tail = ptr->cdr;
-	  else
-	    break;
-	}
-
-      mark_object (XCDR (tail));
-    }
-  else
-    mark_object (buffer->undo_list);
+  /* For now, we just don't mark the undo_list.  It's done later in
+     a special way just before the sweep phase, and after stripping
+     some of its elements that are not needed any more.  */
 
   if (buffer->overlays_before)
     {
@@ -5671,11 +5627,19 @@ which includes both saved text and other data.  */);
 
   DEFVAR_INT ("undo-strong-limit", &undo_strong_limit,
 	      doc: /* Don't keep more than this much size of undo information.
-A command which pushes past this size is itself forgotten.
-This limit is applied when garbage collection happens.
+A previous command which pushes the undo list past this size
+is entirely forgotten when GC happens.
 The size is counted as the number of bytes occupied,
 which includes both saved text and other data.  */);
   undo_strong_limit = 30000;
+
+  DEFVAR_INT ("undo-outer-limit", &undo_outer_limit,
+	      doc: /* Don't keep more than this much size of undo information.
+If the current command has produced more than this much undo information,
+GC discards it.  This is a last-ditch limit to prevent memory overflow.
+The size is counted as the number of bytes occupied,
+which includes both saved text and other data.  */);
+  undo_outer_limit = 300000;
 
   DEFVAR_BOOL ("garbage-collection-messages", &garbage_collection_messages,
 	       doc: /* Non-nil means display messages at start and end of garbage collection.  */);

@@ -268,6 +268,12 @@ This variable takes precedence over filtering, and even
 		 (const :tag "Always except minibuffer" :value :nomini))
   :group 'ibuffer)
 
+(defcustom ibuffer-jump-offer-only-visible-buffers nil
+  "If non-nil, only offer buffers visible in the Ibuffer buffer
+in completion lists of the `ibuffer-jump-to-buffer' command."
+  :type 'boolean
+  :group 'ibuffer)
+
 (defcustom ibuffer-use-header-line (boundp 'header-line-format)
   "If non-nil, display a header line containing current filters."
   :type 'boolean
@@ -357,6 +363,7 @@ directory, like `default-directory'."
     (define-key map (kbd "u") 'ibuffer-unmark-forward)
     (define-key map (kbd "=") 'ibuffer-diff-with-file)
     (define-key map (kbd "j") 'ibuffer-jump-to-buffer)
+    (define-key map (kbd "M-g") 'ibuffer-jump-to-buffer)
     (define-key map (kbd "DEL") 'ibuffer-unmark-backward)
     (define-key map (kbd "M-DEL") 'ibuffer-unmark-all)
     (define-key map (kbd "* *") 'ibuffer-unmark-all)
@@ -2166,6 +2173,7 @@ If optional arg SILENT is non-nil, do not display progress messages."
 				  (member name ibuffer-hidden-filter-groups)))
 		   (bmarklist (cdr group)))
 	      (unless (and (null bmarklist)
+			   (not disabled)
 			   ext-loaded
 			   (null ibuffer-show-empty-filter-groups))
 		(ibuffer-insert-filter-group

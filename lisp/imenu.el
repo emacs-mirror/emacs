@@ -890,6 +890,7 @@ Returns t for rescan and otherwise a position number."
       (setq name (completing-read prompt
 				  prepared-index-alist
 				  nil t nil 'imenu--history-list name)))
+
     (cond ((not (stringp name)) nil)
 	  ((string= name (car imenu--rescan-item)) t)
 	  (t
@@ -1015,7 +1016,10 @@ This value becomes local in every buffer when it is set.")
   (if (equal item imenu--rescan-item)
       (progn
 	(imenu--cleanup)
+	;; Make sure imenu-update-menubar redoes everything.
+	(setq imenu-menubar-modified-tick -1)
 	(setq imenu--index-alist nil)
+	(setq imenu--last-menubar-index-alist nil)
 	(imenu-update-menubar)
 	t)
     (imenu item)

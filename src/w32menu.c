@@ -2225,9 +2225,12 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	  /* Set help string for menu item.  Leave it as a Lisp_Object
 	     until it is ready to be displayed, since GC can happen while
 	     menus are active.  */
-	  if (wv->help)
-	    info.dwItemData = (DWORD) wv->help;
-
+	  if (!NILP (wv->help))
+#ifdef USE_LISP_UNION_TYPE
+	    info.dwItemData = (DWORD) (wv->help).i;
+#else
+	    info.dwItemData = (DWORD) (wv->help);
+#endif
 	  if (wv->button_type == BUTTON_TYPE_RADIO)
 	    {
 	      /* CheckMenuRadioItem allows us to differentiate TOGGLE and
@@ -2307,7 +2310,12 @@ w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
 	  info.fMask = MIIM_DATA;
 	  get_menu_item_info (menu, item, FALSE, &info);
 
+#ifdef USE_LISP_UNION_TYPE
+	  help = info.dwItemData ? (Lisp_Object) ((EMACS_INT) info.dwItemData)
+	                         : Qnil;
+#else
 	  help = info.dwItemData ? (Lisp_Object) info.dwItemData : Qnil;
+#endif
 	}
 
       /* Store the help echo in the keyboard buffer as the X toolkit

@@ -1,6 +1,6 @@
 ;;; generic.el --- defining simple major modes with comment and font-lock
 ;;
-;; Copyright (C) 1997, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2004 Free Software Foundation, Inc.
 ;;
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Fri Sep 27 1996
@@ -187,9 +187,6 @@ regexp in `generic-find-file-regexp'.  If the value is nil,
 				 auto-mode-list  function-list
 				 &optional description)
   "Create a new generic mode with NAME.
-
-Args: (NAME COMMENT-LIST KEYWORD-LIST FONT-LOCK-LIST AUTO-MODE-LIST
-            FUNCTION-LIST &optional DESCRIPTION)
 
 NAME should be a symbol; its string representation is used as the function
 name. If DESCRIPTION is provided, it is used as the docstring for the new

@@ -1,7 +1,7 @@
 ;;; simple.el --- basic editing commands for Emacs
 
 ;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 99,
-;;               2000, 2001, 2002, 2003
+;;               2000, 01, 02, 03, 04
 ;;        Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -37,7 +37,7 @@
 
 
 (defgroup killing nil
-  "Killing and yanking commands"
+  "Killing and yanking commands."
   :group 'editing)
 
 (defgroup paren-matching nil
@@ -65,6 +65,154 @@
 	    (setq found buffer)))
       (setq list (cdr list)))
     (switch-to-buffer found)))
+
+;;; next-error support framework
+(defvar next-error-last-buffer nil
+  "The most recent next-error buffer.
+A buffer becomes most recent when its compilation, grep, or
+similar mode is started, or when it is used with \\[next-error]
+or \\[compile-goto-error].")
+
+(defvar next-error-function nil
+  "Function to use to find the next error in the current buffer.
+The function is called with 2 parameters:
+ARG is an integer specifying by how many errors to move.
+RESET is a boolean which, if non-nil, says to go back to the beginning
+of the errors before moving.
+Major modes providing compile-like functionality should set this variable
+to indicate to `next-error' that this is a candidate buffer and how
+to navigate in it.")
+
+(make-variable-buffer-local 'next-error-function)
+
+(defsubst next-error-buffer-p (buffer &optional extra-test)
+  "Test if BUFFER is a next-error capable buffer."
+  (with-current-buffer buffer
+    (or (and extra-test (funcall extra-test))
+	next-error-function)))
+
+;; Return a next-error capable buffer according to the following rules:
+;; 1. If the current buffer is a next-error capable buffer, return it.
+;; 2. If one window on the selected frame displays such buffer, return it.
+;; 3. If next-error-last-buffer is set to a live buffer, use that.
+;; 4. Otherwise, look for a next-error capable buffer in a buffer list.
+;; 5. Signal an error if there are none.
+(defun next-error-find-buffer (&optional other-buffer extra-test)
+  (if (and (not other-buffer)
+	   (next-error-buffer-p (current-buffer) extra-test))
+      ;; The current buffer is a next-error capable buffer.
+      (current-buffer)
+    (or
+     (let ((window-buffers
+            (delete-dups
+             (delq nil
+              (mapcar (lambda (w)
+                        (and (next-error-buffer-p (window-buffer w) extra-test)
+                             (window-buffer w)))
+                      (window-list))))))
+       (if other-buffer
+           (setq window-buffers (delq (current-buffer) window-buffers)))
+       (if (eq (length window-buffers) 1)
+           (car window-buffers)))
+     (if (and next-error-last-buffer (buffer-name next-error-last-buffer)
+              (next-error-buffer-p next-error-last-buffer extra-test)
+              (or (not other-buffer) (not (eq next-error-last-buffer
+                                              (current-buffer)))))
+         next-error-last-buffer
+       (let ((buffers (buffer-list)))
+         (while (and buffers (or (not (next-error-buffer-p (car buffers) extra-test))
+                                 (and other-buffer
+                                      (eq (car buffers) (current-buffer)))))
+           (setq buffers (cdr buffers)))
+         (if buffers
+             (car buffers)
+           (or (and other-buffer
+                    (next-error-buffer-p (current-buffer) extra-test)
+                    ;; The current buffer is a next-error capable buffer.
+                    (progn
+                      (if other-buffer
+                          (message "This is the only next-error capable buffer."))
+                      (current-buffer)))
+               (error "No next-error capable buffer found"))))))))
+
+(defun next-error (arg &optional reset)
+  "Visit next next-error message and corresponding source code.
+
+If all the error messages parsed so far have been processed already,
+the message buffer is checked for new ones.
+
+A prefix ARG specifies how many error messages to move;
+negative means move back to previous error messages.
+Just \\[universal-argument] as a prefix means reparse the error message buffer
+and start at the first error.
+
+The RESET argument specifies that we should restart from the beginning.
+
+\\[next-error] normally uses the most recently started
+compilation, grep, or occur buffer.  It can also operate on any
+buffer with output from the \\[compile], \\[grep] commands, or,
+more generally, on any buffer in Compilation mode or with
+Compilation Minor mode enabled, or any buffer in which
+`next-error-function' is bound to an appropriate
+function.  To specify use of a particular buffer for error
+messages, type \\[next-error] in that buffer.
+
+Once \\[next-error] has chosen the buffer for error messages,
+it stays with that buffer until you use it in some other buffer which
+uses Compilation mode or Compilation Minor mode.
+
+See variables `compilation-parse-errors-function' and
+\`compilation-error-regexp-alist' for customization ideas."
+  (interactive "P")
+  (if (consp arg) (setq reset t arg nil))
+  (when (setq next-error-last-buffer (next-error-find-buffer))
+    ;; we know here that next-error-function is a valid symbol we can funcall
+    (with-current-buffer next-error-last-buffer
+      (funcall next-error-function (prefix-numeric-value arg) reset))))
+
+(defalias 'goto-next-locus 'next-error)
+(defalias 'next-match 'next-error)
+
+(define-key ctl-x-map "`" 'next-error)
+
+(defun previous-error (n)
+  "Visit previous next-error message and corresponding source code.
+
+Prefix arg N says how many error messages to move backwards (or
+forwards, if negative).
+
+This operates on the output from the \\[compile] and \\[grep] commands."
+  (interactive "p")
+  (next-error (- n)))
+
+(defun first-error (n)
+  "Restart at the first error.
+Visit corresponding source code.
+With prefix arg N, visit the source code of the Nth error.
+This operates on the output from the \\[compile] command, for instance."
+  (interactive "p")
+  (next-error n t))
+
+(defun next-error-no-select (n)
+  "Move point to the next error in the next-error buffer and highlight match.
+Prefix arg N says how many error messages to move forwards (or
+backwards, if negative).
+Finds and highlights the source line like \\[next-error], but does not
+select the source buffer."
+  (interactive "p")
+  (next-error n)
+  (pop-to-buffer next-error-last-buffer))
+
+(defun previous-error-no-select (n)
+  "Move point to the previous error in the next-error buffer and highlight match.
+Prefix arg N says how many error messages to move backwards (or
+forwards, if negative).
+Finds and highlights the source line like \\[previous-error], but does not
+select the source buffer."
+  (interactive "p")
+  (next-error-no-select (- n)))
+
+;;;
 
 (defun fundamental-mode ()
   "Major mode not specialized for anything in particular.
@@ -159,7 +307,7 @@ than the value of `fill-column' and ARG is nil."
 	(put-text-property from (point) 'rear-nonsticky
 			   (cons 'hard sticky)))))
 
-(defun open-line (arg)
+(defun open-line (n)
   "Insert a newline and leave point before it.
 If there is a fill prefix and/or a left-margin, insert them on the new line
 if the line would have been blank.
@@ -170,23 +318,23 @@ With arg N, insert N newlines."
 	 (loc (point))
 	 ;; Don't expand an abbrev before point.
 	 (abbrev-mode nil))
-    (newline arg)
+    (newline n)
     (goto-char loc)
-    (while (> arg 0)
+    (while (> n 0)
       (cond ((bolp)
 	     (if do-left-margin (indent-to (current-left-margin)))
 	     (if do-fill-prefix (insert-and-inherit fill-prefix))))
       (forward-line 1)
-      (setq arg (1- arg)))
+      (setq n (1- n)))
     (goto-char loc)
     (end-of-line)))
 
 (defun split-line (&optional arg)
   "Split current line, moving portion beyond point vertically down.
 If the current line starts with `fill-prefix', insert it on the new
-line as well.  With prefix arg, don't insert fill-prefix on new line.
+line as well.  With prefix ARG, don't insert fill-prefix on new line.
 
-When called from Lisp code, the arg may be a prefix string to copy."
+When called from Lisp code, ARG may be a prefix string to copy."
   (interactive "*P")
   (skip-chars-forward " \t")
   (let* ((col (current-column))
@@ -637,6 +785,23 @@ If nil, don't change the value of `debug-on-error'."
   :type 'boolean
   :version "21.1")
 
+(defun eval-expression-print-format (value)
+  "Format VALUE as a result of evaluated expression.
+Return a formatted string which is displayed in the echo area
+in addition to the value printed by prin1 in functions which
+display the result of expression evaluation."
+  (if (and (integerp value)
+           (or (not (memq this-command '(eval-last-sexp eval-print-last-sexp)))
+               (eq this-command last-command)
+               (and (boundp 'edebug-active) edebug-active)))
+      (let ((char-string
+             (if (or (and (boundp 'edebug-active) edebug-active)
+                     (memq this-command '(eval-last-sexp eval-print-last-sexp)))
+                 (prin1-char value))))
+        (if char-string
+            (format " (0%o, 0x%x) = %s" value value char-string)
+          (format " (0%o, 0x%x)" value value)))))
+
 ;; We define this, rather than making `eval' interactive,
 ;; for the sake of completion of names like eval-region, eval-current-buffer.
 (defun eval-expression (eval-expression-arg
@@ -671,7 +836,10 @@ the echo area."
 	(with-no-warnings
 	 (let ((standard-output (current-buffer)))
 	   (eval-last-sexp-print-value (car values))))
-      (prin1 (car values) t))))
+      (prog1
+          (prin1 (car values) t)
+        (let ((str (eval-expression-print-format (car values))))
+          (if str (princ str t)))))))
 
 (defun edit-and-eval-command (prompt command)
   "Prompting with PROMPT, let user edit COMMAND and eval result.
@@ -785,7 +953,8 @@ See also `minibuffer-history-case-insensitive-variables'."
 					nil
 					minibuffer-local-map
 					nil
-					'minibuffer-history-search-history)))
+					'minibuffer-history-search-history
+					(car minibuffer-history-search-history))))
      ;; Use the last regexp specified, by default, if input is empty.
      (list (if (string= regexp "")
 	       (if minibuffer-history-search-history
@@ -987,7 +1156,7 @@ as an argument limits undo to changes within the current region."
 	(undo-start))
       ;; get rid of initial undo boundary
       (undo-more 1))
-    ;; If we got this far, the next command should be a consecutive undo. 
+    ;; If we got this far, the next command should be a consecutive undo.
     (setq this-command 'undo)
     ;; Check to see whether we're hitting a redo record, and if
     ;; so, ask the user whether she wants to skip the redo/undo pair.
@@ -1935,7 +2104,7 @@ the text, but put the text in the kill ring anyway.  This means that
 you can use the killing commands to copy text from a read-only buffer.
 
 This is the primitive for programs to kill text (as opposed to deleting it).
-Supply two arguments, character numbers indicating the stretch of text
+Supply two arguments, character positions indicating the stretch of text
  to be killed.
 Any command that calls this function is a \"kill command\".
 If the previous command was also a kill command,
@@ -2009,11 +2178,12 @@ visual feedback indicating the extent of the region being copied."
 	    ;; look like a C-g typed as a command.
 	    (inhibit-quit t))
 	(if (pos-visible-in-window-p other-end (selected-window))
-	    (unless transient-mark-mode
+	    (unless (and transient-mark-mode
+			 (face-background 'region))
 	      ;; Swap point and mark.
 	      (set-marker (mark-marker) (point) (current-buffer))
 	      (goto-char other-end)
-	      (sit-for 1)
+	      (sit-for blink-matching-delay)
 	      ;; Swap back.
 	      (set-marker (mark-marker) other-end (current-buffer))
 	      (goto-char opoint)
@@ -2051,7 +2221,7 @@ The argument is used for internal purposes; do not supply one."
 The value should be a list of text properties to discard or t,
 which means to discard all text properties."
   :type '(choice (const :tag "All" t) (repeat symbol))
-  :group 'editing
+  :group 'killing
   :version "21.4")
 
 (defvar yank-window-start nil)
@@ -2261,8 +2431,7 @@ With prefix arg, kill that many lines starting from the current line.
 If arg is negative, kill backward.  Also kill the preceding newline.
 \(This is meant to make C-x z work well with negative arguments.\)
 If arg is zero, kill current line but exclude the trailing newline."
-  (interactive "P")
-  (setq arg (prefix-numeric-value arg))
+  (interactive "p")
   (if (and (> arg 0) (eobp) (save-excursion (forward-visible-line 0) (eobp)))
       (signal 'end-of-buffer nil))
   (if (and (< arg 0) (bobp) (save-excursion (end-of-visible-line) (bobp)))
@@ -3257,15 +3426,14 @@ Setting this variable automatically makes it local to the current buffer.")
 ;; (Actually some major modes use a different auto-fill function,
 ;; but this one is the default one.)
 (defun do-auto-fill ()
-  (let (fc justify bol give-up
+  (let (fc justify give-up
 	   (fill-prefix fill-prefix))
     (if (or (not (setq justify (current-justification)))
 	    (null (setq fc (current-fill-column)))
 	    (and (eq justify 'left)
 		 (<= (current-column) fc))
-	    (save-excursion (beginning-of-line)
-			    (setq bol (point))
-			    (and auto-fill-inhibit-regexp
+	    (and auto-fill-inhibit-regexp
+		 (save-excursion (beginning-of-line)
 				 (looking-at auto-fill-inhibit-regexp))))
 	nil ;; Auto-filling not required
       (if (memq justify '(full center right))
@@ -3288,16 +3456,15 @@ Setting this variable automatically makes it local to the current buffer.")
 	;; Determine where to split the line.
 	(let* (after-prefix
 	       (fill-point
-		(let ((opoint (point)))
-		  (save-excursion
-		    (beginning-of-line)
-		    (setq after-prefix (point))
-		    (and fill-prefix
-			 (looking-at (regexp-quote fill-prefix))
-			 (setq after-prefix (match-end 0)))
-		    (move-to-column (1+ fc))
-		    (fill-move-to-break-point after-prefix)
-		    (point)))))
+		(save-excursion
+		  (beginning-of-line)
+		  (setq after-prefix (point))
+		  (and fill-prefix
+		       (looking-at (regexp-quote fill-prefix))
+		       (setq after-prefix (match-end 0)))
+		  (move-to-column (1+ fc))
+		  (fill-move-to-break-point after-prefix)
+		  (point))))
 
 	  ;; See whether the place we found is any good.
 	  (if (save-excursion
@@ -4116,27 +4283,29 @@ The completion list buffer is available as the value of `standard-output'.")
 
 ;; This function goes in completion-setup-hook, so that it is called
 ;; after the text of the completion list buffer is written.
-(defface completion-emphasis 
+(defface completions-first-difference
   '((t (:inherit bold)))
   "Face put on the first uncommon character in completions in *Completions* buffer."
   :group 'completion)
 
-(defface completion-de-emphasis 
+(defface completions-common-part
   '((t (:inherit default)))
-  "Face put on the common prefix substring in completions in *Completions* buffer."
+  "Face put on the common prefix substring in completions in *Completions* buffer.
+The idea of `completions-common-part' is that you can use it to
+make the common parts less visible than normal, so that the rest
+of the differing parts is, by contrast, slightly highlighted."
   :group 'completion)
 
 (defun completion-setup-function ()
-  (save-excursion
-    (let ((mainbuf (current-buffer))
-	  (mbuf-contents (minibuffer-contents)))
-      ;; When reading a file name in the minibuffer,
-      ;; set default-directory in the minibuffer
-      ;; so it will get copied into the completion list buffer.
-      (if minibuffer-completing-file-name
-	  (with-current-buffer mainbuf
-	    (setq default-directory (file-name-directory mbuf-contents))))
-      (set-buffer standard-output)
+  (let ((mainbuf (current-buffer))
+	(mbuf-contents (minibuffer-contents)))
+    ;; When reading a file name in the minibuffer,
+    ;; set default-directory in the minibuffer
+    ;; so it will get copied into the completion list buffer.
+    (if minibuffer-completing-file-name
+	(with-current-buffer mainbuf
+	  (setq default-directory (file-name-directory mbuf-contents))))
+    (with-current-buffer standard-output
       (completion-list-mode)
       (make-local-variable 'completion-reference-buffer)
       (setq completion-reference-buffer mainbuf)
@@ -4145,35 +4314,36 @@ The completion list buffer is available as the value of `standard-output'.")
 	  ;; use the number of chars before the start of the
 	  ;; last file name component.
 	  (setq completion-base-size
-		(save-excursion
-		  (set-buffer mainbuf)
-		  (goto-char (point-max))
-		  (skip-chars-backward "^/")
-		  (- (point) (minibuffer-prompt-end))))
+		(with-current-buffer mainbuf
+		  (save-excursion
+		    (goto-char (point-max))
+		    (skip-chars-backward "^/")
+		    (- (point) (minibuffer-prompt-end)))))
 	;; Otherwise, in minibuffer, the whole input is being completed.
-	(save-match-data
-	  (if (minibufferp mainbuf)
-	      (setq completion-base-size 0))))
-       ;; Put emphasis and de-emphasis faces on completions.
+	(if (minibufferp mainbuf)
+	    (setq completion-base-size 0)))
+      ;; Put faces on first uncommon characters and common parts.
       (when completion-base-size
-	(let ((common-string-length (length 
-				     (substring mbuf-contents 
-						completion-base-size)))
-	      (element-start (next-single-property-change 
-			      (point-min)
-			      'mouse-face))
-	      element-common-end)
-	  (while element-start
-	    (setq element-common-end  (+ element-start common-string-length))
+	(let* ((common-string-length
+		(- (length mbuf-contents) completion-base-size))
+	       (element-start (next-single-property-change
+			       (point-min)
+			       'mouse-face))
+	       (element-common-end
+		(+ (or element-start nil) common-string-length))
+	       (maxp (point-max)))
+	  (while (and element-start (< element-common-end maxp))
 	    (when (and (get-char-property element-start 'mouse-face)
 		       (get-char-property element-common-end 'mouse-face))
 	      (put-text-property element-start element-common-end
-				 'font-lock-face 'completion-de-emphasis)
+				 'font-lock-face 'completions-common-part)
 	      (put-text-property element-common-end (1+ element-common-end)
-				 'font-lock-face 'completion-emphasis))
-	    (setq element-start (next-single-property-change 
+				 'font-lock-face 'completions-first-difference))
+	    (setq element-start (next-single-property-change
 				 element-start
-				 'mouse-face)))))
+				 'mouse-face))
+	    (if element-start
+		(setq element-common-end  (+ element-start common-string-length))))))
       ;; Insert help string.
       (goto-char (point-min))
       (if (display-mouse-p)
@@ -4624,5 +4794,5 @@ works by saving the value of `buffer-invisibility-spec' and setting it to nil."
 
 (provide 'simple)
 
-;;; arch-tag: 24af67c0-2a49-44f6-b3b1-312d8b570dfd
+;; arch-tag: 24af67c0-2a49-44f6-b3b1-312d8b570dfd
 ;;; simple.el ends here

@@ -1,6 +1,6 @@
 ;;; telnet.el --- run a telnet session from within an Emacs buffer
 
-;; Copyright (C) 1985, 1988, 1992, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 88, 1992, 94, 2004  Free Software Foundation, Inc.
 
 ;; Author: William F. Schelter
 ;; Maintainer: FSF
@@ -197,18 +197,28 @@ rejecting one login and prompting again for a username and password.")
 ;;;###autoload (add-hook 'same-window-regexps "\\*telnet-.*\\*\\(\\|<[0-9]+>\\)")
 
 ;;;###autoload
-(defun telnet (host)
+(defun telnet (host &optional port)
   "Open a network login connection to host named HOST (a string).
+Optional arg PORT specifies alternative port to connect to.
+Interactively, use \\[universal-argument] prefix to be prompted for port number.
+
 Communication with HOST is recorded in a buffer `*PROGRAM-HOST*'
 where PROGRAM is the telnet program being used.  This program
 is controlled by the contents of the global variable `telnet-host-properties',
 falling back on the value of the global variable `telnet-program'.
 Normally input is edited in Emacs and sent a line at a time."
-  (interactive "sOpen connection to host: ")
+  (interactive (list (read-string "Open connection to host: ")
+		     (cond
+		      ((null current-prefix-arg) nil)
+		      ((consp current-prefix-arg) (read-string "Port: "))
+		      (t (prefix-numeric-value current-prefix-arg)))))
+  (if (and port (numberp port))
+      (setq port (int-to-string port)))
   (let* ((comint-delimiter-argument-list '(?\  ?\t))
 	 (properties (cdr (assoc host telnet-host-properties)))
 	 (telnet-program (if properties (car properties) telnet-program))
-         (name (concat telnet-program "-" (comint-arguments host 0 nil) ))
+	 (hname (if port (concat host ":" port) host))
+         (name (concat telnet-program "-" (comint-arguments hname 0 nil) ))
 	 (buffer (get-buffer (concat "*" name "*")))
 	 (telnet-options (if (cdr properties) (cons "-l" (cdr properties))))
 	 process)
@@ -221,29 +231,22 @@ Normally input is edited in Emacs and sent a line at a time."
       ;; Don't send the `open' cmd till telnet is ready for it.
       (accept-process-output process)
       (erase-buffer)
-      (send-string process (concat "open " host "\n"))
+      (send-string process (concat "open " host
+				   (if port " " "") (or port "")
+				   "\n"))
       (telnet-mode)
       (setq comint-input-sender 'telnet-simple-send)
       (setq telnet-count telnet-initial-count))))
 
 (put 'telnet-mode 'mode-class 'special)
 
-(defun telnet-mode ()
+(define-derived-mode telnet-mode comint-mode "Telnet"
   "This mode is for using telnet (or rsh) from a buffer to another host.
 It has most of the same commands as comint-mode.
 There is a variable ``telnet-interrupt-string'' which is the character
 sent to try to stop execution of a job on the remote host.
-Data is sent to the remote host when RET is typed.
-
-\\{telnet-mode-map}
-"
-  (interactive)
-  (comint-mode)
-  (setq major-mode 'telnet-mode
-	mode-name "Telnet"
-	comint-prompt-regexp telnet-prompt-pattern)
-  (use-local-map telnet-mode-map)
-  (run-hooks 'telnet-mode-hook))
+Data is sent to the remote host when RET is typed."
+  (set (make-local-variable 'comint-prompt-regexp) telnet-prompt-pattern))
 
 ;;;###autoload (add-hook 'same-window-regexps "\\*rsh-[^-]*\\*\\(\\|<[0-9]*>\\)")
 

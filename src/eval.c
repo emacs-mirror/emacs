@@ -617,6 +617,7 @@ usage: (defun NAME ARGLIST [DOCSTRING] BODY...)  */)
   register Lisp_Object defn;
 
   fn_name = Fcar (args);
+  CHECK_SYMBOL (fn_name);
   defn = Fcons (Qlambda, Fcdr (args));
   if (!NILP (Vpurify_flag))
     defn = Fpurecopy (defn);
@@ -1220,7 +1221,7 @@ VAR may be nil; then you do not get access to the signal information.
 
 The value of the last BODY form is returned from the condition-case.
 See also the function `signal' for more info.
-usage: (condition-case VAR BODYFORM HANDLERS...)  */)
+usage: (condition-case VAR BODYFORM &rest HANDLERS)  */)
      (args)
      Lisp_Object args;
 {
@@ -1235,10 +1236,10 @@ usage: (condition-case VAR BODYFORM HANDLERS...)  */)
   handlers = Fcdr (Fcdr (args));
   CHECK_SYMBOL (var);
 
-  for (val = handlers; ! NILP (val); val = Fcdr (val))
+  for (val = handlers; CONSP (val); val = XCDR (val))
     {
       Lisp_Object tem;
-      tem = Fcar (val);
+      tem = XCAR (val);
       if (! (NILP (tem)
 	     || (CONSP (tem)
 		 && (SYMBOLP (XCAR (tem))
@@ -3242,6 +3243,25 @@ If NFRAMES is more than the number of frames, the value is nil.  */)
 }
 
 
+void
+mark_backtrace ()
+{
+  register struct backtrace *backlist;
+  register int i;
+
+  for (backlist = backtrace_list; backlist; backlist = backlist->next)
+    {
+      mark_object (*backlist->function);
+
+      if (backlist->nargs == UNEVALLED || backlist->nargs == MANY)
+	i = 0;
+      else
+	i = backlist->nargs - 1;
+      for (; i >= 0; i--)
+	mark_object (backlist->args[i]);
+    }
+}
+
 void
 syms_of_eval ()
 {

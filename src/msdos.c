@@ -40,6 +40,7 @@ Boston, MA 02111-1307, USA.  */
 #include <unistd.h>	 /* for chdir, dup, dup2, etc. */
 #include <dir.h>	 /* for getdisk */
 #if __DJGPP__ >= 2
+#pragma pack(0)		 /* dir.h does a pack(4), which isn't GCC's default */
 #include <fcntl.h>
 #include <io.h>		 /* for setmode */
 #include <dpmi.h>	 /* for __dpmi_xxx stuff */
@@ -950,8 +951,8 @@ static void
 IT_write_glyphs (struct glyph *str, int str_len)
 {
   unsigned char *screen_buf, *screen_bp, *screen_buf_end, *bp;
-  int unsupported_face = FAST_GLYPH_FACE (Vdos_unsupported_char_glyph);
-  unsigned unsupported_char= FAST_GLYPH_CHAR (Vdos_unsupported_char_glyph);
+  int unsupported_face = 0;
+  unsigned unsupported_char = '\177';
   int offset = 2 * (new_pos_X + screen_size_X * new_pos_Y);
   register int sl = str_len;
   register int tlen = GLYPH_TABLE_LENGTH;
@@ -976,6 +977,13 @@ IT_write_glyphs (struct glyph *str, int str_len)
   int conversion_buffer_size = sizeof conversion_buffer;
 
   if (str_len <= 0) return;
+
+  /* Set up the unsupported character glyph */
+  if (!NILP (Vdos_unsupported_char_glyph))
+    {
+      unsupported_char = FAST_GLYPH_CHAR (XINT (Vdos_unsupported_char_glyph));
+      unsupported_face = FAST_GLYPH_FACE (XINT (Vdos_unsupported_char_glyph));
+    }
 
   screen_buf = screen_bp = alloca (str_len * 2);
   screen_buf_end = screen_buf + str_len * 2;
@@ -1041,7 +1049,7 @@ IT_write_glyphs (struct glyph *str, int str_len)
 	  if (! CHAR_VALID_P (ch, 0))
 	    {
 	      g = !NILP (Vdos_unsupported_char_glyph)
-		? Vdos_unsupported_char_glyph
+		? XINT (Vdos_unsupported_char_glyph)
 		: MAKE_GLYPH (sf, '\177', GLYPH_FACE (sf, g));
 	      ch = FAST_GLYPH_CHAR (g);
 	    }
@@ -1571,7 +1579,7 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
       {
 	extern Lisp_Object Qmouse_face;
 	Lisp_Object mouse_face, overlay, position, *overlay_vec;
-	int len, noverlays, obegv, ozv;;
+	int noverlays, obegv, ozv;;
 	struct buffer *obuf;
 
 	/* If we get an out-of-range value, return now; avoid an error.  */
@@ -1590,20 +1598,8 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 	/* Is this char mouse-active or does it have help-echo?  */
 	XSETINT (position, pos);
 
-	/* Put all the overlays we want in a vector in overlay_vec.
-	   Store the length in len.  If there are more than 10, make
-	   enough space for all, and try again.  */
-	len = 10;
-	overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL, 0);
-	if (noverlays > len)
-	  {
-	    len = noverlays;
-	    overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	    noverlays = overlays_at (pos,
-				     0, &overlay_vec, &len, NULL, NULL, 0);
-	  }
-
+	/* Put all the overlays we want in a vector in overlay_vec. */
+	GET_OVERLAYS_AT (pos, overlay_vec, noverlays, NULL, 0);
 	/* Sort overlays into increasing priority order.  */
 	noverlays = sort_overlays (overlay_vec, noverlays, w);
 
@@ -4408,9 +4404,28 @@ init_environment (argc, argv, skip_args)
   for (i = 0; i < imax ; i++)
     {
       const char *tmp = tempdirs[i];
+      char buf[FILENAME_MAX];
 
       if (*tmp == '$')
-	tmp = getenv (tmp + 1);
+	{
+	  int tmp_len;
+
+	  tmp = getenv (tmp + 1);
+	  if (!tmp)
+	    continue;
+
+	  /* Some lusers set TMPDIR=e:, probably because some losing
+	     programs cannot handle multiple slashes if they use e:/.
+	     e: fails in `access' below, so we interpret e: as e:/.  */
+	  tmp_len = strlen(tmp);
+	  if (tmp[tmp_len - 1] != '/' && tmp[tmp_len - 1] != '\\')
+	    {
+	      strcpy(buf, tmp);
+	      buf[tmp_len++] = '/', buf[tmp_len] = 0;
+	      tmp = buf;
+	    }
+	}
+
       /* Note that `access' can lie to us if the directory resides on a
 	 read-only filesystem, like CD-ROM or a write-protected floppy.
 	 The only way to be really sure is to actually create a file and
@@ -5272,7 +5287,7 @@ syms_of_msdos ()
   DEFVAR_LISP ("dos-unsupported-char-glyph", &Vdos_unsupported_char_glyph,
 	       doc: /* *Glyph to display instead of chars not supported by current codepage.
 This variable is used only by MSDOS terminals.  */);
-  Vdos_unsupported_char_glyph = '\177';
+  Vdos_unsupported_char_glyph = make_number ('\177');
 
 #endif
 #ifndef subprocesses

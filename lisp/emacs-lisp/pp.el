@@ -50,33 +50,39 @@ to make output that `read' can handle, whenever this is possible."
 	  (let ((print-escape-newlines pp-escape-newlines)
 		(print-quoted t))
 	    (prin1 object (current-buffer)))
-	  (goto-char (point-min))
-	  (while (not (eobp))
-	    ;; (message "%06d" (- (point-max) (point)))
-	    (cond
-	     ((condition-case err-var
-		  (prog1 t (down-list 1))
-		(error nil))
-	      (save-excursion
-		(backward-char 1)
-		(skip-chars-backward "'`#^")
-		(when (and (not (bobp)) (= ?\ (char-before)))
-		  (delete-char -1)
-		  (insert "\n"))))
-	     ((condition-case err-var
-		  (prog1 t (up-list 1))
-		(error nil))
-	      (while (looking-at "\\s)")
-		(forward-char 1))
-	      (delete-region
-	       (point)
-	       (progn (skip-chars-forward " \t") (point)))
-	      (insert ?\n))
-	     (t (goto-char (point-max)))))
-	  (goto-char (point-min))
-	  (indent-sexp)
+          (pp-buffer)
 	  (buffer-string))
       (kill-buffer (current-buffer)))))
+
+(defun pp-buffer ()
+  "Prettify the current buffer with printed representation of a Lisp object."
+  (goto-char (point-min))
+  (while (not (eobp))
+    ;; (message "%06d" (- (point-max) (point)))
+    (cond
+     ((condition-case err-var
+          (prog1 t (down-list 1))
+        (error nil))
+      (save-excursion
+        (backward-char 1)
+        (skip-chars-backward "'`#^")
+        (when (and (not (bobp)) (memq (char-before) '(?\ ?\t ?\n)))
+          (delete-region
+           (point)
+           (progn (skip-chars-backward " \t\n") (point)))
+          (insert "\n"))))
+     ((condition-case err-var
+          (prog1 t (up-list 1))
+        (error nil))
+      (while (looking-at "\\s)")
+        (forward-char 1))
+      (delete-region
+       (point)
+       (progn (skip-chars-forward " \t\n") (point)))
+      (insert ?\n))
+     (t (goto-char (point-max)))))
+  (goto-char (point-min))
+  (indent-sexp))
 
 ;;;###autoload
 (defun pp (object &optional stream)

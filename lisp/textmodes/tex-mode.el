@@ -1944,21 +1944,22 @@ for the error messages."
 	      (or (null last-filename)
 		  (not (string-equal last-filename filename))))
 	     (error-location
-	      (save-excursion
-		(if (equal filename (concat tex-zap-file ".tex"))
-		    (set-buffer tex-last-buffer-texed)
-		  (set-buffer (find-file-noselect filename)))
-		(if new-file
-		    (progn (goto-line linenum) (setq last-position nil))
-		  (goto-char last-position)
-		  (forward-line (- linenum last-linenum)))
-		;; first try a forward search for the error text,
-		;; then a backward search limited by the last error.
-		(let ((starting-point (point)))
-		  (or (re-search-forward error-text nil t)
-		      (re-search-backward error-text last-position t)
-		      (goto-char starting-point)))
-		(point-marker))))
+	      (with-current-buffer
+		  (if (equal filename (concat tex-zap-file ".tex"))
+		      tex-last-buffer-texed
+		    (find-file-noselect filename))
+		(save-excursion
+		  (if new-file
+		      (progn (goto-line linenum) (setq last-position nil))
+		    (goto-char last-position)
+		    (forward-line (- linenum last-linenum)))
+		  ;; first try a forward search for the error text,
+		  ;; then a backward search limited by the last error.
+		  (let ((starting-point (point)))
+		    (or (re-search-forward error-text nil t)
+			(re-search-backward error-text last-position t)
+			(goto-char starting-point)))
+		  (point-marker)))))
 	(goto-char this-error)
 	(if (and compilation-error-list
 		 (or (and find-at-least

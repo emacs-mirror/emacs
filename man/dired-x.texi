@@ -270,7 +270,7 @@ initialization file @file{default.el} in the @file{site-lisp} directory, put
 (add-hook 'dired-mode-hook
           (lambda ()
             ;; Set dired-x buffer-local variables here.  For example:
-            ;; (setq dired-omit-files-p t)
+            ;; (dired-omit-mode 1)
             ))
 @end example
 
@@ -394,16 +394,19 @@ Marked files are never omitted.
 @table @kbd
 @item M-o
 @kindex M-o
-@findex dired-omit-toggle
-(@code{dired-omit-toggle}) Toggle between displaying and omitting
-``uninteresting'' files.  With a prefix argument, just mark
-the files, but don't actually omit them.
+@findex dired-omit-mode
+(@code{dired-omit-mode}) Toggle between displaying and omitting
+``uninteresting'' files.
+@item * O
+@kindex * O
+@findex dired-mark-omitted
+(@code{dired-mark-omitted}) Mark ``uninteresting'' files.
 @end table
 
 @noindent
 In order to make Dired Omit work you first need to load @file{dired-x.el}
-inside @code{dired-load-hook} (@pxref{Installation}) and then set
-@code{dired-omit-files-p} in some way (@pxref{Omitting Variables}).
+inside @code{dired-load-hook} (@pxref{Installation}) and then evaluate
+@code{(dired-omit-mode 1)} in some way (@pxref{Omitting Variables}).
 
 @ifinfo
 @menu
@@ -423,8 +426,8 @@ The following variables can be used to customize omitting.
 
 @table @code
 
-@vindex dired-omit-files-p
-@item dired-omit-files-p
+@vindex dired-omit-mode
+@item dired-omit-mode
 
 Default: @code{nil}
 
@@ -432,11 +435,11 @@ Default: @code{nil}
 If non-@code{nil}, ``uninteresting'' files are not listed.
 Uninteresting files are those whose files whose names match regexp
 @code{dired-omit-files}, plus those ending with extensions in
-@code{dired-omit-extensions}.  @kbd{M-o} (@code{dired-omit-toggle})
+@code{dired-omit-extensions}.  @kbd{M-o} (@code{dired-omit-mode})
 toggles its value, which is buffer-local.  Put
 
 @example
-(setq dired-omit-files-p t)
+(dired-omit-mode 1)
 @end example
 
 @noindent
@@ -449,7 +452,7 @@ Local Variables and put
 
 @example
 Local Variables:
-dired-omit-files-p: t
+dired-omit-mode: t
 End:
 @end example
 
@@ -473,7 +476,7 @@ the directory listing (@pxref{Local Variables}).
 Default: @code{"^#\\|\\.$"}
 
 Files whose names match this buffer-local regexp will not be displayed.
-This only has effect when @code{dired-omit-files-p}'s value is @code{t}.
+This only has effect when @code{dired-omit-mode}'s value is @code{t}.
 
 The default value omits the special directories @file{.} and @file{..}  and
 autosave files (plus other files ending in @file{.}) (@pxref{Omitting Examples}).
@@ -604,7 +607,7 @@ For example, if the user puts
 @example
 Local Variables:
 dired-actual-switches: "-lat"
-dired-omit-files-p: t
+dired-omit-mode: t
 End:
 @end example
 
@@ -696,7 +699,7 @@ Each element of the alist looks like
 @end example
 
 @noindent
-where each @var{command} can either be a string or a lisp expression
+where each @var{command} can either be a string or a Lisp expression
 that evaluates to a string.  If several commands are given, all of
 them will temporarily be pushed onto the history.
 
@@ -927,11 +930,11 @@ List of extensions of dispensable files created by Bib@TeX{}.
 @kindex M-(
 @findex dired-mark-sexp
 @cindex Lisp expression, marking files with in Dired
-@cindex Mark file by lisp expression
+@cindex Mark file by Lisp expression
 (@code{dired-mark-sexp}) Mark files for which @var{predicate} returns
 non-@code{nil}.  With a prefix argument, unflag those files instead.
 
-The @var{predicate} is a lisp expression that can refer to the following
+The @var{predicate} is a Lisp expression that can refer to the following
 symbols:
 @table @code
 @item inode
@@ -965,7 +968,7 @@ For example, use
 @end example
 to mark all zero length files.
 
-To find out all not yet compiled Emacs lisp files in a directory, Dired
+To find out all not yet compiled Emacs Lisp files in a directory, Dired
 all @file{.el} files in the lisp directory using the wildcard
 @samp{*.el}.  Then use @kbd{M-(} with
 @example
@@ -998,7 +1001,7 @@ directory in special major modes:
 Default: @code{((dired-mode . (dired-current-directory)))}
 
 Alist of major modes and their notion of @code{default-directory}, as a
-lisp expression to evaluate.  A resulting value of @code{nil} is ignored
+Lisp expression to evaluate.  A resulting value of @code{nil} is ignored
 in favor of @code{default-directory}.
 
 @item default-directory

@@ -5,6 +5,18 @@ in compiling, installing and running GNU Emacs.
 
 It's completely redundant now, as far as we know.
 
+* Environment Variables from dotfiles are ignored with Mac OS X (Carbon).
+
+When starting Emacs from the Dock or the Finder on Mac OS X, the
+environment variables that are set up in dotfiles, such as .cshrc or
+.profile, are ignored.  This is because the Finder and Dock are not
+started from a shell, but instead from the Window Manager itself.
+
+The workaround for this is to create a .MacOSX/environment.plist file to
+setup these environment variables.  These environment variables will
+apply to all processes regardless of where they are started.
+For me information, see http://developer.apple.com/qa/qa2001/qa1067.html.
+
 * Segfault on GNU/Linux using certain recent versions of the Linux kernel.
 
 With certain recent Linux kernels (like the one of Redhat Fedora Core
@@ -224,6 +236,12 @@ necessary to specify the -mwin32 flag when compiling, and define
 __MSVCRT__, like so:
 
   configure --with-gcc --cflags -mwin32 --cflags -D__MSVCRT__
+
+* Building the MS-Windows port fails with a CreateProcess failure.
+
+Some versions of mingw32 make on some versions of Windows do not seem
+to detect the shell correctly. Try "make SHELL=cmd.exe", or if that
+fails, try running make from Cygwin bash instead.
 
 * Building the MS-Windows port with Leim fails in the `leim' directory.
 
@@ -577,11 +595,6 @@ the Hebrew input method, type "C-x RET k iso-8859-8 RET".  (Emacs
 ought to recognize the Windows language-change event and set up the
 appropriate keyboard encoding automatically, but it doesn't do that
 yet.)
-
-Windows uses UTF-16 encoding to deal with multilingual text (text not
-encodable in the `system codepage') in the clipboard.  To deal with
-this, load the library `utf-16' and use `set-selection-coding-system'
-to set the clipboard coding system to `utf-16-le-with-signature-dos'.
 
 The %b specifier for format-time-string does not produce abbreviated
 month names with consistent widths for some locales on some versions

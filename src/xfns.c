@@ -4425,6 +4425,8 @@ x_create_tip_frame (dpyinfo, parms, text)
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (buffer));
   current_buffer->truncate_lines = Qnil;
+  specbind (Qinhibit_read_only, Qt);
+  specbind (Qinhibit_modification_hooks, Qt);
   Ferase_buffer ();
   Finsert (1, &text);
   set_buffer_internal_1 (old_buffer);
@@ -5477,6 +5479,11 @@ Chinese, Japanese, and Korean.  */);
 #endif /* USE_X_TOOLKIT */
 
 #ifdef USE_GTK
+  /* Provide x-toolkit also for GTK.  Internally GTK does not use Xt so it
+     is not an X toolkit in that sense (USE_X_TOOLKIT is not defined).
+     But for a user it is a toolkit for X, and indeed, configure
+     accepts --with-x-toolkit=gtk.  */
+  Fprovide (intern ("x-toolkit"), Qnil);
   Fprovide (intern ("gtk"), Qnil);
 
   DEFVAR_LISP ("gtk-version-string", &Vgtk_version_string,

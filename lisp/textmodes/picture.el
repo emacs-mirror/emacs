@@ -636,7 +636,15 @@ Leaves the region surrounding the rectangle."
       (define-key picture-mode-map "\C-c`" 'picture-movement-nw)
       (define-key picture-mode-map "\C-c'" 'picture-movement-ne)
       (define-key picture-mode-map "\C-c/" 'picture-movement-sw)
-      (define-key picture-mode-map "\C-c\\" 'picture-movement-se)))
+      (define-key picture-mode-map "\C-c\\" 'picture-movement-se)
+      (define-key picture-mode-map [(control ?c) left]  'picture-movement-left)
+      (define-key picture-mode-map [(control ?c) right] 'picture-movement-right)
+      (define-key picture-mode-map [(control ?c) up]    'picture-movement-up)
+      (define-key picture-mode-map [(control ?c) down]  'picture-movement-down)
+      (define-key picture-mode-map [(control ?c) home]  'picture-movement-nw)
+      (define-key picture-mode-map [(control ?c) prior] 'picture-movement-ne)
+      (define-key picture-mode-map [(control ?c) end]   'picture-movement-sw)
+      (define-key picture-mode-map [(control ?c) next]  'picture-movement-se)))
 
 (defcustom picture-mode-hook nil
   "If non-nil, its value is called on entry to Picture mode.

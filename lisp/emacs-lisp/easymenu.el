@@ -478,8 +478,8 @@ Do it only if `easy-menu-precalculate-equivalent-keybindings' is on."
   (when easy-menu-precalculate-equivalent-keybindings
     (if (and (symbolp menu) (not (keymapp menu)) (boundp menu))
 	(setq menu (symbol-value menu)))
-    ;; x-popup-menu does not exist on tty-only Emacs.
-    ;; (if (keymapp menu) (x-popup-menu nil menu))
+    (and (keymapp menu) (fboundp 'x-popup-menu)
+	 (x-popup-menu nil menu))
     ))
 
 (defun add-submenu (menu-path submenu &optional before in-menu)

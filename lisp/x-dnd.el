@@ -308,14 +308,13 @@ and must have the format file:file-name or file:///file-name.
 The last / in file:/// is part of the file name.  ACTION is ignored."
 
   (let* ((f (x-dnd-get-local-file-name uri t)))
-    (when f
-      (if (file-readable-p f)
-	  (progn
-	    (if x-dnd-open-file-other-window
-		(find-file-other-window f)
-	      (find-file f))
-	    'private)
-	(error "Can not read %s (%s)" f uri)))))
+    (if (and f (file-readable-p f))
+	(progn
+	  (if x-dnd-open-file-other-window
+	      (find-file-other-window f)
+	    (find-file f))
+	  'private)
+      (error "Can not read %s" uri))))
 
 (defun x-dnd-open-file (uri action)
   "Open a local or remote file.
@@ -327,7 +326,8 @@ The last / in file://hostname/ is part of the file name."
   ;; The hostname may be our hostname, in that case, convert to a local
   ;; file.  Otherwise return nil.
   (let ((local-file (x-dnd-get-local-file-uri uri)))
-    (when local-file (x-dnd-open-local-file local-file action))))
+    (if local-file (x-dnd-open-local-file local-file action)
+      (error "Remote files not supported"))))
 
 
 (defun x-dnd-handle-moz-url (window action data)

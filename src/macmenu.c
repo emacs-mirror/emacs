@@ -1424,7 +1424,8 @@ set_frame_menubar (f, first_time, deep_p)
 
       for (i = 0; i < previous_menu_items_used; i++)
 	if (menu_items_used == i
-	    || (!Fequal (previous_items[i], XVECTOR (menu_items)->contents[i])))
+	    || (NILP (Fequal (previous_items[i],
+			      XVECTOR (menu_items)->contents[i]))))
 	  break;
       if (i == menu_items_used && i == previous_menu_items_used && i != 0)
 	{
@@ -1783,11 +1784,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   pos.h = x;
   pos.v = y;
 
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (FRAME_MAC_WINDOW (f)));
-#else
-  SetPort (FRAME_MAC_WINDOW (f));
-#endif
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   LocalToGlobal (&pos);
 
@@ -1941,11 +1938,7 @@ mac_dialog (widget_value *wv)
 
   window_ptr = GetNewCWindow (DIALOG_WINDOW_RESOURCE, NULL, (WindowPtr) -1);
 
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (window_ptr));
-#else
-  SetPort (window_ptr);
-#endif
+  SetPortWindowPort (window_ptr);
 
   TextFont (0);
   /* Left and right margins in the dialog are 13 pixels each.*/
@@ -1963,11 +1956,7 @@ mac_dialog (widget_value *wv)
   SizeWindow (window_ptr, dialog_width, 78, 0);
   ShowWindow (window_ptr);
 
-#if TARGET_API_MAC_CARBON
-  SetPort (GetWindowPort (window_ptr));
-#else
-  SetPort (window_ptr);
-#endif
+  SetPortWindowPort (window_ptr);
 
   TextFont (0);
 

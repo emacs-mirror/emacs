@@ -66,6 +66,8 @@
   '("Insert Hebrew" . calendar-mouse-insert-hebrew-diary-entry))
 (define-key calendar-mode-map [menu-bar diary isl]
   '("Insert Islamic" . calendar-mouse-insert-islamic-diary-entry))
+(define-key calendar-mode-map [menu-bar diary baha]
+  '("Insert Baha'i" . calendar-mouse-insert-bahai-diary-entry))
 (define-key calendar-mode-map [menu-bar diary cyc]
   '("Insert Cyclic" . insert-cyclic-diary-entry))
 (define-key calendar-mode-map [menu-bar diary blk]
@@ -109,6 +111,8 @@
   '("Julian Date" . calendar-goto-julian-date))
 (define-key calendar-mode-map [menu-bar goto islamic]
   '("Islamic Date" . calendar-goto-islamic-date))
+(define-key calendar-mode-map [menu-bar goto persian]
+  '("Baha'i Date" . calendar-goto-bahai-date))
 (define-key calendar-mode-map [menu-bar goto persian]
   '("Persian Date" . calendar-goto-persian-date))
 (define-key calendar-mode-map [menu-bar goto hebrew]
@@ -287,6 +291,19 @@ ERROR is t, otherwise just returns nil."
                       '("Monthly" . insert-monthly-islamic-diary-entry)
                       '("Yearly" . insert-yearly-islamic-diary-entry))))))
     (and islamic-selection (call-interactively islamic-selection))))
+
+(defun calendar-mouse-insert-bahai-diary-entry (event)
+  "Pop up menu to insert an Baha'i-date diary entry."
+  (interactive "e")
+  (let ((bahai-selection
+         (x-popup-menu
+          event
+          (list "Baha'i insert menu"
+                (list (calendar-bahai-date-string (calendar-cursor-to-date))
+                      '("One time" . insert-bahai-diary-entry)
+                      '("Monthly" . insert-monthly-bahai-diary-entry)
+                      '("Yearly" . insert-yearly-bahai-diary-entry))))))
+    (and bahai-selection (call-interactively bahai-selection))))
 
 (defun calendar-mouse-sunrise/sunset ()
   "Show sunrise/sunset times for mouse-selected date."
@@ -496,7 +513,9 @@ The output is in landscape format, one month to a page."
              (list (format "Hebrew date (before sunset): %s"
                            (calendar-hebrew-date-string date)))
              (list (format "Persian date: %s"
-                           (calendar-persian-date-string date))))
+                           (calendar-persian-date-string date)))
+             (list (format "Baha'i date (before sunset): %s"
+                           (calendar-bahai-date-string date))))
             (let ((i (calendar-islamic-date-string date)))
               (if (not (string-equal i ""))
                   (list (list (format "Islamic date (before sunset): %s" i)))))

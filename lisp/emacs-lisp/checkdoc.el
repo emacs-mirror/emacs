@@ -1246,7 +1246,7 @@ generating a buffered list of errors."
 With prefix ARG, turn Checkdoc minor mode on iff ARG is positive.
 
 In Checkdoc minor mode, the usual bindings for `eval-defun' which is
-bound to \\<checkdoc-minor-mode-map> \\[checkdoc-eval-defun] and `checkdoc-eval-current-buffer' are overridden to include
+bound to \\<checkdoc-minor-mode-map>\\[checkdoc-eval-defun] and `checkdoc-eval-current-buffer' are overridden to include
 checking of documentation strings.
 
 \\{checkdoc-minor-mode-map}"
@@ -2579,86 +2579,52 @@ This function will not modify `match-data'."
 ;;; Warning management
 ;;
 (defvar checkdoc-output-font-lock-keywords
-  '(("\\(\\w+\\.el\\): \\(\\w+\\)"
+  '(("^\\*\\*\\* \\(.+\\.el\\): \\([^ \n]+\\)"
      (1 font-lock-function-name-face)
-     (2 font-lock-comment-face))
-    ("^\\(\\w+\\.el\\):" 1 font-lock-function-name-face)
-    (":\\([0-9]+\\):" 1 font-lock-constant-face))
+     (2 font-lock-comment-face)))
   "Keywords used to highlight a checkdoc diagnostic buffer.")
 
-(defvar checkdoc-output-mode-map nil
-  "Keymap used in `checkdoc-output-mode'.")
+(defvar checkdoc-output-error-regex-alist
+  '(("^\\(.+\\.el\\):\\([0-9]+\\): " 1 2)))
 
 (defvar checkdoc-pending-errors nil
   "Non-nil when there are errors that have not been displayed yet.")
 
-(if checkdoc-output-mode-map
-    nil
-  (setq checkdoc-output-mode-map (make-sparse-keymap))
-  (if (not (string-match "XEmacs" emacs-version))
-      (define-key checkdoc-output-mode-map [mouse-2]
-	'checkdoc-find-error))
-  (define-key checkdoc-output-mode-map "\C-c\C-c" 'checkdoc-find-error)
-  (define-key checkdoc-output-mode-map "\C-m" 'checkdoc-find-error))
-
-(defun checkdoc-output-mode ()
-  "Create and setup the buffer used to maintain checkdoc warnings.
-\\<checkdoc-output-mode-map>\\[checkdoc-find-error]  - Go to this error location."
-  (if (get-buffer checkdoc-diagnostic-buffer)
-      (get-buffer checkdoc-diagnostic-buffer)
-    (save-excursion
-      (set-buffer (get-buffer-create checkdoc-diagnostic-buffer))
-      (kill-all-local-variables)
-      (setq mode-name "Checkdoc"
-	    major-mode 'checkdoc-output-mode)
-      (set (make-local-variable 'font-lock-defaults)
-	   '((checkdoc-output-font-lock-keywords) t t ((?- . "w") (?_ . "w"))))
-      (use-local-map checkdoc-output-mode-map)
-      (run-hooks 'checkdoc-output-mode-hook)
-      (current-buffer))))
-
-(defalias 'checkdoc-find-error-mouse 'checkdoc-find-error)
-(defun checkdoc-find-error (&optional event)
-  "In a checkdoc diagnostic buffer, find the error under point."
-  (interactive (list last-input-event))
-  (if event (posn-set-point (event-end e)))
-  (beginning-of-line)
-  (if (looking-at "\\(\\(\\w+\\|\\s_\\)+\\.el\\):\\([0-9]+\\):")
-      (let ((l (string-to-int (match-string 3)))
-	    (f (match-string 1)))
-	(if (not (get-file-buffer f))
-	    (error "Can't find buffer %s" f))
-	(switch-to-buffer-other-window (get-file-buffer f))
-	(goto-line l))))
+(define-derived-mode checkdoc-output-mode compilation-mode "Checkdoc"
+  "Set up the major mode for the buffer containing the list of errors."
+  (set (make-local-variable 'compilation-error-regexp-alist)
+       checkdoc-output-error-regex-alist)
+  (set (make-local-variable 'compilation-mode-font-lock-keywords)
+       checkdoc-output-font-lock-keywords))
 
 (defun checkdoc-buffer-label ()
   "The name to use for a checkdoc buffer in the error list."
   (if (buffer-file-name)
-      (file-name-nondirectory (buffer-file-name))
+      (file-relative-name (buffer-file-name))
     (concat "#<buffer "(buffer-name) ">")))
 
 (defun checkdoc-start-section (check-type)
   "Initialize the checkdoc diagnostic buffer for a pass.
 Create the header so that the string CHECK-TYPE is displayed as the
 function called to create the messages."
-  (checkdoc-output-to-error-buffer
-   "\n\n\C-l\n*** "
-   (checkdoc-buffer-label) ": " check-type " V " checkdoc-version))
+  (let ((dir default-directory)
+	(label (checkdoc-buffer-label)))
+    (with-current-buffer (get-buffer-create checkdoc-diagnostic-buffer)
+      (checkdoc-output-mode)
+      (setq default-directory dir)
+      (goto-char (point-max))
+      (insert "\n\n\C-l\n*** " label ": " check-type " V " checkdoc-version))))
 
 (defun checkdoc-error (point msg)
   "Store POINT and MSG as errors in the checkdoc diagnostic buffer."
   (setq checkdoc-pending-errors t)
-  (checkdoc-output-to-error-buffer
-   "\n" (checkdoc-buffer-label) ":"
-   (int-to-string (count-lines (point-min) (or point (point-min)))) ": "
-   msg))
-
-(defun checkdoc-output-to-error-buffer (&rest text)
-  "Place TEXT into the checkdoc diagnostic buffer."
-  (save-excursion
-    (set-buffer (checkdoc-output-mode))
-    (goto-char (point-max))
-    (apply 'insert text)))
+  (let ((text (list "\n" (checkdoc-buffer-label) ":"
+		    (int-to-string
+		     (count-lines (point-min) (or point (point-min))))
+		    ": " msg)))
+    (with-current-buffer (get-buffer checkdoc-diagnostic-buffer)
+      (goto-char (point-max))
+      (apply 'insert text))))
 
 (defun checkdoc-show-diagnostics ()
   "Display the checkdoc diagnostic buffer in a temporary window."

@@ -89,24 +89,24 @@ enum syntaxcode
 
 #ifdef __GNUC__
 #define SYNTAX(c)							\
-  ({ Lisp_Object temp;							\
-     temp = SYNTAX_ENTRY (c);						\
-     (CONSP (temp)							\
-      ? (enum syntaxcode) (XINT (XCAR (temp)) & 0xff)		\
+  ({ Lisp_Object _syntax_temp;						\
+     _syntax_temp = SYNTAX_ENTRY (c);					\
+     (CONSP (_syntax_temp)						\
+      ? (enum syntaxcode) (XINT (XCAR (_syntax_temp)) & 0xff)		\
       : Swhitespace); })
 
 #define SYNTAX_WITH_FLAGS(c)						\
-  ({ Lisp_Object temp;							\
-     temp = SYNTAX_ENTRY (c);						\
-     (CONSP (temp)							\
-      ? XINT (XCAR (temp))					\
+  ({ Lisp_Object _syntax_temp;						\
+     _syntax_temp = SYNTAX_ENTRY (c);					\
+     (CONSP (_syntax_temp)						\
+      ? XINT (XCAR (_syntax_temp))					\
       : (int) Swhitespace); })
 
 #define SYNTAX_MATCH(c)							\
-  ({ Lisp_Object temp;							\
-     temp = SYNTAX_ENTRY (c);						\
-     (CONSP (temp)							\
-      ? XCDR (temp)						\
+  ({ Lisp_Object _syntax_temp;						\
+     _syntax_temp = SYNTAX_ENTRY (c);					\
+     (CONSP (_syntax_temp)						\
+      ? XCDR (_syntax_temp)						\
       : Qnil); })
 #else
 extern Lisp_Object syntax_temp;

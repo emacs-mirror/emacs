@@ -43,7 +43,7 @@
 	     (unibyte-display . iso-latin-1)
 	     (input-method . "latin-1-prefix")
 	     (sample-text
-	      . "Hello, Hej, Tere, Hei, Bonjour, Gr,A|_(B Gott, Ciao, ,A!(BHola!")
+	      . "Hello, Hej, Tere, Hei, Bonjour, Gr$(D+d)N(B Gott, Ciao, $(D"B(BHola!")
 	     (documentation . "\
 This language environment is a generic one for the Latin-1 (ISO-8859-1)
 character set which supports the following European languages:
@@ -241,7 +241,7 @@ See also the Turkish environment."))
 	     (unibyte-display . iso-latin-8)
 	     (input-method . "latin-8-prefix")
 	     ;; Fixme: Welsh/Ga{e}lic greetings
-	     (sample-text . ",_"(B ,_p(B ,_^(B")
+	     (sample-text . ",_"(B $(D+q(B $(D*t(B")
 	     (documentation . "\
 This language environment is a generic one for the Latin-8 (ISO-8859-14)
 character set which supports the Celtic languages, including those not
@@ -271,7 +271,7 @@ covered by other ISO-8859 character sets:
 	     (unibyte-display . iso-latin-9)
 	     (input-method . "latin-9-prefix")
 	     (sample-text
-	      . "AVE. ,B)9.>,b<=,_/(B ,b$(B")
+	      . "AVE. $(D*^+^*v+v)-)M*s(B $(Q)!(B")
 	     (documentation . "\
 This language environment is a generic one for the Latin-9 (ISO-8859-15)
 character set which supports the same languages as Latin-1 with the
@@ -406,7 +406,7 @@ but it selects the Dutch tutorial and input method."))
 	    (unibyte-display . iso-latin-1)
 	    (sample-text . "\
 German (Deutsch Nord)	Guten Tag
-German (Deutsch S,A|(Bd)	Gr,A|_(B Gott")
+German (Deutsch S$(D+d(Bd)	Gr$(D+d)N(B Gott")
 	    (documentation . "\
 This language environment is almost the same as Latin-1,
 but sets the default input method to \"german-postfix\".
@@ -421,7 +421,7 @@ Additionally, it selects the German tutorial."))
 	    (nonascii-translation . iso-8859-1)
 	    (unibyte-display . iso-latin-1)
 	    (input-method . "latin-1-prefix")
-	    (sample-text . "French (Fran,Ag(Bais)	Bonjour, Salut")
+	    (sample-text . "French (Fran$(D+.(Bais)	Bonjour, Salut")
 	    (documentation . "\
 This language environment is almost the same as Latin-1,
 but it selects the French tutorial and input method."))
@@ -450,7 +450,7 @@ Additionally, it selects the Italian tutorial."))
 	      (input-method . "slovenian")
 	      (unibyte-display . iso-8859-2)
 	      (tutorial . "TUTORIAL.sl")
-	      (sample-text . ",B.(Belimo vam uspe,B9(Ben dan!")
+	      (sample-text . "$(D*v(Belimo vam uspe$(D+^(Ben dan!")
 	      (documentation . "\
 This language environment is almost the same as Latin-2,
 but it selects the Slovenian tutorial and input method."))
@@ -464,7 +464,7 @@ but it selects the Slovenian tutorial and input method."))
 	    (input-method . "spanish-postfix")
 	    (nonascii-translation . iso-8859-1)
 	    (unibyte-display . iso-latin-1)
-	    (sample-text . "Spanish (Espa,Aq(Bol)	,A!(BHola!")
+	    (sample-text . "Spanish (Espa$(D+P(Bol)	$(D"B(BHola!")
 	    (documentation . "\
 This language environment is almost the same as Latin-1,
 but it sets the default input method to \"spanish-postfix\",
@@ -483,19 +483,19 @@ and it selects the Spanish tutorial."))
 	     (nonascii-translation . iso-8859-9)
 	     (unibyte-display . iso-latin-5)
 	     (input-method . "turkish-postfix")
-	     (sample-text . "Turkish (T,A|(Brk,Ag(Be)	Merhaba")
+	     (sample-text . "Turkish (T$(D+d(Brk$(D+.(Be)	Merhaba")
 	     (setup-function
 	      . (lambda ()
-		  (set-case-syntax-pair ?I ?,C9(B (standard-case-table))
-		  (set-case-syntax-pair ?,C)(B ?i (standard-case-table))))
+		  (set-case-syntax-pair ?I ?$(D)E(B (standard-case-table))
+		  (set-case-syntax-pair ?$(D*D(B ?i (standard-case-table))))
 	     (exit-function
 	      . (lambda ()
 		  (set-case-syntax-pair ?I ?i (standard-case-table))
-		  (set-case-syntax ?,C9(B "w" (standard-case-table))
-		  (set-case-syntax ?,C)(B "w" (standard-case-table))))
+		  (set-case-syntax ?$(D)E(B "w" (standard-case-table))
+		  (set-case-syntax ?$(D*D(B "w" (standard-case-table))))
 	     (documentation . "Support for Turkish.
 Differs from the Latin-5 environment in using the `turkish-postfix' input
-method and applying Turkish case rules for the characters i, I, ,C9(B, ,C)(B.")))
+method and applying Turkish case rules for the characters i, I, $(D)E(B, $(D*D(B.")))
 
 ;; Polish ISO 8859-2 environment.
 ;; Maintainer: Wlodek Bzyl <matwb@univ.gda.pl>
@@ -509,7 +509,7 @@ method and applying Turkish case rules for the characters i, I, ,C9(B, ,C)(B
 	   (nonascii-translation . iso-8859-2)
 	   (unibyte-display . iso-8859-2)
 	   (tutorial . "TUTORIAL.pl")
-	   (sample-text . "P,As(Bjd,B<(B, ki,Bq(B-,B?(Be t,Bj(B chmurno,B6f(B w g,B31(Bb flaszy")
+	   (sample-text . "P$(D+Q(Bjd$(D+u(B, ki$(D+M(B-$(D+w(Be t$(D+8(B chmurno$(D+\++(B w g$(D)H+((Bb flaszy")
 	   (documentation . t))
  '("European"))
 
@@ -573,6 +573,18 @@ method and applying Turkish case rules for the characters i, I, ,C9(B, ,C)(B
 	      (nonascii-translation . iso-8859-2)
 	      (unibyte-display . iso-8859-2)
 	      (documentation . "Support for Croatian with Latin-2 encoding."))
+ '("European"))
+
+(set-language-info-alist
+ "Brazilian Portuguese" '((tutorial . "TUTORIAL.pt_BR")
+	    (charset iso-8859-1)
+	    (coding-system iso-latin-1 iso-latin-9)
+	    (coding-priority iso-latin-1)
+	    (nonascii-translation . iso-8859-1)
+	    (unibyte-display . iso-8859-1)
+	    (input-method . "latin-1-prefix")
+	    (sample-text . "Oi")
+	    (documentation . "Support for Brazilian Portuguese."))
  '("European"))
 
 

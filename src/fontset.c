@@ -1712,7 +1712,10 @@ If the named font is not yet loaded, return nil.  */)
 /* Return a cons (FONT-NAME . GLYPH-CODE).
    FONT-NAME is the font name for the character at POSITION in the current
    buffer.  This is computed from all the text properties and overlays
-   that apply to POSITION.
+   that apply to POSITION.  POSTION may be nil, in which case,
+   FONT-NAME is the font name for display the character CH with the
+   default face.
+
    GLYPH-CODE is the glyph code in the font to use for the character.
 
    If the 2nd optional arg CH is non-nil, it is a character to check
@@ -1725,7 +1728,8 @@ If the named font is not yet loaded, return nil.  */)
 
    (2) The character code is invalid.
 
-   (3) The current buffer is not displayed in any window.
+   (3) If POSITION is not nil, and the current buffer is not displayed
+   in any window.
 
    In addition, the returned font name may not take into account of
    such redisplay engine hooks as what used in jit-lock-mode if
@@ -1740,39 +1744,53 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
   int pos, pos_byte, dummy;
   int face_id;
   int c;
-  Lisp_Object window;
-  struct window *w;
   struct frame *f;
   struct face *face;
   Lisp_Object charset, rfont_def;
-  int charset_id;
+  int id;
 
-  CHECK_NUMBER_COERCE_MARKER (position);
-  pos = XINT (position);
-  if (pos < BEGV || pos >= ZV)
-    args_out_of_range_3 (position, make_number (BEGV), make_number (ZV));
-  pos_byte = CHAR_TO_BYTE (pos);
-  if (NILP (ch))
-    c = FETCH_CHAR (pos_byte);
-  else
+  if (NILP (position))
     {
       CHECK_CHARACTER (ch);
       c = XINT (ch);
+      f = XFRAME (selected_frame);
+      face_id = DEFAULT_FACE_ID;
+      pos = -1;
     }
-  window = Fget_buffer_window (Fcurrent_buffer (), Qnil);
-  if (NILP (window))
+  else
+    {
+      Lisp_Object window;
+      struct window *w;
+
+      CHECK_NUMBER_COERCE_MARKER (position);
+      pos = XINT (position);
+      if (pos < BEGV || pos >= ZV)
+	args_out_of_range_3 (position, make_number (BEGV), make_number (ZV));
+      pos_byte = CHAR_TO_BYTE (pos);
+      if (NILP (ch))
+	c = FETCH_CHAR (pos_byte);
+      else
+	{
+	  CHECK_NATNUM (ch);
+	  c = XINT (ch);
+	}
+      window = Fget_buffer_window (Fcurrent_buffer (), Qnil);
+      if (NILP (window))
+	return Qnil;
+      w = XWINDOW (window);
+      f = XFRAME (w->frame);
+      face_id = face_at_buffer_position (w, pos, -1, -1, &dummy, pos + 100, 0);
+    }
+  if (! CHAR_VALID_P (c, 0))
     return Qnil;
-  w = XWINDOW (window);
-  f = XFRAME (w->frame);
-  face_id = face_at_buffer_position (w, pos, -1, -1, &dummy, pos + 100, 0);
+  face_id = FACE_FOR_CHAR (f, FACE_FROM_ID (f, face_id), c, pos, Qnil);
   face = FACE_FROM_ID (f, face_id);
   charset = Fget_char_property (position, Qcharset, Qnil);
   if (CHARSETP (charset))
-    charset_id = XINT (CHARSET_SYMBOL_ID (charset));
+    id = XINT (CHARSET_SYMBOL_ID (charset));
   else
-    charset_id = -1;
-  rfont_def = fontset_font (FONTSET_FROM_ID (face->fontset),
-			    c, face, charset_id);
+    id = -1;
+  rfont_def = fontset_font (FONTSET_FROM_ID (face->fontset), c, face, id);
   if (VECTORP (rfont_def) && STRINGP (AREF (rfont_def, 3)))
     {
       Lisp_Object font_def;

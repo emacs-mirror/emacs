@@ -5716,6 +5716,9 @@ buffer_posn_from_coords (w, x, y, pos, object, dx, dy, width, height)
   struct text_pos startp;
   Lisp_Object string;
   struct glyph_row *row;
+#ifdef HAVE_WINDOW_SYSTEM
+  struct image *img = 0;
+#endif
   int x0, x1;
 
   current_buffer = XBUFFER (w->buffer);
@@ -5741,7 +5744,6 @@ buffer_posn_from_coords (w, x, y, pos, object, dx, dy, width, height)
 #ifdef HAVE_WINDOW_SYSTEM
   if (it.what == IT_IMAGE)
     {
-      struct image *img;
       if ((img = IMAGE_FROM_ID (it.f, it.image_id)) != NULL
 	  && !NILP (img->spec))
 	*object = img->spec;
@@ -5754,12 +5756,22 @@ buffer_posn_from_coords (w, x, y, pos, object, dx, dy, width, height)
       if (it.hpos < row->used[TEXT_AREA])
 	{
 	  struct glyph *glyph = row->glyphs[TEXT_AREA] + it.hpos;
-	  *width = glyph->pixel_width;
-	  *height = glyph->ascent + glyph->descent;
 #ifdef HAVE_WINDOW_SYSTEM
-	  if (glyph->type == IMAGE_GLYPH)
-	    *dy -= row->ascent - glyph->ascent;
+	  if (img)
+	    {
+	      *dy -= row->ascent - glyph->ascent;
+	      *dx += glyph->slice.x;
+	      *dy += glyph->slice.y;
+	      /* Image slices positions are still relative to the entire image */
+	      *width = img->width;
+	      *height = img->height;
+	    }
+	  else
 #endif
+	    {
+	      *width = glyph->pixel_width;
+	      *height = glyph->ascent + glyph->descent;
+	    }
 	}
       else
 	{
@@ -5925,6 +5937,8 @@ marginal_area_string (w, part, x, y, charpos, object, dx, dy, width, height)
 	      if (img != NULL)
 		*object = img->spec;
 	      y0 -= row->ascent - glyph->ascent;
+	      x0 += glyph->slice.x;
+	      y0 += glyph->slice.y;
 	    }
 #endif
 	}

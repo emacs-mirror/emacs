@@ -1,6 +1,6 @@
-#### Makefile for the Emacs Manual and other documentation.
+#### -*- Makefile -*- for the Emacs Manual and other documentation.
 
-# Copyright (C) 2003
+# Copyright (C) 2003, 2004
 #  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -45,13 +45,15 @@ INFO_TARGETS = $(infodir)/emacs $(infodir)/ccmode \
 		$(infodir)/pcl-cvs $(infodir)/woman \
 		$(infodir)/emacs-mime $(infodir)/eshell \
 		$(infodir)/speedbar $(infodir)/tramp \
-		$(infodir)/ses $(infodir)/smtpmail
+		$(infodir)/ses $(infodir)/smtpmail \
+		$(infodir)/flymake $(infodir)/emacs-xtra
 DVI_TARGETS = 	emacs.dvi calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ediff.dvi forms.dvi gnus.dvi message.dvi mh-e.dvi \
 		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
 		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
 		 pcl-cvs.dvi woman.dvi emacs-mime.dvi eshell.dvi \
-		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi
+		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi flymake.dvi \
+		 emacs-xtra.dvi
 INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
@@ -65,6 +67,7 @@ ENVADD = $(srcdir)\..\nt\envadd.bat "TEXINPUTS=$(srcdir);$(TEXINPUTS)" \
 
 EMACSSOURCES= \
 	$(srcdir)/emacs.texi \
+	$(srcdir)/emacs-xtra.texi \
 	$(srcdir)/doclicense.texi \
 	$(srcdir)/screen.texi \
 	$(srcdir)/commands.texi \
@@ -177,6 +180,11 @@ $(infodir)/ediff: ediff.texi
 ediff.dvi: ediff.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/ediff.texi
 
+$(infodir)/flymake: flymake.texi
+	$(MAKEINFO) flymake.texi
+flymake.dvi: flymake.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/flymake.texi
+
 $(infodir)/forms: forms.texi
 	$(MAKEINFO) forms.texi
 forms.dvi: forms.texi
@@ -185,7 +193,7 @@ forms.dvi: forms.texi
 $(infodir)/gnus: gnus.texi
 	$(MAKEINFO) gnus.texi
 gnus.dvi: gnus.texi
-	sed -e '/@iflatex/,/@end iflatex/d' $(srcdir)/gnus.texi > gnustmp.texi 
+	sed -e '/@iflatex/,/@end iflatex/d' $(srcdir)/gnus.texi > gnustmp.texi
 	$(ENVADD) $(TEXI2DVI) gnustmp.texi
 	cp gnustmp.dvi $*.dvi
 	rm gnustmp.*
@@ -291,6 +299,12 @@ $(infodir)/smtpmail: smtpmail.texi
 smtpmail.dvi: smtpmail.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/smtpmail.texi
 
+$(infodir)/emacs-xtra: emacs-xtra.texi
+	$(MAKEINFO) emacs-xtra.texi
+
+emacs-xtra.dvi: emacs-xtra.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/emacs-xtra.texi
+
 mostlyclean:
 	- $(DEL) *.log *.cp *.fn *.ky *.pg *.vr core *.tp *.core gnustmp.*
 
@@ -302,15 +316,15 @@ clean: mostlyclean
 		 $(infodir)/gnus* $(infodir)/info* \
 		 $(infodir)/message* $(infodir)/mh-e* \
 		 $(infodir)/reftex* $(infodir)/sc* \
-		 $(infodir)/vip* $(infodir)/viper* \
-		 $(infodir)/widget* $(infodir)/efaq* \
-		 $(infodir)/ada-mode* $(infodir)/autotype* \
-		 $(infodir)/calc* $(infodir)/idlwave* \
-		 $(infodir)/eudc* $(infodir)/ebrowse* \
-		 $(infodir)/pcl-cvs* $(infodir)/woman* \
-		 $(infodir)/emacs-mime* $(infodir)/eshell* \
+		 $(infodir)/vip* $(infodir)/widget* \
+		 $(infodir)/efaq* $(infodir)/ada-mode* \
+		 $(infodir)/autotype* $(infodir)/calc* \
+		 $(infodir)/idlwave* $(infodir)/eudc* \
+		 $(infodir)/ebrowse* $(infodir)/pcl-cvs* \
+		 $(infodir)/woman* $(infodir)/eshell* \
 		 $(infodir)/speedbar* $(infodir)/tramp* \
-		 $(infodir)/ses* $(infodir)/smtpmail*
+		 $(infodir)/ses* $(infodir)/smtpmail* \
+		 $(infodir)/flymake*
 
 distclean: clean
 
@@ -325,5 +339,3 @@ maintainer-clean: distclean
 # That caused trouble because this is run entirely in the source directory.
 # Since we expect to get texi2dvi from elsewhere,
 # it is ok to expect texindex from elsewhere also.
-
-# arch-tag: 6e99da59-ad27-4816-82a0-cde9a101efae

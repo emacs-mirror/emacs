@@ -1,5 +1,5 @@
 /* File IO for GNU Emacs.
-   Copyright (C) 1985,86,87,88,93,94,95,96,97,98,99,2000,01,2003
+   Copyright (C) 1985,86,87,88,93,94,95,96,97,98,99,2000,01,03,2004
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -324,6 +324,7 @@ Lisp_Object Qfile_regular_p;
 Lisp_Object Qfile_accessible_directory_p;
 Lisp_Object Qfile_modes;
 Lisp_Object Qset_file_modes;
+Lisp_Object Qset_file_times;
 Lisp_Object Qfile_newer_than_file_p;
 Lisp_Object Qinsert_file_contents;
 Lisp_Object Qwrite_region;
@@ -2349,7 +2350,7 @@ barf_or_query_if_file_exists (absname, querystring, interactive, statptr, quick)
 
   /* stat is a good way to tell whether the file exists,
      regardless of what access permissions it has.  */
-  if (stat (SDATA (encoded_filename), &statbuf) >= 0)
+  if (lstat (SDATA (encoded_filename), &statbuf) >= 0)
     {
       if (! interactive)
 	Fsignal (Qfile_already_exists,
@@ -2684,11 +2685,11 @@ This is what happens in interactive use with M-x.  */)
   Lisp_Object args[2];
 #endif
   Lisp_Object handler;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
-  Lisp_Object encoded_file, encoded_newname;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
+  Lisp_Object encoded_file, encoded_newname, symlink_target;
 
-  encoded_file = encoded_newname = Qnil;
-  GCPRO4 (file, newname, encoded_file, encoded_newname);
+  symlink_target = encoded_file = encoded_newname = Qnil;
+  GCPRO5 (file, newname, encoded_file, encoded_newname, symlink_target);
   CHECK_STRING (file);
   CHECK_STRING (newname);
   file = Fexpand_file_name (file, Qnil);
@@ -2725,10 +2726,17 @@ This is what happens in interactive use with M-x.  */)
     {
       if (errno == EXDEV)
 	{
-	  Fcopy_file (file, newname,
-		      /* We have already prompted if it was an integer,
-			 so don't have copy-file prompt again.  */
-		      NILP (ok_if_already_exists) ? Qnil : Qt, Qt);
+#ifdef S_IFLNK
+          symlink_target = Ffile_symlink_p (file);
+          if (! NILP (symlink_target))
+            Fmake_symbolic_link (symlink_target, newname,
+                                 NILP (ok_if_already_exists) ? Qnil : Qt);
+          else
+#endif
+            Fcopy_file (file, newname,
+                        /* We have already prompted if it was an integer,
+                           so don't have copy-file prompt again.  */
+                        NILP (ok_if_already_exists) ? Qnil : Qt, Qt);
 	  Fdelete_file (file);
 	}
       else
@@ -3439,7 +3447,59 @@ The value is an integer.  */)
   XSETINT (value, (~ realmask) & 0777);
   return value;
 }
+
+extern int lisp_time_argument P_ ((Lisp_Object, time_t *, int *));
 
+DEFUN ("set-file-times", Fset_file_times, Sset_file_times, 1, 2, 0,
+       doc: /* Set times of file FILENAME to TIME.
+Set both access and modification times.
+Return t on success, else nil.
+Use the current time if TIME is nil.  TIME is in the format of
+`current-time'. */)
+  (filename, time)
+     Lisp_Object filename, time;
+{
+  Lisp_Object absname, encoded_absname;
+  Lisp_Object handler;
+  time_t sec;
+  int usec;
+
+  if (! lisp_time_argument (time, &sec, &usec))
+    error ("Invalid time specification");
+
+  absname = Fexpand_file_name (filename, current_buffer->directory);
+
+  /* If the file name has special constructs in it,
+     call the corresponding file handler.  */
+  handler = Ffind_file_name_handler (absname, Qset_file_times);
+  if (!NILP (handler))
+    return call3 (handler, Qset_file_times, absname, time);
+
+  encoded_absname = ENCODE_FILE (absname);
+
+  {
+    EMACS_TIME t;
+
+    EMACS_SET_SECS (t, sec);
+    EMACS_SET_USECS (t, usec);
+
+    if (set_file_times (SDATA (encoded_absname), t, t))
+      {
+#ifdef DOS_NT
+        struct stat st;
+
+        /* Setting times on a directory always fails.  */
+        if (stat (SDATA (encoded_absname), &st) == 0
+            && (st.st_mode & S_IFMT) == S_IFDIR)
+          return Qnil;
+#endif
+        report_file_error ("Setting file times", Fcons (absname, Qnil));
+        return Qnil;
+      }
+  }
+
+  return Qt;
+}
 
 #ifdef __NetBSD__
 #define unix 42
@@ -6051,10 +6111,13 @@ provides a file dialog box.  */)
 
   if (NILP (dir))
     dir = current_buffer->directory;
+  if (NILP (Ffile_name_absolute_p (dir)))
+    dir = Fexpand_file_name (dir, Qnil);
   if (NILP (default_filename))
-    default_filename = !NILP (initial)
-      ? Fexpand_file_name (initial, dir)
-      : current_buffer->filename;
+    default_filename
+      = (!NILP (initial)
+	 ? Fexpand_file_name (initial, dir)
+	 : current_buffer->filename);
 
   /* If dir starts with user's homedir, change that to ~. */
   homedir = (char *) egetenv ("HOME");
@@ -6255,6 +6318,7 @@ syms_of_fileio ()
   Qfile_accessible_directory_p = intern ("file-accessible-directory-p");
   Qfile_modes = intern ("file-modes");
   Qset_file_modes = intern ("set-file-modes");
+  Qset_file_times = intern ("set-file-times");
   Qfile_newer_than_file_p = intern ("file-newer-than-file-p");
   Qinsert_file_contents = intern ("insert-file-contents");
   Qwrite_region = intern ("write-region");
@@ -6288,6 +6352,7 @@ syms_of_fileio ()
   staticpro (&Qfile_accessible_directory_p);
   staticpro (&Qfile_modes);
   staticpro (&Qset_file_modes);
+  staticpro (&Qset_file_times);
   staticpro (&Qfile_newer_than_file_p);
   staticpro (&Qinsert_file_contents);
   staticpro (&Qwrite_region);
@@ -6511,6 +6576,7 @@ a non-nil value.  */);
   defsubr (&Sfile_regular_p);
   defsubr (&Sfile_modes);
   defsubr (&Sset_file_modes);
+  defsubr (&Sset_file_times);
   defsubr (&Sset_default_file_modes);
   defsubr (&Sdefault_file_modes);
   defsubr (&Sfile_newer_than_file_p);

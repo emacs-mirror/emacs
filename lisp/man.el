@@ -732,11 +732,14 @@ all sections related to a subject, put something appropriate into the
 	(setenv "GROFF_NO_SGR" "1")
 	(if (fboundp 'start-process)
 	    (set-process-sentinel
-	     (start-process manual-program buffer "sh" "-c"
+	     (start-process manual-program buffer
+			    (if (eq system-type 'cygwin) shell-file-name "sh")
+			    shell-command-switch
 			    (format (Man-build-man-command) man-args))
 	     'Man-bgproc-sentinel)
 	  (let ((exit-status
-		 (call-process shell-file-name nil (list buffer nil) nil "-c"
+		 (call-process shell-file-name nil (list buffer nil) nil
+			       shell-command-switch
 			       (format (Man-build-man-command) man-args)))
 		(msg ""))
 	    (or (and (numberp exit-status)

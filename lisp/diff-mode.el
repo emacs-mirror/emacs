@@ -48,7 +48,6 @@
 ;;
 ;; - Refine hunk on a word-by-word basis.
 ;;
-;; - Use the new next-error-function to allow C-x `.
 ;; - Handle `diff -b' output in context->unified.
 
 ;;; Code:
@@ -170,27 +169,27 @@ when editing big diffs)."
 ;;;;
 
 (defface diff-header-face
-  '((((type tty pc) (class color) (background light))
-     (:foreground "blue1" :weight bold))
-    (((type tty pc) (class color) (background dark))
-     (:foreground "green" :weight bold))
-    (((class color) (background light))
+  '((((class color) (min-colors 88) (background light))
      (:background "grey85"))
-    (((class color) (background dark))
+    (((class color) (min-colors 88) (background dark))
      (:background "grey45"))
+    (((class color) (background light))
+     (:foreground "blue1" :weight bold))
+    (((class color) (background dark))
+     (:foreground "green" :weight bold))
     (t (:weight bold)))
   "`diff-mode' face inherited by hunk and index header faces.")
 (defvar diff-header-face 'diff-header-face)
 
 (defface diff-file-header-face
-  '((((type tty pc) (class color) (background light))
-     (:foreground "yellow" :weight bold))
-    (((type tty pc) (class color) (background dark))
-     (:foreground "cyan" :weight bold))
-    (((class color) (background light))
+  '((((class color) (min-colors 88) (background light))
      (:background "grey70" :weight bold))
-    (((class color) (background dark))
+    (((class color) (min-colors 88) (background dark))
      (:background "grey60" :weight bold))
+    (((class color) (background light))
+     (:foreground "yellow" :weight bold))
+    (((class color) (background dark))
+     (:foreground "cyan" :weight bold))
     (t (:weight bold)))			; :height 1.3
   "`diff-mode' face used to highlight file header lines.")
 (defvar diff-file-header-face 'diff-file-header-face)
@@ -305,7 +304,11 @@ when editing big diffs)."
 (defvar diff-narrowed-to nil)
 
 (defun diff-end-of-hunk (&optional style)
-  (if (looking-at diff-hunk-header-re) (goto-char (match-end 0)))
+  (when (looking-at diff-hunk-header-re)
+    (unless style
+      ;; Especially important for unified (because headers are ambiguous).
+      (setq style (cdr (assq (char-after) '((?@ . unified) (?* . context))))))
+    (goto-char (match-end 0)))
   (let ((end (and (re-search-forward (case style
 				       ;; A `unified' header is ambiguous.
 				       (unified (concat "^[^-+# \\]\\|"
@@ -882,9 +885,14 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
 	  (diff-fixup-modifs (point) (cdr diff-unhandled-changes)))))
     (setq diff-unhandled-changes nil)))
 
-;;;;
-;;;; The main function
-;;;;
+(defun diff-next-error (arg reset)
+  ;; Select a window that displays the current buffer so that point
+  ;; movements are reflected in that window.  Otherwise, the user might
+  ;; never see the hunk corresponding to the source she's jumping to.
+  (pop-to-buffer (current-buffer))
+  (if reset (goto-char (point-min)))
+  (diff-hunk-next arg)
+  (diff-goto-source))
 
 ;;;###autoload
 (define-derived-mode diff-mode fundamental-mode "Diff"
@@ -912,6 +920,7 @@ a diff with \\[diff-reverse-direction]."
   ;;   (set (make-local-variable 'paragraph-separate) paragraph-start)
   ;;   (set (make-local-variable 'page-delimiter) "--- [^\t]+\t")
   ;; compile support
+  (set (make-local-variable 'next-error-function) 'diff-next-error)
 
   (when (and (> (point-max) (point-min)) diff-default-read-only)
     (toggle-read-only t))
@@ -967,7 +976,7 @@ a diff with \\[diff-reverse-direction]."
   "Turn context diffs into unified diffs if applicable."
   (if (save-excursion
 	(goto-char (point-min))
-	(looking-at "\\*\\*\\* "))
+	(and (looking-at diff-hunk-header-re) (eq (char-after) ?*)))
       (let ((mod (buffer-modified-p)))
 	(unwind-protect
 	    (diff-context->unified (point-min) (point-max))
@@ -1239,9 +1248,12 @@ If the prefix arg is bigger than 8 (for example with \\[universal-argument] \\[u
 (defun diff-current-defun ()
   "Find the name of function at point.
 For use in `add-log-current-defun-function'."
-  (destructuring-bind (buf line-offset pos src dst &optional switched)
-      (diff-find-source-location)
-    (save-excursion
+  (save-excursion
+    (when (looking-at diff-hunk-header-re)
+      (forward-line 1)
+      (while (and (looking-at " ") (not (zerop (forward-line 1))))))
+    (destructuring-bind (buf line-offset pos src dst &optional switched)
+	(diff-find-source-location)
       (beginning-of-line)
       (or (when (memq (char-after) '(?< ?-))
 	    ;; Cursor is pointing at removed text.  This could be a removed

@@ -87,6 +87,7 @@
 (define-coding-system-alias 'euc-cn 'chinese-iso-8bit)
 (define-coding-system-alias 'cn-gb 'chinese-iso-8bit)
 (define-coding-system-alias 'gb2312 'chinese-iso-8bit)
+(define-coding-system-alias 'cp936 'chinese-iso-8bit)
 
 (define-coding-system 'chinese-hz
   "Hz/ZW 7-bit encoding for Chinese GB2312 (MIME:HZ-GB-2312)."
@@ -124,6 +125,7 @@
 
 (define-coding-system-alias 'big5 'chinese-big5)
 (define-coding-system-alias 'cn-big5 'chinese-big5)
+(define-coding-system-alias 'cp950 'chinese-big5)
 
 (set-language-info-alist
  "Chinese-BIG5" '((charset chinese-big5-1 chinese-big5-2)

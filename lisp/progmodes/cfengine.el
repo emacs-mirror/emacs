@@ -1,6 +1,6 @@
 ;;; cfengine.el --- mode for editing Cfengine files
 
-;; Copyright (C) 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: languages
@@ -102,7 +102,8 @@ This includes those for cfservd as well as cfagent."))
 (defun cfengine-beginning-of-defun ()
   "`beginning-of-defun' function for Cfengine mode.
 Treats actions as defuns."
-  (end-of-line)
+  (unless (<= (current-column) (current-indentation))
+    (end-of-line))
   (if (re-search-backward "^[[:alpha:]]+: *$" nil t)
       (beginning-of-line)
     (goto-char (point-min)))
@@ -113,7 +114,7 @@ Treats actions as defuns."
 Treats actions as defuns."
   (end-of-line)
   (if (re-search-forward "^[[:alpha:]]+: *$" nil t)
-      (progn (forward-line -1) (end-of-line))
+      (beginning-of-line)
     (goto-char (point-max)))
   t)
 

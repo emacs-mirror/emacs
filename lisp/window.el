@@ -36,6 +36,9 @@ of this construct.
 However, if a window has become dead, don't get an error,
 just refrain from reselecting it."
   `(let ((save-selected-window-window (selected-window))
+	 ;; It is necessary to save all of these, because calling
+	 ;; select-window changes frame-selected-window for whatever
+	 ;; frame that window is in.
 	 (save-selected-window-alist
 	  (mapcar (lambda (frame) (list frame (frame-selected-window frame)))
 		  (frame-list))))
@@ -327,8 +330,9 @@ new mode line."
   (with-current-buffer (window-buffer)
     (if view-mode
 	(let ((old-info (assq old-w view-return-to-alist)))
-	  (push (cons new-w (cons (and old-info (car (cdr old-info))) t))
-		view-return-to-alist)))
+	  (if old-info
+	      (push (cons new-w (cons (car (cdr old-info)) t))
+		    view-return-to-alist))))
     new-w))
 
 (defun split-window-horizontally (&optional arg)

@@ -199,8 +199,6 @@ Boston, MA 02111-1307, USA.  */
 #endif
 #ifdef MAC_OS
 #include "macterm.h"
-
-Cursor No_Cursor;
 #endif
 
 #ifndef FRAME_X_OUTPUT
@@ -302,8 +300,10 @@ extern Lisp_Object Qface, Qinvisible, Qwidth;
 Lisp_Object Vdisplay_pixels_per_inch;
 Lisp_Object Qspace, QCalign_to, QCrelative_width, QCrelative_height;
 Lisp_Object Qleft_margin, Qright_margin, Qspace_width, Qraise;
+Lisp_Object Qslice;
 Lisp_Object Qcenter;
 Lisp_Object Qmargin, Qpointer;
+Lisp_Object Qline_height, Qtotal;
 extern Lisp_Object Qheight;
 extern Lisp_Object QCwidth, QCheight, QCascent;
 extern Lisp_Object Qscroll_bar;
@@ -671,10 +671,6 @@ EMACS_INT hscroll_margin;
 /* How much to scroll horizontally when point is inside the above margin.  */
 Lisp_Object Vhscroll_step;
 
-/* A list of symbols, one for each supported image type.  */
-
-Lisp_Object Vimage_types;
-
 /* The variable `resize-mini-windows'.  If nil, don't resize
    mini-windows.  If t, always resize them to fit the text they
    display.  If `grow-only', let mini-windows grow only until they
@@ -800,6 +796,9 @@ int help_echo_pos;
 
 Lisp_Object previous_help_echo_string;
 
+/* Null glyph slice */
+
+static struct glyph_slice null_glyph_slice = { 0, 0, 0, 0 };
 
 
 /* Function prototypes.  */
@@ -852,7 +851,7 @@ static void insert_left_trunc_glyphs P_ ((struct it *));
 static struct glyph_row *get_overlay_arrow_glyph_row P_ ((struct window *,
 							  Lisp_Object));
 static void extend_face_to_end_of_line P_ ((struct it *));
-static int append_space P_ ((struct it *, int));
+static int append_space_for_newline P_ ((struct it *, int));
 static int make_cursor_line_fully_visible P_ ((struct window *, int));
 static int try_scrolling P_ ((Lisp_Object, int, EMACS_INT, EMACS_INT, int, int));
 static int try_cursor_movement P_ ((Lisp_Object, struct text_pos, int *));
@@ -1238,9 +1237,9 @@ line_bottom_y (it)
    and header-lines heights.  */
 
 int
-pos_visible_p (w, charpos, fully, exact_mode_line_heights_p)
+pos_visible_p (w, charpos, fully, x, y, exact_mode_line_heights_p)
      struct window *w;
-     int charpos, *fully, exact_mode_line_heights_p;
+     int charpos, *fully, *x, *y, exact_mode_line_heights_p;
 {
   struct it it;
   struct text_pos top;
@@ -1288,14 +1287,27 @@ pos_visible_p (w, charpos, fully, exact_mode_line_heights_p)
 	  visible_p = 1;
 	  *fully = bottom_y <= it.last_visible_y;
 	}
+      if (visible_p && x)
+	{
+	  *x = it.current_x;
+	  *y = max (top_y + it.max_ascent - it.ascent, window_top_y);
+	}
     }
   else if (it.current_y + it.max_ascent + it.max_descent > it.last_visible_y)
     {
+      struct it it2;
+
+      it2 = it;
       move_it_by_lines (&it, 1, 0);
       if (charpos < IT_CHARPOS (it))
 	{
 	  visible_p = 1;
-	  *fully  = 0;
+	  if (x)
+	    {
+	      move_it_to (&it2, charpos, -1, -1, -1, MOVE_TO_POS);
+	      *x = it2.current_x;
+	      *y = it2.current_y + it2.max_ascent - it2.ascent;
+	    }
 	}
     }
 
@@ -1303,6 +1315,7 @@ pos_visible_p (w, charpos, fully, exact_mode_line_heights_p)
     set_buffer_internal_1 (old_buffer);
 
   current_header_line_height = current_mode_line_height = -1;
+
   return visible_p;
 }
 
@@ -2057,6 +2070,9 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
     {
       if (NATNUMP (current_buffer->extra_line_spacing))
 	it->extra_line_spacing = XFASTINT (current_buffer->extra_line_spacing);
+      else if (FLOATP (current_buffer->extra_line_spacing))
+	it->extra_line_spacing = (XFLOAT_DATA (current_buffer->extra_line_spacing)
+				  * FRAME_LINE_HEIGHT (it->f));
       else if (it->f->extra_line_spacing > 0)
 	it->extra_line_spacing = it->f->extra_line_spacing;
     }
@@ -2070,9 +2086,11 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
   if (FRAME_FACE_CACHE (it->f)->used == 0)
     recompute_basic_faces (it->f);
 
-  /* Current value of the `space-width', and 'height' properties.  */
+  /* Current value of the `slice', `space-width', and 'height' properties.  */
+  it->slice.x = it->slice.y = it->slice.width = it->slice.height = Qnil;
   it->space_width = Qnil;
   it->font_height = Qnil;
+  it->override_ascent = -1;
 
   /* Are control characters displayed as `^C'?  */
   it->ctl_arrow_p = !NILP (current_buffer->ctl_arrow);
@@ -2713,19 +2731,10 @@ next_overlay_change (pos)
   int noverlays;
   int endpos;
   Lisp_Object *overlays;
-  int len;
   int i;
 
   /* Get all overlays at the given position.  */
-  len = 10;
-  overlays = (Lisp_Object *) alloca (len * sizeof *overlays);
-  noverlays = overlays_at (pos, 0, &overlays, &len, &endpos, NULL, 1);
-  if (noverlays > len)
-    {
-      len = noverlays;
-      overlays = (Lisp_Object *) alloca (len * sizeof *overlays);
-      noverlays = overlays_at (pos, 0, &overlays, &len, &endpos, NULL, 1);
-    }
+  GET_OVERLAYS_AT (pos, overlays, noverlays, &endpos, 1);
 
   /* If any of these overlays ends before endpos,
      use its ending point instead.  */
@@ -3278,8 +3287,9 @@ handle_display_prop (it)
     }
 
   /* Reset those iterator values set from display property values.  */
-  it->font_height = Qnil;
+  it->slice.x = it->slice.y = it->slice.width = it->slice.height = Qnil;
   it->space_width = Qnil;
+  it->font_height = Qnil;
   it->voffset = 0;
 
   /* We don't support recursive `display' properties, i.e. string
@@ -3298,6 +3308,7 @@ handle_display_prop (it)
       && !EQ (XCAR (prop), Qimage)
       && !EQ (XCAR (prop), Qspace)
       && !EQ (XCAR (prop), Qwhen)
+      && !EQ (XCAR (prop), Qslice)
       && !EQ (XCAR (prop), Qspace_width)
       && !EQ (XCAR (prop), Qheight)
       && !EQ (XCAR (prop), Qraise)
@@ -3492,6 +3503,30 @@ handle_single_display_prop (it, prop, object, position,
       value = XCAR (XCDR (prop));
       if (NUMBERP (value) && XFLOATINT (value) > 0)
 	it->space_width = value;
+    }
+  else if (CONSP (prop)
+	   && EQ (XCAR (prop), Qslice))
+    {
+      /* `(slice X Y WIDTH HEIGHT)'.  */
+      Lisp_Object tem;
+
+      if (FRAME_TERMCAP_P (it->f) || FRAME_MSDOS_P (it->f))
+	return 0;
+
+      if (tem = XCDR (prop), CONSP (tem))
+	{
+	  it->slice.x = XCAR (tem);
+	  if (tem = XCDR (tem), CONSP (tem))
+	    {
+	      it->slice.y = XCAR (tem);
+	      if (tem = XCDR (tem), CONSP (tem))
+		{
+		  it->slice.width = XCAR (tem);
+		  if (tem = XCDR (tem), CONSP (tem))
+		    it->slice.height = XCAR (tem);
+		}
+	    }
+	}
     }
   else if (CONSP (prop)
 	   && EQ (XCAR (prop), Qraise)
@@ -4427,6 +4462,7 @@ push_it (it)
   p->string_nchars = it->string_nchars;
   p->area = it->area;
   p->multibyte_p = it->multibyte_p;
+  p->slice = it->slice;
   p->space_width = it->space_width;
   p->font_height = it->font_height;
   p->voffset = it->voffset;
@@ -4459,6 +4495,7 @@ pop_it (it)
   it->string_nchars = p->string_nchars;
   it->area = p->area;
   it->multibyte_p = p->multibyte_p;
+  it->slice = p->slice;
   it->space_width = p->space_width;
   it->font_height = p->font_height;
   it->voffset = p->voffset;
@@ -4613,6 +4650,14 @@ back_to_previous_visible_line_start (it)
 	  prop = Fget_char_property (make_number (IT_CHARPOS (*it)),
 				     Qinvisible, it->window);
 	  if (TEXT_PROP_MEANS_INVISIBLE (prop))
+	    visible_p = 0;
+	}
+
+      if (visible_p)
+	{
+	  struct it it2 = *it;
+
+	  if (handle_display_prop (&it2) == HANDLED_RETURN)
 	    visible_p = 0;
 	}
 
@@ -9539,7 +9584,7 @@ update_overlay_arrows (up_to_date)
       if (!SYMBOLP (var))
 	continue;
 
-      if (up_to_date)
+      if (up_to_date > 0)
 	{
 	  Lisp_Object val = find_symbol_value (var);
 	  Fput (var, Qlast_arrow_position,
@@ -10862,15 +10907,14 @@ make_cursor_line_fully_visible (w, force_p)
   if (!MATRIX_ROW_PARTIALLY_VISIBLE_P (row))
     return 1;
 
-  if (force_p)
-    return 0;
-
   /* If the row the cursor is in is taller than the window's height,
      it's not clear what to do, so do nothing.  */
   window_height = window_box_height (w);
   if (row->height >= window_height)
-    return 1;
-
+    {
+      if (!force_p || w->vscroll)
+	return 1;
+    }
   return 0;
 
 #if 0
@@ -10979,6 +11023,12 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
   else
     this_scroll_margin = 0;
 
+  /* Force scroll_conservatively to have a reasonable value so it doesn't
+     cause an overflow while computing how much to scroll.  */
+  if (scroll_conservatively)
+    scroll_conservatively = min (scroll_conservatively,
+                                 MOST_POSITIVE_FIXNUM / FRAME_LINE_HEIGHT (f));
+
   /* Compute how much we should try to scroll maximally to bring point
      into view.  */
   if (scroll_step || scroll_conservatively || temp_scroll_step)
@@ -11054,7 +11104,12 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	  aggressive = current_buffer->scroll_up_aggressively;
 	  height = WINDOW_BOX_TEXT_HEIGHT (w);
 	  if (NUMBERP (aggressive))
-	    amount_to_scroll = XFLOATINT (aggressive) * height;
+	    {
+	      double float_amount = XFLOATINT (aggressive) * height;
+	      amount_to_scroll = float_amount;
+	      if (amount_to_scroll == 0 && float_amount > 0)
+		amount_to_scroll = 1;
+	    }
 	}
 
       if (amount_to_scroll <= 0)
@@ -11112,7 +11167,12 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	      aggressive = current_buffer->scroll_down_aggressively;
 	      height = WINDOW_BOX_TEXT_HEIGHT (w);
 	      if (NUMBERP (aggressive))
-		amount_to_scroll = XFLOATINT (aggressive) * height;
+		{
+		  double float_amount = XFLOATINT (aggressive) * height;
+		  amount_to_scroll = float_amount;
+		  if (amount_to_scroll == 0 && float_amount > 0)
+		    amount_to_scroll = 1;
+		}
 	    }
 
 	  if (amount_to_scroll <= 0)
@@ -11307,7 +11367,7 @@ try_cursor_movement (window, startp, scroll_step)
       && (FRAME_WINDOW_P (f)
 	  || !overlay_arrow_in_current_buffer_p ()))
     {
-      int this_scroll_margin;
+      int this_scroll_margin, top_scroll_margin;
       struct glyph_row *row = NULL;
 
 #if GLYPH_DEBUG
@@ -11319,6 +11379,10 @@ try_cursor_movement (window, startp, scroll_step)
       this_scroll_margin = max (0, scroll_margin);
       this_scroll_margin = min (this_scroll_margin, WINDOW_TOTAL_LINES (w) / 4);
       this_scroll_margin *= FRAME_LINE_HEIGHT (f);
+
+      top_scroll_margin = this_scroll_margin;
+      if (WINDOW_WANTS_HEADER_LINE_P (w))
+	top_scroll_margin += CURRENT_HEADER_LINE_HEIGHT (w);
 
       /* Start with the row the cursor was displayed during the last
 	 not paused redisplay.  Give up if that row is not valid.  */
@@ -11380,7 +11444,7 @@ try_cursor_movement (window, startp, scroll_step)
 		     && (MATRIX_ROW_START_CHARPOS (row) > PT
 			 || (MATRIX_ROW_START_CHARPOS (row) == PT
 			     && MATRIX_ROW_STARTS_IN_MIDDLE_OF_CHAR_P (row)))
-		     && (row->y > this_scroll_margin
+		     && (row->y > top_scroll_margin
 			 || CHARPOS (startp) == BEGV))
 		{
 		  xassert (row->enabled_p);
@@ -11408,7 +11472,7 @@ try_cursor_movement (window, startp, scroll_step)
 		++row;
 
 	      /* If within the scroll margin, scroll.  */
-	      if (row->y < this_scroll_margin
+	      if (row->y < top_scroll_margin
 		  && CHARPOS (startp) != BEGV)
 		scroll_p = 1;
 	    }
@@ -12578,9 +12642,8 @@ try_window_reusing_current_matrix (w)
 	 position.  */
       if (pt_row)
 	{
-	  w->cursor.vpos -= MATRIX_ROW_VPOS (first_reusable_row,
-					     w->current_matrix);
-	  w->cursor.y -= first_reusable_row->y;
+	  w->cursor.vpos -= nrows_scrolled;
+	  w->cursor.y -= first_reusable_row->y - start_row->y;
 	}
 
       /* Scroll the display.  */
@@ -12624,6 +12687,29 @@ try_window_reusing_current_matrix (w)
       /* Disable rows not reused.  */
       for (row -= nrows_scrolled; row < bottom_row; ++row)
 	row->enabled_p = 0;
+
+      /* Point may have moved to a different line, so we cannot assume that
+	 the previous cursor position is valid; locate the correct row.  */
+      if (pt_row)
+	{
+	  for (row = MATRIX_ROW (w->current_matrix, w->cursor.vpos);
+	       row < bottom_row && PT >= MATRIX_ROW_END_CHARPOS (row);
+	       row++)
+	    {
+	      w->cursor.vpos++;
+	      w->cursor.y = row->y;
+	    }
+	  if (row < bottom_row)
+	    {
+	      struct glyph *glyph = row->glyphs[TEXT_AREA] + w->cursor.hpos;
+	      while (glyph->charpos < PT)
+		{
+		  w->cursor.hpos++;
+		  w->cursor.x += glyph->pixel_width;
+		  glyph++;
+		}
+	    }
+	}
 
       /* Adjust window end.  A null value of last_text_row means that
 	 the window end is in reused rows which in turn means that
@@ -13408,9 +13494,9 @@ try_window_id (w)
 
     if ((w->cursor.y < this_scroll_margin
 	 && CHARPOS (start) > BEGV)
-	/* Don't take scroll margin into account at the bottom because
-	   old redisplay didn't do it either.  */
-	|| w->cursor.y + cursor_height > it.last_visible_y)
+	/* Old redisplay didn't take scroll margin into account at the bottom,
+	   but then global-hl-line-mode doesn't scroll.  KFS 2004-06-14 */
+	|| w->cursor.y + cursor_height + this_scroll_margin > it.last_visible_y)
       {
 	w->cursor.vpos = -1;
 	clear_glyph_matrix (w->desired_matrix);
@@ -14196,8 +14282,7 @@ compute_line_metrics (it)
 
 
 /* Append one space to the glyph row of iterator IT if doing a
-   window-based redisplay.  DEFAULT_FACE_P non-zero means let the
-   space have the default face, otherwise let it have the same face as
+   window-based redisplay.  The space has the same face as
    IT->face_id.  Value is non-zero if a space was added.
 
    This function is called to make sure that there is always one glyph
@@ -14209,7 +14294,7 @@ compute_line_metrics (it)
    end of the line if the row ends in italic text.  */
 
 static int
-append_space (it, default_face_p)
+append_space_for_newline (it, default_face_p)
      struct it *it;
      int default_face_p;
 {
@@ -14223,7 +14308,7 @@ append_space (it, default_face_p)
 	  /* Save some values that must not be changed.
 	     Must save IT->c and IT->len because otherwise
 	     ITERATOR_AT_END_P wouldn't work anymore after
-	     append_space has been called.  */
+	     append_space_for_newline has been called.  */
 	  enum display_element_type saved_what = it->what;
 	  int saved_c = it->c, saved_len = it->len;
 	  int saved_x = it->current_x;
@@ -14250,6 +14335,8 @@ append_space (it, default_face_p)
 
 	  PRODUCE_GLYPHS (it);
 
+	  it->override_ascent = -1;
+	  it->constrain_row_ascent_descent_p = 0;
 	  it->current_x = saved_x;
 	  it->object = saved_object;
 	  it->position = saved_pos;
@@ -14531,7 +14618,7 @@ display_line (it)
 	    row->exact_window_width_line_p = 1;
 	  else
 #endif /* HAVE_WINDOW_SYSTEM */
-	  if ((append_space (it, 1) && row->used[TEXT_AREA] == 1)
+	  if ((append_space_for_newline (it, 1) && row->used[TEXT_AREA] == 1)
 	      || row->used[TEXT_AREA] == 0)
 	    {
 	      row->glyphs[TEXT_AREA]->charpos = -1;
@@ -14773,7 +14860,7 @@ display_line (it)
 	  /* Add a space at the end of the line that is used to
 	     display the cursor there.  */
 	  if (!IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
-	    append_space (it, 0);
+	    append_space_for_newline (it, 0);
 #endif /* HAVE_WINDOW_SYSTEM */
 
 	  /* Extend the face to the end of the line.  */
@@ -17400,6 +17487,7 @@ fill_image_glyph_string (s)
   xassert (s->first_glyph->type == IMAGE_GLYPH);
   s->img = IMAGE_FROM_ID (s->f, s->first_glyph->u.img_id);
   xassert (s->img);
+  s->slice = s->first_glyph->slice;
   s->face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
   s->font = s->face->font;
   s->width = s->first_glyph->pixel_width;
@@ -18146,6 +18234,7 @@ append_glyph (it)
       glyph->glyph_not_available_p = it->glyph_not_available_p;
       glyph->face_id = it->face_id;
       glyph->u.ch = it->char_to_display;
+      glyph->slice = null_glyph_slice;
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
     }
@@ -18182,6 +18271,7 @@ append_composite_glyph (it)
       glyph->glyph_not_available_p = 0;
       glyph->face_id = it->face_id;
       glyph->u.cmp_id = it->cmp_id;
+      glyph->slice = null_glyph_slice;
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
     }
@@ -18200,7 +18290,7 @@ take_vertical_position_into_account (it)
       if (it->voffset < 0)
 	/* Increase the ascent so that we can display the text higher
 	   in the line.  */
-	it->ascent += abs (it->voffset);
+	it->ascent -= it->voffset;
       else
 	/* Increase the descent so that we can display the text lower
 	   in the line.  */
@@ -18220,6 +18310,7 @@ produce_image_glyph (it)
   struct image *img;
   struct face *face;
   int face_ascent, glyph_ascent;
+  struct glyph_slice slice;
 
   xassert (it->what == IT_IMAGE);
 
@@ -18243,19 +18334,68 @@ produce_image_glyph (it)
   /* Make sure X resources of the image is loaded.  */
   prepare_image_for_display (it->f, img);
 
-  it->ascent = it->phys_ascent = glyph_ascent = image_ascent (img, face);
-  it->descent = it->phys_descent = img->height + 2 * img->vmargin - it->ascent;
-  it->pixel_width = img->width + 2 * img->hmargin;
+  slice.x = slice.y = 0;
+  slice.width = img->width;
+  slice.height = img->height;
+
+  if (INTEGERP (it->slice.x))
+    slice.x = XINT (it->slice.x);
+  else if (FLOATP (it->slice.x))
+    slice.x = XFLOAT_DATA (it->slice.x) * img->width;
+
+  if (INTEGERP (it->slice.y))
+    slice.y = XINT (it->slice.y);
+  else if (FLOATP (it->slice.y))
+    slice.y = XFLOAT_DATA (it->slice.y) * img->height;
+
+  if (INTEGERP (it->slice.width))
+    slice.width = XINT (it->slice.width);
+  else if (FLOATP (it->slice.width))
+    slice.width = XFLOAT_DATA (it->slice.width) * img->width;
+
+  if (INTEGERP (it->slice.height))
+    slice.height = XINT (it->slice.height);
+  else if (FLOATP (it->slice.height))
+    slice.height = XFLOAT_DATA (it->slice.height) * img->height;
+
+  if (slice.x >= img->width)
+    slice.x = img->width;
+  if (slice.y >= img->height)
+    slice.y = img->height;
+  if (slice.x + slice.width >= img->width)
+    slice.width = img->width - slice.x;
+  if (slice.y + slice.height > img->height)
+    slice.height = img->height - slice.y;
+
+  if (slice.width == 0 || slice.height == 0)
+    return;
+
+  it->ascent = it->phys_ascent = glyph_ascent = image_ascent (img, face, &slice);
+
+  it->descent = slice.height - glyph_ascent;
+  if (slice.y == 0)
+    it->descent += img->vmargin;
+  if (slice.y + slice.height == img->height)
+    it->descent += img->vmargin;
+  it->phys_descent = it->descent;
+
+  it->pixel_width = slice.width;
+  if (slice.x == 0)
+    it->pixel_width += img->hmargin;
+  if (slice.x + slice.width == img->width)
+    it->pixel_width += img->hmargin;
 
   /* It's quite possible for images to have an ascent greater than
      their height, so don't get confused in that case.  */
   if (it->descent < 0)
     it->descent = 0;
 
+#if 0  /* this breaks image tiling */
   /* If this glyph is alone on the last line, adjust it.ascent to minimum row ascent.  */
   face_ascent = face->font ? FONT_BASE (face->font) : FRAME_BASELINE_OFFSET (it->f);
   if (face_ascent > it->ascent)
     it->ascent = it->phys_ascent = face_ascent;
+#endif
 
   it->nglyphs = 1;
 
@@ -18263,13 +18403,15 @@ produce_image_glyph (it)
     {
       if (face->box_line_width > 0)
 	{
-	  it->ascent += face->box_line_width;
-	  it->descent += face->box_line_width;
+	  if (slice.y == 0)
+	    it->ascent += face->box_line_width;
+	  if (slice.y + slice.height == img->height)
+	    it->descent += face->box_line_width;
 	}
 
-      if (it->start_of_box_run_p)
+      if (it->start_of_box_run_p && slice.x == 0)
 	it->pixel_width += abs (face->box_line_width);
-      if (it->end_of_box_run_p)
+      if (it->end_of_box_run_p && slice.x + slice.width == img->width)
 	it->pixel_width += abs (face->box_line_width);
     }
 
@@ -18298,6 +18440,7 @@ produce_image_glyph (it)
 	  glyph->glyph_not_available_p = 0;
 	  glyph->face_id = it->face_id;
 	  glyph->u.img_id = img->id;
+	  glyph->slice = slice;
 	  glyph->font_type = FONT_TYPE_UNKNOWN;
 	  ++it->glyph_row->used[area];
 	}
@@ -18340,6 +18483,7 @@ append_stretch_glyph (it, object, width, height, ascent)
       glyph->face_id = it->face_id;
       glyph->u.stretch.ascent = ascent;
       glyph->u.stretch.height = height;
+      glyph->slice = null_glyph_slice;
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
     }
@@ -18505,6 +18649,107 @@ produce_stretch_glyph (it)
   take_vertical_position_into_account (it);
 }
 
+/* Calculate line-height and line-spacing properties.
+   An integer value specifies explicit pixel value.
+   A float value specifies relative value to current face height.
+   A cons (float . face-name) specifies relative value to
+   height of specified face font.
+
+   Returns height in pixels, or nil.  */
+
+static Lisp_Object
+calc_line_height_property (it, prop, font, boff, total)
+     struct it *it;
+     Lisp_Object prop;
+     XFontStruct *font;
+     int boff, *total;
+{
+  Lisp_Object position, val;
+  Lisp_Object face_name = Qnil;
+  int ascent, descent, height, override;
+
+  if (STRINGP (it->object))
+    position = make_number (IT_STRING_CHARPOS (*it));
+  else
+    position = make_number (IT_CHARPOS (*it));
+
+  val = Fget_char_property (position, prop, it->object);
+
+  if (NILP (val))
+    return val;
+
+  if (total && CONSP (val) && EQ (XCAR (val), Qtotal))
+    {
+      *total = 1;
+      val = XCDR (val);
+    }
+
+  if (INTEGERP (val))
+    return val;
+
+  if (CONSP (val))
+    {
+      face_name = XCDR (val);
+      val = XCAR (val);
+    }
+  else if (SYMBOLP (val))
+    {
+      face_name = val;
+      val = Qnil;
+    }
+
+  override = EQ (prop, Qline_height);
+
+  if (NILP (face_name))
+    {
+      font = FRAME_FONT (it->f);
+      boff = FRAME_BASELINE_OFFSET (it->f);
+    }
+  else if (EQ (face_name, Qt))
+    {
+      override = 0;
+    }
+  else
+    {
+      int face_id;
+      struct face *face;
+      struct font_info *font_info;
+
+      face_id = lookup_named_face (it->f, face_name);
+      if (face_id < 0)
+	return make_number (-1);
+
+      face = FACE_FROM_ID (it->f, face_id);
+      font = face->font;
+      if (font == NULL)
+	return make_number (-1);
+
+      font_info = FONT_INFO_FROM_ID (it->f, face->font_info_id);
+      boff = font_info->baseline_offset;
+      if (font_info->vertical_centering)
+	boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
+    }
+
+  ascent = FONT_BASE (font) + boff;
+  descent = FONT_DESCENT (font) - boff;
+
+  if (override)
+    {
+      it->override_ascent = ascent;
+      it->override_descent = descent;
+      it->override_boff = boff;
+    }
+
+  height = ascent + descent;
+  if (FLOATP (val))
+    height = (int)(XFLOAT_DATA (val) * height);
+  else if (INTEGERP (val))
+    height *= XINT (val);
+
+  return make_number (height);
+}
+
+
 /* RIF:
    Produce glyphs/get display metrics for the display element IT is
    loaded with.  See the description of struct display_iterator in
@@ -18514,6 +18759,8 @@ void
 x_produce_glyphs (it)
      struct it *it;
 {
+  int extra_line_spacing = it->extra_line_spacing;
+
   it->glyph_not_available_p = 0;
 
   if (it->what == IT_CHARACTER)
@@ -18585,8 +18832,18 @@ x_produce_glyphs (it)
 
 	  pcm = rif->per_char_metric (font, &char2b,
 				      FONT_TYPE_FOR_UNIBYTE (font, it->char_to_display));
-	  it->ascent = FONT_BASE (font) + boff;
-	  it->descent = FONT_DESCENT (font) - boff;
+
+	  if (it->override_ascent >= 0)
+	    {
+	      it->ascent = it->override_ascent;
+	      it->descent = it->override_descent;
+	      boff = it->override_boff;
+	    }
+	  else
+	    {
+	      it->ascent = FONT_BASE (font) + boff;
+	      it->descent = FONT_DESCENT (font) - boff;
+	    }
 
 	  if (pcm)
 	    {
@@ -18597,10 +18854,27 @@ x_produce_glyphs (it)
 	  else
 	    {
 	      it->glyph_not_available_p = 1;
-              it->phys_ascent = FONT_BASE (font) + boff;
-              it->phys_descent = FONT_DESCENT (font) - boff;
+	      it->phys_ascent = it->ascent;
+	      it->phys_descent = it->descent;
 	      it->pixel_width = FONT_WIDTH (font);
 	    }
+
+	  if (it->constrain_row_ascent_descent_p)
+	    {
+	      if (it->descent > it->max_descent)
+ 		{
+ 		  it->ascent += it->descent - it->max_descent;
+ 		  it->descent = it->max_descent;
+ 		}
+ 	      if (it->ascent > it->max_ascent)
+ 		{
+ 		  it->descent = min (it->max_descent, it->descent + it->ascent - it->max_ascent);
+ 		  it->ascent = it->max_ascent;
+ 		}
+ 	      it->phys_ascent = min (it->phys_ascent, it->ascent);
+ 	      it->phys_descent = min (it->phys_descent, it->descent);
+ 	      extra_line_spacing = 0;
+  	    }
 
 	  /* If this is a space inside a region of text with
 	     `space-width' property, change its width.  */
@@ -18634,6 +18908,14 @@ x_produce_glyphs (it)
 	  if (face->overline_p)
 	    it->ascent += 2;
 
+	  if (it->constrain_row_ascent_descent_p)
+	    {
+	      if (it->ascent > it->max_ascent)
+		it->ascent = it->max_ascent;
+	      if (it->descent > it->max_descent)
+		it->descent = it->max_descent;
+	    }
+
 	  take_vertical_position_into_account (it);
 
 	  /* If we have to actually produce glyphs, do it.  */
@@ -18660,17 +18942,73 @@ x_produce_glyphs (it)
 	}
       else if (it->char_to_display == '\n')
 	{
-	  /* A newline has no width but we need the height of the line.  */
+	  /* A newline has no width but we need the height of the line.
+	     But if previous part of the line set a height, don't
+	     increase that height */
+
+	  Lisp_Object height;
+
+	  it->override_ascent = -1;
 	  it->pixel_width = 0;
 	  it->nglyphs = 0;
-	  it->ascent = it->phys_ascent = FONT_BASE (font) + boff;
-	  it->descent = it->phys_descent = FONT_DESCENT (font) - boff;
 
-	  if (face->box != FACE_NO_BOX
-	      && face->box_line_width > 0)
+	  height = calc_line_height_property(it, Qline_height, font, boff, 0);
+
+	  if (it->override_ascent >= 0)
 	    {
-	      it->ascent += face->box_line_width;
-	      it->descent += face->box_line_width;
+	      it->ascent = it->override_ascent;
+	      it->descent = it->override_descent;
+	      boff = it->override_boff;
+	    }
+	  else
+	    {
+	      it->ascent = FONT_BASE (font) + boff;
+	      it->descent = FONT_DESCENT (font) - boff;
+	    }
+
+	  if (EQ (height, make_number(0)))
+	    {
+	      if (it->descent > it->max_descent)
+		{
+		  it->ascent += it->descent - it->max_descent;
+		  it->descent = it->max_descent;
+		}
+	      if (it->ascent > it->max_ascent)
+		{
+		  it->descent = min (it->max_descent, it->descent + it->ascent - it->max_ascent);
+		  it->ascent = it->max_ascent;
+		}
+	      it->phys_ascent = min (it->phys_ascent, it->ascent);
+	      it->phys_descent = min (it->phys_descent, it->descent);
+	      it->constrain_row_ascent_descent_p = 1;
+	      extra_line_spacing = 0;
+	    }
+	  else
+	    {
+	      Lisp_Object spacing;
+	      int total = 0;
+
+	      it->phys_ascent = it->ascent;
+	      it->phys_descent = it->descent;
+
+	      if ((it->max_ascent > 0 || it->max_descent > 0)
+		  && face->box != FACE_NO_BOX
+		  && face->box_line_width > 0)
+		{
+		  it->ascent += face->box_line_width;
+		  it->descent += face->box_line_width;
+		}
+	      if (!NILP (height)
+		  && XINT (height) > it->ascent + it->descent)
+		it->ascent = XINT (height) - it->descent;
+
+	      spacing = calc_line_height_property(it, Qline_spacing, font, boff, &total);
+	      if (INTEGERP (spacing))
+		{
+		  extra_line_spacing = XINT (spacing);
+		  if (total)
+		    extra_line_spacing -= (it->phys_ascent + it->phys_descent);
+		}
 	    }
 	}
       else if (it->char_to_display == '\t')
@@ -19093,7 +19431,8 @@ x_produce_glyphs (it)
   if (it->area == TEXT_AREA)
     it->current_x += it->pixel_width;
 
-  it->descent += it->extra_line_spacing;
+  if (extra_line_spacing > 0)
+    it->descent += extra_line_spacing;
 
   it->max_ascent = max (it->max_ascent, it->ascent);
   it->max_descent = max (it->max_descent, it->descent);
@@ -20390,8 +20729,8 @@ on_hot_spot_p (hot_spot, x, y)
 	  return inside;
 	}
     }
-  else
-    return 0;
+  /* If we don't understand the format, pretend we're not in the hot-spot.  */
+  return 0;
 }
 
 Lisp_Object
@@ -20426,7 +20765,6 @@ Returns the alist element for the first matching AREA in MAP.  */)
      Lisp_Object map;
      Lisp_Object x, y;
 {
-  int ix, iy;
   if (NILP (map))
     return Qnil;
 
@@ -20466,11 +20804,7 @@ define_frame_cursor1 (f, cursor, pointer)
 	cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
     }
 
-#ifndef HAVE_CARBON
   if (cursor != No_Cursor)
-#else
-  if (bcmp (&cursor, &No_Cursor, sizeof (Cursor)))
-#endif
     rif->define_frame_cursor (f, cursor);
 }
 
@@ -20492,7 +20826,7 @@ note_mode_line_or_margin_highlight (w, x, y, area)
   Lisp_Object pointer = Qnil;
   int charpos, dx, dy, width, height;
   Lisp_Object string, object = Qnil;
-  Lisp_Object pos, help, image;
+  Lisp_Object pos, help;
 
   if (area == ON_MODE_LINE || area == ON_HEADER_LINE)
     string = mode_line_string (w, area, &x, &y, &charpos,
@@ -20671,7 +21005,7 @@ note_mouse_highlight (f, x, y)
       Lisp_Object object;
       Lisp_Object mouse_face = Qnil, overlay = Qnil, position;
       Lisp_Object *overlay_vec = NULL;
-      int len, noverlays;
+      int noverlays;
       struct buffer *obuf;
       int obegv, ozv, same_region;
 
@@ -20687,7 +21021,9 @@ note_mouse_highlight (f, x, y)
 	      Lisp_Object image_map, hotspot;
 	      if ((image_map = Fplist_get (XCDR (img->spec), QCmap),
 		   !NILP (image_map))
-		  && (hotspot = find_hot_spot (image_map, dx, dy),
+		  && (hotspot = find_hot_spot (image_map,
+					       glyph->slice.x + dx,
+					       glyph->slice.y + dy),
 		      CONSP (hotspot))
 		  && (hotspot = XCDR (hotspot), CONSP (hotspot)))
 		{
@@ -20756,19 +21092,8 @@ note_mouse_highlight (f, x, y)
 
       if (BUFFERP (object))
 	{
-	  /* Put all the overlays we want in a vector in overlay_vec.
-	     Store the length in len.  If there are more than 10, make
-	     enough space for all, and try again.  */
-	  len = 10;
-	  overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	  noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL, 0);
-	  if (noverlays > len)
-	    {
-	      len = noverlays;
-	      overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
-	      noverlays = overlays_at (pos, 0, &overlay_vec, &len, NULL, NULL,0);
-	    }
-
+	  /* Put all the overlays we want in a vector in overlay_vec.  */
+	  GET_OVERLAYS_AT (pos, overlay_vec, noverlays, NULL, 0);
 	  /* Sort overlays into increasing priority order.  */
 	  noverlays = sort_overlays (overlay_vec, noverlays, w);
 	}
@@ -21724,6 +22049,8 @@ syms_of_xdisp ()
   staticpro (&Qspace_width);
   Qraise = intern ("raise");
   staticpro (&Qraise);
+  Qslice = intern ("slice");
+  staticpro (&Qslice);
   Qspace = intern ("space");
   staticpro (&Qspace);
   Qmargin = intern ("margin");
@@ -21736,6 +22063,10 @@ syms_of_xdisp ()
   staticpro (&Qright_margin);
   Qcenter = intern ("center");
   staticpro (&Qcenter);
+  Qline_height = intern ("line-height");
+  staticpro (&Qline_height);
+  Qtotal = intern ("total");
+  staticpro (&Qtotal);
   QCalign_to = intern (":align-to");
   staticpro (&QCalign_to);
   QCrelative_width = intern (":relative-width");
@@ -22095,11 +22426,6 @@ scroll more than the value given by the scroll step.
 Note that the lower bound for automatic hscrolling specified by `scroll-left'
 and `scroll-right' overrides this variable's effect.  */);
   Vhscroll_step = make_number (0);
-
-  DEFVAR_LISP ("image-types", &Vimage_types,
-    doc: /* List of supported image types.
-Each element of the list is a symbol for a supported image type.  */);
-  Vimage_types = Qnil;
 
   DEFVAR_BOOL ("message-truncate-lines", &message_truncate_lines,
     doc: /* If non-nil, messages are truncated instead of resizing the echo area.

@@ -19,9 +19,6 @@ maintainer has been found so far.
 Richard Stallman
 	???
 
-Andrew Choi
-	MacOS
-
 Jason Rumney
 	W32
 
@@ -73,6 +70,9 @@ Miles Bader
 2.
 ==============================================================================
 
+Steven Tamm
+	MacOS
+
 Eli Zaretskii
     	man/*
 	lispref/*
@@ -103,6 +103,9 @@ Miles Bader
 	src/bytecode.c
 	src/editfns.c
 	lisp/textmodes/refill.el
+
+Thien-Thi Nguyen
+	VMS
 
 ==============================================================================
 3.

@@ -1,5 +1,6 @@
 /* GNU Emacs case conversion functions.
-   Copyright (C) 1985, 1994, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1985,94,97,98,99, 2001, 2002, 2004
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -53,11 +54,19 @@ casify_object (flag, obj)
 	  int flags = XINT (obj) & flagbits;
 	  int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
 
+	  /* If the character has higher bits set
+	     above the flags, return it unchanged.
+	     It is not a real character.  */
+	  if ((unsigned) XFASTINT (obj) > (unsigned) flagbits)
+	    return obj;
+
 	  c1 = XFASTINT (obj) & ~flagbits;
 	  if (! multibyte)
 	    MAKE_CHAR_MULTIBYTE (c1);
 	  c = DOWNCASE (c1);
-	  if (inword || c == c1)
+	  if (inword)
+	    XSETFASTINT (obj, c | flags);
+	  else if (c == (XFASTINT (obj) & ~flagbits))
 	    {
 	      if (! inword)
 		c = UPCASE1 (c1);

@@ -1,5 +1,5 @@
 /* Random utility Lisp functions.
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 99, 2000, 2001, 02, 2003
+   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 99, 2000, 2001, 02, 03, 2004
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -473,7 +473,8 @@ with the original. */)
     {
       Lisp_Object val;
       int size_in_chars
-	= (XBOOL_VECTOR (arg)->size + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
+	= ((XBOOL_VECTOR (arg)->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
+	   / BOOL_VECTOR_BITS_PER_CHAR);
 
       val = Fmake_bool_vector (Flength (arg), Qnil);
       bcopy (XBOOL_VECTOR (arg)->data, XBOOL_VECTOR (val)->data,
@@ -485,29 +486,6 @@ with the original. */)
     arg = wrong_type_argument (Qsequencep, arg);
   return concat (1, &arg, CONSP (arg) ? Lisp_Cons : XTYPE (arg), 0);
 }
-
-#if 0				/* unused */
-/* In string STR of length LEN, see if bytes before STR[I] combine
-   with bytes after STR[I] to form a single character.  If so, return
-   the number of bytes after STR[I] which combine in this way.
-   Otherwize, return 0.  */
-
-static int
-count_combining (str, len, i)
-     unsigned char *str;
-     int len, i;
-{
-  int j = i - 1, bytes;
-
-  if (i == 0 || i == len || CHAR_HEAD_P (str[i]))
-    return 0;
-  while (j >= 0 && !CHAR_HEAD_P (str[j])) j--;
-  if (j < 0 || ! BASE_LEADING_CODE_P (str[j]))
-    return 0;
-  PARSE_MULTIBYTE_SEQ (str + j, len - j, bytes);
-  return (bytes <= i - j ? 0 : bytes - (i - j));
-}
-#endif
 
 /* This structure holds information of an argument of `concat' that is
    a string and has text properties to be copied.  */
@@ -682,6 +660,7 @@ concat (nargs, args, target_type, last_special)
 	    }
 	  toindex_byte += thislen_byte;
 	  toindex += thisleni;
+	  STRING_SET_CHARS (val, SCHARS (val));
 	}
       /* Copy a single-byte string to a multibyte string.  */
       else if (STRINGP (this) && STRINGP (val))
@@ -735,8 +714,8 @@ concat (nargs, args, target_type, last_special)
 	    else if (BOOL_VECTOR_P (this))
 	      {
 		int byte;
-		byte = XBOOL_VECTOR (this)->data[thisindex / BITS_PER_CHAR];
-		if (byte & (1 << (thisindex % BITS_PER_CHAR)))
+		byte = XBOOL_VECTOR (this)->data[thisindex / BOOL_VECTOR_BITS_PER_CHAR];
+		if (byte & (1 << (thisindex % BOOL_VECTOR_BITS_PER_CHAR)))
 		  elt = Qt;
 		else
 		  elt = Qnil;
@@ -993,16 +972,24 @@ string_make_unibyte (string)
      Lisp_Object string;
 {
   unsigned char *buf;
+  Lisp_Object ret;
 
   if (! STRING_MULTIBYTE (string))
     return string;
 
-  buf = (unsigned char *) alloca (SCHARS (string));
+  /* We can not use alloca here, because string might be very long.
+     For example when selecting megabytes of text and then pasting it to
+     another application.  */
+  buf = (unsigned char *) xmalloc (SCHARS (string));
 
   copy_text (SDATA (string), buf, SBYTES (string),
 	     1, 0);
 
-  return make_unibyte_string (buf, SCHARS (string));
+  ret = make_unibyte_string (buf, SCHARS (string));
+
+  xfree (buf);
+
+  return ret;
 }
 
 DEFUN ("string-make-multibyte", Fstring_make_multibyte, Sstring_make_multibyte,
@@ -1475,7 +1462,7 @@ assq_no_quit (key, list)
 DEFUN ("assoc", Fassoc, Sassoc, 2, 2, 0,
        doc: /* Return non-nil if KEY is `equal' to the car of an element of LIST.
 The value is actually the first element of LIST whose car equals KEY.  */)
-       (key, list)
+     (key, list)
      Lisp_Object key, list;
 {
   Lisp_Object result, car;
@@ -2050,6 +2037,18 @@ The PLIST is modified by side effects.  */)
   return plist;
 }
 
+DEFUN ("eql", Feql, Seql, 2, 2, 0,
+       doc: /* Return t if the two args are the same Lisp object.
+Floating-point numbers of equal value are `eql', but they may not be `eq'.  */)
+     (obj1, obj2)
+     Lisp_Object obj1, obj2;
+{
+  if (FLOATP (obj1))
+    return internal_equal (obj1, obj2, 0, 0) ? Qt : Qnil;
+  else
+    return EQ (obj1, obj2) ? Qt : Qnil;
+}
+
 DEFUN ("equal", Fequal, Sequal, 2, 2, 0,
        doc: /* Return t if two Lisp objects have similar structure and contents.
 They must have the same data type.
@@ -2148,7 +2147,8 @@ internal_equal (o1, o2, depth, props)
 	if (BOOL_VECTOR_P (o1))
 	  {
 	    int size_in_chars
-	      = (XBOOL_VECTOR (o1)->size + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
+	      = ((XBOOL_VECTOR (o1)->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
+		 / BOOL_VECTOR_BITS_PER_CHAR);
 
 	    if (XBOOL_VECTOR (o1)->size != XBOOL_VECTOR (o2)->size)
 	      return 0;
@@ -2260,7 +2260,8 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
     {
       register unsigned char *p = XBOOL_VECTOR (array)->data;
       int size_in_chars
-	= (XBOOL_VECTOR (array)->size + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
+	= ((XBOOL_VECTOR (array)->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
+	   / BOOL_VECTOR_BITS_PER_CHAR);
 
       charval = (! NILP (item) ? -1 : 0);
       for (index = 0; index < size_in_chars - 1; index++)
@@ -2268,8 +2269,8 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
       if (index < size_in_chars)
 	{
 	  /* Mask out bits beyond the vector size.  */
-	  if (XBOOL_VECTOR (array)->size % BITS_PER_CHAR)
-	    charval &= (1 << (XBOOL_VECTOR (array)->size % BITS_PER_CHAR)) - 1;
+	  if (XBOOL_VECTOR (array)->size % BOOL_VECTOR_BITS_PER_CHAR)
+	    charval &= (1 << (XBOOL_VECTOR (array)->size % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
 	  p[index] = charval;
 	}
     }
@@ -2398,8 +2399,8 @@ mapcar1 (leni, vals, fn, seq)
       for (i = 0; i < leni; i++)
 	{
 	  int byte;
-	  byte = XBOOL_VECTOR (seq)->data[i / BITS_PER_CHAR];
-	  if (byte & (1 << (i % BITS_PER_CHAR)))
+	  byte = XBOOL_VECTOR (seq)->data[i / BOOL_VECTOR_BITS_PER_CHAR];
+	  if (byte & (1 << (i % BOOL_VECTOR_BITS_PER_CHAR)))
 	    dummy = Qt;
 	  else
 	    dummy = Qnil;
@@ -5203,6 +5204,7 @@ used if both `use-dialog-box' and this variable are non-nil.  */);
   defsubr (&Sput);
   defsubr (&Slax_plist_get);
   defsubr (&Slax_plist_put);
+  defsubr (&Seql);
   defsubr (&Sequal);
   defsubr (&Sequal_including_properties);
   defsubr (&Sfillarray);

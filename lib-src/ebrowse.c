@@ -564,7 +564,7 @@ xmalloc (nbytes)
   if (p == NULL)
     {
       yyerror ("out of memory", NULL);
-      exit (1);
+      exit (EXIT_FAILURE);
     }
   return p;
 }
@@ -581,7 +581,7 @@ xrealloc (p, sz)
   if (p == NULL)
     {
       yyerror ("out of memory", NULL);
-      exit (1);
+      exit (EXIT_FAILURE);
     }
   return p;
 }
@@ -3671,7 +3671,7 @@ usage (error)
      int error;
 {
   puts (USAGE);
-  exit (error ? 1 : 0);
+  exit (error ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
 
@@ -3688,7 +3688,7 @@ version ()
   printf ("ebrowse %s\n", VERSION);
   puts ("Copyright (C) 1992-1999, 2000, 2001 Free Software Foundation, Inc.");
   puts ("This program is distributed under the same terms as Emacs.");
-  exit (0);
+  exit (EXIT_SUCCESS);
 }
 
 
@@ -3925,7 +3925,7 @@ main (argc, argv)
       if (yyout == NULL)
 	{
 	  yyerror ("cannot open output file `%s'", out_filename);
-	  exit (1);
+	  exit (EXIT_FAILURE);
 	}
     }
 
@@ -3970,11 +3970,10 @@ main (argc, argv)
   if (yyout != stdout)
     fclose (yyout);
 
-  return 0;
+  return EXIT_SUCCESS;
 }
-
-
-/* ebrowse.c ends here.  */
 
 /* arch-tag: fc03b4bc-91a9-4c3d-b3b9-12a77fa86dd8
    (do not change this comment) */
+
+/* ebrowse.c ends here */

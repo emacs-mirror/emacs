@@ -1,5 +1,5 @@
-#  Makefile for GNU Emacs on the Microsoft W32 API.
-#  Copyright (c) 2000-2001 Free Software Foundation, Inc.
+#  -*- Makefile -*- for GNU Emacs on the Microsoft W32 API.
+#  Copyright (c) 2000,2001,2004 Free Software Foundation, Inc.
 #
 #  This file is part of GNU Emacs.
 #
@@ -42,9 +42,6 @@ EMACSOPT = -batch --no-init-file --no-site-file --multibyte
 # Set EMACSLOADPATH correctly (already defined in environment).
 EMACSLOADPATH=$(lisp)
 
-# Use C locale
-LC_ALL = C
-
 lisptagsfiles1 = $(lisp)/*.el
 lisptagsfiles2 = $(lisp)/*/*.el
 ETAGS = "../lib-src/$(BLD)/etags"
@@ -65,7 +62,13 @@ DONTCOMPILE = \
 	$(lisp)/forms-d2.el \
 	$(lisp)/forms-pass.el \
 	$(lisp)/generic-x.el \
-	$(lisp)/international/latin1-disp.el \
+	$(lisp)/international/latin-1.el \
+	$(lisp)/international/latin-2.el \
+	$(lisp)/international/latin-3.el \
+	$(lisp)/international/latin-4.el \
+	$(lisp)/international/latin-5.el \
+	$(lisp)/international/latin-8.el \
+	$(lisp)/international/latin-9.el \
 	$(lisp)/international/mule-conf.el \
 	$(lisp)/language/czech.el \
 	$(lisp)/language/devanagari.el \
@@ -84,10 +87,6 @@ DONTCOMPILE = \
 	$(lisp)/language/thai.el \
 	$(lisp)/language/utf-8-lang.el \
 	$(lisp)/language/georgian.el \
-	$(lisp)/language/vietnamese.el \
-	$(lisp)/language/cyrillic.el \
-	$(lisp)/language/chinese.el \
-	$(lisp)/language/indian.el \
 	$(lisp)/loaddefs.el \
 	$(lisp)/ldefs-boot.el \
 	$(lisp)/loadup.el \
@@ -162,7 +161,8 @@ WINS=\
 	progmodes \
 	term \
 	textmodes \
-	toolbar
+	toolbar \
+	url
 
 doit:
 
@@ -237,7 +237,7 @@ update-subdirs-CMD: doit
 	echo ;; In load-path, after this directory should come>> subdirs.el
 	echo ;; certain of its subdirectories.  Here we specify them.>> subdirs.el
 	echo (normal-top-level-add-to-load-path $(SQUOTE)(>> subdirs.el
-	@for %d in ($(WINS)) do if not (%d)==(term) echo "%d">> subdirs.el
+	@for %%d in ($(WINS)) do if not (%%d)==(term) echo "%%d">> subdirs.el
 	echo ))>> subdirs.el
 
 update-subdirs-SH: doit
@@ -282,11 +282,11 @@ $(DONTCOMPILE:.el=.elc):
 compile: subdirs.el compile-$(SHELLTYPE) doit
 
 compile-CMD:
-#	-for %f in ($(lisp) $(WINS)) do for %g in (%f\*.elc) do @attrib -r %g
-	for %f in ($(COMPILE_FIRST)) do \
-	  $(emacs) -l loaddefs -f batch-byte-compile-if-not-done %f
-	for %f in (. $(WINS)) do for %g in (%f/*.el) do \
-	  $(emacs) -l loaddefs -f batch-byte-compile-if-not-done %f/%g
+#	-for %%f in ($(lisp) $(WINS)) do for %%g in (%%f\*.elc) do @attrib -r %%g
+	for %%f in ($(COMPILE_FIRST)) do \
+	  $(emacs) -l loaddefs -f batch-byte-compile-if-not-done %%f
+	for %%f in (. $(WINS)) do for %%g in (%%f/*.el) do \
+	  $(emacs) -l loaddefs -f batch-byte-compile-if-not-done %%f/%%g
 
 compile-SH:
 #	for elc in $(lisp)/*.elc $(lisp)/*/*.elc; do attrib -r $$elc; done
@@ -309,9 +309,9 @@ compile-SH:
 compile-always: subdirs.el compile-always-$(SHELLTYPE) doit
 
 compile-always-CMD:
-#	-for %f in ($(lisp) $(WINS)) do for %g in (%f\*.elc) do @attrib -r %g
-	for %f in ($(COMPILE_FIRST)) do $(emacs) -f batch-byte-compile %f
-	for %f in (. $(WINS)) do for %g in (%f/*.el) do $(emacs) -f batch-byte-compile %f/%g
+#	-for %%f in ($(lisp) $(WINS)) do for %%g in (%%f\*.elc) do @attrib -r %%g
+	for %%f in ($(COMPILE_FIRST)) do $(emacs) -f batch-byte-compile %%f
+	for %%f in (. $(WINS)) do for %%g in (%%f/*.el) do $(emacs) -f batch-byte-compile %%f/%%g
 
 compile-always-SH:
 #	for elc in $(lisp)/*.elc $(lisp)/*/*.elc; do attrib -r $$elc; done
@@ -329,7 +329,7 @@ compile-always-SH:
 compile-calc: compile-calc-$(SHELLTYPE)
 
 compile-calc-CMD:
-	for %f in ($(lisp)/calc/*.el) do $(emacs) -f batch-byte-compile %f
+	for %%f in ($(lisp)/calc/*.el) do $(emacs) -f batch-byte-compile %%f
 
 compile-calc-SH:
 	for el in $(lisp)/calc/*.el; do \
@@ -374,7 +374,7 @@ bootstrap-clean: bootstrap-clean-$(SHELLTYPE) loaddefs.el
 bootstrap-clean-CMD:
 #	if exist $(EMACS) $(MAKE) $(MFLAGS) autoloads
 	if not exist $(lisp)\loaddefs.el cp $(lisp)/ldefs-boot.el $(lisp)/loaddefs.el
-	-for %f in (. $(WINS)) do for %g in (%f\*.elc) do @$(DEL) %g
+	-for %%f in (. $(WINS)) do for %%g in (%%f\*.elc) do @$(DEL) %%g
 
 bootstrap-clean-SH:
 #	if test -f $(EMACS); then $(MAKE) $(MFLAGS) autoloads; fi
@@ -420,5 +420,3 @@ install:
 #
 clean:
 		- $(DEL) *~
-
-# arch-tag: bd03b562-c58d-4403-99db-c7bccd8c49a0

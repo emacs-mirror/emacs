@@ -259,6 +259,13 @@ Do not load @file{site-start.el}.  The options @samp{-q}, @samp{-u}
 and @samp{--batch} have no effect on the loading of this file---this is
 the only option that blocks it.
 
+@item -Q
+@opindex -Q
+Start emacs with minimum customizations and window decorations.
+This is like using @samp{-q} and @samp{--no-site-file}, but in
+addition it also disables the menu-bar, the tool-bar, the scroll-bars,
+tool tips, the blinking cursor, and the fancy startup screen.
+
 @item --no-splash
 @opindex --no-splash
 @vindex inhibit-startup-message

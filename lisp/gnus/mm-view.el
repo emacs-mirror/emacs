@@ -1,5 +1,5 @@
 ;;; mm-view.el --- functions for viewing MIME objects
-;; Copyright (C) 1998, 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 01, 2004  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -197,7 +197,8 @@
 
 (defun mm-insert-inline (handle text)
   "Insert TEXT inline from HANDLE."
-  (let ((b (point)))
+  (let ((b (point))
+	(inhibit-read-only t))
     (insert text)
     (mm-handle-set-undisplayer
      handle

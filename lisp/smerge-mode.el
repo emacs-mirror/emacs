@@ -65,7 +65,7 @@
 (defcustom smerge-diff-switches
   (append '("-d" "-b")
 	  (if (listp diff-switches) diff-switches (list diff-switches)))
-  "*A list of strings specifying switches to be be passed to diff.
+  "*A list of strings specifying switches to be passed to diff.
 Used in `smerge-diff-base-mine' and related functions."
   :group 'smerge
   :type '(repeat string))
@@ -324,7 +324,7 @@ according to `smerge-match-conflict'.")
 	      ;; Out of range
 	      (popup-menu smerge-mode-menu)
 	    ;; Install overlay.
-	    (setq o (make-overlay (match-beginning i) (match-end i)))  
+	    (setq o (make-overlay (match-beginning i) (match-end i)))
 	    (unwind-protect
 		(progn
 		  (overlay-put o 'face 'highlight)
@@ -477,6 +477,13 @@ An error is raised if not inside a conflict."
 
 	  ;; handle the various conflict styles
 	  (cond
+	   ((save-excursion
+	      (goto-char mine-start)
+	      (re-search-forward smerge-begin-re end t))
+	    ;; There's a nested conflict and we're after the the beginning
+	    ;; of the outer one but before the beginning of the inner one.
+	    (error "There is a nested conflict"))
+
 	   ((re-search-backward smerge-base-re start t)
 	    ;; a 3-parts conflict
 	    (set (make-local-variable 'smerge-conflict-style) 'diff3-A)
@@ -505,7 +512,7 @@ An error is raised if not inside a conflict."
 	    (unwind-protect
 		(add-text-properties start end smerge-text-properties)
 	      (restore-buffer-modified-p m)))
-              
+
 	  (store-match-data (list start end
 				  mine-start mine-end
 				  base-start base-end
@@ -521,9 +528,11 @@ The submatches are the same as in `smerge-match-conflict'.
 Returns non-nil if a match is found between the point and LIMIT.
 The point is moved to the end of the conflict."
   (when (re-search-forward smerge-begin-re limit t)
-    (ignore-errors
-      (smerge-match-conflict)
-      (goto-char (match-end 0)))))
+    (condition-case err
+	(progn
+	  (smerge-match-conflict)
+	  (goto-char (match-end 0)))
+      (error (smerge-find-conflict limit)))))
 
 (defun smerge-diff (n1 n2)
   (smerge-match-conflict)
@@ -673,5 +682,5 @@ buffer names."
 
 (provide 'smerge-mode)
 
-;;; arch-tag: 605c8d1e-e43d-4943-a6f3-1bcc4333e690
+;; arch-tag: 605c8d1e-e43d-4943-a6f3-1bcc4333e690
 ;;; smerge-mode.el ends here

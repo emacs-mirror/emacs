@@ -117,6 +117,8 @@ struct backtrace
 			   args points to slot holding list of
 			   unevalled args */
     char evalargs;
+    /* Nonzero means call value of debugger when done with this operation. */
+    char debug_on_exit;
   };
 
 #ifdef MULTI_KBOARD
@@ -679,6 +681,8 @@ static SIGTYPE interrupt_signal P_ ((int signalnum));
    to support it.  */
 static int cannot_suspend;
 
+extern Lisp_Object Qidentity, Qonly;
+
 /* Install the string STR as the beginning of the string of echoing,
    so that it serves as a prompt for the next character.
    Also start echoing.  */
@@ -996,6 +1000,11 @@ This function is called by the editor initialization to begin editing.  */)
   int count = SPECPDL_INDEX ();
   Lisp_Object buffer;
 
+  /* If we enter while input is blocked, don't lock up here.
+     This may happen through the debugger during redisplay.  */
+  if (INPUT_BLOCKED_P)
+    return Qnil;
+
   command_loop_level++;
   update_mode_lines = 1;
 
@@ -1151,7 +1160,8 @@ cmd_error (data)
 
   Vinhibit_quit = Qnil;
 #ifdef MULTI_KBOARD
-  any_kboard_state ();
+  if (command_loop_level == 0 && minibuf_level == 0)
+    any_kboard_state ();
 #endif
 
   return make_number (0);
@@ -1240,6 +1250,10 @@ command_loop ()
     while (1)
       {
 	internal_catch (Qtop_level, top_level_1, Qnil);
+	/* Reset single_kboard in case top-level set it while
+	   evaluating an -f option, or we are stuck there for some
+	   other reason.  */
+	any_kboard_state ();
 	internal_catch (Qtop_level, command_loop_2, Qnil);
 	executing_macro = Qnil;
 
@@ -1294,6 +1308,12 @@ DEFUN ("top-level", Ftop_level, Stop_level, 0, 0, "",
   if (display_hourglass_p)
     cancel_hourglass ();
 #endif
+
+  /* Unblock input if we enter with input blocked.  This may happen if
+     redisplay traps e.g. during tool-bar update with input blocked.  */
+  while (INPUT_BLOCKED_P)
+    UNBLOCK_INPUT;
+
   return Fthrow (Qtop_level, Qnil);
 }
 
@@ -1802,6 +1822,16 @@ command_loop_1 ()
 	    }
 	  else if (current_buffer != prev_buffer || MODIFF != prev_modiff)
 	    call1 (Vrun_hooks, intern ("activate-mark-hook"));
+	}
+
+      /* Setting transient-mark-mode to `only' is a way of
+	 turning it on for just one command.  */
+      if (!NILP (current_buffer->mark_active) && !NILP (Vrun_hooks))
+	{
+	  if (EQ (Vtransient_mark_mode, Qidentity))
+	    Vtransient_mark_mode = Qnil;
+	  if (EQ (Vtransient_mark_mode, Qonly))
+	    Vtransient_mark_mode = Qidentity;
 	}
 
     finalize:
@@ -3967,9 +3997,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
       else if (event->kind == LANGUAGE_CHANGE_EVENT)
 	{
 	  /* Make an event (language-change (FRAME CHARSET LCID)).  */
-	  obj = Fcons (event->modifiers, Qnil);
-	  obj = Fcons (event->code, obj);
-	  obj = Fcons (event->frame_or_window, obj);
+	  obj = Fcons (event->frame_or_window, Qnil);
 	  obj = Fcons (Qlanguage_change, Fcons (obj, Qnil));
 	  kbd_fetch_ptr = event + 1;
 	}
@@ -6245,14 +6273,8 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist_or_stem,
 	{
 	  int len = SBYTES (name_alist_or_stem);
 	  char *buf = (char *) alloca (len + 50);
-	  if (sizeof (int) == sizeof (EMACS_INT))
-	    sprintf (buf, "%s-%d", SDATA (name_alist_or_stem),
-		     XINT (symbol_int) + 1);
-	  else if (sizeof (long) == sizeof (EMACS_INT))
-	    sprintf (buf, "%s-%ld", SDATA (name_alist_or_stem),
-		     XINT (symbol_int) + 1);
-	  else
-	    abort ();
+	  sprintf (buf, "%s-%ld", SDATA (name_alist_or_stem),
+		   (long) XINT (symbol_int) + 1);
 	  value = intern (buf);
 	}
       else if (name_table != 0 && name_table[symbol_num])
@@ -7409,7 +7431,7 @@ parse_menu_item (item, notreal, inmenubar)
       newcache = chkcache;
       if (chkcache)
 	{
-	  tem = Fkey_description (tem);
+	  tem = Fkey_description (tem, Qnil);
 	  if (CONSP (prefix))
 	    {
 	      if (STRINGP (XCAR (prefix)))
@@ -9667,6 +9689,7 @@ a special event, so ignore the prefix argument and don't clear it.  */)
       backtrace.args = &cmd;
       backtrace.nargs = 1;
       backtrace.evalargs = 0;
+      backtrace.debug_on_exit = 0;
 
       tem = Fcall_interactively (cmd, record_flag, keys);
 
@@ -9703,23 +9726,9 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
   else if (CONSP (prefixarg) && XINT (XCAR (prefixarg)) == 4)
     strcpy (buf, "C-u ");
   else if (CONSP (prefixarg) && INTEGERP (XCAR (prefixarg)))
-    {
-      if (sizeof (int) == sizeof (EMACS_INT))
-	sprintf (buf, "%d ", XINT (XCAR (prefixarg)));
-      else if (sizeof (long) == sizeof (EMACS_INT))
-	sprintf (buf, "%ld ", (long) XINT (XCAR (prefixarg)));
-      else
-	abort ();
-    }
+    sprintf (buf, "%ld ", (long) XINT (XCAR (prefixarg)));
   else if (INTEGERP (prefixarg))
-    {
-      if (sizeof (int) == sizeof (EMACS_INT))
-	sprintf (buf, "%d ", XINT (prefixarg));
-      else if (sizeof (long) == sizeof (EMACS_INT))
-	sprintf (buf, "%ld ", (long) XINT (prefixarg));
-      else
-	abort ();
-    }
+    sprintf (buf, "%ld ", (long) XINT (prefixarg));
 
   /* This isn't strictly correct if execute-extended-command
      is bound to anything else.  Perhaps it should use
@@ -9807,7 +9816,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 	  int count = SPECPDL_INDEX ();
 
 	  record_unwind_protect (pop_message_unwind, Qnil);
-	  binding = Fkey_description (bindings);
+	  binding = Fkey_description (bindings, Qnil);
 
 	  newmessage
 	    = (char *) alloca (SCHARS (SYMBOL_NAME (function))
@@ -10490,6 +10499,61 @@ The elements of this list correspond to the arguments of
   return Flist (sizeof (val) / sizeof (val[0]), val);
 }
 
+DEFUN ("posn-at-x-y", Fposn_at_x_y, Sposn_at_x_y, 2, 3, 0,
+       doc: /* Return position information for pixel coordinates X and Y.
+By default, X and Y are relative to text area of the selected window.
+Optional third arg FRAME_OR_WINDOW non-nil specifies frame or window.
+
+The return value is similar to a mouse click position:
+   (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
+    IMAGE (DX . DY) (WIDTH . HEIGHT))
+The `posn-' functions access elements of such lists.  */)
+  (x, y, frame_or_window)
+     Lisp_Object x, y, frame_or_window;
+{
+  if (NILP (frame_or_window))
+    frame_or_window = selected_window;
+
+  if (WINDOWP (frame_or_window))
+    {
+      struct window *w;
+
+      CHECK_LIVE_WINDOW (frame_or_window);
+
+      w = XWINDOW (frame_or_window);
+      XSETINT (x, (WINDOW_TO_FRAME_PIXEL_X (w, XINT (x))
+		   + window_box_left_offset (w, TEXT_AREA)));
+      XSETINT (y, WINDOW_TO_FRAME_PIXEL_Y (w, XINT (y)));
+      frame_or_window = w->frame;
+    }
+
+  CHECK_LIVE_FRAME (frame_or_window);
+
+  return make_lispy_position (XFRAME (frame_or_window), &x, &y, 0);
+}
+
+DEFUN ("posn-at-point", Fposn_at_point, Sposn_at_point, 0, 2, 0,
+       doc: /* Return position information for buffer POS in WINDOW.
+POS defaults to point in WINDOW; WINDOW defaults to the selected window.
+
+Return nil if position is not visible in window.  Otherwise,
+the return value is similar to that returned by `event-start' for
+a mouse click at the upper left corner of the glyph corresponding
+to the given buffer position:
+   (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
+    IMAGE (DX . DY) (WIDTH . HEIGHT))
+The `posn-' functions access elements of such lists.  */*/)
+  (pos, window)
+     Lisp_Object pos, window;
+{
+  Lisp_Object tem;
+
+  tem = Fpos_visible_in_window_p (pos, window, Qt);
+  if (!NILP (tem))
+    tem = Fposn_at_x_y (XCAR (tem), XCAR (XCDR (tem)), window);
+  return tem;
+}
+
 
 /*
  * Set up a new kboard object with reasonable initial values.
@@ -10913,6 +10977,8 @@ syms_of_keyboard ()
   defsubr (&Sset_input_mode);
   defsubr (&Scurrent_input_mode);
   defsubr (&Sexecute_extended_command);
+  defsubr (&Sposn_at_point);
+  defsubr (&Sposn_at_x_y);
 
   DEFVAR_LISP ("last-command-char", &last_command_char,
 	       doc: /* Last input event that was part of a command.  */);
@@ -11357,8 +11423,11 @@ mark_kboards ()
       {
 	if (event == kbd_buffer + KBD_BUFFER_SIZE)
 	  event = kbd_buffer;
-	mark_object (event->x);
-	mark_object (event->y);
+	if (event->kind != SELECTION_REQUEST_EVENT)
+	  {
+	    mark_object (event->x);
+	    mark_object (event->y);
+	  }
 	mark_object (event->frame_or_window);
 	mark_object (event->arg);
       }

@@ -171,6 +171,10 @@ the actual byte-code; each character in it is an instruction or an
 operand of an instruction.  The vector contains all the constants,
 variable names and function names used by the function, except for
 certain primitives that are coded as special instructions.
+
+If the argument to @code{byte-compile} is a @code{lambda} expression,
+it returns the corresponding compiled code, but does not store
+it anywhere.
 @end defun
 
 @deffn Command compile-defun &optional arg
@@ -232,7 +236,8 @@ recompilation if a @samp{.elc} file exists but is older than the
 When a @samp{.el} file has no corresponding @samp{.elc} file,
 @var{flag} says what to do.  If it is @code{nil}, this command ignores
 these files.  If @var{flag} is 0, it compiles them.  If it is neither
-@code{nil} nor 0, it asks the user whether to compile each such file.
+@code{nil} nor 0, it asks the user whether to compile each such file,
+and asks about each subdirectory as well.
 
 Interactively, @code{byte-recompile-directory} prompts for
 @var{directory} and @var{flag} is the prefix argument.
@@ -293,8 +298,8 @@ in the file.
 
 @item
 If you alter the compiled file (such as by compiling a new version),
-then further access to documentation strings in this file will give
-nonsense results.
+then further access to documentation strings in this file will
+probably give nonsense results.
 @end itemize
 
   If your site installs Emacs following the usual procedures, these
@@ -365,8 +370,8 @@ longer load the remaining function definitions not already loaded.
 
 @item
 If you alter the compiled file (such as by compiling a new version),
-then trying to load any function not already loaded will yield nonsense
-results.
+then trying to load any function not already loaded will usually yield
+nonsense results.
 @end itemize
 
   These problems will never happen in normal circumstances with
@@ -391,9 +396,10 @@ that are set up for dynamic function loading.
 @end defvar
 
 @defun fetch-bytecode function
-This immediately finishes loading the definition of @var{function} from
-its byte-compiled file, if it is not fully loaded already.  The argument
-@var{function} may be a byte-code function object or a function name.
+If @var{function} is a byte-code function object, this immediately
+finishes loading the byte code of @var{function} from its
+byte-compiled file, if it is not fully loaded already.  Otherwise,
+it does nothing.  It always returns @var{function}.
 @end defun
 
 @node Eval During Compile
@@ -440,7 +446,7 @@ commands won't find the places they are really used.  To do that,
 you must search for the function names.
 
   You can suppress the compiler warning for calling an undefined
-function @var{func} by conditionalizing the function call on a
+function @var{func} by conditionalizing the function call on an
 @code{fboundp} test, like this:
 
 @example
@@ -468,14 +474,17 @@ The reference to @var{variable} must be in the @var{then-form} of the
   You can suppress any compiler warnings using the construct
 @code{with-no-warnings}:
 
-@defmac with-no-warnings body...
+@c This is implemented with a defun, but conceptually it is
+@c a special form.
+
+@defspec with-no-warnings body...
 In execution, this is equivalent to @code{(progn @var{body}...)},
 but the compiler does not issue warnings for anything that occurs
 inside @var{body}.
 
 We recommend that you use this construct around the smallest
 possible piece of code.
-@end defmac
+@end defspec
 
 @node Byte-Code Objects
 @section Byte-Code Function Objects
@@ -578,7 +587,8 @@ name of an existing buffer.  Then the output goes there, at point, and
 point is left before the output.
 
 The argument @var{object} can be a function name, a lambda expression
-or a byte-code object.
+or a byte-code object.  If it is a lambda expression, @code{disassemble}
+compiles it and disassembles the resulting compiled code.
 @end deffn
 
   Here are two examples of using the @code{disassemble} function.  We

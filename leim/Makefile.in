@@ -1,9 +1,6 @@
 # Makefile for leim subdirectory in GNU Emacs.
-# Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
-#   Licensed to the Free Software Foundation.
-# Copyright (C) 2003
-#   National Institute of Advanced Industrial Science and Technology (AIST)
-#   Registration Number H13PRO009
+# Copyright (C) 1997, 2004 Electrotechnical Laboratory, JAPAN.
+# Licensed to the Free Software Foundation.
 
 # This file is part of GNU Emacs.
 
@@ -45,7 +42,7 @@ BUILT-EMACS = ${dot}${dot}/src/emacs
 buildlisppath=${srcdir}/${dot}${dot}/lisp
 
 # How to run Emacs.
-RUN-EMACS = EMACSLOADPATH=$(buildlisppath) LC_ALL=C \
+RUN-EMACS = EMACSLOADPATH=$(buildlisppath) \
 	${BUILT-EMACS} -batch --no-init-file --no-site-file --multibyte
 
 # Subdirectories to be made if ${srcdir} is different from the current
@@ -120,13 +117,14 @@ GREEK=${srcdir}/quail/greek.elc
 
 RUSSIAN=${srcdir}/quail/cyrillic.elc ${srcdir}/quail/cyril-jis.elc
 
-MISC= \
+OTHERS= \
 	${srcdir}/quail/ethiopic.elc \
 	${srcdir}/quail/ipa.elc \
 	${srcdir}/quail/hebrew.elc \
-	${srcdir}/quail/georgian.elc
+	${srcdir}/quail/georgian.elc \
+	${srcdir}/quail/sisheng.elc
 
-MISC-DIC=\
+MISC= \
 	quail/tsang-b5.elc	\
 	quail/quick-b5.elc	\
 	quail/tsang-cns.elc	\
@@ -140,17 +138,17 @@ CHINESE=${CHINESE-GB} ${CHINESE-BIG5}
 EASTASIA=${CHINESE} ${JAPANESE} ${KOREAN}
 ASIA=${EASTASIA} ${THAI} ${VIETNAMESE} ${LAO} ${INDIAN} ${TIBETAN}
 EUROPEAN=${LATIN} ${SLAVIC} ${GREEK} ${RUSSIAN}
-WORLD=${ASIA} ${EUROPEAN} ${MISC} ${MISC-DIC} ${UNICODE}
+WORLD=${ASIA} ${EUROPEAN} ${OTHERS} ${MISC} ${UNICODE}
 
-TIT=${CHINESE-TIT}
-NON-TIT=${CHINESE-NON-TIT} ${JAPANESE} ${KOREAN} ${EUROPEAN} ${MISC}
+TIT-MISC=${CHINESE-TIT} ${MISC}
+NON-TIT-MISC=${CHINESE-NON-TIT} ${JAPANESE} ${KOREAN} ${EUROPEAN} ${OTHERS}
 
 .SUFFIXES: .elc .el
 
 .el.elc:
 	${RUN-EMACS} -f batch-byte-compile $<
 
-all: ${BUILT-EMACS} ${SUBDIRS} ${WORLD} leim-list.el
+all: ${BUILT-EMACS} ${SUBDIRS} leim-list.el ${WORLD}
 
 # To ensure that we can run Emacs.  This target is ignored (never
 # being hit) if a user changes default value of EMACS.
@@ -161,38 +159,42 @@ ${SUBDIRS}:
 	mkdir $@
 	touch stamp-subdir
 
-# The rules which generate ${TIT} and ${MISC-DIC} files create them all
-# in one go.  So we need to prevent parallel execution for that target,
-# otherwise Emacs complains about files being locked.  .NOTPARALLEL is
-# for GNU Make, .NO_PARALLEL is for other Make's.
-.NOTPARALLEL: ${TIT} ${MISC-DIC}
+TIT-SOURCES= \
+	${srcdir}/CXTERM-DIC/4Corner.tit \
+	${srcdir}/CXTERM-DIC/ARRAY30.tit \
+	${srcdir}/CXTERM-DIC/CCDOSPY.tit \
+	${srcdir}/CXTERM-DIC/ECDICT.tit \
+	${srcdir}/CXTERM-DIC/ETZY.tit \
+	${srcdir}/CXTERM-DIC/PY-b5.tit \
+	${srcdir}/CXTERM-DIC/Punct-b5.tit \
+	${srcdir}/CXTERM-DIC/Punct.tit \
+	${srcdir}/CXTERM-DIC/QJ-b5.tit \
+	${srcdir}/CXTERM-DIC/QJ.tit \
+	${srcdir}/CXTERM-DIC/SW.tit \
+	${srcdir}/CXTERM-DIC/TONEPY.tit \
+	${srcdir}/CXTERM-DIC/ZOZY.tit
 
-.NO_PARALLEL: ${TIT} ${MISC-DIC}
+changed.tit: ${TIT-SOURCES}
+	${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
+	  -f batch-titdic-convert -dir quail ${srcdir}/CXTERM-DIC; \
+	  echo "changed" > $@
 
-# Rule to generate quail/*.el from CXTERM-DIC/*.tit.
-# The "if [ -f $@ ]; then true; " part prevents parallel Make's
-# which don't honor .NOTPARALLEL, such as SGI's Make, from running
-# this rule many times, one each for every file it creates.
-${TIT}:
-	if [ -d quail ]; then true; else make quail; fi
-	if [ -f $@ ]; then true; else \
-	 ${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
-	  --eval '(batch-titdic-convert t)' -dir quail ${srcdir}/CXTERM-DIC; fi
-	if [ -f $@ ]; then true; else \
-	 ${RUN-EMACS}  -l ${buildlisppath}/international/quail \
-	  -f batch-byte-compile ${TIT:.elc=.el}; fi
+MISC-SOURCES= \
+	${srcdir}/MISC-DIC/CTLau-b5.html \
+	${srcdir}/MISC-DIC/CTLau.html \
+	${srcdir}/MISC-DIC/cangjie-table.b5 \
+	${srcdir}/MISC-DIC/cangjie-table.cns \
+	${srcdir}/MISC-DIC/pinyin.map \
+	${srcdir}/MISC-DIC/ziranma.cin
 
-# Rule to generate quail/*.el from MISC-DIC/*.
-${MISC-DIC}:
-	if [ -d quail ]; then true; else make quail; fi
-	if [ -f $@ ]; then true; else \
-	 ${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
-	    -f batch-miscdic-convert -dir quail ${srcdir}/MISC-DIC; fi
-	if [ -f $@ ]; then true; else \
-	 ${RUN-EMACS} -l ${buildlisppath}/international/quail \
-	  -f batch-byte-compile ${MISC-DIC:.elc=.el}; fi
+changed.misc: ${MISC-SOURCES}
+	${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
+	  -f batch-miscdic-convert -dir quail ${srcdir}/MISC-DIC; \
+	  echo "changed" > $@
 
-leim-list.el: ${SUBDIRS} ${WORLD}
+leim-list.el: ${SUBDIRS} ${NON-TIT-MISC} changed.tit changed.misc ${srcdir}/leim-ext.el
+	${RUN-EMACS}  -l ${buildlisppath}/international/quail \
+	  -f batch-byte-compile-if-not-done ${TIT-MISC:.elc=.el}
 	if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \
 	  ${RUN-EMACS} -l ${buildlisppath}/international/quail \
 	    --eval "(update-leim-list-file \".\")" ; \
@@ -200,6 +202,7 @@ leim-list.el: ${SUBDIRS} ${WORLD}
 	  ${RUN-EMACS} -l ${buildlisppath}/international/quail \
 	    --eval "(update-leim-list-file \".\" \"${srcdir}\")" ; \
 	fi
+	sed -n '/^[^;]/ p' < ${srcdir}/leim-ext.el >> $@
 
 install: all
 	if [ x`(cd ${INSTALLDIR} && /bin/pwd)` != x`(/bin/pwd)` ] ; then \
@@ -226,8 +229,8 @@ install: all
 	-chmod -R a+r ${INSTALLDIR}
 
 clean mostlyclean:
-	rm -f ${TIT} ${TIT:.elc=.el} ${MISC-DIC} ${MISC-DIC:.elc=.el} \
-		leim-list.el
+	rm -f ${TIT-MISC} ${TIT-MISC:.elc=.el} \
+		leim-list.el changed.tit changed.misc
 
 distclean: clean
 	if test -f stamp-subdir; then rm -rf ${SUBDIRS} stamp-subdir; fi
@@ -238,5 +241,3 @@ maintainer-clean: distclean
 
 extraclean: maintainer-clean
 	-rm -f *~ \#* m/?*~ s/?*~
-
-# arch-tag: f666a939-8145-4d64-a6a6-cc1f61bd32ca

@@ -196,7 +196,7 @@ define an abbreviation (@pxref{(emacs)Defining Abbrevs}) that will expand
 
   Say you want @samp{ifst} to be an abbreviation for the C language if
 statement.  You will tell Emacs that @samp{ifst} expands to the empty string
-and then calls the skeleton command.  In Emacs-lisp you can say something like
+and then calls the skeleton command.  In Emacs Lisp you can say something like
 @code{(define-abbrev c-mode-abbrev-table "ifst" "" 'c-if)}.  Or you can edit
 the output from @kbd{M-x list-abbrevs} to make it look like this:
 
@@ -263,7 +263,7 @@ copy of this variable.
 @item @code{v1}, @code{v2}
 Skeleton-local user variables.
 @item @code{'@var{expression}}
-Evaluate following lisp expression for its side-effect, but prevent it from
+Evaluate following Lisp expression for its side-effect, but prevent it from
 being interpreted as a skeleton element.
 @item @var{skeleton}
 Subskeletons are inserted recursively, not once, but as often as the user
@@ -456,16 +456,19 @@ wrong version of the GNU General Public License (@pxref{(emacs)Copying}) is foun
 that is updated too.
 
   An interesting application for this function is to have it be called
-automatically every time a file is saved.  This is accomplished by putting
-@code{(add-hook 'write-file-functions 'copyright-update)} into your @file{~/.emacs}
-file (@pxref{(emacs)Init File}).
+automatically every time a file is saved.  This is accomplished by
+putting @code{(add-hook 'before-save-hook 'copyright-update)} into
+your @file{~/.emacs} file (@pxref{(emacs)Init File}).  Alternative,
+you can do @kbd{M-x customize-variable @key{RET} before-save-hook
+@key{RET}}.  @code{copyright-update} is conveniently listed as an
+option in the customization buffer.
 
 @vindex copyright-query
   The variable @code{copyright-query} controls whether to update the
 copyright or whether to ask about it.  When this is @code{nil} updating is
 only done with @kbd{M-x copyright-update}.  When this is @code{function}
 you are queried whenever @code{copyright-update} is called as a function,
-such as in the @code{write-file-functions} feature mentioned above.  Otherwise
+such as in the @code{before-save-hook} feature mentioned above.  Otherwise
 you are always queried.
 
 
@@ -522,11 +525,13 @@ The ``interpreter'' used is @code{executable-self-display} with argument
 @cindex timestamps
 
 @findex time-stamp
-@vindex write-file-functions
+@vindex before-save-hook
 The @code{time-stamp} command can be used to update automatically a
 template in a file with a new time stamp every time you save the file.
-Customize the hook @code{write-file-functions} to add the function
-@code{time-stamp} to arrange this.
+Customize the hook @code{before-save-hook} to add the function
+@code{time-stamp} to arrange this.  It you use Custom to do this,
+then @code{time-stamp} is conveniently listed as an option in the
+customization buffer.
 
 @vindex time-stamp-active
 @vindex time-stamp-format
@@ -605,9 +610,9 @@ formatting or define special points of interest in the inserted text.
 @kbd{M-x tempo-backward-mark} and @kbd{M-x tempo-forward-mark} can be
 used to jump between such points.
 
-More flexible templates can be created by including lisp symbols, which
+More flexible templates can be created by including Lisp symbols, which
 will be evaluated as variables, or lists, which will be evaluated
-as lisp expressions.  Automatic completion of specified tags to expanded
+as Lisp expressions.  Automatic completion of specified tags to expanded
 templates can be provided.
 
 @findex tempo-define-template

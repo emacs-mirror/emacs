@@ -104,6 +104,7 @@ EMACS_INT gdb_data_seg_bits = DATA_SEG_BITS;
 EMACS_INT gdb_data_seg_bits = 0;
 #endif
 EMACS_INT PVEC_FLAG = PSEUDOVECTOR_FLAG;
+EMACS_INT gdb_array_mark_flag = ARRAY_MARK_FLAG;
 
 /* Command line args from shell, as list of strings.  */
 Lisp_Object Vcommand_line_args;
@@ -204,6 +205,8 @@ extern Lisp_Object Vwindow_system;
 #endif /* HAVE_WINDOW_SYSTEM */
 
 extern Lisp_Object Vauto_save_list_file_name;
+
+extern Lisp_Object Vinhibit_redisplay;
 
 #ifdef USG_SHARED_LIBRARIES
 /* If nonzero, this is the place to put the end of the writable segment
@@ -847,7 +850,7 @@ main (argc, argv
       else
 	{
 	  printf ("GNU Emacs %s\n", SDATA (tem));
-	  printf ("Copyright (C) 2002 Free Software Foundation, Inc.\n");
+	  printf ("Copyright (C) 2004 Free Software Foundation, Inc.\n");
 	  printf ("GNU Emacs comes with ABSOLUTELY NO WARRANTY.\n");
 	  printf ("You may redistribute copies of Emacs\n");
 	  printf ("under the terms of the GNU General Public License.\n");
@@ -894,7 +897,7 @@ main (argc, argv
   /* If -map specified, map the data file in.  */
   {
     char *file;
-    if (argmatch (argv, argc, "-map", "--map-data", 3, &mapin_file, &skip_args))
+    if (argmatch (argv, argc, "-map", "--map-data", 3, &file, &skip_args))
       mapin_data (file);
   }
 
@@ -2015,6 +2018,9 @@ shut_down_emacs (sig, no_x, stuff)
 {
   /* Prevent running of hooks from now on.  */
   Vrun_hooks = Qnil;
+
+  /* Don't update display from now on.  */
+  Vinhibit_redisplay = Qt;
 
   /* If we are controlling the terminal, reset terminal modes.  */
 #ifdef EMACS_HAVE_TTY_PGRP

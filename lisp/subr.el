@@ -90,7 +90,9 @@ DOCSTRING is an optional documentation string.
  But documentation strings are usually not useful in nameless functions.
 INTERACTIVE should be a call to the function `interactive', which see.
 It may also be omitted.
-BODY should be a list of Lisp expressions."
+BODY should be a list of Lisp expressions.
+
+\(fn ARGS [DOCSTRING] [INTERACTIVE] BODY)"
   ;; Note that this definition should not use backquotes; subr.el should not
   ;; depend on backquote.el.
   (list 'function (cons 'lambda cdr)))
@@ -161,7 +163,7 @@ the return value (nil if RESULT is omitted).
 (defmacro declare (&rest specs)
   "Do not evaluate any arguments and return nil.
 Treated as a declaration when used at the right place in a
-`defmacro' form.  \(See Info anchor `(elisp)Definition of declare'."
+`defmacro' form.  \(See Info anchor `(elisp)Definition of declare'.)"
   nil)
 
 (defsubst caar (x)
@@ -180,34 +182,34 @@ Treated as a declaration when used at the right place in a
   "Return the cdr of the cdr of X."
   (cdr (cdr x)))
 
-(defun last (x &optional n)
-  "Return the last link of the list X.  Its car is the last element.
-If X is nil, return nil.
-If N is non-nil, return the Nth-to-last link of X.
-If N is bigger than the length of X, return X."
+(defun last (list &optional n)
+  "Return the last link of LIST.  Its car is the last element.
+If LIST is nil, return nil.
+If N is non-nil, return the Nth-to-last link of LIST.
+If N is bigger than the length of LIST, return LIST."
   (if n
-      (let ((m 0) (p x))
+      (let ((m 0) (p list))
 	(while (consp p)
 	  (setq m (1+ m) p (cdr p)))
 	(if (<= n 0) p
-	  (if (< n m) (nthcdr (- m n) x) x)))
-    (while (consp (cdr x))
-      (setq x (cdr x)))
-    x))
+	  (if (< n m) (nthcdr (- m n) list) list)))
+    (while (consp (cdr list))
+      (setq list (cdr list)))
+    list))
 
-(defun butlast (x &optional n)
+(defun butlast (list &optional n)
   "Returns a copy of LIST with the last N elements removed."
-  (if (and n (<= n 0)) x
-    (nbutlast (copy-sequence x) n)))
+  (if (and n (<= n 0)) list
+    (nbutlast (copy-sequence list) n)))
 
-(defun nbutlast (x &optional n)
+(defun nbutlast (list &optional n)
   "Modifies LIST to remove the last N elements."
-  (let ((m (length x)))
+  (let ((m (length list)))
     (or n (setq n 1))
     (and (< n m)
 	 (progn
-	   (if (> n 0) (setcdr (nthcdr (- (1- m) n) x) nil))
-	   x))))
+	   (if (> n 0) (setcdr (nthcdr (- (1- m) n) list) nil))
+	   list))))
 
 (defun delete-dups (list)
   "Destructively remove `equal' duplicates from LIST.
@@ -627,7 +629,11 @@ The normal global definition of the character C-x indirects to this keymap.")
 
 (defsubst eventp (obj)
   "True if the argument is an event object."
-  (or (integerp obj)
+  (or (and (integerp obj)
+	   ;; Filter out integers too large to be events.
+	   ;; M is the biggest modifier.
+	   (zerop (logand obj (lognot (1- (lsh ?\M-\^@ 1)))))
+	   (characterp (event-basic-type obj)))
       (and (symbolp obj)
 	   (get obj 'event-symbol-elements))
       (and (consp obj)
@@ -644,14 +650,16 @@ and `down'."
 	(setq type (car type)))
     (if (symbolp type)
 	(cdr (get type 'event-symbol-elements))
-      (let ((list nil))
-	(or (zerop (logand type ?\M-\^@))
+      (let ((list nil)
+	    (char (logand type (lognot (logior ?\M-\^@ ?\C-\^@ ?\S-\^@
+					       ?\H-\^@ ?\s-\^@ ?\A-\^@)))))
+	(if (not (zerop (logand type ?\M-\^@)))
 	    (setq list (cons 'meta list)))
-	(or (and (zerop (logand type ?\C-\^@))
-		 (>= (logand type 127) 32))
+	(if (or (not (zerop (logand type ?\C-\^@)))
+		(< char 32))
 	    (setq list (cons 'control list)))
-	(or (and (zerop (logand type ?\S-\^@))
-		 (= (logand type 255) (downcase (logand type 255))))
+	(if (or (not (zerop (logand type ?\S-\^@)))
+		(/= char (downcase char)))
 	    (setq list (cons 'shift list)))
 	(or (zerop (logand type ?\H-\^@))
 	    (setq list (cons 'hyper list)))
@@ -843,9 +851,11 @@ and `event-end' functions."
 (make-obsolete 'dot-min 'point-min	"before 19.15")
 (make-obsolete 'dot-marker 'point-marker "before 19.15")
 (make-obsolete 'buffer-flush-undo 'buffer-disable-undo "before 19.15")
-(make-obsolete 'baud-rate "use the baud-rate variable instead." "before 19.15")
+(make-obsolete 'baud-rate "use the `baud-rate' variable instead." "before 19.15")
 (make-obsolete 'compiled-function-p 'byte-code-function-p "before 19.15")
 (make-obsolete 'define-function 'defalias "20.1")
+(make-obsolete 'focus-frame "it does nothing." "19.32")
+(make-obsolete 'unfocus-frame "it does nothing." "19.32")
 
 (defun insert-string (&rest args)
   "Mocklisp-compatibility insert function.
@@ -862,8 +872,8 @@ is converted into a string by expressing it in decimal."
   "Return the value of the `baud-rate' variable."
   baud-rate)
 
-(defalias 'focus-frame 'ignore)
-(defalias 'unfocus-frame 'ignore)
+(defalias 'focus-frame 'ignore "")
+(defalias 'unfocus-frame 'ignore "")
 
 
 ;;;; Obsolescence declarations for variables.
@@ -1112,16 +1122,17 @@ FILE should be the name of a library, with no directory name."
   "Open a TCP connection for a service to a host.
 Returns a subprocess-object to represent the connection.
 Input and output work as for subprocesses; `delete-process' closes it.
+
 Args are NAME BUFFER HOST SERVICE.
 NAME is name for process.  It is modified if necessary to make it unique.
-BUFFER is the buffer (or buffer-name) to associate with the process.
+BUFFER is the buffer (or buffer name) to associate with the process.
  Process output goes at end of that buffer, unless you specify
  an output stream or filter function to handle the output.
  BUFFER may be also nil, meaning that this process is not associated
- with any buffer
-Third arg is name of the host to connect to, or its IP address.
-Fourth arg SERVICE is name of the service desired, or an integer
-specifying a port number to connect to."
+ with any buffer.
+HOST is name of the host to connect to, or its IP address.
+SERVICE is name of the service desired, or an integer specifying
+ a port number to connect to."
   (make-network-process :name name :buffer buffer
 			:host host :service service))
 
@@ -1130,14 +1141,14 @@ specifying a port number to connect to."
 It returns nil if non-blocking connects are not supported; otherwise,
 it returns a subprocess-object to represent the connection.
 
-This function is similar to `open-network-stream', except that this
-function returns before the connection is established.  When the
-connection is completed, the sentinel function will be called with
-second arg matching `open' (if successful) or `failed' (on error).
+This function is similar to `open-network-stream', except that it
+returns before the connection is established.  When the connection
+is completed, the sentinel function will be called with second arg
+matching `open' (if successful) or `failed' (on error).
 
 Args are NAME BUFFER HOST SERVICE SENTINEL FILTER.
 NAME, BUFFER, HOST, and SERVICE are as for `open-network-stream'.
-Optional args, SENTINEL and FILTER specifies the sentinel and filter
+Optional args SENTINEL and FILTER specify the sentinel and filter
 functions to be used for this network stream."
   (if (featurep 'make-network-process  '(:nowait t))
       (make-network-process :name name :buffer buffer :nowait t
@@ -1155,17 +1166,17 @@ is called for the new process.
 
 Args are NAME BUFFER SERVICE SENTINEL FILTER.
 NAME is name for the server process.  Client processes are named by
-appending the ip-address and port number of the client to NAME.
-BUFFER is the buffer (or buffer-name) to associate with the server
-process.  Client processes will not get a buffer if a process filter
-is specified or BUFFER is nil; otherwise, a new buffer is created for
-the client process.  The name is similar to the process name.
+ appending the ip-address and port number of the client to NAME.
+BUFFER is the buffer (or buffer name) to associate with the server
+ process.  Client processes will not get a buffer if a process filter
+ is specified or BUFFER is nil; otherwise, a new buffer is created for
+ the client process.  The name is similar to the process name.
 Third arg SERVICE is name of the service desired, or an integer
-specifying a port number to connect to.  It may also be t to selected
-an unused port number for the server.
-Optional args, SENTINEL and FILTER specifies the sentinel and filter
-functions to be used for the client processes; the server process
-does not use these function."
+ specifying a port number to connect to.  It may also be t to select
+ an unused port number for the server.
+Optional args SENTINEL and FILTER specify the sentinel and filter
+ functions to be used for the client processes; the server process
+ does not use these function."
   (if (featurep 'make-network-process '(:server t))
       (make-network-process :name name :buffer buffer
 			    :service service :server t :noquery t
@@ -1176,12 +1187,13 @@ does not use these function."
 
 ;; compatibility
 
+(make-obsolete 'process-kill-without-query
+               "use `process-query-on-exit-flag' or `set-process-query-on-exit-flag'."
+               "21.5")
 (defun process-kill-without-query (process &optional flag)
   "Say no query needed if PROCESS is running when Emacs is exited.
 Optional second argument if non-nil says to require a query.
-Value is t if a query was formerly required.
-New code should not use this function; use `process-query-on-exit-flag'
-or `set-process-query-on-exit-flag' instead."
+Value is t if a query was formerly required."
   (let ((old (process-query-on-exit-flag process)))
     (set-process-query-on-exit-flag process nil)
     old))
@@ -1274,7 +1286,7 @@ any other non-digit terminates the character code and is then used as input."))
 (defun read-passwd (prompt &optional confirm default)
   "Read a password, prompting with PROMPT.  Echo `.' for each character typed.
 End with RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.
-Optional argument CONFIRM, if non-nil, then read it twice to make sure.
+If optional CONFIRM is non-nil, read password twice to make sure.
 Optional DEFAULT is a default password to use instead of empty input."
   (if confirm
       (let (success)
@@ -1323,13 +1335,16 @@ Optional DEFAULT is a default password to use instead of empty input."
   (let ((n nil))
     (when default
       (setq prompt
-	    (if (string-match "\\(\\):[^:]*" prompt)
-		(replace-match (format " [%s]" default) t t prompt 1)
-	      (concat prompt (format " [%s] " default)))))
+	    (if (string-match "\\(\\):[ \t]*\\'" prompt)
+		(replace-match (format " (default %s)" default) t t prompt 1)
+	      (replace-regexp-in-string "[ \t]*\\'"
+					(format " (default %s) " default)
+					prompt t t))))
     (while
 	(progn
 	  (let ((str (read-from-minibuffer prompt nil nil nil nil
-					   (number-to-string default))))
+					   (and default
+						(number-to-string default)))))
 	    (setq n (cond
 		     ((zerop (length str)) default)
 		     ((stringp str) (read str)))))
@@ -1454,9 +1469,11 @@ menu bar menus and the frame title."
 
 (defun momentary-string-display (string pos &optional exit-char message)
   "Momentarily display STRING in the buffer at POS.
-Display remains until next character is typed.
-If the char is EXIT-CHAR (optional third arg, default is SPC) it is swallowed;
-otherwise it is then available as input (as a command if nothing else).
+Display remains until next event is input.
+Optional third arg EXIT-CHAR can be a character, event or event
+description list.  EXIT-CHAR defaults to SPC.  If the input is
+EXIT-CHAR it is swallowed; otherwise it is then available as
+input (as a command if nothing else).
 Display MESSAGE (optional fourth arg) in the echo area.
 If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
   (or exit-char (setq exit-char ?\ ))
@@ -1486,9 +1503,23 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 		  (recenter 0))))
 	  (message (or message "Type %s to continue editing.")
 		   (single-key-description exit-char))
-	  (let ((char (read-event)))
-	    (or (eq char exit-char)
-		(setq unread-command-events (list char)))))
+	  (let (char)
+	    (if (integerp exit-char)
+		(condition-case nil
+		    (progn
+		      (setq char (read-char))
+		      (or (eq char exit-char)
+			  (setq unread-command-events (list char))))
+		  (error
+		   ;; `exit-char' is a character, hence it differs
+		   ;; from char, which is an event.
+		   (setq unread-command-events (list char))))
+	      ;; `exit-char' can be an event, or an event description
+	      ;; list.
+	      (setq char (read-event))
+	      (or (eq char exit-char)
+		  (eq char (event-convert-list exit-char))
+		  (setq unread-command-events (list char))))))
       (if insert-end
 	  (save-excursion
 	    (delete-region pos insert-end)))
@@ -1509,9 +1540,12 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
       (overlay-put o1 (pop props) (pop props)))
     o1))
 
-(defun remove-overlays (beg end name val)
+(defun remove-overlays (&optional beg end name val)
   "Clear BEG and END of overlays whose property NAME has value VAL.
-Overlays might be moved and or split."
+Overlays might be moved and/or split.
+BEG and END default respectively to the beginning and end of buffer."
+  (unless beg (setq beg (point-min)))
+  (unless end (setq end (point-max)))
   (if (< end beg)
       (setq beg (prog1 end (setq end beg))))
   (save-excursion
@@ -1671,26 +1705,27 @@ If UNDO is present and non-nil, it is a function that will be called
     (if (nth 4 handler) ;; COMMAND
 	(setq this-command (nth 4 handler)))))
 
-(defun insert-buffer-substring-no-properties (buf &optional start end)
-  "Insert before point a substring of buffer BUFFER, without text properties.
+(defun insert-buffer-substring-no-properties (buffer &optional start end)
+  "Insert before point a substring of BUFFER, without text properties.
 BUFFER may be a buffer or a buffer name.
-Arguments START and END are character numbers specifying the substring.
-They default to the beginning and the end of BUFFER."
+Arguments START and END are character positions specifying the substring.
+They default to the values of (point-min) and (point-max) in BUFFER."
   (let ((opoint (point)))
-    (insert-buffer-substring buf start end)
+    (insert-buffer-substring buffer start end)
     (let ((inhibit-read-only t))
       (set-text-properties opoint (point) nil))))
 
-(defun insert-buffer-substring-as-yank (buf &optional start end)
-  "Insert before point a part of buffer BUFFER, stripping some text properties.
-BUFFER may be a buffer or a buffer name.  Arguments START and END are
-character numbers specifying the substring.  They default to the
-beginning and the end of BUFFER.  Strip text properties from the
-inserted text according to `yank-excluded-properties'."
+(defun insert-buffer-substring-as-yank (buffer &optional start end)
+  "Insert before point a part of BUFFER, stripping some text properties.
+BUFFER may be a buffer or a buffer name.
+Arguments START and END are character positions specifying the substring.
+They default to the values of (point-min) and (point-max) in BUFFER.
+Strip text properties from the inserted text according to
+`yank-excluded-properties'."
   ;; Since the buffer text should not normally have yank-handler properties,
   ;; there is no need to handle them here.
   (let ((opoint (point)))
-    (insert-buffer-substring buf start end)
+    (insert-buffer-substring buffer start end)
     (remove-yank-excluded-properties opoint (point))))
 
 
@@ -1698,16 +1733,17 @@ inserted text according to `yank-excluded-properties'."
 
 (defun start-process-shell-command (name buffer &rest args)
   "Start a program in a subprocess.  Return the process object for it.
-Args are NAME BUFFER COMMAND &rest COMMAND-ARGS.
 NAME is name for process.  It is modified if necessary to make it unique.
-BUFFER is the buffer or (buffer-name) to associate with the process.
+BUFFER is the buffer (or buffer name) to associate with the process.
  Process output goes at end of that buffer, unless you specify
  an output stream or filter function to handle the output.
  BUFFER may be also nil, meaning that this process is not associated
  with any buffer
-Third arg is command name, the name of a shell command.
+COMMAND is the name of a shell command.
 Remaining arguments are the arguments for the command.
-Wildcards and redirection are handled as usual in the shell."
+Wildcards and redirection are handled as usual in the shell.
+
+\(fn NAME BUFFER COMMAND &rest COMMAND-ARGS)"
   (cond
    ((eq system-type 'vax-vms)
     (apply 'start-process name buffer args))
@@ -1766,6 +1802,9 @@ See also `with-temp-buffer'."
   (declare (indent 1) (debug t))
   ;; Most of this code is a copy of save-selected-window.
   `(let ((save-selected-window-window (selected-window))
+	 ;; It is necessary to save all of these, because calling
+	 ;; select-window changes frame-selected-window for whatever
+	 ;; frame that window is in.
 	 (save-selected-window-alist
 	  (mapcar (lambda (frame) (list frame (frame-selected-window frame)))
 		  (frame-list))))
@@ -1777,7 +1816,6 @@ See also `with-temp-buffer'."
 	      (window-live-p (cadr elt))
 	      (set-frame-selected-window (car elt) (cadr elt))))
        (if (window-live-p save-selected-window-window)
-	   ;; This is where the code differs from save-selected-window.
 	   (select-window save-selected-window-window 'norecord)))))
 
 (defmacro with-temp-file (file &rest body)
@@ -2051,7 +2089,7 @@ which separates, but is not part of, the substrings.  If nil it defaults to
 `split-string-default-separators', normally \"[ \\f\\t\\n\\r\\v]+\", and
 OMIT-NULLS is forced to t.
 
-If OMIT-NULLs is t, zero-length substrings are omitted from the list \(so
+If OMIT-NULLS is t, zero-length substrings are omitted from the list \(so
 that for the default value of SEPARATORS leading and trailing whitespace
 are effectively trimmed).  If nil, all zero-length substrings are retained,
 which correctly parses CSV format, for example.

@@ -2122,8 +2122,9 @@ read1 (readcharfun, pch, first_in_list)
 	  if (c == '"')
 	    {
 	      Lisp_Object tmp, val;
-	      int size_in_chars = ((XFASTINT (length) + BITS_PER_CHAR - 1)
-				   / BITS_PER_CHAR);
+	      int size_in_chars
+		= ((XFASTINT (length) + BOOL_VECTOR_BITS_PER_CHAR - 1)
+		   / BOOL_VECTOR_BITS_PER_CHAR);
 
 	      UNREAD (c);
 	      tmp = read1 (readcharfun, pch, first_in_list);
@@ -2134,7 +2135,7 @@ read1 (readcharfun, pch, first_in_list)
 			 Accept such input in case it came from an old
 			 version.  */
 		      && ! (XFASTINT (length)
-			    == (SCHARS (tmp) - 1) * BITS_PER_CHAR)))
+			    == (SCHARS (tmp) - 1) * BOOL_VECTOR_BITS_PER_CHAR)))
 		Fsignal (Qinvalid_read_syntax,
 			 Fcons (make_string ("#&...", 5), Qnil));
 
@@ -2142,9 +2143,9 @@ read1 (readcharfun, pch, first_in_list)
 	      bcopy (SDATA (tmp), XBOOL_VECTOR (val)->data,
 		     size_in_chars);
 	      /* Clear the extraneous bits in the last byte.  */
-	      if (XINT (length) != size_in_chars * BITS_PER_CHAR)
+	      if (XINT (length) != size_in_chars * BOOL_VECTOR_BITS_PER_CHAR)
 		XBOOL_VECTOR (val)->data[size_in_chars - 1]
-		  &= (1 << (XINT (length) % BITS_PER_CHAR)) - 1;
+		  &= (1 << (XINT (length) % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
 	      return val;
 	    }
 	  Fsignal (Qinvalid_read_syntax, Fcons (make_string ("#&...", 5),
@@ -3814,11 +3815,15 @@ init_lread ()
     }
 #endif
 
-#ifndef WINDOWSNT
+#if (!(defined(WINDOWSNT) || (defined(HAVE_CARBON))))
   /* When Emacs is invoked over network shares on NT, PATH_LOADSEARCH is
      almost never correct, thereby causing a warning to be printed out that
      confuses users.  Since PATH_LOADSEARCH is always overridden by the
-     EMACSLOADPATH environment variable below, disable the warning on NT.  */
+     EMACSLOADPATH environment variable below, disable the warning on NT.  
+     Also, when using the "self-contained" option for Carbon Emacs for MacOSX,
+     the "standard" paths may not exist and would be overridden by
+     EMACSLOADPATH as on NT.  Since this depends on how the executable
+     was build and packaged, turn off the warnings in general */
 
   /* Warn if dirs in the *standard* path don't exist.  */
   if (!turn_off_warning)
@@ -3840,7 +3845,7 @@ init_lread ()
 	    }
 	}
     }
-#endif /* WINDOWSNT */
+#endif /* !(WINDOWSNT || HAVE_CARBON) */
 
   /* If the EMACSLOADPATH environment variable is set, use its value.
      This doesn't apply if we're dumping.  */

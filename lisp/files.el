@@ -293,7 +293,7 @@ Normally auto-save files are written under other names."
   :group 'auto-save)
 
 (defcustom auto-save-file-name-transforms
-  `(("\\`/[^/]*:\\(.+/\\)*\\(.*\\)"
+  `(("\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'"
      ;; Don't put "\\2" inside expand-file-name, since it will be
      ;; transformed to "/2" on DOS/Windows.
      ,(concat temporary-file-directory "\\2") t))
@@ -481,10 +481,15 @@ Runs the usual ange-ftp hook, but only for completion operations."
 
 (defun convert-standard-filename (filename)
   "Convert a standard file's name to something suitable for the current OS.
-This function's standard definition is trivial; it just returns the argument.
-However, on some systems, the function is redefined with a definition
-that really does change some file names to canonicalize certain
-patterns and to guarantee valid names."
+This means to guarantee valid names and perhaps to canonicalize
+certain patterns.
+
+This function's standard definition is trivial; it just returns
+the argument.  However, on Windows and DOS, replace invalid
+characters.  On DOS, make sure to obey the 8.3 limitations.  On
+Windows, turn Cygwin names into native names, and also turn
+slashes into backslashes if the shell requires it (see
+`w32-shell-dos-semantics')."
   filename)
 
 (defun read-directory-name (prompt &optional dir default-dirname mustmatch initial)
@@ -521,8 +526,9 @@ the value of `default-directory'."
 Not actually set up until the first time you use it.")
 
 (defun parse-colon-path (cd-path)
-  "Explode a colon-separated search path into a list of directory names.
-\(For values of `colon' equal to `path-separator'.)"
+  "Explode a search path into a list of directory names.
+Directories are separated by occurrences of `path-separator'
+\(which is colon in GNU and GNU-like systems)."
   ;; We could use split-string here.
   (and cd-path
        (let (cd-list (cd-start 0) cd-colon)
@@ -555,8 +561,10 @@ Not actually set up until the first time you use it.")
 
 (defun cd (dir)
   "Make DIR become the current buffer's default directory.
-If your environment includes a `CDPATH' variable, try each one of that
-colon-separated list of directories when resolving a relative directory name."
+If your environment includes a `CDPATH' variable, try each one of
+that list of directories (separated by occurrences of
+`path-separator') when resolving a relative directory name.
+The path separator is colon in GNU and GNU-like systems."
   (interactive
    (list (read-directory-name "Change default directory: "
 			 default-directory default-directory
@@ -616,6 +624,8 @@ PATH-AND-SUFFIXES is a pair of lists (DIRECTORIES . SUFFIXES)."
 	  (suffix (concat (regexp-opt (cdr path-and-suffixes) t) "\\'"))
 	  (string-dir (file-name-directory string)))
       (dolist (dir (car path-and-suffixes))
+	(unless dir
+	  (setq dir default-directory))
 	(if string-dir (setq dir (expand-file-name string-dir dir)))
 	(when (file-directory-p dir)
 	  (dolist (file (file-name-all-completions
@@ -640,9 +650,10 @@ This is an interface to the function `load'."
 
 (defun file-remote-p (file)
   "Test whether FILE specifies a location on a remote system."
-  (let ((handler (find-file-name-handler file 'file-local-copy)))
+  (let ((handler (find-file-name-handler file 'file-remote-p)))
     (if handler
-	(get handler 'file-remote-p))))
+	(funcall handler 'file-remote-p file)
+      nil)))
 
 (defun file-local-copy (file)
   "Copy the file FILE into a temporary file on this machine.
@@ -661,21 +672,23 @@ The truename of a file name is found by chasing symbolic links
 both at the level of the file and at the level of the directories
 containing it, until no links are left at any level.
 
-The arguments COUNTER and PREV-DIRS are used only in recursive calls.
-Do not specify them in other calls."
-  ;; COUNTER can be a cons cell whose car is the count of how many more links
-  ;; to chase before getting an error.
+\(fn FILENAME)"
+  ;; COUNTER and PREV-DIRS are only used in recursive calls.
+  ;; COUNTER can be a cons cell whose car is the count of how many
+  ;; more links to chase before getting an error.
   ;; PREV-DIRS can be a cons cell whose car is an alist
   ;; of truenames we've just recently computed.
+  (cond ((or (string= filename "") (string= filename "~"))
+	 (setq filename (expand-file-name filename))
+	 (if (string= filename "")
+	     (setq filename "/")))
+	((and (string= (substring filename 0 1) "~")
+	      (string-match "~[^/]*/?" filename))
+	 (let ((first-part
+		(substring filename 0 (match-end 0)))
+	       (rest (substring filename (match-end 0))))
+	   (setq filename (concat (expand-file-name first-part) rest)))))
 
-  ;; The last test looks dubious, maybe `+' is meant here?  --simon.
-  (if (or (string= filename "") (string= filename "~")
-	  (and (string= (substring filename 0 1) "~")
-	       (string-match "~[^/]*" filename)))
-      (progn
-	(setq filename (expand-file-name filename))
-	(if (string= filename "")
-	    (setq filename "/"))))
   (or counter (setq counter (list 100)))
   (let (done
 	;; For speed, remove the ange-ftp completion handler from the list.
@@ -901,8 +914,11 @@ but the visited file name is available through the minibuffer history:
 type M-n to pull it into the minibuffer.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
-expand wildcards (if any) and visit multiple files.  Wildcard expansion
-can be suppressed by setting `find-file-wildcards'."
+expand wildcards (if any) and visit multiple files.  You can
+suppress wildcard expansion by setting `find-file-wildcards'.
+
+To visit a file without any kind of conversion and without
+automatically choosing a major mode, use \\[find-file-literally]."
   (interactive
    (find-file-read-args "Find file: " nil))
   (let ((value (find-file-noselect filename nil nil wildcards)))
@@ -1353,21 +1369,22 @@ that are visiting the various files."
 				rawfile truename number))))))
 
 (defun find-file-noselect-1 (buf filename nowarn rawfile truename number)
-  (let ((inhibit-read-only t)
-	error)
+  (let (error)
     (with-current-buffer buf
       (kill-local-variable 'find-file-literally)
       ;; Needed in case we are re-visiting the file with a different
       ;; text representation.
       (kill-local-variable 'buffer-file-coding-system)
       (kill-local-variable 'cursor-type)
-      (erase-buffer)
+      (let ((inhibit-read-only t))
+	(erase-buffer))
       (and (default-value 'enable-multibyte-characters)
 	   (not rawfile)
 	   (set-buffer-multibyte t))
       (if rawfile
 	  (condition-case ()
-	      (insert-file-contents-literally filename t)
+	      (let ((inhibit-read-only t))
+		(insert-file-contents-literally filename t))
 	    (file-error
 	     (when (and (file-exists-p filename)
 			(not (file-readable-p filename)))
@@ -1377,7 +1394,8 @@ that are visiting the various files."
 	     ;; Unconditionally set error
 	     (setq error t)))
 	(condition-case ()
-	    (insert-file-contents filename t)
+	    (let ((inhibit-read-only t))
+	      (insert-file-contents filename t))
 	  (file-error
 	   (when (and (file-exists-p filename)
 		      (not (file-readable-p filename)))
@@ -2325,7 +2343,7 @@ However, the mode will not be changed if
 (defun set-visited-file-name (filename &optional no-query along-with-file)
   "Change name of file visited in current buffer to FILENAME.
 The next time the buffer is saved it will go in the newly specified file.
-nil or empty string as argument means make buffer not be visiting any file.
+FILENAME nil or an empty string means make buffer not be visiting any file.
 Remember to delete the initial contents of the minibuffer
 if you wish to pass an empty string as the argument.
 
@@ -2897,10 +2915,8 @@ on a DOS/Windows machine, it returns FILENAME on expanded form."
 	  (file-name-as-directory (expand-file-name (or directory
 							default-directory))))
     (setq filename (expand-file-name filename))
-    (let ((hf (find-file-name-handler filename 'file-local-copy))
-          (hd (find-file-name-handler directory 'file-local-copy)))
-      (when (and hf (not (get hf 'file-remote-p))) (setq hf nil))
-      (when (and hd (not (get hd 'file-remote-p))) (setq hd nil))
+    (let ((hf (find-file-name-handler filename 'file-remote-p))
+          (hd (find-file-name-handler directory 'file-remote-p)))
       (if ;; Conditions for separate trees
 	  (or
 	   ;; Test for different drives on DOS/Windows
@@ -3010,7 +3026,7 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 
 (defcustom before-save-hook nil
   "Normal hook that is run before a buffer is saved to its file."
-  :options '(copyright-update)
+  :options '(copyright-update time-stamp)
   :type 'hook
   :group 'files)
 
@@ -3466,7 +3482,10 @@ this function is called.
 The idea behind the NOCONFIRM argument is that it should be
 non-nil if the buffer is going to be reverted without asking the
 user.  In such situations, one has to be careful with potentially
-time consuming operations.")
+time consuming operations.
+
+For more information on how this variable is used by Auto Revert mode,
+see Info node `(emacs-xtra)Supporting additional buffers'.")
 
 (defvar before-revert-hook nil
   "Normal hook for `revert-buffer' to run before reverting.
@@ -4019,7 +4038,7 @@ by `sh' are supported."
   "Expand wildcard pattern PATTERN.
 This returns a list of file names which match the pattern.
 
-If PATTERN is written as an absolute relative file name,
+If PATTERN is written as an absolute file name,
 the values are absolute also.
 
 If PATTERN is written as a relative file name, it is interpreted
@@ -4230,7 +4249,7 @@ This works by running a directory listing program
 whose name is in the variable `insert-directory-program'.
 If WILDCARD, it also runs the shell specified by `shell-file-name'.
 
-When SWITCHES contains the long `--dired' option,this function
+When SWITCHES contains the long `--dired' option, this function
 treats it specially, for the sake of dired.  However, the
 normally equivalent short `-D' option is just passed on to
 `insert-directory-program', as any other option."
@@ -4307,6 +4326,8 @@ normally equivalent short `-D' option is just passed on to
 
 	  ;; If `insert-directory-program' failed, signal an error.
 	  (unless (eq 0 result)
+	    ;; Delete the error message it may have output.
+	    (delete-region beg (point))
 	    ;; On non-Posix systems, we cannot open a directory, so
 	    ;; don't even try, because that will always result in
 	    ;; the ubiquitous "Access denied".  Instead, show the
@@ -4329,21 +4350,26 @@ normally equivalent short `-D' option is just passed on to
             (when (looking-at "//SUBDIRED//")
               (delete-region (point) (progn (forward-line 1) (point)))
               (forward-line -1))
-	    (let ((end (line-end-position)))
-	      (forward-word 1)
-	      (forward-char 3)
-	      (while (< (point) end)
-		(let ((start (+ beg (read (current-buffer))))
-		      (end (+ beg (read (current-buffer)))))
-		  (if (= (char-after end) ?\n)
-		      (put-text-property start end 'dired-filename t)
-		    ;; It seems that we can't trust ls's output as to
-		    ;; byte positions of filenames.
-		    (put-text-property beg (point) 'dired-filename nil)
-		    (end-of-line))))
-	      (goto-char end)
-	      (beginning-of-line)
-	      (delete-region (point) (progn (forward-line 2) (point)))))
+	    (if (looking-at "//DIRED//")
+		(let ((end (line-end-position)))
+		  (forward-word 1)
+		  (forward-char 3)
+		  (while (< (point) end)
+		    (let ((start (+ beg (read (current-buffer))))
+			  (end (+ beg (read (current-buffer)))))
+		      (if (= (char-after end) ?\n)
+			  (put-text-property start end 'dired-filename t)
+			;; It seems that we can't trust ls's output as to
+			;; byte positions of filenames.
+			(put-text-property beg (point) 'dired-filename nil)
+			(end-of-line))))
+		  (goto-char end)
+		  (beginning-of-line)
+		  (delete-region (point) (progn (forward-line 2) (point))))
+	      (forward-line 1)
+	      (if (looking-at "//DIRED-OPTIONS//")
+		  (delete-region (point) (progn (forward-line 1) (point)))
+		(forward-line 1))))
 
 	  ;; Now decode what read if necessary.
 	  (let ((coding (or coding-system-for-read
@@ -4416,7 +4442,7 @@ be a predicate function such as `yes-or-no-p'."
   :type '(choice (const :tag "Ask with yes-or-no-p" yes-or-no-p)
 		 (const :tag "Ask with y-or-n-p" y-or-n-p)
 		 (const :tag "Don't confirm" nil))
-  :group 'emacs
+  :group 'convenience
   :version "21.1")
 
 (defun save-buffers-kill-emacs (&optional arg)
@@ -4470,7 +4496,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 	;; Get a list of the indices of the args which are file names.
 	(file-arg-indices
 	 (cdr (or (assq operation
-			;; The first five are special because they
+			;; The first six are special because they
 			;; return a file name.  We want to include the /:
 			;; in the return value.
 			;; So just avoid stripping it in the first place.
@@ -4479,11 +4505,21 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 			  (file-name-as-directory . nil)
 			  (directory-file-name . nil)
 			  (file-name-sans-versions . nil)
+			  (find-backup-file-name . nil)
 			  ;; `identity' means just return the first arg
-			  ;; as stripped of its quoting.
-			  (substitute-in-file-name . identity)
+			  ;; not stripped of its quoting.
+			  (substitute-in-file-name identity)
+			  ;; `add' means add "/:" to the result.
+			  (file-truename add 0)
+			  ;; `quote' means add "/:" to buffer-file-name.
+			  (insert-file-contents quote 0)
+			  ;; `unquote-then-quote' means set buffer-file-name
+			  ;; temporarily to unquoted filename.
+			  (verify-visited-file-modtime unquote-then-quote)
+			  ;; List the arguments which are filenames.
 			  (file-name-completion 1)
 			  (file-name-all-completions 1)
+			  (write-region 2 5)
 			  (rename-file 0 1)
 			  (copy-file 0 1)
 			  (make-symbolic-link 0 1)
@@ -4491,9 +4527,12 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 		  ;; For all other operations, treat the first argument only
 		  ;; as the file name.
 		  '(nil 0))))
+	method
 	;; Copy ARGUMENTS so we can replace elements in it.
 	(arguments (copy-sequence arguments)))
-    ;; Strip off the /: from the file names that have this handler.
+    (if (symbolp (car file-arg-indices))
+	(setq method (pop file-arg-indices)))
+    ;; Strip off the /: from the file names that have it.
     (save-match-data
       (while (consp file-arg-indices)
 	(let ((pair (nthcdr (car file-arg-indices) arguments)))
@@ -4504,9 +4543,21 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 			   "/"
 			 (substring (car pair) 2)))))
 	(setq file-arg-indices (cdr file-arg-indices))))
-    (if (eq file-arg-indices 'identity)
-	(car arguments)
-      (apply operation arguments))))
+    (cond ((eq method 'identity)
+	   (car arguments))
+	  ((eq method 'add)
+	   (concat "/:" (apply operation arguments)))
+	  ((eq method 'quote)
+	   (prog1 (apply operation arguments)
+	     (setq buffer-file-name (concat "/:" buffer-file-name))))
+	  ((eq method 'unquote-then-quote)
+	   (let (res)
+	     (setq buffer-file-name (substring buffer-file-name 2))
+	     (setq res (apply operation arguments))
+	     (setq buffer-file-name (concat "/:" buffer-file-name))
+	     res))
+	  (t
+	   (apply operation arguments)))))
 
 (define-key ctl-x-map "\C-f" 'find-file)
 (define-key ctl-x-map "\C-r" 'find-file-read-only)

@@ -1,6 +1,6 @@
 ;;; esh-module.el --- Eshell modules
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2004 Free Software Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: processes
@@ -41,32 +41,33 @@ customizing the variable `eshell-modules-list'."
 
 (defun eshell-load-defgroups (&optional directory)
   "Load `defgroup' statements from Eshell's module files."
-  (with-current-buffer
-      (find-file-noselect (expand-file-name "esh-groups.el" directory))
-    (erase-buffer)
-    (insert ";;; do not modify this file; it is auto-generated -*- no-byte-compile: t -*-\n\n")
-    (let ((files (directory-files (or directory
-				      (car command-line-args-left))
-				  nil "\\`em-.*\\.el\\'")))
-      (while files
-	(message "Loading defgroup from `%s'" (car files))
-	(let (defgroup)
-	  (catch 'handled
-	    (with-current-buffer (find-file-noselect (car files))
-	      (goto-char (point-min))
-	      (while t
-		(forward-sexp)
-		(if (eobp) (throw 'handled t))
-		(backward-sexp)
-		(let ((begin (point))
-		      (defg (looking-at "(defgroup")))
+  (let ((vc-handled-backends nil)) ; avoid VC fucking things up
+    (with-current-buffer
+	(find-file-noselect (expand-file-name "esh-groups.el" directory))
+      (erase-buffer)
+      (insert ";;; do not modify this file; it is auto-generated -*- no-byte-compile: t -*-\n\n")
+      (let ((files (directory-files (or directory
+					(car command-line-args-left))
+				    nil "\\`em-.*\\.el\\'")))
+	(while files
+	  (message "Loading defgroup from `%s'" (car files))
+	  (let (defgroup)
+	    (catch 'handled
+	      (with-current-buffer (find-file-noselect (car files))
+		(goto-char (point-min))
+		(while t
 		  (forward-sexp)
-		  (if defg
-		      (setq defgroup (buffer-substring begin (point))))))))
-	  (if defgroup
-	      (insert defgroup "\n\n")))
-	(setq files (cdr files))))
-    (save-buffer)))
+		  (if (eobp) (throw 'handled t))
+		  (backward-sexp)
+		  (let ((begin (point))
+			(defg (looking-at "(defgroup")))
+		    (forward-sexp)
+		    (if defg
+			(setq defgroup (buffer-substring begin (point))))))))
+	    (if defgroup
+		(insert defgroup "\n\n")))
+	  (setq files (cdr files))))
+      (save-buffer))))
 
 ;; load the defgroup's for the standard extension modules, so that
 ;; documentation can be provided when the user customize's

@@ -1,5 +1,5 @@
 /* blockinput.h - interface to blocking complicated interrupt-driven input.
-   Copyright (C) 1989, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993, 2004 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -96,6 +96,9 @@ extern int pending_atimers;
 
 #define TOTALLY_UNBLOCK_INPUT (interrupt_input_blocked = 0)
 #define UNBLOCK_INPUT_RESIGNAL UNBLOCK_INPUT
+
+/* In critical section ? */
+#define INPUT_BLOCKED_P (interrupt_input_blocked > 0)
 
 /* Defined in keyboard.c */
 /* Don't use a prototype here; it causes trouble in some files.  */

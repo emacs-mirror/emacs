@@ -1,5 +1,5 @@
 /* Header file for the buffer manipulation primitives.
-   Copyright (C) 1985, 86, 93, 94, 95, 97, 1998, 1999, 2000, 01, 2003
+   Copyright (C) 1985,86,93,94,95,97,98,99,2000,01,03,04
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -826,6 +826,25 @@ extern void record_buffer P_ ((Lisp_Object));
 extern void buffer_slot_type_mismatch P_ ((int));
 extern void fix_overlays_before P_ ((struct buffer *, EMACS_INT, EMACS_INT));
 extern void mmap_set_vars P_ ((int));
+
+/* Get overlays at POSN into array OVERLAYS with NOVERLAYS elements.
+   If NEXTP is non-NULL, return next overlay there.
+   See overlay_at arg CHANGE_REQ for meaning of CHRQ arg.  */
+
+#define GET_OVERLAYS_AT(posn, overlays, noverlays, nextp, chrq)		\
+  do {									\
+    int maxlen = 40;							\
+    overlays = (Lisp_Object *) alloca (maxlen * sizeof (Lisp_Object));	\
+    noverlays = overlays_at (posn, 0, &overlays, &maxlen,		\
+			     nextp, NULL, chrq);				\
+    if (noverlays > maxlen)						\
+      {									\
+	maxlen = noverlays;						\
+	overlays = (Lisp_Object *) alloca (maxlen * sizeof (Lisp_Object)); \
+	noverlays = overlays_at (posn, 0, &overlays, &maxlen,		\
+				 nextp, NULL, chrq);			\
+      }									\
+  } while (0)
 
 EXFUN (Fbuffer_live_p, 1);
 EXFUN (Fbuffer_name, 1);

@@ -1864,7 +1864,7 @@ function should return the binding to use instead.
 @cindex menu separators
 
   A menu separator is a kind of menu item that doesn't display any
-text--instead, it divides the menu into subparts with a horizontal line.
+text---instead, it divides the menu into subparts with a horizontal line.
 A separator looks like this in the menu keymap:
 
 @example

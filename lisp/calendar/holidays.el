@@ -84,6 +84,10 @@
   "Holiday on MONTH, DAY (Islamic) called STRING."
   t)
 
+(autoload 'holiday-bahai "cal-bahai"
+  "Holiday on MONTH, DAY (Baha'i) called STRING."
+  t)
+
 (autoload 'holiday-chinese-new-year "cal-china"
   "Date of Chinese New Year."
   t)
@@ -141,6 +145,7 @@ The optional LABEL is used to label the buffer created."
             (if christian-holidays (cons "Christian" christian-holidays))
             (if hebrew-holidays (cons "Hebrew" hebrew-holidays))
             (if islamic-holidays (cons "Islamic" islamic-holidays))
+            (if bahai-holidays (cons "Baha'i" bahai-holidays))
             (if oriental-holidays (cons "Oriental" oriental-holidays))
             (if solar-holidays (cons "Solar" solar-holidays))
             (cons "Ask" nil)))

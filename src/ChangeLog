@@ -1,3 +1,1130 @@
+2004-06-20  Richard M. Stallman  <rms@gnu.org>
+
+	* xfaces.c (Finternal_copy_lisp_face): Small cleanup; doc fix.
+
+	* search.c (match_limit): Cleaner err msg when no match data available.
+
+	* window.c (syms_of_window): Doc fix.
+
+	* keyboard.c (command_loop_1): Handle values `only' and `identity'
+	for Vtransient_mark_mode.
+
+	* buffer.c (syms_of_buffer): Doc fix.
+
+2004-06-21  David Kastrup  <dak@gnu.org>
+
+	* minibuf.c (Ftry_completion, Fall_completions): Do lazy binding
+	and unbinding of `case-fold-search' according to
+	`completion-ignore-case' around calls of string-match and
+	predicates, respectively.  Should give satisfactory performance
+	in all relevant cases.
+
+2004-06-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_draw_image_foreground_1): Subtract slice.x/y from
+	clip_x/y_origin.
+
+	* fns.c (string_to_multibyte): Use xmalloc/xfree instead of alloca.
+
+	* macfns.c (Fx_display_color_cells): Do not limit return value to 256.
+
+	* macterm.c (mac_initialize_display_info): Initialize n_planes correctly
+	on Mac OSX.
+
+2004-06-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffer.c (syms_of_buffer): Clarify `fill-column' docstring.
+
+2004-06-16  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (Vimage_types): Remove extern.
+
+2004-06-16  Miles Bader  <miles@gnu.org>
+
+	* image.c (lookup_image_type): Initialize image type if necessary.
+
+2004-06-15  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (try_cursor_movement): Exclude header line from scroll
+	margin at top of window.
+	(try_window_reusing_current_matrix): Calculate proper cursor position
+	after scrolling up with non-zero scroll margin, as the old cursor
+	position corresponds to value of PT before executing this command.
+	(try_window_id): Consider scroll margin at bottom of window too;
+	otherwise we fail to scroll when hl-line-mode is enabled.
+
+	* syntax.c (skip_chars): Only recognize [:class:] when it has the
+	proper format and class is a lower-case word.
+
+2004-06-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_image_for_pixmap): New function.
+	(xg_get_gdk_pixmap_and_mask): Removed.
+	(update_frame_tool_bar): Call xg_get_image_for_pixmap instead of
+	xg_get_gdk_pixmap_and_mask.
+
+	* xterm.h (struct x_display_info): Typo in comment fixed.
+
+2004-06-14  Juanma Barranquero  <lektu@terra.es>
+
+	* dispextern.h (Vimage_types): Make it conditional on
+	HAVE_WINDOW_SYSTEM.
+
+	* image.c (Vimage_types): Move from xdisp.c.
+	(Vimage_type_cache): New variable.
+	(define_image_type): New argument indicating whether an image
+	library was loaded; cache loaded status and return t on success,
+	nil otherwise.
+	(CACHE_IMAGE_TYPE, ADD_IMAGE_TYPE): New macros.
+	(w32_delayed_load): New function to load an image library from a
+	list of possible filenames.
+	(init_xpm_functions, init_png_functions, init_jpeg_functions)
+	(init_tiff_functions, init_gif_functions): Use `w32_delayed_load'.
+	(CHECK_LIB_AVAILABLE): Call `define_image_library' with new
+	argument.
+	(Finit_image_library): New function, extracted from `init_image'.
+	Try to initialize an image library on demand and cache whether we
+	were successful or not.
+	(syms_of_image): Initialize `Vimage_types' and
+	`Vimage_type_cache'.  Add recognized image types to Vimage_types.
+	Export `init-image-library'.
+	(init_image): Remove initialization of all image types, except xbm
+	and pbm.
+
+	* xdisp.c (Vimage_types): Delete (moved to image.c).
+
+2004-06-14  Andreas Schwab  <schwab@suse.de>
+
+	* minibuf.c (Ftry_completion, Fall_completions, Ftest_completion):
+	Avoid calling specbind when completion-regexp-list is empty.
+
+2004-06-13  Richard M. Stallman  <rms@gnu.org>
+
+	* regex.h (CHAR_CLASS_MAX_LENGTH, re_wctype_t, re_wchar_t)
+	(re_wctype, re_iswctype, re_wctype_to_bit):
+	Non-function definitions moved here from regex.c.
+
+	* regex.c (re_wctype, re_iswctype): Function defs longer static.
+	(CHAR_CLASS_MAX_LENGTH, re_wctype_t, re_wchar_t)
+	(re_wctype, re_iswctype, re_wctype_to_bit):
+	Non-function definitions moved to regex.h.
+
+	* window.c (Fselect_window): Doc fix.
+
+	* syntax.c: Include regex.h.
+	(skip_chars): New arg HANDLE_ISO_CLASSES.  Callers changed.
+	If requested, make a list of classes, then check the scanned
+	chars for membership in them.
+	(in_classes): New function.
+	Doc fix.
+
+	* keyboard.c (cmd_error): Don't call any_kboard_state
+	if inside a recursive edit level.
+
+2004-06-13  Lorentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* keyboard.c (command_loop): Call any_kboard_state before
+	command_loop_2 when at top level.
+
+2004-06-13  Andreas Schwab  <schwab@suse.de>
+
+	* print.c (print_object): Always use %ld for printing EMACS_INT.
+
+	* keyboard.c (cancel_hourglass_unwind): Return a value.
+	(modify_event_symbol): Always use %ld for printing EMACS_INT.
+	(Fexecute_extended_command): Likewise.
+
+	* syntax.h (SYNTAX_ENTRY_FOLLOW_PARENT): Rename local variable to
+	avoid clashes.
+	(SYNTAX): Likewise.
+	(SYNTAX_WITH_FLAGS): Likewise.
+	(SYNTAX_MATCH): Likewise.
+
+	* syntax.c (char_quoted): Avoid warning about undefined operation.
+	(find_defun_start): Likewise.
+	(scan_lists): Likewise.
+	(INC_FROM): Likewise.
+	(scan_sexps_forward): Likewise.
+
+	* image.c: Include <ctype.h>.
+
+	* xfaces.c (face_attr_equal_p): Declare parameters.
+
+2004-06-13  Kenichi Handa  <handa@m17n.org>
+
+	* ccl.c (CCL_READ_CHAR): If hit EOF, set REG to -1.
+
+2004-06-12  Matthew Mundell  <matt@mundell.ukfsn.org>
+
+	* eval.c (Fdefun): Signal an error if NAME is not a symbol.
+
+2004-06-12  Kenichi Handa  <handa@m17n.org>
+
+	* ccl.c (CCL_CALL_FOR_MAP_INSTRUCTION): Save eof_ic in
+	ccl_prog_stack_struct and update it.
+	(CCL_INVALID_CMD): If CCL_DEBUG is defined, call ccl_debug_hook.
+	(CCL_READ_CHAR): Get instruction counter from eof_ic, not from
+	ccl->eof_ic on EOF.
+	(ccl_debug_hook): New function.
+	(struct ccl_prog_stack): New member eof_ic.
+	(ccl_driver): Handle EOF in subrountine call correctly.
+
+2004-06-11  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_string): Check CODING_FINISH_INTERRUPT.
+
+2004-06-11  Kim F. Storm  <storm@cua.dk>
+
+	* emacs.c (shut_down_emacs): Inhibit redisplay during shutdown.
+
+2004-06-11  Juanma Barranquero  <lektu@terra.es>
+
+	* keyboard.c (Fposn_at_point): Doc fix.
+
+2004-06-11  David Kastrup  <dak@gnu.org>
+
+	* search.c (match_limit): Don't flag an error if match-data
+	exceeding the allocated search_regs.num_regs gets requested, just
+	return Qnil.
+
+2004-06-08  Miles Bader  <miles@gnu.org>
+
+	* xfaces.c (push_named_merge_point): Return 0 when a cycle is detected.
+
+2004-06-07  Juanma Barranquero  <lektu@terra.es>
+
+	* editfns.c (Fuser_login_name, Ffloat_time, Fencode_time)
+	(Fcurrent_time_string, Fcurrent_time_zone)
+	(Finsert_buffer_substring, Ftranspose_regions): Doc fixes.
+
+2004-06-07  Miles Bader  <miles@gnu.org>
+
+	* xfaces.c (struct named_merge_point): New type.
+	(push_named_merge_point): New function.
+	(merge_named_face): New function.
+	(merge_face_ref, face_at_buffer_position, face_at_string_position):
+	Use `merge_named_face'.
+	(merge_face_inheritance): Function removed.
+	(merge_face_ref): Renamed from `merge_face_vector_with_property'.
+	Add new `err_msgs' and `named_merge_points' args.  Return error
+	status.  Only print error messages if ERR_MSGS is true.  Don't try to
+	do :inherit attribute validation.
+	(merge_face_heights): Handle `unspecified' in both directions.
+	(merge_face_vectors): Rename `cycle_check' arg to `named_merge_points'.
+	Call `merge_face_ref' instead of `merge_face_inheritance'.
+	(Fdisplay_supports_face_attributes_p, Fface_attributes_as_vector)
+	(compute_char_face, face_at_buffer_position)
+	(face_at_string_position): Call `merge_face_ref' instead of
+	`merge_face_vector_with_property'.
+
+2004-06-07  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (find_safe_codings): Check NILP (safe_codings) only at
+	the necessary places.
+
+2004-06-07  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (Fdelete_process): Undo 2004-05-28 change.
+	Instead, call status_notify also for network process.
+	(status_message): Use process instead of status as arg.
+	Give messages "deleted" or "connection broken by remote peer" for
+	an exited network process.
+	(status_notify): Change call to status_message.
+	(read_process_output): Increase readmax to 4096.  Do not increase
+	buffer size for datagram channels (default is now large enough).
+
+2004-06-06  Steven Tamm  <tamm@Steven-Tamms-Computer.local>
+
+	* macfns.c (x_create_tip_frame): Fix Mac OS X 10.1 compilation
+	problem due to newly defined variable.
+
+2004-06-06  Miles Bader  <miles@gnu.org>
+
+	* xfaces.c (Fdisplay_supports_face_attributes_p): Give up
+	immediately if non-interactive or not initialized.
+
+2004-06-05  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.c (Fcompleting_read): Doc fix.
+
+2004-06-05  Andreas Schwab  <schwab@suse.de>
+
+	* macfns.c (x_create_tip_frame): Fix declaration after statement.
+
+2004-06-05  Juanma Barranquero  <lektu@terra.es>
+
+	* keymap.c (Fdescribe_vector): Fix docstring.
+	(Fkey_description, Fglobal_key_binding): Fix typo in docstring.
+
+2004-06-05  Miles Bader  <miles@gnu.org>
+
+	* xfaces.c (tty_supports_face_attributes_p): Make sure the specified
+	attributes have different values than the default face.
+
+2004-06-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* xfaces.c (x_supports_face_attributes_p): Make this function
+	conditional on HAVE_WINDOW_SYSTEM.
+	(Fdisplay_supports_face_attributes_p) [HAVE_WINDOW_SYSTEM]: Don't
+	call x_supports_face_attributes_p if it was not compiled in.
+
+2004-06-04  Miles Bader  <miles@gnu.org>
+
+	* xfaces.c (tty_supports_face_attributes_p): New function, mostly
+	from Ftty_supports_face_attributes_p.
+	(x_supports_face_attributes_p): New function.
+	(Ftty_supports_face_attributes_p): Function deleted.
+	(Fdisplay_supports_face_attributes_p): New function.
+	(syms_of_xfaces): Initialize Sdisplay_supports_face_attributes_p.
+	(face_attr_equal_p): New function.
+	(lface_equal_p): Use it.
+
+2004-06-03  Juanma Barranquero  <lektu@terra.es>
+
+	* w32fns.c (Fx_display_grayscale_p, Fw32_send_sys_command)
+	(Vw32_color_map): Fix typo in docstring.
+	(Fx_create_frame, Fw32_find_bdf_fonts, Fx_show_tip)
+	(Fw32_unregister_hot_key, Fw32_reconstruct_hot_key):
+	Make argument names match their use in docstring.
+
+2004-06-02  Juanma Barranquero  <lektu@terra.es>
+
+	Work around bugs/problems with MinGW builds of graphics libraries
+	called from MSVC builds of Emacs.
+
+	* image.c (lookup_image): Make pointer to img static.
+	(png_read_from_memory): Disable "global" optimization.
+
+2004-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mem-limits.h (EXCEEDS_LISP_PTR) [USE_LSB_TAG]: Never true.
+
+2004-05-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c: Don't include ccl.h.
+	[MAC_OSX]: Don't include QuickTime/QuickTime.h.
+	[!MAC_OSX]: Don't include alloca.h, Windows.h, Gestalt.h, or
+	TextUtils.h.
+	(Fx_create_frame): Sync with xfns.c.  Initialize cursor
+	descriptors.
+	(Fx_display_mm_height, Fx_display_mm_width): Calculate length from
+	display height/width.
+	(compute_tip_xy, Vx_max_tooltip_size): Declare.
+	(unwind_create_tip_frame, compute_tip_xy): New functions.
+	(x_create_tip_frame, Fx_show_tip, Fx_hide_tip): Sync with xfns.c.
+	(syms_of_macfns): Initialize Qcancel_timer, Vx_max_tooltip_size,
+	and last_show_tip_args.
+
+	* macgui.h [!MAC_OSX]: Include Gestalt.h.
+	(Cursor, No_Cursor): New defines.
+	[!TARGET_API_MAC_CARBON] (SetPortWindowPort): New compatibility
+	macro.
+	[!TARGET_API_MAC_CARBON] (arrow_cursor): Declare.
+
+	* macmenu.c (mac_menu_show, mac_dialog): Use SetPortWindowPort.
+
+	* macterm.c: Don't include Gestalt.h.
+	(enum mouse_tracking_type, mouse_tracking_in_progress): Remove.
+	(XDrawLine, XClearArea, XClearWindow, mac_draw_bitmap)
+	(mac_set_clip_rectangle, mac_reset_clipping, XCreatePixmap)
+	(XFillRectangle, mac_draw_rectangle, mac_draw_string_common)
+	(mac_copy_area, mac_copy_area_with_mask, x_update_end)
+	(construct_mouse_click, XTmouse_position)
+	(x_scroll_bar_report_motion, x_calc_absolute_position)
+	(do_mouse_moved, do_zoom_window, mac_do_receive_drag)
+	(XTread_socket, make_mac_frame): Use SetPortWindowPort.
+	(note_mouse_movement): Clear the mouse face and reset the pointer
+	shape when the pointer goes outside the frame without grabbing.
+	(mac_front_window): New function.
+	(mac_window_to_frame): New macro.
+	(XTmouse_position, x_scroll_bar_report_motion, do_window_update)
+	(do_window_activate, do_window_deactivate, do_app_resume)
+	(do_app_suspend, do_mouse_moved, do_menu_choice, do_grow_window)
+	(do_zoom_window, mac_do_receive_drag, XTread_socket)
+	(mac_check_for_quit_char): Use mac_front_window and/or
+	mac_window_to_frame.
+	(x_scroll_bar_handle_click): Set `(PORTION . WHOLE)' part in a
+	scroll-bar click event.
+	(mac_define_frame_cursor): Change the pointer shape.
+	(x_free_frame_resources): Reset tip_window to NULL when it is
+	disposed.
+	[!TARGET_API_MAC_CARBON] (arrow_cursor): New variable.
+	[!TARGET_API_MAC_CARBON] (do_init_managers): Initialize
+	arrow_cursor.
+	(do_window_update): Don't do anything if the updated window is the
+	tooltip window.
+	(do_mouse_moved): Handle mouse movement events here (previously in
+	XTread_socket).  Clear the mouse face if
+	dpyinfo->mouse_face_hidden is set.
+	(do_os_event, do_events): Remove (now in XTread_socket).
+	(XTread_socket): Immediately return if interrupt_input_blocked.
+	Loop until all the events in the queue are processed.  Rearrange
+	codes for mouse grabbing.  Add tooltip support.  Include the
+	contents of do_os_event and do_events.  Remove mouse movement
+	handling (now in do_mouse_moved).  Add the case where
+	Vmouse_highlight has an integer value.
+	(NewMacWindow): Remove.
+	(make_mac_frame): Do what NewMacWindow previously did.  Don't do
+	excess initializations.
+	(make_mac_terminal_frame): Previous initializations in
+	make_mac_frame are moved here.
+	(mac_initialize_display_info): Initialize
+	dpyinfo->mouse_face_overlay and dpyinfo->mouse_face_hidden.
+
+	* xdisp.c [MAC_OS] (No_Cursor): Remove variable.
+	(define_frame_cursor1): Don't treat HAVE_CARBON as a special case.
+
+2004-05-29  Richard M. Stallman  <rms@gnu.org>
+
+	* lisp.h (truncate_undo_list): Update decl.
+
+	* alloc.c (undo_outer_limit): New variable.
+	(syms_of_alloc): Defvar it.
+	(Fgarbage_collect): Pass undo_outer_limit to truncate_undo_list.
+
+	* undo.c (truncate_undo_list): New arg LIMITSIZE.
+
+	* alloc.c (lisp_align_malloc): Check for base == 0
+	regardless of HAVE_POSIX_MEMALIGN.
+	Clean up HAVE_POSIX_MEMALIGN handling of `err'.
+
+2004-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c: Undo Kim's recent changes and fix the same bug differently.
+	(marker_blocks_pending_free): Remove.
+	(Fgarbage_collect): Sweep after cleaning up undo-lists.
+	Mark the undo lists after claning them up.
+	Don't free block in marker_blocks_pending_free.
+	(mark_buffer): Don't mark undo_list.
+	(gc_sweep): Sweep hash-tables and strings first.
+	Do free marker blocks that are empty.
+
+2004-05-28  Jim Blandy  <jimb@redhat.com>
+
+	* regex.c (print_partial_compiled_pattern): Add missing 'break'
+	after 'case wordend'.  For symbeg and symend, print to stderr,
+	like the other cases.
+
+2004-05-28  Noah Friedman  <friedman@splode.com>
+
+	* process.c (Fdelete_process): Do not call remove_process.
+
+2004-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (struct backtrace): Remove.
+	(Fgarbage_collect): Use the new mark_backtrace.
+
+	* eval.c (mark_backtrace): New function.
+
+	* minibuf.c (run_exit_minibuf_hook): New function.
+	(read_minibuf_unwind): Don't run exit-minibuffer-hook any more.
+	(read_minibuf): Use separate unwind handler to run exit-minibuf-hook.
+
+2004-05-27  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (back_to_previous_visible_line_start): Skip backwards
+	over display properties, e.g. images, that replace buffer text.
+
+2004-05-25  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (marker_blocks_pending_free): New var.
+	(gc_sweep): Store free marker blocks on that list.
+	(Fgarbage_collect): Free them after undo-list cleanup.
+
+	* process.c (wait_reading_process_input): Check connect_wait_mask
+	before actually accepting connection in case it has already been
+	accepted due to recursion.
+
+2004-05-23  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>  (tiny change)
+
+	* coding.c (Fset_safe_terminal_coding_system_internal):
+	Set suppress_error in safe_terminal_coding, not terminal_coding.
+
+2004-05-22  Richard M. Stallman  <rms@gnu.org>
+
+	* alloc.c (Fmake_string): Doc fix.
+
+	* buffer.c (clone_per_buffer_values): Copy the alist of local vars,
+	and the alist pairs too.
+
+	* casefiddle.c (casify_object): Return OBJ unchanged if not real char.
+
+	* emacs.c (main): Update copyright year.
+
+	* fileio.c (Fread_file_name): Expand DIR if not absolute.
+
+	* insdel.c (del_range_2, replace_range): Don't write an anchor
+	if the gap is empty.
+
+	* xdisp.c (try_scrolling): If scroll-up-aggressively or
+	scroll-down-aggressively is small but positive, put point
+	near the screen edge.
+
+2004-05-22  Juanma Barranquero  <lektu@terra.es>
+
+	* keymap.c (Fdefine_key): Doc fix.
+
+2004-05-22  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (struct backtrace): Add debug_on_exit member.
+	(Fgarbage_collect): Clear out buffer undo_list markers after gc_sweep.
+	Identify those markers as Lisp_Misc_Free objects.  Clear car and cdr of
+	the removed cons cells.
+	(mark_object): Undo previous change - disallow Lisp_Misc_Free objects.
+	(gc_sweep): Clear cons_blocks before sweeping strings, so we don't have
+	any cons cells pointing to unallocated stings.
+	Do not lisp_free any marker blocks, as there may still be pointers
+	to them from buffer undo lists at this stage of GC.
+
+	* keyboard.c (struct backtrace): Add debug_on_exit member.
+	(Fcommand_execute): Clear it.
+
+2004-05-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* intervals.c (lookup_char_property): Do not prematurely return nil.
+
+2004-05-19  Jim Blandy  <jimb@redhat.com>
+
+	Add support for new '\_<' and '\_>' regexp operators, matching the
+	beginning and end of symbols.
+
+	* regex.c (enum syntaxcode): Add Ssymbol.
+	(init_syntax_once): Set the syntax for '_' to Ssymbol, not Sword.
+	(re_opcode_t): New opcodes `symbeg' and `symend'.
+	(print_partial_compiled_pattern): Print the new opcodes properly.
+	(regex_compile): Parse the new operators.
+	(analyse_first): Skip sym(beg|end) (they match only the empty string).
+	(mutually_exclusive_p): `symend' is mutually exclusive with \s_ and
+	\sw; `symbeg' is mutually exclusive with \S_ and \Sw.
+	(re_match_2_internal): Match symbeg and symend.
+
+	* search.c (trivial_regexp_p): \_ is no longer a trivial regexp.
+
+2004-05-19  Kim F. Storm  <storm@cua.dk>
+
+	* .gdbinit (xsymbol): Fix last change.
+
+2004-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .gdbinit (xprintstr): New fun.
+	(xstring, xprintsym): Use it.
+
+	* w32proc.c (create_child): Use INTMASK.
+
+	* alloc.c (Fgarbage_collect): Do all the marking before flushing
+	unmarked elements of the undo list.
+
+2004-05-18  David Ponce  <david@dponce.com>
+
+	* print.c (print): Reset print_depth before to call print_object.
+
+2004-05-18  Jason Rumney  <jasonr@gnu.org>
+
+	* w32console.c: Prefix RIF functions with w32con_ to avoid
+	namespace clash with functions in term.c and w32term.c.
+
+	* w32menu.c (add_menu_item, w32_menu_display_help)
+	[USE_LISP_UNION_TYPE]: Cast from Lisp_Object using i member.
+
+	* w32term.h (display_x_get_resource, vga_stdcolor_name): Add prototype.
+
+2004-05-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp.h (DECL_ALIGN): Remove restriction on MS-DOS systems.
+
+	* msdos.c (syms_of_msdos): Initialize dos-unsupported-char-glyph
+	with make_number.
+	(IT_write_glyphs): Extract glyph from dos-unsupported-char-glyph
+	with XINT.
+
+2004-05-18  Kim F. Storm  <storm@cua.dk>
+
+	* blockinput.h (INPUT_BLOCKED_P): New macros.
+
+	* keyboard.c (Frecursive_edit): Return immediately if input blocked.
+	(Ftop_level): Unblock input if blocked.
+
+	* buffer.h (GET_OVERLAYS_AT): New macro.
+	* msdos.c (IT_note_mouse_highlight): Use it.
+	* textprop.c (get_char_property_and_overlay): Use it.
+	* xdisp.c (next_overlay_change, note_mouse_highlight): Use it.
+	* xfaces.c (face_at_buffer_position): Use it.
+
+	* print.c (print_object): Increase buf size.
+
+2004-05-17  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fw32_register_hot_key, Fw32_unregister_hot_key)
+	(Fw32_toggle_lock_key) [USE_LISP_UNION_TYPE]: Cast from
+	Lisp_Object using i member.
+	(w32_quit_key): Rename from Vw32_quit_key, and make an int.
+	(syms_of_w32fns, globals_of_w32fns): Use Lisp_Object and int
+	consistently.
+
+	* w32proc.c (create_child): Use make_number instead of masking pid.
+
+	* w32fns.c (w32_color_map_lookup): Return a Lisp_Object.
+	(x_to_w32_charset, w32_to_x_charset, w32_to_all_x_charsets):
+	Use EQ to compare Lisp_Objects.
+	(w32_parse_hot_key): Use int for lisp_modifiers consistently.
+
+	* w32term.c (w32_num_mouse_buttons): Rename from
+	Vw32_num_mouse_buttons and make it an int.
+
+	* w32.c (init_environment): Use it.
+
+	* w32fns.c (w32_wnd_proc): Likewise.
+
+	* w32proc.c (w32_pipe_read_delay): Rename from
+	Vw32_pipe_read_delay and make it an int.
+
+	* w32.c (_sys_read_ahead): Use it.
+
+	* lisp.h (egetenv) [USE_CRT_DLL]: Remove condition.
+
+	* w32proc.c (create_child) [USE_LSB_TAG]: Don't try to mask pid.
+
+	* w32inevt.c (w32_console_mouse_position, do_mouse_event)
+	(key_event): Don't mix Lisp_Object and int.
+
+	* w32heap.c (init_heap) [USE_LSB_TAG]: Don't check heap location.
+
+	* keyboard.c (kbd_buffer_get_event): Don't use event->code and
+	modifiers in language change event.
+
+2004-05-17  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (mark_object): Ignore Lisp_Misc_Free objects.
+	Such objects may be freed markers which still exist on an undo list.
+
+2004-05-16  Juanma Barranquero  <lektu@terra.es>
+
+	* data.c (Fset_default): Make argument names match their use in
+	docstring.
+
+2004-05-15  Andreas Schwab  <schwab@suse.de>
+
+	* emacs.c (gdb_array_mark_flag): Define.
+	* .gdbinit: Mask off gdb_array_mark_flag from vector sizes.
+
+2004-05-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp.h (DECL_ALIGN) [MSDOS]: Don't define DECL_ALIGN to use
+	__attribute__((__aligned__)), so that USE_LSB_TAG would not become
+	defined for the MS-DOS build.
+
+2004-05-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* w32fns.c (Fw32_define_rgb_color): Avoid XSET.
+
+2004-05-14  Kenichi Handa  <handa@m17n.org>
+
+	* ccl.c (Fccl_execute_on_string): Fix setting elements of STATUS.
+
+2004-05-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* lisp.h (Vx_resource_name, Vx_resource_class): Move from xfns.c
+	section to frame.c section.
+	(Fxw_display_color_p, Fx_file_dialog): Declare if
+	HAVE_WINDOW_SYSTEM defined.
+
+	* macfns.c (Fx_create_frame): Fix int/Lisp_Object mixup.
+
+	* macmenu.c (set_frame_menubar): Use NILP to test a lisp value.
+
+	* macterm.c (mac_get_emulated_btn, mac_event_to_emacs_modifiers)
+	(mac_get_mouse_btn): Use NILP and EQ to test/compare lisp values.
+	(XTread_socket): Fix int/Lisp_Object mixup.
+	(mac_check_for_quit_char): Fix pointer/Lisp_Object mixup.
+
+	* macterm.h (struct frame, struct face, struct image)
+	(display_x_get_resource, Fx_display_color_p)
+	(Fx_display_grayscale_p, Fx_display_planes, x_free_gcs):
+	Add prototypes.
+
+2004-05-14  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (wait_reading_process_input): Make reentrant.
+	Make Available and Connecting non-static.  Save and restore value
+	of waiting_for_user_input_p.
+
+2004-05-13  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (mark_kboards): Don't mark x and y members
+	that are overloaded in selection request events.
+
+2004-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (USE_LSB_TAG): Make it the default when it is known to work.
+
+2004-05-13  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* window.c (Fdisplay_buffer, Fsplit_window)
+	(split-height-threshold): Doc fix.
+
+2004-05-13  Juanma Barranquero  <lektu@terra.es>
+
+	* xfaces.c (Ftty_supports_face_attributes_p)
+	(Finternal_copy_lisp_face): Fix typo in docstring.
+	(Finternal_get_lisp_face_attribute): Fix docstring.
+
+2004-05-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (syms_of_xfns): Provide x-toolkit also for GTK.
+
+2004-05-11  Steven Tamm  <steventamm@mac.com>
+
+	* macfns.c (Fx_create_frame): Default to using tool-bar by
+	setting tool-bar-lines to 1 in default-frame-alist.
+
+2004-05-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c (xpm_scan, xpm_make_color_table_v, xpm_put_color_table_v)
+	(xpm_get_color_table_v, xpm_make_color_table_h)
+	(xpm_put_color_table_h, xpm_get_color_table_h)
+	(xpm_str_to_color_key, xpm_load_image, xpm_load)
+	(syms_of_image): Support XPM on Carbon Emacs.  Does not
+	depend on libXpm, but only supports XPM version 3 without extensions.
+
+2004-05-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_flush, XTframe_up_to_date): Use FRAME_MAC_P
+	instead of FRAME_X_P
+
+2004-05-11  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (read_process_output): Grow decoding_buf when needed;
+	this could cause a crash in allocate_string and compact_small_strings.
+
+2004-04-29  Jim Blandy  <jimb@redhat.com>
+
+	* regex.c (mutually_exclusive_p): In 'case wordbeg', compare op2
+	against proper opcode.
+
+2004-05-10  Juanma Barranquero  <lektu@terra.es>
+
+	* process.c (Fstart_process): Fix docstring.
+
+	* charset.c (Fget_unused_iso_final_char): Fix typos in docstring.
+	(Fchar_bytes, Fchar_width, Fstring_width, Fchar_direction)
+	(Fsplit_char, Fchar_charset): Make argument names match their use
+	in docstring.
+
+2004-05-10  Richard M. Stallman  <rms@gnu.org>
+
+	* print.c (print_preprocess): Use being_printed, loop_count and
+	halftail to detect overdeep nesting and cyclic cdr chains.
+
+2004-05-10  Andreas Schwab  <schwab@suse.de>
+
+	* lisp.h: Declare Fmake_symbolic_link.
+
+	* fileio.c (Frename_file): Remove extra argument in call to
+	Fmake_symbolic_link.
+
+2004-05-10  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (calc_line_height_property): Use string position when
+	object is a string.
+
+2004-05-10  Kenichi Handa  <handa@m17n.org>
+
+	* print.c (temp_output_buffer_setup): Bind inhibit-read-only and
+	inhibit-modification-hooks to t temporarily before calling
+	Ferase_buffer.
+
+	* xfns.c (x_create_tip_frame): Bind inhibit-read-only and
+	inhibit-modification-hooks to t temporarily before calling
+	Ferase_buffer.
+
+	* w32fns.c (x_create_tip_frame): Bind inhibit-read-only and
+	inhibit-modification-hooks to t temporarily before calling
+	Ferase_buffer.
+
+	* fns.c (count_combining): Delete it.
+	(concat): Don't check combining bytes.
+
+2004-05-09  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Vw32_ansi_code_page): New Lisp variable.
+	(globals_of_w32fns): Set it.
+
+2004-05-09  Piet van Oostrum  <piet@cs.uu.nl>  (tiny change)
+
+	* data.c (Fquo): Simplify.
+
+2004-05-08  Peter Whaite  <emacs@whaite.ca>  (tiny change)
+
+	* data.c (Fquo): If any argument is float, do the computation in
+	floating point.
+
+2004-05-08  Juanma Barranquero  <lektu@terra.es>
+
+	* process.c (Fwaiting_for_user_input_p, Fmake_network_process)
+	(Fset_process_query_on_exit_flag, Vprocess_adaptive_read_buffering):
+	Fix spelling of Emacs on docstring.
+	(Fset_process_coding_system, Fprocess_coding_system)
+	(Fset_process_filter_multibyte, Fprocess_filter_multibyte_p):
+	Make argument names match their use in docstring.
+	(Fprocess_id, Fprocess_query_on_exit_flag, Finterrupt_process):
+	Fix docstring.
+
+	* editfns.c (Finsert_buffer_substring): Make argument names match their
+	use in docstring.
+
+	* syntax.c (Fmodify_syntax_entry): Fix docstring.
+
+2004-05-07  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (mac_check_for_quit_char): Adding BLOCK_INPUT
+	around call to ReceiveEvent to avoid certain crashes.
+
+2004-05-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (mac_draw_line_to_pixmap, XCreatePixmapFromBitmapData)
+	(mac_fill_rectangle_to_pixmap, mac_draw_rectangle_to_pixmap)
+	(mac_copy_area_to_pixmap, mac_copy_area_with_mask_to_pixmap):
+	Save/restore the current graphics port and device handle when
+	drawing into an offscreen graphics world.
+
+	* image.c [MAC_OS] (XPutPixel, XGetPixel, image_load_qt_1)
+	(gif_load): Likewise.
+
+2004-05-07  Juanma Barranquero  <lektu@terra.es>
+
+	* window.c (Fset_window_buffer): Fix docstring.
+
+2004-05-06  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs.c (main) [VMS]: Fix var ref.
+
+2004-05-06  Romain Francoise  <romain@orebokech.com>  (tiny change)
+
+	* data.c (Fsetq_default): Fix docstring.
+
+2004-05-06  Jason Rumney  <jasonr@gnu.org>
+
+	* image.c (Display) [HAVE_NTGUI]: Redefine while loading xpm.h
+	to avoid name clash.
+
+2004-05-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* fileio.c (barf_or_query_if_file_exists): Use lstat.
+	(Frename_file): Handle renaming of symlinks across file systems.
+	(Frename_file): Put symlink handling inside #ifdef S_IFLNK.
+
+2004-05-04  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (Qtotal): New var.
+	(syms_of_xdisp): Intern and staticpro it.
+	(calc_line_height_property): New arg total.  Set it if
+	line-spacing property has format (total . VALUE).
+	(x_produce_glyphs): Ignore line-spacing if line-height is 0.
+	Handle total line-spacing property.
+
+2004-05-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_update_scrollbar_pos): Call XClearWindow to clear
+	"under" scroll bar when size/position changes.
+
+2004-05-03  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.nt: Remove.
+
+2004-05-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* syntax.h (SET_RAW_SYNTAX_ENTRY, SYNTAX_ENTRY_INT):
+	Avoid compiler warnings.
+
+	* Makefile.in (region-cache.o): Depend on config.h.
+
+2004-05-02  Romain Francoise  <romain@orebokech.com>  (tiny change)
+
+	* indent.c (compute_motion): Save vpos in prev_vpos when dealing
+	with continuation lines, too.
+
+2004-05-02  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* syssignal.h (init_signals): Move decl outside `#ifdef POSIX_SIGNALS'.
+
+2004-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (calc_line_height_property): YAILOM (yet another
+	int/Lisp_Object mixup).
+
+2004-05-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (top-level): Add "#pragma pack(0)" after <dir.h>, to
+	undo bad effect of pack(4) in some versions of system headers.
+
+2004-05-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_draw_hollow_cursor): Sync with xterm.c
+
+2004-04-30  Kim F. Storm  <storm@cua.dk>
+
+	* buffer.c (syms_of_buffer) <line-spacing>: Allow float value.
+	(syms_of_buffer) <cursor-type>: Doc fix.
+
+	* dispextern.h (struct it): Remove member use_default_face.
+	Add members override_ascent, override_descent, override_boff.
+
+	* xdisp.c (init_iterator): Handle line-spacing float value.
+	Initialize override_ascent member.
+	(append_space_for_newline): Reset override_ascent.
+	Remove use_default_face.
+	(calc_line_height_property): New function to calculate value of
+	line-height and line-spacing properties.  Look at overlays, too.
+	Set override_ascent, override_descent, override_boff members when
+	using another face than the current face.  Float values are now
+	relative to the frame default font, by default; accept a cons
+	of ratio and face name to specify value relative to a specific face.
+	(x_produce_glyphs): Use calc_line_height_property.
+	Use override_ascent etc. when set to handle different face heights.
+	A negative line-spacing property value is interpreted as a total
+	line height, rather than inter-line spacing.
+	(note_mouse_highlight): Allocate room for 40 overlays initially.
+
+2004-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* data.c (Fsubr_name): New fun.
+	(syms_of_data): Defsubr it.
+
+2004-04-29  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (null_glyph_slice): New var.
+	(append_glyph, append_composite_glyph, append_stretch_glyph):
+	Use it to initialize glyph slice.
+
+2004-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (x_produce_glyphs): Fix the proverbial int/Lisp_Object mixup.
+	(on_hot_spot_p): Make sure we always return a value.
+	(Flookup_image_map): Remove unused var ix and iy.
+	(note_mode_line_or_margin_highlight): Remove unused var `image'.
+
+2004-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (init_environment): If one of the TMP... environment
+	variables is set to a drive letter without a trailing slash,
+	append a slash.
+
+2004-04-27  Matthew Mundell  <matt@mundell.ukfsn.org>
+
+	* editfns.c (lisp_time_argument): Provide externally.
+
+	* fileio.c (Fset_file_times): New function.
+	(syms_of_fileio): Intern and staticpro it.
+
+2004-04-27  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (x_produce_glyphs): Fix last change; handle newline in
+	header line strings.
+
+	* dispextern.h (struct it): New member use_default_face.
+
+	* xdisp.c (Qline_height): New variable.
+	(syms_of_xdisp): Intern and staticpro it.
+	(append_space_for_newline): Partially undo 2004-04-25 change;
+	add default_face_p arg, and restore callers.
+	Clear it->use_default_face after use.
+	(x_produce_glyphs): Set default font for ascii char if
+	it->use_default_font is set.  Change line-spacing property to set
+	just extra line spacing.  Handle new line-height property.
+
+2004-04-26  Andreas Schwab  <schwab@suse.de>
+
+	* print.c (print_object): Print non-ascii characters in bool
+	vector representation as octal escapes.
+
+	* lisp.h (BOOL_VECTOR_BITS_PER_CHAR): Define.
+	* print.c (print_object): Use it instead of BITS_PER_CHAR for
+	bool vectors.
+	* lread.c (read1): Likewise.
+	* alloc.c (Fmake_bool_vector): Likewise.
+	* data.c (Faref, Faset): Likewise.
+	* fns.c (Fcopy_sequence, concat, internal_equal, Ffillarray)
+	(mapcar1): Likewise.
+
+2004-04-26  Steven Tamm  <tamm@Steven-Tamms-Computer.local>
+
+	* lread.c (init_lread): Fixing typo HAVE_CARBON test logic
+
+2004-04-26  Miles Bader  <miles@gnu.org>
+
+	* lisp.h (CYCLE_CHECK): Macro moved from xfaces.c.
+
+2004-04-26  Juanma Barranquero  <lektu@terra.es>
+
+	* buffer.c (Fpop_to_buffer): Fix docstring.
+
+2004-04-26  Steven Tamm  <steventamm@mac.com>
+
+	* lread.c (init_lread): Don't display missing lisp directory
+	warnings with Carbon Emacs because self-contained bundled Emacs
+	may be built without correct installation path.
+
+2004-04-25  Kim F. Storm  <storm@cua.dk>
+
+	* macterm.c (x_draw_hollow_cursor): Fix height of box for narrow lines.
+
+	* xterm.c (x_draw_hollow_cursor): Fix height of box for narrow lines.
+
+	* xdisp.c (append_space_for_newline): Rename from append_space.
+	Remove DEFAULT_FACE_P arg; always use current face.  Callers changed.
+	(x_produce_glyphs): Handle line-spacing property on newline char.
+	If value is t, adjust ascent and descent to fit current row height.
+	If value is an integer or float, set extra_line_spacing to integer
+	value, or to float value x current line height.
+
+2004-04-23  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (Finternal_char_font): If POSITION is nil, return
+	font for displaying CH with the default face.
+
+2004-04-23  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in: Add "-*- makefile -*-" mode tag.
+
+2004-04-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (XINT) [EXPLICIT_SIGN_EXTEND && !NO_UNION_TYPE]:
+	Don't make assumptions about the relative place of i and val.
+	(EQ) [!NO_UNION_TYPE]: Don't forget to check the type match as well.
+
+2004-04-21  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (struct glyph_slice): New struct.
+	(struct glyph): New member slice.
+	(GLYPH_SLICE_EQUAL_P): New macro.
+	(GLYPH_EQUAL_P): Use it.
+	(struct glyph_string): New member slice.
+	(struct it_slice): New struct.
+	(struct it): New member slice, add member to stack too.
+	New member constrain_row_ascent_descent_p.
+	(image_ascent): Add prototype.
+
+	* dispnew.c (buffer_posn_from_coords): Return full image width
+	and height even for image slices (posn is relative to full image).
+	(marginal_area_string): Adjust x0,y0 for image slice.
+
+	* image.c (image_ascent): Add slice arg; calculate ascent for
+	image slice (or full image).
+
+	* keyboard.c (Fposn_at_x_y, Fposn_at_point): New defuns.
+	(syms_of_keyboard): Defsubr them.
+
+	* lisp.h (pos_visible_p): Fix prototype.
+
+	* macterm.c (x_draw_relief_rect): Add top_p and bot_p args.
+	(x_draw_glyph_string_box): Fix call to x_draw_relief_rect.
+	(x_draw_image_foreground, x_draw_image_relief)
+	(x_draw_image_foreground_1, x_draw_image_glyph_string):
+	Draw sliced images.
+
+	* w32term.c (w32_draw_relief_rect): Add top_p and bot_p args.
+	(x_draw_glyph_string_box): Fix call to x_draw_relief_rect.
+	(x_draw_image_foreground, x_draw_image_relief)
+	(w32_draw_image_foreground_1, x_draw_image_glyph_string):
+	Draw sliced images.
+
+	* w32term.h (image_ascent): Remove prototype.
+
+	* window.c (Fpos_visible_in_window_p): Return pixel position if
+	PARTIALLY arg is non-nil.  Simplify.  Doc fix.
+	(Fwindow_vscroll, Fset_window_vscroll): Add optional PIXEL_P arg
+	to return/set vscroll in pixels.
+
+	* window.h (Fwindow_vscroll, Fset_window_vscroll): Fix EXFUN.
+
+	* xdisp.c (Qslice): New variable.
+	(syms_of_xdisp): Intern and staticpro it.
+	(pos_visible_p): Return pixel position in new x and y args.
+	(init_iterator): Reset it->slice info.
+	(handle_display_prop): Parse (slice ...) property.
+	(push_it, pop_it): Save/restore slice info.
+	(make_cursor_line_fully_visible): Fix 2004-04-14 change.  Do not
+	force repositioning of tall row if window is vscrolled, as that
+	would reset vscroll.
+	(append_space): Set it->constrain_row_ascent_descent_p to avoid
+	increasing row height if row is non-empty.
+	(fill_image_glyph_string): Copy slice info.
+	(take_vertical_position_into_account): Simplify.
+	(produce_image_glyph): Handle iterator slice info, setup glyph
+	slice info.  Do not force minimum line height.
+	(x_produce_glyphs): If it->constrain_row_ascent_descent_p is set,
+	do not increase height (ascent/descent) of non-empty row when
+	adding normal character glyph; instead reduce glyph ascent/descent
+	appropriately; if row is higher than current glyph, adjust glyph
+	descent/ascent to reposition glyph within the existing row.
+	Likewise, when char is newline, only set ascent/descent if row is
+	currently empty.
+	(note_mouse_highlight): Handle hotspots with sliced image.
+
+	* xterm.c (x_draw_relief_rect): Add top_p and bot_p args.
+	(x_draw_glyph_string_box): Fix call to x_draw_relief_rect.
+	(x_draw_image_foreground, x_draw_image_relief)
+	(x_draw_image_foreground_1, x_draw_image_glyph_string):
+	Draw sliced images.
+
+	* xterm.h (image_ascent): Remove prototype.
+
+2004-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fkey_description): Fix the usual int/Lisp_Object mixup.
+
+2004-04-20  John Paul Wallington  <jpw@gnu.org>
+
+	* fns.c (Fassoc, Feql): Fix indentation.
+
+	* fontset.c (regularize_fontname): Rename from regulalize_fontname.
+
+2004-04-19  John Paul Wallington  <jpw@gnu.org>
+
+	* fns.c (Feql): New function.
+	(syms_of_fns): Defsubr it.
+
+2004-04-18  Jason Rumney  <jasonr@gnu.org>
+
+	* w32select.c (Fw32_set_clipboard_data): Get sequence number
+	after closing the clipboard.
+
+2004-04-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffer.c (Fbuffer_base_buffer): Doc fix.
+
+2004-04-17  Kim F. Storm  <storm@cua.dk>
+
+	* keymap.c (Fkey_description): Add optional PREFIX arg.
+	Combine prefix with KEYS to make up the full key sequence to describe.
+	Correlate meta_prefix_char and following (simple) key to describe
+	as meta modifier.  All callers changed.
+	(describe_map): Rename arg `keys' to `prefix'.  Remove local
+	`elt_prefix' var.  Use Fkey_description with prefix instead of
+	elt_prefix combined with Fsingle_key_description.
+	(describe_vector): Declare static.  Replace arg `elt_prefix' with
+	`prefix'.  Add KEYMAP_P arg.  Add local var `elt_prefix'; use it
+	if !KEYMAP_P. Use Fkey_description with prefix instead of
+	Fsingle_key_description.
+
+	* keymap.h (Fkey_description): Fix prototype.
+	(describe_vector): Remove prototype.
+
+	* xdisp.c (update_overlay_arrows): Fix handling of up_to_date < 0.
+
+	* image.c (PNG_BG_COLOR_SHIFT): Remove.
+	(png_load): Fix calculation of transparent background color on X
+	and W32 platforms.
+
+2004-04-16  Juanma Barranquero  <lektu@terra.es>
+
+	* xdisp.c (try_scrolling): Make sure `scroll-conservatively' is
+	not too large before computing how much to scroll.
+
+2004-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.c (Ffile_attributes): Don't pass extra nil arg to file-handler.
+
 2004-04-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* fileio.c (Fverify_visited_file_modtime, Fvisited_file_modtime):
@@ -29,6 +1156,11 @@
 	higher-than-window cursor row - both initially and again with
 	centering_position = 0.
 	Clear desired matrix before retrying with centering_position = 0.
+
+2004-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (scan_lists): Simplify backward string scan.
+	Fix off-by-one boundary check for string and comment fences.
 
 2004-04-13  Joe Buehler  <jbuehler@hekimian.com>
 
@@ -573,7 +1705,7 @@
 
 	* macterm.c (XTread_socket): Remove bufp_r and
 	numcharsp args.  Add hold_quit arg.
-	Rework to use just one, local, inev input_event. Store inev
+	Rework to use just one, local, inev input_event.  Store inev
 	directly in fifo using kbd_buffer_store_event_hold.
 
 	* sysdep.c (BUFFER_SIZE_FACTOR): Remove.
@@ -589,14 +1721,14 @@
 
 	* w32inevt.c (w32_console_read_socket): Remove bufp_r and
 	numcharsp args.  Add hold_quit arg.
-	Rework to use just one, local, inev input_event. Store inev
+	Rework to use just one, local, inev input_event.  Store inev
 	directly in fifo using kbd_buffer_store_event_hold.
 
 	* w32inevt.h (w32_console_mouse_position): Fix prototype.
 
 	* w32term.c (w32_read_socket): Remove bufp_r and numcharsp args.
-	Add hold_quit arg. Rework to use just one, local, inev
-	input_event. Store inev directly in fifo using
+	Add hold_quit arg.  Rework to use just one, local, inev
+	input_event.  Store inev directly in fifo using
 	kbd_buffer_store_event_hold.  Update count in one place.
 	Postpone call to gen_help_event until inev is stored; use new
 	local do_help for this.
@@ -615,8 +1747,8 @@
 	(current_hold_quit) [USE_GTK]: Add.
 	(event_handler_gdk): Adapt to new handle_one_xevent.
 	(handle_one_xevent): Remove bufp_r and numcharsp args.
-	Add hold_quit arg. Rework to use just one, local, inev
-	input_event. Store inev directly in fifo using
+	Add hold_quit arg.  Rework to use just one, local, inev
+	input_event.  Store inev directly in fifo using
 	kbd_buffer_store_event_hold.  Update count in one place.
 	Postpone call to gen_help_event until inev is stored; use new
 	local do_help for this.
@@ -628,7 +1760,7 @@
 	`goto done' to clarify code flow in deeply nested blocks.
 	(x_dispatch_event): Simplify as handle_one_xevent now calls
 	kbd_buffer_store_event itself.
-	(XTread_socket): Remove bufp_r and numcharsp args. Add hold_quit
+	(XTread_socket): Remove bufp_r and numcharsp args.  Add hold_quit
 	arg.  Call handle_one_xevent with new arglist.  Store event from
 	x_session_check_input in fifo.
 	[USE_GTK]: Setup current_hold_quit.
@@ -1047,7 +2179,7 @@
 
 2004-02-09  Sam Steingold  <sds@gnu.org>
 
-	* w32term.c (w32_draw_fringe_bitmap): Fixed a typo in the last patch.
+	* w32term.c (w32_draw_fringe_bitmap): Fix a typo in the last patch.
 
 2004-02-09  Kim F. Storm  <storm@cua.dk>
 
@@ -1181,7 +2313,7 @@
 	completion-regexp-list.  Define Qcase_fold_search and staticpro it.
 	(read_minibuf): Fix initial comment.
 	(Ftry_completion, Fall_completions, Ftest_completion): Bind
-	case-fold-serach to the value of completion-ignore-case when
+	case-fold-search to the value of completion-ignore-case when
 	checking completion-regexp-list.
 	(Fdisplay_completion_list): Make it handle arguments that are
 	symbols.  Doc fix.
@@ -1557,7 +2689,7 @@
 	(marginal_area_string): Fix prototypes.
 
 	* keyboard.h (POSN_POSN, POSN_SET_POSN): Rename macros from
-	POSN_BUFFER_POSN and POSN_SET_BUFFER_POSN. All uses changed.
+	POSN_BUFFER_POSN and POSN_SET_BUFFER_POSN.  All uses changed.
 	(POSN_INBUFFER_P, POSN_BUFFER_POSN): New macros.
 
 	* keyboard.c (make_lispy_position): Use modified mode_line_string,
@@ -1724,7 +2856,7 @@
 	control frame pointer shape.  Detect image hot-spots for pointer
 	and help_echo properties.  Use define_frame_cursor1.
 	(note_mouse_highlight):	Use Vvoid_text_area_pointer.
-	(syms_of_xdisp): Defsubr new defun. Intern and staticpro new variables.
+	(syms_of_xdisp): Defsubr new defun.  Intern and staticpro new variables.
 	DEFVAR_LISP Vvoid_text_area_pointer instead of Vshow_text_cursor_in_void.
 
 	* xfaces.c (cache_face): Abort if c->size exceeds MAX_FACE_ID.
@@ -1845,7 +2977,7 @@
 	(glyph_to_pixel_coords): Don't use negative hpos.
 	(x_y_to_hpos_vpos): Fix for partially visible first glyph.
 	(append_stretch_glyph): Change ascent arg to be actual value
-	in pixels rather than ratio to height. Callers changed.
+	in pixels rather than ratio to height.  Callers changed.
 	(calc_pixel_width_or_height): New aux function, implementing
 	pixel based artihmetic for glyph widths and heights.
 	(produce_stretch_glyph): Use calc_pixel_width_or_height for
@@ -2047,7 +3179,7 @@
 	x_display_info_for_display instead.  Use Display in xev instead
 	of GDK_DISPLAY.
 	(x_dispatch_event): Call x_display_info_for_display.
-	(XTread_socket): Move GTK part out of loop. current_dpyinfo removed.
+	(XTread_socket): Move GTK part out of loop.  current_dpyinfo removed.
 	(x_connection_closed): Call xg_display_close for GTK.
 	(x_term_init): Call xg_display_open for additional displays.
 	Initiate dpyinfo->xg_cursor with call to xg_create_default_cursor
@@ -2954,7 +4086,7 @@
 
 2003-07-09  Kim F. Storm  <storm@cua.dk>
 
-	* xterm.c (use_xim) [!USE_XIM]: Default to disable XIM if emacs
+	* xterm.c (use_xim) [!USE_XIM]: Default to disable XIM if Emacs
 	was configured with --without-xim.
 	(x_term_init) [!USE_XIM]: Use `useXIM' resource to turn on XIM.
 
@@ -3549,7 +4681,7 @@
 	from x/w32/macterm.h files.  All uses changed.  Also change code
 	which referred to f->output_data...->pixel_height.
 	(FRAME_PIXEL_WIDTH): Renamed from PIXEL_WIDTH and moved
-	from x/w32/macterm.h files.  All uses changed. 	Also change code
+	from x/w32/macterm.h files.  All uses changed.  Also change code
 	which referred to f->output_data...->pixel_width.
 	(FRAME_LINES): Renamed from FRAME_HEIGHT.  All uses changed.
 	Also change code which referred to f->height.
@@ -3811,7 +4943,7 @@
 	window to only preserve the display margins in one of the windows.
 	When splitting horizontally, call adjust_window_margins	on both
 	windows to ensure that the text area of the new windows is non too
-	narrow.  This fixes a bug which could cause emacs to trap if the
+	narrow.  This fixes a bug which could cause Emacs to trap if the
 	width of the split window was less than the width of the display
 	margins.
 	(window_box_text_cols): Renamed from window_internal_width.
@@ -3842,7 +4974,7 @@
 	(Fset_window_margins): Do nothing if display margins are not
 	really changed.  Otherwise, call adjust_window_margins to ensure
 	the text area doesn't get too narrow.  This fixes a bug which
-	could cause emacs to trap if setting display margins wider than
+	could cause Emacs to trap if setting display margins wider than
 	the width of the window.
 	(Fset_window_fringes): New defun to allow user to specifically set
 	this window's fringe widths and position vs. display margins.
@@ -3859,7 +4991,7 @@
 	* xdisp.c: Make (many) trivial substitutions for renamed and
 	new macros in dispextern.h, frame.h and window.h.
 	(window_box_width): Adapt to per-window fringes and scroll bars,
-	and new fringe vs. display margin position. Note that returned
+	and new fringe vs. display margin position.  Note that returned
 	value is no longer guaranteed to be a whole multiple of the frame
 	column width, since per-window fringes may now be any width.
 	(window_box_left_offset): New function like window_box_left, but
@@ -4609,7 +5741,7 @@
 
 	* xfns.c (Qauto_raise, Qauto_lower, ...): Remove vars for frame
 	parameters now defined in frame.h and frame.c.
-	(Vx_resource_name): Remove. Use generic var.
+	(Vx_resource_name): Remove.  Use generic var.
 	(enum x_frame_parms): Remove (bogus, unused enum).
 	(check_x_display_info): Make non-static (for frame.c).
 	(struct x_frame_parm_table, x_frame_parms): Remove.
@@ -4629,7 +5761,7 @@
 	(syms_of_xfns): Don't intern/staticpro removed vars.
 
 	* xterm.c: Remove unnecessary extern declarations.
-	(x_fullscreen_adjust): Remove. Use generic instead.
+	(x_fullscreen_adjust): Remove.  Use generic instead.
 	(x_redisplay_interface): Add x_frame_parm_handlers member.
 
 	* w32gui.h (XrmDatabase): New (dummy) typedef.
@@ -4641,7 +5773,7 @@
 
 	* w32fns.c (Qauto_raise, Qauto_lower, ...): Remove vars for frame
 	parameters now defined in frame.h and frame.c.
-	(Vx_resource_name): Remove. Use generic var.
+	(Vx_resource_name): Remove.  Use generic var.
 	(enum x_frame_parms): Remove (bogus, unused enum).
 	(check_x_display_info): Make non-static (for frame.c).
 	(struct x_frame_parm_table, x_frame_parms): Remove.
@@ -4674,7 +5806,7 @@
 
 	* macfns.c (Qauto_raise, Qauto_lower, ...): Remove vars for frame
 	parameters now defined in frame.h and frame.c.
-	(Vx_resource_name): Remove. Use generic var.
+	(Vx_resource_name): Remove.  Use generic var.
 	(check_x_display_info): Make non-static (for frame.c).
 	(struct x_frame_parm_table, x_frame_parms): Remove.
 	(init_x_parm_symbols, x_set_frame_parameters, x_report_frame_params)
@@ -5655,7 +6787,7 @@
 	[HAVE_XPM]: Avoid clashes with XColor, XImage and Pixel
 	definitions in xpm.h.
 	(init_xpm_functions): New function.
-	(xpm_load): Sync with xfns.c. Adapt for Windows version of libXpm.
+	(xpm_load): Sync with xfns.c.  Adapt for Windows version of libXpm.
 	(init_external_image_libraries): Try to load libXpm.dll.
 
 	* fileio.c (Fcopy_file) [WINDOWSNT]: Reverse logic for setting
@@ -5684,8 +6816,8 @@
 	* w32fns.c (DrawText): Kludge to avoid a redefinition on Windows
 	when including gif_lib.h.
 	(init_gif_functions, init_tiff_functions): New functions.
-	(gif_load, tiff_load): Sync with xfns.c version. Adjust colors for
-	Windows. Disable color table lookups. Call library functions
+	(gif_load, tiff_load): Sync with xfns.c version.  Adjust colors for
+	Windows.  Disable color table lookups.  Call library functions
 	through pointers determined at runtime.
 	(init_external_image_libraries): Try to load libungif.dll and
 	libtiff.dll.
@@ -5751,8 +6883,8 @@
 
 	* w32fns.c (init_jpeg_functions, jpeg_resync_to_restart_wrapper):
 	New functions.
-	(jpeg_load): Sync with xfns.c version. Adjust colors for Windows.
-	Disable color table lookups. Call jpeg library functions
+	(jpeg_load): Sync with xfns.c version.  Adjust colors for Windows.
+	Disable color table lookups.  Call jpeg library functions
 	through pointers determined at runtime.
 	(init_external_image_libraries): Try to load jpeg.dll.
 
@@ -5789,8 +6921,8 @@
 
 	* w32fns.c (XPutPixel): Handle monochrome images; used for masks.
 	[HAVE_PNG]: Sync with xfns.c version.
-	(png_load): Adjust colors for Windows. Use Windows
-	bitmaps. Disable color table lookups.
+	(png_load): Adjust colors for Windows.  Use Windows
+	bitmaps.  Disable color table lookups.
 	(DEF_IMGLIB_FN, LOAD_IMGLIB_FN): New macros.
 	(init_png_functions): New function.
 	(png_read_from_memory, png_load): Call png library functions
@@ -5887,7 +7019,7 @@
 2003-01-21  David Ponce  <david@dponce.com>
 
 	* w32term.c (w32_encode_char): For DIM=1 charset, set
-	ccl->reg[2] to -1 before calling ccl_driver. (Sync. with xterm.c
+	ccl->reg[2] to -1 before calling ccl_driver.  (Sync. with xterm.c
 	x_encode_char change by Kenichi Handa <handa@m17n.org> on
 	2002-09-30.)
 	(w32_draw_relief_rect): Declare all args.
@@ -6420,7 +7552,7 @@
 	only if g_b_init_get_sid_identifier_authority is equal to 0.
 	On initialization set g_b_init_get_sid_identifier_authority equal to 1.
 
-	* w32fns.c (globals_of_w32fns): New function. Used to initialize
+	* w32fns.c (globals_of_w32fns): New function.  Used to initialize
 	those global variables that must always be initialized on startup
 	even when the global variable initialized is non zero.
 	Its primary purpose at this time is to initialize the global variable
@@ -6431,7 +7563,7 @@
 
 	* w32fns.c (syms_of_w32fns): Call globals_of_w32fns.
 
-	* w32menu.c (globals_of_w32menu): New function. Used to
+	* w32menu.c (globals_of_w32menu): New function.  Used to
 	initialize those global variables that must always be initialized
 	on startup even when the global variable initialized is non zero.
 	Its primary purpose at this time is to initialize the global
@@ -7116,7 +8248,7 @@
 	* process.c (Fformat_network_address): New function.
 	(syms_of_process): Defsubr it.
 	(list_processes_1): Use it to format :local/:remote address if
-	service/host is not set; before emacs would crash in that case.
+	service/host is not set; before Emacs would crash in that case.
 	(Fmake_network_process): Don't use Ffind_operation_coding_system
 	to setup coding system if host or service is not set.
 
@@ -7779,7 +8911,7 @@
 
 	* msdos.c (croak): Add `void' to definition.
 
-	* sysdep.c [MSDOS] (request_sigio, unrequest_sigio):
+	* sysdep.c (request_sigio, unrequest_sigio) [MSDOS]:
 	Don't define them, they are defined in msdos.c.
 
 	* mem-limits.h [MSDOS]: Declare etext.
@@ -7789,7 +8921,7 @@
 
 2002-08-19  Kim F. Storm  <storm@cua.dk>
 
-	* keyboard.c (Fclear_this_command_keys): Added optional arg
+	* keyboard.c (Fclear_this_command_keys): Add optional arg
 	KEEP-RECORD to avoid clearing lossage when we just want to clear
 	the current key sequence (kmacro needs this).
 
@@ -8181,12 +9313,11 @@
 
 2002-07-19  Juanma Barranquero  <lektu@terra.es>
 
-	* fileio.c (Ffile_name_as_directory): Fix argument name in docstring.
-	(file_name_as_directory): Use literal '/' instead of DIRECTORY_SEP.
-
 	* xdisp.c (syms_of_xdisp): Remove redundant deprecation info.
 
 	* fileio.c (syms_of_fileio): Likewise.
+	(Ffile_name_as_directory): Fix argument name in docstring.
+	(file_name_as_directory): Use literal '/' instead of DIRECTORY_SEP.
 
 2002-07-18  Richard M. Stallman  <rms@gnu.org>
 
@@ -8423,8 +9554,8 @@
 
 2002-07-10  Juanma Barranquero  <lektu@terra.es>
 
-	* lisp.h (SPECPDL_INDEX): Rename from BINDING_STACK_SIZE. All callers
-	changed.
+	* lisp.h (SPECPDL_INDEX): Rename from BINDING_STACK_SIZE.
+	All callers changed.
 
 2002-07-09  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -8654,7 +9785,7 @@
 2002-06-21  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* m/pmax.h (START_FILES): Define START_FILES for NetBSD and
-	OpenBSD. Add support for mipseb-*-netbsd* machines.
+	OpenBSD.  Add support for mipseb-*-netbsd* machines.
 
 2002-06-17  Andrew Choi  <akochoi@shaw.ca>
 
@@ -10056,7 +11187,7 @@
 	(server_accept_connection): New function.
 	(wait_reading_process_input): Use it to handle incoming connects.
 	Do not enable input on a new connection if process is stopped.
-	(read_process_output): Handle datagram sockets. Use 2k buffer for them.
+	(read_process_output): Handle datagram sockets.  Use 2k buffer for them.
 	(send_process): Handle datagram sockets.
 	(Fstop_process, Fcontinue_process): Apply to network processes.  A stopped
 	network process is indicated by setting command field to t .
@@ -11442,7 +12573,7 @@
 2001-12-14  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (EMACSLOADPATH): Define.
-	($(EMACS)): Run `list-load-path-shadows' after dumping emacs.
+	($(EMACS)): Run `list-load-path-shadows' after dumping Emacs.
 	(bootstrap-temacs): Remove dependency on bootstrap-clean.
 
 2001-12-13  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -11642,7 +12773,7 @@
 
 2001-12-01  Jason Rumney  <jasonr@gnu.org>
 
-	* window.c (Qleft_fringe, Qright_fringe): Remove. Now in frame.c.
+	* window.c (Qleft_fringe, Qright_fringe): Remove.  Now in frame.c.
 
 	* w32term.h (WM_MOUSELEAVE, TME_LEAVE, TRACKMOUSEEVENT)
 	[!WM_MOUSELEAVE]: Define.
@@ -11694,7 +12825,7 @@
 
 	* xterm.c (zv_height, zv_bits, zv_period): Changed zv bitmap to
 	fill fringe evenly with small dashes.
-	(x_draw_fringe_bitmap): Clear background if necessary. Align and
+	(x_draw_fringe_bitmap): Clear background if necessary.  Align and
 	clip the new ZV bitmap to avoid jitter between rows.
 	(x_draw_row_fringe_bitmaps): Rely on x_draw_fringe_bitmap to clear
 	background.  Don't draw fringe bitmaps if fringe width is zero.
@@ -11759,7 +12890,7 @@
 	menu items.  From David Ponce <dponce@wanadoo.fr>.
 	(w32_dialog_show) [HAVE_DIALOGS]: Compile whole function
 	conditionally.
-	(w32_menu_display_help): New argument OWNER. Rewritten to store a
+	(w32_menu_display_help): New argument OWNER.  Rewritten to store a
 	help event in the owner frame's keyboard buffer.
 
 	* w32fns.c (w32_wnd_proc) <WM_MENUSELECT>: Display help directly.
@@ -11836,9 +12967,9 @@
 
 	* abbrev.c (Fexpand_abbrev): Use Frun_hooks instead of Vrun_hooks.
 
-	* buffer.c (Fkill_buffer): Use Frun_hooks, not Vrun_hooks.
+	* buffer.c (Fkill_buffer): Likewise.
 
-	* print.c (temp_output_buffer_setup): Use Frun_hooks, not Vrun_hooks.
+	* print.c (temp_output_buffer_setup): Likewise.
 
 2001-11-25  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -11875,7 +13006,7 @@
 	(my_create_tip_window): Assign tip_window.
 	(x_create_tip_frame): Use same defaults as X.
 	(compute_tip_xy): Remove unused variable.  Use full screen width.
-	(Fx_show_tip): Do not double height. Call ShowWindow directly.
+	(Fx_show_tip): Do not double height.  Call ShowWindow directly.
 
 	* w32term.c (x_after_update_window_line): Doc fix.
 	(w32_read_socket): Doc fix.  Avoid SET_FRAME_GARBAGED for tip
@@ -12112,9 +13243,9 @@
 	`bitmaps':
 
 	* dispextern.h (FRINGE_FACE_ID): Renamed from BITMAP_AREA_FACE_ID.
-	Comments fixed. Use renamed symbols.
+	Comments fixed.  Use renamed symbols.
 
-	* dispnew.c: Comment fix. Use renamed symbols.
+	* dispnew.c: Comment fix.  Use renamed symbols.
 
 	* frame.h (FRAME_FRINGE_COLS): Renamed from FRAME_FLAGS_AREA_COLS.
 	(FRAME_FRINGE_WIDTH): Renamed from FRAME_FLAGS_AREA_WIDTH.
@@ -12124,13 +13255,13 @@
 
 	* w32fns.c: Use renamed symbols.
 
-	* w32term.c: Comment fixes. Use renamed symbols.
+	* w32term.c: Comment fixes.  Use renamed symbols.
 	(fringe_bitmap_type): Renamed from bitmap_type.
 	(NO_FRINGE_BITMAP): Renamed from NO_BITMAP.
 	(w32_draw_fringe_bitmap): Renamed from w32_draw_bitmap.
 	(x_draw_row_fringe_bitmaps): Renamed from x_draw_row_bitmaps.
 
-	* w32term.h: Comment fixes. Use renamed symbols.
+	* w32term.h: Comment fixes.  Use renamed symbols.
 	(fringes_extra): Renamed from flags_areas_extra.
 	(FRAME_FRINGE_BITMAP_WIDTH): Renamed from FRAME_FLAGS_BITMAP_WIDTH.
 	(FRAME_FRINGE_BITMAP_HEIGHT): Renamed from FRAME_FLAGS_BITMAP_HEIGHT.
@@ -12143,22 +13274,22 @@
 
 	* widget.c: Use renamed symbols.
 
-	* window.c: Comment fixes. Use renamed symbols.
+	* window.c: Comment fixes.  Use renamed symbols.
 	(coordinates-in-window-p): Doc fix.
 
-	* xdisp.c: Comment fixes. Use renamed symbols.
+	* xdisp.c: Comment fixes.  Use renamed symbols.
 
 	* xfaces.c (realize_basic_faces): Use FRINGE_FACE_ID.
 
 	* xfns.c: Use renamed symbols.
 
-	* xterm.c: Comment fixes. Use renamed symbols.
+	* xterm.c: Comment fixes.  Use renamed symbols.
 	(fringe_bitmap_type): Renamed from bitmap_type.
 	(NO_FRINGE_BITMAP): Renamed from NO_BITMAP.
 	(x_draw_fringe_bitmap): Renamed from x_draw_bitmap.
 	(x_draw_row_fringe_bitmaps): Renamed from x_draw_row_bitmaps.
 
-	* xterm.h: Comment fixes. Use renamed symbols.
+	* xterm.h: Comment fixes.  Use renamed symbols.
 	(fringes_extra): Renamed from flags_areas_extra.
 	(FRAME_FRINGE_BITMAP_WIDTH): Renamed from FRAME_FLAGS_BITMAP_WIDTH.
 	(FRAME_FRINGE_BITMAP_HEIGHT): Renamed from FRAME_FLAGS_BITMAP_HEIGHT.
@@ -12276,8 +13407,8 @@
 2001-11-12  Jason Rumney  <jasonr@gnu.org>
 
 	* w32console.c, w32fns.c, w32menu.c, w32proc.c, w32select.c,
-	* w32term.c: Change doc-string comments to `new style'.
-	[w/`doc:' keyword]. Doc fixes.
+	* w32term.c: Change doc-string comments to `new style'
+	[w/`doc:' keyword].  Doc fixes.
 
 	* w32fns.c: Don't define max.
 	(Fx_open_connection): Only execute once.
@@ -12312,7 +13443,7 @@
 2001-11-10  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (enum_font_cb2): Use leading @ on face name to detect
-	vertical fonts. Allow them if face name is explicitly specified.
+	vertical fonts.  Allow them if face name is explicitly specified.
 	Do not give up if we find a font that cannot be converted to an xlfd.
 
 2001-11-10  Gerd Moellmann  <gerd@gnu.org>
@@ -12739,7 +13870,7 @@
 
 2001-10-28  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
-	* emacs.c: Use argv[0] instead of emacs when -t was specified.
+	* emacs.c: Use argv[0] instead of "emacs" when -t was specified.
 
 	* keyboard.c: Change doc-string comments to `new style' [w/`doc:'
 	keyword].
@@ -13122,7 +14253,7 @@
 	full-width rows.
 	(x_dump_glyph_string): Put in #if GLYPH_DEBUG.
 	(w32_draw_relief_rect): Extend left shadow to the bottom and left;
-	change bottom shadow accordingly. Some cleanup.
+	change bottom shadow accordingly.  Some cleanup.
 	(x_update_window_end): Handle overwritten mouse face
 	also for tool bar windows.
 	(show_mouse_face): Set the glyph row's mouse_face_p flag also when
@@ -13168,7 +14299,7 @@
 	(Fv_max_tooltip_size): New variable.
 	(syns_of_xfns): DEFVAR_LISP it.
 	(Fx_show_tip): Add parameter TEXT.  Set the tip frame's root
-	window buffer to *tip* right after creating the frame. Set frame's
+	window buffer to *tip* right after creating the frame.  Set frame's
 	window_width.  Use a maximum tooltip size specified by
 	Vx_max_tooltip_size, if that has valid contents.
 	(compute_tip_xy): Add parameters WIDTH and HEIGHT.

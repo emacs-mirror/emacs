@@ -204,7 +204,7 @@ int last_scroll_bar_drag_pos;
 static RECT last_mouse_glyph;
 static Lisp_Object last_mouse_press_frame;
 
-Lisp_Object Vw32_num_mouse_buttons;
+int w32_num_mouse_buttons;
 
 Lisp_Object Vw32_swap_mouse_buttons;
 
@@ -1371,7 +1371,8 @@ static void w32_draw_image_foreground_1 P_ ((struct glyph_string *, HBITMAP));
 static void x_clear_glyph_string_rect P_ ((struct glyph_string *, int,
 					   int, int, int));
 static void w32_draw_relief_rect P_ ((struct frame *, int, int, int, int,
-				    int, int, int, int, RECT *));
+				      int, int, int, int, int, int,
+				      RECT *));
 static void w32_draw_box_rect P_ ((struct glyph_string *, int, int, int, int,
 				 int, int, int, RECT *));
 
@@ -1952,9 +1953,10 @@ x_setup_relief_colors (s)
 
 static void
 w32_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
-                      raised_p, left_p, right_p, clip_rect)
+                      raised_p, top_p, bot_p, left_p, right_p, clip_rect)
      struct frame *f;
-     int left_x, top_y, right_x, bottom_y, width, left_p, right_p, raised_p;
+     int left_x, top_y, right_x, bottom_y, width;
+     int top_p, bot_p, left_p, right_p, raised_p;
      RECT *clip_rect;
 {
   int i;
@@ -1969,10 +1971,11 @@ w32_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
   w32_set_clip_rectangle (hdc, clip_rect);
 
   /* Top.  */
-  for (i = 0; i < width; ++i)
-    w32_fill_area (f, hdc, gc.foreground,
-		   left_x + i * left_p, top_y + i,
-		   right_x - left_x - i * (left_p + right_p ) + 1, 1);
+  if (top_p)
+    for (i = 0; i < width; ++i)
+      w32_fill_area (f, hdc, gc.foreground,
+		     left_x + i * left_p, top_y + i,
+		     right_x - left_x - i * (left_p + right_p ) + 1, 1);
 
   /* Left.  */
   if (left_p)
@@ -1987,10 +1990,11 @@ w32_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
     gc.foreground = f->output_data.w32->white_relief.gc->foreground;
 
   /* Bottom.  */
-  for (i = 0; i < width; ++i)
-    w32_fill_area (f, hdc, gc.foreground,
-		   left_x + i * left_p, bottom_y - i,
-		   right_x - left_x - i * (left_p + right_p) + 1, 1);
+  if (bot_p)
+    for (i = 0; i < width; ++i)
+      w32_fill_area (f, hdc, gc.foreground,
+		     left_x + i * left_p, bottom_y - i,
+		     right_x - left_x - i * (left_p + right_p) + 1, 1);
 
   /* Right.  */
   if (right_p)
@@ -2100,7 +2104,7 @@ x_draw_glyph_string_box (s)
     {
       x_setup_relief_colors (s);
       w32_draw_relief_rect (s->f, left_x, top_y, right_x, bottom_y,
-                            width, raised_p, left_p, right_p, &clip_rect);
+                            width, raised_p, 1, 1, left_p, right_p, &clip_rect);
     }
 }
 
@@ -2111,21 +2115,22 @@ static void
 x_draw_image_foreground (s)
      struct glyph_string *s;
 {
-  int x;
-  int y = s->ybase - image_ascent (s->img, s->face);
+  int x = s->x;
+  int y = s->ybase - image_ascent (s->img, s->face, &s->slice);
 
   /* If first glyph of S has a left box line, start drawing it to the
      right of that line.  */
   if (s->face->box != FACE_NO_BOX
-      && s->first_glyph->left_box_line_p)
-    x = s->x + abs (s->face->box_line_width);
-  else
-    x = s->x;
+      && s->first_glyph->left_box_line_p
+      && s->slice.x == 0)
+    x += abs (s->face->box_line_width);
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
-  x += s->img->hmargin;
-  y += s->img->vmargin;
+  if (s->slice.x == 0)
+    x += s->img->hmargin;
+  if (s->slice.y == 0)
+    y += s->img->vmargin;
 
   SaveDC (s->hdc);
 
@@ -2147,12 +2152,12 @@ x_draw_image_foreground (s)
 	  SetTextColor (s->hdc, RGB (255, 255, 255));
 	  SetBkColor (s->hdc, RGB (0, 0, 0));
 
-	  BitBlt (s->hdc, x, y, s->img->width, s->img->height,
-		  compat_hdc, 0, 0, SRCINVERT);
-	  BitBlt (s->hdc, x, y, s->img->width, s->img->height,
-		  mask_dc, 0, 0, SRCAND);
-	  BitBlt (s->hdc, x, y, s->img->width, s->img->height,
-		  compat_hdc, 0, 0, SRCINVERT);
+	  BitBlt (s->hdc, x, y, s->slice.width, s->slice.height,
+		  compat_hdc, s->slice.x, s->slice.y, SRCINVERT);
+	  BitBlt (s->hdc, x, y, s->slice.width, s->slice.height,
+		  mask_dc, s->slice.x, s->slice.y, SRCAND);
+	  BitBlt (s->hdc, x, y, s->slice.width, s->slice.height,
+		  compat_hdc, s->slice.x, s->slice.y, SRCINVERT);
 
 	  SelectObject (mask_dc, mask_orig_obj);
 	  DeleteDC (mask_dc);
@@ -2162,8 +2167,8 @@ x_draw_image_foreground (s)
 	  SetTextColor (s->hdc, s->gc->foreground);
 	  SetBkColor (s->hdc, s->gc->background);
 
-          BitBlt (s->hdc, x, y, s->img->width, s->img->height,
-                  compat_hdc, 0, 0, SRCCOPY);
+          BitBlt (s->hdc, x, y, s->slice.width, s->slice.height,
+                  compat_hdc, s->slice.x, s->slice.y, SRCCOPY);
 
 	  /* When the image has a mask, we can expect that at
 	     least part of a mouse highlight or a block cursor will
@@ -2176,7 +2181,8 @@ x_draw_image_foreground (s)
 	      int r = s->img->relief;
 	      if (r < 0) r = -r;
 	      w32_draw_rectangle (s->hdc, s->gc, x - r, y - r ,
-				  s->img->width + r*2 - 1, s->img->height + r*2 - 1);
+				  s->slice.width + r*2 - 1,
+				  s->slice.height + r*2 - 1);
 	    }
 	}
 
@@ -2187,8 +2193,8 @@ x_draw_image_foreground (s)
       DeleteDC (compat_hdc);
     }
   else
-    w32_draw_rectangle (s->hdc, s->gc, x, y, s->img->width -1,
-                        s->img->height - 1);
+    w32_draw_rectangle (s->hdc, s->gc, x, y,
+			s->slice.width - 1, s->slice.height - 1);
 
   RestoreDC (s->hdc ,-1);
 }
@@ -2203,21 +2209,22 @@ x_draw_image_relief (s)
 {
   int x0, y0, x1, y1, thick, raised_p;
   RECT r;
-  int x;
-  int y = s->ybase - image_ascent (s->img, s->face);
+  int x = s->x;
+  int y = s->ybase - image_ascent (s->img, s->face, &s->slice);
 
   /* If first glyph of S has a left box line, start drawing it to the
      right of that line.  */
   if (s->face->box != FACE_NO_BOX
-      && s->first_glyph->left_box_line_p)
-    x = s->x + abs (s->face->box_line_width);
-  else
-    x = s->x;
+      && s->first_glyph->left_box_line_p
+      && s->slice.x == 0)
+    x += abs (s->face->box_line_width);
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
-  x += s->img->hmargin;
-  y += s->img->vmargin;
+  if (s->slice.x == 0)
+    x += s->img->hmargin;
+  if (s->slice.y == 0)
+    y += s->img->vmargin;
 
   if (s->hl == DRAW_IMAGE_SUNKEN
       || s->hl == DRAW_IMAGE_RAISED)
@@ -2233,12 +2240,17 @@ x_draw_image_relief (s)
 
   x0 = x - thick;
   y0 = y - thick;
-  x1 = x + s->img->width + thick - 1;
-  y1 = y + s->img->height + thick - 1;
+  x1 = x + s->slice.width + thick - 1;
+  y1 = y + s->slice.height + thick - 1;
 
   x_setup_relief_colors (s);
   get_glyph_string_clip_rect (s, &r);
-  w32_draw_relief_rect (s->f, x0, y0, x1, y1, thick, raised_p, 1, 1, &r);
+  w32_draw_relief_rect (s->f, x0, y0, x1, y1, thick, raised_p,
+			s->slice.y == 0,
+			s->slice.y + s->slice.height == s->img->height,
+			s->slice.x == 0,
+			s->slice.x + s->slice.width == s->img->width,
+			&r);
 }
 
 
@@ -2251,21 +2263,22 @@ w32_draw_image_foreground_1 (s, pixmap)
 {
   HDC hdc = CreateCompatibleDC (s->hdc);
   HGDIOBJ orig_hdc_obj = SelectObject (hdc, pixmap);
-  int x;
-  int y = s->ybase - s->y - image_ascent (s->img, s->face);
+  int x = 0;
+  int y = s->ybase - s->y - image_ascent (s->img, s->face, &s->slice);
 
   /* If first glyph of S has a left box line, start drawing it to the
      right of that line.  */
   if (s->face->box != FACE_NO_BOX
-      && s->first_glyph->left_box_line_p)
-    x = abs (s->face->box_line_width);
-  else
-    x = 0;
+      && s->first_glyph->left_box_line_p
+      && s->slice.x == 0)
+    x += abs (s->face->box_line_width);
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
-  x += s->img->hmargin;
-  y += s->img->vmargin;
+  if (s->slice.x == 0)
+    x += s->img->hmargin;
+  if (s->slice.y == 0)
+    y += s->img->vmargin;
 
   if (s->img->pixmap)
     {
@@ -2281,12 +2294,12 @@ w32_draw_image_foreground_1 (s, pixmap)
 
 	  SetTextColor (hdc, RGB (0, 0, 0));
 	  SetBkColor (hdc, RGB (255, 255, 255));
-	  BitBlt (hdc, x, y, s->img->width, s->img->height,
-		  compat_hdc, 0, 0, SRCINVERT);
-	  BitBlt (hdc, x, y, s->img->width, s->img->height,
-		  mask_dc, 0, 0, SRCAND);
-	  BitBlt (hdc, x, y, s->img->width, s->img->height,
-		  compat_hdc, 0, 0, SRCINVERT);
+	  BitBlt (hdc, x, y, s->slice.width, s->slice.height,
+		  compat_hdc, s->slice.x, s->slice.y, SRCINVERT);
+	  BitBlt (hdc, x, y, s->slice.width, s->slice.height,
+		  mask_dc, s->slice.x, s->slice.y, SRCAND);
+	  BitBlt (hdc, x, y, s->slice.width, s->slice.height,
+		  compat_hdc, s->slice.x, s->slice.y, SRCINVERT);
 
 	  SelectObject (mask_dc, mask_orig_obj);
 	  DeleteDC (mask_dc);
@@ -2296,8 +2309,8 @@ w32_draw_image_foreground_1 (s, pixmap)
 	  SetTextColor (hdc, s->gc->foreground);
 	  SetBkColor (hdc, s->gc->background);
 
-          BitBlt (hdc, x, y, s->img->width, s->img->height,
-                  compat_hdc, 0, 0, SRCCOPY);
+          BitBlt (hdc, x, y, s->slice.width, s->slice.height,
+                  compat_hdc, s->slice.x, s->slice.y, SRCCOPY);
 
 	  /* When the image has a mask, we can expect that at
 	     least part of a mouse highlight or a block cursor will
@@ -2309,8 +2322,9 @@ w32_draw_image_foreground_1 (s, pixmap)
 	    {
 	      int r = s->img->relief;
 	      if (r < 0) r = -r;
-	      w32_draw_rectangle (hdc, s->gc, x - r, y - r ,
-				  s->img->width + r*2 - 1, s->img->height + r*2 - 1);
+	      w32_draw_rectangle (hdc, s->gc, x - r, y - r,
+				  s->slice.width + r*2 - 1,
+				  s->slice.height + r*2 - 1);
 	    }
 	}
 
@@ -2320,8 +2334,8 @@ w32_draw_image_foreground_1 (s, pixmap)
       DeleteDC (compat_hdc);
     }
   else
-    w32_draw_rectangle (hdc, s->gc, x, y, s->img->width - 1,
-                        s->img->height - 1);
+    w32_draw_rectangle (hdc, s->gc, x, y,
+			s->slice.width - 1, s->slice.height - 1);
 
   SelectObject (hdc, orig_hdc_obj);
   DeleteDC (hdc);
@@ -2380,19 +2394,22 @@ x_draw_image_glyph_string (s)
      taller than image or if image has a clip mask to reduce
      flickering.  */
   s->stippled_p = s->face->stipple != 0;
-  if (height > s->img->height
+  if (height > s->slice.height
       || s->img->hmargin
       || s->img->vmargin
       || s->img->mask
       || s->img->pixmap == 0
       || s->width != s->background_width)
     {
-      if (box_line_hwidth && s->first_glyph->left_box_line_p)
-	x = s->x + box_line_hwidth;
-      else
-	x = s->x;
+      x = s->x;
+      if (s->first_glyph->left_box_line_p
+	  && s->slice.x == 0)
+	x += box_line_hwidth;
 
-      y = s->y + box_line_vwidth;
+      y = s->y;
+      if (s->slice.y == 0)
+	y += box_line_vwidth;
+
 #if 0 /* TODO: figure out if we need to do this on Windows.  */
       if (s->img->mask)
 	{
@@ -4311,8 +4328,7 @@ w32_read_socket (sd, expected, hold_quit)
   /* So people can tell when we have read the available input.  */
   input_signal_count++;
 
-  /* TODO: tool-bars, ghostscript integration, mouse
-     cursors. */
+  /* TODO: ghostscript integration. */
   while (get_next_msg (&msg, FALSE))
     {
       struct input_event inev;
@@ -4495,10 +4511,16 @@ w32_read_socket (sd, expected, hold_quit)
 
           /* If the contents of the global variable help_echo_string
              has changed, generate a HELP_EVENT.  */
+#if 0 /* The below is an invalid comparison when USE_LISP_UNION_TYPE.
+	 But it was originally changed to this to fix a bug, so I have
+	 not removed it completely in case the bug is still there.  */
           if (help_echo_string != previous_help_echo_string ||
 	      (!NILP (help_echo_string) && !STRINGP (help_echo_string) && f->mouse_moved))
+#else /* This is what xterm.c does.  */
+	    if (!NILP (help_echo_string)
+		|| !NILP (previous_help_echo_string))
 	    do_help = 1;
-
+#endif
           break;
 
 	case WM_LBUTTONDOWN:
@@ -4919,7 +4941,7 @@ w32_read_socket (sd, expected, hold_quit)
 
 	  if (do_help > 0)
 	    {
-	      if (help_echo_string == Qnil)
+	      if (NILP (help_echo_string))
 		{
 		  help_echo_object = help_echo_window = Qnil;
 		  help_echo_pos = -1;
@@ -5068,16 +5090,9 @@ x_draw_hollow_cursor (w, row)
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   HDC hdc;
   RECT rect;
-  int wd;
+  int wd, h;
   struct glyph *cursor_glyph;
   HBRUSH hb = CreateSolidBrush (f->output_data.w32->cursor_pixel);
-
-  /* Compute frame-relative coordinates from window-relative
-     coordinates.  */
-  rect.left = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
-  rect.top = (WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y)
-              + row->ascent - w->phys_cursor_ascent);
-  rect.bottom = rect.top + row->height;
 
   /* Get the glyph the cursor is on.  If we can't tell because
      the current matrix is invalid or such, give up.  */
@@ -5085,11 +5100,28 @@ x_draw_hollow_cursor (w, row)
   if (cursor_glyph == NULL)
     return;
 
+  /* Compute frame-relative coordinates from window-relative
+     coordinates.  */
+  rect.left = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
+  rect.top = (WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y)
+              + row->ascent - w->phys_cursor_ascent);
+
+  /* Compute the proper height and ascent of the rectangle, based
+     on the actual glyph.  Using the full height of the row looks
+     bad when there are tall images on that row.  */
+  h = max (min (FRAME_LINE_HEIGHT (f), row->height),
+	   cursor_glyph->ascent + cursor_glyph->descent);
+  if (h < row->height)
+    rect.top += row->ascent /* - w->phys_cursor_ascent */ + cursor_glyph->descent - h;
+  h--;
+
+  rect.bottom = rect.top + h;
+
   /* Compute the width of the rectangle to draw.  If on a stretch
      glyph, and `x-stretch-block-cursor' is nil, don't draw a
      rectangle as wide as the glyph, but use a canonical character
      width instead.  */
-  wd = cursor_glyph->pixel_width;
+  wd = cursor_glyph->pixel_width; /* TODO: Why off by one compared with X? */
   if (cursor_glyph->type == STRETCH_GLYPH
       && !x_stretch_cursor_p)
     wd = min (FRAME_COLUMN_WIDTH (f), wd);
@@ -6604,9 +6636,9 @@ syms_of_w32term ()
   Qvendor_specific_keysyms = intern ("vendor-specific-keysyms");
 
   DEFVAR_INT ("w32-num-mouse-buttons",
-	      &Vw32_num_mouse_buttons,
+	      &w32_num_mouse_buttons,
 	      doc: /* Number of physical mouse buttons.  */);
-  Vw32_num_mouse_buttons = Qnil;
+  w32_num_mouse_buttons = 2;
 
   DEFVAR_LISP ("w32-swap-mouse-buttons",
 	      &Vw32_swap_mouse_buttons,

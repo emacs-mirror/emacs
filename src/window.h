@@ -1,5 +1,5 @@
 /* Window definitions for GNU Emacs.
-   Copyright (C) 1985, 1986, 1993, 1995, 1997, 1998, 1999, 2000, 2001, 2003
+   Copyright (C) 1985,86,93,95,97,98,99, 2000,01,03,04
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -320,7 +320,7 @@ struct window
     |  |   +--------------------------- LEFT_MARGIN_COLS
     |  +------------------------------- LEFT_FRINGE_WIDTH
     +---------------------------------- LEFT_SCROLL_BAR_COLS
-    
+
 */
 
 
@@ -767,8 +767,8 @@ EXFUN (Fdisplay_buffer, 3);
 EXFUN (Fset_window_buffer, 3);
 EXFUN (Fset_window_hscroll, 2);
 EXFUN (Fwindow_hscroll, 1);
-EXFUN (Fset_window_vscroll, 2);
-EXFUN (Fwindow_vscroll, 1);
+EXFUN (Fset_window_vscroll, 3);
+EXFUN (Fwindow_vscroll, 2);
 EXFUN (Fset_window_margins, 3);
 EXFUN (Fwindow_live_p, 1);
 EXFUN (Fset_window_point, 2);

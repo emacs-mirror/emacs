@@ -50,7 +50,7 @@
 ;; (add-hook 'dired-mode-hook
 ;;           (function (lambda ()
 ;;                       ;; Set buffer-local variables here.  For example:
-;;                       ;; (setq dired-omit-files-p t)
+;;                       ;; (dired-omit-mode 1)
 ;;                       )))
 ;;
 ;; At load time dired-x.el will install itself, redefine some functions, and
@@ -74,7 +74,7 @@
 ;;      dired-guess-shell-znew-switches
 ;;      dired-guess-shell-alist-user
 ;;      dired-clean-up-buffers-too
-;;      dired-omit-files-p
+;;      dired-omit-mode
 ;;      dired-omit-files
 ;;      dired-omit-extensions
 ;;      dired-omit-size-limit
@@ -154,19 +154,27 @@ Read-only folders only work in VM 5, not in VM 4."
 		 (other :tag "non-writable only" if-file-read-only))
   :group 'dired-x)
 
-(defcustom dired-omit-files-p nil
-  "*If non-nil, \"uninteresting\" files are not listed (buffer-local).
-Use \\[dired-omit-toggle] to toggle its value.
+(define-minor-mode dired-omit-mode
+  "Toggle Dired-Omit mode.
+With numeric ARG, enable Dired-Omit mode if ARG is positive, disable
+otherwise. Enabling and disabling is buffer-local.
+If enabled, \"uninteresting\" files are not listed.
 Uninteresting files are those whose filenames match regexp `dired-omit-files',
 plus those ending with extensions in `dired-omit-extensions'."
-  :type 'boolean
-  :group 'dired-x)
-(make-variable-buffer-local 'dired-omit-files-p)
+  :group 'dired-x
+  (if dired-omit-mode
+      ;; This will mention how many lines were omitted:
+      (let ((dired-omit-size-limit nil)) (dired-omit-expunge))
+    (revert-buffer)))
+
+;; For backward compatibility
+(defvaralias 'dired-omit-files-p 'dired-omit-mode)
+(make-obsolete-variable 'dired-omit-files-p 'dired-omit-mode)
 
 (defcustom dired-omit-files "^\\.?#\\|^\\.$\\|^\\.\\.$"
   "*Filenames matching this regexp will not be displayed.
-This only has effect when `dired-omit-files-p' is t.  See interactive function
-`dired-omit-toggle' \(\\[dired-omit-toggle]\) and variable
+This only has effect when `dired-omit-mode' is t.  See interactive function
+`dired-omit-mode' \(\\[dired-omit-mode]\) and variable
 `dired-omit-extensions'.  The default is to omit  `.', `..', auto-save
 files and lock files."
   :type 'regexp
@@ -230,7 +238,8 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
 
 ;;; KEY BINDINGS.
 
-(define-key dired-mode-map "\M-o" 'dired-omit-toggle)
+(define-key dired-mode-map "\M-o" 'dired-omit-mode)
+(define-key dired-mode-map "*O" 'dired-mark-omitted)
 (define-key dired-mode-map "\M-(" 'dired-mark-sexp)
 (define-key dired-mode-map "*(" 'dired-mark-sexp)
 (define-key dired-mode-map "*." 'dired-mark-extension)
@@ -268,7 +277,7 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
   \\[dired-info]\t-- run info on file
   \\[dired-man]\t-- run man on file
   \\[dired-do-find-marked-files]\t-- visit all marked files simultaneously
-  \\[dired-omit-toggle]\t-- toggle omitting of files
+  \\[dired-omit-mode]\t-- toggle omitting of files
   \\[dired-mark-sexp]\t-- mark by Lisp expression
   \\[dired-copy-filename-as-kill]\t-- copy the file or subdir names into the kill ring.
   \t   You can feed it to other commands using \\[yank].
@@ -280,7 +289,7 @@ For more features, see variables
   `dired-bind-info'
   `dired-bind-man'
   `dired-vm-read-only-folders'
-  `dired-omit-files-p'
+  `dired-omit-mode'
   `dired-omit-files'
   `dired-omit-extensions'
   `dired-omit-size-limit'
@@ -450,9 +459,9 @@ buffer and try again."
                 (dired-insert-subdir (file-name-directory file))
                 (dired-goto-file file))
               ;; Toggle omitting, if it is on, and try again.
-	      (if dired-omit-files-p
+	      (if dired-omit-mode
 		  (progn
-		    (dired-omit-toggle)
+		    (dired-omit-mode)
 		    (dired-goto-file file))))))))
 
 (defun dired-jump-other-window ()
@@ -479,31 +488,18 @@ need to match the entire file name.")
 Should never be used as marker by the user or other packages.")
 
 (defun dired-omit-startup ()
-  (or (assq 'dired-omit-files-p minor-mode-alist)
+  (or (assq 'dired-omit-mode minor-mode-alist)
       (setq minor-mode-alist
-            (append '((dired-omit-files-p
+            (append '((dired-omit-mode
 		       (:eval (if (eq major-mode 'dired-mode)
 				  " Omit" ""))))
 		    minor-mode-alist))))
 
-(defun dired-omit-toggle (&optional flag)
-  "Toggle omitting files matching `dired-omit-files' and `dired-omit-extensions'.
-With an arg, and if omitting was off, don't toggle and just mark the
-  files but don't actually omit them.
-With an arg, and if omitting was on, turn it off but don't refresh the buffer."
-  (interactive "P")
-  (if flag
-      (if dired-omit-files-p
-          (setq dired-omit-files-p (not dired-omit-files-p))
-        (dired-mark-unmarked-files (dired-omit-regexp) nil nil
-                                   dired-omit-localp))
-    ;; no FLAG
-    (setq dired-omit-files-p (not dired-omit-files-p))
-    (if (not dired-omit-files-p)
-        (revert-buffer)
-      ;; this will mention how many were omitted:
-      (let ((dired-omit-size-limit nil))
-        (dired-omit-expunge)))))
+(defun dired-mark-omitted ()
+  "Mark files matching `dired-omit-files' and `dired-omit-extensions'."
+  (interactive)
+  (let ((dired-omit-mode nil)) (revert-buffer)) ;; Show omitted files
+  (dired-mark-unmarked-files (dired-omit-regexp) nil nil dired-omit-localp))
 
 (defvar dired-omit-extensions
   (append completion-ignored-extensions
@@ -515,12 +511,12 @@ Defaults to elements of `completion-ignored-extensions',
 `dired-latex-unclean-extensions', `dired-bibtex-unclean-extensions', and
 `dired-texinfo-unclean-extensions'.
 
-See interactive function `dired-omit-toggle' \(\\[dired-omit-toggle]\) and
-variables `dired-omit-files-p' and `dired-omit-files'.")
+See interactive function `dired-omit-mode' \(\\[dired-omit-mode]\) and
+variables `dired-omit-mode' and `dired-omit-files'.")
 
 (defun dired-omit-expunge (&optional regexp)
   "Erases all unmarked files matching REGEXP.
-Does nothing if global variable `dired-omit-files-p' is nil, or if called
+Does nothing if global variable `dired-omit-mode' is nil, or if called
   non-interactively and buffer is bigger than `dired-omit-size-limit'.
 If REGEXP is nil or not specified, uses `dired-omit-files', and also omits
   filenames ending in `dired-omit-extensions'.
@@ -529,14 +525,14 @@ If REGEXP is the empty string, this function is a no-op.
 This functions works by temporarily binding `dired-marker-char' to
 `dired-omit-marker-char' and calling `dired-do-kill-lines'."
   (interactive "sOmit files (regexp): ")
-  (if (and dired-omit-files-p
+  (if (and dired-omit-mode
            (or (interactive-p)
                (not dired-omit-size-limit)
                (< (buffer-size) dired-omit-size-limit)
 	       (progn
 		 (message "Not omitting: directory larger than %d characters."
 			  dired-omit-size-limit)
-		 (setq dired-omit-files-p nil)
+		 (setq dired-omit-mode nil)
 		 nil)))
       (let ((omit-re (or regexp (dired-omit-regexp)))
             (old-modified-p (buffer-modified-p))
@@ -589,7 +585,7 @@ Second optional argument LOCALP is as in `dired-get-filename'."
 (defun dired-omit-new-add-entry (filename &optional marker-char relative)
   ;; This redefines dired-aux.el's dired-add-entry to avoid calling ls for
   ;; files that are going to be omitted anyway.
-  (if dired-omit-files-p
+  (if dired-omit-mode
       ;; perhaps return t without calling ls
       (let ((omit-re (dired-omit-regexp)))
         (if (or (string= omit-re "")
@@ -842,7 +838,7 @@ dired."
     (save-excursion
       (set-buffer (get-buffer-create " *dot-dired*"))
       (erase-buffer)
-      (insert "Local Variables:\ndired-omit-files-p: t\nEnd:\n")
+      (insert "Local Variables:\ndired-omit-mode: t\nEnd:\n")
       (write-file dired-local-variables-file)
       (kill-buffer (current-buffer)))
 
@@ -1692,7 +1688,7 @@ If `current-prefix-arg' is non-nil, uses name at point as guess."
    'dired-guess-shell-znew-switches
    'dired-guess-shell-alist-user
    'dired-clean-up-buffers-too
-   'dired-omit-files-p
+   'dired-omit-mode
    'dired-omit-files
    'dired-omit-extensions
    )

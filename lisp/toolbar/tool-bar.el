@@ -96,7 +96,8 @@ PROPS are additional items to add to the menu item specification.  See
 Info node `(elisp)Tool Bar'.  Items are added from left to right.
 
 ICON is the base name of a file containing the image to use.  The
-function will first try to use ICON.xpm, then ICON.pbm, and finally
+function will first try to use lc-ICON.xpm if display-color-cells
+is less or equal to 256, then ICON.xpm, then ICON.pbm, and finally
 ICON.xbm, using `find-image'.
 
 Use this function only to make bindings in the global value of `tool-bar-map'.
@@ -112,24 +113,24 @@ PROPS are additional items to add to the menu item specification.  See
 Info node `(elisp)Tool Bar'.  Items are added from left to right.
 
 ICON is the base name of a file containing the image to use.  The
-function will first try to use ICON.xpm, then ICON.pbm, and finally
+function will first try to use lc-ICON.xpm if display-color-cells
+is less or equal to 256, then ICON.xpm, then ICON.pbm, and finally
 ICON.xbm, using `find-image'."
   (let* ((fg (face-attribute 'tool-bar :foreground))
 	 (bg (face-attribute 'tool-bar :background))
 	 (colors (nconc (if (eq fg 'unspecified) nil (list :foreground fg))
 			(if (eq bg 'unspecified) nil (list :background bg))))
+	 (xpm-spec (list :type 'xpm :file (concat icon ".xpm")))
+	 (xpm-lo-spec (if (> (display-color-cells) 256)
+			  nil
+			(list :type 'xpm :file (concat "lc-" icon ".xpm"))))
+	 (pbm-spec (append (list :type 'pbm :file (concat icon ".pbm")) colors))
+	 (xbm-spec (append (list :type 'xbm :file (concat icon ".xbm")) colors))
 	 (image (find-image
 		(if (display-color-p)
-		    (list (list :type 'xpm :file (concat icon ".xpm"))
-			  (append (list :type 'pbm :file (concat icon ".pbm"))
-				  colors)
-			  (append (list :type 'xbm :file (concat icon ".xbm"))
-				  colors))
-		  (list (append (list :type 'pbm :file (concat icon ".pbm"))
-				colors)
-			(append (list :type 'xbm :file (concat icon ".xbm"))
-				colors)
-			(list :type 'xpm :file (concat icon ".xpm")))))))
+		    (list xpm-lo-spec xpm-spec pbm-spec xbm-spec)
+		  (list pbm-spec xbm-spec xpm-lo-spec xpm-spec)))))
+
     (when (and (display-images-p) image)
       (unless (image-mask-p image)
 	(setq image (append image '(:mask heuristic))))
@@ -170,17 +171,15 @@ MAP must contain appropriate binding for `[menu-bar]' which holds a keymap."
 	 (bg (face-attribute 'tool-bar :background))
 	 (colors (nconc (if (eq fg 'unspecified) nil (list :foreground fg))
 			(if (eq bg 'unspecified) nil (list :background bg))))
+	 (xpm-spec (list :type 'xpm :file (concat icon ".xpm")))
+	 (xpm-lo-spec (if (> (display-color-cells) 256)
+			  nil
+			(list :type 'xpm :file (concat "lc-" icon ".xpm"))))
+	 (pbm-spec (append (list :type 'pbm :file (concat icon ".pbm")) colors))
+	 (xbm-spec (append (list :type 'xbm :file (concat icon ".xbm")) colors))
 	 (spec (if (display-color-p)
-		   (list (list :type 'xpm :file (concat icon ".xpm"))
-			 (append (list :type 'pbm :file (concat icon ".pbm"))
-				       colors)
-			 (append (list :type 'xbm :file (concat icon ".xbm"))
-				       colors))
-		 (list (append (list :type 'pbm :file (concat icon ".pbm"))
-				     colors)
-		       (append (list :type 'xbm :file (concat icon ".xbm"))
-				     colors)
-		       (list :type 'xpm :file (concat icon ".xpm")))))
+		   (list xpm-lo-spec xpm-spec pbm-spec xbm-spec)
+		 (list pbm-spec xbm-spec xpm-lo-spec xpm-spec)))
 	 (image (find-image spec))
 	 submap key)
     (when (and (display-images-p) image)
@@ -239,11 +238,14 @@ MAP must contain appropriate binding for `[menu-bar]' which holds a keymap."
   (tool-bar-add-item-from-menu 'undo "undo" nil
 			       :visible '(not (eq 'special (get major-mode
 								'mode-class))))
-  (tool-bar-add-item-from-menu 'kill-region "cut" nil
+  (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [cut])
+			       "cut" nil
 			       :visible '(not (eq 'special (get major-mode
 								'mode-class))))
-  (tool-bar-add-item-from-menu 'menu-bar-kill-ring-save "copy")
-  (tool-bar-add-item-from-menu 'yank "paste" nil
+  (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [copy])
+			       "copy")
+  (tool-bar-add-item-from-menu (lookup-key menu-bar-edit-menu [paste])
+			       "paste" nil
 			       :visible '(not (eq 'special (get major-mode
 								'mode-class))))
   (tool-bar-add-item-from-menu 'nonincremental-search-forward "search")

@@ -1,5 +1,5 @@
-#  Makefile for GNU Emacs on the Microsoft W32 API.
-#  Copyright (c) 2000-2001 Free Software Foundation, Inc.
+#  -*- Makefile -*- for GNU Emacs on the Microsoft W32 API.
+#  Copyright (c) 2000-2001, 2004 Free Software Foundation, Inc.
 #
 #  This file is part of GNU Emacs.
 #
@@ -126,7 +126,7 @@ $(BLD)/ctags.$(O): ctags.c
 #
 # From ..\src\makefile.nt.
 #
-obj = abbrev.c alloc.c alloca.c buffer.c bytecode.c callint.c callproc.c casefiddle.c casetab.c category.c ccl.c charset.c cm.c cmds.c coding.c data.c dired.c dispnew.c doc.c doprnt.c editfns.c emacs.c eval.c fileio.c filelock.c filemode.c floatfns.c fns.c fontset.c frame.c fringe.c gmalloc.c indent.c insdel.c intervals.c keyboard.c keymap.c lastfile.c lread.c macros.c marker.c minibuf.c print.c process.c ralloc.c regex.c region-cache.c scroll.c search.c sound.c strftime.c syntax.c sysdep.c term.c termcap.c textprop.c tparam.c undo.c unexw32.c vm-limit.c w32.c w32console.c w32fns.c w32heap.c w32inevt.c w32menu.c w32proc.c w32reg.c w32select.c w32term.c w32xfns.c window.c xdisp.c xfaces.c xfaces.c
+obj = abbrev.c alloc.c alloca.c buffer.c bytecode.c callint.c callproc.c casefiddle.c casetab.c category.c ccl.c charset.c cm.c cmds.c coding.c data.c dired.c dispnew.c doc.c doprnt.c editfns.c emacs.c eval.c fileio.c filelock.c filemode.c floatfns.c fns.c fontset.c frame.c fringe.c gmalloc.c image.c indent.c insdel.c intervals.c keyboard.c keymap.c lastfile.c lread.c macros.c marker.c minibuf.c print.c process.c ralloc.c regex.c region-cache.c scroll.c search.c sound.c strftime.c syntax.c sysdep.c term.c termcap.c textprop.c tparam.c undo.c unexw32.c vm-limit.c w32.c w32console.c w32fns.c w32heap.c w32inevt.c w32menu.c w32proc.c w32reg.c w32select.c w32term.c w32xfns.c window.c xdisp.c xfaces.c xfaces.c
 #
 # These are the lisp files that are loaded up in loadup.el
 #
@@ -139,7 +139,7 @@ WINNT_SUPPORT = $(lispsource)ls-lisp.elc $(lispsource)disp-table.elc $(lispsourc
 MSDOS_SUPPORT = $(lispsource)dos-fns.elc $(lispsource)dos-vars.elc $(lispsource)international/ccl.elc $(lispsource)international/codepage.elc
 VMS_SUPPORT = $(lispsource)vmsproc.elc $(lispsource)vms-patch.elc
 
-lisp= \
+lisp1= \
 	$(lispsource)abbrev.elc \
 	$(lispsource)buff-menu.elc \
 	$(lispsource)button.elc \
@@ -178,7 +178,9 @@ lisp= \
 	$(lispsource)international/latin-5.el \
 	$(lispsource)international/latin-8.el \
 	$(lispsource)international/latin-9.el \
-	$(lispsource)case-table.elc \
+	$(lispsource)case-table.elc
+
+lisp2 = \
 	$(lispsource)language/chinese.elc \
 	$(lispsource)language/cyrillic.elc \
 	$(lispsource)language/indian.elc \
@@ -228,7 +230,8 @@ DOC	      = DOC
 $(DOC):		make-docfile
 		- $(DEL) $(DOC)
 		"$(THISDIR)/$(BLD)/make-docfile" -o $(DOC) -d ../src $(obj)
-		"$(THISDIR)/$(BLD)/make-docfile" -a $(DOC) -d ../src $(lisp)
+		"$(THISDIR)/$(BLD)/make-docfile" -a $(DOC) -d ../src $(lisp1)
+		"$(THISDIR)/$(BLD)/make-docfile" -a $(DOC) -d ../src $(lisp2)
 		$(CP) $(DOC) ../etc/DOC-X
 		- mkdir "../src/$(OBJDIR)"
 		- mkdir "../src/$(OBJDIR)/etc"
@@ -422,5 +425,3 @@ $(BLD)/timer.$(O) : \
 $(BLD)/yow.$(O) : \
 	$(SRC)/yow.c \
 	$(EMACS_ROOT)/lib-src/../src/paths.h
-
-# arch-tag: c051bc02-a6de-474b-889a-27f7b2fbbcea

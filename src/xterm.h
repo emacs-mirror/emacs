@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993, 1994, 1998, 1999, 2000, 2001, 2001
+   Copyright (C) 1989, 1993, 1994, 1998, 1999, 2000,01,02,03,04
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -167,7 +167,7 @@ struct x_display_info
   /* The colormap being used.  */
   Colormap cmap;
 
-  /* Number of panes on this screen.  */
+  /* Number of planes on this screen.  */
   int n_planes;
 
   /* Dimensions of this screen.  */
@@ -941,7 +941,6 @@ Lisp_Object display_x_get_resource P_ ((struct x_display_info *,
 struct frame *check_x_frame P_ ((Lisp_Object));
 EXFUN (Fx_display_color_p, 1);
 EXFUN (Fx_display_grayscale_p, 1);
-int image_ascent P_ ((struct image *, struct face *));
 extern void x_free_gcs P_ ((struct frame *));
 
 /* From xrdb.c.  */

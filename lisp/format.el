@@ -741,13 +741,15 @@ to write these unknown annotations back into the file."
 	    (message "Unknown annotations: %s" unknown-ans))))))
 
 (defun format-subtract-regions (minu subtra)
-  "Remove from the regions in MINUend the regions in SUBTRAhend.
+  "Remove from the regions in MINUEND the regions in SUBTRAHEND.
 A region is a dotted pair (FROM . TO).  Both parameters are lists of
 regions.  Each list must contain nonoverlapping, noncontiguous
 regions, in descending order.  The result is also nonoverlapping,
 noncontiguous, and in descending order.  The first element of MINUEND
 can have a cdr of nil, indicating that the end of that region is not
-yet known."
+yet known.
+
+\(fn MINUEND SUBTRAHEND)"
   (let* ((minuend (copy-alist minu))
 	 (subtrahend (copy-alist subtra))
 	 (m (car minuend))
@@ -800,8 +802,8 @@ in the region, it is treated as though it were DEFAULT."
 Inserts each element of the given LIST of buffer annotations at its
 appropriate place.  Use second arg OFFSET if the annotations' locations are
 not relative to the beginning of the buffer: annotations will be inserted
-at their location-OFFSET+1 \(ie, the offset is treated as the character number
-of the first character in the buffer)."
+at their location-OFFSET+1 \(ie, the offset is treated as the position of
+the first character in the buffer)."
   (if (not offset)
       (setq offset 0)
     (setq offset (1- offset)))
@@ -911,7 +913,7 @@ The same TRANSLATIONS structure can be used in reverse for reading files."
 
 (defun format-annotate-location (loc all ignore translations)
   "Return annotation(s) needed at location LOC.
-This includes any properties that change between LOC-1 and LOC.
+This includes any properties that change between LOC - 1 and LOC.
 If ALL is true, don't look at previous location, but generate annotations for
 all non-nil properties.
 Third argument IGNORE is a list of text-properties not to consider.

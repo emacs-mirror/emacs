@@ -488,7 +488,7 @@ static void
 clone_per_buffer_values (from, to)
      struct buffer *from, *to;
 {
-  Lisp_Object to_buffer;
+  Lisp_Object to_buffer, tem;
   int offset;
 
   XSETBUFFER (to_buffer, to);
@@ -515,6 +515,14 @@ clone_per_buffer_values (from, to)
 
   to->overlays_before = copy_overlays (to, from->overlays_before);
   to->overlays_after = copy_overlays (to, from->overlays_after);
+
+  /* Copy the alist of local variables,
+     and all the alist elements too.  */
+  to->local_var_alist
+    = Fcopy_sequence (from->local_var_alist);
+  for (tem = to->local_var_alist; CONSP (tem);
+       tem = XCDR (tem))
+    XSETCAR (tem, Fcons (XCAR (XCAR (tem)), XCDR (XCAR (tem))));
 }
 
 
@@ -833,7 +841,8 @@ No argument or nil as argument means use the current buffer.  */)
 DEFUN ("buffer-base-buffer", Fbuffer_base_buffer, Sbuffer_base_buffer,
        0, 1, 0,
        doc: /* Return the base buffer of indirect buffer BUFFER.
-If BUFFER is not indirect, return nil.  */)
+If BUFFER is not indirect, return nil.
+BUFFER defaults to the current buffer.  */)
      (buffer)
      register Lisp_Object buffer;
 {
@@ -1683,7 +1692,7 @@ DEFUN ("pop-to-buffer", Fpop_to_buffer, Spop_to_buffer, 1, 3, 0,
        doc: /* Select buffer BUFFER in some window, preferably a different one.
 If BUFFER is nil, then some other buffer is chosen.
 If `pop-up-windows' is non-nil, windows can be split to do this.
-If optional second arg OTHER-WINDOW is nil, insist on finding another
+If optional second arg OTHER-WINDOW is non-nil, insist on finding another
 window even if BUFFER is already visible in the selected window,
 and ignore `same-window-regexps' and `same-window-buffer-names'.
 This uses the function `display-buffer' as a subroutine; see the documentation
@@ -2145,7 +2154,7 @@ current buffer is cleared.  */)
       GPT = GPT_BYTE;
       TEMP_SET_PT_BOTH (PT_BYTE, PT_BYTE);
 
-      
+
       for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
 	tail->charpos = tail->bytepos;
 
@@ -3354,7 +3363,7 @@ fix_start_end_in_overlays (start, end)
 
       if (endpos < start)
 	break;
-      
+
       if (endpos < end
 	  || (startpos >= start && startpos < end))
 	{
@@ -3397,7 +3406,7 @@ fix_start_end_in_overlays (start, end)
 	{
 	  startpos = endpos;
 	  Fset_marker (OVERLAY_START (overlay), make_number (startpos),
-		       Qnil);	  
+		       Qnil);
 	}
 
       if (startpos >= end)
@@ -4208,7 +4217,7 @@ report_overlay_modification (start, end, after, arg1, arg2, arg3)
 		add_overlay_mod_hooklist (prop, overlay);
 	    }
 	}
-      
+
       for (tail = current_buffer->overlays_after; tail; tail = tail->next)
 	{
 	  int startpos, endpos;
@@ -5444,7 +5453,7 @@ nil here means use current buffer's major mode.  */);
   DEFVAR_PER_BUFFER ("fill-column", &current_buffer->fill_column,
 		     make_number (Lisp_Int),
 		     doc: /* *Column beyond which automatic line-wrapping should happen.
-Interactively, you can set this using \\[set-fill-column].  */);
+Interactively, you can set the buffer local value using \\[set-fill-column].  */);
 
   DEFVAR_PER_BUFFER ("left-margin", &current_buffer->left_margin,
 		     make_number (Lisp_Int),
@@ -5854,7 +5863,11 @@ If the buffer has never been shown in a window, the value is nil.  */);
 	       doc: /* *Non-nil means deactivate the mark when the buffer contents change.
 Non-nil also enables highlighting of the region whenever the mark is active.
 The variable `highlight-nonselected-windows' controls whether to highlight
-all windows or just the selected window.  */);
+all windows or just the selected window.
+
+If the value is `lambda', that enables Transient Mark mode temporarily
+until the next buffer modification.  If a command sets the value to `only',
+that enables Transient Mark mode for the following command only.  */);
   Vtransient_mark_mode = Qnil;
 
   DEFVAR_LISP ("inhibit-read-only", &Vinhibit_read_only,
@@ -5871,9 +5884,13 @@ Values are interpreted as follows:
 
   t 		 use the cursor specified for the frame
   nil		 don't display a cursor
-  bar		 display a bar cursor with default width
-  (bar . WIDTH)	 display a bar cursor with width WIDTH
-  ANYTHING ELSE	 display a box cursor.
+  box		 display a filled box cursor
+  hollow	 display a hollow box cursor
+  bar		 display a vertical bar cursor with default width
+  (bar . WIDTH)	 display a vertical bar cursor with width WIDTH
+  hbar		 display a horisontal bar cursor with default width
+  (hbar . WIDTH) display a horisontal bar cursor with width WIDTH
+  ANYTHING ELSE	 display a hollow box cursor.
 
 When the buffer is displayed in a nonselected window,
 this variable has no effect; the cursor appears as a hollow box.  */);
@@ -5881,7 +5898,9 @@ this variable has no effect; the cursor appears as a hollow box.  */);
   DEFVAR_PER_BUFFER ("line-spacing",
 		     &current_buffer->extra_line_spacing, Qnil,
 		     doc: /* Additional space to put between lines when displaying a buffer.
-The space is measured in pixels, and put below lines on window systems.  */);
+The space is measured in pixels, and put below lines on window systems.
+If value is a floating point number, it specifies the spacing relative
+to the default frame line height.  */);
 
   DEFVAR_LISP ("kill-buffer-query-functions", &Vkill_buffer_query_functions,
 	       doc: /* List of functions called with no args to query before killing a buffer.  */);

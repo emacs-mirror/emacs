@@ -272,7 +272,7 @@ Return non-nil if FILE is unchanged."
 		;; Buh?  Unexpected format.
 		'edited
 	      (let ((ats (file-attributes file)))
-		(if (and (= (nth 7 ats) (string-to-number (match-string 2)))
+		(if (and (eq (nth 7 ats) (string-to-number (match-string 2)))
 			 (equal (format-time-string "%s" (nth 5 ats))
 				(match-string 1)))
 		    'up-to-date
@@ -375,7 +375,7 @@ Return non-nil if FILE is unchanged."
     (vc-arch-command nil 0 file "commit" "-s" summary "-L" comment "--"
 		     (vc-switches 'Arch 'checkin))))
 
-(defun vc-arch-diff (file &optional oldvers newvers)
+(defun vc-arch-diff (file &optional oldvers newvers buffer)
   "Get a difference report using Arch between two versions of FILE."
   (if (and newvers
 	   (vc-up-to-date-p file)
@@ -390,7 +390,7 @@ Return non-nil if FILE is unchanged."
 	   (default-directory (vc-arch-root file))
 	   (status
 	    (vc-arch-command
-	     "*vc-diff*"
+	     (or buffer "*vc-diff*")
 	     (if async 'async 1)
 	     nil "file-diffs"
 	     ;; Arch does not support the typical flags.

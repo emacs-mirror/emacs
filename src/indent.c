@@ -1,5 +1,5 @@
 /* Indentation functions.
-   Copyright (C) 1985,86,87,88,93,94,95,98,2000,01,02,2003
+   Copyright (C) 1985,86,87,88,93,94,95,98,2000,01,02,03,2004
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1407,6 +1407,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	      vpos++;
 	      contin_hpos = prev_hpos;
 	      prev_hpos = 0;
+	      prev_vpos = vpos;
 	    }
 	}
 

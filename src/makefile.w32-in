@@ -1,5 +1,5 @@
-#  Makefile for GNU Emacs on the Microsoft W32 API.
-#  Copyright (c) 2000-2001 Free Software Foundation, Inc.
+#  -*- Makefile -*- for GNU Emacs on the Microsoft W32 API.
+#  Copyright (c) 2000-2001, 2004 Free Software Foundation, Inc.
 #
 #  This file is part of GNU Emacs.
 #
@@ -115,15 +115,12 @@ OBJ1 =  $(BLD)/abbrev.$(O)			\
 	$(BLD)/region-cache.$(O)		\
 	$(BLD)/strftime.$(O)			\
 	$(BLD)/charset.$(O)			\
-	$(BLD)/character.$(O)			\
-	$(BLD)/chartab.$(O)			\
 	$(BLD)/coding.$(O)			\
 	$(BLD)/category.$(O)			\
 	$(BLD)/ccl.$(O)				\
 	$(BLD)/fontset.$(O)			\
 	$(BLD)/fringe.$(O)			\
 	$(BLD)/image.$(O)
-
 
 WIN32OBJ = $(BLD)/w32term.$(O)			\
 	   $(BLD)/w32xfns.$(O)			\
@@ -170,7 +167,7 @@ $(EMACS):       $(DOC) $(TEMACS)
 temacs:         $(BLD) $(TEMACS)
 $(TEMACS):      $(TLIB0) $(TLIB1) $(TLIBW32) $(TLASTLIB) $(TOBJ) $(TRES)
 	$(LINK) $(LINK_OUT)$(TEMACS_TMP) $(FULL_LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
-	"../nt/$(BLD)/addsection" "$(TEMACS_TMP)" "$(TEMACS)" EMHEAP 20
+	"../nt/$(BLD)/addsection" "$(TEMACS_TMP)" "$(TEMACS)" EMHEAP 16
 
 bootstrap: bootstrap-emacs
 
@@ -265,7 +262,6 @@ $(BLD)/abbrev.$(O) : \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/commands.h \
 	$(SRC)/dispextern.h \
@@ -281,7 +277,6 @@ $(BLD)/alloc.$(O) : \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
@@ -364,7 +359,6 @@ $(BLD)/callproc.$(O) : \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/commands.h \
@@ -381,7 +375,6 @@ $(BLD)/casefiddle.$(O) : \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
@@ -403,7 +396,6 @@ $(BLD)/category.$(O) : \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/buffer.h \
 	$(SRC)/category.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/keymap.h
 
@@ -413,21 +405,8 @@ $(BLD)/ccl.$(O) : \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h
-
-$(BLD)/character.$(O) : \
-	$(SRC)/character.c \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
-	$(EMACS_ROOT)/src/config.h \
-	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/disptab.h
 
 $(BLD)/charset.$(O) : \
 	$(SRC)/charset.c \
@@ -436,19 +415,10 @@ $(BLD)/charset.$(O) : \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/composite.h \
 	$(SRC)/disptab.h
-
-$(BLD)/chartab.$(O) : \
-	$(SRC)/chartab.c \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
-	$(EMACS_ROOT)/src/config.h \
-	$(SRC)/charset.h \
-	$(SRC)/character.h
 
 $(BLD)/cm.$(O) : \
 	$(SRC)/cm.c \
@@ -464,7 +434,6 @@ $(BLD)/cmds.$(O) : \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/commands.h \
 	$(SRC)/dispextern.h \
@@ -482,7 +451,6 @@ $(BLD)/coding.$(O) : \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/composite.h \
@@ -498,7 +466,6 @@ $(BLD)/composite.$(O) : \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
@@ -512,7 +479,6 @@ $(BLD)/data.$(O) : \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
@@ -526,7 +492,6 @@ $(BLD)/dired.$(O) : \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/commands.h \
@@ -544,7 +509,6 @@ $(BLD)/dispnew.$(O) : \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/cm.h \
 	$(SRC)/commands.h \
@@ -573,7 +537,6 @@ $(BLD)/doc.$(O) : \
 	$(EMACS_ROOT)/src/config.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h
@@ -583,7 +546,6 @@ $(BLD)/doprnt.$(O) : \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.c
 
 $(BLD)/editfns.$(O) : \
@@ -594,7 +556,6 @@ $(BLD)/editfns.$(O) : \
 	$(EMACS_ROOT)/nt/inc/pwd.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/composite.h \
@@ -655,7 +616,6 @@ $(BLD)/fileio.$(O) : \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/commands.h \
@@ -677,7 +637,6 @@ $(BLD)/filelock.$(O) : \
 	$(EMACS_ROOT)/src/epaths.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/systime.h
@@ -713,7 +672,6 @@ $(BLD)/fns.$(O) : \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/commands.h \
@@ -736,7 +694,6 @@ $(BLD)/fontset.$(O) : \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/fontset.h \
@@ -754,7 +711,6 @@ $(BLD)/frame.$(O) : \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/commands.h \
 	$(SRC)/dispextern.h \
@@ -816,7 +772,6 @@ $(BLD)/indent.$(O) : \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/buffer.h \
 	$(SRC)/category.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
@@ -840,7 +795,6 @@ $(BLD)/insdel.$(O) : \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
@@ -876,7 +830,6 @@ $(BLD)/keyboard.$(O) : \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
@@ -908,7 +861,6 @@ $(BLD)/keymap.$(O) : \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
@@ -937,7 +889,6 @@ $(BLD)/lread.$(O) : \
 	$(EMACS_ROOT)/src/epaths.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/commands.h \
@@ -969,7 +920,6 @@ $(BLD)/marker.$(O) : \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h
 
 $(BLD)/md5.$(O) : \
@@ -982,7 +932,6 @@ $(BLD)/minibuf.$(O) : \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
@@ -1050,7 +999,6 @@ $(BLD)/w32console.$(O) : \
 	$(SRC)/s/ms-w32.h \
 	$(SRC)/m/intel386.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/config.h \
@@ -1068,7 +1016,6 @@ $(BLD)/print.$(O) : \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
@@ -1092,7 +1039,6 @@ $(BLD)/process.$(O) : \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/commands.h \
@@ -1132,7 +1078,6 @@ $(BLD)/regex.$(O) : \
 	$(SRC)/m/intel386.h \
 	$(SRC)/buffer.h \
 	$(SRC)/category.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/config.h \
 	$(SRC)/regex.h \
@@ -1168,7 +1113,6 @@ $(BLD)/search.$(O) : \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/category.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
@@ -1201,7 +1145,6 @@ $(BLD)/syntax.$(O) : \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/buffer.h \
 	$(SRC)/category.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
@@ -1246,7 +1189,6 @@ $(BLD)/term.$(O) : \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/cm.h \
 	$(SRC)/coding.h \
@@ -1343,7 +1285,6 @@ $(BLD)/xdisp.$(O) : \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/commands.h \
@@ -1375,7 +1316,6 @@ $(BLD)/xfaces.$(O): \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/composite.h \
 	$(SRC)/dispextern.h \
@@ -1398,7 +1338,6 @@ $(BLD)/w32fns.$(O): \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/composite.h \
@@ -1424,7 +1363,6 @@ $(BLD)/w32menu.$(O): \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/dispextern.h \
@@ -1447,7 +1385,6 @@ $(BLD)/w32term.$(O): \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/composite.h \
@@ -1479,7 +1416,6 @@ $(BLD)/w32select.$(O): \
 	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/coding.h \
 	$(SRC)/composite.h \
@@ -1510,7 +1446,6 @@ $(BLD)/w32xfns.$(O): \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/fontset.h \
 	$(SRC)/frame.h \
@@ -1527,7 +1462,6 @@ $(BLD)/w32bdf.$(O): \
 	$(EMACS_ROOT)/src/config.h \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
-	$(SRC)/character.h \
 	$(SRC)/charset.h \
 	$(SRC)/dispextern.h \
 	$(SRC)/fontset.h \
@@ -1537,5 +1471,3 @@ $(BLD)/w32bdf.$(O): \
 	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h
-
-# arch-tag: 9fd7aba8-f826-4111-b3c0-497a8e7db9a0

@@ -376,7 +376,11 @@ That is, all information but the name."
     (if cell
         (setcdr cell filename)
       (nconc (bookmark-get-bookmark-record bookmark)
-             (list (cons 'filename filename))))))
+             (list (cons 'filename filename))))
+    (setq bookmark-alist-modification-count
+          (1+ bookmark-alist-modification-count))
+    (if (bookmark-time-to-save-p)
+        (bookmark-save))))
 
 
 (defun bookmark-get-position (bookmark)
@@ -893,7 +897,8 @@ When you have finished composing, type \\[bookmark-send-annotation].
   (make-local-variable 'bookmark-annotation-name)
   (setq bookmark-annotation-name bookmark)
   (use-local-map bookmark-edit-annotation-mode-map)
-  (setq major-mode 'bookmark-edit-annotation-mode)
+  (setq major-mode 'bookmark-edit-annotation-mode
+        mode-name "Edit Bookmark Annotation")
   (insert (funcall bookmark-read-annotation-text-func bookmark))
   (let ((annotation (bookmark-get-annotation bookmark)))
     (if (and annotation (not (string-equal annotation "")))
@@ -902,7 +907,8 @@ When you have finished composing, type \\[bookmark-send-annotation].
 
 
 (defun bookmark-send-edited-annotation ()
-  "Use buffer contents (minus beginning with `#' as annotation for a bookmark."
+  "Use buffer contents as annotation for a bookmark.
+Lines beginning with `#' are ignored."
   (interactive)
   (if (not (eq major-mode 'bookmark-edit-annotation-mode))
       (error "Not in bookmark-edit-annotation-mode"))
@@ -1489,6 +1495,7 @@ method buffers use to resolve name collisions."
   (define-key bookmark-bmenu-mode-map "m" 'bookmark-bmenu-mark)
   (define-key bookmark-bmenu-mode-map "l" 'bookmark-bmenu-load)
   (define-key bookmark-bmenu-mode-map "r" 'bookmark-bmenu-rename)
+  (define-key bookmark-bmenu-mode-map "R" 'bookmark-bmenu-relocate)
   (define-key bookmark-bmenu-mode-map "t" 'bookmark-bmenu-toggle-filenames)
   (define-key bookmark-bmenu-mode-map "a" 'bookmark-bmenu-show-annotation)
   (define-key bookmark-bmenu-mode-map "A" 'bookmark-bmenu-show-all-annotations)
@@ -1587,6 +1594,7 @@ Bookmark names preceded by a \"*\" have annotations.
   so the bookmark menu bookmark remains visible in its window.
 \\[bookmark-bmenu-switch-other-window] -- switch the other window to this bookmark.
 \\[bookmark-bmenu-rename] -- rename this bookmark \(prompts for new name\).
+\\[bookmark-bmenu-relocate] -- relocate this bookmark's file \(prompts for new file\).
 \\[bookmark-bmenu-delete] -- mark this bookmark to be deleted, and move down.
 \\[bookmark-bmenu-delete-backwards] -- mark this bookmark to be deleted, and move up.
 \\[bookmark-bmenu-execute-deletions] -- delete bookmarks marked with `\\[bookmark-bmenu-delete]'.
@@ -2039,6 +2047,15 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
       (let ((bmrk (bookmark-bmenu-bookmark)))
         (message (bookmark-location bmrk)))))
 
+(defun bookmark-bmenu-relocate ()
+  "Change the file path of the bookmark on the current line,
+  prompting with completion for the new path."
+  (interactive)
+  (if (bookmark-bmenu-check-position)
+      (let ((bmrk (bookmark-bmenu-bookmark))
+            (thispoint (point)))
+        (bookmark-relocate bmrk)
+        (goto-char thispoint))))
 
 
 ;;; Menu bar stuff.  Prefix is "bookmark-menu".

@@ -445,10 +445,11 @@ decode_status (l, symbol, code, coredump)
 
 /* Return a string describing a process status list.  */
 
-Lisp_Object
-status_message (status)
-     Lisp_Object status;
+static Lisp_Object
+status_message (p)
+     struct Lisp_Process *p;
 {
+  Lisp_Object status = p->status;
   Lisp_Object symbol;
   int code, coredump;
   Lisp_Object string, string2;
@@ -469,6 +470,8 @@ status_message (status)
     }
   else if (EQ (symbol, Qexit))
     {
+      if (NETCONN1_P (p))
+	return build_string (code == 0 ? "deleted\n" : "connection broken by remote peer\n");
       if (code == 0)
 	return build_string ("finished\n");
       string = Fnumber_to_string (make_number (code));
@@ -532,7 +535,7 @@ allocate_pty ()
 	       three failures in a row before deciding that we've reached the
 	       end of the ptys.  */
 	    int failed_count = 0;
-	    
+
 	    if (stat (pty_name, &stb) < 0)
 	      {
 		failed_count++;
@@ -765,6 +768,7 @@ nil, indicating the current buffer's process.  */)
     {
       XPROCESS (process)->status = Fcons (Qexit, Fcons (make_number (0), Qnil));
       XSETINT (XPROCESS (process)->tick, ++process_tick);
+      status_notify ();
     }
   else if (XINT (XPROCESS (process)->infd) >= 0)
     {
@@ -843,7 +847,7 @@ If PROCESS has not yet exited or died, return 0.  */)
 
 DEFUN ("process-id", Fprocess_id, Sprocess_id, 1, 1, 0,
        doc: /* Return the process id of PROCESS.
-This is the pid of the Unix process which PROCESS uses or talks to.
+This is the pid of the external process which PROCESS uses or talks to.
 For a network connection, this value is nil.  */)
      (process)
      register Lisp_Object process;
@@ -1082,7 +1086,7 @@ DEFUN ("set-process-query-on-exit-flag",
        Fset_process_query_on_exit_flag, Sset_process_query_on_exit_flag,
        2, 2, 0,
        doc: /* Specify if query is needed for PROCESS when Emacs is exited.
-If the second argument FLAG is non-nil, emacs will query the user before
+If the second argument FLAG is non-nil, Emacs will query the user before
 exiting if PROCESS is running.  */)
      (process, flag)
      register Lisp_Object process, flag;
@@ -1095,7 +1099,7 @@ exiting if PROCESS is running.  */)
 DEFUN ("process-query-on-exit-flag",
        Fprocess_query_on_exit_flag, Sprocess_query_on_exit_flag,
        1, 1, 0,
-       doc: /* Return the current value of query on exit flag for PROCESS.  */)
+       doc: /* Return the current value of query-on-exit flag for PROCESS.  */)
      (process)
      register Lisp_Object process;
 {
@@ -1458,12 +1462,12 @@ static Lisp_Object start_process_unwind ();
 DEFUN ("start-process", Fstart_process, Sstart_process, 3, MANY, 0,
        doc: /* Start a program in a subprocess.  Return the process object for it.
 NAME is name for process.  It is modified if necessary to make it unique.
-BUFFER is the buffer or (buffer-name) to associate with the process.
+BUFFER is the buffer (or buffer name) to associate with the process.
  Process output goes at end of that buffer, unless you specify
  an output stream or filter function to handle the output.
  BUFFER may be also nil, meaning that this process is not associated
  with any buffer.
-Third arg is program file name.  It is searched for in PATH.
+PROGRAM is the program file name.  It is searched for in PATH.
 Remaining arguments are strings to give program as arguments.
 
 usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
@@ -2609,7 +2613,7 @@ successful) or "failed" when the connect completes.  Default is to use
 a blocking connect (i.e. wait) for stream type connections.
 
 :noquery BOOL -- Query the user unless BOOL is non-nil, and process is
-running when emacs is exited.
+running when Emacs is exited.
 
 :stop BOOL -- Start process in the `stopped' state if BOOL non-nil.
 In the stopped state, a server process does not accept new
@@ -2955,7 +2959,7 @@ usage: (make-network-process &rest ARGS)  */)
       struct hostent *host_info_ptr;
 
       /* gethostbyname may fail with TRY_AGAIN, but we don't honour that,
-	 as it may `hang' emacs for a very long time.  */
+	 as it may `hang' Emacs for a very long time.  */
       immediate_quit = 1;
       QUIT;
       host_info_ptr = gethostbyname (SDATA (host));
@@ -3616,6 +3620,8 @@ FLAGS is the current flags of the interface.  */)
 #endif
 #endif	/* HAVE_SOCKETS */
 
+/* Turn off input and output for process PROC.  */
+
 void
 deactivate_process (proc)
      Lisp_Object proc;
@@ -3635,7 +3641,7 @@ deactivate_process (proc)
       p->read_output_skip = Qnil;
     }
 #endif
-      
+
   if (inchannel >= 0)
     {
       /* Beware SIGCHLD hereabouts. */
@@ -3965,7 +3971,7 @@ server_accept_connection (server, channel)
 
 /* This variable is different from waiting_for_input in keyboard.c.
    It is used to communicate to a lisp process-filter/sentinel (via the
-   function Fwaiting_for_user_input_p below) whether emacs was waiting
+   function Fwaiting_for_user_input_p below) whether Emacs was waiting
    for user-input when that process-filter was called.
    waiting_for_input cannot be used as that is by definition 0 when
    lisp code is being evalled.
@@ -4019,8 +4025,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
      int do_display;
 {
   register int channel, nfds;
-  static SELECT_TYPE Available;
-  static SELECT_TYPE Connecting;
+  SELECT_TYPE Available;
+  SELECT_TYPE Connecting;
   int check_connect, check_delay, no_avail;
   int xerrno;
   Lisp_Object proc;
@@ -4031,6 +4037,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   /* Either nil or a cons cell, the car of which is of interest and
      may be changed outside of this routine.  */
   Lisp_Object wait_for_cell = Qnil;
+  int saved_waiting_for_user_input_p = waiting_for_user_input_p;
 
   FD_ZERO (&Available);
   FD_ZERO (&Connecting);
@@ -4581,7 +4588,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 		}
 	    }
 #ifdef NON_BLOCKING_CONNECT
-	  if (check_connect && FD_ISSET (channel, &Connecting))
+	  if (check_connect && FD_ISSET (channel, &Connecting)
+	      && FD_ISSET (channel, &connect_wait_mask))
 	    {
 	      struct Lisp_Process *p;
 
@@ -4644,7 +4652,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	}			/* end for each file descriptor */
     }				/* end while exit conditions not met */
 
-  waiting_for_user_input_p = 0;
+  waiting_for_user_input_p = saved_waiting_for_user_input_p;
 
   /* If calling from keyboard input, do not quit
      since we want to return C-g as an input character.
@@ -4691,7 +4699,7 @@ read_process_output_error_handler (error)
    starting with our buffered-ahead character if we have one.
    Yield number of decoded characters read.
 
-   This function reads at most 1024 characters.
+   This function reads at most 4096 characters.
    If you want to read all available subprocess output,
    you must call it repeatedly until it returns zero.
 
@@ -4711,7 +4719,7 @@ read_process_output (proc, channel)
   register int opoint;
   struct coding_system *coding = proc_decode_coding_system[channel];
   int carryover = XINT (p->decoding_carryover);
-  int readmax = 1024;
+  int readmax = 4096;
 
 #ifdef VMS
   VMS_PROC_STUFF *vs, *get_vms_process_pointer();
@@ -4743,16 +4751,6 @@ read_process_output (proc, channel)
       bcopy (vs->inputBuffer, chars + carryover, nbytes);
     }
 #else /* not VMS */
-
-#ifdef DATAGRAM_SOCKETS
-  /* A datagram is one packet; allow at least 1500+ bytes of data
-     corresponding to the typical Ethernet frame size.  */
-  if (DATAGRAM_CHAN_P (channel))
-    {
-      /* carryover = 0; */  /* Does carryover make sense for datagrams? */
-      readmax += 1024;
-    }
-#endif
 
   chars = (char *) alloca (carryover + readmax);
   if (carryover)
@@ -5069,7 +5067,7 @@ read_process_output (proc, channel)
 
 DEFUN ("waiting-for-user-input-p", Fwaiting_for_user_input_p, Swaiting_for_user_input_p,
        0, 0, 0,
-       doc: /* Returns non-nil if emacs is waiting for input from the user.
+       doc: /* Returns non-nil if Emacs is waiting for input from the user.
 This is intended for use by asynchronous process output filters and sentinels.  */)
      ()
 {
@@ -5446,7 +5444,7 @@ emacs_get_tty_pgrp (p)
 {
   int gid = -1;
 
-#ifdef TIOCGPGRP 
+#ifdef TIOCGPGRP
   if (ioctl (XINT (p->infd), TIOCGPGRP, &gid) == -1 && ! NILP (p->tty_name))
     {
       int fd;
@@ -5643,7 +5641,7 @@ process_send_signal (process, signo, current_group, nomsg)
 	 we should just assume that p->pid is also the process group id.  */
 
       gid = emacs_get_tty_pgrp (p);
-	
+
       if (gid == -1)
 	/* If we can't get the information, assume
 	   the shell owns the tty.  */
@@ -5726,7 +5724,7 @@ process_send_signal (process, signo, current_group, nomsg)
 DEFUN ("interrupt-process", Finterrupt_process, Sinterrupt_process, 0, 2, 0,
        doc: /* Interrupt process PROCESS.
 PROCESS may be a process, a buffer, or the name of a process or buffer.
-nil or no arg means current buffer's process.
+No arg or nil means current buffer's process.
 Second arg CURRENT-GROUP non-nil means send signal to
 the current process-group of the process's controlling terminal
 rather than to the process's own process group.
@@ -6385,7 +6383,7 @@ status_notify ()
 	  /* Get the text to use for the message.  */
 	  if (!NILP (p->raw_status_low))
 	    update_status (p);
-	  msg = status_message (p->status);
+	  msg = status_message (p);
 
 	  /* If process is terminated, deactivate it or delete it.  */
 	  symbol = p->status;
@@ -6471,13 +6469,13 @@ DEFUN ("set-process-coding-system", Fset_process_coding_system,
        doc: /* Set coding systems of PROCESS to DECODING and ENCODING.
 DECODING will be used to decode subprocess output and ENCODING to
 encode subprocess input.  */)
-     (proc, decoding, encoding)
-     register Lisp_Object proc, decoding, encoding;
+     (process, decoding, encoding)
+     register Lisp_Object process, decoding, encoding;
 {
   register struct Lisp_Process *p;
 
-  CHECK_PROCESS (proc);
-  p = XPROCESS (proc);
+  CHECK_PROCESS (process);
+  p = XPROCESS (process);
   if (XINT (p->infd) < 0)
     error ("Input file descriptor of %s closed", SDATA (p->name));
   if (XINT (p->outfd) < 0)
@@ -6487,7 +6485,7 @@ encode subprocess input.  */)
 
   p->decode_coding_system = decoding;
   p->encode_coding_system = encoding;
-  setup_process_coding_systems (proc);
+  setup_process_coding_systems (process);
 
   return Qnil;
 }
@@ -6495,12 +6493,12 @@ encode subprocess input.  */)
 DEFUN ("process-coding-system",
        Fprocess_coding_system, Sprocess_coding_system, 1, 1, 0,
        doc: /* Return a cons of coding systems for decoding and encoding of PROCESS.  */)
-     (proc)
-     register Lisp_Object proc;
+     (process)
+     register Lisp_Object process;
 {
-  CHECK_PROCESS (proc);
-  return Fcons (XPROCESS (proc)->decode_coding_system,
-		XPROCESS (proc)->encode_coding_system);
+  CHECK_PROCESS (process);
+  return Fcons (XPROCESS (process)->decode_coding_system,
+		XPROCESS (process)->encode_coding_system);
 }
 
 DEFUN ("set-process-filter-multibyte", Fset_process_filter_multibyte,
@@ -6510,15 +6508,15 @@ If FLAG is non-nil, the filter is given multibyte strings.
 If FLAG is nil, the filter is given unibyte strings.  In this case,
 all character code conversion except for end-of-line conversion is
 suppressed.  */)
-     (proc, flag)
-     Lisp_Object proc, flag;
+     (process, flag)
+     Lisp_Object process, flag;
 {
   register struct Lisp_Process *p;
 
-  CHECK_PROCESS (proc);
-  p = XPROCESS (proc);
+  CHECK_PROCESS (process);
+  p = XPROCESS (process);
   p->filter_multibyte = flag;
-  setup_process_coding_systems (proc);
+  setup_process_coding_systems (process);
 
   return Qnil;
 }
@@ -6526,13 +6524,13 @@ suppressed.  */)
 DEFUN ("process-filter-multibyte-p", Fprocess_filter_multibyte_p,
        Sprocess_filter_multibyte_p, 1, 1, 0,
        doc: /* Return t if a multibyte string is given to PROCESS's filter.*/)
-     (proc)
-     Lisp_Object proc;
+     (process)
+     Lisp_Object process;
 {
   register struct Lisp_Process *p;
 
-  CHECK_PROCESS (proc);
-  p = XPROCESS (proc);
+  CHECK_PROCESS (process);
+  p = XPROCESS (process);
 
   return (NILP (p->filter_multibyte) ? Qnil : Qt);
 }
@@ -6753,11 +6751,11 @@ The value takes effect when `start-process' is called.  */);
 #ifdef ADAPTIVE_READ_BUFFERING
   DEFVAR_LISP ("process-adaptive-read-buffering", &Vprocess_adaptive_read_buffering,
 	       doc: /* If non-nil, improve receive buffering by delaying after short reads.
-On some systems, when emacs reads the output from a subprocess, the output data
+On some systems, when Emacs reads the output from a subprocess, the output data
 is read in very small blocks, potentially resulting in very poor performance.
 This behaviour can be remedied to some extent by setting this variable to a
 non-nil value, as it will automatically delay reading from such processes, to
-allowing them to produce more output before emacs tries to read it.
+allowing them to produce more output before Emacs tries to read it.
 If the value is t, the delay is reset after each write to the process; any other
 non-nil value means that the delay is not reset on write.
 The variable takes effect when `start-process' is called.  */);

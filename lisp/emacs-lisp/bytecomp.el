@@ -832,24 +832,22 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 
 ;; Log something that isn't a warning.
 (defmacro byte-compile-log (format-string &rest args)
-  (list 'and
-	'byte-optimize
-	'(memq byte-optimize-log '(t source))
-	(list 'let '((print-escape-newlines t)
-		     (print-level 4)
-		     (print-length 4))
-	      (list 'byte-compile-log-1
-		    (cons 'format
-		      (cons format-string
-			(mapcar
-			 (lambda (x)
-			   (if (symbolp x) (list 'prin1-to-string x) x))
-			 args)))))))
+  `(and
+    byte-optimize
+    (memq byte-optimize-log '(t source))
+    (let ((print-escape-newlines t)
+	  (print-level 4)
+	  (print-length 4))
+      (byte-compile-log-1
+       (format
+	,format-string
+	,@(mapcar
+	   (lambda (x) (if (symbolp x) (list 'prin1-to-string x) x))
+	   args))))))
 
 ;; Log something that isn't a warning.
 (defun byte-compile-log-1 (string)
-  (save-excursion
-    (byte-goto-log-buffer)
+  (with-current-buffer "*Compile-Log*"
     (goto-char (point-max))
     (byte-compile-warning-prefix nil nil)
     (cond (noninteractive
@@ -902,11 +900,6 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 
 (defvar byte-compile-last-warned-form nil)
 (defvar byte-compile-last-logged-file nil)
-
-(defun byte-goto-log-buffer ()
-  (set-buffer (get-buffer-create "*Compile-Log*"))
-  (unless (eq major-mode 'compilation-mode)
-    (compilation-mode)))
 
 ;; This is used as warning-prefix for the compiler.
 ;; It is always called with the warnings buffer current.
@@ -983,6 +976,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	   ;; Do this after setting default-directory.
 	   (unless (eq major-mode 'compilation-mode)
 	     (compilation-mode))
+	   (compilation-forget-errors)
 	   pt))))
 
 ;; Log a message STRING in *Compile-Log*.
@@ -1014,11 +1008,11 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	 (when (nth 2 new)))
     (byte-compile-set-symbol-position (car form))
     (if (memq 'obsolete byte-compile-warnings)
-	(byte-compile-warn "%s is an obsolete function%s; %s" (car form)
+	(byte-compile-warn "`%s' is an obsolete function%s; %s" (car form)
 			   (if when (concat " since " when) "")
 			   (if (stringp (car new))
 			       (car new)
-			     (format "use %s instead." (car new)))))
+			     (format "use `%s' instead." (car new)))))
     (funcall (or handler 'byte-compile-normal-call) form)))
 
 ;; Compiler options
@@ -2082,7 +2076,7 @@ list that represents a doc string reference.
 (defun byte-compile-file-form-defsubst (form)
   (when (assq (nth 1 form) byte-compile-unresolved-functions)
     (setq byte-compile-current-form (nth 1 form))
-    (byte-compile-warn "defsubst %s was used before it was defined"
+    (byte-compile-warn "defsubst `%s' was used before it was defined"
 		       (nth 1 form)))
   (byte-compile-file-form
    (macroexpand form byte-compile-macro-environment))
@@ -2212,7 +2206,7 @@ list that represents a doc string reference.
 		    (not (assq (nth 1 form)
 			       byte-compile-initial-macro-environment)))
 	       (byte-compile-warn
-		 "%s defined multiple times, as both function and macro"
+		 "`%s' defined multiple times, as both function and macro"
 		 (nth 1 form)))
 	   (setcdr that-one nil))
 	  (this-one
@@ -2221,14 +2215,14 @@ list that represents a doc string reference.
 		    ;; byte-compiler macros in byte-run.el...
 		    (not (assq (nth 1 form)
 			       byte-compile-initial-macro-environment)))
-	     (byte-compile-warn "%s %s defined multiple times in this file"
+	     (byte-compile-warn "%s `%s' defined multiple times in this file"
 				(if macrop "macro" "function")
 				(nth 1 form))))
 	  ((and (fboundp name)
 		(eq (car-safe (symbol-function name))
 		    (if macrop 'lambda 'macro)))
 	   (when (memq 'redefine byte-compile-warnings)
-	     (byte-compile-warn "%s %s being redefined as a %s"
+	     (byte-compile-warn "%s `%s' being redefined as a %s"
 				(if macrop "function" "macro")
 				(nth 1 form)
 				(if macrop "macro" "function")))
@@ -2701,7 +2695,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 		(handler (get fn 'byte-compile)))
 	   (byte-compile-set-symbol-position fn)
 	   (when (byte-compile-const-symbol-p fn)
-	     (byte-compile-warn "%s called as a function" fn))
+	     (byte-compile-warn "`%s' called as a function" fn))
 	   (if (and handler
 		    (or (not (byte-compile-version-cond
 			      byte-compile-compatibility))
@@ -2736,9 +2730,9 @@ If FORM is a lambda or a macro, byte-compile it as a function."
   (if (or (not (symbolp var))
 	  (byte-compile-const-symbol-p var (not (eq base-op 'byte-varref))))
       (byte-compile-warn
-       (cond ((eq base-op 'byte-varbind) "attempt to let-bind %s %s")
-	     ((eq base-op 'byte-varset) "variable assignment to %s %s")
-	     (t "variable reference to %s %s"))
+       (cond ((eq base-op 'byte-varbind) "attempt to let-bind %s `%s'")
+	     ((eq base-op 'byte-varset) "variable assignment to %s `%s'")
+	     (t "variable reference to %s `%s'"))
        (if (symbolp var) "constant" "nonvariable")
        (prin1-to-string var))
     (if (and (get var 'byte-obsolete-variable)
@@ -2746,11 +2740,11 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	     (not (eq var byte-compile-not-obsolete-var)))
 	(let* ((ob (get var 'byte-obsolete-variable))
 	       (when (cdr ob)))
-	  (byte-compile-warn "%s is an obsolete variable%s; %s" var
+	  (byte-compile-warn "`%s' is an obsolete variable%s; %s" var
 			     (if when (concat " since " when) "")
 			     (if (stringp (car ob))
 				 (car ob)
-			       (format "use %s instead." (car ob))))))
+			       (format "use `%s' instead." (car ob))))))
     (if (memq 'free-vars byte-compile-warnings)
 	(if (eq base-op 'byte-varbind)
 	    (push var byte-compile-bound-variables)
@@ -2759,11 +2753,11 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	      (if (eq base-op 'byte-varset)
 		  (or (memq var byte-compile-free-assignments)
 		      (progn
-			(byte-compile-warn "assignment to free variable %s" var)
+			(byte-compile-warn "assignment to free variable `%s'" var)
 			(push var byte-compile-free-assignments)))
 		(or (memq var byte-compile-free-references)
 		    (progn
-		      (byte-compile-warn "reference to free variable %s" var)
+		      (byte-compile-warn "reference to free variable `%s'" var)
 		      (push var byte-compile-free-references))))))))
   (let ((tmp (assq var byte-compile-variables)))
     (unless tmp
@@ -2964,7 +2958,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 
 (defun byte-compile-subr-wrong-args (form n)
   (byte-compile-set-symbol-position (car form))
-  (byte-compile-warn "%s called with %d arg%s, but requires %s"
+  (byte-compile-warn "`%s' called with %d arg%s, but requires %s"
 		     (car form) (length (cdr form))
 		     (if (= 1 (length (cdr form))) "" "s") n)
   ;; get run-time wrong-number-of-args error.
@@ -3130,7 +3124,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	  (if (and (consp (car body))
 		   (not (eq 'byte-code (car (car body)))))
 	      (byte-compile-warn
-      "A quoted lambda form is the second argument of fset.  This is probably
+      "A quoted lambda form is the second argument of `fset'.  This is probably
      not what you want, as that lambda cannot be compiled.  Consider using
      the syntax (function (lambda (...) ...)) instead.")))))
   (byte-compile-two-args form))
@@ -3515,7 +3509,7 @@ being undefined will be suppressed."
     (byte-compile-set-symbol-position 'condition-case)
     (unless (symbolp var)
       (byte-compile-warn
-       "%s is not a variable-name or nil (in condition-case)" var))
+       "`%s' is not a variable-name or nil (in condition-case)" var))
     (byte-compile-push-constant var)
     (byte-compile-push-constant (byte-compile-top-level
 				 (nth 2 form) for-effect))
@@ -3533,13 +3527,13 @@ being undefined will be suppressed."
 				   (setq syms (cdr syms)))
 				 ok))))
                  (byte-compile-warn
-                   "%s is not a condition name or list of such (in condition-case)"
+                   "`%s' is not a condition name or list of such (in condition-case)"
                    (prin1-to-string condition)))
 ;;                ((not (or (eq condition 't)
 ;;			  (and (stringp (get condition 'error-message))
 ;;			       (consp (get condition 'error-conditions)))))
 ;;                 (byte-compile-warn
-;;                   "%s is not a known condition name (in condition-case)"
+;;                   "`%s' is not a known condition name (in condition-case)"
 ;;                   condition))
 		)
 	  (setq compiled-clauses
@@ -3635,7 +3629,7 @@ being undefined will be suppressed."
 	      (and (eq fun 'defconst) (null (cddr form))))
       (let ((ncall (length (cdr form))))
 	(byte-compile-warn
-	 "%s called with %d argument%s, but %s %s"
+	 "`%s' called with %d argument%s, but %s %s"
 	 fun ncall
 	 (if (= 1 ncall) "" "s")
 	 (if (< ncall 2) "requires" "accepts only")
@@ -3652,7 +3646,7 @@ being undefined will be suppressed."
 	`(push ',var current-load-list))
       (when (> (length form) 3)
 	(when (and string (not (stringp string)))
-	  (byte-compile-warn "third arg to %s %s is not a string: %s"
+	  (byte-compile-warn "third arg to `%s %s' is not a string: %s"
 			     fun var string))
 	`(put ',var 'variable-documentation ,string))
       (if (cddr form)		; `value' provided
@@ -3718,7 +3712,7 @@ being undefined will be suppressed."
 (byte-defop-compiler-1 with-no-warnings byte-compile-no-warnings)
 (defun byte-compile-no-warnings (form)
   (let (byte-compile-warnings)
-    (byte-compile-form (cadr form))))
+    (byte-compile-form (cons 'progn (cdr form)))))
 
 ;;; tags
 
@@ -3993,7 +3987,7 @@ already up-to-date."
        nil))))
 
 ;;;###autoload
-(defun batch-byte-recompile-directory ()
+(defun batch-byte-recompile-directory (&optional arg)
   "Run `byte-recompile-directory' on the dirs remaining on the command line.
 Must be used only with `-batch', and kills Emacs on completion.
 For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
@@ -4004,7 +3998,7 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
   (or command-line-args-left
       (setq command-line-args-left '(".")))
   (while command-line-args-left
-    (byte-recompile-directory (car command-line-args-left))
+    (byte-recompile-directory (car command-line-args-left) arg)
     (setq command-line-args-left (cdr command-line-args-left)))
   (kill-emacs 0))
 

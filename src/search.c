@@ -924,7 +924,7 @@ trivial_regexp_p (regexp)
 	    {
 	    case '|': case '(': case ')': case '`': case '\'': case 'b':
 	    case 'B': case '<': case '>': case 'w': case 'W': case 's':
-	    case 'S': case '=': case '{': case '}':
+	    case 'S': case '=': case '{': case '}': case '_':
 	    case 'c': case 'C':	/* for categoryspec and notcategoryspec */
 	    case '1': case '2': case '3': case '4': case '5':
 	    case '6': case '7': case '8': case '9':
@@ -2576,9 +2576,11 @@ match_limit (num, beginningp)
 
   CHECK_NUMBER (num);
   n = XINT (num);
-  if (n < 0 || n >= search_regs.num_regs)
-    args_out_of_range (num, make_number (search_regs.num_regs));
-  if (search_regs.num_regs <= 0
+  if (n < 0)
+    args_out_of_range (num, 0);
+  if (search_regs.num_regs <= 0)
+    error ("No match data, because no search succeeded");
+  if (n >= search_regs.num_regs
       || search_regs.start[n] < 0)
     return Qnil;
   return (make_number ((beginningp) ? search_regs.start[n]

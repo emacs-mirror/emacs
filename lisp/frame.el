@@ -1,6 +1,6 @@
 ;;; frame.el --- multi-frame management independent of window systems
 
-;; Copyright (C) 1993, 1994, 1996, 1997, 2000, 2001, 2003
+;; Copyright (C) 1993, 1994, 1996, 1997, 2000, 2001, 2003, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -113,7 +113,7 @@ use (car ARGS) as a function to do the work.
 Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
   (if (and args (symbolp (car args)))
       (apply (car args) buffer (cdr args))
-    (let ((window (get-buffer-window buffer t)))
+    (let ((window (get-buffer-window buffer 0)))
       (or
        ;; If we have a window already, make it visible.
        (when window
@@ -131,6 +131,7 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 	 (let* ((pop-up-frames nil) (pop-up-windows t)
 		special-display-regexps special-display-buffer-names
 		(window (display-buffer buffer)))
+	   ;; Only do it if this is a new window:
 	   ;; (set-window-dedicated-p window t)
 	   window))
        ;; If no window yet, make one in a new frame.
@@ -552,7 +553,7 @@ is not considered (see `next-frame')."
   (interactive)
   (select-window (next-window (selected-window)
 			      (> (minibuffer-depth) 0)
-			      t))
+			      0))
   (select-frame-set-input-focus (selected-frame)))
 
 (defun previous-multiframe-window ()
@@ -560,7 +561,7 @@ is not considered (see `next-frame')."
   (interactive)
   (select-window (previous-window (selected-window)
 				  (> (minibuffer-depth) 0)
-				  t))
+				  0))
   (select-frame-set-input-focus (selected-frame)))
 
 (defun make-frame-on-display (display &optional parameters)
@@ -1190,9 +1191,8 @@ left untouched.  FRAME nil or omitted means use the selected frame."
 (make-variable-buffer-local 'show-trailing-whitespace)
 
 (defcustom show-trailing-whitespace nil
-  "*Non-nil means highlight trailing whitespace in face `trailing-whitespace'.
-
-Setting this variable makes it local to the current buffer."
+  "*Non-nil means highlight trailing whitespace.
+This is done in the face `trailing-whitespace'."
   :tag "Highlight trailing whitespace."
   :type 'boolean
   :group 'font-lock)
@@ -1296,6 +1296,7 @@ if appropriate.  It also arranges to cancel that timer when the next
 command starts, by installing a pre-command hook."
   (when (null blink-cursor-timer)
     (add-hook 'pre-command-hook 'blink-cursor-end)
+    (internal-show-cursor nil nil)
     (setq blink-cursor-timer
 	  (run-with-timer blink-cursor-interval blink-cursor-interval
 			  'blink-cursor-timer-function))))
