@@ -163,9 +163,10 @@ Type q immediately to make the buffer menu go away and to restore
 previous window configuration."
   (interactive "P")
 ;;;  (setq Buffer-menu-window-config (current-window-configuration))
-  (list-buffers arg)
+  ;; This order seems to let list-buffers set the value of point
+  ;; regardless of whether we are using the same buffer or another.
   (pop-to-buffer "*Buffer List*")
-  (forward-line 2)
+  (list-buffers arg)
   (message
    "Commands: d, s, x, u; f, o, 1, 2, m, v; ~, %%; q to quit; ? for help."))
 
