@@ -111,7 +111,7 @@ how many null padding bytes go on the end of the tar file."
   :group 'tar)
 
 (defcustom tar-update-datestamp nil
-  "*Non-nil means tar-mode should play fast and loose with sub-file datestamps.
+  "*Non-nil means Tar mode should play fast and loose with sub-file datestamps.
 If this is true, then editing and saving a tar file entry back into its
 tar file will update its datestamp.  If false, the datestamp is unchanged.
 You may or may not want this - it is good in that you can tell when a file
@@ -306,7 +306,7 @@ write-date, checksum, link-type, and link-name."
     (tar-dotimes (i L)
        (if (or (< (aref string i) ?0)
 	       (> (aref string i) ?7))
-	   (error "'%c' is not an octal digit"))))
+	   (error "`%c' is not an octal digit"))))
   (tar-parse-octal-integer string))
 
 
@@ -597,8 +597,8 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
   (setq require-final-newline nil) ; binary data, dude...
   (make-local-variable 'revert-buffer-function)
   (setq revert-buffer-function 'tar-mode-revert)
-  (make-local-variable 'enable-local-variables)
-  (setq enable-local-variables nil)
+  (make-local-variable 'local-enable-local-variables)
+  (setq local-enable-local-variables nil)
   (make-local-variable 'next-line-add-newlines)
   (setq next-line-add-newlines nil)
   (setq major-mode 'tar-mode)
