@@ -973,6 +973,9 @@ Note that +++ before an item means the Lisp manual has been updated.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
 
+** The function string-to-number now returns a float for numbers
+that don't fit into a Lisp integer.
+
 ** The variable keyword-symbols-constants-flag has been removed.
 Keywords are now always considered constants.
 

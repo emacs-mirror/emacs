@@ -1,5 +1,8 @@
 2000-02-23  Gerd Moellmann  <gerd@gnu.org>
 
+	* data.c (Fstring_to_number): If number is greater than what
+	fits into an integer, return a float.
+
 	* eval.c (specbind): Remove references to
 	keyword_symbols_constant_flag.
 
