@@ -546,9 +546,9 @@ struct buffer
     /* The name of this buffer.  */
     Lisp_Object name;
 
-    /* Length in characters of the prompt in a mini-buffer, or nil if
-       this buffer is not a mini-buffer.  */
-    Lisp_Object minibuffer_prompt_length;
+    /* Character position at the end of a mini-buffer prompt, or or
+       nil if this buffer is not a mini-buffer.  */
+    Lisp_Object prompt_end_charpos;
 
     /* The name of the file visited in this buffer, or nil.  */
     Lisp_Object filename;
