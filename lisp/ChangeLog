@@ -1,3 +1,9 @@
+2004-08-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* macros.el (apply-macro-to-region-lines): Make it operate on all
+	lines that begin in the region, rather than on all complete lines
+	in the region.
+
 2004-08-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* x-dnd.el (x-dnd-protocol-alist): Document update.

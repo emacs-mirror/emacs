@@ -1,3 +1,9 @@
+2004-08-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* kmacro.texi (Basic Keyboard Macro):
+	`apply-macro-to-region-lines' now operates on all lines that begin
+	in the region, rather than on all complete lines in the region.
+
 2004-08-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Drag and drop): Add documentation about
