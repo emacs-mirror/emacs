@@ -998,7 +998,6 @@ Or you can bind the function to C-c i in gnus or mail with:
 	       (if (re-search-forward
 		    (concat "^\\(" cite-regexp "\\)") nil 'end)
 		   (beginning-of-line))
-		(beginning-of-line)
 		(let ((case-fold-search old-case-fold-search))
 		  (save-excursion
 		    (setq continue (ispell-region (- start 1) (point))))))))))))
