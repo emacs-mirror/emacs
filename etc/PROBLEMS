@@ -176,14 +176,14 @@ libjpeg with both `--enable-static' and `--enable-shared' options.)
 
 * Building Emacs over NFS fails with ``Text file busy''.
 
-This was reported to happen when building Emacs on RedHat GNU/Linux
-using a build directory automounted from Solaris (SunOS 5.6) file
-server, but it might not be limited to that configuration alone.
-Presumably, the NFS server doesn't commit the files' data to disk
-quickly enough, and the Emacs executable file is left ``busy'' for
-several seconds after Emacs has finished dumping itself.  This causes
-the subsequent commands which invoke the dumped Emacs excutable to
-fail with the above message.
+This was reported to happen when building Emacs on a GNU/Linux system
+(RedHat Linux 6.2) using a build directory automounted from Solaris
+(SunOS 5.6) file server, but it might not be limited to that
+configuration alone.  Presumably, the NFS server doesn't commit the
+files' data to disk quickly enough, and the Emacs executable file is
+left ``busy'' for several seconds after Emacs has finished dumping
+itself.  This causes the subsequent commands which invoke the dumped
+Emacs excutable to fail with the above message.
 
 In some of these cases, a time skew between the NFS server and the
 machine where Emacs is built is detected and reported by GNU Make
