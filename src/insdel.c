@@ -800,6 +800,9 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
 {
   register Lisp_Object temp;
 
+  if (NILP (current_buffer->enable_multibyte_characters))
+    nchars = nbytes;
+
   if (prepare)
     prepare_to_modify_buffer (PT, PT, NULL);
 
