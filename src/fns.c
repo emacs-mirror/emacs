@@ -2719,7 +2719,7 @@ mapcar1 (leni, vals, fn, seq)
 
 DEFUN ("mapconcat", Fmapconcat, Smapconcat, 3, 3, 0,
   /* Apply FUNCTION to each element of SEQUENCE, and concat the results as strings.
-In between each pair of results, stick in SEPARATOR.  Thus, "" as
+In between each pair of results, stick in SEPARATOR.  Thus, " " as
 SEPARATOR results in spaces between the values returned by FUNCTION.
 SEQUENCE may be a list, a vector, a bool-vector, or a string.  */
        (function, sequence, separator))
