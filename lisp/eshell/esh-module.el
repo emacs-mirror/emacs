@@ -2,6 +2,10 @@
 
 ;; Copyright (C) 1999, 2000 Free Sofware Foundation
 
+;; Author: John Wiegley <johnw@gnu.org>
+;; Keywords: processes
+;; X-URL: http://www.emacs.org/~johnw/eshell.html
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -21,7 +25,7 @@
 
 (provide 'esh-module)
 
-(eval-when-compile (require 'esh-maint))
+(eval-when-compile (require 'esh-maint) (require 'cl))
 
 (defgroup eshell-module nil
   "The `eshell-module' group is for Eshell extension modules, which
