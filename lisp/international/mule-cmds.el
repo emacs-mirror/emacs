@@ -649,8 +649,9 @@ DEFAULT is the coding system to use by default in the query."
   (let ((l codings)
 	mime-charset)
     (while l
-      (setq mime-charset (coding-system-get (car l) 'mime-charset))
-      (if (and mime-charset (coding-system-p mime-charset))
+      (setq mime-charset (coding-system-get (car l) :mime-charset))
+      (if (and mime-charset (coding-system-p mime-charset)
+	       (coding-system-equal (car l) mime-charset))
 	  (setcar l mime-charset))
       (setq l (cdr l))))
 
@@ -890,173 +891,8 @@ and TO is ignored."
 
     ;; If all the defaults failed, ask a user.
     (unless coding-system
-      ;; At first, if some defaults are unsafe, record at most 11
-      ;; problematic characters and their positions for them by turning
-      ;;	(CODING ...)
-      ;; into
-      ;;	((CODING (POS . CHAR) (POS . CHAR) ...) ...)
-      (if unsafe
-	  (if (stringp from)
-	      (setq unsafe
-		    (mapcar #'(lambda (coding)
-				(cons coding
-				      (mapcar #'(lambda (pos)
-						  (cons pos (aref from pos)))
-					      (unencodable-char-position
-					       0 (length from) coding
-					       11 from))))
-			    unsafe))
-	    (setq unsafe
-		  (mapcar #'(lambda (coding)
-			      (cons coding
-				    (mapcar #'(lambda (pos)
-						(cons pos (char-after pos)))
-					    (unencodable-char-position
-					     from to coding 11))))
-			  unsafe))))
-
-      ;; Change each safe coding system to the corresponding
-      ;; mime-charset name if it is also a coding system.  Such a name
-      ;; is more friendly to users.
-      (let ((l codings)
-	    mime-charset)
-	(while l
-	  (setq mime-charset (coding-system-get (car l) :mime-charset))
-	  (if (and mime-charset (coding-system-p mime-charset)
-		   (coding-system-equal (car l) mime-charset))
-	      (setcar l mime-charset))
-	  (setq l (cdr l))))
-
-      ;; Don't offer variations with locking shift, which you
-      ;; basically never want.
-      (let (l)
-	(dolist (elt codings (setq codings (nreverse l)))
-	  (unless (or (eq 'coding-category-iso-7-else
-			  (coding-system-category elt))
-		      (eq 'coding-category-iso-8-else
-			  (coding-system-category elt)))
-	    (push elt l))))
-
-      ;; Remove raw-text, emacs-mule and no-conversion unless nothing
-      ;; else is available.
-      (setq codings
-	    (or (delq 'raw-text
-		      (delq 'emacs-mule
-			    (delq 'no-conversion codings)))
-		'(raw-text emacs-mule no-conversion)))
-
-      (let ((window-configuration (current-window-configuration)))
-	(save-excursion
-	  ;; If some defaults are unsafe, make sure the offending
-	  ;; buffer is displayed.
-	  (when (and unsafe (not (stringp from)))
-	    (pop-to-buffer bufname)
-	    (goto-char (apply 'min (mapcar #'(lambda (x) (car (cadr x)))
-					   unsafe))))
-	  ;; Then ask users to select one from CODINGS while showing
-	  ;; the reason why none of the defaults are not used.
-	  (with-output-to-temp-buffer "*Warning*"
-	    (save-excursion
-	      (set-buffer standard-output)
-	      (if (not default-coding-system)
-		  (insert "No default coding systems to try for "
-			  (if (stringp from)
-			      (format "string \"%s\"." from)
-			    (format "buffer `%s'." bufname)))
-		(insert
-		 "These default coding systems were tried to encode"
-		 (if (stringp from)
-		     (concat " \"" (if (> (length from) 10)
-				       (concat (substring from 0 10) "...\"")
-				     (concat from "\"")))
-		   (format " text\nin the buffer `%s'" bufname))
-		 ":\n")
-		(let ((pos (point))
-		      (fill-prefix "  "))
-		  (mapc #'(lambda (x) (princ "  ") (princ (car x)))
-			default-coding-system)
-		  (insert "\n")
-		  (fill-region-as-paragraph pos (point)))
-		(when rejected
-		  (insert "These safely encodes the target text,
-but it is not recommended for encoding text in this context,
-e.g., for sending an email message.\n ")
-		  (mapc #'(lambda (x) (princ " ") (princ x)) rejected)
-		  (insert "\n"))
-		(when unsafe
-		  (insert (if rejected "And the others"
-			    "However, each of them")
-			  " encountered these problematic characters:\n")
-		  (mapc
-		   #'(lambda (coding)
-		       (insert (format "  %s:" (car coding)))
-		       (let ((i 0)
-			     (func1
-			      #'(lambda (bufname pos)
-				  (when (buffer-live-p (get-buffer bufname))
-				    (pop-to-buffer bufname)
-				    (goto-char pos))))
-			     (func2
-			      #'(lambda (bufname pos coding)
-				  (when (buffer-live-p (get-buffer bufname))
-				    (pop-to-buffer bufname)
-				    (if (< (point) pos)
-					(goto-char pos)
-				      (forward-char 1)
-				      (search-unencodable-char coding)
-				      (forward-char -1))))))
-			 (dolist (elt (cdr coding))
-			   (insert " ")
-			   (if (stringp from)
-			       (insert (if (< i 10) (cdr elt) "..."))
-			     (if (< i 10)
-				 (insert-text-button
-				  (cdr elt)
-				  :type 'help-xref
-				  'help-echo
-				  "mouse-2, RET: jump to this character"
-				  'help-function func1
-				  'help-args (list bufname (car elt)))
-			       (insert-text-button
-				"..."
-				:type 'help-xref
-				'help-echo
-				"mouse-2, RET: next unencodable character"
-				'help-function func2
-				'help-args (list bufname (car elt)
-						 (car coding)))))
-			   (setq i (1+ i))))
-		       (insert "\n"))
-		   unsafe)
-		  (insert "\
-The first problematic character is at point in the displayed buffer,\n"
-			  (substitute-command-keys "\
-and \\[universal-argument] \\[what-cursor-position] will give information about it.\n"))))
-	      (insert (if rejected
-			  "\nSelect the above, or "
-			"\nSelect ")
-		      "\
-one of the following safe coding systems, or edit the buffer:\n")
-	      (let ((pos (point))
-		    (fill-prefix "  "))
-		(mapcar (function (lambda (x) (princ "  ") (princ x)))
-			codings)
-		(insert "\n")
-		(fill-region-as-paragraph pos (point)))
-	      (insert "Or specify any other coding system
-at the risk of losing the problematic characters.\n")))
-
-	  ;; Read a coding system.
-	  (setq default-coding-system (or (car safe) (car codings)))
-	  (setq coding-system
-		(read-coding-system
-		 (format "Select coding system (default %s): "
-			 default-coding-system)
-		 default-coding-system))
-	  (setq last-coding-system-specified coding-system))
-
-	(kill-buffer "*Warning*")
-	(set-window-configuration window-configuration)))
+      (setq coding-system (select-safe-coding-system-interactively
+			   from to codings unsafe rejected (car codings))))
 
     (if (and coding-system (vectorp (coding-system-eol-type coding-system)))
 	(let ((eol (coding-system-eol-type buffer-file-coding-system)))
@@ -1926,14 +1762,6 @@ specifies the character set for the major languages of Western Europe."
     (while required-features
       (require (car required-features))
       (setq required-features (cdr required-features))))
-
-  ;; Don't invoke fontset-related functions if fontsets aren't
-  ;; supported in this build of Emacs.
-  (when (fboundp 'fontset-list)
-    (let ((overriding-fontspec (get-language-info language-name 
-						  'overriding-fontspec)))
-      (if overriding-fontspec
-	  (set-overriding-fontspec-internal overriding-fontspec))))
 
   (let ((func (get-language-info language-name 'setup-function)))
     (if (functionp func)
