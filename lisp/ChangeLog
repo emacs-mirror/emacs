@@ -1,3 +1,8 @@
+2003-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* complete.el (PC-do-completion): Do not forget to use `pred' as the
+	default-directory when completing file names.
+
 2003-10-20  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* help-mode.el (help-make-xrefs): Make sure that if a symbol is
@@ -6,8 +11,8 @@
 
 2003-10-20  Dave Love  <fx@gnu.org>
 
-	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation):  Avoid
-	incf in macro expansion.
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation):
+	Avoid incf in macro expansion.
 
 2003-10-20  John Paul Wallington  <jpw@gnu.org>
 
@@ -16,8 +21,7 @@
 
 2003-10-18  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* help-mode.el (help-xref-symbol-regexp): Treat newlines as
-	whitespace.
+	* help-mode.el (help-xref-symbol-regexp): Treat newlines as whitespace.
 	(help-make-xrefs): Only make cross-references for faces if
 	preceded or followed by the word `face'.  Do not make a
 	cross-reference for variables without variable documentation,
@@ -70,20 +74,20 @@
 
 2003-10-12  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff-mult.el (ediff-filegroup-action): Use
-	ediff-default-filtering-regexp.
+	* ediff-mult.el (ediff-filegroup-action):
+	Use ediff-default-filtering-regexp.
 
 	* ediff-util.el (ediff-recenter): Don't call
 	ediff-restore-highlighting twice.
 	(ediff-select-difference): Set current difference.
-	(ediff-unselect-and-select-difference): Added comment.
+	(ediff-unselect-and-select-difference): Add comment.
 
 	* ediff.el (ediff-directories,ediff-directory-revisions)
 	(ediff-directories3,ediff-merge-directories)
 	(ediff-merge-directories-with-ancestor)
 	(ediff-merge-directory-revisions)
-	(ediff-merge-directory-revisions-with-ancestor): Use
-	ediff-default-filtering-regexp.
+	(ediff-merge-directory-revisions-with-ancestor):
+	Use ediff-default-filtering-regexp.
 
 2003-10-12  Andreas Schwab  <schwab@suse.de>
 
@@ -133,7 +137,7 @@
 	* info.el (Info-following-node-name): New function.
 
 	* loadhist.el (unload-feature-special-hooks):
-	Renamed from loadhist-hook-functions.
+	Rename from loadhist-hook-functions.
 	(loadhist-hook-functions): Now an alias.
 
 2003-10-04  Eli Zaretskii  <eliz@elta.co.il>
@@ -141,8 +145,8 @@
 	* ldefs-boot.el: Renamed from loaddefs-boot.el, to prevent
 	file-name clashes on 8+3 filesystems.
 
-	* Makefile.in (DONTCOMPILE, bootstrap-clean): Rename
-	loaddefs-boot.el to ldefs-boot.el
+	* Makefile.in (DONTCOMPILE, bootstrap-clean):
+	Rename loaddefs-boot.el to ldefs-boot.el
 
 	* makefile.w32-in (DONTCOMPILE, bootstrap-clean-CMD)
 	(bootstrap-clean-SH): Rename loaddefs-boot.el to ldefs-boot.el
@@ -165,13 +169,12 @@
 
 2003-10-02  Kenichi Handa  <handa@m17n.org>
 
-	* international/utf-8.el (ccl-decode-mule-utf-8): Lookup
-	utf-subst-table-for-decode even for U+E000..U+FFFF.
+	* international/utf-8.el (ccl-decode-mule-utf-8):
+	Lookup utf-subst-table-for-decode even for U+E000..U+FFFF.
 
-	* international/subst-jis.el: Include U+FF00..U+FFEF in decode
-	table.
+	* international/subst-jis.el: Include U+FF00..U+FFEF in decode table.
 	* international/subst-big5.el: Likewise.
-	* international/subst-gb2312.el: Likewise
+	* international/subst-gb2312.el: Likewise.
 	* international/subst-ksc.el: Likewise.
 
 2003-10-01  Glenn Morris  <gmorris@ast.cam.ac.uk>
@@ -180,8 +183,7 @@
 	(calendar-leap-year-p, calendar-absolute-from-gregorian)
 	(generate-calendar, calendar-read-date, calendar-interval)
 	(calendar-day-of-week): Handle years BC.
-	(generate-calendar-month, calendar-gregorian-from-absolute): Doc
-	fix.
+	(generate-calendar-month, calendar-gregorian-from-absolute): Doc fix.
 
 2003-10-01  Dave Love  <fx@gnu.org>
 
@@ -205,8 +207,8 @@
 
 	* toolbar/gud-display.xpm, toolbar/gud-display.pbm: Remove.
 
-	* progmodes/gud.el (gud-menu-map, gud-tool-bar-map): Replace
-	gud-display with gud-watch.
+	* progmodes/gud.el (gud-menu-map, gud-tool-bar-map):
+	Replace gud-display with gud-watch.
 	(gud-speedbar-buttons): Add stuff for watching expressions
 	in the speedbar when using M-x gdba. Use dolist on old part
 	of this function.
@@ -219,9 +221,8 @@
 	(gdb-var-list-children, gdb-var-list-children-handler)
 	(gdb-var-create-regexp, gdb-var-update-regexp)
 	(gdb-var-list-children-regexp): New constants.
-	(gud-gdba-command-name): Don't specify -noasync so that GDB/MI
-	works.
-	(gdb-annotation-rules): Reduced annotation set (level 3).
+	(gud-gdba-command-name): Don't specify -noasync so that GDB/MI works.
+	(gdb-annotation-rules): Reduce annotation set (level 3).
 	(gdb-pre-prompt, gdb-prompt): Call handler in gdb-prompt.
 	(gdb-post-prompt): Don't update GDB buffers every time speedbar
 	updates.
@@ -287,14 +288,13 @@
 
 	* desktop.el: A lot of comments updated.
 	(desktop-save-mode): Minor mode introduced.
-	(desktop-enable, desktop-clear-preserve-buffers): Variables made
-	obsolete.
+	(desktop-enable, desktop-clear-preserve-buffers): Make vars obsolete.
 	(desktop-load-default): Function made obsolete.
 	(desktop-locals-to-save): Variable made customizable.
 	(desktop-read): Optional parameter `dirname' added.
 	(desktop-change-dir, desktop-revert): Parameter `dirname' in
 	`desktop-read' used.
-	(desktop-save-in-load-dir): Renamed to `desktop-save-in-desktop-dir'.
+	(desktop-save-in-load-dir): Rename to `desktop-save-in-desktop-dir'.
 
 2003-09-29  Rajesh Vaidheeswarran  <rv@gnu.org>
 
@@ -329,8 +329,8 @@
 	(describe-char): Pay attention to display table on describing how
 	a character is displayed.
 
-	* international/mule-cmds.el (encoded-string-description): Prepend
-	"0x" to each encoded byte.
+	* international/mule-cmds.el (encoded-string-description):
+	Prepend "0x" to each encoded byte.
 
 2003-09-28  Andreas Schwab  <schwab@suse.de>
 
@@ -359,8 +359,7 @@
 
 2003-09-28  David Ponce  <david@dponce.com>
 
-	* recentf.el (recentf-initialize-file-name-history): New
-	defcustom.
+	* recentf.el (recentf-initialize-file-name-history): New defcustom.
 	(recentf-load-list): When `recentf-initialize-file-name-history'
 	is non-nil, initialize an empty `file-name-history' with the
 	recent list.
@@ -444,8 +443,7 @@
 2003-09-24  Rajesh Vaidheeswarran  <rv@gnu.org>
 
 	* ffap.el (ffap-shell-prompt-regexp): Add regexp to identify
-	common shell prompts that are not common filename or URL
-	characters.
+	common shell prompts that are not common filename or URL characters.
 	(ffap-file-at-point): Use the new regexp to strip the prompts from
 	the file names. This is an issue mostly for user prompts that
 	don't have a trailing space and find-file-at-point is invoked from
