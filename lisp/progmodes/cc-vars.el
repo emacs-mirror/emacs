@@ -1,8 +1,9 @@
 ;;; cc-vars.el --- user customization variables for CC Mode
 
-;; Copyright (C) 1985,1987,1992-1999 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2000 Free Software Foundation, Inc.
 
-;; Authors:    1998-1999 Barry A. Warsaw and Martin Stjernholm
+;; Authors:    2000- Martin Stjernholm
+;;	       1998-1999 Barry A. Warsaw and Martin Stjernholm
 ;;             1992-1997 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
@@ -156,7 +157,9 @@ syntactic symbols in `c-offsets-alist'.  Please keep it set to nil."
   :group 'c)
 
 (defcustom-c-stylevar c-basic-offset 4
-  "*Amount of basic offset used by + and - symbols in `c-offsets-alist'."
+  "*Amount of basic offset used by + and - symbols in `c-offsets-alist'.
+Also used as the indentation step when `c-syntactic-indentation' is
+nil."
   :type 'integer
   :group 'c)
 
@@ -185,10 +188,24 @@ by the `c-comment-only-line-offset' variable."
   :group 'c)
 
 (defcustom c-insert-tab-function 'insert-tab
-  "*Function used when inserting a tab for \\[TAB].
+  "*Function used when inserting a tab for \\[c-indent-command].
 Only used when `c-tab-always-indent' indicates a `real' tab character
 should be inserted.  Value must be a function taking no arguments."
   :type 'function
+  :group 'c)
+
+(defcustom c-syntactic-indentation t
+  "*Whether the identation should be controlled by the syntactic context.
+
+If t, the indentation functions indents according to the syntactic
+context, using the style settings specified by `c-offsets-alist'.
+
+If nil, every line is just indented to the same level as the previous
+one, and the \\[c-indent-command] command adjusts the indentation in steps
+specified by `c-basic-offset'.  The indentation style have no effect
+in this mode, nor any of the indentation associated variables,
+e.g. `c-special-indent-hook'."
+  :type 'boolean
   :group 'c)
 
 (defcustom-c-stylevar c-comment-only-line-offset 0
@@ -509,7 +526,7 @@ want to set `c-style-variables-are-local-p'."
   :type '(radio
 	  (string :tag "Style in all modes (except Java)")
 	  (repeat :tag "Mode-specific styles"
-		  :value ((other . "user"))
+		  :value ((other . "gnu"))
 		  (cons :format "%v"
 			(choice :tag "Mode"
 				(const c-mode) (const c++-mode)
@@ -555,7 +572,7 @@ want to set `c-style-variables-are-local-p'."
        ;; Relpos: Boi at the topmost intro line.
        (member-init-intro     . +)
        ;; Relpos: Boi at the func decl arglist open.
-       (member-init-cont      . 0)
+       (member-init-cont      . c-lineup-multi-inher)
        ;; Relpos: Beg of the first member init.
        (inher-intro           . +)
        ;; Relpos: Java: Boi at the class decl start.  Otherwise: Boi
@@ -628,20 +645,23 @@ want to set `c-style-variables-are-local-p'."
        (comment-intro         . c-lineup-comment)
        ;; Relpos: None.
        (arglist-intro         . +)
-       ;; Relpos: Boi at the open paren.
+       ;; Relpos: Boi at the open paren, or at the first non-ws after
+       ;; the open paren of the surrounding sexp, whichever is later.
        (arglist-cont          . 0)
        ;; Relpos: At the first token after the open paren.
        (arglist-cont-nonempty . c-lineup-arglist)
-       ;; Relpos: Boi at the open paren.
+       ;; Relpos: Boi at the open paren, or at the first non-ws after
+       ;; the open paren of the surrounding sexp, whichever is later.
        (arglist-close         . +)
-       ;; Relpos: Boi at the open paren.
+       ;; Relpos: Boi at the open paren, or at the first non-ws after
+       ;; the open paren of the surrounding sexp, whichever is later.
        (stream-op             . c-lineup-streamop)
        ;; Relpos: Boi at the first stream op in the statement.
        (inclass               . +)
        ;; Relpos: At the class open brace if it's at boi, otherwise
        ;; boi at the class decl start.
        (cpp-macro             . -1000)
-       ;; Relpos: Boi.
+       ;; Relpos: None.
        (cpp-macro-cont        . c-lineup-dont-change)
        ;; Relpos: At the macro start (always at boi).
        (friend                . 0)
@@ -826,7 +846,7 @@ Here is the current list of valid syntactic element symbols:
 	   (get 'c-offsets-alist 'c-stylevar-fallback)))
   :group 'c)
 
-(defcustom c-style-variables-are-local-p nil
+(defcustom c-style-variables-are-local-p t
   "*Whether style variables should be buffer local by default.
 If non-nil, then all indentation style related variables will be made
 buffer local by default.  If nil, they will remain global.  Variables
