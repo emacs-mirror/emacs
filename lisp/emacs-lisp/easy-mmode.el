@@ -270,7 +270,7 @@ in which `%s' turns it on."
 	 ;; Go through existing buffers.
 	 (dolist (buf (buffer-list))
 	   (with-current-buffer buf
-	     (if ,global-mode (,turn-on) (,mode -1)))))
+	     (if ,global-mode (,turn-on) (when ,mode (,mode -1))))))
 
        ;; Autoloading easy-mmode-define-global-mode
        ;; autoloads everything up-to-here.
