@@ -50,6 +50,7 @@ extern Lisp_Object Voverriding_local_map_menu_flag;
 
 Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
+Lisp_Object Qredisplay_end_trigger_hook;
 
 /* Nonzero means print newline to stdout before next minibuffer message.  */
 
@@ -1911,12 +1912,12 @@ try_window_id (window)
     {
       if (PT < bp.bufpos)
 	{
-	  /* All changes are below the frame, and point is on the frame.
-	     We don't need to change the frame at all.
+	  /* All changes are beyond the window end, and point is on the screen.
+	     We don't need to change the text at all.
 	     But we need to update window_end_pos to account for
 	     any change in buffer size.  */
 	  bp = *compute_motion (start, 0, lmargin, 0,
-				Z, height, 0,
+				ZV, height, 0,
 				width, hscroll, pos_tab_offset (w, start), w);
 	  XSETFASTINT (w->window_end_vpos, height);
 	  XSETFASTINT (w->window_end_pos, Z - bp.bufpos);
@@ -2616,6 +2617,8 @@ display_text_line (w, start, vpos, hpos, taboffset)
     {
       if (pos >= pause)
 	{
+	  int e_t_h;
+
 	  while (pos == next_boundary)
 	    {
 	      Lisp_Object position, limit, prop, ww;
@@ -2707,12 +2710,36 @@ display_text_line (w, start, vpos, hpos, taboffset)
 					      &next_face_change, pos + 50, 0);
 #endif
 
+	  /* Figure out where (if at all) the
+	     redisplay_end_trigger-hook should run.  */
+	  if (MARKERP (current_buffer->redisplay_end_trigger))
+	    e_t_h = marker_position (current_buffer->redisplay_end_trigger);
+	  else if (INTEGERP (current_buffer->redisplay_end_trigger))
+	    e_t_h = XINT (current_buffer->redisplay_end_trigger);
+	  else
+	    e_t_h = ZV;
+
+	  /* If we've gone past the place to run a hook,
+	     run the hook.  */
+	  if (pos >= e_t_h && e_t_h != ZV)
+	    {
+	      call1 (Vrun_hooks, Qredisplay_end_trigger_hook);
+	      current_buffer->redisplay_end_trigger = Qnil;
+	      e_t_h = ZV;
+	    }
+
+	  /* Compute the next place we need to stop
+	     and do something special; set PAUSE.  */
+
 	  pause = ZV;
 
 	  if (pos < next_boundary && next_boundary < pause)
 	    pause = next_boundary;
 	  if (pos < next_face_change && next_face_change < pause)
 	    pause = next_face_change;
+
+	  if (e_t_h < pause)
+	    pause = e_t_h;
 
 	  /* Wouldn't you hate to read the next line to someone over
              the phone?  */
@@ -4201,6 +4228,9 @@ syms_of_xdisp ()
 
   staticpro (&Qwindow_scroll_functions);
   Qwindow_scroll_functions = intern ("window-scroll-functions");
+
+  staticpro (&Qredisplay_end_trigger_hook);
+  Qredisplay_end_trigger_hook = intern ("redisplay-end-trigger-hook");
 
   staticpro (&last_arrow_position);
   staticpro (&last_arrow_string);
