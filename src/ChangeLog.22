@@ -1,3 +1,12 @@
+2004-04-18  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (encode_coding_utf_8): Fix handling of raw-byte char.
+	(consume_chars): Fix handling of 8-bit bytes in unibyte source.
+
+2004-04-14  Kenichi Handa  <handa@m17n.org>
+
+	Sync all files to HEAD.
+
 2004-04-14  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Ffind_coding_systems_region_internal): Include
