@@ -3089,20 +3089,20 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 		     ;; expansion time and return the result. The moral of that
 		     ;; is that one should always deactivate advised special
 		     ;; forms before one byte-compiles a file.
-		     (` ((, (if orig-macro-p
-				'macroexpand
-			      'eval))
-			 (cons '(, origname)
-			       (, (ad-get-arguments advised-arglist 0))))))
+		     `(,(if orig-macro-p 'macroexpand 'eval)
+		       (cons ',origname
+			     ,(ad-get-arguments advised-arglist 0))))
 		    ((and orig-subr-p
 			  orig-interactive-p
+			  (not interactive-form)
 			  (not advised-interactive-form))
 		     ;; Check whether we were called interactively
 		     ;; in order to do proper prompting:
-		     (` (if (interactive-p)
-			    (call-interactively '(, origname))
-			  (, (ad-make-mapped-call
-			      orig-arglist advised-arglist origname)))))
+		     `(if (interactive-p)
+			  (call-interactively ',origname)
+			,(ad-make-mapped-call orig-arglist 
+					      advised-arglist
+					      origname)))
 		    ;; And now for normal functions and non-interactive subrs
 	            ;; (or subrs whose interactive behavior was advised):
 		    (t (ad-make-mapped-call
