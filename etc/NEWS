@@ -121,9 +121,9 @@ Gnus, and adds a slew of new commands.  See the manual for details.
 Separate MIME packages like RMIME, mime-compose etc., will probably no
 longer work; remove them and use the native facilities.
 
-FLIM/SEMI package still works with Emacs 21.  But, if you want to use
-the native facilities, you must remove mailcap.el[c] that was
-installed by FLIM/SEMI of version 1.13 or the earlier.
+The FLIM/SEMI package still works with Emacs 21, but if you want to
+use the native facilities, you must remove any mailcap.el[c] that was
+installed by FLIM/SEMI version 1.13 or earlier.
 
 *** Gnus has also been multilingualized.  This also affects too many
 parts of Gnus to summarize here, and adds many new variables.  There
@@ -185,6 +185,8 @@ file, Emacs now pops up the *Messages* buffer.
 ** Polish and German translations of Emacs' reference card have been
 added.  They are named `pl-refcard.tex' and `de-refcard.tex'.
 Postscript files are included.
+
+** An `Emacs Survival Guide', etc/survival.tex, is available.
 
 ** A reference card for Dired has been added.  Its name is
 `dired-ref.tex'.
