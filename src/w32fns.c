@@ -13184,6 +13184,101 @@ is set to off if the low bit of NEW-STATE is zero, otherwise on.")
   return Qnil;
 }
 
+DEFUN ("file-system-info", Ffile_system_info, Sfile_system_info, 1, 1, 0,
+  "Return storage information about the file system FILENAME is on.\n\
+Value is a list of floats (TOTAL FREE AVAIL), where TOTAL is the total\n\
+storage of the file system, FREE is the free storage, and AVAIL is the\n\
+storage available to a non-superuser.  All 3 numbers are in bytes.\n\
+If the underlying system call fails, value is nil.")
+  (filename)
+  Lisp_Object filename;
+{
+  Lisp_Object encoded, value;
+
+  CHECK_STRING (filename, 0);
+  filename = Fexpand_file_name (filename, Qnil);
+  encoded = ENCODE_FILE (filename);
+
+  value = Qnil;
+
+  /* Determining the required information on Windows turns out, sadly,
+     to be more involved than one would hope.  The original Win32 api
+     call for this will return bogus information on some systems, but we
+     must dynamically probe for the replacement api, since that was
+     added rather late on.  */
+  {
+    HMODULE hKernel = GetModuleHandle ("kernel32");
+    BOOL (*pfn_GetDiskFreeSpaceEx)
+      (char *, PULARGE_INTEGER, PULARGE_INTEGER, PULARGE_INTEGER)
+      = (void *) GetProcAddress (hKernel, "GetDiskFreeSpaceEx");
+
+    /* On Windows, we may need to specify the root directory of the
+       volume holding FILENAME.  */
+    char rootname[MAX_PATH];
+    char *name = XSTRING (encoded)->data;
+
+    /* find the root name of the volume if given */
+    if (isalpha (name[0]) && name[1] == ':')
+      {
+	rootname[0] = name[0];
+	rootname[1] = name[1];
+	rootname[2] = '\\';
+	rootname[3] = 0;
+      }
+    else if (IS_DIRECTORY_SEP (name[0]) && IS_DIRECTORY_SEP (name[1]))
+      {
+	char *str = rootname;
+	int slashes = 4;
+	do
+	  {
+	    if (IS_DIRECTORY_SEP (*name) && --slashes == 0)
+	      break;
+	    *str++ = *name++;
+	  }
+	while ( *name );
+
+	*str++ = '\\';
+	*str = 0;
+      }
+
+    if (pfn_GetDiskFreeSpaceEx)
+      {
+	LARGE_INTEGER availbytes;
+	LARGE_INTEGER freebytes;
+	LARGE_INTEGER totalbytes;
+
+	if (pfn_GetDiskFreeSpaceEx(rootname,
+				   &availbytes,
+				   &totalbytes,
+				   &freebytes))
+	  value = list3 (make_float ((double) totalbytes.QuadPart),
+			 make_float ((double) freebytes.QuadPart),
+			 make_float ((double) availbytes.QuadPart));
+      }
+    else
+      {
+	DWORD sectors_per_cluster;
+	DWORD bytes_per_sector;
+	DWORD free_clusters;
+	DWORD total_clusters;
+
+	if (GetDiskFreeSpace(rootname,
+			     &sectors_per_cluster,
+			     &bytes_per_sector,
+			     &free_clusters,
+			     &total_clusters))
+	  value = list3 (make_float ((double) total_clusters
+				     * sectors_per_cluster * bytes_per_sector),
+			 make_float ((double) free_clusters
+				     * sectors_per_cluster * bytes_per_sector),
+			 make_float ((double) free_clusters
+				     * sectors_per_cluster * bytes_per_sector));
+      }
+  }
+
+  return value;
+}
+
 syms_of_w32fns ()
 {
   /* This is zero if not using MS-Windows.  */
@@ -13642,6 +13737,8 @@ versions of Windows) characters.");
   defsubr (&Sw32_reconstruct_hot_key);
   defsubr (&Sw32_toggle_lock_key);
   defsubr (&Sw32_find_bdf_fonts);
+
+  defsubr (&Sfile_system_info);
 
   /* Setting callback functions for fontset handler.  */
   get_font_info_func = w32_get_font_info;
