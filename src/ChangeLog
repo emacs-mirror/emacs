@@ -1,5 +1,8 @@
 2000-11-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* buffer.c (mmap_free_1): Use a cast to avoid an anoying compiler
+	warning on some systems.
+
 	* term.c, cm.c: Don't try to include termcap.h; see comment there.
 
 2000-11-21  Kenichi Handa  <handa@etl.go.jp>
