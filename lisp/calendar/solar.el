@@ -145,7 +145,7 @@ Returns nil if nothing was entered."
 
 (defun solar-degrees-to-quadrant (angle)
   "Determines the quadrant of ANGLE."
-  (1+ (truncate (/ (solar-mod angle 360.0) 90.0))))
+  (1+ (truncate (/ (mod angle 360.0) 90.0))))
 
 (defun solar-arctan (x quad)
   "Arctangent of X in quadrant QUAD."
@@ -162,13 +162,6 @@ Returns nil if nothing was entered."
 (defun solar-arcsin (y)
   (let ((x (sqrt (- 1 (* y y)))))
     (solar-arctan (/ y x) (solar-xy-to-quadrant x y))))
-
-(defun solar-mod (x y)
-  "Returns X mod Y; value is *always* non-negative."
-  (let ((v (% x y)))
-    (if (> 0 v)
-	(+ v y)
-      v)))
 
 (defconst solar-earth-inclination 23.441884 
   "Inclination of earth's equator to its solar orbit in degrees.")
@@ -191,11 +184,11 @@ Returns nil if nothing was entered."
 (defun solar-longitude-of-sun (day)
   "Longitude of the sun at DAY in the year."
   (let ((mean-anomaly (- (* 0.9856 day) 3.289)))
-    (solar-mod (+ mean-anomaly 
-		  (* 1.916 (solar-sin-degrees mean-anomaly))
-		  (* 0.020 (solar-sin-degrees (* 2 mean-anomaly)))
-		  282.634)
-	       360)))
+    (mod (+ mean-anomaly 
+	    (* 1.916 (solar-sin-degrees mean-anomaly))
+	    (* 0.020 (solar-sin-degrees (* 2 mean-anomaly)))
+	    282.634)
+	 360)))
 
 (defun solar-right-ascension (longitude)
   "Right ascension of the sun, given its LONGITUDE."
@@ -235,10 +228,10 @@ of hours.  Returns nil if the sun does not rise at that location on that day."
       (let* ((local-sunrise (solar-degrees-to-hours
                              (- 360 (solar-arccos cos-local-sunrise))))
              (local-mean-sunrise
-	      (solar-mod (- (+ local-sunrise solar-right-ascension-at-sunrise)
-			    (+ (* 0.065710 approx-sunrise)
-			       6.622))
-			 24)))
+	      (mod (- (+ local-sunrise solar-right-ascension-at-sunrise)
+		      (+ (* 0.065710 approx-sunrise)
+			 6.622))
+		   24)))
 	(+ (- local-mean-sunrise (solar-degrees-to-hours calendar-longitude))
 	   (/ calendar-time-zone 60.0))))))
 
@@ -267,9 +260,9 @@ of hours.  Returns nil if the sun does not set at that location on that day."
       (let* ((local-sunset (solar-degrees-to-hours
                             (solar-arccos cos-local-sunset)))
              (local-mean-sunset
-	      (solar-mod (- (+ local-sunset solar-right-ascension-at-sunset)
-			    (+ (* 0.065710 approx-sunset) 6.622))
-			 24)))
+	      (mod (- (+ local-sunset solar-right-ascension-at-sunset)
+		      (+ (* 0.065710 approx-sunset) 6.622))
+		   24)))
 	(+ (- local-mean-sunset (solar-degrees-to-hours calendar-longitude))
 	   (/ calendar-time-zone 60.0))))))
 
@@ -379,7 +372,7 @@ several minutes."
         app
 	(correction 1000))
     (while (> correction 0.00001)
-      (setq app (solar-mod (solar-apparent-longitude-of-sun date) 360.0))
+      (setq app (mod (solar-apparent-longitude-of-sun date) 360.0))
       (setq correction (* 58 (solar-sin-degrees (- (* k 90) app))))
       (setq date (list (extract-calendar-month date)
 		       (+ (extract-calendar-day date) correction)
