@@ -1,5 +1,8 @@
 2002-12-08  Dave Love  <fx@gnu.org>
 
+	* international/code-pages.el (mule-diag): Move where it's
+	required.
+
 	* international/ucs-tables.el: Add latin-jisx0201 characters.  Fix
 	translation-table-for-input for lao, thai, tibetan.
 
