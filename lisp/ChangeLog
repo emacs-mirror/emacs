@@ -1,3 +1,8 @@
+2001-07-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/mh-utils.el (mh-find-progs): Also search in `lib'.
+	From Mats Bengtsson <mats.bengtsson@s3.kth.se>,
+	
 2001-07-17  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* international/iso-transl.el: Fix typo in the header of the file.
