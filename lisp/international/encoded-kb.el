@@ -195,42 +195,36 @@ The following key sequence may cause multilingual text insertion."
   (let* ((charset (aref encoded-kbd-iso2022-designations
 			(or (aref encoded-kbd-iso2022-invocations 2)
 			    (aref encoded-kbd-iso2022-invocations 0))))
-	 (last-command-char
-	  (if (= (charset-dimension charset) 1)
-	      (make-char charset last-command-char)
-	    (make-char charset last-command-char (read-char-exclusive)))))
-    (self-insert-command 1)
+	 (char (if (= (charset-dimension charset) 1)
+		   (make-char charset last-command-char)
+		 (make-char charset last-command-char (read-char-exclusive)))))
     (aset encoded-kbd-iso2022-invocations 2 nil)
-    ))
+    (setq unread-command-events (cons char unread-command-events))))
 
 (defun encoded-kbd-self-insert-iso2022-8bit ()
   (interactive)
   (let* ((charset (aref encoded-kbd-iso2022-designations
 			(or (aref encoded-kbd-iso2022-invocations 2)
 			    (aref encoded-kbd-iso2022-invocations 1))))
-	 (last-command-char
-	  (if (= (charset-dimension charset) 1)
-	      (make-char charset last-command-char)
-	    (make-char charset last-command-char (read-char-exclusive)))))
-    (self-insert-command 1)
+	 (char (if (= (charset-dimension charset) 1)
+		   (make-char charset last-command-char)
+		 (make-char charset last-command-char (read-char-exclusive)))))
     (aset encoded-kbd-iso2022-invocations 2 nil)
-    ))
+    (setq unread-command-events (cons char unread-command-events))))
 
 (defun encoded-kbd-self-insert-sjis ()
   (interactive)
-  (let ((last-command-char
-	 (if (or (< last-command-char ?\xA0) (>= last-command-char ?\xE0))
-	     (decode-sjis-char (+ (ash last-command-char 8)
-				  (read-char-exclusive)))
-	   (make-char 'katakana-jisx0201 last-command-char))))
-    (self-insert-command 1)))
+  (let ((char (if (or (< last-command-char ?\xA0) (>= last-command-char ?\xE0))
+		  (decode-sjis-char (+ (ash last-command-char 8)
+				       (read-char-exclusive)))
+		(make-char 'katakana-jisx0201 last-command-char))))
+    (setq unread-command-events (cons char unread-command-events))))
 
 (defun encoded-kbd-self-insert-big5 ()
   (interactive)
-  (let ((last-command-char
-	 (decode-big5-char (+ (ash last-command-char 8)
-			      (read-char-exclusive)))))
-    (self-insert-command 1)))
+  (let ((char (decode-big5-char (+ (ash last-command-char 8)
+				   (read-char-exclusive)))))
+    (setq unread-command-events (cons char unread-command-events))))
 
 ;; Input mode at the time Encoded-kbd mode is turned on is saved here.
 (defvar saved-input-mode nil)
