@@ -481,6 +481,14 @@ reset_buffer_local_variables (b)
   b->abbrev_table = Vfundamental_mode_abbrev_table;
   b->mode_name = QSFundamental;
   b->minor_modes = Qnil;
+
+  /* If the standard case table has been altered and invalidated,
+     fix up its insides first.  */
+  if (! (CHAR_TABLE_P (XCHAR_TABLE (Vascii_downcase_table)->extras[0])
+	 && CHAR_TABLE_P (XCHAR_TABLE (Vascii_downcase_table)->extras[1])
+	 && CHAR_TABLE_P (XCHAR_TABLE (Vascii_downcase_table)->extras[2])))
+    Fset_standard_case_table (Vascii_downcase_table);
+
   b->downcase_table = Vascii_downcase_table;
   b->upcase_table = XCHAR_TABLE (Vascii_downcase_table)->extras[0];
   b->case_canon_table = XCHAR_TABLE (Vascii_downcase_table)->extras[1];
