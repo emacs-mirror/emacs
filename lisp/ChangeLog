@@ -1,5 +1,7 @@
 2002-02-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* Makefile.in (DONTCOMPILE): Remove cus-start.el.
+
 	* cus-start.el: Add automatic-hscroll-margin and
 	automatic-hscroll-step.
 

@@ -1,5 +1,8 @@
 2002-02-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* Makefile.in (lisp, shortlisp): Use cus-start.elc, not
+	cus-start.el.
+
 	* msdos.c (x_autoselect_window_p): New variable.
 	(syms_of_msdos): Defvar it.
 	(dos_rawgetc): If x_autoselect_window_p is set, select the window
