@@ -1,3 +1,8 @@
+2002-02-10  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in ($(TIT)): Don't depend on $(SUBDIRS).
+	($(MISC_DIC)): Ditto.
+
 2002-02-06  Richard M. Stallman  <rms@gnu.org>
 
 	* quail/latin-pre.el (french-prefix): ", " => "," and "~ " => "~".
