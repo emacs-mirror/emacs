@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.25) $
+ * $HopeName: MMsrc!arenavm.c(trunk.26) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -37,7 +37,7 @@
 #include "mpm.h"
 
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.25) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.26) $");
 
 
 /* Space Arena Projection
@@ -527,7 +527,7 @@ static Bool tablePageInUse(Arena arena, Addr tablePage)
   /* Check it's in the page table. */
   fromStart = AddrOffset((Addr)&arena->pageTable[0], tablePage);
   toEnd = AddrOffset(tablePage, (Addr)&arena->pageTable[arena->tablePages]);
-  AVER(fromStart >= 0 && toEnd > 0);
+  AVER(toEnd > 0);
 
   return !BTIsResRange(arena->allocTable,
 		       tablePageBaseIndex(arena, tablePage),
@@ -550,8 +550,7 @@ static Bool unusedTablePages(Addr *pagesBaseReturn, Addr *pagesLimitReturn,
   Addr firstPageBase, lastPageBase, pagesBase, pagesLimit;
 
   AVERT(Arena, arena);
-  AVER(0 <= baseIndex && baseIndex < limitIndex
-       && limitIndex <= arena->pages);
+  AVER(baseIndex < limitIndex && limitIndex <= arena->pages);
   AVER(BTIsResRange(arena->allocTable, baseIndex, limitIndex));
   AVER(pagesBaseReturn != NULL);
   AVER(pagesLimitReturn != NULL);
