@@ -1,3 +1,9 @@
+2000-01-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* textmodes/fill.el (fill-common-string-prefix): New function.
+	(fill-context-prefix): Use the longest common substring of both
+	prefixes, if there is one.
+
 2000-01-11  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* array.el (array-mode): Don't use make-variable-buffer-local.
