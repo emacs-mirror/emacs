@@ -1210,11 +1210,17 @@ graft_intervals_into_buffer (source, position, buffer)
   return;
 }
 
+/* Get the value of property PROP from PLIST,
+   which is the plist of an interval.
+   We check for direct properties and for categories with property PROP.  */
+
+Lisp_Object
 textget (plist, prop)
      Lisp_Object plist;
      register Lisp_Object prop;
 {
-  register Lisp_Object tail;
+  register Lisp_Object tail, fallback;
+  fallback = Qnil;
 
   for (tail = plist; !NILP (tail); tail = Fcdr (Fcdr (tail)))
     {
@@ -1222,12 +1228,15 @@ textget (plist, prop)
       tem = Fcar (tail);
       if (EQ (prop, tem))
 	return Fcar (Fcdr (tail));
+      if (EQ (tem, Qcategory))
+	fallback = Fget (Fcar (Fcdr (tail)), prop);
     }
-  return Qnil;
+
+  return fallback;
 }
 
-/* Set point in BUFFER to POSITION.  If the target position is in
-   after an invisible character which is not displayed with a special glyph,
+/* Set point in BUFFER to POSITION.  If the target position is 
+   before an invisible character which is not displayed with a special glyph,
    move back to an ok place to display.  */
 
 void
@@ -1297,14 +1306,14 @@ set_point (position, buffer)
       return;
     }
 
-  /* If the new position is after an invisible character,
-     move back over all such.  */
-  while (! NULL_INTERVAL_P (toprev)
-	 && ! INTERVAL_VISIBLE_P (toprev)
-	 && ! DISPLAY_INVISIBLE_GLYPH (toprev))
+  /* If the new position is before an invisible character,
+     move forward over all such.  */
+  while (! NULL_INTERVAL_P (to)
+	 && ! INTERVAL_VISIBLE_P (to)
+	 && ! DISPLAY_INVISIBLE_GLYPH (to))
     {
-      to = toprev;
-      toprev = previous_interval (toprev);
+      toprev = to;
+      to = next_interval (to);
       position = to->position;
     }
 
@@ -1356,6 +1365,42 @@ temp_set_point (position, buffer)
      struct buffer *buffer;
 {
   buffer->text.pt = position;
+}
+
+/* Return the proper local map for position POSITION in BUFFER.
+   Use the map specified by the local-map property, if any.
+   Otherwise, use BUFFER's local map.  */
+
+Lisp_Object
+get_local_map (position, buffer)
+     register int position;
+     register struct buffer *buffer;
+{
+  register INTERVAL interval;
+  Lisp_Object prop, tem;
+
+  if (NULL_INTERVAL_P (buffer->intervals))
+    return current_buffer->keymap;
+
+  /* Perhaps we should just change `position' to the limit. */
+  if (position > BUF_Z (buffer) || position < BUF_BEG (buffer))
+    abort ();
+
+  /* Position Z is really one past the last char in the buffer.  */
+  if (position == BUF_ZV (buffer))
+    return current_buffer->keymap;
+
+  interval = find_interval (buffer->intervals, position);
+  prop = textget (interval->plist, Qlocal_map);
+  if (NILP (prop))
+    return current_buffer->keymap;
+
+  /* Use the local map only if it is valid.  */
+  tem = Fkeymapp (prop);
+  if (!NILP (tem))
+    return prop;
+
+  return current_buffer->keymap;
 }
 
 /* Call the modification hook functions in LIST, each with START and END.  */
@@ -1430,20 +1475,20 @@ verify_interval_modification (buf, start, end)
 
       if (NULL_INTERVAL_P (prev))
 	{
-	  after = textget (i, Qread_only);
+	  after = textget (i->plist, Qread_only);
 	  if (! NILP (after))
 	    error ("Attempt to insert within read-only text");
 	}
       else if (NULL_INTERVAL_P (i))
 	{
-	  before = textget (prev, Qread_only);
+	  before = textget (prev->plist, Qread_only);
 	  if (! NILP (before))
 	    error ("Attempt to insert within read-only text");
 	}
       else
 	{
-	  before = textget (prev, Qread_only);
-	  after = textget (i, Qread_only);
+	  before = textget (prev->plist, Qread_only);
+	  after = textget (i->plist, Qread_only);
 	  if (! NILP (before) && EQ (before, after))
 	    error ("Attempt to insert within read-only text");
 	}
