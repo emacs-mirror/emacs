@@ -1,5 +1,8 @@
 2004-11-12  Diane Murray  <dsm@muenster.de>  (tiny change)
 
+	* mail/rmail.el (rmail-get-new-mail): Use the renamed variables
+	`rsf-beep' and `rsf-sleep-after-message'.
+
 	* mail/rmail-spam-filter.el (rmail-spam-filter): Only check white
 	list if `message-sender' is non-nil.
 
