@@ -1,5 +1,8 @@
 2004-11-23  Kim F. Storm  <storm@cua.dk>
 
+	* dispextern.h (MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P)
+	(MATRIX_ROW_STARTS_IN_MIDDLE_OF_CHAR_P): Not if dpvec_index is zero.
+
 	* xfaces.c (lookup_named_face): Add signal_p arg.  Return -1 if
 	signal_p is zero and face name is unknown.
 	(Fx_list_fonts): Don't signal error in lookup_named_face.
