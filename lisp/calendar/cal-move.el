@@ -1,8 +1,9 @@
 ;;; cal-move.el --- calendar functions for movement in the calendar
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2005  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
+;; Maintainer: Glenn Morris <gmorris@ast.cam.ac.uk>
 ;; Keywords: calendar
 ;; Human-Keywords: calendar
 
@@ -269,7 +270,8 @@ Moves forward if ARG is negative."
       (if (and (= arg 1)
                (calendar-date-is-visible-p jan-first))
           (calendar-cursor-to-visible-date jan-first)
-        (calendar-other-month 1 (- year (1- arg))))))
+        (calendar-other-month 1 (- year (1- arg)))
+        (calendar-cursor-to-visible-date (list 1 1 displayed-year)))))
   (run-hooks 'calendar-move-hook))
 
 (defun calendar-end-of-year (arg)
@@ -287,7 +289,7 @@ Moves forward if ARG is negative."
       (if (and (= arg 1)
                (calendar-date-is-visible-p dec-31))
           (calendar-cursor-to-visible-date dec-31)
-        (calendar-other-month 12 (- year (1- arg)))
+        (calendar-other-month 12 (+ year (1- arg)))
         (calendar-cursor-to-visible-date (list 12 31 displayed-year)))))
   (run-hooks 'calendar-move-hook))
 
