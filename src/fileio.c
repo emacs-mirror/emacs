@@ -3418,6 +3418,53 @@ decide_coding_unwind (unwind_data)
   return Qnil;
 }
 
+
+/* Unwind-function for reading from a file in insert-file-contents.
+
+   INFO is a pair (INSERTED-BYTES . VISIT).  INSERTED-BYTES is the
+   number of bytes successfully inserted into current_buffer.  VISIT
+   is the same as the parameter VISIT Of insert-file-contents.
+
+   When reading is interrupted by C-g, this leaves the newly read part
+   of the current buffer undecoded.  If this happens in a multibyte
+   buffer, prevent invalid characters by either discarding what has
+   been read or switching the buffer to unibyte.
+
+           PT                 GPT
+   +-----------------------------------------------------+
+   |       |  inserted bytes   |  GAP_SIZE |             |
+   +-----------------------------------------------------+
+           \                             /
+	    +--------- the gap ---------+	 */
+
+static Lisp_Object
+unwind_read (info)
+     Lisp_Object info;
+{
+  if (!NILP (current_buffer->enable_multibyte_characters))
+    {
+      int nbytes = XINT (XCAR (info));
+      int visit = !NILP (XCDR (info));
+
+      if (visit || Z == nbytes)
+	current_buffer->enable_multibyte_characters = Qnil;
+      else
+	{
+	  ZV -= nbytes;
+	  ZV_BYTE -= nbytes;
+	  Z -= nbytes;
+	  Z_BYTE -= nbytes;
+      
+	  GPT = PT;
+	  GPT_BYTE = PT_BYTE;
+	  GAP_SIZE = nbytes + GAP_SIZE;
+	}
+    }
+      
+  return Qnil;
+}
+
+
 DEFUN ("insert-file-contents", Finsert_file_contents, Sinsert_file_contents,
   1, 5, 0,
   "Insert contents of file FILENAME after point.\n\
@@ -4131,17 +4178,22 @@ actually used.")
 	/* try is reserved in some compilers (Microsoft C) */
       int trytry = min (total - how_much, READ_BUF_SIZE);
       int this;
+      int count = BINDING_STACK_SIZE ();
 
       /* For a special file, GAP_SIZE should be checked every time.  */
       if (not_regular && GAP_SIZE < trytry)
 	make_gap (total - GAP_SIZE);
 
-      /* Allow quitting out of the actual I/O.  */
+      /* Allow quitting out of the actual I/O.  If we do,
+         remove 's */
+      record_unwind_protect (unwind_read,
+			     Fcons (make_number (inserted), visit));
       immediate_quit = 1;
       QUIT;
       this = emacs_read (fd, BYTE_POS_ADDR (PT_BYTE + inserted - 1) + 1,
 			 trytry);
       immediate_quit = 0;
+      --specpdl_ptr;
 
       if (this <= 0)
 	{
