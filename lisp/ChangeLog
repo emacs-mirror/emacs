@@ -1,5 +1,8 @@
 2000-03-07  Dave Love  <fx@gnu.org>
 
+	* recentf.el (recentf-keep-non-readable-files-p): Add :set,
+	:require to defcustom.
+
 	* emacs-lisp/cl.el: Remove expt, delete, rassoc from autoloads
 	lists.
 
