@@ -23,44 +23,90 @@
 
 ;;; Commentary:
 
-;; This is a list of options processed in this file.
-;; There are also -- forms, but they aren't listed here.
-;; There are also options for X windows, not listed here;
-;; see term/x-win.el.
+;; This file parses the command line and gets Emacs running.  Options on
+;; the command line are handled in precedence order.  The order is the
+;; one in the list below; first described means first handled.  Options
+;; within each category (delimited by a bar) are handled in the order
+;; encountered on the command line.
 
-; These options are processed first, no matter where they appear.
-; -batch		execute noninteractively (messages go to stdout,
-;			 variable noninteractive set to t)
-;			 This option must be the first in the arglist.
-;			 Processed by `main' in emacs.c -- never seen by lisp
-; -t file		Specify to use file rather than stdin/stdout
-;			 as the terminal.
-;			 This option must be the first in the arglist.
-;			 Processed by `main' in emacs.c -- never seen by lisp
-; -nw			Inhibit the use of any window-system-specific display
-;			 code; use the current virtual terminal.
-;			 This option must be the first in the arglist.
-;			 Processed by `main' in emacs.c -- never seen by lisp
-; -q			load no init file; don't load default.el either.
-;			  But this has no effect on site-start.el.
-; -no-init-file		same
-; -u user		load USER's init file instead of your own.
-; -user user		same
-; -debug-init		Don't catch errors in init file; let debugger run.
-; -no-site-file		Don't load site-start.el.
-;			  (This is the ONLY way to prevent loading that file.)
-
-; These are processed in the order encountered.
-; -f function		execute function
-; -funcall function	same
-; -l file		load file
-; -load file		same
-; -insert file		insert file into buffer
-; -L dir		add dir to load-path
-; file			visit file
-
-; This is always processed last, no matter where it appears.
-; -kill			kill (exit) emacs
+;; -------------------------
+;; -version                  Print Emacs version to stderr, then exit
+;; --version                 successfully right away.
+;;                           This option is handled by emacs.c
+;; -------------------------
+;; -help                     Print a short usage description and exit
+;; --help                    successfully right away.
+;;                           This option is handled by emacs.c
+;; -------------------------
+;; -nl                       Do not use shared memory (for systems that
+;; -no-shared-memory         support this) for the dumped Emacs data.
+;;                           This option is handled by emacs.c
+;;
+;; -map                      For VMS.
+;; --map-data                This option is handled by emacs.c
+;; -------------------------
+;; -t FILE                   Use FILE as the name of the terminal.
+;; --terminal FILE           Using this implies "-nw" also.
+;;                           This option is handled by emacs.c
+;; -------------------------
+;; -d DISPNAME               Use DISPNAME as the name of the X-windows
+;; -display DISPNAME         display for the initial frame.
+;; --display DISPNAME        This option is handled by emacs.c
+;; -------------------------
+;; -nw                       Do not use a windows system (but use the
+;; --no-windows              terminal instead.)
+;;                           This option is handled by emacs.c
+;; -------------------------
+;; -batch                    Execute noninteractively (messages go to stdout,
+;; --batch                   variable noninteractive set to t)
+;;                           This option is handled by emacs.c
+;; -------------------------
+;; -q                        Do not load user's init file and do not load
+;; -no-init-file             "default.el".  Regardless of this switch,
+;; --no-init-file            "site-init.el" is still loaded.
+;; -------------------------
+;; -no-site-file             Do not load "site-init.el".  (This is the ONLY
+;; --no-site-file            way to prevent loading that file.)
+;; -------------------------
+;; -u USER                   Load USER's init file instead of the init
+;; -user USER                file belonging to the user starting Emacs.
+;; --user USER
+;; -------------------------
+;; -debug-init               Don't catch errors in init files; let the
+;; --debug-init              debugger run.
+;; -------------------------
+;; -i ICONTYPE               Set type of icon using when Emacs is
+;; -itype ICONTYPE           iconified under X-windows.
+;; --icon-type ICONTYPE      This option is passed on to term/x-win.el
+;;
+;; -iconic                   Start Emacs iconified under X-windows.
+;; --iconic                  This option is passed on to term/x-win.el
+;; -------------------------
+;; Various X-windows options for colors/fonts/geometry/title etc.
+;; These options are passed on to term/x-win.el which see.  Certain
+;; of these are also found in term/pc-win.el
+;; -------------------------
+;; FILE                      Visit FILE.
+;;
+;; -L DIRNAME                Add DIRNAME to load-path
+;; -directory DIRNAME
+;; --directory DIRNAME
+;;
+;; -l FILE                   Load and execute the Emacs lisp code
+;; -load FILE                in FILE.
+;; --load FILE
+;;
+;; -f FUNC                   Execute Emacs lisp function FUNC with
+;; -funcall FUNC             no arguments.  The "-e" form is outdated
+;; --funcall FUNC            and should not be used.  (It's a typo
+;; -e FUNC                   promoted to a feature.)
+;;
+;; -insert FILE              Insert the contents of FILE into buffer.
+;; --insert FILE
+;; -------------------------
+;; -kill                     Kill (exit) Emacs right away.
+;; --kill
+;; -------------------------
 
 ;;; Code:
 
