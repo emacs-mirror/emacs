@@ -664,8 +664,9 @@ until a certain package is loaded, you should put the call to `add-to-list'
 into a hook function that will be run only after loading the package.
 `eval-after-load' provides one way to do this.  In some cases
 other hooks, such as major mode hooks, can do the job."
-  (or (member element (symbol-value list-var))
-      (set list-var (cons element (symbol-value list-var)))))
+  (if (member element (symbol-value list-var))
+      (symbol-value list-var)
+    (set list-var (cons element (symbol-value list-var)))))
 
 ;;;; Specifying things to do after certain files are loaded.
 
