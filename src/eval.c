@@ -20,6 +20,11 @@ Boston, MA 02111-1307, USA.  */
 
 
 #include <config.h>
+
+#ifdef STDC_HEADERS
+#include <stdlib.h>
+#endif
+
 #include "lisp.h"
 #include "blockinput.h"
 
@@ -162,6 +167,7 @@ Lisp_Object run_hook_with_args ();
 Lisp_Object funcall_lambda ();
 extern Lisp_Object ml_apply (); /* Apply a mocklisp function to unevaluated argument list */
 
+void
 init_eval_once ()
 {
   specpdl_size = 50;
@@ -173,6 +179,7 @@ init_eval_once ()
   Vrun_hooks = Qnil;
 }
 
+void
 init_eval ()
 {
   specpdl_ptr = specpdl;
@@ -199,6 +206,7 @@ call_debugger (arg)
   return apply1 (Vdebugger, arg);
 }
 
+void
 do_debug_on_call (code)
      Lisp_Object code;
 {
@@ -2893,6 +2901,7 @@ If NFRAMES is more than the number of frames, the value is nil.")
     }
 }
 
+void
 syms_of_eval ()
 {
   DEFVAR_INT ("max-specpdl-size", &max_specpdl_size,

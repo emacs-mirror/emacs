@@ -26,6 +26,7 @@ Boston, MA 02111-1307, USA.  */
 #include "charset.h"
 #include "window.h"
 #include "blockinput.h"
+#include "region-cache.h"
 
 #ifndef NULL
 #define NULL 0
@@ -777,7 +778,7 @@ count_size_as_multibyte (ptr, nbytes)
 void
 insert (string, nbytes)
      register unsigned char *string;
-     register nbytes;
+     register int nbytes;
 {
   if (nbytes > 0)
     {
@@ -792,7 +793,7 @@ insert (string, nbytes)
 void
 insert_and_inherit (string, nbytes)
      register unsigned char *string;
-     register nbytes;
+     register int nbytes;
 {
   if (nbytes > 0)
     {
@@ -2441,6 +2442,7 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
   return unbind_to (count, val);
 }
 
+void
 syms_of_insdel ()
 {
   staticpro (&combine_after_change_list);

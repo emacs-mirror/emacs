@@ -772,6 +772,7 @@ Its numeric meaning is what you would get from `(interactive \"p\")'.")
   return val;
 }
 
+void
 syms_of_callint ()
 {
   point_marker = Fmake_marker ();

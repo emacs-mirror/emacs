@@ -182,6 +182,7 @@ The argument object is not altered--the value is a copy.")
 /* flag is CASE_UP, CASE_DOWN or CASE_CAPITALIZE or CASE_CAPITALIZE_UP.
    b and e specify range of buffer to operate on. */
 
+void
 casify_region (flag, b, e)
      enum case_action flag;
      Lisp_Object b, e;
@@ -404,6 +405,7 @@ With negative argument, capitalize previous words but do not move.")
   return Qnil;
 }
 
+void
 syms_of_casefiddle ()
 {
   Qidentity = intern ("identity");
@@ -421,6 +423,7 @@ syms_of_casefiddle ()
   defsubr (&Scapitalize_word);
 }
 
+void
 keys_of_casefiddle ()
 {
   initial_define_key (control_x_map, Ctl('U'), "upcase-region");

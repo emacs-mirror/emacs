@@ -36,6 +36,7 @@ static int cached_modiff;
 
 static int byte_debug_flag;
 
+void
 clear_charpos_cache (b)
      struct buffer *b;
 {

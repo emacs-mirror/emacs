@@ -524,6 +524,7 @@ Return what remains of the list.")
   return unbind_to (count, list);
 }
 
+void
 syms_of_undo ()
 {
   Qinhibit_read_only = intern ("inhibit-read-only");

@@ -44,6 +44,7 @@ Boston, MA 02111-1307, USA.  */
 #include "blockinput.h"
 #include "syssignal.h"
 #include "process.h"
+#include "keyboard.h"
 
 #ifdef HAVE_SETRLIMIT
 #include <sys/time.h>
@@ -166,6 +167,7 @@ char **initial_argv;
 int initial_argc;
 
 static void sort_args ();
+void syms_of_emacs ();
 
 /* Signal code for the fatal signal that was received */
 int fatal_error_code;
@@ -272,7 +274,7 @@ abort ()
 
 /* Code for dealing with Lisp access to the Unix command line */
 
-static
+static void
 init_cmdargs (argc, argv, skip_args)
      int argc;
      char **argv;
@@ -449,11 +451,11 @@ static char dump_tz[] = "UtC0";
    (We don't have any real constructors or destructors.)  */
 #ifdef __GNUC__
 #ifndef GCC_CTORS_IN_LIBC
-__do_global_ctors ()
+void __do_global_ctors ()
 {}
-__do_global_ctors_aux ()
+void __do_global_ctors_aux ()
 {}
-__do_global_dtors ()
+void __do_global_dtors ()
 {}
 /* Linux has a bug in its library; avoid an error.  */
 #ifndef LINUX
@@ -461,7 +463,7 @@ char * __CTOR_LIST__[2] = { (char *) (-1), 0 };
 #endif
 char * __DTOR_LIST__[2] = { (char *) (-1), 0 };
 #endif /* GCC_CTORS_IN_LIBC */
-__main ()
+void __main ()
 {}
 #endif /* __GNUC__ */
 #endif /* ORDINARY_LINK */
@@ -536,6 +538,7 @@ argmatch (argv, argc, sstr, lstr, minlen, valptr, skipptr)
 }
 
 /* ARGSUSED */
+int
 main (argc, argv, envp)
      int argc;
      char **argv;
@@ -544,7 +547,7 @@ main (argc, argv, envp)
   char stack_bottom_variable;
   int skip_args = 0;
   extern int errno;
-  extern sys_nerr;
+  extern int sys_nerr;
 #ifdef HAVE_SETRLIMIT
   struct rlimit rlim;
 #endif
@@ -556,6 +559,7 @@ main (argc, argv, envp)
 #ifdef DOUG_LEA_MALLOC
   if (initialized)
     {
+      extern void r_alloc_reinit ();
       malloc_set_state (malloc_state_ptr);
       free (malloc_state_ptr);
       r_alloc_reinit ();
@@ -1739,6 +1743,7 @@ decode_env_path (evarname, defalt)
   return Fnreverse (lpath);
 }
 
+void
 syms_of_emacs ()
 {
   Qfile_name_handler_alist = intern ("file-name-handler-alist");

@@ -601,6 +601,7 @@ word_boundary_p (c1, c2)
 }
 
 
+void
 init_category_once ()
 {
   /* This has to be done here, before we call Fmake_char_table.  */
@@ -623,6 +624,7 @@ init_category_once ()
 			      Fmake_vector (make_number (95), Qnil));
 }
 
+void
 syms_of_category ()
 {
   Qcategoryp = intern ("categoryp");

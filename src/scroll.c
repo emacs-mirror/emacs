@@ -264,7 +264,7 @@ do_scrolling (frame, matrix, window_size, unchanged_at_top)
   bcopy (current_frame->glyphs, temp_frame->glyphs,
 	 current_frame->height * sizeof (GLYPH *));
   bcopy (current_frame->charstarts, temp_frame->charstarts,
-	 current_frame->height * sizeof (GLYPH *));
+	 current_frame->height * sizeof (int *));
   bcopy (current_frame->used, temp_frame->used,
 	 current_frame->height * sizeof (int));
   bcopy (current_frame->highlight, temp_frame->highlight,
@@ -889,6 +889,7 @@ scrolling_max_lines_saved (start, end, oldhash, newhash, cost)
    These are the same arguments that might be given to
    scroll_frame_lines to perform this scrolling.  */
 
+int
 scroll_cost (frame, from, to, amount)
      FRAME_PTR frame;
      int from, to, amount;
@@ -1008,6 +1009,7 @@ ins_del_costs (frame,
    Deletion is essentially the same as insertion.
  */
 
+void
 do_line_insertion_deletion_costs (frame,
 				  ins_line_string, multi_ins_string,
 				  del_line_string, multi_del_string,

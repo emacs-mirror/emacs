@@ -737,6 +737,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
   RETURN_UNGCPRO (tem);
 }
 
+void
 syms_of_doc ()
 {
   DEFVAR_LISP ("internal-doc-file-name", &Vdoc_file_name,

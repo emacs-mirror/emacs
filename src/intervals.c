@@ -145,7 +145,7 @@ intervals_equal (i0, i1)
      INTERVAL i0, i1;
 {
   register Lisp_Object i0_cdr, i0_sym, i1_val;
-  register i1_len;
+  register int i1_len;
 
   if (DEFAULT_INTERVAL_P (i0) && DEFAULT_INTERVAL_P (i1))
     return 1;
@@ -640,7 +640,7 @@ previous_interval (interval)
      register INTERVAL interval;
 {
   register INTERVAL i;
-  register position_of_previous;
+  register int position_of_previous;
 
   if (NULL_INTERVAL_P (interval))
     return NULL_INTERVAL;

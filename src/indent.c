@@ -679,6 +679,8 @@ even if that goes past COLUMN; by default, MININUM is zero.")
 }
 
 
+static int position_indentation P_ ((int));
+
 DEFUN ("current-indentation", Fcurrent_indentation, Scurrent_indentation,
   0, 0, 0,
   "Return the indentation of the current line.\n\
@@ -1789,6 +1791,7 @@ whether or not it is currently displayed in some window.")
 
 /* file's initialization.  */
 
+void
 syms_of_indent ()
 {
   DEFVAR_BOOL ("indent-tabs-mode", &indent_tabs_mode,

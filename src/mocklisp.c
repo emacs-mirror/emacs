@@ -227,6 +227,7 @@ is converted into a string by expressing it in decimal.")
 }
 
 
+void
 syms_of_mocklisp ()
 {
   Qmocklisp = intern ("mocklisp");

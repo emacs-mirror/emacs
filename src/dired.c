@@ -31,6 +31,10 @@ Boston, MA 02111-1307, USA.  */
 #include <rmsdef.h>
 #endif
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 /* The d_nameln member of a struct dirent includes the '\0' character
    on some systems, but not on others.  What's worse, you can't tell
    at compile-time which one it will be, since it really depends on
@@ -295,6 +299,8 @@ These are all file names in directory DIRECTORY which begin with FILE.")
   return file_name_completion (file, directory, 1, 0);
 }
 
+static int file_name_completion_stat ();
+
 Lisp_Object
 file_name_completion (file, dirname, all_flag, ver_flag)
      Lisp_Object file, dirname;
@@ -547,6 +553,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
   return Fsignal (Qquit, Qnil);
 }
 
+static int
 file_name_completion_stat (dirname, dp, st_addr)
      Lisp_Object dirname;
      DIRENTRY *dp;
@@ -742,6 +749,7 @@ If file does not exist, returns nil.")
   return Flist (sizeof(values) / sizeof(values[0]), values);
 }
 
+void
 syms_of_dired ()
 {
   Qdirectory_files = intern ("directory-files");

@@ -21,6 +21,9 @@ Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
 #include <stdio.h>
+#ifdef STDC_HEADERS
+#include <stdlib.h>
+#endif
 #undef NULL
 #include "lisp.h"
 #include "commands.h"
@@ -102,7 +105,6 @@ static Lisp_Object define_as_prefix ();
 static Lisp_Object describe_buffer_bindings ();
 static void describe_command (), describe_translation ();
 static void describe_map ();
-Lisp_Object Fcopy_keymap ();
 
 /* Keymap object support - constructors and predicates.			*/
 
@@ -3168,6 +3170,7 @@ Return list of symbols found.")
   return apropos_accumulate;
 }
 
+void
 syms_of_keymap ()
 {
   Lisp_Object tem;
@@ -3305,6 +3308,7 @@ and applies even for keys that have ordinary bindings.");
   defsubr (&Sapropos_internal);
 }
 
+void
 keys_of_keymap ()
 {
   Lisp_Object tem;

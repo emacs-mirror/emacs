@@ -1010,6 +1010,7 @@ matherr (x)
 }
 #endif /* HAVE_MATHERR */
 
+void
 init_floatfns ()
 {
 #ifdef FLOAT_CATCH_SIGILL
@@ -1025,6 +1026,7 @@ init_floatfns ()
 
 #endif /* not LISP_FLOAT_TYPE */
 
+void
 syms_of_floatfns ()
 {
 #ifdef LISP_FLOAT_TYPE

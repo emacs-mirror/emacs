@@ -517,6 +517,7 @@ of the form (ABBREVNAME EXPANSION HOOK USECOUNT).")
   return Qnil;
 }
 
+void
 syms_of_abbrev ()
 {
   DEFVAR_LISP ("abbrev-table-name-list", &Vabbrev_table_name_list,

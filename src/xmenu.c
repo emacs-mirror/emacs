@@ -686,7 +686,7 @@ cached information about equivalent key sequences.")
 	  /* Use the mouse's current position.  */
 	  FRAME_PTR new_f = selected_frame;
 	  Lisp_Object bar_window;
-	  int part;
+	  enum scroll_bar_part part;
 	  unsigned long time;
 
 	  if (mouse_position_hook)
@@ -1095,6 +1095,7 @@ popup_get_selection (initial_event, dpyinfo, id)
    passing it to the toolkit right away, is that we can safely
    execute Lisp code.  */
    
+void
 x_activate_menubar (f)
      FRAME_PTR f;
 {
@@ -2606,6 +2607,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 
 #endif /* HAVE_MENUS */
 
+void
 syms_of_xmenu ()
 {
   staticpro (&menu_items);

@@ -21,6 +21,10 @@ Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 /* Note on some machines this defines `vector' as a typedef,
    so make sure we don't use that name in this file.  */
 #undef vector
@@ -35,6 +39,9 @@ Boston, MA 02111-1307, USA.  */
 #include "intervals.h"
 #include "frame.h"
 #include "window.h"
+#ifdef HAVE_MENUS
+#include "xterm.h"
+#endif
 
 #ifndef NULL
 #define NULL (void *)0
@@ -43,8 +50,6 @@ Boston, MA 02111-1307, USA.  */
 /* Nonzero enables use of dialog boxes for questions
    asked by mouse commands.  */
 int use_dialog_box;
-
-extern Lisp_Object Flookup_key ();
 
 extern int minibuffer_auto_raise;
 extern Lisp_Object minibuf_window;
@@ -2545,6 +2550,7 @@ ARGS are passed as extra arguments to the function.")
   return result;
 }
 
+void
 syms_of_fns ()
 {
   Qstring_lessp = intern ("string-lessp");

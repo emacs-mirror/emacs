@@ -914,6 +914,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 
 #ifndef VMS /* VMS version is in vmsproc.c.  */
 
+static int relocate_fd ();
+
 /* This is the last thing run in a newly forked inferior
    either synchronous or asynchronous.
    Copy descriptors IN, OUT and ERR as descriptors 0, 1 and 2.
@@ -934,6 +936,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
    a decent error from within the child, this should be verified as an
    executable directory by the parent.  */
 
+int
 child_setup (in, out, err, new_argv, set_pgrp, current_dir)
      int in, out, err;
      register char **new_argv;
@@ -1130,7 +1133,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 
 /* Move the file descriptor FD so that its number is not less than MINFD.
    If the file descriptor is moved at all, the original is freed.  */
-int
+static int
 relocate_fd (fd, minfd)
      int fd, minfd;
 {
@@ -1228,6 +1231,7 @@ egetenv (var)
 
 /* This is run before init_cmdargs.  */
   
+void
 init_callproc_1 ()
 {
   char *data_dir = egetenv ("EMACSDATA");
@@ -1249,6 +1253,7 @@ init_callproc_1 ()
 
 /* This is run after init_cmdargs, when Vinstallation_directory is valid.  */
 
+void
 init_callproc ()
 {
   char *data_dir = egetenv ("EMACSDATA");
@@ -1341,6 +1346,7 @@ init_callproc ()
 #endif
 }
 
+void
 set_process_environment ()
 {
   register char **envp;
@@ -1354,6 +1360,7 @@ set_process_environment ()
 				    Vprocess_environment);
 }
 
+void
 syms_of_callproc ()
 {
 #ifdef DOS_NT

@@ -216,6 +216,7 @@ shuffle (table, c, elt)
     }
 }
 
+void
 init_casetab_once ()
 {
   register int i;
@@ -256,6 +257,7 @@ init_casetab_once ()
   XCHAR_TABLE (down)->extras[2] = Fcopy_sequence (up);
 }
 
+void
 syms_of_casetab ()
 {
   Qcase_table_p = intern ("case-table-p");

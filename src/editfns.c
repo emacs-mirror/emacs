@@ -29,6 +29,14 @@ Boston, MA 02111-1307, USA.  */
 #include <pwd.h>
 #endif
 
+#ifdef STDC_HEADERS
+#include <stdlib.h>
+#endif
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"

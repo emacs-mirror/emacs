@@ -24,6 +24,11 @@ Boston, MA 02111-1307, USA.  */
 #ifdef emacs
 
 #include <config.h>
+
+#ifdef STDC_HEADERS
+#include <stdlib.h>
+#endif
+
 #include "lisp.h"
 #include "charset.h"
 #include "ccl.h"
@@ -659,6 +664,7 @@ struct ccl_prog_stack
     int ic;			/* Instruction Counter.  */
   };
 
+int
 ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
      struct ccl_program *ccl;
      unsigned char *source, *destination;
@@ -1699,6 +1705,7 @@ Return index number of the registered translation table.")
 }
 
 
+void
 syms_of_ccl ()
 {
   staticpro (&Vccl_program_table);

@@ -28,9 +28,11 @@ Boston, MA 02111-1307, USA.  */
 #include "charset.h"
 #ifdef HAVE_WINDOW_SYSTEM
 #include "fontset.h"
+#include "xterm.h"
 #endif
 #include "frame.h"
 #include "termhooks.h"
+#include "dispextern.h"
 #include "window.h"
 #ifdef MSDOS
 #include "msdos.h"
@@ -2224,6 +2226,7 @@ the rightmost or bottommost possible position (that stays within the screen).")
 }
 
 
+void
 syms_of_frame ()
 {
   syms_of_frame_1 ();
@@ -2296,6 +2299,7 @@ displayed.");
   defsubr (&Sset_frame_position);
 }
 
+void
 keys_of_frame ()
 {
   initial_define_lispy_key (global_map, "switch-frame", "handle-switch-frame");

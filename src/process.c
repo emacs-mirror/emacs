@@ -106,6 +106,8 @@ Boston, MA 02111-1307, USA.  */
 #include "commands.h"
 #include "frame.h"
 #include "blockinput.h"
+#include "keyboard.h"
+#include "dispextern.h"
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
@@ -279,6 +281,7 @@ static char pty_name[24];
 
 Lisp_Object status_convert ();
 
+void
 update_status (p)
      struct Lisp_Process *p;
 {
@@ -391,7 +394,7 @@ int
 allocate_pty ()
 {
   struct stat stb;
-  register c, i;
+  register int c, i;
   int fd;
 
   /* Some systems name their pseudoterminals so that there are gaps in
@@ -512,6 +515,7 @@ make_process (name)
   return val;
 }
 
+void
 remove_process (proc)
      register Lisp_Object proc;
 {
@@ -2173,7 +2177,7 @@ Return non-nil iff we received any output before the timeout expired.")
 static int waiting_for_user_input_p;
 
 /* This is here so breakpoints can be put on it.  */
-static
+static void
 wait_reading_process_input_1 ()
 {
 }
@@ -2210,6 +2214,7 @@ wait_reading_process_input_1 ()
      before the timeout elapsed.
    Otherwise, return true iff we received input from any process.  */
 
+int
 wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
      int time_limit, microsecs;
      Lisp_Object read_kbd;
@@ -2708,6 +2713,7 @@ read_process_output_error_handler (error)
    The characters read are decoded according to PROC's coding-system
    for decoding.  */
 
+int
 read_process_output (proc, channel)
      Lisp_Object proc;
      register int channel;
@@ -3062,6 +3068,7 @@ send_process_trap ()
    being encoded.  Should we store them in a buffer to prepend them to
    the data send later?  */
 
+void
 send_process (proc, buf, len, object)
      volatile Lisp_Object proc;
      unsigned char *buf;
@@ -4289,6 +4296,7 @@ keyboard_bit_set (mask)
   return 0;
 }
 
+void
 init_process ()
 {
   register int i;
@@ -4317,6 +4325,7 @@ init_process ()
   bzero (proc_encode_coding_system, sizeof proc_encode_coding_system);
 }
 
+void
 syms_of_process ()
 {
   Qprocessp = intern ("processp");

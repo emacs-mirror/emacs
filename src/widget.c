@@ -36,6 +36,7 @@ Boston, MA 02111-1307, USA.  */
 #include "xterm.h"
 
 #include "frame.h"
+#include "window.h"
 
 #include "dispextern.h"
 #include "blockinput.h"
@@ -967,6 +968,7 @@ EmacsFrameSetCharSize (widget, columns, rows)
   SET_FRAME_GARBAGED (f);
 }
 
+void
 widget_store_internal_border (widget)
      Widget widget;
 {

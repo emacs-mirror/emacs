@@ -173,6 +173,7 @@ non_ascii_char_to_string (c, workbuf, str)
    Use macro `STRING_CHAR (STR, LEN)' instead of calling this function
    directly if STR can hold an ASCII character.  */
 
+int
 string_to_non_ascii_char (str, len, actual_len)
      const unsigned char *str;
      int len, *actual_len;
@@ -237,6 +238,7 @@ multibyte_form_length (str, len)
    return -1.  This should be used only in the macro SPLIT_STRING
    which checks range of STR in advance.  */
 
+int
 split_non_ascii_string (str, len, charset, c1, c2)
      register const unsigned char *str;
      register unsigned char *c1, *c2;
@@ -274,6 +276,7 @@ split_non_ascii_string (str, len, charset, c1, c2)
 /* Return a character unified with C (or a character made of CHARSET,
    C1, and C2) in unification table TABLE.  If no unification is found
    in TABLE, return C.  */
+int
 unify_char (table, c, charset, c1, c2)
      Lisp_Object table;
      int c, charset, c1, c2;
@@ -308,6 +311,7 @@ unify_char (table, c, charset, c1, c2)
    convert C to a valid multibyte character, convert it based on
    DEFAULT_NONASCII_INSERT_OFFSET which makes C a Latin-1 character.  */
 
+int
 unibyte_char_to_multibyte (c)
      int c;
 {
@@ -1610,6 +1614,7 @@ DEFUN ("compose-string", Fcompose_string, Scompose_string,
 }
 
 
+int
 charset_id_internal (charset_name)
      char *charset_name;
 {
@@ -1635,6 +1640,7 @@ DEFUN ("setup-special-charsets", Fsetup_special_charsets,
   return Qnil;
 }
 
+void
 init_charset_once ()
 {
   int i, j, k;
@@ -1689,6 +1695,7 @@ init_charset_once ()
 
 #ifdef emacs
 
+void
 syms_of_charset ()
 {
   Qascii = intern ("ascii");

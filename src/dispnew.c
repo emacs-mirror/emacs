@@ -27,6 +27,10 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 #include <ctype.h>
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #include "lisp.h"
 #include "termchar.h"
 #include "termopts.h"
@@ -43,6 +47,8 @@ Boston, MA 02111-1307, USA.  */
 #include "indent.h"
 #include "intervals.h"
 #include "blockinput.h"
+#include "process.h"
+#include "keyboard.h"
 
 /* I don't know why DEC Alpha OSF1 fail to compile this file if we
    include the following file.  */
@@ -187,6 +193,7 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
   return Qnil;
 }
 
+void
 redraw_frame (f)
      FRAME_PTR f;
 {
@@ -229,8 +236,8 @@ make_frame_glyphs (frame, empty)
      int empty;
 {
   register int i;
-  register width = FRAME_WINDOW_WIDTH (frame);
-  register height = FRAME_HEIGHT (frame);
+  register int width = FRAME_WINDOW_WIDTH (frame);
+  register int height = FRAME_HEIGHT (frame);
   register struct frame_glyphs *new
     = (struct frame_glyphs *) xmalloc (sizeof (struct frame_glyphs));
 
@@ -468,6 +475,7 @@ line_draw_cost (m, vpos)
 
 /* cancel_line eliminates any request to display a line at position `vpos' */
 
+void
 cancel_line (vpos, frame)
      int vpos;
      register FRAME_PTR frame;
@@ -475,6 +483,7 @@ cancel_line (vpos, frame)
   FRAME_DESIRED_GLYPHS (frame)->enable[vpos] = 0;
 }
 
+void
 clear_frame_records (frame)
      register FRAME_PTR frame;
 {
@@ -823,6 +832,7 @@ scroll_frame_lines (frame, from, end, amount, newpos)
    into the FRAME_DESIRED_GLYPHS (frame) from the FRAME_PHYS_GLYPHS (frame)
    so that update_frame will not change those columns.  */
 
+void
 preserve_other_columns (w)
      struct window *w;
 {
@@ -947,6 +957,7 @@ adjust_window_charstarts (w, vpos, adjust)
    for internal consistency.  We cannot check that they are "right";
    we can only look for something nonsensical.  */
 
+void
 verify_charstarts (w)
      struct window *w;
 {
@@ -1003,6 +1014,7 @@ verify_charstarts (w)
    cancel the columns of that window, so that when the window is
    displayed over again get_display_line will not complain.  */
 
+void
 cancel_my_columns (w)
      struct window *w;
 {
@@ -1198,7 +1210,7 @@ update_frame (f, force, inhibit_hairy_id)
   register int i;
   int pause;
   int preempt_count = baud_rate / 2400 + 1;
-  extern input_pending;
+  extern int input_pending;
 #ifdef HAVE_WINDOW_SYSTEM
   register int downto, leftmost;
 #endif
@@ -1398,6 +1410,7 @@ quit_error_check ()
 
 extern void scrolling_1 ();
 
+int
 scrolling (frame)
      FRAME_PTR frame;
 {
@@ -1831,7 +1844,7 @@ update_line (frame, vpos)
 	  olen = nlen - (nsp - osp);
 	}
       cursor_to (vpos, osp);
-      insert_glyphs ((char *)0, nsp - osp);
+      insert_glyphs ((GLYPH *) 0, nsp - osp);
     }
   olen += nsp - osp;
 
@@ -2070,6 +2083,7 @@ window_change_signal (signalnum) /* If we don't have an argument, */
 
 /* Do any change in frame size that was requested by a signal.  */
 
+void
 do_pending_window_change ()
 {
   /* If window_change_signal should have run before, run it now.  */
@@ -2101,9 +2115,10 @@ do_pending_window_change ()
    redisplay.  Since this tries to resize windows, we can't call it
    from a signal handler.  */
 
+void
 change_frame_size (f, newheight, newwidth, pretend, delay)
      register FRAME_PTR f;
-     int newheight, newwidth, pretend;
+     int newheight, newwidth, pretend, delay;
 {
   Lisp_Object tail, frame;
 
@@ -2284,6 +2299,7 @@ terminate any keyboard macro currently executing.")
   return Qnil;
 }
 
+void
 bitch_at_user ()
 {
   if (noninteractive)
@@ -2469,6 +2485,7 @@ char *terminal_type;
 /* Then invoke its decoding routine to set up variables
   in the terminal package */
 
+void
 init_display ()
 {
 #ifdef HAVE_X_WINDOWS
@@ -2604,6 +2621,7 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
 #endif /* SIGWINCH */
 }
 
+void
 syms_of_display ()
 {
   defsubr (&Sredraw_frame);

@@ -593,6 +593,7 @@ init_float ()
 }
 
 /* Explicitly free a float cell.  */
+void
 free_float (ptr)
      struct Lisp_Float *ptr;
 {
@@ -2947,6 +2948,7 @@ Frames, windows, buffers, and subprocesses count as vectors\n\
 
 /* Initialization */
 
+void
 init_alloc_once ()
 {
   /* Used to do Vpurify_flag = Qt here, but Qt isn't set up yet!  */
@@ -2989,6 +2991,7 @@ init_alloc_once ()
 #endif /* VIRT_ADDR_VARIES */
 }
 
+void
 init_alloc ()
 {
   gcprolist = 0;

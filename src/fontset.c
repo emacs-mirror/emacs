@@ -492,8 +492,6 @@ just like X's font name matching algorithm allows.")
   return Qnil;
 }
 
-Lisp_Object Fframe_char_width ();
-
 /* Return a list of names of available fontsets matching PATTERN on
    frame F.  If SIZE is not 0, it is the size (maximum bound width) of
    fontsets to be listed. */
@@ -600,7 +598,6 @@ FONTLIST is an alist of charsets vs corresponding font names.")
   return Qnil;
 }
 
-extern Lisp_Object Fframe_parameters ();
 extern Lisp_Object Qfont;
 Lisp_Object Qfontset;
 
@@ -802,6 +799,7 @@ loading failed.")
   return info;
 }
 
+void
 syms_of_fontset ()
 {
   int i;

@@ -86,6 +86,7 @@ Boston, MA 02111-1307, USA.  */
 #include "window.h"
 #include "keyboard.h"
 #include "intervals.h"
+#include "process.h"
 
 #ifdef USE_X_TOOLKIT
 #include <X11/Shell.h>
@@ -147,7 +148,7 @@ Lisp_Object x_display_name_list;
    is the frame to apply to.  */
 extern struct frame *updating_frame;
 
-extern waiting_for_input;
+extern int waiting_for_input;
 
 /* This is a frame waiting to be autoraised, within XTread_socket.  */
 struct frame *pending_autoraise_frame;
@@ -265,8 +266,8 @@ static void clear_mouse_face ();
 static void show_mouse_face ();
 static void do_line_dance ();
 
-static int XTcursor_to ();
-static int XTclear_end_of_line ();
+static void XTcursor_to ();
+static void XTclear_end_of_line ();
 static int x_io_error_quitter ();
 int x_catch_errors ();
 void x_uncatch_errors ();
@@ -323,7 +324,7 @@ x_display_info_for_display (dpy)
    should never be called except during an update, the only exceptions
    being XTcursor_to, XTwrite_glyphs and XTreassert_line_highlight.  */
 
-static
+static void
 XTupdate_begin (f)
      struct frame *f;
 {
@@ -383,7 +384,7 @@ XTupdate_begin (f)
   UNBLOCK_INPUT;
 }
 
-static
+static void
 XTupdate_end (f)
      struct frame *f;
 {
@@ -413,7 +414,7 @@ XTupdate_end (f)
 
 /* This is called after a redisplay on frame F.  */
 
-static
+static void
 XTframe_up_to_date (f)
      FRAME_PTR f;
 {
@@ -434,6 +435,7 @@ XTframe_up_to_date (f)
    Call this when about to modify line at position VPOS
    and not change whether it is highlighted.  */
 
+void
 XTreassert_line_highlight (new, vpos)
      int new, vpos;
 {
@@ -443,7 +445,7 @@ XTreassert_line_highlight (new, vpos)
 /* Call this when about to modify line at position VPOS
    and change whether it is highlighted.  */
 
-static
+static void
 XTchange_line_highlight (new_highlight, vpos, first_unused_hpos)
      int new_highlight, vpos, first_unused_hpos;
 {
@@ -456,7 +458,7 @@ XTchange_line_highlight (new_highlight, vpos, first_unused_hpos)
    When starting Emacs, no X window is mapped.  And nothing must be done
    to Emacs's own window if it is suspended (though that rarely happens).  */
 
-static
+static void
 XTset_terminal_modes ()
 {
 }
@@ -465,7 +467,7 @@ XTset_terminal_modes ()
    Exiting will make the X-windows go away, and suspending
    requires no action.  */
 
-static
+static void
 XTreset_terminal_modes ()
 {
 /*  XTclear_frame ();  */
@@ -475,7 +477,7 @@ XTreset_terminal_modes ()
    This is where display update commands will take effect.
    This does not affect the place where the cursor-box is displayed.  */
 
-static int
+static void
 XTcursor_to (row, col)
      register int row, col;
 {
@@ -1184,7 +1186,7 @@ dumpglyphs (f, left, top, gp, n, hl, font)
    `highlight', set up by XTreassert_line_highlight or XTchange_line_highlight,
    controls the pixel values used for foreground and background.  */
 
-static
+static void
 XTwrite_glyphs (start, len)
      register GLYPH *start;
      int len;
@@ -1230,7 +1232,7 @@ XTwrite_glyphs (start, len)
    to column FIRST_UNUSED (exclusive).  The idea is that everything
    from FIRST_UNUSED onward is already erased.  */
 
-static
+static void
 XTclear_end_of_line (first_unused)
      register int first_unused;
 {
@@ -1272,7 +1274,7 @@ XTclear_end_of_line (first_unused)
   UNBLOCK_INPUT;
 }
 
-static
+static void
 XTclear_frame ()
 {
   int mask;
@@ -1508,6 +1510,7 @@ timeval_subtract (result, x, y)
   return x.tv_sec < y.tv_sec;
 }
 
+void
 XTflash (f)
      struct frame *f;
 {
@@ -1635,6 +1638,7 @@ XTflash (f)
 
 #define XRINGBELL XBell (FRAME_X_DISPLAY (selected_frame), 0)
 
+void
 XTring_bell ()
 {
   if (FRAME_X_DISPLAY (selected_frame) == 0)
@@ -1657,7 +1661,7 @@ XTring_bell ()
    These are not supposed to be used because we are supposed to turn
    off the feature of using them.  */
 
-static
+static void
 XTinsert_glyphs (start, len)
      register char *start;
      register int len;
@@ -1665,7 +1669,7 @@ XTinsert_glyphs (start, len)
   abort ();
 }
 
-static
+static void
 XTdelete_glyphs (n)
      register int n;
 {
@@ -1677,7 +1681,7 @@ XTdelete_glyphs (n)
    This, and those operations, are used only within an update
    that is bounded by calls to XTupdate_begin and XTupdate_end.  */
 
-static
+static void
 XTset_terminal_window (n)
      register int n;
 {
@@ -1708,6 +1712,7 @@ static int line_dance_in_progress;
 
 /* Perform an insert-lines or delete-lines operation,
    inserting N lines or deleting -N lines at vertical position VPOS.  */
+void
 XTins_del_lines (vpos, n)
      int vpos, n;
 {
@@ -2693,6 +2698,7 @@ clear_mouse_face (dpyinfo)
 /* Just discard the mouse face information for frame F, if any.
    This is used when the size of F is changed.  */
 
+void
 cancel_mouse_face (f)
      FRAME_PTR f;
 {
@@ -3560,6 +3566,7 @@ x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
    Clear out the scroll bars, and ask for expose events, so we can
    redraw them.  */
 
+void
 x_scroll_bar_clear (f)
      FRAME_PTR f;
 {
@@ -3959,7 +3966,7 @@ XTread_socket (sd, bufp, numchars, expected)
 	      if (! x_window_to_frame (dpyinfo, event.xselection.requestor))
 		goto OTHER;
 #endif /* not USE_X_TOOLKIT */
-	      x_handle_selection_notify (&event);
+	      x_handle_selection_notify (&event.xselection);
 	      break;
 
 	    case SelectionClear:	/* Someone has grabbed ownership. */
@@ -4020,7 +4027,7 @@ XTread_socket (sd, bufp, numchars, expected)
 	      if (!x_any_window_to_frame (dpyinfo, event.xproperty.window))
 		goto OTHER;
 #endif /* not USE_X_TOOLKIT */
-	      x_handle_property_notify (&event);
+	      x_handle_property_notify (&event.xproperty);
 	      break;
 
 	    case ReparentNotify:
@@ -4896,6 +4903,7 @@ x_display_box_cursor (f, on, x, y)
 /* Display the cursor on frame F, or clear it, according to ON.
    Also set the frame's cursor position to X and Y.  */
 
+void
 x_display_cursor (f, on, x, y)
      struct frame *f;
      int on;
@@ -4921,6 +4929,7 @@ x_display_cursor (f, on, x, y)
 /* Display the cursor on frame F, or clear it, according to ON.
    Don't change the cursor's position.  */
 
+void
 x_update_cursor (f, on)
      struct frame *f;
      int on;
@@ -4943,6 +4952,7 @@ x_update_cursor (f, on)
 /* Refresh bitmap kitchen sink icon for frame F
    when we get an expose event for it. */
 
+void
 refreshicon (f)
      struct frame *f;
 {
@@ -5390,6 +5400,7 @@ x_new_fontset (f, fontsetname)
 /* Calculate the absolute position in frame F
    from its current recorded position values and gravity.  */
 
+void
 x_calc_absolute_position (f)
      struct frame *f;
 {
@@ -5482,6 +5493,7 @@ x_calc_absolute_position (f)
    position values).  It is -1 when calling from x_set_frame_parameters,
    which means, do adjust for borders but don't change the gravity.  */
 
+void
 x_set_offset (f, xoff, yoff, change_gravity)
      struct frame *f;
      register int xoff, yoff;
@@ -5533,6 +5545,7 @@ x_set_offset (f, xoff, yoff, change_gravity)
    for this size change and subsequent size changes.
    Otherwise we leave the window gravity unchanged.  */
 
+void
 x_set_window_size (f, change_gravity, cols, rows)
      struct frame *f;
      int change_gravity;
@@ -5659,6 +5672,7 @@ x_set_mouse_pixel_position (f, pix_x, pix_y)
 
 /* focus shifting, raising and lowering.  */
 
+void
 x_focus_on_frame (f)
      struct frame *f;
 {
@@ -5674,6 +5688,7 @@ x_focus_on_frame (f)
 #endif /* ! 0 */
 }
 
+void
 x_unfocus_frame (f)
      struct frame *f;
 {
@@ -5687,6 +5702,7 @@ x_unfocus_frame (f)
 
 /* Raise frame F.  */
 
+void
 x_raise_frame (f)
      struct frame *f;
 {
@@ -5705,6 +5721,7 @@ x_raise_frame (f)
 
 /* Lower frame F.  */
 
+void
 x_lower_frame (f)
      struct frame *f;
 {
@@ -5741,6 +5758,7 @@ XTframe_raise_lower (f, raise_flag)
    but it will become visible later when the window manager
    finishes with it.  */
 
+void
 x_make_frame_visible (f)
      struct frame *f;
 {
@@ -5869,6 +5887,7 @@ x_make_frame_visible (f)
 
 /* Make the frame visible (mapped and not iconified).  */
 
+void
 x_make_frame_invisible (f)
      struct frame *f;
 {
@@ -5951,6 +5970,7 @@ x_make_frame_invisible (f)
 
 /* Change window state from mapped to iconified. */
 
+void
 x_iconify_frame (f)
      struct frame *f;
 {
@@ -6059,6 +6079,7 @@ x_iconify_frame (f)
 
 /* Destroy the X window of frame F.  */
 
+void
 x_destroy_window (f)
      struct frame *f;
 {
@@ -6130,6 +6151,7 @@ x_destroy_window (f)
    If USER_POSITION is nonzero, we set the USPosition
    flag (this is useful when FLAGS is 0).  */
 
+void
 x_wm_set_size_hint (f, flags, user_position)
      struct frame *f;
      long flags;
@@ -6273,6 +6295,7 @@ x_wm_set_size_hint (f, flags, user_position)
 }
 
 /* Used for IconicState or NormalState */
+void
 x_wm_set_window_state (f, state)
      struct frame *f;
      int state;
@@ -6292,6 +6315,7 @@ x_wm_set_window_state (f, state)
 #endif /* not USE_X_TOOLKIT */
 }
 
+void
 x_wm_set_icon_pixmap (f, pixmap_id)
      struct frame *f;
      int pixmap_id;
@@ -6341,6 +6365,7 @@ x_wm_set_icon_pixmap (f, pixmap_id)
 #endif /* not USE_X_TOOLKIT */
 }
 
+void
 x_wm_set_icon_position (f, icon_x, icon_y)
      struct frame *f;
      int icon_x, icon_y;
@@ -7161,6 +7186,7 @@ x_delete_display (dpyinfo)
 
 /* Set up use of X before we make the first connection.  */
 
+void
 x_initialize ()
 {
   clear_frame_hook = XTclear_frame;

@@ -20,6 +20,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <signal.h>
 #include <config.h>
 
 #ifdef VMS
@@ -33,6 +34,10 @@ Boston, MA 02111-1307, USA.  */
 #include <fcntl.h>
 #include <string.h>
 #endif /* USG */
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 #include "lisp.h"
 #include "buffer.h"
@@ -515,6 +520,7 @@ t if it is locked by you, else a string of the name of the locker.")
 
 /* Initialization functions.  */
 
+void
 syms_of_filelock ()
 {
   defsubr (&Sunlock_buffer);

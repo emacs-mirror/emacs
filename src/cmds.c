@@ -27,6 +27,7 @@ Boston, MA 02111-1307, USA.  */
 #include "syntax.h"
 #include "window.h"
 #include "keyboard.h"
+#include "dispextern.h"
 
 Lisp_Object Qkill_forward_chars, Qkill_backward_chars, Vblink_paren_function;
 
@@ -326,6 +327,7 @@ Whichever character you type to run this command is inserted.")
    return 0.  A value of 1 indicates this *might* not have been simple.
    A value of 2 means this did things that call for an undo boundary.  */
 
+int
 internal_self_insert (c, noautofill)
      int c;
      int noautofill;
@@ -503,6 +505,7 @@ internal_self_insert (c, noautofill)
 
 /* module initialization */
 
+void
 syms_of_cmds ()
 {
   Qkill_backward_chars = intern ("kill-backward-chars");
@@ -542,6 +545,7 @@ More precisely, a char with closeparen syntax is self-inserted.");
   defsubr (&Sself_insert_command);
 }
 
+void
 keys_of_cmds ()
 {
   int n;

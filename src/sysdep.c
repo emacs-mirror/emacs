@@ -298,6 +298,7 @@ discard_tty_input ()
 /* Arrange for character C to be read as the next input from
    the terminal.  */
 
+void
 stuff_char (c)
      char c;
 {
@@ -377,6 +378,7 @@ init_baud_rate ()
 }
 
 /*ARGSUSED*/
+void
 set_exclusive_use (fd)
      int fd;
 {
@@ -1028,6 +1030,7 @@ int inherited_pgroup;
    When we are in the foreground, but not started in our own process
    group, redirect the TTY to point to our own process group.  We need
    to be in our own process group to receive SIGIO properly.  */
+void
 narrow_foreground_group ()
 {
   int me = getpid ();
@@ -1039,6 +1042,7 @@ narrow_foreground_group ()
 }
 
 /* Set the tty to our original foreground group.  */
+void
 widen_foreground_group ()
 {
   if (inherited_pgroup != getpid ())
@@ -1595,6 +1599,7 @@ init_sys_modes ()
 /* Return nonzero if safe to use tabs in output.
    At the time this is called, init_sys_modes has not been done yet.  */
    
+int
 tabs_safe_p ()
 {
   struct emacs_tty tty;
@@ -1848,6 +1853,7 @@ setup_pty (fd)
    This is called each time Emacs is resumed, also, but does nothing
    because input_chain is no longer zero.  */
 
+void
 init_vms_input ()
 {
   int status;
@@ -1862,6 +1868,7 @@ init_vms_input ()
 
 /* Deassigning the input channel is done before exiting.  */
 
+void
 stop_vms_input ()
 {
   return SYS$DASSGN (input_fd);
@@ -1872,6 +1879,7 @@ short input_buffer;
 /* Request reading one character into the keyboard buffer.
    This is done as soon as the buffer becomes empty.  */
 
+void
 queue_kbd_input ()
 {
   int status;
@@ -1889,6 +1897,7 @@ int input_count;
 /* Ast routine that is called when keyboard input comes in
    in accord with the SYS$QIO above.  */
 
+void
 kbd_input_ast ()
 {
   register int c = -1;
@@ -1936,6 +1945,7 @@ kbd_input_ast ()
 
 /* Wait until there is something in kbd_buffer.  */
 
+void
 wait_for_kbd_input ()
 {
   extern int have_process_input, process_exited;
@@ -1982,6 +1992,7 @@ wait_for_kbd_input ()
    and therefore there is no I/O request queued when we return.
    SYS$SETAST is used to avoid a timing error.  */
 
+void
 end_kbd_input ()
 {
 #ifdef ASTDEBUG
@@ -2008,6 +2019,7 @@ end_kbd_input ()
 
 /* Wait for either input available or time interval expiry.  */
 
+void
 input_wait_timeout (timeval)
      int timeval;		/* Time to wait, in seconds */
 {
@@ -2564,6 +2576,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 #define BUFFER_SIZE_FACTOR 1
 #endif
 
+void
 read_input_waiting ()
 {
   struct input_event e;
@@ -2657,6 +2670,7 @@ init_sigio (fd)
   ioctl (fd, TIOCLSET, &lmode);
 }
 
+void
 reset_sigio ()
 {
   if (noninteractive)
@@ -2686,6 +2700,7 @@ unrequest_sigio ()
 
 int sigheld; /* Mask of held signals */
 
+void
 sigholdx (signum)
      int signum;
 {
@@ -2693,12 +2708,14 @@ sigholdx (signum)
   sighold (signum);
 }
 
+void
 sigisheld (signum)
      int signum;
 {
   sigheld |= sigbit (signum);
 }
 
+void
 sigunhold (signum)
      int signum;
 {
@@ -2706,6 +2723,7 @@ sigunhold (signum)
   sigrelse (signum);
 }
 
+void
 sigfree ()    /* Free all held signals */
 {
   int i;
@@ -2715,6 +2733,7 @@ sigfree ()    /* Free all held signals */
   sigheld = 0;
 }
 
+int
 sigbit (i)
 {
   return 1 << (i - 1);
@@ -2729,6 +2748,7 @@ sigbit (i)
 
 sigset_t empty_mask, full_mask;
 
+void
 init_signals ()
 {
   sigemptyset (&empty_mask);
@@ -3023,6 +3043,7 @@ sys_open (path, oflag, mode)
 
 #ifdef INTERRUPTIBLE_CLOSE
 
+int
 sys_close (fd)
      int fd;
 {
@@ -3326,6 +3347,7 @@ dup2 (oldd, newd)
 #ifdef HAVE_TIMEVAL
  
 /* ARGSUSED */
+int
 gettimeofday (tp, tzp)
      struct timeval *tp;
      struct timezone *tzp;
@@ -3336,6 +3358,7 @@ gettimeofday (tp, tzp)
   tp->tv_usec = 0;
   if (tzp != 0)
     tzp->tz_minuteswest = -1;
+  return 0;
 }
  
 #endif
@@ -3347,6 +3370,7 @@ gettimeofday (tp, tzp)
  *	This function will go away as soon as all the stubs fixed. (fnf)
  */
 
+void
 croak (badfunc)
      char *badfunc;
 {
@@ -3871,6 +3895,7 @@ static unsigned int uic;
 
 /* Called from init_sys_modes, so it happens not very often
    but at least each time Emacs is loaded.  */
+void
 sys_access_reinit ()
 {
   uic = 0;
@@ -4123,6 +4148,7 @@ getwd (pathname)
  return pathname;
 }
 
+int
 getppid ()
 {
   long item_code = JPI$_OWNER;
@@ -4318,6 +4344,7 @@ creat_copy_attrs (old, new)
 #endif
 #endif
 
+int
 sys_creat (va_alist)
      va_dcl
 {
@@ -4434,6 +4461,7 @@ sys_creat (va_alist)
 #endif /* creat */
 
 /* fwrite to stdout is S L O W.  Speed it up by using fputc...*/
+int
 sys_fwrite (ptr, size, num, fp)
      register char * ptr;
      FILE * fp;
@@ -4442,6 +4470,7 @@ sys_fwrite (ptr, size, num, fp)
 
   while (tot--)
     fputc (*ptr++, fp);
+  return num;
 }
 
 /*
@@ -4729,6 +4758,7 @@ getpwuid (uid)
 /* return total address space available to the current process.  This is
    the sum of the current p0 size, p1 size and free page table entries
    available. */
+int
 vlimit ()
 {
   int item_code;
@@ -4764,6 +4794,7 @@ vlimit ()
   return free_pages + frep0va + (0x7fffffff - frep1va);
 }
 
+int
 define_logical_name (varname, string)
      char *varname;
      char *string;
@@ -4778,6 +4809,7 @@ define_logical_name (varname, string)
   return LIB$SET_LOGICAL (&envdsc, &strdsc, &lnmdsc, 0, 0);
 }
 
+int
 delete_logical_name (varname)
      char *varname;
 {
@@ -4789,15 +4821,23 @@ delete_logical_name (varname)
   return LIB$DELETE_LOGICAL (&envdsc, &lnmdsc);
 }
 
+int
 ulimit ()
-{}
+{
+  return 0;
+}
 
+int
 setpgrp ()
-{}
+{
+  return 0;
+}
 
+int
 execvp ()
 {
   error ("execvp system call not implemented");
+  return -1;
 }
 
 int
@@ -4920,6 +4960,7 @@ rename_sans_version (from,to)
   return 0;
 }
 
+int
 link (file, new)
      char * file, * new;
 {
@@ -4987,6 +5028,7 @@ link (file, new)
   return 0;
 }
 
+void
 croak (badfunc)
      char *badfunc;
 {
@@ -5002,6 +5044,7 @@ random ()
   return rand () - (1 << 30);
 }
 
+void
 srandom (seed)
 {
   srand (seed);
@@ -5011,6 +5054,7 @@ srandom (seed)
 #ifdef AIXHFT
 
 /* Called from init_sys_modes.  */
+void
 hft_init ()
 {
   int junk;
@@ -5064,6 +5108,7 @@ hft_init ()
 
 /* Reset the rubout key to backspace. */
 
+void
 hft_reset ()
 {
   struct hfbuf buf;
@@ -5183,7 +5228,7 @@ bcopy (b1, b2, length)
     *b2++ = *b1++;
 #endif /* not VMS */
 }
-#endif /* (defined (BSTRING) && !defined (bcopy)) || defined (NEED_BCOPY) */
+#endif /* (!defined (BSTRING) && !defined (bcopy)) || defined (NEED_BCOPY) */
 
 #ifndef BSTRING
 #ifndef bcmp

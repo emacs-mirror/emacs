@@ -35,6 +35,7 @@ extern char *BC, *UP;
 int cost;		/* sums up costs */
 
 /* ARGSUSED */
+int
 evalcost (c)
      char c;
 {
@@ -42,6 +43,7 @@ evalcost (c)
   return c;
 }
 
+int
 cmputc (c)
      char c;
 {
@@ -135,6 +137,7 @@ cmcheckmagic ()
  * out of <sgtty.h>.)
  */
 
+void
 cmcostinit ()
 {
     char *p;
@@ -174,7 +177,7 @@ cmcostinit ()
  * actually perform the motion.
  */
 
-static
+static int
 calccost (srcy, srcx, dsty, dstx, doit)
 {
     register int    deltay,
@@ -309,6 +312,7 @@ losecursor ()
 #define	USELL	2
 #define	USECR	3
 
+void
 cmgoto (row, col)
 {
     int     homecost,
@@ -411,6 +415,7 @@ cmgoto (row, col)
    Used before copying into it the info on the actual terminal.
  */
 
+void
 Wcm_clear ()
 {
   bzero (&Wcm, sizeof Wcm);
@@ -425,6 +430,7 @@ Wcm_clear ()
  * Return -2 if size not specified.
  */
 
+int
 Wcm_init ()
 {
 #if 0

@@ -30,6 +30,7 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 #include "charset.h"
 #include "coding.h"
+#include "process.h"
 
 #define CUT_BUFFER_SUPPORT
 

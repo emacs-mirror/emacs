@@ -33,6 +33,12 @@ extern int errno;
 #endif /* not MAXPATHLEN */
 
 #include <config.h>
+#ifdef STDC_HEADERS
+#include <stdlib.h>
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 #include "lisp.h"
 #include "intervals.h"
 #include "window.h"
@@ -2230,9 +2236,11 @@ struct sortvec
 };
 
 static int
-compare_overlays (s1, s2)
-     struct sortvec *s1, *s2;
+compare_overlays (v1, v2)
+     const void *v1, *v2;
 {
+  const struct sortvec *s1 = (const struct sortvec *) v1;
+  const struct sortvec *s2 = (const struct sortvec *) v2;
   if (s1->priority != s2->priority)
     return s1->priority - s2->priority;
   if (s1->beg != s2->beg)
@@ -3773,6 +3781,7 @@ buffer_slot_type_mismatch (offset)
 	 type_name, XSYMBOL (sym)->name->data);
 }
 
+void
 init_buffer_once ()
 {
   register Lisp_Object tem;
@@ -3914,6 +3923,7 @@ init_buffer_once ()
   Fset_buffer (Fget_buffer_create (build_string ("*scratch*")));
 }
 
+void
 init_buffer ()
 {
   char buf[MAXPATHLEN+1];
@@ -3973,6 +3983,7 @@ init_buffer ()
 }
 
 /* initialize the buffer routines */
+void
 syms_of_buffer ()
 {
   extern Lisp_Object Qdisabled;
@@ -4553,6 +4564,7 @@ is a member of the list.");
   defsubr (&Soverlay_put);
 }
 
+void
 keys_of_buffer ()
 {
   initial_define_key (control_x_map, 'b', "switch-to-buffer");

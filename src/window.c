@@ -30,6 +30,10 @@ Boston, MA 02111-1307, USA.  */
 #include "disptab.h"
 #include "keyboard.h"
 #include "blockinput.h"
+#include "dispextern.h"
+#ifdef HAVE_WINDOW_SYSTEM
+#include "xterm.h"
+#endif
 
 Lisp_Object Qwindowp, Qwindow_live_p;
 
@@ -723,7 +727,7 @@ DEFUN ("set-window-display-table", Fset_window_display_table, Sset_window_displa
 
 /* Record info on buffer window w is displaying
    when it is about to cease to display that buffer.  */
-static
+static void
 unshow_buffer (w)
      register struct window *w;
 {
@@ -767,7 +771,7 @@ unshow_buffer (w)
 }
 
 /* Put replacement into the window structure in place of old. */
-static
+static void
 replace_window (old, replacement)
      Lisp_Object old, replacement;
 {
@@ -2365,7 +2369,7 @@ temp_output_buffer_show (buf)
     }
 }
 
-static
+static void
 make_dummy_parent (window)
      Lisp_Object window;
 {
@@ -3799,6 +3803,7 @@ and scrolling positions.")
   return Qnil;
 }
 
+void
 init_window_once ()
 {
   selected_frame = make_terminal_frame ();
@@ -3810,6 +3815,7 @@ init_window_once ()
   window_initialized = 1;
 }
 
+void
 syms_of_window ()
 {
   staticpro (&Qwindow_configuration_change_hook);
@@ -4029,6 +4035,7 @@ The selected frame is the one whose configuration has changed.");
   defsubr (&Scompare_window_configurations);
 }
 
+void
 keys_of_window ()
 {
   initial_define_key (control_x_map, '1', "delete-other-windows");

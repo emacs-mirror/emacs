@@ -1065,6 +1065,7 @@ int parse_sexp_ignore_comments;
    If that many words cannot be found before the end of the buffer, return 0.
    COUNT negative means scan backward and stop at word beginning.  */
 
+int
 scan_words (from, count)
      register int from, count;
 {
@@ -2605,6 +2606,7 @@ DEFUN ("parse-partial-sexp", Fparse_partial_sexp, Sparse_partial_sexp, 2, 6, 0,
 				     Qnil)))))))));
 }
 
+void
 init_syntax_once ()
 {
   register int i, c;
@@ -2676,6 +2678,7 @@ init_syntax_once ()
     }
 }
 
+void
 syms_of_syntax ()
 {
   Qsyntax_table_p = intern ("syntax-table-p");

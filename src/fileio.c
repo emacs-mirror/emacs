@@ -599,6 +599,7 @@ On VMS, converts \"[X]FOO.DIR\" to \"[X.FOO]\", etc.")
  * Value is nonzero if the string output is different from the input.
  */
 
+int
 directory_file_name (src, dst)
      char *src, *dst;
 {
@@ -4522,6 +4523,7 @@ a_write (desc, addr, nbytes, bytepos, annot, coding)
 	}
       *annot = Fcdr (*annot);
     }
+  return 0;
 }
 
 #ifndef WRITE_BUF_SIZE
@@ -5172,6 +5174,7 @@ DIR defaults to current buffer's directory default.")
   return val;
 }
 
+void
 syms_of_fileio ()
 {
   Qexpand_file_name = intern ("expand-file-name");

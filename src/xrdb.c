@@ -24,6 +24,10 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #endif
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #include <paths.h>
 
 #include <stdio.h>
@@ -84,6 +88,7 @@ extern char *get_system_name ();
 #define malloc xmalloc
 #define realloc xrealloc
 #define free xfree
+extern long *xmalloc (), *xrealloc ();
 #endif
 
 char *x_get_string_resource ();

@@ -40,6 +40,11 @@ Boston, MA 02111-1307, USA.  */
 #include "keyboard.h"
 #include "coding.h"
 #include "process.h"
+#include "region-cache.h"
+
+#ifdef HAVE_WINDOW_SYSTEM
+#include "xterm.h"
+#endif
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
 extern void set_frame_menubar ();
@@ -5468,6 +5473,7 @@ This commonly affects the minibuffer window, hence the name of the variable.");
 }
 
 /* initialize the window system */
+void
 init_xdisp ()
 {
   Lisp_Object root_window;

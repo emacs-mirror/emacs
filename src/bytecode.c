@@ -1159,6 +1159,7 @@ If the third argument is incorrect, Emacs may crash.")
   return v1;
 }
 
+void
 syms_of_bytecode ()
 {
   Qbytecode = intern ("byte-code");

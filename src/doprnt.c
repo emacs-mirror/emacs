@@ -54,6 +54,7 @@ static int doprnt1 ();
    String arguments are passed as C strings.
    Integers are passed as C integers.  */
 
+int
 doprnt (buffer, bufsize, format, format_end, nargs, args)
      char *buffer;
      register int bufsize;
@@ -68,6 +69,7 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
 /* Like doprnt except that strings in ARGS are passed
    as Lisp_Object.  */
 
+int
 doprnt_lisp (buffer, bufsize, format, format_end, nargs, args)
      char *buffer;
      register int bufsize;

@@ -492,8 +492,6 @@ extern char *x_get_keysym_name ();
 
 static void record_menu_key ();
 
-void swallow_events ();
-
 Lisp_Object Qpolling_period;
 
 /* List of absolute timers.  Appears in order of next scheduled event.  */
@@ -557,6 +555,8 @@ static Lisp_Object make_lispy_movement ();
 static Lisp_Object modify_event_symbol ();
 static Lisp_Object make_lispy_switch_frame ();
 static int parse_solitary_modifier ();
+static void save_getcjmp ();
+static void restore_getcjmp ();
 
 /* > 0 if we are to echo keystrokes.  */
 static int echo_keystrokes;
@@ -572,6 +572,7 @@ static int cannot_suspend;
    so that it serves as a prompt for the next character.
    Also start echoing.  */
 
+void
 echo_prompt (str)
      char *str;
 {
@@ -592,6 +593,7 @@ echo_prompt (str)
    C can be a character, which is printed prettily ("M-C-x" and all that
    jazz), or a symbol, whose name is printed.  */
 
+void
 echo_char (c)
      Lisp_Object c;
 {
@@ -641,6 +643,7 @@ echo_char (c)
 /* Temporarily add a dash to the end of the echo string if it's not
    empty, so that it serves as a mini-prompt for the very next character.  */
 
+void
 echo_dash ()
 {
   if (!current_kboard->immediate_echo
@@ -696,6 +699,7 @@ echo_now ()
 
 /* Turn off echoing, for the start of a new command.  */
 
+void
 cancel_echoing ()
 {
   current_kboard->immediate_echo = 0;
@@ -792,6 +796,7 @@ record_auto_save ()
 
 /* Make an auto save happen as soon as possible at command level.  */
 
+void
 force_auto_save_soon ()
 {
   last_auto_save = - auto_save_interval - 1;
@@ -2409,12 +2414,14 @@ print_help (object)
    in case get_char is called recursively.
    See read_process_output.  */
 
+static void
 save_getcjmp (temp)
      jmp_buf temp;
 {
   bcopy (getcjmp, temp, sizeof getcjmp);
 }
 
+static void
 restore_getcjmp (temp)
      jmp_buf temp;
 {
@@ -7670,6 +7677,7 @@ current_active_maps (maps_p)
 
 /* Return nonzero if input events are pending.  */
 
+int
 detect_input_pending ()
 {
   if (!input_pending)
@@ -7680,6 +7688,7 @@ detect_input_pending ()
 
 /* Return nonzero if input events are pending, and run any pending timers.  */
 
+int
 detect_input_pending_run_timers (do_display)
      int do_display;
 {
@@ -7710,6 +7719,7 @@ clear_input_pending ()
    The problem is, kbd_buffer_get_event needs to be fixed to know what
    to do in that case.  It isn't trivial.  */
 
+int
 requeued_events_pending_p ()
 {
   return (!NILP (Vunread_command_events) || unread_command_char != -1);
@@ -7953,6 +7963,7 @@ stuff_buffered_input (stuffstring)
 #endif /* BSD_SYSTEM and not BSD4_1 */
 }
 
+void
 set_waiting_for_input (time_to_clear)
      EMACS_TIME *time_to_clear;
 {
@@ -8311,6 +8322,7 @@ delete_kboard (kb)
 }
 #endif
 
+void
 init_keyboard ()
 {
   /* This is correct before outermost invocation of the editor loop */
@@ -8405,6 +8417,7 @@ struct event_head head_table[] = {
   &Qmake_frame_visible,	"make-frame-visible",	&Qmake_frame_visible,
 };
 
+void
 syms_of_keyboard ()
 {
   staticpro (&item_properties);
@@ -8878,6 +8891,7 @@ If the value is non-nil and not a number, we wait 2 seconds.");
   Vtimer_idle_list = Qnil;
 }
 
+void
 keys_of_keyboard ()
 {
   initial_define_key (global_map, Ctl ('Z'), "suspend-emacs");

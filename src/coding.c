@@ -1681,6 +1681,7 @@ encode_invocation_designation (charset, coding, dst)
    If the current block ends before any end-of-line, we may fail to
    find all the necessary designations.  */
 
+void
 encode_designation_at_bol (coding, table, src, src_end, dstp)
      struct coding_system *coding;
      Lisp_Object table;
@@ -2465,6 +2466,7 @@ encode_coding_sjis_big5 (coding, source, destination,
    This function is called only when `coding->eol_type' is
    CODING_EOL_CRLF or CODING_EOL_CR.  */
 
+int
 decode_eol (coding, source, destination, src_bytes, dst_bytes)
      struct coding_system *coding;
      unsigned char *source, *destination;
@@ -2595,6 +2597,7 @@ decode_eol (coding, source, destination, src_bytes, dst_bytes)
    `coding->mode & CODING_MODE_SELECTIVE_DISPLAY' is nonzero, code
    '\r' in source text also means end-of-line.  */
 
+int
 encode_eol (coding, source, destination, src_bytes, dst_bytes)
      struct coding_system *coding;
      unsigned char *source, *destination;
@@ -4941,6 +4944,7 @@ call this function:\n\
 
 /*** 8. Post-amble ***/
 
+void
 init_coding_once ()
 {
   int i;
@@ -4999,6 +5003,7 @@ init_coding_once ()
 
 #ifdef emacs
 
+void
 syms_of_coding ()
 {
   Qtarget_idx = intern ("target-idx");

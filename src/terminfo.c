@@ -39,8 +39,6 @@ short ospeed;
 #endif
 #endif
 
-static buffer[512];
-
 /* Interface to curses/terminfo library.
    Turns out that all of the terminfo-level routines look
    like their termcap counterparts except for tparm, which replaces

@@ -20,6 +20,9 @@ Boston, MA 02111-1307, USA.  */
 
 
 #include <config.h>
+#ifdef STDC_HEADERS
+#include <stdlib.h>
+#endif
 #include "lisp.h"
 #include "syntax.h"
 #include "category.h"
@@ -515,6 +518,7 @@ newline_cache_on_off (buf)
    If ALLOW_QUIT is non-zero, set immediate_quit.  That's good to do
    except when inside redisplay.  */
 
+int
 scan_buffer (target, start, end, count, shortage, allow_quit)
      register int target;
      int start, end;
@@ -2715,6 +2719,7 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
 				STRING_MULTIBYTE (string));
 }
   
+void
 syms_of_search ()
 {
   register int i;
