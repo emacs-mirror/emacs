@@ -123,7 +123,8 @@ Never set this variable directly, use the command `auto-revert-mode' instead.")
 
 (defvar auto-revert-tail-mode nil
   "*Non-nil when Auto-Revert Tail Mode is active.
-Never set this variable directly, use the command `auto-revert-mode' instead.")
+Never set this variable directly, use the command
+`auto-revert-tail-mode' instead.")
 (put 'auto-revert-tail-mode 'permanent-local t)
 
 (defvar auto-revert-timer nil
