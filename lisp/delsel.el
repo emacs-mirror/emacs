@@ -1,6 +1,6 @@
 ;;; delsel.el --- delete selection if you insert
 
-;; Copyright (C) 1992, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1997, 1998 Free Software Foundation, Inc.
 
 ;; Author: Matthieu Devin <devin@lucid.com>
 ;; Maintainer: FSF
@@ -29,10 +29,27 @@
 ;; text inserted while the region is active will replace the region contents.
 ;; This is a popular behavior of personal computers text editors.
 
-;;; Code:
+;; Interface:
 
-(eval-when-compile
-  (require 'cl))
+;; Commands which will delete the selection need a 'delete-selection
+;; property on their symbols; commands which insert text but don't
+;; have this property won't delete the selction.  It can be one of
+;; the values:
+;;  'yank
+;;      For commands which do a yank; ensures the region about to be
+;;      deleted isn't yanked.
+;;  'supersede
+;;      Delete the active region and ignore the current command,
+;;      i.e. the command will just delete the region.
+;;  'kill
+;;      `kill-region' is used on the selection, rather than
+;;      `delete-region'.  (Text selected with the mouse will typically
+;;      be yankable anyhow.)
+;;  non-nil
+;;      The normal case: delete the active region prior to executing
+;;      the command which will insert replacement text.
+
+;;; Code:
 
 ;;;###autoload
 (defalias 'pending-delete-mode 'delete-selection-mode)
@@ -40,11 +57,13 @@
 ;;;###autoload
 (defun delete-selection-mode (&optional arg)
   "Toggle Delete Selection mode.
-With prefix ARG, turn Delete Selection mode on if and only if ARG is positive.
+With prefix ARG, turn Delete Selection mode on if and only if ARG is
+positive.
 
-When Delete Selection mode is enabled, Transient Mark mode is also enabled and
-typed text replaces the selection if the selection is active.  Otherwise, typed
-text is just inserted at point regardless of any selection."
+When Delete Selection mode is enabled, Transient Mark mode is also
+enabled and typed text replaces the selection if the selection is
+active.  Otherwise, typed text is just inserted at point regardless of
+any selection."
   (interactive "P")
   (setq delete-selection-mode (if arg
 				  (> (prefix-numeric-value arg) 0)
@@ -57,8 +76,7 @@ text is just inserted at point regardless of any selection."
 ;;;###autoload
 (defcustom delete-selection-mode nil
   "Toggle Delete Selection mode.
-When Delete Selection mode is enabled, Transient Mark mode is also enabled and
-typed text replaces the selection if the selection is active.
+See command `delete-selection-mode'.
 You must modify via \\[customize] for this variable to have an effect."
   :set (lambda (symbol value)
 	 (delete-selection-mode (or value 0)))
@@ -90,12 +108,12 @@ You must modify via \\[customize] for this variable to have an effect."
 	     (when (string= (buffer-substring-no-properties (point) (mark))
 			    (car kill-ring))
 	       (current-kill 1))
-	     (delete-active-region nil))
+	     (delete-active-region))
 	    ((eq type 'supersede)
-	     (when (delete-active-region nil)
-	       (setq this-command '(lambda () (interactive)))))
+	     (delete-active-region)
+	     (setq this-command 'ignore))
 	    (type
-	     (delete-active-region nil))))))
+	     (delete-active-region))))))
 
 (put 'self-insert-command 'delete-selection t)
 (put 'self-insert-iso 'delete-selection t)
@@ -108,16 +126,18 @@ You must modify via \\[customize] for this variable to have an effect."
 (put 'backward-delete-char-untabify 'delete-selection 'supersede)
 (put 'delete-char 'delete-selection 'supersede)
 
-(put 'newline-and-indent 'delete-selection 't)
+(put 'newline-and-indent 'delete-selection t)
 (put 'newline 'delete-selection t)
-(put 'open-line 'delete-selection t)
+(put 'open-line 'delete-selection 'kill)
+
+(put 'insert-parentheses 'delete-selection t)
 
 ;; This is very useful for cancelling a selection in the minibuffer without 
 ;; aborting the minibuffer.
 (defun minibuffer-keyboard-quit ()
   "Abort recursive edit.
-In Delete Selection mode mode, if the mark is active, just deactivate it;
-then it takes a second C-g to abort the minibuffer."
+In Delete Selection mode, if the mark is active, just deactivate it;
+then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (interactive)
   (if (and delete-selection-mode transient-mark-mode mark-active)
       (setq deactivate-mark t)
