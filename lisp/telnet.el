@@ -201,6 +201,8 @@ Normally input is edited in Emacs and sent a line at a time."
       (setq comint-input-sender 'telnet-simple-send)
       (setq telnet-count telnet-initial-count))))
 
+(put 'telnet-mode 'mode-class 'special)
+
 (defun telnet-mode ()
   "This mode is for using telnet (or rsh) from a buffer to another host.
 It has most of the same commands as comint-mode.
