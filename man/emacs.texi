@@ -227,8 +227,10 @@ Recovery from Problems
 Here are some other nodes which are really inferiors of the ones
 already listed, mentioned here so you can get to them in one step:
 
- --- The Detailed Node Listing ---
- --- These nodes are subnodes of the ones above ---
+@section Detailed Node Listing
+
+  This continuation of the manual's main menu lists second-level
+subnodes (usually sections rather than chapters).
 
 The Organization of the Screen
 
