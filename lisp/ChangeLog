@@ -1,5 +1,7 @@
 2001-12-16  Richard M. Stallman  <rms@gnu.org>
 
+	* subr.el (temp-buffer-show-hook, temp-buffer-setup-hook): Add defvars.
+
 	* startup.el (command-line-1): Display startup screen
 	even if there are command line args.
 	Add a note about how to go to editing your files. 
