@@ -2,7 +2,7 @@
 
 ;; Copyright 1989, 1993, 1994, 1995 Free Software Foundation, Inc.
 
-;; Maintainer's Time-stamp: <95/12/28 19:48:49 gildea>
+;; Maintainer's Time-stamp: <1996-08-13 14:03:17 gildea>
 ;; Maintainer: Stephen Gildea <gildea@lcs.mit.edu>
 ;; Keywords: tools
 
@@ -23,52 +23,48 @@
 
 ;;; Commentary:
 
-;; If you put a time stamp template anywhere in the first 8 lines of a file,
-;; it can be updated every time you save the file.  See the top of
-;; time-stamp.el for a sample.  The template looks like one of the following:
-;;     Time-stamp: <>
-;;     Time-stamp: " "
-;; The time stamp is written between the brackets or quotes, resulting in
-;;     Time-stamp: <95/01/18 10:20:51 gildea>
-;; Here is an example that puts the file name and time stamp in the binary:
-;; static char *time_stamp = "sdmain.c Time-stamp: <>";
+;; A template in a file can be updated with a new time stamp when
+;; you save the file.  For example:
+;;     static char *ts = "sdmain.c Time-stamp: <1996-08-13 10:20:51 gildea>";
+;; See the top of `time-stamp.el' for another example.
 
-;; To activate automatic time stamping in GNU Emacs 19, add this code
-;; to your .emacs file:
-;; (add-hook 'write-file-hooks 'time-stamp)
-;;
-;; In Emacs 18 you will need to do this instead:
-;; (if (not (memq 'time-stamp write-file-hooks))
-;;     (setq write-file-hooks
-;;           (cons 'time-stamp write-file-hooks)))
-;; (autoload 'time-stamp "time-stamp" "Update the time stamp in a buffer." t)
+;; To use time-stamping, add this line to your .emacs file:
+;;     (add-hook 'write-file-hooks 'time-stamp)
+;; Now any time-stamp templates in your files will be updated automatically.
 
-;; See the documentation for the function `time-stamp' for more details.
+;; See the documentation for the functions `time-stamp'
+;; and `time-stamp-toggle-active' for details.
 
 ;;; Change Log:
 
 ;; Originally based on the 19 Dec 88 version of
 ;;   date.el by John Sturdy <mcvax!harlqn.co.uk!jcgs@uunet.uu.net>
-;; version 2, January 1995: replaced functions with %-escapes
-;; $Id: time-stamp.el,v 1.16 1996/01/06 01:03:24 kwzh Exp erik $
+;; Version 2, January 1995: replaced functions with %-escapes
+;; $Id: time-stamp.el,v 1.5 1996/08/13 18:03:17 gildea Exp $
 
 ;;; Code:
 
 (defvar time-stamp-active t
   "*Non-nil to enable time-stamping of buffers by \\[time-stamp].
 Can be toggled by \\[time-stamp-toggle-active].
-See also the variable time-stamp-warn-inactive.")
+See also the variable `time-stamp-warn-inactive'.")
 
 (defvar time-stamp-warn-inactive t
-  "*Non-nil to have \\[time-stamp] warn if a buffer did not get time-stamped.
-A warning is printed if time-stamp-active is nil and the buffer contains
+  "Non-nil to have \\[time-stamp] warn if a buffer did not get time-stamped.
+A warning is printed if `time-stamp-active' is nil and the buffer contains
 a time stamp template that would otherwise have been updated.")
 
-(defvar time-stamp-format "%02y/%02m/%02d %02H:%02M:%02S %u"
-  "*Template for the string inserted by \\[time-stamp].
+(defvar time-stamp-old-format-warn 'ask
+  "Action to take if `time-stamp-format' is an old-style list.
+If 'error, the format is not used.  If 'ask, the user is queried about
+using the time-stamp-format.  If 'warn, a warning is displayed.
+If nil, no notification is given.")
+
+(defvar time-stamp-format "%y-%02m-%02d %02H:%02M:%02S %u"
+  "*Format of the string inserted by \\[time-stamp].
 Value may be a string or a list.  (Lists are supported only for
-backward compatibility.)  A string is used verbatim except
-for character sequences beginning with %:
+backward compatibility; see variable `time-stamp-old-format-warn'.)
+A string is used verbatim except for character sequences beginning with %:
 
 %a  weekday name: `Monday'.		%A gives uppercase: `MONDAY'
 %b  month name: `January'.		%B gives uppercase: `JANUARY'
@@ -98,10 +94,12 @@ For example, to get the format used by the `date' command,
 use \"%3a %3b %2d %02H:%02M:%02S %Z %y\"")
 
 
+
 ;;; Do not change time-stamp-line-limit, time-stamp-start, or
 ;;; time-stamp-end in your .emacs or you will be incompatible
 ;;; with other people's files!  If you must change them,
 ;;; do so only in the local variables section of the file itself.
+
 
 (defvar time-stamp-line-limit 8	    ;Do not change!
   "Lines of a file searched; positive counts from start, negative from end.
@@ -137,75 +135,83 @@ with other people's files!  If you must change them for some application,
 do so in the local variables section of the time-stamped file itself.")
 
 
+
 ;;;###autoload
 (defun time-stamp ()
   "Update the time stamp string in the buffer.
-If you put a time stamp template anywhere in the first 8 lines of a file,
-it can be updated every time you save the file.  See the top of
-`time-stamp.el' for a sample.  The template looks like one of the following:
-    Time-stamp: <>
-    Time-stamp: \" \"
-The time stamp is written between the brackets or quotes, resulting in
-    Time-stamp: <95/01/18 10:20:51 gildea>
-Only does its thing if the variable  time-stamp-active  is non-nil.
-Typically used on  write-file-hooks  for automatic time-stamping.
-The format of the time stamp is determined by the variable  time-stamp-format.
-The variables time-stamp-line-limit, time-stamp-start, and time-stamp-end
-control finding the template."
+A template in a file can be automatically updated with a new time stamp
+every time you save the file.  Add this line to your .emacs file:
+    (add-hook 'write-file-hooks 'time-stamp)
+Normally the template must appear in the first 8 lines of a file and
+look like one of the following:
+      Time-stamp: <>
+      Time-stamp: \" \"
+The time stamp is written between the brackets or quotes:
+      Time-stamp: <1996-07-18 10:20:51 gildea>
+Only updates the time stamp if the variable `time-stamp-active' is non-nil.
+The format of the time stamp is set by the variable `time-stamp-format'.
+The variables `time-stamp-line-limit', `time-stamp-start',
+and `time-stamp-end' control finding the template."
   (interactive)
   (let ((case-fold-search nil)
-	(need-to-warn nil)
-	start search-end)
-    (if (and (stringp time-stamp-start)
-	     (stringp time-stamp-end))
+	(start nil)
+	(end nil)
+	search-limit)
 	(save-excursion
 	  (save-restriction
 	    (widen)
-	    (if (> time-stamp-line-limit 0)
-		(progn
-		  (goto-char (setq start (point-min)))
-		  (forward-line time-stamp-line-limit)
-		  (setq search-end (point)))
-	      (goto-char (setq search-end (point-max)))
-	      (forward-line time-stamp-line-limit)
-	      (setq start (point)))
+	    (cond ((> time-stamp-line-limit 0)
+		   (goto-char (setq start (point-min)))
+		   (forward-line time-stamp-line-limit)
+		   (setq search-limit (point)))
+		  (t
+		   (goto-char (setq search-limit (point-max)))
+		   (forward-line time-stamp-line-limit)
+		   (setq start (point))))
 	    (goto-char start)
-	    (while
-		(and (< (point) search-end)
-		     (re-search-forward time-stamp-start search-end 'move))
+	    (while (and (< (point) search-limit)
+			(not end)
+			(re-search-forward time-stamp-start search-limit 'move))
 	      (setq start (point))
 	      (end-of-line)
 	      (let ((line-end (point)))
 		(goto-char start)
 		(if (re-search-forward time-stamp-end line-end 'move)
+		    (setq end (match-beginning 0)))))))
+	(if end
+	    (progn
+	      ;; do all warnings outside save-excursion
+	      (cond
+	       ((not time-stamp-active)
+		(if time-stamp-warn-inactive
+		    ;; don't signal an error in a write-file-hook
 		    (progn
-		      (if time-stamp-active
-			  (let ((end (match-beginning 0)))
-			    (delete-region start end)
-			    (goto-char start)
-			    (insert (time-stamp-string))
-			    (setq end (point))
-			    ;; remove any tabs used to format time stamp
-			    (goto-char start)
-			    (if (search-forward "\t" end t)
-				(untabify start end)))
-			(if time-stamp-warn-inactive
-			    ;; do warning outside save-excursion
-			    (setq need-to-warn t)))
-		      (setq search-end (point))))))))
-      ;; don't signal an error in a write-file-hook
-      (message "time-stamp-start or time-stamp-end is not a string")
-      (sit-for 1))
-    (if need-to-warn
-	(progn
-	  (message "Warning: time-stamp-active is off; did not time-stamp buffer.")
-	  (sit-for 1))))
+		      (message "Warning: time-stamp-active is off; did not time-stamp buffer.")
+		      (sit-for 1))))
+	       ((not (and (stringp time-stamp-start)
+			  (stringp time-stamp-end)))
+		(message "time-stamp-start or time-stamp-end is not a string")
+		(sit-for 1))
+	       (t
+		(let ((new-time-stamp (time-stamp-string)))
+		  (if (stringp new-time-stamp)
+		      (save-excursion
+			(save-restriction
+			  (widen)
+			  (delete-region start end)
+			  (goto-char start)
+			  (insert new-time-stamp)
+			  (setq end (point))
+			  ;; remove any tabs used to format time stamp
+			  (goto-char start)
+			  (if (search-forward "\t" end t)
+			      (untabify start end)))))))))))
   ;; be sure to return nil so can be used on write-file-hooks
   nil)
 
 ;;;###autoload
 (defun time-stamp-toggle-active (&optional arg)
-  "Toggle time-stamp-active, setting whether \\[time-stamp] updates a buffer.
+  "Toggle `time-stamp-active', setting whether \\[time-stamp] updates a buffer.
 With arg, turn time stamping on if and only if arg is positive."
   (interactive "P")
   (setq time-stamp-active
@@ -213,13 +219,24 @@ With arg, turn time stamping on if and only if arg is positive."
 	    (not time-stamp-active)
 	  (> (prefix-numeric-value arg) 0)))
     (message "time-stamp is now %s." (if time-stamp-active "active" "off")))
-  
+
 
 (defun time-stamp-string ()
   "Generate the new string to be inserted by \\[time-stamp]."
   (if (stringp time-stamp-format)
       (time-stamp-strftime time-stamp-format)
-    (time-stamp-fconcat time-stamp-format " "))) ;version 1 compatibility
+    ;; handle version 1 compatibility
+    (cond ((or (eq time-stamp-old-format-warn 'error)
+	       (and (eq time-stamp-old-format-warn 'ask)
+		    (not (y-or-n-p "Use non-string time-stamp-format? "))))
+	   (message "Warning: no time-stamp: time-stamp-format not a string")
+	   (sit-for 1)
+	   nil)
+	  (t
+	   (cond ((eq time-stamp-old-format-warn 'warn)
+		  (message "Obsolescent time-stamp-format type; should be string")
+		  (sit-for 1)))
+	   (time-stamp-fconcat time-stamp-format " ")))))
 
 (defconst time-stamp-month-numbers
   '(("Jan" . 1) ("Feb" . 2) ("Mar" . 3) ("Apr" . 4) ("May" . 5) ("Jun" . 6)
@@ -247,7 +264,7 @@ With arg, turn time stamping on if and only if arg is positive."
 (defun time-stamp-strftime (format &optional time)
   "Uses a FORMAT to format date, time, file, and user information.
 Optional second argument TIME will be used instead of the current time.
-See the description of the variable `time-stamp-format' for a description
+See the documentation of the variable `time-stamp-format' for a description
 of the format string."
   (let ((time-string (cond ((stringp time)
 			    time)
@@ -268,7 +285,7 @@ of the format string."
       (setq cur-char (aref format ind))
       (setq
        result
-       (concat result 
+       (concat result
       (cond
        ((eq cur-char ?%)
 	(setq field-index (1+ ind))
@@ -430,8 +447,7 @@ around literals."
       (setq list (cdr list)))
     return-string))
 
-
-;;; Some useful functions to use in time-stamp-format
+;;; Some functions used in time-stamp-format
 
 ;;; Could generate most of a message-id with
 ;;; '(time-stamp-yymmdd "" time-stamp-hhmm "@" time-stamp-mail-host-name)
