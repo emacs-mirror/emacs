@@ -3816,8 +3816,13 @@ read_key_sequence (keybuf, bufsize, prompt)
 		      if (t + 1 >= bufsize)
 			error ("key sequence too long");
 		      keybuf[t] = posn;
-		      keybuf[t+1] = key;
-		      mock_input = t + 2;
+		      mock_input = t + 1;
+
+		      /* Put the rest on unread_command_events - that
+			 way, if the symbol isn't bound to a prefix map,
+			 then we don't lose the actual mouse event.  */
+		      unread_command_events = 
+			Fcons (key, unread_command_events);
 
 		      /* If we switched buffers while reading the first event,
 			 replay in case we switched keymaps too.  */
