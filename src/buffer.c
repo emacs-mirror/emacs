@@ -93,6 +93,7 @@ static Lisp_Object Vbuffer_local_symbols;
 int check_protected_fields;
 
 Lisp_Object Fset_buffer ();
+void set_buffer_internal ();
 
 /* Alist of all buffer names vs the buffers. */
 /* This used to be a variable, but is no longer,
@@ -306,12 +307,16 @@ reset_buffer_local_variables(b)
 	*(Lisp_Object *)(offset + (char *)&buffer_defaults);
 }
 
-DEFUN ("generate-new-buffer", Fgenerate_new_buffer, Sgenerate_new_buffer,
+/* We split this away from generate-new-buffer, because rename-buffer
+   and set-visited-file-name ought to be able to use this to really
+   rename the buffer properly.  */
+
+DEFUN ("generate-new-buffer-name", Fgenerate_new_buffer_name, Sgenerate_new_buffer_name,
   1, 1, 0,
-  "Create and return a buffer with a name based on NAME.\n\
-If there is no live buffer named NAME, then one is created.\n\
+  "Return a string that is the name of no existing buffer based on NAME.\n\
+If there is no live buffer named NAME, then return NAME.\n\
 Otherwise modify name by appending `<NUMBER>', incrementing NUMBER\n\
-until an unused name is found, and then create a buffer.")
+until an unused name is found, and then return that name.")
  (name)
      register Lisp_Object name;
 {
@@ -323,7 +328,7 @@ until an unused name is found, and then create a buffer.")
 
   tem = Fget_buffer (name);
   if (NULL (tem))
-    return Fget_buffer_create (name);
+    return name;
 
   count = 1;
   while (1)
@@ -332,14 +337,14 @@ until an unused name is found, and then create a buffer.")
       gentemp = concat2 (name, build_string (number));
       tem = Fget_buffer (gentemp);
       if (NULL (tem))
-	return Fget_buffer_create (gentemp);
+	return gentemp;
     }
 }
 
 
 DEFUN ("buffer-name", Fbuffer_name, Sbuffer_name, 0, 1, 0,
   "Return the name of BUFFER, as a string.\n\
-Wyth no argument or nil as argument, return the name of the current buffer.")
+With no argument or nil as argument, return the name of the current buffer.")
   (buffer)
      register Lisp_Object buffer;
 {
@@ -490,27 +495,38 @@ No argument or nil as argument means use current buffer as BUFFER.")
   return make_number (BUF_MODIFF (buf));
 }
 
-DEFUN ("rename-buffer", Frename_buffer, Srename_buffer, 1, 1,
+DEFUN ("rename-buffer", Frename_buffer, Srename_buffer, 1, 2,
        "sRename buffer (to new name): ",
   "Change current buffer's name to NEWNAME (a string).\n\
-It is an error if a buffer named NEWNAME already exists.\n\
+If second arg DISTINGUISH is nil or omitted, it is an error if a\n\
+buffer named NEWNAME already exists.\n\
+If DISTINGUISH is non-nil, come up with a new name using\n\
+`generate-new-buffer-name'.\n\
+Return the name we actually gave the buffer.\n\
 This does not change the name of the visited file (if any).")
-  (name)
-     register Lisp_Object name;
+  (name, distinguish)
+     register Lisp_Object name, distinguish;
 {
   register Lisp_Object tem, buf;
 
   CHECK_STRING (name, 0);
   tem = Fget_buffer (name);
+  if (XBUFFER (tem) == current_buffer)
+    return current_buffer->name;
   if (!NULL (tem))
-    error ("Buffer name \"%s\" is in use", XSTRING (name)->data);
+    {
+      if (!NULL (distinguish))
+	name = Fgenerate_new_buffer_name (name);
+      else
+	error ("Buffer name \"%s\" is in use", XSTRING (name)->data);
+    }
 
   current_buffer->name = name;
   XSET (buf, Lisp_Buffer, current_buffer);
   Fsetcar (Frassq (buf, Vbuffer_alist), name);
   if (NULL (current_buffer->filename) && !NULL (current_buffer->auto_save_file_name))
     call0 (intern ("rename-auto-save-file"));
-  return Qnil;
+  return name;
 }
 
 DEFUN ("other-buffer", Fother_buffer, Sother_buffer, 0, 1, 0,
@@ -1104,7 +1120,10 @@ a non-nil `permanent-local' property are not eliminated by this function.")
       sym = XCONS (XCONS (alist)->car)->car;
       tem = Fget (sym, Qpermanent_local);
       if (! NULL (tem))
-	Fmake_local_variable (sym, XCONS (XCONS (alist)->car)->cdr);
+	{
+	  Fmake_local_variable (sym);
+	  Fset (sym, XCONS (XCONS (alist)->car)->cdr);
+	}
     }
 
   /* Force mode-line redisplay.  Useful here because all major mode
@@ -1515,7 +1534,7 @@ See `add-field'.");
 /*DEFVAR_LISP ("debug-check-symbol", &Vcheck_symbol,
     "Don't ask.");
 */
-  DEFVAR_LISP ("bgfore-change-function", &Vbefore_change_function,
+  DEFVAR_LISP ("before-change-function", &Vbefore_change_function,
 	       "Function to call before each text change.\n\
 Two arguments are passed to the function: the positions of\n\
 the beginning and end of the range of old text to be changed.\n\
@@ -1572,7 +1591,7 @@ If the value of the variable is t, undo information is not recorded.\n\
   defsubr (&Sget_buffer);
   defsubr (&Sget_file_buffer);
   defsubr (&Sget_buffer_create);
-  defsubr (&Sgenerate_new_buffer);
+  defsubr (&Sgenerate_new_buffer_name);
   defsubr (&Sbuffer_name);
 /*defsubr (&Sbuffer_number);*/
   defsubr (&Sbuffer_file_name);
