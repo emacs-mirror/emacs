@@ -478,6 +478,9 @@ cl-indent package.  The new user options
 `lisp-simple-loop-indentation' can be used to customize the
 indentation of keywords and forms in loop forms.
 
+** Indentation of backquoted forms has been made customizable in the
+cl-indent package.  See the new user option `lisp-backquote-indentation'.
+
 ** New modes and packages
 
 +++

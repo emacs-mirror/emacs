@@ -9,6 +9,7 @@
 	common-lisp-indent-function.
 	(common-lisp-indent-function): Handle loop forms specially.
 	(lisp-indent-defmethod): Use car/cdr instead of first/rest.
+	(lisp-backquote-indentation): New user option.
 
 2002-03-12  Francesco Potorti`  <pot@gnu.org>
 
