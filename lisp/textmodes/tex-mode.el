@@ -487,8 +487,8 @@ Entering SliTeX mode calls the value of `text-mode-hook', then the value of
 
 (defun tex-insert-quote (arg)
   "Insert the appropriate quote marks for TeX.
-Inserts the value of tex-open-quote (normally ``) or tex-close-quote
-(normally '') depending on the context.  With prefix argument, always
+Inserts the value of `tex-open-quote' (normally ``) or `tex-close-quote'
+\(normally '') depending on the context.  With prefix argument, always
 inserts \" characters."
   (interactive "*P")
   (if arg
