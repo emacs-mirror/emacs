@@ -447,8 +447,8 @@ back_comment (from, from_byte, stop, comstyle, charpos_ptr, bytepos_ptr)
 	       && comstyle == SYNTAX_COMMENT_STYLE (FETCH_CHAR (temp_byte)))))
 	code = Scomment;
 
-      /* Ignore escaped characters.  */
-      if (char_quoted (from, from_byte))
+      /* Ignore escaped characters, except comment-enders.  */
+      if (code != Sendcomment && char_quoted (from, from_byte))
 	continue;
 
       /* Track parity of quotes.  */
@@ -1281,7 +1281,7 @@ skip_chars (forwardp, syntaxp, string, lim)
 	      else
 		c = XSTRING (string)->data[i++];
 	    }
-	  if (i == XSTRING (string)->size && XSTRING (string)->data[i] == '-')
+	  if (i < XSTRING (string)->size && XSTRING (string)->data[i] == '-')
 	    {
 	      unsigned int c2;
 
@@ -1921,11 +1921,6 @@ scan_lists (from, count, depth, sexpflag)
 	{
 	  DEC_BOTH (from, from_byte);
 	  UPDATE_SYNTAX_TABLE_BACKWARD (from);
-	  if (quoted = char_quoted (from, from_byte))
-	    {
-	      DEC_BOTH (from, from_byte);
-	      UPDATE_SYNTAX_TABLE_BACKWARD (from);
-	    }
 	  c = FETCH_CHAR (from_byte);
 	  code = SYNTAX (c);
 	  if (depth == min_depth)
@@ -1937,7 +1932,6 @@ scan_lists (from, count, depth, sexpflag)
 	  DEC_POS (temp_pos);
 	  if (from > stop && SYNTAX_COMEND_SECOND (c)
 	      && (c1 = FETCH_CHAR (temp_pos), SYNTAX_COMEND_FIRST (c1))
-	      && !char_quoted (from - 1, temp_pos)
 	      && parse_sexp_ignore_comments)
 	    {
 	      /* we must record the comment style encountered so that
@@ -1948,13 +1942,19 @@ scan_lists (from, count, depth, sexpflag)
 	      DEC_BOTH (from, from_byte);
 	    }
 	  
-	  if (SYNTAX_PREFIX (c))
+	  /* Quoting turns anything except a comment-ender
+	     into a word character.  */
+	  if (code != Sendcomment && char_quoted (from, from_byte))
+	    code = Sword;
+	  else if (SYNTAX_PREFIX (c))
 	    continue;
 
-	  switch (SWITCH_ENUM_CAST (quoted ? Sword : code))
+	  switch (SWITCH_ENUM_CAST (code))
 	    {
 	    case Sword:
 	    case Ssymbol:
+	    case Sescape:
+	    case Scharquote:
 	      if (depth || !sexpflag) break;
 	      /* This word counts as a sexp; count object finished
 		 after passing it.  */
@@ -1963,6 +1963,11 @@ scan_lists (from, count, depth, sexpflag)
 		  temp_pos = from_byte;
 		  DEC_POS (temp_pos);
 		  UPDATE_SYNTAX_TABLE_BACKWARD (from - 1);
+		  c1 = FETCH_CHAR (temp_pos);
+		  temp_code = SYNTAX (c1);
+		  /* Don't allow comment-end to be quoted.  */
+		  if (temp_code == Sendcomment)
+		    goto done2;
 		  quoted = char_quoted (from - 1, temp_pos);
 		  if (quoted)
 		    {
