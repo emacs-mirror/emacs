@@ -212,7 +212,9 @@ causing the user to wonder if anything's really going on..."
 					default-directory)))
 	   (find-file-name-handler default-directory
 				   'shell-command))))
-    (if handler
+    (if (and handler
+	     (not (and (eshell-under-xemacs-p)
+		       (eq handler 'dired-handler-fn))))
 	(eshell-remote-command handler command args))
     (let ((interp (eshell-find-interpreter command)))
       (assert interp)
@@ -258,7 +260,7 @@ Return nil, or a list of the form:
 	     (file-regular-p file))
 	(with-temp-buffer
 	  (insert-file-contents-literally file nil 0 maxlen)
-	  (if (looking-at "#!\\([^ \t\n]+\\)\\([ \t]+\\(.+\\)\\)?")
+	  (if (looking-at "#![ \t]*\\([^ \t\n]+\\)\\([ \t]+\\(.+\\)\\)?")
 	      (if (match-string 3)
 		  (list (match-string 1)
 			(match-string 3)
