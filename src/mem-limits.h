@@ -68,7 +68,7 @@ static unsigned int lim_data;
 
 #ifdef USG
 
-void
+static void
 get_lim_data ()
 {
   extern long ulimit ();
@@ -85,7 +85,7 @@ get_lim_data ()
 #else /* not USG */
 #ifndef BSD4_2
 
-void
+static void
 get_lim_data ()
 {
   lim_data = vlimit (LIM_DATA, -1);
@@ -93,7 +93,7 @@ get_lim_data ()
 
 #else /* BSD4_2 */
 
-void
+static void
 get_lim_data ()
 {
   struct rlimit XXrlimit;
