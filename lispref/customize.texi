@@ -870,8 +870,11 @@ provide more information about the meanings of alternatives inside a
 
 @item :help-echo @var{motion-doc}
 When you move to this item with @code{widget-forward} or
-@code{widget-backward}, it will display the string @var{motion-doc}
-in the echo area.
+@code{widget-backward}, it will display the string @var{motion-doc} in
+the echo area.  In addition, @var{motion-doc} is used as the mouse
+@code{help-echo} string and may actually be a function or form evaluated
+to yield a help string as for @code{help-echo} text properties.
+@xref{Text help-echo}.
 
 @item :match @var{function}
 Specify how to decide whether a value matches the type.  The
