@@ -364,18 +364,15 @@ then delete CATEGORY from the category set instead of adding it.  */)
   while (start <= end)
     {
       category_set = char_table_ref_and_range (table, start, &from, &to);
-      if (from < start || to > end)
-	category_set = Fcopy_sequence (category_set);
-      SET_CATEGORY_SET (category_set, category, set_value);
-      if (from < start)
+      if (CATEGORY_MEMBER (category, category_set) != NILP (reset))
 	{
+	  category_set = Fcopy_sequence (category_set);
+	  SET_CATEGORY_SET (category_set, category, set_value);
 	  if (to > end)
 	    char_table_set_range (table, start, end, category_set);
 	  else
 	    char_table_set_range (table, start, to, category_set);
 	}
-      else if (to > end)
-	char_table_set_range (table, start, end, category_set);
       start = to + 1;
     }
   return Qnil;
