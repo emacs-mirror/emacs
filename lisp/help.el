@@ -1057,11 +1057,11 @@ The words preceding the quoted symbol can be used in doc strings to
 distinguish references to variables, functions and symbols.")
 
 (defconst help-xref-mule-regexp nil
-  "Regexp matching doc string references to multilingualization related keywords.
+  "Regexp matching doc string references to MULE-related keywords.
 
-It is usually nil, and temporarily bound to a proper regexp while
-executing multilingualiation related help commands
-(e.g. describe-coding-system).")
+It is usually nil, and is temporarily bound to an appropriate regexp
+when help commands related to multilingual environment (e.g.,
+`describe-coding-system') are invoked.")
 
 
 (defconst help-xref-info-regexp
@@ -1093,9 +1093,9 @@ and the type of reference may be disambiguated by the preceding
 word(s) used in `help-xref-symbol-regexp'.
 
 If the variable `help-xref-mule-regexp' is non-nil, find also
-cross-reference information related to multiligualization issues
-\(e.g. coding-system).  This variable is also used to disambiguate the
-type of reference as the same way as `help-xref-symbol-regexp'.
+cross-reference information related to multilingual environment
+\(e.g., coding-systems).  This variable is also used to disambiguate
+the type of reference as the same way as `help-xref-symbol-regexp'.
 
 A special reference `back' is made to return back through a stack of
 help buffers.  Variable `help-back-label' specifies the text for
