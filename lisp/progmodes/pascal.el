@@ -93,6 +93,10 @@
 ;  (define-key pascal-mode-map "\C-cu"    'pascal-upcase-keywords)
 ;  (define-key pascal-mode-map "\C-cc"    'pascal-capitalize-keywords)
   )
+
+(defvar pascal-imenu-generic-expression
+  '("^[ \t]*\\(function\\|procedure\\)[ \t\n]+\\([a-zA-Z0-9_.:]+\\)" . (2))
+  "Imenu expression for Pascal-mode.  See `imenu-generic-expression'.")
   
 (defvar pascal-keywords
   '("and" "array" "begin" "case" "const" "div" "do" "downto" "else" "end" 
@@ -320,8 +324,12 @@ no args, if that value is non-nil."
   (setq comment-start-skip "(\\*+ *\\|{ *")
   (make-local-variable 'comment-end)
   (setq comment-end "}")
+  ;; Font lock support
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(pascal-font-lock-keywords nil t))
+  ;; Imenu support
+  (make-local-variable 'imenu-generic-expression)
+  (setq imenu-generic-expression pascal-imenu-generic-expression)
   (run-hooks 'pascal-mode-hook))
 
 
