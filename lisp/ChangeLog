@@ -1,3 +1,12 @@
+2002-05-18  Markus Rost  <rost@math.ohio-state.edu>
+
+	* mail/emacsbug.el (report-emacs-bug-text-prompt): New variable.
+	(report-emacs-bug): Store the prompt in
+	`report-emacs-bug-text-prompt'.  Move Configuration/Important
+	settings information after the user's report.
+	(report-emacs-bug-hook): Unclutter by deleting the content of
+	`report-emacs-bug-text-prompt'.
+
 2002-05-17  Thomas Morgan <tlm@pocketmail.com>
 
 	* forms.el (forms-jump-record, forms-insert-record)
