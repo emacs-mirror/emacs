@@ -1310,13 +1310,19 @@ If FRAME is a frame, search only that frame.\n")
 DEFUN ("delete-other-windows", Fdelete_other_windows, Sdelete_other_windows,
   0, 1, "",
   "Make WINDOW (or the selected window) fill its frame.\n\
-Only the frame WINDOW is on is affected.")
+Only the frame WINDOW is on is affected.\n\
+This function tries to reduce display jumps\n\
+by keeping the text previously visible in WINDOW\n\
+in the same place on the frame.  Doing this depends on\n\
+the value of (window-start WINDOW), so if calling this function\n\
+in a program gives strange scrolling, make sure the window-start\n\
+value is reasonable when this function is called.")
   (window)
      Lisp_Object window;
 {
   struct window *w;
-  int opoint = point;
   struct buffer *obuf = current_buffer;
+  int opoint;
   int top;
 
   if (NILP (window))
@@ -1330,11 +1336,12 @@ Only the frame WINDOW is on is affected.")
   window_loop (DELETE_OTHER_WINDOWS, window, 0, WINDOW_FRAME (w));
 
   Fset_buffer (w->buffer);
+  opoint = point;
   SET_PT (marker_position (w->start));
   Frecenter (make_number (top - FRAME_MENU_BAR_LINES (XFRAME (WINDOW_FRAME (w)))));
 
-  set_buffer_internal (obuf);
   SET_PT (opoint);
+  set_buffer_internal (obuf);
   return Qnil;
 }
 
