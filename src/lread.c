@@ -898,8 +898,7 @@ BUFFER is the buffer to evaluate (nil means use current buffer).\n\
 PRINTFLAG controls printing of output:\n\
 nil means discard it; anything else is stream for print.\n\
 \n\
-If there is no error, point does not move.  If there is an error,\n\
-point remains at the end of the last character read from the buffer.")
+This function preserves the position of point.")
   (buffer, printflag)
      Lisp_Object buffer, printflag;
 {
