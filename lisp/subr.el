@@ -1,6 +1,7 @@
 ;;; subr.el --- basic lisp subroutines for Emacs
 
-;; Copyright (C) 1985, 86, 92, 94, 95, 99, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 92, 94, 95, 99, 2000, 2001
+;;   Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -905,7 +906,11 @@ Optional DEFAULT is a default password to use instead of empty input."
 	  (let ((first (read-passwd prompt nil default))
 		(second (read-passwd "Confirm password: " nil default)))
 	    (if (equal first second)
-		(setq success first)
+		(progn
+		  (and (arrayp second) (fillarray second ?\0))
+		  (setq success first))
+	      (and (arrayp first) (fillarray first ?\0))
+	      (and (arrayp second) (fillarray second ?\0))
 	      (message "Password not repeated accurately; please start over")
 	      (sit-for 1))))
 	success)
@@ -919,11 +924,20 @@ Optional DEFAULT is a default password to use instead of empty input."
 		    (setq c (read-char-exclusive nil t))
 		    (and (/= c ?\r) (/= c ?\n) (/= c ?\e)))
 	(if (= c ?\C-u)
-	    (setq pass "")
+	    (progn
+	      (and (arrayp pass) (fillarray pass ?\0))
+	      (setq pass ""))
 	  (if (and (/= c ?\b) (/= c ?\177))
-	      (setq pass (concat pass (char-to-string c)))
+	      (let* ((new-char (char-to-string c))
+		     (new-pass (concat pass new-char)))
+		(and (arrayp pass) (fillarray pass ?\0))
+		(fillarray new-char ?\0)
+		(setq c ?\0)
+		(setq pass new-pass))
 	    (if (> (length pass) 0)
-		(setq pass (substring pass 0 -1))))))
+		(let ((new-pass (substring pass 0 -1)))
+		  (and (arrayp pass) (fillarray pass ?\0))
+		  (setq pass new-pass))))))
       (clear-this-command-keys)
       (message nil)
       (or pass default ""))))
