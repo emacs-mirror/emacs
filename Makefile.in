@@ -52,14 +52,14 @@
 # make extraclean
 #      Still more severe - delete backup and autosave files, too.
 #
-# make bootstrap-build
+# make bootstrap
+#      Recompiles all the Emacs Lisp files using the latest source,
+#      then rebuilds Emacs.
+#
+# make bootfast
 #      Recompiles changed Emacs Lisp files using the latest C source,
 #      then rebuilds Emacs.  This is faster than `make bootstrap'
 #      but once in a while an old .elc file can cause trouble.
-#
-# make bootfast
-#      Recompiles all the Emacs Lisp files using the latest source,
-#      then rebuilds Emacs.
 
 SHELL = /bin/sh
 
