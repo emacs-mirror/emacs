@@ -79,6 +79,8 @@
   :version "21.1"
   :group 'fill)
 
+;; Autoload this to avoid warnings, since some major modes define it.
+;;;###autoload
 (defvar comment-use-syntax 'undecided
   "Non-nil if syntax-tables can be used instead of regexps.
 Can also be `undecided' which means that a somewhat expensive test will
