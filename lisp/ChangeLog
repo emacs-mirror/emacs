@@ -1,3 +1,8 @@
+2001-01-29  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* woman.el (WoMan-log-1): Make the log buffer writable.  From
+	Markus Rost <rost@math.ohio-state.edu>.
+
 2001-01-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* imenu.el (imenu-syntax-alist): Add autoload cookie for
