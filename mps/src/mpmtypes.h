@@ -1,7 +1,8 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(MMdevel_action2.9) $
- * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!mpmtypes.h(trunk.20) $
+ * Copyright (C) 1997 The Harlequin Group Limited.  All rights 
+ * reserved.
  *
  * .readership: MM developers.
  * .design: design.mps.type
@@ -16,7 +17,8 @@
 #ifndef mpmtypes_h
 #define mpmtypes_h
 
-#include "config.h"     /* this must come first: it defines target options */
+#include "config.h"     /* this must come first: it defines target */
+                        /* options */
 #include "misc.h"       /* miscellaneous non-specific bits and bobs */
 #include "mpslib.h"
 
@@ -44,7 +46,7 @@ typedef Size Epoch;                     /* design.mps.ld */
 typedef unsigned TraceId;               /* design.mps.tracer */
 typedef unsigned TraceSet;              /* design.mps.tracer */
 typedef unsigned TraceState;		/* design.mps.tracer */
-typedef unsigned AccessSet;             /* design.mps.type.access-set */
+typedef unsigned AccessSet;           /* design.mps.type.access-set */
 typedef unsigned Attr;                  /* design.mps.type.attr */
 typedef int RootVar;                    /* design.mps.type.rootvar */
 typedef unsigned Serial;                /* design.mps.type.serial */
@@ -61,8 +63,10 @@ typedef struct PoolClassStruct *PoolClass; /* impl.c.poolclas */
 typedef struct TraceStruct *Trace;      /* design.mps.tracer */
 typedef struct ScanStateStruct *ScanState; /* design.mps.tracer */
 typedef struct SegStruct *Seg;          /* impl.c.arena* */
-typedef struct SegPrefStruct *SegPref;  /* design.mps.pref, impl.c.arena* */
-typedef int SegPrefKind;                /* design.mps.pref, impl.c.arena* */
+typedef struct SegPrefStruct *SegPref;  /* design.mps.pref, */
+                                        /* impl.c.arena* */
+typedef int SegPrefKind;                /* design.mps.pref, */
+                                        /* impl.c.arena* */
 typedef struct ArenaStruct *Arena;      /* impl.c.arena* */
 typedef struct VMStruct *VM;            /* impl.c.vm* */
 typedef struct RootStruct *Root;        /* impl.c.root */
@@ -75,7 +79,8 @@ typedef struct ActionStruct *Action;	/* design.mps.action */
 
 typedef Res  (*PoolInitMethod)         (Pool pool, va_list arg);
 typedef void (*PoolFinishMethod)       (Pool pool);
-typedef Res  (*PoolAllocMethod)        (Addr *pReturn, Pool pool, Size size);
+typedef Res  (*PoolAllocMethod)        (Addr *pReturn, Pool pool, 
+                                        Size size);
 typedef void (*PoolFreeMethod)         (Pool pool, Addr old, Size size);
 typedef Res  (*PoolBufferInitMethod)   (Pool pool, Buffer buf);
 typedef void (*PoolBufferFinishMethod) (Pool pool, Buffer buf);
@@ -85,20 +90,27 @@ typedef Bool (*PoolBufferTripMethod)   (Pool pool, Buffer buffer,
                                         Addr base, Size size);
 typedef void (*PoolBufferExposeMethod) (Pool pool, Buffer buffer);
 typedef void (*PoolBufferCoverMethod)  (Pool pool, Buffer buffer);
-typedef Res  (*PoolDescribeMethod)     (Pool pool, mps_lib_FILE *stream);
-typedef Res  (*PoolCondemnMethod)      (Pool pool, Trace trace, Seg seg);
-typedef void (*PoolGreyMethod)         (Pool pool, Trace trace, Seg seg);
-typedef Res  (*PoolScanMethod)         (ScanState ss, Pool pool, Seg seg);
-typedef Res  (*PoolFixMethod)          (Pool pool, ScanState ss, Seg seg,
+typedef Res  (*PoolDescribeMethod)     (Pool pool, mps_lib_FILE 
+                                        *stream);
+typedef Res  (*PoolCondemnMethod)      (Pool pool, Trace trace, 
+                                        Seg seg);
+typedef void (*PoolGreyMethod)         (Pool pool, Trace trace, 
+                                        Seg seg);
+typedef Res  (*PoolScanMethod)         (ScanState ss, Pool pool, 
+                                        Seg seg);
+typedef Res  (*PoolFixMethod)          (Pool pool, ScanState ss, 
+                                        Seg seg,
                                         Ref *refIO);
-typedef void (*PoolReclaimMethod)      (Pool pool, Trace trace, Seg seg);
+typedef void (*PoolReclaimMethod)      (Pool pool, Trace trace, 
+                                        Seg seg);
 
 
 /* Format*Method -- see design.mps.format-interface */
 /* .fmt-methods: These methods must match those defined in the */
 /* MPS C Interface.  (See impl.h.mps.fmt-methods.) */
 
-typedef Res  (*FormatScanMethod)   (ScanState ss, Addr base, Addr limit);
+typedef Res  (*FormatScanMethod)   (ScanState ss, Addr base, 
+                                    Addr limit);
 typedef Addr (*FormatSkipMethod)   (Addr object);
 typedef void (*FormatMoveMethod)   (Addr object, Addr to);
 typedef Addr (*FormatIsMovedMethod)(Addr object);
@@ -117,8 +129,10 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
 
 /* CONSTANTS */
 
-#define SigInvalid      ((Sig)0x51915BAD) /* design.mps.sig */
-#define AccessSetEMPTY  ((AccessSet)0)    /* design.mps.type.access-set */
+/* design.mps.sig SIGnature IS BAD */
+#define SigInvalid      ((Sig)0x51915BAD) 
+
+#define AccessSetEMPTY  ((AccessSet)0) /* design.mps.type.access-set */
 #define AccessREAD      ((AccessSet)(1<<0))
 #define AccessWRITE     ((AccessSet)(1<<1))
 #define RingNONE        ((Ring)0)       /* design.mps.ring */
@@ -233,21 +247,21 @@ typedef int WriteFC; /* Promoted */
  * guide.hex.trans.
  */
 
-#define EventEventTime     ((EventType)0xEF213E77) /* EVent TIME */
-#define EventSpaceCreate   ((EventType)0xEF5BCC4E) /* EVent SPaCe CREate */
-#define EventSpaceDestroy  ((EventType)0xEF5BCDE5) /* EVent SPaCe DEStroy */
-#define EventPoolInit      ((EventType)0xEFB01191) /* EVent POoL INIt */
-#define EventPoolFinish    ((EventType)0xEFB01F19) /* EVent POoL FINish */
-#define EventPoolAlloc     ((EventType)0xEFB01A11) /* EVent POoL ALLoc */
-#define EventPoolFree      ((EventType)0xEFB01F4E) /* EVent POoL FREe */
-#define EventArenaCreate   ((EventType)0xEFA49C4E) /* EVent AReNa CREate */
-#define EventArenaDestroy  ((EventType)0xEFA49DE5) /* EVent AReNa DEStroy */
-#define EventSegAlloc      ((EventType)0xEF5E9A11) /* EVent SEG ALLoc */
-#define EventSegFree	   ((EventType)0xEF5E9F4E) /* EVent SEG FREe */
-#define EventVMCreate      ((EventType)0xEFF3C4EA) /* EVent VM CREAte */
-#define EventVMDestroy     ((EventType)0xEFF3DE52) /* EVent VM DESTroy */
-#define EventVMMap         ((EventType)0xEFF33AB7) /* EVent VM MAP */
-#define EventVMUnmap       ((EventType)0xEFF3093B) /* EVent VM UNMaP */
-
+                                                   /* EVent ... */
+#define EventEventTime     ((EventType)0xEF213E99) /* TIME */
+#define EventSpaceCreate   ((EventType)0xEF5BCC6E) /* SPaCe CREate */
+#define EventSpaceDestroy  ((EventType)0xEF5BCDE5) /* SPaCe DEStroy */
+#define EventPoolInit      ((EventType)0xEFB07141) /* POoL INIt */
+#define EventPoolFinish    ((EventType)0xEFB07F14) /* POoL FINish */
+#define EventPoolAlloc     ((EventType)0xEFB07A77) /* POoL ALLoc */
+#define EventPoolFree      ((EventType)0xEFB07F6E) /* POoL FREe */
+#define EventArenaCreate   ((EventType)0xEFA64C6E) /* AReNa CREate */
+#define EventArenaDestroy  ((EventType)0xEFA64DE5) /* AReNa DEStroy */
+#define EventSegAlloc      ((EventType)0xEF5E9A77) /* SEG ALLoc */
+#define EventSegFree	   ((EventType)0xEF5E9F6E) /* SEG FREe */
+#define EventVMCreate      ((EventType)0xEFF3C6EA) /* VM CREAte */
+#define EventVMDestroy     ((EventType)0xEFF3DE52) /* VM DESTroy */
+#define EventVMMap         ((EventType)0xEFF33AB9) /* VM MAP */
+#define EventVMUnmap       ((EventType)0xEFF3043B) /* VM UNMaP */
 
 #endif /* mpmtypes_h */
