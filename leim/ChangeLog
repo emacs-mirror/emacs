@@ -1,3 +1,7 @@
+2000-11-21  Kenichi Handa  <handa@etl.go.jp>
+
+	* Makefile.in (.SUFFIXES): Include .elc .el.
+
 2000-11-17  Kenichi Handa  <handa@etl.go.jp>
 
 	* quail/japanese.el (quail-japanese-kanji-kkc): Use marker to
