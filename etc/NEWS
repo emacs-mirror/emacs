@@ -2423,6 +2423,15 @@ character units (fractions of the width/height of the frame's default
 font).  FRAME is the frame on which the image will be displayed.
 FRAME nil or omitted means use the selected frame.
 
+** The function `image-mask-p' can be used to determine if an image
+has a mask bitmap.
+
+- Function: image-mask-p SPEC &optional FRAME
+
+Return t if image SPEC has a mask bitmap.
+FRAME is the frame on which the image will be displayed.  FRAME nil
+or omitted means use the selected frame.
+
 +++
 ** The function `find-image' can be used to find a usable image
 satisfying one of a list of specifications.

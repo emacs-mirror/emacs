@@ -1,5 +1,7 @@
 2000-09-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* toolbar/toolbar.el (toolbar-add-item): Use image-mask-p.
+
 	* image.el (create-image): Doc fix.
 
 	* toolbar/toolbar.el (toolbar-add-item): Use `:mask heuristic'

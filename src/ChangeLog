@@ -1,5 +1,18 @@
 2000-09-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (ALLOC_XPM_COLORS): Define if we can use Emacs' color
+	allocation functions with the XPM lib.
+	(struct xpm_cached_color) [ALLOC_XPM_COLORS]: New structure.
+	(XPM_COLOR_CACHE_BUCKETS) [ALLOC_XPM_COLORS]: New macro.
+	(xpm_color_cache) [ALLOC_XPM_COLORS]: New variable.
+	(xpm_init_color_cache, xpm_free_color_cache, xpm_lookup_color)
+	(xpm_alloc_color, xpm_free_colors) [ALLOC_XPM_COLORS]: New
+	functions.
+	(xpm_load) [ALLOC_XPM_COLORS]: Use Emacs' own color allocation
+	functions, if possible, because these handle color allocation
+	failure more gracefully.
+	(Fimage_mask_p): New function.
+
 	* xfns.c (QCmatrix, QCcolor_adjustment, QCmask, Qemboss)
 	(Qedge_detection, Qheuristic): New symbols.
 	(syms_of_xfns): Initialize new symbols.
