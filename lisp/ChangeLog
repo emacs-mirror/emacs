@@ -1,3 +1,9 @@
+1999-12-06  Inge Frick  <inge@nada.kth.se>
+
+	* dired-aux.el (dired-do-shell-command): Changed documentation.
+	(dired-shell-stuff-it): A `?' in COMMAND has now the same
+	meaning as `*'.
+	
 1999-12-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* simple.el (insert-buffer): Doc fix.
