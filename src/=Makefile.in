@@ -29,18 +29,18 @@ doall: xmakefile
 #This is used in making a distribution.
 #Do not use it on development directories!
 distclean:
-	-rm -f paths.h config.h emacs-* temacs xemacs xmakefile core *.o
+	-rm -f paths.h config.h emacs-* temacs emacs xmakefile core *.o
 
 clean:
-	-rm -f temacs xemacs prefix-args xmakefile* core \#* *.o
+	-rm -f temacs emacs prefix-args xmakefile* core \#* *.o
 
 extraclean: distclean
 	-rm -f *~ \#* m/*~ s/*~
 
-xemacs: doxemacs
+emacs: doemacs
 
-doxemacs: xmakefile
-	$(MAKE) CC='${CC}' -f xmakefile ${MFLAGS} xemacs
+doemacs: xmakefile
+	$(MAKE) CC='${CC}' -f xmakefile ${MFLAGS} emacs
 
 temacs: dotemacs
 
