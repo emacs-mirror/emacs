@@ -56,14 +56,12 @@
 ;; `utf-fragment-on-decoding' which may specify decoding Greek and
 ;; Cyrillic into 8859 charsets.
 
-;; Unification also puts a `translation-table-for-input' property on
-;; relevant coding coding systems and arranges for the
-;; `translation-table-for-input' variable to be set either globally or
-;; locally.  This is used by Quail input methods to translate input
-;; characters appropriately for the buffer's coding system (if
-;; possible).  Unification on decoding sets it globally to translate
-;; to Unicode.  Unification on encoding uses hooks to set it up
-;; locally to buffers.  Thus in the latter case, typing `"a' into a
+;; Unification also arranges for the `keyboard-translate-table'
+;; variable to be set either globally or locally.  This is used to
+;; translate input characters appropriately for the buffer's coding
+;; system (if possible).  Unification on decoding sets it globally to
+;; translate to Unicode.  Unification on encoding uses hooks to set it
+;; up locally to buffers.  Thus in the latter case, typing `"a' into a
 ;; Latin-1 buffer using the `latin-2-prefix' method translates the
 ;; generated latin-iso8859-2 `,Bd(B' into latin-iso8859-1 `,Ad(B'.
 
@@ -157,7 +155,9 @@ Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
   "Used as `translation-table-for-encode' for iso-8859-15.
 Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
 
-(defvar translation-table-for-input (make-translation-table))
+(setq-default keyboard-translate-table (make-translation-table))
+;; It will normally be set locally, before the major mode is invoked.
+(put 'keyboard-translate-table 'permanent-local t)
 
 (define-translation-table 'ucs-translation-table-for-decode)
 
@@ -1179,12 +1179,14 @@ everything on input operations."
     ;; For CCL coding systems other than mule-utf-*
     (define-translation-table 'ucs-translation-table-for-decode
       ucs-mule-8859-to-mule-unicode)
-
-    ;; Translate Quail input globally.
-    (setq-default translation-table-for-input ucs-mule-to-mule-unicode)
+    ;; Translate keyboard input globally.
+    (let ((table (default-value 'keyboard-translate-table)))
+      (map-char-table (lambda (k v)
+			(aset table k v))
+		      ucs-mule-to-mule-unicode))
     ;; In case these are set up, but we should use the global
     ;; translation-table.
-    (remove-hook 'quail-activate-hook 'ucs-quail-activate)
+    (remove-hook 'set-buffer-major-mode-hook 'ucs-set-table-for-input)
     (remove-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup))
 
   (when for-encode
@@ -1211,10 +1213,11 @@ everything on input operations."
 	(set-char-table-parent safe table)
 	;; Update the table of what encodes to what.
 	(register-char-codings coding-system table)
-	(coding-system-put coding-system 'translation-table-for-encode table)
-	(coding-system-put coding-system 'translation-table-for-input table)))
-    ;; Arrange local translation-tables for Quail input.
-    (add-hook 'quail-activate-hook 'ucs-quail-activate)
+	(coding-system-put coding-system 'translation-table-for-encode table)))
+    ;; Arrange local translation-tables for keyboard input.  See also
+    ;; `set-buffer-file-coding-system' and `normal-mode'.  These
+    ;; _appear_ to be the best places to hook in.
+    (add-hook 'set-buffer-major-mode-hook 'ucs-set-table-for-input)
     (add-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup)))
 
 (defun ucs-fragment-8859 (for-encode for-decode)
@@ -1227,8 +1230,10 @@ unification on input operations."
     (set-char-table-parent standard-translation-table-for-decode nil)
     ;; For CCL coding systems other than mule-utf-* (e.g. cyrillic-koi8).
     (define-translation-table 'ucs-translation-table-for-decode)
-    ;; For Quail input.
-    (setq-default translation-table-for-input nil))
+    (let ((table (default-value 'keyboard-translate-table)))
+      (map-char-table (lambda (k v)
+			(aset table k nil))
+		      ucs-mule-to-mule-unicode)))
 
   (when for-encode
     ;; Make mule-utf-* disabled for all characters in
@@ -1277,10 +1282,9 @@ unification on input operations."
 			 (delq coding-system codings)))))
 	   (char-table-parent safe))
 	  (set-char-table-parent safe nil))
-	(coding-system-put coding-system 'translation-table-for-encode nil)
-	(coding-system-put coding-system 'translation-table-for-input nil)))
+	(coding-system-put coding-system 'translation-table-for-encode nil)))
     (optimize-char-table char-coding-system-table)
-    (remove-hook 'quail-activate-hook 'ucs-quail-activate)
+    (remove-hook 'set-buffer-major-mode-hook 'ucs-set-table-for-input)
     (remove-hook 'minibuffer-setup-hook 'ucs-minibuffer-setup)))
 
 (defun ucs-insert (arg)
@@ -2448,13 +2452,13 @@ Interactively, prompts for a hex string giving the code."
 			safe-charsets)))
 	(cond ((eq cs 'vietnamese-viscii)
 	       (coding-system-put 'vietnamese-viscii
-				  'translation-table-for-input
+				  'keyboard-translate-table
 				  encode-translator)
 	       (coding-system-put 'vietnamese-viqr
-				  'translation-table-for-input
+				  'keyboard-translate-table
 				  encode-translator))
 	      ((memq cs '(lao thai-tis620 tibetan-iso-8bit))
-	       (coding-system-put cs 'translation-table-for-input cs)))))
+	       (coding-system-put cs 'keyboard-translate-table cs)))))
     (dolist (c safe-charsets)
       (aset table (make-char c) t))))
 
@@ -2479,9 +2483,8 @@ directly to a byte value 233.  By default, in contrast, you would be
 prompted for a general coding system to use for saving the file, which
 can cope with separate Latin-1 and Latin-9 representations of e-acute.
 
-Also sets hooks that arrange `translation-table-for-input' to be set
-up locally when Quail input methods are activated.  This will often
-allow input generated by Quail input methods to conform with what the
+Also sets hooks that arrange `keyboard-translate-table' to be set up
+locally.  This will often allow input to conform with what the
 buffer's file coding system can encode.  Thus you could use a Latin-2
 input method to search for e-acute in a Latin-1 buffer.
 
@@ -2501,8 +2504,7 @@ On decoding, i.e. input operations, non-ASCII characters from the
 built-in ISO 8859 charsets are unified by mapping them into the
 `iso-latin-1' and `mule-unicode-0100-24ff' charsets.
 
-Also sets `translation-table-for-input' globally, so that Quail input
-methods produce unified characters.
+Also sets `keyboard-translate-table' globally.
 
 See also command `unify-8859-on-encoding-mode' and the user option
 `utf-fragment-on-decoding'."
@@ -2519,19 +2521,30 @@ See also command `unify-8859-on-encoding-mode' and the user option
 ;; unify-8859-on-encoding-mode and unify-8859-on-decoding-mode.
 (ucs-unify-8859 t nil)
 
-;; Arrange to set up the translation-table for Quail.  This probably
-;; isn't foolproof.
-(defun ucs-quail-activate ()
-  "Set up an appropriate `translation-table-for-input' for current buffer.
-Intended to be added to `quail-activate-hook'."
-  (let ((cs (and buffer-file-coding-system
-		 (coding-system-base buffer-file-coding-system))))
-    (if (eq cs 'undecided)
-	(setq cs (and default-buffer-file-coding-system
-		      (coding-system-base default-buffer-file-coding-system))))
-    (if (and cs (coding-system-get cs 'translation-table-for-input))
-	(set (make-variable-buffer-local 'translation-table-for-input)
-	     (coding-system-get cs 'translation-table-for-input)))))
+;; Arrange to set up the translation-table for keyboard input.  This
+;; probably isn't foolproof.
+(defun ucs-set-table-for-input ()
+  "Set up an appropriate `keyboard-translate-table' for current buffer."
+  (when (and unify-8859-on-encoding-mode
+	     (char-table-p keyboard-translate-table))
+    (let ((cs (and buffer-file-coding-system
+		   (coding-system-base buffer-file-coding-system)))
+	  table)
+      (if (eq cs 'undecided)
+	  (setq cs
+		(and default-buffer-file-coding-system
+		     (coding-system-base default-buffer-file-coding-system))))
+      (when cs
+	(setq table (coding-system-get cs 'translation-table-for-encode))
+	(unless (char-table-p table)
+	  (setq table (coding-system-get cs 'keyboard-translate-table)))
+	(when (char-table-p table)
+	  (set (make-variable-buffer-local 'keyboard-translate-table)
+	       
+	       (let ((new (copy-sequence table)))
+		 (set-char-table-parent
+		  new (default-value 'keyboard-translate-table))
+		 new)))))))
 
 ;; The minibuffer needs to acquire a `buffer-file-coding-system' for
 ;; the above to work in it.
@@ -2542,7 +2555,8 @@ Intended to be added to `minibuffer-setup-hook'."
        (with-current-buffer (let ((win (minibuffer-selected-window)))
 			      (if (window-live-p win) (window-buffer win)
 				(cadr (buffer-list))))
-	 buffer-file-coding-system)))
+	 buffer-file-coding-system))
+  (ucs-set-table-for-input))
 
 (provide 'ucs-tables)
 
