@@ -3,7 +3,7 @@
 ;;;  Copyright (C) 1997, 1998  Free Software Foundation
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
-;; Version: 0.6.1
+;; Version: 0.6.2
 ;; Keywords: docs, maint, lisp
 
 ;; This file is part of GNU Emacs.
@@ -1309,7 +1309,7 @@ See the style guide in the Emacs Lisp manual for more details."
 		  checkdoc-force-docstrings-flag) ;or we always complain
 	      (not (checkdoc-char= (following-char) ?\"))) ; no doc string
 	 ;; Sometimes old code has comments where the documentation should
-	 ;; be.  Lets see if we can find the comment, and offer to turn it
+	 ;; be.  Let's see if we can find the comment, and offer to turn it
 	 ;; into documentation for them.
 	 (let ((have-comment nil))
 	   (condition-case nil
@@ -1328,23 +1328,28 @@ See the style guide in the Emacs Lisp manual for more details."
 		     ;; Our point is at the beginning of the comment!
 		     ;; Insert a quote, then remove the comment chars.
 		     (insert "\"")
-		     (while (looking-at comment-start)
+		     (let ((docstring-start-point (point)))
 		       (while (looking-at comment-start)
-			 (delete-char 1))
-		       (if (looking-at "[ \t]+")
-			   (delete-region (match-beginning 0) (match-end 0)))
-		       (forward-line 1)
+			 (while (looking-at comment-start)
+			   (delete-char 1))
+			 (if (looking-at "[ \t]+")
+			     (delete-region (match-beginning 0) (match-end 0)))
+			 (forward-line 1)
+			 (beginning-of-line)
+			 (skip-chars-forward " \t")
+			 (if (looking-at comment-start)
+			     (progn
+			       (beginning-of-line)
+			       (zap-to-char 1 ?\;))))
 		       (beginning-of-line)
-		       (skip-chars-forward " \t")
-		       (if (looking-at comment-start)
-			   (progn
-			     (beginning-of-line)
-			     (zap-to-char 1 ?\;))))
-		     (beginning-of-line)
-		     (forward-char -1)
-		     (insert "\"")
-		     (if (eq checkdoc-autofix-flag 'automatic-then-never)
-			 (setq checkdoc-autofix-flag 'never)))
+		       (forward-char -1)
+		       (insert "\"")
+		       (forward-char -1)
+		       ;; quote any double-quote characters in the comment.
+		       (while (search-backward "\"" docstring-start-point t)
+			 (insert "\\"))
+		       (if (eq checkdoc-autofix-flag 'automatic-then-never)
+			   (setq checkdoc-autofix-flag 'never))))
 		 (checkdoc-create-error
 		  "You should convert this comment to documentation"
 		  (point) (save-excursion (end-of-line) (point))))
@@ -1428,7 +1433,7 @@ regexp short cuts work.  FP is the function defun information."
 	      (not (checkdoc-char= (preceding-char) ?\\)))
 	 ;; We might have to add a period in this case
 	 (forward-char -1)
-	 (if (looking-at "[.!]")
+	 (if (looking-at "[.!?]")
 	     nil
 	   (forward-char 1)
 	   (if (checkdoc-autofix-ask-replace
@@ -1438,7 +1443,7 @@ regexp short cuts work.  FP is the function defun information."
 	     (checkdoc-create-error
 	      "First sentence should end with punctuation"
 	      (point) (1+ (point))))))
-	((looking-at "[\\!;:.)]")
+	((looking-at "[\\!?;:.)]")
 	 ;; These are ok
 	 nil)
         ((and checkdoc-permit-comma-termination-flag (looking-at ","))
@@ -1477,7 +1482,7 @@ may require more formatting")
 		   (p    (point)))
 	       (forward-line 1)
 	       (beginning-of-line)
-	       (if (and (re-search-forward "[.!:\"]\\([ \t\n]+\\|\"\\)"
+	       (if (and (re-search-forward "[.!?:\"]\\([ \t\n]+\\|\"\\)"
 					   (save-excursion
 					     (end-of-line)
 					     (point))
@@ -1673,12 +1678,12 @@ function,command,variable,option or symbol." ms1))))))
 			 ;; and see if the user wants to capitalize it.
 			 (if (save-excursion
 			       (re-search-forward
-				  (concat "\\<\\(" (car args)
-					  ;; Require whitespace OR
-					  ;; ITEMth<space> OR
-					  ;; ITEMs<space>
-					  "\\)\\(\\>\\|th\\>\\|s\\>\\)")
-				  e t))
+				(concat "\\<\\(" (car args)
+					;; Require whitespace OR
+					;; ITEMth<space> OR
+					;; ITEMs<space>
+					"\\)\\(\\>\\|th\\>\\|s\\>\\)")
+				e t))
 			     (if (checkdoc-autofix-ask-replace
 				  (match-beginning 1) (match-end 1)
 				  (format
@@ -1977,6 +1982,9 @@ If the offending word is in a piece of quoted text, then it is skipped."
 				(goto-char b)
 				(forward-char -1)
 				(looking-at "`\\|\"\\|\\.\\|\\\\")))
+			 ;; surrounded by /, as in a URL or filename: /emacs/
+			 (not (and (= ?/ (char-after e))
+				   (= ?/ (char-before b))))
 			 (not (checkdoc-in-example-string-p begin end)))
 		    (if (checkdoc-autofix-ask-replace
 			 b e (format "Text %s should be capitalized.  Fix? "
@@ -2002,42 +2010,43 @@ If the offending word is in a piece of quoted text, then it is skipped."
 
 (defun checkdoc-sentencespace-region-engine (begin end)
   "Make sure all sentences have double spaces between BEGIN and END."
-  (save-excursion
-    (let ((case-fold-search nil)
-	  (errtxt nil) bb be
-	  (old-syntax-table (syntax-table)))
-      (unwind-protect
-	  (progn
-	    (set-syntax-table checkdoc-syntax-table)
-	    (goto-char begin)
-	    (while (re-search-forward "[^.0-9]\\(\\. \\)[^ \n]" end t)
-	      (let ((b (match-beginning 1))
-		    (e (match-end 1)))
-		(if (and (not (checkdoc-in-sample-code-p begin end))
-			 (not (checkdoc-in-example-string-p begin end))
-			 (not (save-excursion
-				(goto-char (match-beginning 1))
-				(forward-sexp -1)
-				;; piece of an abbreviation
-				(looking-at "\\([a-z]\\|[ie]\\.?g\\)\\.")
-				)))
-		    (if (checkdoc-autofix-ask-replace
-			 b e "There should be two spaces after a period.  Fix? "
-			 ".  ")
-			nil
-		      (if errtxt
-			  ;; If there is already an error, then generate
-			  ;; the warning output if applicable
-			  (if checkdoc-generate-compile-warnings-flag
-			      (checkdoc-create-error
-			       "There should be two spaces after a period"
-			       b e))
-			(setq errtxt
-			      "There should be two spaces after a period"
-			      bb b be e)))))))
-	(set-syntax-table old-syntax-table))
-      (if errtxt (checkdoc-create-error errtxt bb be)))))
-
+  (if sentence-end-double-space
+      (save-excursion
+	(let ((case-fold-search nil)
+	      (errtxt nil) bb be
+	      (old-syntax-table (syntax-table)))
+	  (unwind-protect
+	      (progn
+		(set-syntax-table checkdoc-syntax-table)
+		(goto-char begin)
+		(while (re-search-forward "[^.0-9]\\(\\. \\)[^ \n]" end t)
+		  (let ((b (match-beginning 1))
+			(e (match-end 1)))
+		    (if (and (not (checkdoc-in-sample-code-p begin end))
+			     (not (checkdoc-in-example-string-p begin end))
+			     (not (save-excursion
+				    (goto-char (match-beginning 1))
+				    (forward-sexp -1)
+				    ;; piece of an abbreviation
+				    (looking-at "\\([a-z]\\|[ie]\\.?g\\)\\.")
+				    )))
+			(if (checkdoc-autofix-ask-replace
+			     b e
+			     "There should be two spaces after a period.  Fix? "
+			     ".  ")
+			    nil
+			  (if errtxt
+			      ;; If there is already an error, then generate
+			      ;; the warning output if applicable
+			      (if checkdoc-generate-compile-warnings-flag
+				  (checkdoc-create-error
+				   "There should be two spaces after a period"
+				   b e))
+			    (setq errtxt
+				  "There should be two spaces after a period"
+				  bb b be e)))))))
+	    (set-syntax-table old-syntax-table))
+	  (if errtxt (checkdoc-create-error errtxt bb be))))))
 
 ;;; Ispell engine
 ;;
@@ -2637,21 +2646,25 @@ This function will not modify `match-data'."
 	(switch-to-buffer-other-window (get-buffer f))
 	(goto-line l))))
 
+(defun checkdoc-buffer-label ()
+  "The name to use for a checkdoc buffer in the error list."
+  (if (buffer-file-name)
+      (file-name-nondirectory (buffer-file-name))
+    (concat "#<buffer "(buffer-name) ">")))
+
 (defun checkdoc-start-section (check-type)
   "Initialize the checkdoc diagnostic buffer for a pass.
 Create the header so that the string CHECK-TYPE is displayed as the
 function called to create the messages."
   (checkdoc-output-to-error-buffer
    "\n\n\C-l\n*** "
-   (file-name-nondirectory (buffer-file-name)) ": " check-type
-   " V " checkdoc-version))
+   (checkdoc-buffer-label) ": " check-type " V " checkdoc-version))
 
 (defun checkdoc-error (point msg)
   "Store POINT and MSG as errors in the checkdoc diagnostic buffer."
   (setq checkdoc-pending-errors t)
   (checkdoc-output-to-error-buffer
-   "\n"
-   (file-name-nondirectory (buffer-file-name)) ":"
+   "\n" (checkdoc-buffer-label) ":"
    (int-to-string (count-lines (point-min) (or point 1))) ": "
    msg))
 
