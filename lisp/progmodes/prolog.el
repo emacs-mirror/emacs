@@ -93,6 +93,8 @@ nil means send actual operating system end of file."
   (setq paragraph-separate paragraph-start)
   (make-local-variable 'paragraph-ignore-fill-prefix)
   (setq paragraph-ignore-fill-prefix t)
+  (make-local-variable 'imenu-generic-expression)
+  (setq imenu-generic-expression "^[a-z][a-zA-Z0-9_]+")
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'prolog-indent-line)
   (make-local-variable 'comment-start)
