@@ -10,6 +10,7 @@
 #define TERMINFO
 #define LIBS_TERMCAP -lncurses
 
+#undef LD_SWITCH_SYSTEM_TEMACS
 #undef LD_SWITCH_SYSTEM
 #ifdef __ELF__
 
