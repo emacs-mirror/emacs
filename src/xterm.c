@@ -5527,7 +5527,9 @@ x_iconify_frame (f)
 	 that an invisible frame was changed to an icon,
 	 so we have to record it here.  */
       f->iconified = 1;
+      f->visible = 1;
       f->async_iconified = 1;
+      f->async_visible = 0;
       UNBLOCK_INPUT;
       return;
     }
@@ -5541,6 +5543,8 @@ x_iconify_frame (f)
     error ("Can't notify window manager of iconification");
 
   f->async_iconified = 1;
+  f->async_visible = 0;
+
 
   BLOCK_INPUT;
   XFlush (FRAME_X_DISPLAY (f));
@@ -5588,6 +5592,7 @@ x_iconify_frame (f)
     }
 
   f->async_iconified = 1;
+  f->async_visible = 0;
 
   XFlush (FRAME_X_DISPLAY (f));
   UNBLOCK_INPUT;
