@@ -81,8 +81,8 @@
 
 ;; Insert this in your .emacs file:
 ;;(setq suspend-resume-hook 'resume-process-args)
-;;(setq suspend-hooks 'empty-args-file)
-;;(autoload 'empty-args-file "resume")
+;;(setq suspend-hooks 'resume-empty-args-file)
+;;(autoload 'resume-empty-args-file "resume")
 ;;(autoload 'resume-process-args "resume")
 
 ;; Finally, put the rest in a file named "resume.el" in a lisp library
@@ -90,27 +90,24 @@
 
 ;;; Code:
 
-(defvar emacs-args-file (expand-file-name "~/.emacs_args")
+(defvar resume-emacs-args-file (expand-file-name "~/.emacs_args")
   "*This file is where arguments are placed for a suspended emacs job.")
 
-(defvar emacs-args-buffer " *Command Line Args*"
+(defvar resume-emacs-args-buffer " *Command Line Args*"
   "Buffer that is used by resume-process-args.")
 
 (defun resume-process-args ()
-  "This should be called from inside of suspend-resume-hook.  This
-grabs the contents of the file whose name is stored in
-emacs-args-file, and processes these arguments like command line
-options."
+  "Handler for command line args given when Emacs is resumed."
   (let ((start-buffer (current-buffer))
-	(args-buffer (get-buffer-create emacs-args-buffer))
+	(args-buffer (get-buffer-create resume-emacs-args-buffer))
 	length args)
     (unwind-protect
 	(progn
 	  (set-buffer args-buffer)
 	  (erase-buffer)
-	  ;; get the contents of emacs-args-file
+	  ;; get the contents of resume-emacs-args-file
 	  (condition-case ()
-	      (let ((result (insert-file-contents emacs-args-file)))
+	      (let ((result (insert-file-contents resume-emacs-args-file)))
 		(setq length (car (cdr result))))
 	    ;; the file doesn't exist, ergo no arguments
 	    (file-error
@@ -130,7 +127,7 @@ options."
 	    (setq args (nreverse args))
 	    ;; make sure they're not read again
 	    (erase-buffer))		
-	  (write-buffer-to-file (current-buffer) emacs-args-file)
+	  (resume-write-buffer-to-file (current-buffer) resume-emacs-args-file)
 	  ;; if nothing was in buffer, args will be null
 	  (or (null args)
 	      (setq default-directory (file-name-as-directory (car args))
@@ -147,15 +144,15 @@ options."
       (if (eq (current-buffer) args-buffer)
 	  (set-buffer start-buffer)))))
 
-(defun empty-args-file ()
-  "This empties the contents of the file whose name is specified by
-emacs-args-file."
+;;;###autoload
+(defun resume-empty-args-file ()
+  "Clear out the file used for transmitting args when Emacs resumes."
   (save-excursion
-    (set-buffer (get-buffer-create emacs-args-buffer))
+    (set-buffer (get-buffer-create resume-emacs-args-buffer))
     (erase-buffer)
-    (write-buffer-to-file (current-buffer) emacs-args-file)))
+    (resume-write-buffer-to-file (current-buffer) resume-emacs-args-file)))
 
-(defun write-buffer-to-file (buffer file)
+(defun resume-write-buffer-to-file (buffer file)
   "Writes the contents of BUFFER into FILE, if permissions allow."
   (if (not (file-writable-p file))
       (error "No permission to write file %s" file))
