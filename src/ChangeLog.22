@@ -1,3 +1,7 @@
+2004-04-06  Kenichi Handa  <handa@m17n.org>
+
+	* xfaces.c (xlfd_point_size): Set font->numeric[XLFD_PIXEL_SIZE].
+
 2004-03-30  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (DECODE_DESIGNATION): Set chars_96 to -1 instead of
