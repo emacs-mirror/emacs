@@ -1,10 +1,9 @@
-;;; cus-edit.el --- Tools for customizating Emacs and Lisp packages.
+;;; cus-edit.el --- Tools for customizing Emacs and Lisp packages.
 ;;
 ;; Copyright (C) 1996, 1997, 1999, 2000 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
-;; X-URL: http://www.dina.kvl.dk/~abraham/custom/ (probably obsolete)
 
 ;; This file is part of GNU Emacs.
 
@@ -358,8 +357,7 @@
 (defun custom-quote (sexp)
   "Quote SEXP iff it is not self quoting."
   (if (or (memq sexp '(t nil))
-	  (and (symbolp sexp)
-	       (eq (aref (symbol-name sexp) 0) ?:))
+	  (keywordp sexp)
 	  (and (listp sexp)
 	       (memq (car sexp) '(lambda)))
 	  (stringp sexp)
@@ -426,7 +424,7 @@ WIDGET is the widget to apply the filter entries of MENU on."
 ;;; Unlispify.
 
 (defvar custom-prefix-list nil
-  "List of prefixes that should be ignored by `custom-unlispify'")
+  "List of prefixes that should be ignored by `custom-unlispify'.")
 
 (defcustom custom-unlispify-menu-entries t
   "Display menu entries as words instead of symbols if non nil."
@@ -439,7 +437,7 @@ WIDGET is the widget to apply the filter entries of MENU on."
   :type 'boolean)
 
 (defun custom-unlispify-menu-entry (symbol &optional no-suffix)
-  "Convert symbol into a menu entry."
+  "Convert SYMBOL into a menu entry."
   (cond ((not custom-unlispify-menu-entries)
 	 (symbol-name symbol))
 	((get symbol 'custom-tag)
@@ -479,12 +477,12 @@ WIDGET is the widget to apply the filter entries of MENU on."
   :type 'boolean)
 
 (defun custom-unlispify-tag-name (symbol)
-  "Convert symbol into a menu entry."
+  "Convert SYMBOL into a menu entry."
   (let ((custom-unlispify-menu-entries custom-unlispify-tag-names))
     (custom-unlispify-menu-entry symbol t)))
 
 (defun custom-prefix-add (symbol prefixes)
-  ;; Addd SYMBOL to list of ignored PREFIXES.
+  "Add SYMBOL to list of ignored PREFIXES."
   (cons (or (get symbol 'custom-prefix)
 	    (concat (symbol-name symbol) "-"))
 	prefixes))
@@ -660,7 +658,7 @@ groups after non-groups, if nil do not order groups at all."
     ("Erase Customization (use standard settings)" . Custom-reset-standard))
   "Alist of actions for the `Reset' button.
 The key is a string containing the name of the action, the value is a
-lisp function taking the widget as an element which will be called
+Lisp function taking the widget as an element which will be called
 when the action is chosen.")
 
 (defun custom-reset (event)
@@ -773,7 +771,7 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
  	 (put var 'variable-comment comment))))
 
 ;;;###autoload
-(defun customize-set-variable (var val &optional comment)
+(defun customize-set-variable (variable value &optional comment)
   "Set the default for VARIABLE to VALUE.  VALUE is a Lisp object.
 
 If VARIABLE has a `custom-set' property, that is used for setting
@@ -792,17 +790,17 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
   (interactive (custom-prompt-variable "Set variable: "
 				       "Set customized value for %s to: "
 				       current-prefix-arg))
-  (funcall (or (get var 'custom-set) 'set-default) var val)
-  (put var 'customized-value (list (custom-quote val)))
+  (funcall (or (get variable 'custom-set) 'set-default) variable value)
+  (put variable 'customized-value (list (custom-quote value)))
   (cond ((string= comment "")
- 	 (put var 'variable-comment nil)
- 	 (put var 'customized-variable-comment nil))
+ 	 (put variable 'variable-comment nil)
+ 	 (put variable 'customized-variable-comment nil))
  	(comment
- 	 (put var 'variable-comment comment)
- 	 (put var 'customized-variable-comment comment))))
+ 	 (put variable 'variable-comment comment)
+ 	 (put variable 'customized-variable-comment comment))))
 
 ;;;###autoload
-(defun customize-save-variable (var val &optional comment)
+(defun customize-save-variable (var value &optional comment)
   "Set the default for VARIABLE to VALUE, and save it for future sessions.
 If VARIABLE has a `custom-set' property, that is used for setting
 VARIABLE, otherwise `set-default' is used.
@@ -820,8 +818,8 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
   (interactive (custom-prompt-variable "Set and ave variable: "
 				       "Set and save value for %s as: "
 				       current-prefix-arg))
-  (funcall (or (get var 'custom-set) 'set-default) var val)
-  (put var 'saved-value (list (custom-quote val)))
+  (funcall (or (get var 'custom-set) 'set-default) var value)
+  (put var 'saved-value (list (custom-quote value)))
   (cond ((string= comment "")
  	 (put var 'variable-comment nil)
  	 (put var 'saved-variable-comment nil))
@@ -1042,7 +1040,7 @@ If SYMBOL is nil, customize all faces."
 
 ;;;###autoload
 (defun customize-face-other-window (&optional symbol)
-  "Show customization buffer for FACE in other window."
+  "Show customization buffer for face SYMBOL in other window."
   (interactive (list (completing-read "Customize face: "
 				      obarray 'custom-facep t)))
   (if (or (null symbol) (and (stringp symbol) (zerop (length symbol))))
@@ -1609,7 +1607,7 @@ and `face'."
 	   'hidden)))
 
 (defun custom-magic-value-create (widget)
-  ;; Create compact status report for WIDGET.
+  "Create compact status report for WIDGET."
   (let* ((parent (widget-get widget :parent))
 	 (state (widget-get parent :custom-state))
 	 (hidden (eq state 'hidden))
@@ -1735,7 +1733,7 @@ and `face'."
   :match (lambda (widget value) (symbolp value)))
 
 (defun custom-convert-widget (widget)
-  ;; Initialize :value and :tag from :args in WIDGET.
+  "Initialize :value and :tag from :args in WIDGET."
   (let ((args (widget-get widget :args)))
     (when args
       (widget-put widget :value (widget-apply widget
@@ -1985,13 +1983,22 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 
 ;;; The `custom-variable' Widget.
 
-(defface custom-variable-tag-face '((((class color)
+;; When this was underlined blue, users confused it with a
+;; Mosaic-style hyperlink...
+(defface custom-variable-tag-face `((((class color)
 				      (background dark))
-				     (:foreground "light blue" :underline t))
+				     (:foreground "light blue"
+				      :bold t
+				      :family "helv"
+				      :height ,(floor (face-attribute
+						       'default :height) 0.9)))
 				    (((class color)
 				      (background light))
-				     (:foreground "blue" :underline t))
-				    (t (:underline t)))
+				     (:foreground "blue" :family "helv"
+				      :bold t
+				      :height ,(floor (face-attribute
+						       'default :height) 0.9)))
+				    (t (:bold t)))
   "Face used for unpushable variable tags."
   :group 'custom-faces)
 
@@ -2302,7 +2309,7 @@ Optional EVENT is the location for the menu."
   (custom-redraw widget))
 
 (defun custom-variable-edit-lisp (widget)
-  "Edit the lisp representation of the value of WIDGET."
+  "Edit the Lisp representation of the value of WIDGET."
   (widget-put widget :custom-state 'unknown)
   (widget-put widget :custom-form 'lisp)
   (custom-redraw widget))
@@ -2513,7 +2520,9 @@ Match frames with dark backgrounds.")
 
 ;;; The `custom-face' Widget.
 
-(defface custom-face-tag-face '((t (:underline t)))
+(defface custom-face-tag-face `((t (:bold t :family "helv"
+				    :height ,(floor (face-attribute
+						     'default :height) 0.9))))
   "Face used for face tags."
   :group 'custom-faces)
 
@@ -2722,7 +2731,7 @@ widget.  If FILTER is nil, ACTION is always valid.")
   (custom-redraw widget))
 
 (defun custom-face-edit-lisp (widget)
-  "Edit the lisp representation of the value of WIDGET."
+  "Edit the Lisp representation of the value of WIDGET."
   (widget-put widget :custom-state 'unknown)
   (widget-put widget :custom-form 'lisp)
   (custom-redraw widget))
@@ -2874,7 +2883,7 @@ restoring it to the state of a face that has never been customized."
   :match '(lambda (widget value) (symbolp value)))
 
 (defun widget-face-value-create (widget)
-  ;; Create a `custom-face' child.
+  "Create a `custom-face' child."
   (let* ((symbol (widget-value widget))
 	 (custom-buffer-style 'face)
 	 (child (widget-create-child-and-convert
@@ -2886,7 +2895,7 @@ restoring it to the state of a face that has never been customized."
     (widget-put widget :children (list child))))
 
 (defun widget-face-value-delete (widget)
-  ;; Remove the child from the options.
+  "Remove the child from the options."
   (let ((child (car (widget-get widget :children))))
     (setq custom-options (delq child custom-options))
     (widget-children-value-delete widget)))
@@ -2918,6 +2927,14 @@ restoring it to the state of a face that has never been customized."
   :match (lambda (widget value)
 	   (or (symbolp value)
 	       (widget-group-match widget value)))
+  ;; Avoid adding undefined functions to the hook, especially for
+  ;; things like `find-file-hook' or even more basic ones, to avoid
+  ;; chaos.
+  :set (lambda (symbol value)
+	 (mapc (lambda (elt)
+		 (if (fboundp elt)
+		     (add-hook symbol elt)))
+	       value))
   :convert-widget 'custom-hook-convert-widget
   :tag "Hook")
 
@@ -2959,22 +2976,31 @@ and so forth.  The remaining group tags are shown with
   :type '(repeat face)
   :group 'custom-faces)
 
-(defface custom-group-tag-face-1 '((((class color)
+(defface custom-group-tag-face-1 `((((class color)
 				     (background dark))
-				    (:foreground "pink" :underline t))
+				    (:foreground "pink" :family "helv"
+				     :height ,(floor (face-attribute
+						      'default :height) 0.9)
+				     :bold t))
 				   (((class color)
 				     (background light))
-				    (:foreground "red" :underline t))
-				   (t (:underline t)))
+				    (:foreground "red" :bold t
+				     :height ,(floor (face-attribute
+						      'default :height) 0.9)))
+				   (t (:bold t)))
   "Face used for group tags.")
 
-(defface custom-group-tag-face '((((class color)
+(defface custom-group-tag-face `((((class color)
 				   (background dark))
-				  (:foreground "light blue" :underline t))
+				  (:foreground "light blue" :bold t
+				   :height ,(floor (face-attribute
+						   'default :height) 0.9)))
 				 (((class color)
 				   (background light))
-				  (:foreground "blue" :underline t))
-				 (t (:underline t)))
+				  (:foreground "blue" :bold t
+				   :height ,(floor (face-attribute
+						    'default :height) 0.9)))
+				 (t (:bold t)))
   "Face used for low level group tags."
   :group 'custom-faces)
 
@@ -3740,6 +3766,10 @@ if that value is non-nil."
   (make-local-hook 'widget-edit-functions)
   (add-hook 'widget-edit-functions 'custom-state-buffer-message nil t)
   (run-hooks 'custom-mode-hook))
+
+(add-to-list
+ 'debug-ignored-errors
+ "^No user options have changed defaults in recent Emacs versions$")
 
 ;;; The End.
 
