@@ -27,16 +27,18 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define NEW_SELECTIONS
 
+/* On 4.3 these lose if they come after xterm.h.  */
+/* On HP-UX 8.0 signal.h loses if it comes after config.h.  */
+/* Putting these at the beginning seems to be standard for other .c files.  */
+#include <stdio.h>
+#include <signal.h>
+
 #include "config.h"
 
 #ifdef HAVE_X_WINDOWS
 
 #include "lisp.h"
 #include "blockinput.h"
-
-/* On 4.3 these lose if they come after xterm.h.  */
-#include <stdio.h>
-#include <signal.h>
 
 /* This may include sys/types.h, and that somehow loses
    if this is not done before the other system files.  */
