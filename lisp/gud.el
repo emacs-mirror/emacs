@@ -618,7 +618,7 @@ This works in IRIX 4, 5 and 6.")
 	  ;; prod dbx into printing out the line number and file
 	  ;; name in a form we can grok as below
 	  (process-send-string (get-buffer-process gud-comint-buffer)
-			       "printf \"\032\032%1d:\",(int)$curline;file\n"))
+			       "printf \"\032\032%1d:\",(long)$curline;file\n"))
 	 ;; look for result of, say, "up" e.g.:
 	 ;; .pplot.pplot(0x800) ["src/pplot.f":261, 0x400c7c]
 	 ;; (this will also catch one of the lines printed by "where")
@@ -693,7 +693,7 @@ and source-file directory for your debugger."
 	     ">" "Down (numeric arg) stack frames.")
     ;; Make dbx give out the source location info that we need.
     (process-send-string (get-buffer-process gud-comint-buffer)
-			 "printf \"\032\032%1d:\",$curline;file\n"))
+			 "printf \"\032\032%1d:\",(long)$curline;file\n"))
    (t
     (gud-def gud-up     "up %p"         "<" "Up (numeric arg) stack frames.")
     (gud-def gud-down   "down %p" ">" "Down (numeric arg) stack frames.")
