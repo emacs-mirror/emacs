@@ -1042,7 +1042,7 @@ insdel.o: insdel.c window.h buffer.h INTERVAL_SRC blockinput.h charset.h\
 keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h charset.h \
    commands.h frame.h window.h macros.h disptab.h keyboard.h syssignal.h \
    systty.h systime.h dispextern.h syntax.h intervals.h blockinput.h \
-   xterm.h $(config_h)
+   xterm.h puresize.h $(config_h)
 keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
    puresize.h charset.h $(config_h)
 lastfile.o: lastfile.c  $(config_h)
@@ -1093,7 +1093,7 @@ xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h \
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h\
    ../lwlib/lwlib.h blockinput.h paths.h charset.h $(config_h)
 xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h keyboard.h \
-   ../lwlib/lwlib.h blockinput.h puresize.h msdos.h $(config_h)
+   ../lwlib/lwlib.h blockinput.h msdos.h $(config_h)
 xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h \
   dispextern.h frame.h disptab.h blockinput.h systime.h syssignal.h \
   keyboard.h gnu.h sink.h sinkmask.h charset.h ccl.h fontset.h $(config_h)
