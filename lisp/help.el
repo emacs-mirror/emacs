@@ -349,7 +349,9 @@ describes the minor mode."
 			  (capitalize
 			   (substring (symbol-name minor-mode)
 				      0 (match-beginning 0)))))
-		(while (and indicator (symbolp indicator))
+		(while (and indicator (symbolp indicator)
+			    (boundp indicator)
+			    (not (eq indicator (symbol-value indicator))))
 		  (setq indicator (symbol-value indicator)))
 		(if first
 		    (princ "The minor modes are described first,
