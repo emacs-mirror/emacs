@@ -104,6 +104,11 @@ can be saved and will again be loaded with the new `grep-mode'.
 
 ** M-x diff uses diff-mode instead of compilation-mode.
 
+** New command `strokes-global-set-stroke-string'.
+This is like `strokes-global-set-stroke', but it allows you to bind
+the stroke directly to a string to insert.  This is convenient for
+using strokes as an input method.
+
 ---
 ** The saveplace.el package now filters out unreadable files.
 When you exit Emacs, the saved positions in visited files no longer

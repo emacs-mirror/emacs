@@ -591,6 +591,9 @@
   (define-key calc-mode-map "v}" 'calc-matrix-brackets)
   (define-key calc-mode-map "v(" 'calc-vector-parens)
   (define-key calc-mode-map "v)" 'calc-matrix-brackets)
+  ;; We can't rely on the automatic upper->lower conversion because
+  ;; in the global map V is explicitly bound, so we need to bind it
+  ;; explicitly as well :-(  --stef
   (define-key calc-mode-map "V" (lookup-key calc-mode-map "v"))
 
   (define-key calc-mode-map "z" 'nil)

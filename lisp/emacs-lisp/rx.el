@@ -1,6 +1,6 @@
 ;;; rx.el --- sexp notation for regular expressions
 
-;; Copyright (C) 2001, 03, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2003, 2004  Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: FSF
@@ -802,6 +802,9 @@ CHAR
 `(backref N)'
      matches what was matched previously by submatch N.
 
+`(backref N)'
+    matches what was matched previously by submatch N.
+
 `(eval FORM)'
      evaluate FORM and insert result.  If result is a string,
      `regexp-quote' it.
@@ -810,7 +813,6 @@ CHAR
      include REGEXP in string notation in the result."
 
   (rx-to-string regexp))
-
 
 (provide 'rx)
 

@@ -30,7 +30,7 @@
 It exists so that others wishing to create their own Eshell extension
 modules may have a simple template to begin with."
   :tag "Login banner"
-  :link '(info-link "(eshell)Login banner")
+  ;; :link '(info-link "(eshell)Login banner")
   :group 'eshell-module)
 
 ;;; Commentary:

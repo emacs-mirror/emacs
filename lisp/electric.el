@@ -1,6 +1,6 @@
 ;;; electric.el --- window maker and Command loop for `electric' modes
 
-;; Copyright (C) 1985, 1986, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1995, 2004 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -144,12 +144,12 @@
 	 (buf (get-buffer buffer))
 	 (one-window (one-window-p t))
 	 (pop-up-windows t)
+	 (pop-up-frames nil)
 	 (target-height)
 	 (lines))
     (if (not buf)
 	(error "Buffer %s does not exist" buffer)
-      (save-excursion
-	(set-buffer buf)
+      (with-current-buffer buf
 	(setq lines (count-lines (point-min) (point-max)))
 	(setq target-height
 	      (min (max (if max-height (min max-height (1+ lines)) (1+ lines))

@@ -6,7 +6,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.163 2004/03/23 20:59:19 monnier Exp $
+;; $Id: vc-hooks.el,v 1.164 2004/03/26 06:06:39 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -267,6 +267,15 @@ It is usually called via the `vc-call' macro."
   ;; BEWARE!! `file' is evaluated twice!!
   `(vc-call-backend (vc-backend ,file) ',fun ,file ,@args))
 
+(defun vc-arg-list (backend fun)
+  "Return the argument list of BACKEND function FUN."
+  (let ((f (symbol-function (vc-find-backend-function backend fun))))
+    (if (listp f)
+        ;; loaded from .el file
+        (cadr f)
+      ;; loaded from .elc file
+      (aref f 0))))
+
 
 (defsubst vc-parse-buffer (pattern i)
   "Find PATTERN in the current buffer and return its Ith submatch."
@@ -463,15 +472,12 @@ and does not employ any heuristic at all."
 (defun vc-default-workfile-unchanged-p (backend file)
   "Check if FILE is unchanged by diffing against the master version.
 Return non-nil if FILE is unchanged."
-  (let ((diff-args-length
-         (length (cadr (symbol-function
-                        (vc-find-backend-function backend 'diff))))))
-    (zerop (if (> diff-args-length 4) 
-               ;; If the implementation supports it, let the output
-               ;; go to *vc*, not *vc-diff*, since this is an internal call.
-               (vc-call diff file nil nil "*vc*")
-             ;; for backward compatibility
-             (vc-call diff file)))))
+  (zerop (if (> (length (vc-arg-list backend 'diff)) 4)
+             ;; If the implementation supports it, let the output
+             ;; go to *vc*, not *vc-diff*, since this is an internal call.
+             (vc-call diff file nil nil "*vc*")
+           ;; for backward compatibility
+           (vc-call diff file))))
 
 (defun vc-workfile-version (file)
   "Return the version level of the current workfile FILE.

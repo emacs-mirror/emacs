@@ -1,15 +1,111 @@
+2004-03-27  Francis J. Wright  <F.J.Wright@qmul.ac.uk>
+
+	* woman.el (woman-change-fonts): Rename local variable
+	woman-font-alist to font-alist to avoid a compiler warning.
+
+2004-03-27  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/rx.el (rx): Doc fix.
+	Fix copyright years.
+
+	* strokes.el (strokes-global-set-stroke-string): New function.
+	(strokes-list-strokes): Cope with strings, not just commands.  Set
+	foreground colour of image.
+	(strokes-global-set-stroke): Doc fix.
+
+2004-03-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buff-menu.el (Buffer-menu-revert-function): Make it suitable for
+	Auto Revert mode.
+	(Buffer-menu-files-only): New variable.
+	(Buffer-menu-toggle-files-only): New function.
+	(Buffer-menu-mode-map): Bind it to `T'.
+	(Buffer-menu-mode): Mention `T' in docstring.
+	Set buffer-stale-function.
+	(list-buffers-noselect): Mark buffer non-modified and set
+	Buffer-menu-files-only.
+
+	* dired.el (buffer-stale-function): Remove no longer needed defvar.
+
+	* autorevert.el (auto-revert-handler): Print revert message
+	before, rather than after, reverting.
+	(buffer-stale-function): Move to files.el.
+
+	* files.el (buffer-stale-function): Moved here from autorevert.el.
+
+2004-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-maybe-resolve-conflicts): Don't prompt the user.
+
+	* calc/calc.el (calc-mode-map): Use mapc.
+
+	* apropos.el (apropos-mode): Don't autoload.
+	(apropos-symbols-internal): New fun.  Extracted from `apropos'.
+	(apropos): Use it.
+	(apropos-print): Add optional `text' argument.
+	(apropos-describe-plist): Use help-buffer and hexlp-setup-xref.
+	Don't assume point-min == 1.
+
+	* bs.el (bs-buffer-list): Use buffer-local-value.
+	(bs--set-toggle-to-show): Use with-current-buffer.
+
+	* buff-menu.el (Buffer-menu-sort, Buffer-menu-make-sort-button):
+	New funs.
+	(list-buffers-noselect): Use them.  Adjust :align-to to new style.
+
+	* cvs-status.el (cvs-tree-use-jisx0208): Use char-displayable-p.
+
+	* dabbrev.el (dabbrev-expand): Fix regexp construction.
+	(dabbrev--find-expansion): Use pop.
+	(dabbrev--search): Use match-string-no-properties.
+
+	* dired.el (dired-mode): Use run-mode-hooks.
+	(dired-move-to-end-of-filename): Use match-string.
+
+	* ediff-init.el (ediff-hide-face): Check that facemenu-unlisted-faces
+	is bound before using it.
+	(ediff-verbose-p): Make it into a var since it's not constant.
+
+	* electric.el (Electric-pop-up-window): Avoid popping up a new frame.
+
+	* faces.el (read-face-font): Don't cons up unnecessarily.
+	(header-line, tool-bar): Share common parts.
+
+	* files.el (file-relative-name): Use compare-strings.
+
+	* finder.el (finder-mode): Follow coding convention.
+
+	* subr.el (read-number): New function.
+
+	* ses.el (ses-read-number): Move to subr.el.
+	(ses-set-header-row): Use read-number.
+
+2004-03-26  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-arg-list): New function, which handles both
+	compiled and uncompiled code.
+	(vc-default-workfile-unchanged-p): Use it.
+
+	* vc.el (vc-print-log): Undo prev change, use new function
+	vc-arg-list from vc-hooks.el.
+
 2004-03-26  Masatake YAMATO  <jet@gyve.org>
 
 	* simple.el (completion-setup-function): Emphasize the
-	first uncommon characters in the completions;and de-emphasize
+	first uncommon characters in the completions; and de-emphasize
 	the common prefix substrings.
 	(completion-emphasis): New face.
 	(completion-de-emphasis): New face.
 
+2004-03-25  Juanma Barranquero  <lektu@terra.es>
+
+	* progmodes/cperl-mode.el (cperl-indent-alist, cperl-where-am-i):
+	Comment out (it's unused and unfinished code).
+
 2004-03-25  Sam Steingold  <sds@gnu.org>
 
-	* vc.el (vc-print-log): Fixed a bug in the last patch:
-	backend-function may be a byte-compiled object, not a lambda
+	* vc.el (vc-print-log): Fix a bug in the last patch:
+	backend-function may be a byte-compiled object, not a lambda.
 
 2004-03-25  Juri Linkov  <juri@jurta.org>
 
@@ -27,6 +123,14 @@
 	* font-lock.el (fast-lock, lazy-lock):
 	* jit-lock.el (jit-lock): Remove links to removed Support Modes
 	Info node.
+
+	* eshell/eshell.el (eshell): Fix broken info-link.
+
+	* eshell/em-alias.el (eshell-alias, eshell-bad-command-tolerance):
+	* eshell/em-banner.el (eshell-banner):
+	* eshell/em-smart.el (eshell-smart):
+	* eshell/esh-cmd.el (eshell-cmd):
+	Comment out broken info-links to incomplete Info manual.
 
 	* info-xref.el: Fix commentary.
 

@@ -1,6 +1,6 @@
 ;;; dabbrev.el --- dynamic abbreviation package
 
-;; Copyright (C) 1985, 86, 92, 94, 96, 1997, 2000, 01, 2003
+;; Copyright (C) 1985, 86, 92, 94, 96, 1997, 2000, 01, 03, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Don Morrison
@@ -529,7 +529,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 		;; Take the following word, with intermediate separators,
 		;; as our expansion this time.
 		(re-search-forward
-		 (concat "\\(\\(" dabbrev--abbrev-char-regexp "\\)+\\)"))
+		 (concat "\\(?:" dabbrev--abbrev-char-regexp "\\)+"))
 		(setq expansion (buffer-substring-no-properties
 				 dabbrev--last-expansion-location (point)))
 
@@ -793,10 +793,7 @@ of the start of the occurrence."
        ;; Walk through the buffers till we find a match.
        (let (expansion)
 	 (while (and (not expansion) dabbrev--friend-buffer-list)
-	   (setq dabbrev--last-buffer
-		 (car dabbrev--friend-buffer-list))
-	   (setq dabbrev--friend-buffer-list
-		 (cdr dabbrev--friend-buffer-list))
+	   (setq dabbrev--last-buffer (pop dabbrev--friend-buffer-list))
 	   (set-buffer dabbrev--last-buffer)
 	   (dabbrev--scanning-message)
 	   (setq dabbrev--last-expansion-location (point-min))
@@ -1000,8 +997,7 @@ Leaves point at the location of the start of the expansion."
 	      nil
 	    ;; We have a truly valid match.  Find the end.
 	    (re-search-forward pattern2)
-	    (setq found-string (buffer-substring-no-properties
-				(match-beginning 0) (match-end 0)))
+	    (setq found-string (match-string-no-properties 0))
 	    (setq result found-string)
 	    (and ignore-case (setq found-string (downcase found-string)))
 	    ;; Ignore this match if it's already in the table.
@@ -1010,9 +1006,7 @@ Leaves point at the location of the start of the expansion."
 		 (string= found-string table-string))
 		(setq found-string nil)))
 	  ;; Prepare to continue searching.
-	  (if reverse
-	      (goto-char (match-beginning 0))
-	    (goto-char (match-end 0))))
+	  (goto-char (if reverse (match-beginning 0) (match-end 0))))
 	;; If we found something, use it.
 	(when found-string
 	  ;; Put it into `dabbrev--last-table'

@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.371 2004/03/25 15:39:03 sds Exp $
+;; $Id: vc.el,v 1.373 2004/03/26 16:17:12 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1989,9 +1989,7 @@ See Info node `Merging'."
   (vc-resynch-buffer file t (not (buffer-modified-p)))
   (if (zerop status) (message "Merge successful")
     (smerge-mode 1)
-    (if (y-or-n-p "Conflicts detected.  Resolve them now? ")
-	(vc-resolve-conflicts name-A name-B)
-      (message "File contains conflict markers"))))
+    (message "File contains conflicts.")))
 
 ;;;###autoload
 (defalias 'vc-resolve-conflicts 'smerge-ediff)
@@ -2334,19 +2332,12 @@ allowed and simply skipped)."
 If FOCUS-REV is non-nil, leave the point at that revision."
   (interactive)
   (vc-ensure-vc-buffer)
-  (let* ((file buffer-file-name)
-         (backend-function
-          (symbol-function
-           (vc-find-backend-function (vc-backend file) 'print-log)))
-         (print-log-args
-          (if (byte-code-function-p backend-function)
-              (aref backend-function 0)
-              (cadr backend-function))))
+  (let ((file buffer-file-name))
     (or focus-rev (setq focus-rev (vc-workfile-version file)))
     ;; Don't switch to the output buffer before running the command,
     ;; so that any buffer-local settings in the vc-controlled
     ;; buffer can be accessed by the command.
-    (if (cdr print-log-args)
+    (if (> (length (vc-arg-list (vc-backend file) 'print-log)) 1)
         (progn
           (vc-call print-log file "*vc-change-log*")
           (set-buffer "*vc-change-log*"))

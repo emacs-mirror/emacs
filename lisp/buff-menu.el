@@ -1,6 +1,6 @@
 ;;; buff-menu.el --- buffer menu main function and support functions
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95, 2000, 2001, 2002, 2003
+;; Copyright (C) 1985, 86, 87, 93, 94, 95, 2000, 2001, 2002, 03, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -47,22 +47,22 @@
 
 ;;; Code:
 
-;;;Trying to preserve the old window configuration works well in
-;;;simple scenarios, when you enter the buffer menu, use it, and exit it.
-;;;But it does strange things when you switch back to the buffer list buffer
-;;;with C-x b, later on, when the window configuration is different.
-;;;The choice seems to be, either restore the window configuration
-;;;in all cases, or in no cases.
-;;;I decided it was better not to restore the window config at all. -- rms.
+;;Trying to preserve the old window configuration works well in
+;;simple scenarios, when you enter the buffer menu, use it, and exit it.
+;;But it does strange things when you switch back to the buffer list buffer
+;;with C-x b, later on, when the window configuration is different.
+;;The choice seems to be, either restore the window configuration
+;;in all cases, or in no cases.
+;;I decided it was better not to restore the window config at all. -- rms.
 
-;;;But since then, I changed buffer-menu to use the selected window,
-;;;so q now once again goes back to the previous window configuration.
+;;But since then, I changed buffer-menu to use the selected window,
+;;so q now once again goes back to the previous window configuration.
 
-;;;(defvar Buffer-menu-window-config nil
-;;;  "Window configuration saved from entry to `buffer-menu'.")
+;;(defvar Buffer-menu-window-config nil
+;;  "Window configuration saved from entry to `buffer-menu'.")
 
-; Put buffer *Buffer List* into proper mode right away
-; so that from now on even list-buffers is enough to get a buffer menu.
+;; Put buffer *Buffer List* into proper mode right away
+;; so that from now on even list-buffers is enough to get a buffer menu.
 
 (defgroup Buffer-menu nil
   "Show a menu of all buffers in a buffer."
@@ -89,7 +89,7 @@
   :type 'number
   :group 'Buffer-menu)
 
-; This should get updated & resorted when you click on a column heading
+;; This should get updated & resorted when you click on a column heading
 (defvar Buffer-menu-sort-column nil
   "*2 for sorting by buffer names.  5 for sorting by file names.
 nil for default sorting by visited order.")
@@ -98,6 +98,14 @@ nil for default sorting by visited order.")
 
 (defvar Buffer-menu-mode-map nil
   "Local keymap for `Buffer-menu-mode' buffers.")
+
+(defvar Buffer-menu-files-only nil
+  "Non-nil if the current buffer-menu lists only file buffers.
+This variable determines whether reverting the buffer lists only
+file buffers.  It affects both manual reverting and reverting by
+Auto Revert Mode.")
+
+(make-variable-buffer-local 'Buffer-menu-files-only)
 
 (if Buffer-menu-mode-map
     ()
@@ -131,6 +139,7 @@ nil for default sorting by visited order.")
   (define-key Buffer-menu-mode-map "b" 'Buffer-menu-bury)
   (define-key Buffer-menu-mode-map "g" 'Buffer-menu-revert)
   (define-key Buffer-menu-mode-map "V" 'Buffer-menu-view)
+  (define-key Buffer-menu-mode-map "T" 'Buffer-menu-toggle-files-only)
   (define-key Buffer-menu-mode-map [mouse-2] 'Buffer-menu-mouse-select)
 )
 
@@ -167,13 +176,16 @@ Letters do not insert themselves; instead, they are commands.
 \\[Buffer-menu-backup-unmark] -- back up a line and remove marks.
 \\[Buffer-menu-toggle-read-only] -- toggle read-only status of buffer on this line.
 \\[Buffer-menu-revert] -- update the list of buffers.
+\\[Buffer-menu-toggle-files-only] -- toggle whether the menu displays only file buffers.
 \\[Buffer-menu-bury] -- bury the buffer listed on this line."
   (kill-all-local-variables)
   (use-local-map Buffer-menu-mode-map)
   (setq major-mode 'Buffer-menu-mode)
   (setq mode-name "Buffer Menu")
-  (make-local-variable 'revert-buffer-function)
-  (setq revert-buffer-function 'Buffer-menu-revert-function)
+  (set (make-local-variable 'revert-buffer-function)
+       'Buffer-menu-revert-function)
+  (set (make-local-variable 'buffer-stale-function)
+       #'(lambda (&optional noconfirm) t))
   (setq truncate-lines t)
   (setq buffer-read-only t)
   (run-hooks 'buffer-menu-mode-hook))
@@ -184,7 +196,21 @@ Letters do not insert themselves; instead, they are commands.
   (revert-buffer))
 
 (defun Buffer-menu-revert-function (ignore1 ignore2)
-  (list-buffers))
+  ;; We can not use save-excursion here.  The buffer gets erased.
+  (let ((old-point (point)))
+    (list-buffers-noselect Buffer-menu-files-only)
+    (goto-char old-point)))
+
+(defun Buffer-menu-toggle-files-only (arg)
+  "Toggle whether the current buffer-menu displays only file buffers.
+With a positive ARG display only file buffers.  With zero or
+negative ARG, display other buffers as well."
+  (interactive "P")
+  (setq Buffer-menu-files-only
+	(cond ((not arg) (not Buffer-menu-files-only))
+	      ((> (prefix-numeric-value arg) 0) t)))
+  (revert-buffer))
+
 
 (defun Buffer-menu-buffer (error-if-non-existent-p)
   "Return buffer described by this line of buffer menu."
@@ -547,6 +573,29 @@ For more information, see the function `buffer-menu'."
 		       ? )
 	  size))
 
+(defun Buffer-menu-sort (column)
+  "Sort the buffer menu by COLUMN."
+  (interactive "P")
+  (when column
+    (setq column (prefix-numeric-value column))
+    (if (< column 2) (setq column 2))
+    (if (> column 5) (setq column 5)))
+  (setq Buffer-menu-sort-column column)
+  (Buffer-menu-revert))
+
+(defun Buffer-menu-make-sort-button (name column)
+  (if (equal column Buffer-menu-sort-column) (setq column nil))
+  (propertize name
+	      'help-echo (if column
+			     (concat "mouse-2: sort by " (downcase name))
+			   "mouse-2: sort by visited order")
+	      'mouse-face 'highlight
+	      'keymap (let ((map (make-sparse-keymap)))
+			(define-key map [header-line mouse-2]
+			  `(lambda () (interactive)
+			     (Buffer-menu-sort ,column)))
+			map)))
+
 (defun list-buffers-noselect (&optional files-only)
   "Create and return a buffer with a list of names of existing buffers.
 The buffer is named `*Buffer List*'.
@@ -557,29 +606,25 @@ For more information, see the function `buffer-menu'."
   (let* ((old-buffer (current-buffer))
 	 (standard-output standard-output)
 	 (mode-end (make-string (- Buffer-menu-mode-width 2) ? ))
-	 (header (concat (propertize "CRM " 'face 'fixed-pitch)
-			 (Buffer-menu-buffer+size "Buffer" "Size")
-			 "  Mode" mode-end "File\n"))
-	 list desired-point name file mode)
+	 (header (concat " " (propertize "CRM " 'face 'fixed-pitch)
+			 (Buffer-menu-buffer+size
+			  (Buffer-menu-make-sort-button "Buffer" 2)
+			  (Buffer-menu-make-sort-button "Size" 3))
+			 "  "
+			 (Buffer-menu-make-sort-button "Mode" 4) mode-end
+			 (Buffer-menu-make-sort-button "File" 5) "\n"))
+	 list desired-point name file)
     (when Buffer-menu-use-header-line
-      (let ((spaces
-	     (- (car (window-inside-edges))
-		(car (window-edges))))
-	    (pos 0))
+      (let ((pos 0))
 	;; Turn spaces in the header into stretch specs so they work
 	;; regardless of the header-line face.
 	(while (string-match "[ \t]+" header pos)
 	  (setq pos (match-end 0))
 	  (put-text-property (match-beginning 0) pos 'display
 			     ;; Assume fixed-size chars
-			     (list 'space :align-to (+ spaces pos))
-			     header))
-	;; Add the leading space
-	(setq header (concat (propertize (make-string (floor spaces) ? )
-					 'display (list 'space :width spaces))
+			     (list 'space :align-to (1- pos))
 			     header))))
-    (save-excursion
-      (set-buffer (get-buffer-create "*Buffer List*"))
+    (with-current-buffer (get-buffer-create "*Buffer List*")
       (setq buffer-read-only nil)
       (erase-buffer)
       (setq standard-output (current-buffer))
@@ -662,6 +707,8 @@ For more information, see the function `buffer-menu'."
       ;; current buffer is not displayed for some reason.
       (and desired-point
 	   (goto-char desired-point))
+      (setq Buffer-menu-files-only files-only)
+      (set-buffer-modified-p nil)
       (current-buffer))))
 
 ;;; arch-tag: e7dfcfc9-6cb2-46e4-bf55-8ef1936d83c6
