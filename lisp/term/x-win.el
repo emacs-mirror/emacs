@@ -576,8 +576,8 @@ This returns ARGS with the arguments that have been processed removed."
 	(392960 . mute-grave)
 	(392964 . mute-diaeresis)
 	(392961 . mute-asciicircum)
-	(392976 . f35)
-    	(392977 . f36)
+	(392976 . f36)
+    	(392977 . f37)
 	(393056 . req)
 	;; These are for Sun under X11R6
 	(393072 . props)
