@@ -5,7 +5,7 @@
 ;; Author: Ken Manheimer <klm@python.org>
 ;; Maintainer: Ken Manheimer <klm@python.org>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 1.28 2001/07/02 10:45:54 eliz Exp $||
+;; Version: $Id: allout.el,v 1.29 2001/07/16 11:39:41 pj Exp $||
 ;; Keywords: outline mode wp languages
 
 ;; This file is part of GNU Emacs.
@@ -509,7 +509,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = outline-version
 (defvar outline-version
-  (let ((rcs-rev "$Revision: 1.28 $"))
+  (let ((rcs-rev "$Revision: 1.29 $"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
@@ -521,7 +521,7 @@ behavior."
   "Return string describing the loaded outline version."
   (interactive "P")
   (let ((msg (concat "Allout Outline Mode v " outline-version)))
-    (if here (insert-string msg))
+    (if here (insert msg))
     (message "%s" msg)
     msg))
 ;;;_  : Topic header format
@@ -2844,10 +2844,10 @@ Nuances:
                               (not (bolp)))
                          (forward-char 1))))
           ))
-    (insert-string (concat (outline-make-topic-prefix opening-numbered
-                                                      t
-                                                      depth)
-                           " "))
+    (insert (concat (outline-make-topic-prefix opening-numbered
+					       t
+					       depth)
+		    " "))
 
     ;;(if doing-beginning (save-excursion (newline (if dbl-space 2 1))))
 
@@ -3063,7 +3063,7 @@ this function."
 	   (delete-region (match-beginning 0)(match-end 0))))
 
 					; Put in new prefix:
-      (outline-unprotected (insert-string new-prefix))
+      (outline-unprotected (insert new-prefix))
 
       ;; Reindent the body if elected and margin changed:
       (if (and outline-reindent-bodies
@@ -4326,13 +4326,13 @@ If `bullet-plus' is specified, it is inserted just after the entire prefix."
 		  (car listified)
 		(setq listified (cdr listified))))
 	(bullet-plus (car listified)))
-    (insert-string prefix)
-    (if bullet-plus (insert-string (concat " " bullet-plus)))
+    (insert prefix)
+    (if bullet-plus (insert (concat " " bullet-plus)))
     (while text
-      (insert-string (car text))
+      (insert (car text))
       (if (setq text (cdr text))
-	  (insert-string "\n")))
-    (insert-string "\n")))
+	  (insert "\n")))
+    (insert "\n")))
 ;;;_   > outline-copy-exposed-to-buffer (&optional arg tobuf format)
 (defun outline-copy-exposed-to-buffer (&optional arg tobuf format)
   "Duplicate exposed portions of current outline to another buffer.
@@ -4440,7 +4440,7 @@ environment.  Leaves point at the end of the line."
 			      end	; bounded by end-of-line
 			      1)	; no matches, move to end & return nil
       (goto-char (match-beginning 0))
-      (insert-string "\\")
+      (insert "\\")
       (setq end (1+ end))
       (goto-char (1+ (match-end 0))))))
 ;;;_   > outline-insert-latex-header (buf)
@@ -4533,19 +4533,19 @@ BULLET string, and a list of TEXT strings for the body."
 	 (curr-line)
 	 body-content bop)
 					; Do the head line:
-    (insert-string (concat "\\OneHeadLine{\\verb\1 " 
-			   (outline-latex-verb-quote bullet)
-			   "\1}{"
-			   depth
-			   "}{\\verb\1 "
-			   (if head-line
-			       (outline-latex-verb-quote head-line)
-			     "")
-			   "\1}\n"))
+    (insert (concat "\\OneHeadLine{\\verb\1 " 
+		    (outline-latex-verb-quote bullet)
+		    "\1}{"
+		    depth
+		    "}{\\verb\1 "
+		    (if head-line
+			(outline-latex-verb-quote head-line)
+		      "")
+		    "\1}\n"))
     (if (not body-lines)
 	nil
-      ;;(insert-string "\\beginlines\n")
-      (insert-string "\\begin{verbatim}\n")
+      ;;(insert "\\beginlines\n")
+      (insert "\\begin{verbatim}\n")
       (while body-lines
 	(setq curr-line (car body-lines))
 	(if (and (not body-content)
@@ -4559,18 +4559,18 @@ BULLET string, and a list of TEXT strings for the body."
 	    (setq curr-line (concat (substring curr-line 0 bop)
 				    ">"
 				    (substring curr-line bop))))
-	;;(insert-string "|" (car body-lines) "|")
-	(insert-string curr-line)
+	;;(insert "|" (car body-lines) "|")
+	(insert curr-line)
 	(outline-latex-verbatim-quote-curr-line)
-	(insert-string "\n")
+	(insert "\n")
 	(setq body-lines (cdr body-lines)))
       (if body-content
 	  (setq body-content nil)
 	(forward-char -1)
-	(insert-string "\\ ")
+	(insert "\\ ")
 	(forward-char 1))
-      ;;(insert-string "\\endlines\n")
-      (insert-string "\\end{verbatim}\n")
+      ;;(insert "\\endlines\n")
+      (insert "\\end{verbatim}\n")
       )))
 ;;;_   > outline-latexify-exposed (arg &optional tobuf)
 (defun outline-latexify-exposed (arg &optional tobuf)
@@ -4631,23 +4631,23 @@ setup for auto-startup."
     (if (looking-at outline-regexp)
 	t
       (outline-open-topic 2)
-      (insert-string (concat "Dummy outline topic header - see"
-			     "`outline-mode' docstring: `^Hm'."))
+      (insert (concat "Dummy outline topic header - see"
+		      "`outline-mode' docstring: `^Hm'."))
       (forward-line 1)
       (goto-char (point-max))
       (open-line 1)
       (outline-open-topic 0)
-      (insert-string "Local emacs vars.\n")
+      (insert "Local emacs vars.\n")
       (outline-open-topic 1)
-      (insert-string "(`outline-layout' is for allout.el outline-mode)\n")
+      (insert "(`outline-layout' is for allout.el outline-mode)\n")
       (outline-open-topic 0)
-      (insert-string "Local variables:\n")
+      (insert "Local variables:\n")
       (outline-open-topic 0)
-      (insert-string (format "outline-layout: %s\n"
+      (insert (format "outline-layout: %s\n"
 			     (or outline-layout
 				 '(-1 : 0))))
       (outline-open-topic 0)
-      (insert-string "End:\n"))))
+      (insert "End:\n"))))
 ;;;_  > solicit-char-in-string (prompt string &optional do-defaulting)
 (defun solicit-char-in-string (prompt string &optional do-defaulting)
   "Solicit (with first arg PROMPT) choice of a character from string STRING.
