@@ -2574,13 +2574,11 @@ Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  See the documentation of `set-mark' for more information.
 
 In Transient Mark mode, this does not activate the mark."
-  (if (null (mark t))
-      nil
+  (unless (null (mark t))
     (setq mark-ring (cons (copy-marker (mark-marker)) mark-ring))
-    (if (> (length mark-ring) mark-ring-max)
-	(progn
-	  (move-marker (car (nthcdr mark-ring-max mark-ring)) nil)
-	  (setcdr (nthcdr (1- mark-ring-max) mark-ring) nil))))
+    (when (> (length mark-ring) mark-ring-max)
+      (move-marker (car (nthcdr mark-ring-max mark-ring)) nil)
+      (setcdr (nthcdr (1- mark-ring-max) mark-ring) nil)))
   (set-marker (mark-marker) (or location (point)) (current-buffer))
   ;; Now push the mark on the global mark ring.
   (if (and global-mark-ring
@@ -2589,11 +2587,9 @@ In Transient Mark mode, this does not activate the mark."
       ;; Don't push another one.
       nil
     (setq global-mark-ring (cons (copy-marker (mark-marker)) global-mark-ring))
-    (if (> (length global-mark-ring) global-mark-ring-max)
-	(progn
-	  (move-marker (car (nthcdr global-mark-ring-max global-mark-ring))
-		       nil)
-	  (setcdr (nthcdr (1- global-mark-ring-max) global-mark-ring) nil))))
+    (when (> (length global-mark-ring) global-mark-ring-max)
+      (move-marker (car (nthcdr global-mark-ring-max global-mark-ring)) nil)
+      (setcdr (nthcdr (1- global-mark-ring-max) global-mark-ring) nil)))
   (or nomsg executing-kbd-macro (> (minibuffer-depth) 0)
       (message "Mark set"))
   (if (or activate (not transient-mark-mode))
@@ -2603,14 +2599,13 @@ In Transient Mark mode, this does not activate the mark."
 (defun pop-mark ()
   "Pop off mark ring into the buffer's actual mark.
 Does not set point.  Does nothing if mark ring is empty."
-  (if mark-ring
-      (progn
-	(setq mark-ring (nconc mark-ring (list (copy-marker (mark-marker)))))
-	(set-marker (mark-marker) (+ 0 (car mark-ring)) (current-buffer))
-	(deactivate-mark)
-	(move-marker (car mark-ring) nil)
-	(if (null (mark t)) (ding))
-	(setq mark-ring (cdr mark-ring)))))
+  (when mark-ring
+    (setq mark-ring (nconc mark-ring (list (copy-marker (mark-marker)))))
+    (set-marker (mark-marker) (+ 0 (car mark-ring)) (current-buffer))
+    (deactivate-mark)
+    (move-marker (car mark-ring) nil)
+    (if (null (mark t)) (ding))
+    (setq mark-ring (cdr mark-ring))))
 
 (defalias 'exchange-dot-and-mark 'exchange-point-and-mark)
 (defun exchange-point-and-mark (&optional arg)
@@ -3988,9 +3983,8 @@ to decide what to delete."
   ;; unless it is reading a file name and CHOICE is a directory,
   ;; or completion-no-auto-exit is non-nil.
 
-  (let ((buffer (or buffer completion-reference-buffer))
-	(mini-p (string-match "\\` \\*Minibuf-[0-9]+\\*\\'"
-			      (buffer-name buffer))))
+  (let* ((buffer (or buffer completion-reference-buffer))
+	 (mini-p (minibufferp buffer)))
     ;; If BUFFER is a minibuffer, barf unless it's the currently
     ;; active minibuffer.
     (if (and mini-p
