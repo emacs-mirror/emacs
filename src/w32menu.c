@@ -2181,7 +2181,7 @@ popup_activated ()
    supported on NT 3.51 and earlier, as GetMenuItemInfo is not
    available. */
 void
-w32_menu_display_help (HMENU menu, UINT item, UINT flags)
+w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
 {
   HMODULE user32 = GetModuleHandle ("user32.dll");
   FARPROC get_menu_item_info = GetProcAddress (user32, "GetMenuItemInfoA");
