@@ -877,7 +877,7 @@ typedef unsigned char UCHAR;
 /* The FAST macros assume that we already know we're in an X window.  */
 
 /* Given a character code and a face ID, return the appropriate glyph.  */
-#define FAST_MAKE_GLYPH(char, face) ((char) | ((face) << 8))
+#define FAST_MAKE_GLYPH(CHAR, FACE) ((unsigned char) (CHAR) | ((FACE) << 8))
 
 /* Return a glyph's character code.  */
 #define FAST_GLYPH_CHAR(glyph) ((glyph) & 0xff)
