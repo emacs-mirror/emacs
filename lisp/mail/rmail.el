@@ -2137,7 +2137,7 @@ change the invisible header text."
 		   (max 1 (- total-messages messages-after-point))))
 	(setq rmail-message-vector
 	      (apply 'vector (cons (point-min-marker) messages-head))
-	      rmail-deleted-vector (concat "D" deleted-head)
+	      rmail-deleted-vector (concat "0" deleted-head)
 	      rmail-summary-vector (make-vector rmail-total-messages nil)
 	      rmail-msgref-vector (make-vector (1+ rmail-total-messages) nil))
 	(let ((i 0))
