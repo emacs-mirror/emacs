@@ -1,3 +1,7 @@
+2004-04-30  Juanma Barranquero  <lektu@terra.es>
+
+	* smerge-mode.el (smerge-diff-switches): Fix typo in docstring.
+
 2004-04-30  Mario Lang  <mlang@delysid.org>
 
 	* diff.el (diff-switches): Fix typo in docstring.
