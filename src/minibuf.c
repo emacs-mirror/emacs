@@ -112,6 +112,9 @@ Lisp_Object Qminibuffer_default;
 extern Lisp_Object Vminibuf_scroll_window;
 
 extern Lisp_Object Voverriding_local_map;
+
+Lisp_Object Qcurrent_input_method, Qactivate_input_method;
+
 
 /* Put minibuf on currently selected frame's minibuffer.
    We do this whenever the user starts a new minibuffer
@@ -193,11 +196,14 @@ static Lisp_Object read_minibuf ();
 
    DEFALT specifies te default value for the sake of history commands.
 
-   If ALLOW_PROPS is nonzero, we do not throw away text properties.  */
+   If ALLOW_PROPS is nonzero, we do not throw away text properties.
+
+   if INHERIT_INPUT_METHOD is nonzeor, the minibuffer inherit the
+   current input method.  */
 
 static Lisp_Object
 read_minibuf (map, initial, prompt, backup_n, expflag,
-	      histvar, histpos, defalt, allow_props, disable_multibyte)
+	      histvar, histpos, defalt, allow_props, inherit_input_method)
      Lisp_Object map;
      Lisp_Object initial;
      Lisp_Object prompt;
@@ -206,12 +212,12 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
      Lisp_Object histvar;
      Lisp_Object histpos;
      Lisp_Object defalt;
-     int disable_multibyte;
+     int inherit_input_method;
 {
   Lisp_Object val;
   int count = specpdl_ptr - specpdl;
-  Lisp_Object mini_frame, ambient_dir, minibuffer;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  Lisp_Object mini_frame, ambient_dir, minibuffer, input_method;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
   specbind (Qminibuffer_default, defalt);
 
@@ -219,11 +225,12 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   val = Qnil;
   ambient_dir = current_buffer->directory;
+  input_method = Qnil;
 
   /* Don't need to protect PROMPT, HISTVAR, and HISTPOS because we
      store them away before we can GC.  Don't need to protect
      BACKUP_N because we use the value only if it is an integer.  */
-  GCPRO4 (map, initial, val, ambient_dir);
+  GCPRO5 (map, initial, val, ambient_dir, input_method);
 
   if (!STRINGP (prompt))
     prompt = build_string ("");
@@ -291,6 +298,11 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   Vminibuffer_history_variable = histvar;
   Vhelp_form = Vminibuffer_help_form;
 
+  if (inherit_input_method)
+    /* `current-input-method' is buffer local.  So, remeber it in
+       INPUT_METHOD before changing the current buffer.  */
+    input_method = Fsymbol_value (Qcurrent_input_method);
+
   /* Switch to the minibuffer.  */
 
   minibuffer = get_minibuffer (minibuf_level);
@@ -357,6 +369,10 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   previous_echo_glyphs = 0;
 
   current_buffer->keymap = map;
+
+  /* Turn on an input method stored in INPUT_METHOD if any.  */
+  if (STRINGP (input_method) && Ffboundp (Qactivate_input_method))
+    call1 (Qactivate_input_method, input_method);
 
   /* Run our hook, but not if it is empty.
      (run-hooks would do nothing if it is empty,
@@ -561,7 +577,7 @@ read_minibuf_unwind (data)
    for make-docfile to see.  We cannot put this in the real DEFUN
    due to limits in the Unix cpp.
 
-DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 6, 0,
+DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 7, 0,
   "Read a string from the minibuffer, prompting with string PROMPT.\n\
 If optional second arg INITIAL-CONTENTS is non-nil, it is a string\n\
   to be inserted into the minibuffer before reading input.\n\
@@ -583,14 +599,19 @@ Fifth arg HIST, if non-nil, specifies a history list\n\
 Sixth arg DEFAULT-VALUE is the default value.  If non-nil, it is used\n\
  for history commands, and as the value to return if the user enters\n\
  the empty string.\n\
+Seventh arg INHERIT-INPUT-METHOD non-nil means the minibuffer inherits\n\
+ the current input method.\n\
 If the variable `minibuffer-allow-text-properties is non-nil,\n\
  then the string which is returned includes whatever text properties\n\
- were present in the minibuffer.  Otherwise the value has no text properties.  */
+ were present in the minibuffer.  Otherwise the value has no text properties.")
+  (prompt, initial_contents, keymap, read, hist, default_value, inherit_input_method)
+  */
 
-DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 6, 0,
+DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 7, 0,
   0 /* See immediately above */)
-  (prompt, initial_contents, keymap, read, hist, default_value)
+  (prompt, initial_contents, keymap, read, hist, default_value, inherit_input_method)
      Lisp_Object prompt, initial_contents, keymap, read, hist, default_value;
+     Lisp_Object inherit_input_method;
 {
   int pos = 0;
   Lisp_Object histvar, histpos, position, val;
@@ -643,7 +664,8 @@ DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 
   val = read_minibuf (keymap, initial_contents, prompt,
 		      make_number (pos), !NILP (read),
 		      histvar, histpos, default_value,
-		      minibuffer_allow_text_properties, 0);
+		      minibuffer_allow_text_properties,
+		      !NILP (inherit_input_method));
   if (STRINGP (val) && XSTRING (val)->size == 0 && ! NILP (default_value))
     val = default_value;
   UNGCPRO;
@@ -677,31 +699,38 @@ is a string to insert in the minibuffer before reading.")
 
 /* Functions that use the minibuffer to read various things. */
 
-DEFUN ("read-string", Fread_string, Sread_string, 1, 4, 0,
+DEFUN ("read-string", Fread_string, Sread_string, 1, 5, 0,
   "Read a string from the minibuffer, prompting with string PROMPT.\n\
 If non-nil, second arg INITIAL-INPUT is a string to insert before reading.\n\
 The third arg HISTORY, if non-nil, specifies a history list\n\
   and optionally the initial position in the list.\n\
-See `read-from-minibuffer' for details of HISTORY argument.")
-  (prompt, initial_input, history, default_value)
+See `read-from-minibuffer' for details of HISTORY argument.\n\
+The forth arg INHERIT-INPUT-METHOD non-nil means the minibuffer inherits\n\
+  the current input method.")
+  (prompt, initial_input, history, default_value, inherit_input_method)
      Lisp_Object prompt, initial_input, history, default_value;
+     Lisp_Object inherit_input_method;
 {
   return Fread_from_minibuffer (prompt, initial_input, Qnil,
-				Qnil, history, default_value);
+				Qnil, history, default_value,
+				inherit_input_method);
 }
 
-DEFUN ("read-no-blanks-input", Fread_no_blanks_input, Sread_no_blanks_input, 1, 2, 0,
+DEFUN ("read-no-blanks-input", Fread_no_blanks_input, Sread_no_blanks_input, 1, 3, 0,
   "Args PROMPT and INIT, strings.  Read a string from the terminal, not allowing blanks.\n\
-Prompt with PROMPT, and provide INIT as an initial value of the input string.")
-  (prompt, init)
-     Lisp_Object prompt, init;
+Prompt with PROMPT, and provide INIT as an initial value of the input string.\n\
+The third optional arg INHERIT-INPUT-METHOD non-nil means the minibuffer\n\
+  inherits the current input method.")
+  (prompt, init, inherit_input_method)
+     Lisp_Object prompt, init, inherit_input_method;
 {
   CHECK_STRING (prompt, 0);
   if (! NILP (init))
     CHECK_STRING (init, 1);
 
   return read_minibuf (Vminibuffer_local_ns_map, init, prompt, Qnil,
-		       0, Qminibuffer_history, make_number (0), Qnil, 0, 0);
+		       0, Qminibuffer_history, make_number (0), Qnil, 0,
+		       !NILP (inherit_input_method));
 }
 
 DEFUN ("read-command", Fread_command, Sread_command, 1, 2, 0,
@@ -711,7 +740,7 @@ Prompts with PROMPT.  By default, return DEFAULT-VALUE.")
      Lisp_Object prompt, default_value;
 {
   return Fintern (Fcompleting_read (prompt, Vobarray, Qcommandp, Qt,
-				    Qnil, Qnil, default_value),
+				    Qnil, Qnil, default_value, Qnil),
 		  Qnil);
 }
 
@@ -722,7 +751,7 @@ Prompts with PROMPT.")
   (prompt)
      Lisp_Object prompt;
 {
-  return Fintern (Fcompleting_read (prompt, Vobarray, Qfboundp, Qt, Qnil, Qnil, Qnil),
+  return Fintern (Fcompleting_read (prompt, Vobarray, Qfboundp, Qt, Qnil, Qnil, Qnil, Qnil),
 		  Qnil);
 }
 #endif /* NOTDEF */
@@ -736,7 +765,7 @@ A user variable is one whose documentation starts with a `*' character.")
 {
   return Fintern (Fcompleting_read (prompt, Vobarray,
 				    Quser_variable_p, Qt,
-				    Qnil, Qnil, default_value),
+				    Qnil, Qnil, default_value, Qnil),
 		  Qnil);
 }
 
@@ -761,7 +790,7 @@ If optional third arg REQUIRE-MATCH is non-nil, only existing buffer names are a
       prompt = Fformat (3, args);
     }
   return Fcompleting_read (prompt, Vbuffer_alist, Qnil,
-			   require_match, Qnil, Qnil, def);
+			   require_match, Qnil, Qnil, def, Qnil);
 }
 
 DEFUN ("try-completion", Ftry_completion, Stry_completion, 2, 3, 0,
@@ -1126,7 +1155,7 @@ Lisp_Object Vminibuffer_completion_confirm, Qminibuffer_completion_confirm;
    for make-docfile to see.  We cannot put this in the real DEFUN
    due to limits in the Unix cpp.
 
-DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 7, 0,
+DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 8, 0,
   "Read a string in the minibuffer, with completion.\n\
 PROMPT is a string to prompt with; normally it ends in a colon and a space.\n\
 TABLE is an alist whose elements' cars are strings, or an obarray.\n\
@@ -1151,15 +1180,19 @@ HIST, if non-nil, specifies a history list\n\
   and HISTPOS is the initial position (the position in the list\n\
   which INITIAL-CONTENTS corresponds to).\n\
   Positions are counted starting from 1 at the beginning of the list.\n\
-DEF, if non-nil, is the default value.
-
+DEF, if non-nil, is the default value.\n\
+\n\
+If INHERIT-INPUT-METHOD is non-nil, the minibuffer inherits\n\
+  the current input method.\n\
+\n\
 Completion ignores case if the ambient value of\n\
   `completion-ignore-case' is non-nil."
 */
-DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 7, 0,
+DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 8, 0,
   0 /* See immediately above */)
-  (prompt, table, predicate, require_match, init, hist, def)
+  (prompt, table, predicate, require_match, init, hist, def, inherit_input_method)
      Lisp_Object prompt, table, predicate, require_match, init, hist, def;
+     Lisp_Object inherit_input_method;
 {
   Lisp_Object val, histvar, histpos, position;
   int pos = 0;
@@ -1211,7 +1244,8 @@ DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 7, 0,
 		      ? Vminibuffer_local_completion_map
 		      : Vminibuffer_local_must_match_map,
 		      init, prompt, make_number (pos), 0,
-		      histvar, histpos, def, 0, disable_multibyte);
+		      histvar, histpos, def, 0,
+		      !NILP (inherit_input_method));
   if (STRINGP (val) && XSTRING (val)->size == 0 && ! NILP (def))
     val = def;
   RETURN_UNGCPRO (unbind_to (count, val));
@@ -1926,6 +1960,12 @@ syms_of_minibuf ()
 
   Qhistory_length = intern ("history-length");
   staticpro (&Qhistory_length);
+
+  Qcurrent_input_method = intern ("current-input-method");
+  staticpro (&Qcurrent_input_method);
+
+  Qactivate_input_method = intern ("activate-input-method");
+  staticpro (&Qactivate_input_method);
 
   DEFVAR_LISP ("minibuffer-setup-hook", &Vminibuffer_setup_hook, 
     "Normal hook run just after entry to minibuffer.");
