@@ -1497,8 +1497,11 @@ struct it
   int saved_face_id;
 
   /* Vector of glyphs for control character translation.  The pointer
-     dpvec is set to ctl_chars when a control character is translated.  */
-  Lisp_Object ctl_chars[4];
+     dpvec is set to ctl_chars when a control character is translated.
+     This vector is also used for incomplete multibyte character
+     translation (e.g \222\244).  Such a character is at most 3 bytes,
+     thus we need at most 12 bytes here.  */
+  Lisp_Object ctl_chars[12];
 
   /* Current buffer or string position of the iterator, including
      position in overlay strings etc.  */
