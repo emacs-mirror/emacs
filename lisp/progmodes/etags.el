@@ -369,7 +369,15 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 		     (not (tags-table-list-member tags-file-name))
 		     tags-file-name)
 		;; Fifth, use the user variable giving the table list.
-		(car tags-table-list)
+		;; Find the first element of the list that actually exists.
+		(let ((list tags-table-list)
+		      file)
+		  (while (and list
+			      (setq file (tags-expand-table-name (car list)))
+			      (not (get-file-buffer file))
+			      (not (file-exists-p file)))
+		    (setq list (cdr list)))
+		  (car list))
 		;; Finally, prompt the user for a file name.
 		(expand-file-name
 		 (read-file-name "Visit tags table: (default TAGS) "
