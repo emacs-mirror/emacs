@@ -1,3 +1,8 @@
+2002-05-29  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (open-network-stream-server): Pass on optional args
+	sentinel and filter to make-network-process (from Luke Gorrie).
+
 2002-05-28  Colin Walters  <walters@gnu.org>
 
 	* textmodes/sgml-mode.el (xml-mode): New alias for `sgml-mode'.
