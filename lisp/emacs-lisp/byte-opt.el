@@ -1374,7 +1374,8 @@
     minibuffer-allow-text-properties minibuffer-auto-raise
     mode-line-inverse-video multiple-frames no-redraw-on-reenter
     noninteractive parse-sexp-ignore-comments parse-sexp-lookup-properties
-    pop-up-frames pop-up-windows print-escape-newlines
+    pop-up-frames pop-up-windows print-escape-multibyte
+    print-escape-newlines
     print-escape-nonascii print-quoted scroll-preserve-screen-position
     system-uses-terminfo truncate-partial-width-windows use-dialog-box
     visible-bell vms-stmlf-recfm words-include-escapes)
