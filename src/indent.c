@@ -1235,11 +1235,18 @@ pos_tab_offset (w, pos)
   int col;
   int width = window_internal_width (w) - 1;
 
-  if (pos == BEGV || FETCH_CHAR (pos - 1) == '\n')
+  if (pos == BEGV)
+    return MINI_WINDOW_P (w) ? -minibuf_prompt_width : 0;
+  if (FETCH_CHAR (pos - 1) == '\n')
     return 0;
   TEMP_SET_PT (pos);
   col = current_column ();
   TEMP_SET_PT (opoint);
+  /* In the continuation of the first line in a minibuffer we must
+     take the width of the prompt into account.  */
+  if (MINI_WINDOW_P (w) && col >= width - minibuf_prompt_width
+      && find_next_newline_no_quit (pos, -1) == BEGV)
+    return col - (col + minibuf_prompt_width) % width;
   return col - (col % width);
 }
 
@@ -1314,7 +1321,13 @@ vmotion (from, vtarget, w)
 					    ? start_hpos : 0),
 				 0,
 				 from, 1 << (BITS_PER_INT - 2), 0,
-				 width, hscroll, 0, w);
+				 width, hscroll,
+				 /* This compensates for start_hpos
+				    so that a tab as first character
+				    still occupies 8 columns.  */
+				 (XFASTINT (prevline) == BEG
+				  ? -start_hpos : 0),
+				 w);
 	  vpos -= pos.vpos;
 	  first = 0;
 	  from = XFASTINT (prevline);
@@ -1361,7 +1374,9 @@ vmotion (from, vtarget, w)
 					? start_hpos : 0),
 			     0,
 			     from, 1 << (BITS_PER_INT - 2), 0,
-			     width, hscroll, 0, w);
+			     width, hscroll,
+			     (XFASTINT (prevline) == BEG ? -start_hpos : 0),
+			     w);
       did_motion = 1;
     }
   else
@@ -1372,7 +1387,9 @@ vmotion (from, vtarget, w)
     }
   return compute_motion (from, vpos, pos.hpos, did_motion,
 			 ZV, vtarget, - (1 << (BITS_PER_INT - 2)),
-			 width, hscroll, pos.vpos * width, w);
+			 width, hscroll,
+			 pos.vpos * width - (from == BEG ? start_hpos : 0),
+			 w);
 }
 
 DEFUN ("vertical-motion", Fvertical_motion, Svertical_motion, 1, 2, 0,
