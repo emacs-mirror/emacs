@@ -1883,22 +1883,28 @@ indirect definition itself.")
 {
   Lisp_Object maps;
   Lisp_Object found, sequences;
+  Lisp_Object keymap1;
   int keymap_specified = !NILP (keymap);
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   /* 1 means ignore all menu bindings entirely.  */
   int nomenus = !NILP (firstonly) && !EQ (firstonly, Qnon_ascii);
 
+  /* Find keymaps accessible from `keymap' or the current
+     context.  But don't muck with the value of `keymap',
+     because `where_is_internal_1' uses it to check for
+     shadowed bindings. */
+  keymap1 = keymap;
   if (! keymap_specified)
     {
 #ifdef USE_TEXT_PROPERTIES
-      keymap = get_local_map (PT, current_buffer);
+      keymap1 = get_local_map (PT, current_buffer);
 #else
-      keymap = current_buffer->keymap;
+      keymap1 = current_buffer->keymap;
 #endif
     }
-
-  if (!NILP (keymap))
-    maps = nconc2 (Faccessible_keymaps (get_keymap (keymap), Qnil),
+    
+  if (!NILP (keymap1))
+    maps = nconc2 (Faccessible_keymaps (get_keymap (keymap1), Qnil),
 		   Faccessible_keymaps (get_keymap (current_global_map),
 					Qnil));
   else
