@@ -1,10 +1,10 @@
-;;; todo-mode.el -- Major mode for editing TODO list files
+;; todo-mode.el -- Major mode for editing TODO list files
 
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 
 ;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.17 1997/10/15 14:30:41 os10000 Exp os10000 $
+;; Version: $Id: todo-mode.el,v 1.18 1997/10/15 17:18:11 os10000 Exp os10000 $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -28,194 +28,177 @@
 
 ;;; Commentary:
 
-;; Quickstart Installation:
-;; ========================
+;;  Preface, Quickstart Installation
 ;;
-;; To get this to work, make emacs execute the line
+;;	To get this to work, make emacs execute the line
 ;;
-;; (require 'todo-mode)				;; load the TODO package
+;;	    (require 'todo-mode) ;; load the TODO package
 ;;
-;; You may now enter new items by typing "M-x todo-insert-item", or enter
-;; your the TODO list file by typing "M-x todo-show".
+;;	You may now enter new items by typing "M-x todo-insert-item", or enter
+;;	your the TODO list file by typing "M-x todo-show".
 ;;
-;; The TODO list file has a special format and some auxiliary information,
-;; which will be added by the todo-show function if it attempts to visit
-;; an un-initialised file.  Hence it is recommended to use the todo-show
-;; function for the first time, in order to initialise the file, but it
-;; is not necessary afterwards.
+;;	The TODO list file has a special format and some auxiliary
+;;	information, which will be added by the todo-show function if it
+;;	attempts to visit an un-initialised file.  Hence it is
+;;	recommended to use the todo-show function for the first time, in
+;;	order to initialise the file, but it is not necessary
+;;	afterwards.
 ;;
-;; As these commands are quite long to type, I would recommend the addition
-;; of two bindings to your to your global keymap.  I personally have the
-;; following in my initialisation file:
+;;	As these commands are quite long to type, I would recommend the
+;;	addition of two bindings to your to your global keymap.  I
+;;	personally have the following in my initialisation file:
 ;;
-;; (global-set-key "\C-ct" 'todo-show)		;; switch to TODO buffer
-;; (global-set-key "\C-ci" 'todo-insert-item)	;; insert new item
+;;	    (global-set-key "\C-ct" 'todo-show) ;; switch to TODO buffer
+;;	    (global-set-key "\C-ci" 'todo-insert-item) ;; insert new item
 ;;
-;; Note, however, that this recommendation has prompted some criticism,
-;; since the keys C-c LETTER are reserved for user functions.  I believe
-;; my recommendation is acceptable, since the Emacs Lisp Manual *Tips*
-;; section also details that the mode itself should not bind any functions
-;; to those keys.  The express aim of the above two bindings is to work
-;; outside the mode, which doesn't need the show function and offers
-;; a different binding for the insert function.  They serve as shortcuts
-;; and are not even needed (since the TODO mode will be entered by
-;; visiting the TODO file, and later by switching to its buffer).
-;;
-;;
+;;	Note, however, that this recommendation has prompted some
+;;	criticism, since the keys C-c LETTER are reserved for user
+;;	functions.  I believe my recommendation is acceptable, since the
+;;	Emacs Lisp Manual *Tips* section also details that the mode itself
+;;	should not bind any functions to those keys.  The express aim of
+;;	the above two bindings is to work outside the mode, which doesn't
+;;	need the show function and offers a different binding for the
+;;	insert function.  They serve as shortcuts and are not even needed
+;;	(since the TODO mode will be entered by visiting the TODO file, and
+;;	later by switching to its buffer).
 ;;
 ;; Pre-Requisites
-;; ==============
 ;;
-;; This package will require the following packages to be available on
-;; the load-path:
-;;                 - time-stamp
-;;                 - easymenu
+;;	This package will require the following packages to be available on
+;;	the load-path:
 ;;
+;;	    time-stamp
+;;          easymenu
 ;;
+;; Mode Description
 ;;
-;; Description:
-;; ============
+;;	TODO is a major mode for EMACS which offers functionality to treat
+;;	most lines in one buffer as a list of items one has to do.  There
+;;	are facilities to add new items, which are categorised, to edit or
+;;	even delete items from the buffer.  The buffer contents are
+;;	currently compatible with the diary, so that the list of todo-items
+;;	will show up in the FANCY diary mode.
 ;;
-;; TODO is a major mode for EMACS which offers functionality to treat
-;; most lines in one buffer as a list of items one has to do.  There
-;; are facilities to add new items, which are categorised, to edit or
-;; even delete items from the buffer.  The buffer contents are currently
-;; compatible with the diary, so that the list of todo-items will show
-;; up in the FANCY diary mode.
+;;	Notice: Besides the major mode, this file also exports the function
+;;	"todo-show" which will change to the one specific TODO file that
+;;	has been specified in the todo-file-do variable.  If this file does
+;;	not conform to the TODO mode conventions, the todo-show function
+;;	will add the appropriate header and footer.  I don't anticipate
+;;	this to cause much grief, but be warned, in case you attempt to
+;;	read a plain text file.
 ;;
-;; Notice:  Besides the major mode, this file also exports the function
-;; "todo-show" which will change to the one specific TODO file that has
-;; been specified in the todo-file-do variable.  If this file does not
-;; conform to the TODO mode conventions, the todo-show function will add
-;; the appropriate header and footer.  I don't anticipate this to cause
-;; much grief, but be warned, in case you attempt to read a plain text file.
+;; Operation
 ;;
+;;	You will have the following facilities available:
 ;;
+;;	    M-x todo-show   will enter the todo list screen, here type
 ;;
-;; Operation:
-;; ==========
+;;	    +  to go to next category
+;;          -  to go to previous category
+;;          e  to edit the current entry
+;;          f  to file the current entry, including a
+;;            			    comment and timestamp
+;;          i  to insert a new entry
+;;          k  to kill the current entry
+;;          l  to lower the current entry's priority
+;;          n  for the next entry
+;;          p  for the previous entry
+;;          q  to save the list and exit the buffer
+;;          r  to raise the current entry's priority
+;;          s  to save the list
 ;;
-;; You will have the following facilities available:
+;;	When you add a new entry, you are asked for the text and then for
+;;	the category.  I for example have categories for things that I want
+;;	to do in the office (like mail my mum), that I want to do in town
+;;	(like buy cornflakes) and things I want to do at home (move my
+;;	suitcases).  The categories can be selected with the cursor keys
+;;	and if you type in the name of a category which didn't exist
+;;	before, an empty category of the desired name will be added and
+;;	filled with the new entry.
 ;;
-;; M-x todo-show              will enter the todo list screen, here type
+;;  Configuration
 ;;
-;; +                          to go to next category
-;; -                          to go to previous category
-;; e                          to edit the current entry
-;; f                          to file the current entry, including a
-;;                                                 comment and timestamp
-;; i                          to insert a new entry
-;; k                          to kill the current entry
-;; l                          to lower the current entry's priority
-;; n                          for the next entry
-;; p                          for the previous entry
-;; q                          to save the list and exit the buffer
-;; r                          to raise the current entry's priority
-;; s                          to save the list
+;;  Variable todo-prefix
 ;;
-;; When you add a new entry, you are asked for the text and then for the
-;; category.  I for example have categories for things that I want to do
-;; in the office (like mail my mum), that I want to do in town (like buy
-;; cornflakes) and things I want to do at home (move my suitcases).  The
-;; categories can be selected with the cursor keys and if you type in the
-;; name of a category which didn't exist before, an empty category of the
-;; desired name will be added and filled with the new entry.
+;;	I would like to recommend that you use the prefix "*/*" (by
+;;	leaving the variable 'todo-prefix' untouched) so that the diary
+;;	displays each entry every day.
 ;;
+;;	To understand what I mean, please read the documentation that goes
+;;	with the calendar since that will tell you how you can set up the
+;;	fancy diary display and use the #include command to include your
+;;	todo list file as part of your diary.
 ;;
+;;	 If you have the diary package set up to usually display more than
+;;	one day's entries at once, consider using
 ;;
-;; Configuration:
-;; ==============
+;;	    "&%%(equal (calendar-current-date) date)"
 ;;
-;; --- todo-prefix
+;;	as the value of `todo-prefix'.  Please note that this may slow down
+;;	the processing of your diary file some.
 ;;
-;; I would like to recommend that you use the prefix "*/*" (by
-;; leaving the variable 'todo-prefix' untouched) so that the diary
-;; displays each entry every day.
+;;  Variable todo-file-do
 ;;
-;; To understand what I mean, please read the documentation that goes
-;; with the calendar since that will tell you how you can set up the
-;; fancy diary display and use the #include command to include your
-;; todo list file as part of your diary.
+;;	This variable is fairly self-explanatory.  You have to store your TODO
+;;	list somewhere.  This variable tells the package where to go and find
+;;	this file.
 ;;
-;; If you have the diary package set up to usually display more than
-;; one day's entries at once, consider using
-;;   "&%%(equal (calendar-current-date) date)"
-;; as the value of `todo-prefix'.  Please note that this may slow down
-;; the processing of your diary file some.
+;;  Variable todo-file-done
 ;;
+;;	Even when you're done, you may wish to retain the entries.  Given
+;;	that they're timestamped and you are offered to add a comment, this
+;;	can make a useful diary of past events.  It will even blend in with
+;;	the EMACS diary package.  So anyway, this variable holds the name
+;;	of the file for the filed todo-items.
 ;;
-;; --- todo-file-do
+;;  Variable todo-mode-hook
 ;;
-;; This variable is fairly self-explanatory.  You have to store your TODO
-;; list somewhere.  This variable tells the package where to go and find
-;; this file.
+;;	Just like other modes, too, this mode offers to call your functions
+;;	before it goes about its business.  This variable will be inspected
+;;	for any functions you may wish to have called once the other TODO
+;;	mode preparations have been completed.
 ;;
+;;  Variables todo-insert-threshold
 ;;
-;; --- todo-file-done
+;;     	Another nifty feature is the insertion accuracy.  If you have 8
+;;     	items in your TODO list, then you may get asked 4 questions by the
+;;     	binary insertion algorithm.  However, you may not really have a
+;;     	need for such accurate priorities amongst your TODO items.  If you
+;;     	now think about the binary insertion halfing the size of the window
+;;     	each time, then the threshhold is the window size at which it will
+;;     	stop.  If you set the threshhold to zero, the upper and lower bound
+;;     	will coincide at the end of the loop and you will insert your item
+;;     	just before that point.  If you set the threshhold to i.e. 8, it
+;;     	will stop as soon as the window size drops below that amount and
+;;     	will insert the item in the approximate centre of that window.  I
+;;     	got the idea for this feature after reading a very helpful e-mail
+;;     	reply from Trey Jackson <trey@cs.berkeley.edu> who corrected some
+;;     	of my awful coding and pointed me towards some good reading.
+;;     	Thanks Trey!
 ;;
-;; Even when you're done, you may wish to retain the entries.  Given
-;; that they're timestamped and you are offered to add a comment, this
-;; can make a useful diary of past events.  It will even blend in with
-;; the EMACS diary package.  So anyway, this variable holds the name
-;; of the file for the filed todo-items.
+;;  Things to do
 ;;
+;;	o   licence / version function
+;;	o   export to diary file
+;;	o   todo-report-bug
+;;	o   GNATS support
+;;	o   elide multiline
+;;	o   rewrite complete package to store data as lisp objects and have
+;;	    display modes for display, for diary export, etc.
+;;          (Richard Stallman pointed out this is a bad idea)
+;;      o   base todo-mode.el on generic-mode.el instead
 ;;
-;; --- todo-mode-hook
+;; History and Gossip
 ;;
-;; Just like other modes, too, this mode offers to call your functions
-;; before it goes about its business.  This variable will be inspected
-;; for any functions you may wish to have called once the other TODO
-;; mode preparations have been completed.
+;;	Many thanks to all the ones who have contributed to the evolution
+;;	of this package!  I hope I have listed all of you somewhere in the
+;;	documentation or at least in the RCS history!
 ;;
+;;	Enjoy this package and express your gratitude by sending nice things
+;;	to my parents' address!
 ;;
-;; --- todo-insert-threshold
-;;
-;; Another nifty feature is the insertion accuracy.  If you have 8 items
-;; in your TODO list, then you may get asked 4 questions by the binary
-;; insertion algorithm.  However, you may not really have a need for such
-;; accurate priorities amongst your TODO items.  If you now think about
-;; the binary insertion halfing the size of the window each time, then
-;; the threshhold is the window size at which it will stop.  If you set
-;; the threshhold to zero, the upper and lower bound will coincide at the
-;; end of the loop and you will insert your item just before that point.
-;; If you set the threshhold to i.e. 8, it will stop as soon as the window
-;; size drops below that amount and will insert the item in the approximate
-;; centre of that window.  I got the idea for this feature after reading
-;; a very helpful e-mail reply from Trey Jackson <trey@cs.berkeley.edu>
-;; who corrected some of my awful coding and pointed me towards some good
-;; reading.  Thanks Trey!
-;;
-;;
-;;
-;;
-;; Things to do:
-;; =============
-;;
-;; - licence / version function
-;; - export to diary file
-;; - todo-report-bug
-;; - GNATS support
-;; - add idea from Urban Boquist <boquist@cs.chalmers.se>: multi-line-entries
-;; - 'e' opens buffer for multi-line entry
-;; - elide multiline
-;; - rewrite complete package to store data as lisp objects and have
-;;   display modes for display, for diary export, etc.
-;;
-;;
-;;
-;; History and Gossip:
-;; ===================
-;;
-;; Many thanks to all the ones who have contributed to the evolution of this
-;; package!  I hope I have listed all of you somewhere in the documentation
-;; or at least in the RCS history!
-;;
-;; Enjoy this package and express your gratitude by sending nice things
-;; to my parents' address!
-;;
-;; Oliver Seidel
-;;
-;; (O Seidel, Lessingstr. 8, 65760 Eschborn, Federal Republic of Germany)
+;;	Oliver Seidel
+;;	(O Seidel, Lessingstr. 8, 65760 Eschborn, Federal Republic of Germany)
 ;;
 
 ;; ---------------------------------------------------------------------------
@@ -225,6 +208,12 @@
 ;;; Change Log:
 
 ;; $Log: todo-mode.el,v $
+;; Revision 1.18  1997/10/15  17:18:11  os10000
+;; Everything seems to work in Harald Melands Emacs 20.02 and
+;; my Emacs 19.34.  Beware of the spelling in some of the
+;; variable names.  I looked up "threshold" in a dictionary
+;; and here in Britain this appears to be the way to spell it.
+;;
 ;; Revision 1.17  1997/10/15  14:30:41  os10000
 ;; Attempted to reconcile Harald's changes with mine since 1.15.
 ;;
@@ -313,13 +302,13 @@
 
 ;; User-configurable variables:
 
-(defvar todo-prefix	"*/*"		"*TODO mode prefix for entries.")
-(defvar todo-file-do	"~/.todo-do"	"*TODO mode list file.")
-(defvar todo-file-done	"~/.todo-done"	"*TODO mode archive file.")
-(defvar todo-mode-hook	nil		"*TODO mode hooks.")
-(defvar todo-edit-mode-hook nil		"*TODO Edit mode hooks.")
-(defvar todo-insert-threshold 0		"*TODO mode insertion accuracy.")
-(defvar todo-edit-buffer " *TODO Edit*"	"TODO Edit buffer name.")
+(defvar todo-prefix     "*/*"           "*TODO mode prefix for entries.")
+(defvar todo-file-do    "~/.todo-do"    "*TODO mode list file.")
+(defvar todo-file-done  "~/.todo-done"  "*TODO mode archive file.")
+(defvar todo-mode-hook  nil             "*TODO mode hooks.")
+(defvar todo-edit-mode-hook nil         "*TODO Edit mode hooks.")
+(defvar todo-insert-threshold 0         "*TODO mode insertion accuracy.")
+(defvar todo-edit-buffer " *TODO Edit*" "TODO Edit buffer name.")
 
 ;; Thanks for the ISO time stamp format go to Karl Eichwalder <ke@suse.de>
 ;; My format string for the appt.el package is "%3b %2d, %y, %02I:%02M%p".
@@ -340,13 +329,13 @@ For details see the variable `time-stamp-format'.")
 
 ;; Set up some helpful context ...
 
-(defvar todo-categories		nil	"TODO categories.")
-(defvar todo-cats		nil
+(defvar todo-categories         nil     "TODO categories.")
+(defvar todo-cats               nil
   "Old variable for holding the TODO categories.  Use `todo-categories' instead.")
-(defvar todo-previous-line	0	"Previous line that I asked about.")
-(defvar todo-previous-answer	0	"Previous answer that I got.")
-(defvar todo-mode-map		nil	"TODO mode keymap.")
-(defvar todo-category-number	0	"TODO category number.")
+(defvar todo-previous-line      0       "Previous line that I asked about.")
+(defvar todo-previous-answer    0       "Previous answer that I got.")
+(defvar todo-mode-map           nil     "TODO mode keymap.")
+(defvar todo-category-number    0       "TODO category number.")
 
 ;; ---------------------------------------------------------------------------
 
@@ -373,7 +362,7 @@ For details see the variable `time-stamp-format'.")
   "Make TODO mode display the current category correctly."
   (let ((name (nth todo-category-number todo-categories)))
     (setq mode-line-buffer-identification
-	  (concat "Category: " name))
+          (concat "Category: " name))
     (widen)
     (goto-char (point-min))
     (search-forward-regexp
@@ -387,14 +376,14 @@ For details see the variable `time-stamp-format'.")
 (defun todo-forward-category () "Go forward to TODO list of next category."
   (interactive)
   (setq todo-category-number
-	(mod (1+ todo-category-number) (length todo-categories)))
+        (mod (1+ todo-category-number) (length todo-categories)))
   (todo-category-select))
 (defalias 'todo-cmd-forw 'todo-forward-category)
 
 (defun todo-backward-category () "Go back to TODO list of previous category."
   (interactive)
   (setq todo-category-number
-	(mod (1- todo-category-number) (length todo-categories)))
+        (mod (1- todo-category-number) (length todo-categories)))
   (todo-category-select))
 (defalias 'todo-cmd-back 'todo-backward-category)
 
@@ -429,12 +418,12 @@ For details see the variable `time-stamp-format'.")
   (interactive)
   (let ((item (todo-item-string)))
     (if (todo-string-multiline-p item)
-	(todo-edit-multiline)
+        (todo-edit-multiline)
       (let ((new (read-from-minibuffer "Edit: " item)))
-	(todo-remove-item)
-	(insert new "\n")
-	(todo-backward-item)
-	(message "")))))
+        (todo-remove-item)
+        (insert new "\n")
+        (todo-backward-item)
+        (message "")))))
 (defalias 'todo-cmd-edit 'todo-edit-item)
 
 (defun todo-edit-multiline ()
@@ -442,7 +431,7 @@ For details see the variable `time-stamp-format'.")
   (interactive)
   (let ((buffer-name (generate-new-buffer-name todo-edit-buffer)))
     (switch-to-buffer (make-indirect-buffer (file-name-nondirectory todo-file-do)
-					 buffer-name))
+                                         buffer-name))
     (message "To exit, simply kill this buffer and return to list.")
     (todo-edit-mode)
     (narrow-to-region (todo-item-start) (todo-item-end))))
@@ -457,43 +446,43 @@ For details see the variable `time-stamp-format'.")
     (let ((posn (search-forward "-*- mode: todo; " 17 t)))
       (if (not (null posn)) (goto-char posn))
       (if (equal posn nil)
-	  (progn
-	    (insert "-*- mode: todo; \n")
-	    (forward-char -1))
-	(kill-line)))
+          (progn
+            (insert "-*- mode: todo; \n")
+            (forward-char -1))
+        (kill-line)))
     (insert (format "todo-categories: %S; -*-" todo-categories))
     (forward-char 1)
     (insert (format "%s --- %s\n--- End\n%s %s\n"
-		    todo-prefix cat todo-prefix (make-string 75 ?-))))
+                    todo-prefix cat todo-prefix (make-string 75 ?-))))
   0)
 
 (defun todo-insert-item ()
   "Insert new TODO list entry."
   (interactive)
   (let* ((new-item (concat todo-prefix " "
-			   (read-from-minibuffer "New TODO entry: ")))
+                           (read-from-minibuffer "New TODO entry: ")))
          (categories todo-categories)
          (history (cons 'categories (1+ todo-category-number)))
-	 (category (completing-read "Category: "
-				    (todo-category-alist) nil nil
-				    (nth todo-category-number todo-categories)
-				    history)))
+         (category (completing-read "Category: "
+                                    (todo-category-alist) nil nil
+                                    (nth todo-category-number todo-categories)
+                                    history)))
     (let ((cat-exists (member category todo-categories)))
       (setq todo-category-number
-	    (if cat-exists
-		(- (length todo-categories) (length cat-exists))
-	      (todo-add-category category))))
+            (if cat-exists
+                (- (length todo-categories) (length cat-exists))
+              (todo-add-category category))))
     (todo-show)
     (setq todo-previous-line 0)
     (let ((top 1)
-	  (bottom (1+ (count-lines (point-min) (point-max)))))
+          (bottom (1+ (count-lines (point-min) (point-max)))))
       (while (> (- bottom top) todo-insert-threshold)
-	(let* ((current (/ (+ top bottom) 2))
-	       (answer (if (< current bottom)
-			   (todo-more-important-p current) nil)))
-	  (if answer
-	      (setq bottom current)
-	    (setq top (1+ current)))))
+        (let* ((current (/ (+ top bottom) 2))
+               (answer (if (< current bottom)
+                           (todo-more-important-p current) nil)))
+          (if answer
+              (setq bottom current)
+            (setq top (1+ current)))))
       (setq top (/ (+ top bottom) 2))
       ;; goto-line doesn't have the desired behavior in a narrowed buffer
       (goto-char (point-min))
@@ -504,16 +493,16 @@ For details see the variable `time-stamp-format'.")
     (message "")))
 (defalias 'todo-cmd-inst 'todo-insert-item)
 
-(defun todo-more-important-p (line) 
+(defun todo-more-important-p (line)
   "Ask whether entry is more important than the one at LINE."
   (if (not (equal todo-previous-line line))
       (progn
         (setq todo-previous-line line)
         (goto-char (point-min))
         (forward-line (1- todo-previous-line))
-	(let ((item (todo-item-string-start)))
-	  (setq todo-previous-answer
-		(y-or-n-p (concat "More important than '" item "'? "))))))
+        (let ((item (todo-item-string-start)))
+          (setq todo-previous-answer
+                (y-or-n-p (concat "More important than '" item "'? "))))))
   todo-previous-answer)
 (defalias 'todo-ask-p 'todo-more-important-p)
 
@@ -521,13 +510,13 @@ For details see the variable `time-stamp-format'.")
   (interactive)
   (if (> (count-lines (point-min) (point-max)) 0)
       (let* ((todo-entry (todo-item-string-start))
-	     (todo-answer (y-or-n-p (concat "Permanently remove '"
-					    todo-entry "'? "))))
-	(if todo-answer
-	    (progn
-	      (todo-remove-item)
-	      (todo-backward-item)))
-	(message ""))
+             (todo-answer (y-or-n-p (concat "Permanently remove '"
+                                            todo-entry "'? "))))
+        (if todo-answer
+            (progn
+              (todo-remove-item)
+              (todo-backward-item)))
+        (message ""))
     (error "No TODO list entry to delete")))
 (defalias 'todo-cmd-kill 'todo-delete-item)
 
@@ -535,11 +524,11 @@ For details see the variable `time-stamp-format'.")
   (interactive)
   (if (> (count-lines (point-min) (point)) 0)
       (let ((item (todo-item-string)))
-	(todo-remove-item)
-	(todo-backward-item)
-	(save-excursion
-	  (insert item "\n"))
-	(message ""))
+        (todo-remove-item)
+        (todo-backward-item)
+        (save-excursion
+          (insert item "\n"))
+        (message ""))
     (error "No TODO list entry to raise")))
 (defalias 'todo-cmd-rais 'todo-raise-item)
 
@@ -547,11 +536,11 @@ For details see the variable `time-stamp-format'.")
   (interactive)
   (if (> (count-lines (point) (point-max)) 1) ; Assume there is a final newline
       (let ((item (todo-item-string)))
-	(todo-remove-item)
-	(todo-forward-item)
-	(save-excursion
-	  (insert item "\n"))
-	(message ""))
+        (todo-remove-item)
+        (todo-forward-item)
+        (save-excursion
+          (insert item "\n"))
+        (message ""))
     (error "No TODO list entry to lower")))
 (defalias 'todo-cmd-lowr 'todo-lower-item)
 
@@ -559,26 +548,26 @@ For details see the variable `time-stamp-format'.")
   (interactive)
   (if (> (count-lines (point-min) (point-max)) 0)
       (let ((comment (read-from-minibuffer "Comment: "))
-	    (time-stamp-format todo-time-string-format))
-	(if (> (length comment) 0)
-	    (progn
-	      (goto-char (todo-item-end))
-	      (insert (if (save-excursion (beginning-of-line)
-					  (looking-at (regexp-quote todo-prefix)))
-			  " "
-			"\n\t")
-		      "(" (nth todo-category-number todo-categories) ": "
-		      comment ")\n")))
-	(goto-char (todo-item-start))
-	(let ((temp-point (point)))
-	  (if (looking-at (regexp-quote todo-prefix))
-	      (replace-match (time-stamp-string)) ; Standard prefix -> timestamp
-	    ;; Else prefix non-standard item start with timestamp
-	    (insert (time-stamp-string)))
-	  (append-to-file temp-point (todo-item-end) todo-file-done)
-	  (delete-region temp-point (1+ (todo-item-end))))
-	(todo-backward-item)
-	(message ""))
+            (time-stamp-format todo-time-string-format))
+        (if (> (length comment) 0)
+            (progn
+              (goto-char (todo-item-end))
+              (insert (if (save-excursion (beginning-of-line)
+                                          (looking-at (regexp-quote todo-prefix)))
+                          " "
+                        "\n\t")
+                      "(" (nth todo-category-number todo-categories) ": "
+                      comment ")\n")))
+        (goto-char (todo-item-start))
+        (let ((temp-point (point)))
+          (if (looking-at (regexp-quote todo-prefix))
+              (replace-match (time-stamp-string)) ; Standard prefix -> timestamp
+            ;; Else prefix non-standard item start with timestamp
+            (insert (time-stamp-string)))
+          (append-to-file temp-point (todo-item-end) todo-file-done)
+          (delete-region temp-point (1+ (todo-item-end))))
+        (todo-backward-item)
+        (message ""))
     (error "No TODO list entry to file away")))
 
 ;; ---------------------------------------------------------------------------
@@ -593,15 +582,15 @@ For details see the variable `time-stamp-format'.")
   ;; Suitable for putting in the minibuffer when asking the user
   (let ((item (todo-item-string)))
     (if (> (length item) 60)
-	(setq item (concat (substring item 0 56) "...")))
+        (setq item (concat (substring item 0 56) "...")))
     item))
 
 (defun todo-item-start () "Return point at start of current TODO list item."
   (save-excursion
     (beginning-of-line)
     (if (not (looking-at (regexp-quote todo-prefix)))
-	(search-backward-regexp
-	 (concat "^" (regexp-quote todo-prefix)) nil t))
+        (search-backward-regexp
+         (concat "^" (regexp-quote todo-prefix)) nil t))
     (point)))
 
 (defun todo-item-end () "Return point at end of current TODO list item."
@@ -627,21 +616,21 @@ For details see the variable `time-stamp-format'.")
 (defun todo-category-alist ()
   "Generate an alist fro use in `completing-read' from `todo-categories'"
   (mapcar (lambda (cat) (cons cat nil))
-	  todo-categories))
+          todo-categories))
 
 ;; utility functions:  These are available in XEmacs, but not in Emacs 19.34
 
 (if (not (fboundp 'point-at-bol))
     (defun point-at-bol () "Return value of point at beginning of line."
       (save-excursion
-	(beginning-of-line)
-	(point))))
+        (beginning-of-line)
+        (point))))
 
 (if (not (fboundp 'point-at-eol))
     (defun point-at-eol () "Return value of point at end of line."
       (save-excursion
-	(end-of-line)
-	(point))))
+        (end-of-line)
+        (point))))
 
 ;; splits at a white space, returns a list
 (if (not (fboundp 'split-string))
@@ -652,42 +641,42 @@ The substrings between the splitting points are made into a list
 which is returned.
 If SEPARATORS is absent, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
       (let ((rexp (or separators "[ \f\t\n\r\v]+"))
-	    (start 0)
-	    (list nil))
-	(while (string-match rexp string start)
-	  (or (eq (match-beginning 0) 0)
-	      (setq list
-		    (cons (substring string start (match-beginning 0))
-			  list)))
-	  (setq start (match-end 0)))
-	(or (eq start (length string))
-	    (setq list
-		  (cons (substring string start)
-			list)))
-	(nreverse list))))
+            (start 0)
+            (list nil))
+        (while (string-match rexp string start)
+          (or (eq (match-beginning 0) 0)
+              (setq list
+                    (cons (substring string start (match-beginning 0))
+                          list)))
+          (setq start (match-end 0)))
+        (or (eq start (length string))
+            (setq list
+                  (cons (substring string start)
+                        list)))
+        (nreverse list))))
 
 ;; ---------------------------------------------------------------------------
 
 (easy-menu-define todo-menu todo-mode-map "Todo Menu"
-		  '("Todo"
-		    ["Next category"        todo-forward-category t]
-		    ["Previous category"    todo-backward-category t]
-		    "---"
-		    ["Edit item"            todo-edit-item t]
-		    ["File item"            todo-file-item t]
-		    ["Insert new item"      todo-insert-item t]
-		    ["Kill item"            todo-delete-item t]
-		    "---"
-		    ["Lower item priority"  todo-lower-item t]
-		    ["Raise item priority"  todo-raise-item t]
-		    "---"
-		    ["Next item"            todo-forward-item t]
-		    ["Previous item"        todo-backward-item t]
-		    "---"
-		    ["Save"                 todo-save t]
-		    "---"
-		    ["Quit"                 todo-quit t]
-		    ))
+                  '("Todo"
+                    ["Next category"        todo-forward-category t]
+                    ["Previous category"    todo-backward-category t]
+                    "---"
+                    ["Edit item"            todo-edit-item t]
+                    ["File item"            todo-file-item t]
+                    ["Insert new item"      todo-insert-item t]
+                    ["Kill item"            todo-delete-item t]
+                    "---"
+                    ["Lower item priority"  todo-lower-item t]
+                    ["Raise item priority"  todo-raise-item t]
+                    "---"
+                    ["Next item"            todo-forward-item t]
+                    ["Previous item"        todo-backward-item t]
+                    "---"
+                    ["Save"                 todo-save t]
+                    "---"
+                    ["Quit"                 todo-quit t]
+                    ))
 
 (defun todo-mode () "Major mode for editing TODO lists.\n\n\\{todo-mode-map}"
   (interactive)
@@ -711,13 +700,13 @@ If SEPARATORS is absent, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
     (todo-initial-setup))
   (if (null todo-categories)
       (if (null todo-cats)
-	  (error "Error in %s: No categories in list `todo-categories'"
-		 todo-file-do)
-	(goto-char (point-min))
-	(and (search-forward "todo-cats:" nil t)
-	     (replace-match "todo-categories:"))
-	(make-local-variable todo-categories)
-	(setq todo-categories todo-cats)))
+          (error "Error in %s: No categories in list `todo-categories'"
+                 todo-file-do)
+        (goto-char (point-min))
+        (and (search-forward "todo-cats:" nil t)
+             (replace-match "todo-categories:"))
+        (make-local-variable todo-categories)
+        (setq todo-categories todo-cats)))
   (beginning-of-line)
   (todo-category-select))
 
