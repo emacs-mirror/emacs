@@ -3,6 +3,13 @@
 	* dired.c (directory_files_internal): Initialize errno.
 	(toplevel): Include errno.h.
 
+2001-02-13  Kenichi Handa  <handa@etl.go.jp>
+
+	* xfaces.c (best_matching_font): New parameter width_ratio.
+	Multiply avgwidth by width_ratio.
+	(choose_face_font): Call best_matching_font with width_ratio
+	calculated from the column width of C.
+
 2001-02-12  Andrew Innes  <andrewi@gnu.org>
 
 	The following changes are to draw box lines inside characters area
