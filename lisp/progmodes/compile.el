@@ -1,6 +1,6 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages.
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 1998 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@prep.ai.mit.edu>
 ;; Maintainer: FSF
@@ -580,6 +580,16 @@ easily repeat a find command."
   (let ((grep-null-device nil))		; see grep
     (grep command-args)))
 
+(defcustom compilation-scroll-output nil
+  "*Non-nil to scroll the *compilation* buffer window as output appears.
+
+Setting it causes the compilation-mode commands to put point at the
+end of their output window so that the end of the output is always
+visible rather than the begining."
+  :type 'boolean
+  :version 20.3
+  :group 'compilation)
+
 (defun compile-internal (command error-message
 				 &optional name-of-mode parser
 				 error-regexp-alist name-function
@@ -686,6 +696,10 @@ Returns the compilation buffer created."
 		   error-regexp-alist name-function
 		   enter-regexp-alist leave-regexp-alist
 		   file-regexp-alist nomessage-regexp-alist))
+        (make-local-variable 'lazy-lock-defer-on-scrolling)
+        ;; This proves a good idea if the buffer's going to scroll
+        ;; with lazy-lock on.
+        (setq lazy-lock-defer-on-scrolling t)
 	(setq default-directory thisdir
 	      compilation-directory-stack (list default-directory))
 	(set-window-start outwin (point-min))
@@ -726,7 +740,12 @@ exited abnormally with code %d\n"
 					    (concat status "\n")))
 		  (t
 		   (compilation-handle-exit 'bizarre status status))))
-	  (message "Executing `%s'...done" command))))
+	  (message "Executing `%s'...done" command)))
+      (if compilation-scroll-output
+          (let ((currbuf (current-buffer)))
+            (select-window outwin)
+            (goto-char (point-max))
+            (select-window (get-buffer-window currbuf)))))
     ;; Make it so the next C-x ` will use this buffer.
     (setq compilation-last-buffer outbuf)))
 
