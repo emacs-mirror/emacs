@@ -1,3 +1,11 @@
+2005-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.c (Fignore_event): Remove.
+	(syms_of_frame): Don't defsubr it.
+
+	* keyboard.c (keys_of_keyboard): Just use `ignore' instead of the
+	redundant `ignore-event'.
+
 2005-03-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* unexec.c (write_segment, unexec): Move these functions to avoid
@@ -5,7 +13,7 @@
 
 2005-03-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xfns.c (x_create_tip_frame): Removed setting of Vx_resource_name so
+	* xfns.c (x_create_tip_frame): Remove setting of Vx_resource_name so
 	that it doesn't become "tooltip".  The specbind is enough.
 
 	* xrdb.c (x_load_resources): Use different char *helv when I18N
