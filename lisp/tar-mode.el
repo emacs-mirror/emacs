@@ -685,30 +685,23 @@ save your changes to disk."
 		(set-buffer buffer)
 		(insert-buffer-substring tar-buffer start end)
 		(goto-char 0)
-		;; Give it a name for list-buffers and to decide mode.
-		;; Set buffer-file-name by hand first
-		;; so that set-visited-file-name won't lock the filename.
 		(setq buffer-file-name
 		      (expand-file-name (concat tarname ":" name)))
-		(set-visited-file-name buffer-file-name)
-		(normal-mode)  ; pick a mode.
-;;; Without a file name, save-buffer doesn't work.
-;;;		(set-visited-file-name nil)  ; nuke the name - not meaningful.
-		(rename-buffer bufname)
-		
-		(make-local-variable 'tar-superior-buffer)
-		(make-local-variable 'tar-superior-descriptor)
-		(setq tar-superior-buffer tar-buffer)
-		(setq tar-superior-descriptor descriptor)
+		(setq buffer-file-truename
+		      (abbreviate-file-name buffer-file-name))
 		;; Set the default-directory to the dir of the
 		;; superior buffer. 
 		(setq default-directory
 		      (save-excursion
-			(set-buffer tar-superior-buffer)
+			(set-buffer tar-buffer)
 			default-directory))
-
-		(tar-subfile-mode 1)
-		
+		(normal-mode)  ; pick a mode.
+		(rename-buffer bufname)
+		(make-local-variable 'tar-superior-buffer)
+		(make-local-variable 'tar-superior-descriptor)
+		(setq tar-superior-buffer tar-buffer)
+		(setq tar-superior-descriptor descriptor)
+		(tar-subfile-mode 1)		
 		(setq buffer-read-only read-only-p)
 		(set-buffer-modified-p nil))
 	      (set-buffer tar-buffer))
