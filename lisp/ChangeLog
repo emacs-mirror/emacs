@@ -1,14 +1,18 @@
+2001-11-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-depth): Fix off-by-two error.
+
 2001-11-21  Richard M. Stallman  <rms@gnu.org>
 
-	* files.el (temporary-file-directory, null-device) 
+	* files.el (temporary-file-directory, null-device)
 	(small-temporary-file-directory): Definitions moved up.
 
 	* international/encoded-kb.el: Don't alter minor-mode-alist.
 
 2001-11-20  Kai Grossjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
-        * files.el (auto-save-file-name-transforms): Put remote files in
-        temporary-file-directory rather than /tmp.
+	* files.el (auto-save-file-name-transforms): Put remote files in
+	temporary-file-directory rather than /tmp.
 
 2001-11-20  Stefan Monnier  <monnier@cs.yale.edu>
 

@@ -120,7 +120,9 @@ in REGEXP."
     (let ((count 0) start)
       (while (string-match "\\(\\`\\|[^\\]\\)\\\\\\(\\\\\\\\\\)*([^?]"
 			   regexp start)
-	(setq count (1+ count) start (match-end 0)))
+	(setq count (1+ count)
+	      ;; Go back 2 chars (one for [^?] and one for [^\\]).
+	      start (- (match-end 0) 2))
       count)))
 
 ;;; Workhorse functions.
