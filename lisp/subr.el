@@ -348,7 +348,7 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 	    (setq insert-end (point)))
 	  (message (or message "Type %s to continue editing.")
 		   (single-key-description exit-char))
-	  (let ((char (read-char)))
+	  (let ((char (read-event)))
 	    (or (eq char exit-char)
 		(setq unread-command-events (list char)))))
       (if insert-end
