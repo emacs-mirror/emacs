@@ -1,6 +1,7 @@
 2004-03-28  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el (pr-update-menus): Modify interactive declaration.
+	Reported by Drew Adams <drew.adams@oracle.com>.
 
 2004-03-28  Nick Roberts  <nick@nick.uklinux.net>
 

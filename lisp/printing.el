@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Time-stamp: <2004/03/10 20:37:21 vinicius>
+;; Time-stamp: <2004/03/28 19:19:17 vinicius>
 ;; Keywords: wp, print, PostScript
 ;; Version: 6.7.2
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
@@ -4656,7 +4656,7 @@ otherwise, update PostScript printer menu iff `pr-ps-printer-menu-modified' is
 non-nil, update text printer menu iff `pr-txt-printer-menu-modified' is
 non-nil, and update PostScript File menus iff `pr-ps-utility-menu-modified' is
 non-nil."
-  (interactive)
+  (interactive "P")
   (pr-update-var 'pr-ps-name pr-ps-printer-alist)
   (pr-update-var 'pr-txt-name pr-txt-printer-alist)
   (pr-update-var 'pr-ps-utility pr-ps-utility-alist)
