@@ -1998,7 +1998,6 @@ x_put_x_image (f, ximg, pixmap, width, height)
 			      File Handling
  ***********************************************************************/
 
-static Lisp_Object x_find_image_file P_ ((Lisp_Object));
 static unsigned char *slurp_file P_ ((char *, int *));
 
 
@@ -2006,7 +2005,7 @@ static unsigned char *slurp_file P_ ((char *, int *));
    x-bitmap-file-path.  Value is the full name of the file found, or
    nil if not found.  */
 
-static Lisp_Object
+Lisp_Object
 x_find_image_file (file)
      Lisp_Object file;
 {
