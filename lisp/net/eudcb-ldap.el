@@ -89,7 +89,7 @@
   (mapconcat 'identity (split-string string "\\$") "\n"))
 
 ;; Cleanup a LDAP record to make it suitable for EUDC:
-;;   Make the record a cons-cell instead of a list if the it's single-valued
+;;   Make the record a cons-cell instead of a list if it is single-valued
 ;;   Filter the $ character in addresses into \n if not done by the LDAP lib
 (defun eudc-ldap-cleanup-record-filtering-addresses (record)
   (mapcar
@@ -146,7 +146,7 @@ attribute names are returned. Default to `person'"
   (let ((ldap-host-parameters-alist
 	 (list (cons eudc-server
 		     '(scope subtree sizelimit 1)))))
-    (mapcar 'eudc-ldap-cleanup-record
+    (mapcar 'eudc-ldap-cleanup-record-simple
 	    (ldap-search
 	     (eudc-ldap-format-query-as-rfc1558
 	      (list (cons "objectclass"
