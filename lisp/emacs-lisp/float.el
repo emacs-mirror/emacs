@@ -96,16 +96,16 @@
   "Masks all bits except the highest-order magnitude bit")
 
 ;; various useful floating point constants
-(setq _f0 '(0 . 1))
+(defconst _f0 '(0 . 1))
 
-(setq _f1/2 '(4194304 . -23))
+(defconst _f1/2 '(4194304 . -23))
 
-(setq _f1 '(4194304 . -22))
+(defconst _f1 '(4194304 . -22))
 
-(setq _f10 '(5242880 . -19))
+(defconst _f10 '(5242880 . -19))
 
 ;; support for decimal conversion routines
-(setq powers-of-10 (make-vector (1+ decimal-digits) _f1))
+(defvar powers-of-10 (make-vector (1+ decimal-digits) _f1))
 (aset powers-of-10 1 _f10)
 (aset powers-of-10 2 '(6553600 . -16))
 (aset powers-of-10 3 '(8192000 . -13))
@@ -113,8 +113,8 @@
 (aset powers-of-10 5 '(6400000 . -6))
 (aset powers-of-10 6 '(8000000 . -3))
 
-(setq all-decimal-digs-minval (aref powers-of-10 (1- decimal-digits))
-      highest-power-of-10 (aref powers-of-10 decimal-digits))
+(defconst all-decimal-digs-minval (aref powers-of-10 (1- decimal-digits)))
+(defconst highest-power-of-10 (aref powers-of-10 decimal-digits))
 
 (defun fashl (fnum)			; floating-point arithmetic shift left
   (cons (ash (car fnum) 1) (1- (cdr fnum))))
@@ -150,10 +150,10 @@
     (error "")))
 
 ;; support for the multiplication function
-(setq halfword-bits (/ mantissa-bits 2)	; bits in a halfword
-      masklo (1- (ash 1 halfword-bits)) ; isolate the lower halfword
-      maskhi (lognot masklo)		; isolate the upper halfword
-      round-limit (ash 1 (/ halfword-bits 2)))
+(defconst halfword-bits (/ mantissa-bits 2)) ; bits in a halfword
+(defconst masklo (1- (ash 1 halfword-bits))) ; isolate the lower halfword
+(defconst maskhi (lognot masklo))	; isolate the upper halfword
+(defconst round-limit (ash 1 (/ halfword-bits 2)))
 
 (defun hihalf (n)			; return high halfword, shifted down
   (ash (logand n maskhi) (- halfword-bits)))
