@@ -168,8 +168,8 @@ to write negative floating point numbers, as in @samp{-1.0}.
 @cindex negative infinity
 @cindex infinity
 @cindex NaN
-   Most modern computers support the @acronym{IEEE} floating point standard, which
-provides for positive infinity and negative infinity as floating point
+  Most modern computers support the @acronym{IEEE} floating point standard,
+which provides for positive infinity and negative infinity as floating point
 values.  It also provides for a class of values called NaN or
 ``not-a-number''; numerical functions return such values in cases where
 there is no correct answer.  For example, @code{(sqrt -1.0)} returns a
@@ -189,8 +189,8 @@ these special floating point values:
 @end table
 
   In addition, the value @code{-0.0} is distinguishable from ordinary
-zero in @acronym{IEEE} floating point (although @code{equal} and @code{=} consider
-them equal values).
+zero in @acronym{IEEE} floating point (although @code{equal} and
+@code{=} consider them equal values).
 
   You can use @code{logb} to extract the binary exponent of a floating
 point number (or estimate the logarithm of an integer):
@@ -379,10 +379,16 @@ it unchanged.
 @end defun
 
 There are four functions to convert floating point numbers to integers;
-they differ in how they round.  These functions accept integer arguments
-also, and return such arguments unchanged.
+they differ in how they round.  All accept an argument @var{number}
+and an optional argument @var{divisor}.  Both arguments may be
+integers or floating point numbers.  @var{divisor} may also be
+@code{nil}.  If @var{divisor} is @code{nil} or omitted, these
+functions convert @var{number} to an integer, or return it unchanged
+if it already is an integer.  If @var{divisor} is non-@code{nil}, they
+divide @var{number} by @var{divisor} and convert the result to an
+integer.  An @code{arith-error} results if @var{divisor} is 0.
 
-@defun truncate number
+@defun truncate number &optional divisor
 This returns @var{number}, converted to an integer by rounding towards
 zero.
 
@@ -402,10 +408,8 @@ zero.
 This returns @var{number}, converted to an integer by rounding downward
 (towards negative infinity).
 
-If @var{divisor} is specified, @code{floor} divides @var{number} by
-@var{divisor} and then converts to an integer; this uses the kind of
-division operation that corresponds to @code{mod}, rounding downward.
-An @code{arith-error} results if @var{divisor} is 0.
+If @var{divisor} is specified, this uses the kind of division
+operation that corresponds to @code{mod}, rounding downward.
 
 @example
 (floor 1.2)
@@ -421,7 +425,7 @@ An @code{arith-error} results if @var{divisor} is 0.
 @end example
 @end defun
 
-@defun ceiling number
+@defun ceiling number &optional divisor
 This returns @var{number}, converted to an integer by rounding upward
 (towards positive infinity).
 
@@ -437,7 +441,7 @@ This returns @var{number}, converted to an integer by rounding upward
 @end example
 @end defun
 
-@defun round number
+@defun round number &optional divisor
 This returns @var{number}, converted to an integer by rounding towards the
 nearest integer.  Rounding a value equidistant between two integers
 may choose the integer closer to zero, or it may prefer an even integer,
