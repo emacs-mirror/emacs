@@ -246,10 +246,11 @@ Therefore, you need to have `(display-time)' in your .emacs file."
 			   (substring (current-time-string) 14 16)))
 		 (cur-comp-time (+ (* cur-hour 60) cur-min)))
 
-	    ;; If the time is 12:01am, we should update our 
-	    ;; appointments to todays list.
+	    ;; At the first check after 12:01am, we should update our 
+	    ;; appointments to today's list.
 
-	    (if (= cur-comp-time 1)
+	    (if (and (>= cur-comp-time 1)
+		     (<= cur-comp-time appt-display-interval))
 		(if (and view-diary-entries-initially appt-display-diary)
 		    (diary)
 		  (let ((diary-display-hook 'appt-make-list))
