@@ -1949,7 +1949,7 @@ ERROR is t, otherwise just returns nil."
   (if (and (looking-at "[*0-9]")
            (< 2 (count-lines (point-min) (point))))
       (save-excursion
-        (re-search-backward "[^0-9]")
+        (re-search-backward "[^*0-9]")
         (forward-char 1)
         (let*
             ((day (string-to-int (buffer-substring (point) (+ 3 (point)))))
