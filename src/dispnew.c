@@ -3416,6 +3416,10 @@ direct_output_for_insert (g)
       || g == '\r'
       /* Give up if unable to display the cursor in the window.  */
       || w->cursor.vpos < 0
+      /* Give up if we are showing a message or just cleared the message
+	 because we might need to resize the echo area window.  */
+      || !NILP (echo_area_buffer[0])
+      || !NILP (echo_area_buffer[1])
       || (glyph_row = MATRIX_ROW (w->current_matrix, w->cursor.vpos),
 	  /* Can't do it in a continued line because continuation
 	     lines would change.  */
