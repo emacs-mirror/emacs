@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/12/23 03:28:10 $|$Revision: 1.56 $
+;; |$Date: 1993/12/24 03:30:11 $|$Revision: 1.57 $
 
 ;; This file is part of GNU Emacs.
 
@@ -242,6 +242,26 @@ Default value, nil, means edit the string instead.")
       ;; since otherwise the default binding would override.
       ;; We bind [escape] below.
       (define-key map [tab] 'isearch-printing-char)
+      (define-key map [kp-0] 'isearch-printing-char)
+      (define-key map [kp-1] 'isearch-printing-char)
+      (define-key map [kp-2] 'isearch-printing-char)
+      (define-key map [kp-3] 'isearch-printing-char)
+      (define-key map [kp-4] 'isearch-printing-char)
+      (define-key map [kp-5] 'isearch-printing-char)
+      (define-key map [kp-6] 'isearch-printing-char)
+      (define-key map [kp-7] 'isearch-printing-char)
+      (define-key map [kp-8] 'isearch-printing-char)
+      (define-key map [kp-9] 'isearch-printing-char)
+      (define-key map [kp-add] 'isearch-printing-char)
+      (define-key map [kp-subtract] 'isearch-printing-char)
+      (define-key map [kp-multiply] 'isearch-printing-char)
+      (define-key map [kp-divide] 'isearch-printing-char)
+      (define-key map [kp-decimal] 'isearch-printing-char)
+      (define-key map [kp-separator] 'isearch-printing-char)
+      (define-key map [kp-equal] 'isearch-printing-char)
+      (define-key map [kp-tab] 'isearch-printing-char)
+      (define-key map [kp-space] 'isearch-printing-char)
+      (define-key map [kp-enter] 'isearch-exit)
       (define-key map [delete] 'isearch-delete-char)
       (define-key map [backspace] 'isearch-delete-char)
       (define-key map [return] 'isearch-exit)
