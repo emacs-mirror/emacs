@@ -480,9 +480,13 @@ DEFUN ("window-end", Fwindow_end, Swindow_end, 0, 1, 0,
 {
   Lisp_Object value;
   struct window *w = decode_window (window);
-  
+  Lisp_Object buf;
+
+  buf = w->buffer;
+  CHECK_BUFFER (buf, 0);
+
   XSET (value, Lisp_Int,
-	BUF_Z (current_buffer) - XFASTINT (w->window_end_pos));
+	BUF_Z (XBUFFER (buf)) - XFASTINT (w->window_end_pos));
 
   return value;
 }
@@ -1575,6 +1579,8 @@ BUFFER can be a buffer or buffer name.")
     }
 
   w->buffer = buffer;
+  w->window_end_pos = 0;
+  w->window_end_valid = Qnil;
   w->hscroll = 0;
   Fset_marker (w->pointm,
 	       make_number (BUF_PT (XBUFFER (buffer))),
