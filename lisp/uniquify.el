@@ -184,7 +184,8 @@ contains the name of the directory which the buffer is visiting.")
 (defun uniquify-rationalize-file-buffer-names (&optional newbuffile newbuf)
   "Make file buffer names unique by adding segments from file name.
 If `uniquify-min-dir-content' > 0, always pulls that many
-file name elements.  Arguments cause only a subset of buffers to be renamed."
+file name elements.
+Arguments NEWBUFFILE and NEWBUF cause only a subset of buffers to be renamed."
   (interactive)
   (let (fix-list
 	uniquify-non-file-buffer-names
@@ -208,6 +209,13 @@ file name elements.  Arguments cause only a subset of buffers to be renamed."
 				 rawname bfn uniquify-min-dir-content)))
 	    (push (vector rawname bfn buffer proposed) fix-list)
 	  (push bufname uniquify-non-file-buffer-names))))
+    ;; Set up uniquify to re-rationalize after killing/renaming
+    ;; if there is a conflict.
+    (when (and uniquify-after-kill-buffer-p newbuffile (cdr fix-list))
+      (dolist (fix fix-list)
+	(with-current-buffer (uniquify-ref-buffer fix)
+	  (add-hook 'kill-buffer-hook
+		    'uniquify-delay-rationalize-file-buffer-names nil t))))
     ;; selects buffers whose names may need changing, and others that
     ;; may conflict, then bring conflicting names together
     (uniquify-rationalize-a-list fix-list uniquify-min-dir-content)))
@@ -361,7 +369,8 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 	   ;; UNIQUE argument
 	   (ad-get-arg 1))
       (progn
-	(if uniquify-after-kill-buffer-p
+	(if (memq 'uniquify-delay-rationalize-file-buffer-names
+		  kill-buffer-hook)
 	    ;; call with no argument; rationalize vs. old name as well as new
 	    (uniquify-rationalize-file-buffer-names)
 	  ;; call with argument: rationalize vs. new name only
@@ -389,9 +398,7 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
   "Add `delayed-uniquify-rationalize-file-buffer-names' to `post-command-hook'.
 For use on, eg, `kill-buffer-hook', to rationalize *after* buffer deletion."
   (if (and uniquify-buffer-name-style
-	   uniquify-after-kill-buffer-p
-	   ;; Rationalizing is costly, so don't do it for temp buffers.
-	   (uniquify-buffer-file-name (current-buffer)))
+	   uniquify-after-kill-buffer-p)
       (add-hook 'post-command-hook
 		'uniquify-delayed-rationalize-file-buffer-names)))
 
@@ -401,7 +408,5 @@ See also `delay-rationalize-file-buffer-names' for hook setter."
   (uniquify-rationalize-file-buffer-names)
   (remove-hook 'post-command-hook
 	       'uniquify-delayed-rationalize-file-buffer-names))
-
-(add-hook 'kill-buffer-hook 'uniquify-delay-rationalize-file-buffer-names)
 
 ;;; uniquify.el ends here
