@@ -789,9 +789,9 @@ fontset_pattern_regexp (pattern)
       || strcmp (SDATA (pattern), CACHED_FONTSET_NAME))
     {
       /* We must at first update the cached data.  */
-      char *regex, *p0, *p1;
+      unsigned char *regex, *p0, *p1;
       int ndashes = 0, nstars = 0;
-      
+
       for (p0 = SDATA (pattern); *p0; p0++)
 	{
 	  if (*p0 == '-')
@@ -804,12 +804,12 @@ fontset_pattern_regexp (pattern)
 	 we convert "*" to "[^-]*" which is much faster in regular
 	 expression matching.  */
       if (ndashes < 14)
-	p1 = regex = (char *) alloca (SBYTES (pattern) + 2 * nstars + 1);
+	p1 = regex = (unsigned char *) alloca (SBYTES (pattern) + 2 * nstars + 1);
       else
-	p1 = regex = (char *) alloca (SBYTES (pattern) + 5 * nstars + 1);
+	p1 = regex = (unsigned char *) alloca (SBYTES (pattern) + 5 * nstars + 1);
 
       *p1++ = '^';
-      for (p0 = (char *) SDATA (pattern); *p0; p0++)
+      for (p0 = SDATA (pattern); *p0; p0++)
 	{
 	  if (*p0 == '*' && p0 > SDATA (pattern) && p0[-1] != '\\')
 	    {
