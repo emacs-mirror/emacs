@@ -313,6 +313,8 @@ Thus, this does not include the shell's current directory.")
 
 ;;; Basic Procedures
 
+(put 'shell-mode 'mode-class 'special)
+
 (defun shell-mode ()
   "Major mode for interacting with an inferior shell.
 \\[comint-send-input] after the end of the process' output sends the text from
