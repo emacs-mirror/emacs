@@ -302,6 +302,8 @@ With arg, don't unhexlify buffer."
 
   (remove-hook 'after-revert-hook 'hexl-after-revert-hook t)
   (remove-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer t)
+  (remove-hook 'post-command-hook 'hexl-follow-ascii-find t)
+  (setq hexl-ascii-overlay nil)
 
   (setq write-contents-hooks hexl-mode-old-write-contents-hooks)
   (setq require-final-newline hexl-mode-old-require-final-newline)
