@@ -1,3 +1,24 @@
+2002-04-16  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+        * viper-ex.el: Patch by Samuel Padgett. Copyright papers received.
+	(viper-ex-print-buf-name): New variable.
+	(viper-ex-print-buf): New variable.
+	(ex-token-alist): Invoke ex-print on ":print" Ex commands.
+	(ex-g-marks): New variable.
+	(ex-print): New function.
+	(ex-print-display-lines): New function.
+	
+	* viper.el (viper-set-hooks): add window-setup-hook, which sets
+	the cursor color.
+	
+	* ediff-util.el (ediff-cleanup-mess): delete ctl window on exit
+	when the window is not in its own frame.
+	(ediff-clone-buffer-for-region-comparison): more robust window
+	arrangement while prompting for regions to compare.
+	(ediff-make-cloned-buffer): use generate-new-buffer-name.
+	(ediff-inferior-compare-regions): deleted unused vars
+	ctl-buf and quit-now.
+	
 2002-04-15  Richard M. Stallman  <rms@gnu.org>
 
 	* facemenu.el (facemenu-add-new-face): Use this only for faces.

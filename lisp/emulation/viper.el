@@ -834,6 +834,12 @@ remains buffer-local."
   (add-hook 'flyspell-mode-hook
 	    '(lambda ()
 	       (define-key flyspell-mouse-map viper-ESC-key nil)))
+  ;; if viper is started from .emacs, it might be impossible to get certain
+  ;; info about the display and windows until emacs initialization is complete
+  ;; So do it via the window-setup-hook
+  (add-hook 'window-setup-hook
+	    '(lambda ()
+	       (setq viper-vi-state-cursor-color (viper-get-cursor-color))))
 
   ;; Tell vc-diff to put *vc* in Vi mode
   (if (featurep 'vc)

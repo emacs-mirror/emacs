@@ -42,6 +42,10 @@
 
 (defvar ediff-after-quit-hook-internal nil)
 
+(and noninteractive
+     (eval-when-compile
+	 (load "reporter" 'noerror)))
+
 (eval-when-compile
   (let ((load-path (cons (expand-file-name ".") load-path)))
     (or (featurep 'ediff-init)
@@ -2554,6 +2558,7 @@ temporarily reverses the meaning of this variable."
 	 (buff-B ediff-buffer-B)
 	 (buff-C ediff-buffer-C)
 	 (ctl-buf  ediff-control-buffer)
+	 (ctl-wind  (ediff-get-visible-buffer-window ctl-buf))
 	 (ctl-frame ediff-control-frame)
 	 (three-way-job ediff-3way-job)
 	 (main-frame (cond ((window-live-p ediff-window-A) 
@@ -2571,8 +2576,12 @@ temporarily reverses the meaning of this variable."
     (if (boundp 'ediff-patch-diagnostics)
 	(ediff-kill-buffer-carefully ediff-patch-diagnostics))
 
-    (if (and (ediff-window-display-p) (frame-live-p ctl-frame))
-	(delete-frame ctl-frame))
+    ;; delete control frame or window
+    (cond ((and (ediff-window-display-p) (frame-live-p ctl-frame))
+	   (delete-frame ctl-frame))
+	  ((window-live-p ctl-wind)
+	   (delete-window ctl-wind)))
+
     ;; Hide bottom toolbar.  --marcpa
     (if (not (ediff-multiframe-setup-p))
 	(ediff-kill-bottom-toolbar))
@@ -2603,9 +2612,9 @@ temporarily reverses the meaning of this variable."
 			       (ediff-get-visible-buffer-window buff-B))
 			   (ediff-buffer-live-p buff-C))
 		      (funcall ediff-split-window-function))
-		  (switch-to-buffer buff-C)
-		  (balance-windows)))
+		  (switch-to-buffer buff-C)))
 	  (error)))
+    (balance-windows)
     (message "")
     ))
 
@@ -3308,28 +3317,32 @@ Without an argument, it saves customized diff argument, if available
 ;; idea suggested by Hannu Koivisto <azure@iki.fi>
 (defun ediff-clone-buffer-for-region-comparison (buff region-name)
   (let ((cloned-buff (ediff-make-cloned-buffer buff region-name))
-	(wind (ediff-get-visible-buffer-window buff))
 	(pop-up-windows t)
+	wind
 	other-wind
 	msg-buf)
     (ediff-with-current-buffer cloned-buff
       (setq ediff-temp-indirect-buffer t))
-    (if (window-live-p wind)
-	(set-window-buffer wind cloned-buff))
     (pop-to-buffer cloned-buff)
+    (setq wind (ediff-get-visible-buffer-window cloned-buff))
+    (select-window wind)
+    (delete-other-windows)
+    (split-window-vertically)
+    (ediff-select-lowest-window)
+    (setq other-wind (selected-window))
     (with-temp-buffer
       (erase-buffer)
       (insert
        (format "\n   *******  Mark a region in buffer %s  *******\n"
 	       (buffer-name cloned-buff)))
       (insert
-       (format "\n\t      When done, type %s       Use %s to abort\n    "
-	       (ediff-format-bindings-of 'exit-recursive-edit)
-	       (ediff-format-bindings-of 'abort-recursive-edit)))
+       (ediff-with-current-buffer buff
+	 (format "\n\t      When done, type %s       Use %s to abort\n    "
+		 (ediff-format-bindings-of 'exit-recursive-edit)
+		 (ediff-format-bindings-of 'abort-recursive-edit))))
       (goto-char (point-min))
       (setq msg-buf (current-buffer))
-      (other-window 1)
-      (set-window-buffer (selected-window) msg-buf)
+      (set-window-buffer other-wind msg-buf)
       (shrink-window-if-larger-than-buffer)
       (if (window-live-p wind)
 	  (select-window wind))
@@ -3363,9 +3376,9 @@ Without an argument, it saves customized diff argument, if available
 
 (defun ediff-make-cloned-buffer (buff region-name)
   (ediff-make-indirect-buffer
-   buff (concat
-	 (if (stringp buff) buff (buffer-name buff))
-	 region-name (symbol-name (gensym)))))
+   buff (generate-new-buffer-name
+         (concat (if (stringp buff) buff (buffer-name buff)) region-name))
+   ))
 
 
 (defun ediff-make-indirect-buffer (base-buf indirect-buf-name)
@@ -3444,8 +3457,6 @@ Ediff Control Panel to restore highlighting."
   (let ((answer "")
 	(possibilities (list ?A ?B ?C))
 	(zmacs-regions t)
-	(ctl-buf (current-buffer))
-	quit-now
 	use-current-diff-p
 	begA begB endA endB bufA bufB)
 

@@ -69,6 +69,8 @@
 (defconst viper-ex-work-buf-name " *ex-working-space*")
 (defconst viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
 (defconst viper-ex-tmp-buf-name " *ex-tmp*")
+(defconst viper-ex-print-buf-name " *ex-print*")
+(defconst viper-ex-print-buf (get-buffer-create viper-ex-print-buf-name))
 
 
 ;;; ex-commands...
@@ -133,6 +135,7 @@
 	("next"			(ex-next ex-cycle-other-window))
 	("p"			"print")
 	("preserve"		(ex-preserve))
+	("print"		(ex-print))
 	("put"			(ex-put))
 	("pwd"			(ex-pwd))
 	("quit"			(ex-quit))
@@ -176,7 +179,6 @@
 	("open"			(ex-cmd-obsolete "open"))
 
 	("list"			(ex-cmd-not-yet "list"))
-	("print"		(ex-cmd-not-yet "print"))
 	("z"			(ex-cmd-not-yet "z"))
 	("#"			(ex-cmd-not-yet "#"))
 
@@ -279,6 +281,8 @@
 (defvar ex-g-flag nil)
 ;; Flag indicating that :vglobal Ex command is being executed.
 (defvar ex-g-variant nil)
+;; Marks to operate on during a :global Ex command.
+(defvar ex-g-marks nil)
 
 ;; Save reg-exp used in substitute.
 (defvar ex-reg-exp nil)
@@ -1345,8 +1349,8 @@ reversed."
   (if (null ex-addresses)
       (setq ex-addresses (list (point-max) (point-min)))
     (viper-default-ex-addresses))
-  (let ((marks nil)
-	(mark-count 0)
+  (setq ex-g-marks nil)
+  (let ((mark-count 0)
 	(end (car ex-addresses))
 	(beg (car (cdr ex-addresses)))
 	com-str)
@@ -1369,7 +1373,7 @@ reversed."
 		(progn
 		  (end-of-line)
 		  (setq mark-count (1+ mark-count))
-		  (setq marks (cons (point-marker) marks)))))
+		  (setq ex-g-marks (cons (point-marker) ex-g-marks)))))
 	  (beginning-of-line)
 	  (if (bobp) (setq cont nil)
 	    (forward-line -1)
@@ -1379,11 +1383,11 @@ reversed."
       (set-buffer viper-ex-work-buf)
       ;; com-str is the command string, i.e., g/pattern/ or v/pattern'
       (setq com-str (buffer-substring (1+ (point)) (1- (point-max)))))
-    (while marks
-      (goto-char (car marks))
+    (while ex-g-marks
+      (goto-char (car ex-g-marks))
       (viper-ex nil com-str)
       (setq mark-count (1- mark-count))
-      (setq marks (cdr marks)))))
+      (setq ex-g-marks (cdr ex-g-marks)))))
 
 ;; Ex goto command
 (defun ex-goto ()
@@ -2276,6 +2280,39 @@ Type 'mak ' (including the space) to run make with no args."
 					    explicit-shell-file-name
 					  'none)))
     ))
+
+(defun ex-print ()
+  (viper-default-ex-addresses)
+  (let ((end (car ex-addresses))
+	(beg (car (cdr ex-addresses))))
+    (if (> beg end) (error viper-FirstAddrExceedsSecond))
+    (save-excursion
+      (viper-enlarge-region beg end)
+      (if (or ex-g-flag ex-g-variant)
+	  ;; When executing a global command, collect output of each
+	  ;; print in viper-ex-print-buf.
+	  (progn
+	    (append-to-buffer viper-ex-print-buf (point) (mark t))
+	    ;; Is this the last mark for the global command?
+	    (unless (cdr ex-g-marks)
+	      (with-current-buffer viper-ex-print-buf
+		(ex-print-display-lines (buffer-string))
+		(erase-buffer))))
+	(ex-print-display-lines (buffer-substring (point) (mark t)))))))
+
+(defun ex-print-display-lines (lines)
+  (cond
+   ;; String doesn't contain a newline.
+   ((not (string-match "\n" lines))
+    (message "%s" lines))
+   ;; String contains only one newline at the end.  Strip it off.
+   ((= (string-match "\n" lines) (1- (length lines)))
+    (message "%s" (substring lines 0 -1)))
+   ;; String spans more than one line.  Use a temporary buffer.
+   (t
+    (save-current-buffer
+      (with-output-to-temp-buffer " *viper-info*"
+	(princ lines))))))
 
 
 

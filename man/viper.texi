@@ -3691,9 +3691,14 @@ Move text between @kbd{x} and @kbd{y} to the position after @kbd{z}.
 @item  &
 Repeat latest Ex substitute command, e.g.
 @kbd{:s/wrong/right}.
-@item C-c /
-Toggle case-sensitive search.  With prefix argument, toggle vanilla/regular
-expression search.
+@item :x,yp
+@itemx :g/Pat/p
+@itemx :v/Pat/p
+The above commands display certain buffer lines in a
+temporary buffer. The first form above displays the buffer lines between
+@kbd{x} and @kbd{y}. The second displays the lines of the buffer, which
+match a given pattern. The third form displays the lines that do @emph{not}
+match the given pattern.
 @item #c<move>
 Change upper-case characters in the region to lower-case.
 @item #C<move>
@@ -3743,6 +3748,9 @@ get literal (non-regular-expression) search and how to stop search from
 wrapping around.
 
 @table @kbd
+@item C-c /
+Toggle case-sensitive search.  With prefix argument, toggle vanilla/regular
+expression search.
 @item <count>  /<string>
 To the <count>th occurrence of <string>.
 
@@ -4436,8 +4444,10 @@ based on the original VIP package by Masahiko Sato and on its enhancement,
 VIP 4.4, by Aamod Sane.  This manual is an adaptation of the manual for VIP
 4.4, which, in turn, was based on Sato's manual for VIP 3.5.
 
-Many contributors on the net pointed out bugs and suggested a number of
-useful features.  Here is a (hopefully) complete list of contributors:
+Many contributors on the Net pointed out bugs and suggested a number of
+useful features. Scott Bronson and Samuel Padgett contributed patches that
+were incorporated in this code.  Here is a hopefully complete list of
+contributors:
 
 @example
 aaronl@@vitelus.com (Aaron Lehmann),
@@ -4452,7 +4462,7 @@ dm@@scs.cs.nyu.edu (David Mazieres),
 dominik@@strw.LeidenUniv.nl (Carsten Dominik),
 dwallach@@cs.princeton.edu (Dan Wallach),
 dwight@@toolucky.llnl.gov (Dwight Shih),
-dxc@@xprt.net (David X. Callaway),
+dxc@@xprt.net (David X Callaway),
 edmonds@@edmonds.home.cs.ubc.ca (Brian Edmonds),
 gin@@mo.msk.ru (Golubev I.N.),
 gviswana@@cs.wisc.edu (Guhan Viswanathan),

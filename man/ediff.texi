@@ -2385,9 +2385,9 @@ made it work with VC, Marc Paquette <marcpa@@cam.org> wrote the
 toolbar support package for Ediff, and Hrvoje Niksic <hniksic@@xemacs.org>
 adapted it to the Emacs customization package.
 
-Many people provided help with bug reports, patches, and advice.
+Many people provided help with bug reports, feature suggestions, and advice.
 Without them, Ediff would not be nearly as useful as it is today.
-Here is a full list of contributors (I hope I didn't miss anyone):
+Here is a hopefully full list of contributors:
 
 @example
 Adrian Aichner (aichner@@ecf.teradyne.com),
