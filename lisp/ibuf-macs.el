@@ -71,7 +71,8 @@ During evaluation of body, bind `it' to the value returned by TEST."
 ;; (put 'ibuffer-save-marks 'lisp-indent-function 0)
 
 ;;;###autoload
-(defmacro* define-ibuffer-column (symbol (&key name inline props) &rest body)
+(defmacro* define-ibuffer-column (symbol (&key name inline props
+					       summarizer) &rest body)
   "Define a column SYMBOL for use with `ibuffer-formats'.
 
 BODY will be called with `buffer' bound to the buffer object, and
@@ -81,7 +82,9 @@ will be `buffer'.
 If NAME is given, it will be used as a title for the column.
 Otherwise, the title will default to a capitalized version of the
 SYMBOL's name.  PROPS is a plist of additional properties to add to
-the text, such as `mouse-face'.
+the text, such as `mouse-face'.  And SUMMARIZER, if given, is a
+function which will be passed a list of all the strings in its column;
+it should return a string to display at the bottom.
 
 Note that this macro expands into a `defun' for a function named
 ibuffer-make-column-NAME.  If INLINE is non-nil, then the form will be
@@ -90,8 +93,14 @@ change its definition, you should explicitly call
 `ibuffer-recompile-formats'."
   (let* ((sym (intern (concat "ibuffer-make-column-"
 			      (symbol-name symbol))))
-	 (bod-1 `(with-current-buffer buffer
+	 (bod-2 `(with-current-buffer buffer
 		   ,@body))
+	 (bod-1 (if summarizer
+		    `(car
+		      (push ,bod-2
+			    ,(intern (format "ibuffer-summary-for-column-%s"
+					     name))))
+		  bod-2))
 	 (bod (if props
 		 `(propertize
 		   ,bod-1
@@ -106,6 +115,13 @@ change its definition, you should explicitly call
 	    ,(if (stringp name)
 		 name
 	       (capitalize (symbol-name symbol))))
+       ,(if summarizer
+	    `(put (quote ,sym) 'ibuffer-column-summarizer
+		  (quote ,summarizer)))
+       ,(if summarizer
+	    `(defvar ,(intern (format "ibuffer-summary-for-column-%s"
+				      name))
+	       nil))
        :autoload-end)))
 ;; (put 'define-ibuffer-column 'lisp-indent-function 'defun)
 
