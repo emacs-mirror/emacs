@@ -464,7 +464,7 @@ Vorstellung von der Metapher -- Von einem `kill'-Befehl gelöschter
 Text wird gespeichert und kann bei Bedarf mit C-y zurückgeholt
 werden.  Von einem `delete'-Befehl entfernter Text (in der Regel
 einzelne Zeichen, leere Zeilen und Zwischenräume) wird nicht extra
-gespeichert.
+gespeichert und kann daher auch nicht zurückgeholt werden.
 
 >> Bringen Sie den Cursor an den Anfang einer nicht-leeren Zeile und
    geben Sie C-k ein, um die Zeile zu löschen.
@@ -480,7 +480,10 @@ Zeilenvorschübe: C-u 2 C-k löscht zwei Zeilen komplett; zweimal C-k
 löscht dagegen nur eine Zeile.
 
 Wie schon erwähnt, bringt C-y den zuletzt gelöschten (`gekillten')
-Text zurück.
+Text zurück -- man kann diesen Text einfügen, wo man will: an der
+ursprünglichen Stelle, an einer anderen Stelle, oder sogar in einer
+anderen Datei.  Mehrmaliges Ausführen von C-y fügt den Text mehrmals
+ein.
 
 >> Probieren Sie jetzt C-y, um diesen Effekt zu sehen.
 
@@ -573,7 +576,9 @@ Wiederholungszähler interpretiert.
 Der Unterschied zwischen der Undo-Funktion und dem oben erklärten C-y
 ist, daß erstere gelöschten Text an exakt der gleichen Position wie
 vorher wiederherstellt, wohingegen C-y den gelöschten Text an der
-momentanen Cursorposition einfügt.
+momentanen Cursorposition einfügt.  Im übrigen kann auch `gekillter'
+Text wieder hergestellt werden; der Unterschied zwischen `killing' und
+`yanking' betrifft nur C-y, aber nicht die Undo-Funktion.
 
 
 * DATEIEN
@@ -1372,6 +1377,11 @@ mit `previous-' beginnen.  Ergänzen Sie die Zeichenkette auf
 `previous-l' und drücken Sie dann <TAB>, bleibt nur noch der Befehl
 `previous-line' übrig, und Sie können mit <Return> abschließen.
 
+Ein ähnlicher Befehl ist C-h v.  Er zeigt den Wert und die
+Dokumentation von Variablen, deren Werte man ändern kann (um Emacs an
+persönliche Bedürfnisse anzupassen).  Auch hier kann man die
+Tabulator-Taste zur Vervollständigung benutzen.
+
    C-h a        Ein Befehls-Apropos.  Gibt man ein Schlüsselwort ein,
                 dann zeigt Emacs alle Befehle, die dieses
                 Schlüsselwort enthalten.  Alle angezeigten Befehle
@@ -1389,6 +1399,17 @@ zugehörigen langen Namen, find-file.
 >> Blättern Sie mit C-M-v, um sich die Liste der Funktionen anzusehen.
 
 >> Schließen Sie das Hilfefenster mit C-x 1.
+
+   C-h i        Dieser Befehl öffnet einen speziellen Puffer, um
+                Online-Handbücher zu lesen (im `Info'-Format), die auf
+                dem verwendeten Computersystem installiert sind.
+                Geben Sie z.B. m emacs <Return> ein, um das
+                Emacs-Handbuch zu lesen.  Haben Sie `Info' noch nie
+                benutzt, tippen Sie ?, und Emacs führt Sie Schritt für
+                Schritt durch die Möglichkeiten des Info-Modus.  Wenn
+                Sie diese Einführung fertiggelesen haben, sollten Sie
+                das Info-Handbuch für Emacs als primäre Dokumentation
+                benutzen.
 
 
 * SCHLUSSBEMERKUNG
