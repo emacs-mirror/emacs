@@ -1,11 +1,9 @@
-/*  impl.h.lock
+/* impl.h.lock: RECURSIVE LOCKS
  *
- *                          RECURSIVE LOCKS
+ * $HopeName: MMsrc!lock.h(trunk.5) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
- *  $HopeName: MMsrc!lock.h(trunk.4) $
- *
- *  Copyright (C) 1995 Harlequin Group, all rights reserved
- *
+ * .description: [@@@@ Should be combined with design.mps.lock]
  *  This defines the type Lock, which supports simple recursive
  *  locking.  Locking ensures that only a single thread may be running
  *  with a lock held.  By claiming a lock in some code, this ensures
@@ -76,8 +74,6 @@
  *  except that they lock an implicit global lock. This may be 
  *  used for locking access to data structures which are global,
  *  such as class objects.
- *  
- * 
  */
 
 #ifndef lock_h
@@ -85,7 +81,12 @@
 
 #include "mpm.h"
 
+
 #define LockSig         ((Sig)0x51970CC9) /* SIGnature LOCK */ 
+
+
+#if defined(THREAD_MULTI)
+
 
 /* LockSize -- Return the size of a LockStruct
  *
@@ -195,6 +196,30 @@ extern void LockClaimGlobal(void);
  */
 
 extern void LockReleaseGlobal(void);
+
+
+#elif defined(THREAD_SINGLE)
+
+
+#define LockSize() MPS_PF_ALIGN
+#define LockInit(lock) UNUSED(lock)
+#define LockFinish(lock) UNUSED(lock)
+#define LockClaimRecursive(lock) UNUSED(lock)
+#define LockReleaseRecursive(lock) UNUSED(lock)
+#define LockClaim(lock) UNUSED(lock)
+#define LockReleaseMPM(lock) UNUSED(lock)
+#define LockCheck(lock) ((void)lock, TRUE)
+#define LockClaimGlobalRecursive()
+#define LockReleaseGlobalRecursive()
+#define LockClaimGlobal()
+#define LockReleaseGlobal()
+
+
+#else
+
+#error "No threading defined."
+
+#endif
 
 
 #endif /* lock_h */
