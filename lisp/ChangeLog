@@ -1,3 +1,13 @@
+2004-09-23  H,Ae(Bkon Malmedal  <hmalmedal@yahoo.no>
+
+	* calendar/holidays.el (holiday-advent): Report on a specified day
+	offset from advent, not just advent.
+	(holiday-easter-etc): Report on one specified day offset from
+	easter, not all easter holidays. Various Easter holidays moved to
+	`christian-holidays' variable in calendar.el.
+	* calendar/calendar.el (christian-holidays): Adapt for new
+	behaviour of `holiday-advent' and `holiday-easter-etc' functions.
+
 2004-09-23  Kim F. Storm  <storm@cua.dk>
 
 	* image.el (insert-sliced-image): Add doc string.
