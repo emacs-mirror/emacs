@@ -1,3 +1,12 @@
+2000-12-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* window.c (coordinates_in_window): Handle computations for
+	positions on the vertical bar and fringes differently for
+	window-system frames.  Consider some pixels near the vertical bar
+	as on the bar if the frame doesn't have vertical scroll bars.
+	Associate positions between mode or header lines with the
+	right window, the left one.
+
 2000-12-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_clear_window): Avoid clearing an invalid frame.
