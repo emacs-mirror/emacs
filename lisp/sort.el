@@ -95,9 +95,7 @@ same as ENDRECFUN."
 				    'string<)))
 		  (sort sort-lists
 			(cond ((numberp (car (car sort-lists)))
-			       (function
-				(lambda (a b)
-				  (< (car a) (car b)))))
+			       'car-less-than-car)
 			      ((consp (car (car sort-lists)))
 			       (function
 				(lambda (a b)
