@@ -1632,7 +1632,7 @@ If this variable is nil, then Emacs is unable to use a shared directory.  */);
 #ifdef HAVE_SHARED_GAME_DIR
   Vgame_score_directory = build_string(HAVE_SHARED_GAME_DIR);
 #else
-  Vgame_score_directory = Qnil;
+  Vgame_score_directory = build_string("~/.emacs.d/games");
 #endif
 
   DEFVAR_LISP ("temp-file-name-pattern", &Vtemp_file_name_pattern,
