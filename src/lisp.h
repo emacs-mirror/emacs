@@ -561,8 +561,12 @@ typedef struct
        usually.  '\0'-terminated.  This really shouldn't have a fixed size.  */
     char echobuf[ECHOBUFSIZE];
   } PERDISPLAY;
+#ifdef MULTI_PERDISPLAY
+extern PERDISPLAY *get_perdisplay ();
+#else
 extern PERDISPLAY the_only_perdisplay;
 #define get_perdisplay(f) (&the_only_perdisplay)
+#endif
 
 /* In a cons, the markbit of the car is the gc mark bit */
 
