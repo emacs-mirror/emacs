@@ -180,7 +180,7 @@ function, but with a prefix arg, does full justification instead.
 
 From a program, optional third arg JUSTIFY can specify any type of
 justification.  Fourth arg NOSQUEEZE non-nil means not to make spaces
-between words canonical before filling.  Firth arg SQUEEZE-AFTER, if non-nil,
+between words canonical before filling.  Fifth arg SQUEEZE-AFTER, if non-nil,
 means don't canonicalize spaces before that position.
 
 If `sentence-end-double-space' is non-nil, then period followed by one
