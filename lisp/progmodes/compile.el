@@ -156,7 +156,7 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; We'll insist that the number be followed by a colon or closing
     ;; paren, because otherwise this matches just about anything
     ;; containing a number with spaces around it.
-    ("\\([a-zA-Z]+:\\)?\\([a-zA-Z]?:?[^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\)\
+    ("\\([a-zA-Z]+: ?\\)?\\([a-zA-Z]?:?[^:( \t\n]+\\)[:(][ \t]*\\([0-9]+\\)\
 \\([) \t]\\|:\\([^0-9\n]\\|\\([0-9]+:\\)\\)\\)" 2 3 6)
 
     ;; Microsoft C/C++:
