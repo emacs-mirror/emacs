@@ -5,7 +5,7 @@
 ;; Copyright (C) 1995, 1996, 1997, 2000 Free Software Foundation, Inc.
 
 ;; Author: Michael Staats <michael@thp.Uni-Duisburg.DE>
-;; Keywords: convenience
+;; Keywords: convenience emulation
 ;; Created: 26 Sep 1995
 
 ;; This file is part of GNU Emacs.
