@@ -174,6 +174,11 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   if (XFRAME (mini_frame) != selected_frame)
     record_unwind_protect (Fset_window_configuration,
 			   Fcurrent_window_configuration (mini_frame));
+
+  /* If the minibuffer is on an iconified or invisible frame,
+     make it visible now.  */
+  Fmake_frame_visible (mini_frame);
+
   if (minibuffer_auto_raise)
     Fraise_frame (mini_frame);
 #endif
