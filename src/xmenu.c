@@ -115,7 +115,7 @@ extern XtAppContext Xt_app_con;
 
 static Lisp_Object xdialog_show P_ ((FRAME_PTR, int, Lisp_Object, char **));
 static void popup_get_selection P_ ((XEvent *, struct x_display_info *,
-                                     LWLIB_ID, int));
+                                     LWLIB_ID, int, int));
 
 /* Define HAVE_BOXES if menus can handle radio and toggle buttons.  */
 
@@ -156,6 +156,8 @@ static void single_keymap_panes P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 				     int, int));
 static void list_of_panes P_ ((Lisp_Object));
 static void list_of_items P_ ((Lisp_Object));
+
+extern EMACS_TIME timer_check P_ ((int));
 
 
 /* This holds a Lisp vector that holds the results of decoding
@@ -1122,27 +1124,27 @@ on the left of the dialog box and all following items on the right.
 
    If DOWN_ON_KEYPRESS is nonzero, pop down if a key is pressed.
 
-   This function used to have a DO_TIMERS argument which was
-   1 in the dialog case, and caused it to run Lisp-level timers.
-   That was unsafe so we removed it, but does anyone remember
-   why menus and dialogs were treated differently?
-
    NOTE: All calls to popup_get_selection should be protected
    with BLOCK_INPUT, UNBLOCK_INPUT wrappers.  */
 
 #ifdef USE_X_TOOLKIT
 static void
-popup_get_selection (initial_event, dpyinfo, id, down_on_keypress)
+popup_get_selection (initial_event, dpyinfo, id, do_timers, down_on_keypress)
      XEvent *initial_event;
      struct x_display_info *dpyinfo;
      LWLIB_ID id;
+     int do_timers;
      int down_on_keypress;
 {
   XEvent event;
 
   while (popup_activated_flag)
     {
-      if (initial_event)
+       /* If we have no events to run, consider timers.  */ 	 
+       if (do_timers && !XtAppPending (Xt_app_con)) 	 
+         timer_check (1); 	 
+
+       if (initial_event)
         {
           event = *initial_event;
           initial_event = 0;
@@ -2488,7 +2490,7 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
   popup_activated_flag = 1;
 
   /* Process events that apply to the menu.  */
-  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id, 0);
+  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id, 0, 0);
 
   /* fp turned off the following statement and wrote a comment
      that it is unnecessary--that the menu has already disappeared.
@@ -2882,7 +2884,8 @@ create_and_show_dialog (f, first_wv)
                            Fcons (make_number (dialog_id >> (fact)),
                                   make_number (dialog_id & ~(-1 << (fact)))));
 
-    popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), dialog_id, 1);
+    popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f),
+                         dialog_id, 1, 1);
 
     unbind_to (count, Qnil);
   }

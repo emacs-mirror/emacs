@@ -98,6 +98,9 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** In Outline mode, hide-body no longer hides lines at the top
+of the file that precede the first header line.
+
 +++
 ** `set-auto-mode' now gives the interpreter magic line (if present)
 precedence over the file name.  Likewise an <?xml or <!DOCTYPE declaration
@@ -2322,6 +2325,10 @@ timing measurements of code (including the garbage collection component).
 configuration files.
 
 * Lisp Changes in Emacs 21.4
+
++++
+** The new primitive `get-internal-run-time' returns the processor
+run time used by Emacs since start-up.
 
 +++
 ** The new function `called-interactively-p' does what many people

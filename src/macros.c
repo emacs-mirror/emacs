@@ -392,7 +392,9 @@ syms_of_macros ()
   defsubr (&Sstore_kbd_macro_event);
 
   DEFVAR_KBOARD ("defining-kbd-macro", defining_kbd_macro,
-		 doc: /* Non-nil while a keyboard macro is being defined.  Don't set this!  */);
+		 doc: /* Non-nil while a keyboard macro is being defined.  Don't set this!
+The value is the symbol `append' while appending to the definition of
+an existing macro.  */);
 
   DEFVAR_LISP ("executing-macro", &Vexecuting_macro,
 	       doc: /* Currently executing keyboard macro (string or vector); nil if none executing.  */);

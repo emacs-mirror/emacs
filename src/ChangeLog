@@ -1,4 +1,30 @@
+2004-11-06  Lars Brinkhoff  <lars@nocrew.org>
+
+	* config.in: Regenerate (add HAVE_GETRUSAGE).
+	* editfns.c (Fget_internal_run_time): New function.
+	(syms_of_data): Defsubr it.
+	* fns.c (sxhash): As far as possible, merge calculation of
+	hash code for symbols and strings.
+
+2004-11-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (syms_of_frame): Fix the example in the doc string.
+
+2004-11-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* eval.c (Feval): Remove check for INPUT_BLOCKED_P.
+
+	* xmenu.c (popup_get_selection, create_and_show_popup_menu)
+	(create_and_show_dialog): Revert change from 2004-10-31.
+	
+
+2004-11-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* macros.c (syms_of_macros) <defining-kbd-macro>: Doc fix.
+
 2004-11-05  Kim F. Storm  <storm@cua.dk>
+
+	* print.c (print_object): Print Lisp_Misc_Save_Value objects.
 
 	* fileio.c (Ffile_modes): Doc fix.
 	(auto_save_1): Check for Ffile_modes nil value.

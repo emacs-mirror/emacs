@@ -1,3 +1,54 @@
+2004-11-06  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
+	* net/tramp.el (tramp-coding-commands): Additionally try "uudecode
+	-o /dev/stdout" before trying "uudecode -o -".  Suggested by Han
+	Boetes.
+	(tramp-uudecode): Mention `uudecode -o /dev/stdout'.
+
+2004-11-06  David Ponce  <david@dponce.com>
+
+	* recentf.el (recentf-menu-path): Use menu item name.
+
+2004-11-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/gdb-ui.el: Don't call define-fringe-bitmap if the
+	display doesn't support images.
+
+2004-11-06  Andreas Schwab  <schwab@suse.de>
+
+	* tempo.el (tempo-match-finder): Doc fix.
+
+	* emacs-lisp/easymenu.el (easy-menu-get-map): Fix last change.
+
+2004-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easymenu.el (easy-menu-get-map-look-for-name): Remove.
+	(easy-menu-lookup-name): New fun to replace it.
+	(easy-menu-get-map): Use it to obey menu item names (rather than just
+	keys) when looking up `path'.
+	(easy-menu-always-true-p): Rename from easy-menu-always-true.
+	(easy-menu-convert-item-1): Adjust to new name.
+
+2004-11-06  Peter Heslin  <pj@heslin.eclipse.co.uk>  (tiny change)
+
+	* outline.el (hide-body): Don't hide lines at the top of the file
+	that precede the first header line.
+
+2004-11-06  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* align.el (align-areas): Delete whitespace before reindenting, so
+	that tabs are never placed after spaces.
+
+2004-11-06  Alan Shutko  <ats@acm.org>
+
+	* macros.el (insert-kbd-macro): Do completions based on macros,
+	rather than all commands.
+
+2004-11-06  David Hansen  <david.hansen@gmx.net>  (tiny change)
+
+	* tempo.el (tempo-match-finder): Use [:word:] instead of "^\\b",
+	to solve a bug whereby tags with 'b' don't match.
+
 2004-11-05  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-search): Don't search in node header lines

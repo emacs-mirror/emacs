@@ -39,6 +39,10 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 #endif
 
+#if defined HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
+#endif
+
 #include <ctype.h>
 
 #include "lisp.h"
@@ -1374,6 +1378,47 @@ resolution finer than a second.  */)
   XSETINT (result[2], EMACS_USECS (t));
 
   return Flist (3, result);
+}
+
+DEFUN ("get-internal-run-time", Fget_internal_run_time, Sget_internal_run_time,
+       0, 0, 0,
+       doc: /* Return the current run time used by Emacs.
+The time is returned as a list of three integers.  The first has the
+most significant 16 bits of the seconds, while the second has the
+least significant 16 bits.  The third integer gives the microsecond
+count.
+
+On systems that can't determine the run time, get-internal-run-time
+does the same thing as current-time.  The microsecond count is zero on
+systems that do not provide resolution finer than a second.  */)
+     ()
+{
+#ifdef HAVE_GETRUSAGE
+  struct rusage usage;
+  Lisp_Object result[3];
+  int secs, usecs;
+
+  if (getrusage (RUSAGE_SELF, &usage) < 0)
+    /* This shouldn't happen.  What action is appropriate?  */
+    Fsignal (Qerror, Qnil);
+
+  /* Sum up user time and system time.  */
+  secs = usage.ru_utime.tv_sec + usage.ru_stime.tv_sec;
+  usecs = usage.ru_utime.tv_usec + usage.ru_stime.tv_usec;
+  if (usecs >= 1000000)
+    {
+      usecs -= 1000000;
+      secs++;
+    }
+
+  XSETINT (result[0], (secs >> 16) & 0xffff);
+  XSETINT (result[1], (secs >> 0)  & 0xffff);
+  XSETINT (result[2], usecs);
+
+  return Flist (3, result);
+#else
+  return Fcurrent_time ();
+#endif
 }
 
 
@@ -4315,6 +4360,7 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Suser_full_name);
   defsubr (&Semacs_pid);
   defsubr (&Scurrent_time);
+  defsubr (&Sget_internal_run_time);
   defsubr (&Sformat_time_string);
   defsubr (&Sfloat_time);
   defsubr (&Sdecode_time);

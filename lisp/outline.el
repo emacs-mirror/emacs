@@ -723,7 +723,7 @@ Show the heading too, if it is currently invisible."
 			 (progn (outline-next-preface) (point)) nil)))
 
 (defun hide-body ()
-  "Hide all of buffer except headings."
+  "Hide all body lines in buffer, leaving all headings visible."
   (interactive)
   (hide-region-body (point-min) (point-max)))
 
@@ -738,7 +738,8 @@ Show the heading too, if it is currently invisible."
 	(narrow-to-region start end)
 	(goto-char (point-min))
 	(if (outline-on-heading-p)
-	    (outline-end-of-heading))
+	    (outline-end-of-heading)
+	  (outline-next-preface))
 	(while (not (eobp))
 	  (outline-flag-region (point)
 			       (progn (outline-next-preface) (point)) t)
