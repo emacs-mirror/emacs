@@ -1,3 +1,8 @@
+2001-07-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* eval.c (specbind): Additionally record the buffer that was
+	current when a buffer-local or frame-local variable was bound.
+
 2001-07-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_produce_glyphs): Don't convert multibyte characters
