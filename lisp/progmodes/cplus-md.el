@@ -47,7 +47,7 @@
 ;;   Fixed handling of "default:", where ":" was the last character in the
 ;;   buffer.  Fixed indentation of comments starting in column 0, and when
 ;;   previous line contained more than one comment start string.  Fixed
-;;   handling of "friend class".
+;;   handling of "friend".
 ;;
 ;; Aug 7, 1989; John Hagerman (hagerman@ece.cmu.edu):
 ;;   Changed calculate-c++-indent to handle member initializations
@@ -134,7 +134,7 @@ with the colon on the first line.")
 (defvar c++-member-init-indent 0
   "*Indentation level of member initializations in function declarations.")
 (defvar c++-friend-offset -4
-  "*Offset of C++ friend class declarations relative to member declarations.")
+  "*Offset of C++ friend declarations relative to member declarations.")
 (defvar c++-electric-colon t
   "*If t, colon is an electric terminator.")
 (defvar c++-empty-arglist-indent nil
@@ -187,7 +187,7 @@ Variables controlling indentation style:
     left paren is indented this many extra spaces, instead of flush with the
     left paren.
  c++-friend-offset
-    Offset of C++ friend class declarations relative to member declarations.
+    Offset of C++ friend declarations relative to member declarations.
  c++-member-init-indent
     Indentation level of member initializations in function declarations,
     if they are on a separate line beginning with a colon.
@@ -399,7 +399,7 @@ Return the amount the indentation changed by."
 		  (setq indent (save-excursion
 				 (c-backward-to-start-of-if)
 				 (current-indentation))))
-		 ((looking-at "friend\[ \t]class[ \t]")
+		 ((looking-at "friend\[ \t]")
 		  (setq indent (+ indent c++-friend-offset)))
 		 ((= (following-char) ?})
 		  (setq indent (- indent c-indent-level)))
@@ -534,13 +534,13 @@ Returns nil if line starts inside a string, t if in a comment."
 				   "#\\|/\\*\\|//"
 				   "\\|case[ \t]"
 				   "\\|[a-zA-Z0-9_$]*:[^:]"
-				   "\\|friend[ \t]class[ \t]")))
+				   "\\|friend[ \t]")))
 		     ;; Skip over comments and labels following openbrace.
 		     (cond ((= (following-char) ?\#)
 			    (forward-line 1))
 			   ((looking-at "/\\*")
 			    (search-forward "*/" nil 'move))
-			   ((looking-at "//\\|friend[ \t]class[ \t]")
+			   ((looking-at "//\\|friend[ \t]")
 			    (forward-line 1))
 			   (t
 			    (re-search-forward ":[^:]" nil 'move))))
@@ -700,7 +700,7 @@ Returns nil if line starts inside a string, t if in a comment."
 			   (forward-sexp 1)
 			   (looking-at ":[^:]"))))
 		(setq this-indent (max 1 (+ this-indent c-label-offset))))
-	    (if (looking-at "friend[ \t]class[ \t]")
+	    (if (looking-at "friend[ \t]")
 		(setq this-indent (+ this-indent c++-friend-offset)))
 	    (if (= (following-char) ?\})
 		(setq this-indent (- this-indent c-indent-level)))
