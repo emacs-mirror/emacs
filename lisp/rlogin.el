@@ -23,11 +23,12 @@
 ;;; Commentary:
 
 ;; Support for remote logins using `rlogin'.
-;; $Id: rlogin.el,v 1.16 1994/02/05 21:00:13 roland Exp roland $
+;; $Id: rlogin.el,v 1.17 1994/02/05 21:13:43 roland Exp friedman $
 
-;;; Todo:
-
-;; Make this mode deal with comint-last-input-end properly. 
+;; If you wish for rlogin mode to prompt you in the minibuffer for
+;; passwords when a password prompt appears, just enter m-x send-invisible
+;; and type in your line, or add `comint-watch-for-password-prompt' to
+;; `comint-output-filter-functions'.
 
 ;;; Code:
 
@@ -60,14 +61,6 @@ a pty is being used, and errors will result from using a pipe instead.")
   "*If non-`nil', do remote directory tracking via ange-ftp right away.
 If `nil', you can still enable directory tracking by doing 
 `M-x dirtrack-toggle'.")
-
-;; Leave this nil because it makes rlogin-filter a tiny bit faster.  Plus
-;; you can still call rlogin-password by hand.
-;;;###autoload
-(defvar rlogin-password-paranoia nil
-  "*If non-`nil', query user for a password in the minibuffer when a Password: prompt appears.
-It's also possible to selectively enter passwords without echoing them in
-the minibuffer using the command `rlogin-password' explicitly.")
 
 ;; Initialize rlogin mode map.
 (defvar rlogin-mode-map '())
@@ -121,9 +114,6 @@ the rlogin when starting.  They are added after any arguments given in ARGS."
           ;; buffer from a previous exited process.
           (set-marker (process-mark proc) (point-max))
           (rlogin-mode)
-          ;; Set this *after* running rlogin-mode because rlogin-mode calls
-          ;; shell-mode, which munges the process filter.
-          (set-process-filter proc 'rlogin-filter)
           ;; Set the prefix for filename completion and directory tracking
           ;; to find the remote machine's files by ftp.
           (setq comint-file-name-prefix (concat "/" (car args) ":"))
@@ -131,27 +121,6 @@ the rlogin when starting.  They are added after any arguments given in ARGS."
                ;; Presume the user will start in his remote home directory.
                ;; If this is wrong, M-x dirs will fix it.
                (cd-absolute (concat "/" (car args) ":~/")))))))
-
-(defun rlogin-password (&optional proc)
-  "Read a password and send it to an rlogin session.
-For each character typed, a `*' is echoed in the minibuffer.
-End with RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.
-C-g aborts attempt to read and send password. 
-
-Optional argument PROC is the process to which the password should be sent.
-If not provided, send to the process in the current buffer.  This argument
-is intended primarily for use by `rlogin-filter'."
-  (interactive)
-  (or proc (setq proc (get-buffer-process (current-buffer))))
-  (let* ((buffer-name (buffer-name (process-buffer proc)))
-         (pass (comint-read-noecho (format "Password for buffer \"%s\": " 
-                                           buffer-name)
-                                   'stars)))
-    (and pass
-         (save-excursion
-           (set-buffer buffer-name)
-           (insert-before-markers "\n")
-           (comint-send-string proc (format "%s\n" pass))))))
 
 (defun rlogin-mode ()
   "Set major-mode for rlogin sessions. 
@@ -167,31 +136,6 @@ If `rlogin-mode-hook' is set, run it."
   (run-hooks 'rlogin-mode-hook))
 
 
-(defun rlogin-filter (proc string)
-  (let (proc-mark region-begin window)
-    (save-excursion
-      (set-buffer (process-buffer proc))
-      (setq proc-mark (process-mark proc))
-      (setq region-begin (marker-position proc-mark))
-      ;; If process mark is at window start, insert-before-markers will
-      ;; insert text off-window since it's also inserting before the start
-      ;; window mark.  Make sure we can see the most recent text.  
-      (setq window (and (= proc-mark (window-start))
-                        (get-buffer-window (current-buffer))))
-      (goto-char proc-mark)
-      (insert-before-markers string)
-      (goto-char region-begin)
-      (while (search-forward "\C-m" proc-mark 'goto-end)
-        (delete-char -1)))
-    ;; Frob window-start outside of save-excursion so it works whether the
-    ;; current buffer is the process buffer or not.
-    (and window
-         (>= (window-start window) region-begin)
-         (set-window-start window region-begin 'noforce)))
-  (and rlogin-password-paranoia 
-       (string= "Password:" string)
-       (rlogin-password proc)))
-
 (defun rlogin-send-Ctrl-C ()
   (interactive)
   (send-string nil "\C-c"))
