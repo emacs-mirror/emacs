@@ -2084,7 +2084,7 @@ Default is to leave paragraph indentation as is."
     (setq opoint (point))
     (texinfo-print-index nil indexelts)
 
-    (if (eq system-type 'vax-vms)
+    (if (memq system-type '(vax-vms windows-nt ms-dos))
         (texinfo-sort-region opoint (point))
       (shell-command-on-region opoint (point) "sort -fd" 1))))
 
