@@ -6616,6 +6616,16 @@ init_display ()
      during startup.  */
   Vinitial_window_system = Qnil;
 
+  /* SIGWINCH needs to be handled no matter what display we start
+     with.  Otherwise newly opened tty frames will not resize
+     automatically. */
+#ifdef SIGWINCH
+#ifndef CANNOT_DUMP
+  if (initialized)
+#endif /* CANNOT_DUMP */
+    signal (SIGWINCH, window_change_signal);
+#endif /* SIGWINCH */
+
   /* If the user wants to use a window system, we shouldn't bother
      initializing the terminal.  This is especially important when the
      terminal is so dumb that emacs gives up before and doesn't bother
@@ -6765,13 +6775,6 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
 
   adjust_frame_glyphs_initially ();
   calculate_costs (XFRAME (selected_frame));
-
-#ifdef SIGWINCH
-#ifndef CANNOT_DUMP
-  if (initialized)
-#endif /* CANNOT_DUMP */
-    signal (SIGWINCH, window_change_signal);
-#endif /* SIGWINCH */
 
   /* Set up faces of the initial terminal frame of a dumped Emacs.  */
   if (initialized
