@@ -1,3 +1,8 @@
+2000-09-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* alloc.c: Add some comments about DOUG_LEA_MALLOC's use of mmap
+	and allocation of Lisp data.
+
 2000-09-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c: Remove conditional compilation on SCALABLE_FONTS.
