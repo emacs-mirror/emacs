@@ -1,6 +1,6 @@
-2003-09-12  Eric Hanchrow <offby1@blarg.net>
+2003-09-12  Eric Hanchrow <offby1@blarg.net>  (tiny change)
 
-	* dired.el (dired-mode-map): Fix typo.  (tiny change)
+	* dired.el (dired-mode-map): Fix typo.
 
 2003-09-11  Richard M. Stallman  <rms@gnu.org>
 

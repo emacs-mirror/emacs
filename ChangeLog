@@ -1,3 +1,7 @@
+2003-09-12  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* Makefile.in (install-arch-indep, uninstall): Add SES manual.
+
 2003-08-18  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
 	* configure.in: Revert the change of 2003-07-29 as GTK+ 2.2 is not
