@@ -130,6 +130,10 @@ typedef unsigned reg_syntax_t;
    If not set, then an unmatched ) is invalid.  */
 #define RE_UNMATCHED_RIGHT_PAREN_ORD (RE_NO_EMPTY_RANGES << 1)
 
+/* If this bit is set, succeed as soon as we match the whole pattern,
+   without further backtracking.  */
+#define RE_NO_POSIX_BACKTRACKING (RE_UNMATCHED_RIGHT_PAREN_ORD << 1)
+
 /* This global variable defines the particular regexp syntax to use (for
    some interfaces).  When a regexp is compiled, the syntax used is
    stored in the pattern buffer, so changing this does not affect
