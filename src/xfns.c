@@ -1302,8 +1302,9 @@ x_decode_color (f, color_name, mono_color)
   if (x_defined_color (f, XSTRING (color_name)->data, &cdef, 1))
     return cdef.pixel;
 
-  return Fsignal (Qerror, Fcons (build_string ("Undefined color"),
-				 Fcons (color_name, Qnil)));
+  Fsignal (Qerror, Fcons (build_string ("Undefined color"),
+			  Fcons (color_name, Qnil)));
+  return 0;
 }
 
 
