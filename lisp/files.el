@@ -29,7 +29,7 @@
 ;;; Code:
 
 (defconst delete-auto-save-files t
-  "*Non-nil means delete a buffer's auto-save file when the buffer is saved.")
+  "*Non-nil means delete auto-save file when a buffer is saved or killed.")
 
 (defconst directory-abbrev-alist
   nil
@@ -2065,7 +2065,7 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 	      ;; We also currently don't quote the quoting characters
 	      ;; in case people want to use them explicitly to quote
 	      ;; wildcard characters.
-	      (while (string-match "[ \t\n;<>&|{}()#$]" pattern beg)
+	      (while (string-match "[ \t\n;<>&|()#$]" pattern beg)
 		(setq pattern
 		      (concat (substring pattern 0 (match-beginning 0))
 			      "\\"
