@@ -1,3 +1,8 @@
+2002-05-22  Mike Williams  <mdub@bigfoot.com>
+
+	* textmodes/sgml-mode.el (sgml-guess-indent): Look further into
+	the buffer.
+
 2002-05-21  Markus Rost  <rost@math.ohio-state.edu>
 
 	* lpr.el: Fix typo in Commentary section.
