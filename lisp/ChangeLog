@@ -1,3 +1,13 @@
+2005-03-29  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el: Update copyright date.
+	(calc-version): Increase to 2.1.
+	(calc-version-date): Remove.
+
+	* calc/calc-help.el: Update copyright date.
+	(calc-full-help): Remove reference to calc-version-date.
+	Update copyright date.
+
 2005-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc.el (vc-do-command): Use a pipe for async processes, so password
