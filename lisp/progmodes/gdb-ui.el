@@ -317,7 +317,7 @@ detailed description of this mode.
     (goto-char (point-min))
     (re-search-forward ".*value=\"\\(.*?\\)\"" nil t)
     (catch 'var-found
-      (let ((var-list nil) (num 0))
+      (let ((num 0))
 	(dolist (var gdb-var-list)
 	  (if (string-equal varnum (cadr var))
 	      (progn
@@ -1123,7 +1123,7 @@ static char *magick[] = {
 
 ;;-put breakpoint icons in relevant margins (even those set in the GUD buffer)
 (defun gdb-info-breakpoints-custom ()
-  (let ((flag)(address))
+  (let ((flag))
     ;;
     ;; remove all breakpoint-icons in source buffers but not assembler buffer
     (dolist (buffer (buffer-list))
@@ -1199,9 +1199,8 @@ static char *magick[] = {
 (defun gdb-frame-breakpoints-buffer ()
   "Display status of user-settable breakpoints in a new frame."
   (interactive)
-  (select-frame (make-frame gdb-frame-parameters))
-  (switch-to-buffer (gdb-get-create-buffer 'gdb-breakpoints-buffer))
-  (set-window-dedicated-p (selected-window) t))
+  (let ((special-display-regexps (append special-display-regexps '(".*"))))
+    (pop-to-buffer (gdb-get-create-buffer 'gdb-breakpoints-buffer))))
 
 (defvar gdb-breakpoints-mode-map
   (let ((map (make-sparse-keymap))
@@ -1214,6 +1213,7 @@ static char *magick[] = {
     (define-key map [menu-bar breakpoints] (cons "Breakpoints" menu))
     (define-key map " " 'gdb-toggle-breakpoint)
     (define-key map "d" 'gdb-delete-breakpoint)
+    (define-key map "q" 'kill-this-buffer)
     (define-key map "\r" 'gdb-goto-breakpoint)
     (define-key map [mouse-2] 'gdb-mouse-goto-breakpoint)
     map))
@@ -1342,6 +1342,7 @@ static char *magick[] = {
 (defvar gdb-frames-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
+    (define-key map "q" 'kill-this-buffer)
     (define-key map "\r" 'gdb-frames-select)
     (define-key map [mouse-2] 'gdb-frames-mouse-select)
     map))
@@ -1423,6 +1424,7 @@ static char *magick[] = {
 (defvar gdb-threads-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
+    (define-key map "q" 'kill-this-buffer)
     (define-key map "\r" 'gdb-threads-select)
     (define-key map [mouse-2] 'gdb-threads-mouse-select)
     map))
@@ -1475,7 +1477,8 @@ static char *magick[] = {
 (defvar gdb-registers-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
-    map))
+    (define-key map "q" 'kill-this-buffer)
+     map))
 
 (defun gdb-registers-mode ()
   "Major mode for gdb registers.
@@ -1551,7 +1554,8 @@ static char *magick[] = {
 (defvar gdb-locals-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
-    map))
+    (define-key map "q" 'kill-this-buffer)
+     map))
 
 (defun gdb-locals-mode ()
   "Major mode for gdb locals.
@@ -1587,16 +1591,18 @@ static char *magick[] = {
 
 ;;;; Window management
 (defun gdb-display-buffer (buf &optional size)
-  (let ((must-split nil)
-	(answer nil))
-    (setq answer (get-buffer-window buf 'visible))
-    (if (not answer)
+  (let ((answer (get-buffer-window buf 0))
+	(must-split nil))
+    (if answer
+	(display-buffer answer)		;Raise the frame if necessary.
+      ;; The buffer is not yet displayed.
+      (pop-to-buffer gud-comint-buffer)	;Select the right frame.
 	(let ((window (get-lru-window)))
 	  (if window
 	      (progn
 		(set-window-buffer window buf)
 		(setq answer window))
-	    (setq must-split t))))
+	  (setq must-split t)))
     (if must-split
 	(let* ((largest (get-largest-window))
 	       (cur-size (window-height largest))
@@ -1604,7 +1610,7 @@ static char *magick[] = {
 	  (setq answer (split-window largest new-size))
 	  (set-window-buffer answer buf)))
     (set-window-dedicated-p answer t)
-    answer))
+      answer)))
 
 (defun gdb-display-source-buffer (buffer)
   (if (eq gdb-selected-view 'source)
@@ -1680,9 +1686,9 @@ static char *magick[] = {
   (interactive)
   (if gdb-view-source
       (gdb-display-buffer
-       (if gud-last-last-frame
-	   (gud-find-file (car gud-last-last-frame))
-	 (gud-find-file gdb-main-file))))
+       (gud-find-file (if gud-last-last-frame
+			  (car gud-last-last-frame)
+			gdb-main-file))))
   (setq gdb-selected-view 'source))
 
 (defun gdb-view-assembler()
@@ -1702,10 +1708,9 @@ static char *magick[] = {
   :group 'gud
   :version "21.4")
 
-(defun dedicated-switch-to-buffer (name)
-  (set-window-dedicated-p 
-   (get-buffer-window
-    (switch-to-buffer name)) t))
+(defun gdb-set-window-buffer (name)
+  (set-window-buffer (selected-window) (get-buffer name))
+  (set-window-dedicated-p (selected-window) t))
 
 (defun gdb-setup-windows ()
   "Layout the window pattern for gdb-many-windows."
@@ -1714,14 +1719,14 @@ static char *magick[] = {
   (delete-other-windows)
   (gdb-display-breakpoints-buffer)
   (delete-other-windows)
-  (dedicated-switch-to-buffer gud-comint-buffer)
+  (gdb-set-window-buffer gud-comint-buffer)
   (split-window nil ( / ( * (window-height) 3) 4))
   (split-window nil ( / (window-height) 3))
   (split-window-horizontally)
   (other-window 1)
-  (dedicated-switch-to-buffer (gdb-locals-buffer-name))
+  (gdb-set-window-buffer (gdb-locals-buffer-name))
   (other-window 1)
-  (dedicated-switch-to-buffer
+  (gdb-set-window-buffer
    (if (and gdb-view-source
 	    (eq gdb-selected-view 'source))
        (if gud-last-last-frame
@@ -1731,12 +1736,12 @@ static char *magick[] = {
   (when gdb-use-inferior-io-buffer
     (split-window-horizontally)
     (other-window 1)
-    (dedicated-switch-to-buffer (gdb-inferior-io-name)))
+    (gdb-set-window-buffer (gdb-inferior-io-name)))
   (other-window 1)
-  (dedicated-switch-to-buffer (gdb-stack-buffer-name))
+  (gdb-set-window-buffer (gdb-stack-buffer-name))
   (split-window-horizontally)
   (other-window 1)
-  (dedicated-switch-to-buffer (gdb-breakpoints-buffer-name))
+  (gdb-set-window-buffer (gdb-breakpoints-buffer-name))
   (other-window 1))
 
 (defcustom gdb-many-windows nil
@@ -1764,16 +1769,13 @@ of the inferior.  Non-nil means display the layout shown for
   "Restore the basic arrangement of windows used by gdba.
 This arrangement depends on the value of `gdb-many-windows'."
   (interactive)
-  (if gdb-many-windows
-      (progn
-	(switch-to-buffer gud-comint-buffer)
-	(delete-other-windows)
-	(gdb-setup-windows))
-    (switch-to-buffer gud-comint-buffer)
+  (pop-to-buffer gud-comint-buffer)	;Select the right window and frame.
     (delete-other-windows)
+  (if gdb-many-windows
+      (gdb-setup-windows)
     (split-window)
     (other-window 1)
-    (dedicated-switch-to-buffer
+    (gdb-set-window-buffer
      (if (and gdb-view-source
 	      (eq gdb-selected-view 'source))
 	 (if gud-last-last-frame
@@ -1819,15 +1821,11 @@ buffers."
       (gdb-setup-windows)
     (gdb-get-create-buffer 'gdb-breakpoints-buffer)
     (when gdb-show-main
-      (switch-to-buffer gud-comint-buffer)
-      (delete-other-windows)
-      (split-window)
-      (other-window 1)
-      (switch-to-buffer
+      (let ((pop-up-windows t))
+	(display-buffer
        (if gdb-view-source
 	   (gud-find-file gdb-main-file)
-	 (gdb-get-create-buffer 'gdb-assembler-buffer)))
-      (other-window 1))))
+	   (gdb-get-create-buffer 'gdb-assembler-buffer)))))))
 
 ;;from put-image
 (defun gdb-put-string (putstring pos &optional dprop)
@@ -1971,7 +1969,8 @@ BUFFER nil or omitted means use the current buffer."
 (defvar gdb-assembler-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
-    map))
+    (define-key map "q" 'kill-this-buffer)
+     map))
 
 (defvar gdb-assembler-font-lock-keywords
   '(;; <__function.name+n>
@@ -2037,7 +2036,7 @@ BUFFER nil or omitted means use the current buffer."
 	  (progn
 	    ;; take previous disassemble command off the queue
 	    (with-current-buffer gud-comint-buffer
-	      (let ((queue gdb-input-queue) (item))
+	      (let ((queue gdb-input-queue))
 		(dolist (item queue)
 		  (if (equal (cdr item) '(gdb-assembler-handler))
 		      (setq gdb-input-queue
