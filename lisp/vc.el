@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.308 2001/09/10 17:51:04 spiegel Exp $
+;; $Id: vc.el,v 1.309 2001/09/17 09:59:41 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2861,7 +2861,7 @@ everything that is older than that is shown in blue.
 With a prefix argument, this command asks two questions in the
 minibuffer.  First, you may enter a version number; then the buffer
 displays and annotates that version instead of the current version
-(type RET in the minibuffer to leave that default unchanged).  Then,
+\(type RET in the minibuffer to leave that default unchanged).  Then,
 you are prompted for a stretch factor for the time scale.  This makes
 the color range cover a time span longer or shorter than the default
 of one year.  For example, a factor of 0.1 means that the range from
