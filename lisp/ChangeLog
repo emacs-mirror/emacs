@@ -1,3 +1,7 @@
+2000-09-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info.el (Info-directory-list): Doc fix.
+
 2000-08-31  Peter Breton  <pbreton@ne.mediaone.net>
 
 	* filecache.el (file-cache-add-directory-using-find): Don't quote 
