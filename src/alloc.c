@@ -991,22 +991,27 @@ make_pure_float (num)
      double num;
 {
   register Lisp_Object new;
-  int alignment;
 
-  /* Make sure that pureptr is aligned on at least a sizeof (double)
-     boundary.  Some architectures (like the sparc) require this, and
-     I suspect that floats are rare enough that it's no tragedy for
-     those that do.  */
+  /* Make sure that PUREBEG + pureptr is aligned on at least a sizeof
+     (double) boundary.  Some architectures (like the sparc) require
+     this, and I suspect that floats are rare enough that it's no
+     tragedy for those that do.  */
+  {
+    int alignment;
+    char *p = PUREBEG + pureptr;
+
 #ifdef __GNUC__
 #if __GNUC__ >= 2
-  alignment = __alignof (struct Lisp_Float);
+    alignment = __alignof (struct Lisp_Float);
 #else
-  alignment = sizeof (struct Lisp_Float);
+    alignment = sizeof (struct Lisp_Float);
 #endif
 #else
-  alignment = sizeof (struct Lisp_Float);
+    alignment = sizeof (struct Lisp_Float);
 #endif  
-  pureptr = (pureptr + alignment - 1) & - alignment;
+    p = (char *) (((unsigned long) p + alignment - 1) & - alignment);
+    pureptr = p - PUREBEG;
+  }
 
   if (pureptr + sizeof (struct Lisp_Float) > PURESIZE)
     error ("Pure Lisp storage exhausted");
