@@ -748,7 +748,7 @@ it as the third element in the list."
       (list var val))))
 
 ;;;###autoload
-(defun customize-set-value (var val &optional comment)
+(defun customize-set-value (variable value &optional comment)
   "Set VARIABLE to VALUE, and return VALUE.  VALUE is a Lisp object.
 
 If VARIABLE has a `variable-interactive' property, that is used as if
@@ -763,10 +763,10 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
 				       current-prefix-arg))
    
   (cond ((string= comment "")
- 	 (put var 'variable-comment nil))
+ 	 (put variable 'variable-comment nil))
  	(comment
- 	 (put var 'variable-comment comment)))
-  (set var val))
+ 	 (put variable 'variable-comment comment)))
+  (set variable value))
 
 ;;;###autoload
 (defun customize-set-variable (variable value &optional comment)
@@ -801,7 +801,7 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
   value)
 
 ;;;###autoload
-(defun customize-save-variable (var value &optional comment)
+(defun customize-save-variable (variable value &optional comment)
   "Set the default for VARIABLE to VALUE, and save it for future sessions.
 Return VALUE.
 
@@ -821,14 +821,14 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
   (interactive (custom-prompt-variable "Set and save variable: "
 				       "Set and save value for %s as: "
 				       current-prefix-arg))
-  (funcall (or (get var 'custom-set) 'set-default) var value)
-  (put var 'saved-value (list (custom-quote value)))
+  (funcall (or (get variable 'custom-set) 'set-default) variable value)
+  (put variable 'saved-value (list (custom-quote value)))
   (cond ((string= comment "")
- 	 (put var 'variable-comment nil)
- 	 (put var 'saved-variable-comment nil))
+ 	 (put variable 'variable-comment nil)
+ 	 (put variable 'saved-variable-comment nil))
  	(comment
- 	 (put var 'variable-comment comment)
- 	 (put var 'saved-variable-comment comment)))
+ 	 (put variable 'variable-comment comment)
+ 	 (put variable 'saved-variable-comment comment)))
   (custom-save-all)
   value)
 
