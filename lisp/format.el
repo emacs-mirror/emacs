@@ -813,11 +813,6 @@ Annotations to open and to close are returned as a dotted pair."
 	default)
     (if (not prop-alist)
 	nil
-      ;; If property is numeric, nil means 0
-      (cond ((and (numberp old) (null new))
-	     (setq new 0))
-	    ((and (numberp new) (null old))
-	     (setq old 0)))
       ;; If either old or new is a list, have to treat both that way.
       (if (or (consp old) (consp new))
 	  (let* ((old (if (listp old) old (list old)))
@@ -846,13 +841,21 @@ OLD and NEW are the values."
   (let (num-ann)
     ;; If old and new values are numbers,
     ;; look for a number in PROP-ALIST.
-    (if (and (numberp old) (numberp new))
+    (if (and (or (null old) (numberp old))
+	     (or (null new) (numberp new)))
 	(progn
 	  (setq num-ann prop-alist)
 	  (while (and num-ann (not (numberp (car (car num-ann)))))
 	    (setq num-ann (cdr num-ann)))))
     (if num-ann
-       ;; Numerical annotation - use difference
+	;; Numerical annotation - use difference
+
+	;; If property is numeric, nil means 0
+	(cond ((and (numberp old) (null new))
+	       (setq new 0))
+	      ((and (numberp new) (null old))
+	       (setq old 0)))
+
        (let* ((entry (car num-ann))
               (increment (car entry))
               (n (ceiling (/ (float (- new old)) (float increment))))
