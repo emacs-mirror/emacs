@@ -837,7 +837,7 @@ Keybindings:
   (dired-why)
   ;>> this should check the key-bindings and use substitute-command-keys if non-standard
   (message
-   "d-elete, u-ndelete, x-punge, f-ind, o-ther window, r-ename, C-opy, h-elp"))
+   "d-elete, u-ndelete, x-punge, f-ind, o-ther window, R-ename, C-opy, h-elp"))
 
 (defun dired-undo ()
   "Undo in a dired buffer.
