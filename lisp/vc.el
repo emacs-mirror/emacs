@@ -693,11 +693,14 @@ levels in the snapshot."
 
 ;;;###autoload
 (defun vc-revert-buffer ()
-  "Revert the current buffer's file back to the latest version."
+  "Revert the current buffer's file back to the latest checked-in version.
+This asks for confirmation if the buffer contents are not identical
+to that version."
   (interactive)
   (let ((file buffer-file-name)
 	(obuf (current-buffer)) (changed (vc-diff nil)))
-    (if (and changed (or vc-suppress-confirm (not (y-or-n-p "Discard changes? "))))
+    (if (and changed (or vc-suppress-confirm
+			 (not (yes-or-no-p "Discard changes? "))))
 	(progn
 	  (delete-window)
 	  (error "Revert cancelled."))
