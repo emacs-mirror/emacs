@@ -2528,7 +2528,7 @@ fringe in pixels.
 
   The values of these variables take effect when you display the
 buffer in a window.  If you change them while the buffer is visible,
-you can call @code{set-buffer-window} to display it in a window again.
+you can call @code{set-window-buffer} to display it in a window again.
 
 @defun set-window-fringes window left &optional right outside-margins
 This function sets the fringe widthes of window @var{window}.
