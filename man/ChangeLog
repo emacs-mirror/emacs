@@ -1,3 +1,8 @@
+2004-12-31  Richard M. Stallman  <rms@gnu.org>
+
+	* files.texi (Saving): Describe new require-final-newline features
+	and mode-require-final-newline.
+
 2004-12-31  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi: Mention C-cC-c as the way to finish editing throughout.

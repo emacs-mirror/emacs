@@ -1,3 +1,37 @@
+2004-12-31  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (require-final-newline): Allow `visit' and `visit-save'.
+	(mode-require-final-newline): New option.
+	(after-find-file): Handle require-final-newline with new values.
+	(basic-save-buffer): Handle new values of require-final-newline.
+
+	* progmodes/sh-script.el (sh-require-final-newline):
+	Alist value now controls whether to use mode-require-final-newline.
+	(sh-set-shell): Implement that new meaning.
+
+	* progmodes/cc-vars.el (c-require-final-newline): Fix custom type, doc.
+	* progmodes/cc-mode.el (c-common-init): Use mode-require-final-newline.
+	* progmodes/antlr-mode.el (antlr-mode): Use mode-require-final-newline.
+	Delete old-Emacs compatibility code.
+	(antlr-c-common-init): Function deleted.
+	
+	* net/snmp-mode.el (snmp-common-mode): Use mode-require-final-newline.
+	* progmodes/vhdl-mode.el (vhdl-mode): Use mode-require-final-newline.
+	* progmodes/simula.el (simula-mode): Use mode-require-final-newline.
+	* progmodes/python.el (python-mode): Use mode-require-final-newline.
+	* progmodes/perl-mode.el (perl-mode): Use mode-require-final-newline.
+	* progmodes/modula2.el (modula-2-mode): Use mode-require-final-newline.
+	* progmodes/mixal-mode.el (mixal-mode): Use mode-require-final-newline.
+	* progmodes/idlwave.el (idlwave-mode): Use mode-require-final-newline.
+	* progmodes/icon.el (icon-mode): Use mode-require-final-newline.
+	* progmodes/fortran.el (fortran-mode): Use mode-require-final-newline.
+	* progmodes/f90.el (f90-mode): Use mode-require-final-newline.
+	* progmodes/cperl-mode.el (cperl-mode): Use mode-require-final-newline.
+	* progmodes/cfengine.el (cfengine-mode): Use mode-require-final-newline.
+	* progmodes/ada-mode.el (ada-mode): Use mode-require-final-newline.
+	* textmodes/text-mode.el (text-mode): Use mode-require-final-newline.
+	* textmodes/texinfo.el (texinfo-mode): Use mode-require-final-newline.
+
 2004-12-31  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-graph.el (calc-graph-show-dumb): Mention C-cC-c as the
@@ -17,13 +51,38 @@
 2004-12-31  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el	(buffer-file-coding-system-explicit):
-	Renambed for explicit-buffer-file-coding-system.
+	Renamed for explicit-buffer-file-coding-system.
 	(after-insert-file-set-coding): Adjusted for the above change.
 
 	* files.el (revert-buffer): Change
 	explicit-buffer-file-coding-system to
 	buffer-file-coding-system-explicit.
 	(basic-save-buffer-1): Likewise.
+
+2004-12-30  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/artist.el (artist-butlast-fn): Var deleted.
+	(artist-butlast, artist-last): Functions deleted.
+	(artist-ellipse-mirror-quadrant): Call last and butlast directly.
+	(artist-compute-key-compl-table): Call remq directly.
+	(artist-remove-nulls): Function deleted.
+	(artist-vaporize-lines, artist-flood-fill): Use push and pop directly.
+	(artist-push, artist-pop): Macro deleted.
+
+2004-12-30  Andreas Leue  <al@sphenon.de>
+
+	* textmodes/artist.el (artist-version): 1.2.6
+	(artist-prev-next-op-alist): New variable.
+	(artist-select-next-op-in-list): New function.
+	(artist-select-prev-op-in-list): New function.
+	(artist-make-prev-next-op-alist): New function.
+	(artist-is-in-op-list-p): New function.
+	(artist-get-first-non-nil-op): New function.
+	(artist-get-last-non-nil-op): New function.
+	(artist-mode-init): Call artist-get-last-non-nil-op to initialize
+ 	artist-prev-next-op-alist.
+	(artist-mode-map): Add binding for C-mouse-4 and C-mouse-5 to
+ 	change drawing operation.
 
 2004-12-30  Luc Teirlinck  <teirllm@auburn.edu>
 
