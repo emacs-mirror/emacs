@@ -329,7 +329,7 @@ This is used to initialize the Lisp variable @code{data-directory}.
 @item EMACSDOC
 Directory for the documentation string file,
 @file{DOC-@var{emacsversion}}.  This is used to initialize the Lisp
-variable @code{data-directory}.
+variable @code{doc-directory}.
 @item EMACSLOADPATH
 A colon-separated list of directories to search for Emacs Lisp
 files---used to initialize @code{load-path}.
@@ -354,7 +354,7 @@ The name of the machine that Emacs is running on.
 A colon-separated list of directories.  Used by the @code{complete} package
 to search for files.
 @item INFOPATH
-A colon-separated list of directories to search for Info files in.
+A colon-separated list of directories in which to search for Info files.
 @item LC_ALL
 @itemx LC_CTYPE
 @itemx LANG
