@@ -46,6 +46,8 @@ contiguous.
 
 Usually the records are rearranged in order of ascending sort key.
 If REVERSE is non-nil, they are rearranged in order of descending sort key.
+The variable `sort-fold-case' determines whether alphabetic case affects
+the sort order.
 
 The next four arguments are functions to be called to move point
 across a sort record.  They will be called many times from within sort-subr.
@@ -192,7 +194,9 @@ same as ENDRECFUN."
 (defun sort-lines (reverse beg end) 
   "Sort lines in region alphabetically; argument means descending order.
 Called from a program, there are three arguments:
-REVERSE (non-nil means reverse order), BEG and END (region to sort)."
+REVERSE (non-nil means reverse order), BEG and END (region to sort).
+The variable `sort-fold-case' determines whether alphabetic case affects
+the sort order."
   (interactive "P\nr")
   (save-excursion
     (save-restriction
@@ -204,7 +208,9 @@ REVERSE (non-nil means reverse order), BEG and END (region to sort)."
 (defun sort-paragraphs (reverse beg end)
   "Sort paragraphs in region alphabetically; argument means descending order.
 Called from a program, there are three arguments:
-REVERSE (non-nil means reverse order), BEG and END (region to sort)."
+REVERSE (non-nil means reverse order), BEG and END (region to sort).
+The variable `sort-fold-case' determines whether alphabetic case affects
+the sort order."
   (interactive "P\nr")
   (save-excursion
     (save-restriction
@@ -221,7 +227,9 @@ REVERSE (non-nil means reverse order), BEG and END (region to sort)."
 (defun sort-pages (reverse beg end)
   "Sort pages in region alphabetically; argument means descending order.
 Called from a program, there are three arguments:
-REVERSE (non-nil means reverse order), BEG and END (region to sort)."
+REVERSE (non-nil means reverse order), BEG and END (region to sort).
+The variable `sort-fold-case' determines whether alphabetic case affects
+the sort order."
   (interactive "P\nr")
   (save-excursion
     (save-restriction
@@ -293,7 +301,9 @@ FIELD, BEG and END.  BEG and END specify region to sort."
 Fields are separated by whitespace and numbered from 1 up.
 With a negative arg, sorts by the ARGth field counted from the right.
 Called from a program, there are three arguments:
-FIELD, BEG and END.  BEG and END specify region to sort."
+FIELD, BEG and END.  BEG and END specify region to sort.
+The variable `sort-fold-case' determines whether alphabetic case affects
+the sort order."
   (interactive "p\nr")
   (sort-fields-1 field beg end
 		 (function (lambda ()
@@ -382,6 +392,9 @@ If a match for KEY is not found within a record then that record is ignored.
 
 With a negative prefix arg sorts in reverse order.
 
+The variable `sort-fold-case' determines whether alphabetic case affects
+the sort order.
+
 For example: to sort lines in the region by the first word on each line
  starting with the letter \"f\",
  RECORD-REGEXP would be \"^.*$\" and KEY would be \"\\\\=\\<f\\\\w*\\\\>\""
@@ -416,11 +429,8 @@ sRegexp specifying key within record: \nr")
 					(setq n 0))
 				       (t (throw 'key nil)))
 				 (condition-case ()
-				     (if (fboundp 'buffer-substring-lessp)
-					 (cons (match-beginning n)
-					       (match-end n))
-					 (buffer-substring (match-beginning n)
-							   (match-end n)))
+				     (cons (match-beginning n)
+					   (match-end n))
 				   ;; if there was no such register
 				   (error (throw 'key nil)))))))))))
 
@@ -434,6 +444,8 @@ For the purpose of this command, the region includes
 the entire line that point is in and the entire line the mark is in.
 The column positions of point and mark bound the range of columns to sort on.
 A prefix argument means sort into reverse order.
+The variable `sort-fold-case' determines whether alphabetic case affects
+the sort order.
 
 Note that `sort-columns' rejects text that contains tabs,
 because tabs could be split across the specified columns
