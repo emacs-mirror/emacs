@@ -114,7 +114,6 @@ and then returns."
 			   (goto-char (point-min))
 			   (while (or (memq char (cons help-char '(?? ?\C-v ?\ ?\177 delete ?\M-v)))
 				      (equal key "\M-v"))
-			     (setq list (cons key list))
 			     (condition-case nil
 				 (progn
 				   (if (memq char '(?\C-v ?\ ))
@@ -129,8 +128,7 @@ and then returns."
 						  (if (pos-visible-in-window-p
 						       (point-max))
 						      "" " or Space to scroll")))
-				     char (aref key 0))))
-			   (setq list (cons key list))))
+				     char (aref key 0))))))
 		     ;; Mouse clicks are not part of the help feature,
 		     ;; so reexecute them in the standard environment.
 		     (if (listp char)
