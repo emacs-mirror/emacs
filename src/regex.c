@@ -63,6 +63,7 @@ char *realloc ();
 
 /* We used to test for `BSTRING' here, but only GCC and Emacs define
    `BSTRING', as far as I know, and neither of them use this code.  */
+#ifndef INHIBIT_STRING_HEADER
 #if HAVE_STRING_H || STDC_HEADERS
 #include <string.h>
 #ifndef bcmp
@@ -76,6 +77,7 @@ char *realloc ();
 #endif
 #else
 #include <strings.h>
+#endif
 #endif
 
 /* Define the syntax stuff for \<, \>, etc.  */
