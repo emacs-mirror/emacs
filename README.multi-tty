@@ -28,10 +28,17 @@ Basic multi-tty support is there; there are some rough edges, but it
 already seems to be usable.  Emacsclient has been extended to support
 opening a new terminal frame.
 
-To try it out, start up the emacs server (M-x server-start), and then
+To try it out, compile Emacs with the following commands
+
+   	mkdir +build
+	cd +build
+	../configure --with-x-toolkit=no --without-x
+	make bootstrap
+
+then start up the emacs server (src/emacs, M-x server-start), and then
 (from a shell prompt on another terminal) start emacsclient with
 
-	emacsclient -h
+	lib-src/emacsclient -h
 
 You'll hopefully have two fully working frames on separate terminals.
 If you exit emacs, both terminals should be restored to their previous
