@@ -44,8 +44,7 @@
 
 ;;; Code:
 (eval-when-compile
-  (require 'comint)
-  (require 'ffap))
+  (require 'comint))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Customization Variables
@@ -263,6 +262,32 @@ These options can be used to limit how many ICMP packets are emitted."
 ;; Utility functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Simplified versions of some at-point functions from ffap.el.
+;; It's not worth loading all of ffap just for these.
+(defun net-utils-machine-at-point ()
+  (let ((pt (point)))
+    (buffer-substring-no-properties
+     (save-excursion
+       (skip-chars-backward "-a-zA-Z0-9.")
+       (point))
+     (save-excursion
+       (skip-chars-forward "-a-zA-Z0-9.")
+       (skip-chars-backward "." pt)
+       (point)))))
+
+(defun net-utils-url-at-point ()
+  (let ((pt (point)))
+    (buffer-substring-no-properties
+     (save-excursion
+       (skip-chars-backward "--:=&?$+@-Z_a-z~#,%")
+       (skip-chars-forward "^A-Za-z0-9" pt)
+       (point))
+     (save-excursion
+       (skip-chars-forward "--:=&?$+@-Z_a-z~#,%")
+       (skip-chars-backward ":;.,!?" pt)
+       (point)))))
+
+
 (defun net-utils-remove-ctrl-m-filter (process output-string)
   "Remove trailing control Ms."
   (let ((old-buffer (current-buffer))
@@ -321,12 +346,7 @@ These options can be used to limit how many ICMP packets are emitted."
 If your system's ping continues until interrupted, you can try setting 
 `ping-program-options'."
   (interactive 
-   (list
-    (progn
-      (require 'ffap)
-      (read-from-minibuffer 
-       "Ping host: " 
-       (or (ffap-string-at-point 'machine) "")))))
+   (list (read-from-minibuffer "Ping host: " (net-utils-machine-at-point))))
   (let ((options 
 	 (if ping-program-options
 	     (append ping-program-options (list host))
@@ -400,10 +420,7 @@ If your system's ping continues until interrupted, you can try setting
 (defun nslookup-host (host)
   "Lookup the DNS information for HOST."
   (interactive
-   (list
-    (read-from-minibuffer 
-     "Lookup host: " 
-     (or (ffap-string-at-point 'machine) ""))))
+   (list (read-from-minibuffer "Lookup host: " (net-utils-machine-at-point))))
   (let ((options 
 	 (if nslookup-program-options
 	     (append nslookup-program-options (list host))
@@ -539,21 +556,16 @@ This list in not complete.")
   ;; uses a string like "pbreton@cs.umb.edu", we won't ask for the
   ;; host name. If we don't see an "@", we'll prompt for the host.
   (interactive
-    (progn
-      (require 'ffap)
-      (let* ((answer (read-from-minibuffer "Finger User: " 
-					   (ffap-string-at-point 'url))) 
-	     (index  (string-match (regexp-quote "@") answer))
-	     )
-	(if index
-	    (list 
-	     (substring answer 0 index)
-	     (substring answer (1+ index)))
-	  (list
-	   answer
-	   (read-from-minibuffer 
-	    "At Host: " 
-	    (or (ffap-string-at-point 'machine) "")))))))
+    (let* ((answer (read-from-minibuffer "Finger User: "
+					 (net-utils-url-at-point)))
+	   (index  (string-match (regexp-quote "@") answer)))
+      (if index
+	  (list 
+	   (substring answer 0 index)
+	   (substring answer (1+ index)))
+	(list
+	 answer
+	 (read-from-minibuffer "At Host: " (net-utils-machine-at-point))))))
   (let* (
 	 (user-and-host (concat user "@" host))
 	 (process-name 
@@ -611,10 +623,7 @@ With argument, prompt for whois server."
   "Open a network connection to SERVICE on HOST."
   (interactive 
    (list
-    (progn
-      (require 'ffap)
-      (read-from-minibuffer "Host: " 
-			    (ffap-string-at-point 'machine)))
+    (read-from-minibuffer "Host: " (net-utils-machine-at-point))
     (completing-read "Service: " 
 		     (mapcar 
 		      (function 
