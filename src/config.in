@@ -56,6 +56,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define this if you're using XFree386.  */
 #undef HAVE_XFREE386
 
+/* Define this if you have Motif 2.1 or newer.  */
+#undef HAVE_MOTIF_2_1
+
 /* Define HAVE_MENUS if you have mouse menus.
    (This is automatic if you use X, but the option to specify it remains.)
    It is also defined with other window systems that support xmenu.c.  */
