@@ -819,7 +819,7 @@ See variables `compilation-parse-errors-function' and
 			   (consp argp))))
 ;;;###autoload (define-key ctl-x-map "`" 'next-error)
 
-(defun compilation-next-error-locus (&optional move reparse)
+(defun compilation-next-error-locus (&optional move reparse silent)
   "Visit next compilation error and return locus in corresponding source code.
 This operates on the output from the \\[compile] command.
 If all preparsed error messages have been processed,
@@ -832,7 +832,8 @@ marker at the location in the source code indicated by the error message.
 Optional first arg MOVE says how many error messages to move forwards (or
 backwards, if negative); default is 1.  Optional second arg REPARSE, if
 non-nil, says to reparse the error message buffer and reset to the first
-error (plus MOVE - 1).
+error (plus MOVE - 1).  If optional third argument SILENT is non-nil, return 
+nil instead of raising an error if there are no more errors.
 
 The current buffer should be the desired compilation output buffer."
   (or move (setq move 1))
@@ -878,7 +879,7 @@ The current buffer should be the desired compilation output buffer."
 					 (get-buffer-process
 					  (current-buffer)))
 					'run)
-				    " yet"))))
+					" yet")))))
 	    (setq compilation-error-list (cdr next-errors))
 	    (if (null (cdr next-error))
 		;; This error is boring.  Go to the next.
@@ -951,7 +952,7 @@ The current buffer should be the desired compilation output buffer."
 	      (or (not (markerp (cdr next-error)))
 		  (not (marker-buffer (cdr next-error))))))
 	(setq next-errors compilation-error-list
-	      next-error (car next-errors))))
+		next-error (car next-errors)))))
 
     ;; Skip over multiple error messages for the same source location,
     ;; so the next C-x ` won't go to an error in the same place.
