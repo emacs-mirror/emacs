@@ -1488,12 +1488,17 @@ This is used in the file `loadup.el' when building Emacs.\n\
 \n\
 Bind `command-line-processed' to nil before dumping,\n\
 if you want the dumped Emacs to process its command line\n\
-and announce itself normally when it is run.")
+and announce itself normally when it is run.\n\
+\n\
+You must run Emacs in batch mode in order to dump it.")
   (filename, symfile)
      Lisp_Object filename, symfile;
 {
   extern char my_edata[];
   Lisp_Object tem;
+
+  if (! noninteractive)
+    error ("Dumping Emacs works only in batch mode");
 
   CHECK_STRING (filename, 0);
   filename = Fexpand_file_name (filename, Qnil);
