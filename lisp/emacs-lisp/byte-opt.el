@@ -1177,10 +1177,10 @@
      byte-symbolp byte-consp byte-stringp byte-listp byte-numberp byte-integerp
      byte-eq byte-equal byte-not
      byte-cons byte-list1 byte-list2	; byte-list3 byte-list4
-     byte-interactive-p
-     ;; How about other side-effect-free-ops?  Is it safe to move an
-     ;; error invocation (such as from nth) out of an unwind-protect?
-     "Byte-codes that can be moved past an unbind."))
+     byte-interactive-p)
+   ;; How about other side-effect-free-ops?  Is it safe to move an
+   ;; error invocation (such as from nth) out of an unwind-protect?
+   "Byte-codes that can be moved past an unbind.")
 
 (defconst byte-compile-side-effect-and-error-free-ops
   '(byte-constant byte-dup byte-symbolp byte-consp byte-stringp byte-listp
