@@ -45,6 +45,8 @@ Default is 2."
 	 (move-amount (if (> arg 0) arg (- arg)))
 	 (search-function (if (> arg 0) 'search-forward 'word-search-forward))
 	 (last-query-point 0))
+    (if (= (point-max) (point-min))
+	(error "The buffer contains no text to start from"))
     (switch-to-buffer outbuf)
     (erase-buffer)
     (while
