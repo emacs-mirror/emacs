@@ -1615,7 +1615,7 @@ DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0, "T if NUMBER is zero.")
   return Qnil;
 }
 
-/* Convert between 32-bit values and pairs of lispy 24-bit values.  */
+/* Convert between full-sized long integers and pairs of lispy integers.  */
 
 Lisp_Object
 long_to_cons (i)
@@ -1625,7 +1625,7 @@ long_to_cons (i)
   unsigned int bot = i & 0xFFFF;
   if (top == 0)
     return make_number (bot);
-  if (top == 0xFFFF)
+  if (top == (unsigned long)-1 >> 16)
     return Fcons (make_number (-1), make_number (bot));
   return Fcons (make_number (top), make_number (bot));
 }
