@@ -33,7 +33,8 @@ Boston, MA 02111-1307, USA.  */
 
 #undef NOMULTIPLEJOBS
 
-#define LIBS_SYSTEM -lsocket -lnsl -lelf
+/* Motif needs -lgen.  */
+#define LIBS_SYSTEM -lsocket -lnsl -lelf -lgen
 #define ORDINARY_LINK
 
 #if 0
@@ -202,3 +203,8 @@ Boston, MA 02111-1307, USA.  */
 #define bcmp(src,dst,n)		memcmp (src,dst,n)
 #define bzero(s,n)		memset (s,0,n)
 #endif
+
+/* Markus Weiand <weiand@khof.com> says this is needed for Motif on
+   SINIX.  */
+#undef LIBS_SYSTEM
+#define LIBS_SYSTEM -lgen
