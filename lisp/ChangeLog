@@ -1,7 +1,21 @@
+2004-10-03  Stefan  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-dvi-view-command): Use `yap' on w32.
+	(tex-font-lock-keywords-1): Add url and nolinkurl for args with `_'.
+	(latex-block-args-alist): Add minipage and picture.
+	(latex-block-body-alist): Use reftex-label if enabled.
+	(latex-insert-block): Don't insert a \n if not necessary.
+	(tex-compile-commands): Make sure dvips doesn't send to printer.
+	(tex-compile-default): Handle the case where no executable is found.
+	(latex-noindent-environments): New var.
+	(latex-find-indent): Use it.  Take an empty line as an arg-breaker.
+	If tex-indent-allhanging is non-nil, make sure we only align for macros
+	at beginning of line.
+
 2004-10-03  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* newcomment.el (comment-beginning): Doc fix and don't choke on
-	unset `comment-end-skip' when at beginning of comment
+	unset `comment-end-skip' when at beginning of comment.
 
 2004-10-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -11,8 +25,7 @@
 	the end of the line. Fix scroll down. Add comments.
 	(term-handle-ansi-escape): Don't exceed terminal width when moving
 	right.
-	(term-scroll-region): Move the cursor after setting the scroll
-	region.
+	(term-scroll-region): Move the cursor after setting the scroll region.
 
 2004-10-01  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -38,8 +51,8 @@
 
 2004-09-29  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* textmodes/paragraphs.el (forward-paragraph): Avoid
-	args-out-of-range error when point winds up at the beginning of
+	* textmodes/paragraphs.el (forward-paragraph):
+	Avoid args-out-of-range error when point winds up at the beginning of
 	the buffer and hard newlines are enabled.
 
 	* newcomment.el (comment-multi-line): Doc fix.
