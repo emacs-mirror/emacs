@@ -394,6 +394,8 @@
   :code-offset #x148000
   :unify-map "jisx0212-1990")
 
+;; Note that jisx0213 contains characters not in Unicode (3.2?).  It's
+;; arguable whether it should have a unify-map.
 (define-charset 'japanese-jisx0213-1
   "JISX0213 Plane 1 (Japanese)"
   :short-name "JISX0213-1"
@@ -1320,6 +1322,15 @@ for decoding and encoding files, process I/O, etc."
   :mime-charset 'us-ascii)
 
 (define-coding-system-alias 'iso-safe 'us-ascii)
+
+(define-coding-system 'utf-7
+  "UTF-7 encoding of Unicode (RFC 2152)."
+  :coding-type 'utf-8
+  :mnemonic ?U
+  :mime-charset 'utf-7
+  :charset-list '(unicode)
+  :pre-write-conversion 'utf-7-pre-write-conversion
+  :post-read-conversion 'utf-7-post-read-conversion)
 
 ;; Use us-ascii for terminal output if some other coding system is not
 ;; specified explicitly.
