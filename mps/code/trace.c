@@ -1672,6 +1672,32 @@ void ArenaPark(Globals globals)
   }
 }
 
+/* ArenaExpose -- park arena and then lift all protection barriers. */
+
+void ArenaExpose(Globals globals)
+{
+  Seg seg;
+  Arena arena;
+
+  AVERT(Globals, globals);
+
+  ArenaPark(globals);
+
+  arena = GlobalsArena(globals);
+  if(SegFirst(&seg, arena)) {
+    Addr base;
+
+    do {
+      base = SegBase(seg);
+      if((SegPool(seg)->class->attr & AttrSCAN) != 0) {
+	SegSetSummary(seg, RefSetUNIV);
+	AVER(SegSM(seg) == AccessSetEMPTY);
+      }
+    } while(SegNext(&seg, arena, base));
+  }
+  return;
+}
+
 /* ArenaStartCollect -- start a collection of everything in the
  * arena; leave unclamped. */
 

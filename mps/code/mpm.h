@@ -477,6 +477,7 @@ extern Bool (ArenaStep)(Globals globals, double interval, double multiplier);
 extern void ArenaClamp(Globals globals);
 extern void ArenaRelease(Globals globals);
 extern void ArenaPark(Globals globals);
+extern void ArenaExpose(Globals globals);
 extern Res ArenaStartCollect(Globals globals);
 extern Res ArenaCollect(Globals globals);
 extern Bool ArenaHasAddr(Arena arena, Addr addr);

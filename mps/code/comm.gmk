@@ -295,6 +295,7 @@ mpmss sacss amcss amcssth amcsshe amsss amssshe segsmss awlut awlutth \
   abqtest cbstest btcv mv2test \
   messtest steptest \
   walkt0 \
+  exposet0 \
   eventcnv replay replaysw \
   mps.a mmsw.a mpsplan.a mmdw.a: phony
 ifdef VARIETY
@@ -432,6 +433,9 @@ $(PFM)/$(VARIETY)/steptest: $(PFM)/$(VARIETY)/steptest.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/walkt0: $(PFM)/$(VARIETY)/walkt0.o \
+	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+
+$(PFM)/$(VARIETY)/exposet0: $(PFM)/$(VARIETY)/exposet0.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/eventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
