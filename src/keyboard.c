@@ -961,7 +961,8 @@ command_loop_1 ()
 #endif
       /* If it has changed current-menubar from previous value,
 	 really recompute the menubar from the value.  */
-      if (! NILP (Vlucid_menu_bar_dirty_flag))
+      if (! NILP (Vlucid_menu_bar_dirty_flag)
+	  && !NILP (Ffboundp (Qrecompute_lucid_menubar)))
 	call0 (Qrecompute_lucid_menubar);
 
 #if 0 /* This is done in xdisp.c now.  */
