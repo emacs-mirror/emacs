@@ -433,7 +433,7 @@ set_frame_size (ew)
     ew->core.width = pixel_width;
     ew->core.height = pixel_height;
 
-#if 0 /* We don't need this also.  */
+#if 0 /* xfns.c takes care of this now.  */
     /* If a position was specified, assign it to the shell widget.
        (Else WM won't do anything with it.)
      */
@@ -881,9 +881,6 @@ EmacsFrameSetCharSize (widget, columns, rows)
   if (columns < 3) columns = 3;  /* no way buddy */
   if (rows < 3) rows = 3;
 
-  f->display.x->left_pos = f->display.x->widget->core.x;
-  f->display.x->top_pos = f->display.x->widget->core.y;
-
   check_frame_size (f, &rows, &columns);
   f->display.x->vertical_scroll_bar_extra
     = (FRAME_HAS_VERTICAL_SCROLL_BARS (f)
@@ -916,11 +913,4 @@ EmacsFrameSetCharSize (widget, columns, rows)
      for, then the event won't cause the screen to become garbaged, so
      we have to make sure to do it here.  */
   SET_FRAME_GARBAGED (f);
-
-  /* Coordinates of the toplevel widget seem to have been lost.
-     So set it to the rignt values.  */
-  ac = 0;
-  XtSetArg (al[ac], XtNx, f->display.x->left_pos); ac++;
-  XtSetArg (al[ac], XtNy, f->display.x->top_pos); ac++;
-  XtSetValues (f->display.x->widget, al, ac);
 }
