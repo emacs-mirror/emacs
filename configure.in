@@ -646,6 +646,12 @@ case "${canonical}" in
     machine=plexus opsys=usg5-2
   ;;
 
+  ## PowerPC reference platform
+  powerpcle-*-solaris2* )
+    machine=prep
+    opsys=sol2-5
+  ;;
+
   ## Pyramid machines
   ## I don't really have any idea what sort of processor the Pyramid has,
   ## so I'm assuming it is its own architecture.
@@ -731,6 +737,7 @@ case "${canonical}" in
       m68* )		machine=sun3 ;;
       i[3456]86-sun-sunos[34]* )	machine=sun386 ;;
       i[3456]86-*-* )     machine=intel386 ;;
+      powerpcle* )      machine=powerpcle ;;
       powerpc* | rs6000* )  machine=ibmrs6000 ;;
       sparc* )		machine=sparc ;;
       * )		unported=yes ;;
