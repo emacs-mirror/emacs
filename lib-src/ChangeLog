@@ -1,3 +1,8 @@
+2000-06-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* ebrowse.c (ymalloc): Renamed from xmalloc.
+	(yrealloc): Renamed from xrealloc.
+
 2000-05-21  Dave Love  <fx@gnu.org>
 
 	* movemail.c: Include config.h, not ../src/config.h.

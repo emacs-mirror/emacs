@@ -1,3 +1,8 @@
+2000-06-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_produce_glyphs): Don't xassert `it->descent > 0';
+	this isn't true for images with `:ascent 100'.
+
 2000-06-06  Kenichi Handa  <handa@etl.go.jp>
 
 	* buffer.c (Fset_buffer_multibyte): Don't make the current buffer
