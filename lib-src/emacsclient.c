@@ -438,13 +438,13 @@ To start the server in Emacs, type \"M-x server-start\".\n",
   if (cwd == 0)
     {
       /* getwd puts message in STRING if it fails.  */
-      fprintf (stderr, "%s: %s (%s)\n", argv[0],
+
 #ifdef HAVE_GETCWD
-	       "Cannot get current working directory",
+      fprintf (stderr, "%s: %s (%s)\n", argv[0],
+	       "Cannot get current working directory", strerror (errno));
 #else
-	       string,
+      fprintf (stderr, "%s: %s (%s)\n", argv[0], string, strerror (errno));
 #endif
-	       strerror (errno));
       fail (argc, argv);
     }
 
