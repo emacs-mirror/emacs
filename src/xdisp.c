@@ -628,7 +628,8 @@ echo_area_display ()
 		      echo_area_glyphs ? echo_area_glyphs : "",
 		      echo_area_glyphs ? echo_area_glyphs_length : -1,
 		      FRAME_LEFT_SCROLL_BAR_WIDTH (f),
-		      0, 0, 0, FRAME_WIDTH (f));
+		      0, 0, 0,
+		      FRAME_WIDTH (f) + FRAME_LEFT_SCROLL_BAR_WIDTH (f));
 
 #if 0 /* This just gets in the way.  update_frame does the job.  */
       /* If desired cursor location is on this line, put it at end of text */
@@ -649,7 +650,8 @@ echo_area_display ()
 	    display_string (XWINDOW (mini_window), i,
 			    "", 0, 
                             FRAME_LEFT_SCROLL_BAR_WIDTH (f),
-			    0, 0, 0, FRAME_WIDTH (f));
+			    0, 0, 0,
+			    FRAME_WIDTH (f) + FRAME_LEFT_SCROLL_BAR_WIDTH (f));
 	  }
       }
     }
@@ -4057,7 +4059,8 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
   if (NILP (val))		/* Not yet decided.  */
     {
       *buf++ = '-';
-      *buf++ = eol_mnemonic_undecided;
+      if (eol_flag)
+	*buf++ = eol_mnemonic_undecided;
       /* Don't mention EOL conversion if it isn't decided.  */
     }
   else
