@@ -557,7 +557,8 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
       /* Get the face-code of the next GLYPH.  */
       int cf, len;
       GLYPH g = *gp;
-      int ch, first_ch, charset;
+      int ch, charset;
+      Lisp_Object first_ch;
       /* HIGHEST and LOWEST are used while drawing a composite
          character.  The meanings are described later.  */
       int highest, lowest;
@@ -565,7 +566,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
       GLYPH_FOLLOW_ALIASES (tbase, tlen, g);
       cf = (cmpcharp ? cmpcharp->face_work : FAST_GLYPH_FACE (g));
       ch = FAST_GLYPH_CHAR (g);
-      if (gidx == 0) first_ch = ch;
+      if (gidx == 0) XSETFASTINT (first_ch, ch);
       charset = CHAR_CHARSET (ch);
       if (charset == CHARSET_COMPOSITION)
 	{
