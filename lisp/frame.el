@@ -32,27 +32,29 @@ function, which should take an alist of parameters as its argument.")
 ;;; There must always exist a frame with a minibuffer, and after we
 ;;; delete the terminal frame, this will be the only frame.
 (defvar initial-frame-alist '((minibuffer . t))
-  "Alist of values used when creating the initial emacs text frame.
-These may be set in your init file, like this:
+  "Alist of frame parameters for creating the initial X window frame.
+You can set this in your `.emacs' file; for example,
  (setq initial-frame-alist '((top . 1) (left . 1) (width . 80) (height . 55)))
-If this requests a frame without a minibuffer, and you do not create a
-minibuffer frame on your own, one will be created, according to
+If the value calls for a frame without a minibuffer, and you do not create a
+minibuffer frame on your own, one is created according to
 `minibuffer-frame-alist'.
-These supercede the values given in frame-default-alist.")
+Parameters specified here supersede the values given in
+`default-frame-alist'.")
 
 (defvar minibuffer-frame-alist '((width . 80) (height . 2))
-  "Alist of values to apply to a minibuffer frame.
-These may be set in your init file, like this:
+  "Alist of frame parameters for initially creating a minibuffer frame.
+You can set this in your `.emacs' file; for example,
  (setq minibuffer-frame-alist
    '((top . 1) (left . 1) (width . 80) (height . 2)))
-These supercede the values given in default-frame-alist.")
+Parameters specified here supersede the values given in
+`default-frame-alist'.")
 
 (defvar pop-up-frame-alist nil
-  "Alist of values used when creating pop-up frames.
+  "Alist of frame parameters used when creating pop-up frames.
 Pop-up frames are used for completions, help, and the like.
 This variable can be set in your init file, like this:
   (setq pop-up-frame-alist '((width . 80) (height . 20)))
-These supercede the values given in default-frame-alist.")
+These supercede the values given in `default-frame-alist'.")
 
 (setq pop-up-frame-function
       (function (lambda ()
@@ -241,28 +243,23 @@ Optional argument PARAMETERS is an alist of parameters for the new
 frame.  Specifically, PARAMETERS is a list of pairs, each having one
 of the following forms:
 
-(name . STRING)	- The frame should be named STRING.
+\(name . STRING)	- The frame should be named STRING.
 
-(height . NUMBER) - The frame should be NUMBER text lines high.  If
+\(height . NUMBER) - The frame should be NUMBER text lines high.  If
 	this parameter is present, the width parameter must also be
 	given.
 
-(width . NUMBER) - The frame should be NUMBER characters in width.
+\(width . NUMBER) - The frame should be NUMBER characters in width.
 	If this parameter is present, the height parameter must also
 	be given.
 
-(minibuffer . t) - the frame should have a minibuffer
-(minibuffer . none) - the frame should have no minibuffer
-(minibuffer . only) - the frame should contain only a minibuffer
-(minibuffer . WINDOW) - the frame should use WINDOW as its minibuffer window.
+\(minibuffer . t) - the frame should have a minibuffer
+\(minibuffer . none) - the frame should have no minibuffer
+\(minibuffer . only) - the frame should contain only a minibuffer
+\(minibuffer . WINDOW) - the frame should use WINDOW as its minibuffer window.
 
-(NAME . VALUE), specifying the parameter and the value it should have.
-NAME should be one of the following symbols:
-  name		VALUE 
-
-The documentation for the function x-create-frame describes
-additional frame parameters that Emacs will recognize when running
-under the X Window System."
+The documentation for the function `x-create-frame' describes
+additional frame parameters that Emacs recognizes for X window frames."
   (interactive)
   (funcall frame-creation-function parameters))
 
@@ -356,14 +353,21 @@ When called interactively, prompt for the name of the color to use."
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'cursor-color color-name))))
 
-(defun set-pointer-color (color-name)
+(defun set-mouse-color (color-name)
   "Set the color of the mouse pointer of the selected frame to COLOR.
 When called interactively, prompt for the name of the color to use."
   (interactive "sColor: ")
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'mouse-color color-name))))
 
-(defun toggle-auto-raise (arg)
+(defun set-border-color (color-name)
+  "Set the color of the border of the selected frame to COLOR.
+When called interactively, prompt for the name of the color to use."
+  (interactive "sColor: ")
+  (modify-frame-parameters (selected-frame)
+			   (list (cons 'border-color color-name))))
+
+(defun auto-raise-mode (arg)
   "Toggle whether or not the selected frame should auto-raise.
 With arg, turn auto-raise mode on if and only if arg is positive."
   (interactive "P")
@@ -374,7 +378,7 @@ With arg, turn auto-raise mode on if and only if arg is positive."
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'auto-raise (> arg 0)))))
 
-(defun toggle-auto-lower (arg)
+(defun auto-lower-mode (arg)
   "Toggle whether or not the selected frame should auto-lower.
 With arg, turn auto-lower mode on if and only if arg is positive."
   (interactive "P")
