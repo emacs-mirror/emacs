@@ -72,7 +72,9 @@ This can be an inbox file or an Rmail file.")
 
 ;;;###autoload
 (defvar mail-default-reply-to nil
-  "*Address to insert as default Reply-to field of outgoing messages.")
+  "*Address to insert as default Reply-to field of outgoing messages.
+If nil, it will be initialized from the REPLYTO environment variable
+when you first send mail.")
 
 ;;;###autoload
 (defvar mail-alias-file nil
