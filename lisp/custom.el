@@ -193,7 +193,14 @@ The following KEYWORD's are defined:
 
 Read the section about customization in the Emacs Lisp manual for more
 information."
-  `(custom-declare-variable (quote ,symbol) (quote ,value) ,doc ,@args))
+  ;; It is better not to use backquote in this file,
+  ;; because that makes a bootstrapping problem
+  ;; if you need to recompile all the Lisp files using interpreted code.
+  (nconc (list 'custom-declare-variable
+	       (list 'quote symbol)
+	       (list 'quote value)
+	       doc)
+	 args))
 
 ;;; The `defface' Macro.
 
@@ -243,7 +250,10 @@ following REQ are defined:
 
 Read the section about customization in the Emacs Lisp manual for more
 information."
-  `(custom-declare-face (quote ,face) ,spec ,doc ,@args))
+  ;; It is better not to use backquote in this file,
+  ;; because that makes a bootstrapping problem
+  ;; if you need to recompile all the Lisp files using interpreted code.
+  (nconc (list 'custom-declare-face (list 'quote face) spec doc) args))
 
 ;;; The `defgroup' Macro.
 
@@ -295,7 +305,10 @@ The following KEYWORD's are defined:
 
 Read the section about customization in the Emacs Lisp manual for more
 information."
-  `(custom-declare-group (quote ,symbol) ,members ,doc ,@args))
+  ;; It is better not to use backquote in this file,
+  ;; because that makes a bootstrapping problem
+  ;; if you need to recompile all the Lisp files using interpreted code.
+  (nconc (list 'custom-declare-group (list 'quote symbol) members doc) args))
 
 (defun custom-add-to-group (group option widget)
   "To existing GROUP add a new OPTION of type WIDGET.
