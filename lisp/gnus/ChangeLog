@@ -1,3 +1,14 @@
+2003-05-07  Dave Love  <fx@gnu.org>
+
+	[Partial sync with Gnus.]
+
+	* rfc2047.el (rfc2047-header-encoding-alist): Add Followup-To.
+	(rfc2047-encode-message-header): Fold when encoding not necessary.
+	(rfc2047-encode-region): Skip \n as whitespace.
+	(rfc2047-fold-region): Fix whitespace regexps.  Don't break just
+	after the header name.
+	(rfc2047-unfold-region): Fix regexp and whitespace-skipping.
+
 2003-05-06  Jesper Harder  <harder@ifa.au.dk>
 
 	* gnus-cus.el (gnus-group-customize, gnus-score-parameters): Don't
