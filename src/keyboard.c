@@ -2545,25 +2545,39 @@ read_key_sequence (keybuf, bufsize, prompt)
   int nmaps;
   int nmaps_allocated = 0;
 
-  /* current[0..nmaps-1] are the prefix definitions of KEYBUF[0..t-1]
+  /* submaps[0..nmaps-1] are the prefix definitions of KEYBUF[0..t-1]
      in the current keymaps, or nil where it is not a prefix.  */
-  Lisp_Object *current;
+  Lisp_Object *submaps;
 
   /* defs[0..nmaps-1] are the definitions of KEYBUF[0..t-1] in
      the current keymaps.  */
   Lisp_Object *defs;
 
-  /* The lowest i such that defs[i] is non-nil.  */
+  /* The index of the first keymap that has a binding for this key
+     sequence.  In other words, the lowest i such that defs[i] is
+     non-nil.*/
   int first_binding;
 
   /* If mock_input > t, then KEYBUF[t] should be read as the next
-     input key.  */
+     input key.
+
+     We use this to recover after recognizing a function key.  Once we
+     realize that a suffix of the current key sequence is actually a
+     function key's escape sequence, we replace the suffix with the
+     function key's binding from Vfunction_key_map.  Now keybuf
+     contains a new and different key sequence, so the echo area and
+     the submaps and defs arrays are wrong.  In this situation, we set
+     mock_input to t, set t to 0, and jump to restart; the loop will
+     read keys from keybuf up until mock_input, which rebuilds the
+     state, and then it will resume reading characters from the keyboard.  */
   int mock_input = 0;
 
-  /* If the sequence is unbound in current[], keymap[fkey_start..fkey_end-1]
-     is a prefix in Vfunction_key_map, and fkey_map is its binding.
-     These might be > t, indicating that all function key scanning should
+  /* If the sequence is unbound in submaps[], then
+     keymap[fkey_start..fkey_end-1] is a prefix in Vfunction_key_map,
+     and fkey_map is its binding.  If mock_input is in use, these
+     might be > t, indicating that all function key scanning should
      hold off until t reaches them.  */
+
   int fkey_start = 0, fkey_end = 0;
   Lisp_Object fkey_map = Vfunction_key_map;
 
@@ -2578,7 +2592,7 @@ read_key_sequence (keybuf, bufsize, prompt)
       echo_start = echo_length ();
     }
 
-  /* If there is no function key map, turn of function key scanning.  */
+  /* If there is no function key map, turn off function key scanning.  */
   if (NILP (Fkeymapp (Vfunction_key_map)))
     fkey_start = fkey_end = bufsize + 1;
 
@@ -2592,21 +2606,21 @@ read_key_sequence (keybuf, bufsize, prompt)
     nmaps = current_minor_maps (0, &maps) + 2;
     if (nmaps > nmaps_allocated)
       {
-	current = (Lisp_Object *) alloca (nmaps * sizeof (current[0]));
+	submaps = (Lisp_Object *) alloca (nmaps * sizeof (submaps[0]));
 	defs    = (Lisp_Object *) alloca (nmaps * sizeof (defs[0]));
 	nmaps_allocated = nmaps;
       }
-    bcopy (maps, current, (nmaps - 2) * sizeof (current[0]));
-    current[nmaps-2] = last_event_buffer->keymap;
-    current[nmaps-1] = global_map;
+    bcopy (maps, submaps, (nmaps - 2) * sizeof (submaps[0]));
+    submaps[nmaps-2] = last_event_buffer->keymap;
+    submaps[nmaps-1] = global_map;
   }
 
   /* Find an accurate initial value for first_binding.  */
   for (first_binding = 0; first_binding < nmaps; first_binding++)
-    if (! NILP (current[first_binding]))
+    if (! NILP (submaps[first_binding]))
       break;
 
-  while ((first_binding < nmaps && ! NILP (current[first_binding]))
+  while ((first_binding < nmaps && ! NILP (submaps[first_binding]))
 	 || (first_binding >= nmaps && fkey_start < t))
     {
       Lisp_Object key;
@@ -2614,14 +2628,15 @@ read_key_sequence (keybuf, bufsize, prompt)
       if (t >= bufsize)
 	error ("key sequence too long");
 
-      /* Are we reading keys stuffed into keybuf?  */
+      /* Are we re-reading a key sequence, as indicated by mock_input?  */
       if (t < mock_input)
 	{
 	  key = keybuf[t];
 	  add_command_key (key);
 	  echo_char (key);
 	}
-      /* Otherwise, we should actually read a character.  */
+
+      /* If not, we should actually read a character.  */
       else
 	{
 	  struct buffer *buf;
@@ -2681,16 +2696,18 @@ read_key_sequence (keybuf, bufsize, prompt)
 
       first_binding = (follow_key (key,
 				   nmaps   - first_binding,
-				   current + first_binding,
+				   submaps + first_binding,
 				   defs    + first_binding,
-				   current + first_binding)
+				   submaps + first_binding)
 		       + first_binding);
       keybuf[t++] = key;
 
       /* If the sequence is unbound, see if we can hang a function key
-	 off the end of it.  Don't reread the expansion of a function key.  */
+	 off the end of it.  We only want to scan real keyboard input
+	 for function key sequences, so if mock_input says that we're
+	 re-scanning after expanding a function key, don't examine it.  */
       if (first_binding >= nmaps
-	  && t > mock_input)
+	  && t >= mock_input)
 	{
 	  Lisp_Object fkey_next;
 
@@ -2699,7 +2716,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	    {
 	      /* Look up meta-characters by prefixing them
 		 with meta_prefix_char.  I hate this.  */
-	      if (keybuf[fkey_end++] & 0x80)
+	      if (keybuf[fkey_end] & 0x80)
 		fkey_next =
 		  get_keymap_1 (get_keyelt
 				(access_keymap (fkey_map, meta_prefix_char)),
