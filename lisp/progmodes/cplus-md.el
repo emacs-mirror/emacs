@@ -1,8 +1,8 @@
-;;; cplus-md.el --- C++ code editing commands for Emacs
+;;; cplus-md.el --- old C++ code editing mode for Emacs
 
 ;; Copyright (C) 1985, 1992, 1994, 1995 Free Software Foundation, Inc.
 
-;; Maintainer: Dave Detlefs <dld@cs.cmu.edu>
+;; Maintainer: FSF
 ;; Keywords: c
 
 ;; This file is part of GNU Emacs.

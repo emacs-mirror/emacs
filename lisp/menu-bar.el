@@ -3,6 +3,7 @@
 ;; Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: RMS
+;; Maintainer: FSF
 ;; Keywords: internal
 
 ;; This file is part of GNU Emacs.

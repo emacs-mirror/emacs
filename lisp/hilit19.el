@@ -3,6 +3,8 @@
 ;; Copyright (c) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author:   Jonathan Stigelman <stig@hackvan.com>
+;; Maintainer: FSF
+;;	(actually no longer maintained)
 ;; Keywords: faces
 
 ;; This file is part of GNU Emacs.

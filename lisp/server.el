@@ -3,6 +3,7 @@
 ;; Copyright (C) 1986, 1987, 1992, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
+;; Maintainer: FSF
 ;; Keywords: processes
 
 ;; Changes by peck@sun.com and by rms.

@@ -3,6 +3,7 @@
 ;; Copyright (C) 1993 1994 1995 1996 Free Software Foundation, Inc.
 
 ;; Author:          1993-1996 Barry A. Warsaw
+;; Maintainer:	    FSF
 ;; Created:         19-Apr-1993
 ;; Version:         3.3
 ;; Last Modified:   1996/07/02 00:39:09

@@ -1,8 +1,7 @@
-;;;_* landmark.el --- Landmark learning neural network
+;;;_landmark.el --- Landmark learning neural network
 ;; Copyright (C) 1996 Free Software Foundation, Inc.
 
 ;; Author: Terrence Brannon <brannon@rana.usc.edu>
-;; Maintainer: same
 ;; Created: December 16, 1996 - first release to usenet
 ;; Keywords: gomoku neural network adaptive search chemotaxis
 
