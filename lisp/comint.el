@@ -1497,7 +1497,7 @@ This variable is permanent-local.")
 	(let ((buffer-read-only nil)
 	      ;; Avoid the overhead of save-excursion, since we just
 	      ;; fiddle with the point
-	      (saved-point (point)))
+	      (saved-point (point-marker)))
 
 	  ;; We temporarly remove any buffer narrowing, in case the
 	  ;; process mark is outside of the restriction
