@@ -1098,7 +1098,7 @@ bytecode.o: bytecode.c buffer.h syntax.h charset.h $(config_h)
 data.o: data.c buffer.h puresize.h charset.h syssignal.h keyboard.h $(config_h)
 eval.o: eval.c commands.h keyboard.h blockinput.h $(config_h)
 floatfns.o: floatfns.c $(config_h)
-fns.o: fns.c commands.h $(config_h) frame.h buffer.h keyboard.h \
+fns.o: fns.c commands.h $(config_h) frame.h buffer.h charset.h keyboard.h \
  frame.h window.h $(INTERVAL_SRC)
 print.o: print.c process.h frame.h window.h buffer.h keyboard.h charset.h\
    $(config_h) dispextern.h msdos.h composite.h
