@@ -106,6 +106,18 @@ and `goto-address-send-using-mh-e' (MH-E).")
     m)
   "keymap to hold goto-addr's mouse key defs under highlighted URLs.")
 
+(defvar goto-address-url-face 'bold
+  "*Face to use for URLs.")
+
+(defvar goto-address-url-mouse-face 'highlight
+  "*Face to use for URLs when the mouse is on them.")
+
+(defvar goto-address-mail-face 'italic
+  "*Face to use for e-mail addresses.")
+
+(defvar goto-address-mail-mouse-face 'secondary-selection
+  "*Face to use for e-mail addresses when the mouse is on them.")
+
 (defun goto-address-fontify ()
   "Fontify the URL's and e-mail addresses in the current buffer.
 This function implements `goto-address-highlight-p'
@@ -120,22 +132,18 @@ and `goto-address-fontify-p'."
 	    (while (re-search-forward goto-address-url-regexp nil t)
               (let ((s (match-beginning 0))
                     (e (match-end 0)))
-		(goto-char e)
 		(and goto-address-fontify-p
-		     (put-text-property s e 'face 'bold))
-		(put-text-property s e 'mouse-face 'highlight)
+		     (put-text-property s e 'face goto-address-url-face))
+		(put-text-property s e 'mouse-face goto-address-url-mouse-face)
 		(put-text-property
 		 s e 'local-map goto-address-highlight-keymap)))
 	    (goto-char (point-min))
 	    (while (re-search-forward goto-address-mail-regexp nil t)
               (let ((s (match-beginning 0))
                     (e (match-end 0)))
-		(goto-char (match-end 0))
 		(and goto-address-fontify-p
-		     (put-text-property (match-beginning 0) (match-end 0)
-					'face 'italic))
-		(put-text-property (match-beginning 0) (match-end 0)
-				   'mouse-face 'secondary-selection)
+		     (put-text-property s e 'face goto-address-mail-face))
+		(put-text-property s e 'mouse-face goto-address-mail-mouse-face)
 		(put-text-property
 		 s e 'local-map goto-address-highlight-keymap)))))
       (and (buffer-modified-p)
