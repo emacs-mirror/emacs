@@ -1,7 +1,9 @@
 /* s/ file for freebsd system.  */
 
 /* '__FreeBSD__' is defined by the preprocessor on FreeBSD-1.1 and up.
-   Earlier versions do not have shared libraries, so inhibit them.  */
+   Earlier versions do not have shared libraries, so inhibit them.
+   You can inhibit them on newer systems if you wish
+   by defining NO_SHARED_LIBS.  */
 #ifndef __FreeBSD__
 #define NO_SHARED_LIBS
 #endif
@@ -29,13 +31,6 @@
 
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 
-#if 0 /* These appear to be unnecessary for 1.1, and they break
-	 emacs when compiled under FreeBSD-1.0.
-	 Shawn M. Carey <smcarey@mailbox.syr.edu>  */
-#define A_TEXT_OFFSET(x) (sizeof (struct exec))
-#define A_TEXT_SEEK(hdr) (N_TXTOFF(hdr) + A_TEXT_OFFSET(hdr))
-#endif
-
 #define LIBS_DEBUG
 #define LIBS_SYSTEM -lutil
 #define LIBS_TERMCAP -ltermcap
@@ -50,8 +45,6 @@
 #undef BSD_PGRPS
 
 #ifndef NO_SHARED_LIBS
-/* These definitions should work for either dynamic or static linking,
-   whichever is the default for `cc -nostdlib'. */
 #define HAVE_TEXT_START		/* No need to define `start_of_text'. */
 #define START_FILES pre-crt0.o /usr/lib/crt0.o
 #define UNEXEC unexsunos4.o
@@ -62,12 +55,20 @@
 #define N_BSSADDR(x) (N_ALIGN(x, N_DATADDR(x)+x.a_data))
 #define N_TRELOFF(x) N_RELOFF(x)
 #endif
-#endif /* not NO_SHARED_LIBS */
+#else /* NO_SHARED_LIBS */
+#ifdef __FreeBSD__  /* shared libs are available, but the user prefers
+                     not to use them.  */
+#define LD_SWITCH_SYSTEM -Bstatic
+#define A_TEXT_OFFSET(x) (sizeof (struct exec))
+#define A_TEXT_SEEK(hdr) (N_TXTOFF(hdr) + A_TEXT_OFFSET(hdr))
+#endif /* __FreeBSD__ */
+#endif /* NO_SHARED_LIBS */
 
 #define HAVE_WAIT_HEADER
 #define HAVE_GETLOADAVG
 #define HAVE_TERMIOS
 #define NO_TERMIO
+#define DECLARE_GETPWUID_WITH_UID_T
 
 /* freebsd uses OXTABS instead of the expected TAB3. */
 #define TABDLY OXTABS
