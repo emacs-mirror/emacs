@@ -736,7 +736,7 @@ ZONE is an integer indicating the number of seconds east of Greenwich.\n\
 }
 
 DEFUN ("encode-time", Fencode_time, Sencode_time, 6, 7, 0,
-  "Convert SEC, MIN, HOUR, DAY, MONTH, YEAR and ZONE to internal time.\n\
+  "Convert SEC, MINUTE, HOUR, DAY, MONTH, YEAR and ZONE to internal time.\n\
 This is the reverse operation of `decode-time', which see.  ZONE defaults\n\
 to the current time zone and daylight savings time if not specified; if\n\
 specified, it can be either a list (as from `current-time-zone') or an\n\
@@ -744,15 +744,15 @@ integer (as from `decode-time'), and is applied without consideration for\n\
 daylight savings time.\n\
 Year numbers less than 100 are treated just like other year numbers.\n\
 If you them to stand for years above 1900, you must do that yourself.")
-  (sec, min, hour, day, month, year, zone)
-     Lisp_Object sec, min, hour, day, month, year, zone;
+  (sec, minute, hour, day, month, year, zone)
+     Lisp_Object sec, minute, hour, day, month, year, zone;
 {
   time_t time;
   int fullyear, mon, days, seconds, tz = 0;
   static char days_per_month[11] = { 31, 30, 31, 30, 31, 31, 30, 31, 30, 31, 31 };
 
   CHECK_NATNUM (sec, 0);
-  CHECK_NATNUM (min, 1);
+  CHECK_NATNUM (minute, 1);
   CHECK_NATNUM (hour, 2);
   CHECK_NATNUM (day, 3);
   CHECK_NATNUM (month, 4);
@@ -782,7 +782,7 @@ If you them to stand for years above 1900, you must do that yourself.")
   days += 59;				/* March 1 is 59th day.  */
   days -= 719527;			/* 1970 years = 719527 days */
 
-  seconds = XINT (sec) + 60 * XINT (min) + 3600 * XINT (hour);
+  seconds = XINT (sec) + 60 * XINT (minute) + 3600 * XINT (hour);
 
   if (sizeof (time_t) == 4
       && ((days+(seconds/86400) > 24854) || (days+(seconds/86400) < -24854)))
@@ -1827,14 +1827,14 @@ Use %% to put a single % into the output.")
 	    if (*format == 'e' || *format == 'f' || *format == 'g')
 	      args[n] = Ffloat (args[n]);
 #endif
-	    total += 10;
+	    total += 30;
 	  }
 #ifdef LISP_FLOAT_TYPE
 	else if (FLOATP (args[n]) && *format != 's')
 	  {
 	    if (! (*format == 'e' || *format == 'f' || *format == 'g'))
 	      args[n] = Ftruncate (args[n]);
-	    total += 20;
+	    total += 30;
 	  }
 #endif
 	else
