@@ -731,11 +731,11 @@ and `event-end' functions."
 (defun posn-set-point (position)
   "Move point to POSITION.
 Select the corresponding window as well."
-    (if (not (windowp (posn-window posn)))
+    (if (not (windowp (posn-window position)))
 	(error "Position not in text area of window"))
-    (select-window (posn-window posn))
-    (if (numberp (posn-point posn))
-	(goto-char (posn-point posn))))
+    (select-window (posn-window position))
+    (if (numberp (posn-point position))
+	(goto-char (posn-point position))))
 
 (defsubst posn-x-y (position)
   "Return the x and y coordinates in POSITION.
