@@ -1,6 +1,6 @@
 /* impl.c.message: MPS / CLIENT MESSAGES
  *
- * $HopeName: MMsrc!message.c(trunk.8) $
+ * $HopeName: MMsrc!message.c(trunk.9) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All Rights Reserved.
  *
  * READERSHIP
@@ -20,7 +20,7 @@
 
 #include "mpm.h"
 
-SRCID(message, "$HopeName: MMsrc!message.c(trunk.8) $");
+SRCID(message, "$HopeName: MMsrc!message.c(trunk.9) $");
 
 
 /* Maps from a Ring pointer to the message */
@@ -218,34 +218,6 @@ Bool MessageQueueType(MessageType *typeReturn, Arena arena)
 }
 
 
-/* Checks the type of the message at the head of the queue.
- *
- * returns FALSE if there is no message at the head of the queue
- * or if the type of the message at the head of the queue doesn't
- * match.
- *
- * Used internally by the implementations of the external
- * functions.
- */
-static Bool MessageHeadIsType(Arena arena, MessageType type)
-{
-  Message message;
-
-  AVERT(Arena, arena);
-  AVER(MessageTypeCheck(type));
-
-  if(!MessagePoll(arena)) {
-    return FALSE;
-  }
-  message = MessageHead(arena);
-  if(MessageGetType(message) != type) {
-    return FALSE;
-  }
-
-  return TRUE;
-}
-
-
 /* Discards a message
  * (called from external interface) */
 void MessageDiscard(Arena arena, Message message)
@@ -286,17 +258,19 @@ void MessageEmpty(Arena arena)
 
 Bool MessageGet(Message *messageReturn, Arena arena, MessageType type)
 {
-  Message message;
+  Ring node, next;
 
   AVER(messageReturn != NULL);
   AVERT(Arena, arena);
   AVER(MessageTypeCheck(type));
 
-  if(MessageHeadIsType(arena, type)) {
-    message = MessageHead(arena);
-    RingRemove(&message->queueRing);
-    *messageReturn = message;
-    return TRUE;
+  RING_FOR(node, &arena->messageRing, next) {
+    Message message = RING_ELT(Message, queueRing, node);
+    if(MessageGetType(message) == type) {
+      RingRemove(&message->queueRing);
+      *messageReturn = message;
+      return TRUE;
+    }
   }
   return FALSE;
 }
@@ -317,6 +291,22 @@ void MessageTypeEnable(Arena arena, MessageType type)
   AVER(MessageTypeCheck(type));
 
   BTSet(arena->enabledMessageTypes, type);
+}
+
+
+void MessageTypeDisable(Arena arena, MessageType type)
+{
+  Message message;
+
+  AVERT(Arena, arena);
+  AVER(MessageTypeCheck(type));
+
+  /* Flush existing messages of this type */
+  while(MessageGet(&message, arena, type)) {
+    MessageDelete(message);
+  }
+
+  BTRes(arena->enabledMessageTypes, type);
 }
 
 
