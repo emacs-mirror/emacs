@@ -81,6 +81,7 @@
 ;;; c-c c-h comint-dynamic-list-input-ring  List input history
 ;;;
 ;;; Not bound by default in comint-mode (some are in shell mode)
+;;; comint-run				Run a program under comint-mode
 ;;; send-invisible			Read a line w/o echo, and send to proc
 ;;; comint-dynamic-complete-filename	Complete filename at point.
 ;;; comint-dynamic-complete-variable    Complete variable name at point.
@@ -289,6 +290,8 @@ This is to work around a bug in Emacs process signalling.")
   "Index of last matched history element.")
 (defvar comint-matching-input-from-input-string ""
   "Input previously used to match input history.")
+
+(put 'comint-replace-by-expanded-history 'menu-enable 'comint-input-autoexpand)
 (put 'comint-input-ring 'permanent-local t)
 (put 'comint-input-ring-index 'permanent-local t)
 (put 'comint-input-autoexpand 'permanent-local t)
@@ -321,7 +324,7 @@ Input ring expansion is controlled by the variable `comint-input-autoexpand',
 and addition is controlled by the variable `comint-input-ignoredups'.
 
 Commands with no default key bindings include `send-invisible',
-`comint-dynamic-complete', `comint-list-dynamic-completions', and 
+`comint-dynamic-complete', `comint-dynamic-list-filename-completions', and 
 `comint-magic-space'.
 
 Input to, and output from, the subprocess can cause the window to scroll to
@@ -499,6 +502,18 @@ the process.  Any more args are arguments to PROGRAM."
 	     (comint-mode)) ; Install local vars, mode, keymap, ...
 	   (comint-exec buffer name program startfile switches)))
     buffer))
+
+;;;###autoload
+(defun comint-run (program)
+  "Run PROGRAM in a comint buffer and switch to it.
+The buffer name is made by surrounding the file name of PROGRAM with `*'s.
+The file name is used to make a symbol name, such as `comint-sh-hook', and any
+hooks on this symbol are run in the buffer.
+See `make-comint' and `comint-exec'."
+  (interactive "sRun program: ")
+  (let ((name (file-name-nondirectory program)))
+    (switch-to-buffer (make-comint name program))
+    (run-hooks (intern-soft (concat "comint-" name "-hook")))))
 
 (defun comint-exec (buffer name command startfile switches)
   "Start up a process in buffer BUFFER for comint modes.
@@ -1289,9 +1304,10 @@ in your hook, `comint-mode-hook'."
   (beginning-of-line)
   (if (null arg) (comint-skip-prompt)))
 
-;;; These two functions are for entering text you don't want echoed or
+;;; These three functions are for entering text you don't want echoed or
 ;;; saved -- typically passwords to ftp, telnet, or somesuch.
-;;; Just enter m-x send-invisible and type in your line.
+;;; Just enter m-x send-invisible and type in your line, or add
+;;; `comint-watch-for-password-prompt' to `comint-output-filter-functions'.
 
 (defun comint-read-noecho (prompt &optional stars)
   "Read a single line of text from user without echoing, and return it. 
@@ -1349,12 +1365,20 @@ Security bug: your string can still be temporarily recovered with
 \\[view-lossage]."
   (interactive "P") ; Defeat snooping via C-x esc
   (let ((proc (get-buffer-process (current-buffer))))
-    (if (not proc) (error "Current buffer has no process")
-	(comint-send-string proc
-			    (if (stringp str) str
-				(comint-read-noecho "Non-echoed text: " t)))
-	(comint-send-string proc "\n"))))
+    (if (not proc)
+	(error "Current buffer has no process")
+      (comint-send-string
+       proc (if (stringp str) str (comint-read-noecho "Non-echoed text: " t)))
+      (comint-send-string proc "\n"))))
 
+(defun comint-watch-for-password-prompt (string) 
+  "Prompt in the minibuffer for password and send without echoing.
+This function uses `send-invisible' to read and send a password to the buffer's
+process if STRING contains a password prompt (matches \"^[Pp]assword:\\\\s *\\\\'\").
+
+This function could be in the list `comint-output-filter-functions'."
+  (if (string-match "^[Pp]assword:\\s *\\'" string)
+      (send-invisible nil)))
 
 ;;; Low-level process communication
 
@@ -1401,7 +1425,7 @@ Does not delete the prompt."
 
 (defun comint-show-output ()
   "Display start of this batch of interpreter output at top of window.
-Also put cursor there if the current position is not visible."
+Sets mark to the value of point when this command is run."
   (interactive)
   (push-mark)
   (let ((pos (point)))
