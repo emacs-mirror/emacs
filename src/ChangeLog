@@ -7,6 +7,11 @@
 	(make_number): Define as a function if it's not defined as a
 	macro.
 
+	* composite.c (run_composite_function): Use NILP when checking for
+	nil.
+	(syms_of_composite): Delete local var NARGS, pass an int as first
+	argument to Fmake_hash_table.
+
 	* editfns.c (text_property_stickiness): Use NILP to test
 	Lisp_Object boolean value.
 	(Fmessage_or_box): Don't use NILP to test int variable.

@@ -456,7 +456,7 @@ run_composition_function (from, to, prop)
     to = end;
   if (!NILP (func))
     call2 (func, make_number (from), make_number (to));
-  else if (Ffboundp (Vcompose_chars_after_function))
+  else if (!NILP (Ffboundp (Vcompose_chars_after_function)))
     call2 (Vcompose_chars_after_function,
 	   make_number (from), make_number (to));
 }
@@ -670,7 +670,7 @@ syms_of_composite ()
 
   /* Make a hash table for composition.  */
   {
-    Lisp_Object args[6], nargs;
+    Lisp_Object args[6];
     extern Lisp_Object QCsize;
     
     args[0] = QCtest;
@@ -679,8 +679,7 @@ syms_of_composite ()
     args[3] = Qnil;
     args[4] = QCsize;
     args[5] = make_number (311);
-    XSETINT (nargs, 6);
-    composition_hash_table = Fmake_hash_table (nargs, args);
+    composition_hash_table = Fmake_hash_table (6, args);
     staticpro (&composition_hash_table);
   }
 
