@@ -1092,9 +1092,7 @@ main (argc, argv, envp)
 	 function creates Vterminal_frame.  Termcap frames now use
 	 faces, and the face implementation uses some symbols as
 	 face names.  */
-#ifndef HAVE_NTGUI
       syms_of_xfaces ();
-#endif
 
       init_window_once ();	/* Init the window system */
       init_fileio_once ();	/* Must precede any path manipulation.  */
@@ -1368,7 +1366,6 @@ main (argc, argv, envp)
 #ifdef HAVE_NTGUI
       syms_of_w32term ();
       syms_of_w32fns ();
-      syms_of_w32faces ();
       syms_of_w32select ();
       syms_of_w32menu ();
       syms_of_fontset ();
