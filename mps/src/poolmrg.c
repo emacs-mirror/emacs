@@ -1,6 +1,6 @@
 /* impl.c.poolmrg: MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.27) $
+ * $HopeName: MMsrc!poolmrg.c(trunk.28) $
  * Copyright (C) 1997 Harlequin Group plc.  All rights reserved.
  *
  * READERSHIP
@@ -34,7 +34,7 @@
 #include "mpm.h"
 #include "poolmrg.h"
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.27) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.28) $");
 
 
 /* Types */
@@ -352,7 +352,8 @@ static void MRGGroupDestroy(MRGGroup group, MRG mrg)
   ArenaFree(PoolArena(pool), (Addr)group, (Size)sizeof(MRGGroupStruct));
 }
 
-static Res MRGGroupCreate(MRGGroup *groupReturn, MRG mrg)
+static Res MRGGroupCreate(MRGGroup *groupReturn, MRG mrg,
+                          Bool withReservoirPermit)
 {
   RefPart refPartBase;
   Count nGuardians;       /* guardians per seg */
@@ -368,6 +369,7 @@ static Res MRGGroupCreate(MRGGroup *groupReturn, MRG mrg)
 
   AVER(groupReturn != NULL);
   AVERT(MRG, mrg);
+  AVER(BoolCheck(withReservoirPermit));
 
   pool = MRGPool(mrg);
   arena = PoolArena(pool);
@@ -375,14 +377,16 @@ static Res MRGGroupCreate(MRGGroup *groupReturn, MRG mrg)
   if(res != ResOK)
     goto failArenaAlloc;
   group = p;
-  res = SegAlloc(&refPartSeg, SegPrefDefault(), mrg->extendBy, pool);
+  res = SegAlloc(&refPartSeg, SegPrefDefault(), mrg->extendBy, pool,
+                 withReservoirPermit);
   if(res != ResOK)
     goto failRefPartSegAlloc;
 
   nGuardians = MRGGuardiansPerSeg(mrg); 
   linkSegSize = nGuardians * sizeof(LinkStruct);
   linkSegSize = SizeAlignUp(linkSegSize, ArenaAlign(arena));
-  res = SegAlloc(&linkSeg, SegPrefDefault(), linkSegSize, pool);
+  res = SegAlloc(&linkSeg, SegPrefDefault(), linkSegSize, pool,
+                 withReservoirPermit);
   if(res != ResOK)
     goto failLinkSegAlloc;
 
@@ -573,7 +577,8 @@ Res MRGRegister(Pool pool, Ref ref)
   /* design.mps.poolmrg.alloc.grow */
   if(RingIsSingle(&mrg->freeRing)) {
     /* .group.useless: group isn't used */
-    res = MRGGroupCreate(&junk, mrg);   
+    /* @@@@ Should the client be able to use the reservoir for this? */
+    res = MRGGroupCreate(&junk, mrg, /* withReservoirPermit */ FALSE);   
     if(res != ResOK) 
       return res;
   }

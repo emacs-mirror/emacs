@@ -1,6 +1,6 @@
 /* impl.c.poolmv: MANUAL VARIABLE POOL
  *
- * $HopeName: MMsrc!poolmv.c(trunk.30) $
+ * $HopeName: MMsrc!poolmv.c(trunk.31) $
  * Copyright (C) 1997 Harlequin Group plc.  All rights reserved.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
@@ -29,7 +29,7 @@
 #include "poolmfs.h"
 #include "mpm.h"
 
-SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.30) $");
+SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.31) $");
 
 
 #define BLOCKPOOL(mv)   (MFSPool(&(mv)->blockPoolStruct))
@@ -382,7 +382,8 @@ static Res MVSpanFree(MVSpan span, Addr base, Addr limit, Pool blockPool)
 
         /* The freed area is buried in the middle of the block, so the */
         /* block must be split into two parts.  */
-        res = PoolAlloc((Addr *)&new, blockPool, sizeof(MVBlockStruct));
+        res = PoolAlloc((Addr *)&new, blockPool, sizeof(MVBlockStruct),
+                        /* withReservoirPermit */ FALSE);
         if(res != ResOK) return res;
 
         freeAreaSize = AddrOffset(base, limit);
@@ -434,7 +435,8 @@ static Res MVSpanFree(MVSpan span, Addr base, Addr limit, Pool blockPool)
 
 /*  == Allocate ==  */
 
-static Res MVAlloc(Addr *pReturn, Pool pool, Size size)
+static Res MVAlloc(Addr *pReturn, Pool pool, Size size,
+                   Bool withReservoirPermit)
 {
   Res res;
   MVSpan span;
@@ -449,6 +451,7 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size)
 
   AVER(pReturn != NULL);
   AVER(size > 0);
+  AVER(BoolCheck(withReservoirPermit));
 
   size = SizeAlignUp(size, pool->alignment);
 
@@ -474,7 +477,8 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size)
   /* pool with a new segment which will hold the requested allocation. */
   /* Allocate a new span descriptor and initialize it to point at the */
   /* segment. */
-  res = PoolAlloc((Addr *)&span, SPANPOOL(mv), sizeof(MVSpanStruct));
+  res = PoolAlloc((Addr *)&span, SPANPOOL(mv), sizeof(MVSpanStruct),
+                  withReservoirPermit);
   if(res != ResOK)
     return res;
 
@@ -486,10 +490,12 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size)
   arena = PoolArena(pool);
   segSize = SizeAlignUp(segSize, ArenaAlign(arena));
 
-  res = SegAlloc(&span->seg, SegPrefDefault(), segSize, pool);
+  res = SegAlloc(&span->seg, SegPrefDefault(), segSize, pool,
+                 withReservoirPermit);
   if(res != ResOK) { /* try again with a segment big enough for this object */
     segSize = SizeAlignUp(size, ArenaAlign(arena));
-    res = SegAlloc(&span->seg, SegPrefDefault(), segSize, pool);
+    res = SegAlloc(&span->seg, SegPrefDefault(), segSize, pool,
+                   withReservoirPermit);
     if (res != ResOK) {
       PoolFree(SPANPOOL(mv), (Addr)span, sizeof(MVSpanStruct));
       return res;

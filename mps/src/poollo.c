@@ -1,6 +1,6 @@
 /* impl.c.poollo: LEAF POOL CLASS
  *
- * $HopeName: MMsrc!poollo.c(trunk.4) $
+ * $HopeName: MMsrc!poollo.c(trunk.5) $
  * Copyright (C) 1997,1998 Harlequin Group plc, all rights reserved.
  *
  * READERSHIP
@@ -19,7 +19,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.4) $");
+SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.5) $");
 
 
 /* MACROS */
@@ -192,7 +192,8 @@ static Bool loGroupFindFree(Addr *bReturn, Addr *lReturn,
 
 /* Creates a group of size at least size.
  * Groups will be ArenaAlign aligned */
-static Res loGroupCreate(LOGroup *groupReturn, Pool pool, Size size)
+static Res loGroupCreate(LOGroup *groupReturn, Pool pool, Size size,
+                         Bool withReservoirPermit)
 {
   LO lo;
   LOGroup group;
@@ -210,6 +211,7 @@ static Res loGroupCreate(LOGroup *groupReturn, Pool pool, Size size)
   AVER(groupReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
+  AVER(BoolCheck(withReservoirPermit));
 
   lo = PARENT(LOStruct, poolStruct, pool);
   AVERT(LO, lo);
@@ -227,7 +229,7 @@ static Res loGroupCreate(LOGroup *groupReturn, Pool pool, Size size)
   gen = lo->gen;
   SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
   SegPrefExpress(&segPrefStruct, SegPrefGen, &gen);
-  res = SegAlloc(&seg, &segPrefStruct, asize, pool);
+  res = SegAlloc(&seg, &segPrefStruct, asize, pool, withReservoirPermit);
   if(res != ResOK)
     goto failSeg;
 
@@ -479,7 +481,7 @@ static void LOFinish(Pool pool)
 
 static Res LOBufferFill(Seg *segReturn, Addr *baseReturn, 
                         Addr *limitReturn, Pool pool, Buffer buffer, 
-                        Size size)
+                        Size size, Bool withReservoirPermit)
 {
   Res res;
   Ring node, nextNode;
@@ -499,6 +501,7 @@ static Res LOBufferFill(Seg *segReturn, Addr *baseReturn,
   AVER(BufferRankSet(buffer) == RankSetEMPTY);
   AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
+  AVER(BoolCheck(withReservoirPermit));
 
   arena = PoolArena(pool);
 
@@ -512,7 +515,7 @@ static Res LOBufferFill(Seg *segReturn, Addr *baseReturn,
   }
 
   /* No group had enough space, so make a new one. */
-  res = loGroupCreate(&group, pool, size);
+  res = loGroupCreate(&group, pool, size, withReservoirPermit);
   if(res != ResOK) {
     goto failGroup;
   }

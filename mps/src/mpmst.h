@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.60) $
+ * $HopeName: MMsrc!mpmst.h(trunk.61) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -183,6 +183,26 @@ typedef struct MVStruct {       /* MV pool outer structure */
   RingStruct spans;             /* span chain */
   Sig sig;                      /* design.mps.sig */
 } MVStruct;
+
+
+/* NSEGStruct -- NSEG (Non-allocating SEGment) pool outer structure
+ *
+ * .nseg: See impl.c.arena, design.mps.poolnseg.
+ *
+ * The NSEG outer structure is declared here because it is in-lined 
+ * in the arena for storing segments for the low-memory reservoir.
+ * Normally, pool outer structures are declared with the pools.
+ *
+ * The signature is placed at the end, see
+ * design.mps.pool.outer-structure.sig
+ */
+
+#define NSEGSig          ((Sig)0x51945e99) /* SIGnature NSEG */ 
+
+typedef struct NSEGStruct {     /* NSEG outer structure */
+  PoolStruct poolStruct;        /* generic structure */
+  Sig sig;                      /* design.mps.sig */
+} NSEGStruct;
 
 
 /* MessageClassStruct -- Message Class structure 
@@ -606,6 +626,9 @@ typedef struct ArenaStruct {
 
   Bool poolReady;               /* design.mps.arena.pool.ready */
   MVStruct controlPoolStruct;   /* design.mps.arena.pool */
+  NSEGStruct reservoirStruct;   /* design.mps.reservoir */
+  Size reservoirLimit;          /* desired reservoir size */
+  Size reservoirSize;           /* actual reservoir size */
   LockStruct lockStruct;        /* arena's lock */
   double pollThreshold;         /* design.mps.arena.poll */
   Bool insidePoll;

@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.12) $
+ * $HopeName: MMsrc!poolamc.c(trunk.13) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .sources: design.mps.poolamc.
@@ -10,7 +10,7 @@
 #include "mpscamc.h"
 #include "mpm.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.12) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.13) $");
 
 
 /* Binary i/f used by ASG (drj 1998-06-11) */
@@ -561,7 +561,8 @@ static Res AMCBufferInit(Pool pool, Buffer buffer, va_list args)
 
 static Res AMCBufferFill(Seg *segReturn,
                          Addr *baseReturn, Addr *limitReturn,
-                         Pool pool, Buffer buffer, Size size)
+                         Pool pool, Buffer buffer, Size size,
+                         Bool withReservoirPermit)
 {
   Seg seg;
   AMC amc;
@@ -581,6 +582,7 @@ static Res AMCBufferFill(Seg *segReturn,
   AVERT(Buffer, buffer);
   AVER(BufferIsReset(buffer));
   AVER(size >  0);
+  AVER(BoolCheck(withReservoirPermit));
 
   gen = (AMCGen)buffer->p;
   AVERT(AMCGen, gen);
@@ -593,7 +595,8 @@ static Res AMCBufferFill(Seg *segReturn,
   segPrefStruct = *SegPrefDefault();
   SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
   SegPrefExpress(&segPrefStruct, SegPrefGen, &gen->serial);
-  res = SegAlloc(&seg, &segPrefStruct, alignedSize, pool);
+  res = SegAlloc(&seg, &segPrefStruct, alignedSize, pool, 
+                 withReservoirPermit);
   if(res != ResOK)
     return res;
 
@@ -1316,7 +1319,8 @@ static Res AMCFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
     length = AddrOffset(ref, (*format->skip)(ref));
 
     do {
-      res = BUFFER_RESERVE(&newRef, buffer, length);
+      res = BUFFER_RESERVE(&newRef, buffer, length,
+                           /* withReservoirPermit */ FALSE);
       if(res != ResOK)
         goto returnRes;
 

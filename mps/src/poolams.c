@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.28) $
+ * $HopeName: MMsrc!poolams.c(trunk.29) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  * 
  * .readership: any MPS developer.
@@ -23,7 +23,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.28) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.29) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -122,7 +122,8 @@ failAlloc:
 }
 
 static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
-                          SegPref segPref, RankSet rankSet)
+                          SegPref segPref, RankSet rankSet,
+                          Bool withReservoirPermit)
 {
   AMSGroup group;
   AMS ams;
@@ -136,6 +137,7 @@ static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
   AVER(size > 0);
   AVERT(RankSet, rankSet);
   AVERT(SegPref, segPref);
+  AVER(BoolCheck(withReservoirPermit));
 
   ams = PoolPoolAMS(pool);
   AVERT(AMS,ams);
@@ -153,7 +155,7 @@ static Res AMSGroupCreate(AMSGroup *groupReturn, Pool pool, Size size,
   /* instance by using the offset information from the class. */
   group = (AMSGroup)PointerAdd(p, ams->groupOffset);
 
-  res = SegAlloc(&seg, segPref, size, pool);
+  res = SegAlloc(&seg, segPref, size, pool, withReservoirPermit);
   if(res != ResOK)
     goto failSeg;
 
@@ -400,7 +402,8 @@ Res AMSBufferInit(Pool pool, Buffer buffer, va_list args)
  */
 
 Res AMSBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
-                  Pool pool, Buffer buffer, Size size)
+                  Pool pool, Buffer buffer, Size size,
+                  Bool withReservoirPermit)
 {
   Res res;
   AMS ams;
@@ -420,6 +423,7 @@ Res AMSBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   AVERT(Buffer, buffer);
   AVER(size > 0);
   AVER(SizeIsAligned(size, PoolAlignment(pool)));
+  AVER(BoolCheck(withReservoirPermit));
 
   /* Check that we're not in the grey mutator phase (see */
   /* d.m.p.fill.colour). */
@@ -445,7 +449,8 @@ Res AMSBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   /* no group has enough room; make a new group */
   segPrefStruct = *SegPrefDefault();
   SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
-  res = AMSGroupCreate(&group, pool, size, &segPrefStruct, rankSet);
+  res = AMSGroupCreate(&group, pool, size, &segPrefStruct, rankSet,
+                       withReservoirPermit);
   if(res != ResOK)
     return res;
   b = AMSGroupAlloc(&base, &limit, group, size);

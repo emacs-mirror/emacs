@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.75) $
+ * $HopeName: MMsrc!trace.c(trunk.76) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .design: design.mps.trace.
@@ -10,7 +10,7 @@
 #include <limits.h>
 
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.75) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.76) $");
 
 
 /* Types
@@ -1030,7 +1030,7 @@ void TracePoll(Trace trace)
   do {
     res = TraceStep(trace);
     if(res != ResOK) {
-      AVER(res == ResMEMORY || res == ResRESOURCE || res == ResCOMMIT_LIMIT);
+      AVER(ResIsAllocFailure(res));
       TraceExpedite(trace);
       AVER(trace->state == TraceFINISHED);
       return;

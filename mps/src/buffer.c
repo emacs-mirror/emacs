@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.40) $
+ * $HopeName: MMsrc!buffer.c(trunk.41) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
@@ -25,7 +25,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.40) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.41) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -417,7 +417,8 @@ Bool BufferIsMutator(Buffer buffer)
  * .reserve: Keep in sync with impl.h.mps.reserve.
  */
 
-Res BufferReserve(Addr *pReturn, Buffer buffer, Size size)
+Res BufferReserve(Addr *pReturn, Buffer buffer, Size size,
+                  Bool withReservoirPermit)
 {
   Addr next;
 
@@ -426,6 +427,7 @@ Res BufferReserve(Addr *pReturn, Buffer buffer, Size size)
   AVER(size > 0);
   AVER(SizeIsAligned(size, BufferPool(buffer)->alignment));
   AVER(BufferIsReady(buffer));
+  AVER(BoolCheck(withReservoirPermit));
 
   /* Is there enough room in the unallocated portion of the buffer to */
   /* satisfy the request?  If so, just increase the alloc marker and */
@@ -438,7 +440,7 @@ Res BufferReserve(Addr *pReturn, Buffer buffer, Size size)
   }
 
   /* If the buffer can't accommodate the request, call "fill". */
-  return BufferFill(pReturn, buffer, size);
+  return BufferFill(pReturn, buffer, size, withReservoirPermit);
 }
 
 
@@ -450,7 +452,8 @@ Res BufferReserve(Addr *pReturn, Buffer buffer, Size size)
  * trapped and "limit" has been set to zero.
  */
 
-Res BufferFill(Addr *pReturn, Buffer buffer, Size size)
+Res BufferFill(Addr *pReturn, Buffer buffer, Size size,
+               Bool withReservoirPermit)
 {
   Res res;
   Pool pool;
@@ -500,7 +503,8 @@ Res BufferFill(Addr *pReturn, Buffer buffer, Size size)
 
   /* Ask the pool for a segment and some memory. */
   res = (*pool->class->bufferFill)(&seg, &base, &limit,
-                                   pool, buffer, size);
+                                   pool, buffer, size,
+                                   withReservoirPermit);
   if(res != ResOK)
     return res;
 

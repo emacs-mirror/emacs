@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.50) $
+ * $HopeName: MMsrc!poolawl.c(trunk.51) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * READERSHIP
@@ -45,7 +45,7 @@
 #include "mpm.h"
 
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.50) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.51) $");
 
 
 #define AWLSig  ((Sig)0x519b7a37)       /* SIGPooLAWL */
@@ -297,7 +297,8 @@ static void AWLGroupDestroy(AWLGroup group)
   
  
 static Res AWLGroupCreate(AWLGroup *groupReturn,
-                          RankSet rankSet, Pool pool, Size size)
+                          RankSet rankSet, Pool pool, Size size,
+                          Bool withReservoirPermit)
 {
   AWL awl;
   Seg seg;
@@ -313,6 +314,7 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   AVER(RankSetCheck(rankSet));
   AVERT(Pool, pool);
   AVER(size > 0);
+  AVER(BoolCheck(withReservoirPermit));
 
   awl = PoolPoolAWL(pool);
   AVERT(AWL, awl);
@@ -328,7 +330,7 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   segPrefStruct = *SegPrefDefault();
   SegPrefExpress(&segPrefStruct, SegPrefCollected, NULL);
   SegPrefExpress(&segPrefStruct, SegPrefGen, &awl->gen);
-  res = SegAlloc(&seg, &segPrefStruct, size, pool);
+  res = SegAlloc(&seg, &segPrefStruct, size, pool, withReservoirPermit);
   if(res != ResOK)
     goto failSegAlloc;
   res = ArenaAlloc(&v, arena, sizeof *group);
@@ -482,7 +484,8 @@ static Res AWLBufferInit(Pool pool, Buffer buffer, va_list args)
 
 
 static Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
-                         Pool pool, Buffer buffer, Size size)
+                         Pool pool, Buffer buffer, Size size,
+                         Bool withReservoirPermit)
 {
   Addr base, limit;
   AWLGroup group;
@@ -496,6 +499,7 @@ static Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(size > 0);
+  AVER(BoolCheck(withReservoirPermit));
 
   awl = PoolPoolAWL(pool);
   AVERT(AWL, awl);
@@ -519,7 +523,8 @@ static Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
 
   /* No free space in existing groups, so create new group */
 
-  res = AWLGroupCreate(&group, BufferRankSet(buffer), pool, size);
+  res = AWLGroupCreate(&group, BufferRankSet(buffer), pool, size,
+                       withReservoirPermit);
   if(res != ResOK) {
     return res;
   }

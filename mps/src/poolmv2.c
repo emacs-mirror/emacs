@@ -1,6 +1,6 @@
 /* impl.c.poolmv2: MANUAL VARIABLE POOL, II
  *
- * $HopeName: MMsrc!poolmv2.c(trunk.2) $
+ * $HopeName: MMsrc!poolmv2.c(trunk.3) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: any MPS developer
@@ -17,7 +17,7 @@
 #include "abq.h"
 #include "meter.h"
 
-SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.2) $");
+SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.3) $");
 
 
 /* Signatures */
@@ -33,11 +33,13 @@ static Bool MV2Check(MV2 mv2);
 static void MV2Finish(Pool pool);
 static Res MV2BufferFill(Seg *segReturn,
                          Addr *baseReturn, Addr *limitReturn,
-                         Pool pool, Buffer buffer, Size minSize);
+                         Pool pool, Buffer buffer, Size minSize,
+                         Bool withReservoirPermit);
 static void MV2BufferEmpty(Pool pool, Buffer buffer);
 static void MV2Free(Pool pool, Addr base, Size size);
 static Res MV2Describe(Pool pool, mps_lib_FILE *stream);
-static Res MV2SegAlloc(Seg *segReturn, MV2 mv2, Size size, Pool pool);
+static Res MV2SegAlloc(Seg *segReturn, MV2 mv2, Size size, Pool pool,
+                       Bool withReservoirPermit);
 
 static void MV2SegFree(MV2 mv2, Seg seg);
 static Bool MV2ReturnBlockSegs(MV2 mv2, CBSBlock block, Arena arena);
@@ -433,7 +435,8 @@ static void MV2Finish(Pool pool)
  */
 static Res MV2BufferFill(Seg *segReturn,
                          Addr *baseReturn, Addr *limitReturn,
-                         Pool pool, Buffer buffer, Size minSize)
+                         Pool pool, Buffer buffer, Size minSize,
+                         Bool withReservoirPermit)
 {
   Seg seg;
   MV2 mv2;
@@ -453,6 +456,7 @@ static Res MV2BufferFill(Seg *segReturn,
   AVER(BufferIsReset(buffer));
   AVER(minSize > 0);
   AVER(SizeIsAligned(minSize, pool->alignment));
+  AVER(BoolCheck(withReservoirPermit));
 
   arena = PoolArena(pool);
   fillSize = mv2->fillSize;
@@ -461,7 +465,7 @@ static Res MV2BufferFill(Seg *segReturn,
   /* design.mps.poolmv2:arch.ap.no-fit.oversize */
   /* Allocate oversize blocks exactly, directly from the arena */
   if (minSize > fillSize) {
-    res = MV2SegAlloc(&seg, mv2, alignedSize, pool);
+    res = MV2SegAlloc(&seg, mv2, alignedSize, pool, withReservoirPermit);
     if (res == ResOK) {
       base = SegBase(seg);
       /* only allocate this block in the segment */
@@ -549,7 +553,7 @@ found:
   
   /* Attempt to request a block from the arena */
   /* see design.mps.poolmv2:impl.c.free.merge.segment */
-  res = MV2SegAlloc(&seg, mv2, fillSize, pool);
+  res = MV2SegAlloc(&seg, mv2, fillSize, pool, withReservoirPermit);
   if (res == ResOK) {
     base = SegBase(seg);
     limit = SegLimit(seg);
@@ -873,9 +877,11 @@ size_t mps_mv2_free_size(mps_pool_t mps_pool)
 /* MV2SegAlloc -- encapsulates SegAlloc with associated accounting and
  * metering
  */
-static Res MV2SegAlloc(Seg *segReturn, MV2 mv2, Size size, Pool pool)
+static Res MV2SegAlloc(Seg *segReturn, MV2 mv2, Size size, 
+                       Pool pool, Bool withReservoirPermit)
 {
-  Res res = SegAlloc(segReturn, MV2SegPref(mv2), size, pool);
+  Res res = SegAlloc(segReturn, MV2SegPref(mv2), size, pool,
+                     withReservoirPermit);
 
   if (res == ResOK) {
     Size segSize = SegSize(*segReturn);
