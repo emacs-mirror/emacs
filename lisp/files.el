@@ -2147,6 +2147,14 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
 (defvar after-save-hook nil
   "Normal hook that is run after a buffer is saved to its file.")
 
+(defvar save-buffer-coding-system nil
+  "If non-nil, use this coding system for saving the buffer.
+More precisely, use this coding system in place of the
+value of `buffer-file-coding-system', when saving the buffer.
+Calling `write-region' for any purpose other than saving the buffer
+will still use `buffer-file-coding-system'; this variable has no effect
+in such cases.")
+
 (defun basic-save-buffer ()
   "Save the current buffer in its visited file, if it has been modified.
 After saving the buffer, run `after-save-hook'."
@@ -2211,7 +2219,9 @@ After saving the buffer, run `after-save-hook'."
 	    ;; Now we have saved the current buffer.  Let's make sure
 	    ;; that buffer-file-coding-system is fixed to what
 	    ;; actually used for saving by binding it locally.
-	    (setq buffer-file-coding-system last-coding-system-used)
+	    (if save-buffer-coding-system
+		(setq save-buffer-coding-system last-coding-system-used)
+	      (setq buffer-file-coding-system last-coding-system-used))
 	    (setq buffer-file-number
 		  (nthcdr 10 (file-attributes buffer-file-name)))
 	    (if setmodes
@@ -2231,7 +2241,10 @@ After saving the buffer, run `after-save-hook'."
 ;; but inhibited if one of write-file-hooks returns non-nil.
 ;; It returns a value to store in setmodes.
 (defun basic-save-buffer-1 ()
-  (let (tempsetmodes setmodes)
+  (let ((buffer-file-coding-system
+	 (or save-buffer-coding-system
+	     buffer-file-coding-system))
+	tempsetmodes setmodes)
     (if (not (file-writable-p buffer-file-name))
 	(let ((dir (file-name-directory buffer-file-name)))
 	  (if (not (file-directory-p dir))
