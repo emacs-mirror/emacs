@@ -1,3 +1,9 @@
+2003-07-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* alloc.c (MARK_STRING, UNMARK_STRING, STRING_MARKED_P)
+	(GC_STRING_CHARS, string_bytes): Use ARRAY_MARK_FLAG rather than
+	MARKBIT as the gcmarkbit for strings.
+
 2003-07-21  Richard M. Stallman  <rms@gnu.org>
 
 	* s/openbsd.h (LD_SWITCH_SYSTEM_TEMACS): Add undef.
