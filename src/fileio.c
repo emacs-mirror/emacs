@@ -382,8 +382,11 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.")
 	 && p[-1] != ':' && p[-1] != ']' && p[-1] != '>'
 #endif /* VMS */
 #ifdef DOS_NT
-	 /* only recognise drive specifier at beginning */
-	 && !(p[-1] == ':' && p == beg + 2)
+	 /* only recognise drive specifier at the beginning */
+	 && !(p[-1] == ':'
+	      /* handle the "/:d:foo" and "/:foo" cases correctly  */
+	      && ((p == beg + 2 && !IS_DIRECTORY_SEP (*beg))
+		  || (p == beg + 4 && IS_DIRECTORY_SEP (*beg))))
 #endif
 	 ) p--;
 
@@ -391,11 +394,20 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.")
     return Qnil;
 #ifdef DOS_NT
   /* Expansion of "c:" to drive and default directory.  */
-  if (p == beg + 2 && beg[1] == ':')
+  if (p[-1] == ':')
     {
       /* MAXPATHLEN+1 is guaranteed to be enough space for getdefdir.  */
       unsigned char *res = alloca (MAXPATHLEN + 1);
-      if (getdefdir (toupper (*beg) - 'A' + 1, res))
+      unsigned char *r = res;
+
+      if (p == beg + 4 && IS_DIRECTORY_SEP (*beg) && beg[1] == ':')
+	{
+	  strncpy (res, beg, 2);
+	  beg += 2;
+	  r += 2;
+	}
+
+      if (getdefdir (toupper (*beg) - 'A' + 1, r))
 	{
 	  if (!IS_DIRECTORY_SEP (res[strlen (res) - 1]))
 	    strcat (res, "/");
@@ -440,7 +452,9 @@ or the entire name if it contains no slash.")
 #endif /* VMS */
 #ifdef DOS_NT
 	 /* only recognise drive specifier at beginning */
-	 && !(p[-1] == ':' && p == beg + 2)
+	 && !(p[-1] == ':'
+	      /* handle the "/:d:foo" case correctly  */
+	      && (p == beg + 2 || (p == beg + 4 && IS_DIRECTORY_SEP (*beg))))
 #endif
 	 )
     p--;
