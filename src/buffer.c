@@ -279,6 +279,7 @@ reset_buffer (b)
   b->overlays_before = Qnil;
   b->overlays_after = Qnil;
   XFASTINT (b->overlay_center) = 1;
+  b->mark_active = Qnil;
 
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
   INITIALIZE_INTERVAL (b, NULL_INTERVAL);
@@ -304,7 +305,6 @@ reset_buffer_local_variables (b)
   b->upcase_table = Vascii_upcase_table;
   b->case_canon_table = Vascii_downcase_table;
   b->case_eqv_table = Vascii_upcase_table;
-  b->mark_active = Qnil;
 #if 0
   b->sort_table = XSTRING (Vascii_sort_table);
   b->folding_sort_table = XSTRING (Vascii_folding_sort_table);
