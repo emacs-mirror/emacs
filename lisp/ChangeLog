@@ -1,5 +1,8 @@
 2004-01-03  Richard M. Stallman  <rms@gnu.org>
 
+	* progmodes/compile.el (compile-internal): Use point, not point-min,
+	for set-window-point.
+
 	* textmodes/tex-mode.el (latex-find-indent): Avoid error at end of buf.
 
 	* emacs-lisp/lisp-mnt.el (lm-section-end): require outline.
