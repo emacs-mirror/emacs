@@ -3594,9 +3594,19 @@ For information on Emacs for Windows 95 and NT, read the FAQ produced by
 @section Where can I get Emacs for my PC running OS/2?
 @cindex OS/2, Emacs for
 
-Emacs 19.33 is ported for emx on OS/2 2.0 or 2.1, and is available at
+Emacs 20.6 is ported for emx on OS/2 2.0 or 2.1, and is available at
 
-@uref{ftp://hobbes.nmsu.edu/pub/os2/apps/editors/emacs/v19.33/}
+@uref{ftp://hobbes.nmsu.edu/pub/os2/apps/editors/emacs/e206*.zip}
+
+@noindent
+and also at
+
+@uref{http://archiv.leo.org/pub/comp/os/os2/leo/gnu/emacs%2d20/}
+
+Instructions for installation, basic setup, and other useful information
+for OS/2 users of Emacs can be found at
+
+@uref{http://userpage.fu-berlin.de/~oheiabbd/emacs/emacs206-os2.html}
 
 @node Emacs for Atari ST, Emacs for the Amiga , Emacs for OS/2, Finding Emacs and related packages
 @section Where can I get Emacs for my Atari ST?
