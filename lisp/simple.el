@@ -587,60 +587,73 @@ Digits or minus sign following \\[universal-argument] make up the numeric argume
 Repeating \\[universal-argument] without digits or minus sign
  multiplies the argument by 4 each time."
   (interactive nil)
-  (let ((c-u 4) (argstartchar last-command-char)
-	char)
-;   (describe-arg (list c-u) 1)
-    (setq char (read-char))
-    (while (= char argstartchar)
-      (setq c-u (* 4 c-u))
-;     (describe-arg (list c-u) 1)
-      (setq char (read-char)))
-    (prefix-arg-internal char c-u nil)))
+  (let ((factor 4)
+	key)
+    (describe-arg (list factor) 1)
+    (setq key (read-key-sequence nil))
+    (while (equal (key-binding key) 'universal-argument)
+      (setq factor (* 4 factor))
+      (describe-arg (list factor) 1)
+      (setq key (read-key-sequence nil)))
+    (prefix-arg-internal key factor nil)))
 
-(defun prefix-arg-internal (char c-u value)
+(defun prefix-arg-internal (key factor value)
   (let ((sign 1))
     (if (and (numberp value) (< value 0))
 	(setq sign -1 value (- value)))
     (if (eq value '-)
 	(setq sign -1 value nil))
-;   (describe-arg value sign)
-    (while (= ?- char)
-      (setq sign (- sign) c-u nil)
-;     (describe-arg value sign)
-      (setq char (read-char)))
-    (while (and (>= char ?0) (<= char ?9))
-      (setq value (+ (* (if (numberp value) value 0) 10) (- char ?0)) c-u nil)
-;     (describe-arg value sign)
-      (setq char (read-char)))
-    ;; Repeating the arg-start char after digits
-    ;; terminates the argument but is ignored.
-    (if (eq (lookup-key global-map (make-string 1 char)) 'universal-argument)
-	(setq char (read-char)))
+    (describe-arg value sign)
+    (while (equal key "-")
+      (setq sign (- sign) factor nil)
+      (describe-arg value sign)
+      (setq key (read-key-sequence nil)))
+    (while (and (= (length key) 1)
+		(not (string< key "0"))
+		(not (string< "9" key)))
+      (setq value (+ (* (if (numberp value) value 0) 10)
+		     (- (aref key 0) ?0))
+	    factor nil)
+      (describe-arg value sign)
+      (setq key (read-key-sequence nil)))
     (setq prefix-arg
-	  (cond (c-u (list c-u))
+	  (cond (factor (list factor))
 		((numberp value) (* value sign))
 		((= sign -1) '-)))
-    (setq unread-command-char char)))
+    ;; Calling universal-argument after digits
+    ;; terminates the argument but is ignored.
+    (if (eq (key-binding key) 'universal-argument)
+	(progn
+	  (describe-arg value sign)
+	  (setq key (read-key-sequence nil))))
+    (if (= (length key) 1)
+	;; Make sure self-insert-command finds the proper character;
+	;; unread the character and let the command loop process it.
+	(setq unread-command-char (string-to-char key))
+      ;; We can't push back a longer string, so we'll emulate the
+      ;; command loop ourselves.
+      (command-execute (key-binding key)))))
 
-;(defun describe-arg (value sign)
-; (cond ((numberp value)
-;	 (message "Arg: %d" (* value sign)))
-;	((consp value)
-;	 (message "Arg: C-u factor %d" (car value)))
-;	((< sign 0)
-;	 (message "Arg: -"))))
+(defun describe-arg (value sign)
+  (cond ((numberp value)
+	 (message "Arg: %d" (* value sign)))
+	((consp value)
+	 (message "Arg: [%d]" (car value)))
+	((< sign 0)
+	 (message "Arg: -"))))
 
 (defun digit-argument (arg)
   "Part of the numeric argument for the next command.
 \\[universal-argument] following digits or minus sign ends the argument."
   (interactive "P")
-  (prefix-arg-internal last-command-char nil arg))
+  (prefix-arg-internal (char-to-string (logand last-command-char ?\177))
+		       nil arg))
 
 (defun negative-argument (arg)
   "Begin a negative numeric argument for the next command.
 \\[universal-argument] following digits or minus sign ends the argument."
   (interactive "P")
-  (prefix-arg-internal ?- nil arg))
+  (prefix-arg-internal "-" nil arg))
 
 (defun forward-to-indentation (arg)
   "Move forward ARG lines and position at first nonblank character."
@@ -721,7 +734,16 @@ to make one entry in the kill ring."
     (copy-region-as-kill beg end)
     (or buffer-read-only (delete-region beg end))))
 
-(defvar x-select-kill nil)
+(defvar interprogram-cut-function nil
+  "Function to call to make a killed region available to other programs.
+
+Most window systems provide some sort of facility for cutting and
+pasting text between the windows of different programs.  On startup,
+this variable is set to a function which emacs will call to make the
+most recently killed text available to other programs.
+
+The function takes one argument, TEXT, which is a string containing
+the text which should be made available.")
 
 (defun copy-region-as-kill (beg end)
   "Save the region as if killed, but don't kill it.
@@ -732,8 +754,8 @@ If `x-select-kill' is non-nil, also save the text for X cut and paste."
     (setq kill-ring (cons (buffer-substring beg end) kill-ring))
     (if (> (length kill-ring) kill-ring-max)
 	(setcdr (nthcdr (1- kill-ring-max) kill-ring) nil)))
-  (if (and (eq window-system 'x) x-select-kill)
-      (x-own-selection (car kill-ring) (selected-screen)))
+  (if interprogram-cut-function
+      (funcall interprogram-cut-function (car kill-ring)))
   (setq this-command 'kill-region
 	kill-ring-yank-pointer kill-ring)
   nil)
@@ -1011,7 +1033,7 @@ The beginning of a blank line does not count as the end of a line.")
   "Current goal column for vertical motion.
 It is the column where point was
 at the start of current run of vertical motion commands.
-When the `track-eol' feature is doing its job, the value is 9999."
+When the `track-eol' feature is doing its job, the value is 9999.")
 
 (defun line-move (arg)
   (if (not (or (eq last-command 'next-line)
@@ -1637,6 +1659,11 @@ If you want VALUE to be a string, you must surround it with doublequotes."
 (define-key global-map "\C-n" 'next-line)
 (define-key global-map "\C-p" 'previous-line)
 (define-key ctl-x-map "\C-n" 'set-goal-column)
+
+(define-key global-map [up] 'previous-line)
+(define-key global-map [down] 'next-line)
+(define-key global-map [left] 'backward-char)
+(define-key global-map [right] 'forward-char)
 
 (define-key global-map "\C-t" 'transpose-chars)
 (define-key esc-map "t" 'transpose-words)
