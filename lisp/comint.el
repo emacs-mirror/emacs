@@ -406,7 +406,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (define-key comint-mode-map "\C-c\C-o" 'comint-kill-output)
   (define-key comint-mode-map "\C-c\C-r" 'comint-show-output)
   (define-key comint-mode-map "\C-c\C-e" 'comint-show-maximum-output)
-  (define-key comint-mode-map "\C-c\C-h" 'comint-dynamic-list-input-ring)
+  (define-key comint-mode-map "\C-c\C-l" 'comint-dynamic-list-input-ring)
   (define-key comint-mode-map "\C-c\C-n" 'comint-next-prompt)
   (define-key comint-mode-map "\C-c\C-p" 'comint-previous-prompt)
   (define-key comint-mode-map "\C-c\C-d" 'comint-send-eof)
