@@ -23,6 +23,8 @@
 
 ;;; Commentary:
 
+;; This package gives you the ability to edit text in a two-column format.
+
 ;; --8<---- two-column.el ----8<--------8<--------8<--------8<--------8<-------
 ;; Esperanto:				English:
 
