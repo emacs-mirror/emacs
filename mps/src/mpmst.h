@@ -1,16 +1,13 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.56) $
- * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName$
+ * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
  *
  * .design: This header file crosses module boundaries.  The relevant
  * design a module's structures should be found in that module's design
  * document.
- *
- * .requirements: There are none [maybe being easy to experiment is a
- * requirement].
  *
  * .rationale: Almost all MPM data structures are defined in this
  * header, or in headers selected from here.  Most structures have
@@ -607,10 +604,9 @@ typedef struct ArenaStruct {
   Bool poolReady;               /* design.mps.arena.pool.ready */
   MVStruct controlPoolStruct;   /* design.mps.arena.pool */
   LockStruct lockStruct;        /* arena's lock */
-  Size pollThreshold;           /* design.mps.arena.poll */
-  Bool insidePoll;              /* design.mps.arena.poll */
+  double pollThreshold;         /* design.mps.arena.poll */
+  Bool insidePoll;
   Bool clamped;                 /* prevent background activity */
-  Size actionInterval;          /* design.mps.arena.poll.interval */
 
   Bool bufferLogging;           /* design.mps.buffer.logging.control */
   double fillMutatorSize;       /* total bytes filled, mutator buffers */

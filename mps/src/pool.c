@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.52) $
+ * $HopeName: MMsrc!pool.c(trunk.53) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * READERSHIP
@@ -37,7 +37,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.52) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.53) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -90,6 +90,7 @@ Bool PoolCheck(Pool pool)
   CHECKL(pool->emptyInternalSize >= 0.0);
   return TRUE;
 }
+
 
 /* PoolInit, PoolInitV -- initialize a pool
  *
@@ -207,6 +208,7 @@ failPoolInit:
 failArenaAlloc:
   return res;
 }
+
 
 /* PoolFinish -- Finish pool including class-specific and generic fields. */
 
@@ -974,6 +976,7 @@ Res PoolCollectAct(Pool pool, Action action)
 
   AVERT(Pool, pool);
   AVERT(Action, action);
+  AVER(action->pool == pool);
 
   arena = PoolArena(pool);
 
@@ -981,7 +984,7 @@ Res PoolCollectAct(Pool pool, Action action)
   if(res != ResOK)
     goto failCreate;
 
-  res = PoolTraceBegin(action->pool, trace);
+  res = PoolTraceBegin(pool, trace);
   if(res != ResOK)
     goto failBegin;
   
@@ -995,14 +998,15 @@ Res PoolCollectAct(Pool pool, Action action)
       goto failAddWhite;
   }
 
-  res = TraceStart(trace);
+  /* @@@@ mortality and finishing time are set to reasonable values, */
+  /* while we wait for a more intelligent strategy. */
+  res = TraceStart(trace, 0.5, 0.5 * trace->condemned);
   if(res != ResOK)
     goto failStart;
 
   return ResOK;
 
 failStart:
-  NOTREACHED;
 failAddWhite:
   NOTREACHED; /* @@@@ Would leave white sets inconsistent. */
 failBegin:
@@ -1010,6 +1014,7 @@ failBegin:
 failCreate:
   return res;
 }
+
 
 void PoolNoWalk(Pool pool, Seg seg,
                 FormattedObjectsStepMethod f,

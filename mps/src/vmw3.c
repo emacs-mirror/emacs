@@ -1,6 +1,6 @@
 /*  impl.c.vmw3: VIRTUAL MEMORY MAPPING FOR WIN32
  *
- *  $HopeName: MMsrc!vmw3.c(trunk.24) $
+ *  $HopeName: MMsrc!vmw3.c(trunk.25) $
  *  Copyright (C) 1997, 1998 Harlequin Group, all rights reserved
  *
  *  Design: design.mps.vm
@@ -55,7 +55,7 @@
 
 #include "mpswin.h"
 
-SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.24) $");
+SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.25) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -106,11 +106,6 @@ static Res VMRAMSize(VM vm, Size *vmRAMSizeReturn)
   *vmRAMSizeReturn = (Size)memstat.dwTotalPhys;
   return ResOK;
 }
-
-/* defined in impl.c.trace */
-extern unsigned long AMCGen0Frequency;
-extern unsigned long AMCGen1Frequency;
-extern unsigned long AMCGen2Frequency;
 
 
 /* VMSetCollectionStrategy -- initialize strategy for platform */

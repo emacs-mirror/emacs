@@ -1,9 +1,7 @@
+# impl.gmk.o1algc: BUILD FOR OSF/1, ALPHA, GCC PLATFORM
 #
-#     BUILD FOR OSF/1, ALPHA, GCC PLATFORM
-#
-# $HopeName: MMsrc!o1algc.gmk(trunk.19) $
-#
-# Copyright (C) 1995,1997 Harlequin Group, all rights reserved
+# $HopeName$
+# Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
 #
 # This is the GNU makefile for platform.o1algc.
 #
@@ -14,12 +12,8 @@
 PFM = o1algc
 PFMDEFS = -D_ANSI_C_SOURCE
 
-MPM = assert.c ring.c mpsliban.c mpm.c bt.c \
-      arenavm.c arenacl.c arena.c pool.c poolmfs.c \
-      poolmv.c root.c format.c buffer.c lockan.c ref.c \
-      trace.c than.c proto1.c prmcan.c shield.c mpsi.c ld.c vmo1.c \
-      mpsioan.c event.c action.c seg.c poolmrg.c message.c \
-      span.c
+MPMPF = mpsliban.c mpsioan.c lockan.c than.c vmo1.c \
+        proto1.c prmcan.c span.c
 MPMS = sso1al.s
 DW = dw.c fmtdy.c
 
