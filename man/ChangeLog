@@ -1,3 +1,8 @@
+2004-07-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* search.texi (Regexps): Delete redundant definition of `symbol' in
+	description of `\_>'.  It already occurs in the description of `\_<'.
+
 2004-07-02  Juri Linkov  <juri@jurta.org>
 
 	* pcl-cvs.texi (Viewing differences): Add `d r'.
