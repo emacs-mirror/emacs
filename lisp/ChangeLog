@@ -1,3 +1,7 @@
+2002-07-25  Dave Love  <fx@gnu.org>
+
+	* obsolete/c-mode.el: Deleted.
+
 2002-07-20  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el (vc-insert-file): When called with a LIMIT regexp,
