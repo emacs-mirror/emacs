@@ -4583,6 +4583,8 @@ Default face attributes override any local face attributes.")
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
     if (! UNSPECIFIEDP (gvec[i]))
       lvec[i] = gvec[i];
+
+  return Qnil;
 }
 
 
@@ -5671,7 +5673,7 @@ best_matching_font (f, attrs, fonts, nfonts)
 {
   char *font_name;
   struct font_name *best;
-  int i, pt;
+  int i, pt = 0;
   int specified[4];
   int exact_p;
 
