@@ -1,5 +1,5 @@
 /* Fontset handler.
-   Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
+   Copyright (C) 1995, 1997, 2000 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -19,17 +19,121 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
+/* #define FONTSET_DEBUG */
+
 #include <config.h>
-#if HAVE_ALLOCA_H
-#include <alloca.h>
-#endif /* HAVE_ALLOCA_H */ 
+
+#ifdef FONTSET_DEBUG
+#include <stdio.h>
+#endif
+
 #include "lisp.h"
 #include "charset.h"
 #include "ccl.h"
 #include "frame.h"
+#include "dispextern.h"
 #include "fontset.h"
+#include "window.h"
 
-Lisp_Object Vglobal_fontset_alist;
+#ifdef FONTSET_DEBUG
+#undef xassert
+#define xassert(X)	do {if (!(X)) abort ();} while (0)
+#undef INLINE
+#define INLINE
+#endif
+
+
+/* FONTSET
+
+   A fontset is a collection of font related information to give
+   similar appearance (style, size, etc) of characters.  There are two
+   kinds of fontsets; base and realized.  A base fontset is created by
+   new-fontset from Emacs Lisp explicitly.  A realized fontset is
+   created implicitly when a face is realized for ASCII characters.  A
+   face is also realized for multibyte characters based on an ASCII
+   face.  All of the multibyte faces based on the same ASCII face
+   share the same realized fontset.
+   
+   A fontset object is implemented by a char-table.
+
+   An element of a base fontset is:
+	(INDEX . FONTNAME) or
+	(INDEX . (FOUNDRY . REGISTRY ))
+   FONTNAME is a font name pattern for the corresponding character.
+   FOUNDRY and REGISTRY are respectively foundy and regisry fields of
+   a font name for the corresponding character.  INDEX specifies for
+   which character (or generic character) the element is defined.  It
+   may be different from an index to access this element.  For
+   instance, if a fontset defines some font for all characters of
+   charset `japanese-jisx0208', INDEX is the generic character of this
+   charset.  REGISTRY is the
+
+   An element of a realized fontset is FACE-ID which is a face to use
+   for displaying the correspnding character.
+
+   All single byte charaters (ASCII and 8bit-unibyte) share the same
+   element in a fontset.  The element is stored in `defalt' slot of
+   the fontset.  And this slot is never used as a default value of
+   multibyte characters.  That means that the first 256 elements of a
+   fontset set is always nil (as this is not efficient, we may
+   implement a fontset in a different way in the future).
+
+   To access or set each element, use macros FONTSET_REF and
+   FONTSET_SET respectively for efficiency.
+
+   A fontset has 3 extra slots.
+
+   The 1st slot is an ID number of the fontset.
+
+   The 2nd slot is a name of the fontset.  This is nil for a realized
+   face.
+
+   The 3rd slot is a frame that the fontset belongs to.  This is nil
+   for a default face.
+
+   A parent of a base fontset is nil.  A parent of a realized fontset
+   is a base fontset.
+
+   All fontsets (except for the default fontset described below) are
+   recorded in Vfontset_table.
+
+
+   DEFAULT FONTSET
+
+   There's a special fontset named `default fontset' which defines a
+   default fontname that contains only REGISTRY field for each
+   character.  When a base fontset doesn't specify a font for a
+   specific character, the corresponding value in the default fontset
+   is used.  The format is the same as a base fontset.
+
+   The parent of realized fontsets created for faces that have no
+   fontset is the default fontset.
+
+
+   These structures are hidden from the other codes than this file.
+   The other codes handle fontsets only by their ID numbers.  They
+   usually use variable name `fontset' for IDs.  But, in this file, we
+   always use varialbe name `id' for IDs, and name `fontset' for the
+   actual fontset objects.
+
+*/
+
+/********** VARIABLES and FUNCTION PROTOTYPES **********/
+
+extern Lisp_Object Qfont;
+Lisp_Object Qfontset;
+
+/* Vector containing all fontsets.  */
+static Lisp_Object Vfontset_table;
+
+/* Next possibly free fontset ID.  Usually this keeps the mininum
+   fontset ID not yet used.  */
+static int next_fontset_id;
+
+/* The default fontset.  This gives default FAMILY and REGISTRY of
+   font for each characters.  */
+static Lisp_Object Vdefault_fontset;
+
 Lisp_Object Vfont_encoding_alist;
 Lisp_Object Vuse_default_ascent;
 Lisp_Object Vignore_relative_composition;
@@ -39,26 +143,9 @@ Lisp_Object Vhighlight_wrong_size_font;
 Lisp_Object Vclip_large_size_font;
 Lisp_Object Vvertical_centering_font_regexp;
 
-/* Used as a temporary in macro FS_LOAD_FONT.  */
-int font_idx_temp;
-
-/* We had better have our own strcasecmp function because some system
-   doesn't have it.  */
-static char my_strcasetbl[256];
-
-/* Compare two strings S0 and S1 while ignoring differences in case.
-   Return 1 if they differ, else return 0.  */
-static int
-my_strcasecmp (s0, s1)
-     unsigned char *s0, *s1;
-{
-  while (*s0)
-    if (my_strcasetbl[*s0++] != my_strcasetbl[*s1++]) return 1;
-  return (int) *s1;
-}
-
-/* The following six are window system dependent functions.  See
-   the comments in src/fontset.h for more detail.  */
+/* The following six are declarations of callback functions depending
+   on window system.  See the comments in src/fontset.h for more
+   detail.  */
 
 /* Return a pointer to struct font_info of font FONT_IDX of frame F.  */
 struct font_info *(*get_font_info_func) P_ ((FRAME_PTR f, int font_idx));
@@ -90,113 +177,462 @@ void (*find_ccl_program_func) P_ ((struct font_info *));
 /* Check if any window system is used now.  */
 void (*check_window_system_func) P_ ((void));
 
-struct fontset_data *
-alloc_fontset_data ()
+
+/* Prototype declarations for static functions.  */
+static Lisp_Object fontset_ref P_ ((Lisp_Object, int));
+static void fontset_set P_ ((Lisp_Object, int, Lisp_Object));
+static Lisp_Object make_fontset P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
+static int fontset_id_valid_p P_ ((int));
+static Lisp_Object fontset_pattern_regexp P_ ((Lisp_Object));
+static Lisp_Object font_family_registry P_ ((Lisp_Object));
+
+
+/********** MACROS AND FUNCTIONS TO HANDLE FONTSET **********/
+
+/* Macros for Lisp vector.  */
+#define AREF(V, IDX)	XVECTOR (V)->contents[IDX]
+#define ASIZE(V)	XVECTOR (V)->size
+
+/* Return the fontset with ID.  No check of ID's validness.  */
+#define FONTSET_FROM_ID(id) AREF (Vfontset_table, id)
+
+/* Macros to access extra, default, and parent slots, of fontset.  */
+#define FONTSET_ID(fontset)		XCHAR_TABLE (fontset)->extras[0]
+#define FONTSET_NAME(fontset)		XCHAR_TABLE (fontset)->extras[1]
+#define FONTSET_FRAME(fontset)		XCHAR_TABLE (fontset)->extras[2]
+#define FONTSET_ASCII(fontset)		XCHAR_TABLE (fontset)->defalt
+#define FONTSET_BASE(fontset)		XCHAR_TABLE (fontset)->parent
+
+#define BASE_FONTSET_P(fontset)		NILP (FONTSET_BASE(fontset))
+
+
+/* Return the element of FONTSET (char-table) at index C (character).  */
+
+#define FONTSET_REF(fontset, c)	fontset_ref (fontset, c)
+
+static INLINE Lisp_Object
+fontset_ref (fontset, c)
+     Lisp_Object fontset;
+     int c;
 {
-  struct fontset_data *fontset_data
-    = (struct fontset_data *) xmalloc (sizeof (struct fontset_data));
+  int charset, c1, c2;
+  Lisp_Object elt, defalt;
+  int i;
 
-  bzero (fontset_data, sizeof (struct fontset_data));
+  if (SINGLE_BYTE_CHAR_P (c))
+    return FONTSET_ASCII (fontset);
 
-  return fontset_data;
+  SPLIT_NON_ASCII_CHAR (c, charset, c1, c2);
+  elt = XCHAR_TABLE (fontset)->contents[charset + 128];
+  if (!SUB_CHAR_TABLE_P (elt))
+    return elt;
+  defalt = XCHAR_TABLE (elt)->defalt;
+  if (c1 < 32
+      || (elt = XCHAR_TABLE (elt)->contents[c1],
+	  NILP (elt)))
+    return defalt;
+  if (!SUB_CHAR_TABLE_P (elt))
+    return elt;
+  defalt = XCHAR_TABLE (elt)->defalt;
+  if (c2 < 32
+      || (elt = XCHAR_TABLE (elt)->contents[c2],
+	  NILP (elt)))
+    return defalt;
+  return elt;
 }
 
-void
-free_fontset_data (fontset_data)
-     struct fontset_data *fontset_data;
-{
-  if (fontset_data->fontset_table)
-    {
-      int i;
 
-      for (i = 0; i < fontset_data->n_fontsets; i++)
-	{
-	  int j;
-	  
-	  xfree (fontset_data->fontset_table[i]->name);
-	  for (j = 0; j <= MAX_CHARSET; j++)
-	    if (fontset_data->fontset_table[i]->fontname[j])
-	      xfree (fontset_data->fontset_table[i]->fontname[j]);
-	  xfree (fontset_data->fontset_table[i]);
-	}
-      xfree (fontset_data->fontset_table);
+#define FONTSET_REF_VIA_BASE(fontset, c) fontset_ref_via_base (fontset, &c)
+
+static INLINE Lisp_Object
+fontset_ref_via_base (fontset, c)
+     Lisp_Object fontset;
+     int *c;
+{
+  int charset, c1, c2;
+  Lisp_Object elt;
+  int i;
+
+  if (SINGLE_BYTE_CHAR_P (*c))
+    return FONTSET_ASCII (fontset);
+
+  elt = FONTSET_REF (FONTSET_BASE (fontset), *c);
+  if (NILP (elt))
+    return Qnil;
+
+  *c = XINT (XCAR (elt));
+  SPLIT_NON_ASCII_CHAR (*c, charset, c1, c2);
+  elt = XCHAR_TABLE (fontset)->contents[charset + 128];
+  if (c1 < 32)
+    return (SUB_CHAR_TABLE_P (elt) ? XCHAR_TABLE (elt)->defalt : elt);
+  if (!SUB_CHAR_TABLE_P (elt))
+    return Qnil;
+  elt = XCHAR_TABLE (elt)->contents[c1];
+  if (c2 < 32)
+    return (SUB_CHAR_TABLE_P (elt) ? XCHAR_TABLE (elt)->defalt : elt);
+  if (!SUB_CHAR_TABLE_P (elt))
+    return Qnil;
+  elt = XCHAR_TABLE (elt)->contents[c2];
+  return elt;
+}
+
+
+/* Store into the element of FONTSET at index C the value NEWETL.  */
+#define FONTSET_SET(fontset, c, newelt) fontset_set(fontset, c, newelt)
+
+static void
+fontset_set (fontset, c, newelt)
+     Lisp_Object fontset;
+     int c;
+     Lisp_Object newelt;
+{
+  int charset, code[3];
+  Lisp_Object *elt, tmp;
+  int i, j;
+
+  if (SINGLE_BYTE_CHAR_P (c))
+    {
+      FONTSET_ASCII (fontset) = newelt;
+      return;
     }
 
-  xfree (fontset_data);
+  SPLIT_NON_ASCII_CHAR (c, charset, code[0], code[1]);
+  code[2] = 0;			/* anchor */
+  elt = &XCHAR_TABLE (fontset)->contents[charset + 128];
+  for (i = 0; code[i] > 0; i++)
+    {
+      if (!SUB_CHAR_TABLE_P (*elt))
+	*elt = make_sub_char_table (*elt);
+      elt = &XCHAR_TABLE (*elt)->contents[code[i]];
+    }
+  if (SUB_CHAR_TABLE_P (*elt))
+    XCHAR_TABLE (*elt)->defalt = newelt;
+  else
+    *elt = newelt;
 }
 
-/* Load a font named FONTNAME for displaying CHARSET on frame F.
-   All fonts for frame F is stored in a table pointed by FONT_TABLE.
-   Return a pointer to the struct font_info of the loaded font.
-   If loading fails, return 0;
-   If FONTNAME is NULL, the name is taken from the information of FONTSET.
-   If FONTSET is given, try to load a font whose size matches that of
-   FONTSET, and, the font index is stored in the table for FONTSET.
 
-   If you give FONTSET argument, don't call this function directry,
-   instead call macro FS_LOAD_FONT with the same argument.  */
+/* Return a newly created fontset with NAME.  If BASE is nil, make a
+   base fontset.  Otherwise make a realized fontset whose parent is
+   BASE.  */
+
+static Lisp_Object
+make_fontset (frame, name, base)
+     Lisp_Object frame, name, base;
+{
+  Lisp_Object fontset, elt, base_elt;
+  int size = ASIZE (Vfontset_table);
+  int id = next_fontset_id;
+  int i, j;
+
+  /* Find a free slot in Vfontset_table.  Usually, next_fontset_id is
+     the next available fontset ID.  So it is expected that this loop
+     terminates quickly.  In addition, as the last element of
+     Vfotnset_table is always nil, we don't have to check the range of
+     id.  */
+  while (!NILP (AREF (Vfontset_table, id))) id++;
+
+  if (id + 1 == size)
+    {
+      Lisp_Object tem;
+      int i; 
+
+      tem = Fmake_vector (make_number (size + 8), Qnil);
+      for (i = 0; i < size; i++)
+	AREF (tem, i) = AREF (Vfontset_table, i);
+      Vfontset_table = tem;
+    }
+
+  if (NILP (base))
+    fontset = Fcopy_sequence (Vdefault_fontset);
+  else
+    fontset = Fmake_char_table (Qfontset, Qnil);
+
+  FONTSET_ID (fontset) = make_number (id);
+  FONTSET_NAME (fontset) = name;
+  FONTSET_FRAME (fontset) = frame;
+  FONTSET_BASE (fontset) = base;
+
+  AREF (Vfontset_table, id) = fontset;
+  next_fontset_id = id + 1;
+  return fontset;
+}
+
+
+/* Return 1 if ID is a valid fontset id, else return 0.  */
+
+static INLINE int
+fontset_id_valid_p (id)
+     int id;
+{
+  return (id >= 0 && id < ASIZE (Vfontset_table) - 1);
+}
+
+
+/* Extract `family' and `registry' string from FONTNAME and set in
+   *FAMILY and *REGISTRY respectively.  Actually, `family' may also
+   contain `foundry', `registry' may also contain `encoding' of
+   FONTNAME.  */
+
+static Lisp_Object
+font_family_registry (fontname)
+     Lisp_Object fontname;
+{
+  Lisp_Object family, registry;
+  char *p = XSTRING (fontname)->data;
+  char *sep[15];
+  int i = 0;
+  
+  while (*p && i < 15) if (*p++ == '-') sep[i++] = p;
+  if (i != 14)
+    return fontname;
+
+  family = make_unibyte_string (sep[0], sep[2] - 1 - sep[0]);
+  registry = make_unibyte_string (sep[12], p - sep[12]);
+  return Fcons (family, registry);
+}
+
+
+/********** INTERFACES TO xfaces.c and dispextern.h **********/ 
+
+/* Return name of the fontset with ID.  */
+
+Lisp_Object
+fontset_name (id)
+     int id;
+{
+  Lisp_Object fontset;
+  fontset = FONTSET_FROM_ID (id);
+  return FONTSET_NAME (fontset);
+}
+
+
+/* Return ASCII font name of the fontset with ID.  */
+
+Lisp_Object
+fontset_ascii (id)
+     int id;
+{
+  Lisp_Object fontset, elt;
+  fontset= FONTSET_FROM_ID (id);
+  elt = FONTSET_ASCII (fontset);
+  return XCDR (elt);
+}
+
+
+/* Free fontset of FACE.  Called from free_realized_face.  */
+
+void
+free_face_fontset (f, face)
+     FRAME_PTR f;
+     struct face *face;
+{
+  if (fontset_id_valid_p (face->fontset))
+    {
+      AREF (Vfontset_table, face->fontset) = Qnil;
+      if (face->fontset < next_fontset_id)
+	next_fontset_id = face->fontset;
+    }
+}
+
+
+/* Return 1 iff FACE is suitable for displaying character C.
+   Otherwise return 0.  Called from the macro FACE_SUITABLE_FOR_CHAR_P
+   when C is not a single byte character..  */
+
+int
+face_suitable_for_char_p (face, c)
+     struct face *face;
+     int c;
+{
+  Lisp_Object fontset, elt;
+
+  if (SINGLE_BYTE_CHAR_P (c))
+    return (face == face->ascii_face);
+
+  xassert (fontset_id_valid_p (face->fontset));
+  fontset = FONTSET_FROM_ID (face->fontset);
+  xassert (!BASE_FONTSET_P (fontset));
+
+  elt = FONTSET_REF_VIA_BASE (fontset, c);
+  return (!NILP (elt) && face->id == XFASTINT (elt));
+}
+
+
+/* Return ID of face suitable for displaying character C on frame F.
+   The selection of face is done based on the fontset of FACE.  FACE
+   should already have been realized for ASCII characters.  Called
+   from the macro FACE_FOR_CHAR when C is not a single byte character.  */
+
+int
+face_for_char (f, face, c)
+     FRAME_PTR f;
+     struct face *face;
+     int c;
+{
+  Lisp_Object fontset, elt;
+  int face_id;
+
+  xassert (fontset_id_valid_p (face->fontset));
+  fontset = FONTSET_FROM_ID (face->fontset);
+  xassert (!BASE_FONTSET_P (fontset));
+
+  elt = FONTSET_REF_VIA_BASE (fontset, c);
+  if (!NILP (elt))
+    return XINT (elt);
+
+  /* No face is recorded for C in the fontset of FACE.  Make a new
+     realized face for C that has the same fontset.  */
+  face_id = lookup_face (f, face->lface, c, face);
+  
+  /* Record the face ID in FONTSET at the same index as the
+     information in the base fontset.  */
+  FONTSET_SET (fontset, c, make_number (face_id));
+  return face_id;
+}
+
+
+/* Make a realized fontset for ASCII face FACE on frame F from the
+   base fontset BASE_FONTSET_ID.  If BASE_FONTSET_ID is -1, use the
+   default fontset as the base.  Value is the id of the new fontset.
+   Called from realize_x_face.  */
+
+int
+make_fontset_for_ascii_face (f, base_fontset_id)
+     FRAME_PTR f;
+     int base_fontset_id;
+{
+  Lisp_Object base_fontset, fontset, name, frame;
+
+  XSETFRAME (frame, f);
+  if (base_fontset_id >= 0)
+    {
+      base_fontset = FONTSET_FROM_ID (base_fontset_id);
+      if (!BASE_FONTSET_P (base_fontset))
+	base_fontset = FONTSET_BASE (base_fontset);
+      xassert (BASE_FONTSET_P (base_fontset));
+    }
+  else
+    base_fontset = Vdefault_fontset;
+
+  fontset = make_fontset (frame, Qnil, base_fontset);
+  return FONTSET_ID (fontset);
+}
+
+
+/* Return the font name pattern for C that is recorded in the fontset
+   with ID.  A font is opened by that pattern to get the fullname.  If
+   the fullname conform to XLFD, extract foundry-family field and
+   registry-encoding field, and return the cons of them.  Otherwise
+   return the fullname.  If ID is -1, or the fontset doesn't contain
+   information about C, get the registry and encoding of C from the
+   default fontset.  Called from choose_face_font.  */
+
+Lisp_Object
+fontset_font_pattern (f, id, c)
+     FRAME_PTR f;
+     int id, c;
+{
+  Lisp_Object fontset, elt;
+  struct font_info *fontp;
+  Lisp_Object family_registry;
+  
+  elt = Qnil;
+  if (fontset_id_valid_p (id))
+    {
+      fontset = FONTSET_FROM_ID (id);
+      xassert (!BASE_FONTSET_P (fontset));
+      fontset = FONTSET_BASE (fontset);
+      elt = FONTSET_REF (fontset, c);
+    }
+  else
+    elt = FONTSET_REF (Vdefault_fontset, c);
+
+  if (!CONSP (elt))
+    return Qnil;
+  if (CONSP (XCDR (elt)))
+    return XCDR (elt);
+
+  /* The fontset specifies only a font name pattern (not cons of
+     family and registry).  Try to open a font by that pattern and get
+     a registry from the full name of the opened font.  We ignore
+     family name here because it should be wild card in the fontset
+     specification.  */
+  elt = XCDR (elt);
+  xassert (STRINGP (elt));
+  fontp = FS_LOAD_FONT (f, c, XSTRING (elt)->data, -1);
+  if (!fontp)
+    return Qnil;
+
+  family_registry = font_family_registry (build_string (fontp->full_name));
+  if (!CONSP (family_registry))
+    return family_registry;
+  XCAR (family_registry) = Qnil;
+  return family_registry;
+}
+
+
+/* Load a font named FONTNAME to display character C on frame F.
+   Return a pointer to the struct font_info of the loaded font.  If
+   loading fails, return NULL.  If FACE is non-zero and a fontset is
+   assigned to it, record FACE->id in the fontset for C.  If FONTNAME
+   is NULL, the name is taken from the fontset of FACE or what
+   specified by ID.  */
 
 struct font_info *
-fs_load_font (f, font_table, charset, fontname, fontset)
+fs_load_font (f, c, fontname, id, face)
      FRAME_PTR f;
-     struct font_info *font_table;
-     int charset, fontset;
+     int c;
      char *fontname;
+     int id;
+     struct face *face;
 {
-  Lisp_Object font_list;
+  Lisp_Object fontset;
   Lisp_Object list, elt;
   int font_idx;
   int size = 0;
-  struct fontset_info *fontsetp = 0;
   struct font_info *fontp;
+  int charset = CHAR_CHARSET (c);
 
-  if (fontset >= 0 && fontset < FRAME_FONTSET_DATA (f)->n_fontsets)
+  if (face)
+    id = face->fontset;
+  if (id < 0)
+    fontset = Qnil;
+  else
+    fontset = FONTSET_FROM_ID (id);
+
+  if (!NILP (fontset)
+      && !BASE_FONTSET_P (fontset))
     {
-      fontsetp = FRAME_FONTSET_DATA (f)->fontset_table[fontset];
-      font_idx = fontsetp->font_indexes[charset];
-      if (font_idx >= 0)
-	/* We have already loaded a font.  */
-	return font_table + font_idx;
-      else if (font_idx == FONT_NOT_FOUND)
-	/* We have already tried loading a font and failed.  */
-	return 0;
-      if (!fontname)
-	fontname = fontsetp->fontname[charset];
+      elt = FONTSET_REF_VIA_BASE (fontset, c);
+      if (!NILP (elt))
+	{
+	  /* A suitable face for C is already recorded, which means
+	     that a proper font is already loaded.  */
+	  int face_id = XINT (elt);
+
+	  xassert (face_id == face->id);
+	  face = FACE_FROM_ID (f, face_id);
+	  return (*get_font_info_func) (f, face->font_info_id);
+	}
+
+      if (!fontname && charset == CHARSET_ASCII)
+	{
+	  elt = FONTSET_ASCII (fontset);
+	  fontname = XSTRING (XCDR (elt))->data;
+	}
     }
 
   if (!fontname)
     /* No way to get fontname.  */
     return 0;
 
-  /* If CHARSET is not ASCII and FONTSET is specified, we must load a
-     font of appropriate size to be used with other fonts in this
-     fontset.  */
-  if (charset != CHARSET_ASCII && fontsetp)
-    {
-      /* If we have not yet loaded ASCII font of FONTSET, we must load
-	 it now to decided the size and height of this fontset.  */
-      if (fontsetp->size == 0)
-	{
-	  fontp = fs_load_font (f, font_table, CHARSET_ASCII, 0, fontset);
-	  if (!fontp)
-	    /* Any fontset should contain available ASCII.  */
-	    return 0;
-	}
-      /* Now we have surely decided the size of this fontset.  */
-      size = fontsetp->size * CHARSET_WIDTH (charset);
-    }
-
   fontp = (*load_font_func) (f, fontname, size);
-
   if (!fontp)
-    {
-      if (fontsetp)
-	fontsetp->font_indexes[charset] = FONT_NOT_FOUND;
-      return 0;
-    }
+    return 0;
 
-  /* Fill in fields (charset, vertical_centering, encoding, and
-     font_encoder) which are not set by (*load_font_func).  */
+  /* Fill in members (charset, vertical_centering, encoding, etc) of
+     font_info structure that are not set by (*load_font_func).  */
   fontp->charset = charset;
 
   fontp->vertical_centering
@@ -216,7 +652,7 @@ fs_load_font (f, font_table, charset, fontname, fontset)
     }
   else
     {
-      /* The font itself doesn't tell which code points to be used.  */
+      /* The font itself doesn't have information about encoding.  */
       int i;
 
       /* At first, set 1 (means 0xA0..0xFF) as the default.  */
@@ -251,156 +687,10 @@ fs_load_font (f, font_table, charset, fontname, fontset)
   if (find_ccl_program_func)
     (*find_ccl_program_func) (fontp);
 
-  /* If FONTSET is specified, setup various fields of it.  */
-  if (fontsetp)
-    {
-      fontsetp->font_indexes[charset] = fontp->font_idx;
-      if (charset == CHARSET_ASCII)
-	{
-	  /* Decide or change the size and height of this fontset.  */
-	  if (fontsetp->size == 0)
-	    {
-	      fontsetp->size = fontp->size;
-	      fontsetp->height = fontp->height;
-	    }
-	  else if (fontsetp->size != fontp->size
-		   || fontsetp->height != fontp->height)
-	    {
-	      /* When loading ASCII font of the different size from
-		 the size of FONTSET, we have to update the size of
-		 FONTSET.  Since changing the size of FONTSET may make
-		 some fonts already loaded inappropriate to be used in
-		 FONTSET, we must delete the record of such fonts.  In
-		 that case, we also have to calculate the height of
-		 FONTSET from the remaining fonts.  */
-	      int i;
-
-	      fontsetp->size = fontp->size;
-	      fontsetp->height = fontp->height;
-	      for (i = CHARSET_ASCII + 1; i <= MAX_CHARSET; i++)
-		{
-		  font_idx = fontsetp->font_indexes[i];
-		  if (font_idx >= 0)
-		    {
-		      struct font_info *fontp2 = font_table + font_idx;
-
-		      if (fontp2->size != fontp->size * CHARSET_WIDTH (i))
-			fontsetp->font_indexes[i] = FONT_NOT_OPENED;
-		      /* The following code should be disabled until
-			 Emacs supports variable height lines.  */
-#if 0
-		      else if (fontsetp->height < fontp->height)
-			fontsetp->height = fontp->height;
-#endif
-		    }
-		}
-	    }
-	}
-    }
-
   return fontp;
 }
 
-/* Return ID of the fontset named NAME on frame F.  */
-
-int
-fs_query_fontset (f, name)
-     FRAME_PTR f;
-     char *name;
-{
-  struct fontset_data *fontset_data = FRAME_FONTSET_DATA (f);
-  int i;
-
-  for (i = 0; i < fontset_data->n_fontsets; i++)
-    if (!my_strcasecmp(name, fontset_data->fontset_table[i]->name))
-      return i;
-  return -1;
-}
-
-/* Register a fontset specified by FONTSET_INFO for frame FRAME.
-   Return the fontset ID if successfully registered, else return -1.
-   FONTSET_INFO is a cons of name of the fontset and FONTLIST, where
-   FONTLIST is an alist of charsets vs fontnames.  */
-
-int
-fs_register_fontset (f, fontset_info)
-     FRAME_PTR f;
-     Lisp_Object fontset_info;
-{
-  struct fontset_data *fontset_data = FRAME_FONTSET_DATA (f);
-  Lisp_Object name, fontlist;
-  int fontset;
-  struct fontset_info *fontsetp;
-  int i;
-
-  if (!CONSP (fontset_info)
-      || !STRINGP (XCAR (fontset_info))
-      || !CONSP (XCDR (fontset_info)))
-    /* Invalid data in FONTSET_INFO.  */
-    return -1;
-
-  name = XCAR (fontset_info);
-  if ((fontset = fs_query_fontset (f, XSTRING (name)->data)) >= 0)
-    /* This fontset already exists on frame F.  */
-    return fontset;
-
-  fontsetp = (struct fontset_info *) xmalloc (sizeof (struct fontset_info));
-
-  fontsetp->name = (char *) xmalloc (XSTRING (name)->size + 1);
-  bcopy(XSTRING (name)->data, fontsetp->name, XSTRING (name)->size + 1);
-
-  fontsetp->size = fontsetp->height = 0;
-
-  for (i = 0; i <= MAX_CHARSET; i++)
-    {
-      fontsetp->fontname[i] = (char *) 0;
-      fontsetp->font_indexes[i] = FONT_NOT_OPENED;
-    }
-
-  for (fontlist = XCDR (fontset_info); CONSP (fontlist);
-       fontlist = XCDR (fontlist))
-    {
-      Lisp_Object tem = Fcar (fontlist);
-      int charset;
-
-      if (CONSP (tem)
-	  && (charset = get_charset_id (XCAR (tem))) >= 0
-	  && STRINGP (XCDR (tem)))
-	{
-	  fontsetp->fontname[charset]
-	     = (char *) xmalloc (XSTRING (XCDR (tem))->size + 1);
-	  bcopy (XSTRING (XCDR (tem))->data,
-		 fontsetp->fontname[charset],
-		 XSTRING (XCDR (tem))->size + 1);
-	}
-      else
-	/* Broken or invalid data structure.  */
-	return -1;
-    }
-
-  /* Do we need to create the table?  */
-  if (fontset_data->fontset_table_size == 0)
-    {
-      fontset_data->fontset_table_size = 8;
-      fontset_data->fontset_table
-	= (struct fontset_info **) xmalloc (fontset_data->fontset_table_size
-					    * sizeof (struct fontset_info *));
-    }
-  /* Do we need to grow the table?  */
-  else if (fontset_data->n_fontsets >= fontset_data->fontset_table_size)
-    {
-      fontset_data->fontset_table_size += 8;
-      fontset_data->fontset_table
-	= (struct fontset_info **) xrealloc (fontset_data->fontset_table,
-					     fontset_data->fontset_table_size
-					     * sizeof (struct fontset_info *));
-    }
-  fontset = fontset_data->n_fontsets++;
-  fontset_data->fontset_table[fontset] = fontsetp;
-
-  return fontset;
-}
-
+
 /* Cache data used by fontset_pattern_regexp.  The car part is a
    pattern string containing at least one wild card, the cdr part is
    the corresponding regular expression.  */
@@ -412,7 +702,7 @@ static Lisp_Object Vcached_fontset_data;
 /* If fontset name PATTERN contains any wild card, return regular
    expression corresponding to PATTERN.  */
 
-Lisp_Object
+static Lisp_Object
 fontset_pattern_regexp (pattern)
      Lisp_Object pattern;
 {
@@ -452,8 +742,56 @@ fontset_pattern_regexp (pattern)
   return CACHED_FONTSET_REGEX;
 }
 
+/* Return ID of the base fontset named NAME.  If there's no such
+   fontset, return -1.  */
+
+int
+fs_query_fontset (name, regexpp)
+     Lisp_Object name;
+     int regexpp;
+{
+  Lisp_Object fontset, tem;
+  int i;
+
+  name = Fdowncase (name);
+  if (!regexpp)
+    {
+      tem = Frassoc (name, Vfontset_alias_alist);
+      if (CONSP (tem) && STRINGP (XCAR (tem)))
+	name = XCAR (tem);
+      else
+	{
+	  tem = fontset_pattern_regexp (name);
+	  if (STRINGP (tem))
+	    {
+	      name = tem;
+	      regexpp = 1;
+	    }
+	}
+    }
+
+  for (i = 0; i < ASIZE (Vfontset_table); i++)
+    {
+      Lisp_Object fontset;
+      unsigned char *this_name;
+
+      fontset = FONTSET_FROM_ID (i);
+      if (NILP (fontset)
+	  || !BASE_FONTSET_P (fontset))
+	continue;
+
+      this_name = XSTRING (FONTSET_NAME (fontset))->data;
+      if (regexpp
+	  ? fast_c_string_match_ignore_case (name, this_name) >= 0
+	  : !strcmp (XSTRING (name)->data, this_name))
+	return i;
+    }
+  return -1;
+}
+
+
 DEFUN ("query-fontset", Fquery_fontset, Squery_fontset, 1, 2, 0,
-  "Return the name of an existing fontset which matches PATTERN.\n\
+  "Return the name of a fontset that matches PATTERN.\n\
 The value is nil if there is no matching fontset.\n\
 PATTERN can contain `*' or `?' as a wildcard\n\
 just as X font name matching algorithm allows.\n\
@@ -461,7 +799,8 @@ If REGEXPP is non-nil, PATTERN is a regular expression.")
   (pattern, regexpp)
      Lisp_Object pattern, regexpp;
 {
-  Lisp_Object regexp, tem;
+  Lisp_Object fontset;
+  int id;
 
   (*check_window_system_func) ();
 
@@ -470,39 +809,17 @@ If REGEXPP is non-nil, PATTERN is a regular expression.")
   if (XSTRING (pattern)->size == 0)
     return Qnil;
 
-  tem = Frassoc (pattern, Vfontset_alias_alist);
-  if (!NILP (tem))
-    return Fcar (tem);
+  id = fs_query_fontset (pattern, !NILP (regexpp));
+  if (id < 0)
+    return Qnil;
 
-  if (NILP (regexpp))
-    regexp = fontset_pattern_regexp (pattern);
-  else
-    regexp = pattern;
-
-  for (tem = Vglobal_fontset_alist; CONSP (tem); tem = XCDR (tem))
-    {
-      Lisp_Object fontset_name = XCAR (XCAR (tem));
-      if (!NILP (regexp))
-	{
-	  if (fast_c_string_match_ignore_case (regexp,
-					       XSTRING (fontset_name)->data)
-	      >= 0)
-	    return fontset_name;
-	}
-      else
-	{
-	  if (!my_strcasecmp (XSTRING (pattern)->data,
-			      XSTRING (fontset_name)->data))
-	    return fontset_name;
-	}
-    }
-
-  return Qnil;
+  fontset = FONTSET_FROM_ID (id);
+  return FONTSET_NAME (fontset);
 }
 
-/* Return a list of names of available fontsets matching PATTERN on
-   frame F.  If SIZE is not 0, it is the size (maximum bound width) of
-   fontsets to be listed. */
+/* Return a list of base fontset names matching PATTERN on frame F.
+   If SIZE is not 0, it is the size (maximum bound width) of fontsets
+   to be listed. */
 
 Lisp_Object
 list_fontsets (f, pattern, size)
@@ -510,181 +827,246 @@ list_fontsets (f, pattern, size)
      Lisp_Object pattern;
      int size;
 {
-  int i;
-  Lisp_Object regexp, val;
+  Lisp_Object frame, regexp, val, tail;
+  int id;
+
+  XSETFRAME (frame, f);
 
   regexp = fontset_pattern_regexp (pattern);
-
   val = Qnil;
-  for (i = 0; i < FRAME_FONTSET_DATA (f)->n_fontsets; i++)
+
+  for (id = 0; id < ASIZE (Vfontset_table); id++)
     {
-      struct fontset_info *fontsetp = FRAME_FONTSET_DATA (f)->fontset_table[i];
-      int name_matched = 0;
-      int size_matched = 0;
+      Lisp_Object fontset;
+      unsigned char *name;
 
-      if (!NILP (regexp))
+      fontset = FONTSET_FROM_ID (id);
+      if (NILP (fontset)
+	  || !BASE_FONTSET_P (fontset)
+	  || !EQ (frame, FONTSET_FRAME (fontset)))
+	continue;
+      name = XSTRING (FONTSET_NAME (fontset))->data;
+
+      if (!NILP (regexp)
+	  ? (fast_c_string_match_ignore_case (regexp, name) < 0)
+	  : strcmp (XSTRING (pattern)->data, name))
+	continue;
+
+      if (size)
 	{
-	  if (fast_c_string_match_ignore_case (regexp, fontsetp->name) >= 0)
-	    name_matched = 1;
+	  struct font_info *fontp;
+	  fontp = FS_LOAD_FONT (f, 0, NULL, id);
+	  if (!fontp || size != fontp->size)
+	    continue;
 	}
-      else
-	{
-	  if (!my_strcasecmp (XSTRING (pattern)->data, fontsetp->name))
-	    name_matched = 1;	  
-	}
-
-      if (name_matched)
-	{
-	  if (!size || fontsetp->size == size)
-	    size_matched = 1;
-	  else if (fontsetp->size == 0)
-	    {
-	      /* No font of this fontset has loaded yet.  Try loading
-		 one with SIZE.  */
-	      int j;
-
-	      for (j = 0; j <= MAX_CHARSET; j++)
-		if (fontsetp->fontname[j])
-		  {
-		    if ((*load_font_func) (f, fontsetp->fontname[j], size))
-		      size_matched = 1;
-		    break;
-		  }
-	    }
-
-	  if (size_matched)
-	    val = Fcons (build_string (fontsetp->name), val);
-	}
+      val = Fcons (Fcopy_sequence (FONTSET_NAME (fontset)), val);
     }
 
   return val;
 }
 
 DEFUN ("new-fontset", Fnew_fontset, Snew_fontset, 2, 2, 0,
-  "Create a new fontset NAME which contains fonts in FONTLIST.\n\
-FONTLIST is an alist of charsets vs corresponding font names.")
+  "Create a new fontset NAME that contains font information in FONTLIST.\n\
+FONTLIST is an alist of charsets vs corresponding font name patterns.")
   (name, fontlist)
      Lisp_Object name, fontlist;
 {
-  Lisp_Object fullname, fontset_info;
-  Lisp_Object tail;
+  Lisp_Object fontset, elements, ascii_font;
+  Lisp_Object tem, tail, elt;
 
   (*check_window_system_func) ();
 
   CHECK_STRING (name, 0);
   CHECK_LIST (fontlist, 1);
 
-  fullname = Fquery_fontset (name, Qnil);
-  if (!NILP (fullname))
+  name = Fdowncase (name);
+  tem = Fquery_fontset (name, Qnil);
+  if (!NILP (tem))
     error ("Fontset `%s' matches the existing fontset `%s'",
-	   XSTRING (name)->data, XSTRING (fullname)->data);
+	   XSTRING (name)->data, XSTRING (tem)->data);
 
-  /* Check the validity of FONTLIST.  */
+  /* Check the validity of FONTLIST while creating a template for
+     fontset elements.  */
+  elements = ascii_font = Qnil;
   for (tail = fontlist; CONSP (tail); tail = XCDR (tail))
     {
-      Lisp_Object tem = XCAR (tail);
-      int charset;
+      Lisp_Object family, registry;
+      int c, charset;
 
+      tem = XCAR (tail);
       if (!CONSP (tem)
 	  || (charset = get_charset_id (XCAR (tem))) < 0
 	  || !STRINGP (XCDR (tem)))
 	error ("Elements of fontlist must be a cons of charset and font name");
+
+      tem = Fdowncase (XCDR (tem));
+      if (charset == CHARSET_ASCII)
+	ascii_font = tem;
+      else
+	{
+	  c = MAKE_CHAR (charset, 0, 0);
+	  elements = Fcons (Fcons (make_number (c), tem), elements);
+	}
     }
 
-  fontset_info = Fcons (name, fontlist);
-  Vglobal_fontset_alist  = Fcons (fontset_info, Vglobal_fontset_alist);
+  if (NILP (ascii_font))
+    error ("No ASCII font in the fontlist");
 
-  /* Register this fontset for all existing frames.  */
-  {
-    Lisp_Object framelist, frame;
-    
-    FOR_EACH_FRAME (framelist, frame)
-      if (!FRAME_TERMCAP_P (XFRAME (frame)))
-	fs_register_fontset (XFRAME (frame), fontset_info);
-  }
+  fontset = make_fontset (Qnil, name, Qnil);
+  FONTSET_ASCII (fontset) = Fcons (make_number (0), ascii_font);
+  for (; CONSP (elements); elements = XCDR (elements))
+    {
+      elt = XCAR (elements);
+      tem = Fcons (XCAR (elt), font_family_registry (XCDR (elt)));
+      FONTSET_SET (fontset, XINT (XCAR (elt)), tem);
+    }
 
   return Qnil;
 }
 
-extern Lisp_Object Qfont;
-Lisp_Object Qfontset;
 
-DEFUN ("set-fontset-font", Fset_fontset_font, Sset_fontset_font, 3, 4, 0,
-  "Set FONTNAME for a font of CHARSET in fontset NAME on frame FRAME.\n\
-If FRAME is omitted or nil, all frames are affected.")
-  (name, charset_symbol, fontname, frame)
-     Lisp_Object name, charset_symbol, fontname, frame;
+/* Clear all elements of FONTSET for multibyte characters.  */
+
+static void
+clear_fontset_elements (fontset)
+     Lisp_Object fontset;
 {
-  int charset;
-  Lisp_Object fullname, fontlist;
+  int i;
 
-  (*check_window_system_func) ();
+  for (i = CHAR_TABLE_SINGLE_BYTE_SLOTS; i < CHAR_TABLE_ORDINARY_SLOTS; i++)
+    XCHAR_TABLE (fontset)->contents[i] = Qnil;
+}
+
+
+/* Return 1 iff REGISTRY is a valid string as the font registry and
+   encoding.  It is valid if it doesn't start with `-' and the number
+   of `-' in the string is at most 1.  */
+
+static int
+check_registry_encoding (registry)
+     Lisp_Object registry;
+{
+  unsigned char *str = XSTRING (registry)->data;
+  unsigned char *p = str;
+  int i;
+
+  if (!*p || *p++ == '-')
+    return 0;
+  for (i = 0; *p; p++)
+    if (*p == '-') i++;
+  return (i < 2);
+}
+
+
+/* Check validity of NAME as a fontset name and return the
+   corresponding fontset.  If not valid, signal an error.
+   If NAME is t, return Vdefault_fontset.  */
+
+static Lisp_Object
+check_fontset_name (name)
+     Lisp_Object name;
+{
+  int id;
+
+  if (EQ (name, Qt))
+    return Vdefault_fontset;
 
   CHECK_STRING (name, 0);
-  CHECK_SYMBOL (charset_symbol, 1);
+  id = fs_query_fontset (name, 0);
+  if (id < 0)
+    error ("Fontset `%s' does not exist", XSTRING (name)->data);
+  return FONTSET_FROM_ID (id);
+}
+
+DEFUN ("set-fontset-font", Fset_fontset_font, Sset_fontset_font, 3, 4, 0,
+  "Modify fontset NAME to use FONTNAME for character CHAR.
+
+CHAR may be a cons; (FROM . TO), where FROM and TO are
+non-generic characters.  In that case, use FONTNAME
+for all characters in the range FROM and TO (inclusive).
+
+If NAME is t, an entry in the default fontset is modified.
+In that case, FONTNAME should be a registry and encoding name
+of a font for CHAR.")
+  (name, ch, fontname, frame)
+     Lisp_Object name, ch, fontname, frame;
+{
+  Lisp_Object fontset, elt;
+  Lisp_Object realized;
+  int from, to;
+  int id;
+
+  fontset = check_fontset_name (name);
+
+  if (CONSP (ch))
+    {
+      /* CH should be (FROM . TO) where FROM and TO are non-generic
+	 characters.  */
+      CHECK_NUMBER (XCAR (ch), 1);
+      CHECK_NUMBER (XCDR (ch), 1);
+      from = XINT (XCAR (ch));
+      to = XINT (XCDR (ch));
+      if (!char_valid_p (from, 0) || !char_valid_p (to, 0))
+	error ("Character range should be by non-generic characters.");
+      if (!NILP (name)
+	  && (SINGLE_BYTE_CHAR_P (from) || SINGLE_BYTE_CHAR_P (to)))
+	error ("Can't change font for a single byte character");
+    }
+  else
+    {
+      CHECK_NUMBER (ch, 1);
+      from = XINT (ch);
+      to = from;
+    }
+  if (!char_valid_p (from, 1))
+    invalid_character (from);
+  if (SINGLE_BYTE_CHAR_P (from))
+    error ("Can't change font for a single byte character");
+  if (from < to)
+    {
+      if (!char_valid_p (to, 1))
+	invalid_character (to);
+      if (SINGLE_BYTE_CHAR_P (to))
+	error ("Can't change font for a single byte character");
+    }
+
   CHECK_STRING (fontname, 2);
+  fontname = Fdowncase (fontname);
+  if (fontset == Vdefault_fontset)
+    {
+      if (!check_registry_encoding (fontname))
+	error ("Invalid registry and encoding name: %s",
+	       XSTRING (fontname)->data);
+      elt = Fcons (make_number (from), Fcons (Qnil, fontname));
+    }
+  else
+    elt = Fcons (make_number (from), font_family_registry (fontname));
+
+  /* The arg FRAME is kept for backward compatibility.  We only check
+     the validity.  */
   if (!NILP (frame))
     CHECK_LIVE_FRAME (frame, 3);
 
-  if ((charset = get_charset_id (charset_symbol)) < 0)
-    error ("Invalid charset: %s", XSYMBOL (charset_symbol)->name->data);
+  for (; from <= to; from++)
+    FONTSET_SET (fontset, from, elt);
+  Foptimize_char_table (fontset);
 
-  fullname = Fquery_fontset (name, Qnil);
-  if (NILP (fullname))
-    error ("Fontset `%s' does not exist", XSTRING (name)->data);
-
-  /* If FRAME is not specified, we must, at first, update contents of
-     `global-fontset-alist' for a frame created in the future.  */
-  if (NILP (frame))
+  /* If there's a realized fontset REALIZED whose parent is FONTSET,
+     clear all the elements of REALIZED and free all multibyte faces
+     whose fontset is REALIZED.  This way, the specified character(s)
+     are surely redisplayed by a correct font.  */
+  for (id = 0; id < ASIZE (Vfontset_table); id++)
     {
-      Lisp_Object fontset_info = Fassoc (fullname, Vglobal_fontset_alist);
-      Lisp_Object tem = Fassq (charset_symbol, XCDR (fontset_info));
-
-      if (NILP (tem))
-	XCDR (fontset_info)
-	  = Fcons (Fcons (charset_symbol, fontname),
-		   XCDR (fontset_info));
-      else
-	XCDR (tem) = fontname;
-    }
-
-  /* Then, update information in the specified frame or all existing
-     frames.  */
-  {
-    Lisp_Object framelist, tem;
-
-    FOR_EACH_FRAME (framelist, tem)
-      if (!FRAME_TERMCAP_P (XFRAME (tem))
-	  && (NILP (frame) || EQ (frame, tem)))
+      realized = AREF (Vfontset_table, id);
+      if (!NILP (realized)
+	  && !BASE_FONTSET_P (realized)
+	  && EQ (FONTSET_BASE (realized), fontset))
 	{
-	  FRAME_PTR f = XFRAME (tem);
-	  int fontset = fs_query_fontset (f, XSTRING (fullname)->data);
-	  struct fontset_info *fontsetp
-	    = FRAME_FONTSET_DATA (f)->fontset_table[fontset];
-
-	  if (fontsetp->fontname[charset])
-	    xfree (fontsetp->fontname[charset]);
-	  fontsetp->fontname[charset]
-	    = (char *) xmalloc (XSTRING (fontname)->size + 1);
-	  bcopy (XSTRING (fontname)->data, fontsetp->fontname[charset],
-		 XSTRING (fontname)->size + 1);
-	  fontsetp->font_indexes[charset] = FONT_NOT_OPENED;
-
-	  if (charset == CHARSET_ASCII)
-	    {
-	      Lisp_Object font_param = Fassq (Qfont, Fframe_parameters (tem));
-
-	      if (set_frame_fontset_func
-		  && !NILP (font_param)
-		  && !strcmp (XSTRING (fullname)->data,
-			      XSTRING (XCDR (font_param))->data))
-		/* This fontset is the default fontset on frame TEM.
-		   We may have to resize this frame because of new
-		   ASCII font.  */
-		(*set_frame_fontset_func) (f, fullname, Qnil);
-	    }
+	  FRAME_PTR f = XFRAME (FONTSET_FRAME (realized));
+	  clear_fontset_elements (realized);
+	  free_realized_multibyte_face (f, id);
 	}
-  }
+    }
 
   return Qnil;
 }
@@ -697,8 +1079,7 @@ The returned value is a vector of OPENED-NAME, FULL-NAME, CHARSET, SIZE,\n\
 where\n\
   OPENED-NAME is the name used for opening the font,\n\
   FULL-NAME is the full name of the font,\n\
-  CHARSET is the charset displayed by the font,\n\
-  SIZE is the minimum bound width of the font,\n\
+  SIZE is the maximum bound width of the font,\n\
   HEIGHT is the height of the font,\n\
   BASELINE-OFFSET is the upward offset pixels from ASCII baseline,\n\
   RELATIVE-COMPOSE and DEFAULT-ASCENT are the numbers controlling\n\
@@ -714,6 +1095,7 @@ If the named font is not yet loaded, return nil.")
   (*check_window_system_func) ();
 
   CHECK_STRING (name, 0);
+  name = Fdowncase (name);
   if (NILP (frame))
     frame = selected_frame;
   CHECK_LIVE_FRAME (frame, 1);
@@ -726,16 +1108,15 @@ If the named font is not yet loaded, return nil.")
   if (!fontp)
     return Qnil;
 
-  info = Fmake_vector (make_number (8), Qnil);
+  info = Fmake_vector (make_number (7), Qnil);
 
   XVECTOR (info)->contents[0] = build_string (fontp->name);
   XVECTOR (info)->contents[1] = build_string (fontp->full_name);
-  XVECTOR (info)->contents[2] = CHARSET_SYMBOL (fontp->charset);
-  XVECTOR (info)->contents[3] = make_number (fontp->size);
-  XVECTOR (info)->contents[4] = make_number (fontp->height);
-  XVECTOR (info)->contents[5] = make_number (fontp->baseline_offset);
-  XVECTOR (info)->contents[6] = make_number (fontp->relative_compose);
-  XVECTOR (info)->contents[7] = make_number (fontp->default_ascent);
+  XVECTOR (info)->contents[2] = make_number (fontp->size);
+  XVECTOR (info)->contents[3] = make_number (fontp->height);
+  XVECTOR (info)->contents[4] = make_number (fontp->baseline_offset);
+  XVECTOR (info)->contents[5] = make_number (fontp->relative_compose);
+  XVECTOR (info)->contents[6] = make_number (fontp->default_ascent);
 
   return info;
 }
@@ -745,8 +1126,8 @@ DEFUN ("fontset-info", Ffontset_info, Sfontset_info, 1, 2, 0,
 If FRAME is omitted or nil, use the selected frame.\n\
 The returned value is a vector of SIZE, HEIGHT, and FONT-LIST,\n\
 where\n\
-  SIZE is the minimum bound width of ASCII font of the fontset,\n\
-  HEIGHT is the height of the tallest font in the fontset, and\n\
+  SIZE is the maximum bound width of ASCII font of the fontset,\n\
+  HEIGHT is the height of the ASCII font in the fontset, and\n\
   FONT-LIST is an alist of the format:\n\
     (CHARSET REQUESTED-FONT-NAME LOADED-FONT-NAME).\n\
 LOADED-FONT-NAME t means the font is not yet loaded, nil means the\n\
@@ -755,50 +1136,132 @@ loading failed.")
      Lisp_Object name, frame;
 {
   FRAME_PTR f;
-  int fontset;
-  struct fontset_info *fontsetp;
-  Lisp_Object info, val;
+  Lisp_Object fontset, realized;
+  Lisp_Object info, val, loaded, requested;
   int i;
   
   (*check_window_system_func) ();
 
-  CHECK_STRING(name, 0);
+  fontset = check_fontset_name (name);
+
   if (NILP (frame))
     frame = selected_frame;
   CHECK_LIVE_FRAME (frame, 1);
   f = XFRAME (frame);
 
-  fontset = fs_query_fontset (f, XSTRING (name)->data);
-  if (fontset < 0)
-    error ("Fontset `%s' does not exist", XSTRING (name)->data);
-
   info = Fmake_vector (make_number (3), Qnil);
 
-  fontsetp = FRAME_FONTSET_DATA (f)->fontset_table[fontset];
+  for (i = 0; i < ASIZE (Vfontset_table); i++)
+    {
+      realized = FONTSET_FROM_ID (i);
+      if (!NILP (realized)
+	  && EQ (FONTSET_FRAME (realized), frame)
+	  && EQ (FONTSET_BASE (realized), fontset)
+	  && INTEGERP (FONTSET_ASCII (realized)))
+	break;
+    }
 
-  XVECTOR (info)->contents[0] = make_number (fontsetp->size);
-  XVECTOR (info)->contents[1] = make_number (fontsetp->height);
-  val = Qnil;
-  for (i = 0; i <= MAX_CHARSET; i++)
-    if (fontsetp->fontname[i])
-      {
-	int font_idx = fontsetp->font_indexes[i];
-	Lisp_Object loaded;
+  if (NILP (realized))
+    return Qnil;
 
-	if (font_idx == FONT_NOT_OPENED)
-	  loaded = Qt;
-	else if (font_idx == FONT_NOT_FOUND)
-	  loaded = Qnil;
-	else
-	  loaded
-	    = build_string ((*get_font_info_func) (f, font_idx)->full_name);
-	val = Fcons (Fcons (CHARSET_SYMBOL (i),
-			    Fcons (build_string (fontsetp->fontname[i]),
-				   Fcons (loaded, Qnil))),
-		     val);
-      }
+  XVECTOR (info)->contents[0] = Qnil;
+  XVECTOR (info)->contents[1] = Qnil;
+  loaded = Qnil;
+
+  val = Fcons (Fcons (CHARSET_SYMBOL (CHARSET_ASCII),
+		      Fcons (FONTSET_ASCII (fontset),
+			     Fcons (loaded, Qnil))),
+	       Qnil);
+  for (i = MIN_CHARSET_OFFICIAL_DIMENSION1; i <= MAX_CHARSET; i++)
+    {
+      Lisp_Object elt;
+      elt = XCHAR_TABLE (fontset)->contents[i + 128];
+
+      if (VECTORP (elt))
+	{
+	  int face_id;
+	  struct face *face;
+
+	  if (INTEGERP (AREF (elt, 2))
+	      && (face_id = XINT (AREF (elt, 2)),
+		  face = FACE_FROM_ID (f, face_id)))
+	    {
+	      struct font_info *fontp;
+	      fontp = (*get_font_info_func) (f, face->font_info_id);
+   	      requested = build_string (fontp->name);
+	      loaded = (fontp->full_name
+			? build_string (fontp->full_name)
+			: Qnil);
+	    }
+	  else
+	    {
+	      char *str;
+	      int family_len = 0, registry_len = 0;
+
+	      if (STRINGP (AREF (elt, 0)))
+		family_len = STRING_BYTES (XSTRING (AREF (elt, 0)));
+	      if (STRINGP (AREF (elt, 1)))
+		registry_len = STRING_BYTES (XSTRING (AREF (elt, 1)));
+	      str = (char *) alloca (1 + family_len + 3 + registry_len + 1);
+	      str[0] = '-';
+	      str[1] = 0;
+	      if (family_len)
+		strcat (str, XSTRING (AREF (elt, 0))->data);
+	      strcat (str, "-*-");
+	      if (registry_len)
+   		strcat (str, XSTRING (AREF (elt, 1))->data);
+	      requested = build_string (str);
+	      loaded = Qnil;
+	    }
+	  val = Fcons (Fcons (CHARSET_SYMBOL (i),
+			      Fcons (requested, Fcons (loaded, Qnil))),
+		       val);
+	}
+    }
   XVECTOR (info)->contents[2] = val;
   return info;
+}
+
+DEFUN ("fontset-font", Ffontset_font, Sfontset_font, 2, 2, 0,
+  "Return a font name pattern for character CH in fontset NAME.
+If NAME is t, find a font name pattern in the default fontset.")
+  (name, ch)
+     Lisp_Object name, ch;
+{
+  int c, id;
+  Lisp_Object fontset, elt;
+
+  fontset = check_fontset_name (name);
+
+  CHECK_NUMBER (ch, 1);
+  c = XINT (ch);
+  if (!char_valid_p (c, 1))
+    invalid_character (c);
+
+  elt = FONTSET_REF (fontset, c);
+  if (CONSP (elt))
+    elt = XCDR (elt);
+
+  return elt;
+}
+  
+
+DEFUN ("fontset-list", Ffontset_list, Sfontset_list, 0, 0, 0,
+  "Return a list of all defined fontset names.")
+  ()
+{
+  Lisp_Object fontset, list;
+  int i;
+
+  list = Qnil;
+  for (i = 0; i < ASIZE (Vfontset_table); i++)
+    {
+      fontset = FONTSET_FROM_ID (i);
+      if (!NILP (fontset)
+	  && BASE_FONTSET_P (fontset))
+	list = Fcons (FONTSET_NAME (fontset), list);
+    }
+  return list;
 }
 
 void
@@ -806,25 +1269,25 @@ syms_of_fontset ()
 {
   int i;
 
-  for (i = 0; i < 256; i++)
-    my_strcasetbl[i] = (i >= 'A' && i <= 'Z') ? i + 'a' - 'A' : i;
-
   if (!load_font_func)
     /* Window system initializer should have set proper functions.  */
     abort ();
 
   Qfontset = intern ("fontset");
   staticpro (&Qfontset);
+  Fput (Qfontset, Qchar_table_extra_slots, make_number (3));
 
   Vcached_fontset_data = Qnil;
   staticpro (&Vcached_fontset_data);
 
-  DEFVAR_LISP ("global-fontset-alist", &Vglobal_fontset_alist,
-    "Internal data for fontset.  Not for external use.\n\
-This is an alist associating fontset names with the lists of fonts\n\
- contained in them.\n\
-Newly created frames make their own fontset database from here.");
-  Vglobal_fontset_alist = Qnil;
+  Vfontset_table = Fmake_vector (make_number (32), Qnil);
+  staticpro (&Vfontset_table);
+  next_fontset_id = 0;
+
+  Vdefault_fontset = Fmake_char_table (Qfontset, Qnil);
+  staticpro (&Vdefault_fontset);
+  FONTSET_ASCII (Vdefault_fontset)
+    = Fcons (make_number (0), Fcons (Qnil, build_string ("iso8859-1")));
 
   DEFVAR_LISP ("font-encoding-alist", &Vfont_encoding_alist,
     "Alist of fontname patterns vs corresponding encoding info.\n\
@@ -894,4 +1357,6 @@ at the vertival center of lines.");
   defsubr (&Sset_fontset_font);
   defsubr (&Sfont_info);
   defsubr (&Sfontset_info);
+  defsubr (&Sfontset_font);
+  defsubr (&Sfontset_list);
 }
