@@ -252,7 +252,7 @@ arguments compiles from `load-path'."
   "Major mode for browsing package documentation.
 \\<finder-mode-map>
 \\[finder-select]	more help for the item on the current line
-\\[finder-exit]	exit Finder mode and fill the Finder buffer.
+\\[finder-exit]	exit Finder mode and kill the Finder buffer.
 "
   (interactive)
   (pop-to-buffer "*Finder*")
