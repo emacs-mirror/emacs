@@ -265,7 +265,7 @@ slow things down!")
       ;; Must scan from line start in case of
       ;; inserting space into `intfoo () {}'.
       (if font-lock-no-comments
-	  (remove-text-properties beg (1+ end) '(face nil))
+	  (remove-text-properties beg (min (1+ end) (point-max)) '(face nil))
 	(font-lock-fontify-region beg (min (1+ end) (point-max))))
       ;; Now scan for keywords.
       (font-lock-hack-keywords beg end))))
@@ -365,11 +365,14 @@ can use \\[font-lock-fontify-buffer]."
 		(> (prefix-numeric-value arg) 0))))
     (if (equal (buffer-name) " *Compiler Input*") ; hack for bytecomp...
 	(setq on-p nil))
-    (or (memq after-change-function
-	      '(nil font-lock-after-change-function))
-	(error "after-change-function is %s" after-change-function))
-    (set (make-local-variable 'after-change-function)
-	 (if on-p 'font-lock-after-change-function nil))
+    (make-local-variable 'after-change-functions)
+    (if on-p
+	(or (memq 'font-lock-after-change-function after-change-functions)
+	    (setq after-change-functions (cons 'font-lock-after-change-function
+					       after-change-functions)))
+      (setq after-change-functions
+	    (delq 'font-lock-after-change-function
+		  (copy-sequence after-change-functions))))
     (set (make-local-variable 'font-lock-mode) on-p)
     (make-local-variable 'font-lock-no-comments)
     (cond (on-p
