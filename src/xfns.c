@@ -230,6 +230,8 @@ Lisp_Object Qvisibility;
 Lisp_Object Qwindow_id;
 Lisp_Object Qx_frame_parameter;
 Lisp_Object Qx_resource_name;
+Lisp_Object Quser_position;
+Lisp_Object Quser_size;
 
 /* The below are defined in frame.c. */
 extern Lisp_Object Qheight, Qminibuffer, Qname, Qonly, Qwidth;
@@ -1602,7 +1604,7 @@ x_figure_window_size (f, parms)
      struct frame *f;
      Lisp_Object parms;
 {
-  register Lisp_Object tem0, tem1;
+  register Lisp_Object tem0, tem1, tem2;
   int height, width, left, top;
   register int geometry;
   long window_prompting = 0;
@@ -1619,13 +1621,17 @@ x_figure_window_size (f, parms)
 
   tem0 = x_get_arg (parms, Qheight, 0, 0, number);
   tem1 = x_get_arg (parms, Qwidth, 0, 0, number);
+  tem2 = x_get_arg (parms, Quser_size, 0, 0, number);
   if (! EQ (tem0, Qunbound) && ! EQ (tem1, Qunbound))
     {
       CHECK_NUMBER (tem0, 0);
       CHECK_NUMBER (tem1, 0);
       f->height = XINT (tem0);
       f->width = XINT (tem1);
-      window_prompting |= USSize;
+      if (!NILP (tem2))
+	window_prompting |= USSize;
+      else
+	window_prompting |= PSize;
     }
   else if (! EQ (tem0, Qunbound) || ! EQ (tem1, Qunbound))
     error ("Must specify *both* height and width");
@@ -1639,6 +1645,7 @@ x_figure_window_size (f, parms)
 
   tem0 = x_get_arg (parms, Qtop, 0, 0, number);
   tem1 = x_get_arg (parms, Qleft, 0, 0, number);
+  tem2 = x_get_arg (parms, Quser_position, 0, 0, number);
   if (! EQ (tem0, Qunbound) && ! EQ (tem1, Qunbound))
     {
       CHECK_NUMBER (tem0, 0);
@@ -1649,41 +1656,13 @@ x_figure_window_size (f, parms)
 	window_prompting |= YNegative;
       if (f->display.x->left_pos < 0)
 	window_prompting |= XNegative;
-      window_prompting |= USPosition;
+      if (!NILP (tem2))
+	window_prompting |= USPosition;
+      else
+	window_prompting |= PPosition;
     }
   else if (! EQ (tem0, Qunbound) || ! EQ (tem1, Qunbound))
     error ("Must specify *both* top and left corners");
-
-#if 0 /* PPosition and PSize mean "specified explicitly,
-	 by the program rather than by the user".  So it is wrong to
-	 set them if nothing was specified.  */
-  switch (window_prompting)
-    {
-    case USSize | USPosition:
-      return window_prompting;
-      break;
-
-    case USSize:		/* Got the size, need the position. */
-      window_prompting |= PPosition;
-      return window_prompting;
-      break;
-	  
-    case USPosition:		/* Got the position, need the size. */
-      window_prompting |= PSize;
-      return window_prompting;
-      break;
-	  
-    case 0:			/* Got nothing, take both from geometry. */
-      window_prompting |= PPosition | PSize;
-      return window_prompting;
-      break;
-	  
-    default:
-      /* Somehow a bit got set in window_prompting that we didn't
-	 put there.  */
-      abort ();
-    }
-#endif
   return window_prompting;
 }
 
@@ -4231,6 +4210,10 @@ syms_of_xfns ()
   staticpro (&Qx_frame_parameter);
   Qx_resource_name = intern ("x-resource-name");
   staticpro (&Qx_resource_name);
+  Quser_position = intern ("user-position");
+  staticpro (&Quser_position);
+  Quser_size = intern ("user-size");
+  staticpro (&Quser_size);
   /* This is the end of symbol initialization.  */
 
   Fput (Qundefined_color, Qerror_conditions,
