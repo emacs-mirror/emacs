@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; Author: Francesco Potorti` <pot@cnuce.cnr.it>
-;; Version: $Id: cmacexp.el 1.2 1992/09/15 11:34:56 pot Exp $
+;; Version: $Id: cmacexp.el,v 1.8 1994/02/07 05:39:56 rms Exp rms $
 ;; Adapted-By: ESR
 ;; Keywords: c
 
@@ -177,7 +177,7 @@ For non interactive use, see the c-macro-expansion function."
 			   c-macro-default-cppflags)))
     ;; Decide where to display output.
     (if (and subst
-	     buffer-read-only
+	     (and buffer-read-only (not inhibit-read-only))
 	     (not (eq inbuf displaybuf)))
 	(progn
 	  (message
