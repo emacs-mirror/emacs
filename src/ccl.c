@@ -685,7 +685,13 @@ static tr_stack *mapping_stack_pointer;
 	      *dst++ = '\n';					\
 	  }							\
 	else if (bytes == 1)					\
-	  *dst++ = (ch);					\
+	  {							\
+	    *dst++ = (ch);					\
+	    if ((ch) >= 0x80 && (ch) < 0xA0)			\
+	      /* We may have to convert this eight-bit char to	\
+		 multibyte form later.  */			\
+	      dst_end--;					\
+	  }							\
 	else							\
 	  dst += CHAR_STRING (ch, dst);				\
       }								\
