@@ -596,10 +596,18 @@ echo_area_display ()
 
   if (echo_area_glyphs || minibuf_level == 0)
     {
+      int i;
+
       echo_area_window = mini_window;
 
       vpos = XFASTINT (XWINDOW (mini_window)->top);
       get_display_line (f, vpos, 0);
+
+      /* Make sure the columns that overlap a left-hand scroll bar
+	 are always clear.  */
+      for (i = 0; i < FRAME_LEFT_SCROLL_BAR_WIDTH (f); i++)
+	f->desired_glyphs->glyphs[vpos][i] = SPACEGLYPH;
+
       display_string (XWINDOW (mini_window), vpos,
 		      echo_area_glyphs ? echo_area_glyphs : "",
 		      echo_area_glyphs ? echo_area_glyphs_length : -1,
