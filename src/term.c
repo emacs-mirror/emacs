@@ -791,7 +791,7 @@ clear_end_of_line (first_unused_hpos)
 
 /* Buffer to store the result of terminal codes.  It is initialized in
    term_init and, if necessary, enlarged in encode_terminal_code.  */
-static unsigned char *terminal_encode_buffer;
+unsigned char *terminal_encode_buffer;
 /* Size of terminal_encode_buffer.  */
 static int terminal_encode_buf_size;
 
