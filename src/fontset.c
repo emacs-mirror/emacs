@@ -181,7 +181,7 @@ static void fontset_set P_ ((Lisp_Object, int, Lisp_Object));
 static Lisp_Object make_fontset P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 static int fontset_id_valid_p P_ ((int));
 static Lisp_Object fontset_pattern_regexp P_ ((Lisp_Object));
-static Lisp_Object font_family_registry P_ ((Lisp_Object));
+static Lisp_Object font_family_registry P_ ((Lisp_Object, int));
 
 
 /********** MACROS AND FUNCTIONS TO HANDLE FONTSET **********/
@@ -358,21 +358,31 @@ fontset_id_valid_p (id)
 }
 
 
-/* Extract `family' and `registry' string from FONTNAME and set in
-   *FAMILY and *REGISTRY respectively.  Actually, `family' may also
-   contain `foundry', `registry' may also contain `encoding' of
-   FONTNAME.  */
+/* Extract `family' and `registry' string from FONTNAME and a cons of
+   them.  Actually, `family' may also contain `foundry', `registry'
+   may also contain `encoding' of FONTNAME.  But, if FONTNAME doesn't
+   conform to XLFD nor explicitely specifies the other fields
+   (i.e. not using wildcard `*'), return FONTNAME.  If FORCE is
+   nonzero, specifications of the other fields are ignored, and return
+   a cons as far as FONTNAME conform to XLFD.  */
 
 static Lisp_Object
-font_family_registry (fontname)
+font_family_registry (fontname, force)
      Lisp_Object fontname;
+     int force;
 {
   Lisp_Object family, registry;
   char *p = XSTRING (fontname)->data;
   char *sep[15];
   int i = 0;
   
-  while (*p && i < 15) if (*p++ == '-') sep[i++] = p;
+  while (*p && i < 15)
+    if (*p++ == '-')
+      {
+	if (!force && i >= 2 && i <= 11 && *p != '*' && p[1] != '-')
+	  return fontname;
+	sep[i++] = p;
+      }
   if (i != 14)
     return fontname;
 
@@ -510,10 +520,10 @@ make_fontset_for_ascii_face (f, base_fontset_id)
 
 
 /* Return the font name pattern for C that is recorded in the fontset
-   with ID.  A font is opened by that pattern to get the fullname.  If
-   the fullname conform to XLFD, extract foundry-family field and
-   registry-encoding field, and return the cons of them.  Otherwise
-   return the fullname.  If ID is -1, or the fontset doesn't contain
+   with ID.  If a font name pattern is specified (instead of a cons of
+   family and registry), check if a font can be opened by that pattern
+   to get the fullname.  If a font is opened, return that name.
+   Otherwise, return nil.  If ID is -1, or the fontset doesn't contain
    information about C, get the registry and encoding of C from the
    default fontset.  Called from choose_face_font.  */
 
@@ -543,21 +553,19 @@ fontset_font_pattern (f, id, c)
     return XCDR (elt);
 
   /* The fontset specifies only a font name pattern (not cons of
-     family and registry).  Try to open a font by that pattern and get
-     a registry from the full name of the opened font.  We ignore
-     family name here because it should be wild card in the fontset
-     specification.  */
+     family and registry).  If a font can be opened by that pattern,
+     return the name of opened font.  Otherwise return nil.  The
+     exception is a font for single byte characters.  In that case, we
+     return a cons of FAMILY and REGISTRY extracted from the opened
+     font name.  */
   elt = XCDR (elt);
   xassert (STRINGP (elt));
   fontp = FS_LOAD_FONT (f, c, XSTRING (elt)->data, -1);
   if (!fontp)
     return Qnil;
 
-  family_registry = font_family_registry (build_string (fontp->full_name));
-  if (!CONSP (family_registry))
-    return family_registry;
-  XCAR (family_registry) = Qnil;
-  return family_registry;
+  return font_family_registry (build_string (fontp->full_name),
+			       SINGLE_BYTE_CHAR_P (c));
 }
 
 
@@ -912,7 +920,7 @@ FONTLIST is an alist of charsets vs corresponding font name patterns.")
   for (; CONSP (elements); elements = XCDR (elements))
     {
       elt = XCAR (elements);
-      tem = Fcons (XCAR (elt), font_family_registry (XCDR (elt)));
+      tem = Fcons (XCAR (elt), font_family_registry (XCDR (elt), 0));
       FONTSET_SET (fontset, XINT (XCAR (elt)), tem);
     }
 
@@ -1018,7 +1026,7 @@ name of a font, REGSITRY is a registry name of a font.")
   if (STRINGP (fontname))
     {
       fontname = Fdowncase (fontname);
-      elt = Fcons (make_number (from), font_family_registry (fontname));
+      elt = Fcons (make_number (from), font_family_registry (fontname, 0));
     }
   else
     {
