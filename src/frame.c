@@ -20,11 +20,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <stdio.h>
 
 #include "config.h"
+#include "lisp.h"
+#include "frame.h"
 
 #ifdef MULTI_FRAME
 
-#include "lisp.h"
-#include "frame.h"
 #include "window.h"
 #include "termhooks.h"
 
@@ -153,10 +153,10 @@ make_frame (mini_p)
 
   f->param_alist = Qnil;
 
-  root_window = make_window (0);
+  root_window = make_window ();
   if (mini_p)
     {
-      mini_window = make_window (0);
+      mini_window = make_window ();
       XWINDOW (root_window)->next = mini_window;
       XWINDOW (mini_window)->prev = root_window;
       XWINDOW (mini_window)->mini_p = Qt;
@@ -1327,8 +1327,20 @@ For values specific to the separate minibuffer frame, see\n\
 
 #else /* not MULTI_SCREEN */
 
-/* If we're not using multi-frame stuff, we still need to provide 
-   some support functions.  These were present in Emacs 18.  */
+/* If we're not using multi-frame stuff, we still need to provide some
+   support functions.  */
+
+/* Unless this function is defined, providing set-frame-height and
+   set-frame-width doesn't help compatibility any, since they both
+   want this as their first argument.  */
+DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
+  "Return the frame that is now selected.")
+  ()
+{
+  Lisp_Object tem;
+  XFASTINT (tem) = 0;
+  return tem;
+}
 
 DEFUN ("set-frame-height", Fset_frame_height, Sset_frame_height, 2, 3, 0,
   "Specify that the frame FRAME has LINES lines.\n\
@@ -1369,6 +1381,22 @@ DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
   return Qnil;
 }
 
+DEFUN ("frame-height", Fframe_height, Sframe_height, 0, 0, 0,
+  "Return number of lines available for display on selected frame.")
+  ()
+{
+  return make_number (FRAME_HEIGHT (selected_frame));
+}
+
+DEFUN ("frame-width", Fframe_width, Sframe_width, 0, 0, 0,
+  "Return number of columns available for display on selected frame.")
+  ()
+{
+  return make_number (FRAME_WIDTH (selected_frame));
+}
+
+/* These are for backward compatibility with Emacs 18.  */
+
 DEFUN ("set-screen-height", Fset_screen_height, Sset_screen_height, 1, 2, 0,
   "Tell redisplay that the screen has LINES lines.\n\
 Optional second arg non-nil means that redisplay should use LINES lines\n\
@@ -1393,20 +1421,6 @@ but that the idea of the actual width of the screen should not be changed.")
 
   change_frame_size (0, 0, XINT (cols), !NILP (pretend), 0);
   return Qnil;
-}
-
-DEFUN ("frame-height", Fframe_height, Sframe_height, 0, 0, 0,
-  "Return number of lines available for display on selected frame.")
-  ()
-{
-  return make_number (FRAME_HEIGHT (selected_frame));
-}
-
-DEFUN ("frame-width", Fframe_width, Sframe_width, 0, 0, 0,
-  "Return number of columns available for display on selected frame.")
-  ()
-{
-  return make_number (FRAME_WIDTH (selected_frame));
 }
 
 syms_of_frame ()
