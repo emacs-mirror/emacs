@@ -2439,7 +2439,7 @@ Uses `backup-directory-alist' in the same way as does
 					-1))
 	    (file-error (setq possibilities nil)))
 	  (if (not deserve-versions-p)
-	      (list (concat basic-name "~"))
+	      (list (make-backup-file-name fn))
 	    (cons (format "%s.~%d~" basic-name (1+ high-water-mark))
 		  (if (and (> number-to-delete 0)
 			   ;; Delete nothing if there is overflow
