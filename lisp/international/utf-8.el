@@ -197,10 +197,81 @@ Setting this variable outside customize has no effect."
 				       korean-ksc5601)
   "List of charsets supported by `utf-translate-cjk-mode'.")
 
-(defconst utf-translate-cjk-unicode-range
-  '((#x2e80 . #xd7a3)
-    (#xff00 . #xffef))
-  "List of Unicode code ranges supported by `utf-translate-cjk-mode'.")
+(defvar utf-translate-cjk-lang-env nil
+  "Language environment in which tables for `utf-translate-cjk-mode' is loaded.
+The value nil means that the tables are not yet loaded.")
+
+(defvar utf-translate-cjk-unicode-range)
+
+;; String generated from utf-translate-cjk-unicode-range.  It is
+;; suitable for an argument to skip-chars-forward.
+(defvar utf-translate-cjk-unicode-range-string nil)
+
+(defun utf-translate-cjk-set-unicode-range (range)
+  (setq utf-translate-cjk-unicode-range range)
+  (setq utf-translate-cjk-unicode-range-string
+	(let ((decode-char-no-trans
+	       #'(lambda (x)
+		   (cond ((< x #x100) (make-char 'latin-iso8859-1 x))
+			 ((< x #x2500)
+			  (setq x (- x #x100))
+			  (make-char 'mule-unicode-0100-24ff
+				     (+ (/ x 96) 32) (+ (% x 96) 32)))
+			 ((< x #x3400) 
+			  (setq x (- x #x2500))
+			  (make-char 'mule-unicode-2500-33ff
+				     (+ (/ x 96) 32) (+ (% x 96) 32)))
+			 (t
+			  (setq x (- x #xe000))
+			  (make-char 'mule-unicode-e000-ffff
+				     (+ (/ x 96) 32) (+ (% x 96) 32))))))
+	      ranges from to)
+	  (dolist (elt range)
+	    (setq from (max #xA0 (car elt)) to (min #xffff (cdr elt)))
+	    (if (and (>= to #x3400) (< to #xE000))
+		(setq to #x33FF))
+	    (cond ((< from #x100)
+		   (if (>= to #xE000)
+		       (setq ranges (cons (cons #xE000 to) ranges)
+			     to #x33FF))
+		   (if (>= to #x2500)
+		       (setq ranges (cons (cons #x2500 to) ranges)
+			     to #x24FF))
+		   (if (>= to #x100)
+		       (setq ranges (cons (cons #x100 to) ranges)
+			     to #xFF)))
+		  ((< from #x2500)
+		   (if (>= to #xE000)
+		       (setq ranges (cons (cons #xE000 to) ranges)
+			     to #x33FF))
+		   (if (>= to #x2500)
+		       (setq ranges (cons (cons #x2500 to) ranges)
+			     to #x24FF)))
+		  ((< from #x3400)
+		   (if (>= to #xE000)
+		       (setq ranges (cons (cons #xE000 to) ranges)
+			     to #x33FF))))
+	    (if (<= from to)
+		(setq ranges (cons (cons from to) ranges))))
+	  (mapconcat #'(lambda (x) 
+			 (format "%c-%c" 
+				 (funcall decode-char-no-trans (car x))
+				 (funcall decode-char-no-trans (cdr x))))
+		     ranges "")))
+  ;; This forces loading tables for utf-translate-cjk-mode.
+  (setq utf-translate-cjk-lang-env nil))
+
+(defcustom utf-translate-cjk-unicode-range '((#x2e80 . #xd7a3)
+					     (#xff00 . #xffef))
+  "List of Unicode code ranges supported by `utf-translate-cjk-mode'.
+Setting this variable directly does not take effect;
+use either \\[customize] or the function
+`utf-translate-cjk-set-unicode-range'."
+  :version "21.4"
+  :type '(repeat (cons integer integer))
+  :set (lambda (symbol value)
+	 (utf-translate-cjk-set-unicode-range value))
+  :group 'mule)
 
 ;; Return non-nil if CODE-POINT is in `utf-translate-cjk-unicode-range'.
 (defsubst utf-translate-cjk-substitutable-p (code-point)
@@ -212,10 +283,6 @@ Setting this variable outside customize has no effect."
 	  (setq tail nil)
 	(setq elt nil)))
     elt))
-
-(defvar utf-translate-cjk-lang-env nil
-  "Language environment in which tables for `utf-translate-cjk-mode' is loaded.
-The value nil means that the tables are not yet loaded.")
 
 (defun utf-translate-cjk-load-tables ()
   "Load tables for `utf-translate-cjk-mode'."
@@ -874,17 +941,17 @@ Also compose particular scripts if `utf-8-compose-scripts' is non-nil."
 	    hash-table ch)
 	(set-buffer-multibyte t)
 	(when utf-translate-cjk-mode
-	  (if (not utf-translate-cjk-lang-env)
-	      ;; Check these characters:
-	      ;;   "U+2e80-U+33ff", "U+ff00-U+ffef"
-	      ;; We may have to translate them to CJK charsets.
-	      (let ((range2 "$,29@(B-$,2G$,3r`(B-$,3u/(B"))
-		(skip-chars-forward (concat range range2))
-		(unless (eobp)
-		  (utf-translate-cjk-load-tables)
-		  (setq range (concat range range2)))
+	  (unless utf-translate-cjk-lang-env
+	    ;; Check these characters in utf-translate-cjk-range.
+	    ;; We may have to translate them to CJK charsets.
+	    (skip-chars-forward
+	     (concat range utf-translate-cjk-unicode-range-string))
+	    (unless (eobp)
+	      (utf-translate-cjk-load-tables)
+	      (setq range
+		    (concat range utf-translate-cjk-unicode-range-string))))
 	  (setq hash-table (get 'utf-subst-table-for-decode
-				'translation-hash-table)))))
+				'translation-hash-table)))
 	(while (and (skip-chars-forward range)
 		    (not (eobp)))
 	  (setq ch (following-char))
