@@ -1,6 +1,6 @@
 /* impl.c.poolsnc: STACK NO CHECKING POOL CLASS
  *
- * $HopeName: MMsrc!poolsnc.c(trunk.4) $
+ * $HopeName: MMsrc!poolsnc.c(trunk.5) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
@@ -26,7 +26,7 @@
 #include "mpm.h"
 
 
-SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.4) $");
+SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.5) $");
 
 
 #define SNCSig  ((Sig)0x519b754c)       /* SIGPooLSNC */
@@ -53,6 +53,8 @@ typedef struct SNCStruct {
 
 static Bool SNCCheck(SNC snc);
 
+static void sncPopPartialSegChain(SNC snc, Buffer buf, Seg upTo);
+
 
 /* Management of segment chains
  *
@@ -65,7 +67,7 @@ static Bool SNCCheck(SNC snc);
 
 /* SNCBufStruct -- SNC Buffer subclass
  *
- * This subclass of BufferedSeg hold a segment chain.
+ * This subclass of RankBuf holds a segment chain.
  */
 
 #define SNCBufSig ((Sig)0x51954CBF) /* SIGnature SNC BuFfer  */ 
@@ -73,7 +75,7 @@ static Bool SNCCheck(SNC snc);
 typedef struct SNCBufStruct *SNCBuf;
 
 typedef struct SNCBufStruct {
-  BufferedSegStruct bufSegStruct; /* superclass fields must come first */
+  SegBufStruct segBufStruct;      /* superclass fields must come first */
   Seg topseg;                     /* The segment chain head */
   Sig sig;                        /* design.mps.sig */
 } SNCBufStruct;
@@ -88,11 +90,11 @@ typedef struct SNCBufStruct {
 
 static Bool SNCBufCheck(SNCBuf sncbuf)
 {
-  BufferedSeg bufseg;
+  SegBuf segbuf;
 
   CHECKS(SNCBuf, sncbuf);
-  bufseg = &sncbuf->bufSegStruct;
-  CHECKL(BufferedSegCheck(bufseg));
+  segbuf = &sncbuf->segBufStruct;
+  CHECKL(SegBufCheck(segbuf));
   if (sncbuf->topseg != NULL) {
     CHECKL(SegCheck(sncbuf->topseg));
   }
@@ -127,16 +129,16 @@ static void sncBufferSetTopSeg(Buffer buffer, Seg seg)
 
 /* SNCBufInit -- Initialize an SNCBuf */
 
-static Res SNCBufInit (Buffer buffer, Pool pool)
+static Res SNCBufInit (Buffer buffer, Pool pool, va_list args)
 {
   SNCBuf sncbuf;
-  BufferClass superclass = EnsureBufferedSegClass();
+  BufferClass superclass = EnsureRankBufClass();
 
   AVERT(Buffer, buffer);
   AVERT(Pool, pool);
 
   /* call next method */
-  (*superclass->init)(buffer, pool);
+  (*superclass->init)(buffer, pool, args);
 
   sncbuf = BufferSNCBuf(buffer);
   sncbuf->topseg = NULL;
@@ -153,15 +155,22 @@ static void SNCBufFinish(Buffer buffer)
 {
   BufferClass super;
   SNCBuf sncbuf;
+  SNC snc;
+  Pool pool;
 
   AVERT(Buffer, buffer);
   sncbuf = BufferSNCBuf(buffer);
   AVERT(SNCBuf, sncbuf);
+  pool = BufferPool(buffer);
+
+  snc = PoolPoolSNC(pool);
+  /* Put any segments which haven't bee popped onto the free list */
+  sncPopPartialSegChain(snc, buffer, NULL);
 
   sncbuf->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  super = EnsureBufferedSegClass();
+  super = EnsureRankBufClass();
   super->finish(buffer);
 }
 
@@ -170,7 +179,7 @@ static void SNCBufFinish(Buffer buffer)
 
 DEFINE_BUFFER_CLASS(SNCBufClass, class)
 {
-  INHERIT_CLASS(class, BufferedSegClass);
+  INHERIT_CLASS(class, RankBufClass);
   class->name = "SNCBUF";
   class->size = sizeof(SNCBufStruct);
   class->init = SNCBufInit;
@@ -322,25 +331,6 @@ static void SNCFinish(Pool pool)
 }
 
 
-/* SNCBufferInit -- the buffer init method */
-
-static Res SNCBufferInit(Pool pool, Buffer buffer, va_list args)
-{
-  Rank rank = va_arg(args, Rank);
-  SNC snc;
-
-  AVERT(Pool, pool);
-  AVER(RankCheck(rank));
-  AVER(rank == RankEXACT);  /* SNC only accepts RankEXACT */
-  snc = PoolPoolSNC(pool);
-  AVERT(SNC, snc);
-  BufferSetRankSet(buffer, RankSetSingle(rank));
-  /* Initialize buffer's segment chain to empty */
-  sncBufferSetTopSeg(buffer, NULL);
-  return ResOK;
-}
-
-
 static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
                          Pool pool, Buffer buffer, Size size,
                          Bool withReservoirPermit)
@@ -424,20 +414,6 @@ static void SNCBufferEmpty(Pool pool, Buffer buffer,
     (*pool->format->pad)(init, size);
     ShieldCover(arena, seg);
   }
-}
-
-static void SNCBufferFinish(Pool pool, Buffer buffer)
-{
-  SNC snc;
-
-  AVERT(Pool, pool);
-  AVERT(Buffer, buffer);
-  snc = PoolPoolSNC(pool);
-  AVERT(SNC, snc);
-  AVER(BufferIsReset(buffer));
-
-  /* Put any segments which haven't bee popped onto the free list */
-  sncPopPartialSegChain(snc, buffer, NULL);
 }
 
 
@@ -616,10 +592,8 @@ DEFINE_POOL_CLASS(SNCPoolClass, this)
   this->offset = offsetof(SNCStruct, poolStruct);
   this->init = SNCInit;
   this->finish = SNCFinish;
-  this->bufferInit = SNCBufferInit;
   this->bufferFill = SNCBufferFill;
   this->bufferEmpty = SNCBufferEmpty;
-  this->bufferFinish = SNCBufferFinish;
   this->scan = SNCScan;
   this->framePush = SNCFramePush;
   this->framePop = SNCFramePop;
