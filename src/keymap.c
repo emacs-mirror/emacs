@@ -1694,8 +1694,10 @@ indirect definition itself.")
 		continue;
 	    }
 
-	  /* It is a true unshadowed match.  Record it.  */
-	  found = Fcons (sequence, found);
+	  /* It is a true unshadowed match.  Record it, unless it's already
+	     been seen (as could happen when inheriting keymaps).  */
+	  if (NILP (Fmember (sequence, found)))
+	    found = Fcons (sequence, found);
 
 	  /* If firstonly is Qnon_ascii, then we can return the first
 	     binding we find.  If firstonly is not Qnon_ascii but not
