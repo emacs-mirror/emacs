@@ -2364,16 +2364,21 @@ x_get_glyph_string_clip_rect (s, r)
   if (s->row->full_width_p)
     {
       /* Draw full-width.  X coordinates are relative to S->w->left.  */
-      r->x = WINDOW_LEFT_MARGIN (s->w) * CANON_X_UNIT (s->f);
-      r->width = XFASTINT (s->w->width) * CANON_X_UNIT (s->f);
+      int canon_x = CANON_X_UNIT (s->f);
+      
+      r->x = WINDOW_LEFT_MARGIN (s->w) * canon_x;
+      r->width = XFASTINT (s->w->width) * canon_x;
 
       if (FRAME_HAS_VERTICAL_SCROLL_BARS (s->f))
 	{
-	  int width = FRAME_SCROLL_BAR_WIDTH (s->f) * CANON_X_UNIT (s->f);
-	  r->width += width;
+	  int width = FRAME_SCROLL_BAR_WIDTH (s->f) * canon_x;
 	  if (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (s->f))
 	    r->x -= width;
 	}
+      
+      /* If row should not extend over internal borders, adjust x.  */
+      if (!s->row->internal_border_p)
+	r->x += FRAME_INTERNAL_BORDER_WIDTH (s->f);
       
       /* Unless displaying a mode or menu bar line, which are always
 	 fully visible, clip to the visible part of the row.  */
@@ -3231,7 +3236,7 @@ x_draw_glyph_string_box (s)
   raised_p = s->face->box == FACE_RAISED_BOX;
   left_x = s->x;
   right_x = ((s->row->full_width_p
-	      ? last_x
+	      ? last_x - 1
 	      : min (last_x, s->x + s->width) - 1));
   top_y = s->y;
   bottom_y = top_y + s->height - 1;
@@ -4019,7 +4024,7 @@ x_set_glyph_string_background_width (s, start, last_x)
      background_width to the distance to the right edge of the drawing
      area.  */
   if (s->extends_to_end_of_line_p)
-    s->background_width = last_x - s->x;
+    s->background_width = last_x - s->x + 1;
   else
     s->background_width = s->width;
 }
@@ -4263,10 +4268,10 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end)
 
       /* If row should extend over internal borders, adjust x and
          width accordingly.  */
-      if (row->internal_border_p)
+      if (!row->internal_border_p)
 	{
 	  x += FRAME_INTERNAL_BORDER_WIDTH (f);
-	  width -= 2 * FRAME_INTERNAL_BORDER_WIDTH (f);
+	  last_x -= FRAME_INTERNAL_BORDER_WIDTH (f);
 	}
     }
   else
