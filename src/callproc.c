@@ -522,14 +522,11 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     current_dir = ENCODE_FILE (current_dir);
 
 #ifdef MSDOS /* MW, July 1993 */
-    /* ??? Someone who knows MSDOG needs to check whether this properly
-       closes all descriptors that it opens.
-
-       Note that run_msdos_command() actually returns the child process
+    /* Note that on MSDOS `child_setup' actually returns the child process
        exit status, not its PID, so we assign it to `synch_process_retcode'
        below.  */
-    pid = run_msdos_command (new_argv, current_dir,
-			     filefd, outfilefd, fd_error);
+    pid = child_setup (filefd, outfilefd, fd_error, (char **) new_argv,
+		       0, current_dir);
 
     /* Record that the synchronous process exited and note its
        termination status.  */
@@ -876,8 +873,6 @@ static int relocate_fd ();
    Therefore, the superior process must save and restore the value
    of environ around the vfork and the call to this function.
 
-   ENV is the environment for the subprocess.
-
    SET_PGRP is nonzero if we should put the subprocess into a separate
    process group.  
 
@@ -893,10 +888,6 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
      int set_pgrp;
      Lisp_Object current_dir;
 {
-#ifdef MSDOS
-  /* The MSDOS port of gcc cannot fork, vfork, ... so we must call system
-     instead.  */
-#else /* not MSDOS */
   char **env;
   char *pwd_var;
 #ifdef WINDOWSNT
@@ -919,7 +910,11 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
   /* Close Emacs's descriptors that this process should not have.  */
   close_process_descs ();
 #endif
+  /* DOS_NT isn't in a vfork, so if we are in the middle of load-file,
+     we will lose if we call close_load_descs here.  */
+#ifndef DOS_NT
   close_load_descs ();
+#endif
 
   /* Note that use of alloca is always safe here.  It's obvious for systems
      that do not have true vfork or that have true (stack) alloca.
@@ -938,7 +933,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
     if (!IS_DIRECTORY_SEP (temp[i - 1])) temp[i++] = DIRECTORY_SEP;
     temp[i] = 0;
 
-#ifndef WINDOWSNT
+#ifndef DOS_NT
     /* We can't signal an Elisp error here; we're in a vfork.  Since
        the callers check the current directory before forking, this
        should only return an error if the directory's permissions
@@ -946,6 +941,15 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
        at least check.  */
     if (chdir (temp) < 0)
       _exit (errno);
+#endif
+
+#ifdef DOS_NT
+    /* Get past the drive letter, so that d:/ is left alone.  */
+    if (i > 2 && IS_DEVICE_SEP (temp[1]) && IS_DIRECTORY_SEP (temp[2]))
+      {
+	temp += 2;
+	i -= 2;
+      }
 #endif
 
     /* Strip trailing slashes for PWD, but leave "/" and "//" alone.  */
@@ -1032,6 +1036,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
       err = relocate_fd (err, 3);
   }
 
+#ifndef MSDOS
   close (0);
   close (1);
   close (2);
@@ -1042,6 +1047,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
   close (in);
   close (out);
   close (err);
+#endif /* not MSDOS */
 #endif /* not WINDOWSNT */
 
 #if defined(USG) && !defined(BSD_PGRPS)
@@ -1058,6 +1064,13 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
   something missing here;
 #endif /* vipc */
 
+#ifdef MSDOS
+  pid = run_msdos_command (new_argv, pwd_var + 4, in, out, err, env);
+  if (pid == -1)
+    /* An error occurred while trying to run the subprocess.  */
+    report_file_error ("Spawning child process", Qnil);
+  return pid;
+#else  /* not MSDOS */
 #ifdef WINDOWSNT
   /* Spawn the child.  (See ntproc.c:Spawnve).  */
   cpid = spawnve (_P_NOWAIT, new_argv[0], new_argv, env);
