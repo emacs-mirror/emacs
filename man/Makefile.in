@@ -18,12 +18,12 @@ INFO_TARGETS = ../info/emacs ../info/ccmode ../info/cl \
 		../info/sc ../info/vip ../info/viper ../info/widget \
 		../info/efaq ../info/ada-mode ../info/autotype \
 		../info/idlwave ../info/eudc ../info/ebrowse ../info/pcl-cvs \
-		../info/woman
+		../info/woman ../info/speedbar ../info/emacs-mime
 DVI_TARGETS = emacs.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ediff.dvi forms.dvi gnus.dvi message.dvi mh-e.dvi \
 		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
 		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
-		 pcl-cvs.dvi woman.dvi
+		 pcl-cvs.dvi woman.dvi speedbar.dvi emacs-mime.dvi
 INFOSOURCES = info.texi info-stnd.texi
 
 # The following rule does not work with all versions of `make'.
@@ -203,6 +203,16 @@ ebrowse.dvi: ebrowse.texi
 	cd $(srcdir); $(MAKEINFO) woman.texi
 woman.dvi: woman.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/woman.texi
+
+../info/speedbar: speedbar.texi
+	cd $(srcdir); $(MAKEINFO) speedbar.texi
+speedbar.dvi: speedbar.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/speedbar.texi
+
+../info/emacs-mime: emacs-mime.texi
+	cd $(srcdir); $(MAKEINFO) emacs-mime.texi
+emacs-mime.dvi: emacs-mime.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-mime.texi
 
 mostlyclean:
 	rm -f *.log *.cp *.fn *.ky *.pg *.vr core
