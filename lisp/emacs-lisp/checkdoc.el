@@ -1148,13 +1148,13 @@ generating a buffered list of errors."
     map)
   "Keymap used to override evaluation key-bindings for documentation checking.")
 
-(defvar checkdoc-minor-keymap checkdoc-minor-mode-map
-  "Obsolete!  Use `checkdoc-minor-mode-map'.")
+(defvaralias 'checkdoc-minor-keymap 'checkdoc-minor-mode-map
+  "Obsolete--use `checkdoc-minor-mode-map'.")
 
 ;; Add in a menubar with easy-menu
 
 (easy-menu-define
- checkdoc-minor-menu checkdoc-minor-mode-map "Checkdoc Minor Mode Menu"
+ nil checkdoc-minor-mode-map "Checkdoc Minor Mode Menu"
  '("CheckDoc"
    ["Interactive Buffer Style Check" checkdoc t]
    ["Interactive Buffer Style and Spelling Check" checkdoc-ispell t]
