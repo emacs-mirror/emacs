@@ -631,15 +631,15 @@ Getting Mail
 * Getting Started Reading Mail:: A simple cookbook example.
 * Splitting Mail::               How to create mail groups.
 * Mail Sources::                 How to tell Gnus where to get mail from.
-* Mail Backend Variables::       Variables for customizing mail handling.
+* Mail Back End Variables::      Variables for customizing mail handling.
 * Fancy Mail Splitting::         Gnus can do hairy splitting of incoming mail.
 * Group Mail Splitting::         Use group customize to drive mail splitting.
 * Incorporating Old Mail::       What about the old mail you have?
 * Expiring Mail::                Getting rid of unwanted mail.
 * Washing Mail::                 Removing cruft from the mail you get.
 * Duplicates::                   Dealing with duplicated mail.
-* Not Reading Mail::             Using mail backends for reading other files.
-* Choosing a Mail Backend::      Gnus can read a variety of mail formats.
+* Not Reading Mail::             Using mail back ends for reading other files.
+* Choosing a Mail Back End::     Gnus can read a variety of mail formats.
 
 Mail Sources
 
@@ -647,14 +647,14 @@ Mail Sources
 * Mail Source Customization::    Some variables that influence things.
 * Fetching Mail::                Using the mail source specifiers.
 
-Choosing a Mail Backend
+Choosing a Mail Back End
 
 * Unix Mail Box::               Using the (quite) standard Un*x mbox.
 * Rmail Babyl::                 Emacs programs use the rmail babyl format.
 * Mail Spool::                  Store your mail in a private spool?
-* MH Spool::                    An mhspool-like backend.
+* MH Spool::                    An mhspool-like back end.
 * Mail Folders::                Having one file for each group.
-* Comparing Mail Backends::     An in-depth looks at pros and cons.
+* Comparing Mail Back Ends::    An in-depth looks at pros and cons.
 
 Browsing the Web
 
@@ -679,7 +679,7 @@ Document Groups
 SOUP
 
 * SOUP Commands::     Commands for creating and sending @sc{soup} packets
-* SOUP Groups::       A backend for reading @sc{soup} packets.
+* SOUP Groups::       A back end for reading @sc{soup} packets.
 * SOUP Replies::      How to enable @code{nnsoup} to take over mail and news.
 
 @sc{imap}
@@ -835,7 +835,7 @@ Customization
 Gnus Reference Guide
 
 * Gnus Utility Functions::   Common functions and variable to use.
-* Backend Interface::        How Gnus communicates with the servers.
+* Back End Interface::       How Gnus communicates with the servers.
 * Score File Syntax::        A BNF definition of the score file standard.
 * Headers::                  How Gnus stores headers internally.
 * Ranges::                   A handy format for storing mucho numbers.
@@ -844,14 +844,14 @@ Gnus Reference Guide
 * Emacs/XEmacs Code::        Gnus can be run under all modern Emacsen.
 * Various File Formats::     Formats of files that Gnus use.
 
-Backend Interface
+Back End Interface
 
-* Required Backend Functions::        Functions that must be implemented.
-* Optional Backend Functions::        Functions that need not be implemented.
+* Required Back End Functions::       Functions that must be implemented.
+* Optional Back End Functions::       Functions that need not be implemented.
 * Error Messaging::                   How to get messages and report errors.
-* Writing New Backends::              Extending old backends.
-* Hooking New Backends Into Gnus::    What has to be done on the Gnus end.
-* Mail-like Backends::                Some tips on mail backends.
+* Writing New Back Ends::             Extending old back ends.
+* Hooking New Back ends Into Gnus::   What has to be done on the Gnus end.
+* Mail-like Back ends::               Some tips on mail back ends.
 
 Various File Formats
 
@@ -975,8 +975,8 @@ files during startup (if that's required), and new newsgroups that
 appear on these servers will be subscribed (or not) just as native
 groups are.
 
-For instance, if you use the @code{nnmbox} backend to read your mail, you
-would typically set this variable to
+For instance, if you use the @code{nnmbox} back end to read your mail,
+you would typically set this variable to
 
 @lisp
 (setq gnus-secondary-select-methods '((nnmbox "")))
@@ -1093,7 +1093,7 @@ also save you some time at startup.  Even if this variable is
 @code{nil}, you can always subscribe to the new groups just by pressing
 @kbd{U} in the group buffer (@pxref{Group Maintenance}).  This variable
 is @code{ask-server} by default.  If you set this variable to
-@code{always}, then Gnus will query the backends for new groups even
+@code{always}, then Gnus will query the back ends for new groups even
 when you do the @kbd{g} command (@pxref{Scanning New Messages}).
 
 @menu
@@ -1255,7 +1255,7 @@ Yet another variable that meddles here is
 thought it would be nice to have two of these.  This variable is more
 meant for setting some ground rules, while the other variable is used
 more for user fiddling.  By default this variable makes all new groups
-that come from mail backends (@code{nnml}, @code{nnbabyl},
+that come from mail back ends (@code{nnml}, @code{nnbabyl},
 @code{nnfolder}, @code{nnmbox}, and @code{nnmh}) subscribed.  If you
 don't like that, just set this variable to @code{nil}.
 
@@ -2376,7 +2376,7 @@ to subscribe to @sc{nntp} groups, @pxref{Browse Foreign Server}.
 Rename the current group to something else
 (@code{gnus-group-rename-group}).  This is valid only on some
 groups---mail groups mostly.  This command might very well be quite slow
-on some backends.
+on some back ends.
 
 @item G c
 @kindex G c @r{(Group)}
@@ -2442,7 +2442,7 @@ strings to match on headers (@code{gnus-group-make-kiboze-group}).
 @findex gnus-group-enter-directory
 @cindex nneething
 Read an arbitrary directory as if it were a newsgroup with the
-@code{nneething} backend (@code{gnus-group-enter-directory}).
+@code{nneething} back end (@code{gnus-group-enter-directory}).
 @xref{Anything Groups}.
 
 @item G f
@@ -2945,7 +2945,7 @@ Sort the group buffer by group rank
 @item G S m
 @kindex G S m @r{(Group)}
 @findex gnus-group-sort-groups-by-method
-Sort the group buffer alphabetically by backend name
+Sort the group buffer alphabetically by back end name
 (@code{gnus-group-sort-groups-by-method}).
 
 @end table
@@ -2992,7 +2992,7 @@ Sort the groups by group rank
 @item G P m
 @kindex G P m @r{(Group)}
 @findex gnus-group-sort-selected-groups-by-method
-Sort the groups alphabetically by backend name
+Sort the groups alphabetically by back end name
 (@code{gnus-group-sort-selected-groups-by-method}).
 
 @end table
@@ -3458,7 +3458,7 @@ Sort the current topic by group rank
 @item T S m
 @kindex T S m (Topic)
 @findex gnus-topic-sort-groups-by-method
-Sort the current topic alphabetically by backend name
+Sort the current topic alphabetically by back end name
 (@code{gnus-topic-sort-groups-by-method}).
 
 @end table
@@ -3668,7 +3668,7 @@ Check the server(s) for new articles.  If the numerical prefix is used,
 this command will check only groups of level @var{arg} and lower
 (@code{gnus-group-get-new-news}).  If given a non-numerical prefix, this
 command will force a total re-reading of the active file(s) from the
-backend(s).
+back end(s).
 
 @item M-g
 @kindex M-g @r{(Group)}
@@ -5720,7 +5720,7 @@ would like to display as few summary lines as possible, but still
 connect as many loose threads as possible, you should set this variable
 to @code{some} or a number.  If you set it to a number, no more than
 that number of extra old headers will be fetched.  In either case,
-fetching old headers only works if the backend you are using carries
+fetching old headers only works if the back end you are using carries
 overview files---this would normally be @code{nntp}, @code{nnspool} and
 @code{nnml}.  Also remember that if the root of the thread has been
 expired by the server, there's not much Gnus can do about that.
@@ -6104,8 +6104,8 @@ happen automatically.
 @vindex gnus-use-article-prefetch
 You can control how many articles are to be pre-fetched by setting
 @code{gnus-use-article-prefetch}.  This is 30 by default, which means
-that when you read an article in the group, the backend will pre-fetch
-the next 30 articles.  If this variable is @code{t}, the backend will
+that when you read an article in the group, the back end will pre-fetch
+the next 30 articles.  If this variable is @code{t}, the back end will
 pre-fetch all the articles it can without bound.  If it is
 @code{nil}, no pre-fetching will be done.
 
@@ -8202,7 +8202,7 @@ The current select method will be used when fetching by
 by giving this command a prefix.
 
 @vindex gnus-refer-article-method
-If the group you are reading is located on a backend that does not
+If the group you are reading is located on a back end that does not
 support fetching by @code{Message-ID} very well (like @code{nnspool}),
 you can set @code{gnus-refer-article-method} to an @sc{nntp} method.  It
 would, perhaps, be best if the @sc{nntp} server you consult is the one
@@ -8223,7 +8223,7 @@ then ask Deja if that fails:
         (nnweb "refer" (nnweb-type dejanews))))
 @end lisp
 
-Most of the mail backends support fetching by @code{Message-ID}, but do
+Most of the mail back ends support fetching by @code{Message-ID}, but do
 not do a particularly excellent job at it.  That is, @code{nnmbox} and
 @code{nnbabyl} are able to locate articles from any groups, while
 @code{nnml} and @code{nnfolder} are only able to locate articles that
@@ -10044,22 +10044,22 @@ personal mail group.
 
 A foreign group (or any group, really) is specified by a @dfn{name} and
 a @dfn{select method}.  To take the latter first, a select method is a
-list where the first element says what backend to use (e.g. @code{nntp},
+list where the first element says what back end to use (e.g. @code{nntp},
 @code{nnspool}, @code{nnml}) and the second element is the @dfn{server
 name}.  There may be additional elements in the select method, where the
-value may have special meaning for the backend in question.
+value may have special meaning for the back end in question.
 
 One could say that a select method defines a @dfn{virtual server}---so
 we do just that (@pxref{The Server Buffer}).
 
-The @dfn{name} of the group is the name the backend will recognize the
+The @dfn{name} of the group is the name the back end will recognize the
 group as.
 
 For instance, the group @samp{soc.motss} on the @sc{nntp} server
 @samp{some.where.edu} will have the name @samp{soc.motss} and select
 method @code{(nntp "some.where.edu")}.  Gnus will call this group
 @samp{nntp+some.where.edu:soc.motss}, even though the @code{nntp}
-backend just knows this group as @samp{soc.motss}.
+back end just knows this group as @samp{soc.motss}.
 
 The different methods all have their peculiarities, of course.
 
@@ -10080,13 +10080,13 @@ The different methods all have their peculiarities, of course.
 Traditionally, a @dfn{server} is a machine or a piece of software that
 one connects to, and then requests information from.  Gnus does not
 connect directly to any real servers, but does all transactions through
-one backend or other.  But that's just putting one layer more between
+one back end or other.  But that's just putting one layer more between
 the actual media and Gnus, so we might just as well say that each
-backend represents a virtual server.
+back end represents a virtual server.
 
-For instance, the @code{nntp} backend may be used to connect to several
+For instance, the @code{nntp} back end may be used to connect to several
 different actual @sc{nntp} servers, or, perhaps, to many different ports
-on the same actual @sc{nntp} server.  You tell Gnus which backend to
+on the same actual @sc{nntp} server.  You tell Gnus which back end to
 use, and what parameters to set by specifying a @dfn{select method}.
 
 These select method specifications can sometimes become quite
@@ -10126,7 +10126,7 @@ variable, with some simple extensions:
 @table @samp
 
 @item h
-How the news is fetched---the backend name.
+How the news is fetched---the back end name.
 
 @item n
 The name of this server.
@@ -10212,7 +10212,7 @@ servers.
 @findex gnus-server-regenerate-server
 Request that the server regenerate all its data structures
 (@code{gnus-server-regenerate-server}).  This can be useful if you have
-a mail backend that has gotten out of sync.
+a mail back end that has gotten out of sync.
 
 @end table
 
@@ -10233,7 +10233,7 @@ Reading directly from the spool is even simpler:
 @end lisp
 
 As you can see, the first element in a select method is the name of the
-backend, and the second is the @dfn{address}, or @dfn{name}, if you
+back end, and the second is the @dfn{address}, or @dfn{name}, if you
 will.
 
 After these two elements, there may be an arbitrary number of
@@ -10247,10 +10247,10 @@ look like then:
 (nntp "news.funet.fi" (nntp-port-number 15))
 @end lisp
 
-You should read the documentation to each backend to find out what
+You should read the documentation to each back end to find out what
 variables are relevant, but here's an @code{nnmh} example:
 
-@code{nnmh} is a mail backend that reads a spool-like structure.  Say
+@code{nnmh} is a mail back end that reads a spool-like structure.  Say
 you have two structures that you wish to access: One is your private
 mail spool, and the other is a public one.  Here's the possible spec for
 your private mail:
@@ -10346,7 +10346,7 @@ buffer, and you should be able to enter any of the groups displayed.
 @node Server Variables
 @subsection Server Variables
 
-One sticky point when defining variables (both on backends and in Emacs
+One sticky point when defining variables (both on back ends and in Emacs
 in general) is that some variables are typically initialized from other
 variables when the definition of the variables is being loaded.  If you
 change the "base" variable after the variables have been loaded, you
@@ -10359,7 +10359,7 @@ directory variables are initialized from that variable, so
 new virtual @code{nnml} server, it will @emph{not} suffice to set just
 @code{nnml-directory}---you have to explicitly set all the file
 variables to be what you want them to be.  For a complete list of
-variables for each backend, see each backend's section later in this
+variables for each back end, see each back end's section later in this
 manual, but here's an example @code{nnml} definition:
 
 @lisp
@@ -10448,7 +10448,7 @@ Remove all marks to whether Gnus was denied connection from any servers
 @node Getting News
 @section Getting News
 @cindex reading news
-@cindex news backends
+@cindex news back ends
 
 A newsreader is normally used for reading news.  Gnus currently provides
 only two methods of getting news---it can read from an @sc{nntp} server,
@@ -10582,9 +10582,9 @@ nntpd 1.5.11t, since that command chokes that server, I've been told.
 
 @item nntp-maximum-request
 @vindex nntp-maximum-request
-If the @sc{nntp} server doesn't support @sc{nov} headers, this backend
+If the @sc{nntp} server doesn't support @sc{nov} headers, this back end
 will collect headers by sending a series of @code{head} commands.  To
-speed things up, the backend sends lots of these commands without
+speed things up, the back end sends lots of these commands without
 waiting for reply, and then reads all the replies.  This is controlled
 by the @code{nntp-maximum-request} variable, and is 400 by default.  If
 your network is buggy, you should set this to 1.
@@ -10596,7 +10596,7 @@ regularly, you're sure to have problems with @sc{nntp} servers not
 responding properly, or being too loaded to reply within reasonable
 time.  This is can lead to awkward problems, which can be helped
 somewhat by setting @code{nntp-connection-timeout}.  This is an integer
-that says how many seconds the @code{nntp} backend should wait for a
+that says how many seconds the @code{nntp} back end should wait for a
 connection before giving up.  If it is @code{nil}, which is the default,
 no timeouts are done.
 
@@ -10882,15 +10882,15 @@ course.
 * Getting Started Reading Mail:: A simple cookbook example.
 * Splitting Mail::               How to create mail groups.
 * Mail Sources::                 How to tell Gnus where to get mail from.
-* Mail Backend Variables::       Variables for customizing mail handling.
+* Mail Back End Variables::      Variables for customizing mail handling.
 * Fancy Mail Splitting::         Gnus can do hairy splitting of incoming mail.
 * Group Mail Splitting::         Use group customize to drive mail splitting.
 * Incorporating Old Mail::       What about the old mail you have?
 * Expiring Mail::                Getting rid of unwanted mail.
 * Washing Mail::                 Removing gruft from the mail you get.
 * Duplicates::                   Dealing with duplicated mail.
-* Not Reading Mail::             Using mail backends for reading other files.
-* Choosing a Mail Backend::      Gnus can read a variety of mail formats.
+* Not Reading Mail::             Using mail back ends for reading other files.
+* Choosing a Mail Back End::     Gnus can read a variety of mail formats.
 @end menu
 
 
@@ -10963,18 +10963,18 @@ You Do.)
 @subsection Getting Started Reading Mail
 
 It's quite easy to use Gnus to read your new mail.  You just plonk the
-mail backend of your choice into @code{gnus-secondary-select-methods},
+mail back end of your choice into @code{gnus-secondary-select-methods},
 and things will happen automatically.
 
 For instance, if you want to use @code{nnml} (which is a "one file per
-mail" backend), you could put the following in your @file{.gnus} file:
+mail" back end), you could put the following in your @file{.gnus} file:
 
 @lisp
 (setq gnus-secondary-select-methods
       '((nnml "private")))
 @end lisp
 
-Now, the next time you start Gnus, this backend will be queried for new
+Now, the next time you start Gnus, this back end will be queried for new
 articles, and it will move all the messages in your spool file to its
 directory, which is @code{~/Mail/} by default.  The new group that will
 be created (@samp{mail.misc}) will be subscribed, and you can read it
@@ -10996,7 +10996,7 @@ last group.
 
 This should be sufficient for reading mail with Gnus.  You might want to
 give the other sections in this part of the manual a perusal, though.
-Especially @pxref{Choosing a Mail Backend} and @pxref{Expiring Mail}.
+Especially @pxref{Choosing a Mail Back End} and @pxref{Expiring Mail}.
 
 
 @node Splitting Mail
@@ -11045,13 +11045,13 @@ arguments in a buffer narrowed to the headers of an incoming mail
 message.  The function should return a list of group names that it
 thinks should carry this mail message.
 
-Note that the mail backends are free to maul the poor, innocent,
+Note that the mail back ends are free to maul the poor, innocent,
 incoming headers all they want to.  They all add @code{Lines} headers;
 some add @code{X-Gnus-Group} headers; most rename the Unix mbox
 @samp{From } line to something else.
 
 @vindex nnmail-crosspost
-The mail backends all support cross-posting.  If several regexps match,
+The mail back ends all support cross-posting.  If several regexps match,
 the mail will be ``cross-posted'' to all those groups.
 @code{nnmail-crosspost} says whether to use this mechanism or not.  Note
 that no articles are crossposted to the general (@samp{}) group.
@@ -11575,7 +11575,7 @@ The way to actually tell Gnus where to get new mail from is to set
 (@pxref{Mail Source Specifiers}).
 
 If this variable (and the obsolescent @code{nnmail-spool-file}) is
-@code{nil}, the mail backends will never attempt to fetch mail by
+@code{nil}, the mail back ends will never attempt to fetch mail by
 themselves.
 
 If you want to fetch mail both from your local spool as well as a POP
@@ -11600,25 +11600,25 @@ Or, if you don't want to use any of the keyword defaults:
 @end lisp
 
 
-When you use a mail backend, Gnus will slurp all your mail from your
+When you use a mail back end, Gnus will slurp all your mail from your
 inbox and plonk it down in your home directory.  Gnus doesn't move any
-mail if you're not using a mail backend---you have to do a lot of magic
+mail if you're not using a mail back end---you have to do a lot of magic
 invocations first.  At the time when you have finished drawing the
 pentagram, lightened the candles, and sacrificed the goat, you really
 shouldn't be too surprised when Gnus moves your mail.
 
 
 
-@node Mail Backend Variables
-@subsection Mail Backend Variables
+@node Mail Back End Variables
+@subsection Mail Back End Variables
 
 These variables are (for the most part) pertinent to all the various
-mail backends.
+mail back ends.
 
 @table @code
 @vindex nnmail-read-incoming-hook
 @item nnmail-read-incoming-hook
-The mail backends all call this hook after reading new mail.  You can
+The mail back ends all call this hook after reading new mail.  You can
 use this hook to notify any mail watch programs, if you want to.
 
 @vindex nnmail-split-hook
@@ -11655,10 +11655,10 @@ default file modes the new mail files get:
 
 @item nnmail-use-long-file-names
 @vindex nnmail-use-long-file-names
-If non-@code{nil}, the mail backends will use long file and directory
+If non-@code{nil}, the mail back ends will use long file and directory
 names.  Groups like @samp{mail.misc} will end up in directories
-(assuming use of @code{nnml} backend) or files (assuming use of
-@code{nnfolder} backend) like @file{mail.misc}.  If it is @code{nil},
+(assuming use of @code{nnml} back end) or files (assuming use of
+@code{nnfolder} back end) like @file{mail.misc}.  If it is @code{nil},
 the same group will end up in @file{mail/misc}.
 
 @item nnmail-delete-file-function
@@ -11669,7 +11669,7 @@ Function called to delete files.  It is @code{delete-file} by default.
 @item nnmail-cache-accepted-message-ids
 @vindex nnmail-cache-accepted-message-ids
 If non-@code{nil}, put the @code{Message-ID}s of articles imported into
-the backend (via @code{Gcc}, for instance) into the mail duplication
+the back end (via @code{Gcc}, for instance) into the mail duplication
 discovery cache.  The default is @code{nil}.
 
 @end table
@@ -11985,7 +11985,7 @@ by @code{gnus-group-split-update}, this function will run
 
 Most people have lots of old mail stored in various file formats.  If
 you have set up Gnus to read mail using one of the spiffy Gnus mail
-backends, you'll probably wish to have that old mail incorporated into
+back ends, you'll probably wish to have that old mail incorporated into
 your mail groups.
 
 Doing so can be quite easy.
@@ -12025,8 +12025,8 @@ deleting the mbox file, but I wouldn't do that unless I was absolutely
 sure that all the mail has ended up where it should be.
 
 Respooling is also a handy thing to do if you're switching from one mail
-backend to another.  Just respool all the mail in the old mail groups
-using the new mail backend.
+back end to another.  Just respool all the mail in the old mail groups
+using the new mail back end.
 
 
 @node Expiring Mail
@@ -12337,12 +12337,12 @@ received.  Think of all the fun!  She'll never see any of it!  Whee!
 @node Not Reading Mail
 @subsection Not Reading Mail
 
-If you start using any of the mail backends, they have the annoying
+If you start using any of the mail back ends, they have the annoying
 habit of assuming that you want to read mail with them.  This might not
 be unreasonable, but it might not be what you want.
 
 If you set @code{mail-sources} and @code{nnmail-spool-file} to
-@code{nil}, none of the backends will ever attempt to read incoming
+@code{nil}, none of the back ends will ever attempt to read incoming
 mail, which should help.
 
 @vindex nnbabyl-get-new-mail
@@ -12352,25 +12352,25 @@ mail, which should help.
 @vindex nnfolder-get-new-mail
 This might be too much, if, for instance, you are reading mail quite
 happily with @code{nnml} and just want to peek at some old @sc{rmail}
-file you have stashed away with @code{nnbabyl}.  All backends have
-variables called backend-@code{get-new-mail}.  If you want to disable
+file you have stashed away with @code{nnbabyl}.  All back ends have
+variables called back-end-@code{get-new-mail}.  If you want to disable
 the @code{nnbabyl} mail reading, you edit the virtual server for the
 group to have a setting where @code{nnbabyl-get-new-mail} to @code{nil}.
 
-All the mail backends will call @code{nn}*@code{-prepare-save-mail-hook}
+All the mail back ends will call @code{nn}*@code{-prepare-save-mail-hook}
 narrowed to the article to be saved before saving it when reading
 incoming mail.
 
 
-@node Choosing a Mail Backend
-@subsection Choosing a Mail Backend
+@node Choosing a Mail Back End
+@subsection Choosing a Mail Back End
 
 Gnus will read the mail spool when you activate a mail group.  The mail
 file is first copied to your home directory.  What happens after that
 depends on what format you want to store your mail in.
 
-There are five different mail backends in the standard Gnus, and more
-backends are available separately.  The mail backend most people use
+There are five different mail back ends in the standard Gnus, and more
+back ends are available separately.  The mail back end most people use
 (because it is the fastest and most flexible) is @code{nnml}
 (@pxref{Mail Spool}).
 
@@ -12378,9 +12378,9 @@ backends are available separately.  The mail backend most people use
 * Unix Mail Box::               Using the (quite) standard Un*x mbox.
 * Rmail Babyl::                 Emacs programs use the rmail babyl format.
 * Mail Spool::                  Store your mail in a private spool?
-* MH Spool::                    An mhspool-like backend.
+* MH Spool::                    An mhspool-like back end.
 * Mail Folders::                Having one file for each group.
-* Comparing Mail Backends::     An in-depth looks at pros and cons.
+* Comparing Mail Back Ends::    An in-depth looks at pros and cons.
 @end menu
 
 
@@ -12391,7 +12391,7 @@ backends are available separately.  The mail backend most people use
 
 @vindex nnmbox-active-file
 @vindex nnmbox-mbox-file
-The @dfn{nnmbox} backend will use the standard Un*x mbox file to store
+The @dfn{nnmbox} back end will use the standard Un*x mbox file to store
 mail.  @code{nnmbox} will add extra headers to each mail article to say
 which group it belongs in.
 
@@ -12420,7 +12420,7 @@ into groups.
 
 @vindex nnbabyl-active-file
 @vindex nnbabyl-mbox-file
-The @dfn{nnbabyl} backend will use a babyl mail box (aka. @dfn{rmail
+The @dfn{nnbabyl} back end will use a babyl mail box (aka. @dfn{rmail
 mbox}) to store mail.  @code{nnbabyl} will add extra headers to each
 mail article to say which group it belongs in.
 
@@ -12450,7 +12450,7 @@ The @dfn{nnml} spool mail format isn't compatible with any other known
 format.  It should be used with some caution.
 
 @vindex nnml-directory
-If you use this backend, Gnus will split all incoming mail into files,
+If you use this back end, Gnus will split all incoming mail into files,
 one file for each mail, and put the articles into the corresponding
 directories under the directory specified by the @code{nnml-directory}
 variable.  The default value is @file{~/Mail/}.
@@ -12459,7 +12459,7 @@ You do not have to create any directories beforehand; Gnus will take
 care of all that.
 
 If you have a strict limit as to how many files you are allowed to store
-in your account, you should not use this backend.  As each mail gets its
+in your account, you should not use this back end.  As each mail gets its
 own file, you might very well occupy thousands of inodes within a few
 weeks.  If this is no problem for you, and it isn't a problem for you
 having your friendly systems administrator walking around, madly,
@@ -12467,10 +12467,10 @@ shouting ``Who is eating all my inodes?! Who? Who!?!'', then you should
 know that this is probably the fastest format to use.  You do not have
 to trudge through a big mbox file just to read your new mail.
 
-@code{nnml} is probably the slowest backend when it comes to article
+@code{nnml} is probably the slowest back end when it comes to article
 splitting.  It has to create lots of files, and it also generates
 @sc{nov} databases for the incoming mails.  This makes it the fastest
-backend when it comes to reading mail.
+back end when it comes to reading mail.
 
 Virtual server settings:
 
@@ -12494,7 +12494,7 @@ If non-@code{nil}, @code{nnml} will read incoming mail.
 
 @item nnml-nov-is-evil
 @vindex nnml-nov-is-evil
-If non-@code{nil}, this backend will ignore any @sc{nov} files.
+If non-@code{nil}, this back end will ignore any @sc{nov} files.
 
 @item nnml-nov-file-name
 @vindex nnml-nov-file-name
@@ -12523,7 +12523,7 @@ Commands}).
 
 @code{nnmh} is just like @code{nnml}, except that is doesn't generate
 @sc{nov} databases and it doesn't keep an active file.  This makes
-@code{nnmh} a @emph{much} slower backend than @code{nnml}, but it also
+@code{nnmh} a @emph{much} slower back end than @code{nnml}, but it also
 makes it easier to write procmail scripts for.
 
 Virtual server settings:
@@ -12554,7 +12554,7 @@ to set this variable to @code{t}.
 @cindex mbox folders
 @cindex mail folders
 
-@code{nnfolder} is a backend for storing each mail group in a separate
+@code{nnfolder} is a back end for storing each mail group in a separate
 file.  Each file is in the standard Un*x mbox format.  @code{nnfolder}
 will add extra headers to keep track of article numbers and arrival
 dates.
@@ -12610,13 +12610,13 @@ command to make @code{nnfolder} aware of all likely files in
 @code{nnfolder-directory}.  This only works if you use long file names,
 though.
 
-@node Comparing Mail Backends
-@subsubsection Comparing Mail Backends
+@node Comparing Mail Back Ends
+@subsubsection Comparing Mail Back Ends
 
-First, just for terminology, the @dfn{backend} is the common word for a
+First, just for terminology, the @dfn{back end} is the common word for a
 low-level access method---a transport, if you will, by which something
 is acquired.  The sense is that one's mail has to come from somewhere,
-and so selection of a suitable backend is required in order to get that
+and so selection of a suitable back end is required in order to get that
 mail within spitting distance of Gnus.
 
 The same concept exists for Usenet itself: Though access to articles is
@@ -12625,11 +12625,11 @@ in the world got at Usenet by running a reader on the machine where the
 articles lay (the machine which today we call an @sc{nntp} server), and
 access was by the reader stepping into the articles' directory spool
 area directly.  One can still select between either the @code{nntp} or
-@code{nnspool} backends, to select between these methods, if one happens
+@code{nnspool} back ends, to select between these methods, if one happens
 actually to live on the server (or can see its spool directly, anyway,
 via NFS).
 
-The goal in selecting a mail backend is to pick one which
+The goal in selecting a mail back end is to pick one which
 simultaneously represents a suitable way of dealing with the original
 format plus leaving mail in a form that is convenient to use in the
 future.  Here are some high and low points on each:
@@ -12645,7 +12645,7 @@ to make it clear in this instance that this is not the RFC-specified
 @samp{From:} header.)  Because Emacs and therefore Gnus emanate
 historically from the Unix environment, it is simplest if one does not
 mess a great deal with the original mailbox format, so if one chooses
-this backend, Gnus' primary activity in getting mail from the real spool
+this back end, Gnus' primary activity in getting mail from the real spool
 area to Gnus' preferred directory is simply to copy it, with no
 (appreciable) format change in the process.  It is the ``dumbest'' way
 to move mail into availability in the Gnus environment.  This makes it
@@ -12675,7 +12675,7 @@ look at your mail.
 
 @item nnml
 
-@code{nnml} is the backend which smells the most as though you were
+@code{nnml} is the back end which smells the most as though you were
 actually operating with an @code{nnspool}-accessed Usenet system.  (In
 fact, I believe @code{nnml} actually derived from @code{nnspool} code,
 lo these years ago.)  One's mail is taken from the original spool file,
@@ -12697,7 +12697,7 @@ tight, shared filesystems.  But if you live on a personal machine where
 the filesystem is your own and space is not at a premium, @code{nnml}
 wins big.
 
-It is also problematic using this backend if you are living in a
+It is also problematic using this back end if you are living in a
 FAT16-based Windows world, since much space will be wasted on all these
 tiny files.
 
@@ -12726,7 +12726,7 @@ out how many messages there are in each separate group.
 If you have groups that are expected to have a massive amount of
 messages, @code{nnfolder} is not the best choice, but if you receive
 only a moderate amount of mail, @code{nnfolder} is probably the most
-friendly mail backend all over.
+friendly mail back end all over.
 
 @end table
 
@@ -12755,7 +12755,7 @@ you mad in the end.
 So---if web browsers suck at reading discussion forums, why not use Gnus 
 to do it instead?
 
-Gnus has been getting a bit of a collection of backends for providing
+Gnus has been getting a bit of a collection of back ends for providing
 interfaces to these sources.
 
 @menu
@@ -12770,8 +12770,8 @@ All the web sources require Emacs/w3 and the url library to work.
 
 The main caveat with all these web sources is that they probably won't
 work for a very long time.  Gleaning information from the @sc{html} data 
-is guesswork at best, and when the layout is altered, the Gnus backend
-will fail.  If you have reasonably new versions of these backends,
+is guesswork at best, and when the layout is altered, the Gnus back end
+will fail.  If you have reasonably new versions of these back ends,
 though, you should be ok.
 
 One thing all these Web methods have in common is that the Web sources
@@ -12796,7 +12796,7 @@ those, like, Web browsers, and you, like, have to, rilly, like, look at
 the commercials, so, like, with Gnus you can do @emph{rad}, rilly,
 searches without having to use a browser.
 
-The @code{nnweb} backend allows an easy interface to the mighty search
+The @code{nnweb} back end allows an easy interface to the mighty search
 engine.  You create an @code{nnweb} group, enter a search pattern, and
 then enter the group and read the articles like you would any normal
 group.  The @kbd{G w} command in the group buffer (@pxref{Foreign
@@ -12887,7 +12887,7 @@ following in your @file{.gnus.el} file:
       '((nnslashdot "")))
 @end lisp
 
-This will make Gnus query the @code{nnslashdot} backend for new comments
+This will make Gnus query the @code{nnslashdot} back end for new comments
 and groups.  The @kbd{F} command will subscribe each new news article as
 a new Gnus group, and you can read the comments by entering these
 groups.  (Note that the default subscription method is to subscribe new
@@ -13005,7 +13005,7 @@ gnus-group-make-warchive-group @key{RET} an_egroup @key{RET} egroups @key{RET}
 www.egroups.com @key{RET} your@@email.address @key{RET}}.  (Substitute the
 @sc{an_egroup} with the mailing list you subscribed, the
 @sc{your@@email.address} with your email address.), or to browse the
-backend by @kbd{B nnwarchive @key{RET} mail-archive @key{RET}}.
+back end by @kbd{B nnwarchive @key{RET} mail-archive @key{RET}}.
 
 The following @code{nnwarchive} variables can be altered:
 
@@ -13085,7 +13085,7 @@ names, of course.
 This might be an opportune moment to mention @code{ange-ftp} (and its
 successor @code{efs}), that most wonderful of all wonderful Emacs
 packages.  When I wrote @code{nndir}, I didn't think much about it---a
-backend to read directories.  Big deal.
+back end to read directories.  Big deal.
 
 @code{ange-ftp} changes that picture dramatically.  For instance, if you
 enter the @code{ange-ftp} file name
@@ -13095,7 +13095,7 @@ directory over at @samp{sina} as a newsgroup.  Distributed news ahoy!
 
 @code{nndir} will use @sc{nov} files if they are present.
 
-@code{nndir} is a ``read-only'' backend---you can't delete or expire
+@code{nndir} is a ``read-only'' back end---you can't delete or expire
 articles with this method.  You can use @code{nnmh} or @code{nnml} for
 whatever you use @code{nndir} for, so you could switch to any of those
 methods if you feel the need to have a non-read-only @code{nndir}.
@@ -13105,7 +13105,7 @@ methods if you feel the need to have a non-read-only @code{nndir}.
 @subsection Anything Groups
 @cindex nneething
 
-From the @code{nndir} backend (which reads a single spool-like
+From the @code{nndir} back end (which reads a single spool-like
 directory), it's just a hop and a skip to @code{nneething}, which
 pretends that any arbitrary directory is a newsgroup.  Strange, but
 true.
@@ -13224,7 +13224,7 @@ it---it will simply, like, let you use the file as the basis for a
 group.  And that's it.
 
 If you have some old archived articles that you want to insert into your
-new & spiffy Gnus mail backend, @code{nndoc} can probably help you with
+new & spiffy Gnus mail back end, @code{nndoc} can probably help you with
 that.  Say you have an old @file{RMAIL} file with mail that you now want
 to split into your new @code{nnml} groups.  You look at that file using
 @code{nndoc} (using the @kbd{G f} command in the group buffer
@@ -13447,7 +13447,7 @@ You transfer the packet home.  Rail, boat, car or modem will do fine.
 You put the packet in your home directory.
 
 @item
-You fire up Gnus on your home machine using the @code{nnsoup} backend as
+You fire up Gnus on your home machine using the @code{nnsoup} back end as
 the native or secondary server.
 
 @item
@@ -13474,7 +13474,7 @@ reading and Gnus for packing/sending these @sc{soup} packets.
 
 @menu
 * SOUP Commands::     Commands for creating and sending @sc{soup} packets
-* SOUP Groups::       A backend for reading @sc{soup} packets.
+* SOUP Groups::       A back end for reading @sc{soup} packets.
 * SOUP Replies::      How to enable @code{nnsoup} to take over mail and news.
 @end menu
 
@@ -13569,7 +13569,7 @@ Regular expression matching @sc{soup} reply packets in
 @subsubsection @sc{soup} Groups
 @cindex nnsoup
 
-@code{nnsoup} is the backend for reading @sc{soup} packets.  It will
+@code{nnsoup} is the back end for reading @sc{soup} packets.  It will
 read incoming packets, unpack them, and put them in a directory where
 you can read them at leisure.
 
@@ -13668,9 +13668,9 @@ system you just use the first line.  If you only want mail to be
 
 If your local @code{nntp} server doesn't allow posting, for some reason
 or other, you can post using one of the numerous mail-to-news gateways.
-The @code{nngateway} backend provides the interface.
+The @code{nngateway} back end provides the interface.
 
-Note that you can't read anything from this backend---it can only be
+Note that you can't read anything from this back end---it can only be
 used to post with.
 
 Server variables:
@@ -14125,7 +14125,7 @@ It's possible to set @code{nnimap-split-rule} to
 splitting. @xref{Fancy Mail Splitting}.
 
 However, to be able to have different fancy split rules for nnmail and
-nnimap backends you can set @code{nnimap-split-rule} to
+nnimap back ends you can set @code{nnimap-split-rule} to
 @code{nnimap-split-fancy} and define the nnimap specific fancy split
 rule in @code{nnimap-split-fancy}.
 
@@ -14270,11 +14270,11 @@ you enter it---it'll have much the same effect.
 
 @code{nnvirtual} can have both mail and news groups as component groups.
 When responding to articles in @code{nnvirtual} groups, @code{nnvirtual}
-has to ask the backend of the component group the article comes from
-whether it is a news or mail backend.  However, when you do a @kbd{^},
-there is typically no sure way for the component backend to know this,
+has to ask the back end of the component group the article comes from
+whether it is a news or mail back end.  However, when you do a @kbd{^},
+there is typically no sure way for the component back end to know this,
 and in that case @code{nnvirtual} tells Gnus that the article came from a
-not-news backend.  (Just to be on the safe side.)
+not-news back end.  (Just to be on the safe side.)
 
 @kbd{C-c C-t} in the message buffer will insert the @code{Newsgroups}
 line from the article you respond to in these cases.
@@ -14287,7 +14287,7 @@ line from the article you respond to in these cases.
 @cindex kibozing
 
 @dfn{Kibozing} is defined by @sc{oed} as ``grepping through (parts of)
-the news feed''.  @code{nnkiboze} is a backend that will do this for
+the news feed''.  @code{nnkiboze} is a back end that will do this for
 you.  Oh joy!  Now you can grind any @sc{nntp} server down to a halt
 with useless requests!  Oh happiness!
 
@@ -14447,7 +14447,7 @@ the Agent.
 
 @item
 Decide which servers should be covered by the Agent.  If you have a mail
-backend, it would probably be nonsensical to have it covered by the
+back end, it would probably be nonsensical to have it covered by the
 Agent.  Go to the server buffer (@kbd{^} in the group buffer) and press
 @kbd{J a} the server (or servers) that you wish to have covered by the
 Agent (@pxref{Server Agent Commands}).  This will typically be only the
@@ -15005,7 +15005,7 @@ unread, ticked and dormant articles will be kept indefinitely.
 @node Agent and IMAP
 @subsection Agent and IMAP
 
-The Agent work with any Gnus backend, including nnimap.  However,
+The Agent work with any Gnus back end, including nnimap.  However,
 since there are some conceptual differences between @sc{nntp} and
 @sc{imap}, this section (should) provide you with some information to
 make Gnus Agent work smoother as a @sc{imap} Disconnected Mode client.
@@ -15778,7 +15778,7 @@ the match, we get the score added if the article has less than 4 lines.
 (It's easy to get confused and think it's the other way around.  But
 it's not.  I think.)
 
-When matching on @code{Lines}, be careful because some backends (like
+When matching on @code{Lines}, be careful because some back ends (like
 @code{nndir}) do not generate @code{Lines} header, so every article ends
 up being marked as having 0 lines.  This can lead to strange results if
 you happen to lower score of the articles with few lines.
@@ -18744,16 +18744,16 @@ shut up, but will flash so many messages it will make your head swim.
 @item gnus-verbose-backends
 @vindex gnus-verbose-backends
 This variable works the same way as @code{gnus-verbose}, but it applies
-to the Gnus backends instead of Gnus proper.
+to the Gnus back ends instead of Gnus proper.
 
 @item nnheader-max-head-length
 @vindex nnheader-max-head-length
-When the backends read straight heads of articles, they all try to read
+When the back ends read straight heads of articles, they all try to read
 as little as possible.  This variable (default 4096) specifies
-the absolute max length the backends will try to read before giving up
+the absolute max length the back ends will try to read before giving up
 on finding a separator line between the head and the body.  If this
 variable is @code{nil}, there is no upper read bound.  If it is
-@code{t}, the backends won't try to read the articles piece by piece,
+@code{t}, the back ends won't try to read the articles piece by piece,
 but read the entire articles.  This makes sense with some versions of
 @code{ange-ftp} or @code{efs}.
 
@@ -18959,8 +18959,8 @@ keep track of millions of people who post?
 Gnus offers no real solutions to these questions, but I would very much
 like to see Gnus being used as a testing ground for new methods of
 reading and fetching news.  Expanding on @sc{Umeda}-san's wise decision
-to separate the newsreader from the backends, Gnus now offers a simple
-interface for anybody who wants to write new backends for fetching mail
+to separate the newsreader from the back ends, Gnus now offers a simple
+interface for anybody who wants to write new back ends for fetching mail
 and news from different sources.  I have added hooks for customizations
 everywhere I could imagine it being useful.  By doing so, I'm inviting
 every one of you to explore and invent.
@@ -19121,7 +19121,7 @@ Emacsen.
 
 Gnus is developed in a two-phased cycle.  The first phase involves much
 discussion on the @samp{ding@@gnus.org} mailing list, where people
-propose changes and new features, post patches and new backends.  This
+propose changes and new features, post patches and new back ends.  This
 phase is called the @dfn{alpha} phase, since the Gnusae released in this
 phase are @dfn{alpha releases}, or (perhaps more commonly in other
 circles) @dfn{snapshots}.  During this phase, Gnus is assumed to be
@@ -19512,7 +19512,7 @@ You can combine groups into virtual groups (@pxref{Virtual Groups}).
 
 @item
 You can read a number of different mail formats (@pxref{Getting Mail}).
-All the mail backends implement a convenient mail expiry scheme
+All the mail back ends implement a convenient mail expiry scheme
 (@pxref{Expiring Mail}).
 
 @item
@@ -19701,7 +19701,7 @@ news batches, ClariNet briefs collections, and just about everything
 else (@pxref{Document Groups}).
 
 @item
-Gnus has a new backend (@code{nnsoup}) to create/read SOUP packets
+Gnus has a new back end (@code{nnsoup}) to create/read SOUP packets
 (@pxref{SOUP}).
 
 @item
@@ -19739,7 +19739,7 @@ All functions for hiding article elements are now toggles.
 Article headers can be buttonized (@pxref{Article Washing}).
 
 @item
-All mail backends support fetching articles by @code{Message-ID}.
+All mail back ends support fetching articles by @code{Message-ID}.
 
 @item
 Duplicate mail can now be treated properly (@pxref{Duplicates}).
@@ -19958,11 +19958,11 @@ Process mark sets can be pushed and popped (@pxref{Setting Process
 Marks}).
 
 @item
-A new mail-to-news backend makes it possible to post even when the @sc{nntp}
+A new mail-to-news back end makes it possible to post even when the @sc{nntp}
 server doesn't allow posting (@pxref{Mail-To-News Gateways}).
 
 @item
-A new backend for reading searches from Web search engines
+A new back end for reading searches from Web search engines
 (@dfn{DejaNews}, @dfn{Alta Vista}, @dfn{InReference}) has been added
 (@pxref{Web Searches}).
 
@@ -20015,7 +20015,7 @@ added.  A plethora of new commands and modes have been added.  See
 @pxref{Gnus Unplugged} for the full story.
 
 @item
- The @code{nndraft} backend has returned, but works differently than
+ The @code{nndraft} back end has returned, but works differently than
 before.  All Message buffers are now also articles in the @code{nndraft}
 group, which is created automatically.
 
@@ -20124,7 +20124,7 @@ been added.
 updated by the @code{gnus-start-date-timer} command.
 
 @item
- Web listserv archives can be read with the @code{nnlistserv} backend.
+ Web listserv archives can be read with the @code{nnlistserv} back end.
 
 @item
  Old dejanews archives can now be read by @code{nnweb}.
@@ -20179,7 +20179,7 @@ of variables starting with @code{gnus-treat-} have been added.
 @item The Gnus posting styles have been redone again and now works in a
 subtly different manner.
 
-@item New web-based backends have been added: @code{nnslashdot}, 
+@item New web-based back ends have been added: @code{nnslashdot}, 
 @code{nnwarchive} and @code{nnultimate}.  nnweb has been revamped,
 again, to keep up with ever-changing layouts.
 
@@ -20302,26 +20302,26 @@ Send a mail to the person who has written what you are reading.
 Post an article to the current newsgroup responding to the article you
 are reading.
 
-@item backend
-@cindex backend
-Gnus gets fed articles from a number of backends, both news and mail
-backends.  Gnus does not handle the underlying media, so to speak---this
-is all done by the backends.
+@item back end
+@cindex back end
+Gnus gets fed articles from a number of back ends, both news and mail
+back ends.  Gnus does not handle the underlying media, so to speak---this
+is all done by the back ends.
 
 @item native
 @cindex native
-Gnus will always use one method (and backend) as the @dfn{native}, or
+Gnus will always use one method (and back end) as the @dfn{native}, or
 default, way of getting news.
 
 @item foreign
 @cindex foreign
 You can also have any number of foreign groups active at the same time.
-These are groups that use non-native non-secondary backends for getting
+These are groups that use non-native non-secondary back ends for getting
 news.
 
 @item secondary
 @cindex secondary
-Secondary backends are somewhere half-way between being native and being
+Secondary back ends are somewhere half-way between being native and being
 foreign, but they mostly act like they are native.
 
 @item article
@@ -20357,7 +20357,7 @@ collection of @sc{nov} lines.
 
 @item @sc{nov}
 @cindex nov
-When Gnus enters a group, it asks the backend for the headers of all
+When Gnus enters a group, it asks the back end for the headers of all
 unread articles in the group.  Most servers support the News OverView
 format, which is more compact and much faster to read and parse than the
 normal @sc{head} format.
@@ -20404,7 +20404,7 @@ A machine one can connect to and get news (or mail) from.
 
 @item select method
 @cindex select method
-A structure that specifies the backend, the server and the virtual
+A structure that specifies the back end, the server and the virtual
 server settings.
 
 @item virtual server
@@ -20680,13 +20680,13 @@ it.
 
 You can never expect the internals of a program not to change, but I
 will be defining (in some details) the interface between Gnus and its
-backends (this is written in stone), the format of the score files
+back ends (this is written in stone), the format of the score files
 (ditto), data structures (some are less likely to change than others)
 and general methods of operation.
 
 @menu
 * Gnus Utility Functions::   Common functions and variable to use.
-* Backend Interface::        How Gnus communicates with the servers.
+* Back End Interface::       How Gnus communicates with the servers.
 * Score File Syntax::        A BNF definition of the score file standard.
 * Headers::                  How Gnus stores headers internally.
 * Ranges::                   A handy format for storing mucho numbers.
@@ -20762,7 +20762,7 @@ Says whether @var{group} is read-only or not.
 
 @item gnus-news-group-p
 @findex gnus-news-group-p
-Says whether @var{group} came from a news backend.
+Says whether @var{group} came from a news back end.
 
 @item gnus-ephemeral-group-p
 @findex gnus-ephemeral-group-p
@@ -20803,7 +20803,7 @@ Narrows the current buffer to the body of the article.
 
 @item gnus-check-backend-function
 @findex gnus-check-backend-function
-Takes two parameters, @var{function} and @var{group}.  If the backend
+Takes two parameters, @var{function} and @var{group}.  If the back end
 @var{group} comes from supports @var{function}, return non-@code{nil}.
 
 @lisp
@@ -20818,19 +20818,19 @@ Prompts the user for a select method.
 @end table
 
 
-@node Backend Interface
-@subsection Backend Interface
+@node Back End Interface
+@subsection Back End Interface
 
 Gnus doesn't know anything about @sc{nntp}, spools, mail or virtual
 groups.  It only knows how to talk to @dfn{virtual servers}.  A virtual
-server is a @dfn{backend} and some @dfn{backend variables}.  As examples
+server is a @dfn{back end} and some @dfn{back end variables}.  As examples
 of the first, we have @code{nntp}, @code{nnspool} and @code{nnmbox}.  As
 examples of the latter we have @code{nntp-port-number} and
 @code{nnmbox-directory}.
 
-When Gnus asks for information from a backend---say @code{nntp}---on
+When Gnus asks for information from a back end---say @code{nntp}---on
 something, it will normally include a virtual server name in the
-function parameters.  (If not, the backend should use the ``current''
+function parameters.  (If not, the back end should use the ``current''
 virtual server.)  For instance, @code{nntp-request-list} takes a virtual
 server as its only (optional) parameter.  If this virtual server hasn't
 been opened, the function should fail.
@@ -20847,8 +20847,8 @@ name.  Take this example:
 Here the virtual server name is @samp{odd-one} while the name of
 the physical server is @samp{ifi.uio.no}.
 
-The backends should be able to switch between several virtual servers.
-The standard backends implement this by keeping an alist of virtual
+The back ends should be able to switch between several virtual servers.
+The standard back ends implement this by keeping an alist of virtual
 server environments that they pull down/push up when needed.
 
 There are two groups of interface functions: @dfn{required functions},
@@ -20863,37 +20863,37 @@ talk about @dfn{return value}, I talk about the function value returned by
 the function call.  Functions that fail should return @code{nil} as the
 return value.
 
-Some backends could be said to be @dfn{server-forming} backends, and
-some might be said not to be.  The latter are backends that generally
+Some back ends could be said to be @dfn{server-forming} back ends, and
+some might be said not to be.  The latter are back ends that generally
 only operate on one group at a time, and have no concept of ``server''
 -- they have a group, and they deliver info on that group and nothing
 more.
 
-In the examples and definitions I will refer to the imaginary backend
+In the examples and definitions I will refer to the imaginary back end
 @code{nnchoke}.
 
 @cindex @code{nnchoke}
 
 @menu
-* Required Backend Functions::        Functions that must be implemented.
-* Optional Backend Functions::        Functions that need not be implemented.
+* Required Back End Functions::       Functions that must be implemented.
+* Optional Back End Functions::       Functions that need not be implemented.
 * Error Messaging::                   How to get messages and report errors.
-* Writing New Backends::              Extending old backends.
-* Hooking New Backends Into Gnus::    What has to be done on the Gnus end.
-* Mail-like Backends::                Some tips on mail backends.
+* Writing New Back Ends::             Extending old back ends.
+* Hooking New Back Ends Into Gnus::   What has to be done on the Gnus end.
+* Mail-like Back Ends::               Some tips on mail back ends.
 @end menu
 
 
-@node Required Backend Functions
-@subsubsection Required Backend Functions
+@node Required Back End Functions
+@subsubsection Required Back End Functions
 
 @table @code
 
 @item (nnchoke-retrieve-headers ARTICLES &optional GROUP SERVER FETCH-OLD)
 
 @var{articles} is either a range of article numbers or a list of
-@code{Message-ID}s.  Current backends do not fully support either---only
-sequences (lists) of article numbers, and most backends do not support
+@code{Message-ID}s.  Current back ends do not fully support either---only
+sequences (lists) of article numbers, and most back ends do not support
 retrieval of @code{Message-ID}s.  But they should try for both.
 
 The result data should either be HEADs or NOV lines, and the result
@@ -20905,7 +20905,7 @@ If @var{fetch-old} is non-@code{nil} it says to try fetching "extra
 headers", in some meaning of the word.  This is generally done by
 fetching (at most) @var{fetch-old} extra headers less than the smallest
 article number in @code{articles}, and filling the gaps as well.  The
-presence of this parameter can be ignored if the backend finds it
+presence of this parameter can be ignored if the back end finds it
 cumbersome to follow the request.  If this is non-@code{nil} and not a
 number, do maximum fetches.
 
@@ -20959,7 +20959,7 @@ For a closer look at what should be in those fields,
 @var{server} is here the virtual server name.  @var{definitions} is a
 list of @code{(VARIABLE VALUE)} pairs that define this virtual server.
 
-If the server can't be opened, no error should be signaled.  The backend
+If the server can't be opened, no error should be signaled.  The back end
 may then choose to refuse further attempts at connecting to this
 server.  In fact, it should do so.
 
@@ -20978,8 +20978,8 @@ There should be no data returned.
 
 @item (nnchoke-request-close)
 
-Close connection to all servers and free all resources that the backend
-have reserved.  All buffers that have been created by that backend
+Close connection to all servers and free all resources that the back end
+have reserved.  All buffers that have been created by that back end
 should be killed.  (Not the @code{nntp-server-buffer}, though.)  This
 function is generally only called when Gnus is shutting down.
 
@@ -21057,7 +21057,7 @@ info         = "211 " 3* [ <number> " " ] <string>
 @item (nnchoke-close-group GROUP &optional SERVER)
 
 Close @var{group} and free any resources connected to it.  This will be
-a no-op on most backends.
+a no-op on most back ends.
 
 There should be no data returned.
 
@@ -21103,8 +21103,8 @@ There should be no result data from this function.
 @end table
 
 
-@node Optional Backend Functions
-@subsubsection Optional Backend Functions
+@node Optional Back End Functions
+@subsubsection Optional Back End Functions
 
 @table @code
 
@@ -21127,8 +21127,8 @@ group-buffer = *active-line / *group-status
 
 @item (nnchoke-request-update-info GROUP INFO &optional SERVER)
 
-A Gnus group info (@pxref{Group Info}) is handed to the backend for
-alterations.  This comes in handy if the backend really carries all the
+A Gnus group info (@pxref{Group Info}) is handed to the back end for
+alterations.  This comes in handy if the back end really carries all the
 information (as is the case with virtual and imap groups).  This
 function should destructively alter the info to suit its needs, and
 should return the (altered) group info.
@@ -21154,7 +21154,7 @@ There should be no result data from this function.
 
 Set/remove/add marks on articles.  Normally Gnus handles the article
 marks (such as read, ticked, expired etc) internally, and store them in
-@code{~/.newsrc.eld}.  Some backends (such as @sc{imap}) however carry
+@code{~/.newsrc.eld}.  Some back ends (such as @sc{imap}) however carry
 all information about the articles on the server, so Gnus need to
 propagate the mark information to the server.
 
@@ -21171,7 +21171,7 @@ marks not mentioned) mark and removing (preserving the marks not
 mentioned) marks.  Mark is a list of marks; where each mark is a symbol.
 Currently used marks are @code{read}, @code{tick}, @code{reply},
 @code{expire}, @code{killed}, @code{dormant}, @code{save},
-@code{download} and @code{unsend}, but your backend should, if possible,
+@code{download} and @code{unsend}, but your back end should, if possible,
 not limit itself to these.
 
 Given contradictory actions, the last action in the list should be the
@@ -21194,10 +21194,10 @@ There should be no result data from this function.
 
 @item (nnchoke-request-update-mark GROUP ARTICLE MARK)
 
-If the user tries to set a mark that the backend doesn't like, this
+If the user tries to set a mark that the back end doesn't like, this
 function may change the mark.  Gnus will use whatever this function
 returns as the mark for @var{article} instead of the original
-@var{mark}.  If the backend doesn't care, it must return the original
+@var{mark}.  If the back end doesn't care, it must return the original
 @var{mark}, and not @code{nil} or any other type of garbage.
 
 The only use for this I can see is what @code{nnvirtual} does with
@@ -21211,10 +21211,10 @@ There should be no result data from this function.
 @item (nnchoke-request-scan &optional GROUP SERVER)
 
 This function may be called at any time (by Gnus or anything else) to
-request that the backend check for incoming articles, in one way or
-another.  A mail backend will typically read the spool file or query the
+request that the back end check for incoming articles, in one way or
+another.  A mail back end will typically read the spool file or query the
 POP server when this function is invoked.  The @var{group} doesn't have
-to be heeded---if the backend decides that it is too much work just
+to be heeded---if the back end decides that it is too much work just
 scanning for a single group, it may do a total scan of all groups.  It
 would be nice, however, to keep things local if that's practical.
 
@@ -21260,7 +21260,7 @@ There should be no return data.
 
 This function should run the expiry process on all articles in the
 @var{articles} range (which is currently a simple list of article
-numbers.)  It is left up to the backend to decide how old articles
+numbers.)  It is left up to the back end to decide how old articles
 should be before they are removed by this function.  If @var{force} is
 non-@code{nil}, all @var{articles} should be deleted, no matter how new
 they are.
@@ -21338,9 +21338,9 @@ There should be no data returned.
 
 @findex nnheader-report
 @findex nnheader-get-report
-The backends should use the function @code{nnheader-report} to report
+The back ends should use the function @code{nnheader-report} to report
 error conditions---they should not raise errors when they aren't able to
-perform a request.  The first argument to this function is the backend
+perform a request.  The first argument to this function is the back end
 symbol, and the rest are interpreted as arguments to @code{format} if
 there are multiple of them, or just a string if there is one of them.
 This function must always returns @code{nil}.
@@ -21353,18 +21353,18 @@ This function must always returns @code{nil}.
 
 Gnus, in turn, will call @code{nnheader-get-report} when it gets a
 @code{nil} back from a server, and this function returns the most
-recently reported message for the backend in question.  This function
+recently reported message for the back end in question.  This function
 takes one argument---the server symbol.
 
-Internally, these functions access @var{backend}@code{-status-string},
-so the @code{nnchoke} backend will have its error message stored in
+Internally, these functions access @var{back-end}@code{-status-string},
+so the @code{nnchoke} back end will have its error message stored in
 @code{nnchoke-status-string}.
 
 
-@node Writing New Backends
-@subsubsection Writing New Backends
+@node Writing New Back Ends
+@subsubsection Writing New Back Ends
 
-Many backends are quite similar.  @code{nnml} is just like
+Many back ends are quite similar.  @code{nnml} is just like
 @code{nnspool}, but it allows you to edit the articles on the server.
 @code{nnmh} is just like @code{nnml}, but it doesn't use an active file,
 and it doesn't maintain overview databases.  @code{nndir} is just like
@@ -21372,14 +21372,14 @@ and it doesn't maintain overview databases.  @code{nndir} is just like
 editing articles.
 
 It would make sense if it were possible to ``inherit'' functions from
-backends when writing new backends.  And, indeed, you can do that if you
+back ends when writing new back ends.  And, indeed, you can do that if you
 want to.  (You don't have to if you don't want to, of course.)
 
-All the backends declare their public variables and functions by using a
+All the back ends declare their public variables and functions by using a
 package called @code{nnoo}.
 
-To inherit functions from other backends (and allow other backends to
-inherit functions from the current backend), you should use the
+To inherit functions from other back ends (and allow other back ends to
+inherit functions from the current back end), you should use the
 following macros:
 
 @table @code
@@ -21402,8 +21402,8 @@ a public server variable.  Most state-oriented variables should be
 declared with @code{defvoo} instead of @code{defvar}.
 
 In addition to the normal @code{defvar} parameters, it takes a list of
-variables in the parent backends to map the variable to when executing
-a function in those backends.
+variables in the parent back ends to map the variable to when executing
+a function in those back ends.
 
 @lisp
 (defvoo nndir-directory nil
@@ -21416,7 +21416,7 @@ This means that @code{nnml-current-directory} will be set to
 of @code{nndir}.  (The same with @code{nnmh}.)
 
 @item nnoo-define-basics
-This macro defines some common functions that almost all backends should
+This macro defines some common functions that almost all back ends should
 have.
 
 @example
@@ -21426,11 +21426,11 @@ have.
 @item deffoo
 This macro is just like @code{defun} and takes the same parameters.  In
 addition to doing the normal @code{defun} things, it registers the
-function as being public so that other backends can inherit it.
+function as being public so that other back ends can inherit it.
 
 @item nnoo-map-functions
-This macro allows mapping of functions from the current backend to
-functions from the parent backends.
+This macro allows mapping of functions from the current back end to
+functions from the parent back ends.
 
 @example
 (nnoo-map-functions nndir
@@ -21444,7 +21444,7 @@ third, and fourth parameters will be passed on to
 value of @code{nndir-current-group}.
 
 @item nnoo-import
-This macro allows importing functions from backends.  It should be the
+This macro allows importing functions from back ends.  It should be the
 last thing in the source file, since it will only define functions that
 haven't already been defined.
 
@@ -21463,7 +21463,7 @@ defined now.
 
 @end table
 
-Below is a slightly shortened version of the @code{nndir} backend.
+Below is a slightly shortened version of the @code{nndir} back end.
 
 @lisp
 ;;; nndir.el --- single directory newsgroup access for Gnus
@@ -21532,15 +21532,15 @@ Below is a slightly shortened version of the @code{nndir} backend.
 @end lisp
 
 
-@node Hooking New Backends Into Gnus
-@subsubsection Hooking New Backends Into Gnus
+@node Hooking New Back Ends Into Gnus
+@subsubsection Hooking New Back Ends Into Gnus
 
 @vindex gnus-valid-select-methods
-Having Gnus start using your new backend is rather easy---you just
+Having Gnus start using your new back end is rather easy---you just
 declare it with the @code{gnus-declare-backend} functions.  This will
-enter the backend into the @code{gnus-valid-select-methods} variable.
+enter the back end into the @code{gnus-valid-select-methods} variable.
 
-@code{gnus-declare-backend} takes two parameters---the backend name and
+@code{gnus-declare-backend} takes two parameters---the back end name and
 an arbitrary number of @dfn{abilities}.
 
 Here's an example:
@@ -21553,32 +21553,32 @@ The abilities can be:
 
 @table @code
 @item mail
-This is a mailish backend---followups should (probably) go via mail.
+This is a mailish back end---followups should (probably) go via mail.
 @item post
-This is a newsish backend---followups should (probably) go via news.
+This is a newsish back end---followups should (probably) go via news.
 @item post-mail
-This backend supports both mail and news.
+This back end supports both mail and news.
 @item none
-This is neither a post nor mail backend---it's something completely
+This is neither a post nor mail back end---it's something completely
 different.
 @item respool
 It supports respooling---or rather, it is able to modify its source
 articles and groups.
 @item address
 The name of the server should be in the virtual server name.  This is
-true for almost all backends.
+true for almost all back ends.
 @item prompt-address
 The user should be prompted for an address when doing commands like
-@kbd{B} in the group buffer.  This is true for backends like
+@kbd{B} in the group buffer.  This is true for back ends like
 @code{nntp}, but not @code{nnmbox}, for instance.
 @end table
 
 
-@node Mail-like Backends
-@subsubsection Mail-like Backends
+@node Mail-like Back Ends
+@subsubsection Mail-like Back Ends
 
-One of the things that separate the mail backends from the rest of the
-backends is the heavy dependence by the mail backends on common
+One of the things that separate the mail back ends from the rest of the
+back ends is the heavy dependence by the mail back ends on common
 functions in @file{nnmail.el}.  For instance, here's the definition of
 @code{nnml-request-scan}:
 
@@ -21596,7 +21596,7 @@ This function takes four parameters.
 
 @table @var
 @item method
-This should be a symbol to designate which backend is responsible for
+This should be a symbol to designate which back end is responsible for
 the call.
 
 @item exit-function
@@ -21610,15 +21610,15 @@ This optional argument should be a group name if the splitting is to be
 performed for one group only.
 @end table
 
-@code{nnmail-get-new-mail} will call @var{backend}@code{-save-mail} to
-save each article.  @var{backend}@code{-active-number} will be called to
+@code{nnmail-get-new-mail} will call @var{back-end}@code{-save-mail} to
+save each article.  @var{back-end}@code{-active-number} will be called to
 find the article number assigned to this article.
 
 The function also uses the following variables:
-@var{backend}@code{-get-new-mail} (to see whether to get new mail for
-this backend); and @var{backend}@code{-group-alist} and
-@var{backend}@code{-active-file} to generate the new active file.
-@var{backend}@code{-group-alist} should be a group-active alist, like
+@var{back-end}@code{-get-new-mail} (to see whether to get new mail for
+this back end); and @var{back-end}@code{-group-alist} and
+@var{back-end}@code{-active-file} to generate the new active file.
+@var{back-end}@code{-group-alist} should be a group-active alist, like
 this:
 
 @example
