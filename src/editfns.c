@@ -2576,7 +2576,7 @@ Use %% to put a single % into the output.")
 	  {
 	    if (! (*format == 'e' || *format == 'f' || *format == 'g'))
 	      args[n] = Ftruncate (args[n], Qnil);
-	    thissize = 60;
+	    thissize = 200;
 	  }
 #endif
 	else
