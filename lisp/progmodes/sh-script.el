@@ -43,35 +43,35 @@
 ;;	 	===========
 ;; Indentation for rc and es modes is very limited, but for Bourne shells
 ;; and its derivatives it is quite customizable.
-;; 
+;;
 ;; The following description applies to sh and derived shells (bash,
 ;; zsh, ...).
-;; 
+;;
 ;; There are various customization variables which allow tailoring to
 ;; a wide variety of styles.  Most of these variables are named
 ;; sh-indent-for-XXX and sh-indent-after-XXX.  For example.
 ;; sh-indent-after-if controls the indenting of a line following
 ;; an if statement, and sh-indent-for-fi controls the indentation
 ;; of the line containing the fi.
-;; 
+;;
 ;; You can set each to a numeric value, but it is often more convenient
 ;; to a symbol such as `+' which uses the value of variable `sh-basic-offset'.
 ;; By changing this one variable you can increase or decrease how much
 ;; indentation there is.  Valid symbols:
-;; 
+;;
 ;; 	+   Indent right by sh-basic-offset
 ;; 	-   Indent left  by sh-basic-offset
 ;; 	++  Indent right twice sh-basic-offset
 ;; 	--  Indent left  twice sh-basic-offset
 ;; 	*   Indent right half sh-basic-offset
 ;; 	/   Indent left  half sh-basic-offset.
-;; 
+;;
 ;; There are 4 commands to help set the indentation variables:
-;; 
+;;
 ;; `sh-show-indent'
 ;;    This shows what variable controls the indentation of the current
 ;;    line and its value.
-;; 
+;;
 ;; `sh-set-indent'
 ;;    This allows you to set the value of the variable controlling the
 ;;    current line's indentation.  You can enter a number or one of a
@@ -79,13 +79,13 @@
 ;;    or its negative, or half it, or twice it, etc.  If you've used
 ;;    cc-mode this should be familiar.  If you forget which symbols are
 ;;    valid simply press C-h at the prompt.
-;; 
+;;
 ;; `sh-learn-line-indent'
 ;;    Simply make the line look the way you want it, then invoke this
 ;;    command.  It will set the variable to the value that makes the line
 ;;    indent like that.  If called with a prefix argument then it will set
 ;;    the value to one of the symbols if applicable.
-;;    
+;;
 ;; `sh-learn-buffer-indent'
 ;;    This is the deluxe function!  It "learns" the whole buffer (use
 ;;    narrowing if you want it to process only part).  It outputs to a
@@ -98,7 +98,7 @@
 ;;    pattern;  if they don't it will be set to nil.
 ;;    Whether `sh-basic-offset' is set is determined by variable
 ;;    `sh-learn-basic-offset'.
-;; 
+;;
 ;;    Unfortunately, `sh-learn-buffer-indent' can take a long time to run
 ;;    (e.g. if there are large case statements).  Perhaps it does not make
 ;;    sense to run it on large buffers: if lots of lines have different
@@ -106,7 +106,7 @@
 ;;    *indent* buffer; if there is a consistent style then running
 ;;    `sh-learn-buffer-indent' on a small region of the buffer should
 ;;    suffice.
-;;   
+;;
 ;; 	Saving indentation values
 ;; 	-------------------------
 ;; After you've learned the values in a buffer, how to you remember
@@ -115,14 +115,14 @@
 ;; the buffer.
 ;; You can do this automatically like this:
 ;;   (add-hook 'sh-set-shell-hook 'sh-learn-buffer-indent)
-;; 
+;;
 ;; However...   `sh-learn-buffer-indent' is extremely slow,
 ;; especially on large-ish buffer.  Also, if there are conflicts the
 ;; "last one wins" which may not produce the desired setting.
-;; 
+;;
 ;; So...There is a minimal way of being able to save indentation values and
 ;; to reload them in another buffer or at another point in time.
-;; 
+;;
 ;; Use `sh-name-style' to give a name to the indentation settings of
 ;; 	the current buffer.
 ;; Use `sh-load-style' to load indentation settings for the current
@@ -130,30 +130,30 @@
 ;; Use `sh-save-styles-to-buffer' to write all the styles to a buffer
 ;; 	in lisp code.  You can then store it in a file and later use
 ;; 	`load-file' to load it.
-;; 
+;;
 ;; 	Indentation variables - buffer local or global?
 ;; 	----------------------------------------------
 ;; I think that often having them buffer-local makes sense,
 ;; especially if one is using `sh-learn-buffer-indent'.  However, if
 ;; a user sets values using customization, these changes won't appear
 ;; to work if the variables are already local!
-;; 
+;;
 ;; To get round this, there is a variable `sh-make-vars-local' and 2
 ;; functions: `sh-make-vars-local' and `sh-reset-indent-vars-to-global-values'.
-;; 
+;;
 ;; If `sh-make-vars-local' is non-nil, then these variables become
 ;; buffer local when the mode is established.
 ;; If this is nil, then the variables are global.  At any time you
 ;; can make them local with the command `sh-make-vars-local'.
 ;; Conversely, to update with the global values you can use the
 ;; command `sh-reset-indent-vars-to-global-values'.
-;; 
+;;
 ;; This may be awkward, but the intent is to cover all cases.
-;; 
+;;
 ;; 	Awkward things, pitfalls
 ;; 	------------------------
 ;; Indentation for a sh script is complicated for a number of reasons:
-;; 
+;;
 ;; 1. You can't format by simply looking at symbols, you need to look
 ;;    at keywords.  [This is not the case for rc and es shells.]
 ;; 2. The character ")" is used both as a matched pair "(" ... ")" and
@@ -165,7 +165,7 @@
 ;; 4. A line may be continued using the "\".
 ;; 5. The character "#" (outside a string) normally starts a comment,
 ;;    but it doesn't in the sequence "$#"!
-;; 
+;;
 ;; To try and address points 2 3 and 5 I used a feature that cperl mode
 ;; uses, that of a text's syntax property.  This, however, has 2
 ;; disadvantages:
@@ -175,14 +175,14 @@
 ;;    buffer is read-only buffer we have to cheat and bypass the read-only
 ;;    status.  This is for cases where the buffer started read-only buffer
 ;;    but the user issued `toggle-read-only'.
-;; 
+;;
 ;; 	Bugs
 ;; 	----
 ;; - Indenting many lines is slow.  It currently does each line
 ;;   independently, rather than saving state information.
-;; 
+;;
 ;; - `sh-learn-buffer-indent' is extremely slow.
-;; 
+;;
 ;; Richard Sharman <rsharman@pobox.com>  June 1999.
 
 ;;; Code:
@@ -828,12 +828,13 @@ See `sh-feature'.")
 (defun sh-font-lock-close-heredoc (bol eof indented)
   "Determine the syntax of the \\n after an EOF.
 If non-nil INDENTED indicates that the EOF was indented."
-  (let* (;; A rough regexp that should find the opening <<EOF back.
+  (let* ((eof-re (regexp-quote eof))
+         ;; A rough regexp that should find the opening <<EOF back.
 	 (sre (concat "<<\\(-?\\)\\s-*['\"\\]?"
 		      ;; Use \s| to cheaply check it's an open-heredoc.
-		      (regexp-quote eof) "['\"]?\\([ \t|;&)<>].*\\)?\\s|"))
+		      eof-re "['\"]?\\([ \t|;&)<>].*\\)?\\s|"))
 	 ;; A regexp that will find other EOFs.
-	 (ere (concat "^" (if indented "[ \t]*") (regexp-quote eof) "\n"))
+	 (ere (concat "^" (if indented "[ \t]*") eof-re "\n"))
 	 (start (save-excursion
 		  (goto-char bol)
 		  (re-search-backward (concat sre "\\|" ere) nil t))))
@@ -920,7 +921,7 @@ be indented (i.e. a <<- was used rather than just <<)."
 	 (match-beginning 0) (match-string 1)) nil t)
      (5 (sh-font-lock-close-heredoc
 	 (match-beginning 0) (match-string 4)
-	 (/= (match-beginning 3) (match-end 3))) nil t))
+         (/= (match-beginning 3) (match-end 3))) nil t))
     ;; Distinguish the special close-paren in `case'.
     (")" 0 (sh-font-lock-paren (match-beginning 0)))))
 
@@ -1967,7 +1968,7 @@ STRING	     This is ignored for the purposes of calculating
 	  (setq have-result nil)
 	  ))
        ) ;; cond
-      
+
       (unless have-result
 	;; Continuation lines are handled specially
 	(if (sh-this-is-a-continuation)
@@ -2060,19 +2061,19 @@ STRING	     This is ignored for the purposes of calculating
 	(sh-debug "No prev line!")
 	(sh-debug "result: %s  align-point: %s" result align-point)
 	)
-      
+
       (if align-point
 	  ;; was: (setq result (append result (list (list t align-point))))
 	  (setq result (append  (list (list t align-point)) result))
 	)
       (sh-debug "result is now: %s" result)
-       
+
       (or result
 	  (if prev-line-end
 	      (setq result (list (list t prev-line-end)))
 	    (setq result (list (list '= 'sh-first-lines-indent)))
 	    ))
-       
+
       (if (eq result t)
 	  (setq result nil))
       (sh-debug  "result is: %s" result)
@@ -2248,7 +2249,7 @@ we go to the end of the previous line and do not check for continuations."
   ;; Possible return values:
   ;;  nil  -  nothing
   ;; a string - possibly a keyword
-  ;; 
+  ;;
   (if (bolp)
       nil
     (let ((going t)
@@ -2622,7 +2623,7 @@ unless optional argument ARG (the prefix when interactive) is non-nil."
        ((numberp (setq sval (sh-var-value var)))
 	(setq ival (sh-calculate-indent info))
 	(setq diff (- curr-indent ival))
-      
+
 	(sh-debug "curr-indent: %d   ival: %d  diff: %d  var:%s  sval %s"
 		  curr-indent ival diff  var sval)
 	(setq new-val (+ sval diff))
@@ -2699,7 +2700,7 @@ so that `occur-next' and `occur-prev' will work."
 (defvar sh-learned-buffer-hook nil
   "*An abnormal hook, called with an alist of learned variables.")
 ;; Example of how to use sh-learned-buffer-hook
-;; 
+;;
 ;; (defun what-i-learned (list)
 ;;   (let ((p list))
 ;;     (save-excursion
@@ -2712,7 +2713,7 @@ so that `occur-next' and `occur-prev' will work."
 ;; 	(setq p (cdr p)))
 ;;       (insert ")\n")
 ;;       )))
-;; 
+;;
 ;; (add-hook 'sh-learned-buffer-hook 'what-i-learned)
 
 
@@ -2904,7 +2905,7 @@ This command can often take a long time to run."
 		 (format "Suggested sh-basic-offset:  %d" suggested))
 	       nil out-buffer))))
 
-      
+
       (setq learned-var-list
 	    (append (list (list 'sh-indent-comment comment-col (point-max)))
 		    learned-var-list))
@@ -3101,7 +3102,7 @@ This is always added to the end of the buffer."
       "case *" > \n
       > _ \n
       resume:
-      ?} > \n)
+      ?\} > \n)
   (sh "expression: "
       > "case " str " in" \n
       > (read-string "pattern: ")
@@ -3132,7 +3133,7 @@ This is always added to the end of the buffer."
   (rc eval sh-modify sh
       2 "for( "
       6 " ) {"
-      15 ?} )
+      15 ?\} )
   (sh "Index variable: "
       > "for " str " in " _ "; do" \n
       > _ | ?$ & (sh-remember-variable str) \n
@@ -3171,7 +3172,7 @@ This is always added to the end of the buffer."
       (read-string "upper limit: ")
       "; i++ ) print i }'`}) {" \n
       > _ ?$ (sh-remember-variable str) \n
-      ?} > \n)
+      ?\} > \n)
   (sh "Index variable: "
       > "for " str " in `awk 'BEGIN { for( i=1; i<="
       (read-string "upper limit: ")
@@ -3285,7 +3286,7 @@ t means to return a list of all possible completions of STRING.
       "} {" > \n
       > _ \n
       resume:
-      ?} > \n)
+      ?\} > \n)
   (rc "condition: "
       > "if( " str " ) {" \n
       > _ \n
@@ -3295,7 +3296,7 @@ t means to return a list of all possible completions of STRING.
       "} else {" > \n
       > _ \n
       resume:
-      ?} > \n)
+      ?\} > \n)
   (sh "condition: "
       '(setq input (sh-feature sh-test))
       > "if " str "; then" \n
@@ -3315,7 +3316,7 @@ t means to return a list of all possible completions of STRING.
   (es nil
       > "forever {" \n
       > _ \n
-      ?} > \n)
+      ?\} > \n)
   (zsh "factor: "
        > "repeat " str "; do" > \n
        >  \n
@@ -3355,8 +3356,8 @@ t means to return a list of all possible completions of STRING.
       "throw $e" \n
       "} {" > \n
       _ \n
-      ?} > \n
-      ?} > \n)
+      ?\} > \n
+      ?\} > \n)
   (ksh88 eval sh-modify sh
 	 7 "EXIT")
   (rc (file-name-nondirectory (buffer-file-name))
@@ -3390,11 +3391,11 @@ t means to return a list of all possible completions of STRING.
   (es eval sh-modify sh
       3 "while { "
       5 " } {"
-      10 ?} )
+      10 ?\} )
   (rc eval sh-modify sh
       3 "while( "
       5 " ) {"
-      10 ?} )
+      10 ?\} )
   (sh "condition: "
       '(setq input (sh-feature sh-test))
       > "while " str "; do" \n
