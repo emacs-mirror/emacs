@@ -1,0 +1,26 @@
+#!/usr/local/bin/perl
+#
+# run tests interactively (allows for user input, immediate results,
+# &c, but doesn't give results in standard format)
+
+require "headread";
+require "compile";
+
+foreach $testfile (@qa_args) {
+
+ print "Test file: $testfile.\n";
+
+ &readheader($testfile);
+ unless ($test_header{"language"} eq "c") {
+  die "Don't know how to run test in this language.\n";
+ }
+
+ $linkfiles = " ".$test_header{"link"};
+ $linkfiles =~ s/ +/ $obj_dir\//g;
+ $objfile = "$obj_dir/tmp_test";
+ unless (&compile_and_link($testfile, $objfile, $linkfiles)) {
+  die "Compilation failed on test ".$testfile.".\n";
+ }
+ system("sh -c \"$objfile\"");
+}
+

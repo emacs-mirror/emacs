@@ -1,0 +1,22 @@
+#!/usr/local/bin/perl -w
+#
+# Compile all the .c files in $testlib_dir,
+# putting the resulting .o files in $obj_dir.
+#
+
+print "Compiling test libraries in $testlib_dir.\n";
+
+require "compile";
+
+while ($tlfile = <$testlib_dir/*.c>) {
+ $tlobj = $tlfile;
+ $tlobj =~ s/\.c/\.o/;
+ $tlobj =~ s/$testlib_dir/$obj_dir/;
+ print"$tlfile -> $tlobj";
+
+ if (&compile($tlfile, $tlobj)) {
+  print " ok\n";
+ } else {
+  print " failed\n";
+ }
+}
