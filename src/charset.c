@@ -507,6 +507,36 @@ DESCRIPTION (string) is the description string of the charset.")
   return Qnil;
 }
 
+DEFUN ("get-unused-iso-final-char", Fget_unused_iso_final_char,
+       Sget_unused_iso_final_char, 2, 2, 0,
+  "Return an unsed ISO's final char for a charset of DIMENISION and CHARS.\n\
+DIMENSION is the number of bytes to represent a character: 1 or 2.\n\
+CHARS is the number of characters in a dimension: 94 or 96.\n\
+\n\
+This final char is for private use, thus the range is `0' (48) .. `?' (63).\n\
+If there's no unused final char for the specified kind of charset,\n\
+return nil.")
+  (dimension, chars)
+     Lisp_Object dimension, chars;
+{
+  int final_char;
+
+  CHECK_NUMBER (dimension, 0);
+  CHECK_NUMBER (chars, 1);
+  if (XINT (dimension) != 1 && XINT (dimension) != 2)
+    error ("Invalid charset dimension %d, it should be 1 or 2",
+	   XINT (dimension));
+  if (XINT (chars) != 94 && XINT (chars) != 96)
+    error ("Invalid charset chars %d, it should be 94 or 96",
+	   XINT (chars));
+  for (final_char = '0'; final_char <= '?'; final_char++)
+    {
+      if (ISO_CHARSET_TABLE (dimension, chars, make_number (final_char)) < 0)
+	break;
+    }
+  return (final_char <= '?' ? make_number (final_char) : Qnil);
+}
+
 DEFUN ("declare-equiv-charset", Fdeclare_equiv_charset, Sdeclare_equiv_charset,
        4, 4, 0,
   "Declare a charset of DIMENSION, CHARS, FINAL-CHAR is the same as CHARSET.\n\
@@ -1625,6 +1655,7 @@ syms_of_charset ()
   CHARSET_SYMBOL (CHARSET_COMPOSITION) = Qcomposition;
 
   defsubr (&Sdefine_charset);
+  defsubr (&Sget_unused_iso_final_char);
   defsubr (&Sdeclare_equiv_charset);
   defsubr (&Sfind_charset_region);
   defsubr (&Sfind_charset_string);
