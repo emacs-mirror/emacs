@@ -3503,9 +3503,9 @@ This works by running a directory listing program
 whose name is in the variable `insert-directory-program'.
 If WILDCARD, it also runs the shell specified by `shell-file-name'."
   ;; We need the directory in order to find the right handler.
-  (let* ((file (expand-file-name file))
-         (handler (find-file-name-handler file 'insert-directory)))
-    (if handler
+  (let ((handler (find-file-name-handler (expand-file-name file)
+					 'insert-directory)))
+   (if handler
 	(funcall handler 'insert-directory file switches
 		 wildcard full-directory-p)
       (if (eq system-type 'vax-vms)
@@ -3519,19 +3519,22 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 	       (result
 		(if wildcard
 		    ;; Run ls in the directory of the file pattern we asked for
-		    (let ((default-directory (file-name-directory file))
+		    (let ((default-directory
+			    (if (file-name-absolute-p file)
+				(file-name-directory file)
+			      (file-name-directory (expand-file-name file))))
 			  (pattern (file-name-nondirectory file)))
 		      (call-process
-                       shell-file-name nil t nil
-                       "-c" (concat (if (memq system-type '(ms-dos windows-nt))
+		       shell-file-name nil t nil
+		       "-c" (concat (if (memq system-type '(ms-dos windows-nt))
 					""
 				      "\\") ; Disregard Unix shell aliases!
-                                    insert-directory-program
-                                    " -d "
-                                    (if (stringp switches)
-                                        switches
-                                        (mapconcat 'identity switches " "))
-                                    " -- "
+				    insert-directory-program
+				    " -d "
+				    (if (stringp switches)
+					switches
+				      (mapconcat 'identity switches " "))
+				    " -- "
 				    ;; Quote some characters that have
 				    ;; special meanings in shells; but
 				    ;; don't quote the wildcards--we
@@ -3541,26 +3544,26 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 				    ;; people want to use them
 				    ;; explicitly to quote wildcard
 				    ;; characters.
-                                    (shell-quote-wildcard-pattern pattern))))
+				    (shell-quote-wildcard-pattern pattern))))
 		  ;; SunOS 4.1.3, SVr4 and others need the "." to list the
 		  ;; directory if FILE is a symbolic link.
 		  (apply 'call-process
-			  insert-directory-program nil t nil
-                          (append
-                           (if (listp switches) switches
-                               (unless (equal switches "")
-                                 ;; Split the switches at any spaces so we can
-                                 ;; pass separate options as separate args.
-                                 (split-string switches)))
-                           ;; Avoid lossage if FILE starts with `-'.
-                           '("--")
-                           (progn
-                             (if (string-match "\\`~" file)
-                                 (setq file (expand-file-name file)))
-                             (list
-                              (if full-directory-p
-                                  (concat (file-name-as-directory file) ".")
-                                  file))))))))
+			 insert-directory-program nil t nil
+			 (append
+			  (if (listp switches) switches
+			    (unless (equal switches "")
+			      ;; Split the switches at any spaces so we can
+			      ;; pass separate options as separate args.
+			      (split-string switches)))
+			  ;; Avoid lossage if FILE starts with `-'.
+			  '("--")
+			  (progn
+			    (if (string-match "\\`~" file)
+				(setq file (expand-file-name file)))
+			    (list
+			     (if full-directory-p
+				 (concat (file-name-as-directory file) ".")
+			       file))))))))
 	  (if (/= result 0)
 	      ;; We get here if `insert-directory-program' failed.
 	      ;; On non-Posix systems, we cannot open a directory, so
