@@ -36,7 +36,7 @@
  'iso-latin-1 2 ?1
  "ISO 2022 based 8-bit encoding for Latin-1 (MIME:ISO-8859-1)."
  '(ascii latin-iso8859-1 nil nil
-   nil nil nil nil nil nil nil nil nil nil nil nil t)
+   nil nil nil nil nil nil nil nil nil nil nil t t)
  '((safe-charsets ascii latin-iso8859-1)
    (mime-charset . iso-8859-1)))
 
@@ -78,7 +78,7 @@ Indonesian/Malay, Tagalog (Philippines), Swahili and Afrikaans."))
  'iso-latin-2 2 ?2
  "ISO 2022 based 8-bit encoding for Latin-2 (MIME:ISO-8859-2)."
  '(ascii latin-iso8859-2 nil nil
-   nil nil nil nil nil nil nil)
+   nil nil nil nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii latin-iso8859-2)
    (mime-charset . iso-8859-2)))
 
@@ -112,7 +112,7 @@ We also have specific language environments for the following languages:
  'iso-latin-3 2 ?3
  "ISO 2022 based 8-bit encoding for Latin-3 (MIME:ISO-8859-3)."
  '(ascii latin-iso8859-3 nil nil
-   nil nil nil nil nil nil nil)
+   nil nil nil nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii latin-iso8859-3)
    (mime-charset . iso-8859-3)))
 
@@ -140,7 +140,7 @@ These languages are supported with the Latin-3 (ISO-8859-3) character set:
  'iso-latin-4 2 ?4
  "ISO 2022 based 8-bit encoding for Latin-4 (MIME:ISO-8859-4)."
  '(ascii latin-iso8859-4 nil nil
-   nil nil nil nil nil nil nil)
+   nil nil nil nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii latin-iso8859-4)
    (mime-charset . iso-8859-4)))
 
@@ -168,7 +168,7 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
  'iso-latin-5 2 ?9
  "ISO 2022 based 8-bit encoding for Latin-5 (MIME:ISO-8859-9)."
  '(ascii latin-iso8859-9 nil nil
-   nil nil nil nil nil nil nil)
+   nil nil nil nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii latin-iso8859-9)
    (mime-charset . iso-8859-9)))
 
@@ -194,7 +194,7 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
 					; for `Celtic' is taken.
  "ISO 2022 based 8-bit encoding for Latin-8 (MIME:ISO-8859-14)."
  '(ascii latin-iso8859-14 nil nil
-   nil nil nil nil nil nil nil nil nil nil nil nil t)
+   nil nil nil nil nil nil nil nil nil nil nil t t)
  '((safe-charsets ascii latin-iso8859-14)
    (mime-charset . iso-8859-14)))
 
@@ -224,7 +224,7 @@ covered by other ISO-8859 character sets:
  'iso-latin-9 2 ?0			; `0' for `Latin-0'
  "ISO 2022 based 8-bit encoding for Latin-9 (MIME:ISO-8859-15)."
  '(ascii latin-iso8859-15 nil nil
-   nil nil nil nil nil nil nil nil nil nil nil nil t)
+   nil nil nil nil nil nil nil nil nil nil nil t t)
  '((safe-charsets ascii latin-iso8859-15)
    (mime-charset . iso-8859-15)))
 
