@@ -1,3 +1,8 @@
+2003-01-20  Jan D.  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_create_frame_widgets): Check if there is an
+	external tool bar before setting tool bar height.
+
 2003-01-19  Jan D.  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): Surround popup_activated

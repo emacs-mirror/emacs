@@ -10692,9 +10692,11 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
 
     case KeyPress:
 
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
       /* Dispatch KeyPress events when in menu.  */
       if (popup_activated ())
         goto OTHER;
+#endif
 
       f = x_any_window_to_frame (dpyinfo, event.xkey.window);
 
@@ -11375,7 +11377,9 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
               if (!dpyinfo->x_focus_frame
                   || f == dpyinfo->x_focus_frame)
                 {
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
                   if (! popup_activated ())
+#endif
                     construct_mouse_click (&emacs_event, &event, f);
                 }
           }
