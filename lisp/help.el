@@ -287,7 +287,14 @@ of the key sequence that ran this command."
   "Display last 100 input keystrokes."
   (interactive)
   (with-output-to-temp-buffer "*Help*"
-    (princ (key-description (recent-keys)))
+    (princ (mapconcat (function (lambda (key)
+				  (if (or (integerp key)
+					  (symbolp key)
+					  (listp key))
+				      (single-key-description key)
+				    (prin1-to-string key nil))))
+		      (recent-keys)
+		      " "))
     (save-excursion
       (set-buffer standard-output)
       (goto-char (point-min))
