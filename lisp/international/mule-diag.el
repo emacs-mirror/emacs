@@ -511,7 +511,8 @@ detailed meanings of these arguments."
 
 ;;;###autoload
 (defun describe-char-after (&optional pos)
-  "Display information of in current buffer at position POS.
+  "Display information about the character at POS in the current buffer.
+POS defaults to point.
 The information includes character code, charset and code points in it,
 syntax, category, how the character is encoded in a file,
 which font is being used for displaying the character."
@@ -713,15 +714,15 @@ which font is being used for displaying the character."
 		(t (princ "invalid\n")))))
       (let ((postread (coding-system-get coding-system 'post-read-conversion)))
 	(when postread
-	  (princ "After decoding a text normally,")
-	  (princ " perform post-conversion by the function: ")
+	  (princ "After decoding text normally,")
+	  (princ " perform post-conversion using the function: ")
 	  (princ "\n  ")
 	  (princ postread)
 	  (princ "\n")))
       (let ((prewrite (coding-system-get coding-system 'pre-write-conversion)))
 	(when prewrite
-	  (princ "Before encoding a text normally,")
-	  (princ " perform pre-conversion by the function: ")
+	  (princ "Before encoding text normally,")
+	  (princ " perform pre-conversion using the function: ")
 	  (princ "\n  ")
 	  (princ prewrite)
 	  (princ "\n")))
@@ -731,7 +732,7 @@ which font is being used for displaying the character."
 	  (when charsets
 	    (if (eq charsets t)
 		(insert "This coding system can encode all charsets.\n")
-	      (insert "This coding system encode the following charsets:\n ")
+	      (insert "This coding system encodes the following charsets:\n ")
 	      (while charsets
 		(insert " " (symbol-name (car charsets)))
 		(search-backward (symbol-name (car charsets)))
@@ -1149,7 +1150,7 @@ This shows which font is used for which character(s)."
   (interactive
    (if (not (and window-system (fboundp 'fontset-list)))
        (error "No fontsets being used")
-     (let ((fontset-list (append
+     (let ((fontset-list (nconc
 			  (mapcar 'list (fontset-list))
 			  (mapcar (lambda (x) (list (cdr x)))
 				  fontset-alias-alist)))
