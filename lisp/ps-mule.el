@@ -92,11 +92,16 @@
 
 Valid values are:
 
-  nil                     This is the value to use when you are printing
-			  buffer with only ASCII and Latin characters.
+  nil                     This is the value to use the default settings which
+			  is by default for printing buffer with only ASCII
+			  and Latin characters.   The default setting can be
+			  changed by setting the variable
+			  `ps-mule-font-info-database-default' differently.
+			  The initial value of this variable is
+			  `ps-mule-font-info-database-latin' (which see).
 
-  `non-latin-printer'     This is the value to use when you have a japanese
-			  or korean PostScript printer and want to print
+  `non-latin-printer'     This is the value to use when you have a Japanese
+			  or Korean PostScript printer and want to print
 			  buffer with ASCII, Latin-1, Japanese (JISX0208 and
 			  JISX0201-Kana) and Korean characters.  At present,
 			  it was not tested the Korean characters printing.
@@ -192,6 +197,10 @@ See also the variable `ps-font-info-database'.")
   '((latin-iso8859-1
      (normal nil nil iso-latin-1)))
   "Sample setting of `ps-mule-font-info-database' to use latin fonts.")
+
+(defvar ps-mule-font-info-database-default
+  ps-mule-font-info-database-default
+  "The default setting to use if `ps-multibyte-buffer' (which see) is nil.")
 
 (defconst ps-mule-font-info-database-ps
   '((katakana-jisx0201
