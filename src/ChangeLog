@@ -1,3 +1,10 @@
+1999-11-25  Paul Eggert  <eggert@twinsun.com>
+
+	* emacs.c (fixup_locale): Don't bother to record initial locale.
+	(synchronize_locale): If the desired locale is nil,
+	treat it as if it were the empty string,
+	so that we set the locale from the environment.
+
 1999-11-25  Kenichi Handa  <handa@etl.go.jp>
 
 	* fileio.c (Finsert_file_contents): Set buffer-file-coding-system

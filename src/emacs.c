@@ -1911,30 +1911,26 @@ You must run Emacs in batch mode in order to dump it.")
 void
 fixup_locale ()
 {
-  char *l;
-
   /* The Emacs Lisp reader needs LC_NUMERIC to be "C",
      so that numbers are read and printed properly for Emacs Lisp.  */
   setlocale (LC_NUMERIC, "C");
-
-#ifdef LC_MESSAGES
-  l = setlocale (LC_MESSAGES, (char *) 0);
-  Vprevious_system_messages_locale = l ? build_string (l) : Qnil;
-#endif
-  l = setlocale (LC_TIME, (char *) 0);
-  Vprevious_system_time_locale = l ? build_string (l) : Qnil;
 }
 
+/* Set system locale CATEGORY, with previous locale *PLOCALE, to
+   DESIRED_LOCALE.  */
 static void
 synchronize_locale (category, plocale, desired_locale)
      int category;
      Lisp_Object *plocale;
      Lisp_Object desired_locale;
 {
-  if (STRINGP (desired_locale)
-      && (NILP (*plocale) || NILP (Fstring_equal (*plocale, desired_locale)))
-      && setlocale (category, XSTRING (desired_locale)->data))
-    *plocale = desired_locale;
+  if (! EQ (*plocale, desired_locale))
+    {
+      *plocale = desired_locale;
+      setlocale (category, (STRINGP (desired_locale)
+			    ? XSTRING (desired_locale)->data
+			    : ""));
+    }
 }
 
 /* Set system time locale to match Vsystem_time_locale, if possible.  */
