@@ -2170,8 +2170,9 @@ event_to_kboard (event)
     frame = WINDOW_FRAME (XWINDOW (frame));
 
   /* There are still some events that don't set this field.
-     For now, just ignore the problem.  */
-  if (!FRAMEP (frame))
+     For now, just ignore the problem.
+     Also ignore dead frames here.  */
+  if (!FRAMEP (frame) || !FRAME_LIVE_P (XFRAME (frame)))
     return 0;
   else
     return FRAME_KBOARD (XFRAME (frame));
@@ -2308,7 +2309,7 @@ kbd_buffer_get_event (KBOARD **kbp)
     {
       c = getchar ();
       XSETINT (obj, c);
-      *kbp = all_kboards;  /* There'd better be exactly one!  */
+      *kbp = current_kboard;
       return obj;
     }
 
