@@ -36,6 +36,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "commands.h"
 #include "disptab.h"
 #include "indent.h"
+#include "intervals.h"
 
 #include "systty.h"
 #include "systime.h"
@@ -872,6 +873,17 @@ direct_output_for_insert (g)
   /* Give up if buffer appears in two places.  */
       || buffer_shared > 1
 
+#ifdef USE_TEXT_PROPERTIES
+  /* Intervals have already been adjusted, point is after the
+     character that was just inserted. */
+  /* Give up if character has is invisible. */
+  /* Give up if character has a face property.
+     At the moment we only lose at end of line or end of buffer
+     and only with faces that have some background */
+  /* Instead of wasting time, give up if character has any text properties */
+      || ! NILP (Ftext_properties_at (XFASTINT (point - 1), Qnil))
+#endif
+
   /* Give up if w is minibuffer and a message is being displayed there */
       || (MINI_WINDOW_P (w) && echo_area_glyphs))
     return 0;
@@ -911,7 +923,8 @@ direct_output_forward_char (n)
 {
   register FRAME_PTR frame = selected_frame;
   register struct window *w = XWINDOW (selected_window);
-
+  int position;
+  
   /* Avoid losing if cursor is in invisible text off left margin
      or about to go off either side of window.  */
   if ((FRAME_CURSOR_X (frame) == XFASTINT (w->left)
@@ -920,16 +933,34 @@ direct_output_forward_char (n)
 	  && (FRAME_CURSOR_X (frame) + 1 >= window_internal_width (w) - 1))
       || cursor_in_echo_area)
     return 0;
-
+  
   /* Can't use direct output if highlighting a region.  */
   if (!NILP (Vtransient_mark_mode) && !NILP (current_buffer->mark_active))
     return 0;
+
+#ifdef USE_TEXT_PROPERTIES
+  /* Don't use direct output next to an invisible character
+     since we might need to do something special.  */
+
+  XFASTINT (position) = point + n;
+  if (! NILP (Fget_text_property (position,
+				  Qinvisible,
+				  Fcurrent_buffer ())))
+    return;
+
+  XFASTINT (position) = point + n - 1;
+  if (! NILP (Fget_text_property (position,
+				  Qinvisible,
+				  Fcurrent_buffer ())))
+    return;
+#endif
 
   FRAME_CURSOR_X (frame) += n;
   XFASTINT (w->last_point_x) = FRAME_CURSOR_X (frame);
   XFASTINT (w->last_point) = point;
   cursor_to (FRAME_CURSOR_Y (frame), FRAME_CURSOR_X (frame));
   fflush (stdout);
+
   return 1;
 }
 
