@@ -1,8 +1,0 @@
-# -sed1x.inp------------------------------------------------------------
-# Extra configuration script for src/makefile for DesqView/X
-# ----------------------------------------------------------------------
-s!^	cd \${oldXMenudir}; \${MAKE}.*$!	${MAKE} -C ${oldXMenudir}.!
-s!^	@true *$!	@rem!
-s/DOC/DOC-X/g
-#/^LIBXMENU *=/s!= *!= ../oldxmenu/!
-/^temacs *:/s!OLDXMENU!LIBXMENU!

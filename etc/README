@@ -1,7 +1,0 @@
-This directory contains the architecture-independent files used by or
-with Emacs.  This includes some text files of documentation for GNU
-Emacs or of interest to Emacs users, and the file of dumped docstrings
-for Emacs functions and variables.
-
-`termcap.src' is included mainly for VMS.  It is a copy of the
-`/etc/termcap' file used on Unix.
