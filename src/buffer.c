@@ -362,7 +362,7 @@ even if a buffer with that name exists.")
     {
       sprintf (number, "<%d>", ++count);
       gentemp = concat2 (name, build_string (number));
-      tem = Fstring_equal (name, ignore);
+      tem = Fstring_equal (gentemp, ignore);
       if (!NILP (tem))
 	return gentemp;
       tem = Fget_buffer (gentemp);
