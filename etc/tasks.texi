@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate April 27, 1999
+@set lastupdate May  6, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -580,6 +580,9 @@ perhaps something like Scientific Workbench and/or Khoros,
 
 @item
 Software to replace card catalogues in libraries.
+
+@item
+A simulator for heating and air conditioning systems for buildings.
 
 @item
 A package for editing genealogical records conveniently.
