@@ -203,7 +203,7 @@ probably want to edit European characters in single-byte mode."
 	       (equal (aref standard-display-table 161) [161])))
       (progn
 	(standard-display-default 160 255)
-	(unless (eq window-system 'x)
+	(unless (memq window-system '(x w32))
 	  (set-terminal-coding-system nil)))
     ;; If the user does this explicitly,
     ;; turn off multibyte chars for more compatibility.
@@ -218,7 +218,7 @@ probably want to edit European characters in single-byte mode."
     (unless auto
       (if (equal current-language-environment "English")
 	  (set-language-environment "latin-1")))
-    (unless (or noninteractive (eq window-system 'x))
+    (unless (or noninteractive (memq window-system '(x w32)))
       ;; Send those codes literally to a non-X terminal.
       ;; If AUTO is nil, we are using single-byte characters,
       ;; so it doesn't matter which one we use.
