@@ -1,3 +1,32 @@
+2001-10-25  Miles Bader  <miles@gnu.org>
+
+	* dispextern.h (struct image): Add `background',
+	`background_valid', and `background_transparent' fields.
+	(image_background, image_background_transparent): New declarations.
+	(IMAGE_BACKGROUND, IMAGE_BACKGROUND_TRANSPARENT): New macros.
+	* xfns.c (image_background, image_background_transparent)
+	(four_corners_best): New functions.
+	(xpm_format, png_format, jpeg_format, tiff_format, gif_format) 
+	(gs_format): Add `:background' entry.
+	(lookup_image): Set IMG's background color if specified.
+	(pbm_load, xbm_load_image, png_load): Set IMG's background field
+	when appropriate.
+	(x_clear_image_1): Reset `background_valid' and
+	`background_transparent_valid' fields.
+	(x_build_heuristic_mask): Use IMAGE_BACKGROUND instead of
+	calculating it here.  Set IMG's background_transparent field.
+	(enum xpm_keyword_index): Add XPM_BACKGROUND.
+	(enum png_keyword_index): Add PNG_BACKGROUND.
+	(enum jpeg_keyword_index): Add JPEG_BACKGROUND.
+	(enum tiff_keyword_index): Add TIFF_BACKGROUND.
+	(enum gif_keyword_index): Add GIF_BACKGROUND.
+	(enum gs_keyword_index): Add GS_BACKGROUND.
+	(pbm_load, png_load, jpeg_load, tiff_load, gif_load): 
+	Pre-calculate image background color where necessary.
+	* xterm.c (x_setup_relief_colors): Use `IMAGE_BACKGROUND' and
+	`IMAGE_BACKGROUND_TRANSPARENT' to calculate the correct background
+	color to use for image glyph reliefs.
+
 2001-10-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_draw_glyphs): Don't check for cursor overwriting
