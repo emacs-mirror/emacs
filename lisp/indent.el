@@ -81,9 +81,8 @@ only if necessary.  It leaves point at end of indentation."
   (let ((bol (point))
 	(cur-col (current-indentation)))
     (cond ((> cur-col column) ; too far right (after tab?)
-	   (let ((beg (progn (move-to-column column t) (point))))
-	     (back-to-indentation)
-	     (delete-region beg (point))))
+	   (delete-region (progn (move-to-column column t) (point))
+			  (progn (back-to-indentation) (point))))
 	  ((< cur-col column)
 	   (back-to-indentation)
 	   (indent-to column)))))
@@ -95,49 +94,49 @@ of the `left-margin' text-property at the start of the line."
   (save-excursion
     (back-to-indentation)
     (max 0
-	 (+ left-margin (or (get-text-property (point) 'left-margin) 0)))))
+	 (+ left-margin (or (get-text-property
+			     (if (and (eobp) (not (bobp)))
+				 (1- (point)) (point))
+			     'left-margin) 0)))))
 
-(defun move-to-left-margin (&optional n)
+(defun move-to-left-margin (&optional n force)
   "Move to the left margin of the current line.
 With optional argument, move forward N-1 lines first.
-The column moved to is the one given by the `left-margin' function, or the
-column where text actually starts if the region is centered or right-justified.
-When called interactively, this function corrects the line's indentation
-if it appears to be incorrect.
-When called noninteractively, however, it just moves to the beginning of
-the text in this case."
-  (interactive "p")
+The column moved to is the one given by the `current-left-margin' function.
+If the line's indentation appears to be wrong, and this command is called
+interactively or with optional argument FORCE, it will be fixed."
+  (interactive (list (prefix-numeric-value current-prefix-arg) t))
   (beginning-of-line n)
-  (skip-chars-forward " \t")
-  (if (not (memq (current-justification) '(right center)))
-      (let ((cc (current-column))
-	    (lm (current-left-margin)))
-	(cond ((> cc lm)
-	       (move-to-column lm t))
-	      ((and (< cc lm) (interactive-p))
-	       (indent-to-left-margin))))))
+  (let ((lm (current-left-margin)))
+    (if (memq (current-justification) '(right center))
+	(move-to-column lm)
+      (skip-chars-forward " \t"))
+    (let ((cc (current-column)))
+      (cond ((> cc lm)
+	     (if (> (move-to-column lm force) lm)
+		 ;; If lm is in a tab and we are not forcing, move before tab
+		 (backward-char 1)))
+	    ((and force (< cc lm))
+	     (indent-to-left-margin))))))
 
 ;; This is the default indent-line-function,
 ;; used in Fundamental Mode, Text Mode, etc.
 (defun indent-to-left-margin ()
-  "Indent current line to `left-margin'."
+  "Indent current line to the column given by `current-left-margin'."
   (indent-line-to (current-left-margin)))
 
-(defun delete-to-left-margin (from to)
-  "Remove left-margin indentation from region.
-This is careful only to delete whitespace, and not to delete any more than 
-the \(current-left-margin) value for each line."
+(defun delete-to-left-margin (&optional from to)
+  "Remove left margin indentation from a region.
+This deletes to the column given by `current-left-margin'.
+In no case will it delete non-whitespace.
+Args FROM and TO are optional; default is the whole buffer."
   (save-excursion
-    (goto-char to)
+    (goto-char (or to (point-max)))
     (setq to (point-marker))
-    (goto-char from)
+    (goto-char (or from (point-min)))
     (or (bolp) (forward-line 1))
     (while (< (point) to)
-      (delete-region (point) (let ((lm (current-left-margin)))
-			       (skip-chars-forward " \t")
-			       (if (> (current-column) lm)
-				   (move-to-column lm))
-			       (point)))
+      (delete-region (point) (progn (move-to-left-margin nil t) (point)))
       (forward-line 1))
     (move-marker to nil)))
 
@@ -151,12 +150,15 @@ If `auto-fill-mode' is active, re-fill the region to fit the new margin."
     (goto-char from)
     (skip-chars-backward " \t")
     (if (bolp) (setq from (point)))
+    ;; Place end after whitespace
     (goto-char to)
+    (skip-chars-forward " \t")
     (setq to (point-marker)))
-  ;; Delete indentation first, so that paragraph indentation is preserved.
-  (if auto-fill-function (delete-to-left-margin from to))
+  ;; Delete margin indentation first, but keep paragraph indentation.
+  (delete-to-left-margin from to)
   (put-text-property from to 'left-margin lm)
-  (if auto-fill-function (fill-region from to nil t t))
+  (indent-rigidly from to lm)
+  (if auto-fill-function (save-excursion (fill-region from to nil t t)))
   (move-marker to nil))
 
 (defun set-right-margin (from to lm)
@@ -169,7 +171,7 @@ If `auto-fill-mode' is active, re-fill the region to fit the new margin."
     (skip-chars-backward " \t")
     (if (bolp) (setq from (point))))
   (put-text-property from to 'right-margin lm)
-  (if auto-fill-function (fill-region from to nil t t)))
+  (if auto-fill-function (save-excursion (fill-region from to nil t t))))
 
 (defun alter-text-property (from to prop func &optional object)
   "Programmatically change value of a text-property.
@@ -199,10 +201,10 @@ If `auto-fill-mode' is active, re-fill the region to fit the new margin."
     (if (bolp) (setq from (point)))
     (goto-char to)
     (setq to (point-marker)))
-  (if auto-fill-function (delete-to-left-margin from to))
   (alter-text-property from to 'left-margin
-		       (lambda (v) (max 0 (+ inc (or v 0)))))
-  (if auto-fill-function (fill-region from to nil t t))
+		       (lambda (v) (max (- left-margin) (+ inc (or v 0)))))
+  (indent-rigidly from to inc)
+  (if auto-fill-function (save-excursion (fill-region from to nil t t)))
   (move-marker to nil))
 
 (defun decrease-left-margin (from to inc)
@@ -228,7 +230,7 @@ If `auto-fill-mode' is active, re-fill the region to fit the new margin."
 		  standard-indent)))
   (save-excursion
     (alter-text-property from to 'right-margin
-       (lambda (v) (max 0 (+ inc (or v 0)))))
+       (lambda (v) (+ inc (or v 0))))
     (if auto-fill-function
 	(fill-region from to nil t t))))
 
@@ -242,6 +244,30 @@ If `auto-fill-mode' is active, re-fills region to fit in new margin."
   (interactive "*r\nP")
   (setq inc (if inc (prefix-numeric-value inc) standard-indent))
   (increase-right-margin from to (- inc)))
+
+(defun beginning-of-line-text (&optional n)
+  "Move to the beginning of the text on this line.
+With optional argument, move forward N-1 lines first.
+From the beginning of the line, moves past the left-margin indentation, the
+fill-prefix, and any indentation used for centering or right-justifying the
+line, but does not move past any whitespace that was explicitly inserted 
+\(such as a tab used to indent the first line of a paragraph)."
+  (interactive "p")
+  (beginning-of-line n)
+  (skip-chars-forward " \t")
+  ;; Skip over fill-prefix.
+  (if (and fill-prefix 
+	   (not (string-equal fill-prefix "")))
+      (if (equal fill-prefix
+		 (buffer-substring 
+		  (point) (min (point-max) (+ (length fill-prefix) (point)))))
+	  (forward-char (length fill-prefix)))
+    (if (and adaptive-fill-mode 
+	     (looking-at adaptive-fill-regexp))
+	(goto-char (match-end 0))))
+  ;; Skip centering or flushright indentation
+  (if (memq (current-justification) '(center right))
+      (skip-chars-forward " \t")))
 
 (defvar indent-region-function nil
   "Function which is short cut to indent region using indent-according-to-mode.
