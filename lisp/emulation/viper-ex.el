@@ -1,6 +1,6 @@
 ;;; viper-ex.el --- functions implementing the Ex commands for Viper
 
-;; Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,14 +19,35 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-
 ;; Code
 
-(require 'viper-util)
+(provide 'viper-ex)
 
 ;; Compiler pacifier
 (defvar read-file-name-map)
-;; end compiler pacifier
+(defvar vip-use-register)
+(defvar vip-s-string)
+(defvar vip-shift-width)
+(defvar vip-ex-history)
+(defvar vip-related-files-and-buffers-ring)
+(defvar vip-local-search-start-marker)
+(defvar vip-expert-level)
+(defvar vip-custom-file-name)
+(defvar vip-case-fold-search)
+
+(eval-when-compile
+  (let ((load-path (cons (expand-file-name ".") load-path)))
+    (or (featurep 'viper-util)
+	(load "viper-util.el" nil nil 'nosuffix))
+    (or (featurep 'viper-keym)
+	(load "viper-keym.el" nil nil 'nosuffix))
+    (or (featurep 'viper)
+	(load "viper.el" nil nil 'nosuffix))
+    ))
+;; end pacifier
+
+(require 'viper-util)
+
 
 ;;; Variables
 
@@ -637,7 +658,8 @@ reversed.")
 
 ;; Get an ex-address as a marker and set ex-flag if a flag is found
 (defun vip-get-ex-address ()
-  (let ((address (point-marker)) (cont t))
+  (let ((address (point-marker))
+	(cont t))
     (setq ex-token "")
     (setq ex-flag nil)
     (while cont
@@ -1852,7 +1874,12 @@ Please contact your system administrator. "
 (defun ex-write (q-flag)
   (vip-default-ex-addresses t)
   (vip-get-ex-file)
-  (let ((end (car ex-addresses)) (beg (car (cdr ex-addresses))) 
+  (let ((end (car ex-addresses))
+	(beg (car (cdr ex-addresses))) 
+	(orig-buf (current-buffer))
+	(orig-buf-file-name (buffer-file-name))
+	(orig-buf-name (buffer-name))
+	(buff-changed-p (buffer-modified-p))
 	temp-buf writing-same-file region
 	file-exists writing-whole-file)
     (if (> beg end) (error vip-FirstAddrExceedsSecond))
@@ -1875,8 +1902,9 @@ Please contact your system administrator. "
 	       buffer-file-name
 	       (not (file-directory-p buffer-file-name)))
 	  (setq ex-file
-		(concat ex-file (file-name-nondirectory buffer-file-name))))
-
+		(concat (file-name-as-directory ex-file)
+			(file-name-nondirectory buffer-file-name))))
+      
       (setq file-exists (file-exists-p ex-file)
 	    writing-same-file (string= ex-file (buffer-file-name)))
 
@@ -1884,35 +1912,58 @@ Please contact your system administrator. "
 	  (if (not (buffer-modified-p))
 	      (message "(No changes need to be saved)")
 	    (save-buffer)
-	    (ex-write-info file-exists ex-file beg end))
-	;; writing some other file or portion of the currents
-	;; file---create temp buffer for it
-	;; disable undo in that buffer, for efficiency
-	(buffer-disable-undo (setq temp-buf (create-file-buffer ex-file)))
-	(unwind-protect 
-	    (save-excursion
-	      (if (and file-exists
-		       (not writing-same-file)
-		       (not (yes-or-no-p
-			     (format "File %s exists. Overwrite? " ex-file))))
-		  (error "Quit")
-		(vip-enlarge-region beg end)
-		(setq region (buffer-substring (point) (mark t)))
-		(set-buffer temp-buf)
-		(set-visited-file-name ex-file)
-		(erase-buffer)
-		(if (and file-exists ex-append)
-		    (insert-file-contents ex-file))
-		(goto-char (point-max))
-		(insert region)
-		(save-buffer)
-		(ex-write-info file-exists ex-file (point-min) (point-max))
-		)
-	      (set-buffer temp-buf)
-	      (set-buffer-modified-p nil)
-	      (kill-buffer temp-buf)
+	    (save-restriction
+		 (widen)
+		 (ex-write-info file-exists ex-file (point-min) (point-max))
+		 ))
+	;; writing some other file or portion of the current file
+	(cond ((and file-exists
+		    (not writing-same-file)
+		    (not (yes-or-no-p
+			  (format "File %s exists. Overwrite? " ex-file))))
+	       (error "Quit"))
+	      ((and writing-whole-file (not ex-append))
+	       (unwind-protect
+		   (progn
+		     (set-visited-file-name ex-file)
+		     (set-buffer-modified-p t)
+		     (save-buffer))
+		 ;; restore the buffer file name
+		 (set-visited-file-name orig-buf-file-name)
+		 (set-buffer-modified-p buff-changed-p)
+		 ;; If the buffer wasn't visiting a file, restore buffer name.
+		 ;; Name could've been changed by packages such as uniquify.
+		 (or orig-buf-file-name
+		     (progn
+		       (unlock-buffer)
+		       (rename-buffer orig-buf-name))))
+	       (save-restriction
+		 (widen)
+		 (ex-write-info
+		  file-exists ex-file (point-min) (point-max))))
+	      (t ; writing a region
+	       (unwind-protect 
+		   (save-excursion
+		     (vip-enlarge-region beg end)
+		     (setq region (buffer-substring (point) (mark t)))
+		     ;; create temp buffer for the region
+		     (setq temp-buf (get-buffer-create " *ex-write*"))
+		     (set-buffer temp-buf)
+		     (set-visited-file-name ex-file 'noquerry)
+		     (erase-buffer)
+		     (if (and file-exists ex-append)
+			 (insert-file-contents ex-file))
+		     (goto-char (point-max))
+		     (insert region)
+		     (save-buffer)
+		     (ex-write-info
+		      file-exists ex-file (point-min) (point-max))
+		     ))
+	       (set-buffer temp-buf)
+	       (set-buffer-modified-p nil)
+	       (kill-buffer temp-buf))
 	      ))
-	)
+      (set-buffer orig-buf)
       ;; this prevents the loss of data if writing part of the buffer
       (if (and (buffer-file-name) writing-same-file)
 	  (set-visited-file-modtime))
@@ -2023,7 +2074,5 @@ Please contact your system administrator. "
 	(kill-buffer " *vip-info*")))
     ))
 
-
-(provide 'viper-ex)
 
 ;;;  viper-ex.el ends here

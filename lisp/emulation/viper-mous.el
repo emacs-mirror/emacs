@@ -1,6 +1,6 @@
 ;;; viper-mous.el --- mouse support for Viper
 
-;; Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -21,12 +21,28 @@
 
 ;; Code
 
-(require 'viper-util)
+(provide 'viper-mous)
 
 ;; compiler pacifier
 (defvar double-click-time)
 (defvar mouse-track-multi-click-time)
-;; end compiler pacifier
+(defvar vip-search-start-marker)
+(defvar vip-local-search-start-marker)
+(defvar vip-search-history)
+(defvar vip-s-string)
+(defvar vip-re-search)
+
+(eval-when-compile
+  (let ((load-path (cons (expand-file-name ".") load-path)))
+    (or (featurep 'viper-util)
+	(load "viper-util.el" nil nil 'nosuffix))
+    (or (featurep 'viper)
+	(load "viper.el" nil nil 'nosuffix))
+    ))
+;; end pacifier
+
+(require 'viper-util)
+
 
 
 ;;; Variables
@@ -452,8 +468,5 @@ bindings in viper.el and in the Viper manual."
 	     (vip-remember-current-frame (selected-frame))))
        )))
 
-
-
-(provide 'viper-mous)
 
 ;;;  viper-mous.el ends here

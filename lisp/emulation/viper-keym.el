@@ -1,6 +1,6 @@
 ;;; viper-keym.el --- Viper keymaps
 
-;; Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -21,7 +21,25 @@
 
 ;; Code
 
+(provide 'viper-keym)
+
+;; compiler pacifier
+(defvar vip-always)
+(defvar vip-current-state)
+(defvar vip-mode-string)
+(defvar vip-expert-level)
+(defvar vip-ex-style-editing-in-insert)
+(defvar vip-ex-style-motion)
+
+(eval-when-compile
+  (let ((load-path (cons (expand-file-name ".") load-path)))
+    (or (featurep 'viper-util)
+	(load "viper-util.el" nil nil 'nosuffix))
+    ))
+;; end pacifier
+
 (require 'viper-util)
+
 
 ;;; Variables
 
@@ -35,6 +53,29 @@ This setting cannot be changed interactively.")
   "Key used to ESC. 
 Must be set in .vip file or prior to loading Viper.
 This setting cannot be changed interactively.")
+  
+;;; Emacs keys in other states.  
+
+(defvar vip-want-emacs-keys-in-insert t
+  "*Set to nil if you want complete Vi compatibility in insert mode.
+Complete compatibility with Vi is not recommended for power use of Viper.")
+
+(defvar vip-want-emacs-keys-in-vi t
+  "*Set to nil if you want complete Vi compatibility in Vi mode.
+Full Vi compatibility is not recommended for power use of Viper.")
+
+(defvar vip-no-multiple-ESC  t
+  "*If true, multiple ESC in Vi mode will cause bell to ring.
+This is set to t on a windowing terminal and to 'twice on a dumb
+terminal (unless the user level is 1, 2, or 5). On a dumb terminal, this
+enables cursor keys and is generally more convenient, as terminals usually
+don't have a convenient Meta key.
+Setting vip-no-multiple-ESC to nil will allow as many multiple ESC,
+as is allowed by the major mode in effect.") 
+
+(defvar vip-want-ctl-h-help nil
+  "*If t then C-h is bound to help-command in insert mode, if nil then it is
+bound to delete-backward-char.")
 
 
 ;;; Keymaps
@@ -199,8 +240,8 @@ vip-insert-basic-map. Not recommended, except for novice users.")
 
 ;; Replace keymap
 (define-key vip-replace-map "\C-t" 'vip-forward-indent)
-(define-key vip-replace-map "\C-j" 'vip-replace-state-exit-cmd)
-(define-key vip-replace-map "\C-m" 'vip-replace-state-exit-cmd)
+(define-key vip-replace-map "\C-j" 'vip-replace-state-carriage-return)
+(define-key vip-replace-map "\C-m" 'vip-replace-state-carriage-return)
 (define-key vip-replace-map "\C-?" 'vip-del-backward-char-in-replace)
 
 
@@ -400,6 +441,10 @@ Useful in some modes, such as Gnus, MH, etc.")
 (define-key vip-dired-modifier-map ":" 'vip-ex)
 (define-key vip-dired-modifier-map "/" 'vip-search-forward)
 
+(defvar vip-help-modifier-map (make-sparse-keymap)
+  "This map modifies Help mode behavior.")
+(define-key vip-help-modifier-map "q" (if vip-xemacs-p 'help-mode-quit))
+
 
 
 ;;; Code
@@ -578,7 +623,5 @@ form ((key . function) (key . function) ... )."
 		       (define-key map (eval (car p)) (cdr p)))) 
 	   alist))
 
-
-(provide 'viper-keym)
 
 ;;;  viper-keym.el ends here
