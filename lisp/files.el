@@ -1277,6 +1277,7 @@ run `normal-mode' explicitly."
     ;; .emacs following a directory delimiter
     ;; in Unix, MSDOG or VMS syntax.
     ("[]>:/\\]\\..*emacs\\'" . emacs-lisp-mode)
+    ("\\`.*emacs\\'" . emacs-lisp-mode)
     ;; _emacs following a directory delimiter
     ;; in MsDos syntax
     ("[:/]_emacs\\'" . emacs-lisp-mode)
