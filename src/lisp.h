@@ -2456,6 +2456,7 @@ EXFUN (Frun_hooks, MANY);
 EXFUN (Frun_hook_with_args, MANY);
 EXFUN (Frun_hook_with_args_until_success, MANY);
 EXFUN (Frun_hook_with_args_until_failure, MANY);
+extern Lisp_Object run_hook_list_with_args P_ ((Lisp_Object, int, Lisp_Object *));
 extern void run_hook_with_args_2 P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 EXFUN (Fand, UNEVALLED);
 EXFUN (For, UNEVALLED);
