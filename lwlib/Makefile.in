@@ -70,6 +70,6 @@ distclean: clean
 maintainer-clean: distclean
 
 TAGS:
-	../lib-src/etags -t *.[ch]
+	../lib-src/etags -t $(srcdir)/*.[ch]
 tags: TAGS
 .PHONY: tags
