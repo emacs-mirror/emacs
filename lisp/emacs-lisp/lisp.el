@@ -352,6 +352,8 @@ unbalanced character."
 (defun lisp-complete-symbol (&optional predicate)
   "Perform completion on Lisp symbol preceding point.
 Compare that symbol against the known Lisp symbols.
+If no characters can be completed, display a list of possible completions.
+Repeating the command at that point scrolls the list.
 
 When called from a program, optional arg PREDICATE is a predicate
 determining which symbols are considered, e.g. `commandp'.
@@ -361,56 +363,72 @@ symbols with function definitions are considered.  Otherwise, all
 symbols with function definitions, values or properties are
 considered."
   (interactive)
-  (let* ((end (point))
-	 (beg (with-syntax-table emacs-lisp-mode-syntax-table
-		(save-excursion
-		  (backward-sexp 1)
-		  (while (= (char-syntax (following-char)) ?\')
-		    (forward-char 1))
-		  (point))))
-	 (pattern (buffer-substring-no-properties beg end))
-	 (predicate
-	  (or predicate
-	      (save-excursion
-		(goto-char beg)
-		(if (not (eq (char-before) ?\())
-		    (lambda (sym)	;why not just nil ?   -sm
-		      (or (boundp sym) (fboundp sym)
-			  (symbol-plist sym)))
-		  ;; Looks like a funcall position.  Let's double check.
-		  (if (condition-case nil
-			  (progn (up-list -2) (forward-char 1)
-				 (eq (char-after) ?\())
-			(error nil))
-		      ;; If the first element of the parent list is an open
-		      ;; parenthesis we are probably not in a funcall position.
-		      ;; Maybe a `let' varlist or something.
-		      nil
-		    ;; Else, we assume that a function name is expected.
-		    'fboundp)))))
-	 (completion (try-completion pattern obarray predicate)))
-    (cond ((eq completion t))
-	  ((null completion)
-	   (message "Can't find completion for \"%s\"" pattern)
-	   (ding))
-	  ((not (string= pattern completion))
-	   (delete-region beg end)
-	   (insert completion))
-	  (t
-	   (message "Making completion list...")
-	   (let ((list (all-completions pattern obarray predicate)))
-	     (setq list (sort list 'string<))
-	     (or (eq predicate 'fboundp)
-		 (let (new)
-		   (while list
-		     (setq new (cons (if (fboundp (intern (car list)))
-					 (list (car list) " <f>")
-				       (car list))
-				     new))
-		     (setq list (cdr list)))
-		   (setq list (nreverse new))))
-	     (with-output-to-temp-buffer "*Completions*"
-	       (display-completion-list list)))
-	   (message "Making completion list...%s" "done")))))
+
+  (let ((window (get-buffer-window "*Completions*")))
+    (if (and (eq last-command this-command)
+	     window (window-live-p window) (window-buffer window)
+	     (buffer-name (window-buffer window)))
+	;; If this command was repeated, and
+	;; there's a fresh completion window with a live buffer,
+	;; and this command is repeated, scroll that window.
+	(with-current-buffer (window-buffer window)
+	  (if (pos-visible-in-window-p (point-max) window)
+	      (set-window-start window (point-min))
+	    (save-selected-window
+	      (select-window window)
+	      (scroll-up))))
+
+      ;; Do completion.
+      (let* ((end (point))
+	     (beg (with-syntax-table emacs-lisp-mode-syntax-table
+		    (save-excursion
+		      (backward-sexp 1)
+		      (while (= (char-syntax (following-char)) ?\')
+			(forward-char 1))
+		      (point))))
+	     (pattern (buffer-substring-no-properties beg end))
+	     (predicate
+	      (or predicate
+		  (save-excursion
+		    (goto-char beg)
+		    (if (not (eq (char-before) ?\())
+			(lambda (sym)	;why not just nil ?   -sm
+			  (or (boundp sym) (fboundp sym)
+			      (symbol-plist sym)))
+		      ;; Looks like a funcall position.  Let's double check.
+		      (if (condition-case nil
+			      (progn (up-list -2) (forward-char 1)
+				     (eq (char-after) ?\())
+			    (error nil))
+			  ;; If the first element of the parent list is an open
+			  ;; parenthesis we are probably not in a funcall position.
+			  ;; Maybe a `let' varlist or something.
+			  nil
+			;; Else, we assume that a function name is expected.
+			'fboundp)))))
+	     (completion (try-completion pattern obarray predicate)))
+	(cond ((eq completion t))
+	      ((null completion)
+	       (message "Can't find completion for \"%s\"" pattern)
+	       (ding))
+	      ((not (string= pattern completion))
+	       (delete-region beg end)
+	       (insert completion))
+	      (t
+	       (message "Making completion list...")
+	       (let ((list (all-completions pattern obarray predicate)))
+		 (setq list (sort list 'string<))
+		 (or (eq predicate 'fboundp)
+		     (let (new)
+		       (while list
+			 (setq new (cons (if (fboundp (intern (car list)))
+					     (list (car list) " <f>")
+					   (car list))
+					 new))
+			 (setq list (cdr list)))
+		       (setq list (nreverse new))))
+		 (with-output-to-temp-buffer "*Completions*"
+		   (display-completion-list list)))
+	       (message "Making completion list...%s" "done")))))))
 
 ;;; lisp.el ends here
