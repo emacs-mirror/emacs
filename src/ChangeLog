@@ -1,3 +1,62 @@
+2000-07-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_handle_tool_bar_click): Store the frame in the
+	frame_or_window slot of TOOL_BAR_EVENT input events instead of
+	consing.  For prefix events, store the frame in the `arg' slot of
+	the event, otherwise store the key there.
+	(XTread_socket): Instead of consing, use the frame_or_window slot
+	of HELP_EVENTs for the frame, and the `arg' slot for the help
+	string.
+
+	* xmenu.c (menu_highlight_callback): Store help string in the
+	`arg' member of the input event; don't cons.
+	(menubar_selection_callback): Use the `arg' slot of input events
+	to queue additional information, instead of consing.
+
+	* msdos.c (dos_rawgetc): Adapt to change of HELP_EVENTs.
+
+	* w32term.c (w32_handle_tool_bar_click): Adapt to changes in
+	TOOL_BAR_EVENTs.
+	(w32_read_socket): Adapt to changes in HELP_EVENTs.
+
+	* w32menu.c (menubar_selection_callback): Use the `arg' slot of
+	input events to queue additional information, instead of consing.
+
+	* keyboard.c (kbd_buffer_gcpro): Renamed from
+	kbd_buffer_frame_or_window.  Now used for all Lisp objects
+	referenced from the input queue.
+	(kbd_buffer_store_event): Always use structure assignment for
+	copying input events.  Record all Lisp objects referenced from
+	events in kbd_buffer_gcpro.
+	(kbd_buffer_get_event): Construct Lisp `help-echo' events
+	differently from input events.  Test for prefix menu_bar_events
+	and TOOL_BAR_EVENTs differently.  Reset all slots used by an input
+	event in kbd_buffer_gcpro to nil.
+	(make_lispy_event) <TOOL_BAR_EVENT>: Treat an input event whose
+	frame_or_window is equal to its arg member as prefix events.
+	(stuff_buffered_input): Reset all slots in kbd_buffer_gcpro
+	used by an input event to nil.
+	(init_keyboard): Use two times the size of the input queue
+	for kbd_buffer_gcpro.
+	(syms_of_keyboard): Likewise.
+
+	* emacs.c (handle_USR2_signal, handle_USR1_signal): Use
+	USER_SIGNAL_EVENT.
+
+	* termhooks.h (struct input_event): Add member `arg'.
+	(MENU_BAR_EVENT): Renamed from menu_bar_event.
+	(USER_SIGNAL_EVENT): Renamed from user_signal.
+
+	* xfaces.c (ASET): Remove definition.
+
+	* lisp.h (AREF, ASET, ASIZE): New macros.
+
+	* fontset.c (AREF, ASIZE): Remove definitions.
+
+	* fns.c (AREF): Remove definition.
+	
+	* composite.c (AREF): Remove definition.
+
 2000-07-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispnew.c (redraw_overlapped_rows): Add missing local.
