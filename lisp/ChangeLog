@@ -1,7 +1,9 @@
 2005-01-10  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-ext.el (calc-reset): Don't adjust the window height if
-	the window takes up the whole height of the frame.
+	* calc/calc-ext.el (calc-reset): Reset when inside embedded
+	calculator; only reset when point is inside a calculator. Don't
+	adjust the window height if the window takes up the whole height
+	of the frame.
 
 2005-01-10  Thien-Thi Nguyen  <ttn@gnu.org>
 
