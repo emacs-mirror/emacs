@@ -79,10 +79,8 @@ If nil, use local time.")
 (defun change-log-name ()
   (or change-log-default-name
       (if (eq system-type 'vax-vms) 
-	  "$CHANGE_LOG$.TXT" 
-	(if (or (eq system-type 'ms-dos) (eq system-type 'windows-nt))
-	    "changelo"
-	  "ChangeLog"))))
+	  "$CHANGE_LOG$.TXT"
+	"ChangeLog")))
 
 ;;;###autoload
 (defun prompt-for-change-log-name ()
