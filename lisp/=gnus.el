@@ -594,6 +594,25 @@ field; if a string, use this; if non-nil, strip of the local host name.")
 (defvar gnus-use-generic-path nil
   "*If nil, use the NNTP server name in the Path: field; if stringp,
 use this; if non-nil, use no host name (user name only)")
+
+(defvar gnus-newsgroups-regex "^\\([^ \t\n]+\\)[ \t]+\\(.*\\)$"
+  "Regex to retrieve the group name and the group description from
+the output of the newsgroups listing.
+
+If you have ^M at the end of lines try \"^\\([^ \t\n]+\\)[ \t]+\\([^\r]+\\)[\r]*$\"")
+
+(defvar gnus-newsgroups-display t
+  "*display the newsgroup description in *Newsgroup* buffer if not nil")
+
+(defvar gnus-newsgroups-alist nil
+  "alist (groupname . description)")
+
+(defvar gnus-newsgroups-hashtb nil
+  "hashtable of gnus-newsgroups-alist")
+
+(defvar gnus-newsgroups-showall nil
+  "non nil if we display all the groups")
+
 
 ;; Internal variables.
 
@@ -969,6 +988,7 @@ Optional argument HASHSIZE specifies the table size."
   (define-key gnus-group-mode-map "?" 'gnus-group-describe-briefly)
   (define-key gnus-group-mode-map "\C-c\C-i" 'gnus-info-find-node)
   (define-key gnus-group-mode-map   [mouse-2] 'gnus-mouse-pick-group)
+  (define-key gnus-group-mode-map "t" 'gnus-newsgroups-display-toggle)
 
   ;; Make a menu bar item.
   (define-key gnus-group-mode-map [menu-bar GNUS]
@@ -1007,6 +1027,10 @@ Optional argument HASHSIZE specifies the table size."
   (define-key gnus-group-mode-map [menu-bar groups separator-1]
 	'("--"))
 
+  (define-key gnus-group-mode-map [menu-bar groups newsgroups-update-description]
+        '("Update descriptions" . gnus-newsgroups-update-description))
+  (define-key gnus-group-mode-map [menu-bar groups newsgroups-display-toggle]
+        '("Toggle descriptions" . gnus-newsgroups-display-toggle))
   (define-key gnus-group-mode-map [menu-bar groups jump-to-group]
 	'("Jump to Group..." . gnus-group-jump-to-group))
   (define-key gnus-group-mode-map [menu-bar groups list-all-groups]
@@ -1057,6 +1081,7 @@ V	Show the version number of this GNUS.
 ?	Describe Group Mode commands briefly.
 C-h m	Describe Group Mode.
 C-c C-i	Read Info about Group Mode.
+t       Toggle displaying newsgroup descriptions.
 
   The name of the host running NNTP server is asked for if no default
 host is specified.  It is also possible to choose another NNTP server
@@ -1288,6 +1313,7 @@ umerin@mse.kyutech.ac.jp" gnus-version))
   "List newsgroups in the Newsgroup buffer.
 If argument SHOW-ALL is non-nil, unsubscribed groups are also listed."
   (interactive "P")
+  (setq gnus-newsgroups-showall show-all)
   (let ((case-fold-search nil)
 	(last-group			;Current newsgroup.
 	 (gnus-group-group-name))
@@ -1325,21 +1351,27 @@ If optional argument ALL is non-nil, unsubscribed groups are also listed."
 	(newsrc gnus-newsrc-assoc)
 	(group-info nil)
 	(group-name nil)
+	(group-description nil)
 	(unread-count 0)
+	(nb-tab 0)
 	;; This specifies the format of Group buffer.
-	(cntl "%s%s%5d: %s\n"))
+	(cntl "%s%s%5d: %s"))
     (erase-buffer)
     ;; List newsgroups.
     (while newsrc
       (setq group-info (car newsrc))
       (setq group-name (car group-info))
+      (if gnus-newsgroups-display
+	  (progn (setq group-description (gnus-gethash group-name gnus-newsgroups-hashtb))
+		 (setq nb-tab (/ (- 38 (length group-name)) tab-width))))
       (setq unread-count (nth 1 (gnus-gethash group-name gnus-unread-hashtb)))
       (if (or all
 	      (and (nth 1 group-info)	;Subscribed.
 		   (> unread-count 0)))	;There are unread articles.
 	  ;; Yes, I can use gnus-group-prepare-line, but this is faster.
 	  (insert
-	   (format cntl
+	   (format (concat cntl (make-string (if (> nb-tab 0) nb-tab 1) ?\t)
+			   "%s\n")
 		   ;; Subscribed or not.
 		   (if (nth 1 group-info) " " "U")
 		   ;; Has new news?
@@ -1353,7 +1385,10 @@ If optional argument ALL is non-nil, unsubscribed groups are also listed."
 		   ;; Number of unread articles.
 		   unread-count
 		   ;; Newsgroup name.
-		   group-name))
+		   group-name
+		   ;; Newsgroup description
+		   (if group-description (cdr group-description) "")
+		   ))
 	)
       (setq newsrc (cdr newsrc))
       )
@@ -1366,6 +1401,8 @@ If optional argument ALL is non-nil, unsubscribed groups are also listed."
   "Return a string for the Newsgroup buffer from INFO.
 INFO is an element of `gnus-newsrc-assoc' or `gnus-killed-assoc'."
   (let* ((group-name (car info))
+	 (group-description nil)
+	 (nb-tab 0)
 	 (unread-count
 	  (or (nth 1 (gnus-gethash group-name gnus-unread-hashtb))
 	      ;; Not in hash table, so compute it now.
@@ -1374,8 +1411,13 @@ INFO is an element of `gnus-newsrc-assoc' or `gnus-killed-assoc'."
 		(nth 2 (gnus-gethash group-name gnus-active-hashtb))
 		(nthcdr 2 info)))))
 	 ;; This specifies the format of Group buffer.
-	 (cntl "%s%s%5d: %s\n"))
-    (format cntl
+	 (cntl "%s%s%5d: %s"))
+    (if gnus-newsgroups-display
+	(progn
+	  (setq group-description (gnus-gethash group-name gnus-newsgroups-hashtb))
+	  (setq nb-tab (/ (- 38 (length group-name)) tab-width))))
+    (format (concat cntl (make-string (if (> nb-tab 0) nb-tab 1) ?\t)
+		    "%s\n")
 	    ;; Subscribed or not.
 	    (if (nth 1 info) " " "U")
 	    ;; Has new news?
@@ -1390,6 +1432,8 @@ INFO is an element of `gnus-newsrc-assoc' or `gnus-killed-assoc'."
 	    unread-count
 	    ;; Newsgroup name.
 	    group-name
+	    ;; Newsgroup description
+	    (if group-description (cdr group-description) "")
 	    )))
 
 (defun gnus-group-update-group (group &optional visible-only)
@@ -1437,7 +1481,7 @@ If optional argument VISIBLE-ONLY is non-nil, non displayed group is ignored."
   "Get newsgroup name around point."
   (save-excursion
     (beginning-of-line)
-    (if (looking-at "^.+:[ \t]+\\([^ \t\n]+\\)\\([ \t].*\\|$\\)")
+    (if (looking-at "^..[0-9 \t]+:[ \t]+\\([^ \t\n]+\\)\\([ \t].*\\|$\\)")
         (let ((group-name (buffer-substring (match-beginning 1) (match-end 1))))
           (set-text-properties 0 (length group-name) nil group-name)
           group-name))))
@@ -6260,6 +6304,15 @@ If optional argument RAWFILE is non-nil, force to read raw startup file."
 	  ))
     (gnus-expire-marked-articles)
     (gnus-get-unread-articles)
+    
+    ;; newsgroups description
+    (if gnus-newsgroups-display
+	(if (not gnus-newsgroups-alist)
+	    ;; Get newsgroups file only once.
+	    (gnus-newsgroups-retrieve-description)))
+	
+    (setq gnus-newsgroups-hashtb (gnus-make-hashtable-from-alist gnus-newsgroups-alist))
+    
     ;; Check new newsgroups and subscribe them.
     (if init
 	(let ((new-newsgroups (gnus-find-new-newsgroups)))
@@ -6993,7 +7046,7 @@ If optional 2nd argument NEXT is non-nil, inserted before it."
   (insert ";; GNUS internal format of .newsrc.\n")
   (insert ";; Touch .newsrc instead if you think to remove this file.\n")
   (let ((variable nil)
-	(variables gnus-variable-list)
+	(variables (cons 'gnus-newsgroups-alist gnus-variable-list))
 	;; Temporary rebind to make changes
 	;; gnus-check-killed-newsgroups in invisible.
 	(gnus-killed-assoc gnus-killed-assoc)
@@ -7149,6 +7202,36 @@ Range of OBJ is expressed as `((beg1 . end1) (beg2 . end2) ...)."
 		gnus-distribution-list)))
   (setq gnus-distribution-list
 	(nreverse gnus-distribution-list)))
+
+(defun gnus-newsgroups-retrieve-description ()
+  "Retrieve newsgroups description and build gnus-newsgroups-alist"
+  (message "Reading newsgroups file...")
+  (if (gnus-request-list-newsgroups)
+      (save-excursion
+	(setq gnus-newsgroups-alist nil)
+	(set-buffer nntp-server-buffer)
+	(goto-char (point-min))
+	(while (re-search-forward gnus-newsgroups-regex nil t)
+	  (setq gnus-newsgroups-alist
+		(cons (cons (buffer-substring (match-beginning 1) (match-end 1))
+			    (buffer-substring (match-beginning 2) (match-end 2)))
+		      gnus-newsgroups-alist)))
+	(message "Reading newsgroups file...done"))
+    (message "Cannot read newsgroups file")))
+
+(defun gnus-newsgroups-update-description ()
+  "Update the newsgroups description"
+  (interactive)
+  (gnus-newsgroups-retrieve-description)
+  (setq gnus-newsgroups-hashtb (gnus-make-hashtable-from-alist gnus-newsgroups-alist)))
+
+(defun gnus-newsgroups-display-toggle ()
+  "Toggle displaying newsgroup descriptions in *Newsgroup* buffer."
+  (interactive)
+  (setq gnus-newsgroups-display (not gnus-newsgroups-display))
+  (if gnus-newsgroups-showall
+        (gnus-group-list-groups t)
+    (gnus-group-list-groups nil)))
 
 (provide 'gnus)
 
