@@ -2,6 +2,7 @@
 
 	* fileio.c (barf_or_query_if_file_exists): Use lstat.
 	(Frename_file): Handle renaming of symlinks across file systems.
+	(Frename_file): Put symlink handling inside #ifdef S_IFLNK.
 
 2004-05-04  Kim F. Storm  <storm@cua.dk>
 

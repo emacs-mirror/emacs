@@ -2725,15 +2725,17 @@ This is what happens in interactive use with M-x.  */)
     {
       if (errno == EXDEV)
 	{
+#ifdef S_IFLNK
           symlink_target = Ffile_symlink_p (file);
-          if (NILP (symlink_target))
+          if (! NILP (symlink_target))
+            Fmake_symbolic_link (symlink_target, newname,
+                                 NILP (ok_if_already_exists) ? Qnil : Qt, Qt);
+          else
+#endif
             Fcopy_file (file, newname,
                         /* We have already prompted if it was an integer,
                            so don't have copy-file prompt again.  */
                         NILP (ok_if_already_exists) ? Qnil : Qt, Qt);
-          else
-            Fmake_symbolic_link (symlink_target, newname,
-                                 NILP (ok_if_already_exists) ? Qnil : Qt, Qt);
 	  Fdelete_file (file);
 	}
       else
