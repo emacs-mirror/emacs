@@ -946,26 +946,6 @@ clear_fontset_elements (fontset)
 }
 
 
-/* Return 1 iff REGISTRY is a valid string as the font registry and
-   encoding.  It is valid if it doesn't start with `-' and the number
-   of `-' in the string is at most 1.  */
-
-static int
-check_registry_encoding (registry)
-     Lisp_Object registry;
-{
-  unsigned char *str = XSTRING (registry)->data;
-  unsigned char *p = str;
-  int i;
-
-  if (!*p || *p++ == '-')
-    return 0;
-  for (i = 0; *p; p++)
-    if (*p == '-') i++;
-  return (i < 2);
-}
-
-
 /* Check validity of NAME as a fontset name and return the
    corresponding fontset.  If not valid, signal an error.
    If NAME is t, return Vdefault_fontset.  */
@@ -993,9 +973,8 @@ CHARACTER may be a cons; (FROM . TO), where FROM and TO are\n\
 non-generic characters.  In that case, use FONTNAME\n\
 for all characters in the range FROM and TO (inclusive).\n\
 \n\
-If NAME is t, an entry in the default fontset is modified.\n\
-In that case, FONTNAME should be a registry and encoding name\n\
-of a font for CHARACTER.")
+FONTNAME may be a cons; (FAMILY . REGISTRY), where FAMILY is a family\n\
+name of a font, REGSITRY is a registry name of a font.")
   (name, character, fontname, frame)
      Lisp_Object name, character, fontname, frame;
 {
@@ -1003,6 +982,7 @@ of a font for CHARACTER.")
   Lisp_Object realized;
   int from, to;
   int id;
+  Lisp_Object family, registry;
 
   fontset = check_fontset_name (name);
 
@@ -1038,17 +1018,22 @@ of a font for CHARACTER.")
 	error ("Can't change font for a single byte character");
     }
 
-  CHECK_STRING (fontname, 2);
-  fontname = Fdowncase (fontname);
-  if (EQ (fontset, Vdefault_fontset))
+  if (STRINGP (fontname))
     {
-      if (!check_registry_encoding (fontname))
-	error ("Invalid registry and encoding name: %s",
-	       XSTRING (fontname)->data);
-      elt = Fcons (make_number (from), Fcons (Qnil, fontname));
+      fontname = Fdowncase (fontname);
+      elt = Fcons (make_number (from), font_family_registry (fontname));
     }
   else
-    elt = Fcons (make_number (from), font_family_registry (fontname));
+    {
+      CHECK_CONS (fontname, 2);
+      family = XCAR (fontname);
+      registry = XCDR (fontname);
+      if (!NILP (family))
+	CHECK_STRING (family, 2);
+      if (!NILP (registry))
+	CHECK_STRING (registry, 2);
+      elt = Fcons (make_number (from), Fcons (family, registry));
+    }
 
   /* The arg FRAME is kept for backward compatibility.  We only check
      the validity.  */
