@@ -65,6 +65,7 @@
   "Settings for fortune."
   :version "21.1"
   :group 'games)
+
 (defgroup fortune-signature nil
   "Settings for use of fortune for signatures."
   :group 'fortune
@@ -72,54 +73,78 @@
 
 (defcustom fortune-dir "~/docs/ascii/misc/fortunes/"
   "*The directory to look in for local fortune cookies files."
-  :group 'fortune)
-(defcustom fortune-file
-  (expand-file-name "usenet" fortune-dir)
+  :group 'fortune
+  :type 'directory)
+
+(defcustom fortune-file (expand-file-name "usenet" fortune-dir)
   "*The file in which local fortune cookies will be stored."
-  :group 'fortune)
+  :group 'fortune
+  :type 'file)
+
 (defcustom fortune-database-extension  ".dat"
   "The extension of the corresponding fortune database.
 Normally you won't have a reason to change it."
-  :group 'fortune)
+  :group 'fortune
+  :type 'string)
+
 (defcustom fortune-program "fortune"
   "Program to select a fortune cookie."
-  :group 'fortune)
+  :group 'fortune
+  :type 'file)
+
 (defcustom fortune-program-options ""
   "Options to pass to the fortune program."
-  :group 'fortune)
+  :group 'fortune
+  :type 'string)
+
 (defcustom fortune-strfile "strfile"
   "Program to compute a new fortune database."
-  :group 'fortune)
+  :group 'fortune
+  :type 'file)
+
 (defcustom fortune-strfile-options ""
   "Options to pass to the strfile program."
-  :group 'fortune)
+  :group 'fortune
+  :type 'string)
+
 (defcustom fortune-quiet-strfile-options "> /dev/null"
   "Text added to the command for running `strfile'.
 By default it discards the output produced by `strfile'.
 Set this to \"\" if you would like to see the output."
-  :group 'fortune)
+  :group 'fortune
+  :type 'string)
 
 (defcustom fortune-always-compile t
   "*Non-nil means automatically compile fortune files.
 If nil, you must invoke `fortune-compile' manually to do that."
-  :group 'fortune)
+  :group 'fortune
+  :type 'boolean)
+
 (defcustom fortune-author-line-prefix "                  -- "
   "Prefix to put before the author name of a fortunate."
-  :group 'fortune-signature)
+  :group 'fortune-signature
+  :type 'string)
+
 (defcustom fortune-fill-column fill-column
   "Fill column for fortune files."
-  :group 'fortune-signature)
+  :group 'fortune-signature
+  :type 'integer)
+
 (defcustom fortune-from-mail "private e-mail"
   "String to use to characterize that the fortune comes from an e-mail.
 No need to add an `in'."
   :type 'string
   :group 'fortune-signature)
+
 (defcustom fortune-sigstart ""
   "*Some text to insert before the fortune cookie, in a mail signature."
-  :group 'fortune-signature)
+  :group 'fortune-signature
+  :type 'string)
+
 (defcustom fortune-sigend ""
   "*Some text to insert after the fortune cookie, in a mail signature."
-  :group 'fortune-signature)
+  :group 'fortune-signature
+  :type 'string)
 
 
 ;; not customizable settings
