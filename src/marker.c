@@ -122,9 +122,9 @@ Returns MARKER.")
   if (m->buffer != b)
     {
       unchain_marker (marker);
-      m->chain = b->markers;
-      b->markers = marker;
       m->buffer = b;
+      m->chain = BUF_MARKERS (b);
+      BUF_MARKERS (b) = marker;
     }
   
   return marker;
@@ -180,9 +180,9 @@ set_marker_restricted (marker, pos, buffer)
   if (m->buffer != b)
     {
       unchain_marker (marker);
-      m->chain = b->markers;
-      b->markers = marker;
       m->buffer = b;
+      m->chain = BUF_MARKERS (b);
+      BUF_MARKERS (b) = marker;
     }
   
   return marker;
@@ -206,7 +206,7 @@ unchain_marker (marker)
   if (EQ (b->name, Qnil))
     abort ();
 
-  tail = b->markers;
+  tail = BUF_MARKERS (b);
   prev = Qnil;
   while (XSYMBOL (tail) != XSYMBOL (Qnil))
     {
@@ -217,11 +217,11 @@ unchain_marker (marker)
 	{
 	  if (NILP (prev))
 	    {
-	      b->markers = next;
-	      /* Deleting first marker from the buffer's chain.
-		 Crash if new first marker in chain does not say
-		 it belongs to this buffer.  */
-	      if (!EQ (next, Qnil) && b != XMARKER (next)->buffer)
+	      BUF_MARKERS (b) = next;
+	      /* Deleting first marker from the buffer's chain.  Crash
+		 if new first marker in chain does not say it belongs
+		 to the same buffer (or one of its indirect buffers).  */
+	      if (!NILP (next) && b != XMARKER (next)->buffer)
 		abort ();
 	    }
 	  else
@@ -239,6 +239,9 @@ unchain_marker (marker)
   XMARKER (marker)->buffer = 0;
 }
 
+/* Return the buffer position of marker MARKER, as a C integer.  */
+
+int
 marker_position (marker)
      Lisp_Object marker;
 {
