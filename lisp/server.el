@@ -922,7 +922,7 @@ specifically for the clients and did not exist before their request for it."
 			   (buffer-name (current-buffer))))))
 
 (defun server-kill-emacs-query-function ()
-  "Ask before exiting Emacs it has are live clients."
+  "Ask before exiting Emacs it has live clients."
   (or (not server-clients)
       (let (live-client)
 	(dolist (client server-clients live-client)
@@ -1031,12 +1031,21 @@ done that."
   "Offer to save each buffer, then kill the current connection.
 If the current frame has no client, kill Emacs itself.
 
-With prefix arg, silently save all file-visiting buffers, then kill."
+With prefix arg, silently save all file-visiting buffers, then kill.
+
+If emacsclient was started with a list of filenames to edit, then
+only these files will be asked to be saved."
   (interactive "P")
   (let ((proc (frame-parameter (selected-frame) 'client)))
-    (if (and proc)
-	(progn
-	  (save-some-buffers arg t)
+    (if proc
+	(let ((buffers (server-client-get proc 'buffers)))
+	  ;; If client is bufferless, emulate a normal Emacs session
+	  ;; exit and offer to save all buffers.  Otherwise, offer to
+	  ;; save only the buffers belonging to the client.
+	  (save-some-buffers arg
+			     (if buffers
+				 (lambda () (memq (current-buffer) buffers))
+			       t))
 	  (server-delete-client proc))
       (save-buffers-kill-emacs))))
 
