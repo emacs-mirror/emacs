@@ -188,6 +188,9 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
 (put 'gomoku-mode 'front-sticky
      (put 'gomoku-mode 'rear-nonsticky '(intangible)))
 (put 'gomoku-mode 'intangible 1)
+;; This one is for when they set view-read-only to t: Gomoku cannot
+;; allow View Mode to be activated in its buffer.
+(put 'gomoku-mode 'mode-class 'special)
 
 (define-derived-mode gomoku-mode nil "Gomoku"
   "Major mode for playing Gomoku against Emacs.
