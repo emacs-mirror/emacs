@@ -1,3 +1,11 @@
+2005-04-02  Richard M. Stallman  <rms@gnu.org>
+	
+	* TUTORIAL.ja, TUTORIAL.cn, TUTORIAL.ru, TUTORIAL.zh: Remove the
+	old intro line that apparently was a longer version of "Emacs
+	tutorial".
+
+	* TUTORIAL.es: Clean up line breaks.
+
 2005-04-01  Marcelo Toledo  <marcelo@marcelotoledo.org>
 
         * TUTORIAL.pt_BR, TUTORIAL.cn, TUTORIAL.cs, TUTORIAL.de,
