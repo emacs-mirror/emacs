@@ -1,3 +1,8 @@
+2004-04-05  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* cus-edit.el (custom-add-parent-links): Changed unbound variable
+	`symbol' to `name'. 
+
 2004-04-05  Jesper Harder  <harder@ifa.au.dk>
 
 	* info.el (info-apropos): New function.
