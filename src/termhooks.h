@@ -341,7 +341,7 @@ enum event_kind
 struct input_event
 {
   /* What kind of event was this?  */
-  int kind;
+  enum event_kind kind;
   
   /* For an ascii_keystroke and multibyte_char_keystroke, this is the
      character.
