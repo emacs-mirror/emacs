@@ -1464,6 +1464,9 @@ main (argc, argv, envp)
       syms_of_xterm ();
       syms_of_xfns ();
       syms_of_fontset ();
+#ifdef HAVE_X_SM
+      syms_of_xsmfns ();
+#endif
 #ifdef HAVE_X11
       syms_of_xselect ();
 #endif
