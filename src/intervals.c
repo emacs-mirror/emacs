@@ -1272,7 +1272,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
   if (NULL_INTERVAL_P (source))
     {
       Lisp_Object buf;
-      if (!inherit)
+      if (!inherit && ! NULL_INTERVAL_P (tree))
 	{
 	  XSET (buf, Lisp_Buffer, buffer);
 	  Fset_text_properties (make_number (position),
