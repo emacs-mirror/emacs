@@ -211,9 +211,12 @@ Returns nil if nothing was entered."
       (solar-sin-degrees longitude))))
 
 (defun solar-sunrise (date)
-  "Calculates the *standard* time of sunrise for Gregorian DATE for location
-given by `calendar-latitude' and `calendar-longitude'.  Returns a decimal fraction
-of hours.  Returns nil if the sun does not rise at that location on that day."
+  "Calculates the *standard* time of sunrise for Gregorian DATE.
+Calculation is for location given by `calendar-latitude' and
+`calendar-longitude'.
+
+Returns a decimal fraction of hours.  Returns nil if the sun does not rise at
+that location on that day."
   (let* ((day-of-year (calendar-day-number date))
 	 (approx-sunrise
           (+ day-of-year
@@ -243,9 +246,12 @@ of hours.  Returns nil if the sun does not rise at that location on that day."
 	   (/ calendar-time-zone 60.0))))))
 
 (defun solar-sunset (date)
-  "Calculates the *standard* time of sunset for Gregorian DATE for location
-given by `calendar-latitude' and `calendar-longitude'.  Returns a decimal fractions
-of hours.  Returns nil if the sun does not set at that location on that day."
+  "Calculates the *standard* time of sunset for Gregorian DATE.
+Calculation is for location given by `calendar-latitude' and
+`calendar-longitude'.
+
+Returns a decimal fractions of hours.  Returns nil if the sun does not set at
+that location on that day."
   (let* ((day-of-year (calendar-day-number date))
 	 (approx-sunset
           (+ day-of-year
@@ -273,20 +279,25 @@ of hours.  Returns nil if the sun does not set at that location on that day."
 	(+ (- local-mean-sunset (solar-degrees-to-hours calendar-longitude))
 	   (/ calendar-time-zone 60.0))))))
 
-(defun solar-time-string (time date &optional style)
-  "Printable form for decimal fraction *standard* TIME on DATE.
-Optional parameter STYLE forces the time to be standard time when its value
-is 'standard and daylight savings time (if available) when its value is
+(defun solar-adj-time-for-dst (date time &optional style)
+  "Adjust decimal fraction standard TIME on DATE to account for dst.
+Returns a list (date adj-time zone) where `date' and `time' are the values
+adjusted for `zone'; here `date' is a list (month day year), `time' is a
+decimal fraction time, and `zone' is a string.
+
+Optional parameter STYLE forces the result time to be standard time when its
+value is 'standard and daylight savings time (if available) when its value is
 'daylight.
 
-Format used is given by `calendar-time-display-form'.  Converted to daylight
-savings time according to `calendar-daylight-savings-starts',
-`calendar-daylight-savings-ends', `calendar-daylight-savings-starts-time',
-`calendar-daylight-savings-ends-time', and `calendar-daylight-savings-offset'."
+Conversion to daylight savings time is done according to
+`calendar-daylight-savings-starts', `calendar-daylight-savings-ends',
+`calendar-daylight-savings-starts-time',
+`calendar-daylight-savings-ends-time', and
+`calendar-daylight-savings-offset'."
+
   (let* ((year (extract-calendar-year date))
-	 (time (round (* 60 time)))
 	 (rounded-abs-date (+ (calendar-absolute-from-gregorian date)
-			      (/ time 60.0 24.0)))
+			      (/ (round (* 60 time)) 60.0 24.0)))
          (dst-starts (and calendar-daylight-savings-starts
                           (+ (calendar-absolute-from-gregorian
                               (eval calendar-daylight-savings-starts))
@@ -314,7 +325,16 @@ savings time according to `calendar-daylight-savings-starts',
 	 (time-zone (if dst
 			calendar-daylight-time-zone-name
 			calendar-standard-time-zone-name))
-	 (time (+ time (if dst calendar-daylight-time-offset 0)))
+	 (time (+ rounded-abs-date
+                  (if dst (/ calendar-daylight-time-offset 24.0 60.0) 0))))
+    (list (calendar-gregorian-from-absolute (truncate time))
+          (* 24.0 (- time (truncate time)))
+          time-zone)))
+
+(defun solar-time-string (time time-zone)
+  "Printable form for decimal fraction TIME on DATE.
+Format used is given by `calendar-time-display-form'."
+  (let* ((time (round (* 60 time)))
 	 (24-hours (/ time 60))
 	 (minutes (format "%02d" (% time 60)))
 	 (12-hours (format "%d" (1+ (% (+ 24-hours 11) 12))))
@@ -324,14 +344,16 @@ savings time according to `calendar-daylight-savings-starts',
 
 (defun solar-sunrise-sunset (date)
   "String giving local times of sunrise and sunset on Gregorian DATE."
-  (let ((rise (solar-sunrise date))
-	(set (solar-sunset date)))
+  (let* ((rise (solar-sunrise date))
+         (adj-rise (solar-adj-time-for-dst date rise))
+         (set (solar-sunset date))
+         (adj-set (solar-adj-time-for-dst date set)))
     (format "%s, %s at %s"
-	    (if rise
-		(concat "Sunrise " (solar-time-string rise date))
+	    (if (and rise (calendar-date-equal date (car adj-rise)))
+		(concat "Sunrise " (apply 'solar-time-string (cdr adj-rise)))
 	      "No sunrise")
-	    (if set
-		(concat "sunset " (solar-time-string set date))
+	    (if (and set (calendar-date-equal date (car adj-set)))
+		(concat "sunset " (apply 'solar-time-string (cdr adj-set)))
 	      "no sunset")
 	    (eval calendar-location-name))))
 
@@ -474,9 +496,13 @@ No diary entry if there is no sunset on that date."
       (solar-setup))
   (if (= (% (calendar-absolute-from-gregorian date) 7) 5);;  Friday
       (let* ((sunset (solar-sunset date))
-	     (light (if sunset (- sunset (/ 18.0 60.0)))))
-        (if light (format "%s Sabbath candle lighting"
-                          (solar-time-string light date))))))
+	     (light (if sunset
+                        (solar-adj-time-for-dst
+                         date
+                         (- sunset (/ 18.0 60.0))))))
+        (if (and light (calendar-date-equal date (car light)))
+            (format "%s Sabbath candle lighting"
+                    (apply 'solar-time-string (cdr light)))))))
 
 ;;;###autoload
 (defun solar-equinoxes-solstices ()
@@ -496,19 +522,18 @@ Requires floating point."
            (calendar-time-zone (if calendar-time-zone calendar-time-zone 0))
            (k (1- (/ m 3)))
 	   (date (solar-equinoxes/solstices k y))
-	   (day (extract-calendar-day date))
-	   (time (* 24 (- day (truncate day))))
 	   (s-hemi (and calendar-latitude (< calendar-latitude 0)))
-           ;; Time zone/DST can't move the date out of range,
-           ;; so let solar-time-string do the conversion.
-	   (date (list (extract-calendar-month date)
+	   (day (extract-calendar-day date))
+           (adj (solar-adj-time-for-dst
+                 (list (extract-calendar-month date)
 		       (truncate day)
-		       (extract-calendar-year date))))
-      (list (list date
+		       (extract-calendar-year date))
+                 (* 24 (- day (truncate day))))))
+      (list (list (car adj)
 		  (format "%s %s"
 			  (nth k (if s-hemi solar-s-hemi-seasons
                                    solar-n-hemi-seasons))
-			  (solar-time-string time date)))))))
+			  (apply 'solar-time-string (cdr adj))))))))
 
 (provide 'solar)
 
