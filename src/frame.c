@@ -1321,7 +1321,7 @@ DEFUN ("visible-frame-list", Fvisible_frame_list, Svisible_frame_list,
 }
 
 
-DEFUN ("raise-frame", Fraise_frame, Sraise_frame, 1, 1, "",
+DEFUN ("raise-frame", Fraise_frame, Sraise_frame, 0, 1, "",
   "Bring FRAME to the front, so it occludes any frames it overlaps.\n\
 If FRAME is invisible, make it visible.\n\
 If you don't specify a frame, the selected frame is used.\n\
@@ -1345,7 +1345,7 @@ doesn't support multiple overlapping frames, this function does nothing.")
 }
 
 /* Should we have a corresponding function called Flower_Power?  */
-DEFUN ("lower-frame", Flower_frame, Slower_frame, 1, 1, "",
+DEFUN ("lower-frame", Flower_frame, Slower_frame, 0, 1, "",
   "Send FRAME to the back, so it is occluded by any frames that overlap it.\n\
 If you don't specify a frame, the selected frame is used.\n\
 If Emacs is displaying on an ordinary terminal or some other device which\n\
