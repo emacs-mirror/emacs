@@ -874,6 +874,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (define-key map "*\177" 'dired-unmark-backward)
     (define-key map "*\C-n" 'dired-next-marked-file)
     (define-key map "*\C-p" 'dired-prev-marked-file)
+    (define-key map "*t" 'dired-do-toggle)
     ;; Lower keys for commands not operating on all the marked files
     (define-key map "d" 'dired-flag-file-deletion)
     (define-key map "e" 'dired-find-file)
