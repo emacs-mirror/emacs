@@ -25,8 +25,8 @@
 @end macro
 
 @copying
-Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004 Free Software
-Foundation, Inc.
+Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free
+Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -192,6 +192,7 @@ Using @value{tramp}
 * Multi-hop filename syntax::   Multi-hop filename conventions.
 * Filename completion::         Filename completion.
 * Dired::                       Dired.
+* Compilation::                 Compile remote files.
 
 The inner workings of remote version control
 
@@ -1690,6 +1691,7 @@ minute you have already forgotten that you hit that key!
 * Multi-hop filename syntax::   Multi-hop filename conventions.
 * Filename completion::         Filename completion.
 * Dired::                       Dired.
+* Compilation::                 Compile remote files.
 @end menu
 
 
@@ -1883,6 +1885,32 @@ over the Internet.
 If you need to browse a directory tree, Dired is a better choice, at
 present, than filename completion.  Dired has its own cache mechanism
 and will only fetch the directory listing once.
+
+
+@node Compilation
+@section Compile remote files
+@cindex compile
+@cindex recompile
+
+@value{tramp} provides commands for compilation of files on remote
+machines.  In order to get them loaded, you need to require
+@file{tramp-util.el}:
+
+@lisp
+(require 'tramp-util)
+@end lisp
+
+Afterwards, you can use the commands @code{tramp-compile} and
+@code{tramp-recompile} instead of @code{compile} and @code{recompile},
+respectively; @inforef{Compilation, ,@value{emacsdir}}.  This does not
+work for the @option{ftp} and @option{smb} methods.
+
+The corresponding key bindings and menu entries calling these commands
+are redefined automatically for buffers associated with remote files.
+
+After finishing the compilation, you can use the usual commands like
+@code{previous-error}, @code{next-error} and @code{first-error} for
+navigation in the @file{*Compilation*} buffer.
 
 
 @node Bug Reports

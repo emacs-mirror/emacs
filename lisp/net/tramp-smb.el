@@ -172,7 +172,7 @@ This variable is local to each buffer.")
     (set-file-modes . tramp-smb-not-handled)
     (set-visited-file-modtime . tramp-smb-not-handled)
     (shell-command . tramp-smb-not-handled)
-    ;; `substitute-in-file-name' performed by default handler
+    (substitute-in-file-name . tramp-smb-handle-substitute-in-file-name)
     (unhandled-file-name-directory . tramp-handle-unhandled-file-name-directory)
     (vc-registered . tramp-smb-not-handled)
     (verify-visited-file-modtime . tramp-smb-not-handled)
@@ -616,6 +616,13 @@ WILDCARD and FULL-DIRECTORY-P are not handled."
 	      (error "Cannot rename `%s'" filename)))))))
 
   (delete-file filename))
+
+(defun tramp-smb-handle-substitute-in-file-name (filename)
+  "Like `handle-substitute-in-file-name' for tramp files.
+Catches errors for shares like \"C$/\", which are common in Microsoft Windows."
+  (condition-case nil
+      (tramp-run-real-handler 'substitute-in-file-name (list filename))
+    (error filename)))
 
 (defun tramp-smb-handle-write-region
   (start end filename &optional append visit lockname confirm)
@@ -1083,54 +1090,6 @@ Return the difference in the format of a time value."
     (list (- (car t1) (car t2) (if borrow 1 0))
 	  (- (+ (if borrow 65536 0) (cadr t1)) (cadr t2)))))
 
-
-;; `PC-do-completion' touches the returning "$$" by `substitute-in-file-name'.
-;; Must be corrected.
-
-(defadvice PC-do-completion (around tramp-smb-advice-PC-do-completion)
-  "Changes \"$\" back to \"$$\" in minibuffer."
-  (if (funcall PC-completion-as-file-name-predicate)
-
-      (progn
-	;; Substitute file names
-	(let* ((beg (or (and (functionp 'minibuffer-prompt-end) ; Emacs 21
-			     (funcall 'minibuffer-prompt-end))
-			(point-min)))
-	       (end (point-max))
-	       (str (substitute-in-file-name (buffer-substring beg end))))
-	  (delete-region beg end)
-	  (insert str)
-	  (ad-set-arg 2 (point)))
-
-	;; Do `PC-do-completion' without substitution
-	(let* (save)
-	  (fset 'save (symbol-function 'substitute-in-file-name))
- 	  (unwind-protect
- 	      (progn
- 		(fset 'substitute-in-file-name (symbol-function 'identity))
- 		ad-do-it)
- 	    (fset 'substitute-in-file-name (symbol-function 'save))))
-
-	;; Expand "$"
-	(let* ((beg (or (and (functionp 'minibuffer-prompt-end) ; Emacs 21
-			     (funcall 'minibuffer-prompt-end))
-			(point-min)))
-	       (end (point-max))
-	       (str (buffer-substring beg end)))
-	  (delete-region beg end)
-	  (insert (if (string-match "\\(\\$\\)\\(/\\|$\\)" str)
-		      (replace-match "$$" nil nil str 1)
-		    str))))
-
-    ;; No file names. Behave unchanged.
-    ad-do-it))
-
-;; Activate advice.  Recent Emacsen don't need that.
-(when (functionp 'PC-do-completion)
-  (condition-case nil
-      (substitute-in-file-name "C$/")
-    (error
-     (ad-activate 'PC-do-completion))))
 
 (provide 'tramp-smb)
 

@@ -1,3 +1,49 @@
+2005-01-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.47.
+
+	* tramp.el (tramp-operation-not-permitted-regexp) New defcustom,
+	catching keep-date problems in cp/scp operations.
+	(tramp-handle-copy-file): Don't call `set-file-modes'
+	unconditionally.  Specialized functions should know better what is
+	necessary.  This improves performance a little bit, and the
+	functions could catch errors with `cp -p' and `scp -p'.
+	(tramp-do-copy-or-rename-file-via-buffer)
+	(tramp-do-copy-or-rename-file-out-of-band): Call `set-file-modes'
+	when appropriate.
+	(tramp-do-copy-or-rename-file-directly): Mask `cp -p' error.  Call
+	`set-file-modes' when appropriate.
+	(tramp-action-out-of-band): Mask `scp -p' error.  Reported by Isak
+	Johnsson <isak@hypergene.com>
+	(tramp-get-buffer, tramp-get-debug-buffer): Discard the undo list
+	of both Tramp buffer and debug buffer.  Reported by Joakim Verona
+	<joakim@verona.se>
+	(tramp-file-name-for-operation): Mark `shell-command' as magic for
+	Emacs only.
+
+	* tramp-util.el (tramp-minor-mode): New minor mode.  Add it to
+	`find-file-hooks' and `dired-mode-hook'.
+	(tramp-minor-mode-map): Respective map.  Add remapping for
+	`compile' and `recompile'.
+	(tramp-remap-command, tramp-recompile): New defuns.
+	(tramp-compile): Enable `tramp-minor-mode' and `compilation-mode'
+	in buffer "*Compilation*".  Call the commands asynchronously.
+
+	* tramp-vc.el (tramp-vc-do-command, tramp-vc-do-command-new)
+	(tramp-vc-simple-command): Call `tramp-handle-shell-command' but
+	`shell-command', because it isn't magic in XEmacs.  Reported by
+	Adrian Aichner <adrian@xemacs.org>.
+
+	* tramp-smb.el (tramp-smb-file-name-handler-alist): Add entry for
+	`substitute-in-file-name.
+	(tramp-smb-handle-substitute-in-file-name): New defun.
+	(tramp-smb-advice-PC-do-completion): Delete advice.
+
+2005-01-16  Kai Grossjohann  <kgrossjo@eu.uu.net>
+
+	* tramp.el (tramp-wait-for-output): Fix typo in echo processing.
+	Fix error in deleting region.
+
 2005-01-15  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/lisp-mnt.el (lm-with-file): Use Lisp mode in temp buffer.

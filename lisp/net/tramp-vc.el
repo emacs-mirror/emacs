@@ -130,7 +130,8 @@ See `vc-do-command' for more information."
 	(save-excursion
 	  (save-window-excursion
 	    ;; Actually execute remote command
-	    (shell-command
+	    ;; `shell-command' cannot be used; it isn't magic in XEmacs.
+	    (tramp-handle-shell-command
 	     (mapconcat 'tramp-shell-quote-argument
 			(cons command squeezed) " ") t)
 	    ;;(tramp-wait-for-output)
@@ -190,7 +191,8 @@ Since TRAMP doesn't do async commands yet, this function doesn't, either."
       (let ((w32-quote-process-args t))
         (when (eq okstatus 'async)
           (message "Tramp doesn't do async commands, running synchronously."))
-        (setq status (shell-command
+	;; `shell-command' cannot be used; it isn't magic in XEmacs.
+        (setq status (tramp-handle-shell-command
                       (mapconcat 'tramp-shell-quote-argument
                                  (cons command squeezed) " ") t))
         (when (or (not (integerp status))
@@ -285,7 +287,8 @@ Since TRAMP doesn't do async commands yet, this function doesn't, either."
 	(save-excursion
 	  (save-window-excursion
 	    ;; Actually execute remote command
-	    (shell-command
+	    ;; `shell-command' cannot be used; it isn't magic in XEmacs.
+	    (tramp-handle-shell-command
 	     (mapconcat 'tramp-shell-quote-argument
 			(append (list command) args (list localname)) " ")
 	     (get-buffer-create"*vc-info*"))

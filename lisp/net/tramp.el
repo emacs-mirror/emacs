@@ -1,7 +1,7 @@
 ;;; -*- mode: Emacs-Lisp; coding: iso-2022-7bit; -*-
 ;;; tramp.el --- Transparent Remote Access, Multiple Protocol
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: kai.grossjohann@gmx.net
 ;; Keywords: comm, processes
@@ -909,6 +909,15 @@ See also `tramp-yesno-prompt-regexp'."
   "Regular expression matching all terminal setting prompts.
 The regexp should match at end of buffer.
 The answer will be provided by `tramp-action-terminal', which see."
+  :group 'tramp
+  :type 'regexp)
+
+(defcustom tramp-operation-not-permitted-regexp
+  (concat "\\(" "preserving times.*" "\\|" "set mode" "\\)" ":\\s-*"
+	  (regexp-opt '("Operation not permitted") t))
+  "Regular expression matching keep-date problems in (s)cp operations.
+Copying has been performed successfully already, so this message can
+be ignored safely."
   :group 'tramp
   :type 'regexp)
 
@@ -2500,7 +2509,7 @@ if the remote host can't provide the modtime."
 		 (fa2 (file-attributes file2)))
 	     (if (and (not (equal (nth 5 fa1) '(0 0)))
 		      (not (equal (nth 5 fa2) '(0 0))))
-		 (< 0 (tramp-time-diff (nth 5 fa1) (nth 5 fa2)))
+		 (> 0 (tramp-time-diff (nth 5 fa2) (nth 5 fa1)))
 	       ;; If one of them is the dont-know value, then we can
 	       ;; still try to run a shell command on the remote host.
 	       ;; However, this only works if both files are Tramp
@@ -2822,10 +2831,8 @@ if the remote host can't provide the modtime."
   ;; At least one file a tramp file?
   (if (or (tramp-tramp-file-p filename)
           (tramp-tramp-file-p newname))
-      (let ((modes (file-modes filename)))
-	(tramp-do-copy-or-rename-file
-	 'copy filename newname ok-if-already-exists keep-date)
-	(set-file-modes newname modes))
+      (tramp-do-copy-or-rename-file
+       'copy filename newname ok-if-already-exists keep-date)
     (tramp-run-real-handler
      'copy-file
      (list filename newname ok-if-already-exists keep-date))))
@@ -2973,8 +2980,9 @@ KEEP-DATE is non-nil if NEWNAME should have the same timestamp as FILENAME."
       (when keep-date
 	(when (and (not (null modtime))
 		   (not (equal modtime '(0 0))))
-	  (tramp-touch newname modtime))
-	(set-file-modes newname (file-modes filename))))
+	  (tramp-touch newname modtime)))
+      ;; Set the mode.
+      (set-file-modes newname (file-modes filename)))
     ;; If the operation was `rename', delete the original file.
     (unless (eq op 'copy)
       (delete-file filename))))
@@ -2994,15 +3002,34 @@ If KEEP-DATE is non-nil, preserve the time stamp when copying."
                        "Unknown operation `%s', must be `copy' or `rename'"
                        op)))))
     (save-excursion
-      (tramp-barf-unless-okay
+      (tramp-send-command
        multi-method method user host
        (format "%s %s %s"
                cmd
                (tramp-shell-quote-argument localname1)
-               (tramp-shell-quote-argument localname2))
-       nil 'file-error
-       "Copying directly failed, see buffer `%s' for details."
-       (buffer-name)))))
+               (tramp-shell-quote-argument localname2)))
+      (tramp-wait-for-output)
+      (goto-char (point-min))
+      (unless
+	  (or
+	   (and (eq op 'copy) keep-date
+		;; Mask cp -f error.
+		(re-search-forward tramp-operation-not-permitted-regexp nil t))
+	   (zerop (tramp-send-command-and-check
+		   multi-method method user host nil nil)))
+	(pop-to-buffer (current-buffer))
+	(signal 'file-error
+		(format "Copying directly failed, see buffer `%s' for details."
+			(buffer-name)))))
+    ;; Set the mode.
+    ;; CCC: Maybe `chmod --reference=localname1 localname2' could be used
+    ;;      where available?
+    (unless (or (eq op 'rename) keep-date)
+      (set-file-modes
+       (tramp-make-tramp-file-name multi-method method user host localname2)
+       (file-modes
+	(tramp-make-tramp-file-name
+	 multi-method method user host localname1))))))
 
 (defun tramp-do-copy-or-rename-file-out-of-band (op filename newname keep-date)
   "Invoke rcp program to copy.
@@ -3122,7 +3149,11 @@ be a local filename.  The method used must be an out-of-band method."
 			       tramp-actions-copy-out-of-band))
       (kill-buffer trampbuf)
       (tramp-message
-       5 "Transferring %s to file %s...done" filename newname))
+       5 "Transferring %s to file %s...done" filename newname)
+
+      ;; Set the mode.
+      (unless keep-date
+	(set-file-modes newname (file-modes filename))))
 
     ;; If the operation was `rename', delete the original file.
     (unless (eq op 'copy)
@@ -4074,7 +4105,9 @@ ARGS are the arguments OPERATION has been called with."
      (if (bufferp (nth 0 args)) (nth 0 args) (current-buffer))))
    ; COMMAND
    ((member operation
-	    (list 'dired-call-process 'shell-command
+	    (list 'dired-call-process-command
+                  ; Emacs only
+		  'shell
                   ; Post Emacs 21.3 only
                   'process-file
 	          ; XEmacs only
@@ -4908,7 +4941,10 @@ USER the array of user names, HOST the array of host names."
 
 (defun tramp-get-buffer (multi-method method user host)
   "Get the connection buffer to be used for USER at HOST using METHOD."
-  (get-buffer-create (tramp-buffer-name multi-method method user host)))
+  (with-current-buffer
+      (get-buffer-create (tramp-buffer-name multi-method method user host))
+    (setq buffer-undo-list t)
+    (current-buffer)))
 
 (defun tramp-debug-buffer-name (multi-method method user host)
   "A name for the debug buffer for USER at HOST using METHOD."
@@ -4922,7 +4958,11 @@ USER the array of user names, HOST the array of host names."
 
 (defun tramp-get-debug-buffer (multi-method method user host)
   "Get the debug buffer for USER at HOST using METHOD."
-  (get-buffer-create (tramp-debug-buffer-name multi-method method user host)))
+  (with-current-buffer
+      (get-buffer-create
+       (tramp-debug-buffer-name multi-method method user host))
+    (setq buffer-undo-list t)
+    (current-buffer)))
 
 (defun tramp-find-executable (multi-method method user host
                                          progname dirlist ignore-tilde)
@@ -5214,8 +5254,16 @@ The terminal type can be configured with `tramp-terminal-type'."
 	((or (and (memq (process-status p) '(stop exit))
 		  (not (zerop (process-exit-status p))))
 	     (memq (process-status p) '(signal)))
-	 (tramp-message 9 "Process has died.")
-	 (throw 'tramp-action 'process-died))
+	 ;; `scp' could have copied correctly, but set modes could have failed.
+	 ;; This can be ignored.
+	 (goto-char (point-min))
+	 (if (re-search-forward tramp-operation-not-permitted-regexp nil t)
+	     (progn
+	       (tramp-message 10 "'set mode' error ignored.")
+	       (tramp-message 9 "Process has finished.")
+	       (throw 'tramp-action 'ok))
+	   (tramp-message 9 "Process has died.")
+	   (throw 'tramp-action 'process-died)))
 	(t nil)))
 
 ;; The following functions are specifically for multi connections.
@@ -6336,7 +6384,7 @@ Sends COMMAND, then waits 30 seconds for shell prompt."
       (save-excursion
 	(goto-char start-point)
 	(when (looking-at (regexp-quote tramp-last-cmd))
-	  (delete-region (point) (forward-line 1)))))
+	  (delete-region (point) (progn (forward-line 1) (point))))))
     ;; Add output to debug buffer if appropriate.
     (when tramp-debug-buffer
       (append-to-buffer

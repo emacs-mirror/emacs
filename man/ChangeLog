@@ -1,3 +1,10 @@
+2005-01-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.47.
+
+	* tramp.texi (Compilation): New section, describing compilation of
+	remote files.
+
 2005-01-15  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
 	* man/rmail.texi: Document support for GNU mailutils in rmail.el.
