@@ -1,3 +1,11 @@
+2004-05-02  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* tparam.c (tparam1): Add handling for `%pN', which
+	means use param N for the next substitution.
+
+	* termcap.c (tgetst1): Scan for "%pN"; if all
+	N are continuous in [1,9], remove all "%pN".
+
 2004-05-01  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* alloc.c (PURE_BEF_ATTRS, PURE_AFT_ATTRS): New macros, by default empty.
