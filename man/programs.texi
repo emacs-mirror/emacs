@@ -1570,6 +1570,7 @@ mostly must be obtained separately, typically from the appropriate GNU
 package.
 
 @findex manual-entry
+@cindex manual pages
   You can read the ``man page'' for an operating system command, library
 function, or system call, with the @kbd{M-x manual-entry} command.  It
 runs the @code{man} program to format the man page, and runs it
@@ -1591,6 +1592,62 @@ by setting the variable @code{Man-fontify-manpage-flag} to @code{nil}.
   If you insert the text of a man page into an Emacs buffer in some
 other fashion, you can use the command @kbd{M-x Man-fontify-manpage} to
 perform the same conversions that @kbd{M-x manual-entry} does.
+
+@findex woman
+@cindex manual pages, on MS-DOS/MS-Windows
+  An alternative way of reading manual pages is the @kbd{M-x woman}
+command@footnote{The name of the command, @code{woman}, is an acronym
+for ``w/o (without) man'', since it doesn't use the @code{man}
+program.}.  Unlike @kbd{M-x man}, it does not run any external programs
+to format and display the man pages, instead it does that entirely in
+Emacs Lisp.  Thus, it is useful on systems such as MS-Windows, where the
+@code{man} program and the programs it runs are not readily available.
+When invoked, @kbd{M-x woman} prompts for a name of a manual page and
+provides completion based on the list of manual pages that are installed
+on your machine; the list of available manual pages is computed
+automatically the first time you invoke @code{woman}.  The word at point
+in the current buffer is used to suggest the default name of the manual
+page.
+
+  With a numeric argument, @kbd{M-x woman} recomputes the list of the
+manual pages used for completion.  This is useful if you add or delete
+manual pages.
+
+@vindex woman-manpath
+  By default, @kbd{M-x woman} looks up the manual pages in directories
+listed by the @code{MANPATH} environment variable.  (If @code{MANPATH}
+is not set, @code{woman} uses a suitable default value, which can be
+customized.)  More precisely, @code{woman} looks for subdirectories that
+match the shell wildcard @file{man*} in each one of these directories,
+and tries to find the manual pages in those subdirectories.  When first
+invoked, @kbd{M-x woman} converts the value of @code{MANPATH} to a list
+of directory names and stores that list in the @code{woman-manpath}
+variable.  By changing the value of this variable, you can customize the
+list of directories where @code{woman} looks for manual pages.
+
+@vindex woman-path
+  In addition, you can augment the list of directories searched by
+@code{woman} by setting the value of the @code{woman-path} variable.
+This variable should hold a list of specific directories which
+@code{woman} should search, in addition to those in
+@code{woman-manpath}.  Unlike @code{woman-manpath}, the directories in
+@code{woman-path} are searched for the manual pages, not for @file{man*}
+subdirectories.
+
+@findex woman-find-file
+  Occasionally, you might need to display manual pages that are not in
+any of the directories listed by @code{woman-manpath} and
+@code{woman-path}.  The @kbd{M-x woman-find-file} command prompts for a
+name of a manual page file, with completion, and then formats and
+displays that file like @kbd{M-x woman} does.
+
+@vindex woman-dired-keys
+  First time you invoke @kbd{M-x woman}, it defines the Dired @kbd{W}
+key to run the @code{woman-find-file} command on the current line's
+file.  You can disable this by setting the variable
+@code{woman-dired-keys} to @code{nil}.  @xref{Dired}.  In addition, the
+Tar-mode @kbd{w} key is bound to @code{woman-find-file} on the current
+line's archive member.
 
   Eventually the GNU project hopes to replace most man pages with
 better-organized manuals that you can browse with Info.  @xref{Misc
