@@ -1,3 +1,7 @@
+2004-05-03  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.nt: Remove.
+
 2004-05-03  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua--update-indications): Fix last
