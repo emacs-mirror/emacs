@@ -100,13 +100,20 @@
 
 ;;; Code:
 
-(defconst ccl-command-table
+(defgroup ccl nil
+  "CCL (Code Conversion Language) compiler."
+  :prefix "ccl-"
+  :group 'i18n)
+
+(defcustom ccl-command-table
   [if branch loop break repeat write-repeat write-read-repeat
       read read-if read-branch write call end
       read-multibyte-character write-multibyte-character
       unify-character
       iterate-multiple-map translate-multiple-map translate-single-map]
-  "*Vector of CCL commands (symbols).")
+  "*Vector of CCL commands (symbols)."
+  :type '(vector (repeat :inline t symbol))
+  :group 'ccl)
 
 ;; Put a property to each symbol of CCL commands for the compiler.
 (let (op (i 0) (len (length ccl-command-table)))
@@ -115,7 +122,7 @@
     (put op 'ccl-compile-function (intern (format "ccl-compile-%s" op)))
     (setq i (1+ i))))
 
-(defconst ccl-code-table
+(defcustom ccl-code-table
   [set-register
    set-short-const
    set-const
@@ -149,9 +156,11 @@
    read-jump-cond-expr-register
    ex-cmd
    ]
-  "*Vector of CCL compiled codes (symbols).")
+  "*Vector of CCL compiled codes (symbols)."
+  :type '(vector (repeat :inline t symbol))
+  :group 'ccl)
 
-(defconst ccl-extended-code-table
+(defcustom ccl-extended-code-table
   [read-multibyte-character
    write-multibyte-character
    unify-character
@@ -161,7 +170,9 @@
    translate-multiple-map
    translate-single-map
    ]
-  "Vector of CCL extended compiled codes (symbols).")
+  "Vector of CCL extended compiled codes (symbols)."
+  :type '(vector (repeat :inline t symbol))
+  :group 'ccl)
 
 ;; Put a property to each symbol of CCL codes for the disassembler.
 (let (code (i 0) (len (length ccl-code-table)))
@@ -192,9 +203,11 @@
     (put (car l) 'jump-flag t)
     (setq l (cdr l))))
 
-(defconst ccl-register-table
+(defcustom ccl-register-table
   [r0 r1 r2 r3 r4 r5 r6 r7]
-  "*Vector of CCL registers (symbols).")
+  "*Vector of CCL registers (symbols)."
+  :type '(vector (repeat :inline t symbol))
+  :group 'ccl)
 
 ;; Put a property to indicate register number to each symbol of CCL.
 ;; registers.
@@ -204,10 +217,12 @@
     (put reg 'ccl-register-number i)
     (setq i (1+ i))))
 
-(defconst ccl-arith-table
+(defcustom ccl-arith-table
   [+ - * / % & | ^ << >> <8 >8 // nil nil nil
    < > == <= >= != de-sjis en-sjis]
-  "*Vector of CCL arithmetic/logical operators (symbols).")
+  "*Vector of CCL arithmetic/logical operators (symbols)."
+  :type '(vector (repeat :inline t symbol))
+  :group 'ccl)
 
 ;; Put a property to each symbol of CCL operators for the compiler.
 (let (arith (i 0) (len (length ccl-arith-table)))
@@ -216,9 +231,11 @@
     (if arith (put arith 'ccl-arith-code i))
     (setq i (1+ i))))
 
-(defconst ccl-assign-arith-table
+(defcustom ccl-assign-arith-table
   [+= -= *= /= %= &= |= ^= <<= >>= <8= >8= //=]
-  "*Vector of CCL assignment operators (symbols).")
+  "*Vector of CCL assignment operators (symbols)."
+  :type '(vector (repeat :inline t symbol))
+  :group 'ccl)
 
 ;; Put a property to each symbol of CCL assignment operators for the compiler.
 (let (arith (i 0) (len (length ccl-assign-arith-table)))

@@ -68,8 +68,15 @@
 
 (provide 'iso-acc)
 
-(defvar iso-accents-insert-offset nonascii-insert-offset
-  "*Offset added by ISO Accents mode to character codes 0200 and above.")
+(defgroup iso-acc nil
+  "Minor mode providing electric accent keys."
+  :prefix "iso-accents-"
+  :group 'i18n)
+
+(defcustom iso-accents-insert-offset nonascii-insert-offset
+  "*Offset added by ISO Accents mode to character codes 0200 and above."
+  :type 'integer
+  :group 'iso-acc)
 
 (defvar iso-languages
   '(("catalan"
@@ -254,13 +261,15 @@ Change it with the `iso-accents-customize' function.")
 (defvar iso-accents-list nil
   "Association list for ISO accent combinations, for the chosen language.")
 
-(defvar iso-accents-mode nil
+(defcustom iso-accents-mode nil
   "*Non-nil enables ISO Accents mode.
 Setting this variable makes it local to the current buffer.
-See the function `iso-accents-mode'.")
+See the function `iso-accents-mode'."
+  :type 'boolean
+  :group 'iso-acc)
 (make-variable-buffer-local 'iso-accents-mode)
 
-(defvar iso-accents-enable '(?' ?` ?^ ?\" ?~ ?/)
+(defcustom iso-accents-enable '(?' ?` ?^ ?\" ?~ ?/)
   "*List of accent keys that become prefixes in ISO Accents mode.
 The default is (?' ?` ?^ ?\" ?~ ?/), which contains all the supported
 accent keys.  If you set this variable to a list in which some of those
@@ -268,7 +277,9 @@ characters are missing, the missing ones do not act as accents.
 
 Note that if you specify a language with `iso-accents-customize',
 that can also turn off certain prefixes (whichever ones are not needed in
-the language you choose).")
+the language you choose)."
+  :type '(repeat character)
+  :group 'iso-acc)
 
 (defun iso-accents-accent-key (prompt)
   "Modify the following character by adding an accent to it."

@@ -35,8 +35,15 @@
 
 (require 'disp-table)
 
-(defvar iso-ascii-convenient nil
-  "*Non-nil means `iso-ascii' should aim for convenience, not precision.")
+(defgroup iso-ascii nil
+  "Set up char tables for ISO 8859/1 on ASCII terminals."
+  :prefix "iso-ascii-"
+  :group 'i18n)
+
+(defcustom iso-ascii-convenient nil
+  "*Non-nil means `iso-ascii' should aim for convenience, not precision."
+  :type 'boolean
+  :group 'iso-ascii)
 
 (defun iso-ascii-display (code string &optional convenient-string)
   (if iso-ascii-convenient
