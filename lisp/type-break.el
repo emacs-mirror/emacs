@@ -8,7 +8,7 @@
 ;; Status: Works in GNU Emacs 19.25 or later, some versions of XEmacs
 ;; Created: 1994-07-13
 
-;; $Id: type-break.el,v 1.24 2000/07/24 00:49:09 friedman Exp $
+;; $Id: type-break.el,v 1.25 2000/12/03 16:17:49 schwab Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -258,7 +258,7 @@ See also `type-break-mode-line-format' and its members."
   "If non-nil, this is a countdown for the next typing break.
 
 This variable, in conjunction with `type-break-warning-countdown-string-type'
-(which indicates whether this value is a number of keystrokes or seconds)
+\(which indicates whether this value is a number of keystrokes or seconds)
 is installed in mode-line-format to notify of imminent typing breaks.")
 
 (defvar type-break-warning-countdown-string-type nil
