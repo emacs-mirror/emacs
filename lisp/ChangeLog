@@ -1,5 +1,8 @@
 1999-11-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* speedbar.el: Clean up comment at the start of the file.
+	Remove RCS id.
+
 	* progmodes/compile.el (compilation-parse-errors): Use
 	compilation-buffer-p instead of testing major-mode.
 
