@@ -483,14 +483,19 @@ from being initialized."
 	(if (equal "5" which)
 	    (setq which "9"))
 	(setq charset (concat "latin-" which))
-	(if (string-match "latin-[12345]" charset)
-	    (if default-enable-multibyte-characters
-		;; Set up for this character set in multibyte mode.
-		(set-language-environment charset)
-	      ;; Set up for this character set in unibyte mode.
-	      (load charset)))
-	(standard-display-european t (and default-enable-multibyte-characters
-					  charset)))))
+	(when (string-match "latin-[12345]" charset)
+	  ;; Set up for this character set.
+	  ;; This is now the right way to do it
+	  ;; for both unibyte and multibyte modes.
+	  (set-language-environment charset)
+	  (unless (or noninteractive (eq window-system 'x))
+	    ;; Send those codes literally to a non-X terminal.
+	    (when default-enable-multibyte-characters
+	      ;; If this is nil, we are using single-byte characters,
+	      ;; so the terminal coding system is irrelevant.
+	      (set-terminal-coding-system
+	       (intern (downcase charset)))))
+	  (standard-display-european-internal)))))
 
   ;;! This has been commented out; I currently find the behavior when
   ;;! split-window-keep-point is nil disturbing, but if I can get used
