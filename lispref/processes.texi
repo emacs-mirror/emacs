@@ -898,29 +898,11 @@ you want to keep the output to those streams separate, you should
 redirect one of them to a file--for example, by using an appropriate
 shell command.
 
-  Subprocess output is normally decoded using a coding system before the
-buffer or filter function receives it, much like text read from a file.
-You can use @code{set-process-coding-system} to specify which coding
-system to use (@pxref{Process Information}).  Otherwise, the coding
-system comes from @code{coding-system-for-read}, if that is
-non-@code{nil}; or else from the defaulting mechanism (@pxref{Default
-Coding Systems}).
-
-  @strong{Warning:} Coding systems such as @code{undecided} which
-determine the coding system from the data do not work entirely reliably
-with asynchronous subprocess output.  This is because Emacs has to
-process asynchronous subprocess output in batches, as it arrives.  Emacs
-must try to detect the proper coding system from one batch at a time,
-and this does not always work.  Therefore, if at all possible, use a
-coding system which determines both the character code conversion and
-the end of line conversion---that is, one like @code{latin-1-unix},
-rather than @code{undecided} or @code{latin-1}.
-
 @menu
-* Process Buffers::       If no filter, output is put in a buffer.
-* Filter Functions::      Filter functions accept output from the process.
-* Accepting Output::      Explicitly permitting subprocess output.
-                            Waiting for subprocess output.
+* Process Buffers::         If no filter, output is put in a buffer.
+* Filter Functions::        Filter functions accept output from the process.
+* Decoding Ouptut::         Filters can get unibyte or multibyte strings.
+* Accepting Output::        How to wait until process output arrives.
 @end menu
 
 @node Process Buffers
@@ -1161,6 +1143,55 @@ there is no filter function:
 @end group
 @end smallexample
 @end ignore
+
+@node Decoding Output
+@subsection Decoding Process Output
+
+  When Emacs writes process output directly into a multibyte buffer,
+it decodes the output according to the process output coding system.
+If the coding system is @code{raw-text} or @code{no-conversion}, Emacs
+converts the unibyte output to multibyte using
+@code{string-to-multibyte}, inserts the resulting multibyte text.
+
+  You can use @code{set-process-coding-system} to specify which coding
+system to use (@pxref{Process Information}).  Otherwise, the coding
+system comes from @code{coding-system-for-read}, if that is
+non-@code{nil}; or else from the defaulting mechanism (@pxref{Default
+Coding Systems}).
+
+  @strong{Warning:} Coding systems such as @code{undecided} which
+determine the coding system from the data do not work entirely
+reliably with asynchronous subprocess output.  This is because Emacs
+has to process asynchronous subprocess output in batches, as it
+arrives.  Emacs must try to detect the proper coding system from one
+batch at a time, and this does not always work.  Therefore, if at all
+possible, specify a coding system that determines both the character
+code conversion and the end of line conversion---that is, one like
+@code{latin-1-unix}, rather than @code{undecided} or @code{latin-1}.
+
+@cindex filter multibyte flag, of process
+@cindex process filter multibyte flag
+  When Emacs calls a process filter function, it provides the process
+output as a multibyte string or as a unibyte string according to the
+process's filter multibyte flag.  If the flag is non-@code{nil}, Emacs
+decodes the output according to the process output coding system to
+produce a multibyte string, and passes that to the process.  If the
+flag is @code{nil}, Emacs puts the output into a unibyte string, with
+no decoding, and passes that.
+
+  When you create a process, the filter multibyte flag takes its
+initial value from @code{default-enable-multibyte-characters}.  If you
+want to change the flag later on, use
+@code{set-process-filter-multibyte}.
+
+@defun set-process-filter-multibyte process multibyte
+This function sets the filter multibyte flag of @var{process}
+to @var{multibyte}.
+@end defun
+
+@defun process-filter-multibyte-p process
+This function returns the filter multibyte flag of @var{process}.
+@end defun
 
 @node Accepting Output
 @subsection Accepting Output from Processes
