@@ -86,7 +86,6 @@ extern void free_frame_menubar ();
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #define max(a,b) ((a) > (b) ? (a) : (b))
 
-#ifdef HAVE_X11
 /* X Resource data base */
 static XrmDatabase xrdb;
 
@@ -155,19 +154,6 @@ extern Atom Xatom_wm_window_moved;     /* When the WM moves us. */
 
 /* EditRes protocol */
 extern Atom Xatom_editres_name;
-
-#else	/* X10 */
-
-/* Default size of an Emacs window.  */
-static char *default_window = "=80x24+0+0";
-
-#define MAXICID 80
-char iconidentity[MAXICID];
-#define ICONTAG "emacs@"
-char minibuffer_iconidentity[MAXICID];
-#define MINIBUFFER_ICONTAG "minibuffer@"
-
-#endif /* X10 */
 
 /* The last 23 bits of the timestamp of the last mouse button event. */
 Time mouse_timestamp;
@@ -680,18 +666,12 @@ defined_color (color, color_def, alloc)
   Colormap screen_colormap;
 
   BLOCK_INPUT;
-#ifdef HAVE_X11
   screen_colormap
     = DefaultColormap (x_current_display, XDefaultScreen (x_current_display));
 
   foo = XParseColor (x_current_display, screen_colormap, color, color_def);
   if (foo && alloc)
     foo = XAllocColor (x_current_display, screen_colormap, color_def);
-#else
-  foo = XParseColor (color, color_def);
-  if (foo && alloc)
-    foo = XGetHardwareColor (color_def);
-#endif /* not HAVE_X11 */
   UNBLOCK_INPUT;
 
   if (foo)
@@ -719,13 +699,8 @@ x_decode_color (arg, def)
   else if (strcmp (XSTRING (arg)->data, "white") == 0)
     return WHITE_PIX_DEFAULT;
 
-#ifdef HAVE_X11
   if (x_screen_planes == 1)
     return def;
-#else
-  if (DISPLAY_CELLS == 1)
-    return def;
-#endif
 
   if (defined_color (XSTRING (arg)->data, &cdef, 1))
     return cdef.pixel;
@@ -749,14 +724,12 @@ x_set_foreground_color (f, arg, oldval)
   f->display.x->foreground_pixel = x_decode_color (arg, BLACK_PIX_DEFAULT);
   if (FRAME_X_WINDOW (f) != 0)
     {
-#ifdef HAVE_X11
       BLOCK_INPUT;
       XSetForeground (x_current_display, f->display.x->normal_gc,
 		      f->display.x->foreground_pixel);
       XSetBackground (x_current_display, f->display.x->reverse_gc,
 		      f->display.x->foreground_pixel);
       UNBLOCK_INPUT;
-#endif				/* HAVE_X11 */
       recompute_basic_faces (f);
       if (FRAME_VISIBLE_P (f))
         redraw_frame (f);
@@ -776,7 +749,6 @@ x_set_background_color (f, arg, oldval)
   if (FRAME_X_WINDOW (f) != 0)
     {
       BLOCK_INPUT;
-#ifdef HAVE_X11
       /* The main frame area. */
       XSetBackground (x_current_display, f->display.x->normal_gc,
 		      f->display.x->background_pixel);
@@ -794,11 +766,6 @@ x_set_background_color (f, arg, oldval)
 				SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar)),
 				f->display.x->background_pixel);
       }
-#else
-      temp = XMakeTile (f->display.x->background_pixel);
-      XChangeBackground (FRAME_X_WINDOW (f), temp);
-      XFreePixmap (temp);
-#endif				/* not HAVE_X11 */
       UNBLOCK_INPUT;
 
       recompute_basic_faces (f);
@@ -825,7 +792,6 @@ x_set_mouse_color (f, arg, oldval)
     f->display.x->mouse_pixel = f->display.x->foreground_pixel;
 
   BLOCK_INPUT;
-#ifdef HAVE_X11
 
   /* It's not okay to crash if the user selects a screwy cursor.  */
   x_catch_errors ();
@@ -895,13 +861,6 @@ x_set_mouse_color (f, arg, oldval)
     XRecolorCursor (x_current_display, cross_cursor,
                     &fore_color, &back_color);
   }
-#else /* X10 */
-  cursor = XCreateCursor (16, 16, MouseCursor, MouseMask,
-			  0, 0,
-			  f->display.x->mouse_pixel,
-			  f->display.x->background_pixel,
-			  GXcopy);
-#endif /* X10 */
 
   if (FRAME_X_WINDOW (f) != 0)
     {
@@ -911,7 +870,7 @@ x_set_mouse_color (f, arg, oldval)
   if (cursor != f->display.x->text_cursor && f->display.x->text_cursor != 0)
       XFreeCursor (XDISPLAY f->display.x->text_cursor);
   f->display.x->text_cursor = cursor;
-#ifdef HAVE_X11
+
   if (nontext_cursor != f->display.x->nontext_cursor
       && f->display.x->nontext_cursor != 0)
       XFreeCursor (XDISPLAY f->display.x->nontext_cursor);
@@ -925,7 +884,6 @@ x_set_mouse_color (f, arg, oldval)
       && f->display.x->cross_cursor != 0)
       XFreeCursor (XDISPLAY f->display.x->cross_cursor);
   f->display.x->cross_cursor = cross_cursor;
-#endif	/* HAVE_X11 */
 
   XFlushQueue ();
   UNBLOCK_INPUT;
@@ -955,14 +913,12 @@ x_set_cursor_color (f, arg, oldval)
 
   if (FRAME_X_WINDOW (f) != 0)
     {
-#ifdef HAVE_X11
       BLOCK_INPUT;
       XSetBackground (x_current_display, f->display.x->cursor_gc,
 		      f->display.x->cursor_pixel);
       XSetForeground (x_current_display, f->display.x->cursor_gc,
 		      fore_pixel);
       UNBLOCK_INPUT;
-#endif /* HAVE_X11 */
 
       if (FRAME_VISIBLE_P (f))
 	{
@@ -994,13 +950,6 @@ x_set_border_color (f, arg, oldval)
   CHECK_STRING (arg, 0);
   str = XSTRING (arg)->data;
 
-#ifndef HAVE_X11
-  if (!strcmp (str, "grey") || !strcmp (str, "Grey")
-      || !strcmp (str, "gray") || !strcmp (str, "Gray"))
-    pix = -1;
-  else
-#endif /* X10 */
-
     pix = x_decode_color (arg, BLACK_PIX_DEFAULT);
 
   x_set_border_pixel (f, pix);
@@ -1022,19 +971,8 @@ x_set_border_pixel (f, pix)
       int mask;
 
       BLOCK_INPUT;
-#ifdef HAVE_X11
       XSetWindowBorder (x_current_display, FRAME_X_WINDOW (f),
        		 pix);
-#else
-      if (pix < 0)
-        temp = XMakePixmap ((Bitmap) XStoreBitmap (gray_width, gray_height,
-						   gray_bits),
-       		     BLACK_PIX_DEFAULT, WHITE_PIX_DEFAULT);
-      else
-        temp = XMakeTile (pix);
-      XChangeBorder (FRAME_X_WINDOW (f), temp);
-      XFreePixmap (XDISPLAY temp);
-#endif /* not HAVE_X11 */
       UNBLOCK_INPUT;
 
       if (FRAME_VISIBLE_P (f))
@@ -1386,8 +1324,6 @@ x_set_vertical_scroll_bars (f, arg, oldval)
 
 /* Subroutines of creating an X frame.  */
 
-#ifdef HAVE_X11
-
 /* Make sure that Vx_resource_name is set to a reasonable value.  */
 static void
 validate_x_resource_name ()
@@ -1524,38 +1460,6 @@ x_get_resource_string (attribute, class)
 
   return x_get_string_resource (xrdb, name_key, class_key);
 }
-
-#else	/* X10 */
-
-DEFUN ("x-get-default", Fx_get_default, Sx_get_default, 1, 1, 0,
-  "Get X default ATTRIBUTE from the system, or nil if no default.\n\
-Value is a string (when not nil) and ATTRIBUTE is also a string.\n\
-The defaults are specified in the file `~/.Xdefaults'.")
-  (arg)
-     Lisp_Object arg;
-{
-  register unsigned char *value;
-
-  CHECK_STRING (arg, 1);
-
-  value = (unsigned char *) XGetDefault (XDISPLAY 
-					 XSTRING (Vinvocation_name)->data,
-					 XSTRING (arg)->data);
-  if (value == 0)
-    /* Try reversing last two args, in case this is the buggy version of X.  */
-    value = (unsigned char *) XGetDefault (XDISPLAY
-					   XSTRING (arg)->data,
-					   XSTRING (Vinvocation_name)->data);
-  if (value != 0)
-    return build_string (value);
-  else
-    return (Qnil);
-}
-
-#define Fx_get_resource(attribute, class, component, subclass) \
-  Fx_get_default (attribute)
-
-#endif	/* X10 */
 
 /* Types we might convert a resource string into.  */
 enum resource_types
@@ -1719,7 +1623,6 @@ The value of `left' or `top' may be an integer or `-'.\n\
   return result;
 }
 
-#ifdef HAVE_X11
 /* Calculate the desired size and position of this window,
    and return the flags saying which aspects were specified.
 
@@ -2247,7 +2150,6 @@ x_make_gc (f)
 
   UNBLOCK_INPUT;
 }
-#endif /* HAVE_X11 */
 
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
@@ -2261,7 +2163,6 @@ be shared by the new frame.")
   (parms)
      Lisp_Object parms;
 {
-#ifdef HAVE_X11
   struct frame *f;
   Lisp_Object frame, tem;
   Lisp_Object name;
@@ -2471,247 +2372,6 @@ be shared by the new frame.")
   }
 
   return unbind_to (count, frame);
-#else /* X10 */
-  struct frame *f;
-  Lisp_Object frame, tem;
-  Lisp_Object name;
-  int pixelwidth, pixelheight;
-  Cursor cursor;
-  int height, width;
-  Window parent;
-  Pixmap temp;
-  int minibuffer_only = 0;
-  Lisp_Object vscroll, hscroll;
-
-  if (x_current_display == 0)
-    error ("X windows are not in use or not initialized");
-
-  name = Fassq (Qname, parms);
-
-  tem = x_get_arg (parms, Qminibuffer, 0, 0, symbol);
-  if (EQ (tem, Qnone))
-    f = make_frame_without_minibuffer (Qnil);
-  else if (EQ (tem, Qonly))
-    {
-      f = make_minibuffer_frame ();
-      minibuffer_only = 1;
-    }
-  else if (EQ (tem, Qnil) || EQ (tem, Qunbound))
-    f = make_frame (1);
-  else
-    f = make_frame_without_minibuffer (tem);
-
-  parent = ROOT_WINDOW;
-
-  XSET (frame, Lisp_Frame, f);
-  f->output_method = output_x_window;
-  f->display.x = (struct x_display *) xmalloc (sizeof (struct x_display));
-  bzero (f->display.x, sizeof (struct x_display));
-
-  /* Some temporary default values for height and width. */
-  width = 80;
-  height = 40;
-  f->display.x->left_pos = -1;
-  f->display.x->top_pos = -1;
-
-  /* Give the frame a default name (which may be overridden with PARMS).  */
-
-  strncpy (iconidentity, ICONTAG, MAXICID);
-  if (gethostname (&iconidentity[sizeof (ICONTAG) - 1],
-		   (MAXICID - 1) - sizeof (ICONTAG)))
-    iconidentity[sizeof (ICONTAG) - 2] = '\0';
-  f->name = build_string (iconidentity);
-
-  /* Extract some window parameters from the supplied values.
-     These are the parameters that affect window geometry.  */
-
-  tem = x_get_arg (parms, Qfont, "BodyFont", 0, string);
-  if (EQ (tem, Qunbound))
-    tem = build_string ("9x15");
-  x_set_font (f, tem, Qnil);
-  x_default_parameter (f, parms, Qborder_color,
-		       build_string ("black"), "Border", 0, string);
-  x_default_parameter (f, parms, Qbackground_color,
-		       build_string ("white"), "Background", 0, string);
-  x_default_parameter (f, parms, Qforeground_color,
-		       build_string ("black"), "Foreground", 0, string);
-  x_default_parameter (f, parms, Qmouse_color,
-		       build_string ("black"), "Mouse", 0, string);
-  x_default_parameter (f, parms, Qcursor_color,
-		       build_string ("black"), "Cursor", 0, string);
-  x_default_parameter (f, parms, Qborder_width,
-		       make_number (2), "BorderWidth", 0, number);
-  x_default_parameter (f, parms, Qinternal_border_width,
-		       make_number (4), "InternalBorderWidth", 0, number);
-  x_default_parameter (f, parms, Qauto_raise,
-		       Qnil, "AutoRaise", 0, boolean);
-
-  hscroll = EQ (x_get_arg (parms, Qhorizontal_scroll_bar, 0, 0, boolean), Qt);
-  vscroll = EQ (x_get_arg (parms, Qvertical_scroll_bar, 0, 0, boolean), Qt);
-
-  if (f->display.x->internal_border_width < 0)
-    f->display.x->internal_border_width = 0;
-
-  tem = x_get_arg (parms, Qwindow_id, 0, 0, number);
-  if (!EQ (tem, Qunbound))
-    {
-      WINDOWINFO_TYPE wininfo;
-      int nchildren;
-      Window *children, root;
-
-      CHECK_NUMBER (tem, 0);
-      FRAME_X_WINDOW (f) = (Window) XINT (tem);
-
-      BLOCK_INPUT;
-      XGetWindowInfo (FRAME_X_WINDOW (f), &wininfo);
-      XQueryTree (FRAME_X_WINDOW (f), &parent, &nchildren, &children);
-      xfree (children);
-      UNBLOCK_INPUT;
-
-      height = PIXEL_TO_CHAR_HEIGHT (f, wininfo.height);
-      width  = PIXEL_TO_CHAR_WIDTH  (f, wininfo.width);
-      f->display.x->left_pos = wininfo.x;
-      f->display.x->top_pos = wininfo.y;
-      FRAME_SET_VISIBILITY (f, wininfo.mapped != 0);
-      f->display.x->border_width = wininfo.bdrwidth;
-      f->display.x->parent_desc = parent;
-    }
-  else
-    {
-      tem = x_get_arg (parms, Qparent_id, 0, 0, number);
-      if (!EQ (tem, Qunbound))
-	{
-	  CHECK_NUMBER (tem, 0);
-	  parent = (Window) XINT (tem);
-	}
-      f->display.x->parent_desc = parent;
-      tem = x_get_arg (parms, Qheight, 0, 0, number);
-      if (EQ (tem, Qunbound))
-	{
-	  tem = x_get_arg (parms, Qwidth, 0, 0, number);
-	  if (EQ (tem, Qunbound))
-	    {
-	      tem = x_get_arg (parms, Qtop, 0, 0, number);
-	      if (EQ (tem, Qunbound))
-		tem = x_get_arg (parms, Qleft, 0, 0, number);
-	    }
-	}
-      /* Now TEM is Qunbound if no edge or size was specified.
-	 In that case, we must do rubber-banding.  */
-      if (EQ (tem, Qunbound))
-	{
-	  tem = x_get_arg (parms, Qgeometry, 0, 0, number);
-	  x_rubber_band (f,
-			 &f->display.x->left_pos, &f->display.x->top_pos,
-			 &width, &height,
-			 (XTYPE (tem) == Lisp_String
-			  ? (char *) XSTRING (tem)->data : ""),
-			 XSTRING (f->name)->data,
-			 !NILP (hscroll), !NILP (vscroll));
-	}
-      else
-	{
-	  /* Here if at least one edge or size was specified.
-	     Demand that they all were specified, and use them.  */
-	  tem = x_get_arg (parms, Qheight, 0, 0, number);
-	  if (EQ (tem, Qunbound))
-	    error ("Height not specified");
-	  CHECK_NUMBER (tem, 0);
-	  height = XINT (tem);
-
-	  tem = x_get_arg (parms, Qwidth, 0, 0, number);
-	  if (EQ (tem, Qunbound))
-	    error ("Width not specified");
-	  CHECK_NUMBER (tem, 0);
-	  width = XINT (tem);
-
-	  tem = x_get_arg (parms, Qtop, 0, 0, number);
-	  if (EQ (tem, Qunbound))
-	    error ("Top position not specified");
-	  CHECK_NUMBER (tem, 0);
-	  f->display.x->left_pos = XINT (tem);
-
-	  tem = x_get_arg (parms, Qleft, 0, 0, number);
-	  if (EQ (tem, Qunbound))
-	    error ("Left position not specified");
-	  CHECK_NUMBER (tem, 0);
-	  f->display.x->top_pos = XINT (tem);
-	}
-
-      pixelwidth  = CHAR_TO_PIXEL_WIDTH  (f, width);
-      pixelheight = CHAR_TO_PIXEL_HEIGHT (f, height);
-      
-      BLOCK_INPUT;
-      FRAME_X_WINDOW (f)
-	= XCreateWindow (parent,
-			 f->display.x->left_pos,   /* Absolute horizontal offset */
-			 f->display.x->top_pos,    /* Absolute Vertical offset */
-			 pixelwidth, pixelheight,
-			 f->display.x->border_width,
-			 BLACK_PIX_DEFAULT, WHITE_PIX_DEFAULT);
-      UNBLOCK_INPUT;
-      if (FRAME_X_WINDOW (f) == 0)
-	error ("Unable to create window.");
-    }
-
-  /* Install the now determined height and width
-     in the windows and in phys_lines and desired_lines.  */
-  change_frame_size (f, height, width, 1, 0);
-  XSelectInput (FRAME_X_WINDOW (f), KeyPressed | ExposeWindow
-		| ButtonPressed | ButtonReleased | ExposeRegion | ExposeCopy
-		| EnterWindow | LeaveWindow | UnmapWindow );
-  x_set_resize_hint (f);
-
-  /* Tell the server the window's default name.  */
-  XStoreName (XDISPLAY FRAME_X_WINDOW (f), XSTRING (f->name)->data);
-
-  /* Now override the defaults with all the rest of the specified
-     parms.  */
-  tem = x_get_arg (parms, Qunsplittable, 0, 0, boolean);
-  f->no_split = minibuffer_only || EQ (tem, Qt);
-
-  /* Do not create an icon window if the caller says not to */
-  if (!EQ (x_get_arg (parms, Qsuppress_icon, 0, 0, boolean), Qt)
-      || f->display.x->parent_desc != ROOT_WINDOW)
-    {
-      x_text_icon (f, iconidentity);
-      x_default_parameter (f, parms, Qicon_type, Qnil,
-			   "BitmapIcon", 0, symbol);
-    }
-
-  /* Tell the X server the previously set values of the
-     background, border and mouse colors; also create the mouse cursor.  */
-  BLOCK_INPUT;
-  temp = XMakeTile (f->display.x->background_pixel);
-  XChangeBackground (FRAME_X_WINDOW (f), temp);
-  XFreePixmap (temp);
-  UNBLOCK_INPUT;
-  x_set_border_pixel (f, f->display.x->border_pixel);
-
-  x_set_mouse_color (f, Qnil, Qnil);
-
-  /* Now override the defaults with all the rest of the specified parms.  */
-
-  Fmodify_frame_parameters (frame, parms);
-
-  /* Make the window appear on the frame and enable display.  */
-  {
-    Lisp_Object visibility;
-
-    visibility = x_get_arg (parms, Qvisibility, 0, 0, symbol);
-    if (EQ (visibility, Qunbound))
-      visibility = Qt;
-
-    if (! EQ (visibility, Qicon)
-	&& ! NILP (visibility))
-      x_make_window_visible (f);
-  }
-
-  SET_FRAME_GARBAGED (f);
-
-  Vframe_list = Fcons (frame, Vframe_list);
-  return frame;
-#endif /* X10 */
 }
 
 Lisp_Object
@@ -2756,84 +2416,6 @@ DEFUN ("unfocus-frame", Funfocus_frame, Sunfocus_frame, 0, 0, 0,
 
   return Qnil;
 }
-
-#ifndef HAVE_X11
-/* Computes an X-window size and position either from geometry GEO
-   or with the mouse.
-
-   F is a frame.  It specifies an X window which is used to
-   determine which display to compute for.  Its font, borders
-   and colors control how the rectangle will be displayed.
-
-   X and Y are where to store the positions chosen.
-   WIDTH and HEIGHT are where to store the sizes chosen.
-
-   GEO is the geometry that may specify some of the info.
-   STR is a prompt to display.
-   HSCROLL and VSCROLL say whether we have horiz and vert scroll bars.  */
-
-int
-x_rubber_band (f, x, y, width, height, geo, str, hscroll, vscroll)
-     struct frame *f;
-     int *x, *y, *width, *height;
-     char *geo;
-     char *str;
-     int hscroll, vscroll;
-{
-  OpaqueFrame frame;
-  Window tempwindow;
-  WindowInfo wininfo;
-  int border_color;
-  int background_color;
-  Lisp_Object tem;
-  int mask;
-
-  BLOCK_INPUT;
-
-  background_color = f->display.x->background_pixel;
-  border_color = f->display.x->border_pixel;
-
-  frame.bdrwidth = f->display.x->border_width;
-  frame.border = XMakeTile (border_color);
-  frame.background = XMakeTile (background_color);
-  tempwindow = XCreateTerm (str, "emacs", geo, default_window, &frame, 10, 5,
-			    (2 * f->display.x->internal_border_width
-			     + (vscroll ? VSCROLL_WIDTH : 0)),
-			    (2 * f->display.x->internal_border_width
-			     + (hscroll ? HSCROLL_HEIGHT : 0)),
-			    width, height, f->display.x->font,
-			    FONT_WIDTH (f->display.x->font),
-			    f->display.x->line_height);
-  XFreePixmap (frame.border);
-  XFreePixmap (frame.background);
-
-  if (tempwindow != 0)
-    {
-      XQueryWindow (tempwindow, &wininfo);
-      XDestroyWindow (tempwindow);
-      *x = wininfo.x;
-      *y = wininfo.y;
-    }
-
-  /* Coordinates we got are relative to the root window.
-     Convert them to coordinates relative to desired parent window
-     by scanning from there up to the root.  */
-  tempwindow = f->display.x->parent_desc;
-  while (tempwindow != ROOT_WINDOW)
-    {
-      int nchildren;
-      Window *children;
-      XQueryWindow (tempwindow, &wininfo);
-      *x -= wininfo.x;
-      *y -= wininfo.y;
-      XQueryTree (tempwindow, &tempwindow, &nchildren, &children);
-      xfree (children);
-    }
-
-  UNBLOCK_INPUT;
-  return tempwindow != 0;
-}
-#endif /* not HAVE_X11 */
 
 DEFUN ("x-list-fonts", Fx_list_fonts, Sx_list_fonts, 1, 3, 0,
   "Return a list of the names of available fonts matching PATTERN.\n\
@@ -4022,44 +3604,6 @@ x_draw_pixmap (f, x, y, image_data, width, height)
 }
 #endif
 
-#ifndef HAVE_X11
-DEFUN ("x-store-cut-buffer", Fx_store_cut_buffer, Sx_store_cut_buffer,
-  1, 1, "sStore text in cut buffer: ",
-  "Store contents of STRING into the cut buffer of the X window system.")
-  (string)
-     register Lisp_Object string;
-{
-  int mask;
-
-  CHECK_STRING (string, 1);
-  if (! FRAME_X_P (selected_frame))
-    error ("Selected frame does not understand X protocol.");
-
-  BLOCK_INPUT;
-  XStoreBytes ((char *) XSTRING (string)->data, XSTRING (string)->size);
-  UNBLOCK_INPUT;
-
-  return Qnil;
-}
-
-DEFUN ("x-get-cut-buffer", Fx_get_cut_buffer, Sx_get_cut_buffer, 0, 0, 0,
-  "Return contents of cut buffer of the X window system, as a string.")
-  ()
-{
-  int len;
-  register Lisp_Object string;
-  int mask;
-  register char *d;
-
-  BLOCK_INPUT;
-  d = XFetchBytes (&len);
-  string = make_string (d, len);
-  XFree (d);
-  UNBLOCK_INPUT;
-  return string;
-}
-#endif	/* X10 */
-
 #if 0 /* I'm told these functions are superfluous
 	 given the ability to bind function keys.  */
 
@@ -4161,8 +3705,6 @@ See the documentation of `x-rebind-key' for more information.")
 #endif /* HAVE_X11 */
 #endif /* 0 */
 
-#ifdef HAVE_X11
-
 #ifndef HAVE_XSCREENNUMBEROFSCREEN
 int
 XScreenNumberOfScreen (scr)
@@ -4225,7 +3767,6 @@ select_visual (screen, depth)
   XFree ((char *) vinfo);
   return v;
 }
-#endif /* HAVE_X11 */
 
 DEFUN ("x-open-connection", Fx_open_connection, Sx_open_connection,
        1, 2, 0, "Open a connection to an X server.\n\
@@ -4255,7 +3796,6 @@ Optional second arg XRM_STRING is a string of resources in xrdb format.")
   x_term_init (XSTRING (display)->data, xrm_option,
 	       XSTRING (Vx_resource_name)->data);
 
-#ifdef HAVE_X11
   XFASTINT (Vwindow_system_version) = 11;
 
   BLOCK_INPUT;
@@ -4295,9 +3835,6 @@ Optional second arg XRM_STRING is a string of resources in xrdb format.")
 					False);
   Xatom_editres_name =  XInternAtom (x_current_display, "Editres", False);
   UNBLOCK_INPUT;
-#else /* not HAVE_X11 */
-  XFASTINT (Vwindow_system_version) = 10;
-#endif /* not HAVE_X11 */
   return Qnil;
 }
 
@@ -4312,7 +3849,7 @@ DEFUN ("x-close-current-connection", Fx_close_current_connection,
      really intended only to be called when killing emacs, then there's
      no reason for it to have a lisp interface at all.  */
   check_x();
-#ifdef HAVE_X11
+
   /* This is ONLY used when killing emacs;  For switching displays
      we'll have to take care of setting CloseDownMode elsewhere. */
 
@@ -4325,7 +3862,7 @@ DEFUN ("x-close-current-connection", Fx_close_current_connection,
     }
   else
     fatal ("No current X display connection to close\n");
-#endif
+
   return Qnil;
 }
 
@@ -4490,7 +4027,6 @@ or when you set the mouse color.");
   Fprovide (intern ("x-toolkit"));
 #endif
 
-#ifdef HAVE_X11
   defsubr (&Sx_get_resource);
 #if 0
   defsubr (&Sx_draw_rectangle);
@@ -4522,11 +4058,6 @@ or when you set the mouse color.");
   defsubr (&Sx_track_pointer);
   defsubr (&Sx_grab_pointer);
   defsubr (&Sx_ungrab_pointer);
-#endif
-#else
-  defsubr (&Sx_get_default);
-  defsubr (&Sx_store_cut_buffer);
-  defsubr (&Sx_get_cut_buffer);
 #endif
   defsubr (&Sx_parse_geometry);
   defsubr (&Sx_create_frame);
