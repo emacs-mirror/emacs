@@ -955,7 +955,7 @@ Remaining arguments are strings to give program as arguments.")
      int nargs;
      register Lisp_Object *args;
 {
-  Lisp_Object buffer, name, program, proc, tem;
+  Lisp_Object buffer, name, program, proc, current_dir, tem;
 #ifdef VMS
   register unsigned char *new_argv;
   int len;
@@ -968,6 +968,32 @@ Remaining arguments are strings to give program as arguments.")
   buffer = args[1];
   if (!NILP (buffer))
     buffer = Fget_buffer_create (buffer);
+
+  /* Make sure that the child will be able to chdir to the current
+     buffer's current directory, or its unhandled equivalent.  We
+     can't just have the child check for an error when it does the
+     chdir, since it's in a vfork.
+
+     We have to GCPRO around this because Fexpand_file_name and
+     Funhandled_file_name_directory might call a file name handling
+     function.  The argument list is protected by the caller, so all
+     we really have to worry about is buffer.  */
+  {
+    struct gcpro gcpro1, gcpro2;
+
+    current_dir = current_buffer->directory;
+
+    GCPRO2 (buffer, current_dir);
+
+    current_dir = 
+      expand_and_dir_to_file
+	(Funhandled_file_name_directory (current_dir, Qnil));
+    if (NILP (Ffile_accessible_directory_p (current_dir)))
+      report_file_error ("Setting current directory",
+			 Fcons (current_buffer->directory, Qnil));
+
+    UNGCPRO;
+  }
 
   name = args[0];
   CHECK_STRING (name, 0);
@@ -1034,7 +1060,7 @@ Remaining arguments are strings to give program as arguments.")
   XPROCESS (proc)->filter = Qnil;
   XPROCESS (proc)->command = Flist (nargs - 2, args + 2);
 
-  create_process (proc, new_argv);
+  create_process (proc, new_argv, current_dir);
 
   return unbind_to (count, proc);
 }
@@ -1089,9 +1115,10 @@ create_process_sigchld ()
 #endif
 
 #ifndef VMS /* VMS version of this function is in vmsproc.c.  */
-create_process (process, new_argv)
+create_process (process, new_argv, current_dir)
      Lisp_Object process;
      char **new_argv;
+     Lisp_Object current_dir;
 {
   int pid, inchannel, outchannel, forkin, forkout;
   int sv[2];
@@ -1099,7 +1126,6 @@ create_process (process, new_argv)
   SIGTYPE (*sigchld)();
 #endif
   int pty_flag = 0;
-  Lisp_Object current_dir;
   extern char **environ;
 
   inchannel = outchannel = -1;
@@ -1107,14 +1133,6 @@ create_process (process, new_argv)
 #ifdef HAVE_PTYS
   if (EQ (Vprocess_connection_type, Qt))
     outchannel = inchannel = allocate_pty ();
-
-  /* Make sure that the child will be able to chdir to the current
-     buffer's current directory.  We can't just have the child check
-     for an error when it does the chdir, since it's in a vfork.  */
-  current_dir = expand_and_dir_to_file (current_buffer->directory, Qnil);
-  if (NILP (Ffile_accessible_directory_p (current_dir)))
-    report_file_error ("Setting current directory",
-		       Fcons (current_buffer->directory, Qnil));
 
   if (inchannel >= 0)
     {
