@@ -324,7 +324,7 @@ for subdir in lisp site-lisp lispref lispintro \
 	      leim/SKK-DIC leim/ja-dic leim/quail \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
-	      etc etc/e lock info man msdos vms mac mac/inc mac/inc/sys \
+	      etc etc/e info man msdos vms mac mac/inc mac/inc/sys \
 	      mac/src mac/Emacs.app mac/Emacs.app/Contents \
 	      mac/Emacs.app/Contents/MacOS mac/Emacs.app/Contents/Resources \
 	      mac/Emacs.app/Contents/Resources/English.lproj
