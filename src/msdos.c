@@ -3610,15 +3610,15 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   screensize = screen_size * 2;
   faces[0]
     = lookup_derived_face (sf, intern ("msdos-menu-passive-face"),
-			   CHARSET_ASCII, DEFAULT_FACE_ID);
+			   0, DEFAULT_FACE_ID);
   faces[1]
     = lookup_derived_face (sf, intern ("msdos-menu-active-face"),
-			   CHARSET_ASCII, DEFAULT_FACE_ID);
+			   0, DEFAULT_FACE_ID);
   selectface = intern ("msdos-menu-select-face");
   faces[2] = lookup_derived_face (sf, selectface,
-				  CHARSET_ASCII, faces[0]);
+				  0, faces[0]);
   faces[3] = lookup_derived_face (sf, selectface,
-				  CHARSET_ASCII, faces[1]);
+				  0, faces[1]);
 
   /* Make sure the menu title is always displayed with
      `msdos-menu-active-face', no matter where the mouse pointer is.  */
