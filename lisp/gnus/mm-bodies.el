@@ -56,8 +56,8 @@ Valid encodings are `7bit', `8bit', `quoted-printable' and `base64'."
 (defun mm-encode-body ()
   "Encode a body.
 Should be called narrowed to the body that is to be encoded.
-If there is more than one non-ASCII Mule charset, then list of found
-Mule charsets are returned.
+If there is more than one non-ASCII Mule charset, then the list of found
+Mule charsets is returned.
 If successful, the MIME charset is returned.
 If no encoding was done, nil is returned."
   (if (not (mm-multibyte-p))
@@ -178,7 +178,7 @@ If no encoding was done, nil is returned."
 The characters in CHARSET should then be decoded."
   (if (stringp charset)
       (setq charset (intern (downcase charset))))
-  (if (or (not charset) 
+  (if (or (not charset)
 	  (eq 'gnus-all mail-parse-ignored-charsets)
 	  (memq 'gnus-all mail-parse-ignored-charsets)
 	  (memq charset mail-parse-ignored-charsets))
@@ -191,7 +191,7 @@ The characters in CHARSET should then be decoded."
 	(if (and (not coding-system)
 		 (listp mail-parse-ignored-charsets)
 		 (memq 'gnus-unknown mail-parse-ignored-charsets))
-	    (setq coding-system 
+	    (setq coding-system
 		  (mm-charset-to-coding-system mail-parse-charset)))
 	(when (and charset coding-system
 		   ;; buffer-file-coding-system
@@ -207,7 +207,7 @@ The characters in CHARSET should then be decoded."
   "Decode STRING with CHARSET."
   (when (stringp charset)
     (setq charset (intern (downcase charset))))
-  (when (or (not charset) 
+  (when (or (not charset)
 	    (eq 'gnus-all mail-parse-ignored-charsets)
 	    (memq 'gnus-all mail-parse-ignored-charsets)
 	    (memq charset mail-parse-ignored-charsets))
@@ -218,7 +218,7 @@ The characters in CHARSET should then be decoded."
        (if (and (not coding-system)
 		(listp mail-parse-ignored-charsets)
 		(memq 'gnus-unknown mail-parse-ignored-charsets))
-	   (setq coding-system 
+	   (setq coding-system
 		 (mm-charset-to-coding-system mail-parse-charset)))
        (when (and charset coding-system
 		  (mm-multibyte-p)
