@@ -475,7 +475,8 @@ See `PC-complete' for details."
 					     (delete-char 1)
 					     (setq end (1- end))))
 				      (setq improved t))
-				    (insert (substring prefix i (1+ i)))
+				    ;; Use format to discard text properties.
+				    (insert (format "%s" (substring prefix i (1+ i))))
 				    (setq end (1+ end)))
 				  (setq i (1+ i)))
 				(or pt (equal (point) beg)
@@ -533,9 +534,10 @@ See `PC-complete' for details."
 	    (if (null mode)
 		(PC-temp-minibuffer-message " (Sole completion)"))
 	  (delete-region beg end)
-	  (insert (if filename
-		      (substitute-in-file-name (concat dirname (car poss)))
-		    (car poss))))
+	  (insert (format "%s"
+			  (if filename
+			      (substitute-in-file-name (concat dirname (car poss)))
+			    (car poss)))))
 	t)))))
 
 
