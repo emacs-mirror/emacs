@@ -721,7 +721,7 @@ DEFUN ("compose-region-internal", Fcompose_region_internal,
 \n\
 Compose text in the region between START and END.\n\
 Optional 3rd and 4th arguments are COMPONENTS and MODIFICATION-FUNC\n\
-for the composition.   See `compose-region' for more detial.")
+for the composition.  See `compose-region' for more detail.")
   (start, end, components, mod_func)
      Lisp_Object start, end, components, mod_func;
 {
@@ -742,7 +742,7 @@ DEFUN ("compose-string-internal", Fcompose_string_internal,
 \n\
 Compose text between indices START and END of STRING.\n\
 Optional 4th and 5th arguments are COMPONENTS and MODIFICATION-FUNC\n\
-for the composition.   See `compose-string' for more detial.")
+for the composition.  See `compose-string' for more detail.")
   (string, start, end, components, mod_func)
      Lisp_Object string, start, end, components, mod_func;
 {
