@@ -806,6 +806,26 @@ files in or below it."
 	(message "No changes to %s between %s and %s." file rel1 rel2)
       (pop-to-buffer "*vc*"))))
 
+;;;###autoload
+(defun vc-version-other-window (rev)
+  "Visit version REV of the current buffer in another window.
+If the current buffer is named `F', the version is named `F.~REV~'.
+If `F.~REV~' already exists, it is used instead of being re-created."
+  (interactive "sVersion to visit (default is latest version): ")
+  (if vc-dired-mode
+      (set-buffer (find-file-noselect (dired-get-filename))))
+  (while vc-parent-buffer
+      (pop-to-buffer vc-parent-buffer))
+  (if (and buffer-file-name (vc-name buffer-file-name))
+      (let* ((version (if (string-equal rev "")
+			  (vc-latest-version buffer-file-name)
+			rev))
+	     (filename (concat buffer-file-name ".~" version "~")))
+	 (or (file-exists-p filename)
+	     (vc-backend-checkout buffer-file-name nil version filename))
+	 (find-file-other-window filename))
+    (vc-registration-error buffer-file-name)))
+
 ;; Header-insertion code
 
 ;;;###autoload
@@ -1423,21 +1443,42 @@ Return nil if there is no such person."
   (message "Registering %s...done" file)
   )
 
-(defun vc-backend-checkout (file &optional writable rev)
+(defun vc-backend-checkout (file &optional writable rev workfile)
   ;; Retrieve a copy of a saved version into a workfile
-  (message "Checking out %s..." file)
-  (vc-backend-dispatch file
-   (progn
+  (let ((filename (or workfile file)))
+    (message "Checking out %s..." filename)
+    (vc-backend-dispatch file
      (vc-do-command 0 "get" file	;; SCCS
 		    (if writable "-e")
+		    (if workfile  (concat "-G" workfile))
 		    (and rev (concat "-r" (vc-lookup-triple file rev))))
+     (if workfile ;; RCS
+	 ;; RCS doesn't let us check out into arbitrary file names directly.
+	 ;; Use `co -p' and make stdout point to the correct file.
+	 (let ((default-modes (default-file-modes))
+	       (vc-modes (logior (file-modes (vc-name file))
+				 (if writable 128 0)))
+	       (failed t))
+	   (unwind-protect
+	       (progn
+		   (set-default-file-modes vc-modes)
+		   (vc-do-command
+		      0 "/bin/sh" file "-c"
+		      "filename=$1; shift; exec co \"$@\" >$filename"
+		      "" ; dummy argument for shell's $0
+		      filename
+		      (if writable "-l")
+		      (concat "-p" rev))
+		   (setq failed nil))
+	     (set-default-file-modes default-modes)
+	     (and failed (file-exists-p filename) (delete-file filename))))
+       (vc-do-command 0 "co" file
+		      (if writable "-l")
+		      (and rev (concat "-r" rev))))
      )
-   (vc-do-command 0 "co" file	;; RCS
-		  (if writable "-l")
-		  (and rev (concat "-r" rev)))
-   )
-  (vc-file-setprop file 'vc-checkout-time (nth 5 (file-attributes file)))
-  (message "Checking out %s...done" file)
+    (or workfile
+	(vc-file-setprop file 'vc-checkout-time (nth 5 (file-attributes file))))
+    (message "Checking out %s...done" filename))
   )
 
 (defun vc-backend-logentry-check (file)
@@ -1572,6 +1613,7 @@ These bindings are added to the global keymap when you enter this mode:
 \\[vc-revert-buffer]		revert buffer to latest version
 \\[vc-cancel-version]		undo latest checkin
 \\[vc-diff]		show diffs between file versions
+\\[vc-version-other-window]		visit old version in another window
 \\[vc-directory]		show all files locked by any user in or below .
 \\[vc-update-change-log]		add change log entry from recent checkins
 
