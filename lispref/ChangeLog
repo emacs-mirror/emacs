@@ -1,3 +1,7 @@
+2004-11-16  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* frames.texi (Window Frame Parameters): Fix typo.
+
 2004-11-15  Kim F. Storm  <storm@cua.dk>
 
 	* symbols.texi (Other Plists): Note that plist-get may signal error.
