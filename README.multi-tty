@@ -185,33 +185,6 @@ See arch logs.
 THINGS TO DO
 ------------
 
-** There are frequent input-related coredumps, with inconclusive
-   backtraces.  An example (from Mark Plaksin):
-
-	#0  0x40301571 in kill () from /lib/libc.so.6
-	#1  0x080eb371 in fatal_error_signal (sig=11612)
-	    at /home/happy/src/emacs/multi-tty-cvs/src/emacs.c:385
-	#2  <signal handler called>
-	#3  0x40301571 in kill () from /lib/libc.so.6
-	#4  0x080eb3cc in abort () at /home/happy/src/emacs/multi-tty-cvs/src/emacs.c:418
-	#5  0x080c8f18 in handle_one_xevent (dpyinfo=0x862ebb8, eventp=0xbfffef20,
-	    bufp_r=0xbfffefa4, numcharsp=0xbfffefa8, finish=0xbfffef1c)
-	    at /home/happy/src/emacs/multi-tty-cvs/src/xterm.c:5884
-	#6  0x080ca531 in XTread_socket (display=0x862ee20, bufp=0xbffff0f4, numchars=1,
-	    expected=1) at /home/happy/src/emacs/multi-tty-cvs/src/xterm.c:7221
-	#7  0x080f577a in read_avail_input (expected=1)
-	    at /home/happy/src/emacs/multi-tty-cvs/src/keyboard.c:6609
-	#8  0x080f59fc in handle_async_input ()
-	    at /home/happy/src/emacs/multi-tty-cvs/src/keyboard.c:6807
-	#9  0x0813aa41 in Fgarbage_collect ()
-	    at /home/happy/src/emacs/multi-tty-cvs/src/alloc.c:4549
-	#10 0x0817c06d in Fbyte_code (bytestr=1, vector=131, maxdepth=-1073745424)
-	    at /home/happy/src/emacs/multi-tty-cvs/src/bytecode.c:530
-	[...]
-
-   They seem to always happen in handle_one_xevent right after garbage
-   collection.
-
 ** There is a flicker during the startup of `emacs -nw'; it's as if
    the terminal is initialized, reset and then initialialized again.
    Debug this.  (Hint: narrow_foreground_group is called twice during
@@ -247,7 +220,7 @@ THINGS TO DO
 
 ** Implement support for starting an interactive Emacs session without
    an initial frame.  (The user would connect to it and open frames
-   later, with emacsclient.)  Not necessarily a good idea.
+   later, with emacsclient.)
 
 ** Fix Mac support (I can't do this myself).  Note that the current
    state of Mac-specific source files in the multi-tty tree are not
