@@ -42,6 +42,45 @@
 (setq grep-regexp-alist
   '(("^\\(\\([a-zA-Z]:\\)?[^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 3)))
 
+;; This overrides a trivial definition in files.el.
+(defun convert-standard-filename (filename)
+  "Convert a standard file's name to something suitable for the current OS.
+This function's standard definition is trivial; it just returns the argument.
+However, on some systems, the function is redefined
+with a definition that really does change some file names."
+  (let ((dir (file-name-directory filename))
+	(string (copy-sequence (file-name-nondirectory filename)))
+	i firstdot)
+    ;; Change a leading period to a leading underscore.
+    (if (= (aref string 0) ?.)
+	(aset string 0 ?_))
+    ;; Get rid of invalid characters.
+    (while (setq i (string-match "[^a-zA-Z0-9_.%~]" string))
+      (aset string i ?_))
+    ;; If we don't have a period,
+    ;; and we have a dash or underscore that isn't the first char,
+    ;; change that to a period.
+    (if (and (not (string-match "\\." string))
+	     (setq i (string-match "[-_]" string 1)))
+	(aset string i ?\.))
+    ;; If we don't have a period in the first 8 chars, insert one.
+    (if (> (or (string-match "\\." string)
+	       (length string))
+	   8)
+	(setq string
+	      (concat (substring string 0 8)
+		      "."
+		      (substring string 8))))
+    (setq firstdot (string-match "\\." string))
+    ;; Truncate to 3 chars after the first period.
+    (if (> (length string) (+ firstdot 4))
+	(setq string (substring string 0 (+ firstdot 4))))
+    ;; Change all periods except the first one into underscores.
+    (while (string-match "\\." string (1+ firstdot))
+      (setq i (string-match "\\." string (1+ firstdot)))
+      (aset string i ?_))
+    (concat dir string)))
+
 (defvar file-name-buffer-file-type-alist
   '(
     ("[:/].*config.sys$" . nil)		; config.sys text
