@@ -1,5 +1,19 @@
 2000-06-02  Dave Love  <fx@gnu.org>
 
+	* files.el (convert-standard-filename): Doc fix.
+	(normal-backup-enable-predicate): New function.
+	(backup-enable-predicate): Use it to replace the lambda form.
+
+	* calendar/todo-mode.el: [This needs more work on the outline
+	stuff.]  Doc fixes.
+	(todo) <defgroup>: Add :version.
+	(todo-add-category): Don't use pushnew.
+	(todo-cmd-raise): Fix typo.
+	(todo-top-priorities): Change temp buffer name.
+	(todo-category-alist): Avoid redundant lambda.
+	(todo-mode): Set paragraph-separate, outline-regexp from
+	todo-prefix.  Use outline-next-heading.
+
 	* autoarg.el: Rewritten to use define-minor-mode.
 	(autoarg-kp-digits, autoarg-kp-mode-map): New variable.
 	(autoarg-kp-mode, autoarg-kp-digit-argument): New command.
