@@ -5920,6 +5920,7 @@ with_echo_area_buffer (w, which, fn, a1, a2, a3, a4)
 
   current_buffer->undo_list = Qt;
   current_buffer->read_only = Qnil;
+  specbind (Qinhibit_read_only, Qt);
 
   if (clear_buffer_p && Z > BEG)
     del_range (BEG, Z);
@@ -5987,21 +5988,19 @@ static Lisp_Object
 unwind_with_echo_area_buffer (vector)
      Lisp_Object vector;
 {
-  int i = 0;
-  
-  set_buffer_internal_1 (XBUFFER (XVECTOR (vector)->contents[i])); ++i;
-  Vdeactivate_mark = XVECTOR (vector)->contents[i]; ++i;
-  windows_or_buffers_changed = XFASTINT (XVECTOR (vector)->contents[i]); ++i;
+  set_buffer_internal_1 (XBUFFER (AREF (vector, 0)));
+  Vdeactivate_mark = AREF (vector, 1);
+  windows_or_buffers_changed = XFASTINT (AREF (vector, 2));
 
-  if (WINDOWP (XVECTOR (vector)->contents[i]))
+  if (WINDOWP (AREF (vector, 3)))
     {
       struct window *w;
       Lisp_Object buffer, charpos, bytepos;
       
-      w = XWINDOW (XVECTOR (vector)->contents[i]); ++i;
-      buffer = XVECTOR (vector)->contents[i]; ++i;
-      charpos = XVECTOR (vector)->contents[i]; ++i;
-      bytepos = XVECTOR (vector)->contents[i]; ++i;
+      w = XWINDOW (AREF (vector, 3));
+      buffer = AREF (vector, 4);
+      charpos = AREF (vector, 5);
+      bytepos = AREF (vector, 6);
       
       w->buffer = buffer;
       set_marker_both (w->pointm, buffer,
@@ -6033,8 +6032,14 @@ setup_echo_area_for_printing (multibyte_p)
 
       /* Switch to that buffer and clear it.  */
       set_buffer_internal (XBUFFER (echo_area_buffer[0]));
+      
       if (Z > BEG)
-	del_range (BEG, Z);
+	{
+	  int count = BINDING_STACK_SIZE ();
+	  specbind (Qinhibit_read_only, Qt);
+	  del_range (BEG, Z);
+	  unbind_to (count, Qnil);
+	}
       TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
 
       /* Set up the buffer for the multibyteness we need.  */
