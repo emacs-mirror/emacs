@@ -4,6 +4,20 @@
 	correctly for single byte character case.
 	(w32_per_char_metric): Do not try to make any assumptions about
 	the metrics of BDF fonts.
+	(x_estimate_mode_line_height): If `mode-line' face
+	hasn't a font, use that of the frame, as drawing glyphs
+	does.
+	(note_mouse_highlight): Change the cursor shape	on the vertical
+	border between windows [not enabled].
+
+	* w32term.h (struct w32_output): Add member horizontal_drag_cursor.
+
+	* w32fns.c (Fx_create_frame): Reintroduce the call to
+	face-set-after-frame-defaults.
+	(Vx_window_horizontal_drag_shape): New variable.
+	(syms_of_xfns): DEFVAR_LISP it.
+	(x_set_mouse_color): Create frame's horizontal_drag_cursor [not
+	enabled].
 
 2000-12-02  Simon Josefsson  <simon@josefsson.org>
 
