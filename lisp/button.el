@@ -303,72 +303,30 @@ Also see `make-text-button'."
       ;; Must be a text-property button; return a marker pointing to it.
       (copy-marker pos t))))
 
-(defun next-button (pos &optional n wrap count-current)
-  "Return the Nth button after position POS in the current buffer.
-If N is negative, return the Nth button before POS.
-If no Nth button is found, return nil.
-If WRAP is non-nil, the search wraps around at the end of the buffer.
+(defun next-button (pos &optional count-current)
+  "Return the next button after position POS in the current buffer.
 If COUNT-CURRENT is non-nil, count any button at POS in the search,
- instead of starting at the next button."
-  (when (null n)
-    (setq n 1))
-  (if (< n 0)
-      ;; reverse direction
-      (previous-button pos (- n) wrap)
+instead of starting at the next button."
     (unless count-current
       ;; Search for the next button boundary.
       (setq pos (next-single-char-property-change pos 'button)))
-    (let ((button (button-at pos)))
-      (cond ((and button (button-get button 'skip))
-	     ;; Found a button, but the button declines to be found; recurse.
-	     (next-button (button-start button) n wrap))
-	    ((and button (>= n 2))
-	     ;; Found a button, but we want a different one; recurse.
-	     (next-button (button-start button) (1- n) wrap))
-	    (button
-	     ;; This is the button we want.
-	     button)
-	    ((= pos (point-max))
-	     ;; Failed to find a button going forwards, either wrap or
-	     ;; return failure.
-	     (and wrap (next-button (point-min) n nil t)))
-	    (t
+    (and (< pos (point-max))
+	 (or (button-at pos)
 	     ;; We must have originally been on a button, and are now in
 	     ;; the inter-button space.  Recurse to find a button.
-	     (next-button pos n wrap))))))
+	     (next-button pos))))
 
-(defun previous-button (pos &optional n wrap count-current)
+(defun previous-button (pos &optional count-current)
   "Return the Nth button before position POS in the current buffer.
-If N is negative, return the Nth button after POS.
-If no Nth button is found, return nil.
-If WRAP is non-nil, the search wraps around at the beginning of the buffer.
 If COUNT-CURRENT is non-nil, count any button at POS in the search,
- instead of starting at the next button."
-  (when (null n)
-    (setq n 1))
-  (if (< n 0)
-      ;; reverse direction
-      (next-button pos (- n) wrap)
-    (unless count-current
-      (setq pos (previous-single-char-property-change pos 'button)))
-    (let ((button (and (> pos (point-min)) (button-at (1- pos)))))
-      (cond ((and button (button-get button 'skip))
-	     ;; Found a button, but the button declines to be found; recurse.
-	     (previous-button (button-start button) n wrap))
-	    ((and button (>= n 2))
-	     ;; Found a button, but we want a different one; recurse.
-	     (previous-button (button-start button) (1- n) wrap))
-	    (button
-	     ;; This is the button we want.
-	     button)
-	    ((= pos (point-min))
-	     ;; Failed to find a button going backwards, either wrap
-	     ;; or return failure.
-	     (and wrap (previous-button (point-max) n nil t)))
-	    (t
-	     ;; We must have originally been on a button, and are now in
-	     ;; the inter-button space.  Recurse to find a button.
-	     (previous-button pos (max n 1) wrap))))))
+instead of starting at the next button."
+  (unless count-current
+    (setq pos (previous-single-char-property-change pos 'button)))
+  (and (> pos (point-min))
+       (or (button-at (1- pos))
+	   ;; We must have originally been on a button, and are now in
+	   ;; the inter-button space.  Recurse to find a button.
+	   (previous-button pos))))
 
 
 ;; User commands
@@ -400,15 +358,33 @@ return t."
 
 (defun forward-button (n &optional wrap display-message)
   "Move to the Nth next button, or Nth previous button if N is negative.
+If N is 0, move to the start of any button at point.
 If WRAP is non-nil, moving past either end of the buffer continues from the
 other end.
 If DISPLAY-MESSAGE is non-nil, the button's help-echo string is displayed.
+Any button with a non-nil `skip' property is skipped over.
 Returns the button found."
   (interactive "p\nd\nd")
-  (let ((button (next-button (point) n wrap)))
+  (let (button)
+    (if (zerop n)
+	;; Move to start of current button
+	(if (setq button (button-at (point)))
+	    (goto-char (button-start button)))
+      ;; Move to Nth next button
+      (let ((iterator (if (> n 0) #'next-button #'previous-button))
+	    (wrap-start (if (> n 0) (point-min) (point-max))))
+	(setq n (abs n))
+	(setq button t)			; just to start the loop
+	(while (and (> n 0) button)
+	  (setq button (funcall iterator (point)))
+	  (when (and (not button) wrap)
+	    (setq button (funcall iterator wrap-start t)))
+	  (when button
+	    (goto-char (button-start button))
+	    (unless (button-get button 'skip)
+	      (setq n (1- n)))))))
     (if (null button)
 	(error (if wrap "No buttons!" "No more buttons"))
-      (goto-char (button-start button))
       (let ((msg (and display-message (button-get button 'help-echo))))
 	(when msg
 	  (message "%s" msg)))
@@ -416,9 +392,11 @@ Returns the button found."
 
 (defun backward-button (n &optional wrap display-message)
   "Move to the Nth previous button, or Nth next button if N is negative.
+If N is 0, move to the start of any button at point.
 If WRAP is non-nil, moving past either end of the buffer continues from the
 other end.
 If DISPLAY-MESSAGE is non-nil, the button's help-echo string is displayed.
+Any button with a non-nil `skip' property is skipped over.
 Returns the button found."
   (interactive "p\nd\nd")
   (forward-button (- n) wrap display-message))
