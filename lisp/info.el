@@ -605,9 +605,28 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
     (Info-find-node (if (equal filename "") nil filename)
 		    (if (equal nodename "") "Top" nodename))))
 
+;; This function is used as the "completion table" while reading a node name.
+;; It does completion using the alist in completion-table
+;; unless STRING starts with an open-paren.
+(defun Info-read-node-name-1 (string predicate code)
+  (let ((no-completion (and (> (length string) 0) (eq (aref string 0) ?\())))
+    (cond ((eq code nil)
+	   (if no-completion
+	       string
+	     (try-completion string completion-table predicate)))
+	  ((eq code t)
+	   (if no-completion
+	       nil
+	     (all-completions string completion-table predicate)))
+	  ((eq code 'lambda)
+	   (if no-completion
+	       t
+	     (assoc string completion-table))))))
+
 (defun Info-read-node-name (prompt &optional default)
   (let* ((completion-ignore-case t)
-	 (nodename (completing-read prompt (Info-build-node-completions))))
+	 (completion-table (Info-build-node-completions))
+	 (nodename (completing-read prompt 'Info-read-node-name-1)))
     (if (equal nodename "")
 	(or default
 	    (Info-read-node-name prompt))
