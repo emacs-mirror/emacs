@@ -2386,6 +2386,10 @@ Lisp_Object Vdouble_click_time;
 
 int double_click_count;
 
+#ifdef USE_X_TOOLKIT
+extern Lisp_Object map_event_to_object ();
+#endif /* USE_X_TOOLKIT  */
+
 /* Given a struct input_event, build the lisp event which represents
    it.  If EVENT is 0, build a mouse movement event from the mouse
    movement buffer, which should have a movement event in it.
@@ -2484,6 +2488,14 @@ make_lispy_event (event)
 					 &part);
 	    Lisp_Object posn;
 
+#ifdef USE_X_TOOLKIT
+	    if (FRAME_EXTERNAL_MENU_BAR (f) && XINT (event->y) == -1)
+	      {
+		/* The click happened in the menubar.
+		   Look for the menu item selected.  */
+		Lisp_Object items = map_event_to_object(event, f);
+		XFASTINT (event->y) = 1;
+#else /* not USE_X_TOOLKIT  */
 	    if (XINT (event->y) < FRAME_MENU_BAR_LINES (f))
 	      {
 		int hpos;
@@ -2498,6 +2510,7 @@ make_lispy_event (event)
 			&& XINT (event->x) < XINT (pos) + XSTRING (string)->size)
 		      break;
 		  }
+#endif /* not USE_X_TOOLKIT  */
 		position
 		  = Fcons (event->frame_or_window,
 			   Fcons (Qmenu_bar,
