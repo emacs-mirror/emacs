@@ -4484,13 +4484,12 @@ XTread_socket (sd, bufp, numchars, expected)
 	      f = x_top_window_to_frame (dpyinfo, event.xconfigure.window);
 	      if (f)
 		{
+		  int rows = PIXEL_TO_CHAR_HEIGHT (f, event.xconfigure.height);
+		  int columns = PIXEL_TO_CHAR_WIDTH (f, event.xconfigure.width);
 #ifndef USE_X_TOOLKIT
 		  /* In the toolkit version, change_frame_size
 		     is called by the code that handles resizing
 		     of the EmacsFrame widget.  */
-
-		  int rows = PIXEL_TO_CHAR_HEIGHT (f, event.xconfigure.height);
-		  int columns = PIXEL_TO_CHAR_WIDTH (f, event.xconfigure.width);
 
 		  /* Even if the number of character rows and columns has
 		     not changed, the font size may have changed, so we need
@@ -4531,7 +4530,16 @@ XTread_socket (sd, bufp, numchars, expected)
 		      event.xconfigure.y = f->output_data.x->widget->core.y;
 		    }
 #endif
+		  /* If cursor was outside the new size, mark it as off.  */
+		  if (f->phys_cursor_y >= rows
+		      || f->phys_cursor_x >= columns)
+		    {
+		      f->phys_cursor_x = 0;
+		      f->phys_cursor_y = 0;
+		      f->phys_cursor_on = 0;
+		    }
 		}
+
 	      goto OTHER;
 
 	    case ButtonPress:
