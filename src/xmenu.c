@@ -1096,10 +1096,15 @@ popup_get_selection (initial_event, dpyinfo, id)
       /* Handle expose events for editor frames right away.  */
       if (event.type == Expose)
 	process_expose_from_menu (event);
-      /* Make sure we don't consider buttons grabbed after menu goes.  */
+      /* Make sure we don't consider buttons grabbed after menu goes.
+	 And make sure to deactivate for any ButtonRelease,
+	 even if XtDispatchEvent doesn't do that.  */
       else if (event.type == ButtonRelease
 	       && dpyinfo->display == event.xbutton.display)
-	dpyinfo->grabbed &= ~(1 << event.xbutton.button);
+        {
+          dpyinfo->grabbed &= ~(1 << event.xbutton.button);
+          popup_activated_flag = 0;
+        }
       /* If the user presses a key, deactivate the menu.
 	 The user is likely to do that if we get wedged.  */
       else if (event.type == KeyPress
@@ -1118,11 +1123,13 @@ popup_get_selection (initial_event, dpyinfo, id)
 	}
 
       /* Queue all events not for this popup,
-	 except for Expose, which we've already handled.
+	 except for Expose, which we've already handled, and ButtonRelease.
 	 Note that the X window is associated with the frame if this
 	 is a menu bar popup, but not if it's a dialog box.  So we use
 	 x_non_menubar_window_to_frame, not x_any_window_to_frame.  */
       if (event.type != Expose
+          && !(event.type == ButtonRelease
+               && dpyinfo->display == event.xbutton.display)
 	  && (event.xany.display != dpyinfo->display
 	      || x_non_menubar_window_to_frame (dpyinfo, event.xany.window)))
 	{
