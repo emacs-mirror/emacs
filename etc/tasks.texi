@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate January  6, 1999
+@set lastupdate January 10, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -535,7 +535,7 @@ A braille translation and formatting system which can convert marked up
 documents into braille.  This should let the user customize the braille
 translation rules; it would be good to divide it into a
 device-independent part plus drivers.  Contact Jason White,
-@email{jasonw@ariel.ucs.unimelb.EDU.AU}.
+@email{jasonw@@ariel.ucs.unimelb.EDU.AU}.
 
 @ignore Being done
 @item
