@@ -675,13 +675,15 @@ is treated as a character."
   "Support for all Emacs characters (including non-Unicode characters)."
   :coding-type 'utf-8
   :mnemonic ?U
-  :charset-list '(emacs))
+  :charset-list '(emacs)
+  :mime-charset 'utf-8)
 
 (define-coding-system 'utf-16
   "UTF-16"
   :coding-type 'utf-16
   :mnemonic ?U
-  :charset-list '(unicode))
+  :charset-list '(unicode)
+  :mime-charset 'utf-16)
 
 (define-coding-system 'utf-16-le-nosig
   "UTF-16, little endian, no signature"
@@ -703,7 +705,8 @@ is treated as a character."
   :mnemonic ?U
   :charset-list '(unicode)
   :bom t
-  :endian 'little)
+  :endian 'little
+  :mime-charset 'utf-16-le)
 
 (define-coding-system 'utf-16-be
   "UTF-16, big endian, with signature"
@@ -711,7 +714,8 @@ is treated as a character."
   :mnemonic ?U
   :charset-list '(unicode)
   :bom t
-  :endian 'big)
+  :endian 'big
+  :mime-charset 'utf-16-be)
 
 (define-coding-system 'iso-2022-7bit
   "ISO 2022 based 7-bit encoding using only G0"
@@ -780,6 +784,8 @@ This coding system does not support ICCCM Extended Segments."
   :designation [(ascii 94) (latin-iso8859-1 katakana-jisx0201 96) nil nil]
   :flags '(ascii-at-eol ascii-at-cntl
 			designation locking-shift single-shift composition)
+  ;; Fixme: this isn't a valid MIME charset and has to be
+  ;; special-cased elsewhere  -- fx
   :mime-charset 'x-ctext)
 
 (define-coding-system-alias  'x-ctext 'compound-text)
