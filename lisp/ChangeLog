@@ -1,3 +1,14 @@
+2000-05-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* subr.el (substitute-key-definition): Clarify documentation.
+
+2000-05-04  Milan Zamazal  <pdm@freesoft.cz>
+
+	* glasses.el (glasses-convert-to-unreadable): Use
+	`glasses-separator' instead of the hard-wired "_".
+	(glasses-mode): Call `glasses-make-unreadable' only in a single
+	place.
+
 2000-05-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* term/internal.el (cjk-codepages-alist): Add associations for
