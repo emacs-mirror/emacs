@@ -22,7 +22,7 @@
 @c @syncodeindex tp fn
 
 @ifnottex
-This Info file contains edition 2.6 of the GNU Emacs Lisp
+This Info file contains edition 2.7 of the GNU Emacs Lisp
 Reference Manual, corresponding to Emacs version 21.1.
 @c Please REMEMBER to update edition number in *four* places in this file
 @c                 and also in *one* place in intro.texi
@@ -52,7 +52,7 @@ Software Foundation raise funds for GNU development.''
 @subtitle For Emacs Version 21
 @c The edition number appears in several places in this file
 @c and also in the file intro.texi.
-@subtitle Revision 2.6, May 2000
+@subtitle Revision 2.7, May 2000
 
 @author by Bil Lewis, Dan LaLiberte, Richard Stallman
 @author and the GNU Manual Group
@@ -62,7 +62,7 @@ Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998, 1999, 200
 Free Software Foundation, Inc. 
 
 @sp 2
-Edition 2.6 @*
+Edition 2.7 @*
 Revised for Emacs Version 21.1,@*
 May 2000.@*
 @sp 2
@@ -92,7 +92,7 @@ Cover art by Etienne Suvasa.
 @node Top, Introduction, (dir), (dir)
 
 @ifnottex
-This Info file contains edition 2.6 of the GNU Emacs Lisp
+This Info file contains edition 2.7 of the GNU Emacs Lisp
 Reference Manual, corresponding to GNU Emacs version 21.1.
 @end ifnottex
 
