@@ -1,3 +1,8 @@
+2001-05-24  Andrew Choi  <akochoi@i-cable.com>
+
+	* international/titdic-cnv.el (quail-misc-package-ext-info):
+	Change CTLauB.el to CTLau-b5.el.
+
 2001-05-23  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* gud.el (gud-gdb-run-command-fetch-lines): Use forward-line
