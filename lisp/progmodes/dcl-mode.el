@@ -163,7 +163,7 @@ CUR-INDENT + EXTRA-INDENT.
 This package includes two functions suitable for this:
   dcl-calc-command-indent-multiple
   dcl-calc-command-indent-hang"
-  :type 'function
+  :type '(choice (const nil) function)
   :group 'dcl)
 
 
