@@ -113,6 +113,7 @@ is nil, REGEXP matches only half a section.")
 			    compilation-error-list)))))
 
 	(found-desired nil)
+	(num-loci-found 0)
 	g)
 
     (while (and (not found-desired)
@@ -132,18 +133,19 @@ is nil, REGEXP matches only half a section.")
       (if (nth 2 g)			;NEW-IDX
 	  (funcall new-error diff-new-file (nth 2 g)))
 
+      (setq num-loci-found (1+ num-loci-found))
       (if (or (and find-at-least
-		   (>= compilation-num-errors-found find-at-least))
+		   (>= num-loci-found find-at-least))
 	      (and limit-search (>= (point) limit-search)))
-	      ;; We have found as many new errors as the user wants,
+	      ;; We have found as many new loci as the user wants,
 	      ;; or the user wanted a specific diff, and we're past it.
 	  (setq found-desired t)))
     (if found-desired
 	(setq compilation-parsing-end (point))
       ;; Set to point-max, not point, so we don't perpetually
       ;; parse the last bit of text when it isn't a diff header.
-      (setq compilation-parsing-end (point-max))
-      (message "Parsing differences...done")))
+      (setq compilation-parsing-end (point-max)))
+    (message "Parsing differences...done"))
   (setq compilation-error-list (nreverse compilation-error-list)))
 
 ;;;###autoload
@@ -178,7 +180,6 @@ With prefix arg, prompt for diff switches."
 			       diff-switches
 			     (mapconcat 'identity diff-switches " "))))
       nil)))
-  (message "Comparing files %s %s..." new old)
   (setq new (expand-file-name new)
 	old (expand-file-name old))
   (let ((old-alt (file-local-copy old))
