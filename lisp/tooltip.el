@@ -46,7 +46,7 @@
 (defgroup tooltip nil
   "Customization group for the `tooltip' package."
   :group 'help
-  :group 'c
+  :group 'gud
   :group 'mouse
   :group 'tools
   :version "21.1"
