@@ -716,10 +716,15 @@ There should be no more than seven characters after the final `/'."
 (put 'byte-compiler-base-file-name 'jka-compr
      'jka-compr-byte-compiler-base-file-name)
 
+(defvar jka-compr-inhibit nil
+  "Non-nil means inhibit automatic uncompression temporarily.
+Lisp programs can bind this to t to do that.
+It is not recommended to set this variable permanently to anything but nil.")
+
 (defun jka-compr-handler (operation &rest args)
   (save-match-data
     (let ((jka-op (get operation 'jka-compr)))
-      (if jka-op
+      (if (and jka-op (not jka-compr-inhibit))
 	  (apply jka-op args)
 	(jka-compr-run-real-handler operation args)))))
 
