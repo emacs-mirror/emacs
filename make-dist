@@ -387,8 +387,12 @@ echo "Making links to \`leim' and its subdirectories for the LEIM distribution"
  ln SKK-DIC/README SKK-DIC/SKK-JISYO.L ../${tempdir}/real-leim/SKK-DIC
  ln MISC-DIC/*.* ../${tempdir}/real-leim/MISC-DIC
  ln ja-dic/*.el ja-dic/*.elc ../${tempdir}/real-leim/ja-dic
- ln quail/[a-zA-Z]*.el quail/[a-zA-Z]*.elc ../${tempdir}/real-leim/quail
  ln Makefile.in ../${tempdir}/real-leim/Makefile.in
+ ln quail/[a-z]*.el quail/[a-z]*.elc ../${tempdir}/real-leim/quail
+ rm -f ../${tempdir}/real-leim/quail/quick-b5.*
+ rm -f ../${tempdir}/real-leim/quail/quick-cns.*
+ rm -f ../${tempdir}/real-leim/quail/tsang-b5.*
+ rm -f ../${tempdir}/real-leim/quail/tsang-cns.*
 
  cd ../${tempdir}/real-leim
  rm -f TAGS =* */=*)
