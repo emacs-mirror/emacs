@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -415,6 +414,10 @@
 		  (equal (car x) '(float 0 0)))
 	      (setcar x (list 'cplx (car x) 0))
 	    (calc-encase-atoms-rec (car x)))))))
+
+;; The variable math-comp-sel-tag is local to calc-find-selected-part,
+;; but is used by math-comp-sel-flat-term and math-comp-add-string-sel
+;; in calccomp.el, which are called (indirectly) by calc-find-selected-part.
 
 (defun calc-find-selected-part ()
   (let* ((math-comp-sel-hpos (- (current-column) calc-selection-cache-offset))
