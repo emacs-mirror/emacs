@@ -178,6 +178,10 @@ NOTE-END
 #define START_FILES pre-crt0.o
 #endif
 
+#ifdef LINUX
+/* This controls a conditional in main.  */
+#define LINUX_SBRK_BUG
+#endif
 
 /* The program to be used for unexec. */
 
