@@ -61,7 +61,8 @@ The Lisp code is executed when the node is selected.")
   :group 'info)
 
 (defface info-node
-  '((((class color)) (:foreground "brown" :bold t :italic t))
+  '((((class color) (background light)) (:foreground "brown" :bold t :italic t))
+    (((class color) (background dark)) (:foreground "white" :bold t :italic t))
     (t (:bold t :italic t)))
   "Face for Info node names."
   :group 'info)
@@ -73,7 +74,8 @@ The Lisp code is executed when the node is selected.")
   :group 'info)
 
 (defface info-xref
-  '((((class color)) (:foreground "magenta4" :bold t))
+  '((((class color) (background light)) (:foreground "magenta4" :bold t))
+    (((class color) (background dark)) (:foreground "cyan" :bold t))
     (t (:bold t)))
   "Face for Info cross-references."
   :group 'info)
@@ -90,12 +92,12 @@ A header-line does not scroll with the rest of the buffer."
   :group 'info)
 
 (defface info-header-xref
-  '((t (:weight bold)))
+  '((t (:inherit info-xref)))
   "Face for Info cross-references in a node header."
   :group 'info)
 
 (defface info-header-node
-  '((t (:weight bold :slant italic)))
+  '((t (:inherit info-node)))
   "Face for Info nodes in a node header."
   :group 'info)
 
