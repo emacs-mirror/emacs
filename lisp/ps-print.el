@@ -24,9 +24,9 @@
 ;; LCD Archive Entry:
 ;; ps-print|James C. Thompson|thompson@wg2.waii.com|
 ;; Jim's Pretty-Good PostScript Generator for Emacs 19 (ps-print)|
-;; 26-Feb-1994|2.0|~/packages/ps-print.el|
+;; 26-Feb-1994|2.8|~/packages/ps-print.el|
 
-;; Baseline-version: 2.0.  (Jim's last change version -- this
+;; Baseline-version: 2.8.  (Jim's last change version -- this
 ;; file may have been edited as part of Emacs without changes to the
 ;; version number.  When reporting bugs, please also report the
 ;; version of Emacs, if any, that ps-print was distributed with.)
@@ -179,7 +179,10 @@
 ;; file:
 ;;
 ;; 	(setq ps-bold-faces '(my-blue-face))
-;;      (setq ps-red-faces '(my-red-face))
+;;      (setq ps-italic-faces '(my-red-face))
+;;
+;; Faces like bold-italic that are both bold and italic should go in
+;; *both* lists.
 ;;
 ;; Ps-print does not attempt to guess the sizes of fonts; all text is
 ;; rendered using the Courier font family, in 10 point size.  To
@@ -340,13 +343,21 @@
 ;;
 ;; Known bugs and limitations of ps-print:
 ;; --------------------------------------
+;; Although color printing will work in XEmacs 19.12, it doesn't work
+;; well; in particular, bold or italic fonts don't print in the right
+;; background color.
+;;
+;; Invisible properties aren't correctly ignored in XEmacs 19.12.
+;;
 ;; Automatic font-attribute detection doesn't work well, especially
 ;; with hilit19 and older versions of get-create-face.  Users having
 ;; problems with auto-font detection should use the lists ps-italic-
 ;; faces and ps-bold-faces and/or turn off automatic detection by
 ;; setting ps-auto-font-detect to nil.
 ;;
-;; Color output doesn't yet work in XEmacs.
+;; Automatic font-attribute detection doesn't work with XEmacs 19.12
+;; in tty mode; use the lists ps-italic-faces and ps-bold-faces
+;; instead.
 ;;
 ;; Still too slow; could use some hand-optimization.
 ;;
@@ -396,8 +407,8 @@
 
 ;;; Code:
 
-(defconst ps-print-version "2.0"
-  "ps-print.el,v 2.0 1995/02/12 04:39:48 jct Exp
+(defconst ps-print-version "2.8"
+  "ps-print.el,v 2.8 1995/05/04 12:06:10 jct Exp
 
 Jim's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs,
@@ -444,7 +455,8 @@ customizable by changing variables `ps-header-left' and
 Note: page numbers are displayed as part of headers, see variable
 `ps-print-headers'.")
 
-(defvar ps-print-color-p (and (fboundp 'x-color-values)
+(defvar ps-print-color-p (and (or (fboundp 'x-color-values)   ; fsf
+				(fboundp 'pixel-components))  ; xemacs
 			      (fboundp 'float))
 ; Printing color requires both floating point and x-color-values.
   "*If non-nil, print the buffer's text in color.")
@@ -703,7 +715,8 @@ number, prompt the user for the name of the file to save in."
 
 (if (or (eq emacs-type 'lucid)
 	(eq emacs-type 'xemacs))
-    (setq ps-print-color-p nil)
+    (if (< emacs-minor-version 12)
+	(setq ps-print-color-p nil))
   (require 'faces))			; face-font, face-underline-p,
 					; x-font-regexp
 
@@ -1472,9 +1485,11 @@ EndDSCPage\n"))
 
 (defun ps-set-color (color)
   (if (setq ps-current-color color)
-      (ps-output (format ps-color-format (nth 0 ps-current-color)
-			 (nth 1 ps-current-color) (nth 2 ps-current-color))
-		 " FG\n")))
+      nil
+    (setq ps-current-color ps-default-fg))
+  (ps-output (format ps-color-format (nth 0 ps-current-color)
+		     (nth 1 ps-current-color) (nth 2 ps-current-color))
+	     " FG\n"))
 
 (defun ps-set-underline (underline-p)
   (ps-output (if underline-p "true" "false") " UL\n")
@@ -1537,20 +1552,56 @@ EndDSCPage\n"))
   ;; Scale 16-bit X-COLOR-VALUE to PostScript color value in [0, 1] interval.
   (/ x-color-value ps-print-color-scale))
 
+(defun ps-color-values (x-color)
+  (cond ((fboundp 'x-color-values)
+	 (x-color-values x-color))
+	((fboundp 'pixel-components)
+	 (pixel-components x-color))
+	(t (error "No available function to determine X color values."))))
+
+(defun ps-face-attributes (face)
+  (let ((differs (face-differs-from-default-p face)))
+    (list (memq face ps-ref-bold-faces)
+	  (memq face ps-ref-italic-faces)
+	  (memq face ps-ref-underlined-faces)
+	  (and differs (face-foreground face))
+	  (and differs (face-background face)))))
+
+(defun ps-face-attribute-list (face-or-list)
+  (if (listp face-or-list)
+      (let (bold-p italic-p underline-p foreground background face-attr face)
+	(while face-or-list
+	  (setq face (car face-or-list))
+	  (setq face-attr (ps-face-attributes face))
+	  (setq bold-p (or bold-p (nth 0 face-attr)))
+	  (setq italic-p (or italic-p (nth 1 face-attr)))
+	  (setq underline-p (or underline-p (nth 2 face-attr)))
+	  (if foreground
+	      nil
+	    (setq foreground (nth 3 face-attr)))
+	  (if background
+	      nil
+	    (setq background (nth 4 face-attr)))
+	  (setq face-or-list (cdr face-or-list)))
+	(list bold-p italic-p underline-p foreground background))
+
+    (ps-face-attributes face-or-list)))
+
 (defun ps-plot-with-face (from to face)
   (if face
-      (let* ((bold-p (memq face ps-ref-bold-faces))
-	     (italic-p (memq face ps-ref-italic-faces))
-	     (underline-p (memq face ps-ref-underlined-faces))
-	     (foreground (face-foreground face))
-	     (background (face-background face))
+      (let* ((face-attr (ps-face-attribute-list face))
+	     (bold-p (nth 0 face-attr))
+	     (italic-p (nth 1 face-attr))
+	     (underline-p (nth 2 face-attr))
+	     (foreground (nth 3 face-attr))
+	     (background (nth 4 face-attr))
 	     (fg-color (if (and ps-print-color-p foreground)
 			   (mapcar 'ps-color-value
-				   (x-color-values foreground))
+				   (ps-color-values foreground))
 			 ps-default-color))
 	     (bg-color (if (and ps-print-color-p background)
 			   (mapcar 'ps-color-value
-				   (x-color-values background)))))
+				   (ps-color-values background)))))
 	(ps-plot-region from to
 			(cond ((and bold-p italic-p) 3)
 			      (italic-p 2)
@@ -1601,14 +1652,12 @@ EndDSCPage\n"))
   (or (face-underline-p face)
       (memq face ps-underlined-faces)))
 
-(defun ps-faces-list ()
-  (if (or (eq emacs-type 'lucid) (eq emacs-type 'xemacs))
-      (list-faces)
-    (face-list)))
+;; Ensure that face-list is fbound.
+(or (fboundp 'face-list) (defalias 'face-list 'list-faces))
 
 (defun ps-build-reference-face-lists ()
   (if ps-auto-font-detect
-      (let ((faces (ps-faces-list))
+      (let ((faces (face-list))
 	    the-face)
 	(setq ps-ref-bold-faces nil
 	      ps-ref-italic-faces nil
@@ -1640,7 +1689,13 @@ EndDSCPage\n"))
 
 (defun ps-extent-sorter (a b)
   (< (extent-priority a) (extent-priority b)))
-    
+
+(defun ps-print-ensure-fontified (start end)
+  (if (and (boundp 'lazy-lock-mode) lazy-lock-mode)
+      (if (fboundp 'lazy-lock-fontify-region)
+          (lazy-lock-fontify-region start end)
+        (lazy-lock-fontify-buffer))))
+
 (defun ps-generate-postscript-with-faces (from to)
   ;; Build the reference lists of faces if necessary.
   (if (or ps-always-build-face-reference
@@ -1653,13 +1708,14 @@ EndDSCPage\n"))
   ;; evaluated at dump-time because X isn't initialized.
   (setq ps-print-color-scale
 	(if ps-print-color-p
-	    (float (car (x-color-values "white")))
+	    (float (car (ps-color-values "white")))
 	  1.0))
   ;; Generate some PostScript.
   (save-restriction
     (narrow-to-region from to)
     (let ((face 'default)
 	  (position to))
+      (ps-print-ensure-fontified from to)
       (cond ((or (eq emacs-type 'lucid) (eq emacs-type 'xemacs))
 	   ;; Build the list of extents...
 	   (let ((a (cons 'dummy nil))
@@ -1683,12 +1739,21 @@ EndDSCPage\n"))
 	       (setq extent (car record))
 	     
 	       ;; Plot up to this record.
-	       (ps-plot-with-face from position face)
+	       ;; XEmacs 19.12: for some reason, we're getting into a
+	       ;; situation in which some of the records have
+	       ;; positions less than 'from'.  Since we've narrowed
+	       ;; the buffer, this'll generate errors.  This is a
+	       ;; hack, but don't call ps-plot-with-face unless from >
+	       ;; point-min.
+	       (if (and (>= from (point-min))
+			(<= position (point-max)))
+		   (ps-plot-with-face from position face))
 	     
 	       (cond
 		((eq type 'push)
-		 (setq extent-list (sort (cons extent extent-list)
-					 'ps-extent-sorter)))
+		 (if (extent-face extent)
+		     (setq   extent-list (sort (cons extent extent-list)
+					       'ps-extent-sorter))))
 	      
 		((eq type 'pull)
 		 (setq extent-list (sort (delq extent extent-list)
@@ -1856,6 +1921,9 @@ EndDSCPage\n"))
 ;; and able to figure out how to use it.  It isn't really part of ps-
 ;; print, but I'll leave it here in hopes it might be useful:
 
+;; WARNING!!! The following code is *sample* code only. Don't use it
+;; unless you understand what it does!
+
 (defmacro ps-prsc () (list 'if (list 'eq 'emacs-type ''fsf) [f22] ''f22))
 (defmacro ps-c-prsc () (list 'if (list 'eq 'emacs-type ''fsf) [C-f22]
 			     ''(control f22)))
@@ -1967,6 +2035,12 @@ EndDSCPage\n"))
   (setq ps-left-header
 	;; The left headers will display the node name and file name.
 	(list 'ps-info-node 'ps-info-file)))
+
+;; WARNING! The following function is a *sample* only, and is *not*
+;; meant to be used as a whole unless you understand what the effects
+;; will be!  (In fact, this is a copy if my setup for ps-print -- I'd
+;; be very surprised if it was useful to *anybody*, without
+;; modification.)
 
 (defun ps-jts-ps-setup ()
   (global-set-key (ps-prsc) 'ps-spool-buffer-with-faces) ;f22 is prsc
