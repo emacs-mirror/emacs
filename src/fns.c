@@ -2966,6 +2966,7 @@ If the region can't be decoded, return nil and don't modify the buffer.")
   char *decoded;
   int old_pos = PT;
   int decoded_length;
+  int inserted_chars;
 
   validate_region (&beg, &end);
 
@@ -2987,19 +2988,28 @@ If the region can't be decoded, return nil and don't modify the buffer.")
 
   /* Now we have decoded the region, so we insert the new contents
      and delete the old.  (Insert first in order to preserve markers.)  */
-  SET_PT (beg);
+  /* We insert two spaces, then insert the decoded text in between
+     them, at last, delete those extra two spaces.  This is to avoid
+     byte combining.  */
+  TEMP_SET_PT_BOTH (XFASTINT (beg), ibeg);
+  insert_1_both ("  ", 2, 2, 0, 1, 0);
+  TEMP_SET_PT_BOTH (XFASTINT (beg) + 1, ibeg + 1);  
   insert (decoded, decoded_length);
-  del_range_byte (ibeg + decoded_length, iend + decoded_length, 1);
+  inserted_chars = PT - (XFASTINT (beg) + 1);
+  del_range_both (PT, PT_BYTE, XFASTINT (end) + inserted_chars + 2,
+		  iend + decoded_length + 2, 1);
+  del_range_both (XFASTINT (beg), ibeg, XFASTINT (beg) + 1, ibeg + 1, 1);
+  inserted_chars = PT - XFASTINT (beg);
 
   /* If point was outside of the region, restore it exactly; else just
      move to the beginning of the region.  */
   if (old_pos >= XFASTINT (end))
-    old_pos += decoded_length - length;
-  else if (old_pos > beg)
-    old_pos = beg;
+    old_pos += inserted_chars - (XFASTINT (end) - XFASTINT (beg));
+  else if (old_pos > XFASTINT (beg))
+    old_pos = XFASTINT (beg);
   SET_PT (old_pos);
 
-  return make_number (decoded_length);
+  return make_number (inserted_chars);
 }
 
 DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
