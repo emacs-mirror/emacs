@@ -102,7 +102,7 @@ pass to the OPERATION."
       (cond
        ;; If argument is a symlink, 'file-directory-p` and 'file-exists-p`
        ;; call the traversed file recursively. So we cannot disable the
-       ;;file-name-handler this case.
+       ;; file-name-handler this case.
        ((memq operation '(file-directory-p file-exists-p))
 	(apply 'ange-ftp-hook-function operation args))
 	;; Normally, the handlers must be discarded

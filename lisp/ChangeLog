@@ -1,3 +1,48 @@
+2003-05-24  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* net/tramp.el: Version 2.0.34 released.
+	(tramp-handle-file-symlink-p): If target of symlink is absolute,
+	return a Tramp filename.  (Ie, return "/user@host:/target" instead
+	of "/target".)
+	(tramp-handle-file-truename): Deal with new return value from
+	`file-symlink-p'.
+	(tramp-handle-expand-file-name): Make default method explicit in
+	file name.
+	(tramp-unified-filenames): Move to an earlier spot in the file.
+	(top-level): If tramp-unified-filenames is set and we're running
+	on XEmacs, load tramp-efs.
+	(tramp-wait-for-shell-prompt, tramp-barf-if-no-shell-prompt): New
+	functions, used by tramp-send-command-internal.
+	(tramp-open-connection-setup-interactive-shell): Simplify using
+	`tramp-send-command-internal'.
+	(tramp-send-command-internal): New function.
+	(tramp-methods): New entries "remsh" and "remcp" are like "rsh"
+	and "rcp" but invoke "remsh" instead of "rsh".  This is useful on
+	Cray systems, for instance.  Unify tramp-rsh-program,
+	tramp-telnet-program, tramp-su-program into tramp-login-program.
+	Likewise with tramp-login-args, tramp-copy-program,
+	tramp-copy-args, tramp-copy-keep-date-arg.  Users changed.  New
+	method plink1; like plink but pass "-1" to force protocol version
+	1.
+	(tramp-default-method): Use plink as the default on machines where
+	the plink program is present.
+	(tramp-completion-file-name-handler): Add safe-magic property.
+	(tramp-shell-prompt-pattern): Allow ANSI escapes at
+	end of prompt.  (ANSI escapes elsewhere in the prompt are
+	recognized properly already.)
+
+	* net/tramp-efs.el: New file.
+
+2003-05-24 Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp.el (tramp-handle-file-truename): `sym' shouldn't be
+	quoted.
+	(tramp-methods, tramp-multi-connection-function-alist): Use
+	argument "-p Password:" for "sudo" method, because password prompt
+	might be changed by either passprompt option in /etc/sudoers, or
+	SUDO_PROMPT environment variable.  Suggested by Peter Oliver
+	<peter.oliver@aquila-networks.co.uk>.
+
 2003-05-23  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdba): Accommodate Fortran programs.
