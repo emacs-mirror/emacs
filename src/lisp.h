@@ -35,6 +35,22 @@ Boston, MA 02111-1307, USA.  */
    be compared to the sizes recorded in Lisp strings.  */
 
 #define GC_CHECK_STRING_BYTES 1
+
+/* Define this to check for short string overrun.  */
+
+#define GC_CHECK_STRING_OVERRUN 1
+
+/* Define this to check the string free list.  */
+
+#define GC_CHECK_STRING_FREE_LIST 1
+
+/* Define this to check for malloc buffer overrun.  */
+
+#define XMALLOC_OVERRUN_CHECK 1
+
+/* Define this to check for errors in cons list.  */
+/* #define GC_CHECK_CONS_LIST 1 */
+
 #endif /* 0 */
 
 
