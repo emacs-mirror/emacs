@@ -196,7 +196,7 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/stat.h>
 
 #include "lisp.h"
-#include "charset.h"
+#include "character.h"
 #include "keyboard.h"
 #include "frame.h"
 
@@ -550,14 +550,14 @@ static unsigned hash_string_case_insensitive P_ ((Lisp_Object));
 static unsigned lface_hash P_ ((Lisp_Object *));
 static int lface_same_font_attributes_p P_ ((Lisp_Object *, Lisp_Object *));
 static struct face_cache *make_face_cache P_ ((struct frame *));
-static void free_realized_face P_ ((struct frame *, struct face *));
 static void clear_face_gcs P_ ((struct face_cache *));
 static void free_face_cache P_ ((struct face_cache *));
 static int face_numeric_weight P_ ((Lisp_Object));
 static int face_numeric_slant P_ ((Lisp_Object));
 static int face_numeric_swidth P_ ((Lisp_Object));
 static int face_fontset P_ ((Lisp_Object *));
-static char *choose_face_font P_ ((struct frame *, Lisp_Object *, int, int));
+static char *choose_face_font P_ ((struct frame *, Lisp_Object *,
+				   struct face *, int));
 static void merge_face_vectors P_ ((struct frame *, Lisp_Object *, Lisp_Object*, Lisp_Object));
 static void merge_face_inheritance P_ ((struct frame *f, Lisp_Object,
 					Lisp_Object *, Lisp_Object));
@@ -567,7 +567,6 @@ static int set_lface_from_font_name P_ ((struct frame *, Lisp_Object,
 					 Lisp_Object, int, int));
 static Lisp_Object lface_from_face_name P_ ((struct frame *, Lisp_Object, int));
 static struct face *make_realized_face P_ ((Lisp_Object *));
-static void free_realized_faces P_ ((struct face_cache *));
 static char *best_matching_font P_ ((struct frame *, Lisp_Object *,
 				     struct font_name *, int, int));
 static void cache_face P_ ((struct face_cache *, struct face *, unsigned));
@@ -1268,12 +1267,13 @@ load_face_font (f, face, c)
   face->font_info_id = -1;
   face->font = NULL;
 
-  font_name = choose_face_font (f, face->lface, face->fontset, c);
+  font_name = choose_face_font (f, face->lface, face, c);
+
   if (!font_name)
     return;
 
   BLOCK_INPUT;
-  font_info = FS_LOAD_FACE_FONT (f, c, font_name, face);
+  font_info = FS_LOAD_FONT (f, font_name);
   UNBLOCK_INPUT;
 
   if (font_info)
@@ -2109,6 +2109,61 @@ face_numeric_swidth (width)
      Lisp_Object width;
 {
   return face_numeric_value (swidth_table, DIM (swidth_table), width);
+}
+
+
+Lisp_Object
+generate_ascii_font (name, ascii_spec)
+     Lisp_Object name;
+{
+  struct font_name font;
+  char *p;
+
+  font.name = LSTRDUPA (name);
+  if (! split_font_name (NULL, &font, 0))
+    return Qnil;
+
+  if (STRINGP (AREF (ascii_spec, FONT_SPEC_FAMILY_INDEX)))
+    {
+      p = LSTRDUPA (AREF (ascii_spec, FONT_SPEC_FAMILY_INDEX));
+      font.fields[XLFD_FOUNDRY] = p;
+      while (*p != '-') p++;
+      if (*p)
+	{
+	  *p++ = 0;
+	  font.fields[XLFD_FAMILY] = p;
+	}
+      else
+	{
+	  font.fields[XLFD_FAMILY] = font.fields[XLFD_FOUNDRY];
+	  font.fields[XLFD_FOUNDRY] = "*";
+	}
+    }
+  if (STRINGP (AREF (ascii_spec, FONT_SPEC_WEIGHT_INDEX)))
+    font.fields[XLFD_WEIGHT]
+      = XSTRING (AREF (ascii_spec, FONT_SPEC_WEIGHT_INDEX))->data;
+  if (STRINGP (AREF (ascii_spec, FONT_SPEC_SLANT_INDEX)))
+    font.fields[XLFD_SLANT]
+      = XSTRING (AREF (ascii_spec, FONT_SPEC_SLANT_INDEX))->data;
+  if (STRINGP (AREF (ascii_spec, FONT_SPEC_SWIDTH_INDEX)))
+    font.fields[XLFD_SWIDTH]
+      = XSTRING (AREF (ascii_spec, FONT_SPEC_SWIDTH_INDEX))->data;
+  if (STRINGP (AREF (ascii_spec, FONT_SPEC_ADSTYLE_INDEX)))
+    font.fields[XLFD_ADSTYLE]
+      = XSTRING (AREF (ascii_spec, FONT_SPEC_ADSTYLE_INDEX))->data;
+  p = LSTRDUPA (AREF (ascii_spec, FONT_SPEC_REGISTRY_INDEX));
+  font.fields[XLFD_REGISTRY] = p;
+  while (*p != '-') p++;
+  if (*p)
+    *p++ = 0;
+  else
+    p = "*";
+  font.fields[XLFD_ENCODING] = p;
+
+  p = build_font_name (&font);
+  name = build_string (p);
+  xfree (p);
+  return name;
 }
 
 
@@ -3149,7 +3204,7 @@ set_lface_from_font_name (f, lface, fontname, force_p, may_fail_p)
      caching it now is not futail because we anyway load the font
      later.  */
   BLOCK_INPUT;
-  font_info = FS_LOAD_FONT (f, 0, font_name, -1);
+  font_info = FS_LOAD_FONT (f, font_name);
   UNBLOCK_INPUT;
 
   if (!font_info)
@@ -4252,7 +4307,7 @@ set_font_frame_param (frame, lface)
 	  /* Choose a font name that reflects LFACE's attributes and has
 	     the registry and encoding pattern specified in the default
 	     fontset (3rd arg: -1) for ASCII characters (4th arg: 0).  */
-	  font = choose_face_font (f, XVECTOR (lface)->contents, -1, 0);
+	  font = choose_face_font (f, XVECTOR (lface)->contents, NULL, 0);
 	  if (!font)
 	    error ("No font matches the specified attribute");
 	  font_name = build_string (font);
@@ -4938,7 +4993,7 @@ make_realized_face (attr)
 /* Free realized face FACE, including its X resources.  FACE may
    be null.  */
 
-static void
+void
 free_realized_face (f, face)
      struct frame *f;
      struct face *face;
@@ -5116,11 +5171,10 @@ free_realized_faces (c)
 }
 
 
-/* Free all faces realized for multibyte characters on frame F that
-   has FONTSET.  */
+/* Free all realized faces that are using FONTSET on frame F.  */
 
 void
-free_realized_multibyte_face (f, fontset)
+free_realized_faces_for_fontset (f, fontset)
      struct frame *f;
      int fontset;
 {
@@ -5137,7 +5191,6 @@ free_realized_multibyte_face (f, fontset)
     {
       face = cache->faces_by_id[i];
       if (face
-	  && face != face->ascii_face
 	  && face->fontset == fontset)
 	{
 	  uncache_face (cache, face);
@@ -6064,26 +6117,28 @@ face_fontset (attrs)
 /* Choose a name of font to use on frame F to display character C with
    Lisp face attributes specified by ATTRS.  The font name is
    determined by the font-related attributes in ATTRS and the name
-   pattern for C in FONTSET.  Value is the font name which is
-   allocated from the heap and must be freed by the caller, or NULL if
-   we can get no information about the font name of C.  It is assured
-   that we always get some information for a single byte
-   character.  */
+   pattern for C in FACE->fontset (or Vdefault_fontset if FACE is
+   null).  Value is the font name which is allocated from the heap and
+   must be freed by the caller, or NULL if we can get no information
+   about the font name of C.  It is assured that we always get some
+   information for a single byte character.  */
 
 static char *
-choose_face_font (f, attrs, fontset, c)
+choose_face_font (f, attrs, face, c)
      struct frame *f;
      Lisp_Object *attrs;
-     int fontset, c;
+     struct face *face;
+     int c;
 {
-  Lisp_Object pattern;
+  Lisp_Object val;
+  Lisp_Object pattern, family, registry;
+  Lisp_Object new_attrs[LFACE_VECTOR_SIZE];
   char *font_name = NULL;
   struct font_name *fonts;
   int nfonts, width_ratio;
 
-  /* Get (foundry and) family name and registry (and encoding) name of
-     a font for C.  */
-  pattern = fontset_font_pattern (f, fontset, c);
+  /* Get font spec of a font for C.  */
+  pattern = fontset_font_pattern (f, face, c);
   if (NILP (pattern))
     {
       xassert (!SINGLE_BYTE_CHAR_P (c));
@@ -6094,13 +6149,34 @@ choose_face_font (f, attrs, fontset, c)
   if (STRINGP (pattern))
     return xstrdup (XSTRING (pattern)->data);
 
+  family = AREF (pattern, FONT_SPEC_FAMILY_INDEX);
+  registry = AREF (pattern, FONT_SPEC_REGISTRY_INDEX);
+
+  bcopy (attrs, new_attrs, sizeof (Lisp_Object) * LFACE_VECTOR_SIZE);
+
+#if 0
+  /* This doesn't work well for the moment.  */
+  if (! NILP (AREF (pattern, FONT_SPEC_WEIGHT_INDEX)))
+    new_attrs[LFACE_WEIGHT_INDEX] = AREF (pattern, FONT_SPEC_WEIGHT_INDEX);
+  if (! NILP (AREF (pattern, FONT_SPEC_SLANT_INDEX)))
+    new_attrs[LFACE_SLANT_INDEX] = AREF (pattern, FONT_SPEC_SLANT_INDEX);
+  if (! NILP (AREF (pattern, FONT_SPEC_SWIDTH_INDEX)))
+    new_attrs[LFACE_SWIDTH_INDEX] = AREF (pattern, FONT_SPEC_SWIDTH_INDEX);
+#endif
+
+  /* If C is an ASCII character, family name in ATTRS has higher
+     priority than what specified in the fontset.  */
+  if (STRINGP (attrs[LFACE_FAMILY_INDEX])
+      && ASCII_CHAR_P (c))
+    family = Qnil;
+
   /* Get a list of fonts matching that pattern and choose the
      best match for the specified face attributes from it.  */
-  nfonts = try_font_list (f, attrs, XCAR (pattern), XCDR (pattern), &fonts);
-  width_ratio = (SINGLE_BYTE_CHAR_P (c)
+  nfonts = try_font_list (f, new_attrs, family, registry, &fonts);
+  width_ratio = (ASCII_CHAR_P (c)
 		 ? 1
-		 : CHARSET_WIDTH (CHAR_CHARSET (c)));
-  font_name = best_matching_font (f, attrs, fonts, nfonts, width_ratio);
+		 : CHAR_WIDTH (c));
+  font_name = best_matching_font (f, new_attrs, fonts, nfonts, width_ratio);
   return font_name;
 }
 
@@ -6377,10 +6453,10 @@ realize_x_face (cache, attrs, c, base_face)
 
   f = cache->f;
 
-  /* If C is a multibyte character, we share all face attirbutes with
+  /* If C is a non-ASCII character, we share all face attirbutes with
      BASE_FACE including the realized fontset.  But, we must load a
      different font.  */
-  if (!SINGLE_BYTE_CHAR_P (c))
+  if (! ASCII_CHAR_P (c))
     {
       bcopy (base_face, face, sizeof *face);
       face->gc = 0;
@@ -6435,7 +6511,7 @@ realize_x_face (cache, attrs, c, base_face)
       if (STRINGP (attrs[LFACE_FONT_INDEX]))
         {
           struct font_info *font_info =
-            FS_LOAD_FONT (f, 0, XSTRING (attrs[LFACE_FONT_INDEX])->data, -1);
+            FS_LOAD_FONT (f, XSTRING (attrs[LFACE_FONT_INDEX])->data);
           if (font_info)
             face->font = font_info->font;
         }
