@@ -186,12 +186,27 @@ Switch to a buffer editing the last file dropped."
 ;; Create a fontset that uses mac-roman font.  With this fontset,
 ;; characters decoded from mac-roman encoding (ascii, latin-iso8859-1,
 ;; and mule-unicode-xxxx-yyyy) are displayed by a mac-roman font.
+;; Unnecessary in emacs22
+
+;; Carbon uses different fonts than commonly found on X, so
+;; we define our own standard fontset here.
+(defvar mac-standard-fontset-spec
+ "-apple-Monaco-normal-r-*-*-12-*-*-*-*-*-fontset-mac"
+ "String of fontset spec of the standard fontset.
+This defines a fontset consisting of the Monaco variations for
+European languages which are distributed with Mac OS X.
+
+See the documentation of `create-fontset-from-fontset-spec for the format.")
+
 
 (if (fboundp 'new-fontset)
-    (create-fontset-from-fontset-spec
-     "-etl-fixed-medium-r-normal-*-16-*-*-*-*-*-fontset-mac,
-ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman
-mac-roman:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman"))
+    (progn
+      (require 'fontset)
+      ;; Setup the default fontset.
+      (setup-default-fontset)
+      ;; Create the standard fontset.
+      (create-fontset-from-fontset-spec mac-standard-fontset-spec t)
+      ))
 
 
 (if (eq system-type 'darwin)

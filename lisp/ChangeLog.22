@@ -1,3 +1,9 @@
+2004-08-03  Steven Tamm  <steventamm@mac.com>
+
+	* term/mac-win.el: Use mac-standard-fontset-spec to create
+	fontset-mac
+	(mac-standard-fontset-spec): Created 
+
 2004-04-27  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-diag.el (unicode-data): Call
@@ -484,7 +490,7 @@
 	(utf-16-be-with-signature): Comment-out :endian.
 
 	* mule-diag.el (describe-character-set): Fix
-	printing dimensions.  Use `×', not `x'.
+	printing dimensions.  Use `,AW', not `x'.
 
 2003-04-12  Kenichi Handa  <handa@m17n.org>
 
@@ -954,7 +960,7 @@
 
 2002-09-05  Dave Love  <fx@gnu.org>
 
-	* international/characters.el: Make Ÿ and ÿ a case pair.
+	* international/characters.el: Make ,_/(B and ,A a case pair.
 
 2002-09-03  Kenichi Handa  <handa@etl.go.jp>
 
