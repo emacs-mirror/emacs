@@ -875,7 +875,7 @@ run `normal-mode' explicitly."
 				  ("\\.mss\\'" . scribe-mode)
 				  ("\\.ad[abs]\\'" . ada-mode)
 				  ("\\.icn\\'" . icon-mode)
-				  ("\\.pl\\'" . prolog-mode)
+				  ("\\.pl\\'" . perl-mode)
 				  ("\\.cc\\'" . c++-mode)
 				  ("\\.hh\\'" . c++-mode)
 				  ("\\.C\\'" . c++-mode)
