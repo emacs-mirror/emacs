@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.26 $")
+(defconst byte-compile-version "$Revision: 2.27 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1638,6 +1638,14 @@ list that represents a doc string reference.
 	   (setcar (cdr (cdr form))
 		   (byte-compile-top-level (nth 2 form) nil 'file))))
     form))
+
+(put 'custom-declare-variable 'byte-hunk-handler
+     'byte-compile-file-form-custom-declare-variable)
+(defun byte-compile-file-form-custom-declare-variable (form)
+  (if (memq 'free-vars byte-compile-warnings)
+      (setq byte-compile-bound-variables
+	    (cons (nth 1 (nth 1 form)) byte-compile-bound-variables)))
+  form)
 
 (put 'require 'byte-hunk-handler 'byte-compile-file-form-eval-boundary)
 (defun byte-compile-file-form-eval-boundary (form)
