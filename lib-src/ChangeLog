@@ -1,6 +1,6 @@
 2000-09-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* movemail.c (toplevel): Remove redundant fcnt.h.
+	* movemail.c (toplevel): Remove redundant fcntl.h.
 	[!F_OK]: Provide default definitions only after including both
 	fcntl.h and unistd.h.
 
