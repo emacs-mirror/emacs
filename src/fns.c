@@ -869,7 +869,7 @@ DEFUN ("plist-put", Fplist_put, Splist_put, 3, 3, 0,
 PLIST is a property list, which is a list of the form\n\
 \(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol and VAL is any object.\n\
 If PROP is already a property on the list, its value is set to VAL,\n\
-otherwise the new PROP VAL pair is added.  The new plist is returned;
+otherwise the new PROP VAL pair is added.  The new plist is returned;\n\
 use `(setq x (plist-put x prop val))' to be sure to use the new value.\n\
 The PLIST is modified by side effects.")
   (plist, prop, val)
