@@ -5,8 +5,8 @@
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, ebnf, PostScript
-;; Time-stamp: <2001/09/18 21:03:57 vinicius>
-;; Version: 1.6
+;; Time-stamp: <2001/09/24 10:17:26 vinicius>
+;; Version: 1.7
 
 ;; This file is part of GNU Emacs.
 
@@ -408,6 +408,11 @@
     (aset ebnf-bnf-token-table ebnf-lex-eop-char     'period)))
 
 
+;; replace the range "\240-\377" (see `ebnf-range-regexp').
+(defconst ebnf-bnf-non-terminal-chars
+  (ebnf-range-regexp "!#%&'*-,0-:<>@-Z\\\\^-z~" ?\240 ?\377))
+
+
 (defun ebnf-bnf-lex ()
   "Lexical analyser for EBNF.
 
@@ -467,10 +472,7 @@ See documentation for variable `ebnf-bnf-lex'."
 	'terminal)
        ;; non-terminal or terminal
        ((eq token 'non-terminal)
-	;; replace the range "\240-\377" (see `ebnf-range-regexp').
-	(setq ebnf-bnf-lex (ebnf-buffer-substring
-			    (ebnf-range-regexp "!#%&'*-,0-:<>@-Z\\\\^-z~"
-					       ?\240 ?\377)))
+	(setq ebnf-bnf-lex (ebnf-buffer-substring ebnf-bnf-non-terminal-chars))
 	(let ((case-fold-search ebnf-case-fold-search)
 	      match)
 	  (if (and ebnf-terminal-regexp
