@@ -455,10 +455,11 @@ Accurate to +/- 2 minutes."
   (interactive)
   (if (not (and calendar-latitude calendar-longitude calendar-time-zone))
       (solar-setup))
-  (message
-   (solar-sunrise-sunset
-    (or (calendar-cursor-to-date)
-	(error "Cursor is not on a date!")))))
+  (let ((date (or (calendar-cursor-to-date)
+                  (error "Cursor is not on a date!"))))
+    (message "%s: %s"
+             (calendar-date-string date t t)
+             (solar-sunrise-sunset date))))
 
 (defun diary-sunrise-sunset ()
   "Local time of sunrise and sunset as a diary entry.
