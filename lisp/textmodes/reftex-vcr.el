@@ -1,5 +1,5 @@
 ;;; reftex-vcr.el - Viewing cross references and citations with RefTeX
-;;; Version: 4.5
+;;; Version: 4.6
 ;;;
 ;;; See main file reftex.el for licensing information
 
@@ -99,8 +99,10 @@ to the functions `reftex-view-cr-cite' and `reftex-view-cr-ref'."
 	    files (reftex-get-bibfile-list)))
      ((assq 'thebib (symbol-value reftex-docstruct-symbol))
       (setq item t
-	    files (list (cdr (assq 'thebib 
-				   (symbol-value reftex-docstruct-symbol))))))
+	    files (reftex-uniquify
+		   (mapcar 'cdr
+			   (reftex-all-assq 
+			    'thebib (symbol-value reftex-docstruct-symbol))))))
      (reftex-default-bibliography
       (setq item nil
 	    files (reftex-default-bibliography)))
