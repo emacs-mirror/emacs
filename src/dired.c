@@ -233,13 +233,6 @@ Returns nil if DIR contains no name starting with FILE.")
      Lisp_Object file, dirname;
 {
   Lisp_Object handler;
-  /* Don't waste time trying to complete a null string.
-     Besides, this case happens when user is being asked for
-     a directory name and has supplied one ending in a /.
-     We would not want to add anything in that case
-     even if there are some unique characters in that directory.  */
-  if (STRINGP (file) && XSTRING (file)->size == 0)
-    return file;
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -351,7 +344,17 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 
           directoryp = ((st.st_mode & S_IFMT) == S_IFDIR);
 	  tem = Qnil;
-          if (!directoryp)
+          if (directoryp)
+	    {
+#ifndef TRIVIAL_DIRECTORY_ENTRY
+#define TRIVIAL_DIRECTORY_ENTRY(n) (!strcmp (n, ".") || !strcmp (n, ".."))
+#endif
+	      /* "." and ".." are never interesting as completions, but are
+		 actually in the way in a directory contains only one file.  */
+	      if (!passcount && TRIVIAL_DIRECTORY_ENTRY (dp->d_name))
+		continue;
+	    }
+	  else
             {
 	      /* Compare extensions-to-be-ignored against end of this file name */
 	      /* if name is not an exact match against specified string */
