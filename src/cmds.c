@@ -354,6 +354,10 @@ internal_self_insert (c, noautofill)
     {
       c = unibyte_char_to_multibyte (c);
       len = CHAR_STRING (c, workbuf, str);
+      if (len == 1)
+	/* If C has modifier bits, this makes C an appropriate
+           one-byte char.  */
+	c = *str;
     }
   else
     {
