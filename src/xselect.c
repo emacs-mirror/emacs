@@ -26,9 +26,15 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "config.h"
 #include "lisp.h"
+#if 0
+#include <stdio.h>	/* termhooks.h needs this */
+#include "termhooks.h"
+#endif
 #include "xterm.h"	/* for all of the X includes */
-#include "dispextern.h"	/* screen.h seems to want this */
-#include "screen.h"	/* Need this to get the X window of selected_screen */
+#include "dispextern.h"	/* frame.h seems to want this */
+#include "frame.h"	/* Need this to get the X window of selected_frame */
+
+#define xfree free
 
 #define CUT_BUFFER_SUPPORT
 
@@ -60,14 +66,8 @@ Lisp_Object Vx_sent_selection_hooks;
 #define SELECTION_QUANTUM(dpy) ((XMaxRequestSize (dpy) << 2) - 100)
 
 
-/* The time of the last-read mouse or keyboard event. 
-   For selection purposes, we use this as a sleazy way of knowing what the
-   current time is in server-time.  This assumes that the most recently read
-   mouse or keyboard event has something to do with the assertion of the
-   selection, which is probably true.
- */
-extern Time mouse_timestamp;
-
+/* The timestamp of the last input event Emacs received from the X server.  */
+unsigned long last_event_timestamp;
 
 /* This is an association list whose elements are of the form
      ( selection-name selection-value selection-timestamp )
@@ -165,52 +165,56 @@ x_atom_to_symbol (display, atom)
   char *str;
   Lisp_Object val;
   if (! atom) return Qnil;
- case XA_PRIMARY:
-  return QPRIMARY;
- case XA_SECONDARY:
-  return QSECONDARY;
- case XA_STRING:
-  return QSTRING;
- case XA_INTEGER:
-  return QINTEGER;
- case XA_ATOM:
-  return QATOM;
- case Xatom_CLIPBOARD:
-  return QCLIPBOARD;
- case Xatom_TIMESTAMP:
-  return QTIMESTAMP;
- case Xatom_TEXT:
-  return QTEXT;
- case Xatom_DELETE:
-  return QDELETE;
- case Xatom_MULTIPLE:
-  return QMULTIPLE;
- case Xatom_INCR:
-  return QINCR;
- case Xatom_EMACS_TMP:
-  return QEMACS_TMP;
- case Xatom_TARGETS:
-  return QTARGETS;
- case Xatom_NULL:
-  return QNULL;
+  switch (atom)
+    {
+    case XA_PRIMARY:
+      return QPRIMARY;
+    case XA_SECONDARY:
+      return QSECONDARY;
+    case XA_STRING:
+      return QSTRING;
+    case XA_INTEGER:
+      return QINTEGER;
+    case XA_ATOM:
+      return QATOM;
 #ifdef CUT_BUFFER_SUPPORT
- case XA_CUT_BUFFER0:
-  return QCUT_BUFFER0;
- case XA_CUT_BUFFER1:
-  return QCUT_BUFFER1;
- case XA_CUT_BUFFER2:
-  return QCUT_BUFFER2;
- case XA_CUT_BUFFER3:
-  return QCUT_BUFFER3;
- case XA_CUT_BUFFER4:
-  return QCUT_BUFFER4;
- case XA_CUT_BUFFER5:
-  return QCUT_BUFFER5;
- case XA_CUT_BUFFER6:
-  return QCUT_BUFFER6;
- case XA_CUT_BUFFER7:
-  return QCUT_BUFFER7;
+    case XA_CUT_BUFFER0:
+      return QCUT_BUFFER0;
+    case XA_CUT_BUFFER1:
+      return QCUT_BUFFER1;
+    case XA_CUT_BUFFER2:
+      return QCUT_BUFFER2;
+    case XA_CUT_BUFFER3:
+      return QCUT_BUFFER3;
+    case XA_CUT_BUFFER4:
+      return QCUT_BUFFER4;
+    case XA_CUT_BUFFER5:
+      return QCUT_BUFFER5;
+    case XA_CUT_BUFFER6:
+      return QCUT_BUFFER6;
+    case XA_CUT_BUFFER7:
+      return QCUT_BUFFER7;
 #endif
+    }
+
+  if (atom == Xatom_CLIPBOARD)
+    return QCLIPBOARD;
+  if (atom == Xatom_TIMESTAMP)
+    return QTIMESTAMP;
+  if (atom == Xatom_TEXT)
+    return QTEXT;
+  if (atom == Xatom_DELETE)
+    return QDELETE;
+  if (atom == Xatom_MULTIPLE)
+    return QMULTIPLE;
+  if (atom == Xatom_INCR)
+    return QINCR;
+  if (atom == Xatom_EMACS_TMP)
+    return QEMACS_TMP;
+  if (atom == Xatom_TARGETS)
+    return QTARGETS;
+  if (atom == Xatom_NULL)
+    return QNULL;
 
   BLOCK_INPUT;
   str = XGetAtomName (display, atom);
@@ -243,7 +247,7 @@ cons_to_long (c)
      Lisp_Object c;
 {
   int top, bot;
-  if (FIXNUMP (c)) return XINT (c);
+  if (INTEGERP (c)) return XINT (c);
   top = XCONS (c)->car;
   bot = XCONS (c)->cdr;
   if (CONSP (bot)) bot = XCONS (bot)->car;
@@ -266,7 +270,7 @@ x_own_selection (selection_name, selection_value)
 #else
   Window selecting_window = FRAME_X_WINDOW (selected_frame);
 #endif
-  Time time = mouse_timestamp;
+  Time time = last_event_timestamp;
   Atom selection_atom;
 
   CHECK_SYMBOL (selection_name, 0);
@@ -310,7 +314,7 @@ x_own_selection (selection_name, selection_value)
    the selection value and convert it to the type.
    The value is nil or a string.
    This function is used both for remote requests
-   and for local x-get-selection-internal.  */
+   and for local x-get-selection-internal.
 
    This calls random Lisp code, and may signal or gc.  */
 
@@ -393,15 +397,15 @@ x_get_local_selection (selection_symbol, target_type)
   if (STRINGP (check)
       || VECTORP (check)
       || SYMBOLP (check)
-      || FIXNUMP (check)
+      || INTEGERP (check)
       || NILP (value))
     return value;
   else if (CONSP (check)
-	   && FIXNUMP (XCONS (check)->car)
-	   && (FIXNUMP (XCONS (check)->cdr)
+	   && INTEGERP (XCONS (check)->car)
+	   && (INTEGERP (XCONS (check)->cdr)
 	       ||
 	       (CONSP (XCONS (check)->cdr)
-		&& FIXNUMP (XCONS (XCONS (check)->cdr)->car)
+		&& INTEGERP (XCONS (XCONS (check)->cdr)->car)
 		&& NILP (XCONS (XCONS (check)->cdr)->cdr))))
     return value;
   else
@@ -507,7 +511,7 @@ x_reply_selection_request (event, format, data, size, type)
       /* Send an INCR selection.  */
       int prop_id;
 
-      if (x_window_to_screen (window)) /* #### debug */
+      if (x_window_to_frame (window)) /* #### debug */
 	error ("attempt to transfer an INCR to ourself!");
 #if 0
       fprintf (stderr, "\nINCR %d\n", bytes_remaining);
@@ -604,8 +608,8 @@ x_handle_selection_request (event)
   if (!CONSP (CDR (CDR (local_selection_data)))) abort ();
   if (!NILP (CDR (CDR (CDR (local_selection_data))))) abort ();
   if (!CONSP (CAR (CDR (CDR (local_selection_data))))) abort ();
-  if (!FIXNUMP (CAR (CAR (CDR (CDR (local_selection_data)))))) abort ();
-  if (!FIXNUMP (CDR (CAR (CDR (CDR (local_selection_data)))))) abort ();
+  if (!INTEGERP (CAR (CAR (CDR (CDR (local_selection_data)))))) abort ();
+  if (!INTEGERP (CDR (CAR (CDR (CDR (local_selection_data)))))) abort ();
 # undef CAR
 # undef CDR
 #endif
@@ -622,7 +626,7 @@ x_handle_selection_request (event)
     cons_to_long (XCONS (XCONS (XCONS (local_selection_data)->cdr)->cdr)->car);
 
   if (SELECTION_EVENT_TIME (event) != CurrentTime
-      && local_selection_time > event->time)
+      && local_selection_time > SELECTION_EVENT_TIME (event))
     {
       /* Someone asked for the selection, and we have one, but not the one
 	 they're looking for.
@@ -661,7 +665,7 @@ x_handle_selection_request (event)
       successful_p = Qt;
 
       /* Indicate we have successfully processed this event.  */
-      x_selection_current_event = 0;
+      x_selection_current_request = 0;
 
       xfree (data);
     }
@@ -963,11 +967,11 @@ x_get_foreign_selection (selection_symbol, target_type)
 {
   Display *display = x_current_display;
 #ifdef X_TOOLKIT
-  Window selecting_window = XtWindow (selected_screen->display.x->edit_widget);
+  Window requestor_window = XtWindow (selected_screen->display.x->edit_widget);
 #else
-  Window selecting_window = FRAME_X_WINDOW (selected_frame);
+  Window requestor_window = FRAME_X_WINDOW (selected_frame);
 #endif
-  Time requestor_time = mouse_timestamp;
+  Time requestor_time = last_event_timestamp;
   Atom target_property = Xatom_EMACS_TMP;
   Atom selection_atom = symbol_to_x_atom (display, selection_symbol);
   Atom type_atom;
@@ -1362,7 +1366,7 @@ lisp_data_to_selection_data (display, obj,
       (*(Atom **) data_ret) [0] = symbol_to_x_atom (display, obj);
       if (NILP (type)) type = QATOM;
     }
-  else if (FIXNUMP (obj)
+  else if (INTEGERP (obj)
 	   && XINT (obj) < 0xFFFF
 	   && XINT (obj) > -0xFFFF)
     {
@@ -1373,7 +1377,7 @@ lisp_data_to_selection_data (display, obj,
       (*(short **) data_ret) [0] = (short) XINT (obj);
       if (NILP (type)) type = QINTEGER;
     }
-  else if (FIXNUMP (obj) || CONSP (obj))
+  else if (INTEGERP (obj) || CONSP (obj))
     {
       *format_ret = 32;
       *size_ret = 1;
@@ -1448,7 +1452,7 @@ lisp_data_to_selection_data (display, obj,
 	  for (i = 0; i < *size_ret; i++)
 	    if (CONSP (XVECTOR (obj)->contents [i]))
 	      *format_ret = 32;
-	    else if (!FIXNUMP (XVECTOR (obj)->contents [i]))
+	    else if (!INTEGERP (XVECTOR (obj)->contents [i]))
 	      Fsignal (Qerror, /* Qselection_error */
 		       Fcons (build_string
 	("elements of selection vector must be integers or conses of integers"),
@@ -1477,15 +1481,15 @@ clean_local_selection_data (obj)
      Lisp_Object obj;
 {
   if (CONSP (obj)
-      && FIXNUMP (XCONS (obj)->car)
+      && INTEGERP (XCONS (obj)->car)
       && CONSP (XCONS (obj)->cdr)
-      && FIXNUMP (XCONS (XCONS (obj)->cdr)->car)
+      && INTEGERP (XCONS (XCONS (obj)->cdr)->car)
       && NILP (XCONS (XCONS (obj)->cdr)->cdr))
     obj = Fcons (XCONS (obj)->car, XCONS (obj)->cdr);
 
   if (CONSP (obj)
-      && FIXNUMP (XCONS (obj)->car)
-      && FIXNUMP (XCONS (obj)->cdr))
+      && INTEGERP (XCONS (obj)->car)
+      && INTEGERP (XCONS (obj)->cdr))
     {
       if (XINT (XCONS (obj)->car) == 0)
 	return XCONS (obj)->cdr;
@@ -1607,7 +1611,7 @@ DEFUN ("x-disown-selection-internal",
 
   CHECK_SYMBOL (selection, 0);
   if (NILP (time))
-    timestamp = mouse_timestamp;
+    timestamp = last_event_timestamp;
   else
     timestamp = cons_to_long (time);
 
@@ -1804,7 +1808,7 @@ positive means move values forward, negative means backward.")
   Window window = RootWindow (display, 0); /* Cutbuffers are on screen 0 */
   Atom props [8];
 
-  CHECK_FIXNUM (n, 0);
+  CHECK_NUMBER (n, 0);
   if (XINT (n) == 0) return n;
   if (! cut_buffers_initialized) initialize_cut_buffers (display, window);
   props[0] = XA_CUT_BUFFER0;
@@ -1823,8 +1827,8 @@ positive means move values forward, negative means backward.")
 
 #endif
 
-static void
-atoms_of_xselect ()
+void
+Xatoms_of_xselect ()
 {
 #define ATOM(x) XInternAtom (x_current_display, (x), False)
 
@@ -1846,7 +1850,7 @@ atoms_of_xselect ()
 void
 syms_of_xselect ()
 {
-  atoms_of_select ();
+  atoms_of_xselect ();
 
   defsubr (&Sx_get_selection_internal);
   defsubr (&Sx_own_selection_internal);
