@@ -80,7 +80,7 @@
 ;; c-c c-c comint-interrupt-subjob	    ^c
 ;; c-c c-z comint-stop-subjob		    ^z
 ;; c-c c-\ comint-quit-subjob		    ^\
-;; c-c c-o comint-kill-output		    Delete last batch of process output
+;; c-c c-o comint-delete-output		    Delete last batch of process output
 ;; c-c c-r comint-show-output		    Show last batch of process output
 ;; c-c c-l comint-dynamic-list-input-ring  List input history
 ;;
@@ -118,7 +118,7 @@
 ;;  comint-prompt-regexp		string	comint-bol uses to match prompt
 ;;  comint-delimiter-argument-list	list	For delimiters and arguments
 ;;  comint-last-input-start		marker	Handy if inferior always echoes
-;;  comint-last-input-end		marker	For comint-kill-output command
+;;  comint-last-input-end		marker	For comint-delete-output command
 ;;  comint-input-ring-size		integer	For the input history
 ;;  comint-input-ring			ring	mechanism
 ;;  comint-input-ring-index		number	...
@@ -548,7 +548,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (define-key comint-mode-map "\C-c\C-z" 'comint-stop-subjob)
   (define-key comint-mode-map "\C-c\C-\\" 'comint-quit-subjob)
   (define-key comint-mode-map "\C-c\C-m" 'comint-copy-old-input)
-  (define-key comint-mode-map "\C-c\C-o" 'comint-kill-output)
+  (define-key comint-mode-map "\C-c\C-o" 'comint-delete-output)
   (define-key comint-mode-map "\C-c\C-r" 'comint-show-output)
   (define-key comint-mode-map "\C-c\C-e" 'comint-show-maximum-output)
   (define-key comint-mode-map "\C-c\C-l" 'comint-dynamic-list-input-ring)
@@ -572,8 +572,8 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   ;; Input history:
   (define-key comint-mode-map [menu-bar inout]
     (cons "In/Out" (make-sparse-keymap "In/Out")))
-  (define-key comint-mode-map [menu-bar inout kill-output]
-    '("Kill Current Output Group" . comint-kill-output))
+  (define-key comint-mode-map [menu-bar inout delete-output]
+    '("Delete Current Output Group" . comint-delete-output))
   (define-key comint-mode-map [menu-bar inout next-prompt]
     '("Forward Output Group" . comint-next-prompt))
   (define-key comint-mode-map [menu-bar inout previous-prompt]
@@ -1870,7 +1870,7 @@ This function could be in the list `comint-output-filter-functions'."
 
 ;; Random input hackage
 
-(defun comint-kill-output ()
+(defun comint-delete-output ()
   "Kill all output from interpreter since last input.
 Does not delete the prompt."
   (interactive)
@@ -1887,6 +1887,8 @@ Does not delete the prompt."
 	(delete-region pmark (point))))
     ;; Output message and put back prompt
     (comint-output-filter proc replacement)))
+(defalias 'comint-kill-output 'comint-delete-output)
+(make-obsolete 'comint-kill-output 'comint-delete-output "21.1")
 
 (defun comint-show-output ()
   "Display start of this batch of interpreter output at top of window.
@@ -3035,7 +3037,7 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 ;;	stop-shell-subjob	comint-stop-subjob
 ;;	quit-shell-subjob	comint-quit-subjob
 ;;	kill-shell-subjob	comint-kill-subjob
-;;	kill-output-from-shell	comint-kill-output
+;;	kill-output-from-shell	comint-delete-output
 ;;	show-output-from-shell	comint-show-output
 ;;	copy-last-shell-input	Use comint-previous-input/comint-next-input
 ;;
