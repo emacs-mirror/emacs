@@ -31,7 +31,7 @@
 ;; It separates the input/output of your program from that of GDB and displays
 ;; expressions and their current values in their own buffers. It also uses
 ;; features of Emacs 21 such as the display margin for breakpoints, and the
-;; toolbar (see the GDB User Interface section in the Emacs info manual).
+;; toolbar (see the GDB Graphical Interface section in the Emacs info manual).
 
 ;; Start the debugger with M-x gdba.
 
@@ -62,6 +62,7 @@
 
 (defvar gdb-current-address nil "Initialisation for Assembler buffer.")
 (defvar gdb-previous-address nil)
+(defvar gdb-previous-frame nil)
 (defvar gdb-display-in-progress nil)
 (defvar gdb-dive nil)
 (defvar gdb-view-source t "Non-nil means that source code can be viewed")
@@ -160,6 +161,7 @@ The following interactive lisp functions help control operation :
   ;; (re-)initialise
   (setq gdb-current-address "main")
   (setq gdb-previous-address nil)
+  (setq gdb-previous-frame nil)
   (setq gdb-display-in-progress nil)
   (setq gdb-dive nil)
   (setq gdb-view-source t)
@@ -1162,8 +1164,7 @@ output from the current command if that happens to be appropriate."
     (goto-char (point-max))
     (insert-before-markers string))
   (if (not (string-equal string ""))
-      (select-window 
-	(gdb-display-buffer (gdb-get-create-buffer 'gdb-inferior-io)))))
+      (gdb-display-buffer (gdb-get-create-buffer 'gdb-inferior-io))))
 
 (defun gdb-clear-inferior-io ()
   (with-current-buffer (gdb-get-create-buffer 'gdb-inferior-io)
@@ -2316,7 +2317,7 @@ BUFFER nil or omitted means use the current buffer."
 	      (setq flag (char-after (match-beginning 1)))
 	      (setq address (match-string 2))
 	      ;; remove leading 0s from output of info break.
-	      (if (string-match "0+\\(.*\\)" address)
+	      (if (string-match "^0+\\(.*\\)" address)
 		  (setq address (match-string 1 address)))
 	      (with-current-buffer buffer
 		  (goto-char (point-min))
@@ -2375,31 +2376,36 @@ BUFFER nil or omitted means use the current buffer."
 ;; modified because if gdb-current-address has changed value a new command
 ;; must be enqueued to update the buffer with the new output
 (defun gdb-invalidate-assembler (&optional ignored)
-  (if (and (gdb-get-buffer 'gdb-assembler-buffer)
-	   (or (not (member 'gdb-invalidate-assembler
-			    (gdb-get-pending-triggers)))
-	       (not (string-equal gdb-current-address gdb-previous-address))))
+  (if (gdb-get-buffer 'gdb-assembler-buffer)
       (progn
-	;; take previous disassemble command off the queue
-	(with-current-buffer gud-comint-buffer
-	  (let ((queue (gdb-get-idle-input-queue)) (item))
-	    (dolist (item queue)
-	      (if (equal (cdr item) '(gdb-assembler-handler))
-		  (gdb-set-idle-input-queue 
-		   (delete item (gdb-get-idle-input-queue)))))))
-	(gdb-enqueue-idle-input
-	 (list (concat "server disassemble " gdb-current-address "\n")
-	       'gdb-assembler-handler))
-	(gdb-set-pending-triggers
-	 (cons 'gdb-invalidate-assembler
-	       (gdb-get-pending-triggers)))
-	(setq gdb-previous-address gdb-current-address))))
+	(if (string-equal gdb-current-frame gdb-previous-frame)
+	    (gdb-assembler-custom)
+	  (if (or (not (member 'gdb-invalidate-assembler
+			       (gdb-get-pending-triggers)))
+		  (not (string-equal gdb-current-address 
+				     gdb-previous-address)))
+	  (progn
+	    ;; take previous disassemble command off the queue
+	    (with-current-buffer gud-comint-buffer
+	      (let ((queue (gdb-get-idle-input-queue)) (item))
+		(dolist (item queue)
+		  (if (equal (cdr item) '(gdb-assembler-handler))
+		      (gdb-set-idle-input-queue 
+		       (delete item (gdb-get-idle-input-queue)))))))
+	    (gdb-enqueue-idle-input
+	     (list (concat "server disassemble " gdb-current-address "\n")
+		   'gdb-assembler-handler))
+	    (gdb-set-pending-triggers
+	     (cons 'gdb-invalidate-assembler
+		   (gdb-get-pending-triggers)))
+	    (setq gdb-previous-address gdb-current-address)
+	    (setq gdb-previous-frame gdb-current-frame)))))))
 
 (defun gdb-get-current-frame ()
   (if (not (member 'gdb-get-current-frame (gdb-get-pending-triggers)))
       (progn
 	(gdb-enqueue-idle-input
-	 (list (concat "server frame\n") 'gdb-frame-handler))
+	 (list (concat "server info frame\n") 'gdb-frame-handler))
 	(gdb-set-pending-triggers
 	 (cons 'gdb-get-current-frame
 	       (gdb-get-pending-triggers))))))
@@ -2409,25 +2415,24 @@ BUFFER nil or omitted means use the current buffer."
    (delq 'gdb-get-current-frame (gdb-get-pending-triggers)))
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
-    (if (looking-at "^#[0-9]*\\s-*\\(\\S-*\\) in \\(\\S-*\\)")
+    (forward-line)
+    (if (looking-at ".*= 0x\\(\\S-*\\) in \\(\\S-*\\)")
 	(progn
 	  (setq gdb-current-frame (match-string 2))
 	  (let ((address (match-string 1)))
-	    ;; remove leading 0s from output of frame command.
-	    (if (string-match "0x0+\\(.*\\)" address)
+	    ;; remove leading 0s from output of info frame command.
+	    (if (string-match "^0+\\(.*\\)" address)
 		(setq gdb-current-address 
 		      (concat "0x" (match-string 1 address)))
-	      (setq gdb-current-address address)))
-	  (if (or (if (not (looking-at ".*) at "))
+	      (setq gdb-current-address (concat "0x" address))))
+	  (if (or (if (not (looking-at ".*(\\S-*:[0-9]*)"))
 		      (progn (setq gdb-view-source nil) t))
 		  (eq gdb-selected-view 'assembler))
 	      (progn
 		(set-window-buffer 
 		 gdb-source-window
 		 (gdb-get-create-buffer 'gdb-assembler-buffer))
-		(gdb-invalidate-assembler))))
-      (if (looking-at "^#0\\s-*\\(\\S-*\\)")
-	  (setq gdb-current-frame (match-string 1))))))
+		(gdb-invalidate-assembler)))))))
 
 (provide 'gdb-ui)
 
