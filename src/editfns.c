@@ -874,16 +874,15 @@ DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 3, 0,
       char *buf = (char *) alloca (size + 1);
       int result;
 
+      buf[0] = '\1';
       result = emacs_strftime (buf, size, XSTRING (format_string)->data,
 			       (NILP (universal) ? localtime (&value)
 				: gmtime (&value)));
-      if (result > 0 && result < size)
+      if ((result > 0 && result < size) || (result == 0 && buf[0] == '\0'))
 	return build_string (buf);
-      if (result < 0)
-	error ("Invalid time format specification");
 
       /* If buffer was too small, make it bigger and try again.  */
-      result = emacs_strftime (buf, 0, XSTRING (format_string)->data,
+      result = emacs_strftime (NULL, 0x7fffffff, XSTRING (format_string)->data,
 			       (NILP (universal) ? localtime (&value)
 				: gmtime (&value)));
       size = result + 1;
