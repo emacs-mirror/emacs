@@ -6346,28 +6346,26 @@ menu_bar_item (key, item)
 		     &XVECTOR (menu_bar_items_vector)->contents[i],
 		     (menu_bar_items_index - i - 4) * sizeof (Lisp_Object));
 	    menu_bar_items_index -= 4;
-	    return;
 	  }
-
-      /* If there's no definition for this key yet,
-	 just ignore `undefined'.  */
-      return;
     }
-
-  GCPRO1 (key);			/* Is this necessary? */
-  i = parse_menu_item (item, 0, 1);
-  UNGCPRO;
-  if (!i)
-    return;
 
   /* If this keymap has already contributed to this KEY,
      don't contribute to it a second time.  */
   tem = Fmemq (key, menu_bar_one_keymap_changed_items);
-  if (!NILP (tem))
+  if (!NILP (tem) || NILP (item))
     return;
 
   menu_bar_one_keymap_changed_items
     = Fcons (key, menu_bar_one_keymap_changed_items);
+
+  /* We add to menu_bar_one_keymap_changed_items before doing the
+     parse_menu_item, so that if it turns out it wasn't a menu item,
+     it still correctly hides any further menu item.  */
+  GCPRO1 (key);
+  i = parse_menu_item (item, 0, 1);
+  UNGCPRO;
+  if (!i)
+    return;
 
   item = XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF];
 
