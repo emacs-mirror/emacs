@@ -1,5 +1,7 @@
 2001-12-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* calendar/todo-mode.el: Require time-stamp.
+
 	* net/zone-mode.el (zone-mode): Don't use make-local-hook.
 
 2001-12-11  Richard M. Stallman  <rms@gnu.org>

@@ -1,3 +1,7 @@
+2001-12-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* COPYING: Moved back.
+
 2001-11-30  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (FACE_SUPPORT): 
