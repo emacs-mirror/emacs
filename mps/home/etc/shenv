@@ -1,7 +1,7 @@
-# ==== MM PROJECT ROBOT ENVIRONMENT SETUP ====
-#
-# $Id: etc:shenv,v 1.3 1995/03/23 09:16:53 richard Exp $
-#
+# -*- Mode: Shell-script -*-
+# impl.sh.shenv: MM project robot environment setup
+# $HopeName$
 
 PATH="$HOME/bin:/usr/local/bin:/usr/ucb:/usr/bin:/bin:/usr/ccs/bin" export PATH
+USER=`whoami` export USER
 umask 002
