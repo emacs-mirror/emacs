@@ -340,6 +340,7 @@ case "${srcdir}" in
       srcdir="$PWD"
     else
       srcdir="`(cd ${srcdir}; pwd)`"
+    fi
   ;;
   *  ) srcdir="`(cd ${srcdir}; pwd)`" ;;
 esac
