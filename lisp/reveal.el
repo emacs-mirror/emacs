@@ -61,6 +61,8 @@
 
 ;; Actual code
 
+(defvar reveal-backtrace nil)
+
 (defun reveal-post-command ()
   ;; Refresh the spots that might have changed.
   ;; `Refreshing' here means to try and re-hide the corresponding text.
@@ -107,7 +109,11 @@
 	       (setq repeat t)
 	       (condition-case err
 		   (funcall open ol nil)
-		 (error (message "!!Reveal-show: %s !!" err))))))))
+		 (error (setq reveal-backtrace (backtrace))
+			(message "!!Reveal-show: %s !!" err)
+			;; Let's default to a meaningful behavior to avoid
+			;; getting stuck in an infinite loop.
+			(overlay-put ol 'invisible nil))))))))
      ;; Close old overlays.
      (dolist (ol old-ols)
        (when (and (eq (current-buffer) (overlay-buffer ol))
@@ -128,9 +134,11 @@
 					 (get ol 'isearch-open-invisible-temporary)))))
 		 (condition-case err
 		     (funcall open ol t)
-		   (error (message "!!Reveal-hide: %s !!" err)))
+		   (error (setq reveal-backtrace (backtrace))
+			  (message "!!Reveal-hide: %s !!" err)))
 	       (overlay-put ol 'invisible inv)))))))
-   (error (message "Reveal: %s" err)))))
+   (error (setq reveal-backtrace (backtrace))
+	  (message "Reveal: %s" err)))))
 
 ;;;###autoload
 (define-minor-mode reveal-mode
