@@ -117,7 +117,7 @@ struct specbinding *specpdl;
 
 /* Pointer to first unused element in specpdl.  */
 
-struct specbinding *specpdl_ptr;
+volatile struct specbinding *specpdl_ptr;
 
 /* Maximum size allowed for specpdl allocation */
 
@@ -3070,10 +3070,16 @@ unbind_to (count, value)
 
   while (specpdl_ptr != specpdl + count)
     {
-      --specpdl_ptr;
+      /* Copy the binding, and decrement specpdl_ptr, before we do
+	 the work to unbind it.  We decrement first
+	 so that an error in unbinding won't try to unbind
+	 the same entry again, and we copy the binding first
+	 in case more bindings are made during some of the code we run.  */
 
-      if (specpdl_ptr->func != 0)
-	(*specpdl_ptr->func) (specpdl_ptr->old_value);
+      struct specbinding this_binding = *--specpdl_ptr;
+
+      if (this_binding.func != 0)
+	(*this_binding.func) (this_binding.old_value);
       /* If the symbol is a list, it is really (SYMBOL WHERE
 	 . CURRENT-BUFFER) where WHERE is either nil, a buffer, or a
 	 frame.  If WHERE is a buffer or frame, this indicates we
@@ -3081,29 +3087,29 @@ unbind_to (count, value)
 	 binding.  WHERE nil means that the variable had the default
 	 value when it was bound.  CURRENT-BUFFER is the buffer that
          was current when the variable was bound.  */
-      else if (CONSP (specpdl_ptr->symbol))
+      else if (CONSP (this_binding.symbol))
 	{
 	  Lisp_Object symbol, where;
 
-	  symbol = XCAR (specpdl_ptr->symbol);
-	  where = XCAR (XCDR (specpdl_ptr->symbol));
+	  symbol = XCAR (this_binding.symbol);
+	  where = XCAR (XCDR (this_binding.symbol));
 
 	  if (NILP (where))
-	    Fset_default (symbol, specpdl_ptr->old_value);
+	    Fset_default (symbol, this_binding.old_value);
 	  else if (BUFFERP (where))
-	    set_internal (symbol, specpdl_ptr->old_value, XBUFFER (where), 1);
+	    set_internal (symbol, this_binding.old_value, XBUFFER (where), 1);
 	  else
-	    set_internal (symbol, specpdl_ptr->old_value, NULL, 1);
+	    set_internal (symbol, this_binding.old_value, NULL, 1);
 	}
       else
 	{
 	  /* If variable has a trivial value (no forwarding), we can
 	     just set it.  No need to check for constant symbols here,
 	     since that was already done by specbind.  */
-	  if (!MISCP (SYMBOL_VALUE (specpdl_ptr->symbol)))
-	    SET_SYMBOL_VALUE (specpdl_ptr->symbol, specpdl_ptr->old_value);
+	  if (!MISCP (SYMBOL_VALUE (this_binding.symbol)))
+	    SET_SYMBOL_VALUE (this_binding.symbol, this_binding.old_value);
 	  else
-	    set_internal (specpdl_ptr->symbol, specpdl_ptr->old_value, 0, 1);
+	    set_internal (this_binding.symbol, this_binding.old_value, 0, 1);
 	}
     }
 
