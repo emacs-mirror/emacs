@@ -1,3 +1,8 @@
+2000-11-12  Miles Bader  <miles@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-mode-on): Only output welcome
+	message if interactive.
+
 2000-11-12  Dave Love  <fx@gnu.org>
 
 	* mail/feedmail.el: Fix header,
