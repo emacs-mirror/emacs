@@ -302,7 +302,7 @@ init_dosfns ()
 
   /* Obtain the country code via DPMI, use DJGPP transfer buffer.  */
   dpmiregs.x.ax = 0x3800;
-  dpmiregs.x.ds = xbuf;
+  dpmiregs.x.ds = xbuf >> 4;
   dpmiregs.x.dx = 0;
   dpmiregs.x.ss = dpmiregs.x.sp = dpmiregs.x.flags = 0;
   _go32_dpmi_simulate_int (0x21, &dpmiregs);
