@@ -348,6 +348,12 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.")
 
   if (p == beg)
     return Qnil;
+#ifdef WINDOWSNT
+  /* We can consider the partial UNC name //machine to be a
+     directory name, but not just // on its own. */
+  if (p == beg + 1 && IS_DIRECTORY_SEP (p[-1]))
+    return Qnil;
+#endif
 #ifdef DOS_NT
   /* Expansion of "c:" to drive and default directory.  */
   if (p == beg + 2 && beg[1] == ':')
@@ -1252,9 +1258,14 @@ See also the function `substitute-in-file-name'.")
 
   if (newdir)
     {
-      /* Get rid of any slash at the end of newdir.  */
+      /* Get rid of any slash at the end of newdir, unless newdir is
+       just // (an incomplete UNC name). */
       length = strlen (newdir);
-      if (IS_DIRECTORY_SEP (newdir[length - 1]))
+      if (IS_DIRECTORY_SEP (newdir[length - 1])
+#ifdef WINDOWSNT
+	  && !(length == 2 && IS_DIRECTORY_SEP (newdir[0]))
+#endif
+	  )
 	{
 	  unsigned char *temp = (unsigned char *) alloca (length);
 	  bcopy (newdir, temp, length - 1);
