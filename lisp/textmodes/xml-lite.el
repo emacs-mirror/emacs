@@ -53,9 +53,11 @@
 
 
 ;; Parsing
+
 (defstruct (xml-lite-tag
-            (:constructor xml-lite-make-tag (type start end name name-end)))
-  type start end name name-end)
+            (:constructor xml-lite-make-tag (type start end name)))
+  type start end name)
+
 (defsubst xml-lite-parse-tag-name ()
   "Skip past a tag-name, and return the name."
   (buffer-substring-no-properties
@@ -70,79 +72,44 @@
     (equal s (buffer-substring-no-properties (point) limit))))
 
 (defun xml-lite-parse-tag-backward ()
-  "Get information about the parent tag."
-  (let ((limit (point))
-        tag-type tag-start tag-end name name-end)
-    (with-syntax-table sgml-tag-syntax-table
-      (cond
-
-       ((null (re-search-backward "[<>]" nil t)))
-     
-       ((= ?> (char-after))		;--- found tag-end ---
-	(setq tag-end (1+ (point)))
-	(goto-char tag-end)
-	(cond
-	 ((xml-lite-looking-back-at "--") ; comment
-	  (setq tag-type 'comment
-		tag-start (search-backward "<!--" nil t)))
-	 ((xml-lite-looking-back-at "]]>") ; cdata
-	  (setq tag-type 'cdata
-		tag-start (search-backward "![CDATA[" nil t)))
-	 (t
-	  (setq tag-start (ignore-errors (backward-sexp) (point))))))
-       
-       ((= ?< (char-after))		;--- found tag-start ---
-	;; !!! This should not happen because the caller should be careful
-	;; that we do not start from within a tag !!!
-	(setq tag-start (point))
-	(goto-char (1+ tag-start))
-	(cond
-	 ((xml-lite-looking-at "!--")	; comment
-	  (setq tag-type 'comment
-		tag-end (search-forward "-->" nil t)))
-	 ((xml-lite-looking-at "![CDATA[") ; cdata
-	  (setq tag-type 'cdata
-		tag-end (search-forward "]]>" nil t)))
-	 (t
-	  (goto-char tag-start)
-	  (setq tag-end (ignore-errors (forward-sexp) (point)))))))
-     
-      (cond
-
-       ((or tag-type (null tag-start)))
-     
-       ((= ?! (char-after (1+ tag-start))) ; declaration
-	(setq tag-type 'decl))
-     
-       ((= ?? (char-after (1+ tag-start))) ; processing-instruction
-	(setq tag-type 'pi))
-     
-       ((= ?/ (char-after (1+ tag-start))) ; close-tag
-	(goto-char (+ 2 tag-start))
-	(setq tag-type 'close
-	      name (xml-lite-parse-tag-name)
-	      name-end (point)))
-
-       ((member				; JSP tags etc
-	 (char-after (1+ tag-start))
-	 '(?% ?#))
-	(setq tag-type 'unknown))
-
-       (t
-	(goto-char (1+ tag-start))
-	(setq tag-type 'open
-	      name (xml-lite-parse-tag-name)
-	      name-end (point))
-	;; check whether it's an empty tag
-	(if (or (and tag-end (eq ?/ (char-before (- tag-end 1))))
-		(and (not sgml-xml-mode)
-		     (member-ignore-case name sgml-empty-tags)))
-	    (setq tag-type 'empty))))
-
-      (cond
-       (tag-start
-	(goto-char tag-start)
-	(xml-lite-make-tag tag-type tag-start tag-end name name-end))))))
+  "Parse an SGML tag backward, and return information about the tag.
+Assume that parsing starts from within a textual context.
+Leave point at the beginning of the tag."
+  (let (tag-type tag-start tag-end name)
+    (search-backward ">")
+    (setq tag-end (1+ (point)))
+    (cond
+     ((xml-lite-looking-back-at "--")   ; comment
+      (setq tag-type 'comment
+            tag-start (search-backward "<!--" nil t)))
+     ((xml-lite-looking-back-at "]]")   ; cdata
+      (setq tag-type 'cdata
+            tag-start (search-backward "<![CDATA[" nil t)))
+     (t
+      (setq tag-start
+            (with-syntax-table sgml-tag-syntax-table
+              (goto-char tag-end)
+              (backward-sexp)
+              (point)))
+      (goto-char (1+ tag-start))
+      (case (char-after)
+        (?!                             ; declaration
+         (setq tag-type 'decl))
+        (??                             ; processing-instruction
+         (setq tag-type 'pi))
+        (?/                             ; close-tag
+         (forward-char 1)
+         (setq tag-type 'close
+               name (xml-lite-parse-tag-name)))
+        ((?% ?#)                        ; JSP tags etc
+         (setq tag-type 'unknown))
+        (t                              ; open or empty tag
+         (setq tag-type 'open
+               name (xml-lite-parse-tag-name))
+         (if (eq ?/ (char-before (- tag-end 1)))
+             (setq tag-type 'empty))))))
+    (goto-char tag-start)
+    (xml-lite-make-tag tag-type tag-start tag-end name)))
 
 (defsubst xml-lite-inside-tag-p (tag-info &optional point)
   "Return true if TAG-INFO contains the POINT."
@@ -173,11 +140,10 @@ immediately enclosing the current position."
 	(and (or ignore 
                  (not (if full (eq full 'empty) context))
 		 (not (xml-lite-at-indentation-p))
-		 (and (not sgml-xml-mode) context
+		 (and context
 		      (/= (point) (xml-lite-tag-start (car context)))
-		      (member-ignore-case (xml-lite-tag-name (car context))
-					  sgml-unclosed-tags)))
-	     (setq tag-info (xml-lite-parse-tag-backward)))
+                      (sgml-unclosed-tag-p (xml-lite-tag-name (car context)))))
+	     (setq tag-info (ignore-errors (xml-lite-parse-tag-backward))))
       
       ;; This tag may enclose things we thought were tags.  If so,
       ;; discard them.
@@ -196,9 +162,8 @@ immediately enclosing the current position."
        ((eq (xml-lite-tag-type tag-info) 'open)
 	(cond
 	 ((null ignore)
-	  (if (and (not sgml-xml-mode) context
-		   (member-ignore-case (xml-lite-tag-name tag-info)
-				       sgml-unclosed-tags)
+	  (if (and context
+                   (sgml-unclosed-tag-p (xml-lite-tag-name tag-info))
 		   (eq t (compare-strings
 			  (xml-lite-tag-name tag-info) nil nil
 			  (xml-lite-tag-name (car context)) nil nil t)))
@@ -212,17 +177,14 @@ immediately enclosing the current position."
 	  ;; The open and close tags don't match.
 	  (if (not sgml-xml-mode)
 	      ;; Assume the open tag is simply not closed.
-	      (unless (member-ignore-case (xml-lite-tag-name tag-info)
-					  sgml-unclosed-tags)
+	      (unless (sgml-unclosed-tag-p (xml-lite-tag-name tag-info))
 		(message "Unclosed tag <%s>" (xml-lite-tag-name tag-info)))
 	    (message "Unmatched tags <%s> and </%s>"
 		     (xml-lite-tag-name tag-info) (pop ignore))))))
 
        ;; end-tag
        ((eq (xml-lite-tag-type tag-info) 'close)
-	(if (and (not sgml-xml-mode)
-		 (member-ignore-case (xml-lite-tag-name tag-info)
-				     sgml-empty-tags))
+	(if (sgml-empty-tag-p (xml-lite-tag-name tag-info))
 	    (message "Spurious </%s>: empty tag" (xml-lite-tag-name tag-info))
 	  (push (xml-lite-tag-name tag-info) ignore)))
        ))
