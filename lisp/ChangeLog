@@ -1,3 +1,14 @@
+2000-09-23  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/hideshow.el: Update author email address.
+	Generally, sync w/ maintainer version 5.22.
+
+	(hs-hide-all-non-comment-function): New var.
+	(hs-hide-hook, hs-show-hook, hs-minor-mode): Update docstrings.
+	(hs-hide-all): Use `hs-hide-all-non-comment-function'.
+	(hs-show-region): Delete this command.
+	(hs-minor-mode-map): Change bindings to leave "C-c LETTER" alone.
+
 2000-09-22  Dave Love  <fx@gnu.org>
 
 	* hl-line.el (hl-line-overlay): Don't make it buffer-local.
@@ -17,10 +28,10 @@
 
 2000-09-22  Andre Spiegel  <spiegel@gnu.org>
 
-	* vc.el (vc-switch-backend): Signal an error if the file is not 
+	* vc.el (vc-switch-backend): Signal an error if the file is not
 	registered under the new backend.
 
-	* vc-rcs.el (vc-rcs-checkin): Fix bug that prevented check-in 
+	* vc-rcs.el (vc-rcs-checkin): Fix bug that prevented check-in
 	without explicit revision number.
 
 2000-09-21  Stefan Monnier  <monnier@cs.yale.edu>
@@ -40,14 +51,14 @@
 
 	* startup.el (command-line): If frame was created with a non-zero
 	tool-bar-lines parameter, switch tool-bar-mode on.
-	
+
 	* add-log.el (change-log-date-face, change-log-name-face)
 	(change-log-email-face, change-log-file-face)
 	(change-log-list-face, change-log-conditionals-face)
 	(change-log-function-face, change-log-acknowledgement-face): New
 	faces, inheriting from font-lock faces.
 	(change-log-font-lock-keywords): Use them.
-	
+
 2000-09-21  Dave Love  <fx@gnu.org>
 
 	* progmodes/cperl-mode.el (top-level): Clean up
@@ -88,9 +99,9 @@
 	(vc-rcs-unregister, vc-rcs-receive-file,
 	vc-rcs-set-non-strict-locking): New functions.
 
-	* vc-hooks.el (vc-name): Force correct computation of the value 
+	* vc-hooks.el (vc-name): Force correct computation of the value
 	in case it is missing.
-	
+
 2000-09-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (fancy-splash-tail): Use a different foreground
@@ -239,7 +250,7 @@
 	underlined.
 
 2000-09-19  Richard M. Stallman  <rms@gnu.org>
-	
+
 	* progmodes/sh-script.el (sh-search-word): Rewritten for
 	speed.
 
@@ -268,7 +279,7 @@
 	(fancy-splash-screens): New functions.
 	(command-line-1): If display has a `display' frame parameter, has
 	colors, and we have XPM support, show more fancy splash screens.
-	
+
 2000-09-19  Dave Love  <fx@gnu.org>
 
 	* map-ynp.el (map-y-or-n-p): Check use-dialog-box.  Don't lose
@@ -295,7 +306,7 @@
 	(diff-apply-hunk): Try to jump to the line in the source text
 	corresponding to the position of point in the in the hunk.
 
-	* info.el (Info-title-3-face, Info-title-2-face) 
+	* info.el (Info-title-3-face, Info-title-2-face)
 	(Info-title-1-face): Use face inheritance and relative sizes
 	instead of hard-wiring things.
 
@@ -478,7 +489,7 @@
 	(ansi-color-get-face): Doc change.
 	(ansi-color-make-face): Removed.
 	(ansi-color-for-shell-mode): New option.
-	
+
 2000-09-13  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/quail.el (quail-start-translation): Translate KEY
@@ -593,8 +604,8 @@
 
 2000-09-08  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* vc-sccs.el (vc-sccs-register): 
-	* vc-rcs.el (vc-rcs-register): 
+	* vc-sccs.el (vc-sccs-register):
+	* vc-rcs.el (vc-rcs-register):
 	* vc-cvs.el (vc-cvs-register): Don't clear file's properties.
 	* vc.el (vc-register): Clear file's properties.
 
@@ -643,14 +654,14 @@
 2000-09-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* faces.el (color-values): Doc fix.
-	
+
 	* faces.el (frame-set-background-mode): Use frame-parameter
 	instead of frame-parameters.
 
 	* frame.el (filtered-frame-list): Reduce consing.
-	(frames-on-display-list): Call frame-parameter instead of 
+	(frames-on-display-list): Call frame-parameter instead of
 	frame-parameters.
-	
+
 2000-09-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* language/devan-util.el (devanagari-to-indian-region): In the
@@ -661,7 +672,7 @@
 	* menu-bar.el (menu-bar-update-buffers): Call frame-parameter
 	instead of frame-parameters.
 
-	* faces.el (set-face-attribute): Simplify by calling 
+	* faces.el (set-face-attribute): Simplify by calling
 	internal-set-lisp-face-attribute with FRAME being 0.
 
 	* vc.el: Remove `Id' version control keyword.
@@ -725,10 +736,10 @@
 	(vc-default-merge-news): Removed.  The existence of a merge-news
 	implementation is now checked on caller sites.
 
-	* vc-hooks.el (vc-default-mode-line-string): Removed CVS special 
+	* vc-hooks.el (vc-default-mode-line-string): Removed CVS special
 	case.
 
-	* vc-cvs.el (vc-cvs-mode-line-string): New function, handles the 
+	* vc-cvs.el (vc-cvs-mode-line-string): New function, handles the
 	special case that has been removed from the default in vc-hooks.el.
 
 2000-09-05  Stefan Monnier  <monnier@cs.yale.edu>
@@ -742,18 +753,18 @@
 	macro `with-vc-properties' in vc.el.
 	(vc-file-getprop): Doc fix.
 	(vc-after-save): Call `vc-dired-resynch-file' only if vc is loaded.
-	
+
 	* vc.el: Require dired-aux during compilation.
 	(vc-name-assoc-file): Moved to vc-sccs.el.
 	(with-vc-properties): New macro.
-	(vc-checkin, vc-checkout, vc-revert, vc-cancel-version, 
+	(vc-checkin, vc-checkout, vc-revert, vc-cancel-version,
 	vc-finish-steal): Use it.
 	(vc-cancel-version): Moved RCS-specific code to vc-rcs.el.  The call
 	to the backend-specific function is now supposed to do the checkout,
 	too.
 	(vc-log-edit): Handle FILE being nil and added a FIXME for log-edit.
 
-	* vc-cvs.el (vc-cvs-checkin, vc-cvs-checkout): Don't bother to 
+	* vc-cvs.el (vc-cvs-checkin, vc-cvs-checkout): Don't bother to
 	set file properties; that gets done in the generic code now.
 
 	* vc-rcs.el (vc-rcs-uncheck): Renamed to `vc-rcs-cancel-version'.
@@ -812,7 +823,7 @@
 2000-09-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* vc.el (vc-dired-resynch-file): Add autoload cookie.
-	
+
 	* vc.el (toplevel): Require `dired' at run-time for dired-mode-map.
 
 	* Makefile.in (DONTCOMPILE): Fix typo in file name.
@@ -847,7 +858,7 @@
 
 	* vc-cvs.el (vc-cvs-show-log-entry): New function.
 
-	* vc-hooks.el (vc-default-mode-line-string): Show state 
+	* vc-hooks.el (vc-default-mode-line-string): Show state
 	`needs-patch' as a `-' too.
 
 2000-09-04  Andre Spiegel  <spiegel@gnu.org>
@@ -863,7 +874,7 @@
 	(vc-retrieve-snapshot): Corrected prompt order.
 
 	* vc-hooks.el (vc-after-save): Call vc-dired-resynch-file.
-	
+
 	* vc-cvs.el (vc-cvs-stay-local): Allow it to be a hostname regexp
 	as well.
 	(vc-cvs-remote-p): Renamed to vc-cvs-stay-local-p.  Handle
@@ -872,7 +883,7 @@
 	(vc-cvs-could-register): New function.
 	(vc-cvs-retrieve-snapshot): Parse "cvs update" output, keep file
 	properties up-to-date.
-	
+
 	* vc-rcs.el (vc-rcs-register): If there is no RCS subdir, ask the
 	user whether to create one.
 
@@ -915,7 +926,7 @@
 	(vc-cvs-dir-state-heuristic): New function, subroutine of the above.
 	(vc-cvs-parse-entry): New function, also to be used in
 	vc-cvs-registered.
-	
+
 2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* vc.el (vc-revert-buffer): Hide the frame for dedicated windows
@@ -930,7 +941,7 @@
 
 	* vc-sccs.el (vc-sccs-update-changelog): Dummy implementation that
 	simply signals an error.
-	
+
 2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* vc-cvs.el (vc-cvs-checkout): Slight restructuring to make the
@@ -953,7 +964,7 @@
 
 	* vc-*.el (vc-*-checkout): Switch off coding systems for checkout
 	via stdout. (Merge from main line.)
-	
+
 2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* vc.el (vc-finish-logentry): Thinko in the "same comment"
@@ -2369,7 +2380,7 @@
 
 2000-08-31  Peter Breton  <pbreton@ne.mediaone.net>
 
-	* filecache.el (file-cache-add-directory-using-find): Don't quote 
+	* filecache.el (file-cache-add-directory-using-find): Don't quote
 	wildcards on MS-DOS. Suggested by Eli Zaretskii <eliz@is.elta.co.il>.
 
 2000-08-31  Kenichi Handa  <handa@etl.go.jp>
@@ -2420,7 +2431,7 @@
 
 	* comint.el (comint-send-input): Create overlays using the proper
 	front/read-advance arguments.
-	
+
 2000-08-29  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Even/odd pages printing.  Doc fix.
@@ -2435,7 +2446,7 @@
 	(ebnf-user-arrow): Change variable customization to sexp.
 	(ebnf-user-arrow): Function eliminated.
 	(ebnf-eps-finish-and-write, ebnf-insert-ebnf-prologue): Code fix.
-	
+
 2000-08-29  Kenichi Handa  <handa@etl.go.jp>
 
 	* help.el (help-xref-mule-regexp): New variable.
@@ -2522,9 +2533,9 @@
 	entries (used for group/user name aliasing to multiple IDs) are
 	ignored.
 
-	* eshell/em-xtra.el (eshell/expr): 
-	* eshell/em-unix.el (eshell/du, eshell/cat, eshell/make) 
-	(eshell-grep, eshell/diff, eshell/locate): 
+	* eshell/em-xtra.el (eshell/expr):
+	* eshell/em-unix.el (eshell/du, eshell/cat, eshell/make)
+	(eshell-grep, eshell/diff, eshell/locate):
 	* eshell/em-dirs.el (eshell-dirs-substitute-cd): Flatten the
 	argument list, before passing it to the system command.
 
@@ -2556,8 +2567,8 @@
 	* eshell/esh-mode.el (eshell-mode): Disable auto-fill-function in
 	Eshell buffers.
 
-	* eshell/esh-var.el (eshell-interpolate-variable): 
-	* eshell/esh-mode.el (eshell-move-argument): 
+	* eshell/esh-var.el (eshell-interpolate-variable):
+	* eshell/esh-mode.el (eshell-move-argument):
 	* eshell/em-unix.el (eshell-du-sum-directory):
 	* eshell/em-rebind.el (eshell-delchar-or-maybe-eof):
 	* eshell/em-ls.el (eshell-ls-decorated-name): Use /= instead of
@@ -2573,7 +2584,7 @@
 	Don't convert \n into \0177 in memory.
 	(eshell-read-history, eshell-write-history): Convert \n to \0177,
 	and back again, when reading and writing.
-	
+
 2000-08-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* eshell/esh-util.el (eshell-processp): Added to relieve constant
@@ -2617,7 +2628,7 @@
 	* locate.el (locate): Cleaned up locate command's interactive prompting
 	Thanks to Fran,Ag(Bois_Pinard <pinard@iro.umontreal.ca> for suggestions.
 
-	* filecache.el (file-cache-case-fold-search): New variable 
+	* filecache.el (file-cache-case-fold-search): New variable
 	(file-cache-assoc-function): New variable
 	(file-cache-minibuffer-complete): Use file-cache-assoc-function.
 	Use file-cache-case-fold-search variable
@@ -2739,7 +2750,7 @@
 	* comint.el (comint-output-filter): Compare end of
 	comint-last-output-overlay with the start of the newly inserted
 	text, not the end, when deciding whether to extend it.
-	Set saved-point's insertion type to advance after insertion.  
+	Set saved-point's insertion type to advance after insertion.
 
 	* shell.el (shell-font-lock-keywords): Remove prompt highlighting,
 	since this is now done independently of font-lock mode.
@@ -2753,7 +2764,7 @@
 	(server-buffer-done): If server-kill-new-buffers is t, kill the
 	buffer, unless it was already present before visiting it with
 	Emacs server.
-	
+
 2000-08-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* man.el (Man-init-defvars): Don't reset Man-fontify-manpage-flag,
@@ -2973,7 +2984,7 @@
 
 	* loadhist.el (unload-feature): Typo.
 
-	* finder.el (finder-compile-keywords): 
+	* finder.el (finder-compile-keywords):
 	* cus-dep.el (custom-make-dependencies): Add local-variable settings
 	to the generated file.
 
@@ -2982,8 +2993,8 @@
 
 	* play/landmark.el:
 	* options.el (Edit-options-{set,toggle,t,nil}):
-	* mail/mailabbrev.el (mail-abbrevs-mode): 
-	* textmodes/tex-mode.el (tex-expand-files): 
+	* mail/mailabbrev.el (mail-abbrevs-mode):
+	* textmodes/tex-mode.el (tex-expand-files):
 	* textmodes/outline.el (outline-minor-mode): Don't quote lambda.
 
 	* term/bg-mouse.el (bg-mouse-report): screen-height -> frame-height.
@@ -2991,7 +3002,7 @@
 	* emacs-lisp/ewoc.el (ewoc-locate): Default POS to (point).
 	(ewoc-goto-prev, ewoc-goto-next): Remove arg POS.
 	Allow going past the last element.
-	* pcvs.el (cvs-mode-previous-line, cvs-mode-next-line, cvs-mode-mark) 
+	* pcvs.el (cvs-mode-previous-line, cvs-mode-next-line, cvs-mode-mark)
 	(cvs-mode-unmark-up, cvs-get-marked): Update calls to ewoc.
 	(cvs-mouse-toggle-mark): Don't move point.
 	(cvs-revert-if-needed): Avoid re-eval of local variables and modes.
