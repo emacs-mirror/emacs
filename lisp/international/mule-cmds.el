@@ -2250,6 +2250,7 @@ See also `locale-charset-language-names', `locale-language-names',
       ;; using the translation file that many systems have.
       (when locale-translation-file-name
 	(with-temp-buffer
+	  (set-buffer-multibyte nil)
 	  (insert-file-contents locale-translation-file-name)
 	  (when (re-search-forward
 		 (concat "^" (regexp-quote locale) ":?[ \t]+") nil t)
