@@ -14,7 +14,7 @@
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs.el,v 1.15 2000/11/06 07:17:33 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.16 2000/11/09 12:07:39 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -65,7 +65,6 @@
 ;; - don't return the first (resp last) FI if the cursor is before
 ;;   (resp after) it.
 ;; - allow cvs-confirm-removals to force always confirmation.
-;;   also, use a fancier "temp buffer popup scheme".
 ;; - cvs-checkout should ask for a revision (with completion).
 ;; - removal confirmation should allow specifying another file name.
 ;; 
@@ -1276,7 +1275,7 @@ If FILE is non-nil, directory entries won't be selected."
 
 (defun cvs-enabledp (filter)
   "Determine whether FILTER applies to at least one of the selected files."
-  (cvs-mode-marked filter nil :read-only t :noquery t))
+  (ignore-errors (cvs-mode-marked filter nil :read-only t :noquery t)))
 
 (defun cvs-mode-files (&rest -cvs-mode-files-args)
   (cvs-mode!
@@ -1318,7 +1317,8 @@ The POSTPROC specified there (typically `cvs-edit') is then called,
   (let ((cvs-ignore-marks-modif (cvs-mode-mark-get-modif "commit")))
     (funcall f)))
 
-(defun cvs-commit-filelist () (cvs-mode-files 'commit nil :read-only t :file t))
+(defun cvs-commit-filelist ()
+  (cvs-mode-files 'commit nil :read-only t :file t :noquery t))
 
 (defun cvs-do-commit (flags)
   "Do the actual commit, using the current buffer as the log message."
@@ -1340,9 +1340,10 @@ The POSTPROC specified there (typically `cvs-edit') is then called,
 			 ;; Can't use ignore-errors here because interactive
 			 ;; specs aren't byte-compiled.
 			 (condition-case nil
-			     (expand-file-name
-			      (cvs-fileinfo->dir
-			       (car (cvs-mode-marked nil nil :read-only t))))
+			     (file-name-as-directory
+			      (expand-file-name
+			       (cvs-fileinfo->dir
+				(car (cvs-mode-marked nil nil :read-only t)))))
 			   (error nil)))))
   (cvs-insert-file file))
 
@@ -1415,7 +1416,7 @@ or \"Conflict\" in the *cvs* buffer."
   (let* ((filter 'diff)
 	 (marked (cvs-get-marked (cvs-ignore-marks-p "diff")))
 	 ;;(tins (cvs-filter-applicable filter marked))
-	 (fis (delete-if-not 'cvs-fileinfo->backup-file marked)))
+	 (fis (car (cvs-partition 'cvs-fileinfo->backup-file marked))))
     (unless (consp fis)
       (error "No files with a backup file selected!"))
     ;; let's extract some info into the environment for `buffer-name'
@@ -1846,21 +1847,25 @@ Empty directories are removed."
   "Remove files.
 Returns a list of FIS that should be `cvs remove'd."
   (let* ((files (cvs-mode-marked filter cmd :file t :read-only t))
-	 (fis (delete-if (lambda (fi) (eq (cvs-fileinfo->type fi) 'UNKNOWN))
-			 (cvs-mode-marked filter cmd)))
+	 (fis (cdr (cvs-partition (lambda (fi)
+				    (eq (cvs-fileinfo->type fi) 'UNKNOWN))
+				  (cvs-mode-marked filter cmd))))
 	 (silent (or (not cvs-confirm-removals)
 		     (cvs-every (lambda (fi)
 				  (or (not (file-exists-p
 					    (cvs-fileinfo->full-path fi)))
 				      (cvs-applicable-p fi 'safe-rm)))
-				files))))
+				files)))
+	 (tmpbuf (cvs-temp-buffer)))
     (when (and (not silent) (equal cvs-confirm-removals 'list))
-      (save-excursion
-	(pop-to-buffer (cvs-temp-buffer))
-	(dolist (fi fis)
-	  (insert (cvs-fileinfo->full-path fi) "\n"))))
+      (with-current-buffer tmpbuf
+	(cvs-insert-strings (mapcar 'cvs-fileinfo->full-path fis))
+	(cvs-pop-to-buffer-same-frame (current-buffer))
+	(shrink-window-if-larger-than-buffer)))
     (if (not (or silent
-		 (yes-or-no-p (format "Delete %d files? " (length files)))))
+		 (unwind-protect
+		     (yes-or-no-p (format "Delete %d files? " (length files)))
+		   (cvs-bury-buffer tmpbuf cvs-buffer))))
 	(progn (message "Aborting") nil)
       (dolist (fi files)
 	(let* ((type (cvs-fileinfo->type fi))
