@@ -2206,6 +2206,7 @@ extern Lisp_Object make_buffer_string P_ ((int, int, int));
 extern Lisp_Object make_buffer_string_both P_ ((int, int, int, int, int));
 extern void init_editfns P_ ((void));
 extern void syms_of_editfns P_ ((void));
+EXFUN (Fcurrent_message, 0);
 
 /* defined in buffer.c */
 extern void nsberror P_ ((Lisp_Object));
@@ -2292,6 +2293,7 @@ extern Lisp_Object close_file_unwind P_ ((Lisp_Object));
 extern void report_file_error P_ ((char *, Lisp_Object));
 extern int internal_delete_file P_ ((Lisp_Object));
 extern void syms_of_fileio P_ ((void));
+EXFUN (Fmake_temp_name, 1);
 extern void init_fileio_once P_ ((void));
 
 /* Defined in abbrev.c */
@@ -2545,6 +2547,7 @@ EXFUN (Fdocumentation_property, 3);
 extern Lisp_Object read_doc_string P_ ((Lisp_Object));
 extern Lisp_Object get_doc_string P_ ((Lisp_Object, int, int));
 extern void syms_of_doc P_ ((void));
+extern int read_bytecode_char P_ ((int));
 
 /* defined in bytecode.c */
 extern Lisp_Object Qbytecode;
@@ -2662,6 +2665,7 @@ extern int getloadavg P_ ((double *, int));
 /* Defined in xfns.c */
 extern void x_set_tool_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void syms_of_xfns P_ ((void));
+EXFUN (Fx_hide_busy_cursor, 1);
 extern void init_xfns P_ ((void));
 #endif
 
@@ -2670,6 +2674,9 @@ extern void syms_of_xselect P_ ((void));
 
 /* Defined in xterm.c */
 extern void syms_of_xterm P_ ((void));
+
+/* Defined in getloadavg.c */
+extern int getloadavg P_ ((double [], int));
 
 /* Nonzero means Emacs has already been initialized.
    Used during startup to detect startup of dumped Emacs.  */
