@@ -10276,7 +10276,7 @@ selection dialog's entry field, if MUSTMATCH is non-nil.")
       XmString text;
       String data;
       
-      XtVaGetValues (dialog, XmNtextString, &text, 0);
+      XtVaGetValues (dialog, XmNtextString, &text, NULL);
       XmStringGetLtoR (text, XmFONTLIST_DEFAULT_TAG, &data);
       XmStringFree (text);
       file = build_string (data);
