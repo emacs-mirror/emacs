@@ -1,3 +1,11 @@
+2004-11-16  Juri Linkov  <juri@jurta.org>
+
+	* emacs-lisp/find-func.el (find-function-regexp):
+	Optimize `define-minor-mode'.  Add `defun-cvs-mode'.
+	Add `deffoo'.  Add `f' to [^cgv] to exclude `defface'.
+	Remove invalid `\W' from [^cgv\W].  Doc fix.
+	(find-function-search-for-symbol): Replace "\\>" with "\\_>".
+
 2004-11-15  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* play/life.el: Maintainer is now FSF.
