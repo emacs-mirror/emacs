@@ -59,7 +59,9 @@ current buffer to the complete file name."
 			  (and buffer-file-name
 			       (let (temp (file buffer-file-name))
 				 (while (setq temp (file-symlink-p file))
-				   (setq file temp))
+				   (setq file
+					 (expand-file-name
+					  temp (file-name-directory file))))
 				 (file-name-directory file)))
 			  default-directory)))
   (if (and (eq file-name change-log-default-name)
@@ -74,7 +76,8 @@ current buffer to the complete file name."
     ;; for several related directories.
     (let (temp)
       (while (setq temp (file-symlink-p file-name))
-	(setq file-name temp)))
+	(setq file-name
+	      (expand-file-name temp (file-name-directory file-name)))))
     (setq file-name (expand-file-name file-name))
     ;; Move up in the dir hierarchy till we find a change log file.
     (let ((file1 file-name)
