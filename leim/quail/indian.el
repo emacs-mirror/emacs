@@ -27,12 +27,11 @@
 
 ;; History:
 
-;; 2000.12.12 
-;; Totally re-written from devanagari.el to handle multiple Inidan Scripts.
+;; 2000.12.12
+;; Totally re-written from devanagari.el to handle multiple Indian Scripts.
 
 ;;; Code:
 
-(require 'cl)
 (require 'quail)
 (require 'devan-util)
 (require 'ind-util)
@@ -40,7 +39,7 @@
 (defun quail-indian-preceding-char-position (position)
   "Return the position of preceding composite character."
   (let (prec-composed)
-    (if (char-valid-p (char-before position)) ;; range o.k. 
+    (if (char-valid-p (char-before position)) ;; range o.k.
         (if (setq prec-composed (find-composition (1- position)))
             (car prec-composed)
           (1- position))
@@ -49,10 +48,10 @@
 (defvar quail-indian-update-preceding-char nil)
 (make-variable-frame-local 'quail-indian-update-preceding-char)
 
-;;; update function 
+;;; update function
 
 ;; CONTROL-FLAG is integer (n)
-;;     quail-current-key :: keyboard input.  
+;;     quail-current-key :: keyboard input.
 ;;                          Only first n can be translated.
 ;;     quail-current-string :: corresonding string.  Translated when last
 ;;                             time CONTROL-FLAG is nil.
@@ -79,12 +78,12 @@
     (when (and quail-current-str
                (null input-method-use-echo-area)
                (null input-method-exit-on-first-char)
-               (setq prec-char-position 
+               (setq prec-char-position
                      (quail-indian-preceding-char-position
                       (overlay-start quail-overlay)))
                (setq composition-regexp
-                     (if prec-char-position 
-                         (caar (elt composition-function-table 
+                     (if prec-char-position
+                         (caar (elt composition-function-table
                                     (char-after prec-char-position)))))
                ;; (null quail-indian-update-preceding-char)
                (setq prec-char-str
@@ -103,7 +102,7 @@
   ;; set quail-current-str unless control-flag is number.
   (if (numberp control-flag)
       (setq quail-indian-update-preceding-char nil
-            quail-current-str 
+            quail-current-str
             (if (equal quail-current-str "")
                 (substring quail-current-key 0 control-flag)
               (indian-compose-string quail-current-str))
@@ -133,8 +132,8 @@
   (funcall 'quail-define-package pkgname lang title t doc
 	   nil nil nil nil nil nil t nil
 	   'quail-indian-update-translation)
-  (maphash 
-   '(lambda (key val) 
+  (maphash
+   '(lambda (key val)
       (quail-defrule key (if (= (length val) 1)
 			     (string-to-char val)
 			   (vector val))))
@@ -162,16 +161,16 @@
 ;;; Input by Inscript
 ;;;
 
-(defun flatten-list (lst)
+(defun quail-indian-flatten-list (lst)
   "Flatten the nested LIST so that there would be no innner list."
   (if (listp lst)
-      (apply 'append (mapcar 'flatten-list lst))
+      (apply 'append (mapcar 'quail-indian-flatten-list lst))
     (list lst)))
 
 (defun quail-define-inscript-package (char-table key-table pkgname lang title
 						 docstring)
-  (setq char-table (flatten-list char-table))
-  (setq key-table (flatten-list key-table))
+  (setq char-table (quail-indian-flatten-list char-table))
+  (setq key-table (quail-indian-flatten-list key-table))
   (funcall 'quail-define-package pkgname lang title nil docstring
 	   nil nil nil nil nil nil nil nil
 	   'quail-indian-update-translation
@@ -179,7 +178,7 @@
   (mapcar*
    '(lambda (key val)
       (and key val
-	   (quail-defrule 
+	   (quail-defrule
 	    (if (char-valid-p key) (char-to-string key) key)
 	    (if (stringp val) (vector val) val))))
    key-table char-table))
@@ -194,15 +193,15 @@
      (?| ?\\) (?~ ?`) (?A ?a) (?Q ?q) ("+]" "=]") ("R]" "r]"))
     (;; CONSONANTS (42)
      ?k ?K ?i ?I ?U                ;; GRUTTALS
-     ?\; ?: ?p ?P ?}               ;; PALATALS  
-     ?' ?\" ?\[ ?{ ?C              ;; CEREBRALS 
-     ?l ?L ?o ?O ?v ?V             ;; DENTALS   
-     ?h ?H ?y ?Y ?c                ;; LABIALS   
+     ?\; ?: ?p ?P ?}               ;; PALATALS
+     ?' ?\" ?\[ ?{ ?C              ;; CEREBRALS
+     ?l ?L ?o ?O ?v ?V             ;; DENTALS
+     ?h ?H ?y ?Y ?c                ;; LABIALS
      ?/ ?j ?J ?n ?N "N]" ?b        ;; SEMIVOWELS
-     ?M ?< ?m ?u                   ;; SIBILANTS 
-     "k]" "K]" "i]" "p]" "[]" "{]" "H]" "/]" ;; NUKTAS  
+     ?M ?< ?m ?u                   ;; SIBILANTS
+     "k]" "K]" "i]" "p]" "[]" "{]" "H]" "/]" ;; NUKTAS
      ?% ?&)
-    (;; Misc Symbols (7)  
+    (;; Misc Symbols (7)
      ?X ?x ?_ ">]" ?d "X]" ?>)
     (;; Digits
      ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9)
@@ -210,7 +209,7 @@
      ?# ?$ ?^ ?* ?\])))
 
 ;; (quail-define-package "devanagari-inscript" "Devanagari" "DevIS" t "Devanagari keyboard Inscript")
-(quail-define-inscript-package 
+(quail-define-inscript-package
  indian-dev-base-table inscript-dev-keytable
  "devanagari-inscript" "Devanagari" "DevIS"
  "Devanagari keyboard Inscript.")
