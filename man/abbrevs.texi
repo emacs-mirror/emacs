@@ -19,7 +19,7 @@ to expand the letters in the buffer before point by looking for other
 words in the buffer that start with those letters.  @xref{Dynamic
 Abbrevs}.
 
-The Hippie Expand package generalizes abbreviation expansion.
+`Hippie' expansion generalizes abbreviation expansion.
 @xref{Hippie Expand, `Hippie' Expansion, autotype, Features for
 Automatic Typing}.
 

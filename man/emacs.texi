@@ -105,7 +105,7 @@ Cover art by Etienne Suvasa.
 
 @end titlepage
 @page
-@ifinfo
+@ifnottex
 @node Top, Distrib, (dir), (dir)
 @top The Emacs Editor
 
@@ -114,7 +114,7 @@ display editor.  This Info file describes how to edit with Emacs and
 some of how to customize it; it corresponds to GNU Emacs version 20.4.
 For information on extending Emacs, see @ref{,Emacs Lisp,, elisp, The
 Emacs Lisp Reference Manual}.
-@end ifinfo
+@end ifnottex
 
 @ignore
 These subcategories have been deleted for simplicity
@@ -226,7 +226,7 @@ Advanced Features
 			  "within the command".  This is called a
 			  `recursive editing level'.
 * Emulation::	        Emulating some other editors with Emacs.
-* Hyperlinking::        
+* Hyperlinking::        Following links in buffers.
 * Dissociated Press::   Dissociating text for fun.
 * Amusements::	        Various games and hacks.
 * Customization::       Modifying the behavior of Emacs.

@@ -1,3 +1,16 @@
+2000-08-16  Dave Love  <fx@gnu.org>
+
+	* play/5x5.el: Doc fixes.
+	(5x5) <defgroup>: Add :version.
+
+	* play/fortune.el (fortune) <defgroup>: Add :version.
+	(fortune-append): Fix error message.
+	(fortune-from-region): Doc fix.
+
+	* play/pong.el (pong): Doc fix.
+
+	* play/morse.el: Keywords, commentary, autoloads.
+
 2000-08-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* desktop.el (desktop-save): Don't look at symbol-value of a

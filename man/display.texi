@@ -260,9 +260,10 @@ letter @samp{C}.  Type @kbd{M-x column-number-mode} to toggle this mode.
 @findex display-time
 @cindex time (on mode line)
   Emacs can optionally display the time and system load in all mode
-lines.  To enable this feature, type @kbd{M-x display-time}.  The
-information added to the mode line usually appears after the buffer
-name, before the mode names and their parentheses.  It looks like this:
+lines.  To enable this feature, type @kbd{M-x display-time} or customize
+the option @code{display-time-mode}.  The information added to the mode
+line usually appears after the buffer name, before the mode names and
+their parentheses.  It looks like this:
 
 @example
 @var{hh}:@var{mm}pm @var{l.ll}

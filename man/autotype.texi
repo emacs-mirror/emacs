@@ -570,7 +570,7 @@ list.
 @cindex templates
 The Tempo package provides a simple way to define powerful templates, or
 macros, if you wish.  It is mainly intended for, but not limited to,
-other programmers to be used for creating shortcuts for editing
+programmers to be used for creating shortcuts for editing
 certain kinds of documents.
 
 @findex tempo-backward-mark
