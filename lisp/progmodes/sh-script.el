@@ -1342,7 +1342,8 @@ with your script for an edit-interpret-debug cycle."
 		 ((and buffer-file-name
 		       (string-match "\\.m?spec$" buffer-file-name))
 		  "rpm")))))
-    (sh-set-shell (or interpreter sh-shell-file) nil nil)))
+    (sh-set-shell (or interpreter sh-shell-file) nil nil))
+  (run-hooks 'sh-mode-hook))
 
 ;;;###autoload
 (defalias 'shell-script-mode 'sh-mode)
