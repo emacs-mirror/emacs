@@ -1197,7 +1197,7 @@ command_loop_1 ()
 			   < MODIFF)
 			  || (XFASTINT (XWINDOW (selected_window)->last_point)
 			      != PT)
-			  || MODIFF <= current_buffer->save_modified
+			  || MODIFF <= SAVE_MODIFF
 			  || windows_or_buffers_changed
 			  || !EQ (current_buffer->selective_display, Qnil)
 			  || detect_input_pending ()
