@@ -612,12 +612,12 @@ FORMAT-STRING may contain %-sequences to substitute parts of the time.\n\
 %k is replaced by the hour (0-23), blank padded.\n\
 %l is replaced by the hour (1-12), blank padded.\n\
 %m is replaced by the month (01-12).\n\
-%M is replaced by the minut (00-59).\n\
+%M is replaced by the minute (00-59).\n\
 %n is a synonym for \"\\n\".\n\
 %p is replaced by AM or PM, as appropriate.\n\
 %r is a synonym for \"%I:%M:%S %p\".\n\
 %R is a synonym for \"%H:%M\".\n\
-%S is replaced by the seconds (00-60).\n\
+%S is replaced by the second (00-60).\n\
 %t is a synonym for \"\\t\".\n\
 %T is a synonym for \"%H:%M:%S\".\n\
 %U is replaced by the week of the year (01-52), first day of week is Sunday.\n\
@@ -647,8 +647,10 @@ The number of options reflects the `strftime' function.")
   while (1)
     {
       char *buf = (char *) alloca (size);
+      *buf = 1;
       if (emacs_strftime (buf, size, XSTRING (format_string)->data,
-			  localtime (&value)))
+			  localtime (&value))
+	  || !*buf)
 	return build_string (buf);
       /* If buffer was too small, make it bigger.  */
       size *= 2;
