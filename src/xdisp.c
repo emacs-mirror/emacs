@@ -4978,19 +4978,18 @@ get_next_display_element (it)
 	     the translation.  This could easily be changed but I
 	     don't believe that it is worth doing.
 
-	     If it->multibyte_p is nonzero, eight-bit characters and
-	     non-printable multibyte characters are also translated to
-	     octal form.
+	     If it->multibyte_p is nonzero, non-printable non-ASCII
+	     characters are also translated to octal form.
 
 	     If it->multibyte_p is zero, eight-bit characters that
 	     don't have corresponding multibyte char code are also
 	     translated to octal form.  */
-	  else if ((it->c < ' '
-		    && (it->area != TEXT_AREA
-			|| (it->c != '\n' && it->c != '\t')))
-		   || (it->c != '\n' && it->c != '\t'
-		       && (it->multibyte_p ? !CHAR_PRINTABLE_P (it->c)
-			   : it->c == 127)))
+	  else if ((it->c < ' ' ? (it->area != TEXT_AREA
+				   || (it->c != '\n' && it->c != '\t'))
+		    : it->multibyte_p ? !CHAR_PRINTABLE_P (it->c)
+		    : (it->c >= 127
+		       && (! unibyte_display_via_language_environment
+			   || (UNIBYTE_CHAR_HAS_MULTIBYTE_P (it->c))))))
 	    {
 	      /* IT->c is a control character which must be displayed
 		 either as '\003' or as `^C' where the '\\' and '^'
