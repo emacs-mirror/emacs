@@ -1,7 +1,6 @@
 ;;; mh-utils.el --- mh-e code needed for both sending and reading
-;; Time-stamp: <2001-07-15 09:52:59 pavel>
 
-;; Copyright (C) 1993, 1995, 1997, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 1997, 2000, 2001 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -636,7 +635,7 @@ directory names."
 		  ;; components, then look for lib/mh or mh/lib.
 		  (or (mh-path-search
 		       (mapcar (lambda (p) (expand-file-name p mh-base))
-			       '("lib/mh" "etc/nmh" "/etc/nmh" "mh/lib" "etc"))
+			       '("lib/mh" "etc/nmh" "/etc/nmh" "mh/lib" "etc" "lib"))
 		       "components"
 		       'file-exists-p))))
 	(or (and mh-lib-progs
@@ -644,7 +643,7 @@ directory names."
 	    (setq mh-lib-progs
 		  (or (mh-path-search
 		       (mapcar (lambda (p) (expand-file-name p mh-base))
-			       '("lib/mh" "libexec/nmh" "lib/nmh" "mh/lib"))
+			       '("lib/mh" "libexec/nmh" "lib/nmh" "mh/lib" "lib"))
 		       "mhl")
 		      (mh-path-search '("/usr/local/bin/mh/") "mhl")
 		      (mh-path-search exec-path "mhl") ;unlikely
