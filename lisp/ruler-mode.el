@@ -98,7 +98,7 @@
 
 ;;; History:
 ;;
-
+
 ;;; Code:
 (eval-when-compile
   (require 'wid-edit))
@@ -180,7 +180,7 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
           (character :tag "Character")
           (integer :tag "Integer char value"
                    :validate ruler-mode-character-validate)))
-
+
 (defface ruler-mode-default-face
   '((((type tty))
      (:inherit default
@@ -242,7 +242,7 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
                )))
   "Face used to highlight the `current-column' character."
   :group 'ruler-mode)
-
+
 (defun ruler-mode-mouse-set-left-margin (start-event)
   "Set left margin to the graduation where the mouse pointer is on.
 START-EVENT is the mouse click event."
@@ -302,7 +302,7 @@ START-EVENT is the mouse click event."
                (progn
                  (message "Fill column set to %d (was %d)" fc fill-column)
                  (setq fill-column fc)))))))
-
+
 (defun ruler-mode-mouse-add-tab-stop (start-event)
   "Add a tab stop to the graduation where the mouse pointer is on.
 START-EVENT is the mouse click event."
@@ -357,10 +357,9 @@ START-EVENT is the mouse click event."
 (defun ruler-mode-toggle-show-tab-stops ()
   "Toggle showing of tab stops on the ruler."
   (interactive)
-  (when ruler-mode
-    (setq ruler-mode-show-tab-stops (not ruler-mode-show-tab-stops))
-    (force-mode-line-update)))
-
+  (setq ruler-mode-show-tab-stops (not ruler-mode-show-tab-stops))
+  (force-mode-line-update))
+
 (defvar ruler-mode-map
   (let ((km (make-sparse-keymap)))
     (define-key km [header-line down-mouse-1]
@@ -410,7 +409,7 @@ START-EVENT is the mouse click event."
         (setq header-line-format ruler-mode-header-line-format-old))
     (remove-hook 'post-command-hook     ; remove local hook
                  #'force-mode-line-update t)))
-
+
 ;; Add ruler-mode to the the minor mode menu in the mode line
 (define-key mode-line-mode-menu [ruler-mode]
   `(menu-item "Ruler" ruler-mode
@@ -490,7 +489,7 @@ been changed the function re-computes the result."
            f (list (cons 'vertical-scroll-bars vsb)
                    (cons 'ruler-mode-left-fringe-cols lfc)))))
     (car lfc)))
-
+
 (defun ruler-mode-ruler ()
   "Return a string ruler."
   (if ruler-mode
